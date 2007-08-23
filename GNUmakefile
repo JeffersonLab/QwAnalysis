@@ -1,0 +1,708 @@
+# Makefile for Qweak analysis code : gmake required
+# P. M. King
+# 2006-11-07
+#
+# Modifications:
+#----------------------------------------------------------------------
+# 
+#                    
+#----------------------------------------------------------------------
+
+############################
+############################
+# User's compilation and linkage flags, plus other customization variables :
+############################
+############################
+
+DEBUG :=
+# Add -g if you need to debug (but you'd better
+# first type 'gmake distclean' to enable full
+# recompilation with this flag)
+
+OPTIM  := -O
+# Default, safe, optimization flag understood by most compliers. Set 
+# optmization flag(s) in the architecture dependent sections instead.
+
+DEFAULTADD = $(ADD)
+# Should contain extra flag to pass to the precompiler
+# ADD is a variable you should not set in this Makefile but either
+# in your.cshrc file or from the prompt line when you type
+# "gmake [config] 'ADD=-D__PADDLES'" instead of simply "gmake [config]"
+# Use DEFAULTADD to set extra flags you always want to have for your
+# customized compiling e.g replace above line "DEFAULTADD := $(ADD)" by
+# "DEFAULTADD := $(ADD) -D__PADDLES"
+
+
+############################
+############################
+# Extensions for files :
+# Ought not to be modified, thus your nomenclature should abide by
+# these standards unless everybody agrees on changing them.
+# (Which sure would be painful).
+############################
+############################
+
+ObjSuf  := .o
+SrcSuf  := .C
+ExeSuf  :=
+DllSuf  := .so
+IncSuf  := .h
+
+
+
+############################
+############################
+# Shell commands called :
+# You might have to modify default flags and/or choice of command to port
+# the Makefile.
+############################
+############################
+
+AWK      := awk
+BASENAME := basename
+CAT      := cat
+CD       := cd
+DIRNAME  := dirname
+ECHO     := echo
+FIND     := find
+GCC      := gcc
+      # This must be the GNU compiler collection : explicit use of
+      # flag '-M' for automatic search for dependencies
+      # It is not correlated to $(CXX) and $(LD) which depend on $(ARCH) 
+GREP     := grep
+LS       := ls
+MAKE     := gmake
+RM       := \rm -f
+      # 'rm' is often aliases as 'rm -i', so '\rm' instead
+CP       := \cp
+ROOTCINT := rootcint
+SED      := sed -e
+TOUCH    := touch
+
+
+
+############################
+############################
+# Environment :
+############################
+############################
+
+ifeq ($(QwSHELL),)
+SHELL := bash
+else
+SHELL := $(QwSHELL)
+endif
+      # Warning : Explicit use of statements "for in; do ;done;"
+      # and "if []; then ; fi;
+      # Should be bash shell or alike (ksh on ifarms1)
+ARCH  := $(shell uname)
+      # Operating system
+
+
+
+############################
+############################
+# Modularity :
+############################
+############################
+
+LIBRARYDIRS = coda
+
+ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
+ifneq ($(CODA),)
+ifeq ($(filter %__NOFASTBUS,$(ADD)),)
+EXES := qwanalysis 
+# qwmockdata
+# g0analysis g0root g0acm g0realtime g0realtimemonitor g0ratemonitor makefraserplots g0realtimetrick
+else
+EXES := qwanalysis 
+#  qwmockdata
+# makefraserplots
+endif
+else
+EXES := qwanalysis 
+#  qwmockdata
+# makefraserplots
+endif
+else
+EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
+endif
+ifeq ($(filter config,$(MAKECMDGOALS)),config)
+ifneq ($(CODA),)
+ifeq ($(filter %__NOFASTBUS,$(ADD)),)
+EXES := qwanalysis qwmockdata
+# g0analysis g0root g0acm g0realtime g0realtimemonitor g0ratemonitor makefraserplots g0realtimetrick
+else
+EXES := qwanalysis
+# qwmockdata
+endif
+else
+EXES := qwanalysis 
+# qwmockdata
+endif
+endif
+#overridden by "gmake 'EXES=exe1 exe2 ...'"
+
+ifneq ($(filter qwrealtime,$(EXES)),)
+ifneq ($(filter %__NOFASTBUS,$(ADD)),)
+$(error qwrealtime requires Fastbus)
+# With version 3.77 or earlier of gmake, the message is simply 'missing separator.  Stop.'
+endif
+ifeq ($(CODA),)
+$(error qwrealtime requires CODA)
+# With version 3.77 or earlier of gmake, the message is simply 'missing separator.  Stop.'
+endif
+endif
+
+
+
+############################
+############################
+# Cern ROOT package related variables :
+############################
+############################
+
+ifdef ROOTSYS
+ROOTCFLAGS   := $(shell root-config --cflags)
+ROOTLIBS     := $(shell root-config --new --libs) -lTreePlayer -lProof -lGX11 
+        # -lNew : for map file capability
+        # -lTreePlayer -lProof : for user loops calling tree
+        #                        variables under conditions
+ROOTGLIBS    := $(shell root-config --glibs)
+endif
+ifndef ROOTSYS
+$(error Aborting : ROOTSYS variable is not defined.  Source the SetupFiles/.QwSetup.csh script first.)
+endif
+
+############################
+############################
+# JLab CODA package related variables :
+############################
+############################
+
+ifdef CODA
+CODACFLAGS   := -I$(CODA)/common/include
+CODALIBS     := -L$(CODA)/$(ARCH)/lib -let 
+endif
+CODALIBS     += -L$(QWANALYSIS)/lib -lcoda
+      # -lmyevio : now integrated in our distribution (April 19 2001) ; 
+      # Regenerated if necessary ; I had to rewrite CODA
+      # group's Makefile in $(MYEVIO)
+
+
+
+############################
+############################
+# Qw Paths : 
+# They are set when $(QWANALYSIS)/SetupFiles/.QwSetup.csh (or .bash) 
+# is sourced prior to the call for this Makefile.
+# A priori they won't be modified. They are (don't uncomment) :
+# QWANALYSIS := /home/lenoble/QwAnalysis
+# Not the actual value, but $(MAKE) is run from
+# this directory
+# QWBIN      := $(QWANALYSIS)/bin
+# QWLIB      := $(QWANALYSIS)/lib
+############################
+############################
+#  These next lines check the paths and exit if there is a problem.
+############################
+############################
+
+ifndef QWANALYSIS
+$(error Aborting : QWANALYSIS variable is not defined.  Source the SetupFiles/.QwSetup.csh script first.)
+endif
+ifeq ($(strip $(QWANALYSIS)),)
+$(error Aborting : QWANALYSIS variable is not set.  Source the SetupFiles/.QwSetup.csh script first.)
+endif
+ifneq ($(strip $(QWANALYSIS)),$(strip $(shell pwd)))
+$(error Aborting : QWANALYSIS variable disagrees with the working directory.  Source the SetupFiles/.QwSetup.csh script first.)
+endif
+
+ifneq ($(strip $(QWBIN)),$(strip $(shell $(FIND) $(QWANALYSIS) -name bin)))
+$(error Aborting : QWBIN variable is not set properly  Source the SetupFiles/.QwSetup.csh script first.)
+endif
+
+ifneq ($(strip $(QWLIB)),$(strip $(shell $(FIND) $(QWANALYSIS) -name lib)))
+$(error Aborting : QWLIB variable is not set properly  Source the SetupFiles/.QwSetup.csh script first.)
+endif
+
+
+############################
+############################
+# Platform dependent variables : 
+############################
+############################
+LIBTOOL = $(LD)
+
+ifeq ($(ARCH),Linux)
+
+CXX            := gcc
+CXXFLAGS       := -Wall -fPIC
+OPTIM          := -O2
+LD             = gcc
+LDFLAGS        =
+LDLIBS         = 
+SOFLAGS        = -shared
+
+ROOTCFLAGS   := $(ROOTCFLAGS) -D_REENTRANT
+        # -D_REENTRANT : 'root-config --cflags' gives incomplete result
+        #                on some environment
+
+ROOTLIBS     := $(ROOTLIBS) -lpthread  -lThread
+        # -lpthread : because 'root-config --libs' gives incomplete result
+        #             on gzero and libet.so requires it
+        # -lThread:   Required for compilation on Linux systems with 
+        #             ROOT 4.04/02 or 5.08/00 (first noted by J-S Real 
+        #             on 3FEB2006)
+endif
+
+ifeq ($(ARCH),SunOS)
+CXX            = CC
+CXXFLAGS       = -KPIC
+OPTIM         := -xO2
+LD             = CC
+LDFLAGS        = 
+LDLIBS         = -lm -lposix4  -lsocket -lnsl -lresolv -ldl
+# These flags were suggested by Carl Timmer on 30May2001 to link properly the
+# code on jlabs1
+# 2002Feb07, PMK; transfered the flags from "LDFLAGS" to "LDLIBS".
+SOFLAGS        = -G
+endif
+
+ifeq ($(ARCH),Darwin)
+
+CXX            := gcc-3.3
+CXXFLAGS       := -Wall -fPIC
+OPTIM          := -O2
+LD             = gcc-3.3
+LIBTOOL 	   = libtool
+LDFLAGS        = -bind_at_load
+LDLIBS         = -lSystemStubs
+SOFLAGS        = 
+DllSuf        := .dylib
+
+ROOTCFLAGS   := $(shell root-config --cflags)
+ROOTLIBS     = $(shell root-config --libs) -lTreePlayer -lProof -lGX11 -lpthread -lThread
+# --new give a runtime error on darwin and root 4.04 :
+# <CustomReAlloc2>: passed oldsize 64, should be 0
+# Fatal in <CustomReAlloc2>: storage area overwritten
+# aborting
+
+endif
+
+
+############################
+############################
+# Some set-up for the OpenSSL library use
+############################
+############################
+ifndef OPENSSL_DIR
+  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name openssl)),/usr/include/openssl)
+$(error Aborting : Cannot find the /usr/include/openssl.  Set OPENSSL_DIR to the location of the openssl installation.)
+endif
+#  We should also put a test on the openssl version number here.  
+#
+  OPENSSL_INC  = 
+  OPENSSL_LIBS = -l crypto
+else
+#  We should also put a test on the openssl version number here. 
+# 
+  OPENSSL_INC  = -I${OPENSSL_DIR}/include
+  OPENSSL_LIBS = -L${OPENSSL_DIR}/lib -l crypto
+endif
+
+
+############################
+############################
+# A few fixes : 
+############################
+############################
+
+ifeq ($(strip $(shell $(QWANALYSIS)/SetupFiles/checkrootversion | $(GREP) WARNING | $(SED) 's/\*//g')),WARNING)
+$(error Aborting : ROOT version 3.01/02 or later required)
+# With version 3.77 or earlier of gmake, the message is simply 'missing separator.  Stop.'
+endif
+
+ifeq ($(strip $(shell $(QWANALYSIS)/SetupFiles/checkrootversion | $(GREP) older)),but older than 3.01/06)
+DEFAULTADD += -DTGFILEDIALOG_FIX
+endif
+
+ifeq ($(CXX),)
+$(error $(ARCH) invalid architecture)
+# With version 3.77 or earlier of gmake, the message is simply 'missing separator.  Stop.'
+endif
+
+
+
+############################
+############################
+# Various 'merged' flags for $(CXX) and co : 
+############################
+############################
+
+INCFLAGS =  $(patsubst %,-I%,$(sort $(dir $(shell $(FIND) $(QWANALYSIS) | $(GREP) '\$(IncSuf)' | $(SED) '/\$(IncSuf)./d' | $(FILTER_OUT_TRASH) | $(INTO_RELATIVE_PATH)))))
+# Qw include paths : /SomePath/QwAnalysis/Analysis/include/Foo.h -> -I./Analysis/include/
+
+INCFLAGS += $(OPENSSL_INC) -I./
+# Necessary for dictionary files where include files are quoted with relative
+# path appended (default behaviour for root-cint)
+
+CPPFLAGS = $(INCFLAGS) $(ROOTCFLAGS) $(CODACFLAGS) $(sort $(DEFAULTADD) $(ADD))
+# ADD should be contained in DEFAULTADD, but DEFAULTADD may be tempered with...
+
+CXXFLAGS += $(DEBUG) $(OPTIM)
+
+
+ifneq ($(CXX),CC)
+LDLIBS      += -lstdc++
+LDLIBS      += -lz
+endif
+LIBS =  -L$(QWLIB) -lQw
+LIBS +=  $(ROOTLIBS) $(ROOTGLIBS) $(CODALIBS)
+LIBS +=  $(OPENSSL_LIBS) $(LDLIBS)
+
+
+############################
+############################
+# Miscellaneous
+############################
+############################
+
+TAB   = '	'# <--- This is a tab character, for clarity in rules
+                 # Don't touch !
+
+SPACE = ' '# <--- Space character, for clarity
+
+
+############################
+############################
+# Tricky variables (type 1 to prevent premature interpretation of special
+# characters)
+############################
+############################
+
+FILTER_OUT_TRASH    = $(SED) '/~$$/d' | $(SED) '/\#/d' | $(SED) '/JUNK/d'
+# FILTER_OUT_TRASH pipes stream and filters out '~', '.#' and '#*#'
+# typical editor backup file names
+
+
+INTO_RELATIVE_PATH  = $(SED) 's/\//xxqqqqqxx/g' | $(SED) 's/$(subst /,xxqqqqqxx,$(QWANALYSIS))/./g' | $(SED) 's/xxqqqqqxx/\//g'
+# To be piped in
+# The special meaning of '/' in regular expressions is painful
+# This pipe is a trick to encapsulate the conversion from $(QWANALYSIS) to .
+
+
+APPEND_BIN_PATH  = $(SED) 's/\//xxqqqqqxx/g' | $(SED) 's/\([a-z0-9_]* \)/$(subst /,xxqqqqqxx,$(QWBIN))xxqqqqqxx\1/g' | $(SED) 's/xxqqqqqxx/\//g'
+# To be piped in, all letters to lower already...
+# The special meaning of '/' in regular expressions is painful...
+
+TO_LINE = $(AWK) 'BEGIN {RS="\\"};{print $$0}' | $(AWK) 'BEGIN {RS=" "};{print $$0}'
+
+ADD_ANTISLASH = $(SED) 's/$$/ \\/'
+
+REMOVE_-D = $(SED) 's/-D//g'
+
+FILTER_OUT_FOREIGN_DEPS =  $(SED) 's/^\([A-Za-z_]\)/\.\/\1/' | $(GREP) "\./"
+# To be piped in
+# To filter out non Qw include file names generated by $(GCC) -M
+# Expects paths to be already relative, but preceded by './' : the call
+# to $(SED) corrects potential 'QwROOT/src/Foo.C' into './QwROOT/src/Foo.C'
+# After the 3 $(AWK) calls, all piped in names are on disctinct lines
+# $(GREP) keeps Qw related lines
+
+FILTER_OUT_LIBRARYDIR_DEPS = $(SED) '$(patsubst %,/^.\/%/d;,$(LIBRARYDIRS))'
+
+#PROCESS_GCC_ERROR_MESSAGE =  $(SED) 's/In file/xxqqqqqxx/' | $(AWK) 'BEGIN {RS="qqqxx"};{print $$0}' | $(SED) '/included/d'
+# Obsolete : needed On_ONE_LINE, but incompatible with SunOS
+# To be piped in
+# 'In file' is first words of the error message when $(GCC) -MM failed
+# Encapsulate controled removal of this error message and leaves xxqq tags
+
+
+# ON_ONE_LINE = $(SED) 's/$$/ \\/' | $(SED) ':b;/\\$$/{;N;s/\\\n//;bb;}'
+# Incompatible with 'sed' on SunOS
+# To be piped in
+# Gets everything on one line
+
+
+
+############################
+############################
+# Main targets :
+############################
+############################
+
+export
+
+all: .ADD .EXES .auxDepends
+ifneq ($(strip $(ADD)),)
+	@if [ "$(strip $(sort $(shell $(CAT) .ADD)))" != "$(strip $(sort $(ADD)))" ]; \
+	then \
+	$(ECHO) ; \
+	$(ECHO) \*\*\* ADD options have changed since last config; \
+	$(ECHO) \*\*\* Removing involved object files... ; \
+	$(ECHO) \*\*\* Rerun \'gmake config\' with your new options; \
+	$(ECHO) \*\*\* Then rerun \'gmake\' \(you can omit your new options\); \
+	$(ECHO) ; \
+	for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .ADD),$(ADD)) $(filter-out $(ADD),$(shell $(CAT) .ADD)) | $(REMOVE_-D))); \
+	do \
+	$(RM) `$(GREP) $$wd */*/*$(IncSuf) */*/*$(SrcSuf) | $(SED) 's/^\([A-Za-z0-9\/\._]*\):.*/\1/g;s/\$(IncSuf)/\$(ObjSuf)/g;s/\$(SrcSuf)/\$(ObjSuf)/g'`; \
+	done; \
+	exit 1; \
+	fi
+endif
+ifneq ($(strip $(EXES)),)
+	@if [ "$(strip $(sort $(shell $(CAT) .EXES)))" != "$(strip $(sort $(EXES)))" ]; \
+	then \
+	$(ECHO) ; \
+	$(ECHO) \*\*\* EXES choice has changed since last config; \
+	$(ECHO) \*\*\* Removing involved object files... ; \
+	$(ECHO) \*\*\* Rerun \'gmake config\' with your new options; \
+	$(ECHO) \*\*\* Then rerun \'gmake\' \(you can omit your new options\); \
+	$(ECHO) ; \
+	for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .EXES),$(EXES)) $(filter-out $(EXES),$(shell $(CAT) .EXES)) | $(REMOVE_-D))); \
+	do \
+	$(RM) `$(CAT) .auxDepends | $(SED) "/$$wd/!d;s/.*$$wd: \([A-Za-z0-9\/\._]*\$(ObjSuf)\) .*/\1/"` $(QWLIB)/libQw$(DllSuf); \
+	done; \
+	exit 1; \
+	fi
+endif
+####	@$(MAKE) -f $(MYEVIO)/Makefile libcoda.so
+	@$(MAKE) coda_lib
+#ifneq ($(CODA),)
+#ifneq ($(ARCH),SunOS)
+#	@cd $(VISU);$(MAKE) -f GNUmakefile
+#endif
+#endif
+	@$(MAKE) -f .auxDepends `$(CAT) .auxExeFiles | $(SED) 's/$$/ /g' | $(APPEND_BIN_PATH) | $(INTO_RELATIVE_PATH)`
+
+
+config: .ADD .EXES clean.auxfiles .auxDepends
+	@for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .ADD),$(ADD)) $(filter-out $(ADD),$(shell $(CAT) .ADD)) | $(REMOVE_-D))); \
+	do \
+	$(RM) `$(GREP) $$wd */*/*$(IncSuf) */*/*$(SrcSuf) | $(SED) 's/^\([A-Za-z0-9\/\._]*\):.*/\1/g;s/\$(IncSuf)/\$(ObjSuf)/g;s/\$(SrcSuf)/\$(ObjSuf)/g'`; \
+	done
+	@for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .EXES),$(EXES)) $(filter-out $(EXES),$(shell $(CAT) .EXES)) | $(REMOVE_-D))); \
+	do \
+	cd $(QWBIN);$(RM) `$(LS) $(QWBIN) | $(SED) 's/CVS//g' | $(SED) 's/SunWS_cache//g'` $(QWLIB)/libQw$(DllSuf); \
+	done
+	@$(ECHO) $(ADD)  | $(TO_LINE) > .ADD
+	@$(ECHO) $(EXES)  | $(TO_LINE) > .EXES
+
+coda_lib:
+	cd $(MYEVIO); $(MAKE) libcoda$(DllSuf)
+	$(CP) $(MYEVIO)/libcoda$(DllSuf) $(QWLIB)/libcoda$(DllSuf)
+
+.auxDepends: .auxLibFiles
+	@$(ECHO) Generating .auxLibFiles
+	@$(ECHO) $(QWLIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) > .auxLibFiles
+	@$(ECHO) $(QWLIB)/libQw$(DllSuf): `$(CAT) .auxSrcFiles` `$(CAT) .auxDictFiles` | $(TO_LINE) | $(INTO_RELATIVE_PATH) | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/g' | $(ADD_ANTISLASH) | $(FILTER_OUT_FOREIGN_DEPS) >> .auxDepends
+	@$(ECHO) >> .auxDepends
+	@$(ECHO) $(TAB)$(LIBTOOL) $(SOFLAGS) $(LDFLAGS) '$$^' -o $(QWLIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) >> .auxDepends
+	@$(ECHO) $(TAB)@$(ECHO) >> .auxDepends
+	@$(ECHO) >> .auxDepends
+	@for file in `$(CAT) 2>&1 .auxMainFiles`; \
+	do \
+	$(ECHO) $(QWBIN)/`$(ECHO) $$file | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`: `$(ECHO) $$file | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/'` `$(CAT) .auxLibFiles`  | $(INTO_RELATIVE_PATH) >> .auxDepends; \
+	$(ECHO) $(TAB)$(LD) $(CXXFLAGS) '$$<' $(LIBS) $(LDFLAGS) -o '$$@' | $(INTO_RELATIVE_PATH) >> .auxDepends; \
+	$(ECHO) $(TAB)@$(ECHO) >> .auxDepends; \
+	$(ECHO) >> .auxDepends; \
+	done
+
+
+.auxLibFiles: .auxLinkDefFiles
+	@for file in `$(CAT) 2>&1 .auxDictFiles`; \
+	do \
+	$(ECHO) Writing dependencies for file $$file...; \
+	$(ECHO) $$file | $(SED) 's/\(.*\/\)dictionary\(\/.*\)Dict\$(SrcSuf)/&: \1include\2\$(IncSuf)/' >> .auxDepends; \
+	$(ECHO) $(TAB)@$(ROOTCINT) -f '$$@' -c $(INCFLAGS) $(CODACFLAGS) -DROOTCINTFIX "\`""$(CAT) .auxLinkDefFiles | $(GREP)" '$$<'"\`" >> .auxDepends; \
+	$(ECHO) $(TAB)@$(ECHO) $(ROOTCINT) -f '$$@' -c $(INCFLAGS) $(CODACFLAGS) -DROOTCINTFIX "\`""$(CAT) .auxLinkDefFiles | $(GREP)" '$$<'"\`" >> .auxDepends; \
+	$(ECHO) $(TAB)@$(ECHO) >> .auxDepends; \
+	$(ECHO) >> .auxDepends; \
+	done
+	@for file in `$(CAT) 2>&1 .auxDictFiles | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/'`; \
+	do \
+	$(ECHO) Writing dependencies for file $$file...; \
+	$(ECHO) $$file | $(SED) 's/\(\.[A-Za-z0-9\/_]*\)\$(ObjSuf)/&: \1\$(SrcSuf)/' >> .auxDepends; \
+	$(ECHO) $(TAB)$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o '$$@' -c '$$<' >> .auxDepends; \
+	$(ECHO) $(TAB)@$(ECHO) >> .auxDepends; \
+	$(ECHO) >> .auxDepends; \
+	done
+
+
+.auxLinkDefFiles : .auxDictFiles
+	@$(RM) .tmp1 .tmp2
+	@$(ECHO) Generating $@
+	@$(FIND) $(QWANALYSIS) | $(GREP) '\$(IncSuf)' | $(INTO_RELATIVE_PATH) | $(SED) '/LinkDef/d;/Dict/d;s/\$(IncSuf)//' > .tmp1
+	@$(FIND) $(QWANALYSIS) | $(GREP) LinkDef | $(INTO_RELATIVE_PATH) | $(SED) 's/LinkDef\$(IncSuf)//'> .tmp2
+	@for file in `$(CAT) .tmp1`; \
+	do \
+	if [ "`$(GREP) $$file .tmp2`" != "" ]; \
+	then \
+	$(ECHO) $$file$(IncSuf) $$file\LinkDef$(IncSuf) >> $@; \
+	else \
+	$(ECHO) $$file$(IncSuf) >> $@; \
+	fi; \
+	done
+	@$(RM) .tmp1 .tmp2
+
+
+.auxDictFiles: .auxSrcFiles 
+	@stem () { \
+	$(BASENAME) $$1 | $(SED) 's/\$(SrcSuf)//'; \
+	}; \
+	$(RM) .aux; \
+	for file in `$(CAT) 2>&1 .auxSrcFiles`; \
+	do \
+	$(RM) .tmp; \
+	$(ECHO) Writing dependencies for file $$file...; \
+	$(ECHO) `$(DIRNAME) $$file`/`$(GCC) $(CPPFLAGS) 2>&1 -MM $$file` \
+	| $(TO_LINE) \
+	| $(INTO_RELATIVE_PATH) \
+	| $(ADD_ANTISLASH) \
+	| $(FILTER_OUT_FOREIGN_DEPS) \
+	>> .tmp; \
+	$(CAT) .tmp | $(SED) "s/\.[A-Za-z0-9\/_]*\/$$(stem $$file)\..[: ]*//g;s/\/include\//\/src\//g;s/\$(IncSuf)/\$(SrcSuf)/g;s/\\\//g" >> .aux; \
+	if [ "`$(CAT) .tmp | $(GREP) /In | $(SED) '/In[A-Za-z0-9\/_]/d'`" = "" ]; \
+	then \
+	$(ECHO)  >> .tmp; \
+	$(ECHO) $(TAB)$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o '$$@' -c '$$<' >> .tmp; \
+	$(ECHO) $(TAB)@$(ECHO)>> .tmp; \
+	$(ECHO) >> .tmp; \
+	$(CAT) .tmp | $(INTO_RELATIVE_PATH) >> .auxDepends; \
+	fi; \
+	done; \
+	$(RM) .auxSrcFiles; \
+	$(TOUCH) .auxSrcFiles; \
+	for file in `$(CAT) 2>&1 .aux`; \
+	do \
+	if [ "`$(GREP) $$file .auxSrcFiles`" = "" ]; \
+	then \
+	if [ -f  $$file ]; \
+	then \
+	$(ECHO) $$file | $(FILTER_OUT_LIBRARYDIR_DEPS) >> .auxSrcFiles; \
+	fi; \
+	fi; \
+	done
+	@for file in `$(CAT) 2>&1 .auxSrcFiles`; \
+	do \
+	$(RM) .tmp; \
+	$(ECHO) Writing dependencies for file $$file...; \
+	$(ECHO) `$(DIRNAME) $$file`/`$(GCC) $(CPPFLAGS) 2>&1 -MM $$file` \
+	| $(TO_LINE) \
+	| $(INTO_RELATIVE_PATH) \
+	| $(ADD_ANTISLASH) \
+	| $(FILTER_OUT_FOREIGN_DEPS) \
+	>> .tmp; \
+	if [ "`$(CAT) .tmp | $(GREP) /In | $(SED) '/In[A-Za-z0-9\/_]/d'`" = "" ]; \
+	then \
+	$(ECHO)  >> .tmp; \
+	$(ECHO) $(TAB)$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o '$$@' -c '$$<' >> .tmp; \
+	$(ECHO) $(TAB)@$(ECHO)>> .tmp; \
+	$(ECHO) >> .tmp; \
+	$(CAT) .tmp | $(INTO_RELATIVE_PATH) >> .auxDepends; \
+	fi; \
+	done;
+	@$(RM) .tmp .aux
+	@$(ECHO) Generating .auxDictFiles
+	@$(RM) .auxDictFiles
+	@$(TOUCH) .auxDictFiles
+	@for file in `$(CAT) .auxDepends | $(SED) '/:/!d;s/\(.*\):\(.*\)/\1/;s/\$(ObjSuf)/\$(SrcSuf)/'`; \
+	do \
+	if [ "`$(GREP) 'ClassImp' $$file | $(SED) '/^ClassImp/!d;s/\(^ClassImp(\)\(.*\)\()\)/\2/'`" != "" ]; \
+	then \
+	$(ECHO) $$file | $(SED) 's/\(.*\/\)src\(\/.*\)\$(SrcSuf)/\1dictionary\2Dict\$(SrcSuf)/' | $(INTO_RELATIVE_PATH) >> .auxDictFiles; \
+	fi; \
+	done
+
+
+
+.auxSrcFiles: .auxExeFiles 
+	@$(ECHO) Generating $@
+	@for file in $(shell $(FIND) $(QWANALYSIS) | $(SED) '/\/main\//!d;/CVS/d;/\$(SrcSuf)/!d' | $(FILTER_OUT_TRASH)); \
+	do \
+	case `$(ECHO) $$file | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'` in ${foreach exe,$(shell $(CAT) $<),$(exe) ${shell ${ECHO} ")"} $(ECHO) $$file | $(INTO_RELATIVE_PATH) >> $@;;} \
+	esac; \
+	done
+	@$(CAT) .auxSrcFiles > .auxMainFiles
+
+
+.auxExeFiles:
+	@$(ECHO) Generating $@
+	@$(ECHO) $(filter $(shell $(FIND) $(QWANALYSIS) | $(SED) '/\/main\//!d;/CVS/d;/\$(SrcSuf)/!d' | $(FILTER_OUT_TRASH) | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'),$(EXES)) > $@
+
+
+.ADD:
+	@$(ECHO) $(ADD)  | $(TO_LINE) > .ADD
+
+.EXES:
+	@$(ECHO) $(EXES)  | $(TO_LINE) > .EXES
+
+
+
+############################
+############################
+# Specific clean targets :
+############################
+############################
+
+clean.auxfiles:
+# Removes auxiliary config files
+	@$(ECHO) Removing '.aux*' files	
+	@$(RM) .aux*
+
+
+clean.dictfiles:
+# Removes all dict files '*Dict*'
+	@$(ECHO) Removing *Dict$(SrcSuf), *Dict$(IncSuf) files
+	@$(RM) `$(FIND) $(QWANALYSIS) | $(GREP) 'Dict\$(SrcSuf)' | $(SED) '/\$(SrcSuf)./d'`
+	@$(RM) `$(FIND) $(QWANALYSIS) | $(GREP) 'Dict\$(IncSuf)' | $(SED) '/\$(IncSuf)./d'`
+
+
+clean.libs:
+# Removes libraries
+	@$(ECHO) Removing '*$(DllSuf)' files
+	@$(RM) $(QWLIB)/lib*$(DllSuf)
+
+
+clean:
+# Removes all object files, '*~', '#*#' and '.#*' files
+	@$(ECHO) Removing '*$(ObjSuf)' files
+	@$(RM) `$(FIND) $(QWANALYSIS) | $(GREP) '\$(ObjSuf)' | $(SED) '/\$(ObjSuf)./d'`
+	@$(ECHO) Removing *~, "#*#, .#*" files
+	@$(RM) `$(FIND) $(QWANALYSIS) | $(GREP) '~'`
+	@$(RM) `$(FIND) $(QWANALYSIS) | $(GREP) '#'`
+
+clean.exes:
+# Removes executables
+	@$(ECHO) Removing executables
+	@$(RM) `$(ECHO) $(QWBIN)/* | $(SED) 's/[A-Za-z0-9\/_]*CVS//'`
+
+clean.olddotfiles:
+	@$(RM) .dirs .libdepend .libdepend2 .exedepend .exedepend2 .mains .dictdepend .exes .objdepend .dicts .incdirs .srcdirs $(SETUP)/.MapFileBaseAddress
+
+
+
+cleanSunWS_cache :
+	@$(RM) -r $(filter %SunWS_cache/,$(sort $(dir $(shell $(FIND) $(QWANALYSIS)))))
+	@$(RM) -r $(filter %SunWS_cache,$(sort $(shell $(FIND) $(QWANALYSIS))))
+
+
+distclean: cleanSunWS_cache clean.dictfiles clean clean.libs clean.exes clean.auxfiles clean.olddotfiles 
+# Removes all files that can be regenerated
+	@$(RM) .ADD .EXES
+
+
+
+############################
+############################
+# Built-in targets :
+############################
+############################
+
+.PHONY : clean clean.dictfiles clean.exes clean.libs distclean clean.auxfiles config all clean.olddotfiles cleanSunWS_cache
+
+.SUFFIXES :
+.SUFFIXES : $(SrcSuf) $(IncSuf) $(ObjSuf)
+
+

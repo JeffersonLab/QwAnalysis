@@ -1,0 +1,57 @@
+#*****************************************************************************
+#                         QWEAK environment configuration
+#
+#******************************************************************************
+#              ********** Expects cshell and alike !!! **********
+#******************************************************************************
+#
+# Author :   P. M. King (pking@jlab.org)
+# Date :     07 November 2006
+#
+# 
+#******************************************************************************
+
+# Main QWEAK directories :
+unsetenv QW_ROOTFILES_DIR
+unsetenv QW_TMP_DIR
+unsetenv QWLIB
+unsetenv QWBIN
+unsetenv MYEVIO
+
+setenv QW_ROOTFILES_DIR  ${QWSCRATCH}/rootfiles
+setenv QW_TMP_DIR        ${QWSCRATCH}/tmp
+setenv QWLIB             ${QWANALYSIS}/lib
+setenv QWBIN             ${QWANALYSIS}/bin
+setenv MYEVIO            ${QWANALYSIS}/coda
+
+
+# Searching paths for binaries :
+if ($?PATH) then
+   setenv PATH  ${QWANALYSIS}/bin:${ROOTSYS}/bin:${PATH}
+else
+   setenv PATH  ${QWANALYSIS}/bin:${ROOTSYS}/bin
+endif
+
+
+
+# Searching paths for linker :
+if ($?LD_LIBRARY_PATH) then
+   setenv LD_LIBRARY_PATH  ${QWANALYSIS}/lib:${LD_LIBRARY_PATH}:${ROOTSYS}/lib:${X11}/lib
+else
+   setenv LD_LIBRARY_PATH  ${QWANALYSIS}/lib:${ROOTSYS}/lib:${X11}/lib
+endif
+
+# QWSHELL
+if (-f /bin/bash) then
+  setenv QWSHELL bash
+else if (-f /bin/ksh) then
+  setenv QWSHELL ksh
+else
+  echo \*\*\* WARNING : couldn\'t find either bash or ksh on system
+  echo '    ' --'>' NO MODULARITY : use \'gmake -f Makefile\' instead
+endif
+endif
+
+
+rehash
+

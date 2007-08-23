@@ -1,0 +1,178 @@
+#include "MCodaControlEvent.h"
+
+
+MCodaControlEvent::MCodaControlEvent(){
+  ResetControlParameters();
+};
+
+MCodaControlEvent::~MCodaControlEvent() { };
+
+void MCodaControlEvent::ResetControlParameters()
+{
+  fFoundControlEvents = kFALSE;
+  fPrestartTime  = 0;
+  fRunNumber     = 0;
+  fRunType       = 0;
+  fEndTime       = 0;
+  fEndEventCount = 0;
+  fNumberPause   = 0;
+  fPauseTime.clear();
+  fPauseEventCount.clear();
+  fNumberGo      = 0;
+  fGoTime.clear();
+  fGoEventCount.clear();
+  fStartTime     = 0;
+  fPrestartDatime.Set(0);
+  fStartDatime.Set(0);
+  fEndDatime.Set(0);
+};
+
+void MCodaControlEvent::ProcessControlEvent(UInt_t evtype, UInt_t* buffer){
+  UInt_t local_time;
+  UInt_t local_evcount;
+
+  local_time      = buffer[0];
+  local_evcount   = buffer[2];
+  if (evtype==kSYNC_EVENT){
+    UInt_t local_status = buffer[1];
+    ProcessSync(local_time, local_status);
+  } else if (evtype==kPRESTART_EVENT){
+    UInt_t local_runnumber = buffer[1];
+    UInt_t local_runtype   = buffer[2];
+    ProcessPrestart(local_time, local_runnumber, local_runtype);
+  } else if (evtype==kGO_EVENT){
+    ProcessGo(local_time, local_evcount);
+  } else if (evtype==kPAUSE_EVENT){
+    ProcessPause(local_time, local_evcount);
+  } else if (evtype==kEND_EVENT){
+    ProcessEnd(local_time, local_evcount);
+  } else {
+    //  This isn't a control event.
+    //  Do nothing.
+  }
+};
+
+
+void MCodaControlEvent::ProcessSync(UInt_t local_time, UInt_t statuscode)
+{
+  fFoundControlEvents = kTRUE;
+  // To be implemented...
+};
+
+
+void MCodaControlEvent::ProcessPrestart(UInt_t local_time, UInt_t local_runnumber,
+				     UInt_t local_runtype)
+{
+  fFoundControlEvents = kTRUE;
+  //
+  fPrestartTime = local_time;
+  fRunNumber    = local_runnumber;
+  fRunType      = local_runtype;
+  fPrestartDatime.Set(fPrestartTime);
+};
+
+void MCodaControlEvent::ProcessPause(UInt_t local_time, UInt_t evt_count)
+{
+  fFoundControlEvents = kTRUE;
+  //
+  fNumberPause++;
+  fPauseEventCount.push_back(evt_count);
+  fPauseTime.push_back(local_time);
+};
+
+void MCodaControlEvent::ProcessGo(UInt_t local_time, UInt_t evt_count)
+{
+  fFoundControlEvents = kTRUE;
+  //
+  fNumberGo++;
+  fGoEventCount.push_back(evt_count);
+  fGoTime.push_back(local_time);
+  if (fNumberGo == 1){
+    fStartTime = fGoTime[0];
+    fStartDatime.Set(fStartTime);
+  }
+};
+
+void MCodaControlEvent::ProcessEnd(UInt_t local_time, UInt_t evt_count)
+{
+  fFoundControlEvents = kTRUE;
+  //
+  fEndTime       = local_time;
+  fEndEventCount = evt_count;
+  fEndDatime.Set(fEndTime);
+};
+
+
+UInt_t MCodaControlEvent::GetGoTime(int index)
+{
+  if (index>=0 && index<(Int_t)fNumberGo) return fGoTime[index];
+  return 0;
+};
+
+UInt_t MCodaControlEvent::GetGoEventCount(int index)
+{
+  if (index>=0 && index<(Int_t)fNumberGo) return fGoEventCount[index];
+  return 0;
+};
+
+UInt_t MCodaControlEvent::GetPauseTime(int index)
+{
+  if (index>=0 && index<(Int_t)fNumberPause) return fPauseTime[index];
+  return 0;
+};
+
+UInt_t MCodaControlEvent::GetPauseEventCount(int index)
+{
+  if (index>=0 && index<(Int_t)fNumberPause) return fPauseEventCount[index];
+  return 0;
+};
+
+
+TString MCodaControlEvent::GetStartSQLTime()
+{
+  return fStartDatime.AsSQLString();
+};
+
+TString MCodaControlEvent::GetEndSQLTime()
+{
+  return fEndDatime.AsSQLString();
+};
+
+
+void MCodaControlEvent::ReportRunSummary()
+{
+  if (fFoundControlEvents){
+    //  At least one control event has been found.
+    //  Report the control event data we did find.
+    Int_t i;
+    std::cout << "Run Number:         " << fRunNumber << std::endl;
+    std::cout << "Run Type:           " << fRunType << std::endl;
+    std::cout << "Total Events:       " << fEndEventCount << std::endl;
+    std::cout << "PreStart Time:      " << fPrestartTime << std::endl;
+    std::cout << "Start Time:         " << fStartTime << std::endl;
+    std::cout << "End Time:           " << fEndTime << std::endl;
+    std::cout << "Run Duration (sec): " << fEndTime-fStartTime << std::endl;
+    std::cout << "SQL-Formatted Start Time: " << GetStartSQLTime()
+	      << std::endl; 
+    std::cout << "SQL-Formatted End Time:   " << GetEndSQLTime()
+	      << std::endl; 
+    std::cout << "Number of Pauses during this run: " << fNumberPause 
+	      << std::endl;
+    for (i=0; i<(Int_t)fNumberPause; i++) {
+      std::cout << "Pause Number: " << i
+		<<"; Events so far: " << fPauseEventCount[i] 
+		<< "; Runtime since start (sec): " 
+		<< fPauseTime[i]-fStartTime;
+      if ((Int_t)fNumberGo > i+1){
+	std::cout << "; Duration of Pause (sec): " 
+		  << fGoTime[i+1]-fPauseTime[i]
+		  << std::endl;
+      }else {
+	std::cout << std::endl;
+      }
+    }
+  }
+}
+
+
+
