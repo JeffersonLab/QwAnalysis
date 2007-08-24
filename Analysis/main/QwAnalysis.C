@@ -1,3 +1,11 @@
+///  Qweak Analysis Framework
+
+///  Each subsystem will have a class derived from "VQwSubsystem",
+///  and will be responsible for decoding of it's own data stream
+///  and any special event processing required.
+///  Each susbsytem will also own the histograms and ntupling 
+///  functions used for its data.
+
 /*  ------------
     
 */
