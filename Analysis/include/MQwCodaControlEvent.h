@@ -1,5 +1,5 @@
-#ifndef __MCODACONTROLEVENT__
-#define __MCODACONTROLEVENT__
+#ifndef __MQWCODACONTROLEVENT__
+#define __MQWCODACONTROLEVENT__
 
 #include <vector>
 #include <iostream>
@@ -7,11 +7,11 @@
 #include <TDatime.h>
 #include <TString.h>
 
-class MCodaControlEvent
+class MQwCodaControlEvent
 {
  public:
-  MCodaControlEvent();
-  ~MCodaControlEvent();
+  MQwCodaControlEvent();
+  ~MQwCodaControlEvent();
 
   void ResetControlParameters();
   void ProcessControlEvent(UInt_t evtype, UInt_t* buffer);

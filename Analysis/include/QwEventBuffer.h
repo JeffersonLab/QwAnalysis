@@ -1,5 +1,5 @@
 /**********************************************************\
-* File: TQwEventBuffer.h                                    *
+* File: QwEventBuffer.h                                    *
 *                                                          *
 * Author: P. M. King                                       *
 * Time-stamp: <2007-05-08 15:40>                           *
@@ -14,7 +14,7 @@
 #include "TString.h"
 
 #include "THaCodaData.h"
-#include "MCodaControlEvent.h"
+#include "MQwCodaControlEvent.h"
 
 #include "VQwSubsystem.h"
 
@@ -22,15 +22,15 @@
 
 
 
-class TQwEventBuffer: public MCodaControlEvent{
+class QwEventBuffer: public MQwCodaControlEvent{
  public:
   static const Int_t kRunNotSegmented;
   static const Int_t kNoNextDataFile;
   static const Int_t kFileHandleNotConfigured;
 
  public:
-  TQwEventBuffer();
-  virtual ~TQwEventBuffer() { if (fEvStream!=NULL){
+  QwEventBuffer();
+  virtual ~QwEventBuffer() { if (fEvStream!=NULL){
     delete fEvStream;
     fEvStream = NULL;
   }};

@@ -1,5 +1,5 @@
 /**********************************************************\
-* File: TQwDriftChamber.h                              *
+* File: QwDriftChamber.h                              *
 *                                                          *
 * Author: P. M. King                                       *
 * Time-stamp: <2007-05-08 15:40>                           *
@@ -24,15 +24,15 @@
 #include "MQwF1TDC.h"
 
 
-class TQwDriftChamber: public VQwSubsystem, public MQwF1TDC{
+class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
   /******************************************************************
-   *  Class: TQwDriftChamber
+   *  Class: QwDriftChamber
    *
    *
    ******************************************************************/
  public:
-  TQwDriftChamber(TString region_tmp);
-  ~TQwDriftChamber() {
+  QwDriftChamber(TString region_tmp);
+  ~QwDriftChamber() {
     DeleteHistograms();
   };
 
@@ -123,7 +123,7 @@ class TQwDriftChamber: public VQwSubsystem, public MQwF1TDC{
   TH2F *TOFW[13];
   TH2F *HitsWire[13];
 
-  //  ClassDef(TQwDriftChamber,2);
+  //  ClassDef(QwDriftChamber,2);
 };
 
 #endif

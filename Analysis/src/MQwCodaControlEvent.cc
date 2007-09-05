@@ -1,13 +1,13 @@
-#include "MCodaControlEvent.h"
+#include "MQwCodaControlEvent.h"
 
 
-MCodaControlEvent::MCodaControlEvent(){
+MQwCodaControlEvent::MQwCodaControlEvent(){
   ResetControlParameters();
 };
 
-MCodaControlEvent::~MCodaControlEvent() { };
+MQwCodaControlEvent::~MQwCodaControlEvent() { };
 
-void MCodaControlEvent::ResetControlParameters()
+void MQwCodaControlEvent::ResetControlParameters()
 {
   fFoundControlEvents = kFALSE;
   fPrestartTime  = 0;
@@ -27,7 +27,7 @@ void MCodaControlEvent::ResetControlParameters()
   fEndDatime.Set(0);
 };
 
-void MCodaControlEvent::ProcessControlEvent(UInt_t evtype, UInt_t* buffer){
+void MQwCodaControlEvent::ProcessControlEvent(UInt_t evtype, UInt_t* buffer){
   UInt_t local_time;
   UInt_t local_evcount;
 
@@ -53,14 +53,14 @@ void MCodaControlEvent::ProcessControlEvent(UInt_t evtype, UInt_t* buffer){
 };
 
 
-void MCodaControlEvent::ProcessSync(UInt_t local_time, UInt_t statuscode)
+void MQwCodaControlEvent::ProcessSync(UInt_t local_time, UInt_t statuscode)
 {
   fFoundControlEvents = kTRUE;
   // To be implemented...
 };
 
 
-void MCodaControlEvent::ProcessPrestart(UInt_t local_time, UInt_t local_runnumber,
+void MQwCodaControlEvent::ProcessPrestart(UInt_t local_time, UInt_t local_runnumber,
 				     UInt_t local_runtype)
 {
   fFoundControlEvents = kTRUE;
@@ -71,7 +71,7 @@ void MCodaControlEvent::ProcessPrestart(UInt_t local_time, UInt_t local_runnumbe
   fPrestartDatime.Set(fPrestartTime);
 };
 
-void MCodaControlEvent::ProcessPause(UInt_t local_time, UInt_t evt_count)
+void MQwCodaControlEvent::ProcessPause(UInt_t local_time, UInt_t evt_count)
 {
   fFoundControlEvents = kTRUE;
   //
@@ -80,7 +80,7 @@ void MCodaControlEvent::ProcessPause(UInt_t local_time, UInt_t evt_count)
   fPauseTime.push_back(local_time);
 };
 
-void MCodaControlEvent::ProcessGo(UInt_t local_time, UInt_t evt_count)
+void MQwCodaControlEvent::ProcessGo(UInt_t local_time, UInt_t evt_count)
 {
   fFoundControlEvents = kTRUE;
   //
@@ -93,7 +93,7 @@ void MCodaControlEvent::ProcessGo(UInt_t local_time, UInt_t evt_count)
   }
 };
 
-void MCodaControlEvent::ProcessEnd(UInt_t local_time, UInt_t evt_count)
+void MQwCodaControlEvent::ProcessEnd(UInt_t local_time, UInt_t evt_count)
 {
   fFoundControlEvents = kTRUE;
   //
@@ -103,43 +103,43 @@ void MCodaControlEvent::ProcessEnd(UInt_t local_time, UInt_t evt_count)
 };
 
 
-UInt_t MCodaControlEvent::GetGoTime(int index)
+UInt_t MQwCodaControlEvent::GetGoTime(int index)
 {
   if (index>=0 && index<(Int_t)fNumberGo) return fGoTime[index];
   return 0;
 };
 
-UInt_t MCodaControlEvent::GetGoEventCount(int index)
+UInt_t MQwCodaControlEvent::GetGoEventCount(int index)
 {
   if (index>=0 && index<(Int_t)fNumberGo) return fGoEventCount[index];
   return 0;
 };
 
-UInt_t MCodaControlEvent::GetPauseTime(int index)
+UInt_t MQwCodaControlEvent::GetPauseTime(int index)
 {
   if (index>=0 && index<(Int_t)fNumberPause) return fPauseTime[index];
   return 0;
 };
 
-UInt_t MCodaControlEvent::GetPauseEventCount(int index)
+UInt_t MQwCodaControlEvent::GetPauseEventCount(int index)
 {
   if (index>=0 && index<(Int_t)fNumberPause) return fPauseEventCount[index];
   return 0;
 };
 
 
-TString MCodaControlEvent::GetStartSQLTime()
+TString MQwCodaControlEvent::GetStartSQLTime()
 {
   return fStartDatime.AsSQLString();
 };
 
-TString MCodaControlEvent::GetEndSQLTime()
+TString MQwCodaControlEvent::GetEndSQLTime()
 {
   return fEndDatime.AsSQLString();
 };
 
 
-void MCodaControlEvent::ReportRunSummary()
+void MQwCodaControlEvent::ReportRunSummary()
 {
   if (fFoundControlEvents){
     //  At least one control event has been found.

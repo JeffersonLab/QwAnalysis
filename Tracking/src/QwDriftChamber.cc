@@ -1,35 +1,35 @@
 /**********************************************************\
-* File: TQwDriftChamber.C                                   *
+* File: QwDriftChamber.C                                   *
 *                                                          *
 * Author: P. M. King                                       *
 * Time-stamp: <2007-05-08 15:40>                           *
 \**********************************************************/
 
-#include "TQwDriftChamber.h"
+#include "QwDriftChamber.h"
 
 
 
-#include "TParameterFile.h"
+#include "QwParameterFile.h"
 
 Int_t OK = 0;
 
-const UInt_t TQwDriftChamber::kMaxNumberOfTDCsPerROC = 21;
-const UInt_t TQwDriftChamber::kMaxNumberOfChannelsPerTDC = 64;
+const UInt_t QwDriftChamber::kMaxNumberOfTDCsPerROC = 21;
+const UInt_t QwDriftChamber::kMaxNumberOfChannelsPerTDC = 64;
 
-const UInt_t TQwDriftChamber::kReferenceChannelPlaneNumber = 99;
+const UInt_t QwDriftChamber::kReferenceChannelPlaneNumber = 99;
 
-TQwDriftChamber::TQwDriftChamber(TString region_tmp):fDEBUG(kFALSE),fNumberOfTDCs(0)
+QwDriftChamber::QwDriftChamber(TString region_tmp):fDEBUG(kFALSE),fNumberOfTDCs(0)
 {
 region = region_tmp;
 };
 
 
-Int_t TQwDriftChamber::LoadChannelMap(TString mapfile){
+Int_t QwDriftChamber::LoadChannelMap(TString mapfile){
   TString varname, varvalue;
   UInt_t  chan, plane, wire;
   size_t numchannels = 0;
 
-  TParameterFile mapstr(mapfile.Data());  //Open the file
+  QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
@@ -83,7 +83,7 @@ Int_t TQwDriftChamber::LoadChannelMap(TString mapfile){
   return OK;
 };
 
-void  TQwDriftChamber::ClearEventData()
+void  QwDriftChamber::ClearEventData()
 {
   for (size_t i=0; i<fWireData.size(); i++){
     for (size_t j=0; j<fWireData.at(i).size(); j++){
@@ -96,7 +96,7 @@ void  TQwDriftChamber::ClearEventData()
 };
 
 
-void  TQwDriftChamber::ReportConfiguration(){
+void  QwDriftChamber::ReportConfiguration(){
   for (size_t i = 0; i<fROC_IDs.size(); i++){
     for (size_t j=0; j<fBank_IDs.at(i).size(); j++){
       Int_t ind = GetSubbankIndex(fROC_IDs.at(i),fBank_IDs.at(i).at(j));
@@ -122,12 +122,12 @@ void  TQwDriftChamber::ReportConfiguration(){
   }
 };
 
-Int_t TQwDriftChamber::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words){
+Int_t QwDriftChamber::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words){
   Int_t index = GetSubbankIndex(roc_id,bank_id);
   
   if (index>=0 && num_words>0){
     //  We want to process this ROC.  Begin looping through the data.
-    if (fDEBUG) std::cout << "TQwDriftChamber::ProcessEvBuffer:  "
+    if (fDEBUG) std::cout << "QwDriftChamber::ProcessEvBuffer:  "
 			  << "Begin processing ROC" << roc_id << std::endl;
     for(size_t i=0; i<num_words ; i++){
       //  Decode this word as a F1TDC word.
@@ -153,7 +153,7 @@ Int_t TQwDriftChamber::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* bu
 			 GetF1Data());
 	}
 	catch (std::exception& e) {
-	  std::cerr << "Standard exception from TQwDriftChamber::FillRawTDCWord: " 
+	  std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: " 
 		    << e.what() << std::endl;
 	  Int_t chan = GetF1ChannelNumber();
 	  std::cerr << "   Parameters:  index=="<<index
@@ -178,7 +178,7 @@ Int_t TQwDriftChamber::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* bu
 };
 
 
-void  TQwDriftChamber::ConstructHistograms(TDirectory *folder)
+void  QwDriftChamber::ConstructHistograms(TDirectory *folder)
 {
   //  If we have defined a subdirectory in the ROOT file, then change into it.
   if (folder != NULL) folder->cd();
@@ -233,11 +233,11 @@ for (size_t i=1;i<fWiresPerPlane.size();i++)
 };
 
 
-void  TQwDriftChamber::FillHistograms()
+void  QwDriftChamber::FillHistograms()
 {
   //   //  This is a dumb check to see if we enter this routine.
   //   if (fWireData.at(1).at(45).size()>0){
-  //     std::cout << "TQwDriftChamber::FillHistograms()  "
+  //     std::cout << "QwDriftChamber::FillHistograms()  "
   // 	      << "fWireData.at(1).at(45).size()=="
   // 	      << fWireData.at(1).at(45).size()
   // 	      << "; fWireData.at(1).at(45).at(0)=="
@@ -317,7 +317,7 @@ for (size_t p=1; p<fWiresPerPlane.size(); p++)
 ////////////////////////////////////////////////////////        
 };
 
-void  TQwDriftChamber::DeleteHistograms()
+void  QwDriftChamber::DeleteHistograms()
 {
   //  Run the destructors for all of the histogram object pointers.
 
@@ -367,7 +367,7 @@ for (size_t i=1;i<fWiresPerPlane.size();i++)
 ////////////////////////////////////////////////////////
 };
 
-void  TQwDriftChamber::SubtractReferenceTimes()
+void  QwDriftChamber::SubtractReferenceTimes()
 {
   Bool_t refs_okay = kTRUE;
   std::vector<Double_t> reftimes;
@@ -399,7 +399,7 @@ void  TQwDriftChamber::SubtractReferenceTimes()
 
 
 
-void  TQwDriftChamber::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data)
+void  QwDriftChamber::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data)
 {
   Int_t tdcindex = GetTDCIndex(bank_index,slot_num);
   if (tdcindex != -1){
@@ -417,7 +417,7 @@ void  TQwDriftChamber::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t ch
 };
 
 
-void TQwDriftChamber::ClearAllBankRegistrations(){
+void QwDriftChamber::ClearAllBankRegistrations(){
   VQwSubsystem::ClearAllBankRegistrations();
   fTDC_Index.clear();
   fTDCPtrs.clear();
@@ -425,7 +425,7 @@ void TQwDriftChamber::ClearAllBankRegistrations(){
   fNumberOfTDCs = 0;
 }
 
-Int_t TQwDriftChamber::RegisterROCNumber(const UInt_t roc_id){
+Int_t QwDriftChamber::RegisterROCNumber(const UInt_t roc_id){
   VQwSubsystem::RegisterROCNumber(roc_id, 0);
   fCurrentBankIndex = GetSubbankIndex(roc_id, 0);
   if (fReferenceChannels.size()<=fCurrentBankIndex){
@@ -437,7 +437,7 @@ Int_t TQwDriftChamber::RegisterROCNumber(const UInt_t roc_id){
   return fCurrentBankIndex;
 };
 
-Int_t TQwDriftChamber::RegisterSlotNumber(UInt_t slot_id){
+Int_t QwDriftChamber::RegisterSlotNumber(UInt_t slot_id){
   if (slot_id<kMaxNumberOfTDCsPerROC){
     if (fCurrentBankIndex>=0 && fCurrentBankIndex<=fTDC_Index.size()){
       std::pair<Int_t, Int_t> tmppair;
@@ -451,14 +451,14 @@ Int_t TQwDriftChamber::RegisterSlotNumber(UInt_t slot_id){
       fCurrentTDCIndex = fNumberOfTDCs-1;
     }
   } else {
-    std::cerr << "TQwDriftChamber::RegisterSlotNumber:  Slot number "
+    std::cerr << "QwDriftChamber::RegisterSlotNumber:  Slot number "
 	      << slot_id << " is larger than the number of slots per ROC, "
 	      << kMaxNumberOfTDCsPerROC << std::endl;
   }
   return fCurrentTDCIndex;
 };
 
-Int_t TQwDriftChamber::LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire){
+Int_t QwDriftChamber::LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire){
   fReferenceChannels.at(fCurrentBankIndex).first  = fCurrentTDCIndex;
   fReferenceChannels.at(fCurrentBankIndex).second = chan;
   //  Register a reference channel with the wire equal to the bank index.
@@ -467,7 +467,7 @@ Int_t TQwDriftChamber::LinkReferenceChannel(const UInt_t chan, const UInt_t plan
   return OK;
 };
 
-Int_t TQwDriftChamber::LinkChannelToWire(const UInt_t chan, const UInt_t plane, const Int_t wire){
+Int_t QwDriftChamber::LinkChannelToWire(const UInt_t chan, const UInt_t plane, const Int_t wire){
   if (plane == kReferenceChannelPlaneNumber){
     LinkReferenceChannel(chan, plane, wire);
   } else {
@@ -483,7 +483,7 @@ Int_t TQwDriftChamber::LinkChannelToWire(const UInt_t chan, const UInt_t plane, 
   return OK;
 };
 
-Int_t TQwDriftChamber::GetTDCIndex(size_t bank_index, size_t slot_num) const {
+Int_t QwDriftChamber::GetTDCIndex(size_t bank_index, size_t slot_num) const {
   Int_t tdcindex = -1;
   if (bank_index>=0 && bank_index<fTDC_Index.size()){
     if (slot_num>=0 && slot_num<fTDC_Index.at(bank_index).size()){

@@ -1,16 +1,16 @@
-#include "TQwEventBuffer.h"
+#include "QwEventBuffer.h"
 
 #include <vector>
 #include <glob.h>
 
 #include "THaCodaFile.h"
 
-const Int_t TQwEventBuffer::kRunNotSegmented = -20;
-const Int_t TQwEventBuffer::kNoNextDataFile  = -30;
-const Int_t TQwEventBuffer::kFileHandleNotConfigured  = -40;
+const Int_t QwEventBuffer::kRunNotSegmented = -20;
+const Int_t QwEventBuffer::kNoNextDataFile  = -30;
+const Int_t QwEventBuffer::kFileHandleNotConfigured  = -40;
 
 
-TQwEventBuffer::TQwEventBuffer():fDEBUG(kFALSE),fDataFileStem("QwRun_"),
+QwEventBuffer::QwEventBuffer():fDEBUG(kFALSE),fDataFileStem("QwRun_"),
 			       fDataFileExtension("log"),
 			       fRunIsSegmented(kFALSE),
 			       fEvStreamMode(fEvStreamNull),
@@ -18,7 +18,7 @@ TQwEventBuffer::TQwEventBuffer():fDEBUG(kFALSE),fDataFileStem("QwRun_"),
 {
   fDataDirectory = getenv("DATADIR");
   if (fDataDirectory.Length() == 0){
-    std::cerr << "ERROR:  Can't get the data directory in the TQwEventBuffer creator."
+    std::cerr << "ERROR:  Can't get the data directory in the QwEventBuffer creator."
 	      << std::endl;
   } else if (! fDataDirectory.EndsWith("/")) {
       fDataDirectory.Append("/");
@@ -26,7 +26,7 @@ TQwEventBuffer::TQwEventBuffer():fDEBUG(kFALSE),fDataFileStem("QwRun_"),
 };
 
 
-Int_t TQwEventBuffer::GetEvent()
+Int_t QwEventBuffer::GetEvent()
 {
   Int_t status = kFileHandleNotConfigured;
   ResetFlags();
@@ -39,7 +39,7 @@ Int_t TQwEventBuffer::GetEvent()
 }
   
 
-Int_t TQwEventBuffer::GetFileEvent(){
+Int_t QwEventBuffer::GetFileEvent(){
   Int_t status = CODA_OK;
   //  Try to get a new event.  If the EOF occurs,
   //  and the run is segmented, try to open the
@@ -60,17 +60,17 @@ Int_t TQwEventBuffer::GetFileEvent(){
   return status;
 };
 
-Int_t TQwEventBuffer::GetEtEvent(){
+Int_t QwEventBuffer::GetEtEvent(){
   Int_t status = CODA_OK;
   return status;
 };
 
 
-void TQwEventBuffer::ResetFlags(){
+void QwEventBuffer::ResetFlags(){
 };
 
 
-void TQwEventBuffer::DecodeEventIDBank(UInt_t *buffer)
+void QwEventBuffer::DecodeEventIDBank(UInt_t *buffer)
 {
   UInt_t local_datatype;
   UInt_t local_eventtype;
@@ -149,7 +149,7 @@ void TQwEventBuffer::DecodeEventIDBank(UInt_t *buffer)
 };
 
 
-Bool_t TQwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> subsystems){
+Bool_t QwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> subsystems){
   //
   Bool_t okay;
   //  Clear the old event information from the subsystems.
@@ -164,7 +164,7 @@ Bool_t TQwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> subsystems){
     //  If this bank has further subbanks, restart the loop.
     if (fSubbankType == 0x10) continue;
     if (fDEBUG) {
-      std::cerr << "TQwEventBuffer::FillSubsystemData:  "
+      std::cerr << "QwEventBuffer::FillSubsystemData:  "
 		<< "Beginning loop: fWordsSoFar=="<<fWordsSoFar
 		<<std::endl;    
     }
@@ -187,7 +187,7 @@ Bool_t TQwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> subsystems){
     }
     fWordsSoFar += fFragLength;
     if (fDEBUG) {
-      std::cerr << "TQwEventBuffer::FillSubsystemData:  "
+      std::cerr << "QwEventBuffer::FillSubsystemData:  "
 		<< "Ending loop: fWordsSoFar=="<<fWordsSoFar
 		<<std::endl;    
     }
@@ -195,7 +195,7 @@ Bool_t TQwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> subsystems){
   return okay;
 };
 
-Bool_t TQwEventBuffer::DecodeSubbankHeader(UInt_t *buffer){
+Bool_t QwEventBuffer::DecodeSubbankHeader(UInt_t *buffer){
   //  This function will decode the header information from
   //  either a ROC bank or a subbank.  It will also bump
   //  fWordsSoFar to be referring to the first word of
@@ -236,7 +236,7 @@ Bool_t TQwEventBuffer::DecodeSubbankHeader(UInt_t *buffer){
 
 
 
-const TString&  TQwEventBuffer::DataFile(const UInt_t run, const Short_t seg = -1)
+const TString&  QwEventBuffer::DataFile(const UInt_t run, const Short_t seg = -1)
 {
   TString basename = fDataFileStem + Form("%ld.",run) + fDataFileExtension;
   if(seg == -1){
@@ -250,7 +250,7 @@ const TString&  TQwEventBuffer::DataFile(const UInt_t run, const Short_t seg = -
 
 
 
-Bool_t TQwEventBuffer::DataFileIsSegmented()
+Bool_t QwEventBuffer::DataFileIsSegmented()
 {
   glob_t globbuf;
 
@@ -334,7 +334,7 @@ Bool_t TQwEventBuffer::DataFileIsSegmented()
 
 //------------------------------------------------------------
 
-void TQwEventBuffer::CloseThisSegment()
+void QwEventBuffer::CloseThisSegment()
 {
   Int_t last_runsegment;
   if (fRunIsSegmented){
@@ -352,7 +352,7 @@ void TQwEventBuffer::CloseThisSegment()
 
 //------------------------------------------------------------
 
-Int_t TQwEventBuffer::OpenNextSegment()
+Int_t QwEventBuffer::OpenNextSegment()
 {
   Int_t status;
 
@@ -372,7 +372,7 @@ Int_t TQwEventBuffer::OpenNextSegment()
     std::cout << "There are no run segments remaining."<<std::endl;
     status = kNoNextDataFile;
   } else {
-    std::cerr << "TQwEventBuffer::OpenNextSegment(): Unrecognized error" << std::endl;
+    std::cerr << "QwEventBuffer::OpenNextSegment(): Unrecognized error" << std::endl;
     status = CODA_ERROR;
   }
   return status;
@@ -381,7 +381,7 @@ Int_t TQwEventBuffer::OpenNextSegment()
 
 //------------------------------------------------------------
 //call this routine if we've selected the run segment by hand
-Int_t TQwEventBuffer::OpenDataFile(UInt_t current_run, Short_t seg)
+Int_t QwEventBuffer::OpenDataFile(UInt_t current_run, Short_t seg)
 {
   fRunSegments.clear();
   fRunIsSegmented = kTRUE;
@@ -393,7 +393,7 @@ Int_t TQwEventBuffer::OpenDataFile(UInt_t current_run, Short_t seg)
 
 //------------------------------------------------------------
 //call this routine if the run is not segmented
-Int_t TQwEventBuffer::OpenDataFile(UInt_t current_run)
+Int_t QwEventBuffer::OpenDataFile(UInt_t current_run)
 {
   Int_t status;
   fRunNumber = current_run;
@@ -409,18 +409,18 @@ Int_t TQwEventBuffer::OpenDataFile(UInt_t current_run)
 
 
 //------------------------------------------------------------
-Int_t TQwEventBuffer::OpenDataFile(const TString filename, const TString rw = "R")
+Int_t QwEventBuffer::OpenDataFile(const TString filename, const TString rw = "R")
 {
   if (fEvStreamMode==fEvStreamNull){
     if (fDEBUG){
-      std::cerr << "TQwEventBuffer::OpenDataFile:  File handle doesn't exist.\n"
+      std::cerr << "QwEventBuffer::OpenDataFile:  File handle doesn't exist.\n"
 		<< "                              Try to open a new file handle!"
 		<< std::endl;
     }
     fEvStream = new THaCodaFile();
     fEvStreamMode = fEvStreamFile;
   } else if (fEvStreamMode!=fEvStreamFile){
-    std::cerr << "TQwEventBuffer::OpenDataFile:  The stream is not configured as an input\n"
+    std::cerr << "QwEventBuffer::OpenDataFile:  The stream is not configured as an input\n"
 	      << "                              file stream!  Can't deal with this!\n"
 	      << std::endl;
     exit(1);
@@ -432,7 +432,7 @@ Int_t TQwEventBuffer::OpenDataFile(const TString filename, const TString rw = "R
 
 
 //------------------------------------------------------------
-Int_t TQwEventBuffer::CloseDataFile()
+Int_t QwEventBuffer::CloseDataFile()
 {
   Int_t status = kFileHandleNotConfigured;
   if (fEvStreamMode==fEvStreamFile){

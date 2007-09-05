@@ -43,7 +43,7 @@ DEFAULTADD = $(ADD)
 ############################
 
 ObjSuf  := .o
-SrcSuf  := .C
+SrcSuf  := .cc
 ExeSuf  :=
 DllSuf  := .so
 IncSuf  := .h

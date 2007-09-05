@@ -20,10 +20,10 @@
 #include "TStopwatch.h"
 
 
-#include "TQwEventBuffer.h"
+#include "QwEventBuffer.h"
 
 #include "VQwSubsystem.h"
-#include "TQwDriftChamber.h"
+#include "QwDriftChamber.h"
 
 
 

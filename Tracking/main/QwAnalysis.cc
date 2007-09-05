@@ -29,14 +29,14 @@ int main(Int_t argc,Char_t* argv[])
 
   TFile *rootfile;
 
-  TQwEventBuffer QwEvt;
+  QwEventBuffer QwEvt;
   
   std::vector<VQwSubsystem*> QwDetectors;
 
   QwDetectors.resize(2,NULL);  // QwDetectors[0]==GEM, QwDetectors[1]==Region2
-  QwDetectors.at(1) = new TQwDriftChamber("R1");
+  QwDetectors.at(1) = new QwDriftChamber("R1");
   TString mapfile = TString(getenv("QWANALYSIS")) 
-    + "/Analysis/prminput/gzero_wc.map";
+    + "/Tracking/prminput/gzero_wc.map";
   QwDetectors.at(1)->LoadChannelMap(mapfile);
 
 
