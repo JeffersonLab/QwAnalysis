@@ -23,9 +23,11 @@ int main(Int_t argc,Char_t* argv[])
   if (getenv("DISPLAY")==NULL
       ||getenv("JOB_ID")!=NULL) kInQwBatchMode = kTRUE;
   gROOT->SetBatch(kTRUE);
-
   
   TStopwatch timer;
+
+  QwCommandLine cmdline;
+  cmdline.Parse(argc, argv);
 
   TFile *rootfile;
 
@@ -40,18 +42,26 @@ int main(Int_t argc,Char_t* argv[])
   QwDetectors.at(1)->LoadChannelMap(mapfile);
 
 
-  //  for(Run run = io->FirstRun(); run <= io->LastRun(); run++){
-  Int_t run = 62310;
-  Int_t firstevent = 1;
-  Int_t lastevent  = 50000;  // Run 62310 has over 5,241,000 events.
-  {
+  for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++){
+    //   Int_t run = 62310;
+    //   Int_t firstevent = 1;
+    //   Int_t lastevent  = 50000;  // Run 62310 has over 5,241,000 events.
+
     //  Begin processing for the first run.
     //  Start the timer.
     timer.Start();
 
-    //  Set an internal run number.
-    //    QwEvt.OpenDataFile("/group/qweak/mockup/CODA_Output.dat","r");
-    QwEvt.OpenDataFile(run);
+    //  Try to open the data file.
+    if (QwEvt.OpenDataFile(run) != CODA_OK){
+      //  The data file can't be opened.
+      //  Get ready to process the next run.
+      std::cerr << "ERROR:  Unable to find data files for run "
+		<< run << ".  Moving to the next run.\n" 
+		<< std::endl;
+      timer.Stop();
+      continue;
+    }
+
     QwEvt.ResetControlParameters();
 
     //     //  Configure database access mode, and load the calibrations
@@ -81,8 +91,8 @@ int main(Int_t argc,Char_t* argv[])
       if (! QwEvt.IsPhysicsEvent()) continue;
       
       //  Check to see if we want to process this event.
-      if (QwEvt.GetEventNumber() < firstevent) continue;
-      else if (QwEvt.GetEventNumber() > lastevent) break;
+      if (QwEvt.GetEventNumber() < cmdline.GetFirstEvent()) continue;
+      else if (QwEvt.GetEventNumber() > cmdline.GetLastEvent()) break;
 
       if(QwEvt.GetEventNumber()%1000==0) {
 	std::cerr << "Number of events processed so far: " 
@@ -182,7 +192,9 @@ int main(Int_t argc,Char_t* argv[])
 
 void PrintInfo(TStopwatch& timer)
 {
-  std::cout << "CPU time used:  "  << timer.CpuTime() << " s" << std::endl;
-  std::cout << "Real time used: " << timer.RealTime() << " s" << std::endl;
+  std::cout << "CPU time used:  "  << timer.CpuTime() << " s" 
+	    << std::endl
+	    << "Real time used: " << timer.RealTime() << " s" 
+	    << std::endl << std::endl;
   return;
 }

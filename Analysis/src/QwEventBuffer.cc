@@ -278,8 +278,9 @@ Bool_t QwEventBuffer::DataFileIsSegmented()
   } else {
     /* The base file name does not exist.                       *
      * Look for file segments.                                  */
-    std::cerr << "WARN: File " << fDataFile
-         << " does not exist!\nTrying to find run segments...  ";
+    std::cerr << "WARN: File " << fDataFile << " does not exist!\n"
+	      << "      Trying to find run segments for run "
+	      << fRunNumber << "...  ";
 
     searchpath.Append(".[0-9]*");
     glob(searchpath.Data(), GLOB_ERR, NULL, &globbuf);
@@ -287,9 +288,11 @@ Bool_t QwEventBuffer::DataFileIsSegmented()
     if (globbuf.gl_pathc == 0){
       /* There are no file segments and no base file            *
        * Produce and error message and exit.                    */
-      std::cerr << "\nThere are no file segments either!!  Exiting!" << std::endl;
+      std::cerr << "\n      There are no file segments either!!" << std::endl;
       globfree(&globbuf);
-      exit(1);
+      //  Don't exit.
+      //      exit(1);
+      fRunIsSegmented = kTRUE;
     } else {
       /* There are file segments.                               *
        * Determine the segment numbers and fill fRunSegments    *
@@ -312,7 +315,7 @@ Bool_t QwEventBuffer::DataFileIsSegmented()
                   kFALSE);
       /*  Put the segments into numerical order in              *
        *  fRunSegments.                                         */
-      std::cout << "Found the segment(s): ";
+      std::cout << "      Found the segment(s): ";
       for (size_t iloop=0; iloop<tmp_segments.size(); ++iloop){
         local_segment = tmp_segments[local_index[iloop]];
         fRunSegments.push_back(local_segment);
@@ -358,10 +361,16 @@ Int_t QwEventBuffer::OpenNextSegment()
 
   if (! fRunIsSegmented){
     /*  We are processing a non-segmented run.            *
-     *  We should not hve entered this routine, but       *
+     *  We should not have entered this routine, but      *
      *  since we are here, don't do anything.             */
     status = kRunNotSegmented;
     
+  } else if (fRunSegments.size()==0){
+    /*  There are actually no file segments located.      *
+     *  Return "kNoNextDataFile", but don't print an      *
+     *  error message.                                    */
+    status = kNoNextDataFile;
+
   } else if (this_runsegment >= fRunSegments.begin() &&
       this_runsegment <  fRunSegments.end() ) {
     std::cout << "Trying to open run segment " << *this_runsegment <<std::endl;
@@ -371,6 +380,7 @@ Int_t QwEventBuffer::OpenNextSegment()
     /*  We have reached the last run segment. */
     std::cout << "There are no run segments remaining."<<std::endl;
     status = kNoNextDataFile;
+
   } else {
     std::cerr << "QwEventBuffer::OpenNextSegment(): Unrecognized error" << std::endl;
     status = CODA_ERROR;

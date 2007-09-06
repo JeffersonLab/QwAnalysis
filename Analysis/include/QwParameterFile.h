@@ -5,8 +5,8 @@
 * Time-stamp: <2007-05-08 15:40>                           *
 \**********************************************************/
 
-#ifndef __TQWPARAMETERFILE__
-#define __TQWPARAMETERFILE__
+#ifndef __QWPARAMETERFILE__
+#define __QWPARAMETERFILE__
 
 #include <iostream>
 #include <fstream>

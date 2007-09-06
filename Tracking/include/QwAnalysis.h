@@ -13,12 +13,13 @@
 #include <fstream>
 #include <vector>
 #include <new>
-#include "Rtypes.h"    // ROOT header, defines ints, floats, .. in a platform independent way
 
-#include "TROOT.h"
-#include "TFile.h"
-#include "TStopwatch.h"
+#include <Rtypes.h>
+#include <TROOT.h>
+#include <TFile.h>
+#include <TStopwatch.h>
 
+#include "QwCommandLine.h"
 
 #include "QwEventBuffer.h"
 

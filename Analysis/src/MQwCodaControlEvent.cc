@@ -147,11 +147,14 @@ void MQwCodaControlEvent::ReportRunSummary()
     Int_t i;
     std::cout << "Run Number:         " << fRunNumber << std::endl;
     std::cout << "Run Type:           " << fRunType << std::endl;
-    std::cout << "Total Events:       " << fEndEventCount << std::endl;
     std::cout << "PreStart Time:      " << fPrestartTime << std::endl;
     std::cout << "Start Time:         " << fStartTime << std::endl;
     std::cout << "End Time:           " << fEndTime << std::endl;
-    std::cout << "Run Duration (sec): " << fEndTime-fStartTime << std::endl;
+    std::cout << "End Event Counter:  " << fEndEventCount << std::endl;
+    if (fEndTime>0 && fStartTime>0)
+      std::cout << "Run Duration (sec): " << fEndTime-fStartTime << std::endl;
+    else
+      std::cout << "Run Duration (sec): " << "n/a" << std::endl;
     std::cout << "SQL-Formatted Start Time: " << GetStartSQLTime()
 	      << std::endl; 
     std::cout << "SQL-Formatted End Time:   " << GetEndSQLTime()
