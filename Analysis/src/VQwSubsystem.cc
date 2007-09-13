@@ -41,7 +41,7 @@ Int_t VQwSubsystem::GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) c
 };
 
 Int_t VQwSubsystem::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id = 0){
-  Int_t stat;
+  Int_t stat = 0;
   Int_t roc_index = FindIndex(fROC_IDs, roc_id);
   if (roc_index==-1){
     fROC_IDs.push_back(roc_id);
@@ -68,4 +68,20 @@ Int_t VQwSubsystem::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id 
     fCurrentBank_ID   = -1;
   }
   return stat;
-}
+};
+
+Int_t VQwSubsystem::RegisterSubbank(const UInt_t bank_id){
+  Int_t stat = 0;
+  if (fCurrentROC_ID != -1){
+    stat = RegisterROCNumber(fROC_IDs.at(fCurrentROC_ID), bank_id);
+  } else {
+    //  There is not a ROC registered yet!
+    std::cerr << "VQwSubsystem::RegisterSubbank:  This subbank ("
+	      << bank_id << ") does not have an associated ROC!  "
+	      << "Add a 'ROC=#' line to the map file.\n";
+    stat = ERROR;
+    fCurrentROC_ID  = -1;
+    fCurrentBank_ID = -1;
+  }
+  return stat;
+};

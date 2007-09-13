@@ -26,7 +26,10 @@
 #include "VQwSubsystem.h"
 #include "QwDriftChamber.h"
 
+#include "QwHistogramHelper.h"
 
+///  Globally defined instance of the QwHistogramHelper class.
+QwHistogramHelper gQwHists;
 
 void PrintInfo(TStopwatch& timer);
 

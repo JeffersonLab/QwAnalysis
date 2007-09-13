@@ -9,6 +9,8 @@ const Int_t QwEventBuffer::kRunNotSegmented = -20;
 const Int_t QwEventBuffer::kNoNextDataFile  = -30;
 const Int_t QwEventBuffer::kFileHandleNotConfigured  = -40;
 
+const UInt_t QwEventBuffer::kNullDataWord = 'NULL';
+
 
 QwEventBuffer::QwEventBuffer():fDEBUG(kFALSE),fDataFileStem("QwRun_"),
 			       fDataFileExtension("log"),
@@ -149,9 +151,59 @@ void QwEventBuffer::DecodeEventIDBank(UInt_t *buffer)
 };
 
 
+Bool_t QwEventBuffer::FillSubsystemConfigurationData(std::vector<VQwSubsystem*> subsystems)
+{
+  ///  Passes the data for the configuration events into each subsystem
+  ///  object.  Each object is responsible for recognizing the configuration
+  ///  data which it ought to decode.
+  ///  NOTE TO DAQ PROGRAMMERS:
+  ///      The configuration event for a ROC must have the same
+  ///      subbank structure as the physics events for that ROC.
+  Bool_t okay = kTRUE;
+  UInt_t rocnum = fEvtType - 0x90;
+  std::cerr << "QwEventBuffer::FillSubsystemConfigurationData:  Found configuration event for ROC"
+	    << rocnum
+	    << std::endl;
+  //  Loop through the data buffer in this event.
+  UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
+  if (fBankDataType == 0x10){
+    //
+    while (okay = DecodeSubbankHeader(&localbuff[fWordsSoFar])){
+      //  If this bank has further subbanks, restart the loop.
+      if (fSubbankType == 0x10) continue;
+      //  If this bank only contains the word 'NULL' then skip
+      //  this bank.
+      if (fFragLength==1 && localbuff[fWordsSoFar]==kNullDataWord){
+	fWordsSoFar += fFragLength;
+	continue;
+      }
+      for (std::vector<VQwSubsystem*>::iterator this_subsys = subsystems.begin();
+	   this_subsys < subsystems.end(); this_subsys++){
+	if ((*this_subsys) == NULL) continue;
+	(*this_subsys)->ProcessConfigurationBuffer(rocnum, fSubbankTag, 
+						   &localbuff[fWordsSoFar], 
+						   fFragLength);
+      }
+      fWordsSoFar += fFragLength;
+    }
+  } else {
+    //  This configuration event is not sub-banked.
+    for (std::vector<VQwSubsystem*>::iterator this_subsys = subsystems.begin();
+	 this_subsys < subsystems.end(); this_subsys++){
+      if ((*this_subsys) == NULL) continue;
+      (*this_subsys)->ProcessConfigurationBuffer(rocnum, 0, 
+						 &localbuff[fWordsSoFar], 
+						 fEvtLength);
+    }
+    fWordsSoFar += fEvtLength;
+  }
+  return okay;
+};
+
+
 Bool_t QwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> subsystems){
   //
-  Bool_t okay;
+  Bool_t okay = kTRUE;
   //  Clear the old event information from the subsystems.
   for (std::vector<VQwSubsystem*>::iterator this_subsys = subsystems.begin();
        this_subsys < subsystems.end(); this_subsys++){
@@ -163,6 +215,13 @@ Bool_t QwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> subsystems){
   while (okay = DecodeSubbankHeader(&localbuff[fWordsSoFar])){
     //  If this bank has further subbanks, restart the loop.
     if (fSubbankType == 0x10) continue;
+    //  If this bank only contains the word 'NULL' then skip
+    //  this bank.
+    if (fFragLength==1 && localbuff[fWordsSoFar]==kNullDataWord){
+      fWordsSoFar += fFragLength;
+      continue;
+    }
+
     if (fDEBUG) {
       std::cerr << "QwEventBuffer::FillSubsystemData:  "
 		<< "Beginning loop: fWordsSoFar=="<<fWordsSoFar

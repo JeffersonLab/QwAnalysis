@@ -28,6 +28,8 @@ class QwEventBuffer: public MQwCodaControlEvent{
   static const Int_t kNoNextDataFile;
   static const Int_t kFileHandleNotConfigured;
 
+  static const UInt_t kNullDataWord;
+
  public:
   QwEventBuffer();
   virtual ~QwEventBuffer() { if (fEvStream!=NULL){
@@ -56,6 +58,10 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   Int_t  GetEvent();
   
+  Bool_t IsROCConfigurationEvent(){
+    return (fEvtType>=0x90 && fEvtType<=0xaf);
+  };
+  Bool_t FillSubsystemConfigurationData(std::vector<VQwSubsystem*> subsystems);
 
   Bool_t FillSubsystemData(std::vector<VQwSubsystem*> subsystems);
 

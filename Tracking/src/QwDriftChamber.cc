@@ -18,16 +18,14 @@ const UInt_t QwDriftChamber::kMaxNumberOfChannelsPerTDC = 64;
 
 const UInt_t QwDriftChamber::kReferenceChannelPlaneNumber = 99;
 
-QwDriftChamber::QwDriftChamber(TString region_tmp):fDEBUG(kFALSE),fNumberOfTDCs(0)
+QwDriftChamber::QwDriftChamber(TString region_tmp):VQwSubsystem(region_tmp),fDEBUG(kFALSE),fNumberOfTDCs(0)
 {
-region = region_tmp;
 };
 
 
 Int_t QwDriftChamber::LoadChannelMap(TString mapfile){
   TString varname, varvalue;
   UInt_t  chan, plane, wire;
-  size_t numchannels = 0;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine()){
@@ -184,52 +182,48 @@ void  QwDriftChamber::ConstructHistograms(TDirectory *folder)
   if (folder != NULL) folder->cd();
   //  Now create the histograms...
 
-///////////////First set of histos////////////////////////////////
-for (size_t i=1;i<fWiresPerPlane.size();i++)
-{
- 
-      TotHits[i] = new TH1F(Form("%sHitsOnEachWirePlane%d",region.Data(),i),Form("Total hits on all wires in plane %d",i),fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5);
-      TotHits[i]->GetXaxis()->SetTitle("Wire #");
-      TotHits[i]->GetYaxis()->SetTitle("Events");
-}
-//////////////////////////////////////////////////////////////////
-
-///////////////Second set of histos///////////////////////////////
-for (size_t i=1;i<fWiresPerPlane.size();i++)
-{
-   WiresHit[i] = new TH1F(Form("%sWiresHitPlane%d",region.Data(),i),Form("Number of Wires Hit in plane %d",i),20,-0.5,20.5);
-   WiresHit[i]->GetXaxis()->SetTitle("Wires Hit per Event");
-   WiresHit[i]->GetYaxis()->SetTitle("Events");
-}
-//////////////////////////////////////////////////////////////////
-
-//////////////Third set of histos/////////////////////////////////
-for (size_t i=1;i<fWiresPerPlane.size();i++)
-{ 
-      HitsWire[i] = new TH2F(Form("%sHitsOnEachWirePerEventPlane%d",region.Data(),i),Form("hits on all wires per event in plane %d",i),fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5,7,0.5,7.5);
+  TString region = GetSubsystemName();
+  //  Loop over the number of planes.
+  for (size_t i=1;i<fWiresPerPlane.size();i++) {
+    ///////////////First set of histos////////////////////////////////
+    TotHits[i] = new TH1F(Form("%sHitsOnEachWirePlane%d",region.Data(),i),
+			  Form("Total hits on all wires in plane %d",i),
+			  fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5);
+    TotHits[i]->GetXaxis()->SetTitle("Wire #");
+    TotHits[i]->GetYaxis()->SetTitle("Events");
     
- HitsWire[i]->GetXaxis()->SetTitle("Wire Number");
- HitsWire[i]->GetYaxis()->SetTitle("Hits");
-}
-///////////////////////////////////////////////////////////////////////
+    
+    ///////////////Second set of histos////////////////////////////////
+    WiresHit[i] = new TH1F(Form("%sWiresHitPlane%d",region.Data(),i),
+			   Form("Number of Wires Hit in plane %d",i),
+			   20,-0.5,20.5);
+    WiresHit[i]->GetXaxis()->SetTitle("Wires Hit per Event");
+    WiresHit[i]->GetYaxis()->SetTitle("Events");
 
-/////////////Forth set of histos//////////////////////////////////////
-for (size_t i=1;i<fWiresPerPlane.size();i++)
-{ 
-   TOFP[i] = new TH1F(Form("%sTimeofFlightPlane%d",region.Data(),i),Form("Time of flight for events in plane %d",i),400,-65000,65000);
-   TOFP[i]->GetXaxis()->SetTitle("Time of Flight");
-   TOFP[i]->GetYaxis()->SetTitle("Hits");
-}
-///////////////////////////////////////////////////////////////////////
+    //////////////Third set of histos/////////////////////////////////
+    HitsWire[i] = new TH2F(Form("%sHitsOnEachWirePerEventPlane%d",region.Data(),i),
+			   Form("hits on all wires per event in plane %d",i),
+			   fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5,
+			   7,0.5,7.5);
+    
+    HitsWire[i]->GetXaxis()->SetTitle("Wire Number");
+    HitsWire[i]->GetYaxis()->SetTitle("Hits");
 
-//////////////Fifth set of histos/////////////////////////////////////
-for (size_t i=1;i<fWiresPerPlane.size();i++)
-{ 
-   TOFW[i] = new TH2F(Form("%sTimeofFlightperWirePlane%d",region.Data(),i),Form("Time of flight for each wire in plane %d",i),fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5,2000,-40000,65000);
-   TOFW[i]->GetXaxis()->SetTitle("Wire Number");
-   TOFW[i]->GetYaxis()->SetTitle("Time of Flight");
-}
-///////////////////////////////////////////////////////////////////////      
+    /////////////Forth set of histos//////////////////////////////////////
+    TOFP[i] = new TH1F(Form("%sTimeofFlightPlane%d",region.Data(),i),
+		       Form("Time of flight for events in plane %d",i),
+		       400,-65000,65000);
+    TOFP[i]->GetXaxis()->SetTitle("Time of Flight");
+    TOFP[i]->GetYaxis()->SetTitle("Hits");
+    
+    //////////////Fifth set of histos/////////////////////////////////////
+    TOFW[i] = new TH2F(Form("%sTimeofFlightperWirePlane%d",region.Data(),i),
+		       Form("Time of flight for each wire in plane %d",i),
+		       fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5,
+		       2000,-40000,65000);
+    TOFW[i]->GetXaxis()->SetTitle("Wire Number");
+    TOFW[i]->GetYaxis()->SetTitle("Time of Flight");
+  }
 };
 
 
@@ -248,123 +242,60 @@ void  QwDriftChamber::FillHistograms()
   //  Fill all of the histograms.
 
 
-/////first set of histos////////////////////////////////
-for (size_t p=1; p<fWiresPerPlane.size(); p++)
-{
-    for (size_t i=0; i<fWireData.at(p).size(); i++)
-      {
-      if (fWireData.at(p).at(i).size()>0)
-      	{
-      	TotHits[p]->Fill(i,1);
-      	}
-      }	
-}
-////////////////////////////////////////////////////////
+  for (size_t iplane=1; iplane<fWiresPerPlane.size(); iplane++) {
 
-/////Second Set of Histos///////////////////////////////
-for (size_t p=1; p<fWiresPerPlane.size(); p++)
-{ 
-Double_t nhit=0;	
-    for (size_t i=0; i<fWireData.at(p).size(); i++)
-      {
-	      if (fWireData.at(p).at(i).size()>0)
-	      	{
-	      	nhit+=1;
-	      	}
-      	}      	
-WiresHit[p]->Fill(nhit);
-      
-}
-////////////////////////////////////////////////////////
+    Double_t wireshitperplane = 0;
+    for (size_t iwire=0; iwire<fWireData.at(iplane).size(); iwire++) {
 
-////////////////Third set of histos/////////////////////
-for (size_t p=1; p<fWiresPerPlane.size(); p++)
-{
-    for (size_t i=0; i<fWireData.at(p).size(); i++)
-      {
-      	HitsWire[p]->Fill(i,fWireData.at(p).at(i).size());
+      if (fWireData.at(iplane).at(iwire).size()>0) {
+	//  Here we're filling one count per event;
+	// do we want that or the number of hits?
+	TotHits[iplane]->Fill(iwire,1);   
+	wireshitperplane++;
       }
-}
-////////////////////////////////////////////////////////
+      ////////////////Third set of histos/////////////////////
+      HitsWire[iplane]->Fill(iwire,fWireData.at(iplane).at(iwire).size());
 
-//////////////Fourth set of histos//////////////////////
-for (size_t p=1; p<fWiresPerPlane.size(); p++)
-{
-   for (size_t i=0; i<fWireData.at(p).size(); i++)
-   {
-   if (fWireData.at(p).at(i).size()>0)
-      {
-      for (size_t j=0; j<fWireData.at(p).at(i).size(); j++)
-         {
-         TOFP[p]->Fill(fWireData.at(p).at(i).at(j));
-         }
-      }  
-   }   
-}
-////////////////////////////////////////////////////////
-
-//////////////Fifth set of histos//////////////////////
-for (size_t p=1; p<fWiresPerPlane.size(); p++)
-{
-   for (size_t i=0; i<fWireData.at(p).size(); i++)
-   {
-      for (size_t j=0; j<fWireData.at(p).at(i).size(); j++)
-      {
-         TOFW[p]->Fill(i,fWireData.at(p).at(i).at(j));
+      if (fWireData.at(iplane).at(iwire).size()>0) {
+	for (size_t ihit=0; ihit<fWireData.at(iplane).at(iwire).size(); ihit++) {
+	  //////////////Fourth set of histos//////////////////////
+	  TOFP[iplane]->Fill(fWireData.at(iplane).at(iwire).at(ihit));
+	  
+	  //////////////Fifth set of histos//////////////////////
+	  TOFW[iplane]->Fill(iwire,fWireData.at(iplane).at(iwire).at(ihit));
+	}
       }
-   }
-}      
-////////////////////////////////////////////////////////        
+    }
+    WiresHit[iplane]->Fill(wireshitperplane);
+
+  }
 };
 
 void  QwDriftChamber::DeleteHistograms()
 {
   //  Run the destructors for all of the histogram object pointers.
-
-///////////First set of histos//////////////////////////
-for (size_t i=1;i<fWiresPerPlane.size();i++)
-{
-  if (TotHits[i]!=NULL){
-    TotHits[i]->Delete(); TotHits[i] = NULL;
+  for (size_t i=1;i<fWiresPerPlane.size();i++) {
+    ///////////First set of histos//////////////////////////
+    if (TotHits[i]!=NULL){
+      TotHits[i]->Delete(); TotHits[i] = NULL;
+    }
+    /////////Second set of histos///////////////////////////
+    if (WiresHit[i]!=NULL){
+      WiresHit[i]->Delete(); WiresHit[i] = NULL;
+    }
+    ////////Third set of histos/////////////////////////////
+    if (HitsWire[i]!=NULL){
+      HitsWire[i]->Delete(); HitsWire[i] = NULL;
+    }
+    ////////Fourth set of histos////////////////////////////
+    if (TOFP[i]!=NULL){
+      TOFP[i]->Delete(); TOFP[i] = NULL;
+    }
+    //////////Fifth set of histos///////////////////////////
+    if (TOFW[i]!=NULL){
+      TOFW[i]->Delete(); TOFW[i] = NULL;
+    }
   }
-}
-////////////////////////////////////////////////////////
-
-/////////Second set of histos///////////////////////////
-for (size_t i=1;i<fWiresPerPlane.size();i++)
-{
- if (WiresHit[i]!=NULL){
- WiresHit[i]->Delete(); WiresHit[i] = NULL;
- }
-}
-////////////////////////////////////////////////////////
-
-////////Third set of histos/////////////////////////////
-for (size_t i=1;i<fWiresPerPlane.size();i++)
-{
- if (HitsWire[i]!=NULL){
- HitsWire[i]->Delete(); HitsWire[i] = NULL;
- }
-}
-////////////////////////////////////////////////////////
-
-////////Fourth set of histos////////////////////////////
-for (size_t i=1;i<fWiresPerPlane.size();i++)
-{
- if (TOFP[i]!=NULL){
- TOFP[i]->Delete(); TOFP[i] = NULL;
- }
-}
-////////////////////////////////////////////////////////
-
-//////////Fifth set of histos///////////////////////////
-for (size_t i=1;i<fWiresPerPlane.size();i++)
-{
- if (TOFW[i]!=NULL){
- TOFW[i]->Delete(); TOFW[i] = NULL;
- }
-}
-////////////////////////////////////////////////////////
 };
 
 void  QwDriftChamber::SubtractReferenceTimes()

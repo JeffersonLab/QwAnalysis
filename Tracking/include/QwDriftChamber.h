@@ -1,5 +1,5 @@
 /**********************************************************\
-* File: QwDriftChamber.h                              *
+* File: QwDriftChamber.h                                   *
 *                                                          *
 * Author: P. M. King                                       *
 * Time-stamp: <2007-05-08 15:40>                           *
@@ -13,13 +13,10 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-// #include <utility>
-#include "Rtypes.h"
-#include "TString.h"
-#include "TDirectory.h"
 
-#include "TH1F.h"
-#include "TH2F.h"
+#include <TH1F.h>
+#include <TH2F.h>
+
 #include "VQwSubsystem.h"
 #include "MQwF1TDC.h"
 
@@ -39,10 +36,12 @@ class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
   void  ClearEventData();
+
+  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words){return 0;};
+
   Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
   void  ProcessEvent(){SubtractReferenceTimes();};
-  TString region;
   
   void  ConstructHistograms(TDirectory *folder);
   void  FillHistograms();
@@ -81,6 +80,9 @@ class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
  protected:
   Bool_t fDEBUG;
   
+  TString fRegion;  ///  Name of this subsystem (the region).
+
+
  protected:
   size_t fCurrentBankIndex;
   Int_t fCurrentSlot;
