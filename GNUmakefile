@@ -665,7 +665,7 @@ clean.libs:
 	@$(RM) $(QWLIB)/lib*$(DllSuf)
 
 
-clean:
+clean: clean.coda
 # Removes all object files, '*~', '#*#' and '.#*' files
 	@$(ECHO) Removing '*$(ObjSuf)' files
 	@$(RM) `$(FIND) $(QWANALYSIS) | $(GREP) '\$(ObjSuf)' | $(SED) '/\$(ObjSuf)./d'`
@@ -687,8 +687,10 @@ cleanSunWS_cache :
 	@$(RM) -r $(filter %SunWS_cache/,$(sort $(dir $(shell $(FIND) $(QWANALYSIS)))))
 	@$(RM) -r $(filter %SunWS_cache,$(sort $(shell $(FIND) $(QWANALYSIS))))
 
+clean.coda:
+	cd $(MYEVIO); $(MAKE) realclean
 
-distclean: cleanSunWS_cache clean.dictfiles clean clean.libs clean.exes clean.auxfiles clean.olddotfiles 
+distclean: cleanSunWS_cache clean.dictfiles clean clean.libs clean.exes clean.auxfiles clean.olddotfiles clean.coda
 # Removes all files that can be regenerated
 	@$(RM) .ADD .EXES
 

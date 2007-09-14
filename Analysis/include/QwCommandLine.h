@@ -9,6 +9,7 @@
 #ifndef __QWCOMMANDLINE__
 #define __QWCOMMANDLINE__
 
+#include <getopt.h>
 #include <string>
 #include <Rtypes.h>
 
