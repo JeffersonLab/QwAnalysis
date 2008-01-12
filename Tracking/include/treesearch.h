@@ -7,6 +7,9 @@
 #define TLAYERS 6
 #endif
 
+/*! \brief This module contains the code for performing the treesearch
+          algorithm to generate one treeline.
+*/
 class treesearch{
 
 public:

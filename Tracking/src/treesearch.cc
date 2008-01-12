@@ -17,13 +17,14 @@ extern Options opt;
 //__________________________________
 static int has_hits[TLAYERS];
 //__________________________________
-/*--------------------------------------------------------------------------*\
+/*! \file treesearch.cc --------------------------------------------------------------------------*\
  
- PROGRAM: HRC (Hermes Reconstruction Code)       AUTHOR: Wolfgang Wander
-                                                         wwc@hermes.desy.de
-						ALTERED FOR QWEAK BY:
-							Burnham Stokes
-							bestokes@jlab.org 
+ PROGRAM: QTR (Qweak Track Reconstruction)       AUTHOR: Burnham Stokes
+                                                          bestokes@jlab.org
+						ORIGINAL HRC AUTHOR
+							Wolfgang Wander
+							wwc@hermes.desy.de
+
 
   MODULE: treesearch.c                         COMMENTS: Brendan Fox
                                                          foxb@hermes.desy.de
@@ -93,6 +94,9 @@ static int has_hits[TLAYERS];
  (08) TsSearch()      - this function initiates the treesearch for a set 
                         of tree-planes by calling the _TsSearch() function 
                         described above.
+
+\brief This module contains the code for performing the treesearch
+          algorithm to generate one treeline.
                       
 \*---------------------------------------------------------------------------*/
 treesearch::treesearch(){
@@ -689,7 +693,7 @@ int treesearch::exists( int *newa, int front, int back, TreeLine *treeline)
       over ++;
 
     if( over == 2 ){
-      cerr << "over = 2" << endl;
+      //cerr << "over = 2" << endl;
       return 1;
     }
     if( over == 0 )
@@ -724,7 +728,7 @@ int treesearch::exists( int *newa, int front, int back, TreeLine *treeline)
 	  tl->b_beg = back;
 	if( tl->b_end < back )
 	  tl->b_end = back;
-        cerr << "!diff" << endl;
+        //cerr << "!diff" << endl;
 	return 1;
       }
     } 
@@ -893,7 +897,7 @@ void treesearch::_TsSearch(shortnode *node,int level,int offset,int row_offset,i
               	found a valid treeline.                                 ---- */
 
       			if( level == static_maxlevel-1 ) { 
-				cerr << "inserting treeline..." << endl;
+				//cerr << "inserting treeline..." << endl;
 				/* all level done -> insert treeline */
 				/* ---- ---- */
 				backbin = reverse ?

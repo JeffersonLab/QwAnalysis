@@ -1,3 +1,3 @@
 u 3 d 4 #for the upper region 3 VDC, use 4 levels of pattern division
 l 3 d 4 #for the lower region 3 VDC, use 4 levels of pattern division
-1 1 1 #showEventPattern showMatchingPatterns showMatchedPattern
+0 0 0 #showEventPattern showMatchingPatterns showMatchedPattern

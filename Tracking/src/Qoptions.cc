@@ -19,8 +19,15 @@ extern Edir operator++(enum Edir &rs, int );
 Qoptions
 Date : 7/31/7
 Author : Burnham Stokes
-Description : 
-____________________________________________________________*/
+*//*! \file Qoptions.cc 
+\brief Qoptions is a generic ascii read-in program for handling
+program options.
+
+This program currently only manages a few things, but it is intended
+that Qoptions will be greatly expanded in the future. 
+*/
+/*! \class Qoptions \brief Qoptions Qoptions is a generic ascii read-in program for handling
+program options.*/
 //____________________________________________________________
 void Qoptions::Get(char *optionsfile){
 	FILE *options;

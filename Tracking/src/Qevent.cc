@@ -21,12 +21,15 @@ extern Edir operator++(enum Edir &rs, int );
 /*____________________________________________________________
 Qevent
 Date : 7/30/7
-Author : Burnham Stokes
+Author : Burnham Stokes*/
+/*! \file Qevent.cc 
+\brief Qevent is a generic data read-in class.
+
 Description : Qevent is a generic data read-in class that
 reads ascii to generate events.  The file 'qweak.event' is an
 example event file.  The file 'template.event' has 
 documentation to describe the data in 'qweak.event'.
-____________________________________________________________*/
+*/
 
 
 //____________________________________________________________
@@ -41,10 +44,10 @@ int Qevent::FillHits(char *eventfile){
 	int nhits =0;
 	int maxchar = 256,i=0;
 	//Detector region/type/direction identifiers
-	enum EUppLow up_low;
-	enum ERegion region;
-	enum Edir dir;
-	enum Etype type;
+	enum EUppLow up_low,up_low2;
+	enum ERegion region,region2;
+	enum Edir dir,dir2;
+	enum Etype type,type2;
 
 	int nevent=0,nevents=0;
 	int detecID=0;
@@ -71,7 +74,38 @@ int Qevent::FillHits(char *eventfile){
 		dir = rcDET[detecID].dir;// the wire direction for the case of drift chambers
 		type = rcDET[detecID].type;// the detector type 
 
+		if(firstdetec){
+			firstdetec = 0;
+			up_low2 = up_low;
+			region2 = region;
+			type2 = type;
+			dir2 = dir;
+			rd = rcDETRegion[up_low][region-1][dir];
+		}
+		else{
+			hitlist = NULL;
+			newhit = NULL;
+			if(up_low2 == up_low && 
+			   region2 == region &&
+			   type2 == type &&
+			   dir2 == dir){
+				rd = rd->nextsame;
+				//cerr << "went to next" << endl;
+			}
+			else{
+				rd = rcDETRegion[up_low][region-1][dir];
+				up_low2 = up_low;
+				region2 = region;
+				type2 = type;
+				dir2 = dir;
+			}
+		}
 
+		//cerr << detecID << "," << up_low << "," << region << "," << type << "," << dir << endl;
+
+
+
+/*
 		//String the different directions/layers in each detector
 		if(firstdetec){
 			rd = rcDETRegion[up_low][region-1][dir];
@@ -82,7 +116,7 @@ int Qevent::FillHits(char *eventfile){
 			rd = rd->nextsame;
 			changedetec = detecID;
 		}
-		
+*/		
 
 
 		//number of hits
@@ -99,7 +133,7 @@ int Qevent::FillHits(char *eventfile){
 			newhit->rPos1 = atof(strtok(line,"\n"));//distance of hit from wire
 			fgets(line,maxchar,events);
 			newhit->rPos2 = atof(strtok(line,"\n"));//placeholder for future code
-
+			newhit->Resolution = rd->resolution;//get the spatial resolution for this hit
 			newhit->detec = rd;//the hit's pointer back to the detector plane
 
 			newhit->next = hitlist;//chain the hits

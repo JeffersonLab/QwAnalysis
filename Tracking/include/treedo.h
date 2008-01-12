@@ -6,6 +6,8 @@
 #include "treecombine.h"
 #include "treematch.h"
 
+/*! \brief This module controls all the routines involved with finding tracks in an event
+*/
 class treedo{
 
 public:

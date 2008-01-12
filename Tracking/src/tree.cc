@@ -1,13 +1,15 @@
-/*--------------------------------------------------------------------------*\
+/*! \file tree.cc --------------------------------------------------------------------------*\
  
- PROGRAM: HRC (Hermes Reconstruction Code)       AUTHOR: Wolfgang Wander
-                                                         wwc@hermes.desy.de 
-						ALTERED FOR QWEAK BY:
-							Burnham Stokes
-							bestokes@jlab.org 
+ PROGRAM: QTR (Qweak Track Reconstruction)       AUTHOR: Burnham Stokes
+                                                          bestokes@jlab.org
+						ORIGINAL HRC AUTHOR
+							Wolfgang Wander
+							wwc@hermes.desy.de
 
-  MODULE: tree.c                               COMMENTS: Brendan Fox
-                                                         foxb@hermes.desy.de
+  MODULE: tree.cc                               
+ 
+ \brief The tree class contains the code for creating the treesearch 
+          database.                                                       
  
  PURPOSE: This module contains the code for creating the treesearch 
           database.  The code first attempts to pull the database from
@@ -171,13 +173,6 @@ treeregion::treeregion(){
 treeregion::~treeregion(){
 
 }
-hitnode::hitnode(){
-
-}
-hitnode::~hitnode(){
-
-}
-
 
 //____________________________________________________________
 tree::tree(){
@@ -220,9 +215,9 @@ void tree::rcInitTree(){
 	   	for(region = r1; region<=r3;region++){
 			if(region < r3) continue;//skip r1 and r2 for now
 			for(type = d_drift; type <=d_cerenkov;type++){
-				if(type!=d_drift&&region==r3)continue;//only HDC in r3
+				if(type!=d_drift&&region==r3)continue;//only VDC in r3
 				for(direction = null_dir; direction<= y_dir;direction++){
-					if(direction!=u_dir)continue;//skip v in r3 for now
+					if(direction!=u_dir && direction!=v_dir)continue;
 						
 					sprintf( filename,"trees/tree%d-%d-%c-%c-%c-%c.tre",
 		     				tlayers,opt.levels[up_low][region-1][type],

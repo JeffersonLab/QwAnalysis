@@ -5,6 +5,10 @@
 #include "tree.h"
 #include "treesearch.h"
 
+/*!
+\brief This module is used to identify good track segments versus ghost tracks/hits.
+
+*/
 class treesort{
 
 public:

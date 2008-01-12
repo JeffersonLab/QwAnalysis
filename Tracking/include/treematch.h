@@ -20,7 +20,9 @@
 
 
 
-
+/*!
+\brief This module matches track segments for individual wire planes.
+*/
 class treematch{
 
 public:
@@ -31,7 +33,7 @@ void TgTrackPar( PartTrack *front, PartTrack *back,double *theta, double *phi, d
 //void TgInit( Track *track);
 Track *TgPartMatch( PartTrack *front, PartTrack *back, Track *tracklist, enum EUppLow upplow/*, enum Emethod method*/);
 
-TreeLine *MatchR3(TreeLine *front,TreeLine *back);
+TreeLine *MatchR3(TreeLine *front,TreeLine *back,EUppLow up_low,ERegion region, Edir dir);
 
 private:
 

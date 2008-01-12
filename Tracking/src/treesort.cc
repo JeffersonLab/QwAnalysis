@@ -2,6 +2,10 @@
 #include "treesort.h"
 using namespace std;
 
+/*! \file treesort.cc
+\brief This module is used to identify good track segments versus ghost tracks/hits.
+
+*/
 //________________________________________________________________________
 treesort::~treesort(void){
 
@@ -356,7 +360,7 @@ int treesort::rcTreeConnSort( TreeLine *head, enum ERegion region/*,
   int  *isvoid;
   double   *chia, chi, maxch = 2000.0, nmaxch, nminch;
 
-  cerr << "WARNING : need to verify maxch =2000 is ok" << endl;
+  cerr << endl;
   //DBG = DEBUG & D_GRAPH;
 
 /* ----------------------------------------------------------------------

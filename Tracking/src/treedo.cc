@@ -1,14 +1,14 @@
-/*--------------------------------------------------------------------------*\
+/*! \file treedo.cc --------------------------------------------------------------------------*\
 
-  PROGRAM: HRC (Hermes Reconstruction Code)       AUTHOR: Wolfgang Wander
-                                                          wwc@hermes.desy.de
+ PROGRAM: QTR (Qweak Track Reconstruction)       AUTHOR: Burnham Stokes
+                                                          bestokes@jlab.org
+						ORIGINAL HRC AUTHOR
+							Wolfgang Wander
+							wwc@hermes.desy.de
 
-						ALTERED FOR QWEAK BY:
-							Burnham Stokes
-							bestokes@jlab.org 
 
-   MODULE: treedo.c                             COMMENTS: Brendan Fox
-                                                          foxb@hermes.desy.de
+   MODULE: treedo.c                             
+                                                          
 
   PURPOSE: This module contains the code for finding tracks in an event.
            The task of finding tracks is sub-divided into three steps:
@@ -21,8 +21,7 @@
                chambers in one detector region are then processed by the
                the treesearch algorithm to identify all combinations of
                hits in the chambers which could correspond to straight
-               tracks through the chambers with a slope below the HRCSET
-               MaxSlope parameter.  Typically, these treelines contain 
+               tracks through the chambers.  Typically, these treelines contain 
                quite a few ghost tracks.  To cut down on these ghosts, 
                the treelines located by the searching are reduced by
 	       a connectivity graph. This graph tries to minimize the number
@@ -32,14 +31,12 @@
            (2) Once the sets of treelines (one set for the u, a second set
                for the v, and a third set for the x) have been located for
                a region of the detector, the treelines are matched together 
-               to form partial tracks. For the case of VC reconstruction
-	       no x treelines can be formed because of the lack of symmetry
-	       in the front region (tilted x-planes). In this case only
-	       u/v combinations are formed and the resulting hypotethical
-	       x-track is searched for hits along its line.
+               to form partial tracks. For the case of VDC reconstruction
+	       no x treelines can be formed. In this case only
+	       u/v combinations are formed.
 
            (3) And, finally, the partial tracks from the front and the back
-               region are bridged (i.e. paired together) to form the final
+               region will be bridged (i.e. paired together) to form the final
                tracks.
 
  CONTENTS: (brief description for now) 
@@ -49,9 +46,8 @@
  (02) rcLinkUsedTracks()
 
  (03) rcTreeDo() - this function manages the track-finding and track-fitting
-                   in HRC.  For each detector region (front or back, top or 
-                   bottom) and each HRC fit technique (standard, NOVC, and 
-                   FITVC), this function builds the bit patterns for the hits 
+                   in QTR.  For each detector region (front or back, top or 
+                   bottom) this function builds the bit patterns for the hits 
                    seen in the detector and then invokes the treesearch 
                    algorithm to find the candidate treelines.  After the 
                    resulting treelines are filtered by the treesort and 
@@ -64,6 +60,8 @@
 		   In a second interation treesearch recalibrates the tracking
 		   chamber hits with the now known momentum and recalculates
 		   track parameters and momentum for all found tracks.
+
+\brief This module controls all the routines involved with finding tracks in an event
 
 \*--------------------------------------------------------------------------*/
 
@@ -247,11 +245,8 @@ cerr << "Initialize" << endl;
 	for(region = r3/*r1*/;region<=r3;region++){
 	for(type=d_drift;type<=d_drift/*d_cerenkov*/;type++){
 	parttrackanz = 0;/* no partial tracks found yet */
-	for(dir=u_dir;dir<=u_dir/*y_dir*/;dir++){
-
-
+	for(dir=u_dir;dir<=v_dir/*y_dir*/;dir++){
 /* ---- 1st: check that the direction is tree-searchable        ---- */
-
 		if(rcTreeRegion[upplow][region-1][type][dir]->searchable == false){
 			(event->treeline[upplow][region-1][type][dir])=0;
 			printf("%i %i %i %i\n",upplow,region,type,dir);
@@ -265,7 +260,6 @@ cerr << "Initialize" << endl;
 	  	trelinanz = 0; /* clear the "treelines found" counter       */
 
 /* ---- 3rd: create the bit patterns for the hits                     ---- */ 
-
 
 //_______________________________________
 		if(region == r3){
@@ -328,7 +322,8 @@ cerr << "Initialize" << endl;
 			if(1)cerr << "Match Region 3 Segments" << endl;
 			
 			trelin = TreeMatch.MatchR3(trelin1,
-					trelin2);
+					trelin2,upplow,region,dir);
+			event->treeline[upplow][region-1][type][dir] = trelin;
 	  		tlayers = TLAYERS;     /* remember the number of tree-detector */
 	  		tlaym1  = tlayers - 1; /* remember tlayers-1 for convenience   */
 		}		
@@ -409,7 +404,6 @@ ________________________________________________*/
 	  	}
 
 /* ---- 5th: sort and search for ghosts in the  resulting lines       ---- */
-cerr << "E" << endl;
 		/*
 	  	if( rcTreeRegion[upplow][region-1][type][dir] ){//<- This if statement may be done wrong
 	    		TreeCombine.TlTreeLineSort(trelin,upplow,region,type,dir,
@@ -418,8 +412,7 @@ cerr << "E" << endl;
 	  	event->treeline[upplow][region-1][type][dir] = trelin;
 		*/
 	}/* end of loop over the three wire-pitch directions */
-cerr << "F" << endl;
-cerr << "event : " << event->treeline[upplow][region-1][type][u_dir]->numhits << endl;
+//cerr << "event : " << event->treeline[upplow][region-1][type][u_dir]->numhits << endl;
 /* ---- TASK 2: Combine the treelines into partial tracks             ---- */
 	if( rcTreeRegion[upplow][region-1][type]  && tlayers) {//<- This if statement may be done wrong
 	  area = TreeCombine.TlTreeCombine(event->treeline[upplow][region-1][type], 
@@ -431,15 +424,13 @@ cerr << "event : " << event->treeline[upplow][region-1][type][u_dir]->numhits <<
 			       dlayer);
 	}
 	
-cerr << "G" << endl;
 	if( parttrackanz > 600 ) { /* Adamo can't stand that */
 	  cerr << "Too many partial tracks " << endl;
 	  return 0;
 	}
 /* ---- TASK 3: Sort out the Partial Tracks                          ---- */
 	TreeSort.rcPartConnSort(area);
-/* ---- TASK 4: Hook up the partial track info to the event info     ---- */
-cerr << "H" << endl;           
+/* ---- TASK 4: Hook up the partial track info to the event info     ---- */         
 	event->parttrack[upplow][region][type] = area;
 	}}/* end of loop over the detectors */
     	 /* end of loop over the regions */
@@ -450,11 +441,10 @@ cerr << "H" << endl;
      	* mation
      	* ============================== */
 
-	cerr << "This is a stub for the part of the function that performs the bridging of the partial tracks" << endl;
+	
 
 
 	}
-cerr << "I" << endl;
   	return event;
 }
 //________________________________________________________________________

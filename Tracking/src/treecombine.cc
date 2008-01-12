@@ -2,11 +2,25 @@
 #include "treecombine.h"
 #include <math.h>
 #include "mathstd.h"
-#include "mathdefs.h"
-
-
+#include <fstream>
+//#include "mathdefs.h"
+#define PI 3.141592653589793
+#define DBL_EPSILON 2.22045e-16
 using namespace std;
+/*! \file treecombine.cc
+\brief Treecombine combines track segments and performs line fitting
 
+treecombine performs many of the tasks involved with matching hits to track segments
+and combining track segments into full tracks with lab coordinates.
+
+
+
+
+
+
+
+
+*/
 extern Det *rcDETRegion[2][3][4];
 extern treeregion *rcTreeRegion[2][3][4][4];
 extern int parttrackanz;
@@ -17,7 +31,11 @@ extern Etype operator++(enum Etype &rs, int );
 extern Edir operator++(enum Edir &rs, int );
 /*extern Eorientation operator++(enum Eorientation &rs, int );*/
 
-matrix  M_Init (int Zeilen, int Spalten);
+double UNorm( double *A, int n, int m);
+double *M_Cholesky (double  *B, double *q, int n);
+double * M_InvertPos (double *B, int n);
+double * M_A_mal_b (double *y,double *A, int n, int m,double b[4]);
+
 //__________________________________________________________________
 treecombine::treecombine(){
 
@@ -25,8 +43,7 @@ treecombine::treecombine(){
 chi_hash::chi_hash(){
   hits = 0;
 }
-//__________________________________________________________________
-
+//___________________________________________________________________
 treecombine::~treecombine(){
 
 }
@@ -107,11 +124,11 @@ int treecombine::chi_hashfind( Hit **hits, int n, double *slope, double *xshift,
    matches the left/right wire hits
    in r3 to the pattern being used.
 --------------------------------*/
-int treecombine::bestx(double *xresult,Hit *h,Hit **ha,int i){
-	double pos,distance,bestx;
+int treecombine::bestx(double *xresult,Hit *h,Hit *ha){
+	double pos,distance,bestx,resolution;
 	double x = *xresult;
-
 	pos = h->rPos1;
+	resolution = h->Resolution;
 	distance = x - pos;
 	if(distance < 0)distance = -distance;
 	bestx = pos;
@@ -122,17 +139,14 @@ int treecombine::bestx(double *xresult,Hit *h,Hit **ha,int i){
 	if(distance < bestx){
 		bestx = pos;
 	}
-        //cerr << "d2= " << distance << endl;
-	//cerr << "bestx= " << bestx << endl;
-	ha[i]   = (Hit*)malloc( sizeof(Hit));
-	assert( ha[i] );
-	*ha[i]  = *h;
-	ha[i]->next    = 0;
-	ha[i]->nextdet = 0;
-	ha[i]->used    = false;
-	ha[i]->rResultPos = 
-	  ha[i]->rPos    = bestx;
-
+	*ha = *h;
+	ha->next    = 0;
+	ha->nextdet = 0;
+	ha->used    = false;
+	ha->rResultPos = 
+          ha->rPos    = bestx;
+	ha->Resolution = resolution;
+        
 return 1;
 }
 //__________________________________________________________________
@@ -359,37 +373,31 @@ void treecombine::weight_lsq(double *slope, double *xshift, double cov[3],double
  */
 
 void treecombine::weight_lsq_r3(double *slope, double *xshift, double cov[3],double *chi,Hit **hits, int n,double z1, int offset,int tlayers){
-  static matrix A = 0, G, At, GA, AtGA;
+  double A[tlayers][2],G[tlayers][tlayers],AtGA[2][2];
   double  AtGy[2], y[tlayers], x[2];
   double r, s, sg, det, h;
   int i,j,k;
   double resolution = 0.1;
-
-  if( !A ) {/* allocate matrices */
-    A      = M_Init( tlayers, 2);
-    G      = M_Init( tlayers, tlayers);
-    At     = M_Init( 2, tlayers);
-    GA     = M_Init( tlayers, 2);
-    AtGA   = M_Init( 2, 2);
-    for( i = 0; i < tlayers; i++ ) {
-      At[0][i] = A[i][0] = -1.0;
-    }
-  }
-//cerr << "a";
-  //if( chi_hashfind(hits ,n, slope, xshift, cov, chi) )
-  //  return;
-//cerr << "b";
   /* initialize the matrices and vectors */
+  for( i = 0; i < tlayers; i++ ) {
+    A[i][0] = -1.0;
+  }
+  //###########
+  // Set Hits #
+  //###########
   for( i = 0; i < n; i++ ) {
-    A[i][1] = -(i+offset);
-    //cerr << A[i][1] << ",";
-    y[i]     = -hits[i]->rResultPos;
+    if(offset == -1){
+      A[i][1] = -hits[i]->Zpos;//used by matchR3
+      y[i] = -hits[i]->rPos;
+    }
+    else{
+      A[i][1] = -(i+offset);//used by Tl MatchHits
+      y[i] = -hits[i]->rResultPos;
+    }
     r = 1.0 / hits[i]->Resolution;
     if(!(hits[i]->Resolution))r = 1.0 / resolution;// WARNING : this is a hack to make this fit work.  Hit resolutions needs to be set up.
-    //cerr << r << ",";
     G[i][i] = r*r;
   }
-
   /* calculate right hand side */
   for( i = 0; i < 2; i++ ) {
     s = 0;
@@ -416,20 +424,18 @@ void treecombine::weight_lsq_r3(double *slope, double *xshift, double cov[3],dou
   /* solve equation */
   for( i = 0; i < 2; i++ ) 
     x[i] = AtGA[i][0] * AtGy[0] + AtGA[i][1] * AtGy[1];
-  
   *slope  = x[1];
   *xshift = x[0];
   cov[0]  = AtGA[0][0];
   cov[1]  = AtGA[0][1];
   cov[2]  = AtGA[1][1];
-
   for( sg = s = 0.0, i = 0; i < n; i++ ) {
     r  = (*slope*(hits[i]->Zpos - z1) + *xshift
 	  - hits[i]->rResultPos);
     s  += G[i][i] * r * r;
   }
   *chi   = sqrt( s/n );
-  chi_hashinsert(hits,n, *slope, *xshift, cov, *chi);
+  //chi_hashinsert(hits,n, *slope, *xshift, cov, *chi);
 }
 //__________________________________________________________________
 int treecombine::contains( double var, Hit **arr, int len) {
@@ -442,7 +448,7 @@ int treecombine::contains( double var, Hit **arr, int len) {
 }
 //__________________________________________________________________
 /* ------------------------------
-   searches for the closed hit to
+   searches for the closest hit to
    to *xresult and writes it
    to *xresult. In addition the
    hitarray is searched for hits
@@ -522,7 +528,7 @@ cerr << "This function needs to conform to Qweak acceptance" << endl;
   double z, x, y;
   Det *rd/*, *rds, *rde*/;
   for( dir = u_dir; dir <= x_dir; dir++) {
-    for(rd = rcDETRegion[up_low][region-1][dir-u_dir];
+    for(rd = rcDETRegion[up_low][region-1][dir];
 	rd; rd = rd->nextsame ) {
       z = rd->Zpos;
       x = cx + (z-magnet_center)*mx;
@@ -547,7 +553,7 @@ cerr << "This function needs to conform to Qweak acceptance" << endl;
  * checks for x hits on a line given by values in (RENAMED VARIABLE) and (RENAMED VARIABLE)
  * dlayer: number of detector layers to search in
  * ------------------------------------------------------------------------- */
-int treecombine::TlCheckForX(double x1, double x2, double dx1, double dx2,double z1, double dz,TreeLine *treefill,enum EUppLow up_low,enum ERegion region,enum Etype type,enum Edir dir/*,enum Eorientation orient*/,int  dlayer, int tlayer,int  iteration,int  stay_tuned)
+int treecombine::TlCheckForX(double x1, double x2, double dx1, double dx2,double z1, double dz,TreeLine *treefill,enum EUppLow up_low,enum ERegion region,enum Etype type,enum Edir dir,int  dlayer, int tlayer,int  iteration,int  stay_tuned)
 {
 //################
 // DECLARATIONS  #
@@ -635,8 +641,6 @@ int treecombine::TlCheckForX(double x1, double x2, double dx1, double dx2,double
     if( !iteration && !stay_tuned && (first || !rd->nextsame) && tlayer == dlayer)
       resnow -= res*(rcSETrMaxRoad-1.0);
 
-
-    cerr << "a";
     //bestx finds the hits which occur closest to the path through the first and last detectors 
     //nMult is the number of good hits at each detector layer
     if( !iteration ){	        /* first track finding process */
@@ -752,7 +756,7 @@ right/left ambiguity for each wire.
 OUTPUT : the best hits are added to treefill's hit list and treefill's
 	line parameters are set.
 --------------------------------*/
-int treecombine::TlMatchHits(double x1,double x2,double z1, double dz,TreeLine *treefill,enum EUppLow up_low,enum ERegion region,enum Etype type,enum Edir dir,int bins,int tlayers){
+int treecombine::TlMatchHits(double x1,double x2,double z1, double dz,TreeLine *treefill,enum EUppLow up_low,enum ERegion region,enum Etype type,enum Edir dir,int tlayers){
 //################
 // DECLARATIONS  #
 //################
@@ -760,13 +764,11 @@ int treecombine::TlMatchHits(double x1,double x2,double z1, double dz,TreeLine *
   Hit *h;
   Det *rd;
   double dx,slope,intercept;
-  Hit   *DetecHits[tlayers]; /* Hits at a detector         */
-  Hit   **hitarray;		/* temporary     */
+  Hit   DetecHits[tlayers]; /* Hits at a detector         */
+  Hit  *DHits = DetecHits;
 
-  double mx,cx,dh,chi,minchi=1e8;
-  double minweight = 1e10;
-  double mmx=0,mcx=0; /* least square fit parameters     */
-  double cov[3], mcov[3];
+  double mx=0,cx=0,chi;
+  double cov[3];
   int ret=0;
   int nhits,j=0;
 //##################
@@ -775,13 +777,10 @@ int treecombine::TlMatchHits(double x1,double x2,double z1, double dz,TreeLine *
   dx = x2 - x1;
   slope = dx/dz;
   intercept = 0.5*((x2 + x1) + slope*(z1 + z1 + dz));
-
-
   intercept = x1 - slope*z1;
   //cerr << "(" << slope << "," << intercept << "," << z1 << "," << x1 << ")" << endl;
   nhits = treefill->lastwire - treefill->firstwire + 1;
   if(nhits < 0) nhits = - nhits;
-cerr << "1";
 //########################
 //MATCH HITS TO TREELINE #
 //########################
@@ -799,35 +798,26 @@ cerr << "1";
 		continue;
 	}
         //cerr << "Z=" << thisZ << endl;
-        bestx( &thisX,h, DetecHits,j);
+        bestx( &thisX,h, DHits);
+        DHits++;
 	j++;
-	//        cerr << thisZ << "," << thisX << "," << z1 << "," << z1+dz << "," << intercept << "," << slope << 		"," << treefill->r3offset << "," << h->wire << endl;
 	
     }
   }
-cerr << "2";
 if(j!=nhits) cerr << "WARNING NHITS != NGOODHITS " << nhits << "," << j << endl;
 //############################
 //RETURN HITS FOUND IN BESTX #
 //############################
-  hitarray = treefill->hits;
   for(int i = 0; i < j; i++ ) {
-	DetecHits[i]->used = true;
-	*hitarray = DetecHits[i]; 
-	hitarray ++;
-	//cerr << DetecHits[i]->rPos << ",";
+	DetecHits[i].used = true;
+	treefill->thehits[i] = DetecHits[i];
+        treefill->hits[i] = &treefill->thehits[i];
   }
-  cerr << endl;
-  if( hitarray - treefill->hits < tlayers){ 
-      *hitarray = 0;		/* add a terminating 0 for later selectx()*/
-  }
-cerr << "3";
 //######################
 //CALCULATE CHI SQUARE #
 //######################
   chi = 0.0;
-  weight_lsq_r3( &mx, &cx, cov, &chi,DetecHits, j,z1,treefill->r3offset,tlayers);
-cerr << "4";
+  weight_lsq_r3( &mx, &cx, cov, &chi,treefill->hits, j,z1,treefill->r3offset,tlayers);
 //################
 //SET PARAMATERS #
 //################
@@ -835,7 +825,7 @@ cerr << "4";
   treefill->mx  = mx;     /* return track parameters: x, slope, chi */
   treefill->chi = chi;
   treefill->numhits    = nhits;   
-  memcpy(treefill->cov_cxmx, mcov, sizeof mcov);
+  memcpy(treefill->cov_cxmx, cov, sizeof cov);
   if(nhits>=7){//CUT TRACKS MISSING MORE THAN 1 HIT
     ret =1;
   }
@@ -848,8 +838,6 @@ cerr << "4";
     treefill->nummiss = tlayers-nhits;
   }
   return ret;
-cerr << "5";
-//return 0;
 }
 
 /* ------------------------------
@@ -863,21 +851,13 @@ void treecombine::TlTreeLineSort(TreeLine *tl,enum EUppLow up_low,enum ERegion r
 if(region == r3){
   double z1,z2,dx;
   double x1,x2;
-  TreeLine *walk = tl;
+  TreeLine *walk;
   TreeLine *owalk;
   chi_hashclear();
-  Det *rd;
-  //double wirespacing;
   
-  //rd = rcDETRegion[up_low][region-1][dir];
-  //wirespacing = rd->WireSpacing;//<-by not looping over detectors, this assumes the wirespacing is the same for
-				//each detector
-
-  cerr << "dlayer = " << dlayer << endl;
   /* --------------------------------------------------
   calculate line parameters first
   -------------------------------------------------- */
-	
   for( walk = tl; walk; walk = walk->next ) {//for each matching treeline
     if( ! walk->isvoid ) {
       if(dlayer==1){
@@ -888,19 +868,11 @@ if(region == r3){
       dx = rcTreeRegion[up_low][region-1][type][dir]->rWidth;
       dx /= (double)bins;
 
-	//cerr << "(" << walk->a_beg << "," << walk->a_end << "," << walk->b_beg << "," << walk->b_end << "," << bins << "," <<  dx << ")" << endl;
-
-      
-
       x1 = (walk->a_beg - (double)bins/2)*dx + dx/2;
       x2 = (walk->b_end - (double)bins/2)*dx + dx/2;
-      //cerr << "(" << x1 << "," << x2 << "," << z1 << "," << z2 << "," << walk->r3offset << ")" << endl;
-      TlMatchHits(x1,x2,z1,z2-z1,walk,up_low,region,type,dir,bins,TLAYERS);
-
-      cerr << "(" << walk->cx << "," << walk->mx << "," << walk->chi << "," << walk->numhits << ")" << endl;
+      TlMatchHits(x1,x2,z1,z2-z1,walk,up_low,region,type,dir,TLAYERS);
     }
   }
-  cerr << "a" << endl;
   /* --------------------------------------------------
      now sort again for identical treelines
      -------------------------------------------------- */
@@ -914,15 +886,8 @@ if(region == r3){
       }
     }
   }
-  for(walk = tl; walk; walk = walk->next){
-    cerr << "void = " << walk->isvoid << "," << walk->numhits << endl;
-  }
   treesort ts;
   ts.rcTreeConnSort( tl,region);
-
-  for(walk = tl; walk; walk = walk->next){
-    cerr << "void = " << walk->isvoid << "," << walk->numhits << endl;
-  }
 }
 else{
 
@@ -933,10 +898,10 @@ else{
   TreeLine *owalk;
   chi_hashclear();
  
-  z1  = rcTreeRegion[up_low][region-1][type][dir/*-u_dir*/]->rZPos[0];//first z position
-  z2  = rcTreeRegion[up_low][region-1][type][dir/*-u_dir*/]->rZPos[tlayer-1];// last z position
+  z1  = rcTreeRegion[up_low][region-1][type][dir]->rZPos[0];//first z position
+  z2  = rcTreeRegion[up_low][region-1][type][dir]->rZPos[tlayer-1];// last z position
 
-  dx  = rcTreeRegion[up_low][region-1][type][dir/*-u_dir*/]->rWidth;//detector width
+  dx  = rcTreeRegion[up_low][region-1][type][dir]->rWidth;//detector width
   dxh = 0.5*dx; //detector half-width
   dx /= (double)bins;//width of each bin
   dxb = dxh/(double)bins;//half-width of each bin
@@ -945,8 +910,8 @@ else{
   /* --------------------------------------------------
      calculate line parameters first
      -------------------------------------------------- */
-double rcSETrMaxRoad          = 1.4;
-cerr << "ERROR : USING STUB VALUE FOR RCSET " << endl;
+  double rcSETrMaxRoad          = 1.4;
+  cerr << "ERROR : USING STUB VALUE FOR RCSET " << endl;
   for( walk = tl; walk; walk = walk->next ) {//for each matching treeline
     if( ! walk->isvoid ) {
       dx_2 =  dxh - dxb;
@@ -978,12 +943,295 @@ cerr << "ERROR : USING STUB VALUE FOR RCSET " << endl;
 
 }
 //__________________________________________________________________
+int    rc_TrackFit( int No, Hit **Hit, double *fit, double *cov, double *chi,
+		    double *addx, double *adde){
+  //###############
+  // Declarations #
+  //###############
+  int debug = 1;
+
+  int ii, ij, ik;
+  double AA[4][4];
+  double B[4];
+  double cff;
+  double r[4];
+  double x,y, uvx;
+
+  for( ik = 0; ik < 4; ik++) {	/* reset the matrices to 0 */
+    B[ik] = 0;
+    for(ij = 0; ij < 4; ij++)
+      AA[ij][ik] = 0;
+  }
+
+  //##############################
+  // Calculate the metric matrix #
+  //##############################
+  for( ii=0; ii < No; ii++ ) {
+    cerr << ii << " " << Hit[ii]->Zpos << " " << Hit[ii]->rPos << " ";
+    cff  = 1.0/Hit[ii]->Resolution;
+    cff *= cff;
+    r[0] = Hit[ii]->detec->rCos;
+    r[1] = Hit[ii]->detec->rSin;
+    r[2] = Hit[ii]->detec->rCos*(Hit[ii]->Zpos);
+    r[3] = Hit[ii]->detec->rSin*(Hit[ii]->Zpos);
+cerr << r[0] << " " << r[1] << endl;
+    for(ik=0; ik<4; ik++) {
+      B[ik] += cff*r[ik]*Hit[ii]->rPos;
+      for(ij=0; ij<4; ij++) 
+	AA[ik][ij] += cff*r[ik]*r[ij];
+    }
+  }
+
+  double *AAp = &AA[0][0];
+if(debug){
+  cerr << "AA = " << endl << "[";
+  for(ik=0; ik<4; ik++) {
+    for(ij=0; ij<4; ij++) {
+      cerr << AA[ik][ij] << " ";
+    }
+    cerr << endl;
+  }
+  cerr << "]" << endl;
+}
+
+
+  cov = M_InvertPos(AAp, 4);
+
+  if (!cov){
+    cerr << "Inversion failed" << endl;
+    return -1;
+  }
+if(debug){
+ double *covp = cov;
+  cerr << "AA Inverse = " << endl << "[";
+  for(ik=0; ik<4; ik++) {
+    for(ij=0; ij<4; ij++) {
+      cerr << *covp++ << " ";
+    }
+    cerr << endl;
+  }
+  cerr << "]" << endl;
+}
+ 
+  
+  /* calculate the fit */
+  M_A_mal_b( fit, cov, 4, 4, B);
+
+  /* calculate chi^2 */
+  *chi = 0;
+  for(ii=0; ii<No; ii++) {
+    cff  = 1.0/Hit[ii]->Resolution;
+    cff *= cff;
+    x    = fit[0] + fit[2]*(Hit[ii]->Zpos);
+    y    = fit[1] + fit[3]*(Hit[ii]->Zpos);
+    uvx  = Hit[ii]->detec->rCos*x + Hit[ii]->detec->rSin * y;
+    *chi += (uvx-Hit[ii]->rPos)* (uvx-Hit[ii]->rPos)*cff;
+  }
+  *chi = *chi / (No - 4);
+
+return 0;
+}
+//__________________________________________________________________
 int    rc_TrackFit( int No, Hit **Hit, vektor fit, matrix cov, double *chi,
 		    double *addx, double *adde){
 cerr << "This function is a stub, it needs to be written" << endl;
-return -1000;
+return -1;
 }
+//__________________________________________________________________
+int treecombine::r3_TrackFit( int Num, Hit **hit, double *fit, double *cov, double *chi,double uv2xy[2][2]){
+  //###############
+  // Declarations #
+  //###############
 
+  int i,j,k;
+  Hit xyz[Num];
+  double wcov[3],wchi,mx,bx,my,by;
+  Hit *chihits[Num];
+  double P1[3],P2[3],Pp1[3],Pp2[3];
+  double ztrans,ytrans,xtrans,costheta,sintheta;
+
+  //get some detector information
+  if(hit[0]->detec->dir ==  u_dir){
+    costheta = hit[0]->detec->rRotCos;
+    sintheta = hit[0]->detec->rRotSin;
+    xtrans = hit[0]->detec->center[0];
+    ytrans = hit[0]->detec->center[1];
+    ztrans = hit[0]->detec->Zpos;
+	
+  }
+  else{
+    cerr << "Error : first hit is not in 1st u-plane" << endl;
+    return -1;
+  }
+  //#################################################
+  // Calculate the x,y coordinates in the VDC frame #
+  //#################################################
+  for(i=0;i<Num;i++){
+    xyz[i].rPos1=xyz[i].rPos=hit[i]->rPos1 * uv2xy[0][0] + hit[i]->rPos2 * uv2xy[0][1];//x
+    xyz[i].rPos2=hit[i]->rPos1 * uv2xy[1][0] + hit[i]->rPos2 * uv2xy[1][1];//y
+    xyz[i].Zpos=hit[i]->rPos;//z     
+
+    //cerr << i << " 0 " << xyz[i].rPos1 << " " << xyz[i].rPos2 << " " << xyz[i].Zpos << " " << hit[i]->rPos1 << " " << hit[i]->rPos2 << endl;
+    xyz[i].Resolution = 0;
+  }
+  //####################
+  // Calculate the fit #
+  //####################
+
+  for(i=0;i<Num;i++)chihits[i]=&xyz[i];
+  weight_lsq_r3(&mx,&bx,wcov,&wchi,chihits,Num,0,-1,Num);
+  //cerr << "x = " << mx << "z+"<<bx << endl;
+  for(i=0;i<Num;i++)xyz[i].rPos = xyz[i].rPos2;
+  weight_lsq_r3(&my,&by,wcov,&wchi,chihits,Num,0,-1,Num);
+  //cerr << "y = " << my << "z+"<<by << endl;
+
+  //#################
+  // Calculate chi2 #
+  //#################
+  // Note : without resolutions, chi2 is meaningless
+
+  //##########################
+  // Rotate to the lab frame #
+  //##########################
+
+
+
+  //get two points on the line
+  P1[2] = xyz[0].Zpos;
+  P1[0] = mx * P1[2] + bx;
+  P1[1] = my * P1[2] + by;
+  P2[2] = xyz[Num-1].Zpos;
+  P2[0] = mx * P2[2] + bx;
+  P2[1] = my * P2[2] + by;
+
+  //rotate the points into the lab orientation
+  Pp1[1] = P1[1]*costheta - P1[2]*sintheta;
+  Pp1[2] = P1[1]*sintheta + P1[2]*costheta;
+  Pp2[1] = P2[1]*costheta - P2[2]*sintheta;
+  Pp2[2] = P2[1]*sintheta + P2[2]*costheta;
+
+  //translate the points into the lab frame
+  Pp1[0]+=xtrans;
+  Pp1[1]+=ytrans;
+  Pp1[2]+=ztrans;
+  Pp2[0]+=xtrans;
+  Pp2[1]+=ytrans;
+  Pp2[2]+=ztrans;
+
+  //calculate the new line
+  mx = (Pp2[0]-Pp1[0])/(Pp2[2]-Pp1[2]);
+  my = (Pp2[1]-Pp1[1])/(Pp2[2]-Pp1[2]);
+  bx = Pp2[0]-mx*Pp2[2];
+  by = Pp2[1]-my*Pp2[2];
+
+  //and we're done :)
+  fit[0]=bx;
+  fit[1]=by;
+  fit[2]=mx;
+  fit[3]=my;
+
+  cerr << "x = " << mx << "z+"<<bx << endl;
+  cerr << "y = " << my << "z+"<<by << endl;
+  return 0;
+}
+//__________________________________________________________________
+int treecombine::TcTreeLineCombine(TreeLine *wu,TreeLine *wv,PartTrack *pt, int tlayer )
+{
+  //###############
+  // Declarations #
+  //###############
+  Hit *hits[tlayer*2], **hitarray, *h;
+  int hitc,num,i,j;
+  static double cov[4][4];
+  double *covp = &cov[0][0];
+  double fit[4],chi;
+  double *fitp = &fit[0];
+  enum Edir dir;
+  extern int iEvent;
+  double m,b;
+  double uv2xy[2][2];//2 by 2 projection matrix
+  //initialize cov,uv2xy
+  for(i=0;i<4;i++){for(j=0;j<4;j++){cov[i][j]=0;}}
+  for(i=0;i<2;i++){for(j=0;j<2;j++){uv2xy[i][j]=0;}}
+
+ //####################################
+  //Get the v/u-coordinate for each hit 
+  //on the u/v plane in the VDC frame
+  //Note : need to implement some kind 
+  //of resolution values at this point 
+  //in the code.
+  //####################################
+  for(hitc = 0, dir = u_dir;dir<=v_dir;dir++){
+    if(dir == u_dir){
+      hitarray = wu->hits;
+      num = wu->numhits;
+      m = 1/wv->mx;
+      b = -wv->cx/wv->mx;
+    }
+    else{
+      hitarray = wv->hits;
+      num = wv->numhits;
+      m = 1/wu->mx;
+      b = -wu->cx/wv->mx;
+    }
+    //cerr << "line = " << m << "x+" << b << endl;
+    for(i=0;i<num;i++,hitarray++){
+      h = *hitarray;
+      if(dir == u_dir){
+        if(!uv2xy[0][0]){
+          uv2xy[0][0]=h->detec->rSin;
+	  uv2xy[1][0]=-h->detec->rCos;
+	}
+        h->rPos2 = m * h->rPos + b;//v
+        h->rPos1 = h->Zpos;//u
+        //z is rPos
+      }else{
+        if(!uv2xy[0][1]){
+          uv2xy[0][1]=-h->detec->rSin;
+	  uv2xy[1][1]=h->detec->rCos;
+	}
+        h->rPos1 = m * h->rPos + b;//u
+        h->rPos2 = h->Zpos;//v
+        //z is rPos
+      }
+      //string all the hits together 
+      if(h->used !=0){   
+        hits[hitc++] = h;
+      }
+    }
+  }
+  //########################
+  // Perform the track fit #
+  //########################
+/*  if( rc_TrackFit( hitc, hits, fitp, covp, &chi, 0,0)  == -1) {
+    fprintf(stderr,"hrc: Event: %d - PartTrack Fit Failed\n", iEvent);
+    return 0;
+  }*/
+  if(r3_TrackFit(hitc,hits,fitp,covp,&chi,uv2xy) == -1){
+    fprintf(stderr,"hrc: Event: %d - PartTrack Fit Failed\n", iEvent);
+    return 0;
+  }
+  //#########################
+  // Record the fit results #
+  //#########################
+  pt->x  = fit[0];
+  pt->y  = fit[1];
+  pt->mx = fit[2];
+  pt->my = fit[3];
+  pt->isvoid  = false;
+
+  pt->chi = sqrt( chi);
+  for( i = 0; i < 4; i++ )
+    for( j = 0; j < 4; j++ ) 
+      pt->Cov_Xv[i][j] = cov[i][j];
+    
+  pt->numhits = wu->numhits + wv->numhits;
+  pt->tline[0] = wu;
+  pt->tline[1] = wv;
+
+return 1;
+}
+//__________________________________________________________________
 int treecombine::TcTreeLineCombine( TreeLine *wu, TreeLine *wv, TreeLine *wx,
 		    PartTrack *pt, int tlayer )
 {
@@ -1008,7 +1256,7 @@ int treecombine::TcTreeLineCombine( TreeLine *wu, TreeLine *wv, TreeLine *wx,
       
     for( num = MAXHITPERLINE*DLAYERS; num--  && *hitarray; hitarray ++ ) {
       h = *hitarray;
-      if( h->used == true && hitc < DLAYERS*3) 
+      if( h->used != 0 && hitc < DLAYERS*3) 
 	hits[hitc++] = h;
     }
   }
@@ -1038,13 +1286,11 @@ int treecombine::TcTreeLineCombine( TreeLine *wu, TreeLine *wv, TreeLine *wx,
   return 1;
 }  
 //__________________________________________________________________
-double uv2x(double u,double v){
-cerr << "This function is just a stub" << endl;
-return -1000;
+double uv2x(double u,double v,double wirecos){
+  return (u-v)*fabs(wirecos);
 }
-double uv2y(double u,double v){
-cerr << "This function is just a stub" << endl;
-return -1000;
+double uv2y(double u,double v,double wiresin){
+  return (u+v)*fabs(wiresin);
 }
 double xy2u(double x,double y){
 cerr << "This function is just a stub" << endl;
@@ -1076,19 +1322,22 @@ PartTrack *treecombine::TlTreeCombine(TreeLine *uvl[2],long bins,enum EUppLow up
 //################
 // DECLARATIONS  #
 //################
-  cerr << "1";
   TreeLine *wu,*wv,*wx, *bwx, wrx;
   PartTrack *ret = 0, *ta;
   int in_acceptance;
   //int partmissidx = part + (method == meth_std? 0 : 1 )*2;
 
-  double mu,xu,mv,xv, zx1, zx2, xx1, xx2;
+  double mu,xu,mv,xv, zx1, zx2, xx1, xx2,z1,z2;
   double x,y,mx,my,v1,v2,u1,u2, y1, y2;
   double x1, x2, d, maxd = 1e10, d1, d2;
   //double z;
   double rcSETrMaxXRoad         = 0.25;
-  cerr << "ERROR : USING STUB VALUE FOR RCSET " << endl;
   chi_hashclear();
+
+  double uv_dz;//distance between u and v planes
+  double Rot;//rotation of planes about the lab x-axis
+  Det *rd;
+  double wirecos,wiresin,x_[2],y_[2];
 //###############
 // DO STUFF     #
 //###############
@@ -1097,71 +1346,97 @@ PartTrack *treecombine::TlTreeCombine(TreeLine *uvl[2],long bins,enum EUppLow up
   // REGION 3      #
   //################
   if(region == r3 && type == d_drift){
-	wu = uvl[u_dir];
-	while(wu){
-		if(wu->isvoid==true){
-			wu = wu->next;
-			continue;
-		}
-		//get wu's line parameters
-		mu = wu->mx;//slope
-		xu = wu->cx;//constant
-		wv = uvl[v_dir];
-		while(wv){
-			if(wv->isvoid==true){
-				wv = wv->next;
-				continue;
-			}
-			//get wv's line parameters
-			mv = wv->mx;//slope
-      			xv = wv->cx;//constant
 
-			//calculate positions
-      			/* --- get u/v at the x detectors --- */
-      			u1 = xu + (zx1 - magnet_center) * mu;
-      			u2 = xu + (zx2 - magnet_center) * mu;
-      			v1 = xv + (zx1 - magnet_center) * mv;
-      			v2 = xv + (zx2 - magnet_center) * mv;
-      
-      			/* ------ for x -------- */
-      			x1 = uv2x( u1, v1);
-      			x2 = uv2x( u2, v2);
+    rd = rcDETRegion[up_low][region-1][u_dir];
+    z1 = rd->Zpos;
+    rd = rcDETRegion[up_low][region-1][v_dir];
+    z2 = rd->Zpos;
+    Rot = rd->Rot;
+    uv_dz = (z2-z1)/sin(Rot);//assuming the planes have the same rot angle about the lab x-axis.
+    wirecos = rd->rCos;
+    wiresin = rd->rSin;
 
-      			/* ------ for y -------- */
-      			y1 = uv2y( u1, v1);
-      			y2 = uv2y( u2, v2);
-	
-      			my = (y2-y1)/(zx2-zx1);
-      			y  = 0.5*(y1+y2) + my * (magnet_center - 0.5*(zx1+zx2));
+    //###################################
+    // Get distance between planes, etc #
+    //###################################
+    rd = rcDETRegion[up_low][region-1][u_dir];
+    x_[0]= rd->center[0];
+    y_[0]= rd->center[1]; 
+    rd = rcDETRegion[up_low][region-1][u_dir]->nextsame;  
+    x_[1]= rd->center[0];
+    y_[1]= rd->center[1]; 
+    d = sqrt(pow(x_[1]-x_[0],2)+pow(y_[1]-y_[0],2));//<-distance between first u and last v planes
 
+    //#########################
+    // Get the u and v tracks #
+    //#########################
+    wu = uvl[u_dir];//get the u track
+    while(wu){
+      if(wu->isvoid!=0){//skip this treeline if it was no good
+	wu = wu->next;
+	continue;
+      }
+      //get wu's line parameters
+      mu = wu->mx;//slope
+      xu = wu->cx;//constant
 
+      wv = uvl[v_dir];//get the v track
+      while(wv){
+        if(wv->isvoid!=0){
+	  wv = wv->next;
+	  continue;
+        }
+	//get wv's line parameters
+	mv = wv->mx;//slope
+      	xv = wv->cx;//constant
 
-		}
+	PartTrack *ta = new PartTrack();
+
+	parttrackanz ++;
+
+	if( TcTreeLineCombine( wu, wv, ta, tlayer) ) {
+	    ta->ID = 0;
+	    ta->isvoid  = false;
+	    //ta->trdcol  = 0;
+	    ta->next   = ret;
+	    //ta->method = method;
+	    ta->bridge = 0;
+	    //ta->cluster  = 0;
+	    ta->Used     = 0;
+	    ta->pathlenoff = 0;
+	    ta->pathlenslo = 0;
+            ta->next = ret;//string together the
+	    ret = ta;//      good tracks
 	}
-cerr << "2";
+
+	// Check whether this track went through the trigger and/or
+	// the Cerenkov bar. 
+	checkR3(ta,up_low);
+
+        wv = wv->next;
+      }
+      wu = wu->next;
+    }
   return ret;
   }
   //#################
   // OTHER REGIONS  #
   //#################
+  //all that follows is useful legacy junk
   else{
-  
-  wu = uvl[u_dir /*- u_dir*/];	
-  cerr << "3";
-  zx1 = rcTreeRegion[up_low][region-1][type][x_dir/*-u_dir*/]->rZPos[0];
-  cerr << "4";
-  zx2 = rcTreeRegion[up_low][region-1][type][x_dir/*-u_dir*/]->rZPos[tlayer-1];
-  cerr << "5";
+  wu = uvl[u_dir];	
+  zx1 = rcTreeRegion[up_low][region-1][type][x_dir]->rZPos[0];
+  zx2 = rcTreeRegion[up_low][region-1][type][x_dir]->rZPos[tlayer-1];
   while( wu) {
-    if( wu->isvoid == true ) {
+    if( wu->isvoid != 0 ) {
       wu = wu->next;
       continue;
     }
     mu = wu->mx;
     xu = wu->cx;
-    wv = uvl[v_dir/*-u_dir*/];
+    wv = uvl[v_dir];
     while(wv) {
-      if( wv->isvoid == true ) {
+      if( wv->isvoid != 0 ) {
 	wv = wv->next;
 	continue;
       }
@@ -1175,12 +1450,12 @@ cerr << "2";
       v2 = xv + (zx2 - magnet_center) * mv;
       
       /* ------ for x -------- */
-      x1 = uv2x( u1, v1);
-      x2 = uv2x( u2, v2);
+      x1 = uv2x( u1, v1,1);
+      x2 = uv2x( u2, v2,1);
 
       /* ------ for y -------- */
-      y1 = uv2y( u1, v1);
-      y2 = uv2y( u2, v2);
+      y1 = uv2y( u1, v1,1);
+      y2 = uv2y( u2, v2,1);
 	
       my = (y2-y1)/(zx2-zx1);
       y  = 0.5*(y1+y2) + my * (magnet_center - 0.5*(zx1+zx2));
@@ -1190,12 +1465,12 @@ cerr << "2";
 	 they have to be calculated first --- */
 
       maxd = 1e10;
-      if( rcTreeRegion[up_low][region-1][type][x_dir/*-u_dir*/]->searchable == true){
-	wx = uvl[x_dir/*-u_dir*/];
+      if( rcTreeRegion[up_low][region-1][type][x_dir]->searchable != 0){
+	wx = uvl[x_dir];
 	bwx = 0;
 
 	while( wx ) {
-	  if( wx->isvoid == true ) {
+	  if( wx->isvoid != 0 ) {
 	    wx = wx->next;
 	    continue;
 	  }
@@ -1220,7 +1495,7 @@ cerr << "2";
 	//visdir = x_dir;	
 	
 	if( TlCheckForX(x1,x2, rcSETrMaxXRoad,rcSETrMaxXRoad, zx1,zx2-zx1,
-			&wrx,up_low,region,type,x_dir/*,orient*/,dlayer,tlayer, 0,1)) {
+			&wrx,up_low,region,type,x_dir,dlayer,tlayer, 0,1)) {
 	//replaced a Qmalloc below
 	  wx = (TreeLine *)malloc( sizeof( TreeLine));
 	  assert( wx );
@@ -1228,8 +1503,8 @@ cerr << "2";
 
 	  bwx = wx;
 	  //wx->method = meth_std;
-	  wx->next = uvl[x_dir/*-u_dir*/]; /* chain the link to the  */
-	  uvl[x_dir/*-u_dir*/] = wx;       /* event treeline list */
+	  wx->next = uvl[x_dir]; /* chain the link to the  */
+	  uvl[x_dir] = wx;       /* event treeline list */
 	  maxd  = fabs( x1 - (wx->cx + wx->mx*(zx1-magnet_center)));
 	  maxd += fabs( x2 - (wx->cx + wx->mx*(zx2-magnet_center)));
 	} else
@@ -1318,7 +1593,7 @@ void treecombine::ResidualWrite( Event *event)
 		    pt->tline[1]->nummiss +  pt->tline[2]->nummiss);
 	*/
 	for( dir = u_dir; dir <= x_dir; dir ++ ) {
-	  tl = pt->tline[dir/*-u_dir*/];
+	  tl = pt->tline[dir];
 	  hitarr = tl->hits;
 	
 	  for( num = MAXHITPERLINE*DLAYERS; num--&&*hitarr; hitarr ++ ) {
@@ -1359,11 +1634,11 @@ void treecombine::ResidualWrite( Event *event)
 //__________________________________________________________________
 matrix  M_Init (int Zeilen, int Spalten)
 {
+
   matrix ret;
   int n;
 
   n = Zeilen;
-
   ret = (matrix) calloc (1, 0x10 + Zeilen * (sizeof (vektor) + 
 					     Spalten * sizeof (double)));
   if(!ret)
@@ -1376,6 +1651,212 @@ matrix  M_Init (int Zeilen, int Spalten)
   return ret;
 }
 //__________________________________________________________________
+// Least upper bound standard
+double UNorm ( double *A, int n, int m)
+{
+  double Max = 0.0, help;
+  int counter;
+  double *B = A;
+  while (n--) {
+    counter = m;
+    while (counter--){
+      B = A + n + counter;
+      if (Max < (help = fabs (*(B))))
+	Max = help;
+      }
+  }
+  return Max;
+}
+//__________________________________________________________________
+double *M_Cholesky (double  *B, double *q, int n)
+{
+  register int i, j, k;
+  double sum, min;
+  double *C = B;
+  double A[n][n];
+  double p[n],*pp;
+
+  for(i=0;i<n;i++){
+    for(j=0;j<n;j++){
+      A[i][j]=*C;
+      C++;
+    }
+  }
+
+  min = UNorm (B, n, n)  * n * DBL_EPSILON;
+  for( i = 0; i < n; i++ ) {
+    for( j = i; j < n; j++ ) {
+      sum = A[i][j];
+      for( k = i-1; k >= 0; k-- ) 
+	sum -= A[i][k] * A[j][k];
+      if( i == j ) {
+	if( sum < min ) {
+	  return 0;
+	}
+	p[i] = sqrt(sum);
+      } else
+	A[j][i] = sum/p[i];
+    }
+  }
+  C = B;
+  pp=q;
+  for(i=0;i<n;i++){
+    *p = p[i];
+    pp++;
+    for(j=0;j<n;j++){
+      *C = A[i][j];
+      C++;
+    }
+  }
+  C = B;
+  pp = q;
+  return B;
+}
+//__________________________________________________________________
+double *M_InvertPos (double *B, int n)
+{
+
+  int i,j, k;
+  double sum;
+  double p[n];
+  double q[n];
+  double inv[n][n]; 
+  double *pp;
+  double A[n][n],*C;
+  /* first we need the cholesky decomposition */
+  
+  if( M_Cholesky( B, pp, n) ) {
+
+    C = B;
+    for( i = 0; i < n; i++) {
+      p[i]=*q;
+      for( j = 0; j < n; j++ ) {
+	A[i][j]= *C;
+        C++;
+      }
+    }
 
 
 
+    for( i = 0; i < n; i++) { 
+      A[i][i] = 1.0/p[i];
+      for( j = i+1; j < n; j++ ) {
+	sum = 0;
+	for( k = i; k < j; k++ )
+	  sum -= A[j][k] * A[k][i];
+	A[j][i] = sum / p[j];
+      }
+    }
+    
+    for( i = 0; i < n; i++ ) {
+      for( j = i; j < n; j++ ) {
+	sum = 0;
+	for( k = j; k < n; k++ ) 
+	  sum += A[k][i] * A[k][j];
+	inv[i][j] = inv[j][i] = sum;
+      }
+    }    
+
+    C = B;
+    for( i = 0; i < n; i++) {
+      for( j = 0; j < n; j++ ) {
+	*C = inv[i][j];
+        C++;
+      }
+    }
+
+  } else{ 
+    B = 0;
+    cerr << "Cholesky failed" << endl;
+  }
+  C = B;
+
+  return B;
+}
+//__________________________________________________________________
+/*--------------------------*
+  Multiplication of Matrix A with vector b
+ *--------------------------*/
+double * 
+M_A_mal_b (double *y,double *A, int n, int m,double b[4])
+{
+
+  double AA[n][m],*Ap=A;
+  double yy[n],*z = y;
+  int n2 = n;
+  for(int i=0;i<n;i++){
+    yy[i]=*z;
+    z++;
+    for(int j=0;j<m;j++){
+      AA[i][j]=*Ap;
+      Ap++;
+    }
+  }
+  Ap = A;
+  z = y;
+  int counter;
+  double Sum;
+  double *yp = y;
+  while (n--) {
+    counter = m;
+    Sum = 0.0;
+    while (counter--)
+      Sum += AA[n][m]*b[m];
+    yy[n] = Sum;
+  }
+  
+  for(int i=0;i<n2;i++){
+    *z = y[i];
+    z++;
+  }
+  z = y;
+
+
+
+  return y;
+}
+//__________________________________________________________________
+int treecombine::checkR3(PartTrack *pt,enum EUppLow up_low){
+  double trig[3],cc[3];
+  double lim_trig[2][2],lim_cc[2][2];
+  Det *rd = rcDETRegion[up_low][2][x_dir];//get the trig scint
+  
+  //get the point where the track intersects the detector planes
+  trig[2] = rd->Zpos;
+  trig[0] = pt->mx * trig[2] + pt->x;
+  trig[1] = pt->my * trig[2] + pt->y;
+  //get the detector boundaries
+  lim_trig[0][0] = rd->center[0]+rd->width[0];
+  lim_trig[0][1] = rd->center[0]-rd->width[0];
+  lim_trig[1][0] = rd->center[1]+rd->width[1];
+  lim_trig[1][1] = rd->center[1]-rd->width[1];
+  
+  if(trig[0]<lim_trig[0][0] 
+     && trig[0]>lim_trig[0][1]
+     && trig[1]<lim_trig[1][0] 
+     && trig[1]>lim_trig[1][1]){
+	pt->triggerhit=1;
+	pt->trig[0] = trig[0];
+	pt->trig[1] = trig[1];
+  }else pt->triggerhit=0;
+
+  rd = rcDETRegion[up_low][2][y_dir];//get the CC
+  cc[2] = rd->Zpos;
+  cc[0] = pt->mx * cc[2] + pt->x;
+  cc[1] = pt->my * cc[2] + pt->y;
+  lim_cc[0][0] = rd->center[0]+rd->width[0];
+  lim_cc[0][1] = rd->center[0]-rd->width[0];
+  lim_cc[1][0] = rd->center[1]+rd->width[1];
+  lim_cc[1][1] = rd->center[1]-rd->width[1];
+  
+  if(cc[0]<lim_cc[0][0] 
+     && cc[0]>lim_cc[0][1]
+     && cc[1]<lim_cc[1][0] 
+     && cc[1]>lim_cc[1][1]){
+	pt->cerenkovhit=1;
+	pt->cerenkov[0] = cc[0];
+	pt->cerenkov[1] = cc[1];
+  }else pt->cerenkovhit=0;
+
+return 0;
+}

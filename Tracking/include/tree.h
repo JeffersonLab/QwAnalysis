@@ -18,7 +18,6 @@ class treenode;
 class shorttree;
 class nodenode;
 class shortnode;
-class hitnode;
 class treeregion;
 class tree;
 class Hit;
@@ -57,12 +56,17 @@ enum Eorientation{		// tracking orientation
 
 
 //____________________________________________
+/*! \brief A treenode contains the bits which make up a tree pattern.
+
+The treenode also has a pointer to its father and a pointer to its 
+son nodenodes.  Each following generation of a treenode will have
+a higher bit resolution.
+*/
 class treenode{
 
 public:
 treenode *genlink;
 nodenode *son[4];
-hitnode *hits;
 int maxlevel,minlevel;
 int bits;
 int bit[TLAYERS];
@@ -77,19 +81,12 @@ private:
 
 };
 //____________________________________________
-class hitnode{
+/*! \brief Creates and manages the treesearch pattern 
+database.
 
-public:
-hitnode *next;
-int cell;
-int bin;
-hitnode();
-~hitnode();
-
-private:
-
-};
-//____________________________________________
+The pattern database is used to determine whether subsets
+of hits resemble track segments.
+*/
 class tree{
 
 public:
@@ -132,6 +129,15 @@ int _writetree(treenode *tn, FILE *fp, int tlayers);
 int _readtree(FILE *f, shorttree *stb, shortnode **fath, int tlayers);
 };
 //____________________________________________
+/*! \brief A nodenode is used as a pointer which links
+treenodes to their siblings.
+
+Together with the treenode, any tree pattern can be
+related to any of its family members.  This allows the
+tree search algorithms to quickly move through the database
+to identify matching patterns.
+
+*/
 class nodenode{
 
 public:
@@ -147,6 +153,7 @@ private:
 
 
 //____________________________________________
+/*! \brief Similar to a nodenode */
 class shortnode{
 
 public:
@@ -159,6 +166,8 @@ private:
 
 };
 //____________________________________________
+/*! \brief Similar to a treenode.
+*/
 class shorttree{
 
 public:
@@ -175,6 +184,17 @@ private:
 
 };
 //____________________________________________
+/*! \brief A container for the pattern databases for each detector region.
+
+It is useful to separate the pattern database into multiple detector regions
+to reduce the extent by which a set of hits are compared to a pattern.  For instance,
+there are two databases for the region 3 set of detectors.  One for the 'upper' and one
+for the 'lower' detector sets.  Track segments in the area downstream of the QTOR magnet
+are approximated by straight lines.  Only the VDC is designed to measure track positions,
+so these two databases are designed to contain patterns which resemble tracks passing
+through the VDC.
+
+*/
 class treeregion{
 
 public:
@@ -191,6 +211,13 @@ private:
 
 };
 //____________________________________________
+/*! \brief Contains hit data and information regarding the hit detector
+
+Hits for individual detector elements are strung together.  They also
+have a pointer back to the detector in case more information about the
+hit is needed.  The various position values are used in multiple ways,
+and therefore are not strictly defined.
+*/
 class Hit{
 
 public:
@@ -211,7 +238,12 @@ private:
 
 
 };
+/*! \brief Describes a detector element
 
+The Det class hold information about a detector,
+such as its position, orientation, and size.  In the case of
+drift chambers, it has information about the wires.
+*/
 class Det{
 
 public:
@@ -222,6 +254,7 @@ double Rot;//rotation angle
 double rRotCos,rRotSin;	/* cos and sin of the rotation angle */
 double resolution;//resolution of the chamber
 double TrackResolution;//tracking resolution
+double SlopeMatching;//front/back track segment slope matching
 
 enum EUppLow upplow;
 enum ERegion region;
@@ -240,12 +273,18 @@ Hit *hitbydet;//hitlist
 Det *nextsame;//same wire orientation
 int samesearched;
 
-int  ID;			/* Adamo Id (NEEDS TO BE REPLACED) representing a detector ID number.  This is needed to separate detectors when comparing hits.  */
+int  ID;			/*Id representing a detector ID number.  This is needed to separate detectors when comparing hits.  */
 
 private:
 
 };
 //____________________________________________
+/*! \brief A container for track information
+
+The TreeLine has a pointer to a set of hits.  It is passed 
+to various track fitting procedures and carries around 
+the fit results.
+*/
 class TreeLine {		/* used for found tracks */
 
 public:
@@ -263,12 +302,18 @@ public:
   int   nummiss;		/* number of planes without hit */
   //enum  Emethod method;		/* treeline generation method  */
   Hit   *hits[2*TLAYERS];	/* hitarray */
+  Hit   thehits[2*TLAYERS];
   int   hasharray[2*TLAYERS];
   bool Used;			/* used (part of parttrack) */
   int   ID;			/* adamo ID */
   int   r3offset,firstwire,lastwire;
 };
 //____________________________________________
+/*! \brief Similar to a TreeLine.  It contains tracking information.
+
+A PartTrack contains tracking information and is the result of
+multiple track segments fit together.
+*/
 class PartTrack {
 
 public:
@@ -291,8 +336,15 @@ public:
   int    numhits;		/* used hits */
   int    isvoid;		/* marked as being void    */
   int    ID;			/* adamo Id */
+  
+  int    triggerhit;		/* Did this track pass through the trigger?*/
+  double trig[2];		/* x-y position at trigger face */
+  int cerenkovhit;		/* Did this track pass through the cerenkov bar? */
+  double cerenkov[2];		/* x-y position at Cerenkov bar face */
 };
 //____________________________________________
+/*! \brief This class has not yet been implemented
+*/
 class Track
 {
 public:
@@ -340,6 +392,7 @@ public:
 private:
 };
 //____________________________________________
+/*! \brief This class has not yet been implemented*/
 class Bridge
 {
 public:
@@ -355,6 +408,7 @@ public:
 private:
 };
 //____________________________________________
+/*! \brief This class has not yet been implemented*/
 class Vertex {
   double coord[3];		/* coordinates of vertex */
   double av[3][3];              /* error matrix */  
@@ -365,6 +419,8 @@ class Vertex {
   int ID;			/* adamo ID */
 };
 //____________________________________________
+/*! \brief Contains all the track reconstruction for a single event.
+*/
 class Event {
 public:
   int    ID;
@@ -380,6 +436,9 @@ public:
 private:
 };
 //____________________________________________
+/*! \brief Used to carry option information
+throughout the code.
+*/
 class Options {
 
 public:

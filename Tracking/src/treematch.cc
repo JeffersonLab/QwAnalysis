@@ -1,11 +1,16 @@
 #include <iostream>
 #include "treematch.h"
+#include "treecombine.h"
+
+#include <fstream>
 using namespace std;
 
+/*! \file treematch.cc
+\brief This module matches track segments for individual wire planes.
+*/
 
 
-
-
+extern Det *rcDETRegion[2][3][4];
 
 
 
@@ -21,12 +26,11 @@ cerr << "ERROR : THIS FUNCTION IS ONLY A STUB rcZEval " << endl;
 return -1000;
 }
 //________________________________________________________________________
-Hit *bestWireHit(TreeLine *walk){//returns the best measured wire hit
-  Hit *besthit;
+Hit *bestWireHit(TreeLine *walk,double bestpos=0){//returns the best measured wire hit
   double pos=9999,newpos;
   int ibest;
   for(int i =0;i<walk->numhits;i++){//get the best measured hit in the back
-    newpos = walk->hits[i]->rPos;
+    newpos = walk->hits[i]->rPos-bestpos;
     if(newpos < 0)newpos = -newpos;
     if(newpos < pos){
       pos = newpos;
@@ -45,38 +49,214 @@ treematch::~treematch(){
 
 }
 //________________________________________________________________________
-TreeLine *treematch::MatchR3(TreeLine *front,TreeLine *back){
+// This function requires the wire planes to be parallel
+/* VDC reference frame : The center of the upstream u or v wire plane is placed at the origin.  The u or v wire plane is in the y-z plane.  The center of the downstream u or v plane is at (d,d2,0).  The line slopes are calculated with a different reference frame: distance between wires representing dy and distance from wire representing dx.
+*/
+TreeLine *treematch::MatchR3(TreeLine *front,TreeLine *back,EUppLow up_low,ERegion region, Edir dir){
   //###############
   // DECLARATIONS #
   //###############
+  //cerr << "trelin rpos = " << front->hits[0]->rPos << endl;
   TreeLine *combined,*fwalk,*bwalk;
-  int fronthits,backhits;
-  int numfront=0,numback=0;
-  double x[2],y[2];
+  double x[2],y[2],z[3],zp[2];
   Hit *fpos,*bpos;
-  //#################
-  // DO STUFF #
-  //#################
+  double d,d2,d_uv,xp,B,A;
+  double pi = acos(-1),theta;
+  double wirespacingf,wirespacingb,d_to_1st_wire_f,d_to_1st_wire_b;
+  Det *rd;
+  int i,j,k;
+  double slope,intercept,fslope,bslope;
+  int numflines=0,numblines=0;
+  double fsloperes,bsloperes;
+  double bestmatch;
+  TreeLine  *lineptr;
+  double mx,cx,cov[3],chi;
+  int nhits,fhits,bhits;
+  treecombine TreeCombine;
+  Hit *DetecHits[2*TLAYERS];
 
+  ofstream gnu1,gnu2;
+  gnu1.open("gnu1.dat");
+  gnu2.open("gnu2.dat");
+  //###################################
+  // Get distance between planes, etc #
+  //###################################
+  rd = rcDETRegion[up_low][region-1][dir];
+  theta = rd->Rot/360*2*pi;
+  //get the u value for the first wire.
+  d_to_1st_wire_f = rd->rSin * rd->PosOfFirstWire;
+  // due to reverse order
+  d_to_1st_wire_f = d_to_1st_wire_f - rd->NumOfWires * rd->WireSpacing;   
+  wirespacingf = rd->WireSpacing;
+  fsloperes = rd->SlopeMatching;
+  x[0]= rd->center[0];
+  y[0]= rd->center[1]; 
+  z[0]= rd->Zpos;
+  zp[0] = z[0]-y[0]/tan(theta);
+
+  rd = rd->nextsame;  
+  x[1]= rd->center[0];
+  y[1]= rd->center[1];
+  z[1]= rd->Zpos; 
+  zp[1] = z[1]-y[1]/tan(theta);
+
+  d = (zp[1]-zp[0])*sin(theta);//<-distance between planes
+  //cerr << "d = " << d << endl;
+  wirespacingb = rd->WireSpacing;
+  bsloperes = rd->SlopeMatching;
+  //get the u value for the first wire.
+  d_to_1st_wire_b = rd->rSin * rd->PosOfFirstWire;
+  // due to reverse order
+  d_to_1st_wire_b = d_to_1st_wire_b - rd->NumOfWires * rd->WireSpacing;  
+
+  if(dir == v_dir){//get the distance between the u and v planes
+    d_uv = (rcDETRegion[up_low][region-1][v_dir]->Zpos-rcDETRegion[up_low][region-1][u_dir]->Zpos);  
+    d_uv*= rcDETRegion[up_low][region-1][u_dir]->rRotCos;
+  }
+  //######################################
+  // Get the radial offset of the planes #
+  //######################################
+  //warning : this assumes the planes are parallel.
+  
+  z[2] = z[0]+d*sin(theta);
+  //d2 = (z[2]-z[1])/cos(theta);
+  d2 = (y[1]-y[0])/sin(theta)+(zp[1]-zp[0])*cos(theta);
+  //cerr << "d2 = " << d2 << endl;
+  //##########################
+  //Revise the hit positions #
+  //##########################
+
+  for(int i =0;i<282;i++){
+	gnu2 << "0 " << d_to_1st_wire_f + i*wirespacingf << " " << d << " " << d_to_1st_wire_b + i*rd->WireSpacing +d2 << endl;  
+  } 
+  for(fwalk = front;fwalk;fwalk = fwalk->next){
+    numflines++;
+    //cerr << "isvoid = " << fwalk->isvoid << "," << fwalk->numhits << endl;
+    for(i=0;i<fwalk->numhits;i++){
+      fwalk->hits[i]->Zpos = fwalk->hits[i]->wire * wirespacingf + d_to_1st_wire_f;
+      if(dir == v_dir)fwalk->hits[i]->rPos+= d_uv;
+    }
+  }
+  for(bwalk = back;bwalk;bwalk = bwalk->next){
+    numblines++;
+    for(i=0;i<bwalk->numhits;i++){
+      bwalk->hits[i]->Zpos = (bwalk->hits[i]->wire - rd->NumOfWires) * wirespacingb + d_to_1st_wire_b + d2;
+      bwalk->hits[i]->rPos = bwalk->hits[i]->rPos + d;
+      if(dir == v_dir)bwalk->hits[i]->rPos+= d_uv;
+    }
+  }
+  fwalk = front;
+  bwalk = back;
+  
+  for(i=0;i<fwalk->numhits;i++){
+    gnu1 << fwalk->hits[i]->Zpos << " " << fwalk->hits[i]->rPos << endl;
+  }
+  for(i=0;i<bwalk->numhits;i++){
+    gnu1 << bwalk->hits[i]->Zpos << " " << bwalk->hits[i]->rPos << endl;
+  }
+  
+
+  int matches[numflines];
+  int bmatches[numblines];
+  double bestmatches[numblines];
+  //###############################
+  // Find matching track segments #
+  //###############################
+  for(i=0;i<numblines;i++)bestmatches[i]=99;
+  i=0;
   for(fwalk = front;fwalk;fwalk = fwalk->next){//loop over front track segments
+    matches[i]=-1;
     if(fwalk->isvoid == 0){//skip it if it's no good
       fpos = bestWireHit(fwalk);
+      j=0;
+      bestmatch=99;
       for(bwalk = back;bwalk;bwalk = bwalk->next){
-    	bpos = bestWireHit(bwalk);
-	
+        j++;
+	if(bwalk->isvoid !=0)continue;
+    	bpos = bestWireHit(bwalk,d);
+
+	y[0]=fpos->Zpos;
+	y[1]=bpos->Zpos;	
 	x[0]=fpos->rPos;
 	x[1]=bpos->rPos;
-	y[0]=fpos->wire;
-	y[1]=bpos->wire;
 
-	cerr << x[0] << "," << y[0] << "," << x[1] << "," << y[1] << endl;
+        slope = (y[1]-y[0])/(x[1]-x[0]);
+        intercept = y[1]-slope*x[1];
 
+	fslope = wirespacingf/fwalk->mx;
+	bslope = wirespacingb/bwalk->mx;
+        if(fabs(fslope-slope)<=fsloperes && fabs(bslope-slope)<=bsloperes
+	   && fabs(fslope-slope)+fabs(bslope-slope)<bestmatch){//if it's a good match
+          if(bestmatches[j-1]!=99){// if the back segment has been matched already
+		bestmatch = fabs(fslope-slope)+fabs(bslope-slope);
+                if(bestmatch > bestmatches[j-1])continue;//check if it's better
+                else matches[bmatches[j-1]]=-1;//if so, remove the bad match
+          }
+	  matches[i]=j-1;//set the match on both match arrays
+          bmatches[j-1]=i;
+          bestmatch = bestmatches[j-1] = fabs(fslope-slope)+fabs(bslope-slope);
+	  //cerr << "match = " << i << "->" << j-1 << endl;
+          
+	}
+
+	//cerr << x[0] << "," << y[0] << "," << x[1] << "," << y[1] << endl;
+
+	//cerr << "slope = " << fslope << "," << slope << "," << bslope << endl;
+        //cerr << "line = " << slope << "*x + " << intercept << endl;
+        //cerr << "fline = " << wirespacingf/fwalk->mx << "*x + " << -wirespacingf*fwalk->cx/fwalk->mx + d_to_1st_wire_f<< endl;
+      }
+    }
+    i++;
+  }
+  //################################
+  // Create the combined treelines #
+  //################################ 
+  lineptr = (TreeLine*)malloc(sizeof(TreeLine));
+  assert(lineptr);
+
+  for(fwalk = front,i=0;fwalk;fwalk = fwalk->next,i++){
+    for(bwalk = back,j=0;bwalk;bwalk = bwalk->next,j++){
+      if(matches[i]==j){//if this front segment was matched to this back segment
+        //set the hits
+	fhits = fwalk->numhits;
+        bhits = bwalk->numhits;
+        for(k=0;k<fhits;k++){
+	  DetecHits[k]=fwalk->hits[k];
+          lineptr->hits[k]=fwalk->hits[k];
+	}
+	for(k=0;k<bhits;k++){
+	  DetecHits[k+fhits]=bwalk->hits[k];
+	  lineptr->hits[k+fhits]=bwalk->hits[k];
+        }
+        nhits = fhits + bhits;
+
+
+        for(k=0;k<nhits;k++){
+	 // cerr << DetecHits[k]->Zpos << " " << DetecHits[k]->rPos << endl;
+	}
+        //fit a line to the hits
+        TreeCombine.weight_lsq_r3(&mx,&cx,cov,&chi,DetecHits,nhits,0,-1,2*TLAYERS);
+        lineptr->mx = mx;
+        lineptr->cx = cx;
+        lineptr->chi = chi;
+        lineptr->numhits = nhits;
+        lineptr->nummiss = 2*TLAYERS - nhits;
+        lineptr->isvoid = false;
+
+        //cerr << "line = " << 1/mx << "x + (" << -cx/mx << ")" << endl;
+	//string the tracks together
+        lineptr->next = combined;
+        combined = lineptr;
       }
     }
   }
 
-  
 
+
+  
+  gnu1.close();
+  gnu2.close();
+  combined->next = 0;
   return combined;
 }
 //________________________________________________________________________

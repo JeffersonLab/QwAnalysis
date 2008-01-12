@@ -6,6 +6,7 @@
 #define NDetMax 1010
 #endif
 using namespace std;
+#define PI 3.141592653589793
 
 extern Det *rcDETRegion[2][3][4];
 extern Det rcDET[NDetMax];
@@ -14,14 +15,22 @@ extern ERegion operator++(enum ERegion &rs, int );
 extern Etype operator++(enum Etype &rs, int );
 extern Edir operator++(enum Edir &rs, int );
 
-/*____________________________________________________________
+/*
 Qset
 Date : 7/30/7
+Author : Burnham Stokes */
+/*! \file Qset.cc 
+\brief Qset is a generic data read-in class that
+reads ascii to set up the detector geometry.  
+
+The file qweak.geo is the current geometry file.  
+*/
+
+/*! \file qweak.geo
 Author : Burnham Stokes
-Description : Qset is a generic data read-in class that
-reads ascii to set up the detector geometry.  The file 
-'qweak.geo' is the current geometry file.  
-____________________________________________________________*/
+\brief  qweak.geo is a simple ascii file used by Qset to read 
+in the Qweak detector information.
+*/
 //____________________________________________________________
 int Qset::FillDetec(char *geomfile){
 	FILE *geom;
@@ -39,12 +48,14 @@ int Qset::FillDetec(char *geomfile){
 		rcDET[i].Zpos = atof(strtok(line,"\n"));//z position of detector center
 		fgets(line,maxchar,geom);
 		rcDET[i].Rot = atof(strtok(line,"\n"));//rotation of detector about the x-axis (degrees)
-		rcDET[i].rRotCos = cos(rcDET[i].Rot);
-		rcDET[i].rRotSin = sin(rcDET[i].Rot);
+		rcDET[i].rRotCos = cos(rcDET[i].Rot*PI/180);
+		rcDET[i].rRotSin = sin(rcDET[i].Rot*PI/180);
 		fgets(line,maxchar,geom);
 		rcDET[i].resolution = atof(strtok(line,"\n"));//spatial resolution 
 		fgets(line,maxchar,geom);
 		rcDET[i].TrackResolution = atof(strtok(line,"\n"));//track resolution
+		fgets(line,maxchar,geom);
+		rcDET[i].SlopeMatching = atof(strtok(line,"\n"));//front/back track segment slope matching
 		fgets(line,maxchar,geom);
 		switch(line[0]){//upper or lower detector
 			case 'u':
@@ -124,6 +135,7 @@ int Qset::FillDetec(char *geomfile){
 		fgets(line,maxchar,geom);
 		rcDET[i].ID=atoi(strtok(line,"\n"));//detector ID number
 		rcDET[i].samesearched=0;
+		if(i!=rcDET[i].ID)cerr << "WARNING:DETECTOR ID MUST BE IN ORDER" << endl;
 		i++;
 	}
 	numdetectors =i;

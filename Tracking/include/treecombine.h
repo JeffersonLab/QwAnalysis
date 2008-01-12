@@ -14,6 +14,11 @@
 #define DLAYERS 10
 #endif
 
+/*! 
+This class is legacy code which I have yet to abolish.  Its functions
+are used by various routines.  The goal is to eventually replace the need
+for this class.
+*/
 class chi_hash {
 public:
   chi_hash();
@@ -26,7 +31,11 @@ private:
 
 
 
+/*! \brief Treecombine combines track segments and performs line fitting
 
+treecombine performs many of the tasks involved with matching hits to track segments
+and combining track segments into full tracks with lab coordinates.
+*/
 class treecombine{
 
 public:
@@ -41,7 +50,10 @@ void chi_hashinsert(Hit **hits, int n, double slope, double xshift, double cov[3
 int chi_hashfind( Hit **hits, int n, double *slope, double *xshift, double cov[3],double *chi);
 
 int bestx(double *xresult, double dist_cut, Hit *h, Hit **ha);
-int bestx(double *xresult,Hit *h,Hit **ha,int i);
+int bestx(double *xresult,Hit *h,Hit *ha);
+
+
+
 void mul_do(int i,int mul,int l,int *r,Hit   *hx[DLAYERS][MAXHITPERLINE],  Hit **ha);
 void weight_lsq(double *slope, double *xshift, double cov[3],double *chi,Hit **hits, int n);
 void weight_lsq_r3(double *slope, double *xshift, double cov[3],double *chi,Hit **hits, int n,double z1,int offset,int tlayers);
@@ -52,13 +64,17 @@ double detZPosition( Det *det, double x, double slope_x, double *xval );
 
 int TlCheckForX(double x1, double x2, double dx1, double dx2,double z1, double dz,TreeLine *treefill,enum EUppLow up_low,enum ERegion region,enum Etype type,enum Edir wdir/*,enum Eorientation orient*/,int  dlayer, int tlayer,int  iteration,int  stay_tuned);
 
-int TlMatchHits(double x1,double x2,double z1, double dz,TreeLine *treefill,enum EUppLow up_low,enum ERegion region,enum Etype type,enum Edir dir,int bins,int tlayers);
+int TlMatchHits(double x1,double x2,double z1, double dz,TreeLine *treefill,enum EUppLow up_low,enum ERegion region,enum Etype type,enum Edir dir,int tlayers);
 
 int inAcceptance( enum EUppLow up_low,enum ERegion region,double cx, double mx,double cy, double my);
 void TlTreeLineSort(TreeLine *tl,enum EUppLow up_low,enum ERegion region,enum Etype type,enum Edir dir/*,enum Eorientation orient*/,unsigned long bins,int tlayer,int dlayer);
 int TcTreeLineCombine( TreeLine *wu, TreeLine *wv, TreeLine *wx,PartTrack *pt, int tlayer );
+int TcTreeLineCombine( TreeLine *wu, TreeLine *wv,PartTrack *pt, int tlayer );
 PartTrack *TlTreeCombine(TreeLine *uvl[2],long bins,enum EUppLow up_low,enum ERegion region,enum Etype type/*,enum Eorientation orient*/,int tlayer,int dlayer);
 void ResidualWrite( Event *event);
+
+int r3_TrackFit( int Num, Hit **Hit, double *fit, double *cov, double *chi,double uv2xy[2][2]);
+int checkR3(PartTrack *pt,enum EUppLow up_low);
 /*
 
 
