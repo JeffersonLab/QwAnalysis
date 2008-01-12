@@ -1071,7 +1071,7 @@ int treecombine::r3_TrackFit( int Num, Hit **hit, double *fit, double *cov, doub
     xyz[i].rPos2=hit[i]->rPos1 * uv2xy[1][0] + hit[i]->rPos2 * uv2xy[1][1];//y
     xyz[i].Zpos=hit[i]->rPos;//z     
 
-    //cerr << i << " 0 " << xyz[i].rPos1 << " " << xyz[i].rPos2 << " " << xyz[i].Zpos << " " << hit[i]->rPos1 << " " << hit[i]->rPos2 << endl;
+    cerr << "Hit coordinates :" << i << "(" << xyz[i].rPos1 << "," << xyz[i].rPos2 << "," << xyz[i].Zpos << ")" << endl;
     xyz[i].Resolution = 0;
   }
   //####################
@@ -1838,6 +1838,7 @@ int treecombine::checkR3(PartTrack *pt,enum EUppLow up_low){
 	pt->triggerhit=1;
 	pt->trig[0] = trig[0];
 	pt->trig[1] = trig[1];
+  cerr << "Trigger scintillator hit at : (" << trig[0] << "," << trig[1] << "," << trig[2] << ")" << endl;
   }else pt->triggerhit=0;
 
   rd = rcDETRegion[up_low][2][y_dir];//get the CC
@@ -1856,6 +1857,7 @@ int treecombine::checkR3(PartTrack *pt,enum EUppLow up_low){
 	pt->cerenkovhit=1;
 	pt->cerenkov[0] = cc[0];
 	pt->cerenkov[1] = cc[1];
+	cerr << "Cerenkov bar hit at : (" << cc[0] << "," << cc[1] << "," << cc[2] << ")" << endl;
   }else pt->cerenkovhit=0;
 
 return 0;
