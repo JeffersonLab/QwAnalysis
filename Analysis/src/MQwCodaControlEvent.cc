@@ -22,9 +22,9 @@ void MQwCodaControlEvent::ResetControlParameters()
   fGoTime.clear();
   fGoEventCount.clear();
   fStartTime     = 0;
-  fPrestartDatime.Set(0);
-  fStartDatime.Set(0);
-  fEndDatime.Set(0);
+  fPrestartDatime.Set(UInt_t(0));
+  fStartDatime.Set(UInt_t(0));
+  fEndDatime.Set(UInt_t(0));
 };
 
 void MQwCodaControlEvent::ProcessControlEvent(UInt_t evtype, UInt_t* buffer){

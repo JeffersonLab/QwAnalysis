@@ -111,16 +111,16 @@ LIBRARYDIRS = coda
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
 ifneq ($(CODA),)
 ifeq ($(filter %__NOFASTBUS,$(ADD)),)
-EXES := qwanalysis 
+EXES := qwanalysis qwanalysis_adc
 # qwmockdata
 # g0analysis g0root g0acm g0realtime g0realtimemonitor g0ratemonitor makefraserplots g0realtimetrick
 else
-EXES := qwanalysis 
+EXES := qwanalysis qwanalysis_adc 
 #  qwmockdata
 # makefraserplots
 endif
 else
-EXES := qwanalysis 
+EXES := qwanalysis qwanalysis_adc 
 #  qwmockdata
 # makefraserplots
 endif
@@ -130,14 +130,14 @@ endif
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
 ifneq ($(CODA),)
 ifeq ($(filter %__NOFASTBUS,$(ADD)),)
-EXES := qwanalysis qwmockdata
+EXES := qwanalysis qwanalysis_adc qwmockdata
 # g0analysis g0root g0acm g0realtime g0realtimemonitor g0ratemonitor makefraserplots g0realtimetrick
 else
-EXES := qwanalysis
+EXES := qwanalysis qwanalysis_adc
 # qwmockdata
 endif
 else
-EXES := qwanalysis 
+EXES := qwanalysis qwanalysis_adc 
 # qwmockdata
 endif
 endif
@@ -173,6 +173,9 @@ endif
 ifndef ROOTSYS
 $(error Aborting : ROOTSYS variable is not defined.  Source the SetupFiles/.QwSetup.csh script first.)
 endif
+
+
+
 
 ############################
 ############################
@@ -314,6 +317,27 @@ endif
 
 ############################
 ############################
+# Some set-up for the Boost library use
+############################
+############################
+ifndef BOOST_INC_DIR
+  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name boost)),/usr/include/boost)
+$(error Aborting : Cannot find the /usr/include/boost.  Set BOOST_INC_DIR and BOOST_LIB_DIR to the location of the Boost installation.)
+endif
+#  We should also put a test on the boost version number here.  
+#
+  BOOST_INC  = 
+  BOOST_LIBS = 
+else
+#  We should also put a test on the boost version number here. 
+# 
+  BOOST_INC  = -I${BOOST_INC_DIR}
+  BOOST_LIBS = -L${BOOST_LIB_DIR}
+endif
+
+
+############################
+############################
 # A few fixes : 
 ############################
 ############################
@@ -343,7 +367,7 @@ endif
 INCFLAGS =  $(patsubst %,-I%,$(sort $(dir $(shell $(FIND) $(QWANALYSIS) | $(GREP) '\$(IncSuf)' | $(SED) '/\$(IncSuf)./d' | $(FILTER_OUT_TRASH) | $(INTO_RELATIVE_PATH)))))
 # Qw include paths : /SomePath/QwAnalysis/Analysis/include/Foo.h -> -I./Analysis/include/
 
-INCFLAGS += $(OPENSSL_INC) -I./
+INCFLAGS += $(OPENSSL_INC) $(BOOST_INC) -I./
 # Necessary for dictionary files where include files are quoted with relative
 # path appended (default behaviour for root-cint)
 
@@ -359,7 +383,7 @@ LDLIBS      += -lz
 endif
 LIBS =  -L$(QWLIB) -lQw
 LIBS +=  $(ROOTLIBS) $(ROOTGLIBS) $(CODALIBS)
-LIBS +=  $(OPENSSL_LIBS) $(LDLIBS)
+LIBS +=  $(OPENSSL_LIBS) $(BOOST_LIBS) $(LDLIBS)
 
 
 ############################

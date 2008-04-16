@@ -6,6 +6,7 @@
 #define __QWHISTOGRAMHELPER__
 
 #include <string>
+#include <vector>
 #include <TString.h>
 #include <TRegexp.h>
 #include <TH1.h>

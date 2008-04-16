@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <glob.h>
+#include <TMath.h>
 
 #include "THaCodaFile.h"
 
