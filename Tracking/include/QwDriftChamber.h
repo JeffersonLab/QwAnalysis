@@ -20,6 +20,12 @@
 #include "VQwSubsystem.h"
 #include "MQwF1TDC.h"
 
+#include "QwHit.h"
+
+#include "QwTypes.h"
+#include "QwDetectorInfo.h"
+
+
 
 class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
   /******************************************************************
@@ -67,7 +73,7 @@ class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
   Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
 
   Int_t LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire);
-  Int_t LinkChannelToWire(const UInt_t chan, const UInt_t plane, const Int_t wire);
+  Int_t LinkChannelToWire(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire);
 
   Int_t GetTDCIndex(size_t bank_index, size_t slot_num) const;
 
@@ -91,20 +97,25 @@ class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
  protected:
   static const UInt_t kMaxNumberOfTDCsPerROC;
   static const UInt_t kMaxNumberOfChannelsPerTDC;
+
   static const UInt_t kReferenceChannelPlaneNumber;
 
   Int_t fNumberOfTDCs;
   
   std::vector< std::vector<Int_t> > fTDC_Index;  //  TDC index, indexed by bank_index and slot_number
-  std::vector< std::pair<Int_t, Int_t> > fReferenceChannels;
+  std::vector< std::pair<Int_t, Int_t> > fReferenceChannels;  
 
+  std::vector< std::vector< QwDetectorID > > fTDCPtrs; // Indexed by TDC_index and Channel; gives the package, plane and wire assignment.
   
 
-  std::vector< std::vector< std::pair<Int_t, Int_t> > > fTDCPtrs; // Indexed by TDC_index and Channel; gives the plane and wire assignment.
-  
+
+
+  std::vector< QwHit > fHits;
+
+
+
 
   std::vector<Int_t>   fWiresPerPlane;
-  std::vector< std::vector< Int_t > >  fReferenceChannelsPerWire;// Indexed by plane, wire,
 
   //  NOTE:  The plane and wire indices count from "1" instead 
   //         of from "0".  
@@ -112,7 +123,8 @@ class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
   //         you don't try to use the first (zero-th) element
   //         of either index.
   std::vector< std::vector< Double_t> > fReferenceData;
-  std::vector< std::vector< std::vector< Double_t> > > fWireData; // Indexed by plane, wire, and hit number.
+
+  std::vector< std::vector< QwDetectorInfo > > fWireData; // Indexed by plane, and wire number; eventually should include package index 
   
   /*=====
    *  Histograms should be listed below here.
@@ -121,8 +133,10 @@ class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
    */
   TH1F *TotHits[13];
   TH1F *TOFP[13];
+  TH1F *TOFP_raw[13];
   TH1F *WiresHit[13];
   TH2F *TOFW[13];
+  TH2F *TOFW_raw[13];
   TH2F *HitsWire[13];
 
   //  ClassDef(QwDriftChamber,2);

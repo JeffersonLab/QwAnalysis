@@ -7,8 +7,6 @@
 
 #include "QwDriftChamber.h"
 
-
-
 #include "QwParameterFile.h"
 
 Int_t OK = 0;
@@ -18,6 +16,8 @@ const UInt_t QwDriftChamber::kMaxNumberOfChannelsPerTDC = 64;
 
 const UInt_t QwDriftChamber::kReferenceChannelPlaneNumber = 99;
 
+
+
 QwDriftChamber::QwDriftChamber(TString region_tmp):VQwSubsystem(region_tmp),fDEBUG(kFALSE),fNumberOfTDCs(0)
 {
 };
@@ -25,7 +25,7 @@ QwDriftChamber::QwDriftChamber(TString region_tmp):VQwSubsystem(region_tmp),fDEB
 
 Int_t QwDriftChamber::LoadChannelMap(TString mapfile){
   TString varname, varvalue;
-  UInt_t  chan, plane, wire;
+  UInt_t  chan, package, plane, wire;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine()){
@@ -44,22 +44,19 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile){
       }
     } else {
       //  Break this line into tokens to process it.
-      chan  = (atol(mapstr.GetNextToken(", ").c_str()));
-      plane = (atol(mapstr.GetNextToken(", ").c_str()));
-      wire  = (atol(mapstr.GetNextToken(", ").c_str()));
+      chan    = (atol(mapstr.GetNextToken(", ").c_str()));
+      package = 1;
+      plane   = (atol(mapstr.GetNextToken(", ").c_str()));
+      wire    = (atol(mapstr.GetNextToken(", ").c_str()));
 
-      LinkChannelToWire(chan, plane, wire);
+      LinkChannelToWire(chan, package, plane, wire);
     }
-
-
-    //  Get channel #, plane #, and wire #
   }
+
   //  Construct the wire data structures.
   fWireData.resize(fWiresPerPlane.size());
-  fReferenceChannelsPerWire.resize(fWiresPerPlane.size());
   for (size_t i=0; i<fWiresPerPlane.size(); i++){
     fWireData.at(i).resize(fWiresPerPlane.at(i));
-    fReferenceChannelsPerWire.at(i).resize(fWiresPerPlane.at(i),0);
   }
   for (size_t i=0; i<fTDC_Index.size(); i++){
     Int_t refchan = i;
@@ -67,10 +64,11 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile){
       Int_t mytdc = fTDC_Index.at(i).at(j);
       if (mytdc!=-1){
 	for (size_t k=0; k<fTDCPtrs.at(mytdc).size(); k++){
-	  Int_t plane = fTDCPtrs.at(mytdc).at(k).first;
+	  //	  Int_t package = fTDCPtrs.at(mytdc).at(k).fPackage;
+	  Int_t plane   = fTDCPtrs.at(mytdc).at(k).fPlane;
 	  if (plane>0 && plane !=kReferenceChannelPlaneNumber){
-	    Int_t wire  = fTDCPtrs.at(mytdc).at(k).second;
-	    fReferenceChannelsPerWire.at(plane).at(wire) = refchan;
+	    Int_t wire  = fTDCPtrs.at(mytdc).at(k).fElement;
+	    fWireData.at(plane).at(wire).SetElectronics(i,j,k);
 	  }
 	}
       }
@@ -83,11 +81,13 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile){
 
 void  QwDriftChamber::ClearEventData()
 {
-  for (size_t i=0; i<fWireData.size(); i++){
-    for (size_t j=0; j<fWireData.at(i).size(); j++){
-      fWireData.at(i).at(j).clear();
-    }
+  QwDetectorID this_det;
+  //  Loop through fHits, to decide which detector elements need to be cleared.
+  for (size_t i=0; i<fHits.size(); i++){
+    this_det = fHits.at(i).GetDetectorID();
+    fWireData.at(this_det.fPlane).at(this_det.fElement).ClearHits();
   }
+  fHits.clear();
   for (size_t i=0; i<fReferenceData.size(); i++){
     fReferenceData.at(i).clear();
   }
@@ -163,10 +163,10 @@ Int_t QwDriftChamber::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buf
 	  std::cerr << "   GetTDCIndex()=="<<tdcindex
 		    << "; fTDCPtrs.at(tdcindex).size()=="
 		    << fTDCPtrs.at(tdcindex).size()
-		    << "; fTDCPtrs.at(tdcindex).at(chan).first=="
-		    << fTDCPtrs.at(tdcindex).at(chan).first
-		    << "; fTDCPtrs.at(tdcindex).at(chan).second=="
-		    << fTDCPtrs.at(tdcindex).at(chan).second
+		    << "; fTDCPtrs.at(tdcindex).at(chan).fPlane=="
+		    << fTDCPtrs.at(tdcindex).at(chan).fPlane
+		    << "; fTDCPtrs.at(tdcindex).at(chan).fElement=="
+		    << fTDCPtrs.at(tdcindex).at(chan).fElement
 		    << std::endl;
 	}
       }
@@ -209,66 +209,74 @@ void  QwDriftChamber::ConstructHistograms(TDirectory *folder)
     HitsWire[i]->GetXaxis()->SetTitle("Wire Number");
     HitsWire[i]->GetYaxis()->SetTitle("Hits");
 
-    /////////////Forth set of histos//////////////////////////////////////
+    /////////////Fourth set of histos//////////////////////////////////////
     TOFP[i] = new TH1F(Form("%sTimeofFlightPlane%d",region.Data(),i),
-		       Form("Time of flight for events in plane %d",i),
+		       Form("Subtracted time of flight for events in plane %d",i),
 		       400,-65000,65000);
     TOFP[i]->GetXaxis()->SetTitle("Time of Flight");
     TOFP[i]->GetYaxis()->SetTitle("Hits");
+    TOFP_raw[i] = new TH1F(Form("%sRawTimeofFlightPlane%d",region.Data(),i),
+		       Form("Raw time of flight for events in plane %d",i),
+		       400,-65000,65000);
+    TOFP_raw[i]->GetXaxis()->SetTitle("Time of Flight");
+    TOFP_raw[i]->GetYaxis()->SetTitle("Hits");
     
     //////////////Fifth set of histos/////////////////////////////////////
     TOFW[i] = new TH2F(Form("%sTimeofFlightperWirePlane%d",region.Data(),i),
-		       Form("Time of flight for each wire in plane %d",i),
+		       Form("Subtracted time of flight for each wire in plane %d",i),
 		       fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5,
-		       2000,-40000,65000);
+		       100,-40000,65000);
     TOFW[i]->GetXaxis()->SetTitle("Wire Number");
     TOFW[i]->GetYaxis()->SetTitle("Time of Flight");
+    TOFW_raw[i] = new TH2F(Form("%sRawTimeofFlightperWirePlane%d",region.Data(),i),
+		       Form("Raw time of flight for each wire in plane %d",i),
+		       fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5,
+		       100,-40000,65000);
+    TOFW_raw[i]->GetXaxis()->SetTitle("Wire Number");
+    TOFW_raw[i]->GetYaxis()->SetTitle("Time of Flight");
   }
 };
 
 
 void  QwDriftChamber::FillHistograms()
 {
-  //   //  This is a dumb check to see if we enter this routine.
-  //   if (fWireData.at(1).at(45).size()>0){
-  //     std::cout << "QwDriftChamber::FillHistograms()  "
-  // 	      << "fWireData.at(1).at(45).size()=="
-  // 	      << fWireData.at(1).at(45).size()
-  // 	      << "; fWireData.at(1).at(45).at(0)=="
-  // 	      << fWireData.at(1).at(45).at(0)
-  // 	      << std::endl;
-  //   }
-
+  QwDetectorID   this_detid;
+  QwDetectorInfo *this_det;
+  
   //  Fill all of the histograms.
 
+  std::vector<Int_t> wireshitperplane(fWiresPerPlane.size(),0);
+
+  for (size_t i=0; i<fHits.size(); i++){
+    this_detid = fHits.at(i).GetDetectorID();
+    if (this_detid.fPlane<=0 || this_detid.fElement<=0){
+      std::cout << "QwDriftChamber::FillHistograms:  Bad plane or element index:  fPlane=="
+		<< this_detid.fPlane << ", fElement==" << this_detid.fElement << std::endl;
+      continue;
+    }
+    this_det   = &(fWireData.at(this_detid.fPlane).at(this_detid.fElement));
+
+    if (fHits.at(i).IsFirstDetectorHit()){
+      //  If this is the first hit for this detector, then let's plot the
+      //  total number of hits this wire had.
+      HitsWire[this_detid.fPlane]->Fill(this_detid.fElement,this_det->GetNumHits());
+      //  Also increment the total number of events in whichthis wire was hit.
+      TotHits[this_detid.fPlane]->Fill(this_detid.fElement,1);
+      //  Increment the number of wires hit in this plane
+      wireshitperplane.at(this_detid.fPlane) += 1;
+    }
+
+    //  Fill ToF histograms
+    TOFP_raw[this_detid.fPlane]->Fill(fHits.at(i).GetRawTime());
+    TOFW_raw[this_detid.fPlane]->Fill(this_detid.fElement,fHits.at(i).GetRawTime());
+    TOFP[this_detid.fPlane]->Fill(fHits.at(i).GetTime());
+    TOFW[this_detid.fPlane]->Fill(this_detid.fElement,fHits.at(i).GetTime());
+  }
 
   for (size_t iplane=1; iplane<fWiresPerPlane.size(); iplane++) {
-
-    Double_t wireshitperplane = 0;
-    for (size_t iwire=0; iwire<fWireData.at(iplane).size(); iwire++) {
-
-      if (fWireData.at(iplane).at(iwire).size()>0) {
-	//  Here we're filling one count per event;
-	// do we want that or the number of hits?
-	TotHits[iplane]->Fill(iwire,1);   
-	wireshitperplane++;
-      }
-      ////////////////Third set of histos/////////////////////
-      HitsWire[iplane]->Fill(iwire,fWireData.at(iplane).at(iwire).size());
-
-      if (fWireData.at(iplane).at(iwire).size()>0) {
-	for (size_t ihit=0; ihit<fWireData.at(iplane).at(iwire).size(); ihit++) {
-	  //////////////Fourth set of histos//////////////////////
-	  TOFP[iplane]->Fill(fWireData.at(iplane).at(iwire).at(ihit));
-	  
-	  //////////////Fifth set of histos//////////////////////
-	  TOFW[iplane]->Fill(iwire,fWireData.at(iplane).at(iwire).at(ihit));
-	}
-      }
-    }
-    WiresHit[iplane]->Fill(wireshitperplane);
-
+    WiresHit[iplane]->Fill(wireshitperplane[iplane]);
   }
+
 };
 
 void  QwDriftChamber::DeleteHistograms()
@@ -291,9 +299,15 @@ void  QwDriftChamber::DeleteHistograms()
     if (TOFP[i]!=NULL){
       TOFP[i]->Delete(); TOFP[i] = NULL;
     }
+    if (TOFP_raw[i]!=NULL){
+      TOFP_raw[i]->Delete(); TOFP_raw[i] = NULL;
+    }
     //////////Fifth set of histos///////////////////////////
     if (TOFW[i]!=NULL){
       TOFW[i]->Delete(); TOFW[i] = NULL;
+    }
+    if (TOFW_raw[i]!=NULL){
+      TOFW_raw[i]->Delete(); TOFW_raw[i] = NULL;
     }
   }
 };
@@ -317,13 +331,9 @@ void  QwDriftChamber::SubtractReferenceTimes()
 	fReferenceData.at(i).at(j) -= reftimes.at(i);
       }
     }
-    for (size_t i=0; i<fWireData.size(); i++){
-      for (size_t j=0; j<fWireData.at(i).size(); j++){
-	Int_t refindex = fReferenceChannelsPerWire.at(i).at(j);
-	for (size_t k=0; k<fWireData.at(i).at(j).size(); k++){
-	fWireData.at(i).at(j).at(k) -= reftimes.at(refindex);
-	}
-      }
+    for (size_t i=0; i<fHits.size(); i++){
+      Int_t bank_id = fHits.at(i).GetSubbankID();
+      fHits.at(i).SubtractReference(reftimes.at(bank_id));
     }
   }
 };
@@ -334,15 +344,19 @@ void  QwDriftChamber::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t cha
 {
   Int_t tdcindex = GetTDCIndex(bank_index,slot_num);
   if (tdcindex != -1){
-    Int_t plane = fTDCPtrs.at(tdcindex).at(chan).first;
-    Int_t wire  = fTDCPtrs.at(tdcindex).at(chan).second;
+    Int_t package = 1;
+    Int_t plane   = fTDCPtrs.at(tdcindex).at(chan).fPlane;
+    Int_t wire    = fTDCPtrs.at(tdcindex).at(chan).fElement;
     if (plane == -1 || wire == -1){
       //  This channel is not connected to anything.
       //  Do nothing.
     } else if (plane == kReferenceChannelPlaneNumber){
       fReferenceData.at(wire).push_back(data);
     } else {
-      fWireData.at(plane).at(wire).push_back(data);
+      Int_t hitindex = fHits.size();
+      fWireData.at(plane).at(wire).PushHit(hitindex);
+      Int_t localindex = fWireData.at(plane).at(wire).GetNumHits() - 1;
+      fHits.push_back(QwHit(bank_index, slot_num, chan, localindex, package, plane, wire, data));
     }
   };
 };
@@ -371,11 +385,8 @@ Int_t QwDriftChamber::RegisterROCNumber(const UInt_t roc_id){
 Int_t QwDriftChamber::RegisterSlotNumber(UInt_t slot_id){
   if (slot_id<kMaxNumberOfTDCsPerROC){
     if (fCurrentBankIndex>=0 && fCurrentBankIndex<=fTDC_Index.size()){
-      std::pair<Int_t, Int_t> tmppair;
-      tmppair.first = -1;
-      tmppair.second = -1;
       fTDCPtrs.resize(fNumberOfTDCs+1);
-      fTDCPtrs.at(fNumberOfTDCs).resize(kMaxNumberOfChannelsPerTDC,tmppair);
+      fTDCPtrs.at(fNumberOfTDCs).resize(kMaxNumberOfChannelsPerTDC);
       fNumberOfTDCs = fTDCPtrs.size();
       fTDC_Index.at(fCurrentBankIndex).at(slot_id) = fNumberOfTDCs-1;
       fCurrentSlot     = slot_id;
@@ -393,17 +404,19 @@ Int_t QwDriftChamber::LinkReferenceChannel(const UInt_t chan, const UInt_t plane
   fReferenceChannels.at(fCurrentBankIndex).first  = fCurrentTDCIndex;
   fReferenceChannels.at(fCurrentBankIndex).second = chan;
   //  Register a reference channel with the wire equal to the bank index.
-  fTDCPtrs.at(fCurrentTDCIndex).at(chan).first  = plane;
-  fTDCPtrs.at(fCurrentTDCIndex).at(chan).second = fCurrentBankIndex;
+  fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPackage = 0;
+  fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPlane   = plane;
+  fTDCPtrs.at(fCurrentTDCIndex).at(chan).fElement = fCurrentBankIndex;
   return OK;
 };
 
-Int_t QwDriftChamber::LinkChannelToWire(const UInt_t chan, const UInt_t plane, const Int_t wire){
+Int_t QwDriftChamber::LinkChannelToWire(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire){
   if (plane == kReferenceChannelPlaneNumber){
     LinkReferenceChannel(chan, plane, wire);
   } else {
-    fTDCPtrs.at(fCurrentTDCIndex).at(chan).first  = plane;
-    fTDCPtrs.at(fCurrentTDCIndex).at(chan).second = wire;
+    fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPackage = package;
+    fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPlane   = plane;
+    fTDCPtrs.at(fCurrentTDCIndex).at(chan).fElement = wire;
     if (plane>=fWiresPerPlane.size()){
       fWiresPerPlane.resize(plane+1);
     }

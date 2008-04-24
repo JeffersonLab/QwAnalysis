@@ -23,8 +23,35 @@
 #ifndef QWHIT_H
 #define QWHIT_H
 
+#include "QwTypes.h"
 
 class QwHit{
+ public:
+  QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
+	Int_t package, Int_t plane, Int_t wire,
+	UInt_t data):
+    fCrate(bank_index),fModule(slot_num),fChannel(chan), fHitNumber(hitcount),
+    fPackage(package),fPlane(plane),fElement(wire)
+    {
+      fRawTime = data;
+    };
+
+
+  Int_t GetSubbankID(){return fCrate;};
+  QwDetectorID GetDetectorID(){
+    return QwDetectorID(fRegion,fPackage,fPlane,fElement);
+  };
+  
+  const Double_t& GetRawTime() const {return fRawTime;};
+  const Double_t& GetTime()    const {return fTime;};
+
+  Bool_t IsFirstDetectorHit(){return (fHitNumber==0);};
+
+  void SubtractReference(Double_t reftime){
+    fTime = fRawTime - reftime;
+  };
+
+
 
  protected:
   //  Identification information for readout channels
