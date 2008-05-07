@@ -185,7 +185,7 @@ endif
 
 ifdef CODA
 CODACFLAGS   := -I$(CODA)/common/include
-CODALIBS     := -L$(CODA)/$(ARCH)/lib -let 
+CODALIBS     := -L$(CODA_LIB) -let 
 endif
 CODALIBS     += -L$(QWANALYSIS)/lib -lcoda
       # -lmyevio : now integrated in our distribution (April 19 2001) ; 
