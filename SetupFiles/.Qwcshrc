@@ -22,7 +22,7 @@ setenv QW_ROOTFILES_DIR  ${QWSCRATCH}/rootfiles
 setenv QW_TMP_DIR        ${QWSCRATCH}/tmp
 setenv QWLIB             ${QWANALYSIS}/lib
 setenv QWBIN             ${QWANALYSIS}/bin
-setenv MYEVIO            ${QWANALYSIS}/coda
+setenv QWEVIO            ${QWANALYSIS}/coda
 
 
 # Searching paths for binaries :

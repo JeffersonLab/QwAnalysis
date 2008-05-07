@@ -228,17 +228,11 @@ source ${QWANALYSIS}/SetupFiles/.Qwcshrc
 
 
 unsetenv DATADIR
-unsetenv IODIR
 unsetenv SUMMARYDIR
-unsetenv BITERRDIR
 unsetenv ASYMDIR
-unsetenv RATEDIR
  
 #QW_ROOTFILES_DIR is defined in ${QWANALYSIS}/SetupFiles/.Qwcshrc
 #QWLIB as well
 setenv DATADIR        ${QWSCRATCH}/data
-setenv IODIR          ${ANALYSIS}/prminput
 setenv SUMMARYDIR     ${QWSCRATCH}/sum
-setenv BITERRDIR      ${QWSCRATCH}/tmp
 setenv ASYMDIR        ${QWSCRATCH}/asym
-setenv RATEDIR        ${QWSCRATCH}/tmp
