@@ -190,7 +190,7 @@ endif
 CODALIBS     += -L$(QWANALYSIS)/lib -lcoda
       # -lmyevio : now integrated in our distribution (April 19 2001) ; 
       # Regenerated if necessary ; I had to rewrite CODA
-      # group's Makefile in $(MYEVIO)
+      # group's Makefile in $(QWEVIO)
 
 
 
@@ -491,7 +491,7 @@ ifneq ($(strip $(EXES)),)
 	exit 1; \
 	fi
 endif
-####	@$(MAKE) -f $(MYEVIO)/Makefile libcoda.so
+####	@$(MAKE) -f $(QWEVIO)/Makefile libcoda.so
 	@$(MAKE) coda_lib
 #ifneq ($(CODA),)
 #ifneq ($(ARCH),SunOS)
@@ -514,8 +514,8 @@ config: .ADD .EXES clean.auxfiles .auxDepends
 	@$(ECHO) $(EXES)  | $(TO_LINE) > .EXES
 
 coda_lib:
-	cd $(MYEVIO); $(MAKE) libcoda$(DllSuf)
-	$(CP) $(MYEVIO)/libcoda$(DllSuf) $(QWLIB)/libcoda$(DllSuf)
+	cd $(QWEVIO); $(MAKE) libcoda$(DllSuf)
+	$(CP) $(QWEVIO)/libcoda$(DllSuf) $(QWLIB)/libcoda$(DllSuf)
 
 .auxDepends: .auxLibFiles
 	@$(ECHO) Generating .auxLibFiles
@@ -712,7 +712,7 @@ cleanSunWS_cache :
 	@$(RM) -r $(filter %SunWS_cache,$(sort $(shell $(FIND) $(QWANALYSIS))))
 
 clean.coda:
-	cd $(MYEVIO); $(MAKE) realclean
+	cd $(QWEVIO); $(MAKE) realclean
 
 distclean: cleanSunWS_cache clean.dictfiles clean clean.libs clean.exes clean.auxfiles clean.olddotfiles clean.coda
 # Removes all files that can be regenerated
