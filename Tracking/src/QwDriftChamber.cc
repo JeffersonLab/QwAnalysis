@@ -82,12 +82,12 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile){
 void  QwDriftChamber::ClearEventData()
 {
   QwDetectorID this_det;
-  //  Loop through fHits, to decide which detector elements need to be cleared.
-  for (size_t i=0; i<fHits.size(); i++){
-    this_det = fHits.at(i).GetDetectorID();
+  //  Loop through fTDCHits, to decide which detector elements need to be cleared.
+  for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
+    this_det = hit1->GetDetectorID();
     fWireData.at(this_det.fPlane).at(this_det.fElement).ClearHits();
   }
-  fHits.clear();
+  fTDCHits.clear();
   for (size_t i=0; i<fReferenceData.size(); i++){
     fReferenceData.at(i).clear();
   }
@@ -247,8 +247,8 @@ void  QwDriftChamber::FillHistograms()
 
   std::vector<Int_t> wireshitperplane(fWiresPerPlane.size(),0);
 
-  for (size_t i=0; i<fHits.size(); i++){
-    this_detid = fHits.at(i).GetDetectorID();
+  for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
+    this_detid = hit1->GetDetectorID();
     if (this_detid.fPlane<=0 || this_detid.fElement<=0){
       std::cout << "QwDriftChamber::FillHistograms:  Bad plane or element index:  fPlane=="
 		<< this_detid.fPlane << ", fElement==" << this_detid.fElement << std::endl;
@@ -256,7 +256,7 @@ void  QwDriftChamber::FillHistograms()
     }
     this_det   = &(fWireData.at(this_detid.fPlane).at(this_detid.fElement));
 
-    if (fHits.at(i).IsFirstDetectorHit()){
+    if (hit1->IsFirstDetectorHit()){
       //  If this is the first hit for this detector, then let's plot the
       //  total number of hits this wire had.
       HitsWire[this_detid.fPlane]->Fill(this_detid.fElement,this_det->GetNumHits());
@@ -267,10 +267,10 @@ void  QwDriftChamber::FillHistograms()
     }
 
     //  Fill ToF histograms
-    TOFP_raw[this_detid.fPlane]->Fill(fHits.at(i).GetRawTime());
-    TOFW_raw[this_detid.fPlane]->Fill(this_detid.fElement,fHits.at(i).GetRawTime());
-    TOFP[this_detid.fPlane]->Fill(fHits.at(i).GetTime());
-    TOFW[this_detid.fPlane]->Fill(this_detid.fElement,fHits.at(i).GetTime());
+    TOFP_raw[this_detid.fPlane]->Fill(hit1->GetRawTime());
+    TOFW_raw[this_detid.fPlane]->Fill(this_detid.fElement,hit1->GetRawTime());
+    TOFP[this_detid.fPlane]->Fill(hit1->GetTime());
+    TOFW[this_detid.fPlane]->Fill(this_detid.fElement,hit1->GetTime());
   }
 
   for (size_t iplane=1; iplane<fWiresPerPlane.size(); iplane++) {
@@ -316,10 +316,13 @@ void  QwDriftChamber::SubtractReferenceTimes()
 {
   Bool_t refs_okay = kTRUE;
   std::vector<Double_t> reftimes;
+
   reftimes.resize(fReferenceData.size());
   for (size_t i=0; i<fReferenceData.size(); i++){
     if (fReferenceData.at(i).size()==0){
       //  There isn't a reference time!
+      std::cerr << "QwDriftChamber::SubtractReferenceTimes:  Subbank ID "
+		<< i << " is missing a reference time." << std::endl;
       refs_okay = kFALSE;
     } else {
       reftimes.at(i) = fReferenceData.at(i).at(0);
@@ -331,9 +334,8 @@ void  QwDriftChamber::SubtractReferenceTimes()
 	fReferenceData.at(i).at(j) -= reftimes.at(i);
       }
     }
-    for (size_t i=0; i<fHits.size(); i++){
-      Int_t bank_id = fHits.at(i).GetSubbankID();
-      fHits.at(i).SubtractReference(reftimes.at(bank_id));
+    for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
+      hit1->SubtractReference(reftimes.at(hit1->GetSubbankID()));
     }
   }
 };
@@ -353,10 +355,10 @@ void  QwDriftChamber::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t cha
     } else if (plane == kReferenceChannelPlaneNumber){
       fReferenceData.at(wire).push_back(data);
     } else {
-      Int_t hitindex = fHits.size();
+      Int_t hitindex = fTDCHits.size();
       fWireData.at(plane).at(wire).PushHit(hitindex);
       Int_t localindex = fWireData.at(plane).at(wire).GetNumHits() - 1;
-      fHits.push_back(QwHit(bank_index, slot_num, chan, localindex, package, plane, wire, data));
+      fTDCHits.push_back(QwHit(bank_index, slot_num, chan, localindex, package, plane, wire, data));
     }
   };
 };

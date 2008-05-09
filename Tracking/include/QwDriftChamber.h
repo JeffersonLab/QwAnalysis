@@ -110,7 +110,7 @@ class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
 
 
 
-  std::vector< QwHit > fHits;
+  std::vector< QwHit > fTDCHits;
 
 
 
