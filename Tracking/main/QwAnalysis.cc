@@ -35,12 +35,16 @@ int main(Int_t argc,Char_t* argv[])
   
   std::vector<VQwSubsystem*> QwDetectors;
 
-  QwDetectors.resize(2,NULL);  // QwDetectors[0]==GEM, QwDetectors[1]==Region2
+  QwDetectors.resize(3,NULL);  // QwDetectors[0]==GEM, QwDetectors[1]==Region2
   QwDetectors.at(1) = new QwDriftChamber("R1");
   TString mapfile = TString(getenv("QWANALYSIS")) 
     + "/Tracking/prminput/gzero_wc.map";
   QwDetectors.at(1)->LoadChannelMap(mapfile);
 
+  QwDetectors.at(2) = new QwMainDetector("MD");
+  QwDetectors.at(1)->LoadChannelMap(TString(getenv("QWANALYSIS")) + 
+				    "/Tracking/prminput/maindet_cosmics.map");
+  
 
   for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++){
     //   Int_t run = 62310;

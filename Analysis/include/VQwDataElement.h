@@ -22,7 +22,7 @@ class VQwDataElement{
   virtual ~VQwDataElement();
 
   void SetElementName(const TString &name) {fElementName = name;};
-  TString GetElementName() {return fElementName;};
+  TString GetElementName() const {return fElementName;};
 
   virtual void  ClearEventData() = 0;
   virtual Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left) = 0;

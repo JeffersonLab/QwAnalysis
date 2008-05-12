@@ -25,6 +25,7 @@
 
 #include "VQwSubsystem.h"
 #include "QwDriftChamber.h"
+#include "QwMainDetector.h"
 
 #include "QwHistogramHelper.h"
 
