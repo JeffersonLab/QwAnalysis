@@ -1,0 +1,12 @@
+#   This is the histogram parameter input file for the QwHistogramHelper class
+#   "." is the wildcard here!!!! Please use "." only (no "*") since we 
+#   require the exact same length for two strings to match!!!!
+#   The values after the axis titles, if exist, are the min and max of
+#   the histogram filled weight.
+#name_title          type    x_nbins x_min   x_max   y_nbins y_min   y_max   xtitle  ytitle
+##############################################################################################
+###  Single event histograms
+......_adc		TH1F	4097	-0.5	4096.5				ADC Events
+......_tdc		TH1F	4097	-0.5	4096.5				TDC Events
+.......adc		TH1F	4097	-0.5	4096.5				ADC Events
+.......tdc		TH1F	4097	-0.5	4096.5				TDC Events
