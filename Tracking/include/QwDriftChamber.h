@@ -47,7 +47,10 @@ class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
 
   Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
-  void  ProcessEvent(){SubtractReferenceTimes();};
+  void  ProcessEvent(){
+    if (! HasDataLoaded()) return;
+    SubtractReferenceTimes();
+  };
   
   void  ConstructHistograms(TDirectory *folder);
   void  FillHistograms();

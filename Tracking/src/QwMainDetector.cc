@@ -49,11 +49,11 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile){
       }
     } else {
       //  Break this line into tokens to process it.
-      channum   = (atol(mapstr.GetNextToken(", ").c_str()));
-      name      = mapstr.GetNextToken(", ").c_str();
-      
+      channum   = (atol(mapstr.GetNextToken(", \t").c_str()));
+      name      = mapstr.GetNextToken(", \t").c_str();
+
       //  Check to see if we've encountered this channel or name yet
-      if (fModulePtrs.at(fCurrentIndex).at(channum).first>0){
+      if (fModulePtrs.at(fCurrentIndex).at(channum).first>=0){
 	//  We've seen this channel
       } else if (FindSignalIndex(fCurrentType, name)>=0){
 	//  We've seen this signal
@@ -69,6 +69,7 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile){
 
 
 void  QwMainDetector::ClearEventData(){
+  SetDataLoaded(kFALSE);
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).SetValue(0);
@@ -88,6 +89,7 @@ Int_t QwMainDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buf
 
   if (index>=0 && num_words>0){
     //  We want to process this ROC.  Begin looping through the data.
+    SetDataLoaded(kTRUE);
     for(size_t i=0; i<num_words ; i++){
       //  Decode this word as a V775TDC word.
       DecodeV775Word(buffer[i]);
@@ -128,47 +130,63 @@ Int_t QwMainDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buf
 
 
 void  QwMainDetector::ProcessEvent(){
+  if (! HasDataLoaded()) return;
+  
 };
 
 
 void  QwMainDetector::ConstructHistograms(TDirectory *folder, TString prefix){
   for (size_t i=0; i<fPMTs.size(); i++){
-    //    fPMTs.at(i).ConstructHistograms(folder, prefix);
+    for (size_t j=0; j<fPMTs.at(i).size(); j++){
+      fPMTs.at(i).at(j).ConstructHistograms(folder, prefix);
+    }
   }
 };
 
 void  QwMainDetector::FillHistograms(){
+  if (! HasDataLoaded()) return;
   for (size_t i=0; i<fPMTs.size(); i++){
-    //    fPMTs.at(i).FillHistograms();
+    for (size_t j=0; j<fPMTs.at(i).size(); j++){
+      fPMTs.at(i).at(j).FillHistograms();
+    }
   }
 };
 
 void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Float_t> &values)
 {
   for (size_t i=0; i<fPMTs.size(); i++){
-    //    fPMTs.at(i).ConstructBranchAndVector(tree, prefix, values);
+    for (size_t j=0; j<fPMTs.at(i).size(); j++){
+      fPMTs.at(i).at(j).ConstructBranchAndVector(tree, prefix, values);
+    }
   }
 };
 
 void  QwMainDetector::FillTreeVector(std::vector<Float_t> &values)
 {
+  if (! HasDataLoaded()) return;
   for (size_t i=0; i<fPMTs.size(); i++){
-    //    fPMTs.at(i).FillTreeVector(values);
+    for (size_t j=0; j<fPMTs.at(i).size(); j++){  
+      fPMTs.at(i).at(j).FillTreeVector(values);
+    }
   }
 };
 
 
 void  QwMainDetector::DeleteHistograms(){
   for (size_t i=0; i<fPMTs.size(); i++){
-    //    fPMTs.at(i).DeleteHistograms();
-  }  
+    for (size_t j=0; j<fPMTs.at(i).size(); j++){
+      fPMTs.at(i).at(j).DeleteHistograms();
+    } 
+  }
 };
 
 
 QwMainDetector& QwMainDetector::operator=  (const QwMainDetector &value){
   if (fPMTs.size() == value.fPMTs.size()){
     for (size_t i=0; i<fPMTs.size(); i++){
-      fPMTs.at(i) = value.fPMTs.at(i);
+      for (size_t j=0; j<fPMTs.at(i).size(); j++){	
+	fPMTs.at(i).at(j) = value.fPMTs.at(i).at(j);
+      }
     }
   } else {
     std::cerr << "QwMainDetector::operator=:  Problems!!!"
@@ -197,11 +215,15 @@ Int_t QwMainDetector::RegisterROCNumber(const UInt_t roc_id){
 };
 
 Int_t QwMainDetector::RegisterSlotNumber(UInt_t slot_id){
+  std::pair<Int_t, Int_t> tmppair;
+  tmppair.first  = -1;
+  tmppair.second = -1;
   if (slot_id<kMaxNumberOfModulesPerROC){
     if (fCurrentBankIndex>=0 && fCurrentBankIndex<=fModuleIndex.size()){
       fModuleTypes.resize(fNumberOfModules+1);
       fModulePtrs.resize(fNumberOfModules+1);
-      fModulePtrs.at(fNumberOfModules).resize(kMaxNumberOfChannelsPerModule);
+      fModulePtrs.at(fNumberOfModules).resize(kMaxNumberOfChannelsPerModule,
+					      tmppair);
       fNumberOfModules = fModulePtrs.size();
       fModuleIndex.at(fCurrentBankIndex).at(slot_id) = fNumberOfModules-1;
       fCurrentSlot     = slot_id;
@@ -227,7 +249,7 @@ const QwMainDetector::EModuleType QwMainDetector::RegisterModuleType(TString mod
     fCurrentType = V775_TDC;
   }
   fModuleTypes.at(fCurrentIndex) = fCurrentType;
-  if (fPMTs.size()>=fCurrentType){
+  if (fPMTs.size()<=fCurrentType){
     fPMTs.resize(fCurrentType+1);
   }
   return fCurrentType;
@@ -245,19 +267,28 @@ Int_t QwMainDetector::LinkChannelToSignal(const UInt_t chan, const TString &name
 void QwMainDetector::FillRawWord(Int_t bank_index, 
 				 Int_t slot_num, 
 				 Int_t chan, UInt_t data){
-  
-
+  Int_t modindex = GetModuleIndex(bank_index,slot_num);
+  if (modindex != -1){
+    EModuleType modtype = EModuleType(fModulePtrs.at(modindex).at(chan).first);
+    Int_t chanindex     = fModulePtrs.at(modindex).at(chan).second;
+    if (modtype == EMPTY || chanindex == -1){
+      //  This channel is not connected to anything.
+      //  Do nothing.
+    } else {
+      fPMTs.at(modtype).at(chanindex).SetValue(data);
+    }
+  };
 };
 
 
 Int_t QwMainDetector::GetModuleIndex(size_t bank_index, size_t slot_num) const {
-  Int_t tdcindex = -1;
+  Int_t modindex = -1;
   if (bank_index>=0 && bank_index<fModuleIndex.size()){
     if (slot_num>=0 && slot_num<fModuleIndex.at(bank_index).size()){
-      tdcindex = fModuleIndex.at(bank_index).at(slot_num);
+      modindex = fModuleIndex.at(bank_index).at(slot_num);
     }
   }
-  return tdcindex;
+  return modindex;
 };
 
 
@@ -269,6 +300,6 @@ Int_t QwMainDetector::FindSignalIndex(const QwMainDetector::EModuleType modtype,
       chanindex = chan;
       break;
     }
-    return chanindex;
   }
+  return chanindex;
 };

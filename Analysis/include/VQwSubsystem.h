@@ -27,10 +27,14 @@ class VQwSubsystem{
    *
    ******************************************************************/
  public:
-  VQwSubsystem(TString region_tmp):fSystemName(region_tmp){};
+  VQwSubsystem(TString region_tmp):fSystemName(region_tmp),fIsDataLoaded(kFALSE){};
+
   virtual ~VQwSubsystem(){};
 
-  TString GetSubsystemName(){return fSystemName;};
+  TString GetSubsystemName() const {return fSystemName;};
+  Bool_t  HasDataLoaded() const  {return fIsDataLoaded;}
+  
+
 
   virtual Int_t LoadChannelMap(TString mapfile) = 0;
   virtual void  ClearEventData() = 0;
@@ -55,11 +59,15 @@ class VQwSubsystem{
   Int_t RegisterSubbank(const UInt_t bank_id);  // Tells this object that it will decode data from this sub-bank in the ROC currently open for registration
   Int_t GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) const;
 
+  void  SetDataLoaded(Bool_t flag){fIsDataLoaded = flag;};
+
  protected:
   Int_t FindIndex(const std::vector<UInt_t> &myvec, const UInt_t value) const ;
 
  protected:
   TString  fSystemName;  ///  Name of this subsystem (the region).
+
+  Bool_t   fIsDataLoaded; /// Has this subsystem gotten data to be processed?
 
  protected:
   Int_t fCurrentROC_ID;

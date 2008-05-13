@@ -9,12 +9,14 @@ module=V792
 ! channel, signalname
 0,	quartz_adc
 1,	trigg1_adc
+2,	md_amp_adc
 5,	trigg2_adc
 !
 !
 slot=2
 module=V775
 ! channel, signalname
-0,	quartz_tdc
-16,	triggertdc
+0,	triggertdc
+3,	clock__tdc
+16,	quartz_tdc
 !END

@@ -23,6 +23,8 @@ int main(Int_t argc,Char_t* argv[])
   if (getenv("DISPLAY")==NULL
       ||getenv("JOB_ID")!=NULL) kInQwBatchMode = kTRUE;
   gROOT->SetBatch(kTRUE);
+
+  gQwHists.LoadHistParamsFromFile(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/cosmics_hists.in");
   
   TStopwatch timer;
 
@@ -42,7 +44,7 @@ int main(Int_t argc,Char_t* argv[])
   QwDetectors.at(1)->LoadChannelMap(mapfile);
 
   QwDetectors.at(2) = new QwMainDetector("MD");
-  QwDetectors.at(1)->LoadChannelMap(TString(getenv("QWANALYSIS")) + 
+  QwDetectors.at(2)->LoadChannelMap(TString(getenv("QWANALYSIS")) + 
 				    "/Tracking/prminput/maindet_cosmics.map");
   
 
@@ -84,6 +86,7 @@ int main(Int_t argc,Char_t* argv[])
     //  To pass a subdirectory named "subdir", we would do:
     //    QwDetectors.at(1)->ConstructHistograms(rootfile->mkdir("subdir"));
     QwDetectors.at(1)->ConstructHistograms();
+    QwDetectors.at(2)->ConstructHistograms();
 
 
     while (QwEvt.GetEvent() == CODA_OK){
@@ -111,6 +114,9 @@ int main(Int_t argc,Char_t* argv[])
       QwDetectors.at(1)->ProcessEvent();
       QwDetectors.at(1)->FillHistograms();
 
+      QwDetectors.at(2)->ProcessEvent();
+      QwDetectors.at(2)->FillHistograms();
+
 
     }    
     std::cout << "Number of events processed so far: " 
@@ -129,6 +135,7 @@ int main(Int_t argc,Char_t* argv[])
     //     NTs->ClearNTs(io); //destroy nts according to the i/o flags
     //     CloseAllFiles(io); //close all the output files
     QwDetectors.at(1)->DeleteHistograms();
+    QwDetectors.at(2)->DeleteHistograms();
     
     QwEvt.CloseDataFile();
     QwEvt.ReportRunSummary();

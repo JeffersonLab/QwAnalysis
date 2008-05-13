@@ -81,6 +81,7 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile){
 
 void  QwDriftChamber::ClearEventData()
 {
+  SetDataLoaded(kFALSE);
   QwDetectorID this_det;
   //  Loop through fTDCHits, to decide which detector elements need to be cleared.
   for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
@@ -125,6 +126,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buf
   
   if (index>=0 && num_words>0){
     //  We want to process this ROC.  Begin looping through the data.
+    SetDataLoaded(kTRUE);
     if (fDEBUG) std::cout << "QwDriftChamber::ProcessEvBuffer:  "
 			  << "Begin processing ROC" << roc_id << std::endl;
     for(size_t i=0; i<num_words ; i++){
@@ -240,6 +242,8 @@ void  QwDriftChamber::ConstructHistograms(TDirectory *folder)
 
 void  QwDriftChamber::FillHistograms()
 {
+  if (! HasDataLoaded()) return;
+  
   QwDetectorID   this_detid;
   QwDetectorInfo *this_det;
   
