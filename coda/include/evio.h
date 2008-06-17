@@ -49,17 +49,24 @@ typedef struct evfilestruct {
   int byte_swapped;
 } EVFILE;
 
+typedef struct evBinarySearch{
+  int sbk;
+  int ebk;
+  int found_bk;
+  int found_evn;
+  int last_evn;
+} EVBSEARCH;
 
-extern int evOpen(char *filename, char *flags, int *handle);
-extern int evRead(int handle, int *buffer, int buflen);
+extern int evOpen(char *filename, char *flags, EVFILE *handle);
+extern int evRead(EVFILE *handle, int *buffer, int buflen);
 extern int evGetNewBuffer(EVFILE *a);
-extern int evWrite(int handle,int *buffer);
+extern int evWrite(EVFILE *handle,int *buffer);
 extern int evFlush(EVFILE *a);
-extern int evIoctl(int handle,char *request,void *argp);
-extern int evClose(int handle);
-extern int evOpenSearch(int handle, int *b_handle);
-extern int evSearch(int handle, int b_handle, int evn, int *buffer, int buflen, int *size);
-extern int evCloseSearch(int b_handle);
+extern int evIoctl(EVFILE *handle,char *request,void *argp);
+extern int evClose(EVFILE *handle);
+extern int evOpenSearch(EVFILE *handle, EVBSEARCH *b_handle);
+extern int evSearch(EVFILE *handle, EVBSEARCH *b_handle, int evn, int *buffer, int buflen, int *size);
+extern int evCloseSearch(EVBSEARCH *b_handle);
 
 
 #endif

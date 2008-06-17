@@ -84,12 +84,7 @@ ifeq ($(OSNAME),Linux)
      ROOTGLIBS     = $(shell root-config --glibs)
    endif
 
-   CXX           = g++
-   CXXFLAGS      = -Wall -fno-rtti -fno-exceptions -fPIC \
-                   -DLINUXVERS -I$(ROOTSYS)/include -O
-
-# Linux with egcs
-   INCLUDES      = -I$(ROOTSYS)/include 
+   INCLUDES      = -I$(shell root-config --incdir)
    CXX           = g++
    CXXFLAGS      = -O -Wall -fno-rtti -fno-exceptions -fPIC $(INCLUDES)
    LD            = g++
@@ -177,11 +172,11 @@ libevio.a: clean_evio evio.o swap_util.o
 	rm -f $@
 	ar cr $@ evio.o swap_util.o 
 
-evio.o: $(MYSRCDIR)/evio.C
-	$(CXX) $(MYINCLUDES) -c  $<
+#evio.o: $(MYSRCDIR)/evio.C
+#	$(CXX) -fPIC $(MYINCLUDES) -c  $<
 
-swap_util.o: $(MYSRCDIR)/swap_util.C
-	$(CXX) $(MYINCLUDES) -c  $<
+#swap_util.o: $(MYSRCDIR)/swap_util.C
+#	$(CXX) -fPIC $(MYINCLUDES) -c  $<
 
 clean:  clean_evio
 	rm -f *.o *.a *.so core *~ *.d *.out *.tar etclient tstcoda tstio

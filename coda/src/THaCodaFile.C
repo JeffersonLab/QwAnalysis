@@ -45,14 +45,14 @@ ClassImp(THaCodaFile)
 
   int THaCodaFile::codaOpen(TString fname) {  
        init(fname);
-       fStatus = evOpen((char*)fname.Data(),"r",&handle);
+       fStatus = evOpen((char*)fname.Data(),"r",handle);
        staterr("open",fStatus);
        return fStatus;
   };
 
   int THaCodaFile::codaOpen(TString fname, TString readwrite) {  
       init(fname);
-      fStatus = evOpen((char*)fname.Data(),(char*)readwrite.Data(),&handle);
+      fStatus = evOpen((char*)fname.Data(),(char*)readwrite.Data(),handle);
       staterr("open",fStatus);
       return fStatus;
   };

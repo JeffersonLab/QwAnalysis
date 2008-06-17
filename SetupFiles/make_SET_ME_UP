@@ -26,3 +26,23 @@ set analyzer_version = $QWANALYSIS
 unset analyzer_version
 
 END
+
+cat >! SET_ME_UP.bash << END
+#!/bin/bash
+#
+analyzer_version=$QWANALYSIS
+
+###
+###  DO NOT CHANGE THE COMMANDS BELOW!!!
+###
+	export QWANALYSIS=\${analyzer_version}
+	unset RCLD_LIBRARY_PATH
+	unset RCQWANALYSIS
+	unset RCQWANALYSIS_INIT
+
+	source \${QWANALYSIS}/SetupFiles/.QwSetup.bash
+
+unset analyzer_version
+
+END
+

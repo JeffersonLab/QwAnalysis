@@ -55,7 +55,8 @@ private:
   void initFilter();
   void staterr(TString tried_to, int status);  // Can cause job to exit(0)
   int ffirst;
-  int max_to_filt,handle;
+  int max_to_filt;
+  EVFILE *handle;
   int maxflist,maxftype;
   TArrayI evlist, evtypes;
 

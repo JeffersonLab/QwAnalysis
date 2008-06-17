@@ -1,0 +1,59 @@
+#*****************************************************************************
+#                         QWEAK environment configuration
+#
+#******************************************************************************
+#              ********** Expects cshell and alike !!! **********
+#******************************************************************************
+#
+# Author :   P. M. King (pking@jlab.org)
+# Date :     07 November 2006
+#
+# 
+#******************************************************************************
+
+# Main QWEAK directories :
+unset QW_ROOTFILES_DIR
+unset QW_TMP_DIR
+unset QWLIB
+unset QWBIN
+unset MYEVIO
+
+export QW_ROOTFILES_DIR=${QWSCRATCH}/rootfiles
+export QW_TMP_DIR=${QWSCRATCH}/tmp
+export QWLIB=${QWANALYSIS}/lib
+export QWBIN=${QWANALYSIS}/bin
+export QWEVIO=${QWANALYSIS}/coda
+
+# Searching paths for binaries :
+if [[ -n "$PATH" ]] 
+then
+   export PATH=${QWANALYSIS}/bin:${ROOTSYS}/bin:${PATH}
+else
+   export PATH=${QWANALYSIS}/bin:${ROOTSYS}/bin
+fi
+
+# Searching paths for linker :
+if [[ -n "$LD_LIBRARY_PATH" ]]
+then
+   export LD_LIBRARY_PATH=${QWANALYSIS}/lib:${LD_LIBRARY_PATH}:${ROOTSYS}/lib:${X11}/lib
+else
+   export LD_LIBRARY_PATH=${QWANALYSIS}/lib:${ROOTSYS}/lib:${X11}/lib
+fi
+
+# QWSHELL
+if [[ -f /bin/bash ]]
+then
+  export QWSHELL=bash
+else 
+	if [[ -f /bin/ksh ]]
+	then
+	  export QWSHELL=ksh
+	else
+	  echo \*\*\* WARNING : couldn\'t find either bash or ksh on system
+	  echo '    ' --'>' NO MODULARITY : use \'gmake -f Makefile\' instead
+	fi
+fi
+
+
+#rehash
+
