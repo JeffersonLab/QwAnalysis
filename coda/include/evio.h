@@ -57,7 +57,7 @@ typedef struct evBinarySearch{
   int last_evn;
 } EVBSEARCH;
 
-extern int evOpen(char *filename, char *flags, EVFILE *handle);
+extern int evOpen(char *filename, char *flags, EVFILE **handle);
 extern int evRead(EVFILE *handle, int *buffer, int buflen);
 extern int evGetNewBuffer(EVFILE *a);
 extern int evWrite(EVFILE *handle,int *buffer);

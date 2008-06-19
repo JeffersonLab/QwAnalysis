@@ -45,14 +45,14 @@ ClassImp(THaCodaFile)
 
   int THaCodaFile::codaOpen(TString fname) {  
        init(fname);
-       fStatus = evOpen((char*)fname.Data(),"r",handle);
+       fStatus = evOpen((char*)fname.Data(),"r",&handle);
        staterr("open",fStatus);
        return fStatus;
   };
 
   int THaCodaFile::codaOpen(TString fname, TString readwrite) {  
       init(fname);
-      fStatus = evOpen((char*)fname.Data(),(char*)readwrite.Data(),handle);
+      fStatus = evOpen((char*)fname.Data(),(char*)readwrite.Data(),&handle);
       staterr("open",fStatus);
       return fStatus;
   };
@@ -62,7 +62,7 @@ ClassImp(THaCodaFile)
 // Close the file. Do nothing if file not opened.
     if( handle ) {
       fStatus = evClose(handle);
-      handle = 0;
+      handle = NULL;
       return fStatus;
     }
     fStatus = CODA_OK;
@@ -82,7 +82,7 @@ ClassImp(THaCodaFile)
        }
     } else {
       if(CODA_VERBOSE) {
-         cout << "codaRead ERROR: tried to access a file with handle = 0" << endl;
+         cout << "codaRead ERROR: tried to access a file with handle = NULL" << endl;
          cout << "You need to call codaOpen(filename)" << endl;
          cout << "or use the constructor with (filename) arg" << endl;
       }
@@ -99,7 +99,7 @@ ClassImp(THaCodaFile)
        fStatus = evWrite(handle, evbuffer);
        staterr("write",fStatus);
      } else {
-       cout << "codaWrite ERROR: tried to access file with handle = 0" << endl;
+       cout << "codaWrite ERROR: tried to access file with handle = NULL" << endl;
        fStatus = CODA_ERROR;
      }
      return fStatus;
@@ -294,7 +294,7 @@ void THaCodaFile::staterr(TString tried_to, int status) {
   };
 
   void THaCodaFile::init(TString fname) {
-    handle = 0;
+    handle = NULL;
     filename = fname;
   };
 

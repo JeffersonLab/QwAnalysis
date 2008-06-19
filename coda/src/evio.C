@@ -169,7 +169,7 @@ extern  void swapped_memcpy(char *buffer,char *source,int size);
 //!!}
 //!!#endif
 
-int evOpen(char *filename,char *flags,EVFILE *handle)
+int evOpen(char *filename,char *flags,EVFILE **handle)
 {
   EVFILE *a;
 //  char *cp;
@@ -268,7 +268,7 @@ int evOpen(char *filename,char *flags,EVFILE *handle)
     a->magic = EV_MAGIC;
     a->blksiz = a->buf[EV_HD_BLKSIZ];
     a->blknum = a->buf[EV_HD_BLKNUM];
-    handle = a;
+    *handle = a;
     return(S_SUCCESS);
   } else {
     free(a);
@@ -277,7 +277,7 @@ int evOpen(char *filename,char *flags,EVFILE *handle)
 	    filename,flags);
     perror(NULL);
 #endif
-    handle = 0;
+    *handle = NULL;
     return(errno);
   }
 }
