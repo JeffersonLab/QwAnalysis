@@ -335,6 +335,10 @@ else
   BOOST_LIBS = -L${BOOST_LIB_DIR}
 endif
 
+#  List the Boost libraries to be linked to the analyzer.
+BOOST_LIBS += -lboost_filesystem
+
+
 
 ############################
 ############################

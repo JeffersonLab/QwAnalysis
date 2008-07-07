@@ -24,7 +24,14 @@ int main(Int_t argc,Char_t* argv[])
       ||getenv("JOB_ID")!=NULL) kInQwBatchMode = kTRUE;
   gROOT->SetBatch(kTRUE);
 
-  gQwHists.LoadHistParamsFromFile(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/cosmics_hists.in");
+  //  Fill the search paths for the parameter files; this sets a static variable
+  //  within the QwParameterFile class which will be used by all instances.
+  //  The "scratch" directory should be first.
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput");
+
+  //  Load the histogram parameter definitions into the global histogram helper.
+  gQwHists.LoadHistParamsFromFile("cosmics_hists.in");
   
   TStopwatch timer;
 
@@ -39,20 +46,12 @@ int main(Int_t argc,Char_t* argv[])
 
   QwDetectors.resize(3,NULL);  // QwDetectors[0]==GEM, QwDetectors[1]==Region2
   QwDetectors.at(1) = new QwDriftChamber("R1");
-  TString mapfile = TString(getenv("QWANALYSIS")) 
-    + "/Tracking/prminput/gzero_wc.map";
-  QwDetectors.at(1)->LoadChannelMap(mapfile);
+  QwDetectors.at(1)->LoadChannelMap("gzero_wc.map");
 
   QwDetectors.at(2) = new QwMainDetector("MD");
-  QwDetectors.at(2)->LoadChannelMap(TString(getenv("QWANALYSIS")) + 
-				    "/Tracking/prminput/maindet_cosmics.map");
-  
+  QwDetectors.at(2)->LoadChannelMap("maindet_cosmics.map");
 
   for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++){
-    //   Int_t run = 62310;
-    //   Int_t firstevent = 1;
-    //   Int_t lastevent  = 50000;  // Run 62310 has over 5,241,000 events.
-
     //  Begin processing for the first run.
     //  Start the timer.
     timer.Start();
@@ -74,8 +73,7 @@ int main(Int_t argc,Char_t* argv[])
     //     //  from the database.
 
 
-    //  Open the data files and root file
-    //    OpenAllFiles(io, run);
+    //  Create the root file
     rootfile = new TFile(Form("Qweak_%d.root",run),
 			 "RECREATE","QWeak ROOT file with histograms");
 
@@ -112,10 +110,19 @@ int main(Int_t argc,Char_t* argv[])
       
       //  Fill the histograms for the QwDriftChamber subsystem object.
       QwDetectors.at(1)->ProcessEvent();
-      QwDetectors.at(1)->FillHistograms();
-
       QwDetectors.at(2)->ProcessEvent();
+
+      QwDetectors.at(1)->FillHistograms();
       QwDetectors.at(2)->FillHistograms();
+
+      //  Build a global vector consisting of each
+      //  subsystems list concatenated together.
+      //  Make it a QwHitContainer class
+
+      //  Pass the QwHitContainer to the treedo class
+      
+      //  Call the recontruction routines of the treedo
+      //  class.
 
 
     }    
@@ -154,7 +161,7 @@ int main(Int_t argc,Char_t* argv[])
 //       QwEpics->WriteDatabase(sql);
 //     }
     
-    PrintInfo(timer);
+    PrintInfo(timer, run);
 
   } //end of run loop
   
@@ -174,36 +181,12 @@ int main(Int_t argc,Char_t* argv[])
 }
 
 
-// void OpenAllFiles(G0ReplayPrms* io, Run run)
-// {
-//   if(io->GetSegmentIsSelectedFlg()){//--seg flag
-//     io->OpenDataFile(run,io->GetSegment());//ugly but maybe less confusing??
-//   }
-//   else{    
-//     if (io->DataFileIsSegmented(run)){
-//       // Don't do anything.  The file will be opened by
-//       // the method "io->OpenNextSegment(run)" below.
-//     } else {
-//       io->OpenDataFile(run); 
-//     }
-//   }
-//   io->OpenRootFile();
-//   return;
-// }
 
-// void CloseAllFiles(G0ReplayPrms* io)
-// {
-//   io->CloseRootFile();
-//   //io->CloseRateFile();
-//   io->CloseDataFile();
-//   io->CloseAsymFile();
-//   io->CloseBitErrFile();
-//   return;
-// };
 
-void PrintInfo(TStopwatch& timer)
+void PrintInfo(TStopwatch& timer, Int_t run)
 {
-  std::cout << "CPU time used:  "  << timer.CpuTime() << " s" 
+  std::cout << "Analysis of run "  << run << std::endl
+	    << "CPU time used:  "  << timer.CpuTime() << " s" 
 	    << std::endl
 	    << "Real time used: " << timer.RealTime() << " s" 
 	    << std::endl << std::endl;

@@ -1,6 +1,12 @@
 #ifndef QWTYPES_H
 #define QWTYPES_H
 
+//  Some global constants for the number of regions
+static const Int_t kNumRegions = 6;
+enum EQwRegionID{kRegionIDNull = -1,
+		 kRegionID1=0,  kRegionID2,   kRegionID3,
+		 kRegionIDTrig, kRegionIDCer, kRegionIDScanner};
+
 
 
 class QwDetectorID

@@ -2,7 +2,38 @@
 
 #include "QwParameterFile.h"
 
-QwParameterFile::QwParameterFile(const char *filename):fInputFile(filename){};
+std::vector<bfs::path> QwParameterFile::fSearchPaths;
+
+void QwParameterFile::AppendToSearchPath(const TString &searchdir){
+  bfs::path tmppath(searchdir.Data());
+  if( bfs::exists(tmppath) && bfs::is_directory(tmppath)) {
+    std::cout << tmppath.string()
+	      << " is a directory; adding it to the search path\n";
+    fSearchPaths.push_back(tmppath);
+  } else if( bfs::exists(tmppath)) {
+    std::cout<<tmppath.string()<<" exists but is not a directory.\n";
+  } else {
+    std::cout<<tmppath.string()<<" doesn't exist.\n";
+  }
+};
+
+
+QwParameterFile::QwParameterFile(const char *filename){
+  bfs::path tmppath;
+  if (filename[0] == '/'){
+    tmppath = bfs::path(filename);
+  } else {
+    for (size_t i=0; i<fSearchPaths.size(); i++){
+      tmppath = fSearchPaths.at(i).string() +"/"+ filename;
+      if( bfs::exists(tmppath) && ! bfs::is_directory(tmppath)) {
+	std::cout << "Found parameter file: " 
+		  << tmppath.string()<<"\n";
+	break;
+      }
+    }
+  }
+  fInputFile.open(tmppath.string().c_str());
+};
 
 
 void QwParameterFile::TrimWhitespace(Int_t head_tail){
