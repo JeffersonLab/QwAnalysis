@@ -23,13 +23,17 @@ namespace bfs = boost::filesystem;
 
 class QwParameterFile{
  public:
+  static UInt_t GetUInt(const TString &varvalue);
+
+
+ public:
   QwParameterFile(const char *filename);
   ~QwParameterFile(){ };
 
   static void AppendToSearchPath(const TString &searchdir);
 
   Bool_t ReadNextLine(){fCurrentPos=0;  return getline(fInputFile, fLine);};
-  void TrimWhitespace(Int_t head_tail=3);
+  void TrimWhitespace(TString::EStripType head_tail = TString::kBoth);
   void TrimComment(char commentchar);
   Bool_t LineIsEmpty(){return fLine.empty();};
 
@@ -42,6 +46,8 @@ class QwParameterFile{
   Bool_t HasVariablePair(std::string separatorchars, TString &varname, TString &varvalue);
   
  protected:
+  void TrimWhitespace(std::string  &token, TString::EStripType head_tail);
+
   static std::vector<bfs::path> fSearchPaths;
 
   ifstream    fInputFile;

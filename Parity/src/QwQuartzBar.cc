@@ -7,6 +7,7 @@
 
 #include "QwQuartzBar.h"
 
+#include <sstream>
 
 QwQuartzBar::QwQuartzBar(TString region_tmp):VQwSubsystem(region_tmp){
 };
@@ -33,13 +34,13 @@ Int_t QwQuartzBar::LoadChannelMap(TString mapfile){
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
-    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+    mapstr.TrimWhitespace();   // Get rid of leading and trailing whitespace (spaces or tabs).
     if (mapstr.LineIsEmpty())  continue;
 
     if (mapstr.HasVariablePair("=",varname,varvalue)){
       //  This is a declaration line.  Decode it.
       varname.ToLower();
-      UInt_t value = atol(varvalue.Data());
+      UInt_t value = QwParameterFile::GetUInt(varvalue);
       if (varname=="roc"){
 	RegisterROCNumber(value,0);
       } else if (varname=="bank"){

@@ -2,6 +2,8 @@
 
 #include "QwParameterFile.h"
 
+#include <sstream>
+
 std::vector<bfs::path> QwParameterFile::fSearchPaths;
 
 void QwParameterFile::AppendToSearchPath(const TString &searchdir){
@@ -15,6 +17,38 @@ void QwParameterFile::AppendToSearchPath(const TString &searchdir){
   } else {
     std::cout<<tmppath.string()<<" doesn't exist.\n";
   }
+};
+
+UInt_t QwParameterFile::GetUInt(const TString &varvalue){
+  UInt_t value = 0;
+  if (varvalue.IsDigit()){
+    value = varvalue.Atoi();
+  } else if (varvalue.BeginsWith("0x") || varvalue.BeginsWith("0X") 
+	     || varvalue.BeginsWith("x") || varvalue.BeginsWith("X")
+	     || varvalue.IsHex()){
+    //any whitespace ?
+    Int_t end = varvalue.Index(" ");
+    std::istringstream stream1;
+    if (end == -1){
+      stream1.str(varvalue.Data());
+    } else {
+      //make temporary string, removing whitespace
+      Int_t start = 0;
+      TString tmp;
+      //loop over all whitespace
+      while (end > -1) {
+	tmp += varvalue(start, end-start);
+	start = end+1; 
+	end = varvalue.Index(" ", start);
+      }
+      //finally add part from last whitespace to end of string
+      end = varvalue.Length();
+      tmp += varvalue(start, end-start);
+      stream1.str(tmp.Data());
+      }
+    stream1 >> std::hex >> value;
+  }
+  return value;
 };
 
 
@@ -35,23 +69,32 @@ QwParameterFile::QwParameterFile(const char *filename){
   fInputFile.open(tmppath.string().c_str());
 };
 
-
-void QwParameterFile::TrimWhitespace(Int_t head_tail){
+void QwParameterFile::TrimWhitespace(TString::EStripType head_tail){
   //  If the first bit is set, this routine removes leading spaces from the
   //  line.  If the second bit is set, this routine removes trailing spaces
   //  from the line.  The default behavior is to remove both.
-  std::string   ws = " ";
+  TrimWhitespace(fLine, head_tail);
+}
+
+void QwParameterFile::TrimWhitespace(std::string &token, 
+				     TString::EStripType head_tail){
+  //  If the first bit is set, this routine removes leading spaces from the
+  //  line.  If the second bit is set, this routine removes trailing spaces
+  //  from the line.  The default behavior is to remove both.
+  std::string   ws = " \t";
   size_t mypos;
   //  Remove leading spaces.  If this first test returns "npos", it means
   //  this line is all whitespace, so get rid of it all.
   //  If we're not removing leading spaces, lines which are all spaces
   //  will not be removed.
-  mypos = fLine.find_first_not_of(ws);
-  if ((head_tail&1==1)) fLine.erase(0,mypos);
+  mypos = token.find_first_not_of(ws);
+  if (head_tail & TString::kLeading) token.erase(0,mypos);
   //  Remove trailing spaces
-  mypos = fLine.find_last_not_of(ws);
-  mypos = fLine.find_first_of(ws,mypos);
-  if (mypos != std::string::npos && (head_tail&2==2)) fLine.erase(mypos);
+  mypos = token.find_last_not_of(ws);
+  mypos = token.find_first_of(ws,mypos);
+  if (mypos != std::string::npos && (head_tail & TString::kTrailing)){
+    token.erase(mypos);
+  }
 }
 
 void QwParameterFile::TrimComment(char commentchar){
@@ -80,6 +123,8 @@ Bool_t QwParameterFile::HasVariablePair(std::string separatorchars, std::string 
     if (equiv_pos2 != std::string::npos){
       varname  = fLine.substr(0,equiv_pos1);
       varvalue = fLine.substr(equiv_pos2);
+      TrimWhitespace(varname,  TString::kBoth);
+      TrimWhitespace(varvalue, TString::kBoth);
       status = kTRUE;
     }
   }
