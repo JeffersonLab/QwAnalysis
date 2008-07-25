@@ -1,3 +1,4 @@
+
 /*! \file   QwHit.h
  *  \author P. M. King
  *  \date   2008feb13
@@ -51,6 +52,16 @@ class QwHit{
     fTime = fRawTime - reftime;
   };
 
+  bool PlaneMatches(EQwRegionID region, Int_t package, Int_t plane) const
+    {
+      return (fRegion==region && fPackage==package && fPlane==plane);
+    };
+  bool DirMatches(EQwRegionID region, Int_t package, EQwDirectionID dir) const
+    {
+      return (fRegion==region && fPackage==package && fDirection==dir);
+    };
+  
+
 
 
  protected:
@@ -63,6 +74,7 @@ class QwHit{
   //  Identification information for the detector
   Int_t fRegion;    /// Region 1, 2, 3, trigger scint., or cerenkov
   Int_t fPackage;   /// Which arm of the rotator, or octant number
+  Int_t fDirection; /// Direction of the plane:  X, Y, U, V; R, theta; etc.
   Int_t fPlane;     /// R or theta index for R1; plane index for R2 & R3
   Int_t fElement;   /// Trace # for R1; wire # for R2 & R3; PMT # for others
 

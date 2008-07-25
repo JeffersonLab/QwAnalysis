@@ -2,7 +2,7 @@
 * File: QwEventBuffer.h                                    *
 *                                                          *
 * Author: P. M. King                                       *
-* Time-stamp: <2007-05-08 15:40>                           *
+* Time-stamp: <2008-07-22 15:40>                           *
 \**********************************************************/
 
 #ifndef __QWEVENTBUFFER__
@@ -16,6 +16,7 @@
 #include "THaCodaData.h"
 #include "MQwCodaControlEvent.h"
 
+#include "QwSubsystemArray.h"
 #include "VQwSubsystem.h"
 
 //////////////////////////////////////////////////////////////////////
@@ -61,9 +62,12 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Bool_t IsROCConfigurationEvent(){
     return (fEvtType>=0x90 && fEvtType<=0xaf);
   };
-  Bool_t FillSubsystemConfigurationData(std::vector<VQwSubsystem*> subsystems);
 
-  Bool_t FillSubsystemData(std::vector<VQwSubsystem*> subsystems);
+  Bool_t FillSubsystemConfigurationData(std::vector<VQwSubsystem*> &subsystems);
+  Bool_t FillSubsystemData(std::vector<VQwSubsystem*> &subsystems);
+
+  Bool_t FillSubsystemConfigurationData(QwSubsystemArray &subsystems);
+  Bool_t FillSubsystemData(QwSubsystemArray &subsystems);
 
   void ResetFlags();
 

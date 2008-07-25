@@ -2,28 +2,31 @@
 * File: QwDriftChamber.h                                   *
 *                                                          *
 * Author: P. M. King                                       *
-* Time-stamp: <2007-05-08 15:40>                           *
+* Time-stamp: <2008-07-08 15:40>                           *
 \**********************************************************/
 
 
 #ifndef __QWDRIFTCHAMBER__
 #define __QWDRIFTCHAMBER__
 
-#include <exception>
-#include <iostream>
-#include <fstream>
-#include <string>
+#include "QwParameterFile.h"
 
-#include <TH1F.h>
-#include <TH2F.h>
-
-#include "VQwSubsystem.h"
-#include "MQwF1TDC.h"
+#include<TH1F.h>
+#include<TH2F.h>
+#include<TTree.h>
 
 #include "QwHit.h"
 
 #include "QwTypes.h"
 #include "QwDetectorInfo.h"
+
+#include <exception>
+#include<iostream>
+#include<fstream>
+#include<string>
+
+#include "VQwSubsystem.h"
+#include "MQwF1TDC.h"
 
 
 
@@ -33,14 +36,21 @@ class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
    *
    *
    ******************************************************************/
- public:
+ public:  
   QwDriftChamber(TString region_tmp);
-  ~QwDriftChamber() {
-    DeleteHistograms();
-  };
+  QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHits_TEMP);
 
+    ~QwDriftChamber()
+    {
+      DeleteHistograms();
+    }
+
+  Int_t OK;
+    
   /*  Member functions derived from VQwSubsystem. */
-  Int_t LoadChannelMap(TString mapfile);
+
+  
+  Int_t LoadChannelMap(TString mapfile );
   void  ClearEventData();
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words){return 0;};
@@ -55,34 +65,43 @@ class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
   void  ConstructHistograms(TDirectory *folder);
   void  FillHistograms();
   void  DeleteHistograms();
+ 
 
   /* Unique member functions */
-  void  ReportConfiguration();
+  virtual void  ReportConfiguration() = 0;
 
-  void  SubtractReferenceTimes();
+  virtual void  SubtractReferenceTimes() = 0;
+
+   
+
+protected:
+
+ Int_t LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire);
+ virtual Int_t BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire)=0;
+ virtual Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire)= 0;
 
 
 
  protected:
-  void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
+ virtual void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data) = 0;
 
 
 
 
  protected:
-  void  ClearAllBankRegistrations();
-  Int_t RegisterROCNumber(const UInt_t roc_id);
+   void  ClearAllBankRegistrations();
+   Int_t RegisterROCNumber(const UInt_t roc_id);
 
-  Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
+   Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
 
-  Int_t LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire);
-  Int_t LinkChannelToWire(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire);
+   
 
-  Int_t GetTDCIndex(size_t bank_index, size_t slot_num) const;
+   Int_t GetTDCIndex(size_t bank_index, size_t slot_num) const;
 
-  Bool_t IsSlotRegistered(Int_t bank_index, Int_t slot_num) const {
-    return (GetTDCIndex(bank_index,slot_num) != -1);
-  };
+   Bool_t IsSlotRegistered(Int_t bank_index, Int_t slot_num) const
+     {
+       return (GetTDCIndex(bank_index,slot_num) != -1);
+     };
 
 
 
@@ -104,16 +123,15 @@ class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
   static const UInt_t kReferenceChannelPlaneNumber;
 
   Int_t fNumberOfTDCs;
+
+
+std::vector< std::vector<Int_t> > fTDC_Index;  //  TDC index, indexed by bank_index and slot_number
+  std::vector< std::pair<Int_t, Int_t> > fReferenceChannels;
+
   
-  std::vector< std::vector<Int_t> > fTDC_Index;  //  TDC index, indexed by bank_index and slot_number
-  std::vector< std::pair<Int_t, Int_t> > fReferenceChannels;  
-
-  std::vector< std::vector< QwDetectorID > > fTDCPtrs; // Indexed by TDC_index and Channel; gives the package, plane and wire assignment.
-  
-
-
-
   std::vector< QwHit > fTDCHits;
+
+  std::vector< QwHit > &fWireHits;
 
 
 
@@ -127,9 +145,8 @@ class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
   //         of either index.
   std::vector< std::vector< Double_t> > fReferenceData;
 
-  std::vector< std::vector< QwDetectorInfo > > fWireData; // Indexed by plane, and wire number; eventually should include package index 
-  
-  /*=====
+
+ /*=====
    *  Histograms should be listed below here.
    *  They should be pointers to histograms which will be created
    *  inside the ConstructHistograms() 
@@ -142,7 +159,30 @@ class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
   TH2F *TOFW_raw[13];
   TH2F *HitsWire[13];
 
-  //  ClassDef(QwDriftChamber,2);
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+ //below are the data structures that are used in HDC  
+    
+
+  std::vector< std::vector< QwDetectorID > > fTDCPtrs; // Indexed by TDC_index and Channel; gives the package, plane and wire assignment.
+
+
+  std::vector< std::vector< QwDetectorInfo > > fWireData; // Indexed by plane, and wire number; eventually should include package index 
+    
+
+
+
 };
 
 #endif

@@ -152,7 +152,7 @@ void QwEventBuffer::DecodeEventIDBank(UInt_t *buffer)
 };
 
 
-Bool_t QwEventBuffer::FillSubsystemConfigurationData(std::vector<VQwSubsystem*> subsystems)
+Bool_t QwEventBuffer::FillSubsystemConfigurationData(std::vector<VQwSubsystem*> &subsystems)
 {
   ///  Passes the data for the configuration events into each subsystem
   ///  object.  Each object is responsible for recognizing the configuration
@@ -202,7 +202,7 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(std::vector<VQwSubsystem*> 
 };
 
 
-Bool_t QwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> subsystems){
+Bool_t QwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> &subsystems){
   //
   Bool_t okay = kTRUE;
   //  Clear the old event information from the subsystems.
@@ -254,6 +254,99 @@ Bool_t QwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> subsystems){
   }
   return okay;
 };
+
+Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystems)
+{
+  ///  Passes the data for the configuration events into each subsystem
+  ///  object.  Each object is responsible for recognizing the configuration
+  ///  data which it ought to decode.
+  ///  NOTE TO DAQ PROGRAMMERS:
+  ///      The configuration event for a ROC must have the same
+  ///      subbank structure as the physics events for that ROC.
+  Bool_t okay = kTRUE;
+  UInt_t rocnum = fEvtType - 0x90;
+  std::cerr << "QwEventBuffer::FillSubsystemConfigurationData:  "
+	    << "Found configuration event for ROC"
+	    << rocnum
+	    << std::endl;
+  //  Loop through the data buffer in this event.
+  UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
+  while (okay = DecodeSubbankHeader(&localbuff[fWordsSoFar])){
+    //  If this bank has further subbanks, restart the loop.
+    if (fSubbankType == 0x10) continue;
+    //  If this bank only contains the word 'NULL' then skip
+    //  this bank.
+    if (fFragLength==1 && localbuff[fWordsSoFar]==kNullDataWord){
+      fWordsSoFar += fFragLength;
+      continue;
+    }
+
+    //  Subsystems may be configured to accept data in formats
+    //  other than 32 bit integer (banktype==1), but the
+    //  bank type is not provided.  Subsystems must be able
+    //  to process their data knowing only the ROC and bank tags.
+    //
+    //  After trying the data in each subsystem, bump the
+    //  fWordsSoFar to move to the next bank.
+    subsystems.ProcessConfigurationBuffer(rocnum, fSubbankTag,
+					  &localbuff[fWordsSoFar], 
+					  fFragLength);
+    fWordsSoFar += fFragLength;
+    if (fDEBUG) {
+      std::cerr << "QwEventBuffer::FillSubsystemConfigurationData:  "
+		<< "Ending loop: fWordsSoFar=="<<fWordsSoFar
+		<<std::endl;    
+    }
+  }
+  return okay;
+};
+
+Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
+  //
+  Bool_t okay = kTRUE;
+  //  Clear the old event information from the subsystems.
+  subsystems.ClearEventData();
+  
+  //  Loop through the data buffer in this event.
+  UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
+  while (okay = DecodeSubbankHeader(&localbuff[fWordsSoFar])){
+    //  If this bank has further subbanks, restart the loop.
+    if (fSubbankType == 0x10) continue;
+    //  If this bank only contains the word 'NULL' then skip
+    //  this bank.
+    if (fFragLength==1 && localbuff[fWordsSoFar]==kNullDataWord){
+      fWordsSoFar += fFragLength;
+      continue;
+    }
+
+    if (fDEBUG) {
+      std::cerr << "QwEventBuffer::FillSubsystemData:  "
+		<< "Beginning loop: fWordsSoFar=="<<fWordsSoFar
+		<<std::endl;    
+    }
+    //  Loop through the subsystems and try to store the data
+    //  from this bank in each subsystem.
+    //
+    //  Subsystems may be configured to accept data in formats
+    //  other than 32 bit integer (banktype==1), but the
+    //  bank type is not provided.  Subsystems must be able
+    //  to process their data knowing only the ROC and bank tags.
+    //
+    //  After trying the data in each subsystem, bump the
+    //  fWordsSoFar to move to the next bank.
+    subsystems.ProcessEvBuffer(fROC, fSubbankTag, 
+			       &localbuff[fWordsSoFar], 
+			       fFragLength);
+    fWordsSoFar += fFragLength;
+    if (fDEBUG) {
+      std::cerr << "QwEventBuffer::FillSubsystemData:  "
+		<< "Ending loop: fWordsSoFar=="<<fWordsSoFar
+		<<std::endl;    
+    }
+  }
+  return okay;
+};
+
 
 Bool_t QwEventBuffer::DecodeSubbankHeader(UInt_t *buffer){
   //  This function will decode the header information from
