@@ -48,6 +48,7 @@ class QwMainDetector: public VQwSubsystem, public MQwV775TDC {
 
   void  ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Float_t> &values);
   void  FillTreeVector(std::vector<Float_t> &values);
+  
 
   QwMainDetector& operator=  (const QwMainDetector &value);
 

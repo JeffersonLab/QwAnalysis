@@ -5,7 +5,7 @@
 ///  and any special event processing required.
 ///  Each susbsytem will also own the histograms and ntupling 
 ///  functions used for its data.
-
+  
 /*  ------------
     
 */
@@ -16,6 +16,14 @@
 #include <boost/shared_ptr.hpp>
 
 #include "QwHitContainer.h"
+
+
+//Temporary global variables for sub-programs
+
+
+
+
+//end of track reconstruction variable  initialization
 
 Bool_t kInQwBatchMode = kFALSE;
 
@@ -52,10 +60,21 @@ int main(Int_t argc,Char_t* argv[])
   QwDetectors.push_back(new QwDriftChamberVDC("R3"));
   QwDetectors.GetSubsystem("R3")->LoadChannelMap("gzero_wc.map");
   QwDetectors.push_back(new QwMainDetector("MD"));
-  QwDetectors.GetSubsystem("MD")->LoadChannelMap("maindet_cosmics.map");
-
+  QwDetectors.GetSubsystem("MD")->LoadChannelMap("maindet_cosmics.map");  
 
   boost::shared_ptr<QwHitContainer> fHitList;
+  QwHitContainer grandHitList;
+  QwDriftChamber * qw;
+
+
+
+
+
+ 
+        
+
+ 
+
 
   for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++){
     //  Begin processing for the first run.
@@ -93,6 +112,14 @@ int main(Int_t argc,Char_t* argv[])
     //    QwDetectors.GetSubsystem("MD")->ConstructHistograms(rootfile->mkdir("subdir"));
     QwDetectors.ConstructHistograms();
 
+    //Mark Pitt's ntuple
+    rootfile->cd();
+    TTree * dctree = new TTree("TC_Tree","Drift Chamber event data tree");
+    std::vector<Float_t> dctreevector;
+    Float_t evnum = 0.0;
+
+    dctree->Branch("evnum",&evnum,"evnum/F");
+
     while (eventbuffer.GetEvent() == CODA_OK){
       //  Loop over events in this CODA file
       //  First, do processing of non-physics events...
@@ -121,6 +148,20 @@ int main(Int_t argc,Char_t* argv[])
       //  Build a global vector consisting of each
       //  subsystems list concatenated together.
       //  Make it a QwHitContainer class
+
+       //updating the hitcontainer list
+
+      //REGION 2
+      qw=(QwDriftChamberHDC *)QwDetectors.GetSubsystem("R2");
+      qw->getHitList(grandHitList);
+      //std::cout << "After R2 "<<grandHitList.size()<<std::endl;
+      //REGION 3
+      qw=(QwDriftChamberVDC *)QwDetectors.GetSubsystem("R3");
+      qw->getHitList(grandHitList);
+      //std::cout << "After R3 "<<grandHitList.size()<<std::endl; 
+
+      //sorting the grand hit list
+      grandHitList.sort();
       
 
       //  Pass the QwHitContainer to the treedo class
@@ -139,30 +180,19 @@ int main(Int_t argc,Char_t* argv[])
      *  Doing this will remove the multiple copies of the ntuples    *
      *  from the root file.                                          */
     if(rootfile != NULL) rootfile->Write(0,TObject::kOverwrite);
+
+
+
     
-    //  Delete the histograms for the QwDriftChamber subsystem object.
-    //  In G0, we had to do:
-    //     Hists->ClearHists();//destroy the histogram objects
-    //     NTs->ClearNTs(io); //destroy nts according to the i/o flags
-    //     CloseAllFiles(io); //close all the output files
+   
+    
     QwDetectors.DeleteHistograms();
     
     eventbuffer.CloseDataFile();
     eventbuffer.ReportRunSummary();
 
 
-//     // Write to SQL DB if chosen on command line
-//     if (sql->GetDBFlag() && sql->GetDBAccessLevel()=="rw") {
-//       //Fill the analysis table. Moved right before filling the rest of the DB
-//       //For the 2nd pass we need to retrieve the values linking to the 
-//       //analysis_id of the 1st pass.
-//       sql->FillAnalysisTable(run);
 
-//       sql->SetPrintSQL(kFALSE);
-      
-
-//       QwEpics->WriteDatabase(sql);
-//     }
     
     PrintInfo(timer, run);
 
@@ -186,3 +216,5 @@ void PrintInfo(TStopwatch& timer, Int_t run)
 	    << std::endl << std::endl;
   return;
 }
+
+

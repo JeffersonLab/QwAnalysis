@@ -54,6 +54,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void  ConstructHistograms(TDirectory *folder);
   void  FillHistograms();
   void  DeleteHistograms();
+  
 
 
 
@@ -145,6 +146,9 @@ void  QwSubsystemArray::DeleteHistograms()
 {
   if (!empty())
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::DeleteHistograms));
+
+
+
 };
 
 #endif

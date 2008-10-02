@@ -16,6 +16,7 @@
 #include<TTree.h>
 
 #include "QwHit.h"
+#include "QwHitContainer.h"
 
 #include "QwTypes.h"
 #include "QwDetectorInfo.h"
@@ -62,16 +63,26 @@ class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
     SubtractReferenceTimes();
   };
   
+  
+
+  
   void  ConstructHistograms(TDirectory *folder);
   void  FillHistograms();
   void  DeleteHistograms();
+
+  
+
  
 
   /* Unique member functions */
   virtual void  ReportConfiguration() = 0;
 
   virtual void  SubtractReferenceTimes() = 0;
-
+  
+  void getHitList(QwHitContainer & grandHitContainer){
+    //std::cout << " HDC "<<fTDCHits.size()<<std::endl;
+    grandHitContainer.Append(fTDCHits);
+ };
    
 
 protected:

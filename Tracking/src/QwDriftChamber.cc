@@ -103,6 +103,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buf
   
   if (index>=0 && num_words>0){
     //  We want to process this ROC.  Begin looping through the data.
+
     SetDataLoaded(kTRUE);
     if (fDEBUG) std::cout << "QwDriftChamber::ProcessEvBuffer:  "
 			  << "Begin processing ROC" << roc_id << std::endl;

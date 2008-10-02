@@ -2,11 +2,13 @@
 *                                                          *
 * Author: P. M. King , Rakitha Beminiwattha                *
 * Time-stamp: <2008-07-08 15:40>                           *
-\**********************************************************/
+**********************************************************/
 
 #include "QwDriftChamberHDC.h"
 
 #include "QwParameterFile.h"
+
+#include<boost/bind.hpp>
 
 
 
@@ -84,19 +86,23 @@ void  QwDriftChamberHDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
 {
   Int_t tdcindex = GetTDCIndex(bank_index,slot_num);
   if (tdcindex != -1){
+    Int_t hitCount=0;
     Int_t package = 1;
     Int_t plane   = fTDCPtrs.at(tdcindex).at(chan).fPlane;
     Int_t wire    = fTDCPtrs.at(tdcindex).at(chan).fElement;
+    //Int_t hitCount;
     if (plane == -1 || wire == -1){
       //  This channel is not connected to anything.
       //  Do nothing.
     } else if (plane == kReferenceChannelPlaneNumber){
       fReferenceData.at(wire).push_back(data);
     } else {
-      Int_t hitindex = fTDCHits.size();
-      fWireData.at(plane).at(wire).PushHit(hitindex);
-      Int_t localindex = fWireData.at(plane).at(wire).GetNumHits() - 1;
-      fTDCHits.push_back(QwHit(bank_index, slot_num, chan, localindex, package, plane, wire, data));
+      //Int_t hitindex = fTDCHits.size();
+      //fWireData.at(plane).at(wire).PushHit(hitindex);
+      //Int_t localindex = fWireData.at(plane).at(wire).GetNumHits() - 1;
+      hitCount=std::count_if(fTDCHits.begin(),fTDCHits.end(),boost::bind(&QwHit::WireMatches,_1,2,boost::ref(package),boost::ref(plane),boost::ref(wire)) );
+      fTDCHits.push_back(QwHit(bank_index, slot_num, chan, hitCount,2, package, plane, wire, data));//in order-> bank index, slot num, chan, hitcount, region=2, package, plane, wire,wire hit time
+      
     }
   };
 };

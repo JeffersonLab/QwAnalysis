@@ -19,6 +19,7 @@ public:
 	int fModule; //F1TDC slot number or module index
 	int fChannel; //channel number
 
+
 	//reference channel index in list of reference channels (most prob. filled at load time)
 	int fReferenceChannelIndex;
 	

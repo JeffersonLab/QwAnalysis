@@ -17,6 +17,8 @@
 
 #include "QwParameterFile.h"
 
+
+
 class VQwSubsystem{
   /******************************************************************
    *  Class: VQwSubsystem
@@ -49,6 +51,8 @@ class VQwSubsystem{
   virtual void  ConstructHistograms(TDirectory *folder) = 0;
   virtual void  FillHistograms() = 0;
   virtual void  DeleteHistograms() = 0;
+  //virtual void  getHitList(std::vector<QwHit> &hitlist)=0;
+
   
   
   

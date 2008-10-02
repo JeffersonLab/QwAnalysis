@@ -37,6 +37,10 @@ class QwHitContainer:  public std::list<QwHit>{
   void Append(const QwHitContainer &list){
     this->insert(this->end(), list.begin(), list.end());
   };
+
+  void Append(std::vector<QwHit>  &list){
+    this->insert(this->end(), list.begin(), list.end());
+  };
   
 
   iterator GetStartOfHits(EQwRegionID region, Int_t package,
@@ -59,16 +63,16 @@ class QwHitContainer:  public std::list<QwHit>{
   };
   
   
-  iterator GetStartOfHits(EQwRegionID region, Int_t package,
+  iterator GetStartOfHits1(EQwRegionID region, Int_t package,
 			  Int_t plane) {
     return find_if (begin(), end(), 
 		    boost::bind(&QwHit::PlaneMatches, _1, 
 				boost::ref(region), boost::ref(package),
 				boost::ref(plane)));
   };
-  iterator GetEndOfHits(EQwRegionID region, Int_t package,
+  iterator GetEndOfHits1(EQwRegionID region, Int_t package,
 			Int_t plane){
-    iterator first = GetStartOfHits(region, package, plane);
+    iterator first = GetStartOfHits1(region, package, plane);
     return find_if (first, end(),
 		    boost::bind<bool>(logical_not,
 				      boost::bind(&QwHit::PlaneMatches, _1, 

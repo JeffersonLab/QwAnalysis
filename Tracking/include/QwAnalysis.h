@@ -9,6 +9,9 @@
 #define __QWMAIN__
 
 
+
+#define NDetMax 1010 //for track reconstruction libraries
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -31,6 +34,15 @@
 #include "QwMainDetector.h"
 
 #include "QwHistogramHelper.h"
+
+
+
+
+
+
+
+
+
 
 ///  Globally defined instance of the QwHistogramHelper class.
 QwHistogramHelper gQwHists;

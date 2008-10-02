@@ -28,10 +28,10 @@
 
 class QwHit{
  public:
-  QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
+  QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,Int_t region,
 	Int_t package, Int_t plane, Int_t wire,
 	UInt_t data):
-    fCrate(bank_index),fModule(slot_num),fChannel(chan), fHitNumber(hitcount),
+    fCrate(bank_index),fModule(slot_num),fChannel(chan), fHitNumber(hitcount),fRegion(region),
     fPackage(package),fPlane(plane),fElement(wire)
     {
       fRawTime = data;
@@ -46,20 +46,75 @@ class QwHit{
   const Double_t& GetRawTime() const {return fRawTime;};
   const Double_t& GetTime()    const {return fTime;};
 
+  void SetHitNumber(Int_t count){
+    fHitNumber=count;
+  }
+
   Bool_t IsFirstDetectorHit(){return (fHitNumber==0);};
 
   void SubtractReference(Double_t reftime){
     fTime = fRawTime - reftime;
   };
 
-  bool PlaneMatches(EQwRegionID region, Int_t package, Int_t plane) const
+  Bool_t PlaneMatches(EQwRegionID region, Int_t package, Int_t plane) const
     {
       return (fRegion==region && fPackage==package && fPlane==plane);
     };
-  bool DirMatches(EQwRegionID region, Int_t package, EQwDirectionID dir) const
+  Bool_t DirMatches(EQwRegionID region, Int_t package, EQwDirectionID dir) const
     {
       return (fRegion==region && fPackage==package && fDirection==dir);
     };
+
+  //main use of this method is to count no.of hits for a given wire and update the fHitNumber
+  Bool_t WireMatches(Int_t region, Int_t package, Int_t plane, Int_t wire)
+    {
+      return (fRegion==region && fPackage==package && fElement==fElement);
+    };
+
+  //'<' is overloaded for the sorting algorithm
+  //note:
+  //need to include the fDirection in the sorting 
+  Bool_t operator<(QwHit & obj)
+    {
+      Bool_t bCompare;
+      if (fRegion < obj.fRegion){
+	bCompare=true;
+      }
+      else if (fRegion == obj.fRegion){
+	if (fPackage < obj.fPackage){
+	  bCompare=true;
+	}
+	else if (fPackage == obj.fPackage){
+	  if (fPlane < obj.fPlane)
+	    bCompare = true;
+	  else if (fPlane == obj.fPlane){
+	    if (fElement < obj.fElement)
+	      bCompare = true;
+	    else if (fElement == obj.fElement){
+	      if (fHitNumber < obj.fHitNumber)
+		bCompare = true;
+	      else
+		bCompare = false;
+
+	    }
+	    else
+	      bCompare = false;
+	    
+	  }
+	  else 
+	    bCompare=false;
+	}
+	else
+	  bCompare = false;
+      }
+      else
+	bCompare = false;
+
+      
+      return bCompare;
+
+    };
+  
   
 
 
