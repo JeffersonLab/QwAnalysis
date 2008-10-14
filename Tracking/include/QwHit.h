@@ -56,6 +56,10 @@ class QwHit{
     fTime = fRawTime - reftime;
   };
 
+
+//below two metods retrieve subsets of QwHitContainer vector - rakitha (08/2008)
+
+
   Bool_t PlaneMatches(EQwRegionID region, Int_t package, Int_t plane) const
     {
       return (fRegion==region && fPackage==package && fPlane==plane);
@@ -65,7 +69,8 @@ class QwHit{
       return (fRegion==region && fPackage==package && fDirection==dir);
     };
 
-  //main use of this method is to count no.of hits for a given wire and update the fHitNumber
+  //main use of this method is to count no.of hits for a given wire and update the fHitNumber - rakitha (08/2008)
+ 
   Bool_t WireMatches(Int_t region, Int_t package, Int_t plane, Int_t wire)
     {
       return (fRegion==region && fPackage==package && fElement==fElement);
@@ -73,7 +78,7 @@ class QwHit{
 
   //'<' is overloaded for the sorting algorithm
   //note:
-  //need to include the fDirection in the sorting 
+  //need to include the fDirection in the sorting - rakitha (08/2008)
   Bool_t operator<(QwHit & obj)
     {
       Bool_t bCompare;

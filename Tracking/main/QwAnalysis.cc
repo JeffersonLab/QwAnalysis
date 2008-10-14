@@ -1,14 +1,20 @@
-///  Qweak Analysis Framework
 
-///  Each subsystem will have a class derived from "VQwSubsystem",
-///  and will be responsible for decoding of it's own data stream
-///  and any special event processing required.
-///  Each susbsytem will also own the histograms and ntupling 
-///  functions used for its data.
-  
-/*  ------------
-    
-*/
+/**********************************************************\
+* File:  Analysis.cc                                       *
+*                                                          *
+* Author: P. M. King, Rakitha Beminiwattha                 *
+* Time-stamp: <2008-07-16 15:40>                           *
+
+Qweak Analysis Framework
+
+Each subsystem will have a class derived from "VQwSubsystem",
+and will be responsible for decoding of it's own data stream
+and any special event processing required.
+Each susbsytem will also own the histograms and ntupling 
+functions used for its data.
+
+\**********************************************************/
+
 
 #include "QwAnalysis.h"
 #include "TApplication.h"
@@ -18,12 +24,7 @@
 #include "QwHitContainer.h"
 
 
-//Temporary global variables for sub-programs
 
-
-
-
-//end of track reconstruction variable  initialization
 
 Bool_t kInQwBatchMode = kFALSE;
 
@@ -112,14 +113,7 @@ int main(Int_t argc,Char_t* argv[])
     //    QwDetectors.GetSubsystem("MD")->ConstructHistograms(rootfile->mkdir("subdir"));
     QwDetectors.ConstructHistograms();
 
-    //Mark Pitt's ntuple
-    rootfile->cd();
-    TTree * dctree = new TTree("TC_Tree","Drift Chamber event data tree");
-    std::vector<Float_t> dctreevector;
-    Float_t evnum = 0.0;
-
-    dctree->Branch("evnum",&evnum,"evnum/F");
-
+   
     while (eventbuffer.GetEvent() == CODA_OK){
       //  Loop over events in this CODA file
       //  First, do processing of non-physics events...

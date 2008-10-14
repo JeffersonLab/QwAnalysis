@@ -34,6 +34,7 @@ class QwHitContainer:  public std::list<QwHit>{
     this->QwHitArray::clear();
   };
 
+  //append from a QwHit vector - rakitha (08/2008)
   void Append(const QwHitContainer &list){
     this->insert(this->end(), list.begin(), list.end());
   };
@@ -43,6 +44,7 @@ class QwHitContainer:  public std::list<QwHit>{
   };
   
 
+  //iterator methods to obtain subsets of QwHitContainer elements - rakitha (08/2008)
   iterator GetStartOfHits(EQwRegionID region, Int_t package,
 			  EQwDirectionID direction){
     return find_if (begin(), end(), 
