@@ -37,7 +37,11 @@
 
 
 
-
+//for debugging purposes I'm wrting grand hit list and sub hit lists to files - Rakitha (10/23/2008)
+const char FILE_NAME[] = "grandhits_output.txt";
+const char FILE_NAME2[] = "subhits_output.txt";
+FILE *out_file; 
+ FILE *out_file2;
 
 
 
@@ -48,6 +52,7 @@
 QwHistogramHelper gQwHists;
 
 void PrintInfo(TStopwatch& timer, Int_t run);
-
+void SaveHits(QwHitContainer &); //for debugging purposes - Rakitha (10/23/2008)
+void SaveSubList(QwHitContainer &);//for debugging purposes - Rakitha (10/23/2008)
 
 #endif

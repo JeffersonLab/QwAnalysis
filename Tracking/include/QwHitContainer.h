@@ -1,12 +1,14 @@
-/*! \file   QwHitContainer.h
- *  \author P. M. King
- *  \date   2008may28
- *  \brief  Agumented vector of QwHits allowing special seach functionality.
- *  
- *
- * 
- *
- */
+
+
+/**********************************************************\
+* File: QwHitContainer.h                                   *
+*                                                          *
+* Author: P. M. King ,Rakitha Beminiwattha                 *
+* brief  Agumented vector of QwHits allowing special       * 
+* seach functionality                                      *
+* Time-stamp: <2008-07-08 15:40>                           *
+\**********************************************************/
+
 
 #ifndef QWHITCONTAINER_H
 #define QWHITCONTAINER_H
@@ -84,9 +86,26 @@ class QwHitContainer:  public std::list<QwHit>{
   };
   
   
- 
- protected:
 
+  //will return sub set of QwHitContainer list based on wire plane or wire direction -Rakitha (1023/2008)
+
+  void GetSubList_Dir(EQwRegionID region, Int_t package, EQwDirectionID direction, std::vector<QwHit> &  sublist){
+          
+    std::list<QwHit>::iterator p;   
+    for (p=GetStartOfHits(region,package,direction);p !=GetEndOfHits(region,package,direction);p++){     
+      sublist.push_back(*p);
+    }  
+  }
+
+  void GetSubList_Plane(EQwRegionID region, Int_t package, Int_t plane, std::vector<QwHit> &  sublist){
+          
+    std::list<QwHit>::iterator p;   
+    for (p=GetStartOfHits1(region,package,plane);p !=GetEndOfHits1(region,package,plane);p++){     
+      sublist.push_back(*p);
+    }  
+  }
+ 
+ 
 
 
 };

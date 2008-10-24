@@ -30,8 +30,17 @@ Bool_t kInQwBatchMode = kFALSE;
 
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ /////  IMPORTANT :- This version of the code decode actual QWEAK hits from Mark Pitt's data file 62398. Obtain a copy from ///////
+  ////  /u/group/qweak/pitt/scratch/data at jlabl1 server in JLAB  ///////////////////////////////////////////////////////////////
+   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int main(Int_t argc,Char_t* argv[])
 {
+  
+  out_file = fopen(FILE_NAME, "wt");//will store grand hit list (only for degubbing) - rakitha
+  out_file2 = fopen(FILE_NAME2, "wt");//will store sub hit list (only for degubbing) - rakitha
+
   //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
   if (getenv("DISPLAY")==NULL
       ||getenv("JOB_ID")!=NULL) kInQwBatchMode = kTRUE;
@@ -57,9 +66,9 @@ int main(Int_t argc,Char_t* argv[])
   QwSubsystemArray QwDetectors;
 
   QwDetectors.push_back(new QwDriftChamberHDC("R2"));
-  QwDetectors.GetSubsystem("R2")->LoadChannelMap("gzero_wc.map");
+  QwDetectors.GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");//this map file was created by Mark Pitt to run actual QWEAK hits -Rakitha (23/10/2008)
   QwDetectors.push_back(new QwDriftChamberVDC("R3"));
-  QwDetectors.GetSubsystem("R3")->LoadChannelMap("gzero_wc.map");
+  QwDetectors.GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
   QwDetectors.push_back(new QwMainDetector("MD"));
   QwDetectors.GetSubsystem("MD")->LoadChannelMap("maindet_cosmics.map");  
 
@@ -156,6 +165,8 @@ int main(Int_t argc,Char_t* argv[])
 
       //sorting the grand hit list
       grandHitList.sort();
+      SaveHits(grandHitList);//Print the entire grand hit list to a file 
+      SaveSubList(grandHitList);//Print a sub set of  hits list to a file 
       
 
       //  Pass the QwHitContainer to the treedo class
@@ -212,3 +223,49 @@ void PrintInfo(TStopwatch& timer, Int_t run)
 }
 
 
+void SaveHits(QwHitContainer & grandHitList)
+{
+
+  
+  Double_t hitTime;
+  QwDetectorID qwhit;
+  //std::cout<<"Printing Grand hit list"<<std::endl;
+  std::list<QwHit>::iterator p;  
+  fprintf(out_file," NEW EVENT \n");
+  for (p=grandHitList.begin();p!=grandHitList.end();p++){
+    qwhit=p->GetDetectorID();
+    hitTime=p->GetRawTime();
+    //std::cout<<" R "<<qwhit.fRegion<<" Pkg "<<qwhit.fPackage<<" Dir "<<qwhit.fDirection<<" W "<<qwhit.fElement<<std::endl;
+    fprintf(out_file," R %d Pkg  %d Pl %d  Dir  %d Wire  %d Hit time %f\n ",qwhit.fRegion,qwhit.fPackage,qwhit.fPlane,qwhit.fDirection,qwhit.fElement,hitTime);
+    
+  }
+ 
+}
+
+
+void SaveSubList(QwHitContainer & grandHitList){
+
+ std::vector<QwHit> sublist;  
+
+  //std::copy(grandHitList.begin(),grandHitList.end(),sublist.begin());
+  
+  
+  Double_t hitTime;
+  QwDetectorID qwhit;
+  //std::cout<<"Printing Grand hit list"<<std::endl;
+  std::list<QwHit>::iterator p;
+  std::vector<QwHit>::iterator p1;
+  
+  fprintf(out_file2," NEW EVENT \n");
+  grandHitList.GetSubList_Dir(kRegionID2,1,kDirectionV,sublist );//I'm getting sub list of hits with region=2,package=1,direction=X -Rakitha (10/23/2008)
+  //grandHitList.GetSubList_Plane(kRegionID2,1,3,sublist );//I'm getting sub list of hits with region=2,package=1,wire plane=3  -Rakitha (10/23/2008)
+  for (p1=sublist.begin();p1!=sublist.end();p1++){ // (p=grandHitList.GetStartOfHits(kRegionID2,1,kDirectionU);p !=grandHitList.GetEndOfHits(kRegionID2,1,kDirectionU);p++){
+    qwhit=p1->GetDetectorID();
+    hitTime=p1->GetRawTime();
+    //std::cout<<" R "<<qwhit.fRegion<<std::endl;
+    fprintf(out_file2," R %d Pkg  %d Pl %d  Dir  %d Wire  %d Hit time %f\n ",qwhit.fRegion,qwhit.fPackage,qwhit.fPlane,qwhit.fDirection,qwhit.fElement,hitTime);
+  }
+  
+
+
+}

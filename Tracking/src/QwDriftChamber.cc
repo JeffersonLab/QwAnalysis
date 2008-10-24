@@ -1,7 +1,7 @@
 /**********************************************************\
 * File: QwDriftChamber.C                                   *
 *                                                          *
-* Author: P. M. King                                       *
+* Author: P. M. King, Rakitha Beminiwattha                 *
 * Time-stamp: <2008-07-08 15:40>                           *
 \**********************************************************/
 
@@ -30,12 +30,17 @@ QwDriftChamber::QwDriftChamber(TString region_tmp):VQwSubsystem(region_tmp),fDEB
 
 
 
-
 Int_t QwDriftChamber::LoadChannelMap(TString mapfile){
   TString varname, varvalue;
-  UInt_t  chan, package, plane, wire;
+  UInt_t  chan, package, plane, wire, direction, DIRMODE;
+  DIRMODE=0;
+  
+
+  fDirectionData.resize(2);//currently we have 1  package - Rakitha (10/23/2008)
+  fDirectionData.at(1).resize(13); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
+
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
@@ -47,10 +52,16 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile){
       UInt_t value = atol(varvalue.Data());
       if (varname=="roc"){
 	RegisterROCNumber(value);
+	DIRMODE=0;
       } else if (varname=="slot"){
 	RegisterSlotNumber(value);
-      }
-    } else {
+	DIRMODE=0;
+      }else if (varname=="pkg"){
+	//this will identify the coming sequence is wire plane to direction mapping - Rakitha
+	DIRMODE=1;
+	package=value;
+      }      
+    } else if (DIRMODE==0){
       //  Break this line into tokens to process it.
       chan    = (atol(mapstr.GetNextToken(", ").c_str()));
       package = 1;
@@ -58,17 +69,29 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile){
       wire    = (atol(mapstr.GetNextToken(", ").c_str()));
 
       BuildWireDataStructure(chan, package, plane, wire);
+    }else if (DIRMODE==1){
+      //this will decode the wire plane directions - Rakitha
+      plane   = (atol(mapstr.GetNextToken(", ").c_str()));
+      direction    = (atol(mapstr.GetNextToken(", ").c_str()));
+      fDirectionData.at(package).at(plane)=direction;
     }
+
   }
 
-  //  Construct the wire data structures.
 
-  AddChannelDefinition(plane, wire);
+  //  Construct the wire data structures.
   
+  AddChannelDefinition(plane, wire);
+ 
+  for (size_t i=0; i<fDirectionData.at(1).size(); i++){
+    std::cout<<"Direction data Plane "<<i<<" "<<fDirectionData.at(1).at(i)<<std::endl;
+    } 
   //
   ReportConfiguration();
   return OK;
 };
+
+
 
 
 

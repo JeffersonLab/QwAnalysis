@@ -1,7 +1,7 @@
 /**********************************************************\
 * File: QwDriftChamber.h                                   *
 *                                                          *
-* Author: P. M. King                                       *
+* Author: P. M. King, Rakitha Beminiwattha                 *
 * Time-stamp: <2008-07-08 15:40>                           *
 \**********************************************************/
 
@@ -168,22 +168,13 @@ std::vector< std::vector<Int_t> > fTDC_Index;  //  TDC index, indexed by bank_in
   TH1F *WiresHit[13];
   TH2F *TOFW[13];
   TH2F *TOFW_raw[13];
-  TH2F *HitsWire[13];
-
-
-
+  TH2F *HitsWire[13];  
   
 
 
 
 
-  
-  
-
-
-
-
- //below are the data structures that are used in HDC  
+ //below are the data structures that are used in HDC/VDC  
     
 
   std::vector< std::vector< QwDetectorID > > fTDCPtrs; // Indexed by TDC_index and Channel; gives the package, plane and wire assignment.
@@ -191,6 +182,7 @@ std::vector< std::vector<Int_t> > fTDC_Index;  //  TDC index, indexed by bank_in
 
   std::vector< std::vector< QwDetectorInfo > > fWireData; // Indexed by plane, and wire number; eventually should include package index 
     
+  std::vector< std::vector< UInt_t > > fDirectionData; //Indexed by pckg and plane each element represent the wire direction ( a value from 0 to 6)- Rakitha(10/23/2008)
 
 
 

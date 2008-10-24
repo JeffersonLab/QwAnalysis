@@ -28,19 +28,22 @@
 
 class QwHit{
  public:
+
   QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,Int_t region,
-	Int_t package, Int_t plane, Int_t wire,
+	Int_t package, Int_t plane,Int_t direction, Int_t wire,
 	UInt_t data):
     fCrate(bank_index),fModule(slot_num),fChannel(chan), fHitNumber(hitcount),fRegion(region),
-    fPackage(package),fPlane(plane),fElement(wire)
+    fPackage(package),fPlane(plane), fDirection(direction),fElement(wire)
     {
       fRawTime = data;
-    };
+    };// Direction is also set at QwHit initialization -Rakitha (10/23/2008)
+
+  
 
 
   Int_t GetSubbankID(){return fCrate;};
   QwDetectorID GetDetectorID(){
-    return QwDetectorID(fRegion,fPackage,fPlane,fElement);
+    return QwDetectorID(fRegion,fPackage,fPlane,fDirection,fElement);
   };
   
   const Double_t& GetRawTime() const {return fRawTime;};
@@ -78,7 +81,10 @@ class QwHit{
 
   //'<' is overloaded for the sorting algorithm
   //note:
-  //need to include the fDirection in the sorting - rakitha (08/2008)
+
+
+  //fDirection in the sorting - rakitha (08/23/2008)
+  //Sorting order Region -> Direction -> Package -> Plane -> Wire Element -> Wire Hit Order - rakitha (08/23/2008)
   Bool_t operator<(QwHit & obj)
     {
       Bool_t bCompare;
@@ -86,28 +92,35 @@ class QwHit{
 	bCompare=true;
       }
       else if (fRegion == obj.fRegion){
-	if (fPackage < obj.fPackage){
+	if (fDirection < obj.fDirection){
 	  bCompare=true;
 	}
-	else if (fPackage == obj.fPackage){
-	  if (fPlane < obj.fPlane)
-	    bCompare = true;
-	  else if (fPlane == obj.fPlane){
-	    if (fElement < obj.fElement)
+	else if (fDirection == obj.fDirection){
+	  if (fPackage < obj.fPackage){
+	    bCompare=true;
+	  }
+	  else if (fPackage == obj.fPackage){
+	    if (fPlane < obj.fPlane)
 	      bCompare = true;
-	    else if (fElement == obj.fElement){
-	      if (fHitNumber < obj.fHitNumber)
+	    else if (fPlane == obj.fPlane){
+	      if (fElement < obj.fElement)
 		bCompare = true;
+	      else if (fElement == obj.fElement){
+		if (fHitNumber < obj.fHitNumber)
+		  bCompare = true;
+		else
+		  bCompare = false;
+
+	      }
 	      else
 		bCompare = false;
-
-	    }
-	    else
-	      bCompare = false;
 	    
+	    }
+	    else 
+	      bCompare=false;
 	  }
-	  else 
-	    bCompare=false;
+	  else
+	    bCompare = false;
 	}
 	else
 	  bCompare = false;
@@ -119,6 +132,8 @@ class QwHit{
       return bCompare;
 
     };
+
+ 
   
   
 
