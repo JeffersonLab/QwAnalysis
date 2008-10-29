@@ -25,14 +25,14 @@
 
 #include "QwHistogramHelper.h"
 
-#include "VQwSubsystem.h"
+#include "QwSubsystemArray.h"
 #include "QwQuartzBar.h"
 
 ///  Globally defined instance of the QwHistogramHelper class.
 QwHistogramHelper gQwHists;
 
 
-void PrintInfo(TStopwatch& timer);
+void PrintInfo(TStopwatch& timer, Int_t run);
 
 
 #endif

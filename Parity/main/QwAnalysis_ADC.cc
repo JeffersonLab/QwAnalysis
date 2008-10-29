@@ -5,6 +5,7 @@
 #include "QwAnalysis_ADC.h"
 #include "TApplication.h"
 
+#include <boost/shared_ptr.hpp>
 
 Bool_t kInQwBatchMode = kFALSE;
 
@@ -17,7 +18,15 @@ int main(Int_t argc,Char_t* argv[])
       ||getenv("JOB_ID")!=NULL) kInQwBatchMode = kTRUE;
   gROOT->SetBatch(kTRUE);
 
-  gQwHists.LoadHistParamsFromFile(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/parity_hists.in");
+  //  Fill the search paths for the parameter files; this sets a static
+  //  variable within the QwParameterFile class which will be used by
+  //  all instances.
+  //  The "scratch" directory should be first.
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
+
+  //  Load the histogram parameter definitions into the global histogram helper
+  gQwHists.LoadHistParamsFromFile("parity_hists.in");
   
   TStopwatch timer;
 
@@ -27,12 +36,11 @@ int main(Int_t argc,Char_t* argv[])
 
   QwEventBuffer QwEvt;
   
-  std::vector<VQwSubsystem*> QwDetectors;
+  QwSubsystemArray QwDetectors;
 
-  QwDetectors.resize(2,NULL);  // QwDetectors[0]==GEM, QwDetectors[1]==Region2
+  QwDetectors.push_back(new QwQuartzBar("MainDetectors"));
+  QwDetectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
 
-  QwDetectors.at(0) = new QwQuartzBar("MainDetectors");
-  QwDetectors.at(0)->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
 
   QwQuartzBar sum_outer(""), sum_inner(""), diff(""), sum(""), asym("");
   
@@ -74,7 +82,7 @@ int main(Int_t argc,Char_t* argv[])
     //
     //  To pass a subdirectory named "subdir", we would do:
     //    QwDetectors.at(1)->ConstructHistograms(rootfile.mkdir("subdir"));
-    QwDetectors.at(0)->ConstructHistograms();
+    QwDetectors.ConstructHistograms();
 
     //    TDirectory *asymdir = rootfile.mkdir("qrt");
     //    sum.ConstructHistograms(asymdir,"yield" );
@@ -86,7 +94,7 @@ int main(Int_t argc,Char_t* argv[])
     Float_t  evnum = 0.0;
     heltreevector.reserve(600);
     heltree->Branch("evnum", &evnum, "evnum/F");
-    ((QwQuartzBar*)QwDetectors.at(0))->ConstructBranchAndVector(heltree, "", heltreevector);
+    ((QwQuartzBar*)QwDetectors.GetSubsystem("MainDetectors"))->ConstructBranchAndVector(heltree, "", heltreevector);
 
     TTree *qrttree = new TTree("QRT_Tree","Quartet data tree");
     std::vector<Float_t> qrttreevector;
@@ -123,12 +131,11 @@ int main(Int_t argc,Char_t* argv[])
       
       
       //  Fill the histograms for the QwDriftChamber subsystem object.
-
-      QwDetectors.at(0)->FillHistograms();
+      QwDetectors.FillHistograms();
       
-      if (((QwQuartzBar*)QwDetectors.at(0))->IsGoodEvent()){
+      if (((QwQuartzBar*)QwDetectors.GetSubsystem("MainDetectors"))->IsGoodEvent()){
 	evnum = QwEvt.GetEventNumber();
-	((QwQuartzBar*)QwDetectors.at(0))->FillTreeVector(heltreevector);
+	((QwQuartzBar*)QwDetectors.GetSubsystem("MainDetectors"))->FillTreeVector(heltreevector);
 	heltree->Fill();
       }
 
@@ -136,13 +143,13 @@ int main(Int_t argc,Char_t* argv[])
       //  This basically just takes the pattern as always +--+.
       //  
       if (QwEvt.GetEventNumber()%4 == 0){
-	sum_outer = *((QwQuartzBar*)QwDetectors.at(0));
+	sum_outer = *((QwQuartzBar*)QwDetectors.GetSubsystem("MainDetectors"));
       } else if (QwEvt.GetEventNumber()%4 == 1){
-	sum_inner = *((QwQuartzBar*)QwDetectors.at(0));
+	sum_inner = *((QwQuartzBar*)QwDetectors.GetSubsystem("MainDetectors"));
       } else if (QwEvt.GetEventNumber()%4 == 2){
-	sum_inner += *((QwQuartzBar*)QwDetectors.at(0));
+	sum_inner += *((QwQuartzBar*)QwDetectors.GetSubsystem("MainDetectors"));
       } else if (QwEvt.GetEventNumber()%4 == 3){
-	sum_outer += *((QwQuartzBar*)QwDetectors.at(0));
+	sum_outer += *((QwQuartzBar*)QwDetectors.GetSubsystem("MainDetectors"));
 	diff.Difference(sum_outer, sum_inner);
 	sum.Sum(sum_outer, sum_inner);
 	asym.Ratio(diff, sum);
@@ -179,11 +186,8 @@ int main(Int_t argc,Char_t* argv[])
     //     Hists->ClearHists();//destroy the histogram objects
     //     NTs->ClearNTs(io); //destroy nts according to the i/o flags
     //     CloseAllFiles(io); //close all the output files
-    for (size_t i=0; i<QwDetectors.size(); i++){
-      if (QwDetectors.at(i)!=NULL){
-	//	QwDetectors.at(i)->DeleteHistograms();
-      }
-    }
+    QwDetectors.DeleteHistograms();
+
     
     QwEvt.CloseDataFile();
     QwEvt.ReportRunSummary();
@@ -202,56 +206,20 @@ int main(Int_t argc,Char_t* argv[])
 //       QwEpics->WriteDatabase(sql);
 //     }
     
-    PrintInfo(timer);
+    PrintInfo(timer, run);
 
   } //end of run loop
   
-
-//   //  The deletion lines are in reverse order of the creation of the
-//   //  objects.
-//   //  Also, we don't need to check against the objects being NULL
-//   //  before deletion.
-  
-  for (size_t i=0; i<QwDetectors.size(); i++){
-    //    if (QwDetectors[i]!=NULL) delete QwDetectors[i];
-  }
-
   return 0;
 }
 
 
-// void OpenAllFiles(G0ReplayPrms* io, Run run)
-// {
-//   if(io->GetSegmentIsSelectedFlg()){//--seg flag
-//     io->OpenDataFile(run,io->GetSegment());//ugly but maybe less confusing??
-//   }
-//   else{    
-//     if (io->DataFileIsSegmented(run)){
-//       // Don't do anything.  The file will be opened by
-//       // the method "io->OpenNextSegment(run)" below.
-//     } else {
-//       io->OpenDataFile(run); 
-//     }
-//   }
-//   io->OpenRootFile();
-//   return;
-// }
-
-// void CloseAllFiles(G0ReplayPrms* io)
-// {
-//   io->CloseRootFile();
-//   //io->CloseRateFile();
-//   io->CloseDataFile();
-//   io->CloseAsymFile();
-//   io->CloseBitErrFile();
-//   return;
-// };
-
-void PrintInfo(TStopwatch& timer)
+void PrintInfo(TStopwatch& timer, Int_t run)
 {
-  std::cout << "CPU time used:  "  << timer.CpuTime() << " s"
-	    << std::endl
-	    << "Real time used: " << timer.RealTime() << " s"
-	    << std::endl << std::endl;
+  std::cout << "Analysis of run "  << run << std::endl
+            << "CPU time used:  "  << timer.CpuTime() << " s"
+            << std::endl
+            << "Real time used: " << timer.RealTime() << " s"
+            << std::endl << std::endl;
   return;
 }
