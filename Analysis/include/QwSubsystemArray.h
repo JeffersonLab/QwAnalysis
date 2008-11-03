@@ -18,6 +18,8 @@
 
 #include "VQwSubsystem.h"
 
+#include "QwHitContainer.h"
+
 
 class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
  private:
@@ -56,7 +58,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void  DeleteHistograms();
   
 
-
+  void GetHitList(QwHitContainer & grandHitList);
 
  protected:
 
@@ -149,6 +151,18 @@ void  QwSubsystemArray::DeleteHistograms()
 
 
 
+};
+
+
+void QwSubsystemArray::GetHitList(QwHitContainer & grandHitList){
+  if (!empty()){
+    grandHitList.clear();
+    
+    for (iterator subsys = begin(); subsys != end(); ++subsys){
+      
+      ((subsys)->get())->GetHitList(grandHitList);
+    }
+  }
 };
 
 #endif

@@ -74,7 +74,7 @@ int main(Int_t argc,Char_t* argv[])
 
   boost::shared_ptr<QwHitContainer> fHitList;
   QwHitContainer grandHitList;
-  QwDriftChamber * qw;
+  
 
 
 
@@ -154,14 +154,7 @@ int main(Int_t argc,Char_t* argv[])
 
        //updating the hitcontainer list
 
-      //REGION 2
-      qw=(QwDriftChamberHDC *)QwDetectors.GetSubsystem("R2");
-      qw->getHitList(grandHitList);
-      //std::cout << "After R2 "<<grandHitList.size()<<std::endl;
-      //REGION 3
-      qw=(QwDriftChamberVDC *)QwDetectors.GetSubsystem("R3");
-      qw->getHitList(grandHitList);
-      //std::cout << "After R3 "<<grandHitList.size()<<std::endl; 
+       QwDetectors.GetHitList(grandHitList);       
 
       //sorting the grand hit list
       grandHitList.sort();

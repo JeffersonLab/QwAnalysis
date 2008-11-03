@@ -16,7 +16,7 @@
 #include <TDirectory.h>
 
 #include "QwParameterFile.h"
-
+#include "QwHitContainer.h"
 
 
 class VQwSubsystem{
@@ -51,7 +51,7 @@ class VQwSubsystem{
   virtual void  ConstructHistograms(TDirectory *folder) = 0;
   virtual void  FillHistograms() = 0;
   virtual void  DeleteHistograms() = 0;
-  //virtual void  getHitList(std::vector<QwHit> &hitlist)=0;
+  virtual void  GetHitList(QwHitContainer & grandHitList)=0;
 
   
   

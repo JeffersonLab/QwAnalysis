@@ -79,7 +79,7 @@ class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
 
   virtual void  SubtractReferenceTimes() = 0;
   
-  void getHitList(QwHitContainer & grandHitContainer){
+  void GetHitList(QwHitContainer & grandHitContainer){
     //std::cout << " HDC "<<fTDCHits.size()<<std::endl;
     grandHitContainer.Append(fTDCHits);
  };

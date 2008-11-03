@@ -66,6 +66,11 @@ class QwQuartzBar: public VQwSubsystem {
   };
 
 
+   void GetHitList(QwHitContainer & grandHitContainer){
+    
+  }; //empty function
+
+
  protected:
 /*   void Sum(QwQuartzBar &value1, QwQuartzBar &value2); */
 /*   void Difference(QwQuartzBar &value1, QwQuartzBar &value2); */

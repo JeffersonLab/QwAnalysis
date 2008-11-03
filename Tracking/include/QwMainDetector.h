@@ -78,6 +78,10 @@ class QwMainDetector: public VQwSubsystem, public MQwV775TDC {
 
   Int_t FindSignalIndex(const QwMainDetector::EModuleType modtype, const TString &name) const;
 
+  void GetHitList(QwHitContainer & grandHitContainer){
+    
+  }; //empty function
+
 
  protected:
 
