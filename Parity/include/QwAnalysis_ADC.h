@@ -34,5 +34,4 @@ QwHistogramHelper gQwHists;
 
 void PrintInfo(TStopwatch& timer, Int_t run);
 
-
 #endif
