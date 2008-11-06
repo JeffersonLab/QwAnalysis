@@ -13,6 +13,8 @@ Int_t ERROR = -1;
 void VQwSubsystem::ClearAllBankRegistrations(){
   fBank_IDs.clear();
   fROC_IDs.clear();
+  fCurrentROC_ID    = -1;
+  fCurrentBank_ID   = -1;
 };
 
 Int_t VQwSubsystem::FindIndex(const std::vector<UInt_t> &myvec, const UInt_t value) const {
@@ -73,7 +75,7 @@ Int_t VQwSubsystem::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id 
 Int_t VQwSubsystem::RegisterSubbank(const UInt_t bank_id){
   Int_t stat = 0;
   if (fCurrentROC_ID != -1){
-    stat = RegisterROCNumber(fROC_IDs.at(fCurrentROC_ID), bank_id);
+    stat = RegisterROCNumber(fCurrentROC_ID, bank_id);
   } else {
     //  There is not a ROC registered yet!
     std::cerr << "VQwSubsystem::RegisterSubbank:  This subbank ("

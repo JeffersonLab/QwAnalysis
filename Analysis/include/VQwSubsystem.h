@@ -29,7 +29,7 @@ class VQwSubsystem{
    *
    ******************************************************************/
  public:
-  VQwSubsystem(TString region_tmp):fSystemName(region_tmp),fIsDataLoaded(kFALSE){};
+  VQwSubsystem(TString region_tmp):fSystemName(region_tmp),fIsDataLoaded(kFALSE),fCurrentROC_ID(-1),fCurrentBank_ID(-1){};
 
   virtual ~VQwSubsystem(){};
 
