@@ -78,6 +78,11 @@ class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
   virtual void  ReportConfiguration() = 0;
 
   virtual void  SubtractReferenceTimes() = 0;
+
+
+  void  CalculateDriftDistance();
+  Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
+  
   
   void GetHitList(QwHitContainer & grandHitContainer){
     //std::cout << " HDC "<<fTDCHits.size()<<std::endl;

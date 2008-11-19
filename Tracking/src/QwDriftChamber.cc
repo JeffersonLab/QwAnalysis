@@ -93,6 +93,19 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile){
 
 
 
+void  QwDriftChamber::CalculateDriftDistance()
+{
+  for(std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
+
+      hit1->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));
+
+  }
+  
+};
+
+Double_t  QwDriftChamber::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector){
+  return 0;
+}
 
 
 

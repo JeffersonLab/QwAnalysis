@@ -53,6 +53,10 @@ class QwHit{
     fHitNumber=count;
   }
 
+  void SetDriftDistance(Double_t distance){
+    fDistance=distance;
+  }
+
   Bool_t IsFirstDetectorHit(){return (fHitNumber==0);};
 
   void SubtractReference(Double_t reftime){
