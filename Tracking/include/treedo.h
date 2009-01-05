@@ -11,15 +11,15 @@
 class treedo{
 
 public:
-int tlayers;
-int tlaym1;
+  int tlayers;
+  int tlaym1;
+  int ngood;
+  int nbad;
+  treedo();
 
-
-
-void BCheck( double E, PartTrack *f, PartTrack *b, double TVertex, double ZVertex);
-Track * rcLinkUsedTracks( Track *track, int upplow );
-Event * rcTreeDo(int iEventNo);
-
+  void BCheck( double E, PartTrack *f, PartTrack *b, double TVertex, double ZVertex);
+  Track * rcLinkUsedTracks( Track *track, int upplow );
+  Event * rcTreeDo(int iEventNo);
 
 private:
 

@@ -1,5 +1,10 @@
-#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <cassert>
+#include <cstring>
+
 #include "treesort.h"
+
 using namespace std;
 
 /*! \file treesort.cc
@@ -34,11 +39,12 @@ int treesort::connectiv( char *ca, int *array, int *isvoid, char size, int idx )
 double treesort::chiweight( TreeLine *tl )
 {
   	double fac;
-  
   	if( tl->numhits > tl->nummiss )
     		fac = (double)(tl->numhits+tl->nummiss)/(tl->numhits - tl->nummiss);
-  	else
-    		return 100.0;
+  	else{
+		//cerr << "miss = " << tl->nummiss << ",hit = " << tl->numhits << endl;
+		return 100000.0;//this is bad
+	}
   	return fac * tl->chi;
 }
 //________________________________________________________________________
@@ -49,7 +55,7 @@ double treesort::ptchiweight( PartTrack *pt )
   	if( pt->numhits > pt->nummiss )
     		fac = (double)(pt->numhits+pt->nummiss)/(pt->numhits - pt->nummiss);
   	else
-    		return 100.0;
+    		return 100.0;//this is bad
   	return fac * fac * pt->chi;//why is 'fac' squared here, but not in chiweight?
 }
 //________________________________________________________________________
@@ -191,8 +197,7 @@ int treesort::rcCommonWires_r3(TreeLine *line1,TreeLine *line2 ){
 //################
   int total1, total2, common, total;
   Hit **hits1, **hits2;
-  int did1, did2;
-  int  i1, i2, fw = 3;
+  int  i1, i2;
 //##################
 //DEFINE VARIABLES #
 //##################
@@ -277,7 +282,7 @@ shared between two treelines.  The only output is the integer
 return value
 */
 int treesort::rcCommonWires(TreeLine *line1,TreeLine *line2 ){
-  cerr << "ERROR : This function needs editing before use" << endl;
+  //cerr << "ERROR : This function needs editing before use" << endl;
 //################
 // DECLARATIONS  #
 //################
@@ -317,8 +322,8 @@ int treesort::rcCommonWires(TreeLine *line1,TreeLine *line2 ){
       break;/*break if we reach the end of the hits in either line */
     //-----------------------------------------------------------
     //The following lines separate hits in different detectors
-    did1 = hits1[i1]->detec->ID;//this line was altered
-    did2 = hits2[i2]->detec->ID;//this line was altered
+    did1 = hits1[i1]->detec->ID;
+    did2 = hits2[i2]->detec->ID;
 
     if( did1 < did2 )
       fw = 1;
@@ -346,7 +351,6 @@ int treesort::rcTreeConnSort( TreeLine *head, enum ERegion region/*,
 		enum EUppLow up_low, enum Etype type,
 		enum Edir dir,enum Eorientation orient*/){
 
-
 //################
 // DECLARATIONS  #
 //################
@@ -358,7 +362,7 @@ int treesort::rcTreeConnSort( TreeLine *head, enum ERegion region/*,
   int num_tl = 0;
   extern int iEvent;
   int  *isvoid;
-  double   *chia, chi, maxch = 2000.0, nmaxch, nminch;
+  double   *chia, chi, maxch = 20000.0, nmaxch, nminch;//this is bad
 
   cerr << endl;
   //DBG = DEBUG & D_GRAPH;
@@ -380,6 +384,7 @@ int treesort::rcTreeConnSort( TreeLine *head, enum ERegion region/*,
       else if( walk->isvoid == false ) {
 	chi = chiweight(walk);
 	if( chi > maxch ) {
+cerr << "voided in treesort " << maxch << ',' << chi << endl;
 	  walk->isvoid = true;
 	} else {
 	  if( chi > nmaxch ) {
@@ -478,8 +483,9 @@ int treesort::rcTreeConnSort( TreeLine *head, enum ERegion region/*,
   for( i = 0; i < num; i++ ) {
     if( isvoid[i] != true ) {
       tlarr[i]->isvoid = false;
-    } else
+    } else{
       tlarr[i]->isvoid = true;
+    }
   }
   /* do not free Qalloc'ed things!!! */
   return 0;

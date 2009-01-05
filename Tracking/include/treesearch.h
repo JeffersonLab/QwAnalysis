@@ -4,7 +4,7 @@
 #include "tree.h"
 
 #ifndef TLAYERS
-#define TLAYERS 6
+#define TLAYERS 8
 #endif
 
 /*! \brief This module contains the code for performing the treesearch
@@ -30,11 +30,12 @@ int TsSetPoint(double detectorwidth, double zdistance, Hit *Ha, Hit *Hb,
 	   	char *patterna, char *patternb, int  *hasha, int *hashb,
 	   	unsigned binwidth);
 int TsSetPoint(double detectorwidth, Hit *H,char *pattern, int  *hash,unsigned binwidth);
+int TsSetPoint(double detectorwidth, double WireSpacing, Hit *H,double wire,char *pattern, int  *hash,unsigned binwidth);
 
 int exists( int *newa, int front, int back, TreeLine *treeline);
 
 void TsSearch(shortnode *node, char *pattern[16], int  *hashpat[16],
-	 	int maxlevel, int numWires);
+	 	int maxlevel, int numWires,int tlayer);
 
 
 private:

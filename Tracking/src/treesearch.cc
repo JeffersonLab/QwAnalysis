@@ -1,6 +1,11 @@
-#include <iostream>
+#include <cstdio>
+#include <cmath>
+#include <cstdlib>
+#include <cassert>
+#include <cstring>
+
 #include "treesearch.h"
-#include <math.h>
+
 using namespace std;
 
 //__________________________________
@@ -10,7 +15,7 @@ static int hashgen(void) {
   _hashgen &= 0x7ffffff;
   return _hashgen;
 }
-extern int tlayers;
+//extern int tlayers;
 extern int trelinanz;
 extern TreeLine  *trelin;
 extern Options opt;
@@ -18,7 +23,7 @@ extern Options opt;
 static int has_hits[TLAYERS];
 //__________________________________
 /*! \file treesearch.cc --------------------------------------------------------------------------*\
- 
+
  PROGRAM: QTR (Qweak Track Reconstruction)       AUTHOR: Burnham Stokes
                                                           bestokes@jlab.org
 						ORIGINAL HRC AUTHOR
@@ -28,9 +33,9 @@ static int has_hits[TLAYERS];
 
   MODULE: treesearch.c                         COMMENTS: Brendan Fox
                                                          foxb@hermes.desy.de
- 
+
  PURPOSE: This module contains the code for performing the treesearch
-          algorithm to generate one treeline.  The code first use the hit 
+          algorithm to generate one treeline.  The code first use the hit
           information for the planes to construct the bit pattern for each
           tree-planes.  Then, it searches through the treesearch database
           and identifies each treenode in the database which is present
@@ -41,100 +46,100 @@ static int has_hits[TLAYERS];
 
  (01) wireselection() - this function is called by TsSetPoints.  It steps
                         through the hits from the unprimed and primed planes
-                        for a tree-plane to decide whether hits should or 
-                        should not be paired together when the hit pattern 
-                        for the tree-plane is constructed. 
+                        for a tree-plane to decide whether hits should or
+                        should not be paired together when the hit pattern
+                        for the tree-plane is constructed.
 
- (02) _setpoints()    - this function sets the bins in a hit pattern for 
-                        a range of positions.  The range of hit patterns 
-                        is specified by a start and a stop position in 
-                        the detector.  This function turns on the bins 
-                        in the hit pattern for each level of the 
+ (02) _setpoints()    - this function sets the bins in a hit pattern for
+                        a range of positions.  The range of hit patterns
+                        is specified by a start and a stop position in
+                        the detector.  This function turns on the bins
+                        in the hit pattern for each level of the
                         bin-division used in the treesearch algorithm.
 
- (03) _setpoint()     - this function sets the bins in the hit pattern for 
-                        a range of positions around a central point within 
-                        a specified distance/resolution by calling the 
+ (03) _setpoint()     - this function sets the bins in the hit pattern for
+                        a range of positions around a central point within
+                        a specified distance/resolution by calling the
                         _setpoints() function.
 
- (04) setpoint()      - this function sets the bins in the hit pattern for a 
-                        range of positions specified by a center point and 
-                        a half-distance around the center point by calling 
-                        the setpoint() function. 
+ (04) setpoint()      - this function sets the bins in the hit pattern for a
+                        range of positions specified by a center point and
+                        a half-distance around the center point by calling
+                        the setpoint() function.
 
- (05) TsSetPoint()    - this function sets the bins in the hit pattern for 
-                        a range of positions around a central point within 
-                        a specified distance/resolution.  This function 
+ (05) TsSetPoint()    - this function sets the bins in the hit pattern for
+                        a range of positions around a central point within
+                        a specified distance/resolution.  This function
                         turns on the bins in the hit pattern for each level
-                        of the bin-division in the treesearch algorithm.  
- 
- (06) exists()        - this function searches through the link-list of 
-                        valid treelines to see if the bit pattern for the 
-                        specified treenode has already been accepted as 
+                        of the bin-division in the treesearch algorithm.
+
+ (06) exists()        - this function searches through the link-list of
+                        valid treelines to see if the bit pattern for the
+                        specified treenode has already been accepted as
                         a valid treeline.
 
- (07) _TsSearch()     - this highly recursive function implements the 
-                        treesearch algorithm.  For a specified list of 
-                        nodenodes, this function examines the attached 
-                        treenode.  If the bit pattern in the treenode 
-                        does not match the bit pattern from the event, 
-                        the function looks at the next nodenode.  Otherwise, 
-                        the function will call itself to see if any of 
-                        the sons of this treenode at the next level of 
+ (07) _TsSearch()     - this highly recursive function implements the
+                        treesearch algorithm.  For a specified list of
+                        nodenodes, this function examines the attached
+                        treenode.  If the bit pattern in the treenode
+                        does not match the bit pattern from the event,
+                        the function looks at the next nodenode.  Otherwise,
+                        the function will call itself to see if any of
+                        the sons of this treenode at the next level of
                         bin-division match the bit pattern from the event.
-                        This recursive calling will continue until a 
-                        treenode at the deepest level of bin-division is 
-                        located inside the bit pattern from the event.  
-                        Since the pattern in this treenode is represents 
-                        a valid treeline for the event, a treeline is 
+                        This recursive calling will continue until a
+                        treenode at the deepest level of bin-division is
+                        located inside the bit pattern from the event.
+                        Since the pattern in this treenode is represents
+                        a valid treeline for the event, a treeline is
                         constructed from the treenode and then appended
-                        to the linked list of treelines being accumulated 
+                        to the linked list of treelines being accumulated
                         by the treesearch.
 
- (08) TsSearch()      - this function initiates the treesearch for a set 
-                        of tree-planes by calling the _TsSearch() function 
+ (08) TsSearch()      - this function initiates the treesearch for a set
+                        of tree-planes by calling the _TsSearch() function
                         described above.
 
 \brief This module contains the code for performing the treesearch
           algorithm to generate one treeline.
-                      
+
 \*---------------------------------------------------------------------------*/
 treesearch::treesearch(){
 	tlayers = TLAYERS;
 }
 treesearch::~treesearch(){
-	
+
 }
 /*---------------------------------------------------------------------------*\
 
-  wireselection() - this function steps through the hits from the unprimed 
-                    and primed planes for a tree-plane to decide whether 
-                    hits should or should not be paired together when the 
-                    hit pattern for the tree-plane is constructed. 
+  wireselection() - this function steps through the hits from the unprimed
+                    and primed planes for a tree-plane to decide whether
+                    hits should or should not be paired together when the
+                    hit pattern for the tree-plane is constructed.
 
-    inputs: (1) Hit **x        - pointer to the hit in the linked list of 
+    inputs: (1) Hit **x        - pointer to the hit in the linked list of
                                  hits for the unprimed plane at which the
-                                 scan is to start. 
-            (2) Hit **X        - pointer to the hit in the linked list of 
+                                 scan is to start.
+            (2) Hit **X        - pointer to the hit in the linked list of
                                  hits for the primed plane at which the
-                                 scan is to start. 
-            (3) double maxdist - maximum separation between hits on the 
+                                 scan is to start.
+            (3) double maxdist - maximum separation between hits on the
                                  primed and unprimed hits for these hits
                                  to paired together when making the bit
                                  pattern is formed.
 
    outputs: (1) Hit **x        - pointer to the hit in the linked list of
-                                 for the unprimed plane which should be 
+                                 for the unprimed plane which should be
                                  used for generating the bit pattern; =0 if
                                  the hit on the unprimed plane should not
                                  be used at all.
             (2) Hit **X        - pointer to the hit in the linked list of
-                                 for the primed plane which should be 
+                                 for the primed plane which should be
                                  used for generating the bit pattern; =0 if
                                  the hit on the primed plane should not
                                  be used at all.
             (3) Hit **xn       - pointer to the next hit to consider for
-                                 the unprimed plane 
+                                 the unprimed plane
             (4) Hit **Xn       - pointer to the next hit to consider for
                                  the primed plane
 
@@ -153,28 +158,28 @@ cerr << "THIS FUNCTION NEEDS REVISION" << endl;
     wireDistance2 = (*x)->rPos2 - (*X)->rPos1; /* unprimed left-primed right */
     wireDistance1 = (*x)->rPos1 - (*X)->rPos2; /* unprimed right-primed left */
 
-    if( wireDistance2 < -maxdist) { 
+    if( wireDistance2 < -maxdist) {
 
-    /* ---- CASE 1: the unprimed hit cannot be paired with any of the 
-                    primed hits.  So, it needs to be considered by 
-                    itself as the bit pattern is constructed.  Also, 
-                    the next scan should begin with the next hit on 
-		    this unprimed plane and see if it can be paired 
+    /* ---- CASE 1: the unprimed hit cannot be paired with any of the
+                    primed hits.  So, it needs to be considered by
+                    itself as the bit pattern is constructed.  Also,
+                    the next scan should begin with the next hit on
+		    this unprimed plane and see if it can be paired
                     with the current hit on the primed plane.          ---- */
 
-      *Xn = *X;            /* keep current point as starting point for 
+      *Xn = *X;            /* keep current point as starting point for
                               the primed hits in the next scan            */
       *xn = (*x)->nextdet; /* use next hit as the starting point for the
                               unprimed hits in the next scan              */
       *X  = 0;             /* no primed match, so return the unprimed hit
                               for use as the bit pattern is generated.    */
-    } else if( wireDistance1 > maxdist) { 
+    } else if( wireDistance1 > maxdist) {
 
-    /* ---- CASE 2: the primed hit cannot be paired with any of the 
-                    unprimed hits.  So, it needs to be considered by 
+    /* ---- CASE 2: the primed hit cannot be paired with any of the
+                    unprimed hits.  So, it needs to be considered by
                     itself as the bit pattern is constructed.  Also,
-                    the next scan should begin with the next hit on 
-		    this primed plane and see if it can be paired 
+                    the next scan should begin with the next hit on
+		    this primed plane and see if it can be paired
 		    with the current hit on the unprimed plane.        ---- */
 
       *xn = *x;            /* keep current point as starting point for
@@ -183,11 +188,11 @@ cerr << "THIS FUNCTION NEEDS REVISION" << endl;
                               primed hits in the next scan                */
       *x  = 0;             /* no unprimed match, so return the primed hit
                               for use as the bit pattern is generated.    */
-    } else { 
+    } else {
 
-    /* ---- CASE 3: the primed hit and the unprimed hit are paired. 
+    /* ---- CASE 3: the primed hit and the unprimed hit are paired.
                     So, both need to be considered as the hit pattern
-		    is constructed.  Also, the next scan should begin 
+		    is constructed.  Also, the next scan should begin
 		    with the next hit on each of these planes.         ---- */
 
       *xn = (*x)->nextdet; /* use next hit as the starting point for the
@@ -211,22 +216,22 @@ cerr << "THIS FUNCTION NEEDS REVISION" << endl;
 //________________________________________________________________________
 /*---------------------------------------------------------------------------*\
 
-  _setpoints() - this function sets the bins in a hit pattern for a 
-                 range of positions.  The range of hit patterns is specified 
-                 by a start and a stop position in the detector.  This 
+  _setpoints() - this function sets the bins in a hit pattern for a
+                 range of positions.  The range of hit patterns is specified
+                 by a start and a stop position in the detector.  This
                  function turns on the bins in the hit pattern for each
                  level of the bin-division used in the treesearch algorithm.
 
-    inputs: (1) double posStart      - position (in cm) of the start of the 
-                                       range for which bins are to be turned 
-                                       on 
-            (2) double posEnd        - position (in cm) of the stop of the 
+    inputs: (1) double posStart      - position (in cm) of the start of the
+                                       range for which bins are to be turned
+                                       on
+            (2) double posEnd        - position (in cm) of the stop of the
                                        range for which bins are to be turned
                                        on
             (3) double detectorwidth - width of the tree-detector (in cm)
             (4) unsigned binwidth    - width of a bin at the deepest level
                                        of bin-division in the treesearch.
-            (5) char *pattern        - pointer to the hit pattern for this 
+            (5) char *pattern        - pointer to the hit pattern for this
                                        tree-detector
             (6) int  *hash           - pointer to ???
 
@@ -237,7 +242,7 @@ cerr << "THIS FUNCTION NEEDS REVISION" << endl;
 \*---------------------------------------------------------------------------*/
 
 void treesearch::_setpoints(double posStart,double posEnd,double detectorwidth,
-	   			unsigned binwidth,char *pattern,int *hash) 
+	   			unsigned binwidth,char *pattern,int *hash)
 {
   int i,j;
   int ia, ie, hashint = hashgen();
@@ -246,30 +251,30 @@ void treesearch::_setpoints(double posStart,double posEnd,double detectorwidth,
 
 /* ---- compute the first bin in the deepest tree level to turn on     ---- */
 
-  ia = (int)floor(posStart/detectorwidth * binwidth); 
+  ia = (int)floor(posStart/detectorwidth * binwidth);
 
 /* ---- compute the last bin in the deepest tree level to turn on      ---- */
 
-  ie = (int)floor(posEnd  /detectorwidth * binwidth); 
-  
+  ie = (int)floor(posEnd  /detectorwidth * binwidth);
+
 /* ---- step through each of the bins at the deepest bin-division
-        level in the hit pattern and turn on the bits in the 
+        level in the hit pattern and turn on the bits in the
         pattern at all the bin-division levels for this bin.           ---- */
   //cerr << "(" << ia << "," << ie << "," << posStart<< "," << posEnd << "," << detectorwidth<< "," << binwidth << ")" << endl;
 
   for( j = ia; j <= ie; j ++ ) { /* loop over the bins to be set */
-   
+
     i = j;  /* remember the bin at the deepest level which is being turn on */
-    
+
     binwidth = oldwidth;   /* the size of the bit pattern for the detector
                               at the deepest level of bin-division.         */
-    pattern  = oldpattern; /* pointer to start of the bit pattern           */ 
+    pattern  = oldpattern; /* pointer to start of the bit pattern           */
 
 /* ---- check if the bin is inside the detector                        ---- */
     	//I added "(signed int)" to the
-	//following line to prevent the warning from comparing signed and 
+	//following line to prevent the warning from comparing signed and
 	//unsigned integers
-    if( i >= (signed int)binwidth ) 
+    if( i >= (signed int)binwidth )
       return;
     if( i < 0 )
       continue;
@@ -278,40 +283,40 @@ void treesearch::_setpoints(double posStart,double posEnd,double detectorwidth,
 /* ---- set the bits in the bit pattern at all depths of bin-division  ---- */
 
     if( pattern ) {
-      while( binwidth ) {      /* starting at maximum depth, loop over 
+      while( binwidth ) {      /* starting at maximum depth, loop over
                                   each depth of the treesearch           */
 	pattern[i] = 1;        /* turn on the bit in this bin            */
-	pattern   += binwidth; /* set ahead to the part of the bit 
-                                  pattern in which the bits for the  
+	pattern   += binwidth; /* set ahead to the part of the bit
+                                  pattern in which the bits for the
                                   next higher bin-division are stored    */
 	i        >>= 1;        /* go up one depth of the depth           */
-	binwidth >>= 1;        /* size of the bit pattern for the next 
-                                  higher bin-division is half of the 
-                                  size of the bit pattern for a given 
+	binwidth >>= 1;        /* size of the bit pattern for the next
+                                  higher bin-division is half of the
+                                  size of the bit pattern for a given
                                   level of bin-division.                 */
 
       } /* end of loop over the depths of the treesearch */
-    } 
+    }
   } /* end of loop over the bins to be set */
 }
 //________________________________________________________________________
 /*---------------------------------------------------------------------------*\
 
-  _setpoint() - this function sets the bins in the hit pattern for a 
+  _setpoint() - this function sets the bins in the hit pattern for a
                 range of positions around a central point within a specified
                 distance/resolution by calling the setpoint() function
                 described above.
 
     inputs: (1) double position      - position (in cm) of the center point
-                                       around which the bins are to be turned  
-                                       on 
+                                       around which the bins are to be turned
+                                       on
             (2) double resolution    - distance (in cm) around the central
                                        point for which bins are to be turned
                                        on
             (3) double detectorwidth - width of the tree-detector (in cm)
             (4) unsigned binwidth    - width of a bin at the deepest level
                                        of bin-division in the treesearch.
-            (5) char *pattern        - pointer to the hit pattern for this 
+            (5) char *pattern        - pointer to the hit pattern for this
                                        tree-detector
             (6) int  *hash           - ???
 
@@ -322,7 +327,7 @@ void treesearch::_setpoints(double posStart,double posEnd,double detectorwidth,
 \*---------------------------------------------------------------------------*/
 
 void treesearch::_setpoint(double position, double resolution,double detectorwidth,
-	  	unsigned binwidth, char *pattern, int *hash) 
+	  	unsigned binwidth, char *pattern, int *hash)
 {
   _setpoints(position-resolution,position+resolution,
              detectorwidth,binwidth,pattern,hash);
@@ -341,26 +346,26 @@ void treesearch::_setpoint(double position, double resolution,double detectorwid
                are updated for each plane individually.  This feature is
                used for the front region when the VCs are not included
                in the fit because, for these fits, each FC plane is treated
-               as a single tree-detector.  
+               as a single tree-detector.
 
-               Otherwise, the two planes are treated as a single 
+               Otherwise, the two planes are treated as a single
                tree-detector and a single hit pattern is formed from the
-               hits seen in the two planes.  
+               hits seen in the two planes.
 
-    inputs: (01) double off        - alignment offset of the 
+    inputs: (01) double off        - alignment offset of the
                                      tree-detector (in cm)
-            (02) double h1         - center point of hit range on 
-                                     plane 1 (in cm) 
+            (02) double h1         - center point of hit range on
+                                     plane 1 (in cm)
             (03) double res1       - width of hit range on plane 1 (in cm)
-            (04) double h2         - center point of hit range on 
+            (04) double h2         - center point of hit range on
                                      plane 2 (in cm)
             (05) double res2       - width of hit range on plane 2 (in cm)
             (06) double width      - width of the tree-detector (in cm)
             (07) unsigned binwidth - width of a bin at the deepest level
                                      of bin-division in the treesearch.
-            (08) char *pa          - pointer to the hit pattern for 
+            (08) char *pa          - pointer to the hit pattern for
                                      tree-detector 1
-            (09) char *pb          - pointer to the hit pattern for 
+            (09) char *pb          - pointer to the hit pattern for
                                      tree-detector 2, =0 if there is no
                                      tree-detector 2 because the planes are
                                      being combined into one tree-detector
@@ -368,7 +373,7 @@ void treesearch::_setpoint(double position, double resolution,double detectorwid
             (11) int  *hashb       - pointer to ???
 
    outputs: (01) char *pa          - pointer to the updated hit pattern
-                                     for tree-detector 1 
+                                     for tree-detector 1
             (02) char *pb          - pointer to the updated hit pattern for
                                      tree-detector 2, =0 if there is no
                                      tree-detector 2 because the planes are
@@ -384,31 +389,31 @@ void treesearch::setpoint( double off,double h1, double res1,double h2, double r
 {
 
 
-  if( pb ) { /* NOT combining two planes into one tree-detector, so  
+  if( pb ) { /* NOT combining two planes into one tree-detector, so
                 set bins in the hit pattern for each plane separately */
     _setpoint( off+h1, res1, width, bwidth, pa, hasha );
     _setpoint( off+h2, res2, width, bwidth, pb, hashb );
   } else     /* Combining two planes into one tree-detector, so just
-                set the bins for the overlap between the hit on the 
-                two planes.  Here, the resolutions are added linearly 
-                instead of in quadrature to save cputime              */ 
+                set the bins for the overlap between the hit on the
+                two planes.  Here, the resolutions are added linearly
+                instead of in quadrature to save cputime              */
     _setpoint( off+0.5*(h1+h2), 0.5*(res1+res2), width, bwidth, pa, hasha );
 }
 //________________________________________________________________________
 /*---------------------------------------------------------------------------*\
 
   TsSetPoint() - this function creates the bit patterns for two partner
-                 planes (planes with the like-pitched wires in the 
+                 planes (planes with the like-pitched wires in the
                  same chamber.
 
                  This function can treat the two planes in two different
                  fashions, specifically:
 
                  (1) the planes can be treated as one tree-detector.  In
-                     this case, a check is performed to see if a hit on 
+                     this case, a check is performed to see if a hit on
                      one of the planes can be matched to a hit on the
                      other plane (within the allowances of the maximum
-                     track slope specified by the HRCset parameter 
+                     track slope specified by the HRCset parameter
                      MaxSlope).  If the hits are paired together by this
                      search, the bit pattern is set around the allowable
                      tracks through both hits.  If a hit is not paired
@@ -419,10 +424,10 @@ void treesearch::setpoint( double off,double h1, double res1,double h2, double r
 
                  (2) the planes are treated as individual tree-detectors.
                      In this case, a separate hit pattern is created for
-                     both planes and the above described searching for 
+                     both planes and the above described searching for
                      paired hits is not employed.  (This method is the
                      standard for the front chambers since they have only
-                     four planes per treeline).  
+                     four planes per treeline).
 
     inputs: (01) double detectorwidth - width of the tree-detector (in cm)
             (02) double zdistance     - distance between the two planes
@@ -434,12 +439,12 @@ void treesearch::setpoint( double off,double h1, double res1,double h2, double r
 	    (05) unsigned binwidth    - width of a bin (in cm) at the deepest
                                         bin-division in the treesearch.
 
-   outputs: (01) int TsSetPoint()     - the number of single and paired hits 
-                                        processed by this return 
-            (02) char *patterna       - pointer to the hit pattern for 
+   outputs: (01) int TsSetPoint()     - the number of single and paired hits
+                                        processed by this return
+            (02) char *patterna       - pointer to the hit pattern for
                                         tree-detector
             (03) char *patternb       - pointer to the hit pattern for
-                                        the optional second tree-detector 
+                                        the optional second tree-detector
             (04) int  *hasha          - pointer to ???
             (05) int  *hashb          - pointer to ???
 
@@ -448,24 +453,25 @@ void treesearch::setpoint( double off,double h1, double res1,double h2, double r
 int treesearch::TsSetPoint(double detectorwidth, Hit *H,char *pattern, int *hash, unsigned binwidth)
 {
   double dw2 = (detectorwidth/2.0); /* half-width of the detector (in cm) */
-  _setpoints(dw2 - H->rPos1 - H->rTrackResolution,//set the points on the front side of the wire
+  _setpoints(dw2 - H->rPos1 - H->rTrackResolution,//set the points on the front/top side of the wire (R3/R2)
 		dw2 - H->rPos1 + H->rTrackResolution,
 		detectorwidth,binwidth,pattern,hash);
-  _setpoints(dw2 + H->rPos1 - H->rTrackResolution,//set the points on the back side of the  wire
+  _setpoints(dw2 + H->rPos1 - H->rTrackResolution,//set the points on the back/bottom side of the  wire (R3/R2)
 		dw2 + H->rPos1 + H->rTrackResolution,
 		detectorwidth,binwidth,pattern,hash);
-
-  //for(int i=0;i<8;i++)cerr << hash[i] << " ";cerr << endl;
-/*
-  for(int i=0;i<15;i++){
-	cerr << "<" << pattern[i] << ">" ;
-  }
-  cerr << endl;
-*/
   return 1;
-
-
-
+}
+/*---------------------------------------------------------------------------*/
+//This TsSetPoint version is designed for setting the pattern for Region 2 doing 1 hit at a time
+int treesearch::TsSetPoint(double detectorwidth, double WireSpacing,Hit *H,double wire,char *pattern, int *hash, unsigned binwidth)
+{
+  _setpoints(WireSpacing*(wire+1) - H->rPos1 - H->rTrackResolution,//set the points on the front/top side of the wire (R3/R2)
+	     WireSpacing*(wire+1) - H->rPos1 + H->rTrackResolution,
+	     detectorwidth,binwidth,pattern,hash);
+  _setpoints(WireSpacing*(wire+1) + H->rPos1 - H->rTrackResolution,//set the points on the back/bottom side of the  wire (R3/R2)
+	     WireSpacing*(wire+1) + H->rPos1 + H->rTrackResolution,
+	     detectorwidth,binwidth,pattern,hash);
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 
@@ -475,29 +481,29 @@ int treesearch::TsSetPoint(double detectorwidth, double zdistance, Hit *Ha, Hit 
 {
   cerr << "TsSetPoint called" << endl;
   int num = 0;
-  
+
 
   double dw2 = (detectorwidth/2.0); /* half-width of the detector (in cm) */
   Hit  *Hanext, *Hbnext;
 
-/* ---- Compute the maximum separation between hits on the two 
-        planes such that these hits are paired together when 
-        forming the hit pattern.  If the hits are separated by 
-        more than this distance, the hits are treated as unmatched 
+/* ---- Compute the maximum separation between hits on the two
+        planes such that these hits are paired together when
+        forming the hit pattern.  If the hits are separated by
+        more than this distance, the hits are treated as unmatched
         hits when the hit pattern is formed.                        ---- */
-  
+
   double rcSETrMaxSlope = 0.60;//THIS VALUE COMES FROM hrcset.h
   cerr << "rcSET not defined in the code. Error. CODE NEEDS REPLACING" << endl;
 
 
-  /*double maxdistance = rcSET.rMaxSlope * zdistance; */ /* maximum separation 
+  /*double maxdistance = rcSET.rMaxSlope * zdistance; */ /* maximum separation
 						       for hits (in cm)   */
   double maxdistance = rcSETrMaxSlope * zdistance;//I inserted this
 	//line to fill in the gap due to the rcSET object not being
-	//defined.  
+	//defined.
 
 /* ---- Go through the hit lists for each plane and set the hit
-        pattern.  For each set of paired hits, the hit pattern 
+        pattern.  For each set of paired hits, the hit pattern
         is updated with the overlap between the hits.  For the
         unpaired hits, the hit pattern is updated with just the
         possible tracks through the hit.                            ---- */
@@ -505,31 +511,31 @@ int treesearch::TsSetPoint(double detectorwidth, double zdistance, Hit *Ha, Hit 
   while( Ha || Hb) { /* for each hit in Ha and Hb */
     num++;           /* Keep count of how many hits are processed */
 
-/* ---- Call wireselection() to pick out a hit pair from the  
-        linked lists of hits for the two planes (*Ha and *Hb)    
+/* ---- Call wireselection() to pick out a hit pair from the
+        linked lists of hits for the two planes (*Ha and *Hb)
 
         This function earches for hits in plane A (stored in the
-        linked list of hits) starting with the hit pointed to by 
+        linked list of hits) starting with the hit pointed to by
         *Ha and plane B starting with the hit pointed to by *Hb.
         Its returns: (1) pointers to the next hits to consider
-        for pairing (*Hanext and *Hbnext) and (2) links to the 
-        hits (in *Ha and *Hb) to be inserted into the hit 
+        for pairing (*Hanext and *Hbnext) and (2) links to the
+        hits (in *Ha and *Hb) to be inserted into the hit
         pattern (for unpair hits, either *Ha or *Hb will be zero    ---- */
 
     wireselection( &Ha, &Hb, &Hanext, &Hbnext, maxdistance);
 
 /* ---- Update the hit pattern to include these hits                ---- */
 
-    if( Ha && Hb ) { 
+    if( Ha && Hb ) {
 
 /* ---- CASE 1: If the planes have hits within the HRCset Maxslope,
-                then resolve the left-right ambiguity by checking 
-                the four combinations for matching.  When a 
-                combination matches, the hit pattern is updated by 
-                treating the hits together.  If no matching 
-                combinations are found, the hit pattern is updated 
+                then resolve the left-right ambiguity by checking
+                the four combinations for matching.  When a
+                combination matches, the hit pattern is updated by
+                treating the hits together.  If no matching
+                combinations are found, the hit pattern is updated
                 by treated the hits separately.                     ---- */
-   
+
       int found = 0; /* clear "I found a pairing" flag */
       if( fabs(Ha->rPos1 - Hb->rPos1) < maxdistance ) { /* left A w/left B */
 	found = 1; /* set "I found a pairing" flag */
@@ -565,14 +571,14 @@ int treesearch::TsSetPoint(double detectorwidth, double zdistance, Hit *Ha, Hit 
 		 hasha, hashb);
       }
 
-/* ---- CASE 2: The search by wireselection() paired these two 
+/* ---- CASE 2: The search by wireselection() paired these two
                 hits, but the left-right ambigiuity check failed
                 find a combination trough which an allowable track
                 could traverse.  So, these hits are added into
                 bit pattern as unpaired hits.                       ---- */
 
-      if( !found ) {  
-	if( patternb ) { /* treating the two planes as individual 
+      if( !found ) {
+	if( patternb ) { /* treating the two planes as individual
                             tree-planes, so put hit into both patterns */
 	  setpoint(dw2,
 		   Ha->rPos1, Ha->rTrackResolution,
@@ -580,7 +586,7 @@ int treesearch::TsSetPoint(double detectorwidth, double zdistance, Hit *Ha, Hit 
 		   detectorwidth, binwidth, patterna, patternb,
 		   hasha, hashb);
 	  setpoint(dw2,
-		   Ha->rPos2, Ha->rTrackResolution, 
+		   Ha->rPos2, Ha->rTrackResolution,
 		   Hb->rPos2, Hb->rTrackResolution,
 		   detectorwidth, binwidth, patterna, patternb,
 		   hasha, hashb);
@@ -601,10 +607,10 @@ int treesearch::TsSetPoint(double detectorwidth, double zdistance, Hit *Ha, Hit 
 	}
       }
 
-/* ---- CASE 3: If, after the search, a hit on a plane was not 
-                paired with a hit on the other plane (because the 
-                other plane didn't have a hit within the HRCset 
-                MaxSlope), this hit is treated individually when 
+/* ---- CASE 3: If, after the search, a hit on a plane was not
+                paired with a hit on the other plane (because the
+                other plane didn't have a hit within the HRCset
+                MaxSlope), this hit is treated individually when
                 being included in the bit pattern.                  ---- */
 
 
@@ -648,7 +654,7 @@ int treesearch::TsSetPoint(double detectorwidth, double zdistance, Hit *Ha, Hit 
     Ha = Hanext;  /* Continue with the next set of hits */
     Hb = Hbnext;
   }
-  
+
   return num;
 }
 //________________________________________________________________________
@@ -659,18 +665,18 @@ int treesearch::TsSetPoint(double detectorwidth, double zdistance, Hit *Ha, Hit 
              to see if the bit pattern for the specified treenode has already
              been accepted as a valid treeline.
 
-    inputs: (1) int *newa          - 
+    inputs: (1) int *newa          -
             (2) int front          -
-            (3) int back           - 
+            (3) int back           -
             (4) TreeLine *treeline - pointer to the linked-list of treelines
 
-   outputs: (1) int exists()       - =0 if a treeline is not located 
+   outputs: (1) int exists()       - =0 if a treeline is not located
                                      =1 otherwise
 
 \*---------------------------------------------------------------------------*/
 
-int treesearch::exists( int *newa, int front, int back, TreeLine *treeline) 
-	
+int treesearch::exists( int *newa, int front, int back, TreeLine *treeline)
+
 {
   int *olda;
   int i, newmiss, oldmiss, diff;
@@ -678,8 +684,8 @@ int treesearch::exists( int *newa, int front, int back, TreeLine *treeline)
   int over;
 
   newmiss = 0;
-  for( i = 0; i < tlayers; i++ ) 
-    if( !newa[i] ) 
+  for( i = 0; i < tlayers; i++ )
+    if( !newa[i] )
       newmiss ++;
 
   for( tl = treeline ; tl; tl = tl->next ) { /* loop over the treelines */
@@ -731,7 +737,7 @@ int treesearch::exists( int *newa, int front, int back, TreeLine *treeline)
         //cerr << "!diff" << endl;
 	return 1;
       }
-    } 
+    }
   }
   return 0;
 }
@@ -741,22 +747,22 @@ int treesearch::exists( int *newa, int front, int back, TreeLine *treeline)
 
   _TsSearch() - this highly recursive function implements the treesearch
                 algorithm.  For a specified list of nodenodes, this function
-                examines the attached treenode.  If the bit pattern in the 
-                treenode does not match the bit pattern from the event, the 
-                function looks at the next nodenode.  Otherwise, the function 
-                will call itself to see if any of the sons of this treenode 
-                at the next level of bin-division match the bit pattern from 
-                the event.  This recursive calling will continue until a 
+                examines the attached treenode.  If the bit pattern in the
+                treenode does not match the bit pattern from the event, the
+                function looks at the next nodenode.  Otherwise, the function
+                will call itself to see if any of the sons of this treenode
+                at the next level of bin-division match the bit pattern from
+                the event.  This recursive calling will continue until a
                 treenode at the deepest level of bin-division is located
-                inside the bit pattern from the event.  Since the pattern in 
-                this treenode is represents a valid treeline for the event, a 
+                inside the bit pattern from the event.  Since the pattern in
+                this treenode is represents a valid treeline for the event, a
                 treeline is constructed from the treenode and then appended
                 to the linked list of treelines being accumulated by the
                 treesearch.
 
     inputs: (1) shortnode *node    - pointer the first nodenode in the linked
                                      list of nodenodes to be checked.
-            (2) int level          - depth of the treesearch, i.e. the 
+            (2) int level          - depth of the treesearch, i.e. the
                                      level of the bin-division
             (3) int offset         - the offset of the treenode within the
                                      pattern
@@ -764,11 +770,11 @@ int treesearch::exists( int *newa, int front, int back, TreeLine *treeline)
 
     global
     inputs: (1) char **static_pattern - the bit pattern from the event
-            (2) char **static_hash    - 
+            (2) char **static_hash    -
 	    (3) int static_maxlevel   -
 	    (4) int static_front      -
 
-   outputs: there are no explicit output from this function. 
+   outputs: there are no explicit output from this function.
 
     global
    outputs: Treelin *trelin - pointer to the link-list of valid treelines.
@@ -781,19 +787,19 @@ void treesearch::_TsSearch(shortnode *node,int level,int offset,int row_offset,i
   	unsigned long pattern_offset;
   	shorttree *tree;		/* for searching in children of node*/
   	shortnode **cnode;
-	shortnode **matchsons,**matchsonsnext;
-  	TreeLine  *lineptr;		/* evt. append to the treeline */
-  	int     *tree_pattern;
-  	int hashpat[TLAYERS];
-  	int off, rev, off2, nlevel = level+1, i, bin,x;
-  	int miss, matched,nullhits;
-  	int frontbin, backbin;
-	int firstwire=100,lastwire=-1;
-  	//int front_miss = 0;
+	shortnode **matchsons;
+	TreeLine  *lineptr;		/* evt. append to the treeline */
+	int     *tree_pattern;
+	int hashpat[TLAYERS];
+	int off, rev, off2, nlevel = level+1, i, bin,x;
+	int miss, matched,nullhits;
+	int frontbin, backbin;
+	int firstwire=1000,lastwire=-1;
+	//int front_miss = 0;
 
-  	if( trelinanz > TREELINABORT )
-    		return;
-	
+	if( trelinanz > TREELINABORT )
+		return;
+
 
 	/* ---- Compute the offset in the bit pattern for the start
         position of this level of bin-division                     ---- */
@@ -810,26 +816,14 @@ void treesearch::_TsSearch(shortnode *node,int level,int offset,int row_offset,i
 			}
 		}
 	}
-	/*
-	for(int s =0;s<tlayers;s++){
-		for(int t=0;t<15;t++){
-			if(static_pattern[s+row_offset][t])
-				cout << "1";
-			else
-				cout << "0";
-			cout << ",";
-		}
-		cout << endl;
-	}
-	*/
 	/* ---- Look at the trees attached to each nodenode on the
         specified nodenode linked list                             ---- */
-	if(numWires){
+  if(numWires){
   	while( node) {			/* search in all nodes */
-		
+
     		tree = node->tree;
 		//tree->print();
-		
+
 		/* ---- Is the hit pattern in this treenode valid for this level
         	of the treesearch?                                         ---- */
 		//cout << "minlevel = " << tree->minlevel << endl;
@@ -837,11 +831,11 @@ void treesearch::_TsSearch(shortnode *node,int level,int offset,int row_offset,i
     		if( tree->minlevel > level+1) { /* check for level boundaries */
 			cerr << "hrm..." << endl;
       			node = node->next; /* no, so look at the next nodenode */
-      			continue; 
+      			continue;
     		}
-		
-		/* ---- Match the hit pattern to this treenode by checking the 
-        	hit pattern for each tree-plane to see if the bits 
+
+		/* ---- Match the hit pattern to this treenode by checking the
+        	hit pattern for each tree-plane to see if the bits
         	specified in the treenode are on                           ---- */
     		pattern_offset = pattern_start + offset;
     		tree_pattern = tree->bit;
@@ -870,12 +864,12 @@ void treesearch::_TsSearch(shortnode *node,int level,int offset,int row_offset,i
 					matched++; //matching null hits which are allowed in these patterns
 				}
 			}
-      		}          
+      		}
 		//cout << "matched = " << matched << endl;
-    		/* ---- Check if there was the treenode is match now that the 
+    		/* ---- Check if there was the treenode is match now that the
             	matching has been completely tested.                      ---- */
 
-    		if( matched == tlayers && nullhits <5) { 
+    		if( matched == tlayers && nullhits <5) {
 			//cout << "match found " << endl;
 			//cout << "sons are " << endl;
 			//cout << "-----------" << endl;
@@ -887,7 +881,7 @@ void treesearch::_TsSearch(shortnode *node,int level,int offset,int row_offset,i
 					*matchsonsnext = (*matchsons)->next;
 					matchsons = matchsonsnext;
 				}
-				else 
+				else
 					break;
 			}
 			cout << "-----------"<< endl;
@@ -896,7 +890,7 @@ void treesearch::_TsSearch(shortnode *node,int level,int offset,int row_offset,i
               	of the treesearch have been done.  If so, then we have
               	found a valid treeline.                                 ---- */
 
-      			if( level == static_maxlevel-1 ) { 
+      			if( level == static_maxlevel-1 ) {
 				//cerr << "inserting treeline..." << endl;
 				/* all level done -> insert treeline */
 				/* ---- ---- */
@@ -936,14 +930,13 @@ void treesearch::_TsSearch(shortnode *node,int level,int offset,int row_offset,i
 	  				miss = 1;
 				if( !exists( hashpat, frontbin, backbin,trelin) ) {
 					if(opt.showMatchingPatterns)tree->print();
-                                                      /* if track is unknown */
+                                                                                          /* if track is unknown */
 	  				lineptr = (TreeLine*)malloc( sizeof(TreeLine));       /*  create new one */
 	  				assert(lineptr);
 	  				trelinanz ++;                        /* number of treelines found */
 	  				memcpy( lineptr->hasharray, hashpat, /* make space for this       */
                   				sizeof(int)*tlayers);        /* treeline                  */
 	  				lineptr->Used = false;            /* this treeline isn't used yet */
-	  				//lineptr->method = treelinemethod; /* remember the method          */
 	  				lineptr->a_beg = frontbin;        /* */
        	  				lineptr->a_end = frontbin;
 	  				lineptr->b_beg = backbin;         /* */
@@ -955,101 +948,87 @@ void treesearch::_TsSearch(shortnode *node,int level,int offset,int row_offset,i
 	  				trelin = lineptr;                 /*  linked-list of treelines    */
 					lineptr->r3offset = row_offset;
 					lineptr->firstwire = firstwire;
-					lineptr->lastwire = lastwire;   
-	  				//Statist[treelinemethod].          /* update HRC statistics        */
-	   				//TreeLinesGenerated[viswer][vispar][visdir-u_dir] ++;
-					//cerr << lineptr->a_beg << "," << lineptr->a_end << "," <<endl;
+					lineptr->lastwire = lastwire;
 				}
       			} else {			            /* check son patterns           */
 				for( rev = 0; rev < 4; rev += 2) {
 	  				cnode = tree->son + rev;
 	  				if( rev ^ reverse) {
 	    					off2 = (offset << 1) + 1;
-	    					for( off = 0; off < 2; off++) 
+	    					for( off = 0; off < 2; off++)
 	      						_TsSearch( *cnode++, nlevel, off2 - off, row_offset,2,numWires);
 	  				} else {
 	    					off2 = offset << 1;
-	    					for( off = 0; off < 2; off++) 
+	    					for( off = 0; off < 2; off++)
 	      						_TsSearch( *cnode++, nlevel, off2 + off,row_offset, 0,numWires);
 	  				}
 				} /* highly optimized - time critical */
 				//cout << "sons done" << endl;
       			}
-    		} 
-    		node = node->next; /* ok, there wasn't a match, so go onto the 
+    		}
+    		node = node->next; /* ok, there wasn't a match, so go onto the
                               next nodenode                         */
   	} /* end of loop over nodenodes */
+  }
+  else{
+    while(node) {			/* search in all nodes */
+      tree = node->tree;
+      /* ---- Is the hit pattern in this treenode valid for this level
+              of the treesearch?                                         ---- */
+
+      if( tree->minlevel >= level) { /* check for level boundaries */
+      	node = node->next; /* no, so look at the next nodenode */
+      	continue;
+      }
+
+      /* ---- Match the hit pattern to this treenode by checking the
+              hit pattern for each tree-plane to see if the bits
+              specified in the treenode are on                           ---- */
+
+      pattern_offset = pattern_start + offset;
+      tree_pattern = tree->bit;
+      if( reverse ) {
+	for(i = matched = 0; i < tlayers; i++) {  /* loop over tree-planes */
+	  if(static_pattern[i][pattern_offset - *tree_pattern++]) {
+	    matched++; /* number of matched tree-planes */
+	  }
 	}
-	else{  
-  	while( node) {			/* search in all nodes */
-    		tree = node->tree;
+      } else {
+	for(i = matched = 0; i < tlayers; i++) {  /* loop over tree-planes */
+	  if(static_pattern[i][pattern_offset + *tree_pattern++]) {
+	    matched++; /* number of matched tree-planes */
+	  }
+	}
+      }
+      for(i=0;i<tlayers;i++){
 
-		/* ---- Is the hit pattern in this treenode valid for this level
-        	of the treesearch?                                         ---- */
-
-    		if( tree->minlevel >= level) { /* check for level boundaries */
-      			node = node->next; /* no, so look at the next nodenode */
-      			continue; 
-    		}
-    
-		/* ---- Match the hit pattern to this treenode by checking the 
-        	hit pattern for each tree-plane to see if the bits 
-        	specified in the treenode are on                           ---- */
-
-    		pattern_offset = pattern_start + offset;
-    		tree_pattern = tree->bit;
-		
-      		if( reverse ) {
-			for(i = matched = 0; i < tlayers; i++) {  /* loop over tree-planes */
-	  			if(static_pattern[i][pattern_offset - *tree_pattern++]) {
-	    				matched++; /* number of matched tree-planes */
-	  			}
-			}
-      		} else {
-			
-			for(i = matched = 0; i < tlayers; i++) {  /* loop over tree-planes */
-	  			if(static_pattern[i][pattern_offset + *tree_pattern++]) {
-	    				matched++; /* number of matched tree-planes */
-	  			}
-			}
-      		}          
-
-    		/* ---- Check if there was the treenode is match now that the 
-            	matching has been completely tested.                      ---- */
-
-    		if( matched == tlayers ) { 
-
-      		/* ---- Yes, there is a match, so now check if all the levels
-              	of the treesearch have been done.  If so, then we have
+      }
+      /* ---- Check if there was the treenode is match now that the
+              matching has been completely tested.                      ---- */
+      if( matched == tlayers ) {
+      	/* ---- Yes, there is a match, so now check if all the levels
+             	of the treesearch have been done.  If so, then we have
               	found a valid treeline.                                 ---- */
 
-      			if( level == static_maxlevel-1 ) { 
-				/* all level done -> insert treeline */
-	
+      	if( level == static_maxlevel-1 ) {
 
-				/* ---- ---- */
-
-				frontbin = reverse ?
-	  				offset - tree->bit[0] : offset + tree->bit[0];
-				backbin = reverse ?
-	  				offset - tree->bit[tlayers-1] : offset + tree->bit[tlayers-1];
-				for( i = 0; i < tlayers; i++ ) {
-	  				bin = reverse ?
-	    					offset - tree->bit[i] : offset + tree->bit[i];
-	  				hashpat[i] = static_hash[i][bin];
-				}
-
-				miss = 0;
-				if( static_pattern[0][frontbin] == 0)
-	  				miss = 1;
-				else if( static_pattern[tlayers-1][backbin] == 0)
-	  				miss = 1;
-	
-				if( !exists( hashpat, frontbin, backbin,trelin) ) {
-                                                      /* if track is unknown */
-					//THE FOLLOWING LINE USED QMALLOC, BUT IT WAS 
-					//REPLACED DUE TO IT NOT EXISTING AT THE TIME
-					//REVISED THIS PROGRAM.
+	/* all level done -> insert treeline */
+	  frontbin = reverse ? offset - tree->bit[0] : offset + tree->bit[0];
+	  backbin = reverse ? offset - tree->bit[tlayers-1] : offset + tree->bit[tlayers-1];
+	  for( i = 0; i < tlayers; i++ ) {
+	    bin = reverse ? offset - tree->bit[i] : offset + tree->bit[i];
+	    hashpat[i] = static_hash[i][bin];
+	  }
+	  miss = 0;
+	  if( static_pattern[0][frontbin] == 0)
+	    miss = 1;
+	  else if( static_pattern[tlayers-1][backbin] == 0)
+	    miss = 1;
+	  if( !exists( hashpat, frontbin, backbin,trelin) ) {
+            /* if track is unknown */
+					if(opt.showMatchingPatterns){
+						tree->print();
+					}
 	  				lineptr = (TreeLine*)malloc( sizeof(TreeLine));       /*  create new one */
 	  				assert(lineptr);
 	  				trelinanz ++;                        /* number of treelines found */
@@ -1068,48 +1047,51 @@ void treesearch::_TsSearch(shortnode *node,int level,int offset,int row_offset,i
 	  				trelin = lineptr;                 /*  linked-list of treelines    */
 	  				//Statist[treelinemethod].          /* update HRC statistics        */
 	   				//TreeLinesGenerated[viswer][vispar][visdir-u_dir] ++;
-				}
-      			} else {			            /* check son patterns           */
-				for( rev = 0; rev < 4; rev += 2) {
-	  				cnode = tree->son + rev;
-	  				if( rev ^ reverse) {
-	    					off2 = (offset << 1) + 1;
-	    					for( off = 0; off < 2; off++) 
-	      						_TsSearch( *cnode++, nlevel, off2 - off,0, 2,0);
-	  				} else {
-	    					off2 = offset << 1;
-	    					for( off = 0; off < 2; off++) 
-	      						_TsSearch( *cnode++, nlevel, off2 + off,0, 0,0);
-	  				}
-				} /* highly optimized - time critical */
-      			}
-    		} 
-    		node = node->next; /* ok, there wasn't a match, so go onto the 
+	  }
+      	} else {			            /* check son patterns           */
+	  for( rev = 0; rev < 4; rev += 2) {
+	    cnode = tree->son + rev;
+            //if(!*cnode)cerr << "no son" << endl;
+	    if( rev ^ reverse) {
+	      off2 = (offset << 1) + 1;
+	      for( off = 0; off < 2; off++)
+	      	_TsSearch( *cnode++, nlevel, off2 - off,0, 2,0);
+	    } else {
+	      off2 = offset << 1;
+	      for( off = 0; off < 2; off++){
+	      	_TsSearch( *cnode++, nlevel, off2 + off,0, 0,0);
+              }
+	    }
+	  } /* highly optimized - time critical */
+      	}
+      }
+      node = node->next; /* ok, there wasn't a match, so go onto the
                               next nodenode                         */
-  	} /* end of loop over nodenodes */
-	}
-  	return;
-}		
+    } /* end of loop over nodenodes */
+  }
+  return;
+}
 //________________________________________________________________________
 /*---------------------------------------------------------------------------*\
 
   TsSearch() - this function initiates the treesearch for a set of tree-
-               detectors by calling the _TsSearch() function described 
+               detectors by calling the _TsSearch() function described
                above.
 
-    inputs: (1) shortnode *node    - 
+    inputs: (1) shortnode *node    -
             (2) char *pattern[4]   -
             (3) int *hashpat[4]    -
             (4) int maxlevel       -
 	    (5) int numWires          -
 
-   outputs: there are no explicit output from this function.  However, 
+   outputs: there are no explicit output from this function.  However,
             implicitly, it creates the linked list of valid treelines.
 
 \*---------------------------------------------------------------------------*/
 
 void treesearch::TsSearch(shortnode *node, char *pattern[16], int  *hashpat[16],
-	 	int maxlevel, int numWires){
+	 	int maxlevel, int numWires,int tlayer){
+  tlayers = tlayer;
   static_maxlevel = maxlevel;
   static_pattern  = pattern;
   static_hash     = hashpat;
@@ -1118,8 +1100,8 @@ void treesearch::TsSearch(shortnode *node, char *pattern[16], int  *hashpat[16],
 	for(int i=0;i<=numWires-tlayers;i++){
 		_TsSearch( node, 0, 0,i, 0,numWires);
 	}
-  }	
-  else _TsSearch(node,1,0,0,0,0);
+  }
+  else _TsSearch(node,0,0,0,0,0);
 }
 //________________________________________________________________________
 

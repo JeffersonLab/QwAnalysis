@@ -5,12 +5,12 @@
 program options.
 */
 class Qoptions{
+
 public:
-Qoptions();
-void Get(char *optionsfile);
+  Qoptions();
+  void Get(const char *optionsfile);
 
 private:
-
 
 };
 

@@ -3,13 +3,13 @@
  *  \author P. M. King
  *  \date   2008feb13
  *  \brief  Draft skeleton for the decoding-to-QTR interface class.
- *  
+ *
  *
  *  This would either be used to generate the list of "Hit" elements
- *  used by QTR, or QTR (and this class) would be modified to use this 
+ *  used by QTR, or QTR (and this class) would be modified to use this
  *  as the base  class instead of the "Hit" class (which is in tree.h).
  *
- *  The decoding rotines would create a vector of these objects which
+ *  The decoding routines would create a vector of these objects which
  *  would contain all hits from all subsystems in each CODA event.
  *
  *  Subsystem classes (derived from the VQwSubsystem class) would need
@@ -38,14 +38,14 @@ class QwHit{
       fRawTime = data;
     };// Direction is also set at QwHit initialization -Rakitha (10/23/2008)
 
-  
+
 
 
   Int_t GetSubbankID(){return fCrate;};
   QwDetectorID GetDetectorID(){
     return QwDetectorID(fRegion,fPackage,fPlane,fDirection,fElement);
   };
-  
+
   const Double_t& GetRawTime() const {return fRawTime;};
   const Double_t& GetTime()    const {return fTime;};
 
@@ -77,7 +77,7 @@ class QwHit{
     };
 
   //main use of this method is to count no.of hits for a given wire and update the fHitNumber - rakitha (08/2008)
- 
+
   Bool_t WireMatches(Int_t region, Int_t package, Int_t plane, Int_t wire)
     {
       return (fRegion==region && fPackage==package && fElement==fElement);
@@ -118,9 +118,9 @@ class QwHit{
 	      }
 	      else
 		bCompare = false;
-	    
+
 	    }
-	    else 
+	    else
 	      bCompare=false;
 	  }
 	  else
@@ -132,14 +132,14 @@ class QwHit{
       else
 	bCompare = false;
 
-      
+
       return bCompare;
 
     };
 
- 
-  
-  
+
+
+
 
 
 

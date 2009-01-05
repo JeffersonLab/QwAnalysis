@@ -2,8 +2,8 @@
 #define TREEMATCH_H
 
 #include <iostream>
+#include <cmath>
 #include "tree.h"
-#include <math.h>
 
 #ifndef TIME_UNDEF
 #define TIME_UNDEF (-1.0e6)

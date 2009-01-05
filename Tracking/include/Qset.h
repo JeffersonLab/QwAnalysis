@@ -3,7 +3,7 @@
 
 
 /*! \brief Qset is a generic data read-in class that
-reads ascii to set up the detector geometry.  
+reads ascii to set up the detector geometry.
 
 This class is not meant to be permanent.  I fully
 expect to replace the method by which event data
@@ -12,10 +12,11 @@ is imported into this program.
 class Qset{
 public:
 Qset();
-int FillDetec(char *geomfile);
+int FillDetec(const char *geomfile);
 int numdetectors;
 
 private:
+void DumpDetector(int i);
 void LinkDetector(void);
 
 };
