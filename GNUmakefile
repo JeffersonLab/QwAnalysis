@@ -4,8 +4,8 @@
 #
 # Modifications:
 #----------------------------------------------------------------------
-# 
-#                    
+#
+#
 #----------------------------------------------------------------------
 
 ############################
@@ -14,13 +14,13 @@
 ############################
 ############################
 
-DEBUG :=
+DEBUG := -g
 # Add -g if you need to debug (but you'd better
 # first type 'gmake distclean' to enable full
 # recompilation with this flag)
 
 OPTIM  := -O
-# Default, safe, optimization flag understood by most compliers. Set 
+# Default, safe, optimization flag understood by most compliers. Set
 # optmization flag(s) in the architecture dependent sections instead.
 
 DEFAULTADD = $(ADD)
@@ -68,7 +68,7 @@ FIND     := find
 GCC      := gcc
       # This must be the GNU compiler collection : explicit use of
       # flag '-M' for automatic search for dependencies
-      # It is not correlated to $(CXX) and $(LD) which depend on $(ARCH) 
+      # It is not correlated to $(CXX) and $(LD) which depend on $(ARCH)
 GREP     := grep
 LS       := ls
 MAKE     := gmake
@@ -109,49 +109,41 @@ ARCH  := $(shell uname)
 LIBRARYDIRS = coda
 
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
-ifneq ($(CODA),)
-ifeq ($(filter %__NOFASTBUS,$(ADD)),)
-EXES := qwanalysis qwanalysis_adc
-# qwmockdata
-# g0analysis g0root g0acm g0realtime g0realtimemonitor g0ratemonitor makefraserplots g0realtimetrick
+ ifneq ($(CODA),)
+  ifeq ($(filter %__NOFASTBUS,$(ADD)),)
+   EXES := qwanalysis qwanalysis_adc
+  else
+   EXES := qwanalysis qwanalysis_adc
+  endif
+ else
+  EXES := qwanalysis qwanalysis_adc
+ endif
 else
-EXES := qwanalysis qwanalysis_adc 
-#  qwmockdata
-# makefraserplots
+ EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
 endif
-else
-EXES := qwanalysis qwanalysis_adc 
-#  qwmockdata
-# makefraserplots
-endif
-else
-EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
-endif
+
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
-ifneq ($(CODA),)
-ifeq ($(filter %__NOFASTBUS,$(ADD)),)
-EXES := qwanalysis qwanalysis_adc qwmockdata
-# g0analysis g0root g0acm g0realtime g0realtimemonitor g0ratemonitor makefraserplots g0realtimetrick
-else
-EXES := qwanalysis qwanalysis_adc
-# qwmockdata
+ ifneq ($(CODA),)
+  ifeq ($(filter %__NOFASTBUS,$(ADD)),)
+   EXES := qwanalysis qwanalysis_adc
+  else
+   EXES := qwanalysis qwanalysis_adc
+  endif
+ else
+  EXES := qwanalysis qwanalysis_adc
+ endif
 endif
-else
-EXES := qwanalysis qwanalysis_adc 
-# qwmockdata
-endif
-endif
-#overridden by "gmake 'EXES=exe1 exe2 ...'"
+# overridden by "gmake 'EXES=exe1 exe2 ...'"
 
 ifneq ($(filter qwrealtime,$(EXES)),)
-ifneq ($(filter %__NOFASTBUS,$(ADD)),)
-$(error qwrealtime requires Fastbus)
-# With version 3.77 or earlier of gmake, the message is simply 'missing separator.  Stop.'
-endif
-ifeq ($(CODA),)
-$(error qwrealtime requires CODA)
-# With version 3.77 or earlier of gmake, the message is simply 'missing separator.  Stop.'
-endif
+ ifneq ($(filter %__NOFASTBUS,$(ADD)),)
+  $(error qwrealtime requires Fastbus)
+  # With version 3.77 or earlier of gmake, the message is simply 'missing separator.  Stop.'
+ endif
+ ifeq ($(CODA),)
+  $(error qwrealtime requires CODA)
+  # With version 3.77 or earlier of gmake, the message is simply 'missing separator.  Stop.'
+ endif
 endif
 
 
@@ -162,19 +154,16 @@ endif
 ############################
 ############################
 
-ifdef ROOTSYS
 ROOTCFLAGS   := $(shell root-config --cflags)
-ROOTLIBS     := $(shell root-config --new --libs) -lTreePlayer -lProof -lGX11 
+ROOTLIBS     := $(shell root-config --new --libs) -lTreePlayer -lGX11
         # -lNew : for map file capability
         # -lTreePlayer -lProof : for user loops calling tree
         #                        variables under conditions
 ROOTGLIBS    := $(shell root-config --glibs)
-endif
 ifndef ROOTSYS
-  $(warning Aborting : ROOTSYS variable is not defined.)
-  $(error Source the script SetupFiles/SET_ME_UP.csh or SetupFiles/SET_ME_UP.bash first.)
+  $(warning Warning: ROOTSYS variable is not defined.)
+  $(warning Source the script SetupFiles/SET_ME_UP.csh or SetupFiles/SET_ME_UP.bash first.)
 endif
-
 
 
 
@@ -186,10 +175,10 @@ endif
 
 ifdef CODA
 CODACFLAGS   := -I$(CODA)/common/include
-CODALIBS     := -L$(CODA_LIB) -let 
+CODALIBS     := -L$(CODA_LIB) -let
 endif
 CODALIBS     += -L$(QWANALYSIS)/lib -lcoda
-      # -lmyevio : now integrated in our distribution (April 19 2001) ; 
+      # -lmyevio : now integrated in our distribution (April 19 2001) ;
       # Regenerated if necessary ; I had to rewrite CODA
       # group's Makefile in $(QWEVIO)
 
@@ -197,8 +186,8 @@ CODALIBS     += -L$(QWANALYSIS)/lib -lcoda
 
 ############################
 ############################
-# Qw Paths : 
-# They are set when $(QWANALYSIS)/SetupFiles/.QwSetup.csh (or .bash) 
+# Qw Paths :
+# They are set when $(QWANALYSIS)/SetupFiles/.QwSetup.csh (or .bash)
 # is sourced prior to the call for this Makefile.
 # A priori they won't be modified. They are (don't uncomment) :
 # QWANALYSIS := /home/lenoble/QwAnalysis
@@ -213,27 +202,43 @@ CODALIBS     += -L$(QWANALYSIS)/lib -lcoda
 ############################
 
 ifndef QWANALYSIS
-$(error Aborting : QWANALYSIS variable is not defined.  Source the SetupFiles/.QwSetup.csh script first.)
+  $(warning Warning : QWANALYSIS variable is not defined.  Setting to source directory.)
+  QWANALYSIS := $(shell pwd)
 endif
 ifeq ($(strip $(QWANALYSIS)),)
-$(error Aborting : QWANALYSIS variable is not set.  Source the SetupFiles/.QwSetup.csh script first.)
+  $(error Aborting : QWANALYSIS variable is not set.  Source the SetupFiles/.QwSetup.csh script first.)
 endif
 ifneq ($(strip $(QWANALYSIS)),$(strip $(shell pwd)))
-$(error Aborting : QWANALYSIS variable disagrees with the working directory.  Source the SetupFiles/.QwSetup.csh script first.)
+  $(error Aborting : QWANALYSIS variable disagrees with the working directory.  Source the SetupFiles/.QwSetup.csh script first.)
 endif
 
+ifndef QWBIN
+  $(warning Warning : QWBIN variable is not defined.  Setting to QWANALSYIS/bin.)
+  QWBIN := $(QWANALYSIS)/bin
+endif
 ifneq ($(strip $(QWBIN)),$(strip $(shell $(FIND) $(QWANALYSIS) -name bin)))
-$(error Aborting : QWBIN variable is not set properly  Source the SetupFiles/.QwSetup.csh script first.)
+  $(error Aborting : QWBIN variable is not set properly  Source the SetupFiles/.QwSetup.csh script first.)
 endif
 
+ifndef QWLIB
+  $(warning Warning : QWLIB variable is not defined.  Setting to QWANALSYIS/lib.)
+  QWLIB := $(QWANALYSIS)/lib
+endif
 ifneq ($(strip $(QWLIB)),$(strip $(shell $(FIND) $(QWANALYSIS) -name lib)))
-$(error Aborting : QWLIB variable is not set properly  Source the SetupFiles/.QwSetup.csh script first.)
+  $(error Aborting : QWLIB variable is not set properly  Source the SetupFiles/.QwSetup.csh script first.)
 endif
 
+ifndef QWEVIO
+  $(warning Warning : QWEVIO variable is not defined.  Setting to QWANALSYIS/coda.)
+  QWEVIO := $(QWANALYSIS)/coda
+endif
+ifneq ($(strip $(QWEVIO)),$(strip $(shell $(FIND) $(QWANALYSIS) -name coda)))
+  $(error Aborting : QWEVIO variable is not set properly  Source the SetupFiles/.QwSetup.csh script first.)
+endif
 
 ############################
 ############################
-# Platform dependent variables : 
+# Platform dependent variables :
 ############################
 ############################
 LIBTOOL = $(LD)
@@ -245,7 +250,7 @@ CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
 LD             = gcc
 LDFLAGS        =
-LDLIBS         = 
+LDLIBS         =
 SOFLAGS        = -shared
 
 ROOTCFLAGS   := $(ROOTCFLAGS) -D_REENTRANT
@@ -255,8 +260,8 @@ ROOTCFLAGS   := $(ROOTCFLAGS) -D_REENTRANT
 ROOTLIBS     := $(ROOTLIBS) -lpthread  -lThread
         # -lpthread : because 'root-config --libs' gives incomplete result
         #             on gzero and libet.so requires it
-        # -lThread:   Required for compilation on Linux systems with 
-        #             ROOT 4.04/02 or 5.08/00 (first noted by J-S Real 
+        # -lThread:   Required for compilation on Linux systems with
+        #             ROOT 4.04/02 or 5.08/00 (first noted by J-S Real
         #             on 3FEB2006)
 endif
 
@@ -265,7 +270,7 @@ CXX            = CC
 CXXFLAGS       = -KPIC
 OPTIM         := -xO2
 LD             = CC
-LDFLAGS        = 
+LDFLAGS        =
 LDLIBS         = -lm -lposix4  -lsocket -lnsl -lresolv -ldl
 # These flags were suggested by Carl Timmer on 30May2001 to link properly the
 # code on jlabs1
@@ -282,11 +287,11 @@ LD             = gcc-3.3
 LIBTOOL 	   = libtool
 LDFLAGS        = -bind_at_load
 LDLIBS         = -lSystemStubs
-SOFLAGS        = 
+SOFLAGS        =
 DllSuf        := .dylib
 
 ROOTCFLAGS   := $(shell root-config --cflags)
-ROOTLIBS     = $(shell root-config --libs) -lTreePlayer -lProof -lGX11 -lpthread -lThread
+ROOTLIBS     := $(shell root-config --libs) -lTreePlayer -lGX11 -lpthread -lThread
 # --new give a runtime error on darwin and root 4.04 :
 # <CustomReAlloc2>: passed oldsize 64, should be 0
 # Fatal in <CustomReAlloc2>: storage area overwritten
@@ -304,13 +309,13 @@ ifndef OPENSSL_DIR
   ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name openssl)),/usr/include/openssl)
 $(error Aborting : Cannot find the /usr/include/openssl.  Set OPENSSL_DIR to the location of the openssl installation.)
 endif
-#  We should also put a test on the openssl version number here.  
+#  We should also put a test on the openssl version number here.
 #
-  OPENSSL_INC  = 
+  OPENSSL_INC  =
   OPENSSL_LIBS = -l crypto
 else
-#  We should also put a test on the openssl version number here. 
-# 
+#  We should also put a test on the openssl version number here.
+#
   OPENSSL_INC  = -I${OPENSSL_DIR}/include
   OPENSSL_LIBS = -L${OPENSSL_DIR}/lib -l crypto
 endif
@@ -325,13 +330,13 @@ ifndef BOOST_INC_DIR
   ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name boost)),/usr/include/boost)
 $(error Aborting : Cannot find the /usr/include/boost.  Set BOOST_INC_DIR and BOOST_LIB_DIR to the location of the Boost installation.)
 endif
-#  We should also put a test on the boost version number here.  
+#  We should also put a test on the boost version number here.
 #
-  BOOST_INC  = 
-  BOOST_LIBS = 
+  BOOST_INC  =
+  BOOST_LIBS =
 else
-#  We should also put a test on the boost version number here. 
-# 
+#  We should also put a test on the boost version number here.
+#
   BOOST_INC  = -I${BOOST_INC_DIR}
   BOOST_LIBS = -L${BOOST_LIB_DIR}
 endif
@@ -343,7 +348,7 @@ BOOST_LIBS += -lboost_filesystem
 
 ############################
 ############################
-# A few fixes : 
+# A few fixes :
 ############################
 ############################
 
@@ -365,7 +370,7 @@ endif
 
 ############################
 ############################
-# Various 'merged' flags for $(CXX) and co : 
+# Various 'merged' flags for $(CXX) and co :
 ############################
 ############################
 
@@ -383,8 +388,8 @@ CXXFLAGS += $(DEBUG) $(OPTIM)
 
 
 ifneq ($(CXX),CC)
-LDLIBS      += -lstdc++
-LDLIBS      += -lz
+  LDLIBS      += -lstdc++
+  LDLIBS      += -lz
 endif
 LIBS =  -L$(QWLIB) -lQw
 LIBS +=  $(ROOTLIBS) $(ROOTGLIBS) $(CODALIBS)
@@ -576,7 +581,7 @@ coda_lib:
 	@$(RM) .tmp1 .tmp2
 
 
-.auxDictFiles: .auxSrcFiles 
+.auxDictFiles: .auxSrcFiles
 	@stem () { \
 	$(BASENAME) $$1 | $(SED) 's/\$(SrcSuf)//'; \
 	}; \
@@ -646,7 +651,7 @@ coda_lib:
 
 
 
-.auxSrcFiles: .auxExeFiles 
+.auxSrcFiles: .auxExeFiles
 	@$(ECHO) Generating $@
 	@for file in $(shell $(FIND) $(QWANALYSIS) | $(SED) '/\/main\//!d;/CVS/d;/\$(SrcSuf)/!d' | $(FILTER_OUT_TRASH)); \
 	do \
@@ -677,7 +682,7 @@ coda_lib:
 
 clean.auxfiles:
 # Removes auxiliary config files
-	@$(ECHO) Removing '.aux*' files	
+	@$(ECHO) Removing '.aux*' files
 	@$(RM) .aux*
 
 
