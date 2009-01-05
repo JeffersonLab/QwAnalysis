@@ -225,6 +225,10 @@ else
   else
     export ROOTSYS=/usr/local/root
   fi
+  if [[ ! -d ${ROOTSYS} ]]
+  then
+    export ROOTSYS=/usr
+  fi
   echo "Setting ROOTSYS to " ${ROOTSYS}
 fi
 

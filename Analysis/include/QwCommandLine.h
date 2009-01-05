@@ -10,6 +10,7 @@
 #define __QWCOMMANDLINE__
 
 #include <getopt.h>
+#include <cstdlib>
 #include <string>
 #include <Rtypes.h>
 
@@ -40,7 +41,7 @@ class QwCommandLine{
 
   std::pair<Int_t, Int_t> fRunRange;
   std::pair<Int_t, Int_t> fEventRange;
-  
+
 
 };
 
@@ -72,7 +73,7 @@ Int_t QwCommandLine::Parse(Int_t argc,Char_t* argv[])
    *  We may want to change to use the boost::program_options
    *  library instead or in addition.
    */
-  
+
   if (fDEBUG){
     //  Add an extra line in the output if we're sending debugging
     //  output to stderr.
@@ -83,7 +84,7 @@ Int_t QwCommandLine::Parse(Int_t argc,Char_t* argv[])
   int option_char;
   while ((option_char = getopt(argc, argv, "r:e:")) != EOF){
     switch (option_char)
-      {  
+      {
       case 'r':{
 	fRunRange = ParseRange("r", optarg);
 	break;
@@ -93,11 +94,11 @@ Int_t QwCommandLine::Parse(Int_t argc,Char_t* argv[])
 	break;
       }
       default:
-	Usage();	
+	Usage();
       }
   }
   if (fRunRange.first == 0){
-    std::cerr << "\nERROR:  There must be at least one run specified!" 
+    std::cerr << "\nERROR:  There must be at least one run specified!"
 	      << std::endl;
     Usage();
   }
@@ -118,14 +119,14 @@ std::pair<Int_t, Int_t> QwCommandLine::ParseRange(std::string flag,
    *
    *  @param flag  The flag which has this range as the arguement;
    *               this is only used in generating error messages.
-   *  @param range String containing two integers separated 
+   *  @param range String containing two integers separated
    *               by a colon, or a single value.
-   *               If the string begins with a colon, the 
+   *               If the string begins with a colon, the
    *               first value is taken as zero.
    *               If the string ends with a colon, the second
    *               value is taken as kMaxInt.
-   *               
-   *  @return  Pair of integers of the first and last values 
+   *
+   *  @return  Pair of integers of the first and last values
    *           of the range.
    *           If the range contains a single value, the
    *           two integers will be identical.
@@ -153,13 +154,13 @@ std::pair<Int_t, Int_t> QwCommandLine::ParseRange(std::string flag,
   }
   //  Check the values for common errors.
   if (mypair.first < 0){
-    std::cerr << "ERROR in QwCommandLine::ParseRange for flag \"-" 
+    std::cerr << "ERROR in QwCommandLine::ParseRange for flag \"-"
 	      << flag << "\": "
 	      << "The first value must not be negative!"
 	      << std::endl;
     exit(1);
   } else if (mypair.first > mypair.second){
-    std::cerr << "ERROR in QwCommandLine::ParseRange for flag \"-" 
+    std::cerr << "ERROR in QwCommandLine::ParseRange for flag \"-"
 	      << flag << "\": "
 	      << "The first value must not be larger than the second value"
 	      << std::endl;
@@ -167,9 +168,9 @@ std::pair<Int_t, Int_t> QwCommandLine::ParseRange(std::string flag,
   }
   //  Print the contents of the pair for debugging.
   if (fDEBUG){
-    std::cerr << "INFO in QwCommandLine::ParseRange for flag \"-" 
+    std::cerr << "INFO in QwCommandLine::ParseRange for flag \"-"
 	      << flag << "\": "
-	      << "The range goes from " << mypair.first 
+	      << "The range goes from " << mypair.first
 	      << " to " << mypair.second
 	      << std::endl;
   }

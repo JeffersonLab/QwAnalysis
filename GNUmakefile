@@ -171,7 +171,8 @@ ROOTLIBS     := $(shell root-config --new --libs) -lTreePlayer -lProof -lGX11
 ROOTGLIBS    := $(shell root-config --glibs)
 endif
 ifndef ROOTSYS
-$(error Aborting : ROOTSYS variable is not defined.  Source the SetupFiles/.QwSetup.csh script first.)
+  $(warning Aborting : ROOTSYS variable is not defined.)
+  $(error Source the script SetupFiles/SET_ME_UP.csh or SetupFiles/SET_ME_UP.bash first.)
 endif
 
 

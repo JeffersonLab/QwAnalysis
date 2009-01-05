@@ -40,6 +40,15 @@ else
    export LD_LIBRARY_PATH=${QWANALYSIS}/lib:${ROOTSYS}/lib:${X11}/lib
 fi
 
+# Create alias gmake -> make when gmake is not found
+if [[ -z "`which gmake`" ]]
+then
+   echo "Could not find gmake, forcing the use of make."
+   alias make='make MAKE=make'
+else
+   echo no alias
+fi
+
 # QWSHELL
 if [[ -f /bin/bash ]]
 then
