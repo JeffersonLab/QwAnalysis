@@ -1,18 +1,23 @@
 #include "Qevent.h"
+
 #include <iostream>
-#include <math.h>
+#include <cstdio>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #ifndef NDetMax
-#define NDetMax 1010
+# define NDetMax 1010
 #endif
-#ifndef NMaxHits 
-#define NMaxHits 1000
+
+#ifndef NMaxHits
+# define NMaxHits 1000
 #endif
 
 using namespace std;
 
-extern Det *rcDETRegion[2][3][4];
-extern Det rcDET[NDetMax];
+extern Det* rcDETRegion[2][3][4];
+extern Det  rcDET[NDetMax];
 extern EUppLow operator++(enum EUppLow &rs, int );
 extern ERegion operator++(enum ERegion &rs, int );
 extern Etype operator++(enum Etype &rs, int );
@@ -22,23 +27,35 @@ extern Edir operator++(enum Edir &rs, int );
 Qevent
 Date : 7/30/7
 Author : Burnham Stokes*/
-/*! \file Qevent.cc 
+/*! \file Qevent.cc
 \brief Qevent is a generic data read-in class.
 
 Description : Qevent is a generic data read-in class that
 reads ascii to generate events.  The file 'qweak.event' is an
-example event file.  The file 'template.event' has 
+example event file.  The file 'template.event' has
 documentation to describe the data in 'qweak.event'.
 */
 
 
 //____________________________________________________________
 Qevent::Qevent(){
+	cout << "Qevent object created" << endl;
 	numevents=0;
 	hitlist = 0;
+	nevent = 0;
+        newevent = 0;
+	firstevent = 1;
 }
 //____________________________________________________________
-int Qevent::FillHits(char *eventfile){
+int Qevent::Open(const char *eventfile){
+  events = fopen(eventfile,"r");
+  if (events) return 1;
+  else return 0;
+
+}
+//____________________________________________________________
+int Qevent::GetEvent(){
+	hitlist = NULL;
 	char line[256];
 	Hit *newhit;
 	int nhits =0;
@@ -49,21 +66,19 @@ int Qevent::FillHits(char *eventfile){
 	enum Edir dir,dir2;
 	enum Etype type,type2;
 
-	int nevent=0,nevents=0;
+	int nevents=0;
 	int detecID=0;
-	
-	int changedetec,firstdetec = 1;
+
+	int firstdetec = 1;
 	Det *rd;
-	events = fopen(eventfile,"r");
-
-	while(!feof(events)){
-		fgets(line,maxchar,events);
-		if(feof(events))break;
-		nevent = atoi(strtok(line,"\n"));// event number
-		nevents++;
-			
-
-
+	if(feof(events))return 0;
+	while(!feof(events) && newevent == nevent){
+		if(firstdetec && firstevent){
+			fgets(line,maxchar,events);
+			nevent = atoi(strtok(line,"\n"));// event number
+			firstevent--;
+			nevents++;
+		}
 		fgets(line,maxchar,events);
 		//detecID is an integer identifying which detector is being read in
 		detecID = atoi(strtok(line,"\n"));
@@ -72,7 +87,7 @@ int Qevent::FillHits(char *eventfile){
 		up_low = rcDET[detecID].upplow;//The 'top' or 'bottom' detector
 		region = rcDET[detecID].region;
 		dir = rcDET[detecID].dir;// the wire direction for the case of drift chambers
-		type = rcDET[detecID].type;// the detector type 
+		type = rcDET[detecID].type;// the detector type
 
 		if(firstdetec){
 			firstdetec = 0;
@@ -85,7 +100,7 @@ int Qevent::FillHits(char *eventfile){
 		else{
 			hitlist = NULL;
 			newhit = NULL;
-			if(up_low2 == up_low && 
+			if(up_low2 == up_low &&
 			   region2 == region &&
 			   type2 == type &&
 			   dir2 == dir){
@@ -100,26 +115,7 @@ int Qevent::FillHits(char *eventfile){
 				dir2 = dir;
 			}
 		}
-
-		//cerr << detecID << "," << up_low << "," << region << "," << type << "," << dir << endl;
-
-
-
-/*
-		//String the different directions/layers in each detector
-		if(firstdetec){
-			rd = rcDETRegion[up_low][region-1][dir];
-			firstdetec = 0;
-			changedetec = detecID;
-		}
-		else if(detecID!=changedetec){
-			rd = rd->nextsame;
-			changedetec = detecID;
-		}
-*/		
-
-
-		//number of hits
+		rd->hitbydet = 0;
 		fgets(line,maxchar,events);
 		nhits = atoi(strtok(line,"\n"));
 		for(i =0;i<nhits;i++){
@@ -141,11 +137,13 @@ int Qevent::FillHits(char *eventfile){
 
 			//chain the hits in each detector
 			newhit->nextdet = rd->hitbydet;
-			rd->hitbydet = newhit;	
+			rd->hitbydet = newhit;
 		}
+		fgets(line,maxchar,events);
+		newevent = atoi(strtok(line,"\n"));// event number
 	}
-	
-	return 1;
+	nevent = newevent;
+	return nevent-1;
 }
 
 //____________________________________________________________
