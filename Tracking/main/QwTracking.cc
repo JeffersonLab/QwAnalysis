@@ -13,7 +13,7 @@
 using namespace std;
 
 #define NDetMax 1010
-#define NEventMax 10
+#define NEventMax 5
 
 //Temporary global variables for sub-programs
 bool bWriteGlobal = false;

@@ -246,7 +246,7 @@ LIBTOOL = $(LD)
 ifeq ($(ARCH),Linux)
 
 CXX            := gcc
-CXXFLAGS       := -Wall -fPIC
+CXXFLAGS       := -Wall -fPIC -Wl,-rpath,$(QWLIB)
 OPTIM          := -O2
 LD             = gcc
 LDFLAGS        =

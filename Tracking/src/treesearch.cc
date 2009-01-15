@@ -792,7 +792,8 @@ void treesearch::_TsSearch(shortnode *node,int level,int offset,int row_offset,i
 	int     *tree_pattern;
 	int hashpat[TLAYERS];
 	int off, rev, off2, nlevel = level+1, i, bin,x;
-	int miss, matched,nullhits;
+	int miss, matched;
+	int nullhits = 0;
 	int frontbin, backbin;
 	int firstwire=1000,lastwire=-1;
 	//int front_miss = 0;

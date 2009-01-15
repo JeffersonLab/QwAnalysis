@@ -336,7 +336,10 @@ Event * treedo::rcTreeDo (int iEventNo)
 
 	    }
 	    if (debug) cout << "Match region 3 segments" << endl;
-	    trelin = TreeMatch.MatchR3 (trelin1, trelin2, upplow, region, dir);
+	    // (wdc) If no trelin1 or trelin2 is found, then skip matching.
+	    //       Otherwise this gets confused due to the scintillators.
+	    if (trelin1 || trelin2)
+	      trelin = TreeMatch.MatchR3 (trelin1, trelin2, upplow, region, dir);
 	    event->treeline[upplow][region-1][type][dir] = trelin;
 	    tlayers = TLAYERS;     /* remember the number of tree-detector */
 	    tlaym1  = tlayers - 1; /* remember tlayers - 1 for convenience */

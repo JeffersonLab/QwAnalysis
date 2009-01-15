@@ -12,6 +12,11 @@
 #ifndef DET_H
 #define DET_H
 
+#include <string>
+using std::string;
+
+#include "enum.h"
+
 /// First declare the Hit and Det are objects, because they contain
 /// pointers to each other.
 class Hit;

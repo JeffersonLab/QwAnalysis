@@ -1,3 +1,8 @@
-u 3 d 4 #for the upper region 3 VDC, use 4 levels of pattern division
-l 3 d 4 #for the lower region 3 VDC, use 4 levels of pattern division
-0 0 0 #showEventPattern showMatchingPatterns showMatchedPattern
+# TODO: Are there no ini style option routines in boost or so? Or even an XML file.
+# Does someone understand this file format?
+u 3 d 4 # for the upper region 3 VDC, use 8 levels of pattern division
+l 3 d 4 # for the lower region 3 VDC, use 8 levels of pattern division
+u 2 d 8 # for the upper regon 2 HDC, use 8 levels of pattern division (4 bins/wire @ 32 wires)
+l 2 d 8 # for the lower region 2 HDC, use 8 levels of pattern division (4 bins/wire @ 32 wires/plane)
+1 1 1   # showEventPattern showMatchingPatterns showMatchedPattern
+R 0.862 1.4 2 # maxslope was calculated for only the x-direction, but is applied to u and v.  u and v max slopes should be smaller.  maxroad will need to be studied to determine what the optimal value should be.  Hermes used 1.4  MaxXRoad determines how close u,v,x tracks have to be, and will need to be optimized.
