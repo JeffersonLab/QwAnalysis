@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <iostream>
 
 #include "options.h"
 #include "tree.h"
@@ -69,9 +70,13 @@ void Qoptions::Get(const char *optname){
 		// ignore comments up to 256 characters long
 		while (word[0] == '#') {
 			optstream.ignore(256,'\n');
+			if (optstream.eof()) break;
 			optstream >> word;
+			std::cerr << "I've skipped a comment.  The next word is '" << word << "'" << std::endl;
 		}
+		if (optstream.eof()) break;
 		if (word == "") break; // skip empty lines at end of file
+		std::cerr << word << std::endl;
 
 		if (word[0] == 'u' || word[0] == 'l') { // detector or general
 

@@ -192,6 +192,18 @@ void tree::rcInitTree()
 	      /// ... and each wire direction
 	      for (direction = u_dir; direction <= x_dir; direction++) {
 
+		///  Skip the NULL rcDETRegion pointers.
+		//   pking:  This is probably a configuration error,
+		//           which the user may want to be warned about.
+		if (rcDETRegion[up_low][region-1][direction] == NULL){
+		  std::cerr << "WARN:  rcDETRegion["<< up_low 
+			    << "]["          << region-1 
+			    << "]["          << direction
+			    << "] is NULL.  Should it be?"
+			    << std::endl;
+		  continue;
+		}
+
 	        /// Region 3 contains 8 layers
 	        if (region == r3 && type == d_drift) {
 	          numlayers = TLAYERS; // should be 8
