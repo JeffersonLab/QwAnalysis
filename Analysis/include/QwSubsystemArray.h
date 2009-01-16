@@ -106,19 +106,23 @@ void  QwSubsystemArray::ClearEventData()
 Int_t QwSubsystemArray::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
 				 buffer, UInt_t num_words)
 {
+  Int_t status = 0;
   if (!empty())
     for (iterator subsys = begin(); subsys != end(); ++subsys){
-      (*subsys)->ProcessConfigurationBuffer(roc_id, bank_id, buffer, num_words);
+      status += (*subsys)->ProcessConfigurationBuffer(roc_id, bank_id, buffer, num_words);
     }
+  return status;
 };
   
 Int_t QwSubsystemArray::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
 		      buffer, UInt_t num_words)
 {
+  Int_t status = 0;
   if (!empty())
     for (iterator subsys = begin(); subsys != end(); ++subsys){
-      (*subsys)->ProcessEvBuffer(roc_id, bank_id, buffer, num_words);
+      status += (*subsys)->ProcessEvBuffer(roc_id, bank_id, buffer, num_words);
     }
+  return status;
 };
 
 

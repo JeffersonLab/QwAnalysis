@@ -246,10 +246,10 @@ LIBTOOL = $(LD)
 ifeq ($(ARCH),Linux)
 
 CXX            := gcc
-CXXFLAGS       := -Wall -fPIC -Wl,-rpath,$(QWLIB)
+CXXFLAGS       := -Wall -fPIC 
 OPTIM          := -O2
 LD             = gcc
-LDFLAGS        =
+LDFLAGS        = -Wl,-rpath,$(QWLIB)
 LDLIBS         =
 SOFLAGS        = -shared
 
