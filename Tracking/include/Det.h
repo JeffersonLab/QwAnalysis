@@ -63,6 +63,8 @@ class Det {
     int  ID; /* Id representing a detector ID number.
                 This is needed to separate detectors when comparing hits.  */
 
+    void print();
+
   private:
 
 };
