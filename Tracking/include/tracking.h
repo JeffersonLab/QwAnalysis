@@ -14,6 +14,7 @@
 #ifndef TRACKING_H
 #define TRACKING_H
 
+#include "globals.h"
 #include "Hit.h"
 
 class Hit;
@@ -194,7 +195,7 @@ class Event {
   public:
 
     int ID;
-    TreeLine  *treeline[2][3][4][4];	/*!< [up/low][region][type][u/v/x/y] */
+    TreeLine  *treeline[2][3][4][4];	/*!< [upper/lower][region][type][u/v/x/y] */
     //Cluster   *cluster[2];		/*!< [upper/lower] */
     //Cluster   *lumicluster[2];	/*!< [right/left] */
     PartTrack *parttrack[2][3][4];	/*!< [meth][upper/lower][forw/back] */
@@ -207,5 +208,6 @@ class Event {
   private:
 
 };
+
 
 #endif // TRACKING_H

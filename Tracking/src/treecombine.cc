@@ -1352,7 +1352,6 @@ int treecombine::TcTreeLineCombine2(TreeLine *wu,TreeLine *wv,PartTrack *pt, int
   double fit[4], chi;
   double *covp = &cov[0][0];
   enum Edir dir;
-  extern int iEvent;
   int ntotal=0;
   //initialize cov,fit
   for(i=0;i<4;i++){
@@ -1387,7 +1386,7 @@ int treecombine::TcTreeLineCombine2(TreeLine *wu,TreeLine *wv,PartTrack *pt, int
 
   //Perform the fit.
   if( r3_TrackFit2( hitc, hits, fit, covp, &chi)  == -1) {
-    fprintf(stderr,"hrc: Event: %d - PartTrack Fit Failed\n", iEvent);
+    fprintf(stderr,"hrc: PartTrack Fit Failed\n");
     return 0;
   }
   cout << "Ntotal = " << ntotal << endl;
@@ -1425,7 +1424,6 @@ int treecombine::TcTreeLineCombine(TreeLine *wu,TreeLine *wv,PartTrack *pt, int 
   double fit[4],chi;
   double *fitp = &fit[0];
   enum Edir dir;
-  extern int iEvent;
   double m,b;
   double uv2xy[2][2];//2 by 2 projection matrix
 
@@ -1492,11 +1490,11 @@ cerr << "a" << endl;
   // Perform the track fit #
   //########################
 /*  if( rc_TrackFit( hitc, hits, fitp, covp, &chi, 0,0)  == -1) {
-    fprintf(stderr,"hrc: Event: %d - PartTrack Fit Failed\n", iEvent);
+    fprintf(stderr,"hrc: PartTrack Fit Failed\n");
     return 0;
   }*/
   if(r3_TrackFit(hitc,hits,fitp,covp,&chi,uv2xy) == -1){
-    fprintf(stderr,"hrc: Event: %d - PartTrack Fit Failed\n", iEvent);
+    fprintf(stderr,"hrc: PartTrack Fit Failed\n");
     return 0;
   }
   //#########################
@@ -1530,7 +1528,6 @@ int treecombine::TcTreeLineCombine(TreeLine *wu,TreeLine *wv,TreeLine *wx,PartTr
   for(i=0;i<4;i++){fit[i]=0;}
 
   enum Edir dir;
-  extern int iEvent;
   double *covp = &cov[0][0];
   int ntotal=0;
   for(i=0;i<4;i++){for(j=0;j<4;j++){cov[i][j]=0;}}
@@ -1553,7 +1550,7 @@ int treecombine::TcTreeLineCombine(TreeLine *wu,TreeLine *wv,TreeLine *wx,PartTr
   }
   //Perform the fit.
   if( r2_TrackFit( hitc, hits, fit, covp, &chi)  == -1) {
-    fprintf(stderr,"hrc: Event: %d - PartTrack Fit Failed\n", iEvent);
+    fprintf(stderr,"hrc: PartTrack Fit Failed\n");
     return 0;
   }
   //cerr << "5" << endl;

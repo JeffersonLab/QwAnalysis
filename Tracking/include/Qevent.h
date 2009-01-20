@@ -21,15 +21,15 @@ class Qevent{
     int GetEvent();
     int Open(const char *eventfile);
 
-    int debug;
-    int numevents;
-    int nevent;
-    int newevent;
-    int firstevent;
-    FILE *events;
-    Hit *hitlist;
-
   private:
+
+    FILE *events;	//!- event stream
+    Hit *hitlist;	//!- hit list
+
+    int debug;		//!- debug level
+
+    int ievent;		//!- event currently being read in
+    int nevent;		//!- total number of events processed
 
 };
 

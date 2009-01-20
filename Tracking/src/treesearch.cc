@@ -1,12 +1,18 @@
+#include "treesearch.h"
+
+// Standard C and C++ headers
 #include <cstdio>
 #include <cmath>
 #include <cstdlib>
 #include <cassert>
 #include <cstring>
-
-#include "treesearch.h"
-
+#include <iostream>
 using namespace std;
+
+// Qweak headers
+#include "Hit.h"
+#include "options.h"
+
 
 //__________________________________
 static int _hashgen = 1;

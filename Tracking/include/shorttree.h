@@ -1,46 +1,43 @@
-//
-// C++ Interface: shorttree
-//
-// Description:
-//
-//
-// Author: Wouter Deconinck <wdconinc@mit.edu>, (C) 2008
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
 #ifndef QWTRACKINGSHORTTREE_H
 #define QWTRACKINGSHORTTREE_H
 
-#include <shortnode.h>
-
-#define TLAYERS 8
+#include "shortnode.h"
+#include "globals.h"
 
 namespace QwTracking {
 
+
+// Forward declaration due to cyclic dependency
 class shortnode;
 
-/**
-    @author Wouter Deconinck <wdconinc@mit.edu>
+/*------------------------------------------------------------------------*//*!
 
     \class shorttree
+
     \brief Similar to a treenode.
- */
-class shorttree{
+
+*//*-------------------------------------------------------------------------*/
+
+class shorttree {
+
   public:
+
     shorttree();
     ~shorttree();
 
     void print();
 
-    int maxlevel;
-    int minlevel;
+    int maxlevel, minlevel;
     int bits;
-    int xref;
     int bit[TLAYERS];
+    int xref;
+
     shortnode *son[4];
+
 };
+
 
 } // QwTracking
 
-#endif
+
+#endif // QWTRACKINGSHORTTREE_H

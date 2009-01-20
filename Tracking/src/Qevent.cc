@@ -1,13 +1,17 @@
 #include "Qevent.h"
 
+// Standard C and C++ headers
 #include <iostream>
 #include <cstdio>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+using namespace std;
 
+// Qweak headers
 #include "Det.h"
 #include "enum.h"
+
 
 #ifndef NDetMax
 # define NDetMax 1010
@@ -17,7 +21,6 @@
 # define NMaxHits 1000
 #endif
 
-using namespace std;
 
 extern Det* rcDETRegion[2][3][4];
 extern Det  rcDET[NDetMax];
@@ -43,18 +46,20 @@ documentation to describe the data in 'qweak.event'.
 //____________________________________________________________
 Qevent::Qevent()
 {
-	int debug = 1; // debug level
+	// Debug level
+	debug = 1;
 
-	if (debug) cout << "Qevent object created" << endl;
-	numevents = 0;
-	hitlist = 0;
+	// Event counters
+	ievent = 0;
 	nevent = 0;
-        newevent = 0;
-	firstevent = 1;
+
+	// Hit list pointer
+	hitlist = NULL;
 }
 //____________________________________________________________
 int Qevent::Open(const char *eventfile)
 {
+  // Open event file
   events = fopen(eventfile, "r");
   if (events)
     return 1;
@@ -64,11 +69,13 @@ int Qevent::Open(const char *eventfile)
 //____________________________________________________________
 int Qevent::GetEvent()
 {
-	hitlist = NULL;
+	// Line buffer
 	char line[256];
-	Hit *newhit;
+	int maxchar = 256;
+
+	// List of hits
 	int nhits = 0;
-	int maxchar = 256, i = 0;
+	Hit *newhit;
 
 	// Detector region/type/direction identifiers
 	enum EUppLow up_low, up_low2;
@@ -76,35 +83,59 @@ int Qevent::GetEvent()
 	enum Etype   type,   type2;
 	enum Edir    dir,    dir2;
 
-	int nevents = 0;
+	// In order to handle incomplete files, we keep track of when it is
+	// safe to end the file.  An EOF is only safe when the current
+	// event/detector record is complete.
+	int complete = 0;
+
+	// Detector ID
 	int detecID = 0;
-
 	int firstdetec = 1;
-	Det *rd;
+	Det *rd = NULL;
 
-	if (feof(events)) return 0;
-	while (!feof(events) && newevent == nevent) {
 
-		// when this is the first event of the event file
-		if (firstdetec && firstevent) {
-			// event number
-			fgets(line, maxchar, events);
-			nevent = atoi(strtok(line,"\n"));
-			firstevent--;
-			nevents++;
-		}
+	// Variables related to the events
+	//
+	//   Qevent::events = event stream
+	//
+	//   Qevent::nevent = total number of events processed
+	//   Qevent::ievent = event currently being read in
+	//
 
-		// detector ID identifying which detector is being read in
-		fgets(line, maxchar, events);
+	// This is the first event in the stream that we read in,
+	// so we start by reading the first event number
+	if (ievent == 0) {
+		// Read event number (EOF is only set on first failed read)
+		if (!fgets(line, maxchar, events)) return 0;
+		ievent = atoi(strtok(line,"\n"));
+		if (debug) cout << "[Qevent::GetEvent] First event number read." << endl;
+	}
+	if (debug) cout << "[Qevent::GetEvent] Event " << ievent << endl;
+	int event = ievent; // local variable with new event number
+
+	// Loop over one event record in the stream (which means multiple
+	// event/detector pairs).
+	// Any order is allowed, the event number does not need to increase.
+	// We read until we encounter EOF or a new event number.
+	while (!feof(events) && ievent == event) {
+
+		// We have already read the event number at the end of the
+		// previous loop.
+
+		// Incomplete record, it is unsafe to end now
+		complete = 0;
+
+		// Read detector ID, identifying which detector is being read in
+		if (!fgets(line, maxchar, events)) continue;
 		detecID = atoi(strtok(line,"\n"));
 
 		// Obtain the detector information from rcDET which is set up by Qset
 		up_low = rcDET[detecID].upplow;  // the 'top' or 'bottom' detector
 		region = rcDET[detecID].region;  // the detector region
 		type   = rcDET[detecID].type;    // the detector type
-		dir    = rcDET[detecID].dir;     // the wire direction for the case of drift chambers
+		dir    = rcDET[detecID].dir;     // the wire direction
 
-		// when this is the first detector of the event file
+		// when this is the first detector of the event
 		if (firstdetec) {
 			firstdetec = 0;
 			up_low2 = up_low;
@@ -135,65 +166,90 @@ int Qevent::GetEvent()
 		}
 		rd->hitbydet = 0;
 
-		// number of hits in this detector plane
-		fgets(line, maxchar, events);
-		nhits = atoi(strtok(line,"\n"));
 
+		// Number of hits in this detector plane
+		if (!fgets(line, maxchar, events)) continue;
+		nhits = atoi(strtok(line,"\n"));
 		// debug output
 		if (debug) cout << "det " << rd->ID << ", " << nhits << " hits, ";
+
+		// Read in all the hits for this event
 		if (debug) cout << "wires:";
-
-		// read in all the hits for this event
-		for (i = 0; i < nhits; i++) {
+		for (int hit = 0; hit < nhits; hit++) {
 			// create the hit structure
-			newhit = (Hit *)malloc( sizeof(Hit));
+			newhit = (Hit*) malloc (sizeof(Hit));
+			// set event number
+			newhit->ID = ievent;
 
-			// event number (is already read in)
-			newhit->ID = nevent;
-
-			// wire number
-			fgets(line, maxchar, events);
+			// Wire number
+			if (!fgets(line, maxchar, events)) continue;
 			newhit->wire = atoi(strtok(line,"\n"));
 
 			// Z position of wire plane (first wire for region 3)
-			fgets(line, maxchar, events);
+			if (!fgets(line, maxchar, events)) continue;
 			newhit->Zpos = atof(strtok(line,"\n"));
 
-			// distance of hit from wire
-			fgets(line, maxchar, events);
+			// Distance of hit from wire
+			if (!fgets(line, maxchar, events)) continue;
 			newhit->rPos1 = atof(strtok(line,"\n"));
 
-			// placeholder for future code
-			fgets(line, maxchar, events);
+			// Placeholder for future code
+			if (!fgets(line, maxchar, events)) continue;
 			newhit->rPos2 = atof(strtok(line,"\n"));
 
-			// get the spatial resolution for this hit
+			// Get the spatial resolution for this hit
 			newhit->Resolution = rd->resolution;
 			// the hit's pointer back to the detector plane
 			newhit->detec = rd;
 
-			newhit->next = hitlist; // chain the hits
+			// Chain the hits
+			newhit->next = hitlist;
 			hitlist = newhit;
 
-			// chain the hits in each detector
+			// Chain the hits in each detector
 			newhit->nextdet = rd->hitbydet;
 			rd->hitbydet = newhit;
 
+			// Debug output
 			if (debug) cout << " " << newhit->wire;
 		}
 		if (debug) cout << endl;
 
-		// event number
-		// (wdc) This is not really good, it won't read the last event
-		//       Since fgets causes feof to be set, we would need to
-		//       read the event number in the loop and then break if
-		//       we reach eof.  For now, add useless event at end.
-		fgets(line, maxchar, events);
-		newevent = atoi(strtok(line,"\n"));
+		// The detector record is complete, it is safe to end now
+		complete = 1;
+
+
+
+		// Read event number (EOF is only set on first failed read)
+		if (!fgets(line, maxchar, events)) {
+			event = 0;
+			continue;
+		}
+		event = atoi(strtok(line,"\n"));
+
+		// This is a new event, not just a new detector record
+		// of the same event.
+		if (event != ievent) {
+			nevent++; // increment total number of events
+		}
+
 	}
 
-	nevent = newevent;
-	return nevent - 1;
+	// Store the new event number for the next call, but return the old one
+	int thisevent = ievent;
+	ievent = event;
+
+	// Return event number or error code:
+	//   0   Ended on an EOF after a full event
+	//  -1   Ended on an EOF in the middle of a detector record
+	if (complete)
+		return thisevent;
+	else {
+		cerr << "[Qevent::GetEvent] Error: Premature end of event stream!" << endl;
+		cerr << "[Qevent::GetEvent] Last line was: ";
+		cerr << line << endl;
+		return -1;
+	}
 }
 
 //____________________________________________________________

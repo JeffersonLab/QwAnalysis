@@ -360,7 +360,6 @@ int treesort::rcTreeConnSort( TreeLine *head, enum ERegion region/*,
   int num, idx, i, j, bestconn,common;
   int iteration = 0;
   int num_tl = 0;
-  extern int iEvent;
   int  *isvoid;
   double   *chia, chi, maxch = 20000.0, nmaxch, nminch;//this is bad
 
@@ -403,8 +402,7 @@ cerr << "voided in treesort " << maxch << ',' << chi << endl;
   num = idx;
 
   if( num_tl )
-    fprintf(stderr,"hrc: Skipping event %d because of 0 good treelines\n",
-	    iEvent);
+    fprintf(stderr,"hrc: Skipping event because of 0 good treelines\n");
   
   if( ! num )
     return 0;

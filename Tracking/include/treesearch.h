@@ -1,11 +1,14 @@
 #ifndef TREESEARCH_H
 #define TREESEARCH_H
-#include <iostream>
-#include "tree.h"
 
-#ifndef TLAYERS
-#define TLAYERS 8
-#endif
+// Qweak tree object headers
+#include "shortnode.h"
+using namespace QwTracking;
+
+#include "Hit.h"
+#include "tracking.h"
+#include "globals.h"
+
 
 /*! \brief This module contains the code for performing the treesearch
           algorithm to generate one treeline.

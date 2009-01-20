@@ -12,16 +12,23 @@
 #ifndef QWTRACKINGTREE_CLASS_H
 #define QWTRACKINGTREE_CLASS_H
 
-#include <treenode.h>
-#include <nodenode.h>
-#include <shortnode.h>
-#include <shorttree.h>
-#include <treeregion.h>
+// Qweak tree object headers
+#include "treenode.h"
+#include "nodenode.h"
+#include "shortnode.h"
+#include "shorttree.h"
+#include "treeregion.h"
+using namespace QwTracking;
 
-#include <enum.h>
+#include "enum.h"
 
-// TODO (wdc) Move this constant to one location, document what it does
-#define HSHSIZ 511
+#include "options.h"
+#include "Hit.h"
+#include "Det.h"
+#include "tracking.h"
+
+#include "globals.h"
+
 
 namespace QwTracking {
 
