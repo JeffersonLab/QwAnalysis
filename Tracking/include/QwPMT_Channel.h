@@ -34,7 +34,7 @@ class QwPMT_Channel: public VQwDataElement {
   };
 
   void  ClearEventData();
-  Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left){};
+  Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left){return 0;};
 
   void  SetValue(Double_t data){fValue= data;};
 
