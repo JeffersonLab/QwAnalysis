@@ -11,14 +11,14 @@
 #include <vector>
 #include <TTree.h>
 
-#include "VQwSubsystem.h"
+#include "VQwSubsystemTracking.h"
 
 #include "MQwV775TDC.h"
 
 #include "QwPMT_Channel.h"
 
 
-class QwMainDetector: public VQwSubsystem, public MQwV775TDC {
+class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
   /******************************************************************
    *  Class: QwMainDetector
    *

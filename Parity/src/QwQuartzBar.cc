@@ -9,7 +9,7 @@
 
 #include <sstream>
 
-QwQuartzBar::QwQuartzBar(TString region_tmp):VQwSubsystem(region_tmp){
+QwQuartzBar::QwQuartzBar(TString region_tmp):VQwSubsystemParity(region_tmp){
 };
 
 QwQuartzBar::~QwQuartzBar(){

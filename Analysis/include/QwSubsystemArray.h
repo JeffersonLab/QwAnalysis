@@ -1,7 +1,7 @@
 /**********************************************************\
 * File: QwSubsystemArray.h                                 *
 *                                                          *
-* Author: P. M. King                                       *
+* Author: P. M. King,  Rakitha Beminiwattha                *
 * Time-stamp: <2008-07-22 15:50>                           *
 \**********************************************************/
 
@@ -18,7 +18,6 @@
 
 #include "VQwSubsystem.h"
 
-#include "QwHitContainer.h"
 
 
 class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
@@ -58,7 +57,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void  DeleteHistograms();
   
 
-  void GetHitList(QwHitContainer & grandHitList);
+  
 
  protected:
 
@@ -158,15 +157,5 @@ void  QwSubsystemArray::DeleteHistograms()
 };
 
 
-void QwSubsystemArray::GetHitList(QwHitContainer & grandHitList){
-  if (!empty()){
-    grandHitList.clear();
-    
-    for (iterator subsys = begin(); subsys != end(); ++subsys){
-      
-      ((subsys)->get())->GetHitList(grandHitList);
-    }
-  }
-};
 
 #endif

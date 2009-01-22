@@ -26,12 +26,12 @@
 #include<fstream>
 #include<string>
 
-#include "VQwSubsystem.h"
+#include "VQwSubsystemTracking.h"
 #include "MQwF1TDC.h"
 
 
 
-class QwDriftChamber: public VQwSubsystem, public MQwF1TDC{
+class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   /******************************************************************
    *  Class: QwDriftChamber
    *

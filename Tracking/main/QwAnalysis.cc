@@ -31,7 +31,7 @@ Bool_t kInQwBatchMode = kFALSE;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
- /////  IMPORTANT :- This version of the code decode actual QWEAK hits from Mark Pitt's data file 62398. Obtain a copy from ///////
+ /////  IMPORTANT :- This version of the code decodes actual QWEAK hits from Mark Pitt's data file 62398. Obtain a copy from ///////
   ////  /u/group/qweak/pitt/scratch/data at jlabl1 server in JLAB  ///////////////////////////////////////////////////////////////
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -63,7 +63,7 @@ int main(Int_t argc,Char_t* argv[])
 
   QwEventBuffer eventbuffer;
   
-  QwSubsystemArray QwDetectors;
+  QwSubsystemArrayTracking QwDetectors;
 
   QwDetectors.push_back(new QwDriftChamberHDC("R2"));
   QwDetectors.GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");//this map file was created by Mark Pitt to run actual QWEAK hits -Rakitha (23/10/2008)

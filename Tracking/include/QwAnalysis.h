@@ -26,7 +26,7 @@
 
 #include "QwEventBuffer.h"
 
-#include "QwSubsystemArray.h"
+#include "QwSubsystemArrayTracking.h"
 
 
 #include "QwDriftChamberHDC.h"

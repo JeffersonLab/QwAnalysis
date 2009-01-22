@@ -16,14 +16,17 @@
 #include <TDirectory.h>
 
 #include "QwParameterFile.h"
-#include "QwHitContainer.h"
+
 
 
 class VQwSubsystem{
   /******************************************************************
    *  Class: VQwSubsystem
    *         Virtual base class for the classes containing the
-   *         event-based information from each tracking subsystem.
+   *         event-based information from each tracking subsystem and Parity analysis. 
+   *         Sub classes VQwSubsystemTracking and VQwSubsystemParity are base classes
+   *         for the classes containing the event-based information from each tracking 
+   *         subsystem and Parity analysis respectively.
    *         This will define the interfaces used in communicating
    *         with the CODA routines.
    *
@@ -37,6 +40,9 @@ class VQwSubsystem{
   Bool_t  HasDataLoaded() const  {return fIsDataLoaded;}
   
 
+  Int_t returnSubsystemType(){ //value is 1 if this is a tracking class and value is 2 if this is a parity class else it is 0
+    return 0;
+};
 
   virtual Int_t LoadChannelMap(TString mapfile) = 0;
   virtual void  ClearEventData() = 0;
@@ -51,7 +57,7 @@ class VQwSubsystem{
   virtual void  ConstructHistograms(TDirectory *folder) = 0;
   virtual void  FillHistograms() = 0;
   virtual void  DeleteHistograms() = 0;
-  virtual void  GetHitList(QwHitContainer & grandHitList)=0;
+  
 
   
   
@@ -80,7 +86,10 @@ class VQwSubsystem{
   std::vector<UInt_t> fROC_IDs;
   std::vector< std::vector<UInt_t> > fBank_IDs;
 
- private:
+
+  
+
+ protected:
   VQwSubsystem(){};  //  Private constructor.
 
 

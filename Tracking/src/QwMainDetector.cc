@@ -12,7 +12,7 @@ const UInt_t QwMainDetector::kMaxNumberOfChannelsPerModule = 32;
 
 
 
-QwMainDetector::QwMainDetector(TString region_tmp):VQwSubsystem(region_tmp){
+QwMainDetector::QwMainDetector(TString region_tmp):VQwSubsystemTracking(region_tmp){
 };
 
 QwMainDetector::~QwMainDetector(){
@@ -199,7 +199,7 @@ QwMainDetector& QwMainDetector::operator=  (const QwMainDetector &value){
 
 
 void QwMainDetector::ClearAllBankRegistrations(){
-  VQwSubsystem::ClearAllBankRegistrations();
+  VQwSubsystemTracking::ClearAllBankRegistrations();
   fModuleIndex.clear();
   fModulePtrs.clear();
   fModuleTypes.clear();
@@ -207,7 +207,7 @@ void QwMainDetector::ClearAllBankRegistrations(){
 }
 
 Int_t QwMainDetector::RegisterROCNumber(const UInt_t roc_id){
-  VQwSubsystem::RegisterROCNumber(roc_id, 0);
+  VQwSubsystemTracking::RegisterROCNumber(roc_id, 0);
   fCurrentBankIndex = GetSubbankIndex(roc_id, 0);
   std::vector<Int_t> tmpvec(kMaxNumberOfModulesPerROC,-1);
   fModuleIndex.push_back(tmpvec);

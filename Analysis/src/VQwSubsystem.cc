@@ -1,7 +1,7 @@
 /**********************************************************\
 * File: VQwSubsystem.C                                     *
 *                                                          *
-* Author: P. M. King                                       *
+* Author: P. M. King, Rakitha Beminiwattha                 *
 * Time-stamp: <2007-05-08 15:40>                           *
 \**********************************************************/
 
@@ -87,3 +87,5 @@ Int_t VQwSubsystem::RegisterSubbank(const UInt_t bank_id){
   }
   return stat;
 };
+
+

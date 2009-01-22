@@ -11,12 +11,12 @@
 #include <vector>
 #include <TTree.h>
 
-#include "VQwSubsystem.h"
+#include "VQwSubsystemParity.h"
 
 #include "QwVQWK_Module.h"
 
 
-class QwQuartzBar: public VQwSubsystem {
+class QwQuartzBar: public VQwSubsystemParity {
   /******************************************************************
    *  Class: QwQuartzBar
    *
@@ -26,7 +26,7 @@ class QwQuartzBar: public VQwSubsystem {
   QwQuartzBar(TString region_tmp);
   ~QwQuartzBar();
 
-  /*  Member functions derived from VQwSubsystem. */
+  /*  Member functions derived from VQwSubsystemParity. */
   Int_t LoadChannelMap(TString mapfile);
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -66,10 +66,7 @@ class QwQuartzBar: public VQwSubsystem {
   };
 
 
-   void GetHitList(QwHitContainer & grandHitContainer){
-    
-  }; //empty function
-
+   
 
  protected:
 /*   void Sum(QwQuartzBar &value1, QwQuartzBar &value2); */

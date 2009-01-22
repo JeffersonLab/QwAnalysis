@@ -18,12 +18,12 @@ const UInt_t QwDriftChamber::kReferenceChannelPlaneNumber = 99;
 
 
 
-QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHits_TEMP):VQwSubsystem(region_tmp),fDEBUG(kFALSE),fNumberOfTDCs(0),OK(0),fWireHits(fWireHits_TEMP)
+QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHits_TEMP):VQwSubsystemTracking(region_tmp),fDEBUG(kFALSE),fNumberOfTDCs(0),OK(0),fWireHits(fWireHits_TEMP)
 {
   
 };
 
-QwDriftChamber::QwDriftChamber(TString region_tmp):VQwSubsystem(region_tmp),fDEBUG(kFALSE),fNumberOfTDCs(0),OK(0),fWireHits(fTDCHits)
+QwDriftChamber::QwDriftChamber(TString region_tmp):VQwSubsystemTracking(region_tmp),fDEBUG(kFALSE),fNumberOfTDCs(0),OK(0),fWireHits(fTDCHits)
 {
   
 };
@@ -345,7 +345,7 @@ void  QwDriftChamber::DeleteHistograms()
 
 
 void QwDriftChamber::ClearAllBankRegistrations(){
-  VQwSubsystem::ClearAllBankRegistrations();
+  VQwSubsystemTracking::ClearAllBankRegistrations();
   fTDC_Index.clear();
   fTDCPtrs.clear();
   fWireData.clear();
@@ -353,7 +353,7 @@ void QwDriftChamber::ClearAllBankRegistrations(){
 }
 
 Int_t QwDriftChamber::RegisterROCNumber(const UInt_t roc_id){
-  VQwSubsystem::RegisterROCNumber(roc_id, 0);
+  VQwSubsystemTracking::RegisterROCNumber(roc_id, 0);
   fCurrentBankIndex = GetSubbankIndex(roc_id, 0);
   if (fReferenceChannels.size()<=fCurrentBankIndex){
     fReferenceChannels.resize(fCurrentBankIndex+1);
