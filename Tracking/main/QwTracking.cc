@@ -144,7 +144,7 @@ using namespace std;
 using namespace QwTracking;
 
 #define NDetMax 1010
-#define NEventMax 20
+#define NEventMax 1000
 
 
 //Temporary global variables for sub-programs

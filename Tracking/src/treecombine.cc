@@ -1,29 +1,47 @@
-/*! \file treecombine.cc
-\brief
-Author : Burnham Stokes
-Date : 7/30/08
-Short Description : Treecombine combines track segments and performs line fitting.
-Treecombine performs many of the tasks involved with matching hits to track segments
-and combining track segments into full tracks with lab coordinates.
-*/
+/*------------------------------------------------------------------------*//*!
 
-#include <cstdio>
+ \class treecombine
+
+ \brief Combines track segments and performs line fitting.
+
+ \author Burnham Stokes
+ \date   7/30/08
+
+    Treecombine performs many of the tasks involved with matching hits to track
+    segments and combining track segments into full tracks with lab coordinates.
+
+*//*-------------------------------------------------------------------------*/
+
+#include "treecombine.h"
+
+// Standard C and C++ headers
 #include <fstream>
+#include <cstdio>
 #include <cmath>
 #include <cstdlib>
 #include <cassert>
 #include <cstring>
+using namespace std;
 
-#include "options.h"
-#include "treecombine.h"
+// Hermes headers
 #include "mathstd.h"
+#include "mathdefs.h"
 
-//#include "mathdefs.h"
+// Qweak headers
+#include "Hit.h"
+#include "Det.h"
+#include "options.h"
+
+// Qweak tree object headers
+#include "treeregion.h"
+using namespace QwTracking;
+
+// Other Qweak modules
+#include "treesort.h"
 
 #define PI 3.141592653589793
 #define DBL_EPSILON 2.22045e-16
 
-using namespace std;
 
 extern Det *rcDETRegion[2][3][4];
 extern treeregion *rcTreeRegion[2][3][4][4];
@@ -37,27 +55,35 @@ extern Edir operator++(enum Edir &rs, int );
 
 double UNorm( double *A, int n, int m);
 double *M_Cholesky (double  *B, double *q, int n);
-double * M_InvertPos (double *B, int n);
-double * MInvert(double *Ap,double *Bp,int n);
-void RowMult(double a, double *A, double b, double *B,int n);
-double * M_A_times_b (double *y,double *A, int n, int m,double b[4]);
+double *M_InvertPos (double *B, int n);
+double *M_Invert (double *Ap, double *Bp, int n);
+void RowMult (double a, double *A, double b, double *B, int n);
+double *M_A_times_b (double *y,double *A, int n, int m, double *b);
+double *M_Zero (double *A, int n);
+double *M_Unit (double *A, int n);
+void M_Print (double *A, int n);
+void M_Print (double *A, double *B, int n);
 
-//__________________________________________________________________
-treecombine::treecombine(){
 
-}//__________________________________________________________________
-chi_hash::chi_hash(){
+treecombine::treecombine()
+{
+  debug = 0; // debug level
+}
+
+treecombine::~treecombine() { }
+
+
+chi_hash::chi_hash()
+{
   hits = 0;
 }
-//___________________________________________________________________
-treecombine::~treecombine(){
 
-}
 //__________________________________________________________________
-int treecombine::chi_hashval( int n, Hit **hit ){
+int treecombine::chi_hashval (int n, Hit **hit)
+{
   int i;
-  double hash = 389.0;//WTF IS THIS?!?
-  for( i = 0; i < n; i++ ) {
+  double hash = 389.0; // WTF IS THIS?!?
+  for (i = 0; i < n; i++) {
     hash *= hit[i]->rResultPos;
   }
   i = (((((*(unsigned*)&hash))) & HASHMASK)^
@@ -130,7 +156,8 @@ int treecombine::chi_hashfind( Hit **hits, int n, double *slope, double *xshift,
    matches the left/right wire hits
    in r3 to the pattern being used.
 --------------------------------*/
-int treecombine::bestx(double *xresult,Hit *h,Hit *ha){
+int treecombine::bestx(double *xresult,Hit *h,Hit *ha)
+{
 	double pos,distance,bestx,resolution;
 	double x = *xresult;
 	pos = h->rPos1;
@@ -153,7 +180,7 @@ int treecombine::bestx(double *xresult,Hit *h,Hit *ha){
           ha->rPos    = bestx;
 	ha->Resolution = resolution;
 
-return 1;
+	return 1;
 }
 //__________________________________________________________________
 
@@ -171,7 +198,8 @@ return 1;
    Size of the arrays must be
    MAXHITPERLINE
    ------------------------------ */
-int treecombine::bestx(double *xresult, double dist_cut, Hit *h, Hit **ha,double Dx){
+int treecombine::bestx(double *xresult, double dist_cut, Hit *h, Hit **ha,double Dx)
+{
 //##############
 //DECLARATIONS #
 //##############
@@ -244,6 +272,9 @@ int treecombine::bestx(double *xresult, double dist_cut, Hit *h, Hit **ha,double
   return good;
 }
 //__________________________________________________________________
+
+
+
 /* --------------------------------------------------------------------------
  * creates permutations of hits
  * i   : a number from 0 to mul-1 (number of permutation)
@@ -254,16 +285,17 @@ int treecombine::bestx(double *xresult, double dist_cut, Hit *h, Hit **ha,double
  * ha  : array to write permutated hits in
  * ------------------------------------------------------------------------- */
 
-void treecombine::mul_do(int i,int mul,int l,int *r,Hit   *hx[DLAYERS][MAXHITPERLINE],  Hit **ha){
-  int j,s;
+void treecombine::mul_do (int i, int mul, int l, int *r, Hit *hx[DLAYERS][MAXHITPERLINE], Hit **ha)
+{
+  int s;
 
-  if( i == 0 ) {
-    for( j = 0; j < l; j++ ) {
+  if (i == 0) {
+    for (int j = 0; j < l; j++) {
       ha[j] = hx[j][0];
     }
   } else {
-    for( j = 0; j < l; j++ ) {
-      if( r[j] == 1 )
+    for (int j = 0; j < l; j++) {
+      if (r[j] == 1)
 	s = 0;
       else {
 	s = i % r[j];
@@ -291,38 +323,37 @@ void treecombine::mul_do(int i,int mul,int l,int *r,Hit   *hx[DLAYERS][MAXHITPER
  * get the covariance matrix for position and slope.
  */
 
-void treecombine::weight_lsq(double *slope, double *xshift, double cov[3],double *chi,Hit **hits, int n,int tlayers){
+void treecombine::weight_lsq(double *slope, double *xshift, double cov[3], double *chi, Hit **hits, int n, int tlayers)
+{
   double r, s, sg, det, h;
-  int i,j,k;
   double A[tlayers][2],G[tlayers][tlayers],AtGA[2][2];
-  double  AtGy[2], y[tlayers], x[2];
+  double AtGy[2], y[tlayers], x[2];
 
-  for( i = 0; i < tlayers; i++ ) {
+  for (int i = 0; i < tlayers; i++)
     A[i][0] = -1.0;
-  }
 
   //##########
   //SET HITS #
   //##########
 
-  for( i = 0; i < n; i++ ) {
+  for (int i = 0; i < n; i++) {
     A[i][1] = -(hits[i]->Zpos);
     y[i]     = -hits[i]->rResultPos;
     r = 1.0 / hits[i]->Resolution;
     G[i][i] = r*r;
   }
   /* calculate right hand side */
-  for( i = 0; i < 2; i++ ) {
+  for (int i = 0; i < 2; i++) {
     s = 0;
-    for( k = 0; k < n; k++ )
+    for (int k = 0; k < n; k++)
       s += A[k][i] * y[k] * G[k][k];
     AtGy[i] = s;
   }
   /* and now the left hand side */
-  for( i = 0; i < 2; i++ ) {
-    for( k = 0; k < 2; k++ ) {
+  for (int i = 0; i < 2; i++) {
+    for (int k = 0; k < 2; k++) {
       s = 0;
-      for( j = 0; j < n; j++ )
+      for (int j = 0; j < n; j++)
 	s += G[j][j]*A[j][i]*A[j][k];
       AtGA[i][k] = s;
     }
@@ -335,7 +366,7 @@ void treecombine::weight_lsq(double *slope, double *xshift, double cov[3],double
   AtGA[0][1] /= -det;
   AtGA[1][0] /= -det;
   /* solve equation */
-  for( i = 0; i < 2; i++ )
+  for (int i = 0; i < 2; i++)
     x[i] = AtGA[i][0] * AtGy[0] + AtGA[i][1] * AtGy[1];
 
   *slope  = x[1];
@@ -346,7 +377,7 @@ void treecombine::weight_lsq(double *slope, double *xshift, double cov[3],double
   cov[2]  = AtGA[1][1];
 
   /* sqrt( chi^2) */
-  for( sg = s = 0.0, i = 0; i < n; i++ ) {
+  for (int i = 0, sg = s = 0.0; i < n; i++) {
     r  = (*slope*(hits[i]->Zpos - magnet_center) + *xshift
 	  - hits[i]->rResultPos);
     s  += G[i][i] * r * r;
@@ -371,44 +402,43 @@ void treecombine::weight_lsq(double *slope, double *xshift, double cov[3],double
  * get the covariance matrix for position and slope.
  */
 
-void treecombine::weight_lsq_r3(double *slope, double *xshift, double cov[3],double *chi,Hit **hits, int n,double z1, int offset,int tlayers){
+void treecombine::weight_lsq_r3(double *slope, double *xshift, double cov[3],double *chi,Hit **hits, int n,double z1, int offset,int tlayers)
+{
   double A[tlayers][2],G[tlayers][tlayers],AtGA[2][2];
   double  AtGy[2], y[tlayers], x[2];
   double r, s, sg, det, h;
-  int i,j,k;
   double resolution = 0.1;
   /* initialize the matrices and vectors */
-  for( i = 0; i < tlayers; i++ ) {
+  for (int i = 0; i < tlayers; i++)
     A[i][0] = -1.0;
-  }
+
   //###########
   // Set Hits #
   //###########
-  for( i = 0; i < n; i++ ) {
-    if(offset == -1){
+  for (int i = 0; i < n; i++) {
+    if (offset == -1) {
       A[i][1] = -hits[i]->Zpos;//used by matchR3
       y[i] = -hits[i]->rPos;
-    }
-    else{
+    } else {
       A[i][1] = -(i+offset);//used by Tl MatchHits
       y[i] = -hits[i]->rResultPos;
     }
     r = 1.0 / hits[i]->Resolution;
-    if(!(hits[i]->Resolution))r = 1.0 / resolution;// WARNING : this is a hack to make this fit work.  Hit resolutions needs to be set up.
-    G[i][i] = r*r;
+    if (!(hits[i]->Resolution)) r = 1.0 / resolution;// WARNING : this is a hack to make this fit work.  Hit resolutions needs to be set up.
+    G[i][i] = r * r;
   }
   /* calculate right hand side */
-  for( i = 0; i < 2; i++ ) {
+  for (int i = 0; i < 2; i++) {
     s = 0;
-    for( k = 0; k < n; k++ )
+    for(int k = 0; k < n; k++)
       s += A[k][i] * y[k] * G[k][k];
     AtGy[i] = s;
   }
   /* and now the left hand side */
-  for( i = 0; i < 2; i++ ) {
-    for( k = 0; k < 2; k++ ) {
+  for(int i = 0; i < 2; i++) {
+    for(int k = 0; k < 2; k++) {
       s = 0;
-      for( j = 0; j < n; j++ )
+      for(int j = 0; j < n; j++)
 	s += G[j][j]*A[j][i]*A[j][k];
       AtGA[i][k] = s;
     }
@@ -421,22 +451,21 @@ void treecombine::weight_lsq_r3(double *slope, double *xshift, double cov[3],dou
   AtGA[0][1] /= -det;
   AtGA[1][0] /= -det;
   /* solve equation */
-  for( i = 0; i < 2; i++ )
+  for (int i = 0; i < 2; i++)
     x[i] = AtGA[i][0] * AtGy[0] + AtGA[i][1] * AtGy[1];
   *slope  = x[1];
   *xshift = x[0];
   cov[0]  = AtGA[0][0];
   cov[1]  = AtGA[0][1];
   cov[2]  = AtGA[1][1];
-  if(offset == -1){
-    for( sg = s = 0.0, i = 0; i < n; i++ ) {
+  if (offset == -1) {
+    for (int i = 0, sg = s = 0.0; i < n; i++) {
       r  = (*slope*(hits[i]->Zpos - z1) + *xshift
 	    - hits[i]->rResultPos);
       s  += G[i][i] * r * r;
     }
-  }
-  else{
-    for(sg = s = 0.0,i=0;i < n; i++){
+  } else {
+    for (int i = 0, sg = s = 0.0; i < n; i++) {
       r = *slope*(i+offset) + *xshift - hits[i]->rResultPos;
       s += G[i][i] * r * r;
     }
@@ -446,10 +475,10 @@ void treecombine::weight_lsq_r3(double *slope, double *xshift, double cov[3],dou
   //chi_hashinsert(hits,n, *slope, *xshift, cov, *chi);
 }
 //__________________________________________________________________
-int treecombine::contains( double var, Hit **arr, int len) {
-  int i;
-  for( i = 0; i < len ; i++) {
-    if( var == arr[i]->rResultPos )
+int treecombine::contains( double var, Hit **arr, int len)
+{
+  for (int i = 0; i < len ; i++) {
+    if (var == arr[i]->rResultPos)
       return 1;
   }
   return 0;
@@ -824,9 +853,11 @@ if(j!=nhits) cerr << "WARNING NHITS != NGOODHITS " << nhits << "," << j << endl;
    / bad in respect to their
    chi^2
    ------------------------------ */
-void treecombine::TlTreeLineSort(TreeLine *tl,enum EUppLow up_low,enum ERegion region,enum Etype type,enum Edir dir,unsigned long bins,int tlayer,int dlayer)
+void treecombine::TlTreeLineSort(TreeLine *tl,
+	enum EUppLow up_low, enum ERegion region, enum Etype type, enum Edir dir,
+	unsigned long bins, int tlayer, int dlayer)
 {
-if(region == r3){
+if (region == r3) {
   double z1,z2,dx;
   double x1,x2;
   TreeLine *walk;
@@ -837,7 +868,7 @@ if(region == r3){
   -------------------------------------------------- */
   for( walk = tl; walk; walk = walk->next ) {//for each matching treeline
     if( ! walk->isvoid ) {
-      if(dlayer==1){
+      if (dlayer == 1) {
 		walk->r3offset +=rcDETRegion[up_low][region-1][dir]->NumOfWires;
       }
       z1 = (double)(walk->r3offset+walk->firstwire);//first z position
@@ -865,49 +896,50 @@ if(region == r3){
   }
   treesort ts;
   ts.rcTreeConnSort( tl,region);
-}
-else{
+
+} else {
 
   Det *rd;
-  double z1,z2,dx,dxh,dxb,dx_2;
-  double x1,x2, dx1, dx2,Dx;
+  double z1, z2, dx, dxh, dxb, dx_2;
+  double x1, x2, dx1, dx2, Dx;
   int i;
   TreeLine *walk = tl;
   TreeLine *owalk;
   chi_hashclear();
 
-  for(rd = rcDETRegion[up_low][region-1][dir],i=0;rd && i<tlayer;rd = rd->nextsame,i++){
-    if(i==0){
-      z1 = rd->Zpos;///first z position
-      Dx = -rd->center[1];//radial position of DC
+  for (rd = rcDETRegion[up_low][region-1][dir], i = 0;
+       rd && i < tlayer; rd = rd->nextsame, i++) {
+    if (i == 0) {
+      z1 = rd->Zpos; // first z position
+      Dx = -rd->center[1]; // radial position of DC
     }
-    if(i==tlayer-1){
-      z2 = rd->Zpos;/// last z position
-      Dx += rd->center[1];//difference in radial positions of two DCs.
+    if (i == tlayer-1) {
+      z2 = rd->Zpos; // last z position
+      Dx += rd->center[1]; // difference in radial positions of two DCs.
       Dx *= fabs(rd->rCos);
     }
   }
 
-  dx  = rcTreeRegion[up_low][region-1][type][dir]->rWidth;//detector width
-  dxh = 0.5*dx; //detector half-width
-  dx /= (double)bins;//width of each bin
-  dxb = dxh/(double)bins;//half-width of each bin
+  dx  = rcTreeRegion[up_low][region-1][type][dir]->rWidth; // detector width
+  dxh = 0.5 * dx; // detector half-width
+  dx /= (double) bins; // width of each bin
+  dxb = dxh / (double) bins; // half-width of each bin
 
   /* --------------------------------------------------
      calculate line parameters first
      -------------------------------------------------- */
   double MaxRoad = opt.R2maxroad;///how large to make the 'road' along a track in which hits will be considered.
 
-  for( walk = tl; walk; walk = walk->next ) {//for each matching treeline
-    if( ! walk->isvoid ) {
+  for (walk = tl; walk; walk = walk->next) { // for each matching treeline
+    if (! walk->isvoid) {
       dx_2 =  dxh - dxb;
-      x1 = 0.5*((walk->a_beg+walk->a_end) * dx);
-      x2 = 0.5*((walk->b_beg+walk->b_end) * dx)+Dx;
+      x1 = 0.5*((walk->a_beg + walk->a_end) * dx);
+      x2 = 0.5*((walk->b_beg + walk->b_end) * dx) + Dx;
 //cerr << "(x1,x2,z1,z2) = (" << x1 << ',' << x2 << ',' << z1 << ',' << z2 << ")" << endl;
-      dx1 = ((walk->a_end-walk->a_beg) * dx) + dx*MaxRoad;
-      dx2 = ((walk->b_end-walk->b_beg) * dx) + dx*MaxRoad;
+      dx1 = ((walk->a_end - walk->a_beg) * dx) + dx * MaxRoad;
+      dx2 = ((walk->b_end - walk->b_beg) * dx) + dx * MaxRoad;
 //cerr << "Dx : " << Dx << ',' << dir << endl;
-      TlCheckForX(x1, x2, dx1, dx2,Dx, z1, z2-z1, walk,up_low,region,type,dir, tlayer, tlayer, 0, 0);
+      TlCheckForX(x1, x2, dx1, dx2, Dx, z1, z2-z1, walk, up_low, region, type, dir, tlayer, tlayer, 0, 0);
     }
   }
 
@@ -915,11 +947,12 @@ else{
   /* --------------------------------------------------
      now sort again for identical treelines
      -------------------------------------------------- */
-  for( walk = tl; walk; walk = walk->next ) {
-    if( walk->isvoid == false ) {
-      for( owalk = walk->next; owalk; owalk = owalk->next) {
-        if(owalk->isvoid == false &&  walk->cx == owalk->cx
-	   && walk->mx == owalk->mx ) {
+  for (walk = tl; walk; walk = walk->next) {
+    if (walk->isvoid == false) {
+      for (owalk = walk->next; owalk; owalk = owalk->next) {
+        if (owalk->isvoid == false &&
+	     walk->cx == owalk->cx &&
+	     walk->mx == owalk->mx ) {
 	  owalk->isvoid = true;
         }
       }
@@ -930,31 +963,35 @@ else{
 
   }
 }
-//__________________________________________________________________
-/*!
- * This function fits a set of Hits in the HDC to a 3-D track.  This
- * task is complicated by the unorthogonality of the u,v, and x wire
- * planes.  To obtain the track, the metric matrix (defined below) is
- * calculated using the projections of each hit into the lab
- * coordinate system.  The matrix is inverted in order to solve the
- * system of four equations for the four unknown track parameters
- * (bx,mx,by,my).  Once the fit is calculated, the chisquare value
- * is determined so that this track may be compared to other track
- * candidates in order to select the best fit.
- *
- * metric matrix :  The metric matrix is defined by the chi-squared
- * 		equation for unorthogonal coordinate systems.  In order to
- * 		solve for the four track parameters, chi-square is
- * 		differentiated with respect to the parameters, and set to
- * 		zero.  The metric matrix is then derived from the four
- * 		equations using the standard linear algebra technique for
- * 		solving systems of equations.
- */
-int    r2_TrackFit(int Num,Hit **Hit,double *fit,double *cov,double *chi){
+
+/*!--------------------------------------------------------------------------*\
+
+ r2_TrackFit()
+
+    This function fits a set of Hits in the HDC to a 3-D track.  This
+    task is complicated by the unorthogonality of the u,v, and x wire
+    planes.  To obtain the track, the metric matrix (defined below) is
+    calculated using the projections of each hit into the lab
+    coordinate system.  The matrix is inverted in order to solve the
+    system of four equations for the four unknown track parameters
+    (bx,mx,by,my).  Once the fit is calculated, the chisquare value
+    is determined so that this track may be compared to other track
+    candidates in order to select the best fit.
+
+  metric matrix :  The metric matrix is defined by the chi-squared
+		equation for unorthogonal coordinate systems.  In order to
+		solve for the four track parameters, chi-square is
+		differentiated with respect to the parameters, and set to
+		zero.  The metric matrix is then derived from the four
+		equations using the standard linear algebra technique for
+		solving systems of equations.
+
+*//*-------------------------------------------------------------------------*/
+int r2_TrackFit (int Num, Hit **Hit, double *fit, double *cov, double *chi)
+{
   //###############
   // Declarations #
   //###############
-  int i, j, k;
   double A[4][4];	//metric matrix A
   double B[4];		//constants vector
   double cff;		//resolution coefficient
@@ -985,24 +1022,24 @@ int    r2_TrackFit(int Num,Hit **Hit,double *fit,double *cov,double *chi){
   x0[3] = 0;
 
   //initialize the matrices
-  for( i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++) {
     B[i] = 0;
-    for(j = 0; j < 4; j++)
+    for (int j = 0; j < 4; j++)
       A[i][j] = 0;
   }
 
   // Calculate the metric matrix
-  for( i=0; i < Num; i++ ) {
-    cff  = 1.0/Hit[i]->Resolution;
+  for (int i = 0; i < Num; i++) {
+    cff  = 1.0 / Hit[i]->Resolution;
     cff *= cff;
     r[0] = rCos[Hit[i]->detec->dir];
-    r[1] = rCos[Hit[i]->detec->dir]*(Hit[i]->Zpos);
+    r[1] = rCos[Hit[i]->detec->dir] * (Hit[i]->Zpos);
     r[2] = rSin[Hit[i]->detec->dir];
-    r[3] = rSin[Hit[i]->detec->dir]*(Hit[i]->Zpos);
-    for(k=0; k<4; k++) {
+    r[3] = rSin[Hit[i]->detec->dir] * (Hit[i]->Zpos);
+    for (int k = 0; k < 4; k++) {
       B[k] += cff*r[k]*(Hit[i]->rPos - x0[Hit[i]->detec->dir]);
-      for(j=0; j<4; j++)
-	A[k][j] += cff*r[k]*r[j];
+      for (int j = 0; j < 4; j++)
+	A[k][j] += cff * r[k] * r[j];
     }
   }
 
@@ -1011,18 +1048,18 @@ int    r2_TrackFit(int Num,Hit **Hit,double *fit,double *cov,double *chi){
   // Perform the fit #
   //##################
 
-  //Invert the metric matrix
+  // Invert the metric matrix
   double *Ap = &A[0][0];
-  MInvert(Ap,cov,4);
+  M_Invert(Ap, cov, 4);
 
-  //Check that inversion was successful
-  if (!cov){
+  // Check that inversion was successful
+  if (!cov) {
     cerr << "Inversion failed" << endl;
     return -1;
   }
 
-  // calculate the fit
-  M_A_times_b( fit, cov, 4, 4, B);//fit = matrix cov * vector B
+  // Calculate the fit
+  M_A_times_b (fit, cov, 4, 4, B);// fit = matrix cov * vector B
 
   //calculate the line parameters in u,v,x directions
   bx[1] = (fit[0]+fabs(uv2xy.R2_offset[0]))*rCos[1] + fit[2]*rSin[1] + uv2xy.R2_wirespacing;
@@ -1032,30 +1069,32 @@ int    r2_TrackFit(int Num,Hit **Hit,double *fit,double *cov,double *chi){
   mx[2] = fit[1]*rCos[2]+fit[3]*rSin[2];
   mx[3] = fit[1];
 
-  // calculate chi^2
+  // Calculate chi^2
   *chi = 0;
-  for(i=0; i<Num; i++) {
+  for (int i = 0; i < Num; i++) {
     Dir = Hit[i]->detec->dir;
-    cff  = 1.0/Hit[i]->Resolution;
+    cff  = 1.0 / Hit[i]->Resolution;
     cff *= cff;
-    uvx    = bx[Dir] + mx[Dir]*(Hit[i]->Zpos);
-    *chi += (uvx-Hit[i]->rPos)* (uvx-Hit[i]->rPos)*cff;
+    uvx  = bx[Dir] + mx[Dir] * (Hit[i]->Zpos);
+    *chi += (uvx-Hit[i]->rPos) * (uvx-Hit[i]->rPos) * cff;
   }
   *chi = *chi / (Num - 4);
 
-  //Translate to the lab frame
+  // Translate to the lab frame
   fit[0] += rd->center[1];
 
   return 0;
 }
 //__________________________________________________________________
-int treecombine::r3_TrackFit2( int Num, Hit **Hit, double *fit, double *cov, double *chi){
+
+
+
+
+int treecombine::r3_TrackFit2( int Num, Hit **Hit, double *fit, double *cov, double *chi)
+{
   //###############
   // Declarations #
   //###############
-  int debug = 0;
-  int i, j, k;
-  double AA[4][4];
   double B[4];
   double cff;
   double r[4];
@@ -1065,8 +1104,11 @@ int treecombine::r3_TrackFit2( int Num, Hit **Hit, double *fit, double *cov, dou
   double bx[4],mx[4];
   Edir Dir;
   //Det *rd;
+
+  double AA[4][4];
   double *AAp = &AA[0][0];
-  for(i=0;i<Num;i++){
+
+  for (int i = 0; i < Num; i++) {
     Hit[i]->rPos1 = Hit[i]->rPos;
     Hit[i]->rPos = Hit[i]->Zpos;
     Hit[i]->Zpos = Hit[i]->rPos1;
@@ -1079,16 +1121,16 @@ int treecombine::r3_TrackFit2( int Num, Hit **Hit, double *fit, double *cov, dou
   rSin[1] = -uv2xy.R3_xy[0][1];
   rSin[2] = -uv2xy.R3_xy[1][1];
 
-  for( i = 0; i < 4; i++) {	/* reset the matrices to 0 */
+  for (int i = 0; i < 4; i++) {	/* reset the matrices to 0 */
     B[i] = 0;
-    for(j = 0; j < 4; j++)
+    for(int j = 0; j < 4; j++)
       AA[i][j] = 0;
   }
 
   //##############################
   // Calculate the metric matrix #
   //##############################
-  for( i=0; i < Num; i++ ) {
+  for (int i = 0; i < Num; i++ ) {
     //cerr << i << " " << Hit[i]->Zpos << " " << Hit[i]->rPos << " ";
     cff  = 1.0/Hit[i]->Resolution;
     cff *= cff;
@@ -1097,46 +1139,30 @@ int treecombine::r3_TrackFit2( int Num, Hit **Hit, double *fit, double *cov, dou
     r[2] = rSin[Hit[i]->detec->dir];
     r[3] = rSin[Hit[i]->detec->dir]*(Hit[i]->Zpos);
 
-    for(k=0; k<4; k++) {
-      B[k] += cff*r[k]*(Hit[i]->rPos)*(-1);
-      for(j=0; j<4; j++)
+    for (int k = 0; k < 4; k++) {
+      B[k] += cff * r[k] * (Hit[i]->rPos) * (-1);
+      for (int j = 0; j < 4; j++)
 	AA[k][j] += cff*r[k]*r[j];
     }
   }
 
-if(debug){
-  cerr << "AA = " << endl << "[";
-  for(k=0; k<4; k++) {
-    for(j=0; j<4; j++) {
-      cerr << AA[k][j] << " ";
-    }
-    cerr << endl;
-  }
-  cerr << "]" << endl;
-}
+  if (debug) cout << "[treecombine::r3_TrackFit2] Before inversion: AA =" << endl;
+  if (debug) M_Print(AAp, cov, 4);
 
-  MInvert(AAp,cov,4);
+  M_Invert(AAp, cov, 4);
 
-  if (!cov){
-    cerr << "Inversion failed" << endl;
+  if (!cov) {
+    cerr << "[treecombine::r3_TrackFit2] Inversion failed" << endl;
     return -1;
   }
-if(debug){
-  cerr << "AA Inverse = " << endl << "[";
-  for(k=0; k<4; k++) {
-    for(j=0; j<4; j++) {
-      cerr << cov[4*k+j] << " ";
-    }
-    cerr << endl;
-  }
-  cerr << "]" << endl;
-}
 
+  if (debug) cout << "[treecombine::r3_TrackFit2] After inversion: AA =" << endl;
+  if (debug) M_Print(AAp, cov, 4);
 
   /* calculate the fit */
 
-  M_A_times_b( fit, cov, 4, 4, B);//fit = matrix cov * vector B
-//cerr << "3" << endl;
+  M_A_times_b (fit, cov, 4, 4, B); // fit = matrix cov * vector B
+  // cerr << "3" << endl;
 
   //calculate the line parameters in u,v directions
   bx[1] = uv2xy.xy2u(fit[0],fit[2],Hit[0]->detec->region);
@@ -1144,25 +1170,25 @@ if(debug){
   mx[1] = uv2xy.xy2u(fit[1],fit[3],Hit[0]->detec->region);
   mx[2] = uv2xy.xy2v(fit[1],fit[3],Hit[0]->detec->region);
 
-//cerr << uv2xy.xy2v(fit[0],fit[2],Hit[0]->detec->region) << endl;
+  //cerr << uv2xy.xy2v(fit[0],fit[2],Hit[0]->detec->region) << endl;
 
-//ERROR : Somehow I've missed a negative sign somewhere and need to correct for it :
-fit[0] = -fit[0];
-fit[1] = -fit[1];
+  //ERROR : Somehow I've missed a negative sign somewhere and need to correct for it :
+  fit[0] = -fit[0];
+  fit[1] = -fit[1];
 
-//cerr << " u = " << bx[1] << " + z*" << mx[1] << endl;
-//cerr << " v = " << bx[2] << " + z*" << mx[2] << endl;
+  //cerr << " u = " << bx[1] << " + z*" << mx[1] << endl;
+  //cerr << " v = " << bx[2] << " + z*" << mx[2] << endl;
 
-//cerr << " y = " << fit[2] << " + z*" << fit[3] << endl;
-//cerr << " x = " << fit[0] << " + z*" << fit[1] << endl;
+  //cerr << " y = " << fit[2] << " + z*" << fit[3] << endl;
+  //cerr << " x = " << fit[0] << " + z*" << fit[1] << endl;
 
   /* calculate chi^2 */
   *chi = 0;
-  for(i=0; i<Num; i++) {
+  for (int i = 0; i < Num; i++) {
     Dir = Hit[i]->detec->dir;
-    cff  = 1.0/Hit[i]->Resolution;
+    cff  = 1.0 / Hit[i]->Resolution;
     cff *= cff;
-    uvx    = bx[Dir] + mx[Dir]*(Hit[i]->Zpos);
+    uvx  = bx[Dir] + mx[Dir] * (Hit[i]->Zpos);
     //cerr << uvx << ',' << Hit[i]->rPos << endl;
     *chi += (uvx-Hit[i]->rPos)* (uvx-Hit[i]->rPos)*cff;
   }
@@ -1175,22 +1201,21 @@ fit[1] = -fit[1];
   double P1[3],P2[3],Pp1[3],Pp2[3];
   double ztrans,ytrans,xtrans,costheta,sintheta;
   //get some detector information
-  if(Hit[0]->detec->dir ==  u_dir){
+  if (Hit[0]->detec->dir == u_dir) {
     costheta = Hit[0]->detec->rRotSin;
     sintheta = Hit[0]->detec->rRotCos;
     xtrans = Hit[0]->detec->center[0];
     ytrans = Hit[0]->detec->center[1];
     ztrans = Hit[0]->detec->Zpos;
 
-  }
-  else{
+  } else {
     cerr << "Error : first hit is not in 1st u-plane" << endl;
     return -1;
   }
 
   //cerr << costheta << ',' << sintheta << endl;
   //cerr << xtrans << ',' << ytrans << ',' << ztrans << endl;
-  //get two points on the line
+  // get two points on the line
   P1[2] = 69.9342699;
   P1[0] = fit[1] * P1[2] + fit[0];
   P1[1] = fit[3] * P1[2] + fit[2];
@@ -1200,7 +1225,7 @@ fit[1] = -fit[1];
   //cerr << "(" << P1[0] << ',' << P1[1] << ',' << P1[2] << ')' << endl;
   //cerr << "(" << P2[0] << ',' << P2[1] << ',' << P2[2] << ')' << endl;
 
-  //rotate the points into the lab orientation
+  // rotate the points into the lab orientation
   Pp1[0] = P1[0];
   Pp1[1] = P1[1]*costheta - P1[2]*sintheta;
   Pp1[2] = P1[1]*sintheta + P1[2]*costheta;
@@ -1210,65 +1235,68 @@ fit[1] = -fit[1];
   //cerr << "(" << Pp1[0] << ',' << Pp1[1] << ',' << Pp1[2] << ')' << endl;
   //cerr << "(" << Pp2[0] << ',' << Pp2[1] << ',' << Pp2[2] << ')' << endl;
 
-  //translate the points into the lab frame
-  Pp1[0]+=xtrans;
-  Pp1[1]+=ytrans;
-  Pp1[2]+=ztrans;
-  Pp2[0]+=xtrans;
-  Pp2[1]+=ytrans;
-  Pp2[2]+=ztrans;
+  // translate the points into the lab frame
+  Pp1[0] += xtrans;
+  Pp1[1] += ytrans;
+  Pp1[2] += ztrans;
+  Pp2[0] += xtrans;
+  Pp2[1] += ytrans;
+  Pp2[2] += ztrans;
 
-  //calculate the new line
-  fit[1] = (Pp2[0]-Pp1[0])/(Pp2[2]-Pp1[2]);
-  fit[3] = (Pp2[1]-Pp1[1])/(Pp2[2]-Pp1[2]);
-  fit[0] = Pp2[0]-fit[1]*Pp2[2];
-  fit[2] = Pp2[1]-fit[3]*Pp2[2];
+  // calculate the new line
+  fit[1] = (Pp2[0]-Pp1[0]) / (Pp2[2]-Pp1[2]);
+  fit[3] = (Pp2[1]-Pp1[1]) / (Pp2[2]-Pp1[2]);
+  fit[0] = Pp2[0] - fit[1] * Pp2[2];
+  fit[2] = Pp2[1] - fit[3] * Pp2[2];
 
   //cerr << "(" << Pp1[0] << ',' << Pp1[1] << ',' << Pp1[2] << ')' << endl;
   //cerr << "(" << Pp2[0] << ',' << Pp2[1] << ',' << Pp2[2] << ')' << endl;
 
-  //and we're done :)
-//cerr << " y = " << fit[2] << " + z*" << fit[3] << endl;
-//cerr << " x = " << fit[0] << " + z*" << fit[1] << endl;
-//cout << fit[0] << ' ' << fit[1] << ' ' << fit[2] << ' ' << fit[3] << endl;
+  // and we're done :)
+  //cerr << " y = " << fit[2] << " + z*" << fit[3] << endl;
+  //cerr << " x = " << fit[0] << " + z*" << fit[1] << endl;
+  //cout << fit[0] << ' ' << fit[1] << ' ' << fit[2] << ' ' << fit[3] << endl;
 
-  //double zz1 = 	540.0;
-  //double zz2 =  569.38;
+  //double zz1 = 540.0;
+  //double zz2 = 569.38;
   //cerr << "(" << (fit[1] * zz1 + fit[0]) << "," << fit[3] * zz1 + fit[2] << "," << zz1 << ")" << endl;
   //cerr << "(" << (fit[1] * zz2 + fit[0]) << "," << fit[3] * zz2 + fit[2] << "," << zz2 << ")" << endl;
 
   return 1;
 }
 //__________________________________________________________________
-int treecombine::r3_TrackFit( int Num, Hit **hit, double *fit, double *cov, double *chi,double uv2xy[2][2]){
+
+
+
+
+int treecombine::r3_TrackFit( int Num, Hit **hit, double *fit, double *cov, double *chi,double uv2xy[2][2])
+{
   //###############
   // Declarations #
   //###############
 
-  int i;
   Hit xyz[Num];
   double wcov[3],wchi,mx,bx,my,by;
   Hit *chihits[Num];
   double P1[3],P2[3],Pp1[3],Pp2[3];
   double ztrans,ytrans,xtrans,costheta,sintheta;
 
-  //get some detector information
-  if(hit[0]->detec->dir ==  u_dir){
+  // get some detector information
+  if (hit[0]->detec->dir == u_dir) {
     costheta = hit[0]->detec->rRotCos;
     sintheta = hit[0]->detec->rRotSin;
     xtrans = hit[0]->detec->center[0];
     ytrans = hit[0]->detec->center[1];
     ztrans = hit[0]->detec->Zpos;
 
-  }
-  else{
+  } else {
     cerr << "Error : first hit is not in 1st u-plane" << endl;
     return -1;
   }
   //#################################################
   // Calculate the x,y coordinates in the VDC frame #
   //#################################################
-  for(i=0;i<Num;i++){
+  for (int i = 0; i < Num; i++) {
     xyz[i].rPos1=hit[i]->rPos1 * uv2xy[0][0] + hit[i]->rPos2 * uv2xy[0][1];//x
     xyz[i].rPos=xyz[i].rPos1;
     xyz[i].rPos2=hit[i]->rPos1 * uv2xy[1][0] + hit[i]->rPos2 * uv2xy[1][1];//y
@@ -1281,10 +1309,10 @@ int treecombine::r3_TrackFit( int Num, Hit **hit, double *fit, double *cov, doub
   // Calculate the fit #
   //####################
 
-  for(i=0;i<Num;i++)chihits[i]=&xyz[i];
+  for (int i = 0; i < Num; i++) chihits[i] = &xyz[i];
   weight_lsq_r3(&mx,&bx,wcov,&wchi,chihits,Num,0,-1,Num);
   cerr << "x = " << mx << "z+"<<bx << endl;
-  for(i=0;i<Num;i++)xyz[i].rPos = xyz[i].rPos2;
+  for (int i = 0; i < Num; i++) xyz[i].rPos = xyz[i].rPos2;
   weight_lsq_r3(&my,&by,wcov,&wchi,chihits,Num,0,-1,Num);
   cerr << "y = " << my << "z+"<<by << endl;
 
@@ -1299,7 +1327,7 @@ int treecombine::r3_TrackFit( int Num, Hit **hit, double *fit, double *cov, doub
 
 
 
-  //get two points on the line
+  // get two points on the line
   P1[2] = xyz[0].Zpos;
   P1[0] = mx * P1[2] + bx;
   P1[1] = my * P1[2] + by;
@@ -1307,31 +1335,31 @@ int treecombine::r3_TrackFit( int Num, Hit **hit, double *fit, double *cov, doub
   P2[0] = mx * P2[2] + bx;
   P2[1] = my * P2[2] + by;
 
-  //rotate the points into the lab orientation
+  // rotate the points into the lab orientation
   Pp1[1] = P1[1]*costheta - P1[2]*sintheta;
   Pp1[2] = P1[1]*sintheta + P1[2]*costheta;
   Pp2[1] = P2[1]*costheta - P2[2]*sintheta;
   Pp2[2] = P2[1]*sintheta + P2[2]*costheta;
 
-  //translate the points into the lab frame
-  Pp1[0]+=xtrans;
-  Pp1[1]+=ytrans;
-  Pp1[2]+=ztrans;
-  Pp2[0]+=xtrans;
-  Pp2[1]+=ytrans;
-  Pp2[2]+=ztrans;
+  // translate the points into the lab frame
+  Pp1[0] += xtrans;
+  Pp1[1] += ytrans;
+  Pp1[2] += ztrans;
+  Pp2[0] += xtrans;
+  Pp2[1] += ytrans;
+  Pp2[2] += ztrans;
 
-  //calculate the new line
-  mx = (Pp2[0]-Pp1[0])/(Pp2[2]-Pp1[2]);
-  my = (Pp2[1]-Pp1[1])/(Pp2[2]-Pp1[2]);
-  bx = Pp2[0]-mx*Pp2[2];
-  by = Pp2[1]-my*Pp2[2];
+  // calculate the new line
+  mx = (Pp2[0]-Pp1[0]) / (Pp2[2]-Pp1[2]);
+  my = (Pp2[1]-Pp1[1]) / (Pp2[2]-Pp1[2]);
+  bx = Pp2[0] - mx * Pp2[2];
+  by = Pp2[1] - my * Pp2[2];
 
-  //and we're done :)
-  fit[0]=bx;
-  fit[1]=by;
-  fit[2]=mx;
-  fit[3]=my;
+  // and we're done :)
+  fit[0] = bx;
+  fit[1] = by;
+  fit[2] = mx;
+  fit[3] = my;
 
   cerr << "x = " << mx << "z+"<<bx << endl;
   cerr << "y = " << my << "z+"<<by << endl;
@@ -1342,50 +1370,80 @@ int treecombine::r3_TrackFit( int Num, Hit **hit, double *fit, double *cov, doub
   return 0;
 }
 //__________________________________________________________________
-int treecombine::TcTreeLineCombine2(TreeLine *wu,TreeLine *wv,PartTrack *pt, int tlayer ){
+
+
+
+int treecombine::TcTreeLineCombine2(TreeLine *wu, TreeLine *wv, PartTrack *pt, int tlayer)
+{
   //###############
   // Declarations #
   //###############
-  Hit *hits[tlayer*2], **hitarray, *h;
-  int hitc, num, i, j;
-  double cov[4][4];
-  double fit[4], chi;
+  /// \note The number of hits should be passed correctly.  The next line used
+  ///       to be 2 * tlayer (for no obvious reason) and was ad-hoc changed to
+  ///       twice that.
+  /// \todo Need to revisit whether tlayer needs to be passed and used as the
+  ///       length of the array hits.
+  //Hit *hits[4 * tlayer];
+
+  Hit **hitarray, *h;
+  int hitc, num;
+
+  // covariance matrix, fit, and chi-squared
+  double fit[4];
+  double  cov[4][4];
   double *covp = &cov[0][0];
+  double chi;
+
   enum Edir dir;
-  int ntotal=0;
-  //initialize cov,fit
-  for(i=0;i<4;i++){
-    fit[i]=0;
-    for(j=0;j<4;j++){
-      cov[i][j]=0;
-    }
+  int ntotal = 0;
+
+  // Initialize covariance matrix and fit
+  for (int i = 0; i < 4; i++) {
+    fit[i] = 0;
+    for (int j = 0; j < 4; j++)
+      cov[i][j] = 0;
   }
-  //Put all the hits into one array.
-  for( hitc = 0, dir = u_dir; dir <= v_dir; dir++ ) {
 
-    switch( dir ) {
-    case u_dir:
-      hitarray = wu->hits;
-      num = wu->numhits;
-      break;
-    case v_dir:
-      hitarray = wv->hits;
-      num = wv->numhits;
-      break;
-    default: hitarray = 0; break;
+  // Put all the hits into the array hits, with lenght the total number of hits
+  // in the u and v directions.  Not all of the entries will be filled (because
+  // not all hits h will be h->used), so it is an upper limit.
+  Hit *hits[wu->numhits + wv->numhits];
+  for (hitc = 0, dir = u_dir; dir <= v_dir; dir++) {
+
+    switch (dir) {
+      case u_dir:
+        hitarray = wu->hits;
+        num = wu->numhits;
+        break;
+      case v_dir:
+        hitarray = wv->hits;
+        num = wv->numhits;
+        break;
+      default:
+        hitarray = 0;
+        num = 0;
+        break;
     }
 
-    for(i=0;i<num && *hitarray;i++,hitarray++) {
+    // Array bounds
+    if (debug) {
+      cout << "[treecombine::TcTreeLineCombine2] #tlayer = " << tlayer << endl;
+      cout << "[treecombine::TcTreeLineCombine2] #hits   = " << num << endl;
+    }
+
+    // Loop over all hits
+    for (int i = 0; i < num && *hitarray; i++, hitarray++) {
       h = *hitarray;
-      ntotal ++;
-      if(h->used != 0){
-	hits[hitc++] = h;
+      ntotal++;
+      if (h->used != 0) {
+	hits[hitc] = h;
+	hitc++;
       }
     }
   }
 
-  //Perform the fit.
-  if( r3_TrackFit2( hitc, hits, fit, covp, &chi)  == -1) {
+  // Perform the fit.
+  if (r3_TrackFit2(hitc, hits, fit, covp, &chi)  == -1) {
     fprintf(stderr,"hrc: PartTrack Fit Failed\n");
     return 0;
   }
@@ -1399,9 +1457,9 @@ int treecombine::TcTreeLineCombine2(TreeLine *wu,TreeLine *wv,PartTrack *pt, int
   pt->my = fit[3];
   pt->isvoid  = false;
 
-  pt->chi = sqrt( chi);
-  for( i = 0; i < 4; i++ )
-    for( j = 0; j < 4; j++ )
+  pt->chi = sqrt(chi);
+  for (int i = 0; i < 4; i++)
+    for (int j = 0; j < 4; j++)
       pt->Cov_Xv[i][j] = cov[i][j];
 
   pt->numhits = wu->numhits + wv->numhits;
@@ -1412,13 +1470,16 @@ int treecombine::TcTreeLineCombine2(TreeLine *wu,TreeLine *wv,PartTrack *pt, int
   return 1;
 }
 //__________________________________________________________________
+
+
+
 int treecombine::TcTreeLineCombine(TreeLine *wu,TreeLine *wv,PartTrack *pt, int tlayer )
 {
   //###############
   // Declarations #
   //###############
   Hit *hits[tlayer*2], **hitarray, *h;
-  int hitc,num,i,j;
+  int hitc,num;
   static double cov[4][4];
   double *covp = &cov[0][0];
   double fit[4],chi;
@@ -1432,8 +1493,8 @@ int treecombine::TcTreeLineCombine(TreeLine *wu,TreeLine *wv,PartTrack *pt, int 
   gnu3.open("gnu3.dat");
 
   //initialize cov,uv2xy
-  for(i=0;i<4;i++){for(j=0;j<4;j++){cov[i][j]=0;}}
-  for(i=0;i<2;i++){for(j=0;j<2;j++){uv2xy[i][j]=0;}}
+  for (int i = 0; i < 4; i++) for (int j = 0; j < 4; j++) cov[i][j] = 0;
+  for (int i = 0; i < 2; i++) for (int j = 0; j < 2; j++) uv2xy[i][j] = 0;
 cerr << "a" << endl;
  //####################################
   //Get the v/u-coordinate for each hit
@@ -1456,7 +1517,7 @@ cerr << "a" << endl;
       b = -wu->cx/wu->mx;
     }
     cerr << "line = " << m << "x+" << b << endl;
-    for(i=0;i<num;i++,hitarray++){
+    for (int i = 0; i < num; i++, hitarray++) {
       h = *hitarray;
       if(dir == u_dir){
         if(!uv2xy[0][0]){
@@ -1507,8 +1568,8 @@ cerr << "a" << endl;
   pt->isvoid  = false;
 
   pt->chi = sqrt( chi);
-  for( i = 0; i < 4; i++ )
-    for( j = 0; j < 4; j++ )
+  for (int i = 0; i < 4; i++ )
+    for (int j = 0; j < 4; j++ )
       pt->Cov_Xv[i][j] = cov[i][j];
 
   pt->numhits = wu->numhits + wv->numhits;
@@ -1521,39 +1582,43 @@ return 1;
 int treecombine::TcTreeLineCombine(TreeLine *wu,TreeLine *wv,TreeLine *wx,PartTrack *pt,int tlayer)
 {
   Hit *hits[DLAYERS*3], **hitarray, *h;
-  int hitc, num, i, j;
+  int hitc, num;
   double cov[4][4];
   double fit[4], chi;
 
-  for(i=0;i<4;i++){fit[i]=0;}
+  for (int i = 0; i < 4; i++) fit[i] = 0;
 
   enum Edir dir;
   double *covp = &cov[0][0];
   int ntotal=0;
-  for(i=0;i<4;i++){for(j=0;j<4;j++){cov[i][j]=0;}}
+  for (int i = 0; i < 4; i++)
+    for (int j = 0; j < 4; j++)
+      cov[i][j] = 0;
 
-  //Put all the hits into one array.
-  for( hitc = 0, dir = u_dir; dir <= x_dir; dir++ ) {
+  // Put all the hits into one array.
+  for (hitc = 0, dir = u_dir; dir <= x_dir; dir++) {
     switch( dir ) {
-    case u_dir: hitarray = wu->hits; break;
-    case v_dir: hitarray = wv->hits; break;
-    case x_dir: hitarray = wx->hits; break;
-    default: hitarray = 0; break;
+      case u_dir: hitarray = wu->hits; break;
+      case v_dir: hitarray = wv->hits; break;
+      case x_dir: hitarray = wx->hits; break;
+      default: hitarray = 0; break;
     }
 
-    for( num = MAXHITPERLINE*DLAYERS; num--  && *hitarray; hitarray ++ ) {
+    for (num = MAXHITPERLINE*DLAYERS; num--  && *hitarray; hitarray ++ ) {
       h = *hitarray;
       ntotal++;
       if( h->used != 0 && hitc < DLAYERS*3)
 	hits[hitc++] = h;
     }
   }
-  //Perform the fit.
-  if( r2_TrackFit( hitc, hits, fit, covp, &chi)  == -1) {
+
+  // Perform the fit.
+  if (r2_TrackFit( hitc, hits, fit, covp, &chi)  == -1) {
     fprintf(stderr,"hrc: PartTrack Fit Failed\n");
     return 0;
   }
   //cerr << "5" << endl;
+
   //Put the fit parameters into the particle track using the lab frame now
   cout << "Ntotal = " << ntotal << endl;
   pt->x  = fit[2];
@@ -1564,8 +1629,8 @@ int treecombine::TcTreeLineCombine(TreeLine *wu,TreeLine *wv,TreeLine *wx,PartTr
 
   pt->chi = sqrt( chi);
 
-  for( i = 0; i < 4; i++ )
-    for( j = 0; j < 4; j++ )
+  for (int i = 0; i < 4; i++)
+    for (int j = 0; j < 4; j++)
       pt->Cov_Xv[i][j] = cov[i][j];
 
   pt->nummiss = wu->nummiss + wv->nummiss + wx->nummiss;
@@ -1573,7 +1638,7 @@ int treecombine::TcTreeLineCombine(TreeLine *wu,TreeLine *wv,TreeLine *wx,PartTr
   pt->tline[0] = wu;
   pt->tline[1] = wv;
   pt->tline[2] = wx;
-//cerr << "6" << endl;
+  //cerr << "6" << endl;
   return 1;
 }
 //__________________________________________________________________
@@ -1592,6 +1657,10 @@ cerr << "This function is just a stub" << endl;
 return -1000;
 }
 //__________________________________________________________________
+
+
+
+
 /* ------------------------------
    Combines u v and x to tracks
    in space.
@@ -1607,36 +1676,41 @@ return -1000;
 
 
 */
-PartTrack *treecombine::TlTreeCombine(TreeLine *uvl[4],long bins,enum EUppLow up_low,enum ERegion region,enum Etype type,int tlayer,int dlayer)
+PartTrack *treecombine::TlTreeCombine(TreeLine *uvl[4], long bins,
+			enum EUppLow up_low, enum ERegion region, enum Etype type,
+			int tlayer, int dlayer)
 {
-//################
-// DECLARATIONS  #
-//################
-  TreeLine *wu,*wv,*wx, *bwx, wrx;
+  if (debug) cout << "[treecombine::TlTreeCombine]" << endl;
+
+  //################
+  // DECLARATIONS  #
+  //################
+  TreeLine *wu, *wv, *wx, *bwx, wrx;
   PartTrack *ret = 0, *ta;
   int in_acceptance;
   Uv2xy uv2xy;
 
-  double mu,xu,mv,xv,mx,xx, zx1, zx2, xx1, xx2,z1,z2;
-  double x,y,my,v1,v2,u1,u2, y1, y2;
+  double mu, xu, mv, xv, mx, xx, zx1, zx2, xx1, xx2, z1, z2;
+  double x, y, my, v1, v2, u1, u2, y1, y2;
   double x1, x2, d, maxd = 1e10, d1, d2;
 
   chi_hashclear();
 
-  double uv_dz;//distance between u and v planes
-  double Rot;//rotation of planes about the lab x-axis
+  double uv_dz;// distance between u and v planes
+  double Rot; // rotation of planes about the lab x-axis
   Det *rd;
-  double wirecos,wiresin,x_[2],y_[2];
+  double wirecos, wiresin, x_[2], y_[2];
 
   int i;
 
-//###############
-// DO STUFF     #
-//###############
+  //###############
+  // DO STUFF     #
+  //###############
+
   //################
-  // REGION 3      #
+  // REGION 3 VDC  #
   //################
-  if(region == r3 && type == d_drift){
+  if (region == r3 && type == d_drift) {
 
     rd = rcDETRegion[up_low][region-1][u_dir];
     z1 = rd->Zpos;
@@ -1651,39 +1725,45 @@ PartTrack *treecombine::TlTreeCombine(TreeLine *uvl[4],long bins,enum EUppLow up
     // Get distance between planes, etc #
     //###################################
     rd = rcDETRegion[up_low][region-1][u_dir];
-    x_[0]= rd->center[0];
-    y_[0]= rd->center[1];
+    x_[0] = rd->center[0];
+    y_[0] = rd->center[1];
+
     rd = rcDETRegion[up_low][region-1][u_dir]->nextsame;
-    x_[1]= rd->center[0];
-    y_[1]= rd->center[1];
-    d = sqrt(pow(x_[1]-x_[0],2)+pow(y_[1]-y_[0],2));//<-distance between first u and last v planes
+    x_[1] = rd->center[0];
+    y_[1] = rd->center[1];
+
+    // distance between first u and last v planes
+    d = sqrt(pow(x_[1] - x_[0], 2) + pow(y_[1] - y_[0], 2));
+
+
     //#########################
     // Get the u and v tracks #
     //#########################
-    wu = uvl[u_dir];//get the u track
-
-    while(wu){
-      if(wu->isvoid!=0){//skip this treeline if it was no good
+    // get the u track
+    wu = uvl[u_dir];
+    while (wu) {
+      if (wu->isvoid != 0) { // skip this treeline if it was no good
 	wu = wu->next;
 	continue;
       }
-      //get wu's line parameters
-      mu = wu->mx;//slope
-      xu = wu->cx;//constant
+      // get wu's line parameters
+      mu = wu->mx; // slope
+      xu = wu->cx; // constant
 
-      wv = uvl[v_dir];//get the v track
-      while(wv){
-        if(wv->isvoid!=0){
+      // get the v track
+      wv = uvl[v_dir];
+      while (wv) {
+        if (wv->isvoid != 0) {
 	  wv = wv->next;
 	  continue;
         }
-	//get wv's line parameters
-	mv = wv->mx;//slope
-      	xv = wv->cx;//constant
+	// get wv's line parameters
+	mv = wv->mx; // slope
+      	xv = wv->cx; // constant
 
 	PartTrack *ta = new PartTrack();
 
-	if( TcTreeLineCombine2( wu, wv, ta, tlayer) ) {
+	if (TcTreeLineCombine2(wu, wv, ta, tlayer)) {
 	    ta->ID = 0;
 	    ta->isvoid  = false;
 	    //ta->trdcol  = 0;
@@ -1694,8 +1774,8 @@ PartTrack *treecombine::TlTreeCombine(TreeLine *uvl[4],long bins,enum EUppLow up
 	    ta->Used     = 0;
 	    ta->pathlenoff = 0;
 	    ta->pathlenslo = 0;
-            ta->next = ret;//string together the
-	    ret = ta;//      good tracks
+            ta->next = ret; // string together the
+	    ret = ta;       // good tracks
 	}
 
 	// Check whether this track went through the trigger and/or
@@ -1707,41 +1787,47 @@ PartTrack *treecombine::TlTreeCombine(TreeLine *uvl[4],long bins,enum EUppLow up
     }
   return ret;
   }
+
   //################
-  // REGION 2      #
+  // REGION 2 HDC  #
   //################
-  if(region == r2 && type == d_drift){
+  if (region == r2 && type == d_drift) {
+
     double MaxXRoad = opt.R2maxXroad;
-    for(rd = rcDETRegion[up_low][region-1][x_dir],i=0;rd && i<tlayer;rd = rd->nextsame,i++){
-      if(i==0){
-        zx1 = rd->Zpos;///first x-plane z position
+    for (rd = rcDETRegion[up_low][region-1][x_dir], i = 0;
+         rd && i < tlayer; rd = rd->nextsame, i++) {
+      if (i == 0) {
+        zx1 = rd->Zpos; /// first x-plane z position
       }
-      if(i==tlayer-1){
-        zx2 = rd->Zpos;/// last x-plane z position
+      if (i == tlayer - 1) {
+        zx2 = rd->Zpos; /// last x-plane z position
       }
     }
     //#########################
     // Get the u,v and x tracks #
     //#########################
-    wu = uvl[u_dir];//get the u track
-    while(wu){
-      if(wu->isvoid!=0){//skip this treeline if it was no good
+
+    // get the u track
+    wu = uvl[u_dir];
+    while (wu) {
+      if (wu->isvoid != 0) { // skip this treeline if it was no good
 	wu = wu->next;
 	continue;
       }
-      //get wu's line parameters
-      mu = wu->mx;//slope
-      xu = wu->cx;//constant
+      // get wu's line parameters
+      mu = wu->mx; // slope
+      xu = wu->cx; // constant
 
-      wv = uvl[v_dir];//get the v track
-      while(wv){
-        if(wv->isvoid!=0){
+      // get the v track
+      wv = uvl[v_dir];
+      while (wv) {
+        if (wv->isvoid != 0) {
 	  wv = wv->next;
 	  continue;
         }
-	//get wv's line parameters
-	mv = wv->mx;//slope
-      	xv = wv->cx;//constant
+	// get wv's line parameters
+	mv = wv->mx; // slope
+	xv = wv->cx; // constant
 
         // get u/v at the x detectors
         u1 = xu + zx1 * mu;
@@ -1750,27 +1836,28 @@ PartTrack *treecombine::TlTreeCombine(TreeLine *uvl[4],long bins,enum EUppLow up
         v2 = xv + zx2 * mv;
 
         // for x
-        x1 = uv2xy.uv2x( u1, v1,region);
-        x2 = uv2xy.uv2x( u2, v2,region);
+        x1 = uv2xy.uv2x(u1, v1,region);
+        x2 = uv2xy.uv2x(u2, v2,region);
 
         // for y
-        y1 = uv2xy.uv2y( u1, v1,region);
-        y2 = uv2xy.uv2y( u2, v2,region);
+        y1 = uv2xy.uv2y(u1, v1,region);
+        y2 = uv2xy.uv2y(u2, v2,region);
 
-	my = (y2 - y1)/(zx1 - zx2);
+	my = (y2 - y1) / (zx1 - zx2);
 
 
-	wx = uvl[x_dir];//get the x track
+	// get the x track
+	wx = uvl[x_dir];
         bwx = 0;
         maxd = 1e10;
-	while(wx){
-	  if(wx->isvoid!=0){
+	while (wx) {
+	  if (wx->isvoid != 0) {
 	    wx = wx->next;
 	    continue;
 	  }
-	  //get wx's line parameters
-	  mx = wx->mx;//slope
-	  xx = wx->cx;//constant
+	  // get wx's line parameters
+	  mx = wx->mx; // slope
+	  xx = wx->cx; // constant
 
 	  xx1 = xx + mx * zx1;
           xx2 = xx + mx * zx2;
@@ -1779,7 +1866,7 @@ PartTrack *treecombine::TlTreeCombine(TreeLine *uvl[4],long bins,enum EUppLow up
           d2 = fabs(x2 - xx2);
 	  d = d1 + d2;
 
-          if(d < maxd){
+          if (d < maxd) {
 	    bwx = wx;
 	    maxd = d;
 	  }
@@ -1798,25 +1885,24 @@ PartTrack *treecombine::TlTreeCombine(TreeLine *uvl[4],long bins,enum EUppLow up
 
 
 //cerr << "2" << endl;
-	if(bwx)in_acceptance = inAcceptance(up_low, region, bwx->cx, bwx->mx, y1, my);
+	if (bwx) in_acceptance = inAcceptance(up_low, region, bwx->cx, bwx->mx, y1, my);
 	else cerr << "not in acceptance" << endl;
-        if(maxd < MaxXRoad && bwx && in_acceptance){
-	  if(TcTreeLineCombine(wu,wv,bwx,ta,tlayer)){
+        if (maxd < MaxXRoad && bwx && in_acceptance) {
+	  if (TcTreeLineCombine(wu, wv, bwx, ta, tlayer)) {
 //cerr << "7" << endl;
 	    bwx->Used = wv->Used = wu->Used = 1;
 	    ta->ID = 0;
-	    ta->isvoid  = false;
+	    ta->isvoid = false;
 	    ta->next   = ret;
 	    ta->bridge = 0;
-	    ta->Used     = 0;
+	    ta->Used   = 0;
 	    ta->pathlenoff = 0;
 	    ta->pathlenslo = 0;
-            ta->next = ret;//string together the
-	    ret = ta;//      good tracks
+            ta->next = ret; // string together the
+	    ret = ta;       // good tracks
 //cerr << "8";
 	  }
-	}
-	else{
+	} else {
           cerr << "not close enough " << maxd << ',' << MaxXRoad << ',' << in_acceptance << endl;
         }
 //cerr << "3" << endl;
@@ -1826,12 +1912,14 @@ PartTrack *treecombine::TlTreeCombine(TreeLine *uvl[4],long bins,enum EUppLow up
     }
 //cerr << "9" << endl;
     return ret;
-  }
+
   //#################
   // OTHER REGIONS  #
   //#################
-  //all that follows is useful legacy junk
-  else{
+  // (All that follows is useful legacy junk, which should not be reached
+  //  in the case of QwTracking because everything is handled above)
+  } else {
+  cerr << "[treecombine::TlTreeCombine] Error: you shouldn't be here!" << endl;
   double rcSETrMaxXRoad         = 0.25;
   cerr << "Error : Using stub value" << endl;
   wu = uvl[u_dir];
@@ -1972,6 +2060,9 @@ PartTrack *treecombine::TlTreeCombine(TreeLine *uvl[4],long bins,enum EUppLow up
   }
 }
 //__________________________________________________________________
+
+
+
 void treecombine::ResidualWrite( Event *event)
 {
   cerr << "This function may need a 'for loop' for orientation" << endl;
@@ -1989,10 +2080,10 @@ void treecombine::ResidualWrite( Event *event)
   Hit **hitarr, *hit;
   void mcHitCord( int, double* , double *);
 
-  for( up_low = w_upper; up_low <= w_lower; up_low ++ ) {
-    for( tr = event->usedtrack[up_low]; tr; tr=tr->next ) {
+  for (up_low = w_upper; up_low <= w_lower; up_low++) {
+    for (tr = event->usedtrack[up_low]; tr; tr = tr->next) {
       //type = tr->type;
-      for( region = r1; region <= r3; region ++ ) {
+      for (region = r1; region <= r3; region ++) {
 	/*
 	if( region == f_front)
 	  pt = tr->front;
@@ -2002,7 +2093,8 @@ void treecombine::ResidualWrite( Event *event)
 	allmiss = ( pt->tline[0]->nummiss +
 		    pt->tline[1]->nummiss +  pt->tline[2]->nummiss);
 	*/
-	for( dir = u_dir; dir <= x_dir; dir ++ ) {
+	for (dir = u_dir; dir <= x_dir; dir++) {
+	  // TODO pt is undefined here
 	  tl = pt->tline[dir];
 	  hitarr = tl->hits;
 
@@ -2012,11 +2104,11 @@ void treecombine::ResidualWrite( Event *event)
 	      x = pt->mx*( hit->Zpos - magnet_center ) + pt->x;
 	      y = pt->my*( hit->Zpos - magnet_center ) + pt->y;
 	      //mcHitCord( hit->mcId, &mx, &my);
-	      switch(dir) {
-	      case u_dir: v = xy2u( x,y ); mv = xy2u(mx,my); break;
-	      case v_dir: v = xy2v( x,y ); mv = xy2v(mx,my); break;
-	      case x_dir: v = x; mv = mx; break;
-	      default:    mv = v = 0;break;
+	      switch (dir) {
+	        case u_dir: v = xy2u( x,y ); mv = xy2u(mx,my); break;
+	        case v_dir: v = xy2v( x,y ); mv = xy2v(mx,my); break;
+	        case x_dir: v = x; mv = mx; break;
+	        default:   mv = v = 0; break;
 	      }
 	      printf("%d %d %d %d %d "
 		     "%d "
@@ -2042,7 +2134,8 @@ void treecombine::ResidualWrite( Event *event)
   return;
 }
 //__________________________________________________________________
-/*matrix  M_Init (int Zeilen, int Spalten)
+/*
+matrix  M_Init (int Zeilen, int Spalten)
 {
 
   matrix ret;
@@ -2059,17 +2152,21 @@ void treecombine::ResidualWrite( Event *event)
 			   n * Spalten * sizeof (double));
 
   return ret;
-}*/
+}
+*/
 //__________________________________________________________________
+
+
+
 // Least upper bound standard
-double UNorm ( double *A, int n, int m)
+double UNorm (double *A, int n, int m)
 {
-  double Max = 0.0, help;
   int counter;
+  double help, Max = 0.0;
   double *B = A;
   while (n--) {
     counter = m;
-    while (counter--){
+    while (counter--) {
       B = A + n + counter;
       if (Max < (help = fabs (*(B))))
 	Max = help;
@@ -2078,9 +2175,19 @@ double UNorm ( double *A, int n, int m)
   return Max;
 }
 //__________________________________________________________________
-double *M_Cholesky (double  *B, double *q, int n)
+
+
+
+/*------------------------------------------------------------------------*//*!
+
+ \fn double *M_Cholesky (double *B, double *q, int n)
+
+ \brief Calculates the Cholesky decomposition of the positive-definite matrix B
+
+*//*-------------------------------------------------------------------------*/
+double *M_Cholesky (double *B, double *q, int n)
 {
-  register int i, j, k;
+  int i, j, k;
   double sum, min;
   double *C = B;
   double A[n][n];
@@ -2123,235 +2230,339 @@ double *M_Cholesky (double  *B, double *q, int n)
   return B;
 }
 //__________________________________________________________________
-// A and B are two rows of a single Matrix, of which A is being altered.
-void RowMult(double a, double *A, double b, double *B, int n){
-  int i;
-  for(i=0;i<n;i++){
+
+
+
+/*------------------------------------------------------------------------*//*!
+
+ \fn void RowMult(double a, double *A, double b, double *B, int n)
+
+ \brief Calculates a*A + b*B, where both A and B are rows of length n
+
+*//*-------------------------------------------------------------------------*/
+void RowMult (double a, double *A, double b, double *B, int n)
+{
+  for (int i = 0; i < n; i++)
     A[i] = a*A[i] + b*B[i];
-  }
+
   return;
 }
 //__________________________________________________________________
 
-//__________________________________________________________________
-double *MInvert (double *Ap, double *Bp,int n){
-  int i,j;
-  double *row1,*row2;
-  double a,b;
-  //Initialize B;
-  for(i=0;i<4;i++){
 
-    for(j=0;j<4;j++){
-      Bp[i*n+j]=0;
+
+/*------------------------------------------------------------------------*//*!
+
+ \fn void M_Print (double *A, int n)
+
+ \brief Print matrix A of dimension [n,n] to cout
+
+*//*-------------------------------------------------------------------------*/
+void M_Print (double *A, int n)
+{
+  // Print matrix A
+  for (int i = 0; i < n; i++) {
+    cout << "[";
+    for (int j = 0; j < n; j++) {
+      cout << A[i*n+j] << ' ';
     }
-    Bp[i*n+i]=1;
+    cout << ']' << endl;
   }
-/*
-  for(i=0;i<n;i++){
-    cerr << "[";
-    for(j=0;j<n;j++){
-      cerr << Ap[i*n+j] << ' ' ;
+  cout << endl;
+
+  return;
+}
+
+
+
+/*------------------------------------------------------------------------*//*!
+
+ \fn void M_Print (double *A, double *B, int n)
+
+ \brief Print matrices A and B of dimension [n,n] to cout
+
+*//*-------------------------------------------------------------------------*/
+void M_Print (double *A, double *B, int n)
+{
+  // Print matrices A and B
+  for (int i = 0; i < n; i++) {
+    cout << "[";
+    for (int j = 0; j < n; j++) {
+      cout << A[i*n+j] << ' ';
     }
-    cerr << '|' ;
-    for(j=0;j<n;j++){
-      cerr << Bp[i*n+j] << ' ' ;
+    cout << '|' ;
+    for (int j = 0; j < n; j++) {
+      cout << B[i*n+j] << ' ';
     }
-    cerr << ']' << endl;
+    cout << ']' << endl;
   }
-  cerr << endl;
-*/
-  if(n == 4){//this will not be generalized for nxn matrices.
-    //get A10 to An0 to be zero.
-    for(i=1;i<n;i++){
+  cout << endl;
+
+  return;
+}
+
+
+
+/*------------------------------------------------------------------------*//*!
+
+ \fn double *M_Unit (double *A, int n)
+
+ \brief Creates unit matrix A
+
+*//*-------------------------------------------------------------------------*/
+double *M_Unit (double *A, int n)
+{
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+      A[i*n+j] = 0;
+    }
+    A[i*n+i] = 1;
+  }
+
+  return A;
+}
+
+
+
+/*------------------------------------------------------------------------*//*!
+
+ \fn double *M_Zero (double *A, int n)
+
+ \brief Creates zero matrix A
+
+*//*-------------------------------------------------------------------------*/
+double *M_Zero (double *A, int n)
+{
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+      A[i*n+j] = 0;
+    }
+  }
+
+  return A;
+}
+
+
+
+/*------------------------------------------------------------------------*//*!
+
+ \fn double *M_Invert (double *Ap, double *Bp, int n)
+
+ \brief Matrix inversion of Ap will be stored in Bp
+
+*//*-------------------------------------------------------------------------*/
+double *M_Invert (double *Ap, double *Bp, int n)
+{
+  double *row1, *row2;
+  double a, b;
+
+  // Initialize B to unit matrix (wdc: assumed n = 4 here)
+  M_Unit (Bp, n);
+
+  // Print matrices Ap and Bp
+  //M_Print (Ap, Bp, n);
+
+  // Calculate inverse matrix using row-reduce method
+  // (wdc: TODO  faster algs could be useful later)
+  if(n == 4) { // this will not be generalized for nxn matrices.
+
+    // get A10 to An0 to be zero.
+    for (int i = 1; i < n; i++) {
       a = -(Ap[0]);
       b = Ap[i*n];
       row1 = &(Ap[i*n]);
       row2 = &(Ap[0]);
-      RowMult(a,row1,b,row2,4);
+      RowMult(a, row1, b, row2, 4);
       row1 = &(Bp[i*n]);
       row2 = &(Bp[0]);
-      RowMult(a,row1,b,row2,4);
+      RowMult(a, row1, b, row2, 4);
     }
-    //get A21 and A31 to be zero
-    for(i=2;i<n;i++){
+
+    // get A21 and A31 to be zero
+    for (int i = 2; i < n; i++) {
       a = -(Ap[5]);
       b = Ap[i*n+1];
       row1 = &(Ap[i*n]);
       row2 = &(Ap[4]);
-      RowMult(a,row1,b,row2,4);
+      RowMult(a, row1, b, row2, 4);
       row1 = &(Bp[i*n]);
       row2 = &(Bp[4]);
-      RowMult(a,row1,b,row2,4);
+      RowMult(a, row1, b, row2, 4);
     }
-    //get A32 to be zero
+
+    // get A32 to be zero
     a = -(Ap[10]);
     b = Ap[14];
     row1 = &(Ap[12]);
     row2 = &(Ap[8]);
-    RowMult(a,row1,b,row2,4);
+    RowMult(a, row1, b, row2, 4);
     row1 = &(Bp[12]);
     row2 = &(Bp[8]);
-    RowMult(a,row1,b,row2,4);
-    //now the matrix is upper right triangular.
-    //Row reduce the 4th row
+    RowMult(a, row1, b, row2, 4);
+
+    // Now the matrix is upper right triangular.
+
+    // row reduce the 4th row
     a = 1/(Ap[15]);
     row1 = &(Ap[12]);
-    RowMult(a,row1,0,row2,4);
+    RowMult(a, row1, 0, row2, 4);
     row1 = &(Bp[12]);
-    RowMult(a,row1,0,row2,4);
+    RowMult(a, row1, 0, row2, 4);
 
-    //get A03 to A23 to be zero
-    for(i=0;i<n-1;i++){
+    // get A03 to A23 to be zero
+    for (int i = 0; i < n-1; i++) {
       a = -(Ap[15]);
       b = Ap[i*n+3];
       row1 = &(Ap[i*n]);
       row2 = &(Ap[12]);
-      RowMult(a,row1,b,row2,4);
+      RowMult(a, row1, b, row2, 4);
       row1 = &(Bp[i*n]);
       row2 = &(Bp[12]);
-      RowMult(a,row1,b,row2,4);
+      RowMult(a, row1, b, row2, 4);
     }
-    //Row reduce the 3rd row
+
+    // row reduce the 3rd row
     a = 1/(Ap[10]);
     row1 = &(Ap[8]);
-    RowMult(a,row1,0,row2,4);
+    RowMult(a, row1, 0, row2, 4);
     row1 = &(Bp[8]);
-    RowMult(a,row1,0,row2,4);
-    //get A02 and A12 to be zero
-    for(i=0;i<2;i++){
+    RowMult(a, row1, 0, row2, 4);
+
+    // get A02 and A12 to be zero
+    for (int i = 0; i < 2; i++) {
       a = -(Ap[10]);
       b = Ap[i*n+2];
       row1 = &(Ap[i*n]);
       row2 = &(Ap[8]);
-      RowMult(a,row1,b,row2,4);
+      RowMult(a, row1, b, row2, 4);
       row1 = &(Bp[i*n]);
       row2 = &(Bp[8]);
-      RowMult(a,row1,b,row2,4);
+      RowMult(a, row1, b, row2, 4);
     }
-    //Row reduce the 2nd row
+
+    // row reduce the 2nd row
     a = 1/(Ap[5]);
     row1 = &(Ap[4]);
-    RowMult(a,row1,0,row2,n);
+    RowMult(a, row1, 0, row2, n);
     row1 = &(Bp[4]);
-    RowMult(a,row1,0,row2,n);
-    //get A01 to be zero
+    RowMult(a, row1, 0, row2, n);
+
+    // get A01 to be zero
     a = -(Ap[5]);
     b = Ap[1];
     row1 = &(Ap[0]);
     row2 = &(Ap[4]);
-    RowMult(a,row1,b,row2,n);
+    RowMult(a, row1, b, row2, n);
     row1 = &(Bp[0]);
     row2 = &(Bp[4]);
-    RowMult(a,row1,b,row2,n);
-    //Row reduce 1st row
+    RowMult(a, row1, b, row2, n);
+
+    // row reduce 1st row
     a = 1/(Ap[0]);
     row1 = &(Ap[0]);
-    RowMult(a,row1,0,row2,n);
+    RowMult(a, row1, 0, row2, n);
     row1 = &(Bp[0]);
-    RowMult(a,row1,0,row2,n);
-
+    RowMult(a, row1, 0, row2, n);
   }
 
+  // Print matrices Ap and Bp
+  //M_Print (Ap, Bp, n);
 
-
-
-
-/*
-  for(i=0;i<n;i++){
-    cerr << "[";
-    for(j=0;j<n;j++){
-      cerr << Ap[i*n+j] << ' ' ;
-    }
-    cerr << '|' ;
-    for(j=0;j<n;j++){
-      cerr << Bp[i*n+j] << ' ' ;
-    }
-    cerr << ']' << endl;
-  }
-*/
   return Bp;
 }
-//__________________________________________________________________
+
+
+
+/*------------------------------------------------------------------------*//*!
+
+ \fn double *M_InvertPos (double *B, int n)
+
+ \brief Calculates a*A + b*B, where both A and B are rows of length n
+
+*//*-------------------------------------------------------------------------*/
 double *M_InvertPos (double *B, int n)
 {
-
-  int i,j, k;
   double sum;
   double p[n];
   double q[n];
   double inv[n][n];
-  double *pp;
+  double *pp = NULL;
   double A[n][n],*C;
-  /* first we need the cholesky decomposition */
 
-  if( M_Cholesky( B, pp, n) ) {
+  // First we find the cholesky decomposition of B
+  if (M_Cholesky(B, pp, n)) {
 
     C = B;
-    for( i = 0; i < n; i++) {
-      p[i]=*q;
-      for( j = 0; j < n; j++ ) {
-	A[i][j]= *C;
+    for (int i = 0; i < n; i++) {
+      p[i] = *q;
+      for (int j = 0; j < n; j++ ) {
+        A[i][j] = *C;
         C++;
       }
     }
 
-
-
-    for( i = 0; i < n; i++) {
-      A[i][i] = 1.0/p[i];
-      for( j = i+1; j < n; j++ ) {
+    for (int i = 0; i < n; i++) {
+      A[i][i] = 1.0 / p[i];
+      for (int j = i+1; j < n; j++) {
 	sum = 0;
-	for( k = i; k < j; k++ )
+	for (int k = i; k < j; k++)
 	  sum -= A[j][k] * A[k][i];
 	A[j][i] = sum / p[j];
       }
     }
 
-    for( i = 0; i < n; i++ ) {
-      for( j = i; j < n; j++ ) {
+    for (int i = 0; i < n; i++) {
+      for (int j = i; j < n; j++) {
 	sum = 0;
-	for( k = j; k < n; k++ )
+	for (int k = j; k < n; k++)
 	  sum += A[k][i] * A[k][j];
 	inv[i][j] = inv[j][i] = sum;
       }
     }
 
     C = B;
-    for( i = 0; i < n; i++) {
-      for( j = 0; j < n; j++ ) {
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++) {
 	*C = inv[i][j];
         C++;
       }
     }
 
-  } else{
+  } else {
     B = 0;
-    cerr << "Cholesky failed" << endl;
+    cerr << "Cholesky decomposition failed!" << endl;
   }
+
   C = B;
 
   return B;
 }
-//__________________________________________________________________
-/*--------------------------*
-  Multiplication of Matrix A with vector b
- *--------------------------*/
-double *
-M_A_times_b (double *y,double *A, int n, int m,double b[4])
+
+
+
+/*------------------------------------------------------------------------*//*!
+
+ \fn double *M_A_times_b (double *y, double *A, int n, int m, double *b)
+
+ \brief Calculates y[n] = A[n,m] * b[m], with dimensions indicated
+
+*//*-------------------------------------------------------------------------*/
+double *M_A_times_b (double *y, double *A, int n, int m, double *b)
 {
-  int i,j;
-
-
-  for(i=0;i<n;i++){
+  for (int i = 0; i < n; i++) {
     y[i] = 0;
-    for(j=0;j<m;j++){
-      y[i]+=A[i*n+j]*b[j];
+    for (int j = 0; j < m; j++) {
+      y[i] += A[i*n+j] * b[j];
     }
   }
   return y;
 }
 //__________________________________________________________________
-int treecombine::checkR3(PartTrack *pt,enum EUppLow up_low){
+
+
+
+int treecombine::checkR3 (PartTrack *pt, enum EUppLow up_low)
+{
   double trig[3],cc[3];
   double lim_trig[2][2],lim_cc[2][2];
   Det *rd = rcDETRegion[up_low][2][x_dir];//get the trig scint
@@ -2395,5 +2606,5 @@ int treecombine::checkR3(PartTrack *pt,enum EUppLow up_low){
 	cerr << "Cerenkov bar hit at : (" << cc[0] << "," << cc[1] << "," << cc[2] << ")" << endl;
   }else pt->cerenkovhit=0;
 
-return 0;
+  return 0;
 }
