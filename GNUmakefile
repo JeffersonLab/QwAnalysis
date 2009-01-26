@@ -596,7 +596,7 @@ coda_lib:
 	| $(ADD_ANTISLASH) \
 	| $(FILTER_OUT_FOREIGN_DEPS) \
 	>> .tmp; \
-	$(CAT) .tmp | $(SED) "s/\.[A-Za-z0-9\/_]*\/$$(stem $$file)\..[: ]*//g;s/\/include\//\/src\//g;s/\$(IncSuf)/\$(SrcSuf)/g;s/\\\//g" >> .aux; \
+	$(CAT) .tmp | $(GREP) -v "\/$$(stem $$file)\." | $(SED) "s/\/include\//\/src\//g;s/\$(IncSuf)/\$(SrcSuf)/g;s/\\\//g" >> .aux; \
 	if [ "`$(CAT) .tmp | $(GREP) /In | $(SED) '/In[A-Za-z0-9\/_]/d'`" = "" ]; \
 	then \
 	$(ECHO)  >> .tmp; \
@@ -608,6 +608,25 @@ coda_lib:
 	done; \
 	$(RM) .auxSrcFiles; \
 	$(TOUCH) .auxSrcFiles; \
+	$(ECHO) Checking for nested dependencies...; \
+	for file in `$(CAT) 2>&1 .aux`; \
+	do \
+	if [ "`$(GREP) $$file .auxSrcFiles`" = "" ]; \
+	then \
+	if [ -f $$file ]; \
+	then \
+	$(ECHO) $$file | $(FILTER_OUT_LIBRARYDIR_DEPS) >> .auxSrcFiles; \
+	$(ECHO) `$(GCC) $(CPPFLAGS) 2>&1 -MM $$file` \
+	| $(TO_LINE) \
+	| $(INTO_RELATIVE_PATH) \
+	| $(FILTER_OUT_FOREIGN_DEPS) \
+	| $(GREP) -v "\/$$(stem $$file)\." \
+	| $(SED) "s/\/include\//\/src\//g;s/\$(IncSuf)/\$(SrcSuf)/g;s/\\\//g" \
+	>> .aux; \
+	fi; \
+	fi; \
+	done; \
+	$(ECHO) Building list of source files...; \
 	for file in `$(CAT) 2>&1 .aux`; \
 	do \
 	if [ "`$(GREP) $$file .auxSrcFiles`" = "" ]; \
