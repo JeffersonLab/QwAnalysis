@@ -14,6 +14,7 @@
 #include <Rtypes.h>
 #include <TString.h>
 #include <TDirectory.h>
+#include <TTree.h>
 
 #include "QwParameterFile.h"
 
@@ -39,12 +40,13 @@ class VQwSubsystem{
   TString GetSubsystemName() const {return fSystemName;};
   Bool_t  HasDataLoaded() const  {return fIsDataLoaded;}
   
-
-  Int_t returnSubsystemType(){ //value is 1 if this is a tracking class and value is 2 if this is a parity class else it is 0
+  Int_t returnSubsystemType(){ 
+    //value is 1 if this is a tracking class and value is 2 if this is a parity class else it is 0
     return 0;
-};
+  };
 
   virtual Int_t LoadChannelMap(TString mapfile) = 0;
+  virtual Int_t LoadInputParameters(TString mapfile) = 0;
   virtual void  ClearEventData() = 0;
 
   virtual Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) = 0;
@@ -53,22 +55,54 @@ class VQwSubsystem{
 
   virtual void  ProcessEvent() = 0;
 
-  virtual void  ConstructHistograms(){ConstructHistograms((TDirectory*)NULL);};
-  virtual void  ConstructHistograms(TDirectory *folder) = 0;
+
+  virtual void  ConstructHistograms()
+    {
+      TString tmpstr("");
+      ConstructHistograms((TDirectory*)NULL, tmpstr);
+    };
+  virtual void  ConstructHistograms(TDirectory *folder)
+    {
+      TString tmpstr("");
+      ConstructHistograms(folder,tmpstr);
+    };
+  virtual void  ConstructHistograms(TString &prefix)
+    {
+      ConstructHistograms((TDirectory*)NULL, prefix);
+    };
+  virtual void  ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
   virtual void  FillHistograms() = 0;
-  virtual void  DeleteHistograms() = 0;
-  
+  virtual void  DeleteHistograms() = 0;  
+  virtual void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Float_t> &values)=0;
+  virtual void ConstructBranchAndVector(TTree *tree, std::vector <Float_t> &values)
+    {
+      TString tmpstr("");
+      ConstructBranchAndVector(tree,tmpstr,values);
+    };
 
   
-  
-  
+  virtual void FillTreeVector(std::vector<Float_t> &values)=0;
+
+
+  virtual void Copy(VQwSubsystem *source) = 0;
+  virtual VQwSubsystem* Copy()=0;
+
+  virtual VQwSubsystem&  operator=  (VQwSubsystem *value)=0;
+  virtual VQwSubsystem&  operator+= (VQwSubsystem *value)=0;
+  virtual VQwSubsystem&  operator-= (VQwSubsystem *value)=0;
+  virtual void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)=0;
+  virtual void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)=0;
+  virtual void Ratio(VQwSubsystem *numer, VQwSubsystem *denom)=0;
+
 
  protected:
   void  ClearAllBankRegistrations();
-  Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);   // Tells this object that it will decode data from this ROC and sub-bank
-  Int_t RegisterSubbank(const UInt_t bank_id);  // Tells this object that it will decode data from this sub-bank in the ROC currently open for registration
+  Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);   
+  // Tells this object that it will decode data from this ROC and sub-bank
+  Int_t RegisterSubbank(const UInt_t bank_id); 
+  // Tells this object that it will decode data from this sub-bank in the ROC
+  // currently open for registration
   Int_t GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) const;
-
   void  SetDataLoaded(Bool_t flag){fIsDataLoaded = flag;};
 
  protected:
@@ -91,6 +125,9 @@ class VQwSubsystem{
 
  protected:
   VQwSubsystem(){};  //  Private constructor.
+  VQwSubsystem&  operator=  (VQwSubsystem value){
+    return *this;
+  };
 
 
 };

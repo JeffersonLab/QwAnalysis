@@ -33,10 +33,12 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
  public:
   QwEventBuffer();
-  virtual ~QwEventBuffer() { if (fEvStream!=NULL){
-    delete fEvStream;
-    fEvStream = NULL;
-  }};
+  virtual ~QwEventBuffer() {
+    if (fEvStream!=NULL){
+      delete fEvStream;
+      fEvStream = NULL;
+    }
+  };
 
 
 

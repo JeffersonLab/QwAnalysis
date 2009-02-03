@@ -35,7 +35,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   QwSubsystemArray() {};
   ~QwSubsystemArray(){
   };
-  
+
   void push_back(VQwSubsystem* subsys);
 
   VQwSubsystem* GetSubsystem(const TString name);
@@ -43,118 +43,37 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void  ClearEventData();
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
-				   buffer, UInt_t num_words);
-  
-  Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
-			buffer, UInt_t num_words);
+                                   buffer, UInt_t num_words);
 
+  Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
+                        buffer, UInt_t num_words);
+
+
+  void Copy(QwSubsystemArray *source);
   void  ProcessEvent();
 
   void  ConstructHistograms(){ConstructHistograms((TDirectory*)NULL);};
 
-  void  ConstructHistograms(TDirectory *folder);
+  void  ConstructHistograms(TDirectory *folder){TString prefix="";ConstructHistograms(folder,prefix);};
+  void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();
-  
 
-  
+  QwSubsystemArray& operator=  (const QwSubsystemArray &value);
+  QwSubsystemArray& operator+= (const QwSubsystemArray &value);
+  QwSubsystemArray& operator-= (const QwSubsystemArray &value);
+  void Sum(QwSubsystemArray &value1, QwSubsystemArray &value2);
+  void Difference(QwSubsystemArray &value1, QwSubsystemArray &value2);
+  void Ratio(QwSubsystemArray &numer, QwSubsystemArray &denom);
+
 
  protected:
 
 
-};
-
-
-void QwSubsystemArray::push_back(VQwSubsystem* subsys){
-    if (subsys==NULL){
-      std::cerr << "QwSubsystemArray::push_back():  NULL subsys"
-		<< std::endl;
-      //  This is an empty subsystem...
-      //  Do nothing for now.
-    } else if (!this->empty() && GetSubsystem(subsys->GetSubsystemName())){
-      //  There is already a subsystem with this name!
-    } else {
-      boost::shared_ptr<VQwSubsystem> tmpptr(subsys);
-      SubsysPtrs::push_back(tmpptr);
-    }
-  };
-
-
-VQwSubsystem* QwSubsystemArray::GetSubsystem(const TString name)
-{
-  VQwSubsystem* tmp = NULL;
-  if (!empty()){
-    for (const_iterator subsys = begin(); subsys != end(); ++subsys){
-      if ((*subsys)->GetSubsystemName() == name){
-	tmp = (*subsys).get();
-      } else {
-      }
-    }
-  }
-  return tmp;
-};
-
-
-void  QwSubsystemArray::ClearEventData()
-{
-  if (!empty())
-    std::for_each(begin(), end(), 
-		  boost::mem_fn(&VQwSubsystem::ClearEventData));
-};
-   
-Int_t QwSubsystemArray::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
-				 buffer, UInt_t num_words)
-{
-  Int_t status = 0;
-  if (!empty())
-    for (iterator subsys = begin(); subsys != end(); ++subsys){
-      status += (*subsys)->ProcessConfigurationBuffer(roc_id, bank_id, buffer, num_words);
-    }
-  return status;
-};
-  
-Int_t QwSubsystemArray::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
-		      buffer, UInt_t num_words)
-{
-  Int_t status = 0;
-  if (!empty())
-    for (iterator subsys = begin(); subsys != end(); ++subsys){
-      status += (*subsys)->ProcessEvBuffer(roc_id, bank_id, buffer, num_words);
-    }
-  return status;
-};
-
-
-
-
-void  QwSubsystemArray::ProcessEvent()
-{
-  if (!empty())
-    std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::ProcessEvent));
-};
-
-void  QwSubsystemArray::ConstructHistograms(TDirectory *folder)
-{
-  if (!empty())
-    for (iterator subsys = begin(); subsys != end(); ++subsys){
-      (*subsys)->ConstructHistograms(folder);
-    }
-};
-
-void  QwSubsystemArray::FillHistograms()
-{
-  if (!empty())
-    std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::FillHistograms));
-};
-
-void  QwSubsystemArray::DeleteHistograms()
-{
-  if (!empty())
-    std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::DeleteHistograms));
-
-
 
 };
+
+
 
 
 

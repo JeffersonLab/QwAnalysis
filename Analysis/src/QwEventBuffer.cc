@@ -17,6 +17,7 @@ QwEventBuffer::QwEventBuffer():fDEBUG(kFALSE),fDataFileStem("QwRun_"),
 			       fDataFileExtension("log"),
 			       fRunIsSegmented(kFALSE),
 			       fEvStreamMode(fEvStreamNull),
+			       fEvStream(NULL),
 			       fPhysicsEventFlag(kFALSE)
 {
   fDataDirectory = getenv("DATADIR");
@@ -385,10 +386,6 @@ Bool_t QwEventBuffer::DecodeSubbankHeader(UInt_t *buffer){
 };
 
 
-
-
-
-
 const TString&  QwEventBuffer::DataFile(const UInt_t run, const Short_t seg = -1)
 {
   TString basename = fDataFileStem + Form("%ld.",run) + fDataFileExtension;
@@ -399,8 +396,6 @@ const TString&  QwEventBuffer::DataFile(const UInt_t run, const Short_t seg = -1
   }
   return fDataFile;
 }
-
-
 
 
 Bool_t QwEventBuffer::DataFileIsSegmented()

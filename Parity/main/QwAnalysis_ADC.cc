@@ -42,13 +42,13 @@ int main(Int_t argc,Char_t* argv[])
   QwDetectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
 
 
-  QwQuartzBar sum_outer(""), sum_inner(""), diff(""), sum(""), asym("");
+//   QwQuartzBar sum_outer(""), sum_inner(""), diff(""), sum(""), asym("");
   
-  sum_outer.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
-  sum_inner.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
-  sum.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
-  diff.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
-  asym.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
+//   sum_outer.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
+//   sum_inner.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
+//   sum.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
+//   diff.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
+//   asym.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
 
   for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++){
     //  Begin processing for the first run.
@@ -73,8 +73,13 @@ int main(Int_t argc,Char_t* argv[])
 
     //  Open the data files and root file
     //    OpenAllFiles(io, run);
-    TFile rootfile(Form("Qweak_%d.root",run),
-		   "RECREATE","QWeak ROOT file with histograms");
+
+    TString rootfilename=std::string(getenv("QW_ROOTFILES_DIR"))+Form("/Qweak_ADC_%d.root",run);
+    std::cout<<" rootfilename="<<rootfilename<<"\n";
+    TFile rootfile(rootfilename,
+		     "RECREATE","QWeak ROOT file with histograms");
+      
+
 
     //  Create the histograms for the QwDriftChamber subsystem object.
     //  We can create a subfolder in the rootfile first, if we want,
@@ -89,20 +94,21 @@ int main(Int_t argc,Char_t* argv[])
     //    asym.ConstructHistograms(asymdir,"asym" );
 
     rootfile.cd();
-    TTree *heltree = new TTree("HEL_Tree","Helicity event data tree");
-    std::vector<Float_t> heltreevector;
-    Float_t  evnum = 0.0;
-    heltreevector.reserve(600);
-    heltree->Branch("evnum", &evnum, "evnum/F");
-    ((QwQuartzBar*)QwDetectors.GetSubsystem("MainDetectors"))->ConstructBranchAndVector(heltree, "", heltreevector);
+//     TTree *heltree = new TTree("HEL_Tree","Helicity event data tree");
+//     std::vector<Float_t> heltreevector;
+//     Float_t  evnum = 0.0;
+//     heltreevector.reserve(600);
+//     heltree->Branch("evnum", &evnum, "evnum/F");
+//     ((QwQuartzBar*)QwDetectors.at(0))->ConstructBranchAndVector(heltree, "", heltreevector);
 
-    TTree *qrttree = new TTree("QRT_Tree","Quartet data tree");
-    std::vector<Float_t> qrttreevector;
-    Float_t  qrtnum = 0.0;
-    qrttreevector.reserve(600);
-    qrttree->Branch("qrtnum", &qrtnum, "qrtnum/F");
-    sum.ConstructBranchAndVector(qrttree, "yield", qrttreevector);
-    asym.ConstructBranchAndVector(qrttree, "asym", qrttreevector);
+
+//     TTree *qrttree = new TTree("QRT_Tree","Quartet data tree");
+//     std::vector<Float_t> qrttreevector;
+//     Float_t  qrtnum = 0.0;
+//     qrttreevector.reserve(600);
+//     qrttree->Branch("qrtnum", &qrtnum, "qrtnum/F");
+//     sum.ConstructBranchAndVector(qrttree, "yield", qrttreevector);
+//     asym.ConstructBranchAndVector(qrttree, "asym", qrttreevector);
 
 
     while (QwEvt.GetEvent() == CODA_OK){
@@ -133,39 +139,41 @@ int main(Int_t argc,Char_t* argv[])
       //  Fill the histograms for the QwDriftChamber subsystem object.
       QwDetectors.FillHistograms();
       
-      if (((QwQuartzBar*)QwDetectors.GetSubsystem("MainDetectors"))->IsGoodEvent()){
-	evnum = QwEvt.GetEventNumber();
-	((QwQuartzBar*)QwDetectors.GetSubsystem("MainDetectors"))->FillTreeVector(heltreevector);
-	heltree->Fill();
-      }
+//       if (((QwQuartzBar*)QwDetectors.at(0))->IsGoodEvent()){
+// 	evnum = QwEvt.GetEventNumber();
+// 	((QwQuartzBar*)QwDetectors.at(0))->FillTreeVector(heltreevector);
+// 	heltree->Fill();
+//       }
 
-      //  Quick construction of an asymmetry.
-      //  This basically just takes the pattern as always +--+.
-      //  
-      if (QwEvt.GetEventNumber()%4 == 0){
-	sum_outer = *((QwQuartzBar*)QwDetectors.GetSubsystem("MainDetectors"));
-      } else if (QwEvt.GetEventNumber()%4 == 1){
-	sum_inner = *((QwQuartzBar*)QwDetectors.GetSubsystem("MainDetectors"));
-      } else if (QwEvt.GetEventNumber()%4 == 2){
-	sum_inner += *((QwQuartzBar*)QwDetectors.GetSubsystem("MainDetectors"));
-      } else if (QwEvt.GetEventNumber()%4 == 3){
-	sum_outer += *((QwQuartzBar*)QwDetectors.GetSubsystem("MainDetectors"));
-	diff.Difference(sum_outer, sum_inner);
-	sum.Sum(sum_outer, sum_inner);
-	asym.Ratio(diff, sum);
 
-	qrtnum++;
+//       //  Quick construction of an asymmetry.
+//       //  This basically just takes the pattern as always +--+.
+//       //  
+//       if (QwEvt.GetEventNumber()%4 == 0){
+// 	sum_outer = *((QwQuartzBar*)QwDetectors.at(0));
+//       } else if (QwEvt.GetEventNumber()%4 == 1){
+// 	sum_inner = *((QwQuartzBar*)QwDetectors.at(0));
+//       } else if (QwEvt.GetEventNumber()%4 == 2){
+// 	sum_inner += *((QwQuartzBar*)QwDetectors.at(0));
+//       } else if (QwEvt.GetEventNumber()%4 == 3){
+// 	sum_outer += *((QwQuartzBar*)QwDetectors.at(0));
+// 	diff.Difference(sum_outer, sum_inner);
+// 	sum.Sum(sum_outer, sum_inner);
+// 	asym.Ratio(diff, sum);
 
-	//	sum.FillHistograms();
-	//	asym.FillHistograms();
-	if (sum.IsGoodEvent()){
-	  sum.FillTreeVector(qrttreevector);
-	  asym.FillTreeVector(qrttreevector);
-	  qrttree->Fill();
-	} else {
-	  std::cerr << "Throw out a bad quartet" << std::endl;
-	};
-      }
+
+// 	qrtnum++;
+
+// 	//	sum.FillHistograms();
+// 	//	asym.FillHistograms();
+// 	if (sum.IsGoodEvent()){
+// 	  sum.FillTreeVector(qrttreevector);
+// 	  asym.FillTreeVector(qrttreevector);
+// 	  qrttree->Fill();
+// 	} else {
+// 	  std::cerr << "Throw out a bad quartet" << std::endl;
+// 	};
+//    }
 
 
 

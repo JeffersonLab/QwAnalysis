@@ -29,6 +29,7 @@ Int_t VQwSubsystem::FindIndex(const std::vector<UInt_t> &myvec, const UInt_t val
 };
 
 Int_t VQwSubsystem::GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) const {
+  Bool_t lDEBUG=kTRUE;
   Int_t index = -1;
   Int_t roc_index = FindIndex(fROC_IDs, roc_id);
   if (roc_index>=0){

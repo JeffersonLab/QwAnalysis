@@ -25,7 +25,6 @@ QwQuartzBar::~QwQuartzBar(){
 };
 
 
-
 Int_t QwQuartzBar::LoadChannelMap(TString mapfile){
   TString varname, varvalue;
   TString modtype, dettype, name;
@@ -40,7 +39,7 @@ Int_t QwQuartzBar::LoadChannelMap(TString mapfile){
     if (mapstr.HasVariablePair("=",varname,varvalue)){
       //  This is a declaration line.  Decode it.
       varname.ToLower();
-      UInt_t value = QwParameterFile::GetUInt(varvalue);
+     UInt_t value = QwParameterFile::GetUInt(varvalue);
       if (varname=="roc"){
 	RegisterROCNumber(value,0);
       } else if (varname=="bank"){
@@ -67,6 +66,47 @@ Int_t QwQuartzBar::LoadChannelMap(TString mapfile){
   //
   return 0;
 };
+
+
+
+Int_t QwQuartzBar::LoadInputParameters(TString pedestalfile)
+{
+  //   stub function = QwQuartzBar::LoadInputParameters
+  //added by Buddhini++++January 16, 2009
+  Bool_t ldebug=kFALSE;
+  TString varname;
+  Double_t varped;
+  Double_t varcal;
+  TString localname;
+
+  Int_t lineread=0;
+
+  QwParameterFile mapstr(pedestalfile.Data());  //Open the file
+  while (mapstr.ReadNextLine())
+    {
+      lineread+=1;
+      mapstr.TrimComment('!');   // Remove everything after a '!' character.
+      mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+      if (mapstr.LineIsEmpty())  continue;
+      else
+	{
+	  varname = mapstr.GetNextToken(", \t").c_str();	//name of the channel
+	  varname.ToLower();
+	  varname.Remove(TString::kBoth,' ');
+	  varped= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
+	  varcal= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+	  if(ldebug) std::cout<<"inputs for channel "<<varname
+			      <<": ped="<<varped<<": cal="<<varcal<<"\n"; 
+	  // Bool_t notfound=kTRUE;
+ 	}
+      
+    } 
+  if(ldebug) std::cout<<" line read in the pedestal + cal file ="<<lineread<<" \n";
+
+  ldebug=kFALSE;
+  return 0;
+    };
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
 void  QwQuartzBar::ClearEventData(){
@@ -120,11 +160,16 @@ Int_t QwQuartzBar::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer
 };
 
 
-void  QwQuartzBar::ProcessEvent(){
+void  QwQuartzBar::ProcessEvent()
+{
+  // stub function= QwQuartzBar::ProcessEvent()
+  // Buddhini & Julie, Jan 16, 2009
+  
+  return;
 };
 
 
-void  QwQuartzBar::ConstructHistograms(TDirectory *folder, TString prefix){
+void  QwQuartzBar::ConstructHistograms(TDirectory *folder, TString &prefix){
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
       fADC_Data.at(i)->ConstructHistograms(folder, prefix);
@@ -140,7 +185,16 @@ void  QwQuartzBar::FillHistograms(){
   }
 };
 
-void  QwQuartzBar::ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Float_t> &values)
+void  QwQuartzBar::DeleteHistograms()
+{
+  // stub function= QwQuartzBar::CDeleteHistograms()
+  // Buddhini & Julie, Jan 16, 2009
+  
+  return;
+}  
+
+
+void  QwQuartzBar::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Float_t> &values)
 {
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
@@ -162,80 +216,105 @@ void  QwQuartzBar::FillTreeVector(std::vector<Float_t> &values)
   }
 };
 
+//****************************************************************Added *By Buddhini
+void  QwQuartzBar::Copy(VQwSubsystem *source)
+{
+  // stub function= QwQuartzBar::Copy(VQwSubsystem *source)
+  // Buddhini & Julie, Jan 16, 2009
+  
+  return;
+}
 
-void  QwQuartzBar::DeleteHistograms(){
-  for (size_t i=0; i<fADC_Data.size(); i++){
-    if (fADC_Data.at(i) != NULL){
-      fADC_Data.at(i)->DeleteHistograms();
-    }
-  }  
-};
+VQwSubsystem*  QwQuartzBar::Copy()
+{
+  // stub function= QwQuartzBar::Copy()
+  QwQuartzBar* TheCopy=new QwQuartzBar("Quartz bar Copy");
+  TheCopy->Copy(this);
+  return TheCopy;
+}
 
 
-QwQuartzBar& QwQuartzBar::operator=  (const QwQuartzBar &value){
-  if (fADC_Data.size() == value.fADC_Data.size()){
-    for (size_t i=0; i<fADC_Data.size(); i++){
-      if (fADC_Data.at(i) != NULL && value.fADC_Data.at(i) != NULL){
-	*(QwVQWK_Module*)fADC_Data.at(i) = *(QwVQWK_Module*)value.fADC_Data.at(i);
+
+
+
+
+Bool_t  QwQuartzBar::Compare(VQwSubsystem *source)
+{
+  // stub function= QwQuartzBar::Compare
+  // Buddhini & Julie, Jan 16, 2009
+  
+  return kTRUE;
+}
+
+VQwSubsystem&  QwQuartzBar::operator=  ( VQwSubsystem *value)
+{
+  
+  if(Compare(value))
+    {
+      QwQuartzBar* input= (QwQuartzBar*)value;
+      for(size_t i=0;i<input->fADC_Data.size();i++){
+	*(QwVQWK_Module*)fADC_Data.at(i) = *(QwVQWK_Module*)(input->fADC_Data.at(i));
       }
     }
-  } else {
-    std::cerr << "QwQuartzBar::operator=:  Problems!!!"
-	      << std::endl;
-  }
   return *this;
 };
 
-QwQuartzBar& QwQuartzBar::operator+= (const QwQuartzBar &value){
-  if (fADC_Data.size() == value.fADC_Data.size()){
-    for (size_t i=0; i<fADC_Data.size(); i++){
-      if (fADC_Data.at(i) != NULL && value.fADC_Data.at(i) != NULL){
-	*(QwVQWK_Module*)fADC_Data.at(i) += *(QwVQWK_Module*)value.fADC_Data.at(i);
+VQwSubsystem&  QwQuartzBar::operator+=  ( VQwSubsystem *value)
+{
+  // Buddhini, January 14,2009. 
+  if(Compare(value))
+    {
+      QwQuartzBar* input= (QwQuartzBar*)value ;
+      for(size_t i=0;i<input->fADC_Data.size();i++){
+	*(QwVQWK_Module*)fADC_Data.at(i) += *(QwVQWK_Module*)(input->fADC_Data.at(i));
       }
     }
-  } else {
-    std::cerr << "QwQuartzBar::operator+=:  Problems!!!"
-	      << std::endl;
-  }
   return *this;
 };
 
-QwQuartzBar& QwQuartzBar::operator-= (const QwQuartzBar &value){
-  if (fADC_Data.size() == value.fADC_Data.size()){
-    for (size_t i=0; i<fADC_Data.size(); i++){
-      if (fADC_Data.at(i) != NULL && value.fADC_Data.at(i) != NULL){
-	*(QwVQWK_Module*)fADC_Data.at(i) -= *(QwVQWK_Module*)value.fADC_Data.at(i);
+VQwSubsystem&  QwQuartzBar::operator-=  ( VQwSubsystem *value)
+{
+  // Buddhini, January 14,2009. 
+  if(Compare(value))
+    {      
+      QwQuartzBar* input= (QwQuartzBar*)value;
+      for(size_t i=0;i<input->fADC_Data.size();i++){
+	*(QwVQWK_Module*)fADC_Data.at(i) -= *(QwVQWK_Module*)(input->fADC_Data.at(i));
       }
     }
-  } else {
-    std::cerr << "QwQuartzBar::operator-=:  Problems!!!"
-	      << std::endl;
-  }
   return *this;
 };
 
-void QwQuartzBar::Sum(QwQuartzBar &value1, QwQuartzBar &value2){
+
+void QwQuartzBar::Sum(VQwSubsystem *value1,VQwSubsystem *value2){
   *this =  value1;
   *this += value2;
 };
 
-void QwQuartzBar::Difference(QwQuartzBar &value1, QwQuartzBar &value2){
+void QwQuartzBar::Difference(VQwSubsystem *value1,VQwSubsystem *value2){
   *this =  value1;
   *this -= value2;
 };
 
-void QwQuartzBar::Ratio(QwQuartzBar &numer, QwQuartzBar &denom){
-  if (fADC_Data.size() == numer.fADC_Data.size() 
-      && fADC_Data.size() == denom.fADC_Data.size() ){
-    for (size_t i=0; i<fADC_Data.size(); i++){
-      if (fADC_Data.at(i) != NULL && numer.fADC_Data.at(i) != NULL
-	  && denom.fADC_Data.at(i) != NULL){
-	((QwVQWK_Module*)fADC_Data.at(i))->Ratio(*(QwVQWK_Module*)numer.fADC_Data.at(i), *(QwVQWK_Module*)denom.fADC_Data.at(i));
+void QwQuartzBar::Ratio(VQwSubsystem *numer,VQwSubsystem  *denom){
+  
+  if(Compare(numer) && Compare(denom)){
+    QwQuartzBar& numer1 = *(QwQuartzBar*)numer;
+    QwQuartzBar& denom1 = *(QwQuartzBar*)denom;
+
+
+    if (fADC_Data.size() == numer1.fADC_Data.size() 
+	&& fADC_Data.size() == denom1.fADC_Data.size() ){
+      for (size_t i=0; i<fADC_Data.size(); i++){
+	if (fADC_Data.at(i) != NULL && numer1.fADC_Data.at(i) != NULL
+	    && denom1.fADC_Data.at(i) != NULL){
+	  ((QwVQWK_Module*)fADC_Data.at(i))->Ratio(*(QwVQWK_Module*)numer1.fADC_Data.at(i), *(QwVQWK_Module*)denom1.fADC_Data.at(i));
+	}
       }
-    }
-  } else {
-    std::cerr << "QwQuartzBar::operator-=:  Problems!!!"
-	      << std::endl;
-  }  
+    } else {
+      std::cerr << "QwQuartzBar::operator-=:  Problems!!!"
+		<< std::endl;
+    }  
+  }
 };
 

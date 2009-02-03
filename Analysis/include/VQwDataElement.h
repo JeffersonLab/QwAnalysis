@@ -9,6 +9,7 @@
 #ifndef __VQWDATAELEMENT__
 #define __VQWDATAELEMENT__
 
+#include <iostream>
 #include <vector>
 #include "Rtypes.h"
 #include "TString.h"
@@ -21,22 +22,33 @@ class VQwDataElement{
   //  VQwDataElement(UInt_t numwords):fNumberOfDataWords(numwords) {};
   virtual ~VQwDataElement();
 
+  Bool_t IsNameEmpty() const {return fElementName.IsNull();};
   void SetElementName(const TString &name) {fElementName = name;};
   TString GetElementName() const {return fElementName;};
 
   virtual void  ClearEventData() = 0;
-  virtual Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left) = 0;
+  virtual Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement=0) = 0;
 
   virtual VQwDataElement& operator= (const VQwDataElement &value);
-  virtual VQwDataElement& operator+= (const VQwDataElement &value)                    {std::cerr << "Crap!!!"<<std::endl;return *this;};
-  virtual VQwDataElement& operator-= (const VQwDataElement &value)                    {std::cerr << "Crap!!!"<<std::endl;return *this;};
-  virtual void Sum(const VQwDataElement &value1, const VQwDataElement &value2)        {std::cerr << "Crap!!!"<<std::endl;};
-  virtual void Difference(const VQwDataElement &value1, const VQwDataElement &value2) {std::cerr << "Crap!!!"<<std::endl;};
-  virtual void Ratio(const VQwDataElement &numer, const VQwDataElement &denom)        {std::cerr << "Crap!!!"<<std::endl;};
+  virtual VQwDataElement& operator+= (const VQwDataElement &value)                  
+    {std::cerr << "Crap!!!"<<std::endl;return *this;};
+  virtual VQwDataElement& operator-= (const VQwDataElement &value)
+    {std::cerr << "Crap!!!"<<std::endl;return *this;};
+  virtual void Sum(const VQwDataElement &value1, const VQwDataElement &value2)
+    {std::cerr << "Crap!!!"<<std::endl;};
+  virtual void Difference(const VQwDataElement &value1, const VQwDataElement &value2)
+    {std::cerr << "Crap!!!"<<std::endl;};
+  virtual void Ratio(const VQwDataElement &numer, const VQwDataElement &denom)
+    {std::cerr << "Crap!!!"<<std::endl;};
 
   virtual void  ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
   virtual void  FillHistograms() = 0;
   void  DeleteHistograms();
+
+  virtual void Print(){};
+
+  virtual void Copy(VQwDataElement *source)=0;
+
 
 
   size_t GetNumberOfDataWords() {return fNumberOfDataWords;};
@@ -70,6 +82,8 @@ inline void  VQwDataElement::DeleteHistograms(){
   }
   fHistograms.clear();
 };
+
+
 
 
 

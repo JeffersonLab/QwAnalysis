@@ -28,7 +28,7 @@ class QwQuartzBar: public VQwSubsystemParity {
 
   /*  Member functions derived from VQwSubsystemParity. */
   Int_t LoadChannelMap(TString mapfile);
-
+  Int_t LoadInputParameters(TString pedestalfile);
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
   void  ClearEventData();
@@ -40,19 +40,27 @@ class QwQuartzBar: public VQwSubsystemParity {
     TString tmpstr("");
     ConstructHistograms(folder,tmpstr);
   };
-  void  ConstructHistograms(TDirectory *folder, TString prefix);
+
+  void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();
 
-  void  ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Float_t> &values);
+  void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t> &values);
   void  FillTreeVector(std::vector<Float_t> &values);
 
-  QwQuartzBar& operator=  (const QwQuartzBar &value);
-  QwQuartzBar& operator+= (const QwQuartzBar &value);
-  QwQuartzBar& operator-= (const QwQuartzBar &value);
-  void Sum(QwQuartzBar &value1, QwQuartzBar &value2);
-  void Difference(QwQuartzBar &value1, QwQuartzBar &value2);
-  void Ratio(QwQuartzBar &numer, QwQuartzBar &denom);
+  void Copy(VQwSubsystem *source);
+  VQwSubsystem*  Copy();
+  Bool_t Compare(VQwSubsystem *source);
+
+
+  VQwSubsystem&  operator=  ( VQwSubsystem *value);
+  VQwSubsystem&  operator+= ( VQwSubsystem *value);
+  VQwSubsystem&  operator-= ( VQwSubsystem *value);
+
+
+  void Sum(VQwSubsystem *value1, VQwSubsystem *value2);
+  void Difference(VQwSubsystem *value1,VQwSubsystem *value2);
+  void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
   
 
   Bool_t IsGoodEvent(){
@@ -66,12 +74,6 @@ class QwQuartzBar: public VQwSubsystemParity {
   };
 
 
-   
-
- protected:
-/*   void Sum(QwQuartzBar &value1, QwQuartzBar &value2); */
-/*   void Difference(QwQuartzBar &value1, QwQuartzBar &value2); */
-/*   void Ratio(QwQuartzBar &numer, QwQuartzBar &denom); */
 
 
  protected:
@@ -87,3 +89,16 @@ class QwQuartzBar: public VQwSubsystemParity {
 };
 
 #endif
+
+
+
+
+
+
+
+
+
+
+
+
+
