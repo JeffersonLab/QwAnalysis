@@ -459,7 +459,7 @@ Bool_t QwEventBuffer::DataFileIsSegmented()
       local_index.resize(tmp_segments.size(),0);
       /*  Get the list of segments sorted numerically in        *
        *  increasing order.                                     */
-      TMath::Sort(tmp_segments.size(),&(tmp_segments[0]),&(local_index[0]),
+      TMath::Sort(static_cast<int>(tmp_segments.size()),&(tmp_segments[0]),&(local_index[0]),
                   kFALSE);
       /*  Put the segments into numerical order in              *
        *  fRunSegments.                                         */
