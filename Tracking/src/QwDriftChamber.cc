@@ -192,7 +192,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buf
 };
 
 
-void  QwDriftChamber::ConstructHistograms(TDirectory *folder)
+void  QwDriftChamber::ConstructHistograms(TDirectory *folder, TString& prefix)
 {
   //  If we have defined a subdirectory in the ROOT file, then change into it.
   if (folder != NULL) folder->cd();
@@ -207,7 +207,7 @@ void  QwDriftChamber::ConstructHistograms(TDirectory *folder)
 
   for (size_t i=1;i<fWiresPerPlane.size();i++) {
     ///////////////First set of histos////////////////////////////////
-    TotHits[i] = new TH1F(Form("%sHitsOnEachWirePlane%d",region.Data(),i),
+    TotHits[i] = new TH1F(Form("%s%sHitsOnEachWirePlane%d", prefix.Data() ,region.Data(),i),
 			  Form("Total hits on all wires in plane %d",i),
 			  fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5);
     TotHits[i]->GetXaxis()->SetTitle("Wire #");
@@ -215,14 +215,14 @@ void  QwDriftChamber::ConstructHistograms(TDirectory *folder)
     
     
     ///////////////Second set of histos////////////////////////////////
-    WiresHit[i] = new TH1F(Form("%sWiresHitPlane%d",region.Data(),i),
+    WiresHit[i] = new TH1F(Form("%s%sWiresHitPlane%d", prefix.Data() ,region.Data(),i),
 			   Form("Number of Wires Hit in plane %d",i),
 			   20,-0.5,20.5);
     WiresHit[i]->GetXaxis()->SetTitle("Wires Hit per Event");
     WiresHit[i]->GetYaxis()->SetTitle("Events");
 
     //////////////Third set of histos/////////////////////////////////
-    HitsWire[i] = new TH2F(Form("%sHitsOnEachWirePerEventPlane%d",region.Data(),i),
+    HitsWire[i] = new TH2F(Form("%s%sHitsOnEachWirePerEventPlane%d", prefix.Data() ,region.Data(),i),
 			   Form("hits on all wires per event in plane %d",i),
 			   fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5,
 			   7,0.5,7.5);
@@ -231,25 +231,25 @@ void  QwDriftChamber::ConstructHistograms(TDirectory *folder)
     HitsWire[i]->GetYaxis()->SetTitle("Hits");
 
     /////////////Fourth set of histos//////////////////////////////////////
-    TOFP[i] = new TH1F(Form("%sTimeofFlightPlane%d",region.Data(),i),
+    TOFP[i] = new TH1F(Form("%s%sTimeofFlightPlane%d", prefix.Data() ,region.Data(),i),
 		       Form("Subtracted time of flight for events in plane %d",i),
 		       400,-65000,65000);
     TOFP[i]->GetXaxis()->SetTitle("Time of Flight");
     TOFP[i]->GetYaxis()->SetTitle("Hits");
-    TOFP_raw[i] = new TH1F(Form("%sRawTimeofFlightPlane%d",region.Data(),i),
+    TOFP_raw[i] = new TH1F(Form("%s%sRawTimeofFlightPlane%d", prefix.Data() ,region.Data(),i),
 		       Form("Raw time of flight for events in plane %d",i),
 		       400,-65000,65000);
     TOFP_raw[i]->GetXaxis()->SetTitle("Time of Flight");
     TOFP_raw[i]->GetYaxis()->SetTitle("Hits");
     
     //////////////Fifth set of histos/////////////////////////////////////
-    TOFW[i] = new TH2F(Form("%sTimeofFlightperWirePlane%d",region.Data(),i),
+    TOFW[i] = new TH2F(Form("%s%sTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),i),
 		       Form("Subtracted time of flight for each wire in plane %d",i),
 		       fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5,
 		       100,-40000,65000);
     TOFW[i]->GetXaxis()->SetTitle("Wire Number");
     TOFW[i]->GetYaxis()->SetTitle("Time of Flight");
-    TOFW_raw[i] = new TH2F(Form("%sRawTimeofFlightperWirePlane%d",region.Data(),i),
+    TOFW_raw[i] = new TH2F(Form("%s%sRawTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),i),
 		       Form("Raw time of flight for each wire in plane %d",i),
 		       fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5,
 		       100,-40000,65000);

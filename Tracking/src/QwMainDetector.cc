@@ -135,7 +135,7 @@ void  QwMainDetector::ProcessEvent(){
 };
 
 
-void  QwMainDetector::ConstructHistograms(TDirectory *folder, TString prefix){
+void  QwMainDetector::ConstructHistograms(TDirectory *folder, TString &prefix){
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).ConstructHistograms(folder, prefix);

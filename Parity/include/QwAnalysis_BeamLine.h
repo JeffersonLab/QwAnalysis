@@ -26,7 +26,7 @@
 #include "QwBeamLine.h"
 #include "VQwDataElement.h"
 #include "QwHelicity.h"
-#include "QwSubsystemArray.h"
+#include "QwSubsystemArrayParity.h"
 #include "QwHelicityPattern.h"
 
 ///  Globally defined instance of the QwHistogramHelper class.

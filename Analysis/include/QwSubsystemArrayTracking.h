@@ -19,24 +19,25 @@ class QwSubsystemArrayTracking:  public QwSubsystemArray {
  
  public:
   QwSubsystemArrayTracking() {};
-  ~QwSubsystemArrayTracking(){
-  };
+  ~QwSubsystemArrayTracking(){};
   
- 
-
   void GetHitList(QwHitContainer & grandHitList);
- 
-
 };
-  
 
 void QwSubsystemArrayTracking::GetHitList(QwHitContainer & grandHitList){
   if (!empty()){
     grandHitList.clear();
     
     for (iterator subsys = begin(); subsys != end(); ++subsys){
-      
-      ((VQwSubsystemTracking*)(subsys)->get())->GetHitList(grandHitList);
+      VQwSubsystemTracking* tsubsys = 
+	dynamic_cast<VQwSubsystemTracking*>((subsys)->get());
+      if (tsubsys != NULL){
+	tsubsys->GetHitList(grandHitList);
+      } else {
+	std::cerr << "QwSubsystemArrayTracking::GetHitList: Subsystem \""
+		  << ((subsys)->get())->GetSubsystemName()
+		  << "\" isn't a tracking subsystem." << std::endl;
+      }
     }
   }
 };

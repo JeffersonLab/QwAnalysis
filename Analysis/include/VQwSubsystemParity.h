@@ -12,6 +12,7 @@
 
 #include "VQwSubsystem.h"
 
+#include <TTree.h>
 
 
 
@@ -27,15 +28,28 @@ class VQwSubsystemParity : public VQwSubsystem {
  public:
   VQwSubsystemParity(TString region_tmp):VQwSubsystem(region_tmp){ };
 
-  Int_t returnSubsystemType(){
-    return 2;
-};
-
   virtual ~VQwSubsystemParity(){};
 
   
-  
+  virtual void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Float_t> &values)=0;
+  virtual void ConstructBranchAndVector(TTree *tree, std::vector <Float_t> &values)
+    {
+      TString tmpstr("");
+      ConstructBranchAndVector(tree,tmpstr,values);
+    };
 
+  
+  virtual void FillTreeVector(std::vector<Float_t> &values)=0;
+  
+  virtual void Copy(VQwSubsystem *source) = 0;
+  virtual VQwSubsystem* Copy()=0;
+
+  virtual VQwSubsystem&  operator=  (VQwSubsystem *value)=0;
+  virtual VQwSubsystem&  operator+= (VQwSubsystem *value)=0;
+  virtual VQwSubsystem&  operator-= (VQwSubsystem *value)=0;
+  virtual void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)=0;
+  virtual void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)=0;
+  virtual void Ratio(VQwSubsystem *numer, VQwSubsystem *denom)=0;
 
 
  

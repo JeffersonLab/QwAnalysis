@@ -30,7 +30,7 @@ class VQwDataElement{
   virtual Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement=0) = 0;
 
   virtual VQwDataElement& operator= (const VQwDataElement &value);
-  virtual VQwDataElement& operator+= (const VQwDataElement &value)                  
+  virtual VQwDataElement& operator+= (const VQwDataElement &value)
     {std::cerr << "Crap!!!"<<std::endl;return *this;};
   virtual VQwDataElement& operator-= (const VQwDataElement &value)
     {std::cerr << "Crap!!!"<<std::endl;return *this;};
@@ -47,7 +47,6 @@ class VQwDataElement{
 
   virtual void Print(){};
 
-  virtual void Copy(VQwDataElement *source)=0;
 
 
 

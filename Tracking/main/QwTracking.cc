@@ -163,11 +163,11 @@ int main (int argc, char* argv[])
 	int nEvent = 0;  // number of processed events
 
 	Qset qset;
-	qset.FillDetec("qweak.geo");
+	qset.FillDetec((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.geo").c_str());
 	cout << "[QwTracking::main] Geometry loaded" << endl; // R3,R2
 
 	Qoptions qoptions;
-	qoptions.Get("qweak.options");
+	qoptions.Get((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.options").c_str());
 	cout << "[QwTracking::main] Options loaded" << endl; // R3,R2
 
 	tree thetree;
@@ -179,7 +179,7 @@ int main (int argc, char* argv[])
 	/// Event loop goes here
 
 	Qevent qevent;
-	qevent.Open("qweak.event");
+	qevent.Open((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.event").c_str());
 	cout << "[QwTracking::main] Sample events file opened" << endl;
 
 	treedo Treedo; // R3 needs debugging in the 3-D fit

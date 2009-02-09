@@ -13,7 +13,7 @@
 extern QwHistogramHelper gQwHists;
 
 /*****************************************************************/
-QwHelicityPattern::QwHelicityPattern(QwSubsystemArray &event, Int_t pattern_size)
+QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event, Int_t pattern_size)
 {
   try
     {
@@ -67,7 +67,7 @@ void QwHelicityPattern::ClearEventData()
 };
 
 
-void QwHelicityPattern::LoadEventData(QwSubsystemArray &event)
+void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
 {
   Bool_t localdebug=kFALSE;
 

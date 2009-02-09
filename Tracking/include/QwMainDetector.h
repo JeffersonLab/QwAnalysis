@@ -30,6 +30,7 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
 
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
+  Int_t LoadInputParameters(TString mapfile){return 0;};
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
@@ -38,11 +39,7 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
 
   void  ProcessEvent();
 
-  void  ConstructHistograms(TDirectory *folder){
-    TString tmpstr("");
-    ConstructHistograms(folder,tmpstr);
-  };
-  void  ConstructHistograms(TDirectory *folder, TString prefix);
+  void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();
 

@@ -49,7 +49,6 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
                         buffer, UInt_t num_words);
 
 
-  void Copy(QwSubsystemArray *source);
   void  ProcessEvent();
 
   void  ConstructHistograms(){ConstructHistograms((TDirectory*)NULL);};
@@ -58,14 +57,6 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();
-
-  QwSubsystemArray& operator=  (const QwSubsystemArray &value);
-  QwSubsystemArray& operator+= (const QwSubsystemArray &value);
-  QwSubsystemArray& operator-= (const QwSubsystemArray &value);
-  void Sum(QwSubsystemArray &value1, QwSubsystemArray &value2);
-  void Difference(QwSubsystemArray &value1, QwSubsystemArray &value2);
-  void Ratio(QwSubsystemArray &numer, QwSubsystemArray &denom);
-
 
  protected:
 

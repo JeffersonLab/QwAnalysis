@@ -27,7 +27,7 @@ int main(Int_t argc,Char_t* argv[])
   
   QwEventBuffer QwEvt;
 
-  QwSubsystemArray QwDetectors;
+  QwSubsystemArrayParity QwDetectors;
   
   QwDetectors.push_back(new QwBeamLine("Injector BeamLine"));
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline.map");

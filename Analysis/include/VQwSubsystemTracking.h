@@ -18,24 +18,8 @@ class VQwSubsystemTracking: public VQwSubsystem{
   VQwSubsystemTracking(TString region_tmp):VQwSubsystem(region_tmp){ };
 
   virtual ~VQwSubsystemTracking(){};
-
-
-  Int_t returnSubsystemType(){
-    return 1;
-};
  
-
-
-  
   virtual void  GetHitList(QwHitContainer & grandHitContainer)=0;
-
-
-  
-  
-  
-
-
-
  
  private:
   VQwSubsystemTracking(){};  //  Private constructor.
