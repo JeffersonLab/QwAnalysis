@@ -122,6 +122,7 @@
 
 // Standard C and C++ headers
 #include <iostream>
+#include <cstdlib>
 using namespace std;
 
 // HERMES mathlib headers

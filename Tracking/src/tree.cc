@@ -1,4 +1,10 @@
-/*! \file tree.cc --------------------------------------------------------------------------*\
+/*------------------------------------------------------------------------*//*!
+
+ \class tree
+
+ \brief The tree class contains the code for creating the tree search database.
+
+ \verbatim
 
  PROGRAM: QTR (Qweak Track Reconstruction)	AUTHOR: Burnham Stokes
 							bestokes@jlab.org
@@ -6,11 +12,11 @@
 							Wolfgang Wander
 							wwc@hermes.desy.de
 
- MODULE: tree.cc
+ MODULE: tree
 
- \brief The tree class contains the code for creating the treesearch database.
+ \endverbatim
 
- PURPOSE: This module contains the code for creating the treesearch
+ PURPOSE: This module contains the code for creating the tree search
           database.  The code first attempts to pull the database from
           disk.  But, if the required database is not found, the code
           will generate it from scratch and save a copy of it on disk.
@@ -79,27 +85,34 @@
                      calls inittree() to generate the tree database for
                      each of the treelines.
 
-\*---------------------------------------------------------------------------*/
+*//*-------------------------------------------------------------------------*/
 
+#include "tree.h"
+
+// Standard C and C++ headers
 #include <iostream>
-
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <cassert>
 #include <cmath>
-
 using namespace std;
 
+// Boost filesystem headers
+#include "boost/filesystem.hpp"
+namespace bfs = boost::filesystem;
+
+// Qweak headers
 #include "treenode.h"
 #include "nodenode.h"
 #include "shortnode.h"
 #include "shorttree.h"
 #include "treeregion.h"
-#include "tree_class.h"
+using namespace QwTracking;
 
 #include "tree.h"
 
+#define TREEDIR "tree"
 
 #include "enum.h"
 EUppLow operator++(enum EUppLow &rs, int ) {
@@ -116,65 +129,80 @@ Edir operator++(enum Edir &rs, int ) {
 }
 
 
-// TODO (wdc) To avoid problems with missing references in libQw,
-// *every* program has to include QwAnalysis.h (in ./Tracking/include).
-// Suggestion: move QwAnalysis.h to ./include to indicate that it is
-// not a regular include file...
-// TODO (wdc) The following extern variables should be instantiated
-// in QwAnalysis.h.
+/*! \todo (wdconinc) To avoid problems with missing references in libQw,
+    *every* program has to include QwAnalysis.h (in Tracking/include).
+    Suggestion: move QwAnalysis.h to ./include to indicate that it is
+    not a regular include file...  */
+
+/*! \todo (wdconinc) The following extern variables should then be instantiated
+ in QwAnalysis.h.  */
 extern treeregion *rcTreeRegion[2][3][4][4];
 extern Det *rcDETRegion[2][3][4];
 extern Options opt;
 
 
 
-// NOTE (wdconinc) Merged out all those little classes from tree.cc and tree.h
-// to separate class def files in directory and namespace QwTracking.  Proper
-// include should be done, as well as using namespace QwTracking.
+/*! \note (wdconinc) Merged out all those little classes from tree.cc and tree.h
+    to separate class def files in directory and namespace QwTracking.  Proper
+    include should be done, as well as using namespace QwTracking.  */
 
-//____________________________________________________________
-TreeLine::TreeLine() {
-}
-TreeLine::~TreeLine() {
-}
 
 
 //____________________________________________________________
-tree::tree(){
+tree::tree()
+{
 	tlayers = 8; // set tlayers == maxhits for now (for region 3)
 	hshsiz = 511;
 	father.genlink = 0;
-	for (int i = 0; i < 4; i++) { father.son[i] = 0; }
+	for (int i = 0; i < 4; i++) father.son[i] = 0;
 	father.maxlevel = -1;
 	father.minlevel = -1;
 	father.bits = 1;
-	for (int i = 0; i < TLAYERS; i++) { father.bit[i] = 0; }
+	for (int i = 0; i < TLAYERS; i++) father.bit[i] = 0;
 	father.xref = -1;
 	npat = 0;
+
+	debug = 1; // print debug information
 
 	#define OFFS1   2 /* Next Sons have to be linked to offset 1 nodelist */
 	#define SONEND  3 /* End of son-description */
 	#define REALSON 4 /* Son and grandson description follows */
 	#define REFSON  5 /* Son reference follows */
 }
-tree::~tree() {
-}
+
+tree::~tree() { }
+
 
 //____________________________________________________________
-/*! This function loops over each detector region, orientation, type,
+void tree::printtree(treenode *tn) {
+  tn->print();
+}
+
+
+/*------------------------------------------------------------------------*//*!
+
+ \class tree
+
+ \fn rcInitTree()
+
+ \brief Initializes the search tree.
+
+    This function loops over each detector region, orientation, type,
     and wire direction to call inittree.  It also determines a file name
     for each case.
- */
+
+*//*-------------------------------------------------------------------------*/
+
 void tree::rcInitTree()
 {
-	enum ERegion region; /// detector region
-	enum EUppLow up_low; /// detector orientation
-	enum Etype type;     /// detector type (drift, cerenkov, etc)
-	enum Edir direction; /// wire direction.
+	enum ERegion region;    /// detector region
+	enum EUppLow up_low;    /// detector orientation
+	enum Etype   type;      /// detector type (drift, cerenkov, etc)
+	enum Edir    direction; /// wire direction.
 
 	char filename[256];
-        int numlayers;
-	double width;
+        int numlayers = 0;
+	double width = 0;
 
 	/// For each region
 	for (region = r1; region <= r3; region++) {
@@ -196,8 +224,8 @@ void tree::rcInitTree()
 		//   pking:  This is probably a configuration error,
 		//           which the user may want to be warned about.
 		if (rcDETRegion[up_low][region-1][direction] == NULL){
-		  std::cerr << "WARN:  rcDETRegion["<< up_low 
-			    << "]["          << region-1 
+		  std::cerr << "WARN:  rcDETRegion["<< up_low
+			    << "]["          << region-1
 			    << "]["          << direction
 			    << "] is NULL.  Should it be?"
 			    << std::endl;
@@ -219,14 +247,15 @@ void tree::rcInitTree()
 
 		/// Set up the filename with the following format
 		///   tree[numlayers]-[levels]-[u|l]-[1|2|3]-[d|g|t|c]-[n|u|v|x|y].tre
-		sprintf( filename,"tree%d-%d-%c-%c-%c-%c.tre",
-		    numlayers,
-		    opt.levels[up_low][region-1][type],
-		    "ul"[up_low],
-		    "123"[region-1],
-		    "dgtc"[type],
-		    "nuvxy"[direction]);
-		cout << "Filename: " << filename << endl;
+		sprintf(filename, "%s/tree%d-%d-%c-%c-%c-%c.tre",
+			TREEDIR,
+			numlayers,
+			opt.levels[up_low][region-1][type],
+			"ul"[up_low],
+			"123"[region-1],
+			"dgtc"[type],
+			"nuvxy"[direction]);
+		if (debug) cout << "Tree filename: " << filename << endl;
 
 		/// Each element of rcTreeRegion will point to a pattern database
 		rcTreeRegion[up_low][region-1][type][direction] =
@@ -248,9 +277,15 @@ void tree::rcInitTree()
 	} /// end of loop over regions
 }
 
-//____________________________________________________________
-/*! This function determines whether the pattern is geometrically possible.
- */
+
+/*------------------------------------------------------------------------*//*!
+
+ \fn consistent()
+
+ \brief Determines whether the pattern is geometrically possible.
+
+*//*-------------------------------------------------------------------------*/
+
 int tree::consistent(treenode *tst, int level,enum EUppLow up_low, enum Etype type,enum ERegion region,enum Edir dir){
   //###############
   // DECLARATIONS #
@@ -270,31 +305,34 @@ int tree::consistent(treenode *tst, int level,enum EUppLow up_low, enum Etype ty
   //###########
   // REGION 2 #
   //###########
-  if(type == d_drift && region == r2){
+  if (type == d_drift && region == r2) {
     int templayers = 4;
     int tlaym1 = templayers -1 ;
     double z[templayers];
-    double binwidth,y0,dy;
+    double binwidth, y0, dy;
 
-    double xmin,xmax;///the acceptable limits at the current plane
-    double xf;///the position of the left(min) edge of the last layer
-    double mL,mR;///the slopes which set the bounds for acceptable hits.
-    double off;///radial offset between upstream and downstream HDC chambers
-    double xiL,xiR;///the left(min) and right(max) edges of the bin at the current plane
+    double xmin, xmax;	/// the acceptable limits at the current plane
+    double xf;		/// the position of the left(min) edge of the last layer
+    double mL, mR;	/// the slopes which set the bounds for acceptable hits.
+    double off;		/// radial offset between upstream and downstream HDC chambers
+    double xiL, xiR;	/// the left(min) and right(max) edges of the bin at the current plane
 
-    ///  find the z position of each tree-detector relative to the first tree-detector
-    for( rd = rcDETRegion[up_low][region-1][dir],i=0;rd && i<templayers;rd = rd->nextsame, i++) {//Loop through each plane
+    /// find the z position of each tree-detector relative to the first tree-detector
+    for (rd = rcDETRegion[up_low][region-1][dir], i = 0;
+         rd && i < templayers;
+         rd = rd->nextsame, i++) {   // Loop through each plane
+
       zv = rd->Zpos;                 // Get z position of the plane
 
-      if ( i ){                       // Compute the relative position to the upstream plane
+      if (i) {                       // Compute the relative position to the upstream plane
         z[i] = zv - z[0];
-	if(z[i]<z[0]) cerr << "ERROR: R2 PLANES OUT OF ORDER" << endl;
-	if(i==templayers-1)dy = off = fabs((rd->center[1] - y0)*rd->rCos);///the offset distance between the first and last planes of this wire direction
-      }
-      else{
+	if (z[i] < z[0]) cerr << "ERROR: R2 PLANES OUT OF ORDER" << endl;
+	/// the offset distance between the first and last planes of this wire direction
+	if (i == templayers-1) dy = off = fabs((rd->center[1] - y0)*rd->rCos);
+      } else {
         z[0] = zv;
-        binwidth = rd->NumOfWires * rd->WireSpacing / (1<<level);///the binwidth at this level
-	y0 = fabs(rd->center[1]);///the first plane's radial distance
+        binwidth = rd->NumOfWires * rd->WireSpacing / (1<<level); /// the binwidth at this level
+	y0 = fabs(rd->center[1]); /// the first plane's radial distance
       }
     }
     z[0] = 0.0;//set the first plane's z position to zero
@@ -483,7 +521,14 @@ treenode * tree::treedup(treenode *todup){
 }
 
 //____________________________________________________________
-/*! This function generates the treesearch database.  For
+
+/*------------------------------------------------------------------------*//*!
+
+ \fn marklin
+
+ \brief Generates the treesearch pattern database.
+
+    This function generates the treesearch database.  For
     a given father, it generates the 2^(treelayers)
     possible son hit patterns.  Each son pattern is
     checked to see if it is consistent with a trajectory
@@ -492,7 +537,9 @@ treenode * tree::treedup(treenode *todup){
     recursive call to marklin(), its sons are generated.
     marklin has different code for the different regions
     due to the significant differences between them.
-*/
+
+*//*-------------------------------------------------------------------------*/
+
 void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype type,enum ERegion region,enum Edir dir){
   //###############
   // DECLARATIONS #
@@ -520,16 +567,15 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
   if (region==r2 && type == d_drift) {
     tlayers = 4;///Four u,v, OR x wire planes an electron can cross
     i = (1<<tlayers);
-    while(i--){    //loop through all possibilities
-      offs=1;
-      maxs=0;
-      flip=0;
-      for(j=0;j<tlayers;j++){
+    while (i--) {    //loop through all possibilities
+      offs = 1;
+      maxs = 0;
+      flip = 0;
+      for (j = 0; j < tlayers; j++) {
 	if(i & (1<<j)){
-	  son.bit[j] = (Father->bit[j]<<1)+1;
-	}
-	else{
-	  son.bit[j] = Father->bit[j]<<1;
+	  son.bit[j] = (Father->bit[j]<<1) + 1;
+	} else {
+	  son.bit[j] = (Father->bit[j]<<1);
 	}
 	offs = (int)min(offs,son.bit[j]);
 	maxs = (int)max(maxs,son.bit[j]);
@@ -549,26 +595,26 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
          outer detectors (1 and 2).                             */
 
 
-      if( maxs-offs > abs(son.bits)){
+      if (maxs-offs > abs(son.bits)) {
         continue;
       }
 
       /* compute the offset of this hit pattern and, if non-zero,
          shift the pattern over by the offset                   */
 
-      if( offs)	{		   /* If there is an offset, so         */
-        for( j = 0; j< tlayers; j++) /* shift all hits over this offset   */
+      if (offs)	{			/* If there is an offset, so         */
+        for (j = 0; j < tlayers; j++)	/* shift all hits over this offset   */
 	  son.bit[j] --;
       }
       /* see if the hit pattern is a flipped pattern and, if so,
          set the "pattern is flipped" flag and flip the pattern */
 
 
-      if( son.bits < 0) {		  /* If hit pattern is flippable, then      */
+      if (son.bits < 0) {		  /* If hit pattern is flippable, then      */
         flip = 2;			  /* (1) set "pattern is flipped" flag, and */
         son.bits = -son.bits;	  /* (2) flip the hit pattern               */
 //bits B
-        for(j = 0; j < tlayers; j++)
+        for (j = 0; j < tlayers; j++)
 	  son.bit[j] = son.bits-son.bit[j];
       }
 
@@ -600,13 +646,13 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
          level of the treesearch division.
                                                                    */
 
-      if( !sonptr && 0 == (sonptr = existent( &son, hsh))) {
+      if (!sonptr && 0 == (sonptr = existent( &son, hsh))) {
         /* the pattern is completely unknown.  So, now check if
            it is consistent with a straight line trajectory
            through the tree-detectors whose slope is within the
            window set by the Qoptions parameter R2maxslope.             */
 
-        if( consistent( &son, level+1,up_low,type,region,dir)) {
+        if (consistent( &son, level+1,up_low,type,region,dir)) {
           /* the pattern is consistent, so now insert it into the
              treesearch database by:                                  */
 	  /*  1st: Create space for this new treenode                  */
@@ -647,7 +693,7 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
           */
 	  marklin( sonptr, level+1,up_low,type,region,dir);
 
-        } else{
+        } else {
 
 	  /*  the pattern is not consistent with a line, so just
               reject it.                                               */
@@ -718,7 +764,7 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
   //###########
   // REGION 3 #
   //###########
-  else if(region==r3 && type == d_drift){
+  else if (region==r3 && type == d_drift) {
     tlayers = 8;
     offs=1;
     maxs=0;
@@ -874,15 +920,13 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
 
 
 
-  }
+  } else {
+	while (i--) {
+		offs = 1;
+		maxs = 0;
+		flip = 0;
 
-	else{
-	while( i--){
-		offs =1;
-		maxs =0;
-		flip =0;
-
-		for(j=0;j<tlayers;j++){
+		for (j = 0; j < tlayers; j++) {
 			//cout << "for("<< j << "," << tlayers << "," <<
 			//Father->bit[j] << "," << (1<<j) << "," << i << ")" << endl;
 
@@ -964,37 +1008,39 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
 
 
 //____________________________________________________________
-void tree::treeout(treenode *tn, int level, int off){
+void tree::treeout(treenode *tn, int level, int off)
+{
 	nodenode *nd;
-  	int i,v;
+	int v;
 
-  	if( level == maxlevel)         /* the level of the treenode is deeper     */
-    		return;                      /* than the depth of the database.         */
+	if (level == maxlevel)	/* the level of the treenode is deeper     */
+		return;		/* than the depth of the database.         */
 
-  	for(i = 0; i < tlayers; i++) { /* loop over tree-detectors in hit pattern */
-    		v = tn->bit[i];              /* the "on" bin for a tree-detector        */
-    		if( off & 2)                 /* is it reversed?                         */
-      			v = tn->bits-1-v;          /* yes, then flip it                       */
-    		if( off & 1)                 /* is it offset?                           */
-      			v++;                       /* yes, then apply the offset              */
-    		printf("%d%*s|%*s*%*s|\n",level,level,"", /* print the bin for this     */
-	   		v, "", tn->bits-1-v,"");           /* tree-detector              */
-    		puts("");
+	for (int i = 0; i < tlayers; i++) {  /* loop over tree-detectors in hit pattern */
+		v = tn->bit[i];              /* the "on" bin for a tree-detector        */
+		if (off & 2)                 /* is it reversed?                         */
+			v = tn->bits - 1 - v;/* yes, then flip it                       */
+		if (off & 1)                 /* is it offset?                           */
+			v++;                 /* yes, then apply the offset              */
+		printf("%d%*s|%*s*%*s|\n", level, level, "", /* print the bin for this  */
+			v, "", tn->bits - 1 - v, "");        /* tree-detector           */
+		puts("");
 
-    		for(i = 0; i < 4; i++) {     /* now loop over the four types (normal,
-                                    offset, flipped, flipped offset) of
-                                    the sons below this treenode            */
-      			nd = tn->son[i];           /* nodenode for the son type               */
-      			while( nd) {               /* loop over nodenodes of this type        */
-				treeout( nd->tree, level+1, i); /* display this nodenode's treenode */
-				nd = nd->next;           /* next son of this type bitte */
-      			}
-    		}
-  	} /* of loop over tree-detectors */
+		for (i = 0; i < 4; i++) {    /* now loop over the four types (normal,
+		                                offset, flipped, flipped offset) of
+		                                the sons below this treenode            */
+			nd = tn->son[i];     /* nodenode for the son type               */
+			while (nd) {         /* loop over nodenodes of this type        */
+				treeout(nd->tree, level+1, i); /* display this nodenode's treenode */
+				nd = nd->next;                 /* next son of this type bitte */
+			}
+		}
+	} /* end of loop over tree-detectors */
 }
 
 //____________________________________________________________
-void tree::freetree(){
+void tree::freetree()
+{
 	treenode *tn,*ltn;
   	nodenode *nd,*lnd;
   	int i,j;
@@ -1097,7 +1143,8 @@ treeregion * tree::readtree(char *filename, int levels, int tlayers, double rwid
 	if (!dontread) fclose(f);
 
 	trr->searchable = (stb ? true : false);
-	// cout << "searchable = " << trr->searchable << endl;
+	if (debug) cout << "Set searchable = " << trr->searchable << endl;
+
 	trr->node.tree  = stb;
 	trr->node.next  = 0;
 	trr->rWidth     = width;
@@ -1237,8 +1284,19 @@ int tree::_writetree(treenode *tn, FILE *fp, int tlayers){
  */
 long tree::writetree(char *filename, treenode *tn, int levels, int tlayers, double width)
 {
-	FILE *file = 0;
-	file = fopen(filename, "wb");/// open an output stream
+	// Ensure that the tree directory is created correctly
+	bfs::path treedirpath (std::string(getenv("QWANALYSIS")) + "/" + TREEDIR);
+	if (! bfs::exists(treedirpath)) {
+		bfs::create_directory(treedirpath);
+		if (debug) cout << "[tree::writetree] Created tree directory." << endl;
+	}
+	if (! bfs::exists(treedirpath) || ! bfs::is_directory(treedirpath)) {
+		cerr << "[tree::writetree] Error: could not create tree directory!" << endl;
+		return 0;
+	}
+
+	// Open the output stream
+	FILE *file = fopen(filename, "wb");
 	xref = 0;
 	if (!file) { /// error checking
 		char *fwsn = strrchr(filename,'/'); /// try to write local file
@@ -1379,8 +1437,3 @@ int tree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int tlayers)
   return 0;
 }
 
-
-//____________________________________________________________
-void tree::printtree(treenode *tn) {
-  tn->print();
-}

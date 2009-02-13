@@ -71,9 +71,6 @@ class TreeLine {
 
   public:
 
-    TreeLine();
-    ~TreeLine();
-
     bool isvoid;		/*!< has been found void */
     TreeLine *next;		/*!< link to next list element */
     double cx, mx, chi;		/*!< line parameters... */

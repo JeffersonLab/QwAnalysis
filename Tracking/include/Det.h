@@ -12,6 +12,7 @@
 #ifndef DET_H
 #define DET_H
 
+// Standard C and C++ headers
 #include <string>
 using std::string;
 

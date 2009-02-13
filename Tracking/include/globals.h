@@ -9,5 +9,3 @@
 #define HSHSIZ 511
 
 #define TREELINABORT 1000
-
-#define HSHSIZ 511

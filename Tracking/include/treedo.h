@@ -6,23 +6,32 @@
 #include "treecombine.h"
 #include "treematch.h"
 
-/*! \brief This module controls all the routines involved with finding tracks in an event
-*/
-class treedo{
+/*------------------------------------------------------------------------*//*!
 
-public:
-  int tlayers;
-  int tlaym1;
-  int ngood;
-  int nbad;
-  treedo();
+ \class treedo
 
-  void BCheck( double E, PartTrack *f, PartTrack *b, double TVertex, double ZVertex);
-  Track * rcLinkUsedTracks( Track *track, int upplow );
+ \brief Controls all the routines involved in finding tracks in an event.
+
+*//*-------------------------------------------------------------------------*/
+
+class treedo {
+
+  public:
+
+    int tlayers;
+    int tlaym1;
+    int ngood;
+    int nbad;
+
+    treedo();
+
+    void BCheck (double E, PartTrack *f, PartTrack *b, double TVertex, double ZVertex);
+    Track* rcLinkUsedTracks (Track *track, int upplow);
   Event * rcTreeDo(int iEventNo);
 
-private:
+  private:
 
 };
 
-#endif
+
+#endif // TREEDO_H

@@ -18,15 +18,16 @@
 #endif
 
 /*!
-This class is legacy code which I have yet to abolish.  Its functions
-are used by various routines.  The goal is to eventually replace the need
-for this class.
+    \todo The chi_hash class is legacy code which I have yet to abolish.  Its
+    functions are used by various routines.  The goal is to eventually replace
+    the need for this class.
 */
 class chi_hash {
 
   public:
 
     chi_hash();
+
     double x, mx, cov[3], chi;
     double hit[DLAYERS];
     int    hits;
