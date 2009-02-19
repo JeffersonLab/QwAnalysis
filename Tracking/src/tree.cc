@@ -99,7 +99,8 @@
 using namespace std;
 
 // Boost filesystem headers
-#include "boost/filesystem.hpp"
+#include "boost/filesystem/operations.hpp"
+#include "boost/filesystem/path.hpp"
 namespace bfs = boost::filesystem;
 
 // Qweak headers

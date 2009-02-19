@@ -98,7 +98,7 @@ class VQwSubsystem{
 
  protected:
   VQwSubsystem(){};  //  Private constructor.
-  VQwSubsystem&  operator=  (VQwSubsystem value){
+  VQwSubsystem&  operator=  (const VQwSubsystem &value){
     return *this;
   };
 
