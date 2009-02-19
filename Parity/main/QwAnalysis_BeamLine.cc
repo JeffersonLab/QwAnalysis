@@ -146,16 +146,14 @@ int main(Int_t argc,Char_t* argv[])
       /*  Write to the root file, being sure to delete the old cycles  *
        *  which were written by Autosave.                              *
        *  Doing this will remove the multiple copies of the ntuples    *
-       *  from the root file.                                          */
-      rootfile.Write(0,TObject::kOverwrite);  
-//       for (size_t i=0; i<QwDetectors.size(); i++)
-// 	{
-// 	  if (QwDetectors.at(i)!=NULL)
-// 	    {
-// 	      //	QwDetectors.at(i)->DeleteHistograms();
-// 	    }
-// 	}
-	
+       *  from the root file.                                          *
+       *                                                               *
+       *  Then, we need to delete the histograms here.                 *
+       *  If we wait until the subsystem destructors, we get a         *
+       *  segfault; but in additiona to that we should delete them     *
+       *  here, in case we run over multiple runs at a time.           */
+      rootfile.Write(0,TObject::kOverwrite);
+      QwDetectors.DeleteHistograms();
       
       QwEvt.CloseDataFile();
       QwEvt.ReportRunSummary();
