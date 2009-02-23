@@ -87,6 +87,10 @@ class QwHistogramHelper{
   std::vector<HISTPARMS> fHistParams;
 };
 
+//  Declare a global copy of the histogram helper.
+//  It is instantiated in the source file.
+extern QwHistogramHelper gQwHists;
+
 #endif
 
 

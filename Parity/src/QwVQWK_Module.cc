@@ -5,7 +5,6 @@
 #include "QwVQWK_Module.h"
 
 #include "QwHistogramHelper.h"
-extern QwHistogramHelper gQwHists;
 
 
 

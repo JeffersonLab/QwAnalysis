@@ -10,7 +10,6 @@
 #include <stdexcept>
 
 
-extern QwHistogramHelper gQwHists;
 
 
 /********************************************************/

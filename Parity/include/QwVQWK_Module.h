@@ -15,7 +15,6 @@
 #include "QwVQWK_Channel.h"
 
 #include "QwHistogramHelper.h"
-extern QwHistogramHelper gQwHists;
 
 class QwVQWK_Module {
   /******************************************************************

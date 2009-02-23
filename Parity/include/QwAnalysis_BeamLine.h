@@ -29,9 +29,6 @@
 #include "QwSubsystemArrayParity.h"
 #include "QwHelicityPattern.h"
 
-///  Globally defined instance of the QwHistogramHelper class.
-QwHistogramHelper gQwHists;
-
 
 void PrintInfo(TStopwatch& timer);
 

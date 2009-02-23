@@ -9,7 +9,6 @@
 #include "QwHistogramHelper.h"
 #include <stdexcept>
 
-extern QwHistogramHelper gQwHists;
 
 
 const Bool_t QwBPMStripline::kDEBUG = kFALSE;

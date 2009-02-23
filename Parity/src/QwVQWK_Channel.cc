@@ -3,7 +3,6 @@
 #include <stdexcept>
 
 
-extern QwHistogramHelper gQwHists;
 
 
 const Bool_t QwVQWK_Channel::kDEBUG = kFALSE;

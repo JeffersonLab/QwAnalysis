@@ -48,8 +48,6 @@ FILE *out_file;
 
 
 
-///  Globally defined instance of the QwHistogramHelper class.
-QwHistogramHelper gQwHists;
 
 void PrintInfo(TStopwatch& timer, Int_t run);
 void SaveHits(QwHitContainer &); //for debugging purposes - Rakitha (10/23/2008)

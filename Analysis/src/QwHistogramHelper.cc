@@ -11,6 +11,10 @@
 
 #include "QwHistogramHelper.h"
 
+///  Globally defined instance of the QwHistogramHelper class.
+QwHistogramHelper gQwHists;
+
+
 const Double_t QwHistogramHelper::fInvalidNumber  = -1.0e7;
 const std::string QwHistogramHelper::fInvalidName = "EmptyEmpty";
 

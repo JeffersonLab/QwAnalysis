@@ -10,7 +10,6 @@
 #include <stdexcept>
 
 
-extern QwHistogramHelper gQwHists;
 
 /*****************************************************************/
 QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event, Int_t pattern_size)

@@ -15,7 +15,6 @@
 #include "QwHistogramHelper.h"
 
 
-extern QwHistogramHelper gQwHists;
 
 class QwPMT_Channel: public VQwDataElement {
   /******************************************************************
