@@ -125,10 +125,6 @@
 #include <cstdlib>
 using namespace std;
 
-// HERMES mathlib headers
-#include "mathstd.h"
-#include "mathdefs.h"
-
 // Qweak Tracking headers
 #include "Qset.h"
 #include "Qevent.h"

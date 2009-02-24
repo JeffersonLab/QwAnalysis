@@ -1,4 +1,0 @@
-
-
-typedef double *vektor;
-

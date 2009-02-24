@@ -23,10 +23,6 @@
 #include <cstring>
 using namespace std;
 
-// Hermes headers
-#include "mathstd.h"
-#include "mathdefs.h"
-
 // Qweak headers
 #include "Hit.h"
 #include "Det.h"
