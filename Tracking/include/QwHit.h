@@ -50,12 +50,29 @@ class QwHit{
   const Double_t& GetRawTime() const {return fRawTime;};
   const Double_t& GetTime()    const {return fTime;};
 
+  const Double_t& GetDriftDistance()    const {return fDistance;};
+  const Double_t& GetSpatialResolution()    const {return fResolution;};
+
   void SetHitNumber(Int_t count){
     fHitNumber=count;
   }
 
   void SetDriftDistance(Double_t distance){
     fDistance=distance;
+  }
+
+   void SetZPos(Double_t zp){
+    fZPos=zp;
+  }
+  Double_t GetZPos(){
+    return fZPos;
+  }
+
+  void SetSpatialResolution(Double_t res){
+    fResolution=res;
+  }
+  Double_t GetSpatialResolution(){
+    return fResolution;
   }
 
   Bool_t IsFirstDetectorHit(){return (fHitNumber==0);};
@@ -168,7 +185,8 @@ class QwHit{
   Double_t fTimeRes;  /// Resolution of time (if appropriate)
 
   Double_t fDistance; /// Perpendicular distance from the wire to the track
-
+  Double_t fResolution; // Spatial Resolution
+  Double_t fZPos; //for detector position????
   //  Processed information from QTR routines?
 
 };

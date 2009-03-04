@@ -21,7 +21,7 @@
 
 static struct logical_not_s{
   bool operator()(bool a){return !a;};
-} logical_not;
+} logical_not_;
 
 
 class QwHitContainer:  public std::list<QwHit>{
@@ -59,7 +59,7 @@ class QwHitContainer:  public std::list<QwHit>{
 			EQwDirectionID direction){
     iterator first = GetStartOfHits(region, package, direction);
     return find_if (first, end(), 
-		    boost::bind<bool>(logical_not,
+		    boost::bind<bool>(logical_not_,
 				      boost::bind(&QwHit::DirMatches, _1, 
 						  boost::ref(region),
 						  boost::ref(package),
@@ -78,7 +78,7 @@ class QwHitContainer:  public std::list<QwHit>{
 			Int_t plane){
     iterator first = GetStartOfHits1(region, package, plane);
     return find_if (first, end(),
-		    boost::bind<bool>(logical_not,
+		    boost::bind<bool>(logical_not_,
 				      boost::bind(&QwHit::PlaneMatches, _1, 
 						  boost::ref(region),
 						  boost::ref(package),

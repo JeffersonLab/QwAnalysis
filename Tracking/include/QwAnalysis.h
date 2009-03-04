@@ -53,4 +53,9 @@ void PrintInfo(TStopwatch& timer, Int_t run);
 void SaveHits(QwHitContainer &); //for debugging purposes - Rakitha (10/23/2008)
 void SaveSubList(QwHitContainer &);//for debugging purposes - Rakitha (10/23/2008)
 
+//this will add braches and fill vector for each hit
+void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t> &values,Int_t size);
+void  FillTreeVector(std::vector<Float_t> &values,QwHitContainer &hitlist);
+
+
 #endif

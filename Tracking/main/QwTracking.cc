@@ -138,7 +138,15 @@ using namespace std;
 
 #include "treedo.h"
 #include "tree.h"
-using namespace QwTracking;
+
+
+
+#include "QwASCIIEventBuffer.h"
+
+
+
+
+//using namespace QwTracking;
 
 #define NDetMax 1010
 #define NEventMax 1000
@@ -156,6 +164,11 @@ Options opt;
 
 int main (int argc, char* argv[])
 {
+  //This routines initialize QwHit and QwHitContainer related classes
+	QwASCIIEventBuffer asciibuffer;
+	QwHitContainer ASCIIgrandHitList;
+	asciibuffer.OpenDataFile("/home/rakitha/QwAnalysis_ASCII/Tracking/prminput/qweak.event","R");
+
 	int iEvent = 1;  // event number of this event
 	int nEvent = 0;  // number of processed events
 
@@ -175,9 +188,10 @@ int main (int argc, char* argv[])
 
 	/// Event loop goes here
 
-	Qevent qevent;
-	qevent.Open((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.event").c_str());
-	cout << "[QwTracking::main] Sample events file opened" << endl;
+	//I have commented out these with the below while loop so that we can demonstrate the newly added routines produces the same out
+	//Qevent qevent;
+	//qevent.Open((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.event").c_str());
+	//cout << "[QwTracking::main] Sample events file opened" << endl;
 
 	treedo Treedo; // R3 needs debugging in the 3-D fit
 
@@ -190,6 +204,13 @@ int main (int argc, char* argv[])
 
 	// The event loop should skip when iEvent is unphysical,
 	// or: GetEvent returns bool and GetEventNumber returns int
+
+
+
+
+
+	//I have commented out the loop below so that newly added set of routines will continue to generate rcTreeRegion array.
+	/*
 	nEvent = 0;
 	while (0 < iEvent && nEvent < NEventMax) {
 
@@ -210,6 +231,20 @@ int main (int argc, char* argv[])
 		// Next event
 		nEvent++;
 	}
+	*/
+
+	//This is the trial code for QwHitContainer converting into set of Hit list in rcDetRegion structure
+	iEvent=2;
+	while (asciibuffer.GetEvent()){//this will read each event per loop
+	  iEvent=asciibuffer.GetEventNumber();//this will read the current event number
+	  cout << "[QwTracking::main] Event " << iEvent << endl;
+	  asciibuffer.GetHitList(ASCIIgrandHitList); //will load the QwHitContainer from set of hits read from ASCII file qweak.event
+	  ASCIIgrandHitList.sort(); //sort the array
+	  
+	  asciibuffer.ProcessHitContainer(ASCIIgrandHitList);//now we decode our QwHitContainer list and pice together with the rcTreeRegion multi dimension array.
+	  Treedo.rcTreeDo(iEvent);
+	 }
+	
 
 	// Statistics
 	cout << endl;

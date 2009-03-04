@@ -101,6 +101,7 @@ int main(Int_t argc,Char_t* argv[])
       timer.Stop();
       continue;
     }
+    
 
     eventbuffer.ResetControlParameters();
 
@@ -120,8 +121,21 @@ int main(Int_t argc,Char_t* argv[])
     //
     //  To pass a subdirectory named "subdir", we would do:
     //    QwDetectors.GetSubsystem("MD")->ConstructHistograms(rootfile->mkdir("subdir"));
-    QwDetectors.ConstructHistograms();
 
+    //Creating the TTree
+    //Create the Tree
+    TTree *HitTree = new TTree("HitTree","Hit event data tree");
+    std::vector<Float_t>hitvector;
+    Int_t evnum=0;
+    char buff1[5];
+    TString prebase;
+   
+    hitvector.reserve(7000); //each hit neeed 7 vector locations
+    HitTree->Branch("evnum",&evnum,"evenum/I");
+    prebase="";   
+
+    QwDetectors.ConstructHistograms();
+    ConstructBranchAndVector(HitTree,prebase,hitvector,grandHitList.size());//contruct branches for each wire in the system
    
     while (eventbuffer.GetEvent() == CODA_OK){
       //  Loop over events in this CODA file
@@ -141,8 +155,12 @@ int main(Int_t argc,Char_t* argv[])
       }
 
       //  Fill the subsystem objects with their respective data for this event.
-      eventbuffer.FillSubsystemData(QwDetectors);
       
+      eventbuffer.FillSubsystemData(QwDetectors);
+
+      //Reading the current event number      
+      evnum=eventbuffer.GetEventNumber();
+
       QwDetectors.ProcessEvent();
 
       //  Fill the histograms for the subsystem objects.
@@ -160,6 +178,9 @@ int main(Int_t argc,Char_t* argv[])
       grandHitList.sort();
       SaveHits(grandHitList);//Print the entire grand hit list to a file 
       SaveSubList(grandHitList);//Print a sub set of  hits list to a file 
+
+      //Now filling the vector with necessary data
+      FillTreeVector(hitvector,grandHitList);
       
 
       //  Pass the QwHitContainer to the treedo class
@@ -167,6 +188,8 @@ int main(Int_t argc,Char_t* argv[])
       //  Call the recontruction routines of the treedo
       //  class.
 
+      //fill the TTree
+      HitTree->Fill();
 
     }    
     std::cout << "Number of events processed so far: " 
@@ -262,3 +285,97 @@ void SaveSubList(QwHitContainer & grandHitList){
 
 
 }
+
+
+void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t> &values,Int_t size){
+  TString list="Region/F:Package/F:Direction/F:Plane/F:Element/F:DriftTime/F:DriftDistance/F";
+  
+  TString basename,b1,b2,b3;
+  std::cout<<" size "<< size<<std::endl;
+  values.clear();
+  Int_t subscript;
+  
+  
+
+  //CURRENTLY REGION 2 HAS ONLY 1 PACKAGE AND 12 PLANES. FIRST 6 PLANES HAVE 33 WIRES IN EACH PLANE, WHILE LAST 6 HAS ONLY 2 WIRES PER PLANE
+  for (Int_t R=2; R<4;R++){
+    b1="R";
+    b1+=R;
+    b2="_P1";//we have only one pkg for R2 and R3 current dummy state in the qweak code
+    b1+=b2;
+    for(Int_t P=1;P<7;P++){//for first 6 planes each with 33 wires
+      b3="_PLN";
+      b3+=P;
+      for(Int_t W=1;W<34;W++){ //we have 33 wires on each plane 
+	basename=prefix;
+	basename+=b1;
+	basename+=b3;
+	basename+="_Wire";
+	basename+=W;
+	list="DriftTime/F:DriftDistance/F";
+	values.push_back(0.0);
+	values.push_back(0.0);
+	if (R==2)
+	  subscript=(P-1)*33+W;
+	//we have set of dummy hits from Region 3 which we use the same configuration as current Region 2 
+	else if(R==3)
+	  subscript=33*6+2*6+(P-1)*33+W;//added the total wires in the R2
+	//std::cout<<" base name "<< basename<<" subs "<<subscript<<std::endl;
+	tree->Branch(basename,&(values[subscript]),list);
+      }
+    }
+    for(Int_t P=1;P<7;P++){//last 6 planes each with 2 wires
+       b3="_PLN";
+      b3+=(P+6);
+      for(Int_t W=1;W<3;W++){ //we have 2 wires on each plane
+	basename=prefix;
+	basename+=b1;
+	basename+=b3;
+	basename+="_Wire";
+	basename+=W;
+	list="DriftTime/F:DriftDistance/F";
+	values.push_back(0.0);
+	values.push_back(0.0);
+	//we have set of dummy hits from Region 3 which we use the same configuration as current Region 2
+	if (R==2)
+	  subscript=6*33+(P-1)*2+W;
+	else if(R==3)
+	  subscript=33*6+2*6+6*33+(P-1)*2+W;//added the total wires in the R2
+	
+	//std::cout<<" base name "<< basename<<" subs "<<subscript<<std::endl;
+	tree->Branch(basename,&(values[subscript]),list);
+      }
+    }
+  }
+
+};
+void  FillTreeVector(std::vector<Float_t> &values,QwHitContainer &grandHitList){
+
+  Float_t dtime,ddistance;
+  
+  Int_t subscript=0;
+  QwDetectorID qwhit;
+  
+  std::list<QwHit>::iterator p; 
+
+  for (p=grandHitList.begin();p!=grandHitList.end();p++){
+    qwhit=p->GetDetectorID();
+    dtime=p->GetRawTime();
+    ddistance=p->GetDriftDistance();
+    if (qwhit.fRegion==2 && qwhit.fPlane < 7)//for plane below 6 in Region 2
+      subscript=(qwhit.fPlane-1)*33+qwhit.fElement;
+    else if (qwhit.fRegion==2 && qwhit.fPlane > 6)//for plane below 6 above in Region 2
+      subscript=6*33+((qwhit.fPlane-1)-6)*2+qwhit.fElement;
+    else if (qwhit.fRegion==3 && qwhit.fPlane < 7)//for plane below 6 in Region 3 dummy hits
+      subscript=(33*6+2*6)+(qwhit.fPlane-1)*33+qwhit.fElement;
+    else if (qwhit.fRegion==3 && qwhit.fPlane > 6)//for plane below 6 above in Region 3 dummy hits
+      subscript=(33*6+2*6)+6*33+((qwhit.fPlane-1)-6)*2+qwhit.fElement;
+    
+    values[subscript]=dtime;
+    values[subscript+1]=ddistance;
+    
+    
+
+  }
+   
+};

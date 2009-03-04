@@ -33,6 +33,17 @@ class QwParameterFile{
   static void AppendToSearchPath(const TString &searchdir);
 
   Bool_t ReadNextLine(){fCurrentPos=0;  return getline(fInputFile, fLine);};
+  Bool_t ReadNextLine(std::string &varvalue){
+    fCurrentPos=0;  
+    if (getline(fInputFile, fLine)){
+      
+      varvalue=fLine; 
+      return 1;
+    }else
+      return 0;
+  };
+
+
   void TrimWhitespace(TString::EStripType head_tail = TString::kBoth);
   void TrimComment(char commentchar);
   Bool_t LineIsEmpty(){return fLine.empty();};
