@@ -167,7 +167,7 @@ int main (int argc, char* argv[])
   //This routines initialize QwHit and QwHitContainer related classes
 	QwASCIIEventBuffer asciibuffer;
 	QwHitContainer ASCIIgrandHitList;
-	asciibuffer.OpenDataFile("/home/rakitha/QwAnalysis_ASCII/Tracking/prminput/qweak.event","R");
+	asciibuffer.OpenDataFile((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.event").c_str(),"R");
 
 	int iEvent = 1;  // event number of this event
 	int nEvent = 0;  // number of processed events
@@ -233,18 +233,19 @@ int main (int argc, char* argv[])
 	}
 	*/
 
-	//This is the trial code for QwHitContainer converting into set of Hit list in rcDetRegion structure
-	iEvent=2;
+	// This is the trial code for QwHitContainer converting into set
+	// of Hit list in rcDetRegion structure
+	iEvent = 2;
 	while (asciibuffer.GetEvent()){//this will read each event per loop
 	  iEvent=asciibuffer.GetEventNumber();//this will read the current event number
 	  cout << "[QwTracking::main] Event " << iEvent << endl;
 	  asciibuffer.GetHitList(ASCIIgrandHitList); //will load the QwHitContainer from set of hits read from ASCII file qweak.event
 	  ASCIIgrandHitList.sort(); //sort the array
-	  
+
 	  asciibuffer.ProcessHitContainer(ASCIIgrandHitList);//now we decode our QwHitContainer list and pice together with the rcTreeRegion multi dimension array.
 	  Treedo.rcTreeDo(iEvent);
 	 }
-	
+
 
 	// Statistics
 	cout << endl;
