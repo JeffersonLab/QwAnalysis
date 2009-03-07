@@ -28,9 +28,12 @@
 
 #include "QwSubsystemArrayTracking.h"
 
-
+//  Raster position subsystem?
+//  Beamline diagnostic subsystem?
+#include "QwGasElectronMultiplier.h"
 #include "QwDriftChamberHDC.h"
 #include "QwDriftChamberVDC.h"
+#include "QwTriggerScintillator.h"
 #include "QwMainDetector.h"
 
 #include "QwHistogramHelper.h"

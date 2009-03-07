@@ -8,8 +8,8 @@
 #include "MQwF1TDC.h"
 
 
- MQwF1TDC::MQwF1TDC() { };
-  MQwF1TDC::~MQwF1TDC() { };
+MQwF1TDC::MQwF1TDC() { };
+MQwF1TDC::~MQwF1TDC() { };
 
 const UInt_t MQwF1TDC::kF1Mask_SlotNumber     = 0xf8000000;
 const UInt_t MQwF1TDC::kF1Mask_HeaderFlag     = 0x00800000;

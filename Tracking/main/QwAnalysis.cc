@@ -65,12 +65,19 @@ int main(Int_t argc,Char_t* argv[])
   
   QwSubsystemArrayTracking QwDetectors;
 
+  QwDetectors.push_back(new QwGasElectronMultiplier("R1"));
+
   QwDetectors.push_back(new QwDriftChamberHDC("R2"));
   QwDetectors.GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");//this map file was created by Mark Pitt to run actual QWEAK hits -Rakitha (23/10/2008)
   QwDetectors.push_back(new QwDriftChamberVDC("R3"));
   QwDetectors.GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
+
+  QwDetectors.push_back(new QwTriggerScintillator("TS"));
+
   QwDetectors.push_back(new QwMainDetector("MD"));
   QwDetectors.GetSubsystem("MD")->LoadChannelMap("maindet_cosmics.map");  
+
+
 
   boost::shared_ptr<QwHitContainer> fHitList;
   QwHitContainer grandHitList;
