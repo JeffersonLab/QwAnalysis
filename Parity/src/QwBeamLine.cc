@@ -9,13 +9,10 @@
 #include "QwHistogramHelper.h"
 #include <stdexcept>
 
-
 //*****************************************************************
-
 Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 {
   Bool_t ldebug=kFALSE;
-
 
   TString varname, varvalue;
   TString modtype, dettype, namech, keyword;
@@ -184,10 +181,13 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 
   Int_t lineread=0;
 
+  if(ldebug)std::cout<<"QwBeamLine::LoadInputParameters("<< pedestalfile<<")\n";
+
   QwParameterFile mapstr(pedestalfile.Data());  //Open the file
   while (mapstr.ReadNextLine())
     {
       lineread+=1;
+      if(ldebug)std::cout<<" line read so far ="<<lineread<<"\n";
       mapstr.TrimComment('!');   // Remove everything after a '!' character.
       mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
       if (mapstr.LineIsEmpty())  continue;
@@ -217,15 +217,19 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 			  fStripline[i].SetSubElementPedestal(j,varped);
 			  fStripline[i].SetSubElementCalibrationFactor(j,varcal);
 			  notfound=kFALSE;
+			  j=5;
+			  i=fStripline.size()+1;
 			}		  
 		  }
 	    }
-	  for(size_t i=0;i<fBCM.size();i++)
-	    if(notfound)
+	  if(notfound)
+	    for(size_t i=0;i<fBCM.size();i++)	      
 	      if(fBCM[i].GetElementName()==varname)
 		{
 		  fBCM[i].SetPedestal(varped);
 		  fBCM[i].SetCalibrationFactor(varcal);
+		  i=fBCM.size()+1;
+		  notfound=kFALSE;
 		  i=fBCM.size()+1;
 		}
 	}
@@ -490,6 +494,7 @@ Bool_t QwBeamLine::Compare(VQwSubsystem *value)
 void  QwBeamLine::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
  
+  //  std::cout<<" here is QwBeamLine::ConstructHistogram with prefix ="<<prefix<<"\n";
   for(size_t i=0;i<fStripline.size();i++)
       fStripline[i].ConstructHistograms(folder,prefix);
 

@@ -120,8 +120,10 @@ void QwBCM::Difference(QwBCM &value1, QwBCM &value2){
 
 void QwBCM::Ratio(QwBCM &numer, QwBCM &denom)
 {
+  //  std::cout<<"QwBCM::Ratio element name ="<<GetElementName()<<" \n";
   if (GetElementName()!="")
     {
+      //  std::cout<<"here in \n";
       this->fTriumf_ADC.Ratio(numer.fTriumf_ADC,denom.fTriumf_ADC);
       this->fPedestal=0;
       this->fCalibration=0;

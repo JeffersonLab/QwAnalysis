@@ -22,33 +22,36 @@ class QwHelicityPattern{
   ~QwHelicityPattern(){};
 
   void  LoadEventData(QwSubsystemArrayParity &event);
-
   Bool_t IsCompletePattern();
-
   void  CalculateAsymmetry();
 
   void  ConstructHistograms(){ConstructHistograms((TDirectory*)NULL);};
   void  ConstructHistograms(TDirectory *folder);
   void  FillHistograms();
   void  DeleteHistograms();
+  void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t> &values);
+  void  FillTreeVector(std::vector<Float_t> &values);
+
   void  ClearEventData();
-  
+  void  Print();
 
  protected:
   Bool_t fDEBUG;
-  Int_t fAsymSoFar;
   std::vector<QwSubsystemArrayParity> fEvents;
   std::vector<Bool_t> fEventLoaded;
-  std::vector<Int_t> fFakeHelicity;// this is here up to when we code the Helicty decoding routine
+  std::vector<Int_t> fHelicity;// this is here up to when we code the Helicity decoding routine
+  std::vector<Int_t> fEventNumber;
+  Int_t fCurrentPatternNumber;
+  Int_t fPatternSize;
 
   QwSubsystemArrayParity  fYield;
   QwSubsystemArrayParity  fAsymmetry;
-
 
  private:
   QwSubsystemArrayParity pos_sum;
   QwSubsystemArrayParity neg_sum;
   QwSubsystemArrayParity difference;
+  Bool_t IsGood; 
   
 };
 

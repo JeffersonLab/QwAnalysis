@@ -52,11 +52,12 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void  ProcessEvent();
 
   void  ConstructHistograms(){ConstructHistograms((TDirectory*)NULL);};
-
   void  ConstructHistograms(TDirectory *folder){TString prefix="";ConstructHistograms(folder,prefix);};
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();
+  
+
 
  protected:
 

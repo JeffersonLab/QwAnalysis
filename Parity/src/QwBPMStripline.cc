@@ -16,14 +16,10 @@ const Bool_t QwBPMStripline::kDEBUG = kFALSE;
 /*! Position calibration factor, transform ADC counts in mm       
 value read in G0BeamMonitor on May 2008*/
 const Double_t QwBPMStripline::kQwStriplineCalibration = 18.77;
-
 const Double_t QwBPMStripline::kRotationCorrection = 1./1.414;
-
 const TString QwBPMStripline::subelement[4]={"XP","XM","YP","YM"};
 const TString QwBPMStripline::axis[3]={"X","Y","Z"}; 
-  /* With X being vertical up and Z being the beam direction toward the beamdump */
-
-  
+/* With X being vertical up and Z being the beam direction toward the beamdump */
 
 /********************************************************/
 void  QwBPMStripline::InitializeChannel(TString name, Bool_t ROTATED)
@@ -323,7 +319,6 @@ void  QwBPMStripline::ConstructHistograms(TDirectory *folder, TString &prefix)
 	thisprefix="diff_";
       SetRootSaveStatus(prefix);
       
-
       if(bFullSave)
 	for(int i=0;i<4;i++)
 	  fWire[i].ConstructHistograms(folder, thisprefix);
@@ -384,9 +379,9 @@ void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std
       SetRootSaveStatus(prefix);
       if(bFullSave)
 	for(int i=0;i<4;i++)
-	  fWire[i].ConstructBranchAndVector(tree,prefix,values);
+	  fWire[i].ConstructBranchAndVector(tree,thisprefix,values);
       for(int i=0;i<2;i++)
-	fRelPos[i].ConstructBranchAndVector(tree,prefix,values);	  
+	fRelPos[i].ConstructBranchAndVector(tree,thisprefix,values);	  
     }
   return;
 };

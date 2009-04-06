@@ -47,9 +47,6 @@ class VQwDataElement{
 
   virtual void Print(){};
 
-
-
-
   size_t GetNumberOfDataWords() {return fNumberOfDataWords;};
 
  protected:

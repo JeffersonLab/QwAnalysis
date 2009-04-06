@@ -8,6 +8,23 @@
 #name_title          type    x_nbins x_min   x_max   y_nbins y_min   y_max   xtitle  ytitle
 ##############################################################################################
 ###  Single event histograms
+delta_event_number            	TH1F	12      -1.5	10.5				EventNumber(actual-previous) Events
+delta_pattern_number   		TH1F	12	-1.5 	10.5 				PatternNumber(actual-previous) Counts
+pattern_phase   		TH1F	11	-1.5 	9.5 				PatternPhase Counts
+helicity			TH1F	5 	-2.5	2.5 				Helicity	Counts
+pattern_polarity		TH1F	5 	-2.5	2.5 				Pattern_polarity Counts
+cleandata			TH1F	5 	-2.5	2.5 				Cleandata	Counts
+scandata1			TH1F	101 	-0.5	100.5 				Scandata1 	Counts
+scandata2			TH1F	101 	-0.5	100.5 				Scandata2	Counts
+scalerheader			TH1F	5 	-2.5	2.5 				ScalerHeader	Counts
+scalerheader2			TH1F	5 	-2.5	2.5 				ScalerHeader2	Counts
+userbit				TH1F	5 	-2.5	2.5 				Userbit 	Counts
+hel_cleandata			TH1F	5 	-2.5	2.5 				Cleandata	Counts
+hel_scandata1			TH1F	101 	-0.5	100.5 				Scandata1 	Counts
+hel_scandata2			TH1F	101 	-0.5	100.5 				Scandata2	Counts
+hel_scalerheader			TH1F	5 	-2.5	2.5 				ScalerHeader	Counts
+hel_scalerheader2			TH1F	5 	-2.5	2.5 				ScalerHeader2	Counts
+hel_userbit				TH1F	5 	-2.5	2.5 				Userbit 	Counts
 empty._block._raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
 empty._block.    		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 empty._.w_raw	        	TH1F	1000	-5.0e9	5.0e9				Counts	Events

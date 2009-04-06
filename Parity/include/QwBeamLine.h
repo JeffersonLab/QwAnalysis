@@ -11,7 +11,7 @@
 #include <vector>
 #include <TTree.h>
 
-#include "VQwSubsystem.h"
+#include "VQwSubsystemParity.h"
 
 #include "QwBPMStripline.h"
 #include "QwBCM.h"
@@ -52,10 +52,10 @@ class QwBeamDetectorID
 /*****************************************************************
 *  Class: 
 ******************************************************************/
-class QwBeamLine : public VQwSubsystem{
+class QwBeamLine : public VQwSubsystemParity{
   /////
  public:
-  QwBeamLine(TString region_tmp):VQwSubsystem(region_tmp)
+  QwBeamLine(TString region_tmp):VQwSubsystemParity(region_tmp)
     {
       // these declaration need to be coherent with the enum vector EBeamInstrumentType
       DetectorTypes.push_back("bpmstripline");
@@ -115,12 +115,12 @@ class QwBeamLine : public VQwSubsystem{
  private:
  std::vector<TString> DetectorTypes;// for example could be BCM, LUMI,BPMSTRIPLINE, etc..
 
-  static const Bool_t kDEBUG;
+  static const Bool_t kDEBUG=kFALSE;
 
 };
 
 
-const Bool_t QwBeamLine::kDEBUG = kFALSE;
+//const Bool_t QwBeamLine::kDEBUG = kFALSE;
 
 
 #endif

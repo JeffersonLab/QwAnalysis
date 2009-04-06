@@ -247,7 +247,8 @@ void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std
 	list += ":block2_raw/F";
 	values.push_back(0.0);
 	list += ":block3_raw/F";
-
+	values.push_back(0.0);
+	list += ":sequence_number/F";
       }
 
     fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
@@ -287,6 +288,7 @@ void  QwVQWK_Channel::FillTreeVector(std::vector<Float_t> &values)
 	for (size_t i=0; i<4; i++){
 	  values[index++] = this->GetRawBlockValue(i);
 	}
+	values[index++]=this->fSequenceNumber;
       }
   }
   if (kDEBUG && GetElementName()=="Bar1Right"){

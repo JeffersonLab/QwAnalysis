@@ -7,6 +7,10 @@
 
 #include "QwHelicityPattern.h"
 #include "QwHistogramHelper.h"
+#include "QwHelicity.h"
+#include "QwAnalysis_BeamLine.h"
+
+
 #include <stdexcept>
 
 
@@ -21,17 +25,19 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event, Int_t patter
 	  fEvents.resize(pattern_size);
 	  for(int i=0;i<pattern_size;i++)
 	    {
-	      fFakeHelicity.push_back(2*(i%2)-1);
+	      fHelicity.push_back(-9999);
 	      fEventLoaded.push_back(kFALSE);
 	      fEvents[i].Copy(&event);
+	      fEventNumber.push_back(-1);
 	    }
 	  fYield.Copy(&event);
 	  fAsymmetry.Copy(&event);
 	  pos_sum.Copy(&event);
 	  neg_sum.Copy(&event);
 	  difference.Copy(&event);
+	  fCurrentPatternNumber=-1;
+	  fPatternSize=pattern_size;
 	  ClearEventData();
-	  fAsymSoFar=0;
 	}
       else
 	{
@@ -54,6 +60,7 @@ void QwHelicityPattern::ClearEventData()
     {
       fEvents[i].ClearEventData();
       fEventLoaded[i]=kFALSE;
+      fHelicity[i]=-999;
     }
 
   fYield.ClearEventData();
@@ -61,104 +68,169 @@ void QwHelicityPattern::ClearEventData()
   pos_sum.ClearEventData();
   neg_sum.ClearEventData();
   difference.ClearEventData();
-
+  IsGood=kFALSE;
   return;
 };
 
+/////////////////////////////////////////////////////////////////////
 
 void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
 {
   Bool_t localdebug=kFALSE;
+  QwHelicity* input=((QwHelicity*)event.GetSubsystem("Helicity info"));
+  IsGood=kFALSE;
+
+  Long_t localPatternNumber=input->GetPatternNumber();
+  Int_t localPhaseNumber=input->GetPhaseNumber();
+  Int_t localHelicityActual=input->GetHelicityActual();
+  Long_t localEventNumber=input->GetEventNumber();
 
   if(localdebug) {
-    std::cout<<" in QwHelicityPattern::LoadEventData \n";
+    std::cout<<"\n ###################################\n";
+    std::cout<<"QwHelicityPattern::LoadEventData :: ";
+    std::cout<<" event, pattern, phase # "<<localEventNumber<<" "<<localPatternNumber<<" "<<localPhaseNumber<<"\n";
+    std::cout<<" helicity ="<< localHelicityActual<<"\n";
     for(size_t i=0; i<fEvents.size(); i++)
       std::cout<<i<<":"<<fEventLoaded[i]<<"  ";
     std::cout<<"\n";
   }
-  for(size_t i=0; i<fEvents.size(); i++)
+  if(fCurrentPatternNumber!=localPatternNumber)    
     {
-      if(!fEventLoaded[i])
-	{
-	  if(localdebug) std::cout<<" Loading event "<<i<<"\n";
-	  fEvents[i]=event;
-	  fEventLoaded[i]=kTRUE;
-	  i=fEvents.size()+1;
-
-	}
+      // new pattern
+      ClearEventData();
+      fCurrentPatternNumber=localPatternNumber;
     }
-  if(localdebug) {  
-    for(size_t i=0; i<fEvents.size(); i++)
-      std::cout<<"event "<<i<<":"<<fEventLoaded[i]<<"  ";
-    std::cout<<"\n \n \n";
-  }
+  if(localPhaseNumber>fPatternSize)
+    {
+      std::cerr<<" In QwHelicityPattern::LoadEventData trying upload an event with a phase larger than expected \n";
+      std::cerr<<" phase ="<<localPhaseNumber<<" maximum expected phase="<<fPatternSize<<"\n";
+      std::cerr<<" operation impossible, pattern reset to 0: no asymmetries will be computed \n";
+      ClearEventData();
+    }
+  else 
+    {
+      Int_t locali=localPhaseNumber-1;
+      if(localdebug) std::cout<<"QwHelicityPattern::LoadEventData local i="<<locali<<"\n";
+      fEvents[locali]=event;
+      fEventLoaded[locali]=kTRUE;
+      fHelicity[locali]=localHelicityActual;
+      fEventNumber[locali]=localEventNumber;
+    }
+
+  if(localdebug) 
+    Print();
+
 
   return;
 };   
 
+/////////////////////////////////////////////////////////////////////
+
 Bool_t  QwHelicityPattern::IsCompletePattern()
 {
   Bool_t filled=kTRUE;
-
-  for(size_t i=0; i<fEvents.size(); i--)
+  Int_t i=fPatternSize-1;
+  while(filled && i>-1)
     {
 //       std::cout<<" i="<<i<<" is loaded ?"
 // 	       <<fEventLoaded[fEvents.size()-i-1]<<"\n";
-      if(!fEventLoaded[fEvents.size()-i-1])
-	{
-	  i=fEvents.size()+1;
-	  filled=kFALSE;
-	}
+      if(!fEventLoaded[i])
+	filled=kFALSE;
+      i--;
     }
   
   return filled;
 }
 
-
+/////////////////////////////////////////////////////////////////////
 void  QwHelicityPattern::CalculateAsymmetry()
 {
+  Bool_t localdebug=kFALSE;
+  if(localdebug)  std::cout<<"Entering QwHelicityPattern::CalculateAsymmetry \n";
+
+  Int_t plushel=1;
+  Int_t minushel=0;
+  Int_t checkhel=0;
+  Bool_t firstplushel=kTRUE;
+  Bool_t firstminushel=kTRUE;
   
   pos_sum.ClearEventData();
   neg_sum.ClearEventData();
 
-// this what it will look like ultimately. For now fake the Helicity
-//   for (size_t i=0; i<fEvents.length(); i++){
-//     if (fEvents.at(i).IsPositiveHelicity()){
-//       pos_sum += fEvents.at(i);
-//     } else if (fEvents.at(i).IsNegativeHelicity()){
-//       neg_sum += fEvents.at(i);
-//     } else {
-//       // This is an unknown helicity event.
-//     }
-//   }
-
-  for (size_t i=0; i<fEvents.size(); i++)
+  for (size_t i=0; i<fPatternSize; i++)
     {
-      if (fFakeHelicity[i]==+1)
+	if (fHelicity[i]==plushel)
 	{
-	  pos_sum += fEvents.at(i);
+	  if(localdebug)  std::cout<<"QwHelicityPattern::CalculateAsymmetry:: here filling pos_sum \n";
+	  if(firstplushel)
+	    {
+	      if(localdebug)  std::cout<<"QwHelicityPattern::CalculateAsymmetry:: with = \n";
+	      pos_sum=fEvents.at(i);
+	      firstplushel=kFALSE;
+	    }
+	  else
+	    {
+	      if(localdebug)  std::cout<<"QwHelicityPattern::CalculateAsymmetry:: with += \n";
+	      pos_sum += fEvents.at(i);
+	    }
+	  checkhel+=1;
 	} 
-      else if (fFakeHelicity[i]==-1)
+      else if (fHelicity[i]==minushel)
 	{
-	  neg_sum += fEvents.at(i);
+	  if(localdebug)  std::cout<<"QwHelicityPattern::CalculateAsymmetry:: here filling neg_sum \n";
+	  if(firstminushel)
+	    {	    	  
+	      if(localdebug)  std::cout<<"QwHelicityPattern::CalculateAsymmetry:: with = \n";
+	      neg_sum = fEvents.at(i);
+	      firstminushel=kFALSE;
+	    }
+	  else
+	    {
+	      if(localdebug)  std::cout<<"QwHelicityPattern::CalculateAsymmetry:: with += \n";
+	      neg_sum += fEvents.at(i);
+	    }
+	  checkhel-=1;
 	} 
       else 
 	{
 	  std::cerr<<" QwHelicityPattern::CalculateAsymmetry ==";
-	  std::cerr<<" Helicity unknown.... Helicity should be +1 or -1 but is"<< fFakeHelicity[i]<<"\n";
+	  std::cerr<<" Helicity should be "<<plushel<<" or "<<minushel<<" but is"<< fHelicity[i];
+	  std::cerr<<" Asymmetry computation aborted \n";
+	  ClearEventData();
+	  i=fPatternSize;
+	  checkhel=-9999;
 	  // This is an unknown helicity event.
 	}
     }
-  
-  fYield.Sum(pos_sum,neg_sum);
-  difference.Difference(pos_sum,neg_sum);
-  fAsymmetry.Ratio(difference,fYield);
+  if(checkhel==-9999)
+    {
+      //do nothing the asymmetry computation has been aborted earlier in this function
+      IsGood=kFALSE;
+    }
+  else if(checkhel!=0)
+    {
+      IsGood=kFALSE;
+      // there is a different number of plus and minus helicity window.
+      std::cerr<<" QwHelicityPattern::CalculateAsymmetry == \n";
+      std::cerr<<" you do not have the same number of positive and negative \n";
+      std::cerr<<" impossible to compute assymetry \n";
+      std::cerr<<" dropping every thing -- pattern number ="<<fCurrentPatternNumber<<"\n";
+    }
+  else
+    {    
+      IsGood=kTRUE;
+      fYield.Sum(pos_sum,neg_sum);
+      difference.Difference(pos_sum,neg_sum);
+      fAsymmetry.Ratio(difference,fYield);
+    }
+
   return;
 };
 
-
+//*****************************************************************
 void  QwHelicityPattern::ConstructHistograms(TDirectory *folder)
 {
+  //  std::cout<<"QwHelicityPattern::ConstructHistograms \n";
   TString prefix="yield_";
   fYield.ConstructHistograms(folder,prefix);
   prefix="asym_";
@@ -168,8 +240,14 @@ void  QwHelicityPattern::ConstructHistograms(TDirectory *folder)
 
 void  QwHelicityPattern::FillHistograms()
 {
-  fYield.FillHistograms();
-  fAsymmetry.FillHistograms();
+  //  std::cout<<"QwHelicityPattern::FillHistograms \n";
+  if(IsGood)
+    {
+      //  std::cout<<"************ YIELD ************\n";
+      fYield.FillHistograms();
+      //  std::cout<<"************ ASYMMETRY ************\n";
+      fAsymmetry.FillHistograms();
+    }
   return;
 }
 
@@ -180,5 +258,45 @@ void  QwHelicityPattern::DeleteHistograms()
   return;
 }
 
+void QwHelicityPattern::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Float_t> &values)
+{
+  TString thisprefix="yield_";
+  //  std::cout<<"QwHelicityPattern::ConstructBranchAndVector\n";
+  ((QwBeamLine*)fYield.GetSubsystem("Injector Beamline Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
+  ((QwHelicity*)fYield.GetSubsystem("Helicity Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
 
+  thisprefix="asym_";
+  ((QwBeamLine*)fAsymmetry.GetSubsystem("Injector Beamline Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
+  ((QwHelicity*)fAsymmetry.GetSubsystem("Helicity Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
 
+  //  the following lines are the syntax we want at the end :
+  //  fYield.ConstructBranchAndVector(tree, prefix,values);
+  //  fAsymmetry.ConstructBranchAndVector(tree, prefix,values);
+  return;
+}
+
+void QwHelicityPattern::FillTreeVector(std::vector<Float_t> &values)
+{
+  if(IsGood)
+    {
+      ((QwBeamLine*)fYield.GetSubsystem("Injector Beamline Copy"))->FillTreeVector(values);
+      ((QwHelicity*)fYield.GetSubsystem("Helicity Copy"))->FillTreeVector(values);
+
+      ((QwBeamLine*)fAsymmetry.GetSubsystem("Injector Beamline Copy"))->FillTreeVector(values);
+      ((QwHelicity*)fAsymmetry.GetSubsystem("Helicity Copy"))->FillTreeVector(values);
+    }
+
+//     fYield.FillTreeVector(values);
+//     fAsymmetry.FillTreeVector(values);
+  return;
+};
+
+//*****************************************************************
+
+void QwHelicityPattern::Print()
+{
+  std::cout<<"\n Pattern number ="<<fCurrentPatternNumber<<"\n";
+  for(size_t i=0; i<fPatternSize; i++)
+    std::cout<<"event "<<fEventNumber[i]<<":"<<fEventLoaded[i]<<", "<<fHelicity[i]<<"\n";
+  std::cout<<"Is a complete pattern ?(n/y:0/1) "<<IsCompletePattern()<<"\n";
+}

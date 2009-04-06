@@ -29,7 +29,6 @@ class VQwSubsystemParity : public VQwSubsystem {
   VQwSubsystemParity(TString region_tmp):VQwSubsystem(region_tmp){ };
 
   virtual ~VQwSubsystemParity(){};
-
   
   virtual void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Float_t> &values)=0;
   virtual void ConstructBranchAndVector(TTree *tree, std::vector <Float_t> &values)
@@ -37,7 +36,6 @@ class VQwSubsystemParity : public VQwSubsystem {
       TString tmpstr("");
       ConstructBranchAndVector(tree,tmpstr,values);
     };
-
   
   virtual void FillTreeVector(std::vector<Float_t> &values)=0;
   
@@ -51,21 +49,13 @@ class VQwSubsystemParity : public VQwSubsystem {
   virtual void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)=0;
   virtual void Ratio(VQwSubsystem *numer, VQwSubsystem *denom)=0;
 
-
- 
-
- 
   private:
   VQwSubsystemParity(){};  //  Private constructor.
-
-
 };
 
 
 /*
  *  Define the functions.
  */
-
-
 
 #endif

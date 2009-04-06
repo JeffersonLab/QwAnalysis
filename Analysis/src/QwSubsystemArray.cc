@@ -33,8 +33,10 @@ VQwSubsystem* QwSubsystemArray::GetSubsystem(const TString name)
   VQwSubsystem* tmp = NULL;
   if (!empty()){
     for (const_iterator subsys = begin(); subsys != end(); ++subsys){
+      // std::cout<<"QwSubsystemArray::GetSubsystem available name=="<<(*subsys)->GetSubsystemName()<<"== to be compared to =="<<name<<"==\n";
       if ((*subsys)->GetSubsystemName() == name){
 	tmp = (*subsys).get();
+	//std::cout<<"QwSubsystemArray::GetSubsystem found a matching name \n";
       } else {
       }
     }
@@ -57,6 +59,7 @@ Int_t QwSubsystemArray::ProcessConfigurationBuffer(const UInt_t roc_id, const UI
     for (iterator subsys = begin(); subsys != end(); ++subsys){
       (*subsys)->ProcessConfigurationBuffer(roc_id, bank_id, buffer, num_words);
     }
+  return 0;
 };
   
 Int_t QwSubsystemArray::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
@@ -75,17 +78,17 @@ void  QwSubsystemArray::ProcessEvent()
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::ProcessEvent));
 };
 
-
 //*****************************************************************
 
 void  QwSubsystemArray::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
-
+  //  std::cout<<" here in QwSubsystemArray::ConstructHistograms with prefix ="<<prefix<<"\n";
+  
   if (!empty())
     for (iterator subsys = begin(); subsys != end(); ++subsys){
-      //      std::cout<<" here in QwSubsystemArray::ConstructHistograms \n";
       (*subsys)->ConstructHistograms(folder,prefix);
     }
+  std::cout<<"\n";
 };
 
 void  QwSubsystemArray::FillHistograms()
