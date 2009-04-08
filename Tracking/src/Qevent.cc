@@ -205,7 +205,7 @@ int Qevent::GetEvent()
 			// the hit's pointer back to the detector plane
 			newhit->detec = rd;
 
-			UpdateHitVector((int)region,(int)up_low,(int)detecID,(int)dir,newhit->wire,newhit->rPos1,newhit->Resolution,newhit->Zpos);
+			
 
 			// Chain the hits
 			newhit->next = hitlist;

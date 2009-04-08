@@ -232,10 +232,7 @@ int main (int argc, char* argv[])
 		// Processing event
 		cout << "[QwTracking::main] Processing..." << endl;
 
-		//qevent.GetHitList(ASCIIgrandHitList);
-		//qevent.ProcessHitContainer(ASCIIgrandHitList);
-		//ASCIIgrandHitList.sort();
-		//SaveHits(ASCIIgrandHitList);//for debugging- can write QwHitCOntainer hit list into a  text file.
+	
 		Treedo.rcTreeDo(iEvent);
 
 		// Next event
