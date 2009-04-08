@@ -82,7 +82,7 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
 
   void  CalculateDriftDistance();
-  Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
+  virtual Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)=0;
   
   
   void GetHitList(QwHitContainer & grandHitContainer){

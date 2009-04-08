@@ -46,6 +46,8 @@ class QwDriftChamberVDC: public QwDriftChamber {
 
  void  SubtractReferenceTimes();
 
+ Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
+
 
 
  protected:

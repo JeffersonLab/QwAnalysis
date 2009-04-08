@@ -80,6 +80,10 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
   }
 };
 
+Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector){
+  return 0;
+};
+
 
 void  QwDriftChamberHDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data)
 {

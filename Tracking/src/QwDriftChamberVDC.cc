@@ -89,6 +89,10 @@ void  QwDriftChamberVDC::ReportConfiguration(){
   
 };
 
+Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector){
+  return 0;
+};
+
 void  QwDriftChamberVDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data)
 {
   Int_t tdcindex = GetTDCIndex(bank_index,slot_num);

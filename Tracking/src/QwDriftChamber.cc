@@ -103,11 +103,12 @@ void  QwDriftChamber::CalculateDriftDistance()
   
 };
 
+/*
 Double_t  QwDriftChamber::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector){
   return 0;
 }
 
-
+*/
 
 
 void  QwDriftChamber::ClearEventData()
