@@ -141,7 +141,7 @@ using namespace std;
 
 
 
-#include "QwASCIIEventBuffer.h"
+
 
 
 
@@ -160,18 +160,20 @@ Det *rcDETRegion[2][3][4];
 treeregion *rcTreeRegion[2][3][4][4];
 Det rcDET[NDetMax];
 Options opt;
-
+FILE *ASCII_textfile; 
+const char FILE_NAME[] = "grandhits_output_ASCII.txt";
 
 int main (int argc, char* argv[])
 {
   //This routines initialize QwHit and QwHitContainer related classes
-	QwASCIIEventBuffer asciibuffer;
-	QwHitContainer ASCIIgrandHitList;
-	asciibuffer.OpenDataFile((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.event").c_str(),"R");
+  QwASCIIEventBuffer asciibuffer;
+  QwHitContainer ASCIIgrandHitList;
+  asciibuffer.OpenDataFile((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/1000.r2.events").c_str(),"R");
+  ASCII_textfile = fopen(FILE_NAME, "wt");//for Debugging-QwHitContainer list save to this file
 
 	int iEvent = 1;  // event number of this event
 	int nEvent = 0;  // number of processed events
-
+	
 	Qset qset;
 	qset.FillDetec((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.geo").c_str());
 	cout << "[QwTracking::main] Geometry loaded" << endl; // R3,R2
@@ -190,7 +192,7 @@ int main (int argc, char* argv[])
 
 	//I have commented out these with the below while loop so that we can demonstrate the newly added routines produces the same out
 	//Qevent qevent;
-	//qevent.Open((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.event").c_str());
+	//qevent.Open((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/1000.r2.events").c_str());
 	//cout << "[QwTracking::main] Sample events file opened" << endl;
 
 	treedo Treedo; // R3 needs debugging in the 3-D fit
@@ -210,11 +212,14 @@ int main (int argc, char* argv[])
 
 
 	//I have commented out the loop below so that newly added set of routines will continue to generate rcTreeRegion array.
-	/*
+	
 	nEvent = 0;
+	
+	/*
 	while (0 < iEvent && nEvent < NEventMax) {
 
 		// Read event from the event stream
+	  
 		iEvent = qevent.GetEvent();
 		cout << "[QwTracking::main] Event " << iEvent << endl;
 		// Error handling
@@ -226,32 +231,63 @@ int main (int argc, char* argv[])
 
 		// Processing event
 		cout << "[QwTracking::main] Processing..." << endl;
+
+		//qevent.GetHitList(ASCIIgrandHitList);
+		//qevent.ProcessHitContainer(ASCIIgrandHitList);
+		//ASCIIgrandHitList.sort();
+		//SaveHits(ASCIIgrandHitList);//for debugging- can write QwHitCOntainer hit list into a  text file.
 		Treedo.rcTreeDo(iEvent);
 
 		// Next event
 		nEvent++;
 	}
 	*/
-
+	
 	// This is the trial code for QwHitContainer converting into set
 	// of Hit list in rcDetRegion structure
+	
 	iEvent = 2;
 	while (asciibuffer.GetEvent()){//this will read each event per loop
 	  iEvent=asciibuffer.GetEventNumber();//this will read the current event number
 	  cout << "[QwTracking::main] Event " << iEvent << endl;
+	  
 	  asciibuffer.GetHitList(ASCIIgrandHitList); //will load the QwHitContainer from set of hits read from ASCII file qweak.event
 	  ASCIIgrandHitList.sort(); //sort the array
-
+	  SaveHits(ASCIIgrandHitList);
 	  asciibuffer.ProcessHitContainer(ASCIIgrandHitList);//now we decode our QwHitContainer list and pice together with the rcTreeRegion multi dimension array.
-	  Treedo.rcTreeDo(iEvent);
+	  //Treedo.rcTreeDo(iEvent); //Giving some trouble when 1000.r2.events events file is used.
+	  
+	  ASCIIgrandHitList.clear();
+	  
 	 }
-
-
+	
+	
 	// Statistics
 	cout << endl;
 	cout << "Statistics:" << endl;
-	cout << " Good: " << Treedo.ngood << endl;
-	cout << " Bad : " << Treedo.nbad  << endl;
+	//cout << " Good: " << Treedo.ngood << endl;
+	//cout << " Bad : " << Treedo.nbad  << endl;
 
 	return 0;
+}
+
+
+
+void SaveHits(QwHitContainer & grandHitList)
+{
+
+  
+  Double_t hitTime;
+  QwDetectorID qwhit;
+  std::cout<<"Printing Grand hit list"<<std::endl;
+  std::list<QwHit>::iterator p;  
+  fprintf(ASCII_textfile," NEW EVENT \n");
+  for (p=grandHitList.begin();p!=grandHitList.end();p++){
+    qwhit=p->GetDetectorID();
+    hitTime=p->GetRawTime();
+    //std::cout<<" R "<<qwhit.fRegion<<" Pkg "<<qwhit.fPackage<<" Dir "<<qwhit.fDirection<<" W "<<qwhit.fElement<<std::endl;
+    fprintf(ASCII_textfile," R %d Pkg  %d Pl %d  Dir  %d Wire  %d Hit time %f Drift Distance %f Spatial Res. %f\n",qwhit.fRegion,qwhit.fPackage,qwhit.fPlane,qwhit.fDirection,qwhit.fElement,hitTime,p->GetDriftDistance(), p->GetSpatialResolution());
+    
+  }
+ 
 }

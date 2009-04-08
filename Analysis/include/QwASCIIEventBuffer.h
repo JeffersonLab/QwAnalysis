@@ -41,7 +41,7 @@ class QwASCIIEventBuffer : public QwEventBuffer
   Int_t LoadChannelMap(const char *geomname);
   
   Int_t GetEvent();
-  Int_t GetEventNumber(){return CurrentEvent;}
+  Int_t GetEventNumber(){return fEvtNumber;}
 
   Int_t ProcessHitContainer(QwHitContainer &);
 
@@ -64,7 +64,8 @@ class QwASCIIEventBuffer : public QwEventBuffer
   
   QwParameterFile *eventf ;
   Int_t CurrentEvent; 
-
+  
+  int DetectId;
 
   
  

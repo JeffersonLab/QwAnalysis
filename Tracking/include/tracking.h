@@ -16,6 +16,13 @@
 
 #include "globals.h"
 #include "Hit.h"
+//#include "QwHitContainer.h"
+#include "QwASCIIEventBuffer.h"
+
+
+void SaveHits(QwHitContainer &); //for debugging purposes - Rakitha (04/02/2009)
+
+
 
 class Hit;
 

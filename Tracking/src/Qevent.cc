@@ -69,6 +69,9 @@ int Qevent::Open(const char *eventfile)
 //____________________________________________________________
 int Qevent::GetEvent()
 {
+
+  //Clear previous event details
+  fASCIIHits.clear();
 	// Line buffer
 	char line[256];
 	int maxchar = 256;
@@ -202,6 +205,8 @@ int Qevent::GetEvent()
 			// the hit's pointer back to the detector plane
 			newhit->detec = rd;
 
+			UpdateHitVector((int)region,(int)up_low,(int)detecID,(int)dir,newhit->wire,newhit->rPos1,newhit->Resolution,newhit->Zpos);
+
 			// Chain the hits
 			newhit->next = hitlist;
 			hitlist = newhit;
@@ -236,7 +241,7 @@ int Qevent::GetEvent()
 	}
 
 	// Store the new event number for the next call, but return the old one
-	int thisevent = ievent;
+	thisevent = ievent;
 	ievent = event;
 
 	// Return event number or error code:
@@ -253,3 +258,156 @@ int Qevent::GetEvent()
 }
 
 //____________________________________________________________
+
+
+Int_t Qevent::ProcessHitContainer(QwHitContainer &qwhits){
+
+  cout<<"Processing Hit Container"<<endl;
+
+
+  // List of hits
+  int nhits = 0;
+  Hit *newhit,*hitlist;
+
+  // Detector region/type/direction identifiers
+  enum EUppLow up_low, up_low2;
+  enum ERegion region, region2;
+  enum Edir    dir, dir2;
+
+  Int_t plane, plane2;
+
+  // Detector ID
+  int detecID = 0;
+  int firstdetec = 1;
+  Det *rd = NULL;
+
+  //  Do something to clear rd->hitbydet for all
+  //  detectors.
+
+
+  QwDetectorID local_id;  
+  //  Loop through the QwHitContainer
+  for (QwHitContainer::iterator qwhit = qwhits.begin();qwhit != qwhits.end(); qwhit++) {
+    local_id = qwhit->GetDetectorID();
+
+    up_low = (EUppLow) local_id.fPackage;
+    region = (ERegion) local_id.fRegion;
+    dir    = (Edir) local_id.fDirection;
+    plane  = local_id.fPlane;
+
+
+    // when this is the first detector of the event
+    if (firstdetec) {
+      hitlist = NULL;
+      newhit = NULL;
+      std::cout<<"First Detector "<<std::endl;
+      firstdetec = 0;
+      up_low2 = up_low;
+      region2 = region;
+      plane2 = plane; //Note that plane contains the detector Id
+      dir2 = dir;
+      rd = rcDETRegion[up_low][region-1][dir];
+      while (rd->ID != plane){
+	rd = rd->nextsame;
+      }
+      std::cout<<"Detector ID " << rd->ID <<std::endl;
+    } else if (up_low2 == up_low &&
+	       region2 == region &&
+	       plane2 == plane   &&
+	       dir2 == dir) {
+      //  Same plane!  Do nothing!
+    } else {
+      // this is not the first detector of the file
+      hitlist = NULL;
+      newhit = NULL;
+      // compare to previous hit
+      if (up_low2 == up_low &&
+	  region2 == region &&
+	  plane2 != plane   &&
+	  dir2 == dir) {
+	// like-pitched detector plane
+	rd = rcDETRegion[up_low][region-1][dir];
+	while (rd->ID != plane){
+	  rd = rd->nextsame;
+	}
+	plane2 = plane;
+	std::cout<<"Detector ID " << rd->ID <<std::endl;
+      } else {
+	// different detector plane
+	rd = rcDETRegion[up_low][region-1][dir];
+	while (rd->ID != plane){
+	  rd = rd->nextsame;
+	}
+	up_low2 = up_low;
+	region2 = region;
+	plane2   = plane;
+	dir2    = dir;
+	std::cout<<"Detector ID " << rd->ID <<std::endl;
+      }
+    }
+
+
+
+    newhit = (Hit*) malloc (sizeof(Hit));
+    //	  // set event number
+    newhit->ID = thisevent;  
+    // Wire number
+    newhit->wire = local_id.fElement;
+    //	  // Z position of wire plane (first wire for region 3)
+    newhit->Zpos = qwhit->GetZPos();
+    // Distance of hit from wire
+    newhit->rPos1 = qwhit->GetDriftDistance();
+    //	  // Placeholder for future code
+    newhit->rPos2 = 0;
+    // Get the spatial resolution for this hit
+    newhit->Resolution = qwhit->GetSpatialResolution();
+    // the hit's pointer back to the detector plane
+    newhit->detec = rd;
+
+    // Chain the hits
+    newhit->next = hitlist;
+    hitlist = newhit;
+	  
+    // Chain the hits in each detector
+    newhit->nextdet = rd->hitbydet;
+    rd->hitbydet = newhit;
+  }
+  
+  /*
+   //  Look at hits in Detector ID 0
+  rd     = &(rcDET[0]);
+  newhit = rd->hitbydet;
+  do {
+    //  Print some stuff...
+    std::cout << newhit->ID <<" "
+	      << newhit->wire <<" "
+	      << newhit->Zpos <<" "
+	      << newhit->rPos1 <<" "
+	      << newhit->rPos2 <<" "
+	      << newhit->Resolution <<" "
+	      << newhit->detec->ID <<" "
+	      // << newhit->next <<" "
+// 	      << newhit->nextdet <<" "
+	      << std::endl;
+
+    newhit = newhit->next;
+  }  while (newhit != NULL);
+  */
+
+
+
+  return 0;
+};
+
+
+//--------------------------------------------------------
+
+void Qevent::UpdateHitVector(int region,int upplow, int detectId, int dir, int wire, double drift_dist, double res, double Zpos){
+
+  currentHit=new QwHit(0,0,0,0,region,upplow, detectId ,dir,wire,0) ; //order of parameters-> electronics stuffs are neglected, and  plane=DetectId and data is set to zero
+  currentHit->SetDriftDistance(drift_dist);
+  currentHit->SetSpatialResolution(res);
+  currentHit->SetZPos(Zpos);
+  fASCIIHits.push_back(*currentHit);
+
+};

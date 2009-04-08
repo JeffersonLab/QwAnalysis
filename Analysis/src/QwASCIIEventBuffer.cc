@@ -32,8 +32,6 @@ Int_t QwASCIIEventBuffer::LoadChannelMap(const char *geomname){
 Int_t QwASCIIEventBuffer::GetEvent(){
   //declaring varibles used during this routine
 
-  
-  
   char line[256];
   
   int maxchar =256;
@@ -41,7 +39,7 @@ Int_t QwASCIIEventBuffer::GetEvent(){
  
   int currentevtno;
 
-  int DetectId;
+  
   Int_t Event;
   Int_t TotalHits; 
   
@@ -50,39 +48,71 @@ Int_t QwASCIIEventBuffer::GetEvent(){
 
   Double_t rPos1, Zpos, rPos2, resolution;
   Int_t wire;
-  currentevtno=-2;
+
+  //To keep the track on when to break the  while (eventf->ReadNextLine(line1)) loop 
+  currentevtno=1;
+  
+
+  if (eventf->IsEOF())//at the end of  the last event the next GetEvent() call will terminate the QwTracking while loop by setting currentevtno=0.
+   currentevtno=0; 
+
+  if (fASCIIHits.size()>0)
+    fASCIIHits.clear();//std::cout<<" Vector not empty "<<std::endl;
+    
+
   while (eventf->ReadNextLine(line1)){
     
-     currentevtno=0;
+    
    
     if (fEvtNumber == 0)//we are reading the first event
       {
-	std::cout<<"Reading 1st event "<<std::endl;
-	Event=QwParameterFile::GetUInt(line1);
-	fEvtNumber=Event;
-	std::cout<<"1st event "<< fEvtNumber <<std::endl;
-	if (!eventf->ReadNextLine(line1)) continue;
+	//std::cout<<"Reading 1st event "<<std::endl;
+	CurrentEvent=QwParameterFile::GetUInt(line1);	
+	//std::cout<<"1st event "<< CurrentEvent <<std::endl;
+	eventf->ReadNextLine(line1);
 	DetectId=QwParameterFile::GetUInt(line1);//reading the detectorId
-	std::cout<<"DET ID "<< DetectId <<std::endl;
-      }
-    else if (Event == fEvtNumber){//still in the same event but a different detector
-      //if (eventf->ReadNextLine(line1)) continue;
-      DetectId=QwParameterFile::GetUInt(line1);
-      std::cout<<"Same event "<< fEvtNumber <<std::endl;
-      std::cout<<"DET ID "<< DetectId <<std::endl;
-    }
-    
-    else if (Event != fEvtNumber) {//we are starting a different event
-      std::cout<<"We are done Reading"<<fEvtNumber<< " event "<<std::endl;
-      //nEvent++;
-      fEvtTag++;//increment the hit counter
-      //We are reading one event per each GetASCIIEvent() so we are done with one event
-      break;
-    }
-     
-    //now we are reading the detector ID 
-    
+	//std::cout<<"DET ID "<< DetectId <<std::endl;
 
+	//if routine is  starting a new event increment it
+	currentevtno++;
+
+	//now we are going to read individual hits 
+	//reading no.of hits for this event
+	eventf->ReadNextLine(line1);
+      }
+    else if (CurrentEvent == fEvtNumber){//still in the same event but a different detector
+      //eventf->ReadNextLine(line1);
+      DetectId=QwParameterFile::GetUInt(line1);
+      //std::cout<<" Event "<< fEvtNumber <<std::endl;
+      //std::cout<<"DET ID "<< DetectId <<std::endl;
+
+      //If routine is in a middle of same event increment it
+      currentevtno++;
+
+      //now we are going to read individual hits 
+      //reading no.of hits for this event
+      eventf->ReadNextLine(line1);
+    }    
+    else if (CurrentEvent != fEvtNumber) {//we are starting a different event
+      if (currentevtno>1){//greater than 1 means I have finished analyzing one whole event so break from the while loop
+	//std::cout<<" We are done Reading "<<fEvtNumber<< " event "<<std::endl;
+	//save the DetId for next GetEvent call
+	 DetectId=QwParameterFile::GetUInt(line1);
+	//nEvent++;
+	fEvtTag++;//increment the hit counter
+	//We are reading one event per each GetASCIIEvent() so we are done with one event      
+	break;
+      }
+      //else {//equal to 1 mean I'm starting a new event
+      //std::cout<<" Event "<< CurrentEvent <<std::endl;
+      //std::cout<<"DET ID "<< DetectId <<std::endl;
+      //}
+    }
+     fEvtNumber=CurrentEvent;
+    
+    
+    
+    
     //obtain the detector infomation
     up_low=rcDET[DetectId].upplow;//top or bottom detector
     region=rcDET[DetectId].region;//R1,2 or 3
@@ -92,10 +122,11 @@ Int_t QwASCIIEventBuffer::GetEvent(){
     
     std::cout<<"Detecotr Id : "<<DetectId<<" up-low "<<rcDET[DetectId].upplow<<" region "<<rcDET[DetectId].region<<" type "<<rcDET[DetectId].type<<" DIR "<<rcDET[DetectId].dir <<std::endl;
 
-    //now we are going to read individual hits 
-    //reading no.of hits for this event
-    if (!eventf->ReadNextLine(line1))continue;
+    
+      
     TotalHits=QwParameterFile::GetUInt(line1);
+    //std::cout<<" Total Hits "<<TotalHits<<std::endl;
+    
     
     for(int cHits=0;cHits<TotalHits;cHits++){
       eventf->ReadNextLine(line1);
@@ -106,55 +137,33 @@ Int_t QwASCIIEventBuffer::GetEvent(){
       rPos1=atof(line1.c_str());
       eventf->ReadNextLine(line1);
       rPos2=atof(line1.c_str());
-      std::cout<<" Wire Hit "<<wire; 
-      currentHit=new QwHit(0,0,0,0,rcDET[DetectId].region,rcDET[DetectId].upplow, DetectId ,rcDET[DetectId].dir,wire,0) ; //order of parameters-> electronics stuffs are neglected, and  plane==type and data is set to zero
+      //std::cout<<" Wire Hit "<<wire; 
+      currentHit=new QwHit(0,0,0,0,rcDET[DetectId].region,rcDET[DetectId].upplow, DetectId ,rcDET[DetectId].dir,wire,0) ; //order of parameters-> electronics stuffs are neglected, and  plane=DetectId and data is set to zero
       currentHit->SetDriftDistance(rPos1);
       currentHit->SetSpatialResolution(resolution);
       currentHit->SetZPos(Zpos);
       fASCIIHits.push_back(*currentHit);
     }
-    std::cout<<std::endl;
-     std::cout<<"Finish  Wire Hits "<<std::endl; 
-    //we are now complete with this eventhits 'numberhits' relating to DetectId detector.
+    //std::cout<<"Size of the Vector "<<fASCIIHits.size()<<std::endl;
+    
+    //std::cout<<"Finish  Wire Hits "<<std::endl; 
+    //we are now complete with this event having  'numberhits' no.of hits  relating to DetectId detector.
     //next line in the file is the eventnumber
     if (!eventf->ReadNextLine(line1)){
-      std::cout<<"EOF Reached"<<" Current Event "<<fEvtNumber <<std::endl;
-      currentevtno=-1;
+      //std::cout<<" EOF Reached "<<" Current Event "<<fEvtNumber <<std::endl;      
       break;
     }
-    Event=QwParameterFile::GetUInt(line1);
+    CurrentEvent=QwParameterFile::GetUInt(line1);
 
-    std::cout<<"Reading Next event "<< Event <<std::endl;
+    //std::cout<<"Reading Next event "<< CurrentEvent <<std::endl;
    
-
+    
     
 
-  }
-  //Event always reads the event number from the ASCII file
-  //fEvtNumber always  stores the Event number to be processed
-  //CurrentEvent stores the current event number processing so it can be used any where in the QwASCIIEventBuffer
-  //currentevtno is just a temp variable
-  
+  }  
 
-  //finished reading the ASCII file so I'm still returning current event number to QwTracking while loop
-  if (currentevtno == -1){
-    currentevtno=fEvtNumber;
-    CurrentEvent=fEvtNumber;
-  }
-  //when next GetEvent is executed from QwTracking while loop, since I finished reading ASCII file
-  //I need to get out of the main while loop so I set currentevtno=0 and retrun it to the main routine.
-  else if (currentevtno == -2){
-    currentevtno=0;
-    CurrentEvent=fEvtNumber;
-  }
-  //When I finished only reading one event and ASCII file has more event then I return current event number
-  // and set fEvtNumber=Event i.e to the next event to be read
-  else{
-    currentevtno=fEvtNumber;
-    fEvtNumber=Event;//when next time GetEvent() is called this will be the event number it will process
-    CurrentEvent=Event-1;//stores the current event number
-  }
-  std::cout<<"Finished reading one event "<< fEvtNumber <<std::endl;
+ 
+  std::cout<<" Finished reading current event "<< fEvtNumber<<" Next Event "<<CurrentEvent <<" state "<<currentevtno<<std::endl;
   return currentevtno;
 }
 
@@ -265,7 +274,7 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits){
 
     newhit = (Hit*) malloc (sizeof(Hit));
     //	  // set event number
-    newhit->ID = CurrentEvent;  
+    newhit->ID = fEvtNumber;  
     // Wire number
     newhit->wire = local_id.fElement;
     //	  // Z position of wire plane (first wire for region 3)
@@ -289,6 +298,7 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits){
   }
 
   //  Look at hits in Detector ID 0
+  /*
   rd     = &(rcDET[0]);
   newhit = rd->hitbydet;
   do {
@@ -306,6 +316,7 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits){
 
     newhit = newhit->next;
   }  while (newhit != NULL);
+  */
 
 
 

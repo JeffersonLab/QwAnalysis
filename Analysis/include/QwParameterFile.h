@@ -47,6 +47,7 @@ class QwParameterFile{
   void TrimWhitespace(TString::EStripType head_tail = TString::kBoth);
   void TrimComment(char commentchar);
   Bool_t LineIsEmpty(){return fLine.empty();};
+  Bool_t IsEOF(){ return fInputFile.eof();};
 
   std::string GetNextToken(std::string separatorchars);
   std::string GetLine(){return fLine;};
