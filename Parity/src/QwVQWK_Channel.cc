@@ -95,12 +95,14 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
 void QwVQWK_Channel::ProcessEvent()
 {
 
+  Double_t thispedestal=fPedestal*fNumberOfSamples;
+
   for(int i=0;i<4;i++)
       fBlock[i]= fCalibrationFactor*
-	(fBlock_raw[i]-fPedestal/(fBlocksPerEvent*1.));
+	(fBlock_raw[i]-thispedestal/(fBlocksPerEvent*1.));
 
   fHardwareBlockSum=fCalibrationFactor*
-    (fHardwareBlockSum_raw-fPedestal);
+    (fHardwareBlockSum_raw-thispedestal);
   
   return;
 };
@@ -112,7 +114,7 @@ void QwVQWK_Channel::Print() const
   std::cout<<"QwVQWK channel: "<<GetElementName()<<"\n"<<"\n";
   std::cout<<"fPedestal= "<< fPedestal<<"\n";
   std::cout<<"fCalibrationFactor= "<<fCalibrationFactor<<"\n";
-  // std::cout<<"fSamplesPerBlock= "<< fSamplesPerBlock<<"\n";
+  std::cout<<"fSamplesPerBlock= "<< fSamplesPerBlock<<"\n";
   std::cout<<"fBlocksPerEvent= "<<fBlocksPerEvent<<"\n"<<"\n";
   std::cout<<"fSequenceNumber= "<<fSequenceNumber<<"\n";
   std::cout<<"fNumberOfSamples= "<<fNumberOfSamples<<"\n";

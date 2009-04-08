@@ -1,0 +1,126 @@
+! this file contains the pedestals for the ADCS
+! respect the format of the file
+! name of chanel, pedestal, gain
+! if this is a Triumf ADC enter the hardware sum pedestal
+! the pedestal will be subtracted to the data
+C20AXM    ,   0 ,  1
+C20AXP    ,   0 ,  1
+C20AYP    ,   0 ,  1
+C20AYM    ,   0 ,  1
+H00_XP    ,   0 ,  1
+H00_XM    ,   0 ,  1
+H00_YP    ,   0 ,  1
+H00_YM    ,   0 ,  1
+BattDn    ,   0 ,  1
+TermUp    ,   0 ,  1
+SpareA    ,   0 ,  1 
+SpareB	  ,   0 ,  1
+AmpCh1	  ,   0 ,  1
+AmpCh2	  ,   0 ,  1
+SpareE	  ,   0 ,  1
+TermDn	  ,   0 ,  1
+SEBattDn  ,   0 ,  1
+SETermUp  ,   0 ,  1
+SESpareA  ,   0 ,  1
+SESpareB  ,   0 ,  1
+SEAmpCh1  ,   0 ,  1
+SEAmpCh2  ,   0 ,  1
+SESpareE  ,   0 ,  1
+SETermDn  ,   0 ,  1
+QWK_QPDXP   ,	  0.0 ,1
+QWK_QPDYP   ,	  0.0 ,1
+QWK_QPDYM   ,	  0.0 ,1
+QWK_QPDXM   ,	  0.0 ,1
+QWK_1I02XP  ,	 -1.31101e+07   ,  1.0
+QWK_1I02XM  ,	 -1.08248e+07   ,  1.0
+QWK_1I02YP  ,	 -5.53264e+07   ,  1.0
+QWK_1I02YM  ,	 -4.48381e+07   ,  1.0
+QWK_1I04XP  ,	 -6.84107e+07   ,  1.0
+QWK_1I04XM  ,	 -7.18683e+07   ,  1.0
+QWK_1I04YP  ,	 -7.24073e+07   ,  1.0
+QWK_1I04YM  ,	 -6.16775e+07   ,  1.0
+QWK_1I06XP  ,	 -3.73459e+07   ,  1.0
+QWK_1I06XM  ,	 -1.89524e+07   ,  1.0
+QWK_1I06YP  ,	 -1.83208e+07   ,  1.0
+QWK_1I06YM  ,	 -2.81981e+06   ,  1.0
+QWK_0I02XP  ,	  3.88082e+07   ,  1.0
+QWK_0I02XM  ,	  4.0254e+07    ,  1.0
+QWK_0I02YP  ,	  1.3896e+07    ,  1.0
+QWK_0I02YM  ,	  1.90018e+07   ,  1.0
+QWK_0I02AXP ,	 -4.23219e+07   ,  1.0
+QWK_0I02AXM ,	 -4.1101e+07    ,  1.0
+QWK_0I02AYP ,	 -4.00556e+07   ,  1.0
+QWK_0I02AYM ,	 -3.78512e+07   ,  1.0
+QWK_0I05XP  ,	  4.16592e+07   ,  1.0
+QWK_0I05XM  ,	  5.51822e+07   ,  1.0
+QWK_0I05YP  ,	  5.68489e+07   ,  1.0
+QWK_0I05YM  ,	  6.31687e+07   ,  1.0
+QWK_0I07XP  ,	  2.43843e+07   ,  1.0
+QWK_0I07XM  ,	  3.92584e+07   ,  1.0
+QWK_0I07YP  ,	  2.21188e+07   ,  1.0
+QWK_0I07YM  ,	  2.8805e+07    ,  1.0
+QWK_0L01XP  ,	  8.27488e+06   ,  1.0
+QWK_0L01XM  ,	  2.29029e+07   ,  1.0
+QWK_0L01YP  ,	  3.8948e+07    ,  1.0
+QWK_0L01YM  ,	  4.30019e+07   ,  1.0
+QWK_0L02XP  ,	 -5.84782e+07   ,  1.0
+QWK_0L02XM  ,	 -1.03076e+08   ,  1.0
+QWK_0L02YP  ,	 -8.44908e+07   ,  1.0
+QWK_0L02YM  ,	 -9.73421e+07   ,  1.0
+!QWK_BCM0L02 ,	 -1.68065e+07   ,  1.0
+QWK_BCM0L02 ,	            0   ,  1.0
+QWK_0L03XP  ,	  6.32378e+06   ,  1.0
+QWK_0L03XM  ,	  2.48555e+07   ,  1.0
+QWK_0L03YP  ,	  3.3231e+07    ,  1.0
+QWK_0L03YM  ,	  1.67074e+07   ,  1.0
+QWK_0L04XP  ,	  4.77516e+07   ,  1.0
+QWK_0L04XM  ,	  5.10974e+07   ,  1.0
+QWK_0L04YP  ,	  4.79e+07      ,  1.0
+QWK_0L04YM  ,	  4.64323e+07   ,  1.0
+QWK_0L05XP  ,	 -2.1309e+07    ,  1.0
+QWK_0L05XM  ,	 -3.12694e+07   ,  1.0
+QWK_0L05YP  ,	 -2.17794e+07   ,  1.0
+QWK_0L05YM  ,	 -2.59785e+07   ,  1.0
+QWK_0L06XP  ,	 -6.42404e+07   ,  1.0
+QWK_0L06XM  ,	 -7.39395e+07   ,  1.0
+QWK_0L06YP  ,	 -6.58158e+07   ,  1.0
+QWK_0L06YM  ,	 -5.15145e+07   ,  1.0
+QWK_0L07XP  ,	 -5.13488e+07   ,  1.0
+QWK_0L07XM  ,	 -5.11927e+07   ,  1.0
+QWK_0L07YP  ,	 -4.28301e+07   ,  1.0
+QWK_0L07YM  ,	 -2.83911e+07   ,  1.0
+QWK_0L08XP  ,	 -5.71933e+07   ,  1.0
+QWK_0L08XM  ,	 -5.26602e+07   ,  1.0
+QWK_0L08YP  ,	 -7.50084e+07   ,  1.0
+QWK_0L08YM  ,	 -6.88494e+07   ,  1.0
+QWK_0L09XP  ,	 -2.92591e+07   ,  1.0
+QWK_0L09XM  ,	 -2.18147e+07   ,  1.0
+QWK_0L09YP  ,	 -1.54813e+07   ,  1.0
+QWK_0L09YM  ,	 -1.40134e+07   ,  1.0
+QWK_0L10XP  ,	 -1.79731e+07   ,  1.0
+QWK_0L10XM  ,	 -1.73836e+07   ,  1.0
+QWK_0L10YP  ,	 -3.43744e+07   ,  1.0
+QWK_0L10YM  ,	 -3.4126e+07    ,  1.0
+QWK_0R01XP  ,	 -6.93234e+07   ,  1.0
+QWK_0R01XM  ,	 -7.35707e+07   ,  1.0
+QWK_0R01YP  ,	 -6.54918e+07   ,  1.0
+QWK_0R01YM  ,	 -6.27377e+07   ,  1.0
+QWK_0R02XP  ,	 -7.06766e+07   ,  1.0
+QWK_0R02XM  ,	 -6.71043e+07   ,  1.0
+QWK_0R02YP  ,	 -3.9626e+07    ,  1.0
+QWK_0R02YM  ,	 -4.80469e+07   ,  1.0
+QWK_0R05XP  ,	  2.5002e+07    ,  1.0
+QWK_0R05XM  ,	  1.38202e+07   ,  1.0
+QWK_0R05YP  ,	 -5.40392e+07   ,  1.0
+QWK_0R05YM  ,	 -4.83342e+07   ,  1.0
+QWK_0R06XP  ,	 -3.08095e+06   ,  1.0
+QWK_0R06XM  ,	 -4.74642e+06   ,  1.0
+QWK_0R06YP  ,	 -6.3794e+06    ,  1.0
+QWK_0R06YM  ,	 -6.98388e+06   ,  1.0
+QWK_Batery6 ,	 -2.496e+06     ,  1.0
+QWK_Batery7 ,	 -5.735e+06     ,  1.0
+QWK_Batext1 ,	 -7.740e+06     ,  1.0
+QWK_Batext2 ,	 -3.733e+06     ,  1.0
+QWK_PhaseMo ,	  0.0 1         ,
+!END	    		        
+	    

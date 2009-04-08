@@ -1,0 +1,13 @@
+!
+ROC=31
+Bank=0x3101
+!
+! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
+!
+WORD, 0,  0, helicitydata,  cleandata
+WORD, 0,  0, helicitydata,  scandata1
+WORD, 0,  0, helicitydata,  scandata2
+WORD, 0,  0, helicitydata,  scalerheader
+WORD, 0,  0, helicitydata,  scalercounter
+WORD, 0,  0, helicitydata,  userbit 
+!END

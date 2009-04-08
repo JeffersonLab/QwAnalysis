@@ -102,7 +102,8 @@ class QwVQWK_Channel: public VQwDataElement {
   static const Double_t kVQWK_VoltsPerBit;
   Double_t fPedestal;         /*! pedestal of the hardware sum signal,
 			     we assume the pedestal level is constant over time
-			     and can be divided by four for use with each block */
+			     and can be divided by four for use with each block,
+			     units: [counts/number of Sample] */
   Double_t fCalibrationFactor; 
 
   /*  Channel information data members    */

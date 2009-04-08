@@ -91,7 +91,7 @@ class QwHelicity : public VQwSubsystemParity{
  
   void PredictHelicity();
   void SetHelicityDelay(Int_t delay);
-
+ 
   Int_t GetHelicityReported();
   Int_t GetHelicityActual();
   Long_t GetPatternNumber();
@@ -137,7 +137,12 @@ class QwHelicity : public VQwSubsystemParity{
   Int_t fPatternPhaseNumberOld,fPatternPhaseNumber;
   Int_t fPatternNumberOld,  fPatternNumber;
   Int_t  fActualPatternPolarity, fDelayedPatternPolarity;
-  Int_t fHelicityReported, fHelicityActual,fHelicityDelayed;
+  Int_t fHelicityReported, fHelicityActual,fHelicityDelayed; 
+  // reported is what is registered in the coda file (it is the actual beam helicity fHelicityDelay pattern before this event)
+  // actual is the helicity of the beam for this event
+  // delayed is the expected reported helicity predicted by the random generator 
+  // std::vector <Int_t> fCheckHelicityDelay;//  this is obsolete
+  //this array keeps in memory the Actual helicity up to when it can be compared to the reported helicity
   Bool_t fHelicityBitPlus;
   Bool_t fHelicityBitMinus;
   Bool_t fGoodHelicity;

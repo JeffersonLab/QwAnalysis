@@ -18,8 +18,6 @@
 
 #include "VQwSubsystem.h"
 
-
-
 class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
  private:
   typedef std::vector<boost::shared_ptr<VQwSubsystem> >  SubsysPtrs;
@@ -57,7 +55,6 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void  FillHistograms();
   void  DeleteHistograms();
   
-
 
  protected:
 

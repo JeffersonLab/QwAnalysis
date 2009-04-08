@@ -88,34 +88,44 @@ Bool_t QwHelicity::IsGoodPhaseNumber()
 Bool_t QwHelicity::IsGoodHelicity()
 {
 
-  Bool_t results=kTRUE;;
+  fGoodHelicity = kTRUE;
 
-  if (fHelicityReported!=fHelicityDelayed){ //helicities do not match. Check phase number to see if its a new pattern.
-    if(fPatternPhaseNumber == 1)//first event in a new pattern
-      {
-	std::cerr<<"The helicity reported in event "<<fEventNumber
-		 <<" is not what we expect from the randomseed. Not a good event nor pattern"<<"\n";
-      }
-    else
-      {
-	std::cerr<<"The helicity reported in event "<<fEventNumber
-		 <<" is not what we expect according to pattern structure. Not a good event nor pattern"<<"\n";    
-      }
-    fHelicityReported=kUndefinedHelicity;
-    fHelicityActual=kUndefinedHelicity;
-    fHelicityDelayed=kUndefinedHelicity;    
-    //Have to start over again
-    ResetPredictor();
-
-    results = kFALSE;
-  }
-  else
+  if (fHelicityReported!=fHelicityDelayed)
     {
-      results = kTRUE; //good helicity 
-      fGoodHelicity = kTRUE;
+      //helicities do not match. Check phase number to see if its a new pattern.
+      fGoodHelicity=kFALSE;
+      if(fPatternPhaseNumber == 1)//first event in a new pattern
+	{
+	  std::cerr<<"QwHelicity::IsGoodHelicity - The helicity reported in event "<<fEventNumber
+		   <<" is not what we expect from the randomseed. Not a good event nor pattern"<<"\n";
+	}
+      else
+	{
+	  std::cerr<<"QwHelicity::IsGoodHelicity - The helicity reported in event "<<fEventNumber
+		   <<" is not what we expect according to pattern structure. Not a good event nor pattern"<<"\n";    
+	}
+    }
+ //  if((fCheckHelicityDelay[fHelicityDelay]-fHelicityReported)!=0
+//      &&fCheckHelicityDelay[fHelicityDelay]!=kUndefinedHelicity
+//         &&fPatternPhaseNumber == 1 )
+//     {
+//       fGoodHelicity=kFALSE;
+//       std::cerr<<"QwHelicity::IsGoodHelicity - The helicity reported in event "<<fEventNumber
+// 	       <<" is not what we predicted "<<fHelicityDelay<<" pattern ago"
+// 	       <<"most likely you are not using the good delay \n";    
+//     }
+// this part is obsolete
+
+  if(!fGoodHelicity)
+    {
+      fHelicityReported=kUndefinedHelicity;
+      fHelicityActual=kUndefinedHelicity;
+      fHelicityDelayed=kUndefinedHelicity;    
+      //Have to start over again
+      ResetPredictor();
     }
   
-  return results;
+  return fGoodHelicity;
 }
 
 //******************************************************** Buddhini 2/11/09
@@ -156,13 +166,14 @@ Int_t QwHelicity::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t b
 
 Int_t QwHelicity::LoadInputParameters(TString pedestalfile)
 {  
-  SetHelicityDelay(8);
+  SetHelicityDelay(8); // that is the number of pattern delayed
   return 0;
 }
 
 //*****************************************************************
 void  QwHelicity::ProcessEvent()
 {
+  Bool_t ldebug=kFALSE;
 
   if (dolocalhelicity){
     // In this version of the code, the helicty is extracted for a userbit configuartion. 
@@ -213,7 +224,17 @@ void  QwHelicity::ProcessEvent()
       }
     else
       {
-	// there was more than one event since the last reading of the scalers
+	std::cerr<<" QwHelicity::ProcessEvent finding a missed read event in the scaler\n";
+	if(ldebug)
+	  {
+	    std::cout<<" QwHelicity::ProcessEvent finding a missed read event in the scaler\n";
+	    std::cout<<" QwHelicity::ProcessEvent :"<<scaleroffset<<" events were missed \n";
+	    std::cout<<" before manipulation \n";
+	    Print();
+	  }
+	//there was more than one event since the last reading of the scalers
+	//ie we should read only one event at the time, 
+	//if not something is wrong
 	fEventNumber=fEventNumberOld+scaleroffset;
 	Int_t localphase=fPatternPhaseNumberOld;
 	Int_t localpatternnumber=fPatternNumberOld;
@@ -222,8 +243,8 @@ void  QwHelicity::ProcessEvent()
 	    fPatternPhaseNumber=localphase+1;
 	    if(fPatternPhaseNumber>4)
 	      {
-		fPatternPhaseNumber=1;
-		fPatternNumber=localpatternnumber+1;
+		fPatternNumber=localpatternnumber+fPatternPhaseNumber/4;
+		fPatternPhaseNumber=fPatternPhaseNumber-4;
 		localpatternnumber=fPatternNumber;
 	      }
 	    localphase=fPatternPhaseNumber;
@@ -231,8 +252,11 @@ void  QwHelicity::ProcessEvent()
 	//Reset helicity predictor because we are not sure of what we are doing
 	fHelicityReported=-1;
 	ResetPredictor();
-	std::cerr<<" QwHelicity::ProcessEvent finding a missed read event in the scaler\n";
-	Print();
+	if(ldebug)
+	  {
+	    std::cout<<" after manipulation \n";
+	    Print();
+	  }
       }
   }
     
@@ -242,8 +266,8 @@ void  QwHelicity::ProcessEvent()
     //but if we get the bit info for the code then this become a meaningful test
     
   PredictHelicity();
-  if(fPatternNumber>4290&&fPatternNumber<4299&&fPatternPhaseNumber==1)
-    Print();
+  //  if(fPatternPhaseNumber==1)
+  //    Print();
 
   return;
   }
@@ -253,7 +277,6 @@ void QwHelicity::Print()
 
 //   for(size_t i=0;i<fWord.size();i++)
 //     fWord[i].Print();  
-
 
    std::cout<<"this event: Event#, Pattern#, PatternPhase#="
  	   << fEventNumber<<", "
@@ -271,6 +294,15 @@ void QwHelicity::Print()
 	   << fHelicityReported<<","
 	   << fHelicityDelayed<<","
 	   << fHelicityActual<<"\n";
+
+//   std::cout<<"Helicity from previous patterns: the latest helicity in this list\n is the actual (predicted) helicity for this pattern\n";
+//   for(int i=0;i<fHelicityDelay+1;i++)
+//     std::cout<<fCheckHelicityDelay[i]<<":";
+//   std::cout<<"\n";
+
+//   std::cout<<"Helicity Actual ("<<fHelicityDelay<<"events before) - Helicity reported (this event)="<<fCheckHelicityDelay[fHelicityDelay]-fHelicityReported<<"\n";
+// this is obsolete
+
   std::cout<<"===\n";
   return;
 }
@@ -500,7 +532,7 @@ void  QwHelicity::ConstructHistograms(TDirectory *folder, TString &prefix)
 
 void  QwHelicity::DeleteHistograms()
 {
-  std::cout<<"QwHelicity::DeleteHistograms for system="<<fSystemName<<" fHistograms.size="<<fHistograms.size()<<"\n";
+  //  std::cout<<"QwHelicity::DeleteHistograms for system="<<fSystemName<<" fHistograms.size="<<fHistograms.size()<<"\n";
   if((fHistoType==kHelSaveMPS)||(fHistoType==kHelSavePattern))
     {
       for (size_t i=0; i<fHistograms.size(); i++){
@@ -825,6 +857,9 @@ void QwHelicity::CollectRandBits()
 	  if(n_ranbits == 24) //If its the 24th consecative random bit,
 	    {
 	       if(ldebug)std::cout<<"Collected 24 random bits. Get the random seed for the predictor."<<"\n";
+	       if(ldebug)
+		 for(int i=0;i<25;i++)
+		   std::cout<<" i:bit ="<<i<<":"<<first24bits[i]<<"\n";
 	      iseed_Delayed = GetRandomSeed(first24bits); 
 	      //This random seed will predict the helicity of the event (24+fHelicityDelay) patterns  before; 
 	      // run GetRandBit 24 times to get the delayed helicity for this event
@@ -893,6 +928,15 @@ void QwHelicity::PredictHelicity()
       if(ldebug)  std::cout<<"QwHelicity::PredictHelicity=>Predicting in the  helicity \n";
       RunPredictor();
       
+//       if(fPatternPhaseNumber==1)
+// 	{
+// 	  for(int i=fHelicityDelay;i>0;i--)
+// 	    fCheckHelicityDelay[i]=fCheckHelicityDelay[i-1];
+// 	  fCheckHelicityDelay[0]=fHelicityActual;
+// 	  Print();
+// 	}
+// this is obsolete
+
       if(!IsGoodHelicity())	
 	ResetPredictor();
     }
@@ -904,23 +948,39 @@ void QwHelicity::PredictHelicity()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
 void QwHelicity::SetHelicityDelay(Int_t delay)
 {
+  //  Int_t locali=kUndefinedHelicity;
   //Sets the number of bits the helicity reported gets delayed with
-  if(delay>=0) fHelicityDelay = delay;
+  if(delay>=0) 
+    {
+      fHelicityDelay = delay;
+
+      //       for(int i=0;i<delay+1;i++)
+      // 	fCheckHelicityDelay.push_back(locali);
+      // this is obsolete
+      //basically we are creating a ring to store the ActualHelicity.
+      //The Actualhelcity for this event goes in position 0, the actualhelicity for the previous event
+      //is in position 1, and the actual helicity from fHelicityDelay events is in event delay and
+      //it should match the reported helicity 
+    }
   else
-    std::cerr<<"We cannot handle negative delay in the prediction of delayed helicity. Exiting.. \n";
+    std::cerr<<"QwHelicity::SetHelicityDelay We cannot handle negative delay in the prediction of delayed helicity. Exiting.. \n";
+
+  return;
 }
 
+  //start a new helicity prediction sequence
 
-  //start a new hwlicity prediction sequence
-
-void QwHelicity::ResetPredictor(){
-    n_ranbits = 0;
-    fGoodHelicity = kFALSE;
-    fGoodPattern = kFALSE;
+void QwHelicity::ResetPredictor()
+{
+  n_ranbits = 0;
+  fGoodHelicity = kFALSE;
+  fGoodPattern = kFALSE;
+  //  for(int i=0;i<fHelicityDelay+1;i++)
+  //     fCheckHelicityDelay[i]=kUndefinedHelicity;
+  // this is obsolete 
+ return;
 };
 
 
