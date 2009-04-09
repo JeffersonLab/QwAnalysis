@@ -78,9 +78,9 @@ int main(Int_t argc,Char_t* argv[])
 
       TTree *mpstree;
       TTree *heltree;
-      Float_t evnum=0.0;
-      std::vector <Float_t> mpsvector;
-      std::vector <Float_t> helvector;
+      Double_t evnum=0.0;
+      std::vector <Double_t> mpsvector;
+      std::vector <Double_t> helvector;
 
       if(bTree)
 	{

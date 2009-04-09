@@ -1,3 +1,4 @@
+
 /**********************************************************\
 * File: QwHelicityPattern.cc                              *
 *                                                         *
@@ -258,7 +259,7 @@ void  QwHelicityPattern::DeleteHistograms()
   return;
 }
 
-void QwHelicityPattern::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Float_t> &values)
+void QwHelicityPattern::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
   TString thisprefix="yield_";
   //  std::cout<<"QwHelicityPattern::ConstructBranchAndVector\n";
@@ -275,7 +276,7 @@ void QwHelicityPattern::ConstructBranchAndVector(TTree *tree, TString & prefix, 
   return;
 }
 
-void QwHelicityPattern::FillTreeVector(std::vector<Float_t> &values)
+void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values)
 {
   if(IsGood)
     {

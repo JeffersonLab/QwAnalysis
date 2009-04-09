@@ -95,16 +95,16 @@ int main(Int_t argc,Char_t* argv[])
 
     rootfile.cd();
 //     TTree *heltree = new TTree("HEL_Tree","Helicity event data tree");
-//     std::vector<Float_t> heltreevector;
-//     Float_t  evnum = 0.0;
+//     std::vector<Double_t> heltreevector;
+//     Double_t  evnum = 0.0;
 //     heltreevector.reserve(600);
 //     heltree->Branch("evnum", &evnum, "evnum/F");
 //     ((QwQuartzBar*)QwDetectors.at(0))->ConstructBranchAndVector(heltree, "", heltreevector);
 
 
 //     TTree *qrttree = new TTree("QRT_Tree","Quartet data tree");
-//     std::vector<Float_t> qrttreevector;
-//     Float_t  qrtnum = 0.0;
+//     std::vector<Double_t> qrttreevector;
+//     Double_t  qrtnum = 0.0;
 //     qrttreevector.reserve(600);
 //     qrttree->Branch("qrtnum", &qrtnum, "qrtnum/F");
 //     sum.ConstructBranchAndVector(qrttree, "yield", qrttreevector);

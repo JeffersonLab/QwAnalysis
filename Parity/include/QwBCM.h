@@ -48,8 +48,8 @@ class QwBCM : public VQwDataElement{
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
 
-  void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t> &values);
-  void  FillTreeVector(std::vector<Float_t> &values);
+  void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values);
   void  DeleteHistograms();
 
   void Copy(VQwDataElement *source);

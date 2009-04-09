@@ -120,14 +120,14 @@ void  QwVQWK_Module::DeleteHistograms()
     fChannels.at(i).DeleteHistograms();
   }};
 
-void  QwVQWK_Module::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t> &values)
+void  QwVQWK_Module::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).ConstructBranchAndVector(tree, prefix, values);
   }
 };
 
-void  QwVQWK_Module::FillTreeVector(std::vector<Float_t> &values)
+void  QwVQWK_Module::FillTreeVector(std::vector<Double_t> &values)
 {
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).FillTreeVector(values);

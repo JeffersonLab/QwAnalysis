@@ -527,7 +527,7 @@ void  QwBeamLine::FillHistograms()
 
 
 
-void QwBeamLine::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Float_t> &values)
+void QwBeamLine::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
   for(size_t i=0;i<fStripline.size();i++)
     fStripline[i].ConstructBranchAndVector(tree, prefix,values);
@@ -536,7 +536,7 @@ void QwBeamLine::ConstructBranchAndVector(TTree *tree, TString & prefix, std::ve
   return;
 };
 
-void QwBeamLine::FillTreeVector(std::vector<Float_t> &values)
+void QwBeamLine::FillTreeVector(std::vector<Double_t> &values)
 {
   for(size_t i=0;i<fStripline.size();i++)
     fStripline[i].FillTreeVector(values);

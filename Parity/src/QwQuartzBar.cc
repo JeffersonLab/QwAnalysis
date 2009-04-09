@@ -194,7 +194,7 @@ void  QwQuartzBar::DeleteHistograms()
 }  
 
 
-void  QwQuartzBar::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Float_t> &values)
+void  QwQuartzBar::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
@@ -203,7 +203,7 @@ void  QwQuartzBar::ConstructBranchAndVector(TTree *tree, TString & prefix, std::
   }
 };
 
-void  QwQuartzBar::FillTreeVector(std::vector<Float_t> &values)
+void  QwQuartzBar::FillTreeVector(std::vector<Double_t> &values)
 {
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){

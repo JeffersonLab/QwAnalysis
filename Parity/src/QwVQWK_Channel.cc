@@ -219,7 +219,7 @@ void  QwVQWK_Channel::FillHistograms(){
       }
 };
 
-void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t> &values)
+void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (IsNameEmpty()){
     //  This channel is not used, so skip setting up the tree.
@@ -228,29 +228,29 @@ void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std
     fTreeArrayIndex  = values.size();
 
     values.push_back(0.0);
-    TString list = "hw_sum/F";
+    TString list = "hw_sum/D";
     values.push_back(0.0);
-    list += ":block0/F";
+    list += ":block0/D";
     values.push_back(0.0);
-    list += ":block1/F";
+    list += ":block1/D";
     values.push_back(0.0);
-    list += ":block2/F";
+    list += ":block2/D";
     values.push_back(0.0);
-    list += ":block3/F";
+    list += ":block3/D";
     if(fDataToSave==kRaw)
       {
 	values.push_back(0.0);
-	list += ":hw_sum_raw/F";
+	list += ":hw_sum_raw/D";
 	values.push_back(0.0);
-	list += ":block0_raw/F";
+	list += ":block0_raw/D";
 	values.push_back(0.0);
-	list += ":block1_raw/F";
+	list += ":block1_raw/D";
 	values.push_back(0.0);
-	list += ":block2_raw/F";
+	list += ":block2_raw/D";
 	values.push_back(0.0);
-	list += ":block3_raw/F";
+	list += ":block3_raw/D";
 	values.push_back(0.0);
-	list += ":sequence_number/F";
+	list += ":sequence_number/D";
       }
 
     fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
@@ -265,7 +265,7 @@ void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std
   }
 };
 
-void  QwVQWK_Channel::FillTreeVector(std::vector<Float_t> &values)
+void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values)
 {
   if (IsNameEmpty()){
     //  This channel is not used, so skip filling the tree vector.

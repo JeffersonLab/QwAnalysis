@@ -590,7 +590,7 @@ void  QwHelicity::FillHistograms()
       
 /////////////////////////////////////////////////////////////////
       
-void  QwHelicity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t> &values)
+void  QwHelicity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   SetHistoTreeSave(prefix);
   //  std::cout<<"QwHelicity::ConstructBranchAndVector  prefix="<<prefix<<" fHistoType="<<fHistoType<<"\n";
@@ -607,48 +607,48 @@ void  QwHelicity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::ve
     {
       basename = "helicity";
       values.push_back(0.0);
-      tree->Branch(basename, &(values[localindex]),basename+"/F");
+      tree->Branch(basename, &(values[localindex]),basename+"/D");
       //
       localindex  = values.size();
       basename = "pattern_phase";
       values.push_back(0.0);
-      tree->Branch(basename, &(values[localindex]),basename+"/F");
+      tree->Branch(basename, &(values[localindex]),basename+"/D");
      //
       localindex  = values.size();
       basename = "pattern_number";
       values.push_back(0.0);
-      tree->Branch(basename, &(values[localindex]),basename+"/F");
+      tree->Branch(basename, &(values[localindex]),basename+"/D");
       //
       localindex  = values.size();
       basename = "event_number";
       values.push_back(0.0);
-      tree->Branch(basename, &(values[localindex]),basename+"/F");
+      tree->Branch(basename, &(values[localindex]),basename+"/D");
       //
       for (size_t i=0; i<fWord.size(); i++)
 	{
 	  localindex  = values.size();
 	  basename = fWord[i].fWordName;
 	  values.push_back(0.0);
-	  tree->Branch(basename, &(values[localindex]),basename+"/F");
+	  tree->Branch(basename, &(values[localindex]),basename+"/D");
 	}
     }
   else if(fHistoType==kHelSavePattern)
     {
       basename = "pattern_polarity";
       values.push_back(0.0);
-      tree->Branch(basename, &(values[localindex]),basename+"/F");
+      tree->Branch(basename, &(values[localindex]),basename+"/D");
       //
       localindex  = values.size();
       basename = "pattern_number";
       values.push_back(0.0);
-      tree->Branch(basename, &(values[localindex]),basename+"/F");
+      tree->Branch(basename, &(values[localindex]),basename+"/D");
       //
       for (size_t i=0; i<fWord.size(); i++)
 	{
 	  localindex  = values.size();
 	  basename = fWord[i].fWordName;
 	  values.push_back(0.0);
-	  tree->Branch(basename, &(values[localindex]),basename+"/F");     
+	  tree->Branch(basename, &(values[localindex]),basename+"/D");     
 
 	}
     }
@@ -657,7 +657,7 @@ void  QwHelicity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::ve
 }
 
 /////////////////////////////////////////////////////////////////
-void  QwHelicity::FillTreeVector(std::vector<Float_t> &values)
+void  QwHelicity::FillTreeVector(std::vector<Double_t> &values)
 {
   //  std::cout<<"QwHelicity::FillTreeVector fHistoType="<<fHistoType<<"\n";
 

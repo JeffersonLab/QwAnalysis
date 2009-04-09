@@ -366,7 +366,7 @@ void  QwBPMStripline::DeleteHistograms()
 };
 
 
-void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t> &values)
+void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip constructing trees.
@@ -386,7 +386,7 @@ void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std
   return;
 };
 
-void  QwBPMStripline::FillTreeVector(std::vector<Float_t> &values)
+void  QwBPMStripline::FillTreeVector(std::vector<Double_t> &values)
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the tree.

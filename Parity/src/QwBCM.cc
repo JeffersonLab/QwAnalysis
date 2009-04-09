@@ -173,7 +173,7 @@ void  QwBCM::FillHistograms()
   return;
 };
 
-void  QwBCM::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t> &values)
+void  QwBCM::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
@@ -185,7 +185,7 @@ void  QwBCM::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<
   return;
 };
 
-void  QwBCM::FillTreeVector(std::vector<Float_t> &values)
+void  QwBCM::FillTreeVector(std::vector<Double_t> &values)
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.

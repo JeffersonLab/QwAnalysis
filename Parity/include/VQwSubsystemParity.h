@@ -30,14 +30,14 @@ class VQwSubsystemParity : public VQwSubsystem {
 
   virtual ~VQwSubsystemParity(){};
   
-  virtual void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Float_t> &values)=0;
-  virtual void ConstructBranchAndVector(TTree *tree, std::vector <Float_t> &values)
+  virtual void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)=0;
+  virtual void ConstructBranchAndVector(TTree *tree, std::vector <Double_t> &values)
     {
       TString tmpstr("");
       ConstructBranchAndVector(tree,tmpstr,values);
     };
   
-  virtual void FillTreeVector(std::vector<Float_t> &values)=0;
+  virtual void FillTreeVector(std::vector<Double_t> &values)=0;
   
   virtual void Copy(VQwSubsystem *source) = 0;
   virtual VQwSubsystem* Copy()=0;
