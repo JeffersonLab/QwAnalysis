@@ -133,6 +133,7 @@ class QwHelicity : public VQwSubsystemParity{
   // again this is used in the case we are running the local helicity mode
   // the scalercounter counts how many events happened since the last reading
   // should be one all the time if not the event is suspicious and not used for analysis
+  Int_t kinputregister, kpatterncounter, kmpscounter, kpatternphase;
   Int_t fEventNumberOld, fEventNumber;
   Int_t fPatternPhaseNumberOld,fPatternPhaseNumber;
   Int_t fPatternNumberOld,  fPatternNumber;
@@ -156,11 +157,12 @@ class QwHelicity : public VQwSubsystemParity{
 
 
   static const Bool_t kDEBUG=kFALSE;
-  static const Bool_t dolocalhelicity=kTRUE;
+  static const Bool_t dolocalhelicity=kFALSE;
   // local helicity is a special mode for encoding helicity info
   // it is not the fullblown helicity encoding we want to use for the main 
   // data taking. For example this was used during the injector data taking
   // in winter 2008-09 injector tests
+  static const Bool_t dolocalhelicity2=kTRUE;
   static const Int_t kUndefinedHelicity= -9999;
 
 

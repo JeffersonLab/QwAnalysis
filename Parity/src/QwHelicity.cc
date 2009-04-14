@@ -175,7 +175,7 @@ void  QwHelicity::ProcessEvent()
 {
   Bool_t ldebug=kFALSE;
 
-  if (dolocalhelicity){
+  if (dolocalhelicity&& !dolocalhelicity2){
     // In this version of the code, the helicty is extracted for a userbit configuartion. 
     // This is not what we plan to have for Qweak but what we used for the winter 2008-09 
     // injector tests
@@ -183,7 +183,7 @@ void  QwHelicity::ProcessEvent()
     UInt_t userbits;
     static UInt_t lastuserbits  = 0xFF;
     UInt_t scaleroffset=fWord[kscalercounter].fValue/32;
-
+    
     if(scaleroffset==1)
       {
 	userbits = (fWord[kuserbit].fValue & 0xE0000000)>>28;
@@ -259,7 +259,56 @@ void  QwHelicity::ProcessEvent()
 	  }
       }
   }
+  ///////////////
+  else if (dolocalhelicity2&& !dolocalhelicity){
+  Int_t kinputregister, kpatterncounter, kmpscounter, kpatternphase;
+
+    // injector tests April 2009
+    UInt_t thisinputregister=fWord[kinputregister].fValue;
+        
+    //  Now fake the input register, MPS coutner, QRT counter, and QRT phase.
+    fEventNumber=fWord[kmpscounter].fValue;
+ 
+    if ((thisinputregister & 0x4) == 0x4) //  Quartet bit is set.
+      {
+	fPatternPhaseNumber    = 1;  // Reset the QRT phase
+	fPatternNumber=fPatternNumberOld+1;     // Increment the QRT counter
+      }
+    else 
+      {
+	fPatternPhaseNumber=fPatternPhaseNumberOld+1;       // Increment the QRT phase
+      }
+    // folowing, a bunch of self consistancy checks
+    // at this time (april 09) we trust the info from the input register more than the info 
+    //from the scaler (because the scaler we use rigth now are "hakcs")
+    if(fEventNumber!=fEventNumberOld+1)
+      std::cerr<<"QwHelicity::ProcessEvent read event# is not old_event#+1 \n";
+    if(fPatternNumber!= fWord[kpatterncounter].fValue)      
+      std::cerr<<"QwHelicity::ProcessEvent read pattern# is not equal to the one constructed from the input register \n";
+    if(fPatternPhaseNumber!= fWord[kpatternphase].fValue)      
+      std::cerr<<"QwHelicity::ProcessEvent read pattern phase  is not equal to the one constructed from the input register \n";
     
+	    
+    fHelicityReported=0;
+
+    if ((thisinputregister & 0x1) == 0x1){ //  Helicity bit is set.
+      fHelicityReported    |= 1; // Set the InputReg HEL+ bit.
+      fHelicityBitPlus=kTRUE;
+      fHelicityBitMinus=kFALSE;
+    } else {
+      fHelicityReported    |= 0; // Set the InputReg HEL- bit.
+      fHelicityBitPlus=kFALSE;
+      fHelicityBitMinus=kTRUE;
+    }      
+  }
+  else  if(dolocalhelicity && dolocalhelicity2)
+    std::cerr<<"QwHelicity::ProcessEvent both dolocalhelicity and dolocalhelicity2 are kTRUE this is ambiguous  decoding is impossible !\n";
+  else
+    std::cerr<<"QwHelicity::ProcessEvent no instructions on how to decode the helicity !!!!\n";
+
+    
+  ///////////////
+
   if(fHelicityBitPlus==fHelicityBitMinus)
     fHelicityReported=-1;
     //if dolocalhelicity then this test doesn't make much sense
@@ -383,9 +432,19 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	    localword.fWordName=namech;
 	    localword.fWordType=dettype;
 	    fWord.push_back(localword);
-	    std::cout<<"--"<<namech<<"--"<<fWord.size()-1<<"\n";
-	    if(namech.Contains("userbit")) kuserbit=fWord.size()-1;
-	    if(namech.Contains("scalercounter")) kscalercounter=fWord.size()-1;
+	    if(ldebug) std::cout<<"--"<<namech<<"--"<<fWord.size()-1<<"\n";
+	    if(dolocalhelicity)
+	      {
+		if(namech.Contains("userbit")) kuserbit=fWord.size()-1;
+		if(namech.Contains("scalercounter")) kscalercounter=fWord.size()-1;
+	      }
+	    if(dolocalhelicity2)
+	      {
+		if(namech.Contains("input_register")) kinputregister= fWord.size()-1;
+		if(namech.Contains("MPS_counter")) kmpscounter= fWord.size()-1;
+		if(namech.Contains("PAT_counter")) kpatterncounter= fWord.size()-1;
+		if(namech.Contains("PAT_phase")) kpatternphase= fWord.size()-1;		
+	      }
 	  }	
       }
   }
