@@ -10,12 +10,12 @@
 //
 //
 
-#include "DelayLine.h"
+#include "QwDelayLine.h"
 
-const double TimeStep=2.6;
-const int  WireStep=8;
+const double QwDelayLine::TimeStep=2.6;
+const int    QwDelayLine::WireStep=8;
 
-void DelayLine::Wirenumber(double& time){
+void QwDelayLine::Wirenumber(double& time){
  int temp=0;
  vector<int> tempwire;
  int Guess=int((time-(Windows.at( 0 ).first+Windows.at( 0 ).second) /2)/TimeStep);          //there's two conditions:first,that the value of time-average value of the first window can not be smaller than -2.6;second, the right bound of the last window minus the left bound of the first window should be smaller than Windows.size()*TimeStep(because we must require that Guess shoulde be smaller than the Windows.size(),otherwise, the first command below Window.at(Guess) will be out of boundary!!)
@@ -68,7 +68,7 @@ void DelayLine::Wirenumber(double& time){
 	}
 }
 
-void DelayLine::ProcessHits(){
+void QwDelayLine::ProcessHits(){
 	//  The loop over the hits is assumming that both lists are ordered forwards in time.
  int hitscount=LeftHits.size();
  int hitscount_R=RightHits.size();
@@ -104,7 +104,7 @@ void DelayLine::ProcessHits(){
 
 
 
-DelayLine::~DelayLine()
+QwDelayLine::~QwDelayLine()
 {
 }
 

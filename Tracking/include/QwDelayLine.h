@@ -10,8 +10,8 @@
 //
 //
 
-#ifndef DELAYLINE_H
-#define DELAYLINE_H
+#ifndef QWDELAYLINE_H
+#define QWDELAYLINE_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -24,13 +24,13 @@ using namespace std;
 /**
 	@author siyuan yang <sxyang@linux-ehar>
 */
-class DelayLine
+class QwDelayLine
 {
  public:
-  DelayLine():Package(-1),Plane(-1),FirstWire(-1),fill(false),processed(false),Ambiguous(-1) {};
-  DelayLine(const int pk,const int pl,const int firstwire):Package(pk),Plane(pl),FirstWire(firstwire),fill(false),processed(false),Ambiguous(false) {};
+  QwDelayLine():Package(-1),Plane(-1),FirstWire(-1),fill(false),processed(false),Ambiguous(-1) {};
+  QwDelayLine(const int pk,const int pl,const int firstwire):Package(pk),Plane(pl),FirstWire(firstwire),fill(false),processed(false),Ambiguous(false) {};
 
-  ~DelayLine();
+  ~QwDelayLine();
   int Package;
   int Plane;
   int FirstWire;

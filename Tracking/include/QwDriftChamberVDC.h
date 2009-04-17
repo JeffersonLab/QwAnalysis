@@ -53,10 +53,13 @@ class QwDriftChamberVDC: public QwDriftChamber {
 
  void  SubtractReferenceTimes();
 
- void  LoadMap ( TString& );        //read the TDC convert DelayLine map
- void  ReadEvent ( TString& );     //read the events file
- Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
+ Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
 
+ void  LoadMap ( TString& );        //read the TDC convert QwDelayLine map
+ void  ReadEvent ( TString& );     //read the events file
+
+
+ void  ProcessEvent();
 
  
  protected:
@@ -77,7 +80,7 @@ class QwDriftChamberVDC: public QwDriftChamber {
 
   static const UInt_t BackPlanenum;
   static const UInt_t Linenum;
-  std::vector<std::vector<DelayLine> > DelayLineArray;      //indexed by backplane and line number
+  std::vector<std::vector<QwDelayLine> > DelayLineArray;      //indexed by backplane and line number
   std::vector<std::vector<QwDelayLineID> > fDelayLinePtrs;  //indexed by slot and channel number
   std::vector< QwHit > fWireHitsVDC;
 
