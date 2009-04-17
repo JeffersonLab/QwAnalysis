@@ -47,6 +47,24 @@ class QwHit{
     return QwDetectorID(fRegion,fPackage,fPlane,fDirection,fElement);
   };
 
+
+  QwElectronicsID GetElectronicsID(){
+    return QwElectronicsID ( fModule,fChannel );
+  };
+
+
+
+  void AmbiguityID ( const Bool_t amelement,const Bool_t amlr )       //this function might be modified later
+  {
+    fAmbiguousElement=amelement;
+    fLRAmbiguity=amlr;
+  };
+
+  void SetHitNumberR ( const Int_t hitcountR ){
+    fHitNumber_R=hitcountR;
+  };
+
+
   const Double_t& GetRawTime() const {return fRawTime;};
   const Double_t& GetTime()    const {return fTime;};
 
@@ -166,7 +184,8 @@ class QwHit{
   Int_t fCrate;     /// ROC number
   Int_t fModule;    /// F1TDC slot number, or module index
   Int_t fChannel;   /// Channel number
-  Int_t fHitNumber; /// Index for multiple hits in a single channel
+  Int_t fHitNumber; /// Index for multiple hits in a single channel on the left
+  Int_t fHitNumber_R;    ///index for multiple hits in a single channel on the right
 
   //  Identification information for the detector
   Int_t fRegion;    /// Region 1, 2, 3, trigger scint., or cerenkov

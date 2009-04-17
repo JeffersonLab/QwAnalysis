@@ -33,14 +33,23 @@ class QwDetectorID
 class QwElectronicsID
 {
  public:
-  int fCrate; //ROC number
-  int fModule; //F1TDC slot number or module index
-  int fChannel; //channel number
+ QwElectronicsID():fModule(-1),fChannel(-1){};
+ QwElectronicsID(const int slot,const int chan):fModule(slot),fChannel(chan){};
+
+ public:
+  int fModule;       //F1TDC slot number or module number
+  int fChannel;      //channel number
 };
 
-
-
-
+class QwDelayLineID{
+ public:
+ QwDelayLineID():BackPlane(-1),Linenumber(-1),Side(-1){};
+ QwDelayLineID(const int fBackPlane, const int fLinenumber, const int fSide):BackPlane(fBackPlane),Linenumber(fLinenumber),Side(fSide){};
+    
+ int BackPlane;
+ int Linenumber;
+ int Side;
+};
 
 
 #endif
