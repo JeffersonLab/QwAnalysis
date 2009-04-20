@@ -1,15 +1,32 @@
 #ifndef QWTYPES_H
 #define QWTYPES_H
 
-//  Some global constants for the number of regions
-static const Int_t kNumRegions = 6;
-enum EQwRegionID{kRegionIDNull,
-		 kRegionID1,    kRegionID2,   kRegionID3,
-		 kRegionIDTrig, kRegionIDCer, kRegionIDScanner};
+// ROOT basic types
+#include <Rtypes.h>
 
-enum EQwDirectionID{kDirectionNull,
-		    kDirectionX, kDirectionY, kDirectionU,
-		    kDirectionV, kDirectionR, kDirectionTheta};
+
+// Enumerator types for regions and directions
+static const Int_t kNumRegions = 6;
+enum EQwRegionID {kRegionIDNull,
+		  kRegionID1,    kRegionID2,   kRegionID3,
+		  kRegionIDTrig, kRegionIDCer, kRegionIDScanner};
+
+static const Int_t kNumDirections = 6;
+enum EQwDirectionID {kDirectionNull,
+		     kDirectionX, kDirectionY, kDirectionU,
+		     kDirectionV, kDirectionR, kDirectionTheta};
+
+static const Int_t kNumPackages = 8;
+static const Int_t kNumPlanes = 4;
+
+// Enumerator increments
+inline EQwRegionID& operator++ (EQwRegionID &region, int) {
+   return region = EQwRegionID(region + 1);
+}
+inline EQwDirectionID& operator++ (EQwDirectionID &direction, int) {
+   return direction = EQwDirectionID(direction + 1);
+}
+
 
 
 class QwDetectorID
@@ -45,7 +62,7 @@ class QwDelayLineID{
  public:
  QwDelayLineID():BackPlane(-1),Linenumber(-1),Side(-1){};
  QwDelayLineID(const int fBackPlane, const int fLinenumber, const int fSide):BackPlane(fBackPlane),Linenumber(fLinenumber),Side(fSide){};
-    
+
  int BackPlane;
  int Linenumber;
  int Side;

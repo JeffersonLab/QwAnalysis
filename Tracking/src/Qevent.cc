@@ -9,6 +9,7 @@
 using namespace std;
 
 // Qweak headers
+#include "QwTypes.h"
 #include "Det.h"
 #include "enum.h"
 
@@ -22,12 +23,10 @@ using namespace std;
 #endif
 
 
-extern Det* rcDETRegion[2][3][4];
+extern Det* rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 extern Det  rcDET[NDetMax];
-extern EUppLow operator++(enum EUppLow &rs, int );
-extern ERegion operator++(enum ERegion &rs, int );
+extern EPackage operator++(enum EPackage &rs, int );
 extern Etype operator++(enum Etype &rs, int );
-extern Edir operator++(enum Edir &rs, int );
 
 /*____________________________________________________________
 Qevent
@@ -81,10 +80,10 @@ int Qevent::GetEvent()
 	Hit *newhit;
 
 	// Detector region/type/direction identifiers
-	enum EUppLow up_low, up_low2;
-	enum ERegion region, region2;
-	enum Etype   type,   type2;
-	enum Edir    dir,    dir2;
+	enum EPackage package, package2;
+	EQwRegionID region, region2;
+	enum Etype    type,   type2;
+	EQwDirectionID dir,    dir2;
 
 	// In order to handle incomplete files, we keep track of when it is
 	// safe to end the file.  An EOF is only safe when the current
@@ -133,7 +132,7 @@ int Qevent::GetEvent()
 		detecID = atoi(strtok(line,"\n"));
 
 		// Obtain the detector information from rcDET which is set up by Qset
-		up_low = rcDET[detecID].upplow;  // the 'top' or 'bottom' detector
+		package = rcDET[detecID].package;  // the 'top' or 'bottom' detector
 		region = rcDET[detecID].region;  // the detector region
 		type   = rcDET[detecID].type;    // the detector type
 		dir    = rcDET[detecID].dir;     // the wire direction
@@ -141,17 +140,17 @@ int Qevent::GetEvent()
 		// when this is the first detector of the event
 		if (firstdetec) {
 			firstdetec = 0;
-			up_low2 = up_low;
+			package2 = package;
 			region2 = region;
 			type2 = type;
 			dir2 = dir;
-			rd = rcDETRegion[up_low][region-1][dir];
+			rd = rcDETRegion[package][region-1][dir];
 		} else {
 			// this is not the first detector of the file
 			hitlist = NULL;
 			newhit = NULL;
 			// compare to previous hit
-			if (up_low2 == up_low &&
+			if (package2 == package &&
 			    region2 == region &&
 			      type2 == type   &&
 			       dir2 == dir) {
@@ -160,8 +159,8 @@ int Qevent::GetEvent()
 				//cerr << "went to next" << endl;
 			} else {
 				// different detector plane
-				rd = rcDETRegion[up_low][region-1][dir];
-				up_low2 = up_low;
+				rd = rcDETRegion[package][region-1][dir];
+				package2 = package;
 				region2 = region;
 				type2   = type;
 				dir2    = dir;
@@ -205,7 +204,7 @@ int Qevent::GetEvent()
 			// the hit's pointer back to the detector plane
 			newhit->detec = rd;
 
-			
+
 
 			// Chain the hits
 			newhit->next = hitlist;
@@ -270,9 +269,9 @@ Int_t Qevent::ProcessHitContainer(QwHitContainer &qwhits){
   Hit *newhit,*hitlist;
 
   // Detector region/type/direction identifiers
-  enum EUppLow up_low, up_low2;
-  enum ERegion region, region2;
-  enum Edir    dir, dir2;
+  enum EPackage package, package2;
+  EQwRegionID region, region2;
+  EQwDirectionID dir, dir2;
 
   Int_t plane, plane2;
 
@@ -285,15 +284,15 @@ Int_t Qevent::ProcessHitContainer(QwHitContainer &qwhits){
   //  detectors.
 
 
-  QwDetectorID local_id;  
+  QwDetectorID local_id;
   //  Loop through the QwHitContainer
   for (QwHitContainer::iterator qwhit = qwhits.begin();qwhit != qwhits.end(); qwhit++) {
     local_id = qwhit->GetDetectorID();
 
-    up_low = (EUppLow) local_id.fPackage;
-    region = (ERegion) local_id.fRegion;
-    dir    = (Edir) local_id.fDirection;
-    plane  = local_id.fPlane;
+    package = (EPackage) local_id.fPackage;
+    region  = (EQwRegionID) local_id.fRegion;
+    dir     = (EQwDirectionID) local_id.fDirection;
+    plane   = local_id.fPlane;
 
 
     // when this is the first detector of the event
@@ -302,18 +301,18 @@ Int_t Qevent::ProcessHitContainer(QwHitContainer &qwhits){
       newhit = NULL;
       std::cout<<"First Detector "<<std::endl;
       firstdetec = 0;
-      up_low2 = up_low;
+      package2 = package;
       region2 = region;
       plane2 = plane; //Note that plane contains the detector Id
       dir2 = dir;
-      rd = rcDETRegion[up_low][region-1][dir];
+      rd = rcDETRegion[package][region-1][dir];
       while (rd->ID != plane){
 	rd = rd->nextsame;
       }
       std::cout<<"Detector ID " << rd->ID <<std::endl;
-    } else if (up_low2 == up_low &&
+    } else if (package2 == package &&
 	       region2 == region &&
-	       plane2 == plane   &&
+	       plane2 == plane &&
 	       dir2 == dir) {
       //  Same plane!  Do nothing!
     } else {
@@ -321,12 +320,12 @@ Int_t Qevent::ProcessHitContainer(QwHitContainer &qwhits){
       hitlist = NULL;
       newhit = NULL;
       // compare to previous hit
-      if (up_low2 == up_low &&
-	  region2 == region &&
-	  plane2 != plane   &&
-	  dir2 == dir) {
+      if (package2 == package &&
+	  region2  == region  &&
+	  plane2   != plane   &&
+	  dir2     == dir) {
 	// like-pitched detector plane
-	rd = rcDETRegion[up_low][region-1][dir];
+	rd = rcDETRegion[package][region-1][dir];
 	while (rd->ID != plane){
 	  rd = rd->nextsame;
 	}
@@ -334,14 +333,14 @@ Int_t Qevent::ProcessHitContainer(QwHitContainer &qwhits){
 	std::cout<<"Detector ID " << rd->ID <<std::endl;
       } else {
 	// different detector plane
-	rd = rcDETRegion[up_low][region-1][dir];
+	rd = rcDETRegion[package][region-1][dir];
 	while (rd->ID != plane){
 	  rd = rd->nextsame;
 	}
-	up_low2 = up_low;
-	region2 = region;
+	package2 = package;
+	region2  = region;
 	plane2   = plane;
-	dir2    = dir;
+	dir2     = dir;
 	std::cout<<"Detector ID " << rd->ID <<std::endl;
       }
     }
@@ -350,7 +349,7 @@ Int_t Qevent::ProcessHitContainer(QwHitContainer &qwhits){
 
     newhit = (Hit*) malloc (sizeof(Hit));
     //	  // set event number
-    newhit->ID = thisevent;  
+    newhit->ID = thisevent;
     // Wire number
     newhit->wire = local_id.fElement;
     //	  // Z position of wire plane (first wire for region 3)
@@ -367,12 +366,12 @@ Int_t Qevent::ProcessHitContainer(QwHitContainer &qwhits){
     // Chain the hits
     newhit->next = hitlist;
     hitlist = newhit;
-	  
+
     // Chain the hits in each detector
     newhit->nextdet = rd->hitbydet;
     rd->hitbydet = newhit;
   }
-  
+
   /*
    //  Look at hits in Detector ID 0
   rd     = &(rcDET[0]);
@@ -402,9 +401,9 @@ Int_t Qevent::ProcessHitContainer(QwHitContainer &qwhits){
 
 //--------------------------------------------------------
 
-void Qevent::UpdateHitVector(int region,int upplow, int detectId, int dir, int wire, double drift_dist, double res, double Zpos){
+void Qevent::UpdateHitVector(int region,int package, int detectId, int dir, int wire, double drift_dist, double res, double Zpos){
 
-  currentHit=new QwHit(0,0,0,0,region,upplow, detectId ,dir,wire,0) ; //order of parameters-> electronics stuffs are neglected, and  plane=DetectId and data is set to zero
+  currentHit=new QwHit(0,0,0,0,region,package, detectId ,dir,wire,0) ; //order of parameters-> electronics stuffs are neglected, and  plane=DetectId and data is set to zero
   currentHit->SetDriftDistance(drift_dist);
   currentHit->SetSpatialResolution(res);
   currentHit->SetZPos(Zpos);

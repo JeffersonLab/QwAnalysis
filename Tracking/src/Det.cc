@@ -24,7 +24,7 @@ void Det::print()
 
   // Detector flags
   cout << " (";
-  switch (upplow) { // upper or lower detector
+  switch (package) { // upper or lower detector
     case w_upper:
       cout << "u"; break;
     case w_lower:
@@ -35,11 +35,11 @@ void Det::print()
   cout << " ";
 
   switch (region) { // detector region
-    case r1:
+    case kRegionID1:
       cout << "r1"; break;
-    case r2:
+    case kRegionID2:
       cout << "r2"; break;
-    case r3:
+    case kRegionID3:
       cout << "r3"; break;
     default:
       cout << "?";  break;
@@ -61,13 +61,13 @@ void Det::print()
   cout << " ";
 
   switch (dir) { // plane direction
-    case u_dir:
+    case kDirectionU:
       cout << "u"; break;
-    case v_dir:
+    case kDirectionV:
       cout << "v"; break;
-    case x_dir:
+    case kDirectionX:
       cout << "x"; break;
-    case y_dir:
+    case kDirectionY:
       cout << "y"; break;
     default:
       cout << "?"; break;

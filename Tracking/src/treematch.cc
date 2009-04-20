@@ -13,7 +13,7 @@ using namespace std;
     \brief This module matches track segments for individual wire planes.
 */
 
-extern Det *rcDETRegion[2][3][4];
+extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 
 
 //________________________________________________________________________
@@ -60,9 +60,9 @@ treematch::~treematch(){
 */
 
 // This function requires the wire planes to be parallel
-TreeLine *treematch::MatchR3(TreeLine *front, TreeLine *back, EUppLow up_low, ERegion region, Edir dir)
+TreeLine *treematch::MatchR3 (TreeLine *front, TreeLine *back, EPackage package, EQwRegionID region, EQwDirectionID dir)
 {
-  if (region != r3) {
+  if (region != kRegionID3) {
     cerr << "Error, this function is only for R3" << endl;
     return 0;
   }
@@ -91,7 +91,7 @@ TreeLine *treematch::MatchR3(TreeLine *front, TreeLine *back, EUppLow up_low, ER
   Hit *DetecHits[2*TLAYERS];
 
   ofstream gnu1,gnu2;
-  if (dir == u_dir) {
+  if (dir == kDirectionU) {
     gnu1.open("gnu1.dat");
     gnu2.open("gnu2.dat");
   }
@@ -99,7 +99,7 @@ TreeLine *treematch::MatchR3(TreeLine *front, TreeLine *back, EUppLow up_low, ER
   //###################################
   // Get distance between planes, etc #
   //###################################
-  rd = rcDETRegion[up_low][region-1][dir];
+  rd = rcDETRegion[package][region-1][dir];
   theta = rd->Rot/360*2*pi;
   //get the u value for the first wire.
   d_to_1st_wire_f = rd->rSin * rd->PosOfFirstWire;
@@ -128,16 +128,16 @@ TreeLine *treematch::MatchR3(TreeLine *front, TreeLine *back, EUppLow up_low, ER
   d_to_1st_wire_b = d_to_1st_wire_b - rd->NumOfWires * rd->WireSpacing;
 
 
-  if(dir == v_dir){//get the distance between the u and v planes
-    RotCos = rcDETRegion[up_low][region-1][u_dir]->rRotCos;
-    RotSin = rcDETRegion[up_low][region-1][u_dir]->rRotSin;
+  if(dir == kDirectionV){//get the distance between the u and v planes
+    RotCos = rcDETRegion[package][region-1][kDirectionU]->rRotCos;
+    RotSin = rcDETRegion[package][region-1][kDirectionU]->rRotSin;
     RotTan = RotSin/RotCos;
 
-    d_uv = (rcDETRegion[up_low][region-1][v_dir]->Zpos-rcDETRegion[up_low][region-1][u_dir]->Zpos);
-    d_uv += (rcDETRegion[up_low][region-1][u_dir]->center[1]-rcDETRegion[up_low][region-1][v_dir]->center[1])/RotTan;
+    d_uv = (rcDETRegion[package][region-1][kDirectionV]->Zpos-rcDETRegion[package][region-1][kDirectionU]->Zpos);
+    d_uv += (rcDETRegion[package][region-1][kDirectionU]->center[1]-rcDETRegion[package][region-1][kDirectionV]->center[1])/RotTan;
     d_uv *= RotSin;
-//    d_uv = (rcDETRegion[up_low][region-1][v_dir]->Zpos-rcDETRegion[up_low][region-1][u_dir]->Zpos);
-//    d_uv = d_uv/rcDETRegion[up_low][region-1][u_dir]->rRotCos;
+//    d_uv = (rcDETRegion[package][region-1][kDirectionV]->Zpos-rcDETRegion[package][region-1][kDirectionU]->Zpos);
+//    d_uv = d_uv/rcDETRegion[package][region-1][kDirectionU]->rRotCos;
   }
   //######################################
   // Get the radial offset of the planes #
@@ -152,7 +152,7 @@ TreeLine *treematch::MatchR3(TreeLine *front, TreeLine *back, EUppLow up_low, ER
   //##########################
   //Revise the hit positions #
   //##########################
-  if(dir == u_dir){
+  if(dir == kDirectionU){
     for(int i =0;i<rd->NumOfWires;i++){
       gnu2 << "0 " << (i-141)*wirespacingf << " " << d << " " <<  (i-141)*wirespacingb +d2u << endl;
     }
@@ -162,7 +162,7 @@ TreeLine *treematch::MatchR3(TreeLine *front, TreeLine *back, EUppLow up_low, ER
     if(fwalk->isvoid == 0){
       for(i=0;i<fwalk->numhits;i++){
         fwalk->hits[i]->Zpos = (fwalk->hits[i]->wire-141) * wirespacingf;
-        if(dir == v_dir)fwalk->hits[i]->rPos+= d_uv;
+        if(dir == kDirectionV)fwalk->hits[i]->rPos+= d_uv;
       }
     }
   }
@@ -172,7 +172,7 @@ TreeLine *treematch::MatchR3(TreeLine *front, TreeLine *back, EUppLow up_low, ER
       for(i=0;i<bwalk->numhits;i++){
         bwalk->hits[i]->Zpos = (bwalk->hits[i]->wire -281 - 141) * wirespacingb + d2u;
         bwalk->hits[i]->rPos = bwalk->hits[i]->rPos + d;
-        if(dir == v_dir)bwalk->hits[i]->rPos+= d_uv;
+        if(dir == kDirectionV)bwalk->hits[i]->rPos+= d_uv;
       }
     }
   }
@@ -189,7 +189,7 @@ TreeLine *treematch::MatchR3(TreeLine *front, TreeLine *back, EUppLow up_low, ER
   for(fwalk = front;fwalk;fwalk = fwalk->next){//loop over front track segments
     matches[i]=-1;
     if(fwalk->isvoid == 0){//skip it if it's no good
-      if(dir == u_dir){
+      if(dir == kDirectionU){
         for(k=0;k<fwalk->numhits;k++){
           gnu1 << fwalk->hits[k]->Zpos << " " << fwalk->hits[k]->rPos << endl;
         }
@@ -200,7 +200,7 @@ TreeLine *treematch::MatchR3(TreeLine *front, TreeLine *back, EUppLow up_low, ER
       for(bwalk = back;bwalk;bwalk = bwalk->next){
         j++;
 	if(bwalk->isvoid !=0)continue;
-        if(dir == u_dir){
+        if(dir == kDirectionU){
           for(l=0;l<bwalk->numhits;l++){
             gnu1 << bwalk->hits[l]->Zpos << " " << bwalk->hits[l]->rPos << endl;
           }
@@ -306,7 +306,7 @@ void treematch::TgTrackPar( PartTrack *front, PartTrack *back,double *theta, dou
 
 //________________________________________________________________________
 Track * treematch::TgPartMatch( PartTrack *front, PartTrack *back, Track *tracklist,
-	     enum EUppLow upplow/*, enum Emethod method*/)
+	     enum EPackage package/*, enum Emethod method*/)
 {
   double bestchi = 1e10, chi;
   double v1,v2, v3;

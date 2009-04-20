@@ -72,23 +72,23 @@ class treecombine {
     int contains( double var, Hit **arr, int len);
     double detZPosition( Det *det, double x, double slope_x, double *xval );
 
-    int TlCheckForX(double x1, double x2, double dx1, double dx2,double Dx,double z1, double dz,TreeLine *treefill,enum EUppLow up_low,enum ERegion region,enum Etype type,enum Edir wdir,int  dlayer, int tlayer,int  iteration,int  stay_tuned);
+    int TlCheckForX(double x1, double x2, double dx1, double dx2,double Dx,double z1, double dz,TreeLine *treefill,enum EPackage package,enum EQwRegionID region,enum Etype type,EQwDirectionID wdir,int  dlayer, int tlayer,int  iteration,int  stay_tuned);
 
-    int TlMatchHits(double x1,double x2,double z1, double dz,TreeLine *treefill,enum EUppLow up_low,enum ERegion region,enum Etype type,enum Edir dir,int tlayers);
+    int TlMatchHits(double x1,double x2,double z1, double dz,TreeLine *treefill,enum EPackage package,enum EQwRegionID region,enum Etype type,EQwDirectionID dir,int tlayers);
 
-    int inAcceptance( enum EUppLow up_low,enum ERegion region,double cx, double mx,double cy, double my);
-    void TlTreeLineSort(TreeLine *tl,enum EUppLow up_low,enum ERegion region,enum Etype type,enum Edir dir/*,enum Eorientation orient*/,unsigned long bins,int tlayer,int dlayer);
+    int inAcceptance( enum EPackage package,enum EQwRegionID region,double cx, double mx,double cy, double my);
+    void TlTreeLineSort(TreeLine *tl,enum EPackage package,enum EQwRegionID region,enum Etype type,EQwDirectionID dir/*,enum Eorientation orient*/,unsigned long bins,int tlayer,int dlayer);
     int TcTreeLineCombine( TreeLine *wu, TreeLine *wv, TreeLine *wx,PartTrack *pt, int tlayer );
     int TcTreeLineCombine( TreeLine *wu, TreeLine *wv,PartTrack *pt, int tlayer );
     int TcTreeLineCombine2( TreeLine *wu, TreeLine *wv,PartTrack *pt, int tlayer );
 
-    PartTrack *TlTreeCombine(TreeLine *uvl[4],long bins,enum EUppLow up_low,enum ERegion region,enum Etype type/*,enum Eorientation orient*/,int tlayer,int dlayer);
+    PartTrack *TlTreeCombine(TreeLine *uvl[4],long bins,enum EPackage package,enum EQwRegionID region,enum Etype type/*,enum Eorientation orient*/,int tlayer,int dlayer);
     void ResidualWrite( Event *event);
 
     int r3_TrackFit( int Num, Hit **Hit, double *fit, double *cov, double *chi,double uv2xy[2][2]);
     int r3_TrackFit2( int Num, Hit **Hit, double *fit, double *cov, double *chi);
 
-    int checkR3(PartTrack *pt,enum EUppLow up_low);
+    int checkR3(PartTrack *pt,enum EPackage package);
 
 
   private:

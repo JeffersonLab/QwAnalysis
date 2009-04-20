@@ -39,9 +39,9 @@ class treematch {
 
     void TgTrackPar (PartTrack *front, PartTrack *back, double *theta, double *phi, double *bending, double *ZVertex );
     //void TgInit (Track *track);
-    Track *TgPartMatch (PartTrack *front, PartTrack *back, Track *tracklist, enum EUppLow upplow/*, enum Emethod method*/);
+    Track *TgPartMatch (PartTrack *front, PartTrack *back, Track *tracklist, enum EPackage package/*, enum Emethod method*/);
 
-    TreeLine *MatchR3 (TreeLine *front, TreeLine *back, EUppLow up_low, ERegion region, Edir dir);
+    TreeLine *MatchR3 (TreeLine *front, TreeLine *back, EPackage up_low, EQwRegionID region, EQwDirectionID dir);
 
   private:
 

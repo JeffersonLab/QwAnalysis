@@ -1053,7 +1053,7 @@ void treesearch::_TsSearch(shortnode *node,int level,int offset,int row_offset,i
 	  				lineptr->next = trelin;           /* put this treeline into the   */
 	  				trelin = lineptr;                 /*  linked-list of treelines    */
 	  				//Statist[treelinemethod].          /* update HRC statistics        */
-	   				//TreeLinesGenerated[viswer][vispar][visdir-u_dir] ++;
+	   				//TreeLinesGenerated[viswer][vispar][visdir-kDirectionU] ++;
 	  }
       	} else {			            /* check son patterns           */
 	  for( rev = 0; rev < 4; rev += 2) {

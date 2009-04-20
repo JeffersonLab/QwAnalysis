@@ -9,6 +9,7 @@
 #include "treeregion.h"
 using namespace QwTracking;
 
+#include "QwTypes.h"
 #include "enum.h"
 #include "options.h"
 #include "Hit.h"
@@ -55,19 +56,19 @@ class tree {
     ~tree();
 
     void rcInitTree();
-    int consistent(treenode *tst, int level,enum EUppLow up_low, enum Etype type,enum ERegion region,enum Edir dir);
+    int consistent(treenode *tst, int level,enum EPackage package, enum Etype type, EQwRegionID region, EQwDirectionID dir);
     treenode * existent(treenode *tst, int hash);
     treenode *nodeexists(nodenode *nd, treenode *tr);
     treenode * treedup(treenode *todup);
-    void marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype type,enum ERegion region,enum Edir dir);
+    void marklin(treenode *Father,int level,enum EPackage package, enum Etype type, EQwRegionID region,EQwDirectionID dir);
 
     void treeout(treenode *tn, int level, int off);
     void printtree(treenode *tn);
     void freetree();
     treeregion * readtree(char *filename, int levels, int tlayers, double rwidth, int dontread);
     long writetree(char *fn, treenode *tn, int levels, int tlayers, double width);
-    treeregion * inittree(char *filename, int levels, int tlayer, double width,enum EUppLow up_low, enum Etype type, enum ERegion region,enum Edir dir);
-    treenode * _inittree(int tlayer,enum EUppLow up_low, enum Etype type,enum ERegion region, enum Edir dir);//should be moved to private once inittree() is written
+    treeregion * inittree(char *filename, int levels, int tlayer, double width,enum EPackage package, enum Etype type, enum EQwRegionID region,EQwDirectionID dir);
+    treenode * _inittree(int tlayer,enum EPackage package, enum Etype type,enum EQwRegionID region, EQwDirectionID dir);//should be moved to private once inittree() is written
 
   private:
 

@@ -26,7 +26,7 @@ class treedo {
     treedo();
 
     void BCheck (double E, PartTrack *f, PartTrack *b, double TVertex, double ZVertex);
-    Track* rcLinkUsedTracks (Track *track, int upplow);
+    Track* rcLinkUsedTracks (Track *track, int package);
   Event * rcTreeDo(int iEventNo);
 
   private:

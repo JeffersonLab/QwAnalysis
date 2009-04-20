@@ -115,18 +115,13 @@ using namespace QwTracking;
 
 #define TREEDIR "tree"
 
+#include "QwTypes.h"
 #include "enum.h"
-EUppLow operator++(enum EUppLow &rs, int ) {
-   return rs = (EUppLow)(rs + 1);
-}
-ERegion operator++(enum ERegion &rs, int ) {
-   return rs = (ERegion)(rs + 1);
+EPackage operator++(enum EPackage &rs, int ) {
+   return rs = (EPackage)(rs + 1);
 }
 Etype operator++(enum Etype &rs, int ) {
    return rs = (Etype)(rs + 1);
-}
-Edir operator++(enum Edir &rs, int ) {
-   return rs = (Edir)(rs + 1);
 }
 
 
@@ -137,8 +132,8 @@ Edir operator++(enum Edir &rs, int ) {
 
 /*! \todo (wdconinc) The following extern variables should then be instantiated
  in QwAnalysis.h.  */
-extern treeregion *rcTreeRegion[2][3][4][4];
-extern Det *rcDETRegion[2][3][4];
+extern treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumPlanes][kNumDirections];
+extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 extern Options opt;
 
 
@@ -196,36 +191,38 @@ void tree::printtree(treenode *tn) {
 
 void tree::rcInitTree()
 {
-	enum ERegion region;    /// detector region
-	enum EUppLow up_low;    /// detector orientation
-	enum Etype   type;      /// detector type (drift, cerenkov, etc)
-	enum Edir    direction; /// wire direction.
+	EQwRegionID region;  /// detector region
+	EPackage package;    /// detector orientation
+	Etype   type;      /// detector type (drift, cerenkov, etc)
+	EQwDirectionID direction; /// wire direction.
 
 	char filename[256];
         int numlayers = 0;
 	double width = 0;
 
 	/// For each region
-	for (region = r1; region <= r3; region++) {
+	for (region = kRegionID1; region <= kRegionID3; region++) {
 
 	  /// ... and each orientation
-	  for (up_low = w_upper; up_low <= w_lower; up_low++) {
+	  for (package = w_upper; package <= w_lower; package++) {
 
-	    if (region < r2) continue; /// skip region 1 for now
+	    if (region < kRegionID2) continue; /// skip region 1 for now
 
 	    /// ... and each type
 	    for (type = d_drift; type <= d_drift /*d_cerenkov*/; type++) {
 
-	      if (type != d_drift && region == r3) continue; /// in region 3 there are only VDCs
+	      if (type != d_drift && region == kRegionID3) continue; /// in region 3 there are only VDCs
 
 	      /// ... and each wire direction
-	      for (direction = u_dir; direction <= x_dir; direction++) {
+	      for (direction = kDirectionX; direction <= kDirectionV; direction++) {
+	        // Skip wire direction Y
+	        if (direction == kDirectionY) continue;
 
 		///  Skip the NULL rcDETRegion pointers.
 		//   pking:  This is probably a configuration error,
 		//           which the user may want to be warned about.
-		if (rcDETRegion[up_low][region-1][direction] == NULL){
-		  std::cerr << "WARN:  rcDETRegion["<< up_low
+		if (rcDETRegion[package][region-1][direction] == NULL){
+		  std::cerr << "WARN:  rcDETRegion["<< package
 			    << "]["          << region-1
 			    << "]["          << direction
 			    << "] is NULL.  Should it be?"
@@ -234,16 +231,16 @@ void tree::rcInitTree()
 		}
 
 	        /// Region 3 contains 8 layers
-	        if (region == r3 && type == d_drift) {
+	        if (region == kRegionID3 && type == d_drift) {
 	          numlayers = TLAYERS; // should be 8
-	          width = rcDETRegion[up_low][region-1][direction]->width[2];
+	          width = rcDETRegion[package][region-1][direction]->width[2];
 	        }
 
 	        /// Region 2 contains 4 layers
-	        if (region == r2 && type == d_drift) {
+	        if (region == kRegionID2 && type == d_drift) {
 	          numlayers = 4; // this is clunky
-	          width = rcDETRegion[up_low][region-1][direction]->WireSpacing *
-	              rcDETRegion[up_low][region-1][direction]->NumOfWires;
+	          width = rcDETRegion[package][region-1][direction]->WireSpacing *
+	              rcDETRegion[package][region-1][direction]->NumOfWires;
 	        }
 
 		/// Set up the filename with the following format
@@ -251,20 +248,20 @@ void tree::rcInitTree()
 		sprintf(filename, "%s/tree%d-%d-%c-%c-%c-%c.tre",
 			TREEDIR,
 			numlayers,
-			opt.levels[up_low][region-1][type],
-			"ul"[up_low],
+			opt.levels[package][region-1][type],
+			"ul"[package],
 			"123"[region-1],
 			"dgtc"[type],
-			"nuvxy"[direction]);
+			"nxyuv"[direction]);
 		if (debug) cout << "Tree filename: " << filename << endl;
 
 		/// Each element of rcTreeRegion will point to a pattern database
-		rcTreeRegion[up_low][region-1][type][direction] =
+		rcTreeRegion[package][region-1][type][direction] =
 		  inittree(filename,
-		    opt.levels[up_low][region-1][type],
+		    opt.levels[package][region-1][type],
 		    numlayers,
 		    width,
-		    up_low,
+		    package,
 		    type,
 		    region,
 		    direction);
@@ -287,7 +284,7 @@ void tree::rcInitTree()
 
 *//*-------------------------------------------------------------------------*/
 
-int tree::consistent(treenode *tst, int level,enum EUppLow up_low, enum Etype type,enum ERegion region,enum Edir dir){
+int tree::consistent(treenode *tst, int level, EPackage package, Etype type, EQwRegionID region, EQwDirectionID dir){
   //###############
   // DECLARATIONS #
   //###############
@@ -306,7 +303,7 @@ int tree::consistent(treenode *tst, int level,enum EUppLow up_low, enum Etype ty
   //###########
   // REGION 2 #
   //###########
-  if (type == d_drift && region == r2) {
+  if (type == d_drift && region == kRegionID2) {
     int templayers = 4;
     int tlaym1 = templayers -1 ;
     double z[templayers];
@@ -319,7 +316,7 @@ int tree::consistent(treenode *tst, int level,enum EUppLow up_low, enum Etype ty
     double xiL, xiR;	/// the left(min) and right(max) edges of the bin at the current plane
 
     /// find the z position of each tree-detector relative to the first tree-detector
-    for (rd = rcDETRegion[up_low][region-1][dir], i = 0;
+    for (rd = rcDETRegion[package][region-1][dir], i = 0;
          rd && i < templayers;
          rd = rd->nextsame, i++) {   // Loop through each plane
 
@@ -388,7 +385,7 @@ int tree::consistent(treenode *tst, int level,enum EUppLow up_low, enum Etype ty
   //###########
   // REGION 3 #
   //###########
-  else if (type == d_drift && region == r3) {
+  else if (type == d_drift && region == kRegionID3) {
 
     int templayers = 8;
 
@@ -475,7 +472,7 @@ int tree::consistent(treenode *tst, int level,enum EUppLow up_low, enum Etype ty
 }
 
 /*
-int tree::consistent(treenode *tst, int level,enum Etype type,enum ERegion region){
+int tree::consistent(treenode *tst, int level,enum Etype type,enum EQwRegionID region){
 	cerr << type << "," << region << "," << level << endl;
 
 	cerr << "This function is only a stub" << endl;
@@ -541,7 +538,7 @@ treenode * tree::treedup(treenode *todup){
 
 *//*-------------------------------------------------------------------------*/
 
-void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype type,enum ERegion region,enum Edir dir){
+void tree::marklin(treenode *Father,int level,enum EPackage package, enum Etype type,enum EQwRegionID region,EQwDirectionID dir){
   //###############
   // DECLARATIONS #
   //###############
@@ -565,7 +562,7 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
   //###########
   // REGION 2 #
   //###########
-  if (region==r2 && type == d_drift) {
+  if (region == kRegionID2 && type == d_drift) {
     tlayers = 4;///Four u,v, OR x wire planes an electron can cross
     i = (1<<tlayers);
     while (i--) {    //loop through all possibilities
@@ -653,7 +650,7 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
            through the tree-detectors whose slope is within the
            window set by the Qoptions parameter R2maxslope.             */
 
-        if (consistent( &son, level+1,up_low,type,region,dir)) {
+        if (consistent( &son, level+1,package,type,region,dir)) {
           /* the pattern is consistent, so now insert it into the
              treesearch database by:                                  */
 	  /*  1st: Create space for this new treenode                  */
@@ -692,7 +689,7 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
 	    cout << endl;
 	  }
           */
-	  marklin( sonptr, level+1,up_low,type,region,dir);
+	  marklin( sonptr, level+1,package,type,region,dir);
 
         } else {
 
@@ -715,7 +712,7 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
            needs to be updated so that it will be valid this level
            of bin division.                                         */
       }
-      else if( (sonptr->minlevel > level  && consistent( &son, level+1,up_low,type,region,dir) )
+      else if( (sonptr->minlevel > level  && consistent( &son, level+1,package,type,region,dir) )
 	          ||	sonptr->maxlevel < level) {
 
 	/*  1st: Update the levels of the found treenode to
@@ -737,7 +734,7 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
 	  }
           */
         npat++;
-      	marklin( sonptr, level+1,up_low,type,region,dir);
+      	marklin( sonptr, level+1,package,type,region,dir);
       }
 
 	/* Since one of the recursive call to marklin()
@@ -765,7 +762,7 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
   //###########
   // REGION 3 #
   //###########
-  else if (region==r3 && type == d_drift) {
+  else if (region == kRegionID3 && type == d_drift) {
     tlayers = 8;
     offs=1;
     maxs=0;
@@ -849,7 +846,7 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
 			cout << "bits : " << son.bits << endl;*/
 			insert_hitpattern = 1;
 			if( !sonptr&& 0 == (sonptr= existent( &son, hsh))){
-				if( consistent( &son, level+1,up_low,type,region,dir)) {
+				if( consistent( &son, level+1,package,type,region,dir)) {
 					//cout << "Adding treenode..." << endl;
 
 					sonptr = treedup( &son);
@@ -869,7 +866,7 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
 						cout << endl;
 					}
 					*/
-					marklin( sonptr, level+1,up_low,type,region,dir);
+					marklin( sonptr, level+1,package,type,region,dir);
 				}
 				else{/*
 					cout << "inconsistent" << endl;
@@ -884,7 +881,7 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
 					insert_hitpattern = 0;
 				}
 			}
-			else if( (sonptr->minlevel > level  && consistent( &son, level+1,up_low,type,region,dir) )||sonptr->maxlevel < level) {
+			else if( (sonptr->minlevel > level  && consistent( &son, level+1,package,type,region,dir) )||sonptr->maxlevel < level) {
 				sonptr->minlevel = (int)min(level,sonptr->minlevel);
 	      			sonptr->maxlevel = (int)max(level,sonptr->maxlevel);
 				/*for(int k=0;k<tlayers;k++){
@@ -896,7 +893,7 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
 				}
 				*/
 
-				marklin( sonptr, level+1,up_low,type,region,dir);
+				marklin( sonptr, level+1,package,type,region,dir);
 			}
 
 			if( insert_hitpattern  &&                          /* "insert pattern"
@@ -969,7 +966,7 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
 			//cout << "-----------" << endl;
 			//son.print();
 			//cout << "-----------" << endl;
-			if( consistent( &son, level+1,up_low,type,region,dir)) {
+			if( consistent( &son, level+1,package,type,region,dir)) {
 				//cout << "Adding treenode..." << endl;
 				sonptr = treedup( &son);
 				sonptr->son[0] = sonptr->son[1] =
@@ -978,16 +975,16 @@ void tree::marklin(treenode *Father,int level,enum EUppLow up_low, enum Etype ty
 	  			sonptr->minlevel = level;
 				sonptr->genlink = generic[hsh];
 			       	generic[hsh] = sonptr;
-				marklin( sonptr, level+1,up_low,type,region,dir);
+				marklin( sonptr, level+1,package,type,region,dir);
 			}
 			else
 				insert_hitpattern = 0;
 		}
-		else if( (sonptr->minlevel > level  && consistent( &son, level+1,up_low,type,region,dir) )
+		else if( (sonptr->minlevel > level  && consistent( &son, level+1,package,type,region,dir) )
 	      ||	sonptr->maxlevel < level) {
 			sonptr->minlevel = (int)min(level,sonptr->minlevel);
       			sonptr->maxlevel = (int)max(level,sonptr->maxlevel);
-			marklin( sonptr, level+1,up_low,type,region,dir);
+			marklin( sonptr, level+1,package,type,region,dir);
 		}
 		//cout << "insert_hitpattern = " << insert_hitpattern << endl;
 
@@ -1161,7 +1158,7 @@ treeregion * tree::readtree(char *filename, int levels, int tlayers, double rwid
     to create a different level of pattern resolution, this function will
     automatically create the new databases.
  */
-treeregion * tree::inittree(char *filename, int levels, int tlayer, double width,enum EUppLow up_low, enum Etype type,enum ERegion region,enum Edir dir){
+treeregion * tree::inittree(char *filename, int levels, int tlayer, double width,enum EPackage package, enum Etype type,enum EQwRegionID region,EQwDirectionID dir){
 // TODO: This routine assumes that the directory 'trees' exists and doesn't create it itself. (wdconinc)
 	treeregion *trr;
 	treenode  *back;
@@ -1173,7 +1170,7 @@ treeregion * tree::inittree(char *filename, int levels, int tlayer, double width
 
 // TODO: I disabled the next part to get past a segfault (wdconinc, 08-Dec-2008)
 // cout << "trr->searchable = " << (trr? trr->searchable:-1) << endl;
-//	if (region == r3 && (dir == x_dir || dir == y_dir)) {
+//	if (region == kRegionID3 && (dir == kDirectionX || dir == kDirectionY)) {
 //		/// region 3 does not have an x or y direction,
 //		/// so tag them as unsearchable for the treedo function.
 //		trr->searchable = 0;
@@ -1184,7 +1181,7 @@ treeregion * tree::inittree(char *filename, int levels, int tlayer, double width
 	int dontread = 0;
 	if (0 == (trr = readtree(filename,levels,tlayer, width, dontread)) ) {
 
-		//cerr << up_low << " " << type << " " << region << endl;
+		//cerr << package << " " << type << " " << region << endl;
 		//cerr << "pattern generation forced" << endl;
 		/// If reading in doesn't work, clean up any partial trees
 		/// that might have been read in already
@@ -1196,7 +1193,7 @@ treeregion * tree::inittree(char *filename, int levels, int tlayer, double width
 		fflush(stdout);
 
 		/// Generate a new tree database
-		back = _inittree( tlayer,up_low,type,region,dir);
+		back = _inittree( tlayer,package,type,region,dir);
 
 		if( !back ) {
 			cerr << "QTR: Tree couldn't be built.\n";
@@ -1230,10 +1227,10 @@ treeregion * tree::inittree(char *filename, int levels, int tlayer, double width
     the iterative pattern generator.  the root treenode is created
     as the simplest pattern possible, and passed to marklin.
  */
-treenode * tree::_inittree(int tlayer,enum EUppLow up_low, enum Etype type,enum ERegion region, enum Edir dir){
+treenode * tree::_inittree(int tlayer,enum EPackage package, enum Etype type,enum EQwRegionID region, EQwDirectionID dir){
 	treenode *ret = treedup(&father);/// generate a copy of the father to start off this treesearch database
 	memset(generic,0,sizeof(generic)); /// clear genlink hash table
-	marklin(ret, 0,up_low,type,region,dir);///call the recursive tree generator
+	marklin(ret, 0,package,type,region,dir);///call the recursive tree generator
 	ret->genlink = generic[0];/// finally, add the father to the genlink hash table
 	generic[0] = ret;
 	cerr << "npat : " << npat<< " " << region << " " << dir << endl;

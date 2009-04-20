@@ -20,8 +20,8 @@ class treesort {
     double doubletrack;
     int good;
 
-    int rcTreeConnSort( TreeLine *head, enum ERegion region/*,
-		enum EUppLow up_low, enum Etype type,
+    int rcTreeConnSort( TreeLine *head, EQwRegionID region/*,
+		enum EUppLow package, enum Etype type,
 		enum Edir dir,enum Eorientation orient*/);
     double chiweight( TreeLine *tl );
     int connectiv( char *ca, int *array, int *isvoid, char size, int idx );
@@ -37,7 +37,7 @@ class treesort {
 
 
     int rcPartConnSort( PartTrack *head/*,
-		enum EUppLow up_low, enum ERegion region, enum Etype type,
+		enum EUppLow package, EQwRegionID region, enum Etype type,
 		enum Edir dir,enum Eorientation orient*/);
     double ptchiweight( PartTrack *pt );
     int rcPTCommonWires( PartTrack *track1, PartTrack *track2 );

@@ -16,6 +16,7 @@
 #include <string>
 using std::string;
 
+#include "QwTypes.h"
 #include "enum.h"
 
 /// First declare the Hit and Det are objects, because they contain
@@ -45,10 +46,10 @@ class Det {
     double TrackResolution;	/*!< tracking resolution */
     double SlopeMatching;	/*!< front/back track segment slope matching */
 
-    enum EUppLow upplow;
-    enum ERegion region;
+    enum EPackage package;
+    EQwRegionID region;
     enum Etype type;
-    enum Edir dir;
+    EQwDirectionID dir;
 
     double center[2];		/*!< x and y position of detector center */
     double width[3];		/*!< width in x and y */

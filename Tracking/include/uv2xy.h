@@ -6,6 +6,7 @@
 #include "tree.h"
 
 // Qweak headers
+#include "QwTypes.h"
 #include "Hit.h"
 #include "Det.h"
 #include "enum.h"
@@ -34,10 +35,10 @@ class Uv2xy {
     Uv2xy();
     ~Uv2xy();
 
-    double uv2x(double u, double v, enum ERegion region);
-    double uv2y(double u, double v, enum ERegion region);
-    double xy2u(double x, double y, enum ERegion region);
-    double xy2v(double x, double y, enum ERegion region);
+    double uv2x(double u, double v, EQwRegionID region);
+    double uv2y(double u, double v, EQwRegionID region);
+    double xy2u(double x, double y, EQwRegionID region);
+    double xy2v(double x, double y, EQwRegionID region);
 
   private:
 

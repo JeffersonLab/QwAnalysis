@@ -30,8 +30,8 @@ class Qevent{
     int Open(const char *eventfile);
 
 
-    Int_t ProcessHitContainer(QwHitContainer &);//this will turn HitContainer list into a rcDETRegion link-list 
-    void UpdateHitVector(int region,int upplow, int detectId, int dir, int wire, double drift_dist, double res, double Zpos );//update QwHitContainer  with single hit
+    Int_t ProcessHitContainer(QwHitContainer &);//this will turn HitContainer list into a rcDETRegion link-list
+    void UpdateHitVector(int region,int package, int detectId, int dir, int wire, double drift_dist, double res, double Zpos );//update QwHitContainer  with single hit
     void GetHitList(QwHitContainer & HitList){//return the QwHitContainer updated with hits form the processed event
 	HitList.Append(fASCIIHits);
     };
@@ -48,7 +48,7 @@ class Qevent{
     int thisevent;      // Stores the current event number
 
 
-    QwHit * currentHit; 
+    QwHit * currentHit;
     std::vector< QwHit > fASCIIHits;
 
 };

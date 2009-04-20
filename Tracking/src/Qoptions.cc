@@ -15,13 +15,11 @@
 
 using namespace std;
 
-extern Det* rcDETRegion[2][3][4];
+extern Det* rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 extern Det  rcDET[NDetMax];
 extern Options opt;
-extern EUppLow operator++(enum EUppLow &rs, int );
-extern ERegion operator++(enum ERegion &rs, int );
+extern EPackage operator++(enum EPackage &rs, int );
 extern Etype operator++(enum Etype &rs, int );
-extern Edir operator++(enum Edir &rs, int );
 
 /*____________________________________________________________
 Qoptions
@@ -49,10 +47,10 @@ void Qoptions::Get(const char *optname){
 
 	string word;
 
-	EUppLow upplow;
-	ERegion region;
+	EPackage package;
+	EQwRegionID region;
 	Etype type;
-	//Edir dir;
+	//EQwDirectionID dir;
 	opt.MaxLevels = 0;
 	int maxlevels;
 
@@ -82,21 +80,21 @@ void Qoptions::Get(const char *optname){
 
 			switch (word[0]) { // upper or lower detector
 				case 'u':
-					upplow = w_upper; break;
+					package = w_upper; break;
 				case 'l':
-					upplow = w_lower; break;
+					package = w_lower; break;
 				default :
-					upplow = w_nowhere; break;
+					package = w_nowhere; break;
 			}
 
 			optstream >> word;
 			switch (word[0]){ // detector region
 				case '1':
-					region = r1; break;
+					region = kRegionID1; break;
 				case '2':
-					region = r2; break;
+					region = kRegionID2; break;
 				case '3':
-					region = r3; break;
+					region = kRegionID3; break;
 			}
 
 			optstream >> word;
@@ -112,7 +110,7 @@ void Qoptions::Get(const char *optname){
 			}
 
 			optstream >> maxlevels;
-  			opt.levels[upplow][region-1][type] = maxlevels;
+  			opt.levels[package][region-1][type] = maxlevels;
 			if (maxlevels > opt.MaxLevels) opt.MaxLevels = maxlevels;
 
 		} else if (word[0] == 'R') {

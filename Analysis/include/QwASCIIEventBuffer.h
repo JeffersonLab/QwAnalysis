@@ -8,6 +8,7 @@
 #ifndef __QWEVENTASCIIBUFFER__
 #define __QWEVENTASCIIBUFFER__
 
+#include "QwTypes.h"
 #include "QwEventBuffer.h"
 #include "QwParameterFile.h"
 
@@ -28,7 +29,7 @@
 class QwASCIIEventBuffer : public QwEventBuffer
 {
 
-  
+
 
  public:
   QwASCIIEventBuffer(){};
@@ -39,43 +40,43 @@ class QwASCIIEventBuffer : public QwEventBuffer
   Int_t OpenDataFile(const TString filename,const TString rw);
 
   Int_t LoadChannelMap(const char *geomname);
-  
+
   Int_t GetEvent();
   Int_t GetEventNumber(){return fEvtNumber;}
 
   Int_t ProcessHitContainer(QwHitContainer &);
 
-  
+
   void  GetHitList(QwHitContainer & grandHitContainer){
     grandHitContainer.Append(fASCIIHits);
   }
 
  public:
 
-  
 
-  enum EUppLow up_low;
-  enum ERegion region;
-  enum Edir dir;
+
+  enum EPackage package;
+  EQwRegionID region;
+  EQwDirectionID dir;
   enum Etype type;
 
-  
- 
-  
+
+
+
   QwParameterFile *eventf ;
-  Int_t CurrentEvent; 
-  
+  Int_t CurrentEvent;
+
   int DetectId;
 
-  
- 
 
-  QwHit * currentHit; 
+
+
+  QwHit * currentHit;
   std::vector< QwHit > fASCIIHits;
-  
 
 
-  
+
+
 };
 
 #endif

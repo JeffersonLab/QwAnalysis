@@ -63,7 +63,7 @@ int treesort::connectarray( char *ca, int *array, int *isvoid, char size, int id
 {
   	int i;
   	int j;
-  
+
   	memset( ca, 0, size);
   	ca[idx] = 1;
   	for( i = 0; i < size; i++ ) {
@@ -95,7 +95,7 @@ void treesort::bestunconnected( char *ca, int *array, int *isvoid, double *chia,
 
   bestdchi = (bestchi)*(2+doubletrack);// this will allow a double track, with the 2nd best chi
   //to be up to (doubletrack)% larger than the best chi.
-  
+
   for( i = idx; i < size; i++ ) { /* is there a double track ? */
     if( !ca[i] )
       continue;
@@ -117,7 +117,7 @@ void treesort::bestunconnected( char *ca, int *array, int *isvoid, double *chia,
       continue;
     if( i == besti || i == bestj || besti == -1) {
       isvoid[i] = good;//good
-    } 
+    }
     else if( isvoid[i] == false ) {
       if( (besti >= 0 && array[i*size+besti] ) ||
 	  (bestj >= 0 && array[i*size+bestj])){
@@ -131,7 +131,7 @@ int treesort::globalconnectiv( char *ca, int *array, int *isvoid, int size, int 
 {
   	int i, max = 0, c;
   	bool old;
-  
+
   	old = isvoid[idx];
   	isvoid[idx] = false;
 
@@ -152,9 +152,9 @@ int treesort::bestconnected( char *ca, int *array, int *isvoid, double *chia,
   int i, besti = -1;
   double bestchi = 1e8, oworst = 0.0;
   double chi;
-  
+
   for(i = idx; i<size; i++ ) {
-    if( !ca[i] )      
+    if( !ca[i] )
       continue;
     chi = chia[i];
     if( isvoid[i] != true) {
@@ -229,7 +229,7 @@ int treesort::rcCommonWires_r3(TreeLine *line1,TreeLine *line2 ){
 /*
   for( ;; ) {
     // A
-    if( fw & 1 ) {//Set i1 equal to the index of the next hit used in line1 
+    if( fw & 1 ) {//Set i1 equal to the index of the next hit used in line1
       i1++;
       for( ; i1 < TLAYERS && hits1[i1]; i1++)
 	if( hits1[i1]->used ) {
@@ -238,7 +238,7 @@ int treesort::rcCommonWires_r3(TreeLine *line1,TreeLine *line2 ){
 	}
     }
     // B
-    if( fw & 2 ) {//Set i2 equal to the index of the next hit used in line2 
+    if( fw & 2 ) {//Set i2 equal to the index of the next hit used in line2
       i2++;
       for( ; i2 < TLAYERS && hits2[i2]; i2++)
 	if( hits2[i2]->used ) {
@@ -249,16 +249,16 @@ int treesort::rcCommonWires_r3(TreeLine *line1,TreeLine *line2 ){
     // ---
     if( i1 == TLAYERS || ! hits1[i1] ||
 	i2 == TLAYERS || ! hits2[i2] )
-      break;//break if we reach the end of the hits in either line 
+      break;//break if we reach the end of the hits in either line
     //-----------------------------------------------------------
     //The following lines separate hits in different detectors
     did1 = hits1[i1]->detec->ID;//this line was altered
     did2 = hits2[i2]->detec->ID;//this line was altered
-    
+
     cout << "dids = (" << did1 << "," << did2 << ")" << endl;
     if( did1 < did2 )
       fw = 1;// do only A in the next iteration
-    else if( did1 > did2 ) 
+    else if( did1 > did2 )
       fw = 2;// do only B in the next iteration
     else {
       if( hits1[i1]->wire == hits2[i2]->wire )
@@ -327,7 +327,7 @@ int treesort::rcCommonWires(TreeLine *line1,TreeLine *line2 ){
 
     if( did1 < did2 )
       fw = 1;
-    else if( did1 > did2 ) 
+    else if( did1 > did2 )
       fw = 2;
     else {
       if( hits1[i1]->wire == hits2[i2]->wire )
@@ -347,8 +347,8 @@ int treesort::rcCommonWires(TreeLine *line1,TreeLine *line2 ){
   return (10000 * common / total + 50 ) / 100;
 }
 //________________________________________________________________________
-int treesort::rcTreeConnSort( TreeLine *head, enum ERegion region/*,
-		enum EUppLow up_low, enum Etype type,
+int treesort::rcTreeConnSort( TreeLine *head, EQwRegionID region/*,
+		enum EPackage package, enum Etype type,
 		enum Edir dir,enum Eorientation orient*/){
 
 //################
@@ -369,11 +369,11 @@ int treesort::rcTreeConnSort( TreeLine *head, enum ERegion region/*,
 /* ----------------------------------------------------------------------
  * find the number of used treelines
  * ---------------------------------------------------------------------- */
-  
+
   do {				/* filter out high chi2 if needed */
     nmaxch = 0.0;
     iteration++;
-    
+
     nminch = maxch;
     for( idx = 0, walk = head; walk; walk = walk->next ) {
       if( iteration > 100 ) {	/* skip the event */
@@ -403,7 +403,7 @@ cerr << "voided in treesort " << maxch << ',' << chi << endl;
 
   if( num_tl )
     fprintf(stderr,"hrc: Skipping event because of 0 good treelines\n");
-  
+
   if( ! num )
     return 0;
 
@@ -428,16 +428,16 @@ cerr << "voided in treesort " << maxch << ',' << chi << endl;
       idx++;
     }
   }
-  
+
 /* ----------------------------------------------------------------------
 * build the graph array
 * ---------------------------------------------------------------------- */
-  if(region == r3){
+  if(region == kRegionID3){
     for( i = 0; i < num; i++ ) {
       array[i*num+i] = 0;
       for( j = i+1; j < num; j++ ) {
 	common = rcCommonWires_r3( tlarr[i], tlarr[j] );
-        array[i*num+j] = array[j*num+i] = 
+        array[i*num+j] = array[j*num+i] =
           (common > 25);// this is true if
 // one of the two lines shares at least 1/4 of its wires with the other line
       }
@@ -447,7 +447,7 @@ cerr << "voided in treesort " << maxch << ',' << chi << endl;
     for( i = 0; i < num; i++ ) {
       array[i*num+i] = 0;
       for( j = i+1; j < num; j++ ) {
-        array[i*num+j] = array[j*num+i] = 
+        array[i*num+j] = array[j*num+i] =
           (rcCommonWires( tlarr[i], tlarr[j] ) > 25);// 25?!?
       }
     }
@@ -462,14 +462,14 @@ cerr << "voided in treesort " << maxch << ',' << chi << endl;
       if( bestconn > 0 ) {
 	if( connectarray(connarr, array, isvoid, num, i) ){
 	  continue;
-	  }	
+	  }
 	bestunconnected( connarr, array, isvoid, chia, num, i);
       } else{
 	isvoid[i] = good;//good
       }
     } else
       i++;
-  } 
+  }
   for( i = 0; i < num; i++ ) {
     if( isvoid[i] == true ) {
       if( connectiv( 0, array, isvoid, num, i ) ) {
@@ -490,7 +490,7 @@ cerr << "voided in treesort " << maxch << ',' << chi << endl;
 }
 //________________________________________________________________________
 int treesort::rcPartConnSort( PartTrack *head/*,
-		enum EUppLow up_low, enum ERegion region, enum Etype type,
+		enum EPackage package, EQwRegionID region, enum Etype type,
 		enum Edir dir,enum Eorientation orient*/){
   	char     *connarr;
 	int *array;
@@ -501,7 +501,7 @@ int treesort::rcPartConnSort( PartTrack *head/*,
 	/* ----------------------------------------------------------------------
    	* find the number of used PartTracks
    	* ---------------------------------------------------------------------- */
-	
+
 	//DBG = DEBUG & D_GRAPHP;
 
   	do {				/* filter out high chi2 if needed */
@@ -528,7 +528,7 @@ int treesort::rcPartConnSort( PartTrack *head/*,
 
 
   	num = idx;
-  
+
   	if( ! num )
     		return 0;
 
@@ -566,12 +566,12 @@ int treesort::rcPartConnSort( PartTrack *head/*,
   	/* ----------------------------------------------------------------------
    	* build the graph array
    	* ---------------------------------------------------------------------- */
-  
+
   	for( i = 0; i < num; i++ ) {
     		array[i*num+i] = 0;
 
     		for( j = i+1; j < num; j++ ) {
-      			array[i*num+j] = array[j*num+i] = 
+      			array[i*num+j] = array[j*num+i] =
         		(rcPTCommonWires( ptarr[i], ptarr[j] ) > 25);
     		}
   	}
@@ -589,11 +589,11 @@ int treesort::rcPartConnSort( PartTrack *head/*,
 	       			connectiv( 0, array, isvoid, num, i));
     		}
   	}
-*/ 
+*/
   	/* --------------------------------------------------------------------
    	* check connectivity
    	* -------------------------------------------------------------------- */
-  
+
   	for( i = 0; i < num; ) {
     		if( isvoid[i] == false ) {
       			bestconn =  connectiv( 0, array, isvoid, num, i);
@@ -612,7 +612,7 @@ int treesort::rcPartConnSort( PartTrack *head/*,
 				*/
 				bestunconnected( connarr, array, isvoid, chia, num, i);
 				/*
-				if( DE && (DEBUG & D_GRAPHP)) 
+				if( DE && (DEBUG & D_GRAPHP))
 	  				puts("");
 				*/
       			} else
@@ -642,7 +642,7 @@ int treesort::rcPartConnSort( PartTrack *head/*,
     		} else
       			ptarr[i]->isvoid = true;
   	}
-  
+
   	/* do not free Qalloc'ed things!!! */
   	return 0;
 
