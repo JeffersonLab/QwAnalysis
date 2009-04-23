@@ -168,7 +168,7 @@ int main (int argc, char* argv[])
   //This routines initialize QwHit and QwHitContainer related classes
   QwASCIIEventBuffer asciibuffer;
   QwHitContainer ASCIIgrandHitList;
-  asciibuffer.OpenDataFile((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/1000.r2.events").c_str(),"R");
+  asciibuffer.OpenDataFile((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.event").c_str(),"R");
   ASCII_textfile = fopen(FILE_NAME, "wt");//for Debugging-QwHitContainer list save to this file
 
 	int iEvent = 1;  // event number of this event
@@ -252,7 +252,7 @@ int main (int argc, char* argv[])
 	  ASCIIgrandHitList.sort(); //sort the array
 	  SaveHits(ASCIIgrandHitList);
 	  asciibuffer.ProcessHitContainer(ASCIIgrandHitList);//now we decode our QwHitContainer list and pice together with the rcTreeRegion multi dimension array.
-	  //Treedo.rcTreeDo(iEvent); //Giving some trouble when 1000.r2.events events file is used.
+	  //Treedo.rcTreeDo(ASCIIgrandHitList); //Giving some trouble when 1000.r2.events events file is used.
 
 	  ASCIIgrandHitList.clear();
 
