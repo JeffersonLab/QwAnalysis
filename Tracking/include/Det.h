@@ -38,6 +38,8 @@ class Det {
   public:
 
     string sName;		/*!< Name of the detector */
+
+    //Why we need two kinds of type parameters? Can we only use Etype type?
     string sType;		/*!< Type of the detector */
     double Zpos;		/*!< Z position */
     double Rot;			/*!< rotation angle */

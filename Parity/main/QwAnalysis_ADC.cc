@@ -5,11 +5,32 @@
 #include "QwAnalysis_ADC.h"
 #include "TApplication.h"
 
+
 #include <boost/shared_ptr.hpp>
 
+
+//-------------------------------------------------------------------------
+//include here to prevent  compiling error!!!
+#include "Det.h"
+#include "Qset.h"
+#include "Qevent.h"
+#include "Qoptions.h"
+#include "options.h"
+#include "treeregion.h"
+#include "treedo.h"
+#include "tree.h"
+
+
+Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
+Det rcDET[1100];
+TreeLine  *trelin;
+int trelinanz;
+treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumPlanes][kNumDirections];
+Options opt;
+
+//--------------------------------------------------------------------------
+
 Bool_t kInQwBatchMode = kFALSE;
-
-
 
 int main(Int_t argc,Char_t* argv[])
 {

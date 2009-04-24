@@ -52,6 +52,13 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
   
   Int_t LoadChannelMap(TString mapfile );
+  //LoadQweakGeometry will load QwDetectorInfo vector from a map file
+  //Currently this method is specific to each region
+  virtual Int_t LoadQweakGeometry(TString mapfile )=0;
+  Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info){
+    detector_info=fDetectorInfo;
+    return 1;
+  };
   virtual Int_t LoadInputParameters(TString mapfile){return 0;};
   void  ClearEventData();
 
@@ -59,10 +66,7 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
   Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
-  void  ProcessEvent(){
-    if (! HasDataLoaded()) return;
-    SubtractReferenceTimes();
-  };
+  virtual void  ProcessEvent()=0;//has separate meanings in VDC and HDC
   
   
 
@@ -186,7 +190,8 @@ std::vector< std::vector<Int_t> > fTDC_Index;  //  TDC index, indexed by bank_in
   std::vector< std::vector< QwDetectorID > > fTDCPtrs; // Indexed by TDC_index and Channel; gives the package, plane and wire assignment.
 
 
-  std::vector< std::vector< QwDetectorInfo > > fWireData; // Indexed by plane, and wire number; eventually should include package index 
+  std::vector< std::vector< QwDetectorInfo > > fWireData; 
+  std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
     
   std::vector< std::vector< UInt_t > > fDirectionData; //Indexed by pckg and plane each element represent the wire direction ( a value from 0 to 6)- Rakitha(10/23/2008)
 

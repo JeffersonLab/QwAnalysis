@@ -4,6 +4,8 @@
 
 #include "VQwSubsystem.h"
 #include "QwHitContainer.h"
+#include "QwDetectorInfo.h"
+
 
 class VQwSubsystemTracking: public VQwSubsystem{
   /******************************************************************
@@ -20,6 +22,8 @@ class VQwSubsystemTracking: public VQwSubsystem{
   virtual ~VQwSubsystemTracking(){};
  
   virtual void  GetHitList(QwHitContainer & grandHitContainer)=0;
+  virtual Int_t LoadQweakGeometry(TString mapfile)=0;//will load the detector geometry file. This method is called individually from each subsystem
+  virtual Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detect_info)=0;
  
  private:
   VQwSubsystemTracking(){};  //  Private constructor.

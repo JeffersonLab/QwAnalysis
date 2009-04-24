@@ -48,6 +48,8 @@ class QwDriftChamberHDC: public QwDriftChamber {
 
  Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
 
+ Int_t LoadQweakGeometry(TString mapfile );
+ void  ProcessEvent();
 
  protected:
  void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);

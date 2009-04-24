@@ -1,5 +1,5 @@
 /**********************************************************\
-* File: QwGasElectronMultiplier.h                                   *
+* File: QwGasElectronMultiplier.h                          *
 *                                                          *
 * Author: P. M. King                                       *
 * Time-stamp: <2008-07-08 15:40>                           *
@@ -41,6 +41,8 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking{
   /*  Member functions derived from VQwSubsystemTracking. */
   Int_t LoadChannelMap(TString mapfile ){};
   Int_t LoadInputParameters(TString mapfile){};
+  Int_t LoadQweakGeometry(TString mapfile){};
+  Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info){};
   void  ClearEventData(){};
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words){return 0;};

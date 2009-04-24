@@ -36,8 +36,9 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile){
   DIRMODE=0;
   
 
-  fDirectionData.resize(2);//currently we have 1  package - Rakitha (10/23/2008)
-  fDirectionData.at(1).resize(13); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
+  fDirectionData.resize(2);//currently we have 2  package - Rakitha (10/23/2008)
+  fDirectionData.at(0).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
+  fDirectionData.at(1).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
 
@@ -73,7 +74,7 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile){
       //this will decode the wire plane directions - Rakitha
       plane   = (atol(mapstr.GetNextToken(", ").c_str()));
       direction    = (atol(mapstr.GetNextToken(", ").c_str()));
-      fDirectionData.at(package).at(plane)=direction;
+      fDirectionData.at(package-1).at(plane-1)=direction;
     }
 
   }
@@ -83,14 +84,15 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile){
   
   AddChannelDefinition(plane, wire);
  
-  for (size_t i=0; i<fDirectionData.at(1).size(); i++){
-    std::cout<<"Direction data Plane "<<i<<" "<<fDirectionData.at(1).at(i)<<std::endl;
-    } 
+  /*
+  for (size_t i=0; i<fDirectionData.at(0).size(); i++){
+  std::cout<<"Direction data Plane "<<i+1<<" "<<fDirectionData.at(0).at(i)<<std::endl;
+  } 
+  */
   //
   ReportConfiguration();
   return OK;
 };
-
 
 
 void  QwDriftChamber::CalculateDriftDistance()
@@ -103,12 +105,7 @@ void  QwDriftChamber::CalculateDriftDistance()
   
 };
 
-/*
-Double_t  QwDriftChamber::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector){
-  return 0;
-}
 
-*/
 
 
 void  QwDriftChamber::ClearEventData()
@@ -164,6 +161,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buf
       } else {
 	// This is a F1 TDC data word
 	try {
+	  //std::cout<<"At QwDriftChamber::ProcessEvBuffer"<<std::endl;
 	  FillRawTDCWord(index,GetF1SlotNumber(),GetF1ChannelNumber(),
 			 GetF1Data());
 	}
@@ -282,12 +280,17 @@ void  QwDriftChamber::FillHistograms()
 		<< this_detid.fPlane << ", fElement==" << this_detid.fElement << std::endl;
       continue;
     }
+
     this_det   = &(fWireData.at(this_detid.fPlane).at(this_detid.fElement));
 
+    
     if (hit1->IsFirstDetectorHit()){
       //  If this is the first hit for this detector, then let's plot the
-      //  total number of hits this wire had.
+      //  total number of hits this wire had. 
+
       HitsWire[this_detid.fPlane]->Fill(this_detid.fElement,this_det->GetNumHits());
+
+
       //  Also increment the total number of events in whichthis wire was hit.
       TotHits[this_detid.fPlane]->Fill(this_detid.fElement,1);
       //  Increment the number of wires hit in this plane

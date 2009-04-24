@@ -16,7 +16,6 @@
 
 #include "globals.h"
 #include "Hit.h"
-//#include "QwHitContainer.h"
 #include "QwASCIIEventBuffer.h"
 
 

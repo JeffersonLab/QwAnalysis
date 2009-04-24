@@ -5,15 +5,27 @@
 * Time-stamp: <2009-02-22 15:40>                           *
 \**********************************************************/
 
+/*This class will act as the interface between the QTR and Track decoding
+software. Mainly InitrcDETRegion, GetrcDETRegion will be called in the
+QwAnalysis main routine to generate and update rcDET & rcDETRegion after 
+decoding CODA events in to QwHit & QwHitContainer.
+The main data stuctures in the Track decoding are QwHit, QwDetectorInfo and QwHitContainer.
+While Hit, Det and rcDET & rcDETRegion are for the QTR.
+The QwASCIIEventBuffer will update rcDET & rcDETRegion from QwDetectorInfo & QwHitContainer data
+structures.
+Rakitha (04/24/2009)
+*/
+
 #include "QwASCIIEventBuffer.h"
 #include<string>
 
+//using namespace std;
 
 extern Det rcDET[NDetMax];
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 
 
-using namespace std;
+
 
 #define PI 3.141592653589793
 
@@ -28,6 +40,236 @@ Int_t QwASCIIEventBuffer::LoadChannelMap(const char *geomname){
 };
 
 
+
+Int_t QwASCIIEventBuffer::InitrcDETRegion( std::vector< std::vector< QwDetectorInfo > > & tmp_detector_info){
+  
+  if (DEBUG1) std::cout<<"Starting InitrcDETRegion "<<std::endl; 
+  fDetectorInfo=tmp_detector_info;
+  Int_t DetectorCounter=0;
+
+  for(int j=0;j<fDetectorInfo.size();j++){
+    for(int i=0;i<fDetectorInfo.at(j).size();i++){
+      if (DEBUG1) std::cout<<" Region "<<fDetectorInfo.at(j).at(i).Region<<" ID "<<fDetectorInfo.at(j).at(i).DetectorId<<" Detector counter "<<DetectorCounter<<" Package "<<fDetectorInfo.at(j).at(i).package<<" Plane "<<i+1<<" Dir  "<<fDetectorInfo.at(j).at(i).PlaneDir<<std::endl;
+      AddDetector(fDetectorInfo.at(j).at(i),DetectorCounter);
+      DetectorCounter++;
+    }
+  }
+
+  //now rcDET is ready. 
+  //now linking detectors
+
+  	
+	
+  //Same algorithm used in Qset.cc
+	Det *rd, *rnd, *rwd;  // descriptive variable names
+
+	/// For all detectors in the experiment
+	for (int i = 0; i < DetectorCounter; i++) {
+	  if (DEBUG1) std::cout<< " : "<<" ID "<<rcDET[i].ID<<" ";
+		rd = &rcDET[i]; // get a pointer to the detector
+
+		/// and if a search for similar detectors has not been done yet
+		if ( !rd->samesearched ) {
+			package = rd->package;
+			dir    = rd->dir;
+			region = rd->region;
+			type   = rd->type;
+			
+			if ( !rcDETRegion[package][region-1][dir] )
+				rcDETRegion[package][region-1][dir] = rd;
+
+			/// Loop over all remaining detectors
+			// rd always stays the original detector rcDET[i]
+			// rnd is the currently tested detector rcDET[l]
+			// rwd is the current end of the linked-list
+			rwd = rd;
+			for (int l = i+1; l < DetectorCounter; l++ ) {
+				rnd = &rcDET[l];
+				if( rnd->package == package
+				 && rnd->type   == type
+				 && rnd->dir    == dir
+				 && rnd->region == region
+				 && !rnd->samesearched ) {
+					if (DEBUG1) std::cout << " "<<" ID "<<rcDET[l].ID<<" ";
+					rnd->samesearched = 1;
+					rwd = (rwd->nextsame = rnd);
+				}
+			}
+			rd->samesearched = 1;
+		}
+		if (DEBUG1) std::cout << std::endl;
+	}
+
+	
+	
+	if (DEBUG1) std::cout<<"Ending InitrcDETRegion "<<"Total detectors "<<DetectorCounter<<std::endl; 
+   
+  return 1;
+
+};
+
+  void  QwASCIIEventBuffer::GetrcDETRegion(QwHitContainer &HitList, Int_t event_no){
+  // List of hits
+  int nhits = 0;
+  Hit *newhit,*hitlist;
+
+  // Detector region/type/direction identifiers
+  enum EPackage package2;
+  enum EQwRegionID region2;
+  enum EQwDirectionID    dir2;
+  
+  Int_t detectorId1,detectorId2;
+
+  // Detector ID
+  int detecID = 0;
+  int firstdetec = 1;
+  Det *rd = NULL;
+
+  //  Do something to clear rd->hitbydet for all
+  //  detectors.
+
+
+  QwDetectorID local_id;  
+  //  Loop through the QwHitContainer
+  for (QwHitContainer::iterator qwhit = HitList.begin();
+       qwhit != HitList.end(); qwhit++){
+    local_id = qwhit->GetDetectorID();
+
+    //I use this to convert from one set of enum from QwTypes.h to the other set from enum.h
+    if (local_id.fPackage == kUP)
+      package = w_upper;//(EPackage) local_id.fPackage;
+    else if (local_id.fPackage == kDOWN)
+      package = w_lower;
+    else
+      package = w_nowhere;
+    
+    region = (EQwRegionID) local_id.fRegion;
+    dir    = (EQwDirectionID) local_id.fDirection;    
+    
+    detectorId1=fDetectorInfo.at(local_id.fPackage-1).at(local_id.fPlane-1).DetectorId;
+    
+
+    // when this is the first detector of the event
+    if (firstdetec) {
+      hitlist = NULL;
+      newhit = NULL;
+      //if (DEBUG1) std::cout<<"First Detector "<<std::endl;
+      firstdetec = 0;
+      package2 = package;
+      region2 = region;      
+      detectorId2=detectorId1;
+      dir2 = dir;
+      rd = rcDETRegion[package][region-1][dir];
+      while (rd->ID != detectorId1){
+	rd = rd->nextsame;
+      }
+      //if (DEBUG1) std::cout<<"Detector ID " << rd->ID <<std::endl;
+    } else if (package2 == package &&
+	       region2 == region &&
+	       detectorId2==detectorId1   &&
+	       dir2 == dir) {
+      //  Same plane!  Do nothing!
+    } else {
+      // this is not the first detector of the file
+      hitlist = NULL;
+      newhit = NULL;
+      // compare to previous hit
+      if (package2 == package &&
+	  region2 == region &&
+	  detectorId2!=detectorId1   &&
+	  dir2 == dir) {
+	// like-pitched detector plane
+	rd = rcDETRegion[package][region-1][dir];
+	while (rd->ID != detectorId1){
+	  rd = rd->nextsame;
+	}
+	detectorId2=detectorId1;
+	//if (DEBUG1) std::cout<<"Detector ID " << rd->ID <<std::endl;
+      } else {
+	// different detector plane
+	rd = rcDETRegion[package][region-1][dir];
+	while (rd->ID != detectorId1){
+	  rd = rd->nextsame;
+	}
+	package2 = package;
+	region2 = region;	
+	detectorId2=detectorId1;
+	dir2    = dir;
+	//if (DEBUG1) std::cout<<"Detector ID " << rd->ID <<std::endl;
+      }
+    }
+
+
+
+    newhit = (Hit*) malloc (sizeof(Hit));
+    //	  // set event number
+    newhit->ID = event_no; //set the current event number 
+    // Wire number
+    newhit->wire = local_id.fElement;
+    //	  // Z position of wire plane (first wire for region 3)
+    newhit->Zpos = qwhit->GetZPos();
+    // Distance of hit from wire
+    newhit->rPos1 = qwhit->GetDriftDistance();
+    //	  // Placeholder for future code
+    newhit->rPos2 = 0;
+    // Get the spatial resolution for this hit
+    newhit->Resolution = qwhit->GetSpatialResolution();
+    // the hit's pointer back to the detector plane
+    newhit->detec = rd;
+
+    // Chain the hits
+    newhit->next = hitlist;
+    hitlist = newhit;
+	  
+    // Chain the hits in each detector
+    newhit->nextdet = rd->hitbydet;
+    rd->hitbydet = newhit;
+  }  
+
+};
+
+void QwASCIIEventBuffer::AddDetector(QwDetectorInfo qwDetector, Int_t i){
+  //if (DEBUG1) std::cout<<" Region "<<qwDetector.Region<<" ID "<<qwDetector.DetectorId<<" Detector counter "<<i<<" Package "<<qwDetector.package<<std::endl;
+
+  if (qwDetector.Region ==2)
+    rcDET[i].sName="HDC";
+  else if (qwDetector.Region ==3)
+    rcDET[i].sName="VDC";
+  rcDET[i].sType=qwDetector.dType;
+  rcDET[i].Zpos=qwDetector.Zpos;
+  rcDET[i].Rot=qwDetector.Detector_Rot;
+  rcDET[i].rRotCos = cos(rcDET[i].Rot*PI/180);
+  rcDET[i].rRotSin = sin(rcDET[i].Rot*PI/180);
+  rcDET[i].resolution=qwDetector.Spacial_Res;
+  rcDET[i].TrackResolution=qwDetector.Track_Res;
+  rcDET[i].SlopeMatching=qwDetector.Slope_Match; 
+
+  if (qwDetector.package == kUP)//QwTypes.h difinition
+    package = w_upper;//enum.h difinition
+  else if (qwDetector.package == kDOWN)//QwTypes.h difinition
+    package = w_lower;//enum.h difinition
+  else
+    package = w_nowhere;
+  rcDET[i].package=package;
+  rcDET[i].region=(EQwRegionID)qwDetector.Region;
+  rcDET[i].type=(Etype)qwDetector.dType;
+  rcDET[i].dir =(EQwDirectionID)qwDetector.PlaneDir; 
+ 
+  rcDET[i].center[0]=qwDetector.DetectorOriginX;
+  rcDET[i].center[1]=qwDetector.DetectorOriginY;
+
+  rcDET[i].width[0]=qwDetector.ActiveWidthX;
+  rcDET[i].width[1]=qwDetector.ActiveWidthY;
+  rcDET[i].width[2]=qwDetector.ActiveWidthZ;
+
+  rcDET[i].WireSpacing=qwDetector.WireSpacing;
+  rcDET[i].PosOfFirstWire=qwDetector.FirstWirePos;
+  rcDET[i].rCos=qwDetector.Wire_rcosX;
+  rcDET[i].rSin=qwDetector.Wire_rsinX;
+  rcDET[i].NumOfWires=qwDetector.TotalWires;
+  rcDET[i].ID=qwDetector.DetectorId;
+  rcDET[i].samesearched = 0; 
+};
 
 Int_t QwASCIIEventBuffer::GetEvent(){
   //declaring varibles used during this routine
@@ -138,6 +380,9 @@ Int_t QwASCIIEventBuffer::GetEvent(){
       eventf->ReadNextLine(line1);
       rPos2=atof(line1.c_str());
       //std::cout<<" Wire Hit "<<wire;
+
+      //NOTE: In this QwHit object, plane is set to the DetectorId
+
       currentHit=new QwHit(0,0,0,0,rcDET[DetectId].region,rcDET[DetectId].package, DetectId ,rcDET[DetectId].dir,wire,0) ; //order of parameters-> electronics stuffs are neglected, and  plane=DetectId and data is set to zero
       currentHit->SetDriftDistance(rPos1);
       currentHit->SetSpatialResolution(resolution);
@@ -320,4 +565,14 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits) {
 
 
 
-}
+};
+
+
+
+
+
+
+
+
+
+  

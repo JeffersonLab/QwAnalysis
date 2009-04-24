@@ -38,6 +38,8 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
 
   VQwSubsystem* GetSubsystem(const TString name);
 
+  //each of the methods below will call their counterpart method separately.
+
   void  ClearEventData();
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*

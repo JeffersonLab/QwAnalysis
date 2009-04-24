@@ -16,9 +16,22 @@ enum EQwDirectionID {kDirectionNull,
 		     kDirectionX, kDirectionY, kDirectionU,
 		     kDirectionV, kDirectionR, kDirectionTheta};
 
+
+enum EQwDetectorPackage{kNullPKG, kUP, kDOWN}; //currently UP and DOWN are considered two packages. can include 
+enum EQwDetectorSType{kNullType, kDriftType, kScintType, kCerenType}; //currently there are three types of detecotrs available
+enum EQwDetectorType {
+  driftHDC,	// HDC Drift chamber
+  driftVDC,	// VDC Drift chamber 
+  gem,	        // GEM detector 
+  trigscint,	// Trigger scintillator
+  cerenkov	//Cerenkov detector 
+};
+
 static const Int_t kNumPackages = 8;
 static const Int_t kNumPlanes = 4;
 
+
+//=======
 // Enumerator increments
 inline EQwRegionID& operator++ (EQwRegionID &region, int) {
    return region = EQwRegionID(region + 1);
@@ -26,6 +39,7 @@ inline EQwRegionID& operator++ (EQwRegionID &region, int) {
 inline EQwDirectionID& operator++ (EQwDirectionID &direction, int) {
    return direction = EQwDirectionID(direction + 1);
 }
+
 
 
 

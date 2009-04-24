@@ -1,19 +1,27 @@
 
+
 /**********************************************************\
 * File:  Analysis.cc                                       *
 *                                                          *
 * Author: P. M. King, Rakitha Beminiwattha                 *
 * Time-stamp: <2008-07-16 15:40>                           *
-
+\**********************************************************/
+/*
 Qweak Analysis Framework
 
 Each subsystem will have a class derived from "VQwSubsystem",
 and will be responsible for decoding of it's own data stream
-and any special event processing required.
+and any special event processing required. QwSubsystemArray will handle mutiple 
+"VQwSubsystem" objects and one call on the QwSubsystemArray will handle all the 
+calls to that method in each subsystem.
 Each susbsytem will also own the histograms and ntupling 
 functions used for its data.
 
-\**********************************************************/
+Once the CODA event are decoded into QwHitCOntainer data structure. 
+Routines from QwASCIIEventBuffer will update rcDET and rcDETRegion. 
+Then QTR routines can take control over.
+
+*/
 
 
 #include "QwAnalysis.h"
@@ -24,6 +32,28 @@ functions used for its data.
 #include "QwHitContainer.h"
 
 
+
+//from QwTracking
+#include "Qset.h"
+#include "Qevent.h"
+#include "Qoptions.h"
+#include "options.h"
+#include "treeregion.h"
+#include "treedo.h"
+#include "tree.h"
+
+
+
+//Temporary global variables for sub-programs
+bool bWriteGlobal = false;
+TreeLine  *trelin;
+int trelinanz;
+treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumPlanes][kNumDirections];
+Options opt;
+
+Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
+Det rcDET[NDetMax];
+QwASCIIEventBuffer AsciiEvents1;
 
 
 Bool_t kInQwBatchMode = kFALSE;
@@ -37,6 +67,7 @@ Bool_t kInQwBatchMode = kFALSE;
 
 int main(Int_t argc,Char_t* argv[])
 {
+   
   
   out_file = fopen(FILE_NAME, "wt");//will store grand hit list (only for degubbing) - rakitha
   out_file2 = fopen(FILE_NAME2, "wt");//will store sub hit list (only for degubbing) - rakitha
@@ -47,7 +78,7 @@ int main(Int_t argc,Char_t* argv[])
   gROOT->SetBatch(kTRUE);
 
   //  Fill the search paths for the parameter files; this sets a static 
-  //  variable within the QwParameterFile class which will be used by  
+ //  variable within the QwParameterFile class which will be used by  
   //  all instances.
   //  The "scratch" directory should be first.
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
@@ -63,15 +94,59 @@ int main(Int_t argc,Char_t* argv[])
 
   QwEventBuffer eventbuffer;
   
-  QwSubsystemArrayTracking QwDetectors;
+  QwSubsystemArrayTracking QwDetectors;//HAndle for the list of VQwSubsystemTracking objects.
+  VQwSubsystemTracking * subsystem_tmp;//VQwSubsystemTracking is the top most parent class for Tracking subsystems.
+
+  
+
 
   QwDetectors.push_back(new QwGasElectronMultiplier("R1"));
 
   QwDetectors.push_back(new QwDriftChamberHDC("R2"));
   QwDetectors.GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");//this map file was created by Mark Pitt to run actual QWEAK hits -Rakitha (23/10/2008)
+  
+
+
+  
+
+  ////---------------------------------------------------------
+  //Setting up the QTR  for Region 2
+  //code to generate rcDET and rcDETRegion
+
+  subsystem_tmp= (VQwSubsystemTracking *)QwDetectors.GetSubsystem("R2");
+  //this will load the detector geometry for Region 2 into QwDetectorInfo list.
+  //detector geometry is stored in "qweak_new.geo".
+  subsystem_tmp->LoadQweakGeometry("qweak_new.geo");
+  std::vector< std::vector< QwDetectorInfo > > detector_info;
+  subsystem_tmp->GetDetectorInfo(detector_info);
+
+  
+  AsciiEvents1.InitrcDETRegion(detector_info);//Curently we have only region 2 geometry into the rcDET & rcDETRegion structures.
+
+
+  
+
+    
+  Qoptions qoptions;
+  qoptions.Get((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.options").c_str());
+  std::cout << "[QwAnalysis::main] Options loaded" << std::endl; // R3,R2
+
+  tree thetree;
+  std::cout << "[QwAnalysis::main] Initializing pattern database" << std::endl;
+  thetree.rcInitTree();
+  std::cout << "[QwAnalysis::main] Pattern database loaded" << std::endl; // R3,R2
+
+  
+  treedo Treedo; 
+  //--------------------------------------
+        
+
+
+
   QwDetectors.push_back(new QwDriftChamberVDC("R3"));
   QwDetectors.GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
-
+  
+  
   QwDetectors.push_back(new QwTriggerScintillator("TS"));
 
   QwDetectors.push_back(new QwMainDetector("MD"));
@@ -86,10 +161,8 @@ int main(Int_t argc,Char_t* argv[])
 
 
 
-
- 
-        
-
+  
+  
  
 
 
@@ -143,6 +216,9 @@ int main(Int_t argc,Char_t* argv[])
 
     QwDetectors.ConstructHistograms();
     ConstructBranchAndVector(HitTree,prebase,hitvector,grandHitList.size());//contruct branches for each wire in the system
+
+
+    
    
     while (eventbuffer.GetEvent() == CODA_OK){
       //  Loop over events in this CODA file
@@ -162,13 +238,19 @@ int main(Int_t argc,Char_t* argv[])
       }
 
       //  Fill the subsystem objects with their respective data for this event.
+
+     
       
       eventbuffer.FillSubsystemData(QwDetectors);
+
+       
 
       //Reading the current event number      
       evnum=eventbuffer.GetEventNumber();
 
+      
       QwDetectors.ProcessEvent();
+      
 
       //  Fill the histograms for the subsystem objects.
       QwDetectors.FillHistograms();
@@ -184,7 +266,14 @@ int main(Int_t argc,Char_t* argv[])
       //sorting the grand hit list
       grandHitList.sort();
       SaveHits(grandHitList);//Print the entire grand hit list to a file 
-      SaveSubList(grandHitList);//Print a sub set of  hits list to a file 
+      //SaveSubList(grandHitList);//Print a sub set of  hits list to a file 
+      AsciiEvents1.GetrcDETRegion(grandHitList,evnum);
+
+      //Treedo.rcTreeDo(evnum);
+
+      
+
+      
 
       //Now filling the vector with necessary data
       FillTreeVector(hitvector,grandHitList);
@@ -197,6 +286,8 @@ int main(Int_t argc,Char_t* argv[])
 
       //fill the TTree
       HitTree->Fill();
+
+      
 
     }    
     std::cout << "Number of events processed so far: " 
@@ -298,7 +389,7 @@ void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t
   TString list="Region/F:Package/F:Direction/F:Plane/F:Element/F:DriftTime/F:DriftDistance/F";
   
   TString basename,b1,b2,b3;
-  std::cout<<" size "<< size<<std::endl;
+  std::cout<<" QwHitContainer size "<< size<<std::endl;
   values.clear();
   Int_t subscript;
   

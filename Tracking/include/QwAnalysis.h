@@ -11,6 +11,7 @@
 
 
 #define NDetMax 1010 //for track reconstruction libraries
+#define NEventMax 1000
 
 #include <iostream>
 #include <fstream>
@@ -24,7 +25,8 @@
 
 #include "QwCommandLine.h"
 
-#include "QwEventBuffer.h"
+//#include "QwEventBuffer.h"
+#include "QwASCIIEventBuffer.h"
 
 #include "QwSubsystemArrayTracking.h"
 
@@ -37,6 +39,14 @@
 #include "QwMainDetector.h"
 
 #include "QwHistogramHelper.h"
+
+
+//from QTR
+#include "globals.h"
+#include "Hit.h"
+
+
+
 
 
 
@@ -59,6 +69,12 @@ void SaveSubList(QwHitContainer &);//for debugging purposes - Rakitha (10/23/200
 //this will add braches and fill vector for each hit
 void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t> &values,Int_t size);
 void  FillTreeVector(std::vector<Float_t> &values,QwHitContainer &hitlist);
+
+
+
+
+
+
 
 
 #endif

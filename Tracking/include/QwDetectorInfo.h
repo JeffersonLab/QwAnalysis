@@ -5,20 +5,97 @@
 
 #include "QwTypes.h"
 
+
+
+
+
 class QwDetectorInfo{
   ///
   ///  Tracking detector information class.  This will be used in an array
-  ///  indexed by the package, plane, and channel, 
+  ///  indexed by the package, plane, and wire, 
   ///
 public:
   
+  QwDetectorInfo(){}
+  void SetDetectorInfo(TString sdType, Double_t Zpos1, Double_t rot,Double_t  sp_res,Double_t  track_res,Double_t slope_match, TString spackage, Int_t region,TString planeDir, Double_t Det_originX,Double_t Det_originY,Double_t ActivewidthX,Double_t ActivewidthY,Double_t ActivewidthZ,Double_t WireSpace,Double_t FirstWire,Double_t W_rcos,Double_t W_rsin,Int_t totalwires, Int_t detId ){
 
+    Zpos=Zpos1;
+    Detector_Rot=rot;
+    Spacial_Res=sp_res;
+    Track_Res=track_res;
+    Slope_Match=slope_match;
+    DetectorOriginX=Det_originX;
+    DetectorOriginY=Det_originY;
+    ActiveWidthX=ActivewidthX;
+    ActiveWidthY=ActivewidthY;
+    ActiveWidthZ=ActivewidthZ;
+    WireSpacing=WireSpace;
+    FirstWirePos=FirstWire;
+    Wire_rcosX=W_rcos;
+    Wire_rsinX=W_rsin;
+    TotalWires=totalwires;
+    DetectorId=detId;
+    if (sdType == "d" && region == 2)
+      dType = driftHDC;      
+    else if (sdType == "d" && region == 3)      
+      dType = driftVDC;
+    else if (sdType == "t")
+       dType = trigscint;
+    else if (sdType == "c")
+       dType = cerenkov;
+    else if (sdType == "g")
+       dType = gem;
+
+    if (spackage == "u")
+      package=kUP;//i.e. =1
+    else if (spackage == "d")
+      package=kDOWN;//i.e. =2
+
+    if (region == 1)
+      Region = kRegionID1;
+    else if (region == 2)
+      Region = kRegionID2;
+    else if (region == 3)
+      Region = kRegionID3;
+
+    if (planeDir == "x")
+      PlaneDir=kDirectionX;
+    else if (planeDir == "u")
+      PlaneDir=kDirectionU;
+    else if (planeDir == "v")
+      PlaneDir=kDirectionV;
+    else if (planeDir == "y")
+      PlaneDir=kDirectionY;    
+
+  };
 
 	//identification info for readout channels. Filled at load time.
 	int fCrate; //ROC number
 	int fModule; //F1TDC slot number or module index
 	int fChannel; //channel number
 
+
+	//Detector geometry information
+	enum EQwDetectorType dType;
+	Double_t Zpos;
+	Double_t Detector_Rot;
+	Double_t Spacial_Res;
+	Double_t Track_Res;
+	Double_t Slope_Match;
+	enum EQwDetectorPackage package;
+	enum EQwRegionID Region;
+	enum EQwDirectionID PlaneDir;
+	Double_t DetectorOriginX;
+	Double_t DetectorOriginY;
+	Double_t ActiveWidthX;
+	Double_t ActiveWidthY;
+	Double_t ActiveWidthZ;
+	Double_t WireSpacing;
+	Double_t FirstWirePos;
+	Double_t Wire_rcosX;
+	Double_t Wire_rsinX;
+	Int_t TotalWires;
+	Int_t DetectorId;
 
 	//reference channel index in list of reference channels (most prob. filled at load time)
 	int fReferenceChannelIndex;

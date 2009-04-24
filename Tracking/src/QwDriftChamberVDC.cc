@@ -66,6 +66,7 @@ void  QwDriftChamberVDC::ReportConfiguration(){
 
 
 void  QwDriftChamberVDC::SubtractReferenceTimes(){
+
   Bool_t refs_okay = kTRUE;
   std::vector<Double_t> reftimes;
   
@@ -101,7 +102,7 @@ void  QwDriftChamberVDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
   Int_t tdcindex = GetTDCIndex(bank_index,slot_num);
   if (tdcindex != -1){
     Int_t hitCount=0;
-    Int_t package = 1;    
+    Int_t package = 2;    
     Int_t plane   = fTDCPtrs.at(tdcindex).at(chan).fPlane;
     Int_t wire    = fTDCPtrs.at(tdcindex).at(chan).fElement;
     Int_t direction;
@@ -111,14 +112,16 @@ void  QwDriftChamberVDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
       //  Do nothing.
     } else if (plane == kReferenceChannelPlaneNumber){
       fReferenceData.at(wire).push_back(data);
-    } else {
-      direction = fDirectionData.at(package).at(plane); //wire direction is accessed from the vector and updates the QwHit with it. Rakitha(10/23/2008)
+    }/* else {
+      //std::cout<<"At QwDriftChamberVDC::FillRawTDCWord_1"<<endl;
+      direction =fDirectionData.at(package-1).at(plane-1); //wire direction is accessed from the vector and updates the QwHit with it. Rakitha(10/23/2008)
       
       hitCount=std::count_if(fTDCHits.begin(),fTDCHits.end(),boost::bind(&QwHit::WireMatches,_1,2,boost::ref(package),boost::ref(plane),boost::ref(wire)) );
-      
+      //std::cout<<"At QwDriftChamberVDC::FillRawTDCWord_2"<<endl;
       fTDCHits.push_back(QwHit(bank_index, slot_num, chan, hitCount,3, package, plane,direction, wire, data));//in order-> bank index, slot num, chan, hitcount, region=3, package, plane,,direction, wire,wire hit time
       
     }
+    */
   };
 };
 

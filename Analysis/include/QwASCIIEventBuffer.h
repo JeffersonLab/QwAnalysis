@@ -2,7 +2,7 @@
 * File: QwASCIIEventBuffer.h                                    *
 *                                                          *
 * Author: Rakitha Beminiwattha                             *
-* Time-stamp: <2008-07-22 15:40>                           *
+* Time-stamp: <2009-02-22 15:40>                           *
 \**********************************************************/
 
 #ifndef __QWEVENTASCIIBUFFER__
@@ -18,12 +18,14 @@
 
 
 #include "QwHitContainer.h"
+#include "QwDetectorInfo.h"
 
 
 
 
 #define NDetMax 1010
 #define NEventMax 1000
+#define DEBUG1 1
 
 
 class QwASCIIEventBuffer : public QwEventBuffer
@@ -36,7 +38,7 @@ class QwASCIIEventBuffer : public QwEventBuffer
 
   ~QwASCIIEventBuffer(){
   };
-
+ 
   Int_t OpenDataFile(const TString filename,const TString rw);
 
   Int_t LoadChannelMap(const char *geomname);
@@ -47,33 +49,54 @@ class QwASCIIEventBuffer : public QwEventBuffer
   Int_t ProcessHitContainer(QwHitContainer &);
 
 
+  //In the QwASCIIEventBuffer, Only InitrcDETRegion and GetrcDETRegion are used to merge Decoding and QTR software
+
+  
+  //InitrcDETRegion will load rcDET and rcDETRegion by reading QwDetectorInfo vector. This vector is indexed by package and plane.
+  //Currently we have only region = 2 working.
+  Int_t InitrcDETRegion(std::vector< std::vector< QwDetectorInfo > > &);
+  //GetrcDETRegion will update rcDETRegion by reading  QwHitContainer list.
+  void  GetrcDETRegion(QwHitContainer &,Int_t );
+  //internal function to update the rcDET
+  void AddDetector(QwDetectorInfo, Int_t c);
+
+  
+
+
+  
   void  GetHitList(QwHitContainer & grandHitContainer){
     grandHitContainer.Append(fASCIIHits);
   }
 
- public:
+ public:  
 
 
 
-  enum EPackage package;
-  EQwRegionID region;
-  EQwDirectionID dir;
-  enum Etype type;
+  
 
+  enum EPackage package;//from enum.h
+  enum EQwRegionID region;//from QwTypes.h
+  enum EQwDirectionID dir;//from QwTypes.h
+  enum Etype type;//from enum.h
 
-
-
+ 
+  
+	  
   QwParameterFile *eventf ;
   Int_t CurrentEvent;
 
   int DetectId;
+  
 
 
 
 
   QwHit * currentHit;
   std::vector< QwHit > fASCIIHits;
-
+  
+  std::vector< std::vector< QwDetectorInfo > > fDetectorInfo;//detector geometires
+  
+ 
 
 
 
