@@ -17,7 +17,8 @@ Rakitha (04/24/2009)
 */
 
 #include "QwASCIIEventBuffer.h"
-#include<string>
+#include <string>
+#include <cmath>
 
 //using namespace std;
 
