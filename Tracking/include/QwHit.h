@@ -25,9 +25,22 @@
 #define QWHIT_H
 
 #include "QwTypes.h"
+#include <iostream>
 
-class QwHit{
+class QwHit {
  public:
+
+  // (wdc) In order to transition the tracking to QwHitContainer,
+  // a non-initialized (i.e. invalid) QwHit constructor was temporarily added.
+  // TODO It will be removed when the transition is complete.
+  #warning "QwHit::QwHit() constructor without initialization will be removed! (wdc)"
+  QwHit():
+    fCrate(0),fModule(0),fChannel(0), fHitNumber(0),
+    fRegion(kRegionIDNull), fPackage(0), fDirection(kDirectionNull), fPlane(0), fElement(0),
+    fAmbiguousElement(kFALSE),fLRAmbiguity(kFALSE)
+    {
+      std::cerr << "QwHit::QwHit() constructor called!" << std::endl;
+    };
 
   QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
 	Int_t region, Int_t package, Int_t plane, Int_t direction, Int_t wire,
@@ -68,8 +81,16 @@ class QwHit{
   const Double_t& GetRawTime() const {return fRawTime;};
   const Double_t& GetTime()    const {return fTime;};
 
-  const Double_t& GetDriftDistance()    const {return fDistance;};
-  const Double_t& GetSpatialResolution()    const {return fResolution;};
+  const Double_t& GetDriftDistance()     const {return fDistance;};
+  const Double_t& GetSpatialResolution() const {return fResolution;};
+
+  // TODO (wdc) Need to figure out what exactly this track resolution is...
+  // and whether it is better to put this in the QwHit or QwDetector class.
+  const Double_t GetTrackResolution() const {
+    // TODO Fix this, remove cerr and #warning
+    #warning "QwHit::GetTrackResolution() is an invalid stub! (wdc)"
+    return 0.0;
+  }
 
   void SetHitNumber(Int_t count){
     fHitNumber=count;
@@ -180,6 +201,7 @@ class QwHit{
 
 
  protected:
+
   //  Identification information for readout channels
   Int_t fCrate;     /// ROC number
   Int_t fModule;    /// F1TDC slot number, or module index
@@ -199,13 +221,13 @@ class QwHit{
 
 
   //  Data specific to the hit
-  Double_t fRawTime;  /// Time as reported by TDC; it is UNSUBTRACTED
-  Double_t fTime;     /// Start corrected time, may also be further modified
-  Double_t fTimeRes;  /// Resolution of time (if appropriate)
+  Double_t fRawTime;    /// Time as reported by TDC; it is UNSUBTRACTED
+  Double_t fTime;       /// Start corrected time, may also be further modified
+  Double_t fTimeRes;    /// Resolution of time (if appropriate)
 
-  Double_t fDistance; /// Perpendicular distance from the wire to the track
-  Double_t fResolution; // Spatial Resolution
-  Double_t fZPos; //for detector position????
+  Double_t fDistance;   /// Perpendicular distance from the wire to the track
+  Double_t fResolution; /// Spatial Resolution
+  Double_t fZPos;       /// Detector position???
   //  Processed information from QTR routines?
 
 };

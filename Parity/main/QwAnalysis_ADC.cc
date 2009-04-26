@@ -25,7 +25,7 @@ Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 Det rcDET[1100];
 TreeLine  *trelin;
 int trelinanz;
-treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumPlanes][kNumDirections];
+treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 Options opt;
 
 //--------------------------------------------------------------------------

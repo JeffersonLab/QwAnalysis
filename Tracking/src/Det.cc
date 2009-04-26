@@ -17,6 +17,12 @@ using std::endl;
 
 void Det::print()
 {
+  // If this detector has not been defined, say so
+  if (!this) {
+    cout << "Warning: Calling non-existent detector!" << endl;
+    return;
+  }
+
   // Detector ID and name
   cout << "det " << ID << ": " << sName << ", ";
   // Detector position
@@ -25,9 +31,9 @@ void Det::print()
   // Detector flags
   cout << " (";
   switch (package) { // upper or lower detector
-    case w_upper:
+    case kPackageUp:
       cout << "u"; break;
-    case w_lower:
+    case kPackageDown:
       cout << "d"; break;
     default:
       cout << "?"; break;
@@ -47,13 +53,15 @@ void Det::print()
   cout << " ";
 
   switch (type) { // detector type
-    case d_drift:
-      cout << "drift"; break;
-    case d_gem:
+    case kTypeDriftHDC:
+      cout << "driftHDC"; break;
+    case kTypeDriftVDC:
+      cout << "driftVDC"; break;
+    case kTypeGem:
       cout << "gem"; break;
-    case d_trigscint:
+    case kTypeTrigscint:
       cout << "trigscint"; break;
-    case d_cerenkov:
+    case kTypeCerenkov:
       cout << "cerenkov"; break;
     default:
       cout << "?"; break;

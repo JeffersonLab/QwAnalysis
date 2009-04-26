@@ -148,8 +148,7 @@ using namespace std;
 
 //using namespace QwTracking;
 
-#define NDetMax 1010
-#define NEventMax 1000
+#define NEventMax 1
 
 
 //Temporary global variables for sub-programs
@@ -157,7 +156,7 @@ bool bWriteGlobal = false;
 TreeLine  *trelin;
 int trelinanz;
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumPlanes][kNumDirections];
+treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 Det rcDET[NDetMax];
 Options opt;
 FILE *ASCII_textfile;
@@ -197,54 +196,18 @@ int main (int argc, char* argv[])
 
 	treedo Treedo; // R3 needs debugging in the 3-D fit
 
-	// RANT (wdconinc) what is this here all about?  A single event should be an
-	// object, not a whole event file (that should be another object that returns
-	// an event object with some getEvent method).  Then you pass this event object
-	// to the tracking routine (which probably would be a method of the event class)
-	// This rcTreeDo terminology is anachronistic and a literal translation from the
-	// Hermes code.
-
 	// The event loop should skip when iEvent is unphysical,
 	// or: GetEvent returns bool and GetEventNumber returns int
 
 
 
-
-
-	//I have commented out the loop below so that newly added set of routines will continue to generate rcTreeRegion array.
-
 	nEvent = 0;
-
-	/*
-	while (0 < iEvent && nEvent < NEventMax) {
-
-		// Read event from the event stream
-
-		iEvent = qevent.GetEvent();
-		cout << "[QwTracking::main] Event " << iEvent << endl;
-		// Error handling
-		if (iEvent == 0) continue;	// end of event stream
-		if (iEvent <  0) {		// error in event stream
-			cerr << "[QwTracking::main] Error reading event stream!" << endl;
-			return 1;
-		}
-
-		// Processing event
-		cout << "[QwTracking::main] Processing..." << endl;
-
-
-		Treedo.rcTreeDo(iEvent);
-
-		// Next event
-		nEvent++;
-	}
-	*/
 
 	// This is the trial code for QwHitContainer converting into set
 	// of Hit list in rcDetRegion structure
 
 	iEvent = 2;
-	while (asciibuffer.GetEvent()){//this will read each event per loop
+	while (asciibuffer.GetEvent() && nEvent < NEventMax) { //this will read each event per loop
 	  iEvent=asciibuffer.GetEventNumber();//this will read the current event number
 	  cout << "[QwTracking::main] Event " << iEvent << endl;
 
@@ -252,18 +215,34 @@ int main (int argc, char* argv[])
 	  ASCIIgrandHitList.sort(); //sort the array
 	  SaveHits(ASCIIgrandHitList);
 	  asciibuffer.ProcessHitContainer(ASCIIgrandHitList);//now we decode our QwHitContainer list and pice together with the rcTreeRegion multi dimension array.
-	  //Treedo.rcTreeDo(ASCIIgrandHitList); //Giving some trouble when 1000.r2.events events file is used.
+
+	  /*
+	  // Print hit list
+	  QwHitContainer::iterator qwhit;
+	  for (qwhit  = ASCIIgrandHitList.begin();
+	       qwhit != ASCIIgrandHitList.end(); qwhit++) {
+	    cout << qwhit->GetDetectorID().fPackage << " ";
+	    cout << qwhit->GetDetectorID().fRegion << " ";
+	    cout << qwhit->GetDetectorID().fDirection << " ";
+	    cout << qwhit->GetDetectorID().fPlane << " ";
+	    cout << qwhit->GetDetectorID().fElement << " ";
+	    cout << endl;
+	  }
+	  */
+
+	  Treedo.rcTreeDo(ASCIIgrandHitList); //Giving some trouble when 1000.r2.events events file is used.
 
 	  ASCIIgrandHitList.clear();
 
+	  nEvent++;
 	 }
 
 
 	// Statistics
 	cout << endl;
 	cout << "Statistics:" << endl;
-	//cout << " Good: " << Treedo.ngood << endl;
-	//cout << " Bad : " << Treedo.nbad  << endl;
+	cout << " Good: " << Treedo.ngood << endl;
+	cout << " Bad : " << Treedo.nbad  << endl;
 
 	return 0;
 }

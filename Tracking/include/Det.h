@@ -17,7 +17,8 @@
 using std::string;
 
 #include "QwTypes.h"
-#include "enum.h"
+
+#define NDetMax 100
 
 /// First declare the Hit and Det are objects, because they contain
 /// pointers to each other.
@@ -39,7 +40,7 @@ class Det {
 
     string sName;		/*!< Name of the detector */
 
-    //Why we need two kinds of type parameters? Can we only use Etype type?
+    //Why we need two kinds of type parameters? Can we only use EQwDetectorType type?
     string sType;		/*!< Type of the detector */
     double Zpos;		/*!< Z position */
     double Rot;			/*!< rotation angle */
@@ -48,9 +49,9 @@ class Det {
     double TrackResolution;	/*!< tracking resolution */
     double SlopeMatching;	/*!< front/back track segment slope matching */
 
-    enum EPackage package;
+    EQwDetectorPackage package;
     EQwRegionID region;
-    enum Etype type;
+    EQwDetectorType type;
     EQwDirectionID dir;
 
     double center[2];		/*!< x and y position of detector center */

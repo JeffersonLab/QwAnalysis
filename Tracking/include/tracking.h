@@ -15,6 +15,7 @@
 #define TRACKING_H
 
 #include "globals.h"
+#include "QwHit.h"
 #include "Hit.h"
 #include "QwASCIIEventBuffer.h"
 
@@ -89,6 +90,9 @@ class TreeLine {
     //enum  Emethod method;	/*!< treeline generation method */
     Hit   *hits[2*TLAYERS];	/*!< hitarray */
     Hit   thehits[2*TLAYERS];
+// TODO (wdc) Disabled until proper constructor for QwHit
+//    QwHit *qwhits[2*TLAYERS];	/*!< hitarray after transition to QwHit */
+//    QwHit theqwhits[2*TLAYERS];
     int   hasharray[2*TLAYERS];
     bool Used;			/*!< used (part of parttrack) */
     int   ID;			/*!< adamo ID */

@@ -20,9 +20,10 @@ class Qset {
     int FillDetec (const char *geomfile);
 
     int numdetectors;	// detector counter
-    int debug;		// debug level
 
   private:
+
+    int debug;		// debug level
 
     void DumpDetector (int i);
     void LinkDetector (void);

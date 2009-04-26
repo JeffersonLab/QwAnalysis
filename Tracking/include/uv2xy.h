@@ -9,7 +9,6 @@
 #include "QwTypes.h"
 #include "Hit.h"
 #include "Det.h"
-#include "enum.h"
 
 
 

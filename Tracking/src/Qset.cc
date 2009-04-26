@@ -31,7 +31,7 @@ extern Det rcDET[NDetMax];
 
     The multi-dimensional array of pointers rcDETRegion contains an organized
     list of the detectors.  The indices are as follows:
-    - detector package (using EPackage)
+    - detector package (using EQwDetectorPackage)
     - region (using EQwRegionID)
     - wire direction (using EQwDirectionID)
       (the detector type is not distinguished)
@@ -42,10 +42,7 @@ extern Det rcDET[NDetMax];
     In the function LinkDetector the information from rcDET is used to construct
     rcDETRegion and the linked-lists.
  */
-extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-
-extern EPackage operator++(enum EPackage &rs, int );
-extern Etype operator++(enum Etype &rs, int );
+extern Det* rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 
 /*
 Qset
@@ -70,8 +67,11 @@ Author : Burnham Stokes */
 
 Qset::Qset()
 {
-	numdetectors = 0;
-	debug = 0;
+  /* Reset number of detectors */
+  numdetectors = 0;
+
+  /* Debug level */
+  debug = 0;
 }
 
 //____________________________________________________________
@@ -111,11 +111,11 @@ int Qset::FillDetec (const char *geomname)
 		geomstream >> type;
 		switch (type[0]) { // upper or lower detector
 			case 'u':
-				rcDET[i].package = w_upper;   break;
+				rcDET[i].package = kPackageUp;   break;
 			case 'd':
-				rcDET[i].package = w_lower;   break;
+				rcDET[i].package = kPackageDown; break;
 			default :
-				rcDET[i].package = w_nowhere; break;
+				rcDET[i].package = kPackageNull; break;
 		}
 		geomstream >> type;
 		switch (type[0]) { // detector region
@@ -128,14 +128,14 @@ int Qset::FillDetec (const char *geomname)
 		}
 		geomstream >> type;
 		switch (type[0]) { // detector type
-			case 'd':
-				rcDET[i].type = d_drift;     break;
+			case 'd':  // no support for HDC/VDC separation
+				rcDET[i].type = kTypeDriftHDC;  break;
 			case 'g':
-				rcDET[i].type = d_gem;       break;
+				rcDET[i].type = kTypeGem;       break;
 			case 't':
-				rcDET[i].type = d_trigscint; break;
+				rcDET[i].type = kTypeTrigscint; break;
 			case 'c':
-				rcDET[i].type = d_cerenkov;  break;
+				rcDET[i].type = kTypeCerenkov;  break;
 		}
 		geomstream >> type;
 		switch (type[0]) { // plane direction
@@ -208,10 +208,10 @@ void Qset::LinkDetector ()
     the same wire direction.
  */
 {
-	enum EPackage package;
+	EQwDetectorPackage package;
 	EQwRegionID region;
 	EQwDirectionID dir;
-	enum Etype type;
+	enum EQwDetectorType type;
 
 	Det *rd, *rnd, *rwd;  // descriptive variable names, I like this (wdconinc)
 

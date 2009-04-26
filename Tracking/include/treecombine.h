@@ -5,6 +5,7 @@
 #include <iostream>
 
 // Qweak headers
+#include "QwHit.h"
 #include "tracking.h"
 #include "uv2xy.h"
 
@@ -46,7 +47,7 @@ and combining track segments into full tracks with lab coordinates.
 */
 class treecombine {
 
-  public:
+public:
 
     treecombine();
     ~treecombine();
@@ -55,43 +56,44 @@ class treecombine {
 
     chi_hash *hasharr[HASHSIZE];
 
-    int chi_hashval( int n, Hit **hit );
-    void chi_hashclear(void);
-    void chi_hashinsert(Hit **hits, int n, double slope, double xshift, double cov[3],double chi);
-    int chi_hashfind( Hit **hits, int n, double *slope, double *xshift, double cov[3],double *chi);
+    int chi_hashval (int n, Hit **hit);
+    void chi_hashclear (void);
+    void chi_hashinsert (Hit **hits, int n, double slope, double xshift, double cov[3], double chi);
+    int chi_hashfind (Hit **hits, int n, double *slope, double *xshift, double cov[3], double *chi);
 
-    int bestx(double *xresult, double dist_cut, Hit *h, Hit **ha,double Dx=0);
-    int bestx(double *xresult,Hit *h,Hit *ha);
+    int bestx (double *xresult, double dist_cut, Hit *h, Hit **ha, double Dx = 0);
+    int bestx (double *xresult, Hit *h, Hit *ha);
+    int bestx (double *xresult, QwHit *hit, QwHit *hita);
 
 
-    void mul_do(int i,int mul,int l,int *r,Hit   *hx[DLAYERS][MAXHITPERLINE],  Hit **ha);
-    void weight_lsq(double *slope, double *xshift, double cov[3],double *chi,Hit **hits, int n,int tlayers);
-    void weight_lsq_r3(double *slope, double *xshift, double cov[3],double *chi,Hit **hits, int n,double z1,int offset,int tlayers);
+    void mul_do (int i, int mul, int l, int *r, Hit *hx[DLAYERS][MAXHITPERLINE], Hit **ha);
+    void weight_lsq (double *slope, double *xshift, double cov[3],double *chi, Hit **hits, int n,int tlayers);
+    void weight_lsq_r3 (double *slope, double *xshift, double cov[3],double *chi, Hit **hits, int n,double z1,int offset,int tlayers);
 
     int selectx(double *xresult,double dist_cut,Det *detec, Hit *hitarray[], Hit **ha);
     int contains( double var, Hit **arr, int len);
     double detZPosition( Det *det, double x, double slope_x, double *xval );
 
-    int TlCheckForX(double x1, double x2, double dx1, double dx2,double Dx,double z1, double dz,TreeLine *treefill,enum EPackage package,enum EQwRegionID region,enum Etype type,EQwDirectionID wdir,int  dlayer, int tlayer,int  iteration,int  stay_tuned);
+    int TlCheckForX (double x1, double x2, double dx1, double dx2,double Dx,double z1, double dz,TreeLine *treefill,EQwDetectorPackage package, EQwRegionID region,enum EQwDetectorType type,EQwDirectionID wdir,int  dlayer, int tlayer,int  iteration,int  stay_tuned);
 
-    int TlMatchHits(double x1,double x2,double z1, double dz,TreeLine *treefill,enum EPackage package,enum EQwRegionID region,enum Etype type,EQwDirectionID dir,int tlayers);
+    int TlMatchHits (double x1,double x2,double z1, double dz,TreeLine *treefill,EQwDetectorPackage package, EQwRegionID region,enum EQwDetectorType type,EQwDirectionID dir,int tlayers);
 
-    int inAcceptance( enum EPackage package,enum EQwRegionID region,double cx, double mx,double cy, double my);
-    void TlTreeLineSort(TreeLine *tl,enum EPackage package,enum EQwRegionID region,enum Etype type,EQwDirectionID dir/*,enum Eorientation orient*/,unsigned long bins,int tlayer,int dlayer);
-    int TcTreeLineCombine( TreeLine *wu, TreeLine *wv, TreeLine *wx,PartTrack *pt, int tlayer );
-    int TcTreeLineCombine( TreeLine *wu, TreeLine *wv,PartTrack *pt, int tlayer );
-    int TcTreeLineCombine2( TreeLine *wu, TreeLine *wv,PartTrack *pt, int tlayer );
+    int inAcceptance (EQwDetectorPackage package, EQwRegionID region, double cx, double mx, double cy, double my);
+    void TlTreeLineSort (TreeLine *tl, EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type, EQwDirectionID dir/*,enum Eorientation orient*/, unsigned long bins, int tlayer, int dlayer);
+    int TcTreeLineCombine (TreeLine *wu, TreeLine *wv, TreeLine *wx, PartTrack *pt, int tlayer);
+    int TcTreeLineCombine (TreeLine *wu, TreeLine *wv, PartTrack *pt, int tlayer);
+    int TcTreeLineCombine2 (TreeLine *wu, TreeLine *wv, PartTrack *pt, int tlayer);
 
-    PartTrack *TlTreeCombine(TreeLine *uvl[4],long bins,enum EPackage package,enum EQwRegionID region,enum Etype type/*,enum Eorientation orient*/,int tlayer,int dlayer);
-    void ResidualWrite( Event *event);
+    PartTrack *TlTreeCombine (TreeLine *uvl[4], long bins, EQwDetectorPackage package, EQwRegionID region,enum EQwDetectorType type/*,enum Eorientation orient*/, int tlayer, int dlayer);
+    void ResidualWrite (Event *event);
 
-    int r3_TrackFit( int Num, Hit **Hit, double *fit, double *cov, double *chi,double uv2xy[2][2]);
-    int r3_TrackFit2( int Num, Hit **Hit, double *fit, double *cov, double *chi);
+    int r3_TrackFit (int Num, Hit **Hit, double *fit, double *cov, double *chi, double uv2xy[2][2]);
+    int r3_TrackFit2 (int Num, Hit **Hit, double *fit, double *cov, double *chi);
 
-    int checkR3(PartTrack *pt,enum EPackage package);
+    int checkR3 (PartTrack *pt, EQwDetectorPackage package);
 
 
-  private:
+private:
 
 
 };

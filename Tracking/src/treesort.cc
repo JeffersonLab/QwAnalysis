@@ -12,11 +12,12 @@ using namespace std;
 
 */
 //________________________________________________________________________
-treesort::~treesort(void){
-
+treesort::~treesort (void)
+{
 }
 //________________________________________________________________________
-treesort::treesort(void){
+treesort::treesort (void)
+{
   doubletrack = 0.2;
   good = 2;
 }
@@ -36,75 +37,79 @@ int treesort::connectiv( char *ca, int *array, int *isvoid, char size, int idx )
   	return ret;
 }
 //________________________________________________________________________
-double treesort::chiweight( TreeLine *tl )
+double treesort::chiweight (TreeLine *tl)
 {
-  	double fac;
-  	if( tl->numhits > tl->nummiss )
-    		fac = (double)(tl->numhits+tl->nummiss)/(tl->numhits - tl->nummiss);
-  	else{
-		//cerr << "miss = " << tl->nummiss << ",hit = " << tl->numhits << endl;
-		return 100000.0;//this is bad
-	}
-  	return fac * tl->chi;
+  double fac;
+  if (tl->numhits > tl->nummiss)
+    fac = (double) (tl->numhits + tl->nummiss)
+                 / (tl->numhits - tl->nummiss);
+  else {
+    cerr << "miss = " << tl->nummiss << ", hit = " << tl->numhits << endl;
+    return 100000.0; // This is bad...
+  }
+  return fac * tl->chi;
 }
 //________________________________________________________________________
-double treesort::ptchiweight( PartTrack *pt )
+double treesort::ptchiweight (PartTrack *pt)
 {
-  	double fac;
-
-  	if( pt->numhits > pt->nummiss )
-    		fac = (double)(pt->numhits+pt->nummiss)/(pt->numhits - pt->nummiss);
-  	else
-    		return 100.0;//this is bad
-  	return fac * fac * pt->chi;//why is 'fac' squared here, but not in chiweight?
+  double fac;
+  if (pt->numhits > pt->nummiss)
+    fac = (double) (pt->numhits + pt->nummiss)
+                 / (pt->numhits - pt->nummiss);
+  else {
+    cerr << "miss = " << pt->nummiss << ", hit = " << pt->numhits << endl;
+    return 100.0; // This is bad...
+  }
+  return fac * fac * pt->chi; // Why is 'fac' squared here, but not in chiweight?
 }
 //________________________________________________________________________
-int treesort::connectarray( char *ca, int *array, int *isvoid, char size, int idx )
+int treesort::connectarray (char *ca, int *array, int *isvoid, char size, int idx )
 {
-  	int i;
-  	int j;
-
-  	memset( ca, 0, size);
-  	ca[idx] = 1;
-  	for( i = 0; i < size; i++ ) {
-    		if( ca[i] ) {
-      			for( j = i+1; j < size ; j++ ) {
-				if( array[j+i*size]  && isvoid[j] == false )
-	  				ca[j] = 1;
-      			}
-    		}
-  	}
-  	return 0;
+  memset (ca, 0, size);
+  ca[idx] = 1;
+  for (int i = 0; i < size; i++) {
+    if (ca[i]) {
+      for (int j = i+1; j < size; j++) {
+        if (array[j+i*size] && isvoid[j] == false )
+          ca[j] = 1;
+      }
+    }
+  }
+  return 0;
 }
 //________________________________________________________________________
-void treesort::bestunconnected( char *ca, int *array, int *isvoid, double *chia,
-		 int size, int idx)
+void treesort::bestunconnected (
+	char *ca,
+	int *array,
+	int *isvoid,
+	double *chia,
+	int size,
+	int idx)
 {
-  int i,j;
   int besti = idx, bestj = -1;
   double bestchi = chia[idx], bestdchi;
 
-  for(j = idx+1; j < size; j++ ) { /* search for the best single-track */
-    if( !ca[j] )
+  for (int j = idx+1; j < size; j++) { /* search for the best single-track */
+    if (! ca[j])
       continue;
-    if( chia[j] < bestchi ) {
+    if (chia[j] < bestchi) {
       besti = j;
       bestchi = chia[j];
     }
   }
 
-  bestdchi = (bestchi)*(2+doubletrack);// this will allow a double track, with the 2nd best chi
+  bestdchi = (bestchi) * (2 + doubletrack);// this will allow a double track, with the 2nd best chi
   //to be up to (doubletrack)% larger than the best chi.
 
-  for( i = idx; i < size; i++ ) { /* is there a double track ? */
-    if( !ca[i] )
+  for (int i = idx; i < size; i++) { /* is there a double track ? */
+    if (! ca[i])
       continue;
-    for( j = i+1; j < size; j++ ) {
-      if( !ca[j] )
+    for (int j = i+1; j < size; j++) {
+      if (! ca[j])
 	continue;
-      if( array[i*size+j] )//if it's two tracks sharing a bunch of wires, don't worry about it
+      if (array[i*size+j]) // if it's two tracks sharing a bunch of wires, don't worry about it
 	continue;
-      if( chia[j]+chia[i] < bestdchi ) {//but if there's two separate tracks, with good chi, then it's a double track
+      if (chia[j] + chia[i] < bestdchi) { // but if there's two separate tracks, with good chi, then it's a double track
 	besti = i;
 	bestj = j;
 	bestdchi = chia[j]+chia[i];
@@ -112,22 +117,22 @@ void treesort::bestunconnected( char *ca, int *array, int *isvoid, double *chia,
     }
   }
 
-  for(i = idx; i<size; i++ ) {
-    if( !ca[i] )
+  for (int i = idx; i < size; i++) {
+    if (! ca[i])
       continue;
-    if( i == besti || i == bestj || besti == -1) {
+    if (i == besti || i == bestj || besti == -1) {
       isvoid[i] = good;//good
     }
-    else if( isvoid[i] == false ) {
-      if( (besti >= 0 && array[i*size+besti] ) ||
-	  (bestj >= 0 && array[i*size+bestj])){
-	isvoid[i] = true;
+    else if (isvoid[i] == false) {
+      if ( (besti >= 0 && array[i*size+besti] ) ||
+           (bestj >= 0 && array[i*size+bestj] ) ) {
+        isvoid[i] = true;
       }
     }
   }
 }
 //________________________________________________________________________
-int treesort::globalconnectiv( char *ca, int *array, int *isvoid, int size, int idx)
+int treesort::globalconnectiv (char *ca, int *array, int *isvoid, int size, int idx)
 {
   	int i, max = 0, c;
   	bool old;
@@ -146,7 +151,7 @@ int treesort::globalconnectiv( char *ca, int *array, int *isvoid, int size, int 
   	return max;
 }
 //________________________________________________________________________
-int treesort::bestconnected( char *ca, int *array, int *isvoid, double *chia,
+int treesort::bestconnected (char *ca, int *array, int *isvoid, double *chia,
 	       int size, int idx)
 {
   int i, besti = -1;
@@ -178,11 +183,11 @@ int treesort::bestconnected( char *ca, int *array, int *isvoid, double *chia,
   return 0;
 }
 //________________________________________________________________________
-int treesort::rcPTCommonWires(PartTrack *track1,PartTrack *track2){
-  int i;
+int treesort::rcPTCommonWires (PartTrack *track1, PartTrack *track2)
+{
   int common = 0;
-  for( i = 0; i < 3; i++)
-    common += rcCommonWires( track1->tline[i], track2->tline[i]);
+  for (int i = 0; i < 3; i++)
+    common += rcCommonWires (track1->tline[i], track2->tline[i]);
   common /= 3;
   return common;
 }
@@ -191,41 +196,43 @@ int treesort::rcPTCommonWires(PartTrack *track1,PartTrack *track2){
 shared between two treelines.  The only output is the integer
 return value
 */
-int treesort::rcCommonWires_r3(TreeLine *line1,TreeLine *line2 ){
-//################
-// DECLARATIONS  #
-//################
+int treesort::rcCommonWires_r3 (TreeLine *line1, TreeLine *line2)
+{
+  //################
+  // DECLARATIONS  #
+  //################
   int total1, total2, common, total;
   Hit **hits1, **hits2;
-  int  i1, i2;
-//##################
-//DEFINE VARIABLES #
-//##################
+
+  //##################
+  //DEFINE VARIABLES #
+  //##################
   common = total1 = total2 = total = 0;
-  i1 = i2 = -1;
   hits1  = line1->hits;
   hits2  = line2->hits;
-//##############################################
-//Count the wires shared between the treelines #
-//##############################################
-  i1 = i2 = 0;
-  for(;i1<line1->numhits && i2<line2->numhits;)
-    if(hits1[i1]->wire == hits2[i2]->wire){
-	if(hits1[i1]->used && hits2[i2]->used)
-		common++;
-	i1++;
-	i2++;
-	total++;
+
+  //##############################################
+  //Count the wires shared between the treelines #
+  //##############################################
+  int i1 = 0, i2 = 0;
+  for ( ; i1 < line1->numhits && i2 < line2->numhits ; ) {
+    if (hits1[i1]->wire == hits2[i2]->wire) {
+      if (hits1[i1]->used && hits2[i2]->used)
+	common++;
+      i1++;
+      i2++;
+      total++;
     }
-    else if(hits1[i1]->wire > hits2[i2]->wire){
-	i2++;
-	total++;
+    else if (hits1[i1]->wire > hits2[i2]->wire) {
+      i2++;
+      total++;
     }
-    else if(hits1[i1]->wire < hits2[i2]->wire){
-	i1++;
-	total++;
+    else if (hits1[i1]->wire < hits2[i2]->wire) {
+      i1++;
+      total++;
     }
-    total += line1->numhits-i1 + line2->numhits-i2;
+  }
+  total += line1->numhits - i1 + line2->numhits - i2;
 /*
   for( ;; ) {
     // A
@@ -271,99 +278,106 @@ int treesort::rcCommonWires_r3(TreeLine *line1,TreeLine *line2 ){
 //Check which line has more hits used
 //  total = total1 > total2 ? total2 : total1;
 
-  if( !total )
+  if (! total)
     return 0;
-//Get a ratio and mulitply it to return an integer
-  return (10000 * common / total + 50 ) / 100;//if 8 common out of 8, then this = 100
+
+  // Get a ratio and mulitply it to return an integer
+  return (10000 * common / total + 50 ) / 100;
+  // if 8 common out of 8, then this = 100
 }
 //________________________________________________________________________
+
 /* This function simply counts the number of common wires
 shared between two treelines.  The only output is the integer
 return value
 */
-int treesort::rcCommonWires(TreeLine *line1,TreeLine *line2 ){
+int treesort::rcCommonWires (TreeLine *line1, TreeLine *line2 )
+{
   //cerr << "ERROR : This function needs editing before use" << endl;
-//################
-// DECLARATIONS  #
-//################
+
+  //################
+  // DECLARATIONS  #
+  //################
   int total1, total2, common, total;
   Hit **hits1, **hits2;
   int did1, did2;
   int  i1, i2, fw = 3;
-//##################
-//DEFINE VARIABLES #
-//##################
+
+  //##################
+  //DEFINE VARIABLES #
+  //##################
   common = total1 = total2 = 0;
   i1 = i2 = -1;
   hits1  = line1->hits;
   hits2  = line2->hits;
-//##################
-//DO STUFF #
-//##################
-  for( ;; ) {
-    if( fw & 1 ) {/*Set i1 equal to the index of the next hit used in line1 */
+
+  //##################
+  //DO STUFF #
+  //##################
+  for (;;) {
+    if (fw & 1) { /* Set i1 equal to the index of the next hit used in line1 */
       i1++;
-      for( ; i1 < DLAYERS*MAXHITPERLINE && hits1[i1]; i1++)
-	if( hits1[i1]->used ) {
+      for ( ; i1 < DLAYERS*MAXHITPERLINE && hits1[i1]; i1++)
+	if (hits1[i1]->used) {
 	  total1++;
 	  break;
 	}
     }
-    if( fw & 2 ) {/*Set i2 equal to the index of the next hit used in line2 */
+    if (fw & 2) { /* Set i2 equal to the index of the next hit used in line2 */
       i2++;
-      for( ; i2 < DLAYERS*MAXHITPERLINE && hits2[i2]; i2++)
-	if( hits2[i2]->used ) {
+      for ( ; i2 < DLAYERS*MAXHITPERLINE && hits2[i2]; i2++)
+	if (hits2[i2]->used) {
 	  total2++;
 	  break;
 	}
     }
-    if( i1 == DLAYERS*MAXHITPERLINE || ! hits1[i1] ||
-	i2 == DLAYERS*MAXHITPERLINE || ! hits2[i2] )
-      break;/*break if we reach the end of the hits in either line */
+    if (i1 == DLAYERS*MAXHITPERLINE || ! hits1[i1] ||
+	i2 == DLAYERS*MAXHITPERLINE || ! hits2[i2])
+      break; /* break if we reach the end of the hits in either line */
     //-----------------------------------------------------------
     //The following lines separate hits in different detectors
     did1 = hits1[i1]->detec->ID;
     did2 = hits2[i2]->detec->ID;
 
-    if( did1 < did2 )
+    if (did1 < did2)
       fw = 1;
-    else if( did1 > did2 )
+    else if (did1 > did2)
       fw = 2;
     else {
-      if( hits1[i1]->wire == hits2[i2]->wire )
-	common ++;
+      if (hits1[i1]->wire == hits2[i2]->wire)
+	common++;
       fw = 3;
     }
     //-----------------------------------------------------------
   }
-//##################
-//DO STUFF #
-//##################
+
+  //##################
+  //DO STUFF #
+  //##################
   total = total1 > total2 ? total2 : total1;
 
-  if( !total )
+  if (! total)
     return 0;
 
   return (10000 * common / total + 50 ) / 100;
 }
 //________________________________________________________________________
-int treesort::rcTreeConnSort( TreeLine *head, EQwRegionID region/*,
-		enum EPackage package, enum Etype type,
-		enum Edir dir,enum Eorientation orient*/){
-
-//################
-// DECLARATIONS  #
-//################
-  char     *connarr;
-  int * array;
+int treesort::rcTreeConnSort (TreeLine *head, EQwRegionID region/*,
+		EQwDetectorPackage package, EQwDetectorType type,
+		EQwDirectionID dir, Eorientation orient*/)
+{
+  //################
+  // DECLARATIONS  #
+  //################
+  char* connarr;
+  int* array;
   TreeLine **tlarr, *walk;
-  int num, idx, i, j, bestconn,common;
+  int num, idx, bestconn, common;
   int iteration = 0;
   int num_tl = 0;
   int  *isvoid;
   double   *chia, chi, maxch = 20000.0, nmaxch, nminch;//this is bad
 
-  cerr << endl;
   //DBG = DEBUG & D_GRAPH;
 
 /* ----------------------------------------------------------------------
@@ -375,21 +389,21 @@ int treesort::rcTreeConnSort( TreeLine *head, EQwRegionID region/*,
     iteration++;
 
     nminch = maxch;
-    for( idx = 0, walk = head; walk; walk = walk->next ) {
-      if( iteration > 100 ) {	/* skip the event */
+    for (idx = 0, walk = head; walk; walk = walk->next) {
+      if (iteration > 100 ) {	/* skip the event */
 	walk->isvoid = true;
 	num_tl++;
       }
-      else if( walk->isvoid == false ) {
-	chi = chiweight(walk);
-	if( chi > maxch ) {
-cerr << "voided in treesort " << maxch << ',' << chi << endl;
+      else if (walk->isvoid == false) {
+	chi = chiweight (walk);
+	if (chi > maxch) {
+	  cerr << "voided in treesort " << maxch << ',' << chi << endl;
 	  walk->isvoid = true;
 	} else {
-	  if( chi > nmaxch ) {
+	  if (chi > nmaxch) {
 	    nmaxch = chi;
 	  }
-	  if( chi < nminch ) {
+	  if (chi < nminch) {
 	    nminch = chi;
 	  }
 	  idx++;
@@ -397,31 +411,31 @@ cerr << "voided in treesort " << maxch << ',' << chi << endl;
       }
     }
     maxch = nminch + (nmaxch-nminch) * 0.66;
-  } while( idx > 30 );//30?!? should probably reduce this
+  } while (idx > 30 ); // 30?!? should probably reduce this
 
   num = idx;
-
-  if( num_tl )
+cerr << "num = " << num << endl;
+  if (num_tl)
     fprintf(stderr,"hrc: Skipping event because of 0 good treelines\n");
 
-  if( ! num )
+  if (! num)
     return 0;
 
-  //the following mallocs replaced Qmallocs
-  connarr = (char *)malloc( num );
-  isvoid  = (int *)malloc( num * sizeof(int));
-  chia    = (double *)malloc( num * sizeof(double));
-  array   = (int *)malloc( num*num*sizeof(int));
-  tlarr   = (TreeLine **)malloc( sizeof(TreeLine*)*num);
+  // the following mallocs replaced Qmallocs
+  connarr = (char*) malloc (num);
+  isvoid  = (int*) malloc (num * sizeof(int));
+  chia    = (double*) malloc (num * sizeof(double));
+  array   = (int*) malloc (num*num*sizeof(int));
+  tlarr   = (TreeLine**) malloc (sizeof(TreeLine*)*num);
 
-  assert( array && tlarr);
+  assert (array && tlarr);
 
-/* ----------------------------------------------------------------------
-* find the used treelines
-* ---------------------------------------------------------------------- */
+  /* ----------------------------------------------------------------------
+  * find the used treelines
+  * ---------------------------------------------------------------------- */
 
-  for( idx = 0, walk = head; walk; walk = walk->next ) {
-    if( walk->isvoid == false ) {
+  for (idx = 0, walk = head; walk; walk = walk->next) {
+    if (walk->isvoid == false) {
       tlarr[idx]  = walk;
       isvoid[idx] = walk->isvoid;
       chia[idx]   = chiweight(walk);
@@ -429,59 +443,54 @@ cerr << "voided in treesort " << maxch << ',' << chi << endl;
     }
   }
 
-/* ----------------------------------------------------------------------
-* build the graph array
-* ---------------------------------------------------------------------- */
-  if(region == kRegionID3){
-    for( i = 0; i < num; i++ ) {
+  /* ----------------------------------------------------------------------
+  * build the graph array
+  * ---------------------------------------------------------------------- */
+  if (region == kRegionID3) {
+    for (int i = 0; i < num; i++) {
       array[i*num+i] = 0;
-      for( j = i+1; j < num; j++ ) {
-	common = rcCommonWires_r3( tlarr[i], tlarr[j] );
-        array[i*num+j] = array[j*num+i] =
-          (common > 25);// this is true if
-// one of the two lines shares at least 1/4 of its wires with the other line
+      for (int j = i+1; j < num; j++) {
+	common = rcCommonWires_r3 (tlarr[i], tlarr[j]);
+	array[i*num+j] = array[j*num+i] = (common > 25); // this is true if
+	// one of the two lines shares at least 1/4 of its wires with the other line
       }
     }
-  }
-  else{
-    for( i = 0; i < num; i++ ) {
+  } else {
+    for (int i = 0; i < num; i++) {
       array[i*num+i] = 0;
-      for( j = i+1; j < num; j++ ) {
-        array[i*num+j] = array[j*num+i] =
-          (rcCommonWires( tlarr[i], tlarr[j] ) > 25);// 25?!?
+      for (int j = i+1; j < num; j++) {
+        array[i*num+j] = array[j*num+i] = (rcCommonWires (tlarr[i], tlarr[j]) > 25);// 25?!?
       }
     }
   }
 
-/* --------------------------------------------------------------------
-* check connectivity
-* -------------------------------------------------------------------- */
-  for( i = 0; i < num; ) {
-    if( isvoid[i] == false ) {
+  /* --------------------------------------------------------------------
+  * check connectivity
+  * -------------------------------------------------------------------- */
+  for (int i = 0; i < num; ) {
+    if (isvoid[i] == false ) {
       bestconn =  connectiv( 0, array, isvoid, num, i);
-      if( bestconn > 0 ) {
-	if( connectarray(connarr, array, isvoid, num, i) ){
-	  continue;
-	  }
-	bestunconnected( connarr, array, isvoid, chia, num, i);
-      } else{
-	isvoid[i] = good;//good
+      if (bestconn > 0) {
+	if (connectarray (connarr, array, isvoid, num, i)) continue;
+	bestunconnected (connarr, array, isvoid, chia, num, i);
+      } else {
+	isvoid[i] = good; // good
       }
     } else
       i++;
   }
-  for( i = 0; i < num; i++ ) {
-    if( isvoid[i] == true ) {
-      if( connectiv( 0, array, isvoid, num, i ) ) {
-	connectarray( connarr, array, isvoid, num, i);
-      	bestconnected( connarr , array, isvoid, chia, num, i);
+  for (int i = 0; i < num; i++) {
+    if (isvoid[i] == true) {
+      if (connectiv (0, array, isvoid, num, i)) {
+	connectarray (connarr, array, isvoid, num, i);
+	bestconnected (connarr, array, isvoid, chia, num, i);
       }
     }
   }
-  for( i = 0; i < num; i++ ) {
-    if( isvoid[i] != true ) {
+  for (int i = 0; i < num; i++) {
+    if (isvoid[i] != true) {
       tlarr[i]->isvoid = false;
-    } else{
+    } else {
       tlarr[i]->isvoid = true;
     }
   }
@@ -489,161 +498,161 @@ cerr << "voided in treesort " << maxch << ',' << chi << endl;
   return 0;
 }
 //________________________________________________________________________
-int treesort::rcPartConnSort( PartTrack *head/*,
-		enum EPackage package, EQwRegionID region, enum Etype type,
-		enum Edir dir,enum Eorientation orient*/){
-  	char     *connarr;
-	int *array;
-  	PartTrack **ptarr, *walk;
-  	int num, idx, i, j, bestconn;
-  	int  *isvoid;
-  	double   *chia, chi, maxch = 200.0, nmaxch, nminch;
-	/* ----------------------------------------------------------------------
-   	* find the number of used PartTracks
-   	* ---------------------------------------------------------------------- */
+int treesort::rcPartConnSort (PartTrack *head/*,
+	EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type,
+	EQwDirection dir, Eorientation orient*/)
+{
+  char *connarr;
+  int *array;
+  PartTrack **ptarr, *walk;
+  int num, idx, i, j, bestconn;
+  int  *isvoid;
+  double   *chia, chi, maxch = 200.0, nmaxch, nminch;
+  /* ------------------------------------------------------------------
+   * find the number of used PartTracks
+   * ------------------------------------------------------------------ */
 
-	//DBG = DEBUG & D_GRAPHP;
+  //DBG = DEBUG & D_GRAPHP;
 
-  	do {				/* filter out high chi2 if needed */
-    		nmaxch = 0.0;
-    		nminch = maxch;
-    		for( idx = 0, walk = head; walk; walk = walk->next ) {
-      			if( walk->isvoid == false ) {
-				chi = ptchiweight(walk);
-				if( chi > maxch ) {
-	  				walk->isvoid = true;
-				} else {
-	  				if( chi > nmaxch ) {
-	    					nmaxch = chi;
-	  				}
-	  				if( chi < nminch ) {
-	    					nminch = chi;
-	  				}
-	  				idx++;
-				}
-      			}
-    		}
-    		maxch = nminch + (nmaxch-nminch) * 0.66;
-  	} while( idx > 30 );
+  do {        /* filter out high chi2 if needed */
+    nmaxch = 0.0;
+    nminch = maxch;
+    for (idx = 0, walk = head; walk; walk = walk->next) {
+      if (walk->isvoid == false ) {
+        chi = ptchiweight(walk);
+        if (chi > maxch) {
+          walk->isvoid = true;
+        } else {
+          if (chi > nmaxch) {
+            nmaxch = chi;
+          }
+          if (chi < nminch) {
+            nminch = chi;
+          }
+          idx++;
+        }
+      }
+    }
+    maxch = nminch + (nmaxch - nminch) * 0.66;
+  } while( idx > 30 );
 
 
-  	num = idx;
+  num = idx;
 
-  	if( ! num )
-    		return 0;
+  if (! num)
+    return 0;
 
-	//the following mallocs replaced Qmallocs
-  	connarr = (char *)malloc( num );
-  	isvoid  = (int *)malloc( num * sizeof(int));
-  	chia    = (double *)malloc( num * sizeof(double));
-  	array   = (int *)malloc( num*num);
-  	ptarr   = (PartTrack **)malloc( sizeof(PartTrack*)*num);
+  //the following mallocs replaced Qmallocs
+  connarr = (char *)malloc( num );
+  isvoid  = (int *)malloc( num * sizeof(int));
+  chia    = (double *)malloc( num * sizeof(double));
+  array   = (int *)malloc( num*num);
+  ptarr   = (PartTrack **)malloc( sizeof(PartTrack*)*num);
 
-  	if( !ptarr || ! array ) {
-    		fprintf(stderr,"Cannot Allocate Sort Array for %d PartialTracks\n",num);
-    		abort();
-  	}
-	/*
-  	if( DE && (DEBUG & D_GRAPHP)) {
-    		printf("----------SORT PT %c %c\n",
-	   	"FB"[vispar],"UL"[viswer]);
-  	}
+  if (! ptarr || ! array) {
+    fprintf(stderr,"Cannot Allocate Sort Array for %d PartialTracks\n",num);
+    abort();
+  }
+  /*
+  if( DE && (DEBUG & D_GRAPHP)) {
+    printf("----------SORT PT %c %c\n",
+    "FB"[vispar],"UL"[viswer]);
+  }
+  */
 
-	*/
-  	/* ----------------------------------------------------------------------
-   	* find the used parttracks
-   	* ---------------------------------------------------------------------- */
+  /* ----------------------------------------------------------------------
+   * find the used parttracks
+   * ---------------------------------------------------------------------- */
 
-  	for( idx = 0, walk = head; walk; walk = walk->next ) {
-    		if( walk->isvoid == false ) {
-      			ptarr[idx]  = walk;
-      			isvoid[idx] = walk->isvoid;
-      			chia[idx]   = ptchiweight(walk);
-      			idx++;
-    		}
-  	}
+  for (idx = 0, walk = head; walk; walk = walk->next) {
+    if (walk->isvoid == false) {
+      ptarr[idx]  = walk;
+      isvoid[idx] = walk->isvoid;
+      chia[idx]   = ptchiweight(walk);
+      idx++;
+    }
+  }
 
-  	/* ----------------------------------------------------------------------
-   	* build the graph array
-   	* ---------------------------------------------------------------------- */
+  /* ----------------------------------------------------------------------
+   * build the graph array
+   * ---------------------------------------------------------------------- */
 
-  	for( i = 0; i < num; i++ ) {
-    		array[i*num+i] = 0;
+  for (i = 0; i < num; i++) {
+    array[i*num+i] = 0;
 
-    		for( j = i+1; j < num; j++ ) {
-      			array[i*num+j] = array[j*num+i] =
-        		(rcPTCommonWires( ptarr[i], ptarr[j] ) > 25);
-    		}
-  	}
-/*
-  	if( DE && (DEBUG & D_GRAPHP)) {
-    		for( i = 0; i < num; i++ ) {
-      			if( isvoid[i] != true )
-				printf("pthave (%d) %f,%f %f,%f - %f %d (%d)\n", i,
-	       			ptarr[i]->x,
-	       			ptarr[i]->y,
-	       			ptarr[i]->mx,
-	       			ptarr[i]->my,
-	       			ptchiweight(ptarr[i]),
-	       			ptarr[i]->nummiss,
-	       			connectiv( 0, array, isvoid, num, i));
-    		}
-  	}
-*/
-  	/* --------------------------------------------------------------------
-   	* check connectivity
-   	* -------------------------------------------------------------------- */
-
-  	for( i = 0; i < num; ) {
-    		if( isvoid[i] == false ) {
-      			bestconn =  connectiv( 0, array, isvoid, num, i);
-      			if( bestconn > 0 ) {
-				if( connectarray(connarr, array, isvoid, num, i) )
-	  				continue;
-				/*
-				if( DE && (DEBUG & D_GRAPHP)) {
-	  				printf(" %d-connections:", i);
-	  				for( j = 0; j < num; j++ ) {
-	    					if( connarr[j])
-	      						printf("%d ",j);
-	  				}
-	  				puts("");
-				}
-				*/
-				bestunconnected( connarr, array, isvoid, chia, num, i);
-				/*
-				if( DE && (DEBUG & D_GRAPHP))
-	  				puts("");
-				*/
-      			} else
-				isvoid[i] = good;//good
-    		} else
-      			i++;
-  	}
-/*
+    for (j = i+1; j < num; j++) {
+      array[i*num+j] = array[j*num+i] =
+        (rcPTCommonWires(ptarr[i], ptarr[j]) > 25);
+    }
+  }
+  /*
   if( DE && (DEBUG & D_GRAPHP)) {
     for( i = 0; i < num; i++ ) {
       if( isvoid[i] != true )
-	printf("ptkeep (%d) %f,%f %f,%f - %f %d (%d)\n", i,
-	       ptarr[i]->x,
-	       ptarr[i]->y,
-	       ptarr[i]->mx,
-	       ptarr[i]->my,
-	       ptchiweight(ptarr[i]),
-	       ptarr[i]->nummiss,
-	       connectiv( 0, array, isvoid, num, i));
+        printf("pthave (%d) %f,%f %f,%f - %f %d (%d)\n", i,
+        ptarr[i]->x,
+        ptarr[i]->y,
+        ptarr[i]->mx,
+        ptarr[i]->my,
+        ptchiweight(ptarr[i]),
+        ptarr[i]->nummiss,
+        connectiv( 0, array, isvoid, num, i));
     }
   }
-*/
-  	for( i = 0; i < num; i++ ) {
-    		if( isvoid[i] != true ) {
-     			 //Statist[method].PartTracksUsed[where][part] ++;
-     			 ptarr[i]->isvoid = false;
-    		} else
-      			ptarr[i]->isvoid = true;
-  	}
+  */
+  /* --------------------------------------------------------------------
+   * check connectivity
+   * -------------------------------------------------------------------- */
 
-  	/* do not free Qalloc'ed things!!! */
-  	return 0;
+  for (i = 0; i < num; ) {
+    if (isvoid[i] == false) {
+      bestconn =  connectiv( 0, array, isvoid, num, i);
+      if (bestconn > 0) {
+        if (connectarray(connarr, array, isvoid, num, i))
+          continue;
+        /*
+        if( DE && (DEBUG & D_GRAPHP)) {
+          printf(" %d-connections:", i);
+          for( j = 0; j < num; j++ ) {
+            if( connarr[j])
+              printf("%d ",j);
+          }
+          puts("");
+        }
+        */
+        bestunconnected (connarr, array, isvoid, chia, num, i);
+        /*
+        if( DE && (DEBUG & D_GRAPHP))
+          puts("");
+        */
+      } else
+        isvoid[i] = good;//good
+    } else
+      i++;
+  }
+  /*
+  if( DE && (DEBUG & D_GRAPHP)) {
+    for( i = 0; i < num; i++ ) {
+      if( isvoid[i] != true )
+  printf("ptkeep (%d) %f,%f %f,%f - %f %d (%d)\n", i,
+         ptarr[i]->x,
+         ptarr[i]->y,
+         ptarr[i]->mx,
+         ptarr[i]->my,
+         ptchiweight(ptarr[i]),
+         ptarr[i]->nummiss,
+         connectiv( 0, array, isvoid, num, i));
+    }
+  }
+  */
+  for (i = 0; i < num; i++) {
+    if (isvoid[i] != true) {
+      //Statist[method].PartTracksUsed[where][part] ++;
+      ptarr[i]->isvoid = false;
+    } else
+      ptarr[i]->isvoid = true;
+  }
 
+  /* do not free Qalloc'ed things!!! */
+  return 0;
 }

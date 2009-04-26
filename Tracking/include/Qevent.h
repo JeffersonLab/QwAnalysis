@@ -13,7 +13,6 @@ is imported into this program.
 #include "QwParameterFile.h"
 
 
-
 #include "Hit.h"
 
 
@@ -29,7 +28,6 @@ class Qevent{
     int GetEvent();
     int Open(const char *eventfile);
 
-    
 
   private:
 
@@ -43,7 +41,7 @@ class Qevent{
     int thisevent;      // Stores the current event number
 
 
-    
+
 
 };
 

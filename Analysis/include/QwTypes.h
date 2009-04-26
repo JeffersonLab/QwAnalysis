@@ -16,28 +16,38 @@ enum EQwDirectionID {kDirectionNull,
 		     kDirectionX, kDirectionY, kDirectionU,
 		     kDirectionV, kDirectionR, kDirectionTheta};
 
+// Currently up and down are considered two packages.
+static const Int_t kNumPackages = 3;
+enum EQwDetectorPackage {kPackageNull,
+  kPackageUp, kPackageDown};
+// NOTE: Packages will be defined with respect to the *fixed magnet octants*.
+// This means that after a rotation of 45 deg from the vertical position,
+// one package will be identified as kPackageUpLeft (name?), and the other
+// package as kPackageDownRight. (wdc, based on discussion with pking)
 
-enum EQwDetectorPackage{kNullPKG, kUP, kDOWN}; //currently UP and DOWN are considered two packages. can include 
-enum EQwDetectorSType{kNullType, kDriftType, kScintType, kCerenType}; //currently there are three types of detecotrs available
-enum EQwDetectorType {
-  driftHDC,	// HDC Drift chamber
-  driftVDC,	// VDC Drift chamber 
-  gem,	        // GEM detector 
-  trigscint,	// Trigger scintillator
-  cerenkov	//Cerenkov detector 
+static const Int_t kNumTypes = 4;
+enum EQwDetectorType {kTypeNull,
+  kTypeDriftHDC,	// HDC Drift chamber
+  kTypeDriftVDC,	// VDC Drift chamber
+  kTypeGem,	        // GEM detector
+  kTypeTrigscint,	// Trigger scintillator
+  kTypeCerenkov		// Cerenkov detector
 };
-
-static const Int_t kNumPackages = 8;
-static const Int_t kNumPlanes = 4;
 
 
 //=======
 // Enumerator increments
 inline EQwRegionID& operator++ (EQwRegionID &region, int) {
-   return region = EQwRegionID(region + 1);
+  return region = EQwRegionID(region + 1);
 }
 inline EQwDirectionID& operator++ (EQwDirectionID &direction, int) {
-   return direction = EQwDirectionID(direction + 1);
+  return direction = EQwDirectionID(direction + 1);
+}
+inline EQwDetectorPackage& operator++ (EQwDetectorPackage &package, int) {
+  return package = EQwDetectorPackage(package + 1);
+}
+inline EQwDetectorType& operator++ (EQwDetectorType &type, int) {
+  return type = EQwDetectorType(type + 1);
 }
 
 

@@ -14,14 +14,14 @@ Uv2xy::Uv2xy(){
   double det;
 
   // Region 2
-  uc = rcDETRegion[0][kRegionID2-1][kDirectionU]->rCos*(-1);
-  us = rcDETRegion[0][kRegionID2-1][kDirectionU]->rSin;
-  vc = rcDETRegion[0][kRegionID2-1][kDirectionV]->rCos;
-  vs = rcDETRegion[0][kRegionID2-1][kDirectionV]->rSin*(-1);
+  uc = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionU]->rCos*(-1);
+  us = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionU]->rSin;
+  vc = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionV]->rCos;
+  vs = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionV]->rSin*(-1);
 
-  R2_offset[0]   = rcDETRegion[0][kRegionID2-1][kDirectionU]->PosOfFirstWire;
-  R2_offset[1]   = rcDETRegion[0][kRegionID2-1][kDirectionV]->PosOfFirstWire;
-  R2_wirespacing = rcDETRegion[0][kRegionID2-1][kDirectionU]->WireSpacing;
+  R2_offset[0]   = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionU]->PosOfFirstWire;
+  R2_offset[1]   = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionV]->PosOfFirstWire;
+  R2_wirespacing = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionU]->WireSpacing;
 
   det = ( uc * vs - vc * us );
   if( det ) {
@@ -35,11 +35,11 @@ Uv2xy::Uv2xy(){
   R2_xy[1][0] =  vc;
   R2_xy[1][1] =  vs;
 
-  //Region 3
-  uc = rcDETRegion[0][kRegionID3-1][kDirectionU]->rCos;
-  us = rcDETRegion[0][kRegionID3-1][kDirectionU]->rSin;
-  vc = rcDETRegion[0][kRegionID3-1][kDirectionV]->rCos;
-  vs = rcDETRegion[0][kRegionID3-1][kDirectionV]->rSin;
+  // Region 3
+  uc = rcDETRegion[kPackageUp][kRegionID3-1][kDirectionU]->rCos;
+  us = rcDETRegion[kPackageUp][kRegionID3-1][kDirectionU]->rSin;
+  vc = rcDETRegion[kPackageUp][kRegionID3-1][kDirectionV]->rCos;
+  vs = rcDETRegion[kPackageUp][kRegionID3-1][kDirectionV]->rSin;
 
   det = ( us * vc - vs * uc );
   if( det ) {
@@ -56,10 +56,12 @@ Uv2xy::Uv2xy(){
   return ;
 
 }
-//__________________________________________________________________
-Uv2xy::~Uv2xy(){
 
+//__________________________________________________________________
+Uv2xy::~Uv2xy()
+{
 }
+
 //__________________________________________________________________
 // The following functions need to have a shift put in to take into
 // account any offset positions between the different directions
@@ -67,34 +69,23 @@ double Uv2xy::uv2x(double u, double v, EQwRegionID region){
   if(region == kRegionID2)return (u + R2_offset[0]* R2_xy[0][0]-R2_wirespacing) * R2_uv[0][0] + (v + R2_offset[1] * R2_xy[1][0]-R2_wirespacing) * R2_uv[0][1];
   else return u * R3_uv[0][0] + v * R3_uv[0][1];
 }
+
 //__________________________________________________________________
 double Uv2xy::uv2y(double u, double v, EQwRegionID region){
   if(region == kRegionID2)return (u + R2_offset[0]* R2_xy[0][0]-R2_wirespacing) * R2_uv[1][0] + (v + R2_offset[1] * R2_xy[1][0]-R2_wirespacing) * R2_uv[1][1];
   else return u * R3_uv[1][0] + v * R3_uv[1][1];
 }
+
 //__________________________________________________________________
 double Uv2xy::xy2u(double x, double y, EQwRegionID region){
   if(region == kRegionID2)return R2_xy[0][0] * (x + R2_offset[0]) + R2_xy[0][1] * y + R2_wirespacing;
   else return R3_xy[0][0] * x + R3_xy[0][1] * y;
 }
+
 //__________________________________________________________________
 double Uv2xy::xy2v(double x, double y, EQwRegionID region){
   if(region == kRegionID2)return R2_xy[1][0] * (x + R2_offset[1]) + R2_xy[1][1] * y + R2_wirespacing;
   else return R3_xy[1][0] * x + R3_xy[1][1] * y;
 }
 //__________________________________________________________________
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

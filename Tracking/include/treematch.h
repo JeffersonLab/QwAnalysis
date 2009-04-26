@@ -37,11 +37,28 @@ class treematch {
     treematch();
     ~treematch();
 
-    void TgTrackPar (PartTrack *front, PartTrack *back, double *theta, double *phi, double *bending, double *ZVertex );
     //void TgInit (Track *track);
-    Track *TgPartMatch (PartTrack *front, PartTrack *back, Track *tracklist, enum EPackage package/*, enum Emethod method*/);
 
-    TreeLine *MatchR3 (TreeLine *front, TreeLine *back, EPackage up_low, EQwRegionID region, EQwDirectionID dir);
+    void TgTrackPar (
+	PartTrack *front,
+	PartTrack *back,
+	double *theta,
+	double *phi,
+	double *bending,
+	double *ZVertex );
+
+    Track* TgPartMatch (
+	PartTrack *front,
+	PartTrack *back,
+	Track *tracklist,
+	EQwDetectorPackage package/*, enum Emethod method*/);
+
+    TreeLine* MatchR3 (
+	TreeLine *front,
+	TreeLine *back,
+	EQwDetectorPackage package,
+	EQwRegionID region,
+	EQwDirectionID dir);
 
   private:
 

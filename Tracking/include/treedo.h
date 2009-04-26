@@ -20,16 +20,21 @@ class treedo {
 
     int tlayers;
     int tlaym1;
-    int ngood;
-    int nbad;
+
+    int ngood;		//!- number of good events
+    int nbad;		//!- number of bad events
 
     treedo();
 
+    void SetDebugLevel (int debuglevel) { debug = debuglevel; };
+
     void BCheck (double E, PartTrack *f, PartTrack *b, double TVertex, double ZVertex);
     Track* rcLinkUsedTracks (Track *track, int package);
-  Event * rcTreeDo(int iEventNo);
+    Event* rcTreeDo(QwHitContainer &hitlist);
 
   private:
+
+    int debug;		//!- debug level
 
 };
 

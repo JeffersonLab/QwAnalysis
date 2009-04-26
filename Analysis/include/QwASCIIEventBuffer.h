@@ -14,7 +14,6 @@
 
 #include "Det.h"
 #include "Hit.h"
-#include "enum.h"
 
 
 #include "QwHitContainer.h"
@@ -23,8 +22,6 @@
 
 
 
-#define NDetMax 1010
-#define NEventMax 1000
 #define DEBUG1 1
 
 
@@ -38,7 +35,7 @@ class QwASCIIEventBuffer : public QwEventBuffer
 
   ~QwASCIIEventBuffer(){
   };
- 
+
   Int_t OpenDataFile(const TString filename,const TString rw);
 
   Int_t LoadChannelMap(const char *geomname);
@@ -51,7 +48,7 @@ class QwASCIIEventBuffer : public QwEventBuffer
 
   //In the QwASCIIEventBuffer, Only InitrcDETRegion and GetrcDETRegion are used to merge Decoding and QTR software
 
-  
+
   //InitrcDETRegion will load rcDET and rcDETRegion by reading QwDetectorInfo vector. This vector is indexed by package and plane.
   //Currently we have only region = 2 working.
   Int_t InitrcDETRegion(std::vector< std::vector< QwDetectorInfo > > &);
@@ -60,43 +57,43 @@ class QwASCIIEventBuffer : public QwEventBuffer
   //internal function to update the rcDET
   void AddDetector(QwDetectorInfo, Int_t c);
 
-  
 
 
-  
+
+
   void  GetHitList(QwHitContainer & grandHitContainer){
     grandHitContainer.Append(fASCIIHits);
   }
 
- public:  
+ public:
 
 
 
-  
 
-  enum EPackage package;//from enum.h
+
+  enum EQwDetectorPackage package;//from QwTypes.h
   enum EQwRegionID region;//from QwTypes.h
   enum EQwDirectionID dir;//from QwTypes.h
-  enum Etype type;//from enum.h
+  enum EQwDetectorType type;//from QwTypes.h
 
- 
-  
-	  
+
+
+
   QwParameterFile *eventf ;
   Int_t CurrentEvent;
 
   int DetectId;
-  
+
 
 
 
 
   QwHit * currentHit;
   std::vector< QwHit > fASCIIHits;
-  
+
   std::vector< std::vector< QwDetectorInfo > > fDetectorInfo;//detector geometires
-  
- 
+
+
 
 
 

@@ -18,8 +18,6 @@ using namespace std;
 extern Det* rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 extern Det  rcDET[NDetMax];
 extern Options opt;
-extern EPackage operator++(enum EPackage &rs, int );
-extern Etype operator++(enum Etype &rs, int );
 
 /*____________________________________________________________
 Qoptions
@@ -38,18 +36,21 @@ that Qoptions will be greatly expanded in the future.
             program options.
  */
 //____________________________________________________________
-Qoptions::Qoptions(){
+Qoptions::Qoptions()
+{
+  debug = 0;
 }
 
 //____________________________________________________________
-void Qoptions::Get(const char *optname){
+void Qoptions::Get(const char *optname)
+{
 // TODO: this segfaults when file is not there
 
 	string word;
 
-	EPackage package;
+	EQwDetectorPackage package;
 	EQwRegionID region;
-	Etype type;
+	EQwDetectorType type;
 	//EQwDirectionID dir;
 	opt.MaxLevels = 0;
 	int maxlevels;
@@ -70,21 +71,21 @@ void Qoptions::Get(const char *optname){
 			optstream.ignore(256,'\n');
 			if (optstream.eof()) break;
 			optstream >> word;
-			std::cerr << "I've skipped a comment.  The next word is '" << word << "'" << std::endl;
+			if (debug) std::cout << "comment: " << word << std::endl;
 		}
 		if (optstream.eof()) break;
 		if (word == "") break; // skip empty lines at end of file
-		std::cerr << word << std::endl;
+		if (debug) std::cout << "line: " << word << std::endl;
 
 		if (word[0] == 'u' || word[0] == 'l') { // detector or general
 
 			switch (word[0]) { // upper or lower detector
 				case 'u':
-					package = w_upper; break;
+					package = kPackageUp;   break;
 				case 'l':
-					package = w_lower; break;
+					package = kPackageDown; break;
 				default :
-					package = w_nowhere; break;
+					package = kPackageNull; break;
 			}
 
 			optstream >> word;
@@ -99,14 +100,16 @@ void Qoptions::Get(const char *optname){
 
 			optstream >> word;
 			switch (word[0]){ // detector type
-				case 'd':
-					type = d_drift; break;
+				case 'h':
+					type = kTypeDriftHDC; break;
+				case 'v':
+					type = kTypeDriftVDC; break;
 				case 'g':
-					type = d_gem; break;
+					type = kTypeGem; break;
 				case 't':
-					type = d_trigscint; break;
+					type = kTypeTrigscint; break;
 				case 'c':
-					type = d_cerenkov; break;
+					type = kTypeCerenkov; break;
 			}
 
 			optstream >> maxlevels;

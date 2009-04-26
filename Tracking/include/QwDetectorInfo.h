@@ -12,10 +12,10 @@
 class QwDetectorInfo{
   ///
   ///  Tracking detector information class.  This will be used in an array
-  ///  indexed by the package, plane, and wire, 
+  ///  indexed by the package, plane, and wire,
   ///
 public:
-  
+
   QwDetectorInfo(){}
   void SetDetectorInfo(TString sdType, Double_t Zpos1, Double_t rot,Double_t  sp_res,Double_t  track_res,Double_t slope_match, TString spackage, Int_t region,TString planeDir, Double_t Det_originX,Double_t Det_originY,Double_t ActivewidthX,Double_t ActivewidthY,Double_t ActivewidthZ,Double_t WireSpace,Double_t FirstWire,Double_t W_rcos,Double_t W_rsin,Int_t totalwires, Int_t detId ){
 
@@ -36,20 +36,20 @@ public:
     TotalWires=totalwires;
     DetectorId=detId;
     if (sdType == "d" && region == 2)
-      dType = driftHDC;      
-    else if (sdType == "d" && region == 3)      
-      dType = driftVDC;
+      dType = kTypeDriftHDC;
+    else if (sdType == "d" && region == 3)
+      dType = kTypeDriftVDC;
     else if (sdType == "t")
-       dType = trigscint;
+       dType = kTypeTrigscint;
     else if (sdType == "c")
-       dType = cerenkov;
+       dType = kTypeCerenkov;
     else if (sdType == "g")
-       dType = gem;
+       dType = kTypeGem;
 
     if (spackage == "u")
-      package=kUP;//i.e. =1
+      package=kPackageUp;//i.e. =1
     else if (spackage == "d")
-      package=kDOWN;//i.e. =2
+      package=kPackageDown;//i.e. =2
 
     if (region == 1)
       Region = kRegionID1;
@@ -65,7 +65,7 @@ public:
     else if (planeDir == "v")
       PlaneDir=kDirectionV;
     else if (planeDir == "y")
-      PlaneDir=kDirectionY;    
+      PlaneDir=kDirectionY;
 
   };
 
@@ -99,7 +99,7 @@ public:
 
 	//reference channel index in list of reference channels (most prob. filled at load time)
 	int fReferenceChannelIndex;
-	
+
 
 	//list of active hits by absolute hit number from QwHit array. filled for each event; cleared after each event.
 	std::vector<int> fHitID;
@@ -110,16 +110,16 @@ public:
 	    fCrate=crt;
 	    fModule=mdl;
 	    fChannel=chn;
-	    fReferenceChannelIndex=1;		
+	    fReferenceChannelIndex=1;
 	  }
 
 	Bool_t IsHit()
 	  {
 	    return (!fHitID.empty());
 	  }
-	
+
 	Int_t GetNumHits(){return fHitID.size();};
-	
+
 	void ClearHits()
 	  {
 	    if (!fHitID.empty())

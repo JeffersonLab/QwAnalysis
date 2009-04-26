@@ -22,15 +22,11 @@ shorttree::shorttree() { }
 shorttree::~shorttree() { }
 
 void shorttree::print() {
-  //cout << "(" << minlevel << "," << maxlevel << ")" << endl;
-  cout << "bits = " << bits << endl;
-  int i = 0;
-  while(i<TLAYERS){
+  cout << "(" << minlevel << "," << maxlevel << ") ";
+  cout << "bits = " << bits << ": ";
+  for (int i = 0; i < TLAYERS; i++)
     cout << bit[i] << "," ;
-    i++;
-  }
-  cout << endl;
-  //cout << "xref = " << xref << endl;
+  cout << "xref = " << xref << endl;
 }
 
 } // QwTracking

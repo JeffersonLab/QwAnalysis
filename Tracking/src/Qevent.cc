@@ -11,7 +11,6 @@ using namespace std;
 // Qweak headers
 #include "QwTypes.h"
 #include "Det.h"
-#include "enum.h"
 
 
 #ifndef NDetMax
@@ -25,8 +24,6 @@ using namespace std;
 
 extern Det* rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 extern Det  rcDET[NDetMax];
-extern EPackage operator++(enum EPackage &rs, int );
-extern Etype operator++(enum Etype &rs, int );
 
 /*____________________________________________________________
 Qevent
@@ -45,15 +42,15 @@ documentation to describe the data in 'qweak.event'.
 //____________________________________________________________
 Qevent::Qevent()
 {
-	// Debug level
-	debug = 1;
+  // Debug level
+  debug = 1;
 
-	// Event counters
-	ievent = 0;
-	nevent = 0;
+  // Event counters
+  ievent = 0;
+  nevent = 0;
 
-	// Hit list pointer
-	hitlist = NULL;
+  // Hit list pointer
+  hitlist = NULL;
 }
 //____________________________________________________________
 int Qevent::Open(const char *eventfile)
@@ -69,7 +66,7 @@ int Qevent::Open(const char *eventfile)
 int Qevent::GetEvent()
 {
 
-  
+
 	// Line buffer
 	char line[256];
 	int maxchar = 256;
@@ -79,9 +76,9 @@ int Qevent::GetEvent()
 	Hit *newhit;
 
 	// Detector region/type/direction identifiers
-	enum EPackage package, package2;
+	EQwDetectorPackage package, package2;
 	EQwRegionID region, region2;
-	enum Etype    type,   type2;
+	enum EQwDetectorType    type,   type2;
 	EQwDirectionID dir,    dir2;
 
 	// In order to handle incomplete files, we keep track of when it is
@@ -254,6 +251,3 @@ int Qevent::GetEvent()
 		return -1;
 	}
 }
-
-//____________________________________________________________
-

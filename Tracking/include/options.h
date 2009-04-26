@@ -13,13 +13,17 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
+#include "QwTypes.h"
+
 /*! \brief Used to carry option information throughout the code.
  */
 class Options {
 
   public:
 
-    int levels[2][3][4]; // pattern resolution
+    // TODO One is added to avoid problems when last enum value is used (i.e.
+    // for package).  This structure really needs to disappear!
+    int levels[kNumPackages+1][kNumRegions+1][kNumTypes+1]; // pattern resolution
     int MaxLevels;
     int showEventPattern;
     int showMatchingPatterns;

@@ -116,13 +116,6 @@ using namespace QwTracking;
 #define TREEDIR "tree"
 
 #include "QwTypes.h"
-#include "enum.h"
-EPackage operator++(enum EPackage &rs, int ) {
-   return rs = (EPackage)(rs + 1);
-}
-Etype operator++(enum Etype &rs, int ) {
-   return rs = (Etype)(rs + 1);
-}
 
 
 /*! \todo (wdconinc) To avoid problems with missing references in libQw,
@@ -131,8 +124,9 @@ Etype operator++(enum Etype &rs, int ) {
     not a regular include file...  */
 
 /*! \todo (wdconinc) The following extern variables should then be instantiated
- in QwAnalysis.h.  */
-extern treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumPlanes][kNumDirections];
+    in QwAnalysis.h.  */
+
+extern treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 extern Options opt;
 
@@ -147,27 +141,30 @@ extern Options opt;
 //____________________________________________________________
 tree::tree()
 {
-	tlayers = 8; // set tlayers == maxhits for now (for region 3)
-	hshsiz = 511;
-	father.genlink = 0;
-	for (int i = 0; i < 4; i++) father.son[i] = 0;
-	father.maxlevel = -1;
-	father.minlevel = -1;
-	father.bits = 1;
-	for (int i = 0; i < TLAYERS; i++) father.bit[i] = 0;
-	father.xref = -1;
-	npat = 0;
+  tlayers = 8; // set tlayers == maxhits for now (for region 3)
 
-	debug = 1; // print debug information
+  hshsiz = 511;
+  father.genlink = 0;
+  for (int i = 0; i < 4; i++) father.son[i] = 0;
+  father.maxlevel = -1;
+  father.minlevel = -1;
+  father.bits = 1;
+  for (int i = 0; i < TLAYERS; i++) father.bit[i] = 0;
+  father.xref = -1;
+  npat = 0;
 
-	#define OFFS1   2 /* Next Sons have to be linked to offset 1 nodelist */
-	#define SONEND  3 /* End of son-description */
-	#define REALSON 4 /* Son and grandson description follows */
-	#define REFSON  5 /* Son reference follows */
+  // Reset debug level
+  debug = 0;
+
+  #define OFFS1   2 /* Next Sons have to be linked to offset 1 nodelist */
+  #define SONEND  3 /* End of son-description */
+  #define REALSON 4 /* Son and grandson description follows */
+  #define REFSON  5 /* Son reference follows */
 }
 
-tree::~tree() { }
-
+tree::~tree()
+{
+}
 
 //____________________________________________________________
 void tree::printtree(treenode *tn) {
@@ -191,88 +188,102 @@ void tree::printtree(treenode *tn) {
 
 void tree::rcInitTree()
 {
-	EQwRegionID region;  /// detector region
-	EPackage package;    /// detector orientation
-	Etype   type;      /// detector type (drift, cerenkov, etc)
-	EQwDirectionID direction; /// wire direction.
+  char filename[256];
+  int numlayers = 0;
+  double width = 0;
 
-	char filename[256];
-        int numlayers = 0;
-	double width = 0;
+  /// For each region (1, 2, 3, trigger, cerenkov, scanner)
+  for (EQwRegionID region  = kRegionID1;
+		   region <= kRegionID3; region++) {
 
-	/// For each region
-	for (region = kRegionID1; region <= kRegionID3; region++) {
+    // TODO Skip region 1 for now
+    if (region < kRegionID2) continue;
 
-	  /// ... and each orientation
-	  for (package = w_upper; package <= w_lower; package++) {
+    /// ... and for each package
+    for (EQwDetectorPackage package  = kPackageUp;
+			    package <= kPackageDown; package++) {
 
-	    if (region < kRegionID2) continue; /// skip region 1 for now
+      // TODO DEBUG Skip everything except up and down for now...
+      if (package != kPackageUp && package != kPackageDown) continue;
 
-	    /// ... and each type
-	    for (type = d_drift; type <= d_drift /*d_cerenkov*/; type++) {
+      /// ... and for each detector type
+      for (EQwDetectorType type  = kTypeDriftHDC;
+			   type <= kTypeDriftVDC; type++) {
 
-	      if (type != d_drift && region == kRegionID3) continue; /// in region 3 there are only VDCs
+	/// In region 2 there are only HDCs
+	if (region == kRegionID2 && type != kTypeDriftHDC) continue;
 
-	      /// ... and each wire direction
-	      for (direction = kDirectionX; direction <= kDirectionV; direction++) {
-	        // Skip wire direction Y
-	        if (direction == kDirectionY) continue;
+	/// In region 3 there are only VDCs
+	if (region == kRegionID3 && type != kTypeDriftVDC) continue;
 
-		///  Skip the NULL rcDETRegion pointers.
-		//   pking:  This is probably a configuration error,
-		//           which the user may want to be warned about.
-		if (rcDETRegion[package][region-1][direction] == NULL){
-		  std::cerr << "WARN:  rcDETRegion["<< package
-			    << "]["          << region-1
-			    << "]["          << direction
-			    << "] is NULL.  Should it be?"
-			    << std::endl;
-		  continue;
-		}
 
-	        /// Region 3 contains 8 layers
-	        if (region == kRegionID3 && type == d_drift) {
-	          numlayers = TLAYERS; // should be 8
-	          width = rcDETRegion[package][region-1][direction]->width[2];
-	        }
+	/// ... and for each wire direction (X, Y, U, V, R, theta)
+	for (EQwDirectionID direction  = kDirectionX;
+			    direction <= kDirectionV; direction++) {
 
-	        /// Region 2 contains 4 layers
-	        if (region == kRegionID2 && type == d_drift) {
-	          numlayers = 4; // this is clunky
-	          width = rcDETRegion[package][region-1][direction]->WireSpacing *
-	              rcDETRegion[package][region-1][direction]->NumOfWires;
-	        }
+	  // Skip wire direction Y
+	  if (direction == kDirectionY) continue;
 
-		/// Set up the filename with the following format
-		///   tree[numlayers]-[levels]-[u|l]-[1|2|3]-[d|g|t|c]-[n|u|v|x|y].tre
-		sprintf(filename, "%s/tree%d-%d-%c-%c-%c-%c.tre",
-			TREEDIR,
-			numlayers,
-			opt.levels[package][region-1][type],
-			"ul"[package],
-			"123"[region-1],
-			"dgtc"[type],
-			"nxyuv"[direction]);
-		if (debug) cout << "Tree filename: " << filename << endl;
+	  ///  Skip the NULL rcDETRegion pointers.
+	  //   pking:  This is probably a configuration error,
+	  //           which the user may want to be warned about.
+	  if (rcDETRegion[package][region-1][direction] == NULL) {
+	    std::cerr << "WARN:  rcDETRegion["<< package
+		      << "]["          << region-1
+		      << "]["          << direction
+		      << "] is NULL.  Should it be?"
+		      << std::endl;
+	    continue;
+	  }
 
-		/// Each element of rcTreeRegion will point to a pattern database
-		rcTreeRegion[package][region-1][type][direction] =
-		  inittree(filename,
-		    opt.levels[package][region-1][type],
-		    numlayers,
-		    width,
-		    package,
-		    type,
-		    region,
-		    direction);
+	/// Region 3 contains 8 layers
+	  if (region == kRegionID3) {
+	    numlayers = 8; // TODO replace this with info from the geometry file
+	    width = rcDETRegion[package][region-1][direction]->width[2];
+	  }
 
-	      } /// end of loop over wire directions
+	  /// Region 2 contains 4 layers
+	  if (region == kRegionID2) {
+	    numlayers = 4; // TODO replace this with info from the geometry file
+	    width = rcDETRegion[package][region-1][direction]->WireSpacing *
+		    rcDETRegion[package][region-1][direction]->NumOfWires;
+	  }
 
-	    } /// end of loop over detector types
+	  /// Set up the filename with the following format
+	  ///   tree[numlayers]-[levels]-[u|l]-[1|2|3]-[d|g|t|c]-[n|u|v|x|y].tre
+	  sprintf(filename, "%s/tree%d-%d-%c-%c-%c-%c.tre",
+		TREEDIR,
+		numlayers,
+		opt.levels[package][region-1][type],
+		"0ud"[package],
+		"0123TCS"[region],
+		"0hvgtc"[type],
+		"0xyuvrq"[direction]);
+	  if (debug) cout << "Tree filename: " << filename << endl;
 
-	  } /// end of loop over orientations
+	  /// Each element of rcTreeRegion will point to a pattern database
+	  rcTreeRegion[package][region-1][type][direction] =
+	    inittree(filename,
+		opt.levels[package][region-1][type],
+		numlayers,
+		width,
+		package,
+		type,
+		region,
+		direction);
+	  //cout << "rcTreeRegion(" << package << ","
+	  //			    << region << ","
+	  //			    << type << ","
+	  //			    << direction << ")" << endl;
 
-	} /// end of loop over regions
+        } /// end of loop over wire directions
+
+      } /// end of loop over detector types
+
+    } /// end of loop over packages
+
+  } /// end of loop over regions
+
 }
 
 
@@ -284,7 +295,14 @@ void tree::rcInitTree()
 
 *//*-------------------------------------------------------------------------*/
 
-int tree::consistent(treenode *tst, int level, EPackage package, Etype type, EQwRegionID region, EQwDirectionID dir){
+int tree::consistent(
+	treenode *tst,
+	int level,
+	EQwDetectorPackage package,
+	EQwDetectorType type,
+	EQwRegionID region,
+	EQwDirectionID dir)
+{
   //###############
   // DECLARATIONS #
   //###############
@@ -303,7 +321,7 @@ int tree::consistent(treenode *tst, int level, EPackage package, Etype type, EQw
   //###########
   // REGION 2 #
   //###########
-  if (type == d_drift && region == kRegionID2) {
+  if (type == kTypeDriftHDC && region == kRegionID2) {
     int templayers = 4;
     int tlaym1 = templayers -1 ;
     double z[templayers];
@@ -380,12 +398,12 @@ int tree::consistent(treenode *tst, int level, EPackage package, Etype type, EQw
       return 0; ///if the hit is out of bounds, cut the pattern
     }
     return 1; /// else, this is a good pattern
-  }
+
 
   //###########
   // REGION 3 #
   //###########
-  else if (type == d_drift && region == kRegionID3) {
+  } else if (type == kTypeDriftVDC && region == kRegionID3) {
 
     int templayers = 8;
 
@@ -395,41 +413,42 @@ int tree::consistent(treenode *tst, int level, EPackage package, Etype type, EQw
     double cellwidth = 1;//distance between wires
     //double cellwidth = 1.11125;
     //cerr << cellwidth << endl;
-    int firstnonzero=0;
+    int firstnonzero = 0;
 
-    for(i=0;i<templayers;i++){
-       if(b[i])firstnonzero++;
-       if(firstnonzero && !b[i])templayers=i+1;
+    for (i = 0; i < templayers; i++) {
+      if (b[i]) firstnonzero++;
+      if (firstnonzero && ! b[i]) templayers = i + 1;
     }
 
     /* ----- find the z position of each tree-detector relative to
              the first tree-detector                                   ----- */
 
-    z[0]=0;
-    for( i = 1; i < templayers; i++) {
-	  z[i]=z[i-1]+cellwidth;
+    z[0] = 0;
+    for (i = 1; i < templayers; i++) {
+      z[i] = z[i-1] + cellwidth;
     }
 
     /* Get the layer with the largest bit value (dependent on rules in marklin)*/
-    for( i = 0; i < templayers; i++){
-	  if (b[i] >= xf) {
-		  zf = i;
-		  xf = b[i];
-	  }
+    for (i = 0; i < templayers; i++) {
+      if (b[i] >= xf) {
+	zf = i;
+	xf = b[i];
+      }
     }
+
     /* ----- initial setting for the line check using the first and
              the last tree-detectors                                   ----- */
     dze = dza = zf;
-    x0 = b[0];                      /* Fetch the pattern for 1st tree-det.    */
-    x3a = x3e = xf;          /* Fetch the pattern for last tree-det.   */
+    x0 = b[0];                      /* Fetch the pattern for 1st tree-det.   */
+    x3a = x3e = xf;          /* Fetch the pattern for last tree-det.         */
     x3e++;
 
     /* ----- first check if a straight track through the bins in the
              first and the last tree-detectors fulfill the max angle
-             condition 		                                   ----- */
-    double m_min = -((double)tlayers-1)/((double)(1<<level)-1);
-    double m_max = -(4.0-1.0)/((double)(1<<level)-1);
-    double m = -((double)zf)/((double)(xf-x0));
+             condition                                                 ----- */
+    double m_min = -((double) tlayers - 1) / ((double) (1 << level) - 1);
+    double m_max = -(4.0 - 1.0) / ((double) (1 << level) - 1);
+    double m = -((double) zf) / ((double) (xf - x0));
 
     //cout << m_min << " " << m << " " << m_max << endl;
     if (m < m_min || m > m_max) return 0;
@@ -441,18 +460,18 @@ int tree::consistent(treenode *tst, int level, EPackage package, Etype type, EQw
 
     for (i = (int)zf - 1; i > 0; i--) {     /* loop from the back
                                              tree-detectors forward */
-      adda = (x0-b[i])*dza+(x3a-x0)*z[i];
-      if( adda <= -dza || dza <= adda)
+      adda = (x0-b[i]) * dza + (x3a-x0) * z[i];
+      if (adda <= -dza || dza <= adda)
         return 0;
       adde = (x0-b[i])*dze+(x3e-x0-1)*z[i];
-      if( adde <= -dze || dze <= adde)
+      if (adde <= -dze || dze <= adde)
         return 0;
-      if( i > 1) {
-        if( adda > 0) {
+      if (i > 1) {
+        if (adda > 0) {
 	  x3e = b[i]+1;
 	  dze = z[i];
         }
-        if( adde < 0) {
+        if (adde < 0) {
 	  x3a = b[i];
 	  dza = z[i];
         }
@@ -465,59 +484,48 @@ int tree::consistent(treenode *tst, int level, EPackage package, Etype type, EQw
   // OR ELSE  #
   //###########
   } else {
-	cerr << "This function is only a stub." << endl;
-	return 0;
+    cerr << "Warning: no support for the creation of this search tree." << endl;
+    return 0;
   }
-
-}
-
-/*
-int tree::consistent(treenode *tst, int level,enum Etype type,enum EQwRegionID region){
-	cerr << type << "," << region << "," << level << endl;
-
-	cerr << "This function is only a stub" << endl;
-//stub function for consistent until the rest of tree is implemented
-	return 1;
-}
-*/
-
-//____________________________________________________________
-treenode * tree::existent(treenode *tst, int hash){
-	treenode *walk = generic[hash];
-	while( walk) {
-		if(!memcmp( tst->bit,walk->bit,tlayers*sizeof(tst->bit[0]))){
-      			return walk;                  /* found it! */
-		}
-    		walk = walk->genlink;           /* nope, so look at the next pattern */
-  	}
-  	return 0;
 }
 
 //____________________________________________________________
-treenode * tree::nodeexists(nodenode *nd, treenode *tr){
-	while( nd) {
-		if( !memcmp(nd->tree->bit,tr->bit, tlayers * sizeof(tr->bit[0])))
-      			return nd->tree;  /* found it! */
-    		nd = nd->next;      /* nope, so look at the next son of this father */
-  	}
-	return 0;
+treenode* tree::existent (treenode *tst, int hash)
+{
+  treenode *walk = generic[hash];
+  while (walk) {
+    if (! memcmp (tst->bit, walk->bit, tlayers * sizeof(tst->bit[0])))
+      return walk;		/* found it! */
+    walk = walk->genlink;	/* nope, so look at the next pattern */
+  }
+  return 0;
 }
 
 //____________________________________________________________
-treenode * tree::treedup(treenode *todup){
-	treenode *ret;
+treenode* tree::nodeexists (nodenode *nd, treenode *tr)
+{
+  while (nd) {
+    if (! memcmp(nd->tree->bit, tr->bit, tlayers * sizeof(tr->bit[0])))
+      return nd->tree;		/* found it! */
+    nd = nd->next;		/* nope, so look at the next son of this father */
+  }
+  return 0;
+}
 
-	ret = (treenode*)malloc(sizeof(treenode)); /* allocate the memory for the copy treenode          */
-        //ret = new treenode;
-	//assert(ret);                               /* cry if there was an error  */
-	*ret = *todup;                             /* copy the treenode todup to
+//____________________________________________________________
+treenode* tree::treedup (treenode *todup)
+{
+  treenode *ret;
+
+  ret = (treenode*) malloc (sizeof(treenode)); /* allocate the memory for the copy treenode          */
+  //ret = new treenode;
+  //assert(ret);                             /* cry if there was an error  */
+  *ret = *todup;                             /* copy the treenode todup to
                                                 the new treenode           */
-	ret->xref = -1L;                           /* set the external reference
+  ret->xref = -1L;                           /* set the external reference
                                                 link                       */
-	return ret;
-
+  return ret;
 }
-
 //____________________________________________________________
 
 /*------------------------------------------------------------------------*//*!
@@ -538,7 +546,14 @@ treenode * tree::treedup(treenode *todup){
 
 *//*-------------------------------------------------------------------------*/
 
-void tree::marklin(treenode *Father,int level,enum EPackage package, enum Etype type,enum EQwRegionID region,EQwDirectionID dir){
+void tree::marklin (
+	treenode *Father,
+	int level,
+	EQwDetectorPackage package,
+	EQwDetectorType type,
+	EQwRegionID region,
+	EQwDirectionID dir)
+{
   //###############
   // DECLARATIONS #
   //###############
@@ -551,26 +566,25 @@ void tree::marklin(treenode *Father,int level,enum EPackage package, enum Etype 
   int maxs;
   int insert_hitpattern;
   int hsh;
-  if(level == maxlevel){
-    return;
-  }
+
+  if (level == maxlevel) return;
   son = *Father;
-  i= (1<<tlayers);	// (1<<x) is equal to 2^x
-				/* Number of possible son patterns for this
+  i = (1 << tlayers);	// (1<<x) is equal to 2^x
+			/* Number of possible son patterns for this
                               this Father*/
 
   //###########
   // REGION 2 #
   //###########
-  if (region == kRegionID2 && type == d_drift) {
-    tlayers = 4;///Four u,v, OR x wire planes an electron can cross
-    i = (1<<tlayers);
+  if (region == kRegionID2 && type == kTypeDriftHDC) {
+    tlayers = 4; /// Four u,v, OR x wire planes an electron can cross
+    i = (1 << tlayers);
     while (i--) {    //loop through all possibilities
       offs = 1;
       maxs = 0;
       flip = 0;
       for (j = 0; j < tlayers; j++) {
-	if(i & (1<<j)){
+	if (i & (1 << j)) {
 	  son.bit[j] = (Father->bit[j]<<1) + 1;
 	} else {
 	  son.bit[j] = (Father->bit[j]<<1);
@@ -593,16 +607,15 @@ void tree::marklin(treenode *Father,int level,enum EPackage package, enum Etype 
          outer detectors (1 and 2).                             */
 
 
-      if (maxs-offs > abs(son.bits)) {
+      if (maxs - offs > abs(son.bits))
         continue;
-      }
 
       /* compute the offset of this hit pattern and, if non-zero,
          shift the pattern over by the offset                   */
 
-      if (offs)	{			/* If there is an offset, so         */
+      if (offs) {			/* If there is an offset, so         */
         for (j = 0; j < tlayers; j++)	/* shift all hits over this offset   */
-	  son.bit[j] --;
+	  son.bit[j]--;
       }
       /* see if the hit pattern is a flipped pattern and, if so,
          set the "pattern is flipped" flag and flip the pattern */
@@ -644,7 +657,7 @@ void tree::marklin(treenode *Father,int level,enum EPackage package, enum Etype 
          level of the treesearch division.
                                                                    */
 
-      if (!sonptr && 0 == (sonptr = existent( &son, hsh))) {
+      if (! sonptr && 0 == (sonptr = existent( &son, hsh))) {
         /* the pattern is completely unknown.  So, now check if
            it is consistent with a straight line trajectory
            through the tree-detectors whose slope is within the
@@ -711,14 +724,14 @@ void tree::marklin(treenode *Father,int level,enum EPackage package, enum Etype 
            searched above, so now the matching treenode for it
            needs to be updated so that it will be valid this level
            of bin division.                                         */
-      }
-      else if( (sonptr->minlevel > level  && consistent( &son, level+1,package,type,region,dir) )
-	          ||	sonptr->maxlevel < level) {
+
+      } else if ((sonptr->minlevel > level && consistent(&son, level+1, package, type, region, dir))
+	          || sonptr->maxlevel < level) {
 
 	/*  1st: Update the levels of the found treenode to
             include this level                                  */
-        sonptr->minlevel = (int)min(level,sonptr->minlevel);
-      	sonptr->maxlevel = (int)max(level,sonptr->maxlevel);
+        sonptr->minlevel = (int) min(level, sonptr->minlevel);
+      	sonptr->maxlevel = (int) max(level, sonptr->maxlevel);
 
 	/*  2nd: Update the levels of all the sons for this
             treenode
@@ -734,7 +747,7 @@ void tree::marklin(treenode *Father,int level,enum EPackage package, enum Etype 
 	  }
           */
         npat++;
-      	marklin( sonptr, level+1,package,type,region,dir);
+      	marklin (sonptr, level+1, package, type, region, dir);
       }
 
 	/* Since one of the recursive call to marklin()
@@ -743,17 +756,17 @@ void tree::marklin(treenode *Father,int level,enum EPackage package, enum Etype 
            database, a final check is made to see if the hit
            pattern is already in the database before actually
            inserting the treenode into the database                 */
-      if( insert_hitpattern  &&                          /* "insert pattern"
+      if (insert_hitpattern  &&                          /* "insert pattern"
                                                           flag is set and    */
           !nodeexists( Father->son[offs+flip], &son)) {  /* final check if hit
                                                           pattern is already
 							  in the database    */
-        nodptr = (nodenode*)malloc( sizeof( nodenode));
+        nodptr = (nodenode*) malloc (sizeof(nodenode));
         //nodenode *nodptr = new nodenode;    /* create a nodenode  */
-      	assert(nodptr);                                    /* cry if error       */
-        nodptr->next             = Father->son[offs+flip]; /* append it onto
+      	assert(nodptr);                                  /* cry if error       */
+        nodptr->next           = Father->son[offs+flip]; /* append it onto
                                                           the son list       */
-      	nodptr->tree             = sonptr;
+      	nodptr->tree           = sonptr;
       	Father->son[offs+flip] = nodptr;
       }
     }
@@ -762,7 +775,7 @@ void tree::marklin(treenode *Father,int level,enum EPackage package, enum Etype 
   //###########
   // REGION 3 #
   //###########
-  else if (region == kRegionID3 && type == d_drift) {
+  else if (region == kRegionID3 && type == kTypeDriftVDC) {
     tlayers = 8;
     offs=1;
     maxs=0;
@@ -1006,73 +1019,74 @@ void tree::marklin(treenode *Father,int level,enum EPackage package, enum Etype 
 
 
 //____________________________________________________________
-void tree::treeout(treenode *tn, int level, int off)
+void tree::treeout (treenode *tn, int level, int off)
+// TODO (wdc) wtf? nested double loop over i???  this can't be right!
 {
-	nodenode *nd;
-	int v;
+  nodenode *nd;
+  int v;
 
-	if (level == maxlevel)	/* the level of the treenode is deeper     */
-		return;		/* than the depth of the database.         */
+  if (level == maxlevel)	/* the level of the treenode is deeper     */
+    return;			/* than the depth of the database.         */
 
-	for (int i = 0; i < tlayers; i++) {  /* loop over tree-detectors in hit pattern */
-		v = tn->bit[i];              /* the "on" bin for a tree-detector        */
-		if (off & 2)                 /* is it reversed?                         */
-			v = tn->bits - 1 - v;/* yes, then flip it                       */
-		if (off & 1)                 /* is it offset?                           */
-			v++;                 /* yes, then apply the offset              */
-		printf("%d%*s|%*s*%*s|\n", level, level, "", /* print the bin for this  */
-			v, "", tn->bits - 1 - v, "");        /* tree-detector           */
-		puts("");
+  for (int i = 0; i < tlayers; i++) {  /* loop over tree-detectors in hit pattern */
+    v = tn->bit[i];		/* the "on" bin for a tree-detector        */
+    if (off & 2)		/* is it reversed?                         */
+      v = tn->bits - 1 - v;	/*   yes, then flip it                     */
+    if (off & 1)		/* is it offset?                           */
+      v++;			/*   yes, then apply the offset            */
+    printf("%d%*s|%*s*%*s|\n", level, level, "",/* print the bin for this  */
+      v, "", tn->bits - 1 - v, "");		/* tree-detector           */
+    puts("");
 
-		for (i = 0; i < 4; i++) {    /* now loop over the four types (normal,
-		                                offset, flipped, flipped offset) of
-		                                the sons below this treenode            */
-			nd = tn->son[i];     /* nodenode for the son type               */
-			while (nd) {         /* loop over nodenodes of this type        */
-				treeout(nd->tree, level+1, i); /* display this nodenode's treenode */
-				nd = nd->next;                 /* next son of this type bitte */
-			}
-		}
-	} /* end of loop over tree-detectors */
+    for (i = 0; i < 4; i++) {	/* now loop over the four types (normal,
+                                   offset, flipped, flipped offset) of
+                                   the sons below this treenode            */
+      nd = tn->son[i];		/* nodenode for the son type               */
+      while (nd) {		/* loop over nodenodes of this type        */
+        treeout(nd->tree, level+1, i); /* display this nodenode's treenode */
+        nd = nd->next;                 /* next son of this type bitte */
+      }
+    }
+  } /* end of loop over tree-detectors */
 }
 
 //____________________________________________________________
 void tree::freetree()
 {
 	treenode *tn,*ltn;
-  	nodenode *nd,*lnd;
-  	int i,j;
+	nodenode *nd,*lnd;
+	int i,j;
 
-  	for( i = 0; i < HSHSIZ; i++) { /* loop over the entries in the genlink
+	for( i = 0; i < HSHSIZ; i++) { /* loop over the entries in the genlink
                                     hash table                            */
 
-    		tn = generic[i];		 /* fetch the first treenode for this
+		tn = generic[i];		 /* fetch the first treenode for this
 				    hash entry                            */
-    		while(tn) {                  /* loop over the treenodes for this hash
+		while(tn) {                  /* loop over the treenodes for this hash
                                     table entry                           */
 
-      			for( j = 0; j < 4; j++) {  /* loop over the four types of sons
+			for( j = 0; j < 4; j++) {  /* loop over the four types of sons
                                     connected to this treenode            */
 
 				nd = tn->son[j];         /* fetch the first nodenode of this type */
 				while(nd) {              /* loop over all nodenodes of this type  */
-	  				nd = (lnd = nd)->next; /* lnd = pointer to treenode attached
+					nd = (lnd = nd)->next; /* lnd = pointer to treenode attached
                                           to this nodenode                */
 	                         /*  nd = next nodenode attached to this
                                           nodenode                        */
-	  				free(lnd);             /* free the memory for the treenode      */
+					free(lnd);             /* free the memory for the treenode      */
 				} /* end loop over nodenodes */
 
-      			}
-      			tn = (ltn = tn)->genlink;  /* ltn = this treenode                   */
+			}
+			tn = (ltn = tn)->genlink;  /* ltn = this treenode                   */
                                  /*  tn = genlink treenode attached to
 				          this treenode                   */
-      			free(ltn);                 /* free the memory for this treenode     */
+			free(ltn);                 /* free the memory for this treenode     */
 
-    		} /* end loop over genlink treenodes for a hash table entry */
+		} /* end loop over genlink treenodes for a hash table entry */
 	} /* end loop over the genlink hash table entries */
 
-  	return;
+	return;
 }
 
 //____________________________________________________________
@@ -1085,7 +1099,13 @@ void tree::freetree()
 
     @return		The search treeregion
  */
-treeregion * tree::readtree(char *filename, int levels, int tlayers, double rwidth, int dontread) {
+treeregion* tree::readtree (
+	char *filename,
+	int levels,
+	int tlayers,
+	double rwidth,
+	int dontread)
+{
 	FILE *f = 0;
 
 	shorttree *stb;
@@ -1158,7 +1178,16 @@ treeregion * tree::readtree(char *filename, int levels, int tlayers, double rwid
     to create a different level of pattern resolution, this function will
     automatically create the new databases.
  */
-treeregion * tree::inittree(char *filename, int levels, int tlayer, double width,enum EPackage package, enum Etype type,enum EQwRegionID region,EQwDirectionID dir){
+treeregion* tree::inittree (
+	char *filename,
+	int levels,
+	int tlayer,
+	double width,
+	EQwDetectorPackage package,
+	EQwDetectorType type,
+	EQwRegionID region,
+	EQwDirectionID dir)
+{
 // TODO: This routine assumes that the directory 'trees' exists and doesn't create it itself. (wdconinc)
 	treeregion *trr;
 	treenode  *back;
@@ -1193,7 +1222,7 @@ treeregion * tree::inittree(char *filename, int levels, int tlayer, double width
 		fflush(stdout);
 
 		/// Generate a new tree database
-		back = _inittree( tlayer,package,type,region,dir);
+		back = _inittree (tlayer, package, type, region, dir);
 
 		if( !back ) {
 			cerr << "QTR: Tree couldn't be built.\n";
@@ -1227,21 +1256,28 @@ treeregion * tree::inittree(char *filename, int levels, int tlayer, double width
     the iterative pattern generator.  the root treenode is created
     as the simplest pattern possible, and passed to marklin.
  */
-treenode * tree::_inittree(int tlayer,enum EPackage package, enum Etype type,enum EQwRegionID region, EQwDirectionID dir){
-	treenode *ret = treedup(&father);/// generate a copy of the father to start off this treesearch database
-	memset(generic,0,sizeof(generic)); /// clear genlink hash table
-	marklin(ret, 0,package,type,region,dir);///call the recursive tree generator
-	ret->genlink = generic[0];/// finally, add the father to the genlink hash table
-	generic[0] = ret;
-	cerr << "npat : " << npat<< " " << region << " " << dir << endl;
-	npat = 0;
-	return ret;
+treenode * tree::_inittree (
+	int tlayer,
+	EQwDetectorPackage package,
+	EQwDetectorType type,
+	EQwRegionID region,
+	EQwDirectionID dir)
+{
+  treenode *ret = treedup(&father); /// generate a copy of the father to start off this treesearch database
+  memset (generic, 0, sizeof(generic)); /// clear genlink hash table
+  marklin (ret, 0, package, type, region, dir);///call the recursive tree generator
+  ret->genlink = generic[0];/// finally, add the father to the genlink hash table
+  generic[0] = ret;
+  cerr << "npat : " << npat << " " << region << " " << dir << endl;
+  npat = 0;
+  return ret;
 }
 
 //____________________________________________________________
 /*! This function iteratively writes the patterns to the database.
  */
-int tree::_writetree(treenode *tn, FILE *fp, int tlayers){
+int tree::_writetree (treenode *tn, FILE *fp, int tlayers)
+{
 	int i;
 	nodenode *nd;
 	//tn->print();///use this for debugging.
@@ -1280,7 +1316,12 @@ int tree::_writetree(treenode *tn, FILE *fp, int tlayers){
 
     @return	The number of patterns written to the file
  */
-long tree::writetree(char *filename, treenode *tn, int levels, int tlayers, double width)
+long tree::writetree (
+	char *filename,
+	treenode *tn,
+	int levels,
+	int tlayers,
+	double width)
 {
 	// Ensure that the tree directory is created correctly
 	bfs::path treedirpath (std::string(getenv("QWANALYSIS")) + "/" + TREEDIR);

@@ -6,11 +6,14 @@ program options.
 */
 class Qoptions{
 
-public:
+ public:
+
   Qoptions();
   void Get(const char *optionsfile);
 
-private:
+ private:
+
+  int debug; // debug level
 
 };
 

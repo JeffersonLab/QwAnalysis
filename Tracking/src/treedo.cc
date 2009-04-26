@@ -99,14 +99,9 @@ using namespace std;
 using namespace QwTracking;
 
 
-// Enumerator increments
-extern EPackage operator++(enum EPackage &rs, int );
-extern Etype operator++(enum Etype &rs, int );
-/*extern Eorientation operator++(enum Eorientation &rs, int );*/
-
 extern TreeLine  *trelin;
 extern int trelinanz;
-extern treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumPlanes][kNumDirections];
+extern treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 extern Options opt;
 
@@ -114,7 +109,11 @@ extern Options opt;
 
 treedo::treedo ()
 {
+  /* Reset counters of number of good and back events */
   ngood = nbad = 0;
+
+  /* Reset debug level */
+  debug = 0;
 }
 
 
@@ -210,50 +209,42 @@ Track * treedo::rcLinkUsedTracks( Track *track, int package )
                using the now known track position and momentum for iterating
                the hit positions in the tracking chambers.
 
-   inputs:  (1) int iEventNo - the event number
+   inputs:  (1) QwHitContainer &hitlist - pointer to the QwHitContainer object
+                                          with the hit list.
 
-   outputs: (1) Event *rcTreeDo() - pointer to the structure with all
+   outputs: (1) Event* rcTreeDo() - pointer to the structure with all
                                     of the reconstruction information for
                                     this event.
 
 *//*-------------------------------------------------------------------------*/
-
-Event * treedo::rcTreeDo (int iEventNo)
+// TODO Should QwHitContainer be passed as const? (wdc)
+Event* treedo::rcTreeDo (QwHitContainer &hitlist)
 {
-  enum EPackage package;	/* Loop counter for TOP and BOTTOM detectors */
-//  enum Emethod method;	/* Loop counter over reconstruction method   */
-//  enum EFrontBack frback;	/* Loop counter over FRONT or BACK regions   */
-  EQwDirectionID dir;		/* Loop counter over wire pitches (U,V,X)    */
-  EQwRegionID region;		/* Loop counter over regions                 */
-  enum Etype type;		/* Loop counter over detector types          */
-//  enum Eorientation orient;
-
-  int i,k;
-  int debug = 1;
+  int k;
   int dlayer = 0;	      /* number of detector planes in the search    */
   double A[3][2];	      /* conversion between xy and uv */
   Event *event;               /* area for storing the reconstruction info   */
   PartTrack *area = 0;
-  Det *rd/*, *rnd*/;              /* pointers for moving through the linked
+  Det *rd/*, *rnd*/;          /* pointers for moving through the linked
                                  lists of detector id and hit information   */
-  TreeLine *trelin1,*trelin2;
-  Hit *H;
+  TreeLine *trelin1, *trelin2;
 
   treesearch  TreeSearch;
   treecombine TreeCombine;
   treesort    TreeSort;
   treematch   TreeMatch;
 
-  /*int charge;
+  /*
+  int charge;
   int found_front = 0;
   double ZVertex, bending, theta, phi, ESpec;
-  int outbounds = 0;*/
-  int levelmax;
-  static int init = 0;
+  int outbounds = 0;
+  */
+
 
   // Region 2 bit patterns
-  static char *channel[TLAYERS];
-  static int  *hashchannel[TLAYERS];
+  static char *channelr2[TLAYERS];
+  static int  *hashchannelr2[TLAYERS];
 
   // Number of wires in region 3
   const int numWiresr3 = 281;
@@ -262,53 +253,95 @@ Event * treedo::rcTreeDo (int iEventNo)
   static int  *hashchannelr3[numWiresr3 + 1];
 
 
-
-  event = (Event *) calloc(1, sizeof(Event));
+  event = (Event*) calloc(1, sizeof(Event));
   assert(event);
 
-  // Initialize stuff if first event
+  /// Initialize if this is the first event.
+  // TODO Could we put this in a constructor method? (wdc)
+  static int init = 0;
   if (!init) {
-    levelmax = opt.MaxLevels + 1;      /* determine the bin-division depth
-                                          of the tree-search               */
+    int levelmax;
+    int levels;
 
-    /* reserve space for region 2 bit patterns */
-    for (i = 0; i < TLAYERS; i++) {
-      channel[i]     = (char*) malloc( 1UL << levelmax );
-      hashchannel[i] =  (int*) malloc( (sizeof(int) * (1UL << (levelmax-1))) );
-      assert (channel[i] && hashchannel[i]);
+    /* Determine the bin-division depth of the tree-search */
+    levelmax = opt.MaxLevels + 1;
+
+    /* Reserve space for region 2 bit patterns */
+    int dbg_levels = opt.levels[kPackageUp][kRegionID2-1][kTypeDriftHDC];
+    levels = levelmax;
+    for (int i = 0; i < TLAYERS; i++) {
+      channelr2[i]     = (char*) malloc (1UL << levels);
+      hashchannelr2[i] =  (int*) malloc ((sizeof(int) * (1UL << (levels - 1))));
+      assert (channelr2[i] && hashchannelr2[i]);
     }
 
-    /* reserve space for region 3 bit patterns */
-    for (i = 0; i < numWiresr3 + 1; i++) {
-      channelr3[i]     = (char*) malloc( 1UL << (opt.levels[0][2][0]) );
-      hashchannelr3[i] =  (int*) malloc( (sizeof(int) * (1UL << (opt.levels[0][2][0]-1))) );
+    /* Reserve space for region 3 bit patterns */
+    levels = opt.levels[kPackageUp][kRegionID3-1][kTypeDriftHDC];
+    for (int i = 0; i < numWiresr3 + 1; i++) {
+      channelr3[i]     = (char*) malloc (1UL << levels);
+      hashchannelr3[i] =  (int*) malloc ((sizeof(int) * (1UL << (levels - 1))) );
       assert (channelr3[i] && hashchannelr3[i]);
     }
 
-    if (debug) cout << "rcTreeDo: initialized" << endl;
+    if (debug) cout << "[treedo::rcTreeDo] Initialization complete." << endl;
     init++;
   }
 
 
-  // Loop through all detector packages / regions / directions
-  for (package = w_upper; package <= w_upper /*w_lower*/; package++) {
-    for (region = kRegionID2 /*r1*/; region <= kRegionID3; region++) {
-      for (type = d_drift; type <= d_drift /*d_cerenkov*/; type++) {
+  /// Loop through all detector packages
+  // Normally only two of these will generate actual tracks,
+  // since there are only two tracking packages for the eight
+  // possible positions
+  for (EQwDetectorPackage package  = kPackageUp;
+			  package <= kPackageDown; package++) {
+    if (debug) cout << "[treedo::rcTreeDo] Package: " << package << endl;
 
-	// Old order was: [U, V, X], Y
-	// New order is: [X, Y, U, V], R, Theta
-	// with included directions in brackets
-	for (dir = kDirectionX; dir <= kDirectionV; dir++) {
+    // Currently assume that only the up and down octants contain the tracking
+    // detectors.  When rotation is included, this will have to be modified to
+    // take into account that the tracking detectors are in different octants.
+    if (package != kPackageUp && package != kPackageDown) continue;
 
-	  // Skip wire direction Y
-	  if (dir == kDirectionY) continue;
 
-	  // Debug output
-	  if (debug) cout << endl;
-	  if (debug) rcDETRegion[package][region-1][dir]->print();
+    /// Loop through the detector regions
+    for (EQwRegionID region  = kRegionID2;
+		     region <= kRegionID3; region++) {
+      if (debug) cout << "[treedo::rcTreeDo]  Region: " << region << endl;
+
+
+      /// Loop over the detector types (only drift chambers are used)
+      for (EQwDetectorType type  = kTypeDriftHDC;
+			   type <= kTypeDriftVDC; type++) {
+	if (debug) cout << "[treedo::rcTreeDo]   Detector: " << type << endl;
+
+
+	/// Loop through the detector directions
+	for (EQwDirectionID dir  = kDirectionX;
+			    dir <= kDirectionV; dir++) {
+          if (debug) cout << "[treedo::rcTreeDo]    Direction: " << dir << endl;
+
+
+	  // Skip wire direction Y for region 2
+	  if (region == kRegionID2
+	      && dir == kDirectionY) continue;
+	  // Skip wire direction X and Y for region 3
+	  if (region == kRegionID3
+	      && (dir == kDirectionX || dir == kDirectionY)) continue;
+
+	  // Check whether there are any detectors defined in that geometry
+	  if (! rcDETRegion[package][region-1][dir]) {
+	    if (debug) cout << "[treedo::rcTreeDo]     No such detector!" << endl;
+	    continue;
+	  }
+	  if (! rcTreeRegion[package][region-1][type][dir]) {
+	    if (debug) cout << "[treedo::rcTreeDo]     No such tree!" << endl;
+	    continue;
+	  }
 
 /*! ---- 1st: check that the direction is tree-searchable               ---- */
-
+	  //cout << "rcTreeRegion(" << package << ","
+	  //			    << region << ","
+	  //			    << type << ","
+	  //			    << dir << ")" << endl;
 	  if (rcTreeRegion[package][region-1][type][dir]->searchable == false) {
 	    (event->treeline[package][region-1][type][dir]) = 0;
 	    // printf("%i %i %i %i\n",package,region,type,dir);
@@ -326,7 +359,7 @@ Event * treedo::rcTreeDo (int iEventNo)
 /*! ---- 3rd: create the bit patterns for the hits                     ---- */
 
 	  /* Region 3 */
-	  if (region == kRegionID3) {
+	  if (region == kRegionID3 && type == kTypeDriftVDC) {
 
             dlayer = 0; /* set "number of detectors" to zero            */
 	    int decrease;
@@ -334,9 +367,9 @@ Event * treedo::rcTreeDo (int iEventNo)
 
 	    /* Loop over the like-pitched planes in a region */
 	    for (k = 0, rd = rcDETRegion[package][region-1][dir], decrease = 0;
-	         rd; rd = rd->nextsame, decrease += numWiresr3, k++ ) {
+	         rd; rd = rd->nextsame, decrease += numWiresr3, k++) {
 
-	      if (debug) cout << "-> ";
+	      if (debug) cout << "      ";
 	      if (debug) rd->print();
 
 	      trelin = 0; // clear the linked list for the 2nd layer
@@ -344,45 +377,68 @@ Event * treedo::rcTreeDo (int iEventNo)
 	      A[dir][1] = rd->rSin; /* sin (angle of wire pitch) */
 
 	      if (debug) cout << "Setting pattern hits (region 3)" << endl;
-	      for (i = 0; i < numWiresr3 + 1; i++) {
+	      for (int i = 0; i < numWiresr3 + 1; i++) {
 	        memset(channelr3[i],     0,                1UL << (opt.levels[0][2][0]   ));
 	        memset(hashchannelr3[i], 0, sizeof(int) * (1UL << (opt.levels[0][2][0]-1)));
 	      }
 
-	      // Loop over hit list in this detector
-	      H = rd->hitbydet;
-	      while (H && H->wire <= numWiresr3 + decrease) {
-		// (See treesearch.cc for the different ways in which TsSetPoint
-		//  can be called.)
-		TreeSearch.TsSetPoint(
+	      /// Get the corresponding hit from the hitlist
+	      QwHitContainer::iterator qwhit;
+	      QwHit* hit = 0;
+	      if (debug) cout << "Looping over QwHitContainer" << endl;
+	      for (qwhit  = hitlist.begin();
+		   qwhit != hitlist.end(); qwhit++) {
+
+		QwDetectorID detector = qwhit->GetDetectorID();
+		if (detector.fPackage == package
+		 && detector.fRegion == region
+		 && detector.fDirection == dir
+		 && detector.fPlane == rd->ID) {
+		  hit = &(*qwhit);
+
+		  // See treesearch.cc for the different ways in which TsSetPoint
+		  // can be called.
+		  int wire = hit->GetDetectorID().fElement;
+		  TreeSearch.TsSetPoint(
 			rcTreeRegion[package][region-1][type][dir]->rWidth,
-			H,
-			channelr3[H->wire-decrease], hashchannelr3[H->wire-decrease],
+			hit,
+			channelr3[wire - decrease],
+			hashchannelr3[wire - decrease],
 			1U << (opt.levels[package][region-1][type]-1));
 
-		// Print hit pattern, if requested
-		if (opt.showEventPattern) {
-		  cout << "w" << H->wire << ":";
-		  for (int i = 0; i < (signed int) (1UL << (opt.levels[package][region-1][type]))-1; i++) {
-		    if (channelr3[H->wire-decrease][i] == 1)
-		      cout << "|";
-		    else
-		      cout << ".";
+		  // Print hit pattern, if requested
+		  if (opt.showEventPattern) {
+		    cout << "w" << wire << ":";
+		    for (int i = 0; i < (signed int) (1UL << (opt.levels[package][region-1][type]))-1; i++) {
+		      if (channelr3[wire - decrease][i] == 1)
+			cout << "|";
+		      else
+			cout << ".";
+		      }
+		    cout << endl;
 		  }
-		  cout << endl;
-		}
 
-		// Next hit in same detector
-		H = H->nextdet;
-	      }
+		} // end of if for hits in this detector (TODO need to be removed)
 
-	      // somewhere around here a memory leak lurks
-	      // you don't say!!! (wdconinc)
+	      } // end of loop over hits in this event
 
+	      // If there were no hits in this detector, skip to next detector.
+	      if (! hit) continue;
+
+	      // All hits in this detector (VDC) are added to the bit pattern.
+	      // We can start the tree search now.
+	      // NOTE Somewhere around here a memory leak lurks
 	      if (debug) cout << "Search for matching patterns (direction " << dir << ")" << endl;
 	      TreeSearch.TsSearch(&(rcTreeRegion[package][region-1][type][dir]->node),
 				channelr3, hashchannelr3,
 				opt.levels[package][region-1][type], numWiresr3, TLAYERS);
+
+	      // DEBUG section
+	      // Did this succeed as intended?
+	      // - what does rcTreeRegion->node contain?
+	      shortnode* dbg_testnode = &(rcTreeRegion[package][region-1][type][dir]->node);
+	      // - are all the hits filled?
+	      TreeLine* dbg_trelin = trelin;
 
 
 	      if (debug) cout << "Sort patterns" <<  endl;
@@ -419,59 +475,73 @@ Event * treedo::rcTreeDo (int iEventNo)
 
 
 	  /* Region 2 */
-	  } else if (region == kRegionID2) {
+	  } else if (region == kRegionID2 && type == kTypeDriftHDC) {
 
 	    /* Loop over the like-pitched planes in a region */
 	    for (rd = rcDETRegion[package][region-1][dir], tlayers = 0;
 	         rd; rd = rd->nextsame, tlayers++) {
 
-	      if (debug) cout << "-> ";
+	      if (debug) cout << "      ";
 	      if (debug) rd->print();
 
 	      if (debug) cout << "Setting pattern hits (region 2)" << endl;
-	      memset(channel[tlayers],     0,                1UL<<(opt.levels[package][region-1][type]   ));
-	      memset(hashchannel[tlayers], 0, sizeof(int) * (1UL<<(opt.levels[package][region-1][type]-1)));
+	      memset(channelr2[tlayers],     0,                1UL<<(opt.levels[package][region-1][type]   ));
+	      memset(hashchannelr2[tlayers], 0, sizeof(int) * (1UL<<(opt.levels[package][region-1][type]-1)));
 
-	      // Loop over hit list in this detector
-	      H = rd->hitbydet;
-	      while (H) {
-		// (See treesearch.cc for the different ways in which TsSetPoint
-		//  can be called.)
-		TreeSearch.TsSetPoint(
+	      // Get the corresponding hit from the hitlist
+	      QwHitContainer::iterator qwhit;
+	      QwHit* hit = 0;
+	      if (debug) cout << "Looping over QwHitContainer" << endl;
+	      for (qwhit  = hitlist.begin();
+		   qwhit != hitlist.end(); qwhit++) {
+
+		QwDetectorID detector = qwhit->GetDetectorID();
+		if (detector.fPackage == package
+		 && detector.fRegion == region
+		 && detector.fDirection == dir
+		 && detector.fPlane == rd->ID) {
+		  hit = &(*qwhit);
+
+		  // See treesearch.cc for the different ways in which TsSetPoint
+		  // can be called.
+		  int wire = hit->GetDetectorID().fElement;
+		  TreeSearch.TsSetPoint(
 			rcTreeRegion[package][region-1][type][dir]->rWidth,
 			rd->WireSpacing,
-			H, H->wire,
-			channel[tlayers], hashchannel[tlayers],
+			hit,
+			wire,
+			channelr2[tlayers],
+			hashchannelr2[tlayers],
 			1U << (opt.levels[package][region-1][type]-1));
 
-		// Print hit pattern, if requested
-		if (opt.showEventPattern) {
-		  cout << "w" << H->wire << ":";
-		  for (int i = 0; i < (signed int) (1UL << (opt.levels[package][region-1][type]))-1; i++) {
-		    if (channel[tlayers][i] == 1)
-		      cout << "|";
-		    else
-		      cout << ".";
+		  // Print hit pattern, if requested
+		  if (opt.showEventPattern) {
+		    cout << "w" << wire << ":";
+		    for (int i = 0; i < (signed int) (1UL << (opt.levels[package][region-1][type]))-1; i++) {
+		      if (channelr2[tlayers][i] == 1)
+			cout << "|";
+		      else
+			cout << ".";
+		    }
+		    cout << endl;
 		  }
-		  cout << endl;
-		}
 
-		// Next hit
-		H = H->next;
-	      }
+		} // end of if for hits in this detector
+
+	      } // end of loop over hits in this event
 
             } // end of loop over like-pitched planes in a region
 
 
 	    if (debug) cout << "Search for matching patterns (direction " << dir << ")" << endl;
 	    TreeSearch.TsSearch(&(rcTreeRegion[package][region-1][type][dir]->node),
-				channel, hashchannel,
+				channelr2, hashchannelr2,
 				opt.levels[package][region-1][type], 0, tlayers);
 
 
 	    if (debug) cout << "Sort patterns" << endl;
             if (rcTreeRegion[package][region-1][type][dir]) {
-	      TreeCombine.TlTreeLineSort(trelin, package, region, type, dir,
+	      TreeCombine.TlTreeLineSort (trelin, package, region, type, dir,
 					1UL << (opt.levels[package][region-1][type]-1),
 					tlayers, 0);
             }
@@ -480,7 +550,7 @@ Event * treedo::rcTreeDo (int iEventNo)
 
 	  /* Any other region */
 	  } else {
-	    cerr << "TreeDo: Error: no code for this type of detector here." << endl;
+	    cerr << "[treedo::rcTreeDo] Warning: no support for this detector." << endl;
 	    return event;
 	  }
 
@@ -491,26 +561,30 @@ Event * treedo::rcTreeDo (int iEventNo)
 /*! ---- TASK 2: Combine the treelines into partial tracks             ---- */
 
 	// This if statement may be done wrong
-	if (rcTreeRegion[package][region-1][type] && tlayers) {
+	// TODO (wdc) why does this have last index dir instead of something in scope?
+	if (rcDETRegion[package][region-1][kDirectionU]
+	 && rcTreeRegion[package][region-1][type][kDirectionU]
+	 && tlayers) {
 	  area = TreeCombine.TlTreeCombine(event->treeline[package][region-1][type],
-			       1L << (opt.levels[package][region-1][type]-1),
-			       package,
-			       region,
-			       type,
-			       tlayers,
-			       dlayer);
+			1L << (opt.levels[package][region-1][type]-1),
+			package,
+			region,
+			type,
+			tlayers,
+			dlayer);
 	}
 
 
 /*! ---- TASK 3: Sort out the Partial Tracks                          ---- */
 
-	TreeSort.rcPartConnSort(area);
+	if (area) TreeSort.rcPartConnSort(area);
 
 
 /*! ---- TASK 4: Hook up the partial track info to the event info     ---- */
 
 	event->parttrack[package][region][type] = area;
 
+// (wdc) Loop over detector types disables
       } /* end of loop over the detector types */
 
     } /* end of loop over the regions */
@@ -528,10 +602,9 @@ Event * treedo::rcTreeDo (int iEventNo)
   } /* end of loop over the detector packages */
 
   if (area) {
-    cout << "iEventNo: " << iEventNo << ", area: " << area->x << " " << area->mx << ", " << area->y << " " << area->my << endl;
+    cout << "area: " << area->x << " " << area->mx << ", " << area->y << " " << area->my << endl;
     ngood++;
   } else {
-    cout << "iEventNo: " << iEventNo << endl;
     nbad++;
   }
 

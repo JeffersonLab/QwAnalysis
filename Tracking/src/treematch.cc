@@ -3,7 +3,6 @@
 #include <cassert>
 #include <cstdlib>
 
-#include "enum.h"
 #include "treematch.h"
 #include "treecombine.h"
 
@@ -29,25 +28,29 @@ double rcZEval( double vz, double te, double ph, double mom, int idx){
 }
 
 //________________________________________________________________________
-Hit *bestWireHit (TreeLine *walk,double bestpos=0){ //returns the best measured wire hit
-  double pos=9999,newpos;
+//returns the best measured wire hit
+Hit* bestWireHit (TreeLine *walk, double bestpos = 0)
+{
+  double pos = 9999, newpos;
   int ibest;
-  for(int i =0;i<walk->numhits;i++){ //get the best measured hit in the back
+  for (int i = 0; i < walk->numhits; i++) { //get the best measured hit in the back
     newpos = walk->hits[i]->rPos-bestpos;
-    if(newpos < 0)newpos = -newpos;
-    if(newpos < pos){
+    if (newpos < 0) newpos = -newpos;
+    if (newpos < pos) {
       pos = newpos;
       ibest = i;
     }
   }
-return walk->hits[ibest];
+  return walk->hits[ibest];
 }
 //________________________________________________________________________
 
-treematch::treematch(){
+treematch::treematch()
+{
 }
 //________________________________________________________________________
-treematch::~treematch(){
+treematch::~treematch()
+{
 }
 
 //________________________________________________________________________
@@ -60,7 +63,12 @@ treematch::~treematch(){
 */
 
 // This function requires the wire planes to be parallel
-TreeLine *treematch::MatchR3 (TreeLine *front, TreeLine *back, EPackage package, EQwRegionID region, EQwDirectionID dir)
+TreeLine *treematch::MatchR3 (
+	TreeLine *front,
+	TreeLine *back,
+	EQwDetectorPackage package,
+	EQwRegionID region,
+	EQwDirectionID dir)
 {
   if (region != kRegionID3) {
     cerr << "Error, this function is only for R3" << endl;
@@ -72,10 +80,10 @@ TreeLine *treematch::MatchR3 (TreeLine *front, TreeLine *back, EPackage package,
   //###############
   TreeLine *combined,*fwalk,*bwalk;
   double x[2],y[2],z[3],zp[2];
-  Hit *fpos,*bpos;
+  Hit *fpos, *bpos;
   double d,d2,d2u,d_uv;
   double pi = acos(-1),theta;
-  double wirespacingf,wirespacingb,d_to_1st_wire_f,d_to_1st_wire_b;
+  double wirespacingf, wirespacingb, d_to_1st_wire_f, d_to_1st_wire_b;
   Det *rd;
   int i,j,k,l;
   double slope,intercept,fslope,bslope;
@@ -267,7 +275,7 @@ TreeLine *treematch::MatchR3 (TreeLine *front, TreeLine *back, EPackage package,
 	 // cerr << DetecHits[k]->Zpos << " " << DetecHits[k]->rPos << endl;
 	}
         //fit a line to the hits
-        TreeCombine.weight_lsq_r3(&mx,&cx,cov,&chi,DetecHits,nhits,0,-1,2*TLAYERS);
+        TreeCombine.weight_lsq_r3 (&mx, &cx, cov, &chi, DetecHits, nhits, 0, -1, 2*TLAYERS);
         lineptr->mx = mx;
         lineptr->cx = cx;
         lineptr->chi = chi;
@@ -284,7 +292,7 @@ TreeLine *treematch::MatchR3 (TreeLine *front, TreeLine *back, EPackage package,
   }
   gnu1.close();
   gnu2.close();
-  if(!matchfound){
+  if (!matchfound) {
     return 0;
   }
   combined->next = 0;
@@ -293,34 +301,42 @@ TreeLine *treematch::MatchR3 (TreeLine *front, TreeLine *back, EPackage package,
   return combined;
 }
 //________________________________________________________________________
-void treematch::TgTrackPar( PartTrack *front, PartTrack *back,double *theta, double *phi, double *bending, double *ZVertex )
+void treematch::TgTrackPar (
+	PartTrack *front,	//!- front partial track
+	PartTrack *back,	//!- back partial track
+	double *theta,		//!- determined polar angle
+	double *phi,		//!- determined azimuthal angle
+	double *bending,	//!- bending in polar angle
+	double *ZVertex)	//!- determined z vertex
 {
-  	*theta = atan( front->mx);
-  	*phi   = atan( front->my);
-  	if( bending && back )
-    		*bending = atan( back->mx) - *theta;
-  	*ZVertex =  - ( ( front->mx * front->x  + front->my * front->y )
-		  	/( front->mx * front->mx + front->my * front->my));
+  *theta = atan(front->mx);
+  *phi   = atan(front->my);
+  if (bending && back)
+    *bending = atan(back->mx) - *theta;
+  *ZVertex = - ( (front->mx * front->x  + front->my * front->y)
+	       / (front->mx * front->mx + front->my * front->my));
 }
 
 
 //________________________________________________________________________
-Track * treematch::TgPartMatch( PartTrack *front, PartTrack *back, Track *tracklist,
-	     enum EPackage package/*, enum Emethod method*/)
+Track* treematch::TgPartMatch (
+	PartTrack *front,		//!- front partial track
+	PartTrack *back,		//!- back partial track
+	Track *tracklist,		//!- list of tracks
+	EQwDetectorPackage package	//!- package identifier
+	/*enum Emethod method*/)
 {
   double bestchi = 1e10, chi;
-  double v1,v2, v3;
+  double v1, v2, v3;
   Track *ret = 0, *newtrack = 0, *besttrack = 0, *trackwalk, *ytrackwalk;
   Bridge *bridge;
   //int m = method == meth_std ? 0 : 1;
   double theta, ZVertex, phi, bending, P;
 
 
-
-
-  while( back) {
+  while (back) {
     /* --------- check for the cuts on magnetic bridging ------------ */
-    if(   back->isvoid == false
+    if (back->isvoid == false
 	 //removed all the following cuts
 	  /*&& (fabs(front->y-back->y))            < rcSET.rMagnMatchY[m]*3.0
 	  && (fabs(front->x-back->x ))           < rcSET.rMagnMatchX[m]*3.0
@@ -331,18 +347,18 @@ Track * treematch::TgPartMatch( PartTrack *front, PartTrack *back, Track *trackl
 	  && (fabs( front->y+front->my*
 		    (target_center-magnet_center) )) < target_width*/ ) {
 
-      newtrack = new Track;//QCnew(1,Track); /*  a new track */
+      newtrack = new Track; //QCnew(1,Track); /*  a new track */
       assert(newtrack);
       //TgInit( newtrack );
 
       /* ----- keep bridging information ----- */
-      if( front->bridge )	/* do we have front brigding info (mcheck) */
+      if (front->bridge)	/* do we have front brigding info (mcheck) */
 	bridge = front->bridge;
-      else if( back->bridge )	/* or back one (mckalman) ? */
+      else if (back->bridge)	/* or back one (mckalman) ? */
 	bridge = back->bridge;
       else
 	bridge = new Bridge;//QCnew( 1, Bridge );
-      assert( bridge );
+      assert (bridge);
       TgTrackPar( front, back, &theta, &phi, &bending, &ZVertex);
 
       ZVertex *= 0.01;

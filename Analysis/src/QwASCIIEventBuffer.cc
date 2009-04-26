@@ -7,7 +7,7 @@
 
 /*This class will act as the interface between the QTR and Track decoding
 software. Mainly InitrcDETRegion, GetrcDETRegion will be called in the
-QwAnalysis main routine to generate and update rcDET & rcDETRegion after 
+QwAnalysis main routine to generate and update rcDET & rcDETRegion after
 decoding CODA events in to QwHit & QwHitContainer.
 The main data stuctures in the Track decoding are QwHit, QwDetectorInfo and QwHitContainer.
 While Hit, Det and rcDET & rcDETRegion are for the QTR.
@@ -43,8 +43,8 @@ Int_t QwASCIIEventBuffer::LoadChannelMap(const char *geomname){
 
 
 Int_t QwASCIIEventBuffer::InitrcDETRegion( std::vector< std::vector< QwDetectorInfo > > & tmp_detector_info){
-  
-  if (DEBUG1) std::cout<<"Starting InitrcDETRegion "<<std::endl; 
+
+  if (DEBUG1) std::cout<<"Starting InitrcDETRegion "<<std::endl;
   fDetectorInfo=tmp_detector_info;
   Int_t DetectorCounter=0;
 
@@ -56,11 +56,11 @@ Int_t QwASCIIEventBuffer::InitrcDETRegion( std::vector< std::vector< QwDetectorI
     }
   }
 
-  //now rcDET is ready. 
+  //now rcDET is ready.
   //now linking detectors
 
-  	
-	
+
+
   //Same algorithm used in Qset.cc
 	Det *rd, *rnd, *rwd;  // descriptive variable names
 
@@ -75,7 +75,7 @@ Int_t QwASCIIEventBuffer::InitrcDETRegion( std::vector< std::vector< QwDetectorI
 			dir    = rd->dir;
 			region = rd->region;
 			type   = rd->type;
-			
+
 			if ( !rcDETRegion[package][region-1][dir] )
 				rcDETRegion[package][region-1][dir] = rd;
 
@@ -101,10 +101,10 @@ Int_t QwASCIIEventBuffer::InitrcDETRegion( std::vector< std::vector< QwDetectorI
 		if (DEBUG1) std::cout << std::endl;
 	}
 
-	
-	
-	if (DEBUG1) std::cout<<"Ending InitrcDETRegion "<<"Total detectors "<<DetectorCounter<<std::endl; 
-   
+
+
+	if (DEBUG1) std::cout<<"Ending InitrcDETRegion "<<"Total detectors "<<DetectorCounter<<std::endl;
+
   return 1;
 
 };
@@ -115,10 +115,10 @@ Int_t QwASCIIEventBuffer::InitrcDETRegion( std::vector< std::vector< QwDetectorI
   Hit *newhit,*hitlist;
 
   // Detector region/type/direction identifiers
-  enum EPackage package2;
+  enum EQwDetectorPackage package2;
   enum EQwRegionID region2;
   enum EQwDirectionID    dir2;
-  
+
   Int_t detectorId1,detectorId2;
 
   // Detector ID
@@ -130,25 +130,18 @@ Int_t QwASCIIEventBuffer::InitrcDETRegion( std::vector< std::vector< QwDetectorI
   //  detectors.
 
 
-  QwDetectorID local_id;  
+  QwDetectorID local_id;
   //  Loop through the QwHitContainer
   for (QwHitContainer::iterator qwhit = HitList.begin();
        qwhit != HitList.end(); qwhit++){
     local_id = qwhit->GetDetectorID();
 
-    //I use this to convert from one set of enum from QwTypes.h to the other set from enum.h
-    if (local_id.fPackage == kUP)
-      package = w_upper;//(EPackage) local_id.fPackage;
-    else if (local_id.fPackage == kDOWN)
-      package = w_lower;
-    else
-      package = w_nowhere;
-    
+    package = (EQwDetectorPackage) local_id.fPackage;
     region = (EQwRegionID) local_id.fRegion;
-    dir    = (EQwDirectionID) local_id.fDirection;    
-    
+    dir    = (EQwDirectionID) local_id.fDirection;
+
     detectorId1=fDetectorInfo.at(local_id.fPackage-1).at(local_id.fPlane-1).DetectorId;
-    
+
 
     // when this is the first detector of the event
     if (firstdetec) {
@@ -157,7 +150,7 @@ Int_t QwASCIIEventBuffer::InitrcDETRegion( std::vector< std::vector< QwDetectorI
       //if (DEBUG1) std::cout<<"First Detector "<<std::endl;
       firstdetec = 0;
       package2 = package;
-      region2 = region;      
+      region2 = region;
       detectorId2=detectorId1;
       dir2 = dir;
       rd = rcDETRegion[package][region-1][dir];
@@ -193,7 +186,7 @@ Int_t QwASCIIEventBuffer::InitrcDETRegion( std::vector< std::vector< QwDetectorI
 	  rd = rd->nextsame;
 	}
 	package2 = package;
-	region2 = region;	
+	region2 = region;
 	detectorId2=detectorId1;
 	dir2    = dir;
 	//if (DEBUG1) std::cout<<"Detector ID " << rd->ID <<std::endl;
@@ -204,7 +197,7 @@ Int_t QwASCIIEventBuffer::InitrcDETRegion( std::vector< std::vector< QwDetectorI
 
     newhit = (Hit*) malloc (sizeof(Hit));
     //	  // set event number
-    newhit->ID = event_no; //set the current event number 
+    newhit->ID = event_no; //set the current event number
     // Wire number
     newhit->wire = local_id.fElement;
     //	  // Z position of wire plane (first wire for region 3)
@@ -221,11 +214,11 @@ Int_t QwASCIIEventBuffer::InitrcDETRegion( std::vector< std::vector< QwDetectorI
     // Chain the hits
     newhit->next = hitlist;
     hitlist = newhit;
-	  
+
     // Chain the hits in each detector
     newhit->nextdet = rd->hitbydet;
     rd->hitbydet = newhit;
-  }  
+  }
 
 };
 
@@ -243,19 +236,13 @@ void QwASCIIEventBuffer::AddDetector(QwDetectorInfo qwDetector, Int_t i){
   rcDET[i].rRotSin = sin(rcDET[i].Rot*PI/180);
   rcDET[i].resolution=qwDetector.Spacial_Res;
   rcDET[i].TrackResolution=qwDetector.Track_Res;
-  rcDET[i].SlopeMatching=qwDetector.Slope_Match; 
+  rcDET[i].SlopeMatching=qwDetector.Slope_Match;
 
-  if (qwDetector.package == kUP)//QwTypes.h difinition
-    package = w_upper;//enum.h difinition
-  else if (qwDetector.package == kDOWN)//QwTypes.h difinition
-    package = w_lower;//enum.h difinition
-  else
-    package = w_nowhere;
-  rcDET[i].package=package;
+  rcDET[i].package=(EQwDetectorPackage)qwDetector.package;
   rcDET[i].region=(EQwRegionID)qwDetector.Region;
-  rcDET[i].type=(Etype)qwDetector.dType;
-  rcDET[i].dir =(EQwDirectionID)qwDetector.PlaneDir; 
- 
+  rcDET[i].type=(EQwDetectorType)qwDetector.dType;
+  rcDET[i].dir =(EQwDirectionID)qwDetector.PlaneDir;
+
   rcDET[i].center[0]=qwDetector.DetectorOriginX;
   rcDET[i].center[1]=qwDetector.DetectorOriginY;
 
@@ -269,7 +256,7 @@ void QwASCIIEventBuffer::AddDetector(QwDetectorInfo qwDetector, Int_t i){
   rcDET[i].rSin=qwDetector.Wire_rsinX;
   rcDET[i].NumOfWires=qwDetector.TotalWires;
   rcDET[i].ID=qwDetector.DetectorId;
-  rcDET[i].samesearched = 0; 
+  rcDET[i].samesearched = 0;
 };
 
 Int_t QwASCIIEventBuffer::GetEvent(){
@@ -363,7 +350,7 @@ Int_t QwASCIIEventBuffer::GetEvent(){
     dir==rcDET[DetectId].dir;
     resolution = rcDET[DetectId].resolution;
 
-    std::cout<<"Detecotr Id : "<<DetectId<<" up-low "<<rcDET[DetectId].package<<" region "<<rcDET[DetectId].region<<" type "<<rcDET[DetectId].type<<" DIR "<<rcDET[DetectId].dir <<std::endl;
+    std::cout<<"Detector Id : "<<DetectId<<" package "<<rcDET[DetectId].package<<" region "<<rcDET[DetectId].region<<" type "<<rcDET[DetectId].type<<" DIR "<<rcDET[DetectId].dir <<std::endl;
 
 
 
@@ -439,7 +426,7 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits) {
   Hit *newhit,*hitlist;
 
   // Detector region/type/direction identifiers
-  enum EPackage package2;
+  EQwDetectorPackage package2;
   EQwRegionID region2;
   EQwDirectionID dir2;
 
@@ -460,7 +447,7 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits) {
        qwhit != qwhits.end(); qwhit++){
     local_id = qwhit->GetDetectorID();
 
-    package = (EPackage) local_id.fPackage;
+    package = (EQwDetectorPackage) local_id.fPackage;
     region = (EQwRegionID) local_id.fRegion;
     dir    = (EQwDirectionID) local_id.fDirection;
     plane  = local_id.fPlane;
@@ -576,4 +563,4 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits) {
 
 
 
-  
+
