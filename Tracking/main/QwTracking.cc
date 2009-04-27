@@ -153,8 +153,6 @@ using namespace std;
 
 //Temporary global variables for sub-programs
 bool bWriteGlobal = false;
-TreeLine  *trelin;
-int trelinanz;
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 Det rcDET[NDetMax];

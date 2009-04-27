@@ -24,8 +24,6 @@ class treesearch {
 
   public:
 
-    int debug;
-
     char **static_pattern;
     int  **static_hash;
     int    static_maxlevel;
@@ -35,6 +33,9 @@ class treesearch {
     treesearch();
     ~treesearch();
 
+    void BeginSearch ();
+    void EndSearch ();
+    TreeLine* GetListOfTreeLines ();
 
     void wireselection (Hit **x, Hit **X, Hit **xn, Hit**Xn, double maxdist);
     void wireselection (QwHit **x, QwHit **X, QwHit **xn, QwHit**Xn, double maxdist);
@@ -79,6 +80,11 @@ class treesearch {
 
 
   private:
+
+    int debug;			// debug level
+
+    TreeLine* lTreeLines;	// linked list of tree lines in a set of planes
+    int nTreeLines;		// number of tree lines found
 
     // Recursive tree pattern methods
     void _setpoints (double posStart, double posEnd, double detectorwidth,

@@ -99,8 +99,6 @@ using namespace std;
 using namespace QwTracking;
 
 
-extern TreeLine  *trelin;
-extern int trelinanz;
 extern treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 extern Options opt;
@@ -349,12 +347,14 @@ Event* treedo::rcTreeDo (QwHitContainer &hitlist)
 	  }
 
 
-/*! ---- 2nd: do some variable initialization for the found treeline
+/*! ---- 2nd: do some variable initialization for the found tree line
               linked list                                              ---- */
 
-	  trelin = 0;    /* clear pointer to linked list of treelines       */
-	  trelinanz = 0; /* clear the "number of treelines found" counter   */
-
+	  // Start the search for this set of like-pitched planes
+	  // TODO (wdc) take a careful look at where TreeSearch should be
+	  // instantiated and where BeginSearch and EndSearch should go
+	  TreeSearch.BeginSearch();
+	  TreeLine* trelin = 0; // local list of tree lines
 
 /*! ---- 3rd: create the bit patterns for the hits                     ---- */
 
@@ -372,7 +372,10 @@ Event* treedo::rcTreeDo (QwHitContainer &hitlist)
 	      if (debug) cout << "      ";
 	      if (debug) rd->print();
 
-	      trelin = 0; // clear the linked list for the 2nd layer
+	      // Start the search for this set of like-pitched planes
+	      TreeSearch.BeginSearch();
+
+	      //trelin = 0; // clear the linked list for the 2nd layer
 	      A[dir][0] = rd->rCos; /* cos (angle of wire pitch) */
 	      A[dir][1] = rd->rSin; /* sin (angle of wire pitch) */
 
@@ -432,6 +435,7 @@ Event* treedo::rcTreeDo (QwHitContainer &hitlist)
 	      TreeSearch.TsSearch(&(rcTreeRegion[package][region-1][type][dir]->node),
 				channelr3, hashchannelr3,
 				opt.levels[package][region-1][type], numWiresr3, TLAYERS);
+	      trelin = TreeSearch.GetListOfTreeLines();
 
 	      // DEBUG section
 	      // Did this succeed as intended?
@@ -458,10 +462,11 @@ Event* treedo::rcTreeDo (QwHitContainer &hitlist)
 	      }
 	      dlayer++;
 
+	      // End the search for this set of like-pitched planes
+	      TreeSearch.EndSearch();
+
 	    } // end of loop over like-pitched planes in a region
 
-
-	    if (debug) cout << "Found " << trelinanz << " treelines.";
 	    if (debug) cout << endl;
 	    if (debug) cout << "Matching region 3 segments" << endl;
 	    // (wdc) If no trelin1 or trelin2 is found, then skip matching.
@@ -538,7 +543,6 @@ Event* treedo::rcTreeDo (QwHitContainer &hitlist)
 				channelr2, hashchannelr2,
 				opt.levels[package][region-1][type], 0, tlayers);
 
-
 	    if (debug) cout << "Sort patterns" << endl;
             if (rcTreeRegion[package][region-1][type][dir]) {
 	      TreeCombine.TlTreeLineSort (trelin, package, region, type, dir,
@@ -547,6 +551,8 @@ Event* treedo::rcTreeDo (QwHitContainer &hitlist)
             }
 	    event->treeline[package][region-1][type][dir] = trelin;
 
+	    // End the search for this set of like-pitched planes
+	    TreeSearch.EndSearch();
 
 	  /* Any other region */
 	  } else {

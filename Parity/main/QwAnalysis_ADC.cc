@@ -1,5 +1,5 @@
 /*  ------------
-    
+
 */
 
 #include "QwAnalysis_ADC.h"
@@ -23,8 +23,6 @@
 
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 Det rcDET[1100];
-TreeLine  *trelin;
-int trelinanz;
 treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 Options opt;
 
@@ -48,7 +46,7 @@ int main(Int_t argc,Char_t* argv[])
 
   //  Load the histogram parameter definitions into the global histogram helper
   gQwHists.LoadHistParamsFromFile("parity_hists.in");
-  
+
   TStopwatch timer;
 
   QwCommandLine cmdline;
@@ -56,7 +54,7 @@ int main(Int_t argc,Char_t* argv[])
 
 
   QwEventBuffer QwEvt;
-  
+
   QwSubsystemArray QwDetectors;
 
   QwDetectors.push_back(new QwQuartzBar("MainDetectors"));
@@ -64,7 +62,7 @@ int main(Int_t argc,Char_t* argv[])
 
 
 //   QwQuartzBar sum_outer(""), sum_inner(""), diff(""), sum(""), asym("");
-  
+
 //   sum_outer.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
 //   sum_inner.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
 //   sum.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
@@ -99,7 +97,7 @@ int main(Int_t argc,Char_t* argv[])
     std::cout<<" rootfilename="<<rootfilename<<"\n";
     TFile rootfile(rootfilename,
 		     "RECREATE","QWeak ROOT file with histograms");
-      
+
 
 
     //  Create the histograms for the QwDriftChamber subsystem object.
@@ -143,23 +141,23 @@ int main(Int_t argc,Char_t* argv[])
       //  Now, if this is not a physics event, go back and get
       //  a new event.
       if (! QwEvt.IsPhysicsEvent()) continue;
-      
+
       //  Check to see if we want to process this event.
       if (QwEvt.GetEventNumber() < cmdline.GetFirstEvent()) continue;
       else if (QwEvt.GetEventNumber() > cmdline.GetLastEvent()) break;
 
       if(QwEvt.GetEventNumber()%1000==0) {
-	std::cerr << "Number of events processed so far: " 
+	std::cerr << "Number of events processed so far: "
 		  << QwEvt.GetEventNumber() << "\r";
       }
 
       //  Fill the subsystem objects with their respective data for this event.
       QwEvt.FillSubsystemData(QwDetectors);
-      
-      
+
+
       //  Fill the histograms for the QwDriftChamber subsystem object.
       QwDetectors.FillHistograms();
-      
+
 //       if (((QwQuartzBar*)QwDetectors.at(0))->IsGoodEvent()){
 // 	evnum = QwEvt.GetEventNumber();
 // 	((QwQuartzBar*)QwDetectors.at(0))->FillTreeVector(heltreevector);
@@ -169,7 +167,7 @@ int main(Int_t argc,Char_t* argv[])
 
 //       //  Quick construction of an asymmetry.
 //       //  This basically just takes the pattern as always +--+.
-//       //  
+//       //
 //       if (QwEvt.GetEventNumber()%4 == 0){
 // 	sum_outer = *((QwQuartzBar*)QwDetectors.at(0));
 //       } else if (QwEvt.GetEventNumber()%4 == 1){
@@ -199,8 +197,8 @@ int main(Int_t argc,Char_t* argv[])
 
 
 
-    }    
-    std::cout << "Number of events processed so far: " 
+    }
+    std::cout << "Number of events processed so far: "
 	      << QwEvt.GetEventNumber() << std::endl;
     timer.Stop();
 
@@ -209,7 +207,7 @@ int main(Int_t argc,Char_t* argv[])
      *  Doing this will remove the multiple copies of the ntuples    *
      *  from the root file.                                          */
     rootfile.Write(0,TObject::kOverwrite);
-    
+
     //  Delete the histograms for the QwDriftChamber subsystem object.
     //  In G0, we had to do:
     //     Hists->ClearHists();//destroy the histogram objects
@@ -217,7 +215,7 @@ int main(Int_t argc,Char_t* argv[])
     //     CloseAllFiles(io); //close all the output files
     QwDetectors.DeleteHistograms();
 
-    
+
     QwEvt.CloseDataFile();
     QwEvt.ReportRunSummary();
 
@@ -225,20 +223,20 @@ int main(Int_t argc,Char_t* argv[])
 //     // Write to SQL DB if chosen on command line
 //     if (sql->GetDBFlag() && sql->GetDBAccessLevel()=="rw") {
 //       //Fill the analysis table. Moved right before filling the rest of the DB
-//       //For the 2nd pass we need to retrieve the values linking to the 
+//       //For the 2nd pass we need to retrieve the values linking to the
 //       //analysis_id of the 1st pass.
 //       sql->FillAnalysisTable(run);
 
 //       sql->SetPrintSQL(kFALSE);
-      
+
 
 //       QwEpics->WriteDatabase(sql);
 //     }
-    
+
     PrintInfo(timer, run);
 
   } //end of run loop
-  
+
   return 0;
 }
 

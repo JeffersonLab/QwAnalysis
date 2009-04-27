@@ -46,8 +46,6 @@ Then QTR routines can take control over.
 
 //Temporary global variables for sub-programs
 bool bWriteGlobal = false;
-TreeLine  *trelin;
-int trelinanz;
 treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 Options opt;
 

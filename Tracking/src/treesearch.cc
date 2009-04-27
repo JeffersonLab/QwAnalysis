@@ -23,8 +23,6 @@ static int hashgen(void) {
   return _hashgen;
 }
 //extern int tlayers;
-extern int trelinanz;
-extern TreeLine  *trelin;
 extern Options opt;
 //__________________________________
 static int has_hits[TLAYERS];
@@ -111,12 +109,35 @@ static int has_hits[TLAYERS];
           algorithm to generate one treeline.
 
 \*---------------------------------------------------------------------------*/
-treesearch::treesearch(){
-	tlayers = TLAYERS;
-}
-treesearch::~treesearch(){
+treesearch::treesearch ()
+{
+  debug = 1;	// Reset debug level
 
+  tlayers = TLAYERS;
 }
+
+treesearch::~treesearch ()
+{
+}
+
+void treesearch::BeginSearch ()
+{
+  // Reset list of treelines found in the search
+  lTreeLines = 0; // list of tree lines
+  nTreeLines = 0; // number of tree lines
+}
+
+void treesearch::EndSearch ()
+{
+  // Write out the number of tree lines
+  if (debug) cout << "Found " << nTreeLines << " tree line(s)." << endl;
+}
+
+TreeLine* treesearch::GetListOfTreeLines ()
+{
+  return lTreeLines;
+}
+
 /*---------------------------------------------------------------------------*\
 
   wireselection() - this function steps through the hits from the unprimed
@@ -891,7 +912,7 @@ int treesearch::exists( int *newa, int front, int back, TreeLine *treeline)
    outputs: there are no explicit output from this function.
 
     global
-   outputs: Treelin *trelin - pointer to the link-list of valid treelines.
+   outputs: Treelin *lTreeLines - pointer to the link-list of valid treelines.
 
 \*---------------------------------------------------------------------------*/
 void treesearch::_TsSearch (
@@ -918,7 +939,7 @@ void treesearch::_TsSearch (
   int firstwire = 1000, lastwire = -1;
   //int front_miss = 0;
 
-  if (trelinanz > TREELINABORT)
+  if (nTreeLines > TREELINABORT)
     return;
 
 
@@ -1049,12 +1070,12 @@ if (numWires) {
           miss = 1;
         else if( static_pattern[tlayers-1+row_offset][backbin] == 0)
           miss = 1;
-        if( !exists( hashpat, frontbin, backbin,trelin) ) {
+        if( !exists( hashpat, frontbin, backbin,lTreeLines) ) {
           if(opt.showMatchingPatterns)tree->print();
                                                                                           /* if track is unknown */
           lineptr = (TreeLine*)malloc( sizeof(TreeLine));       /*  create new one */
           assert(lineptr);
-          trelinanz ++;                        /* number of treelines found */
+          nTreeLines++;                        /* number of treelines found */
           memcpy( lineptr->hasharray, hashpat, /* make space for this       */
           sizeof(int)*tlayers);        /* treeline                  */
           lineptr->Used = false;            /* this treeline isn't used yet */
@@ -1065,8 +1086,8 @@ if (numWires) {
           lineptr->chi  = 0.0;              /* no chi2 value yet            */
           lineptr->isvoid  = false;         /* the treeline is voided yet   */
           lineptr->nummiss = miss;          /* only used until TreeLineSort */
-          lineptr->next = trelin;           /* put this treeline into the   */
-          trelin = lineptr;                 /*  linked-list of treelines    */
+          lineptr->next = lTreeLines;           /* put this treeline into the   */
+          lTreeLines = lineptr;                 /*  linked-list of treelines    */
           lineptr->r3offset = row_offset;
           lineptr->firstwire = firstwire;
           lineptr->lastwire = lastwire;
@@ -1148,14 +1169,14 @@ if (numWires) {
 	    miss = 1;
 	  else if (static_pattern[tlayers-1][backbin] == 0)
 	    miss = 1;
-	  if (! exists (hashpat, frontbin, backbin, trelin)) {
+	  if (! exists (hashpat, frontbin, backbin, lTreeLines)) {
             /* if track is unknown */
 		if (opt.showMatchingPatterns)
 			tree->print();
 
 		lineptr = (TreeLine*) malloc (sizeof(TreeLine));       /*  create new one */
 		assert(lineptr);
-		trelinanz++;                        /* number of treelines found */
+		nTreeLines++;                      /* number of treelines found */
 		memcpy(lineptr->hasharray, hashpat, /* make space for this       */
 			sizeof(int) * tlayers);     /* treeline                  */
 		lineptr->Used = false;              /* this treeline isn't used yet */
@@ -1167,8 +1188,8 @@ if (numWires) {
 		lineptr->chi = 0.0;               /* no chi2 value yet            */
 		lineptr->isvoid = false;          /* the treeline is voided yet   */
 		lineptr->nummiss = miss;          /* only used until TreeLineSort */
-		lineptr->next = trelin;           /* put this treeline into the   */
-		trelin = lineptr;                 /*  linked-list of treelines    */
+		lineptr->next = lTreeLines;           /* put this treeline into the   */
+		lTreeLines = lineptr;                 /*  linked-list of treelines    */
 		//Statist[treelinemethod].          /* update HRC statistics        */
 		//TreeLinesGenerated[viswer][vispar][visdir-kDirectionU] ++;
 	  }
