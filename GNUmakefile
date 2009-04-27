@@ -17,7 +17,9 @@
 DEBUG := -g
 # Add -g if you need to debug (but you'd better
 # first type 'gmake distclean' to enable full
-# recompilation with this flag)
+# recompilation with this flag).
+# Add -O0 if you find that the compiler optimizes
+# away some of the variables you are interested in.
 
 OPTIM  := -O
 # Default, safe, optimization flag understood by most compliers. Set
@@ -111,12 +113,12 @@ LIBRARYDIRS = coda
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
  ifneq ($(CODA),)
   ifeq ($(filter %__NOFASTBUS,$(ADD)),)
-   EXES := qwanalysis qwanalysis_adc
+   EXES := qwtracking qwanalysis qwanalysis_adc
   else
-   EXES := qwanalysis qwanalysis_adc
+   EXES := qwtracking qwanalysis qwanalysis_adc
   endif
  else
-  EXES := qwanalysis qwanalysis_adc
+  EXES := qwtracking qwanalysis qwanalysis_adc
  endif
 else
  EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
@@ -125,12 +127,12 @@ endif
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
  ifneq ($(CODA),)
   ifeq ($(filter %__NOFASTBUS,$(ADD)),)
-   EXES := qwanalysis qwanalysis_adc
+   EXES := qwtracking qwanalysis qwanalysis_adc
   else
-   EXES := qwanalysis qwanalysis_adc
+   EXES := qwtracking qwanalysis qwanalysis_adc
   endif
  else
-  EXES := qwanalysis qwanalysis_adc
+  EXES := qwtracking qwanalysis qwanalysis_adc
  endif
 endif
 # overridden by "gmake 'EXES=exe1 exe2 ...'"
@@ -384,7 +386,7 @@ INCFLAGS += $(OPENSSL_INC) $(BOOST_INC) -I./
 CPPFLAGS = $(INCFLAGS) $(ROOTCFLAGS) $(CODACFLAGS) $(sort $(DEFAULTADD) $(ADD))
 # ADD should be contained in DEFAULTADD, but DEFAULTADD may be tempered with...
 
-CXXFLAGS += $(DEBUG) $(OPTIM)
+CXXFLAGS += $(OPTIM) $(DEBUG)
 
 
 ifneq ($(CXX),CC)
