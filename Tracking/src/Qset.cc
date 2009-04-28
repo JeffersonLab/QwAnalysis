@@ -128,8 +128,10 @@ int Qset::FillDetec (const char *geomname)
 		}
 		geomstream >> type;
 		switch (type[0]) { // detector type
-			case 'd':  // no support for HDC/VDC separation
+			case 'h':
 				rcDET[i].type = kTypeDriftHDC;  break;
+			case 'v':
+				rcDET[i].type = kTypeDriftVDC;  break;
 			case 'g':
 				rcDET[i].type = kTypeGem;       break;
 			case 't':

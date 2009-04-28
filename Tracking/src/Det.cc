@@ -32,9 +32,9 @@ void Det::print()
   cout << " (";
   switch (package) { // upper or lower detector
     case kPackageUp:
-      cout << "u"; break;
+      cout << "up"; break;
     case kPackageDown:
-      cout << "d"; break;
+      cout << "dn"; break;
     default:
       cout << "?"; break;
   }
