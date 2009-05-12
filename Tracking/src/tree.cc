@@ -113,7 +113,7 @@ using namespace QwTracking;
 
 #include "tree.h"
 
-#define TREEDIR "tree"
+static const std::string TREEDIR("tree");
 
 #include "QwTypes.h"
 
@@ -252,7 +252,7 @@ void tree::rcInitTree()
 	  /// Set up the filename with the following format
 	  ///   tree[numlayers]-[levels]-[u|l]-[1|2|3]-[d|g|t|c]-[n|u|v|x|y].tre
 	  sprintf(filename, "%s/tree%d-%d-%c-%c-%c-%c.tre",
-		TREEDIR,
+		TREEDIR.c_str(),
 		numlayers,
 		opt.levels[package][region-1][type],
 		"0ud"[package],
@@ -1324,7 +1324,7 @@ long tree::writetree (
 	double width)
 {
 	// Ensure that the tree directory is created correctly
-	bfs::path treedirpath (std::string(getenv("QWANALYSIS")) + "/" + TREEDIR);
+	bfs::path treedirpath((std::string(getenv("QWANALYSIS")) + "/" + TREEDIR).c_str());
 	if (! bfs::exists(treedirpath)) {
 		bfs::create_directory(treedirpath);
 		if (debug) cout << "[tree::writetree] Created tree directory." << endl;

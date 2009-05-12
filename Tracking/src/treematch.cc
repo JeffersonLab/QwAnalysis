@@ -82,7 +82,7 @@ TreeLine *treematch::MatchR3 (
   double x[2],y[2],z[3],zp[2];
   Hit *fpos, *bpos;
   double d,d2,d2u,d_uv;
-  double pi = acos(-1),theta;
+  double pi = acos(-1.0), theta;
   double wirespacingf, wirespacingb, d_to_1st_wire_f, d_to_1st_wire_b;
   Det *rd;
   int i,j,k,l;
