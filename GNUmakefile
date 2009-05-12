@@ -112,36 +112,25 @@ LIBRARYDIRS = coda
 
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
  ifneq ($(CODA),)
-  ifeq ($(filter %__NOFASTBUS,$(ADD)),)
-   EXES := qwtracking qwanalysis qwanalysis_adc
-  else
-   EXES := qwtracking qwanalysis qwanalysis_adc
-  endif
+  #  The realtime executables should be added in this section.
+  EXES := qwtracking qwanalysis qwanalysis_adc qwanalysis_beamline
  else
-  EXES := qwtracking qwanalysis qwanalysis_adc
+  EXES := qwtracking qwanalysis qwanalysis_adc qwanalysis_beamline
  endif
 else
  EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
 endif
-
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
  ifneq ($(CODA),)
-  ifeq ($(filter %__NOFASTBUS,$(ADD)),)
-   EXES := qwtracking qwanalysis qwanalysis_adc
-  else
-   EXES := qwtracking qwanalysis qwanalysis_adc
-  endif
+  #  The realtime executables should be added in this section.
+  EXES := qwtracking qwanalysis qwanalysis_adc qwanalysis_beamline
  else
-  EXES := qwtracking qwanalysis qwanalysis_adc
+  EXES := qwtracking qwanalysis qwanalysis_adc qwanalysis_beamline
  endif
 endif
 # overridden by "gmake 'EXES=exe1 exe2 ...'"
 
 ifneq ($(filter qwrealtime,$(EXES)),)
- ifneq ($(filter %__NOFASTBUS,$(ADD)),)
-  $(error qwrealtime requires Fastbus)
-  # With version 3.77 or earlier of gmake, the message is simply 'missing separator.  Stop.'
- endif
  ifeq ($(CODA),)
   $(error qwrealtime requires CODA)
   # With version 3.77 or earlier of gmake, the message is simply 'missing separator.  Stop.'
@@ -531,16 +520,22 @@ coda_lib:
 
 .auxDepends: .auxLibFiles
 	@$(ECHO) Generating .auxLibFiles
-	@$(ECHO) $(QWLIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) > .auxLibFiles
-	@$(ECHO) $(QWLIB)/libQw$(DllSuf): `$(CAT) .auxSrcFiles` `$(CAT) .auxDictFiles` | $(TO_LINE) | $(INTO_RELATIVE_PATH) | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/g' | $(ADD_ANTISLASH) | $(FILTER_OUT_FOREIGN_DEPS) >> .auxDepends
-	@$(ECHO) >> .auxDepends
-	@$(ECHO) $(TAB)$(LIBTOOL) $(SOFLAGS) $(LDFLAGS) '$$^' -o $(QWLIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) >> .auxDepends
-	@$(ECHO) $(TAB)@$(ECHO) >> .auxDepends
-	@$(ECHO) >> .auxDepends
+	@$(RM) .auxLibFiles
+	@for libstem in `$(CAT) .auxSrcFiles | $(SED) 's/\.\///' | $(SED) 's/\/.*//' | sort -u`;\
+	do \
+	libname=`$(ECHO) Qw$$libstem | $(SED) 's/QwAnalysis/Qw/'`; \
+	$(ECHO) $(QWLIB)/lib$$libname$(DllSuf) | $(INTO_RELATIVE_PATH) >> .auxLibFiles; \
+	$(ECHO) $(QWLIB)/lib$$libname$(DllSuf): `$(GREP) "./$$libstem" .auxSrcFiles .auxDictFiles | $(AWK) -F ":" '{print $$2}'` | $(TO_LINE) | $(INTO_RELATIVE_PATH) | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/g' | $(ADD_ANTISLASH) | $(FILTER_OUT_FOREIGN_DEPS) >> .auxDepends; \
+	$(ECHO) >> .auxDepends; \
+	$(ECHO) $(TAB)$(LIBTOOL) $(SOFLAGS) $(LDFLAGS) '$$^' -o $(QWLIB)/lib$$libname$(DllSuf) | $(INTO_RELATIVE_PATH) >> .auxDepends; \
+	$(ECHO) $(TAB)@$(ECHO) >> .auxDepends; \
+	$(ECHO) >> .auxDepends; \
+	done
 	@for file in `$(CAT) 2>&1 .auxMainFiles`; \
 	do \
-	$(ECHO) $(QWBIN)/`$(ECHO) $$file | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`: `$(ECHO) $$file | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/'` `$(CAT) .auxLibFiles`  | $(INTO_RELATIVE_PATH) >> .auxDepends; \
-	$(ECHO) $(TAB)$(LD) $(CXXFLAGS) '$$<' $(LIBS) $(LDFLAGS) -o '$$@' | $(INTO_RELATIVE_PATH) >> .auxDepends; \
+	libstem=`$(ECHO) $$file | $(SED) 's/\.\///' | $(SED) 's/\/.*//'`; \
+	$(ECHO) $(QWBIN)/`$(ECHO) $$file | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`: `$(ECHO) $$file | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/'` `$(GREP) libQw$(DllSuf) .auxLibFiles`  `$(GREP) libQw$$libstem$(DllSuf) .auxLibFiles` | $(INTO_RELATIVE_PATH) >> .auxDepends; \
+	$(ECHO) $(TAB)$(LD) $(CXXFLAGS) '$$<' $(LIBS) -lQw$$libstem $(LDFLAGS) -o '$$@' | $(INTO_RELATIVE_PATH) >> .auxDepends; \
 	$(ECHO) $(TAB)@$(ECHO) >> .auxDepends; \
 	$(ECHO) >> .auxDepends; \
 	done
@@ -569,8 +564,8 @@ coda_lib:
 .auxLinkDefFiles : .auxDictFiles
 	@$(RM) .tmp1 .tmp2
 	@$(ECHO) Generating $@
-	@$(FIND) $(QWANALYSIS) | $(GREP) '\$(IncSuf)' | $(INTO_RELATIVE_PATH) | $(SED) '/LinkDef/d;/Dict/d;s/\$(IncSuf)//' > .tmp1
-	@$(FIND) $(QWANALYSIS) | $(GREP) LinkDef | $(INTO_RELATIVE_PATH) | $(SED) 's/LinkDef\$(IncSuf)//'> .tmp2
+	@$(FIND) $(QWANALYSIS) | $(GREP) '\$(IncSuf)' | $(INTO_RELATIVE_PATH) | $(SED) '/\.svn/d;/LinkDef/d;/Dict/d;s/\$(IncSuf)//' > .tmp1
+	@$(FIND) $(QWANALYSIS) | $(GREP) LinkDef | $(INTO_RELATIVE_PATH) | $(SED) '/\.svn/d;s/LinkDef\$(IncSuf)//'> .tmp2
 	@for file in `$(CAT) .tmp1`; \
 	do \
 	if [ "`$(GREP) $$file .tmp2`" != "" ]; \
@@ -674,7 +669,7 @@ coda_lib:
 
 .auxSrcFiles: .auxExeFiles
 	@$(ECHO) Generating $@
-	@for file in $(shell $(FIND) $(QWANALYSIS) | $(SED) '/\/main\//!d;/CVS/d;/\$(SrcSuf)/!d' | $(FILTER_OUT_TRASH)); \
+	@for file in $(shell $(FIND) $(QWANALYSIS) | $(SED) '/\/main\//!d;/\.svn/d;/CVS/d;/\$(SrcSuf)/!d' | $(FILTER_OUT_TRASH)); \
 	do \
 	case `$(ECHO) $$file | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'` in ${foreach exe,$(shell $(CAT) $<),$(exe) ${shell ${ECHO} ")"} $(ECHO) $$file | $(INTO_RELATIVE_PATH) >> $@;;} \
 	esac; \
@@ -684,7 +679,7 @@ coda_lib:
 
 .auxExeFiles:
 	@$(ECHO) Generating $@
-	@$(ECHO) $(filter $(shell $(FIND) $(QWANALYSIS) | $(SED) '/\/main\//!d;/CVS/d;/\$(SrcSuf)/!d' | $(FILTER_OUT_TRASH) | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'),$(EXES)) > $@
+	@$(ECHO) $(filter $(shell $(FIND) $(QWANALYSIS) | $(SED) '/\/main\//!d;/\.svn/d;/CVS/d;/\$(SrcSuf)/!d' | $(FILTER_OUT_TRASH) | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'),$(EXES)) > $@
 
 
 .ADD:
