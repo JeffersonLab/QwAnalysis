@@ -1,9 +1,0 @@
-<area shape="rect" href="$classQwMainDetector.html#7a386dabee923d3f29aab59b103f01f0" title="QwMainDetector::FindSignalIndex" alt="" coords="295,6,513,30">
-<area shape="rect" href="$classQwMainDetector.html#41c081dbe70c14df468a48c528c5a1e4" title="QwMainDetector::LinkChannelToSignal" alt="" coords="281,54,527,78">
-<area shape="rect" href="$classQwMainDetector.html#834c0d7afb35def29d45420e8ceec5cd" title="QwMainDetector::RegisterModuleType" alt="" coords="283,102,525,126">
-<area shape="rect" href="$classQwMainDetector.html#bd65d721d7adadd730d7593fc62dc2a4" title="QwMainDetector::RegisterROCNumber" alt="" coords="281,150,527,174">
-<area shape="rect" href="$classQwMainDetector.html#3ecf0de6ec61e9d6eaaba6aba8d33907" title="QwMainDetector::RegisterSlotNumber" alt="" coords="284,198,524,222">
-<area shape="rect" href="$classVQwSubsystem.html#acb5477b2c102bc3db56821c9a2ceb8b" title="VQwSubsystem::RegisterSubbank" alt="" coords="293,246,515,270">
-<area shape="rect" href="$classVQwSubsystem.html#cb38c9858757485e5f6a0f884932aa34" title="VQwSubsystem::GetSubbankIndex" alt="" coords="585,150,812,174">
-<area shape="rect" href="$classVQwSubsystem.html#c319a96632658bde5ac66526d8961a8e" title="VQwSubsystem::RegisterROCNumber" alt="" coords="577,198,820,222">
-<area shape="rect" href="$classVQwSubsystem.html#ece5a7e167f38e1da39fcf57a291573c" title="VQwSubsystem::FindIndex" alt="" coords="871,174,1049,198">

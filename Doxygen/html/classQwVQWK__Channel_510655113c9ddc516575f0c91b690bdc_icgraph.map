@@ -1,9 +1,0 @@
-<area shape="rect" href="$classQwVQWK__Channel.html#84a5cd37a88b07407885cf9c56bf1d9b" title="QwVQWK_Channel::FillHistograms" alt="" coords="324,6,548,30">
-<area shape="rect" href="$classQwVQWK__Channel.html#e000f39c69bcecfe03fbaa4b94a346ea" title="QwVQWK_Channel::FillTreeVector" alt="" coords="325,54,547,78">
-<area shape="rect" href="$classQwVQWK__Channel.html#2b8e8ccf575ad7fd758d4175cc2d6ffd" title="QwVQWK_Channel::IsGoodEvent" alt="" coords="327,102,545,126">
-<area shape="rect" href="$classQwBCM.html#66884ab1fcefcd0f1acc3e5754f19638" title="QwBCM::FillHistograms" alt="" coords="617,6,777,30">
-<area shape="rect" href="$classQwBCM.html#86eb16b63bd938ef34f941cb7963a99d" title="QwBCM::FillTreeVector" alt="" coords="620,54,775,78">
-<area shape="rect" href="$classQwBPMStripline.html#046669114a199518cee3152dbb5b4108" title="QwBPMStripline::IsGoodEvent" alt="" coords="597,102,797,126">
-<area shape="rect" href="$classQwBCM.html#f7845203b1de280cdc73d3bb1770ee19" title="QwBCM::IsGoodEvent" alt="" coords="621,150,773,174">
-<area shape="rect" href="$classQwBPMStripline.html#0fef02be814cba4e228116ed7ba92b8c" title="QwBPMStripline::ProcessEvent" alt="" coords="847,102,1052,126">
-<area shape="rect" href="$classQwBCM.html#f574ab9c449b6d36c8bcaad9f6fecfc4" title="QwBCM::ProcessEvent" alt="" coords="869,150,1029,174">

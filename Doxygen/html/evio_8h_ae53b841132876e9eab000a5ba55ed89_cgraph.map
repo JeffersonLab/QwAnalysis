@@ -1,6 +1,0 @@
-<area shape="rect" href="$evio_8h.html#fc9ef0a07a0bc472e3cde4e37a581c2f" title="evGetNewBuffer" alt="" coords="128,6,243,30">
-<area shape="rect" href="$evio_8C.html#165b5e3eaf28b3984461a0208f846a59" title="int_swap_byte" alt="" coords="133,54,237,78">
-<area shape="rect" href="$evio_8C.html#9e2251d7aa2d337c66fc00c94d936f6b" title="swapped_memcpy" alt="" coords="121,102,249,126">
-<area shape="rect" href="$evio_8C.html#724b19c4f3a23ab3d4ddd02ec4301d66" title="onmemory_swap" alt="" coords="304,6,424,30">
-<area shape="rect" href="$evio_8C.html#5fb161d35d2af724a1a0249a73748ca3" title="swapped_intcpy" alt="" coords="307,78,421,102">
-<area shape="rect" href="$swap__util_8C.html#fb9d437322583b52fe6303c3f74d026f" title="swapped_shortcpy" alt="" coords="300,126,428,150">

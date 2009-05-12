@@ -1,9 +1,0 @@
-<area shape="rect" href="$classMQwCodaControlEvent.html#f6811ebe92a326d61694e9e3d687c350" title="MQwCodaControlEvent::ProcessControlEvent" alt="" coords="293,102,581,126">
-<area shape="rect" href="$classQwEventBuffer.html#d5c0f4653446d77868f00ffed423459c" title="QwEventBuffer::SetEventLength" alt="" coords="332,150,543,174">
-<area shape="rect" href="$classQwEventBuffer.html#df85712c283cb3391f4c801535a23184" title="QwEventBuffer::SetEventType" alt="" coords="337,198,537,222">
-<area shape="rect" href="$classQwEventBuffer.html#7b918759750258aa5ef8da020354a913" title="QwEventBuffer::SetWordsSoFar" alt="" coords="333,246,541,270">
-<area shape="rect" href="$classMQwCodaControlEvent.html#d1326288df4ddf70db3f6d0abbb053b0" title="MQwCodaControlEvent::ProcessEnd" alt="" coords="641,6,876,30">
-<area shape="rect" href="$classMQwCodaControlEvent.html#56ec2607b035c7f48f132649657834aa" title="MQwCodaControlEvent::ProcessGo" alt="" coords="644,54,873,78">
-<area shape="rect" href="$classMQwCodaControlEvent.html#38fa3d16ced0774ccfddc1c5ea723a21" title="MQwCodaControlEvent::ProcessPause" alt="" coords="635,102,883,126">
-<area shape="rect" href="$classMQwCodaControlEvent.html#a056a32a6fb267ec913afc12a8671ef0" title="MQwCodaControlEvent::ProcessPrestart" alt="" coords="629,150,888,174">
-<area shape="rect" href="$classMQwCodaControlEvent.html#ab93cf58ce07b1e6956e498529bf7020" title="MQwCodaControlEvent::ProcessSync" alt="" coords="637,198,880,222">

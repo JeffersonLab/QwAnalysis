@@ -1,9 +1,0 @@
-<area shape="rect" href="$treedo_8h.html" title="Tracking/include/treedo.h" alt="" coords="469,82,635,106">
-<area shape="rect" href="$treedo_8cc.html" title="Tracking/src/treedo.cc" alt="" coords="672,156,821,180">
-<area shape="rect" href="$treesort_8h.html" title="Tracking/include/treesort.h" alt="" coords="784,82,957,106">
-<area shape="rect" href="$treesearch_8cc.html" title="This module contains the code for performing the treesearch algorithm to generate..." alt="" coords="981,82,1157,106">
-<area shape="rect" href="$QwAnalysis__ADC_8cc.html" title="main(...) function for the QwAnalysis_ADC executable" alt="" coords="5,156,216,180">
-<area shape="rect" href="$QwAnalysis_8cc.html" title="main(...) function for the QwAnalysis executable" alt="" coords="240,156,432,180">
-<area shape="rect" href="$QwTracking_8cc.html" title="This is the main program which simply executes a series of commands." alt="" coords="456,156,648,180">
-<area shape="rect" href="$treecombine_8cc.html" title="Tracking/src/treecombine.cc" alt="" coords="845,156,1029,180">
-<area shape="rect" href="$treesort_8cc.html" title="This module is used to identify good track segments versus ghost tracks/hits." alt="" coords="1053,156,1211,180">

@@ -1,6 +1,0 @@
-<area shape="rect" href="$classVertex.html" title="This class has not yet been implemented." alt="" coords="5,199,64,223">
-<area shape="rect" href="$classBridge.html" title="This class has not yet been implemented." alt="" coords="131,111,189,135">
-<area shape="rect" href="$classPartTrack.html" title="Similar to a TreeLine. It contains tracking information." alt="" coords="219,199,296,223">
-<area shape="rect" href="$classHit.html" title="Contains hit data and information regarding the hit detector." alt="" coords="245,7,283,31">
-<area shape="rect" href="$classDet.html" title="Describes a detector element." alt="" coords="213,111,253,135">
-<area shape="rect" href="$classTreeLine.html" title="A container for track information." alt="" coords="357,111,427,135">

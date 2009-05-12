@@ -1,6 +1,0 @@
-<area shape="rect" href="$classQwTriggerScintillator.html#a28845eed23caf30720fd00afca4f9ed" title="QwTriggerScintillator::ClearEventData" alt="" coords="271,6,511,30">
-<area shape="rect" href="$classQwMainDetector.html#98e030137562a0406e9dd2a60d402d75" title="QwMainDetector::ClearEventData" alt="" coords="283,54,499,78">
-<area shape="rect" href="$classQwDriftChamber.html#2e7d2499bd468be74eed3f4a64ba91a5" title="QwDriftChamber::ClearEventData" alt="" coords="283,102,499,126">
-<area shape="rect" href="$classQwTriggerScintillator.html#e89fb5602d0850a951160210ce862221" title="QwTriggerScintillator::ProcessEvBuffer" alt="" coords="267,150,515,174">
-<area shape="rect" href="$classQwMainDetector.html#170d16d3e9a7a77b62a2a98b8df1668f" title="QwMainDetector::ProcessEvBuffer" alt="" coords="279,198,503,222">
-<area shape="rect" href="$classQwDriftChamber.html#d8287afa7b24b4409e7c8fab20763767" title="QwDriftChamber::ProcessEvBuffer" alt="" coords="279,246,503,270">
