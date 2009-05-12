@@ -18,6 +18,8 @@ class shortnode;
 
 *//*-------------------------------------------------------------------------*/
 
+///
+/// \ingroup QwTrackingAnl
 class shorttree {
 
   public:

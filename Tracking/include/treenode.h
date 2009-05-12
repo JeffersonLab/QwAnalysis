@@ -38,6 +38,8 @@ class nodenode;
 
 *//*------------------------------------------------------------------------*/
 
+///
+/// \ingroup QwTrackingAnl
 class treenode {
 
   public:

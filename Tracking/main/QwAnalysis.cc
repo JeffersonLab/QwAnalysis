@@ -1,25 +1,43 @@
-
-
 /**********************************************************\
 * File:  Analysis.cc                                       *
 *                                                          *
 * Author: P. M. King, Rakitha Beminiwattha                 *
 * Time-stamp: <2008-07-16 15:40>                           *
 \**********************************************************/
+
+/*------------------------------------------------------------------------*//*!
+
+ \defgroup QwAnalysis QwAnalysis
+
+ \section myoverview Overview
+
+   Qweak Analysis Framework
+
+   Each subsystem will have a class derived from "VQwSubsystem", and
+   will be responsible for decoding of it's own data stream and any
+   special event processing required. QwSubsystemArray will handle
+   mutiple "VQwSubsystem" objects and one call on the QwSubsystemArray
+   will handle all the calls to that method in each subsystem.  Each
+   susbsytem will also own the histograms and ntupling functions used
+   for its data.
+
+   Once the CODA event are decoded into QwHitCOntainer data structure.
+   Routines from QwASCIIEventBuffer will update rcDET and rcDETRegion.
+   Then QTR routines can take control over.
+
+*//*-------------------------------------------------------------------------*/
+
+
+/*------------------------------------------------------------------------*//*!
+
+ \file QwAnalysis.cc
+
+ \brief main(...) function for the QwAnalysis executable
+
+*//*-------------------------------------------------------------------------*/
+
+
 /*
-Qweak Analysis Framework
-
-Each subsystem will have a class derived from "VQwSubsystem",
-and will be responsible for decoding of it's own data stream
-and any special event processing required. QwSubsystemArray will handle mutiple
-"VQwSubsystem" objects and one call on the QwSubsystemArray will handle all the
-calls to that method in each subsystem.
-Each susbsytem will also own the histograms and ntupling
-functions used for its data.
-
-Once the CODA event are decoded into QwHitCOntainer data structure.
-Routines from QwASCIIEventBuffer will update rcDET and rcDETRegion.
-Then QTR routines can take control over.
 
 */
 
@@ -63,6 +81,8 @@ Bool_t kInQwBatchMode = kFALSE;
   ////  /u/group/qweak/pitt/scratch/data at jlabl1 server in JLAB  ///////////////////////////////////////////////////////////////
    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+///
+/// \ingroup QwAnalysis
 int main(Int_t argc,Char_t* argv[])
 {
 

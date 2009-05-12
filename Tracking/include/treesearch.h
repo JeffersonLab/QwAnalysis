@@ -20,6 +20,8 @@ using namespace QwTracking;
 
 *//*-------------------------------------------------------------------------*/
 
+///
+/// \ingroup QwTrackingAnl
 class treesearch {
 
   public:

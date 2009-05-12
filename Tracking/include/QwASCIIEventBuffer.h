@@ -25,6 +25,8 @@
 #define DEBUG1 1
 
 
+///
+/// \ingroup QwTrackingAnl
 class QwASCIIEventBuffer : public QwEventBuffer
 {
 

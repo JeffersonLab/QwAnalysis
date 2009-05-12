@@ -14,6 +14,8 @@
 
 #include "QwParameterFile.h"
 
+///
+/// \ingroup QwAnalysis
 class QwHistogramHelper{
  public:
   QwHistogramHelper():fDEBUG(kFALSE){};

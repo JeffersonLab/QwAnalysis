@@ -27,6 +27,8 @@
 #include "QwTypes.h"
 #include <iostream>
 
+///
+/// \ingroup QwTrackingAnl
 class QwHit {
  public:
 

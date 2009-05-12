@@ -18,15 +18,19 @@ enum EDataToSave{kRaw=0, kDerived};
 // this data is used to decided which data need to be histogrammed or ttree-ed
 
 
+///
+/// \ingroup QwAnalysis_ADC
+///
+/// \ingroup QwAnalysis_BL
 class QwVQWK_Channel: public VQwDataElement {
-  /******************************************************************
-   *  Class: QwVQWK_Channel
-   *         Base class containing decoding functions for the VQWK_Channel
-   *         6 32-bit datawords.
-   *         The functions in this class will decode a single channel
-   *         worth of VQWK_Channel data and provide the components
-   *         through member functions.
-   ******************************************************************/
+/****************************************************************//**
+ *  Class: QwVQWK_Channel
+ *         Base class containing decoding functions for the VQWK_Channel
+ *         6 32-bit datawords.
+ *         The functions in this class will decode a single channel
+ *         worth of VQWK_Channel data and provide the components
+ *         through member functions.
+ ******************************************************************/
  public:
   QwVQWK_Channel() { };
   QwVQWK_Channel(TString name, TString datatosave="raw"){

@@ -22,8 +22,8 @@ enum EBeamInstrumentType{kBPMStripline = 0,
 // this emun vector needs to be coherent with the DetectorTypes declaration in the QwBeamLine constructor
 
 
-
-
+///
+/// \ingroup QwAnalysis_BL
 class QwBeamDetectorID
 {
  public:

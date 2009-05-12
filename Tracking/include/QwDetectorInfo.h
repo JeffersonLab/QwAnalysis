@@ -9,6 +9,8 @@
 
 
 
+///
+/// \ingroup QwTrackingAnl
 class QwDetectorInfo{
   ///
   ///  Tracking detector information class.  This will be used in an array

@@ -7,6 +7,8 @@
 #include <TDatime.h>
 #include <TString.h>
 
+///
+/// \ingroup QwAnalysis
 class MQwCodaControlEvent
 {
  public:

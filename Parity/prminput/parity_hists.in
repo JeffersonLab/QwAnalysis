@@ -5,6 +5,7 @@
 #   The values after the axis titles, if exist, are the min and max of
 #   the histogram filled weight.
 
+
 #name_title          type    x_nbins x_min   x_max   y_nbins y_min   y_max   xtitle  ytitle
 ##############################################################################################
 ###  Single event histograms
@@ -252,3 +253,5 @@ asymBar.Right_.w_raw		TH1F	1001	-1.001e-3	1.001e-3		Asym(raw)	Events
 asymBar.Right_.w_volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
 asymBar.Right_seqnum		TH1F	301	-0.5		300.5			SequenceNumber	Events
 asymBar.Right_numsamples	TH1F	1001	-2.5		5002.5			NumberOfSamples	Events
+
+

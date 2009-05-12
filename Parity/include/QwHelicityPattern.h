@@ -11,6 +11,10 @@
 #include <TTree.h>
 #include "QwSubsystemArrayParity.h"
 
+///
+/// \ingroup QwAnalysis_ADC
+///
+/// \ingroup QwAnalysis_BL
 class QwHelicityPattern{
   /******************************************************************
    *  Class: QwHelicityPattern

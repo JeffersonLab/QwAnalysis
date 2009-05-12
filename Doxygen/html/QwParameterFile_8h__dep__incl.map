@@ -1,0 +1,49 @@
+<area shape="rect" href="$VQwSubsystem_8h.html" title="Analysis/include/VQwSubsystem.h" alt="" coords="871,109,1095,133">
+<area shape="rect" href="$QwASCIIEventBuffer_8h.html" title="Tracking/include/QwASCIIEventBuffer.h" alt="" coords="43,333,293,357">
+<area shape="rect" href="$QwGasElectronMultiplier_8h.html" title="Tracking/include/QwGasElectronMultiplier.h" alt="" coords="3887,259,4159,283">
+<area shape="rect" href="$QwDriftChamber_8h.html" title="Tracking/include/QwDriftChamber.h" alt="" coords="4183,259,4407,283">
+<area shape="rect" href="$QwDriftChamberHDC_8cc.html" title="Tracking/src/QwDriftChamberHDC.cc" alt="" coords="4559,408,4793,432">
+<area shape="rect" href="$QwDriftChamberVDC_8cc.html" title="Tracking/src/QwDriftChamberVDC.cc" alt="" coords="4239,408,4473,432">
+<area shape="rect" href="$QwHistogramHelper_8h.html" title="Analysis/include/QwHistogramHelper.h" alt="" coords="2096,184,2341,208">
+<area shape="rect" href="$QwParameterFile_8cc.html" title="Analysis/src/QwParameterFile.cc" alt="" coords="4820,109,5036,133">
+<area shape="rect" href="$Qevent_8h.html" title="Tracking/include/Qevent.h" alt="" coords="205,483,376,507">
+<area shape="rect" href="$QwSubsystemArray_8h.html" title="Analysis/include/QwSubsystemArray.h" alt="" coords="1231,184,1476,208">
+<area shape="rect" href="$QwEventBuffer_8h.html" title="Analysis/include/QwEventBuffer.h" alt="" coords="276,259,495,283">
+<area shape="rect" href="$QwAnalysis__BeamLine_8h.html" title="Parity/include/QwAnalysis_BeamLine.h" alt="" coords="595,333,843,357">
+<area shape="rect" href="$VQwSubsystem_8cc.html" title="Analysis/src/VQwSubsystem.cc" alt="" coords="236,184,444,208">
+<area shape="rect" href="$VQwSubsystemParity_8h.html" title="Parity/include/VQwSubsystemParity.h" alt="" coords="861,184,1104,208">
+<area shape="rect" href="$VQwSubsystemTracking_8h.html" title="Tracking/include/VQwSubsystemTracking.h" alt="" coords="3509,184,3781,208">
+<area shape="rect" href="$QwAnalysis__ADC_8h.html" title="Parity/include/QwAnalysis_ADC.h" alt="" coords="1528,408,1747,432">
+<area shape="rect" href="$QwSubsystemArray_8cc.html" title="Analysis/src/QwSubsystemArray.cc" alt="" coords="1476,259,1705,283">
+<area shape="rect" href="$QwSubsystemArrayParity_8h.html" title="Parity/include/QwSubsystemArrayParity.h" alt="" coords="1087,259,1351,283">
+<area shape="rect" href="$QwSubsystemArrayTracking_8h.html" title="Tracking/include/QwSubsystemArrayTracking.h" alt="" coords="3159,259,3455,283">
+<area shape="rect" href="$QwEventBuffer_8cc.html" title="Analysis/src/QwEventBuffer.cc" alt="" coords="317,333,520,357">
+<area shape="rect" href="$QwAnalysis__ADC_8cc.html" title="main(...) function for the QwAnalysis_ADC executable" alt="" coords="401,557,612,581">
+<area shape="rect" href="$QwAnalysis__BeamLine_8cc.html" title="main(...) function for the qwanalysis_beamline executable" alt="" coords="568,408,811,432">
+<area shape="rect" href="$QwHelicityPattern_8cc.html" title="Parity/src/QwHelicityPattern.cc" alt="" coords="835,408,1037,432">
+<area shape="rect" href="$QwAnalysis_8h.html" title="Tracking/include/QwAnalysis.h" alt="" coords="3588,408,3788,432">
+<area shape="rect" href="$tracking_8h.html" title="Tracking/include/tracking.h" alt="" coords="80,408,256,432">
+<area shape="rect" href="$QwASCIIEventBuffer_8cc.html" title="Tracking/src/QwASCIIEventBuffer.cc" alt="" coords="280,408,515,432">
+<area shape="rect" href="$QwAnalysis_8cc.html" title="main(...) function for the QwAnalysis executable" alt="" coords="636,557,828,581">
+<area shape="rect" href="$tree_8h.html" title="Tracking/include/tree.h" alt="" coords="411,483,563,507">
+<area shape="rect" href="$QwTracking_8cc.html" title="This is the main program which simply executes a series of commands." alt="" coords="185,557,377,581">
+<area shape="rect" href="$QwSubsystemArrayParity_8cc.html" title="Parity/src/QwSubsystemArrayParity.cc" alt="" coords="1301,333,1549,357">
+<area shape="rect" href="$QwQuartzBar_8h.html" title="Parity/include/QwQuartzBar.h" alt="" coords="1675,333,1867,357">
+<area shape="rect" href="$QwBeamLine_8h.html" title="Parity/include/QwBeamLine.h" alt="" coords="820,259,1012,283">
+<area shape="rect" href="$QwHelicity_8h.html" title="Parity/include/QwHelicity.h" alt="" coords="620,259,796,283">
+<area shape="rect" href="$QwBeamLine_8cc.html" title="Parity/src/QwBeamLine.cc" alt="" coords="1101,333,1277,357">
+<area shape="rect" href="$QwHelicity_8cc.html" title="Parity/src/QwHelicity.cc" alt="" coords="917,333,1077,357">
+<area shape="rect" href="$QwTriggerScintillator_8h.html" title="Tracking/include/QwTriggerScintillator.h" alt="" coords="3564,333,3812,357">
+<area shape="rect" href="$QwMainDetector_8h.html" title="Tracking/include/QwMainDetector.h" alt="" coords="3076,333,3300,357">
+<area shape="rect" href="$QwDriftChamberHDC_8h.html" title="Tracking/include/QwDriftChamberHDC.h" alt="" coords="4444,333,4695,357">
+<area shape="rect" href="$QwDriftChamberVDC_8h.html" title="Tracking/include/QwDriftChamberVDC.h" alt="" coords="4169,333,4420,357">
+<area shape="rect" href="$QwDriftChamber_8cc.html" title="Tracking/src/QwDriftChamber.cc" alt="" coords="3937,333,4145,357">
+<area shape="rect" href="$QwHistogramHelper_8cc.html" title="Handler class for histogram parameter files and histogram creation." alt="" coords="2281,259,2511,283">
+<area shape="rect" href="$QwVQWK__Module_8h.html" title="Parity/include/QwVQWK_Module.h" alt="" coords="1932,259,2156,283">
+<area shape="rect" href="$QwVQWK__Module_8cc.html" title="Parity/src/QwVQWK_Module.cc" alt="" coords="1969,333,2177,357">
+<area shape="rect" href="$QwBCM_8cc.html" title="Parity/src/QwBCM.cc" alt="" coords="2535,259,2681,283">
+<area shape="rect" href="$QwBPMStripline_8cc.html" title="Parity/src/QwBPMStripline.cc" alt="" coords="2705,259,2900,283">
+<area shape="rect" href="$QwVQWK__Channel_8cc.html" title="Parity/src/QwVQWK_Channel.cc" alt="" coords="2924,259,3135,283">
+<area shape="rect" href="$QwPMT__Channel_8h.html" title="Tracking/include/QwPMT_Channel.h" alt="" coords="3529,259,3761,283">
+<area shape="rect" href="$QwPMT__Channel_8cc.html" title="Tracking/src/QwPMT_Channel.cc" alt="" coords="3324,333,3540,357">
+<area shape="rect" href="$Qevent_8cc.html" title="Qevent is a generic data read&#45;in class." alt="" coords="7,557,161,581">

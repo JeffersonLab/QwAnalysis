@@ -19,6 +19,10 @@ enum HelicityRootSavingType{kHelSaveMPS = 0,
 // this emun vector needs to be coherent with the DetectorTypes declaration in the QwBeamLine constructor
 
 
+///
+/// \ingroup QwAnalysis_ADC
+///
+/// \ingroup QwAnalysis_BL
 class QwWord
 {
  public:
@@ -53,6 +57,10 @@ class QwWord
 /*****************************************************************
 *  Class: 
 ******************************************************************/
+///
+/// \ingroup QwAnalysis_ADC
+///
+/// \ingroup QwAnalysis_BL
 class QwHelicity : public VQwSubsystemParity{
   /////
  public:

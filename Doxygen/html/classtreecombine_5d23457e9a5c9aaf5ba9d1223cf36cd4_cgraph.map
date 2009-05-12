@@ -1,0 +1,5 @@
+<area shape="rect" href="$treecombine_8cc.html#581447d834fb2ceb6b5d69ea22be9743" title="r2_TrackFit" alt="" coords="271,30,356,54">
+<area shape="rect" href="$treecombine_8cc.html#459b34e940dcdef7ce7a3f7194a5778f" title="Calculates y[n] = A[n,m] * b[m], with dimensions indicated." alt="" coords="405,6,507,30">
+<area shape="rect" href="$treecombine_8cc.html#83ae2932e0af7f0fd176efe4a26944cb" title="Matrix inversion of Ap will be stored in Bp." alt="" coords="420,54,492,78">
+<area shape="rect" href="$treecombine_8cc.html#d12cb0e98d9601219d9d6e7f8bb62d61" title="Creates unit matrix A." alt="" coords="560,30,621,54">
+<area shape="rect" href="$treecombine_8cc.html#3cf60eef71718192d0b81cb53ee508f1" title="Calculates a*A + b*B, where both A and B are rows of length n." alt="" coords="555,78,627,102">

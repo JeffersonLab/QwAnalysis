@@ -1,0 +1,9 @@
+<area shape="rect" href="$classQwBeamLine.html#089bb70c76d15873d511f9540076b222" title="QwBeamLine::GetDetectorIndex" alt="" coords="269,5,477,29">
+<area shape="rect" href="$classQwBeamLine.html#7d2636129eee143307a988d455ead75b" title="QwBeamLine::GetDetectorTypeID" alt="" coords="265,53,481,77">
+<area shape="rect" href="$classVQwSubsystem.html#cb38c9858757485e5f6a0f884932aa34" title="VQwSubsystem::GetSubbankIndex" alt="" coords="543,176,769,200">
+<area shape="rect" href="$classQwParameterFile.html#ad3c38a84406f8130bd189adbb252afe" title="QwParameterFile::GetUInt" alt="" coords="287,152,460,176">
+<area shape="rect" href="$classQwBeamLine.html#40179c72efc67e074bd05cc8cc9f149d" title="QwBeamLine::Print" alt="" coords="307,200,440,224">
+<area shape="rect" href="$classQwBeamDetectorID.html#1bb9cf56cd5bb104db2bca2dfb8022e4" title="QwBeamDetectorID::Print" alt="" coords="288,248,459,272">
+<area shape="rect" href="$classVQwSubsystem.html#c319a96632658bde5ac66526d8961a8e" title="VQwSubsystem::RegisterROCNumber" alt="" coords="535,297,777,321">
+<area shape="rect" href="$classVQwSubsystem.html#acb5477b2c102bc3db56821c9a2ceb8b" title="VQwSubsystem::RegisterSubbank" alt="" coords="263,347,484,371">
+<area shape="rect" href="$classVQwSubsystem.html#ece5a7e167f38e1da39fcf57a291573c" title="VQwSubsystem::FindIndex" alt="" coords="828,237,1007,261">

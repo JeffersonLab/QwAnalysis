@@ -10,6 +10,8 @@
  \brief This module is used to identify good track segments versus ghost tracks/hits.
 
 */
+///
+/// \ingroup QwTrackingAnl
 class treesort {
 
   public:

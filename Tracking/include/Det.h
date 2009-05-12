@@ -34,6 +34,8 @@ class Hit;
     \todo This should be replaced by the QwDetectorInfo class.  That is also
     a slightly more sensible name than Det...
  */
+///
+/// \ingroup QwTrackingAnl
 class Det {
 
   public:

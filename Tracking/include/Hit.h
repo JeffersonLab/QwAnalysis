@@ -29,6 +29,8 @@ class Det;
     away instead of going with a linked list of QwHit objects.  But first
     just QwHit, I would say. (wdc)
  */
+///
+/// \ingroup QwTrackingAnl
 class Hit {
 
   public:

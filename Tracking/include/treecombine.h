@@ -23,6 +23,8 @@
     functions are used by various routines.  The goal is to eventually replace
     the need for this class.
 */
+///
+/// \ingroup QwTrackingAnl
 class chi_hash {
 
   public:

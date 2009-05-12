@@ -29,6 +29,8 @@ class Hit;
 //____________________________________________
 /*! \brief This class has not yet been implemented
  */
+///
+/// \ingroup QwTrackingAnl
 class Vertex {
 
   public:
@@ -47,6 +49,8 @@ class Vertex {
 
 //____________________________________________
 /*! \brief This class has not yet been implemented*/
+///
+/// \ingroup QwTrackingAnl
 class Bridge {
 
   public:
@@ -74,6 +78,8 @@ class Bridge {
     the fit results.
     This track is used for found tracks.
  */
+///
+/// \ingroup QwTrackingAnl
 class TreeLine {
 
   public:
@@ -108,6 +114,8 @@ class TreeLine {
     A PartTrack contains tracking information and is the result of
     multiple track segments fit together.
  */
+///
+/// \ingroup QwTrackingAnl
 class PartTrack {
 
   public:
@@ -143,6 +151,8 @@ class PartTrack {
 //____________________________________________
 /*! \brief This class has not yet been implemented
  */
+///
+/// \ingroup QwTrackingAnl
 class Track {
 
   public:
@@ -197,6 +207,8 @@ class Track {
 //____________________________________________
 /*! \brief Contains all the track reconstruction for a single event.
  */
+///
+/// \ingroup QwTrackingAnl
 class Event {
 
   public:

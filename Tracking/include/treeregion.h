@@ -4,6 +4,8 @@
 #include "shortnode.h"
 #include "globals.h"
 
+///
+/// \ingroup QwTrackingAnl
 namespace QwTracking {
 
 /*------------------------------------------------------------------------*//*!
@@ -22,6 +24,8 @@ namespace QwTracking {
 
 *//*-------------------------------------------------------------------------*/
 
+///
+/// \ingroup QwTrackingAnl
 class treeregion {
 
   public:

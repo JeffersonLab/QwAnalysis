@@ -1,0 +1,10 @@
+<area shape="rect" href="$classQwHelicityPattern.html#bc1bfa0dfb3b1ed678eb1dc97f69b4e9" title="QwHelicityPattern::ClearEventData" alt="" coords="281,6,505,30">
+<area shape="rect" href="$classQwHelicity.html#6c2a70f33a0861dbe4291a6fded6fff7" title="QwHelicity::GetEventNumber" alt="" coords="297,54,489,78">
+<area shape="rect" href="$classQwHelicity.html#b812908bdaf10977ba7716decc8e459b" title="QwHelicity::GetHelicityActual" alt="" coords="297,102,489,126">
+<area shape="rect" href="$classQwHelicity.html#3727c938ad9814dbff29bc09d9c15b10" title="QwHelicity::GetPatternNumber" alt="" coords="293,150,493,174">
+<area shape="rect" href="$classQwHelicity.html#28ea0286af310609385b27cc7c89a5a7" title="QwHelicity::GetPhaseNumber" alt="" coords="296,198,491,222">
+<area shape="rect" href="$classQwSubsystemArray.html#95892ecb5324a1e19136604126bb59fc" title="QwSubsystemArray::GetSubsystem" alt="" coords="277,246,509,270">
+<area shape="rect" href="$classQwHelicityPattern.html#349112c5df2bdb85ad9a229459973cd6" title="QwHelicityPattern::Print" alt="" coords="313,294,473,318">
+<area shape="rect" href="$classQwSubsystemArray.html#c51af8bcbe779db32750b2999447ad69" title="QwSubsystemArray::ClearEventData" alt="" coords="561,6,796,30">
+<area shape="rect" href="$classVQwSubsystem.html#b08dfc89a7d05597e2537a26e98f781e" title="VQwSubsystem::ClearEventData" alt="" coords="849,6,1063,30">
+<area shape="rect" href="$classQwHelicityPattern.html#0b6e05cecfdda0e7f3c15e3428b8cdae" title="QwHelicityPattern::IsCompletePattern" alt="" coords="559,294,799,318">

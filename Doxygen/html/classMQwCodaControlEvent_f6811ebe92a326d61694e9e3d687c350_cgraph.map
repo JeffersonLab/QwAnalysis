@@ -1,0 +1,5 @@
+<area shape="rect" href="$classMQwCodaControlEvent.html#d1326288df4ddf70db3f6d0abbb053b0" title="MQwCodaControlEvent::ProcessEnd" alt="" coords="353,6,588,30">
+<area shape="rect" href="$classMQwCodaControlEvent.html#56ec2607b035c7f48f132649657834aa" title="MQwCodaControlEvent::ProcessGo" alt="" coords="356,54,585,78">
+<area shape="rect" href="$classMQwCodaControlEvent.html#38fa3d16ced0774ccfddc1c5ea723a21" title="MQwCodaControlEvent::ProcessPause" alt="" coords="347,102,595,126">
+<area shape="rect" href="$classMQwCodaControlEvent.html#a056a32a6fb267ec913afc12a8671ef0" title="MQwCodaControlEvent::ProcessPrestart" alt="" coords="341,150,600,174">
+<area shape="rect" href="$classMQwCodaControlEvent.html#ab93cf58ce07b1e6956e498529bf7020" title="MQwCodaControlEvent::ProcessSync" alt="" coords="349,198,592,222">

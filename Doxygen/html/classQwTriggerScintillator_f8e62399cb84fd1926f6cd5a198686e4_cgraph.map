@@ -1,0 +1,9 @@
+<area shape="rect" href="$classQwTriggerScintillator.html#25e68b4d1a38b0701c90b5065caf76d3" title="QwTriggerScintillator::FindSignalIndex" alt="" coords="316,6,556,30">
+<area shape="rect" href="$classQwTriggerScintillator.html#9405f8f39a1e71eec20eafd402aeda73" title="QwTriggerScintillator::LinkChannelToSignal" alt="" coords="301,54,571,78">
+<area shape="rect" href="$classQwTriggerScintillator.html#e411d1e4b04d95bc20374060e13c7362" title="QwTriggerScintillator::RegisterModuleType" alt="" coords="303,102,569,126">
+<area shape="rect" href="$classQwTriggerScintillator.html#cf602d9c1cfc9ed41410674a91b2f723" title="QwTriggerScintillator::RegisterROCNumber" alt="" coords="301,150,571,174">
+<area shape="rect" href="$classQwTriggerScintillator.html#e8092d4e746adba59e37ef0e9ff21c29" title="QwTriggerScintillator::RegisterSlotNumber" alt="" coords="304,198,568,222">
+<area shape="rect" href="$classVQwSubsystem.html#acb5477b2c102bc3db56821c9a2ceb8b" title="VQwSubsystem::RegisterSubbank" alt="" coords="325,246,547,270">
+<area shape="rect" href="$classVQwSubsystem.html#cb38c9858757485e5f6a0f884932aa34" title="VQwSubsystem::GetSubbankIndex" alt="" coords="628,150,855,174">
+<area shape="rect" href="$classVQwSubsystem.html#c319a96632658bde5ac66526d8961a8e" title="VQwSubsystem::RegisterROCNumber" alt="" coords="620,198,863,222">
+<area shape="rect" href="$classVQwSubsystem.html#ece5a7e167f38e1da39fcf57a291573c" title="VQwSubsystem::FindIndex" alt="" coords="913,174,1092,198">

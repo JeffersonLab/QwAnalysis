@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------*//*!
 
- \mainpage QwTracking
+ \defgroup QwTrackingAnl QwTracking
 
  \section overview Overview of the Qweak Track Reconstruction package
 
@@ -160,6 +160,8 @@ Options opt;
 FILE *ASCII_textfile;
 const char FILE_NAME[] = "grandhits_output_ASCII.txt";
 
+///
+/// \ingroup QwTrackingAnl
 int main (int argc, char* argv[])
 {
   //This routines initialize QwHit and QwHitContainer related classes

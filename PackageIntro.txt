@@ -1,0 +1,43 @@
+/*------------------------------------------------------------------------*//*!
+
+ \mainpage QwAnalysis
+
+ \section overview Overview of the Qweak data analysis package
+
+    \subsection doxycontent Information about the doxygen documentation
+
+    This is doxygen generated documentation for the qweak analysis
+    software package. General information about the analysis package
+    as a whole should be added here, by the people who are actually
+    writing the code. The file that generates this overview is called
+    "PackageInfo.txt" and can be found in the '$QWANALYSIS'
+    directory. Specific documentation about the code, should be added
+    as comments to the source code, as required by doxygen. The
+    doxygen configuration file can be found in the same directory and
+    should be edited to incorporate additional documentation features,
+    if needed. In addition to the usual source code extensions, the
+    file is currently edited to include all documented "*.txt", "*.in", 
+    and "*.map" files in the directories starting with and downstream 
+    of '$QWANALYSIS'.
+    
+ \section softwareovv Software overview
+
+    Eventually, there should be general information about the code placed
+    here.
+
+    Follow these links to go to the corresponding program specific documentation:
+
+    - \ref QwAnalysis includes general analysis classes used by all packages listed below.
+    - \ref QwAnalysis_BL includes beamline instrumentation analysis classes.
+    - \ref QwAnalysis_ADC currently includes classes for all instrumentation 
+           parity analysis, except beamline instrumentation.
+    - \ref QwTrackingAnl includes all classes for tracking anlysis.
+
+*//*-------------------------------------------------------------------------*/
+
+
+/*------------------------------------------------------------------------*//*!
+
+ \file PackageIntro.txt
+
+*//*-------------------------------------------------------------------------*/

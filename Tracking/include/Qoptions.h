@@ -4,6 +4,8 @@
 /*! \brief Qoptions is a generic ascii read-in program for handling
 program options.
 */
+///
+/// \ingroup QwTrackingAnl
 class Qoptions{
 
  public:

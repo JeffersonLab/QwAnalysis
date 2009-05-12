@@ -18,6 +18,8 @@
 
 #include "VQwSubsystem.h"
 
+///
+/// \ingroup QwAnalysis
 class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
  private:
   typedef std::vector<boost::shared_ptr<VQwSubsystem> >  SubsysPtrs;

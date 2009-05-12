@@ -19,6 +19,8 @@
 
 
 
+///
+/// \ingroup QwAnalysis
 class VQwSubsystem{
   /******************************************************************
    *  Class: VQwSubsystem

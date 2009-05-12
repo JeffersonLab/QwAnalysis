@@ -15,6 +15,8 @@
 #include "VQwSubsystemTracking.h"
 
 
+///
+/// \ingroup QwTrackingAnl
 class QwSubsystemArrayTracking:  public QwSubsystemArray {
  
  public:

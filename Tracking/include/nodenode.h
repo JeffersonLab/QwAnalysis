@@ -22,6 +22,8 @@ class treenode;
 
 *//*-------------------------------------------------------------------------*/
 
+///
+/// \ingroup QwTrackingAnl
 class nodenode {
 
   public:

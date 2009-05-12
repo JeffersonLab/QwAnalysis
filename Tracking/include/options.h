@@ -17,6 +17,8 @@
 
 /*! \brief Used to carry option information throughout the code.
  */
+///
+/// \ingroup QwTrackingAnl
 class Options {
 
   public:

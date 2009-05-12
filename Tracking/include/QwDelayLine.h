@@ -24,6 +24,8 @@ using namespace std;
 /**
 	@author siyuan yang <sxyang@linux-ehar>
 */
+///
+/// \ingroup QwTrackingAnl
 class QwDelayLine
 {
  public:

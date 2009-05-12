@@ -24,6 +24,8 @@ static struct logical_not_s{
 } logical_not_;
 
 
+///
+/// \ingroup QwTrackingAnl
 class QwHitContainer:  public std::list<QwHit>{
  private:
   typedef std::list<QwHit> QwHitArray;

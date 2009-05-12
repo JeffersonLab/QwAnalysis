@@ -12,6 +12,10 @@
 
 #include "QwSubsystemArray.h"
 
+///
+/// \ingroup QwAnalysis_ADC
+///
+/// \ingroup QwAnalysis_BL
 class QwSubsystemArrayParity:  public QwSubsystemArray {
  
  public:

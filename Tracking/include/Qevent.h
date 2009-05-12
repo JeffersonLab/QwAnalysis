@@ -19,6 +19,8 @@ is imported into this program.
 
 
 
+///
+/// \ingroup QwTrackingAnl
 class Qevent{
 
   public:

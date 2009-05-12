@@ -11,6 +11,8 @@
 
 #include "Rtypes.h"
 
+///
+/// \ingroup QwAnalysis
 class MQwV775TDC{
   /******************************************************************
    *  Class: MQwV775TDC

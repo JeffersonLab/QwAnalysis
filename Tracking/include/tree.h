@@ -28,6 +28,8 @@ using namespace QwTracking;
 
 *//*-------------------------------------------------------------------------*/
 
+///
+/// \ingroup QwTrackingAnl
 class tree {
 
   public:

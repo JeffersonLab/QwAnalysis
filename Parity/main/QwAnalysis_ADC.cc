@@ -1,7 +1,35 @@
-/*  ------------
+/*------------------------------------------------------------------------*//*!
 
-*/
+ \defgroup QwAnalysis_ADC QwAnalysis_ADC
 
+ \section myoverview Overview of the Qweak parity data analysis (non-beamline)
+
+    Put something here
+
+ \section MS1 More Stuff
+
+    Put something here
+
+    \subsection MS2 More Substuff
+
+    Put some more stuff here
+
+    \subsection MS3 Even More Substuff
+
+    More stuff
+
+
+*//*-------------------------------------------------------------------------*/
+
+
+/*------------------------------------------------------------------------*//*!
+
+ \file QwAnalysis_ADC.cc
+
+ \brief main(...) function for the QwAnalysis_ADC executable
+
+*//*-------------------------------------------------------------------------*/
+ 
 #include "QwAnalysis_ADC.h"
 #include "TApplication.h"
 
@@ -30,6 +58,8 @@ Options opt;
 
 Bool_t kInQwBatchMode = kFALSE;
 
+///
+/// \ingroup QwAnalysis_ADC
 int main(Int_t argc,Char_t* argv[])
 {
   //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
@@ -37,14 +67,17 @@ int main(Int_t argc,Char_t* argv[])
       ||getenv("JOB_ID")!=NULL) kInQwBatchMode = kTRUE;
   gROOT->SetBatch(kTRUE);
 
-  //  Fill the search paths for the parameter files; this sets a static
-  //  variable within the QwParameterFile class which will be used by
-  //  all instances.
-  //  The "scratch" directory should be first.
+  ///  Fill the search paths for the parameter files; this sets a static
+  ///  variable within the QwParameterFile class which will be used by
+  ///  all instances.
+  ///  The "scratch" directory should be first.
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
 
-  //  Load the histogram parameter definitions into the global histogram helper
+  ///
+  ///  Load the histogram parameter definitions (from parity_hists.txt) into the global 
+  ///  histogram helper: QwHistogramHelper
+  ///
   gQwHists.LoadHistParamsFromFile("parity_hists.in");
 
   TStopwatch timer;
@@ -52,11 +85,15 @@ int main(Int_t argc,Char_t* argv[])
   QwCommandLine cmdline;
   cmdline.Parse(argc, argv);
 
-
+  ///
+  /// Instantiate event buffer
   QwEventBuffer QwEvt;
 
+  ///
+  /// Instantiate one subsytem for all eight main detectors plus one fully assembled
+  /// background detector plus two channels (there are two channels for each fully
+  /// assembled detector) for noise setup.   
   QwSubsystemArray QwDetectors;
-
   QwDetectors.push_back(new QwQuartzBar("MainDetectors"));
   QwDetectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
 

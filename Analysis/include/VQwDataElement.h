@@ -5,7 +5,6 @@
 * Time-stamp: <2007-05-08 15:40>                           *
 \**********************************************************/
 
-
 #ifndef __VQWDATAELEMENT__
 #define __VQWDATAELEMENT__
 
@@ -16,6 +15,8 @@
 #include "TDirectory.h"
 #include "TH1.h"
 
+///
+/// \ingroup QwAnalysis
 class VQwDataElement{
  public:
   VQwDataElement(){};

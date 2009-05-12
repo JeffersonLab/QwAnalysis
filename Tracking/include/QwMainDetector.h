@@ -18,6 +18,8 @@
 #include "QwPMT_Channel.h"
 
 
+///
+/// \ingroup QwTrackingAnl
 class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
   /******************************************************************
    *  Class: QwMainDetector

@@ -5,6 +5,9 @@
 * Time-stamp: <2007-05-08 15:40>                           *
 \**********************************************************/
 
+///
+/// \ingroup QwAnalysis_ADC
+
 #ifndef __QWQUARTZBAR__
 #define __QWQUARTZBAR__
 

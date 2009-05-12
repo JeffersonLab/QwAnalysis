@@ -6,7 +6,8 @@
 #include "QwHitContainer.h"
 #include "QwDetectorInfo.h"
 
-
+///
+/// \ingroup QwTrackingAnl
 class VQwSubsystemTracking: public VQwSubsystem{
   /******************************************************************
    *  Class: VQwSubsystemTracking

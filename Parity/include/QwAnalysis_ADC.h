@@ -28,7 +28,6 @@
 #include "QwSubsystemArray.h"
 #include "QwQuartzBar.h"
 
-
 void PrintInfo(TStopwatch& timer, Int_t run);
 
 #endif

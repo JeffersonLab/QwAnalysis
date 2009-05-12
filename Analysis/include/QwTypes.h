@@ -53,6 +53,8 @@ inline EQwDetectorType& operator++ (EQwDetectorType &type, int) {
 
 
 
+///
+/// \ingroup QwAnalysis
 class QwDetectorID
 {
  public:
@@ -71,6 +73,8 @@ class QwDetectorID
 
 
 
+///
+/// \ingroup QwAnalysis
 class QwElectronicsID
 {
  public:
@@ -82,6 +86,8 @@ class QwElectronicsID
   int fChannel;      //channel number
 };
 
+///
+/// \ingroup QwAnalysis
 class QwDelayLineID{
  public:
  QwDelayLineID():BackPlane(-1),Linenumber(-1),Side(-1){};

@@ -66,7 +66,7 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
        *  P.King, 2007sep04.
        */
       fSequenceNumber   = (localbuf[5]>>8)  & 0xFF;
-      fNumberOfSamples  = (localbuf[5]>>16) & 0xFFFF;
+      fNumberOfSamples  = 16680;//(localbuf[5]>>16) & 0xFFFF;
       
       words_read = fNumberOfDataWords;
       

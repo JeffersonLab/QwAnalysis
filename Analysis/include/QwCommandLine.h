@@ -15,6 +15,8 @@
 #include <Rtypes.h>
 
 
+///
+/// \ingroup QwAnalysis
 class QwCommandLine{
  public:
   QwCommandLine(): fDEBUG(kTRUE),fRunRange(0,0),fEventRange(0,kMaxInt){};

@@ -18,6 +18,8 @@
 #include "QwPMT_Channel.h"
 
 
+///
+/// \ingroup QwTrackingAnl
 class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
   /******************************************************************
    *  Class: QwTriggerScintillator

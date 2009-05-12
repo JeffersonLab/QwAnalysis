@@ -23,6 +23,8 @@
 
 
 
+///
+/// \ingroup QwAnalysis
 class QwEventBuffer: public MQwCodaControlEvent{
  public:
   static const Int_t kRunNotSegmented;

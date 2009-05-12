@@ -23,6 +23,8 @@
 
 
 
+///
+/// \ingroup QwTrackingAnl
 class QwDriftChamberHDC: public QwDriftChamber {
   /******************************************************************
    *  Class: QwDriftChamberHDC

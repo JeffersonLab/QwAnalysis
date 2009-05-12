@@ -16,6 +16,10 @@
 
 
 
+///
+/// \ingroup QwAnalysis_ADC
+///
+/// \ingroup QwAnalysis_BL
 class VQwSubsystemParity : public VQwSubsystem {
   /******************************************************************
    *  Class: VQwSubsystemBeamLine

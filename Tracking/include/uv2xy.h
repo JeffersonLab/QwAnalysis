@@ -24,6 +24,8 @@
 
 *//*-------------------------------------------------------------------------*/
 
+///
+/// \ingroup QwTrackingAnl
 class Uv2xy {
 
    friend class treecombine;

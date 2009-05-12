@@ -17,6 +17,8 @@ namespace QwTracking {
 /**
     @author Wouter Deconinck <wdconinc@mit.edu>
 */
+///
+/// \ingroup QwTrackingAnl
 class TreeLine{
   public:
     TreeLine();

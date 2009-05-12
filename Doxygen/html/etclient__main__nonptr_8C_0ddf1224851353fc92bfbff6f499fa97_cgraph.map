@@ -1,0 +1,9 @@
+<area shape="rect" href="$classTHaEtClient.html#4aa961e02f6ba7d069d2851e6fbdd7f7" title="THaEtClient::codaRead" alt="" coords="115,126,272,150">
+<area shape="rect" href="$classTHaCodaData.html#e12c914d48211185f4b45ced33556b02" title="THaCodaData::getBuffSize" alt="" coords="104,174,283,198">
+<area shape="rect" href="$classTHaEtClient.html#a2a550e160d106def16fbd4ceaa272f3" title="THaEtClient::getEvBuffer" alt="" coords="109,222,277,246">
+<area shape="rect" href="$et_8h.html#ca6368cfb1585b185541f01aab0eb49b" title="et_event_CODAswap" alt="" coords="333,6,477,30">
+<area shape="rect" href="$et_8h.html#40769442fb283f7cafb42eb58f3ddca0" title="et_event_getdata" alt="" coords="345,54,465,78">
+<area shape="rect" href="$et_8h.html#11aa7e0174870cc92530dceb39f9d922" title="et_event_getlength" alt="" coords="340,102,471,126">
+<area shape="rect" href="$et_8h.html#23b183f31b765238aca131bd0fb55620" title="et_event_needtoswap" alt="" coords="332,150,479,174">
+<area shape="rect" href="$et_8h.html#45c004603c100afe81bd8fe807d2bf2f" title="et_events_get" alt="" coords="353,198,457,222">
+<area shape="rect" href="$et_8h.html#79ad29180ee621e4620d36ae3b7f0500" title="et_events_put" alt="" coords="353,246,457,270">

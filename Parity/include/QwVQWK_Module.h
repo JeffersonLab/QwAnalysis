@@ -17,6 +17,10 @@
 
 #include "QwHistogramHelper.h"
 
+///
+/// \ingroup QwAnalysis_ADC
+///
+/// \ingroup QwAnalysis_BL
 class QwVQWK_Module {
   /******************************************************************
    *  Class: QwVQWK_Module

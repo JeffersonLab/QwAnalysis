@@ -16,6 +16,8 @@
 
 
 
+///
+/// \ingroup QwTrackingAnl
 class QwPMT_Channel: public VQwDataElement {
   /******************************************************************
    *  Class: QwPMT_Channel

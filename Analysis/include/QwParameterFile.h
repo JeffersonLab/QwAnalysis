@@ -21,6 +21,8 @@
 
 namespace bfs = boost::filesystem;
 
+///
+/// \ingroup QwAnalysis
 class QwParameterFile{
  public:
   static UInt_t GetUInt(const TString &varvalue);
