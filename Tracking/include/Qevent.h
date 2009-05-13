@@ -16,9 +16,6 @@ is imported into this program.
 #include "Hit.h"
 
 
-
-
-
 ///
 /// \ingroup QwTrackingAnl
 class Qevent{

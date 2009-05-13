@@ -122,6 +122,8 @@ treesearch::~treesearch ()
 
 void treesearch::BeginSearch ()
 {
+  // TODO Maybe this should just be in the constructor?
+
   // Reset list of treelines found in the search
   lTreeLines = 0; // list of tree lines
   nTreeLines = 0; // number of tree lines
@@ -173,21 +175,21 @@ TreeLine* treesearch::GetListOfTreeLines ()
 
 \*---------------------------------------------------------------------------*/
 
-void treesearch::wireselection (Hit **x, Hit **X, Hit **xn, Hit**Xn, double maxdist)
+void treesearch::wireselection (Hit **x, Hit **X, Hit **xn, Hit **Xn, double maxdist)
 {
   cerr << "[treesearch::wireselection] Warning: This needs revision!" << endl;
 
   double wireDistance1;
   double wireDistance2;
 
-  if( *x && *X) { /* there are hits on both primed and unprimed planes */
+  if (*x && *X) { /* there are hits on both primed and unprimed planes */
 
   /* ---- compute the distance between the hits on the two planes      ---- */
 
     wireDistance2 = (*x)->rPos2 - (*X)->rPos1; /* unprimed left-primed right */
     wireDistance1 = (*x)->rPos1 - (*X)->rPos2; /* unprimed right-primed left */
 
-    if( wireDistance2 < -maxdist) {
+    if (wireDistance2 < -maxdist) {
 
     /* ---- CASE 1: the unprimed hit cannot be paired with any of the
                     primed hits.  So, it needs to be considered by
@@ -202,7 +204,7 @@ void treesearch::wireselection (Hit **x, Hit **X, Hit **xn, Hit**Xn, double maxd
                               unprimed hits in the next scan              */
       *X  = 0;             /* no primed match, so return the unprimed hit
                               for use as the bit pattern is generated.    */
-    } else if( wireDistance1 > maxdist) {
+    } else if (wireDistance1 > maxdist) {
 
     /* ---- CASE 2: the primed hit cannot be paired with any of the
                     unprimed hits.  So, it needs to be considered by
@@ -229,11 +231,11 @@ void treesearch::wireselection (Hit **x, Hit **X, Hit **xn, Hit**Xn, double maxd
       *Xn = (*X)->nextdet; /* use next hit as the starting point for the
                               primed hits in the next scan               */
     }
-  } else if( *x ) { /* only hits on primed plane   */
+  } else if (*x) { /* only hits on primed plane   */
     *Xn = 0;             /* no unprimed plane for the next scan        */
     *xn = (*x)->nextdet; /* use next hit as the starting point for the
                             primed hits in the next scan               */
-  } else if( *X ) { /* only hits on unprimed plane */
+  } else if (*X) { /* only hits on unprimed plane */
     *xn = 0;             /* no primed plane for the next scan          */
     *Xn = (*X)->nextdet; /* use next hit as the starting point for the
                             primed hits in the next scan               */
@@ -243,6 +245,7 @@ void treesearch::wireselection (Hit **x, Hit **X, Hit **xn, Hit**Xn, double maxd
   return;
 }
 //________________________________________________________________________
+
 /*---------------------------------------------------------------------------*\
 
   _setpoints() - this function sets the bins in a hit pattern for a
@@ -276,7 +279,7 @@ void treesearch::_setpoints (
 	double detectorwidth,
 	unsigned binwidth,
 	char *pattern,
-	int *hash)
+	int  *hash)
 {
   int ia, ie, hashint = hashgen();
   unsigned oldwidth = binwidth;
@@ -748,7 +751,7 @@ int treesearch::TsSetPoint (
                 being included in the bit pattern.                  ---- */
 
 
-    } else if ( Ha ) { /* this hit's on plane A */
+    } else if (Ha) { /* this hit's on plane A */
       if( patternb ) { /* treating the two planes as two tree-planes,
                           so insert the hit into the bit pattern for
                           this plane                                    */
@@ -809,8 +812,7 @@ int treesearch::TsSetPoint (
 
 \*---------------------------------------------------------------------------*/
 
-int treesearch::exists( int *newa, int front, int back, TreeLine *treeline)
-
+int treesearch::exists (int *newa, int front, int back, TreeLine *treeline)
 {
   int *olda;
   int i, newmiss, oldmiss, diff;
@@ -818,55 +820,55 @@ int treesearch::exists( int *newa, int front, int back, TreeLine *treeline)
   int over;
 
   newmiss = 0;
-  for( i = 0; i < tlayers; i++ )
-    if( !newa[i] )
-      newmiss ++;
+  for (i = 0; i < tlayers; i++)
+    if (! newa[i])
+      newmiss++;
 
-  for( tl = treeline ; tl; tl = tl->next ) { /* loop over the treelines */
+  for (tl = treeline ; tl; tl = tl->next) { /* loop over the treelines */
 
-    if( tl->isvoid ) /* if the treeline has been voided, go onto next one */
+    if (tl->isvoid) /* if the treeline has been voided, go onto next one */
       continue;
     over = 0;
-    if( tl->a_beg <= front && front <= tl->a_end )
-      over ++;
-    if( tl->b_beg <= back  && back  <= tl->b_end )
-      over ++;
+    if (tl->a_beg <= front && front <= tl->a_end)
+      over++;
+    if (tl->b_beg <= back  && back  <= tl->b_end)
+      over++;
 
-    if( over == 2 ){
+    if (over == 2) {
       //cerr << "over = 2" << endl;
       return 1;
     }
-    if( over == 0 )
+    if (over == 0)
       continue;
 
     olda = tl->hasharray;
     oldmiss = 0;
     diff    = 0;
 
-    for( i = 0; i < tlayers; i++ ) {
-      if( !olda[i] ) {
-	oldmiss ++;
+    for (i = 0; i < tlayers; i++) {
+      if (! olda[i]) {
+	oldmiss++;
       } else {
-	if( newa[i] && olda[i] != newa[i] ) {
+	if (newa[i] && olda[i] != newa[i]) {
 	  diff = 1;
 	  break;
 	}
       }
     }
-    if( !diff ) {
-      if( (newmiss == 0 && oldmiss == 0) ||
+    if (! diff) {
+      if ((newmiss == 0 && oldmiss == 0) ||
 	  (!newa[0] && !olda[0]) ||
           (!newa[tlayers-1] && !olda[tlayers-1]) ||
-	  (newmiss && !oldmiss && (!newa[0] || !newa[tlayers-1]))||
+	  (newmiss && !oldmiss && (!newa[0] || !newa[tlayers-1])) ||
 	  (oldmiss && !newmiss && (!olda[0] || !olda[tlayers-1]))
 	) {
-	if( tl->a_beg > front )
+	if (tl->a_beg > front)
 	  tl->a_beg = front;
-	if( tl->a_end < front )
+	if (tl->a_end < front)
 	  tl->a_end = front;
-	if( tl->b_beg > back )
+	if (tl->b_beg > back)
 	  tl->b_beg = back;
-	if( tl->b_end < back )
+	if (tl->b_end < back)
 	  tl->b_end = back;
         //cerr << "!diff" << endl;
 	return 1;
@@ -944,7 +946,7 @@ void treesearch::_TsSearch (
 
 
   /* ---- Compute the offset in the bit pattern for the start
-        position of this level of bin-division                     ---- */
+          position of this level of bin-division                     ---- */
   pattern_start <<= level+1;
   pattern_start &= (unsigned long) 0xffffffffL >> (32 - static_maxlevel);
   //cout << "pattern start = " << pattern_start << endl;
@@ -958,9 +960,11 @@ void treesearch::_TsSearch (
       }
     }
   }
+
   /* ---- Look at the trees attached to each nodenode on the
           specified nodenode linked list                             ---- */
-if (numWires) {
+
+if (numWires) { /* Region 2 */
 
   while (node) {      /* search in all nodes */
 
@@ -971,7 +975,7 @@ if (numWires) {
           of the treesearch?                                         ---- */
     //cout << "minlevel = " << tree->minlevel << endl;
     //cout << "row_offset = " << row_offset << endl;
-    if( tree->minlevel > level+1) { /* check for level boundaries */
+    if (tree->minlevel > level+1) { /* check for level boundaries */
       cerr << "hrm..." << endl;
       node = node->next; /* no, so look at the next nodenode */
       continue;
@@ -1011,7 +1015,7 @@ if (numWires) {
     /* ---- Check if there was the treenode is match now that the
     matching has been completely tested.                      ---- */
 
-    if( matched == tlayers && nullhits <5) {
+    if (matched == tlayers && nullhits < 5) {
       //cout << "match found " << endl;
       //cout << "sons are " << endl;
       //cout << "-----------" << endl;
@@ -1032,26 +1036,25 @@ if (numWires) {
     of the treesearch have been done.  If so, then we have
     found a valid treeline.                                 ---- */
 
-      if( level == static_maxlevel-1 ) {
+      if (level == static_maxlevel - 1) {
         //cerr << "inserting treeline..." << endl;
         /* all level done -> insert treeline */
         /* ---- ---- */
         backbin = reverse ?
           offset - tree->bit[tlayers-1] : offset + tree->bit[tlayers-1];
         //cerr << "back =" << backbin << endl;
-        if(reverse){
+        if (reverse) {
           backbin = 0;
-          for(i=0;i<tlayers;i++){
-            if(offset-tree->bit[i] > backbin)
-              backbin = offset-tree->bit[i];
+          for (i = 0; i < tlayers; i++) {
+            if (offset - tree->bit[i] > backbin)
+              backbin = offset - tree->bit[i];
           }
 
-        }
-        else{
+        } else {
           backbin = 0;
-          for(i=0;i<tlayers;i++){
-            if(offset+tree->bit[i] > backbin)
-              backbin = offset+tree->bit[i];
+          for (i = 0; i < tlayers; i++) {
+            if (offset + tree->bit[i] > backbin)
+              backbin = offset + tree->bit[i];
           }
         }
         //cerr << "back =" << backbin << endl;
@@ -1059,50 +1062,49 @@ if (numWires) {
           offset - tree->bit[0] : offset + tree->bit[0];
         //backbin = reverse ?
         //  offset - tree->bit[tlayers-1] : offset + tree->bit[tlayers-1];
-        for( i = 0; i < tlayers; i++ ) {
+        for (int i = 0; i < tlayers; i++) {
           bin = reverse ?
             offset - tree->bit[i] : offset + tree->bit[i];
           hashpat[i] = static_hash[i][bin];
         }
 
         miss = 0;
-        if( static_pattern[0+row_offset][frontbin] == 0)
+        if (static_pattern[0+row_offset][frontbin] == 0)
           miss = 1;
         else if( static_pattern[tlayers-1+row_offset][backbin] == 0)
           miss = 1;
-        if( !exists( hashpat, frontbin, backbin,lTreeLines) ) {
-          if(opt.showMatchingPatterns)tree->print();
-                                                                                          /* if track is unknown */
-          lineptr = (TreeLine*)malloc( sizeof(TreeLine));       /*  create new one */
+        if (! exists( hashpat, frontbin, backbin,lTreeLines)) {
+          if (opt.showMatchingPatterns) tree->print();     /* if track is unknown */
+          lineptr = (TreeLine*)malloc( sizeof(TreeLine));  /*  create new one */
           assert(lineptr);
           nTreeLines++;                        /* number of treelines found */
-          memcpy( lineptr->hasharray, hashpat, /* make space for this       */
-          sizeof(int)*tlayers);        /* treeline                  */
+          memcpy (lineptr->hasharray, hashpat, /* make space for this       */
+            sizeof(int)*tlayers);        /* treeline                  */
           lineptr->Used = false;            /* this treeline isn't used yet */
           lineptr->a_beg = frontbin;        /* */
           lineptr->a_end = frontbin;
           lineptr->b_beg = backbin;         /* */
           lineptr->b_end = backbin;
-          lineptr->chi  = 0.0;              /* no chi2 value yet            */
+          lineptr->chi   = 0.0;             /* no chi2 value yet            */
           lineptr->isvoid  = false;         /* the treeline is voided yet   */
           lineptr->nummiss = miss;          /* only used until TreeLineSort */
           lineptr->next = lTreeLines;           /* put this treeline into the   */
           lTreeLines = lineptr;                 /*  linked-list of treelines    */
           lineptr->r3offset = row_offset;
           lineptr->firstwire = firstwire;
-          lineptr->lastwire = lastwire;
+          lineptr->lastwire  = lastwire;
         }
       } else {                  /* check son patterns           */
-        for( rev = 0; rev < 4; rev += 2) {
+        for (rev = 0; rev < 4; rev += 2) {
           cnode = tree->son + rev;
-          if( rev ^ reverse) {
+          if (rev ^ reverse) {
             off2 = (offset << 1) + 1;
-            for( off = 0; off < 2; off++)
-              _TsSearch( *cnode++, nlevel, off2 - off, row_offset,2,numWires);
+            for (off = 0; off < 2; off++)
+              _TsSearch (*cnode++, nlevel, off2 - off, row_offset, 2, numWires);
           } else {
             off2 = offset << 1;
             for( off = 0; off < 2; off++)
-              _TsSearch( *cnode++, nlevel, off2 + off,row_offset, 0,numWires);
+              _TsSearch (*cnode++, nlevel, off2 + off, row_offset, 0, numWires);
           }
         } /* highly optimized - time critical */
         //cout << "sons done" << endl;
@@ -1112,7 +1114,7 @@ if (numWires) {
                               next nodenode                         */
   } /* end of loop over nodenodes */
 
-} else {
+} else { /* Region 3 */
 
     while (node) {			/* search in all nodes */
       tree = node->tree;
@@ -1251,7 +1253,7 @@ void treesearch::TsSearch (
   /*static_front    = front;*/
 
   if (numWires) {
-    // The region 3 version of TsSearch
+    // The region 3 version of TsSearch (search for every wire)
     for (int i = 0; i <= numWires - tlayers; i++)
       _TsSearch (node, 0, 0, i, 0, numWires);
 

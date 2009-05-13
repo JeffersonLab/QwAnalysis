@@ -74,12 +74,12 @@
     multiple tracks in a single event, these ambiguities must be resolved by
     the tracking code.
 
-    In the region 3 part of the tracking code method treedo::rcTreeDo, there is
-    a loop over the two VDC planes.  The treesearch::TsSetPoint method is called
-    for each plane to map the hits in the event to a bit pattern.  Next, the
-    treesearch::TsSearch method is called to find all matching patterns for
-    each plane. Finally, treecombine::TlTreeLineSort is called to obtain the
-    track segment candidates for this wire plane.
+    In the region 3 part of the tracking code method QwTrackingWorker::ProcessHits,
+    there is a loop over the two VDC planes.  The treesearch::TsSetPoint method
+    is called for each plane to map the hits in the event to a bit pattern.
+    Next, the treesearch::TsSearch method is called to find all matching
+    patterns for each plane. Finally, treecombine::TlTreeLineSort is called to
+    obtain the track segment candidates for this wire plane.
 
     treecombine::TlTreeLineSort first matches a subset of the hits in the event
     to the matching patterns.  This is done by checking which hits are closest
@@ -87,27 +87,27 @@
     are fit to a line and a chi-square value is calculated.
     treecombine::TlTreeLineSort then uses the treesort class to sort the track
     candidates by likelihood.  Each track candidate is strung together into
-    a linked list and is available to the treedo::rcTreeDo method.
+    a linked list and is available to the QwTrackingWorker::ProcessHits.
 
     At this point there are sets of track candidates in the upstream and
-    downstream planes of a single wire direction.  treedo::rcTreeDo next calls
-    the treematch::MatchR3 method which loops over the upstream and downstream
-    track candidates to identify which best line up according to their slopes
-    and intercepts.  treematch::MatchR3 returns a new set of track candidates
-    which represent both planes in the same wire direction.  The loop over the
-    two wire directions is ended, with tracks in the <i>u</i> and <i>v</i>
-    directions.
+    downstream planes of a single wire direction.  QwTrackingWorker::ProcessHits
+    next calls the treematch::MatchR3 method which loops over the upstream and
+    downstream track candidates to identify which best line up according to
+    their slopes and intercepts.  treematch::MatchR3 returns a new set of track
+    candidates which represent both planes in the same wire direction.  The loop
+    over the two wire directions is ended, with tracks in the <i>u</i> and
+    <i>v</i> directions.
 
  \section code-overview Code Overview
 
     The Qweak Tracking code is built around four main tracking modules:
-    - treedo
+    - QwTrackingWorker (the main entry point)
     - treesearch
     - treecombine
     - treesort
     - treematch
 
-    The organization is done by the module tree.
+    The organization is done by the module QwTrackingWorker.
 
 *//*-------------------------------------------------------------------------*/
 
@@ -136,7 +136,7 @@ using namespace std;
 #include "tracking.h"
 #include "treeregion.h"
 
-#include "treedo.h"
+#include "QwTrackingWorker.h"
 #include "tree.h"
 
 
@@ -148,7 +148,7 @@ using namespace std;
 
 //using namespace QwTracking;
 
-#define NEventMax 1
+#define NEventMax 10
 
 
 //Temporary global variables for sub-programs
@@ -181,11 +181,6 @@ int main (int argc, char* argv[])
 	qoptions.Get((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.options").c_str());
 	cout << "[QwTracking::main] Options loaded" << endl; // R3,R2
 
-	tree thetree;
-	cout << "[QwTracking::main] Initializing pattern database" << endl;
-	thetree.rcInitTree();
-	cout << "[QwTracking::main] Pattern database loaded" << endl; // R3,R2
-
 
 	/// Event loop goes here
 
@@ -194,7 +189,7 @@ int main (int argc, char* argv[])
 	//qevent.Open((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/1000.r2.events").c_str());
 	//cout << "[QwTracking::main] Sample events file opened" << endl;
 
-	treedo Treedo; // R3 needs debugging in the 3-D fit
+	QwTrackingWorker trackingworker; // R3 needs debugging in the 3-D fit
 
 	// The event loop should skip when iEvent is unphysical,
 	// or: GetEvent returns bool and GetEventNumber returns int
@@ -216,7 +211,6 @@ int main (int argc, char* argv[])
 	  SaveHits(ASCIIgrandHitList);
 	  asciibuffer.ProcessHitContainer(ASCIIgrandHitList);//now we decode our QwHitContainer list and pice together with the rcTreeRegion multi dimension array.
 
-	  /*
 	  // Print hit list
 	  QwHitContainer::iterator qwhit;
 	  for (qwhit  = ASCIIgrandHitList.begin();
@@ -228,9 +222,23 @@ int main (int argc, char* argv[])
 	    cout << qwhit->GetDetectorID().fElement << " ";
 	    cout << endl;
 	  }
-	  */
 
-	  Treedo.rcTreeDo(ASCIIgrandHitList); //Giving some trouble when 1000.r2.events events file is used.
+
+	  // (wdc) The QwTrackingWorker constructs the event, we need to delete it
+	  // or we can let the trackingworker take care of it when it goes out of
+	  // scope.  For the moment we don't plug this memory hole...
+	  Event* event = trackingworker.ProcessHits (ASCIIgrandHitList); //Giving some trouble when 1000.r2.events events file is used.
+
+	  // (wdc) Now we can access the event and its partial tracks
+	  // (e.g. list the partial track in the upper region 2 HDC)
+	  PartTrack* listoftracks = event->parttrack[kPackageUp][kRegionID2][kTypeDriftHDC];
+	  for (PartTrack* track = listoftracks;
+	                  track && ! track->isvoid;
+	                  track = track->next) {
+	    cout << "position = (" << track->x << "," << track->y << ")" << endl;
+	    cout << "   slope = (" << track->mx << "," << track->my << ")" << endl;
+	  } // but unfortunately this is still empty
+
 
 	  ASCIIgrandHitList.clear();
 
@@ -241,8 +249,8 @@ int main (int argc, char* argv[])
 	// Statistics
 	cout << endl;
 	cout << "Statistics:" << endl;
-	cout << " Good: " << Treedo.ngood << endl;
-	cout << " Bad : " << Treedo.nbad  << endl;
+	cout << " Good: " << trackingworker.ngood << endl;
+	cout << " Bad : " << trackingworker.nbad  << endl;
 
 	return 0;
 }

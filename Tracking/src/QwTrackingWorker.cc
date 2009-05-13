@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------*//*!
 
- \class treedo
+ \class QwTrackingWorker
 
  \brief Controls all the routines involved in finding tracks in an event.
 
@@ -13,7 +13,7 @@
 							wwc@hermes.desy.de
 
 
- MODULE: treedo
+ MODULE: QwTrackingWorker
 
  \endverbatim
 
@@ -52,7 +52,7 @@
 
  (02) rcLinkUsedTracks()
 
- (03) rcTreeDo() - this function manages the track-finding and track-fitting
+ (03) ProcessHits() - this function manages the track-finding and track-fitting
                    in QTR.  For each detector region (front or back, top or
                    bottom) this function builds the bit patterns for the hits
                    seen in the detector and then invokes the treesearch
@@ -70,7 +70,7 @@
 
 *//*-------------------------------------------------------------------------*/
 
-#include "treedo.h"
+#include "QwTrackingWorker.h"
 
 // Standard C and C++ headers
 #include <cstdio>
@@ -105,13 +105,17 @@ extern Options opt;
 
 
 
-treedo::treedo ()
+QwTrackingWorker::QwTrackingWorker ()
 {
+  // Initialize pattern database
+  tree thetree;
+  thetree.rcInitTree();
+
   /* Reset counters of number of good and back events */
   ngood = nbad = 0;
 
   /* Reset debug level */
-  debug = 0;
+  debug = 1;
 }
 
 
@@ -141,7 +145,7 @@ double rcShootP (double Pest,PartTrack *front, PartTrack *back, double accuracy)
   return -1000;
 }
 
-void treedo::BCheck (double E, PartTrack *f, PartTrack *b, double TVertex, double ZVertex)
+void QwTrackingWorker::BCheck (double E, PartTrack *f, PartTrack *b, double TVertex, double ZVertex)
 {
   double Es = rcShootP(0.0,f,b,0.005);
   //extern physic phys_carlo;
@@ -171,7 +175,7 @@ void treedo::BCheck (double E, PartTrack *f, PartTrack *b, double TVertex, doubl
 
 *//*-------------------------------------------------------------------------*/
 
-Track * treedo::rcLinkUsedTracks( Track *track, int package )
+Track * QwTrackingWorker::rcLinkUsedTracks( Track *track, int package )
 {
   Track *ret = 0, *usedwalk = 0;
   Track *trackwalk, *ytrack;
@@ -198,7 +202,7 @@ Track * treedo::rcLinkUsedTracks( Track *track, int package )
 
 /*------------------------------------------------------------------------*//*!
 
-  rcTreeDo() - this function is the main tracking function. It
+  ProcessHits() - this function is the main tracking function. It
                performes tracking in projections (u/v/x) to form treelines,
                it combines projection tracks to tracks in space and bridges
                tracks in space before and after the magnet to form recon-
@@ -210,13 +214,13 @@ Track * treedo::rcLinkUsedTracks( Track *track, int package )
    inputs:  (1) QwHitContainer &hitlist - pointer to the QwHitContainer object
                                           with the hit list.
 
-   outputs: (1) Event* rcTreeDo() - pointer to the structure with all
+   outputs: (1) Event* ProcessHits() - pointer to the structure with all
                                     of the reconstruction information for
                                     this event.
 
 *//*-------------------------------------------------------------------------*/
 // TODO Should QwHitContainer be passed as const? (wdc)
-Event* treedo::rcTreeDo (QwHitContainer &hitlist)
+Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 {
   int k;
   int dlayer = 0;	      /* number of detector planes in the search    */
@@ -225,7 +229,7 @@ Event* treedo::rcTreeDo (QwHitContainer &hitlist)
   PartTrack *area = 0;
   Det *rd/*, *rnd*/;          /* pointers for moving through the linked
                                  lists of detector id and hit information   */
-  TreeLine *trelin1, *trelin2;
+  TreeLine *treelines1, *treelines2;
 
   treesearch  TreeSearch;
   treecombine TreeCombine;
@@ -281,7 +285,7 @@ Event* treedo::rcTreeDo (QwHitContainer &hitlist)
       assert (channelr3[i] && hashchannelr3[i]);
     }
 
-    if (debug) cout << "[treedo::rcTreeDo] Initialization complete." << endl;
+    if (debug) cout << "[QwTrackingWorker::ProcessHits] Initialization complete." << endl;
     init++;
   }
 
@@ -292,7 +296,7 @@ Event* treedo::rcTreeDo (QwHitContainer &hitlist)
   // possible positions
   for (EQwDetectorPackage package  = kPackageUp;
 			  package <= kPackageDown; package++) {
-    if (debug) cout << "[treedo::rcTreeDo] Package: " << package << endl;
+    if (debug) cout << "[QwTrackingWorker::ProcessHits] Package: " << package << endl;
 
     // Currently assume that only the up and down octants contain the tracking
     // detectors.  When rotation is included, this will have to be modified to
@@ -303,19 +307,19 @@ Event* treedo::rcTreeDo (QwHitContainer &hitlist)
     /// Loop through the detector regions
     for (EQwRegionID region  = kRegionID2;
 		     region <= kRegionID3; region++) {
-      if (debug) cout << "[treedo::rcTreeDo]  Region: " << region << endl;
+      if (debug) cout << "[QwTrackingWorker::ProcessHits]  Region: " << region << endl;
 
 
       /// Loop over the detector types (only drift chambers are used)
       for (EQwDetectorType type  = kTypeDriftHDC;
 			   type <= kTypeDriftVDC; type++) {
-	if (debug) cout << "[treedo::rcTreeDo]   Detector: " << type << endl;
+	if (debug) cout << "[QwTrackingWorker::ProcessHits]   Detector: " << type << endl;
 
 
 	/// Loop through the detector directions
 	for (EQwDirectionID dir  = kDirectionX;
 			    dir <= kDirectionV; dir++) {
-          if (debug) cout << "[treedo::rcTreeDo]    Direction: " << dir << endl;
+          if (debug) cout << "[QwTrackingWorker::ProcessHits]    Direction: " << dir << endl;
 
 
 	  // Skip wire direction Y for region 2
@@ -327,11 +331,11 @@ Event* treedo::rcTreeDo (QwHitContainer &hitlist)
 
 	  // Check whether there are any detectors defined in that geometry
 	  if (! rcDETRegion[package][region-1][dir]) {
-	    if (debug) cout << "[treedo::rcTreeDo]     No such detector!" << endl;
+	    if (debug) cout << "[QwTrackingWorker::ProcessHits]     No such detector!" << endl;
 	    continue;
 	  }
 	  if (! rcTreeRegion[package][region-1][type][dir]) {
-	    if (debug) cout << "[treedo::rcTreeDo]     No such tree!" << endl;
+	    if (debug) cout << "[QwTrackingWorker::ProcessHits]     No such tree!" << endl;
 	    continue;
 	  }
 
@@ -354,28 +358,26 @@ Event* treedo::rcTreeDo (QwHitContainer &hitlist)
 	  // TODO (wdc) take a careful look at where TreeSearch should be
 	  // instantiated and where BeginSearch and EndSearch should go
 	  TreeSearch.BeginSearch();
-	  TreeLine* trelin = 0; // local list of tree lines
+	  TreeLine* treelinelist = 0; // local list of found tree lines
 
 /*! ---- 3rd: create the bit patterns for the hits                     ---- */
 
-	  /* Region 3 */
+	  /* Region 3 VDC */
 	  if (region == kRegionID3 && type == kTypeDriftVDC) {
 
             dlayer = 0; /* set "number of detectors" to zero            */
 	    int decrease;
-	    trelin1 = 0; trelin2 = 0;
+	    treelines1 = 0; treelines2 = 0;
 
 	    /* Loop over the like-pitched planes in a region */
 	    for (k = 0, rd = rcDETRegion[package][region-1][dir], decrease = 0;
 	         rd; rd = rd->nextsame, decrease += numWiresr3, k++) {
 
+	      // Print detector info
 	      if (debug) cout << "      ";
 	      if (debug) rd->print();
 
-	      // Start the search for this set of like-pitched planes
-	      TreeSearch.BeginSearch();
-
-	      //trelin = 0; // clear the linked list for the 2nd layer
+	      // Set angles for this direction (U or V)
 	      A[dir][0] = rd->rCos; /* cos (angle of wire pitch) */
 	      A[dir][1] = rd->rSin; /* sin (angle of wire pitch) */
 
@@ -392,6 +394,7 @@ Event* treedo::rcTreeDo (QwHitContainer &hitlist)
 	      for (qwhit  = hitlist.begin();
 		   qwhit != hitlist.end(); qwhit++) {
 
+		// TODO This will be reorganized so we don't need to do this!
 		QwDetectorID detector = qwhit->GetDetectorID();
 		if (detector.fPackage == package
 		 && detector.fRegion == region
@@ -425,38 +428,37 @@ Event* treedo::rcTreeDo (QwHitContainer &hitlist)
 
 	      } // end of loop over hits in this event
 
-	      // If there were no hits in this detector, skip to next detector.
+	      // If no hits in this detector, skip to the next detector.
 	      if (! hit) continue;
+
+	      // Start the search for this set of like-pitched planes
+	      TreeSearch.BeginSearch();
 
 	      // All hits in this detector (VDC) are added to the bit pattern.
 	      // We can start the tree search now.
 	      // NOTE Somewhere around here a memory leak lurks
-	      if (debug) cout << "Search for matching patterns (direction " << dir << ")" << endl;
+	      if (debug) cout << "Searching for matching patterns (direction " << dir << ")" << endl;
 	      TreeSearch.TsSearch(&(rcTreeRegion[package][region-1][type][dir]->node),
 				channelr3, hashchannelr3,
 				opt.levels[package][region-1][type], numWiresr3, TLAYERS);
-	      trelin = TreeSearch.GetListOfTreeLines();
+	      treelinelist = TreeSearch.GetListOfTreeLines();
 
 	      // DEBUG section
 	      // Did this succeed as intended?
 	      // - what does rcTreeRegion->node contain?
 	      shortnode* dbg_testnode = &(rcTreeRegion[package][region-1][type][dir]->node);
 	      // - are all the hits filled?
-	      TreeLine* dbg_trelin = trelin;
 
 
 	      if (debug) cout << "Sort patterns" <<  endl;
               if (rcTreeRegion[package][region-1][type][dir]) {
 
+		TreeCombine.TlTreeLineSort (treelinelist, package, region, type, dir,
+			1UL << (opt.levels[package][region-1][type]-1), 0, dlayer);
 		if (k == 0) {
-		  TreeCombine.TlTreeLineSort (trelin, package, region, type, dir,
-			1UL << (opt.levels[package][region-1][type]-1), 0, dlayer);
-		  trelin1 = trelin;
-
+		  treelines1 = treelinelist;
 		} else if (k == 1) {
-		  TreeCombine.TlTreeLineSort (trelin, package, region, type, dir,
-			1UL << (opt.levels[package][region-1][type]-1), 0, dlayer);
-		  trelin2 = trelin;
+		  treelines2 = treelinelist;
 		}
 
 	      }
@@ -469,17 +471,17 @@ Event* treedo::rcTreeDo (QwHitContainer &hitlist)
 
 	    if (debug) cout << endl;
 	    if (debug) cout << "Matching region 3 segments" << endl;
-	    // (wdc) If no trelin1 or trelin2 is found, then skip matching.
+	    // (wdc) If no treelines1 or treelines2 is found, then skip matching.
 	    //       Otherwise this gets confused due to the scintillators.
-	    if (trelin1 || trelin2)
-	      trelin = TreeMatch.MatchR3 (trelin1, trelin2, package, region, dir);
-	    event->treeline[package][region-1][type][dir] = trelin;
+	    if (treelines1 || treelines2)
+	      treelinelist = TreeMatch.MatchR3 (treelines1, treelines2, package, region, dir);
+	    event->treeline[package][region-1][type][dir] = treelinelist;
 	    tlayers = TLAYERS;     /* remember the number of tree-detector */
 	    tlaym1  = tlayers - 1; /* remember tlayers - 1 for convenience */
 
 
 
-	  /* Region 2 */
+	  /* Region 2 HDC */
 	  } else if (region == kRegionID2 && type == kTypeDriftHDC) {
 
 	    /* Loop over the like-pitched planes in a region */
@@ -500,6 +502,7 @@ Event* treedo::rcTreeDo (QwHitContainer &hitlist)
 	      for (qwhit  = hitlist.begin();
 		   qwhit != hitlist.end(); qwhit++) {
 
+		// TODO This will be reorganized so we don't need to do this!
 		QwDetectorID detector = qwhit->GetDetectorID();
 		if (detector.fPackage == package
 		 && detector.fRegion == region
@@ -545,18 +548,18 @@ Event* treedo::rcTreeDo (QwHitContainer &hitlist)
 
 	    if (debug) cout << "Sort patterns" << endl;
             if (rcTreeRegion[package][region-1][type][dir]) {
-	      TreeCombine.TlTreeLineSort (trelin, package, region, type, dir,
+	      TreeCombine.TlTreeLineSort (treelinelist, package, region, type, dir,
 					1UL << (opt.levels[package][region-1][type]-1),
 					tlayers, 0);
             }
-	    event->treeline[package][region-1][type][dir] = trelin;
+	    event->treeline[package][region-1][type][dir] = treelinelist;
 
 	    // End the search for this set of like-pitched planes
 	    TreeSearch.EndSearch();
 
 	  /* Any other region */
 	  } else {
-	    cerr << "[treedo::rcTreeDo] Warning: no support for this detector." << endl;
+	    cerr << "[QwTrackingWorker::ProcessHits] Warning: no support for this detector." << endl;
 	    return event;
 	  }
 
@@ -611,6 +614,7 @@ Event* treedo::rcTreeDo (QwHitContainer &hitlist)
     cout << "area: " << area->x << " " << area->mx << ", " << area->y << " " << area->my << endl;
     ngood++;
   } else {
+    cout << "Couldn't find a good partial track." << endl;
     nbad++;
   }
 

@@ -77,9 +77,9 @@ int Qevent::GetEvent()
 
 	// Detector region/type/direction identifiers
 	EQwDetectorPackage package, package2;
-	EQwRegionID region, region2;
-	enum EQwDetectorType    type,   type2;
-	EQwDirectionID dir,    dir2;
+	EQwRegionID        region,  region2;
+	EQwDetectorType    type,    type2;
+	EQwDirectionID     dir,     dir2;
 
 	// In order to handle incomplete files, we keep track of when it is
 	// safe to end the file.  An EOF is only safe when the current
@@ -137,9 +137,9 @@ int Qevent::GetEvent()
 		if (firstdetec) {
 			firstdetec = 0;
 			package2 = package;
-			region2 = region;
-			type2 = type;
-			dir2 = dir;
+			region2  = region;
+			type2    = type;
+			dir2     = dir;
 			rd = rcDETRegion[package][region-1][dir];
 		} else {
 			// this is not the first detector of the file
@@ -147,9 +147,9 @@ int Qevent::GetEvent()
 			newhit = NULL;
 			// compare to previous hit
 			if (package2 == package &&
-			    region2 == region &&
-			      type2 == type   &&
-			       dir2 == dir) {
+			     region2 == region  &&
+			       type2 == type    &&
+			        dir2 == dir) {
 				// like-pitched detector plane
 				rd = rd->nextsame;
 				//cerr << "went to next" << endl;
@@ -157,9 +157,9 @@ int Qevent::GetEvent()
 				// different detector plane
 				rd = rcDETRegion[package][region-1][dir];
 				package2 = package;
-				region2 = region;
-				type2   = type;
-				dir2    = dir;
+				region2  = region;
+				type2    = type;
+				dir2     = dir;
 			}
 		}
 		rd->hitbydet = 0;

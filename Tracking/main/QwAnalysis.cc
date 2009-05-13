@@ -57,7 +57,7 @@
 #include "Qoptions.h"
 #include "options.h"
 #include "treeregion.h"
-#include "treedo.h"
+#include "QwTrackingWorker.h"
 #include "tree.h"
 
 
@@ -155,7 +155,7 @@ int main(Int_t argc,Char_t* argv[])
   std::cout << "[QwAnalysis::main] Pattern database loaded" << std::endl; // R3,R2
 
 
-  treedo Treedo;
+  QwTrackingWorker trackingworker;
   //--------------------------------------
 
 
@@ -287,7 +287,7 @@ int main(Int_t argc,Char_t* argv[])
       //SaveSubList(grandHitList);//Print a sub set of  hits list to a file
       AsciiEvents1.GetrcDETRegion(grandHitList,evnum);
 
-      //Treedo.rcTreeDo(ASCIIgrandHitList);
+      //trackingworker.ProcessHits(ASCIIgrandHitList);
 
 
 
@@ -297,10 +297,9 @@ int main(Int_t argc,Char_t* argv[])
       FillTreeVector(hitvector,grandHitList);
 
 
-      //  Pass the QwHitContainer to the treedo class
+      //  Pass the QwHitContainer to the QwTrackingWorker class
 
-      //  Call the recontruction routines of the treedo
-      //  class.
+      //  Call the recontruction routines of the QwtrackingWorker class.
 
       //fill the TTree
       HitTree->Fill();
