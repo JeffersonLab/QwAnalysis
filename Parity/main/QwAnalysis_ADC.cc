@@ -37,22 +37,6 @@
 #include <boost/shared_ptr.hpp>
 
 
-//-------------------------------------------------------------------------
-//include here to prevent  compiling error!!!
-#include "Det.h"
-#include "Qset.h"
-#include "Qevent.h"
-#include "Qoptions.h"
-#include "options.h"
-#include "treeregion.h"
-#include "tree.h"
-
-
-Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-Det rcDET[1100];
-treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
-Options opt;
-
 //--------------------------------------------------------------------------
 
 Bool_t kInQwBatchMode = kFALSE;
