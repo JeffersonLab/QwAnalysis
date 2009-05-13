@@ -29,7 +29,7 @@
  \brief main(...) function for the QwAnalysis_ADC executable
 
 *//*-------------------------------------------------------------------------*/
- 
+
 #include "QwAnalysis_ADC.h"
 #include "TApplication.h"
 
@@ -45,7 +45,6 @@
 #include "Qoptions.h"
 #include "options.h"
 #include "treeregion.h"
-#include "treedo.h"
 #include "tree.h"
 
 
@@ -75,7 +74,7 @@ int main(Int_t argc,Char_t* argv[])
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
 
   ///
-  ///  Load the histogram parameter definitions (from parity_hists.txt) into the global 
+  ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
   ///  histogram helper: QwHistogramHelper
   ///
   gQwHists.LoadHistParamsFromFile("parity_hists.in");
@@ -92,7 +91,7 @@ int main(Int_t argc,Char_t* argv[])
   ///
   /// Instantiate one subsytem for all eight main detectors plus one fully assembled
   /// background detector plus two channels (there are two channels for each fully
-  /// assembled detector) for noise setup.   
+  /// assembled detector) for noise setup.
   QwSubsystemArray QwDetectors;
   QwDetectors.push_back(new QwQuartzBar("MainDetectors"));
   QwDetectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
