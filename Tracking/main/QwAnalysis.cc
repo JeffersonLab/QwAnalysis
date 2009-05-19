@@ -189,17 +189,41 @@ int main(Int_t argc,Char_t* argv[])
     //  Start the timer.
     timer.Start();
 
-    //  Try to open the data file.
-    if (eventbuffer.OpenDataFile(run) != CODA_OK){
-      //  The data file can't be opened.
-      //  Get ready to process the next run.
-      std::cerr << "ERROR:  Unable to find data files for run "
-		<< run << ".  Moving to the next run.\n"
-		<< std::endl;
-      timer.Stop();
-      continue;
+    if (cmdline.DoOnlineAnalysis()){
+      /* Modify the call below for your ET system, if needed.
+	 
+	 OpenETStream( ET host name , $SESSION , mode)
+	 mode=0: wait forever
+	 mode=1: timeout quickly
+      */
+      if (getenv("HOSTNAME")==NULL || getenv("SESSION")==NULL){
+	if (getenv("HOSTNAME")==NULL){
+	  std::cerr << "ERROR:  the \"HOSTNAME\" variable is not defined in your environment.\n"
+		    << "        This is needed to run the online analysis."
+		    << std::endl;
+	}
+	if (getenv("SESSION")==NULL){
+	  std::cerr << "ERROR:  the ET \"SESSION\" variable is not defined in your environment.\n"
+		    << "        This is needed to run the online analysis."
+		    << std::endl;
+	}
+	exit(1);
+      } else {
+	std::cout << "Try to open the ET station. " << std::endl;
+	eventbuffer.OpenETStream(getenv("HOSTNAME"), getenv("SESSION"), 0);
+      }
+    } else {
+      //  Try to open the data file.
+      if (eventbuffer.OpenDataFile(run) != CODA_OK){
+	//  The data file can't be opened.
+	//  Get ready to process the next run.
+	std::cerr << "ERROR:  Unable to find data files for run "
+		  << run << ".  Moving to the next run.\n"
+		  << std::endl;
+	timer.Stop();
+	continue;
+      }
     }
-
 
     eventbuffer.ResetControlParameters();
 

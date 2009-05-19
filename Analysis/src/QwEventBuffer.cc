@@ -5,6 +5,7 @@
 #include <TMath.h>
 
 #include "THaCodaFile.h"
+#include "THaEtClient.h"
 
 const Int_t QwEventBuffer::kRunNotSegmented = -20;
 const Int_t QwEventBuffer::kNoNextDataFile  = -30;
@@ -66,6 +67,12 @@ Int_t QwEventBuffer::GetFileEvent(){
 
 Int_t QwEventBuffer::GetEtEvent(){
   Int_t status = CODA_OK;
+  //  Do we want to have any loop here to wait for a bad
+  //  read to be cleared?
+  status = fEvStream->codaRead();
+  if (status == CODA_OK){
+    DecodeEventIDBank((UInt_t*)(fEvStream->getEvBuffer()));
+  }
   return status;
 };
 
@@ -599,3 +606,22 @@ Int_t QwEventBuffer::CloseDataFile()
   return status;
 }
 
+//------------------------------------------------------------
+Int_t QwEventBuffer::OpenETStream(TString computer, TString session, int mode)
+{
+  if (fEvStreamMode==fEvStreamNull){
+    fEvStream = new THaEtClient(computer, session, mode);
+    fEvStreamMode = fEvStreamET;
+  }
+  return 0;
+}
+
+//------------------------------------------------------------
+Int_t QwEventBuffer::CloseETStream()
+{
+  Int_t status = kFileHandleNotConfigured;
+  if (fEvStreamMode==fEvStreamFile){
+    status = fEvStream->codaClose();
+  }
+  return status;
+}

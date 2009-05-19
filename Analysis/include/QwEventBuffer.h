@@ -56,6 +56,9 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Int_t OpenDataFile(const TString filename, const TString rw);
   Int_t CloseDataFile();
 
+  Int_t OpenETStream(TString computer, TString session, int mode);
+  Int_t CloseETStream();
+
   Bool_t IsPhysicsEvent(){
     return ((fIDBankNum == 0xCC)&&(fEvtType>=0 && fEvtType<=15));
   };

@@ -31,6 +31,8 @@ class QwCommandLine{
   Int_t GetFirstEvent(){return fEventRange.first;};
   Int_t GetLastEvent(){return fEventRange.second;};
 
+  Bool_t DoOnlineAnalysis(){return fDoOnline==1;};
+
  protected:
   void Usage();
 
@@ -44,6 +46,7 @@ class QwCommandLine{
   std::pair<Int_t, Int_t> fRunRange;
   std::pair<Int_t, Int_t> fEventRange;
 
+  Int_t fDoOnline;
 
 };
 
@@ -82,11 +85,27 @@ Int_t QwCommandLine::Parse(Int_t argc,Char_t* argv[])
     std::cerr << std::endl;
   }
   fCommandName = argv[0];               //  Store the command name.
-  /* First parse some short options.      */
+  /* First set up some long options.      */
+  int option_index = 0;
+  static struct option long_options[] =
+    {
+      {"online", 0, &fDoOnline, 1},
+      {"run", 1, 0, 'r'},
+      {"event", 1, 0, 'e'},
+      {0, 0, 0, 0}
+    };
   int option_char;
-  while ((option_char = getopt(argc, argv, "r:e:")) != EOF){
+  while ((option_char = getopt_long(argc, argv, "r:e:",
+				    long_options, &option_index)) != EOF){
     switch (option_char)
       {
+      case 0:{
+	printf ("option %s", long_options[option_index].name);
+	if (optarg)
+	  printf (" with arg %s", optarg);
+	printf ("\n");
+	break;
+      }
       case 'r':{
 	fRunRange = ParseRange("r", optarg);
 	break;
@@ -99,7 +118,15 @@ Int_t QwCommandLine::Parse(Int_t argc,Char_t* argv[])
 	Usage();
       }
   }
-  if (fRunRange.first == 0){
+  if (fDoOnline == 1){
+    //  If we're doing online analysis, clobber the run and event limits.
+    std::cerr << "\nWARN:  In online mode, the run and event number ranges are ignored!"
+	      << std::endl;
+    fRunRange.first    = 0;
+    fRunRange.second   = 0;
+    fEventRange.first  = 0;
+    fEventRange.second = kMaxInt;
+  } else if (fRunRange.first == 0){
     std::cerr << "\nERROR:  There must be at least one run specified!"
 	      << std::endl;
     Usage();
