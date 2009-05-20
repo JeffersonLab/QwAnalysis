@@ -244,7 +244,7 @@ if [[ -n "$CODA" ]]
 then
   echo CODA already defined : ${CODA}
 else
-  export CODA=/site/coda/2.2.1/
+  export CODA=/site/coda/2.5
     if [[ ! -d ${CODA} ]] 
     then
       unset CODA

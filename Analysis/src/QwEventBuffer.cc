@@ -5,7 +5,10 @@
 #include <TMath.h>
 
 #include "THaCodaFile.h"
+
+#ifdef __CODA_ET
 #include "THaEtClient.h"
+#endif
 
 const Int_t QwEventBuffer::kRunNotSegmented = -20;
 const Int_t QwEventBuffer::kNoNextDataFile  = -30;
@@ -610,8 +613,10 @@ Int_t QwEventBuffer::CloseDataFile()
 Int_t QwEventBuffer::OpenETStream(TString computer, TString session, int mode)
 {
   if (fEvStreamMode==fEvStreamNull){
+#ifdef __CODA_ET
     fEvStream = new THaEtClient(computer, session, mode);
     fEvStreamMode = fEvStreamET;
+#endif
   }
   return 0;
 }

@@ -119,6 +119,7 @@ Int_t QwCommandLine::Parse(Int_t argc,Char_t* argv[])
       }
   }
   if (fDoOnline == 1){
+#ifdef __CODA_ET
     //  If we're doing online analysis, clobber the run and event limits.
     std::cerr << "\nWARN:  In online mode, the run and event number ranges are ignored!"
 	      << std::endl;
@@ -126,6 +127,11 @@ Int_t QwCommandLine::Parse(Int_t argc,Char_t* argv[])
     fRunRange.second   = 0;
     fEventRange.first  = 0;
     fEventRange.second = kMaxInt;
+#else
+    std::cerr << "\nERROR:  Online mode will not work without the CODA libraries!"
+	      << std::endl;
+    exit(2);
+#endif
   } else if (fRunRange.first == 0){
     std::cerr << "\nERROR:  There must be at least one run specified!"
 	      << std::endl;

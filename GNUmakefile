@@ -165,7 +165,7 @@ endif
 ############################
 
 ifdef CODA
-CODACFLAGS   := -I$(CODA)/common/include
+CODACFLAGS   := -I$(CODA)/common/include -D__CODA_ET
 CODALIBS     := -L$(CODA_LIB) -let
 endif
 CODALIBS     += -L$(QWANALYSIS)/lib -lcoda

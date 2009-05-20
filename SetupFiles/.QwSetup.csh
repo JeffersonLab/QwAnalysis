@@ -203,7 +203,7 @@ endif
 if ($?CODA) then
   echo CODA already defined : ${CODA}
 else
-  setenv CODA                /site/coda/2.2.1/
+  setenv CODA                /site/coda/2.5
     if(! -d ${CODA}) then
       unsetenv CODA
       echo Variable CODA not set : not an error if real-time analyzer not installed
