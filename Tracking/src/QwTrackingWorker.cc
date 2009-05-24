@@ -229,7 +229,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
   PartTrack *area = 0;
   Det *rd/*, *rnd*/;          /* pointers for moving through the linked
                                  lists of detector id and hit information   */
-  TreeLine *treelines1, *treelines2;
+  QwTrackingTreeLine *treelines1, *treelines2;
 
   treesearch  TreeSearch;
   treecombine TreeCombine;
@@ -358,7 +358,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	  // TODO (wdc) take a careful look at where TreeSearch should be
 	  // instantiated and where BeginSearch and EndSearch should go
 	  TreeSearch.BeginSearch();
-	  TreeLine* treelinelist = 0; // local list of found tree lines
+	  QwTrackingTreeLine* treelinelist = 0; // local list of found tree lines
 
 /*! ---- 3rd: create the bit patterns for the hits                     ---- */
 

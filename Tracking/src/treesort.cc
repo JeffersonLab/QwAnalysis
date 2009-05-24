@@ -37,7 +37,7 @@ int treesort::connectiv( char *ca, int *array, int *isvoid, char size, int idx )
   	return ret;
 }
 //________________________________________________________________________
-double treesort::chiweight (TreeLine *tl)
+double treesort::chiweight (QwTrackingTreeLine *tl)
 {
   double fac;
   if (tl->numhits > tl->nummiss)
@@ -196,7 +196,7 @@ int treesort::rcPTCommonWires (PartTrack *track1, PartTrack *track2)
 shared between two treelines.  The only output is the integer
 return value
 */
-int treesort::rcCommonWires_r3 (TreeLine *line1, TreeLine *line2)
+int treesort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingTreeLine *line2)
 {
   //################
   // DECLARATIONS  #
@@ -291,7 +291,7 @@ int treesort::rcCommonWires_r3 (TreeLine *line1, TreeLine *line2)
 shared between two treelines.  The only output is the integer
 return value
 */
-int treesort::rcCommonWires (TreeLine *line1, TreeLine *line2 )
+int treesort::rcCommonWires (QwTrackingTreeLine *line1, QwTrackingTreeLine *line2 )
 {
   //cerr << "ERROR : This function needs editing before use" << endl;
 
@@ -362,7 +362,7 @@ int treesort::rcCommonWires (TreeLine *line1, TreeLine *line2 )
   return (10000 * common / total + 50 ) / 100;
 }
 //________________________________________________________________________
-int treesort::rcTreeConnSort (TreeLine *head, EQwRegionID region/*,
+int treesort::rcTreeConnSort (QwTrackingTreeLine *head, EQwRegionID region/*,
 		EQwDetectorPackage package, EQwDetectorType type,
 		EQwDirectionID dir, Eorientation orient*/)
 {
@@ -371,7 +371,7 @@ int treesort::rcTreeConnSort (TreeLine *head, EQwRegionID region/*,
   //################
   char* connarr;
   int* array;
-  TreeLine **tlarr, *walk;
+  QwTrackingTreeLine **tlarr, *walk;
   int num, idx, bestconn, common;
   int iteration = 0;
   int num_tl = 0;
@@ -426,7 +426,7 @@ cerr << "num = " << num << endl;
   isvoid  = (int*) malloc (num * sizeof(int));
   chia    = (double*) malloc (num * sizeof(double));
   array   = (int*) malloc (num*num*sizeof(int));
-  tlarr   = (TreeLine**) malloc (sizeof(TreeLine*)*num);
+  tlarr   = (QwTrackingTreeLine**) malloc (sizeof(QwTrackingTreeLine*)*num);
 
   assert (array && tlarr);
 

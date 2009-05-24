@@ -37,14 +37,14 @@ class treesearch {
 
     void BeginSearch ();
     void EndSearch ();
-    TreeLine* GetListOfTreeLines ();
+    QwTrackingTreeLine* GetListOfTreeLines ();
 
     void wireselection (Hit **x, Hit **X, Hit **xn, Hit**Xn, double maxdist);
     void wireselection (QwHit **x, QwHit **X, QwHit **xn, QwHit**Xn, double maxdist);
     // Only called from within TsSetPoint(Hit, Hit)
     // TODO Transition to QwHit if necessary (where is it used?)
 
-    int exists (int *newa, int front, int back, TreeLine *treeline);
+    int exists (int *newa, int front, int back, QwTrackingTreeLine *treeline);
 
     void setpoint (double off, double h1, double res1, double h2, double res2,
 		double width, unsigned binwidth, char *pa, char *pb,
@@ -85,7 +85,7 @@ class treesearch {
 
     int debug;			// debug level
 
-    TreeLine* lTreeLines;	// linked list of tree lines in a set of planes
+    QwTrackingTreeLine* lTreeLines;	// linked list of tree lines in a set of planes
     int nTreeLines;		// number of tree lines found
 
     // Recursive tree pattern methods

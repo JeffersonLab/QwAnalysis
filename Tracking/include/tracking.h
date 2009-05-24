@@ -17,8 +17,10 @@
 #include "globals.h"
 #include "QwHit.h"
 #include "Hit.h"
+#include "QwTrackingTreeLine.h"
 #include "QwASCIIEventBuffer.h"
 
+using namespace QwTracking;
 
 void SaveHits(QwHitContainer &); //for debugging purposes - Rakitha (04/02/2009)
 
@@ -69,43 +71,6 @@ class Bridge {
 
 };
 
-//____________________________________________
-/*! \class TreeLine
-    \brief A container for track information
-
-    The TreeLine has a pointer to a set of hits.  It is passed
-    to various track fitting procedures and carries around
-    the fit results.
-    This track is used for found tracks.
- */
-///
-/// \ingroup QwTrackingAnl
-class TreeLine {
-
-  public:
-
-    bool isvoid;		/*!< has been found void */
-    TreeLine *next;		/*!< link to next list element */
-    double cx, mx, chi;		/*!< line parameters... */
-    double cov_cxmx[3];		/*!< errors in these */
-    int a_beg, a_end;		/*!< bin in tlayer 0 */
-    int b_beg, b_end;		/*!< bin in tlayer tlaym1 */
-    int   numhits;		/*!< number of hits */
-    int   numvcmiss;		/*!< missing hits in vc */
-    int   nummiss;		/*!< number of planes without hit */
-    //enum  Emethod method;	/*!< treeline generation method */
-    Hit   *hits[2*TLAYERS];	/*!< hitarray */
-    Hit   thehits[2*TLAYERS];
-// TODO (wdc) Disabled until proper constructor for QwHit
-//    QwHit *qwhits[2*TLAYERS];	/*!< hitarray after transition to QwHit */
-//    QwHit theqwhits[2*TLAYERS];
-    int   hasharray[2*TLAYERS];
-    bool Used;			/*!< used (part of parttrack) */
-    int   ID;			/*!< adamo ID */
-    int   r3offset,firstwire,lastwire;
-
-};
-
 
 
 //____________________________________________
@@ -123,7 +88,7 @@ class PartTrack {
     double mx,my;		/*!< slope in x and y       */
     double Cov_Xv[4][4];	/*!< covariance matrix      */
     double chi;			/*!< combined chi square    */
-    TreeLine *tline[3];		/*!< tree line in u v and x */
+    QwTrackingTreeLine *tline[3];		/*!< tree line in u v and x */
     //Cluster  *cluster;	/*!< cluster pointed to by track */
     double  ECalor;		/*!< energy in this cluster */
     double  clProb;		/*!< prob. that this cluster belongs to track */
@@ -214,7 +179,7 @@ class Event {
   public:
 
     int ID;
-    TreeLine  *treeline[2][3][4][4];	/*!< [upper/lower][region][type][u/v/x/y] */
+    QwTrackingTreeLine  *treeline[2][3][4][4];	/*!< [upper/lower][region][type][u/v/x/y] */
     //Cluster   *cluster[2];		/*!< [upper/lower] */
     //Cluster   *lumicluster[2];	/*!< [right/left] */
     PartTrack *parttrack[2][3][4];	/*!< [meth][upper/lower][forw/back] */

@@ -135,7 +135,7 @@ void treesearch::EndSearch ()
   if (debug) cout << "Found " << nTreeLines << " tree line(s)." << endl;
 }
 
-TreeLine* treesearch::GetListOfTreeLines ()
+QwTrackingTreeLine* treesearch::GetListOfTreeLines ()
 {
   return lTreeLines;
 }
@@ -805,18 +805,18 @@ int treesearch::TsSetPoint (
     inputs: (1) int *newa          -
             (2) int front          -
             (3) int back           -
-            (4) TreeLine *treeline - pointer to the linked-list of treelines
+            (4) QwTrackingTreeLine *treeline - pointer to the linked-list of treelines
 
    outputs: (1) int exists()       - =0 if a treeline is not located
                                      =1 otherwise
 
 \*---------------------------------------------------------------------------*/
 
-int treesearch::exists (int *newa, int front, int back, TreeLine *treeline)
+int treesearch::exists (int *newa, int front, int back, QwTrackingTreeLine *treeline)
 {
   int *olda;
   int i, newmiss, oldmiss, diff;
-  TreeLine *tl;
+  QwTrackingTreeLine *tl;
   int over;
 
   newmiss = 0;
@@ -914,7 +914,7 @@ int treesearch::exists (int *newa, int front, int back, TreeLine *treeline)
    outputs: there are no explicit output from this function.
 
     global
-   outputs: Treelin *lTreeLines - pointer to the link-list of valid treelines.
+   outputs: Treeline *lTreeLines - pointer to the link-list of valid treelines.
 
 \*---------------------------------------------------------------------------*/
 void treesearch::_TsSearch (
@@ -931,7 +931,7 @@ void treesearch::_TsSearch (
   shorttree *tree;	/* for searching in children of node*/
   shortnode **cnode;
   shortnode **matchsons;
-  TreeLine  *lineptr;	/* evt. append to the treeline */
+  QwTrackingTreeLine  *lineptr;	/* evt. append to the treeline */
   int       *tree_pattern;
   int hashpat[TLAYERS];
   int off, rev, off2, nlevel = level+1, i, bin, x;
@@ -1075,7 +1075,7 @@ if (numWires) { /* Region 2 */
           miss = 1;
         if (! exists( hashpat, frontbin, backbin,lTreeLines)) {
           if (opt.showMatchingPatterns) tree->print();     /* if track is unknown */
-          lineptr = (TreeLine*)malloc( sizeof(TreeLine));  /*  create new one */
+          lineptr = (QwTrackingTreeLine*)malloc( sizeof(QwTrackingTreeLine));  /*  create new one */
           assert(lineptr);
           nTreeLines++;                        /* number of treelines found */
           memcpy (lineptr->hasharray, hashpat, /* make space for this       */
@@ -1176,7 +1176,7 @@ if (numWires) { /* Region 2 */
 		if (opt.showMatchingPatterns)
 			tree->print();
 
-		lineptr = (TreeLine*) malloc (sizeof(TreeLine));       /*  create new one */
+		lineptr = (QwTrackingTreeLine*) malloc (sizeof(QwTrackingTreeLine));       /*  create new one */
 		assert(lineptr);
 		nTreeLines++;                      /* number of treelines found */
 		memcpy(lineptr->hasharray, hashpat, /* make space for this       */

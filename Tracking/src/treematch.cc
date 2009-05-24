@@ -29,7 +29,7 @@ double rcZEval( double vz, double te, double ph, double mom, int idx){
 
 //________________________________________________________________________
 //returns the best measured wire hit
-Hit* bestWireHit (TreeLine *walk, double bestpos = 0)
+Hit* bestWireHit (QwTrackingTreeLine *walk, double bestpos = 0)
 {
   double pos = 9999, newpos;
   int ibest;
@@ -63,9 +63,9 @@ treematch::~treematch()
 */
 
 // This function requires the wire planes to be parallel
-TreeLine *treematch::MatchR3 (
-	TreeLine *front,
-	TreeLine *back,
+QwTrackingTreeLine *treematch::MatchR3 (
+	QwTrackingTreeLine *front,
+	QwTrackingTreeLine *back,
 	EQwDetectorPackage package,
 	EQwRegionID region,
 	EQwDirectionID dir)
@@ -78,7 +78,7 @@ TreeLine *treematch::MatchR3 (
   //###############
   // DECLARATIONS #
   //###############
-  TreeLine *combined,*fwalk,*bwalk;
+  QwTrackingTreeLine *combined,*fwalk,*bwalk;
   double x[2],y[2],z[3],zp[2];
   Hit *fpos, *bpos;
   double d,d2,d2u,d_uv;
@@ -90,7 +90,7 @@ TreeLine *treematch::MatchR3 (
   int numflines=0,numblines=0;
   double fsloperes,bsloperes;
   double bestmatch;
-  TreeLine  *lineptr;
+  QwTrackingTreeLine  *lineptr;
   double mx,cx,cov[3],chi;
   double RotCos,RotSin,RotTan;
   int nhits,fhits,bhits;
@@ -252,7 +252,7 @@ TreeLine *treematch::MatchR3 (
   //################################
   // Create the combined treelines #
   //################################
-  lineptr = (TreeLine*)malloc(sizeof(TreeLine));
+  lineptr = (QwTrackingTreeLine*)malloc(sizeof(QwTrackingTreeLine));
   assert(lineptr);
 
   for(fwalk = front,i=0;fwalk;fwalk = fwalk->next,i++){

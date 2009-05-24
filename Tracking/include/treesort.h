@@ -22,11 +22,11 @@ class treesort {
     double doubletrack;
     int good;
 
-    int rcTreeConnSort (TreeLine *head, EQwRegionID region);
-    double chiweight( TreeLine *tl );
+    int rcTreeConnSort (QwTrackingTreeLine *head, EQwRegionID region);
+    double chiweight(QwTrackingTreeLine *tl );
     int connectiv( char *ca, int *array, int *isvoid, char size, int idx );
-    int rcCommonWires( TreeLine *line1, TreeLine *line2 );
-    int rcCommonWires_r3( TreeLine *line1, TreeLine *line2 );
+    int rcCommonWires(QwTrackingTreeLine *line1, QwTrackingTreeLine *line2 );
+    int rcCommonWires_r3( QwTrackingTreeLine *line1, QwTrackingTreeLine *line2 );
     int connectarray( char *ca, int *array, int *isvoid, char size, int idx );
     void bestunconnected( char *ca, int *array, int *isvoid, double *chia,
 		 int size, int idx);

@@ -594,7 +594,7 @@ int treecombine::TlCheckForX (
 	double Dx,
 	double z1,
 	double dz,
-	TreeLine *treefill,
+	QwTrackingTreeLine *treefill,
 	EQwDetectorPackage package,
 	EQwRegionID region,
 	EQwDetectorType type,
@@ -785,7 +785,7 @@ int treecombine::TlMatchHits (
 	double x1, double x2,	//!- x coordinates
 	double z1,		//!- z coordinate
 	double dz,		//!- distance in z coordinate
-	TreeLine *treefill,	//!- determined treeline
+	QwTrackingTreeLine *treefill,	//!- determined treeline
 	EQwDetectorPackage package,	//!- package identifier
 	EQwRegionID region,	//!- region identifier
 	EQwDetectorType type,		//!- detector type identifier
@@ -890,7 +890,7 @@ int treecombine::TlMatchHits (
    chi^2
    ------------------------------ */
 void treecombine::TlTreeLineSort (
-	TreeLine *tl,
+	QwTrackingTreeLine *tl,
 	EQwDetectorPackage package,
 	EQwRegionID region,
 	EQwDetectorType type,
@@ -902,8 +902,8 @@ void treecombine::TlTreeLineSort (
   double z1, z2;
   double x1, x2, dx;
 
-  TreeLine *walk = tl;
-  TreeLine *owalk;
+  QwTrackingTreeLine *walk = tl;
+  QwTrackingTreeLine *owalk;
   chi_hashclear();
 
   /* Region 3 */
@@ -1411,7 +1411,7 @@ int treecombine::r3_TrackFit( int Num, Hit **hit, double *fit, double *cov, doub
 
 
 
-int treecombine::TcTreeLineCombine2(TreeLine *wu, TreeLine *wv, PartTrack *pt, int tlayer)
+int treecombine::TcTreeLineCombine2(QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, PartTrack *pt, int tlayer)
 {
   //###############
   // Declarations #
@@ -1511,7 +1511,7 @@ int treecombine::TcTreeLineCombine2(TreeLine *wu, TreeLine *wv, PartTrack *pt, i
 
 
 
-int treecombine::TcTreeLineCombine(TreeLine *wu,TreeLine *wv,PartTrack *pt, int tlayer )
+int treecombine::TcTreeLineCombine(QwTrackingTreeLine *wu,QwTrackingTreeLine *wv,PartTrack *pt, int tlayer )
 {
   //###############
   // Declarations #
@@ -1617,9 +1617,9 @@ return 1;
 }
 //__________________________________________________________________
 int treecombine::TcTreeLineCombine (
-	TreeLine *wu,
-	TreeLine *wv,
-	TreeLine *wx,
+	QwTrackingTreeLine *wu,
+	QwTrackingTreeLine *wv,
+	QwTrackingTreeLine *wx,
 	PartTrack *pt,
 	int tlayer)
 {
@@ -1723,7 +1723,7 @@ double xy2v (double x, double y)
 
 */
 PartTrack *treecombine::TlTreeCombine (
-	TreeLine *uvl[4],
+	QwTrackingTreeLine *uvl[4],
 	long bins,
 	EQwDetectorPackage package,
 	EQwRegionID region,
@@ -1736,7 +1736,7 @@ PartTrack *treecombine::TlTreeCombine (
   //################
   // DECLARATIONS  #
   //################
-  TreeLine *wu, *wv, *wx, *bwx, wrx;
+  QwTrackingTreeLine *wu, *wv, *wx, *bwx, wrx;
   PartTrack *ret = 0, *ta;
   int in_acceptance;
   Uv2xy uv2xy;
@@ -2046,7 +2046,7 @@ PartTrack *treecombine::TlTreeCombine (
 	if( TlCheckForX(x1,x2,-99, rcSETrMaxXRoad,rcSETrMaxXRoad, zx1,zx2-zx1,
 			&wrx,package,region,type,kDirectionX,dlayer,tlayer, 0,1)) {
 	//replaced a Qmalloc below
-	  wx = (TreeLine *)malloc( sizeof( TreeLine));
+	  wx = (QwTrackingTreeLine *)malloc( sizeof( QwTrackingTreeLine));
 	  assert( wx );
 	  *wx = wrx;
 
@@ -2126,7 +2126,7 @@ void treecombine::ResidualWrite (Event* event)
   int allmiss, num;
   Track *tr;
   PartTrack *pt;
-  TreeLine *tl;
+  QwTrackingTreeLine *tl;
   double x, y, v, mx, my, mv;
   Hit **hitarr, *hit;
   void mcHitCord( int, double* , double *);

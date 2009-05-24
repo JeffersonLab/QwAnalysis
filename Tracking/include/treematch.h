@@ -55,9 +55,9 @@ class treematch {
 	Track *tracklist,
 	EQwDetectorPackage package/*, enum Emethod method*/);
 
-    TreeLine* MatchR3 (
-	TreeLine *front,
-	TreeLine *back,
+    QwTrackingTreeLine* MatchR3 (
+	QwTrackingTreeLine *front,
+	QwTrackingTreeLine *back,
 	EQwDetectorPackage package,
 	EQwRegionID region,
 	EQwDirectionID dir);
