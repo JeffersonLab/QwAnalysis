@@ -32,18 +32,6 @@
 class QwHit {
  public:
 
-  // (wdc) In order to transition the tracking to QwHitContainer,
-  // a non-initialized (i.e. invalid) QwHit constructor was temporarily added.
-  // TODO It will be removed when the transition is complete.
-  #warning "QwHit::QwHit() constructor without initialization will be removed! (wdc)"
-  QwHit():
-    fCrate(0),fModule(0),fChannel(0), fHitNumber(0),
-    fRegion(kRegionIDNull), fPackage(0), fDirection(kDirectionNull), fPlane(0), fElement(0),
-    fAmbiguousElement(kFALSE),fLRAmbiguity(kFALSE)
-    {
-      std::cerr << "QwHit::QwHit() constructor called!" << std::endl;
-    };
-
   QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
 	Int_t region, Int_t package, Int_t plane, Int_t direction, Int_t wire,
 	UInt_t data):
