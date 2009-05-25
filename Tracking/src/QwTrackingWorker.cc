@@ -105,7 +105,7 @@ extern Options opt;
 
 
 
-QwTrackingWorker::QwTrackingWorker ()
+QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
 {
   // Initialize pattern database
   tree thetree;

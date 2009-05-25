@@ -1,6 +1,8 @@
 #ifndef QWTRACKINGWORKER_H
 #define QWTRACKINGWORKER_H
 
+#include "VQwSystem.h"
+
 #include "tree.h"
 #include "treesearch.h"
 #include "treecombine.h"
@@ -16,7 +18,7 @@
 
 *//*-------------------------------------------------------------------------*/
 
-class QwTrackingWorker {
+class QwTrackingWorker : public VQwSystem {
 
   public:
 
@@ -26,7 +28,7 @@ class QwTrackingWorker {
     int ngood;		//!- number of good events
     int nbad;		//!- number of bad events
 
-    QwTrackingWorker();
+    QwTrackingWorker(const char* name);
 
     void SetDebugLevel (int debuglevel) { debug = debuglevel; };
 

@@ -155,7 +155,7 @@ int main(Int_t argc,Char_t* argv[])
   std::cout << "[QwAnalysis::main] Pattern database loaded" << std::endl; // R3,R2
 
 
-  QwTrackingWorker trackingworker;
+  QwTrackingWorker trackingworker("qwtrackingworker");
   //--------------------------------------
 
 

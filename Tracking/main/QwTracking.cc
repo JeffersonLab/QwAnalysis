@@ -189,7 +189,7 @@ int main (int argc, char* argv[])
 	//qevent.Open((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/1000.r2.events").c_str());
 	//cout << "[QwTracking::main] Sample events file opened" << endl;
 
-	QwTrackingWorker trackingworker; // R3 needs debugging in the 3-D fit
+	QwTrackingWorker trackingworker("qwtrackingworker"); // R3 needs debugging in the 3-D fit
 
 	// The event loop should skip when iEvent is unphysical,
 	// or: GetEvent returns bool and GetEventNumber returns int
