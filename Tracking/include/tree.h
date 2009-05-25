@@ -26,10 +26,10 @@ using namespace QwTracking;
     The pattern database is used to determine whether subsets
     of hits resemble track segments.
 
+ \ingroup QwTrackingAnl
+
 *//*-------------------------------------------------------------------------*/
 
-///
-/// \ingroup QwTrackingAnl
 class tree {
 
   public:
@@ -41,7 +41,7 @@ class tree {
     int tlayers;	//!< number of detector planes
     int hshsiz;
     int npat;
-    treenode *generic[HSHSIZ];
+    treenode* generic[HSHSIZ];	//!- flat list of all nodes in the tree
     double zList[TLAYERS];
     double detwidth;
     double rcSET_rMaxSlope;//this needs to be defined by rcSET.rMaxSlope
@@ -50,13 +50,12 @@ class tree {
     int maxref;
 
 
-    // functions
+    // Constructor (TODO should take some option info)
     tree();
-    ~tree();
+
 
     void SetDebugLevel(int debuglevel) { debug = debuglevel; };
 
-    void rcInitTree();
     int consistent (
 	treenode *tst,
 	int level,

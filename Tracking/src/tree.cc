@@ -81,8 +81,7 @@
                      database from a diskfile.  If this fails, it calls
                      _inittree() to generate the treesearch database.
 
- (14) rcInitTree() - the main function of this module.  This function
-                     calls inittree() to generate the tree database for
+ (14) [c'tor]      - the main function of this module.  This function                     calls inittree() to generate the tree database for
                      each of the treelines.
 
 *//*-------------------------------------------------------------------------*/
@@ -118,17 +117,15 @@ static const std::string TREEDIR("tree");
 #include "QwTypes.h"
 
 
-/*! \todo (wdconinc) To avoid problems with missing references in libQw,
-    *every* program has to include QwAnalysis.h (in Tracking/include).
-    Suggestion: move QwAnalysis.h to ./include to indicate that it is
-    not a regular include file...  */
-
-/*! \todo (wdconinc) The following extern variables should then be instantiated
-    in QwAnalysis.h.  */
-
 extern treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 extern Options opt;
+
+/*! Defines are relevant for the storage of the trees in files. */
+#define OFFS1   2 /* Next Sons have to be linked to offset 1 nodelist */
+#define SONEND  3 /* End of son-description */
+#define REALSON 4 /* Son and grandson description follows */
+#define REFSON  5 /* Son reference follows */
 
 
 
@@ -137,13 +134,33 @@ extern Options opt;
     include should be done, as well as using namespace QwTracking.  */
 
 
-
 //____________________________________________________________
-tree::tree()
+void tree::printtree (treenode* tn)
+{
+  tn->print();
+}
+
+
+/*------------------------------------------------------------------------*//*!
+
+ \class tree
+
+ \fn tree()
+
+ \brief Initializes the search tree.
+
+    This function loops over each detector region, orientation, type,
+    and wire direction to call inittree.  It also determines a file name
+    for each case.
+
+*//*-------------------------------------------------------------------------*/
+tree::tree ()
 {
   tlayers = 8; // set tlayers == maxhits for now (for region 3)
 
   hshsiz = 511;
+
+  // Initialize the tree structure
   father.genlink = 0;
   for (int i = 0; i < 4; i++) father.son[i] = 0;
   father.maxlevel = -1;
@@ -156,38 +173,8 @@ tree::tree()
   // Reset debug level
   debug = 0;
 
-  #define OFFS1   2 /* Next Sons have to be linked to offset 1 nodelist */
-  #define SONEND  3 /* End of son-description */
-  #define REALSON 4 /* Son and grandson description follows */
-  #define REFSON  5 /* Son reference follows */
-}
 
-tree::~tree()
-{
-}
-
-//____________________________________________________________
-void tree::printtree(treenode *tn) {
-  tn->print();
-}
-
-
-/*------------------------------------------------------------------------*//*!
-
- \class tree
-
- \fn rcInitTree()
-
- \brief Initializes the search tree.
-
-    This function loops over each detector region, orientation, type,
-    and wire direction to call inittree.  It also determines a file name
-    for each case.
-
-*//*-------------------------------------------------------------------------*/
-
-void tree::rcInitTree()
-{
+// rcInitTree() used to start here
   char filename[256];
   int numlayers = 0;
   double width = 0;
@@ -236,7 +223,7 @@ void tree::rcInitTree()
 	    continue;
 	  }
 
-	/// Region 3 contains 8 layers
+	  /// Region 3 contains 8 layers
 	  if (region == kRegionID3) {
 	    numlayers = 8; // TODO replace this with info from the geometry file
 	    width = rcDETRegion[package][region-1][direction]->width[2];
@@ -307,10 +294,10 @@ int tree::consistent(
   // DECLARATIONS #
   //###############
   int i;
-  int *b = tst->bit;		/* For faster access to pattern in tst->bit */
-  double x0;			/* Bitnumber in the first tree-detector,
-                                   i.e. treelayer 0                         */
-  double x3e, x3a;		/* Bitnumber in last / last checked layer   */
+  int *b = tst->bit;	/* For faster access to pattern in tst->bit */
+  double x0;		/* Bitnumber in the first tree-detector,
+                           i.e. treelayer 0                         */
+  double x3e, x3a;	/* Bitnumber in last / last checked layer   */
   double adda, adde;
   double dze, dza;
   double zv;
@@ -323,7 +310,7 @@ int tree::consistent(
   //###########
   if (type == kTypeDriftHDC && region == kRegionID2) {
     int templayers = 4;
-    int tlaym1 = templayers -1 ;
+    int tlaym1 = templayers - 1;
     double z[templayers];
     double binwidth, y0, dy;
 
@@ -351,51 +338,49 @@ int tree::consistent(
 	y0 = fabs(rd->center[1]); /// the first plane's radial distance
       }
     }
-    z[0] = 0.0;//set the first plane's z position to zero
+    z[0] = 0.0; // set the first plane's z position to zero
 
     /*  initial setting for the line check using the first and
            the last tree-detectors                                    */
     dza = z[tlaym1];
-    x0 = b[0];                      /* Fetch the pattern for 1st tree-det.    */
+    x0 = b[0];               /* Fetch the pattern for 1st tree-det.    */
     xf = b[tlaym1];          /* Fetch the pattern for last tree-det.   */
 
     /*  first check if a straight track through the bins in the
            first and the last tree-detectors fulfill the max angle
            condition set in Qoptions     */
-    dy -= x0*binwidth;///dy is decreased by a larger first layer bin
-    dy += xf*binwidth;///and increased by a larger last layer bin
+    dy -= x0*binwidth; /// dy is decreased by a larger first layer bin
+    dy += xf*binwidth; /// and increased by a larger last layer bin
 
-    if(fabs(dy/dza)>opt.R2maxslope){
+    if (fabs (dy / dza) > opt.R2maxslope) {
       return 0;
     }
 
-    if(b[0] == 1 && b[1] ==1 && b[2] == 0 && b[3] == 0 /*&& level == 5*/)cerr << "gotcha" << endl;
+    if (b[0] == 1 && b[1] == 1 && b[2] == 0 && b[3] == 0 /*&& level == 5*/) cerr << "gotcha" << endl;
     /* check if all the bits are along a straight line by
        looping through each pair of outer tree-detectors and
        seeing if the bins on the enclosed tree-detectors are
        along a straight line                                      */
-    x0 = b[0]*binwidth;
-    xf = b[tlaym1]*binwidth+off;
-    mL = mR = (xf-x0)/z[tlaym1];///get the initial bounding slopes
-    i = 2;/// check if the bin in the 3rd layer is within the bounds
-    xmin = mL*z[i]+x0;
-    xmax = mR*z[i]+x0+binwidth;
-    xiL = b[i]*binwidth+off;///this layer is offset
-    xiR = (b[i]+1)*binwidth+off;
-    if(xiL > xmax || xiR <xmin){
-
-      return 0;///if the hit is out of bounds, cut the pattern
+    x0 = b[0] * binwidth;
+    xf = b[tlaym1] * binwidth + off;
+    mL = mR = (xf - x0) / z[tlaym1]; /// get the initial bounding slopes
+    i = 2; /// check if the bin in the 3rd layer is within the bounds
+    xmin = mL * z[i] + x0;
+    xmax = mR * z[i] + x0 + binwidth;
+    xiL = b[i] * binwidth + off;///this layer is offset
+    xiR = (b[i] + 1) * binwidth + off;
+    if (xiL > xmax || xiR < xmin) {
+      return 0; /// if the hit is out of bounds, cut the pattern
     }
-    if(xiR > xmax) mL = (xiL-x0)/z[i];///this hit requires the boundaries to be narrowed
-    if(xiL < xmin) mR = (xiR-x0)/z[i];
-    i = 1;///check if the bin in the 2nd layer is within the bounds
-    xmin = mL*z[i]+x0;
-    xmax = mR*z[i]+x0+binwidth;
-    xiL = b[i]*binwidth;///this layer is not offset
-    xiR = (b[i]+1)*binwidth;
-    if(xiL > xmax || xiR <xmin){
-
-      return 0; ///if the hit is out of bounds, cut the pattern
+    if (xiR > xmax) mL = (xiL - x0) / z[i]; /// this hit requires the boundaries to be narrowed
+    if (xiL < xmin) mR = (xiR - x0) / z[i];
+    i = 1; /// check if the bin in the 2nd layer is within the bounds
+    xmin = mL * z[i] + x0;
+    xmax = mR * z[i] + x0 + binwidth;
+    xiL = b[i] * binwidth; /// this layer is not offset
+    xiR = (b[i] + 1) * binwidth;
+    if (xiL > xmax || xiR < xmin) {
+      return 0; /// if the hit is out of bounds, cut the pattern
     }
     return 1; /// else, this is a good pattern
 
@@ -408,9 +393,9 @@ int tree::consistent(
     int templayers = 8;
 
 
-    double xf=0,zf;
+    double xf = 0, zf;
     double z[templayers];
-    double cellwidth = 1;//distance between wires
+    double cellwidth = 1; // distance between wires
     //double cellwidth = 1.11125;
     //cerr << cellwidth << endl;
     int firstnonzero = 0;
@@ -458,17 +443,17 @@ int tree::consistent(
              seeing if the bins on the enclosed tree-detectors are
              along a straight line                                     ----- */
 
-    for (i = (int)zf - 1; i > 0; i--) {     /* loop from the back
+    for (i = (int) zf - 1; i > 0; i--) {     /* loop from the back
                                              tree-detectors forward */
-      adda = (x0-b[i]) * dza + (x3a-x0) * z[i];
+      adda = (x0 - b[i]) * dza + (x3a - x0) * z[i];
       if (adda <= -dza || dza <= adda)
         return 0;
-      adde = (x0-b[i])*dze+(x3e-x0-1)*z[i];
+      adde = (x0 - b[i]) * dze + (x3e - x0 - 1) * z[i];
       if (adde <= -dze || dze <= adde)
         return 0;
       if (i > 1) {
         if (adda > 0) {
-	  x3e = b[i]+1;
+	  x3e = b[i] + 1;
 	  dze = z[i];
         }
         if (adde < 0) {
@@ -502,12 +487,12 @@ treenode* tree::existent (treenode *tst, int hash)
 }
 
 //____________________________________________________________
-treenode* tree::nodeexists (nodenode *nd, treenode *tr)
+treenode* tree::nodeexists (nodenode* node, treenode* tr)
 {
-  while (nd) {
-    if (! memcmp(nd->tree->bit, tr->bit, tlayers * sizeof(tr->bit[0])))
-      return nd->tree;		/* found it! */
-    nd = nd->next;		/* nope, so look at the next son of this father */
+  while (node) {
+    if (! memcmp(node->tree->bit, tr->bit, tlayers * sizeof(tr->bit[0])))
+      return node->tree;		/* found it! */
+    node = node->next;		/* nope, so look at the next son of this father */
   }
   return 0;
 }
@@ -545,9 +530,8 @@ treenode* tree::treedup (treenode *todup)
     due to the significant differences between them.
 
 *//*-------------------------------------------------------------------------*/
-
 void tree::marklin (
-	treenode *Father,
+	treenode* father,
 	int level,
 	EQwDetectorPackage package,
 	EQwDetectorType type,
@@ -568,16 +552,15 @@ void tree::marklin (
   int hsh;
 
   if (level == maxlevel) return;
-  son = *Father;
-  i = (1 << tlayers);	// (1<<x) is equal to 2^x
-			/* Number of possible son patterns for this
-                              this Father*/
+  son = *father;
+  i = (1 << tlayers);	// (1 << x) is equal to 2^x
+			/* Number of possible son patterns for this father */
 
   //###########
   // REGION 2 #
   //###########
   if (region == kRegionID2 && type == kTypeDriftHDC) {
-    tlayers = 4; /// Four u,v, OR x wire planes an electron can cross
+    tlayers = 4; /// Four u, v, or x wire planes an electron can cross
     i = (1 << tlayers);
     while (i--) {    //loop through all possibilities
       offs = 1;
@@ -585,12 +568,12 @@ void tree::marklin (
       flip = 0;
       for (j = 0; j < tlayers; j++) {
 	if (i & (1 << j)) {
-	  son.bit[j] = (Father->bit[j]<<1) + 1;
+	  son.bit[j] = (father->bit[j]<<1) + 1;
 	} else {
-	  son.bit[j] = (Father->bit[j]<<1);
+	  son.bit[j] = (father->bit[j]<<1);
 	}
-	offs = (int)min(offs,son.bit[j]);
-	maxs = (int)max(maxs,son.bit[j]);
+	offs = (int) min (offs, son.bit[j]);
+	maxs = (int) max (maxs, son.bit[j]);
 
       }
 
@@ -637,12 +620,12 @@ void tree::marklin (
       /* look at the other sons of this father to see if this
          particular son is already known to the father           */
 
-      sonptr = nodeexists( Father->son[offs+flip], &son);
+      sonptr = nodeexists (father->son[offs+flip], &son);
 
       /*  compute the hash value of this particular son for use
          with the genlink hash search of the full treesearch
          database                                                  */
-      hsh = (son.bit[tlayers-1]+son.bit[1])%HSHSIZ;
+      hsh = (son.bit[tlayers-1] + son.bit[1]) % HSHSIZ;
 
       /*  initializes the "insert pattern" flag                     */
       insert_hitpattern = 1; /* right now, set this flag to insertt it  */
@@ -657,17 +640,17 @@ void tree::marklin (
          level of the treesearch division.
                                                                    */
 
-      if (! sonptr && 0 == (sonptr = existent( &son, hsh))) {
+      if (! sonptr && 0 == (sonptr = existent (&son, hsh))) {
         /* the pattern is completely unknown.  So, now check if
            it is consistent with a straight line trajectory
            through the tree-detectors whose slope is within the
            window set by the Qoptions parameter R2maxslope.             */
 
-        if (consistent( &son, level+1,package,type,region,dir)) {
+        if (consistent (&son, level+1, package, type, region, dir)) {
           /* the pattern is consistent, so now insert it into the
-             treesearch database by:                                  */
-	  /*  1st: Create space for this new treenode                  */
-	  sonptr = treedup( &son);
+             treesearch database by:                              */
+	  /*  1st: Create space for this new treenode             */
+	  sonptr = treedup (&son);
 
 	  /*  2nd: Since this treenode has no sons at the moment,
               zero the son pointers for this treenode             */
@@ -679,30 +662,31 @@ void tree::marklin (
               set the minimum and maximum valid level for this
               treenode to this level                              */
 
-	  sonptr->maxlevel =
-	    sonptr->minlevel = level;
+	  sonptr->maxlevel = sonptr->minlevel = level;
 
 	  /*  4th: Update the genlink hash table so that this
               treenode will be examined during future searches
               of the entire treesearch database.                  */
 	  sonptr->genlink = generic[hsh];      /* Append the pattern onto the    */
-                                           /* end of genlink hash table.     */
-       	  generic[hsh] = sonptr;               /* update the genlink hash table. */
+                                               /* end of genlink hash table.     */
+	  generic[hsh] = sonptr;               /* update the genlink hash table. */
 
 	  /*  5th: Call marklin() recursively to generate the sons of
               this tree node                                      */
 	  npat++;
           /*
 	  cout << "good" <<endl;
-	  for(int k=0;k<tlayers;k++){
-	    for(int l=0;l< 2<<(level);l++){
-	      if(son.bit[k]==l)cout << "x ";
-	      else cout << "0 ";
+	  for (int k = 0; k < tlayers; k++) {
+	    for (int l = 0; l < (2 << level); l++) {
+	      if (son.bit[k] == l)
+	        cout << "x ";
+	      else
+	        cout << "0 ";
 	    }
 	    cout << endl;
 	  }
           */
-	  marklin( sonptr, level+1,package,type,region,dir);
+	  marklin (sonptr, level+1, package, type, region, dir);
 
         } else {
 
@@ -711,10 +695,12 @@ void tree::marklin (
 	  insert_hitpattern = 0; /* set "insert pattern" flag to not keep it */
           /*
 	  cout << "inconsistent" << endl;
-	  for(int k=0;k<tlayers;k++){
-	    for(int l=0;l< 2<<(level);l++){
-	      if(son.bit[k]==l)cout << "x ";
-	      else cout << "0 ";
+	  for (int k = 0; k < tlayers; k++) {
+	    for (int l = 0; l < 2 << level; l++) {
+	      if (son.bit[k] == l)
+	        cout << "x ";
+	      else
+	        cout << "0 ";
 	    }
 	    cout << endl;
 	  }
@@ -726,28 +712,30 @@ void tree::marklin (
            of bin division.                                         */
 
       } else if ((sonptr->minlevel > level && consistent(&son, level+1, package, type, region, dir))
-	          || sonptr->maxlevel < level) {
+	       || sonptr->maxlevel < level) {
 
 	/*  1st: Update the levels of the found treenode to
             include this level                                  */
-        sonptr->minlevel = (int) min(level, sonptr->minlevel);
-      	sonptr->maxlevel = (int) max(level, sonptr->maxlevel);
+        sonptr->minlevel = (int) min (level, sonptr->minlevel);
+	sonptr->maxlevel = (int) max (level, sonptr->maxlevel);
 
 	/*  2nd: Update the levels of all the sons for this
             treenode
                                       */
           /*
 	  cout << "good" <<endl;
-	  for(int k=0;k<tlayers;k++){
-	    for(int l=0;l< 2<<(level);l++){
-	      if(son.bit[k]==l)cout << "x ";
-	      else cout << "0 ";
+	  for (int k = 0; k < tlayers; k++) {
+	    for (int l = 0; l < 2 << level; l++) {
+	      if (son.bit[k] == l)
+	        cout << "x ";
+	      else
+	        cout << "0 ";
 	    }
 	    cout << endl;
 	  }
           */
         npat++;
-      	marklin (sonptr, level+1, package, type, region, dir);
+	marklin (sonptr, level+1, package, type, region, dir);
       }
 
 	/* Since one of the recursive call to marklin()
@@ -756,18 +744,18 @@ void tree::marklin (
            database, a final check is made to see if the hit
            pattern is already in the database before actually
            inserting the treenode into the database                 */
-      if (insert_hitpattern  &&                          /* "insert pattern"
+      if (insert_hitpattern  &&                        /* "insert pattern"
                                                           flag is set and    */
-          !nodeexists( Father->son[offs+flip], &son)) {  /* final check if hit
+        ! nodeexists (father->son[offs+flip], &son)) { /* final check if hit
                                                           pattern is already
 							  in the database    */
         nodptr = (nodenode*) malloc (sizeof(nodenode));
         //nodenode *nodptr = new nodenode;    /* create a nodenode  */
-      	assert(nodptr);                                  /* cry if error       */
-        nodptr->next           = Father->son[offs+flip]; /* append it onto
-                                                          the son list       */
-      	nodptr->tree           = sonptr;
-      	Father->son[offs+flip] = nodptr;
+	assert(nodptr);                                  /* cry if error     */
+        nodptr->next           = father->son[offs+flip]; /* append it onto
+                                                            the son list     */
+	nodptr->tree           = sonptr;
+	father->son[offs+flip] = nodptr;
       }
     }
   }
@@ -777,244 +765,246 @@ void tree::marklin (
   //###########
   else if (region == kRegionID3 && type == kTypeDriftVDC) {
     tlayers = 8;
-    offs=1;
-    maxs=0;
-    flip=0;
-    int maxhits = 8;//max # of cells that can be hit in wanted tracks
-    i = (1<<maxhits);
-    while(i--){//loop through all possibilities
-      for(j=0;j<maxhits;j++){//this loop creates each possible pattern
+    offs = 1;
+    maxs = 0;
+    flip = 0;
+    int maxhits = 8; // max # of cells that can be hit in wanted tracks
+    i = (1 << maxhits);
+    while (i--) { // loop through all possibilities
+      for (j = 0; j < maxhits; j++) { // this loop creates each possible pattern
 
 	if(i & (1<<j)){
-	  son.bit[j] = (Father->bit[j]<<1)+1;
+	  son.bit[j] = (father->bit[j]<<1)+1;
 	}
 	else{
-	  son.bit[j] = Father->bit[j]<<1;
+	  son.bit[j] = father->bit[j]<<1;
 	}
 	offs = (int)min(offs,son.bit[j]);
 	maxs = (int)max(maxs,son.bit[j]);
       }
 
 
-			//Cut patterns in which there are hits that lie outside the road 				between the first and last hits, i.e. :
-			//  X 0      0 X
-			//  0 X  or  X 0
-			//  0 X      0 X
-			//  X 0	     0 X
-			son.bits = son.bit[maxhits-1] - son.bit[0];
-			//cout << "-------------------------" << endl;
-			int cutback =0;
-			int cutflag =0;
-			for(j=1;j<maxhits;j++){
-				if(son.bit[j]<son.bit[j-1]){//if the bin decreases
-					if(son.bit[j])//and it's nonzero cut it
-						cutflag++;
-					if(!son.bit[j]){//but if it's zero, make sure it stays zero
-						cutback++;
-						if(cutback==1)son.bits = son.bit[j-1] - son.bit[0];
-					}
-				}
-				if(son.bit[j] && cutback)
-					cutflag++;
-
-			}
-			if(cutflag){
-				/*
-				cout << "Cut :" ;
-				for(j=0;j<maxhits;j++)
-					cout << son.bit[j] << " " ;
-				cout << endl;*/
-				continue;
-			}
-
-			if( offs){/* If there is an offset, so         */
-				/*cout << "Offset :" ;
-				for(j=0;j<maxhits;j++)
-					cout << son.bit[j] << " " ;
-				cout << endl;
-				*/
-      				for( j = 0; j< maxhits; j++) /* shift all hits over this 									offset   */
-					son.bit[j] --;
-			}
-			if(son.bits < 0){
-				/*cout << "Flip :" ;
-				for(j=0;j<maxhits;j++)
-					cout << son.bit[j] << " " ;
-				cout << endl;
-		*/
-				flip =2 ;
-				son.bits = -son.bits;
-				for(j=0;j<maxhits;j++)
-					son.bit[j] = son.bits-son.bit[j];
-			}
-    			son.bits++;
-			sonptr = nodeexists( Father->son[offs+flip], &son);
-			hsh = (son.bit[tlayers-1]+son.bit[1])%HSHSIZ;
+      //Cut patterns in which there are hits that lie outside the road         between the first and last hits, i.e. :
+      //  X 0      0 X
+      //  0 X  or  X 0
+      //  0 X      0 X
+      //  X 0       0 X
+      son.bits = son.bit[maxhits-1] - son.bit[0];
+      //cout << "-------------------------" << endl;
+      int cutback =0;
+      int cutflag =0;
+      for(j=1;j<maxhits;j++){
+        if(son.bit[j]<son.bit[j-1]){//if the bin decreases
+          if(son.bit[j])//and it's nonzero cut it
+            cutflag++;
+          if(!son.bit[j]){//but if it's zero, make sure it stays zero
+            cutback++;
+            if(cutback==1)son.bits = son.bit[j-1] - son.bit[0];
+          }
+        }
+        if(son.bit[j] && cutback)
+          cutflag++;
+      }
+      if(cutflag){
+        /*
+        cout << "Cut :" ;
+        for(j=0;j<maxhits;j++)
+          cout << son.bit[j] << " " ;
+        cout << endl;*/
+        continue;
+      }
+      if( offs){/* If there is an offset, so         */
+        /*cout << "Offset :" ;
+        for(j=0;j<maxhits;j++)
+          cout << son.bit[j] << " " ;
+        cout << endl;
+        */
+        for( j = 0; j< maxhits; j++) /* shift all hits over this                   offset   */
+          son.bit[j] --;
+      }
+      if(son.bits < 0){
+        /*cout << "Flip :" ;
+        for(j=0;j<maxhits;j++)
+          cout << son.bit[j] << " " ;
+        cout << endl;
+    */
+        flip =2 ;
+        son.bits = -son.bits;
+        for(j=0;j<maxhits;j++)
+          son.bit[j] = son.bits-son.bit[j];
+      }
+      son.bits++;
+      sonptr = nodeexists( father->son[offs+flip], &son);
+      hsh = (son.bit[tlayers-1]+son.bit[1])%HSHSIZ;
 
 
-			/*if(sonptr){for(j=0;j<maxhits;j++)cout << son.bit[j] << " " ;cout <<  "exists" << endl;}
-			else{ for(j=0;j<maxhits;j++)cout << son.bit[j] << " " ;cout << endl;}
-			cout << "hsh = " << son.bit[tlayers-1] << "," << son.bit[1] << "," << hshsiz << "," << hsh << endl;
-			cout << "level : " << level << endl;
-			cout << "bits : " << son.bits << endl;*/
-			insert_hitpattern = 1;
-			if( !sonptr&& 0 == (sonptr= existent( &son, hsh))){
-				if( consistent( &son, level+1,package,type,region,dir)) {
-					//cout << "Adding treenode..." << endl;
+      /*if(sonptr){for(j=0;j<maxhits;j++)cout << son.bit[j] << " " ;cout <<  "exists" << endl;}
+      else{ for(j=0;j<maxhits;j++)cout << son.bit[j] << " " ;cout << endl;}
+      cout << "hsh = " << son.bit[tlayers-1] << "," << son.bit[1] << "," << hshsiz << "," << hsh << endl;
+      cout << "level : " << level << endl;
+      cout << "bits : " << son.bits << endl;*/
+      insert_hitpattern = 1;
+      if( !sonptr&& 0 == (sonptr= existent( &son, hsh))){
+        if( consistent( &son, level+1,package,type,region,dir)) {
+          //cout << "Adding treenode..." << endl;
 
-					sonptr = treedup( &son);
-					sonptr->son[0] = sonptr->son[1] =
-	  				sonptr->son[2] = sonptr->son[3] = 0;
-					sonptr->maxlevel =
-	  				sonptr->minlevel = level;
-					sonptr->genlink = generic[hsh];
-			       		generic[hsh] = sonptr;
-					npat++;
-					/*cout << "good" <<endl;
-					for(int k=0;k<tlayers;k++){
-						for(int l=0;l< 2<<(level);l++){
-							if(son.bit[k]==l)cout << "x ";
-							else cout << "0 ";
-						}
-						cout << endl;
-					}
-					*/
-					marklin( sonptr, level+1,package,type,region,dir);
-				}
-				else{/*
-					cout << "inconsistent" << endl;
-					for(int k=0;k<tlayers;k++){
-						for(int l=0;l< 2<<(level);l++){
-							if(son.bit[k]==l)cout << "x ";
-							else cout << "0 ";
-						}
-						cout << endl;
-					}
-					*/
-					insert_hitpattern = 0;
-				}
-			}
-			else if( (sonptr->minlevel > level  && consistent( &son, level+1,package,type,region,dir) )||sonptr->maxlevel < level) {
-				sonptr->minlevel = (int)min(level,sonptr->minlevel);
-	      			sonptr->maxlevel = (int)max(level,sonptr->maxlevel);
-				/*for(int k=0;k<tlayers;k++){
-					for(int l=0;l< 2<<(level);l++){
-						if(son.bit[k]==l)cout << "x ";
-						else cout << "0 ";
-					}
-					cout << endl;
-				}
-				*/
+          sonptr = treedup( &son);
+          sonptr->son[0] = sonptr->son[1] =
+          sonptr->son[2] = sonptr->son[3] = 0;
+          sonptr->maxlevel =
+          sonptr->minlevel = level;
+          sonptr->genlink = generic[hsh];
+          generic[hsh] = sonptr;
+          npat++;
+          /*cout << "good" <<endl;
+          for(int k=0;k<tlayers;k++){
+            for(int l=0;l< 2<<(level);l++){
+              if(son.bit[k]==l)cout << "x ";
+              else cout << "0 ";
+            }
+            cout << endl;
+          }
+          */
+          marklin( sonptr, level+1,package,type,region,dir);
+        }
+        else{/*
+          cout << "inconsistent" << endl;
+          for(int k=0;k<tlayers;k++){
+            for(int l=0;l< 2<<(level);l++){
+              if(son.bit[k]==l)cout << "x ";
+              else cout << "0 ";
+            }
+            cout << endl;
+          }
+          */
+          insert_hitpattern = 0;
+        }
+      }
+      else if( (sonptr->minlevel > level  && consistent( &son, level+1,package,type,region,dir) )||sonptr->maxlevel < level) {
+        sonptr->minlevel = (int)min(level,sonptr->minlevel);
+        sonptr->maxlevel = (int)max(level,sonptr->maxlevel);
+        /*for(int k=0;k<tlayers;k++){
+          for(int l=0;l< 2<<(level);l++){
+            if(son.bit[k]==l)cout << "x ";
+            else cout << "0 ";
+          }
+          cout << endl;
+        }
+        */
 
-				marklin( sonptr, level+1,package,type,region,dir);
-			}
+        marklin( sonptr, level+1,package,type,region,dir);
+      }
 
-			if( insert_hitpattern  &&                          /* "insert pattern"
+      if( insert_hitpattern  &&                          /* "insert pattern"
                                                           flag is set and    */
-        			!nodeexists( Father->son[offs+flip], &son)) {
-				nodptr = (nodenode*)malloc( sizeof( nodenode));    /* create a nodenode  */
-				//nodptr = new nodenode;
-				assert(nodptr);                                    /* cry if error       */
-      				nodptr->next             = Father->son[offs+flip]; /* append it onto
+              !nodeexists( father->son[offs+flip], &son)) {
+        nodptr = (nodenode*)malloc( sizeof( nodenode));    /* create a nodenode  */
+        //nodptr = new nodenode;
+        assert(nodptr);                                    /* cry if error       */
+        nodptr->next             = father->son[offs+flip]; /* append it onto
                                                           the son list       */
-				nodptr->tree             = sonptr;
-				Father->son[offs+flip] = nodptr;
-				//cout << "Father's son " << offs+flip << " set" << endl;
-			}
+        nodptr->tree             = sonptr;
+        father->son[offs+flip] = nodptr;
+        //cout << "father's son " << offs+flip << " set" << endl;
+      }
 
-		}
-
-
+    }
 
 
 
 
 
 
+
+
+  //########
+  // OTHER #
+  //########
   } else {
-	while (i--) {
-		offs = 1;
-		maxs = 0;
-		flip = 0;
 
-		for (j = 0; j < tlayers; j++) {
-			//cout << "for("<< j << "," << tlayers << "," <<
-			//Father->bit[j] << "," << (1<<j) << "," << i << ")" << endl;
+    while (i--) {
+      offs = 1;
+      maxs = 0;
+      flip = 0;
+
+      for (j = 0; j < tlayers; j++) {
+        //cout << "for("<< j << "," << tlayers << "," <<
+        //father->bit[j] << "," << (1<<j) << "," << i << ")" << endl;
 
 
-			if(i & (1<<j)){
-				son.bit[j] = (Father->bit[j]<<1)+1;
-				}
-			else{
-				son.bit[j] = Father->bit[j]<<1;
-			}
-			offs = (int)min(offs,son.bit[j]);
-			maxs = (int)max(maxs,son.bit[j]);
-		}
-		son.bits = son.bit[tlayers-1] - son.bit[0];
-		//cout << "(" << maxs << "," << offs << "," << son.bits << ")" << endl;
-		if(maxs-offs > abs(son.bits)){
-			//cout << "yes" << endl;
-			continue;
-		}
+        if(i & (1<<j)){
+          son.bit[j] = (father->bit[j]<<1)+1;
+          }
+        else{
+          son.bit[j] = father->bit[j]<<1;
+        }
+        offs = (int)min(offs,son.bit[j]);
+        maxs = (int)max(maxs,son.bit[j]);
+      }
+      son.bits = son.bit[tlayers-1] - son.bit[0];
+      //cout << "(" << maxs << "," << offs << "," << son.bits << ")" << endl;
+      if(maxs-offs > abs(son.bits)){
+        //cout << "yes" << endl;
+        continue;
+      }
 
-		if(offs)
-			for(j=0;j<tlayers;j++)
-				son.bit[j]--;
+      if(offs)
+        for(j=0;j<tlayers;j++)
+          son.bit[j]--;
 
-		if(son.bits < 0){
-			flip =2 ;
-			son.bits = -son.bits;
-			for(j=0;j<tlayers;j++)
-				son.bit[j] = son.bits-son.bit[j];
-		}
-		son.bits++;
-		sonptr= nodeexists(Father->son[offs+flip],&son);
-		hsh = (son.bit[tlayers-1]+son.bit[1])%hshsiz;
-		cerr << "hsh = " << hsh << endl;
-		insert_hitpattern = 1;
+      if(son.bits < 0){
+        flip =2 ;
+        son.bits = -son.bits;
+        for(j=0;j<tlayers;j++)
+          son.bit[j] = son.bits-son.bit[j];
+      }
+      son.bits++;
+      sonptr= nodeexists(father->son[offs+flip],&son);
+      hsh = (son.bit[tlayers-1]+son.bit[1])%hshsiz;
+      cerr << "hsh = " << hsh << endl;
+      insert_hitpattern = 1;
 
-		if( !sonptr&& 0 == (sonptr= existent( &son, hsh))) {
-			//cout << "Pattern is unknown" << endl;
-			//cout << "-----------" << endl;
-			//son.print();
-			//cout << "-----------" << endl;
-			if( consistent( &son, level+1,package,type,region,dir)) {
-				//cout << "Adding treenode..." << endl;
-				sonptr = treedup( &son);
-				sonptr->son[0] = sonptr->son[1] =
-	  			sonptr->son[2] = sonptr->son[3] = 0;
-				sonptr->maxlevel =
-	  			sonptr->minlevel = level;
-				sonptr->genlink = generic[hsh];
-			       	generic[hsh] = sonptr;
-				marklin( sonptr, level+1,package,type,region,dir);
-			}
-			else
-				insert_hitpattern = 0;
-		}
-		else if( (sonptr->minlevel > level  && consistent( &son, level+1,package,type,region,dir) )
-	      ||	sonptr->maxlevel < level) {
-			sonptr->minlevel = (int)min(level,sonptr->minlevel);
-      			sonptr->maxlevel = (int)max(level,sonptr->maxlevel);
-			marklin( sonptr, level+1,package,type,region,dir);
-		}
-		//cout << "insert_hitpattern = " << insert_hitpattern << endl;
+      if( !sonptr&& 0 == (sonptr= existent( &son, hsh))) {
+        //cout << "Pattern is unknown" << endl;
+        //cout << "-----------" << endl;
+        //son.print();
+        //cout << "-----------" << endl;
+        if( consistent( &son, level+1,package,type,region,dir)) {
+          //cout << "Adding treenode..." << endl;
+          sonptr = treedup( &son);
+          sonptr->son[0] = sonptr->son[1] =
+          sonptr->son[2] = sonptr->son[3] = 0;
+          sonptr->maxlevel =
+          sonptr->minlevel = level;
+          sonptr->genlink = generic[hsh];
+          generic[hsh] = sonptr;
+          marklin( sonptr, level+1,package,type,region,dir);
+        }
+        else
+          insert_hitpattern = 0;
+      }
+      else if( (sonptr->minlevel > level  && consistent( &son, level+1,package,type,region,dir) )
+      || sonptr->maxlevel < level) {
+        sonptr->minlevel = (int)min(level,sonptr->minlevel);
+        sonptr->maxlevel = (int)max(level,sonptr->maxlevel);
+        marklin( sonptr, level+1,package,type,region,dir);
+      }
+      //cout << "insert_hitpattern = " << insert_hitpattern << endl;
 
-		if( insert_hitpattern  &&                          /* "insert pattern"
-                                                          flag is set and    */
-        !nodeexists( Father->son[offs+flip], &son)) {
-			nodptr = (nodenode*)malloc( sizeof( nodenode));    /* create a nodenode  */
-			//nodptr = new nodenode;
-			assert(nodptr);                                    /* cry if error       */
-      			nodptr->next             = Father->son[offs+flip]; /* append it onto
-                                                          the son list       */
-			nodptr->tree             = sonptr;
-			Father->son[offs+flip] = nodptr;
-			//cout << "Father's son " << offs+flip << " set" << endl;
-		}
-	}
-	}
+      if( insert_hitpattern  &&                          /* "insert pattern"
+                                                            flag is set and    */
+          !nodeexists( father->son[offs+flip], &son)) {
+        nodptr = (nodenode*)malloc( sizeof( nodenode));    /* create a nodenode  */
+        //nodptr = new nodenode;
+        assert(nodptr);                                    /* cry if error       */
+        nodptr->next             = father->son[offs+flip]; /* append it onto
+                                                            the son list       */
+        nodptr->tree             = sonptr;
+        father->son[offs+flip] = nodptr;
+        //cout << "father's son " << offs+flip << " set" << endl;
+      }
+    }
+  }
 }
 
 
@@ -1189,66 +1179,66 @@ treeregion* tree::inittree (
 	EQwDirectionID dir)
 {
 // TODO: This routine assumes that the directory 'trees' exists and doesn't create it itself. (wdconinc)
-	treeregion *trr;
-	treenode  *back;
-	tlayers  = tlayer;
-	maxlevel = levels+1;
-	detwidth = width;
-	if (tlayer == 0)
-		return 0;
+  treeregion *trr;
+  treenode  *back;
+  tlayers  = tlayer;
+  maxlevel = levels+1;
+  detwidth = width;
+  if (tlayer == 0)
+    return 0;
 
 // TODO: I disabled the next part to get past a segfault (wdconinc, 08-Dec-2008)
 // cout << "trr->searchable = " << (trr? trr->searchable:-1) << endl;
-//	if (region == kRegionID3 && (dir == kDirectionX || dir == kDirectionY)) {
-//		/// region 3 does not have an x or y direction,
-//		/// so tag them as unsearchable for the treedo function.
-//		trr->searchable = 0;
-//		return trr;
-//	}
+//  if (region == kRegionID3 && (dir == kDirectionX || dir == kDirectionY)) {
+//    /// region 3 does not have an x or y direction,
+//    /// so tag them as unsearchable for the treedo function.
+//    trr->searchable = 0;
+//    return trr;
+//  }
 
-	/*! Try to read in an existing database */
-	int dontread = 0;
-	if (0 == (trr = readtree(filename,levels,tlayer, width, dontread)) ) {
+  /*! Try to read in an existing database */
+  int dontread = 0;
+  if (0 == (trr = readtree(filename, levels, tlayer, width, dontread)) ) {
 
-		//cerr << package << " " << type << " " << region << endl;
-		//cerr << "pattern generation forced" << endl;
-		/// If reading in doesn't work, clean up any partial trees
-		/// that might have been read in already
-		if( trr ) { // TODO Replace this free() and flush() stuff.
-			if( trr->node.tree )
-				free(trr->node.tree);
-			free(trr);
-		}
-		fflush(stdout);
+    //cerr << package << " " << type << " " << region << endl;
+    //cerr << "pattern generation forced" << endl;
+    /// If reading in doesn't work, clean up any partial trees
+    /// that might have been read in already
+    if( trr ) { // TODO Replace this free() and flush() stuff.
+      if( trr->node.tree )
+        free(trr->node.tree);
+      free(trr);
+    }
+    fflush(stdout);
 
-		/// Generate a new tree database
-		back = _inittree (tlayer, package, type, region, dir);
+    /// Generate a new tree database
+    back = _inittree (tlayer, package, type, region, dir);
 
-		if( !back ) {
-			cerr << "QTR: Tree couldn't be built.\n";
-			exit(1);
-		}
-		cout << " Generated.\n";
-		fflush(stdout);
+    if( !back ) {
+      cerr << "QTR: Tree couldn't be built.\n";
+      exit(1);
+    }
+    cout << " Generated.\n";
+    fflush(stdout);
 
-		/// Write the generated tree to disk for faster access later
-		if( !writetree(filename, back, levels, tlayer, width)) {
-			cerr << "QTR: Tree couldn't be written.\n";
-			exit(1);
-		}
-		cout << " Cached.\n";
-		fflush(stdout);
+    /// Write the generated tree to disk for faster access later
+    if( !writetree(filename, back, levels, tlayer, width)) {
+      cerr << "QTR: Tree couldn't be written.\n";
+      exit(1);
+    }
+    cout << " Cached.\n";
+    fflush(stdout);
 
-		/// Free the tree structure
-		//freetree();
-		/// and read it in again to get the shorter tree search format
-		if( 0 == (trr = readtree(filename,levels,tlayer, width, 0))) {
-			cerr << "QTR: New tree couldn't be read.\n";
-			exit(1);
-		}
-		cout << " Done.\n";
-	}
-	return trr;
+    /// Free the tree structure
+    //freetree();
+    /// and read it in again to get the shorter tree search format
+    if( 0 == (trr = readtree(filename,levels,tlayer, width, 0))) {
+      cerr << "QTR: New tree couldn't be read.\n";
+      exit(1);
+    }
+    cout << " Done.\n";
+  }
+  return trr;
 }
 
 //____________________________________________________________
@@ -1256,7 +1246,7 @@ treeregion* tree::inittree (
     the iterative pattern generator.  the root treenode is created
     as the simplest pattern possible, and passed to marklin.
  */
-treenode * tree::_inittree (
+treenode* tree::_inittree (
 	int tlayer,
 	EQwDetectorPackage package,
 	EQwDetectorType type,
@@ -1278,36 +1268,35 @@ treenode * tree::_inittree (
  */
 int tree::_writetree (treenode *tn, FILE *fp, int tlayers)
 {
-	int i;
-	nodenode *nd;
-	//tn->print();///use this for debugging.
-	if( tn->xref == -1) {/// pattern has never been written
-		tn->xref = xref++;/// set its reference
+  nodenode* nd;
+  //tn->print();///use this for debugging.
+  if (tn->xref == -1) {/// pattern has never been written
+    tn->xref = xref++;/// set its reference
 
-		if( fputc( REALSON, fp) == EOF || /// and write all pattern data
-		fwrite(&tn->minlevel, sizeof( int), 1L, fp) != 1 ||
-		fwrite(&tn->bits, sizeof( int), 1L, fp) != 1 ||
-		fwrite(tn->bit,sizeof( int), (size_t)tlayers, fp) != (unsigned int)tlayers )
-			return -1;
+    if (fputc (REALSON, fp) == EOF || /// and write all pattern data
+        fwrite(&tn->minlevel, sizeof(int), 1L, fp) != 1 ||
+        fwrite(&tn->bits,     sizeof(int), 1L, fp) != 1 ||
+        fwrite(tn->bit,       sizeof(int), (size_t) tlayers, fp) != (unsigned int)tlayers )
+      return -1;
 
-		for( i = 0; i < 4; i++) {
-			nd = tn->son[i];
-			//cout << "son" << endl;
-			while( nd) {///write the sons of this treenode (and their sons, etc)
-				if( _writetree(nd->tree,fp,tlayers))
-					return -1;
-				nd = nd->next;
-				//cout << "bro" << endl;
-			}
-			if( fputc( SONEND, fp) == EOF) /// set the marker for end of sonlist
-				return -1;
-		}
-	} else {/// else - only write a reference to
-		if( fputc( REFSON, fp) == EOF  || /// a former written pattern
-		fwrite( &tn->xref, sizeof(tn->xref), 1L, fp) != 1)
-			return -1;
-	}
-	return 0;
+    for (int i = 0; i < 4; i++) {
+      nd = tn->son[i];
+      //cout << "son" << endl;
+      while (nd) {///write the sons of this treenode (and their sons, etc)
+        if (_writetree(nd->tree, fp, tlayers))
+          return -1;
+        nd = nd->next;
+        //cout << "bro" << endl;
+      }
+      if (fputc (SONEND, fp) == EOF) /// set the marker for end of sonlist
+        return -1;
+    }
+  } else { /// else - only write a reference to
+    if (fputc (REFSON, fp) == EOF  || /// a former written pattern
+        fwrite (&tn->xref, sizeof(tn->xref), 1L, fp) != 1)
+      return -1;
+  }
+  return 0;
 }
 
 //____________________________________________________________
@@ -1376,7 +1365,9 @@ long tree::writetree (
 
 //____________________________________________________________
 /*! \brief This function reads in the tree pattern database from a file.
+
     It uses the shorttree and shortnode objects in order to reduce memory overhead.
+
     @param	file	The opened file
     @param	stb	A shorttree
     @param	fath	A list of father nodes

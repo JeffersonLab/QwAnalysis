@@ -149,12 +149,6 @@ int main(Int_t argc,Char_t* argv[])
   qoptions.Get((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.options").c_str());
   std::cout << "[QwAnalysis::main] Options loaded" << std::endl; // R3,R2
 
-  tree thetree;
-  std::cout << "[QwAnalysis::main] Initializing pattern database" << std::endl;
-  thetree.rcInitTree();
-  std::cout << "[QwAnalysis::main] Pattern database loaded" << std::endl; // R3,R2
-
-
   QwTrackingWorker trackingworker("qwtrackingworker");
   //--------------------------------------
 

@@ -109,7 +109,6 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
 {
   // Initialize pattern database
   tree thetree;
-  thetree.rcInitTree();
 
   /* Reset counters of number of good and back events */
   ngood = nbad = 0;
