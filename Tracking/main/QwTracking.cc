@@ -75,9 +75,9 @@
     the tracking code.
 
     In the region 3 part of the tracking code method QwTrackingWorker::ProcessHits,
-    there is a loop over the two VDC planes.  The treesearch::TsSetPoint method
+    there is a loop over the two VDC planes.  The QwTrackingTreeSearch::TsSetPoint method
     is called for each plane to map the hits in the event to a bit pattern.
-    Next, the treesearch::TsSearch method is called to find all matching
+    Next, the QwTrackingTreeSearch::TsSearch method is called to find all matching
     patterns for each plane. Finally, treecombine::TlTreeLineSort is called to
     obtain the track segment candidates for this wire plane.
 
@@ -102,9 +102,9 @@
 
     The Qweak Tracking code is built around four main tracking modules:
     - QwTrackingWorker (the main entry point)
-    - treesearch
+    - QwTrackingTreeSearch
     - treecombine
-    - treesort
+    - QwTrackingTreeSort
     - treematch
 
     The organization is done by the module QwTrackingWorker.

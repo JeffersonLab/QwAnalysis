@@ -1,32 +1,58 @@
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+//
+// C++ Interface: QwTrackingTreeSort
+//
+// Description:
+//
+//
+// Modified by: Wouter Deconinck <wdconinc@mit.edu>, (C) 2008
+//
+//              Jie Pan <jpan@jlab.org>, Sun May 24 14:29:42 CDT 2009
+//
+// Copyright: See COPYING file that comes with this distribution
+//
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+/*! \class QwTrackingTreeSort
+
+    \file QwTrackingTreeSort.cc
+
+    $Date: Sun May 24 14:29:42 CDT 2009 $
+
+    \brief This module is used to identify good track segments versus ghost tracks/hits.
+ */
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 #include <cstdio>
 #include <cstdlib>
 #include <cassert>
 #include <cstring>
 
-#include "treesort.h"
+#include "QwTrackingTreeSort.h"
 
 using namespace std;
 
-/*! \file treesort.cc
-\brief This module is used to identify good track segments versus ghost tracks/hits.
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-*/
-//________________________________________________________________________
-treesort::~treesort (void)
-{
-}
-//________________________________________________________________________
-treesort::treesort (void)
+QwTrackingTreeSort::QwTrackingTreeSort (void)
 {
   doubletrack = 0.2;
   good = 2;
 }
-//________________________________________________________________________
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+QwTrackingTreeSort::~QwTrackingTreeSort (void)
+{
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 /* ======================================================================
  * checks for connected lines on the connectivity array
  * ====================================================================== */
 
-int treesort::connectiv( char *ca, int *array, int *isvoid, char size, int idx )
+int QwTrackingTreeSort::connectiv( char *ca, int *array, int *isvoid, char size, int idx )
 {
   	int ret, j;
   	idx *= size;
@@ -36,8 +62,10 @@ int treesort::connectiv( char *ca, int *array, int *isvoid, char size, int idx )
   	}
   	return ret;
 }
-//________________________________________________________________________
-double treesort::chiweight (QwTrackingTreeLine *tl)
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+double QwTrackingTreeSort::chiweight (QwTrackingTreeLine *tl)
 {
   double fac;
   if (tl->numhits > tl->nummiss)
@@ -49,8 +77,10 @@ double treesort::chiweight (QwTrackingTreeLine *tl)
   }
   return fac * tl->chi;
 }
-//________________________________________________________________________
-double treesort::ptchiweight (PartTrack *pt)
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+double QwTrackingTreeSort::ptchiweight (PartTrack *pt)
 {
   double fac;
   if (pt->numhits > pt->nummiss)
@@ -62,8 +92,10 @@ double treesort::ptchiweight (PartTrack *pt)
   }
   return fac * fac * pt->chi; // Why is 'fac' squared here, but not in chiweight?
 }
-//________________________________________________________________________
-int treesort::connectarray (char *ca, int *array, int *isvoid, char size, int idx )
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+int QwTrackingTreeSort::connectarray (char *ca, int *array, int *isvoid, char size, int idx )
 {
   memset (ca, 0, size);
   ca[idx] = 1;
@@ -77,8 +109,10 @@ int treesort::connectarray (char *ca, int *array, int *isvoid, char size, int id
   }
   return 0;
 }
-//________________________________________________________________________
-void treesort::bestunconnected (
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+void QwTrackingTreeSort::bestunconnected (
 	char *ca,
 	int *array,
 	int *isvoid,
@@ -131,8 +165,10 @@ void treesort::bestunconnected (
     }
   }
 }
-//________________________________________________________________________
-int treesort::globalconnectiv (char *ca, int *array, int *isvoid, int size, int idx)
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+int QwTrackingTreeSort::globalconnectiv (char *ca, int *array, int *isvoid, int size, int idx)
 {
   	int i, max = 0, c;
   	bool old;
@@ -150,8 +186,10 @@ int treesort::globalconnectiv (char *ca, int *array, int *isvoid, int size, int 
   	isvoid[idx] = old;
   	return max;
 }
-//________________________________________________________________________
-int treesort::bestconnected (char *ca, int *array, int *isvoid, double *chia,
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+int QwTrackingTreeSort::bestconnected (char *ca, int *array, int *isvoid, double *chia,
 	       int size, int idx)
 {
   int i, besti = -1;
@@ -182,8 +220,10 @@ int treesort::bestconnected (char *ca, int *array, int *isvoid, double *chia,
   }
   return 0;
 }
-//________________________________________________________________________
-int treesort::rcPTCommonWires (PartTrack *track1, PartTrack *track2)
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+int QwTrackingTreeSort::rcPTCommonWires (PartTrack *track1, PartTrack *track2)
 {
   int common = 0;
   for (int i = 0; i < 3; i++)
@@ -191,12 +231,14 @@ int treesort::rcPTCommonWires (PartTrack *track1, PartTrack *track2)
   common /= 3;
   return common;
 }
-//________________________________________________________________________
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 /* This function simply counts the number of common wires
 shared between two treelines.  The only output is the integer
 return value
 */
-int treesort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingTreeLine *line2)
+int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingTreeLine *line2)
 {
   //################
   // DECLARATIONS  #
@@ -285,13 +327,14 @@ int treesort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingTreeLine *l
   return (10000 * common / total + 50 ) / 100;
   // if 8 common out of 8, then this = 100
 }
-//________________________________________________________________________
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /* This function simply counts the number of common wires
 shared between two treelines.  The only output is the integer
 return value
 */
-int treesort::rcCommonWires (QwTrackingTreeLine *line1, QwTrackingTreeLine *line2 )
+int QwTrackingTreeSort::rcCommonWires (QwTrackingTreeLine *line1, QwTrackingTreeLine *line2 )
 {
   //cerr << "ERROR : This function needs editing before use" << endl;
 
@@ -361,8 +404,10 @@ int treesort::rcCommonWires (QwTrackingTreeLine *line1, QwTrackingTreeLine *line
 
   return (10000 * common / total + 50 ) / 100;
 }
-//________________________________________________________________________
-int treesort::rcTreeConnSort (QwTrackingTreeLine *head, EQwRegionID region/*,
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *head, EQwRegionID region/*,
 		EQwDetectorPackage package, EQwDetectorType type,
 		EQwDirectionID dir, Eorientation orient*/)
 {
@@ -497,8 +542,10 @@ cerr << "num = " << num << endl;
   /* do not free Qalloc'ed things!!! */
   return 0;
 }
-//________________________________________________________________________
-int treesort::rcPartConnSort (PartTrack *head/*,
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+int QwTrackingTreeSort::rcPartConnSort (PartTrack *head/*,
 	EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type,
 	EQwDirection dir, Eorientation orient*/)
 {
@@ -656,3 +703,5 @@ int treesort::rcPartConnSort (PartTrack *head/*,
   /* do not free Qalloc'ed things!!! */
   return 0;
 }
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

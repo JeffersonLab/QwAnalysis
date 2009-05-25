@@ -1,28 +1,46 @@
-#ifndef TREESEARCH_H
-#define TREESEARCH_H
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+//
+// C++ Interface: QwTrackingTreeSearch
+//
+// Description:
+//
+//
+// Author: Burnham Stocks <bestokes@jlab.org>
+// Original HRC Author: wolfgang Wander <wwc@hermes.desy.de>
+//
+// Modified by: Wouter Deconinck <wdconinc@mit.edu>, (C) 2008
+//              Jie Pan <jpan@jlab.org>, Mon May 25 10:48:12 CDT 2009
+//
+// Copyright: See COPYING file that comes with this distribution
+//
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+/*! \class QwTrackingTreeSearch
+
+    \file QwTrackingTreeSearch.h
+
+    $date: Mon May 25 10:48:12 CDT 2009 $
+
+    \brief Performs the treesearch algorithm to generate one treeline.
+ */
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+#ifndef QWTRACKINGTREESEARCH_H
+#define QWTRACKINGTREESEARCH_H
 
 // Qweak tree object headers
 #include "shortnode.h"
-using namespace QwTracking;
-
 #include "QwHit.h"
 #include "Hit.h"
 #include "tracking.h"
 #include "globals.h"
 
+using namespace QwTracking;
 
-
-/*------------------------------------------------------------------------*//*!
-
-    \class treesearch
-
-    \brief Performs the treesearch algorithm to generate one treeline.
-
-*//*-------------------------------------------------------------------------*/
-
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 ///
 /// \ingroup QwTrackingAnl
-class treesearch {
+class QwTrackingTreeSearch {
 
   public:
 
@@ -32,8 +50,8 @@ class treesearch {
     /*int    static_front;*/
     int tlayers;
 
-    treesearch();
-    ~treesearch();
+    QwTrackingTreeSearch();
+    ~QwTrackingTreeSearch();
 
     void BeginSearch ();
     void EndSearch ();
@@ -97,6 +115,8 @@ class treesearch {
     // Recursive tree search method
     void _TsSearch (shortnode *node, int level, int offset, int row_offset, int reverse, int numWires);
 
-};
+}; //class QwTrackingTreeSearch
 
-#endif
+#endif //QWTRACKINGTREESEARCH_H
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

@@ -1,6 +1,6 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 //
-// C++ Interface: treeline
+// C++ Interface: QwTrackingTreeLine
 //
 // Description:
 //
@@ -74,7 +74,7 @@ class QwTrackingTreeLine{
 
 } //namespace QwTracking
 
-#endif
+#endif //QWTRACKINGTREELINE_H
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 

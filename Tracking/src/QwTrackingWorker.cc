@@ -91,9 +91,9 @@ using namespace std;
 #include "treeregion.h"
 
 // Tracking modules
-#include "treesearch.h"
+#include "QwTrackingTreeSearch.h"
 #include "treecombine.h"
-#include "treesort.h"
+#include "QwTrackingTreeSort.h"
 #include "treematch.h"
 
 using namespace QwTracking;
@@ -231,9 +231,9 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
                                  lists of detector id and hit information   */
   QwTrackingTreeLine *treelines1, *treelines2;
 
-  treesearch  TreeSearch;
+  QwTrackingTreeSearch  TreeSearch;
   treecombine TreeCombine;
-  treesort    TreeSort;
+  QwTrackingTreeSort    TreeSort;
   treematch   TreeMatch;
 
   /*
@@ -402,7 +402,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 		 && detector.fPlane == rd->ID) {
 		  hit = &(*qwhit);
 
-		  // See treesearch.cc for the different ways in which TsSetPoint
+		  // See QwTrackingTreeSearch.cc for the different ways in which TsSetPoint
 		  // can be called.
 		  int wire = hit->GetDetectorID().fElement;
 		  TreeSearch.TsSetPoint(
@@ -510,7 +510,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 		 && detector.fPlane == rd->ID) {
 		  hit = &(*qwhit);
 
-		  // See treesearch.cc for the different ways in which TsSetPoint
+		  // See QwTrackingTreeearch.cc for the different ways in which TsSetPoint
 		  // can be called.
 		  int wire = hit->GetDetectorID().fElement;
 		  TreeSearch.TsSetPoint(

@@ -33,7 +33,7 @@ using namespace std;
 using namespace QwTracking;
 
 // Other Qweak modules
-#include "treesort.h"
+#include "QwTrackingTreeSort.h"
 
 #define PI 3.141592653589793
 #define DBL_EPSILON 2.22045e-16
@@ -997,7 +997,7 @@ void treecombine::TlTreeLineSort (
   }
 
   /* Sort tracks */
-  treesort ts;
+  QwTrackingTreeSort ts;
   ts.rcTreeConnSort (tl, region);
 
 }

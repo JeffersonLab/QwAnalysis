@@ -4,7 +4,7 @@
 #include "VQwSystem.h"
 
 #include "tree.h"
-#include "treesearch.h"
+#include "QwTrackingTreeSearch.h"
 #include "treecombine.h"
 #include "treematch.h"
 
