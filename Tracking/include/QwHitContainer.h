@@ -14,6 +14,8 @@
 #define QWHITCONTAINER_H
 
 #include <list>
+#include <vector>
+#include <algorithm>
 #include <boost/bind.hpp>
 
 #include "QwTypes.h"
