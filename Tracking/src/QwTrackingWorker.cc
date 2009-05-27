@@ -261,14 +261,21 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
   // TODO Could we put this in a constructor method? (wdc)
   static int init = 0;
   if (!init) {
-    int levelmax;
+    /* Determine the bin-division depth of the tree-search */
+    int levelmax = opt.MaxLevels + 1;
+
+    /* Reserve space for the bit patterns:
+
+       The options file indicates the number of tree levels (how many times do
+       we go to finer binning).  The total number of bits is determined using
+       bit shift operators:
+         (1UL << levels) == 2^levels
+         (1UL << (levels - 1)) == 2^(levels-1)
+       For e.g. 4 levels we need 1 + 2 + 4 + 8 = 15 = (2^4 - 1) bits.
+    */
     int levels;
 
-    /* Determine the bin-division depth of the tree-search */
-    levelmax = opt.MaxLevels + 1;
-
     /* Reserve space for region 2 bit patterns */
-    int dbg_levels = opt.levels[kPackageUp][kRegionID2-1][kTypeDriftHDC];
     levels = levelmax;
     for (int i = 0; i < TLAYERS; i++) {
       channelr2[i]     = (char*) malloc (1UL << levels);
@@ -361,6 +368,9 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 
 /*! ---- 3rd: create the bit patterns for the hits                     ---- */
 
+	  // Get the number of tree levels that we want for this detector.
+	  int levels = opt.levels[package][region-1][type];
+
 	  /* Region 3 VDC */
 	  if (region == kRegionID3 && type == kTypeDriftVDC) {
 
@@ -382,8 +392,8 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 
 	      if (debug) cout << "Setting pattern hits (region 3)" << endl;
 	      for (int i = 0; i < numWiresr3 + 1; i++) {
-	        memset(channelr3[i],     0,                1UL << (opt.levels[0][2][0]   ));
-	        memset(hashchannelr3[i], 0, sizeof(int) * (1UL << (opt.levels[0][2][0]-1)));
+	        memset(channelr3[i],     0,                1UL <<  levels      );
+	        memset(hashchannelr3[i], 0, sizeof(int) * (1UL << (levels - 1)));
 	      }
 
 	      /// Get the corresponding hit from the hitlist
@@ -409,12 +419,12 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 			hit,
 			channelr3[wire - decrease],
 			hashchannelr3[wire - decrease],
-			1U << (opt.levels[package][region-1][type]-1));
+			1U << (levels - 1));
 
 		  // Print hit pattern, if requested
 		  if (opt.showEventPattern) {
 		    cout << "w" << wire << ":";
-		    for (int i = 0; i < (signed int) (1UL << (opt.levels[package][region-1][type]))-1; i++) {
+		    for (int i = 0; i < (signed int) (1UL << levels) - 1; i++) {
 		      if (channelr3[wire - decrease][i] == 1)
 			cout << "|";
 		      else
@@ -439,7 +449,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	      if (debug) cout << "Searching for matching patterns (direction " << dir << ")" << endl;
 	      TreeSearch.TsSearch(&(rcTreeRegion[package][region-1][type][dir]->node),
 				channelr3, hashchannelr3,
-				opt.levels[package][region-1][type], numWiresr3, TLAYERS);
+				levels, numWiresr3, TLAYERS);
 	      treelinelist = TreeSearch.GetListOfTreeLines();
 
 	      // DEBUG section
@@ -453,7 +463,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
               if (rcTreeRegion[package][region-1][type][dir]) {
 
 		TreeCombine.TlTreeLineSort (treelinelist, package, region, type, dir,
-			1UL << (opt.levels[package][region-1][type]-1), 0, dlayer);
+			1UL << (levels - 1), 0, dlayer);
 		if (k == 0) {
 		  treelines1 = treelinelist;
 		} else if (k == 1) {
@@ -491,8 +501,8 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	      if (debug) rd->print();
 
 	      if (debug) cout << "Setting pattern hits (region 2)" << endl;
-	      memset(channelr2[tlayers],     0,                1UL<<(opt.levels[package][region-1][type]   ));
-	      memset(hashchannelr2[tlayers], 0, sizeof(int) * (1UL<<(opt.levels[package][region-1][type]-1)));
+	      memset(channelr2[tlayers],     0,                1UL <<  levels      );
+	      memset(hashchannelr2[tlayers], 0, sizeof(int) * (1UL << (levels - 1)));
 
 	      // Get the corresponding hit from the hitlist
 	      QwHitContainer::iterator qwhit;
@@ -519,12 +529,12 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 			wire,
 			channelr2[tlayers],
 			hashchannelr2[tlayers],
-			1U << (opt.levels[package][region-1][type]-1));
+			1U << (levels - 1));
 
 		  // Print hit pattern, if requested
 		  if (opt.showEventPattern) {
 		    cout << "w" << wire << ":";
-		    for (int i = 0; i < (signed int) (1UL << (opt.levels[package][region-1][type]))-1; i++) {
+		    for (int i = 0; i < (signed int) (1UL << levels) - 1; i++) {
 		      if (channelr2[tlayers][i] == 1)
 			cout << "|";
 		      else
@@ -539,16 +549,15 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 
             } // end of loop over like-pitched planes in a region
 
-
 	    if (debug) cout << "Search for matching patterns (direction " << dir << ")" << endl;
 	    TreeSearch.TsSearch(&(rcTreeRegion[package][region-1][type][dir]->node),
 				channelr2, hashchannelr2,
-				opt.levels[package][region-1][type], 0, tlayers);
+				levels, 0, tlayers);
 
 	    if (debug) cout << "Sort patterns" << endl;
             if (rcTreeRegion[package][region-1][type][dir]) {
 	      TreeCombine.TlTreeLineSort (treelinelist, package, region, type, dir,
-					1UL << (opt.levels[package][region-1][type]-1),
+					1UL << (levels - 1),
 					tlayers, 0);
             }
 	    event->treeline[package][region-1][type][dir] = treelinelist;
@@ -574,12 +583,15 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	 && rcTreeRegion[package][region-1][type][kDirectionU]
 	 && tlayers) {
 	  area = TreeCombine.TlTreeCombine(event->treeline[package][region-1][type],
-			1L << (opt.levels[package][region-1][type]-1),
+			1L << (opt.levels[package][region-1][type] - 1),
 			package,
 			region,
 			type,
 			tlayers,
 			dlayer);
+	  // TODO (wdc) Haven't changed opt.levels here because would need to
+	  // assign it before we know that a detector even exists
+	  // (i.e. opt.levels could contain garbage)
 	}
 
 
