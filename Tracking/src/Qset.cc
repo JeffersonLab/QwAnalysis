@@ -210,50 +210,56 @@ void Qset::LinkDetector ()
     the same wire direction.
  */
 {
-	EQwDetectorPackage package;
-	EQwRegionID region;
-	EQwDirectionID dir;
-	enum EQwDetectorType type;
+  EQwDetectorPackage package;
+  EQwRegionID region;
+  EQwDirectionID dir;
+  enum EQwDetectorType type;
 
-	Det *rd, *rnd, *rwd;  // descriptive variable names, I like this (wdconinc)
+  Det *rd, *rnd, *rwd;  // descriptive variable names, I like this (wdconinc)
 
-	/// For all detectors in the experiment
-	for (int i = 0; i < numdetectors; i++) {
-		if (debug) cout << i << ": ";
-		rd = &rcDET[i]; // get a pointer to the detector
+  /// Initialize rcDETRegion to null pointers
+  for (int i1 = 0; i1 < kNumPackages; i1++)
+    for (int i2 = 0; i2 < kNumRegions; i2++)
+      for (int i3 = 0; i3 < kNumDirections; i3++)
+        rcDETRegion[i1][i2][i3] = 0;
 
-		/// and if a search for similar detectors has not been done yet
-		if ( !rd->samesearched ) {
-			package = rd->package;
-			dir     = rd->dir;
-			region  = rd->region;
-			type    = rd->type;
-			/// If this is the first detector in this half, region
-			/// and with this direction, then store it in rcDETRegion
-			// TODO (wdconinc) why doesn't rcDETRegion have a [type] index?
-			if ( !rcDETRegion[package][region-1][dir] )
-				rcDETRegion[package][region-1][dir] = rd;
+  /// For all detectors in the experiment
+  for (int i = 0; i < numdetectors; i++) {
+    if (debug) cout << i << ": ";
+    rd = &rcDET[i]; // get a pointer to the detector
 
-			/// Loop over all remaining detectors
-			// rd always stays the original detector rcDET[i]
-			// rnd is the currently tested detector rcDET[l]
-			// rwd is the current end of the linked-list
-			rwd = rd;
-			for (int l = i+1; l < numdetectors; l++ ) {
-				rnd = &rcDET[l];
-				if( rnd->package == package
-				 && rnd->type    == type
-				 && rnd->dir     == dir
-				 && rnd->region  == region
-				 && !rnd->samesearched ) {
-					if (debug) cout << l << " ";
-					rnd->samesearched = 1;
-					rwd = (rwd->nextsame = rnd);
-				}
-			}
-			rd->samesearched = 1;
-		}
-		if (debug) cout << endl;
-	}
+    /// and if a search for similar detectors has not been done yet
+    if ( !rd->samesearched ) {
+      package = rd->package;
+      dir     = rd->dir;
+      region  = rd->region;
+      type    = rd->type;
+      /// If this is the first detector in this half, region
+      /// and with this direction, then store it in rcDETRegion
+      // TODO (wdconinc) why doesn't rcDETRegion have a [type] index?
+      if ( !rcDETRegion[package][region-1][dir] )
+        rcDETRegion[package][region-1][dir] = rd;
+
+      /// Loop over all remaining detectors
+      // rd always stays the original detector rcDET[i]
+      // rnd is the currently tested detector rcDET[l]
+      // rwd is the current end of the linked-list
+      rwd = rd;
+      for (int l = i+1; l < numdetectors; l++ ) {
+        rnd = &rcDET[l];
+        if( rnd->package == package
+         && rnd->type    == type
+         && rnd->dir     == dir
+         && rnd->region  == region
+         && !rnd->samesearched ) {
+          if (debug) cout << l << " ";
+          rnd->samesearched = 1;
+          rwd = (rwd->nextsame = rnd);
+        }
+      }
+      rd->samesearched = 1;
+    }
+    if (debug) cout << endl;
+  }
 }
 
