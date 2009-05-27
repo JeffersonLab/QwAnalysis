@@ -81,7 +81,8 @@
                      database from a diskfile.  If this fails, it calls
                      _inittree() to generate the treesearch database.
 
- (14) [c'tor]      - the main function of this module.  This function                     calls inittree() to generate the tree database for
+ (14) [c'tor]      - the main function of this module.  This function
+                     calls inittree() to generate the tree database for
                      each of the treelines.
 
 *//*-------------------------------------------------------------------------*/
@@ -211,9 +212,14 @@ tree::tree ()
 	  // Skip wire direction Y
 	  if (direction == kDirectionY) continue;
 
+	  // Skip wire direction X for region 3
+	  if (direction == kDirectionX && region == kRegionID3) continue;
+
 	  ///  Skip the NULL rcDETRegion pointers.
 	  //   pking:  This is probably a configuration error,
 	  //           which the user may want to be warned about.
+	  //   wdc:   If those pointers would be initialized to null,
+	  //          this test would be a lot more useful --> another TODO
 	  if (rcDETRegion[package][region-1][direction] == NULL) {
 	    std::cerr << "WARN:  rcDETRegion["<< package
 		      << "]["          << region-1
