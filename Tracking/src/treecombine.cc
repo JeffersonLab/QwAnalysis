@@ -549,6 +549,18 @@ double treecombine::detZPosition( Det *det, double x, double slope_x, double *xv
   return -9999;
 }
 //__________________________________________________________________
+
+/*------------------------------------------------------------------------*//*!
+
+ This method checks whether a track with the given parameters is in the
+ geometric acceptance of all defined detector planes in the specified
+ region and package.  Geometric acceptance is calculated from the centers
+ and widths in the geometry definition.
+
+ Returns one if in the acceptance (or always for region 2), returns zero
+ if not in the acceptance of at least one detector plane.
+
+*//*-------------------------------------------------------------------------*/
 int treecombine::inAcceptance (
 	EQwDetectorPackage package,
 	EQwRegionID region,
@@ -562,17 +574,17 @@ int treecombine::inAcceptance (
   if (region == kRegionID2) {
     return 1; //don't check R2 acceptance yet
   } else {
-    for( dir = kDirectionU; dir <= kDirectionX; dir++) {
-      for(rd = rcDETRegion[package][region-1][dir],z1 = rd->Zpos;
-	  rd; rd = rd->nextsame ) {
+    for (dir = kDirectionX; dir <= kDirectionV; dir++) {
+      for (rd = rcDETRegion[package][region-1][dir], z1 = rd->Zpos;
+	   rd; rd = rd->nextsame) {
         z = rd->Zpos;
-        x = cx + (z-z1)*mx;
-        y = cy + (z-z1)*my;
+        x = cx + (z-z1) * mx;
+        y = cy + (z-z1) * my;
 
-        if( rd->center[0] - 0.5*rd->width[0] > x ||
-    	    rd->center[0] + 0.5*rd->width[0] < x ||
-	    rd ->center[1] - 0.5*rd ->width[1] > y ||
-	    rd ->center[1] + 0.5*rd ->width[1] < y) {
+        if (rd->center[0] - 0.5*rd->width[0] > x ||
+	    rd->center[0] + 0.5*rd->width[0] < x ||
+	    rd->center[1] - 0.5*rd->width[1] > y ||
+	    rd->center[1] + 0.5*rd->width[1] < y) {
 	  return 0;
         }
       }
@@ -1723,7 +1735,7 @@ double xy2v (double x, double y)
 
 */
 PartTrack *treecombine::TlTreeCombine (
-	QwTrackingTreeLine *uvl[4],
+	QwTrackingTreeLine *uvl[kNumDirections],
 	long bins,
 	EQwDetectorPackage package,
 	EQwRegionID region,
@@ -2612,51 +2624,70 @@ double *M_A_times_b (double *y, double *A, int n, int m, double *b)
 //__________________________________________________________________
 
 
+/*------------------------------------------------------------------------*//*!
 
+ This method checks whether the region 3 partial track has an intersection
+ with the trigger scintillators or the Cerenkov bars in a detector package.
+
+ The trigger scintillators are assumed to be the only (or at least the first)
+ detectors in region 3 that are oriented in direction X.
+
+ The cerenkov bars are assumed to be the only (or at least the first)
+ detectors in region 3 that are oriented in direction Y.
+
+ Geometric acceptance is calculated from the centers and widths in the
+ geometry definition.  Tracks are drawn straight from region 3.
+
+*//*-------------------------------------------------------------------------*/
 int treecombine::checkR3 (PartTrack *pt, EQwDetectorPackage package)
 {
-  double trig[3],cc[3];
-  double lim_trig[2][2],lim_cc[2][2];
-  Det *rd = rcDETRegion[package][2][kDirectionX];//get the trig scint
+  double trig[3], cc[3];
+  double lim_trig[2][2], lim_cc[2][2];
+
+  // Get the trig scintillator: the only detector with X direction in region 3
+  // TODO (wdc) This is so unsafe, it would never pass JLab scrutiny!
+  Det *rd = rcDETRegion[package][kRegionID3-1][kDirectionX];
 
   //get the point where the track intersects the detector planes
   trig[2] = rd->Zpos;
   trig[0] = pt->mx * trig[2] + pt->x;
   trig[1] = pt->my * trig[2] + pt->y;
   //get the detector boundaries
-  lim_trig[0][0] = rd->center[0]+rd->width[0]/2;
-  lim_trig[0][1] = rd->center[0]-rd->width[0]/2;
-  lim_trig[1][0] = rd->center[1]+rd->width[1]/2;
-  lim_trig[1][1] = rd->center[1]-rd->width[1]/2;
+  lim_trig[0][0] = rd->center[0] + rd->width[0]/2;
+  lim_trig[0][1] = rd->center[0] - rd->width[0]/2;
+  lim_trig[1][0] = rd->center[1] + rd->width[1]/2;
+  lim_trig[1][1] = rd->center[1] - rd->width[1]/2;
 
-  if(trig[0]<lim_trig[0][0]
-     && trig[0]>lim_trig[0][1]
-     && trig[1]<lim_trig[1][0]
-     && trig[1]>lim_trig[1][1]){
-	pt->triggerhit=1;
-	pt->trig[0] = trig[0];
-	pt->trig[1] = trig[1];
-  cerr << "Trigger scintillator hit at : (" << trig[0] << "," << trig[1] << "," << trig[2] << ")" << endl;
-  }else pt->triggerhit=0;
+  if (trig[0] < lim_trig[0][0]
+   && trig[0] > lim_trig[0][1]
+   && trig[1] < lim_trig[1][0]
+   && trig[1] > lim_trig[1][1]) {
+	pt->triggerhit = 1;
+	pt->trig[0]    = trig[0];
+	pt->trig[1]    = trig[1];
+	cout << "Trigger scintillator hit at : (" << trig[0] << "," << trig[1] << "," << trig[2] << ")" << endl;
+  } else pt->triggerhit = 0;
 
-  rd = rcDETRegion[package][kRegionID3-1][kDirectionY];//get the CC
+  // Get the Cherenkov detector: the only detector with Y direction in region 3
+  // TODO (wdc) This is so unsafe, it would never pass JLab scrutiny!
+  rd = rcDETRegion[package][kRegionID3-1][kDirectionY];
   cc[2] = rd->Zpos;
   cc[0] = pt->mx * cc[2] + pt->x;
   cc[1] = pt->my * cc[2] + pt->y;
-  lim_cc[0][0] = rd->center[0]+rd->width[0]/2;
-  lim_cc[0][1] = rd->center[0]-rd->width[0]/2;
-  lim_cc[1][0] = rd->center[1]+rd->width[1]/2;
-  lim_cc[1][1] = rd->center[1]-rd->width[1]/2;
+  lim_cc[0][0] = rd->center[0] + rd->width[0]/2;
+  lim_cc[0][1] = rd->center[0] - rd->width[0]/2;
+  lim_cc[1][0] = rd->center[1] + rd->width[1]/2;
+  lim_cc[1][1] = rd->center[1] - rd->width[1]/2;
 
-  if(cc[0]<lim_cc[0][0]
-     && cc[0]>lim_cc[0][1]
-     && cc[1]<lim_cc[1][0]
-     && cc[1]>lim_cc[1][1]){
-	pt->cerenkovhit=1;
+  if (cc[0] < lim_cc[0][0]
+   && cc[0] > lim_cc[0][1]
+   && cc[1] < lim_cc[1][0]
+   && cc[1] > lim_cc[1][1]) {
+	pt->cerenkovhit = 1;
 	pt->cerenkov[0] = cc[0];
 	pt->cerenkov[1] = cc[1];
-	cerr << "Cerenkov bar hit at : (" << cc[0] << "," << cc[1] << "," << cc[2] << ")" << endl;
-  }else pt->cerenkovhit=0;
+	cout << "Cerenkov bar hit at : (" << cc[0] << "," << cc[1] << "," << cc[2] << ")" << endl;
+  } else pt->cerenkovhit = 0;
 
   return 0;
 }

@@ -87,7 +87,7 @@ public:
     int TcTreeLineCombine (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, PartTrack *pt, int tlayer);
     int TcTreeLineCombine2 (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, PartTrack *pt, int tlayer);
 
-    PartTrack *TlTreeCombine (QwTrackingTreeLine *uvl[4], long bins, EQwDetectorPackage package, EQwRegionID region,enum EQwDetectorType type/*,enum Eorientation orient*/, int tlayer, int dlayer);
+    PartTrack *TlTreeCombine (QwTrackingTreeLine *uvl[kNumDirections], long bins, EQwDetectorPackage package, EQwRegionID region,enum EQwDetectorType type/*,enum Eorientation orient*/, int tlayer, int dlayer);
     void ResidualWrite (Event *event);
 
     int r3_TrackFit (int Num, Hit **Hit, double *fit, double *cov, double *chi, double uv2xy[2][2]);
