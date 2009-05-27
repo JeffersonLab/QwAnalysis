@@ -277,7 +277,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
     }
 
     /* Reserve space for region 3 bit patterns */
-    levels = opt.levels[kPackageUp][kRegionID3-1][kTypeDriftHDC];
+    levels = opt.levels[kPackageUp][kRegionID3-1][kTypeDriftVDC];
     for (int i = 0; i < numWiresr3 + 1; i++) {
       channelr3[i]     = (char*) malloc (1UL << levels);
       hashchannelr3[i] =  (int*) malloc ((sizeof(int) * (1UL << (levels - 1))) );
