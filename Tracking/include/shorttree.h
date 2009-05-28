@@ -29,7 +29,7 @@ class shorttree {
 
     void print();
 
-    int maxlevel, minlevel;
+    int minlevel;
     int bits;
     int bit[TLAYERS];
     int xref;

@@ -22,7 +22,7 @@ shorttree::shorttree() { }
 shorttree::~shorttree() { }
 
 void shorttree::print() {
-  cout << "(" << minlevel << "," << maxlevel << ") ";
+  cout << "(" << minlevel << "," << "*" << ") ";
   cout << "bits = " << bits << ": ";
   for (int i = 0; i < TLAYERS; i++)
     cout << bit[i] << "," ;

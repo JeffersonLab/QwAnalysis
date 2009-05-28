@@ -1650,7 +1650,7 @@ int treecombine::TcTreeLineCombine (
       cov[i][j] = 0;
 
   // Put all the hits into one array.
-  for (hitc = 0, dir = kDirectionU; dir <= kDirectionX; dir++) {
+  for (hitc = 0, dir = kDirectionX; dir <= kDirectionV; dir++) {
     switch (dir) {
       case kDirectionU: hitarray = wu->hits; break;
       case kDirectionV: hitarray = wv->hits; break;
@@ -2157,7 +2157,7 @@ void treecombine::ResidualWrite (Event* event)
 	allmiss = ( pt->tline[0]->nummiss +
 		    pt->tline[1]->nummiss +  pt->tline[2]->nummiss);
 	*/
-	for (dir = kDirectionU; dir <= kDirectionX; dir++) {
+	for (dir = kDirectionX; dir <= kDirectionV; dir++) {
 	  // TODO pt is undefined here
 	  tl = pt->tline[dir];
 	  hitarr = tl->hits;
