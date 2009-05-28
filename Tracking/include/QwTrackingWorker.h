@@ -1,13 +1,39 @@
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 #ifndef QWTRACKINGWORKER_H
 #define QWTRACKINGWORKER_H
 
-#include "VQwSystem.h"
+// Standard C and C++ headers
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
+#include <iostream>
 
+// Qweak headers
+#include "globals.h"
+#include "Qoptions.h"
+#include "options.h"
+#include "Det.h"
+#include "Hit.h"
+
+// Tree search headers
 #include "tree.h"
+#include "tracking.h"
+#include "treeregion.h"
+
+// Tracking modules
 #include "QwTrackingTreeSearch.h"
 #include "treecombine.h"
+#include "QwTrackingTreeSort.h"
 #include "treematch.h"
 
+#include "VQwSystem.h"
+
+using namespace std;
+using namespace QwTracking;
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
  \class QwTrackingWorker
@@ -29,6 +55,7 @@ class QwTrackingWorker : public VQwSystem {
     int nbad;		//!- number of bad events
 
     QwTrackingWorker(const char* name);
+    ~QwTrackingWorker();
 
     void SetDebugLevel (int debuglevel) { debug = debuglevel; };
 
@@ -41,9 +68,17 @@ class QwTrackingWorker : public VQwSystem {
     //!- pattern search tree for all configurations
     treeregion* searchtree[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 
-    int debug;		//!- debug level
+    int debug; //!- debug level
+
+    // Region 2 bit patterns
+    char *channelr2[TLAYERS];
+    int  *hashchannelr2[TLAYERS];
+
+    // Region 3 bit patterns
+    char *channelr3[NUMWIRESR3 + 1];
+    int  *hashchannelr3[NUMWIRESR3 + 1];
 
 };
 
-
 #endif // QWTRACKINGWORKER_H
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

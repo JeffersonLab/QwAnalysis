@@ -9,3 +9,6 @@
 #define HSHSIZ 511
 
 #define TREELINABORT 1000
+
+// Number of wires in region 3
+#define NUMWIRESR3 281

@@ -1,3 +1,4 @@
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
  \class QwTrackingWorker
@@ -69,198 +70,30 @@
                    track parameters and momentum for all found tracks.
 
 *//*-------------------------------------------------------------------------*/
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #include "QwTrackingWorker.h"
-
-// Standard C and C++ headers
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <cassert>
-#include <iostream>
-using namespace std;
-
-// Qweak headers
-#include "Qoptions.h"
-#include "options.h"
-#include "Det.h"
-#include "Hit.h"
-
-// Tree search headers
-#include "tracking.h"
-#include "treeregion.h"
-
-// Tracking modules
-#include "QwTrackingTreeSearch.h"
-#include "treecombine.h"
-#include "QwTrackingTreeSort.h"
-#include "treematch.h"
-
-using namespace QwTracking;
-
 
 extern treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 extern Options opt;
 
-
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
 {
+ /* Set debug level */
+  debug = 1;
+
+ if( debug )
+      cout<<"###### Calling QwTrackingWorker::QwTrackingWorker ()"<<endl;
+
   // Initialize pattern database
   tree thetree;
 
   /* Reset counters of number of good and back events */
   ngood = nbad = 0;
 
-  /* Reset debug level */
-  debug = 1;
-}
-
-
-
-/*------------------------------------------------------------------------*//*!
-
-   Bcheck() - this function compares the momentum look-up energy with the
-              shooting method result.  This function is for debugging
-              purposes only.
-
-    inputs: (1) double E       - the momentum lookup energy
-            (2) PartTrack *f   - pointer to the front partial track for the
-                                 track
-            (3) PartTrack *b   - pointer to the back partial track of the
-                                 track
-            (4) double TVertex - transverse position of the vertex for the
-                                 track
-            (5) double ZVertex - Z position of the vertex for the track
-
-   outputs: an ASCII ntuple file.
-
-*//*-------------------------------------------------------------------------*/
-
-double rcShootP (double Pest,PartTrack *front, PartTrack *back, double accuracy)
-{
-  cerr << "Warning: The function rcShootP is only a stub" << endl;
-  return -1000;
-}
-
-void QwTrackingWorker::BCheck (double E, PartTrack *f, PartTrack *b, double TVertex, double ZVertex)
-{
-  double Es = rcShootP(0.0,f,b,0.005);
-  //extern physic phys_carlo;
-  static FILE *test = 0;
-
-  if( !test )
-    test = fopen("magcheck","w");
-  if( test && E > 0.0) {
-    fprintf(test,"%f %f %f %f %f %f\n",
-	    /*phys_carlo.E,*/E,Es,f->mx,f->my, TVertex, ZVertex);
-  }
-}
-
-
-
-/*------------------------------------------------------------------------*//*!
-
-  rcLinkUsedTracks() - this function links the track cross-linked list to
-                       a single-linked list to ease the access for later
-		       functions. The new link is done via the usenext
-		       pointer.
-
-    inputs: (1) Track *track -
-            (2) int package   -
-
-   returns: the head to the linked list.
-
-*//*-------------------------------------------------------------------------*/
-
-Track * QwTrackingWorker::rcLinkUsedTracks( Track *track, int package )
-{
-  Track *ret = 0, *usedwalk = 0;
-  Track *trackwalk, *ytrack;
-
-  /* loop over all found tracks */
-  for(trackwalk = track; trackwalk; trackwalk = trackwalk->next ) {
-    /* and the possible y-tracks */
-    for( ytrack = trackwalk; ytrack; ytrack = ytrack->ynext ) {
-      // Statist[ytrack->method].TracksGenerated[package] ++;
-      if(!ytrack->Used) continue;
-      //Statist[ytrack->method].TracksUsed[package] ++;
-      if( !ret ) /* return the first used track */
-	ret = usedwalk = ytrack;
-      else {
-	usedwalk->usednext = ytrack; /* and link them together */
-	usedwalk = ytrack;
-      }
-    }
-  }
-  return ret;
-}
-
-
-
-/*------------------------------------------------------------------------*//*!
-
-  ProcessHits() - this function is the main tracking function. It
-               performes tracking in projections (u/v/x) to form treelines,
-               it combines projection tracks to tracks in space and bridges
-               tracks in space before and after the magnet to form recon-
-               structed particle tracks. The function calculates the momentum
-               of the tracks and afterwards reiterates the track parameters
-               using the now known track position and momentum for iterating
-               the hit positions in the tracking chambers.
-
-   inputs:  (1) QwHitContainer &hitlist - pointer to the QwHitContainer object
-                                          with the hit list.
-
-   outputs: (1) Event* ProcessHits() - pointer to the structure with all
-                                    of the reconstruction information for
-                                    this event.
-
-*//*-------------------------------------------------------------------------*/
-// TODO Should QwHitContainer be passed as const? (wdc)
-Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
-{
-  int k;
-  int dlayer = 0;	      /* number of detector planes in the search    */
-  double A[3][2];	      /* conversion between xy and uv */
-  Event *event;               /* area for storing the reconstruction info   */
-  PartTrack *area = 0;
-  Det *rd/*, *rnd*/;          /* pointers for moving through the linked
-                                 lists of detector id and hit information   */
-  QwTrackingTreeLine *treelines1, *treelines2;
-
-  QwTrackingTreeSearch  TreeSearch;
-  treecombine TreeCombine;
-  QwTrackingTreeSort    TreeSort;
-  treematch   TreeMatch;
-
-  /*
-  int charge;
-  int found_front = 0;
-  double ZVertex, bending, theta, phi, ESpec;
-  int outbounds = 0;
-  */
-
-
-  // Region 2 bit patterns
-  static char *channelr2[TLAYERS];
-  static int  *hashchannelr2[TLAYERS];
-
-  // Number of wires in region 3
-  const int numWiresr3 = 281;
-  // Region 3 bit patterns
-  static char *channelr3[numWiresr3 + 1];
-  static int  *hashchannelr3[numWiresr3 + 1];
-
-
-  event = (Event*) calloc(1, sizeof(Event));
-  assert(event);
-
-  /// Initialize if this is the first event.
-  // TODO Could we put this in a constructor method? (wdc)
-  static int init = 0;
-  if (!init) {
     /* Determine the bin-division depth of the tree-search */
     int levelmax = opt.MaxLevels + 1;
 
@@ -285,16 +118,156 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 
     /* Reserve space for region 3 bit patterns */
     levels = opt.levels[kPackageUp][kRegionID3-1][kTypeDriftVDC];
-    for (int i = 0; i < numWiresr3 + 1; i++) {
+    for (int i = 0; i < NUMWIRESR3 + 1; i++) {
       channelr3[i]     = (char*) malloc (1UL << levels);
       hashchannelr3[i] =  (int*) malloc ((sizeof(int) * (1UL << (levels - 1))) );
       assert (channelr3[i] && hashchannelr3[i]);
     }
 
-    if (debug) cout << "[QwTrackingWorker::ProcessHits] Initialization complete." << endl;
-    init++;
-  }
+  if( debug )
+      cout<<"###### Leaving QwTrackingWorker::QwTrackingWorker ()"<<endl;
 
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+QwTrackingWorker::~QwTrackingWorker ()
+{
+  if( debug )
+      cout<<"###### Calling QwTrackingWorker::~QwTrackingWorker ()"<<endl;
+
+  if( debug )
+      cout<<"###### Leaving QwTrackingWorker::~QwTrackingWorker ()"<<endl;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+/*------------------------------------------------------------------------*//*!
+
+   Bcheck() - this function compares the momentum look-up energy with the
+              shooting method result.  This function is for debugging
+              purposes only.
+
+    inputs: (1) double E       - the momentum lookup energy
+            (2) PartTrack *f   - pointer to the front partial track for the
+                                 track
+            (3) PartTrack *b   - pointer to the back partial track of the
+                                 track
+            (4) double TVertex - transverse position of the vertex for the
+                                 track
+            (5) double ZVertex - Z position of the vertex for the track
+
+   outputs: an ASCII ntuple file.
+
+*//*-------------------------------------------------------------------------*/
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+double rcShootP (double Pest,PartTrack *front, PartTrack *back, double accuracy)
+{
+  cerr << "Warning: The function rcShootP is only a stub" << endl;
+  return -1000;
+}
+
+void QwTrackingWorker::BCheck (double E, PartTrack *f, PartTrack *b, double TVertex, double ZVertex)
+{
+  double Es = rcShootP(0.0,f,b,0.005);
+  //extern physic phys_carlo;
+  static FILE *test = 0;
+
+  if( !test )
+    test = fopen("magcheck","w");
+  if( test && E > 0.0) {
+    fprintf(test,"%f %f %f %f %f %f\n",
+	    /*phys_carlo.E,*/E,Es,f->mx,f->my, TVertex, ZVertex);
+  }
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+/*------------------------------------------------------------------------*//*!
+
+  rcLinkUsedTracks() - this function links the track cross-linked list to
+                       a single-linked list to ease the access for later
+		       functions. The new link is done via the usenext
+		       pointer.
+
+    inputs: (1) Track *track -
+            (2) int package   -
+
+   returns: the head to the linked list.
+
+*//*-------------------------------------------------------------------------*/
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+Track * QwTrackingWorker::rcLinkUsedTracks( Track *track, int package )
+{
+  Track *ret = 0, *usedwalk = 0;
+  Track *trackwalk, *ytrack;
+
+  /* loop over all found tracks */
+  for(trackwalk = track; trackwalk; trackwalk = trackwalk->next ) {
+    /* and the possible y-tracks */
+    for( ytrack = trackwalk; ytrack; ytrack = ytrack->ynext ) {
+      // Statist[ytrack->method].TracksGenerated[package] ++;
+      if(!ytrack->Used) continue;
+      //Statist[ytrack->method].TracksUsed[package] ++;
+      if( !ret ) /* return the first used track */
+	ret = usedwalk = ytrack;
+      else {
+	usedwalk->usednext = ytrack; /* and link them together */
+	usedwalk = ytrack;
+      }
+    }
+  }
+  return ret;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+/*------------------------------------------------------------------------*//*!
+
+  ProcessHits() - this function is the main tracking function. It
+               performes tracking in projections (u/v/x) to form treelines,
+               it combines projection tracks to tracks in space and bridges
+               tracks in space before and after the magnet to form recon-
+               structed particle tracks. The function calculates the momentum
+               of the tracks and afterwards reiterates the track parameters
+               using the now known track position and momentum for iterating
+               the hit positions in the tracking chambers.
+
+   inputs:  (1) QwHitContainer &hitlist - pointer to the QwHitContainer object
+                                          with the hit list.
+
+   outputs: (1) Event* ProcessHits() - pointer to the structure with all
+                                    of the reconstruction information for
+                                    this event.
+
+*//*-------------------------------------------------------------------------*/
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+// TODO Should QwHitContainer be passed as const? (wdc)
+Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
+{
+  int k;
+  int dlayer = 0;	      /* number of detector planes in the search    */
+  double A[3][2];	      /* conversion between xy and uv */
+  Event *event;               /* area for storing the reconstruction info   */
+  PartTrack *area = 0;
+  Det *rd/*, *rnd*/;          /* pointers for moving through the linked
+                                 lists of detector id and hit information   */
+  QwTrackingTreeLine *treelines1, *treelines2;
+
+  QwTrackingTreeSearch  TreeSearch;
+  treecombine TreeCombine;
+  QwTrackingTreeSort    TreeSort;
+  treematch   TreeMatch;
+
+  /*
+  int charge;
+  int found_front = 0;
+  double ZVertex, bending, theta, phi, ESpec;
+  int outbounds = 0;
+  */
+
+  event = (Event*) calloc(1, sizeof(Event));
+  assert(event);
 
   /// Loop through all detector packages
   // Normally only two of these will generate actual tracks,
@@ -326,7 +299,6 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	for (EQwDirectionID dir  = kDirectionX;
 			    dir <= kDirectionV; dir++) {
           if (debug) cout << "[QwTrackingWorker::ProcessHits]    Direction: " << dir << endl;
-
 
 	  // Skip wire direction Y for region 2
 	  if (region == kRegionID2
@@ -380,7 +352,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 
 	    /* Loop over the like-pitched planes in a region */
 	    for (k = 0, rd = rcDETRegion[package][region-1][dir], decrease = 0;
-	         rd; rd = rd->nextsame, decrease += numWiresr3, k++) {
+	         rd; rd = rd->nextsame, decrease += NUMWIRESR3, k++) {
 
 	      // Print detector info
 	      if (debug) cout << "      ";
@@ -391,7 +363,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	      A[dir][1] = rd->rSin; /* sin (angle of wire pitch) */
 
 	      if (debug) cout << "Setting pattern hits (region 3)" << endl;
-	      for (int i = 0; i < numWiresr3 + 1; i++) {
+	      for (int i = 0; i < NUMWIRESR3 + 1; i++) {
 	        memset(channelr3[i],     0,                1UL <<  levels      );
 	        memset(hashchannelr3[i], 0, sizeof(int) * (1UL << (levels - 1)));
 	      }
@@ -449,7 +421,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	      if (debug) cout << "Searching for matching patterns (direction " << dir << ")" << endl;
 	      TreeSearch.TsSearch(&(rcTreeRegion[package][region-1][type][dir]->node),
 				channelr3, hashchannelr3,
-				levels, numWiresr3, TLAYERS);
+				levels, NUMWIRESR3, TLAYERS);
 	      treelinelist = TreeSearch.GetListOfTreeLines();
 
 	      // DEBUG section
@@ -631,3 +603,5 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 
   return event;
 }
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
