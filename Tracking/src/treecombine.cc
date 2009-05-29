@@ -227,7 +227,7 @@ int treecombine::bestx (
       if( adist < dist_cut) {//<- distance cut applied
 	if( good < MAXHITPERLINE ) {
 	  /* --- doublicate hits for calibration changes --- */
-	  ha [good]   = (Hit*)malloc( sizeof(Hit));
+	  ha [good] = new Hit;
 	  assert( ha[good] );
 	  *ha[good]  = *h;
 	  ha[good]->next    = 0;
@@ -1047,29 +1047,29 @@ int r2_TrackFit (int Num, Hit **Hit, double *fit, double *cov, double *chi)
   double cff;		//resolution coefficient
   double r[4];		//factors of elements of the metric matrix A
   double uvx;		//u,v,or x coordinate of the track at a location in z
-  double rCos[4],rSin[4];	//the rotation angles for the u,v,x coordinates.
-  double x0[4];			//the translational offsets for the u,v,x axes.
+  double rCos[kNumDirections],rSin[kNumDirections];	//the rotation angles for the u,v,x coordinates.
+  double x0[kNumDirections];			//the translational offsets for the u,v,x axes.
   Uv2xy uv2xy;			//u,v to x,y projection class
-  double bx[4],mx[4];		//track fit parameters
+  double bx[kNumDirections],mx[kNumDirections];	//track fit parameters
   EQwDirectionID Dir;		//wire direction enumerator
-  Det *rd = rcDETRegion[0][1][3];	//pointer to this detector
+  Det *rd = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionX];	//pointer to this detector
 
   //##################
   // Initializations #
   //##################
 
   //set the angles for our reference frame
-  rCos[1] = uv2xy.R2_xy[0][0];//cos theta u
-  rCos[2] = uv2xy.R2_xy[1][0];//cos theta v
-  rSin[1] = uv2xy.R2_xy[0][1];//sin theta u
-  rSin[2] = uv2xy.R2_xy[1][1];//sin theta v
-  rCos[3] = 1;//cos theta x
-  rSin[3] = 0;//sin theta x
+  rCos[kDirectionX] = 1;//cos theta x
+  rSin[kDirectionX] = 0;//sin theta x
+  rCos[kDirectionU] = uv2xy.R2_xy[0][0];//cos theta u
+  rSin[kDirectionU] = uv2xy.R2_xy[0][1];//sin theta u
+  rCos[kDirectionV] = uv2xy.R2_xy[1][0];//cos theta v
+  rSin[kDirectionV] = uv2xy.R2_xy[1][1];//sin theta v
 
   //set the offsets for the u,v,x axes
-  x0[1] = fabs(uv2xy.R2_offset[0])*rCos[1]+uv2xy.R2_wirespacing;
-  x0[2] = fabs(uv2xy.R2_offset[1])*rCos[2]+uv2xy.R2_wirespacing;
-  x0[3] = 0;
+  x0[kDirectionX] = 0;
+  x0[kDirectionU] = fabs(uv2xy.R2_offset[0])*rCos[1]+uv2xy.R2_wirespacing;
+  x0[kDirectionV] = fabs(uv2xy.R2_offset[1])*rCos[2]+uv2xy.R2_wirespacing;
 
   //initialize the matrices
   for (int i = 0; i < 4; i++) {
@@ -1112,12 +1112,12 @@ int r2_TrackFit (int Num, Hit **Hit, double *fit, double *cov, double *chi)
   M_A_times_b (fit, cov, 4, 4, B);// fit = matrix cov * vector B
 
   //calculate the line parameters in u,v,x directions
-  bx[1] = (fit[0]+fabs(uv2xy.R2_offset[0]))*rCos[1] + fit[2]*rSin[1] + uv2xy.R2_wirespacing;
-  bx[2] = (fit[0]+fabs(uv2xy.R2_offset[1]))*rCos[2] + fit[2]*rSin[2] + uv2xy.R2_wirespacing;
-  bx[3] = fit[0];
-  mx[1] = fit[1]*rCos[1]+fit[3]*rSin[1];
-  mx[2] = fit[1]*rCos[2]+fit[3]*rSin[2];
-  mx[3] = fit[1];
+  bx[kDirectionX] = fit[0];
+  bx[kDirectionU] = (fit[0]+fabs(uv2xy.R2_offset[0]))*rCos[1] + fit[2]*rSin[1] + uv2xy.R2_wirespacing;
+  bx[kDirectionV] = (fit[0]+fabs(uv2xy.R2_offset[1]))*rCos[2] + fit[2]*rSin[2] + uv2xy.R2_wirespacing;
+  mx[kDirectionX] = fit[1];
+  mx[kDirectionU] = fit[1]*rCos[1]+fit[3]*rSin[1];
+  mx[kDirectionV] = fit[1]*rCos[2]+fit[3]*rSin[2];
 
   // Calculate chi^2
   *chi = 0;
@@ -1149,9 +1149,9 @@ int treecombine::r3_TrackFit2( int Num, Hit **Hit, double *fit, double *cov, dou
   double cff;
   double r[4];
   double uvx;
-  double rCos[3],rSin[3];
+  double rCos[kNumDirections],rSin[kNumDirections];
   Uv2xy uv2xy;
-  double bx[4],mx[4];
+  double bx[kNumDirections],mx[kNumDirections];
   EQwDirectionID Dir;
   //Det *rd;
 
@@ -1166,10 +1166,10 @@ int treecombine::r3_TrackFit2( int Num, Hit **Hit, double *fit, double *cov, dou
   }
 
   //set the angles for our frame
-  rCos[1] = -uv2xy.R3_xy[0][0];
-  rCos[2] = -uv2xy.R3_xy[1][0];
-  rSin[1] = -uv2xy.R3_xy[0][1];
-  rSin[2] = -uv2xy.R3_xy[1][1];
+  rCos[kDirectionU] = -uv2xy.R3_xy[0][0];
+  rCos[kDirectionV] = -uv2xy.R3_xy[1][0];
+  rSin[kDirectionU] = -uv2xy.R3_xy[0][1];
+  rSin[kDirectionV] = -uv2xy.R3_xy[1][1];
 
   for (int i = 0; i < 4; i++) {	/* reset the matrices to 0 */
     B[i] = 0;
@@ -1215,10 +1215,10 @@ int treecombine::r3_TrackFit2( int Num, Hit **Hit, double *fit, double *cov, dou
   // cerr << "3" << endl;
 
   //calculate the line parameters in u,v directions
-  bx[1] = uv2xy.xy2u(fit[0],fit[2],Hit[0]->detec->region);
-  bx[2] = uv2xy.xy2v(fit[0],fit[2],Hit[0]->detec->region);
-  mx[1] = uv2xy.xy2u(fit[1],fit[3],Hit[0]->detec->region);
-  mx[2] = uv2xy.xy2v(fit[1],fit[3],Hit[0]->detec->region);
+  bx[kDirectionU] = uv2xy.xy2u(fit[0],fit[2],Hit[0]->detec->region);
+  bx[kDirectionV] = uv2xy.xy2v(fit[0],fit[2],Hit[0]->detec->region);
+  mx[kDirectionU] = uv2xy.xy2u(fit[1],fit[3],Hit[0]->detec->region);
+  mx[kDirectionV] = uv2xy.xy2v(fit[1],fit[3],Hit[0]->detec->region);
 
   //cerr << uv2xy.xy2v(fit[0],fit[2],Hit[0]->detec->region) << endl;
 
@@ -1791,6 +1791,7 @@ PartTrack *treecombine::TlTreeCombine (
     x_[0] = rd->center[0];
     y_[0] = rd->center[1];
 
+    // TODO (wdc) Shouldn't this be kDirectionV?
     rd = rcDETRegion[package][region-1][kDirectionU]->nextsame;
     x_[1] = rd->center[0];
     y_[1] = rd->center[1];
@@ -2058,7 +2059,7 @@ PartTrack *treecombine::TlTreeCombine (
 	if( TlCheckForX(x1,x2,-99, rcSETrMaxXRoad,rcSETrMaxXRoad, zx1,zx2-zx1,
 			&wrx,package,region,type,kDirectionX,dlayer,tlayer, 0,1)) {
 	//replaced a Qmalloc below
-	  wx = (QwTrackingTreeLine *)malloc( sizeof( QwTrackingTreeLine));
+	  wx = new QwTrackingTreeLine;
 	  assert( wx );
 	  *wx = wrx;
 
@@ -2095,7 +2096,7 @@ PartTrack *treecombine::TlTreeCombine (
 
 	  /* ---- form a new PartTrack ---- */
 	  //replaced a Qmalloc below
-	  ta = (PartTrack *)malloc( sizeof(PartTrack));
+	  ta = new PartTrack;
 
 
 	  assert(ta);
