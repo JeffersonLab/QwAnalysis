@@ -143,7 +143,7 @@ QwTrackingWorker::~QwTrackingWorker ()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingWorker::InitTree()
+void QwTrackingWorker::InitTree()
 {
 
 // rcInitTree() used to start here
@@ -258,6 +258,8 @@ int QwTrackingWorker::InitTree()
   delete thetree;
 
 }
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
    Bcheck() - this function compares the momentum look-up energy with the
