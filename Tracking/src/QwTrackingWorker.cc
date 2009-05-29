@@ -401,6 +401,9 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
     // take into account that the tracking detectors are in different octants.
     if (package != kPackageUp && package != kPackageDown) continue;
 
+    // TODO (wdc) Also, only tracks in the up octant detector are available in
+    // the MC generated hit lists.  Therefore we throw out the down octant.
+    if (package != kPackageUp) continue;
 
     /// Loop through the detector regions
     for (EQwRegionID region  = kRegionID2;
@@ -708,17 +711,15 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
     * ============================== */
 
 
-
+    if (area) {
+      cout << "area: " << area->x << " " << area->mx << ", " << area->y << " " << area->my << endl;
+      ngood++;
+    } else {
+      cout << "Couldn't find a good partial track." << endl;
+      nbad++;
+    }
 
   } /* end of loop over the detector packages */
-
-  if (area) {
-    cout << "area: " << area->x << " " << area->mx << ", " << area->y << " " << area->my << endl;
-    ngood++;
-  } else {
-    cout << "Couldn't find a good partial track." << endl;
-    nbad++;
-  }
 
   return event;
 }

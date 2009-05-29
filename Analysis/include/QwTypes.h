@@ -6,27 +6,35 @@
 
 
 // Enumerator types for regions and directions
-static const Int_t kNumRegions = 6;
-enum EQwRegionID {kRegionIDNull,
-		  kRegionID1,    kRegionID2,   kRegionID3,
-		  kRegionIDTrig, kRegionIDCer, kRegionIDScanner};
+static const Int_t kNumRegions = 7;
+enum EQwRegionID {
+  kRegionIDNull,
+  kRegionID1,    kRegionID2,   kRegionID3,
+  kRegionIDTrig, kRegionIDCer, kRegionIDScanner};
 
-static const Int_t kNumDirections = 6;
-enum EQwDirectionID {kDirectionNull,
-		     kDirectionX, kDirectionY, kDirectionU,
-		     kDirectionV, kDirectionR, kDirectionTheta};
+static const Int_t kNumDirections = 7;
+enum EQwDirectionID {
+  kDirectionNull,
+  kDirectionX, kDirectionY,
+  kDirectionU, kDirectionV,
+  kDirectionR, kDirectionTheta
+};
 
 // Currently up and down are considered two packages.
 static const Int_t kNumPackages = 3;
-enum EQwDetectorPackage {kPackageNull,
-  kPackageUp, kPackageDown};
+enum EQwDetectorPackage {
+  kPackageNull,
+  kPackageUp,
+  kPackageDown
+};
 // NOTE: Packages will be defined with respect to the *fixed magnet octants*.
 // This means that after a rotation of 45 deg from the vertical position,
 // one package will be identified as kPackageUpLeft (name?), and the other
 // package as kPackageDownRight. (wdc, based on discussion with pking)
 
-static const Int_t kNumTypes = 4;
-enum EQwDetectorType {kTypeNull,
+static const Int_t kNumTypes = 6;
+enum EQwDetectorType {
+  kTypeNull,
   kTypeDriftHDC,	// HDC Drift chamber
   kTypeDriftVDC,	// VDC Drift chamber
   kTypeGem,	        // GEM detector

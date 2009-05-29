@@ -23,9 +23,8 @@ class Options {
 
   public:
 
-    // TODO One is added to avoid problems when last enum value is used (i.e.
-    // for package).  This structure really needs to disappear!
-    int levels[kNumPackages+1][kNumRegions+1][kNumTypes+1]; // pattern resolution
+    // TODO (wdc) This structure really needs to disappear!
+    int levels[kNumPackages][kNumRegions][kNumTypes]; // pattern resolution
     int MaxLevels;
     int showEventPattern;
     int showMatchingPatterns;
