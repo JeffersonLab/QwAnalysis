@@ -26,7 +26,7 @@
 #include "QwTrackingTreeSearch.h"
 #include "treecombine.h"
 #include "QwTrackingTreeSort.h"
-#include "treematch.h"
+#include "QwTrackingTreeMatch.h"
 
 #include "VQwSystem.h"
 
@@ -78,7 +78,7 @@ class QwTrackingWorker : public VQwSystem {
     char *channelr3[NUMWIRESR3 + 1];
     int  *hashchannelr3[NUMWIRESR3 + 1];
 
-    int InitTree();
+    void InitTree();
 
 };
 

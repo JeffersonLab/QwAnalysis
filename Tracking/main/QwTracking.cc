@@ -91,9 +91,9 @@
 
     At this point there are sets of track candidates in the upstream and
     downstream planes of a single wire direction.  QwTrackingWorker::ProcessHits
-    next calls the treematch::MatchR3 method which loops over the upstream and
+    next calls the QwTrackingTreeMatch::MatchR3 method which loops over the upstream and
     downstream track candidates to identify which best line up according to
-    their slopes and intercepts.  treematch::MatchR3 returns a new set of track
+    their slopes and intercepts.  QwTrackingTreeMatch::MatchR3 returns a new set of track
     candidates which represent both planes in the same wire direction.  The loop
     over the two wire directions is ended, with tracks in the <i>u</i> and
     <i>v</i> directions.
@@ -105,7 +105,7 @@
     - QwTrackingTreeSearch
     - treecombine
     - QwTrackingTreeSort
-    - treematch
+    - QwTrackingTreeMatch
 
     The organization is done by the module QwTrackingWorker.
 
