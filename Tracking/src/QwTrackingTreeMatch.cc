@@ -1,33 +1,58 @@
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+//
+// C++ Interface: QwTrackingTreeMatch
+//
+// Description:
+//
+//
+// Author: Burnham Stocks <bestokes@jlab.org>
+// Original HRC Author: wolfgang Wander <wwc@hermes.desy.de>
+//
+// Modified by: Wouter Deconinck <wdconinc@mit.edu>, (C) 2008
+//              Jie Pan <jpan@jlab.org>, Thu May 28 22:01:11 CDT 2009
+//
+// Copyright: See COPYING file that comes with this distribution
+//
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+/*! \class QwTrackingTreeMatch
+
+    \file QwTrackingTreeMatch.cc
+
+    $date: Thu May 28 22:01:11 CDT 2009 $
+
+    \brief This module matches track segments for individual wire planes.
+ */
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 #include <cstdio>
 #include <fstream>
 #include <cassert>
 #include <cstdlib>
 
-#include "treematch.h"
+#include "QwTrackingTreeMatch.h"
 #include "treecombine.h"
 
 using namespace std;
 
-/*! \file treematch.cc
-    \brief This module matches track segments for individual wire planes.
-*/
-
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-//________________________________________________________________________
 double rcPEval( double vz, double te, double ph, double bend){
   cerr << "Error: THIS FUNCTION IS ONLY A STUB rcPEval " << endl;
   return -1000;
 }
 
-//________________________________________________________________________
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 double rcZEval( double vz, double te, double ph, double mom, int idx){
   cerr << "Error: THIS FUNCTION IS ONLY A STUB rcZEval " << endl;
   return -1000;
 }
 
-//________________________________________________________________________
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 //returns the best measured wire hit
 Hit* bestWireHit (QwTrackingTreeLine *walk, double bestpos = 0)
 {
@@ -43,17 +68,20 @@ Hit* bestWireHit (QwTrackingTreeLine *walk, double bestpos = 0)
   }
   return walk->hits[ibest];
 }
-//________________________________________________________________________
 
-treematch::treematch()
-{
-}
-//________________________________________________________________________
-treematch::~treematch()
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+QwTrackingTreeMatch::QwTrackingTreeMatch()
 {
 }
 
-//________________________________________________________________________
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+QwTrackingTreeMatch::~QwTrackingTreeMatch()
+{
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /* VDC reference frame : The center of the upstream u or v wire plane is placed
    at the origin.  The u or v wire plane is in the y-z plane.  The center of the
@@ -62,8 +90,10 @@ treematch::~treematch()
    distance from wire representing dx.
 */
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 // This function requires the wire planes to be parallel
-QwTrackingTreeLine *treematch::MatchR3 (
+QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
 	QwTrackingTreeLine *front,
 	QwTrackingTreeLine *back,
 	EQwDetectorPackage package,
@@ -300,8 +330,10 @@ QwTrackingTreeLine *treematch::MatchR3 (
   //cerr << combined->isvoid << endl;
   return combined;
 }
-//________________________________________________________________________
-void treematch::TgTrackPar (
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+void QwTrackingTreeMatch::TgTrackPar (
 	PartTrack *front,	//!- front partial track
 	PartTrack *back,	//!- back partial track
 	double *theta,		//!- determined polar angle
@@ -317,9 +349,9 @@ void treematch::TgTrackPar (
 	       / (front->mx * front->mx + front->my * front->my));
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-//________________________________________________________________________
-Track* treematch::TgPartMatch (
+Track* QwTrackingTreeMatch::TgPartMatch (
 	PartTrack *front,		//!- front partial track
 	PartTrack *back,		//!- back partial track
 	Track *tracklist,		//!- list of tracks
@@ -466,4 +498,4 @@ Track* treematch::TgPartMatch (
   return ret;
 }
 
-
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

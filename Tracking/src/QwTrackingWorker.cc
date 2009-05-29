@@ -374,7 +374,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
   QwTrackingTreeSearch  TreeSearch;
   treecombine TreeCombine;
   QwTrackingTreeSort    TreeSort;
-  treematch   TreeMatch;
+  QwTrackingTreeMatch   TreeMatch;
 
   /*
   int charge;
