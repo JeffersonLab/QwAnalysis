@@ -1,3 +1,4 @@
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
  \class tree
@@ -86,37 +87,13 @@
                      each of the treelines.
 
 *//*-------------------------------------------------------------------------*/
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #include "tree.h"
 
-// Standard C and C++ headers
-#include <iostream>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <cassert>
-#include <cmath>
-using namespace std;
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-// Boost filesystem headers
-#include "boost/filesystem/operations.hpp"
-#include "boost/filesystem/path.hpp"
-namespace bfs = boost::filesystem;
-
-// Qweak headers
-#include "treenode.h"
-#include "nodenode.h"
-#include "shortnode.h"
-#include "shorttree.h"
-#include "treeregion.h"
-using namespace QwTracking;
-
-#include "tree.h"
-
-static const std::string TREEDIR("tree");
-
-#include "QwTypes.h"
-
+const string tree::TREEDIR("tree");
 
 extern treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
@@ -128,20 +105,20 @@ extern Options opt;
 #define REALSON 4 /* Son and grandson description follows */
 #define REFSON  5 /* Son reference follows */
 
-
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /*! \note (wdconinc) Merged out all those little classes from tree.cc and tree.h
     to separate class def files in directory and namespace QwTracking.  Proper
     include should be done, as well as using namespace QwTracking.  */
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-//____________________________________________________________
 void tree::printtree (treenode* tn)
 {
   tn->print();
 }
 
-
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
  \class tree
@@ -155,8 +132,16 @@ void tree::printtree (treenode* tn)
     for each case.
 
 *//*-------------------------------------------------------------------------*/
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 tree::tree ()
 {
+  // Set debug level
+  debug = 1;
+
+  if( debug )
+      cout<<"###### Calling tree::tree ()"<<endl;
+
   tlayers = 8; // set tlayers == maxhits for now (for region 3)
 
   hshsiz = 511;
@@ -171,115 +156,25 @@ tree::tree ()
   father.xref = -1;
   npat = 0;
 
-  // Reset debug level
-  debug = 0;
-
-
-// rcInitTree() used to start here
-  char filename[256];
-  int numlayers = 0;
-  double width = 0;
-
-  /// For each region (1, 2, 3, trigger, cerenkov, scanner)
-  for (EQwRegionID region  = kRegionID1;
-		   region <= kRegionID3; region++) {
-
-    // TODO Skip region 1 for now
-    if (region < kRegionID2) continue;
-
-    /// ... and for each package
-    for (EQwDetectorPackage package  = kPackageUp;
-			    package <= kPackageDown; package++) {
-
-      // TODO DEBUG Skip everything except up and down for now...
-      if (package != kPackageUp && package != kPackageDown) continue;
-
-      /// ... and for each detector type
-      for (EQwDetectorType type  = kTypeDriftHDC;
-			   type <= kTypeDriftVDC; type++) {
-
-	/// In region 2 there are only HDCs
-	if (region == kRegionID2 && type != kTypeDriftHDC) continue;
-
-	/// In region 3 there are only VDCs
-	if (region == kRegionID3 && type != kTypeDriftVDC) continue;
-
-
-	/// ... and for each wire direction (X, Y, U, V, R, theta)
-	for (EQwDirectionID direction  = kDirectionX;
-			    direction <= kDirectionV; direction++) {
-
-	  // Skip wire direction Y
-	  if (direction == kDirectionY) continue;
-
-	  // Skip wire direction X for region 3
-	  if (direction == kDirectionX && region == kRegionID3) continue;
-
-	  ///  Skip the NULL rcDETRegion pointers.
-	  //   pking:  This is probably a configuration error,
-	  //           which the user may want to be warned about.
-	  //   wdc:   If those pointers would be initialized to null,
-	  //          this test would be a lot more useful --> another TODO
-	  if (rcDETRegion[package][region-1][direction] == NULL) {
-	    std::cerr << "WARN:  rcDETRegion["<< package
-		      << "]["          << region-1
-		      << "]["          << direction
-		      << "] is NULL.  Should it be?"
-		      << std::endl;
-	    continue;
-	  }
-
-	  /// Region 3 contains 8 layers
-	  if (region == kRegionID3) {
-	    numlayers = 8; // TODO replace this with info from the geometry file
-	    width = rcDETRegion[package][region-1][direction]->width[2];
-	  }
-
-	  /// Region 2 contains 4 layers
-	  if (region == kRegionID2) {
-	    numlayers = 4; // TODO replace this with info from the geometry file
-	    width = rcDETRegion[package][region-1][direction]->WireSpacing *
-		    rcDETRegion[package][region-1][direction]->NumOfWires;
-	  }
-
-	  /// Set up the filename with the following format
-	  ///   tree[numlayers]-[levels]-[u|l]-[1|2|3]-[d|g|t|c]-[n|u|v|x|y].tre
-	  sprintf(filename, "%s/tree%d-%d-%c-%c-%c-%c.tre",
-		TREEDIR.c_str(),
-		numlayers,
-		opt.levels[package][region-1][type],
-		"0ud"[package],
-		"0123TCS"[region],
-		"0hvgtc"[type],
-		"0xyuvrq"[direction]);
-	  if (debug) cout << "Tree filename: " << filename << endl;
-
-	  /// Each element of rcTreeRegion will point to a pattern database
-	  rcTreeRegion[package][region-1][type][direction] =
-	    inittree(filename,
-		opt.levels[package][region-1][type],
-		numlayers,
-		width,
-		package,
-		type,
-		region,
-		direction);
-	  //cout << "rcTreeRegion(" << package << ","
-	  //			    << region << ","
-	  //			    << type << ","
-	  //			    << direction << ")" << endl;
-
-        } /// end of loop over wire directions
-
-      } /// end of loop over detector types
-
-    } /// end of loop over packages
-
-  } /// end of loop over regions
+  if( debug )
+      cout<<"###### Leaving tree::tree ()"<<endl;
 
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+tree::~tree ()
+{
+
+if( debug )
+      cout<<"###### Calling tree::~tree ()"<<endl;
+
+if( debug )
+      cout<<"###### Leaving tree::~tree ()"<<endl;
+
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
  \fn consistent()
@@ -480,7 +375,8 @@ int tree::consistent(
   }
 }
 
-//____________________________________________________________
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 treenode* tree::existent (treenode *tst, int hash)
 {
   treenode *walk = generic[hash];
@@ -492,7 +388,8 @@ treenode* tree::existent (treenode *tst, int hash)
   return 0;
 }
 
-//____________________________________________________________
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 treenode* tree::nodeexists (nodenode* node, treenode* tr)
 {
   while (node) {
@@ -503,7 +400,8 @@ treenode* tree::nodeexists (nodenode* node, treenode* tr)
   return 0;
 }
 
-//____________________________________________________________
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 treenode* tree::treedup (treenode *todup)
 {
   treenode *ret;
@@ -517,8 +415,8 @@ treenode* tree::treedup (treenode *todup)
                                                 link                       */
   return ret;
 }
-//____________________________________________________________
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
  \fn marklin
@@ -536,6 +434,7 @@ treenode* tree::treedup (treenode *todup)
     due to the significant differences between them.
 
 *//*-------------------------------------------------------------------------*/
+
 void tree::marklin (
 	treenode* father,
 	int level,
@@ -917,12 +816,6 @@ void tree::marklin (
     }
 
 
-
-
-
-
-
-
   //########
   // OTHER #
   //########
@@ -1013,8 +906,8 @@ void tree::marklin (
   }
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-//____________________________________________________________
 void tree::treeout (treenode *tn, int level, int off)
 // TODO (wdc) wtf? nested double loop over i???  this can't be right!
 {
@@ -1046,7 +939,8 @@ void tree::treeout (treenode *tn, int level, int off)
   } /* end of loop over tree-detectors */
 }
 
-//____________________________________________________________
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 void tree::freetree()
 {
 	treenode *tn,*ltn;
@@ -1085,7 +979,8 @@ void tree::freetree()
 	return;
 }
 
-//____________________________________________________________
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 /*! \fn tree::readtree
     @param filename	The filename of the file where the tree is stored
     @param levels	The number of levels
@@ -1095,6 +990,7 @@ void tree::freetree()
 
     @return		The search treeregion
  */
+
 treeregion* tree::readtree (
 	char *filename,
 	int levels,
@@ -1166,7 +1062,8 @@ treeregion* tree::readtree (
 	return trr;
 }
 
-//____________________________________________________________
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 /*! This function checks whether a pattern database requested by rcInittree
     already exists.  If not, it will call _inittree to create the database,
     write it out, then read it in again.  To force the generation of new databases,
@@ -1174,6 +1071,7 @@ treeregion* tree::readtree (
     to create a different level of pattern resolution, this function will
     automatically create the new databases.
  */
+
 treeregion* tree::inittree (
 	char *filename,
 	int levels,
@@ -1247,11 +1145,13 @@ treeregion* tree::inittree (
   return trr;
 }
 
-//____________________________________________________________
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 /*! This function performs initilization before calling marklin,
     the iterative pattern generator.  the root treenode is created
     as the simplest pattern possible, and passed to marklin.
  */
+
 treenode* tree::_inittree (
 	int tlayer,
 	EQwDetectorPackage package,
@@ -1269,9 +1169,11 @@ treenode* tree::_inittree (
   return ret;
 }
 
-//____________________________________________________________
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 /*! This function iteratively writes the patterns to the database.
  */
+
 int tree::_writetree (treenode *tn, FILE *fp, int tlayers)
 {
   nodenode* nd;
@@ -1305,12 +1207,14 @@ int tree::_writetree (treenode *tn, FILE *fp, int tlayers)
   return 0;
 }
 
-//____________________________________________________________
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 /*! \brief This function initializes the output file.
     It then calls the iterative _writetree function to fill the output file.
 
     @return	The number of patterns written to the file
  */
+
 long tree::writetree (
 	char *filename,
 	treenode *tn,
@@ -1369,7 +1273,8 @@ long tree::writetree (
 	return xref;
 }
 
-//____________________________________________________________
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 /*! \brief This function reads in the tree pattern database from a file.
 
     It uses the shorttree and shortnode objects in order to reduce memory overhead.
@@ -1381,6 +1286,7 @@ long tree::writetree (
 
     @return	Returns negative on error, zero otherwise
  */
+
 int tree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int tlayers)
 {
   int c, sonny;
@@ -1473,3 +1379,4 @@ int tree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int tlayers)
   return 0;
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

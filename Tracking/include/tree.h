@@ -1,5 +1,20 @@
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 #ifndef TREE_H
 #define TREE_H
+
+// Standard C and C++ headers
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
+#include <cmath>
+
+// Boost filesystem headers
+#include "boost/filesystem/operations.hpp"
+#include "boost/filesystem/path.hpp"
+namespace bfs = boost::filesystem;
 
 // Qweak tree object headers
 #include "treenode.h"
@@ -7,16 +22,17 @@
 #include "shortnode.h"
 #include "shorttree.h"
 #include "treeregion.h"
-using namespace QwTracking;
 
 #include "QwTypes.h"
 #include "options.h"
 #include "Det.h"
 #include "tracking.h"
-
 #include "globals.h"
 
+using namespace std;
+using namespace QwTracking;
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
  \class tree
@@ -29,6 +45,7 @@ using namespace QwTracking;
  \ingroup QwTrackingAnl
 
 *//*-------------------------------------------------------------------------*/
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 class tree {
 
@@ -49,10 +66,11 @@ class tree {
     int xref;
     int maxref;
 
+    static const string TREEDIR;
 
     // Constructor (TODO should take some option info)
     tree();
-
+    ~tree();
 
     void SetDebugLevel(int debuglevel) { debug = debuglevel; };
 
@@ -118,5 +136,6 @@ class tree {
 
 };
 
-
 #endif // TREE_H
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

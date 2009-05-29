@@ -78,6 +78,8 @@ class QwTrackingWorker : public VQwSystem {
     char *channelr3[NUMWIRESR3 + 1];
     int  *hashchannelr3[NUMWIRESR3 + 1];
 
+    int InitTree();
+
 };
 
 #endif // QWTRACKINGWORKER_H

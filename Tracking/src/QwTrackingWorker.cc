@@ -89,7 +89,8 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
       cout<<"###### Calling QwTrackingWorker::QwTrackingWorker ()"<<endl;
 
   // Initialize pattern database
-  tree thetree;
+
+  InitTree();
 
   /* Reset counters of number of good and back events */
   ngood = nbad = 0;
@@ -141,6 +142,122 @@ QwTrackingWorker::~QwTrackingWorker ()
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+int QwTrackingWorker::InitTree()
+{
+
+// rcInitTree() used to start here
+  char filename[256];
+  int numlayers = 0;
+  double width = 0;
+
+  tree *thetree = new tree();
+
+  /// For each region (1, 2, 3, trigger, cerenkov, scanner)
+  for (EQwRegionID region  = kRegionID1;
+		   region <= kRegionID3; region++) {
+
+    // TODO Skip region 1 for now
+    if (region < kRegionID2) continue;
+
+    /// ... and for each package
+    for (EQwDetectorPackage package  = kPackageUp;
+			    package <= kPackageDown; package++) {
+
+      // TODO DEBUG Skip everything except up and down for now...
+      if (package != kPackageUp && package != kPackageDown) continue;
+
+      /// ... and for each detector type
+      for (EQwDetectorType type  = kTypeDriftHDC;
+			   type <= kTypeDriftVDC; type++) {
+
+	/// In region 2 there are only HDCs
+	if (region == kRegionID2 && type != kTypeDriftHDC) continue;
+
+	/// In region 3 there are only VDCs
+	if (region == kRegionID3 && type != kTypeDriftVDC) continue;
+
+
+	/// ... and for each wire direction (X, Y, U, V, R, theta)
+	for (EQwDirectionID direction  = kDirectionX;
+			    direction <= kDirectionV; direction++) {
+
+	  // Skip wire direction Y
+	  if (direction == kDirectionY) continue;
+
+	  // Skip wire direction X for region 3
+	  if (direction == kDirectionX && region == kRegionID3) continue;
+
+	  ///  Skip the NULL rcDETRegion pointers.
+	  //   pking:  This is probably a configuration error,
+	  //           which the user may want to be warned about.
+	  //   wdc:   If those pointers would be initialized to null,
+	  //          this test would be a lot more useful --> another TODO
+	  if (rcDETRegion[package][region-1][direction] == NULL) {
+	    std::cerr << "WARN:  rcDETRegion["<< package
+		      << "]["          << region-1
+		      << "]["          << direction
+		      << "] is NULL.  Should it be?"
+		      << std::endl;
+	    continue;
+	  }
+
+	  /// Region 3 contains 8 layers
+	  if (region == kRegionID3) {
+	    numlayers = 8; // TODO replace this with info from the geometry file
+	    width = rcDETRegion[package][region-1][direction]->width[2];
+	  }
+
+	  /// Region 2 contains 4 layers
+	  if (region == kRegionID2) {
+	    numlayers = 4; // TODO replace this with info from the geometry file
+	    width = rcDETRegion[package][region-1][direction]->WireSpacing *
+		    rcDETRegion[package][region-1][direction]->NumOfWires;
+	  }
+
+	  /// Set up the filename with the following format
+	  ///   tree[numlayers]-[levels]-[u|l]-[1|2|3]-[d|g|t|c]-[n|u|v|x|y].tre
+	  sprintf(filename, "%s/tree%d-%d-%c-%c-%c-%c.tre",
+		thetree->TREEDIR.c_str(),
+		numlayers,
+		opt.levels[package][region-1][type],
+		"0ud"[package],
+		"0123TCS"[region],
+		"0hvgtc"[type],
+		"0xyuvrq"[direction]);
+	  if (debug) cout << "Tree filename: " << filename << endl;
+
+	  /// Each element of rcTreeRegion will point to a pattern database
+	  rcTreeRegion[package][region-1][type][direction] =
+	  thetree->inittree(filename,
+		opt.levels[package][region-1][type],
+		numlayers,
+		width,
+		package,
+		type,
+		region,
+		direction);
+
+          if (debug){
+
+	  //cout << "rcTreeRegion(" << package << ","
+	  //			    << region << ","
+	  //			    << type << ","
+	  //			    << direction << ")" << endl;
+
+          }
+
+        } /// end of loop over wire directions
+
+      } /// end of loop over detector types
+
+    } /// end of loop over packages
+
+  } /// end of loop over regions
+
+  delete thetree;
+
+}
 /*------------------------------------------------------------------------*//*!
 
    Bcheck() - this function compares the momentum look-up energy with the
