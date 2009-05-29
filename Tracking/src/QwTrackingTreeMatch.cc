@@ -282,7 +282,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
   //################################
   // Create the combined treelines #
   //################################
-  lineptr = (QwTrackingTreeLine*)malloc(sizeof(QwTrackingTreeLine));
+  lineptr = new QwTrackingTreeLine;
   assert(lineptr);
 
   for(fwalk = front,i=0;fwalk;fwalk = fwalk->next,i++){

@@ -1127,7 +1127,7 @@ if (numWires) { /* Region 2 */
           miss = 1;
         if (! exists( hashpat, frontbin, backbin,lTreeLines)) {
           if (opt.showMatchingPatterns) tree->print();     /* if track is unknown */
-          lineptr = (QwTrackingTreeLine*)malloc( sizeof(QwTrackingTreeLine));  /*  create new one */
+          lineptr = new QwTrackingTreeLine;  /*  create new one */
           assert(lineptr);
           nTreeLines++;                        /* number of treelines found */
           memcpy (lineptr->hasharray, hashpat, /* make space for this       */
@@ -1228,7 +1228,7 @@ if (numWires) { /* Region 2 */
 		if (opt.showMatchingPatterns)
 			tree->print();
 
-		lineptr = (QwTrackingTreeLine*) malloc (sizeof(QwTrackingTreeLine));       /*  create new one */
+		lineptr = new QwTrackingTreeLine;       /*  create new one */
 		assert(lineptr);
 		nTreeLines++;                      /* number of treelines found */
 		memcpy(lineptr->hasharray, hashpat, /* make space for this       */

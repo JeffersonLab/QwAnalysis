@@ -68,7 +68,7 @@ class tree {
 
     static const string TREEDIR;
 
-    // Constructor (TODO should take some option info)
+    // Constructor/Destructor (TODO should take some option info)
     tree();
     ~tree();
 

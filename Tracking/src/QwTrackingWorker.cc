@@ -385,7 +385,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
   int outbounds = 0;
   */
 
-  event = (Event*) calloc(1, sizeof(Event));
+  event = new Event;
   assert(event);
 
   /// Loop through all detector packages

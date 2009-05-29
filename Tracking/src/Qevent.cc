@@ -175,7 +175,7 @@ int Qevent::GetEvent()
 		if (debug) cout << "wires:";
 		for (int hit = 0; hit < nhits; hit++) {
 			// create the hit structure
-			newhit = (Hit*) malloc (sizeof(Hit));
+			newhit = new Hit;
 			// set event number
 			newhit->ID = ievent;
 

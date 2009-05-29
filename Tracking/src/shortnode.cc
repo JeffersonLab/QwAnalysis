@@ -15,7 +15,10 @@ namespace QwTracking {
 
 shortnode::shortnode() { }
 
-shortnode::~shortnode() { }
+shortnode::~shortnode()
+{
+  if (next) delete next;
+}
 
 void shortnode::print() {
   tree->print();

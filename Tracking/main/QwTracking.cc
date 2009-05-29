@@ -252,6 +252,15 @@ int main (int argc, char* argv[])
 	cout << " Good: " << trackingworker.ngood << endl;
 	cout << " Bad : " << trackingworker.nbad  << endl;
 
+
+	// Clean up
+	for (int i1 = 0; i1 < kNumPackages; i1++)
+	  for (int i2 = 0; i2 < kNumRegions; i2++)
+	    for (int i3 = 0; i3 < kNumTypes; i3++)
+	      for (int i4 = 0; i4 < kNumDirections; i4++)
+	        if (rcTreeRegion[i1][i2][i3][i4]) delete rcTreeRegion[i1][i2][i3][i4];
+
+
 	return 0;
 }
 

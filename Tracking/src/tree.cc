@@ -404,15 +404,14 @@ treenode* tree::nodeexists (nodenode* node, treenode* tr)
 
 treenode* tree::treedup (treenode *todup)
 {
-  treenode *ret;
+  // TODO (wdc) Copy constructor for treenode
+  treenode* ret = new treenode;	/* allocate the memory for the treenode	*/
+  assert(ret);			/* cry if there was an error		*/
 
-  ret = (treenode*) malloc (sizeof(treenode)); /* allocate the memory for the copy treenode          */
-  //ret = new treenode;
-  //assert(ret);                             /* cry if there was an error  */
-  *ret = *todup;                             /* copy the treenode todup to
-                                                the new treenode           */
-  ret->xref = -1L;                           /* set the external reference
-                                                link                       */
+  *ret = *todup;		/* copy the treenode todup to
+				   the new treenode			*/
+  ret->xref = -1L;		/* set the external reference
+				   link					*/
   return ret;
 }
 
@@ -448,7 +447,6 @@ void tree::marklin (
   //###############
   treenode son;
   treenode *sonptr;
-  nodenode *nodptr;
   int i,j;
   int offs;
   int flip;
@@ -654,8 +652,8 @@ void tree::marklin (
         ! nodeexists (father->son[offs+flip], &son)) { /* final check if hit
                                                           pattern is already
 							  in the database    */
-        nodptr = (nodenode*) malloc (sizeof(nodenode));
-        //nodenode *nodptr = new nodenode;    /* create a nodenode  */
+
+        nodenode *nodptr = new nodenode;		/* create a nodenode  */
 	assert(nodptr);                                  /* cry if error     */
         nodptr->next           = father->son[offs+flip]; /* append it onto
                                                             the son list     */
@@ -803,8 +801,8 @@ void tree::marklin (
       if( insert_hitpattern  &&                          /* "insert pattern"
                                                           flag is set and    */
               !nodeexists( father->son[offs+flip], &son)) {
-        nodptr = (nodenode*)malloc( sizeof( nodenode));    /* create a nodenode  */
-        //nodptr = new nodenode;
+
+        nodenode* nodptr = new nodenode;		/* create a nodenode  */
         assert(nodptr);                                    /* cry if error       */
         nodptr->next             = father->son[offs+flip]; /* append it onto
                                                           the son list       */
@@ -893,8 +891,8 @@ void tree::marklin (
       if( insert_hitpattern  &&                          /* "insert pattern"
                                                             flag is set and    */
           !nodeexists( father->son[offs+flip], &son)) {
-        nodptr = (nodenode*)malloc( sizeof( nodenode));    /* create a nodenode  */
-        //nodptr = new nodenode;
+
+        nodenode* nodptr = new nodenode;		/* create a nodenode  */
         assert(nodptr);                                    /* cry if error       */
         nodptr->next             = father->son[offs+flip]; /* append it onto
                                                             the son list       */
@@ -1026,8 +1024,7 @@ treeregion* tree::readtree (
 		// cout << "Width = " << width << endl;
 
 		/// Allocate a shorttree array
-		stb = (shorttree *) malloc (num * sizeof(shorttree));
-		//stb = new shorttree[num];
+		stb = new shorttree[num];
 		assert(stb);
 
 	} else {
@@ -1037,8 +1034,7 @@ treeregion* tree::readtree (
 	}
 
 	/// Allocate a treeregion object
-	trr = (treeregion *) malloc (sizeof(treeregion));
-	// trr = new treeregion; // TODO: this is indeed the way to go (wdconinc, 09-Dec-2008)
+	trr = new treeregion;
 	maxref = num;
 	/// ... and fill by recursively calling _readtree
 	if (!dontread && _readtree (f, stb, 0, tlayers)) {
@@ -1091,14 +1087,15 @@ treeregion* tree::inittree (
   if (tlayer == 0)
     return 0;
 
-// TODO: I disabled the next part to get past a segfault (wdconinc, 08-Dec-2008)
-// cout << "trr->searchable = " << (trr? trr->searchable:-1) << endl;
-//  if (region == kRegionID3 && (dir == kDirectionX || dir == kDirectionY)) {
-//    /// region 3 does not have an x or y direction,
-//    /// so tag them as unsearchable for the treedo function.
-//    trr->searchable = 0;
-//    return trr;
-//  }
+  // TODO: I disabled the next part to get past a segfault (wdconinc, 08-Dec-2008)
+  // (wdc, 29-May-2009) no wonder it segfaults, no malloc/new yet on trr
+//   cout << "trr->searchable = " << (trr? trr->searchable:-1) << endl;
+//   if (region == kRegionID3 && (dir == kDirectionX || dir == kDirectionY)) {
+//     /// region 3 does not have an x or y direction,
+//     /// so tag them as unsearchable for the treedo function.
+//     trr->searchable = 0;
+//     return trr;
+//   }
 
   /*! Try to read in an existing database */
   int dontread = 0;
@@ -1293,8 +1290,6 @@ int tree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int tlayers)
   int Minlevel, Bits, Bit[TLAYERS];
   long ref;
 
-  shortnode *node;
-
   /// Go into an infinite loop while reading the file
   for(;;) {
 	/// Read the next record type
@@ -1324,8 +1319,7 @@ int tree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int tlayers)
 			(stb+ref)->bit[i] = Bit[i];
 		}
 		if (fath) { /// ... and append the patterns to the father's sons
-			node = (shortnode *) malloc (sizeof( shortnode));
-			// node = new shortnode;
+			shortnode* node = new shortnode;
 			assert(node);
 			node -> tree = stb+ref;
 			node -> next = *fath;
@@ -1358,8 +1352,7 @@ int tree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int tlayers)
 			cerr << "QTR: readtree failed. error #4. rebuilding treefiles." << endl;
 			return -1;
 		}
-		node = (shortnode *) malloc (sizeof( shortnode)); /// create a new node
-		//node = new shortnode;
+		shortnode* node = new shortnode; /// create a new node
 		assert(node);
 		node -> tree = stb+ref;	/// and append the alread read-in tree
 		node -> next = *fath;	/// 'ref' to this node.

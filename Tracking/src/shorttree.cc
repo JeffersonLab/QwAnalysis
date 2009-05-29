@@ -19,7 +19,12 @@ namespace QwTracking {
 
 shorttree::shorttree() { }
 
-shorttree::~shorttree() { }
+shorttree::~shorttree()
+{
+  for (int i = 0; i < 4; i++)
+    if (son[i])
+      delete son[i];
+}
 
 void shorttree::print() {
   cout << "(" << minlevel << "," << "*" << ") ";
