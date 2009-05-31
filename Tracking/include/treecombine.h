@@ -13,7 +13,7 @@
 #define HASHSIZE 1024		/* power of 2 */
 #define HASHMASK 1023		/* hashsize-1 */
 
-#define magnet_center 275.0 //PLACEHOLDER VALUE
+#define MAGNET_CENTER 275.0 //PLACEHOLDER VALUE
 
 #ifndef DLAYERS
 #define DLAYERS 10
@@ -66,7 +66,6 @@ public:
 
     int bestx (double *xresult, double dist_cut, Hit *h, Hit **ha, double Dx = 0);
     int bestx (double *xresult, Hit *h, Hit *ha);
-    int bestx (double *xresult, QwHit *hit, QwHit *hita);
 
 
     void mul_do (int i, int mul, int l, int *r, Hit *hx[DLAYERS][MAXHITPERLINE], Hit **ha);

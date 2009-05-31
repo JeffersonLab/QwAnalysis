@@ -85,7 +85,7 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
  /* Set debug level */
   debug = 1;
 
- if( debug )
+  if( debug )
       cout<<"###### Calling QwTrackingWorker::QwTrackingWorker ()"<<endl;
 
   // Initialize pattern database
@@ -110,7 +110,7 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
     int levels;
 
     /* Reserve space for region 2 bit patterns */
-    levels = levelmax;
+    levels = opt.levels[kPackageUp][kRegionID2-1][kTypeDriftHDC];
     for (int i = 0; i < TLAYERS; i++) {
       channelr2[i]     = (char*) malloc (1UL << levels);
       hashchannelr2[i] =  (int*) malloc ((sizeof(int) * (1UL << (levels - 1))));
@@ -647,6 +647,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	    TreeSearch.TsSearch(&(rcTreeRegion[package][region-1][type][dir]->node),
 				channelr2, hashchannelr2,
 				levels, 0, tlayers);
+	    treelinelist = TreeSearch.GetListOfTreeLines();
 
 	    if (debug) cout << "Sort patterns" << endl;
             if (rcTreeRegion[package][region-1][type][dir]) {
@@ -686,20 +687,26 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	  // TODO (wdc) Haven't changed opt.levels here because would need to
 	  // assign it before we know that a detector even exists
 	  // (i.e. opt.levels could contain garbage)
-	}
+	} else continue;
 
 
 /*! ---- TASK 3: Sort out the Partial Tracks                          ---- */
 
 	if (area) TreeSort.rcPartConnSort(area);
 
-
 /*! ---- TASK 4: Hook up the partial track info to the event info     ---- */
 
 	event->parttrack[package][region][type] = area;
 
-// (wdc) Loop over detector types disables
       } /* end of loop over the detector types */
+
+      if (area) {
+        cout << "=== Partial track === x,mx / y,my = " << area->x << ", " << area->mx << " / " << area->y << ", " << area->my << endl;
+        ngood++;
+      } else {
+        cout << "Couldn't find a good partial track." << endl;
+        nbad++;
+      }
 
     } /* end of loop over the regions */
 
@@ -711,13 +718,6 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
     * ============================== */
 
 
-    if (area) {
-      cout << "area: " << area->x << " " << area->mx << ", " << area->y << " " << area->my << endl;
-      ngood++;
-    } else {
-      cout << "Couldn't find a good partial track." << endl;
-      nbad++;
-    }
 
   } /* end of loop over the detector packages */
 

@@ -38,6 +38,7 @@ QwTrackingTreeSort::QwTrackingTreeSort (void)
 {
   doubletrack = 0.2;
   good = 2;
+  debug = 1;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -407,9 +408,7 @@ int QwTrackingTreeSort::rcCommonWires (QwTrackingTreeLine *line1, QwTrackingTree
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *head, EQwRegionID region/*,
-		EQwDetectorPackage package, EQwDetectorType type,
-		EQwDirectionID dir, Eorientation orient*/)
+int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *head, EQwRegionID region)
 {
   //################
   // DECLARATIONS  #
@@ -421,7 +420,8 @@ int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *head, EQwRegionID re
   int iteration = 0;
   int num_tl = 0;
   int  *isvoid;
-  double   *chia, chi, maxch = 20000.0, nmaxch, nminch;//this is bad
+  double   *chia, chi, nmaxch, nminch;
+  double maxchi = 35000.0; // maximum allowed chi^2 (was 20000.0)
 
   //DBG = DEBUG & D_GRAPH;
 
@@ -433,7 +433,7 @@ int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *head, EQwRegionID re
     nmaxch = 0.0;
     iteration++;
 
-    nminch = maxch;
+    nminch = maxchi;
     for (idx = 0, walk = head; walk; walk = walk->next) {
       if (iteration > 100 ) {	/* skip the event */
 	walk->isvoid = true;
@@ -441,8 +441,8 @@ int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *head, EQwRegionID re
       }
       else if (walk->isvoid == false) {
 	chi = chiweight (walk);
-	if (chi > maxch) {
-	  cerr << "voided in treesort " << maxch << ',' << chi << endl;
+	if (chi > maxchi) {
+	  cerr << "[QwTrackingTreeSort::rcTreeConnSort] chi^2 too high: " << chi << " > " << maxchi << endl;
 	  walk->isvoid = true;
 	} else {
 	  if (chi > nmaxch) {
@@ -455,16 +455,19 @@ int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *head, EQwRegionID re
 	}
       }
     }
-    maxch = nminch + (nmaxch-nminch) * 0.66;
+    maxchi = nminch + (nmaxch - nminch) * 0.66;
   } while (idx > 30 ); // 30?!? should probably reduce this
 
   num = idx;
-cerr << "num = " << num << endl;
-  if (num_tl)
-    fprintf(stderr,"hrc: Skipping event because of 0 good treelines\n");
-
-  if (! num)
+  if (debug) cout << "Number of treelines with reasonable chi^2: " << num << endl;
+  if (num_tl) {
+    std::cout << "Skipping event because of 0 good treelines." << std::endl;
     return 0;
+  }
+  if (! num) {
+    std::cout << "Skipping event because of 0 good treelines." << std::endl;
+    return 0;
+  }
 
   // the following mallocs replaced Qmallocs
   connarr = (char*) malloc (num);
@@ -545,9 +548,7 @@ cerr << "num = " << num << endl;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeSort::rcPartConnSort (PartTrack *head/*,
-	EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type,
-	EQwDirection dir, Eorientation orient*/)
+int QwTrackingTreeSort::rcPartConnSort (PartTrack *head)
 {
   char *connarr;
   int *array;

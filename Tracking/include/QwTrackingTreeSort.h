@@ -64,6 +64,8 @@ class QwTrackingTreeSort {
 
   private:
 
+    int debug;
+
 
 };//class QwTrackingTreeSort
 
