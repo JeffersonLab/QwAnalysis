@@ -62,7 +62,7 @@ QwTreeEventBuffer::QwTreeEventBuffer (const TString filename)
 		&fRegion3_ChamberBack_WirePlane_VPlaneLocalPositionZ);
 
   // Start at 0, then increment to 1 in GetEvent for first event
-  fEventNumber = 0;
+  fEvtNumber = 0;
   fEntries = fTree->GetEntries();
   if (fDebug) std::cout << "Entries in event file: " << fEntries << std::endl;
 }
@@ -72,12 +72,12 @@ QwTreeEventBuffer::QwTreeEventBuffer (const TString filename)
 Int_t QwTreeEventBuffer::GetNextEvent()
 {
   // Next event, and check
-  fEventNumber++;
-  if (fEventNumber > fEntries) return 0;
+  fEvtNumber++;
+  if (fEvtNumber > fEntries) return 0;
 
   // Load event
-  if (fDebug) std::cout << "Reading event " << fEventNumber << std::endl;
-  fTree->GetEntry(fEventNumber);
+  if (fDebug) std::cout << "Reading event " << fEvtNumber << std::endl;
+  fTree->GetEntry(fEvtNumber);
   if (fDebug) fTree->Show();
 
   // Print info
@@ -90,7 +90,7 @@ Int_t QwTreeEventBuffer::GetNextEvent()
 		<< fRegion3_ChamberFront_WirePlane_UPlaneLocalPositionZ << std::endl;
 
   // Return event number in file
-  return fEventNumber;
+  return fEvtNumber;
 }
 
 

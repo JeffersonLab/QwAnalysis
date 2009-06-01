@@ -32,7 +32,6 @@ class QwTreeEventBuffer : public QwEventBuffer
     TFile* fFile;
     TTree* fTree;
     Int_t fEntries;
-    Int_t fEventNumber;
 
     Int_t fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit;
     Float_t fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX;
@@ -64,13 +63,16 @@ class QwTreeEventBuffer : public QwEventBuffer
   public:
 
     QwTreeEventBuffer(const TString filename);
-    ~QwTreeEventBuffer() {
-      fFile->Close();
-    };
+    ~QwTreeEventBuffer() { fFile->Close(); };
 
     Int_t GetNextEvent();
     QwHitContainer* GetHitList();
-    Int_t GetEventNumber() { return fEventNumber; }
+
+    // Inline functions
+    void SetDebugLevel (int debug) { fDebug = debug; };
+    int  GetDebugLevel () { return fDebug; };
+    int GetEventNumber() { return fEvtNumber; };
+
 };
 
 #endif // __QWTREEEVENTBUFFER__
