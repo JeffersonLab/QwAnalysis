@@ -20,7 +20,7 @@
 // Tree search headers
 #include "tree.h"
 #include "tracking.h"
-#include "treeregion.h"
+#include "QwTrackingTreeRegion.h"
 
 // Tracking modules
 #include "QwTrackingTreeSearch.h"
@@ -28,6 +28,7 @@
 #include "QwTrackingTreeSort.h"
 #include "QwTrackingTreeMatch.h"
 
+#include "QwTypes.h"
 #include "VQwSystem.h"
 
 using namespace std;
@@ -66,7 +67,7 @@ class QwTrackingWorker : public VQwSystem {
   private:
 
     //!- pattern search tree for all configurations
-    treeregion* searchtree[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
+    QwTrackingTreeRegion* searchtree[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 
     int debug; //!- debug level
 

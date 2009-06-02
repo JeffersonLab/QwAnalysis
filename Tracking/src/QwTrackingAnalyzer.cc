@@ -5,7 +5,7 @@
 // Qweak Tracking headers
 #include "QwTypes.h"
 #include "Det.h"
-#include "treeregion.h"
+#include "QwTrackingTreeRegion.h"
 #include "options.h"
 using namespace QwTracking;
 
@@ -15,7 +15,7 @@ using namespace QwTracking;
 // rcDETRegion is a 3D array of lists (yes!)
 Det* rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 // rcTreeRegion is a 4D array of search trees
-treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
+QwTrackingTreeRegion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 // rcDET is a list of detectors
 Det rcDET[NDetMax];
 // opt is a global options object (yuk!)

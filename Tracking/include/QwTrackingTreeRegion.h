@@ -1,8 +1,11 @@
 #ifndef QWTRACKINGTREEREGION_H
 #define QWTRACKINGTREEREGION_H
 
+#include <iostream>
 #include "shortnode.h"
 #include "globals.h"
+
+using namespace std;
 
 ///
 /// \ingroup QwTrackingAnl
@@ -10,7 +13,7 @@ namespace QwTracking {
 
 /*------------------------------------------------------------------------*//*!
 
- \class treeregion
+ \class QwTrackingTreeRegion
 
  \brief A container for the pattern databases for each detector region.
 
@@ -26,12 +29,12 @@ namespace QwTracking {
 
 ///
 /// \ingroup QwTrackingAnl
-class treeregion {
+class QwTrackingTreeRegion {
 
   public:
 
-    treeregion();
-    ~treeregion();
+    QwTrackingTreeRegion();
+    ~QwTrackingTreeRegion();
 
     int searchable;
     shortnode node;
@@ -39,6 +42,12 @@ class treeregion {
     int nLayers;
     int dLayers;
     double rZPos[TLAYERS];
+
+    int read(const char* FileName);
+    int write(const char* FileName);
+
+  private:
+    int debug;
 
 };
 

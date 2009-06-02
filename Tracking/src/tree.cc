@@ -95,7 +95,7 @@
 
 const string tree::TREEDIR("tree");
 
-extern treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
+extern QwTrackingTreeRegion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 extern Options opt;
 
@@ -989,7 +989,7 @@ void tree::freetree()
     @return		The search treeregion
  */
 
-treeregion* tree::readtree (
+QwTrackingTreeRegion* tree::readtree (
 	char *filename,
 	int levels,
 	int tlayers,
@@ -999,7 +999,7 @@ treeregion* tree::readtree (
 	FILE *f = 0;
 
 	shorttree *stb;
-	treeregion *trr;
+	QwTrackingTreeRegion *trr;
 
 	double width;
 	long num;
@@ -1033,8 +1033,8 @@ treeregion* tree::readtree (
 		stb = 0;
 	}
 
-	/// Allocate a treeregion object
-	trr = new treeregion;
+	/// Allocate a QwTrackingTreeRegion object
+	trr = new QwTrackingTreeRegion;
 	maxref = num;
 	/// ... and fill by recursively calling _readtree
 	if (!dontread && _readtree (f, stb, 0, tlayers)) {
@@ -1068,7 +1068,7 @@ treeregion* tree::readtree (
     automatically create the new databases.
  */
 
-treeregion* tree::inittree (
+QwTrackingTreeRegion* tree::inittree (
 	char *filename,
 	int levels,
 	int tlayer,
@@ -1079,7 +1079,7 @@ treeregion* tree::inittree (
 	EQwDirectionID dir)
 {
 // TODO: This routine assumes that the directory 'trees' exists and doesn't create it itself. (wdconinc)
-  treeregion *trr;
+  QwTrackingTreeRegion *trr;
   treenode  *back;
   tlayers  = tlayer;
   maxlevel = levels+1;

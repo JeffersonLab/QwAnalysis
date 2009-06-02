@@ -134,7 +134,7 @@ using namespace std;
 #include "Det.h"
 
 #include "tracking.h"
-#include "treeregion.h"
+#include "QwTrackingTreeRegion.h"
 
 #include "QwTrackingWorker.h"
 #include "tree.h"
@@ -154,7 +154,7 @@ using namespace std;
 //Temporary global variables for sub-programs
 bool bWriteGlobal = false;
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
+QwTrackingTreeRegion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 Det rcDET[NDetMax];
 Options opt;
 FILE *ASCII_textfile;

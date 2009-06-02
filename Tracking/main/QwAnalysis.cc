@@ -56,7 +56,7 @@
 #include "Qevent.h"
 #include "Qoptions.h"
 #include "options.h"
-#include "treeregion.h"
+#include "QwTrackingTreeRegion.h"
 #include "QwTrackingWorker.h"
 #include "tree.h"
 
@@ -64,7 +64,7 @@
 
 //Temporary global variables for sub-programs
 bool bWriteGlobal = false;
-treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
+QwTrackingTreeRegion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 Options opt;
 
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];

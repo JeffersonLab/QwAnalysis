@@ -22,14 +22,14 @@
 #include "Qoptions.h"
 #include "options.h"
 #include "tracking.h"
-#include "treeregion.h"
+#include "QwTrackingTreeRegion.h"
 
 // Qweak Tree event buffer header
 #include "QwTreeEventBuffer.h"
 
 //Temporary global variables for sub-programs
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
+QwTrackingTreeRegion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 Det rcDET[NDetMax];
 Options opt;
 

@@ -21,7 +21,7 @@ namespace bfs = boost::filesystem;
 #include "nodenode.h"
 #include "shortnode.h"
 #include "shorttree.h"
-#include "treeregion.h"
+#include "QwTrackingTreeRegion.h"
 
 #include "QwTypes.h"
 #include "options.h"
@@ -103,14 +103,14 @@ class tree {
 	int tlayers,
 	double width);
 
-    treeregion* readtree (
+    QwTrackingTreeRegion* readtree (
 	char *filename,
 	int levels,
 	int tlayers,
 	double rwidth,
 	int dontread);
 
-    treeregion* inittree (
+    QwTrackingTreeRegion* inittree (
 	char *filename,
 	int levels,
 	int tlayer,

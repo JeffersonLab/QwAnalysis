@@ -29,7 +29,7 @@ using namespace std;
 #include "options.h"
 
 // Qweak tree object headers
-#include "treeregion.h"
+#include "QwTrackingTreeRegion.h"
 using namespace QwTracking;
 
 // Other Qweak modules
@@ -40,7 +40,7 @@ using namespace QwTracking;
 
 
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-extern treeregion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
+extern QwTrackingTreeRegion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 extern Options opt;
 
 double UNorm( double *A, int n, int m);
