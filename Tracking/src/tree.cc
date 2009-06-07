@@ -95,7 +95,8 @@
 
 const string tree::TREEDIR("tree");
 
-extern QwTrackingTreeRegion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
+//extern QwTrackingTreeRegion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
+//extern QwTrackingTreeRegion *rcTreeRegion[kNumPackages*kNumRegions*kNumTypes*kNumDirections];
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 extern Options opt;
 

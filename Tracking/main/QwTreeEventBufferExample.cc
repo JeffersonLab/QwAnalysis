@@ -29,7 +29,7 @@
 
 //Temporary global variables for sub-programs
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-QwTrackingTreeRegion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
+//QwTrackingTreeRegion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 Det rcDET[NDetMax];
 Options opt;
 

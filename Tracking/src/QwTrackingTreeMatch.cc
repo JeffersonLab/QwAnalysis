@@ -73,12 +73,24 @@ Hit* bestWireHit (QwTrackingTreeLine *walk, double bestpos = 0)
 
 QwTrackingTreeMatch::QwTrackingTreeMatch()
 {
+  debug = 1; // debug level
+
+  if( debug )
+      cout<<"###### Calling QwTrackingTreeMatch::QwTrackingTreeMatch ()"<<endl;
+
+  if( debug )
+      cout<<"###### Leaving QwTrackingTreeMatch::QwTrackingTreeMatch ()"<<endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwTrackingTreeMatch::~QwTrackingTreeMatch()
 {
+  if( debug )
+      cout<<"###### Calling QwTrackingTreeMatch::~QwTrackingTreeMatch ()"<<endl;
+
+  if( debug )
+      cout<<"###### Leaving QwTrackingTreeMatch::~QwTrackingTreeMatch ()"<<endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -125,7 +137,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
   double RotCos,RotSin,RotTan;
   int nhits,fhits,bhits;
   int matchfound = 0;
-  treecombine TreeCombine;
+  treecombine *TreeCombine = new treecombine();
   Hit *DetecHits[2*TLAYERS];
 
   ofstream gnu1,gnu2;
@@ -305,7 +317,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
 	 // cerr << DetecHits[k]->Zpos << " " << DetecHits[k]->rPos << endl;
 	}
         //fit a line to the hits
-        TreeCombine.weight_lsq_r3 (&mx, &cx, cov, &chi, DetecHits, nhits, 0, -1, 2*TLAYERS);
+        TreeCombine->weight_lsq_r3 (&mx, &cx, cov, &chi, DetecHits, nhits, 0, -1, 2*TLAYERS);
         lineptr->mx = mx;
         lineptr->cx = cx;
         lineptr->chi = chi;

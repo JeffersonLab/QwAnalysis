@@ -83,6 +83,7 @@ class QwTrackingTreeMatch {
 
   private:
 
+        int debug;
 }; //class QwTrackingTreeMatch
 
 

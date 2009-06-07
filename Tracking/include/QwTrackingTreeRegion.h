@@ -43,9 +43,6 @@ class QwTrackingTreeRegion {
     int dLayers;
     double rZPos[TLAYERS];
 
-    int read(const char* FileName);
-    int write(const char* FileName);
-
   private:
     int debug;
 

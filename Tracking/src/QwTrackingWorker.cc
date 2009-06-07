@@ -74,7 +74,6 @@
 
 #include "QwTrackingWorker.h"
 
-extern QwTrackingTreeRegion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 extern Options opt;
 
@@ -92,8 +91,9 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
 
   InitTree();
 
-  /* Reset counters of number of good and back events */
-  ngood = nbad = 0;
+  /* Reset counters of number of good and bad events */
+  ngood = 0;
+  nbad = 0;
 
     /* Determine the bin-division depth of the tree-search */
     int levelmax = opt.MaxLevels + 1;
@@ -228,8 +228,11 @@ void QwTrackingWorker::InitTree()
 	  if (debug) cout << "Tree filename: " << filename << endl;
 
 	  /// Each element of rcTreeRegion will point to a pattern database
-	  rcTreeRegion[package][region-1][type][direction] =
-	  thetree->inittree(filename,
+//	  rcTreeRegion[package][region-1][type][direction] =
+          int index = package*kNumRegions*kNumTypes*kNumDirections
+                      +(region-1)*kNumTypes*kNumDirections
+                      +type*kNumDirections+direction;
+	  rcTreeRegion[index] = thetree->inittree(filename,
 		opt.levels[package][region-1][type],
 		numlayers,
 		width,
@@ -374,9 +377,10 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
   QwTrackingTreeLine *treelines1, *treelines2;
 
   QwTrackingTreeSearch  TreeSearch;
-  treecombine TreeCombine;
-  QwTrackingTreeSort    TreeSort;
-  QwTrackingTreeMatch   TreeMatch;
+
+  treecombine *TreeCombine = new treecombine();
+  QwTrackingTreeSort *TreeSort = new QwTrackingTreeSort();
+  QwTrackingTreeMatch *TreeMatch = new QwTrackingTreeMatch();
 
   /*
   int charge;
@@ -433,8 +437,9 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	  if (! rcDETRegion[package][region-1][dir]) {
 	    if (debug) cout << "[QwTrackingWorker::ProcessHits]     No such detector!" << endl;
 	    continue;
-	  }
-	  if (! rcTreeRegion[package][region-1][type][dir]) {
+	  } //kNumPackages*kNumRegions*kNumTypes*kNumDirections
+	  if (! rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
+                             +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]) {
 	    if (debug) cout << "[QwTrackingWorker::ProcessHits]     No such tree!" << endl;
 	    continue;
 	  }
@@ -444,7 +449,9 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	  //			    << region << ","
 	  //			    << type << ","
 	  //			    << dir << ")" << endl;
-	  if (rcTreeRegion[package][region-1][type][dir]->searchable == false) {
+	  if (rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
+                             +(region-1)*kNumTypes*kNumDirections
+                             +type*kNumDirections+dir]->searchable == false) {
 	    (event->treeline[package][region-1][type][dir]) = 0;
 	    // printf("%i %i %i %i\n",package,region,type,dir);
 	    continue; // 'searchable' is set by tree.cc
@@ -509,7 +516,8 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 		  // can be called.
 		  int wire = hit->GetDetectorID().fElement;
 		  TreeSearch.TsSetPoint(
-			rcTreeRegion[package][region-1][type][dir]->rWidth,
+			rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
+                             +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth,
 			hit,
 			channelr3[wire - decrease],
 			hashchannelr3[wire - decrease],
@@ -541,7 +549,8 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	      // We can start the tree search now.
 	      // NOTE Somewhere around here a memory leak lurks
 	      if (debug) cout << "Searching for matching patterns (direction " << dir << ")" << endl;
-	      TreeSearch.TsSearch(&(rcTreeRegion[package][region-1][type][dir]->node),
+	      TreeSearch.TsSearch(&(rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
+                             +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->node),
 				channelr3, hashchannelr3,
 				levels, NUMWIRESR3, TLAYERS);
 	      treelinelist = TreeSearch.GetListOfTreeLines();
@@ -549,15 +558,17 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	      // DEBUG section
 	      // Did this succeed as intended?
 	      // - what does rcTreeRegion->node contain?
-	      shortnode* dbg_testnode = &(rcTreeRegion[package][region-1][type][dir]->node);
+	      shortnode* dbg_testnode = &(rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
+                             +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->node);
 	      // - are all the hits filled?
 
 
 	      if (debug) cout << "Sort patterns" <<  endl;
-              if (rcTreeRegion[package][region-1][type][dir]) {
+              if (rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
+                             +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]) {
 
-		TreeCombine.TlTreeLineSort (treelinelist, package, region, type, dir,
-			1UL << (levels - 1), 0, dlayer);
+		TreeCombine->TlTreeLineSort (treelinelist, package, region, type, dir,
+			1UL << (levels - 1), 0, dlayer, rcTreeRegion);
 		if (k == 0) {
 		  treelines1 = treelinelist;
 		} else if (k == 1) {
@@ -577,7 +588,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	    // (wdc) If no treelines1 or treelines2 is found, then skip matching.
 	    //       Otherwise this gets confused due to the scintillators.
 	    if (treelines1 || treelines2)
-	      treelinelist = TreeMatch.MatchR3 (treelines1, treelines2, package, region, dir);
+	      treelinelist = TreeMatch->MatchR3 (treelines1, treelines2, package, region, dir);
 	    event->treeline[package][region-1][type][dir] = treelinelist;
 	    tlayers = TLAYERS;     /* remember the number of tree-detector */
 	    tlaym1  = tlayers - 1; /* remember tlayers - 1 for convenience */
@@ -617,7 +628,8 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 		  // can be called.
 		  int wire = hit->GetDetectorID().fElement;
 		  TreeSearch.TsSetPoint(
-			rcTreeRegion[package][region-1][type][dir]->rWidth,
+			rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
+                             +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth,
 			rd->WireSpacing,
 			hit,
 			wire,
@@ -644,16 +656,18 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
             } // end of loop over like-pitched planes in a region
 
 	    if (debug) cout << "Search for matching patterns (direction " << dir << ")" << endl;
-	    TreeSearch.TsSearch(&(rcTreeRegion[package][region-1][type][dir]->node),
+	    TreeSearch.TsSearch(&(rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
+                             +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->node),
 				channelr2, hashchannelr2,
 				levels, 0, tlayers);
 	    treelinelist = TreeSearch.GetListOfTreeLines();
 
 	    if (debug) cout << "Sort patterns" << endl;
-            if (rcTreeRegion[package][region-1][type][dir]) {
-	      TreeCombine.TlTreeLineSort (treelinelist, package, region, type, dir,
+            if (rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
+                             +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]) {
+	      TreeCombine->TlTreeLineSort (treelinelist, package, region, type, dir,
 					1UL << (levels - 1),
-					tlayers, 0);
+					tlayers, 0, rcTreeRegion);
             }
 	    event->treeline[package][region-1][type][dir] = treelinelist;
 
@@ -675,15 +689,17 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	// This if statement may be done wrong
 	// TODO (wdc) why does this have last index dir instead of something in scope?
 	if (rcDETRegion[package][region-1][kDirectionU]
-	 && rcTreeRegion[package][region-1][type][kDirectionU]
+	 && rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
+                         +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+kDirectionU]
 	 && tlayers) {
-	  area = TreeCombine.TlTreeCombine(event->treeline[package][region-1][type],
+	  area = TreeCombine->TlTreeCombine(event->treeline[package][region-1][type],
 			1L << (opt.levels[package][region-1][type] - 1),
 			package,
 			region,
 			type,
 			tlayers,
-			dlayer);
+			dlayer,
+			rcTreeRegion);
 	  // TODO (wdc) Haven't changed opt.levels here because would need to
 	  // assign it before we know that a detector even exists
 	  // (i.e. opt.levels could contain garbage)
@@ -692,7 +708,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 
 /*! ---- TASK 3: Sort out the Partial Tracks                          ---- */
 
-	if (area) TreeSort.rcPartConnSort(area);
+	if (area) TreeSort->rcPartConnSort(area);
 
 /*! ---- TASK 4: Hook up the partial track info to the event info     ---- */
 
@@ -720,6 +736,8 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 
 
   } /* end of loop over the detector packages */
+
+  if (TreeCombine) delete TreeCombine;
 
   return event;
 }

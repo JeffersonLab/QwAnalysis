@@ -31,6 +31,10 @@ class shortnode {
     shortnode *next;
     shorttree *tree;
 
+  private:
+
+    int debug;
+
 };
 
 

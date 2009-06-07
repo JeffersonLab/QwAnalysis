@@ -69,6 +69,8 @@ class QwTrackingWorker : public VQwSystem {
     //!- pattern search tree for all configurations
     QwTrackingTreeRegion* searchtree[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 
+    QwTrackingTreeRegion *rcTreeRegion[kNumPackages*kNumRegions*kNumTypes*kNumDirections];
+
     int debug; //!- debug level
 
     // Region 2 bit patterns

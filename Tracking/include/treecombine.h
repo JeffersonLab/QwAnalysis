@@ -76,17 +76,17 @@ public:
     int contains( double var, Hit **arr, int len);
     double detZPosition( Det *det, double x, double slope_x, double *xval );
 
-    int TlCheckForX (double x1, double x2, double dx1, double dx2,double Dx,double z1, double dz,QwTrackingTreeLine *treefill,EQwDetectorPackage package, EQwRegionID region,enum EQwDetectorType type,EQwDirectionID wdir,int  dlayer, int tlayer,int  iteration,int  stay_tuned);
+    int TlCheckForX (double x1, double x2, double dx1, double dx2,double Dx,double z1, double dz,QwTrackingTreeLine *treefill,EQwDetectorPackage package, EQwRegionID region,enum EQwDetectorType type,EQwDirectionID wdir,int  dlayer, int tlayer,int  iteration,int  stay_tuned, QwTrackingTreeRegion **myTreeRegion);
 
     int TlMatchHits (double x1,double x2,double z1, double dz,QwTrackingTreeLine *treefill,EQwDetectorPackage package, EQwRegionID region,enum EQwDetectorType type,EQwDirectionID dir,int tlayers);
 
     int inAcceptance (EQwDetectorPackage package, EQwRegionID region, double cx, double mx, double cy, double my);
-    void TlTreeLineSort (QwTrackingTreeLine *tl, EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type, EQwDirectionID dir/*,enum Eorientation orient*/, unsigned long bins, int tlayer, int dlayer);
+    void TlTreeLineSort (QwTrackingTreeLine *tl, EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type, EQwDirectionID dir/*,enum Eorientation orient*/, unsigned long bins, int tlayer, int dlayer, QwTrackingTreeRegion **myTreeRegion);
     int TcTreeLineCombine (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, QwTrackingTreeLine *wx, PartTrack *pt, int tlayer);
     int TcTreeLineCombine (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, PartTrack *pt, int tlayer);
     int TcTreeLineCombine2 (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, PartTrack *pt, int tlayer);
 
-    PartTrack *TlTreeCombine (QwTrackingTreeLine *uvl[kNumDirections], long bins, EQwDetectorPackage package, EQwRegionID region,enum EQwDetectorType type/*,enum Eorientation orient*/, int tlayer, int dlayer);
+    PartTrack *TlTreeCombine (QwTrackingTreeLine *uvl[kNumDirections], long bins, EQwDetectorPackage package, EQwRegionID region,enum EQwDetectorType type/*,enum Eorientation orient*/, int tlayer, int dlayer, QwTrackingTreeRegion **myTreeRegion);
     void ResidualWrite (Event *event);
 
     int r3_TrackFit (int Num, Hit **Hit, double *fit, double *cov, double *chi, double uv2xy[2][2]);
@@ -94,9 +94,7 @@ public:
 
     int checkR3 (PartTrack *pt, EQwDetectorPackage package);
 
-
 private:
-
 
 };
 

@@ -64,7 +64,6 @@
 
 //Temporary global variables for sub-programs
 bool bWriteGlobal = false;
-QwTrackingTreeRegion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 Options opt;
 
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];

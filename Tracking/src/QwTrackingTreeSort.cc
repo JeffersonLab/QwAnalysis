@@ -36,15 +36,26 @@ using namespace std;
 
 QwTrackingTreeSort::QwTrackingTreeSort (void)
 {
+  debug = 1;
+  if( debug )
+      cout<<"###### Calling QwTrackingTreeSort::QwTrackingTreeSort ()"<<endl;
+
   doubletrack = 0.2;
   good = 2;
-  debug = 1;
+
+  if( debug )
+      cout<<"###### Leaving QwTrackingTreeSort::QwTrackingTreeSort ()"<<endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwTrackingTreeSort::~QwTrackingTreeSort (void)
 {
+  if( debug )
+      cout<<"###### Calling QwTrackingTreeSort::~QwTrackingTreeSort ()"<<endl;
+
+  if( debug )
+      cout<<"###### Leaving QwTrackingTreeSort::~QwTrackingTreeSort ()"<<endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

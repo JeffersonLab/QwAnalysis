@@ -140,12 +140,6 @@ using namespace std;
 #include "tree.h"
 
 
-
-
-
-
-
-
 //using namespace QwTracking;
 
 #define NEventMax 10
@@ -154,7 +148,6 @@ using namespace std;
 //Temporary global variables for sub-programs
 bool bWriteGlobal = false;
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-QwTrackingTreeRegion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 Det rcDET[NDetMax];
 Options opt;
 FILE *ASCII_textfile;
@@ -189,7 +182,7 @@ int main (int argc, char* argv[])
 	//qevent.Open((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/1000.r2.events").c_str());
 	//cout << "[QwTracking::main] Sample events file opened" << endl;
 
-	QwTrackingWorker trackingworker("qwtrackingworker"); // R3 needs debugging in the 3-D fit
+	QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker"); // R3 needs debugging in the 3-D fit
 
 	// The event loop should skip when iEvent is unphysical,
 	// or: GetEvent returns bool and GetEventNumber returns int
@@ -227,7 +220,7 @@ int main (int argc, char* argv[])
 	  // (wdc) The QwTrackingWorker constructs the event, we need to delete it
 	  // or we can let the trackingworker take care of it when it goes out of
 	  // scope.  For the moment we don't plug this memory hole...
-	  Event* event = trackingworker.ProcessHits (ASCIIgrandHitList); //Giving some trouble when 1000.r2.events events file is used.
+	  Event* event = trackingworker->ProcessHits (ASCIIgrandHitList); //Giving some trouble when 1000.r2.events events file is used.
 
 	  // (wdc) Now we can access the event and its partial tracks
 	  // (e.g. list the partial track in the upper region 2 HDC)
@@ -249,17 +242,10 @@ int main (int argc, char* argv[])
 	// Statistics
 	cout << endl;
 	cout << "Statistics:" << endl;
-	cout << " Good: " << trackingworker.ngood << endl;
-	cout << " Bad : " << trackingworker.nbad  << endl;
+	cout << " Good: " << trackingworker->ngood << endl;
+	cout << " Bad : " << trackingworker->nbad  << endl;
 
-
-	// Clean up
-	for (int i1 = 0; i1 < kNumPackages; i1++)
-	  for (int i2 = 0; i2 < kNumRegions; i2++)
-	    for (int i3 = 0; i3 < kNumTypes; i3++)
-	      for (int i4 = 0; i4 < kNumDirections; i4++)
-	        if (rcTreeRegion[i1][i2][i3][i4]) delete rcTreeRegion[i1][i2][i3][i4];
-
+	if (trackingworker) delete trackingworker;
 
 	return 0;
 }

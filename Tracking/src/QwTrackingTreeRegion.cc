@@ -34,8 +34,4 @@ QwTrackingTreeRegion::~QwTrackingTreeRegion() {
       cout<<"###### Leaving QwTrackingTreeRegion::~QwTrackingTreeRegion ()"<<endl;
 }
 
-int QwTrackingTreeRegion::read(const char* FileName){}
-
-int QwTrackingTreeRegion::write(const char* FileName){}
-
 } // QwTracking
