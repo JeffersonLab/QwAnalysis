@@ -376,11 +376,10 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
                                  lists of detector id and hit information   */
   QwTrackingTreeLine *treelines1, *treelines2;
 
-  QwTrackingTreeSearch  TreeSearch;
-
+  QwTrackingTreeSearch  *TreeSearch  = new QwTrackingTreeSearch();
   QwTrackingTreeCombine *TreeCombine = new QwTrackingTreeCombine();
-  QwTrackingTreeSort *TreeSort = new QwTrackingTreeSort();
-  QwTrackingTreeMatch *TreeMatch = new QwTrackingTreeMatch();
+  QwTrackingTreeSort    *TreeSort    = new QwTrackingTreeSort();
+  QwTrackingTreeMatch   *TreeMatch   = new QwTrackingTreeMatch();
 
   /*
   int charge;
@@ -464,7 +463,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	  // Start the search for this set of like-pitched planes
 	  // TODO (wdc) take a careful look at where TreeSearch should be
 	  // instantiated and where BeginSearch and EndSearch should go
-	  TreeSearch.BeginSearch();
+	  TreeSearch->BeginSearch();
 	  QwTrackingTreeLine* treelinelist = 0; // local list of found tree lines
 
 /*! ---- 3rd: create the bit patterns for the hits                     ---- */
@@ -515,7 +514,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 		  // See QwTrackingTreeSearch.cc for the different ways in which TsSetPoint
 		  // can be called.
 		  int wire = hit->GetDetectorID().fElement;
-		  TreeSearch.TsSetPoint(
+		  TreeSearch->TsSetPoint(
 			rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
                              +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth,
 			hit,
@@ -543,17 +542,17 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	      if (! hit) continue;
 
 	      // Start the search for this set of like-pitched planes
-	      TreeSearch.BeginSearch();
+	      TreeSearch->BeginSearch();
 
 	      // All hits in this detector (VDC) are added to the bit pattern.
 	      // We can start the tree search now.
 	      // NOTE Somewhere around here a memory leak lurks
 	      if (debug) cout << "Searching for matching patterns (direction " << dir << ")" << endl;
-	      TreeSearch.TsSearch(&(rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
+	      TreeSearch->TsSearch(&(rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
                              +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->node),
 				channelr3, hashchannelr3,
 				levels, NUMWIRESR3, TLAYERS);
-	      treelinelist = TreeSearch.GetListOfTreeLines();
+	      treelinelist = TreeSearch->GetListOfTreeLines();
 
 	      // DEBUG section
 	      // Did this succeed as intended?
@@ -579,7 +578,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	      dlayer++;
 
 	      // End the search for this set of like-pitched planes
-	      TreeSearch.EndSearch();
+	      TreeSearch->EndSearch();
 
 	    } // end of loop over like-pitched planes in a region
 
@@ -627,7 +626,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 		  // See QwTrackingTreeearch.cc for the different ways in which TsSetPoint
 		  // can be called.
 		  int wire = hit->GetDetectorID().fElement;
-		  TreeSearch.TsSetPoint(
+		  TreeSearch->TsSetPoint(
 			rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
                              +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth,
 			rd->WireSpacing,
@@ -656,11 +655,11 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
             } // end of loop over like-pitched planes in a region
 
 	    if (debug) cout << "Search for matching patterns (direction " << dir << ")" << endl;
-	    TreeSearch.TsSearch(&(rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
+	    TreeSearch->TsSearch(&(rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
                              +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->node),
 				channelr2, hashchannelr2,
 				levels, 0, tlayers);
-	    treelinelist = TreeSearch.GetListOfTreeLines();
+	    treelinelist = TreeSearch->GetListOfTreeLines();
 
 	    if (debug) cout << "Sort patterns" << endl;
             if (rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
@@ -672,7 +671,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	    event->treeline[package][region-1][type][dir] = treelinelist;
 
 	    // End the search for this set of like-pitched planes
-	    TreeSearch.EndSearch();
+	    TreeSearch->EndSearch();
 
 	  /* Any other region */
 	  } else {
@@ -737,7 +736,10 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 
   } /* end of loop over the detector packages */
 
+  if (TreeSearch)  delete TreeSearch;
   if (TreeCombine) delete TreeCombine;
+  if (TreeSort)    delete TreeSort;
+  if (TreeMatch)   delete TreeMatch;
 
   return event;
 }

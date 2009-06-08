@@ -137,7 +137,7 @@ using namespace std;
 #include "QwTrackingTreeRegion.h"
 
 #include "QwTrackingWorker.h"
-#include "tree.h"
+#include "QwTrackingTree.h"
 
 
 //using namespace QwTracking;

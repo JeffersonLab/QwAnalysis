@@ -58,7 +58,7 @@
 #include "options.h"
 #include "QwTrackingTreeRegion.h"
 #include "QwTrackingWorker.h"
-#include "tree.h"
+#include "QwTrackingTree.h"
 
 
 
