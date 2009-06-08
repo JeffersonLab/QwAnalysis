@@ -30,7 +30,7 @@
 
 #include <iostream>
 #include <cmath>
-#include "tree.h"
+#include "QwTrackingTree.h"
 
 #ifndef TIME_UNDEF
 #define TIME_UNDEF (-1.0e6)

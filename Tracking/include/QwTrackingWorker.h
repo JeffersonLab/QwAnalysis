@@ -18,13 +18,13 @@
 #include "Hit.h"
 
 // Tree search headers
-#include "tree.h"
+#include "QwTrackingTree.h"
 #include "tracking.h"
 #include "QwTrackingTreeRegion.h"
 
 // Tracking modules
 #include "QwTrackingTreeSearch.h"
-#include "treecombine.h"
+#include "QwTrackingTreeCombine.h"
 #include "QwTrackingTreeSort.h"
 #include "QwTrackingTreeMatch.h"
 

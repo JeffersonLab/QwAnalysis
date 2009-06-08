@@ -1,5 +1,9 @@
-#ifndef TREECOMBINE_H
-#define TREECOMBINE_H
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+#ifndef QWTRACKINGTREECOMBINE_H
+#define QWTRACKINGTREECOMBINE_H
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 // Standard C and C++ headers
 #include <iostream>
@@ -18,6 +22,8 @@
 #ifndef DLAYERS
 #define DLAYERS 10
 #endif
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /*!
     \todo The chi_hash class is legacy code which I have yet to abolish.  Its
@@ -41,19 +47,19 @@ class chi_hash {
 
 };
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+/*! \brief QwTrackingTreeCombine combines track segments and performs line fitting
 
-/*! \brief Treecombine combines track segments and performs line fitting
-
-treecombine performs many of the tasks involved with matching hits to track segments
+QwTrackingTreeCombine performs many of the tasks involved with matching hits to track segments
 and combining track segments into full tracks with lab coordinates.
 */
-class treecombine {
+class QwTrackingTreeCombine {
 
 public:
 
-    treecombine();
-    ~treecombine();
+    QwTrackingTreeCombine();
+    ~QwTrackingTreeCombine();
 
     int debug;
 
@@ -98,5 +104,6 @@ private:
 
 };
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-#endif // TREECOMBINE_H
+#endif // QWTRACKINGTREECOMBINE_H

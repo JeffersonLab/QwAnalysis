@@ -3,7 +3,7 @@
 
 // Standard C and C++ headers
 #include <iostream>
-#include "tree.h"
+#include "QwTrackingTree.h"
 
 // Qweak headers
 #include "QwTypes.h"
@@ -28,7 +28,7 @@
 /// \ingroup QwTrackingAnl
 class Uv2xy {
 
-   friend class treecombine;
+   friend class QwTrackingTreeCombine;
    friend int r2_TrackFit(int Num, Hit **Hit, double *fit, double *cov, double *chi);
 
   public:

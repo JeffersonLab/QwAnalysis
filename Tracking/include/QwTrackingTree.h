@@ -1,7 +1,7 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-#ifndef TREE_H
-#define TREE_H
+#ifndef QWTRACKINGTREE_H
+#define QWTRACKINGTREE_H
 
 // Standard C and C++ headers
 #include <iostream>
@@ -35,7 +35,7 @@ using namespace QwTracking;
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
- \class tree
+ \class QwTrackingTree
 
  \brief Creates and manages the treesearch pattern database.
 
@@ -47,7 +47,7 @@ using namespace QwTracking;
 *//*-------------------------------------------------------------------------*/
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-class tree {
+class QwTrackingTree {
 
   public:
 
@@ -69,8 +69,8 @@ class tree {
     static const string TREEDIR;
 
     // Constructor/Destructor (TODO should take some option info)
-    tree();
-    ~tree();
+    QwTrackingTree();
+    ~QwTrackingTree();
 
     void SetDebugLevel(int debuglevel) { debug = debuglevel; };
 
@@ -138,4 +138,4 @@ class tree {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-#endif // TREE_H
+#endif // QWTRACKINGTREE_H

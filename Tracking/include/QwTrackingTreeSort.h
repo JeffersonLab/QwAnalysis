@@ -28,7 +28,7 @@
 
 // Standard C and C++ headers
 #include <iostream>
-#include "tree.h"
+#include "QwTrackingTree.h"
 #include "QwTrackingTreeSearch.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
