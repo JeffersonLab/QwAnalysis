@@ -151,7 +151,7 @@ void QwTrackingWorker::InitTree()
   int numlayers = 0;
   double width = 0;
 
-  tree *thetree = new tree();
+  QwTrackingTree *thetree = new QwTrackingTree();
 
   /// For each region (1, 2, 3, trigger, cerenkov, scanner)
   for (EQwRegionID region  = kRegionID1;
@@ -378,7 +378,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 
   QwTrackingTreeSearch  TreeSearch;
 
-  treecombine *TreeCombine = new treecombine();
+  QwTrackingTreeCombine *TreeCombine = new QwTrackingTreeCombine();
   QwTrackingTreeSort *TreeSort = new QwTrackingTreeSort();
   QwTrackingTreeMatch *TreeMatch = new QwTrackingTreeMatch();
 

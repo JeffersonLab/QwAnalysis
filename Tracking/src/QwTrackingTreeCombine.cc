@@ -1,6 +1,7 @@
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
- \class treecombine
+ \class QwTrackingTreeCombine
 
  \brief Combines track segments and performs line fitting.
 
@@ -11,8 +12,9 @@
     segments and combining track segments into full tracks with lab coordinates.
 
 *//*-------------------------------------------------------------------------*/
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-#include "treecombine.h"
+#include "QwTrackingTreeCombine.h"
 
 // Standard C and C++ headers
 #include <fstream>
@@ -38,6 +40,7 @@ using namespace QwTracking;
 #define PI 3.141592653589793
 #define DBL_EPSILON 2.22045e-16
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 extern Options opt;
@@ -53,37 +56,39 @@ double *M_Unit (double *A, int n);
 void M_Print (double *A, int n);
 void M_Print (double *A, double *B, int n);
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-treecombine::treecombine()
+QwTrackingTreeCombine::QwTrackingTreeCombine()
 {
   debug = 1; // debug level
 
   if( debug )
-      cout<<"###### Calling treecombine::treecombine ()"<<endl;
-
-//  for (int i=0; i<kNumPackages*kNumRegions*kNumTypes*kNumDirections; i++)
-//    rcTreeRegion[i] = myTreeRegion[i];
+      cout<<"###### Calling QwTrackingTreeCombine::QwTrackingTreeCombine ()"<<endl;
 
   if( debug )
-      cout<<"###### Leaving treecombine::treecombine ()"<<endl;
+      cout<<"###### Leaving QwTrackingTreeCombine::QwTrackingTreeCombine ()"<<endl;
 }
 
-treecombine::~treecombine() {
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+QwTrackingTreeCombine::~QwTrackingTreeCombine () {
   if( debug )
-      cout<<"###### Calling treecombine::~treecombine ()"<<endl;
+      cout<<"###### Calling QwTrackingTreeCombine::~QwTrackingTreeCombine ()"<<endl;
 
   if( debug )
-      cout<<"###### Leavinging treecombine::~treecombine ()"<<endl;
+      cout<<"###### Leavinging QwTrackingTreeCombine::~QwTrackingTreeCombine ()"<<endl;
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 chi_hash::chi_hash()
 {
   hits = 0;
 }
 
-//__________________________________________________________________
-int treecombine::chi_hashval (int n, Hit **hit)
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+int QwTrackingTreeCombine::chi_hashval (int n, Hit **hit)
 {
   int i;
   double hash = 389.0; // WTF IS THIS?!?
@@ -94,14 +99,17 @@ int treecombine::chi_hashval (int n, Hit **hit)
        ((((*(unsigned*)&hash))>>22) & HASHMASK)) ;
   return i;
 }
-//__________________________________________________________________
-void treecombine::chi_hashclear(void)
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+void QwTrackingTreeCombine::chi_hashclear(void)
 {
   memset (hasharr, 0, sizeof(hasharr));
 }
 
-//__________________________________________________________________
-void treecombine::chi_hashinsert(Hit **hits, int n, double slope, double xshift, double cov[3],double chi)
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+void QwTrackingTreeCombine::chi_hashinsert(Hit **hits, int n, double slope, double xshift, double cov[3],double chi)
 {
   int val = chi_hashval( n, hits), i;
 //Got rid of a Qmalloc in the following line
@@ -125,8 +133,10 @@ void treecombine::chi_hashinsert(Hit **hits, int n, double slope, double xshift,
   }
 
 }
-//__________________________________________________________________
-int treecombine::chi_hashfind( Hit **hits, int n, double *slope, double *xshift, double cov[3],double *chi)
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+int QwTrackingTreeCombine::chi_hashfind( Hit **hits, int n, double *slope, double *xshift, double cov[3],double *chi)
 {
   int val = chi_hashval( n, hits), i;
   chi_hash *new_chi_hash;
@@ -153,7 +163,8 @@ int treecombine::chi_hashfind( Hit **hits, int n, double *slope, double *xshift,
   }
   return 0;
 }
-//__________________________________________________________________
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /*-------------------------------
    BESTX : This is a much simplified
@@ -161,7 +172,7 @@ int treecombine::chi_hashfind( Hit **hits, int n, double *slope, double *xshift,
    matches the left/right wire hits
    in r3 to the pattern being used.
 --------------------------------*/
-int treecombine::bestx (
+int QwTrackingTreeCombine::bestx (
 	double *xresult,	//!- x position of the track in this plane
 	Hit *h,			//!- hit to investigate
 	Hit *ha)		//!- hit with the selected position
@@ -199,7 +210,8 @@ int treecombine::bestx (
 
   return 1;
 }
-//__________________________________________________________________
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /* ------------------------------
 
@@ -216,7 +228,7 @@ int treecombine::bestx (
    MAXHITPERLINE
 
    ------------------------------ */
-int treecombine::bestx (
+int QwTrackingTreeCombine::bestx (
 	double *xresult,	//!- x position of the track in this plane
 	double resolution,	//!- resolution
 	Hit* hitlist,		//!- hit list
@@ -305,9 +317,8 @@ int treecombine::bestx (
   }
   return ngood;
 }
-//__________________________________________________________________
 
-
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /* --------------------------------------------------------------------------
  * creates permutations of hits
@@ -318,7 +329,7 @@ int treecombine::bestx (
  * hx  : hits filled: ha[l][r[]]
  * ha  : array to write permutated hits in
  * ------------------------------------------------------------------------- */
-void treecombine::mul_do (
+void QwTrackingTreeCombine::mul_do (
 	int i,
 	int mul,
 	int l,
@@ -345,7 +356,9 @@ void treecombine::mul_do (
   }
   return;
 }
-//__________________________________________________________________
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 /* ----------------------------------------------------------------------
  * weight_lsq
  * we solve the linear equation with
@@ -362,7 +375,7 @@ void treecombine::mul_do (
  * get the covariance matrix for position and slope.
  */
 // TODO Why is this similar to weight_lsq_r3?  can't this be one function?
-void treecombine::weight_lsq (
+void QwTrackingTreeCombine::weight_lsq (
 	double *slope,
 	double *xshift,
 	double cov[3],
@@ -437,7 +450,8 @@ void treecombine::weight_lsq (
   *chi   = sqrt (s / n);
   chi_hashinsert(hits, n, *slope, *xshift, cov, *chi);
 }
-//__________________________________________________________________
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /* ----------------------------------------------------------------------
  * We solve the linear equation with
@@ -454,7 +468,7 @@ void treecombine::weight_lsq (
  * and get the covariance matrix for position and slope.
  */
 
-void treecombine::weight_lsq_r3 (
+void QwTrackingTreeCombine::weight_lsq_r3 (
 	double *slope,
 	double *xshift,
 	double cov[3],
@@ -546,19 +560,23 @@ void treecombine::weight_lsq_r3 (
   *chi = sqrt (s/n);
   //chi_hashinsert(hits, n, *slope, *xshift, cov, *chi);
 }
-//__________________________________________________________________
-int treecombine::contains (double var, Hit **arr, int len)
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+int QwTrackingTreeCombine::contains (double var, Hit **arr, int len)
 {
   // TODO (wdc) This is unsafe due to double comparisons.
   // In light of calibration effects, this could fail.
-  cerr << "[treecombine::contains] Warning: double == double is unsafe." << endl;
+  cerr << "[QwTrackingTreeCombine::contains] Warning: double == double is unsafe." << endl;
   for (int i = 0; i < len ; i++) {
     if (var == arr[i]->rResultPos)
       return 1;
   }
   return 0;
 }
-//__________________________________________________________________
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 /* ------------------------------
    searches for the closest hit to
    to *xresult and writes it
@@ -574,7 +592,7 @@ int treecombine::contains (double var, Hit **arr, int len)
    MAXHITPERLINE
    ------------------------------ */
 
-int treecombine::selectx (
+int QwTrackingTreeCombine::selectx (
 	double *xresult,
 	double resolution,
 	Det *detec,
@@ -615,22 +633,25 @@ int treecombine::selectx (
   }
   return good;
 }
-//__________________________________________________________________
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 /* ----------------------------------------------------------------------
  * returns the z position of a crossing point of a detector
  * and a line with track parameters x and slope_x
  */
-double treecombine::detZPosition (
+double QwTrackingTreeCombine::detZPosition (
 	Det *det,
 	double x,
 	double slope_x,
 	double *xval)
 {
-  // TODO This should be method of something, not in treecombine...
+  // TODO This should be method of something, not in QwTrackingTreeCombine...
   cerr << "This function is just a stub" << endl;
   return -9999;
 }
-//__________________________________________________________________
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /*------------------------------------------------------------------------*//*!
 
@@ -643,7 +664,7 @@ double treecombine::detZPosition (
  if not in the acceptance of at least one detector plane.
 
 *//*-------------------------------------------------------------------------*/
-int treecombine::inAcceptance (
+int QwTrackingTreeCombine::inAcceptance (
 	EQwDetectorPackage package,
 	EQwRegionID region,
 	double cx, double mx,
@@ -682,13 +703,15 @@ int treecombine::inAcceptance (
   }
   return 1;
 }
-//__________________________________________________________________
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 /* -------------------------------------------------------------------------
  * TLCHECKFORX :
  * checks for x hits on a line given by values in (RENAMED VARIABLE) and (RENAMED VARIABLE)
  * dlayer: number of detector layers to search in
  * ------------------------------------------------------------------------- */
-int treecombine::TlCheckForX (
+int QwTrackingTreeCombine::TlCheckForX (
 	double x1,
 	double x2,
 	double dx1,
@@ -889,7 +912,8 @@ int treecombine::TlCheckForX (
   }
   return ret;
 }
-//__________________________________________________________________
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /* -------------------------------
 This function replaces TlCheckForX for region 3.  It matches one of
@@ -902,7 +926,7 @@ right/left ambiguity for each wire.
 OUTPUT : the best hits are added to treeline's hit list and treeline's
 	line parameters are set.
 --------------------------------*/
-int treecombine::TlMatchHits (
+int QwTrackingTreeCombine::TlMatchHits (
 	double x1,
 	double x2,		//!- x coordinates
 	double z1,		//!- z coordinate
@@ -1007,13 +1031,15 @@ int treecombine::TlMatchHits (
   return ret;
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 /* ------------------------------
    Marks TreeLines close to
    other Lines as being good
    or bad in respect to their
    chi^2
    ------------------------------ */
-void treecombine::TlTreeLineSort (
+void QwTrackingTreeCombine::TlTreeLineSort (
 	QwTrackingTreeLine *treelinelist,
 	EQwDetectorPackage package,
 	EQwRegionID region,
@@ -1132,7 +1158,7 @@ void treecombine::TlTreeLineSort (
 
   /* Other regions */
   } else {
-    cerr << "Warning: treecombine not implemented for region " << region << endl;
+    cerr << "Warning: QwTrackingTreeCombine not implemented for region " << region << endl;
   }
 
   /* End of region-specific parts */
@@ -1161,6 +1187,7 @@ void treecombine::TlTreeLineSort (
 
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*!--------------------------------------------------------------------------*\
 
  r2_TrackFit()
@@ -1184,6 +1211,8 @@ void treecombine::TlTreeLineSort (
 		solving systems of equations.
 
 *//*-------------------------------------------------------------------------*/
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 int r2_TrackFit (int Num, Hit **Hit, double *fit, double *cov, double *chi)
 {
   //###############
@@ -1282,12 +1311,10 @@ int r2_TrackFit (int Num, Hit **Hit, double *fit, double *cov, double *chi)
 
   return 0;
 }
-//__________________________________________________________________
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-
-
-int treecombine::r3_TrackFit2( int Num, Hit **Hit, double *fit, double *cov, double *chi)
+int QwTrackingTreeCombine::r3_TrackFit2( int Num, Hit **Hit, double *fit, double *cov, double *chi)
 {
   //###############
   // Declarations #
@@ -1343,17 +1370,17 @@ int treecombine::r3_TrackFit2( int Num, Hit **Hit, double *fit, double *cov, dou
     }
   }
 
-  if (debug) cout << "[treecombine::r3_TrackFit2] Before inversion: AA =" << endl;
+  if (debug) cout << "[QwTrackingTreeCombine::r3_TrackFit2] Before inversion: AA =" << endl;
   if (debug) M_Print(AAp, cov, 4);
 
   M_Invert(AAp, cov, 4);
 
   if (!cov) {
-    cerr << "[treecombine::r3_TrackFit2] Inversion failed" << endl;
+    cerr << "[QwTrackingTreeCombine::r3_TrackFit2] Inversion failed" << endl;
     return -1;
   }
 
-  if (debug) cout << "[treecombine::r3_TrackFit2] After inversion: AA =" << endl;
+  if (debug) cout << "[QwTrackingTreeCombine::r3_TrackFit2] After inversion: AA =" << endl;
   if (debug) M_Print(AAp, cov, 4);
 
   /* calculate the fit */
@@ -1461,12 +1488,10 @@ int treecombine::r3_TrackFit2( int Num, Hit **Hit, double *fit, double *cov, dou
 
   return 1;
 }
-//__________________________________________________________________
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-
-
-int treecombine::r3_TrackFit( int Num, Hit **hit, double *fit, double *cov, double *chi,double uv2xy[2][2])
+int QwTrackingTreeCombine::r3_TrackFit( int Num, Hit **hit, double *fit, double *cov, double *chi,double uv2xy[2][2])
 {
   //###############
   // Declarations #
@@ -1566,11 +1591,10 @@ int treecombine::r3_TrackFit( int Num, Hit **hit, double *fit, double *cov, doub
   cerr << "(" << (mx * zz2 + bx) << "," << my * zz2 + by << "," << zz2 << ")" << endl;
   return 0;
 }
-//__________________________________________________________________
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-
-int treecombine::TcTreeLineCombine2(QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, PartTrack *pt, int tlayer)
+int QwTrackingTreeCombine::TcTreeLineCombine2(QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, PartTrack *pt, int tlayer)
 {
   //###############
   // Declarations #
@@ -1624,8 +1648,8 @@ int treecombine::TcTreeLineCombine2(QwTrackingTreeLine *wu, QwTrackingTreeLine *
 
     // Array bounds
     if (debug) {
-      cout << "[treecombine::TcTreeLineCombine2] #tlayer = " << tlayer << endl;
-      cout << "[treecombine::TcTreeLineCombine2] #hits   = " << num << endl;
+      cout << "[QwTrackingTreeCombine::TcTreeLineCombine2] #tlayer = " << tlayer << endl;
+      cout << "[QwTrackingTreeCombine::TcTreeLineCombine2] #hits   = " << num << endl;
     }
 
     // Loop over all hits
@@ -1666,11 +1690,10 @@ int treecombine::TcTreeLineCombine2(QwTrackingTreeLine *wu, QwTrackingTreeLine *
 
   return 1;
 }
-//__________________________________________________________________
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-
-int treecombine::TcTreeLineCombine(QwTrackingTreeLine *wu,QwTrackingTreeLine *wv,PartTrack *pt, int tlayer )
+int QwTrackingTreeCombine::TcTreeLineCombine(QwTrackingTreeLine *wu,QwTrackingTreeLine *wv,PartTrack *pt, int tlayer )
 {
   //###############
   // Declarations #
@@ -1774,8 +1797,10 @@ cerr << "a" << endl;
 
 return 1;
 }
-//__________________________________________________________________
-int treecombine::TcTreeLineCombine (
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+int QwTrackingTreeCombine::TcTreeLineCombine (
 	QwTrackingTreeLine *wu,
 	QwTrackingTreeLine *wv,
 	QwTrackingTreeLine *wx,
@@ -1843,29 +1868,38 @@ int treecombine::TcTreeLineCombine (
   //cerr << "6" << endl;
   return 1;
 }
-//__________________________________________________________________
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 double uv2x (double u, double v, double wirecos)
 {
   return (u-v)*fabs(wirecos);
 }
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 double uv2y (double u, double v, double wiresin)
 {
   return (u+v)*fabs(wiresin);
 }
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 double xy2u (double x, double y)
 {
   cerr << "This function is just a stub" << endl;
   return -1000;
 }
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 double xy2v (double x, double y)
 {
   cerr << "This function is just a stub" << endl;
   return -1000;
 }
-//__________________________________________________________________
 
-
-
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /* ------------------------------
    Combines u v and x to tracks
@@ -1882,7 +1916,7 @@ double xy2v (double x, double y)
 
 
 */
-PartTrack *treecombine::TlTreeCombine (
+PartTrack *QwTrackingTreeCombine::TlTreeCombine (
 	QwTrackingTreeLine *uvl[kNumDirections],
 	long bins,
 	EQwDetectorPackage package,
@@ -1892,7 +1926,7 @@ PartTrack *treecombine::TlTreeCombine (
 	int dlayer,
 	QwTrackingTreeRegion **myTreeRegion)
 {
-  if (debug) cout << "[treecombine::TlTreeCombine]" << endl;
+  if (debug) cout << "[QwTrackingTreeCombine::TlTreeCombine]" << endl;
 
   //################
   // DECLARATIONS  #
@@ -2132,7 +2166,7 @@ PartTrack *treecombine::TlTreeCombine (
   // (All that follows is useful legacy junk, which should not be reached
   //  in the case of QwTracking because everything is handled above)
   } else {
-  cerr << "[treecombine::TlTreeCombine] Error: you shouldn't be here!" << endl;
+  cerr << "[QwTrackingTreeCombine::TlTreeCombine] Error: you shouldn't be here!" << endl;
   double rcSETrMaxXRoad         = 0.25;
   cerr << "Error : Using stub value" << endl;
   wu = uvl[kDirectionU];
@@ -2276,11 +2310,10 @@ PartTrack *treecombine::TlTreeCombine (
   return ret;
   }
 }
-//__________________________________________________________________
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-
-void treecombine::ResidualWrite (Event* event)
+void QwTrackingTreeCombine::ResidualWrite (Event* event)
 {
   cerr << "This function may need a 'for loop' for orientation" << endl;
 
@@ -2351,7 +2384,9 @@ void treecombine::ResidualWrite (Event* event)
   }
   return;
 }
-//__________________________________________________________________
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 /*
 matrix  M_Init (int Zeilen, int Spalten)
 {
@@ -2372,9 +2407,8 @@ matrix  M_Init (int Zeilen, int Spalten)
   return ret;
 }
 */
-//__________________________________________________________________
 
-
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 // Least upper bound standard
 double UNorm (double *A, int n, int m)
@@ -2392,9 +2426,8 @@ double UNorm (double *A, int n, int m)
   }
   return Max;
 }
-//__________________________________________________________________
 
-
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /*------------------------------------------------------------------------*//*!
 
@@ -2447,9 +2480,8 @@ double *M_Cholesky (double *B, double *q, int n)
   pp = q;
   return B;
 }
-//__________________________________________________________________
 
-
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /*------------------------------------------------------------------------*//*!
 
@@ -2465,9 +2497,8 @@ void RowMult (double a, double *A, double b, double *B, int n)
 
   return;
 }
-//__________________________________________________________________
 
-
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /*------------------------------------------------------------------------*//*!
 
@@ -2491,7 +2522,7 @@ void M_Print (double *A, int n)
   return;
 }
 
-
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /*------------------------------------------------------------------------*//*!
 
@@ -2519,7 +2550,7 @@ void M_Print (double *A, double *B, int n)
   return;
 }
 
-
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /*------------------------------------------------------------------------*//*!
 
@@ -2540,7 +2571,7 @@ double *M_Unit (double *A, int n)
   return A;
 }
 
-
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /*------------------------------------------------------------------------*//*!
 
@@ -2560,7 +2591,7 @@ double *M_Zero (double *A, int n)
   return A;
 }
 
-
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /*------------------------------------------------------------------------*//*!
 
@@ -2689,7 +2720,7 @@ double *M_Invert (double *Ap, double *Bp, int n)
   return Bp;
 }
 
-
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /*------------------------------------------------------------------------*//*!
 
@@ -2756,7 +2787,7 @@ double *M_InvertPos (double *B, int n)
   return B;
 }
 
-
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /*------------------------------------------------------------------------*//*!
 
@@ -2775,8 +2806,8 @@ double *M_A_times_b (double *y, double *A, int n, int m, double *b)
   }
   return y;
 }
-//__________________________________________________________________
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /*------------------------------------------------------------------------*//*!
 
@@ -2793,7 +2824,7 @@ double *M_A_times_b (double *y, double *A, int n, int m, double *b)
  geometry definition.  Tracks are drawn straight from region 3.
 
 *//*-------------------------------------------------------------------------*/
-int treecombine::checkR3 (PartTrack *pt, EQwDetectorPackage package)
+int QwTrackingTreeCombine::checkR3 (PartTrack *pt, EQwDetectorPackage package)
 {
   double trig[3], cc[3];
   double lim_trig[2][2], lim_cc[2][2];
@@ -2845,3 +2876,5 @@ int treecombine::checkR3 (PartTrack *pt, EQwDetectorPackage package)
 
   return 0;
 }
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

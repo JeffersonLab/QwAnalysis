@@ -27,7 +27,7 @@
 							wwc@hermes.desy.de
 
 
-  MODULE: treesearch.c                         COMMENTS: Brendan Fox
+  MODULE: QwTrackingTreeSearch.c                         COMMENTS: Brendan Fox
                                                          foxb@hermes.desy.de
 
  PURPOSE: This module contains the code for performing the treesearch

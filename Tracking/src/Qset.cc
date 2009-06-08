@@ -6,7 +6,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "tree.h"
+#include "QwTrackingTree.h"
 
 #ifndef NDetMax
 # define NDetMax 1010

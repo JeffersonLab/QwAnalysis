@@ -1,9 +1,9 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
- \class tree
+ \class QwTrackingTree
 
- \brief The tree class contains the code for creating the tree search database.
+ \brief The QwTrackingTree class contains the code for creating the tree search database.
 
  \verbatim
 
@@ -13,7 +13,7 @@
 							Wolfgang Wander
 							wwc@hermes.desy.de
 
- MODULE: tree
+ MODULE: QwTrackingTree
 
  \endverbatim
 
@@ -89,11 +89,11 @@
 *//*-------------------------------------------------------------------------*/
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-#include "tree.h"
+#include "QwTrackingTree.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-const string tree::TREEDIR("tree");
+const string QwTrackingTree::TREEDIR("tree");
 
 //extern QwTrackingTreeRegion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 //extern QwTrackingTreeRegion *rcTreeRegion[kNumPackages*kNumRegions*kNumTypes*kNumDirections];
@@ -114,7 +114,7 @@ extern Options opt;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void tree::printtree (treenode* tn)
+void QwTrackingTree::printtree (treenode* tn)
 {
   tn->print();
 }
@@ -122,9 +122,9 @@ void tree::printtree (treenode* tn)
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
- \class tree
+ \class QwTrackingTree
 
- \fn tree()
+ \fn QwTrackingTree()
 
  \brief Initializes the search tree.
 
@@ -135,19 +135,19 @@ void tree::printtree (treenode* tn)
 *//*-------------------------------------------------------------------------*/
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-tree::tree ()
+QwTrackingTree::QwTrackingTree ()
 {
   // Set debug level
   debug = 1;
 
   if( debug )
-      cout<<"###### Calling tree::tree ()"<<endl;
+      cout<<"###### Calling QwTrackingTree::QwTrackingTree ()"<<endl;
 
   tlayers = 8; // set tlayers == maxhits for now (for region 3)
 
   hshsiz = 511;
 
-  // Initialize the tree structure
+  // Initialize the QwTrackingTree structure
   father.genlink = 0;
   for (int i = 0; i < 4; i++) father.son[i] = 0;
   father.maxlevel = -1;
@@ -158,20 +158,20 @@ tree::tree ()
   npat = 0;
 
   if( debug )
-      cout<<"###### Leaving tree::tree ()"<<endl;
+      cout<<"###### Leaving QwTrackingTree::QwTrackingTree ()"<<endl;
 
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-tree::~tree ()
+QwTrackingTree::~QwTrackingTree ()
 {
 
 if( debug )
-      cout<<"###### Calling tree::~tree ()"<<endl;
+      cout<<"###### Calling QwTrackingTree::~QwTrackingTree ()"<<endl;
 
 if( debug )
-      cout<<"###### Leaving tree::~tree ()"<<endl;
+      cout<<"###### Leaving QwTrackingTree::~QwTrackingTree ()"<<endl;
 
 }
 
@@ -184,7 +184,7 @@ if( debug )
 
 *//*-------------------------------------------------------------------------*/
 
-int tree::consistent(
+int QwTrackingTree::consistent(
 	treenode *tst,
 	int level,
 	EQwDetectorPackage package,
@@ -378,7 +378,7 @@ int tree::consistent(
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-treenode* tree::existent (treenode *tst, int hash)
+treenode* QwTrackingTree::existent (treenode *tst, int hash)
 {
   treenode *walk = generic[hash];
   while (walk) {
@@ -391,7 +391,7 @@ treenode* tree::existent (treenode *tst, int hash)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-treenode* tree::nodeexists (nodenode* node, treenode* tr)
+treenode* QwTrackingTree::nodeexists (nodenode* node, treenode* tr)
 {
   while (node) {
     if (! memcmp(node->tree->bit, tr->bit, tlayers * sizeof(tr->bit[0])))
@@ -403,7 +403,7 @@ treenode* tree::nodeexists (nodenode* node, treenode* tr)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-treenode* tree::treedup (treenode *todup)
+treenode* QwTrackingTree::treedup (treenode *todup)
 {
   // TODO (wdc) Copy constructor for treenode
   treenode* ret = new treenode;	/* allocate the memory for the treenode	*/
@@ -435,7 +435,7 @@ treenode* tree::treedup (treenode *todup)
 
 *//*-------------------------------------------------------------------------*/
 
-void tree::marklin (
+void QwTrackingTree::marklin (
 	treenode* father,
 	int level,
 	EQwDetectorPackage package,
@@ -907,7 +907,7 @@ void tree::marklin (
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void tree::treeout (treenode *tn, int level, int off)
+void QwTrackingTree::treeout (treenode *tn, int level, int off)
 // TODO (wdc) wtf? nested double loop over i???  this can't be right!
 {
   nodenode *nd;
@@ -940,7 +940,7 @@ void tree::treeout (treenode *tn, int level, int off)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void tree::freetree()
+void QwTrackingTree::freetree()
 {
 	treenode *tn,*ltn;
 	nodenode *nd,*lnd;
@@ -980,7 +980,7 @@ void tree::freetree()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-/*! \fn tree::readtree
+/*! \fn QwTrackingTree::readtree
     @param filename	The filename of the file where the tree is stored
     @param levels	The number of levels
     @param tlayers	The number of layers
@@ -990,7 +990,7 @@ void tree::freetree()
     @return		The search treeregion
  */
 
-QwTrackingTreeRegion* tree::readtree (
+QwTrackingTreeRegion* QwTrackingTree::readtree (
 	char *filename,
 	int levels,
 	int tlayers,
@@ -1069,7 +1069,7 @@ QwTrackingTreeRegion* tree::readtree (
     automatically create the new databases.
  */
 
-QwTrackingTreeRegion* tree::inittree (
+QwTrackingTreeRegion* QwTrackingTree::inittree (
 	char *filename,
 	int levels,
 	int tlayer,
@@ -1150,7 +1150,7 @@ QwTrackingTreeRegion* tree::inittree (
     as the simplest pattern possible, and passed to marklin.
  */
 
-treenode* tree::_inittree (
+treenode* QwTrackingTree::_inittree (
 	int tlayer,
 	EQwDetectorPackage package,
 	EQwDetectorType type,
@@ -1172,7 +1172,7 @@ treenode* tree::_inittree (
 /*! This function iteratively writes the patterns to the database.
  */
 
-int tree::_writetree (treenode *tn, FILE *fp, int tlayers)
+int QwTrackingTree::_writetree (treenode *tn, FILE *fp, int tlayers)
 {
   nodenode* nd;
   //tn->print();///use this for debugging.
@@ -1213,7 +1213,7 @@ int tree::_writetree (treenode *tn, FILE *fp, int tlayers)
     @return	The number of patterns written to the file
  */
 
-long tree::writetree (
+long QwTrackingTree::writetree (
 	char *filename,
 	treenode *tn,
 	int levels,
@@ -1224,10 +1224,10 @@ long tree::writetree (
 	bfs::path treedirpath((std::string(getenv("QWANALYSIS")) + "/" + TREEDIR).c_str());
 	if (! bfs::exists(treedirpath)) {
 		bfs::create_directory(treedirpath);
-		if (debug) cout << "[tree::writetree] Created tree directory." << endl;
+		if (debug) cout << "[QwTrackingTree::writetree] Created tree directory." << endl;
 	}
 	if (! bfs::exists(treedirpath) || ! bfs::is_directory(treedirpath)) {
-		cerr << "[tree::writetree] Error: could not create tree directory!" << endl;
+		cerr << "[QwTrackingTree::writetree] Error: could not create tree directory!" << endl;
 		return 0;
 	}
 
@@ -1285,7 +1285,7 @@ long tree::writetree (
     @return	Returns negative on error, zero otherwise
  */
 
-int tree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int tlayers)
+int QwTrackingTree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int tlayers)
 {
   int c, sonny;
   int Minlevel, Bits, Bit[TLAYERS];

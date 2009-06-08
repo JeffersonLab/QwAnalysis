@@ -31,7 +31,7 @@
 #include <cstdlib>
 
 #include "QwTrackingTreeMatch.h"
-#include "treecombine.h"
+#include "QwTrackingTreeCombine.h"
 
 using namespace std;
 
@@ -137,7 +137,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
   double RotCos,RotSin,RotTan;
   int nhits,fhits,bhits;
   int matchfound = 0;
-  treecombine *TreeCombine = new treecombine();
+  QwTrackingTreeCombine *TreeCombine = new QwTrackingTreeCombine();
   Hit *DetecHits[2*TLAYERS];
 
   ofstream gnu1,gnu2;

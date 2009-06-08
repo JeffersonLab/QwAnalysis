@@ -16,7 +16,7 @@ namespace QwTracking {
 
 QwTrackingTreeRegion::QwTrackingTreeRegion() {
  /* Set debug level */
-  debug = 0;
+  debug = 1;
 
   if( debug )
       cout<<"###### Calling QwTrackingTreeRegion::QwTrackingTreeRegion ()"<<endl;
