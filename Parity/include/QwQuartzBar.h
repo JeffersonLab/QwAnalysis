@@ -32,6 +32,8 @@ class QwQuartzBar: public VQwSubsystemParity {
   /*  Member functions derived from VQwSubsystemParity. */
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
+  Int_t LoadEventCuts(TString & filename);
+  Bool_t SingleEventCuts();
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
   void  ClearEventData();

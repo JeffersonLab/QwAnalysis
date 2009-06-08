@@ -73,6 +73,8 @@ class QwBeamLine : public VQwSubsystemParity{
   /* derived from VQwSubsystem */
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
+  Int_t LoadEventCuts(TString & filename);//derived from VQwSubsystemParity
+  Bool_t SingleEventCuts();//derived from VQwSubsystemParity
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   void  PrintDetectorID();

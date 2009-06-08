@@ -169,6 +169,11 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   
   return 0;
 };
+//*****************************************************************
+
+Int_t QwBeamLine::LoadEventCuts(TString & filename){
+  return 0;
+};
 
 //*****************************************************************
 Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
@@ -289,6 +294,12 @@ Int_t QwBeamLine::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer,
   }
   
   return 0;
+};
+
+Bool_t QwBeamLine::SingleEventCuts(){
+  //currently this will check the IsGoodEvent() only!
+  std::cout<<" QwBeamLine::SingleEventCuts()"<<std::endl;
+  return IsGoodEvent();
 };
 
 

@@ -169,6 +169,11 @@ Int_t QwHelicity::LoadInputParameters(TString pedestalfile)
   SetHelicityDelay(8); // that is the number of pattern delayed
   return 0;
 }
+//*****************************************************************
+Bool_t QwHelicity::SingleEventCuts(){
+  //currently this will check the IsGoodHelicity() only!
+  return IsGoodHelicity();  
+};
 
 //*****************************************************************
 void  QwHelicity::ProcessEvent()
@@ -461,6 +466,13 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
   
   return 0;
 };
+//////////////////////////////////////////////////////
+
+Int_t QwHelicity::LoadEventCuts(TString & filename){
+  return 0;
+};
+
+
 //////////////////////////////////////////////////////
 Int_t QwHelicity::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {

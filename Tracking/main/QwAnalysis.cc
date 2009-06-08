@@ -286,6 +286,8 @@ int main(Int_t argc,Char_t* argv[])
 
       QwDetectors.ProcessEvent();
 
+      //QwDetectors.GetSubsystem("R2")->CalculateDriftDistance();
+
 
       //  Fill the histograms for the subsystem objects.
       QwDetectors.FillHistograms();

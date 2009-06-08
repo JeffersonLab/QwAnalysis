@@ -181,3 +181,28 @@ void QwSubsystemArrayParity::Ratio(QwSubsystemArrayParity &numer, QwSubsystemArr
   if(localdebug) std::cout<<"I am out of it \n";
 
 };
+
+Bool_t QwSubsystemArrayParity::SingleEventCuts(){
+  Int_t CountFalse;
+  Bool_t status;
+  VQwSubsystemParity *subsys_parity;
+  CountFalse=0;
+  std::cout<<" here in QwSubsystemArrayParity::SingleEventCut()"<<std::endl;
+  if (!empty()){
+    for (iterator subsys = begin(); subsys != end(); ++subsys){
+      subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
+      if (subsys_parity->SingleEventCuts()) 
+      {
+	CountFalse++;
+	//update the sFailedSubsystem vector
+	sFailedSubsystems.push_back(((subsys)->get())->GetSubsystemName());
+      }
+    }
+  }
+  if (CountFalse > 0)
+    status = false;
+  else
+    status = true;
+
+ return status;
+}

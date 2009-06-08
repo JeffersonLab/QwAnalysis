@@ -95,7 +95,7 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile){
 };
 
 
-void  QwDriftChamber::CalculateDriftDistance()
+void  QwDriftChamber::CalculateDriftDistance()//Currently This routine is not in use the drift distance calculation is done at ProcessEvent() on each sub-class
 {
   for(std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
 

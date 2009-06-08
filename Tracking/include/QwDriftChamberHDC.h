@@ -64,6 +64,8 @@ class QwDriftChamberHDC: public QwDriftChamber {
   Int_t LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire);
   Int_t BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire);
   Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire);
+
+  Double_t trig_h1;//this will keep the first hit time of trig_h1 (plane 7)
  
 
 

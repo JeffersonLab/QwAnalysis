@@ -148,6 +148,8 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
 {
   Bool_t refs_okay = kTRUE;
   std::vector<Double_t> reftimes;
+  Int_t counter=1;
+  
 
   reftimes.resize(fReferenceData.size());
   for (size_t i=0; i<fReferenceData.size(); i++){
@@ -167,13 +169,30 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
       }
     }
     for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
+      
       hit1->SubtractReference(reftimes.at(hit1->GetSubbankID()));
+      if (counter>0){
+	if (hit1->GetDetectorID().fPlane==7){//this will read the first hit time of trig_h1
+	  trig_h1=hit1->GetTime();
+	  //std::cout<<"********Found trig_h1 "<< trig_h1<<std::endl;
+	  counter=0;
+	}
+      }
+      counter++;
     }
   }
 };
 
 Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector){
-  return 0;
+  //0.00545449393  0.0668865488  0.000352462179 -2.00383196E-05  3.57577417E-07  -2.82802562E-09  7.89009965E-12
+  Double_t dt_ = 0.12 * (drifttime-trig_h1 + 933.0);
+  Double_t dd_;
+
+  dd_ = 0.00545449393 +  0.0668865488*dt_ +  0.000352462179*dt_*dt_ + ( -2.00383196E-05*dt_*dt_*dt_) +  (3.57577417E-07*dt_*dt_*dt_*dt_) + ( -2.82802562E-09*dt_*dt_*dt_*dt_*dt_) +   (7.89009965E-12*dt_*dt_*dt_*dt_*dt_*dt_);
+
+  //std::cout<<" Drift distance "<<dd_<<" Drift time "<<dt_<<" Original value  "<<drifttime<<std::endl;
+  
+  return dd_;
 };
 
 
@@ -262,5 +281,19 @@ Int_t QwDriftChamberHDC::AddChannelDefinition(const UInt_t plane, const UInt_t w
 
 void  QwDriftChamberHDC::ProcessEvent(){
   if (! HasDataLoaded()) return;
-    SubtractReferenceTimes();
+
+  SubtractReferenceTimes();
+
+
+  for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
+
+    //if (hit1->GetDetectorID().fPlane<7){
+      //std::cout<<"Plane "<<hit1->GetDetectorID().fPlane<<std::endl;
+      hit1->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));
+      //}
+
+  }
+
+
+    
 };

@@ -67,6 +67,10 @@ Int_t QwQuartzBar::LoadChannelMap(TString mapfile){
   return 0;
 };
 
+Int_t QwQuartzBar::LoadEventCuts(TString & filename){
+  return 0;
+};
+
 
 
 Int_t QwQuartzBar::LoadInputParameters(TString pedestalfile)
@@ -157,6 +161,11 @@ Int_t QwQuartzBar::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer
     }
   }
   return 0;
+};
+
+Bool_t QwQuartzBar::SingleEventCuts(){
+  //For the QuartzBar no general routine to check validity
+  return true;
 };
 
 

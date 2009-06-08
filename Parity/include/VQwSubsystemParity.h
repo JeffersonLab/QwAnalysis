@@ -53,6 +53,9 @@ class VQwSubsystemParity : public VQwSubsystem {
   virtual void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)=0;
   virtual void Ratio(VQwSubsystem *numer, VQwSubsystem *denom)=0;
 
+  virtual Int_t LoadEventCuts(TString &filename)=0;//Will load the event cut file.
+  virtual Bool_t SingleEventCuts()=0;//impose single event cuts
+
   private:
   VQwSubsystemParity(){};  //  Private constructor.
 };

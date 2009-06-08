@@ -31,6 +31,10 @@ class QwSubsystemArrayParity:  public QwSubsystemArray {
   void Sum(QwSubsystemArrayParity &value1, QwSubsystemArrayParity &value2);
   void Difference(QwSubsystemArrayParity &value1, QwSubsystemArrayParity &value2);
   void Ratio(QwSubsystemArrayParity &numer, QwSubsystemArrayParity &denom);
+  Bool_t SingleEventCuts();
+
+ public:
+  std::vector<TString> sFailedSubsystems;
 
 };
   
