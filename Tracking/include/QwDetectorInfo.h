@@ -47,6 +47,8 @@ public:
        dType = kTypeCerenkov;
     else if (sdType == "g")
        dType = kTypeGem;
+    else if (sdType == "s")
+       dType = kTypeScanner;
 
     if (spackage == "u")
       package=kPackageUp;//i.e. =1

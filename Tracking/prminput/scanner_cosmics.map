@@ -1,0 +1,32 @@
+! Created by J. Pan, for the focal plane scanner
+! This file needs to be modified according to actual modules and
+! channels assigned to scanner detector. We need two channels of
+! QADC's for monitoring the PMT gain, 3 channels of TRIUMF ADC's
+! for measuring the X, Y position of the scanner, and one scaler
+! channel for the coincident rate.
+!
+! jpan@jlab.org, Thu May 21 23:18:41 CDT 2009
+!
+!
+!
+ROC=11
+Bank=0x1111
+!
+!
+slot=18
+module=V792
+! channel, signalname
+1,	quartz_front_adc
+2,	quartz_back_adc
+3,	trigg1_adc
+4,	trigg2_adc
+!
+!
+slot=19
+module=V775
+! channel, signalname
+1,	triggertdc
+2,	clock__tdc
+3,	quartz_tdc
+!
+!END

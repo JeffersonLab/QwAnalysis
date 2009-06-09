@@ -39,7 +39,8 @@ enum EQwDetectorType {
   kTypeDriftVDC,	// VDC Drift chamber
   kTypeGem,	        // GEM detector
   kTypeTrigscint,	// Trigger scintillator
-  kTypeCerenkov		// Cerenkov detector
+  kTypeCerenkov,	// Cerenkov detector
+  kTypeScanner		// Focal plane scanner
 };
 
 

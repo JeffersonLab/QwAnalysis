@@ -63,6 +63,8 @@ void Det::print()
       cout << "trigscint"; break;
     case kTypeCerenkov:
       cout << "cerenkov"; break;
+    case kTypeScanner:
+      cout << "scanner"; break;
     default:
       cout << "?"; break;
   }

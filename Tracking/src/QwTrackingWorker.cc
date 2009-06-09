@@ -258,7 +258,7 @@ void QwTrackingWorker::InitTree()
 
   } /// end of loop over regions
 
-  delete thetree;
+  if (thetree) delete thetree;
 
 }
 
@@ -339,6 +339,9 @@ Track * QwTrackingWorker::rcLinkUsedTracks( Track *track, int package )
       }
     }
   }
+  delete usedwalk;
+  delete trackwalk;
+  delete ytrack;
   return ret;
 }
 

@@ -138,6 +138,8 @@ int Qset::FillDetec (const char *geomname)
 				rcDET[i].type = kTypeTrigscint; break;
 			case 'c':
 				rcDET[i].type = kTypeCerenkov;  break;
+			case 's':
+				rcDET[i].type = kTypeScanner;   break;
 		}
 		geomstream >> type;
 		switch (type[0]) { // plane direction

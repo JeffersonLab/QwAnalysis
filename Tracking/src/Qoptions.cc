@@ -110,6 +110,8 @@ void Qoptions::Get(const char *optname)
 					type = kTypeTrigscint; break;
 				case 'c':
 					type = kTypeCerenkov; break;
+				case 's':
+					type = kTypeScanner;  break;
 			}
 
 			optstream >> maxlevels;

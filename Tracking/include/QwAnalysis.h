@@ -38,6 +38,11 @@
 #include "QwTriggerScintillator.h"
 #include "QwMainDetector.h"
 
+#include "QwFocalPlaneScanner.h"
+//#include "QwQuartzBar.h"
+#include "QwVQWK_Module.h"
+#include "QwVQWK_Channel.h"
+
 #include "QwHistogramHelper.h"
 
 

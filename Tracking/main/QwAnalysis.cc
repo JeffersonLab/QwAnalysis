@@ -164,6 +164,9 @@ int main(Int_t argc,Char_t* argv[])
   QwDetectors.GetSubsystem("MD")->LoadChannelMap("maindet_cosmics.map");
 
 
+  QwDetectors.push_back ( new QwFocalPlaneScanner ( "FPS" ) );
+//  QwDetectors.GetSubsystem ( "FPS" )->LoadChannelMap ( "scanner_cosmics.map" );
+
 
   boost::shared_ptr<QwHitContainer> fHitList;
   QwHitContainer grandHitList;

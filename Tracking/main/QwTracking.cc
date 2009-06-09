@@ -103,7 +103,7 @@
     The Qweak Tracking code is built around four main tracking modules:
     - QwTrackingWorker (the main entry point)
     - QwTrackingTreeSearch
-    - treecombine
+    - QwTrackingTreecombine
     - QwTrackingTreeSort
     - QwTrackingTreeMatch
 
@@ -216,11 +216,8 @@ int main (int argc, char* argv[])
 	    cout << endl;
 	  }
 
-
-	  // (wdc) The QwTrackingWorker constructs the event, we need to delete it
-	  // or we can let the trackingworker take care of it when it goes out of
-	  // scope.  For the moment we don't plug this memory hole...
-	  Event* event = trackingworker->ProcessHits (ASCIIgrandHitList); //Giving some trouble when 1000.r2.events events file is used.
+          //Giving some trouble when 1000.r2.events events file is used.
+	  Event* event = trackingworker->ProcessHits (ASCIIgrandHitList); 
 
 	  // (wdc) Now we can access the event and its partial tracks
 	  // (e.g. list the partial track in the upper region 2 HDC)
@@ -230,11 +227,13 @@ int main (int argc, char* argv[])
 	                  track = track->next) {
 	    cout << "position = (" << track->x << "," << track->y << ")" << endl;
 	    cout << "   slope = (" << track->mx << "," << track->my << ")" << endl;
+            delete track;
 	  } // but unfortunately this is still empty
-
 
 	  ASCIIgrandHitList.clear();
 
+          delete event;
+          delete listoftracks;
 	  nEvent++;
 	 }
 
