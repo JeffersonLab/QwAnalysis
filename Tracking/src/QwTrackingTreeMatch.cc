@@ -54,7 +54,7 @@ double rcZEval( double vz, double te, double ph, double mom, int idx){
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 //returns the best measured wire hit
-Hit* bestWireHit (QwTrackingTreeLine *walk, double bestpos = 0)
+QwHit* bestWireHit (QwTrackingTreeLine *walk, double bestpos = 0)
 {
   double pos = 9999, newpos;
   int ibest;
@@ -122,7 +122,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
   //###############
   QwTrackingTreeLine *combined,*fwalk,*bwalk;
   double x[2],y[2],z[3],zp[2];
-  Hit *fpos, *bpos;
+  QwHit *fpos, *bpos;
   double d,d2,d2u,d_uv;
   double pi = acos(-1.0), theta;
   double wirespacingf, wirespacingb, d_to_1st_wire_f, d_to_1st_wire_b;
@@ -138,7 +138,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
   int nhits,fhits,bhits;
   int matchfound = 0;
   QwTrackingTreeCombine *TreeCombine = new QwTrackingTreeCombine();
-  Hit *DetecHits[2*TLAYERS];
+  QwHit *DetecHits[2*TLAYERS];
 
   ofstream gnu1,gnu2;
   if (dir == kDirectionU) {

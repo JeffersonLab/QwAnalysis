@@ -70,6 +70,7 @@ class VQwSubsystem{
   virtual void  FillHistograms() = 0;
   virtual void  DeleteHistograms() = 0;  
 
+
  protected:
   void  ClearAllBankRegistrations();
   Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);   

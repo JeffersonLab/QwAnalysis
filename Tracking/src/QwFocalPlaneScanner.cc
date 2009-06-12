@@ -13,7 +13,10 @@
 const UInt_t QwFocalPlaneScanner::kMaxNumberOfModulesPerROC     = 21;
 const UInt_t QwFocalPlaneScanner::kMaxNumberOfChannelsPerModule = 32;
 
-QwFocalPlaneScanner::QwFocalPlaneScanner(TString region_tmp):VQwSubsystemTracking(region_tmp){
+//QwFocalPlaneScanner::QwFocalPlaneScanner(TString region_tmp):VQwSubsystemTracking(region_tmp){
+QwFocalPlaneScanner::QwFocalPlaneScanner(TString region_tmp)
+                    :VQwSubsystemTracking(region_tmp){
+
 };
 
 
@@ -54,22 +57,26 @@ Int_t QwFocalPlaneScanner::LoadChannelMap(TString mapfile){
 	RegisterSubbank(value);
       } else if (varname=="slot"){
         RegisterSlotNumber(value);
-      } else if (varname=="module"){
-	RegisterModuleType(varvalue);
-      }
-    } else {
+      } 
+      } else {
       //  Break this line into tokens to process it.
-      channum   = (atol(mapstr.GetNextToken(", \t").c_str()));
-      name      = mapstr.GetNextToken(", \t").c_str();
+      modtype   = mapstr.GetNextToken(", ").c_str();
+      modnum    = (atol(mapstr.GetNextToken(", ").c_str()));
+      channum   = (atol(mapstr.GetNextToken(", ").c_str()));
+      dettype   = mapstr.GetNextToken(", ").c_str();
+      name      = mapstr.GetNextToken(", ").c_str();
 
       //  Push a new record into the element array
       if (modtype=="VQWK"){
+        //std::cout<<"modnum="<<modnum<<"    "<<"fADC_Data.size="<<fADC_Data.size()<<std::endl;
 	if (modnum >= fADC_Data.size())  fADC_Data.resize(modnum+1, new QwVQWK_Module());
 	fADC_Data.at(modnum)->SetChannel(channum, name);
-      }
+      } 
 
+      else if (modtype=="V792" || modtype=="V775"){
+	RegisterModuleType(modtype);
       //  Check to see if we've encountered this channel or name yet
-      else if (fModulePtrs.at(fCurrentIndex).at(channum).first>=0){
+      if (fModulePtrs.at(fCurrentIndex).at(channum).first>=0){
 	//  We've seen this channel
       } else if (FindSignalIndex(fCurrentType, name)>=0){
 	//  We've seen this signal
@@ -77,11 +84,19 @@ Int_t QwFocalPlaneScanner::LoadChannelMap(TString mapfile){
 	//  If not, push a new record into the element array
 	LinkChannelToSignal(channum, name);
       }
+      }
+
+      else {
+	std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str()
+		  << std::endl;
+      }
     }
   }
   //
+  ReportConfiguration();
   return 0;
 };
+
 
 
 Int_t QwFocalPlaneScanner::LoadInputParameters(TString pedestalfile)
@@ -167,8 +182,8 @@ Int_t QwFocalPlaneScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t
 
   SetDataLoaded(kTRUE);
 
-  //  This is a VQWK bank
-  if (bank_id==0x4321){ // 0x4321 needs to change to actual bank_id
+  //  This is a VQWK bank if bank_id=2222
+  if (bank_id==2222){
 
     if (index>=0 && num_words>0){
 
@@ -191,8 +206,8 @@ Int_t QwFocalPlaneScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t
     }
   }
 
-  //  This is a QADC/TDC bank
-  if (bank_id==0x1234){  // 0x4321 needs to change to actual bank_id
+  //  This is a QADC/TDC bank if bank_id=0
+  if (bank_id==0){
 
     if (index>=0 && num_words>0){
       //  We want to process this ROC.  Begin looping through the data.
@@ -326,6 +341,33 @@ void  QwFocalPlaneScanner::DeleteHistograms(){
     }
   }
 };
+
+void  QwFocalPlaneScanner::ReportConfiguration(){
+  std::cout << "Configuration of the focal plane scanner:"<< std::endl;
+  for (size_t i = 0; i<fROC_IDs.size(); i++){
+    for (size_t j=0; j<fBank_IDs.at(i).size(); j++){
+
+      Int_t ind = GetSubbankIndex(fROC_IDs.at(i),fBank_IDs.at(i).at(j));
+      std::cout << "ROC " << fROC_IDs.at(i) 
+		<< ", subbank " << fBank_IDs.at(i).at(j) 
+		<< ":  subbank index==" << ind
+		<< std::endl;
+
+      if (fBank_IDs.at(i).at(j)!=2222){
+        for (size_t k=0; k<kMaxNumberOfModulesPerROC; k++){
+	  Int_t QadcTdcindex = GetModuleIndex(ind,k);
+	  if (QadcTdcindex != -1){ 
+	    std::cout << "    Slot " << k;
+	    std::cout << "  Module#" << QadcTdcindex << std::endl;
+            } 
+          }
+        }else {
+	  std::cout << "    Number of QWAK:  " << fADC_Data.size() << std::endl;
+       }
+    }
+  }
+
+}; //ReportConfiguration()
 
 
 Bool_t  QwFocalPlaneScanner::Compare(QwFocalPlaneScanner &value)

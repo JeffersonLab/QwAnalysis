@@ -116,7 +116,6 @@
 // Qweak headers
 #include "globals.h"
 #include "QwHit.h"
-#include "Hit.h"
 #include "options.h"
 
 using namespace std;
@@ -216,7 +215,7 @@ QwTrackingTreeLine* QwTrackingTreeSearch::GetListOfTreeLines ()
 \*---------------------------------------------------------------------------*/
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void QwTrackingTreeSearch::wireselection (Hit **x, Hit **X, Hit **xn, Hit **Xn, double maxdist)
+void QwTrackingTreeSearch::wireselection (QwHit **x, QwHit **X, QwHit **xn, QwHit **Xn, double maxdist)
 {
   cerr << "[QwTrackingTreeSearch::wireselection] Warning: This needs revision!" << endl;
 
@@ -550,7 +549,7 @@ void QwTrackingTreeSearch::setpoint (
 // for one hit at a time.
 int QwTrackingTreeSearch::TsSetPoint (
 	double detectorwidth,
-	Hit *H,
+	QwHit *H,
 	char *pattern,
 	int *hash,
 	unsigned binwidth)
@@ -576,27 +575,27 @@ int QwTrackingTreeSearch::TsSetPoint (
 /*---------------------------------------------------------------------------*/
 // This TsSetPoint version is designed for setting the pattern
 // for one hit at a time, using the QwHit class.
-int QwTrackingTreeSearch::TsSetPoint (
-	double detectorwidth,
-	QwHit *hit,
-	char *pattern,
-	int *hash,
-	unsigned binwidth)
-{
-  double dw2 = (detectorwidth / 2.0); /* half-width of the detector (in cm) */
-
-  // Set the points on the front/top side of the wire (R3/R2)
-  _setpoints(dw2 - hit->GetDriftDistance() - hit->GetTrackResolution(),
-	     dw2 - hit->GetDriftDistance() + hit->GetTrackResolution(),
-	     detectorwidth, binwidth, pattern, hash);
-
-  // Set the points on the back/bottom side of the wire (R3/R2)
-  _setpoints(dw2 + hit->GetDriftDistance() - hit->GetTrackResolution(),
-	     dw2 + hit->GetDriftDistance() + hit->GetTrackResolution(),
-	     detectorwidth, binwidth, pattern, hash);
-
-  return 1;
-}
+// int QwTrackingTreeSearch::TsSetPoint (
+// 	double detectorwidth,
+// 	QwHit *hit,
+// 	char *pattern,
+// 	int *hash,
+// 	unsigned binwidth)
+// {
+//   double dw2 = (detectorwidth / 2.0); /* half-width of the detector (in cm) */
+// 
+//   // Set the points on the front/top side of the wire (R3/R2)
+//   _setpoints(dw2 - hit->GetDriftDistance() - hit->GetTrackResolution(),
+// 	     dw2 - hit->GetDriftDistance() + hit->GetTrackResolution(),
+// 	     detectorwidth, binwidth, pattern, hash);
+// 
+//   // Set the points on the back/bottom side of the wire (R3/R2)
+//   _setpoints(dw2 + hit->GetDriftDistance() - hit->GetTrackResolution(),
+// 	     dw2 + hit->GetDriftDistance() + hit->GetTrackResolution(),
+// 	     detectorwidth, binwidth, pattern, hash);
+// 
+//   return 1;
+// }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*---------------------------------------------------------------------------*/
@@ -605,7 +604,7 @@ int QwTrackingTreeSearch::TsSetPoint (
 int QwTrackingTreeSearch::TsSetPoint (
 	double detectorwidth,
 	double wirespacing,
-	Hit *H,
+	QwHit *H,
 	double wire,
 	char *pattern,
 	int *hash,
@@ -657,8 +656,8 @@ int QwTrackingTreeSearch::TsSetPoint (
 int QwTrackingTreeSearch::TsSetPoint (
 	double detectorwidth,
 	double zdistance,
-	Hit *Ha,
-	Hit *Hb,
+	QwHit *Ha,
+	QwHit *Hb,
 	char *patterna,
 	char *patternb,
 	int *hasha,
@@ -671,7 +670,7 @@ int QwTrackingTreeSearch::TsSetPoint (
 
 
   double dw2 = (detectorwidth / 2.0); /* half-width of the detector (in cm) */
-  Hit *Hanext, *Hbnext;
+  QwHit *Hanext, *Hbnext;
 
 /* ---- Compute the maximum separation between hits on the two
         planes such that these hits are paired together when

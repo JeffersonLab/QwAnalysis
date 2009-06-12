@@ -73,7 +73,7 @@ int Qevent::GetEvent()
 
 	// List of hits
 	int nhits = 0;
-	Hit *newhit;
+	QwHit *newhit;
 
 	// Detector region/type/direction identifiers
 	EQwDetectorPackage package, package2;
@@ -175,7 +175,7 @@ int Qevent::GetEvent()
 		if (debug) cout << "wires:";
 		for (int hit = 0; hit < nhits; hit++) {
 			// create the hit structure
-			newhit = new Hit;
+			newhit = new QwHit;
 			// set event number
 			newhit->ID = ievent;
 

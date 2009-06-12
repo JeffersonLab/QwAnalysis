@@ -26,7 +26,7 @@
 using namespace std;
 
 // Qweak headers
-#include "Hit.h"
+#include "QwHit.h"
 #include "Det.h"
 #include "options.h"
 
@@ -88,7 +88,7 @@ chi_hash::chi_hash()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeCombine::chi_hashval (int n, Hit **hit)
+int QwTrackingTreeCombine::chi_hashval (int n, QwHit **hit)
 {
   int i;
   double hash = 389.0; // WTF IS THIS?!?
@@ -109,7 +109,7 @@ void QwTrackingTreeCombine::chi_hashclear(void)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void QwTrackingTreeCombine::chi_hashinsert(Hit **hits, int n, double slope, double xshift, double cov[3],double chi)
+void QwTrackingTreeCombine::chi_hashinsert(QwHit **hits, int n, double slope, double xshift, double cov[3],double chi)
 {
   int val = chi_hashval( n, hits), i;
 //Got rid of a Qmalloc in the following line
@@ -136,7 +136,7 @@ void QwTrackingTreeCombine::chi_hashinsert(Hit **hits, int n, double slope, doub
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeCombine::chi_hashfind( Hit **hits, int n, double *slope, double *xshift, double cov[3],double *chi)
+int QwTrackingTreeCombine::chi_hashfind( QwHit **hits, int n, double *slope, double *xshift, double cov[3],double *chi)
 {
   int val = chi_hashval( n, hits), i;
   chi_hash *new_chi_hash;
@@ -174,8 +174,8 @@ int QwTrackingTreeCombine::chi_hashfind( Hit **hits, int n, double *slope, doubl
 --------------------------------*/
 int QwTrackingTreeCombine::bestx (
 	double *xresult,	//!- x position of the track in this plane
-	Hit *h,			//!- hit to investigate
-	Hit *ha)		//!- hit with the selected position
+	QwHit *h,		//!- hit to investigate
+	QwHit *ha)		//!- hit with the selected position
 {
   double position, distance, bestx;
   double x = *xresult;
@@ -231,8 +231,8 @@ int QwTrackingTreeCombine::bestx (
 int QwTrackingTreeCombine::bestx (
 	double *xresult,	//!- x position of the track in this plane
 	double resolution,	//!- resolution
-	Hit* hitlist,		//!- hit list
-	Hit **ha,		//!- returned hit list
+	QwHit* hitlist,		//!- hit list
+	QwHit **ha,		//!- returned hit list
 	double Dx)		//!- (default: Dx = 0)
 {
   //###############
@@ -257,7 +257,7 @@ int QwTrackingTreeCombine::bestx (
     breakcut = hitlist->detec->WireSpacing + resolution; // wirespacing + bin resolution
 
   // Loop over the hit list
-  for (Hit* hit = hitlist; hit; hit = hit->nextdet) {
+    for (QwHit* hit = hitlist; hit; hit = hit->nextdet) {
 
     // Two options for the left/right ambiguity
     for (int j = 0; j < 2; j++) {
@@ -271,7 +271,7 @@ int QwTrackingTreeCombine::bestx (
         // Save only the MAXHITPERLINE best hits
 	if (ngood < MAXHITPERLINE ) {
 	  /* --- doublicate hits for calibration changes --- */
-	  ha [ngood] = new Hit;
+	  ha [ngood] = new QwHit;
 	  assert( ha[ngood] );
 	  *ha[ngood]  = *hit; // copy this hit
 	  ha[ngood]->next    = 0;
@@ -334,8 +334,8 @@ void QwTrackingTreeCombine::mul_do (
 	int mul,
 	int l,
 	int *r,
-	Hit *hx[DLAYERS][MAXHITPERLINE],
-	Hit **ha)
+	QwHit *hx[DLAYERS][MAXHITPERLINE],
+	QwHit **ha)
 {
   int s;
 
@@ -380,7 +380,7 @@ void QwTrackingTreeCombine::weight_lsq (
 	double *xshift,
 	double cov[3],
 	double *chi,
-	Hit **hits,
+	QwHit **hits,
 	int n,
 	int tlayers)
 {
@@ -473,7 +473,7 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
 	double *xshift,
 	double cov[3],
 	double *chi,
-	Hit **hits,
+	QwHit **hits,
 	int n,
 	double z1,
 	int offset,
@@ -563,7 +563,7 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeCombine::contains (double var, Hit **arr, int len)
+int QwTrackingTreeCombine::contains (double var, QwHit **arr, int len)
 {
   // TODO (wdc) This is unsafe due to double comparisons.
   // In light of calibration effects, this could fail.
@@ -596,15 +596,15 @@ int QwTrackingTreeCombine::selectx (
 	double *xresult,
 	double resolution,
 	Det *detec,
-	Hit *hitarray[],
-	Hit **ha)
+	QwHit *hitarray[],
+	QwHit **ha)
 {
   int good = 0;
   double x = *xresult;
   double position;
   double distance;
   double minimum = resolution;
-  Hit *h;
+  QwHit *h;
   int num;
 
 
@@ -739,9 +739,9 @@ int QwTrackingTreeCombine::TlCheckForX (
   double thisX, thisZ;		/* X and Z at a given plane               */
   double startZ = 0.0, endZ = 0;
   if (DLAYERS < 4) cerr << "Error: DLAYERS must be >= 4 for region 2!" << endl;
-  Hit   *DetecHits[DLAYERS][MAXHITPERLINE]; /* Hits at a detector         */
-  Hit   *UsedHits[DLAYERS];	            /* Hits for this line         */
-  Hit   **hitarray;		/* temporary                              */
+  QwHit   *DetecHits[DLAYERS][MAXHITPERLINE]; /* Hits at a detector         */
+  QwHit   *UsedHits[DLAYERS];	            /* Hits for this line         */
+  QwHit   **hitarray;		/* temporary                              */
   double res,resnow;	        /* resultion of a plane                   */
   double mx, cx, dh, chi, minchi = 1e8;
   double minweight = 1e10;
@@ -945,8 +945,8 @@ int QwTrackingTreeCombine::TlMatchHits (
 
   Det *rd;
   double dx, slope, intercept;
-  Hit  DetecHits[tlayers]; /* Hits at a detector */
-  Hit *DHits = DetecHits;
+  QwHit  DetecHits[tlayers]; /* Hits at a detector */
+  QwHit *DHits = DetecHits;
 
   double mx = 0, cx = 0, chi;
   double cov[3];
@@ -979,7 +979,7 @@ int QwTrackingTreeCombine::TlMatchHits (
   // Loop over pattern positions
   for (int i = treeline->firstwire; i <= treeline->lastwire; i++, nmaxhits++) {
     // Loop over the hits
-    for (Hit *hit = rd->hitbydet; hit; hit = hit->next) {
+      for (QwHit *hit = rd->hitbydet; hit; hit = hit->next) {
       thisZ = treeline->r3offset + i;
       if (hit->wire != thisZ)
         continue;
@@ -1213,7 +1213,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 *//*-------------------------------------------------------------------------*/
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int r2_TrackFit (int Num, Hit **Hit, double *fit, double *cov, double *chi)
+int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
 {
   //###############
   // Declarations #
@@ -1314,7 +1314,7 @@ int r2_TrackFit (int Num, Hit **Hit, double *fit, double *cov, double *chi)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeCombine::r3_TrackFit2( int Num, Hit **Hit, double *fit, double *cov, double *chi)
+int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, double *cov, double *chi)
 {
   //###############
   // Declarations #
@@ -1491,15 +1491,15 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, Hit **Hit, double *fit, double
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeCombine::r3_TrackFit( int Num, Hit **hit, double *fit, double *cov, double *chi,double uv2xy[2][2])
+int QwTrackingTreeCombine::r3_TrackFit( int Num, QwHit **hit, double *fit, double *cov, double *chi,double uv2xy[2][2])
 {
   //###############
   // Declarations #
   //###############
 
-  Hit xyz[Num];
+  QwHit xyz[Num];
   double wcov[3],wchi,mx,bx,my,by;
-  Hit *chihits[Num];
+  QwHit *chihits[Num]; // Hit *chihits[Num];
   double P1[3],P2[3],Pp1[3],Pp2[3];
   double ztrans,ytrans,xtrans,costheta,sintheta;
 
@@ -1606,7 +1606,7 @@ int QwTrackingTreeCombine::TcTreeLineCombine2(QwTrackingTreeLine *wu, QwTracking
   ///       length of the array hits.
   //Hit *hits[4 * tlayer];
 
-  Hit **hitarray, *h;
+  QwHit **hitarray, *h;
   int hitc, num;
 
   // covariance matrix, fit, and chi-squared
@@ -1628,7 +1628,7 @@ int QwTrackingTreeCombine::TcTreeLineCombine2(QwTrackingTreeLine *wu, QwTracking
   // Put all the hits into the array hits, with lenght the total number of hits
   // in the u and v directions.  Not all of the entries will be filled (because
   // not all hits h will be h->used), so it is an upper limit.
-  Hit *hits[wu->numhits + wv->numhits];
+  QwHit *hits[wu->numhits + wv->numhits];
   for (hitc = 0, dir = kDirectionU; dir <= kDirectionV; dir++) {
 
     switch (dir) {
@@ -1698,7 +1698,7 @@ int QwTrackingTreeCombine::TcTreeLineCombine(QwTrackingTreeLine *wu,QwTrackingTr
   //###############
   // Declarations #
   //###############
-  Hit *hits[tlayer*2], **hitarray, *h;
+  QwHit *hits[tlayer*2], **hitarray, *h;
   int hitc,num;
   static double cov[4][4];
   double *covp = &cov[0][0];
@@ -1807,7 +1807,7 @@ int QwTrackingTreeCombine::TcTreeLineCombine (
 	PartTrack *pt,
 	int tlayer)
 {
-  Hit *hits[DLAYERS*3], **hitarray, *h;
+  QwHit *hits[DLAYERS*3], **hitarray, *h;
   int hitc, num;
   double cov[4][4];
   double fit[4], chi;
@@ -2327,7 +2327,7 @@ void QwTrackingTreeCombine::ResidualWrite (Event* event)
   PartTrack *pt;
   QwTrackingTreeLine *tl;
   double x, y, v, mx, my, mv;
-  Hit **hitarr, *hit;
+  QwHit **hitarr, *hit;
   void mcHitCord( int, double* , double *);
 
   for (package = kPackageUp; package <= kPackageDown; package++) {

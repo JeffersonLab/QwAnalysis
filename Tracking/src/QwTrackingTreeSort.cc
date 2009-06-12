@@ -256,7 +256,7 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
   // DECLARATIONS  #
   //################
   int total1, total2, common, total;
-  Hit **hits1, **hits2;
+  QwHit **hits1, **hits2;
 
   //##################
   //DEFINE VARIABLES #
@@ -354,7 +354,7 @@ int QwTrackingTreeSort::rcCommonWires (QwTrackingTreeLine *line1, QwTrackingTree
   // DECLARATIONS  #
   //################
   int total1, total2, common, total;
-  Hit **hits1, **hits2;
+  QwHit **hits1, **hits2;
   int did1, did2;
   int  i1, i2, fw = 3;
 
