@@ -16,7 +16,7 @@
 
 #include "globals.h"
 #include "QwHit.h"
-#include "Hit.h"
+
 #include "QwTrackingTreeLine.h"
 #include "QwASCIIEventBuffer.h"
 
@@ -25,8 +25,7 @@ using namespace QwTracking;
 void SaveHits(QwHitContainer &); //for debugging purposes - Rakitha (04/02/2009)
 
 
-
-class Hit;
+class QwHit;
 
 //____________________________________________
 /*! \brief This class has not yet been implemented
@@ -63,7 +62,7 @@ class Bridge {
     double ySMatch;		/*!< matching in Yslope */
     double xMatch;		/*!< match in x */
     double Momentum;		/*!< momentum  */
-    Hit    *hits;		/*!< matching hits */
+    QwHit *hits;  		/*!< matching hits */
     QwHitContainer qwhits;	/*!< matching hits */
     //pointList *point;
     int ID;

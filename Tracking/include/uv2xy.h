@@ -7,7 +7,7 @@
 
 // Qweak headers
 #include "QwTypes.h"
-#include "Hit.h"
+#include "QwHit.h"
 #include "Det.h"
 
 
@@ -29,7 +29,7 @@
 class Uv2xy {
 
    friend class QwTrackingTreeCombine;
-   friend int r2_TrackFit(int Num, Hit **Hit, double *fit, double *cov, double *chi);
+   friend int r2_TrackFit(int Num, QwHit **Hit, double *fit, double *cov, double *chi);
 
   public:
 

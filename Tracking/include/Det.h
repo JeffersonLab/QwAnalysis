@@ -22,7 +22,7 @@ using std::string;
 
 /// First declare the Hit and Det are objects, because they contain
 /// pointers to each other.
-class Hit;
+class QwHit; 
 
 /*! \class Det
     \brief Describes a detector element
@@ -63,7 +63,7 @@ class Det {
     double rCos;
     double rSin;
     int NumOfWires;
-    Hit *hitbydet;		/*!< hitlist */
+    QwHit *hitbydet; 		/*!< hitlist */
     Det *nextsame;		/*!< same wire orientation */
     int samesearched;
 

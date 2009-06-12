@@ -12,8 +12,7 @@
 #include "QwParameterFile.h"
 
 #include "Det.h"
-#include "Hit.h"
-
+#include "QwHit.h"
 
 #include "QwHitContainer.h"
 #include "QwDetectorInfo.h"

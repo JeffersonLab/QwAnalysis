@@ -35,7 +35,7 @@
 #define QWTRACKINGTREELINE_H
 
 #include "globals.h"
-#include "Hit.h"
+#include "QwHit.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -60,8 +60,8 @@ class QwTrackingTreeLine{
     int   numvcmiss;		/*!< missing hits in vc */
     int   nummiss;		/*!< number of planes without hit */
     //enum  Emethod method;	/*!< treeline generation method */
-    Hit   *hits[2*TLAYERS];	/*!< hitarray */
-    Hit   thehits[2*TLAYERS];
+    QwHit   *hits[2*TLAYERS];	/*!< hitarray */
+    QwHit   thehits[2*TLAYERS];
 // TODO (wdc) Disabled until proper constructor for QwHit
 //    QwHit *qwhits[2*TLAYERS];	/*!< hitarray after transition to QwHit */
 //    QwHit theqwhits[2*TLAYERS];

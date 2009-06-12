@@ -65,21 +65,21 @@ public:
 
     chi_hash *hasharr[HASHSIZE];
 
-    int chi_hashval (int n, Hit **hit);
+    int chi_hashval (int n, QwHit **hit);
     void chi_hashclear (void);
-    void chi_hashinsert (Hit **hits, int n, double slope, double xshift, double cov[3], double chi);
-    int chi_hashfind (Hit **hits, int n, double *slope, double *xshift, double cov[3], double *chi);
+    void chi_hashinsert (QwHit **hits, int n, double slope, double xshift, double cov[3], double chi);
+    int chi_hashfind (QwHit **hits, int n, double *slope, double *xshift, double cov[3], double *chi);
 
-    int bestx (double *xresult, double dist_cut, Hit *h, Hit **ha, double Dx = 0);
-    int bestx (double *xresult, Hit *h, Hit *ha);
+    int bestx (double *xresult, double dist_cut, QwHit *h, QwHit **ha, double Dx = 0);
+    int bestx (double *xresult, QwHit *h, QwHit *ha);
 
 
-    void mul_do (int i, int mul, int l, int *r, Hit *hx[DLAYERS][MAXHITPERLINE], Hit **ha);
-    void weight_lsq (double *slope, double *xshift, double cov[3],double *chi, Hit **hits, int n,int tlayers);
-    void weight_lsq_r3 (double *slope, double *xshift, double cov[3],double *chi, Hit **hits, int n,double z1,int offset,int tlayers);
+    void mul_do (int i, int mul, int l, int *r, QwHit *hx[DLAYERS][MAXHITPERLINE], QwHit **ha);
+    void weight_lsq (double *slope, double *xshift, double cov[3],double *chi, QwHit **hits, int n,int tlayers);
+    void weight_lsq_r3 (double *slope, double *xshift, double cov[3],double *chi, QwHit **hits, int n,double z1,int offset,int tlayers);
 
-    int selectx(double *xresult,double dist_cut,Det *detec, Hit *hitarray[], Hit **ha);
-    int contains( double var, Hit **arr, int len);
+    int selectx(double *xresult,double dist_cut,Det *detec, QwHit *hitarray[], QwHit **ha);
+    int contains( double var, QwHit **arr, int len);
     double detZPosition( Det *det, double x, double slope_x, double *xval );
 
     int TlCheckForX (double x1, double x2, double dx1, double dx2,double Dx,double z1, double dz,QwTrackingTreeLine *treefill,EQwDetectorPackage package, EQwRegionID region,enum EQwDetectorType type,EQwDirectionID wdir,int  dlayer, int tlayer,int  iteration,int  stay_tuned, QwTrackingTreeRegion **myTreeRegion);
@@ -95,8 +95,8 @@ public:
     PartTrack *TlTreeCombine (QwTrackingTreeLine *uvl[kNumDirections], long bins, EQwDetectorPackage package, EQwRegionID region,enum EQwDetectorType type/*,enum Eorientation orient*/, int tlayer, int dlayer, QwTrackingTreeRegion **myTreeRegion);
     void ResidualWrite (Event *event);
 
-    int r3_TrackFit (int Num, Hit **Hit, double *fit, double *cov, double *chi, double uv2xy[2][2]);
-    int r3_TrackFit2 (int Num, Hit **Hit, double *fit, double *cov, double *chi);
+    int r3_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi, double uv2xy[2][2]);
+    int r3_TrackFit2 (int Num, QwHit **Hit, double *fit, double *cov, double *chi);
 
     int checkR3 (PartTrack *pt, EQwDetectorPackage package);
 

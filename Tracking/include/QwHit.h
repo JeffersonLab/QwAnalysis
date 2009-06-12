@@ -27,10 +27,16 @@
 #include "QwTypes.h"
 #include <iostream>
 
+/// First declare the QwHit and Det are objects, because they contain
+/// pointers to each other.
+class Det;
+
 ///
 /// \ingroup QwTrackingAnl
 class QwHit {
  public:
+
+  QwHit(){};
 
   QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
 	Int_t region, Int_t package, Int_t plane, Int_t direction, Int_t wire,
@@ -185,6 +191,26 @@ class QwHit {
     };
 
 
+  //The following public section are taken from the original Hit class
+  //for merging the Hit class into the QwHit class.
+
+  //  Hits for individual detector elements are strung together.  They also
+  //  have a pointer back to the detector in case more information about the
+  //  hit is needed.  The various position values are used in multiple ways,
+  //  and therefore are not strictly defined. 
+  public:
+    int wire;			/*!< wire ID                           */
+    double Zpos;		/*!< Z position of hit                 */
+    double rPos1;		/*!< rPos1 and                         */
+    double rPos2;		/*!< rPos2 from level II decoding      */
+    double Resolution;		/*!< resolution of this specific hit   */
+    double rTrackResolution;	/*!< tracking road width around hit    */
+    Det *detec;			/*!< which detector                    */
+    QwHit *next, *nextdet; 	/*!< next hit and next hit in same detector */
+    int ID;			/*!< event ID                          */
+    int  used;			/*!< hit is used by a track            */
+    double rResultPos;		/*!< Resulting hit position            */
+    double rPos;		/*!< Position of from track finding    */
 
 
 

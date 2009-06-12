@@ -23,7 +23,9 @@
 
 ///
 /// \ingroup QwTrackingAnl
-class QwFocalPlaneScanner: public VQwSubsystemTracking, public MQwV775TDC {
+class QwFocalPlaneScanner: public VQwSubsystemTracking,
+                           public MQwV775TDC,
+                           public QwVQWK_Module {
   /******************************************************************
    *  Class: QwFocalPlaneScanner
    *
@@ -55,6 +57,8 @@ class QwFocalPlaneScanner: public VQwSubsystemTracking, public MQwV775TDC {
 
   void GetHitList(QwHitContainer & grandHitContainer){};
 
+  void ReportConfiguration();
+
   Bool_t Compare(QwFocalPlaneScanner &value);
 
   QwFocalPlaneScanner& operator=  (QwFocalPlaneScanner &value);
@@ -73,6 +77,7 @@ class QwFocalPlaneScanner: public VQwSubsystemTracking, public MQwV775TDC {
 
 
  protected:
+
   enum EModuleType{EMPTY = -1, V775_TDC = 0, V792_ADC} fCurrentType;
 
   Bool_t fDEBUG;

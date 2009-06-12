@@ -15,7 +15,7 @@
 #include "Qoptions.h"
 #include "options.h"
 #include "Det.h"
-#include "Hit.h"
+#include "QwHit.h"
 
 // Tree search headers
 #include "QwTrackingTree.h"

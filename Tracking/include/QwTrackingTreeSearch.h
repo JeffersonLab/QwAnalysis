@@ -31,7 +31,6 @@
 // Qweak tree object headers
 #include "shortnode.h"
 #include "QwHit.h"
-#include "Hit.h"
 #include "tracking.h"
 #include "globals.h"
 
@@ -57,7 +56,6 @@ class QwTrackingTreeSearch {
     void EndSearch ();
     QwTrackingTreeLine* GetListOfTreeLines ();
 
-    void wireselection (Hit **x, Hit **X, Hit **xn, Hit**Xn, double maxdist);
     void wireselection (QwHit **x, QwHit **X, QwHit **xn, QwHit**Xn, double maxdist);
     // Only called from within TsSetPoint(Hit, Hit)
     // TODO Transition to QwHit if necessary (where is it used?)
@@ -70,26 +68,17 @@ class QwTrackingTreeSearch {
 
     // Methods to set the tree pattern
     int TsSetPoint (double detectorwidth, double zdistance,
-		Hit *Ha, Hit *Hb,
+		QwHit *Ha, QwHit *Hb,
 		char *patterna, char *patternb,
 		int *hasha, int *hashb,
 		unsigned binwidth);
     int TsSetPoint (double detectorwidth,
-		Hit *H,
+		QwHit *H, //Hit *H,
 		char *pattern, int *hash, unsigned binwidth);
     int TsSetPoint (double detectorwidth, double wirespacing,
-		Hit *H, double wire,
+		QwHit *H, double wire,
 		char *pattern, int *hash, unsigned binwidth);
 
-    // QwHit equivalents of the tree pattern methods above
-    int TsSetPoint (double detectorwidth, double zdistance,
-		QwHit *Ha, QwHit *Hb,
-		char *patterna, char *patternb,
-		int *hasha, int *hashb,
-		unsigned binwidth); // TODO not implemented yet
-    int TsSetPoint (double detectorwidth,
-		QwHit *hit,
-		char *pattern, int *hash, unsigned binwidth);
     int TsSetPoint (double detectorwidth, double wirespacing,
 		QwHit *hit, int wire,
 		char *pattern, int *hash, unsigned binwidth);

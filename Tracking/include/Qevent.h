@@ -13,7 +13,7 @@ is imported into this program.
 #include "QwParameterFile.h"
 
 
-#include "Hit.h"
+#include "QwHit.h"
 
 
 ///
@@ -31,7 +31,7 @@ class Qevent{
   private:
 
     FILE *events;	//!- event stream
-    Hit *hitlist;	//!- hit list
+    QwHit *hitlist;	//!- hit list
 
     int debug;		//!- debug level
 

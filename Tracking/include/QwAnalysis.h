@@ -48,7 +48,7 @@
 
 //from QTR
 #include "globals.h"
-#include "Hit.h"
+#include "QwHit.h"
 
 
 
