@@ -191,31 +191,6 @@ class QwHit {
     };
 
 
-  //The following public section are taken from the original Hit class
-  //for merging the Hit class into the QwHit class.
-
-  //  Hits for individual detector elements are strung together.  They also
-  //  have a pointer back to the detector in case more information about the
-  //  hit is needed.  The various position values are used in multiple ways,
-  //  and therefore are not strictly defined. 
-  public:
-    int wire;			/*!< wire ID                           */
-    double Zpos;		/*!< Z position of hit                 */
-    double rPos1;		/*!< rPos1 and                         */
-    double rPos2;		/*!< rPos2 from level II decoding      */
-    double Resolution;		/*!< resolution of this specific hit   */
-    double rTrackResolution;	/*!< tracking road width around hit    */
-    Det *detec;			/*!< which detector                    */
-    QwHit *next, *nextdet; 	/*!< next hit and next hit in same detector */
-    int ID;			/*!< event ID                          */
-    int  used;			/*!< hit is used by a track            */
-    double rResultPos;		/*!< Resulting hit position            */
-    double rPos;		/*!< Position of from track finding    */
-
-
-
-
-
  protected:
 
   //  Identification information for readout channels
@@ -245,6 +220,29 @@ class QwHit {
   Double_t fResolution; /// Spatial Resolution
   Double_t fZPos;       /// Detector position???
   //  Processed information from QTR routines?
+
+
+
+  //The following public section are taken from the original Hit class
+  //for merging the Hit class into the QwHit class.
+
+  //  Hits for individual detector elements are strung together.  They also
+  //  have a pointer back to the detector in case more information about the
+  //  hit is needed.  The various position values are used in multiple ways,
+  //  and therefore are not strictly defined. 
+  public:
+    int wire;			/*!< wire ID                           */
+//    double Zpos;		/*!< Z position of hit                 */
+//    double rPos1;		/*!< rPos1 and                         */
+    double rPos2;		/*!< rPos2 from level II decoding      */
+//    double Resolution;		/*!< resolution of this specific hit   */
+    double rTrackResolution;	/*!< tracking road width around hit    */
+    Det *detec;			/*!< which detector                    */
+    QwHit *next, *nextdet; 	/*!< next hit and next hit in same detector */
+    int ID;			/*!< event ID                          */
+    int  used;			/*!< hit is used by a track            */
+    double rResultPos;		/*!< Resulting hit position            */
+    double rPos;		/*!< Position of from track finding    */
 
 };
 

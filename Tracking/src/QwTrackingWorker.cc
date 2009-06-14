@@ -519,7 +519,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 		  int wire = hit->GetDetectorID().fElement;
 		  TreeSearch->TsSetPoint(
 			rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                             +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth,
+                        +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth,
 			hit,
 			channelr3[wire - decrease],
 			hashchannelr3[wire - decrease],
@@ -631,7 +631,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 		  int wire = hit->GetDetectorID().fElement;
 		  TreeSearch->TsSetPoint(
 			rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                             +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth,
+                        +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth,
 			rd->WireSpacing,
 			hit,
 			wire,

@@ -73,11 +73,11 @@ class QwTrackingTreeSearch {
 		int *hasha, int *hashb,
 		unsigned binwidth);
     int TsSetPoint (double detectorwidth,
-		QwHit *H, //Hit *H,
+		QwHit *H,
 		char *pattern, int *hash, unsigned binwidth);
-    int TsSetPoint (double detectorwidth, double wirespacing,
-		QwHit *H, double wire,
-		char *pattern, int *hash, unsigned binwidth);
+//    int TsSetPoint (double detectorwidth, double wirespacing,
+//		QwHit *H, double wire,
+//		char *pattern, int *hash, unsigned binwidth);
 
     int TsSetPoint (double detectorwidth, double wirespacing,
 		QwHit *hit, int wire,

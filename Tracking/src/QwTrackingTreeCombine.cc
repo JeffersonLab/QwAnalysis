@@ -181,17 +181,20 @@ int QwTrackingTreeCombine::bestx (
   double x = *xresult;
 
   // Detector resolution (not actually used)
-  double resolution = h->Resolution;
+  //double resolution = h->Resolution;
+  double resolution = h->GetSpatialResolution();
 
   // First option of left/right ambiguity
-  position = h->rPos1;
+  // position = h->rPos1;  
+  position = h->GetDriftDistance();
   distance = x - position;
   if (distance < 0) distance = -distance;
   bestx = position;
   //cerr << "d1= " << distance << endl;
 
   // Second option of left/right ambiguity
-  position = -h->rPos1;
+  // position = -h->rPos1;
+  position = -h->GetDriftDistance();
   distance = x - position;
   if (distance < 0) distance = -distance;
   // is this better?
@@ -206,7 +209,7 @@ int QwTrackingTreeCombine::bestx (
   ha->used    = false;
   ha->rResultPos =
         ha->rPos = bestx;
-  ha->Resolution = resolution;
+  ha->SetSpatialResolution(resolution);//  ha->Resolution = resolution;
 
   return 1;
 }
@@ -260,9 +263,12 @@ int QwTrackingTreeCombine::bestx (
     for (QwHit* hit = hitlist; hit; hit = hit->nextdet) {
 
     // Two options for the left/right ambiguity
+//    for (int j = 0; j < 2; j++) {
+//      position   = j ? (hit->wire + 1) * wirespace + hit->rPos1 + Dx
+//		     : (hit->wire + 1) * wirespace - hit->rPos1 + Dx;
     for (int j = 0; j < 2; j++) {
-      position   = j ? (hit->wire + 1) * wirespace + hit->rPos1 + Dx
-		     : (hit->wire + 1) * wirespace - hit->rPos1 + Dx;
+      position   = j ? (hit->wire + 1) * wirespace + hit->GetDriftDistance() + Dx
+		     : (hit->wire + 1) * wirespace - hit->GetDriftDistance() + Dx;
       distance   = x - position;
       adistance  = fabs(distance);
 
@@ -279,7 +285,8 @@ int QwTrackingTreeCombine::bestx (
 	  ha[ngood]->used    = false;
 	  ha[ngood]->rResultPos =
 	    ha[ngood]->rPos    = position;
-          ha[ngood]->Zpos = hit->detec->Zpos;
+          // ha[ngood]->Zpos = hit->detec->Zpos;
+          ha[ngood]->SetZPos(hit->detec->Zpos);
 	  if( adistance < minimum ) {
 	    *xresult = position;
 	    minimum = adistance;
@@ -396,9 +403,9 @@ void QwTrackingTreeCombine::weight_lsq (
   //##########
 
   for (int i = 0; i < n; i++) {
-    A[i][1] = -(hits[i]->Zpos);
+    A[i][1] = -(hits[i]->GetZPos()); // A[i][1] = -(hits[i]->Zpos);
     y[i]     = -hits[i]->rResultPos;
-    r = 1.0 / hits[i]->Resolution;
+    r = 1.0 / hits[i]->GetSpatialResolution(); // r = 1.0 / hits[i]->Resolution;
     G[i][i] = r * r;
   }
 
@@ -442,8 +449,13 @@ void QwTrackingTreeCombine::weight_lsq (
   for (int i = 0, s = 0.0; i < n; i++) {
 //     r  = (*slope * (hits[i]->Zpos - MAGNET_CENTER) + *xshift
 // 	  - hits[i]->rResultPos);
-    r  = (*slope * (hits[i]->Zpos) + *xshift
+
+//    r  = (*slope * (hits[i]->Zpos) + *xshift
+//	  - hits[i]->rResultPos);
+
+    r  = (*slope * (hits[i]->GetZPos()) + *xshift
 	  - hits[i]->rResultPos);
+
     double dbg_tmp = G[i][i];
     s  += G[i][i] * r * r;
   }
@@ -493,14 +505,15 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
   //###########
   for (int i = 0; i < n; i++) {
     if (offset == -1) {
-      A[i][1] = -hits[i]->Zpos; //used by matchR3
+      // A[i][1] = -hits[i]->Zpos; //used by matchR3
+      A[i][1] = -hits[i]->GetZPos(); //used by matchR3
       y[i]    = -hits[i]->rPos;
     } else {
       A[i][1] = -(i+offset); //used by Tl MatchHits
       y[i]    = -hits[i]->rResultPos;
     }
-    r = 1.0 / hits[i]->Resolution;
-    if (! (hits[i]->Resolution)) r = 1.0 / resolution;
+    r = 1.0 / hits[i]->GetSpatialResolution(); // r = 1.0 / hits[i]->Resolution;
+    if (! (hits[i]->GetSpatialResolution())) r = 1.0 / resolution; // if (! (hits[i]->Resolution)) r = 1.0 / resolution;
     // WARNING : this is a hack to make this fit work.  Hit resolutions needs to be set up.
     G[i][i] = r * r;
   }
@@ -545,7 +558,8 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
   double s = 0.0;
   if (offset == -1) {
     for (int i = 0; i < n; i++) {
-      r  = *slope * (hits[i]->Zpos - z1) + *xshift - hits[i]->rResultPos;
+      // r  = *slope * (hits[i]->Zpos - z1) + *xshift - hits[i]->rResultPos;
+      r  = *slope * (hits[i]->GetZPos() - z1) + *xshift - hits[i]->rResultPos;
       double dbg_tmp = G[i][i];
       s  += G[i][i] * r * r;
     }
@@ -1256,12 +1270,12 @@ int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
 
   // Calculate the metric matrix
   for (int i = 0; i < Num; i++) {
-    cff  = 1.0 / Hit[i]->Resolution;
+    cff  = 1.0 / Hit[i]->GetSpatialResolution(); // cff  = 1.0 / Hit[i]->Resolution;
     cff *= cff;
     r[0] = rCos[Hit[i]->detec->dir];
-    r[1] = rCos[Hit[i]->detec->dir] * (Hit[i]->Zpos);
+    r[1] = rCos[Hit[i]->detec->dir] * (Hit[i]->GetZPos()); // r[1] = rCos[Hit[i]->detec->dir] * (Hit[i]->Zpos);
     r[2] = rSin[Hit[i]->detec->dir];
-    r[3] = rSin[Hit[i]->detec->dir] * (Hit[i]->Zpos);
+    r[3] = rSin[Hit[i]->detec->dir] * (Hit[i]->GetZPos()); // r[3] = rSin[Hit[i]->detec->dir] * (Hit[i]->Zpos);
     for (int k = 0; k < 4; k++) {
       B[k] += cff*r[k]*(Hit[i]->rPos - x0[Hit[i]->detec->dir]);
       for (int j = 0; j < 4; j++)
@@ -1299,9 +1313,9 @@ int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
   *chi = 0;
   for (int i = 0; i < Num; i++) {
     Dir = Hit[i]->detec->dir;
-    cff  = 1.0 / Hit[i]->Resolution;
+        cff  = 1.0 / Hit[i]->GetSpatialResolution(); // cff  = 1.0 / Hit[i]->Resolution;
     cff *= cff;
-    uvx  = bx[Dir] + mx[Dir] * (Hit[i]->Zpos);
+    uvx  = bx[Dir] + mx[Dir] * (Hit[i]->GetZPos()); //uvx  = bx[Dir] + mx[Dir] * (Hit[i]->Zpos);
     *chi += (uvx-Hit[i]->rPos) * (uvx-Hit[i]->rPos) * cff;
   }
   *chi = *chi / (Num - 4);
@@ -1333,9 +1347,12 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, doub
   double *AAp = &AA[0][0];
 
   for (int i = 0; i < Num; i++) {
-    Hit[i]->rPos1 = Hit[i]->rPos;
-    Hit[i]->rPos = Hit[i]->Zpos;
-    Hit[i]->Zpos = Hit[i]->rPos1;
+//    Hit[i]->rPos1 = Hit[i]->rPos;
+//    Hit[i]->rPos = Hit[i]->Zpos;
+//    Hit[i]->Zpos = Hit[i]->rPos1;
+    Hit[i]->SetDriftDistance(Hit[i]->rPos);
+    Hit[i]->rPos = Hit[i]->GetZPos();
+    Hit[i]->SetZPos(Hit[i]->GetDriftDistance());
     //cerr << Hit[i]->Zpos << ',' << Hit[i]->rPos << ',' << Hit[i]->detec->dir << endl;
   }
 
@@ -1356,12 +1373,12 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, doub
   //##############################
   for (int i = 0; i < Num; i++ ) {
     //cerr << i << " " << Hit[i]->Zpos << " " << Hit[i]->rPos << " ";
-    cff  = 1.0/Hit[i]->Resolution;
+    cff  = 1.0 / Hit[i]->GetSpatialResolution(); // cff  = 1.0/Hit[i]->Resolution;
     cff *= cff;
     r[0] = rCos[Hit[i]->detec->dir];
-    r[1] = rCos[Hit[i]->detec->dir]*(Hit[i]->Zpos);
+    r[1] = rCos[Hit[i]->detec->dir]*(Hit[i]->GetZPos()); //r[1] = rCos[Hit[i]->detec->dir]*(Hit[i]->Zpos);
     r[2] = rSin[Hit[i]->detec->dir];
-    r[3] = rSin[Hit[i]->detec->dir]*(Hit[i]->Zpos);
+    r[3] = rSin[Hit[i]->detec->dir]*(Hit[i]->GetZPos()); //r[3] = rSin[Hit[i]->detec->dir]*(Hit[i]->Zpos);
 
     for (int k = 0; k < 4; k++) {
       B[k] += cff * r[k] * (Hit[i]->rPos) * (-1);
@@ -1410,9 +1427,9 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, doub
   *chi = 0;
   for (int i = 0; i < Num; i++) {
     Dir = Hit[i]->detec->dir;
-    cff  = 1.0 / Hit[i]->Resolution;
+    cff  = 1.0 / Hit[i]->GetSpatialResolution(); // cff  = 1.0 / Hit[i]->Resolution;
     cff *= cff;
-    uvx  = bx[Dir] + mx[Dir] * (Hit[i]->Zpos);
+    uvx  = bx[Dir] + mx[Dir] * (Hit[i]->GetZPos()); // uvx  = bx[Dir] + mx[Dir] * (Hit[i]->Zpos);
     //cerr << uvx << ',' << Hit[i]->rPos << endl;
     *chi += (uvx-Hit[i]->rPos)* (uvx-Hit[i]->rPos)*cff;
   }
@@ -1519,13 +1536,19 @@ int QwTrackingTreeCombine::r3_TrackFit( int Num, QwHit **hit, double *fit, doubl
   // Calculate the x,y coordinates in the VDC frame #
   //#################################################
   for (int i = 0; i < Num; i++) {
-    xyz[i].rPos1=hit[i]->rPos1 * uv2xy[0][0] + hit[i]->rPos2 * uv2xy[0][1];//x
-    xyz[i].rPos=xyz[i].rPos1;
-    xyz[i].rPos2=hit[i]->rPos1 * uv2xy[1][0] + hit[i]->rPos2 * uv2xy[1][1];//y
-    xyz[i].Zpos=hit[i]->rPos;//z
+//    xyz[i].rPos1=hit[i]->rPos1 * uv2xy[0][0] + hit[i]->rPos2 * uv2xy[0][1];//x
+//    xyz[i].rPos=xyz[i].rPos1;
+//    xyz[i].rPos2=hit[i]->rPos1 * uv2xy[1][0] + hit[i]->rPos2 * uv2xy[1][1];//y
+//    xyz[i].Zpos=hit[i]->rPos;//z
+    xyz[i].SetDriftDistance(hit[i]->GetDriftDistance() * uv2xy[0][0] + hit[i]->rPos2 * uv2xy[0][1]);//x
+    xyz[i].rPos=xyz[i].GetDriftDistance();
+    xyz[i].rPos2=hit[i]->GetDriftDistance() * uv2xy[1][0] + hit[i]->rPos2 * uv2xy[1][1];//y
+    xyz[i].SetZPos(hit[i]->rPos);//z
 
-    cerr << "Hit coordinates :" << i << "(" << xyz[i].rPos1 << "," << xyz[i].rPos2 << "," << xyz[i].Zpos << ")" << endl;
-    xyz[i].Resolution = 0;
+//    cerr << "Hit coordinates :" << i << "(" << xyz[i].rPos1 << "," << xyz[i].rPos2 << "," << xyz[i].Zpos << ")" << endl;
+    cerr << "Hit coordinates :" << i << "(" << xyz[i].GetDriftDistance() << "," << xyz[i].rPos2 << "," << xyz[i].GetZPos() << ")" << endl;
+    // xyz[i].Resolution = 0;
+    xyz[i].SetSpatialResolution(0);
   }
   //####################
   // Calculate the fit #
@@ -1550,10 +1573,10 @@ int QwTrackingTreeCombine::r3_TrackFit( int Num, QwHit **hit, double *fit, doubl
 
 
   // get two points on the line
-  P1[2] = xyz[0].Zpos;
+  P1[2] = xyz[0].GetZPos(); //P1[2] = xyz[0].Zpos;
   P1[0] = mx * P1[2] + bx;
   P1[1] = my * P1[2] + by;
-  P2[2] = xyz[Num-1].Zpos;
+  P2[2] = xyz[Num-1].GetZPos(); // P2[2] = xyz[Num-1].Zpos;
   P2[0] = mx * P2[2] + bx;
   P2[1] = my * P2[2] + by;
 
@@ -1744,7 +1767,8 @@ cerr << "a" << endl;
 	  uv2xy[1][0] =  fabs(h->detec->rSin);
 	}
         h->rPos2 = m * h->rPos + b;//v
-        h->rPos1 = h->Zpos;//u
+        // h->rPos1 = h->Zpos;//u
+        h->SetDriftDistance(h->GetZPos());//u
 
         //z is rPos
       } else {
@@ -1752,13 +1776,15 @@ cerr << "a" << endl;
           uv2xy[0][1]=fabs(h->detec->rCos);
 	  uv2xy[1][1]=fabs(h->detec->rSin);
 	}
-        h->rPos1 = m * h->rPos + b;//u
-        h->rPos2 = h->Zpos;//v
+        // h->rPos1 = m * h->rPos + b;//u
+        h->SetDriftDistance(m * h->rPos + b);//u
+        h->rPos2 = h->GetZPos();//v  // h->rPos2 = h->Zpos;//v
         //cerr << h->rPos << " " << h->Zpos << endl;
         //z is rPos
       }
       //now each hit has a u,v,z coordinate.
-      gnu3 << h->rPos << " " << h->rPos1 << " " << h->rPos2 << endl;
+      // gnu3 << h->rPos << " " << h->rPos1 << " " << h->rPos2 << endl;
+      gnu3 << h->rPos << " " << h->GetDriftDistance() << " " << h->rPos2 << endl;
       //string all the hits together
       if(h->used !=0){
         hits[hitc++] = h;
@@ -2352,8 +2378,11 @@ void QwTrackingTreeCombine::ResidualWrite (Event* event)
 	  for( num = MAXHITPERLINE*DLAYERS; num--&&*hitarr; hitarr ++ ) {
 	    hit = *hitarr;
 	    if( hit->used ) {
-	      x = pt->mx*( hit->Zpos - MAGNET_CENTER ) + pt->x;
-	      y = pt->my*( hit->Zpos - MAGNET_CENTER ) + pt->y;
+	      // x = pt->mx*( hit->Zpos - MAGNET_CENTER ) + pt->x;
+	      // y = pt->my*( hit->Zpos - MAGNET_CENTER ) + pt->y;
+	      x = pt->mx*( hit->GetZPos() - MAGNET_CENTER ) + pt->x;
+	      y = pt->my*( hit->GetZPos() - MAGNET_CENTER ) + pt->y;
+
 	      //mcHitCord( hit->mcId, &mx, &my);
 	      switch (dir) {
 	        case kDirectionU: v = xy2u( x,y ); mv = xy2u(mx,my); break;
@@ -2371,7 +2400,8 @@ void QwTrackingTreeCombine::ResidualWrite (Event* event)
 		     "XXptresXX\n",
 		     hit->detec->ID, type, package, region,dir,
 		     hit->wire,
-		     0.5*(hit->rPos1+hit->rPos2),
+		     // 0.5*(hit->rPos1+hit->rPos2),
+		     0.5*(hit->GetDriftDistance()+hit->rPos2),
 		     hit->rPos, v, hit->rResultPos,
 		     tl->chi, pt->chi,x, y,
 		     tl->nummiss, allmiss, mx, my, mv,

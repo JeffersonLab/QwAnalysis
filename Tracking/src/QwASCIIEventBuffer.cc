@@ -195,20 +195,23 @@ void  QwASCIIEventBuffer::GetrcDETRegion(QwHitContainer &HitList, Int_t event_no
 
 
 
-        newhit = new QwHit();
+        newhit = new QwHit;
+        assert(newhit);
         //newhit = (QwHit*) malloc (sizeof(QwHit));
         //	  // set event number
         newhit->ID = event_no; //set the current event number
         // Wire number
         newhit->wire = local_id.fElement;
         //	  // Z position of wire plane (first wire for region 3)
-        newhit->Zpos = qwhit->GetZPos();
+//        newhit->Zpos = qwhit->GetZPos();
+        newhit->SetZPos(qwhit->GetZPos());
         // Distance of hit from wire
-        newhit->rPos1 = qwhit->GetDriftDistance();
+//        newhit->rPos1 = qwhit->GetDriftDistance();
+        newhit->SetDriftDistance(qwhit->GetDriftDistance());
         //	  // Placeholder for future code
         newhit->rPos2 = 0;
         // Get the spatial resolution for this hit
-        newhit->Resolution = qwhit->GetSpatialResolution();
+        newhit->SetSpatialResolution(qwhit->GetSpatialResolution());
         // the hit's pointer back to the detector plane
         newhit->detec = rd;
 
@@ -502,20 +505,24 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits) {
         }
 
 
-        newhit = new QwHit();
+        newhit = new QwHit;
+        assert(newhit);
         //newhit = (QwHit*) malloc (sizeof(QwHit));
         //	  // set event number
         newhit->ID = fEvtNumber;
         // Wire number
         newhit->wire = local_id.fElement;
         //	  // Z position of wire plane (first wire for region 3)
-        newhit->Zpos = qwhit->GetZPos();
+        // newhit->Zpos = qwhit->GetZPos();
+        newhit->SetZPos(qwhit->GetZPos());
         // Distance of hit from wire
-        newhit->rPos1 = qwhit->GetDriftDistance();
+        //newhit->rPos1 = qwhit->GetDriftDistance();
+        newhit->SetDriftDistance(qwhit->GetDriftDistance());
         //	  // Placeholder for future code
         newhit->rPos2 = 0;
         // Get the spatial resolution for this hit
-        newhit->Resolution = qwhit->GetSpatialResolution();
+        // newhit->Resolution = qwhit->GetSpatialResolution();
+        newhit->SetSpatialResolution(qwhit->GetSpatialResolution());
         // the hit's pointer back to the detector plane
         newhit->detec = rd;
 

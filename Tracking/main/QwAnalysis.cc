@@ -53,7 +53,7 @@
 
 //from QwTracking
 #include "Qset.h"
-#include "Qevent.h"
+//#include "Qevent.h"
 #include "Qoptions.h"
 #include "options.h"
 #include "QwTrackingTreeRegion.h"

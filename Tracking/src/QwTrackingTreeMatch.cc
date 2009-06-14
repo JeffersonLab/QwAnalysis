@@ -211,7 +211,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
     numflines++;
     if(fwalk->isvoid == 0){
       for(i=0;i<fwalk->numhits;i++){
-        fwalk->hits[i]->Zpos = (fwalk->hits[i]->wire-141) * wirespacingf;
+        fwalk->hits[i]->SetZPos((fwalk->hits[i]->wire-141) * wirespacingf); //fwalk->hits[i]->Zpos = (fwalk->hits[i]->wire-141) * wirespacingf;
         if(dir == kDirectionV)fwalk->hits[i]->rPos+= d_uv;
       }
     }
@@ -220,7 +220,8 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
     numblines++;
     if(bwalk->isvoid == 0){
       for(i=0;i<bwalk->numhits;i++){
-        bwalk->hits[i]->Zpos = (bwalk->hits[i]->wire -281 - 141) * wirespacingb + d2u;
+        //bwalk->hits[i]->Zpos = (bwalk->hits[i]->wire -281 - 141) * wirespacingb + d2u;
+        bwalk->hits[i]->SetZPos((bwalk->hits[i]->wire -281 - 141) * wirespacingb + d2u);
         bwalk->hits[i]->rPos = bwalk->hits[i]->rPos + d;
         if(dir == kDirectionV)bwalk->hits[i]->rPos+= d_uv;
       }
@@ -241,7 +242,8 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
     if(fwalk->isvoid == 0){//skip it if it's no good
       if(dir == kDirectionU){
         for(k=0;k<fwalk->numhits;k++){
-          gnu1 << fwalk->hits[k]->Zpos << " " << fwalk->hits[k]->rPos << endl;
+          //gnu1 << fwalk->hits[k]->Zpos << " " << fwalk->hits[k]->rPos << endl;
+          gnu1 << fwalk->hits[k]->GetZPos() << " " << fwalk->hits[k]->rPos << endl;
         }
       }
       fpos = bestWireHit(fwalk);
@@ -252,13 +254,13 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
 	if(bwalk->isvoid !=0)continue;
         if(dir == kDirectionU){
           for(l=0;l<bwalk->numhits;l++){
-            gnu1 << bwalk->hits[l]->Zpos << " " << bwalk->hits[l]->rPos << endl;
+           gnu1 << bwalk->hits[l]->GetZPos() << " " << bwalk->hits[l]->rPos << endl;//gnu1 << bwalk->hits[l]->Zpos << " " << bwalk->hits[l]->rPos << endl;
           }
         }
     	bpos = bestWireHit(bwalk,d);
 
-	y[0]=fpos->Zpos;
-	y[1]=bpos->Zpos;
+	y[0]=fpos->GetZPos(); //y[0]=fpos->Zpos;
+	y[1]=bpos->GetZPos(); // y[1]=bpos->Zpos;
 	x[0]=fpos->rPos;
 	x[1]=bpos->rPos;
 

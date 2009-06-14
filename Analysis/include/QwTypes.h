@@ -70,7 +70,7 @@ class QwDetectorID
   QwDetectorID():fRegion(-1),fPackage(-1),fPlane(-1),fDirection(-1),fElement(-1){};
 
   QwDetectorID(const Int_t region, const Int_t package, const Int_t plane,const Int_t direction, const
- Int_t wire):fRegion(region),fPackage(package),fPlane(plane),fDirection(direction),fElement(wire){};
+  Int_t wire):fRegion(region),fPackage(package),fPlane(plane),fDirection(direction),fElement(wire){};
 
  public:
   int fRegion;  // region 1, 2, 3, triggg. scint or cerenkov

@@ -127,7 +127,7 @@ using namespace std;
 
 // Qweak Tracking headers
 #include "Qset.h"
-#include "Qevent.h"
+//#include "Qevent.h"
 #include "Qoptions.h"
 #include "options.h"
 
@@ -177,12 +177,8 @@ int main (int argc, char* argv[])
 
 	/// Event loop goes here
 
-	//I have commented out these with the below while loop so that we can demonstrate the newly added routines produces the same out
-	//Qevent qevent;
-	//qevent.Open((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/1000.r2.events").c_str());
-	//cout << "[QwTracking::main] Sample events file opened" << endl;
-
-	QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker"); // R3 needs debugging in the 3-D fit
+        // R3 needs debugging in the 3-D fit
+	QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker"); 
 
 	// The event loop should skip when iEvent is unphysical,
 	// or: GetEvent returns bool and GetEventNumber returns int
