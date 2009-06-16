@@ -18,13 +18,28 @@ QwTreeEventBuffer::QwTreeEventBuffer (const TString filename)
   // Open ROOT file
   fFile = new TFile (filename);
   fTree = (TTree*) fFile->Get("QweakSimG4_Tree");
+  fTree->SetMakeClass(1);
   if (fDebug) fTree->Print();
 
   // Attach to region 2 branches
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneHasBeenHit",
 		&fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit);
+  fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneLocalPositionX",
+                           &fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX);
+  fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneLocalPositionY",
+                           &fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionY);
+  fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneLocalPositionZ",
+                           &fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionZ);
+
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane1.PlaneHasBeenHit",
 		&fRegion2_ChamberBack_WirePlane1_PlaneHasBeenHit);
+  fTree->SetBranchAddress("Region2.ChamberBack.WirePlane1.PlaneLocalPositionX",
+                           &fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionX);
+  fTree->SetBranchAddress("Region2.ChamberBack.WirePlane1.PlaneLocalPositionY",
+                           &fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionY);
+  fTree->SetBranchAddress("Region2.ChamberBack.WirePlane1.PlaneLocalPositionZ",
+                           &fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionZ);
+
 
   // Attach to region 3 branches
   fTree->SetBranchAddress("Region3.ChamberFront.WirePlane.UPlaneHasBeenHit",
@@ -77,8 +92,9 @@ Int_t QwTreeEventBuffer::GetNextEvent()
 
   // Load event
   if (fDebug) std::cout << "Reading event " << fEvtNumber << std::endl;
-  fTree->GetEntry(fEvtNumber);
-  if (fDebug) fTree->Show();
+  fTree->GetBranch("Region2")->GetEntry(fEvtNumber);
+  fTree->GetBranch("Region3")->GetEntry(fEvtNumber);
+  if (fDebug) fTree->Show(fEvtNumber);
 
   // Print info
   if (fDebug) std::cout << "Region 2: "
@@ -108,8 +124,14 @@ QwHitContainer* QwTreeEventBuffer::GetHitList ()
   // Could be set with e.g. id = rcDETRegion[kPackageUp,kRegionID2,kDirectionU]
 
   // Region 2 front planes (u,v,x)
+  if (fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit > 0) {
+
+  }
 
   // Region 2 back planes (u',v',x')
+  if (fRegion2_ChamberBack_WirePlane1_PlaneHasBeenHit > 0) {
+
+  }
 
   // Region 3 front planes (u,v)
   double angle = 0.5; // angle of u plane in radians
