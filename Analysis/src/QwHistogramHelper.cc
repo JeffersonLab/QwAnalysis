@@ -192,6 +192,11 @@ Bool_t QwHistogramHelper::DoesMatch(const std::string s, const std::string s_wil
   if(s.length()==s_wildcard.length()
      &&s1.Index(s2)==0){//found a match!
     return kTRUE;
+  } else if (s1.Index(s2)==0){//found a match!
+    std::cout << "QwHistogramHelper:  Matching histogram \"" << s.c_str() 
+	      << "\" to wildcard pattern \"" 
+	      << s_wildcard.c_str() << "\"." << std::endl;
+    return kTRUE;
   }
   else return kFALSE;
 };
