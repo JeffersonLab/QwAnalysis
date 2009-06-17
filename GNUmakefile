@@ -237,7 +237,7 @@ LIBTOOL = $(LD)
 ifeq ($(ARCH),Linux)
 
 CXX            := gcc
-CXXFLAGS       := -Wall -fPIC 
+CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
 LD             = gcc
 LDFLAGS        = -Wl,-rpath,$(QWLIB)
@@ -319,22 +319,29 @@ endif
 ############################
 ifndef BOOST_INC_DIR
   ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name boost)),/usr/include/boost)
-$(error Aborting : Cannot find the /usr/include/boost.  Set BOOST_INC_DIR and BOOST_LIB_DIR to the location of the Boost installation.)
-endif
-#  We should also put a test on the boost version number here.
-#
+    $(error Aborting : Cannot find the /usr/include/boost.  Set BOOST_INC_DIR and BOOST_LIB_DIR to the location of the Boost installation.)
+  endif
+  BOOST_INC_DIR = /usr/include/boost
+  BOOST_LIB_DIR = /usr/lib
+  #  We should also put a test on the boost version number here.
+  #
+  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" $(BOOST_INC_DIR)/version.hpp)
   BOOST_INC  =
   BOOST_LIBS =
 else
-#  We should also put a test on the boost version number here.
-#
+  #  We should also put a test on the boost version number here.
+  #
+  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" ${BOOST_INC_DIR}/version.hpp)
   BOOST_INC  = -I${BOOST_INC_DIR}
   BOOST_LIBS = -L${BOOST_LIB_DIR}
 endif
 
 #  List the Boost libraries to be linked to the analyzer.
-BOOST_LIBS += -lboost_filesystem
-
+ifeq ($(strip $(shell $(FIND) $(BOOST_LIB_DIR) -maxdepth 1 -name libboost_filesystem-mt.so)),$(BOOST_LIB_DIR)/libboost_filesystem-mt.so)
+  BOOST_LIBS += -lboost_filesystem-mt
+else
+  BOOST_LIBS += -lboost_filesystem
+endif
 
 
 ############################
