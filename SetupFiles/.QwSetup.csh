@@ -121,6 +121,8 @@ if ($?QWSCRATCH) then
     echo QWSCRATCH already defined : ${QWSCRATCH}
   else
     echo "Error: Directory, "${QWSCRATCH}", does not exist."
+    echo \*\*\*\* directory asym missing, creating
+    mkdir -p ${QWSCRATCH}
   endif
 else
   unsetenv QWSCRATCH
@@ -129,6 +131,8 @@ else
     echo "Setting QWSCRATCH to " ${QWSCRATCH}
   else
     echo "Error: Directory, "${QWSCRATCH}", does not exist."
+    echo \*\*\*\* directory asym missing, creating
+    mkdir -p ${QWSCRATCH}
   endif
 endif
 
@@ -137,27 +141,27 @@ if (-d ${QWSCRATCH})  then
     echo `ls $QWSCRATCH` 
     if (! -d ${QWSCRATCH}/asym)  then
       echo \*\*\*\* subdirectory asym missing, creating
-      mkdir ${QWSCRATCH}/asym
+      mkdir -p ${QWSCRATCH}/asym
     endif
     if (! -d ${QWSCRATCH}/calib)  then
       echo \*\*\*\* subdirectory calib missing, creating
-      mkdir ${QWSCRATCH}/calib
+      mkdir -p ${QWSCRATCH}/calib
     endif
     if (! -d ${QWSCRATCH}/data)  then
       echo \*\*\*\* subdirectory data missing, creating
-      mkdir ${QWSCRATCH}/data
+      mkdir -p ${QWSCRATCH}/data
     endif
     if (! -d ${QWSCRATCH}/rootfiles)  then
       echo \*\*\*\* subdirectory rootfiles missing, creating
-      mkdir ${QWSCRATCH}/rootfiles
+      mkdir -p ${QWSCRATCH}/rootfiles
     endif
     if (! -d ${QWSCRATCH}/scripts)  then
       echo \*\*\*\* subdirectory scripts missing, creating
-      mkdir ${QWSCRATCH}/scripts
+      mkdir -p ${QWSCRATCH}/scripts
     endif
     if (! -d ${QWSCRATCH}/setupfiles)  then
       echo \*\*\*\* subdirectory setupfiles missing, creating
-      mkdir ${QWSCRATCH}/setupfiles
+      mkdir -p ${QWSCRATCH}/setupfiles
       echo \*\*\*\* copying common setup files into new directory ${QWSCRATCH}/setupfiles
       \cp ${QWANALYSIS}/QWROOT/setupfiles/*.dat ${QWSCRATCH}/setupfiles
       ls ${QWSCRATCH}/setupfiles
@@ -170,15 +174,15 @@ if (-d ${QWSCRATCH})  then
     endif
     if (! -d ${QWSCRATCH}/sum)  then
       echo \*\*\*\* subdirectory sum missing, creating
-      mkdir ${QWSCRATCH}/sum
+      mkdir -p ${QWSCRATCH}/sum
     endif
     if (! -d ${QWSCRATCH}/tmp)  then
       echo \*\*\*\* subdirectory tmp missing, creating
-      mkdir ${QWSCRATCH}/tmp
+      mkdir -p ${QWSCRATCH}/tmp
     endif
     if (! -d ${QWSCRATCH}/work)  then
       echo \*\*\*\* subdirectory work missing, creating
-      mkdir ${QWSCRATCH}/work
+      mkdir -p ${QWSCRATCH}/work
     endif
 endif
 

@@ -18,44 +18,34 @@ unset QWLIB
 unset QWBIN
 unset MYEVIO
 
-export QW_ROOTFILES_DIR=${QWSCRATCH}/rootfiles
-export QW_TMP_DIR=${QWSCRATCH}/tmp
-export QWLIB=${QWANALYSIS}/lib
-export QWBIN=${QWANALYSIS}/bin
-export QWEVIO=${QWANALYSIS}/coda
+export QW_ROOTFILES_DIR=$QWSCRATCH/rootfiles
+export QW_TMP_DIR=$QWSCRATCH/tmp
+export QWLIB=$QWANALYSIS/lib
+export QWBIN=$QWANALYSIS/bin
+export QWEVIO=$QWANALYSIS/coda
+
 
 # Searching paths for binaries :
-if [[ -n "$PATH" ]] 
-then
-   export PATH=${QWANALYSIS}/bin:${ROOTSYS}/bin:${PATH}
+if [[ -n "$PATH" ]]; then
+   export PATH=$QWANALYSIS/bin:$ROOTSYS/bin:$PATH
 else
-   export PATH=${QWANALYSIS}/bin:${ROOTSYS}/bin
+   export PATH=$QWANALYSIS/bin:$ROOTSYS/bin
 fi
 
+
+ 
 # Searching paths for linker :
-if [[ -n "$LD_LIBRARY_PATH" ]]
-then
-   export LD_LIBRARY_PATH=${QWANALYSIS}/lib:${LD_LIBRARY_PATH}:${ROOTSYS}/lib:${X11}/lib
+if [[ -n "$LD_LIBRARY_PATH" ]]; then
+   export LD_LIBRARY_PATH=$QWANALYSIS/lib:$LD_LIBRARY_PATH:$ROOTSYS/lib:$X11/lib
 else
-   export LD_LIBRARY_PATH=${QWANALYSIS}/lib:${ROOTSYS}/lib:${X11}/lib
+   export LD_LIBRARY_PATH=$QWANALYSIS/lib:$ROOTSYS/lib:$X11/lib
 fi
-
-# Create alias gmake -> make when gmake is not found
-if [[ -z "`which gmake`" ]]
-then
-   echo "Could not find gmake, forcing the use of make."
-   alias make='make MAKE=make'
-else
-   echo no alias
-fi
-
+ 
 # QWSHELL
-if [[ -f /bin/bash ]]
-then
-  export QWSHELL=bash
+if [[ -f /bin/bash ]]; then
+  export QWSHELL=/bin/bash
 else 
-	if [[ -f /bin/ksh ]]
-	then
+	if [[ -f /bin/ksh ]]; then
 	  export QWSHELL=ksh
 	else
 	  echo \*\*\* WARNING : couldn\'t find either bash or ksh on system
@@ -63,6 +53,5 @@ else
 	fi
 fi
 
-
-#rehash
-
+ 
+ 
