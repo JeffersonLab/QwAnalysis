@@ -119,6 +119,11 @@ class QwHitContainer:  public std::list<QwHit>{
     return sublist;
   }
 
+  // Return the sublist of hits only in specified detector plane
+  void Print () {
+    for (QwHitContainer::iterator hit = begin(); hit != end(); hit++)
+      hit->Print();
+  }
 
 
 

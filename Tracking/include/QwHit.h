@@ -48,7 +48,14 @@ class QwHit {
       fRawTime = data;
     };// Direction is also set at QwHit initialization -Rakitha (10/23/2008)
 
-
+  void Print() {
+    std::cout << "Hit: ";
+    std::cout << "package " << fPackage << ", ";
+    std::cout << "region " << fRegion << ", ";
+    std::cout << "dir " << fDirection << ", ";
+    std::cout << "plane " << fPlane << ", ";
+    std::cout << "wire " << fElement << std::endl;
+  };
 
 
   Int_t GetSubbankID(){return fCrate;};
