@@ -119,7 +119,6 @@ class QwHit {
 
 //below two metods retrieve subsets of QwHitContainer vector - rakitha (08/2008)
 
-
   Bool_t PlaneMatches(EQwRegionID region, Int_t package, Int_t plane) const
     {
       return (fRegion==region && fPackage==package && fPlane==plane);
@@ -128,6 +127,11 @@ class QwHit {
     {
       return (fRegion==region && fPackage==package && fDirection==dir);
     };
+
+  // Method to check whether a hit is in a detector (using plane number)
+  const Bool_t IsPlane (Int_t plane) {
+    return (fPlane == plane);
+  }
 
   //main use of this method is to count no.of hits for a given wire and update the fHitNumber - rakitha (08/2008)
 
@@ -229,7 +233,7 @@ class QwHit {
   //  Hits for individual detector elements are strung together.  They also
   //  have a pointer back to the detector in case more information about the
   //  hit is needed.  The various position values are used in multiple ways,
-  //  and therefore are not strictly defined. 
+  //  and therefore are not strictly defined.
   public:
     int wire;			/*!< wire ID                           */
 //    double Zpos;		/*!< Z position of hit                 */

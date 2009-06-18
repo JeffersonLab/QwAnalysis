@@ -4,7 +4,7 @@
 * File: QwHitContainer.h                                   *
 *                                                          *
 * Author: P. M. King ,Rakitha Beminiwattha                 *
-* brief  Agumented vector of QwHits allowing special       * 
+* brief  Agumented vector of QwHits allowing special       *
 * seach functionality                                      *
 * Time-stamp: <2008-07-08 15:40>                           *
 \**********************************************************/
@@ -48,13 +48,13 @@ class QwHitContainer:  public std::list<QwHit>{
   void Append(std::vector<QwHit>  &list){
     this->insert(this->end(), list.begin(), list.end());
   };
-  
+
 
   //iterator methods to obtain subsets of QwHitContainer elements - rakitha (08/2008)
   iterator GetStartOfHits(EQwRegionID region, Int_t package,
 			  EQwDirectionID direction){
-    return find_if (begin(), end(), 
-		    boost::bind(&QwHit::DirMatches, _1, 
+    return find_if (begin(), end(),
+		    boost::bind(&QwHit::DirMatches, _1,
 				boost::ref(region), boost::ref(package),
 				boost::ref(direction)));
   };
@@ -62,19 +62,19 @@ class QwHitContainer:  public std::list<QwHit>{
   iterator GetEndOfHits(EQwRegionID region, Int_t package,
 			EQwDirectionID direction){
     iterator first = GetStartOfHits(region, package, direction);
-    return find_if (first, end(), 
+    return find_if (first, end(),
 		    boost::bind<bool>(logical_not_,
-				      boost::bind(&QwHit::DirMatches, _1, 
+				      boost::bind(&QwHit::DirMatches, _1,
 						  boost::ref(region),
 						  boost::ref(package),
 						  boost::ref(direction))));
   };
-  
-  
+
+
   iterator GetStartOfHits1(EQwRegionID region, Int_t package,
 			  Int_t plane) {
-    return find_if (begin(), end(), 
-		    boost::bind(&QwHit::PlaneMatches, _1, 
+    return find_if (begin(), end(),
+		    boost::bind(&QwHit::PlaneMatches, _1,
 				boost::ref(region), boost::ref(package),
 				boost::ref(plane)));
   };
@@ -83,33 +83,43 @@ class QwHitContainer:  public std::list<QwHit>{
     iterator first = GetStartOfHits1(region, package, plane);
     return find_if (first, end(),
 		    boost::bind<bool>(logical_not_,
-				      boost::bind(&QwHit::PlaneMatches, _1, 
+				      boost::bind(&QwHit::PlaneMatches, _1,
 						  boost::ref(region),
 						  boost::ref(package),
 						  boost::ref(plane))));
   };
-  
-  
+
+
 
   //will return sub set of QwHitContainer list based on wire plane or wire direction -Rakitha (1023/2008)
 
   void GetSubList_Dir(EQwRegionID region, Int_t package, EQwDirectionID direction, std::vector<QwHit> &  sublist){
-          
-    std::list<QwHit>::iterator p;   
-    for (p=GetStartOfHits(region,package,direction);p !=GetEndOfHits(region,package,direction);p++){     
+
+    std::list<QwHit>::iterator p;
+    for (p=GetStartOfHits(region,package,direction);p !=GetEndOfHits(region,package,direction);p++){
       sublist.push_back(*p);
-    }  
+    }
   }
 
   void GetSubList_Plane(EQwRegionID region, Int_t package, Int_t plane, std::vector<QwHit> &  sublist){
-          
-    std::list<QwHit>::iterator p;   
-    for (p=GetStartOfHits1(region,package,plane);p !=GetEndOfHits1(region,package,plane);p++){     
+
+    std::list<QwHit>::iterator p;
+    for (p=GetStartOfHits1(region,package,plane);p !=GetEndOfHits1(region,package,plane);p++){
       sublist.push_back(*p);
-    }  
+    }
   }
- 
- 
+
+
+  // Return the sublist of hits only in specified detector plane
+  QwHitContainer* GetSubList (Int_t plane) {
+    QwHitContainer* sublist = new QwHitContainer;
+    for (QwHitContainer::iterator hit = begin(); hit != end(); hit++)
+      if (hit->IsPlane(plane))
+        sublist->push_back(*hit);
+    return sublist;
+  }
+
+
 
 
 };
