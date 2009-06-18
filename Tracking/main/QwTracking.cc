@@ -217,7 +217,7 @@ int main (int argc, char* argv[])
 
 	  // (wdc) Now we can access the event and its partial tracks
 	  // (e.g. list the partial track in the upper region 2 HDC)
-	  PartTrack* listoftracks = event->parttrack[kPackageUp][kRegionID2][kTypeDriftHDC];
+	  PartTrack* listoftracks = event->parttrack[kPackageUp][kRegionID2-1][kTypeDriftHDC];
 	  for (PartTrack* track = listoftracks;
 	                  track && ! track->isvoid;
 	                  track = track->next) {
