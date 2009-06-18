@@ -30,6 +30,7 @@
 #include <iostream>
 #include "QwTrackingTree.h"
 #include "QwTrackingTreeSearch.h"
+#include "QwPartialTrack.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 ///
@@ -58,9 +59,9 @@ class QwTrackingTreeSort {
 
 
 
-    int rcPartConnSort (PartTrack *head);
-    double ptchiweight (PartTrack *pt);
-    int rcPTCommonWires (PartTrack *track1, PartTrack *track2);
+    int rcPartConnSort (QwPartialTrack *head);
+    double ptchiweight (QwPartialTrack *pt);
+    int rcPTCommonWires (QwPartialTrack *track1, QwPartialTrack *track2);
 
   private:
 

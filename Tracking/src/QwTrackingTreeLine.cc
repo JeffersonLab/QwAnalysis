@@ -35,14 +35,9 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+QwTrackingTreeLine::QwTrackingTreeLine() { }
 
-namespace QwTracking {
-
- QwTrackingTreeLine::QwTrackingTreeLine() { }
-
- QwTrackingTreeLine::~QwTrackingTreeLine() { }
-
-}
+QwTrackingTreeLine::~QwTrackingTreeLine() { }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 

@@ -270,9 +270,9 @@ void QwTrackingWorker::InitTree()
               purposes only.
 
     inputs: (1) double E       - the momentum lookup energy
-            (2) PartTrack *f   - pointer to the front partial track for the
+            (2) QwPartialTrack *f   - pointer to the front partial track for the
                                  track
-            (3) PartTrack *b   - pointer to the back partial track of the
+            (3) QwPartialTrack *b   - pointer to the back partial track of the
                                  track
             (4) double TVertex - transverse position of the vertex for the
                                  track
@@ -283,13 +283,13 @@ void QwTrackingWorker::InitTree()
 *//*-------------------------------------------------------------------------*/
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-double rcShootP (double Pest,PartTrack *front, PartTrack *back, double accuracy)
+double rcShootP (double Pest,QwPartialTrack *front, QwPartialTrack *back, double accuracy)
 {
   cerr << "Warning: The function rcShootP is only a stub" << endl;
   return -1000;
 }
 
-void QwTrackingWorker::BCheck (double E, PartTrack *f, PartTrack *b, double TVertex, double ZVertex)
+void QwTrackingWorker::BCheck (double E, QwPartialTrack *f, QwPartialTrack *b, double TVertex, double ZVertex)
 {
   double Es = rcShootP(0.0,f,b,0.005);
   //extern physic phys_carlo;
@@ -319,19 +319,19 @@ void QwTrackingWorker::BCheck (double E, PartTrack *f, PartTrack *b, double TVer
 *//*-------------------------------------------------------------------------*/
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-Track * QwTrackingWorker::rcLinkUsedTracks( Track *track, int package )
+QwTrack* QwTrackingWorker::rcLinkUsedTracks (QwTrack *track, int package )
 {
-  Track *ret = 0, *usedwalk = 0;
-  Track *trackwalk, *ytrack;
+  QwTrack *ret = 0, *usedwalk = 0;
+  QwTrack *trackwalk, *ytrack;
 
   /* loop over all found tracks */
-  for(trackwalk = track; trackwalk; trackwalk = trackwalk->next ) {
+  for (trackwalk = track; trackwalk; trackwalk = trackwalk->next ) {
     /* and the possible y-tracks */
-    for( ytrack = trackwalk; ytrack; ytrack = ytrack->ynext ) {
+    for (ytrack = trackwalk; ytrack; ytrack = ytrack->ynext ) {
       // Statist[ytrack->method].TracksGenerated[package] ++;
-      if(!ytrack->Used) continue;
+      if (!ytrack->Used) continue;
       //Statist[ytrack->method].TracksUsed[package] ++;
-      if( !ret ) /* return the first used track */
+      if ( !ret ) /* return the first used track */
 	ret = usedwalk = ytrack;
       else {
 	usedwalk->usednext = ytrack; /* and link them together */
@@ -368,13 +368,13 @@ Track * QwTrackingWorker::rcLinkUsedTracks( Track *track, int package )
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 // TODO Should QwHitContainer be passed as const? (wdc)
-Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
+QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 {
   int k;
   int dlayer = 0;	      /* number of detector planes in the search    */
   double A[3][2];	      /* conversion between xy and uv */
-  Event *event;               /* area for storing the reconstruction info   */
-  PartTrack *area = 0;
+  QwEvent *event;               /* area for storing the reconstruction info   */
+  QwPartialTrack *area = 0;
   Det *rd/*, *rnd*/;          /* pointers for moving through the linked
                                  lists of detector id and hit information   */
   QwTrackingTreeLine *treelines1, *treelines2;
@@ -391,7 +391,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
   int outbounds = 0;
   */
 
-  event = new Event;
+  event = new QwEvent;
   assert(event);
 
   /// Loop through all detector packages
@@ -500,7 +500,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	      }
 
 	      /// Get the sublist of hits in this detector
-	      QwHitContainer *sublist = hitlist.GetSubList(rd->ID);
+	      QwHitContainer *sublist = hitlist->GetSubList(rd->ID);
 	      // If no hits in this detector, skip to the next detector.
 	      if (! sublist) continue;
 	      // Loop over the hits in the sublist
@@ -600,7 +600,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	      memset(hashchannelr2[tlayers], 0, sizeof(int) * (1UL << (levels - 1)));
 
 	      /// Get the sublist of hits in this detector
-	      QwHitContainer *sublist = hitlist.GetSubList(rd->ID);
+	      QwHitContainer *sublist = hitlist->GetSubList(rd->ID);
 	      for (QwHitContainer::iterator hit = sublist->begin(); hit != sublist->end(); hit++)
 	        cout << hit->GetDetectorID().fElement << endl;
 	      // If no hits in this detector, skip to the next detector.

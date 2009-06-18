@@ -31,7 +31,7 @@
 // Qweak tree object headers
 #include "shortnode.h"
 #include "QwHit.h"
-#include "tracking.h"
+#include "QwTrackingTreeLine.h"
 #include "globals.h"
 
 using namespace QwTracking;

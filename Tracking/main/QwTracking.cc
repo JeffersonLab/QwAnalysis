@@ -138,6 +138,7 @@ using namespace std;
 
 #include "QwTrackingWorker.h"
 #include "QwTrackingTree.h"
+#include "QwPartialTrack.h"
 
 
 //using namespace QwTracking;
@@ -159,7 +160,7 @@ int main (int argc, char* argv[])
 {
   //This routines initialize QwHit and QwHitContainer related classes
   QwASCIIEventBuffer asciibuffer;
-  QwHitContainer ASCIIgrandHitList;
+  QwHitContainer *ASCIIgrandHitList = new QwHitContainer();
   asciibuffer.OpenDataFile((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.event").c_str(),"R");
   ASCII_textfile = fopen(FILE_NAME, "wt");//for Debugging-QwHitContainer list save to this file
 
@@ -178,13 +179,14 @@ int main (int argc, char* argv[])
 	/// Event loop goes here
 
         // R3 needs debugging in the 3-D fit
-	QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker"); 
+	QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
 
 	// The event loop should skip when iEvent is unphysical,
 	// or: GetEvent returns bool and GetEventNumber returns int
 
 
 
+	QwEvent* event = 0;
 	nEvent = 0;
 
 	// This is the trial code for QwHitContainer converting into set
@@ -192,44 +194,33 @@ int main (int argc, char* argv[])
 
 	iEvent = 2;
 	while (asciibuffer.GetEvent() && nEvent < NEventMax) { //this will read each event per loop
-	  iEvent=asciibuffer.GetEventNumber();//this will read the current event number
+	  iEvent = asciibuffer.GetEventNumber();//this will read the current event number
 	  cout << "[QwTracking::main] Event " << iEvent << endl;
 
-	  asciibuffer.GetHitList(ASCIIgrandHitList); //will load the QwHitContainer from set of hits read from ASCII file qweak.event
-	  ASCIIgrandHitList.sort(); //sort the array
-	  SaveHits(ASCIIgrandHitList);
-	  asciibuffer.ProcessHitContainer(ASCIIgrandHitList);//now we decode our QwHitContainer list and pice together with the rcTreeRegion multi dimension array.
+	  asciibuffer.GetHitList(*ASCIIgrandHitList); //will load the QwHitContainer from set of hits read from ASCII file qweak.event
+	  ASCIIgrandHitList->sort(); //sort the array
+	  SaveHits(*ASCIIgrandHitList);
+	  asciibuffer.ProcessHitContainer(*ASCIIgrandHitList);//now we decode our QwHitContainer list and pice together with the rcTreeRegion multi dimension array.
 
 	  // Print hit list
-	  QwHitContainer::iterator qwhit;
-	  for (qwhit  = ASCIIgrandHitList.begin();
-	       qwhit != ASCIIgrandHitList.end(); qwhit++) {
-	    cout << qwhit->GetDetectorID().fPackage << " ";
-	    cout << qwhit->GetDetectorID().fRegion << " ";
-	    cout << qwhit->GetDetectorID().fDirection << " ";
-	    cout << qwhit->GetDetectorID().fPlane << " ";
-	    cout << qwhit->GetDetectorID().fElement << " ";
-	    cout << endl;
-	  }
+	  ASCIIgrandHitList->Print();
 
-          //Giving some trouble when 1000.r2.events events file is used.
-	  Event* event = trackingworker->ProcessHits (ASCIIgrandHitList); 
+	  // Process the hit list through the tracking worker (i.e. do track reconstruction)
+	  event = trackingworker->ProcessHits(ASCIIgrandHitList);
 
 	  // (wdc) Now we can access the event and its partial tracks
 	  // (e.g. list the partial track in the upper region 2 HDC)
-	  PartTrack* listoftracks = event->parttrack[kPackageUp][kRegionID2-1][kTypeDriftHDC];
-	  for (PartTrack* track = listoftracks;
-	                  track && ! track->isvoid;
-	                  track = track->next) {
-	    cout << "position = (" << track->x << "," << track->y << ")" << endl;
-	    cout << "   slope = (" << track->mx << "," << track->my << ")" << endl;
-            delete track;
-	  } // but unfortunately this is still empty
+	  QwPartialTrack* listoftracks = event->parttrack[kPackageUp][kRegionID2-1][kTypeDriftHDC];
+	  for (QwPartialTrack* track = listoftracks;
+	                  track; track = track->next) {
+	    track->Print();
+	  } // but unfortunately this is still void
+          delete listoftracks;
 
-	  ASCIIgrandHitList.clear();
+
+	  ASCIIgrandHitList->clear();
 
           delete event;
-          delete listoftracks;
 	  nEvent++;
 	 }
 

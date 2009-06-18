@@ -19,8 +19,12 @@
 
 // Tree search headers
 #include "QwTrackingTree.h"
-#include "tracking.h"
 #include "QwTrackingTreeRegion.h"
+
+// Qweak track/event headers
+#include "QwPartialTrack.h"
+#include "QwTrack.h"
+#include "QwEvent.h"
 
 // Tracking modules
 #include "QwTrackingTreeSearch.h"
@@ -60,9 +64,9 @@ class QwTrackingWorker : public VQwSystem {
 
     void SetDebugLevel (int debuglevel) { debug = debuglevel; };
 
-    void BCheck (double E, PartTrack *f, PartTrack *b, double TVertex, double ZVertex);
-    Track* rcLinkUsedTracks (Track *track, int package);
-    Event* ProcessHits (QwHitContainer &hitlist);
+    void BCheck (double E, QwPartialTrack *f, QwPartialTrack *b, double TVertex, double ZVertex);
+    QwTrack* rcLinkUsedTracks (QwTrack *track, int package);
+    QwEvent* ProcessHits (QwHitContainer *hitlist);
 
   private:
 

@@ -92,7 +92,7 @@ double QwTrackingTreeSort::chiweight (QwTrackingTreeLine *tl)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-double QwTrackingTreeSort::ptchiweight (PartTrack *pt)
+double QwTrackingTreeSort::ptchiweight (QwPartialTrack *pt)
 {
   double fac;
   if (pt->numhits > pt->nummiss)
@@ -235,7 +235,7 @@ int QwTrackingTreeSort::bestconnected (char *ca, int *array, int *isvoid, double
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeSort::rcPTCommonWires (PartTrack *track1, PartTrack *track2)
+int QwTrackingTreeSort::rcPTCommonWires (QwPartialTrack *track1, QwPartialTrack *track2)
 {
   int common = 0;
   for (int i = 0; i < 3; i++)
@@ -559,16 +559,16 @@ int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *head, EQwRegionID re
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeSort::rcPartConnSort (PartTrack *head)
+int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *head)
 {
   char *connarr;
   int *array;
-  PartTrack **ptarr, *walk;
+  QwPartialTrack **ptarr, *walk;
   int num, idx, i, j, bestconn;
   int  *isvoid;
   double   *chia, chi, maxch = 200.0, nmaxch, nminch;
   /* ------------------------------------------------------------------
-   * find the number of used PartTracks
+   * find the number of used QwPartialTracks
    * ------------------------------------------------------------------ */
 
   //DBG = DEBUG & D_GRAPHP;
@@ -606,7 +606,7 @@ int QwTrackingTreeSort::rcPartConnSort (PartTrack *head)
   isvoid  = (int *)malloc( num * sizeof(int));
   chia    = (double *)malloc( num * sizeof(double));
   array   = (int *)malloc( num*num);
-  ptarr   = (PartTrack **)malloc( sizeof(PartTrack*)*num);
+  ptarr   = (QwPartialTrack **)malloc( sizeof(QwPartialTrack*)*num);
 
   if (! ptarr || ! array) {
     fprintf(stderr,"Cannot Allocate Sort Array for %d PartialTracks\n",num);
@@ -706,7 +706,7 @@ int QwTrackingTreeSort::rcPartConnSort (PartTrack *head)
   */
   for (i = 0; i < num; i++) {
     if (isvoid[i] != true) {
-      //Statist[method].PartTracksUsed[where][part] ++;
+      //Statist[method].QwPartialTracksUsed[where][part] ++;
       ptarr[i]->isvoid = false;
     } else
       ptarr[i]->isvoid = true;

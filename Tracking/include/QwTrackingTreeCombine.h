@@ -10,8 +10,10 @@
 
 // Qweak headers
 #include "QwHit.h"
-#include "tracking.h"
 #include "QwTrackingTreeLine.h"
+#include "QwPartialTrack.h"
+#include "QwTrack.h"
+#include "QwEvent.h"
 #include "uv2xy.h"
 
 #define HASHSIZE 1024		/* power of 2 */
@@ -88,17 +90,17 @@ public:
 
     int inAcceptance (EQwDetectorPackage package, EQwRegionID region, double cx, double mx, double cy, double my);
     void TlTreeLineSort (QwTrackingTreeLine *tl, EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type, EQwDirectionID dir/*,enum Eorientation orient*/, unsigned long bins, int tlayer, int dlayer, QwTrackingTreeRegion **myTreeRegion);
-    int TcTreeLineCombine (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, QwTrackingTreeLine *wx, PartTrack *pt, int tlayer);
-    int TcTreeLineCombine (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, PartTrack *pt, int tlayer);
-    int TcTreeLineCombine2 (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, PartTrack *pt, int tlayer);
+    int TcTreeLineCombine (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, QwTrackingTreeLine *wx, QwPartialTrack *pt, int tlayer);
+    int TcTreeLineCombine (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, QwPartialTrack *pt, int tlayer);
+    int TcTreeLineCombine2 (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, QwPartialTrack *pt, int tlayer);
 
-    PartTrack *TlTreeCombine (QwTrackingTreeLine *uvl[kNumDirections], long bins, EQwDetectorPackage package, EQwRegionID region,enum EQwDetectorType type/*,enum Eorientation orient*/, int tlayer, int dlayer, QwTrackingTreeRegion **myTreeRegion);
-    void ResidualWrite (Event *event);
+    QwPartialTrack *TlTreeCombine (QwTrackingTreeLine *uvl[kNumDirections], long bins, EQwDetectorPackage package, EQwRegionID region,enum EQwDetectorType type/*,enum Eorientation orient*/, int tlayer, int dlayer, QwTrackingTreeRegion **myTreeRegion);
+    void ResidualWrite (QwEvent *event);
 
     int r3_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi, double uv2xy[2][2]);
     int r3_TrackFit2 (int Num, QwHit **Hit, double *fit, double *cov, double *chi);
 
-    int checkR3 (PartTrack *pt, EQwDetectorPackage package);
+    int checkR3 (QwPartialTrack *pt, EQwDetectorPackage package);
 
 private:
 

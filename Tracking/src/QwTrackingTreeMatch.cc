@@ -348,8 +348,8 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 void QwTrackingTreeMatch::TgTrackPar (
-	PartTrack *front,	//!- front partial track
-	PartTrack *back,	//!- back partial track
+	QwPartialTrack *front,	//!- front partial track
+	QwPartialTrack *back,	//!- back partial track
 	double *theta,		//!- determined polar angle
 	double *phi,		//!- determined azimuthal angle
 	double *bending,	//!- bending in polar angle
@@ -365,16 +365,16 @@ void QwTrackingTreeMatch::TgTrackPar (
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-Track* QwTrackingTreeMatch::TgPartMatch (
-	PartTrack *front,		//!- front partial track
-	PartTrack *back,		//!- back partial track
-	Track *tracklist,		//!- list of tracks
+QwTrack* QwTrackingTreeMatch::TgPartMatch (
+	QwPartialTrack *front,		//!- front partial track
+	QwPartialTrack *back,		//!- back partial track
+	QwTrack *tracklist,		//!- list of tracks
 	EQwDetectorPackage package	//!- package identifier
 	/*enum Emethod method*/)
 {
   double bestchi = 1e10, chi;
   double v1, v2, v3;
-  Track *ret = 0, *newtrack = 0, *besttrack = 0, *trackwalk, *ytrackwalk;
+  QwTrack *ret = 0, *newtrack = 0, *besttrack = 0, *trackwalk, *ytrackwalk;
   Bridge *bridge;
   //int m = method == meth_std ? 0 : 1;
   double theta, ZVertex, phi, bending, P;
@@ -393,7 +393,7 @@ Track* QwTrackingTreeMatch::TgPartMatch (
 	  && (fabs( front->y+front->my*
 		    (target_center-magnet_center) )) < target_width*/ ) {
 
-      newtrack = new Track; //QCnew(1,Track); /*  a new track */
+      newtrack = new QwTrack; /*  a new track */
       assert(newtrack);
       //TgInit( newtrack );
 

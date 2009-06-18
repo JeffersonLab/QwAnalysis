@@ -31,6 +31,8 @@
 #include <iostream>
 #include <cmath>
 #include "QwTrackingTree.h"
+#include "QwPartialTrack.h"
+#include "QwTrack.h"
 
 #ifndef TIME_UNDEF
 #define TIME_UNDEF (-1.0e6)
@@ -61,17 +63,17 @@ class QwTrackingTreeMatch {
     //void TgInit (Track *track);
 
     void TgTrackPar (
-	PartTrack *front,
-	PartTrack *back,
+	QwPartialTrack *front,
+	QwPartialTrack *back,
 	double *theta,
 	double *phi,
 	double *bending,
 	double *ZVertex );
 
-    Track* TgPartMatch (
-	PartTrack *front,
-	PartTrack *back,
-	Track *tracklist,
+    QwTrack* TgPartMatch (
+	QwPartialTrack *front,
+	QwPartialTrack *back,
+	QwTrack *tracklist,
 	EQwDetectorPackage package/*, enum Emethod method*/);
 
     QwTrackingTreeLine* MatchR3 (

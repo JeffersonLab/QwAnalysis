@@ -185,7 +185,7 @@ int QwTrackingTreeCombine::bestx (
   double resolution = h->GetSpatialResolution();
 
   // First option of left/right ambiguity
-  // position = h->rPos1;  
+  // position = h->rPos1;
   position = h->GetDriftDistance();
   distance = x - position;
   if (distance < 0) distance = -distance;
@@ -1617,7 +1617,7 @@ int QwTrackingTreeCombine::r3_TrackFit( int Num, QwHit **hit, double *fit, doubl
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeCombine::TcTreeLineCombine2(QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, PartTrack *pt, int tlayer)
+int QwTrackingTreeCombine::TcTreeLineCombine2(QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, QwPartialTrack *pt, int tlayer)
 {
   //###############
   // Declarations #
@@ -1688,7 +1688,7 @@ int QwTrackingTreeCombine::TcTreeLineCombine2(QwTrackingTreeLine *wu, QwTracking
 
   // Perform the fit.
   if (r3_TrackFit2(hitc, hits, fit, covp, &chi)  == -1) {
-    fprintf(stderr,"hrc: PartTrack Fit Failed\n");
+    fprintf(stderr,"hrc: QwPartialTrack Fit Failed\n");
     return 0;
   }
   cout << "Ntotal = " << ntotal << endl;
@@ -1716,7 +1716,7 @@ int QwTrackingTreeCombine::TcTreeLineCombine2(QwTrackingTreeLine *wu, QwTracking
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeCombine::TcTreeLineCombine(QwTrackingTreeLine *wu,QwTrackingTreeLine *wv,PartTrack *pt, int tlayer )
+int QwTrackingTreeCombine::TcTreeLineCombine(QwTrackingTreeLine *wu,QwTrackingTreeLine *wv,QwPartialTrack *pt, int tlayer )
 {
   //###############
   // Declarations #
@@ -1796,11 +1796,11 @@ cerr << "a" << endl;
   // Perform the track fit #
   //########################
 /*  if( rc_TrackFit( hitc, hits, fitp, covp, &chi, 0,0)  == -1) {
-    fprintf(stderr,"hrc: PartTrack Fit Failed\n");
+    fprintf(stderr,"hrc: QwPartialTrack Fit Failed\n");
     return 0;
   }*/
   if(r3_TrackFit(hitc,hits,fitp,covp,&chi,uv2xy) == -1){
-    fprintf(stderr,"hrc: PartTrack Fit Failed\n");
+    fprintf(stderr,"hrc: QwPartialTrack Fit Failed\n");
     return 0;
   }
   //#########################
@@ -1830,7 +1830,7 @@ int QwTrackingTreeCombine::TcTreeLineCombine (
 	QwTrackingTreeLine *wu,
 	QwTrackingTreeLine *wv,
 	QwTrackingTreeLine *wx,
-	PartTrack *pt,
+	QwPartialTrack *pt,
 	int tlayer)
 {
   QwHit *hits[DLAYERS*3], **hitarray, *h;
@@ -1867,7 +1867,7 @@ int QwTrackingTreeCombine::TcTreeLineCombine (
 
   // Perform the fit.
   if (r2_TrackFit( hitc, hits, fit, covp, &chi)  == -1) {
-    fprintf(stderr,"hrc: PartTrack Fit Failed\n");
+    fprintf(stderr,"hrc: QwPartialTrack Fit Failed\n");
     return 0;
   }
   //cerr << "5" << endl;
@@ -1938,11 +1938,11 @@ double xy2v (double x, double y)
   OUTPUT:
 	(old) uvl gets new treelines for the front x direction
 	uvl : is used in TcTreeLineCombine
-	PartTrack ret: a 3-D track
+	QwPartialTrack ret: a 3-D track
 
 
 */
-PartTrack *QwTrackingTreeCombine::TlTreeCombine (
+QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
 	QwTrackingTreeLine *uvl[kNumDirections],
 	long bins,
 	EQwDetectorPackage package,
@@ -1958,7 +1958,7 @@ PartTrack *QwTrackingTreeCombine::TlTreeCombine (
   // DECLARATIONS  #
   //################
   QwTrackingTreeLine *wu, *wv, *wx, *bwx, wrx;
-  PartTrack *ret = 0, *ta;
+  QwPartialTrack *ret = 0, *ta;
   int in_acceptance;
   Uv2xy uv2xy;
 
@@ -2034,10 +2034,9 @@ PartTrack *QwTrackingTreeCombine::TlTreeCombine (
 	mv = wv->mx; // slope
       	xv = wv->cx; // constant
 
-	PartTrack *ta = new PartTrack();
+	QwPartialTrack *ta = new QwPartialTrack();
 
 	if (TcTreeLineCombine2(wu, wv, ta, tlayer)) {
-	    ta->ID = 0;
 	    ta->isvoid  = false;
 	    //ta->trdcol  = 0;
 	    ta->next   = ret;
@@ -2154,7 +2153,7 @@ PartTrack *QwTrackingTreeCombine::TlTreeCombine (
 //	cerr << "P1(xuv,xx1,u,v,zx,y) = (" << x1 << ',' << xx1 << ',' << u1 << ',' << v1  << ',' << zx1 << ',' << y1 << ")" << endl;
 //	cerr << "P2(xuv,xx2,u,v,zx,y) = (" << x2 << ',' << xx2 << ',' << u2 << ',' << v2 <<  ',' << zx2 << ',' << y2 << ")" << endl;
 //	cerr << "(mx,bx,mu,bu,mv,bv) = (" << mx << ',' << xx << ',' << mu << ',' << xu << ',' << mv << ',' << xv << ")" << endl;
-	PartTrack *ta = new PartTrack();
+	QwPartialTrack *ta = new QwPartialTrack();
 
 
 //cerr << "2" << endl;
@@ -2164,7 +2163,6 @@ PartTrack *QwTrackingTreeCombine::TlTreeCombine (
 	  if (TcTreeLineCombine(wu, wv, bwx, ta, tlayer)) {
 //cerr << "7" << endl;
 	    bwx->Used = wv->Used = wu->Used = 1;
-	    ta->ID = 0;
 	    ta->isvoid = false;
 	    ta->next   = ret;
 	    ta->bridge = 0;
@@ -2305,17 +2303,16 @@ PartTrack *QwTrackingTreeCombine::TlTreeCombine (
 	  wx->Used = wu->Used = wv->Used = 1;
 	  //visdir = kDirectionX;
 
-	  //Statist[method].PartTracksGenerated[where][part] ++;
+	  //Statist[method].QwPartialTracksGenerated[where][part] ++;
 
-	  /* ---- form a new PartTrack ---- */
+	  /* ---- form a new QwPartialTrack ---- */
 	  //replaced a Qmalloc below
-	  ta = new PartTrack;
+	  ta = new QwPartialTrack;
 
 
 	  assert(ta);
 
 	  if( TcTreeLineCombine( wu, wv, wx, ta, tlayer) ) {
-	    ta->ID = 0;
 	    ta->isvoid  = false;
 	    //ta->trdcol  = 0;
 	    ta->next   = ret;
@@ -2339,7 +2336,7 @@ PartTrack *QwTrackingTreeCombine::TlTreeCombine (
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void QwTrackingTreeCombine::ResidualWrite (Event* event)
+void QwTrackingTreeCombine::ResidualWrite (QwEvent* event)
 {
   cerr << "This function may need a 'for loop' for orientation" << endl;
 
@@ -2349,8 +2346,8 @@ void QwTrackingTreeCombine::ResidualWrite (Event* event)
   EQwDetectorType type;
   //enum Eorientation orient;
   int allmiss, num;
-  Track *tr;
-  PartTrack *pt;
+  QwTrack *tr;
+  QwPartialTrack *pt;
   QwTrackingTreeLine *tl;
   double x, y, v, mx, my, mv;
   QwHit **hitarr, *hit;
@@ -2854,7 +2851,7 @@ double *M_A_times_b (double *y, double *A, int n, int m, double *b)
  geometry definition.  Tracks are drawn straight from region 3.
 
 *//*-------------------------------------------------------------------------*/
-int QwTrackingTreeCombine::checkR3 (PartTrack *pt, EQwDetectorPackage package)
+int QwTrackingTreeCombine::checkR3 (QwPartialTrack *pt, EQwDetectorPackage package)
 {
   double trig[3], cc[3];
   double lim_trig[2][2], lim_cc[2][2];

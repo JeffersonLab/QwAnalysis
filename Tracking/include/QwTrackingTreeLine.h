@@ -39,11 +39,10 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-namespace QwTracking{
 ///
 /// \ingroup QwTrackingAnl
 
-class QwTrackingTreeLine{
+class QwTrackingTreeLine {
 
   public:
 
@@ -51,7 +50,7 @@ class QwTrackingTreeLine{
      ~QwTrackingTreeLine();
 
     bool isvoid;		/*!< has been found void */
-    QwTrackingTreeLine *next;		/*!< link to next list element */
+    QwTrackingTreeLine *next;	/*!< link to next list element */
     double cx, mx, chi;		/*!< line parameters... */
     double cov_cxmx[3];		/*!< errors in these */
     int a_beg, a_end;		/*!< bin in tlayer 0 */
@@ -70,11 +69,9 @@ class QwTrackingTreeLine{
     int   ID;			/*!< adamo ID */
     int   r3offset,firstwire,lastwire;
 
-}; //class QwTrackingTreeLine
+}; // class QwTrackingTreeLine
 
-} //namespace QwTracking
-
-#endif //QWTRACKINGTREELINE_H
+#endif //Q WTRACKINGTREELINE_H
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
