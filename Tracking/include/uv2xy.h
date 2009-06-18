@@ -33,15 +33,16 @@ class Uv2xy {
 
   public:
 
-    Uv2xy();
-    ~Uv2xy();
+    Uv2xy(EQwRegionID region);
 
-    double uv2x(double u, double v, EQwRegionID region);
-    double uv2y(double u, double v, EQwRegionID region);
-    double xy2u(double x, double y, EQwRegionID region);
-    double xy2v(double x, double y, EQwRegionID region);
+    double uv2x(double u, double v);
+    double uv2y(double u, double v);
+    double xy2u(double x, double y);
+    double xy2v(double x, double y);
 
   private:
+
+    EQwRegionID fRegion;
 
     double R2_uv[2][2];
     double R2_xy[2][2];

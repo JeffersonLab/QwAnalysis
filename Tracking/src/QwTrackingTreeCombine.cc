@@ -1239,7 +1239,6 @@ int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
   double uvx;		//u,v,or x coordinate of the track at a location in z
   double rCos[kNumDirections],rSin[kNumDirections];	//the rotation angles for the u,v,x coordinates.
   double x0[kNumDirections];			//the translational offsets for the u,v,x axes.
-  Uv2xy uv2xy;			//u,v to x,y projection class
   double bx[kNumDirections],mx[kNumDirections];	//track fit parameters
   EQwDirectionID Dir;		//wire direction enumerator
   Det *rd = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionX];	//pointer to this detector
@@ -1248,7 +1247,9 @@ int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
   // Initializations #
   //##################
 
-  //set the angles for our reference frame
+  Uv2xy uv2xy(kRegionID2);
+
+  // Set the angles for our reference frame
   rCos[kDirectionX] = 1;//cos theta x
   rSin[kDirectionX] = 0;//sin theta x
   rCos[kDirectionU] = uv2xy.R2_xy[0][0];//cos theta u
@@ -1338,7 +1339,6 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, doub
   double r[4];
   double uvx;
   double rCos[kNumDirections],rSin[kNumDirections];
-  Uv2xy uv2xy;
   double bx[kNumDirections],mx[kNumDirections];
   EQwDirectionID Dir;
   //Det *rd;
@@ -1356,7 +1356,9 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, doub
     //cerr << Hit[i]->Zpos << ',' << Hit[i]->rPos << ',' << Hit[i]->detec->dir << endl;
   }
 
-  //set the angles for our frame
+  Uv2xy uv2xy(kRegionID3);
+
+  // Set the angles for our frame
   rCos[kDirectionU] = -uv2xy.R3_xy[0][0];
   rCos[kDirectionV] = -uv2xy.R3_xy[1][0];
   rSin[kDirectionU] = -uv2xy.R3_xy[0][1];
@@ -1406,10 +1408,10 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, doub
   // cerr << "3" << endl;
 
   //calculate the line parameters in u,v directions
-  bx[kDirectionU] = uv2xy.xy2u(fit[0],fit[2],Hit[0]->detec->region);
-  bx[kDirectionV] = uv2xy.xy2v(fit[0],fit[2],Hit[0]->detec->region);
-  mx[kDirectionU] = uv2xy.xy2u(fit[1],fit[3],Hit[0]->detec->region);
-  mx[kDirectionV] = uv2xy.xy2v(fit[1],fit[3],Hit[0]->detec->region);
+  bx[kDirectionU] = uv2xy.xy2u(fit[0],fit[2]);
+  bx[kDirectionV] = uv2xy.xy2v(fit[0],fit[2]);
+  mx[kDirectionU] = uv2xy.xy2u(fit[1],fit[3]);
+  mx[kDirectionV] = uv2xy.xy2v(fit[1],fit[3]);
 
   //cerr << uv2xy.xy2v(fit[0],fit[2],Hit[0]->detec->region) << endl;
 
@@ -1960,7 +1962,6 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
   QwTrackingTreeLine *wu, *wv, *wx, *bwx, wrx;
   QwPartialTrack *ret = 0, *ta;
   int in_acceptance;
-  Uv2xy uv2xy;
 
   double mu, xu, mv, xv, mx, xx, zx1, zx2, xx1, xx2, z1, z2;
   double x, y, my, v1, v2, u1, u2, y1, y2;
@@ -2107,13 +2108,16 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
         v1 = xv + zx1 * mv;
         v2 = xv + zx2 * mv;
 
+        // transform u,v to x,y
+        Uv2xy uv2xy(region);
+
         // for x
-        x1 = uv2xy.uv2x(u1, v1, region);
-        x2 = uv2xy.uv2x(u2, v2, region);
+        x1 = uv2xy.uv2x(u1, v1);
+        x2 = uv2xy.uv2x(u2, v2);
 
         // for y
-        y1 = uv2xy.uv2y(u1, v1, region);
-        y2 = uv2xy.uv2y(u2, v2, region);
+        y1 = uv2xy.uv2y(u1, v1);
+        y2 = uv2xy.uv2y(u2, v2);
 
 	my = (y2 - y1) / (zx1 - zx2);
 
