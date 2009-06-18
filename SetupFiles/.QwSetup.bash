@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# QWEAK environment variables [[ [[ t ]csh ] 
+# QWEAK environment variables [ bash ] 
 #
 #
 
@@ -15,13 +15,12 @@ fi
 
 
 echo Initializing QWEAK analysis
-#export SHELL=/bin/bash
 #echo "SHELL: " $SHELL
 echo "OSNAME: " $OSNAME
 
 if [[ -n "$RCQWANALYSIS" && $1 = "" ]]; then
   unset QWANALYSIS
-  echo Recovering initial value of QWANALYSIS : $RCQWANALYSIS
+  echo Recovering initial value of QWANALYSIS: $RCQWANALYSIS
   export QWANALYSIS=$RCQWANALYSIS
 fi
 
@@ -37,34 +36,34 @@ fi
 if [[ -n "$RCQWVERSION" && $1 = "" ]]; then
   unset QWVERSION
   if [[ $RCQWVERSION != 'none' ]]; then
-    echo Recovering initial value of QWVERSION : $RCQWVERSION
+    echo Recovering initial value of QWVERSION: $RCQWVERSION
     export QWVERSION=$RCQWVERSION
   fi
 fi
 
 if [[ -n "$RCPATH" ]]; then
   unset PATH
-  echo Recovering initial value of PATH : $RCPATH
+  echo Recovering initial value of PATH: $RCPATH
   export PATH=$RCPATH
 fi
 
 if [[ -n "$RCLD_LIBRARY_PATH" ]]; then
   unset LD_LIBRARY_PATH
-  echo Recovering initial value of LD_LIBRARY_PATH : $RCLD_LIBRARY_PATH
+  echo Recovering initial value of LD_LIBRARY_PATH: $RCLD_LIBRARY_PATH
   export LD_LIBRARY_PATH=$RCLD_LIBRARY_PATH
 fi
 
 if [[ $1 != "" ]]; then
   unset QWVERSION
-  echo Defining QWVERSION : $1
+  echo Defining QWVERSION: $1
   export QWVERSION=$1
 fi
 
 if [[ -n "$QWANALYSIS" && -z "$QWVERSION" ]]; then
-  echo QWANALYSIS already defined : $QWANALYSIS
+  echo QWANALYSIS already defined: $QWANALYSIS
 else
-  echo Either QWANALYSIS not defined in .cshrc file or QWVERSION defined
-  echo Expecting to be on site : autosetting variable QWANALYSIS to group disc
+  echo Either QWANALYSIS not defined in .bashrc file or QWVERSION defined
+  echo Expecting to be on site: autosetting variable QWANALYSIS to group disc
   unset QWANALYSIS
   if [[ -n "$QWVERSION" ]]; then
     echo "QWVERSION: " $QWVERSION
@@ -74,14 +73,14 @@ else
       export QWANALYSIS=/group/qweak/QwAnalysis/$OSNAME/QwAnalysis
       if [[ ! -d $QWANALYSIS ]]; then
 	if [[ -n "$RCQWANALYSIS" ]]; then
-          echo Failed : trying to recover path as set in first call to this script
+          echo Failed: trying to recover path as set in first call to this script
           export QWANALYSIS=$RCQWANALYSIS
 	else
-          echo Failed : trying to recover initial path in .cshrc file
-	  if [[ -n "$?CQWANALYSIS_INIT" ]]; then
+          echo Failed: trying to recover initial path in .bashrc file
+	  if [[ -n "$?RCQWANALYSIS_INIT" ]]; then
              export QWANALYSIS=$RCQWANALYSIS_INIT
 	  else
-	     echo "*** Failed : could not recover initial path in .cshrc file ***"
+	     echo "*** Failed: could not recover initial path in .bashrc file ***"
 	     exit
 	  fi
         fi
@@ -91,7 +90,7 @@ else
     echo The variable QWVERSION is not set; reverting to standard version.
     export QWANALYSIS=/group/qweak/QwAnalysis/$OSNAME/QwAnalysis
   fi
-    echo "Setting QWANALYSIS to " $QWANALYSIS
+  echo "Setting QWANALYSIS to "$QWANALYSIS
 fi
 
 if [[ -z "$RCQWANALYSIS" ]]; then
@@ -120,10 +119,10 @@ fi
 
 if [[ -n "$QWSCRATCH" ]]; then
   if [[ -d $QWSCRATCH ]]; then
-    echo QWSCRATCH already defined : $QWSCRATCH
+    echo QWSCRATCH already defined: $QWSCRATCH
   else
     echo "Error: Directory, "$QWSCRATCH", does not exist."
-    echo \*\*\*\* directory asym missing, creating
+    echo "\*\*\*\*  Creating QWSCRATCH directory: "${QWSCRATCH}
     mkdir -p $QWSCRATCH
   fi
 else
@@ -133,13 +132,13 @@ else
     echo "Setting QWSCRATCH to " $QWSCRATCH
   else
     echo "Error: Directory, "$QWSCRATCH", does not exist."
-    echo \*\*\*\* directory asym missing, creating
+    echo "\*\*\*\*  Creating QWSCRATCH directory: "${QWSCRATCH}
     mkdir -p $QWSCRATCH
   fi
 fi
 
 if [[ -d $QWSCRATCH ]]; then
-  echo "Checking directory tree under " $QWSCRATCH :
+  echo "Checking directory tree under "$QWSCRATCH:
     echo `ls $QWSCRATCH` 
     if [[ ! -d $QWSCRATCH/asym ]]; then
       echo \*\*\*\* subdirectory asym missing, creating
@@ -164,15 +163,6 @@ if [[ -d $QWSCRATCH ]]; then
     if [[ ! -d $QWSCRATCH/setupfiles ]]; then
       echo \*\*\*\* subdirectory setupfiles missing, creating
       mkdir -p $QWSCRATCH/setupfiles
-      echo \*\*\*\* copying common setup files into new directory $QWSCRATCH/setupfiles
-      \cp ${QWANALYSIS}/QWROOT/setupfiles/*.dat $QWSCRATCH/setupfiles
-      ls $QWSCRATCH/setupfiles
-    else
-      if [[ $OSNAME = 'Linux' ]]; then
-	\cp -u ${QWANALYSIS}/QWROOT/setupfiles/*.dat $QWSCRATCH/setupfiles
-      else
-	\cp ${QWANALYSIS}/QWROOT/setupfiles/*.dat $QWSCRATCH/setupfiles
-      fi
     fi
     if [[ ! -d $QWSCRATCH/sum ]]; then
       echo \*\*\*\* subdirectory sum missing, creating
@@ -189,7 +179,7 @@ if [[ -d $QWSCRATCH ]]; then
 fi
 
 if [[ -n "$ROOTSYS" ]]; then
-echo ROOTSYS already defined : $ROOTSYS
+echo ROOTSYS already defined: $ROOTSYS
 else
   if [[ $OSNAME = "SunOS" ]]; then
     export ROOTSYS=/u/apps/root/3.01-03/root
@@ -204,31 +194,36 @@ fi
 
 if [[ ! -d $ROOTSYS ]]; then
   unset ROOTSYS
-  echo Variable ROOTSYS unset : directory $ROOTSYS does not exist
+  echo Variable ROOTSYS unset: directory $ROOTSYS does not exist
 else
   $QWANALYSIS/SetupFiles/checkrootversion
 fi
 
-#BASH2TCSH=`export SHELL=/bin/tcsh && echo $SHELL && tcsh`
-#TCSH2BASH=`setenv SHELL /bin/bash && echo $SHELL && bash`
-
 if [[ -n "$CODA" ]]; then
-  echo CODA already defined : $CODA
+  echo CODA already defined: $CODA
 else
-  export CODA=/site/coda/2.5
-    if [[ ! -d $CODA ]]; then
+    #  The standard CODA set up scripts supported by the
+    #  DAQ group are only available for C shell.
+    #  If a bash user wishes to have the CODA functionality,
+    #  they will need to create a set up script,
+    #  codasetup.bash, which should be kept in the 
+    #  ${QWANALYSIS}/SetupFiles/ directory.
+    #
+    #  Contact Paul King for an example, if you want it.
+    #
+    if [[ ! -x  ${QWANALYSIS}/SetupFiles/codasetup.bash ]]; then
       unset CODA
-      echo Variable CODA not set : not an error if real-time analyzer not installed
+      echo Variable CODA not set: not an error if real-time analyzer not installed
     else
-      echo "Setting CODA to " $CODA
-      source $CODA/.setup    
+      echo "Sourcing ${QWANALYSIS}/SetupFiles/codasetup.bash"
+      . ${QWANALYSIS}/SetupFiles/codasetup.bash
     fi
 fi
  
 
 if [[ -n "$X11" ]] 
 then
-	echo X11 already defined : $X11
+  echo X11 already defined: $X11
 else
   if [[ $OSNAME = "SunOS" ]]; then
     export X11=/usr/X
@@ -250,9 +245,6 @@ unset ASYMDIR
 
 . $QWANALYSIS/SetupFiles/.Qwbashrc
 
-
 export DATADIR=$QWSCRATCH/data
 export SUMMARYDIR=$QWSCRATCH/sum
 export ASYMDIR=$QWSCRATCH/asym
-
-

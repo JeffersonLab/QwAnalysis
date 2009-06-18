@@ -36,12 +36,12 @@ analyzerversion=$QWANALYSIS
 ###  DO NOT CHANGE THE COMMANDS BELOW!!!
 ###
 
-export QWANALYSIS=$analyzerversion
+export QWANALYSIS=\$analyzerversion
 unset RCLD_LIBRARY_PATH
 unset RCQWANALYSIS
 unset RCQWANALYSIS_INIT
 
-. $QWANALYSIS/SetupFiles/.QwSetup.bash
+. \$QWANALYSIS/SetupFiles/.QwSetup.bash
 
 unset analyzerversion
 

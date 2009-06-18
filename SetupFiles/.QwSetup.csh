@@ -121,7 +121,7 @@ if ($?QWSCRATCH) then
     echo QWSCRATCH already defined : ${QWSCRATCH}
   else
     echo "Error: Directory, "${QWSCRATCH}", does not exist."
-    echo \*\*\*\* directory asym missing, creating
+    echo "\*\*\*\*  Creating QWSCRATCH directory: "${QWSCRATCH}
     mkdir -p ${QWSCRATCH}
   endif
 else
@@ -131,13 +131,13 @@ else
     echo "Setting QWSCRATCH to " ${QWSCRATCH}
   else
     echo "Error: Directory, "${QWSCRATCH}", does not exist."
-    echo \*\*\*\* directory asym missing, creating
+    echo "\*\*\*\*  Creating QWSCRATCH directory: "${QWSCRATCH}
     mkdir -p ${QWSCRATCH}
   endif
 endif
 
 if (-d ${QWSCRATCH})  then
-  echo "Checking directory tree under " ${QWSCRATCH} :
+  echo "Checking directory tree under "${QWSCRATCH}:
     echo `ls $QWSCRATCH` 
     if (! -d ${QWSCRATCH}/asym)  then
       echo \*\*\*\* subdirectory asym missing, creating
@@ -162,15 +162,6 @@ if (-d ${QWSCRATCH})  then
     if (! -d ${QWSCRATCH}/setupfiles)  then
       echo \*\*\*\* subdirectory setupfiles missing, creating
       mkdir -p ${QWSCRATCH}/setupfiles
-      echo \*\*\*\* copying common setup files into new directory ${QWSCRATCH}/setupfiles
-      \cp ${QWANALYSIS}/QWROOT/setupfiles/*.dat ${QWSCRATCH}/setupfiles
-      ls ${QWSCRATCH}/setupfiles
-    else
-      if (${OSNAME} == 'Linux') then
-	\cp -u ${QWANALYSIS}/QWROOT/setupfiles/*.dat ${QWSCRATCH}/setupfiles
-      else
-	\cp ${QWANALYSIS}/QWROOT/setupfiles/*.dat ${QWSCRATCH}/setupfiles
-      endif
     endif
     if (! -d ${QWSCRATCH}/sum)  then
       echo \*\*\*\* subdirectory sum missing, creating
@@ -210,7 +201,7 @@ else
   setenv CODA                /site/coda/2.5
     if(! -d ${CODA}) then
       unsetenv CODA
-      echo Variable CODA not set : not an error if real-time analyzer not installed
+      echo Variable CODA not set: not an error if real-time analyzer not installed
     else
       echo "Setting CODA to " ${CODA}
       source ${CODA}/.setup
