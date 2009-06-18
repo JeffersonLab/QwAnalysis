@@ -499,50 +499,38 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	        memset(hashchannelr3[i], 0, sizeof(int) * (1UL << (levels - 1)));
 	      }
 
-	      /// Get the corresponding hit from the hitlist
-	      QwHitContainer::iterator qwhit;
-	      QwHit* hit = 0;
-	      if (debug) cout << "Looping over QwHitContainer" << endl;
-	      for (qwhit  = hitlist.begin();
-		   qwhit != hitlist.end(); qwhit++) {
+	      /// Get the sublist of hits in this detector
+	      QwHitContainer *sublist = hitlist.GetSubList(rd->ID);
+	      // If no hits in this detector, skip to the next detector.
+	      if (! sublist) continue;
+	      // Loop over the hits in the sublist
+	      for (QwHitContainer::iterator hit = sublist->begin();
+		hit != sublist->end(); hit++) {
 
-		// TODO This will be reorganized so we don't need to do this!
-		QwDetectorID detector = qwhit->GetDetectorID();
-		if (detector.fPackage == package
-		 && detector.fRegion == region
-		 && detector.fDirection == dir
-		 && detector.fPlane == rd->ID) {
-		  hit = &(*qwhit);
-
-		  // See QwTrackingTreeSearch.cc for the different ways in which TsSetPoint
-		  // can be called.
-		  int wire = hit->GetDetectorID().fElement;
-		  TreeSearch->TsSetPoint(
+		// See QwTrackingTreeSearch.cc for the different ways in which TsSetPoint
+		// can be called.
+		int wire = hit->GetDetectorID().fElement;
+		TreeSearch->TsSetPoint(
 			rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
                         +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth,
-			hit,
+			&(*hit),
 			channelr3[wire - decrease],
 			hashchannelr3[wire - decrease],
 			1U << (levels - 1));
 
-		  // Print hit pattern, if requested
-		  if (opt.showEventPattern) {
-		    cout << "w" << wire << ":";
-		    for (int i = 0; i < (signed int) (1UL << levels) - 1; i++) {
-		      if (channelr3[wire - decrease][i] == 1)
-			cout << "|";
-		      else
-			cout << ".";
-		      }
-		    cout << endl;
-		  }
-
-		} // end of if for hits in this detector (TODO need to be removed)
+		// Print hit pattern, if requested
+		if (opt.showEventPattern) {
+		  cout << "w" << wire << ":";
+		  for (int i = 0; i < (signed int) (1UL << levels) - 1; i++) {
+		    if (channelr3[wire - decrease][i] == 1)
+		      cout << "|";
+		    else
+		      cout << ".";
+		    }
+		  cout << endl;
+		}
 
 	      } // end of loop over hits in this event
-
-	      // If no hits in this detector, skip to the next detector.
-	      if (! hit) continue;
 
 	      // Start the search for this set of like-pitched planes
 	      TreeSearch->BeginSearch();
@@ -611,47 +599,40 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 	      memset(channelr2[tlayers],     0,                1UL <<  levels      );
 	      memset(hashchannelr2[tlayers], 0, sizeof(int) * (1UL << (levels - 1)));
 
-	      // Get the corresponding hit from the hitlist
-	      QwHitContainer::iterator qwhit;
-	      QwHit* hit = 0;
-	      if (debug) cout << "Looping over QwHitContainer" << endl;
-	      for (qwhit  = hitlist.begin();
-		   qwhit != hitlist.end(); qwhit++) {
+	      /// Get the sublist of hits in this detector
+	      QwHitContainer *sublist = hitlist.GetSubList(rd->ID);
+	      for (QwHitContainer::iterator hit = sublist->begin(); hit != sublist->end(); hit++)
+	        cout << hit->GetDetectorID().fElement << endl;
+	      // If no hits in this detector, skip to the next detector.
+	      if (! sublist) continue;
+	      // Loop over the hits in the sublist
+	      for (QwHitContainer::iterator hit = sublist->begin();
+		hit != sublist->end(); hit++) {
 
-		// TODO This will be reorganized so we don't need to do this!
-		QwDetectorID detector = qwhit->GetDetectorID();
-		if (detector.fPackage == package
-		 && detector.fRegion == region
-		 && detector.fDirection == dir
-		 && detector.fPlane == rd->ID) {
-		  hit = &(*qwhit);
-
-		  // See QwTrackingTreeearch.cc for the different ways in which TsSetPoint
-		  // can be called.
-		  int wire = hit->GetDetectorID().fElement;
-		  TreeSearch->TsSetPoint(
+		// See QwTrackingTreeearch.cc for the different ways in which TsSetPoint
+		// can be called.
+		int wire = hit->GetDetectorID().fElement;
+		TreeSearch->TsSetPoint(
 			rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
                         +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth,
 			rd->WireSpacing,
-			hit,
+			&(*hit),
 			wire,
 			channelr2[tlayers],
 			hashchannelr2[tlayers],
 			1U << (levels - 1));
 
-		  // Print hit pattern, if requested
-		  if (opt.showEventPattern) {
-		    cout << "w" << wire << ":";
-		    for (int i = 0; i < (signed int) (1UL << levels) - 1; i++) {
-		      if (channelr2[tlayers][i] == 1)
-			cout << "|";
-		      else
-			cout << ".";
-		    }
-		    cout << endl;
+		// Print hit pattern, if requested
+		if (opt.showEventPattern) {
+		  cout << "w" << wire << ":";
+		  for (int i = 0; i < (signed int) (1UL << levels) - 1; i++) {
+		    if (channelr2[tlayers][i] == 1)
+		      cout << "|";
+		    else
+		      cout << ".";
 		  }
-
-		} // end of if for hits in this detector
+		  cout << endl;
+		}
 
 	      } // end of loop over hits in this event
 
@@ -714,7 +695,7 @@ Event* QwTrackingWorker::ProcessHits (QwHitContainer &hitlist)
 
 /*! ---- TASK 4: Hook up the partial track info to the event info     ---- */
 
-	event->parttrack[package][region][type] = area;
+	event->parttrack[package][region-1][type] = area;
 
       } /* end of loop over the detector types */
 
