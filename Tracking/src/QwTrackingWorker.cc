@@ -372,7 +372,7 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 {
   int k;
   int dlayer = 0;	      /* number of detector planes in the search    */
-  double A[3][2];	      /* conversion between xy and uv */
+  double A[kNumDirections][2];	/* conversion between xy and uv */
   QwEvent *event;               /* area for storing the reconstruction info   */
   QwPartialTrack *area = 0;
   Det *rd/*, *rnd*/;          /* pointers for moving through the linked
