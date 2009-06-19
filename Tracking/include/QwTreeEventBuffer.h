@@ -45,18 +45,30 @@ class QwTreeEventBuffer : public QwEventBuffer
     Float_t fRegion3_ChamberFront_WirePlane_UPlaneLocalPositionX;
     Float_t fRegion3_ChamberFront_WirePlane_UPlaneLocalPositionY;
     Float_t fRegion3_ChamberFront_WirePlane_UPlaneLocalPositionZ;
+    Float_t fRegion3_ChamberFront_WirePlane_UPlaneLocalMomentumX;
+    Float_t fRegion3_ChamberFront_WirePlane_UPlaneLocalMomentumY;
+    Float_t fRegion3_ChamberFront_WirePlane_UPlaneLocalMomentumZ;
     Int_t fRegion3_ChamberFront_WirePlane_VPlaneHasBeenHit;
     Float_t fRegion3_ChamberFront_WirePlane_VPlaneLocalPositionX;
     Float_t fRegion3_ChamberFront_WirePlane_VPlaneLocalPositionY;
     Float_t fRegion3_ChamberFront_WirePlane_VPlaneLocalPositionZ;
+    Float_t fRegion3_ChamberFront_WirePlane_VPlaneLocalMomentumX;
+    Float_t fRegion3_ChamberFront_WirePlane_VPlaneLocalMomentumY;
+    Float_t fRegion3_ChamberFront_WirePlane_VPlaneLocalMomentumZ;
     Int_t fRegion3_ChamberBack_WirePlane_UPlaneHasBeenHit;
     Float_t fRegion3_ChamberBack_WirePlane_UPlaneLocalPositionX;
     Float_t fRegion3_ChamberBack_WirePlane_UPlaneLocalPositionY;
     Float_t fRegion3_ChamberBack_WirePlane_UPlaneLocalPositionZ;
+    Float_t fRegion3_ChamberBack_WirePlane_UPlaneLocalMomentumX;
+    Float_t fRegion3_ChamberBack_WirePlane_UPlaneLocalMomentumY;
+    Float_t fRegion3_ChamberBack_WirePlane_UPlaneLocalMomentumZ;
     Int_t fRegion3_ChamberBack_WirePlane_VPlaneHasBeenHit;
     Float_t fRegion3_ChamberBack_WirePlane_VPlaneLocalPositionX;
     Float_t fRegion3_ChamberBack_WirePlane_VPlaneLocalPositionY;
     Float_t fRegion3_ChamberBack_WirePlane_VPlaneLocalPositionZ;
+    Float_t fRegion3_ChamberBack_WirePlane_VPlaneLocalMomentumX;
+    Float_t fRegion3_ChamberBack_WirePlane_VPlaneLocalMomentumY;
+    Float_t fRegion3_ChamberBack_WirePlane_VPlaneLocalMomentumZ;
 
 
   public:

@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------*//*!
 
- \file QwTreeEventBufferExample.cc \ingroup QwTrackingAnl
+ \file QwSimTracking.cc \ingroup QwTrackingAnl
 
  \brief Example of the QwTreeEventBuffer class to read QweakSimG4 events
 
@@ -18,26 +18,37 @@
 // Qweak Tracking headers
 #include "Det.h"
 #include "Qset.h"
-//#include "Qevent.h"
 #include "Qoptions.h"
 #include "options.h"
-#include "tracking.h"
-#include "QwTrackingTreeRegion.h"
+
+#include "QwTrackingWorker.h"
+#include "QwEvent.h"
 
 // Qweak Tree event buffer header
 #include "QwTreeEventBuffer.h"
 
 //Temporary global variables for sub-programs
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-//QwTrackingTreeRegion *rcTreeRegion[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 Det rcDET[NDetMax];
 Options opt;
 
 
 int main (int argc, char* argv[])
 {
+  // Load the simulated event file
   QwTreeEventBuffer treebuffer(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QweakSim.root");
   treebuffer.SetDebugLevel (0);
+
+  // Load the geometry
+  Qset qset;
+  qset.FillDetec((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.geo").c_str());
+
+  // Set global options
+  Qoptions qoptions;
+  qoptions.Get((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.options").c_str());
+
+  // Create the tracking worker
+  QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
 
   while (treebuffer.GetNextEvent() > 0) {
     // Get event number
@@ -47,16 +58,10 @@ int main (int argc, char* argv[])
     QwHitContainer* hitlist = treebuffer.GetHitList();
 
     // Print hit list
-    QwHitContainer::iterator qwhit;
-    for (qwhit  = hitlist->begin();
-         qwhit != hitlist->end(); qwhit++) {
-      std::cout << "0ud"[qwhit->GetDetectorID().fPackage] << " "
-        << "r" << qwhit->GetDetectorID().fRegion << " "
-        << "0xyuvrq"[qwhit->GetDetectorID().fDirection] << " "
-        << qwhit->GetDetectorID().fPlane << " "
-        << "w:" << qwhit->GetDetectorID().fElement << " "
-        << std::endl;
-    }
+    hitlist->Print();
+
+    // Process the hit list through the tracking worker
+    QwEvent *event = trackingworker->ProcessHits(hitlist);
   }
 
   return 0;
