@@ -148,7 +148,7 @@ int main(Int_t argc,Char_t* argv[])
   qoptions.Get((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.options").c_str());
   std::cout << "[QwAnalysis::main] Options loaded" << std::endl; // R3,R2
 
-  QwTrackingWorker trackingworker("qwtrackingworker");
+  QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
   //--------------------------------------
 
 
@@ -187,7 +187,7 @@ int main(Int_t argc,Char_t* argv[])
 
     if (cmdline.DoOnlineAnalysis()){
       /* Modify the call below for your ET system, if needed.
-	 
+
 	 OpenETStream( ET host name , $SESSION , mode)
 	 mode=0: wait forever
 	 mode=1: timeout quickly
@@ -309,7 +309,21 @@ int main(Int_t argc,Char_t* argv[])
       //SaveSubList(grandHitList);//Print a sub set of  hits list to a file
       AsciiEvents1.GetrcDETRegion(grandHitList,evnum);
 
-      //trackingworker.ProcessHits(ASCIIgrandHitList);
+      // Print hit list
+      grandHitList.Print();
+
+      // Process the hit list through the tracking worker (i.e. do track reconstruction)
+      QwEvent *event = trackingworker->ProcessHits(&grandHitList);
+
+      // Now we can access the event and its partial tracks
+      // (e.g. list the partial track in the upper region 2 HDC)
+      QwPartialTrack* listoftracks = event->parttrack[kPackageUp][kRegionID2-1][kTypeDriftHDC];
+      for (QwPartialTrack* track = listoftracks;
+                           track; track = track->next) {
+        track->Print();
+      } // but unfortunately this is still void
+      delete listoftracks;
+      delete event;
 
 
 
