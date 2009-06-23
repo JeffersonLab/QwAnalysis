@@ -27,6 +27,8 @@
 #include "QwTypes.h"
 #include <iostream>
 
+#include "TObject.h"
+
 /// First declare the QwHit and Det are objects, because they contain
 /// pointers to each other.
 class Det;
@@ -59,6 +61,7 @@ class QwHit {
 
 
   Int_t GetSubbankID(){return fCrate;};
+
   QwDetectorID GetDetectorID(){
     return QwDetectorID(fRegion,fPackage,fPlane,fDirection,fElement);
   };

@@ -165,52 +165,57 @@ int main(Int_t argc,Char_t* argv[])
 
 
   QwDetectors.push_back ( new QwFocalPlaneScanner ( "FPS" ) );
-  QwDetectors.GetSubsystem ("FPS")->LoadChannelMap ( "scanner_cosmics.map" );
+  QwDetectors.GetSubsystem("FPS")->LoadChannelMap ( "scanner_cosmics.map" );
   QwDetectors.GetSubsystem("FPS")->LoadInputParameters("");
 
   boost::shared_ptr<QwHitContainer> fHitList;
   QwHitContainer grandHitList;
 
+  char *hostname, *session, *tmp;
 
-
-
-
-
-
-
-
-
-  for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++){
+  for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++) {
+    
     //  Begin processing for the first run.
     //  Start the timer.
     timer.Start();
-
-    if (cmdline.DoOnlineAnalysis()){
+    /* Does OnlineAnaysis need several runs? by jhlee */
+    if (cmdline.DoOnlineAnalysis()) {
       /* Modify the call below for your ET system, if needed.
-
 	 OpenETStream( ET host name , $SESSION , mode)
 	 mode=0: wait forever
 	 mode=1: timeout quickly
       */
-      if (getenv("HOSTNAME")==NULL || getenv("SESSION")==NULL){
-	if (getenv("HOSTNAME")==NULL){
-	  std::cerr << "ERROR:  the \"HOSTNAME\" variable is not defined in your environment.\n"
-		    << "        This is needed to run the online analysis."
-		    << std::endl;
-	}
-	if (getenv("SESSION")==NULL){
-	  std::cerr << "ERROR:  the ET \"SESSION\" variable is not defined in your environment.\n"
-		    << "        This is needed to run the online analysis."
-		    << std::endl;
-	}
-	exit(1);
-      } else {
+
+      hostname = getenv("HOSTNAME");
+      session  = getenv("SESSION");
+      /* std::cout << "hostname is "<< hostname <<" and session is "<< session << ". " << std::endl; */
+      if (hostname==NULL || session==NULL){
+	timer.Stop(); /*  don't need the timer, thus Stop; */
+
+	if     (hostname==NULL && session!=NULL) tmp = " \"HOSTNAME\" ";
+	else if(hostname!=NULL && session==NULL) tmp = " ET \"SESSION\" ";
+	else                                     tmp = " \"HOSTNAME\" and ET \"SESSION\" ";
+
+	std::cerr << "ERROR:  the" << tmp 
+		  << "variable(s) is(are) not defined in your environment.\n"
+		  << "        This is needed to run the online analysis."
+		  << std::endl;
+	exit(EXIT_FAILURE);
+      } 
+      else {
 	std::cout << "Try to open the ET station. " << std::endl;
-	eventbuffer.OpenETStream(getenv("HOSTNAME"), getenv("SESSION"), 0);
+	if(eventbuffer.OpenETStream(hostname, session, 0) == CODA_ERROR ){
+	  std::cerr << "ERROR:  Unable to open the ET station "
+		    << run << ".  Moving to the next run.\n"
+		    << std::endl;
+	  timer.Stop();
+	  continue;  
+	}
       }
-    } else {
+    } 
+    else {
       //  Try to open the data file.
-      if (eventbuffer.OpenDataFile(run) != CODA_OK){
+      if (eventbuffer.OpenDataFile(run) == CODA_ERROR){
 	//  The data file can't be opened.
 	//  Get ready to process the next run.
 	std::cerr << "ERROR:  Unable to find data files for run "
@@ -220,9 +225,9 @@ int main(Int_t argc,Char_t* argv[])
 	continue;
       }
     }
-
+    
     eventbuffer.ResetControlParameters();
-
+    
     //     //  Configure database access mode, and load the calibrations
     //     //  from the database.
 
