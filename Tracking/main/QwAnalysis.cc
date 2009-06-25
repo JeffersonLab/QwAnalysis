@@ -173,7 +173,7 @@ int main(Int_t argc,Char_t* argv[])
 
   char *hostname, *session, *tmp;
 
-  for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++) {
+  for(UInt_t run = (UInt_t) cmdline.GetFirstRun(); run <= (UInt_t) cmdline.GetLastRun(); run++) {
     
     //  Begin processing for the first run.
     //  Start the timer.
@@ -231,6 +231,7 @@ int main(Int_t argc,Char_t* argv[])
     //     //  Configure database access mode, and load the calibrations
     //     //  from the database.
 
+    create_root_file(run, QwDetectors);
 
     //  Create the root file
     boost::shared_ptr<TFile>
@@ -250,7 +251,7 @@ int main(Int_t argc,Char_t* argv[])
     TTree *HitTree = new TTree("HitTree","Hit event data tree");
     std::vector<Float_t>hitvector;
     Int_t evnum=0;
-    char buff1[5];
+    //    char buff1[5];
     TString prebase;
 
     hitvector.reserve(7000); //each hit neeed 7 vector locations
@@ -272,7 +273,7 @@ int main(Int_t argc,Char_t* argv[])
       if (! eventbuffer.IsPhysicsEvent()) continue;
 
       //  Check to see if we want to process this event.
-      if (eventbuffer.GetEventNumber() < cmdline.GetFirstEvent()) continue;
+      if      (eventbuffer.GetEventNumber() < cmdline.GetFirstEvent()) continue;
       else if (eventbuffer.GetEventNumber() > cmdline.GetLastEvent()) break;
 
       if(eventbuffer.GetEventNumber()%1000==0) {
@@ -384,7 +385,7 @@ int main(Int_t argc,Char_t* argv[])
 
 
 
-void PrintInfo(TStopwatch& timer, Int_t run)
+void PrintInfo(TStopwatch& timer, UInt_t run)
 {
   std::cout << "Analysis of run "  << run << std::endl
 	    << "CPU time used:  "  << timer.CpuTime() << " s"
@@ -533,5 +534,47 @@ void  FillTreeVector(std::vector<Float_t> &values,QwHitContainer &grandHitList){
 
 
   }
+
+};
+
+
+// 1. reproduce a root file that contains the same structures compared with the existed one by using a different approach.
+// 2. introduce a better way to create a ROOT file by using TObject Class in order to fulfill QwTracking reconstruction algorithm demand (by Wouther) 
+void create_root_file(const UInt_t run , QwSubsystemArrayTracking &tracking_detectors)
+{ 
+  // Qweak Requested Time, page 87 in JLab E02-020 :
+  // 198 + 223 days = 10104 hours = 606240 mins = 121248 run (if one run is 5 mins)
+  // thus 6 digits will be maximum of the possible run number digit. 
+  // if one run is 15 mins, the total possible run number is 40416. 
+  char   buffer[24]; 
+  // the size of char buffer is decided by 16 characters (tmp_Qweak_.root + '\0')  
+  // + 6 digit possible run number + 2 characters (reserved)
+  sprintf(buffer, "tmp_Qweak_%d.root", run);
+
+  // auto_ptr<TFile> tempROOTFile (new TFile(buffer, "RECREATE", "Qweak ROOT file with histograms"));
+  TFile *tmpROOTFile = new TFile(buffer, "RECREATE", "Qweak ROOT file with histograms");
+  if ( tmpROOTFile->IsZombie() ) {
+    printf("Error recreating %s file", buffer);
+    delete tmpROOTFile; tmpROOTFile=0;
+    exit(EXIT_FAILURE);
+  } 
+
+  TTree *hitEventTree = new TTree("hitEventTree", "hit event tree");
+  tracking_detectors.ConstructHistograms();
+
+
+  /*---------------------------
+    
+  To be continued.
+   
+  -----------------------------*/
+
+  
+  tmpROOTFile->Write();
+
+
+  // finally, clean up 
+  delete hitEventTree; hitEventTree = 0;
+  delete tmpROOTFile; tmpROOTFile=0;
 
 };
