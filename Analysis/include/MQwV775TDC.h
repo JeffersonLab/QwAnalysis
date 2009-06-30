@@ -32,13 +32,20 @@ class MQwV775TDC{
   ~MQwV775TDC() { };
 
  protected:
-  void DecodeV775Word(UInt_t &word);
-
+  //void DecodeV775Word(UInt_t &word);
+  void DecodeTDCWord(UInt_t &word);
+  /*
   Bool_t IsV775ValidData(){return fV775ValidFlag;};
 
   UInt_t GetV775SlotNumber(){return fV775SlotNumber;};
   UInt_t GetV775ChannelNumber(){return fV775ChannelNumber;};
   UInt_t GetV775Data(){return fV775Dataword;};
+  */
+  Bool_t IsValidDataword(){return fV775ValidFlag;};
+  //Bool_t IsATDCHeaderword(){return kFALSE;};
+  UInt_t GetTDCSlotNumber(){return fV775SlotNumber;};
+  UInt_t GetTDCChannelNumber(){return fV775ChannelNumber;};
+  UInt_t GetTDCData(){return fV775Dataword;};
   
  private:
   static const UInt_t kV775Mask_SlotNumber;

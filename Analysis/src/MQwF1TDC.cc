@@ -19,7 +19,7 @@ const UInt_t MQwF1TDC::kF1Mask_HitFIFOFlag    = 0x01000000;
 const UInt_t MQwF1TDC::kF1Mask_ChannelNumber  = 0x003f0000;
 const UInt_t MQwF1TDC::kF1Mask_Dataword       = 0x0000ffff;
 
-void MQwF1TDC::DecodeF1Word(UInt_t &word){
+void MQwF1TDC::DecodeTDCWord(UInt_t &word){
   fF1SlotNumber      = (word & kF1Mask_SlotNumber)>>27;
   fF1HeaderFlag      = ((word & kF1Mask_HeaderFlag)==0);
   if (fF1HeaderFlag){

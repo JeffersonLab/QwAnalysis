@@ -143,17 +143,17 @@ Int_t QwDriftChamber::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buf
 			  << "Begin processing ROC" << roc_id << std::endl;
     for(size_t i=0; i<num_words ; i++){
       //  Decode this word as a F1TDC word.
-      DecodeF1Word(buffer[i]);
+      DecodeTDCWord(buffer[i]);
 
-      if (GetF1SlotNumber() == 31){
+      if (GetTDCSlotNumber() == 31){
 	//  This is a custom word which is not defined in 
 	//  the F1TDC, so we can use it as a marker for
 	//  other data; it may be useful for something.
 
       }
-      if (! IsSlotRegistered(index, GetF1SlotNumber())) continue;
+      if (! IsSlotRegistered(index, GetTDCSlotNumber())) continue;
 
-      if (IsAF1Headerword()){
+      if (IsValidDataword()){
 	// This is a F1 TDC header/trailer word
 	//  This might be a problem, but often is not...
 	//  Do we need to do something?
@@ -162,19 +162,19 @@ Int_t QwDriftChamber::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buf
 	// This is a F1 TDC data word
 	try {
 	  //std::cout<<"At QwDriftChamber::ProcessEvBuffer"<<std::endl;
-	  FillRawTDCWord(index,GetF1SlotNumber(),GetF1ChannelNumber(),
-			 GetF1Data());
+	  FillRawTDCWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),
+			 GetTDCData());
 	}
 	catch (std::exception& e) {
 	  std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: " 
 		    << e.what() << std::endl;
-	  Int_t chan = GetF1ChannelNumber();
+	  Int_t chan = GetTDCChannelNumber();
 	  std::cerr << "   Parameters:  index=="<<index
-		    << "; GetF1SlotNumber()=="<<GetF1SlotNumber()
+		    << "; GetF1SlotNumber()=="<<GetTDCSlotNumber()
 		    << "; GetF1ChannelNumber()=="<<chan
-		    << "; GetF1Data()=="<<GetF1Data()
+		    << "; GetF1Data()=="<<GetTDCData()
 		    << std::endl;
-	  Int_t tdcindex = GetTDCIndex(index, GetF1SlotNumber());
+	  Int_t tdcindex = GetTDCIndex(index, GetTDCSlotNumber());
 	  std::cerr << "   GetTDCIndex()=="<<tdcindex
 		    << "; fTDCPtrs.at(tdcindex).size()=="
 		    << fTDCPtrs.at(tdcindex).size()

@@ -6,10 +6,13 @@
 #name_title          type    x_nbins x_min   x_max   y_nbins y_min   y_max   xtitle  ytitle
 ##############################################################################################
 ###  Single event histograms
+
 ......_adc		TH1F	4097	-0.5	4096.5				ADC Events
 ......_tdc		TH1F	4097	-0.5	4096.5				TDC Events
 .......adc		TH1F	4097	-0.5	4096.5				ADC Events
 .......tdc		TH1F	4097	-0.5	4096.5				TDC Events
+
+=======
 
 
 ###  Fully wildcarded histograms.  Any channel ending in adc or tdc will

@@ -29,7 +29,7 @@ const UInt_t MQwV775TDC::kV775WordType_Datum    = 0;
 
 
 
-void MQwV775TDC::DecodeV775Word(UInt_t &word){
+void MQwV775TDC::DecodeTDCWord(UInt_t &word){
   fV775SlotNumber = (word & kV775Mask_SlotNumber)>>27;
   UInt_t wordtype = (word & kV775Mask_WordType)>>24;
   if (wordtype == kV775WordType_Datum){

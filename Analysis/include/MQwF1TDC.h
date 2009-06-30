@@ -27,13 +27,22 @@ class MQwF1TDC{
   ~MQwF1TDC();
 
  protected:
+  /*
   void DecodeF1Word(UInt_t &word);
+  
 
   Bool_t IsAF1Headerword(){return fF1HeaderFlag;};
 
   UInt_t GetF1SlotNumber(){return fF1SlotNumber;};
   UInt_t GetF1ChannelNumber(){return fF1ChannelNumber;};
   UInt_t GetF1Data(){return fF1Dataword;};
+  */
+  void DecodeTDCWord(UInt_t &word);
+
+  Bool_t IsValidDataword(){return fF1HeaderFlag;};
+  UInt_t GetTDCSlotNumber(){return fF1SlotNumber;};
+  UInt_t GetTDCChannelNumber(){return fF1ChannelNumber;};
+  UInt_t GetTDCData(){return fF1Dataword;};
   
 
  private:

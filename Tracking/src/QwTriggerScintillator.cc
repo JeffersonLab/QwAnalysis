@@ -92,26 +92,26 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt
     SetDataLoaded(kTRUE);
     for(size_t i=0; i<num_words ; i++){
       //  Decode this word as a V775TDC word.
-      DecodeV775Word(buffer[i]);
+      DecodeTDCWord(buffer[i]);
 
-      if (! IsSlotRegistered(index, GetV775SlotNumber())) continue;
+      if (! IsSlotRegistered(index, GetTDCSlotNumber())) continue;
 
-      if (IsV775ValidData()){
+      if (IsValidDataword()){
 	// This is a V775 TDC data word
 	try {
-	  FillRawWord(index,GetV775SlotNumber(),GetV775ChannelNumber(),
-		      GetV775Data());
+	  FillRawWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),
+		      GetTDCData());
 	}
 	catch (std::exception& e) {
 	  std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: " 
 		    << e.what() << std::endl;
-	  Int_t chan = GetV775ChannelNumber();
+	  Int_t chan = GetTDCChannelNumber();
 	  std::cerr << "   Parameters:  index=="<<index
-		    << "; GetV775SlotNumber()=="<<GetV775SlotNumber()
+		    << "; GetV775SlotNumber()=="<<GetTDCSlotNumber()
 		    << "; GetV775ChannelNumber()=="<<chan
-		    << "; GetV775Data()=="<<GetV775Data()
+		    << "; GetV775Data()=="<<GetTDCData()
 		    << std::endl;
-	  Int_t modindex = GetModuleIndex(index, GetV775SlotNumber());
+	  Int_t modindex = GetModuleIndex(index, GetTDCSlotNumber());
 	  std::cerr << "   GetModuleIndex()=="<<modindex
 		    << "; fModulePtrs.at(modindex).size()=="
 		    << fModulePtrs.at(modindex).size()
