@@ -26,7 +26,7 @@ void Det::print()
   // Detector ID and name
   cout << "det " << ID << ": " << sName << ", ";
   // Detector position
-  cout << "z = " << Zpos << " cm";
+  cout << "z = " << Zpos << " cm, plane " << plane;
 
   // Detector flags
   cout << " (";

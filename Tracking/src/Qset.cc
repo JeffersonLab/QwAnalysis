@@ -71,7 +71,7 @@ Qset::Qset()
   numdetectors = 0;
 
   /* Debug level */
-  debug = 0;
+  debug = 1;
 }
 
 //____________________________________________________________
@@ -125,6 +125,12 @@ int Qset::FillDetec (const char *geomname)
 				rcDET[i].region = kRegionID2; break;
 			case '3':
 				rcDET[i].region = kRegionID3; break;
+			case 't':
+				rcDET[i].region = kRegionIDTrig; break;
+			case 'c':
+				rcDET[i].region = kRegionIDCer; break;
+			case 's':
+				rcDET[i].region = kRegionIDScanner; break;
 		}
 		geomstream >> type;
 		switch (type[0]) { // detector type
@@ -163,9 +169,8 @@ int Qset::FillDetec (const char *geomname)
 		geomstream >> rcDET[i].rCos; // cosine of wire orientation w.r.t. x-axis
 		geomstream >> rcDET[i].rSin; // sine of wire orientation w.r.t. x-axis
 		geomstream >> rcDET[i].NumOfWires; // number of wires
-		geomstream >> rcDET[i].ID; // detector ID number
+		rcDET[i].ID = i;
 		rcDET[i].samesearched = 0; // not searched yet for detectors in the same region
-		if (i != rcDET[i].ID) cout << "Warning: Detector ID must be ordered." << endl;
 
 		if (debug) DumpDetector(i);
 
@@ -174,6 +179,7 @@ int Qset::FillDetec (const char *geomname)
 	numdetectors = i;
 
 	LinkDetector();
+	DeterminePlanes();
 
 	geomfile.close();
 
@@ -215,7 +221,7 @@ void Qset::LinkDetector ()
   EQwDetectorPackage package;
   EQwRegionID region;
   EQwDirectionID dir;
-  enum EQwDetectorType type;
+  EQwDetectorType type;
 
   Det *rd, *rnd, *rwd;  // descriptive variable names, I like this (wdconinc)
 
@@ -238,7 +244,6 @@ void Qset::LinkDetector ()
       type    = rd->type;
       /// If this is the first detector in this half, region
       /// and with this direction, then store it in rcDETRegion
-      // TODO (wdconinc) why doesn't rcDETRegion have a [type] index?
       if ( !rcDETRegion[package][region-1][dir] )
         rcDETRegion[package][region-1][dir] = rd;
 
@@ -265,3 +270,79 @@ void Qset::LinkDetector ()
   }
 }
 
+
+//____________________________________________________________
+
+
+void Qset::DeterminePlanes ()
+{
+  /// Loop over all detector packages and regions
+  for (EQwDetectorPackage package  = kPackageUp;
+			  package <= kPackageDown; package++) {
+    for (EQwRegionID region  = kRegionID1;
+		     region <= kRegionID3; region++) {
+
+      /// Reset lists of z positions and number of detectors
+      int nPlanes = 0;
+      int ID[NDetMax];
+      double zPlane[NDetMax];
+      for (int i = 0; i < NDetMax; i++) {
+        ID[i] = 0;
+        zPlane[i] = 0.0;
+      }
+
+      /// First loop over all detectors to get all z positions
+      for (EQwDirectionID direction  = kDirectionX;
+			  direction <= kDirectionV; direction++) {
+
+	if (! rcDETRegion[package][region-1][direction]) continue;
+
+	for (Det* rd = rcDETRegion[package][region-1][direction];
+	          rd; rd = rd->nextsame) {
+
+	  // Store the z position and ID of this detector
+	  ID[nPlanes] = rd->ID;
+	  zPlane[nPlanes] = rd->Zpos;
+	  nPlanes++;
+	}
+      } // end of first loop over directions
+      if (debug) cout << "Number of planes: " << nPlanes << endl;
+
+      if (debug) {
+        cout << "Planes: ";
+        for (int i = 0 ; i < nPlanes ; i++)
+          cout << ID[i] << "(" << zPlane[i] << ") ";
+        cout << endl;
+      }
+
+      /// Loop over all planes to set the order
+      for (int plane = 0; plane < nPlanes; plane++) {
+
+	// Find minimum z position
+	int i_min = 0;
+	int id_min = ID[i_min];
+	double z_min = zPlane[i_min];
+	for (int i = 0; i < nPlanes - plane; i++) {
+	  if (zPlane[i] < z_min) {
+	    i_min = i;
+	    id_min = ID[i_min];
+	    z_min = zPlane[i_min];
+	  }
+	}
+
+	// Set the plane number and increase by one
+	rcDET[id_min].plane = plane;
+	if (debug) cout << "plane: " << plane << " -> ID: " << id_min << " ";
+	if (debug) cout << "(z = " << z_min << ")" << endl;
+
+	// Replace the found maximum with the last one in the array
+	zPlane[i_min] = zPlane[nPlanes-plane-1];
+	ID[i_min] = ID[nPlanes-plane-1];
+	zPlane[nPlanes-plane-1] = z_min;
+	ID[nPlanes-plane-1] = id_min;
+
+      } // end of loop over planes
+
+    } // end of loop over regions
+  } // end of loop over packages
+}

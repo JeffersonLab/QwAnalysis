@@ -28,7 +28,8 @@ class Qset {
     int debug;		// debug level
 
     void DumpDetector (int i);
-    void LinkDetector (void);
+    void LinkDetector ();
+    void DeterminePlanes ();
 
 };
 

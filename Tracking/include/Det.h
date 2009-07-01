@@ -22,7 +22,7 @@ using std::string;
 
 /// First declare the Hit and Det are objects, because they contain
 /// pointers to each other.
-class QwHit; 
+class QwHit;
 
 /*! \class Det
     \brief Describes a detector element
@@ -66,6 +66,8 @@ class Det {
     QwHit *hitbydet; 		/*!< hitlist */
     Det *nextsame;		/*!< same wire orientation */
     int samesearched;
+
+    int plane;		/*!< plane number in this package/region pair */
 
     int  ID; /* Id representing a detector ID number.
                 This is needed to separate detectors when comparing hits.  */
