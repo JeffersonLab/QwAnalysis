@@ -2860,9 +2860,8 @@ int QwTrackingTreeCombine::checkR3 (QwPartialTrack *pt, EQwDetectorPackage packa
   double trig[3], cc[3];
   double lim_trig[2][2], lim_cc[2][2];
 
-  // Get the trig scintillator: the only detector with X direction in region 3
-  // TODO (wdc) This is so unsafe, it would never pass JLab scrutiny!
-  Det *rd = rcDETRegion[package][kRegionID3-1][kDirectionX];
+  // Get the trig scintillator
+  Det *rd = rcDETRegion[package][kRegionIDTrig-1][kDirectionX];
 
   //get the point where the track intersects the detector planes
   trig[2] = rd->Zpos;
@@ -2884,9 +2883,8 @@ int QwTrackingTreeCombine::checkR3 (QwPartialTrack *pt, EQwDetectorPackage packa
 	cout << "Trigger scintillator hit at : (" << trig[0] << "," << trig[1] << "," << trig[2] << ")" << endl;
   } else pt->triggerhit = 0;
 
-  // Get the Cherenkov detector: the only detector with Y direction in region 3
-  // TODO (wdc) This is so unsafe, it would never pass JLab scrutiny!
-  rd = rcDETRegion[package][kRegionID3-1][kDirectionY];
+  // Get the Cherenkov detector
+  rd = rcDETRegion[package][kRegionIDCer-1][kDirectionY];
   cc[2] = rd->Zpos;
   cc[0] = pt->mx * cc[2] + pt->x;
   cc[1] = pt->my * cc[2] + pt->y;

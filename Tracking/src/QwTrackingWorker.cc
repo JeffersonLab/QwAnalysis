@@ -502,7 +502,10 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	      /// Get the sublist of hits in this detector
 	      QwHitContainer *sublist = hitlist->GetSubList(rd->ID);
 	      // If no hits in this detector, skip to the next detector.
-	      if (! sublist) continue;
+	      if (! sublist) {
+		if (debug) cout << "No hits in this detector" << endl;
+		continue;
+	      }
 	      // Loop over the hits in the sublist
 	      for (QwHitContainer::iterator hit = sublist->begin();
 		hit != sublist->end(); hit++) {
@@ -601,8 +604,6 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 
 	      /// Get the sublist of hits in this detector
 	      QwHitContainer *sublist = hitlist->GetSubList(rd->ID);
-	      for (QwHitContainer::iterator hit = sublist->begin(); hit != sublist->end(); hit++)
-	        cout << hit->GetDetectorID().fElement << endl;
 	      // If no hits in this detector, skip to the next detector.
 	      if (! sublist) continue;
 	      // Loop over the hits in the sublist
