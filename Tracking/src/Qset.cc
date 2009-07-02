@@ -76,7 +76,7 @@ Qset::Qset()
 
 //____________________________________________________________
 
-int Qset::FillDetec (const char *geomname)
+int Qset::FillDetectors (const char *geomname)
 {
 	// Open geometry file
 	ifstream geomfile(geomname);
@@ -170,6 +170,7 @@ int Qset::FillDetec (const char *geomname)
 		geomstream >> rcDET[i].rSin; // sine of wire orientation w.r.t. x-axis
 		geomstream >> rcDET[i].NumOfWires; // number of wires
 		rcDET[i].ID = i;
+		rcDET[i].index = i;
 		rcDET[i].samesearched = 0; // not searched yet for detectors in the same region
 
 		if (debug) DumpDetector(i);
@@ -177,9 +178,6 @@ int Qset::FillDetec (const char *geomname)
 		i++;
 	}
 	numdetectors = i;
-
-	LinkDetector();
-	DeterminePlanes();
 
 	geomfile.close();
 
@@ -202,7 +200,7 @@ void Qset::DumpDetector (int i)
 
 //____________________________________________________________
 
-void Qset::LinkDetector ()
+void Qset::LinkDetectors ()
 /*! \fn LinkDetector
     \brief This function strings together groups of detector elements
 
@@ -284,10 +282,10 @@ void Qset::DeterminePlanes ()
 
       /// Reset lists of z positions and number of detectors
       int nPlanes = 0;
-      int ID[NDetMax];
+      int index[NDetMax];
       double zPlane[NDetMax];
       for (int i = 0; i < NDetMax; i++) {
-        ID[i] = 0;
+        index[i] = 0;
         zPlane[i] = 0.0;
       }
 
@@ -300,18 +298,19 @@ void Qset::DeterminePlanes ()
 	for (Det* rd = rcDETRegion[package][region-1][direction];
 	          rd; rd = rd->nextsame) {
 
-	  // Store the z position and ID of this detector
-	  ID[nPlanes] = rd->ID;
+	  // Store the z position and index of this detector
+	  index[nPlanes] = rd->index;
 	  zPlane[nPlanes] = rd->Zpos;
 	  nPlanes++;
 	}
       } // end of first loop over directions
+      if (nPlanes == 0) continue;
       if (debug) cout << "Number of planes: " << nPlanes << endl;
 
       if (debug) {
         cout << "Planes: ";
         for (int i = 0 ; i < nPlanes ; i++)
-          cout << ID[i] << "(" << zPlane[i] << ") ";
+          cout << index[i] << "(" << zPlane[i] << ") ";
         cout << endl;
       }
 
@@ -320,26 +319,26 @@ void Qset::DeterminePlanes ()
 
 	// Find minimum z position
 	int i_min = 0;
-	int id_min = ID[i_min];
+	int index_min = index[i_min];
 	double z_min = zPlane[i_min];
 	for (int i = 0; i < nPlanes - plane + 1; i++) {
 	  if (zPlane[i] < z_min) {
 	    i_min = i;
-	    id_min = ID[i_min];
+	    index_min = index[i_min];
 	    z_min = zPlane[i_min];
 	  }
 	}
 
 	// Set the plane number and increase by one
-	rcDET[id_min].plane = plane;
-	if (debug) cout << "plane: " << plane << " -> ID: " << id_min << " ";
+	rcDET[index_min].plane = plane;
+	if (debug) cout << "plane: " << plane << " -> index: " << index_min << " ";
 	if (debug) cout << "(z = " << z_min << ")" << endl;
 
 	// Replace the found maximum with the last one in the array
 	zPlane[i_min] = zPlane[nPlanes-plane];
-	ID[i_min] = ID[nPlanes-plane];
+	index[i_min] = index[nPlanes-plane];
 	zPlane[nPlanes-plane] = z_min;
-	ID[nPlanes-plane] = id_min;
+	index[nPlanes-plane] = index_min;
 
       } // end of loop over planes
 

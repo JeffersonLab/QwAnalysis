@@ -19,17 +19,19 @@ class Qset {
 
     Qset();
 
-    int FillDetec (const char *geomfile);
+    int FillDetectors (const char *geomfile);
+    void LinkDetectors ();
+    void DeterminePlanes ();
 
-    int numdetectors;	// detector counter
+    void SetNumDetectors (int n) { numdetectors = n; };
+    int  GetNumDetectors () { return numdetectors; };
 
   private:
 
     int debug;		// debug level
+    int numdetectors;	// number of detectors
 
     void DumpDetector (int i);
-    void LinkDetector ();
-    void DeterminePlanes ();
 
 };
 

@@ -69,8 +69,10 @@ class Det {
 
     int plane;		/*!< plane number in this package/region pair */
 
-    int  ID; /* Id representing a detector ID number.
-                This is needed to separate detectors when comparing hits.  */
+    int  ID; 		/*!< ID representing a detector ID number.  This is
+			     needed to separate detectors when comparing hits. */
+
+    int index;		/*!< index of the detector in the global list */
 
     void print();
 

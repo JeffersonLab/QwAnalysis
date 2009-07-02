@@ -51,8 +51,6 @@
 
 
 
-//from QwTracking
-#include "Qset.h"
 //#include "Qevent.h"
 #include "Qoptions.h"
 #include "options.h"
@@ -84,8 +82,6 @@ Bool_t kInQwBatchMode = kFALSE;
 /// \ingroup QwAnalysis
 int main(Int_t argc,Char_t* argv[])
 {
-
-
   out_file = fopen(FILE_NAME, "wt");//will store grand hit list (only for degubbing) - rakitha
   out_file2 = fopen(FILE_NAME2, "wt");//will store sub hit list (only for degubbing) - rakitha
 

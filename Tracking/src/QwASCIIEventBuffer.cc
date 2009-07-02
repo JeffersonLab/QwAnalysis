@@ -17,6 +17,7 @@ Rakitha (04/24/2009)
 */
 
 #include "QwASCIIEventBuffer.h"
+#include "Qset.h"
 #include <string>
 #include <cmath>
 
@@ -56,57 +57,17 @@ Int_t QwASCIIEventBuffer::InitrcDETRegion( std::vector< std::vector< QwDetectorI
         }
     }
 
-    //now rcDET is ready.
-    //now linking detectors
+    // now rcDET is ready.
+    // now linking detectors
 
-
-
-    //Same algorithm used in Qset.cc
-    Det *rd, *rnd, *rwd;  // descriptive variable names
-
-    /// For all detectors in the experiment
-    for (int i = 0; i < DetectorCounter; i++) {
-        if (DEBUG1) std::cout<< " : "<<" ID "<<rcDET[i].ID<<" ";
-        rd = &rcDET[i]; // get a pointer to the detector
-
-        /// and if a search for similar detectors has not been done yet
-        if ( !rd->samesearched ) {
-            package = rd->package;
-            dir    = rd->dir;
-            region = rd->region;
-            type   = rd->type;
-
-            if ( !rcDETRegion[package][region-1][dir] )
-                rcDETRegion[package][region-1][dir] = rd;
-
-            /// Loop over all remaining detectors
-            // rd always stays the original detector rcDET[i]
-            // rnd is the currently tested detector rcDET[l]
-            // rwd is the current end of the linked-list
-            rwd = rd;
-            for (int l = i+1; l < DetectorCounter; l++ ) {
-                rnd = &rcDET[l];
-                if ( rnd->package == package
-                        && rnd->type   == type
-                        && rnd->dir    == dir
-                        && rnd->region == region
-                        && !rnd->samesearched ) {
-                    if (DEBUG1) std::cout << " "<<" ID "<<rcDET[l].ID<<" ";
-                    rnd->samesearched = 1;
-                    rwd = (rwd->nextsame = rnd);
-                }
-            }
-            rd->samesearched = 1;
-        }
-        if (DEBUG1) std::cout << std::endl;
-    }
-
-
+    Qset qset;
+    qset.SetNumDetectors(DetectorCounter);
+    qset.LinkDetectors();
+    qset.DeterminePlanes();
 
     if (DEBUG1) std::cout<<"Ending InitrcDETRegion "<<"Total detectors "<<DetectorCounter<<std::endl;
 
     return 1;
-
 };
 
 void  QwASCIIEventBuffer::GetrcDETRegion(QwHitContainer &HitList, Int_t event_no) {
@@ -115,19 +76,18 @@ void  QwASCIIEventBuffer::GetrcDETRegion(QwHitContainer &HitList, Int_t event_no
     QwHit *newhit,*hitlist;
 
     // Detector region/type/direction identifiers
-    enum EQwDetectorPackage package2;
-    enum EQwRegionID region2;
-    enum EQwDirectionID    dir2;
+    EQwDetectorPackage package2;
+    EQwRegionID        region2;
+    EQwDirectionID     dir2;
 
-    Int_t detectorId1,detectorId2;
+    Int_t detectorId1, detectorId2;
 
     // Detector ID
     int detecID = 0;
     int firstdetec = 1;
     Det *rd = NULL;
 
-    //  Do something to clear rd->hitbydet for all
-    //  detectors.
+    //  Do something to clear rd->hitbydet for all detectors.
 
 
     QwDetectorID local_id;
@@ -260,6 +220,7 @@ void QwASCIIEventBuffer::AddDetector(QwDetectorInfo qwDetector, Int_t i) {
     rcDET[i].rSin=qwDetector.Wire_rsinX;
     rcDET[i].NumOfWires=qwDetector.TotalWires;
     rcDET[i].ID=qwDetector.DetectorId;
+    rcDET[i].index=i;
     rcDET[i].samesearched = 0;
 };
 
