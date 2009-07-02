@@ -168,7 +168,9 @@ int main (int argc, char* argv[])
 	int nEvent = 0;  // number of processed events
 
 	Qset qset;
-	qset.FillDetec((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.geo").c_str());
+	qset.FillDetectors((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.geo").c_str());
+	qset.LinkDetectors();
+	qset.DeterminePlanes();
 	cout << "[QwTracking::main] Geometry loaded" << endl; // R3,R2
 
 	Qoptions qoptions;
