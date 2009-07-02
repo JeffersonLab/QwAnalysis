@@ -372,7 +372,7 @@ Int_t QwASCIIEventBuffer::GetEvent() {
 
             //NOTE: In this QwHit object, plane is set to the DetectorId
 
-            currentHit=new QwHit(0,0,0,0,rcDET[DetectId].region,rcDET[DetectId].package, DetectId ,rcDET[DetectId].dir,wire,0) ; //order of parameters-> electronics stuffs are neglected, and  plane=DetectId and data is set to zero
+            currentHit=new QwHit(0,0,0,0,rcDET[DetectId].region,rcDET[DetectId].package, rcDET[DetectId].plane ,rcDET[DetectId].dir,wire,0) ; //order of parameters-> electronics stuffs are neglected, and  plane=DetectId and data is set to zero
             currentHit->SetDriftDistance(rPos1);
             currentHit->SetSpatialResolution(resolution);
             currentHit->SetZPos(Zpos);
@@ -465,10 +465,10 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits) {
             plane2 = plane; //Note that plane contains the detector Id
             dir2 = dir;
             rd = rcDETRegion[package][region-1][dir];
-            while (rd->ID != plane) {
+            while (rd->plane != plane) {
                 rd = rd->nextsame;
             }
-            std::cout<<"Detector ID " << rd->ID <<std::endl;
+            std::cout << "Detector plane " << rd->plane << std::endl;
         } else if (package2 == package &&
                    region2  == region  &&
                    plane2   == plane   &&
@@ -485,22 +485,22 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits) {
                     dir2     == dir) {
                 // like-pitched detector plane
                 rd = rcDETRegion[package][region-1][dir];
-                while (rd->ID != plane) {
+                while (rd->plane != plane) {
                     rd = rd->nextsame;
                 }
                 plane2 = plane;
-                std::cout<<"Detector ID " << rd->ID <<std::endl;
+                std::cout << "Detector plane " << rd->plane << std::endl;
             } else {
                 // different detector plane
                 rd = rcDETRegion[package][region-1][dir];
-                while (rd->ID != plane) {
+                while (rd->plane != plane) {
                     rd = rd->nextsame;
                 }
                 package2 = package;
                 region2  = region;
                 plane2   = plane;
                 dir2     = dir;
-                std::cout<<"Detector ID " << rd->ID <<std::endl;
+                std::cout << "Detector plane " << rd->plane << std::endl;
             }
         }
 

@@ -500,12 +500,11 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	      }
 
 	      /// Get the sublist of hits in this detector
-	      QwHitContainer *sublist = hitlist->GetSubList(rd->ID);
+	      QwHitContainer *sublist = hitlist->GetSubList(region, package, rd->plane);
+	      if (debug) sublist->Print();
 	      // If no hits in this detector, skip to the next detector.
-	      if (! sublist) {
-		if (debug) cout << "No hits in this detector" << endl;
-		continue;
-	      }
+	      if (! sublist) continue;
+
 	      // Loop over the hits in the sublist
 	      for (QwHitContainer::iterator hit = sublist->begin();
 		hit != sublist->end(); hit++) {
@@ -603,7 +602,8 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	      memset(hashchannelr2[tlayers], 0, sizeof(int) * (1UL << (levels - 1)));
 
 	      /// Get the sublist of hits in this detector
-	      QwHitContainer *sublist = hitlist->GetSubList(rd->ID);
+	      QwHitContainer *sublist = hitlist->GetSubList(region, package, rd->plane);
+	      if (debug) sublist->Print();
 	      // If no hits in this detector, skip to the next detector.
 	      if (! sublist) continue;
 	      // Loop over the hits in the sublist

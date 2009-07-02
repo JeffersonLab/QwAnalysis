@@ -129,25 +129,20 @@ class QwHit {
 
 //below two metods retrieve subsets of QwHitContainer vector - rakitha (08/2008)
 
-  Bool_t PlaneMatches(EQwRegionID region, Int_t package, Int_t plane) const
+  const Bool_t PlaneMatches(EQwRegionID region, EQwDetectorPackage package, Int_t plane)
     {
-      return (fRegion==region && fPackage==package && fPlane==plane);
+      return (fRegion == region && fPackage == package && fPlane == plane);
     };
-  Bool_t DirMatches(EQwRegionID region, Int_t package, EQwDirectionID dir) const
+  const Bool_t DirMatches(EQwRegionID region, EQwDetectorPackage package, EQwDirectionID dir)
     {
-      return (fRegion==region && fPackage==package && fDirection==dir);
+      return (fRegion == region && fPackage == package && fDirection == dir);
     };
-
-  // Method to check whether a hit is in a detector (using plane number)
-  const Bool_t IsPlane (Int_t plane) {
-    return (fPlane == plane);
-  }
 
   //main use of this method is to count no.of hits for a given wire and update the fHitNumber - rakitha (08/2008)
 
   Bool_t WireMatches(Int_t region, Int_t package, Int_t plane, Int_t wire)
     {
-      return (fRegion==region && fPackage==package && fElement==fElement);
+      return (fRegion == region && fPackage == package && fElement == fElement);
     };
 
   //'<' is overloaded for the sorting algorithm

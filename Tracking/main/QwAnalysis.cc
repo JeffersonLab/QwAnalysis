@@ -174,7 +174,7 @@ int main(Int_t argc,Char_t* argv[])
   char *hostname, *session, *tmp;
 
   for(UInt_t run = (UInt_t) cmdline.GetFirstRun(); run <= (UInt_t) cmdline.GetLastRun(); run++) {
-    
+
     //  Begin processing for the first run.
     //  Start the timer.
     timer.Start();
@@ -196,12 +196,12 @@ int main(Int_t argc,Char_t* argv[])
 	else if(hostname!=NULL && session==NULL) tmp = " ET \"SESSION\" ";
 	else                                     tmp = " \"HOSTNAME\" and ET \"SESSION\" ";
 
-	std::cerr << "ERROR:  the" << tmp 
+	std::cerr << "ERROR:  the" << tmp
 		  << "variable(s) is(are) not defined in your environment.\n"
 		  << "        This is needed to run the online analysis."
 		  << std::endl;
 	exit(EXIT_FAILURE);
-      } 
+      }
       else {
 	std::cout << "Try to open the ET station. " << std::endl;
 	if(eventbuffer.OpenETStream(hostname, session, 0) == CODA_ERROR ){
@@ -209,10 +209,10 @@ int main(Int_t argc,Char_t* argv[])
 		    << run << ".  Moving to the next run.\n"
 		    << std::endl;
 	  timer.Stop();
-	  continue;  
+	  continue;
 	}
       }
-    } 
+    }
     else {
       //  Try to open the data file.
       if (eventbuffer.OpenDataFile(run) == CODA_ERROR){
@@ -225,9 +225,9 @@ int main(Int_t argc,Char_t* argv[])
 	continue;
       }
     }
-    
+
     eventbuffer.ResetControlParameters();
-    
+
     //     //  Configure database access mode, and load the calibrations
     //     //  from the database.
 
@@ -430,8 +430,8 @@ void SaveSubList(QwHitContainer & grandHitList){
   std::vector<QwHit>::iterator p1;
 
   fprintf(out_file2," NEW EVENT \n");
-  grandHitList.GetSubList_Dir(kRegionID2,1,kDirectionV,sublist );//I'm getting sub list of hits with region=2,package=1,direction=X -Rakitha (10/23/2008)
-  //grandHitList.GetSubList_Plane(kRegionID2,1,3,sublist );//I'm getting sub list of hits with region=2,package=1,wire plane=3  -Rakitha (10/23/2008)
+  grandHitList.GetSubList_Dir(kRegionID2,kPackageUp,kDirectionV,sublist );//I'm getting sub list of hits with region=2,package=1,direction=X -Rakitha (10/23/2008)
+  //grandHitList.GetSubList_Plane(kRegionID2,kPackageUp,3,sublist );//I'm getting sub list of hits with region=2,package=1,wire plane=3  -Rakitha (10/23/2008)
   for (p1=sublist.begin();p1!=sublist.end();p1++){ // (p=grandHitList.GetStartOfHits(kRegionID2,1,kDirectionU);p !=grandHitList.GetEndOfHits(kRegionID2,1,kDirectionU);p++){
     qwhit=p1->GetDetectorID();
     hitTime=p1->GetRawTime();
@@ -539,15 +539,15 @@ void  FillTreeVector(std::vector<Float_t> &values,QwHitContainer &grandHitList){
 
 
 // 1. reproduce a root file that contains the same structures compared with the existed one by using a different approach.
-// 2. introduce a better way to create a ROOT file by using TObject Class in order to fulfill QwTracking reconstruction algorithm demand (by Wouther) 
+// 2. introduce a better way to create a ROOT file by using TObject Class in order to fulfill QwTracking reconstruction algorithm demand (by Wouther)
 void create_root_file(const UInt_t run , QwSubsystemArrayTracking &tracking_detectors)
-{ 
+{
   // Qweak Requested Time, page 87 in JLab E02-020 :
   // 198 + 223 days = 10104 hours = 606240 mins = 121248 run (if one run is 5 mins)
-  // thus 6 digits will be maximum of the possible run number digit. 
-  // if one run is 15 mins, the total possible run number is 40416. 
-  char   buffer[24]; 
-  // the size of char buffer is decided by 16 characters (tmp_Qweak_.root + '\0')  
+  // thus 6 digits will be maximum of the possible run number digit.
+  // if one run is 15 mins, the total possible run number is 40416.
+  char   buffer[24];
+  // the size of char buffer is decided by 16 characters (tmp_Qweak_.root + '\0')
   // + 6 digit possible run number + 2 characters (reserved)
   sprintf(buffer, "tmp_Qweak_%d.root", run);
 
@@ -557,23 +557,23 @@ void create_root_file(const UInt_t run , QwSubsystemArrayTracking &tracking_dete
     printf("Error recreating %s file", buffer);
     delete tmpROOTFile; tmpROOTFile=0;
     exit(EXIT_FAILURE);
-  } 
+  }
 
   TTree *hitEventTree = new TTree("hitEventTree", "hit event tree");
   tracking_detectors.ConstructHistograms();
 
 
   /*---------------------------
-    
+
   To be continued.
-   
+
   -----------------------------*/
 
-  
+
   tmpROOTFile->Write();
 
 
-  // finally, clean up 
+  // finally, clean up
   delete hitEventTree; hitEventTree = 0;
   delete tmpROOTFile; tmpROOTFile=0;
 
