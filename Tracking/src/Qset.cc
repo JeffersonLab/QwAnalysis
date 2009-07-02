@@ -315,14 +315,14 @@ void Qset::DeterminePlanes ()
         cout << endl;
       }
 
-      /// Loop over all planes to set the order
-      for (int plane = 0; plane < nPlanes; plane++) {
+      /// Loop over all planes to set the order (planes start at 1, not at 0)
+      for (int plane = 1; plane <= nPlanes; plane++) {
 
 	// Find minimum z position
 	int i_min = 0;
 	int id_min = ID[i_min];
 	double z_min = zPlane[i_min];
-	for (int i = 0; i < nPlanes - plane; i++) {
+	for (int i = 0; i < nPlanes - plane + 1; i++) {
 	  if (zPlane[i] < z_min) {
 	    i_min = i;
 	    id_min = ID[i_min];
@@ -336,10 +336,10 @@ void Qset::DeterminePlanes ()
 	if (debug) cout << "(z = " << z_min << ")" << endl;
 
 	// Replace the found maximum with the last one in the array
-	zPlane[i_min] = zPlane[nPlanes-plane-1];
-	ID[i_min] = ID[nPlanes-plane-1];
-	zPlane[nPlanes-plane-1] = z_min;
-	ID[nPlanes-plane-1] = id_min;
+	zPlane[i_min] = zPlane[nPlanes-plane];
+	ID[i_min] = ID[nPlanes-plane];
+	zPlane[nPlanes-plane] = z_min;
+	ID[nPlanes-plane] = id_min;
 
       } // end of loop over planes
 
