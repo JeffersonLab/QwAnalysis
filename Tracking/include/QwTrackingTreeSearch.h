@@ -52,6 +52,8 @@ class QwTrackingTreeSearch {
     QwTrackingTreeSearch();
     ~QwTrackingTreeSearch();
 
+    void SetDebugLevel (int debuglevel) { debug = debuglevel; };
+
     void BeginSearch ();
     void EndSearch ();
     QwTrackingTreeLine* GetListOfTreeLines ();

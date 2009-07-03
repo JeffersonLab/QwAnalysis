@@ -429,7 +429,7 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits) {
             while (rd->plane != plane) {
                 rd = rd->nextsame;
             }
-            std::cout << "Detector plane " << rd->plane << std::endl;
+            if (DEBUG1) std::cout << "Detector plane " << rd->plane << std::endl;
         } else if (package2 == package &&
                    region2  == region  &&
                    plane2   == plane   &&
@@ -450,7 +450,7 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits) {
                     rd = rd->nextsame;
                 }
                 plane2 = plane;
-                std::cout << "Detector plane " << rd->plane << std::endl;
+                if (DEBUG1) std::cout << "Detector plane " << rd->plane << std::endl;
             } else {
                 // different detector plane
                 rd = rcDETRegion[package][region-1][dir];
@@ -461,7 +461,7 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits) {
                 region2  = region;
                 plane2   = plane;
                 dir2     = dir;
-                std::cout << "Detector plane " << rd->plane << std::endl;
+                if (DEBUG1) std::cout << "Detector plane " << rd->plane << std::endl;
             }
         }
 

@@ -56,7 +56,8 @@ class QwHit {
     std::cout << "region " << fRegion << ", ";
     std::cout << "dir " << fDirection << ", ";
     std::cout << "plane " << fPlane << ", ";
-    std::cout << "wire " << fElement << std::endl;
+    std::cout << "element " << fElement << ", ";
+    std::cout << "distance " << fDistance << std::endl;
   };
 
 

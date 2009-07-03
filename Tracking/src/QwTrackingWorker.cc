@@ -81,8 +81,7 @@ extern Options opt;
 
 QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
 {
- /* Set debug level */
-  debug = 1;
+  debug = 0; // debug level
 
   if( debug )
       cout<<"###### Calling QwTrackingWorker::QwTrackingWorker ()"<<endl;
@@ -134,11 +133,6 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
 
 QwTrackingWorker::~QwTrackingWorker ()
 {
-  if( debug )
-      cout<<"###### Calling QwTrackingWorker::~QwTrackingWorker ()"<<endl;
-
-  if( debug )
-      cout<<"###### Leaving QwTrackingWorker::~QwTrackingWorker ()"<<endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -380,9 +374,13 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
   QwTrackingTreeLine *treelines1, *treelines2;
 
   QwTrackingTreeSearch  *TreeSearch  = new QwTrackingTreeSearch();
+  TreeSearch->SetDebugLevel(debug);
   QwTrackingTreeCombine *TreeCombine = new QwTrackingTreeCombine();
+  TreeCombine->SetDebugLevel(debug);
   QwTrackingTreeSort    *TreeSort    = new QwTrackingTreeSort();
+  TreeSort->SetDebugLevel(debug);
   QwTrackingTreeMatch   *TreeMatch   = new QwTrackingTreeMatch();
+  TreeMatch->SetDebugLevel(debug);
 
   /*
   int charge;

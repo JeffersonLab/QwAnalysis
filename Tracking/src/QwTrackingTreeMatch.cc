@@ -73,24 +73,13 @@ QwHit* bestWireHit (QwTrackingTreeLine *walk, double bestpos = 0)
 
 QwTrackingTreeMatch::QwTrackingTreeMatch()
 {
-  debug = 1; // debug level
-
-  if( debug )
-      cout<<"###### Calling QwTrackingTreeMatch::QwTrackingTreeMatch ()"<<endl;
-
-  if( debug )
-      cout<<"###### Leaving QwTrackingTreeMatch::QwTrackingTreeMatch ()"<<endl;
+  debug = 0; // debug level
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwTrackingTreeMatch::~QwTrackingTreeMatch()
 {
-  if( debug )
-      cout<<"###### Calling QwTrackingTreeMatch::~QwTrackingTreeMatch ()"<<endl;
-
-  if( debug )
-      cout<<"###### Leaving QwTrackingTreeMatch::~QwTrackingTreeMatch ()"<<endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

@@ -14,24 +14,13 @@
 
 namespace QwTracking {
 
-QwTrackingTreeRegion::QwTrackingTreeRegion() {
- /* Set debug level */
-  debug = 1;
-
-  if( debug )
-      cout<<"###### Calling QwTrackingTreeRegion::QwTrackingTreeRegion ()"<<endl;
-
-  if( debug )
-      cout<<"###### Leaving QwTrackingTreeRegion::QwTrackingTreeRegion ()"<<endl;
+QwTrackingTreeRegion::QwTrackingTreeRegion()
+{
+  debug = 0; // debug level
 }
 
-QwTrackingTreeRegion::~QwTrackingTreeRegion() {
-
-  if( debug )
-      cout<<"###### Calling QwTrackingTreeRegion::~QwTrackingTreeRegion ()"<<endl;
-
-  if( debug )
-      cout<<"###### Leaving QwTrackingTreeRegion::~QwTrackingTreeRegion ()"<<endl;
+QwTrackingTreeRegion::~QwTrackingTreeRegion()
+{
 }
 
 } // QwTracking

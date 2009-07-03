@@ -34,9 +34,7 @@ class QwASCIIEventBuffer : public QwEventBuffer
 
  public:
   QwASCIIEventBuffer(){};
-
-  ~QwASCIIEventBuffer(){
-  };
+  ~QwASCIIEventBuffer(){};
 
   Int_t OpenDataFile(const TString filename,const TString rw);
 

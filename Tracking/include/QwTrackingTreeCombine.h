@@ -58,12 +58,12 @@ and combining track segments into full tracks with lab coordinates.
 */
 class QwTrackingTreeCombine {
 
-public:
+  public:
 
     QwTrackingTreeCombine();
     ~QwTrackingTreeCombine();
 
-    int debug;
+    void SetDebugLevel (int debuglevel) { debug = debuglevel; };
 
     chi_hash *hasharr[HASHSIZE];
 
@@ -102,7 +102,9 @@ public:
 
     int checkR3 (QwPartialTrack *pt, EQwDetectorPackage package);
 
-private:
+  private:
+
+    int debug;
 
 };
 

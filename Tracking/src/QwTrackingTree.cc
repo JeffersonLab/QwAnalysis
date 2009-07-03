@@ -135,11 +135,7 @@ void QwTrackingTree::printtree (treenode* tn)
 
 QwTrackingTree::QwTrackingTree ()
 {
-  // Set debug level
-  debug = 1;
-
-  if( debug )
-      cout<<"###### Calling QwTrackingTree::QwTrackingTree ()"<<endl;
+  debug = 0; // debug level
 
   tlayers = 8; // set tlayers == maxhits for now (for region 3)
 
@@ -154,23 +150,12 @@ QwTrackingTree::QwTrackingTree ()
   for (int i = 0; i < TLAYERS; i++) father.bit[i] = 0;
   father.xref = -1;
   npat = 0;
-
-  if( debug )
-      cout<<"###### Leaving QwTrackingTree::QwTrackingTree ()"<<endl;
-
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwTrackingTree::~QwTrackingTree ()
 {
-
-if( debug )
-      cout<<"###### Calling QwTrackingTree::~QwTrackingTree ()"<<endl;
-
-if( debug )
-      cout<<"###### Leaving QwTrackingTree::~QwTrackingTree ()"<<endl;
-
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

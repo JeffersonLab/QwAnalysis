@@ -145,6 +145,7 @@ int main(Int_t argc,Char_t* argv[])
   std::cout << "[QwAnalysis::main] Options loaded" << std::endl; // R3,R2
 
   QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
+  trackingworker->SetDebugLevel(0);
   //--------------------------------------
 
 

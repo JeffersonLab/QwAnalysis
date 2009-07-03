@@ -42,6 +42,8 @@ class QwTrackingTreeSort {
     QwTrackingTreeSort();
     ~QwTrackingTreeSort();
 
+    void SetDebugLevel (int debuglevel) { debug = debuglevel; };
+
     double doubletrack;
     int good;
 

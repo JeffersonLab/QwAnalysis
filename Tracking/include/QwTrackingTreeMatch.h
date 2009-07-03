@@ -60,6 +60,8 @@ class QwTrackingTreeMatch {
     QwTrackingTreeMatch();
     ~QwTrackingTreeMatch();
 
+    void SetDebugLevel (int debuglevel) { debug = debuglevel; };
+
     //void TgInit (Track *track);
 
     void TgTrackPar (
@@ -86,6 +88,7 @@ class QwTrackingTreeMatch {
   private:
 
         int debug;
+
 }; //class QwTrackingTreeMatch
 
 

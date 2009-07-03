@@ -34,28 +34,18 @@ using namespace std;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-QwTrackingTreeSort::QwTrackingTreeSort (void)
+QwTrackingTreeSort::QwTrackingTreeSort ()
 {
-  debug = 1;
-  if( debug )
-      cout<<"###### Calling QwTrackingTreeSort::QwTrackingTreeSort ()"<<endl;
+  debug = 0; // debug level
 
   doubletrack = 0.2;
   good = 2;
-
-  if( debug )
-      cout<<"###### Leaving QwTrackingTreeSort::QwTrackingTreeSort ()"<<endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-QwTrackingTreeSort::~QwTrackingTreeSort (void)
+QwTrackingTreeSort::~QwTrackingTreeSort ()
 {
-  if( debug )
-      cout<<"###### Calling QwTrackingTreeSort::~QwTrackingTreeSort ()"<<endl;
-
-  if( debug )
-      cout<<"###### Leaving QwTrackingTreeSort::~QwTrackingTreeSort ()"<<endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

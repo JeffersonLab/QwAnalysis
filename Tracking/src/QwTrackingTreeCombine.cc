@@ -60,23 +60,13 @@ void M_Print (double *A, double *B, int n);
 
 QwTrackingTreeCombine::QwTrackingTreeCombine()
 {
-  debug = 1; // debug level
-
-  if( debug )
-      cout<<"###### Calling QwTrackingTreeCombine::QwTrackingTreeCombine ()"<<endl;
-
-  if( debug )
-      cout<<"###### Leaving QwTrackingTreeCombine::QwTrackingTreeCombine ()"<<endl;
+  debug = 0; // debug level
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-QwTrackingTreeCombine::~QwTrackingTreeCombine () {
-  if( debug )
-      cout<<"###### Calling QwTrackingTreeCombine::~QwTrackingTreeCombine ()"<<endl;
-
-  if( debug )
-      cout<<"###### Leavinging QwTrackingTreeCombine::~QwTrackingTreeCombine ()"<<endl;
+QwTrackingTreeCombine::~QwTrackingTreeCombine ()
+{
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
