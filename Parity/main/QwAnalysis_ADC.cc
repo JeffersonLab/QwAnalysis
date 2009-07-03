@@ -32,12 +32,7 @@
 
 #include "QwAnalysis_ADC.h"
 #include "TApplication.h"
-
-
 #include <boost/shared_ptr.hpp>
-
-
-//--------------------------------------------------------------------------
 
 Bool_t kInQwBatchMode = kFALSE;
 
@@ -80,6 +75,12 @@ int main(Int_t argc,Char_t* argv[])
   QwDetectors.push_back(new QwQuartzBar("MainDetectors"));
   QwDetectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
 
+  ///
+  ///Specifies the same helicity pattern used by all subsystems
+  ///to calculate asymmetries. The pattern is defined in the 
+  ///QwHelicityPattern class.
+  QwHelicityPattern QwHelPat(QwDetectors,4);
+
 
 //   QwQuartzBar sum_outer(""), sum_inner(""), diff(""), sum(""), asym("");
 
@@ -89,35 +90,31 @@ int main(Int_t argc,Char_t* argv[])
 //   diff.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
 //   asym.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
 
-  for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++){
-    //  Begin processing for the first run.
-    //  Start the timer.
-    timer.Start();
+  for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++)
+    {
+      //  Begin processing for the first run.
+      //  Start the timer.
+      timer.Start();
+      
+      //  Try to open the data file.
+      if (QwEvt.OpenDataFile(run) != CODA_OK)
+	{
+	  //  The data file can't be opened.
+	  //  Get ready to process the next run.
+	  std::cerr << "ERROR:  Unable to find data files for run "
+		    << run << ".  Moving to the next run.\n"
+		    << std::endl;
+	  timer.Stop();
+	  continue;
+	}
+      QwEvt.ResetControlParameters();
+      //  Open the data files and root file
+      //    OpenAllFiles(io, run);
 
-    //  Try to open the data file.
-    if (QwEvt.OpenDataFile(run) != CODA_OK){
-      //  The data file can't be opened.
-      //  Get ready to process the next run.
-      std::cerr << "ERROR:  Unable to find data files for run "
-		<< run << ".  Moving to the next run.\n"
-		<< std::endl;
-      timer.Stop();
-      continue;
-    }
-    QwEvt.ResetControlParameters();
-
-    //     //  Configure database access mode, and load the calibrations
-    //     //  from the database.
-
-
-    //  Open the data files and root file
-    //    OpenAllFiles(io, run);
-
-    TString rootfilename=std::string(getenv("QW_ROOTFILES_DIR"))+Form("/Qweak_ADC_%d.root",run);
-    std::cout<<" rootfilename="<<rootfilename<<"\n";
-    TFile rootfile(rootfilename,
-		     "RECREATE","QWeak ROOT file with histograms");
-
+      TString rootfilename=std::string(getenv("QW_ROOTFILES_DIR"))+Form("/Qweak_ADC_%d.root",run);
+      std::cout<<" rootfilename="<<rootfilename<<"\n";
+      TFile rootfile(rootfilename,
+		     "RECREATE","QWeak ROOT file");
 
 
     //  Create the histograms for the QwDriftChamber subsystem object.

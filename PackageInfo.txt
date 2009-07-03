@@ -32,6 +32,7 @@
     - \ref QwAnalysis_ADC currently includes classes for all instrumentation 
            parity analysis, except beamline instrumentation.
     - \ref QwTrackingAnl includes all classes for tracking anlysis.
+    - \ref QwGUIMain includes all classes for the analysis GUI frontend.
 
 *//*-------------------------------------------------------------------------*/
 
