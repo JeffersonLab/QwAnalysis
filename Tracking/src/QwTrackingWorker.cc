@@ -487,6 +487,9 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	      if (debug) cout << "      ";
 	      if (debug) rd->print();
 
+	      // If detector is inactive for tracking, skip it
+	      if (rd->IsInactive()) continue;
+
 	      // Set angles for this direction (U or V)
 	      A[dir][0] = rd->rCos; /* cos (angle of wire pitch) */
 	      A[dir][1] = rd->rSin; /* sin (angle of wire pitch) */
@@ -557,8 +560,12 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
               if (rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
                              +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]) {
 
+		double width = rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
+			+ (region-1)*kNumTypes*kNumDirections
+			+ type*kNumDirections+dir]->rWidth;
 		TreeCombine->TlTreeLineSort (treelinelist, package, region, type, dir,
-			1UL << (levels - 1), 0, dlayer, rcTreeRegion);
+			1UL << (levels - 1), 0, dlayer, width);
+
 		if (k == 0) {
 		  treelines1 = treelinelist;
 		} else if (k == 1) {
@@ -594,6 +601,9 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 
 	      if (debug) cout << "      ";
 	      if (debug) rd->print();
+
+	      // If detector is inactive for tracking, skip it
+	      if (rd->IsInactive()) continue;
 
 	      if (debug) cout << "Setting pattern hits (region 2)" << endl;
 	      memset(channelr2[tlayers],     0,                1UL <<  levels      );
@@ -647,10 +657,14 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	    if (debug) cout << "Sort patterns" << endl;
             if (rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
                              +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]) {
+
+	      double width = rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
+			+ (region-1)*kNumTypes*kNumDirections
+			+ type*kNumDirections+dir]->rWidth;
 	      TreeCombine->TlTreeLineSort (treelinelist, package, region, type, dir,
 					1UL << (levels - 1),
-					tlayers, 0, rcTreeRegion);
-            }
+					tlayers, 0, width);
+	    }
 	    event->treeline[package][region-1][type][dir] = treelinelist;
 
 	    // End the search for this set of like-pitched planes

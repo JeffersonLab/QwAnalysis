@@ -200,7 +200,8 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
     numflines++;
     if(fwalk->isvoid == 0){
       for(i=0;i<fwalk->numhits;i++){
-        fwalk->hits[i]->SetZPos((fwalk->hits[i]->wire-141) * wirespacingf); //fwalk->hits[i]->Zpos = (fwalk->hits[i]->wire-141) * wirespacingf;
+        fwalk->hits[i]->SetZPos((fwalk->hits[i]->wire-141) * wirespacingf);
+        //fwalk->hits[i]->Zpos = (fwalk->hits[i]->wire-141) * wirespacingf;
         if(dir == kDirectionV)fwalk->hits[i]->rPos+= d_uv;
       }
     }

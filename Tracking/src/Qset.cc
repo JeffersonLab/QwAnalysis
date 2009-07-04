@@ -171,6 +171,7 @@ int Qset::FillDetectors (const char *geomname)
 		geomstream >> rcDET[i].NumOfWires; // number of wires
 		rcDET[i].ID = i;
 		rcDET[i].index = i;
+		rcDET[i].SetActive();
 		rcDET[i].samesearched = 0; // not searched yet for detectors in the same region
 
 		if (debug) DumpDetector(i);

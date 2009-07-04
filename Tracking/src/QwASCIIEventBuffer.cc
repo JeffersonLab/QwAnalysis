@@ -222,6 +222,8 @@ void QwASCIIEventBuffer::AddDetector(QwDetectorInfo qwDetector, Int_t i) {
     rcDET[i].ID=qwDetector.DetectorId;
     rcDET[i].index=i;
     rcDET[i].samesearched = 0;
+
+    rcDET[i].SetActive();
 };
 
 Int_t QwASCIIEventBuffer::GetEvent() {

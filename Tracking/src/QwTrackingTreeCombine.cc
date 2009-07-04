@@ -732,7 +732,7 @@ int QwTrackingTreeCombine::TlCheckForX (
 	int tlayer,
 	int iteration,
 	int stay_tuned,
-	QwTrackingTreeRegion **myTreeRegion)
+	double width)
 {
   //################
   // DECLARATIONS  #
@@ -768,9 +768,7 @@ int QwTrackingTreeCombine::TlCheckForX (
   org_mx  =  (x2 - x1)  / Dz;	// track slope
   org_dmx = (dx2 - dx1) / Dz;	// track resolution slope (changes linearly
 				// between first and last detector plane)
-  res = myTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                     +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth
-      / (1 << (opt.levels[package][region-1][type]-1)); // bin 'resolution'
+  res = width / (1 << (opt.levels[package][region-1][type]-1)); // bin 'resolution'
 
   //###################################
   //LOOP OVER DETECTORS IN THE REGION #
@@ -1052,7 +1050,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 	unsigned long bins,
 	int tlayer,
 	int dlayer,
-        QwTrackingTreeRegion **myTreeRegion)
+        double width)
 {
   double z1, z2, Dz;
   double r1, r2, Dr;
@@ -1062,6 +1060,10 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 
   /* Region 3 */
   if (region == kRegionID3) {
+
+    /* TODO In this section we should replace the treeline list with an
+       std::list<QwTreeLine>.  Also rcDETRegion->NumOfWires is not really
+       needed and can be passed as an argument, similar rcTreeRegion->rWidth. */
 
     /* --------------------------------------------------
        Calculate line parameters first
@@ -1077,9 +1079,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
       }
       z1 = (double) (treeline->r3offset + treeline->firstwire); // first z position
       z2 = (double) (treeline->r3offset + treeline->lastwire);  // last z position
-      dx = myTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                        +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth;
-      dx /= (double) bins;
+      dx = width / (double) bins;
 
       x1 = (treeline->a_beg - (double) bins/2) * dx + dx/2;
       x2 = (treeline->b_end - (double) bins/2) * dx + dx/2;
@@ -1124,9 +1124,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
     if (debug) cout << "Dx,dir = " << Dx << ',' << dir << endl;
 
     // Determine bin widths
-    dx  = myTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                       +(region-1)*kNumTypes*kNumDirections
-                       +type*kNumDirections+dir]->rWidth; // detector width
+    dx  = width;		// detector width
     dxh = 0.5 * dx;		// detector half-width
     dx /= (double) bins;	// width of each bin
     dxb = dxh / (double) bins;	// half-width of each bin
@@ -1157,7 +1155,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
         x1, x2, dx1, dx2, Dx, z1, Dz,
         treeline,
         package, region, type, dir,
-        tlayer, tlayer, 0, 0, myTreeRegion);
+        tlayer, tlayer, 0, 0, width);
     }
 
   /* Other regions */
@@ -2261,8 +2259,11 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
 
 	//visdir = kDirectionX;
 
+	double width = myTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
+                       +(region-1)*kNumTypes*kNumDirections
+                       +type*kNumDirections+kDirectionX]->rWidth;
 	if( TlCheckForX(x1,x2,-99, rcSETrMaxXRoad,rcSETrMaxXRoad, zx1,zx2-zx1,
-			&wrx,package,region,type,kDirectionX,dlayer,tlayer, 0,1,myTreeRegion)) {
+			&wrx,package,region,type,kDirectionX,dlayer,tlayer, 0,1, width)) {
 	//replaced a Qmalloc below
 	  wx = new QwTrackingTreeLine;
 	  assert( wx );
@@ -2338,7 +2339,6 @@ void QwTrackingTreeCombine::ResidualWrite (QwEvent* event)
   EQwRegionID region;
   EQwDirectionID dir;
   EQwDetectorType type;
-  //enum Eorientation orient;
   int allmiss, num;
   QwTrack *tr;
   QwPartialTrack *pt;

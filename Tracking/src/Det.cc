@@ -17,14 +17,17 @@ using std::endl;
 
 void Det::print()
 {
-  // If this detector has not been defined, say so
+  // If this detector has not been defined
   if (!this) {
     cout << "Warning: Calling non-existent detector!" << endl;
     return;
   }
 
   // Detector ID and name
-  cout << "det " << ID << ": " << sName << ", ";
+  if (IsActive())
+    cout << "det " << ID << ": " << sName << ", ";
+  else
+    cout << "det " << ID << ": " << sName << " (inactive), ";
   // Detector position
   cout << "z = " << Zpos << " cm, plane " << plane;
 

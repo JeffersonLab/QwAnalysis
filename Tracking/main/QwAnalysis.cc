@@ -134,10 +134,17 @@ int main(Int_t argc,Char_t* argv[])
   subsystem_tmp->GetDetectorInfo(detector_info);
 
 
-  AsciiEvents1.InitrcDETRegion(detector_info);//Curently we have only region 2 geometry into the rcDET & rcDETRegion structures.
-
-
-
+  // Currently we have only region 2 geometry into the rcDET & rcDETRegion structures.
+  AsciiEvents1.InitrcDETRegion(detector_info);
+  // Disable 'fake' detectors in region 2 cosmic data:
+  //   third and fourth plane for region 2 direction X, U, V
+  //   (they are trigger channels, always firing on wire 1)
+  rcDETRegion[kPackageUp][kRegionID2-1][kDirectionX]->nextsame->nextsame->SetInactive();
+  rcDETRegion[kPackageUp][kRegionID2-1][kDirectionU]->nextsame->nextsame->SetInactive();
+  rcDETRegion[kPackageUp][kRegionID2-1][kDirectionV]->nextsame->nextsame->SetInactive();
+  rcDETRegion[kPackageUp][kRegionID2-1][kDirectionX]->nextsame->nextsame->nextsame->SetInactive();
+  rcDETRegion[kPackageUp][kRegionID2-1][kDirectionU]->nextsame->nextsame->nextsame->SetInactive();
+  rcDETRegion[kPackageUp][kRegionID2-1][kDirectionV]->nextsame->nextsame->nextsame->SetInactive();
 
 
   Qoptions qoptions;

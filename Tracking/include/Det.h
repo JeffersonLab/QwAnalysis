@@ -57,7 +57,7 @@ class Det {
     EQwDirectionID dir;
 
     double center[2];		/*!< x and y position of detector center */
-    double width[3];		/*!< width in x and y */
+    double width[3];		/*!< width in x, y and z */
     double WireSpacing;
     double PosOfFirstWire;
     double rCos;
@@ -74,9 +74,19 @@ class Det {
 
     int index;		/*!< index of the detector in the global list */
 
+
+    // Print detector info
     void print();
 
+    // Set detectors active or inactive for tracking
+    void SetActive()   { fActive = true;  };
+    void SetInactive() { fActive = false; };
+    bool IsActive()    { return fActive;  };
+    bool IsInactive()  { return !fActive; };
+
   private:
+
+    bool fActive;	/*!< include detector in tracking? */
 
 };
 
