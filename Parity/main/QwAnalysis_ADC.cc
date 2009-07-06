@@ -31,6 +31,7 @@
 *//*-------------------------------------------------------------------------*/
 
 #include "QwAnalysis_ADC.h"
+#include "QwHelicityPattern.h"
 #include "TApplication.h"
 #include <boost/shared_ptr.hpp>
 
@@ -71,7 +72,7 @@ int main(Int_t argc,Char_t* argv[])
   /// Instantiate one subsytem for all eight main detectors plus one fully assembled
   /// background detector plus two channels (there are two channels for each fully
   /// assembled detector) for noise setup.
-  QwSubsystemArray QwDetectors;
+  QwSubsystemArrayParity QwDetectors;
   QwDetectors.push_back(new QwQuartzBar("MainDetectors"));
   QwDetectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
 
