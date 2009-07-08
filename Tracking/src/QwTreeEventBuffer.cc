@@ -238,7 +238,7 @@ QwTreeEventBuffer::QwTreeEventBuffer (const TString filename)
 
 
 //-----------------------------------------------------------
-QwHitContainer* QwTreeEventBuffer::GetHitList ()
+QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
 {
   if (fDebug>=1) std::cout << "Calling QwTreeEventBuffer::GetHitList ()"<< std::endl;
 
@@ -252,7 +252,6 @@ QwHitContainer* QwTreeEventBuffer::GetHitList ()
   int id = 0; // for now
   // Could be set with e.g. id = rcDETRegion[kPackageUp,kRegionID2,kDirectionU]
 
-  for (int fEvtNum=0; fEvtNum<fEntries; fEvtNum++) {
   // Load event
   if (fDebug>=1) std::cout << "Reading event " << fEvtNum << std::endl;
 
@@ -298,7 +297,6 @@ QwHitContainer* QwTreeEventBuffer::GetHitList ()
   else 
     {
       if (fDebug>=1) std::cout<<"Skip an empty event - event#"<<fEvtNum<<std::endl;
-      continue;
     }
 
   //fTree->GetBranch("Region2")->GetEntry(fEvtNumber);
@@ -503,8 +501,6 @@ QwHitContainer* QwTreeEventBuffer::GetHitList ()
    }
   }
 
-
-}
 
   // Now return the final hitlist
 

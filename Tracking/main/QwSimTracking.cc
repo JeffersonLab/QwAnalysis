@@ -38,7 +38,7 @@ int main (int argc, char* argv[])
   // Load the simulated event file
   QwTreeEventBuffer* treebuffer =
 	new QwTreeEventBuffer (std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QweakSim.root");
-  treebuffer->SetDebugLevel(1);
+  treebuffer->SetDebugLevel(0);
 
   // Load the geometry
   Qset qset;
@@ -55,14 +55,17 @@ int main (int argc, char* argv[])
   QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
   trackingworker->SetDebugLevel(1);
 
+  int fEntries = treebuffer->GetEntries();
+  for (int fEvtNum=0; fEvtNum<fEntries; fEvtNum++) {
     // Get hit list
-    QwHitContainer* hitlist = treebuffer->GetHitList();
+   QwHitContainer* hitlist = treebuffer->GetHitList(fEvtNum);
 
     // Print hit list
    hitlist->Print();
 
     // Process the hit list through the tracking worker
     QwEvent *event = trackingworker->ProcessHits(hitlist);
+}
 
   return 0;
 

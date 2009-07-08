@@ -194,8 +194,10 @@ class QwTreeEventBuffer : public QwEventBuffer
     QwTreeEventBuffer(const TString filename);
     ~QwTreeEventBuffer() { fFile->Close(); };
 
-    QwHitContainer* GetHitList();
+    QwHitContainer* GetHitList(int fEvtNum);
     void SetDebugLevel (int debug) {fDebug = debug; };
+
+    int GetEntries() {return fEntries;};
 };
 
 #endif // __QWTREEEVENTBUFFER__
