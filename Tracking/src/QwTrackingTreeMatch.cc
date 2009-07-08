@@ -457,11 +457,11 @@ QwTrack* QwTrackingTreeMatch::TgPartMatch (
   }
 
   /* --- for the best track ... */
-  if( besttrack ) {
+  if (besttrack) {
     int mtch = 1;
-    besttrack->Used = true;	/* set the parttrack used flags */
-    besttrack->front->Used = true;
-    besttrack->back->Used = true;
+    besttrack->isused = true;	/* set the parttrack used flags */
+    besttrack->front->isused = true;
+    besttrack->back->isused = true;
 	double rcSET_rXSlopeSep = 0.01;//INSERTED FROM HRCSET
         cerr << "Error : bogus value used" << endl;
     for( trackwalk = ret; trackwalk ; trackwalk = trackwalk->next ) {
@@ -479,7 +479,7 @@ QwTrack* QwTrackingTreeMatch::TgPartMatch (
   /* --- check for found back parttracks in other tracks
      --- we only keep the best match --- */
   for( newtrack = ret; newtrack; newtrack = newtrack->ynext ) {
-    if( !newtrack->Used )
+    if( !newtrack->isused )
       continue;
     for( trackwalk = tracklist; trackwalk; trackwalk = trackwalk->next ) {
       for( ytrackwalk = trackwalk; ytrackwalk;
@@ -488,11 +488,11 @@ QwTrack* QwTrackingTreeMatch::TgPartMatch (
 	if( ytrackwalk->method != method )
 	  continue;
 	*/
-	if(ytrackwalk->Used && ytrackwalk->back == newtrack->back ) {
-	  if( ytrackwalk->chi > newtrack->chi ) {
-	    ytrackwalk->Used = 0;
+	if(ytrackwalk->isused && ytrackwalk->back == newtrack->back ) {
+	  if (ytrackwalk->chi > newtrack->chi) {
+	    ytrackwalk->isused = 0;
 	  } else {
-	    newtrack->Used = 0;
+	    newtrack->isused = 0;
 	  }
 	}
       }

@@ -164,38 +164,42 @@ int main (int argc, char* argv[])
   asciibuffer.OpenDataFile((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.event").c_str(),"R");
   ASCII_textfile = fopen(FILE_NAME, "wt");//for Debugging-QwHitContainer list save to this file
 
-	int iEvent = 1;  // event number of this event
-	int nEvent = 0;  // number of processed events
+  int iEvent = 1;  // event number of this event
+  int nEvent = 0;  // number of processed events
 
-	Qset qset;
-	qset.FillDetectors((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.geo").c_str());
-	qset.LinkDetectors();
-	qset.DeterminePlanes();
-	cout << "[QwTracking::main] Geometry loaded" << endl; // R3,R2
+  Qset qset;
+  qset.FillDetectors((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.geo").c_str());
+  qset.LinkDetectors();
+  qset.DeterminePlanes();
+  cout << "[QwTracking::main] Geometry loaded" << endl; // R3,R2
+  // Set two detecor planes inactive and see where we get...
+  rcDETRegion[kPackageUp][kRegionID2-1][kDirectionX]->nextsame->nextsame->SetInactive();
+  rcDETRegion[kPackageUp][kRegionID2-1][kDirectionX]->nextsame->nextsame->nextsame->SetInactive();
 
-	Qoptions qoptions;
-	qoptions.Get((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.options").c_str());
-	cout << "[QwTracking::main] Options loaded" << endl; // R3,R2
-
-
-	/// Event loop goes here
-
-        // R3 needs debugging in the 3-D fit
-	QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
-
-	// The event loop should skip when iEvent is unphysical,
-	// or: GetEvent returns bool and GetEventNumber returns int
+  Qoptions qoptions;
+  qoptions.Get((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.options").c_str());
+  cout << "[QwTracking::main] Options loaded" << endl; // R3,R2
 
 
+  /// Event loop goes here
 
-	QwEvent* event = 0;
-	nEvent = 0;
+  // R3 needs debugging in the 3-D fit
+  QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
+  trackingworker->SetDebugLevel(1);
 
-	// This is the trial code for QwHitContainer converting into set
-	// of Hit list in rcDetRegion structure
+  // The event loop should skip when iEvent is unphysical,
+  // or: GetEvent returns bool and GetEventNumber returns int
 
-	iEvent = 2;
-	while (asciibuffer.GetEvent() && nEvent < NEventMax) { //this will read each event per loop
+
+
+  QwEvent* event = 0;
+  nEvent = 0;
+
+  // This is the trial code for QwHitContainer converting into set
+  // of Hit list in rcDetRegion structure
+
+  iEvent = 2;
+  while (asciibuffer.GetEvent() && nEvent < NEventMax) { //this will read each event per loop
 	  iEvent = asciibuffer.GetEventNumber();//this will read the current event number
 	  cout << "[QwTracking::main] Event " << iEvent << endl;
 

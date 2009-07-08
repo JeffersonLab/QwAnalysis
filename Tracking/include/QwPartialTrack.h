@@ -21,14 +21,26 @@ class QwPartialTrack {
 
   public: // methods
 
-    QwPartialTrack();
-    ~QwPartialTrack();
+    QwPartialTrack() {
+      x = 0.0; y = 0.0; mx = 0.0; my = 0.0;
+      isvoid = false;
+      isused = false;
+    };
+    ~QwPartialTrack() { };
+
+
+    bool IsVoid() { return isvoid; };
+    bool IsUsed() { return isused; };
 
     void Print() {
+      if (!this) return;
       std::cout << "coord(x,y) = (" << x  << ", " << y  << ")" << std::endl;
       std::cout << "slope(x,y) = (" << mx << ", " << my << ")" << std::endl;
       std::cout << "status = " << (isvoid ? "void" : "valid") << std::endl;
+      next->Print();
     }
+
+
 
   public: // members
 
@@ -43,10 +55,10 @@ class QwPartialTrack {
     double  pathlenslo;		/*!< pathlength slope  */
     QwPartialTrack *next;	/*!< linked list */
     Bridge *bridge;		/*!< magnetic field bridging */
-    int    Used;		/*!< used (part of a Track)  */
+    bool isused;		/*!< used (part of a Track)  */
     int    nummiss;		/*!< missing hits */
     int    numhits;		/*!< used hits */
-    int    isvoid;		/*!< marked as being void    */
+    bool isvoid;		/*!< marked as being void    */
 
     int    triggerhit;		/*!< Did this track pass through the trigger?*/
     double trig[2];		/*!< x-y position at trigger face */

@@ -583,17 +583,17 @@ int QwTrackingTreeSearch::TsSetPoint (
 // 	unsigned binwidth)
 // {
 //   cerr << "[QwTrackingTreeSearch::TsSetPoint] Warning: This needs revision!" << endl;
-// 
+//
 //   // Set the points on the front/top side of the wire (R3/R2)
 //   _setpoints(wirespacing * (wire+1) - H->rPos1 - H->rTrackResolution,
 // 	     wirespacing * (wire+1) - H->rPos1 + H->rTrackResolution,
 // 	     detectorwidth, binwidth, pattern, hash);
-// 
+//
 //   // Set the points on the back/bottom side of the wire (R3/R2)
 //   _setpoints(wirespacing * (wire+1) + H->rPos1 - H->rTrackResolution,
 // 	     wirespacing * (wire+1) + H->rPos1 + H->rTrackResolution,
 // 	     detectorwidth, binwidth, pattern, hash);
-// 
+//
 //   return 0;
 // }
 
@@ -637,41 +637,41 @@ int QwTrackingTreeSearch::TsSetPoint (
 // 	unsigned binwidth)
 // {
 //   cerr << "[QwTrackingTreeSearch::TsSetPoint] Warning: This needs revision!" << endl;
-// 
+//
 //   int num = 0;
-// 
-// 
+//
+//
 //   double dw2 = (detectorwidth / 2.0); /* half-width of the detector (in cm) */
 //   QwHit *Hanext, *Hbnext;
-// 
+//
 // /* ---- Compute the maximum separation between hits on the two
 //         planes such that these hits are paired together when
 //         forming the hit pattern.  If the hits are separated by
 //         more than this distance, the hits are treated as unmatched
 //         hits when the hit pattern is formed.                        ---- */
-// 
+//
 //   double rcSETrMaxSlope = 0.60;//THIS VALUE COMES FROM hrcset.h
 //   cerr << "rcSET not defined in the code. Error. CODE NEEDS REPLACING" << endl;
-// 
-// 
+//
+//
 //   /*double maxdistance = rcSET.rMaxSlope * zdistance; */ /* maximum separation
 // 						       for hits (in cm)   */
 //   double maxdistance = rcSETrMaxSlope * zdistance;//I inserted this
 // 	//line to fill in the gap due to the rcSET object not being
 // 	//defined.
-// 
+//
 // /* ---- Go through the hit lists for each plane and set the hit
 //         pattern.  For each set of paired hits, the hit pattern
 //         is updated with the overlap between the hits.  For the
 //         unpaired hits, the hit pattern is updated with just the
 //         possible tracks through the hit.                            ---- */
-// 
+//
 //   while (Ha || Hb) { /* for each hit in Ha and Hb */
 //     num++;           /* Keep count of how many hits are processed */
-// 
+//
 // /* ---- Call wireselection() to pick out a hit pair from the
 //         linked lists of hits for the two planes (*Ha and *Hb)
-// 
+//
 //         This function searches for hits in plane A (stored in the
 //         linked list of hits) starting with the hit pointed to by
 //         *Ha and plane B starting with the hit pointed to by *Hb.
@@ -679,13 +679,13 @@ int QwTrackingTreeSearch::TsSetPoint (
 //         for pairing (*Hanext and *Hbnext) and (2) links to the
 //         hits (in *Ha and *Hb) to be inserted into the hit
 //         pattern (for unpair hits, either *Ha or *Hb will be zero    ---- */
-// 
+//
 //     wireselection (&Ha, &Hb, &Hanext, &Hbnext, maxdistance);
-// 
+//
 // /* ---- Update the hit pattern to include these hits                ---- */
-// 
+//
 //     if (Ha && Hb) {
-// 
+//
 // /* ---- CASE 1: If the planes have hits within the HRCset Maxslope,
 //                 then resolve the left-right ambiguity by checking
 //                 the four combinations for matching.  When a
@@ -693,7 +693,7 @@ int QwTrackingTreeSearch::TsSetPoint (
 //                 treating the hits together.  If no matching
 //                 combinations are found, the hit pattern is updated
 //                 by treated the hits separately.                     ---- */
-// 
+//
 //       int found = 0; /* clear "I found a pairing" flag */
 //       if (fabs(Ha->rPos1 - Hb->rPos1) < maxdistance){ /* left A w/ left B */
 // 	found = 1; /* set "I found a pairing" flag */
@@ -728,13 +728,13 @@ int QwTrackingTreeSearch::TsSetPoint (
 // 		  detectorwidth, binwidth, patterna, patternb,
 // 		  hasha, hashb);
 //       }
-// 
+//
 // /* ---- CASE 2: The search by wireselection() paired these two
 //                 hits, but the left-right ambigiuity check failed
 //                 find a combination trough which an allowable track
 //                 could traverse.  So, these hits are added into
 //                 bit pattern as unpaired hits.                       ---- */
-// 
+//
 //       if (! found) {
 // 	if (patternb) {  /* treating the two planes as individual
 //                             tree-planes, so put hit into both patterns */
@@ -764,14 +764,14 @@ int QwTrackingTreeSearch::TsSetPoint (
 // 		      detectorwidth, binwidth, patterna, hasha);
 // 	}
 //       }
-// 
+//
 // /* ---- CASE 3: If, after the search, a hit on a plane was not
 //                 paired with a hit on the other plane (because the
 //                 other plane didn't have a hit within the HRCset
 //                 MaxSlope), this hit is treated individually when
 //                 being included in the bit pattern.                  ---- */
-// 
-// 
+//
+//
 //     } else if (Ha) { /* this hit's on plane A */
 //       if( patternb ) { /* treating the two planes as two tree-planes,
 //                           so insert the hit into the bit pattern for
@@ -812,7 +812,7 @@ int QwTrackingTreeSearch::TsSetPoint (
 //     Ha = Hanext;  /* Continue with the next set of hits */
 //     Hb = Hbnext;
 //   }
-// 
+//
 //   return num;
 // }
 
@@ -1168,7 +1168,7 @@ void QwTrackingTreeSearch::_TsSearch (
           position of this level of bin-division                     ---- */
   pattern_start <<= level+1;
   pattern_start &= (unsigned long) 0xffffffffL >> (32 - static_maxlevel);
-  //cout << "pattern start = " << pattern_start << endl;
+  //if (debug) cout << "pattern start = " << pattern_start << endl;
   if (level == 0) {
     for (int u = nullhits = 0; u < tlayers; u++) {
       if (static_pattern[u+row_offset][pattern_start])
@@ -1183,7 +1183,7 @@ void QwTrackingTreeSearch::_TsSearch (
   /* ---- Look at the trees attached to each nodenode on the
           specified nodenode linked list                             ---- */
 
-if (numWires) { /* Region 2 */
+if (numWires > 0) { /* Region 3 */
 
   while (node) {      /* search in all nodes */
 
@@ -1251,9 +1251,10 @@ if (numWires) { /* Region 2 */
       }
       cout << "-----------"<< endl;
       */
-    /* ---- Yes, there is a match, so now check if all the levels
-    of the treesearch have been done.  If so, then we have
-    found a valid treeline.                                 ---- */
+
+      /* ---- Yes, there is a match, so now check if all the levels
+              of the treesearch have been done.  If so, then we have
+              found a valid treeline.                                 ---- */
 
       if (level == static_maxlevel - 1) {
         //cerr << "inserting treeline..." << endl;
@@ -1292,28 +1293,35 @@ if (numWires) { /* Region 2 */
           miss = 1;
         else if( static_pattern[tlayers-1+row_offset][backbin] == 0)
           miss = 1;
+
+        /* Check whether this treeline already exists */
         if (! exists( hashpat, frontbin, backbin,lTreeLines)) {
-          if (opt.showMatchingPatterns) tree->print();     /* if track is unknown */
-          lineptr = new QwTrackingTreeLine;  /*  create new one */
-          assert(lineptr);
-          nTreeLines++;                        /* number of treelines found */
-          memcpy (lineptr->hasharray, hashpat, /* make space for this       */
-            sizeof(int)*tlayers);        /* treeline                  */
-          lineptr->Used = false;            /* this treeline isn't used yet */
-          lineptr->a_beg = frontbin;        /* */
-          lineptr->a_end = frontbin;
-          lineptr->b_beg = backbin;         /* */
-          lineptr->b_end = backbin;
-          lineptr->chi   = 0.0;             /* no chi2 value yet            */
-          lineptr->isvoid  = false;         /* the treeline is voided yet   */
-          lineptr->nummiss = miss;          /* only used until TreeLineSort */
-          lineptr->next = lTreeLines;           /* put this treeline into the   */
-          lTreeLines = lineptr;                 /*  linked-list of treelines    */
+          /* Print tree (TODO global opt) */
+	  if (opt.showMatchingPatterns) tree->print();
+
+	  /* Create new treeline */
+	  lineptr = new QwTrackingTreeLine (frontbin, frontbin, backbin, backbin);
+	  assert(lineptr);
+	  /* Number of treelines found */
+	  nTreeLines++;
+
+	  /* Copy hash pattern */
+	  memcpy(lineptr->hasharray, hashpat, sizeof(int) * tlayers);
+
+	  /* Missed front or back planes (?) */
+	  /* (only used until TreeLineSort) */
+	  lineptr->nummiss = miss;
+
+	  /* Add this treeline to the linked-list */
+	  lineptr->next = lTreeLines;
+	  lTreeLines = lineptr;
+
+	  /* Region 3 specific treeline info */
           lineptr->r3offset = row_offset;
           lineptr->firstwire = firstwire;
           lineptr->lastwire  = lastwire;
         }
-      } else {                  /* check son patterns           */
+      } else {                  /* check son patterns */
         for (rev = 0; rev < 4; rev += 2) {
           cnode = tree->son + rev;
           if (rev ^ reverse) {
@@ -1333,18 +1341,20 @@ if (numWires) { /* Region 2 */
                               next nodenode                         */
   } /* end of loop over nodenodes */
 
-} else { /* Region 3 */
+} else { /* Region 2 */
 
     while (node) {			/* search in all nodes */
       tree = node->tree;
 
+
       /* ---- Is the hit pattern in this treenode valid for this level
               of the treesearch?                                         ---- */
 
-      if( tree->minlevel >= level) { /* check for level boundaries */
-      	node = node->next; /* no, so look at the next nodenode */
-      	continue;
+      if (tree->minlevel >= level) { /* check for level boundaries */
+        node = node->next; /* no, so look at the next nodenode */
+        continue;
       }
+
 
       /* ---- Match the hit pattern to this treenode by checking the
               hit pattern for each tree-plane to see if the bits
@@ -1365,57 +1375,64 @@ if (numWires) { /* Region 2 */
 	  }
 	}
       }
-      // (wdc) this is really quite useless here :-)
-      //for (i = 0; i < tlayers; i++) {
-      //}
 
-      /* ---- Check if there was the treenode is match now that the
+
+      /* ---- Check if there was a treenode match now that the
               matching has been completely tested.                      ---- */
-      if (matched == tlayers) {
+
+      // (wdc) Allow for two planes without hits.
+
+      if (matched >= tlayers - 2) {
+
 	/* ---- Yes, there is a match, so now check if all the levels
 		of the treesearch have been done.  If so, then we have
 		found a valid treeline.                                 ---- */
 
-	if (level == static_maxlevel-1) {
+	if (level == static_maxlevel - 1) {
 
-	  /* all levels done -> insert treeline */
-	  frontbin = reverse ? offset - tree->bit[0] : offset + tree->bit[0];
-	  backbin = reverse ? offset - tree->bit[tlayers-1] : offset + tree->bit[tlayers-1];
+	  /* all levels done -> now insert treeline */
+	  frontbin = reverse ? offset - tree->bit[0]
+			     : offset + tree->bit[0];
+	  backbin  = reverse ? offset - tree->bit[tlayers-1]
+			     : offset + tree->bit[tlayers-1];
 	  for (int i = 0; i < tlayers; i++) {
-	    bin = reverse ? offset - tree->bit[i] : offset + tree->bit[i];
+	    bin = reverse ? offset - tree->bit[i]
+			  : offset + tree->bit[i];
 	    hashpat[i] = static_hash[i][bin];
 	  }
+
+	  /* If the front or back bin are null, this is considered a miss (?) */
 	  miss = 0;
 	  if (static_pattern[0][frontbin] == 0)
 	    miss = 1;
 	  else if (static_pattern[tlayers-1][backbin] == 0)
 	    miss = 1;
-	  if (! exists (hashpat, frontbin, backbin, lTreeLines)) {
-            /* if track is unknown */
-		if (opt.showMatchingPatterns)
-			tree->print();
 
-		lineptr = new QwTrackingTreeLine;       /*  create new one */
-		assert(lineptr);
-		nTreeLines++;                      /* number of treelines found */
-		memcpy(lineptr->hasharray, hashpat, /* make space for this       */
-			sizeof(int) * tlayers);     /* treeline                  */
-		lineptr->Used = false;              /* this treeline isn't used yet */
-		//lineptr->method = treelinemethod; /* remember the method          */
-		lineptr->a_beg = frontbin;        /* */
-		lineptr->a_end = frontbin;
-		lineptr->b_beg = backbin;         /* */
-		lineptr->b_end = backbin;
-		lineptr->chi = 0.0;               /* no chi2 value yet            */
-		lineptr->isvoid = false;          /* the treeline is voided yet   */
-		lineptr->nummiss = miss;          /* only used until TreeLineSort */
-		lineptr->next = lTreeLines;           /* put this treeline into the   */
-		lTreeLines = lineptr;                 /*  linked-list of treelines    */
-		//Statist[treelinemethod].          /* update HRC statistics        */
-		//TreeLinesGenerated[viswer][vispar][visdir-kDirectionU] ++;
+	  /* Check whether this treeline already exists */
+	  if (! exists (hashpat, frontbin, backbin, lTreeLines)) {
+
+            /* Print tree (TODO global opt) */
+	    if (opt.showMatchingPatterns) tree->print();
+
+	    /* Create new treeline */
+	    lineptr = new QwTrackingTreeLine (frontbin, frontbin, backbin, backbin);
+	    assert(lineptr);
+	    /* Number of treelines found */
+	    nTreeLines++;
+
+	    /* Copy hash pattern */
+	    memcpy(lineptr->hasharray, hashpat, sizeof(int) * tlayers);
+
+	    /* Missed front or back planes (?) */
+	    /* (only used until TreeLineSort) */
+	    lineptr->nummiss = miss;
+
+	    /* Add this treeline to the linked-list */
+	    lineptr->next = lTreeLines;
+	    lTreeLines = lineptr;
 	  }
 
-	} else {			            /* check son patterns           */
+	} else {			/* check son patterns */
 
 	  for (rev = 0; rev < 4; rev += 2) {
 	    cnode = tree->son + rev;

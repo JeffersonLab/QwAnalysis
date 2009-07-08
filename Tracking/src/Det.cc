@@ -24,10 +24,7 @@ void Det::print()
   }
 
   // Detector ID and name
-  if (IsActive())
-    cout << "det " << ID << ": " << sName << ", ";
-  else
-    cout << "det " << ID << ": " << sName << " (inactive), ";
+  cout << "Det: id " << ID << ", " << sName << ", ";
   // Detector position
   cout << "z = " << Zpos << " cm, plane " << plane;
 
@@ -85,5 +82,10 @@ void Det::print()
     default:
       cout << "?"; break;
   }
-  cout << ")" << endl;
+  cout << ")";
+
+  if (IsInactive())
+    cout << " (inactive)";
+
+  cout << endl;
 }

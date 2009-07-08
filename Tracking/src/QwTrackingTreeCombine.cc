@@ -759,7 +759,7 @@ int QwTrackingTreeCombine::TlCheckForX (
   int besti = -1;               /* best permutation index                 */
   int ret   = 0;		/* return value (pessimistic)             */
   int first;
-  double MaxRoad = opt.R2maxroad;
+  double MaxRoad = opt.R2maxroad; // TODO global opt
   int plane;
 
   //##################
@@ -1121,7 +1121,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
         Dx = Dr * fabs(rd->rCos); // difference in x position
       }
     }
-    if (debug) cout << "Dx,dir = " << Dx << ',' << dir << endl;
+    if (debug) cout << "position difference first/last: " << Dx << " cm" << endl;
 
     // Determine bin widths
     dx  = width;		// detector width
@@ -1134,7 +1134,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
        -------------------------------------------------- */
 
     // How large to make the 'road' along a track in which hits will be considered.
-    double MaxRoad = opt.R2maxroad;
+    double MaxRoad = opt.R2maxroad; // TODO global opt
 
     // Loop over all valid tree lines
     for (QwTrackingTreeLine *treeline = treelinelist;
@@ -1144,12 +1144,15 @@ void QwTrackingTreeCombine::TlTreeLineSort (
       // Calculate the track from the average of the bins that were hit
       x1 = 0.5 * ((treeline->a_beg + treeline->a_end) * dx);
       x2 = 0.5 * ((treeline->b_beg + treeline->b_end) * dx) + Dx;
-      if (debug) cout << "(x1,x2,z1,z2) = (" << x1 << ',' << x2 << ',' << z1 << ',' << z2 << ")" << endl;
       // Calculate the uncertainty on the track from the differences
       // and add a road width in units of bin widths
       dx1 = ((treeline->a_end - treeline->a_beg) * dx) + dx * MaxRoad;
       dx2 = ((treeline->b_end - treeline->b_beg) * dx) + dx * MaxRoad;
-      if (debug) cout << "(dx1,dx2) = (" << dx1 << ',' << dx2 << ")" << endl;
+      // Debug output
+      if (debug) {
+        cout << "(x1,x2,z1,z2) = (" << x1 << ", " << x2 << ", " << z1 << ", " << z2 << "); ";
+        cout << "(dx1,dx2) = (" << dx1 << ", " << dx2 << ")" << endl;
+      }
       // Check this tree line for hits and calculate chi^2
       TlCheckForX (
         x1, x2, dx1, dx2, Dx, z1, Dz,
@@ -1947,92 +1950,79 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
   //################
   // DECLARATIONS  #
   //################
-  QwTrackingTreeLine *wu, *wv, *wx, *bwx, wrx;
-  QwPartialTrack *ret = 0, *ta;
+  QwTrackingTreeLine wrx;
+  QwPartialTrack *ret = 0;
   int in_acceptance;
 
-  double mu, xu, mv, xv, mx, xx, zx1, zx2, xx1, xx2, z1, z2;
-  double x, y, my, v1, v2, u1, u2, y1, y2;
-  double x1, x2, d, maxd = 1e10, d1, d2;
+  double zx1, zx2;
+  double z1, z2;
+  double d;
 
   chi_hashclear();
 
-  double uv_dz;// distance between u and v planes
-  double Rot; // rotation of planes about the lab x-axis
-  Det *rd;
-  double wirecos, wiresin, x_[2], y_[2];
-
   int i;
-
-  //###############
-  // DO STUFF     #
-  //###############
 
   //################
   // REGION 3 VDC  #
   //################
   if (region == kRegionID3 && type == kTypeDriftVDC) {
 
-    rd = rcDETRegion[package][region-1][kDirectionU];
-    z1 = rd->Zpos;
-    rd = rcDETRegion[package][region-1][kDirectionV];
-    z2 = rd->Zpos;
-    Rot = rd->Rot;
-    uv_dz = (z2-z1)/sin(Rot);
-    wirecos = rd->rCos;
-    wiresin = rd->rSin;
+    Det *rdu = rcDETRegion[package][region-1][kDirectionU];
+    Det *rdv = rcDETRegion[package][region-1][kDirectionV];
+    double z1 = rdu->Zpos;
+    double z2 = rdv->Zpos;
+    double rot = rdv->Rot; // rotation of planes about the lab x axis
+    double uv_dz = (z2 - z1) / sin(rot); // distance between u and v planes
+    double wirecos = rdv->rCos;
+    double wiresin = rdv->rSin;
 
     //###################################
     // Get distance between planes, etc #
     //###################################
-    rd = rcDETRegion[package][region-1][kDirectionU];
-    x_[0] = rd->center[0];
-    y_[0] = rd->center[1];
+    double x_[2], y_[2];
 
-    // TODO (wdc) Shouldn't this be kDirectionV?
-    rd = rcDETRegion[package][region-1][kDirectionU]->nextsame;
-    x_[1] = rd->center[0];
-    y_[1] = rd->center[1];
+    x_[0] = rdu->center[0];
+    y_[0] = rdu->center[1];
 
-    // distance between first u and last v planes
+    x_[1] = rdu->nextsame->center[0];
+    y_[1] = rdu->nextsame->center[1];
+
+    // Distance between first u and last u planes
+    // (wdc) Shouldn't this be between first u and last v plane (?)
     d = sqrt(pow(x_[1] - x_[0], 2) + pow(y_[1] - y_[0], 2));
 
 
     //#########################
     // Get the u and v tracks #
     //#########################
-    // get the u track
-    wu = uvl[kDirectionU];
+    // Get the u track
+    QwTrackingTreeLine *wu = uvl[kDirectionU];
     while (wu) {
-      if (wu->isvoid != 0) { // skip this treeline if it was no good
+      if (wu->isvoid) { // skip this treeline if it was no good
 	wu = wu->next;
 	continue;
       }
-      // get wu's line parameters
-      mu = wu->mx; // slope
-      xu = wu->cx; // constant
+      // Get wu's line parameters
+      double mu = wu->mx; // slope
+      double xu = wu->cx; // constant
 
-      // get the v track
-      wv = uvl[kDirectionV];
+      // Get the v track
+      QwTrackingTreeLine *wv = uvl[kDirectionV];
       while (wv) {
-        if (wv->isvoid != 0) {
+        if (wv->isvoid) {
 	  wv = wv->next;
 	  continue;
         }
-	// get wv's line parameters
-	mv = wv->mx; // slope
-      	xv = wv->cx; // constant
+	// Get wv's line parameters
+	double mv = wv->mx; // slope
+	double xv = wv->cx; // constant
+
 
 	QwPartialTrack *ta = new QwPartialTrack();
 
 	if (TcTreeLineCombine2(wu, wv, ta, tlayer)) {
-	    ta->isvoid  = false;
-	    //ta->trdcol  = 0;
 	    ta->next   = ret;
-	    //ta->method = method;
 	    ta->bridge = 0;
-	    //ta->cluster  = 0;
-	    ta->Used     = 0;
 	    ta->pathlenoff = 0;
 	    ta->pathlenslo = 0;
             ta->next = ret; // string together the
@@ -2042,11 +2032,17 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
 	// Check whether this track went through the trigger and/or
 	// the Cerenkov bar.
 	checkR3(ta,package);
+
+	// Next v treeline
         wv = wv->next;
       }
+
+      // Next u treeline
       wu = wu->next;
     }
-  return ret;
+
+    // Return list of partial tracks
+    return ret;
   }
 
   //################
@@ -2054,111 +2050,105 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
   //################
   if (region == kRegionID2 && type == kTypeDriftHDC) {
 
-    double MaxXRoad = opt.R2maxXroad;
+    double MaxXRoad = opt.R2maxXroad; // TODO global opt
+    Det *rd;
     for (rd = rcDETRegion[package][region-1][kDirectionX], i = 0;
          rd && i < tlayer; rd = rd->nextsame, i++) {
       if (i == 0) {
-        zx1 = rd->Zpos; /// first x-plane z position
+        zx1 = rd->Zpos; // first x-plane z position
       }
       if (i == tlayer - 1) {
-        zx2 = rd->Zpos; /// last x-plane z position
+        zx2 = rd->Zpos; // last x-plane z position
       }
     }
-    //#########################
-    // Get the u,v and x tracks #
-    //#########################
 
-    // get the u track
-    wu = uvl[kDirectionU];
+    //###########################
+    // Get the u,v and x tracks #
+    //###########################
+
+    // Get the u track
+    QwTrackingTreeLine *wu = uvl[kDirectionU];
     while (wu) {
-      if (wu->isvoid != 0) { // skip this treeline if it was no good
+      if (wu->isvoid) { // skip this treeline if it was no good
 	wu = wu->next;
 	continue;
       }
-      // get wu's line parameters
-      mu = wu->mx; // slope
-      xu = wu->cx; // constant
+      // Get wu's line parameters
+      double mu = wu->mx; // slope
+      double xu = wu->cx; // constant
 
-      // get the v track
-      wv = uvl[kDirectionV];
+      // Get the v track
+      QwTrackingTreeLine *wv = uvl[kDirectionV];
       while (wv) {
-        if (wv->isvoid != 0) {
+        if (wv->isvoid) {
 	  wv = wv->next;
 	  continue;
         }
-	// get wv's line parameters
-	mv = wv->mx; // slope
-	xv = wv->cx; // constant
+	// Get wv's line parameters
+	double mv = wv->mx; // slope
+	double xv = wv->cx; // constant
 
-        // get u/v at the x detectors
-        u1 = xu + zx1 * mu;
-        u2 = xu + zx2 * mu;
-        v1 = xv + zx1 * mv;
-        v2 = xv + zx2 * mv;
+        // Determine u,v at the x detectors
+        double u1 = xu + zx1 * mu;
+        double u2 = xu + zx2 * mu;
+        double v1 = xv + zx1 * mv;
+        double v2 = xv + zx2 * mv;
 
-        // transform u,v to x,y
+        // Transform u,v to x,y
         Uv2xy uv2xy(region);
-
         // for x
-        x1 = uv2xy.uv2x(u1, v1);
-        x2 = uv2xy.uv2x(u2, v2);
-
+        double x1 = uv2xy.uv2x(u1, v1);
+        double x2 = uv2xy.uv2x(u2, v2);
         // for y
-        y1 = uv2xy.uv2y(u1, v1);
-        y2 = uv2xy.uv2y(u2, v2);
+        double y1 = uv2xy.uv2y(u1, v1);
+        double y2 = uv2xy.uv2y(u2, v2);
+        // slope in y
+        double my = (y2 - y1) / (zx1 - zx2);
 
-	my = (y2 - y1) / (zx1 - zx2);
-
-
-	// get the x track
-	wx = uvl[kDirectionX];
-        bwx = 0;
-        maxd = 1e10;
+	// Loop over the x tracks
+	// (TODO no x hit will never give a partial track!)
+	QwTrackingTreeLine *wx = uvl[kDirectionX];
+        QwTrackingTreeLine *best_wx = 0; // start with null, no solution guaranteed
+        double distance, distance1, distance2, minimum = 1e10;
 	while (wx) {
-	  if (wx->isvoid != 0) {
+	  if (wx->isvoid) {
 	    wx = wx->next;
 	    continue;
 	  }
-	  // get wx's line parameters
-	  mx = wx->mx; // slope
-	  xx = wx->cx; // constant
+	  // Get wx's line parameters
+	  double mx = wx->mx; // slope
+	  double xx = wx->cx; // constant
 
-	  xx1 = xx + mx * zx1;
-          xx2 = xx + mx * zx2;
-//cerr << "wx : " << mx << "," << xx << endl;
-          d1 = fabs(x1 - xx1);
-          d2 = fabs(x2 - xx2);
-	  d = d1 + d2;
+	  // Coordinates for this treeline in x at intersection
+	  double xx1 = xx + mx * zx1;
+          double xx2 = xx + mx * zx2;
+	  // Difference with x coordinates from u,v treeline track
+          distance1 = fabs(x1 - xx1);
+          distance2 = fabs(x2 - xx2);
+	  distance = distance1 + distance2;
 
-          if (d < maxd) {
-	    bwx = wx;
-	    maxd = d;
+	  // Keep track of best x treeline
+          if (distance < minimum) {
+	    best_wx = wx;
+	    minimum = distance;
 	  }
 	  wx = wx->next;
 	}
 
-
-//        cerr << "x : " << bwx->cx << ',' << bwx->mx << endl;
-//        cerr << "u : " << wu->cx << ',' << wu->mx << endl;
-//        cerr << "v : " << wv->cx << ',' << wv->mx << endl;
-
-//	cerr << "P1(xuv,xx1,u,v,zx,y) = (" << x1 << ',' << xx1 << ',' << u1 << ',' << v1  << ',' << zx1 << ',' << y1 << ")" << endl;
-//	cerr << "P2(xuv,xx2,u,v,zx,y) = (" << x2 << ',' << xx2 << ',' << u2 << ',' << v2 <<  ',' << zx2 << ',' << y2 << ")" << endl;
-//	cerr << "(mx,bx,mu,bu,mv,bv) = (" << mx << ',' << xx << ',' << mu << ',' << xu << ',' << mv << ',' << xv << ")" << endl;
+	// Store found partial track (or null)
 	QwPartialTrack *ta = new QwPartialTrack();
 
 
 //cerr << "2" << endl;
-	if (bwx) in_acceptance = inAcceptance(package, region, bwx->cx, bwx->mx, y1, my);
-	else cerr << "not in acceptance" << endl;
-        if (maxd < MaxXRoad && bwx && in_acceptance) {
-	  if (TcTreeLineCombine(wu, wv, bwx, ta, tlayer)) {
+	if (best_wx)
+	  in_acceptance = inAcceptance(package, region, best_wx->cx, best_wx->mx, y1, my);
+	else
+	  cerr << "not in acceptance" << endl;
+        if (minimum < MaxXRoad && best_wx && in_acceptance) {
+	  if (TcTreeLineCombine(wu, wv, best_wx, ta, tlayer)) {
 //cerr << "7" << endl;
-	    bwx->Used = wv->Used = wu->Used = 1;
-	    ta->isvoid = false;
-	    ta->next   = ret;
+	    best_wx->isused = wv->isused = wu->isused = true;
 	    ta->bridge = 0;
-	    ta->Used   = 0;
 	    ta->pathlenoff = 0;
 	    ta->pathlenslo = 0;
             ta->next = ret; // string together the
@@ -2166,7 +2156,7 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
 //cerr << "8";
 	  }
 	} else {
-          cerr << "not close enough " << maxd << ',' << MaxXRoad << ',' << in_acceptance << endl;
+          cerr << "not close enough " << minimum << ',' << MaxXRoad << ',' << in_acceptance << endl;
         }
 //cerr << "3" << endl;
         wv = wv->next;
@@ -2176,157 +2166,22 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
 //cerr << "9" << endl;
     return ret;
 
+
   //#################
   // OTHER REGIONS  #
   //#################
-  // (All that follows is useful legacy junk, which should not be reached
-  //  in the case of QwTracking because everything is handled above)
+
   } else {
-  cerr << "[QwTrackingTreeCombine::TlTreeCombine] Error: you shouldn't be here!" << endl;
-  double rcSETrMaxXRoad         = 0.25;
-  cerr << "Error : Using stub value" << endl;
-  wu = uvl[kDirectionU];
-  zx1 = myTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                     +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+kDirectionX]->rZPos[0];
-  zx2 = myTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                     +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+kDirectionX]->rZPos[tlayer-1];
-  while( wu) {
-    if( wu->isvoid != 0 ) {
-      wu = wu->next;
-      continue;
-    }
-    mu = wu->mx;
-    xu = wu->cx;
-    wv = uvl[kDirectionV];
-    while(wv) {
-      if( wv->isvoid != 0 ) {
-	wv = wv->next;
-	continue;
-      }
 
-      mv = wv->mx;
-      xv = wv->cx;
-      /* --- get u/v at the x detectors --- */
-      u1 = xu + (zx1 - MAGNET_CENTER) * mu;
-      u2 = xu + (zx2 - MAGNET_CENTER) * mu;
-      v1 = xv + (zx1 - MAGNET_CENTER) * mv;
-      v2 = xv + (zx2 - MAGNET_CENTER) * mv;
+    cerr << "[QwTrackingTreeCombine::TlTreeCombine] Error: ";
+    cerr << "Region " << region << " and type " << type << "not supported!";
+    cerr << endl;
 
-      /* ------ for x -------- */
-      x1 = uv2x( u1, v1,1);
-      x2 = uv2x( u2, v2,1);
+    // The legacy code which used to be here was removed after r280. (wdc)
 
-      /* ------ for y -------- */
-      y1 = uv2y( u1, v1,1);
-      y2 = uv2y( u2, v2,1);
-
-      my = (y2-y1)/(zx2-zx1);
-      y  = 0.5*(y1+y2) + my * (MAGNET_CENTER - 0.5*(zx1+zx2));
-
-      /* --- for the back region we now loop over the x treelines,
-	 too. For the front region there are no x tree lines, yet.
-	 they have to be calculated first --- */
-
-      maxd = 1e10;
-      if( myTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                       +(region-1)*kNumTypes*kNumDirections
-                       +type*kNumDirections+kDirectionX]->searchable != 0){
-	wx = uvl[kDirectionX];
-	bwx = 0;
-
-	while( wx ) {
-	  if( wx->isvoid != 0 ) {
-	    wx = wx->next;
-	    continue;
-	  }
-	  mx = wx->mx;
-	  x  = wx->cx;
-	  xx1 = x + (zx1 - MAGNET_CENTER) * mx;
-	  xx2 = x + (zx2 - MAGNET_CENTER) * mx;
-	  d1 = x1-xx1;
-	  if( d1 < 0 ) d1 = -d1;
-	  d2 = x2-xx2;
-	  if( d2 < 0 ) d2 = -d2;
-	  d = d1+d2;
-	  if( d < maxd ) {
-	    bwx = wx;
-	    maxd = d;
-	  }
-	  wx = wx->next;
-	}
-      } else {
-	/* for the front region we have to find the x treelines now --- */
-
-	//visdir = kDirectionX;
-
-	double width = myTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                       +(region-1)*kNumTypes*kNumDirections
-                       +type*kNumDirections+kDirectionX]->rWidth;
-	if( TlCheckForX(x1,x2,-99, rcSETrMaxXRoad,rcSETrMaxXRoad, zx1,zx2-zx1,
-			&wrx,package,region,type,kDirectionX,dlayer,tlayer, 0,1, width)) {
-	//replaced a Qmalloc below
-	  wx = new QwTrackingTreeLine;
-	  assert( wx );
-	  *wx = wrx;
-
-	  bwx = wx;
-	  //wx->method = meth_std;
-	  wx->next = uvl[kDirectionX]; /* chain the link to the  */
-	  uvl[kDirectionX] = wx;       /* event treeline list */
-	  maxd  = fabs( x1 - (wx->cx + wx->mx*(zx1-MAGNET_CENTER)));
-	  maxd += fabs( x2 - (wx->cx + wx->mx*(zx2-MAGNET_CENTER)));
-	} else
-	  bwx = 0;
-      }
-
-      int rcSETiMissingVC0     = 6;
-      int rcSETiMissingPT0     = 5;
-      cerr << "ERROR: USING STUB VALUE FOR RCSET " << endl;
-      if (maxd < 2 * rcSETrMaxXRoad
-	  && bwx
-	  && rcSETiMissingVC0/*rcSETiMissingVC[0]*/
-	  >= bwx->numvcmiss + wu->numvcmiss + wv->numvcmiss
-	  && rcSETiMissingPT0/*rcSET.iMissingPT[partmissidx]*/
-	  >= bwx->nummiss + wu->nummiss + wv->nummiss) {
-	in_acceptance = inAcceptance (package, region, bwx->cx, bwx->mx, y, my);
-	if (in_acceptance) {
-
-	  wx = bwx;
-	  x  = wx->cx;
-	  mx = wx->mx;
-
-	  wx->Used = wu->Used = wv->Used = 1;
-	  //visdir = kDirectionX;
-
-	  //Statist[method].QwPartialTracksGenerated[where][part] ++;
-
-	  /* ---- form a new QwPartialTrack ---- */
-	  //replaced a Qmalloc below
-	  ta = new QwPartialTrack;
-
-
-	  assert(ta);
-
-	  if( TcTreeLineCombine( wu, wv, wx, ta, tlayer) ) {
-	    ta->isvoid  = false;
-	    //ta->trdcol  = 0;
-	    ta->next   = ret;
-	    //ta->method = method;
-	    ta->bridge = 0;
-	    //ta->cluster  = 0;
-	    ta->Used     = 0;
-	    ta->pathlenoff = 0;
-	    ta->pathlenslo = 0;
-	    ret = ta;
-	  }
-	}
-      }
-      wv = wv->next;
-    }
-    wu = wu->next;
   }
+
   return ret;
-  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

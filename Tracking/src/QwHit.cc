@@ -19,7 +19,7 @@ QwHit::QwHit()
 QwHit::QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
        Int_t region, Int_t package, Int_t plane, Int_t direction, Int_t wire,
        UInt_t data):
-       fCrate(bank_index),fModule(slot_num),fChannel(chan), 
+       fCrate(bank_index),fModule(slot_num),fChannel(chan),
        fHitNumber(hitcount),fRegion(region), fPackage(package),
        fDirection(direction), fPlane(plane), fElement(wire),
        fAmbiguousElement(kFALSE),fLRAmbiguity(kFALSE)

@@ -24,8 +24,17 @@ class QwTrack {
 
   public:
 
-    QwTrack();
-    ~QwTrack();
+    QwTrack() { };
+    ~QwTrack() { };
+
+    bool IsUsed() { return isused; };
+
+    void Print() {
+      if (!this) return;
+      std::cout << "Track: " << ZVx << ", " << TVx;
+      std::cout << std::endl;
+      next->Print();
+    };
 
     void SortBridgedTracks();
 
@@ -57,7 +66,7 @@ class QwTrack {
 
     QwVertex *beamvertex;	/*!< beam vertex */
 
-    bool   Used;		/*!< used (part of usedTrack list) */
+    bool   isused;		/*!< used (part of usedTrack list) */
     bool   inBounds;		/*!< lookup table was usable */
 
     int    iCharge;		/*!< charge of particle */

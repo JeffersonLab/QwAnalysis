@@ -1,12 +1,5 @@
 #include "QwTrack.h"
 
-QwTrack::QwTrack()
-{
-}
+//QwTrack::QwTrack() { } // inline
 
-
-QwTrack::~QwTrack()
-{
-}
-
-
+//QwTrack::~QwTrack() { } // inline

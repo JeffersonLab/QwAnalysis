@@ -46,32 +46,42 @@ class QwTrackingTreeLine {
 
   public:
 
-     QwTrackingTreeLine();
+    QwTrackingTreeLine(int _a_beg = 0, int _a_end = 0 , int _b_beg = 0, int _b_end = 0);
      ~QwTrackingTreeLine();
 
+    bool IsVoid() { return isvoid; };
+    bool IsUsed() { return isused; };
+
+    void Print();
+
+
     bool isvoid;		/*!< has been found void */
-    QwTrackingTreeLine *next;	/*!< link to next list element */
+    bool isused;		/*!< used (part of parttrack) */
+
     double cx, mx, chi;		/*!< line parameters... */
     double cov_cxmx[3];		/*!< errors in these */
-    int a_beg, a_end;		/*!< bin in tlayer 0 */
-    int b_beg, b_end;		/*!< bin in tlayer tlaym1 */
+
+    int a_beg, a_end;		/*!< bin in first layer */
+    int b_beg, b_end;		/*!< bin in last layer */
+
     int   numhits;		/*!< number of hits */
-    int   numvcmiss;		/*!< missing hits in vc */
-    int   nummiss;		/*!< number of planes without hit */
+    int   nummiss;		/*!< number of planes without hits */
     //enum  Emethod method;	/*!< treeline generation method */
     QwHit   *hits[2*TLAYERS];	/*!< hitarray */
     QwHit   thehits[2*TLAYERS];
+
 // TODO (wdc) Disabled until proper constructor for QwHit
 //    QwHit *qwhits[2*TLAYERS];	/*!< hitarray after transition to QwHit */
 //    QwHit theqwhits[2*TLAYERS];
+
     int   hasharray[2*TLAYERS];
-    bool Used;			/*!< used (part of parttrack) */
     int   ID;			/*!< adamo ID */
     int   r3offset,firstwire,lastwire;
+
+    QwTrackingTreeLine *next;	/*!< link to next list element */
 
 }; // class QwTrackingTreeLine
 
 #endif //Q WTRACKINGTREELINE_H
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-

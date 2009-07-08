@@ -1,13 +1,8 @@
 #include "QwPartialTrack.h"
 
 
-QwPartialTrack::QwPartialTrack()
-{
-}
+//QwPartialTrack::QwPartialTrack() { } // inline
 
-
-QwPartialTrack::~QwPartialTrack()
-{
-}
+//QwPartialTrack::~QwPartialTrack() { } // inline
 
 

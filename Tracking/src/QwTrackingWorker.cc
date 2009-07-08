@@ -322,9 +322,7 @@ QwTrack* QwTrackingWorker::rcLinkUsedTracks (QwTrack *track, int package )
   for (trackwalk = track; trackwalk; trackwalk = trackwalk->next ) {
     /* and the possible y-tracks */
     for (ytrack = trackwalk; ytrack; ytrack = ytrack->ynext ) {
-      // Statist[ytrack->method].TracksGenerated[package] ++;
-      if (!ytrack->Used) continue;
-      //Statist[ytrack->method].TracksUsed[package] ++;
+      if (!ytrack->isused) continue;
       if ( !ret ) /* return the first used track */
 	ret = usedwalk = ytrack;
       else {
@@ -368,10 +366,10 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
   int dlayer = 0;	      /* number of detector planes in the search    */
   double A[kNumDirections][2];	/* conversion between xy and uv */
   QwEvent *event;               /* area for storing the reconstruction info   */
-  QwPartialTrack *area = 0;
   Det *rd/*, *rnd*/;          /* pointers for moving through the linked
                                  lists of detector id and hit information   */
   QwTrackingTreeLine *treelines1, *treelines2;
+  QwPartialTrack *parttrack;
 
   QwTrackingTreeSearch  *TreeSearch  = new QwTrackingTreeSearch();
   TreeSearch->SetDebugLevel(debug);
@@ -669,6 +667,7 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 					tlayers, 0, width);
 	    }
 	    event->treeline[package][region-1][type][dir] = treelinelist;
+	    if (debug) treelinelist->Print();
 
 	    // End the search for this set of like-pitched planes
 	    TreeSearch->EndSearch();
@@ -691,11 +690,9 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	 && rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
                          +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+kDirectionU]
 	 && tlayers) {
-	  area = TreeCombine->TlTreeCombine(event->treeline[package][region-1][type],
+	  parttrack = TreeCombine->TlTreeCombine(event->treeline[package][region-1][type],
 			1L << (opt.levels[package][region-1][type] - 1),
-			package,
-			region,
-			type,
+			package, region, type,
 			tlayers,
 			dlayer,
 			rcTreeRegion);
@@ -707,16 +704,16 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 
 /*! ---- TASK 3: Sort out the Partial Tracks                          ---- */
 
-	if (area) TreeSort->rcPartConnSort(area);
+	if (parttrack) TreeSort->rcPartConnSort(parttrack);
 
 /*! ---- TASK 4: Hook up the partial track info to the event info     ---- */
 
-	event->parttrack[package][region-1][type] = area;
+	event->parttrack[package][region-1][type] = parttrack;
 
       } /* end of loop over the detector types */
 
-      if (area) {
-        cout << "=== Partial track === x,mx / y,my = " << area->x << ", " << area->mx << " / " << area->y << ", " << area->my << endl;
+      if (parttrack) {
+	parttrack->Print();
         ngood++;
       } else {
         cout << "Couldn't find a good partial track." << endl;

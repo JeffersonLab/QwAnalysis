@@ -113,9 +113,9 @@ LIBRARYDIRS = coda
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
  ifneq ($(CODA),)
   #  The realtime executables should be added in this section.
-  EXES := qwtracking qwanalysis qwanalysis_adc qwanalysis_beamline
+  EXES := qwtracking qwsimtracking qwanalysis qwanalysis_adc qwanalysis_beamline
  else
-  EXES := qwtracking qwanalysis qwanalysis_adc qwanalysis_beamline
+  EXES := qwtracking qwsimtracking qwanalysis qwanalysis_adc qwanalysis_beamline
  endif
 else
  EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
@@ -123,9 +123,9 @@ endif
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
  ifneq ($(CODA),)
   #  The realtime executables should be added in this section.
-  EXES := qwtracking qwanalysis qwanalysis_adc qwanalysis_beamline
+  EXES := qwtracking qwsimtracking qwanalysis qwanalysis_adc qwanalysis_beamline
  else
-  EXES := qwtracking qwanalysis qwanalysis_adc qwanalysis_beamline
+  EXES := qwtracking qwsimtracking qwanalysis qwanalysis_adc qwanalysis_beamline
  endif
 endif
 # overridden by "gmake 'EXES=exe1 exe2 ...'"

@@ -35,36 +35,33 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-QwTrackingTreeLine::QwTrackingTreeLine() 
-{ 
+QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _b_end)
+{
+  isvoid = false;	// treeline is not void yet
+  isused = false;	// treeline is not part of a partial track yet
 
-    isvoid = true;		/*!< has been found void */
-    next = NULL;  	        /*!< link to next list element */
-    cx = mx = chi = 0.0;	/*!< line parameters... */
+  next = 0;		// no next element yet in linked-list
 
-    for (int i=0;i<3;i++)
-      cov_cxmx[i] = 0.0;		/*!< errors in these */
+  cx = mx = chi = 0.0;	//
 
-    a_beg = a_end = 0;		/*!< bin in tlayer 0 */
-    b_beg = b_end = 0;		/*!< bin in tlayer tlaym1 */
-    numhits = 0;		/*!< number of hits */
-    numvcmiss = 0;		/*!< missing hits in vc */
-    nummiss = 0;		/*!< number of planes without hit */
-    //enum  Emethod method;	/*!< treeline generation method */
-    for (int i=0;i<2*TLAYERS;i++){
+  for (int i = 0; i < 3; i++)
+    cov_cxmx[i] = 0.0;
+
+  a_beg = _a_beg;
+  a_end = _a_end;
+  b_beg = _b_beg;
+  b_end = _b_end;
+
+  numhits = 0;
+  nummiss = 0;
+
+  for (int i = 0; i < 2 * TLAYERS; i++) {
     hits[i] = 0;	/*!< hitarray */
-    // thehits;
     hasharray[i] = 0;
-    }
+  }
 
-
-// TODO (wdc) Disabled until proper constructor for QwHit
-//    QwHit *qwhits[2*TLAYERS];	/*!< hitarray after transition to QwHit */
-//    QwHit theqwhits[2*TLAYERS];
-
-    Used = false;		/*!< used (part of parttrack) */
-    ID = 0;			/*!< adamo ID */
-    r3offset = firstwire = lastwire = 0;
+  ID = 0;
+  r3offset = firstwire = lastwire = 0;
 
 
 }
@@ -75,3 +72,17 @@ QwTrackingTreeLine::~QwTrackingTreeLine() { }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+void QwTrackingTreeLine::Print()
+{
+  if (!this) return;
+  std::cout << "TreeLine: ";
+  std::cout << a_beg << ", " << a_end;
+  std::cout << " -- ";
+  std::cout << b_beg << ", " << b_end;
+  if (chi > 0.0) std::cout << ": numhits = " << numhits << ", chi = " << chi;
+  if (isvoid) std::cout << " (void)";
+  std::cout << std::endl;
+  next->Print();
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
