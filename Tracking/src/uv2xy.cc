@@ -18,6 +18,7 @@ Uv2xy::Uv2xy(EQwRegionID region)
   fRegion = region;
 
   // Region 2
+  if(region == kRegionID2){  //jpan: determine working on which region
   uc = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionU]->rCos*(-1);
   us = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionU]->rSin;
   vc = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionV]->rCos;
@@ -39,6 +40,9 @@ Uv2xy::Uv2xy(EQwRegionID region)
   R2_xy[1][0] =  vc;
   R2_xy[1][1] =  vs;
 
+  }
+
+  else if(region == kRegionID3){
   // Region 3
   uc = rcDETRegion[kPackageUp][kRegionID3-1][kDirectionU]->rCos;
   us = rcDETRegion[kPackageUp][kRegionID3-1][kDirectionU]->rSin;
@@ -52,10 +56,13 @@ Uv2xy::Uv2xy(EQwRegionID region)
     R3_uv[1][0] = vs / det;
     R3_uv[1][1] =  us / det;
   }
+
   R3_xy[0][0] =  us;
   R3_xy[0][1] =  -uc;
   R3_xy[1][0] =  -vs;
   R3_xy[1][1] =  vc;
+
+  }
 
 }
 
