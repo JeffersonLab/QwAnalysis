@@ -61,10 +61,11 @@ int main (int argc, char* argv[])
    QwHitContainer* hitlist = treebuffer->GetHitList(fEvtNum);
 
     // Print hit list
+   std::cout<<"Printing hitlist ...\n";
    hitlist->Print();
 
     // Process the hit list through the tracking worker
-    QwEvent *event = trackingworker->ProcessHits(hitlist);
+   QwEvent *event = trackingworker->ProcessHits(hitlist);
 }
 
   return 0;

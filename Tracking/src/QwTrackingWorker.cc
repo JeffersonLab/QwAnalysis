@@ -407,6 +407,9 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 
     // TODO (wdc) Also, only tracks in the up octant detector are available in
     // the MC generated hit lists.  Therefore we throw out the down octant.
+
+    // TODO jpan: The Geant4 now can generate any octant data, you just need to command it through
+    // a macro file. I'll put the tracking detector ratation commands onto the UI manu later.
     if (package != kPackageUp) continue;
 
     /// Loop through the detector regions
@@ -584,7 +587,7 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	    if (debug) cout << "Matching region 3 segments" << endl;
 	    // (wdc) If no treelines1 or treelines2 is found, then skip matching.
 	    //       Otherwise this gets confused due to the scintillators.
-	    if (treelines1 || treelines2)
+	    /*if (!treelines1->isvoid || !treelines2->isvoid)*/ if(treelines1 || treelines2)
 	      treelinelist = TreeMatch->MatchR3 (treelines1, treelines2, package, region, dir);
 	    event->treeline[package][region-1][type][dir] = treelinelist;
 	    tlayers = TLAYERS;     /* remember the number of tree-detector */

@@ -38,27 +38,15 @@ class Det;
 class QwHit {
  public:
 
-  QwHit(){};
+  QwHit();
 
   QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
 	Int_t region, Int_t package, Int_t plane, Int_t direction, Int_t wire,
-	UInt_t data):
-    fCrate(bank_index),fModule(slot_num),fChannel(chan), fHitNumber(hitcount),
-    fRegion(region), fPackage(package), fDirection(direction), fPlane(plane), fElement(wire),
-    fAmbiguousElement(kFALSE),fLRAmbiguity(kFALSE)
-    {
-      fRawTime = data;
-    };// Direction is also set at QwHit initialization -Rakitha (10/23/2008)
+	UInt_t data);
 
-  void Print() {
-    std::cout << "Hit: ";
-    std::cout << "package " << fPackage << ", ";
-    std::cout << "region " << fRegion << ", ";
-    std::cout << "dir " << fDirection << ", ";
-    std::cout << "plane " << fPlane << ", ";
-    std::cout << "element " << fElement << ", ";
-    std::cout << "distance " << fDistance << std::endl;
-  };
+  ~QwHit();
+
+  void Print();
 
 
   Int_t GetSubbankID(){return fCrate;};
@@ -146,60 +134,7 @@ class QwHit {
       return (fRegion == region && fPackage == package && fElement == fElement);
     };
 
-  //'<' is overloaded for the sorting algorithm
-  //note:
-
-
-  //fDirection in the sorting - rakitha (08/23/2008)
-  //Sorting order Region -> Direction -> Package -> Plane -> Wire Element -> Wire Hit Order - rakitha (08/23/2008)
-  Bool_t operator<(QwHit & obj)
-    {
-      Bool_t bCompare;
-      if (fRegion < obj.fRegion){
-	bCompare=true;
-      }
-      else if (fRegion == obj.fRegion){
-	if (fDirection < obj.fDirection){
-	  bCompare=true;
-	}
-	else if (fDirection == obj.fDirection){
-	  if (fPackage < obj.fPackage){
-	    bCompare=true;
-	  }
-	  else if (fPackage == obj.fPackage){
-	    if (fPlane < obj.fPlane)
-	      bCompare = true;
-	    else if (fPlane == obj.fPlane){
-	      if (fElement < obj.fElement)
-		bCompare = true;
-	      else if (fElement == obj.fElement){
-		if (fHitNumber < obj.fHitNumber)
-		  bCompare = true;
-		else
-		  bCompare = false;
-
-	      }
-	      else
-		bCompare = false;
-
-	    }
-	    else
-	      bCompare=false;
-	  }
-	  else
-	    bCompare = false;
-	}
-	else
-	  bCompare = false;
-      }
-      else
-	bCompare = false;
-
-
-      return bCompare;
-
-    };
-
+  Bool_t operator<(QwHit & obj);
 
  protected:
 

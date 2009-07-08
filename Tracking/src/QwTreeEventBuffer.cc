@@ -357,7 +357,7 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
    {
    for (int i1=0; i1<fRegion3_ChamberFront_WirePlaneU_NbOfHits && i1<VSIZE; i1++){
 
-    id = 0;
+    id = 1;
     double x = fRegion3_ChamberFront_WirePlaneU_LocalPositionX.at(i1);
     double y = fRegion3_ChamberFront_WirePlaneU_LocalPositionY.at(i1);
     double z = fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.at(i1);
@@ -402,7 +402,7 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
 //  if (fRegion3_ChamberFront_WirePlaneV_HasBeenHit == 5)  
    { 
    for (int i2=0; i2<fRegion3_ChamberFront_WirePlaneV_NbOfHits && i2<VSIZE; i2++){
-    id = 1;
+    id = 2;
     double x = fRegion3_ChamberFront_WirePlaneV_LocalPositionX.at(i2);
     double y = fRegion3_ChamberFront_WirePlaneV_LocalPositionY.at(i2);
     double z = fRegion3_ChamberFront_WirePlaneV_LocalPositionZ.at(i2);
@@ -438,7 +438,7 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
 //  if (fRegion3_ChamberBack_WirePlaneU_HasBeenHit == 5) 
    {
    for (int i3=0; i3<fRegion3_ChamberBack_WirePlaneU_NbOfHits && i3<VSIZE; i3++){
-    id = 2;
+    id = 3;
     double x = fRegion3_ChamberBack_WirePlaneU_LocalPositionX.at(i3);
     double y = fRegion3_ChamberBack_WirePlaneU_LocalPositionY.at(i3);
     double z = fRegion3_ChamberBack_WirePlaneU_LocalPositionZ.at(i3);
@@ -472,7 +472,7 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
 //  if (fRegion3_ChamberBack_WirePlaneV_HasBeenHit == 5) 
    {
    for (int i4=0; i4<fRegion3_ChamberBack_WirePlaneV_NbOfHits && i4<VSIZE; i4++){
-    id = 3;
+    id = 4;
     double x = fRegion3_ChamberBack_WirePlaneV_LocalPositionX.at(i4);
     double y = fRegion3_ChamberBack_WirePlaneV_LocalPositionY.at(i4);
     double z = fRegion3_ChamberBack_WirePlaneV_LocalPositionZ.at(i4);

@@ -198,6 +198,7 @@ class QwTreeEventBuffer : public QwEventBuffer
     void SetDebugLevel (int debug) {fDebug = debug; };
 
     int GetEntries() {return fEntries;};
+
 };
 
 #endif // __QWTREEEVENTBUFFER__
