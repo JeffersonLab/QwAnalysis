@@ -19,7 +19,9 @@
 /// \ingroup QwAnalysis
 class QwCommandLine{
  public:
-  QwCommandLine(): fDEBUG(kTRUE),fRunRange(0,0),fEventRange(0,kMaxInt){};
+  QwCommandLine(): fDEBUG(kTRUE),fRunRange(0,0),fEventRange(0,kMaxInt),
+    fDoOnline(0)
+    {};
   ~QwCommandLine(){ };
 
   Int_t Parse(Int_t argc, Char_t* argv[]);
