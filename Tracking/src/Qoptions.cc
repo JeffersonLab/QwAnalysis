@@ -115,7 +115,7 @@ void Qoptions::Get(const char *optname)
 			}
 
 			optstream >> maxlevels;
-  			opt.levels[package][region-1][type] = maxlevels;
+  			opt.levels[package][region][type] = maxlevels;
 			if (maxlevels > opt.MaxLevels) opt.MaxLevels = maxlevels;
 
 		} else if (word[0] == 'R') {

@@ -250,7 +250,7 @@ int QwTrackingTreeCombine::bestx (
     breakcut = hitlist->detec->WireSpacing + resolution; // wirespacing + bin resolution
 
   // Loop over the hit list
-    for (QwHit* hit = hitlist; hit; hit = hit->nextdet) {
+  for (QwHit* hit = hitlist; hit; hit = hit->nextdet) {
 
     // Two options for the left/right ambiguity
 //    for (int j = 0; j < 2; j++) {
@@ -668,7 +668,7 @@ double QwTrackingTreeCombine::detZPosition (
  if not in the acceptance of at least one detector plane.
 
 *//*-------------------------------------------------------------------------*/
-int QwTrackingTreeCombine::inAcceptance (
+bool QwTrackingTreeCombine::InAcceptance (
 	EQwDetectorPackage package,
 	EQwRegionID region,
 	double cx, double mx,
@@ -676,20 +676,25 @@ int QwTrackingTreeCombine::inAcceptance (
 {
 
   EQwDirectionID dir;
-  double z, x, y,z1;
+  double z, x, y, z1;
   Det *rd;
 
+  /* Region 2 */
   if (region == kRegionID2) {
 
     // Don't check R2 acceptance yet
-    return 1;
+    return true;
 
+
+  /* Region 3 */
   } else {
+
     // Loop over all direction in this region
-    for (dir = kDirectionX; dir <= kDirectionV; dir++) {
+    for (dir = kDirectionU; dir <= kDirectionV; dir++) {
+
       // Loop over all detector planes
       // TODO (wdc) This is unsafe if rd is initialized to 0x0.
-      for (rd = rcDETRegion[package][region-1][dir], z1 = rd->Zpos;
+      for (rd = rcDETRegion[package][region][dir], z1 = rd->Zpos;
 	   rd; rd = rd->nextsame) {
 	z = rd->Zpos;
 	x = cx + (z - z1) * mx;
@@ -700,7 +705,7 @@ int QwTrackingTreeCombine::inAcceptance (
 	 || rd->center[0] + 0.5*rd->width[0] < x
 	 || rd->center[1] - 0.5*rd->width[1] > y
 	 || rd->center[1] + 0.5*rd->width[1] < y) {
-	  return 0;
+	  return false;
 	}
       }
     }
@@ -768,7 +773,7 @@ int QwTrackingTreeCombine::TlCheckForX (
   org_mx  =  (x2 - x1)  / Dz;	// track slope
   org_dmx = (dx2 - dx1) / Dz;	// track resolution slope (changes linearly
 				// between first and last detector plane)
-  res = width / (1 << (opt.levels[package][region-1][type]-1)); // bin 'resolution'
+  res = width / (1 << (opt.levels[package][region][type]-1)); // bin 'resolution'
 
   //###################################
   //LOOP OVER DETECTORS IN THE REGION #
@@ -778,7 +783,7 @@ int QwTrackingTreeCombine::TlCheckForX (
   /* --- loop over the detectors of the region --- */
   first = 1;
   nhits = 0;
-  for (plane = 0, rd = rcDETRegion[package][region-1][dir];
+  for (plane = 0, rd = rcDETRegion[package][region][dir];
        rd; rd = rd->nextsame, plane++) {
 
     // Coordinates of the track at this detector plane
@@ -905,7 +910,8 @@ int QwTrackingTreeCombine::TlCheckForX (
   //################
   //SET PARAMATERS #
   //################
-  if (! ret) {
+  if (ret == 0) {
+    if (debug) cout << "Track has no hits in any layer: voided" << endl;
     treeline->isvoid  = true;
     treeline->nummiss = dlayer;
   } else {
@@ -974,7 +980,7 @@ int QwTrackingTreeCombine::TlMatchHits (
   //cerr << "matchhits" << endl;
 
   //STEP 1 : Match left/right wire hits to the pattern hits
-  rd = rcDETRegion[package][region-1][dir];
+  rd = rcDETRegion[package][region][dir];
   if (treeline->r3offset >= 281) { // get the correct plane for this treeline
     rd = rd->nextsame;
   }
@@ -1075,7 +1081,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
                              treeline = treeline->next) {
 
       if (dlayer == 1) {
-	treeline->r3offset += rcDETRegion[package][region-1][dir]->NumOfWires;
+	treeline->r3offset += rcDETRegion[package][region][dir]->NumOfWires;
       }
       z1 = (double) (treeline->r3offset + treeline->firstwire); // first z position
       z2 = (double) (treeline->r3offset + treeline->lastwire);  // last z position
@@ -1102,7 +1108,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
     // Determine position differences between first and last detector
     // TODO (wdc) This assumes that tlayer is correct!
     int i;
-    for (rd = rcDETRegion[package][region-1][dir], i = 0;
+    for (rd = rcDETRegion[package][region][dir], i = 0;
          rd && i < tlayer; rd = rd->nextsame, i++) {
 
       // Store first detector plane's coordinates
@@ -1137,9 +1143,9 @@ void QwTrackingTreeCombine::TlTreeLineSort (
     double MaxRoad = opt.R2maxroad; // TODO global opt
 
     // Loop over all valid tree lines
-    for (QwTrackingTreeLine *treeline = treelinelist;
-                             treeline && ! treeline->isvoid;
+    for (QwTrackingTreeLine *treeline = treelinelist; treeline;
                              treeline = treeline->next) {
+      if (treeline->isvoid) continue;
 
       // Calculate the track from the average of the bins that were hit
       x1 = 0.5 * ((treeline->a_beg + treeline->a_end) * dx);
@@ -1169,18 +1175,17 @@ void QwTrackingTreeCombine::TlTreeLineSort (
   /* End of region-specific parts */
 
 
-  /* --------------------------------------------------
-     now sort again for identical treelines
-     -------------------------------------------------- */
-  for (QwTrackingTreeLine *treeline = treelinelist; treeline;
-                           treeline = treeline->next) {
-    if (treeline->isvoid == false) {
-      for (QwTrackingTreeLine *treeline2 = treeline->next; treeline2;
+  /* Now search for identical tree lines in the list */
+  for (QwTrackingTreeLine *treeline1 = treelinelist; treeline1;
+                           treeline1 = treeline1->next) {
+    if (treeline1->isvoid == false) {
+      for (QwTrackingTreeLine *treeline2 = treeline1->next; treeline2;
                                treeline2 = treeline2->next) {
         if (treeline2->isvoid == false
-	 && treeline->cx == treeline2->cx
-	 && treeline->mx == treeline2->mx) {
+	 && treeline1->cx == treeline2->cx
+	 && treeline1->mx == treeline2->mx) {
 	  treeline2->isvoid = true;
+	  if (debug) cout << "Treeline void because it already exists" << endl;
         }
       }
     }
@@ -1232,7 +1237,7 @@ int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
   double x0[kNumDirections];			//the translational offsets for the u,v,x axes.
   double bx[kNumDirections],mx[kNumDirections];	//track fit parameters
   EQwDirectionID Dir;		//wire direction enumerator
-  Det *rd = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionX];	//pointer to this detector
+  Det *rd = rcDETRegion[kPackageUp][kRegionID2][kDirectionX];	//pointer to this detector
 
   //##################
   // Initializations #
@@ -1967,8 +1972,8 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
   //################
   if (region == kRegionID3 && type == kTypeDriftVDC) {
 
-    Det *rdu = rcDETRegion[package][region-1][kDirectionU];
-    Det *rdv = rcDETRegion[package][region-1][kDirectionV];
+    Det *rdu = rcDETRegion[package][region][kDirectionU];
+    Det *rdv = rcDETRegion[package][region][kDirectionV];
     double z1 = rdu->Zpos;
     double z2 = rdv->Zpos;
     double rot = rdv->Rot; // rotation of planes about the lab x axis
@@ -2052,7 +2057,7 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
 
     double MaxXRoad = opt.R2maxXroad; // TODO global opt
     Det *rd;
-    for (rd = rcDETRegion[package][region-1][kDirectionX], i = 0;
+    for (rd = rcDETRegion[package][region][kDirectionX], i = 0;
          rd && i < tlayer; rd = rd->nextsame, i++) {
       if (i == 0) {
         zx1 = rd->Zpos; // first x-plane z position
@@ -2141,7 +2146,7 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
 
 //cerr << "2" << endl;
 	if (best_wx)
-	  in_acceptance = inAcceptance(package, region, best_wx->cx, best_wx->mx, y1, my);
+	  in_acceptance = InAcceptance(package, region, best_wx->cx, best_wx->mx, y1, my);
 	else
 	  cerr << "not in acceptance" << endl;
         if (minimum < MaxXRoad && best_wx && in_acceptance) {
@@ -2706,7 +2711,7 @@ int QwTrackingTreeCombine::checkR3 (QwPartialTrack *pt, EQwDetectorPackage packa
   double lim_trig[2][2], lim_cc[2][2];
 
   // Get the trig scintillator
-  Det *rd = rcDETRegion[package][kRegionIDTrig-1][kDirectionX];
+  Det *rd = rcDETRegion[package][kRegionIDTrig][kDirectionX];
 
   //get the point where the track intersects the detector planes
   trig[2] = rd->Zpos;
@@ -2729,7 +2734,7 @@ int QwTrackingTreeCombine::checkR3 (QwPartialTrack *pt, EQwDetectorPackage packa
   } else pt->triggerhit = 0;
 
   // Get the Cherenkov detector
-  rd = rcDETRegion[package][kRegionIDCer-1][kDirectionY];
+  rd = rcDETRegion[package][kRegionIDCer][kDirectionY];
   cc[2] = rd->Zpos;
   cc[0] = pt->mx * cc[2] + pt->x;
   cc[1] = pt->my * cc[2] + pt->y;

@@ -243,8 +243,8 @@ void Qset::LinkDetectors ()
       type    = rd->type;
       /// If this is the first detector in this half, region
       /// and with this direction, then store it in rcDETRegion
-      if ( !rcDETRegion[package][region-1][dir] )
-        rcDETRegion[package][region-1][dir] = rd;
+      if ( !rcDETRegion[package][region][dir] )
+        rcDETRegion[package][region][dir] = rd;
 
       /// Loop over all remaining detectors
       // rd always stays the original detector rcDET[i]
@@ -294,9 +294,9 @@ void Qset::DeterminePlanes ()
       for (EQwDirectionID direction  = kDirectionX;
 			  direction <= kDirectionV; direction++) {
 
-	if (! rcDETRegion[package][region-1][direction]) continue;
+	if (! rcDETRegion[package][region][direction]) continue;
 
-	for (Det* rd = rcDETRegion[package][region-1][direction];
+	for (Det* rd = rcDETRegion[package][region][direction];
 	          rd; rd = rd->nextsame) {
 
 	  // Store the z position and index of this detector

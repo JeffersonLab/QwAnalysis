@@ -138,7 +138,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
   //###################################
   // Get distance between planes, etc #
   //###################################
-  rd = rcDETRegion[package][region-1][dir];
+  rd = rcDETRegion[package][region][dir];
   theta = rd->Rot/360*2*pi;
   //get the u value for the first wire.
   d_to_1st_wire_f = rd->rSin * rd->PosOfFirstWire;
@@ -168,15 +168,15 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
 
 
   if(dir == kDirectionV){//get the distance between the u and v planes
-    RotCos = rcDETRegion[package][region-1][kDirectionU]->rRotCos;
-    RotSin = rcDETRegion[package][region-1][kDirectionU]->rRotSin;
+    RotCos = rcDETRegion[package][region][kDirectionU]->rRotCos;
+    RotSin = rcDETRegion[package][region][kDirectionU]->rRotSin;
     RotTan = RotSin/RotCos;
 
-    d_uv = (rcDETRegion[package][region-1][kDirectionV]->Zpos-rcDETRegion[package][region-1][kDirectionU]->Zpos);
-    d_uv += (rcDETRegion[package][region-1][kDirectionU]->center[1]-rcDETRegion[package][region-1][kDirectionV]->center[1])/RotTan;
+    d_uv = (rcDETRegion[package][region][kDirectionV]->Zpos-rcDETRegion[package][region][kDirectionU]->Zpos);
+    d_uv += (rcDETRegion[package][region][kDirectionU]->center[1]-rcDETRegion[package][region][kDirectionV]->center[1])/RotTan;
     d_uv *= RotSin;
-//    d_uv = (rcDETRegion[package][region-1][kDirectionV]->Zpos-rcDETRegion[package][region-1][kDirectionU]->Zpos);
-//    d_uv = d_uv/rcDETRegion[package][region-1][kDirectionU]->rRotCos;
+//    d_uv = (rcDETRegion[package][region][kDirectionV]->Zpos-rcDETRegion[package][region][kDirectionU]->Zpos);
+//    d_uv = d_uv/rcDETRegion[package][region][kDirectionU]->rRotCos;
   }
   //######################################
   // Get the radial offset of the planes #

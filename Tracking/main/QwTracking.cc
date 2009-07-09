@@ -172,9 +172,13 @@ int main (int argc, char* argv[])
   qset.LinkDetectors();
   qset.DeterminePlanes();
   cout << "[QwTracking::main] Geometry loaded" << endl; // R3,R2
-  // Set two detecor planes inactive and see where we get...
-  rcDETRegion[kPackageUp][kRegionID2-1][kDirectionX]->nextsame->nextsame->SetInactive();
-  rcDETRegion[kPackageUp][kRegionID2-1][kDirectionX]->nextsame->nextsame->nextsame->SetInactive();
+  // Set second set of region 2 detector planes inactive
+  rcDETRegion[kPackageUp][kRegionID2][kDirectionX]->nextsame->nextsame->SetInactive();
+  rcDETRegion[kPackageUp][kRegionID2][kDirectionX]->nextsame->nextsame->nextsame->SetInactive();
+  rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->nextsame->nextsame->SetInactive();
+  rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->nextsame->nextsame->nextsame->SetInactive();
+  rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->nextsame->nextsame->SetInactive();
+  rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->nextsame->nextsame->nextsame->SetInactive();
 
   Qoptions qoptions;
   qoptions.Get((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.options").c_str());

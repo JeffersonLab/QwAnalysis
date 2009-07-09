@@ -113,7 +113,7 @@ void  QwASCIIEventBuffer::GetrcDETRegion(QwHitContainer &HitList, Int_t event_no
             region2 = region;
             detectorId2=detectorId1;
             dir2 = dir;
-            rd = rcDETRegion[package][region-1][dir];
+            rd = rcDETRegion[package][region][dir];
             while (rd->ID != detectorId1) {
                 rd = rd->nextsame;
             }
@@ -133,7 +133,7 @@ void  QwASCIIEventBuffer::GetrcDETRegion(QwHitContainer &HitList, Int_t event_no
                     detectorId2!=detectorId1   &&
                     dir2 == dir) {
                 // like-pitched detector plane
-                rd = rcDETRegion[package][region-1][dir];
+                rd = rcDETRegion[package][region][dir];
                 while (rd->ID != detectorId1) {
                     rd = rd->nextsame;
                 }
@@ -141,7 +141,7 @@ void  QwASCIIEventBuffer::GetrcDETRegion(QwHitContainer &HitList, Int_t event_no
                 //if (DEBUG1) std::cout<<"Detector ID " << rd->ID <<std::endl;
             } else {
                 // different detector plane
-                rd = rcDETRegion[package][region-1][dir];
+                rd = rcDETRegion[package][region][dir];
                 while (rd->ID != detectorId1) {
                     rd = rd->nextsame;
                 }
@@ -427,7 +427,7 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits) {
             region2 = region;
             plane2 = plane; //Note that plane contains the detector Id
             dir2 = dir;
-            rd = rcDETRegion[package][region-1][dir];
+            rd = rcDETRegion[package][region][dir];
             while (rd->plane != plane) {
                 rd = rd->nextsame;
             }
@@ -447,7 +447,7 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits) {
                     plane2   != plane   &&
                     dir2     == dir) {
                 // like-pitched detector plane
-                rd = rcDETRegion[package][region-1][dir];
+                rd = rcDETRegion[package][region][dir];
                 while (rd->plane != plane) {
                     rd = rd->nextsame;
                 }
@@ -455,7 +455,7 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits) {
                 if (DEBUG1) std::cout << "Detector plane " << rd->plane << std::endl;
             } else {
                 // different detector plane
-                rd = rcDETRegion[package][region-1][dir];
+                rd = rcDETRegion[package][region][dir];
                 while (rd->plane != plane) {
                     rd = rd->nextsame;
                 }

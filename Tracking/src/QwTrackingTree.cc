@@ -206,7 +206,7 @@ int QwTrackingTree::consistent(
     double xiL, xiR;	/// the left(min) and right(max) edges of the bin at the current plane
 
     /// find the z position of each tree-detector relative to the first tree-detector
-    for (rd = rcDETRegion[package][region-1][dir], i = 0;
+    for (rd = rcDETRegion[package][region][dir], i = 0;
          rd && i < templayers;
          rd = rd->nextsame, i++) {   // Loop through each plane
 

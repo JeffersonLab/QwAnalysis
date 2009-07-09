@@ -19,14 +19,14 @@ Uv2xy::Uv2xy(EQwRegionID region)
 
   // Region 2
   if(region == kRegionID2){  //jpan: determine working on which region
-  uc = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionU]->rCos*(-1);
-  us = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionU]->rSin;
-  vc = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionV]->rCos;
-  vs = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionV]->rSin*(-1);
+  uc = rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->rCos*(-1);
+  us = rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->rSin;
+  vc = rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->rCos;
+  vs = rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->rSin*(-1);
 
-  R2_offset[0]   = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionU]->PosOfFirstWire;
-  R2_offset[1]   = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionV]->PosOfFirstWire;
-  R2_wirespacing = rcDETRegion[kPackageUp][kRegionID2-1][kDirectionU]->WireSpacing;
+  R2_offset[0]   = rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->PosOfFirstWire;
+  R2_offset[1]   = rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->PosOfFirstWire;
+  R2_wirespacing = rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->WireSpacing;
 
   det = ( uc * vs - vc * us );
   if( det ) {
@@ -44,10 +44,10 @@ Uv2xy::Uv2xy(EQwRegionID region)
 
   else if(region == kRegionID3){
   // Region 3
-  uc = rcDETRegion[kPackageUp][kRegionID3-1][kDirectionU]->rCos;
-  us = rcDETRegion[kPackageUp][kRegionID3-1][kDirectionU]->rSin;
-  vc = rcDETRegion[kPackageUp][kRegionID3-1][kDirectionV]->rCos;
-  vs = rcDETRegion[kPackageUp][kRegionID3-1][kDirectionV]->rSin;
+  uc = rcDETRegion[kPackageUp][kRegionID3][kDirectionU]->rCos;
+  us = rcDETRegion[kPackageUp][kRegionID3][kDirectionU]->rSin;
+  vc = rcDETRegion[kPackageUp][kRegionID3][kDirectionV]->rCos;
+  vs = rcDETRegion[kPackageUp][kRegionID3][kDirectionV]->rSin;
 
   det = ( us * vc - vs * uc );
   if( det ) {

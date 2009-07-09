@@ -88,7 +88,7 @@ class QwTrackingTreeCombine {
 
     int TlMatchHits (double x1,double x2,double z1, double dz,QwTrackingTreeLine *treefill,EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type,EQwDirectionID dir,int tlayers);
 
-    int inAcceptance (EQwDetectorPackage package, EQwRegionID region, double cx, double mx, double cy, double my);
+    bool InAcceptance (EQwDetectorPackage package, EQwRegionID region, double cx, double mx, double cy, double my);
     void TlTreeLineSort (QwTrackingTreeLine *tl, EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type, EQwDirectionID dir, unsigned long bins, int tlayer, int dlayer, double width);
     int TcTreeLineCombine (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, QwTrackingTreeLine *wx, QwPartialTrack *pt, int tlayer);
     int TcTreeLineCombine (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, QwPartialTrack *pt, int tlayer);

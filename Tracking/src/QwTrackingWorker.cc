@@ -109,7 +109,7 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
     int levels;
 
     /* Reserve space for region 2 bit patterns */
-    levels = opt.levels[kPackageUp][kRegionID2-1][kTypeDriftHDC];
+    levels = opt.levels[kPackageUp][kRegionID2][kTypeDriftHDC];
     for (int i = 0; i < TLAYERS; i++) {
       channelr2[i]     = (char*) malloc (1UL << levels);
       hashchannelr2[i] =  (int*) malloc ((sizeof(int) * (1UL << (levels - 1))));
@@ -117,7 +117,7 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
     }
 
     /* Reserve space for region 3 bit patterns */
-    levels = opt.levels[kPackageUp][kRegionID3-1][kTypeDriftVDC];
+    levels = opt.levels[kPackageUp][kRegionID3][kTypeDriftVDC];
     for (int i = 0; i < NUMWIRESR3 + 1; i++) {
       channelr3[i]     = (char*) malloc (1UL << levels);
       hashchannelr3[i] =  (int*) malloc ((sizeof(int) * (1UL << (levels - 1))) );
@@ -187,9 +187,9 @@ void QwTrackingWorker::InitTree()
 	  //           which the user may want to be warned about.
 	  //   wdc:   If those pointers would be initialized to null,
 	  //          this test would be a lot more useful --> another TODO
-	  if (rcDETRegion[package][region-1][direction] == NULL) {
+	  if (rcDETRegion[package][region][direction] == NULL) {
 	    std::cerr << "WARN:  rcDETRegion["<< package
-		      << "]["          << region-1
+		      << "]["          << region
 		      << "]["          << direction
 		      << "] is NULL.  Should it be?"
 		      << std::endl;
@@ -199,14 +199,14 @@ void QwTrackingWorker::InitTree()
 	  /// Region 3 contains 8 layers
 	  if (region == kRegionID3) {
 	    numlayers = 8; // TODO replace this with info from the geometry file
-	    width = rcDETRegion[package][region-1][direction]->width[2];
+	    width = rcDETRegion[package][region][direction]->width[2];
 	  }
 
 	  /// Region 2 contains 4 layers
 	  if (region == kRegionID2) {
 	    numlayers = 4; // TODO replace this with info from the geometry file
-	    width = rcDETRegion[package][region-1][direction]->WireSpacing *
-		    rcDETRegion[package][region-1][direction]->NumOfWires;
+	    width = rcDETRegion[package][region][direction]->WireSpacing *
+		    rcDETRegion[package][region][direction]->NumOfWires;
 	  }
 
 	  /// Set up the filename with the following format
@@ -214,7 +214,7 @@ void QwTrackingWorker::InitTree()
 	  sprintf(filename, "%s/tree%d-%d-%c-%c-%c-%c.tre",
 		thetree->TREEDIR.c_str(),
 		numlayers,
-		opt.levels[package][region-1][type],
+		opt.levels[package][region][type],
 		"0ud"[package],
 		"0123TCS"[region],
 		"0hvgtc"[type],
@@ -222,12 +222,12 @@ void QwTrackingWorker::InitTree()
 	  if (debug) cout << "Tree filename: " << filename << endl;
 
 	  /// Each element of rcTreeRegion will point to a pattern database
-//	  rcTreeRegion[package][region-1][type][direction] =
+//	  rcTreeRegion[package][region][type][direction] =
           int index = package*kNumRegions*kNumTypes*kNumDirections
-                      +(region-1)*kNumTypes*kNumDirections
+                      +region*kNumTypes*kNumDirections
                       +type*kNumDirections+direction;
 	  rcTreeRegion[index] = thetree->inittree(filename,
-		opt.levels[package][region-1][type],
+		opt.levels[package][region][type],
 		numlayers,
 		width,
 		package,
@@ -435,12 +435,12 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	      && (dir == kDirectionX || dir == kDirectionY)) continue;
 
 	  // Check whether there are any detectors defined in that geometry
-	  if (! rcDETRegion[package][region-1][dir]) {
+	  if (! rcDETRegion[package][region][dir]) {
 	    if (debug) cout << "[QwTrackingWorker::ProcessHits]     No such detector!" << endl;
 	    continue;
 	  } //kNumPackages*kNumRegions*kNumTypes*kNumDirections
 	  if (! rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                             +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]) {
+                             +region*kNumTypes*kNumDirections+type*kNumDirections+dir]) {
 	    if (debug) cout << "[QwTrackingWorker::ProcessHits]     No such tree!" << endl;
 	    continue;
 	  }
@@ -451,9 +451,9 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	  //			    << type << ","
 	  //			    << dir << ")" << endl;
 	  if (rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                             +(region-1)*kNumTypes*kNumDirections
+                             +region*kNumTypes*kNumDirections
                              +type*kNumDirections+dir]->searchable == false) {
-	    (event->treeline[package][region-1][type][dir]) = 0;
+	    (event->treeline[package][region][type][dir]) = 0;
 	    // printf("%i %i %i %i\n",package,region,type,dir);
 	    continue; // 'searchable' is set by tree.cc
 	  }
@@ -471,7 +471,7 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 /*! ---- 3rd: create the bit patterns for the hits                     ---- */
 
 	  // Get the number of tree levels that we want for this detector.
-	  int levels = opt.levels[package][region-1][type];
+	  int levels = opt.levels[package][region][type];
 
 	  /* Region 3 VDC */
 	  if (region == kRegionID3 && type == kTypeDriftVDC) {
@@ -481,7 +481,7 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	    treelines1 = 0; treelines2 = 0;
 
 	    /* Loop over the like-pitched planes in a region */
-	    for (k = 0, rd = rcDETRegion[package][region-1][dir], decrease = 0;
+	    for (k = 0, rd = rcDETRegion[package][region][dir], decrease = 0;
 	         rd; rd = rd->nextsame, decrease += NUMWIRESR3, k++) {
 
 	      // Print detector info
@@ -516,7 +516,7 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 		int wire = hit->GetDetectorID().fElement;
 		TreeSearch->TsSetPoint(
 			rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                        +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth,
+                        +region*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth,
 			&(*hit),
 			channelr3[wire - decrease],
 			hashchannelr3[wire - decrease],
@@ -544,7 +544,7 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	      // NOTE Somewhere around here a memory leak lurks
 	      if (debug) cout << "Searching for matching patterns (direction " << dir << ")" << endl;
 	      TreeSearch->TsSearch(&(rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                             +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->node),
+                             +region*kNumTypes*kNumDirections+type*kNumDirections+dir]->node),
 				channelr3, hashchannelr3,
 				levels, NUMWIRESR3, TLAYERS);
 	      treelinelist = TreeSearch->GetListOfTreeLines();
@@ -553,16 +553,16 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	      // Did this succeed as intended?
 	      // - what does rcTreeRegion->node contain?
 	      shortnode* dbg_testnode = &(rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                             +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->node);
+                             +region*kNumTypes*kNumDirections+type*kNumDirections+dir]->node);
 	      // - are all the hits filled?
 
 
 	      if (debug) cout << "Sort patterns" <<  endl;
               if (rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                             +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]) {
+                             +region*kNumTypes*kNumDirections+type*kNumDirections+dir]) {
 
 		double width = rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-			+ (region-1)*kNumTypes*kNumDirections
+			+ region*kNumTypes*kNumDirections
 			+ type*kNumDirections+dir]->rWidth;
 		TreeCombine->TlTreeLineSort (treelinelist, package, region, type, dir,
 			1UL << (levels - 1), 0, dlayer, width);
@@ -587,7 +587,7 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	    //       Otherwise this gets confused due to the scintillators.
 	    /*if (!treelines1->isvoid || !treelines2->isvoid)*/ if(treelines1 || treelines2)
 	      treelinelist = TreeMatch->MatchR3 (treelines1, treelines2, package, region, dir);
-	    event->treeline[package][region-1][type][dir] = treelinelist;
+	    event->treeline[package][region][type][dir] = treelinelist;
 	    tlayers = TLAYERS;     /* remember the number of tree-detector */
 	    tlaym1  = tlayers - 1; /* remember tlayers - 1 for convenience */
 
@@ -597,7 +597,7 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	  } else if (region == kRegionID2 && type == kTypeDriftHDC) {
 
 	    /* Loop over the like-pitched planes in a region */
-	    for (rd = rcDETRegion[package][region-1][dir], tlayers = 0;
+	    for (rd = rcDETRegion[package][region][dir], tlayers = 0;
 	         rd; rd = rd->nextsame, tlayers++) {
 
 	      if (debug) cout << "      ";
@@ -624,7 +624,7 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 		int wire = hit->GetDetectorID().fElement;
 		TreeSearch->TsSetPoint(
 			rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                        +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth,
+                        +region*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth,
 			rd->WireSpacing,
 			&(*hit),
 			wire,
@@ -650,23 +650,23 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 
 	    if (debug) cout << "Search for matching patterns (direction " << dir << ")" << endl;
 	    TreeSearch->TsSearch(&(rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                             +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]->node),
+                             +region*kNumTypes*kNumDirections+type*kNumDirections+dir]->node),
 				channelr2, hashchannelr2,
 				levels, 0, tlayers);
 	    treelinelist = TreeSearch->GetListOfTreeLines();
 
 	    if (debug) cout << "Sort patterns" << endl;
             if (rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                             +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+dir]) {
+                             +region*kNumTypes*kNumDirections+type*kNumDirections+dir]) {
 
 	      double width = rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-			+ (region-1)*kNumTypes*kNumDirections
+			+ region*kNumTypes*kNumDirections
 			+ type*kNumDirections+dir]->rWidth;
 	      TreeCombine->TlTreeLineSort (treelinelist, package, region, type, dir,
 					1UL << (levels - 1),
 					tlayers, 0, width);
 	    }
-	    event->treeline[package][region-1][type][dir] = treelinelist;
+	    event->treeline[package][region][type][dir] = treelinelist;
 	    if (debug) treelinelist->Print();
 
 	    // End the search for this set of like-pitched planes
@@ -686,12 +686,12 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 
 	// This if statement may be done wrong
 	// TODO (wdc) why does this have last index dir instead of something in scope?
-	if (rcDETRegion[package][region-1][kDirectionU]
+	if (rcDETRegion[package][region][kDirectionU]
 	 && rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
-                         +(region-1)*kNumTypes*kNumDirections+type*kNumDirections+kDirectionU]
+                         +region*kNumTypes*kNumDirections+type*kNumDirections+kDirectionU]
 	 && tlayers) {
-	  parttrack = TreeCombine->TlTreeCombine(event->treeline[package][region-1][type],
-			1L << (opt.levels[package][region-1][type] - 1),
+	  parttrack = TreeCombine->TlTreeCombine(event->treeline[package][region][type],
+			1L << (opt.levels[package][region][type] - 1),
 			package, region, type,
 			tlayers,
 			dlayer,
@@ -708,7 +708,7 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 
 /*! ---- TASK 4: Hook up the partial track info to the event info     ---- */
 
-	event->parttrack[package][region-1][type] = parttrack;
+	event->parttrack[package][region][type] = parttrack;
 
       } /* end of loop over the detector types */
 
