@@ -17,8 +17,8 @@
 #include "QwHitContainer.h"
 #include "QwDetectorInfo.h"
 
-#include "vector.h"
-
+#include <vector>
+using std::vector;
 
 
 ///
