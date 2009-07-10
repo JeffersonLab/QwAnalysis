@@ -39,7 +39,7 @@ QwHit::QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
   detec = 0;			/*!< which detector                    */
   next = nextdet = 0; 		/*!< next hit and next hit in same detector */
   ID = 0;			/*!< event ID                          */
-  used = 0;			/*!< hit is used by a track            */
+  isused = 0;			/*!< hit is used by a track            */
   rResultPos = 0.0;		/*!< Resulting hit position            */
   rPos = 0.0;			/*!< Position of from track finding    */
 

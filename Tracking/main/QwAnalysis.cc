@@ -329,7 +329,7 @@ int main(Int_t argc,Char_t* argv[])
 
       // Now we can access the event and its partial tracks
       // (e.g. list the partial track in the upper region 2 HDC)
-      QwPartialTrack* listoftracks = event->parttrack[kPackageUp][kRegionID2-1][kTypeDriftHDC];
+      QwPartialTrack* listoftracks = event->parttrack[kPackageUp][kRegionID2][kTypeDriftHDC];
       for (QwPartialTrack* track = listoftracks;
                            track; track = track->next) {
         track->Print();

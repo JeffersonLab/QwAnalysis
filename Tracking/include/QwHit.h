@@ -101,6 +101,7 @@ class QwHit {
   Double_t GetZPos(){
     return fZPos;
   }
+  const Int_t GetElement() const { return fElement; };
 
   void SetSpatialResolution(Double_t res){
     fResolution=res;
@@ -185,7 +186,7 @@ class QwHit {
     Det *detec;			/*!< which detector                    */
     QwHit *next, *nextdet; 	/*!< next hit and next hit in same detector */
     int ID;			/*!< event ID                          */
-    int  used;			/*!< hit is used by a track            */
+    bool isused;		/*!< is this hit used by a track       */
     double rResultPos;		/*!< Resulting hit position            */
     double rPos;		/*!< Position of from track finding    */
 

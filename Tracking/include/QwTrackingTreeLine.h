@@ -54,6 +54,22 @@ class QwTrackingTreeLine {
 
     void Print();
 
+    int GetPositionFirst (double binwidth) {
+      return 0.5 * (a_beg + a_end) * binwidth;
+    }; //! Returns position at the first detector plane
+
+    int GetPositionLast (double binwidth) {
+      return 0.5 * (b_beg + b_end) * binwidth;
+    }; //! Returns position at the last detector plane
+
+    int GetResolutionFirst (double binwidth) {
+      return (a_beg - a_end) * binwidth;
+    }; //! Returns resolution at the first detector plane
+
+    int GetResolutionLast (double binwidth) {
+      return (b_beg - b_end) * binwidth;
+    }; //! Returns resolution at the last detector plane
+
 
     bool isvoid;		/*!< has been found void */
     bool isused;		/*!< used (part of parttrack) */
@@ -66,13 +82,9 @@ class QwTrackingTreeLine {
 
     int   numhits;		/*!< number of hits */
     int   nummiss;		/*!< number of planes without hits */
-    //enum  Emethod method;	/*!< treeline generation method */
-    QwHit   *hits[2*TLAYERS];	/*!< hitarray */
-    QwHit   thehits[2*TLAYERS];
 
-// TODO (wdc) Disabled until proper constructor for QwHit
-//    QwHit *qwhits[2*TLAYERS];	/*!< hitarray after transition to QwHit */
-//    QwHit theqwhits[2*TLAYERS];
+    QwHit *hits[2*TLAYERS];	/*!< hitarray */
+    QwHit thehits[2*TLAYERS];
 
     int   hasharray[2*TLAYERS];
     int   ID;			/*!< adamo ID */

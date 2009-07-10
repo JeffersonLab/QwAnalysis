@@ -72,7 +72,7 @@ class QwTrackingTreeCombine {
     void chi_hashinsert (QwHit **hits, int n, double slope, double xshift, double cov[3], double chi);
     int chi_hashfind (QwHit **hits, int n, double *slope, double *xshift, double cov[3], double *chi);
 
-    int bestx (double *xresult, double dist_cut, QwHit *h, QwHit **ha, double Dx = 0);
+    int bestx (double *xresult, double dist_cut, QwHitContainer *hitlist, QwHit *h, QwHit **ha, double Dx = 0);
     int bestx (double *xresult, QwHit *h, QwHit *ha);
 
 
@@ -84,12 +84,16 @@ class QwTrackingTreeCombine {
     int contains( double var, QwHit **arr, int len);
     double detZPosition( Det *det, double x, double slope_x, double *xval );
 
-    int TlCheckForX (double x1, double x2, double dx1, double dx2,double Dx,double z1, double dz,QwTrackingTreeLine *treefill,EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type,EQwDirectionID wdir,int  dlayer, int tlayer,int  iteration,int  stay_tuned, double width);
+    bool TlCheckForX (
+		double x1, double x2, double dx1, double dx2, double Dx, double z1, double dz,
+		QwTrackingTreeLine *treefill, QwHitContainer *hitlist,
+		EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type, EQwDirectionID dir,
+		int  dlayer, int tlayer, int iteration, int stay_tuned, double width);
 
     int TlMatchHits (double x1,double x2,double z1, double dz,QwTrackingTreeLine *treefill,EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type,EQwDirectionID dir,int tlayers);
 
     bool InAcceptance (EQwDetectorPackage package, EQwRegionID region, double cx, double mx, double cy, double my);
-    void TlTreeLineSort (QwTrackingTreeLine *tl, EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type, EQwDirectionID dir, unsigned long bins, int tlayer, int dlayer, double width);
+    void TlTreeLineSort (QwTrackingTreeLine *tl, QwHitContainer *hl, EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type, EQwDirectionID dir, unsigned long bins, int tlayer, int dlayer, double width);
     int TcTreeLineCombine (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, QwTrackingTreeLine *wx, QwPartialTrack *pt, int tlayer);
     int TcTreeLineCombine (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, QwPartialTrack *pt, int tlayer);
     int TcTreeLineCombine2 (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, QwPartialTrack *pt, int tlayer);

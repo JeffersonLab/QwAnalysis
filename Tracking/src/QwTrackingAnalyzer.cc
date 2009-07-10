@@ -48,7 +48,7 @@ QwTrackingAnalyzer::~QwTrackingAnalyzer()
 void QwTrackingAnalyzer::Process()
 {
   Event* event = fTrackingWorker->ProcessHits(*fHitList);
-  QwTrackingTreeLine* tl = event->treeline[kPackageUp][kRegionID2-1][kTypeDriftHDC][kDirectionX];
+  QwTrackingTreeLine* tl = event->treeline[kPackageUp][kRegionID2][kTypeDriftHDC][kDirectionX];
   if (tl)
     fHisto1->Fill(tl->chi);
 }

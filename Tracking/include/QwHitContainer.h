@@ -109,10 +109,19 @@ class QwHitContainer:  public std::list<QwHit>{
 
 
   // Return the sublist of hits only in specified package, region, and detector plane
-  QwHitContainer* GetSubList (EQwRegionID region, EQwDetectorPackage package, Int_t plane) {
+  QwHitContainer* GetSubList_Plane (EQwRegionID region, EQwDetectorPackage package, Int_t plane) {
     QwHitContainer* sublist = new QwHitContainer;
     for (QwHitContainer::iterator hit = begin(); hit != end(); hit++)
       if (hit->PlaneMatches(region, package, plane))
+        sublist->push_back(*hit);
+    return sublist;
+  }
+
+  // Return the sublist of hits only in specified package, region, and detector plane
+  QwHitContainer* GetSubList_Dir (EQwRegionID region, EQwDetectorPackage package, EQwDirectionID dir) {
+    QwHitContainer* sublist = new QwHitContainer;
+    for (QwHitContainer::iterator hit = begin(); hit != end(); hit++)
+      if (hit->DirMatches(region, package, dir))
         sublist->push_back(*hit);
     return sublist;
   }

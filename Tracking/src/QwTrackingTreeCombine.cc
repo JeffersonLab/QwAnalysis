@@ -196,7 +196,7 @@ int QwTrackingTreeCombine::bestx (
   *ha = *h;
   ha->next    = 0;
   ha->nextdet = 0;
-  ha->used    = false;
+  ha->isused    = false;
   ha->rResultPos =
         ha->rPos = bestx;
   ha->SetSpatialResolution(resolution);//  ha->Resolution = resolution;
@@ -224,6 +224,7 @@ int QwTrackingTreeCombine::bestx (
 int QwTrackingTreeCombine::bestx (
 	double *xresult,	//!- x position of the track in this plane
 	double resolution,	//!- resolution
+	QwHitContainer *sublist,//!- hit list
 	QwHit* hitlist,		//!- hit list
 	QwHit **ha,		//!- returned hit list
 	double Dx)		//!- (default: Dx = 0)
@@ -237,8 +238,9 @@ int QwTrackingTreeCombine::bestx (
   double adistance, distance, odist;
   double minimum = resolution; // will keep track of minimum distance
   double breakcut = 0;
-  double wirespace = hitlist->detec->WireSpacing; //assumes the same wirespacing for each R2 plane
-
+  double wirespace = 1.1684; //assumes the same wirespacing for each R2 plane
+  // TODO (wdc) Hard-coded this wirespacing until I can get from a hit to a
+  // detector info object.  BAD BAD BAD
 
   //#################################################
   // Find good hits up to a max of MAXHITPERLINE.   #
@@ -247,18 +249,19 @@ int QwTrackingTreeCombine::bestx (
   // replace good hits with better hits.            #
   //#################################################
   if (hitlist)
-    breakcut = hitlist->detec->WireSpacing + resolution; // wirespacing + bin resolution
+    breakcut = wirespace + resolution; // wirespacing + bin resolution
 
   // Loop over the hit list
-  for (QwHit* hit = hitlist; hit; hit = hit->nextdet) {
-
+  sublist->Print();
+  for (QwHitContainer::iterator hit = sublist->begin(); hit != sublist->end(); hit++) {
+    hit->Print();
     // Two options for the left/right ambiguity
 //    for (int j = 0; j < 2; j++) {
 //      position   = j ? (hit->wire + 1) * wirespace + hit->rPos1 + Dx
 //		     : (hit->wire + 1) * wirespace - hit->rPos1 + Dx;
     for (int j = 0; j < 2; j++) {
-      position   = j ? (hit->wire + 1) * wirespace + hit->GetDriftDistance() + Dx
-		     : (hit->wire + 1) * wirespace - hit->GetDriftDistance() + Dx;
+      position   = j ? (hit->GetElement() + 1) * wirespace + hit->GetDriftDistance() + Dx
+		     : (hit->GetElement() + 1) * wirespace - hit->GetDriftDistance() + Dx;
       distance   = x - position;
       adistance  = fabs(distance);
 
@@ -268,16 +271,16 @@ int QwTrackingTreeCombine::bestx (
 	if (ngood < MAXHITPERLINE ) {
 	  /* --- doublicate hits for calibration changes --- */
 	  ha [ngood] = new QwHit;
-	  assert( ha[ngood] );
+	  assert (ha[ngood]);
 	  *ha[ngood]  = *hit; // copy this hit
 	  ha[ngood]->next    = 0;
 	  ha[ngood]->nextdet = 0;
-	  ha[ngood]->used    = false;
-	  ha[ngood]->rResultPos =
-	    ha[ngood]->rPos    = position;
+	  ha[ngood]->isused    = false;
+	  ha[ngood]->rResultPos = ha[ngood]->rPos    = position;
+
           // ha[ngood]->Zpos = hit->detec->Zpos;
-          ha[ngood]->SetZPos(hit->detec->Zpos);
-	  if( adistance < minimum ) {
+          ha[ngood]->SetZPos(hit->GetZPos());
+	  if (adistance < minimum) {
 	    *xresult = position;
 	    minimum = adistance;
 	  }
@@ -296,7 +299,7 @@ int QwTrackingTreeCombine::bestx (
 	      *ha[i]   = *hit;
 	      ha[i]->next    = 0;
 	      ha[i]->nextdet = 0;
-	      ha[i]->used    = false;
+	      ha[i]->isused    = false;
 	      ha[i]->rResultPos =
 	      ha[i]->rPos    = position;
 	      break;
@@ -381,7 +384,6 @@ void QwTrackingTreeCombine::weight_lsq (
 	int n,
 	int tlayers)
 {
-  double r, s, det, h;
   double A[tlayers][2], G[tlayers][tlayers], AtGA[2][2];
   double AtGy[2], y[tlayers], x[2];
 
@@ -393,15 +395,16 @@ void QwTrackingTreeCombine::weight_lsq (
   //##########
 
   for (int i = 0; i < n; i++) {
+    hits[i]->Print();
     A[i][1] = -(hits[i]->GetZPos()); // A[i][1] = -(hits[i]->Zpos);
     y[i]     = -hits[i]->rResultPos;
-    r = 1.0 / hits[i]->GetSpatialResolution(); // r = 1.0 / hits[i]->Resolution;
-    G[i][i] = r * r;
+    double r = hits[i]->GetSpatialResolution(); // r = 1.0 / hits[i]->Resolution;
+    G[i][i] = 1 / (r * r);
   }
 
   /* Calculate right hand side: -A^T G y  */
   for (int i = 0; i < 2; i++) {
-    s = 0;
+    double s = 0.0;
     for (int k = 0; k < n; k++)
       s += A[k][i] * y[k] * G[k][k];
     AtGy[i] = s;
@@ -410,7 +413,7 @@ void QwTrackingTreeCombine::weight_lsq (
   /* Calculate the left hand side: A^T * G * A  */
   for (int i = 0; i < 2; i++) {
     for (int k = 0; k < 2; k++) {
-      s = 0;
+      double s = 0.0;
       for (int j = 0; j < n; j++)
 	s += G[j][j] * A[j][i] * A[j][k];
       AtGA[i][k] = s;
@@ -418,8 +421,8 @@ void QwTrackingTreeCombine::weight_lsq (
   }
 
   /* Calculate inverse of A^T * G * A */
-  det = (AtGA[0][0] * AtGA[1][1] - AtGA[1][0] * AtGA[0][1]);
-  h          = AtGA[0][0];
+  double det = (AtGA[0][0] * AtGA[1][1] - AtGA[1][0] * AtGA[0][1]);
+  double h   =  AtGA[0][0];
   AtGA[0][0] = AtGA[1][1] / det;
   AtGA[1][1] = h / det;
   AtGA[0][1] /= -det;
@@ -436,15 +439,16 @@ void QwTrackingTreeCombine::weight_lsq (
   cov[2]  = AtGA[1][1];
 
   /* sqrt (chi^2) */
-  for (int i = 0, s = 0.0; i < n; i++) {
+  double s = 0.0;
+  for (int i = 0; i < n; i++) {
 //     r  = (*slope * (hits[i]->Zpos - MAGNET_CENTER) + *xshift
 // 	  - hits[i]->rResultPos);
 
 //    r  = (*slope * (hits[i]->Zpos) + *xshift
 //	  - hits[i]->rResultPos);
 
-    r  = (*slope * (hits[i]->GetZPos()) + *xshift
-	  - hits[i]->rResultPos);
+    double r  = (*slope * (hits[i]->GetZPos()) + *xshift
+		- hits[i]->rResultPos);
 
     double dbg_tmp = G[i][i];
     s  += G[i][i] * r * r;
@@ -715,20 +719,33 @@ bool QwTrackingTreeCombine::InAcceptance (
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+/*------------------------------------------------------------------------*//*!
+
+ In TlCheckForX we search for the possible hit assignments for the treeline.
+ While looping over the detector planes, we look at all registered hits and
+ store 'good enough' hits in the goodHits array (indexed by plane number and
+ hit number).  Both left and right hits can be stored in goodHits, and a
+ maximum of MAXHITPERLINE hits per detector plane is enforced.
+
+ Since only one hit per detector plane can be associated with the treeline,
+ we determine the chi^2 for all possible hit permutations.  The hit combination
+ with the best chi^2 is stored in the treeline structure.
+
+*//*-------------------------------------------------------------------------*/
+
 /* -------------------------------------------------------------------------
  * TLCHECKFORX :
  * checks for x hits on a line given by values in (RENAMED VARIABLE) and (RENAMED VARIABLE)
  * dlayer: number of detector layers to search in
  * ------------------------------------------------------------------------- */
-int QwTrackingTreeCombine::TlCheckForX (
-	double x1,
-	double x2,
-	double dx1,
-	double dx2,
-	double Dx,
-	double z1,
-	double Dz,
-	QwTrackingTreeLine *treeline,
+bool QwTrackingTreeCombine::TlCheckForX (
+	double x1,  double x2,	//!- position at first and last planes
+	double dx1, double dx2,	//!- uncertainty at first and last planes
+	double Dx,		//!- offset between first and last planes
+	double z1,		//!- reference z coordinate
+	double Dz,		//!- distance between first and last planes
+	QwTrackingTreeLine *treeline,	//!- treeline to operate on
+	QwHitContainer *hitlist,	//!- hits list
 	EQwDetectorPackage package,
 	EQwRegionID region,
 	EQwDetectorType type,
@@ -743,54 +760,62 @@ int QwTrackingTreeCombine::TlCheckForX (
   // DECLARATIONS  #
   //################
   Det *rd, *firstdet = 0, *lastdet;/* detector loop variable                 */
-  double org_mx;     		/* slope                                  */
-  double org_dmx;		/* the same for the error                 */
   double thisX, thisZ;		/* X and Z at a given plane               */
   double startZ = 0.0, endZ = 0;
+
   if (DLAYERS < 4) cerr << "Error: DLAYERS must be >= 4 for region 2!" << endl;
-  QwHit   *DetecHits[DLAYERS][MAXHITPERLINE]; /* Hits at a detector         */
-  QwHit   *UsedHits[DLAYERS];	            /* Hits for this line         */
-  QwHit   **hitarray;		/* temporary                              */
-  double res,resnow;	        /* resultion of a plane                   */
-  double mx, cx, dh, chi, minchi = 1e8;
+
+  // Hit lists (TODO should be QwHitContainer?)
+  QwHit *goodHits[DLAYERS][MAXHITPERLINE]; /* all hits in each detector plane */
+  QwHit *usedHits[DLAYERS];		   /* one hit per detector plane */
+
+  double resnow;	        /* resultion of a plane                   */
+  double dh;
   double minweight = 1e10;
-  double mmx = 0, mcx = 0; /* least square fit parameters     */
-  double cov[3], mcov[3];
   double stay_chi;
-  int i,j;
-  int nMult[DLAYERS];		/* # of hits at a detector                */
-  int nhits;			/* number of hits per line                */
-  int permutations = 1;		/* multiplicity for permutations          */
-  int besti = -1;               /* best permutation index                 */
-  int ret   = 0;		/* return value (pessimistic)             */
-  int first;
+  bool ret   = false;		/* return value (pessimistic)             */
   double MaxRoad = opt.R2maxroad; // TODO global opt
-  int plane;
+
+  // Initialize goodHits and usedHits to null
+  for (int i = 0; i < DLAYERS; i++) {
+    for (int j = 0; j < MAXHITPERLINE; j++) {
+      goodHits[i][j] = 0;
+    }
+    usedHits[i] = 0;
+  }
 
   //##################
   //DEFINE VARIABLES #
   //##################
-  org_mx  =  (x2 - x1)  / Dz;	// track slope
-  org_dmx = (dx2 - dx1) / Dz;	// track resolution slope (changes linearly
-				// between first and last detector plane)
-  res = width / (1 << (opt.levels[package][region][type]-1)); // bin 'resolution'
+  double orig_mx  =  (x2 - x1)  / Dz;	// track slope
+  double orig_dmx = (dx2 - dx1) / Dz;	// track resolution slope
+  // (the resolution changes linearly between first and last detector plane)
+
+  // bin 'resolution'
+  double resolution = width / (1 << (opt.levels[package][region][type]-1));
 
   //###################################
   //LOOP OVER DETECTORS IN THE REGION #
   //###################################
   // uses BESTX & SELECTX     #
   //###########################
-  /* --- loop over the detectors of the region --- */
-  first = 1;
-  nhits = 0;
-  for (plane = 0, rd = rcDETRegion[package][region][dir];
+
+  // Loop over the detector planes of this package/region/direction
+  int nPlanesWithHits = 0;	/* number of detector plane with good hits */
+  int nHitsInPlane[DLAYERS];	/* number of good hits in a detector plane */
+  int nPermutations = 1;	/* number of permutations of hit assignments */
+  int plane = 0; // plane number
+  for (rd = rcDETRegion[package][region][dir];
        rd; rd = rd->nextsame, plane++) {
+
+    // Get sublist of hits in this detector
+    QwHitContainer *sublist = hitlist->GetSubList_Plane(region, package, rd->plane);
 
     // Coordinates of the track at this detector plane
     thisZ = rd->Zpos;
-    thisX = org_mx * (thisZ - z1) + x1;
+    thisX = orig_mx * (thisZ - z1) + x1;
 
-    // Store the z coordinate and first detector
+    // Store the z coordinates of first and last detector planes
     if (! firstdet) {
       firstdet = rd;
       startZ = thisZ;
@@ -798,50 +823,55 @@ int QwTrackingTreeCombine::TlCheckForX (
     lastdet = rd;
     endZ = thisZ;
 
+    // Skip inactive planes
+    if (rd->IsInactive()) continue;
+
     /* --- search this road width for hits --- */
 
     // resolution at this detector plane
-    resnow = org_dmx * (thisZ - z1) + dx1;
+    resnow = orig_dmx * (thisZ - z1) + dx1;
     // unless we override this resolution
     if (! iteration
      && ! stay_tuned
-     && (first || ! rd->nextsame)
+     && ! rd->nextsame
      && tlayer == dlayer)
-      resnow -= res * (MaxRoad - 1.0);
+      resnow -= resolution * (MaxRoad - 1.0);
 
     // bestx finds the hits which occur closest to the path through
     // the first and last detectors:
-    // nMult is the number of good hits at each detector layer
+    // nHitsInPlane is the number of good hits at each detector layer
     if (! iteration) {          /* first track finding process */
       if (plane < 2)
         // thisX is the calculated x position of the track at the detector plane
         // (thisX is changed by the routine)
         // resnow is the resolution at this position
         // rd->hitbydet is the hit list
-        // DetecHits is the returned list of hits
-        nMult[nhits] = bestx (&thisX, resnow, rd->hitbydet, DetecHits[nhits]);
-      else
-        nMult[nhits] = bestx (&thisX, resnow, rd->hitbydet, DetecHits[nhits], Dx);
-    } else			/* in iteration process (not used by TlTreeLineSort)*/
-      nMult[nhits] = selectx (&thisX, resnow, rd, treeline->hits, DetecHits[nhits]);
+        // goodHits is the returned list of hits
+        nHitsInPlane[nPlanesWithHits] =
+          bestx (&thisX, resnow, sublist, rd->hitbydet, goodHits[nPlanesWithHits], 0.0);
+      else // for the second set of planes we need to add a detector offset
+        nHitsInPlane[nPlanesWithHits] =
+          bestx (&thisX, resnow, sublist, rd->hitbydet, goodHits[nPlanesWithHits], Dx);
 
-    if (nMult[nhits]) {         /* there are hits in this detector         */
-      permutations *= nMult[nhits];
-    } else {
-      nhits--;			/* this detector did not fire              */
+    } else			/* in iteration process (not used by TlTreeLineSort)*/
+      nHitsInPlane[nPlanesWithHits] = selectx (&thisX, resnow, rd, treeline->hits, goodHits[nPlanesWithHits]);
+
+    /* If there are hits in this detector plane */
+    if (nHitsInPlane[nPlanesWithHits]) {
+      nPermutations *= nHitsInPlane[nPlanesWithHits];
+      nPlanesWithHits++;
     }
-    nhits++;
   }
 
 
   // Now the hits that have been found in the road are copied to treeline->hits
   // This is done by using the temporary pointer hitarray
-  if (! iteration) {		/* return the hits found in bestx()        */
-    hitarray = treeline->hits;
-    for (j = 0; j < nhits; j++ ) {
-      for (i = 0; i < nMult[j]; i++ ) {
-	*hitarray = DetecHits[j][i]; // copy hit to new list
-	hitarray ++;
+  if (! iteration) { // return the hits found in bestx()
+    QwHit **hitarray = treeline->hits;
+    for (int planeWithHits = 0; planeWithHits < nPlanesWithHits; planeWithHits++ ) {
+      for (int hitInPlane = 0; hitInPlane < nHitsInPlane[planeWithHits]; hitInPlane++ ) {
+	*hitarray = goodHits[planeWithHits][hitInPlane]; // copy hit to new list
+	hitarray++;
       }
     }
     if (hitarray - treeline->hits < DLAYERS*MAXHITPERLINE + 1)
@@ -854,70 +884,94 @@ int QwTrackingTreeCombine::TlCheckForX (
   // uses : MUL_DO     #
   //        WEIGHT_LSQ #
   //####################
-  int rcSETiMissingTL0 = 2;
-  if (nhits >= dlayer - rcSETiMissingTL0) {  /* allow missing hits */
-    for (i = 0; i < permutations; i++) { // loop over all possible permutations
-      // Select a permutations from DetecHits[][] and store in UsedHits[]
-      mul_do (i, permutations, nhits, nMult, DetecHits, UsedHits);
+  int rcSETiMissingTL0 = 2; // allow some planes without hits
+  if (nPlanesWithHits >= dlayer - rcSETiMissingTL0) {
 
-      chi = 0.0;
+    // Loop over all possible permutations
+    int best_permutation = -1;
+    double best_mx = 0.0, best_cx = 0.0, best_chi = 1e10;
+    double best_cov[3] = {0.0, 0.0, 0.0};
+    for (int permutation = 0; permutation < nPermutations; permutation++) {
 
-      weight_lsq (&mx, &cx, cov, &chi, UsedHits, nhits, tlayer);
+      // Select a permutations from goodHits[][] and store in usedHits[]
+      mul_do (permutation, nPermutations, nPlanesWithHits, nHitsInPlane, goodHits, usedHits);
+      // (returns usedHits)
 
+      // Determine chi^2 of this set of hits
+      double mx, cx; // fitted slope and offset
+      double chi = 0.0; // chi^2 of the fit
+      double cov[3] = {0.0, 0.0, 0.0}; // covariance matrix
+      weight_lsq (&mx, &cx, cov, &chi, usedHits, nPlanesWithHits, tlayer);
+      // (returns mx, cx, cov, chi)
+
+      // ?
       stay_chi = 0.0;
       if (stay_tuned) {
 	dh = (cx + mx * (startZ - MAGNET_CENTER) -
-	     (x1 + org_mx * (startZ - z1)));
+	     (x1 + orig_mx * (startZ - z1)));
 	stay_chi += dh*dh;
 	dh = (cx + mx * (endZ - MAGNET_CENTER) -
-	     (x1 + org_mx * (endZ - z1)));
+	     (x1 + orig_mx * (endZ - z1)));
 	stay_chi += dh * dh;
       }
-      if (stay_chi + chi + dlayer-nhits < minweight) {
+      if (stay_chi + chi + dlayer-nPlanesWithHits < minweight) {
 	/* has this been the best track so far? */
-	minweight = stay_chi + chi + dlayer - nhits;
-	minchi = chi;
-	mmx    = mx;
-	memcpy (mcov, cov, sizeof cov);
-	mcx    = cx;
-	besti  = i;
+	minweight = stay_chi + chi + dlayer - nPlanesWithHits;
+	best_chi   = chi;
+	best_mx    = mx;
+	best_cx    = cx;
+	best_permutation  = permutation;
+	memcpy (best_cov, cov, sizeof cov);
       }
-    }
-    //for (j = 0; j < nhits; j++) {
-    //  cerr << dir << ',' << UsedHits[j]->Zpos << ',' << UsedHits[j]->rResultPos << endl;
+
+    } // end of loop over all possible permutations
+
+    //for (j = 0; j < nPlanesWithHits; j++) {
+    //  cerr << dir << ',' << usedHits[j]->Zpos << ',' << usedHits[j]->rResultPos << endl;
     //}
     //cerr << "line = " << mmx << ',' << mcx << ',' << chi << endl;
-    treeline->cx  = mcx;
-    treeline->mx  = mmx;     /* return track parameters: x, slope, chi */
-    treeline->chi = minchi;
-    treeline->numhits = nhits;
+    treeline->cx  = best_cx;
+    treeline->mx  = best_mx;
+    treeline->chi = best_chi;
+    treeline->numhits = nPlanesWithHits;
+    memcpy (treeline->cov_cxmx, best_cov, sizeof best_cov);
 
-    memcpy (treeline->cov_cxmx, mcov, sizeof mcov);
+    // Select the best permutation (if it was found)
+    if (best_permutation != -1) {
+      mul_do (best_permutation, nPermutations,
+	      nPlanesWithHits, nHitsInPlane, goodHits, usedHits);
 
-    if (besti != -1) {
-      mul_do (besti, permutations,
-	      nhits, nMult, DetecHits, UsedHits);
-      for (j = 0; j < MAXHITPERLINE*DLAYERS && treeline->hits[j]; j++)
-	treeline->hits[j]->used = false;
-      for (j = 0; j < nhits; j++) {
-	if (UsedHits[j])
-	  UsedHits[j]->used = true;
+      // Reset the used flags
+      for (int i = 0; i < MAXHITPERLINE * DLAYERS && treeline->hits[i]; i++)
+	treeline->hits[i]->isused = false;
+
+      // Set the used flag on all hits that are used in this treeline
+      for (int plane = 0; plane < nPlanesWithHits; plane++) {
+	if (usedHits[plane])
+	  usedHits[plane]->isused = true;
       }
     }
-    ret = (besti != -1);
-  }
 
-  //################
-  //SET PARAMATERS #
-  //################
-  if (ret == 0) {
-    if (debug) cout << "Track has no hits in any layer: voided" << endl;
+    // Check whether we found an optimal track
+    if (best_permutation == -1)
+      ret = false;	// acceptable hit assignment NOT found
+    else
+      ret = true;	// acceptable hit assignment found
+
+  } // end of if for required number of planes with hits
+
+  // Store the number of planes without hits; if no acceptable hit assignment
+  // was found, set the treeline to void.
+  if (ret) {
+    treeline->isvoid  = false;
+    treeline->nummiss = dlayer - nPlanesWithHits;
+  } else {
+    if (debug) cout << "Treeline: voided because no best hit assignment" << endl;
     treeline->isvoid  = true;
     treeline->nummiss = dlayer;
-  } else {
-    treeline->isvoid  = false;
-    treeline->nummiss = dlayer - nhits;
   }
+
+  // Return whether an acceptable hit assignment was found
   return ret;
 }
 
@@ -1006,7 +1060,7 @@ int QwTrackingTreeCombine::TlMatchHits (
   //RETURN HITS FOUND IN BESTX #
   //############################
   for (int i = 0; i < j; i++) {
-    DetecHits[i].used = true;
+    DetecHits[i].isused = true;
     treeline->thehits[i] = DetecHits[i];
     treeline->hits[i] = &treeline->thehits[i];
   }
@@ -1049,6 +1103,7 @@ int QwTrackingTreeCombine::TlMatchHits (
    ------------------------------ */
 void QwTrackingTreeCombine::TlTreeLineSort (
 	QwTrackingTreeLine *treelinelist,
+	QwHitContainer *hitlist,
 	EQwDetectorPackage package,
 	EQwRegionID region,
 	EQwDetectorType type,
@@ -1145,7 +1200,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
     // Loop over all valid tree lines
     for (QwTrackingTreeLine *treeline = treelinelist; treeline;
                              treeline = treeline->next) {
-      if (treeline->isvoid) continue;
+      if (treeline->isvoid) continue; // no tree lines should be void yet
 
       // Calculate the track from the average of the bins that were hit
       x1 = 0.5 * ((treeline->a_beg + treeline->a_end) * dx);
@@ -1162,7 +1217,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
       // Check this tree line for hits and calculate chi^2
       TlCheckForX (
         x1, x2, dx1, dx2, Dx, z1, Dz,
-        treeline,
+        treeline, hitlist,
         package, region, type, dir,
         tlayer, tlayer, 0, 0, width);
     }
@@ -1677,7 +1732,7 @@ int QwTrackingTreeCombine::TcTreeLineCombine2(QwTrackingTreeLine *wu, QwTracking
     for (int i = 0; i < num && *hitarray; i++, hitarray++) {
       h = *hitarray;
       ntotal++;
-      if (h->used != 0) {
+      if (h->isused != 0) {
 	hits[hitc] = h;
 	hitc++;
       }
@@ -1784,7 +1839,7 @@ cerr << "a" << endl;
       // gnu3 << h->rPos << " " << h->rPos1 << " " << h->rPos2 << endl;
       gnu3 << h->rPos << " " << h->GetDriftDistance() << " " << h->rPos2 << endl;
       //string all the hits together
-      if(h->used !=0){
+      if(h->isused !=0){
         hits[hitc++] = h;
       }
     }
@@ -1858,7 +1913,7 @@ int QwTrackingTreeCombine::TcTreeLineCombine (
     for (num = MAXHITPERLINE*DLAYERS; num--  && *hitarray; hitarray ++ ) {
       h = *hitarray;
       ntotal++;
-      if( h->used != 0 && hitc < DLAYERS*3)
+      if( h->isused != 0 && hitc < DLAYERS*3)
 	hits[hitc++] = h;
     }
   }
@@ -2226,9 +2281,9 @@ void QwTrackingTreeCombine::ResidualWrite (QwEvent* event)
 	  tl = pt->tline[dir];
 	  hitarr = tl->hits;
 
-	  for( num = MAXHITPERLINE*DLAYERS; num--&&*hitarr; hitarr ++ ) {
+	  for (num = MAXHITPERLINE*DLAYERS; num--&&*hitarr; hitarr++) {
 	    hit = *hitarr;
-	    if( hit->used ) {
+	    if (hit->isused) {
 	      // x = pt->mx*( hit->Zpos - MAGNET_CENTER ) + pt->x;
 	      // y = pt->my*( hit->Zpos - MAGNET_CENTER ) + pt->y;
 	      x = pt->mx*( hit->GetZPos() - MAGNET_CENTER ) + pt->x;
