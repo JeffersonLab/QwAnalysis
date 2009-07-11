@@ -502,7 +502,7 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	      }
 
 	      /// Get the sublist of hits in this detector
-	      QwHitContainer *sublist = hitlist->GetSubList(region, package, rd->plane);
+	      QwHitContainer *sublist = hitlist->GetSubList_Plane(region, package, rd->plane);
 	      if (debug) sublist->Print();
 	      // If no hits in this detector, skip to the next detector.
 	      if (! sublist) continue;
@@ -564,8 +564,9 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 		double width = rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
 			+ region*kNumTypes*kNumDirections
 			+ type*kNumDirections+dir]->rWidth;
-		TreeCombine->TlTreeLineSort (treelinelist, package, region, type, dir,
-			1UL << (levels - 1), 0, dlayer, width);
+		TreeCombine->TlTreeLineSort (treelinelist, sublist,
+					package, region, type, dir,
+					1UL << (levels - 1), 0, dlayer, width);
 
 		if (k == 0) {
 		  treelines1 = treelinelist;
@@ -611,7 +612,7 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	      memset(hashchannelr2[tlayers], 0, sizeof(int) * (1UL << (levels - 1)));
 
 	      /// Get the sublist of hits in this detector
-	      QwHitContainer *sublist = hitlist->GetSubList(region, package, rd->plane);
+	      QwHitContainer *sublist = hitlist->GetSubList_Plane(region, package, rd->plane);
 	      if (debug) sublist->Print();
 	      // If no hits in this detector, skip to the next detector.
 	      if (! sublist) continue;
@@ -654,6 +655,10 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 				channelr2, hashchannelr2,
 				levels, 0, tlayers);
 	    treelinelist = TreeSearch->GetListOfTreeLines();
+	    if (debug) treelinelist->Print();
+
+	    QwHitContainer *sublist = hitlist->GetSubList_Dir(region, package, dir);
+	    sublist->Print();
 
 	    if (debug) cout << "Sort patterns" << endl;
             if (rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
@@ -662,7 +667,8 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	      double width = rcTreeRegion[package*kNumRegions*kNumTypes*kNumDirections
 			+ region*kNumTypes*kNumDirections
 			+ type*kNumDirections+dir]->rWidth;
-	      TreeCombine->TlTreeLineSort (treelinelist, package, region, type, dir,
+	      TreeCombine->TlTreeLineSort (treelinelist, sublist,
+					package, region, type, dir,
 					1UL << (levels - 1),
 					tlayers, 0, width);
 	    }
