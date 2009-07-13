@@ -260,18 +260,18 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
   //##############################################
   int i1 = 0, i2 = 0;
   for ( ; i1 < line1->numhits && i2 < line2->numhits ; ) {
-    if (hits1[i1]->wire == hits2[i2]->wire) {
+    if (hits1[i1]->GetElement() == hits2[i2]->GetElement()) {
       if (hits1[i1]->isused && hits2[i2]->isused)
 	common++;
       i1++;
       i2++;
       total++;
     }
-    else if (hits1[i1]->wire > hits2[i2]->wire) {
+    else if (hits1[i1]->GetElement() > hits2[i2]->GetElement()) {
       i2++;
       total++;
     }
-    else if (hits1[i1]->wire < hits2[i2]->wire) {
+    else if (hits1[i1]->GetElement() < hits2[i2]->GetElement()) {
       i1++;
       total++;
     }
@@ -312,7 +312,7 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
     else if( did1 > did2 )
       fw = 2;// do only B in the next iteration
     else {
-      if( hits1[i1]->wire == hits2[i2]->wire )
+      if( hits1[i1]->GetElement() == hits2[i2]->GetElement() )
 	common ++;
       fw = 3;// do both A and B next iteration
     }
@@ -389,7 +389,7 @@ int QwTrackingTreeSort::rcCommonWires (QwTrackingTreeLine *line1, QwTrackingTree
     else if (did1 > did2)
       fw = 2;
     else {
-      if (hits1[i1]->wire == hits2[i2]->wire)
+      if (hits1[i1]->GetElement() == hits2[i2]->GetElement())
 	common++;
       fw = 3;
     }

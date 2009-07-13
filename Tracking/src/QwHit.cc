@@ -31,7 +31,9 @@ QwHit::QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
 
   fDistance = 0.0;   /// Perpendicular distance from the wire to the track
   fResolution = 0.0; /// Spatial Resolution
-  fZPos = 0.0;       /// Detector position???
+  fZPos = 0.0;       /// Detector position
+
+  pDetectorInfo = 0; /// Pointer to detector info object
 
   wire = 0;			/*!< wire ID                           */
   rPos2 = 0.0;			/*!< rPos2 from level II decoding      */
@@ -52,7 +54,9 @@ void QwHit::Print() {
     std::cout << "package "   << fPackage << ", ";
     std::cout << "region "    << fRegion << ", ";
     std::cout << "dir "       << fDirection << ", ";
-    std::cout << "plane "     << fPlane << ", ";
+    std::cout << "plane "     << fPlane;
+    if (pDetectorInfo) std::cout << " (detector " << pDetectorInfo << "), ";
+    else std::cout << ", ";
     std::cout << "element "   << fElement << ", ";
     std::cout << "distance "  << fDistance << std::endl;
 };

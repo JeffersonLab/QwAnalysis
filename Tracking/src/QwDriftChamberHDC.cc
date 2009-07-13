@@ -37,7 +37,7 @@ Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile){
   QwDetectorInfo temp_Detector;
 
   fDetectorInfo.clear();
-  fDetectorInfo.resize(2);
+  fDetectorInfo.resize(kNumPackages);
   Int_t pkg,pln;
 
   DIRMODE=0;
@@ -93,7 +93,7 @@ Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile){
     }
 
   }
-  //std::cout<<"Loaded Qweak Geometry"<<" Total Detectors "<<fDetectorInfo.at(0).size()<< " pkg_d "<<fDetectorInfo.at(1).size()<<std::endl;
+  std::cout<<"Loaded Qweak Geometry"<<" Total Detectors "<<fDetectorInfo.at(0).size()<< " pkg_d "<<fDetectorInfo.at(1).size()<<std::endl;
 
   for(int i=0;i<fDetectorInfo.at(0).size();i++){
     std::cout<<" Region "<<fDetectorInfo.at(0).at(i).Region<<" Detector ID "<<fDetectorInfo.at(0).at(i).DetectorId<<std::endl;
@@ -298,6 +298,14 @@ void  QwDriftChamberHDC::ProcessEvent(){
 
     //if (hit1->GetDetectorID().fPlane<7){
       //std::cout<<"Plane "<<hit1->GetDetectorID().fPlane<<std::endl;
+
+      hit1->Print();
+      QwDetectorID local_id = hit1->GetDetectorID();
+      int package = local_id.fPackage;
+      int plane = local_id.fPlane - 1;
+      QwDetectorInfo* local_info = & fDetectorInfo.at(package).at(plane);
+      hit1->SetDetectorInfo(local_info);
+
       hit1->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));
       //}
 

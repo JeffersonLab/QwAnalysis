@@ -62,7 +62,8 @@ class QwTrackingWorker : public VQwSystem {
     QwTrackingWorker(const char* name);
     ~QwTrackingWorker();
 
-    void SetDebugLevel (int debuglevel) { debug = debuglevel; };
+    void SetDebugLevel (int debug) { fDebug = debug; };
+    int GetDebugLevel () { return fDebug; };
 
     void BCheck (double E, QwPartialTrack *f, QwPartialTrack *b, double TVertex, double ZVertex);
     QwTrack* rcLinkUsedTracks (QwTrack *track, int package);
@@ -71,11 +72,10 @@ class QwTrackingWorker : public VQwSystem {
   private:
 
     //!- pattern search tree for all configurations
-    QwTrackingTreeRegion* searchtree[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
+    QwTrackingTreeRegion *fSearchTree[kNumPackages * kNumRegions * kNumTypes * kNumDirections];
 
-    QwTrackingTreeRegion *rcTreeRegion[kNumPackages*kNumRegions*kNumTypes*kNumDirections];
-
-    int debug; //!- debug level
+    //!- debug level
+    int fDebug;
 
     // Region 2 bit patterns
     char *channelr2[TLAYERS];

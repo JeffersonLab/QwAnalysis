@@ -474,7 +474,7 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits) {
         //	  // set event number
         newhit->ID = fEvtNumber;
         // Wire number
-        newhit->wire = local_id.fElement;
+        newhit->SetElement(local_id.fElement);
         //	  // Z position of wire plane (first wire for region 3)
         // newhit->Zpos = qwhit->GetZPos();
         newhit->SetZPos(qwhit->GetZPos());

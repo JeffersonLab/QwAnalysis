@@ -252,14 +252,11 @@ int QwTrackingTreeCombine::bestx (
     breakcut = wirespace + resolution; // wirespacing + bin resolution
 
   // Loop over the hit list
-  sublist->Print();
   for (QwHitContainer::iterator hit = sublist->begin(); hit != sublist->end(); hit++) {
-    hit->Print();
     // Two options for the left/right ambiguity
-//    for (int j = 0; j < 2; j++) {
-//      position   = j ? (hit->wire + 1) * wirespace + hit->rPos1 + Dx
-//		     : (hit->wire + 1) * wirespace - hit->rPos1 + Dx;
     for (int j = 0; j < 2; j++) {
+      int dbg_element = hit->GetElement();
+      double dbg_driftdistance = hit->GetDriftDistance();
       position   = j ? (hit->GetElement() + 1) * wirespace + hit->GetDriftDistance() + Dx
 		     : (hit->GetElement() + 1) * wirespace - hit->GetDriftDistance() + Dx;
       distance   = x - position;
@@ -269,7 +266,7 @@ int QwTrackingTreeCombine::bestx (
       if (adistance < resolution) {
         // Save only the MAXHITPERLINE best hits
 	if (ngood < MAXHITPERLINE ) {
-	  /* --- doublicate hits for calibration changes --- */
+	  /* --- duplicate hits for calibration changes --- */
 	  ha [ngood] = new QwHit;
 	  assert (ha[ngood]);
 	  *ha[ngood]  = *hit; // copy this hit
@@ -311,10 +308,13 @@ int QwTrackingTreeCombine::bestx (
       if (position == hit->rPos2)
 	break;
 
-    }
-    if (distance < -breakcut)
-      break;
-  }
+    } // end of left/right ambiguity
+
+    // ? don't know what this cuts out
+    //if (distance < -breakcut)
+    //  break;
+
+  } // end of loop over hit list
   return ngood;
 }
 
@@ -376,13 +376,13 @@ void QwTrackingTreeCombine::mul_do (
  */
 // TODO Why is this similar to weight_lsq_r3?  can't this be one function?
 void QwTrackingTreeCombine::weight_lsq (
-	double *slope,
-	double *xshift,
-	double cov[3],
-	double *chi,
-	QwHit **hits,
-	int n,
-	int tlayers)
+	double *slope,	//!< (returns) slope of fitted track
+	double *offset,	//!< (returns) offset of fitted track
+	double cov[3],	//!< (returns) covariance matrix of slope and offset
+	double *chi,	//!< (returns) chi^2 of the fit
+	QwHit **hits,	//!< list of hits in every plane
+	int n,		//!< number of planes with hits
+	int tlayers)	//!< number of detector planes
 {
   double A[tlayers][2], G[tlayers][tlayers], AtGA[2][2];
   double AtGy[2], y[tlayers], x[2];
@@ -395,8 +395,7 @@ void QwTrackingTreeCombine::weight_lsq (
   //##########
 
   for (int i = 0; i < n; i++) {
-    hits[i]->Print();
-    A[i][1] = -(hits[i]->GetZPos()); // A[i][1] = -(hits[i]->Zpos);
+    A[i][1] = -(hits[i]->GetZPosition()); // A[i][1] = -(hits[i]->Zpos);
     y[i]     = -hits[i]->rResultPos;
     double r = hits[i]->GetSpatialResolution(); // r = 1.0 / hits[i]->Resolution;
     G[i][i] = 1 / (r * r);
@@ -432,7 +431,7 @@ void QwTrackingTreeCombine::weight_lsq (
     x[i] = AtGA[i][0] * AtGy[0] + AtGA[i][1] * AtGy[1];
 
   *slope  = x[1];
-  *xshift = x[0];
+  *offset = x[0];
 
   cov[0]  = AtGA[0][0];
   cov[1]  = AtGA[0][1];
@@ -441,20 +440,20 @@ void QwTrackingTreeCombine::weight_lsq (
   /* sqrt (chi^2) */
   double s = 0.0;
   for (int i = 0; i < n; i++) {
-//     r  = (*slope * (hits[i]->Zpos - MAGNET_CENTER) + *xshift
+//     r  = (*slope * (hits[i]->Zpos - MAGNET_CENTER) + *offset
 // 	  - hits[i]->rResultPos);
 
-//    r  = (*slope * (hits[i]->Zpos) + *xshift
+//    r  = (*slope * (hits[i]->Zpos) + *offset
 //	  - hits[i]->rResultPos);
 
-    double r  = (*slope * (hits[i]->GetZPos()) + *xshift
+    double r  = (*slope * (hits[i]->GetZPosition()) + *offset
 		- hits[i]->rResultPos);
 
     double dbg_tmp = G[i][i];
     s  += G[i][i] * r * r;
   }
   *chi   = sqrt (s / n);
-  chi_hashinsert(hits, n, *slope, *xshift, cov, *chi);
+  chi_hashinsert(hits, n, *slope, *offset, cov, *chi);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -1043,7 +1042,7 @@ int QwTrackingTreeCombine::TlMatchHits (
     // Loop over the hits
       for (QwHit *hit = rd->hitbydet; hit; hit = hit->next) {
       thisZ = treeline->r3offset + i;
-      if (hit->wire != thisZ)
+      if (hit->GetElement() != thisZ)
         continue;
 
       thisX = slope * thisZ + intercept;
@@ -2305,7 +2304,7 @@ void QwTrackingTreeCombine::ResidualWrite (QwEvent* event)
 		     "%f "
 		     "XXptresXX\n",
 		     hit->detec->ID, type, package, region,dir,
-		     hit->wire,
+		     hit->GetElement(),
 		     // 0.5*(hit->rPos1+hit->rPos2),
 		     0.5*(hit->GetDriftDistance()+hit->rPos2),
 		     hit->rPos, v, hit->rResultPos,

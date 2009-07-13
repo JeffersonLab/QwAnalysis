@@ -1,11 +1,10 @@
 #ifndef QWDETECTORINFO_H
 #define QWDETECTORINFO_H
 
-#include<vector>
+#include <vector>
 
+#include "TString.h"
 #include "QwTypes.h"
-
-
 
 
 

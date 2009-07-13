@@ -29,6 +29,8 @@
 
 #include "TObject.h"
 
+#include "QwDetectorInfo.h"
+
 /// First declare the QwHit and Det are objects, because they contain
 /// pointers to each other.
 class Det;
@@ -77,13 +79,12 @@ class QwHit {
   const Double_t& GetTime()    const {return fTime;};
 
   const Double_t& GetDriftDistance()     const {return fDistance;};
-  const Double_t& GetSpatialResolution() const {return fResolution;};
 
   // TODO (wdc) Need to figure out what exactly this track resolution is...
   // and whether it is better to put this in the QwHit or QwDetector class.
   const Double_t GetTrackResolution() const {
     // TODO Fix this, remove cerr and #warning
-    #warning "QwHit::GetTrackResolution() is an invalid stub! (wdc)"
+    #warning "QwHit::GetTrackResolution() is an invalid stub! (wdc) but not for much longer!"
     return 0.0;
   }
 
@@ -95,20 +96,28 @@ class QwHit {
     fDistance=distance;
   }
 
-   void SetZPos(Double_t zp){
-    fZPos=zp;
-  }
-  Double_t GetZPos(){
-    return fZPos;
-  }
-  const Int_t GetElement() const { return fElement; };
+  void SetZPos(double zp) { fZPos = zp; };
+  double GetZPos() { return fZPos; };
 
-  void SetSpatialResolution(Double_t res){
-    fResolution=res;
+  const int GetElement() const { return fElement; };
+  void SetElement(int element) { fElement = element; };
+
+  const QwDetectorInfo* GetDetectorInfo () const { return pDetectorInfo; };
+  void SetDetectorInfo(QwDetectorInfo *detectorinfo) { pDetectorInfo = detectorinfo; };
+
+  const Double_t GetSpatialResolution() const {
+    if (pDetectorInfo)
+      return pDetectorInfo->Spacial_Res; // TODO typo: QwDetectorInfo::Spatial_Res
+    else return fResolution;
   }
-  Double_t GetSpatialResolution(){
-    return fResolution;
+  void SetSpatialResolution(double resolution) { fResolution = resolution; };
+
+  const double GetZPosition() const {
+    if (pDetectorInfo)
+      return pDetectorInfo->Zpos; // TODO typo: QwDetectorInfo::Spatial_Res
+    else return fZPos;
   }
+  void SetZPosition(double zpos) { fZPos = zpos; };
 
   Bool_t IsFirstDetectorHit(){return (fHitNumber==0);};
 
@@ -152,6 +161,7 @@ class QwHit {
   Int_t fDirection; /// Direction of the plane:  X, Y, U, V; R, theta; etc.
   Int_t fPlane;     /// R or theta index for R1; plane index for R2 & R3
   Int_t fElement;   /// Trace # for R1; wire # for R2 & R3; PMT # for others
+  QwDetectorInfo* pDetectorInfo; /// Pointer to the detector info object
 
   Bool_t fAmbiguousElement;  /// TRUE if this hit could come from two different elements (used by Region 3 tracking only)
   Bool_t fLRAmbiguity;       /// TRUE if the other element is 8 wires "right"; FALSE if the other element is 8 wires "left" (used by Region 3 tracking only)
