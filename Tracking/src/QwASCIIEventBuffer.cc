@@ -51,7 +51,7 @@ Int_t QwASCIIEventBuffer::InitrcDETRegion( std::vector< std::vector< QwDetectorI
 
     for (int j=0;j<fDetectorInfo.size();j++) {
         for (int i=0;i<fDetectorInfo.at(j).size();i++) {
-            if (DEBUG1) std::cout<<" Region "<<fDetectorInfo.at(j).at(i).Region<<" ID "<<fDetectorInfo.at(j).at(i).DetectorId<<" Detector counter "<<DetectorCounter<<" Package "<<fDetectorInfo.at(j).at(i).package<<" Plane "<<i+1<<" Dir  "<<fDetectorInfo.at(j).at(i).PlaneDir<<std::endl;
+            if (DEBUG1) std::cout<<" Region "<<fDetectorInfo.at(j).at(i).fRegion<<" ID "<<fDetectorInfo.at(j).at(i).DetectorId<<" Detector counter "<<DetectorCounter<<" Package "<<fDetectorInfo.at(j).at(i).fPackage << " Plane " << i+1 << " Dir  " << fDetectorInfo.at(j).at(i).fDirection <<std::endl;
             AddDetector(fDetectorInfo.at(j).at(i),DetectorCounter);
             DetectorCounter++;
         }
@@ -189,32 +189,32 @@ void  QwASCIIEventBuffer::GetrcDETRegion(QwHitContainer &HitList, Int_t event_no
 void QwASCIIEventBuffer::AddDetector(QwDetectorInfo qwDetector, Int_t i) {
     //if (DEBUG1) std::cout<<" Region "<<qwDetector.Region<<" ID "<<qwDetector.DetectorId<<" Detector counter "<<i<<" Package "<<qwDetector.package<<std::endl;
 
-    if (qwDetector.Region ==2)
+    if (qwDetector.fRegion ==2)
         rcDET[i].sName="HDC";
-    else if (qwDetector.Region ==3)
+    else if (qwDetector.fRegion ==3)
         rcDET[i].sName="VDC";
-    rcDET[i].sType=qwDetector.dType;
-    rcDET[i].Zpos=qwDetector.Zpos;
+    rcDET[i].sType = qwDetector.fType;
+    rcDET[i].Zpos = qwDetector.fZPos;
     rcDET[i].Rot=qwDetector.Detector_Rot;
     rcDET[i].rRotCos = cos(rcDET[i].Rot*PI/180);
     rcDET[i].rRotSin = sin(rcDET[i].Rot*PI/180);
-    rcDET[i].resolution=qwDetector.Spacial_Res;
-    rcDET[i].TrackResolution=qwDetector.Track_Res;
+    rcDET[i].resolution = qwDetector.fSpatialResolution;
+    rcDET[i].TrackResolution = qwDetector.fTrackResolution;
     rcDET[i].SlopeMatching=qwDetector.Slope_Match;
 
-    rcDET[i].package=(EQwDetectorPackage)qwDetector.package;
-    rcDET[i].region=(EQwRegionID)qwDetector.Region;
-    rcDET[i].type=(EQwDetectorType)qwDetector.dType;
-    rcDET[i].dir =(EQwDirectionID)qwDetector.PlaneDir;
+    rcDET[i].package = (EQwDetectorPackage)qwDetector.fPackage;
+    rcDET[i].region = (EQwRegionID)qwDetector.fRegion;
+    rcDET[i].type = (EQwDetectorType)qwDetector.fType;
+    rcDET[i].dir  = (EQwDirectionID)qwDetector.fDirection;
 
-    rcDET[i].center[0]=qwDetector.DetectorOriginX;
-    rcDET[i].center[1]=qwDetector.DetectorOriginY;
+    rcDET[i].center[0] = qwDetector.fDetectorOriginX;
+    rcDET[i].center[1] = qwDetector.fDetectorOriginY;
 
-    rcDET[i].width[0]=qwDetector.ActiveWidthX;
-    rcDET[i].width[1]=qwDetector.ActiveWidthY;
-    rcDET[i].width[2]=qwDetector.ActiveWidthZ;
+    rcDET[i].width[0] = qwDetector.fActiveWidthX;
+    rcDET[i].width[1] = qwDetector.fActiveWidthY;
+    rcDET[i].width[2] = qwDetector.fActiveWidthZ;
 
-    rcDET[i].WireSpacing=qwDetector.WireSpacing;
+    rcDET[i].WireSpacing = qwDetector.fWireSpacing;
     rcDET[i].PosOfFirstWire=qwDetector.FirstWirePos;
     rcDET[i].rCos=qwDetector.Wire_rcosX;
     rcDET[i].rSin=qwDetector.Wire_rsinX;

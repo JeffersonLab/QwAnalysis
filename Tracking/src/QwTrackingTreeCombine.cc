@@ -395,9 +395,9 @@ void QwTrackingTreeCombine::weight_lsq (
   //##########
 
   for (int i = 0; i < n; i++) {
-    A[i][1] = -(hits[i]->GetZPosition()); // A[i][1] = -(hits[i]->Zpos);
+    A[i][1] = -(hits[i]->GetDetectorInfo()->fZPos); // A[i][1] = -(hits[i]->Zpos);
     y[i]     = -hits[i]->rResultPos;
-    double r = hits[i]->GetSpatialResolution(); // r = 1.0 / hits[i]->Resolution;
+    double r = hits[i]->GetDetectorInfo()->fSpatialResolution; // r = 1.0 / hits[i]->Resolution;
     G[i][i] = 1 / (r * r);
   }
 
@@ -1228,7 +1228,6 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 
   /* End of region-specific parts */
 
-
   /* Now search for identical tree lines in the list */
   for (QwTrackingTreeLine *treeline1 = treelinelist; treeline1;
                            treeline1 = treeline1->next) {
@@ -1244,6 +1243,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
       }
     }
   }
+  treelinelist->Print();
 
   /* Sort tracks */
   QwTrackingTreeSort ts;

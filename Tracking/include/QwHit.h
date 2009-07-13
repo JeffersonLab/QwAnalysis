@@ -107,14 +107,14 @@ class QwHit {
 
   const Double_t GetSpatialResolution() const {
     if (pDetectorInfo)
-      return pDetectorInfo->Spacial_Res; // TODO typo: QwDetectorInfo::Spatial_Res
+      return pDetectorInfo->GetSpatialResolution(); // TODO typo: QwDetectorInfo::Spatial_Res
     else return fResolution;
   }
   void SetSpatialResolution(double resolution) { fResolution = resolution; };
 
   const double GetZPosition() const {
     if (pDetectorInfo)
-      return pDetectorInfo->Zpos; // TODO typo: QwDetectorInfo::Spatial_Res
+      return pDetectorInfo->fZPos; // TODO typo: QwDetectorInfo::Spatial_Res
     else return fZPos;
   }
   void SetZPosition(double zpos) { fZPos = zpos; };

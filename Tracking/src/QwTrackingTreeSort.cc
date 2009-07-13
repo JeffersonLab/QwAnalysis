@@ -409,7 +409,7 @@ int QwTrackingTreeSort::rcCommonWires (QwTrackingTreeLine *line1, QwTrackingTree
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *head, EQwRegionID region)
+int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *treelinelist, EQwRegionID region)
 {
   //################
   // DECLARATIONS  #
@@ -435,7 +435,7 @@ int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *head, EQwRegionID re
     iteration++;
 
     nminch = maxchi;
-    for (idx = 0, walk = head; walk; walk = walk->next) {
+    for (idx = 0, walk = treelinelist; walk; walk = walk->next) {
       if (iteration > 100 ) {	/* skip the event */
 	walk->isvoid = true;
 	num_tl++;
@@ -483,7 +483,7 @@ int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *head, EQwRegionID re
   * find the used treelines
   * ---------------------------------------------------------------------- */
 
-  for (idx = 0, walk = head; walk; walk = walk->next) {
+  for (idx = 0, walk = treelinelist; walk; walk = walk->next) {
     if (walk->isvoid == false) {
       tlarr[idx]  = walk;
       isvoid[idx] = walk->isvoid;
