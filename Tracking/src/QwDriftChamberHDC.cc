@@ -96,10 +96,10 @@ Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile){
   std::cout<<"Loaded Qweak Geometry"<<" Total Detectors "<<fDetectorInfo.at(0).size()<< " pkg_d "<<fDetectorInfo.at(1).size()<<std::endl;
 
   for(int i=0;i<fDetectorInfo.at(0).size();i++){
-    std::cout<<" Region "<<fDetectorInfo.at(0).at(i).fRegion<<" Detector ID "<<fDetectorInfo.at(0).at(i).DetectorId<<std::endl;
+    std::cout<<" Region "<<fDetectorInfo.at(0).at(i).fRegion<<" Detector ID "<<fDetectorInfo.at(0).at(i).fDetectorID << std::endl;
   }
   for(int i=0;i<fDetectorInfo.at(1).size();i++){
-    std::cout<<" Region "<<fDetectorInfo.at(1).at(i).fRegion<<" Detector ID "<<fDetectorInfo.at(1).at(i).DetectorId<<std::endl;
+    std::cout<<" Region "<<fDetectorInfo.at(1).at(i).fRegion<<" Detector ID " << fDetectorInfo.at(1).at(i).fDetectorID << std::endl;
   }
 
   std::cout<<"Qweak Geometry Loaded "<<std::endl;
@@ -299,7 +299,8 @@ void  QwDriftChamberHDC::ProcessEvent(){
     //if (hit1->GetDetectorID().fPlane<7){
       //std::cout<<"Plane "<<hit1->GetDetectorID().fPlane<<std::endl;
 
-      hit1->Print();
+      // Set the detector info pointer for this hit
+      // (TODO Should probably go in VQwSubsystemTracking or even VQwSubsystem)
       QwDetectorID local_id = hit1->GetDetectorID();
       int package = local_id.fPackage;
       int plane = local_id.fPlane - 1;
@@ -307,7 +308,8 @@ void  QwDriftChamberHDC::ProcessEvent(){
       hit1->SetDetectorInfo(local_info);
 
       hit1->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));
-      //}
+
+    //}
 
   }
 

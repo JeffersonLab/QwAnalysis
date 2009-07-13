@@ -362,14 +362,12 @@ QwTrack* QwTrackingWorker::rcLinkUsedTracks (QwTrack *track, int package )
 // TODO Should QwHitContainer be passed as const? (wdc)
 QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 {
-  int k;
   int dlayer = 0;	      /* number of detector planes in the search    */
   double A[kNumDirections][2];	/* conversion between xy and uv */
-  QwEvent *event;               /* area for storing the reconstruction info   */
-  Det *rd/*, *rnd*/;          /* pointers for moving through the linked
-                                 lists of detector id and hit information   */
-  QwTrackingTreeLine *treelines1, *treelines2;
-  QwPartialTrack *parttrack;
+
+  QwTrackingTreeLine *treelines1, *treelines2; // treelines for VDC 1 and VDC 2
+  QwPartialTrack *parttrack; // list of partial tracks
+  QwEvent *event; // event structure
 
   QwTrackingTreeSearch  *TreeSearch  = new QwTrackingTreeSearch();
   TreeSearch->SetDebugLevel(fDebug);
@@ -477,12 +475,13 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	  if (region == kRegionID3 && type == kTypeDriftVDC) {
 
             dlayer = 0; /* set "number of detectors" to zero            */
-	    int decrease;
 	    treelines1 = 0; treelines2 = 0;
 
 	    /* Loop over the like-pitched planes in a region */
-	    for (k = 0, rd = rcDETRegion[package][region][dir], decrease = 0;
-	         rd; rd = rd->nextsame, decrease += NUMWIRESR3, k++) {
+	    int plane = 0;
+	    int decrease = 0;
+	    for (Det* rd = rcDETRegion[package][region][dir];
+	              rd; rd = rd->nextsame, decrease += NUMWIRESR3, plane++) {
 
 	      // Print detector info
 	      if (fDebug) cout << "      ";
@@ -549,14 +548,6 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 				levels, NUMWIRESR3, TLAYERS);
 	      treelinelist = TreeSearch->GetListOfTreeLines();
 
-	      // fDebug section
-	      // Did this succeed as intended?
-	      // - what does fSearchTree->node contain?
-	      shortnode* dbg_testnode = &(fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
-                             +region*kNumTypes*kNumDirections+type*kNumDirections+dir]->node);
-	      // - are all the hits filled?
-
-
 	      if (fDebug) cout << "Sort patterns" <<  endl;
               if (fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
                              +region*kNumTypes*kNumDirections+type*kNumDirections+dir]) {
@@ -568,9 +559,9 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 					package, region, type, dir,
 					1UL << (levels - 1), 0, dlayer, width);
 
-		if (k == 0) {
+		if (plane == 0) {
 		  treelines1 = treelinelist;
-		} else if (k == 1) {
+		} else if (plane == 1) {
 		  treelines2 = treelinelist;
 		}
 
@@ -598,8 +589,9 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	  } else if (region == kRegionID2 && type == kTypeDriftHDC) {
 
 	    /* Loop over the like-pitched planes in a region */
-	    for (rd = rcDETRegion[package][region][dir], tlayers = 0;
-	         rd; rd = rd->nextsame, tlayers++) {
+	    tlayers = 0;
+	    for (Det* rd = rcDETRegion[package][region][dir];
+	              rd; rd = rd->nextsame, tlayers++) {
 
 	      // Print detector info
 	      if (fDebug) rd->print();
@@ -717,15 +709,15 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 
 	event->parttrack[package][region][type] = parttrack;
 
-      } /* end of loop over the detector types */
+        if (parttrack) {
+	  parttrack->Print();
+          ngood++;
+        } else {
+          cout << "Couldn't find a good partial track." << endl;
+          nbad++;
+        }
 
-      if (parttrack) {
-	parttrack->Print();
-        ngood++;
-      } else {
-        cout << "Couldn't find a good partial track." << endl;
-        nbad++;
-      }
+      } /* end of loop over the detector types */
 
     } /* end of loop over the regions */
 

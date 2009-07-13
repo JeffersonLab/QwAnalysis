@@ -15,70 +15,27 @@ class QwDetectorInfo{
   ///  Tracking detector information class.  This will be used in an array
   ///  indexed by the package, plane, and wire,
   ///
-public:
 
-  QwDetectorInfo(){}
-  void SetDetectorInfo(TString sdType, Double_t Zpos1, Double_t rot,Double_t  sp_res,Double_t  track_res,Double_t slope_match, TString spackage, Int_t region,TString planeDir, Double_t Det_originX,Double_t Det_originY,Double_t ActivewidthX,Double_t ActivewidthY,Double_t ActivewidthZ,Double_t WireSpace,Double_t FirstWire,Double_t W_rcos,Double_t W_rsin,Int_t totalwires, Int_t detId ){
+  public:
 
-    fZPos = Zpos1;
-    Detector_Rot=rot;
-    fSpatialResolution = sp_res;
-    fTrackResolution = track_res;
-    Slope_Match=slope_match;
-    fDetectorOriginX = Det_originX;
-    fDetectorOriginY = Det_originY;
-    fActiveWidthX = ActivewidthX;
-    fActiveWidthY = ActivewidthY;
-    fActiveWidthZ = ActivewidthZ;
-    fWireSpacing = WireSpace;
-    FirstWirePos=FirstWire;
-    Wire_rcosX=W_rcos;
-    Wire_rsinX=W_rsin;
-    TotalWires=totalwires;
-    DetectorId=detId;
-    if (sdType == "d" && region == 2)
-      fType = kTypeDriftHDC;
-    else if (sdType == "d" && region == 3)
-      fType = kTypeDriftVDC;
-    else if (sdType == "t")
-      fType = kTypeTrigscint;
-    else if (sdType == "c")
-      fType = kTypeCerenkov;
-    else if (sdType == "g")
-      fType = kTypeGem;
-    else if (sdType == "s")
-      fType = kTypeScanner;
+    QwDetectorInfo() { };
 
-    if (spackage == "u")
-      fPackage = kPackageUp;
-    else if (spackage == "d")
-      fPackage = kPackageDown;
-
-    if (region == 1)
-      fRegion = kRegionID1;
-    else if (region == 2)
-      fRegion = kRegionID2;
-    else if (region == 3)
-      fRegion = kRegionID3;
-
-    if (planeDir == "x")
-      fDirection = kDirectionX;
-    else if (planeDir == "u")
-      fDirection = kDirectionU;
-    else if (planeDir == "v")
-      fDirection = kDirectionV;
-    else if (planeDir == "y")
-      fDirection = kDirectionY;
-  };
+    void SetDetectorInfo(TString sdType, Double_t Zpos1, Double_t rot, Double_t  sp_res, Double_t  track_res, Double_t slope_match, TString spackage, Int_t region, TString planeDir, Double_t Det_originX, Double_t Det_originY, Double_t ActivewidthX, Double_t ActivewidthY, Double_t ActivewidthZ, Double_t WireSpace, Double_t FirstWire, Double_t W_rcos, Double_t W_rsin, Int_t totalwires, Int_t detId);
 
     // Get/set spatial resolution
     const double GetSpatialResolution() const { return fSpatialResolution; };
-    void SetSpatialResolution(double res) { fSpatialResolution = res; };
+    void SetSpatialResolution(const double res) { fSpatialResolution = res; };
 
     // Get/set track resolution
     const double GetTrackResolution() const { return fTrackResolution; };
-    void SetTrackResolution(double res) { fTrackResolution = res; };
+    void SetTrackResolution(const double res) { fTrackResolution = res; };
 
+    // Get/set wire spacing
+    const double GetWireSpacing() const { return fWireSpacing; };
+    void SetWireSpacing(const double spacing) { fWireSpacing = spacing; };
+
+    // Get unique detector ID
+    const int GetID() const { return fDetectorID; };
 
     // Identification info for readout channels. Filled at load time.
     int fCrate; //ROC number
@@ -107,7 +64,9 @@ public:
     Double_t Wire_rcosX;
     Double_t Wire_rsinX;
     Int_t TotalWires;
-    Int_t DetectorId;
+
+    // Unique detector identifier
+    int fDetectorID;
 
     // Reference channel index in list of reference channels (most prob. filled at load time)
     int fReferenceChannelIndex;
@@ -118,17 +77,15 @@ public:
 
 
     void SetElectronics(int crt,int mdl,int chn) {
-      fCrate=crt;
-      fModule=mdl;
-      fChannel=chn;
-      fReferenceChannelIndex=1;
+      fCrate = crt;
+      fModule = mdl;
+      fChannel = chn;
+      fReferenceChannelIndex = 1;
     }
 
-    Bool_t IsHit() {
-      return (!fHitID.empty());
-    }
+    Bool_t IsHit() { return (!fHitID.empty()); };
 
-    Int_t GetNumHits(){return fHitID.size();};
+    Int_t GetNumHits() { return fHitID.size(); };
 
     void ClearHits() {
       if (!fHitID.empty())
@@ -138,6 +95,11 @@ public:
     void PushHit(int time) {
       fHitID.push_back(time);
     }
+
+
+  private:
+
+
 };
 
 #endif

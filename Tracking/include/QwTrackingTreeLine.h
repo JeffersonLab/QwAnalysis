@@ -54,19 +54,19 @@ class QwTrackingTreeLine {
 
     void Print();
 
-    int GetPositionFirst (double binwidth) {
+    double GetPositionFirst (double binwidth) {
       return 0.5 * (a_beg + a_end) * binwidth;
     }; //! Returns position at the first detector plane
 
-    int GetPositionLast (double binwidth) {
+    double GetPositionLast (double binwidth) {
       return 0.5 * (b_beg + b_end) * binwidth;
     }; //! Returns position at the last detector plane
 
-    int GetResolutionFirst (double binwidth) {
+    double GetResolutionFirst (double binwidth) {
       return (a_beg - a_end) * binwidth;
     }; //! Returns resolution at the first detector plane
 
-    int GetResolutionLast (double binwidth) {
+    double GetResolutionLast (double binwidth) {
       return (b_beg - b_end) * binwidth;
     }; //! Returns resolution at the last detector plane
 
@@ -80,7 +80,7 @@ class QwTrackingTreeLine {
     int a_beg, a_end;		/*!< bin in first layer */
     int b_beg, b_end;		/*!< bin in last layer */
 
-    int   numhits;		/*!< number of hits */
+    int   numhits;		/*!< number of hits on this treeline */
     int   nummiss;		/*!< number of planes without hits */
 
     QwHit *hits[2*TLAYERS];	/*!< hitarray */

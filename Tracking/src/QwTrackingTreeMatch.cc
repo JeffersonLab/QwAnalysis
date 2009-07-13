@@ -210,8 +210,8 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
     numblines++;
     if(bwalk->isvoid == 0){
       for(i=0;i<bwalk->numhits;i++){
-        //bwalk->hits[i]->Zpos = (bwalk->hits[i]->GetElement() -281 - 141) * wirespacingb + d2u;
-        bwalk->hits[i]->SetZPos((bwalk->hits[i]->GetElement() -281 - 141) * wirespacingb + d2u);
+        //bwalk->hits[i]->Zpos = (bwalk->hits[i]->GetElement() - 281 - 141) * wirespacingb + d2u;
+        bwalk->hits[i]->SetZPos((bwalk->hits[i]->GetElement() - 281 - 141) * wirespacingb + d2u);
         bwalk->hits[i]->rPos = bwalk->hits[i]->rPos + d;
         if(dir == kDirectionV)bwalk->hits[i]->rPos+= d_uv;
       }

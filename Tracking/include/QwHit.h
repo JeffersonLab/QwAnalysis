@@ -80,14 +80,6 @@ class QwHit {
 
   const Double_t& GetDriftDistance()     const {return fDistance;};
 
-  // TODO (wdc) Need to figure out what exactly this track resolution is...
-  // and whether it is better to put this in the QwHit or QwDetector class.
-  const Double_t GetTrackResolution() const {
-    // TODO Fix this, remove cerr and #warning
-    #warning "QwHit::GetTrackResolution() is an invalid stub! (wdc) but not for much longer!"
-    return 0.0;
-  }
-
   void SetHitNumber(Int_t count){
     fHitNumber=count;
   }
@@ -107,10 +99,18 @@ class QwHit {
 
   const Double_t GetSpatialResolution() const {
     if (pDetectorInfo)
-      return pDetectorInfo->GetSpatialResolution(); // TODO typo: QwDetectorInfo::Spatial_Res
-    else return fResolution;
+      return pDetectorInfo->GetSpatialResolution();
+    else return fSpatialResolution;
   }
-  void SetSpatialResolution(double resolution) { fResolution = resolution; };
+  void SetSpatialResolution(const double resolution) { fSpatialResolution = resolution; };
+
+  const Double_t GetTrackResolution() const {
+    if (pDetectorInfo)
+      return pDetectorInfo->GetTrackResolution();
+    else return fTrackResolution;
+  }
+  void SetTrackResolution(const double resolution) { fTrackResolution = resolution; };
+
 
   const double GetZPosition() const {
     if (pDetectorInfo)
@@ -173,9 +173,10 @@ class QwHit {
   Double_t fTimeRes;    /// Resolution of time (if appropriate)
 
   Double_t fDistance;   /// Perpendicular distance from the wire to the track
-  Double_t fResolution; /// Spatial Resolution
   Double_t fZPos;       /// Detector position???
-  //  Processed information from QTR routines?
+
+  Double_t fSpatialResolution;	/// Spatial resolution
+  Double_t fTrackResolution;	/// Track resolution
 
 
 
@@ -188,11 +189,9 @@ class QwHit {
   //  and therefore are not strictly defined.
   public:
     int wire;			/*!< wire ID                           */
-//    double Zpos;		/*!< Z position of hit                 */
-//    double rPos1;		/*!< rPos1 and                         */
+
     double rPos2;		/*!< rPos2 from level II decoding      */
-//    double Resolution;		/*!< resolution of this specific hit   */
-    double rTrackResolution;	/*!< tracking road width around hit    */
+
     Det *detec;			/*!< which detector                    */
     QwHit *next, *nextdet; 	/*!< next hit and next hit in same detector */
     int ID;			/*!< event ID                          */

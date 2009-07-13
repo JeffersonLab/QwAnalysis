@@ -51,7 +51,7 @@ Int_t QwASCIIEventBuffer::InitrcDETRegion( std::vector< std::vector< QwDetectorI
 
     for (int j=0;j<fDetectorInfo.size();j++) {
         for (int i=0;i<fDetectorInfo.at(j).size();i++) {
-            if (DEBUG1) std::cout<<" Region "<<fDetectorInfo.at(j).at(i).fRegion<<" ID "<<fDetectorInfo.at(j).at(i).DetectorId<<" Detector counter "<<DetectorCounter<<" Package "<<fDetectorInfo.at(j).at(i).fPackage << " Plane " << i+1 << " Dir  " << fDetectorInfo.at(j).at(i).fDirection <<std::endl;
+            if (DEBUG1) std::cout<<" Region "<<fDetectorInfo.at(j).at(i).fRegion<<" ID "<<fDetectorInfo.at(j).at(i).fDetectorID<<" Detector counter "<<DetectorCounter<<" Package "<<fDetectorInfo.at(j).at(i).fPackage << " Plane " << i+1 << " Dir  " << fDetectorInfo.at(j).at(i).fDirection <<std::endl;
             AddDetector(fDetectorInfo.at(j).at(i),DetectorCounter);
             DetectorCounter++;
         }
@@ -100,7 +100,7 @@ void  QwASCIIEventBuffer::GetrcDETRegion(QwHitContainer &HitList, Int_t event_no
         region = (EQwRegionID) local_id.fRegion;
         dir    = (EQwDirectionID) local_id.fDirection;
 
-        detectorId1=fDetectorInfo.at(local_id.fPackage-1).at(local_id.fPlane-1).DetectorId;
+        detectorId1=fDetectorInfo.at(local_id.fPackage-1).at(local_id.fPlane-1).fDetectorID;
 
 
         // when this is the first detector of the event
@@ -219,7 +219,7 @@ void QwASCIIEventBuffer::AddDetector(QwDetectorInfo qwDetector, Int_t i) {
     rcDET[i].rCos=qwDetector.Wire_rcosX;
     rcDET[i].rSin=qwDetector.Wire_rsinX;
     rcDET[i].NumOfWires=qwDetector.TotalWires;
-    rcDET[i].ID=qwDetector.DetectorId;
+    rcDET[i].ID=qwDetector.fDetectorID;
     rcDET[i].index=i;
     rcDET[i].samesearched = 0;
 

@@ -36,7 +36,7 @@ using namespace std;
 
 QwTrackingTreeSort::QwTrackingTreeSort ()
 {
-  debug = 0; // debug level
+  fDebug = 0; // Debug level
 
   doubletrack = 0.2;
   good = 2;
@@ -67,17 +67,18 @@ int QwTrackingTreeSort::connectiv( char *ca, int *array, int *isvoid, char size,
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-double QwTrackingTreeSort::chiweight (QwTrackingTreeLine *tl)
+double QwTrackingTreeSort::chiweight (QwTrackingTreeLine *treeline)
 {
-  double fac;
-  if (tl->numhits > tl->nummiss)
-    fac = (double) (tl->numhits + tl->nummiss)
-                 / (tl->numhits - tl->nummiss);
+  double weight;
+  // NOTE Added +1 to get this to work if numhits == nummiss (region 2 cosmics)
+  if (treeline->numhits >= treeline->nummiss)
+    weight = (double) (treeline->numhits + treeline->nummiss + 1)
+                    / (treeline->numhits - treeline->nummiss + 1);
   else {
-    cerr << "miss = " << tl->nummiss << ", hit = " << tl->numhits << endl;
+    cerr << "miss = " << treeline->nummiss << ", hit = " << treeline->numhits << endl;
     return 100000.0; // This is bad...
   }
-  return fac * tl->chi;
+  return weight * treeline->chi;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -345,7 +346,6 @@ int QwTrackingTreeSort::rcCommonWires (QwTrackingTreeLine *line1, QwTrackingTree
   //################
   int total1, total2, common, total;
   QwHit **hits1, **hits2;
-  int did1, did2;
   int  i1, i2, fw = 3;
 
   //##################
@@ -381,8 +381,8 @@ int QwTrackingTreeSort::rcCommonWires (QwTrackingTreeLine *line1, QwTrackingTree
       break; /* break if we reach the end of the hits in either line */
     //-----------------------------------------------------------
     //The following lines separate hits in different detectors
-    did1 = hits1[i1]->detec->ID;
-    did2 = hits2[i2]->detec->ID;
+    const int did1 = hits1[i1]->GetDetectorInfo()->GetID();
+    const int did2 = hits2[i2]->GetDetectorInfo()->GetID();
 
     if (did1 < did2)
       fw = 1;
@@ -414,14 +414,10 @@ int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *treelinelist, EQwReg
   //################
   // DECLARATIONS  #
   //################
-  char* connarr;
-  int* array;
-  QwTrackingTreeLine **tlarr, *walk;
-  int num, idx, bestconn, common;
+  int num, bestconn, common;
   int iteration = 0;
   int num_tl = 0;
-  int  *isvoid;
-  double   *chia, chi, nmaxch, nminch;
+  double chi, nmaxch, nminch;
   double maxchi = 35000.0; // maximum allowed chi^2 (was 20000.0)
 
   //DBG = DEBUG & D_GRAPH;
@@ -430,21 +426,24 @@ int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *treelinelist, EQwReg
  * find the number of used treelines
  * ---------------------------------------------------------------------- */
 
+  int idx = 0;
   do {				/* filter out high chi2 if needed */
     nmaxch = 0.0;
     iteration++;
 
     nminch = maxchi;
-    for (idx = 0, walk = treelinelist; walk; walk = walk->next) {
+    idx = 0;
+    for (QwTrackingTreeLine* treeline = treelinelist; treeline;
+         treeline = treeline->next) {
       if (iteration > 100 ) {	/* skip the event */
-	walk->isvoid = true;
+	treeline->isvoid = true;
 	num_tl++;
       }
-      else if (walk->isvoid == false) {
-	chi = chiweight (walk);
+      else if (treeline->isvoid == false) {
+	chi = chiweight (treeline);
 	if (chi > maxchi) {
 	  cerr << "[QwTrackingTreeSort::rcTreeConnSort] chi^2 too high: " << chi << " > " << maxchi << endl;
-	  walk->isvoid = true;
+	  treeline->isvoid = true;
 	} else {
 	  if (chi > nmaxch) {
 	    nmaxch = chi;
@@ -460,7 +459,7 @@ int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *treelinelist, EQwReg
   } while (idx > 30 ); // 30?!? should probably reduce this
 
   num = idx;
-  if (debug) cout << "Number of treelines with reasonable chi^2: " << num << endl;
+  if (fDebug) cout << "Number of treelines with reasonable chi^2: " << num << endl;
   if (num_tl) {
     std::cout << "Skipping event because of 0 good treelines." << std::endl;
     return 0;
@@ -471,11 +470,11 @@ int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *treelinelist, EQwReg
   }
 
   // the following mallocs replaced Qmallocs
-  connarr = (char*) malloc (num);
-  isvoid  = (int*) malloc (num * sizeof(int));
-  chia    = (double*) malloc (num * sizeof(double));
-  array   = (int*) malloc (num*num*sizeof(int));
-  tlarr   = (QwTrackingTreeLine**) malloc (sizeof(QwTrackingTreeLine*)*num);
+  char* connarr = (char*) malloc (num);
+  int*  isvoid  = (int*) malloc (num * sizeof(int));
+  double* chia  = (double*) malloc (num * sizeof(double));
+  int*  array   = (int*) malloc (num*num*sizeof(int));
+  QwTrackingTreeLine **tlarr = (QwTrackingTreeLine**) malloc (sizeof(QwTrackingTreeLine*)*num);
 
   assert (array && tlarr);
 
@@ -483,11 +482,13 @@ int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *treelinelist, EQwReg
   * find the used treelines
   * ---------------------------------------------------------------------- */
 
-  for (idx = 0, walk = treelinelist; walk; walk = walk->next) {
-    if (walk->isvoid == false) {
-      tlarr[idx]  = walk;
-      isvoid[idx] = walk->isvoid;
-      chia[idx]   = chiweight(walk);
+  idx = 0;
+  for (QwTrackingTreeLine* treeline = treelinelist; treeline;
+       treeline = treeline->next) {
+    if (treeline->isvoid == false) {
+      tlarr[idx]  = treeline;
+      isvoid[idx] = treeline->isvoid;
+      chia[idx]   = chiweight(treeline);
       idx++;
     }
   }

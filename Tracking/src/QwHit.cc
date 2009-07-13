@@ -26,18 +26,19 @@ QwHit::QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
 {
   fRawTime = data;
 
-  fTime = 0.0;       /// Start corrected time, may also be further modified
-  fTimeRes = 0.0;    /// Resolution of time (if appropriate)
+  fTime = 0.0;		/// Start corrected time, may also be further modified
+  fTimeRes = 0.0;	/// Resolution of time (if appropriate)
 
-  fDistance = 0.0;   /// Perpendicular distance from the wire to the track
-  fResolution = 0.0; /// Spatial Resolution
-  fZPos = 0.0;       /// Detector position
+  fDistance = 0.0;	/// Perpendicular distance from the wire to the track
+  fZPos = 0.0;		/// Detector position
 
-  pDetectorInfo = 0; /// Pointer to detector info object
+  fSpatialResolution = 0.0;	/// Spatial resolution
+  fTrackResolution = 0.0;	/// Tracking road width around hit
+
+  pDetectorInfo = 0;	/// Pointer to detector info object
 
   wire = 0;			/*!< wire ID                           */
   rPos2 = 0.0;			/*!< rPos2 from level II decoding      */
-  rTrackResolution = 1.0;	/*!< tracking road width around hit    */
   detec = 0;			/*!< which detector                    */
   next = nextdet = 0; 		/*!< next hit and next hit in same detector */
   ID = 0;			/*!< event ID                          */

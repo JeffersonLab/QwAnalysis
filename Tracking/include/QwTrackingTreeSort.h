@@ -42,7 +42,7 @@ class QwTrackingTreeSort {
     QwTrackingTreeSort();
     ~QwTrackingTreeSort();
 
-    void SetDebugLevel (int debuglevel) { debug = debuglevel; };
+    void SetDebugLevel (const int debuglevel) { fDebug = debuglevel; };
 
     double doubletrack;
     int good;
@@ -67,7 +67,7 @@ class QwTrackingTreeSort {
 
   private:
 
-    int debug;
+    int fDebug;
 
 
 };//class QwTrackingTreeSort

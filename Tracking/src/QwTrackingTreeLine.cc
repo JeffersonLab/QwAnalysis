@@ -79,7 +79,14 @@ void QwTrackingTreeLine::Print()
   std::cout << a_beg << ", " << a_end;
   std::cout << " -- ";
   std::cout << b_beg << ", " << b_end;
-  if (chi > 0.0) std::cout << ": numhits = " << numhits << ", chi = " << chi;
+  if (chi > 0.0) { // treeline has been fitted
+    std::cout << "; hits:";
+    for (int hit = 0; hit < numhits; hit++)
+      std::cout << " " << hits[hit]->GetElement();
+    std::cout << ", cx = " << cx;
+    std::cout << ", mx = " << mx;
+    std::cout << ", chi = " << chi;
+  }
   if (isvoid) std::cout << " (void)";
   std::cout << std::endl;
   next->Print();

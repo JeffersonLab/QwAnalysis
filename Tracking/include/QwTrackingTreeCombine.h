@@ -63,7 +63,7 @@ class QwTrackingTreeCombine {
     QwTrackingTreeCombine();
     ~QwTrackingTreeCombine();
 
-    void SetDebugLevel (int debuglevel) { debug = debuglevel; };
+    void SetDebugLevel (const int debuglevel) { fDebug = debuglevel; };
 
     chi_hash *hasharr[HASHSIZE];
 
@@ -108,7 +108,7 @@ class QwTrackingTreeCombine {
 
   private:
 
-    int debug;
+    int fDebug;
 
 };
 
