@@ -195,11 +195,11 @@ int QwTrackingTreeSort::globalconnectiv (char *ca, int *array, int *isvoid, int 
 int QwTrackingTreeSort::bestconnected (char *ca, int *array, int *isvoid, double *chia,
 	       int size, int idx)
 {
-  int i, besti = -1;
+  int besti = -1;
   double bestchi = 1e8, oworst = 0.0;
   double chi;
 
-  for(i = idx; i<size; i++ ) {
+  for(int i = idx; i<size; i++ ) {
     if( !ca[i] )
       continue;
     chi = chia[i];
@@ -218,7 +218,7 @@ int QwTrackingTreeSort::bestconnected (char *ca, int *array, int *isvoid, double
     }
   }
   if( besti >= 0 && (3.0 > bestchi || oworst + 3.0 > bestchi )) {
-    isvoid[i] = good;//good
+    isvoid[besti] = good;//good
     return 1;
   }
   return 0;
