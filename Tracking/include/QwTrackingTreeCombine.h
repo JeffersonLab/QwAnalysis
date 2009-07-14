@@ -38,9 +38,12 @@ class chi_hash {
 
   public:
 
-    chi_hash();
+    chi_hash() {
+      hits = 0;
+    };
+    ~chi_hash() {};
 
-    double x, mx, cov[3], chi;
+    double cx, mx, cov[3], chi;
     double hit[DLAYERS];
     int    hits;
     chi_hash *next;
@@ -64,13 +67,6 @@ class QwTrackingTreeCombine {
     ~QwTrackingTreeCombine();
 
     void SetDebugLevel (const int debuglevel) { fDebug = debuglevel; };
-
-    chi_hash *hasharr[HASHSIZE];
-
-    int chi_hashval (int n, QwHit **hit);
-    void chi_hashclear (void);
-    void chi_hashinsert (QwHit **hits, int n, double slope, double xshift, double cov[3], double chi);
-    int chi_hashfind (QwHit **hits, int n, double *slope, double *xshift, double cov[3], double *chi);
 
     int bestx (double *xresult, double dist_cut, QwHitContainer *hitlist, QwHit *h, QwHit **ha, double Dx = 0);
     int bestx (double *xresult, QwHit *h, QwHit *ha);
@@ -109,6 +105,17 @@ class QwTrackingTreeCombine {
   private:
 
     int fDebug;
+
+
+    // The following is largely useless (or at least the use is not understood).
+    // Only chi_hashinsert is ever called, but never anything is searched in the
+    // hash table...
+    chi_hash *hasharr[HASHSIZE];
+
+    int chi_hashval (int n, QwHit **hit);
+    void chi_hashclear ();
+    void chi_hashinsert (QwHit **hits, int n, double slope, double xshift, double cov[3], double chi);
+    int chi_hashfind (QwHit **hits, int n, double *slope, double *xshift, double cov[3], double *chi);
 
 };
 

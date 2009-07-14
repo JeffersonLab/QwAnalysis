@@ -71,46 +71,41 @@ QwTrackingTreeCombine::~QwTrackingTreeCombine ()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-chi_hash::chi_hash()
-{
-  hits = 0;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
 int QwTrackingTreeCombine::chi_hashval (int n, QwHit **hit)
 {
-  int i;
   double hash = 389.0; // WTF IS THIS?!?
-  for (i = 0; i < n; i++) {
+  for (int i = 0; i < n; i++) {
     hash *= hit[i]->rResultPos;
   }
-  i = (((((*(unsigned*)&hash))) & HASHMASK)^
-       ((((*(unsigned*)&hash))>>22) & HASHMASK)) ;
-  return i;
+  return ((  (*(unsigned*) & hash)        & HASHMASK) ^
+          ( ((*(unsigned*) & hash) >> 22) & HASHMASK) ) ;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-void QwTrackingTreeCombine::chi_hashclear(void)
+/*! Clear the hash array */
+void QwTrackingTreeCombine::chi_hashclear()
 {
   memset (hasharr, 0, sizeof(hasharr));
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void QwTrackingTreeCombine::chi_hashinsert(QwHit **hits, int n, double slope, double xshift, double cov[3],double chi)
+void QwTrackingTreeCombine::chi_hashinsert (
+	QwHit **hits,
+	int n,
+	double slope,
+	double xshift,
+	double cov[3],
+	double chi)
 {
-  int val = chi_hashval( n, hits), i;
-//Got rid of a Qmalloc in the following line
+  int val = chi_hashval (n, hits), i;
 
-    chi_hash *new_chi_hash;
-    new_chi_hash = (chi_hash*)malloc(sizeof(chi_hash));
-  //chi_hash *new = (chi_hash*)malloc( sizeof(chi_hash));
-  if( new_chi_hash ) {
+  chi_hash *new_chi_hash = new chi_hash;
+
+  if (new_chi_hash) {
     new_chi_hash->next = hasharr[val];
     hasharr[val] = new_chi_hash;
-    new_chi_hash->x  = xshift;
+    new_chi_hash->cx = xshift;
     new_chi_hash->mx = slope;
     new_chi_hash->cov[0] = cov[0];
     new_chi_hash->cov[1] = cov[1];
@@ -121,27 +116,34 @@ void QwTrackingTreeCombine::chi_hashinsert(QwHit **hits, int n, double slope, do
       new_chi_hash->hit[i] = hits[i]->rResultPos;
     }
   }
-
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeCombine::chi_hashfind( QwHit **hits, int n, double *slope, double *xshift, double cov[3],double *chi)
+int QwTrackingTreeCombine::chi_hashfind (
+	QwHit **hits,
+	int n,
+	double *slope,
+	double *xshift,
+	double cov[3],
+	double *chi)
 {
-  int val = chi_hashval( n, hits), i;
-  chi_hash *new_chi_hash;
-  new_chi_hash = new chi_hash;
-//  new_chi_hash = (chi_hash*)malloc(sizeof(chi_hash));
-  for( new_chi_hash = hasharr[val]; new_chi_hash; new_chi_hash = new_chi_hash->next) {
-    if(!new_chi_hash->hits)break;
-    if( new_chi_hash->hits == n ) {
-      for( i = 0; i < n; i++ ){
-	if( new_chi_hash->hit[i] != hits[i]->rResultPos ){
+  int val = chi_hashval (n, hits);
+
+  chi_hash *new_chi_hash = new chi_hash;
+
+  for (new_chi_hash = hasharr[val]; new_chi_hash;
+       new_chi_hash = new_chi_hash->next) {
+    if (! new_chi_hash->hits) break;
+    if (new_chi_hash->hits == n) {
+      int i;
+      for (i = 0; i < n; i++) {
+	if (new_chi_hash->hit[i] != hits[i]->rResultPos) {
 	  break;
 	}
       }
-      if( i == n ) {		/* HIT! */
-	*xshift = new_chi_hash->x;
+      if (i == n) {		/* HIT! */
+	*xshift = new_chi_hash->cx;
 	*slope  = new_chi_hash->mx;
 	cov[0]  = new_chi_hash->cov[0];
 	cov[1]  = new_chi_hash->cov[1];
@@ -453,7 +455,13 @@ void QwTrackingTreeCombine::weight_lsq (
     s  += G[i][i] * r * r;
   }
   *chi   = sqrt (s / n);
-  chi_hashinsert(hits, n, *slope, *offset, cov, *chi);
+
+
+  // NOTE I have no idea what the next line does, but it also works without this.
+  // It is particularly strange that the corresponding chi_hashfind is never
+  // used: what's the use of writing to a hash list if you never use it?
+  // (wdconinc, July 14, 2009)
+  //chi_hashinsert(hits, n, *slope, *offset, cov, *chi);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
