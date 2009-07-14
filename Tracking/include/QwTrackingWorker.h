@@ -35,7 +35,6 @@
 #include "QwTypes.h"
 #include "VQwSystem.h"
 
-using namespace std;
 using namespace QwTracking;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

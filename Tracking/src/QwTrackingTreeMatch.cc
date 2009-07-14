@@ -33,8 +33,6 @@
 #include "QwTrackingTreeMatch.h"
 #include "QwTrackingTreeCombine.h"
 
-using namespace std;
-
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

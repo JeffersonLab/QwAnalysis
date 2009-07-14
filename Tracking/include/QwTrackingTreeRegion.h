@@ -5,8 +5,6 @@
 #include "shortnode.h"
 #include "globals.h"
 
-using namespace std;
-
 ///
 /// \ingroup QwTrackingAnl
 namespace QwTracking {

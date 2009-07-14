@@ -544,7 +544,14 @@ int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *treelinelist, EQwReg
       tlarr[i]->isvoid = true;
     }
   }
-  /* do not free Qalloc'ed things!!! */
+
+  // Free malloc'ed arrays
+  free(chia);
+  free(connarr);
+  free(array);
+  free(isvoid);
+  free(tlarr);
+
   return 0;
 }
 
@@ -703,7 +710,13 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *head)
       ptarr[i]->isvoid = true;
   }
 
-  /* do not free Qalloc'ed things!!! */
+  // Free malloc'ed arrays
+  free(chia);
+  free(connarr);
+  //free(array); // TODO Why can I not free this one?  segfaults...
+  free(isvoid);
+  free(ptarr);
+
   return 0;
 }
 

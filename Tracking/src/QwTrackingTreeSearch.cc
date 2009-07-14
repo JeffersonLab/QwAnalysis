@@ -1476,8 +1476,8 @@ if (numWires > 0) { /* Region 3 */
 \*---------------------------------------------------------------------------*/
 void QwTrackingTreeSearch::TsSearch (
 	shortnode *node,
-	char *pattern[16],
-	int  *hashpat[16],
+	char **pattern,
+	int  **hashpat,
 	int maxlevel,
 	int numWires,
 	int tlayer)

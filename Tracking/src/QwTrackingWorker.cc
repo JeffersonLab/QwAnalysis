@@ -571,6 +571,9 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	      // End the search for this set of like-pitched planes
 	      TreeSearch->EndSearch();
 
+	      // Delete sublist
+	      delete sublist;
+
 	    } // end of loop over like-pitched planes in a region
 
 	    if (fDebug) cout << endl;
@@ -639,6 +642,9 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 
 	      } // end of loop over hits in this event
 
+	      // Delete sublist
+	      delete sublist;
+
             } // end of loop over like-pitched planes in a region
 
 	    if (fDebug) cout << "Search for matching patterns (direction " << dir << ")" << endl;
@@ -670,6 +676,9 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 
 	    // End the search for this set of like-pitched planes
 	    TreeSearch->EndSearch();
+
+	    // Delete sublist
+	    delete sublist;
 
 	  /* Any other region */
 	  } else {

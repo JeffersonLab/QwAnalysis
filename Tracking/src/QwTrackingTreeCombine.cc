@@ -868,6 +868,9 @@ bool QwTrackingTreeCombine::TlCheckForX (
       nPermutations *= nHitsInPlane[nPlanesWithHits];
       nPlanesWithHits++;
     }
+
+    // Delete the sublist again
+    delete sublist;
   }
 
 
