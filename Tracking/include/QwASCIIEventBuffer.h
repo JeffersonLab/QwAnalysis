@@ -33,7 +33,7 @@ class QwASCIIEventBuffer : public QwEventBuffer
 
 
  public:
-  QwASCIIEventBuffer(){};
+  QwASCIIEventBuffer(){ };
   ~QwASCIIEventBuffer(){};
 
   Int_t OpenDataFile(const TString filename,const TString rw);
@@ -50,8 +50,10 @@ class QwASCIIEventBuffer : public QwEventBuffer
 
 
   //InitrcDETRegion will load rcDET and rcDETRegion by reading QwDetectorInfo vector. This vector is indexed by package and plane.
-  //Currently we have only region = 2 working.
+  //Currently we have only region = 2 & 3 working.
   Int_t InitrcDETRegion(std::vector< std::vector< QwDetectorInfo > > &);
+
+  
   //GetrcDETRegion will update rcDETRegion by reading  QwHitContainer list.
   void  GetrcDETRegion(QwHitContainer &,Int_t );
   //internal function to update the rcDET
@@ -92,6 +94,8 @@ class QwASCIIEventBuffer : public QwEventBuffer
   std::vector< QwHit > fASCIIHits;
 
   std::vector< std::vector< QwDetectorInfo > > fDetectorInfo;//detector geometires
+
+  Int_t DetectorCounter; //counts total detectors added to the rcDET 
 
 
 

@@ -63,8 +63,7 @@ class QwDriftChamberVDC: public QwDriftChamber {
 
  void  ProcessEvent();
 
-  Int_t LoadQweakGeometry(TString mapfile ){
-  };
+  Int_t LoadQweakGeometry(TString mapfile );
  
  protected:
  void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);

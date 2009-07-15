@@ -47,28 +47,34 @@ Int_t QwASCIIEventBuffer::InitrcDETRegion( std::vector< std::vector< QwDetectorI
 
     if (DEBUG1) std::cout<<"Starting InitrcDETRegion "<<std::endl;
     fDetectorInfo=tmp_detector_info;
-    Int_t DetectorCounter=0;
+    DetectorCounter=0;   
 
     for (int j=0;j<fDetectorInfo.size();j++) {
         for (int i=0;i<fDetectorInfo.at(j).size();i++) {
-            if (DEBUG1) std::cout<<" Region "<<fDetectorInfo.at(j).at(i).fRegion<<" ID "<<fDetectorInfo.at(j).at(i).fDetectorID<<" Detector counter "<<DetectorCounter<<" Package "<<fDetectorInfo.at(j).at(i).fPackage << " Plane " << i+1 << " Dir  " << fDetectorInfo.at(j).at(i).fDirection <<std::endl;
+	  if (DEBUG1){	    
+	    //InitrcDETRegion is called for each region to add detectors
+	    std::cout<<" Region "<<fDetectorInfo.at(j).at(i).fRegion<<" ID "<<fDetectorInfo.at(j).at(i).fDetectorID<<" Detector counter "<<DetectorCounter<<" Package "<<fDetectorInfo.at(j).at(i).fPackage << " Plane " << i+1 << " Dir  " << fDetectorInfo.at(j).at(i).fDirection <<std::endl;
+	    
+	  }
             AddDetector(fDetectorInfo.at(j).at(i),DetectorCounter);
             DetectorCounter++;
         }
+	
     }
 
-    // now rcDET is ready.
-    // now linking detectors
+    
+ // now rcDET is ready.
+  // now linking detectors
+  
+  Qset qset;
+  qset.SetNumDetectors(DetectorCounter);
+  qset.LinkDetectors();
+  qset.DeterminePlanes();
+  if (DEBUG1) std::cout<<"Ending InitrcDETRegion "<<"Total detectors "<<DetectorCounter<<std::endl;
 
-    Qset qset;
-    qset.SetNumDetectors(DetectorCounter);
-    qset.LinkDetectors();
-    qset.DeterminePlanes();
-
-    if (DEBUG1) std::cout<<"Ending InitrcDETRegion "<<"Total detectors "<<DetectorCounter<<std::endl;
-
-    return 1;
+  return 1;
 };
+
 
 void  QwASCIIEventBuffer::GetrcDETRegion(QwHitContainer &HitList, Int_t event_no) {
     // List of hits

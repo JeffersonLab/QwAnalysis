@@ -32,7 +32,7 @@ Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile){
   Int_t  chan,  plane, TotalWires,detectorId,region, DIRMODE;
   Double_t Zpos,rot,sp_res, track_res,slope_match,Det_originX,Det_originY,ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin;
 
-  std::vector< QwDetectorInfo >  fDetectorGeom;
+  //std::vector< QwDetectorInfo >  fDetectorGeom;
 
   QwDetectorInfo temp_Detector;
 
@@ -82,18 +82,20 @@ Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile){
       TotalWires = (atol(mapstr.GetNextToken(", ").c_str()));
       detectorId = (atol(mapstr.GetNextToken(", ").c_str()));
       //std::cout<<"Detector ID "<<detectorId<<" "<<varvalue<<" Package "<<package<<" Plane "<<Zpos<<" Region "<<region<<std::endl;
-      temp_Detector.SetDetectorInfo(dType, Zpos, rot, sp_res, track_res, slope_match, package, region, direction, Det_originX, Det_originY, ActiveWidthX, ActiveWidthY, ActiveWidthZ, WireSpace, FirstWire, W_rcos, W_rsin, TotalWires, detectorId);
-      fDetectorGeom.push_back(temp_Detector);
-      if (region==2 && package == "u")
-	fDetectorInfo.at(0).push_back(temp_Detector);
-      else if (region==2 && package == "d")
-	fDetectorInfo.at(1).push_back(temp_Detector);
 
-
+      if (region==2){
+	    temp_Detector.SetDetectorInfo(dType, Zpos, rot, sp_res, track_res, slope_match, package, region, direction, Det_originX, Det_originY, ActiveWidthX, ActiveWidthY, ActiveWidthZ, WireSpace, FirstWire, W_rcos, W_rsin, TotalWires, detectorId);
+	    
+      
+	    if (package == "u")
+	      fDetectorInfo.at(0).push_back(temp_Detector);
+	    else if (package == "d")
+	      fDetectorInfo.at(1).push_back(temp_Detector);
+      }
     }
 
   }
-  std::cout<<"Loaded Qweak Geometry"<<" Total Detectors "<<fDetectorInfo.at(0).size()<< " pkg_d "<<fDetectorInfo.at(1).size()<<std::endl;
+  std::cout<<"Loaded Qweak Geometry"<<" Total Detectors in pkg_d 1 "<<fDetectorInfo.at(0).size()<< " pkg_d 2 "<<fDetectorInfo.at(1).size()<<std::endl;
 
   for(int i=0;i<fDetectorInfo.at(0).size();i++){
     std::cout<<" Region "<<fDetectorInfo.at(0).at(i).fRegion<<" Detector ID "<<fDetectorInfo.at(0).at(i).fDetectorID << std::endl;
@@ -106,7 +108,7 @@ Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile){
 
 
 
-  //create the fWireData vector
+  
 
 
 

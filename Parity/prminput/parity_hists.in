@@ -12,6 +12,8 @@
 delta_event_number            	TH1F	12      -1.5	10.5				EventNumber(actual-previous) Events
 delta_pattern_number   		TH1F	12	-1.5 	10.5 				PatternNumber(actual-previous) Counts
 pattern_phase   		TH1F	11	-1.5 	9.5 				PatternPhase Counts
+pat_phase   			TH1F	11	-1.5 	9.5 				PatternPhase Counts
+hel_pat_phase   		TH1F	11	-1.5 	9.5 				PatternPhase Counts
 helicity			TH1F	5 	-2.5	2.5 				Helicity	Counts
 pattern_polarity		TH1F	5 	-2.5	2.5 				Pattern_polarity Counts
 cleandata			TH1F	5 	-2.5	2.5 				Cleandata	Counts
@@ -19,6 +21,10 @@ scandata1			TH1F	101 	-0.5	100.5 				Scandata1 	Counts
 scandata2			TH1F	101 	-0.5	100.5 				Scandata2	Counts
 scalerheader			TH1F	5 	-2.5	2.5 				ScalerHeader	Counts
 scalercounter			TH1F	189 	-2.5	186.5 				ScalerCounter	Counts
+mps_counter			TH1F	189 	-2.5	186.5 				ScalerCounter	Counts
+hel_mps_counter			TH1F	189 	-2.5	186.5 				ScalerCounter	Counts
+pat_counter			TH1F	189 	-2.5	186.5 				ScalerCounter	Counts
+hel_pat_counter			TH1F	189 	-2.5	186.5 				ScalerCounter	Counts
 userbit				TH1F	5 	-2.5	2.5 				Userbit 	Counts
 input_register			TH1F  12      -1.5	10.5				inputregister Events	
 output_register			TH1F  12      -1.5	10.5				outputregister Events	

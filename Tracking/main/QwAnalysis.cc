@@ -118,6 +118,9 @@ int main(Int_t argc,Char_t* argv[])
   QwDetectors.push_back(new QwDriftChamberHDC("R2"));
   QwDetectors.GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");//this map file was created by Mark Pitt to run actual QWEAK hits -Rakitha (23/10/2008)
 
+  QwDetectors.push_back(new QwDriftChamberVDC("R3"));
+  QwDetectors.GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
+
 
 
 
@@ -125,17 +128,36 @@ int main(Int_t argc,Char_t* argv[])
   ////---------------------------------------------------------
   //Setting up the QTR  for Region 2
   //code to generate rcDET and rcDETRegion
-
+  std::vector< std::vector< QwDetectorInfo > > detector_info;
+  
+  
   subsystem_tmp= (VQwSubsystemTracking *)QwDetectors.GetSubsystem("R2");
   //this will load the detector geometry for Region 2 into QwDetectorInfo list.
   //detector geometry is stored in "qweak_new.geo".
   subsystem_tmp->LoadQweakGeometry("qweak_new.geo");
-  std::vector< std::vector< QwDetectorInfo > > detector_info;
+  //detector geometry in to the detector_info
   subsystem_tmp->GetDetectorInfo(detector_info);
 
 
-  // Currently we have only region 2 geometry into the rcDET & rcDETRegion structures.
+  
+  
+  
+  //Setting up the QTR  for Region 3
+  //code to generate rcDET and rcDETRegion 
+  subsystem_tmp= (VQwSubsystemTracking *)QwDetectors.GetSubsystem("R3");
+  //this will load the detector geometry for Region 3 into QwDetectorInfo list.
+  //detector geometry is stored in "qweak_new.geo".
+  subsystem_tmp->LoadQweakGeometry("qweak_new.geo"); 
+  //detector geometry in to the detector_info
+  subsystem_tmp->GetDetectorInfo(detector_info);
+
+  
+
+  // Add  geometry details of all the detectors  into the rcDET & rcDETRegion structures.
   AsciiEvents1.InitrcDETRegion(detector_info);
+ 
+  
+  ////---------------------------------------------------------
 
   // Disable 'fake' detectors in region 2 cosmic data:
   //   third and fourth plane for region 2 direction X, U, V
@@ -160,8 +182,7 @@ int main(Int_t argc,Char_t* argv[])
 
 
 
-  QwDetectors.push_back(new QwDriftChamberVDC("R3"));
-  QwDetectors.GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
+  
 
 
   QwDetectors.push_back(new QwTriggerScintillator("TS"));

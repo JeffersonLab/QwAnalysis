@@ -31,6 +31,96 @@ QwDriftChamberVDC::QwDriftChamberVDC(TString region_tmp): QwDriftChamber(region_
   OK=0;
 };
 
+Int_t QwDriftChamberVDC::LoadQweakGeometry(TString mapfile){
+  std::cout<<"Region 3 Qweak Geometry Loading..... "<<std::endl;
+
+  TString varname, varvalue,package, direction,dType;
+  Int_t  chan,  plane, TotalWires,detectorId,region, DIRMODE;
+  Double_t Zpos,rot,sp_res, track_res,slope_match,Det_originX,Det_originY,ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin;
+
+  //std::vector< QwDetectorInfo >  fDetectorGeom;
+
+  QwDetectorInfo temp_Detector;
+
+  fDetectorInfo.clear();
+  fDetectorInfo.resize(kNumPackages);
+  Int_t pkg,pln;
+
+  DIRMODE=0;
+
+
+
+  QwParameterFile mapstr(mapfile.Data());  //Open the file
+
+  while (mapstr.ReadNextLine()){
+    mapstr.TrimComment('!');   // Remove everything after a '!' character.
+    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+    if (mapstr.LineIsEmpty())  continue;
+
+    if (mapstr.HasVariablePair("=",varname,varvalue)){
+      //  This is a declaration line.  Decode it.
+      varname.ToLower();
+      //UInt_t value = atol(varvalue.Data());
+      if (varname=="name"){//Beginning of detector information
+	DIRMODE=1;
+      }
+    } else if (DIRMODE==1){
+      //  Break this line into tokens to process it.
+      varvalue = (mapstr.GetNextToken(", ").c_str());//this is the sType
+      Zpos = (atof(mapstr.GetNextToken(", ").c_str()));
+      rot = (atof(mapstr.GetNextToken(", ").c_str()));
+      sp_res = (atof(mapstr.GetNextToken(", ").c_str()));
+      track_res = (atof(mapstr.GetNextToken(", ").c_str()));
+      slope_match = (atof(mapstr.GetNextToken(", ").c_str()));
+      package = mapstr.GetNextToken(", ").c_str();
+      region  = (atol(mapstr.GetNextToken(", ").c_str()));
+      dType = mapstr.GetNextToken(", ").c_str();
+      direction  = mapstr.GetNextToken(", ").c_str();
+      Det_originX = (atof(mapstr.GetNextToken(", ").c_str()));
+      Det_originY = (atof(mapstr.GetNextToken(", ").c_str()));
+      ActiveWidthX = (atof(mapstr.GetNextToken(", ").c_str()));
+      ActiveWidthY = (atof(mapstr.GetNextToken(", ").c_str()));
+      ActiveWidthZ = (atof(mapstr.GetNextToken(", ").c_str()));
+      WireSpace = (atof(mapstr.GetNextToken(", ").c_str()));
+      FirstWire = (atof(mapstr.GetNextToken(", ").c_str()));
+      W_rcos = (atof(mapstr.GetNextToken(", ").c_str()));
+      W_rsin = (atof(mapstr.GetNextToken(", ").c_str()));
+      TotalWires = (atol(mapstr.GetNextToken(", ").c_str()));
+      detectorId = (atol(mapstr.GetNextToken(", ").c_str()));
+      //std::cout<<"Detector ID "<<detectorId<<" "<<varvalue<<" Package "<<package<<" Plane "<<Zpos<<" Region "<<region<<std::endl;
+
+      if (region==3){
+	    temp_Detector.SetDetectorInfo(dType, Zpos, rot, sp_res, track_res, slope_match, package, region, direction, Det_originX, Det_originY, ActiveWidthX, ActiveWidthY, ActiveWidthZ, WireSpace, FirstWire, W_rcos, W_rsin, TotalWires, detectorId);
+	    
+      
+	    if (package == "u")
+	      fDetectorInfo.at(0).push_back(temp_Detector);
+	    else if (package == "d")
+	      fDetectorInfo.at(1).push_back(temp_Detector);
+      }
+    }
+
+  }
+  std::cout<<"Loaded Qweak Geometry"<<" Total Detectors in pkg_d 1 "<<fDetectorInfo.at(0).size()<< " pkg_d 2 "<<fDetectorInfo.at(1).size()<<std::endl;
+
+  for(int i=0;i<fDetectorInfo.at(0).size();i++){
+    std::cout<<" Region "<<fDetectorInfo.at(0).at(i).fRegion<<" Detector ID "<<fDetectorInfo.at(0).at(i).fDetectorID << std::endl;
+  }
+  for(int i=0;i<fDetectorInfo.at(1).size();i++){
+    std::cout<<" Region "<<fDetectorInfo.at(1).at(i).fRegion<<" Detector ID " << fDetectorInfo.at(1).at(i).fDetectorID << std::endl;
+  }
+
+  std::cout<<"Qweak Geometry Loaded "<<std::endl;
+
+
+
+ 
+
+
+
+  return OK;
+}
+
 
 
 

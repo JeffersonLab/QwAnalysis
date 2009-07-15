@@ -58,8 +58,8 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   //LoadQweakGeometry will load QwDetectorInfo vector from a map file
   //Currently this method is specific to each region
   virtual Int_t LoadQweakGeometry(TString mapfile )=0;
-  Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info){
-    detector_info=fDetectorInfo;
+  Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info){//will update the detector_info from the fDetectorInfo data.
+    detector_info.insert(detector_info.end(),fDetectorInfo.begin(),fDetectorInfo.end()) ;
     return 1;
   };
   virtual Int_t LoadInputParameters(TString mapfile){return 0;};
