@@ -659,7 +659,7 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 
 	    // Get the hit list for this package/region/direction
 	    QwHitContainer *sublist = hitlist->GetSubList_Dir(region, package, dir);
-	    sublist->Print();
+	    if (fDebug) sublist->Print();
 
 	    if (fDebug) cout << "Sort patterns" << endl;
             if (fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
@@ -721,10 +721,10 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	event->parttrack[package][region][type] = parttrack;
 
         if (parttrack) {
-	  parttrack->Print();
+	  if (fDebug) parttrack->Print();
           ngood++;
         } else {
-          cout << "Couldn't find a good partial track." << endl;
+          cout << "Couldn't find a good partial track in region " << region << endl;
           nbad++;
         }
 

@@ -50,9 +50,31 @@ class QwTrackingTreeLine {
      ~QwTrackingTreeLine();
 
     bool IsVoid() { return isvoid; };
+    bool IsNotVoid() { return ! isvoid; };
     bool IsUsed() { return isused; };
+    bool IsNotUsed() { return ! isused; };
 
-    void Print();
+    void Print() {
+      if (!this) return;
+      std::cout << *this << std::endl;
+      next->Print();
+    }
+
+    friend ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl) {
+      stream << "tl: ";
+      stream << tl.a_beg << ", " << tl.a_end << " -- ";
+      stream << tl.b_beg << ", " << tl.b_end;
+      if (tl.chi > 0.0) { // treeline has been fitted
+        stream << "; hits:";
+        for (int hit = 0; hit < tl.numhits; hit++)
+          stream << " " << tl.hits[hit]->GetElement();
+        stream << ", cx = " << tl.cx;
+        stream << ", mx = " << tl.mx;
+        stream << ", chi = " << tl.chi;
+      }
+      if (tl.isvoid) stream << " (void)";
+      return stream;
+    };
 
     double GetPositionFirst (double binwidth) {
       return 0.5 * (a_beg + a_end) * binwidth;

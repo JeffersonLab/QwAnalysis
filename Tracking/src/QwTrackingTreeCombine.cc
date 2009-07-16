@@ -1254,7 +1254,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
       }
     }
   }
-  treelinelist->Print();
+  if (fDebug) treelinelist->Print();
 
   /* Sort tracks */
   QwTrackingTreeSort* treesort = new QwTrackingTreeSort(); treesort->SetDebugLevel(fDebug);
@@ -1754,7 +1754,7 @@ int QwTrackingTreeCombine::TcTreeLineCombine2(QwTrackingTreeLine *wu, QwTracking
     fprintf(stderr,"hrc: QwPartialTrack Fit Failed\n");
     return 0;
   }
-  cout << "Ntotal = " << ntotal << endl;
+  if (fDebug) cout << "Ntotal = " << ntotal << endl;
   //#########################
   // Record the fit results #
   //#########################
@@ -1958,7 +1958,7 @@ int QwTrackingTreeCombine::TcTreeLineCombine (
   //cerr << "5" << endl;
 
   //Put the fit parameters into the particle track using the lab frame now
-  cout << "Ntotal = " << ntotal << endl;
+  if (fDebug) cout << "Ntotal = " << ntotal << endl;
   pt->x  = fit[2];
   pt->y  = fit[0];
   pt->mx = fit[3];
@@ -2027,7 +2027,7 @@ double xy2v (double x, double y)
 
 
 */
-QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
+QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	QwTrackingTreeLine *uvl[kNumDirections],
 	long bins,
 	EQwDetectorPackage package,
@@ -2043,6 +2043,15 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
   // DECLARATIONS  #
   //################
   QwPartialTrack *ret = 0;
+  int nPartialTracks = 0;
+
+  const int MAXIMUM_PARTIAL_TRACKS = 50;
+
+  // TODO This should return a std::vector of QwPartialTrack pointers
+  // This is already filled, but not returned yet, because whatever is
+  // calling this is not ready for it yet.
+  std::vector<QwPartialTrack*> parttracklist;
+
   int in_acceptance;
 
   double zx1, zx2;
@@ -2123,6 +2132,8 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
 	    ta->pathlenslo = 0;
             ta->next = ret; // string together the
 	    ret = ta;       // good tracks
+
+	    parttracklist.push_back(ta);
 	}
 
 	// Check whether this track went through the trigger and/or
@@ -2171,7 +2182,7 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
 
     // Get the u track
     QwTrackingTreeLine *wu = uvl[kDirectionU];
-    while (wu) {
+    while (wu && nPartialTracks < MAXIMUM_PARTIAL_TRACKS) {
       if (wu->isvoid) { // skip this treeline if it was no good
 	wu = wu->next;
 	continue;
@@ -2240,7 +2251,7 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
 
 	// Store found partial track (or null)
 	QwPartialTrack *ta = new QwPartialTrack();
-
+	nPartialTracks++;
 
 //cerr << "2" << endl;
 	if (best_wx)
@@ -2256,17 +2267,22 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
 	    ta->pathlenslo = 0;
             ta->next = ret; // string together the
 	    ret = ta;       // good tracks
+	    parttracklist.push_back(ta);
+
 //cerr << "8";
 	  }
 	} else {
-          cerr << "not close enough " << minimum << ',' << MaxXRoad << ',' << in_acceptance << endl;
+          if (fDebug) cout << "not close enough " << minimum << ',' << MaxXRoad << ',' << in_acceptance << endl;
         }
 //cerr << "3" << endl;
         wv = wv->next;
       }
       wu = wu->next;
     }
-//cerr << "9" << endl;
+
+    if (nPartialTracks >= MAXIMUM_PARTIAL_TRACKS)
+      std::cout << "Wow, that's a lot of partial tracks!" << std::endl;
+
     return ret;
 
 

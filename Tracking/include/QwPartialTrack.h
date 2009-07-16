@@ -35,17 +35,15 @@ class QwPartialTrack {
 
     void Print() {
       if (!this) return;
-      std::cout << "coord(x,y) = (" << x  << ", " << y  << ")" << std::endl;
-      std::cout << "slope(x,y) = (" << mx << ", " << my << ")" << std::endl;
-      std::cout << "status = " << (isvoid ? "void" : "valid") << std::endl;
-      next->Print();
+      std::cout << *this << std::endl;
+      if (next) next->Print();
     }
 
     friend ostream& operator<< (ostream& stream, const QwPartialTrack& pt) {
-      stream << "partial track: ";
+      stream << "pt: ";
       stream << "(x,y) = (" << pt.x  << ", " << pt.y  << "), ";
       stream << "d(x,y) = (" << pt.mx << ", " << pt.my << ") ";
-      stream << "(" << (pt.isvoid ? "void" : "valid") << ")";
+      if (pt.isvoid) stream << " (void)";
       return stream;
     };
 

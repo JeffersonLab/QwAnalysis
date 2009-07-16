@@ -129,8 +129,8 @@ int main(Int_t argc,Char_t* argv[])
   //Setting up the QTR  for Region 2
   //code to generate rcDET and rcDETRegion
   std::vector< std::vector< QwDetectorInfo > > detector_info;
-  
-  
+
+
   subsystem_tmp= (VQwSubsystemTracking *)QwDetectors.GetSubsystem("R2");
   //this will load the detector geometry for Region 2 into QwDetectorInfo list.
   //detector geometry is stored in "qweak_new.geo".
@@ -139,24 +139,24 @@ int main(Int_t argc,Char_t* argv[])
   subsystem_tmp->GetDetectorInfo(detector_info);
 
 
-  
-  
-  
+
+
+
   //Setting up the QTR  for Region 3
-  //code to generate rcDET and rcDETRegion 
+  //code to generate rcDET and rcDETRegion
   subsystem_tmp= (VQwSubsystemTracking *)QwDetectors.GetSubsystem("R3");
   //this will load the detector geometry for Region 3 into QwDetectorInfo list.
   //detector geometry is stored in "qweak_new.geo".
-  subsystem_tmp->LoadQweakGeometry("qweak_new.geo"); 
+  subsystem_tmp->LoadQweakGeometry("qweak_new.geo");
   //detector geometry in to the detector_info
   subsystem_tmp->GetDetectorInfo(detector_info);
 
-  
+
 
   // Add  geometry details of all the detectors  into the rcDET & rcDETRegion structures.
   AsciiEvents1.InitrcDETRegion(detector_info);
- 
-  
+
+
   ////---------------------------------------------------------
 
   // Disable 'fake' detectors in region 2 cosmic data:
@@ -176,13 +176,13 @@ int main(Int_t argc,Char_t* argv[])
   std::cout << "[QwAnalysis::main] Options loaded" << std::endl; // R3,R2
 
   QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
-  trackingworker->SetDebugLevel(1);
+  trackingworker->SetDebugLevel(0);
   //--------------------------------------
 
 
 
 
-  
+
 
 
   QwDetectors.push_back(new QwTriggerScintillator("TS"));
@@ -303,9 +303,11 @@ int main(Int_t argc,Char_t* argv[])
       if      (eventbuffer.GetEventNumber() < cmdline.GetFirstEvent()) continue;
       else if (eventbuffer.GetEventNumber() > cmdline.GetLastEvent()) break;
 
-      if(eventbuffer.GetEventNumber()%1000==0) {
+      if(eventbuffer.GetEventNumber() % 100 == 0) {
 	std::cerr << "Number of events processed so far: "
 		  << eventbuffer.GetEventNumber() << "\r";
+	std::cout << "Number of good partial tracks found: "
+		  << trackingworker->ngood << std::endl;
       }
 
       //  Fill the subsystem objects with their respective data for this event.
@@ -343,7 +345,7 @@ int main(Int_t argc,Char_t* argv[])
       AsciiEvents1.GetrcDETRegion(grandHitList,evnum);
 
       // Print hit list
-      grandHitList.Print();
+      //grandHitList.Print();
 
       // Process the hit list through the tracking worker (i.e. do track reconstruction)
       QwEvent *event = trackingworker->ProcessHits(&grandHitList);
@@ -353,8 +355,9 @@ int main(Int_t argc,Char_t* argv[])
       QwPartialTrack* listoftracks = event->parttrack[kPackageUp][kRegionID2][kTypeDriftHDC];
       for (QwPartialTrack* track = listoftracks;
                            track; track = track->next) {
-        track->Print();
+        cout << *track << endl;
       } // but unfortunately this is still void
+      cout << "---" << endl;
       delete listoftracks;
       delete event;
 

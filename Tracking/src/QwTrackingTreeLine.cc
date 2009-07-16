@@ -71,25 +71,3 @@ QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _
 QwTrackingTreeLine::~QwTrackingTreeLine() { }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-void QwTrackingTreeLine::Print()
-{
-  if (!this) return;
-  std::cout << "TreeLine: ";
-  std::cout << a_beg << ", " << a_end;
-  std::cout << " -- ";
-  std::cout << b_beg << ", " << b_end;
-  if (chi > 0.0) { // treeline has been fitted
-    std::cout << "; hits:";
-    for (int hit = 0; hit < numhits; hit++)
-      std::cout << " " << hits[hit]->GetElement();
-    std::cout << ", cx = " << cx;
-    std::cout << ", mx = " << mx;
-    std::cout << ", chi = " << chi;
-  }
-  if (isvoid) std::cout << " (void)";
-  std::cout << std::endl;
-  next->Print();
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

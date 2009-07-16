@@ -54,15 +54,20 @@ QwTrackingTreeSort::~QwTrackingTreeSort ()
  * checks for connected lines on the connectivity array
  * ====================================================================== */
 
-int QwTrackingTreeSort::connectiv( char *ca, int *array, int *isvoid, char size, int idx )
+int QwTrackingTreeSort::connectiv (
+	char *ca,
+	int *array,
+	int *isvoid,
+	char size,
+	int idx)
 {
-  	int ret, j;
-  	idx *= size;
-  	for( ret = j = 0; j < size; j++ ) {
-    		if( array[j+idx] && (!ca || ca[j]) && isvoid[j] != true)
-      			ret ++;
-  	}
-  	return ret;
+  int ret = 0;
+  idx *= size;
+  for (int j = 0; j < size; j++) {
+    if (array[j+idx] && (!ca || ca[j]) && isvoid[j] != true)
+      ret++;
+  }
+  return ret;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -86,9 +91,9 @@ double QwTrackingTreeSort::chiweight (QwTrackingTreeLine *treeline)
 double QwTrackingTreeSort::ptchiweight (QwPartialTrack *pt)
 {
   double fac;
-  if (pt->numhits > pt->nummiss)
-    fac = (double) (pt->numhits + pt->nummiss)
-                 / (pt->numhits - pt->nummiss);
+  if (pt->numhits >= pt->nummiss)
+    fac = (double) (pt->numhits + pt->nummiss + 1)
+                 / (pt->numhits - pt->nummiss + 1);
   else {
     cerr << "miss = " << pt->nummiss << ", hit = " << pt->numhits << endl;
     return 100.0; // This is bad...
@@ -98,7 +103,12 @@ double QwTrackingTreeSort::ptchiweight (QwPartialTrack *pt)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeSort::connectarray (char *ca, int *array, int *isvoid, char size, int idx )
+int QwTrackingTreeSort::connectarray (
+	char *ca,
+	int *array,
+	int *isvoid,
+	char size,
+	int idx)
 {
   memset (ca, 0, size);
   ca[idx] = 1;
@@ -171,54 +181,64 @@ void QwTrackingTreeSort::bestunconnected (
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeSort::globalconnectiv (char *ca, int *array, int *isvoid, int size, int idx)
+int QwTrackingTreeSort::globalconnectiv (
+	char *ca,
+	int *array,
+	int *isvoid,
+	int size,
+	int idx)
 {
-  	int i, max = 0, c;
-  	bool old;
+  int i, max = 0, c;
+  bool old;
 
-  	old = isvoid[idx];
-  	isvoid[idx] = false;
+  old = isvoid[idx];
+  isvoid[idx] = false;
 
-  	for(i = 0; i < size; i++ ) {
-    		if( isvoid[i] != true ) {
-      			c = connectiv( ca, array, isvoid, size, i);
-      			if( c > max )
-				max = c;
-    		}
-  	}
-  	isvoid[idx] = old;
-  	return max;
+  for(i = 0; i < size; i++ ) {
+    if( isvoid[i] != true ) {
+      c = connectiv( ca, array, isvoid, size, i);
+      if( c > max )
+        max = c;
+    }
+  }
+  isvoid[idx] = old;
+  return max;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeSort::bestconnected (char *ca, int *array, int *isvoid, double *chia,
-	       int size, int idx)
+int QwTrackingTreeSort::bestconnected (
+	char *ca,
+	int *array,
+	int *isvoid,
+	double *chia,
+	int size,
+	int idx)
 {
   int besti = -1;
   double bestchi = 1e8, oworst = 0.0;
   double chi;
 
-  for(int i = idx; i<size; i++ ) {
-    if( !ca[i] )
+  for (int i = idx; i < size; i++) {
+    if (! ca[i])
       continue;
     chi = chia[i];
-    if( isvoid[i] != true) {
+    if (isvoid[i] != true) {
 
-      if( oworst < chi )
+      if (oworst < chi)
 	oworst = chi;
       continue;
     }
-    if( globalconnectiv( ca, array, isvoid, size, i) > 2 )
+    if (globalconnectiv (ca, array, isvoid, size, i) > 2)
       continue;
 
-    if( bestchi > chi ) {
+    if (bestchi > chi) {
       besti = i;
       bestchi = chi;
     }
   }
-  if( besti >= 0 && (3.0 > bestchi || oworst + 3.0 > bestchi )) {
-    isvoid[besti] = good;//good
+  if (besti >= 0 && (3.0 > bestchi || oworst + 3.0 > bestchi)) {
+    isvoid[besti] = good; // good
     return 1;
   }
   return 0;
@@ -333,211 +353,251 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-/* This function simply counts the number of common wires
-shared between two treelines.  The only output is the integer
-return value
-*/
-int QwTrackingTreeSort::rcCommonWires (QwTrackingTreeLine *line1, QwTrackingTreeLine *line2 )
+/*------------------------------------------------------------------------*//*!
+
+ \brief Counts the number of common wires shared between two tree lines.
+
+ The return value is the an integer score between 0 and 100, where 100 means
+ that all wires are common.  One tree line as subset of the other will result
+ in a score of 100.  The tree lines are not modified by this function.
+
+*//*-------------------------------------------------------------------------*/
+int QwTrackingTreeSort::rcCommonWires (
+	QwTrackingTreeLine *treeline1, //!- first tree line
+	QwTrackingTreeLine *treeline2) //!- second tree line
 {
-  //cerr << "ERROR : This function needs editing before use" << endl;
+  // Get the lists of hits associated with the two tree lines
+  QwHit **hits1  = treeline1->hits;
+  QwHit **hits2  = treeline2->hits;
 
-  //################
-  // DECLARATIONS  #
-  //################
-  int total1, total2, common, total;
-  QwHit **hits1, **hits2;
-  int  i1, i2, fw = 3;
+  // A two-bit pattern indicates on which treeline we should advance in the
+  // next iteration of the search.  This assumes that the detectors are ordered.
+  int fw = 3;
+  // E.g. fw = (decimal) 3 = (binary) 11: this means that we should advance on
+  // both treeline 1 and treeline 2.
 
-  //##################
-  //DEFINE VARIABLES #
-  //##################
-  common = total1 = total2 = 0;
-  i1 = i2 = -1;
-  hits1  = line1->hits;
-  hits2  = line2->hits;
+  int common = 0; // number of common hits
+  int total1 = 0, total2 = 0; // total number of hits on the tree lines
 
-  //##################
-  //DO STUFF #
-  //##################
+  // Infinite loop over the entries in both lists
+  int i1 = -1, i2 = -1;
   for (;;) {
-    if (fw & 1) { /* Set i1 equal to the index of the next hit used in line1 */
+
+    // Advance on tree line 1
+    if (fw & 1) {
       i1++;
+      // Advance until we reach the end of the list or find a hit
       for ( ; i1 < DLAYERS*MAXHITPERLINE && hits1[i1]; i1++)
 	if (hits1[i1]->isused) {
 	  total1++;
 	  break;
 	}
     }
-    if (fw & 2) { /* Set i2 equal to the index of the next hit used in line2 */
+
+    // Advance on tree line 2
+    if (fw & 2) {
       i2++;
+      // Advance until we reach the end of the list or find a hit
       for ( ; i2 < DLAYERS*MAXHITPERLINE && hits2[i2]; i2++)
 	if (hits2[i2]->isused) {
 	  total2++;
 	  break;
 	}
     }
-    if (i1 == DLAYERS*MAXHITPERLINE || ! hits1[i1] ||
-	i2 == DLAYERS*MAXHITPERLINE || ! hits2[i2])
-      break; /* break if we reach the end of the hits in either line */
-    //-----------------------------------------------------------
-    //The following lines separate hits in different detectors
-    const int did1 = hits1[i1]->GetDetectorInfo()->GetID();
-    const int did2 = hits2[i2]->GetDetectorInfo()->GetID();
 
-    if (did1 < did2)
+    // End condition: if we reach the end of the hits in either line
+    // either because we reach the maximum, or because we read a null hit
+    if (i1 == DLAYERS * MAXHITPERLINE || ! hits1[i1]
+     || i2 == DLAYERS * MAXHITPERLINE || ! hits2[i2])
+      break;
+
+    // Now that we have a hit in tree line 1 and 2, determine the detector ID
+    int id1 = hits1[i1]->GetDetectorInfo()->GetID();
+    int id2 = hits2[i2]->GetDetectorInfo()->GetID();
+    // If the ID in treeline 1 is lower, advance on treeline 1
+    if (id1 < id2)
       fw = 1;
-    else if (did1 > did2)
+    // If the ID in treeline 2 is lower, advance on treeline 2
+    else if (id1 > id2)
       fw = 2;
+    // If both IDs are the same, check whether also the same wires were hit
     else {
       if (hits1[i1]->GetElement() == hits2[i2]->GetElement())
-	common++;
+        common++; // This is a common hit! (disregarding L/R ambiguity)
+      // and then advance on both treelines
       fw = 3;
     }
-    //-----------------------------------------------------------
-  }
 
-  //##################
-  //DO STUFF #
-  //##################
-  total = total1 > total2 ? total2 : total1;
+  } // end of infinite loop
 
-  if (! total)
-    return 0;
 
+  // Determine the smallest number of used hits for the two treelines
+  int total = total1 > total2 ? total2 : total1;
+  // and return 0 if there was a treeline without any used hits
+  if (total == 0) return 0;
+
+  // else return a value between 0 and 100
   return (10000 * common / total + 50 ) / 100;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *treelinelist, EQwRegionID region)
+/*------------------------------------------------------------------------*//*!
+
+ \brief The best (by chi^2) treelines are select
+
+*//*-------------------------------------------------------------------------*/
+int QwTrackingTreeSort::rcTreeConnSort (
+	QwTrackingTreeLine *treelinelist,	//!- list of tree lines
+	EQwRegionID region)			//!- region
 {
-  //################
-  // DECLARATIONS  #
-  //################
-  int num, bestconn, common;
+  // Maximum allowed chi value (was 20000.0)
+  double maxchi = 35000.0;
+
+
+  /* Reduce the number of treelines
+   * - by removing treelines with high chi values
+   * - by reducing the maximum allowed chi^2 value if necessary
+   */
+  int index = 0;
   int iteration = 0;
-  int num_tl = 0;
-  double chi, nmaxch, nminch;
-  double maxchi = 35000.0; // maximum allowed chi^2 (was 20000.0)
+  int nTooManyTreeLines = 0;
+  do {
+    double local_maxchi = 0.0;
+    double local_minchi = maxchi;
 
-  //DBG = DEBUG & D_GRAPH;
-
-/* ----------------------------------------------------------------------
- * find the number of used treelines
- * ---------------------------------------------------------------------- */
-
-  int idx = 0;
-  do {				/* filter out high chi2 if needed */
-    nmaxch = 0.0;
+    // Keep track of the number of iterations
     iteration++;
 
-    nminch = maxchi;
-    idx = 0;
-    for (QwTrackingTreeLine* treeline = treelinelist; treeline;
-         treeline = treeline->next) {
-      if (iteration > 100 ) {	/* skip the event */
+    index = 0;
+    // Loop over the list of treelines
+    for (QwTrackingTreeLine* treeline = treelinelist;
+         treeline; treeline = treeline->next) {
+
+      // If we have been doing this for too long already, give up already
+      if (iteration > 100 ) {
 	treeline->isvoid = true;
-	num_tl++;
-      }
-      else if (treeline->isvoid == false) {
-	chi = chiweight (treeline);
+	nTooManyTreeLines++;
+
+      // Otherwise consider valid treelines
+      } else if (treeline->isvoid == false) {
+	// Get weighted chi
+	double chi = chiweight (treeline);
+
+	// Discard the treeline if chi is too large
 	if (chi > maxchi) {
-	  cerr << "[QwTrackingTreeSort::rcTreeConnSort] chi^2 too high: " << chi << " > " << maxchi << endl;
+	  if (fDebug) cout << "Tree line void because chi^2 too high: " << chi << " > " << maxchi << endl;
 	  treeline->isvoid = true;
+
+	// Otherwise consider this treeline
 	} else {
-	  if (chi > nmaxch) {
-	    nmaxch = chi;
+	  // Keep track of smallest and largest chi value
+	  if (chi > local_maxchi) {
+	    local_maxchi = chi;
 	  }
-	  if (chi < nminch) {
-	    nminch = chi;
+	  if (chi < local_minchi) {
+	    local_minchi = chi;
 	  }
-	  idx++;
+	  index++;
 	}
       }
-    }
-    maxchi = nminch + (nmaxch - nminch) * 0.66;
-  } while (idx > 30 ); // 30?!? should probably reduce this
+    } // end of loop over the list of tree lines
 
-  num = idx;
-  if (fDebug) cout << "Number of treelines with reasonable chi^2: " << num << endl;
-  if (num_tl) {
-    std::cout << "Skipping event because of 0 good treelines." << std::endl;
+    // Reduce search range to two thirds of range found
+    maxchi = local_minchi + (local_maxchi - local_minchi) * 0.66;
+    // until we have fewer track
+  } while (index > 30 );
+  // Number of treelines
+  int nTreeLines = index;
+
+  // Skip this event if we had no or too many tree lines.
+  if (nTooManyTreeLines != 0) {
+    if (fDebug) std::cout << "Skipping event, too many treelines." << std::endl;
     return 0;
   }
-  if (! num) {
-    std::cout << "Skipping event because of 0 good treelines." << std::endl;
+  if (nTreeLines == 0) {
+    if (fDebug) std::cout << "Skipping event, no good treelines." << std::endl;
     return 0;
   }
+  if (fDebug) cout << "Number of treelines with good chi: " << nTreeLines << endl;
 
-  // the following mallocs replaced Qmallocs
-  char* connarr = (char*) malloc (num);
-  int*  isvoid  = (int*) malloc (num * sizeof(int));
-  double* chia  = (double*) malloc (num * sizeof(double));
-  int*  array   = (int*) malloc (num*num*sizeof(int));
-  QwTrackingTreeLine **tlarr = (QwTrackingTreeLine**) malloc (sizeof(QwTrackingTreeLine*)*num);
 
-  assert (array && tlarr);
 
-  /* ----------------------------------------------------------------------
-  * find the used treelines
-  * ---------------------------------------------------------------------- */
+  /* Now add the valid treelines to new lists */
 
-  idx = 0;
-  for (QwTrackingTreeLine* treeline = treelinelist; treeline;
-       treeline = treeline->next) {
+  // Reserve memory for the lists of treelines
+  char* connarr = (char*)   malloc (nTreeLines);
+  int*   isvoid = (int*)    malloc (nTreeLines * sizeof(int));
+  double*   chi = (double*) malloc (nTreeLines * sizeof(double));
+  int*    array = (int*)    malloc (nTreeLines * nTreeLines * sizeof(int));
+  QwTrackingTreeLine **tlarr = (QwTrackingTreeLine**) malloc (nTreeLines * sizeof(QwTrackingTreeLine*));
+
+  // Loop over the treelines and store valid treelines in new list
+  index = 0;
+  for (QwTrackingTreeLine* treeline = treelinelist;
+       treeline; treeline = treeline->next) {
     if (treeline->isvoid == false) {
-      tlarr[idx]  = treeline;
-      isvoid[idx] = treeline->isvoid;
-      chia[idx]   = chiweight(treeline);
-      idx++;
+      tlarr[index]  = treeline;
+      isvoid[index] = treeline->isvoid;
+      chi[index]    = chiweight(treeline);
+      index++;
     }
-  }
+  } // end of loop over treelines
 
-  /* ----------------------------------------------------------------------
-  * build the graph array
-  * ---------------------------------------------------------------------- */
+
+  /* Build the graph array:
+   *  for every accepted tree line, store in a matrix which two tree lines
+   *  shares at least one quarter of the hit wires with eachother.
+   *
+   * E.g. for three tree lines where tl1 and tl3 share enough hits:
+   *  | 0 0 1 |
+   *  | 0 0 0 |
+   *  | 1 0 0 |
+   *
+   * The matrix is stored in serialized form.
+   */
   if (region == kRegionID3) {
-    for (int i = 0; i < num; i++) {
-      array[i*num+i] = 0;
-      for (int j = i+1; j < num; j++) {
-	common = rcCommonWires_r3 (tlarr[i], tlarr[j]);
-	array[i*num+j] = array[j*num+i] = (common > 25); // this is true if
-	// one of the two lines shares at least 1/4 of its wires with the other line
+    for (int i = 0; i < nTreeLines; i++) {
+      array[i * nTreeLines + i] = false; // diagonals are set to false
+      for (int j = i+1; j < nTreeLines; j++) {
+        int common = rcCommonWires_r3 (tlarr[i], tlarr[j]);
+        array[i * nTreeLines + j] = array[j * nTreeLines + i] = (common > 25);
       }
     }
-  } else {
-    for (int i = 0; i < num; i++) {
-      array[i*num+i] = 0;
-      for (int j = i+1; j < num; j++) {
-        array[i*num+j] = array[j*num+i] = (rcCommonWires (tlarr[i], tlarr[j]) > 25);// 25?!?
+  } else { /* region == kRegionID2 */
+    for (int i = 0; i < nTreeLines; i++) {
+      array[i * nTreeLines + i] = false;
+      for (int j = i+1; j < nTreeLines; j++) {
+        int common = rcCommonWires (tlarr[i], tlarr[j]);
+        array[i * nTreeLines + j] = array[j * nTreeLines + i] = (common > 25);
       }
     }
   }
 
   /* --------------------------------------------------------------------
-  * check connectivity
+  * check connectivity (?)
   * -------------------------------------------------------------------- */
-  for (int i = 0; i < num; ) {
+  for (int i = 0; i < nTreeLines; ) {
     if (isvoid[i] == false ) {
-      bestconn =  connectiv( 0, array, isvoid, num, i);
+      int bestconn = connectiv (0, array, isvoid, nTreeLines, i);
       if (bestconn > 0) {
-	if (connectarray (connarr, array, isvoid, num, i)) continue;
-	bestunconnected (connarr, array, isvoid, chia, num, i);
+	if (connectarray (connarr, array, isvoid, nTreeLines, i)) continue;
+	bestunconnected (connarr, array, isvoid, chi, nTreeLines, i);
       } else {
 	isvoid[i] = good; // good
       }
     } else
       i++;
   }
-  for (int i = 0; i < num; i++) {
+  for (int i = 0; i < nTreeLines; i++) {
     if (isvoid[i] == true) {
-      if (connectiv (0, array, isvoid, num, i)) {
-	connectarray (connarr, array, isvoid, num, i);
-	bestconnected (connarr, array, isvoid, chia, num, i);
+      if (connectiv (0, array, isvoid, nTreeLines, i)) {
+	connectarray (connarr, array, isvoid, nTreeLines, i);
+	bestconnected (connarr, array, isvoid, chi, nTreeLines, i);
       }
     }
   }
-  for (int i = 0; i < num; i++) {
+  for (int i = 0; i < nTreeLines; i++) {
     if (isvoid[i] != true) {
       tlarr[i]->isvoid = false;
     } else {
@@ -546,7 +606,7 @@ int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *treelinelist, EQwReg
   }
 
   // Free malloc'ed arrays
-  free(chia);
+  free(chi);
   free(connarr);
   free(array);
   free(isvoid);
@@ -557,11 +617,11 @@ int QwTrackingTreeSort::rcTreeConnSort (QwTrackingTreeLine *treelinelist, EQwReg
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *head)
+int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
 {
   char *connarr;
   int *array;
-  QwPartialTrack **ptarr, *walk;
+  QwPartialTrack **ptarr, *parttrack;
   int num, idx, i, j, bestconn;
   int  *isvoid;
   double   *chia, chi, maxch = 200.0, nmaxch, nminch;
@@ -569,16 +629,15 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *head)
    * find the number of used QwPartialTracks
    * ------------------------------------------------------------------ */
 
-  //DBG = DEBUG & D_GRAPHP;
-
   do {        /* filter out high chi2 if needed */
     nmaxch = 0.0;
     nminch = maxch;
-    for (idx = 0, walk = head; walk; walk = walk->next) {
-      if (walk->isvoid == false ) {
-        chi = ptchiweight(walk);
+    for (idx = 0, parttrack = parttracklist;
+         parttrack; parttrack = parttrack->next) {
+      if (parttrack->isvoid == false ) {
+        chi = ptchiweight(parttrack);
         if (chi > maxch) {
-          walk->isvoid = true;
+          parttrack->isvoid = true;
         } else {
           if (chi > nmaxch) {
             nmaxch = chi;
@@ -621,11 +680,12 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *head)
    * find the used parttracks
    * ---------------------------------------------------------------------- */
 
-  for (idx = 0, walk = head; walk; walk = walk->next) {
-    if (walk->isvoid == false) {
-      ptarr[idx]  = walk;
-      isvoid[idx] = walk->isvoid;
-      chia[idx]   = ptchiweight(walk);
+  for (idx = 0, parttrack = parttracklist;
+       parttrack; parttrack = parttrack->next) {
+    if (parttrack->isvoid == false) {
+      ptarr[idx]  = parttrack;
+      isvoid[idx] = parttrack->isvoid;
+      chia[idx]   = ptchiweight(parttrack);
       idx++;
     }
   }
