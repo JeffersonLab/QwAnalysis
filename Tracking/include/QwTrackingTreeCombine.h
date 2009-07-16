@@ -7,6 +7,14 @@
 
 // Standard C and C++ headers
 #include <iostream>
+using std::cout; using std::cerr; using std::endl;
+
+// Boost uBLAS (linear algebra) headers
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/triangular.hpp>
+#include <boost/numeric/ublas/lu.hpp>
+#include <boost/numeric/ublas/io.hpp>
 
 // Qweak headers
 #include "QwHit.h"
@@ -90,11 +98,17 @@ class QwTrackingTreeCombine {
 
     bool InAcceptance (EQwDetectorPackage package, EQwRegionID region, double cx, double mx, double cy, double my);
     void TlTreeLineSort (QwTrackingTreeLine *tl, QwHitContainer *hl, EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type, EQwDirectionID dir, unsigned long bins, int tlayer, int dlayer, double width);
-    int TcTreeLineCombine (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, QwTrackingTreeLine *wx, QwPartialTrack *pt, int tlayer);
-    int TcTreeLineCombine (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, QwPartialTrack *pt, int tlayer);
-    int TcTreeLineCombine2 (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, QwPartialTrack *pt, int tlayer);
 
-    QwPartialTrack *TlTreeCombine (QwTrackingTreeLine *uvl[kNumDirections], long bins, EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type, int tlayer, int dlayer, QwTrackingTreeRegion **myTreeRegion);
+    // Combine the tree lines in partial tracks for region 2 and region 3
+    QwPartialTrack* TcTreeLineCombine (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, QwTrackingTreeLine *wx, int tlayer);
+    QwPartialTrack* TcTreeLineCombine (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, int tlayer);
+    QwPartialTrack* TcTreeLineCombine2 (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, int tlayer);
+
+    QwPartialTrack* TlTreeCombine (
+		QwTrackingTreeLine *uvl[kNumDirections], long bins, EQwDetectorPackage package,
+		EQwRegionID region, EQwDetectorType type, int tlayer, int dlayer,
+		QwTrackingTreeRegion **myTreeRegion);
+
     void ResidualWrite (QwEvent *event);
 
     int r3_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi, double uv2xy[2][2]);

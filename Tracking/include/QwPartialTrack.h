@@ -44,6 +44,7 @@ class QwPartialTrack {
       stream << "(x,y) = (" << pt.x  << ", " << pt.y  << "), ";
       stream << "d(x,y) = (" << pt.mx << ", " << pt.my << ") ";
       if (pt.isvoid) stream << " (void)";
+      if (pt.next) stream << " -> " << pt.next;
       return stream;
     };
 
@@ -58,7 +59,6 @@ class QwPartialTrack {
     double  clProb;		/*!< prob. that this cluster belongs to track */
     double  pathlenoff;		/*!< pathlength offset */
     double  pathlenslo;		/*!< pathlength slope  */
-    QwPartialTrack *next;	/*!< linked list */
     Bridge *bridge;		/*!< magnetic field bridging */
     bool isused;		/*!< used (part of a Track)  */
     int    nummiss;		/*!< missing hits */
@@ -71,6 +71,7 @@ class QwPartialTrack {
     int cerenkovhit;		/*!< Did this track pass through the cerenkov bar? */
     double cerenkov[2];		/*!< x-y position at Cerenkov bar face */
 
+    QwPartialTrack *next;	/*!< linked list */
 };
 
 #endif // QWPARTIALTRACK_H

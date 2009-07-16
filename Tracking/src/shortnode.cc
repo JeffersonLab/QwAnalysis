@@ -11,8 +11,7 @@
 //
 #include "shortnode.h"
 #include <iostream>
-
-using namespace std;
+using std::cout; using std::cerr; using std::endl;
 
 namespace QwTracking {
 

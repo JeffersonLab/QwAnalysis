@@ -3,7 +3,7 @@
 // Standard C and C++ headers
 #include <iostream>
 #include <cstdlib>
-using namespace std;
+using std::cout; using std::endl;
 
 // ROOT headers
 #include "TROOT.h"

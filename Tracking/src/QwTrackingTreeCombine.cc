@@ -23,7 +23,6 @@
 #include <cstdlib>
 #include <cassert>
 #include <cstring>
-using namespace std;
 
 // Qweak headers
 #include "QwHit.h"
@@ -386,75 +385,69 @@ void QwTrackingTreeCombine::weight_lsq (
 	int n,		//!< number of planes with hits
 	int tlayers)	//!< number of detector planes
 {
-  double A[tlayers][2], G[tlayers][tlayers], AtGA[2][2];
-  double AtGy[2], y[tlayers], x[2];
+  using namespace boost::numeric::ublas;
+  using boost::numeric::ublas::vector;
+  using boost::numeric::ublas::matrix;
 
+  vector<double> AtGy(2), y(tlayers), x(2);
+  matrix<double> A(tlayers,2), At(tlayers,2), G(tlayers,tlayers);
+  matrix<double> AtGA(2,2), AtG(2, tlayers);
+
+  /* Initialize */
+  x.assign(zero_vector<double>(2));
+  y.assign(zero_vector<double>(tlayers));
+  A.assign(zero_matrix<double>(tlayers,2));
+  G.assign(zero_matrix<double>(tlayers,tlayers));
   for (int i = 0; i < tlayers; i++)
-    A[i][0] = -1.0;
+    A(i,0) = -1.0;
 
-  //##########
-  //SET HITS #
-  //##########
-
+  /* Set the hit values */
   for (int i = 0; i < n; i++) {
-    A[i][1] = -(hits[i]->GetDetectorInfo()->fZPos); // A[i][1] = -(hits[i]->Zpos);
-    y[i]     = -hits[i]->rResultPos;
-    double r = hits[i]->GetDetectorInfo()->fSpatialResolution; // r = 1.0 / hits[i]->Resolution;
-    G[i][i] = 1 / (r * r);
+    A(i,1) = -(hits[i]->GetDetectorInfo()->fZPos);
+    y(i)   = - hits[i]->rResultPos;
+    double r = hits[i]->GetDetectorInfo()->fSpatialResolution;
+    G(i,i) = 1 / (r * r);
   }
 
-  /* Calculate right hand side: -A^T G y  */
-  for (int i = 0; i < 2; i++) {
-    double s = 0.0;
-    for (int k = 0; k < n; k++)
-      s += A[k][i] * y[k] * G[k][k];
-    AtGy[i] = s;
-  }
-
-  /* Calculate the left hand side: A^T * G * A  */
-  for (int i = 0; i < 2; i++) {
-    for (int k = 0; k < 2; k++) {
-      double s = 0.0;
-      for (int j = 0; j < n; j++)
-	s += G[j][j] * A[j][i] * A[j][k];
-      AtGA[i][k] = s;
-    }
-  }
+  /* Calculate right and left hand side */
+  At = trans(A);
+  /* right hand side: A^T * G * y  */
+  AtGy = prod (prod (At, G), y);
+  /* left hand side: A^T * G * A  */
+  AtG = prod (At, G);
+  AtGA = prod (AtG, A);
+  // (this has to happen in two steps, see uBLAS docs)
 
   /* Calculate inverse of A^T * G * A */
-  double det = (AtGA[0][0] * AtGA[1][1] - AtGA[1][0] * AtGA[0][1]);
-  double h   =  AtGA[0][0];
-  AtGA[0][0] = AtGA[1][1] / det;
-  AtGA[1][1] = h / det;
-  AtGA[0][1] /= -det;
-  AtGA[1][0] /= -det;
-  /* solve equation */
-  for (int i = 0; i < 2; i++)
-    x[i] = AtGA[i][0] * AtGy[0] + AtGA[i][1] * AtGy[1];
+  double det = (AtGA(0,0) * AtGA(1,1) - AtGA(1,0) * AtGA(0,1));
+  double tmp = AtGA(0,0);
+  AtGA(0,0) = -AtGA(1,1);
+  AtGA(1,1) = -tmp;
+  AtGA /= -det;
 
-  *slope  = x[1];
-  *offset = x[0];
+  /* Solve equation: (A^T * G * A)^-1 * (A^T * G * y) */
+  x = prod (AtGA, AtGy);
 
-  cov[0]  = AtGA[0][0];
-  cov[1]  = AtGA[0][1];
-  cov[2]  = AtGA[1][1];
+  *slope  = x(1);
+  *offset = x(0);
+
+  cov[0]  = AtGA(0,0);
+  cov[1]  = AtGA(0,1);
+  cov[2]  = AtGA(1,1);
+
 
   /* sqrt (chi^2) */
-  double s = 0.0;
+  double sum = 0.0;
   for (int i = 0; i < n; i++) {
+
 //     r  = (*slope * (hits[i]->Zpos - MAGNET_CENTER) + *offset
 // 	  - hits[i]->rResultPos);
-
-//    r  = (*slope * (hits[i]->Zpos) + *offset
-//	  - hits[i]->rResultPos);
-
     double r  = (*slope * (hits[i]->GetZPosition()) + *offset
 		- hits[i]->rResultPos);
 
-
-    s  += G[i][i] * r * r;
+    sum += G(i,i) * r * r;
   }
-  *chi   = sqrt (s / n);
+  *chi   = sqrt (sum / n);
 
 
   // NOTE I have no idea what the next line does, but it also works without this.
@@ -831,7 +824,10 @@ bool QwTrackingTreeCombine::TlCheckForX (
     endZ = thisZ;
 
     // Skip inactive planes
-    if (rd->IsInactive()) continue;
+    if (rd->IsInactive()) {
+      delete sublist;
+      continue;
+    }
 
     /* --- search this road width for hits --- */
 
@@ -869,7 +865,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
       nPlanesWithHits++;
     }
 
-    // Delete the sublist again
+    // Delete the sublist
     delete sublist;
   }
 
@@ -1680,7 +1676,10 @@ int QwTrackingTreeCombine::r3_TrackFit( int Num, QwHit **hit, double *fit, doubl
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeCombine::TcTreeLineCombine2(QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, QwPartialTrack *pt, int tlayer)
+QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine2(
+	QwTrackingTreeLine *wu,
+	QwTrackingTreeLine *wv,
+	int tlayer)
 {
   //###############
   // Declarations #
@@ -1755,9 +1754,13 @@ int QwTrackingTreeCombine::TcTreeLineCombine2(QwTrackingTreeLine *wu, QwTracking
     return 0;
   }
   if (fDebug) cout << "Ntotal = " << ntotal << endl;
+
   //#########################
   // Record the fit results #
   //#########################
+
+  QwPartialTrack* pt = new QwPartialTrack();
+
   pt->x  = fit[0];
   pt->y  = fit[2];
   pt->mx = fit[1];
@@ -1773,13 +1776,15 @@ int QwTrackingTreeCombine::TcTreeLineCombine2(QwTrackingTreeLine *wu, QwTracking
   pt->tline[0] = wu;
   pt->tline[1] = wv;
 
-
-  return 1;
+  return pt;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrackingTreeCombine::TcTreeLineCombine(QwTrackingTreeLine *wu,QwTrackingTreeLine *wv,QwPartialTrack *pt, int tlayer )
+QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine(
+	QwTrackingTreeLine *wu,
+	QwTrackingTreeLine *wv,
+	int tlayer)
 {
   //###############
   // Declarations #
@@ -1801,7 +1806,7 @@ int QwTrackingTreeCombine::TcTreeLineCombine(QwTrackingTreeLine *wu,QwTrackingTr
   //initialize cov,uv2xy
   for (int i = 0; i < 4; i++) for (int j = 0; j < 4; j++) cov[i][j] = 0;
   for (int i = 0; i < 2; i++) for (int j = 0; j < 2; j++) uv2xy[i][j] = 0;
-cerr << "a" << endl;
+
  //####################################
   //Get the v/u-coordinate for each hit
   //on the u/v plane in the VDC frame
@@ -1862,20 +1867,24 @@ cerr << "a" << endl;
     fprintf(stderr,"hrc: QwPartialTrack Fit Failed\n");
     return 0;
   }*/
-  if(r3_TrackFit(hitc,hits,fitp,covp,&chi,uv2xy) == -1){
+  if (r3_TrackFit(hitc,hits,fitp,covp,&chi,uv2xy) == -1) {
     fprintf(stderr,"hrc: QwPartialTrack Fit Failed\n");
     return 0;
   }
+
   //#########################
   // Record the fit results #
   //#########################
+  QwPartialTrack* pt = new QwPartialTrack();
+
   pt->x  = fit[0];
   pt->y  = fit[1];
   pt->mx = fit[2];
   pt->my = fit[3];
   pt->isvoid  = false;
 
-  pt->chi = sqrt( chi);
+  pt->chi = sqrt(chi);
+
   for (int i = 0; i < 4; i++ )
     for (int j = 0; j < 4; j++ )
       pt->Cov_Xv[i][j] = cov[i][j];
@@ -1884,7 +1893,7 @@ cerr << "a" << endl;
   pt->tline[0] = wu;
   pt->tline[1] = wv;
 
-return 1;
+  return pt;
 }
 
 
@@ -1911,11 +1920,10 @@ return 1;
 		solving systems of equations.
 
 *//*-------------------------------------------------------------------------*/
-int QwTrackingTreeCombine::TcTreeLineCombine (
+QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 	QwTrackingTreeLine *wu,
 	QwTrackingTreeLine *wv,
 	QwTrackingTreeLine *wx,
-	QwPartialTrack *pt,
 	int tlayer)
 {
   QwHit *hits[DLAYERS*3], **hitarray, *h;
@@ -1955,10 +1963,13 @@ int QwTrackingTreeCombine::TcTreeLineCombine (
     cerr << "QwPartialTrack Fit Failed" << endl;
     return 0;
   }
-  //cerr << "5" << endl;
 
   //Put the fit parameters into the particle track using the lab frame now
+
   if (fDebug) cout << "Ntotal = " << ntotal << endl;
+
+  QwPartialTrack* pt = new QwPartialTrack();
+
   pt->x  = fit[2];
   pt->y  = fit[0];
   pt->mx = fit[3];
@@ -1976,8 +1987,8 @@ int QwTrackingTreeCombine::TcTreeLineCombine (
   pt->tline[0] = wu;
   pt->tline[1] = wv;
   pt->tline[2] = wx;
-  //cerr << "6" << endl;
-  return 1;
+
+  return pt;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -2042,7 +2053,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
   //################
   // DECLARATIONS  #
   //################
-  QwPartialTrack *ret = 0;
+  QwPartialTrack* pt_next = 0;
   int nPartialTracks = 0;
 
   const int MAXIMUM_PARTIAL_TRACKS = 50;
@@ -2123,22 +2134,22 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	double xv = wv->cx; // constant
 
 
-	QwPartialTrack *ta = new QwPartialTrack();
+	QwPartialTrack *pt = TcTreeLineCombine2 (wu, wv, tlayer);
 
-	if (TcTreeLineCombine2(wu, wv, ta, tlayer)) {
-	    ta->next   = ret;
-	    ta->bridge = 0;
-	    ta->pathlenoff = 0;
-	    ta->pathlenslo = 0;
-            ta->next = ret; // string together the
-	    ret = ta;       // good tracks
+	if (pt) {
+	    pt->next   = pt_next;
+	    pt->bridge = 0;
+	    pt->pathlenoff = 0;
+	    pt->pathlenslo = 0;
+	    pt_next = pt;
 
-	    parttracklist.push_back(ta);
+	    parttracklist.push_back(pt);
+
+	    // Check whether this track went through the trigger and/or
+	    // the Cerenkov bar.
+	    checkR3(pt, package);
+
 	}
-
-	// Check whether this track went through the trigger and/or
-	// the Cerenkov bar.
-	checkR3(ta,package);
 
 	// Next v treeline
         wv = wv->next;
@@ -2149,7 +2160,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
     }
 
     // Return list of partial tracks
-    return ret;
+    return pt_next;
   }
 
   //################
@@ -2249,32 +2260,33 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	  wx = wx->next;
 	}
 
-	// Store found partial track (or null)
-	QwPartialTrack *ta = new QwPartialTrack();
-	nPartialTracks++;
-
-//cerr << "2" << endl;
 	if (best_wx)
 	  in_acceptance = InAcceptance(package, region, best_wx->cx, best_wx->mx, y1, my);
 	else
 	  cerr << "not in acceptance" << endl;
-        if (minimum < MaxXRoad && best_wx && in_acceptance) {
-	  if (TcTreeLineCombine(wu, wv, best_wx, ta, tlayer)) {
-//cerr << "7" << endl;
-	    best_wx->isused = wv->isused = wu->isused = true;
-	    ta->bridge = 0;
-	    ta->pathlenoff = 0;
-	    ta->pathlenslo = 0;
-            ta->next = ret; // string together the
-	    ret = ta;       // good tracks
-	    parttracklist.push_back(ta);
 
-//cerr << "8";
+	// Store found partial track (or null)
+	QwPartialTrack *pt = TcTreeLineCombine(wu, wv, best_wx, tlayer);
+
+        if (minimum < MaxXRoad && best_wx && in_acceptance) {
+	  if (pt) {
+
+	    nPartialTracks++;
+
+	    best_wx->isused = wv->isused = wu->isused = true;
+
+            pt->next = pt_next;
+	    pt->bridge = 0;
+	    pt->pathlenoff = 0;
+	    pt->pathlenslo = 0;
+	    pt_next = pt;
+
+	    parttracklist.push_back(pt);
+
 	  }
 	} else {
           if (fDebug) cout << "not close enough " << minimum << ',' << MaxXRoad << ',' << in_acceptance << endl;
         }
-//cerr << "3" << endl;
         wv = wv->next;
       }
       wu = wu->next;
@@ -2283,7 +2295,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
     if (nPartialTracks >= MAXIMUM_PARTIAL_TRACKS)
       std::cout << "Wow, that's a lot of partial tracks!" << std::endl;
 
-    return ret;
+    return pt_next;
 
 
   //#################
@@ -2300,7 +2312,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 
   }
 
-  return ret;
+  return pt_next;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -2323,7 +2335,7 @@ void QwTrackingTreeCombine::ResidualWrite (QwEvent* event)
 
   for (package = kPackageUp; package <= kPackageDown; package++) {
 
-    for (tr = event->usedtrack[package]; tr; tr = tr->next) {
+    for (tr = event->track[package]; tr; tr = tr->next) {
       //type = tr->type;
       for (region = kRegionID1; region <= kRegionID3; region++) {
 	/*

@@ -28,17 +28,17 @@ class QwEvent {
   public:
 
     /*! list of tree lines [upper/lower][region][type][u/v/x/y] */
-    QwTrackingTreeLine	*treeline[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
+    QwTrackingTreeLine* treeline[kNumPackages][kNumRegions][kNumTypes][kNumDirections];
 
-    /*! list of partial tracks [meth][upper/lower][forw/back] */
-    QwPartialTrack	*parttrack[kNumPackages][kNumRegions][kNumTypes];
+    /*! list of partial tracks [package][region][type] */
+    //std::vector < QwPartialTrack* > parttrack[kNumPackages][kNumRegions][kNumTypes];
+    QwPartialTrack* parttrack[kNumPackages][kNumRegions][kNumTypes];
 
-    /*! list of complete tracks [upper/lower] */
-    QwTrack	*track[kNumPackages];		/*!< all tracks */
-    QwTrack	*usedtrack[kNumPackages];	/*!< with acceptable chi^2 */
+    /*! list of complete tracks [package] */
+    QwTrack* track[kNumPackages];
 
     /*! list of vertices in this event */
-    std::list< QwVertex >	*vertex;
+    std::vector < QwVertex* > vertex;
 
 };
 

@@ -13,8 +13,6 @@
 # define NDetMax 1010
 #endif
 
-using namespace std;
-
 extern Det* rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 extern Det  rcDET[NDetMax];
 extern Options opt;
@@ -57,7 +55,7 @@ void Qoptions::Get(const char *optname)
 
 	// Open options file
 	ifstream optfile(optname);
-	stringstream optstream;
+	std::stringstream optstream;
 	optstream << optfile.rdbuf();
 
 	// Run over all lines

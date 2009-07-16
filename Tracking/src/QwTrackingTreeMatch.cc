@@ -38,14 +38,14 @@ extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 double rcPEval( double vz, double te, double ph, double bend){
-  cerr << "Error: THIS FUNCTION IS ONLY A STUB rcPEval " << endl;
+  std::cerr << "Error: THIS FUNCTION IS ONLY A STUB rcPEval " << std::endl;
   return -1000;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 double rcZEval( double vz, double te, double ph, double mom, int idx){
-  cerr << "Error: THIS FUNCTION IS ONLY A STUB rcZEval " << endl;
+  std::cerr << "Error: THIS FUNCTION IS ONLY A STUB rcZEval " << std::endl;
   return -1000;
 }
 
@@ -100,7 +100,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
 	EQwDirectionID dir)
 {
   if (region != kRegionID3) {
-    cerr << "Error, this function is only for R3" << endl;
+    std::cerr << "Error, this function is only for R3" << std::endl;
     return 0;
   }
 
@@ -419,7 +419,7 @@ QwTrack* QwTrackingTreeMatch::TgPartMatch (
 	double rcSET_rMagnMatchYSl0 = 0.03;//INSERTED FROM HRCSET.C FUNCTION
 	double rcSET_rMagnMatchY0 = 1.0;//THESE ARE BOGUS VALUES TO MAKE THE PROG WORK
 	double rcSET_rMagnMatchX0 = 3.0;
-	cerr << "ERROR : INVALID MAGNETIC FIELD VALUES USED " << endl;
+	std::cerr << "ERROR : INVALID MAGNETIC FIELD VALUES USED " << std::endl;
 
       if( fabs(v3) > rcSET_rMagnMatchYSl0/*rcSET.rMagnMatchYSl[m] && front->method == meth_std*/)
 	v3 = 1e12;		/* reject */
@@ -461,7 +461,7 @@ QwTrack* QwTrackingTreeMatch::TgPartMatch (
     besttrack->front->isused = true;
     besttrack->back->isused = true;
 	double rcSET_rXSlopeSep = 0.01;//INSERTED FROM HRCSET
-        cerr << "Error : bogus value used" << endl;
+        std::cerr << "Error : bogus value used" << std::endl;
     for( trackwalk = ret; trackwalk ; trackwalk = trackwalk->next ) {
       if( fabs( newtrack->back->mx - besttrack->back->mx ) > rcSET_rXSlopeSep )
         mtch ++;

@@ -214,7 +214,7 @@ int QwTrackingTree::consistent(
 
       if (i) {                       // Compute the relative position to the upstream plane
         z[i] = zv - z[0];
-	if (z[i] < z[0]) cerr << "ERROR: R2 PLANES OUT OF ORDER" << endl;
+	if (z[i] < z[0]) cout << "ERROR: R2 PLANES OUT OF ORDER" << endl;
 	/// the offset distance between the first and last planes of this wire direction
 	if (i == templayers-1) dy = off = fabs((rd->center[1] - y0)*rd->rCos);
       } else {
@@ -241,7 +241,7 @@ int QwTrackingTree::consistent(
       return 0;
     }
 
-    if (b[0] == 1 && b[1] == 1 && b[2] == 0 && b[3] == 0 /*&& level == 5*/) cerr << "gotcha" << endl;
+    if (b[0] == 1 && b[1] == 1 && b[2] == 0 && b[3] == 0 /*&& level == 5*/) cout << "gotcha" << endl;
     /* check if all the bits are along a straight line by
        looping through each pair of outer tree-detectors and
        seeing if the bins on the enclosed tree-detectors are
@@ -282,7 +282,7 @@ int QwTrackingTree::consistent(
     double z[templayers];
     double cellwidth = 1; // distance between wires
     //double cellwidth = 1.11125;
-    //cerr << cellwidth << endl;
+    //cout << cellwidth << endl;
     int firstnonzero = 0;
 
     for (i = 0; i < templayers; i++) {
@@ -354,7 +354,7 @@ int QwTrackingTree::consistent(
   // OR ELSE  #
   //###########
   } else {
-    cerr << "Warning: no support for the creation of this search tree." << endl;
+    cout << "Warning: no support for the creation of this search tree." << endl;
     return 0;
   }
 }
@@ -459,8 +459,8 @@ void QwTrackingTree::marklin (
 	} else {
 	  son.bit[j] = (father->bit[j]<<1);
 	}
-	offs = (int) min (offs, son.bit[j]);
-	maxs = (int) max (maxs, son.bit[j]);
+	offs = (int) std::min (offs, son.bit[j]);
+	maxs = (int) std::max (maxs, son.bit[j]);
 
       }
 
@@ -603,8 +603,8 @@ void QwTrackingTree::marklin (
 
 	/*  1st: Update the levels of the found treenode to
             include this level                                  */
-        sonptr->minlevel = (int) min (level, sonptr->minlevel);
-	sonptr->maxlevel = (int) max (level, sonptr->maxlevel);
+        sonptr->minlevel = (int) std::min (level, sonptr->minlevel);
+	sonptr->maxlevel = (int) std::max (level, sonptr->maxlevel);
 
 	/*  2nd: Update the levels of all the sons for this
             treenode
@@ -666,8 +666,8 @@ void QwTrackingTree::marklin (
 	else{
 	  son.bit[j] = father->bit[j]<<1;
 	}
-	offs = (int)min(offs,son.bit[j]);
-	maxs = (int)max(maxs,son.bit[j]);
+	offs = (int) std::min (offs,son.bit[j]);
+	maxs = (int) std::max (maxs,son.bit[j]);
       }
 
 
@@ -768,8 +768,8 @@ void QwTrackingTree::marklin (
         }
       }
       else if( (sonptr->minlevel > level  && consistent( &son, level+1,package,type,region,dir) )||sonptr->maxlevel < level) {
-        sonptr->minlevel = (int)min(level,sonptr->minlevel);
-        sonptr->maxlevel = (int)max(level,sonptr->maxlevel);
+        sonptr->minlevel = (int) std::min (level,sonptr->minlevel);
+        sonptr->maxlevel = (int) std::max (level,sonptr->maxlevel);
         /*for(int k=0;k<tlayers;k++){
           for(int l=0;l< 2<<(level);l++){
             if(son.bit[k]==l)cout << "x ";
@@ -819,8 +819,8 @@ void QwTrackingTree::marklin (
         else{
           son.bit[j] = father->bit[j]<<1;
         }
-        offs = (int)min(offs,son.bit[j]);
-        maxs = (int)max(maxs,son.bit[j]);
+        offs = (int) std::min (offs,son.bit[j]);
+        maxs = (int) std::max (maxs,son.bit[j]);
       }
       son.bits = son.bit[tlayers-1] - son.bit[0];
       //cout << "(" << maxs << "," << offs << "," << son.bits << ")" << endl;
@@ -842,7 +842,7 @@ void QwTrackingTree::marklin (
       son.bits++;
       sonptr= nodeexists(father->son[offs+flip],&son);
       hsh = (son.bit[tlayers-1]+son.bit[1])%hshsiz;
-      cerr << "hsh = " << hsh << endl;
+      cout << "hsh = " << hsh << endl;
       insert_hitpattern = 1;
 
       if( !sonptr&& 0 == (sonptr= existent( &son, hsh))) {
@@ -866,8 +866,8 @@ void QwTrackingTree::marklin (
       }
       else if( (sonptr->minlevel > level  && consistent( &son, level+1,package,type,region,dir) )
       || sonptr->maxlevel < level) {
-        sonptr->minlevel = (int)min(level,sonptr->minlevel);
-        sonptr->maxlevel = (int)max(level,sonptr->maxlevel);
+        sonptr->minlevel = (int) std::min (level,sonptr->minlevel);
+        sonptr->maxlevel = (int) std::max (level,sonptr->maxlevel);
         marklin( sonptr, level+1,package,type,region,dir);
       }
       //cout << "insert_hitpattern = " << insert_hitpattern << endl;
@@ -993,14 +993,14 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
 		/// Open the file for reading and complain if this fails
 		f = fopen(filename, "rb");
 		if (!f) {
-			cerr << "Error: file not found!" << filename << endl;
+			cout << "Error: file not found!" << filename << endl;
 			return 0;
 		}
 
 		/// If num and width cannot be read, then the file is invalid
 		if (fread(&num, sizeof(num), 1L, f) < 1 ||
 		    fread(&width, sizeof(width), 1L, f) < 1 ) {
-			cerr << "Error: file appears invalid!" << filename << endl;
+			cout << "Error: file appears invalid!" << filename << endl;
 			fclose(f);
 			return 0;
 		}
@@ -1085,8 +1085,8 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
   int dontread = 0;
   if (0 == (trr = readtree(filename, levels, tlayer, width, dontread)) ) {
 
-    //cerr << package << " " << type << " " << region << endl;
-    //cerr << "pattern generation forced" << endl;
+    //cout << package << " " << type << " " << region << endl;
+    //cout << "pattern generation forced" << endl;
     /// If reading in doesn't work, clean up any partial trees
     /// that might have been read in already
     if( trr ) { // TODO Replace this free() and flush() stuff.
@@ -1100,7 +1100,7 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
     back = _inittree (tlayer, package, type, region, dir);
 
     if( !back ) {
-      cerr << "QTR: Tree couldn't be built.\n";
+      cout << "QTR: Tree couldn't be built.\n";
       exit(1);
     }
     cout << " Generated.\n";
@@ -1108,7 +1108,7 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
 
     /// Write the generated tree to disk for faster access later
     if( !writetree(filename, back, levels, tlayer, width)) {
-      cerr << "QTR: Tree couldn't be written.\n";
+      cout << "QTR: Tree couldn't be written.\n";
       exit(1);
     }
     cout << " Cached.\n";
@@ -1118,7 +1118,7 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
     //freetree();
     /// and read it in again to get the shorter tree search format
     if( 0 == (trr = readtree(filename,levels,tlayer, width, 0))) {
-      cerr << "QTR: New tree couldn't be read.\n";
+      cout << "QTR: New tree couldn't be read.\n";
       exit(1);
     }
     cout << " Done.\n";
@@ -1145,7 +1145,7 @@ treenode* QwTrackingTree::_inittree (
   marklin (ret, 0, package, type, region, dir);///call the recursive tree generator
   ret->genlink = generic[0];/// finally, add the father to the genlink hash table
   generic[0] = ret;
-  cerr << "npat : " << npat << " " << region << " " << dir << endl;
+  cout << "npat : " << npat << " " << region << " " << dir << endl;
   npat = 0;
   return ret;
 }
@@ -1210,7 +1210,7 @@ long QwTrackingTree::writetree (
 		if (debug) cout << "[QwTrackingTree::writetree] Created tree directory." << endl;
 	}
 	if (! bfs::exists(treedirpath) || ! bfs::is_directory(treedirpath)) {
-		cerr << "[QwTrackingTree::writetree] Error: could not create tree directory!" << endl;
+		cout << "[QwTrackingTree::writetree] Error: could not create tree directory!" << endl;
 		return 0;
 	}
 
@@ -1283,7 +1283,7 @@ int QwTrackingTree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int 
 	if (c == REALSON) {
 
 		if (xref >= maxref) {
-			cerr << "QTR: readtree failed. error #5. rebuilding treefiles." << endl;
+			cout << "QTR: readtree failed. error #5. rebuilding treefiles." << endl;
 			return -1;
 		}
 
@@ -1291,7 +1291,7 @@ int QwTrackingTree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int 
 		if (fread(&Minlevel, sizeof(int),         1L, file) != 1 ||
 		    fread(&Bits,     sizeof(int),         1L, file) != 1 ||
 		    fread(&Bit,      sizeof(int)*tlayers, 1L, file) != 1) {
-			cerr << "QTR: readtree failed. error #1. rebuilding treefiles." << endl;
+			cout << "QTR: readtree failed. error #1. rebuilding treefiles." << endl;
 			return -1;
 		}
 
@@ -1316,7 +1316,7 @@ int QwTrackingTree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int 
 		/// Read in the sons of this node
 		for(sonny = 0; sonny < 4; sonny++) {
 			if (_readtree(file, stb, stb[ref].son + sonny, tlayers)) {
-				cerr << "c";
+				cout << "c";
 				return -1;
 			}
 		}
@@ -1325,15 +1325,15 @@ int QwTrackingTree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int 
 	} else if (c == REFSON) {
 
 		if (fread (&ref, sizeof(ref), 1L, file) != 1) {
-			cerr << "QTR: readtree failed. error #1. rebuilding treefiles." << endl;
+			cout << "QTR: readtree failed. error #1. rebuilding treefiles." << endl;
 			return -1;
 		}
 		if (ref >= xref || ref < 0) { /// some error checking
-			cerr << "QTR: readtree failed. error #3. rebuilding treefiles." << endl;
+			cout << "QTR: readtree failed. error #3. rebuilding treefiles." << endl;
 			return -1;
 		}
 		if (!fath) { /// still some error checking
-			cerr << "QTR: readtree failed. error #4. rebuilding treefiles." << endl;
+			cout << "QTR: readtree failed. error #4. rebuilding treefiles." << endl;
 			return -1;
 		}
 		shortnode* node = new shortnode; /// create a new node
@@ -1348,7 +1348,7 @@ int QwTrackingTree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int 
 
 	/// \li If we encounter something else, then fail
 	} else {
-		cerr << "QTR: readtree failed. error #2. rebuilding treefiles." << endl;
+		cout << "QTR: readtree failed. error #2. rebuilding treefiles." << endl;
 		return -1;
 	}
   }

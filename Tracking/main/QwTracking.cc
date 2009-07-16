@@ -123,7 +123,6 @@
 // Standard C and C++ headers
 #include <iostream>
 #include <cstdlib>
-using namespace std;
 
 // Qweak Tracking headers
 #include "Qset.h"

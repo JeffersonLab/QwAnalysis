@@ -132,9 +132,13 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
 
 QwTrackingWorker::~QwTrackingWorker ()
 {
-  // Free memory reserved for bit patterns
-  free(channelr2); free(hashchannelr2);
-  free(channelr3); free(hashchannelr3);
+  // Free memory reserved for region 2 and region 3 bit patterns
+  for (int i = 0; i < TLAYERS; i++) {
+    free(channelr2[i]); free(hashchannelr2[i]);
+  }
+  for (int i = 0; i < NUMWIRESR3 + 1; i++) {
+    free(channelr3[i]); free(hashchannelr3[i]);
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -281,7 +285,7 @@ void QwTrackingWorker::InitTree()
 
 double rcShootP (double Pest,QwPartialTrack *front, QwPartialTrack *back, double accuracy)
 {
-  cerr << "Warning: The function rcShootP is only a stub" << endl;
+  std::cerr << "Warning: The function rcShootP is only a stub" << std::endl;
   return -1000;
 }
 
@@ -684,7 +688,7 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 
 	  /* Any other region */
 	  } else {
-	    cerr << "[QwTrackingWorker::ProcessHits] Warning: no support for this detector." << endl;
+	    std::cerr << "[QwTrackingWorker::ProcessHits] Warning: no support for this detector." << std::endl;
 	    return event;
 	  }
 
@@ -700,7 +704,8 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	 && fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
                          +region*kNumTypes*kNumDirections+type*kNumDirections+kDirectionU]
 	 && tlayers) {
-	  parttrack = TreeCombine->TlTreeCombine(event->treeline[package][region][type],
+	  parttrack = TreeCombine->TlTreeCombine(
+			event->treeline[package][region][type],
 			1L << (opt.levels[package][region][type] - 1),
 			package, region, type,
 			tlayers,
@@ -709,6 +714,7 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	  // TODO (wdc) Haven't changed opt.levels here because would need to
 	  // assign it before we know that a detector even exists
 	  // (i.e. opt.levels could contain garbage)
+
 	} else continue;
 
 

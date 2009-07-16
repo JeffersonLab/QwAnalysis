@@ -12,8 +12,6 @@
 # define NDetMax 1010
 #endif
 
-using namespace std;
-
 #define PI 3.141592653589793
 
 /*! \var rcDET
@@ -80,7 +78,7 @@ int Qset::FillDetectors (const char *geomname)
 {
 	// Open geometry file
 	ifstream geomfile(geomname);
-	stringstream geomstream;
+	std::stringstream geomstream;
 	geomstream << geomfile.rdbuf();
 
 	// Run over all entries

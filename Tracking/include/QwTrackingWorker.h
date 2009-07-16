@@ -9,6 +9,7 @@
 #include <cstring>
 #include <cassert>
 #include <iostream>
+using std::cout; using std::cerr; using std::endl;
 
 // Qweak headers
 #include "globals.h"

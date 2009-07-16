@@ -10,6 +10,7 @@
 #include <cstring>
 #include <cassert>
 #include <cmath>
+using std::cout; using std::cerr; using std::endl;
 
 // Boost filesystem headers
 #include "boost/filesystem/operations.hpp"
@@ -29,7 +30,6 @@ namespace bfs = boost::filesystem;
 #include "tracking.h"
 #include "globals.h"
 
-using namespace std;
 using namespace QwTracking;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

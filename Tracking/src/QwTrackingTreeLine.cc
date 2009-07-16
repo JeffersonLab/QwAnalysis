@@ -68,6 +68,12 @@ QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-QwTrackingTreeLine::~QwTrackingTreeLine() { }
+QwTrackingTreeLine::~QwTrackingTreeLine()
+{
+  // Delete the hits in this treeline
+  for (int i = 0; i < 2*TLAYERS; i++) {
+    if (hits[i]) delete hits[i];
+  }
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

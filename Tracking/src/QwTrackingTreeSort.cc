@@ -30,8 +30,6 @@
 
 #include "QwTrackingTreeSort.h"
 
-using namespace std;
-
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwTrackingTreeSort::QwTrackingTreeSort ()

@@ -24,7 +24,7 @@ QwTreeEventBuffer::QwTreeEventBuffer (const TString filename)
 
   // Attach to region 2 branches
 
-//WirePlane1  
+//WirePlane1
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneHasBeenHit",
 		&fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.NbOfHits",
@@ -294,7 +294,7 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
   if ( R2_HasBeenHit && R3_HasBeenHit ){  //jpan:coincidence for avoiding match empty nodes
     fTree->GetEntry(fEvtNum);
     }
-  else 
+  else
     {
       if (fDebug>=1) std::cout<<"Skip an empty event - event#"<<fEvtNum<<std::endl;
     }
@@ -353,7 +353,7 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
   // Region 3 front planes (u,v)
 
    if (fDebug>=2) std::cout<<"Processing Region3_ChamberFront_WirePlaneU"<<std::endl;
-//  if (fRegion3_ChamberFront_WirePlaneU_HasBeenHit == 5)  
+//  if (fRegion3_ChamberFront_WirePlaneU_HasBeenHit == 5)
    {
    for (int i1=0; i1<fRegion3_ChamberFront_WirePlaneU_NbOfHits && i1<VSIZE; i1++){
 
@@ -375,8 +375,8 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
 
     double u1 = uv2xy.xy2u (x - mx * dz/2.0, y - my * dz/2.0);
     double u2 = uv2xy.xy2u (x + mx * dz/2.0, y + my * dz/2.0);
-    int wire1 = floor (u1 / du - 0.5) + 141;
-    int wire2 = floor (u2 / du - 0.5) + 141;
+    int wire1 = (int) floor (u1 / du - 0.5) + 141;
+    int wire2 = (int) floor (u2 / du - 0.5) + 141;
     int wire0 = (wire1 + wire2) / 2;
 
     if (fDebug>=2) std::cout<<"u1="<<u1<<"   u2="<<u2<<"   wire1="<<wire1<<"   wire2="<<wire2<<std::endl;
@@ -399,8 +399,8 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
   }
 
    if (fDebug>=2) std::cout<<"Processing Region3_ChamberFront_WirePlaneV"<<std::endl;
-//  if (fRegion3_ChamberFront_WirePlaneV_HasBeenHit == 5)  
-   { 
+//  if (fRegion3_ChamberFront_WirePlaneV_HasBeenHit == 5)
+   {
    for (int i2=0; i2<fRegion3_ChamberFront_WirePlaneV_NbOfHits && i2<VSIZE; i2++){
     id = 2;
     double x = fRegion3_ChamberFront_WirePlaneV_LocalPositionX.at(i2);
@@ -413,8 +413,8 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
     double my =  yMomentum/zMomentum;
     double v1 = uv2xy.xy2v (x - mx * dz/2, y - my * dz/2);
     double v2 = uv2xy.xy2v (x + mx * dz/2, y + my * dz/2);
-    int wire1 = floor (v1 / dv - 0.5) + 141;
-    int wire2 = floor (v2 / dv - 0.5) + 141;
+    int wire1 = (int) floor (v1 / dv - 0.5) + 141;
+    int wire2 = (int) floor (v2 / dv - 0.5) + 141;
     int wire0 = (wire1 + wire2) / 2;
     for (int wire = wire1; wire <= wire2; wire++) {
       double distance = dz * abs(wire - wire0) / (wire2 - wire1);
@@ -435,7 +435,7 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
   // Region 3 back planes (u',v') (offset of 281 on the wires)
 
    if (fDebug>=2) std::cout<<"Processing Region3_ChamberBack_WirePlaneU"<<std::endl;
-//  if (fRegion3_ChamberBack_WirePlaneU_HasBeenHit == 5) 
+//  if (fRegion3_ChamberBack_WirePlaneU_HasBeenHit == 5)
    {
    for (int i3=0; i3<fRegion3_ChamberBack_WirePlaneU_NbOfHits && i3<VSIZE; i3++){
     id = 3;
@@ -449,8 +449,8 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
     double my =  yMomentum/zMomentum;
     double u1 = uv2xy.xy2u (x - mx * dz/2, y - my * dz/2);
     double u2 = uv2xy.xy2u (x + mx * dz/2, y + my * dz/2);
-    int wire1 = floor (u1 / du - 0.5) + 141;
-    int wire2 = floor (u2 / du - 0.5) + 141;
+    int wire1 = (int) floor (u1 / du - 0.5) + 141;
+    int wire2 = (int) floor (u2 / du - 0.5) + 141;
     int wire0 = (wire1 + wire2) / 2;
     for (int wire = wire1; wire <= wire2; wire++) {
       double distance = dz * abs(wire - wire0) / (wire2 - wire1);
@@ -469,7 +469,7 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
   }
 
    if (fDebug>=2) std::cout<<"Processing Region3_ChamberBack_WirePlaneV"<<std::endl;
-//  if (fRegion3_ChamberBack_WirePlaneV_HasBeenHit == 5) 
+//  if (fRegion3_ChamberBack_WirePlaneV_HasBeenHit == 5)
    {
    for (int i4=0; i4<fRegion3_ChamberBack_WirePlaneV_NbOfHits && i4<VSIZE; i4++){
     id = 4;
@@ -483,8 +483,8 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
     double my =  yMomentum/zMomentum;
     double v1 = uv2xy.xy2v (x - mx * dz/2, y - my * dz/2);
     double v2 = uv2xy.xy2v (x + mx * dz/2, y + my * dz/2);
-    int wire1 = floor (v1 / dv - 0.5) + 141;
-    int wire2 = floor (v2 / dv - 0.5) + 141;
+    int wire1 = (int) floor (v1 / dv - 0.5) + 141;
+    int wire2 = (int) floor (v2 / dv - 0.5) + 141;
     int wire0 = (wire1 + wire2) / 2;
     for (int wire = wire1; wire <= wire2; wire++) {
       double distance = dz * abs(wire - wire0) / (wire2 - wire1);
@@ -517,7 +517,7 @@ void QwTreeEventBuffer::Init ()
 
 }
 
-void QwTreeEventBuffer::ReserveSpace () 
+void QwTreeEventBuffer::ReserveSpace ()
 {
 
 //Region2 WirePlane1
@@ -640,7 +640,7 @@ void QwTreeEventBuffer::ReserveSpace ()
     fRegion3_ChamberBack_WirePlaneV_LocalMomentumZ.reserve(VSIZE);
 }
 
-void QwTreeEventBuffer::Clear () 
+void QwTreeEventBuffer::Clear ()
 {
 
 //Region2 WirePlane1
