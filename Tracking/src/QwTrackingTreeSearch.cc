@@ -141,7 +141,7 @@ static int has_hits[TLAYERS];
 
 QwTrackingTreeSearch::QwTrackingTreeSearch ()
 {
-  debug = 1;	// Reset debug level
+  fDebug = 1;	// Reset debug level
 
   tlayers = TLAYERS;
 }
@@ -168,7 +168,7 @@ void QwTrackingTreeSearch::BeginSearch ()
 void QwTrackingTreeSearch::EndSearch ()
 {
   // Write out the number of tree lines
-  if (debug) cout << "Found " << nTreeLines << " tree line(s)." << endl;
+  if (fDebug) cout << "Found " << nTreeLines << " tree line(s)." << endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -1168,7 +1168,7 @@ void QwTrackingTreeSearch::_TsSearch (
           position of this level of bin-division                     ---- */
   pattern_start <<= level+1;
   pattern_start &= (unsigned long) 0xffffffffL >> (32 - static_maxlevel);
-  //if (debug) cout << "pattern start = " << pattern_start << endl;
+  //if (fDebug) cout << "pattern start = " << pattern_start << endl;
   if (level == 0) {
     for (int u = nullhits = 0; u < tlayers; u++) {
       if (static_pattern[u+row_offset][pattern_start])

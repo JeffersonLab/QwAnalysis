@@ -94,9 +94,6 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
   ngood = 0;
   nbad = 0;
 
-    /* Determine the bin-division depth of the tree-search */
-    int levelmax = opt.MaxLevels + 1;
-
     /* Reserve space for the bit patterns:
 
        The options file indicates the number of tree levels (how many times do
@@ -108,23 +105,25 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
     */
     int levels;
 
-    /* Reserve space for region 2 bit patterns */
+    /* Reserve space for region 2 bit patterns and initialize */
     levels = opt.levels[kPackageUp][kRegionID2][kTypeDriftHDC];
     for (int i = 0; i < TLAYERS; i++) {
       channelr2[i]     = (char*) malloc (1UL << levels);
-      hashchannelr2[i] =  (int*) malloc ((sizeof(int) * (1UL << (levels - 1))));
-      assert (channelr2[i] && hashchannelr2[i]);
+      memset (channelr2[i], 0,          (1UL << levels));
+      hashchannelr2[i] =  (int*) malloc (sizeof(int) * (1UL << (levels - 1)));
+      memset (hashchannelr2[i], 0,      (sizeof(int) * (1UL << (levels - 1))));
     }
 
-    /* Reserve space for region 3 bit patterns */
+    /* Reserve space for region 3 bit patterns and initialize */
     levels = opt.levels[kPackageUp][kRegionID3][kTypeDriftVDC];
     for (int i = 0; i < NUMWIRESR3 + 1; i++) {
       channelr3[i]     = (char*) malloc (1UL << levels);
-      hashchannelr3[i] =  (int*) malloc ((sizeof(int) * (1UL << (levels - 1))) );
-      assert (channelr3[i] && hashchannelr3[i]);
+      memset (channelr3[i], 0,          (1UL << levels));
+      hashchannelr3[i] =  (int*) malloc (sizeof(int) * (1UL << (levels - 1)));
+      memset (hashchannelr3[i], 0,      (sizeof(int) * (1UL << (levels - 1))));
     }
 
-  if( fDebug )
+  if (fDebug)
       cout<<"###### Leaving QwTrackingWorker::QwTrackingWorker ()"<<endl;
 
 }
@@ -133,6 +132,9 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
 
 QwTrackingWorker::~QwTrackingWorker ()
 {
+  // Free memory reserved for bit patterns
+  free(channelr2); free(hashchannelr2);
+  free(channelr3); free(hashchannelr3);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

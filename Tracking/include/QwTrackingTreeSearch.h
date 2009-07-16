@@ -43,16 +43,13 @@ class QwTrackingTreeSearch {
 
   public:
 
-    char **static_pattern;
-    int  **static_hash;
-    int    static_maxlevel;
     /*int    static_front;*/
     int tlayers;
 
     QwTrackingTreeSearch();
     ~QwTrackingTreeSearch();
 
-    void SetDebugLevel (int debuglevel) { debug = debuglevel; };
+    void SetDebugLevel (int debug) { fDebug = debug; };
 
     void BeginSearch ();
     void EndSearch ();
@@ -92,7 +89,11 @@ class QwTrackingTreeSearch {
 
   private:
 
-    int debug;			// debug level
+    int fDebug;			// debug level
+
+    char **static_pattern;
+    int  **static_hash;
+    int    static_maxlevel;
 
     QwTrackingTreeLine* lTreeLines;	// linked list of tree lines in a set of planes
     int nTreeLines;		// number of tree lines found

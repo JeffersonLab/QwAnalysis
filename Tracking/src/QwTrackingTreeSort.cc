@@ -603,7 +603,7 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *head)
   connarr = (char *)malloc( num );
   isvoid  = (int *)malloc( num * sizeof(int));
   chia    = (double *)malloc( num * sizeof(double));
-  array   = (int *)malloc( num*num);
+  array   = (int*) malloc(num * num * sizeof(int));
   ptarr   = (QwPartialTrack **)malloc( sizeof(QwPartialTrack*)*num);
 
   if (! ptarr || ! array) {
@@ -635,10 +635,9 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *head)
    * ---------------------------------------------------------------------- */
 
   for (i = 0; i < num; i++) {
-    array[i*num+i] = 0;
-
+    array[i * num + i] = false;
     for (j = i+1; j < num; j++) {
-      array[i*num+j] = array[j*num+i] =
+      array[i * num + j] = array[j * num + i] =
         (rcPTCommonWires(ptarr[i], ptarr[j]) > 25);
     }
   }
@@ -713,7 +712,7 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *head)
   // Free malloc'ed arrays
   free(chia);
   free(connarr);
-  //free(array); // TODO Why can I not free this one?  segfaults...
+  free(array);
   free(isvoid);
   free(ptarr);
 

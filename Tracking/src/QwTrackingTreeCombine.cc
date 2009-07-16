@@ -1301,7 +1301,7 @@ int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
   double rCos[kNumDirections],rSin[kNumDirections];	//the rotation angles for the u,v,x coordinates.
   double x0[kNumDirections];			//the translational offsets for the u,v,x axes.
   double bx[kNumDirections],mx[kNumDirections];	//track fit parameters
-  EQwDirectionID Dir;		//wire direction enumerator
+
   Det *rd = rcDETRegion[kPackageUp][kRegionID2][kDirectionX];	//pointer to this detector
 
   //##################
@@ -1320,8 +1320,8 @@ int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
 
   //set the offsets for the u,v,x axes
   x0[kDirectionX] = 0;
-  x0[kDirectionU] = fabs(uv2xy.R2_offset[0])*rCos[1]+uv2xy.R2_wirespacing;
-  x0[kDirectionV] = fabs(uv2xy.R2_offset[1])*rCos[2]+uv2xy.R2_wirespacing;
+  x0[kDirectionU] = fabs(uv2xy.R2_offset[0]) * rCos[1] + uv2xy.R2_wirespacing;
+  x0[kDirectionV] = fabs(uv2xy.R2_offset[1]) * rCos[2] + uv2xy.R2_wirespacing;
 
   //initialize the matrices
   for (int i = 0; i < 4; i++) {
@@ -1374,11 +1374,11 @@ int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
   // Calculate chi^2
   *chi = 0;
   for (int i = 0; i < Num; i++) {
-    Dir = Hit[i]->GetDetectorInfo()->fDirection;
-        cff  = 1.0 / Hit[i]->GetSpatialResolution(); // cff  = 1.0 / Hit[i]->Resolution;
+    EQwDirectionID dir = Hit[i]->GetDetectorInfo()->fDirection;
+    cff  = 1.0 / Hit[i]->GetSpatialResolution(); // cff  = 1.0 / Hit[i]->Resolution;
     cff *= cff;
-    uvx  = bx[Dir] + mx[Dir] * (Hit[i]->GetZPos()); //uvx  = bx[Dir] + mx[Dir] * (Hit[i]->Zpos);
-    *chi += (uvx-Hit[i]->rPos) * (uvx-Hit[i]->rPos) * cff;
+    uvx  = bx[dir] + mx[dir] * (Hit[i]->GetZPosition());
+    *chi += (uvx - Hit[i]->rPos) * (uvx - Hit[i]->rPos) * cff;
   }
   *chi = *chi / (Num - 4);
 
@@ -1887,8 +1887,30 @@ cerr << "a" << endl;
 return 1;
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+/*!--------------------------------------------------------------------------*\
+
+ \brief The
+
+    This function fits a set of hits in the HDC to a 3-D track.  This
+    task is complicated by the unorthogonality of the u,v, and x wire
+    planes.  To obtain the track, the metric matrix (defined below) is
+    calculated using the projections of each hit into the lab
+    coordinate system.  The matrix is inverted in order to solve the
+    system of four equations for the four unknown track parameters
+    (bx,mx,by,my).  Once the fit is calculated, the chisquare value
+    is determined so that this track may be compared to other track
+    candidates in order to select the best fit.
+
+  metric matrix :  The metric matrix is defined by the chi-squared
+		equation for unorthogonal coordinate systems.  In order to
+		solve for the four track parameters, chi-square is
+		differentiated with respect to the parameters, and set to
+		zero.  The metric matrix is then derived from the four
+		equations using the standard linear algebra technique for
+		solving systems of equations.
+
+*//*-------------------------------------------------------------------------*/
 int QwTrackingTreeCombine::TcTreeLineCombine (
 	QwTrackingTreeLine *wu,
 	QwTrackingTreeLine *wv,
@@ -1899,7 +1921,7 @@ int QwTrackingTreeCombine::TcTreeLineCombine (
   QwHit *hits[DLAYERS*3], **hitarray, *h;
   int hitc, num;
   double cov[4][4];
-  double fit[4], chi;
+  double fit[4], chi = 0;
 
   for (int i = 0; i < 4; i++) fit[i] = 0;
 
@@ -1929,8 +1951,8 @@ int QwTrackingTreeCombine::TcTreeLineCombine (
   }
 
   // Perform the fit.
-  if (r2_TrackFit( hitc, hits, fit, covp, &chi)  == -1) {
-    fprintf(stderr,"hrc: QwPartialTrack Fit Failed\n");
+  if (r2_TrackFit(hitc, hits, fit, covp, &chi)  == -1) {
+    cerr << "QwPartialTrack Fit Failed" << endl;
     return 0;
   }
   //cerr << "5" << endl;
@@ -1943,7 +1965,7 @@ int QwTrackingTreeCombine::TcTreeLineCombine (
   pt->my = fit[1];
   pt->isvoid  = false;
 
-  pt->chi = sqrt( chi);
+  pt->chi = sqrt(chi);
 
   for (int i = 0; i < 4; i++)
     for (int j = 0; j < 4; j++)
@@ -2020,12 +2042,10 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
   //################
   // DECLARATIONS  #
   //################
-  QwTrackingTreeLine wrx;
   QwPartialTrack *ret = 0;
   int in_acceptance;
 
   double zx1, zx2;
-  double z1, z2;
   double d;
 
   chi_hashclear();
@@ -2065,6 +2085,12 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
     //#########################
     // Get the u and v tracks #
     //#########################
+    // Print the u and v tree line lists
+    if (fDebug) std::cout << "TreeLines in U:" << std::endl;
+    if (fDebug) uvl[kDirectionU]->Print();
+    if (fDebug) std::cout << "TreeLines in V:" << std::endl;
+    if (fDebug) uvl[kDirectionV]->Print();
+
     // Get the u track
     QwTrackingTreeLine *wu = uvl[kDirectionU];
     while (wu) {
@@ -2132,9 +2158,16 @@ QwPartialTrack *QwTrackingTreeCombine::TlTreeCombine (
       }
     }
 
-    //###########################
-    // Get the u,v and x tracks #
-    //###########################
+    //############################
+    // Get the u, v and x tracks #
+    //############################
+    // Print the u, v and x tree line lists
+    if (fDebug) std::cout << "TreeLines in X:" << std::endl;
+    if (fDebug) uvl[kDirectionX]->Print();
+    if (fDebug) std::cout << "TreeLines in U:" << std::endl;
+    if (fDebug) uvl[kDirectionU]->Print();
+    if (fDebug) std::cout << "TreeLines in V:" << std::endl;
+    if (fDebug) uvl[kDirectionV]->Print();
 
     // Get the u track
     QwTrackingTreeLine *wu = uvl[kDirectionU];

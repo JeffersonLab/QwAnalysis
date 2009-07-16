@@ -25,6 +25,7 @@ class QwPartialTrack {
       x = 0.0; y = 0.0; mx = 0.0; my = 0.0;
       isvoid = false;
       isused = false;
+      next = 0;
     };
     ~QwPartialTrack() { };
 
@@ -40,7 +41,13 @@ class QwPartialTrack {
       next->Print();
     }
 
-
+    friend ostream& operator<< (ostream& stream, const QwPartialTrack& pt) {
+      stream << "partial track: ";
+      stream << "(x,y) = (" << pt.x  << ", " << pt.y  << "), ";
+      stream << "d(x,y) = (" << pt.mx << ", " << pt.my << ") ";
+      stream << "(" << (pt.isvoid ? "void" : "valid") << ")";
+      return stream;
+    };
 
   public: // members
 
