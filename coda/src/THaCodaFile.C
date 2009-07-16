@@ -45,7 +45,10 @@ ClassImp(THaCodaFile)
 
   int THaCodaFile::codaOpen(TString fname) {  
        init(fname);
-       fStatus = evOpen((char*)fname.Data(),"r",&handle);
+       char rw[] ="r";
+       // Introduce "char rw[]" to suppress  "warning: deprecated conversion from string constant to 'char*'"
+       // due to the a bit new gcc version 4.3.2
+       fStatus = evOpen((char*)fname.Data(),rw, &handle);
        staterr("open",fStatus);
        return fStatus;
   };

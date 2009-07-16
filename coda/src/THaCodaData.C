@@ -23,7 +23,7 @@ THaCodaData::THaCodaData() {
 };
 
 THaCodaData::~THaCodaData() { 
-   delete evbuffer;
+   delete [] evbuffer;
 };
 
 

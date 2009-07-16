@@ -37,7 +37,7 @@ class Det;
 
 ///
 /// \ingroup QwTrackingAnl
-class QwHit {
+class QwHit : public TObject {
  public:
 
   QwHit();
@@ -149,6 +149,7 @@ class QwHit {
  protected:
 
   //  Identification information for readout channels
+
   Int_t fCrate;     /// ROC number
   Int_t fModule;    /// F1TDC slot number, or module index
   Int_t fChannel;   /// Channel number

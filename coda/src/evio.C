@@ -198,9 +198,9 @@ int evOpen(char *filename,char *flags,EVFILE **handle)
     a->rw = EV_READ;
     if (a->file) {
       fread(header,sizeof(header),1,a->file); /* update: check nbytes return */
-      if (header[EV_HD_MAGIC] != EV_MAGIC) {
+      if (header[EV_HD_MAGIC] != (int) EV_MAGIC) {
 	temp = int_swap_byte(header[EV_HD_MAGIC]);
-	if(temp == EV_MAGIC) {
+	if(temp == (int) EV_MAGIC) {
 	  a->byte_swapped = 1;
 	} else {
 	  fclose(a->file);
@@ -302,7 +302,7 @@ int evRead(EVFILE* handle,int *buffer,int buflen)
     temp_buffer = (int *)malloc(buflen*sizeof(int));
     temp_ptr = temp_buffer;
   }
-  if (a->magic != EV_MAGIC) return(S_EVFILE_BADHANDLE);
+  if (a->magic != (int) EV_MAGIC) return(S_EVFILE_BADHANDLE);
   if (a->left<=0) {
     error = evGetNewBuffer(a);
     if (error) return(error);
@@ -356,7 +356,7 @@ int evGetNewBuffer(EVFILE *a) {
   if (feof(a->file)) return(EOF);
   if (ferror(a->file)) return(ferror(a->file));
   if (nread != a->blksiz) return(errno);
-  if (a->buf[EV_HD_MAGIC] != EV_MAGIC) {
+  if (a->buf[EV_HD_MAGIC] != (int) EV_MAGIC) {
     /* fprintf(stderr,"evRead: bad header\n"); */
     return(S_EVFILE_BADFILE);
   }
@@ -386,7 +386,7 @@ int evWrite(EVFILE *handle,int *buffer)
   EVFILE *a;
   int nleft,ncopy,error;
   a = handle;
-  if (a->magic != EV_MAGIC) {
+  if (a->magic != (int) EV_MAGIC) {
     return(S_EVFILE_BADHANDLE);
   }
 
@@ -452,7 +452,7 @@ int evIoctl(EVFILE *handle,char *request,void *argp)
 {
   EVFILE *a;
   a = handle;
-  if (a->magic != EV_MAGIC) return(S_EVFILE_BADHANDLE);
+  if (a->magic != (int) EV_MAGIC) return(S_EVFILE_BADHANDLE);
   switch (*request) {
   case 'b': case 'B':
     if (a->rw != EV_WRITE) return(S_EVFILE_BADSIZEREQ);
@@ -494,7 +494,7 @@ int evClose(EVFILE *handle)
   EVFILE *a;
   int status = 0, status2;
   a = handle;
-  if (a->magic != EV_MAGIC) return(S_EVFILE_BADHANDLE);
+  if (a->magic != (int) EV_MAGIC) return(S_EVFILE_BADHANDLE);
   if(a->rw == EV_WRITE) {
     status = evFlush(a);
   }

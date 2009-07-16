@@ -420,7 +420,9 @@ void swapped_memcpy(char *buffer,char *source,int size)
 	sg_tag  = (header2 >> 24) & (0x000000ff);
 	sg_type = (header2 >> 16) & (0x000000ff);
 	if(sg_type >= 0x20){  /* contains children */
-	  evStack_pushon((sg_size)*2,i,sg_type,sg_tag,NULL,head);
+	  evStack_pushon((sg_size)*2,i,sg_type,sg_tag,0,head);
+	  // reduce warning: passing NULL to non-pointer argument 5 of 'void evStack_pushon(int, int, int, int, int, evStack*)'
+	  // NULL -> 0
 	  lk.head_pos = i + 2;
 	  head->length += 1;
 	  i = i+ 2;
