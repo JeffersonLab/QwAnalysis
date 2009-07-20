@@ -167,8 +167,7 @@ int main(Int_t argc,Char_t* argv[])
 	  //  Fill the subsystem objects with their respective data for this event.
 	  QwEvt.FillSubsystemData(QwDetectors);
 		  
-	  if (QwDetectors.SingleEventCuts())
-	    QwDetectors.ProcessEvent();
+	 QwDetectors.ProcessEvent();
 
 	  if(bHelicity)
 	    QwHelPat.LoadEventData(QwDetectors);	  
