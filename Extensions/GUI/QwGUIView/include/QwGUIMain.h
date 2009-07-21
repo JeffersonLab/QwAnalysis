@@ -53,7 +53,7 @@
 #define QWGUIMAIN_H
 
 #include <string.h>
-#include <new.h>
+#include <new>
 #include <time.h>
 #include <signal.h>
 #include <stdlib.h>

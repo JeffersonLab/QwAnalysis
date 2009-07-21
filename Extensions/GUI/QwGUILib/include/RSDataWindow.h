@@ -108,7 +108,7 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
   void                 FlushMessages();//Get rid of all messages in queue
   Int_t                FitData();
   Int_t                GetGraphBinRange(TGraph *,Double_t min, Double_t max, 
-					Int_t *minbin, Int_t *minbin);
+					Int_t *minbin, Int_t *maxbin);
   void                 GetGraphData(TGraph *,Double_t *x,Double_t *y);
   void                 GetGraphData(TGraphErrors *,Double_t *x,Double_t *y, 
 				    Double_t *xe, Double_t *ye);

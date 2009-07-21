@@ -39,7 +39,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
   MCnt = 0;
   dClArgs = clargs;
-  set_new_handler(0);
+  std::set_new_handler(0);
 
   MainDetSubSystem   = NULL;  
   dMWWidth           = w;

@@ -88,7 +88,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
  public:
   
   QwGUIMainDetector(const TGWindow *p, const TGWindow *main, const TGTab *tab,
-		    const char *objName, const char *mainname, UInt_t w, UInt_t w);
+		    const char *objName, const char *mainname, UInt_t w, UInt_t h);
   ~QwGUIMainDetector();
 
 
