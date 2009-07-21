@@ -85,12 +85,12 @@ Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile){
 
       if (region==2){
 	    temp_Detector.SetDetectorInfo(dType, Zpos, rot, sp_res, track_res, slope_match, package, region, direction, Det_originX, Det_originY, ActiveWidthX, ActiveWidthY, ActiveWidthZ, WireSpace, FirstWire, W_rcos, W_rsin, TotalWires, detectorId);
-	    
-      
+
+
 	    if (package == "u")
-	      fDetectorInfo.at(0).push_back(temp_Detector);
+	      fDetectorInfo.at(kPackageUp).push_back(temp_Detector);
 	    else if (package == "d")
-	      fDetectorInfo.at(1).push_back(temp_Detector);
+	      fDetectorInfo.at(kPackageDown).push_back(temp_Detector);
       }
     }
 
@@ -108,7 +108,7 @@ Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile){
 
 
 
-  
+
 
 
 
