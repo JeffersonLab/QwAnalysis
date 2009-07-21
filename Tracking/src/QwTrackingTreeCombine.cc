@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <cstring>
+#include <sys/time.h>
 
 // Qweak headers
 #include "QwHit.h"
@@ -989,6 +990,7 @@ int QwTrackingTreeCombine::TlMatchHits (
 	double z1,		//!- z coordinate
 	double dz,		//!- distance in z coordinate
 	QwTrackingTreeLine *treeline,	//!- determined treeline
+	QwHitContainer *hitlist,	//!- hits list
 	EQwDetectorPackage package,	//!- package identifier
 	EQwRegionID region,	//!- region identifier
 	EQwDetectorType type,	//!- detector type identifier
@@ -1035,15 +1037,17 @@ int QwTrackingTreeCombine::TlMatchHits (
   }
   // Loop over pattern positions
   for (int i = treeline->firstwire; i <= treeline->lastwire; i++, nmaxhits++) {
+    if (fDebug) hitlist->Print();
     // Loop over the hits
-      for (QwHit *hit = rd->hitbydet; hit; hit = hit->next) {
+    for (QwHitContainer::iterator hit = hitlist->begin();
+         hit != hitlist->end(); hit++) {
       thisZ = treeline->r3offset + i;
       if (hit->GetElement() != thisZ)
         continue;
 
       thisX = slope * thisZ + intercept;
       //cerr << "Z = " << thisZ << endl;
-      bestx (&thisX, hit, DHits);
+      bestx (&thisX, &(*hit), DHits);
       DHits++;
       j++;
     }
@@ -1108,10 +1112,6 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 	int dlayer,
         double width)
 {
-  double z1, z2, Dz;
-  double r1, r2, Dr;
-  double x1, x2, Dx, dx;
-
   chi_hashclear();
 
   /* Region 3 */
@@ -1133,15 +1133,15 @@ void QwTrackingTreeCombine::TlTreeLineSort (
       if (dlayer == 1) {
 	treeline->r3offset += rcDETRegion[package][region][dir]->NumOfWires;
       }
-      z1 = (double) (treeline->r3offset + treeline->firstwire); // first z position
-      z2 = (double) (treeline->r3offset + treeline->lastwire);  // last z position
-      dx = width / (double) bins;
+      double z1 = (double) (treeline->r3offset + treeline->firstwire); // first z position
+      double z2 = (double) (treeline->r3offset + treeline->lastwire);  // last z position
+      double dx = width / (double) bins;
 
-      x1 = (treeline->a_beg - (double) bins/2) * dx + dx/2;
-      x2 = (treeline->b_end - (double) bins/2) * dx + dx/2;
+      double x1 = (treeline->a_beg - (double) bins/2) * dx + dx/2;
+      double x2 = (treeline->b_end - (double) bins/2) * dx + dx/2;
       TlMatchHits (
         x1, x2, z1, z2 - z1,
-        treeline,
+        treeline, hitlist,
         package, region, type, dir,
         TLAYERS);
 
@@ -1152,8 +1152,9 @@ void QwTrackingTreeCombine::TlTreeLineSort (
   /* Region 2 */
   } else if (region == kRegionID2) {
 
-    double dxh, dxb;
-    double dx1, dx2;
+    double z1, z2, Dz;
+    double r1, r2, Dr;
+    double Dx;
 
     // Determine position differences between first and last detector
     // TODO (wdc) This assumes that tlayer is correct!
@@ -1180,10 +1181,10 @@ void QwTrackingTreeCombine::TlTreeLineSort (
     if (fDebug) cout << "position difference first/last: " << Dx << " cm" << endl;
 
     // Determine bin widths
-    dx  = width;		// detector width
-    dxh = 0.5 * dx;		// detector half-width
-    dx /= (double) bins;	// width of each bin
-    dxb = dxh / (double) bins;	// half-width of each bin
+    double dx  = width;			// detector width
+    double dxh = 0.5 * dx;		// detector half-width
+    dx /= (double) bins;		// width of each bin
+    double dxb = dxh / (double) bins;	// half-width of each bin
 
     /* --------------------------------------------------
        calculate line parameters first
@@ -1198,12 +1199,12 @@ void QwTrackingTreeCombine::TlTreeLineSort (
       if (treeline->isvoid) continue; // no tree lines should be void yet
 
       // Calculate the track from the average of the bins that were hit
-      x1 = 0.5 * ((treeline->a_beg + treeline->a_end) * dx);
-      x2 = 0.5 * ((treeline->b_beg + treeline->b_end) * dx) + Dx;
+      double x1 = 0.5 * ((treeline->a_beg + treeline->a_end) * dx);
+      double x2 = 0.5 * ((treeline->b_beg + treeline->b_end) * dx) + Dx;
       // Calculate the uncertainty on the track from the differences
       // and add a road width in units of bin widths
-      dx1 = ((treeline->a_end - treeline->a_beg) * dx) + dx * MaxRoad;
-      dx2 = ((treeline->b_end - treeline->b_beg) * dx) + dx * MaxRoad;
+      double dx1 = ((treeline->a_end - treeline->a_beg) * dx) + dx * MaxRoad;
+      double dx2 = ((treeline->b_end - treeline->b_beg) * dx) + dx * MaxRoad;
       // Debug output
       if (fDebug) {
         cout << "(x1,x2,z1,z2) = (" << x1 << ", " << x2 << ", " << z1 << ", " << z2 << "); ";
@@ -1280,8 +1281,6 @@ int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
   //###############
   // Declarations #
   //###############
-  double A[4][4];	//metric matrix A
-  double B[4];		//constants vector
   double cff;		//resolution coefficient
   double r[4];		//factors of elements of the metric matrix A
   double uvx;		//u,v,or x coordinate of the track at a location in z
@@ -1300,17 +1299,20 @@ int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
   // Set the angles for our reference frame
   rCos[kDirectionX] = 1;//cos theta x
   rSin[kDirectionX] = 0;//sin theta x
-  rCos[kDirectionU] = uv2xy.R2_xy[0][0];//cos theta u
-  rSin[kDirectionU] = uv2xy.R2_xy[0][1];//sin theta u
-  rCos[kDirectionV] = uv2xy.R2_xy[1][0];//cos theta v
-  rSin[kDirectionV] = uv2xy.R2_xy[1][1];//sin theta v
+  rCos[kDirectionU] = uv2xy.xy[0][0];//cos theta u
+  rSin[kDirectionU] = uv2xy.xy[0][1];//sin theta u
+  rCos[kDirectionV] = uv2xy.xy[1][0];//cos theta v
+  rSin[kDirectionV] = uv2xy.xy[1][1];//sin theta v
 
   //set the offsets for the u,v,x axes
   x0[kDirectionX] = 0;
-  x0[kDirectionU] = fabs(uv2xy.R2_offset[0]) * rCos[1] + uv2xy.R2_wirespacing;
-  x0[kDirectionV] = fabs(uv2xy.R2_offset[1]) * rCos[2] + uv2xy.R2_wirespacing;
+  x0[kDirectionU] = fabs(uv2xy.fOffset[0]) * rCos[1] + uv2xy.fWirespacing;
+  x0[kDirectionV] = fabs(uv2xy.fOffset[1]) * rCos[2] + uv2xy.fWirespacing;
 
-  //initialize the matrices
+  // Initialize the matrices
+  double A[4][4];
+  double *Ap = &A[0][0];
+  double B[4];
   for (int i = 0; i < 4; i++) {
     B[i] = 0;
     for (int j = 0; j < 4; j++)
@@ -1321,12 +1323,13 @@ int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
   for (int i = 0; i < Num; i++) {
     cff  = 1.0 / Hit[i]->GetSpatialResolution();
     cff *= cff;
-    r[0] = rCos[Hit[i]->GetDetectorInfo()->fDirection];
-    r[1] = rCos[Hit[i]->GetDetectorInfo()->fDirection] * (Hit[i]->GetZPosition());
-    r[2] = rSin[Hit[i]->GetDetectorInfo()->fDirection];
-    r[3] = rSin[Hit[i]->GetDetectorInfo()->fDirection] * (Hit[i]->GetZPosition());
+    EQwDirectionID dir = Hit[i]->GetDetectorInfo()->fDirection;
+    r[0] = rCos[dir];
+    r[1] = rCos[dir] * (Hit[i]->GetZPosition());
+    r[2] = rSin[dir];
+    r[3] = rSin[dir] * (Hit[i]->GetZPosition());
     for (int k = 0; k < 4; k++) {
-      B[k] += cff*r[k]*(Hit[i]->rPos - x0[Hit[i]->GetDetectorInfo()->fDirection]);
+      B[k] += cff * r[k] * (Hit[i]->rPos - x0[dir]);
       for (int j = 0; j < 4; j++)
 	A[k][j] += cff * r[k] * r[j];
     }
@@ -1349,7 +1352,6 @@ int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
 //   matrix<double> mAinv = invert(mA);
 
   // Invert the metric matrix
-  double *Ap = &A[0][0];
   M_Invert(Ap, cov, 4);
 
   // Check that inversion was successful
@@ -1363,11 +1365,11 @@ int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
 
   //calculate the line parameters in u,v,x directions
   bx[kDirectionX] = fit[0];
-  bx[kDirectionU] = (fit[0]+fabs(uv2xy.R2_offset[0]))*rCos[1] + fit[2]*rSin[1] + uv2xy.R2_wirespacing;
-  bx[kDirectionV] = (fit[0]+fabs(uv2xy.R2_offset[1]))*rCos[2] + fit[2]*rSin[2] + uv2xy.R2_wirespacing;
+  bx[kDirectionU] = (fit[0] + fabs(uv2xy.fOffset[0])) * rCos[1] + fit[2] * rSin[1] + uv2xy.fWirespacing;
+  bx[kDirectionV] = (fit[0] + fabs(uv2xy.fOffset[1])) * rCos[2] + fit[2] * rSin[2] + uv2xy.fWirespacing;
   mx[kDirectionX] = fit[1];
-  mx[kDirectionU] = fit[1]*rCos[1]+fit[3]*rSin[1];
-  mx[kDirectionV] = fit[1]*rCos[2]+fit[3]*rSin[2];
+  mx[kDirectionU] = fit[1] * rCos[1] + fit[3] * rSin[1];
+  mx[kDirectionV] = fit[1] * rCos[2] + fit[3] * rSin[2];
 
   // Calculate chi^2
   *chi = 0;
@@ -1423,10 +1425,10 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, doub
   Uv2xy uv2xy(kRegionID3);
 
   // Set the angles for our frame
-  rCos[kDirectionU] = -uv2xy.R3_xy[0][0];
-  rCos[kDirectionV] = -uv2xy.R3_xy[1][0];
-  rSin[kDirectionU] = -uv2xy.R3_xy[0][1];
-  rSin[kDirectionV] = -uv2xy.R3_xy[1][1];
+  rCos[kDirectionU] = -uv2xy.xy[0][0];
+  rCos[kDirectionV] = -uv2xy.xy[1][0];
+  rSin[kDirectionU] = -uv2xy.xy[0][1];
+  rSin[kDirectionV] = -uv2xy.xy[1][1];
 
   /* Initialize */
   for (int i = 0; i < 4; i++) {

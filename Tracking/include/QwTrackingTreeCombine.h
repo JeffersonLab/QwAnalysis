@@ -96,7 +96,7 @@ class QwTrackingTreeCombine {
 
     int TlMatchHits (
 		double x1,double x2,double z1, double dz,
-		QwTrackingTreeLine *treefill,
+		QwTrackingTreeLine *treefill, QwHitContainer *hitlist,
 		EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type, EQwDirectionID dir,
 		int tlayers);
 

@@ -3,18 +3,17 @@
 
 // Standard C and C++ headers
 #include <iostream>
-#include "QwTrackingTree.h"
 
 // Qweak headers
 #include "QwTypes.h"
-#include "QwHit.h"
-#include "Det.h"
 
 
+class QwHit;
 
 /*------------------------------------------------------------------------*//*!
 
  \class Uv2xy
+ \ingroup QwTrackingAnl
 
  \brief Converts between (u,v) and (x,y) coordinates
 
@@ -23,34 +22,44 @@
    x and y coordinates.
 
 *//*-------------------------------------------------------------------------*/
-
-///
-/// \ingroup QwTrackingAnl
 class Uv2xy {
-
-   friend class QwTrackingTreeCombine;
-   friend int r2_TrackFit(int Num, QwHit **Hit, double *fit, double *cov, double *chi);
 
   public:
 
     Uv2xy(EQwRegionID region);
+    Uv2xy(double angle, double offsetU = 0.0, double offsetV = 0.0, double wirespacing = 0.0);
+
+    void PrintUV() {
+      std::cout << "UV = [" << uv[0][0] << "," << uv[0][1] << ";";
+      std::cout << uv[1][0] << "," << uv[1][1] << std::endl;
+    };
+    void PrintXY() {
+      std::cout << "XY = [" << xy[0][0] << "," << xy[0][1] << ";";
+      std::cout << xy[1][0] << "," << xy[1][1] << std::endl;
+    };
+    void Print() {
+      PrintUV();
+      PrintXY();
+    };
 
     double uv2x(double u, double v);
     double uv2y(double u, double v);
     double xy2u(double x, double y);
     double xy2v(double x, double y);
 
+    double uv[2][2];
+    double xy[2][2];
+
+    double fOffset[2];
+    double fWirespacing;
+
+  friend class QwTrackingTreeCombine;
+
+  protected:
+
   private:
 
     EQwRegionID fRegion;
-
-    double R2_uv[2][2];
-    double R2_xy[2][2];
-    double R3_uv[2][2];
-    double R3_xy[2][2];
-
-    double R2_offset[2];
-    double R2_wirespacing;
 
 };
 
