@@ -51,15 +51,23 @@ QwHit::QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 void QwHit::Print() {
-    std::cout << "Hit: ";
-    std::cout << "package "   << fPackage << ", ";
-    std::cout << "region "    << fRegion << ", ";
-    std::cout << "dir "       << fDirection << ", ";
-    std::cout << "plane "     << fPlane;
-    if (pDetectorInfo) std::cout << " (detector " << pDetectorInfo << "), ";
-    else std::cout << ", ";
-    std::cout << "element "   << fElement << ", ";
-    std::cout << "distance "  << fDistance << std::endl;
+  if (! this) return;
+  std::cout << *this << std::endl;
+};
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+ostream& operator<< (ostream& stream, const QwHit& hit) {
+  stream << "hit: ";
+  stream << "package "   << hit.fPackage << ", ";
+  stream << "region "    << hit.fRegion << ", ";
+  stream << "dir "       << hit.fDirection << ", ";
+  stream << "plane "     << hit.fPlane;
+  if (hit.pDetectorInfo) stream << " (detector " << hit.pDetectorInfo << "), ";
+  else stream << ", ";
+  stream << "element "   << hit.fElement << ", ";
+  stream << "distance "  << hit.fDistance;
+  return stream;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

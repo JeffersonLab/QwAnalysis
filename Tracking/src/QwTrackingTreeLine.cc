@@ -66,7 +66,7 @@ QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _
 
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 
 QwTrackingTreeLine::~QwTrackingTreeLine()
 {
@@ -76,4 +76,50 @@ QwTrackingTreeLine::~QwTrackingTreeLine()
   }
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+
+/*!--------------------------------------------------------------------------*\
+
+ \brief Calculate average residual of this partial track over all treelines
+
+*//*-------------------------------------------------------------------------*/
+const double QwTrackingTreeLine::CalculateAverageResidual()
+{
+  int numHits = 0;
+  double sumResiduals = 0.0;
+  for (int layer = 0; layer < 2 * TLAYERS; layer++) {
+    for (QwHit* hit = hits[layer]; hit; hit = hit->next) {
+      if (hit->isused) {
+        numHits++;
+        sumResiduals += hit->GetDriftDistance();
+      }
+    } // end of loop over hits (only one of them is used)
+  } // end of loop over layers
+  return sumResiduals / numHits;
+}
+
+
+
+void QwTrackingTreeLine::Print() {
+  if (!this) return;
+  std::cout << *this << std::endl;
+  next->Print();
+}
+
+
+
+ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl) {
+  stream << "tl: ";
+  stream << tl.a_beg << ", " << tl.a_end << " -- ";
+  stream << tl.b_beg << ", " << tl.b_end;
+  if (tl.chi > 0.0) { // treeline has been fitted
+    stream << "; hits:";
+    for (int hit = 0; hit < tl.numhits; hit++)
+      stream << " " << tl.hits[hit]->GetElement();
+    stream << ", cx = " << tl.cx;
+    stream << ", mx = " << tl.mx;
+    stream << ", chi = " << tl.chi;
+  }
+  if (tl.isvoid) stream << " (void)";
+  return stream;
+};

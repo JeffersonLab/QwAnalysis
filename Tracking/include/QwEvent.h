@@ -3,6 +3,8 @@
 
 #include <list>
 
+#include "TObject.h"
+
 #include "QwTrackingTreeLine.h"
 #include "QwPartialTrack.h"
 #include "QwTrack.h"
@@ -18,7 +20,7 @@
  \ingroup QwTrackingAnl
 
 *//*-------------------------------------------------------------------------*/
-class QwEvent {
+class QwEvent: public TObject {
 
   public:
 

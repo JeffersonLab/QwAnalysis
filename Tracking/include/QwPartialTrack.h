@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+#include "TObject.h"
+
 #include "tracking.h"
 #include "QwTrackingTreeLine.h"
 
@@ -17,15 +19,16 @@
  \ingroup QwTrackingAnl
 
 *//*-------------------------------------------------------------------------*/
-class QwPartialTrack {
+class QwPartialTrack: public TObject {
 
   public: // methods
 
     QwPartialTrack() {
       x = 0.0; y = 0.0; mx = 0.0; my = 0.0;
-      isvoid = false;
-      isused = false;
+      isvoid = false; isused = false;
       next = 0;
+      for (int i = 0; i < kNumDirections; i++)
+        tline[i] = 0;
     };
     ~QwPartialTrack() { };
 
@@ -33,19 +36,18 @@ class QwPartialTrack {
     bool IsVoid() { return isvoid; };
     bool IsUsed() { return isused; };
 
-    void Print() {
-      if (!this) return;
-      std::cout << *this << std::endl;
-      if (next) next->Print();
-    }
+    void Print();
 
-    friend ostream& operator<< (ostream& stream, const QwPartialTrack& pt) {
-      stream << "pt: ";
-      stream << "(x,y) = (" << pt.x  << ", " << pt.y  << "), ";
-      stream << "d(x,y) = (" << pt.mx << ", " << pt.my << ") ";
-      if (pt.isvoid) stream << " (void)";
-      if (pt.next) stream << " -> " << pt.next;
-      return stream;
+    friend ostream& operator<< (ostream& stream, const QwPartialTrack& pt);
+
+    // Average residuals
+    const double GetAverageResidual() const { return fAverageResidual; };
+    void SetAverageResidual(const double residual) { fAverageResidual = residual; };
+    const double CalculateAverageResidual();
+
+    // Tree lines
+    QwTrackingTreeLine* GetTreeLine(const EQwDirectionID dir) {
+      return tline[dir];
     };
 
   public: // members
@@ -72,6 +74,10 @@ class QwPartialTrack {
     double cerenkov[2];		/*!< x-y position at Cerenkov bar face */
 
     QwPartialTrack *next;	/*!< linked list */
+
+  private:
+
+    double fAverageResidual;	/*!< average residual over all used treelines */
 };
 
 #endif // QWPARTIALTRACK_H

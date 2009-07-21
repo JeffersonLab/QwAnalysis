@@ -34,6 +34,8 @@
 #ifndef QWTRACKINGTREELINE_H
 #define QWTRACKINGTREELINE_H
 
+#include "TObject.h"
+
 #include "globals.h"
 #include "QwHit.h"
 
@@ -42,7 +44,7 @@
 ///
 /// \ingroup QwTrackingAnl
 
-class QwTrackingTreeLine {
+class QwTrackingTreeLine: public TObject {
 
   public:
 
@@ -54,27 +56,9 @@ class QwTrackingTreeLine {
     bool IsUsed() { return isused; };
     bool IsNotUsed() { return ! isused; };
 
-    void Print() {
-      if (!this) return;
-      std::cout << *this << std::endl;
-      next->Print();
-    }
+    void Print();
 
-    friend ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl) {
-      stream << "tl: ";
-      stream << tl.a_beg << ", " << tl.a_end << " -- ";
-      stream << tl.b_beg << ", " << tl.b_end;
-      if (tl.chi > 0.0) { // treeline has been fitted
-        stream << "; hits:";
-        for (int hit = 0; hit < tl.numhits; hit++)
-          stream << " " << tl.hits[hit]->GetElement();
-        stream << ", cx = " << tl.cx;
-        stream << ", mx = " << tl.mx;
-        stream << ", chi = " << tl.chi;
-      }
-      if (tl.isvoid) stream << " (void)";
-      return stream;
-    };
+    friend ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl);
 
     double GetPositionFirst (double binwidth) {
       return 0.5 * (a_beg + a_end) * binwidth;
@@ -91,6 +75,12 @@ class QwTrackingTreeLine {
     double GetResolutionLast (double binwidth) {
       return (b_beg - b_end) * binwidth;
     }; //! Returns resolution at the last detector plane
+
+    // Get/set/calculate the average residuals
+    const double GetAverageResidual() const { return fAverageResidual; };
+    void SetAverageResidual(const double residual) { fAverageResidual = residual; };
+    const double CalculateAverageResidual();
+
 
 
     bool isvoid;		/*!< has been found void */
@@ -113,6 +103,10 @@ class QwTrackingTreeLine {
     int   r3offset,firstwire,lastwire;
 
     QwTrackingTreeLine *next;	/*!< link to next list element */
+
+  private:
+
+    double fAverageResidual;	/*!< average residual over all used hits */
 
 }; // class QwTrackingTreeLine
 

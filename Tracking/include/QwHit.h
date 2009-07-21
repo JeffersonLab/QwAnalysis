@@ -50,6 +50,7 @@ class QwHit : public TObject {
 
   void Print();
 
+  friend ostream& operator<< (ostream& stream, const QwHit& hit);
 
   Int_t GetSubbankID(){return fCrate;};
 
@@ -174,6 +175,7 @@ class QwHit : public TObject {
   Double_t fTimeRes;    /// Resolution of time (if appropriate)
 
   Double_t fDistance;   /// Perpendicular distance from the wire to the track
+  Double_t fResidual;   /// Residual of this hit (distance - distance to fitted track)
   Double_t fZPos;       /// Detector position???
 
   Double_t fSpatialResolution;	/// Spatial resolution

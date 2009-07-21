@@ -1,6 +1,8 @@
 #ifndef QWVERTEX_H
 #define QWVERTEX_H
 
+#include "TObject.h"
+
 /*------------------------------------------------------------------------*//*!
 
  \brief Contains vertex information
@@ -11,7 +13,7 @@
  \ingroup QwTrackingAnl
 
 *//*-------------------------------------------------------------------------*/
-class QwVertex {
+class QwVertex: public TObject {
 
   public:
 

@@ -13,6 +13,7 @@
 #ifndef QWHITCONTAINER_H
 #define QWHITCONTAINER_H
 
+#include <iostream>
 #include <list>
 #include <vector>
 #include <algorithm>
@@ -127,11 +128,8 @@ class QwHitContainer:  public std::list<QwHit>{
   }
 
   // Return the sublist of hits only in specified detector plane
-  void Print () {
-    for (QwHitContainer::iterator hit = begin(); hit != end(); hit++)
-      hit->Print();
-  }
-
+  void Print ();
+  friend std::ostream& operator<< (std::ostream& stream, QwHitContainer& hitlist);
 
 
 };
