@@ -1,6 +1,7 @@
 #ifndef QWDETECTORINFO_H
 #define QWDETECTORINFO_H
 
+#include <iostream>
 #include <vector>
 
 #include "TString.h"
@@ -36,6 +37,9 @@ class QwDetectorInfo{
 
     // Get unique detector ID
     const int GetID() const { return fDetectorID; };
+
+    // Output stream operator
+    friend ostream& operator<< (ostream& stream, QwDetectorInfo& det);
 
     // Identification info for readout channels. Filled at load time.
     int fCrate; //ROC number

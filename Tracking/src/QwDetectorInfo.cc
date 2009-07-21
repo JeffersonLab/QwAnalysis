@@ -93,3 +93,12 @@ void QwDetectorInfo::SetDetectorInfo (
 
 };
 
+ostream& operator<< (ostream& stream, QwDetectorInfo& det)
+{
+  stream << "det " << det.fDetectorID << ": ";
+  stream << "package " << det.fPackage << ", ";
+  stream << "region " << det.fRegion << ", ";
+  stream << "dir " << det.fDirection << " ";
+  stream << "(z = " << det.fZPos << " cm)";
+  return stream;
+}
