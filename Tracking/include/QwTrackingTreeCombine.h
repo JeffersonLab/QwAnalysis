@@ -12,17 +12,17 @@ using std::cout; using std::cerr; using std::endl;
 // Boost uBLAS (linear algebra) headers
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/triangular.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-#include <boost/numeric/ublas/io.hpp>
 
 // Qweak headers
 #include "QwHit.h"
+#include "QwTrackingTree.h"
 #include "QwTrackingTreeLine.h"
 #include "QwPartialTrack.h"
 #include "QwTrack.h"
 #include "QwEvent.h"
+
 #include "uv2xy.h"
+#include "matrix.h"
 
 #define HASHSIZE 1024		/* power of 2 */
 #define HASHMASK 1023		/* hashsize-1 */
@@ -94,15 +94,29 @@ class QwTrackingTreeCombine {
 		EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type, EQwDirectionID dir,
 		int  dlayer, int tlayer, int iteration, int stay_tuned, double width);
 
-    int TlMatchHits (double x1,double x2,double z1, double dz,QwTrackingTreeLine *treefill,EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type,EQwDirectionID dir,int tlayers);
+    int TlMatchHits (
+		double x1,double x2,double z1, double dz,
+		QwTrackingTreeLine *treefill,
+		EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type, EQwDirectionID dir,
+		int tlayers);
 
     bool InAcceptance (EQwDetectorPackage package, EQwRegionID region, double cx, double mx, double cy, double my);
     void TlTreeLineSort (QwTrackingTreeLine *tl, QwHitContainer *hl, EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type, EQwDirectionID dir, unsigned long bins, int tlayer, int dlayer, double width);
 
     // Combine the tree lines in partial tracks for region 2 and region 3
-    QwPartialTrack* TcTreeLineCombine (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, QwTrackingTreeLine *wx, int tlayer);
-    QwPartialTrack* TcTreeLineCombine (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, int tlayer);
-    QwPartialTrack* TcTreeLineCombine2 (QwTrackingTreeLine *wu, QwTrackingTreeLine *wv, int tlayer);
+    QwPartialTrack* TcTreeLineCombine (
+		QwTrackingTreeLine *wu,
+		QwTrackingTreeLine *wv,
+		QwTrackingTreeLine *wx,
+		int tlayer);
+    QwPartialTrack* TcTreeLineCombine (
+		QwTrackingTreeLine *wu,
+		QwTrackingTreeLine *wv,
+		int tlayer);
+    QwPartialTrack* TcTreeLineCombine2 (
+		QwTrackingTreeLine *wu,
+		QwTrackingTreeLine *wv,
+		int tlayer);
 
     QwPartialTrack* TlTreeCombine (
 		QwTrackingTreeLine *uvl[kNumDirections], long bins, EQwDetectorPackage package,
