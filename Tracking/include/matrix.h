@@ -29,6 +29,11 @@ double *M_Unit (double *A, int n);
 void M_Print (double *A, int n);
 void M_Print (double *A, double *B, int n);
 
+double *V_Zero (double *v, int n);
+double *V_Unit (double *v, int n, int k);
+void V_Print (double *v, int n);
+void V_Print (double *v, double *w, int n);
+
 
 /*------------------------------------------------------------------------*//*!
 

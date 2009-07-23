@@ -2,6 +2,45 @@
 
 #define DBL_EPSILON 2.22045e-16
 
+double *V_Zero (double *v, int n)
+{
+  for (int i = 0; i < n; i++) {
+    v[i] = 0.0;
+  }
+  return v;
+}
+
+double *V_Unit (double *v, int n, int k)
+{
+  for (int i = 0; i < n; i++) {
+    v[i] = 0.0;
+  }
+  v[k] = 1.0;
+  return v;
+}
+
+void V_Print (double *v, int n)
+{
+  // Print vector v
+  for (int i = 0; i < n; i++) {
+    std::cout << v[i];
+  }
+  std::cout << std::endl;
+  return;
+}
+
+void V_Print (double *v, double *w, int n)
+{
+  // Print vector v and w
+  for (int i = 0; i < n; i++) {
+    std::cout << v[i] << " | " << w[i];
+  }
+  std::cout << std::endl;
+  return;
+}
+
+
+
 /*------------------------------------------------------------------------*//*!
 
  \fn double UNorm (double *A, int n, int m)
@@ -209,9 +248,19 @@ double *M_Invert (double *Ap, double *Bp, int n)
   // Print matrices Ap and Bp
   //M_Print (Ap, Bp, n);
 
-  // Calculate inverse matrix using row-reduce method
+  // This will not be generalized for nxn matrices.
   // (wdc: TODO  faster algs could be useful later)
-  if(n == 4) { // this will not be generalized for nxn matrices.
+  if (n == 2) {
+    double det = (Ap[0] * Ap[3]) - (Ap[1] * Ap[2]);
+    Bp[0] =  Ap[0] / det;
+    Bp[1] = -Ap[1] / det;
+    Bp[2] = -Ap[2] / det;
+    Bp[3] =  Ap[3] / det;
+  }
+
+  if (n == 4) {
+    // Calculate inverse matrix using row-reduce method.
+    // (No safety for singular matrices!)
 
     // get A10 to An0 to be zero.
     for (int i = 1; i < n; i++) {
