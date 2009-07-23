@@ -8,6 +8,8 @@
 
 #include "QwHit.h"
 
+ClassImp(QwHit);
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwHit::QwHit()

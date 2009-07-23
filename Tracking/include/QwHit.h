@@ -118,7 +118,7 @@ class QwHit : public TObject {
       return pDetectorInfo->fZPos; // TODO typo: QwDetectorInfo::Spatial_Res
     else return fZPos;
   }
-  void SetZPosition(double zpos) { fZPos = zpos; };
+  void SetZPosition(const double zpos) { fZPos = zpos; };
 
   Bool_t IsFirstDetectorHit(){return (fHitNumber==0);};
 
@@ -202,6 +202,8 @@ class QwHit : public TObject {
     double rResultPos;		/*!< Resulting hit position            */
     double rPos;		/*!< Position of from track finding    */
 
+
+  ClassDef(QwHit,1)
 };
 
 #endif
