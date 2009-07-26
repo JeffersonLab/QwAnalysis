@@ -224,7 +224,7 @@ void QwASCIIEventBuffer::AddDetector(QwDetectorInfo qwDetector, Int_t i) {
     rcDET[i].PosOfFirstWire=qwDetector.FirstWirePos;
     rcDET[i].rCos=qwDetector.Wire_rcosX;
     rcDET[i].rSin=qwDetector.Wire_rsinX;
-    rcDET[i].NumOfWires=qwDetector.TotalWires;
+    rcDET[i].NumOfWires=qwDetector.fTotalWires;
     rcDET[i].ID=qwDetector.fDetectorID;
     rcDET[i].index=i;
     rcDET[i].samesearched = 0;

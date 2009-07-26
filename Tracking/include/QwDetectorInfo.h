@@ -67,7 +67,7 @@ class QwDetectorInfo{
     Double_t FirstWirePos;
     Double_t Wire_rcosX;
     Double_t Wire_rsinX;
-    Int_t TotalWires;
+    Int_t fTotalWires;
 
     // Unique detector identifier
     int fDetectorID;

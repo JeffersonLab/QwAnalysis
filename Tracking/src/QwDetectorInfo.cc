@@ -49,7 +49,7 @@ void QwDetectorInfo::SetDetectorInfo (
   FirstWirePos = FirstWire;
   Wire_rcosX = W_rcos;
   Wire_rsinX = W_rsin;
-  TotalWires = totalwires;
+  fTotalWires = totalwires;
 
   fDetectorID = detId;
 
