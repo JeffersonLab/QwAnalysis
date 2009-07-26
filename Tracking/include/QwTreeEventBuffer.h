@@ -26,6 +26,20 @@ using std::vector;
 
 class QwTreeEventBuffer : public QwEventBuffer
 {
+  public:
+
+    QwTreeEventBuffer(const TString filename);
+    ~QwTreeEventBuffer() { fFile->Close(); };
+
+    QwHitContainer* GetHitList(int fEvtNum);
+    void SetDebugLevel (int debug) {fDebug = debug; };
+
+    int GetEntries() {return fEntries;};
+
+    void SetDetectorInfo (vector <vector <QwDetectorInfo> > & detector_info) {
+      fDetectorInfo = detector_info;
+    };
+
   private:
 
     int fDebug;
@@ -33,8 +47,20 @@ class QwTreeEventBuffer : public QwEventBuffer
     TFile* fFile;
     TTree* fTree;
     Int_t fEntries;
+    Int_t fHitCounter;
 
-//Region2 WirePlane1
+    // List of detector info objects (a.k.a. geometry information)
+    vector <vector <QwDetectorInfo> > fDetectorInfo;
+
+    void Init();
+    void ReserveSpace();
+    void Clear();
+
+    // Create a  hit at position (x,y) in the center of the specified detector
+    QwHit* CreateHitRegion2(QwDetectorInfo* detectorinfo, double x, double y);
+    std::vector<QwHit> CreateHitRegion3(QwDetectorInfo* detectorinfo, double x, double y, double mx, double my);
+
+    // Region2 WirePlane1
     Int_t fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit;
     Int_t fRegion2_ChamberFront_WirePlane1_NbOfHits;
     vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX;
@@ -53,7 +79,7 @@ class QwTreeEventBuffer : public QwEventBuffer
     vector <Float_t> fRegion2_ChamberBack_WirePlane1_PlaneLocalMomentumY;
     vector <Float_t> fRegion2_ChamberBack_WirePlane1_PlaneLocalMomentumZ;
 
-//Region2 WirePlane2
+    // Region2 WirePlane2
     Int_t fRegion2_ChamberFront_WirePlane2_PlaneHasBeenHit;
     Int_t fRegion2_ChamberFront_WirePlane2_NbOfHits;
     vector <Float_t> fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionX;
@@ -72,7 +98,7 @@ class QwTreeEventBuffer : public QwEventBuffer
     vector <Float_t> fRegion2_ChamberBack_WirePlane2_PlaneLocalMomentumY;
     vector <Float_t> fRegion2_ChamberBack_WirePlane2_PlaneLocalMomentumZ;
 
-//Region2 WirePlane3
+    // Region2 WirePlane3
     Int_t fRegion2_ChamberFront_WirePlane3_PlaneHasBeenHit;
     Int_t fRegion2_ChamberFront_WirePlane3_NbOfHits;
     vector <Float_t> fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionX;
@@ -91,7 +117,7 @@ class QwTreeEventBuffer : public QwEventBuffer
     vector <Float_t> fRegion2_ChamberBack_WirePlane3_PlaneLocalMomentumY;
     vector <Float_t> fRegion2_ChamberBack_WirePlane3_PlaneLocalMomentumZ;
 
-//Region2 WirePlane4
+    // Region2 WirePlane4
     Int_t fRegion2_ChamberFront_WirePlane4_PlaneHasBeenHit;
     Int_t fRegion2_ChamberFront_WirePlane4_NbOfHits;
     vector <Float_t> fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionX;
@@ -110,7 +136,7 @@ class QwTreeEventBuffer : public QwEventBuffer
     vector <Float_t> fRegion2_ChamberBack_WirePlane4_PlaneLocalMomentumY;
     vector <Float_t> fRegion2_ChamberBack_WirePlane4_PlaneLocalMomentumZ;
 
-//Region2 WirePlane5
+    // Region2 WirePlane5
     Int_t fRegion2_ChamberFront_WirePlane5_PlaneHasBeenHit;
     Int_t fRegion2_ChamberFront_WirePlane5_NbOfHits;
     vector <Float_t> fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionX;
@@ -129,7 +155,7 @@ class QwTreeEventBuffer : public QwEventBuffer
     vector <Float_t> fRegion2_ChamberBack_WirePlane5_PlaneLocalMomentumY;
     vector <Float_t> fRegion2_ChamberBack_WirePlane5_PlaneLocalMomentumZ;
 
-//Region2 WirePlane6
+    // Region2 WirePlane6
     Int_t fRegion2_ChamberFront_WirePlane6_PlaneHasBeenHit;
     Int_t fRegion2_ChamberFront_WirePlane6_NbOfHits;
     vector <Float_t> fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionX;
@@ -148,7 +174,7 @@ class QwTreeEventBuffer : public QwEventBuffer
     vector <Float_t> fRegion2_ChamberBack_WirePlane6_PlaneLocalMomentumY;
     vector <Float_t> fRegion2_ChamberBack_WirePlane6_PlaneLocalMomentumZ;
 
-//Region3
+    // Region3
     Int_t fRegion3_ChamberFront_WirePlaneU_HasBeenHit;
     Int_t fRegion3_ChamberFront_WirePlaneU_NbOfHits;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalPositionX;
@@ -184,20 +210,6 @@ class QwTreeEventBuffer : public QwEventBuffer
     vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalMomentumX;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalMomentumY;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalMomentumZ;
-
-    void Init();
-    void ReserveSpace();
-    void Clear();
-
-  public:
-
-    QwTreeEventBuffer(const TString filename);
-    ~QwTreeEventBuffer() { fFile->Close(); };
-
-    QwHitContainer* GetHitList(int fEvtNum);
-    void SetDebugLevel (int debug) {fDebug = debug; };
-
-    int GetEntries() {return fEntries;};
 
 };
 

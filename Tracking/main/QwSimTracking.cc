@@ -27,6 +27,11 @@
 // Qweak Tree event buffer header
 #include "QwTreeEventBuffer.h"
 
+#include "QwSubsystemArrayTracking.h"
+#include "QwDriftChamberHDC.h"
+#include "QwDriftChamberVDC.h"
+
+
 //Temporary global variables for sub-programs
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 Det rcDET[NDetMax];
@@ -35,10 +40,37 @@ Options opt;
 
 int main (int argc, char* argv[])
 {
+  // Fill the search paths for the parameter files
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput");
+
+  // Handle for the list of VQwSubsystemTracking objects
+  QwSubsystemArrayTracking* QwDetectors = new QwSubsystemArrayTracking();
+  // Region 2 HDC
+  QwDetectors->push_back(new QwDriftChamberHDC("R2"));
+  QwDetectors->GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");
+  ((VQwSubsystemTracking*) QwDetectors->GetSubsystem("R2"))->LoadQweakGeometry("qweak_new.geo");
+  // Region 3 VDC
+  QwDetectors->push_back(new QwDriftChamberVDC("R3"));
+  QwDetectors->GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
+  ((VQwSubsystemTracking*) QwDetectors->GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
+
+  // Get vector with detector info (by region, plane number)
+  std::vector< std::vector< QwDetectorInfo > > detector_info;
+  ((VQwSubsystemTracking*) QwDetectors->GetSubsystem("R2"))->GetDetectorInfo(detector_info);
+  ((VQwSubsystemTracking*) QwDetectors->GetSubsystem("R3"))->GetDetectorInfo(detector_info);
+  // TODO This is handled incorrectly, it just adds the three package after the
+  // existing three packages from region 2...  GetDetectorInfo should descend
+  // into the packages and add only the detectors in those packages.
+  // Alternatively, we could implement this with a singly indexed vector (with
+  // only an id as primary index) and write a couple of helper functions to
+  // select the right subvectors of detectors.
+
   // Load the simulated event file
   QwTreeEventBuffer* treebuffer =
 	new QwTreeEventBuffer (std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QweakSim.root");
-  treebuffer->SetDebugLevel(0);
+  treebuffer->SetDetectorInfo(detector_info);
+  treebuffer->SetDebugLevel(1);
 
   // Load the geometry
   Qset qset;
@@ -56,17 +88,17 @@ int main (int argc, char* argv[])
   trackingworker->SetDebugLevel(1);
 
   int fEntries = treebuffer->GetEntries();
-  for (int fEvtNum=0; fEvtNum<fEntries; fEvtNum++) {
+  for (int fEvtNum = 1; fEvtNum < fEntries && fEvtNum < 100; fEvtNum++) {
     // Get hit list
-   QwHitContainer* hitlist = treebuffer->GetHitList(fEvtNum);
+    QwHitContainer* hitlist = treebuffer->GetHitList(fEvtNum);
 
     // Print hit list
-   std::cout<<"Printing hitlist ...\n";
-   hitlist->Print();
+    std::cout << "Printing hitlist ..." << std::endl;
+    hitlist->Print();
 
     // Process the hit list through the tracking worker
-   QwEvent *event = trackingworker->ProcessHits(hitlist);
-}
+    //QwEvent *event = trackingworker->ProcessHits(hitlist);
+  }
 
   return 0;
 

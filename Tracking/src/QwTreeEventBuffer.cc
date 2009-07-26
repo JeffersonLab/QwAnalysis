@@ -14,7 +14,7 @@ extern Det rcDET[NDetMax];
 //------------------------------------------------------------
 QwTreeEventBuffer::QwTreeEventBuffer (const TString filename)
 {
-  //alocate memory and initialize them
+  // Allocate memory and initialize them
   Init();
 
   // Open ROOT file
@@ -24,7 +24,7 @@ QwTreeEventBuffer::QwTreeEventBuffer (const TString filename)
 
   // Attach to region 2 branches
 
-//WirePlane1
+  // WirePlane1
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneHasBeenHit",
 		&fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.NbOfHits",
@@ -47,7 +47,7 @@ QwTreeEventBuffer::QwTreeEventBuffer (const TString filename)
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane1.PlaneLocalPositionZ",
 		&fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionZ);
 
-//WirePlane2
+  // WirePlane2
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane2.PlaneHasBeenHit",
 		&fRegion2_ChamberFront_WirePlane2_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane2.NbOfHits",
@@ -70,7 +70,7 @@ QwTreeEventBuffer::QwTreeEventBuffer (const TString filename)
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane2.PlaneLocalPositionZ",
 		&fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionZ);
 
-//WirePlane3
+  // WirePlane3
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane3.PlaneHasBeenHit",
 		&fRegion2_ChamberFront_WirePlane3_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane3.NbOfHits",
@@ -93,7 +93,7 @@ QwTreeEventBuffer::QwTreeEventBuffer (const TString filename)
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane3.PlaneLocalPositionZ",
 		&fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionZ);
 
-//WirePlane4
+  // WirePlane4
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane4.PlaneHasBeenHit",
 		&fRegion2_ChamberFront_WirePlane4_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane4.NbOfHits",
@@ -116,7 +116,7 @@ QwTreeEventBuffer::QwTreeEventBuffer (const TString filename)
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane4.PlaneLocalPositionZ",
 		&fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionZ);
 
-//WirePlane5
+  // WirePlane5
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane5.PlaneHasBeenHit",
 		&fRegion2_ChamberFront_WirePlane5_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.NbOfHits",
@@ -139,7 +139,7 @@ QwTreeEventBuffer::QwTreeEventBuffer (const TString filename)
   fTree->SetBranchAddress("Region2.ChamberBack.WirePlane5.PlaneLocalPositionZ",
 		&fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionZ);
 
-//WirePlane6
+  // WirePlane6
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane6.PlaneHasBeenHit",
 		&fRegion2_ChamberFront_WirePlane6_PlaneHasBeenHit);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane6.NbOfHits",
@@ -234,27 +234,23 @@ QwTreeEventBuffer::QwTreeEventBuffer (const TString filename)
 
   fEntries = fTree->GetEntries();
   if (fDebug>=1) std::cout << "Entries in event file: " << fEntries << std::endl;
+
+  fHitCounter = 0;
 }
 
 
 //-----------------------------------------------------------
 QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
 {
-  if (fDebug>=1) std::cout << "Calling QwTreeEventBuffer::GetHitList ()"<< std::endl;
+  if (fDebug >= 2) std::cout << "Calling QwTreeEventBuffer::GetHitList ()" << std::endl;
 
   // Final hit list
   QwHitContainer* hitlist = new QwHitContainer;
-  int hitcounter = 0;
-
-  // Temporary hit structure
-  QwHit* hit;
-
-  int id = 0; // for now
-  // Could be set with e.g. id = rcDETRegion[kPackageUp,kRegionID2,kDirectionU]
 
   // Load event
-  if (fDebug>=1) std::cout << "Reading event " << fEvtNum << std::endl;
+  if (fDebug >= 1) std::cout << "Reading event " << fEvtNum << std::endl;
 
+  // Region 2
   fTree->GetBranch("Region2.ChamberFront.WirePlane1.PlaneHasBeenHit")->GetEntry(fEvtNum);
   fTree->GetBranch("Region2.ChamberFront.WirePlane2.PlaneHasBeenHit")->GetEntry(fEvtNum);
   fTree->GetBranch("Region2.ChamberFront.WirePlane3.PlaneHasBeenHit")->GetEntry(fEvtNum);
@@ -268,6 +264,7 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
   fTree->GetBranch("Region2.ChamberBack.WirePlane5.PlaneHasBeenHit")->GetEntry(fEvtNum);
   fTree->GetBranch("Region2.ChamberBack.WirePlane6.PlaneHasBeenHit")->GetEntry(fEvtNum);
 
+  // Region 3
   fTree->GetBranch("Region3.ChamberFront.WirePlaneU.HasBeenHit")->GetEntry(fEvtNum);
   fTree->GetBranch("Region3.ChamberFront.WirePlaneV.HasBeenHit")->GetEntry(fEvtNum);
   fTree->GetBranch("Region3.ChamberBack.WirePlaneU.HasBeenHit")->GetEntry(fEvtNum);
@@ -279,54 +276,318 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
                        fRegion2_ChamberFront_WirePlane4_PlaneHasBeenHit == 5 &&
                        fRegion2_ChamberFront_WirePlane5_PlaneHasBeenHit == 5 &&
                        fRegion2_ChamberFront_WirePlane6_PlaneHasBeenHit == 5 &&
-                       fRegion2_ChamberBack_WirePlane1_PlaneHasBeenHit == 5 &&
-                       fRegion2_ChamberBack_WirePlane2_PlaneHasBeenHit == 5 &&
-                       fRegion2_ChamberBack_WirePlane3_PlaneHasBeenHit == 5 &&
-                       fRegion2_ChamberBack_WirePlane4_PlaneHasBeenHit == 5 &&
-                       fRegion2_ChamberBack_WirePlane5_PlaneHasBeenHit == 5 &&
-                       fRegion2_ChamberBack_WirePlane6_PlaneHasBeenHit == 5 ;
+                       fRegion2_ChamberBack_WirePlane1_PlaneHasBeenHit  == 5 &&
+                       fRegion2_ChamberBack_WirePlane2_PlaneHasBeenHit  == 5 &&
+                       fRegion2_ChamberBack_WirePlane3_PlaneHasBeenHit  == 5 &&
+                       fRegion2_ChamberBack_WirePlane4_PlaneHasBeenHit  == 5 &&
+                       fRegion2_ChamberBack_WirePlane5_PlaneHasBeenHit  == 5 &&
+                       fRegion2_ChamberBack_WirePlane6_PlaneHasBeenHit  == 5 ;
 
-  bool R3_HasBeenHit = fRegion3_ChamberFront_WirePlaneU_HasBeenHit ==5 &&
-                       fRegion3_ChamberFront_WirePlaneV_HasBeenHit ==5 &&
-                       fRegion3_ChamberBack_WirePlaneU_HasBeenHit  ==5 &&
-                       fRegion3_ChamberBack_WirePlaneV_HasBeenHit  ==5 ;
+  bool R3_HasBeenHit = fRegion3_ChamberFront_WirePlaneU_HasBeenHit == 5 &&
+                       fRegion3_ChamberFront_WirePlaneV_HasBeenHit == 5 &&
+                       fRegion3_ChamberBack_WirePlaneU_HasBeenHit  == 5 &&
+                       fRegion3_ChamberBack_WirePlaneV_HasBeenHit  == 5 ;
 
-  if ( R2_HasBeenHit && R3_HasBeenHit ){  //jpan:coincidence for avoiding match empty nodes
+  if (R2_HasBeenHit && R3_HasBeenHit) {  //jpan:coincidence for avoiding match empty nodes
     fTree->GetEntry(fEvtNum);
-    }
-  else
-    {
-      if (fDebug>=1) std::cout<<"Skip an empty event - event#"<<fEvtNum<<std::endl;
-    }
+  } else {
+    if (fDebug >= 1) std::cout << "Skip an empty event - event#" << fEvtNum << std::endl;
+  }
 
   //fTree->GetBranch("Region2")->GetEntry(fEvtNumber);
   //fTree->GetBranch("Region3")->GetEntry(fEvtNumber);
 
   //if (fDebug) fTree->Show(fEvtNum);
   // Print info
-//   if (fDebug) std::cout << "Region 2: "
-// 		<< fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit << ","
-// 		<< fRegion2_ChamberBack_WirePlane1_PlaneHasBeenHit  << std::endl;
-//   if (fDebug) std::cout << "Region 3: "
-// 		<< fRegion3_ChamberFront_WirePlaneU_LocalPositionX.at(0) << ","
-// 		<< fRegion3_ChamberFront_WirePlaneU_LocalPositionY.at(0) << ","
-// 		<< fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.at(0) << std::endl;
+  if (fDebug) std::cout << "Region 2: "
+		<< fRegion2_ChamberFront_WirePlane1_NbOfHits << ","
+		<< fRegion2_ChamberFront_WirePlane2_NbOfHits << ","
+		<< fRegion2_ChamberFront_WirePlane3_NbOfHits << ","
+		<< fRegion2_ChamberFront_WirePlane4_NbOfHits << ","
+		<< fRegion2_ChamberFront_WirePlane5_NbOfHits << ","
+		<< fRegion2_ChamberFront_WirePlane6_NbOfHits << ","
+		<< fRegion2_ChamberBack_WirePlane1_NbOfHits  << ","
+		<< fRegion2_ChamberBack_WirePlane2_NbOfHits  << ","
+		<< fRegion2_ChamberBack_WirePlane3_NbOfHits  << ","
+		<< fRegion2_ChamberBack_WirePlane4_NbOfHits  << ","
+		<< fRegion2_ChamberBack_WirePlane5_NbOfHits  << ","
+		<< fRegion2_ChamberBack_WirePlane6_NbOfHits  << " hit(s)." << std::endl;
+  if (fDebug) std::cout << "Region 3: "
+		<< fRegion3_ChamberFront_WirePlaneU_NbOfHits << ","
+		<< fRegion3_ChamberFront_WirePlaneV_NbOfHits << ","
+		<< fRegion3_ChamberBack_WirePlaneU_NbOfHits << ","
+		<< fRegion3_ChamberBack_WirePlaneV_NbOfHits << " hit(s)." << std::endl;
 
+  // Pointer to the detector info, this should be set before each detector section
+  QwDetectorInfo* detectorinfo = 0;
 
-  // Region 2 front planes (u,v,x)
-  if (fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit == 5) {
-    // not implemented yet
-    if (fDebug>=2) std::cout<<"Region2_ChamberFront_WirePlane has not been implementd yet."<<std::endl;
+  // Region 2 front chambers (x,u,v,x',u',v')
+  if (fDebug >= 2) std::cout << "Processing Region2_ChamberFront_WirePlane1: "
+	<< fRegion2_ChamberFront_WirePlane1_NbOfHits << " hit(s)." << std::endl;
+  detectorinfo = & fDetectorInfo.at(kPackageUp).at(0);
+  for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane1_NbOfHits && i1 < VSIZE; i1++) {
+    double x = fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX.at(i1);
+    double y = fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionY.at(i1);
+    QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
+    hitlist->push_back(*hit);
+  }
+  if (fDebug >= 2) std::cout << "Processing Region2_ChamberFront_WirePlane2: "
+	<< fRegion2_ChamberFront_WirePlane2_NbOfHits << " hit(s)." << std::endl;
+  detectorinfo = & fDetectorInfo.at(kPackageUp).at(1);
+  for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane2_NbOfHits && i1 < VSIZE; i1++) {
+    double x = fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionX.at(i1);
+    double y = fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionY.at(i1);
+    QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
+    hitlist->push_back(*hit);
+  }
+  if (fDebug >= 2) std::cout << "Processing Region2_ChamberFront_WirePlane3: "
+	<< fRegion2_ChamberFront_WirePlane3_NbOfHits << " hit(s)." << std::endl;
+  detectorinfo = & fDetectorInfo.at(kPackageUp).at(2);
+  for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane3_NbOfHits && i1 < VSIZE; i1++) {
+    double x = fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionX.at(i1);
+    double y = fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionY.at(i1);
+    QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
+    hitlist->push_back(*hit);
+  }
+  if (fDebug >= 2) std::cout << "Processing Region2_ChamberFront_WirePlane4: "
+	<< fRegion2_ChamberFront_WirePlane4_NbOfHits << " hit(s)." << std::endl;
+  detectorinfo = & fDetectorInfo.at(kPackageUp).at(3);
+  for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane4_NbOfHits && i1 < VSIZE; i1++) {
+    double x = fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionX.at(i1);
+    double y = fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionY.at(i1);
+    QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
+    hitlist->push_back(*hit);
+  }
+  if (fDebug >= 2) std::cout << "Processing Region2_ChamberFront_WirePlane5: "
+	<< fRegion2_ChamberFront_WirePlane5_NbOfHits << " hit(s)." << std::endl;
+  detectorinfo = & fDetectorInfo.at(kPackageUp).at(4);
+  for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane5_NbOfHits && i1 < VSIZE; i1++) {
+    double x = fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionX.at(i1);
+    double y = fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionY.at(i1);
+    QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
+    hitlist->push_back(*hit);
+  }
+  if (fDebug >= 2) std::cout << "Processing Region2_ChamberFront_WirePlane6: "
+	<< fRegion2_ChamberFront_WirePlane6_NbOfHits << " hit(s)." << std::endl;
+  detectorinfo = & fDetectorInfo.at(kPackageUp).at(5);
+  for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane6_NbOfHits && i1 < VSIZE; i1++) {
+    double x = fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionX.at(i1);
+    double y = fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionY.at(i1);
+    QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
+    hitlist->push_back(*hit);
   }
 
-  // Region 2 back planes (u',v',x')
-  if (fRegion2_ChamberBack_WirePlane1_PlaneHasBeenHit == 5) {
-    // not implemented yet
-    if (fDebug>=2) std::cout<<"Region2_ChamberBack_WirePlane has not been implementd yet."<<std::endl;
+
+  // Region 2 back chambers (x,u,v,x',u',v')
+  if (fDebug >= 2) std::cout << "Processing Region2_ChamberBack_WirePlane1: "
+	<< fRegion2_ChamberBack_WirePlane1_NbOfHits << " hit(s)." << std::endl;
+  detectorinfo = & fDetectorInfo.at(kPackageUp).at(6);
+  for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane1_NbOfHits && i1 < VSIZE; i1++) {
+    double x = fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionX.at(i1);
+    double y = fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionY.at(i1);
+    QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
+    hitlist->push_back(*hit);
+  }
+  if (fDebug >= 2) std::cout << "Processing Region2_ChamberBack_WirePlane2: "
+	<< fRegion2_ChamberBack_WirePlane2_NbOfHits << " hit(s)." << std::endl;
+  detectorinfo = & fDetectorInfo.at(kPackageUp).at(7);
+  for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane2_NbOfHits && i1 < VSIZE; i1++) {
+    double x = fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionX.at(i1);
+    double y = fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionY.at(i1);
+    QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
+    hitlist->push_back(*hit);
+  }
+  if (fDebug >= 2) std::cout << "Processing Region2_ChamberBack_WirePlane3: "
+	<< fRegion2_ChamberBack_WirePlane3_NbOfHits << " hit(s)." << std::endl;
+  detectorinfo = & fDetectorInfo.at(kPackageUp).at(8);
+  for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane3_NbOfHits && i1 < VSIZE; i1++) {
+    double x = fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionX.at(i1);
+    double y = fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionY.at(i1);
+    QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
+    hitlist->push_back(*hit);
+  }
+  if (fDebug >= 2) std::cout << "Processing Region2_ChamberBack_WirePlane4: "
+	<< fRegion2_ChamberBack_WirePlane4_NbOfHits << " hit(s)." << std::endl;
+  detectorinfo = & fDetectorInfo.at(kPackageUp).at(9);
+  for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane4_NbOfHits && i1 < VSIZE; i1++) {
+    double x = fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionX.at(i1);
+    double y = fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionY.at(i1);
+    QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
+    hitlist->push_back(*hit);
+  }
+  if (fDebug >= 2) std::cout << "Processing Region2_ChamberBack_WirePlane5: "
+	<< fRegion2_ChamberBack_WirePlane5_NbOfHits << " hit(s)." << std::endl;
+  detectorinfo = & fDetectorInfo.at(kPackageUp).at(10);
+  for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane5_NbOfHits && i1 < VSIZE; i1++) {
+    double x = fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionX.at(i1);
+    double y = fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionY.at(i1);
+    QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
+    hitlist->push_back(*hit);
+  }
+  if (fDebug >= 2) std::cout << "Processing Region2_ChamberBack_WirePlane6: "
+	<< fRegion2_ChamberBack_WirePlane6_NbOfHits << " hit(s)." << std::endl;
+  detectorinfo = & fDetectorInfo.at(kPackageUp).at(11);
+  for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane6_NbOfHits && i1 < VSIZE; i1++) {
+    double x = fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionX.at(i1);
+    double y = fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionY.at(i1);
+    QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
+    hitlist->push_back(*hit);
   }
 
 
-  /*! Region 3 wire position determination
+  // Region 3 front planes (u,v)
+  if (fDebug >= 2) std::cout << "Processing Region3_ChamberFront_WirePlaneU: "
+	<< fRegion3_ChamberFront_WirePlaneU_NbOfHits << " hit(s)." << std::endl;
+  detectorinfo = & fDetectorInfo.at(kNumPackages+kPackageUp).at(0);
+  for (int i1 = 0; i1 < fRegion3_ChamberFront_WirePlaneU_NbOfHits && i1 < VSIZE; i1++) {
+    if (fDebug >= 2) std::cout << "hit in "  << *detectorinfo << std::endl;
+
+    // Get the position and momentum (for slope calculation)
+    double x = fRegion3_ChamberFront_WirePlaneU_LocalPositionX.at(i1);
+    double y = fRegion3_ChamberFront_WirePlaneU_LocalPositionY.at(i1);
+    double xMomentum = fRegion3_ChamberFront_WirePlaneU_LocalMomentumX.at(i1);
+    double yMomentum = fRegion3_ChamberFront_WirePlaneU_LocalMomentumY.at(i1);
+    double zMomentum = fRegion3_ChamberFront_WirePlaneU_LocalMomentumZ.at(i1);
+    double mx =  xMomentum/zMomentum;
+    double my =  yMomentum/zMomentum;
+
+    // Fill a vector with the hits for this track
+    std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my);
+
+    // Append this vector of hits to the QwHitContainer.
+    hitlist->Append(hits);
+  }
+
+  if (fDebug >= 2) std::cout << "Processing Region3_ChamberFront_WirePlaneV: "
+	<< fRegion3_ChamberFront_WirePlaneV_NbOfHits << " hit(s)." << std::endl;
+  detectorinfo = & fDetectorInfo.at(kNumPackages+kPackageUp).at(1);
+  for (int i2 = 0; i2 < fRegion3_ChamberFront_WirePlaneV_NbOfHits && i2 < VSIZE; i2++) {
+    if (fDebug >= 2) std::cout << "hit in "  << *detectorinfo << std::endl;
+
+    // Get the position and momentum (for slope calculation)
+    double x = fRegion3_ChamberFront_WirePlaneV_LocalPositionX.at(i2);
+    double y = fRegion3_ChamberFront_WirePlaneV_LocalPositionY.at(i2);
+    double xMomentum = fRegion3_ChamberFront_WirePlaneV_LocalMomentumX.at(i2);
+    double yMomentum = fRegion3_ChamberFront_WirePlaneV_LocalMomentumY.at(i2);
+    double zMomentum = fRegion3_ChamberFront_WirePlaneV_LocalMomentumZ.at(i2);
+    double mx =  xMomentum/zMomentum;
+    double my =  yMomentum/zMomentum;
+
+    // Fill a vector with the hits for this track
+    std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my);
+
+    // Append this vector of hits to the QwHitContainer.
+    hitlist->Append(hits);
+  }
+
+  // Region 3 back planes (u',v')
+  if (fDebug >= 2) std::cout << "Processing Region3_ChamberBack_WirePlaneU: "
+	<< fRegion3_ChamberBack_WirePlaneU_NbOfHits << " hit(s)." << std::endl;
+  detectorinfo = & fDetectorInfo.at(kNumPackages+kPackageUp).at(2);
+  for (int i3 = 0; i3 < fRegion3_ChamberBack_WirePlaneU_NbOfHits && i3 < VSIZE; i3++) {
+    if (fDebug >= 2) std::cout << "hit in "  << *detectorinfo << std::endl;
+
+    // Get the position and momentum (for slope calculation)
+    double x = fRegion3_ChamberBack_WirePlaneU_LocalPositionX.at(i3);
+    double y = fRegion3_ChamberBack_WirePlaneU_LocalPositionY.at(i3);
+    double xMomentum = fRegion3_ChamberBack_WirePlaneU_LocalMomentumX.at(i3);
+    double yMomentum = fRegion3_ChamberBack_WirePlaneU_LocalMomentumY.at(i3);
+    double zMomentum = fRegion3_ChamberBack_WirePlaneU_LocalMomentumZ.at(i3);
+    double mx =  xMomentum/zMomentum;
+    double my =  yMomentum/zMomentum;
+
+    // Fill a vector with the hits for this track
+    std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my);
+
+    // Append this vector of hits to the QwHitContainer.
+    hitlist->Append(hits);
+  }
+
+  if (fDebug >= 2) std::cout << "Processing Region3_ChamberBack_WirePlaneV: "
+	<< fRegion3_ChamberBack_WirePlaneV_NbOfHits << " hit(s)." << std::endl;
+  detectorinfo = & fDetectorInfo.at(kNumPackages+kPackageUp).at(3);
+  for (int i4 = 0; i4 < fRegion3_ChamberBack_WirePlaneV_NbOfHits && i4 < VSIZE; i4++) {
+    if (fDebug >= 2) std::cout << "hit in " << *detectorinfo << std::endl;
+
+    // Get the position and momentum (for slope calculation)
+    double x = fRegion3_ChamberBack_WirePlaneV_LocalPositionX.at(i4);
+    double y = fRegion3_ChamberBack_WirePlaneV_LocalPositionY.at(i4);
+    double xMomentum = fRegion3_ChamberBack_WirePlaneV_LocalMomentumX.at(i4);
+    double yMomentum = fRegion3_ChamberBack_WirePlaneV_LocalMomentumY.at(i4);
+    double zMomentum = fRegion3_ChamberBack_WirePlaneV_LocalMomentumZ.at(i4);
+    double mx =  xMomentum/zMomentum;
+    double my =  yMomentum/zMomentum;
+
+    // Fill a vector with the hits for this track
+    std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my);
+
+    // Append this vector of hits to the QwHitContainer.
+    hitlist->Append(hits);
+  }
+
+
+  // Now return the final hitlist
+  if (fDebug >= 2) std::cout << "Leaving QwTreeEventBuffer::GetHitList ()" << std::endl;
+  return hitlist;
+}
+
+
+/*! Region 2 wire position determination
+
+      In region 2 we have the simulated position at the HDC plane in x and y
+      coordinates.  We simply find the wire closest to the position of the hit
+      after appropriately transforming x and y in u and v.  The distance in the
+      plane between the wire and the tracks is the drift distance.  No hits are
+      discarded based on drift distance.
+
+      For some reason we get hits in negative wires (e.g. -1, -2) which probably
+      indicates a mismatch in the active volumes of the detector between the
+      Monte Carlo simulation and tracking codes.  For now there is no problem
+      yet that has led us to fix this.
+
+*/
+QwHit* QwTreeEventBuffer::CreateHitRegion2 (
+	QwDetectorInfo* detectorinfo,
+	double x, double y)
+{
+  EQwRegionID region = detectorinfo->fRegion;
+  EQwDetectorPackage package = detectorinfo->fPackage;
+  EQwDirectionID direction = detectorinfo->fDirection;
+  int id = detectorinfo->GetID();
+  int nwires = detectorinfo->fTotalWires;
+  // TODO when we read fTotalWires, we should also use it somewhere...
+
+  double dx = detectorinfo->GetWireSpacing();
+
+  // Make the necessary transformations for the wires
+  Uv2xy uv2xy(region);
+  switch (direction) {
+    case kDirectionX:
+      // Nothing needs to be done for direction X
+      break;
+    case kDirectionU:
+      x = uv2xy.xy2u (x, y);
+      break;
+    case kDirectionV:
+      x = uv2xy.xy2v (x, y);
+      break;
+    default:
+      std::cout << "Direction " << direction << " not handled in CreateHitRegion2!" << std::endl;
+  }
+  int wire = (int) floor (x / dx) + 16;
+  double x_wire = (wire - 16) * dx;
+  double distance = fabs(x - x_wire);
+
+  QwHit* hit = new QwHit(0,0,0,0, region, package, id, direction, wire, 0);
+  hit->SetDetectorInfo(detectorinfo);
+  hit->SetDriftDistance(distance);
+  hit->SetSpatialResolution(dx);
+
+  return hit;
+}
+
+
+/*! Region 3 wire position determination
 
       In region 3 we have the simulated position and momentum at the VDC plane,
       but we want to construct the wires that are hit and the distance from
@@ -338,459 +599,358 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
       a fraction 1/3 of the thickness the hit is discared, otherwise we have
       too many hits compared with the data...
 
-   */
+*/
+std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
+	QwDetectorInfo* detectorinfo,
+	double x, double y,
+	double mx, double my)
+{
+  // Get detector information
+  EQwRegionID region = detectorinfo->fRegion;
+  EQwDetectorPackage package = detectorinfo->fPackage;
+  EQwDirectionID direction = detectorinfo->fDirection;
+  int id = detectorinfo->GetID();
+  int nwires = detectorinfo->fTotalWires;
+  // TODO when we read fTotalWires, we should also use it somewhere...
 
-  // Transformation helper (accesses angles in global geometry object)
-  Uv2xy uv2xy(kRegionID3);
+  double dx = detectorinfo->GetWireSpacing();
+  double dz = detectorinfo->fActiveWidthZ;
 
-  // Wire spacing in u and v planes, u' and v' planes
-  double du = 0.496965; // identical for u'
-  double dv = 0.496965; // identical for v'
-  // Chamber thickness
-  double dz = 2.6;
+  // Make the necessary transformations for the wires
+  Uv2xy uv2xy(region);
+  double x1, x2;
+  switch (direction) {
+    case kDirectionU:
+      x1 = uv2xy.xy2u (x - mx * dz/2, y - my * dz/2);
+      x2 = uv2xy.xy2u (x + mx * dz/2, y + my * dz/2);
+      break;
+    case kDirectionV:
+      x1 = uv2xy.xy2v (x - mx * dz/2, y - my * dz/2);
+      x2 = uv2xy.xy2v (x + mx * dz/2, y + my * dz/2);
+      break;
+    default:
+      std::cout << "Direction " << direction << " not handled in CreateHitRegion3!" << std::endl;
+  }
+  // From here we only work with the coordinate x, it is understood that for
+  // the u and v planes this is equivalent (by virtue of the previous switch
+  // statement) to the u and v coordinates.
 
+  // We store the position where the track actually crosses the wire plane
+  double x0 = (x1 + x2) / 2.0;
 
-  // Region 3 front planes (u,v)
+  // The central wire corresponds to x from -0.5*dx to +0.5*dx and should be
+  // equal to 141 for region 3 (i.e. (nwires + 1) / 2 for odd nwires).  That is
+  // the reason for the +0.5 in the argument of floor.
+  int wire0 = (int) floor (x0 / dx + 0.5) + 141;
+  int wire1 = (int) floor (x1 / dx + 0.5) + 141;
+  int wire2 = (int) floor (x2 / dx + 0.5) + 141;
 
-   if (fDebug>=2) std::cout<<"Processing Region3_ChamberFront_WirePlaneU"<<std::endl;
-//  if (fRegion3_ChamberFront_WirePlaneU_HasBeenHit == 5)
-   {
-   for (int i1=0; i1<fRegion3_ChamberFront_WirePlaneU_NbOfHits && i1<VSIZE; i1++){
+  // Find all wire hits for this detector plane
+  std::vector<QwHit> hits;
+  for (int wire = wire1; wire <= wire2; wire++) {
+    // Calculate the actual position of this wire
+    double x_wire = (wire - 141) * dx;
 
-    id = 1;
-    double x = fRegion3_ChamberFront_WirePlaneU_LocalPositionX.at(i1);
-    double y = fRegion3_ChamberFront_WirePlaneU_LocalPositionY.at(i1);
-    double z = fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.at(i1);
-    double xMomentum = fRegion3_ChamberFront_WirePlaneU_LocalMomentumX.at(i1);
-    double yMomentum = fRegion3_ChamberFront_WirePlaneU_LocalMomentumY.at(i1);
-    double zMomentum = fRegion3_ChamberFront_WirePlaneU_LocalMomentumZ.at(i1);
-    double mx =  xMomentum/zMomentum;
-    double my =  yMomentum/zMomentum;
+    // The drift distance is just the transverse (with respect to wire plane)
+    // distance from the wire to the track, i.e. no angular dependence is
+    // included here (it could be done, though, mx and mz are available).
+    double distance = dz * fabs(x0 - x_wire) / (x2 - x1);
 
-    if (fDebug>=2){
-      std::cout<<"x="<<x<<"   y="<<y<<"   z="<<z<<"   mx="<<mx<<"   my="<<my<<std::endl;
-      std::cout<<"x-mx*dz/2="<<x-mx*dz/2.0<<"   x+mx*dz/2="<<x+mx*dz/2.0<<std::endl;
-      std::cout<<"y-my*dz/2="<<y-my*dz/2.0<<"   y+my*dz/2="<<y+my*dz/2.0<<std::endl;
-      }
+    // Skip the hit if is far away (low efficiency?)  TODO This is not rigorous
+    if (distance > dz/3) continue;
 
-    double u1 = uv2xy.xy2u (x - mx * dz/2.0, y - my * dz/2.0);
-    double u2 = uv2xy.xy2u (x + mx * dz/2.0, y + my * dz/2.0);
-    int wire1 = (int) floor (u1 / du - 0.5) + 141;
-    int wire2 = (int) floor (u2 / du - 0.5) + 141;
-    int wire0 = (wire1 + wire2) / 2;
+    // Create a new hit
+    QwHit* hit = new QwHit(0,0,0,0, region, package, id, direction, wire, 0);
+    hit->SetDriftDistance(distance);
+    hit->SetDetectorInfo(detectorinfo);
+    hit->SetHitNumber(fHitCounter++);
 
-    if (fDebug>=2) std::cout<<"u1="<<u1<<"   u2="<<u2<<"   wire1="<<wire1<<"   wire2="<<wire2<<std::endl;
-
-    for (int wire = wire1; wire <= wire2; wire++) {
-      double distance = dz * abs(wire - wire0) / (wire2 - wire1);
-      // Skip the hit if is far away (low efficiency?)  TODO This is not rigorous
-      if (distance > dz/3.0) continue;
-      hit = new QwHit(0,0,0,0,kRegionID3, kPackageUp, id, kDirectionU, wire, 0);
-      hit->SetDriftDistance(distance);
-      hit->SetSpatialResolution(du);
-      hit->SetZPos(z);
-      hit->SetHitNumber(hitcounter++);
-      hitlist->push_back(*hit);
-
-      if (fDebug>=2) std::cout<<"distance="<<distance<<"   SpatialResolution="<<du<<"   HitNumber="<<hitcounter<<std::endl;
-      if (fDebug>=2) hit->Print();
-    }
-   }
+    // Add hit to the list for this detector plane
+    hits.push_back(*hit);
   }
 
-   if (fDebug>=2) std::cout<<"Processing Region3_ChamberFront_WirePlaneV"<<std::endl;
-//  if (fRegion3_ChamberFront_WirePlaneV_HasBeenHit == 5)
-   {
-   for (int i2=0; i2<fRegion3_ChamberFront_WirePlaneV_NbOfHits && i2<VSIZE; i2++){
-    id = 2;
-    double x = fRegion3_ChamberFront_WirePlaneV_LocalPositionX.at(i2);
-    double y = fRegion3_ChamberFront_WirePlaneV_LocalPositionY.at(i2);
-    double z = fRegion3_ChamberFront_WirePlaneV_LocalPositionZ.at(i2);
-    double xMomentum = fRegion3_ChamberFront_WirePlaneV_LocalMomentumX.at(i2);
-    double yMomentum = fRegion3_ChamberFront_WirePlaneV_LocalMomentumY.at(i2);
-    double zMomentum = fRegion3_ChamberFront_WirePlaneV_LocalMomentumZ.at(i2);
-    double mx =  xMomentum/zMomentum;
-    double my =  yMomentum/zMomentum;
-    double v1 = uv2xy.xy2v (x - mx * dz/2, y - my * dz/2);
-    double v2 = uv2xy.xy2v (x + mx * dz/2, y + my * dz/2);
-    int wire1 = (int) floor (v1 / dv - 0.5) + 141;
-    int wire2 = (int) floor (v2 / dv - 0.5) + 141;
-    int wire0 = (wire1 + wire2) / 2;
-    for (int wire = wire1; wire <= wire2; wire++) {
-      double distance = dz * abs(wire - wire0) / (wire2 - wire1);
-      // Skip the hit if is far away (low efficiency?)  TODO This is not rigorous
-      if (distance > dz/3) continue;
-      //hit = new QwHit(0,0,0,0,kRegionID3, kPackageUp, id, kDirectionV, wire, 0);
-      hit = new QwHit(0,0,0,0,kRegionID3, kPackageUp, id, kDirectionV, wire, 0);
-      hit->SetDriftDistance(distance);
-      hit->SetZPos(z);
-      hit->SetHitNumber(hitcounter++);
-      hitlist->push_back(*hit);
-
-      if (fDebug>=2) hit->Print();
-    }
-   }
-  }
-
-  // Region 3 back planes (u',v') (offset of 281 on the wires)
-
-   if (fDebug>=2) std::cout<<"Processing Region3_ChamberBack_WirePlaneU"<<std::endl;
-//  if (fRegion3_ChamberBack_WirePlaneU_HasBeenHit == 5)
-   {
-   for (int i3=0; i3<fRegion3_ChamberBack_WirePlaneU_NbOfHits && i3<VSIZE; i3++){
-    id = 3;
-    double x = fRegion3_ChamberBack_WirePlaneU_LocalPositionX.at(i3);
-    double y = fRegion3_ChamberBack_WirePlaneU_LocalPositionY.at(i3);
-    double z = fRegion3_ChamberBack_WirePlaneU_LocalPositionZ.at(i3);
-    double xMomentum = fRegion3_ChamberBack_WirePlaneU_LocalMomentumX.at(i3);
-    double yMomentum = fRegion3_ChamberBack_WirePlaneU_LocalMomentumY.at(i3);
-    double zMomentum = fRegion3_ChamberBack_WirePlaneU_LocalMomentumZ.at(i3);
-    double mx =  xMomentum/zMomentum;
-    double my =  yMomentum/zMomentum;
-    double u1 = uv2xy.xy2u (x - mx * dz/2, y - my * dz/2);
-    double u2 = uv2xy.xy2u (x + mx * dz/2, y + my * dz/2);
-    int wire1 = (int) floor (u1 / du - 0.5) + 141;
-    int wire2 = (int) floor (u2 / du - 0.5) + 141;
-    int wire0 = (wire1 + wire2) / 2;
-    for (int wire = wire1; wire <= wire2; wire++) {
-      double distance = dz * abs(wire - wire0) / (wire2 - wire1);
-      // Skip the hit if is far away (low efficiency?)  TODO This is not rigorous
-      if (distance > dz/3) continue;
-      hit = new QwHit(0,0,0,0,kRegionID3, kPackageUp, id, kDirectionU, wire + 281, 0);
-      hit->SetDriftDistance(distance);
-      hit->SetSpatialResolution(du);
-      hit->SetZPos(z);
-      hit->SetHitNumber(hitcounter++);
-      hitlist->push_back(*hit);
-
-      if (fDebug>=2) hit->Print();
-    }
-   }
-  }
-
-   if (fDebug>=2) std::cout<<"Processing Region3_ChamberBack_WirePlaneV"<<std::endl;
-//  if (fRegion3_ChamberBack_WirePlaneV_HasBeenHit == 5)
-   {
-   for (int i4=0; i4<fRegion3_ChamberBack_WirePlaneV_NbOfHits && i4<VSIZE; i4++){
-    id = 4;
-    double x = fRegion3_ChamberBack_WirePlaneV_LocalPositionX.at(i4);
-    double y = fRegion3_ChamberBack_WirePlaneV_LocalPositionY.at(i4);
-    double z = fRegion3_ChamberBack_WirePlaneV_LocalPositionZ.at(i4);
-    double xMomentum = fRegion3_ChamberBack_WirePlaneV_LocalMomentumX.at(i4);
-    double yMomentum = fRegion3_ChamberBack_WirePlaneV_LocalMomentumY.at(i4);
-    double zMomentum = fRegion3_ChamberBack_WirePlaneV_LocalMomentumZ.at(i4);
-    double mx =  xMomentum/zMomentum;
-    double my =  yMomentum/zMomentum;
-    double v1 = uv2xy.xy2v (x - mx * dz/2, y - my * dz/2);
-    double v2 = uv2xy.xy2v (x + mx * dz/2, y + my * dz/2);
-    int wire1 = (int) floor (v1 / dv - 0.5) + 141;
-    int wire2 = (int) floor (v2 / dv - 0.5) + 141;
-    int wire0 = (wire1 + wire2) / 2;
-    for (int wire = wire1; wire <= wire2; wire++) {
-      double distance = dz * abs(wire - wire0) / (wire2 - wire1);
-      // Skip the hit if is far away (low efficiency?)  TODO This is not rigorous
-      if (distance > dz/3) continue;
-      hit = new QwHit(0,0,0,0,kRegionID3, kPackageUp, id, kDirectionV, wire + 281, 0);
-      hit->SetDriftDistance(distance);
-      hit->SetZPos(z);
-      hit->SetHitNumber(hitcounter++);
-      hitlist->push_back(*hit);
-
-      if (fDebug>=2) hit->Print();
-    }
-   }
-  }
-
-
-  // Now return the final hitlist
-
-  if (fDebug>=1) std::cout << "Leaving QwTreeEventBuffer::GetHitList ()"<< std::endl;
-
-  return hitlist;
-
+  // Return the short list of hits in this VDC plane
+  return hits;
 }
 
 void QwTreeEventBuffer::Init ()
 {
   ReserveSpace();
   Clear();
-
 }
 
 void QwTreeEventBuffer::ReserveSpace ()
 {
+  // Region2 WirePlane1
+  fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionY.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionZ.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane1_PlaneLocalMomentumX.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane1_PlaneLocalMomentumY.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane1_PlaneLocalMomentumZ.reserve(VSIZE);
 
-//Region2 WirePlane1
-    fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionY.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionZ.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane1_PlaneLocalMomentumX.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane1_PlaneLocalMomentumY.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane1_PlaneLocalMomentumZ.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionX.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionY.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionZ.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane1_PlaneLocalMomentumX.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane1_PlaneLocalMomentumY.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane1_PlaneLocalMomentumZ.reserve(VSIZE);
 
-    fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionX.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionY.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionZ.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane1_PlaneLocalMomentumX.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane1_PlaneLocalMomentumY.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane1_PlaneLocalMomentumZ.reserve(VSIZE);
+  // Region2 WirePlane2
+  fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionX.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionY.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionZ.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane2_PlaneLocalMomentumX.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane2_PlaneLocalMomentumY.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane2_PlaneLocalMomentumZ.reserve(VSIZE);
 
-//Region2 WirePlane2
-    fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionX.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionY.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionZ.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane2_PlaneLocalMomentumX.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane2_PlaneLocalMomentumY.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane2_PlaneLocalMomentumZ.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionX.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionY.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionZ.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane2_PlaneLocalMomentumX.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane2_PlaneLocalMomentumY.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane2_PlaneLocalMomentumZ.reserve(VSIZE);
 
-    fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionX.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionY.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionZ.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane2_PlaneLocalMomentumX.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane2_PlaneLocalMomentumY.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane2_PlaneLocalMomentumZ.reserve(VSIZE);
+  // Region2 WirePlane3
+  fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionX.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionY.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionZ.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane3_PlaneLocalMomentumX.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane3_PlaneLocalMomentumY.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane3_PlaneLocalMomentumZ.reserve(VSIZE);
 
-//Region2 WirePlane3
-    fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionX.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionY.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionZ.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane3_PlaneLocalMomentumX.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane3_PlaneLocalMomentumY.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane3_PlaneLocalMomentumZ.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionX.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionY.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionZ.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane3_PlaneLocalMomentumX.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane3_PlaneLocalMomentumY.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane3_PlaneLocalMomentumZ.reserve(VSIZE);
 
-    fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionX.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionY.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionZ.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane3_PlaneLocalMomentumX.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane3_PlaneLocalMomentumY.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane3_PlaneLocalMomentumZ.reserve(VSIZE);
+  // Region2 WirePlane4
+  fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionX.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionY.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionZ.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane4_PlaneLocalMomentumX.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane4_PlaneLocalMomentumY.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane4_PlaneLocalMomentumZ.reserve(VSIZE);
 
-//Region2 WirePlane4
-    fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionX.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionY.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionZ.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane4_PlaneLocalMomentumX.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane4_PlaneLocalMomentumY.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane4_PlaneLocalMomentumZ.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionX.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionY.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionZ.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane4_PlaneLocalMomentumX.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane4_PlaneLocalMomentumY.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane4_PlaneLocalMomentumZ.reserve(VSIZE);
 
-    fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionX.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionY.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionZ.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane4_PlaneLocalMomentumX.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane4_PlaneLocalMomentumY.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane4_PlaneLocalMomentumZ.reserve(VSIZE);
+  // Region2 WirePlane5
+  fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionX.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionY.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionZ.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane5_PlaneLocalMomentumX.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane5_PlaneLocalMomentumY.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane5_PlaneLocalMomentumZ.reserve(VSIZE);
 
-//Region2 WirePlane5
-    fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionX.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionY.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionZ.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane5_PlaneLocalMomentumX.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane5_PlaneLocalMomentumY.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane5_PlaneLocalMomentumZ.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionX.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionY.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionZ.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane5_PlaneLocalMomentumX.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane5_PlaneLocalMomentumY.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane5_PlaneLocalMomentumZ.reserve(VSIZE);
 
-    fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionX.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionY.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionZ.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane5_PlaneLocalMomentumX.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane5_PlaneLocalMomentumY.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane5_PlaneLocalMomentumZ.reserve(VSIZE);
+  // Region2 WirePlane6
+  fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionX.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionY.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionZ.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane6_PlaneLocalMomentumX.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane6_PlaneLocalMomentumY.reserve(VSIZE);
+  fRegion2_ChamberFront_WirePlane6_PlaneLocalMomentumZ.reserve(VSIZE);
 
-//Region2 WirePlane6
-    fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionX.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionY.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionZ.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane6_PlaneLocalMomentumX.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane6_PlaneLocalMomentumY.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane6_PlaneLocalMomentumZ.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionX.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionY.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionZ.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane6_PlaneLocalMomentumX.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane6_PlaneLocalMomentumY.reserve(VSIZE);
+  fRegion2_ChamberBack_WirePlane6_PlaneLocalMomentumZ.reserve(VSIZE);
 
-    fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionX.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionY.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionZ.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane6_PlaneLocalMomentumX.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane6_PlaneLocalMomentumY.reserve(VSIZE);
-    fRegion2_ChamberBack_WirePlane6_PlaneLocalMomentumZ.reserve(VSIZE);
+  // Region3
+  fRegion3_ChamberFront_WirePlaneU_LocalPositionX.reserve(VSIZE);
+  fRegion3_ChamberFront_WirePlaneU_LocalPositionY.reserve(VSIZE);
+  fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.reserve(VSIZE);
+  fRegion3_ChamberFront_WirePlaneU_LocalMomentumX.reserve(VSIZE);
+  fRegion3_ChamberFront_WirePlaneU_LocalMomentumY.reserve(VSIZE);
+  fRegion3_ChamberFront_WirePlaneU_LocalMomentumZ.reserve(VSIZE);
 
-//Region3
-    fRegion3_ChamberFront_WirePlaneU_LocalPositionX.reserve(VSIZE);
-    fRegion3_ChamberFront_WirePlaneU_LocalPositionY.reserve(VSIZE);
-    fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.reserve(VSIZE);
-    fRegion3_ChamberFront_WirePlaneU_LocalMomentumX.reserve(VSIZE);
-    fRegion3_ChamberFront_WirePlaneU_LocalMomentumY.reserve(VSIZE);
-    fRegion3_ChamberFront_WirePlaneU_LocalMomentumZ.reserve(VSIZE);
+  fRegion3_ChamberFront_WirePlaneV_LocalPositionX.reserve(VSIZE);
+  fRegion3_ChamberFront_WirePlaneV_LocalPositionY.reserve(VSIZE);
+  fRegion3_ChamberFront_WirePlaneV_LocalPositionZ.reserve(VSIZE);
+  fRegion3_ChamberFront_WirePlaneV_LocalMomentumX.reserve(VSIZE);
+  fRegion3_ChamberFront_WirePlaneV_LocalMomentumY.reserve(VSIZE);
+  fRegion3_ChamberFront_WirePlaneV_LocalMomentumZ.reserve(VSIZE);
 
-    fRegion3_ChamberFront_WirePlaneV_LocalPositionX.reserve(VSIZE);
-    fRegion3_ChamberFront_WirePlaneV_LocalPositionY.reserve(VSIZE);
-    fRegion3_ChamberFront_WirePlaneV_LocalPositionZ.reserve(VSIZE);
-    fRegion3_ChamberFront_WirePlaneV_LocalMomentumX.reserve(VSIZE);
-    fRegion3_ChamberFront_WirePlaneV_LocalMomentumY.reserve(VSIZE);
-    fRegion3_ChamberFront_WirePlaneV_LocalMomentumZ.reserve(VSIZE);
+  fRegion3_ChamberBack_WirePlaneU_LocalPositionX.reserve(VSIZE);
+  fRegion3_ChamberBack_WirePlaneU_LocalPositionY.reserve(VSIZE);
+  fRegion3_ChamberBack_WirePlaneU_LocalPositionZ.reserve(VSIZE);
+  fRegion3_ChamberBack_WirePlaneU_LocalMomentumX.reserve(VSIZE);
+  fRegion3_ChamberBack_WirePlaneU_LocalMomentumY.reserve(VSIZE);
+  fRegion3_ChamberBack_WirePlaneU_LocalMomentumZ.reserve(VSIZE);
 
-    fRegion3_ChamberBack_WirePlaneU_LocalPositionX.reserve(VSIZE);
-    fRegion3_ChamberBack_WirePlaneU_LocalPositionY.reserve(VSIZE);
-    fRegion3_ChamberBack_WirePlaneU_LocalPositionZ.reserve(VSIZE);
-    fRegion3_ChamberBack_WirePlaneU_LocalMomentumX.reserve(VSIZE);
-    fRegion3_ChamberBack_WirePlaneU_LocalMomentumY.reserve(VSIZE);
-    fRegion3_ChamberBack_WirePlaneU_LocalMomentumZ.reserve(VSIZE);
-
-    fRegion3_ChamberBack_WirePlaneV_LocalPositionX.reserve(VSIZE);
-    fRegion3_ChamberBack_WirePlaneV_LocalPositionY.reserve(VSIZE);
-    fRegion3_ChamberBack_WirePlaneV_LocalPositionZ.reserve(VSIZE);
-    fRegion3_ChamberBack_WirePlaneV_LocalMomentumX.reserve(VSIZE);
-    fRegion3_ChamberBack_WirePlaneV_LocalMomentumY.reserve(VSIZE);
-    fRegion3_ChamberBack_WirePlaneV_LocalMomentumZ.reserve(VSIZE);
+  fRegion3_ChamberBack_WirePlaneV_LocalPositionX.reserve(VSIZE);
+  fRegion3_ChamberBack_WirePlaneV_LocalPositionY.reserve(VSIZE);
+  fRegion3_ChamberBack_WirePlaneV_LocalPositionZ.reserve(VSIZE);
+  fRegion3_ChamberBack_WirePlaneV_LocalMomentumX.reserve(VSIZE);
+  fRegion3_ChamberBack_WirePlaneV_LocalMomentumY.reserve(VSIZE);
+  fRegion3_ChamberBack_WirePlaneV_LocalMomentumZ.reserve(VSIZE);
 }
 
 void QwTreeEventBuffer::Clear ()
 {
+  // Region2 WirePlane1
+  fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit = 0;
+  fRegion2_ChamberFront_WirePlane1_NbOfHits = 0;
+  fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX.clear();
+  fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionY.clear();
+  fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionZ.clear();
+  fRegion2_ChamberFront_WirePlane1_PlaneLocalMomentumX.clear();
+  fRegion2_ChamberFront_WirePlane1_PlaneLocalMomentumY.clear();
+  fRegion2_ChamberFront_WirePlane1_PlaneLocalMomentumZ.clear();
 
-//Region2 WirePlane1
-    fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit = 0;
-    fRegion2_ChamberFront_WirePlane1_NbOfHits = 0;
-    fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX.clear();
-    fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionY.clear();
-    fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionZ.clear();
-    fRegion2_ChamberFront_WirePlane1_PlaneLocalMomentumX.clear();
-    fRegion2_ChamberFront_WirePlane1_PlaneLocalMomentumY.clear();
-    fRegion2_ChamberFront_WirePlane1_PlaneLocalMomentumZ.clear();
+  fRegion2_ChamberBack_WirePlane1_PlaneHasBeenHit = 0;
+  fRegion2_ChamberBack_WirePlane1_NbOfHits = 0;
+  fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionX.clear();
+  fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionY.clear();
+  fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionZ.clear();
+  fRegion2_ChamberBack_WirePlane1_PlaneLocalMomentumX.clear();
+  fRegion2_ChamberBack_WirePlane1_PlaneLocalMomentumY.clear();
+  fRegion2_ChamberBack_WirePlane1_PlaneLocalMomentumZ.clear();
 
-    fRegion2_ChamberBack_WirePlane1_PlaneHasBeenHit = 0;
-    fRegion2_ChamberBack_WirePlane1_NbOfHits = 0;
-    fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionX.clear();
-    fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionY.clear();
-    fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionZ.clear();
-    fRegion2_ChamberBack_WirePlane1_PlaneLocalMomentumX.clear();
-    fRegion2_ChamberBack_WirePlane1_PlaneLocalMomentumY.clear();
-    fRegion2_ChamberBack_WirePlane1_PlaneLocalMomentumZ.clear();
+  // Region2 WirePlane2
+  fRegion2_ChamberFront_WirePlane2_PlaneHasBeenHit = 0;
+  fRegion2_ChamberFront_WirePlane2_NbOfHits = 0;
+  fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionX.clear();
+  fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionY.clear();
+  fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionZ.clear();
+  fRegion2_ChamberFront_WirePlane2_PlaneLocalMomentumX.clear();
+  fRegion2_ChamberFront_WirePlane2_PlaneLocalMomentumY.clear();
+  fRegion2_ChamberFront_WirePlane2_PlaneLocalMomentumZ.clear();
 
-//Region2 WirePlane2
-    fRegion2_ChamberFront_WirePlane2_PlaneHasBeenHit = 0;
-    fRegion2_ChamberFront_WirePlane2_NbOfHits = 0;
-    fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionX.clear();
-    fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionY.clear();
-    fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionZ.clear();
-    fRegion2_ChamberFront_WirePlane2_PlaneLocalMomentumX.clear();
-    fRegion2_ChamberFront_WirePlane2_PlaneLocalMomentumY.clear();
-    fRegion2_ChamberFront_WirePlane2_PlaneLocalMomentumZ.clear();
+  fRegion2_ChamberBack_WirePlane2_PlaneHasBeenHit = 0;
+  fRegion2_ChamberBack_WirePlane2_NbOfHits = 0;
+  fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionX.clear();
+  fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionY.clear();
+  fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionZ.clear();
+  fRegion2_ChamberBack_WirePlane2_PlaneLocalMomentumX.clear();
+  fRegion2_ChamberBack_WirePlane2_PlaneLocalMomentumY.clear();
+  fRegion2_ChamberBack_WirePlane2_PlaneLocalMomentumZ.clear();
 
-    fRegion2_ChamberBack_WirePlane2_PlaneHasBeenHit = 0;
-    fRegion2_ChamberBack_WirePlane2_NbOfHits = 0;
-    fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionX.clear();
-    fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionY.clear();
-    fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionZ.clear();
-    fRegion2_ChamberBack_WirePlane2_PlaneLocalMomentumX.clear();
-    fRegion2_ChamberBack_WirePlane2_PlaneLocalMomentumY.clear();
-    fRegion2_ChamberBack_WirePlane2_PlaneLocalMomentumZ.clear();
+  // Region2 WirePlane3
+  fRegion2_ChamberFront_WirePlane3_PlaneHasBeenHit = 0;
+  fRegion2_ChamberFront_WirePlane3_NbOfHits = 0;
+  fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionX.clear();
+  fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionY.clear();
+  fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionZ.clear();
+  fRegion2_ChamberFront_WirePlane3_PlaneLocalMomentumX.clear();
+  fRegion2_ChamberFront_WirePlane3_PlaneLocalMomentumY.clear();
+  fRegion2_ChamberFront_WirePlane3_PlaneLocalMomentumZ.clear();
 
-//Region2 WirePlane3
-    fRegion2_ChamberFront_WirePlane3_PlaneHasBeenHit = 0;
-    fRegion2_ChamberFront_WirePlane3_NbOfHits = 0;
-    fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionX.clear();
-    fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionY.clear();
-    fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionZ.clear();
-    fRegion2_ChamberFront_WirePlane3_PlaneLocalMomentumX.clear();
-    fRegion2_ChamberFront_WirePlane3_PlaneLocalMomentumY.clear();
-    fRegion2_ChamberFront_WirePlane3_PlaneLocalMomentumZ.clear();
+  fRegion2_ChamberBack_WirePlane3_PlaneHasBeenHit = 0;
+  fRegion2_ChamberBack_WirePlane3_NbOfHits = 0;
+  fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionX.clear();
+  fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionY.clear();
+  fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionZ.clear();
+  fRegion2_ChamberBack_WirePlane3_PlaneLocalMomentumX.clear();
+  fRegion2_ChamberBack_WirePlane3_PlaneLocalMomentumY.clear();
+  fRegion2_ChamberBack_WirePlane3_PlaneLocalMomentumZ.clear();
 
-    fRegion2_ChamberBack_WirePlane3_PlaneHasBeenHit = 0;
-    fRegion2_ChamberBack_WirePlane3_NbOfHits = 0;
-    fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionX.clear();
-    fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionY.clear();
-    fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionZ.clear();
-    fRegion2_ChamberBack_WirePlane3_PlaneLocalMomentumX.clear();
-    fRegion2_ChamberBack_WirePlane3_PlaneLocalMomentumY.clear();
-    fRegion2_ChamberBack_WirePlane3_PlaneLocalMomentumZ.clear();
+  // Region2 WirePlane4
+  fRegion2_ChamberFront_WirePlane4_PlaneHasBeenHit = 0;
+  fRegion2_ChamberFront_WirePlane4_NbOfHits = 0;
+  fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionX.clear();
+  fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionY.clear();
+  fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionZ.clear();
+  fRegion2_ChamberFront_WirePlane4_PlaneLocalMomentumX.clear();
+  fRegion2_ChamberFront_WirePlane4_PlaneLocalMomentumY.clear();
+  fRegion2_ChamberFront_WirePlane4_PlaneLocalMomentumZ.clear();
 
-//Region2 WirePlane4
-    fRegion2_ChamberFront_WirePlane4_PlaneHasBeenHit = 0;
-    fRegion2_ChamberFront_WirePlane4_NbOfHits = 0;
-    fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionX.clear();
-    fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionY.clear();
-    fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionZ.clear();
-    fRegion2_ChamberFront_WirePlane4_PlaneLocalMomentumX.clear();
-    fRegion2_ChamberFront_WirePlane4_PlaneLocalMomentumY.clear();
-    fRegion2_ChamberFront_WirePlane4_PlaneLocalMomentumZ.clear();
+  fRegion2_ChamberBack_WirePlane4_PlaneHasBeenHit = 0;
+  fRegion2_ChamberBack_WirePlane4_NbOfHits = 0;
+  fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionX.clear();
+  fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionY.clear();
+  fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionZ.clear();
+  fRegion2_ChamberBack_WirePlane4_PlaneLocalMomentumX.clear();
+  fRegion2_ChamberBack_WirePlane4_PlaneLocalMomentumY.clear();
+  fRegion2_ChamberBack_WirePlane4_PlaneLocalMomentumZ.clear();
 
-    fRegion2_ChamberBack_WirePlane4_PlaneHasBeenHit = 0;
-    fRegion2_ChamberBack_WirePlane4_NbOfHits = 0;
-    fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionX.clear();
-    fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionY.clear();
-    fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionZ.clear();
-    fRegion2_ChamberBack_WirePlane4_PlaneLocalMomentumX.clear();
-    fRegion2_ChamberBack_WirePlane4_PlaneLocalMomentumY.clear();
-    fRegion2_ChamberBack_WirePlane4_PlaneLocalMomentumZ.clear();
+  // Region2 WirePlane5
+  fRegion2_ChamberFront_WirePlane5_PlaneHasBeenHit = 0;
+  fRegion2_ChamberFront_WirePlane5_NbOfHits = 0;
+  fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionX.clear();
+  fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionY.clear();
+  fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionZ.clear();
+  fRegion2_ChamberFront_WirePlane5_PlaneLocalMomentumX.clear();
+  fRegion2_ChamberFront_WirePlane5_PlaneLocalMomentumY.clear();
+  fRegion2_ChamberFront_WirePlane5_PlaneLocalMomentumZ.clear();
 
-//Region2 WirePlane5
-    fRegion2_ChamberFront_WirePlane5_PlaneHasBeenHit = 0;
-    fRegion2_ChamberFront_WirePlane5_NbOfHits = 0;
-    fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionX.clear();
-    fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionY.clear();
-    fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionZ.clear();
-    fRegion2_ChamberFront_WirePlane5_PlaneLocalMomentumX.clear();
-    fRegion2_ChamberFront_WirePlane5_PlaneLocalMomentumY.clear();
-    fRegion2_ChamberFront_WirePlane5_PlaneLocalMomentumZ.clear();
+  fRegion2_ChamberBack_WirePlane5_PlaneHasBeenHit = 0;
+  fRegion2_ChamberBack_WirePlane5_NbOfHits = 0;
+  fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionX.clear();
+  fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionY.clear();
+  fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionZ.clear();
+  fRegion2_ChamberBack_WirePlane5_PlaneLocalMomentumX.clear();
+  fRegion2_ChamberBack_WirePlane5_PlaneLocalMomentumY.clear();
+  fRegion2_ChamberBack_WirePlane5_PlaneLocalMomentumZ.clear();
 
-    fRegion2_ChamberBack_WirePlane5_PlaneHasBeenHit = 0;
-    fRegion2_ChamberBack_WirePlane5_NbOfHits = 0;
-    fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionX.clear();
-    fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionY.clear();
-    fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionZ.clear();
-    fRegion2_ChamberBack_WirePlane5_PlaneLocalMomentumX.clear();
-    fRegion2_ChamberBack_WirePlane5_PlaneLocalMomentumY.clear();
-    fRegion2_ChamberBack_WirePlane5_PlaneLocalMomentumZ.clear();
+  // Region2 WirePlane6
+  fRegion2_ChamberFront_WirePlane6_PlaneHasBeenHit = 0;
+  fRegion2_ChamberFront_WirePlane6_NbOfHits = 0;
+  fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionX.clear();
+  fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionY.clear();
+  fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionZ.clear();
+  fRegion2_ChamberFront_WirePlane6_PlaneLocalMomentumX.clear();
+  fRegion2_ChamberFront_WirePlane6_PlaneLocalMomentumY.clear();
+  fRegion2_ChamberFront_WirePlane6_PlaneLocalMomentumZ.clear();
 
-//Region2 WirePlane6
-    fRegion2_ChamberFront_WirePlane6_PlaneHasBeenHit = 0;
-    fRegion2_ChamberFront_WirePlane6_NbOfHits = 0;
-    fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionX.clear();
-    fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionY.clear();
-    fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionZ.clear();
-    fRegion2_ChamberFront_WirePlane6_PlaneLocalMomentumX.clear();
-    fRegion2_ChamberFront_WirePlane6_PlaneLocalMomentumY.clear();
-    fRegion2_ChamberFront_WirePlane6_PlaneLocalMomentumZ.clear();
+  fRegion2_ChamberBack_WirePlane6_PlaneHasBeenHit = 0;
+  fRegion2_ChamberBack_WirePlane6_NbOfHits = 0;
+  fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionX.clear();
+  fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionY.clear();
+  fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionZ.clear();
+  fRegion2_ChamberBack_WirePlane6_PlaneLocalMomentumX.clear();
+  fRegion2_ChamberBack_WirePlane6_PlaneLocalMomentumY.clear();
+  fRegion2_ChamberBack_WirePlane6_PlaneLocalMomentumZ.clear();
 
-    fRegion2_ChamberBack_WirePlane6_PlaneHasBeenHit = 0;
-    fRegion2_ChamberBack_WirePlane6_NbOfHits = 0;
-    fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionX.clear();
-    fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionY.clear();
-    fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionZ.clear();
-    fRegion2_ChamberBack_WirePlane6_PlaneLocalMomentumX.clear();
-    fRegion2_ChamberBack_WirePlane6_PlaneLocalMomentumY.clear();
-    fRegion2_ChamberBack_WirePlane6_PlaneLocalMomentumZ.clear();
+  // Region3
+  fRegion3_ChamberFront_WirePlaneU_HasBeenHit = 0;
+  fRegion3_ChamberFront_WirePlaneU_NbOfHits = 0;
+  fRegion3_ChamberFront_WirePlaneU_LocalPositionX.clear();
+  fRegion3_ChamberFront_WirePlaneU_LocalPositionY.clear();
+  fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.clear();
+  fRegion3_ChamberFront_WirePlaneU_LocalMomentumX.clear();
+  fRegion3_ChamberFront_WirePlaneU_LocalMomentumY.clear();
+  fRegion3_ChamberFront_WirePlaneU_LocalMomentumZ.clear();
 
-//Region3
-    fRegion3_ChamberFront_WirePlaneU_HasBeenHit = 0;
-    fRegion3_ChamberFront_WirePlaneU_NbOfHits = 0;
-    fRegion3_ChamberFront_WirePlaneU_LocalPositionX.clear();
-    fRegion3_ChamberFront_WirePlaneU_LocalPositionY.clear();
-    fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.clear();
-    fRegion3_ChamberFront_WirePlaneU_LocalMomentumX.clear();
-    fRegion3_ChamberFront_WirePlaneU_LocalMomentumY.clear();
-    fRegion3_ChamberFront_WirePlaneU_LocalMomentumZ.clear();
+  fRegion3_ChamberFront_WirePlaneV_HasBeenHit = 0;
+  fRegion3_ChamberFront_WirePlaneV_NbOfHits = 0;
+  fRegion3_ChamberFront_WirePlaneV_LocalPositionX.clear();
+  fRegion3_ChamberFront_WirePlaneV_LocalPositionY.clear();
+  fRegion3_ChamberFront_WirePlaneV_LocalPositionZ.clear();
+  fRegion3_ChamberFront_WirePlaneV_LocalMomentumX.clear();
+  fRegion3_ChamberFront_WirePlaneV_LocalMomentumY.clear();
+  fRegion3_ChamberFront_WirePlaneV_LocalMomentumZ.clear();
 
-    fRegion3_ChamberFront_WirePlaneV_HasBeenHit = 0;
-    fRegion3_ChamberFront_WirePlaneV_NbOfHits = 0;
-    fRegion3_ChamberFront_WirePlaneV_LocalPositionX.clear();
-    fRegion3_ChamberFront_WirePlaneV_LocalPositionY.clear();
-    fRegion3_ChamberFront_WirePlaneV_LocalPositionZ.clear();
-    fRegion3_ChamberFront_WirePlaneV_LocalMomentumX.clear();
-    fRegion3_ChamberFront_WirePlaneV_LocalMomentumY.clear();
-    fRegion3_ChamberFront_WirePlaneV_LocalMomentumZ.clear();
+  fRegion3_ChamberBack_WirePlaneU_HasBeenHit = 0;
+  fRegion3_ChamberBack_WirePlaneU_NbOfHits = 0;
+  fRegion3_ChamberBack_WirePlaneU_LocalPositionX.clear();
+  fRegion3_ChamberBack_WirePlaneU_LocalPositionY.clear();
+  fRegion3_ChamberBack_WirePlaneU_LocalPositionZ.clear();
+  fRegion3_ChamberBack_WirePlaneU_LocalMomentumX.clear();
+  fRegion3_ChamberBack_WirePlaneU_LocalMomentumY.clear();
+  fRegion3_ChamberBack_WirePlaneU_LocalMomentumZ.clear();
 
-    fRegion3_ChamberBack_WirePlaneU_HasBeenHit = 0;
-    fRegion3_ChamberBack_WirePlaneU_NbOfHits = 0;
-    fRegion3_ChamberBack_WirePlaneU_LocalPositionX.clear();
-    fRegion3_ChamberBack_WirePlaneU_LocalPositionY.clear();
-    fRegion3_ChamberBack_WirePlaneU_LocalPositionZ.clear();
-    fRegion3_ChamberBack_WirePlaneU_LocalMomentumX.clear();
-    fRegion3_ChamberBack_WirePlaneU_LocalMomentumY.clear();
-    fRegion3_ChamberBack_WirePlaneU_LocalMomentumZ.clear();
-
-    fRegion3_ChamberBack_WirePlaneV_HasBeenHit = 0;
-    fRegion3_ChamberBack_WirePlaneV_NbOfHits = 0;
-    fRegion3_ChamberBack_WirePlaneV_LocalPositionX.clear();
-    fRegion3_ChamberBack_WirePlaneV_LocalPositionY.clear();
-    fRegion3_ChamberBack_WirePlaneV_LocalPositionZ.clear();
-    fRegion3_ChamberBack_WirePlaneV_LocalMomentumX.clear();
-    fRegion3_ChamberBack_WirePlaneV_LocalMomentumY.clear();
-    fRegion3_ChamberBack_WirePlaneV_LocalMomentumZ.clear();
+  fRegion3_ChamberBack_WirePlaneV_HasBeenHit = 0;
+  fRegion3_ChamberBack_WirePlaneV_NbOfHits = 0;
+  fRegion3_ChamberBack_WirePlaneV_LocalPositionX.clear();
+  fRegion3_ChamberBack_WirePlaneV_LocalPositionY.clear();
+  fRegion3_ChamberBack_WirePlaneV_LocalPositionZ.clear();
+  fRegion3_ChamberBack_WirePlaneV_LocalMomentumX.clear();
+  fRegion3_ChamberBack_WirePlaneV_LocalMomentumY.clear();
+  fRegion3_ChamberBack_WirePlaneV_LocalMomentumZ.clear();
 }
