@@ -320,6 +320,10 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
 
   // Pointer to the detector info, this should be set before each detector section
   QwDetectorInfo* detectorinfo = 0;
+  if (fDetectorInfo.size() == 0) {
+    std::cerr << "No detector geometry defined: use SetDetectorInfo()" << std::endl;
+    return 0;
+  }
 
   // Region 2 front chambers (x,u,v,x',u',v')
   if (fDebug >= 2) std::cout << "Processing Region2_ChamberFront_WirePlane1: "
