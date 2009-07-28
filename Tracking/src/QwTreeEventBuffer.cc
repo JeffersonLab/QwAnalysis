@@ -119,7 +119,7 @@ QwTreeEventBuffer::QwTreeEventBuffer (const TString filename)
   // WirePlane5
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane5.PlaneHasBeenHit",
 		&fRegion2_ChamberFront_WirePlane5_PlaneHasBeenHit);
-  fTree->SetBranchAddress("Region2.ChamberFront.WirePlane1.NbOfHits",
+  fTree->SetBranchAddress("Region2.ChamberFront.WirePlane5.NbOfHits",
 		&fRegion2_ChamberFront_WirePlane5_NbOfHits);
   fTree->SetBranchAddress("Region2.ChamberFront.WirePlane5.PlaneLocalPositionX",
 		&fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionX);

@@ -88,7 +88,7 @@ int main (int argc, char* argv[])
   trackingworker->SetDebugLevel(1);
 
   int fEntries = treebuffer->GetEntries();
-  for (int fEvtNum = 1; fEvtNum < fEntries && fEvtNum < 100; fEvtNum++) {
+  for (int fEvtNum = 0; fEvtNum < fEntries && fEvtNum < 100; fEvtNum++) {
     // Get hit list
     QwHitContainer* hitlist = treebuffer->GetHitList(fEvtNum);
 
