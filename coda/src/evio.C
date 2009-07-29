@@ -173,7 +173,7 @@ int evOpen(char *filename,char *flags,EVFILE **handle)
 {
   EVFILE *a;
 //  char *cp;
-  int header[EV_HDSIZ];
+  int header[EV_HDSIZ] = {0};
   int temp, blk_size = 0;
 
 
