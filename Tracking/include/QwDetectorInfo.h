@@ -51,6 +51,7 @@ class QwDetectorInfo{
     EQwDetectorPackage fPackage;
     EQwRegionID fRegion;
     EQwDirectionID fDirection;
+    int fPlane;
 
     // Geometry information
     Double_t fZPos;
@@ -104,6 +105,11 @@ class QwDetectorInfo{
   private:
 
 
+};
+
+// Detectors could be sorted by region, package, z position
+inline bool operator< (const QwDetectorInfo& lhs, const QwDetectorInfo& rhs) {
+  return (lhs.fZPos < rhs.fZPos);
 };
 
 #endif

@@ -12,7 +12,9 @@ extern Det rcDET[NDetMax];
 
 
 //------------------------------------------------------------
-QwTreeEventBuffer::QwTreeEventBuffer (const TString filename)
+QwTreeEventBuffer::QwTreeEventBuffer (
+	const TString filename,
+	vector <vector <QwDetectorInfo> > & detector_info)
 {
   // Allocate memory and initialize them
   Init();
@@ -21,6 +23,12 @@ QwTreeEventBuffer::QwTreeEventBuffer (const TString filename)
   fFile = new TFile (filename);
   fTree = (TTree*) fFile->Get("QweakSimG4_Tree");
   fTree->SetMakeClass(1);
+
+  // Set the detector info
+  fDetectorInfo = detector_info;
+
+  // Disable resolution effects (for now)
+  fDoResolutionEffects = false;
 
   // Attach to region 2 branches
 
@@ -240,35 +248,38 @@ QwTreeEventBuffer::QwTreeEventBuffer (const TString filename)
 
 
 //-----------------------------------------------------------
-QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
+QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
 {
   if (fDebug >= 2) std::cout << "Calling QwTreeEventBuffer::GetHitList ()" << std::endl;
+
+  // Set internal event number
+  fEvtNumber = eventnumber;
 
   // Final hit list
   QwHitContainer* hitlist = new QwHitContainer;
 
   // Load event
-  if (fDebug >= 1) std::cout << "Reading event " << fEvtNum << std::endl;
+  if (fDebug >= 1) std::cout << "Reading event " << fEvtNumber << std::endl;
 
   // Region 2
-  fTree->GetBranch("Region2.ChamberFront.WirePlane1.PlaneHasBeenHit")->GetEntry(fEvtNum);
-  fTree->GetBranch("Region2.ChamberFront.WirePlane2.PlaneHasBeenHit")->GetEntry(fEvtNum);
-  fTree->GetBranch("Region2.ChamberFront.WirePlane3.PlaneHasBeenHit")->GetEntry(fEvtNum);
-  fTree->GetBranch("Region2.ChamberFront.WirePlane4.PlaneHasBeenHit")->GetEntry(fEvtNum);
-  fTree->GetBranch("Region2.ChamberFront.WirePlane5.PlaneHasBeenHit")->GetEntry(fEvtNum);
-  fTree->GetBranch("Region2.ChamberFront.WirePlane6.PlaneHasBeenHit")->GetEntry(fEvtNum);
-  fTree->GetBranch("Region2.ChamberBack.WirePlane1.PlaneHasBeenHit")->GetEntry(fEvtNum);
-  fTree->GetBranch("Region2.ChamberBack.WirePlane2.PlaneHasBeenHit")->GetEntry(fEvtNum);
-  fTree->GetBranch("Region2.ChamberBack.WirePlane3.PlaneHasBeenHit")->GetEntry(fEvtNum);
-  fTree->GetBranch("Region2.ChamberBack.WirePlane4.PlaneHasBeenHit")->GetEntry(fEvtNum);
-  fTree->GetBranch("Region2.ChamberBack.WirePlane5.PlaneHasBeenHit")->GetEntry(fEvtNum);
-  fTree->GetBranch("Region2.ChamberBack.WirePlane6.PlaneHasBeenHit")->GetEntry(fEvtNum);
+  fTree->GetBranch("Region2.ChamberFront.WirePlane1.PlaneHasBeenHit")->GetEntry(fEvtNumber);
+  fTree->GetBranch("Region2.ChamberFront.WirePlane2.PlaneHasBeenHit")->GetEntry(fEvtNumber);
+  fTree->GetBranch("Region2.ChamberFront.WirePlane3.PlaneHasBeenHit")->GetEntry(fEvtNumber);
+  fTree->GetBranch("Region2.ChamberFront.WirePlane4.PlaneHasBeenHit")->GetEntry(fEvtNumber);
+  fTree->GetBranch("Region2.ChamberFront.WirePlane5.PlaneHasBeenHit")->GetEntry(fEvtNumber);
+  fTree->GetBranch("Region2.ChamberFront.WirePlane6.PlaneHasBeenHit")->GetEntry(fEvtNumber);
+  fTree->GetBranch("Region2.ChamberBack.WirePlane1.PlaneHasBeenHit")->GetEntry(fEvtNumber);
+  fTree->GetBranch("Region2.ChamberBack.WirePlane2.PlaneHasBeenHit")->GetEntry(fEvtNumber);
+  fTree->GetBranch("Region2.ChamberBack.WirePlane3.PlaneHasBeenHit")->GetEntry(fEvtNumber);
+  fTree->GetBranch("Region2.ChamberBack.WirePlane4.PlaneHasBeenHit")->GetEntry(fEvtNumber);
+  fTree->GetBranch("Region2.ChamberBack.WirePlane5.PlaneHasBeenHit")->GetEntry(fEvtNumber);
+  fTree->GetBranch("Region2.ChamberBack.WirePlane6.PlaneHasBeenHit")->GetEntry(fEvtNumber);
 
   // Region 3
-  fTree->GetBranch("Region3.ChamberFront.WirePlaneU.HasBeenHit")->GetEntry(fEvtNum);
-  fTree->GetBranch("Region3.ChamberFront.WirePlaneV.HasBeenHit")->GetEntry(fEvtNum);
-  fTree->GetBranch("Region3.ChamberBack.WirePlaneU.HasBeenHit")->GetEntry(fEvtNum);
-  fTree->GetBranch("Region3.ChamberBack.WirePlaneV.HasBeenHit")->GetEntry(fEvtNum);
+  fTree->GetBranch("Region3.ChamberFront.WirePlaneU.HasBeenHit")->GetEntry(fEvtNumber);
+  fTree->GetBranch("Region3.ChamberFront.WirePlaneV.HasBeenHit")->GetEntry(fEvtNumber);
+  fTree->GetBranch("Region3.ChamberBack.WirePlaneU.HasBeenHit")->GetEntry(fEvtNumber);
+  fTree->GetBranch("Region3.ChamberBack.WirePlaneV.HasBeenHit")->GetEntry(fEvtNumber);
 
   bool R2_HasBeenHit = fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit == 5 &&
                        fRegion2_ChamberFront_WirePlane2_PlaneHasBeenHit == 5 &&
@@ -289,15 +300,15 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int fEvtNum)
                        fRegion3_ChamberBack_WirePlaneV_HasBeenHit  == 5 ;
 
   if (R2_HasBeenHit && R3_HasBeenHit) {  //jpan:coincidence for avoiding match empty nodes
-    fTree->GetEntry(fEvtNum);
+    fTree->GetEntry(fEvtNumber);
   } else {
-    if (fDebug >= 1) std::cout << "Skip an empty event - event#" << fEvtNum << std::endl;
+    if (fDebug >= 1) std::cout << "Skip an empty event - event#" << fEvtNumber << std::endl;
   }
 
   //fTree->GetBranch("Region2")->GetEntry(fEvtNumber);
   //fTree->GetBranch("Region3")->GetEntry(fEvtNumber);
 
-  //if (fDebug) fTree->Show(fEvtNum);
+  //if (fDebug) fTree->Show(fEvtNumber);
   // Print info
   if (fDebug) std::cout << "Region 2: "
 		<< fRegion2_ChamberFront_WirePlane1_NbOfHits << ","
@@ -554,14 +565,15 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
 	QwDetectorInfo* detectorinfo,
 	double x, double y)
 {
+  // Detector identification
   EQwRegionID region = detectorinfo->fRegion;
   EQwDetectorPackage package = detectorinfo->fPackage;
   EQwDirectionID direction = detectorinfo->fDirection;
-  int id = detectorinfo->GetID();
-  int nwires = detectorinfo->fTotalWires;
-  // TODO when we read fTotalWires, we should also use it somewhere...
+  int plane = detectorinfo->fPlane;
 
+  // Detector geometry
   double dx = detectorinfo->GetWireSpacing();
+  int central_wire = (detectorinfo->fTotalWires + 1) / 2;
 
   // Make the necessary transformations for the wires
   Uv2xy uv2xy(region);
@@ -578,11 +590,30 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
     default:
       std::cout << "Direction " << direction << " not handled in CreateHitRegion2!" << std::endl;
   }
-  int wire = (int) floor (x / dx) + 16;
-  double x_wire = (wire - 16) * dx;
-  double distance = fabs(x - x_wire);
 
-  QwHit* hit = new QwHit(0,0,0,0, region, package, id, direction, wire, 0);
+  // Because there is no real HDC central wire, the "central" wire corresponds
+  // to x from -dx to 0.  For region 2 it is equal to 4, i.e. (nwires + 1) / 2.
+  int wire = (int) floor (x / dx) + central_wire;
+  // Calculate the actual position of this wire
+  double x_wire = (wire - central_wire) * dx;
+
+  // Calculate the drift distance
+  double mean_distance = fabs(x - x_wire);
+  double sigma_distance = detectorinfo->GetSpatialResolution();
+  double distance = mean_distance;
+  // If resolution effects are active, we override the mean value
+  if (fDoResolutionEffects) {
+    // Using a normal distribution we take into account the resolution
+    // (static to avoid creating the same random number for every hit)
+    static boost::variate_generator
+      < boost::mt19937, boost::normal_distribution<double> >
+        normal(fRandomnessGenerator, fNormalDistribution);
+    // Another absolute value to avoid negative distances
+    distance = fabs(mean_distance + sigma_distance * normal());
+  }
+
+  // Create a new hit
+  QwHit* hit = new QwHit(0,0,0,0, region, package, plane, direction, wire, 0);
   hit->SetDetectorInfo(detectorinfo);
   hit->SetDriftDistance(distance);
   hit->SetSpatialResolution(dx);
@@ -609,16 +640,16 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
 	double x, double y,
 	double mx, double my)
 {
-  // Get detector information
+  // Detector identification
   EQwRegionID region = detectorinfo->fRegion;
   EQwDetectorPackage package = detectorinfo->fPackage;
   EQwDirectionID direction = detectorinfo->fDirection;
-  int id = detectorinfo->GetID();
-  int nwires = detectorinfo->fTotalWires;
-  // TODO when we read fTotalWires, we should also use it somewhere...
+  int plane = detectorinfo->fPlane;
 
+  // Detector geometry: wirespacing, width, central wire
   double dx = detectorinfo->GetWireSpacing();
   double dz = detectorinfo->fActiveWidthZ;
+  int central_wire = (detectorinfo->fTotalWires + 1) / 2;
 
   // Make the necessary transformations for the wires
   Uv2xy uv2xy(region);
@@ -640,31 +671,43 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
   // statement) to the u and v coordinates.
 
   // We store the position where the track actually crosses the wire plane
+  // for the calculation of the drift distances.
   double x0 = (x1 + x2) / 2.0;
 
   // The central wire corresponds to x from -0.5*dx to +0.5*dx and should be
-  // equal to 141 for region 3 (i.e. (nwires + 1) / 2 for odd nwires).  That is
+  // equal to 141 for region 3, i.e. (nwires + 1) / 2 for odd nwires.  That is
   // the reason for the +0.5 in the argument of floor.
-  int wire0 = (int) floor (x0 / dx + 0.5) + 141;
-  int wire1 = (int) floor (x1 / dx + 0.5) + 141;
-  int wire2 = (int) floor (x2 / dx + 0.5) + 141;
+  int wire1 = (int) floor (x1 / dx + 0.5) + central_wire;
+  int wire2 = (int) floor (x2 / dx + 0.5) + central_wire;
 
   // Find all wire hits for this detector plane
   std::vector<QwHit> hits;
   for (int wire = wire1; wire <= wire2; wire++) {
     // Calculate the actual position of this wire
-    double x_wire = (wire - 141) * dx;
+    double x_wire = (wire - central_wire) * dx;
 
     // The drift distance is just the transverse (with respect to wire plane)
     // distance from the wire to the track, i.e. no angular dependence is
     // included here (it could be done, though, mx and mz are available).
-    double distance = dz * fabs(x0 - x_wire) / (x2 - x1);
+    double mean_distance = dz * fabs(x0 - x_wire) / (x2 - x1);
+    double sigma_distance = detectorinfo->GetSpatialResolution();
+    double distance = mean_distance;
+    // If resolution effects are active, we override the mean value
+    if (fDoResolutionEffects) {
+      // Using a normal distribution we take into account the resolution
+      // (static to avoid creating the same random number for every hit)
+      static boost::variate_generator
+        < boost::mt19937, boost::normal_distribution<double> >
+          normal(fRandomnessGenerator, fNormalDistribution);
+      // Another absolute value to avoid negative distances
+      distance = fabs(mean_distance + sigma_distance * normal());
+    }
 
     // Skip the hit if is far away (low efficiency?)  TODO This is not rigorous
     if (distance > dz/3) continue;
 
     // Create a new hit
-    QwHit* hit = new QwHit(0,0,0,0, region, package, id, direction, wire, 0);
+    QwHit* hit = new QwHit(0,0,0,0, region, package, plane, direction, wire, 0);
     hit->SetDriftDistance(distance);
     hit->SetDetectorInfo(detectorinfo);
     hit->SetHitNumber(fHitCounter++);

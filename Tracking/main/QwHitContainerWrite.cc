@@ -54,8 +54,8 @@ int main (int argc, char* argv[])
   ((VQwSubsystemTracking*) QwDetectors->GetSubsystem("R3"))->GetDetectorInfo(detector_info);
 
   // Load the simulated event file
-  QwTreeEventBuffer* treebuffer =
-    new QwTreeEventBuffer (std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QweakSim.root");
+  std::string filename = std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QweakSim.root";
+  QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (filename, detector_info);
   treebuffer->SetDetectorInfo(detector_info);
   treebuffer->SetDebugLevel(0);
 

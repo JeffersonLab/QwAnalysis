@@ -103,10 +103,20 @@ Int_t QwDriftChamberVDC::LoadQweakGeometry(TString mapfile){
   }
   std::cout<<"Loaded Qweak Geometry"<<" Total Detectors in pkg_d 1 "<<fDetectorInfo.at(kPackageUp).size()<< " pkg_d 2 "<<fDetectorInfo.at(kPackageDown).size()<<std::endl;
 
-  for(int i=0;i<fDetectorInfo.at(kPackageUp).size();i++){
+  std::cout << "Sorting detector info..." << std::endl;
+  plane = 1;
+  std::sort(fDetectorInfo.at(kPackageUp).begin(),
+            fDetectorInfo.at(kPackageUp).end());
+  for(int i = 0; i < fDetectorInfo.at(kPackageUp).size(); i++) {
+    fDetectorInfo.at(kPackageUp).at(i).fPlane = plane++;
     std::cout<<" Region "<<fDetectorInfo.at(kPackageUp).at(i).fRegion<<" Detector ID "<<fDetectorInfo.at(kPackageUp).at(i).fDetectorID << std::endl;
   }
-  for(int i=0;i<fDetectorInfo.at(kPackageDown).size();i++){
+
+  plane = 1;
+  std::sort(fDetectorInfo.at(kPackageDown).begin(),
+            fDetectorInfo.at(kPackageDown).end());
+  for(int i = 0; i < fDetectorInfo.at(kPackageDown).size(); i++) {
+    fDetectorInfo.at(kPackageDown).at(i).fPlane = plane++;
     std::cout<<" Region "<<fDetectorInfo.at(kPackageDown).at(i).fRegion<<" Detector ID " << fDetectorInfo.at(kPackageUp).at(i).fDetectorID << std::endl;
   }
 

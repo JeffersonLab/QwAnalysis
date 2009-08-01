@@ -20,6 +20,9 @@
 #include <vector>
 using std::vector;
 
+// Boost math library for random number generation
+#include <boost/random.hpp>
+
 
 ///
 /// \ingroup QwTrackingAnl
@@ -28,11 +31,17 @@ class QwTreeEventBuffer : public QwEventBuffer
 {
   public:
 
-    QwTreeEventBuffer(const TString filename);
+    QwTreeEventBuffer(const TString filename,
+                      vector <vector <QwDetectorInfo> > & detector_info);
     ~QwTreeEventBuffer() { fFile->Close(); };
 
-    QwHitContainer* GetHitList(int fEvtNum);
-    void SetDebugLevel (int debug) {fDebug = debug; };
+    QwHitContainer* GetHitList(int event);
+    void SetDebugLevel (int debug) { fDebug = debug; };
+
+    // Resolution effects (smearing of drift distances)
+    void EnableResolutionEffects() { fDoResolutionEffects = true; };
+    void DisableResolutionEffects() { fDoResolutionEffects = true; };
+    bool GetResolutionEffects() { return fDoResolutionEffects; };
 
     int GetEntries() {return fEntries;};
 
@@ -42,8 +51,16 @@ class QwTreeEventBuffer : public QwEventBuffer
 
   private:
 
+    // Debug level
     int fDebug;
 
+    // Resolution effects
+    bool fDoResolutionEffects;
+    // Randomness provider and distribution for resolution effects
+    boost::mt19937 fRandomnessGenerator; // Mersenne twister
+    boost::normal_distribution<double> fNormalDistribution;
+
+    // Root tree interfaces
     TFile* fFile;
     TTree* fTree;
     Int_t fEntries;

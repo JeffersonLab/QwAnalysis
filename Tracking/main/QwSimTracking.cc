@@ -67,10 +67,11 @@ int main (int argc, char* argv[])
   // select the right subvectors of detectors.
 
   // Load the simulated event file
-  QwTreeEventBuffer* treebuffer =
-	new QwTreeEventBuffer (std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QweakSim.root");
+  std::string filename = std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QweakSim.root";
+  QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (filename, detector_info);
   treebuffer->SetDetectorInfo(detector_info);
   treebuffer->SetDebugLevel(1);
+  treebuffer->EnableResolutionEffects();
 
   // Load the geometry
   Qset qset;
@@ -100,6 +101,10 @@ int main (int argc, char* argv[])
     //QwEvent *event = trackingworker->ProcessHits(hitlist);
   }
 
-  return 0;
+  std::cout << "Number of events processed so far: "
+	    << treebuffer->GetEventNumber() << std::endl;
+  std::cout << "Number of good partial tracks found: "
+	    << trackingworker->ngood << std::endl;
 
+  return 0;
 }
