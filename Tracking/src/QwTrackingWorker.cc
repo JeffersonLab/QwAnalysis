@@ -371,7 +371,6 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
   int dlayer = 0;	      /* number of detector planes in the search    */
   double A[kNumDirections][2];	/* conversion between xy and uv */
 
-  QwTrackingTreeLine *treelines1, *treelines2; // treelines for VDC 1 and VDC 2
   QwPartialTrack *parttrack; // list of partial tracks
   QwEvent *event; // event structure
 
@@ -481,13 +480,12 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	  if (region == kRegionID3 && type == kTypeDriftVDC) {
 
             dlayer = 0; /* set "number of detectors" to zero            */
-	    treelines1 = 0; treelines2 = 0;
+	    QwTrackingTreeLine *treelinelist1 = 0, *treelinelist2 = 0;
 
 	    /* Loop over the like-pitched planes in a region */
 	    int plane = 0;
-	    int decrease = 0;
 	    for (Det* rd = rcDETRegion[package][region][dir];
-	              rd; rd = rd->nextsame, decrease += NUMWIRESR3, plane++) {
+	              rd; rd = rd->nextsame, plane++) {
 
 	      // Print detector info
 	      if (fDebug) cout << "      ";
@@ -523,15 +521,15 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 			fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
                         +region*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth,
 			&(*hit),
-			channelr3[wire - decrease],
-			hashchannelr3[wire - decrease],
-			1U << (levels - 1));
+			channelr3[wire],
+			hashchannelr3[wire],
+			1UL << (levels - 1));
 
 		// Print hit pattern, if requested
 		if (opt.showEventPattern) {
 		  cout << "w" << wire << ":";
 		  for (int i = 0; i < (signed int) (1UL << levels) - 1; i++) {
-		    if (channelr3[wire - decrease][i] == 1)
+		    if (channelr3[wire][i] == 1)
 		      cout << "|";
 		    else
 		      cout << ".";
@@ -566,9 +564,9 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 					1UL << (levels - 1), 0, dlayer, width);
 
 		if (plane == 0) {
-		  treelines1 = treelinelist;
+		  treelinelist1 = treelinelist;
 		} else if (plane == 1) {
-		  treelines2 = treelinelist;
+		  treelinelist2 = treelinelist;
 		}
 
 	      }
@@ -584,10 +582,15 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 
 	    if (fDebug) cout << endl;
 	    if (fDebug) cout << "Matching region 3 segments" << endl;
-	    // (wdc) If no treelines1 or treelines2 is found, then skip matching.
+	    // (wdc) If no treelinelist1 or treelinelist2 is found, then skip matching.
 	    //       Otherwise this gets confused due to the scintillators.
-	    /*if (!treelines1->isvoid || !treelines2->isvoid)*/ if(treelines1 || treelines2)
-	      treelinelist = TreeMatch->MatchR3 (treelines1, treelines2, package, region, dir);
+	    if (treelinelist1 || treelinelist2) {
+	      if (fDebug) {
+	        cout << "VDC1:" << endl; treelinelist1->Print();
+	        cout << "VDC2:" << endl; treelinelist2->Print();
+	      }
+	      treelinelist = TreeMatch->MatchR3 (treelinelist1, treelinelist2, package, region, dir);
+	    }
 	    event->treeline[package][region][type][dir] = treelinelist;
 	    tlayers = TLAYERS;     /* remember the number of tree-detector */
 	    tlaym1  = tlayers - 1; /* remember tlayers - 1 for convenience */

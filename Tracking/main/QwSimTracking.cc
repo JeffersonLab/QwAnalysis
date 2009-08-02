@@ -27,6 +27,7 @@
 // Qweak Tree event buffer header
 #include "QwTreeEventBuffer.h"
 
+#include "QwCommandLine.h"
 #include "QwSubsystemArrayTracking.h"
 #include "QwDriftChamberHDC.h"
 #include "QwDriftChamberVDC.h"
@@ -40,6 +41,10 @@ Options opt;
 
 int main (int argc, char* argv[])
 {
+  // Parse command line options
+  QwCommandLine cmdline;
+  cmdline.Parse(argc, argv);
+
   // Fill the search paths for the parameter files
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput");
@@ -69,7 +74,6 @@ int main (int argc, char* argv[])
   // Load the simulated event file
   std::string filename = std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QweakSim.root";
   QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (filename, detector_info);
-  treebuffer->SetDetectorInfo(detector_info);
   treebuffer->SetDebugLevel(1);
   treebuffer->EnableResolutionEffects();
 
@@ -89,7 +93,9 @@ int main (int argc, char* argv[])
   trackingworker->SetDebugLevel(1);
 
   int fEntries = treebuffer->GetEntries();
-  for (int fEvtNum = 0; fEvtNum < fEntries && fEvtNum < 100; fEvtNum++) {
+  for (int fEvtNum  = cmdline.GetFirstEvent();
+           fEvtNum <= cmdline.GetLastEvent() && fEvtNum < fEntries; fEvtNum++) {
+
     // Get hit list
     QwHitContainer* hitlist = treebuffer->GetHitList(fEvtNum);
 
@@ -98,13 +104,15 @@ int main (int argc, char* argv[])
     hitlist->Print();
 
     // Process the hit list through the tracking worker
-    //QwEvent *event = trackingworker->ProcessHits(hitlist);
+    QwEvent *event = trackingworker->ProcessHits(hitlist);
   }
 
-  std::cout << "Number of events processed so far: "
-	    << treebuffer->GetEventNumber() << std::endl;
   std::cout << "Number of good partial tracks found: "
 	    << trackingworker->ngood << std::endl;
+
+  delete QwDetectors;
+  delete treebuffer;
+  delete trackingworker;
 
   return 0;
 }

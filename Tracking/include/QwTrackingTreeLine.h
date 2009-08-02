@@ -100,7 +100,9 @@ class QwTrackingTreeLine: public TObject {
 
     int   hasharray[2*TLAYERS];
     int   ID;			/*!< adamo ID */
-    int   r3offset,firstwire,lastwire;
+
+    int r3offset;		/*!< offset of demultiplexed group of 8 */
+    int firstwire, lastwire;	/*!< first and last wire in group of 8 */
 
     QwTrackingTreeLine *next;	/*!< link to next list element */
 

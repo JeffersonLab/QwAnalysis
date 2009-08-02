@@ -76,17 +76,24 @@ class QwTrackingTreeCombine {
 
     void SetDebugLevel (const int debuglevel) { fDebug = debuglevel; };
 
-    int bestx (double *xresult, double dist_cut, QwHitContainer *hitlist, QwHit *h, QwHit **ha, double Dx = 0);
-    int bestx (double *xresult, QwHit *h, QwHit *ha);
+
+    int bestx (double *xresult, double dist_cut,
+		QwHitContainer *hitlist, QwHit *h, QwHit **ha, double Dx = 0);
+    int bestx (double *xresult,
+		QwHit *h, QwHit **ha);
 
 
     void mul_do (int i, int mul, int l, int *r, QwHit *hx[DLAYERS][MAXHITPERLINE], QwHit **ha);
-    void weight_lsq (double *slope, double *xshift, double cov[3],double *chi, QwHit **hits, int n,int tlayers);
-    void weight_lsq_r3 (double *slope, double *xshift, double cov[3],double *chi, QwHit **hits, int n,double z1,int offset,int tlayers);
+    void weight_lsq (
+		double *slope, double *xshift, double cov[3], double *chi,
+		QwHit **hits, int n, int tlayers);
+    void weight_lsq_r3 (
+		double *slope, double *xshift, double cov[3], double *chi,
+		QwHit **hits, int n, double z1, int offset, int tlayers);
 
-    int selectx(double *xresult,double dist_cut,Det *detec, QwHit *hitarray[], QwHit **ha);
-    int contains( double var, QwHit **arr, int len);
-    double detZPosition( Det *det, double x, double slope_x, double *xval );
+    int selectx (double *xresult, double dist_cut, Det *detec, QwHit *hitarray[], QwHit **ha);
+    int contains (double var, QwHit **arr, int len);
+    double detZPosition (Det *det, double x, double slope_x, double *xval);
 
     bool TlCheckForX (
 		double x1, double x2, double dx1, double dx2, double Dx, double z1, double dz,
@@ -95,9 +102,8 @@ class QwTrackingTreeCombine {
 		int  dlayer, int tlayer, int iteration, int stay_tuned, double width);
 
     int TlMatchHits (
-		double x1,double x2,double z1, double dz,
-		QwTrackingTreeLine *treefill, QwHitContainer *hitlist,
-		EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type, EQwDirectionID dir,
+		double x1, double x2, double z1, double z2,
+		QwTrackingTreeLine *treeline, QwHitContainer *hitlist,
 		int tlayers);
 
     bool InAcceptance (EQwDetectorPackage package, EQwRegionID region, double cx, double mx, double cy, double my);

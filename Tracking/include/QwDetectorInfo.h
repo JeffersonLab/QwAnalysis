@@ -1,13 +1,14 @@
 #ifndef QWDETECTORINFO_H
 #define QWDETECTORINFO_H
 
+#include <cmath>
 #include <iostream>
 #include <vector>
 
 #include "TString.h"
 #include "QwTypes.h"
 
-
+#define PI 3.141592653589793
 
 ///
 /// \ingroup QwTrackingAnl
@@ -35,6 +36,16 @@ class QwDetectorInfo{
     const double GetWireSpacing() const { return fWireSpacing; };
     void SetWireSpacing(const double spacing) { fWireSpacing = spacing; };
 
+    // Get/set detector rotation (in degrees)
+    void SetDetectorRotation(const double rotation) { fDetectorRotation = rotation; };
+    const double GetDetectorRotation() const { return fDetectorRotation; };
+    const double GetCosDetectorRotation() const {
+      return std::cos(fDetectorRotation * PI / 180.0);
+    };
+    const double GetSinDetectorRotation() const {
+      return std::sin(fDetectorRotation * PI / 180.0);
+    };
+
     // Get unique detector ID
     const int GetID() const { return fDetectorID; };
 
@@ -55,7 +66,7 @@ class QwDetectorInfo{
 
     // Geometry information
     Double_t fZPos;
-    Double_t Detector_Rot;
+    Double_t fDetectorRotation;
     Double_t fSpatialResolution;
     Double_t fTrackResolution;
     Double_t Slope_Match;

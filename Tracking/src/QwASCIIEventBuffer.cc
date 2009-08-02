@@ -47,25 +47,25 @@ Int_t QwASCIIEventBuffer::InitrcDETRegion( std::vector< std::vector< QwDetectorI
 
     if (DEBUG1) std::cout<<"Starting InitrcDETRegion "<<std::endl;
     fDetectorInfo=tmp_detector_info;
-    DetectorCounter=0;   
+    DetectorCounter=0;
 
     for (int j=0;j<fDetectorInfo.size();j++) {
         for (int i=0;i<fDetectorInfo.at(j).size();i++) {
-	  if (DEBUG1){	    
+	  if (DEBUG1){
 	    //InitrcDETRegion is called for each region to add detectors
 	    std::cout<<" Region "<<fDetectorInfo.at(j).at(i).fRegion<<" ID "<<fDetectorInfo.at(j).at(i).fDetectorID<<" Detector counter "<<DetectorCounter<<" Package "<<fDetectorInfo.at(j).at(i).fPackage << " Plane " << i+1 << " Dir  " << fDetectorInfo.at(j).at(i).fDirection <<std::endl;
-	    
+
 	  }
             AddDetector(fDetectorInfo.at(j).at(i),DetectorCounter);
             DetectorCounter++;
         }
-	
+
     }
 
-    
+
  // now rcDET is ready.
   // now linking detectors
-  
+
   Qset qset;
   qset.SetNumDetectors(DetectorCounter);
   qset.LinkDetectors();
@@ -106,7 +106,7 @@ void  QwASCIIEventBuffer::GetrcDETRegion(QwHitContainer &HitList, Int_t event_no
         region = (EQwRegionID) local_id.fRegion;
         dir    = (EQwDirectionID) local_id.fDirection;
 
-        detectorId1=fDetectorInfo.at(local_id.fPackage-1).at(local_id.fPlane-1).fDetectorID;
+        detectorId1=fDetectorInfo.at(local_id.fPackage).at(local_id.fPlane-1).fDetectorID;
 
 
         // when this is the first detector of the event
@@ -164,22 +164,26 @@ void  QwASCIIEventBuffer::GetrcDETRegion(QwHitContainer &HitList, Int_t event_no
         newhit = new QwHit;
         assert(newhit);
         //newhit = (QwHit*) malloc (sizeof(QwHit));
-        //	  // set event number
-        newhit->ID = event_no; //set the current event number
-        // Wire number
-        newhit->wire = local_id.fElement;
-        //	  // Z position of wire plane (first wire for region 3)
-//        newhit->Zpos = qwhit->GetZPos();
-        newhit->SetZPos(qwhit->GetZPos());
+
+        // Set event number (obsolete since r377, wdconinc)
+        //newhit->ID = event_no; //set the current event number
+
+        // Wire number (obsolete since r377, wdconinc)
+        //newhit->wire = local_id.fElement;
+
+        // Z position of wire plane (first wire for region 3)
+        //newhit->Zpos = qwhit->GetZPos();
+        //newhit->SetZPos(qwhit->GetZPos());
         // Distance of hit from wire
-//        newhit->rPos1 = qwhit->GetDriftDistance();
+        //newhit->rPos1 = qwhit->GetDriftDistance();
         newhit->SetDriftDistance(qwhit->GetDriftDistance());
         //	  // Placeholder for future code
         newhit->rPos2 = 0;
         // Get the spatial resolution for this hit
         newhit->SetSpatialResolution(qwhit->GetSpatialResolution());
+
         // the hit's pointer back to the detector plane
-        newhit->detec = rd;
+        //newhit->detec = rd; // (obsolete since r377, wdconinc)
 
         // Chain the hits
         newhit->next = hitlist;
@@ -201,9 +205,7 @@ void QwASCIIEventBuffer::AddDetector(QwDetectorInfo qwDetector, Int_t i) {
         rcDET[i].sName="VDC";
     rcDET[i].sType = qwDetector.fType;
     rcDET[i].Zpos = qwDetector.fZPos;
-    rcDET[i].Rot=qwDetector.Detector_Rot;
-    rcDET[i].rRotCos = cos(rcDET[i].Rot*PI/180);
-    rcDET[i].rRotSin = sin(rcDET[i].Rot*PI/180);
+    rcDET[i].Rot = qwDetector.GetDetectorRotation();
     rcDET[i].resolution = qwDetector.fSpatialResolution;
     rcDET[i].TrackResolution = qwDetector.fTrackResolution;
     rcDET[i].SlopeMatching=qwDetector.Slope_Match;
@@ -331,6 +333,7 @@ Int_t QwASCIIEventBuffer::GetEvent() {
         for (int cHits=0;cHits<TotalHits;cHits++) {
             eventf->ReadNextLine(line1);
             wire = QwParameterFile::GetUInt(line1);
+            if (wire > 281) wire -= 281;
             eventf->ReadNextLine(line1);
             Zpos=atof(line1.c_str());
             eventf->ReadNextLine(line1);
@@ -344,7 +347,7 @@ Int_t QwASCIIEventBuffer::GetEvent() {
             currentHit=new QwHit(0,0,0,0,rcDET[DetectId].region,rcDET[DetectId].package, rcDET[DetectId].plane ,rcDET[DetectId].dir,wire,0) ; //order of parameters-> electronics stuffs are neglected, and  plane=DetectId and data is set to zero
             currentHit->SetDriftDistance(rPos1);
             currentHit->SetSpatialResolution(resolution);
-            currentHit->SetZPos(Zpos);
+            //currentHit->SetZPos(Zpos);
             fASCIIHits.push_back(*currentHit);
         }
         //std::cout<<"Size of the Vector "<<fASCIIHits.size()<<std::endl;
@@ -477,13 +480,16 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits) {
         newhit = new QwHit;
         assert(newhit);
         //newhit = (QwHit*) malloc (sizeof(QwHit));
-        //	  // set event number
-        newhit->ID = fEvtNumber;
+
+        // Set event number (obsolete since r377, wdconinc)
+        //newhit->ID = fEvtNumber;
+
         // Wire number
         newhit->SetElement(local_id.fElement);
-        //	  // Z position of wire plane (first wire for region 3)
+
+        // Z position of wire plane (first wire for region 3)
         // newhit->Zpos = qwhit->GetZPos();
-        newhit->SetZPos(qwhit->GetZPos());
+        //newhit->SetZPos(qwhit->GetZPos());
         // Distance of hit from wire
         //newhit->rPos1 = qwhit->GetDriftDistance();
         newhit->SetDriftDistance(qwhit->GetDriftDistance());
@@ -493,7 +499,7 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits) {
         // newhit->Resolution = qwhit->GetSpatialResolution();
         newhit->SetSpatialResolution(qwhit->GetSpatialResolution());
         // the hit's pointer back to the detector plane
-        newhit->detec = rd;
+        //newhit->detec = rd; // (obsolete since r377, wdconinc)
 
         // Chain the hits
         newhit->next = hitlist;
@@ -504,28 +510,7 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits) {
         rd->hitbydet = newhit;
     }
 
-    //  Look at hits in Detector ID 0
-    /*
-    rd     = &(rcDET[0]);
-    newhit = rd->hitbydet;
-    do {
-      //  Print some stuff...
-      std::cout << newhit->ID <<" "
-            << newhit->wire <<" "
-            << newhit->Zpos <<" "
-            << newhit->rPos1 <<" "
-            << newhit->rPos2 <<" "
-            << newhit->Resolution <<" "
-            << newhit->detec->ID <<" "
-            // << newhit->next <<" "
-    // 	      << newhit->nextdet <<" "
-            << std::endl;
-
-      newhit = newhit->next;
-    }  while (newhit != NULL);
-    */
-
-
+  return 0;
 };
 
 

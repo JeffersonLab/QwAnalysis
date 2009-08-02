@@ -89,7 +89,7 @@ const double QwTrackingTreeLine::CalculateAverageResidual()
   double sumResiduals = 0.0;
   for (int layer = 0; layer < 2 * TLAYERS; layer++) {
     for (QwHit* hit = hits[layer]; hit; hit = hit->next) {
-      if (hit->isused) {
+      if (hit->fIsUsed) {
         numHits++;
         sumResiduals += hit->GetDriftDistance();
       }

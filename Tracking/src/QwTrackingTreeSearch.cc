@@ -572,34 +572,6 @@ int QwTrackingTreeSearch::TsSetPoint (
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*---------------------------------------------------------------------------*/
 // This TsSetPoint version is designed for setting the pattern for Region 2
-// doing one hit at a time.
-// int QwTrackingTreeSearch::TsSetPoint (
-// 	double detectorwidth,
-// 	double wirespacing,
-// 	QwHit *H,
-// 	double wire,
-// 	char *pattern,
-// 	int *hash,
-// 	unsigned binwidth)
-// {
-//   cerr << "[QwTrackingTreeSearch::TsSetPoint] Warning: This needs revision!" << endl;
-//
-//   // Set the points on the front/top side of the wire (R3/R2)
-//   _setpoints(wirespacing * (wire+1) - H->rPos1 - H->rTrackResolution,
-// 	     wirespacing * (wire+1) - H->rPos1 + H->rTrackResolution,
-// 	     detectorwidth, binwidth, pattern, hash);
-//
-//   // Set the points on the back/bottom side of the wire (R3/R2)
-//   _setpoints(wirespacing * (wire+1) + H->rPos1 - H->rTrackResolution,
-// 	     wirespacing * (wire+1) + H->rPos1 + H->rTrackResolution,
-// 	     detectorwidth, binwidth, pattern, hash);
-//
-//   return 0;
-// }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*---------------------------------------------------------------------------*/
-// This TsSetPoint version is designed for setting the pattern for Region 2
 // doing one hit at a time, using the QwHit class.
 int QwTrackingTreeSearch::TsSetPoint (
 	double detectorwidth,
@@ -624,199 +596,6 @@ int QwTrackingTreeSearch::TsSetPoint (
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-// int QwTrackingTreeSearch::TsSetPoint (
-// 	double detectorwidth,
-// 	double zdistance,
-// 	QwHit *Ha,
-// 	QwHit *Hb,
-// 	char *patterna,
-// 	char *patternb,
-// 	int *hasha,
-// 	int *hashb,
-// 	unsigned binwidth)
-// {
-//   cerr << "[QwTrackingTreeSearch::TsSetPoint] Warning: This needs revision!" << endl;
-//
-//   int num = 0;
-//
-//
-//   double dw2 = (detectorwidth / 2.0); /* half-width of the detector (in cm) */
-//   QwHit *Hanext, *Hbnext;
-//
-// /* ---- Compute the maximum separation between hits on the two
-//         planes such that these hits are paired together when
-//         forming the hit pattern.  If the hits are separated by
-//         more than this distance, the hits are treated as unmatched
-//         hits when the hit pattern is formed.                        ---- */
-//
-//   double rcSETrMaxSlope = 0.60;//THIS VALUE COMES FROM hrcset.h
-//   cerr << "rcSET not defined in the code. Error. CODE NEEDS REPLACING" << endl;
-//
-//
-//   /*double maxdistance = rcSET.rMaxSlope * zdistance; */ /* maximum separation
-// 						       for hits (in cm)   */
-//   double maxdistance = rcSETrMaxSlope * zdistance;//I inserted this
-// 	//line to fill in the gap due to the rcSET object not being
-// 	//defined.
-//
-// /* ---- Go through the hit lists for each plane and set the hit
-//         pattern.  For each set of paired hits, the hit pattern
-//         is updated with the overlap between the hits.  For the
-//         unpaired hits, the hit pattern is updated with just the
-//         possible tracks through the hit.                            ---- */
-//
-//   while (Ha || Hb) { /* for each hit in Ha and Hb */
-//     num++;           /* Keep count of how many hits are processed */
-//
-// /* ---- Call wireselection() to pick out a hit pair from the
-//         linked lists of hits for the two planes (*Ha and *Hb)
-//
-//         This function searches for hits in plane A (stored in the
-//         linked list of hits) starting with the hit pointed to by
-//         *Ha and plane B starting with the hit pointed to by *Hb.
-//         Its returns: (1) pointers to the next hits to consider
-//         for pairing (*Hanext and *Hbnext) and (2) links to the
-//         hits (in *Ha and *Hb) to be inserted into the hit
-//         pattern (for unpair hits, either *Ha or *Hb will be zero    ---- */
-//
-//     wireselection (&Ha, &Hb, &Hanext, &Hbnext, maxdistance);
-//
-// /* ---- Update the hit pattern to include these hits                ---- */
-//
-//     if (Ha && Hb) {
-//
-// /* ---- CASE 1: If the planes have hits within the HRCset Maxslope,
-//                 then resolve the left-right ambiguity by checking
-//                 the four combinations for matching.  When a
-//                 combination matches, the hit pattern is updated by
-//                 treating the hits together.  If no matching
-//                 combinations are found, the hit pattern is updated
-//                 by treated the hits separately.                     ---- */
-//
-//       int found = 0; /* clear "I found a pairing" flag */
-//       if (fabs(Ha->rPos1 - Hb->rPos1) < maxdistance){ /* left A w/ left B */
-// 	found = 1; /* set "I found a pairing" flag */
-// 	setpoint (dw2,
-// 		  Ha->rPos1, Ha->rTrackResolution,
-// 		  Hb->rPos1, Hb->rTrackResolution,
-// 		  detectorwidth, binwidth, patterna, patternb,
-// 		  hasha, hashb);
-//       }
-//       if (fabs(Ha->rPos2 - Hb->rPos1) < maxdistance) { /* rght A w/left B */
-// 	found = 1; /* set "I found a pairing" flag */
-// 	setpoint (dw2,
-// 		  Ha->rPos2, Ha->rTrackResolution,
-// 		  Hb->rPos1, Hb->rTrackResolution,
-// 		  detectorwidth, binwidth, patterna, patternb,
-// 		  hasha, hashb);
-//       }
-//       if (fabs(Ha->rPos1 - Hb->rPos2) < maxdistance) { /* left B w/rght B */
-// 	found = 1; /* set "I found a pairing flag */
-// 	setpoint (dw2,
-// 		  Ha->rPos1, Ha->rTrackResolution,
-// 		  Hb->rPos2, Hb->rTrackResolution,
-// 		  detectorwidth, binwidth, patterna, patternb,
-// 		  hasha, hashb);
-//       }
-//       /* 270996 - correct Hb to Ha below - finally ,-) */
-//       if (fabs(Ha->rPos2 - Hb->rPos2) < maxdistance) { /* rght A w/rght B */
-// 	found = 1; /* set "I found a pairing" flag */
-// 	setpoint (dw2,
-// 		  Ha->rPos2, Ha->rTrackResolution,
-// 		  Hb->rPos2, Hb->rTrackResolution,
-// 		  detectorwidth, binwidth, patterna, patternb,
-// 		  hasha, hashb);
-//       }
-//
-// /* ---- CASE 2: The search by wireselection() paired these two
-//                 hits, but the left-right ambigiuity check failed
-//                 find a combination trough which an allowable track
-//                 could traverse.  So, these hits are added into
-//                 bit pattern as unpaired hits.                       ---- */
-//
-//       if (! found) {
-// 	if (patternb) {  /* treating the two planes as individual
-//                             tree-planes, so put hit into both patterns */
-// 	  setpoint (dw2,
-// 		    Ha->rPos1, Ha->rTrackResolution,
-// 		    Hb->rPos1, Hb->rTrackResolution,
-// 		    detectorwidth, binwidth, patterna, patternb,
-// 		    hasha, hashb);
-// 	  setpoint (dw2,
-// 		    Ha->rPos2, Ha->rTrackResolution,
-// 		    Hb->rPos2, Hb->rTrackResolution,
-// 		    detectorwidth, binwidth, patterna, patternb,
-// 		    hasha, hashb);
-// 	} else {         /* treating the two planes as one tree-plane,
-//                             so just put it into the one pattern        */
-// 	  _setpoints (Ha->rPos1+dw2 - 0.5 * maxdistance - Ha->rTrackResolution,
-// 		      Ha->rPos1+dw2 + 0.5 * maxdistance + Ha->rTrackResolution,
-// 		      detectorwidth, binwidth, patterna, hasha);
-// 	  _setpoints (Ha->rPos2+dw2 - 0.5 * maxdistance - Ha->rTrackResolution,
-// 		      Ha->rPos2+dw2 + 0.5 * maxdistance + Ha->rTrackResolution,
-// 		      detectorwidth, binwidth, patterna, hasha);
-// 	  _setpoints (Hb->rPos1+dw2 - 0.5 * maxdistance - Hb->rTrackResolution,
-// 		      Hb->rPos1+dw2 + 0.5 * maxdistance + Hb->rTrackResolution,
-// 		      detectorwidth, binwidth, patterna, hasha);
-// 	  _setpoints (Hb->rPos2+dw2 - 0.5 * maxdistance - Hb->rTrackResolution,
-// 		      Hb->rPos2+dw2 + 0.5 * maxdistance + Hb->rTrackResolution,
-// 		      detectorwidth, binwidth, patterna, hasha);
-// 	}
-//       }
-//
-// /* ---- CASE 3: If, after the search, a hit on a plane was not
-//                 paired with a hit on the other plane (because the
-//                 other plane didn't have a hit within the HRCset
-//                 MaxSlope), this hit is treated individually when
-//                 being included in the bit pattern.                  ---- */
-//
-//
-//     } else if (Ha) { /* this hit's on plane A */
-//       if( patternb ) { /* treating the two planes as two tree-planes,
-//                           so insert the hit into the bit pattern for
-//                           this plane                                    */
-//  	_setpoint( dw2 + Ha->rPos1, Ha->rTrackResolution,
-// 		   detectorwidth, binwidth, patterna, hasha);
-// 	_setpoint( dw2 + Ha->rPos2, Ha->rTrackResolution,
-// 		   detectorwidth, binwidth, patterna, hasha);
-//       } else {         /* treating the two planes as one tree-plane,
-//                           so insert this hit into the bit pattern for
-//                           this single tree-plane                        */
-// 	_setpoints(Ha->rPos1+dw2 - 0.5 * maxdistance - Ha->rTrackResolution,
-// 		   Ha->rPos1+dw2 + 0.5 * maxdistance + Ha->rTrackResolution,
-// 		   detectorwidth, binwidth, patterna, hasha);
-// 	_setpoints(Ha->rPos2+dw2 - 0.5 * maxdistance - Ha->rTrackResolution,
-// 		   Ha->rPos2+dw2 + 0.5 * maxdistance + Ha->rTrackResolution,
-// 		   detectorwidth, binwidth, patterna, hasha);
-//       }
-//     } else {           /* this hit's on plane B */
-//       if (patternb) {  /* treating the two planes as two tree-planes,
-//                           so insert the hit into the bit pattern for
-//                           this plane                                    */
-// 	_setpoint (dw2 + Hb->rPos1, Hb->rTrackResolution,
-// 		   detectorwidth, binwidth, patternb, hashb);
-// 	_setpoint (dw2 + Hb->rPos2, Hb->rTrackResolution,
-// 		   detectorwidth, binwidth, patternb, hashb);
-//       } else {         /* treating the two planes as one tree-planes,
-//                           so insert the hit into the hit pattern for
-//                           this single tree-plane                        */
-// 	_setpoints (Hb->rPos1+dw2 - 0.5 * maxdistance - Hb->rTrackResolution,
-// 		    Hb->rPos1+dw2 + 0.5 * maxdistance + Hb->rTrackResolution,
-// 		    detectorwidth, binwidth, patterna, hasha);
-// 	_setpoints (Hb->rPos2+dw2 - 0.5 * maxdistance - Hb->rTrackResolution,
-// 		    Hb->rPos2+dw2 + 0.5 * maxdistance + Hb->rTrackResolution,
-// 		    detectorwidth, binwidth, patterna, hasha);
-//       }
-//     }
-//     Ha = Hanext;  /* Continue with the next set of hits */
-//     Hb = Hbnext;
-//   }
-//
-//   return num;
-// }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 // (jp) This is the QwHit version for setting the paired hits
 // TsSetPoint(double,double,QwHit*,QwHit*,char*,char*,int*,int*,unsigned)
 
@@ -831,7 +610,7 @@ int QwTrackingTreeSearch::TsSetPoint (
 	int *hashb,
 	unsigned binwidth)
 {
-  cerr << "[QwTrackingTreeSearch::TsSetPoint] Warning: This is the QwHit revision!" << endl;
+  cerr << "[QwTrackingTreeSearch::TsSetPoint] Warning: This needs revision!" << endl;
 
   int num = 0;
 
@@ -1312,15 +1091,16 @@ if (numWires > 0) { /* Region 3 */
 	  /* (only used until TreeLineSort) */
 	  lineptr->nummiss = miss;
 
-	  /* Add this treeline to the linked-list */
-	  lineptr->next = lTreeLines;
-	  lTreeLines = lineptr;
-
 	  /* Region 3 specific treeline info */
           lineptr->r3offset = row_offset;
           lineptr->firstwire = firstwire;
           lineptr->lastwire  = lastwire;
-        }
+
+	  /* Add this treeline to the linked-list */
+	  lineptr->next = lTreeLines;
+	  lTreeLines = lineptr;
+
+}
       } else {                  /* check son patterns */
         for (rev = 0; rev < 4; rev += 2) {
           cnode = tree->son + rev;

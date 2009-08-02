@@ -181,26 +181,25 @@ class QwHit : public TObject {
   Double_t fSpatialResolution;	/// Spatial resolution
   Double_t fTrackResolution;	/// Track resolution
 
+  public: // Sorry, will write accessors later (wdconinc)
+
+    bool fIsUsed;	/// Is this hit used in a tree line?
 
 
-  //The following public section are taken from the original Hit class
-  //for merging the Hit class into the QwHit class.
+  // The following public section are taken from the original Hit class
+  // for merging the Hit class into the QwHit class.
 
-  //  Hits for individual detector elements are strung together.  They also
-  //  have a pointer back to the detector in case more information about the
-  //  hit is needed.  The various position values are used in multiple ways,
-  //  and therefore are not strictly defined.
   public:
-    int wire;			/*!< wire ID                           */
 
-    double rPos2;		/*!< rPos2 from level II decoding      */
+    //  Hits for individual detector elements are strung together.  They also
+    //  have a pointer back to the detector in case more information about the
+    //  hit is needed.  The various position values are used in multiple ways,
+    //  and therefore are not strictly defined.
 
-    Det *detec;			/*!< which detector                    */
     QwHit *next, *nextdet; 	/*!< next hit and next hit in same detector */
-    int ID;			/*!< event ID                          */
-    bool isused;		/*!< is this hit used by a track       */
     double rResultPos;		/*!< Resulting hit position            */
-    double rPos;		/*!< Position of from track finding    */
+    double rPos;		/*!< Position from level I track finding  */
+    double rPos2;		/*!< Position from level II decoding      */
 
 
   ClassDef(QwHit,1)

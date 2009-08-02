@@ -47,6 +47,8 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include <sys/time.h>
+
 #include "QwHitContainer.h"
 
 
@@ -345,10 +347,14 @@ int main(Int_t argc,Char_t* argv[])
       AsciiEvents1.GetrcDETRegion(grandHitList,evnum);
 
       // Print hit list
-      //grandHitList.Print();
+      grandHitList.Print();
 
       // Process the hit list through the tracking worker (i.e. do track reconstruction)
+      cout << "---" << endl;
+      timeval start, finish;
+      gettimeofday(&start, 0);
       QwEvent *event = trackingworker->ProcessHits(&grandHitList);
+      gettimeofday(&finish, 0);
 
       // Now we can access the event and its partial tracks
       // (e.g. list the partial track in the upper region 2 HDC)
@@ -356,7 +362,12 @@ int main(Int_t argc,Char_t* argv[])
       for (QwPartialTrack* track = listoftracks;
                            track; track = track->next) {
         cout << *track << endl;
+        cout << "Average residual: " << track->CalculateAverageResidual() << endl;
+        cout << "in x: " << track->GetTreeLine(kDirectionX)->CalculateAverageResidual() << endl;
+        cout << "in u: " << track->GetTreeLine(kDirectionU)->CalculateAverageResidual() << endl;
+        cout << "in v: " << track->GetTreeLine(kDirectionV)->CalculateAverageResidual() << endl;
       } // but unfortunately this is still void
+      cout << "Tracking stage took " << ((int) finish.tv_usec - (int) start.tv_usec) << " usec" << endl;
       cout << "---" << endl;
       delete listoftracks;
       delete event;

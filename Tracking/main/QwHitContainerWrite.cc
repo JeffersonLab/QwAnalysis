@@ -56,7 +56,6 @@ int main (int argc, char* argv[])
   // Load the simulated event file
   std::string filename = std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QweakSim.root";
   QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (filename, detector_info);
-  treebuffer->SetDetectorInfo(detector_info);
   treebuffer->SetDebugLevel(0);
 
   // Load the geometry (ignore)

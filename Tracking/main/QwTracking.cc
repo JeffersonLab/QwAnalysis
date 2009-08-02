@@ -139,8 +139,10 @@
 #include "QwTrackingTree.h"
 #include "QwPartialTrack.h"
 
+#include "QwSubsystemArrayTracking.h"
+#include "QwDriftChamberHDC.h"
+#include "QwDriftChamberVDC.h"
 
-//using namespace QwTracking;
 
 #define NEventMax 10
 
@@ -165,6 +167,23 @@ int main (int argc, char* argv[])
 
   int iEvent = 1;  // event number of this event
   int nEvent = 0;  // number of processed events
+
+
+  //  Fill the search paths for the parameter files
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput");
+
+  // Handle for the list of VQwSubsystemTracking objects
+  QwSubsystemArrayTracking QwDetectors;
+  // Region 2 HDC
+  QwDetectors.push_back(new QwDriftChamberHDC("R2"));
+  QwDetectors.GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");
+  ((VQwSubsystemTracking*) QwDetectors.GetSubsystem("R2"))->LoadQweakGeometry("qweak_new.geo");
+  // Region 3 VDC
+  QwDetectors.push_back(new QwDriftChamberVDC("R3"));
+  QwDetectors.GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
+  ((VQwSubsystemTracking*) QwDetectors.GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
+
 
   Qset qset;
   qset.FillDetectors((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.geo").c_str());
@@ -214,6 +233,7 @@ int main (int argc, char* argv[])
 	  // Print hit list
 	  ASCIIgrandHitList->Print();
 
+
 	  // Process the hit list through the tracking worker (i.e. do track reconstruction)
 	  event = trackingworker->ProcessHits(ASCIIgrandHitList);
 
@@ -222,7 +242,7 @@ int main (int argc, char* argv[])
 	  QwPartialTrack* listoftracks = event->parttrack[kPackageUp][kRegionID2][kTypeDriftHDC];
 	  for (QwPartialTrack* track = listoftracks;
 	                  track; track = track->next) {
-	    track->Print();
+	    cout << *track << endl;
 	  } // but unfortunately this is still void
           delete listoftracks;
 

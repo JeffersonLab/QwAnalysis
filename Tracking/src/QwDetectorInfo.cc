@@ -36,7 +36,7 @@ void QwDetectorInfo::SetDetectorInfo (
 {
   // Detector geometry parameters
   fZPos = Zpos1;
-  Detector_Rot = rot;
+  fDetectorRotation = rot;
   fSpatialResolution = sp_res;
   fTrackResolution = track_res;
   Slope_Match = slope_match;

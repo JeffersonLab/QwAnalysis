@@ -37,14 +37,15 @@ QwHit::QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
   fSpatialResolution = 0.0;	/// Spatial resolution
   fTrackResolution = 0.0;	/// Tracking road width around hit
 
+  fIsUsed = false;	/// Is this hit used in a tree line?
+
   pDetectorInfo = 0;	/// Pointer to detector info object
 
   wire = 0;			/*!< wire ID                           */
   rPos2 = 0.0;			/*!< rPos2 from level II decoding      */
-  detec = 0;			/*!< which detector                    */
+  //detec = 0;			/*!< which detector                    */
   next = nextdet = 0; 		/*!< next hit and next hit in same detector */
-  ID = 0;			/*!< event ID                          */
-  isused = 0;			/*!< hit is used by a track            */
+  //ID = 0;			/*!< event ID                          */
   rResultPos = 0.0;		/*!< Resulting hit position            */
   rPos = 0.0;			/*!< Position of from track finding    */
 

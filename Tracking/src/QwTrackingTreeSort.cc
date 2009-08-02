@@ -280,7 +280,7 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
   int i1 = 0, i2 = 0;
   for ( ; i1 < line1->numhits && i2 < line2->numhits ; ) {
     if (hits1[i1]->GetElement() == hits2[i2]->GetElement()) {
-      if (hits1[i1]->isused && hits2[i2]->isused)
+      if (hits1[i1]->fIsUsed && hits2[i2]->fIsUsed)
 	common++;
       i1++;
       i2++;
@@ -386,7 +386,7 @@ int QwTrackingTreeSort::rcCommonWires (
       i1++;
       // Advance until we reach the end of the list or find a hit
       for ( ; i1 < DLAYERS*MAXHITPERLINE && hits1[i1]; i1++)
-	if (hits1[i1]->isused) {
+	if (hits1[i1]->fIsUsed) {
 	  total1++;
 	  break;
 	}
@@ -397,7 +397,7 @@ int QwTrackingTreeSort::rcCommonWires (
       i2++;
       // Advance until we reach the end of the list or find a hit
       for ( ; i2 < DLAYERS*MAXHITPERLINE && hits2[i2]; i2++)
-	if (hits2[i2]->isused) {
+	if (hits2[i2]->fIsUsed) {
 	  total2++;
 	  break;
 	}
