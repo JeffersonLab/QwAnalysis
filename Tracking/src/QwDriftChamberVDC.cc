@@ -117,7 +117,7 @@ Int_t QwDriftChamberVDC::LoadQweakGeometry(TString mapfile){
             fDetectorInfo.at(kPackageDown).end());
   for(int i = 0; i < fDetectorInfo.at(kPackageDown).size(); i++) {
     fDetectorInfo.at(kPackageDown).at(i).fPlane = plane++;
-    std::cout<<" Region "<<fDetectorInfo.at(kPackageDown).at(i).fRegion<<" Detector ID " << fDetectorInfo.at(kPackageUp).at(i).fDetectorID << std::endl;
+    std::cout<<" Region "<<fDetectorInfo.at(kPackageDown).at(i).fRegion<<" Detector ID " << fDetectorInfo.at(kPackageDown).at(i).fDetectorID << std::endl;
   }
 
   std::cout<<"Qweak Geometry Loaded "<<std::endl;
