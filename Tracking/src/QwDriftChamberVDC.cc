@@ -195,6 +195,32 @@ void  QwDriftChamberVDC::SubtractReferenceTimes(){
 
 Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector){
   return 0;
+    }; 
+
+Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector, Double_t angle){
+  Double_t a0=0,a1=0,b0=0,b1=0,b2=0,c0=0,c1=0;
+  Double_t tsp1=0,tsp2=0,x=0;
+
+  a0=-3.48422+0.0286254*angle;
+  a1=28.6858-0.293514*angle;
+  b0=-19.467+0.477792*angle;
+  b1=38.7557-0.595964*angle;
+  b2=-1.37907+0.0521888*angle;
+  c0=27.7324-1.19175*angle;
+  c1=22.3955-0.00131218*angle;
+
+  //the cutpoint is 2.1 and 5.9;
+  tsp1=b0+2.1*b1+2.1*2.1*b2;
+  tsp2=b0+5.9*b1+5.9*5.9*b2;
+
+  if (drifttime < tsp1) {                    // Select Region 1
+  x = (drifttime - a0)/a1;}
+  else if (drifttime <= tsp2){ // Select Region 2
+  x = (-b1 + sqrt(b1*b1 - 4*b2*(b0-drifttime)))/(2*b2);}
+  else{                                  // Select Region 3  
+  x = (drifttime - c0)/c1;
+}
+  return x;
 };
 
 

@@ -55,6 +55,7 @@ class QwDriftChamberVDC: public QwDriftChamber {
 
  void  SubtractReferenceTimes();
 
+ Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector, Double_t angle);
  Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
 
  void  LoadMap ( TString& );        //read the TDC convert QwDelayLine map
