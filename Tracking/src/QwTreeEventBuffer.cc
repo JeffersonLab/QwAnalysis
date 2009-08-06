@@ -30,6 +30,32 @@ QwTreeEventBuffer::QwTreeEventBuffer (
   // Disable resolution effects (for now)
   fDoResolutionEffects = false;
 
+  // Attach to region 1 branches
+
+  // Region1 WirePlane
+  fTree->SetBranchAddress("Region1.ChamberFront.WirePlane.PlaneHasBeenHit",
+		&fRegion1_ChamberFront_WirePlane_PlaneHasBeenHit);
+  fTree->SetBranchAddress("Region1.ChamberFront.WirePlane.NbOfHits",
+		&fRegion1_ChamberFront_WirePlane_NbOfHits);
+  fTree->SetBranchAddress("Region1.ChamberFront.WirePlane.PlaneLocalPositionX",
+		&fRegion1_ChamberFront_WirePlane_PlaneLocalPositionX);
+  fTree->SetBranchAddress("Region1.ChamberFront.WirePlane.PlaneLocalPositionY",
+		&fRegion1_ChamberFront_WirePlane_PlaneLocalPositionY);
+  fTree->SetBranchAddress("Region1.ChamberFront.WirePlane.PlaneLocalPositionZ",
+		&fRegion1_ChamberFront_WirePlane_PlaneLocalPositionZ);
+
+  fTree->SetBranchAddress("Region1.ChamberBack.WirePlane.PlaneHasBeenHit",
+		&fRegion1_ChamberBack_WirePlane_PlaneHasBeenHit);
+  fTree->SetBranchAddress("Region1.ChamberBack.WirePlane.NbOfHits",
+		&fRegion1_ChamberBack_WirePlane_NbOfHits);
+  fTree->SetBranchAddress("Region1.ChamberBack.WirePlane.PlaneLocalPositionX",
+		&fRegion1_ChamberBack_WirePlane_PlaneLocalPositionX);
+  fTree->SetBranchAddress("Region1.ChamberBack.WirePlane.PlaneLocalPositionY",
+		&fRegion1_ChamberBack_WirePlane_PlaneLocalPositionY);
+  fTree->SetBranchAddress("Region1.ChamberBack.WirePlane.PlaneLocalPositionZ",
+		&fRegion1_ChamberBack_WirePlane_PlaneLocalPositionZ);
+
+
   // Attach to region 2 branches
 
   // WirePlane1
@@ -261,6 +287,10 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
   // Load event
   if (fDebug >= 1) std::cout << "Reading event " << fEvtNumber << std::endl;
 
+  // Region 1
+  fTree->GetBranch("Region1.ChamberFront.WirePlane.PlaneHasBeenHit")->GetEntry(fEvtNumber);
+  fTree->GetBranch("Region1.ChamberBack.WirePlane.PlaneHasBeenHit")->GetEntry(fEvtNumber);
+
   // Region 2
   fTree->GetBranch("Region2.ChamberFront.WirePlane1.PlaneHasBeenHit")->GetEntry(fEvtNumber);
   fTree->GetBranch("Region2.ChamberFront.WirePlane2.PlaneHasBeenHit")->GetEntry(fEvtNumber);
@@ -281,6 +311,10 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
   fTree->GetBranch("Region3.ChamberBack.WirePlaneU.HasBeenHit")->GetEntry(fEvtNumber);
   fTree->GetBranch("Region3.ChamberBack.WirePlaneV.HasBeenHit")->GetEntry(fEvtNumber);
 
+
+  bool R1_HasBeenHit = fRegion1_ChamberFront_WirePlane_PlaneHasBeenHit == 5 &&
+                       fRegion1_ChamberBack_WirePlane_PlaneHasBeenHit  == 5 ;
+
   bool R2_HasBeenHit = fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit == 5 &&
                        fRegion2_ChamberFront_WirePlane2_PlaneHasBeenHit == 5 &&
                        fRegion2_ChamberFront_WirePlane3_PlaneHasBeenHit == 5 &&
@@ -299,7 +333,8 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
                        fRegion3_ChamberBack_WirePlaneU_HasBeenHit  == 5 &&
                        fRegion3_ChamberBack_WirePlaneV_HasBeenHit  == 5 ;
 
-  if (R2_HasBeenHit && R3_HasBeenHit) {  //jpan:coincidence for avoiding match empty nodes
+//jpan:coincidence for avoiding match empty nodes
+  if (R1_HasBeenHit && R2_HasBeenHit && R3_HasBeenHit) {
     fTree->GetEntry(fEvtNumber);
   } else {
     if (fDebug >= 1) std::cout << "Skip an empty event - event#" << fEvtNumber << std::endl;
@@ -310,6 +345,10 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
 
   //if (fDebug) fTree->Show(fEvtNumber);
   // Print info
+  if (fDebug) std::cout << "Region 1: "
+		<< fRegion1_ChamberFront_WirePlane_NbOfHits << ","
+		<< fRegion1_ChamberBack_WirePlane_NbOfHits << " hit(s)." << std::endl;
+
   if (fDebug) std::cout << "Region 2: "
 		<< fRegion2_ChamberFront_WirePlane1_NbOfHits << ","
 		<< fRegion2_ChamberFront_WirePlane2_NbOfHits << ","
@@ -323,6 +362,7 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
 		<< fRegion2_ChamberBack_WirePlane4_NbOfHits  << ","
 		<< fRegion2_ChamberBack_WirePlane5_NbOfHits  << ","
 		<< fRegion2_ChamberBack_WirePlane6_NbOfHits  << " hit(s)." << std::endl;
+
   if (fDebug) std::cout << "Region 3: "
 		<< fRegion3_ChamberFront_WirePlaneU_NbOfHits << ","
 		<< fRegion3_ChamberFront_WirePlaneV_NbOfHits << ","
@@ -335,6 +375,15 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
     std::cerr << "No detector geometry defined: use SetDetectorInfo()" << std::endl;
     return 0;
   }
+
+  // Region 1 front chamber
+  if (fDebug >= 2) std::cout << "No code for processing Region1_ChamberFront_WirePlane: "
+	<< fRegion1_ChamberFront_WirePlane_NbOfHits << " hit(s)." << std::endl;
+
+  // Region 1 back chamber
+  if (fDebug >= 2) std::cout << "No code for processing Region1_ChamberBack_WirePlane: "
+	<< fRegion1_ChamberBack_WirePlane_NbOfHits << " hit(s)." << std::endl;
+
 
   // Region 2 front chambers (x,u,v,x',u',v')
   if (fDebug >= 2) std::cout << "Processing Region2_ChamberFront_WirePlane1: "
@@ -728,6 +777,21 @@ void QwTreeEventBuffer::Init ()
 
 void QwTreeEventBuffer::ReserveSpace ()
 {
+  // Region1 WirePlane
+  fRegion1_ChamberFront_WirePlane_PlaneLocalPositionX.reserve(VSIZE);
+  fRegion1_ChamberFront_WirePlane_PlaneLocalPositionY.reserve(VSIZE);
+  fRegion1_ChamberFront_WirePlane_PlaneLocalPositionZ.reserve(VSIZE);
+  fRegion1_ChamberFront_WirePlane_PlaneLocalMomentumX.reserve(VSIZE);
+  fRegion1_ChamberFront_WirePlane_PlaneLocalMomentumY.reserve(VSIZE);
+  fRegion1_ChamberFront_WirePlane_PlaneLocalMomentumZ.reserve(VSIZE);
+
+  fRegion1_ChamberBack_WirePlane_PlaneLocalPositionX.reserve(VSIZE);
+  fRegion1_ChamberBack_WirePlane_PlaneLocalPositionY.reserve(VSIZE);
+  fRegion1_ChamberBack_WirePlane_PlaneLocalPositionZ.reserve(VSIZE);
+  fRegion1_ChamberBack_WirePlane_PlaneLocalMomentumX.reserve(VSIZE);
+  fRegion1_ChamberBack_WirePlane_PlaneLocalMomentumY.reserve(VSIZE);
+  fRegion1_ChamberBack_WirePlane_PlaneLocalMomentumZ.reserve(VSIZE);
+
   // Region2 WirePlane1
   fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX.reserve(VSIZE);
   fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionY.reserve(VSIZE);
@@ -850,6 +914,25 @@ void QwTreeEventBuffer::ReserveSpace ()
 
 void QwTreeEventBuffer::Clear ()
 {
+  // Region1 WirePlane
+  fRegion1_ChamberFront_WirePlane_PlaneHasBeenHit = 0;
+  fRegion1_ChamberFront_WirePlane_NbOfHits = 0;
+  fRegion1_ChamberFront_WirePlane_PlaneLocalPositionX.clear();
+  fRegion1_ChamberFront_WirePlane_PlaneLocalPositionY.clear();
+  fRegion1_ChamberFront_WirePlane_PlaneLocalPositionZ.clear();
+  fRegion1_ChamberFront_WirePlane_PlaneLocalMomentumX.clear();
+  fRegion1_ChamberFront_WirePlane_PlaneLocalMomentumY.clear();
+  fRegion1_ChamberFront_WirePlane_PlaneLocalMomentumZ.clear();
+
+  fRegion1_ChamberBack_WirePlane_PlaneHasBeenHit = 0;
+  fRegion1_ChamberBack_WirePlane_NbOfHits = 0;
+  fRegion1_ChamberBack_WirePlane_PlaneLocalPositionX.clear();
+  fRegion1_ChamberBack_WirePlane_PlaneLocalPositionY.clear();
+  fRegion1_ChamberBack_WirePlane_PlaneLocalPositionZ.clear();
+  fRegion1_ChamberBack_WirePlane_PlaneLocalMomentumX.clear();
+  fRegion1_ChamberBack_WirePlane_PlaneLocalMomentumY.clear();
+  fRegion1_ChamberBack_WirePlane_PlaneLocalMomentumZ.clear();
+
   // Region2 WirePlane1
   fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit = 0;
   fRegion2_ChamberFront_WirePlane1_NbOfHits = 0;

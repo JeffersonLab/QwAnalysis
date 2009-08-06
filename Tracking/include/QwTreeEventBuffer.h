@@ -77,6 +77,27 @@ class QwTreeEventBuffer : public QwEventBuffer
     QwHit* CreateHitRegion2(QwDetectorInfo* detectorinfo, double x, double y);
     std::vector<QwHit> CreateHitRegion3(QwDetectorInfo* detectorinfo, double x, double y, double mx, double my);
 
+    // Region1 WirePlane 
+    // jpan: region1 has no wire plane, keep the name of 'WirePlane' 
+    // in region1 for now for the naming consistance
+    Int_t fRegion1_ChamberFront_WirePlane_PlaneHasBeenHit;
+    Int_t fRegion1_ChamberFront_WirePlane_NbOfHits;
+    vector <Float_t> fRegion1_ChamberFront_WirePlane_PlaneLocalPositionX;
+    vector <Float_t> fRegion1_ChamberFront_WirePlane_PlaneLocalPositionY;
+    vector <Float_t> fRegion1_ChamberFront_WirePlane_PlaneLocalPositionZ;
+    vector <Float_t> fRegion1_ChamberFront_WirePlane_PlaneLocalMomentumX;
+    vector <Float_t> fRegion1_ChamberFront_WirePlane_PlaneLocalMomentumY;
+    vector <Float_t> fRegion1_ChamberFront_WirePlane_PlaneLocalMomentumZ;
+
+    Int_t fRegion1_ChamberBack_WirePlane_PlaneHasBeenHit;
+    Int_t fRegion1_ChamberBack_WirePlane_NbOfHits;
+    vector <Float_t> fRegion1_ChamberBack_WirePlane_PlaneLocalPositionX;
+    vector <Float_t> fRegion1_ChamberBack_WirePlane_PlaneLocalPositionY;
+    vector <Float_t> fRegion1_ChamberBack_WirePlane_PlaneLocalPositionZ;
+    vector <Float_t> fRegion1_ChamberBack_WirePlane_PlaneLocalMomentumX;
+    vector <Float_t> fRegion1_ChamberBack_WirePlane_PlaneLocalMomentumY;
+    vector <Float_t> fRegion1_ChamberBack_WirePlane_PlaneLocalMomentumZ;
+
     // Region2 WirePlane1
     Int_t fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit;
     Int_t fRegion2_ChamberFront_WirePlane1_NbOfHits;
