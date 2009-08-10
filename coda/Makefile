@@ -37,7 +37,9 @@ MYINCDIR = include
 
 MYINCLUDES = -I$(MYINCDIR)
 
-
+ifdef CODA
+export ONLINE = 1
+endif
 
 ifeq ($(OSNAME),SunOS)
 
@@ -62,6 +64,7 @@ ifeq ($(OSNAME),SunOS)
    ONLIBS = $(LIBET) -lposix4 -lnsl -lsocket -lresolv
    LIBS = $(EVIO_LIB) $(GLIB)
    ifdef ONLINE
+     CXXFLAGS += -I$(CODA)/common/include
      ALL_LIBS = $(LIBS) $(ONLIBS) 
 # ... finished, what ET needs.
    else
@@ -114,6 +117,7 @@ ifeq ($(OSNAME),Linux)
   ONLIBS = $(LIBET) -lieee -lpthread -ldl -lresolv
 
   ifdef ONLINE
+     CXXFLAGS += -I$(CODA)/common/include
      ALL_LIBS += $(ONLIBS)
   endif
 
@@ -126,9 +130,11 @@ endif
 CXXFLAGS += $(MYINCLUDES)
 
 ifdef CODA
-SRC = THaEtClient.C THaCodaFile.C THaCodaData.C 
+SRC = THaEtClient.C THaCodaFile.C THaCodaData.C
+ALL = etclient etHeartbeat tstio tstcoda libevio.a libcoda.a libcoda.so
 else
 SRC = THaCodaFile.C THaCodaData.C 
+ALL = tstio libevio.a libcoda.a libcoda.so
 endif
 HEAD = $(SRC:.C=.h)
 DEPS = $(SRC:.C=.d)
@@ -139,18 +145,18 @@ ifdef STANDALONE
   CXXFLAGS += -DSTANDALONE
 endif
 
-all: etclient etHeartbeat tstio tstcoda libevio.a libcoda.a 
+all: $(ALL)
 
-etclient: etclient_main.o THaEtClient.o THaCodaData.o THaEtClient.h THaCodaData.h libevio.a
+etclient: etclient_main.o THaEtClient.o THaCodaData.o $(MYINCDIR)/THaEtClient.h $(MYINCDIR)/THaCodaData.h libevio.a
 	$(CXX) $(CXXFLAGS) -o $@ etclient_main.o THaEtClient.o THaCodaData.o $(ALL_LIBS) 
 
-etHeartbeat: etHeartbeat_main.o THaEtClient.o THaCodaData.o THaEtClient.h THaCodaData.h libevio.a
+etHeartbeat: etHeartbeat_main.o THaEtClient.o THaCodaData.o $(MYINCDIR)/THaEtClient.h $(MYINCDIR)/THaCodaData.h libevio.a
 	$(CXX) $(CXXFLAGS) -o $@ etHeartbeat_main.o THaEtClient.o THaCodaData.o $(ALL_LIBS) 
 
-tstio: tstio_main.o THaCodaFile.o THaCodaData.o THaCodaFile.h THaCodaData.h libevio.a
+tstio: tstio_main.o THaCodaFile.o THaCodaData.o $(MYINCDIR)/THaCodaFile.h $(MYINCDIR)/THaCodaData.h libevio.a
 	$(CXX) $(CXXFLAGS) -o $@ tstio_main.o THaCodaFile.o THaCodaData.o $(ALL_LIBS) 
 
-tstcoda: tstcoda_main.o THaCodaFile.o THaCodaData.o THaEtClient.o THaCodaFile.h THaCodaData.h THaEtClient.h libevio.a
+tstcoda: tstcoda_main.o THaCodaFile.o THaCodaData.o THaEtClient.o $(MYINCDIR)/THaCodaFile.h $(MYINCDIR)/THaCodaData.h $(MYINCDIR)/THaEtClient.h libevio.a
 	$(CXX) $(CXXFLAGS) -o $@ tstcoda_main.o THaEtClient.o THaCodaFile.o THaCodaData.o $(ALL_LIBS) 
 
 
@@ -179,7 +185,7 @@ libevio.a: clean_evio evio.o swap_util.o
 #	$(CXX) -fPIC $(MYINCLUDES) -c  $<
 
 clean:  clean_evio
-	rm -f *.o *.a *.so core *~ *.d *.out *.tar etclient tstcoda tstio
+	rm -f *.o *.a *.so core *~ *.d *.out *.tar $(ALL)
 
 realclean:  clean
 	rm -f *.d

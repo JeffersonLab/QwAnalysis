@@ -105,10 +105,17 @@ ARCH  := $(shell uname)
 ############################
 ############################
 # Modularity :
+#
+#   The "EXCLUDEDIRS" list should contain directories which are not part
+#   of the QwAnalysis standard package, and which should not be built
+#   by this Makefile.  If they should be built automatically, a call
+#   to their own Makefile will be made from a specfic target.
+#   See the "coda_lib" target, as an example.
+#
 ############################
 ############################
 
-LIBRARYDIRS = coda
+EXCLUDEDIRS = coda Extensions
 
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
  ifneq ($(CODA),)
@@ -168,6 +175,7 @@ ifdef CODA
 CODACFLAGS   := -I$(CODA)/common/include -D__CODA_ET
 CODALIBS     := -L$(CODA_LIB) -let
 endif
+CODACFLAGS   += -I$(QWANALYSIS)/coda/include
 CODALIBS     += -L$(QWANALYSIS)/lib -lcoda
       # -lmyevio : now integrated in our distribution (April 19 2001) ;
       # Regenerated if necessary ; I had to rewrite CODA
@@ -372,8 +380,9 @@ endif
 ############################
 ############################
 
-INCFLAGS =  $(patsubst %,-I%,$(sort $(dir $(shell $(FIND) $(QWANALYSIS) | $(GREP) '\$(IncSuf)' | $(SED) '/\$(IncSuf)./d' | $(FILTER_OUT_TRASH) | $(INTO_RELATIVE_PATH)))))
+INCFLAGS =  $(patsubst %,-I%,$(sort $(dir $(shell $(FIND) $(QWANALYSIS) | $(GREP) '\$(IncSuf)' | $(SED) '/\$(IncSuf)./d' | $(FILTER_OUT_TRASH) | $(INTO_RELATIVE_PATH) |  $(FILTER_OUT_LIBRARYDIR_DEPS)))))
 # Qw include paths : /SomePath/QwAnalysis/Analysis/include/Foo.h -> -I./Analysis/include/
+
 
 INCFLAGS += $(OPENSSL_INC) $(BOOST_INC) -I./
 # Necessary for dictionary files where include files are quoted with relative
@@ -442,7 +451,7 @@ FILTER_OUT_FOREIGN_DEPS =  $(SED) 's/^\([A-Za-z_]\)/\.\/\1/' | $(GREP) "\./"
 # After the 3 $(AWK) calls, all piped in names are on disctinct lines
 # $(GREP) keeps Qw related lines
 
-FILTER_OUT_LIBRARYDIR_DEPS = $(SED) '$(patsubst %,/^.\/%/d;,$(LIBRARYDIRS))'
+FILTER_OUT_LIBRARYDIR_DEPS = $(SED) '$(patsubst %,/^.\/%/d;,$(EXCLUDEDIRS))'
 
 #PROCESS_GCC_ERROR_MESSAGE =  $(SED) 's/In file/xxqqqqqxx/' | $(AWK) 'BEGIN {RS="qqqxx"};{print $$0}' | $(SED) '/included/d'
 # Obsolete : needed On_ONE_LINE, but incompatible with SunOS
