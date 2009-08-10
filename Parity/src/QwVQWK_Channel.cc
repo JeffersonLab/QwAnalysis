@@ -66,7 +66,7 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
        *  P.King, 2007sep04.
        */
       fSequenceNumber   = (localbuf[5]>>8)  & 0xFF;
-      fNumberOfSamples  = 16680;//(localbuf[5]>>16) & 0xFFFF;
+      fNumberOfSamples  = (localbuf[5]>>16) & 0xFFFF;
       
       words_read = fNumberOfDataWords;
       
@@ -103,7 +103,6 @@ void QwVQWK_Channel::ProcessEvent()
 
   fHardwareBlockSum=fCalibrationFactor*
     (fHardwareBlockSum_raw-thispedestal);
-  
   return;
 };
 
@@ -141,6 +140,11 @@ void  QwVQWK_Channel::ConstructHistograms(TDirectory *folder, TString &prefix){
     //  This channel is not used, so skip filling the histograms.
   } else {
     //  Now create the histograms.
+    if (prefix == TString("asym_") 
+	|| prefix == TString("diff_")
+	|| prefix == TString("yield_")) 
+      fDataToSave=kDerived;
+
     TString basename, fullname;
     basename = prefix + GetElementName();
     
@@ -237,6 +241,8 @@ void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std
     list += ":block2/D";
     values.push_back(0.0);
     list += ":block3/D";
+    values.push_back(0.0);
+    list += ":num_samples/D";
     if(fDataToSave==kRaw)
       {
 	values.push_back(0.0);
@@ -284,6 +290,7 @@ void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values)
     for (size_t i=0; i<4; i++){
       values[index++] = this->GetBlockValue(i);
     }
+    values[index++] = this->fNumberOfSamples;
     if(fDataToSave==kRaw)
       {
 	values[index++] = this->GetRawHardwareSum();
@@ -412,12 +419,14 @@ Bool_t QwVQWK_Channel::MatchNumberOfSamples(size_t numsamp)
   Bool_t status = kTRUE;
   if (!IsNameEmpty()){
     status = (fNumberOfSamples==numsamp);
-    if (! status)  
+    if (! status){
       std::cerr << "QwVQWK_Channel::MatchNumberOfSamples:  Channel "
 		<< GetElementName()
 		<< " had fNumberOfSamples==" << fNumberOfSamples
 		<< " and was supposed to have " << numsamp
 		<< std::endl;
+      //      Print();
+    }
   }
   return status;
 };

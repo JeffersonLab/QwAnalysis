@@ -42,7 +42,7 @@ class QwVQWK_Channel: public VQwDataElement {
     SetElementName(name);
     SetNumberOfDataWords(6);
     fBlocksPerEvent = 4;
-    fPedestal=0;
+    fPedestal=0.0;
     fCalibrationFactor=1.;
     if(datatosave=="raw") fDataToSave=kRaw;
     else

@@ -51,6 +51,7 @@ class QwVQWK_Module {
   void Difference(QwVQWK_Module &value1, QwVQWK_Module &value2);
   void Ratio(QwVQWK_Module &numer, QwVQWK_Module &denom);
 
+  void ProcessEvent();
 
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);

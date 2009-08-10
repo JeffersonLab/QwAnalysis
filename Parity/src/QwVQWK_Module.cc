@@ -96,6 +96,13 @@ Int_t QwVQWK_Module::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left)
   return words_read;
 };
 
+void  QwVQWK_Module::ProcessEvent()
+{
+  for (size_t i=0; i<fChannels.size(); i++){
+    fChannels.at(i).ProcessEvent();
+  }
+};
+
 void  QwVQWK_Module::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
   //  If we have defined a subdirectory in the ROOT file, then change into it.
