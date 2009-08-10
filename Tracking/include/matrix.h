@@ -10,6 +10,15 @@
 #include <cstring>
 
 // Boost uBLAS (linear algebra) headers
+#if BOOST_VERSION <= 103200
+//    Boost 1.32.00 needs explicit includes of "functional.hpp" 
+//    and "operation.hpp".
+//    They are not needed  for Boost 1.34.01, but don't really hurt
+//    if we wanted to just include them unconditionally.
+#include <boost/numeric/ublas/functional.hpp>
+#include <boost/numeric/ublas/operation.hpp>
+#endif
+//
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/triangular.hpp>
