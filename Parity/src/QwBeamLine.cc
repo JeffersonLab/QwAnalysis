@@ -249,24 +249,40 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 //*****************************************************************
 void QwBeamLine::EncodeEventData(std::vector<UInt_t> &buffer)
 {
-  std::vector<UInt_t> localbuffer;
+  std::vector<UInt_t> elements;
+  elements.clear();
 
   // Get all QwBPMStripline buffers
   // ...
 
   // Get all QwBCM buffers
-  localbuffer.clear();
   for (size_t i = 0; i < fBCM.size(); i++) {
-    fBCM[i].EncodeEventData(localbuffer);
-    if (localbuffer.size() > 0) {
-      std::vector<UInt_t> header;
-      header.push_back(localbuffer.size() + 1);	// subbank size
-      header.push_back((31 << 16) + (0x01 << 8) + 1 & 0xff);
-		// subbank tag == ROC | subbank type | event number
-    }
-    buffer.insert(buffer.end(), localbuffer.begin(), localbuffer.end());
+    // Get element data
+    fBCM[i].EncodeEventData(elements);
   }
 
+  // If there is element data, generate the subbank header
+  std::vector<UInt_t> subbankheader;
+  std::vector<UInt_t> rocheader;
+  if (elements.size() > 0) {
+
+    // Form CODA subbank header
+    subbankheader.clear();
+    subbankheader.push_back(elements.size() + 1);	// subbank size
+    subbankheader.push_back((fCurrentBank_ID << 16) | (0x01 << 8) | 1 & 0xff);
+		// subbank tag | subbank type | event number
+
+    // Form CODA bank/roc header
+    rocheader.clear();
+    rocheader.push_back(subbankheader.size() + elements.size() + 1);	// bank/roc size
+    rocheader.push_back((fCurrentROC_ID << 16) | (0x10 << 8) | 1 & 0xff);
+		// bank tag == ROC | bank type | event number
+
+    // Add bank header, subbank header and element data to output buffer
+    buffer.insert(buffer.end(), rocheader.begin(), rocheader.end());
+    buffer.insert(buffer.end(), subbankheader.begin(), subbankheader.end());
+    buffer.insert(buffer.end(), elements.begin(), elements.end());
+  }
 }
 
 //*****************************************************************

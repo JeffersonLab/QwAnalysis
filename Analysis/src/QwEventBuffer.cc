@@ -22,7 +22,8 @@ QwEventBuffer::QwEventBuffer():fDEBUG(kFALSE),fDataFileStem("QwRun_"),
 			       fRunIsSegmented(kFALSE),
 			       fEvStreamMode(fEvStreamNull),
 			       fEvStream(NULL),
-			       fPhysicsEventFlag(kFALSE)
+			       fPhysicsEventFlag(kFALSE),
+			       fEvtNumber(0)
 {
   fDataDirectory = getenv("DATADIR");
   if (fDataDirectory.Length() == 0){
@@ -102,7 +103,7 @@ Int_t QwEventBuffer::WriteFileEvent(int* buffer)
 };
 
 
-Bool_t QwEventBuffer::EncodeSubsystemData(QwSubsystemArray &subsystems)
+Int_t QwEventBuffer::EncodeSubsystemData(QwSubsystemArray &subsystems)
 {
   // Encode the data in the elements of the subsystem array
   std::vector<UInt_t> buffer;
@@ -110,27 +111,32 @@ Bool_t QwEventBuffer::EncodeSubsystemData(QwSubsystemArray &subsystems)
 
   // Add CODA event header
   std::vector<UInt_t> header;
-  header.push_back(buffer.size() + 6);	// size of the event buffer in long words
-  header.push_back((1 << 16) + (0x10 << 8) + 0xCC);
-		// event type | data type | bank ID (0xCC for CODA events)
-  header.push_back(4);	// ?
-  header.push_back((0xC000 << 16) + (1 << 8) + 0);
-		// ? | ? | ?
-  header.push_back(fEvtNumber++);	// event number (incrementing)
-  header.push_back(0);	// event class
+  header.push_back((0x0001 << 16) + (0x10 << 8) + 0xCC);
+		// event type | event data type | event ID (0xCC for CODA event)
+  header.push_back(4);	// size of header field
+  header.push_back((0xC000 << 16) + (0x01 << 8) + 0x00);
+		// bank type | bank data type (0x01 for uint32) | bank ID (0x00 for header event)
+  header.push_back(++fEvtNumber); // event number (initialized to 0,
+		// so increment before use to agree with CODA number)
+  header.push_back(1);	// event class
   header.push_back(0);	// status summary
 
   // Copy the encoded event buffer into an array of integers,
   // as expected by the CODA routines.
+  // Size of the event buffer in long words
+  int codabuffer[header.size() + buffer.size() + 1];
+  // First entry contains the buffer size
   int k = 0;
-  int codabuffer[header.size() + buffer.size()];
-  for (int i = 0; i < header.size(); i++)
+  codabuffer[k++] = header.size() + buffer.size();
+  for (size_t i = 0; i < header.size(); i++)
     codabuffer[k++] = header.at(i);
-  for (int i = 0; i < buffer.size(); i++)
+  for (size_t i = 0; i < buffer.size(); i++)
     codabuffer[k++] = buffer.at(i);
 
   // Now write the buffer to the stream
-  WriteEvent(codabuffer);
+  Int_t status = WriteEvent(codabuffer);
+  // and report success or fail
+  return status;
 };
 
 
