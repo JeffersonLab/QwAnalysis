@@ -247,6 +247,29 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 }
 
 //*****************************************************************
+void QwBeamLine::EncodeEventData(std::vector<UInt_t> &buffer)
+{
+  std::vector<UInt_t> localbuffer;
+
+  // Get all QwBPMStripline buffers
+  // ...
+
+  // Get all QwBCM buffers
+  localbuffer.clear();
+  for (size_t i = 0; i < fBCM.size(); i++) {
+    fBCM[i].EncodeEventData(localbuffer);
+    if (localbuffer.size() > 0) {
+      std::vector<UInt_t> header;
+      header.push_back(localbuffer.size() + 1);	// subbank size
+      header.push_back((31 << 16) + (0x01 << 8) + 1 & 0xff);
+		// subbank tag == ROC | subbank type | event number
+    }
+    buffer.insert(buffer.end(), localbuffer.begin(), localbuffer.end());
+  }
+
+}
+
+//*****************************************************************
 Int_t QwBeamLine::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   Bool_t lkDEBUG=kFALSE;

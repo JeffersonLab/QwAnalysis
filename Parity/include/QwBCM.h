@@ -34,7 +34,7 @@ class QwBCM : public VQwDataElement{
   void  ClearEventData();
 
   void  SetEventData(Double_t* block, UInt_t sequencenumber);
-  void  GetEventBuffer(UInt_t* buffer);
+  void  EncodeEventData(std::vector<UInt_t> &buffer);
 
   void  ProcessEvent();
   Bool_t IsGoodEvent();

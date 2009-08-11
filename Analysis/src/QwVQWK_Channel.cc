@@ -113,7 +113,7 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
   return words_read;
 };
 
-void QwVQWK_Channel::GetEventBuffer(UInt_t* buffer)
+void QwVQWK_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   Long_t localbuf[6];
 
@@ -129,7 +129,7 @@ void QwVQWK_Channel::GetEventBuffer(UInt_t* buffer)
                 | (fSequenceNumber  << 8  & 0x0000FF00);
 
     for (size_t i=0; i<6; i++){
-	buffer[i] = localbuf[i];
+	buffer.push_back(localbuf[i]);
     }
   }
 };

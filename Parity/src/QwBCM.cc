@@ -74,9 +74,9 @@ Int_t QwBCM::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UIn
   return word_position_in_buffer;
 };
 /********************************************************/
-void QwBCM::GetEventBuffer(UInt_t* buffer)
+void QwBCM::EncodeEventData(std::vector<UInt_t> &buffer)
 {
-  fTriumf_ADC.GetEventBuffer(buffer);
+  fTriumf_ADC.EncodeEventData(buffer);
 };
 /********************************************************/
 QwBCM& QwBCM::operator= (const QwBCM &value)

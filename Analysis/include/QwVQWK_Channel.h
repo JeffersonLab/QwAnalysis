@@ -53,7 +53,7 @@ class QwVQWK_Channel: public VQwDataElement {
   void  ClearEventData();
 
   void  SetEventData(Double_t* block, UInt_t sequencenumber = 0);
-  void  GetEventBuffer(UInt_t* buffer);
+  void  EncodeEventData(std::vector<UInt_t> &buffer);
 
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_t index=0);
   void  ProcessEvent();

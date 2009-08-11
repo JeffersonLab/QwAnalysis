@@ -25,9 +25,9 @@ class VQwSubsystem{
   /******************************************************************
    *  Class: VQwSubsystem
    *         Virtual base class for the classes containing the
-   *         event-based information from each tracking subsystem and Parity analysis. 
+   *         event-based information from each tracking subsystem and Parity analysis.
    *         Sub classes VQwSubsystemTracking and VQwSubsystemParity are base classes
-   *         for the classes containing the event-based information from each tracking 
+   *         for the classes containing the event-based information from each tracking
    *         subsystem and Parity analysis respectively.
    *         This will define the interfaces used in communicating
    *         with the CODA routines.
@@ -40,7 +40,7 @@ class VQwSubsystem{
 
   TString GetSubsystemName() const {return fSystemName;};
   Bool_t  HasDataLoaded() const  {return fIsDataLoaded;}
-  
+
   virtual Int_t LoadChannelMap(TString mapfile) = 0;
   virtual Int_t LoadInputParameters(TString mapfile) = 0;
   virtual void  ClearEventData() = 0;
@@ -51,6 +51,10 @@ class VQwSubsystem{
 
   virtual void  ProcessEvent() = 0;
 
+  virtual void  EncodeEventData(std::vector<UInt_t> &buffer)
+    {
+      return; // Not all derived classes will have this.
+    };
 
   virtual void  ConstructHistograms()
     {
@@ -68,14 +72,14 @@ class VQwSubsystem{
     };
   virtual void  ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
   virtual void  FillHistograms() = 0;
-  virtual void  DeleteHistograms() = 0;  
+  virtual void  DeleteHistograms() = 0;
 
 
  protected:
   void  ClearAllBankRegistrations();
-  Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);   
+  Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);
   // Tells this object that it will decode data from this ROC and sub-bank
-  Int_t RegisterSubbank(const UInt_t bank_id); 
+  Int_t RegisterSubbank(const UInt_t bank_id);
   // Tells this object that it will decode data from this sub-bank in the ROC
   // currently open for registration
   Int_t GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) const;
@@ -97,7 +101,7 @@ class VQwSubsystem{
   std::vector< std::vector<UInt_t> > fBank_IDs;
 
 
-  
+
 
  protected:
   VQwSubsystem(){};  //  Private constructor.

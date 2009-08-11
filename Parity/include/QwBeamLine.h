@@ -83,6 +83,8 @@ class QwBeamLine : public VQwSubsystemParity{
   void  ProcessEvent();
   Bool_t IsGoodEvent();
 
+  void EncodeEventData(std::vector<UInt_t> &buffer);
+
   VQwSubsystem&  operator=  (VQwSubsystem *value);
   VQwSubsystem&  operator+= (VQwSubsystem *value);
   VQwSubsystem&  operator-= (VQwSubsystem *value);
