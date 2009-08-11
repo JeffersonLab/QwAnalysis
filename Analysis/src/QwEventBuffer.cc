@@ -45,7 +45,6 @@ Int_t QwEventBuffer::GetEvent()
   }
   return status;
 }
-  
 
 Int_t QwEventBuffer::GetFileEvent(){
   Int_t status = CODA_OK;
@@ -77,6 +76,61 @@ Int_t QwEventBuffer::GetEtEvent(){
     DecodeEventIDBank((UInt_t*)(fEvStream->getEvBuffer()));
   }
   return status;
+};
+
+
+Int_t QwEventBuffer::WriteEvent(int* buffer)
+{
+  Int_t status = kFileHandleNotConfigured;
+  ResetFlags();
+  if (fEvStreamMode==fEvStreamFile){
+    status = WriteFileEvent(buffer);
+  } else if (fEvStreamMode==fEvStreamET) {
+    std::cout << "No support for writing to ET streams" << std::endl;
+    status = CODA_ERROR;
+  }
+  return status;
+}
+
+Int_t QwEventBuffer::WriteFileEvent(int* buffer)
+{
+  Int_t status = CODA_OK;
+  //  fEvStream is of inherited type THaCodaData,
+  //  but codaWrite is only defined for THaCodaFile.
+  status = ((THaCodaFile*)fEvStream)->codaWrite(buffer);
+  return status;
+};
+
+
+Bool_t QwEventBuffer::EncodeSubsystemData(QwSubsystemArray &subsystems)
+{
+  // Encode the data in the elements of the subsystem array
+  std::vector<UInt_t> buffer;
+  subsystems.EncodeEventData(buffer);
+
+  // Add CODA event header
+  std::vector<UInt_t> header;
+  header.push_back(buffer.size() + 6);	// size of the event buffer in long words
+  header.push_back((1 << 16) + (0x10 << 8) + 0xCC);
+		// event type | data type | bank ID (0xCC for CODA events)
+  header.push_back(4);	// ?
+  header.push_back((0xC000 << 16) + (1 << 8) + 0);
+		// ? | ? | ?
+  header.push_back(fEvtNumber++);	// event number (incrementing)
+  header.push_back(0);	// event class
+  header.push_back(0);	// status summary
+
+  // Copy the encoded event buffer into an array of integers,
+  // as expected by the CODA routines.
+  int k = 0;
+  int codabuffer[header.size() + buffer.size()];
+  for (int i = 0; i < header.size(); i++)
+    codabuffer[k++] = header.at(i);
+  for (int i = 0; i < buffer.size(); i++)
+    codabuffer[k++] = buffer.at(i);
+
+  // Now write the buffer to the stream
+  WriteEvent(codabuffer);
 };
 
 
@@ -192,8 +246,8 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(std::vector<VQwSubsystem*> 
       for (std::vector<VQwSubsystem*>::iterator this_subsys = subsystems.begin();
 	   this_subsys < subsystems.end(); this_subsys++){
 	if ((*this_subsys) == NULL) continue;
-	(*this_subsys)->ProcessConfigurationBuffer(rocnum, fSubbankTag, 
-						   &localbuff[fWordsSoFar], 
+	(*this_subsys)->ProcessConfigurationBuffer(rocnum, fSubbankTag,
+						   &localbuff[fWordsSoFar],
 						   fFragLength);
       }
       fWordsSoFar += fFragLength;
@@ -203,8 +257,8 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(std::vector<VQwSubsystem*> 
     for (std::vector<VQwSubsystem*>::iterator this_subsys = subsystems.begin();
 	 this_subsys < subsystems.end(); this_subsys++){
       if ((*this_subsys) == NULL) continue;
-      (*this_subsys)->ProcessConfigurationBuffer(rocnum, 0, 
-						 &localbuff[fWordsSoFar], 
+      (*this_subsys)->ProcessConfigurationBuffer(rocnum, 0,
+						 &localbuff[fWordsSoFar],
 						 fEvtLength);
     }
     fWordsSoFar += fEvtLength;
@@ -213,15 +267,22 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(std::vector<VQwSubsystem*> 
 };
 
 
-Bool_t QwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> &subsystems){
-  //
-  Bool_t okay = kTRUE;
+void QwEventBuffer::ClearEventData(std::vector<VQwSubsystem*> &subsystems)
+{
   //  Clear the old event information from the subsystems.
   for (std::vector<VQwSubsystem*>::iterator this_subsys = subsystems.begin();
        this_subsys < subsystems.end(); this_subsys++){
     if ((*this_subsys) == NULL) continue;
     (*this_subsys)->ClearEventData();
   }
+};
+
+Bool_t QwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> &subsystems)
+{
+  //
+  Bool_t okay = kTRUE;
+  //  Clear the old event information from the subsystems
+  ClearEventData(subsystems);
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
   while (okay = DecodeSubbankHeader(&localbuff[fWordsSoFar])){
@@ -237,7 +298,7 @@ Bool_t QwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> &subsystems){
     if (fDEBUG) {
       std::cerr << "QwEventBuffer::FillSubsystemData:  "
 		<< "Beginning loop: fWordsSoFar=="<<fWordsSoFar
-		<<std::endl;    
+		<<std::endl;
     }
     //  Loop through the subsystems and try to store the data
     //  from this bank in each subsystem.
@@ -252,15 +313,15 @@ Bool_t QwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> &subsystems){
     for (std::vector<VQwSubsystem*>::iterator this_subsys = subsystems.begin();
 	 this_subsys < subsystems.end(); this_subsys++){
       if ((*this_subsys) == NULL) continue;
-      (*this_subsys)->ProcessEvBuffer(fROC, fSubbankTag, 
-				      &localbuff[fWordsSoFar], 
+      (*this_subsys)->ProcessEvBuffer(fROC, fSubbankTag,
+				      &localbuff[fWordsSoFar],
 				      fFragLength);
     }
     fWordsSoFar += fFragLength;
     if (fDEBUG) {
       std::cerr << "QwEventBuffer::FillSubsystemData:  "
 		<< "Ending loop: fWordsSoFar=="<<fWordsSoFar
-		<<std::endl;    
+		<<std::endl;
     }
   }
   return okay;
@@ -300,13 +361,13 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystem
     //  After trying the data in each subsystem, bump the
     //  fWordsSoFar to move to the next bank.
     subsystems.ProcessConfigurationBuffer(rocnum, fSubbankTag,
-					  &localbuff[fWordsSoFar], 
+					  &localbuff[fWordsSoFar],
 					  fFragLength);
     fWordsSoFar += fFragLength;
     if (fDEBUG) {
       std::cerr << "QwEventBuffer::FillSubsystemConfigurationData:  "
 		<< "Ending loop: fWordsSoFar=="<<fWordsSoFar
-		<<std::endl;    
+		<<std::endl;
     }
   }
   return okay;
@@ -317,7 +378,7 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
   Bool_t okay = kTRUE;
   //  Clear the old event information from the subsystems.
   subsystems.ClearEventData();
-  
+
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
   while (okay = DecodeSubbankHeader(&localbuff[fWordsSoFar])){
@@ -333,7 +394,7 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
     if (fDEBUG) {
       std::cerr << "QwEventBuffer::FillSubsystemData:  "
 		<< "Beginning loop: fWordsSoFar=="<<fWordsSoFar
-		<<std::endl;    
+		<<std::endl;
     }
     //  Loop through the subsystems and try to store the data
     //  from this bank in each subsystem.
@@ -345,14 +406,14 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
     //
     //  After trying the data in each subsystem, bump the
     //  fWordsSoFar to move to the next bank.
-    subsystems.ProcessEvBuffer(fROC, fSubbankTag, 
-			       &localbuff[fWordsSoFar], 
+    subsystems.ProcessEvBuffer(fROC, fSubbankTag,
+			       &localbuff[fWordsSoFar],
 			       fFragLength);
     fWordsSoFar += fFragLength;
     if (fDEBUG) {
       std::cerr << "QwEventBuffer::FillSubsystemData:  "
 		<< "Ending loop: fWordsSoFar=="<<fWordsSoFar
-		<<std::endl;    
+		<<std::endl;
     }
   }
   return okay;
@@ -385,7 +446,7 @@ Bool_t QwEventBuffer::DecodeSubbankHeader(UInt_t *buffer){
     }
     if (fWordsSoFar+2+fFragLength > fEvtLength){
       //  Trouble, because we'll have too many words!
-      std::cerr << "fWordsSoFar+2+fFragLength=="<<fWordsSoFar+2+fFragLength 
+      std::cerr << "fWordsSoFar+2+fFragLength=="<<fWordsSoFar+2+fFragLength
 		<< " and fEvtLength==" << fEvtLength
 		<< std::endl;
       okay = kFALSE;
@@ -522,7 +583,7 @@ Int_t QwEventBuffer::OpenNextSegment()
      *  We should not have entered this routine, but      *
      *  since we are here, don't do anything.             */
     status = kRunNotSegmented;
-    
+
   } else if (fRunSegments.size()==0){
     /*  There are actually no file segments located.      *
      *  Return "kNoNextDataFile", but don't print an      *
