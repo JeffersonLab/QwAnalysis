@@ -10,15 +10,15 @@ const Bool_t QwVQWK_Channel::kDEBUG = kFALSE;
 
 /*!  Conversion factor to translate the average bit count in an ADC
  *   channel into average voltage.
- *   The base factor is 0.07929 mV per count, and zero counts corresponds 
+ *   The base factor is 0.07929 mV per count, and zero counts corresponds
  *   to zero voltage.
  */
 const Double_t QwVQWK_Channel::kVQWK_VoltsPerBit = 76.29e-6;
 
 /********************************************************/
 Bool_t QwVQWK_Channel::IsGoodEvent()
-{ 
-  Bool_t fEventIsGood=kTRUE;			
+{
+  Bool_t fEventIsGood=kTRUE;
   fEventIsGood &= (GetRawHardwareSum()==GetRawSoftwareSum());
   // at some point we want to have a check on the number of the samples in one block
   // std::cout<<GetElementName()<<"  hws="<<GetHardwareSum()<<"  soft="<<GetSoftwareSum()<<std::endl;
@@ -37,6 +37,27 @@ void QwVQWK_Channel::ClearEventData(){
   fSequenceNumber   = 0;
   fNumberOfSamples  = 0;
 };
+
+void QwVQWK_Channel::SetEventData(Double_t* block, UInt_t sequencenumber)
+{
+  fHardwareBlockSum = 0;
+  for (size_t i = 0; i < 4; i++) {
+    fBlock[i] = block[i];
+    fHardwareBlockSum += block[i];
+  }
+  fSequenceNumber = sequencenumber;
+  fNumberOfSamples = 16680;
+
+  Double_t thispedestal = fPedestal * fNumberOfSamples;
+
+  for (int i = 0; i < 4; i++)
+      fBlock_raw[i] = fBlock[i] / fCalibrationFactor +
+	thispedestal / (fBlocksPerEvent * 1.);
+
+  fHardwareBlockSum_raw = fHardwareBlockSum / fCalibrationFactor + thispedestal;
+  fSoftwareBlockSum_raw = fHardwareBlockSum_raw;
+};
+
 
 Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index)
 {
@@ -58,7 +79,7 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
 	fSoftwareBlockSum_raw += fBlock_raw[i];
       }
       fHardwareBlockSum_raw = Double_t(localbuf[4]);
-      
+
       /*  Permanent change in the structure of the 6th word of the ADC readout.
        *  The upper 16 bits are the number of samples, and the upper 8 of the
        *  lower 16 are the sequence number.  This matches the structure of
@@ -67,9 +88,9 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
        */
       fSequenceNumber   = (localbuf[5]>>8)  & 0xFF;
       fNumberOfSamples  = (localbuf[5]>>16) & 0xFFFF;
-      
+
       words_read = fNumberOfDataWords;
-      
+
       if (kDEBUG && GetElementName()=="Bar1Right")
 	{
 	  //    if (num_words_left == 6){
@@ -84,7 +105,7 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
 		    << " " << fSequenceNumber << " " << fNumberOfSamples
 		    << std::endl;
 	}
-    } else 
+    } else
       {
 	std::cerr << "QwVQWK_Channel::ProcessEvBuffer: Not enough words!"
 		  << std::endl;
@@ -92,17 +113,40 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
   return words_read;
 };
 
+void QwVQWK_Channel::GetEventBuffer(UInt_t* buffer)
+{
+  Long_t localbuf[6];
+
+  if (IsNameEmpty()) {
+    //  This channel is not used, but is present in the data stream.
+    //  Skip over this data.
+  } else {
+    for (size_t i=0; i<4; i++){
+	localbuf[i] = Long_t(fBlock_raw[i]);
+    }
+    localbuf[4] = Long_t(fHardwareBlockSum_raw);
+    localbuf[5] = (fNumberOfSamples << 16 & 0xFFFF0000)
+                | (fSequenceNumber  << 8  & 0x0000FF00);
+
+    for (size_t i=0; i<6; i++){
+	buffer[i] = localbuf[i];
+    }
+  }
+};
+
+
 void QwVQWK_Channel::ProcessEvent()
 {
 
-  Double_t thispedestal=fPedestal*fNumberOfSamples;
+  Double_t thispedestal = fPedestal * fNumberOfSamples;
 
-  for(int i=0;i<4;i++)
-      fBlock[i]= fCalibrationFactor*
-	(fBlock_raw[i]-thispedestal/(fBlocksPerEvent*1.));
+  for (int i = 0; i < 4; i++)
+      fBlock[i]= fCalibrationFactor *
+	(fBlock_raw[i] - thispedestal / (fBlocksPerEvent*1.));
 
-  fHardwareBlockSum=fCalibrationFactor*
-    (fHardwareBlockSum_raw-thispedestal);
+  fHardwareBlockSum = fCalibrationFactor *
+    (fHardwareBlockSum_raw - thispedestal);
+
   return;
 };
 
@@ -140,14 +184,14 @@ void  QwVQWK_Channel::ConstructHistograms(TDirectory *folder, TString &prefix){
     //  This channel is not used, so skip filling the histograms.
   } else {
     //  Now create the histograms.
-    if (prefix == TString("asym_") 
-	|| prefix == TString("diff_")
-	|| prefix == TString("yield_")) 
+    if (prefix == TString("asym_")
+       || prefix == TString("diff_")
+       || prefix == TString("yield_"))
       fDataToSave=kDerived;
 
     TString basename, fullname;
     basename = prefix + GetElementName();
-    
+
     if(fDataToSave==kRaw)
       {
 	fHistograms.resize(8+2+1, NULL);
@@ -171,7 +215,7 @@ void  QwVQWK_Channel::ConstructHistograms(TDirectory *folder, TString &prefix){
 	  index += 1;
 	}
 	fHistograms[index] = gQwHists.Construct1DHist(basename+Form("_hw"));
-      }	
+      }
     else
       {
 	// this is not recognized
@@ -185,13 +229,13 @@ void  QwVQWK_Channel::FillHistograms(){
   if (IsNameEmpty())
     {
       //  This channel is not used, so skip creating the histograms.
-    } else 
+    } else
       {
 	if(fDataToSave==kRaw)
-	  {    
+	  {
 	    for (size_t i=0; i<4; i++)
 	      {
-		if (fHistograms[index] != NULL) 
+		if (fHistograms[index] != NULL)
 		  fHistograms[index]->Fill(this->GetRawBlockValue(i));
 		if (fHistograms[index+1] != NULL)
 		  fHistograms[index+1]->Fill(this->GetBlockValue(i));
@@ -227,7 +271,7 @@ void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std
 {
   if (IsNameEmpty()){
     //  This channel is not used, so skip setting up the tree.
-  } else {  
+  } else {
     TString basename = prefix + GetElementName();
     fTreeArrayIndex  = values.size();
 
@@ -398,7 +442,7 @@ void QwVQWK_Channel::Scale(Double_t scale)
 {
   if (!IsNameEmpty())
     {
-      for (size_t i=0; i<4; i++)	
+      for (size_t i=0; i<4; i++)
 	fBlock[i]=fBlock[i]*scale;
       fHardwareBlockSum=fHardwareBlockSum*scale;
     }
@@ -453,11 +497,11 @@ void QwVQWK_Channel::Copy(VQwDataElement *source)
 	 throw std::invalid_argument(loc.Data());
        }
     }
-    catch (std::exception& e) 
+    catch (std::exception& e)
       {
-	std::cerr << e.what() << std::endl; 
+	std::cerr << e.what() << std::endl;
       }
-    
+
     return;
 }
 

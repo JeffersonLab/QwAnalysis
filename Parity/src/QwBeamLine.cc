@@ -21,13 +21,13 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   Int_t currentbankread=0;
   Int_t wordsofar=0;
   Int_t currentsubbankindex=-1;
- 
+
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
-    
+
     if (mapstr.HasVariablePair("=",varname,varvalue)){
       //  This is a declaration line.  Decode it.
       varname.ToLower();
@@ -43,7 +43,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	  //
 	  currentrocread=value;
 	  RegisterROCNumber(value,0);
-	} 
+	}
       else if (varname=="bank")
 	{
 	  currentbankread=value;
@@ -60,15 +60,15 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	dettype.ToLower();
 	namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
 	namech.ToLower();
-	keyword = mapstr.GetNextToken(", ").c_str(); 
+	keyword = mapstr.GetNextToken(", ").c_str();
 	keyword.ToLower();
-	
+
 	if(currentsubbankindex!=GetSubbankIndex(currentrocread,currentbankread))
 	  {
 	    currentsubbankindex=GetSubbankIndex(currentrocread,currentbankread);
 	    wordsofar=0;
 	  }
-	
+
 	QwBeamDetectorID localBeamDetectorID;
 	localBeamDetectorID.fdetectorname=namech;
 	localBeamDetectorID.fmoduletype=modtype;
@@ -80,30 +80,30 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	else if(modtype=="SCALER")wordsofar+=1;
 	else
 	  {
-	    std::cerr << "QwBeamLine::LoadChannelMap:  Unknown module type: " 
+	    std::cerr << "QwBeamLine::LoadChannelMap:  Unknown module type: "
 		      << modtype <<", the detector "<<namech<<" will not be decoded "
 		      << std::endl;
-	    lineok=kFALSE;		
+	    lineok=kFALSE;
 	    continue;
-	  } 
-	
+	  }
+
 	localBeamDetectorID.fTypeID=GetDetectorTypeID(dettype);
 	if(localBeamDetectorID.fTypeID==-1)
 	  {
-	    std::cerr << "QwBeamLine::LoadChannelMap:  Unknown detector type: " 
+	    std::cerr << "QwBeamLine::LoadChannelMap:  Unknown detector type: "
 		      << dettype <<", the detector "<<namech<<" will not be decoded "
 		      << std::endl;
-	    lineok=kFALSE;		
-	    continue; 
+	    lineok=kFALSE;
+	    continue;
 	  }
-	
+
 	if(DetectorTypes[localBeamDetectorID.fTypeID]=="bpmstripline")
 	  localBeamDetectorID.fdetectorname=namech(0,namech.Sizeof()-3);
 
 	localBeamDetectorID.fIndex=
 	  GetDetectorIndex(localBeamDetectorID.fTypeID,
 			   localBeamDetectorID.fdetectorname);
-		
+
 	if(localBeamDetectorID.fIndex==-1)
 	  {
 	    if(DetectorTypes[localBeamDetectorID.fTypeID]=="bpmstripline")
@@ -120,8 +120,8 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		fBCM.push_back(localbcm);
 		localBeamDetectorID.fIndex=fBCM.size()-1;
 	      }
-	  }		
-	
+	  }
+
 	if(DetectorTypes[localBeamDetectorID.fTypeID]=="bpmstripline")
 	  {
 	    TString subname=namech(namech.Sizeof()-3,2);
@@ -154,7 +154,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	      std::cout<<"FALSE"<<std::endl;
 	  }
 
-	if(lineok)	
+	if(lineok)
 	  fBeamDetectorID.push_back(localBeamDetectorID);
       }
   }
@@ -163,10 +163,10 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
     {
       std::cout<<"Done with Load map channel \n";
       for(size_t i=0;i<fBeamDetectorID.size();i++)
-	fBeamDetectorID[i].Print();	
-    }   
+	fBeamDetectorID[i].Print();
+    }
   ldebug=kFALSE;
-  
+
   return 0;
 };
 //*****************************************************************
@@ -204,7 +204,7 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 	  varped= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
 	  varcal= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
 	  if(ldebug) std::cout<<"inputs for channel "<<varname
-			      <<": ped="<<varped<<": cal="<<varcal<<"\n"; 
+			      <<": ped="<<varped<<": cal="<<varcal<<"\n";
 	  Bool_t notfound=kTRUE;
 	  for(size_t i=0;i<fStripline.size();i++)
 	    {
@@ -212,7 +212,7 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 		for(int j=0;j<4;j++)
 		  {
 		    localname=fStripline[i].GetSubElementName(j);
-		    localname.ToLower();							  
+		    localname.ToLower();
 		    if(ldebug)  std::cout<<"element name =="<<localname
 					 <<"== to be compared to =="<<varname<<"== \n";
 		    if(notfound)
@@ -224,11 +224,11 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 			  notfound=kFALSE;
 			  j=5;
 			  i=fStripline.size()+1;
-			}		  
+			}
 		  }
 	    }
 	  if(notfound)
-	    for(size_t i=0;i<fBCM.size();i++)	      
+	    for(size_t i=0;i<fBCM.size();i++)
 	      if(fBCM[i].GetElementName()==varname)
 		{
 		  fBCM[i].SetPedestal(varped);
@@ -238,8 +238,8 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 		  i=fBCM.size()+1;
 		}
 	}
-      
-    } 
+
+    }
   if(ldebug) std::cout<<" line read in the pedestal + cal file ="<<lineread<<" \n";
 
   ldebug=kFALSE;
@@ -252,12 +252,12 @@ Int_t QwBeamLine::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer,
   Bool_t lkDEBUG=kFALSE;
 
   Int_t index = GetSubbankIndex(roc_id,bank_id);
-    
+
   if (index>=0 && num_words>0){
     //  We want to process this ROC.  Begin looping through the data.
     if (lkDEBUG)
       std::cout << "QwBeamLine::ProcessEvBuffer:  "
-		<< "Begin processing ROC" << roc_id 
+		<< "Begin processing ROC" << roc_id
 		<< " and subbank "<<bank_id
 		<< " number of words="<<num_words<<std::endl;
 
@@ -273,12 +273,12 @@ Int_t QwBeamLine::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer,
 		    std::cout<<"found stripline data for "<<fBeamDetectorID[i].fdetectorname<<std::endl;
 		    std::cout<<"word left to read in this buffer:"<<num_words-fBeamDetectorID[i].fWordInSubbank<<std::endl;
 		  }
-		fStripline[fBeamDetectorID[i].fIndex].		  
+		fStripline[fBeamDetectorID[i].fIndex].
 		  ProcessEvBuffer(&(buffer[fBeamDetectorID[i].fWordInSubbank]),
 				  num_words-fBeamDetectorID[i].fWordInSubbank,
 				  fBeamDetectorID[i].fSubelement);
 	      }
-	    if(fBeamDetectorID[i].fTypeID==kBCM) 
+	    if(fBeamDetectorID[i].fTypeID==kBCM)
 	      {
 		if (lkDEBUG)
 		  {
@@ -290,9 +290,9 @@ Int_t QwBeamLine::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer,
 				  num_words-fBeamDetectorID[i].fWordInSubbank);
 	      }
 	  }
-      } 
+      }
   }
-  
+
   return 0;
 };
 
@@ -310,7 +310,7 @@ void  QwBeamLine::ProcessEvent()
 
   for(size_t i=0;i<fBCM.size();i++)
     fBCM[i].ProcessEvent();
-  
+
 
   // fStripline[0].Print();
   //  fBCM[0].Print();
@@ -333,10 +333,10 @@ Bool_t QwBeamLine::IsGoodEvent()
   for(size_t i=0;i<fStripline.size();i++)
     test&=fStripline[i].IsGoodEvent();
   for(size_t i=0;i<fBCM.size();i++)
-    test&=fBCM[i].IsGoodEvent();	
+    test&=fBCM[i].IsGoodEvent();
 
   if(!test) std::cerr<<" this is not a good event\n";
-  return test;  
+  return test;
 }
 
 
@@ -346,10 +346,10 @@ void QwBeamLine::ClearEventData()
   for(size_t i=0;i<fStripline.size();i++)
     fStripline[i].ClearEventData();
   for(size_t i=0;i<fBCM.size();i++)
-    fBCM[i].ClearEventData();	
+    fBCM[i].ClearEventData();
   return;
 };
-//*****************************************************************	
+//*****************************************************************
 Int_t QwBeamLine::GetDetectorTypeID(TString name)
 {
   Int_t result=-1;
@@ -358,8 +358,8 @@ Int_t QwBeamLine::GetDetectorTypeID(TString name)
       {result=i;i=DetectorTypes.size()+1;}
   return result;
 };
-	
-//*****************************************************************	
+
+//*****************************************************************
 Int_t QwBeamLine::GetDetectorIndex(Int_t type_id, TString name)
 {
   Bool_t ldebug=kFALSE;
@@ -369,7 +369,7 @@ Int_t QwBeamLine::GetDetectorIndex(Int_t type_id, TString name)
       std::cout<<"type_id=="<<type_id<<" name="<<name<<"\n";
       std::cout<<fBeamDetectorID.size()<<" already registered detector\n";
     }
-  
+
   Int_t result=-1;
   for(size_t i=0;i<fBeamDetectorID.size();i++)
     {
@@ -382,10 +382,36 @@ Int_t QwBeamLine::GetDetectorIndex(Int_t type_id, TString name)
 		   <<","<<fBeamDetectorID[i].fdetectorname<<")=>"<<result<<"\n";
 	}
     }
- 
+
   return result;
 };
-//*****************************************************************	
+//*****************************************************************
+QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name)
+{
+  QwBPMStripline* tmp = NULL;
+  if (! fStripline.empty()) {
+    for (std::vector<QwBPMStripline>::iterator stripline = fStripline.begin(); stripline != fStripline.end(); ++stripline) {
+      if (stripline->GetElementName() == name) {
+	tmp = &(*stripline);
+      }
+    }
+  }
+  return tmp;
+};
+
+QwBCM* QwBeamLine::GetBCM(const TString name)
+{
+  QwBCM* tmp = NULL;
+  if (! fBCM.empty()) {
+    for (std::vector<QwBCM>::iterator bcm = fBCM.begin(); bcm != fBCM.end(); ++bcm) {
+      if (bcm->GetElementName() == name) {
+	tmp = &(*bcm);
+      }
+    }
+  }
+  return tmp;
+};
+//*****************************************************************
 VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
 {
   //  std::cout<<" here in QwBeamLine::operator= \n";
@@ -417,7 +443,7 @@ VQwSubsystem&  QwBeamLine::operator-=  (VQwSubsystem *value)
 {
 
   if(Compare(value))
-    {      
+    {
       QwBeamLine* input= (QwBeamLine*)value;
       for(size_t i=0;i<input->fStripline.size();i++)
 	this->fStripline[i]-=input->fStripline[i];
@@ -430,12 +456,12 @@ VQwSubsystem&  QwBeamLine::operator-=  (VQwSubsystem *value)
 void  QwBeamLine::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
 {
   if(Compare(value1)&&Compare(value2))
-    {  
+    {
       *this =  value1;
       *this += value2;
     }
 };
-	
+
 void  QwBeamLine::Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)
 {
   if(Compare(value1)&&Compare(value2))
@@ -457,7 +483,7 @@ void QwBeamLine::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 	this->fBCM[i].Ratio(innumer->fBCM[i],indenom->fBCM[i]);
     }
   return;
-};	
+};
 
 
 void QwBeamLine::Scale(Double_t factor)
@@ -466,7 +492,7 @@ void QwBeamLine::Scale(Double_t factor)
     fStripline[i].Scale(factor);
   for(size_t i=0;i<fBCM.size();i++)
     fBCM[i].Scale(factor);
-  
+
   return;
 };
 
@@ -494,17 +520,17 @@ Bool_t QwBeamLine::Compare(VQwSubsystem *value)
 	  {
 	  res=kFALSE;
 	  //	  std::cout<<" not the same number of bcms \n";
-	  }      
-    }	
+	  }
+    }
   return res;
 }
-		
-	
-//*****************************************************************	
+
+
+//*****************************************************************
 
 void  QwBeamLine::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
- 
+
   //  std::cout<<" here is QwBeamLine::ConstructHistogram with prefix ="<<prefix<<"\n";
   for(size_t i=0;i<fStripline.size();i++)
       fStripline[i].ConstructHistograms(folder,prefix);
@@ -593,7 +619,7 @@ void  QwBeamDetectorID::Print()
     fSubelement<<std::endl;
 
   std::cout<<"==========================================\n";
-  
+
   return;
 }
 
@@ -621,9 +647,9 @@ void  QwBeamLine::Copy(VQwSubsystem *source)
 	  throw std::invalid_argument(loc.Data());
 	}
     }
-  catch (std::exception& e) 
+  catch (std::exception& e)
     {
-      std::cerr << e.what() << std::endl; 
+      std::cerr << e.what() << std::endl;
     }
   // this->Print();
 
@@ -633,7 +659,7 @@ void  QwBeamLine::Copy(VQwSubsystem *source)
 
 VQwSubsystem*  QwBeamLine::Copy()
 {
-  
+
   QwBeamLine* TheCopy=new QwBeamLine("Injector Beamline Copy");
   TheCopy->Copy(this);
   return TheCopy;

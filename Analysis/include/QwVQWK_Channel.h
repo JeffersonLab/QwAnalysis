@@ -51,6 +51,10 @@ class QwVQWK_Channel: public VQwDataElement {
   };
 
   void  ClearEventData();
+
+  void  SetEventData(Double_t* block, UInt_t sequencenumber = 0);
+  void  GetEventBuffer(UInt_t* buffer);
+
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_t index=0);
   void  ProcessEvent();
 
@@ -82,25 +86,25 @@ class QwVQWK_Channel: public VQwDataElement {
 
   size_t GetSequenceNumber(){return (fSequenceNumber);};
   size_t GetNumberOfSamples(){return (fNumberOfSamples);};
-  
+
   void SetPedestal(Double_t ped){fPedestal=ped; return;};
   Double_t GetPedestal(){return fPedestal;};
   void SetCalibrationFactor(Double_t factor){fCalibrationFactor=factor; return;};
   Double_t GetCalibrationFactor(){return fCalibrationFactor;};
 
-  Bool_t IsGoodEvent();	
+  Bool_t IsGoodEvent();
 
   void Copy(VQwDataElement *source);
 
   void Print() const;
 
  protected:
-  
+
 
  private:
   static const Bool_t kDEBUG;
 
-  Int_t fDataToSave; 
+  Int_t fDataToSave;
 
   /*  ADC Calibration                     */
   static const Double_t kVQWK_VoltsPerBit;
@@ -108,10 +112,10 @@ class QwVQWK_Channel: public VQwDataElement {
 			     we assume the pedestal level is constant over time
 			     and can be divided by four for use with each block,
 			     units: [counts/number of Sample] */
-  Double_t fCalibrationFactor; 
+  Double_t fCalibrationFactor;
 
   /*  Channel information data members    */
-  
+
 
   /*  Channel configuration data members */
   UInt_t  fSamplesPerBlock;

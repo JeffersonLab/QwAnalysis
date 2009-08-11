@@ -29,7 +29,7 @@ void QwBCM::SetCalibrationFactor(Double_t calib)
 /********************************************************/
 void  QwBCM::InitializeChannel(TString name, TString datatosave)
 {
-  SetPedestal(0.);	
+  SetPedestal(0.);
   SetCalibrationFactor(1.);
   fTriumf_ADC.InitializeChannel(name,datatosave);
 
@@ -43,29 +43,40 @@ void QwBCM::ClearEventData()
   return;
 };
 /********************************************************/
+void QwBCM::SetEventData(Double_t* block, UInt_t sequencenumber)
+{
+  fTriumf_ADC.SetEventData(block, sequencenumber);
+  return;
+};
+/********************************************************/
 void  QwBCM::ProcessEvent()
 {
   if(IsGoodEvent())
     {
       fTriumf_ADC.ProcessEvent();
-    } 
+    }
 
   return;
 };
-/********************************************************/ 
+/********************************************************/
 Bool_t QwBCM::IsGoodEvent()
 {
-  Bool_t fEventIsGood=kTRUE;			
+  Bool_t fEventIsGood=kTRUE;
   fEventIsGood&=fTriumf_ADC.IsGoodEvent();
-  
+
   return fEventIsGood;
 };
 /********************************************************/
 Int_t QwBCM::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement)
 {
   fTriumf_ADC.ProcessEvBuffer(buffer,word_position_in_buffer);
-  
+
   return word_position_in_buffer;
+};
+/********************************************************/
+void QwBCM::GetEventBuffer(UInt_t* buffer)
+{
+  fTriumf_ADC.GetEventBuffer(buffer);
 };
 /********************************************************/
 QwBCM& QwBCM::operator= (const QwBCM &value)
@@ -75,13 +86,13 @@ QwBCM& QwBCM::operator= (const QwBCM &value)
     {
       this->fTriumf_ADC=value.fTriumf_ADC;
       this->fPedestal=value.fPedestal;
-      this->fCalibration=value.fCalibration;	
+      this->fCalibration=value.fCalibration;
     }
 //   std::cout<<" to be copied \n";
 //   value.Print();
 //   std::cout<<" copied \n";
 //   this->Print();
- 
+
   return *this;
 };
 
@@ -94,7 +105,7 @@ QwBCM& QwBCM::operator+= (const QwBCM &value)
       this->fCalibration=0;
     }
   return *this;
-};			
+};
 
 QwBCM& QwBCM::operator-= (const QwBCM &value)
 {
@@ -105,7 +116,7 @@ QwBCM& QwBCM::operator-= (const QwBCM &value)
       this->fCalibration=0;
     }
   return *this;
-};				
+};
 
 
 void QwBCM::Sum(QwBCM &value1, QwBCM &value2){
@@ -136,7 +147,7 @@ void QwBCM::Scale(Double_t factor)
   fTriumf_ADC.Scale(factor);
   return;
 }
-	
+
 
 void QwBCM::Print() const
 {
@@ -150,7 +161,7 @@ void  QwBCM::ConstructHistograms(TDirectory *folder, TString &prefix)
   if (GetElementName()=="")
     {
       //  This channel is not used, so skip filling the histograms.
-    } 
+    }
   else
     {
       fTriumf_ADC.ConstructHistograms(folder, prefix);
@@ -163,12 +174,12 @@ void  QwBCM::FillHistograms()
   if (GetElementName()=="")
     {
       //  This channel is not used, so skip filling the histograms.
-    } 
+    }
   else
     {
       fTriumf_ADC.FillHistograms();
     }
- 
+
 
   return;
 };
@@ -206,7 +217,7 @@ void  QwBCM::DeleteHistograms()
       fTriumf_ADC.DeleteHistograms();
     }
   return;
-};	
+};
 /********************************************************/
 void  QwBCM::Copy(VQwDataElement *source)
 {
@@ -228,11 +239,11 @@ void  QwBCM::Copy(VQwDataElement *source)
 	  throw std::invalid_argument(loc.Data());
 	}
     }
-  catch (std::exception& e) 
+  catch (std::exception& e)
     {
-      std::cerr << e.what() << std::endl; 
+      std::cerr << e.what() << std::endl;
     }
-  
+
   return;
 }
 
