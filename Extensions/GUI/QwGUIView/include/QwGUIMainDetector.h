@@ -69,6 +69,16 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!Return value: none
   void                 PlotData();
 
+  //!This function clear the histograms/plots in the plot container. This is done everytime a new 
+  //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
+  //!on the plots are lost.
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none  
+  void                 ClearData();
+
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
   //!These are the names by which the histograms are identified within the root file.
   static const char   *MainDetectorHists[MAIN_DET_HST_NUM];

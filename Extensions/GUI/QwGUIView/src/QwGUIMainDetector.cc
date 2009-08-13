@@ -46,6 +46,8 @@ void QwGUIMainDetector::MakeLayout()
   dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
 				"QwGUIMainDetector",
 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
+  TCanvas *mc = dCanvas->GetCanvas();
+  mc->Divide( MAIN_DET_HST_NUM/2, MAIN_DET_HST_NUM/2);
 
 }
 
@@ -67,13 +69,17 @@ void QwGUIMainDetector::OnObjClose(char *obj)
 
 void QwGUIMainDetector::OnNewDataContainer()
 {
+
   TObject *obj;
   TObject *copy;
+  ClearData();
+
   if(dROOTCont){
     for(int p = 0; p < MAIN_DET_HST_NUM; p++){
 	
       obj = dROOTCont->ReadData(MainDetectorHists[p]);
       if(obj){
+
 	if(obj->InheritsFrom("TH1")){
 	  copy = obj->Clone();
 	  ((TH1*)copy)->SetName(Form("%s_cp",((TH1*)obj)->GetName()));
@@ -91,14 +97,24 @@ void QwGUIMainDetector::OnRemoveThisTab()
 
 }
 
+void QwGUIMainDetector::ClearData()
+{
+
+  TObject *obj;
+  TIter next(HistArray.MakeIterator());
+  obj = next();
+  while(obj){    
+    delete obj;
+    obj = next();
+  }
+  HistArray.Clear();
+}
+
 void QwGUIMainDetector::PlotData()
 {
   Int_t ind = 1;
 
   TCanvas *mc = dCanvas->GetCanvas();
-  mc->GetCanvasImp()->ShowMenuBar();
-  mc->GetCanvasImp()->ShowToolBar();
-  mc->Divide( MAIN_DET_HST_NUM/2, MAIN_DET_HST_NUM/2);
 
   TObject *obj;
   TIter next(HistArray.MakeIterator());
