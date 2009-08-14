@@ -219,7 +219,7 @@ int QwTrackingTreeCombine::bestx (
   int ngood = 0; // number of good hits that have been found already
   double x = *xresult; // x is the x coordinate of the track in the plane
   double position;
-  double adistance, distance, odist;
+  double adistance, distance, odist = 0.0;
   double minimum = resolution; // will keep track of minimum distance
   double breakcut = 0;
   double wirespace = sublist->begin()->GetDetectorInfo()->GetWireSpacing();
@@ -1001,7 +1001,7 @@ int QwTrackingTreeCombine::TlMatchHits (
 //  }
 
   // Declare list of hits and initialize to null
-  QwHit* goodHits2[tlayers][MAXHITPERLINE];
+  //  QwHit* goodHits2[tlayers][MAXHITPERLINE];
   QwHit* goodHits[tlayers];
   for (int i = 0; i < tlayers; i++) goodHits[i] = 0;
 
@@ -1147,6 +1147,8 @@ void QwTrackingTreeCombine::TlTreeLineSort (
     double r1, r2, Dr;
     double Dx;
 
+    Dx = r1 = Dz = z2 = z1 = 0.0;
+
     // Determine position differences between first and last detector
     // TODO (wdc) This assumes that tlayer is correct!
     int i = 0;
@@ -1173,9 +1175,9 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 
     // Determine bin widths
     double dx  = width;			// detector width
-    double dxh = 0.5 * dx;		// detector half-width
+    //  double dxh = 0.5 * dx;		// detector half-width
     dx /= (double) bins;		// width of each bin
-    double dxb = dxh / (double) bins;	// half-width of each bin
+    //    double dxb = dxh / (double) bins;	// half-width of each bin
 
     /* --------------------------------------------------
        calculate line parameters first
@@ -1574,8 +1576,12 @@ int QwTrackingTreeCombine::r3_TrackFit( int Num, QwHit **hit, double *fit, doubl
   QwHit xyz[Num];
   double wcov[3],wchi,mx,bx,my,by;
   QwHit *chihits[Num]; // Hit *chihits[Num];
-  double P1[3],P2[3],Pp1[3],Pp2[3];
+  double P1[3],P2[3];
+  double Pp1[3] = {0.0};
+  double Pp2[3] = {0.0};
   double ztrans,ytrans,xtrans,costheta,sintheta;
+
+  
 
   // get some detector information
   if (hit[0]->GetDetectorInfo()->fDirection == kDirectionU) {
@@ -2069,9 +2075,10 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
   // calling this is not ready for it yet.
   std::vector<QwPartialTrack*> parttracklist;
 
-  int in_acceptance;
+  int in_acceptance = 0;
 
   double zx1, zx2;
+  zx1 = zx2 = 0.0;
   double d;
 
   chi_hashclear();
@@ -2084,13 +2091,13 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
   if (region == kRegionID3 && type == kTypeDriftVDC) {
 
     Det *rdu = rcDETRegion[package][region][kDirectionU];
-    Det *rdv = rcDETRegion[package][region][kDirectionV];
-    double z1 = rdu->Zpos;
-    double z2 = rdv->Zpos;
-    double rot = rdv->Rot; // rotation of planes about the lab x axis
-    double uv_dz = (z2 - z1) / sin(rot); // distance between u and v planes
-    double wirecos = rdv->rCos;
-    double wiresin = rdv->rSin;
+    //  Det *rdv = rcDETRegion[package][region][kDirectionV];
+    //  double z1 = rdu->Zpos;
+    //  double z2 = rdv->Zpos;
+    //  double rot = rdv->Rot; // rotation of planes about the lab x axis
+    //  double uv_dz = (z2 - z1) / sin(rot); // distance between u and v planes
+    //  double wirecos = rdv->rCos;
+    //  double wiresin = rdv->rSin;
 
     //###################################
     // Get distance between planes, etc #
@@ -2125,8 +2132,8 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	continue;
       }
       // Get wu's line parameters
-      double mu = wu->mx; // slope
-      double xu = wu->cx; // constant
+      //    double mu = wu->mx; // slope
+      //    double xu = wu->cx; // constant
 
       // Get the v track
       QwTrackingTreeLine *wv = uvl[kDirectionV];
@@ -2136,8 +2143,8 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	  continue;
         }
 	// Get wv's line parameters
-	double mv = wv->mx; // slope
-	double xv = wv->cx; // constant
+	//	double mv = wv->mx; // slope
+	//	double xv = wv->cx; // constant
 
 
 	QwPartialTrack *pt = TcTreeLineCombine2 (wu, wv, tlayer);
@@ -2333,10 +2340,16 @@ void QwTrackingTreeCombine::ResidualWrite (QwEvent* event)
   EQwDetectorType type;
   int allmiss, num;
   QwTrack *tr;
-  QwPartialTrack *pt;
+  QwPartialTrack *pt = NULL;
   QwTrackingTreeLine *tl;
   double x, y, v, mx, my, mv;
   QwHit **hitarr, *hit;
+
+  mx = my = 0.0;
+  allmiss = 0;
+
+  type = kTypeNull;
+
   void mcHitCord( int, double* , double *);
 
   for (package = kPackageUp; package <= kPackageDown; package++) {

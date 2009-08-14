@@ -14,7 +14,7 @@ const Int_t QwEventBuffer::kRunNotSegmented = -20;
 const Int_t QwEventBuffer::kNoNextDataFile  = -30;
 const Int_t QwEventBuffer::kFileHandleNotConfigured  = -40;
 
-const UInt_t QwEventBuffer::kNullDataWord = 'NULL';
+const UInt_t QwEventBuffer::kNullDataWord = 0;//'NULL';
 
 
 QwEventBuffer::QwEventBuffer():fDEBUG(kFALSE),fDataFileStem("QwRun_"),

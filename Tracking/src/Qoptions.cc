@@ -94,6 +94,8 @@ void Qoptions::Get(const char *optname)
 					region = kRegionID2; break;
 				case '3':
 					region = kRegionID3; break;
+				default :
+				        region = kRegionIDNull; break;
 			}
 
 			optstream >> word;
@@ -110,6 +112,8 @@ void Qoptions::Get(const char *optname)
 					type = kTypeCerenkov; break;
 				case 's':
 					type = kTypeScanner;  break;
+     			        default:
+				        type = kTypeNull; break;
 			}
 
 			optstream >> maxlevels;

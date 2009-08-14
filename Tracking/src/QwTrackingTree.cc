@@ -205,6 +205,8 @@ int QwTrackingTree::consistent(
     double off;		/// radial offset between upstream and downstream HDC chambers
     double xiL, xiR;	/// the left(min) and right(max) edges of the bin at the current plane
 
+    y0 = binwidth = dy = off = 0.0;
+
     /// find the z position of each tree-detector relative to the first tree-detector
     for (rd = rcDETRegion[package][region][dir], i = 0;
          rd && i < templayers;
@@ -278,7 +280,7 @@ int QwTrackingTree::consistent(
     int templayers = 8;
 
 
-    double xf = 0, zf;
+    double xf = 0, zf = 0.0;
     double z[templayers];
     double cellwidth = 1; // distance between wires
     //double cellwidth = 1.11125;

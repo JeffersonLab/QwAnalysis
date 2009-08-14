@@ -69,6 +69,7 @@ Int_t QwSubsystemArray::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_i
     for (iterator subsys = begin(); subsys != end(); ++subsys){
       (*subsys)->ProcessEvBuffer(roc_id, bank_id, buffer, num_words);
     }
+  return 0;
 };
 
 
