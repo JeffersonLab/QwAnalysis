@@ -243,7 +243,7 @@ void  QwHelicity::ProcessEvent()
 	fEventNumber=fEventNumberOld+scaleroffset;
 	Int_t localphase=fPatternPhaseNumberOld;
 	Int_t localpatternnumber=fPatternNumberOld;
-	for (int i=0;i<scaleroffset;i++)
+	for (UInt_t i=0;i<scaleroffset;i++)
 	  {
 	    fPatternPhaseNumber=localphase+1;
 	    if(fPatternPhaseNumber>4)
@@ -266,7 +266,8 @@ void  QwHelicity::ProcessEvent()
   }
   ///////////////
   else if (dolocalhelicity2&& !dolocalhelicity){
-  Int_t kinputregister, kpatterncounter, kmpscounter, kpatternphase;
+    Int_t kinputregister, kpatterncounter, kmpscounter, kpatternphase;
+    kinputregister = kmpscounter =  kpatterncounter = kpatternphase = 0;
 
     // injector tests April 2009
     UInt_t thisinputregister=fWord[kinputregister].fValue;
@@ -488,7 +489,7 @@ Int_t QwHelicity::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer,
 		<< " and subbank "<<bank_id
 		<< " number of words="<<num_words<<std::endl;
     for(size_t i=0;i<fWord.size();i++)
-      if(fWord[i].fWordInSubbank+1<num_words)
+      if((UInt_t) fWord[i].fWordInSubbank+1<num_words)
 	fWord[i].fValue=buffer[fWord[i].fWordInSubbank];
       else
 	{	

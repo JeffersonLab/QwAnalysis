@@ -69,7 +69,7 @@ Int_t QwFocalPlaneScanner::LoadChannelMap(TString mapfile){
       //  Push a new record into the element array
       if (modtype=="VQWK"){
         //std::cout<<"modnum="<<modnum<<"    "<<"fADC_Data.size="<<fADC_Data.size()<<std::endl;
-	if (modnum >= fADC_Data.size())  fADC_Data.resize(modnum+1, new QwVQWK_Module());
+	if ( modnum >= (Int_t) fADC_Data.size() )  fADC_Data.resize(modnum+1, new QwVQWK_Module());
 	fADC_Data.at(modnum)->SetChannel(channum, name);
       } 
 
@@ -498,7 +498,7 @@ const QwFocalPlaneScanner::EModuleType QwFocalPlaneScanner::RegisterModuleType(T
     fCurrentType = V775_TDC;
   }
   fModuleTypes.at(fCurrentIndex) = fCurrentType;
-  if (fPMTs.size()<=fCurrentType){
+  if ((Int_t)fPMTs.size()<=fCurrentType){
     fPMTs.resize(fCurrentType+1);
   }
   return fCurrentType;
@@ -511,6 +511,7 @@ Int_t QwFocalPlaneScanner::LinkChannelToSignal(const UInt_t chan, const TString 
   fModulePtrs.at(fCurrentIndex).at(chan).first  = index;
   fModulePtrs.at(fCurrentIndex).at(chan).second =
     fPMTs.at(index).size() -1;
+  return 0;
 };
 
 void QwFocalPlaneScanner::FillRawWord(Int_t bank_index,

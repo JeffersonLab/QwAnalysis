@@ -18,7 +18,8 @@ using std::string;
 
 #include "QwTypes.h"
 
-#define NDetMax 100
+//#define NDetMax 100
+#define NDetMax 1010 //for track reconstruction libraries
 
 /// First declare the Hit and Det are objects, because they contain
 /// pointers to each other.

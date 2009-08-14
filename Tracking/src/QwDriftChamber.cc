@@ -17,15 +17,23 @@ const UInt_t QwDriftChamber::kMaxNumberOfChannelsPerTDC = 64;
 const UInt_t QwDriftChamber::kReferenceChannelPlaneNumber = 99;
 
 
-
-QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHits_TEMP):VQwSubsystemTracking(region_tmp),fDEBUG(kFALSE),fNumberOfTDCs(0),OK(0),fWireHits(fWireHits_TEMP)
+// OK, fDEBUG, fNumberOfTDCs
+QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHits_TEMP)
+  :VQwSubsystemTracking(region_tmp),fWireHits(fWireHits_TEMP)
 {
+  OK            = 0;
+  fDEBUG        = kFALSE;
+  fNumberOfTDCs = 0;
   
 };
 
-QwDriftChamber::QwDriftChamber(TString region_tmp):VQwSubsystemTracking(region_tmp),fDEBUG(kFALSE),fNumberOfTDCs(0),OK(0),fWireHits(fTDCHits)
+QwDriftChamber::QwDriftChamber(TString region_tmp)
+  :VQwSubsystemTracking(region_tmp),fWireHits(fTDCHits)
 {
-  
+  OK            = 0;
+  fDEBUG        = kFALSE;
+  fNumberOfTDCs = 0;
+
 };
 
 
@@ -33,6 +41,7 @@ QwDriftChamber::QwDriftChamber(TString region_tmp):VQwSubsystemTracking(region_t
 Int_t QwDriftChamber::LoadChannelMap(TString mapfile){
   TString varname, varvalue;
   UInt_t  chan, package, plane, wire, direction, DIRMODE;
+  wire = plane = package = 0;
   DIRMODE=0;
   
 

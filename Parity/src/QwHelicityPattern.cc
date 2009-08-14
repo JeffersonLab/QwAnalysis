@@ -149,16 +149,16 @@ void  QwHelicityPattern::CalculateAsymmetry()
   Bool_t localdebug=kFALSE;
   if(localdebug)  std::cout<<"Entering QwHelicityPattern::CalculateAsymmetry \n";
 
-  Int_t plushel=1;
-  Int_t minushel=0;
-  Int_t checkhel=0;
+  Int_t plushel  = 1;
+  Int_t minushel = 0;
+  Int_t checkhel = 0;
   Bool_t firstplushel=kTRUE;
   Bool_t firstminushel=kTRUE;
   
   pos_sum.ClearEventData();
   neg_sum.ClearEventData();
 
-  for (size_t i=0; i<fPatternSize; i++)
+  for (size_t i=0; i< (size_t) fPatternSize; i++)
     {
 	if (fHelicity[i]==plushel)
 	{
@@ -297,7 +297,7 @@ void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values)
 void QwHelicityPattern::Print()
 {
   std::cout<<"\n Pattern number ="<<fCurrentPatternNumber<<"\n";
-  for(size_t i=0; i<fPatternSize; i++)
+  for(size_t i=0; i< (size_t) fPatternSize; i++)
     std::cout<<"event "<<fEventNumber[i]<<":"<<fEventLoaded[i]<<", "<<fHelicity[i]<<"\n";
   std::cout<<"Is a complete pattern ?(n/y:0/1) "<<IsCompletePattern()<<"\n";
 }

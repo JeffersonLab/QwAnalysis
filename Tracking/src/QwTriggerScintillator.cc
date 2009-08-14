@@ -26,7 +26,8 @@ QwTriggerScintillator::~QwTriggerScintillator(){
 Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
   TString varname, varvalue;
   TString modtype, dettype, name;
-  Int_t modnum, channum;
+  //  Int_t modnum;
+  Int_t channum;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine()){
@@ -249,7 +250,7 @@ const QwTriggerScintillator::EModuleType QwTriggerScintillator::RegisterModuleTy
     fCurrentType = V775_TDC;
   }
   fModuleTypes.at(fCurrentIndex) = fCurrentType;
-  if (fPMTs.size()<=fCurrentType){
+  if ((Int_t)fPMTs.size()<=fCurrentType){
     fPMTs.resize(fCurrentType+1);
   }
   return fCurrentType;
@@ -262,6 +263,9 @@ Int_t QwTriggerScintillator::LinkChannelToSignal(const UInt_t chan, const TStrin
   fModulePtrs.at(fCurrentIndex).at(chan).first  = index;
   fModulePtrs.at(fCurrentIndex).at(chan).second = 
     fPMTs.at(index).size() -1;
+
+  return 0;
+
 };
 
 void QwTriggerScintillator::FillRawWord(Int_t bank_index, 

@@ -45,7 +45,7 @@ void QwDelayLine::Wirenumber(double& time){
  }
   else
 	{
-		for(int i=Guess+1;i<Windows.size();i++)
+		for(size_t i=Guess+1;i<Windows.size();i++)
 		{
 			if (time < Windows.at( i ).second && time >= Windows.at( i ).first)
 			{

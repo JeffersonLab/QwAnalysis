@@ -24,12 +24,14 @@ QwDriftChamberHDC::QwDriftChamberHDC(TString region_tmp): QwDriftChamber(region_
 //LoadQweakGeometry will load QwDetectorInfo vector from a map file
 //Currently this method is specific to each region
 
-Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile){
-
+Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile)
+{
+  
   std::cout<<"Region 2 Qweak Geometry Loading..... "<<std::endl;
 
   TString varname, varvalue,package, direction,dType;
-  Int_t  chan,  plane, TotalWires,detectorId,region, DIRMODE;
+  //  Int_t  chan;
+  Int_t  plane, TotalWires,detectorId,region, DIRMODE;
   Double_t Zpos,rot,sp_res, track_res,slope_match,Det_originX,Det_originY,ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin;
 
   //std::vector< QwDetectorInfo >  fDetectorGeom;
@@ -38,7 +40,9 @@ Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile){
 
   fDetectorInfo.clear();
   fDetectorInfo.resize(kNumPackages);
-  Int_t pkg,pln;
+
+  //  Int_t pkg,pln;
+
 
   DIRMODE=0;
 
@@ -101,7 +105,7 @@ Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile){
   plane = 1;
   std::sort(fDetectorInfo.at(kPackageUp).begin(),
             fDetectorInfo.at(kPackageUp).end());
-  for (int i = 0; i < fDetectorInfo.at(kPackageUp).size(); i++) {
+  for (UInt_t i = 0; i < fDetectorInfo.at(kPackageUp).size(); i++) {
     fDetectorInfo.at(kPackageUp).at(i).fPlane = plane++;
     std::cout<<" Region "<<fDetectorInfo.at(kPackageUp).at(i).fRegion<<" Detector ID "<<fDetectorInfo.at(kPackageUp).at(i).fDetectorID << std::endl;
   }
@@ -109,7 +113,7 @@ Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile){
   plane = 1;
   std::sort(fDetectorInfo.at(kPackageDown).begin(),
             fDetectorInfo.at(kPackageDown).end());
-  for (int i = 0; i < fDetectorInfo.at(kPackageDown).size(); i++) {
+  for (UInt_t i = 0; i < fDetectorInfo.at(kPackageDown).size(); i++) {
     fDetectorInfo.at(kPackageDown).at(i).fPlane = plane++;
     std::cout<<" Region "<<fDetectorInfo.at(kPackageDown).at(i).fRegion<<" Detector ID " << fDetectorInfo.at(kPackageDown).at(i).fDetectorID << std::endl;
   }
@@ -222,21 +226,21 @@ void  QwDriftChamberHDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
   Int_t tdcindex = GetTDCIndex(bank_index,slot_num);
   if (tdcindex != -1){
     Int_t direction;
-    Int_t hitCount=0;
-    Int_t package = 1;//one package available
-    Int_t plane   = fTDCPtrs.at(tdcindex).at(chan).fPlane;
-    Int_t wire    = fTDCPtrs.at(tdcindex).at(chan).fElement;
-
+    Int_t hitCount = 0;
+    Int_t package  = 1;//one package available
+    Int_t plane    = fTDCPtrs.at(tdcindex).at(chan).fPlane;
+    Int_t wire     = fTDCPtrs.at(tdcindex).at(chan).fElement;
+    
     //Int_t hitCount;
     if (plane == -1 || wire == -1){
       //  This channel is not connected to anything.
       //  Do nothing.
-    } else if (plane == kReferenceChannelPlaneNumber){
+    } else if (plane == (Int_t) kReferenceChannelPlaneNumber){
       fReferenceData.at(wire).push_back(data);
     } else {
 
       direction = fDirectionData.at(package-1).at(plane-1); //Wire Direction is accessed from the vector -Rakitha (10/23/2008)
-
+      
       //hitCount gives the total number of hits on a given wire -Rakitha (10/23/2008)
       hitCount=std::count_if(fTDCHits.begin(),fTDCHits.end(),boost::bind(&QwHit::WireMatches,_1,2,boost::ref(package),boost::ref(plane),boost::ref(wire)) );
       fTDCHits.push_back(QwHit(bank_index, slot_num, chan, hitCount,2, package, plane,direction, wire, data));//in order-> bank index, slot num, chan, hitcount, region=2, package, plane,,direction, wire,wire hit time
@@ -282,14 +286,14 @@ Int_t QwDriftChamberHDC::AddChannelDefinition(const UInt_t plane, const UInt_t w
     fWireData.at(i).resize(fWiresPerPlane.at(i));
   }
   for (size_t i=0; i<fTDC_Index.size(); i++){
-    Int_t refchan = i;
+    //  Int_t refchan = i;
     for (size_t j=0; j<fTDC_Index.at(i).size(); j++){
       Int_t mytdc = fTDC_Index.at(i).at(j);
       if (mytdc!=-1){
 	for (size_t k=0; k<fTDCPtrs.at(mytdc).size(); k++){
 	  //	  Int_t package = fTDCPtrs.at(mytdc).at(k).fPackage;
 	  Int_t plane   = fTDCPtrs.at(mytdc).at(k).fPlane;
-	  if (plane>0 && plane !=kReferenceChannelPlaneNumber){
+	  if (plane>0 && plane != (Int_t) kReferenceChannelPlaneNumber){
 	    Int_t wire  = fTDCPtrs.at(mytdc).at(k).fElement;
 	    fWireData.at(plane).at(wire).SetElectronics(i,j,k);
 	  }

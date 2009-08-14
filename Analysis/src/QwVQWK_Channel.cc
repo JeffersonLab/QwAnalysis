@@ -349,7 +349,8 @@ void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values)
 	      << std::endl;
     size_t index=fTreeArrayIndex;
     for (size_t i=0; i<fTreeArrayNumEntries; i++){
-      std::cerr << "values[" << index << "]==" << values[index++] << " ";
+      std::cerr << "values[" << index << "]==" << values[index] << " ";
+      index++;
     }
     std::cerr << std::endl;
   }

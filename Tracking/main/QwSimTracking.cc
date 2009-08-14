@@ -104,7 +104,8 @@ int main (int argc, char* argv[])
     hitlist->Print();
 
     // Process the hit list through the tracking worker
-    QwEvent *event = trackingworker->ProcessHits(hitlist);
+    //QwEvent *event = trackingworker->ProcessHits(hitlist);
+    trackingworker->ProcessHits(hitlist);
   }
 
   std::cout << "Number of good partial tracks found: "

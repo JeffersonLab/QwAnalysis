@@ -55,7 +55,7 @@ Int_t QwQuartzBar::LoadChannelMap(TString mapfile){
       
       //  Push a new record into the element array
       if (modtype=="VQWK"){
-	if (modnum >= fADC_Data.size())  fADC_Data.resize(modnum+1, new QwVQWK_Module());
+	if ( modnum >= (Int_t) fADC_Data.size() )  fADC_Data.resize(modnum+1, new QwVQWK_Module());
 	fADC_Data.at(modnum)->SetChannel(channum, name);
       } else {
 	std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str()

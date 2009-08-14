@@ -10,7 +10,7 @@
 
 
 
-#define NDetMax 1010 //for track reconstruction libraries
+//#define NDetMax 1010 //for track reconstruction libraries
 #define NEventMax 1000
 
 #include <iostream>
@@ -23,6 +23,8 @@
 #include <TFile.h>
 #include <TStopwatch.h>
 
+
+#include "Det.h" // for NDetMax discrepancy 
 #include "QwCommandLine.h"
 
 //#include "QwEventBuffer.h"
@@ -59,7 +61,7 @@
 const char FILE_NAME[] = "grandhits_output.txt";
 const char FILE_NAME2[] = "subhits_output.txt";
 FILE *out_file; 
- FILE *out_file2;
+FILE *out_file2;
 
 
 

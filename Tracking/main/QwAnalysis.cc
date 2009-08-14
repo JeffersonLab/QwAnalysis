@@ -493,7 +493,7 @@ void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t
   TString basename,b1,b2,b3;
   std::cout<<" QwHitContainer size "<< size<<std::endl;
   values.clear();
-  Int_t subscript;
+  Int_t subscript = 0;
 
 
 

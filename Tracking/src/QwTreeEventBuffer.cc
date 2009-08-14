@@ -703,6 +703,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
   // Make the necessary transformations for the wires
   Uv2xy uv2xy(region);
   double x1, x2;
+  x1 = x2 = 0.0;
   switch (direction) {
     case kDirectionU:
       x1 = uv2xy.xy2u (x - mx * dz/2, y - my * dz/2);

@@ -107,10 +107,10 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
   //###############
   // DECLARATIONS #
   //###############
-  QwTrackingTreeLine *combined;
+  QwTrackingTreeLine *combined = NULL;
   double x[2],y[2],z[3],zp[2];
   QwHit *fpos, *bpos;
-  double d,d2,d2u,d_uv;
+  double d,d2,d2u,d_uv =0.0;
   double pi = acos(-1.0), theta;
   double wirespacingf, wirespacingb, d_to_1st_wire_f, d_to_1st_wire_b;
   Det *rd;

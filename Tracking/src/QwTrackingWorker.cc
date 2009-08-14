@@ -321,8 +321,8 @@ void QwTrackingWorker::BCheck (double E, QwPartialTrack *f, QwPartialTrack *b, d
 
 QwTrack* QwTrackingWorker::rcLinkUsedTracks (QwTrack *track, int package )
 {
-  QwTrack *ret = 0, *usedwalk = 0;
-  QwTrack *trackwalk, *ytrack;
+  QwTrack *ret =0, *usedwalk = 0;
+  QwTrack *trackwalk = NULL, *ytrack = NULL;
 
   /* loop over all found tracks */
   for (trackwalk = track; trackwalk; trackwalk = trackwalk->next ) {
