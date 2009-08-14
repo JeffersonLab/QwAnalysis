@@ -111,10 +111,10 @@ Int_t QwEventBuffer::EncodeSubsystemData(QwSubsystemArray &subsystems)
 
   // Add CODA event header
   std::vector<UInt_t> header;
-  header.push_back((0x0001 << 16) + (0x10 << 8) + 0xCC);
+  header.push_back((0x0001 << 16) | (0x10 << 8) | 0xCC);
 		// event type | event data type | event ID (0xCC for CODA event)
   header.push_back(4);	// size of header field
-  header.push_back((0xC000 << 16) + (0x01 << 8) + 0x00);
+  header.push_back((0xC000 << 16) | (0x01 << 8) | 0x00);
 		// bank type | bank data type (0x01 for uint32) | bank ID (0x00 for header event)
   header.push_back(++fEvtNumber); // event number (initialized to 0,
 		// so increment before use to agree with CODA number)
@@ -138,6 +138,59 @@ Int_t QwEventBuffer::EncodeSubsystemData(QwSubsystemArray &subsystems)
   // and report success or fail
   return status;
 };
+
+
+Int_t QwEventBuffer::EncodePrestartEvent(int runnumber, int runtype)
+{
+  int buffer[5];
+  int localtime = (int) time(0);
+  buffer[0] = 4; // length
+  buffer[1] = ((kPRESTART_EVENT << 16) | (0x01 << 8) | 0xCC);
+  buffer[2] = localtime;
+  buffer[3] = runnumber;
+  buffer[4] = runtype;
+  ProcessPrestart(localtime, runnumber, runtype);
+  return WriteEvent(buffer);
+}
+Int_t QwEventBuffer::EncodeGoEvent()
+{
+  int buffer[5];
+  int localtime = (int) time(0);
+  int eventcount = 0;
+  buffer[0] = 4; // length
+  buffer[1] = ((kGO_EVENT << 16) | (0x01 << 8) | 0xCC);
+  buffer[2] = localtime;
+  buffer[3] = 0; // (unused)
+  buffer[4] = eventcount;
+  ProcessGo(localtime, eventcount);
+  return WriteEvent(buffer);
+}
+Int_t QwEventBuffer::EncodePauseEvent()
+{
+  int buffer[5];
+  int localtime = (int) time(0);
+  int eventcount = 0;
+  buffer[0] = 4; // length
+  buffer[1] = ((kPAUSE_EVENT << 16) | (0x01 << 8) | 0xCC);
+  buffer[2] = localtime;
+  buffer[3] = 0; // (unused)
+  buffer[4] = eventcount;
+  ProcessPause(localtime, eventcount);
+  return WriteEvent(buffer);
+}
+Int_t QwEventBuffer::EncodeEndEvent()
+{
+  int buffer[5];
+  int localtime = (int) time(0);
+  int eventcount = 0;
+  buffer[0] = 4; // length
+  buffer[1] = ((kEND_EVENT << 16) | (0x01 << 8) | 0xCC);
+  buffer[2] = localtime;
+  buffer[3] = 0; // (unused)
+  buffer[4] = eventcount;
+  ProcessEnd(localtime, eventcount);
+  return WriteEvent(buffer);
+}
 
 
 void QwEventBuffer::ResetFlags(){
@@ -628,7 +681,7 @@ Int_t QwEventBuffer::OpenDataFile(UInt_t current_run, Short_t seg)
 
 //------------------------------------------------------------
 //call this routine if the run is not segmented
-Int_t QwEventBuffer::OpenDataFile(UInt_t current_run)
+Int_t QwEventBuffer::OpenDataFile(UInt_t current_run, const TString rw)
 {
   Int_t status;
   fRunNumber = current_run;
@@ -636,7 +689,7 @@ Int_t QwEventBuffer::OpenDataFile(UInt_t current_run)
   if (DataFileIsSegmented()){
     status = OpenNextSegment();
   } else {
-    status = OpenDataFile(DataFile(fRunNumber),"R");
+    status = OpenDataFile(DataFile(fRunNumber),rw);
   }
   return status;
 };
@@ -644,7 +697,7 @@ Int_t QwEventBuffer::OpenDataFile(UInt_t current_run)
 
 
 //------------------------------------------------------------
-Int_t QwEventBuffer::OpenDataFile(const TString filename, const TString rw = "R")
+Int_t QwEventBuffer::OpenDataFile(const TString filename, const TString rw)
 {
   if (fEvStreamMode==fEvStreamNull){
     if (fDEBUG){

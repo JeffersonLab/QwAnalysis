@@ -247,18 +247,31 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 }
 
 //*****************************************************************
+void QwBeamLine::RandomizeEventData()
+{
+  // Randomize all QwBPMStripline buffers
+  for (size_t i = 0; i < fStripline.size(); i++)
+    fStripline[i].RandomizeEventData();
+
+  // Randomize all QwBCM buffers
+  for (size_t i = 0; i < fBCM.size(); i++)
+    fBCM[i].RandomizeEventData();
+}
+//*****************************************************************
 void QwBeamLine::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   std::vector<UInt_t> elements;
   elements.clear();
 
-  // Get all QwBPMStripline buffers
-  // ...
-
-  // Get all QwBCM buffers
-  for (size_t i = 0; i < fBCM.size(); i++) {
-    // Get element data
-    fBCM[i].EncodeEventData(elements);
+  // Get all buffers in the order they are defined in the map file
+  for (size_t i = 0; i < fBeamDetectorID.size(); i++) {
+    // This is a QwBCM
+    if (fBeamDetectorID.at(i).fTypeID == kBCM)
+      fBCM[fBeamDetectorID.at(i).fIndex].EncodeEventData(elements);
+    // This is a QwBPMStripline (which has 4 entries, only process the first one)
+    if (fBeamDetectorID.at(i).fTypeID == kBPMStripline
+     && fBeamDetectorID.at(i).fSubelement == 0)
+      fStripline[fBeamDetectorID.at(i).fIndex].EncodeEventData(elements);
   }
 
   // If there is element data, generate the subbank header
@@ -269,13 +282,13 @@ void QwBeamLine::EncodeEventData(std::vector<UInt_t> &buffer)
     // Form CODA subbank header
     subbankheader.clear();
     subbankheader.push_back(elements.size() + 1);	// subbank size
-    subbankheader.push_back((fCurrentBank_ID << 16) | (0x01 << 8) | 1 & 0xff);
+    subbankheader.push_back((fCurrentBank_ID << 16) | (0x01 << 8) | (1 & 0xff));
 		// subbank tag | subbank type | event number
 
     // Form CODA bank/roc header
     rocheader.clear();
     rocheader.push_back(subbankheader.size() + elements.size() + 1);	// bank/roc size
-    rocheader.push_back((fCurrentROC_ID << 16) | (0x10 << 8) | 1 & 0xff);
+    rocheader.push_back((fCurrentROC_ID << 16) | (0x10 << 8) | (1 & 0xff));
 		// bank tag == ROC | bank type | event number
 
     // Add bank header, subbank header and element data to output buffer

@@ -52,8 +52,8 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
 
   Int_t OpenDataFile(UInt_t current_run, Short_t seg);
-  Int_t OpenDataFile(UInt_t current_run);
-  Int_t OpenDataFile(const TString filename, const TString rw);
+  Int_t OpenDataFile(UInt_t current_run, const TString rw = "R");
+  Int_t OpenDataFile(const TString filename, const TString rw = "R");
   Int_t CloseDataFile();
 
   Int_t OpenETStream(TString computer, TString session, int mode);
@@ -79,9 +79,12 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Bool_t FillSubsystemConfigurationData(QwSubsystemArray &subsystems);
   Bool_t FillSubsystemData(QwSubsystemArray &subsystems);
 
-  //Int_t EncodeSubsystemData(std::vector<VQwSubsystem*> &subsystems);
-  Int_t EncodeSubsystemData(QwSubsystemArray &subsystems);
 
+  Int_t EncodeSubsystemData(QwSubsystemArray &subsystems);
+  Int_t EncodePrestartEvent(int runnumber, int runtype = 0);
+  Int_t EncodeGoEvent();
+  Int_t EncodePauseEvent();
+  Int_t EncodeEndEvent();
 
   void ResetFlags();
 

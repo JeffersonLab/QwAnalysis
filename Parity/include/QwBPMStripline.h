@@ -15,7 +15,7 @@
 
 
 /*****************************************************************
-*  Class: 
+*  Class:
 ******************************************************************/
 ///
 /// \ingroup QwAnalysis_BL
@@ -27,15 +27,21 @@ class QwBPMStripline : public VQwDataElement{
     InitializeChannel(name, ROTATED);
   };
   ~QwBPMStripline() {DeleteHistograms();};
-  
+
   Int_t ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
 
   void  InitializeChannel(TString name, Bool_t ROTATED);
   void  ClearEventData();
+
+  void  SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t meanY, Double_t sigmaY);
+  void  RandomizeEventData();
+  void  SetEventData(Double_t* block, UInt_t sequencenumber);
+  void  EncodeEventData(std::vector<UInt_t> &buffer);
+
   void  ProcessEvent();
   void Print();
-  Bool_t IsGoodEvent();	
+  Bool_t IsGoodEvent();
   void Copy(VQwDataElement *source);
 
 
@@ -46,14 +52,14 @@ class QwBPMStripline : public VQwDataElement{
   void Difference(QwBPMStripline &value1, QwBPMStripline &value2);
   void Ratio(QwBPMStripline &numer, QwBPMStripline &denom);
   void Scale(Double_t factor);
- 
+
   void SetOffset(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset);
-  UInt_t GetSubElementIndex(TString subname); 
+  UInt_t GetSubElementIndex(TString subname);
   TString GetSubElementName(Int_t subindex);
   void SetSubElementPedestal(Int_t j, Double_t value);
   void SetSubElementCalibrationFactor(Int_t j, Double_t value);
 
-  
+
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();
@@ -61,29 +67,29 @@ class QwBPMStripline : public VQwDataElement{
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
   void  SetRootSaveStatus(TString &prefix);
-  
+
   /////
  private:
   static const Bool_t kDEBUG;
   /*  Position calibration factor, transform ADC counts in mm */
   static const Double_t kQwStriplineCalibration;
-  /* Rotation factor for the BPM which antenna are at 45 deg */	
+  /* Rotation factor for the BPM which antenna are at 45 deg */
   static const Double_t kRotationCorrection;
-  
+
  protected:
   static const TString subelement[4];
-  static const TString axis[3]; 
+  static const TString axis[3];
 
   Double_t fOffset[3];
   Bool_t bRotated;
   Bool_t bFullSave; // used to restrict the amount of data histogramed
-  
+
   QwVQWK_Channel fWire[4];
   QwVQWK_Channel fRelPos[2];
   /* These channels contain the beam position within the frame of the BPM*/
   QwVQWK_Channel fAbsPos[3];
   /* contains the beam position in the absolute frame defined as found reference...*/
-  
+
 };
 
 /********************************************************/

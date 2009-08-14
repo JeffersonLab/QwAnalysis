@@ -50,6 +50,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
                         buffer, UInt_t num_words);
 
+  void  RandomizeEventData();
   void  EncodeEventData(std::vector<UInt_t> &buffer);
 
   void  ProcessEvent();

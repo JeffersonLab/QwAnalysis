@@ -51,10 +51,10 @@ class VQwSubsystem{
 
   virtual void  ProcessEvent() = 0;
 
-  virtual void  EncodeEventData(std::vector<UInt_t> &buffer)
-    {
-      return; // Not all derived classes will have this.
-    };
+  // Not all derived classes will have the following functions
+  virtual void  RandomizeEventData() { };
+  virtual void  EncodeEventData(std::vector<UInt_t> &buffer) { };
+
 
   virtual void  ConstructHistograms()
     {

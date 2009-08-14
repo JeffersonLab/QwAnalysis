@@ -43,10 +43,27 @@ void QwBCM::ClearEventData()
   return;
 };
 /********************************************************/
+void QwBCM::SetRandomEventParameters(Double_t mean, Double_t sigma)
+{
+  fTriumf_ADC.SetRandomEventParameters(mean, sigma);
+  return;
+};
+/********************************************************/
+void QwBCM::RandomizeEventData()
+{
+  fTriumf_ADC.RandomizeEventData();
+  return;
+};
+/********************************************************/
 void QwBCM::SetEventData(Double_t* block, UInt_t sequencenumber)
 {
   fTriumf_ADC.SetEventData(block, sequencenumber);
   return;
+};
+/********************************************************/
+void QwBCM::EncodeEventData(std::vector<UInt_t> &buffer)
+{
+  fTriumf_ADC.EncodeEventData(buffer);
 };
 /********************************************************/
 void  QwBCM::ProcessEvent()
@@ -72,11 +89,6 @@ Int_t QwBCM::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UIn
   fTriumf_ADC.ProcessEvBuffer(buffer,word_position_in_buffer);
 
   return word_position_in_buffer;
-};
-/********************************************************/
-void QwBCM::EncodeEventData(std::vector<UInt_t> &buffer)
-{
-  fTriumf_ADC.EncodeEventData(buffer);
 };
 /********************************************************/
 QwBCM& QwBCM::operator= (const QwBCM &value)

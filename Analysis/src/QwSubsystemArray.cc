@@ -80,6 +80,13 @@ void  QwSubsystemArray::ProcessEvent()
 };
 
 
+void  QwSubsystemArray::RandomizeEventData()
+{
+  if (!empty())
+    for (iterator subsys = begin(); subsys != end(); ++subsys) {
+      (*subsys)->RandomizeEventData();
+    }
+};
 void  QwSubsystemArray::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   if (!empty())

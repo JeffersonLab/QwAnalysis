@@ -11,6 +11,9 @@
 #include <vector>
 #include <TTree.h>
 
+// Boost math library for random number generation
+#include <boost/random.hpp>
+
 #include "VQwDataElement.h"
 
 
@@ -44,6 +47,8 @@ class QwVQWK_Channel: public VQwDataElement {
     fBlocksPerEvent = 4;
     fPedestal=0.0;
     fCalibrationFactor=1.;
+    fGaussianMean=0.0;
+    fGaussianSigma=0.0;
     if(datatosave=="raw") fDataToSave=kRaw;
     else
       if(datatosave=="derived") fDataToSave=kDerived;
@@ -52,6 +57,9 @@ class QwVQWK_Channel: public VQwDataElement {
 
   void  ClearEventData();
 
+  void  SetRandomEventParameters(Double_t mean, Double_t sigma);
+  void  RandomizeEventData();
+  void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
   void  SetEventData(Double_t* block, UInt_t sequencenumber = 0);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
 
@@ -104,6 +112,12 @@ class QwVQWK_Channel: public VQwDataElement {
  private:
   static const Bool_t kDEBUG;
 
+  // Randomness generator
+  static boost::mt19937 fRandomnessGenerator;
+  static boost::normal_distribution<double> fNormalDistribution;
+  static boost::variate_generator
+    < boost::mt19937, boost::normal_distribution<double> >fNormalRandomVariable;
+
   Int_t fDataToSave;
 
   /*  ADC Calibration                     */
@@ -134,6 +148,10 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t fHardwareBlockSum; /*! Module-based sum of the four sub-blocks */
   size_t fSequenceNumber;     /*! Event sequence number for this channel  */
   size_t fNumberOfSamples;    /*! Number of samples in the event          */
+
+  /*  Parity mock data distributions */
+  Double_t fGaussianMean;
+  Double_t fGaussianSigma;
 
 };
 
