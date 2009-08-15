@@ -293,7 +293,7 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(std::vector<VQwSubsystem*> 
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
   if (fBankDataType == 0x10){
     //
-    while (okay = DecodeSubbankHeader(&localbuff[fWordsSoFar])){
+    while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
       //  If this bank has further subbanks, restart the loop.
       if (fSubbankType == 0x10) continue;
       //  If this bank only contains the word 'NULL' then skip
@@ -344,7 +344,7 @@ Bool_t QwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> &subsystems)
   ClearEventData(subsystems);
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
-  while (okay = DecodeSubbankHeader(&localbuff[fWordsSoFar])){
+  while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
     //  If this bank has further subbanks, restart the loop.
     if (fSubbankType == 0x10) continue;
     //  If this bank only contains the word 'NULL' then skip
@@ -402,7 +402,7 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystem
 	    << std::endl;
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
-  while (okay = DecodeSubbankHeader(&localbuff[fWordsSoFar])){
+  while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
     //  If this bank has further subbanks, restart the loop.
     if (fSubbankType == 0x10) continue;
     //  If this bank only contains the word 'NULL' then skip
@@ -440,7 +440,7 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
 
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
-  while (okay = DecodeSubbankHeader(&localbuff[fWordsSoFar])){
+  while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
     //  If this bank has further subbanks, restart the loop.
     if (fSubbankType == 0x10) continue;
     //  If this bank only contains the word 'NULL' then skip

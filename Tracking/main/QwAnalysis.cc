@@ -200,7 +200,8 @@ int main(Int_t argc,Char_t* argv[])
   boost::shared_ptr<QwHitContainer> fHitList;
   QwHitContainer grandHitList;
 
-  char *hostname, *session, *tmp;
+  char *hostname, *session;
+  const char *tmp;
 
   for(UInt_t run = (UInt_t) cmdline.GetFirstRun(); run <= (UInt_t) cmdline.GetLastRun(); run++) {
 
