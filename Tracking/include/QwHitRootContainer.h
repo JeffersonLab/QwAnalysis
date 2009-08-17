@@ -9,7 +9,7 @@
 
 class QwHitContainer;
 
-class QwHitRootContainer: public TObject {
+class QwHitRootContainer: public TOrdCollection {
 
 // ROOT container class around the QwHitContainer.  Most helpful discussion
 // was found on http://root.cern.ch/root/roottalk/roottalk03/2997.html.  The
@@ -21,37 +21,21 @@ class QwHitRootContainer: public TObject {
 // of in the QwHitContainer.cc.  Moving almost all of it to QwHitContainer.cc
 // should fix a lot of rootcint issues.
 //
-//class QwHitRootContainer: public TObject, public std::list<QwHit> {
-
-  private:
-
-    // Local collection of pointers to TObjects (i.e. QwHits).
-    // The name fQwHitContainer was choses so it looks like a QwHitContainer
-    // in the ROOT tree browser.
-    TOrdCollection* fQwHitContainer;
+//class QwHitRootContainer: public TOrdCollection, public std::list<QwHit> {
 
   public:
 
-    // Constructor
-    QwHitRootContainer() {
-      fQwHitContainer = new TOrdCollection;
-    };
-    // Destructor
-    virtual ~QwHitRootContainer() {
-      delete fQwHitContainer;
-    }
+    // Conversion methods from and to a QwHitContainer
+    void Convert(QwHitContainer* hitlist);
+    QwHitContainer* Convert();
 
-    // Append a QwHitContainer to the TOrdCollection
-    void Clear();
-    void Append(QwHitContainer* hitlist);
-    void Replace(QwHitContainer* hitlist);
-    Int_t GetSize() { return fQwHitContainer->GetSize(); };
+    // Make this browseable
+    Bool_t IsFolder() { return kTRUE; };
 
-    // Read the hit container from TOrdCollection to QwHitContainer
-    QwHitContainer* Read();
+    // Output function
+    void Print();
 
-
-  ClassDef(QwHitRootContainer,1)
+  ClassDef(QwHitRootContainer,1);
 };
 
 #endif // QWHITROOTCONTAINER_H

@@ -10,6 +10,8 @@
 
 ClassImp(QwHit);
 
+#include "QwDetectorInfo.h"
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwHit::QwHit()
@@ -53,7 +55,30 @@ QwHit::QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void QwHit::Print() {
+const Double_t QwHit::GetSpatialResolution() const
+{
+  if (pDetectorInfo)
+    return pDetectorInfo->GetSpatialResolution();
+  else return fSpatialResolution;
+}
+
+const Double_t QwHit::GetTrackResolution() const
+{
+  if (pDetectorInfo)
+    return pDetectorInfo->GetTrackResolution();
+  else return fTrackResolution;
+}
+
+const double QwHit::GetZPosition() const {
+  if (pDetectorInfo)
+    return pDetectorInfo->fZPos;
+  else return fZPos;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+void QwHit::Print()
+{
   if (! this) return;
   std::cout << *this << std::endl;
 };

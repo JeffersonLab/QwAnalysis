@@ -31,6 +31,8 @@ Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 Det rcDET[NDetMax];
 Options opt;
 
+static const bool kDebug = false;
+
 int main (int argc, char* argv[])
 {
   // Fill the search paths for the parameter files
@@ -50,15 +52,25 @@ int main (int argc, char* argv[])
 
   // Get vector with detector info (by region, plane number)
   std::vector< std::vector< QwDetectorInfo > > detector_info;
-  //((VQwSubsystemTracking*) QwDetectors->GetSubsystem("R2"))->GetDetectorInfo(detector_info);
+  ((VQwSubsystemTracking*) QwDetectors->GetSubsystem("R2"))->GetDetectorInfo(detector_info);
   ((VQwSubsystemTracking*) QwDetectors->GetSubsystem("R3"))->GetDetectorInfo(detector_info);
+  // TODO This is handled incorrectly, it just adds the three package after the
+  // existing three packages from region 2...  GetDetectorInfo should descend
+  // into the packages and add only the detectors in those packages.
+  // Alternatively, we could implement this with a singly indexed vector (with
+  // only an id as primary index) and write a couple of helper functions to
+  // select the right subvectors of detectors.
 
   // Load the simulated event file
   std::string filename = std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QweakSim.root";
   QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (filename, detector_info);
   treebuffer->SetDebugLevel(0);
 
-  // Load the geometry (ignore)
+  // Load the old geometry
+  // TODO The only reason why we have to define the old geometry here is so
+  // the uv2xy transform can find the angle.  What would make more sense is
+  // to put the angle in the uv2xy constructor (with a flag to swap axes as
+  // is done for region 2).  Sigh...
   Qset qset;
   qset.FillDetectors((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.geo").c_str());
   qset.LinkDetectors();
@@ -68,29 +80,39 @@ int main (int argc, char* argv[])
   TFile* file = new TFile("hitlist.root", "RECREATE");
   TTree* tree = new TTree("tree", "Hit list");
   QwHitRootContainer* rootlist = new QwHitRootContainer();
-  QwHitContainer* hitlist = 0;
   tree->Branch("hits","QwHitRootContainer",&rootlist);
 
   // Loop over the events in the file
   int fEntries = treebuffer->GetEntries();
   for (int fEvtNum = 0; fEvtNum < fEntries; fEvtNum++) {
 
-    // Get hit list as QwHitContainer (new hitlist)
-    hitlist = treebuffer->GetHitList(fEvtNum);
+    // Print event number
+    if (kDebug) std::cout << "Event: " << fEvtNum << std::endl;
+
+    // Get hit list as QwHitContainer (new hit list)
+    QwHitContainer* hitlist = treebuffer->GetHitList(fEvtNum);
+    if (kDebug) hitlist->Print();
 
     // Replace rootlist with QwHitContainer
-    rootlist->Replace(hitlist);
+    rootlist->Convert(hitlist);
+
+    // Print the hitlist
+    if (kDebug) rootlist->Print();
 
     // Save the event to tree
     tree->Fill();
 
-    // Delete objects that are created in previous statements
+    // Delete the hit list
     delete hitlist;
   }
+  // Delete the ROOT hit list
   delete rootlist;
 
   // Print results
-  tree->Print();
+  if (kDebug) tree->Print();
+
+  // Output results
+  std::cout << "Successfully wrote " << tree->GetEntries() << " events." << std::endl;
 
   // Write and close file
   file->Write();

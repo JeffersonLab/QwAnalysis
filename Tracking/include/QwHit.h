@@ -35,6 +35,7 @@
 /// pointers to each other.
 class Det;
 
+
 ///
 /// \ingroup QwTrackingAnl
 class QwHit : public TObject {
@@ -98,29 +99,19 @@ class QwHit : public TObject {
   const QwDetectorInfo* GetDetectorInfo () const { return pDetectorInfo; };
   void SetDetectorInfo(QwDetectorInfo *detectorinfo) { pDetectorInfo = detectorinfo; };
 
-  const Double_t GetSpatialResolution() const {
-    if (pDetectorInfo)
-      return pDetectorInfo->GetSpatialResolution();
-    else return fSpatialResolution;
-  }
+  const int GetPlane() const { return fPlane; };
+
+  const Double_t GetSpatialResolution() const;
   void SetSpatialResolution(const double resolution) { fSpatialResolution = resolution; };
 
-  const Double_t GetTrackResolution() const {
-    if (pDetectorInfo)
-      return pDetectorInfo->GetTrackResolution();
-    else return fTrackResolution;
-  }
+  const Double_t GetTrackResolution() const;
   void SetTrackResolution(const double resolution) { fTrackResolution = resolution; };
 
-
-  const double GetZPosition() const {
-    if (pDetectorInfo)
-      return pDetectorInfo->fZPos; // TODO typo: QwDetectorInfo::Spatial_Res
-    else return fZPos;
-  }
+  const double GetZPosition() const;
   void SetZPosition(const double zpos) { fZPos = zpos; };
 
-  Bool_t IsFirstDetectorHit(){return (fHitNumber==0);};
+  Bool_t IsFirstDetectorHit() { return (fHitNumber==0); };
+  Bool_t IsUsed() { return fIsUsed; };
 
   void SubtractReference(Double_t reftime){
     fTime = fRawTime - reftime;
@@ -183,7 +174,7 @@ class QwHit : public TObject {
 
   public: // Sorry, will write accessors later (wdconinc)
 
-    bool fIsUsed;	/// Is this hit used in a tree line?
+    Bool_t fIsUsed;	/// Is this hit used in a tree line?
 
 
   // The following public section are taken from the original Hit class
@@ -196,13 +187,14 @@ class QwHit : public TObject {
     //  hit is needed.  The various position values are used in multiple ways,
     //  and therefore are not strictly defined.
 
-    QwHit *next, *nextdet; 	/*!< next hit and next hit in same detector */
-    double rResultPos;		/*!< Resulting hit position            */
-    double rPos;		/*!< Position from level I track finding  */
-    double rPos2;		/*!< Position from level II decoding      */
+    QwHit *next, *nextdet; 	/// next hit and next hit in same detector
+    Double_t rResultPos;	/// Resulting hit position
+    Double_t rPos;		/// Position from level I track finding
+    Double_t rPos2;		/// Position from level II decoding
 
 
-  ClassDef(QwHit,1)
+  ClassDef(QwHit,1);
+
 };
 
 #endif

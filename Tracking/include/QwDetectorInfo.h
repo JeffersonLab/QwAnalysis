@@ -53,16 +53,16 @@ class QwDetectorInfo{
     friend ostream& operator<< (ostream& stream, QwDetectorInfo& det);
 
     // Identification info for readout channels. Filled at load time.
-    int fCrate; //ROC number
-    int fModule; //F1TDC slot number or module index
-    int fChannel; //channel number
+    Int_t fCrate; //ROC number
+    Int_t fModule; //F1TDC slot number or module index
+    Int_t fChannel; //channel number
 
     // Detector information
     EQwDetectorType fType;
     EQwDetectorPackage fPackage;
     EQwRegionID fRegion;
     EQwDirectionID fDirection;
-    int fPlane;
+    Int_t fPlane;
 
     // Geometry information
     Double_t fZPos;
@@ -82,14 +82,14 @@ class QwDetectorInfo{
     Int_t fTotalWires;
 
     // Unique detector identifier
-    int fDetectorID;
+    Int_t fDetectorID;
 
     // Reference channel index in list of reference channels (most prob. filled at load time)
-    int fReferenceChannelIndex;
+    Int_t fReferenceChannelIndex;
 
 
     // List of active hits by absolute hit number from QwHit array. filled for each event; cleared after each event.
-    std::vector<int> fHitID;
+    std::vector<Int_t> fHitID;
 
 
     void SetElectronics(int crt,int mdl,int chn) {
@@ -115,7 +115,7 @@ class QwDetectorInfo{
 
   private:
 
-
+  ClassDef(QwDetectorInfo,1);
 };
 
 // Detectors could be sorted by region, package, z position

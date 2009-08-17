@@ -3,33 +3,37 @@
 
 ClassImp(QwHitRootContainer);
 
-void QwHitRootContainer::Clear()
+// Convert from a QwHitContainer hitlist to the TOrdCollection
+void QwHitRootContainer::Convert(QwHitContainer* hitlist)
 {
-  fQwHitContainer->Clear();
-}
-
-void QwHitRootContainer::Append(QwHitContainer* hitlist)
-{
+  Clear();
   for (QwHitContainer::iterator hit = hitlist->begin();
        hit != hitlist->end(); hit++) {
     QwHit* p = &(*hit);
-    fQwHitContainer->AddLast((TObject*) p);
+    AddLast((TObject*) p);
+//     this->push_back(*hit);
   }
 }
 
-void QwHitRootContainer::Replace(QwHitContainer* hitlist)
-{
-  Clear();
-  Append(hitlist);
-}
-
-QwHitContainer* QwHitRootContainer::Read()
+// Convert from this TOrdCollection to a QwHitContainer hitlist
+QwHitContainer* QwHitRootContainer::Convert()
 {
   QwHitContainer* hitlist = new QwHitContainer();
-  TIterator* iterator = fQwHitContainer->MakeIterator();
+  TIterator* iterator = MakeIterator();
   QwHit* hit = 0;
   while ((hit = (QwHit*) iterator->Next())) {
     hitlist->push_back(*hit);
   }
+//   for (std::list<QwHit>::iterator hit = begin(); hit != end(); hit++)
+//     hitlist->push_back(*hit);
   return hitlist;
+}
+
+// Print the TOrdCollection hitlist
+void QwHitRootContainer::Print()
+{
+  TIterator* iterator = MakeIterator();
+  QwHit* hit = 0;
+  while ((hit = (QwHit*) iterator->Next()))
+    std::cout << *hit << std::endl;
 }
