@@ -5,22 +5,22 @@
 #include <iostream>
 #include <vector>
 
-#include "TString.h"
+#include <TString.h>
+#include <TObject.h>
+
 #include "QwTypes.h"
 
 #define PI 3.141592653589793
 
 ///
 /// \ingroup QwTrackingAnl
-class QwDetectorInfo{
+class QwDetectorInfo: public TObject {
   ///
   ///  Tracking detector information class.  This will be used in an array
   ///  indexed by the package, plane, and wire,
   ///
 
   public:
-
-    QwDetectorInfo() { };
 
     void SetDetectorInfo(TString sdType, Double_t Zpos1, Double_t rot, Double_t  sp_res, Double_t  track_res, Double_t slope_match, TString spackage, Int_t region, TString planeDir, Double_t Det_originX, Double_t Det_originY, Double_t ActivewidthX, Double_t ActivewidthY, Double_t ActivewidthZ, Double_t WireSpace, Double_t FirstWire, Double_t W_rcos, Double_t W_rsin, Int_t totalwires, Int_t detId);
 
