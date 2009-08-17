@@ -4,6 +4,7 @@
  *  \date   2008feb13
  *  \brief  Draft skeleton for the decoding-to-QTR interface class.
  *
+ *  \ingroup QwTrackingAnl
  *
  *  This would either be used to generate the list of "Hit" elements
  *  used by QTR, or QTR (and this class) would be modified to use this
@@ -24,21 +25,16 @@
 #ifndef QWHIT_H
 #define QWHIT_H
 
-#include "QwTypes.h"
 #include <iostream>
 
-#include "TObject.h"
+#include <TObject.h>
 
-#include "QwDetectorInfo.h"
+#include "QwTypes.h"
 
-/// First declare the QwHit and Det are objects, because they contain
-/// pointers to each other.
-class Det;
+class QwDetectorInfo;
 
-
-///
-/// \ingroup QwTrackingAnl
 class QwHit : public TObject {
+
  public:
 
   QwHit();
@@ -154,7 +150,7 @@ class QwHit : public TObject {
   Int_t fDirection; /// Direction of the plane:  X, Y, U, V; R, theta; etc.
   Int_t fPlane;     /// R or theta index for R1; plane index for R2 & R3
   Int_t fElement;   /// Trace # for R1; wire # for R2 & R3; PMT # for others
-  QwDetectorInfo* pDetectorInfo; /// Pointer to the detector info object
+  QwDetectorInfo* pDetectorInfo; //! /// Pointer to the detector info object
 
   Bool_t fAmbiguousElement;  /// TRUE if this hit could come from two different elements (used by Region 3 tracking only)
   Bool_t fLRAmbiguity;       /// TRUE if the other element is 8 wires "right"; FALSE if the other element is 8 wires "left" (used by Region 3 tracking only)

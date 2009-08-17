@@ -14,7 +14,7 @@
 
 ///
 /// \ingroup QwTrackingAnl
-class QwDetectorInfo: public TObject {
+class QwDetectorInfo {
   ///
   ///  Tracking detector information class.  This will be used in an array
   ///  indexed by the package, plane, and wire,
@@ -115,7 +115,6 @@ class QwDetectorInfo: public TObject {
 
   private:
 
-  ClassDef(QwDetectorInfo,1);
 };
 
 // Detectors could be sorted by region, package, z position

@@ -11,7 +11,6 @@
 //
 
 #include "QwDetectorInfo.h"
-ClassImp(QwDetectorInfo)
 
 void QwDetectorInfo::SetDetectorInfo (
 	TString sdType,

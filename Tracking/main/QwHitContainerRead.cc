@@ -58,8 +58,8 @@ int main (int argc, char* argv[])
   // Open file
   TFile* file = new TFile("hitlist.root");
   TTree* tree = (TTree*) file->Get("tree");
-  QwHitRootContainer* rootlist = 0;
   TBranch* branch = tree->GetBranch("hits");
+  QwHitRootContainer* rootlist = new QwHitRootContainer();
   branch->SetAddress(&rootlist);
 
   // Loop over the events in the file
