@@ -1,0 +1,53 @@
+! Created by J. Pan, for the focal plane scanner
+! This file needs to be modified according to actual modules and
+! channels assigned to scanner detector. We need two channels of
+! QADC's for monitoring the PMT gain, 3 channels of TRIUMF ADC's
+! for measuring the X, Y position of the scanner, and one scaler
+! channel for the coincident rate.
+!
+! jpan@jlab.org, Thu May 21 23:18:41 CDT 2009
+!
+!
+!
+roc=21
+!
+!default bank ID: bank=0
+!
+slot=2
+! module.type  module.num  chan.num, det.type, det.name
+  V792, 0, 0, scanner_qadc, quartz_front_adc
+  V792, 0, 1, scanner_qadc, quartz_back_adc
+  V792, 0, 2, scanner_qadc, trigg1_adc
+  V792, 0, 3, scanner_qadc, trigg2_adc
+!
+!
+slot=4
+!module=V775
+! module.type  module.num  chan.num, det.type, det.name
+  V775, 1, 0, scanner_tdc, triggertdc
+  V775, 1, 1, scanner_tdc, clock__tdc
+  V775, 1, 2, scanner_tdc, quartz_tdc
+!
+!
+!
+!
+!The following map is defined for 2D linear motion
+!Bank ID is specificied as 2222 for scanner's VQWK
+!
+bank=2222
+!
+!The module.num for VQWK has to be independently counted.
+!
+! module.type  module.num  chan.num, det.type, det.name
+!
+!ADC0
+  VQWK, 0, 0, scanner_motion, SCAN_POW
+  VQWK, 0, 1, scanner_motion, SCAN_POSX
+  VQWK, 0, 2, scanner_motion, SCAN_POSY
+!  VQWK, 0, 3, scanner_motion, empty0
+!  VQWK, 0, 4, scanner_motion, empty1
+!  VQWK, 0, 5, scanner_motion, empty2
+!  VQWK, 0, 6, scanner_motion, empty3
+!  VQWK, 0, 7, scanner_motion, empty4
+!
+!END

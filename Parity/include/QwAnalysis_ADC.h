@@ -28,6 +28,10 @@
 #include "QwSubsystemArray.h"
 #include "QwQuartzBar.h"
 
+// Test code for the focal plane scanner
+#include "QwScanner.h"
+
+
 void PrintInfo(TStopwatch& timer, Int_t run);
 
 #endif

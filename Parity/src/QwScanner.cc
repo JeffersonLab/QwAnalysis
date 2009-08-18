@@ -1,6 +1,6 @@
 
 /**********************************************************\
-* File: QwFocalPlaneScanner.h                              *
+* File: QwScanner.h                              *
 *                                                          *
 * Author: J. Pan                                           *
 * jpan@jlab.org                                            *
@@ -8,19 +8,21 @@
 * Thu May 21 21:48:20 CDT 2009                             *
 \**********************************************************/
 
-#include "QwFocalPlaneScanner.h"
+#include "QwScanner.h"
 
-const UInt_t QwFocalPlaneScanner::kMaxNumberOfModulesPerROC     = 21;
-const UInt_t QwFocalPlaneScanner::kMaxNumberOfChannelsPerModule = 32;
+const UInt_t QwScanner::kMaxNumberOfModulesPerROC     = 21;
+const UInt_t QwScanner::kMaxNumberOfChannelsPerModule = 32;
 
-//QwFocalPlaneScanner::QwFocalPlaneScanner(TString region_tmp):VQwSubsystemTracking(region_tmp){
-QwFocalPlaneScanner::QwFocalPlaneScanner(TString region_tmp)
+//QwScanner::QwScanner(TString region_tmp):VQwSubsystemTracking(region_tmp){
+QwScanner::QwScanner(TString region_tmp)
                     :VQwSubsystemTracking(region_tmp){
 
+    TString name = region_tmp;
+    InitializeChannel(name,"raw");
 };
 
 
-QwFocalPlaneScanner::~QwFocalPlaneScanner(){
+QwScanner::~QwScanner(){
   DeleteHistograms();
   fPMTs.clear();
 
@@ -36,7 +38,7 @@ QwFocalPlaneScanner::~QwFocalPlaneScanner(){
 
 
 
-Int_t QwFocalPlaneScanner::LoadChannelMap(TString mapfile){
+Int_t QwScanner::LoadChannelMap(TString mapfile){
   TString varname, varvalue;
   TString modtype, dettype, name;
   Int_t modnum, channum;
@@ -69,7 +71,7 @@ Int_t QwFocalPlaneScanner::LoadChannelMap(TString mapfile){
       //  Push a new record into the element array
       if (modtype=="VQWK"){
         //std::cout<<"modnum="<<modnum<<"    "<<"fADC_Data.size="<<fADC_Data.size()<<std::endl;
-	if ( modnum >= (Int_t) fADC_Data.size() )  fADC_Data.resize(modnum+1, new QwVQWK_Module());
+	if (modnum >= fADC_Data.size())  fADC_Data.resize(modnum+1, new QwVQWK_Module());
 	fADC_Data.at(modnum)->SetChannel(channum, name);
       } 
 
@@ -99,7 +101,7 @@ Int_t QwFocalPlaneScanner::LoadChannelMap(TString mapfile){
 
 
 
-Int_t QwFocalPlaneScanner::LoadInputParameters(TString pedestalfile)
+Int_t QwScanner::LoadInputParameters(TString pedestalfile)
 {
   Bool_t ldebug=kTRUE;
   TString varname;
@@ -109,7 +111,6 @@ Int_t QwFocalPlaneScanner::LoadInputParameters(TString pedestalfile)
 
   Int_t lineread=0;
 
-  std::cout<<"Loading pedestal file: "<<pedestalfile<<std::endl;
   QwParameterFile mapstr(pedestalfile.Data());  //Open the file
   while (mapstr.ReadNextLine())
     {
@@ -124,20 +125,20 @@ Int_t QwFocalPlaneScanner::LoadInputParameters(TString pedestalfile)
 	  varname.Remove(TString::kBoth,' ');
 	  varped= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
 	  varcal= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
-	  if(ldebug) std::cout<<"inputs for channel "<<varname
+	  if (ldebug) std::cout<<"inputs for channel "<<varname
 			      <<": ped="<<varped<<": cal="<<varcal<<"\n"; 
 	  // Bool_t notfound=kTRUE;
  	}
       
     } 
-  if(ldebug) std::cout<<" line read in the pedestal + cal file ="<<lineread<<" \n";
+  if (ldebug) std::cout<<" line read in the pedestal + cal file ="<<lineread<<" \n";
 
   ldebug=kFALSE;
   return 0;
     };
 
 
-void  QwFocalPlaneScanner::ClearEventData(){
+void  QwScanner::ClearEventData(){
   SetDataLoaded(kFALSE);
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
@@ -150,10 +151,12 @@ void  QwFocalPlaneScanner::ClearEventData(){
       fADC_Data.at(i)->ClearEventData();
     }
   }
+
+  fTriumf_ADC.ClearEventData();
 };
 
 
-Int_t QwFocalPlaneScanner::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
+Int_t QwScanner::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   Int_t index = GetSubbankIndex(roc_id,bank_id);
   if (index>=0 && num_words>0){
@@ -178,7 +181,7 @@ Int_t QwFocalPlaneScanner::ProcessConfigurationBuffer(const UInt_t roc_id, const
 //         disabled in this version to allow the V775 class to work
 //         for both the ADC and TDC.
 
-Int_t QwFocalPlaneScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words){
+Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words){
   Int_t index = GetSubbankIndex(roc_id,bank_id);
 
   SetDataLoaded(kTRUE);
@@ -199,7 +202,7 @@ Int_t QwFocalPlaneScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t
         }
       }
       if (num_words != words_read){
-        std::cerr << "QwFocalPlaneScanner::ProcessEvBuffer:  There were "
+        std::cerr << "QwScanner::ProcessEvBuffer:  There were "
 		  << num_words-words_read
 		  << " leftover words after decoding everything we recognize."
 		  << std::endl;
@@ -253,7 +256,7 @@ Int_t QwFocalPlaneScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t
 };
 
 
-void  QwFocalPlaneScanner::ProcessEvent(){
+void  QwScanner::ProcessEvent(){
   if (! HasDataLoaded()) return;
 
 };
@@ -261,8 +264,8 @@ void  QwFocalPlaneScanner::ProcessEvent(){
 
 //To-do: need to implement rate map, X-Y position, scaler
 
-void  QwFocalPlaneScanner::ConstructHistograms(TDirectory *folder, TString &prefix){
-  std::cout<<"Constructing histograms for scanner."<<std::endl;
+void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix){
+
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).ConstructHistograms(folder, prefix);
@@ -277,7 +280,7 @@ void  QwFocalPlaneScanner::ConstructHistograms(TDirectory *folder, TString &pref
 
 };
 
-void  QwFocalPlaneScanner::FillHistograms(){
+void  QwScanner::FillHistograms(){
   if (! HasDataLoaded()) return;
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
@@ -293,8 +296,8 @@ void  QwFocalPlaneScanner::FillHistograms(){
 
 };
 
-                
-void  QwFocalPlaneScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t> &values)
+
+void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t> &values)
 {
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
@@ -312,7 +315,7 @@ void  QwFocalPlaneScanner::ConstructBranchAndVector(TTree *tree, TString &prefix
 
 };
 
-void  QwFocalPlaneScanner::FillTreeVector(std::vector<Float_t> &values)
+void  QwScanner::FillTreeVector(std::vector<Float_t> &values)
 {
   if (! HasDataLoaded()) return;
   for (size_t i=0; i<fPMTs.size(); i++){
@@ -327,7 +330,7 @@ void  QwFocalPlaneScanner::FillTreeVector(std::vector<Float_t> &values)
     if (fADC_Data.at(i) != NULL){
       fADC_Data.at(i)->FillTreeVector(dvalues);
     } else {
-      std::cerr << "QwFocalPlaneScanner::FillTreeVector:  "
+      std::cerr << "QwScanner::FillTreeVector:  "
 		<< "fADC_Data.at(" << i << ") is NULL"
 		<< std::endl;
     }
@@ -336,7 +339,7 @@ void  QwFocalPlaneScanner::FillTreeVector(std::vector<Float_t> &values)
 };
 
 
-void  QwFocalPlaneScanner::DeleteHistograms(){
+void  QwScanner::DeleteHistograms(){
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).DeleteHistograms();
@@ -344,7 +347,7 @@ void  QwFocalPlaneScanner::DeleteHistograms(){
   }
 };
 
-void  QwFocalPlaneScanner::ReportConfiguration(){
+void  QwScanner::ReportConfiguration(){
   std::cout << "Configuration of the focal plane scanner:"<< std::endl;
   for (size_t i = 0; i<fROC_IDs.size(); i++){
     for (size_t j=0; j<fBank_IDs.at(i).size(); j++){
@@ -372,14 +375,14 @@ void  QwFocalPlaneScanner::ReportConfiguration(){
 }; //ReportConfiguration()
 
 
-Bool_t  QwFocalPlaneScanner::Compare(QwFocalPlaneScanner &value)
+Bool_t  QwScanner::Compare(QwScanner &value)
 {
  
   return kTRUE;
 }
 
 
-QwFocalPlaneScanner& QwFocalPlaneScanner::operator=  (QwFocalPlaneScanner &value){
+QwScanner& QwScanner::operator=  (QwScanner &value){
   if (fPMTs.size() == value.fPMTs.size()){
     for (size_t i=0; i<fPMTs.size(); i++){
       for (size_t j=0; j<fPMTs.at(i).size(); j++){
@@ -388,20 +391,20 @@ QwFocalPlaneScanner& QwFocalPlaneScanner::operator=  (QwFocalPlaneScanner &value
     }
   }
 //  else if (Compare(value)) {
-//    QwFocalPlaneScanner* input= (QwFocalPlaneScanner &)value;
+//    QwScanner* input= (QwScanner &)value;
 //    for(size_t i=0;i<input->fADC_Data.size();i++){
 //      *(QwVQWK_Module*)fADC_Data.at(i) = *(QwVQWK_Module*)(input->fADC_Data.at(i));
 //    }
 //  } 
   else {
-    std::cerr << "QwFocalPlaneScanner::operator=:  Problems!!!"
+    std::cerr << "QwScanner::operator=:  Problems!!!"
 	      << std::endl;
   }
   return *this;
 };
 
 
-QwFocalPlaneScanner& QwFocalPlaneScanner::operator+=  ( QwFocalPlaneScanner &value)
+QwScanner& QwScanner::operator+=  ( QwScanner &value)
 {
   if (fPMTs.size() == value.fPMTs.size()){
     for (size_t i=0; i<fPMTs.size(); i++){
@@ -412,20 +415,20 @@ QwFocalPlaneScanner& QwFocalPlaneScanner::operator+=  ( QwFocalPlaneScanner &val
   }
 //  else if(Compare(value))
 //  {
-//    QwFocalPlaneScanner* input= (QwFocalPlaneScanner &)value ;
+//    QwScanner* input= (QwScanner &)value ;
 //    for(size_t i=0;i<input->fADC_Data.size();i++){
 //      *(QwVQWK_Module*)fADC_Data.at(i) += *(QwVQWK_Module*)(input->fADC_Data.at(i));
 //      }
 //   }
   else {
-    std::cerr << "QwFocalPlaneScanner::operator=:  Problems!!!"
+    std::cerr << "QwScanner::operator=:  Problems!!!"
 	      << std::endl;
   }
   return *this;
 };
 
 
-QwFocalPlaneScanner& QwFocalPlaneScanner::operator-=  ( QwFocalPlaneScanner &value)
+QwScanner& QwScanner::operator-=  ( QwScanner &value)
 {
   if (fPMTs.size() == value.fPMTs.size()){
     for (size_t i=0; i<fPMTs.size(); i++){
@@ -436,20 +439,20 @@ QwFocalPlaneScanner& QwFocalPlaneScanner::operator-=  ( QwFocalPlaneScanner &val
   }
 //  else if(Compare(value))
 //  {
-//    QwFocalPlaneScanner* input= (QwFocalPlaneScanner &)value ;
+//    QwScanner* input= (QwScanner &)value ;
 //    for(size_t i=0;i<input->fADC_Data.size();i++){
 //      *(QwVQWK_Module*)fADC_Data.at(i) -= *(QwVQWK_Module*)(input->fADC_Data.at(i));
 //      }
 //   }
   else {
-    std::cerr << "QwFocalPlaneScanner::operator=:  Problems!!!"
+    std::cerr << "QwScanner::operator=:  Problems!!!"
 	      << std::endl;
   }
   return *this;
 };
 
 
-void QwFocalPlaneScanner::ClearAllBankRegistrations(){
+void QwScanner::ClearAllBankRegistrations(){
   VQwSubsystemTracking::ClearAllBankRegistrations();
   fModuleIndex.clear();
   fModulePtrs.clear();
@@ -457,7 +460,7 @@ void QwFocalPlaneScanner::ClearAllBankRegistrations(){
   fNumberOfModules = 0;
 }
 
-Int_t QwFocalPlaneScanner::RegisterROCNumber(const UInt_t roc_id){
+Int_t QwScanner::RegisterROCNumber(const UInt_t roc_id){
   VQwSubsystemTracking::RegisterROCNumber(roc_id, 0);
   fCurrentBankIndex = GetSubbankIndex(roc_id, 0);
   std::vector<Int_t> tmpvec(kMaxNumberOfModulesPerROC,-1);
@@ -465,7 +468,7 @@ Int_t QwFocalPlaneScanner::RegisterROCNumber(const UInt_t roc_id){
   return fCurrentBankIndex;
 };
 
-Int_t QwFocalPlaneScanner::RegisterSlotNumber(UInt_t slot_id){
+Int_t QwScanner::RegisterSlotNumber(UInt_t slot_id){
   std::pair<Int_t, Int_t> tmppair;
   tmppair.first  = -1;
   tmppair.second = -1;
@@ -481,14 +484,14 @@ Int_t QwFocalPlaneScanner::RegisterSlotNumber(UInt_t slot_id){
       fCurrentIndex = fNumberOfModules-1;
     }
   } else {
-    std::cerr << "QwFocalPlaneScanner::RegisterSlotNumber:  Slot number "
+    std::cerr << "QwScanner::RegisterSlotNumber:  Slot number "
 	      << slot_id << " is larger than the number of slots per ROC, "
 	      << kMaxNumberOfModulesPerROC << std::endl;
   }
   return fCurrentIndex;
 };
 
-const QwFocalPlaneScanner::EModuleType QwFocalPlaneScanner::RegisterModuleType(TString moduletype){
+const QwScanner::EModuleType QwScanner::RegisterModuleType(TString moduletype){
   moduletype.ToUpper();
 
   //  Check to see if we've already registered a type for the current slot,
@@ -500,23 +503,22 @@ const QwFocalPlaneScanner::EModuleType QwFocalPlaneScanner::RegisterModuleType(T
     fCurrentType = V775_TDC;
   }
   fModuleTypes.at(fCurrentIndex) = fCurrentType;
-  if ((Int_t)fPMTs.size()<=fCurrentType){
+  if (fPMTs.size()<=fCurrentType){
     fPMTs.resize(fCurrentType+1);
   }
   return fCurrentType;
 };
 
 
-Int_t QwFocalPlaneScanner::LinkChannelToSignal(const UInt_t chan, const TString &name){
+Int_t QwScanner::LinkChannelToSignal(const UInt_t chan, const TString &name){
   size_t index = fCurrentType;
   fPMTs.at(index).push_back(QwPMT_Channel(name));
   fModulePtrs.at(fCurrentIndex).at(chan).first  = index;
   fModulePtrs.at(fCurrentIndex).at(chan).second =
     fPMTs.at(index).size() -1;
-  return 0;
 };
 
-void QwFocalPlaneScanner::FillRawWord(Int_t bank_index,
+void QwScanner::FillRawWord(Int_t bank_index,
 				 Int_t slot_num,
 				 Int_t chan, UInt_t data){
   Int_t modindex = GetModuleIndex(bank_index,slot_num);
@@ -533,7 +535,7 @@ void QwFocalPlaneScanner::FillRawWord(Int_t bank_index,
 };
 
 
-Int_t QwFocalPlaneScanner::GetModuleIndex(size_t bank_index, size_t slot_num) const {
+Int_t QwScanner::GetModuleIndex(size_t bank_index, size_t slot_num) const {
   Int_t modindex = -1;
   if (bank_index>=0 && bank_index<fModuleIndex.size()){
     if (slot_num>=0 && slot_num<fModuleIndex.at(bank_index).size()){
@@ -544,7 +546,7 @@ Int_t QwFocalPlaneScanner::GetModuleIndex(size_t bank_index, size_t slot_num) co
 };
 
 
-Int_t QwFocalPlaneScanner::FindSignalIndex(const QwFocalPlaneScanner::EModuleType modtype, const TString &name) const{
+Int_t QwScanner::FindSignalIndex(const QwScanner::EModuleType modtype, const TString &name) const{
   size_t index = modtype;
   Int_t chanindex = -1;
   for (size_t chan=0; chan<fPMTs.at(index).size(); chan++) {
@@ -555,3 +557,62 @@ Int_t QwFocalPlaneScanner::FindSignalIndex(const QwFocalPlaneScanner::EModuleTyp
   }
   return chanindex;
 };
+
+
+/********************************************************/
+void QwScanner::SetEventData(Double_t* block, UInt_t sequencenumber)
+{
+  fTriumf_ADC.SetEventData(block, sequencenumber);
+  return;
+};
+
+/********************************************************/
+void QwScanner::SetPedestal(Double_t pedestal)
+{
+	fPedestal=pedestal;
+	fTriumf_ADC.SetPedestal(fPedestal);
+	return;
+};
+
+void QwScanner::SetCalibrationFactor(Double_t calib)
+{
+	fCalibration=calib;
+	fTriumf_ADC.SetCalibrationFactor(fCalibration);
+	return;
+};
+/********************************************************/
+void  QwScanner::InitializeChannel(TString name, TString datatosave)
+{
+  SetPedestal(0.);
+  SetCalibrationFactor(1.);
+  fTriumf_ADC.InitializeChannel(name,datatosave);
+
+  //SetElementName(name);
+  return;
+};
+/********************************************************/
+
+void QwScanner::SetRandomEventParameters(Double_t mean, Double_t sigma)
+{
+  fTriumf_ADC.SetRandomEventParameters(mean, sigma);
+  return;
+};
+/********************************************************/
+void QwScanner::RandomizeEventData()
+{
+  fTriumf_ADC.RandomizeEventData();
+  return;
+};
+
+/********************************************************/
+void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
+{
+  fTriumf_ADC.EncodeEventData(buffer);
+};
+/********************************************************/
+
+void QwScanner::Print() const
+{
+  fTriumf_ADC.Print();
+  return;
+}

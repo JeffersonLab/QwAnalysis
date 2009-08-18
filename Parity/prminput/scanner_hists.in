@@ -1,0 +1,25 @@
+#Beamline
+#   This is the histogram parameter input file for the QwHistogramHelper class
+#   "." is the wildcard here!!!! Please use "." only (no "*") since we 
+#   require the exact same length for two strings to match!!!!
+#   The values after the axis titles, if exist, are the min and max of
+#   the histogram filled weight.
+
+
+#name_title          type    x_nbins x_min   x_max   y_nbins y_min   y_max   xtitle  ytitle
+##############################################################################################
+###  Scanner histograms
+
+quartz_front_adc		TH1F	4001	-0.5		4000.5			QuartzFrontADC	Events
+quartz_back_adc			TH1F	4001	-0.5		4000.5			QuartzBackADC	Events
+trigg1_adc			TH1F	4001	-0.5		4000.5			Trigg1_ADC	Events
+trigg2_adc			TH1F	4001	-0.5		4000.5			Trigg2_ADC	Events
+
+triggertdc			TH1F	4001	-0.5		4000.5			TriggerTDC	Events
+clock__tdc			TH1F	4001	-0.5		4000.5			Clock_TDC	Events
+quartz_tdc			TH1F	4001	-0.5		4000.5			QuartzTDC	Events
+
+SCAN_POW     			TH1F	4001	-0.5		4000.5			scan_pow	Events
+SCAN_POSX     			TH1F	4001	-0.5		4000.5			scan_posx	Events
+SCAN_POSY     			TH1F	4001	-0.5		4000.5			scan_posy	Events
+
