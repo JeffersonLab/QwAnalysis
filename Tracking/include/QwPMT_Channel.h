@@ -9,7 +9,7 @@
 #define __QwPMT_CHANNEL__
 
 #include <vector>
-#include <TTree.h>
+#include "TTree.h"
 
 #include "VQwDataElement.h"
 #include "QwHistogramHelper.h"
@@ -46,8 +46,8 @@ class QwPMT_Channel: public VQwDataElement {
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
 
-  void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t> &values);
-  void  FillTreeVector(std::vector<Float_t> &values);
+  void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values);
 
  protected:
   

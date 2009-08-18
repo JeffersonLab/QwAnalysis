@@ -14,10 +14,10 @@
 #include <vector>
 #include <new>
 
-#include <Rtypes.h>
-#include <TROOT.h>
-#include <TFile.h>
-#include <TStopwatch.h>
+#include "Rtypes.h"
+#include "TROOT.h"
+#include "TFile.h"
+#include "TStopwatch.h"
 
 #include "QwCommandLine.h"
 

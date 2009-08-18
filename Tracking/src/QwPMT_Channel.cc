@@ -58,7 +58,7 @@ void  QwPMT_Channel::FillHistograms(){
   }
 };
 
-void  QwPMT_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t> &values)
+void  QwPMT_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip setting up the tree.
@@ -74,7 +74,7 @@ void  QwPMT_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
   }
 };
 
-void  QwPMT_Channel::FillTreeVector(std::vector<Float_t> &values)
+void  QwPMT_Channel::FillTreeVector(std::vector<Double_t> &values)
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the tree vector.

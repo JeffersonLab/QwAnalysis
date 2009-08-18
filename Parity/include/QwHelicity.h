@@ -9,7 +9,7 @@
 #define __QwHELICITY__
 
 #include <vector>
-#include <TTree.h>
+#include "TTree.h"
 
 #include "VQwSubsystemParity.h"
 

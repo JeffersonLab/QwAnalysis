@@ -153,7 +153,7 @@ void  QwTriggerScintillator::FillHistograms(){
   }
 };
 
-void  QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Float_t> &values)
+void  QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Double_t> &values)
 {
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
@@ -162,7 +162,7 @@ void  QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString prefi
   }
 };
 
-void  QwTriggerScintillator::FillTreeVector(std::vector<Float_t> &values)
+void  QwTriggerScintillator::FillTreeVector(std::vector<Double_t> &values)
 {
   if (! HasDataLoaded()) return;
   for (size_t i=0; i<fPMTs.size(); i++){

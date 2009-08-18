@@ -14,10 +14,10 @@
 #include <vector>
 #include <new>
 
-#include <Rtypes.h>
-#include <TROOT.h>
-#include <TFile.h>
-#include <TStopwatch.h>
+#include "Rtypes.h"
+#include "TROOT.h"
+#include "TFile.h"
+#include "TStopwatch.h"
 
 #include "QwCommandLine.h"
 #include "QwEventBuffer.h"
@@ -28,7 +28,7 @@
 #include "QwHelicity.h"
 #include "QwSubsystemArrayParity.h"
 #include "QwHelicityPattern.h"
-
+#include "QwScanner.h"
 
 void PrintInfo(TStopwatch& timer);
 

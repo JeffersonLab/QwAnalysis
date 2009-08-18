@@ -10,8 +10,8 @@
 #define __QwVQWK_MODULE__
 
 #include <vector>
-#include <TTree.h>
-#include <boost/array.hpp>
+#include "TTree.h"
+#include "boost/array.hpp"
 
 #include "QwVQWK_Channel.h"
 

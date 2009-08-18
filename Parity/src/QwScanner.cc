@@ -71,7 +71,7 @@ Int_t QwScanner::LoadChannelMap(TString mapfile){
       //  Push a new record into the element array
       if (modtype=="VQWK"){
         //std::cout<<"modnum="<<modnum<<"    "<<"fADC_Data.size="<<fADC_Data.size()<<std::endl;
-	if (modnum >= fADC_Data.size())  fADC_Data.resize(modnum+1, new QwVQWK_Module());
+	if (modnum >= (Int_t) fADC_Data.size())  fADC_Data.resize(modnum+1, new QwVQWK_Module());
 	fADC_Data.at(modnum)->SetChannel(channum, name);
       } 
 
@@ -297,7 +297,7 @@ void  QwScanner::FillHistograms(){
 };
 
 
-void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t> &values)
+void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
@@ -315,7 +315,7 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vec
 
 };
 
-void  QwScanner::FillTreeVector(std::vector<Float_t> &values)
+void  QwScanner::FillTreeVector(std::vector<Double_t> &values)
 {
   if (! HasDataLoaded()) return;
   for (size_t i=0; i<fPMTs.size(); i++){
@@ -503,7 +503,7 @@ const QwScanner::EModuleType QwScanner::RegisterModuleType(TString moduletype){
     fCurrentType = V775_TDC;
   }
   fModuleTypes.at(fCurrentIndex) = fCurrentType;
-  if (fPMTs.size()<=fCurrentType){
+  if ((Int_t) fPMTs.size()<=fCurrentType){
     fPMTs.resize(fCurrentType+1);
   }
   return fCurrentType;
@@ -516,6 +516,8 @@ Int_t QwScanner::LinkChannelToSignal(const UInt_t chan, const TString &name){
   fModulePtrs.at(fCurrentIndex).at(chan).first  = index;
   fModulePtrs.at(fCurrentIndex).at(chan).second =
     fPMTs.at(index).size() -1;
+  
+  return 0;
 };
 
 void QwScanner::FillRawWord(Int_t bank_index,

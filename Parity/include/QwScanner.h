@@ -11,7 +11,7 @@
 #define __QWSCANNER__
 
 #include <vector>
-#include <TTree.h>
+#include "TTree.h"
 
 #include "VQwSubsystemTracking.h"
 #include "VQwSubsystemParity.h"
@@ -19,10 +19,11 @@
 #include "MQwV775TDC.h"
 #include "QwVQWK_Module.h"
 #include "QwVQWK_Channel.h"
-#include "QwPMT_Channel.h"
-
 #include "VQwDataElement.h"
 
+#include "QwPMT_Channel.h"
+
+class QwVQWK_Channel;
 ///
 /// \ingroup QwTrackingAnl
 class QwScanner: public VQwSubsystemTracking,
@@ -63,8 +64,8 @@ class QwScanner: public VQwSubsystemTracking,
   void  FillHistograms();
   void  DeleteHistograms();
 
-  void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t> &values);
-  void  FillTreeVector(std::vector<Float_t> &values);
+  void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values);
 
   void GetHitList(QwHitContainer & grandHitContainer){};
 
@@ -142,6 +143,8 @@ class QwScanner: public VQwSubsystemTracking,
   std::vector< std::vector<QwPMT_Channel> > fPMTs;
 
  private:
+
+ 
   Double_t fPedestal;
   Double_t fCalibration;
 

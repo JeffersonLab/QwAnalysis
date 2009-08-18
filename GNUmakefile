@@ -248,7 +248,7 @@ CXX            := gcc
 CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
 LD             = gcc
-LDFLAGS        = -Wl,-rpath,$(QWLIB)
+LDFLAGS	       = -Wl,-rpath,$(QWLIB)
 LDLIBS         =
 SOFLAGS        = -shared
 
@@ -551,7 +551,7 @@ coda_lib:
 	do \
 	libstem=`$(ECHO) $$file | $(SED) 's/\.\///' | $(SED) 's/\/.*//'`; \
 	$(ECHO) $(QWBIN)/`$(ECHO) $$file | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`: `$(ECHO) $$file | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/'` `$(GREP) libQw$(DllSuf) .auxLibFiles`  `$(GREP) libQw$$libstem$(DllSuf) .auxLibFiles` | $(INTO_RELATIVE_PATH) >> .auxDepends; \
-	$(ECHO) $(TAB)$(LD) $(CXXFLAGS) '$$<' $(LIBS) -lQw$$libstem $(LDFLAGS) -o '$$@' | $(INTO_RELATIVE_PATH) >> .auxDepends; \
+	$(ECHO) $(TAB)$(LD) $(CXXFLAGS) '$$<'  $(LIBS) -lQw$$libstem  $(LDFLAGS) -o '$$@' | $(INTO_RELATIVE_PATH) >> .auxDepends; \
 	$(ECHO) $(TAB)@$(ECHO) >> .auxDepends; \
 	$(ECHO) >> .auxDepends; \
 	done
