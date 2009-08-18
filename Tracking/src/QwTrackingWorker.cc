@@ -217,8 +217,7 @@ void QwTrackingWorker::InitTree()
 
 	  /// Set up the filename with the following format
 	  ///   tree[numlayers]-[levels]-[u|l]-[1|2|3]-[d|g|t|c]-[n|u|v|x|y].tre
-	  sprintf(filename, "%s/tree%d-%d-%c-%c-%c-%c.tre",
-		thetree->TREEDIR.c_str(),
+	  sprintf(filename, "tree%d-%d-%c-%c-%c-%c.tre",
 		numlayers,
 		opt.levels[package][region][type],
 		"0ud"[package],

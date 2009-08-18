@@ -990,19 +990,36 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
 	double width;
 	long num;
 
+	// Check whether the tree directory exists
+	bfs::path scratchdir(std::string(getenv("QWSCRATCH")));
+	bfs::path treepath(scratchdir / bfs::path(TREEDIR));
+	bfs::path fullfilename;
+	if (! bfs::exists(treepath) || ! bfs::is_directory(treepath)) {
+		cout << "[QwTrackingTree::readtree] Warning: Could not find tree directory." << endl;
+		cout << "   tree directory: " << treepath.string() << endl;
+		treepath = bfs::path(".");
+		cout << "   Falling back to local directory for tree files..." << endl;
+		cout << "   tree directory: " << treepath.string() << endl;
+	}
+	// Construct full path and file name
+	fullfilename = treepath / bfs::path(filename);
+
+
 	xref = 0;
 	if (!dontread) {
 		/// Open the file for reading and complain if this fails
-		f = fopen(filename, "rb");
+		f = fopen(fullfilename.string().c_str(), "rb");
 		if (!f) {
-			cout << "Error: file not found!" << filename << endl;
+			cerr << "[QwTrackingTree::readtree] Error: tree file not found!" << endl;
+			cerr << "tree file: " << fullfilename.string() << endl;
 			return 0;
 		}
 
 		/// If num and width cannot be read, then the file is invalid
 		if (fread(&num, sizeof(num), 1L, f) < 1 ||
 		    fread(&width, sizeof(width), 1L, f) < 1 ) {
-			cout << "Error: file appears invalid!" << filename << endl;
+			cerr << "[QwTrackingTree::readtree] Error: tree file appears invalid!" << endl;
+			cerr << "tree file: " << fullfilename.string() << endl;
 			fclose(f);
 			return 0;
 		}
@@ -1100,9 +1117,8 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
 
     /// Generate a new tree database
     back = _inittree (tlayer, package, type, region, dir);
-
-    if( !back ) {
-      cout << "QTR: Tree couldn't be built.\n";
+    if (! back) {
+      cout << "[QwTrackingTree::inittree] Error: Search tree could not be built." << endl;
       exit(1);
     }
     cout << " Generated.\n";
@@ -1110,7 +1126,7 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
 
     /// Write the generated tree to disk for faster access later
     if( !writetree(filename, back, levels, tlayer, width)) {
-      cout << "QTR: Tree couldn't be written.\n";
+      cout << "[QwTrackingTree::inittree] Error: Search tree could not be written." << endl;
       exit(1);
     }
     cout << " Cached.\n";
@@ -1120,7 +1136,7 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
     //freetree();
     /// and read it in again to get the shorter tree search format
     if( 0 == (trr = readtree(filename,levels,tlayer, width, 0))) {
-      cout << "QTR: New tree couldn't be read.\n";
+      cout << "[QwTrackingTree::inittree] Error: New tree could not be read." << endl;
       exit(1);
     }
     cout << " Done.\n";
@@ -1206,29 +1222,34 @@ long QwTrackingTree::writetree (
 	double width)
 {
 	// Ensure that the tree directory is created correctly
-	bfs::path treedirpath((std::string(getenv("QWANALYSIS")) + "/" + TREEDIR).c_str());
-	if (! bfs::exists(treedirpath)) {
-		bfs::create_directory(treedirpath);
+	bfs::path scratchdir(std::string(getenv("QWSCRATCH")));
+	if (! bfs::exists(scratchdir)) {
+		cerr << "[QwTrackingTree::writetree] Error: QWSCRATCH directory does not exist!" << endl;
+		cerr << "   QWSCRATCH is set to " << scratchdir.string() << endl;
+		exit(1);
+	}
+	bfs::path treepath(scratchdir / bfs::path(TREEDIR));
+	if (! bfs::exists(treepath)) {
+		bfs::create_directory(treepath);
 		if (debug) cout << "[QwTrackingTree::writetree] Created tree directory." << endl;
+		if (debug) cout << "   tree directory set to " << treepath.string() << endl;
 	}
-	if (! bfs::exists(treedirpath) || ! bfs::is_directory(treedirpath)) {
-		cout << "[QwTrackingTree::writetree] Error: could not create tree directory!" << endl;
-		return 0;
+	if (! bfs::exists(treepath) || ! bfs::is_directory(treepath)) {
+		cout << "[QwTrackingTree::writetree] Warning: Could not create tree directory!" << endl;
+		cout << "   tree directory: " << treepath.string() << endl;
+		treepath = bfs::path(".");
+		cout << "   Falling back to local directory for tree files..." << endl;
+		cout << "   tree directory: " << treepath.string() << endl;
 	}
+	// Construct full path and file name
+	bfs::path fullfilename = treepath / bfs::path(filename);
 
 	// Open the output stream
-	FILE *file = fopen(filename, "wb");
+	FILE *file = fopen(fullfilename.string().c_str(), "wb");
 	xref = 0;
-	if (!file) { /// error checking
-		char *fwsn = strrchr(filename,'/'); /// try to write local file
-		if (fwsn++) {
-			file = fopen(fwsn, "wb+");
-			if (file)
-				strcpy(filename, fwsn);
-		}
-	}
-
 	if (!file) {
+		cerr << "[QwTrackingTree::writetree] Error: could not open tree file:" << endl;
+		cerr << "filename: " << filename << endl;
 		return 0;
 	}
 
