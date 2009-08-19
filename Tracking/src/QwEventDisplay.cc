@@ -1,5 +1,12 @@
 #include "QwEventDisplay.h"
 
+ClassImp(QwEventDisplay)
+
+// Qweak header files
+#include "QwTreeEventBuffer.h"
+#include "QwSubsystemArrayTracking.h"
+#include "QwDetectorInfo.h"
+#include "QwHitContainer.h"
 
 
 QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h) {
@@ -145,7 +152,7 @@ Int_t j,k,s;
  // end embedded canvas for Region 3
 
 
-   fTab->SetTab(0); //  Brings the composite frame with the index tabIndex to the 
+   fTab->SetTab(0); //  Brings the composite frame with the index tabIndex to the
                     //  front and generate the following event if the front tab has changed:
    fTab->MoveResize(5,5,800,350); // give position and size of windows for the tab
    fMain->AddFrame(fTab,new TGLayoutHints(kLHintsExpandX|kLHintsExpandY|kLHintsNormal,5,5,5,5)); // adds tab to main frame fMain
@@ -373,7 +380,7 @@ void QwEventDisplay::DrawEvent() {
      R2lxPrime->SetLineColor(kRed+3);
      R2lxPrime->Draw();
 
-   
+
    if(wire[4]<17) {
      R2luPrime->SetX1(.6755974-(wire[4]-1)*0.0306667-R2driftdist[4]*driftsign[4]*1.25*2.099737533e-3);
      R2luPrime->SetY1(.1);
@@ -407,7 +414,7 @@ void QwEventDisplay::DrawEvent() {
      R2lvPrime->Draw();
    } // end else
 
-//  R1text->Draw(); 
+//  R1text->Draw();
 
    R2text->Draw();
 

@@ -1,14 +1,11 @@
 #ifndef QWEVENTDISPLAY_H
 #define QWEVENTDISPLAY_H
 
-#include "QwTreeEventBuffer.h"
-#include "QwHitContainer.h"
-#include "QwSubsystemArrayTracking.h"
-
 // sev.C Q-Weak event display
 // author: ???, Virginia Tech
 // editor: Wouter Deconinck, Massachusetts Insitute of Technology email: wdconinc@mit.edu
 // editor: Marcus Hendricks, George Washington University email: marcuseh@gwu.edu
+
 #include <TGClient.h>
 #include <TCanvas.h>
 #include <TF1.h>
@@ -144,6 +141,14 @@
 #include "TGLayoutHints.h"
 #endif */
 
+
+// Forward declarations to prevent ROOT-Cint from getting confused
+class QwHitContainer;
+class QwEventBuffer;
+class QwTreeEventBuffer;
+class QwSubsystemArrayTracking;
+
+
 class QwEventDisplay: public TGMainFrame {
 
  public:
@@ -151,6 +156,7 @@ class QwEventDisplay: public TGMainFrame {
   RQ_OBJECT("QwEventDisplay")
 
  private:
+
   TGMainFrame *fMain;
   //TGListBox *xPlaneListBox, *uPlaneListBox, *vPlaneListBox, *xpPlaneListBox, *upPlaneListBox, *vpPlaneListBox;
   TGListBox *Region1Box, *Region2Box, *Region3Box, *EventBox;
@@ -212,23 +218,26 @@ class QwEventDisplay: public TGMainFrame {
   TLine* R3luPrime;
   TLine* R3lvPrime;
 
-  // Event buffer
-  QwTreeEventBuffer *fEventBuffer;
-  QwSubsystemArrayTracking *fSubsystemArray;
+  // Event buffer (excluded from dictionary by the comment tag)
+  QwTreeEventBuffer *fEventBuffer;		//!
+  QwSubsystemArrayTracking *fSubsystemArray;	//!
 
  public:
 
   QwEventDisplay(const TGWindow *p, UInt_t w, UInt_t h);
+  virtual ~QwEventDisplay();
 
   void SetEventBuffer(QwTreeEventBuffer *eventbuffer) { fEventBuffer = eventbuffer; };
   void SetSubsystemArray(QwSubsystemArrayTracking *subsystemarray) { fSubsystemArray = subsystemarray; };
 
-  virtual ~QwEventDisplay();
   void DoAdvance();
   void DoPrevious();
   void DrawEvent();
   void DoRemoveAll();
+
+
+  ClassDef(QwEventDisplay,1)
+
 }; // end object QwEventDisplay
 
 #endif // QWEVENTDISPLAY
-
