@@ -37,7 +37,7 @@ void  QwPMT_Channel::EncodeEventData(std::vector<UInt_t> &TrigBuffer)
     //  This channel is not used, but is present in the data stream.
     //  Skip over this data.
   } else {
-    localbuf = fValue;
+    localbuf = (Long_t) fValue;
     TrigBuffer.push_back(localbuf);
   }
 
