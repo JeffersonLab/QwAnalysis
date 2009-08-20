@@ -43,14 +43,14 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event, Int_t patter
       else
 	{
 	  TString loc=
-	    "Standard exception from QwHelicityPattern : the pattern size has to be even;  rigth now pattern_size=";	  
+	    "Standard exception from QwHelicityPattern : the pattern size has to be even;  rigth now pattern_size=";
 	  loc+=Form("%d",pattern_size);
 	  throw std::invalid_argument(loc.Data());
 	}
     }
-  catch (std::exception& e) 
+  catch (std::exception& e)
     {
-      std::cerr << e.what() << std::endl; 
+      std::cerr << e.what() << std::endl;
     }
 };
 
@@ -95,7 +95,7 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
       std::cout<<i<<":"<<fEventLoaded[i]<<"  ";
     std::cout<<"\n";
   }
-  if(fCurrentPatternNumber!=localPatternNumber)    
+  if(fCurrentPatternNumber!=localPatternNumber)
     {
       // new pattern
       ClearEventData();
@@ -108,22 +108,26 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
       std::cerr<<" operation impossible, pattern reset to 0: no asymmetries will be computed \n";
       ClearEventData();
     }
-  else 
+  else
     {
       Int_t locali=localPhaseNumber-1;
       if(localdebug) std::cout<<"QwHelicityPattern::LoadEventData local i="<<locali<<"\n";
+      if (locali == -1) {
+        std::cerr << "Negative array index set to zero!  Check code!" << std::endl;
+        locali = 0;
+      }
       fEvents[locali]=event;
       fEventLoaded[locali]=kTRUE;
       fHelicity[locali]=localHelicityActual;
       fEventNumber[locali]=localEventNumber;
     }
 
-  if(localdebug) 
+  if(localdebug)
     Print();
 
 
   return;
-};   
+};
 
 /////////////////////////////////////////////////////////////////////
 
@@ -139,7 +143,7 @@ Bool_t  QwHelicityPattern::IsCompletePattern()
 	filled=kFALSE;
       i--;
     }
-  
+
   return filled;
 }
 
@@ -154,7 +158,7 @@ void  QwHelicityPattern::CalculateAsymmetry()
   Int_t checkhel = 0;
   Bool_t firstplushel=kTRUE;
   Bool_t firstminushel=kTRUE;
-  
+
   pos_sum.ClearEventData();
   neg_sum.ClearEventData();
 
@@ -175,12 +179,12 @@ void  QwHelicityPattern::CalculateAsymmetry()
 	      pos_sum += fEvents.at(i);
 	    }
 	  checkhel+=1;
-	} 
+	}
       else if (fHelicity[i]==minushel)
 	{
 	  if(localdebug)  std::cout<<"QwHelicityPattern::CalculateAsymmetry:: here filling neg_sum \n";
 	  if(firstminushel)
-	    {	    	  
+	    {
 	      if(localdebug)  std::cout<<"QwHelicityPattern::CalculateAsymmetry:: with = \n";
 	      neg_sum = fEvents.at(i);
 	      firstminushel=kFALSE;
@@ -191,8 +195,8 @@ void  QwHelicityPattern::CalculateAsymmetry()
 	      neg_sum += fEvents.at(i);
 	    }
 	  checkhel-=1;
-	} 
-      else 
+	}
+      else
 	{
 	  std::cerr<<" QwHelicityPattern::CalculateAsymmetry ==";
 	  std::cerr<<" Helicity should be "<<plushel<<" or "<<minushel<<" but is"<< fHelicity[i];
@@ -218,7 +222,7 @@ void  QwHelicityPattern::CalculateAsymmetry()
       std::cerr<<" dropping every thing -- pattern number ="<<fCurrentPatternNumber<<"\n";
     }
   else
-    {    
+    {
       IsGood=kTRUE;
       fYield.Sum(pos_sum,neg_sum);
       difference.Difference(pos_sum,neg_sum);

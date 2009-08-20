@@ -29,11 +29,11 @@ class QwWord
  QwWord():fSubbankIndex(-1),fWordInSubbank(-1),fModuleType(""),
 	  fWordName(""),fWordType(""),fValue(-1){};
 
-  Int_t fSubbankIndex; 
+  Int_t fSubbankIndex;
   Int_t fWordInSubbank;
-  TString fModuleType; 
+  TString fModuleType;
   TString fWordName;
-  TString fWordType; 
+  TString fWordType;
   Int_t fValue;
 
   void PrintID()
@@ -55,7 +55,7 @@ class QwWord
 };
 
 /*****************************************************************
-*  Class: 
+*  Class:
 ******************************************************************/
 ///
 /// \ingroup QwAnalysis_ADC
@@ -64,13 +64,13 @@ class QwWord
 class QwHelicity : public VQwSubsystemParity{
   /////
  public:
-  
+
   QwHelicity(TString region_tmp):VQwSubsystemParity(region_tmp)
-    {      
+    {
       fEventNumberOld=-1; fEventNumber=-1;
       fPatternPhaseNumberOld=-1; fPatternPhaseNumber=-1;
       fPatternNumberOld=-1;  fPatternNumber=-1;
-      kuserbit=-1; 
+      kuserbit=-1;
       fActualPatternPolarity=kUndefinedHelicity;
       fDelayedPatternPolarity=kUndefinedHelicity;
       fHelicityReported=kUndefinedHelicity;
@@ -82,7 +82,7 @@ class QwHelicity : public VQwSubsystemParity{
       fGoodPattern=kFALSE;
     };
 
-  ~QwHelicity() 
+  ~QwHelicity()
     {
       DeleteHistograms();
     };
@@ -99,16 +99,26 @@ class QwHelicity : public VQwSubsystemParity{
 
   void  ClearEventData();
   void  ProcessEvent();
- 
+  void  EncodeEventData(std::vector<UInt_t> &buffer);
+
+  void SetFirst24Bits(UInt_t first24bits);
+  void SetEventPatternPhase(Int_t event, Int_t pattern, Int_t phase);
+
+  UInt_t GetRandomSeedActual() { return iseed_Actual; };
+  UInt_t GetRandomSeedDelayed() { return iseed_Delayed; };
+
   void PredictHelicity();
+  void RunPredictor();
+
   void SetHelicityDelay(Int_t delay);
- 
+
   Int_t GetHelicityReported();
   Int_t GetHelicityActual();
-  Long_t GetPatternNumber();
+  Int_t GetHelicityDelayed();
   Long_t GetEventNumber();
+  Long_t GetPatternNumber();
   Int_t GetPhaseNumber();
- 
+
   void Copy(VQwSubsystem *source);
   VQwSubsystemParity*  Copy();
   VQwSubsystem&  operator=  (VQwSubsystem *value);
@@ -134,10 +144,10 @@ class QwHelicity : public VQwSubsystemParity{
 
 /////
  protected:
-  std::vector <QwWord> fWord; 
+  std::vector <QwWord> fWord;
 
   Int_t kuserbit;
-  // this is used to tagged the userbit info among all the fWords 
+  // this is used to tagged the userbit info among all the fWords
   // if we run the local helicity mode, the userbit contains the info
   // about helicity, event number, pattern number etc.
   Int_t kscalercounter;
@@ -146,13 +156,13 @@ class QwHelicity : public VQwSubsystemParity{
   // should be one all the time if not the event is suspicious and not used for analysis
   Int_t kinputregister, kpatterncounter, kmpscounter, kpatternphase;
   Int_t fEventNumberOld, fEventNumber;
-  Int_t fPatternPhaseNumberOld,fPatternPhaseNumber;
+  Int_t fPatternPhaseNumberOld, fPatternPhaseNumber;
   Int_t fPatternNumberOld,  fPatternNumber;
-  Int_t  fActualPatternPolarity, fDelayedPatternPolarity;
-  Int_t fHelicityReported, fHelicityActual,fHelicityDelayed; 
+  Int_t fActualPatternPolarity, fDelayedPatternPolarity;
+  Int_t fHelicityReported, fHelicityActual, fHelicityDelayed;
   // reported is what is registered in the coda file (it is the actual beam helicity fHelicityDelay pattern before this event)
   // actual is the helicity of the beam for this event
-  // delayed is the expected reported helicity predicted by the random generator 
+  // delayed is the expected reported helicity predicted by the random generator
   // std::vector <Int_t> fCheckHelicityDelay;//  this is obsolete
   //this array keeps in memory the Actual helicity up to when it can be compared to the reported helicity
   Bool_t fHelicityBitPlus;
@@ -170,7 +180,7 @@ class QwHelicity : public VQwSubsystemParity{
   static const Bool_t kDEBUG=kFALSE;
   static const Bool_t dolocalhelicity=kFALSE;
   // local helicity is a special mode for encoding helicity info
-  // it is not the fullblown helicity encoding we want to use for the main 
+  // it is not the fullblown helicity encoding we want to use for the main
   // data taking. For example this was used during the injector data taking
   // in winter 2008-09 injector tests
   static const Bool_t dolocalhelicity2=kTRUE;
@@ -182,26 +192,26 @@ class QwHelicity : public VQwSubsystemParity{
   size_t fTreeArrayNumEntries;
   UInt_t n_ranbits; //counts how many ranbits we have collected
   UInt_t iseed_Actual; //stores the random seed for the helicity predictor
-  UInt_t iseed_Delayed; 
+  UInt_t iseed_Delayed;
   //stores the random seed to predict the reported helcity
-  Int_t fHelicityDelay; 
+  Int_t fHelicityDelay;
   //number of events the helicity is delayed by before being reported
   static const Int_t MaxPatternPhase =4;
-  
+
   Bool_t IsGoodPatternNumber();
   Bool_t IsGoodEventNumber();
   Bool_t MatchActualHelicity(Int_t actual);
-  Bool_t IsGoodPhaseNumber(); 
+  Bool_t IsGoodPhaseNumber();
   Bool_t IsContinuous();
 
   UInt_t GetRandbit(UInt_t& ranseed);
   UInt_t GetRandomSeed(UShort_t* first24randbits);
   void   CollectRandBits();
-  void   RunPredictor();
+  //void   RunPredictor(); // changed to public function for mock data generation
   void   ResetPredictor();
 
   Bool_t Compare(VQwSubsystem *source);
- 
+
 };
 
 

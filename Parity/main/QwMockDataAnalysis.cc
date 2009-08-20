@@ -37,12 +37,12 @@
 
 
 // Debug level
-static bool bDebug = false;
+static bool bDebug = true;
 
 // Activate components
 static bool bHisto = true;
 static bool bTree = true;
-static bool bHelicity = false;
+static bool bHelicity = true;
 
 int main(int argc, char* argv[])
 {
@@ -60,6 +60,9 @@ int main(int argc, char* argv[])
     detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
   }
   QwHelicityPattern helicitypattern(detectors,4);
+
+  // Get the helicity
+  QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystem("Helicity info");
 
   // Event buffer
   QwEventBuffer eventbuffer;
@@ -118,17 +121,29 @@ int main(int argc, char* argv[])
       //  Check to see if we want to process this event.
       if (eventbuffer.GetEventNumber() < commandline.GetFirstEvent()) continue;
       else if (eventbuffer.GetEventNumber() > commandline.GetLastEvent()) break;
-      if (bDebug) {
-        std::cout << "==================================================== \n";
-        std::cout << "New event: n = " << eventbuffer.GetEventNumber() << "\n";
-        std::cout << "==================================================== \n";
-      }
 
       // Fill the subsystem objects with their respective data for this event.
       eventbuffer.FillSubsystemData(detectors);
 
       // Process this events
       detectors.ProcessEvent();
+
+      // Print the helicity information
+      if (bHelicity && bDebug) {
+        // - actual helicity
+        if      (helicity->GetHelicityActual() == 0) std::cout << "-";
+        else if (helicity->GetHelicityActual() == 1) std::cout << "+";
+        else std::cout << "?";
+        // - delayed helicity
+        if      (helicity->GetHelicityDelayed() == 0) std::cout << "(-) ";
+        else if (helicity->GetHelicityDelayed() == 1) std::cout << "(+) ";
+        else std::cout << "(?) ";
+        if (helicity->GetPhaseNumber() == 4) {
+          std::cout << std::hex << helicity->GetRandomSeedActual() << std::dec << ",  \t";
+          std::cout << std::hex << helicity->GetRandomSeedDelayed() << std::dec << std::endl;
+        }
+      }
+
 
       // Fill the histograms
       if (bHisto) detectors.FillHistograms();

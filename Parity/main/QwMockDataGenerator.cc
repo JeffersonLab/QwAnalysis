@@ -29,6 +29,9 @@
 #define NVARS 8
 
 
+// Multiplet structure
+static const int kMultiplet = 4;
+
 // Debug
 static bool kDebug = true;
 
@@ -49,11 +52,16 @@ int main(int argc, char* argv[])
   detectors.push_back(new QwHelicity("Helicity info"));
   detectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_helicity.map");
   detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
-  QwHelicityPattern QwHelPat(detectors,4);
+  QwHelicityPattern QwHelPat(detectors, kMultiplet);
 
+  // Get the helicity
+  QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystem("Helicity info");
 
   // Possible scenarios:
   // - everything is random, no correlations at all, no asymmetries at all
+  // - variations in the mean of position, current, yield over the course of
+  //   a run (linearly with run number, change mean/sigma as function of event
+  //   number)
   // - one parameter has a helicity-correlated asymmetry, every other parameter
   //   is random and independently distributed
   // - two parameters have independent helicity-correlated asymmetries
@@ -114,7 +122,14 @@ int main(int argc, char* argv[])
     eventbuffer.EncodePrestartEvent(run, 0); // prestart: runnumber, runtype
     eventbuffer.EncodeGoEvent();
 
+
+    // Helicity initialization loop
+    unsigned int seed = 0x2; // 24-bit seed, should be larger than 0x1, 0x55 = 0101 0101
+    helicity->SetFirst24Bits(seed);
+
+
     // Event generation loop
+    if (kDebug) std::cout << "Starting event loop..." << std::endl;
     for (Int_t event = commandline.GetFirstEvent();
                event <= commandline.GetLastEvent(); event++) {
 
@@ -122,6 +137,29 @@ int main(int argc, char* argv[])
       detectors.ClearEventData();
       detectors.RandomizeEventData();
 
+      // Set the event, pattern and phase number
+      // - event number increments for every event
+      // - pattern number increments for every multiplet
+      // - phase number gives position in multiplet
+      helicity->SetEventPatternPhase(event, event / kMultiplet, event % kMultiplet + 1);
+
+      // Run the helicity predictor
+      helicity->RunPredictor();
+      // Concise helicity printout
+      if (kDebug) {
+        // - actual helicity
+        if      (helicity->GetHelicityActual() == 0) std::cout << "-";
+        else if (helicity->GetHelicityActual() == 1) std::cout << "+";
+        else std::cout << "?";
+        // - delayed helicity
+        if      (helicity->GetHelicityDelayed() == 0) std::cout << "(-) ";
+        else if (helicity->GetHelicityDelayed() == 1) std::cout << "(+) ";
+        else std::cout << "(?) ";
+        if (event % kMultiplet + 1 == 4) {
+          std::cout << std::hex << helicity->GetRandomSeedActual() << std::dec << ",  \t";
+          std::cout << std::hex << helicity->GetRandomSeedDelayed() << std::dec << std::endl;
+        }
+      }
 
       // Secondly introduce correlations between variables
       //
