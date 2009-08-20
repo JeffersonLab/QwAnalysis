@@ -24,6 +24,7 @@ void QwVQWK_Module::SetChannel(size_t channel, TString &name)
 	      << ".  We can't rename it!."
 	      << std::endl;
   } else {
+    std::cout<<"VQWK: Set channel"<<channel<<" to "<<name<<std::endl;
     fChannels.at(channel).InitializeChannel(name,"raw");
   }
 };
@@ -69,7 +70,31 @@ void QwVQWK_Module::ClearEventData()
   fEventIsGood = kTRUE;
 };
 
+//jpan: generator randoms
+void QwVQWK_Module::RandomizeEventData()
+{
+  for (size_t i=0; i<fChannels.size(); i++){
+    fChannels.at(i).RandomizeEventData();
+  }
+  fEventIsGood = kTRUE;
 
+}
+//jpan: set mock data
+void QwVQWK_Module::SetEventData(Double_t* buffer, UInt_t sequencenumber)
+{
+  for (size_t i=0; i<fChannels.size(); i++){
+    fChannels.at(i).SetEventData(buffer,sequencenumber);
+  }
+  fEventIsGood = kTRUE;
+};
+
+//jpan: encode data for each channel
+void QwVQWK_Module::EncodeEventData(std::vector<UInt_t> &buffer)
+{
+  for (size_t i=0; i<fChannels.size(); i++){
+    fChannels.at(i).EncodeEventData(buffer);
+  }
+};
 
 Int_t QwVQWK_Module::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left)
 {
@@ -191,7 +216,40 @@ void QwVQWK_Module::Ratio(QwVQWK_Module &numer, QwVQWK_Module &denom)
   }
 };
 
+void QwVQWK_Module::SetPedestal(Double_t pedestal)
+{
+  for (size_t i=0; i<fChannels.size(); i++){
+    fChannels.at(i).SetPedestal(pedestal);
+  }
+};
 
+void QwVQWK_Module::SetCalibrationFactor(Double_t factor)
+{
+  for (size_t i=0; i<fChannels.size(); i++){
+    fChannels.at(i).SetCalibrationFactor(factor);
+  }
+};
+
+
+void QwVQWK_Module::InitializeChannel(TString name, TString datatosave)
+{
+  for (size_t i=0; i<fChannels.size(); i++){
+    fChannels.at(i).InitializeChannel(name,datatosave);
+  }
+};
+
+
+void QwVQWK_Module::SetRandomEventParameters(Double_t mean, Double_t sigma)
+{
+  for (size_t i=0; i<fChannels.size(); i++){
+    fChannels.at(i).SetRandomEventParameters(mean, sigma);
+  }
+};
+
+void  QwVQWK_Module::Print() const
+{
+  std::cout<<"QwPMT_Module::Print() not implemented yet."<<std::endl;
+};
 
 
 

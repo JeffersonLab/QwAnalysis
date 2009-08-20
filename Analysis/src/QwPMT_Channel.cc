@@ -22,6 +22,26 @@ void QwPMT_Channel::ClearEventData(){
   fValue   = 0;
 };
 
+void QwPMT_Channel::RandomizeEventData(){
+  //need to set to random value
+  fValue   = 123;
+};
+
+void  QwPMT_Channel::EncodeEventData(std::vector<UInt_t> &TrigBuffer)
+{
+  std::cout<<"QwPMT_Channel::EncodeEventData() not fully implemented yet."<<std::endl;
+
+  Long_t localbuf;
+
+  if (IsNameEmpty()) {
+    //  This channel is not used, but is present in the data stream.
+    //  Skip over this data.
+  } else {
+    localbuf = fValue;
+    TrigBuffer.push_back(localbuf);
+  }
+
+};
 
 void  QwPMT_Channel::ProcessEvent()
 {
@@ -102,4 +122,7 @@ QwPMT_Channel& QwPMT_Channel::operator= (const QwPMT_Channel &value){
   return *this;
 };
 
-
+void QwPMT_Channel::Print() const
+{
+  std::cout<<"QwPMT_Channel::Print() not implemented yet."<<std::endl;
+};

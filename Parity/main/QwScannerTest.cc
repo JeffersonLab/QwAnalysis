@@ -125,41 +125,27 @@ static int kDebug = 1;
     for (Int_t event = cmdline.GetFirstEvent();
                event <= cmdline.GetLastEvent(); event++) {
 
-      // First create the independent random data
       QwDetectors.ClearEventData();
       QwDetectors.RandomizeEventData();
 
 
-  // Data block
-  Double_t block[4] = {0.0, 0.0, 0.0, 0.0};
-  UInt_t sequencenumber = 0;
-
-    // Clear event
-    scanner->ClearEventData();
-
-    // Set event to random value
-    block[0] = 1000.4999;
-    block[1] = 2001.5001;
-    block[2] = 3002.0001;
-    block[3] = 4003.9999;
-    scanner->SetEventData(block, event);
- 
-   if (kDebug) {
-      if (kDebug) std::cout<<"Printing the data:"<<std::endl;
-      scanner->Print();
-    }
-
     // Fill in appropriate buffer
-    std::vector<UInt_t> buffer;
-    scanner->EncodeEventData(buffer);
-    // Print this buffer
+    std::vector<UInt_t> sumbuffer;
+    std::vector<UInt_t> trigbuffer;
+    scanner->EncodeEventData(sumbuffer,trigbuffer);
+    // Print buffer
     if (kDebug) {
-      std::cout << std::endl << "Buffer: ";
-      for (size_t i = 0; i < buffer.size(); i++)
-        std::cout << std::hex << buffer.at(i) << " ";
+      std::cout << std::endl << "SumBuffer: ";
+      for (size_t i = 0; i < sumbuffer.size(); i++)
+        std::cout << std::hex << sumbuffer.at(i) << " ";
       std::cout << std::dec << std::endl;
     }
-
+    if (kDebug) {
+      std::cout << std::endl << "TrigBuffer: ";
+      for (size_t i = 0; i < trigbuffer.size(); i++)
+        std::cout << std::hex << trigbuffer.at(i) << " ";
+      std::cout << std::dec << std::endl;
+    }
     // Write this event to file
     QwEvt.EncodeSubsystemData(QwDetectors);
 
@@ -176,6 +162,7 @@ static int kDebug = 1;
 } //end of run loop
 
 
+
 //////////////////////////////////////////////////////
 //  processing scanner mock data
 //////////////////////////////////////////////////////
@@ -186,7 +173,7 @@ static int kDebug = 1;
       //  Begin processing for the first run.
       //  Start the timer.
       timer.Start();
-      
+
       //  Try to open the data file.
       if (QwEvt.OpenDataFile(run) != CODA_OK)
 	{
@@ -213,18 +200,14 @@ static int kDebug = 1;
     //  To pass a subdirectory named "subdir", we would do:
     //    QwDetectors.at(1)->ConstructHistograms(rootfile.mkdir("subdir"));
     // QwDetectors.at(1)->ConstructHistograms(rootfile.mkdir("scanner"));
-    if (kDebug) std::cout<<"Creating histograms: ";
+    if (kDebug) std::cout<<" ==== Creating histograms ==== "<<std::endl;
     rootfile.cd();
     QwDetectors.ConstructHistograms(rootfile.mkdir("scanner_histo"));
     if (kDebug) std::cout<<"...Done. "<<std::endl;
 
-    //    TDirectory *asymdir = rootfile.mkdir("qrt");
-    //    sum.ConstructHistograms(asymdir,"yield" );
-    //    asym.ConstructHistograms(asymdir,"asym" );
-
-    rootfile.cd();
-
+    int EvtCounter = 0;
     while (QwEvt.GetEvent() == CODA_OK){
+       EvtCounter++;
       //  Loop over events in this CODA file
       //  First, do processing of non-physics events...
       if (QwEvt.IsROCConfigurationEvent()){
@@ -235,7 +218,10 @@ static int kDebug = 1;
 
       //  Now, if this is not a physics event, go back and get
       //  a new event.
-      if (! QwEvt.IsPhysicsEvent()) continue;
+      if (! QwEvt.IsPhysicsEvent()) {
+          std::cout<<"Event "<<EvtCounter<<" : not a physics event."<<std::endl;
+          continue;
+          }
 
       //  Check to see if we want to process this event.
       if (QwEvt.GetEventNumber() < cmdline.GetFirstEvent()) continue;
@@ -249,32 +235,21 @@ static int kDebug = 1;
       //  Fill the subsystem objects with their respective data for this event.
       QwEvt.FillSubsystemData(QwDetectors);
 
-
-      //  Fill the histograms for the QwDriftChamber subsystem object.
       QwDetectors.FillHistograms();
-
 
     }
     std::cout << "Number of events processed so far: "
 	      << QwEvt.GetEventNumber() << std::endl;
     timer.Stop();
 
-    /*  Write to the root file, being sure to delete the old cycles  *
-     *  which were written by Autosave.                              *
-     *  Doing this will remove the multiple copies of the ntuples    *
-     *  from the root file.                                          */
     rootfile.Write(0,TObject::kOverwrite);
 
-    //  Delete the histograms for the QwDriftChamber subsystem object.
-    //  In G0, we had to do:
-    //     Hists->ClearHists();//destroy the histogram objects
-    //     NTs->ClearNTs(io); //destroy nts according to the i/o flags
-    //     CloseAllFiles(io); //close all the output files
     QwDetectors.DeleteHistograms();
 
     QwEvt.CloseDataFile();
     QwEvt.ReportRunSummary();
     PrintInfo(timer, run);
+
 
   } //end of run loop
 

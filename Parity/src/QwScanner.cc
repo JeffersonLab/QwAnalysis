@@ -15,7 +15,7 @@ const UInt_t QwScanner::kMaxNumberOfChannelsPerModule = 32;
 
 //QwScanner::QwScanner(TString region_tmp):VQwSubsystemTracking(region_tmp){
 QwScanner::QwScanner(TString region_tmp)
-                    :VQwSubsystemTracking(region_tmp){
+                    :VQwSubsystem(region_tmp){
 
     TString name = region_tmp;
     InitializeChannel(name,"raw");
@@ -84,6 +84,8 @@ Int_t QwScanner::LoadChannelMap(TString mapfile){
 	//  We've seen this signal
       } else {
 	//  If not, push a new record into the element array
+        if (modtype=="V792") std::cout<<"V792: ";
+        if (modtype=="V775") std::cout<<"V775: ";
 	LinkChannelToSignal(channum, name);
       }
       }
@@ -128,14 +130,13 @@ Int_t QwScanner::LoadInputParameters(TString pedestalfile)
 	  if (ldebug) std::cout<<"inputs for channel "<<varname
 			      <<": ped="<<varped<<": cal="<<varcal<<"\n"; 
 	  // Bool_t notfound=kTRUE;
- 	}
-      
+	}
     } 
   if (ldebug) std::cout<<" line read in the pedestal + cal file ="<<lineread<<" \n";
 
   ldebug=kFALSE;
   return 0;
-    };
+  };
 
 
 void  QwScanner::ClearEventData(){
@@ -152,7 +153,6 @@ void  QwScanner::ClearEventData(){
     }
   }
 
-  fTriumf_ADC.ClearEventData();
 };
 
 
@@ -266,12 +266,16 @@ void  QwScanner::ProcessEvent(){
 
 void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix){
 
+  std::cout<<"Construct histograms for scanner:"<<std::endl;
+
+  std::cout<<"V792/V775 modules:"<<std::endl;
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).ConstructHistograms(folder, prefix);
     }
   }
 
+  std::cout<<"VQWK module:"<<std::endl;
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
       fADC_Data.at(i)->ConstructHistograms(folder, prefix);
@@ -453,7 +457,7 @@ QwScanner& QwScanner::operator-=  ( QwScanner &value)
 
 
 void QwScanner::ClearAllBankRegistrations(){
-  VQwSubsystemTracking::ClearAllBankRegistrations();
+  VQwSubsystem::ClearAllBankRegistrations();
   fModuleIndex.clear();
   fModulePtrs.clear();
   fModuleTypes.clear();
@@ -461,7 +465,7 @@ void QwScanner::ClearAllBankRegistrations(){
 }
 
 Int_t QwScanner::RegisterROCNumber(const UInt_t roc_id){
-  VQwSubsystemTracking::RegisterROCNumber(roc_id, 0);
+  VQwSubsystem::RegisterROCNumber(roc_id, 0);
   fCurrentBankIndex = GetSubbankIndex(roc_id, 0);
   std::vector<Int_t> tmpvec(kMaxNumberOfModulesPerROC,-1);
   fModuleIndex.push_back(tmpvec);
@@ -514,9 +518,8 @@ Int_t QwScanner::LinkChannelToSignal(const UInt_t chan, const TString &name){
   size_t index = fCurrentType;
   fPMTs.at(index).push_back(QwPMT_Channel(name));
   fModulePtrs.at(fCurrentIndex).at(chan).first  = index;
-  fModulePtrs.at(fCurrentIndex).at(chan).second =
-    fPMTs.at(index).size() -1;
-  
+  fModulePtrs.at(fCurrentIndex).at(chan).second = fPMTs.at(index).size() -1;
+  std::cout<<"Linked channel"<<chan<<" to signal "<<name<<std::endl;
   return 0;
 };
 
@@ -562,59 +565,123 @@ Int_t QwScanner::FindSignalIndex(const QwScanner::EModuleType modtype, const TSt
 
 
 /********************************************************/
-void QwScanner::SetEventData(Double_t* block, UInt_t sequencenumber)
+void QwScanner::SetEventData(Double_t* scannerevent, UInt_t sequencenumber)
 {
-  fTriumf_ADC.SetEventData(block, sequencenumber);
+  for (size_t i=0; i<fPMTs.size(); i++){
+    for (size_t j=0; j<fPMTs.at(i).size(); j++){
+      fPMTs.at(i).at(j).SetValue(scannerevent[4+i]);
+    }
+  }
+
+  for (size_t i=0; i<fADC_Data.size(); i++){
+    if (fADC_Data.at(i) != NULL){
+      fADC_Data.at(i)->SetEventData(scannerevent,sequencenumber);
+    }
+  }
+
   return;
 };
 
 /********************************************************/
 void QwScanner::SetPedestal(Double_t pedestal)
 {
-	fPedestal=pedestal;
-	fTriumf_ADC.SetPedestal(fPedestal);
-	return;
+  fPedestal=pedestal;
+
+  for (size_t i=0; i<fADC_Data.size(); i++){
+    if (fADC_Data.at(i) != NULL){
+      fADC_Data.at(i)->SetPedestal(fPedestal);
+    }
+  }
+
+  return;
 };
 
 void QwScanner::SetCalibrationFactor(Double_t calib)
 {
-	fCalibration=calib;
-	fTriumf_ADC.SetCalibrationFactor(fCalibration);
-	return;
+  fCalibration=calib;
+  for (size_t i=0; i<fADC_Data.size(); i++){
+    if (fADC_Data.at(i) != NULL){
+      fADC_Data.at(i)->SetCalibrationFactor(fCalibration);
+    }
+  }
+
+  return;
 };
+
 /********************************************************/
 void  QwScanner::InitializeChannel(TString name, TString datatosave)
 {
   SetPedestal(0.);
   SetCalibrationFactor(1.);
-  fTriumf_ADC.InitializeChannel(name,datatosave);
+  for (size_t i=0; i<fADC_Data.size(); i++){
+    if (fADC_Data.at(i) != NULL){
+      fADC_Data.at(i)->InitializeChannel(name,datatosave);
+    }
+  }
 
-  //SetElementName(name);
   return;
 };
 /********************************************************/
 
 void QwScanner::SetRandomEventParameters(Double_t mean, Double_t sigma)
 {
-  fTriumf_ADC.SetRandomEventParameters(mean, sigma);
+  for (size_t i=0; i<fADC_Data.size(); i++){
+    if (fADC_Data.at(i) != NULL){
+      fADC_Data.at(i)->SetRandomEventParameters(mean, sigma);
+    }
+  }
+
   return;
 };
 /********************************************************/
 void QwScanner::RandomizeEventData()
 {
-  fTriumf_ADC.RandomizeEventData();
+  for (size_t i=0; i<fPMTs.size(); i++){
+    for (size_t j=0; j<fPMTs.at(i).size(); j++){
+      fPMTs.at(i).at(j).RandomizeEventData();
+    }
+  }
+
+  for (size_t i=0; i<fADC_Data.size(); i++){
+    if (fADC_Data.at(i) != NULL){
+      fADC_Data.at(i)->RandomizeEventData();
+    }
+  }
   return;
 };
 
 /********************************************************/
-void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
+void QwScanner::EncodeEventData(std::vector<UInt_t> &SumBuffer, std::vector<UInt_t> &TrigBuffer)
 {
-  fTriumf_ADC.EncodeEventData(buffer);
+  for (size_t i=0; i<fADC_Data.size(); i++){
+    if (fADC_Data.at(i) != NULL){
+      fADC_Data.at(i)->EncodeEventData(SumBuffer);
+    }
+  }
+
+  for (size_t i=0; i<fPMTs.size(); i++){
+    for (size_t j=0; j<fPMTs.at(i).size(); j++){
+      fPMTs.at(i).at(j).EncodeEventData(TrigBuffer);
+    }
+  }
+
 };
 /********************************************************/
 
-void QwScanner::Print() const
+void QwScanner::Print()
 {
-  fTriumf_ADC.Print();
+  //fTriumf_ADC.Print();
+  for (size_t i=0; i<fADC_Data.size(); i++){
+    if (fADC_Data.at(i) != NULL){
+      fADC_Data.at(i)->Print();
+    }
+  }
+
+  for (size_t i=0; i<fPMTs.size(); i++){
+    for (size_t j=0; j<fPMTs.at(i).size(); j++){
+      fPMTs.at(i).at(j).Print();
+    }
+  }
+
   return;
 }

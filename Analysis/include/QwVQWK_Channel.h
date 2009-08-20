@@ -44,6 +44,7 @@ class QwVQWK_Channel: public VQwDataElement {
   void  InitializeChannel(TString name, TString datatosave){
     SetElementName(name);
     SetNumberOfDataWords(6);
+    fSamplesPerBlock = 16680;  //jpan: total samples = fSamplesPerBlock x fBlocksPerEvent
     fBlocksPerEvent = 4;
     fPedestal=0.0;
     fCalibrationFactor=1.;

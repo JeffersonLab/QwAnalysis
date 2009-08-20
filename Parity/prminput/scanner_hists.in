@@ -12,14 +12,10 @@
 
 quartz_front_adc		TH1F	4001	-0.5		4000.5			QuartzFrontADC	Events
 quartz_back_adc			TH1F	4001	-0.5		4000.5			QuartzBackADC	Events
-trigg1_adc			TH1F	4001	-0.5		4000.5			Trigg1_ADC	Events
-trigg2_adc			TH1F	4001	-0.5		4000.5			Trigg2_ADC	Events
+quartz_front_tdc		TH1F	4001	-0.5		4000.5			QuartzFrontTDC	Events
+quartz_back_tdc			TH1F	4001	-0.5		4000.5			QuartzBackTDC	Events
 
-triggertdc			TH1F	4001	-0.5		4000.5			TriggerTDC	Events
-clock__tdc			TH1F	4001	-0.5		4000.5			Clock_TDC	Events
-quartz_tdc			TH1F	4001	-0.5		4000.5			QuartzTDC	Events
-
-SCAN_POW     			TH1F	4001	-0.5		4000.5			scan_pow	Events
-SCAN_POSX     			TH1F	4001	-0.5		4000.5			scan_posx	Events
-SCAN_POSY     			TH1F	4001	-0.5		4000.5			scan_posy	Events
+SCAN_POW     			TH1F	10001	-0.5		10000.5			scan_pow	Events
+SCAN_POSX     			TH1F	10001	-0.5		10000.5			scan_posx	Events
+SCAN_POSY     			TH1F	10001	-0.5		10000.5			scan_posy	Events
 

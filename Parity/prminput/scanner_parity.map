@@ -17,16 +17,13 @@ slot=2
 ! module.type  module.num  chan.num, det.type, det.name
   V792, 0, 0, scanner_qadc, quartz_front_adc
   V792, 0, 1, scanner_qadc, quartz_back_adc
-  V792, 0, 2, scanner_qadc, trigg1_adc
-  V792, 0, 3, scanner_qadc, trigg2_adc
 !
 !
 slot=4
 !module=V775
 ! module.type  module.num  chan.num, det.type, det.name
-  V775, 1, 0, scanner_tdc, triggertdc
-  V775, 1, 1, scanner_tdc, clock__tdc
-  V775, 1, 2, scanner_tdc, quartz_tdc
+  V775, 1, 0, scanner_tdc, quartz_front_tdc
+  V775, 1, 1, scanner_tdc, quartz_back_tdc
 !
 !
 !

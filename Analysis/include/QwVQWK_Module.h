@@ -42,6 +42,9 @@ class QwVQWK_Module {
   Int_t ProcessConfigBuffer(UInt_t* buffer, UInt_t num_words_left);
 
   void  ClearEventData();
+  void  RandomizeEventData();
+  void  SetEventData(Double_t* buffer, UInt_t sequencenumber); //jpan: set mock data
+  void  EncodeEventData(std::vector<UInt_t> &buffer);
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left);
 
   QwVQWK_Module& operator=  (const QwVQWK_Module &value);
@@ -66,7 +69,12 @@ class QwVQWK_Module {
 
   Bool_t IsGoodEvent(){return fEventIsGood;};
 
+  void SetPedestal(Double_t pedestal);
+  void SetCalibrationFactor(Double_t factor);
+  void InitializeChannel(TString name, TString datatosave);
+  void SetRandomEventParameters(Double_t mean, Double_t sigma);
 
+  void Print() const;
 
 
 
