@@ -83,7 +83,7 @@ class QwBeamLine : public VQwSubsystemParity{
   void  ProcessEvent();
   Bool_t IsGoodEvent();
 
-  void RandomizeEventData();
+  void RandomizeEventData(int helicity);
   void EncodeEventData(std::vector<UInt_t> &buffer);
 
   VQwSubsystem&  operator=  (VQwSubsystem *value);

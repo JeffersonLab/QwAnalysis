@@ -35,7 +35,7 @@ class QwBPMStripline : public VQwDataElement{
   void  ClearEventData();
 
   void  SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t meanY, Double_t sigmaY);
-  void  RandomizeEventData();
+  void  RandomizeEventData(int helicity);
   void  SetEventData(Double_t* block, UInt_t sequencenumber);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
 

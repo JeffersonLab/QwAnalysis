@@ -247,15 +247,15 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 }
 
 //*****************************************************************
-void QwBeamLine::RandomizeEventData()
+void QwBeamLine::RandomizeEventData(int helicity)
 {
   // Randomize all QwBPMStripline buffers
   for (size_t i = 0; i < fStripline.size(); i++)
-    fStripline[i].RandomizeEventData();
+    fStripline[i].RandomizeEventData(helicity);
 
   // Randomize all QwBCM buffers
   for (size_t i = 0; i < fBCM.size(); i++)
-    fBCM[i].RandomizeEventData();
+    fBCM[i].RandomizeEventData(helicity);
 }
 //*****************************************************************
 void QwBeamLine::EncodeEventData(std::vector<UInt_t> &buffer)

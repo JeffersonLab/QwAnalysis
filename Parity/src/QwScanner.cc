@@ -59,7 +59,7 @@ Int_t QwScanner::LoadChannelMap(TString mapfile){
 	RegisterSubbank(value);
       } else if (varname=="slot"){
         RegisterSlotNumber(value);
-      } 
+      }
       } else {
       //  Break this line into tokens to process it.
       modtype   = mapstr.GetNextToken(", ").c_str();
@@ -73,7 +73,7 @@ Int_t QwScanner::LoadChannelMap(TString mapfile){
         //std::cout<<"modnum="<<modnum<<"    "<<"fADC_Data.size="<<fADC_Data.size()<<std::endl;
 	if (modnum >= (Int_t) fADC_Data.size())  fADC_Data.resize(modnum+1, new QwVQWK_Module());
 	fADC_Data.at(modnum)->SetChannel(channum, name);
-      } 
+      }
 
       else if (modtype=="V792" || modtype=="V775"){
 	RegisterModuleType(modtype);
@@ -128,10 +128,10 @@ Int_t QwScanner::LoadInputParameters(TString pedestalfile)
 	  varped= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
 	  varcal= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
 	  if (ldebug) std::cout<<"inputs for channel "<<varname
-			      <<": ped="<<varped<<": cal="<<varcal<<"\n"; 
+			      <<": ped="<<varped<<": cal="<<varcal<<"\n";
 	  // Bool_t notfound=kTRUE;
 	}
-    } 
+    }
   if (ldebug) std::cout<<" line read in the pedestal + cal file ="<<lineread<<" \n";
 
   ldebug=kFALSE;
@@ -164,7 +164,7 @@ Int_t QwScanner::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t ba
     UInt_t words_read = 0;
     for (size_t i=0; i<fADC_Data.size(); i++){
       if (fADC_Data.at(i) != NULL){
- 	words_read += fADC_Data.at(i)->ProcessConfigBuffer(&(buffer[words_read]), 
+ 	words_read += fADC_Data.at(i)->ProcessConfigBuffer(&(buffer[words_read]),
 							   num_words-words_read);
       }
     }
@@ -197,7 +197,7 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
       UInt_t words_read = 0;
       for (size_t i=0; i<fADC_Data.size(); i++){
         if (fADC_Data.at(i) != NULL){
-   	  words_read += fADC_Data.at(i)->ProcessEvBuffer(&(buffer[words_read]), 
+   	  words_read += fADC_Data.at(i)->ProcessEvBuffer(&(buffer[words_read]),
 						       num_words-words_read);
         }
       }
@@ -357,18 +357,18 @@ void  QwScanner::ReportConfiguration(){
     for (size_t j=0; j<fBank_IDs.at(i).size(); j++){
 
       Int_t ind = GetSubbankIndex(fROC_IDs.at(i),fBank_IDs.at(i).at(j));
-      std::cout << "ROC " << fROC_IDs.at(i) 
-		<< ", subbank " << fBank_IDs.at(i).at(j) 
+      std::cout << "ROC " << fROC_IDs.at(i)
+		<< ", subbank " << fBank_IDs.at(i).at(j)
 		<< ":  subbank index==" << ind
 		<< std::endl;
 
       if (fBank_IDs.at(i).at(j)!=2222){
         for (size_t k=0; k<kMaxNumberOfModulesPerROC; k++){
 	  Int_t QadcTdcindex = GetModuleIndex(ind,k);
-	  if (QadcTdcindex != -1){ 
+	  if (QadcTdcindex != -1){
 	    std::cout << "    Slot " << k;
 	    std::cout << "  Module#" << QadcTdcindex << std::endl;
-            } 
+            }
           }
         }else {
 	  std::cout << "    Number of QWAK:  " << fADC_Data.size() << std::endl;
@@ -381,7 +381,7 @@ void  QwScanner::ReportConfiguration(){
 
 Bool_t  QwScanner::Compare(QwScanner &value)
 {
- 
+
   return kTRUE;
 }
 
@@ -399,7 +399,7 @@ QwScanner& QwScanner::operator=  (QwScanner &value){
 //    for(size_t i=0;i<input->fADC_Data.size();i++){
 //      *(QwVQWK_Module*)fADC_Data.at(i) = *(QwVQWK_Module*)(input->fADC_Data.at(i));
 //    }
-//  } 
+//  }
   else {
     std::cerr << "QwScanner::operator=:  Problems!!!"
 	      << std::endl;
@@ -634,17 +634,17 @@ void QwScanner::SetRandomEventParameters(Double_t mean, Double_t sigma)
   return;
 };
 /********************************************************/
-void QwScanner::RandomizeEventData()
+void QwScanner::RandomizeEventData(int helicity)
 {
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
-      fPMTs.at(i).at(j).RandomizeEventData();
+      fPMTs.at(i).at(j).RandomizeEventData(helicity);
     }
   }
 
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
-      fADC_Data.at(i)->RandomizeEventData();
+      fADC_Data.at(i)->RandomizeEventData(helicity);
     }
   }
   return;

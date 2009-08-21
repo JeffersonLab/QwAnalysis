@@ -88,10 +88,10 @@ void QwBPMStripline::SetRandomEventParameters(Double_t meanX, Double_t sigmaX, D
   fWire[3].SetRandomEventParameters(meanYM, sigmaYM);
 };
 /********************************************************/
-void QwBPMStripline::RandomizeEventData()
+void QwBPMStripline::RandomizeEventData(int helicity)
 {
   for (int i = 0; i < 4; i++)
-    fWire[i].RandomizeEventData();
+    fWire[i].RandomizeEventData(helicity);
 
   ProcessEvent();
   return;

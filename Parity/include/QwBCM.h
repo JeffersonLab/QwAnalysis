@@ -34,7 +34,9 @@ class QwBCM : public VQwDataElement{
   void  ClearEventData();
 
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
-  void  RandomizeEventData();
+  void  SetRandomEventAsymmetry(Double_t asymmetry);
+  void  RandomizeEventData(int helicity);
+  void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
   void  SetEventData(Double_t* block, UInt_t sequencenumber);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
 

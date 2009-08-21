@@ -46,7 +46,7 @@ class QwScanner: public VQwSubsystem,
   void  SetEventData(Double_t* scannerevent, UInt_t sequencenumber);
   void  SetPedestal(Double_t ped);
   void  SetCalibrationFactor(Double_t calib);
-  void  RandomizeEventData();
+  void  RandomizeEventData(int helicity);
   void  EncodeEventData(std::vector<UInt_t> &SumBuffer, std::vector<UInt_t> &TrigBuffer);
   Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   void  ProcessEvent();
@@ -85,7 +85,7 @@ class QwScanner: public VQwSubsystem,
   Int_t RegisterROCNumber(const UInt_t roc_id);
 
   // Tells this object that it will decode data from the current bank
-  Int_t RegisterSlotNumber(const UInt_t slot_id); 
+  Int_t RegisterSlotNumber(const UInt_t slot_id);
   const QwScanner::EModuleType RegisterModuleType(TString moduletype);
   Int_t GetModuleIndex(size_t bank_index, size_t slot_num) const;
   Bool_t IsSlotRegistered(Int_t bank_index, Int_t slot_num) const {
@@ -110,7 +110,7 @@ class QwScanner: public VQwSubsystem,
   std::vector< std::vector<QwPMT_Channel> > fPMTs;
 
  private:
- 
+
   Double_t fPedestal;
   Double_t fCalibration;
   QwVQWK_Channel fTriumf_ADC;

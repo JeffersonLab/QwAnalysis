@@ -49,9 +49,21 @@ void QwBCM::SetRandomEventParameters(Double_t mean, Double_t sigma)
   return;
 };
 /********************************************************/
-void QwBCM::RandomizeEventData()
+void QwBCM::SetRandomEventAsymmetry(Double_t asymmetry)
 {
-  fTriumf_ADC.RandomizeEventData();
+  fTriumf_ADC.SetRandomEventAsymmetry(asymmetry);
+  return;
+};
+/********************************************************/
+void QwBCM::RandomizeEventData(int helicity)
+{
+  fTriumf_ADC.RandomizeEventData(helicity);
+  return;
+};
+/********************************************************/
+void QwBCM::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
+{
+  fTriumf_ADC.SetHardwareSum(hwsum, sequencenumber);
   return;
 };
 /********************************************************/

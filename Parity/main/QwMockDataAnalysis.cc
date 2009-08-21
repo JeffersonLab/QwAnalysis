@@ -36,8 +36,11 @@
 #define NVARS 4
 
 
+// Multiplet structure
+static const int kMultiplet = 4;
+
 // Debug level
-static bool bDebug = true;
+static bool bDebug = false;
 
 // Activate components
 static bool bHisto = true;
@@ -59,7 +62,7 @@ int main(int argc, char* argv[])
     detectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_helicity.map");
     detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
   }
-  QwHelicityPattern helicitypattern(detectors,4);
+  QwHelicityPattern helicitypattern(detectors,kMultiplet);
 
   // Get the helicity
   QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystem("Helicity info");
@@ -83,16 +86,25 @@ int main(int argc, char* argv[])
     }
     eventbuffer.ResetControlParameters();
 
-    // ROOT file (output)
+
+    // ROOT file output (histograms)
     TString rootfilename = TString("QwMock_") + Form("%ld.root",run);
     TFile rootfile(rootfilename, "RECREATE", "QWeak ROOT file");
     if (bHisto) {
       rootfile.cd();
       detectors.ConstructHistograms(rootfile.mkdir("mps_histo"));
+      if (bHelicity) {
+        rootfile.cd();
+        helicitypattern.ConstructHistograms(rootfile.mkdir("hel_histo"));
+      }
     }
+
+    // ROOT file output (trees)
     TTree *mpstree;
+    TTree *heltree;
     Int_t eventnumber;
     std::vector <Double_t> mpsvector;
+    std::vector <Double_t> helvector;
     if (bTree) {
       rootfile.cd();
       mpstree = new TTree("MPS_Tree","MPS event data tree");
@@ -103,6 +115,13 @@ int main(int argc, char* argv[])
       if (bHelicity)
         ((QwBeamLine*)detectors.GetSubsystem("Helicity info"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
       rootfile.cd();
+      if (bHelicity) {
+        rootfile.cd();
+        heltree = new TTree("HEL_Tree","Helicity event data tree");
+        helvector.reserve(6000);
+        TString dummystr="";
+        helicitypattern.ConstructBranchAndVector(heltree, dummystr, helvector);
+      }
     }
 
 
@@ -127,6 +146,10 @@ int main(int argc, char* argv[])
 
       // Process this events
       detectors.ProcessEvent();
+
+      // Helicity pattern
+      if (bHelicity)
+        helicitypattern.LoadEventData(detectors);
 
       // Print the helicity information
       if (bHelicity && bDebug) {
@@ -157,8 +180,21 @@ int main(int argc, char* argv[])
         mpstree->Fill();
       }
 
+      // TODO We need another check here to test for pattern validity.  Right
+      // now the first 24 cycles are also added to the histograms.
+      if (bHelicity && helicitypattern.IsCompletePattern()) {
+        helicitypattern.CalculateAsymmetry();
+        if (bHisto) helicitypattern.FillHistograms();
+        if (bTree) {
+          helicitypattern.FillTreeVector(helvector);
+          heltree->Fill();
+        }
+        helicitypattern.ClearEventData();
+      }
+
       // Periodically print event number
-      if (eventbuffer.GetEventNumber() % 1000 == 0)
+      if ((bDebug && eventbuffer.GetEventNumber() % 1000 == 0)
+                  || eventbuffer.GetEventNumber() % 10000 == 0)
         std::cout << "Number of events processed so far: "
                   << eventbuffer.GetEventNumber() << std::endl;
 
@@ -168,6 +204,8 @@ int main(int argc, char* argv[])
     rootfile.Write(0,TObject::kOverwrite);
     if (bHisto) {
       detectors.DeleteHistograms();
+      if (bHelicity) helicitypattern.DeleteHistograms();
+
     }
 
     // Close data file and print run summary

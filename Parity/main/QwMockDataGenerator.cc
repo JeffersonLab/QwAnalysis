@@ -26,7 +26,7 @@
 
 
 // Number of variables to correlate
-#define NVARS 8
+#define NVARS 3
 
 
 // Multiplet structure
@@ -70,6 +70,7 @@ int main(int argc, char* argv[])
   // Get the channels we want to correlate
   QwBeamLine* beamline = (QwBeamLine*) detectors.GetSubsystem("Injector BeamLine");
 
+  // Some BCMs
   QwBCM* bcm[8];
   bcm[0] = beamline->GetBCM("qwk_bcm0l00");
   bcm[1] = beamline->GetBCM("qwk_bcm0l01");
@@ -84,6 +85,11 @@ int main(int argc, char* argv[])
   for (int i = 0; i < 8; i++)
     bcm[i]->SetRandomEventParameters(bcm_mean, bcm_sigma);
 
+  // Set asymmetry for one BCM
+  Double_t bcm_asym = 1.0e-5;
+  bcm[7]->SetRandomEventAsymmetry(bcm_asym);
+
+  // Some BPMs
   QwBPMStripline* bpm[2];
   bpm[0] = beamline->GetBPMStripline("qwk_0r06");
   bpm[1] = beamline->GetBPMStripline("qwk_0l06");
@@ -133,9 +139,8 @@ int main(int argc, char* argv[])
     for (Int_t event = commandline.GetFirstEvent();
                event <= commandline.GetLastEvent(); event++) {
 
-      // First create the independent random data
+      // First clear the event
       detectors.ClearEventData();
-      detectors.RandomizeEventData();
 
       // Set the event, pattern and phase number
       // - event number increments for every event
@@ -161,6 +166,10 @@ int main(int argc, char* argv[])
         }
       }
 
+      // Fill the detectors with randomized data
+      int myhelicity = helicity->GetHelicityActual() ? +1 : -1;
+      detectors.RandomizeEventData(myhelicity);
+
       // Secondly introduce correlations between variables
       //
       // N-dimensional correlated normal random variables:
@@ -175,13 +184,29 @@ int main(int argc, char* argv[])
       double C[NVARS][NVARS];
       for (int var = 0; var < NVARS; var++) {
         x[var] = 0.0;
-        z[var] = normal();
+        z[var] = bcm_mean + bcm_sigma * normal();
         C[var][var] = 1.0;
       }
+      /* Sigma =
+           1.00000   0.50000   0.50000
+           0.50000   2.00000   0.30000
+           0.50000   0.30000   1.50000
+         C =
+           1.00000   0.50000   0.50000
+           0.00000   1.32288   0.03780
+           0.00000   0.00000   1.11739
+       */
+      C[0][0] = 1.0; C[0][1] = 0.5;     C[0][2] = 0.5;
+      C[1][0] = 0.0; C[1][1] = 1.32288; C[1][2] = 0.03780;
+      C[2][0] = 0.0; C[2][1] = 0.0;     C[2][2] = 1.11739;
       for (int i = 0; i < NVARS; i++)
         for (int j = 0; j < NVARS; j++)
           x[i] += C[j][i] * z[j];
-      // Unused for now
+
+      // Assign to BCMs
+      bcm[0]->SetHardwareSum(x[0]);
+      bcm[1]->SetHardwareSum(x[1]);
+      bcm[2]->SetHardwareSum(x[2]);
 
 
       // Write this event to file
@@ -189,7 +214,8 @@ int main(int argc, char* argv[])
 
 
       // Periodically print event number
-      if (kDebug && event % 1000 == 0)
+      if ((kDebug && event % 1000 == 0)
+                  || event % 10000 == 0)
         std::cout << "Generated " << event << " events." << std::endl;
 
 
@@ -202,4 +228,4 @@ int main(int argc, char* argv[])
 
   } // end of run loop
 
-}
+} // end of main
