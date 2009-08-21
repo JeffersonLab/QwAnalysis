@@ -33,7 +33,7 @@
 static const int kMultiplet = 4;
 
 // Debug
-static bool kDebug = true;
+static bool kDebug = false;
 
 int main(int argc, char* argv[])
 {
