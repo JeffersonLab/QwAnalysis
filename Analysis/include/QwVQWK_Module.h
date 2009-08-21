@@ -42,6 +42,8 @@ class QwVQWK_Module {
   Int_t ProcessConfigBuffer(UInt_t* buffer, UInt_t num_words_left);
 
   void  ClearEventData();
+  void  SetRandomEventParameters(Double_t mean, Double_t sigma);
+  void  SetRandomEventAsymmetry(Double_t asymmetry);
   void  RandomizeEventData(int helicity);
   void  SetEventData(Double_t* buffer, UInt_t sequencenumber); //jpan: set mock data
   void  EncodeEventData(std::vector<UInt_t> &buffer);
@@ -72,9 +74,9 @@ class QwVQWK_Module {
   void SetPedestal(Double_t pedestal);
   void SetCalibrationFactor(Double_t factor);
   void InitializeChannel(TString name, TString datatosave);
-  void SetRandomEventParameters(Double_t mean, Double_t sigma);
 
   void Print() const;
+  QwVQWK_Channel* GetChannel(const TString name);
 
 
 

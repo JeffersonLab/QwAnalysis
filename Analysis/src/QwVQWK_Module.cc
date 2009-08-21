@@ -70,10 +70,26 @@ void QwVQWK_Module::ClearEventData()
   fEventIsGood = kTRUE;
 };
 
-//jpan: generator randoms
+void QwVQWK_Module::SetRandomEventParameters(Double_t mean, Double_t sigma)
+{
+  // Set parameters on all QwVQWK_Channels
+  for (size_t i = 0; i < fChannels.size(); i++)
+    fChannels.at(i).SetRandomEventParameters(mean, sigma);
+  return;
+};
+
+void QwVQWK_Module::SetRandomEventAsymmetry(Double_t asymmetry)
+{
+  // Set asymmetry on all QwVQWK_Channels
+  for (size_t i = 0; i < fChannels.size(); i++)
+    fChannels.at(i).SetRandomEventAsymmetry(asymmetry);
+  return;
+};
+
 void QwVQWK_Module::RandomizeEventData(int helicity)
 {
-  for (size_t i=0; i<fChannels.size(); i++){
+  // Randomize all QwVQWK_Channels
+  for (size_t i = 0; i < fChannels.size(); i++) {
     fChannels.at(i).RandomizeEventData(helicity);
   }
   fEventIsGood = kTRUE;
@@ -166,6 +182,20 @@ void  QwVQWK_Module::FillTreeVector(std::vector<Double_t> &values)
   }
 };
 
+QwVQWK_Channel* QwVQWK_Module::GetChannel(const TString name)
+{
+  QwVQWK_Channel* tmp = NULL;
+  if (! fChannels.empty()) {
+    for (size_t i = 0; i < fChannels.size(); i++) {
+      if (fChannels.at(i).GetElementName() == name) {
+        tmp = &(fChannels.at(i));
+      }
+    }
+  }
+  return tmp;
+};
+
+
 QwVQWK_Module& QwVQWK_Module::operator= (const QwVQWK_Module &value)
 {
   for (size_t i=0; i<fChannels.size(); i++){
@@ -239,16 +269,11 @@ void QwVQWK_Module::InitializeChannel(TString name, TString datatosave)
 };
 
 
-void QwVQWK_Module::SetRandomEventParameters(Double_t mean, Double_t sigma)
-{
-  for (size_t i=0; i<fChannels.size(); i++){
-    fChannels.at(i).SetRandomEventParameters(mean, sigma);
-  }
-};
-
 void  QwVQWK_Module::Print() const
 {
-  std::cout<<"QwPMT_Module::Print() not implemented yet."<<std::endl;
+  for (size_t i = 0; i < fChannels.size(); i++) {
+    fChannels.at(i).Print();
+  }
 };
 
 

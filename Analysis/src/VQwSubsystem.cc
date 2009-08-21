@@ -23,7 +23,7 @@ Int_t VQwSubsystem::FindIndex(const std::vector<UInt_t> &myvec, const UInt_t val
     if (myvec[i]==value){
       index=i;
       break;
-    } 
+    }
   }
   return index;
 };
@@ -77,6 +77,7 @@ Int_t VQwSubsystem::RegisterSubbank(const UInt_t bank_id){
   Int_t stat = 0;
   if (fCurrentROC_ID != -1){
     stat = RegisterROCNumber(fCurrentROC_ID, bank_id);
+    fCurrentBank_ID   = bank_id;
   } else {
     //  There is not a ROC registered yet!
     std::cerr << "VQwSubsystem::RegisterSubbank:  This subbank ("
