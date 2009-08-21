@@ -12,7 +12,7 @@ const Bool_t QwPMT_Channel::kDEBUG = kFALSE;
 
 /*!  Conversion factor to translate the average bit count in an ADC
  *   channel into average voltage.
- *   The base factor is 0.07929 mV per count, and zero counts corresponds 
+ *   The base factor is 0.07929 mV per count, and zero counts corresponds
  *   to zero voltage.
  */
 const Double_t QwPMT_Channel::kPMT_VoltsPerBit = 76.29e-6;
@@ -22,7 +22,7 @@ void QwPMT_Channel::ClearEventData(){
   fValue   = 0;
 };
 
-void QwPMT_Channel::RandomizeEventData(){
+void QwPMT_Channel::RandomizeEventData(int helicity){
   //need to set to random value
   fValue   = 123;
 };
@@ -45,7 +45,7 @@ void  QwPMT_Channel::EncodeEventData(std::vector<UInt_t> &TrigBuffer)
 
 void  QwPMT_Channel::ProcessEvent()
 {
-  
+
 };
 
 
@@ -82,7 +82,7 @@ void  QwPMT_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip setting up the tree.
-  } else {  
+  } else {
     TString basename = prefix + GetElementName();
     fTreeArrayIndex  = values.size();
 

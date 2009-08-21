@@ -21,7 +21,7 @@
 class QwPMT_Channel: public VQwDataElement {
   /******************************************************************
    *  Class: QwPMT_Channel
-   *         
+   *
    ******************************************************************/
  public:
   QwPMT_Channel() { };
@@ -35,7 +35,7 @@ class QwPMT_Channel: public VQwDataElement {
   };
 
   void  ClearEventData();
-  void  RandomizeEventData();
+  void  RandomizeEventData(int helicity);
   void  EncodeEventData(std::vector<UInt_t> &TrigBuffer);
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement=0){return 0;};
 
@@ -54,7 +54,7 @@ class QwPMT_Channel: public VQwDataElement {
   void Print() const;
 
  protected:
-  
+
 
  private:
   static const Bool_t kDEBUG;
@@ -63,7 +63,7 @@ class QwPMT_Channel: public VQwDataElement {
   static const Double_t kPMT_VoltsPerBit;
 
   /*  Channel information data members    */
-  
+
 
   /*  Ntuple array indices */
   size_t fTreeArrayIndex;

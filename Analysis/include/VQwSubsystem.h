@@ -52,7 +52,7 @@ class VQwSubsystem{
   virtual void  ProcessEvent() = 0;
 
   // Not all derived classes will have the following functions
-  virtual void  RandomizeEventData() { };
+  virtual void  RandomizeEventData(int helicity) { };
   virtual void  EncodeEventData(std::vector<UInt_t> &buffer) { };
 
 

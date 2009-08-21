@@ -11,7 +11,7 @@
 
 void QwVQWK_Module::SetChannel(size_t channel, TString &name)
 {
-//   std::cerr << "QwVQWK_Module::SetChannel:  Trying to set channel " 
+//   std::cerr << "QwVQWK_Module::SetChannel:  Trying to set channel "
 // 	    << channel << " to name "
 // 	    << name
 // 	    << "; current name==\"" << fChannels.at(channel).GetElementName()
@@ -20,7 +20,7 @@ void QwVQWK_Module::SetChannel(size_t channel, TString &name)
     std::cerr << "QwVQWK_Module::SetChannel:  Channel number out of range: channel==" << channel << std::endl;
   } else if (fChannels.at(channel).GetElementName()!="") {
     std::cerr << "QwVQWK_Module::SetChannel:  Channel " << channel << " already has a name: "
-	      << fChannels.at(channel).GetElementName() 
+	      << fChannels.at(channel).GetElementName()
 	      << ".  We can't rename it!."
 	      << std::endl;
   } else {
@@ -71,10 +71,10 @@ void QwVQWK_Module::ClearEventData()
 };
 
 //jpan: generator randoms
-void QwVQWK_Module::RandomizeEventData()
+void QwVQWK_Module::RandomizeEventData(int helicity)
 {
   for (size_t i=0; i<fChannels.size(); i++){
-    fChannels.at(i).RandomizeEventData();
+    fChannels.at(i).RandomizeEventData(helicity);
   }
   fEventIsGood = kTRUE;
 

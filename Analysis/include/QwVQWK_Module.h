@@ -42,7 +42,7 @@ class QwVQWK_Module {
   Int_t ProcessConfigBuffer(UInt_t* buffer, UInt_t num_words_left);
 
   void  ClearEventData();
-  void  RandomizeEventData();
+  void  RandomizeEventData(int helicity);
   void  SetEventData(Double_t* buffer, UInt_t sequencenumber); //jpan: set mock data
   void  EncodeEventData(std::vector<UInt_t> &buffer);
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left);
@@ -79,7 +79,7 @@ class QwVQWK_Module {
 
 
  protected:
-  
+
 
  private:
   UInt_t  fNumberOfDataWords;
