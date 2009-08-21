@@ -48,8 +48,9 @@ class QwVQWK_Channel: public VQwDataElement {
     fBlocksPerEvent = 4;
     fPedestal=0.0;
     fCalibrationFactor=1.;
-    fGaussianMean=0.0;
-    fGaussianSigma=0.0;
+    fMockAsymmetry = 0.0;
+    fMockGaussianMean = 0.0;
+    fMockGaussianSigma = 0.0;
     if(datatosave=="raw") fDataToSave=kRaw;
     else
       if(datatosave=="derived") fDataToSave=kDerived;
@@ -59,7 +60,8 @@ class QwVQWK_Channel: public VQwDataElement {
   void  ClearEventData();
 
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
-  void  RandomizeEventData();
+  void  SetRandomEventAsymmetry(Double_t asymmetry);
+  void  RandomizeEventData(int helicity);
   void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
   void  SetEventData(Double_t* block, UInt_t sequencenumber = 0);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
@@ -151,8 +153,9 @@ class QwVQWK_Channel: public VQwDataElement {
   size_t fNumberOfSamples;    /*! Number of samples in the event          */
 
   /*  Parity mock data distributions */
-  Double_t fGaussianMean;
-  Double_t fGaussianSigma;
+  Double_t fMockAsymmetry;
+  Double_t fMockGaussianMean;
+  Double_t fMockGaussianSigma;
 
 };
 

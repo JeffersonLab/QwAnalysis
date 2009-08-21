@@ -54,30 +54,34 @@ void QwVQWK_Channel::ClearEventData()
   fNumberOfSamples  = 0;
 };
 
-void QwVQWK_Channel::RandomizeEventData()
+void QwVQWK_Channel::RandomizeEventData(int helicity)
 {
   // The blocks are assumed to be independent measurements
   Double_t block[fBlocksPerEvent];
   Double_t sqrt_fBlocksPerEvent = sqrt(fBlocksPerEvent);
   for (size_t i = 0; i < fBlocksPerEvent; i++)
-    block[i] = fGaussianMean / fBlocksPerEvent
-             + fGaussianSigma / sqrt_fBlocksPerEvent * fNormalRandomVariable();
+    block[i] = fMockGaussianMean * (1 + helicity * fMockAsymmetry) / fBlocksPerEvent
+             + fMockGaussianSigma / sqrt_fBlocksPerEvent * fNormalRandomVariable();
   SetEventData(block);
 };
 
 void QwVQWK_Channel::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
 {
-  fHardwareBlockSum = hwsum;
+  Double_t block[fBlocksPerEvent];
   for (size_t i = 0; i < fBlocksPerEvent; i++)
-    fBlock[i] = hwsum / fBlocksPerEvent;
-  fSequenceNumber = sequencenumber;
-  fNumberOfSamples = 16680;
+    block[i] = hwsum / fBlocksPerEvent;
+  SetEventData(block);
 };
 
 void QwVQWK_Channel::SetRandomEventParameters(Double_t mean, Double_t sigma)
 {
-  fGaussianMean = mean;
-  fGaussianSigma = sigma;
+  fMockGaussianMean = mean;
+  fMockGaussianSigma = sigma;
+};
+
+void QwVQWK_Channel::SetRandomEventAsymmetry(Double_t asymmetry)
+{
+  fMockAsymmetry = asymmetry;
 };
 
 void QwVQWK_Channel::SetEventData(Double_t* block, UInt_t sequencenumber)
