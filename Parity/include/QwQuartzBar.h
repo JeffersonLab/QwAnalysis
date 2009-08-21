@@ -41,6 +41,11 @@ class QwQuartzBar: public VQwSubsystemParity {
 
   void  ProcessEvent();
 
+  void  SetRandomEventParameters(Double_t mean, Double_t sigma);
+  void  SetRandomEventAsymmetry(Double_t asymmetry);
+  void  RandomizeEventData(int helicity = 0);
+  void  EncodeEventData(std::vector<UInt_t> &buffer);
+
   void  ConstructHistograms(TDirectory *folder){
     TString tmpstr("");
     ConstructHistograms(folder,tmpstr);
@@ -52,6 +57,8 @@ class QwQuartzBar: public VQwSubsystemParity {
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
+
+  QwVQWK_Channel* GetChannel(const TString name);
 
   void Copy(VQwSubsystem *source);
   VQwSubsystem*  Copy();
@@ -66,7 +73,7 @@ class QwQuartzBar: public VQwSubsystemParity {
   void Sum(VQwSubsystem *value1, VQwSubsystem *value2);
   void Difference(VQwSubsystem *value1,VQwSubsystem *value2);
   void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
-  
+
 
   Bool_t IsGoodEvent(){
     Bool_t status = kTRUE;
@@ -84,7 +91,7 @@ class QwQuartzBar: public VQwSubsystemParity {
  protected:
   Bool_t fDEBUG;
 
-  
+
 
   std::vector<QwVQWK_Module*> fADC_Data;
 

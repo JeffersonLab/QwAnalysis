@@ -14,7 +14,7 @@ QwQuartzBar::QwQuartzBar(TString region_tmp):VQwSubsystemParity(region_tmp){
 
 QwQuartzBar::~QwQuartzBar(){
   DeleteHistograms();
-  
+
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
       delete fADC_Data.at(i);
@@ -52,7 +52,7 @@ Int_t QwQuartzBar::LoadChannelMap(TString mapfile){
       channum   = (atol(mapstr.GetNextToken(", ").c_str()));
       dettype   = mapstr.GetNextToken(", ").c_str();
       name      = mapstr.GetNextToken(", ").c_str();
-      
+
       //  Push a new record into the element array
       if (modtype=="VQWK"){
 	if ( modnum >= (Int_t) fADC_Data.size() )  fADC_Data.resize(modnum+1, new QwVQWK_Module());
@@ -100,11 +100,11 @@ Int_t QwQuartzBar::LoadInputParameters(TString pedestalfile)
 	  varped= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
 	  varcal= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
 	  if(ldebug) std::cout<<"inputs for channel "<<varname
-			      <<": ped="<<varped<<": cal="<<varcal<<"\n"; 
+			      <<": ped="<<varped<<": cal="<<varcal<<"\n";
 	  // Bool_t notfound=kTRUE;
  	}
-      
-    } 
+
+    }
   if(ldebug) std::cout<<" line read in the pedestal + cal file ="<<lineread<<" \n";
 
   ldebug=kFALSE;
@@ -121,6 +121,66 @@ void  QwQuartzBar::ClearEventData(){
   }
 };
 
+/********************************************************/
+void QwQuartzBar::SetRandomEventParameters(Double_t mean, Double_t sigma)
+{
+  // Set parameters on all QwVQWK_Modules
+  for (size_t i = 0; i < fADC_Data.size(); i++)
+    fADC_Data.at(i)->SetRandomEventParameters(mean, sigma);
+  return;
+};
+
+void QwQuartzBar::SetRandomEventAsymmetry(Double_t asymmetry)
+{
+  // Set asymmetry on all QwVQWK_Modules
+  for (size_t i = 0; i < fADC_Data.size(); i++)
+    fADC_Data.at(i)->SetRandomEventAsymmetry(asymmetry);
+  return;
+};
+
+void QwQuartzBar::RandomizeEventData(int helicity)
+{
+  // Randomize all QwVQWK_Modules
+  for (size_t i = 0; i < fADC_Data.size(); i++)
+    fADC_Data.at(i)->RandomizeEventData(helicity);
+}
+
+//*****************************************************************
+void QwQuartzBar::EncodeEventData(std::vector<UInt_t> &buffer)
+{
+  std::vector<UInt_t> elements;
+  elements.clear();
+
+  // Get all buffers in the order they are defined in the map file
+  for (size_t i = 0; i < fADC_Data.size(); i++) {
+    fADC_Data.at(i)->EncodeEventData(elements);
+  }
+
+  // If there is element data, generate the subbank header
+  std::vector<UInt_t> subbankheader;
+  std::vector<UInt_t> rocheader;
+  if (elements.size() > 0) {
+
+    // Form CODA subbank header
+    subbankheader.clear();
+    subbankheader.push_back(elements.size() + 1);	// subbank size
+    subbankheader.push_back((fCurrentBank_ID << 16) | (0x01 << 8) | (1 & 0xff));
+		// subbank tag | subbank type | event number
+
+    // Form CODA bank/roc header
+    rocheader.clear();
+    rocheader.push_back(subbankheader.size() + elements.size() + 1);	// bank/roc size
+    rocheader.push_back((fCurrentROC_ID << 16) | (0x10 << 8) | (1 & 0xff));
+		// bank tag == ROC | bank type | event number
+
+    // Add bank header, subbank header and element data to output buffer
+    buffer.insert(buffer.end(), rocheader.begin(), rocheader.end());
+    buffer.insert(buffer.end(), subbankheader.begin(), subbankheader.end());
+    buffer.insert(buffer.end(), elements.begin(), elements.end());
+  }
+}
+
+//*****************************************************************
 Int_t QwQuartzBar::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   Int_t index = GetSubbankIndex(roc_id,bank_id);
@@ -129,7 +189,7 @@ Int_t QwQuartzBar::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t 
     UInt_t words_read = 0;
     for (size_t i=0; i<fADC_Data.size(); i++){
       if (fADC_Data.at(i) != NULL){
- 	words_read += fADC_Data.at(i)->ProcessConfigBuffer(&(buffer[words_read]), 
+ 	words_read += fADC_Data.at(i)->ProcessConfigBuffer(&(buffer[words_read]),
 							   num_words-words_read);
       }
     }
@@ -149,7 +209,7 @@ Int_t QwQuartzBar::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer
     UInt_t words_read = 0;
     for (size_t i=0; i<fADC_Data.size(); i++){
       if (fADC_Data.at(i) != NULL){
- 	words_read += fADC_Data.at(i)->ProcessEvBuffer(&(buffer[words_read]), 
+ 	words_read += fADC_Data.at(i)->ProcessEvBuffer(&(buffer[words_read]),
 						       num_words-words_read);
       }
     }
@@ -173,7 +233,7 @@ void  QwQuartzBar::ProcessEvent()
 {
   // stub function= QwQuartzBar::ProcessEvent()
   // Buddhini & Julie, Jan 16, 2009
-  
+
   return;
 };
 
@@ -198,9 +258,9 @@ void  QwQuartzBar::DeleteHistograms()
 {
   // stub function= QwQuartzBar::CDeleteHistograms()
   // Buddhini & Julie, Jan 16, 2009
-  
+
   return;
-}  
+}
 
 
 void  QwQuartzBar::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
@@ -225,12 +285,24 @@ void  QwQuartzBar::FillTreeVector(std::vector<Double_t> &values)
   }
 };
 
+QwVQWK_Channel* QwQuartzBar::GetChannel(const TString name)
+{
+  if (! fADC_Data.empty()) {
+    for (std::vector<QwVQWK_Module*>::iterator module = fADC_Data.begin(); module != fADC_Data.end(); ++module) {
+      QwVQWK_Module* thismodule = *module;
+      if (thismodule->GetChannel(name)) {
+	return thismodule->GetChannel(name);
+      }
+    }
+  }
+  return 0;
+};
 //****************************************************************Added *By Buddhini
 void  QwQuartzBar::Copy(VQwSubsystem *source)
 {
   // stub function= QwQuartzBar::Copy(VQwSubsystem *source)
   // Buddhini & Julie, Jan 16, 2009
-  
+
   return;
 }
 
@@ -251,17 +323,17 @@ Bool_t  QwQuartzBar::Compare(VQwSubsystem *source)
 {
   // stub function= QwQuartzBar::Compare
   // Buddhini & Julie, Jan 16, 2009
-  
+
   return kTRUE;
 }
 
 VQwSubsystem&  QwQuartzBar::operator=  ( VQwSubsystem *value)
 {
-  
+
   if(Compare(value))
     {
-      QwQuartzBar* input= (QwQuartzBar*)value;
-      for(size_t i=0;i<input->fADC_Data.size();i++){
+      QwQuartzBar* input = (QwQuartzBar*) value;
+      for (size_t i = 0; i < input->fADC_Data.size(); i++) {
 	*(QwVQWK_Module*)fADC_Data.at(i) = *(QwVQWK_Module*)(input->fADC_Data.at(i));
       }
     }
@@ -270,7 +342,7 @@ VQwSubsystem&  QwQuartzBar::operator=  ( VQwSubsystem *value)
 
 VQwSubsystem&  QwQuartzBar::operator+=  ( VQwSubsystem *value)
 {
-  // Buddhini, January 14,2009. 
+  // Buddhini, January 14,2009.
   if(Compare(value))
     {
       QwQuartzBar* input= (QwQuartzBar*)value ;
@@ -283,9 +355,9 @@ VQwSubsystem&  QwQuartzBar::operator+=  ( VQwSubsystem *value)
 
 VQwSubsystem&  QwQuartzBar::operator-=  ( VQwSubsystem *value)
 {
-  // Buddhini, January 14,2009. 
+  // Buddhini, January 14,2009.
   if(Compare(value))
-    {      
+    {
       QwQuartzBar* input= (QwQuartzBar*)value;
       for(size_t i=0;i<input->fADC_Data.size();i++){
 	*(QwVQWK_Module*)fADC_Data.at(i) -= *(QwVQWK_Module*)(input->fADC_Data.at(i));
@@ -306,13 +378,13 @@ void QwQuartzBar::Difference(VQwSubsystem *value1,VQwSubsystem *value2){
 };
 
 void QwQuartzBar::Ratio(VQwSubsystem *numer,VQwSubsystem  *denom){
-  
+
   if(Compare(numer) && Compare(denom)){
     QwQuartzBar& numer1 = *(QwQuartzBar*)numer;
     QwQuartzBar& denom1 = *(QwQuartzBar*)denom;
 
 
-    if (fADC_Data.size() == numer1.fADC_Data.size() 
+    if (fADC_Data.size() == numer1.fADC_Data.size()
 	&& fADC_Data.size() == denom1.fADC_Data.size() ){
       for (size_t i=0; i<fADC_Data.size(); i++){
 	if (fADC_Data.at(i) != NULL && numer1.fADC_Data.at(i) != NULL
@@ -323,7 +395,7 @@ void QwQuartzBar::Ratio(VQwSubsystem *numer,VQwSubsystem  *denom){
     } else {
       std::cerr << "QwQuartzBar::operator-=:  Problems!!!"
 		<< std::endl;
-    }  
+    }
   }
 };
 

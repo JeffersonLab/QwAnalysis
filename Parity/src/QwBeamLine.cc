@@ -440,28 +440,26 @@ Int_t QwBeamLine::GetDetectorIndex(Int_t type_id, TString name)
 //*****************************************************************
 QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name)
 {
-  QwBPMStripline* tmp = NULL;
   if (! fStripline.empty()) {
     for (std::vector<QwBPMStripline>::iterator stripline = fStripline.begin(); stripline != fStripline.end(); ++stripline) {
       if (stripline->GetElementName() == name) {
-	tmp = &(*stripline);
+	return &(*stripline);
       }
     }
   }
-  return tmp;
+  return 0;
 };
 
 QwBCM* QwBeamLine::GetBCM(const TString name)
 {
-  QwBCM* tmp = NULL;
   if (! fBCM.empty()) {
     for (std::vector<QwBCM>::iterator bcm = fBCM.begin(); bcm != fBCM.end(); ++bcm) {
       if (bcm->GetElementName() == name) {
-	tmp = &(*bcm);
+	return &(*bcm);
       }
     }
   }
-  return tmp;
+  return 0;
 };
 //*****************************************************************
 VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
