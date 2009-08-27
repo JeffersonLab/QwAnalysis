@@ -1,4 +1,4 @@
-# Makefile for Qweak analysis code : gmake required
+# Makefile for Qweak analysis code : make required
 # P. M. King
 # 2006-11-07
 #
@@ -16,7 +16,7 @@
 
 DEBUG := -g
 # Add -g if you need to debug (but you'd better
-# first type 'gmake distclean' to enable full
+# first type 'make distclean' to enable full
 # recompilation with this flag).
 # Add -O0 if you find that the compiler optimizes
 # away some of the variables you are interested in.
@@ -29,7 +29,7 @@ DEFAULTADD = $(ADD)
 # Should contain extra flag to pass to the precompiler
 # ADD is a variable you should not set in this Makefile but either
 # in your.cshrc file or from the prompt line when you type
-# "gmake [config] 'ADD=-D__PADDLES'" instead of simply "gmake [config]"
+# "make [config] 'ADD=-D__PADDLES'" instead of simply "make [config]"
 # Use DEFAULTADD to set extra flags you always want to have for your
 # customized compiling e.g replace above line "DEFAULTADD := $(ADD)" by
 # "DEFAULTADD := $(ADD) -D__PADDLES"
@@ -73,7 +73,7 @@ GCC      := gcc
       # It is not correlated to $(CXX) and $(LD) which depend on $(ARCH)
 GREP     := grep
 LS       := ls
-MAKE     := gmake
+MAKE     := make
 RM       := \rm -f
       # 'rm' is often aliases as 'rm -i', so '\rm' instead
 CP       := \cp
@@ -135,12 +135,12 @@ ifeq ($(filter config,$(MAKECMDGOALS)),config)
   EXES := qwtracking qwsimtracking qwanalysis qwanalysis_adc qwanalysis_beamline
  endif
 endif
-# overridden by "gmake 'EXES=exe1 exe2 ...'"
+# overridden by "make 'EXES=exe1 exe2 ...'"
 
 ifneq ($(filter qwrealtime,$(EXES)),)
  ifeq ($(CODA),)
   $(error qwrealtime requires CODA)
-  # With version 3.77 or earlier of gmake, the message is simply 'missing separator.  Stop.'
+  # With version 3.77 or earlier of make, the message is simply 'missing separator.  Stop.'
  endif
 endif
 
@@ -152,16 +152,25 @@ endif
 ############################
 ############################
 
-ROOTCFLAGS   := $(shell root-config --cflags)
-ROOTLIBS     := $(shell root-config --new --libs) -lTreePlayer -lGX11
+
+ifndef ROOTSYS
+  ROOTSYS := $(shell root-config --prefix)
+  ifndef ROOTSYS
+    $(warning ROOTSYS variable is not defined and root-config did not return a location.)
+    $(warning Use the script SetupFiles/SET_ME_UP.csh or SetupFiles/SET_ME_UP.bash first.)
+    $(warning See the Qweak Wiki for installation and compilation instructions.)
+    $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
+    $(warning )
+    $(error   Error: No ROOT installation could be found)
+  endif
+endif
+ROOTCONFIG   := $(ROOTSYS)/bin/root-config
+ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags)
+ROOTLIBS     := $(shell $(ROOTCONFIG) --new --libs) -lTreePlayer -lGX11
         # -lNew : for map file capability
         # -lTreePlayer -lProof : for user loops calling tree
         #                        variables under conditions
-ROOTGLIBS    := $(shell root-config --glibs)
-ifndef ROOTSYS
-  $(warning Warning: ROOTSYS variable is not defined.)
-  $(warning Source the script SetupFiles/SET_ME_UP.csh or SetupFiles/SET_ME_UP.bash first.)
-endif
+ROOTGLIBS    := $(shell $(ROOTCONFIG) --glibs)
 
 
 
@@ -201,14 +210,14 @@ CODALIBS     += -L$(QWANALYSIS)/lib -lcoda
 ############################
 
 ifndef QWANALYSIS
-  $(warning Warning : QWANALYSIS variable is not defined.  Setting to source directory.)
+  $(warning Warning : QWANALYSIS variable is not defined.  Setting to current directory.)
   QWANALYSIS := $(shell pwd)
 endif
 ifeq ($(strip $(QWANALYSIS)),)
-  $(error Aborting : QWANALYSIS variable is not set.  Source the SetupFiles/.QwSetup.csh script first.)
+  $(error Aborting : QWANALYSIS variable is not set.  Source the SetupFiles/.QwSetup.csh script first)
 endif
 ifneq ($(strip $(QWANALYSIS)),$(strip $(shell pwd)))
-  $(error Aborting : QWANALYSIS variable disagrees with the working directory.  Source the SetupFiles/.QwSetup.csh script first.)
+  $(error Aborting : QWANALYSIS variable disagrees with the working directory.  Source the SetupFiles/.QwSetup.csh script first)
 endif
 
 ifndef QWBIN
@@ -216,7 +225,7 @@ ifndef QWBIN
   QWBIN := $(QWANALYSIS)/bin
 endif
 ifneq ($(strip $(QWBIN)),$(strip $(shell $(FIND) $(QWANALYSIS) -name bin)))
-  $(error Aborting : QWBIN variable is not set properly  Source the SetupFiles/.QwSetup.csh script first.)
+  $(error Aborting : QWBIN variable is not set properly  Source the SetupFiles/.QwSetup.csh script first)
 endif
 
 ifndef QWLIB
@@ -224,7 +233,7 @@ ifndef QWLIB
   QWLIB := $(QWANALYSIS)/lib
 endif
 ifneq ($(strip $(QWLIB)),$(strip $(shell $(FIND) $(QWANALYSIS) -name lib)))
-  $(error Aborting : QWLIB variable is not set properly  Source the SetupFiles/.QwSetup.csh script first.)
+  $(error Aborting : QWLIB variable is not set properly  Source the SetupFiles/.QwSetup.csh script first)
 endif
 
 ifndef QWEVIO
@@ -232,7 +241,7 @@ ifndef QWEVIO
   QWEVIO := $(QWANALYSIS)/coda
 endif
 ifneq ($(strip $(QWEVIO)),$(strip $(shell $(FIND) $(QWANALYSIS) -name coda)))
-  $(error Aborting : QWEVIO variable is not set properly  Source the SetupFiles/.QwSetup.csh script first.)
+  $(error Aborting : QWEVIO variable is not set properly  Source the SetupFiles/.QwSetup.csh script first)
 endif
 
 ############################
@@ -253,11 +262,11 @@ LDLIBS         =
 SOFLAGS        = -shared
 
 ROOTCFLAGS   := $(ROOTCFLAGS) -D_REENTRANT
-        # -D_REENTRANT : 'root-config --cflags' gives incomplete result
+        # -D_REENTRANT : '$(ROOTCONFIG) --cflags' gives incomplete result
         #                on some environment
 
 ROOTLIBS     := $(ROOTLIBS) -lpthread  -lThread
-        # -lpthread : because 'root-config --libs' gives incomplete result
+        # -lpthread : because '$(ROOTCONFIG) --libs' gives incomplete result
         #             on gzero and libet.so requires it
         # -lThread:   Required for compilation on Linux systems with
         #             ROOT 4.04/02 or 5.08/00 (first noted by J-S Real
@@ -289,8 +298,8 @@ LDLIBS         = -lSystemStubs
 SOFLAGS        =
 DllSuf        := .dylib
 
-ROOTCFLAGS   := $(shell root-config --cflags)
-ROOTLIBS     := $(shell root-config --libs) -lTreePlayer -lGX11 -lpthread -lThread
+ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags)
+ROOTLIBS     := $(shell $(ROOTCONFIG) --libs) -lTreePlayer -lGX11 -lpthread -lThread
 # --new give a runtime error on darwin and root 4.04 :
 # <CustomReAlloc2>: passed oldsize 64, should be 0
 # Fatal in <CustomReAlloc2>: storage area overwritten
@@ -306,18 +315,27 @@ endif
 ############################
 ifndef OPENSSL_DIR
   ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name openssl)),/usr/include/openssl)
-$(error Aborting : Cannot find the /usr/include/openssl.  Set OPENSSL_DIR to the location of the openssl installation.)
-endif
-#  We should also put a test on the openssl version number here.
-#
+    $(warning Install the OpenSSL library on your system, or set the environment)
+    $(warning variable OPENSSL_DIR to the directory with the OpenSSL library.)
+    $(warning See the Qweak Wiki for installation and compilation instructions.)
+    $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
+    $(warning )
+    $(error   Error: Could not find the OpenSSL library)
+  endif
+  OPENSSL_VERSION = $(shell perl -ane "print /\#define\s+OPENSSL_VERSION_TEXT\s+\"OpenSSL\s+([\.\w\d]+)-.*\"/" /usr/include/openssl/opensslv.h)
   OPENSSL_INC  =
   OPENSSL_LIBS = -l crypto
 else
-#  We should also put a test on the openssl version number here.
-#
+  OPENSSL_VERSION = $(shell perl -ane "print /\#define\s+OPENSSL_VERSION_TEXT\s+\"OpenSSL\s+([\.\w\d]+)-.*\"/" ${OPENSSL_DIR}/include/opensslv.h)
   OPENSSL_INC  = -I${OPENSSL_DIR}/include
   OPENSSL_LIBS = -L${OPENSSL_DIR}/lib -l crypto
 endif
+
+#  We should also put a test on the openssl version number here.
+ifeq ($(OPENSSL_VERSION),)
+  $(error   Error: Could not determine OpenSSL version)
+endif
+
 
 
 ############################
@@ -327,21 +345,28 @@ endif
 ############################
 ifndef BOOST_INC_DIR
   ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name boost)),/usr/include/boost)
-    $(error Aborting : Cannot find the /usr/include/boost.  Set BOOST_INC_DIR and BOOST_LIB_DIR to the location of the Boost installation.)
+    $(warning Install the Boost library on your system, or set the environment)
+    $(warning variables BOOST_INC_DIR and BOOST_LIB_DIR to the directory with)
+    $(warning the Boost headers and libraries, respectively.)
+    $(warning See the Qweak Wiki for installation and compilation instructions.)
+    $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
+    $(warning )
+    $(error   Error: Could not find the Boost library)
   endif
   BOOST_INC_DIR = /usr/include/boost
   BOOST_LIB_DIR = /usr/lib
-  #  We should also put a test on the boost version number here.
-  #
   BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" $(BOOST_INC_DIR)/version.hpp)
   BOOST_INC  =
   BOOST_LIBS =
 else
-  #  We should also put a test on the boost version number here.
-  #
   BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" ${BOOST_INC_DIR}/version.hpp)
   BOOST_INC  = -I${BOOST_INC_DIR}
   BOOST_LIBS = -L${BOOST_LIB_DIR}
+endif
+
+#  We should also put a test on the boost version number here.
+ifeq ($(BOOST_VERSION),)
+  $(error   Error: Could not determine Boost version)
 endif
 
 #  List the Boost libraries to be linked to the analyzer.
@@ -360,7 +385,7 @@ endif
 
 ifeq ($(strip $(shell $(QWANALYSIS)/SetupFiles/checkrootversion | $(GREP) WARNING | $(SED) 's/\*//g')),WARNING)
 $(error Aborting : ROOT version 3.01/02 or later required)
-# With version 3.77 or earlier of gmake, the message is simply 'missing separator.  Stop.'
+# With version 3.77 or earlier of make, the message is simply 'missing separator.  Stop.'
 endif
 
 ifeq ($(strip $(shell $(QWANALYSIS)/SetupFiles/checkrootversion | $(GREP) older)),but older than 3.01/06)
@@ -369,7 +394,7 @@ endif
 
 ifeq ($(CXX),)
 $(error $(ARCH) invalid architecture)
-# With version 3.77 or earlier of gmake, the message is simply 'missing separator.  Stop.'
+# With version 3.77 or earlier of make, the message is simply 'missing separator.  Stop.'
 endif
 
 
@@ -482,8 +507,8 @@ ifneq ($(strip $(ADD)),)
 	$(ECHO) ; \
 	$(ECHO) \*\*\* ADD options have changed since last config; \
 	$(ECHO) \*\*\* Removing involved object files... ; \
-	$(ECHO) \*\*\* Rerun \'gmake config\' with your new options; \
-	$(ECHO) \*\*\* Then rerun \'gmake\' \(you can omit your new options\); \
+	$(ECHO) \*\*\* Rerun \'make config\' with your new options; \
+	$(ECHO) \*\*\* Then rerun \'make\' \(you can omit your new options\); \
 	$(ECHO) ; \
 	for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .ADD),$(ADD)) $(filter-out $(ADD),$(shell $(CAT) .ADD)) | $(REMOVE_-D))); \
 	do \
@@ -498,8 +523,8 @@ ifneq ($(strip $(EXES)),)
 	$(ECHO) ; \
 	$(ECHO) \*\*\* EXES choice has changed since last config; \
 	$(ECHO) \*\*\* Removing involved object files... ; \
-	$(ECHO) \*\*\* Rerun \'gmake config\' with your new options; \
-	$(ECHO) \*\*\* Then rerun \'gmake\' \(you can omit your new options\); \
+	$(ECHO) \*\*\* Rerun \'make config\' with your new options; \
+	$(ECHO) \*\*\* Then rerun \'make\' \(you can omit your new options\); \
 	$(ECHO) ; \
 	for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .EXES),$(EXES)) $(filter-out $(EXES),$(shell $(CAT) .EXES)) | $(REMOVE_-D))); \
 	do \
