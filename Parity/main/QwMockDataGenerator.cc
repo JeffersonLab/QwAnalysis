@@ -21,6 +21,7 @@
 #include "QwEventBuffer.h"
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
+#include "QwQuartzBar.h"
 #include "QwSubsystemArrayParity.h"
 #include "QwVQWK_Channel.h"
 
@@ -52,6 +53,9 @@ int main(int argc, char* argv[])
   detectors.push_back(new QwHelicity("Helicity info"));
   detectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_helicity.map");
   detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
+  detectors.push_back(new QwQuartzBar("Main detector"));
+  detectors.GetSubsystem("Main detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_adc.map");
+  detectors.GetSubsystem("Main detector")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
   QwHelicityPattern QwHelPat(detectors, kMultiplet);
 
   // Get the helicity
@@ -67,10 +71,11 @@ int main(int argc, char* argv[])
   // - two parameters have independent helicity-correlated asymmetries
   // - two parameters have correlated helicity-correlated asymmetries
 
-  // Get the channels we want to correlate
+
+  // Get the beamline channels we want to correlate
   QwBeamLine* beamline = (QwBeamLine*) detectors.GetSubsystem("Injector BeamLine");
 
-  // Some BCMs
+  // Get some BCMs
   QwBCM* bcm[8];
   bcm[0] = beamline->GetBCM("qwk_bcm0l00");
   bcm[1] = beamline->GetBCM("qwk_bcm0l01");
@@ -84,12 +89,11 @@ int main(int argc, char* argv[])
   Double_t bcm_sigma = 1.0e4;
   for (int i = 0; i < 8; i++)
     bcm[i]->SetRandomEventParameters(bcm_mean, bcm_sigma);
-
-  // Set asymmetry for one BCM
-  Double_t bcm_asym = 1.0e-5;
+  // Set helicity asymmetry for one BCM
+  Double_t bcm_asym = 1.0e-3;
   bcm[7]->SetRandomEventAsymmetry(bcm_asym);
 
-  // Some BPMs
+  // Get some BPMs
   QwBPMStripline* bpm[2];
   bpm[0] = beamline->GetBPMStripline("qwk_0r06");
   bpm[1] = beamline->GetBPMStripline("qwk_0l06");
@@ -99,6 +103,23 @@ int main(int argc, char* argv[])
   Double_t bpm_sigmaY = 2.0e-6;
   for (int i = 0; i < 2; i++)
     bpm[i]->SetRandomEventParameters(bpm_meanX, bpm_sigmaX, bpm_meanY, bpm_sigmaY);
+
+
+  // Get the main detector channels we want to correlate
+  QwQuartzBar* maindetector = (QwQuartzBar*) detectors.GetSubsystem("Main detector");
+  Double_t bar_mean = 1.0e7;
+  Double_t bar_sigma = 1.0e4;
+  Double_t bar_asym = 1.0e-4;
+  maindetector->SetRandomEventParameters(bar_mean, bar_sigma);
+  maindetector->SetRandomEventAsymmetry(bar_asym);
+  // Set a higher helicity asymmetry on one of the bars
+  QwVQWK_Channel* bar1left = maindetector->GetChannel("Bar1Left");
+  QwVQWK_Channel* bar1right = maindetector->GetChannel("Bar1Right");
+  Double_t bar_asym_1l =  2.0e-4;
+  Double_t bar_asym_1r = -2.0e-4;
+  bar1left->SetRandomEventAsymmetry(bar_asym_1l);
+  bar1right->SetRandomEventAsymmetry(bar_asym_1r);
+
 
 
   // Initialize randomness provider and distribution

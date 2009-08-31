@@ -62,8 +62,16 @@ void QwBPMStripline::ClearEventData()
 void QwBPMStripline::SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t meanY, Double_t sigmaY)
 {
   // Average values of the signals in the stripline ADCs
-  Double_t sumX = 0.5e8; // These are just guesses, but I made X and Y different
-  Double_t sumY = 1.5e8; // to make it more interesting for the analyzer...
+  Double_t sumX = 1.1e8; // These are just guesses, but I made X and Y different
+  Double_t sumY = 0.9e8; // to make it more interesting for the analyzer...
+
+  // Rotate the requested position if necessary (this is not tested yet)
+  if (bRotated) {
+    Double_t rotated_meanX = (meanX + meanY) / kRotationCorrection;
+    Double_t rotated_meanY = (meanX - meanY) / kRotationCorrection;
+    meanX = rotated_meanX;
+    meanY = rotated_meanY;
+  }
 
   // Determine the asymmetry from the position
   Double_t meanXP = (1.0 + meanX / kQwStriplineCalibration) * sumX / 2.0;
@@ -71,15 +79,12 @@ void QwBPMStripline::SetRandomEventParameters(Double_t meanX, Double_t sigmaX, D
   Double_t meanYP = (1.0 + meanY / kQwStriplineCalibration) * sumY / 2.0;
   Double_t meanYM = (1.0 - meanY / kQwStriplineCalibration) * sumY / 2.0; // = sumY - meanYP;
 
-  // Determine the spread of the asymmetry (this is a guess)
+  // Determine the spread of the asymmetry (this is not tested yet)
   // (negative sigma should work in the QwVQWK_Channel, but still using fabs)
   Double_t sigmaXP = fabs(sumX * sigmaX / meanX);
   Double_t sigmaXM = sigmaXP;
   Double_t sigmaYP = fabs(sumY * sigmaY / meanY);
   Double_t sigmaYM = sigmaYP;
-
-  // TODO No support for rotation here!  When reading generated files, there
-  // could be some confusion because the analyzer WILL rotate the striplines.
 
   // Propagate these parameters to the ADCs
   fWire[0].SetRandomEventParameters(meanXP, sigmaXP);
@@ -93,7 +98,6 @@ void QwBPMStripline::RandomizeEventData(int helicity)
   for (int i = 0; i < 4; i++)
     fWire[i].RandomizeEventData(helicity);
 
-  ProcessEvent();
   return;
 };
 /********************************************************/
@@ -143,7 +147,7 @@ void  QwBPMStripline::ProcessEvent()
 	{
 	  /* for this one I suppose that the direction [0] is vertical and up,
 	     direction[3] is the beam line direction toward the beamdump
-	     if rotated than the frame  is rotated by 45 deg counter clockwise*/
+	     if rotated than the frame is rotated by 45 deg counter clockwise*/
 	  numer=fRelPos[0];
 	  denom=fRelPos[1];
 	  fRelPos[0].Sum(numer,denom);
