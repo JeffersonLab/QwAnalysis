@@ -77,11 +77,6 @@ void SaveSubList(QwHitContainer &);//for debugging purposes - Rakitha (10/23/200
 void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Float_t> &values,Int_t size);
 void  FillTreeVector(std::vector<Float_t> &values,QwHitContainer &hitlist);
 
-/* // this is a temporary function to creat root file with a different structure */
-/* // add Jeong Han Lee (06/24/2009) */
-void create_root_file(const UInt_t run, QwSubsystemArrayTracking &tracking_detectors);
-
-
 
 
 

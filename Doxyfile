@@ -27,7 +27,7 @@ INLINE_INHERITED_MEMB  = NO
 FULL_PATH_NAMES        = YES
 STRIP_FROM_PATH        = 
 STRIP_FROM_INC_PATH    = 
-SHORT_NAMES            = NO
+SHORT_NAMES            = YES
 JAVADOC_AUTOBRIEF      = NO
 QT_AUTOBRIEF           = NO
 MULTILINE_CPP_IS_BRIEF = NO
@@ -161,11 +161,11 @@ FILTER_SOURCE_FILES    = NO
 #---------------------------------------------------------------------------
 # configuration options related to source browsing
 #---------------------------------------------------------------------------
-SOURCE_BROWSER         = NO
-INLINE_SOURCES         = NO
-STRIP_CODE_COMMENTS    = YES
-REFERENCED_BY_RELATION = NO
-REFERENCES_RELATION    = NO
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = YES
+STRIP_CODE_COMMENTS    = NO
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
 REFERENCES_LINK_SOURCE = YES
 USE_HTAGS              = NO
 VERBATIM_HEADERS       = NO
@@ -181,7 +181,7 @@ IGNORE_PREFIX          =
 GENERATE_HTML          = YES
 HTML_OUTPUT            = html
 HTML_FILE_EXTENSION    = .html
-HTML_HEADER            = 
+HTML_HEADER           = 
 HTML_FOOTER            = 
 HTML_STYLESHEET        = 
 HTML_ALIGN_MEMBERS     = YES
