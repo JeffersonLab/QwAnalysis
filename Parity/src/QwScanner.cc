@@ -1,6 +1,6 @@
 
 /**********************************************************\
-* File: QwScanner.h                              *
+* File: QwScanner.cc                              *
 *                                                          *
 * Author: J. Pan                                           *
 * jpan@jlab.org                                            *
@@ -210,8 +210,8 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
     }
   }
 
-  //  This is a QADC/TDC bank if bank_id=0
-  if (bank_id==0){
+  //  This is a QADC/TDC bank if bank_id=1111
+  if (bank_id==1111){
 
     if (index>=0 && num_words>0){
       //  We want to process this ROC.  Begin looping through the data.
@@ -349,6 +349,13 @@ void  QwScanner::DeleteHistograms(){
       fPMTs.at(i).at(j).DeleteHistograms();
     }
   }
+
+  for (size_t i=0; i<fADC_Data.size(); i++){
+    if (fADC_Data.at(i) != NULL){
+      fADC_Data.at(i)->DeleteHistograms();
+    }
+  }
+
 };
 
 void  QwScanner::ReportConfiguration(){
@@ -651,19 +658,91 @@ void QwScanner::RandomizeEventData(int helicity)
 };
 
 /********************************************************/
-void QwScanner::EncodeEventData(std::vector<UInt_t> &SumBuffer, std::vector<UInt_t> &TrigBuffer)
+void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
 {
+  std::vector<UInt_t> SumBuffer;
+  std::vector<UInt_t> TrigBuffer;
+
+  std::vector<UInt_t> LocalSumBuffer;
+  std::vector<UInt_t> LocalTrigBuffer;
+  std::vector<UInt_t> subbankheader;
+  std::vector<UInt_t> rocheader;
+
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
-      fADC_Data.at(i)->EncodeEventData(SumBuffer);
+      fADC_Data.at(i)->EncodeEventData(LocalSumBuffer);
     }
   }
 
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
-      fPMTs.at(i).at(j).EncodeEventData(TrigBuffer);
+      fPMTs.at(i).at(j).EncodeEventData(LocalTrigBuffer);
     }
   }
+
+  // If there is element data, generate the subbank header
+  if (LocalSumBuffer.size() > 0) {
+
+    // Form CODA subbank header
+    subbankheader.clear();
+    subbankheader.push_back(LocalSumBuffer.size() + 1);    // subbank size
+    subbankheader.push_back((2222 << 16) | (0x01 << 8) | (1 & 0xff));
+        // subbank tag | subbank type | event number
+
+    // Form CODA bank/roc header
+    rocheader.clear();
+    rocheader.push_back(subbankheader.size() + LocalSumBuffer.size() + 1);    // bank/roc size
+    rocheader.push_back((fCurrentROC_ID << 16) | (0x10 << 8) | (1 & 0xff));
+        // bank tag == ROC | bank type | event number
+
+    // Add bank header, subbank header and element data to output buffer
+    SumBuffer.insert(SumBuffer.end(), rocheader.begin(), rocheader.end());
+    SumBuffer.insert(SumBuffer.end(), subbankheader.begin(), subbankheader.end());
+    SumBuffer.insert(SumBuffer.end(), LocalSumBuffer.begin(), LocalSumBuffer.end());
+  }
+
+  if (LocalTrigBuffer.size() > 0) {
+
+    // Form CODA subbank header
+    subbankheader.clear();
+    subbankheader.push_back(LocalTrigBuffer.size() + 1);    //subbank size
+    subbankheader.push_back((1111 << 16) | (0x01 << 8) | (1 & 0xff));
+        // subbank tag | subbank type | event number
+
+    // Form CODA bank/roc header
+    rocheader.clear();
+    rocheader.push_back(subbankheader.size() + LocalTrigBuffer.size() + 1);    // bank/roc size
+    rocheader.push_back((fCurrentROC_ID << 16) | (0x10 << 8) | (1 & 0xff));
+        // bank tag == ROC | bank type | event number
+
+    // Add bank header, subbank header and element data to output buffer
+    TrigBuffer.insert(TrigBuffer.end(), rocheader.begin(), rocheader.end());
+    TrigBuffer.insert(TrigBuffer.end(), subbankheader.begin(), subbankheader.end());
+    TrigBuffer.insert(TrigBuffer.end(), LocalTrigBuffer.begin(), LocalTrigBuffer.end());
+  }
+
+    //Copy elements from TrigBuffer and SumBuffer into buffer
+    for (UInt_t i=0; i<TrigBuffer.size(); i++)
+       buffer.push_back(TrigBuffer.at(i));
+
+    for (UInt_t i=0; i<SumBuffer.size(); i++)
+       buffer.push_back(SumBuffer.at(i));
+
+    // Print buffer
+    int kDebug = 1;
+
+    if (kDebug) {
+      std::cout << std::endl << "SumBuffer: ";
+      for (size_t i = 0; i < SumBuffer.size(); i++)
+        std::cout << std::hex << SumBuffer.at(i) << " ";
+      std::cout << std::dec << std::endl;
+    }
+    if (kDebug) {
+      std::cout << std::endl << "TrigBuffer: ";
+      for (size_t i = 0; i < TrigBuffer.size(); i++)
+        std::cout << std::hex << TrigBuffer.at(i) << " ";
+      std::cout << std::dec << std::endl;
+    }
 
 };
 /********************************************************/

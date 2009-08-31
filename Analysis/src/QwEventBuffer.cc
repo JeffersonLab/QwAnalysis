@@ -465,7 +465,11 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
     //
     //  After trying the data in each subsystem, bump the
     //  fWordsSoFar to move to the next bank.
-    subsystems.ProcessEvBuffer(fROC, fSubbankTag,
+    if (fDEBUG) {
+      std::cerr << "ProcessEventBuffer: ROC="<<fROC<<"SubbankTag="<< fSubbankTag
+                <<"FragLength="<<fFragLength <<std::endl;
+    }
+subsystems.ProcessEvBuffer(fROC, fSubbankTag,
 			       &localbuff[fWordsSoFar],
 			       fFragLength);
     fWordsSoFar += fFragLength;

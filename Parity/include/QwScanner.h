@@ -47,7 +47,7 @@ class QwScanner: public VQwSubsystem,
   void  SetPedestal(Double_t ped);
   void  SetCalibrationFactor(Double_t calib);
   void  RandomizeEventData(int helicity);
-  void  EncodeEventData(std::vector<UInt_t> &SumBuffer, std::vector<UInt_t> &TrigBuffer);
+  void  EncodeEventData(std::vector<UInt_t> &buffer);
   Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   void  ProcessEvent();
   void  ConstructHistograms(TDirectory *folder, TString &prefix);

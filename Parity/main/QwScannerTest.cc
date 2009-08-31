@@ -109,7 +109,7 @@ static int kDebug = 1;
   for (int run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++) {
 
     TString filename = std::string(getenv("QWSCRATCH"))+"/data" + 
-                       TString("/QwRun_") + Form("%ld.",run) + TString("log");
+                       TString("/QwRun_") + Form("%ld.",run) + TString("log.0");
 
   if (kDebug) std::cout<<"Generating mock data for the scanner: "<<filename<<std::endl;
 
@@ -128,24 +128,6 @@ static int kDebug = 1;
       QwDetectors.ClearEventData();
       QwDetectors.RandomizeEventData();
 
-
-    // Fill in appropriate buffer
-    std::vector<UInt_t> sumbuffer;
-    std::vector<UInt_t> trigbuffer;
-    scanner->EncodeEventData(sumbuffer,trigbuffer);
-    // Print buffer
-    if (kDebug) {
-      std::cout << std::endl << "SumBuffer: ";
-      for (size_t i = 0; i < sumbuffer.size(); i++)
-        std::cout << std::hex << sumbuffer.at(i) << " ";
-      std::cout << std::dec << std::endl;
-    }
-    if (kDebug) {
-      std::cout << std::endl << "TrigBuffer: ";
-      for (size_t i = 0; i < trigbuffer.size(); i++)
-        std::cout << std::hex << trigbuffer.at(i) << " ";
-      std::cout << std::dec << std::endl;
-    }
     // Write this event to file
     QwEvt.EncodeSubsystemData(QwDetectors);
 
