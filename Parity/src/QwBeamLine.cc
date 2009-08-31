@@ -467,7 +467,7 @@ VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
   //  std::cout<<" here in QwBeamLine::operator= \n";
   if(Compare(value))
     {
-      QwBeamLine* input= (QwBeamLine*)value;
+      QwBeamLine* input = (QwBeamLine*) value;
       for(size_t i=0;i<input->fStripline.size();i++)
 	this->fStripline[i]=input->fStripline[i];
       for(size_t i=0;i<input->fBCM.size();i++)
@@ -616,18 +616,18 @@ void  QwBeamLine::FillHistograms()
 
 void QwBeamLine::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
-  for(size_t i=0;i<fStripline.size();i++)
-    fStripline[i].ConstructBranchAndVector(tree, prefix,values);
-  for(size_t i=0;i<fBCM.size();i++)
-    fBCM[i].ConstructBranchAndVector(tree, prefix,values);
+  for(size_t i = 0; i < fStripline.size(); i++)
+    fStripline[i].ConstructBranchAndVector(tree, prefix, values);
+  for(size_t i = 0; i < fBCM.size(); i++)
+    fBCM[i].ConstructBranchAndVector(tree, prefix, values);
   return;
 };
 
 void QwBeamLine::FillTreeVector(std::vector<Double_t> &values)
 {
-  for(size_t i=0;i<fStripline.size();i++)
+  for(size_t i = 0; i < fStripline.size(); i++)
     fStripline[i].FillTreeVector(values);
-  for(size_t i=0;i<fBCM.size();i++)
+  for(size_t i = 0; i < fBCM.size(); i++)
     fBCM[i].FillTreeVector(values);
   return;
 };

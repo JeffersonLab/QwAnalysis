@@ -66,7 +66,7 @@ class QwBeamLine : public VQwSubsystemParity{
     };
 
   ~QwBeamLine() {
-    //DeleteHistograms();
+    DeleteHistograms();
   };
 
 

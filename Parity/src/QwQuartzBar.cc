@@ -223,7 +223,8 @@ void  QwQuartzBar::ConstructHistograms(TDirectory *folder, TString &prefix){
   }
 };
 
-void  QwQuartzBar::FillHistograms(){
+void  QwQuartzBar::FillHistograms()
+{
   for (size_t i = 0; i < fADC_Data.size(); i++) {
     fADC_Data.at(i).FillHistograms();
   }
@@ -231,8 +232,8 @@ void  QwQuartzBar::FillHistograms(){
 
 void  QwQuartzBar::DeleteHistograms()
 {
-  // stub function= QwQuartzBar::CDeleteHistograms()
-  // Buddhini & Julie, Jan 16, 2009
+  for (size_t i = 0; i < fADC_Data.size(); i++)
+    fADC_Data.at(i).DeleteHistograms();
 
   return;
 }

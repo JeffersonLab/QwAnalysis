@@ -9,6 +9,8 @@
 #ifndef __QWSUBSYSTEMARRAYPARITY__
 #define __QWSUBSYSTEMARRAYPARITY__
 
+#include <vector>
+#include <TTree.h>
 
 #include "QwSubsystemArray.h"
 
@@ -17,12 +19,19 @@
 ///
 /// \ingroup QwAnalysis_BL
 class QwSubsystemArrayParity:  public QwSubsystemArray {
- 
+
  public:
   QwSubsystemArrayParity() {};
   ~QwSubsystemArrayParity(){
   };
-  
+
+  void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values);
+  void ConstructBranchAndVector(TTree *tree, std::vector <Double_t> &values) {
+    TString tmpstr("");
+    ConstructBranchAndVector(tree,tmpstr,values);
+  };
+  void  FillTreeVector(std::vector<Double_t> &values);
+
   void Copy(QwSubsystemArrayParity *source);
 
   QwSubsystemArrayParity& operator=  (const QwSubsystemArrayParity &value);
@@ -37,5 +46,5 @@ class QwSubsystemArrayParity:  public QwSubsystemArray {
   std::vector<TString> sFailedSubsystems;
 
 };
-  
+
 #endif

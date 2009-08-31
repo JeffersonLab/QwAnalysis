@@ -27,6 +27,7 @@
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
 #include "QwHistogramHelper.h"
+#include "QwQuartzBar.h"
 #include "QwSubsystemArrayParity.h"
 
 
@@ -45,7 +46,9 @@ static bool bDebug = false;
 // Activate components
 static bool bHisto = true;
 static bool bTree = true;
+static bool bBeamLine = true;
 static bool bHelicity = true;
+static bool bQuartz = true;
 
 int main(int argc, char* argv[])
 {
@@ -54,9 +57,16 @@ int main(int argc, char* argv[])
 
   // Detector array
   QwSubsystemArrayParity detectors;
-  detectors.push_back(new QwBeamLine("Injector BeamLine"));
-  detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_beamline.map");
-  detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
+  if (bBeamLine) {
+    detectors.push_back(new QwBeamLine("Injector BeamLine"));
+    detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_beamline.map");
+    detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
+  }
+  if (bQuartz) {
+    detectors.push_back(new QwQuartzBar("Main detector"));
+    detectors.GetSubsystem("Main detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_adc.map");
+    detectors.GetSubsystem("Main detector")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
+  }
   if (bHelicity) {
     detectors.push_back(new QwHelicity("Helicity info"));
     detectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_helicity.map");
@@ -111,9 +121,7 @@ int main(int argc, char* argv[])
       mpsvector.reserve(6000);
       mpstree->Branch("eventnumber",&eventnumber,"eventnumber/F");
       TString dummystr="";
-      ((QwBeamLine*)detectors.GetSubsystem("Injector BeamLine"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
-      if (bHelicity)
-        ((QwBeamLine*)detectors.GetSubsystem("Helicity info"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
+      detectors.ConstructBranchAndVector(mpstree, dummystr, mpsvector);
       rootfile.cd();
       if (bHelicity) {
         rootfile.cd();
@@ -174,9 +182,7 @@ int main(int argc, char* argv[])
       // Fill the tree
       if (bTree) {
         eventnumber = eventbuffer.GetEventNumber();
-        ((QwBeamLine*)detectors.GetSubsystem("Injector BeamLine"))->FillTreeVector(mpsvector);
-        if (bHelicity)
-          ((QwHelicity*)detectors.GetSubsystem("Helicity info"))->FillTreeVector(mpsvector);
+        detectors.FillTreeVector(mpsvector);
         mpstree->Fill();
       }
 
@@ -202,10 +208,10 @@ int main(int argc, char* argv[])
 
     // Close ROOT file
     rootfile.Write(0,TObject::kOverwrite);
+    // Delete histograms
     if (bHisto) {
       detectors.DeleteHistograms();
       if (bHelicity) helicitypattern.DeleteHistograms();
-
     }
 
     // Close data file and print run summary

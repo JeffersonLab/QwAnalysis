@@ -9,6 +9,7 @@
 #include "QwHelicityPattern.h"
 #include "QwHistogramHelper.h"
 #include "QwHelicity.h"
+#include "QwQuartzBar.h"
 #include "QwAnalysis_BeamLine.h"
 
 
@@ -116,10 +117,10 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
         std::cerr << "Negative array index set to zero!  Check code!" << std::endl;
         locali = 0;
       }
-      fEvents[locali]=event;
-      fEventLoaded[locali]=kTRUE;
-      fHelicity[locali]=localHelicityActual;
-      fEventNumber[locali]=localEventNumber;
+      fEvents[locali] = event;
+      fEventLoaded[locali] = kTRUE;
+      fHelicity[locali] = localHelicityActual;
+      fEventNumber[locali] = localEventNumber;
     }
 
   if(localdebug)
@@ -265,34 +266,46 @@ void  QwHelicityPattern::DeleteHistograms()
 
 void QwHelicityPattern::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
-  TString thisprefix="yield_";
-  //  std::cout<<"QwHelicityPattern::ConstructBranchAndVector\n";
-  ((QwBeamLine*)fYield.GetSubsystem("Injector Beamline Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
-  ((QwHelicity*)fYield.GetSubsystem("Helicity Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
+  TString yieldprefix = "yield_" + prefix;
+  fYield.ConstructBranchAndVector(tree, yieldprefix, values);
 
-  thisprefix="asym_";
-  ((QwBeamLine*)fAsymmetry.GetSubsystem("Injector Beamline Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
-  ((QwHelicity*)fAsymmetry.GetSubsystem("Helicity Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
+  TString asymprefix = "asym_" + prefix;
+  fAsymmetry.ConstructBranchAndVector(tree, asymprefix, values);
+
+//   //  std::cout<<"QwHelicityPattern::ConstructBranchAndVector\n";
+//   ((QwBeamLine*)fYield.GetSubsystem("Injector Beamline Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
+//   ((QwHelicity*)fYield.GetSubsystem("Helicity Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
+//   thisprefix="yield";
+//   ((QwQuartzBar*)fYield.GetSubsystem("Quartz bar Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
+//
+//   thisprefix="asym_";
+//   ((QwBeamLine*)fAsymmetry.GetSubsystem("Injector Beamline Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
+//   ((QwHelicity*)fAsymmetry.GetSubsystem("Helicity Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
+//   thisprefix="asym";
+//   ((QwQuartzBar*)fAsymmetry.GetSubsystem("Quartz bar Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
 
   //  the following lines are the syntax we want at the end :
   //  fYield.ConstructBranchAndVector(tree, prefix,values);
   //  fAsymmetry.ConstructBranchAndVector(tree, prefix,values);
+
   return;
 }
 
 void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values)
 {
-  if(IsGood)
-    {
-      ((QwBeamLine*)fYield.GetSubsystem("Injector Beamline Copy"))->FillTreeVector(values);
-      ((QwHelicity*)fYield.GetSubsystem("Helicity Copy"))->FillTreeVector(values);
+  if (IsGood) {
+    fYield.FillTreeVector(values);
+    fAsymmetry.FillTreeVector(values);
 
-      ((QwBeamLine*)fAsymmetry.GetSubsystem("Injector Beamline Copy"))->FillTreeVector(values);
-      ((QwHelicity*)fAsymmetry.GetSubsystem("Helicity Copy"))->FillTreeVector(values);
-    }
+//      ((QwBeamLine*)fYield.GetSubsystem("Injector Beamline Copy"))->FillTreeVector(values);
+//      ((QwHelicity*)fYield.GetSubsystem("Helicity Copy"))->FillTreeVector(values);
+//      ((QwQuartzBar*)fYield.GetSubsystem("Quartz bar Copy"))->FillTreeVector(values);
+//
+//      ((QwBeamLine*)fAsymmetry.GetSubsystem("Injector Beamline Copy"))->FillTreeVector(values);
+//      ((QwHelicity*)fAsymmetry.GetSubsystem("Helicity Copy"))->FillTreeVector(values);
+//      ((QwQuartzBar*)fAsymmetry.GetSubsystem("Quartz bar Copy"))->FillTreeVector(values);
+  }
 
-//     fYield.FillTreeVector(values);
-//     fAsymmetry.FillTreeVector(values);
   return;
 };
 

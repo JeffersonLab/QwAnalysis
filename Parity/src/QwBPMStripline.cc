@@ -460,16 +460,17 @@ void QwBPMStripline::Copy(VQwDataElement *source)
     {
      if(typeid(*source)==typeid(*this))
        {
-	 QwBPMStripline* input=((QwBPMStripline*)source);
-	 this->fElementName=input->fElementName;
-	 this->bRotated=input->bRotated;
-	 for(int i=0;i<3;i++)
-	   this->fOffset[i]=input->fOffset[i];
-	 for(int i=0;i<4;i++)
+	 QwBPMStripline* input = ((QwBPMStripline*)source);
+	 this->fElementName = input->fElementName;
+	 this->bRotated = input->bRotated;
+	 this->bFullSave = input->bFullSave;
+	 for(int i = 0; i < 3; i++)
+	   this->fOffset[i] = input->fOffset[i];
+	 for(int i = 0; i < 4; i++)
 	   this->fWire[i].Copy(&(input->fWire[i]));
-	 for(int i=0;i<2;i++)
+	 for(int i = 0; i < 2; i++)
 	   this->fRelPos[i].Copy(&(input->fRelPos[i]));
-	 for(int i=0;i<3;i++)
+	 for(int i = 0; i < 3; i++)
 	   this->fAbsPos[i].Copy(&(input->fAbsPos[i]));
        }
      else
