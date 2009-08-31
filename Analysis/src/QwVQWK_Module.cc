@@ -24,7 +24,7 @@ void QwVQWK_Module::SetChannel(size_t channel, TString &name)
 	      << ".  We can't rename it!."
 	      << std::endl;
   } else {
-    std::cout<<"VQWK: Set channel"<<channel<<" to "<<name<<std::endl;
+    std::cout << "VQWK: Set channel" << channel << " to " << name << std::endl;
     fChannels.at(channel).InitializeChannel(name,"raw");
   }
 };
@@ -268,6 +268,23 @@ void QwVQWK_Module::InitializeChannel(TString name, TString datatosave)
   }
 };
 
+void QwVQWK_Module::Copy(QwVQWK_Module *source)
+{
+  try {
+    if (typeid(*source) == typeid(*this)) {
+      QwVQWK_Module* input = ((QwVQWK_Module*) source);
+      for (size_t i = 0; i < this->fChannels.size(); i++)
+        this->fChannels[i].Copy(&(input->fChannels[i]));
+    } else {
+      TString loc("Standard exception from QwVQWK_Module::Copy = ");
+      loc += TString("arguments are not of the same type");
+      throw std::invalid_argument(loc.Data());
+    }
+  }
+  catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+};
 
 void  QwVQWK_Module::Print() const
 {
