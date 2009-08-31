@@ -9,22 +9,6 @@
 
 #include <sstream>
 
-QwQuartzBar::QwQuartzBar(TString region_tmp):VQwSubsystemParity(region_tmp){
-};
-
-QwQuartzBar::~QwQuartzBar(){
-  DeleteHistograms();
-
-  for (size_t i=0; i<fADC_Data.size(); i++){
-    if (fADC_Data.at(i) != NULL){
-      delete fADC_Data.at(i);
-      fADC_Data.at(i) = NULL;
-    }
-  }
-  fADC_Data.clear();
-};
-
-
 Int_t QwQuartzBar::LoadChannelMap(TString mapfile){
   TString varname, varvalue;
   TString modtype, dettype, name;
@@ -55,8 +39,9 @@ Int_t QwQuartzBar::LoadChannelMap(TString mapfile){
 
       //  Push a new record into the element array
       if (modtype=="VQWK"){
-	if ( modnum >= (Int_t) fADC_Data.size() )  fADC_Data.resize(modnum+1, new QwVQWK_Module());
-	fADC_Data.at(modnum)->SetChannel(channum, name);
+	if ( modnum >= (Int_t) fADC_Data.size() )
+	  fADC_Data.push_back(QwVQWK_Module());
+	fADC_Data.at(modnum).SetChannel(channum, name);
       } else {
 	std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str()
 		  << std::endl;
@@ -115,9 +100,7 @@ Int_t QwQuartzBar::LoadInputParameters(TString pedestalfile)
 
 void  QwQuartzBar::ClearEventData(){
   for (size_t i=0; i<fADC_Data.size(); i++){
-    if (fADC_Data.at(i) != NULL){
-      fADC_Data.at(i)->ClearEventData();
-    }
+    fADC_Data.at(i).ClearEventData();
   }
 };
 
@@ -126,7 +109,7 @@ void QwQuartzBar::SetRandomEventParameters(Double_t mean, Double_t sigma)
 {
   // Set parameters on all QwVQWK_Modules
   for (size_t i = 0; i < fADC_Data.size(); i++)
-    fADC_Data.at(i)->SetRandomEventParameters(mean, sigma);
+    fADC_Data.at(i).SetRandomEventParameters(mean, sigma);
   return;
 };
 
@@ -134,7 +117,7 @@ void QwQuartzBar::SetRandomEventAsymmetry(Double_t asymmetry)
 {
   // Set asymmetry on all QwVQWK_Modules
   for (size_t i = 0; i < fADC_Data.size(); i++)
-    fADC_Data.at(i)->SetRandomEventAsymmetry(asymmetry);
+    fADC_Data.at(i).SetRandomEventAsymmetry(asymmetry);
   return;
 };
 
@@ -142,7 +125,7 @@ void QwQuartzBar::RandomizeEventData(int helicity)
 {
   // Randomize all QwVQWK_Modules
   for (size_t i = 0; i < fADC_Data.size(); i++)
-    fADC_Data.at(i)->RandomizeEventData(helicity);
+    fADC_Data.at(i).RandomizeEventData(helicity);
 }
 
 //*****************************************************************
@@ -153,7 +136,7 @@ void QwQuartzBar::EncodeEventData(std::vector<UInt_t> &buffer)
 
   // Get all buffers in the order they are defined in the map file
   for (size_t i = 0; i < fADC_Data.size(); i++) {
-    fADC_Data.at(i)->EncodeEventData(elements);
+    fADC_Data.at(i).EncodeEventData(elements);
   }
 
   // If there is element data, generate the subbank header
@@ -187,11 +170,9 @@ Int_t QwQuartzBar::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t 
   if (index>=0 && num_words>0){
     //  We want to process the configuration data for this ROC.
     UInt_t words_read = 0;
-    for (size_t i=0; i<fADC_Data.size(); i++){
-      if (fADC_Data.at(i) != NULL){
- 	words_read += fADC_Data.at(i)->ProcessConfigBuffer(&(buffer[words_read]),
+    for (size_t i = 0; i < fADC_Data.size(); i++) {
+      words_read += fADC_Data.at(i).ProcessConfigBuffer(&(buffer[words_read]),
 							   num_words-words_read);
-      }
     }
   }
   return 0;
@@ -207,11 +188,9 @@ Int_t QwQuartzBar::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer
     if (fDEBUG) std::cout << "QwDriftChamber::ProcessEvBuffer:  "
                           << "Begin processing ROC" << roc_id << std::endl;
     UInt_t words_read = 0;
-    for (size_t i=0; i<fADC_Data.size(); i++){
-      if (fADC_Data.at(i) != NULL){
- 	words_read += fADC_Data.at(i)->ProcessEvBuffer(&(buffer[words_read]),
+    for (size_t i = 0; i < fADC_Data.size(); i++) {
+      words_read += fADC_Data.at(i).ProcessEvBuffer(&(buffer[words_read]),
 						       num_words-words_read);
-      }
     }
     if (num_words != words_read){
       std::cerr << "QwQuartzBar::ProcessEvBuffer:  There were "
@@ -239,18 +218,14 @@ void  QwQuartzBar::ProcessEvent()
 
 
 void  QwQuartzBar::ConstructHistograms(TDirectory *folder, TString &prefix){
-  for (size_t i=0; i<fADC_Data.size(); i++){
-    if (fADC_Data.at(i) != NULL){
-      fADC_Data.at(i)->ConstructHistograms(folder, prefix);
-    }
+  for (size_t i = 0; i < fADC_Data.size(); i++) {
+    fADC_Data.at(i).ConstructHistograms(folder, prefix);
   }
 };
 
 void  QwQuartzBar::FillHistograms(){
-  for (size_t i=0; i<fADC_Data.size(); i++){
-    if (fADC_Data.at(i) != NULL){
-      fADC_Data.at(i)->FillHistograms();
-    }
+  for (size_t i = 0; i < fADC_Data.size(); i++) {
+    fADC_Data.at(i).FillHistograms();
   }
 };
 
@@ -265,34 +240,24 @@ void  QwQuartzBar::DeleteHistograms()
 
 void  QwQuartzBar::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
-  for (size_t i=0; i<fADC_Data.size(); i++){
-    if (fADC_Data.at(i) != NULL){
-      fADC_Data.at(i)->ConstructBranchAndVector(tree, prefix, values);
-    }
+  for (size_t i = 0; i < fADC_Data.size(); i++) {
+    fADC_Data.at(i).ConstructBranchAndVector(tree, prefix, values);
   }
 };
 
 void  QwQuartzBar::FillTreeVector(std::vector<Double_t> &values)
 {
-  for (size_t i=0; i<fADC_Data.size(); i++){
-    if (fADC_Data.at(i) != NULL){
-      fADC_Data.at(i)->FillTreeVector(values);
-    } else {
-      std::cerr << "QwQuartzBar::FillTreeVector:  "
-		<< "fADC_Data.at(" << i << ") is NULL"
-		<< std::endl;
-    }
+  for (size_t i = 0; i < fADC_Data.size(); i++) {
+    fADC_Data.at(i).FillTreeVector(values);
   }
 };
 
 QwVQWK_Channel* QwQuartzBar::GetChannel(const TString name)
 {
   if (! fADC_Data.empty()) {
-    for (std::vector<QwVQWK_Module*>::iterator module = fADC_Data.begin(); module != fADC_Data.end(); ++module) {
-      QwVQWK_Module* thismodule = *module;
-      if (thismodule->GetChannel(name)) {
-	return thismodule->GetChannel(name);
-      }
+    for (std::vector<QwVQWK_Module>::iterator module = fADC_Data.begin(); module != fADC_Data.end(); ++module) {
+      QwVQWK_Channel* channel = module->GetChannel(name);
+      if (channel) return channel;
     }
   }
   return 0;
@@ -300,8 +265,22 @@ QwVQWK_Channel* QwQuartzBar::GetChannel(const TString name)
 //****************************************************************Added *By Buddhini
 void  QwQuartzBar::Copy(VQwSubsystem *source)
 {
-  // stub function= QwQuartzBar::Copy(VQwSubsystem *source)
-  // Buddhini & Julie, Jan 16, 2009
+  try {
+    if (typeid(*source) == typeid(*this)) {
+      QwQuartzBar* input = ((QwQuartzBar*) source);
+      this->fADC_Data.resize(input->fADC_Data.size());
+      for (size_t i = 0; i < this->fADC_Data.size(); i++)
+        this->fADC_Data[i].Copy(&(input->fADC_Data[i]));
+    } else {
+      TString loc = "Standard exception from QwQuartzBar::Copy = "
+        + source->GetSubsystemName() + " "
+        + this->GetSubsystemName() + " are not of the same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  }
+  catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
 
   return;
 }
@@ -309,7 +288,7 @@ void  QwQuartzBar::Copy(VQwSubsystem *source)
 VQwSubsystem*  QwQuartzBar::Copy()
 {
   // stub function= QwQuartzBar::Copy()
-  QwQuartzBar* TheCopy=new QwQuartzBar("Quartz bar Copy");
+  QwQuartzBar* TheCopy = new QwQuartzBar("Quartz bar Copy");
   TheCopy->Copy(this);
   return TheCopy;
 }
@@ -317,24 +296,29 @@ VQwSubsystem*  QwQuartzBar::Copy()
 
 
 
-
-
-Bool_t  QwQuartzBar::Compare(VQwSubsystem *source)
+Bool_t  QwQuartzBar::Compare(VQwSubsystem *value)
 {
-  // stub function= QwQuartzBar::Compare
-  // Buddhini & Julie, Jan 16, 2009
-
-  return kTRUE;
+  Bool_t result = kTRUE;
+  // Check whether the types are identical
+  if (typeid(*value) != typeid(*this)) {
+    result = kFALSE;
+  } else {
+    // Check whether the internal ADC module sizes are identical
+    QwQuartzBar* input = (QwQuartzBar*) value;
+    if (input->fADC_Data.size() != fADC_Data.size())
+      result = kFALSE;
+  }
+  return result;
 }
 
-VQwSubsystem&  QwQuartzBar::operator=  ( VQwSubsystem *value)
+VQwSubsystem&  QwQuartzBar::operator= (VQwSubsystem *value)
 {
 
   if(Compare(value))
     {
       QwQuartzBar* input = (QwQuartzBar*) value;
       for (size_t i = 0; i < input->fADC_Data.size(); i++) {
-	*(QwVQWK_Module*)fADC_Data.at(i) = *(QwVQWK_Module*)(input->fADC_Data.at(i));
+	this->fADC_Data.at(i) = input->fADC_Data.at(i);
       }
     }
   return *this;
@@ -345,9 +329,9 @@ VQwSubsystem&  QwQuartzBar::operator+=  ( VQwSubsystem *value)
   // Buddhini, January 14,2009.
   if(Compare(value))
     {
-      QwQuartzBar* input= (QwQuartzBar*)value ;
-      for(size_t i=0;i<input->fADC_Data.size();i++){
-	*(QwVQWK_Module*)fADC_Data.at(i) += *(QwVQWK_Module*)(input->fADC_Data.at(i));
+      QwQuartzBar* input = (QwQuartzBar*) value ;
+      for (size_t i = 0; i < input->fADC_Data.size(); i++) {
+	fADC_Data.at(i) += input->fADC_Data.at(i);
       }
     }
   return *this;
@@ -358,9 +342,9 @@ VQwSubsystem&  QwQuartzBar::operator-=  ( VQwSubsystem *value)
   // Buddhini, January 14,2009.
   if(Compare(value))
     {
-      QwQuartzBar* input= (QwQuartzBar*)value;
-      for(size_t i=0;i<input->fADC_Data.size();i++){
-	*(QwVQWK_Module*)fADC_Data.at(i) -= *(QwVQWK_Module*)(input->fADC_Data.at(i));
+      QwQuartzBar* input = (QwQuartzBar*) value;
+      for (size_t i = 0; i < input->fADC_Data.size(); i++) {
+	fADC_Data.at(i) -= input->fADC_Data.at(i);
       }
     }
   return *this;
@@ -385,12 +369,9 @@ void QwQuartzBar::Ratio(VQwSubsystem *numer,VQwSubsystem  *denom){
 
 
     if (fADC_Data.size() == numer1.fADC_Data.size()
-	&& fADC_Data.size() == denom1.fADC_Data.size() ){
-      for (size_t i=0; i<fADC_Data.size(); i++){
-	if (fADC_Data.at(i) != NULL && numer1.fADC_Data.at(i) != NULL
-	    && denom1.fADC_Data.at(i) != NULL){
-	  ((QwVQWK_Module*)fADC_Data.at(i))->Ratio(*(QwVQWK_Module*)numer1.fADC_Data.at(i), *(QwVQWK_Module*)denom1.fADC_Data.at(i));
-	}
+     && fADC_Data.size() == denom1.fADC_Data.size() ) {
+      for (size_t i = 0; i < fADC_Data.size(); i++) {
+        fADC_Data.at(i).Ratio(numer1.fADC_Data.at(i), denom1.fADC_Data.at(i));
       }
     } else {
       std::cerr << "QwQuartzBar::operator-=:  Problems!!!"

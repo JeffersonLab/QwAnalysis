@@ -26,8 +26,10 @@ class QwQuartzBar: public VQwSubsystemParity {
    *
    ******************************************************************/
  public:
-  QwQuartzBar(TString region_tmp);
-  ~QwQuartzBar();
+  QwQuartzBar(TString region_tmp):VQwSubsystemParity(region_tmp) { };
+  ~QwQuartzBar() {
+    DeleteHistograms();
+  };
 
   /*  Member functions derived from VQwSubsystemParity. */
   Int_t LoadChannelMap(TString mapfile);
@@ -78,9 +80,7 @@ class QwQuartzBar: public VQwSubsystemParity {
   Bool_t IsGoodEvent(){
     Bool_t status = kTRUE;
     for (size_t i=0; i<fADC_Data.size(); i++){
-      if (fADC_Data.at(i) != NULL){
-	status &= fADC_Data.at(i)->IsGoodEvent();
-      }
+      status &= fADC_Data.at(i).IsGoodEvent();
     }
     return status;
   };
@@ -93,7 +93,7 @@ class QwQuartzBar: public VQwSubsystemParity {
 
 
 
-  std::vector<QwVQWK_Module*> fADC_Data;
+  std::vector<QwVQWK_Module> fADC_Data;
 
 
 
