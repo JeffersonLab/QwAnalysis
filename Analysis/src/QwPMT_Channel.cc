@@ -22,14 +22,23 @@ void QwPMT_Channel::ClearEventData(){
   fValue   = 0;
 };
 
-void QwPMT_Channel::RandomizeEventData(int helicity){
-  //need to set to random value
-  fValue   = 123;
+void QwPMT_Channel::RandomizeEventData(int helicity, int SlotNum, int ChanNum){
+
+  UInt_t fV775Dataword = 123;  //fixed number for now
+  UInt_t fV775SlotNumber = SlotNum;
+  UInt_t fV775ChannelNumber = ChanNum;
+  const UInt_t fV775DataValidBit = 0x00004000;
+
+  UInt_t word = fV775Dataword | (fV775SlotNumber<<27);
+  word = word | (fV775ChannelNumber<<16) | fV775DataValidBit;
+  //std::cout<<"word = "<<std::hex<<word<<std::dec<<std::endl;
+
+  fValue = word;
 };
 
 void  QwPMT_Channel::EncodeEventData(std::vector<UInt_t> &TrigBuffer)
 {
-  std::cout<<"QwPMT_Channel::EncodeEventData() not fully implemented yet."<<std::endl;
+//  std::cout<<"QwPMT_Channel::EncodeEventData() not fully implemented yet."<<std::endl;
 
   Long_t localbuf;
 
@@ -37,7 +46,7 @@ void  QwPMT_Channel::EncodeEventData(std::vector<UInt_t> &TrigBuffer)
     //  This channel is not used, but is present in the data stream.
     //  Skip over this data.
   } else {
-    localbuf = (Long_t) fValue;
+    localbuf = (Long_t) (this->fValue);
     TrigBuffer.push_back(localbuf);
   }
 
@@ -74,6 +83,7 @@ void  QwPMT_Channel::FillHistograms(){
   } else {
     if (fHistograms[index] != NULL)
       fHistograms[index]->Fill(this->fValue);
+      //std::cout<<"Histogram "<<GetElementName()<< " is filled with value "<<this->fValue<<std::endl; //jpan: test
     index += 1;
   }
 };

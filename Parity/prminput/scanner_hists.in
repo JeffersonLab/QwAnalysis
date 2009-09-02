@@ -19,3 +19,8 @@ SCAN_POW     			TH1F	10001	-0.5		10000.5			scan_pow	Events
 SCAN_POSX     			TH1F	10001	-0.5		10000.5			scan_posx	Events
 SCAN_POSY     			TH1F	10001	-0.5		10000.5			scan_posy	Events
 
+SPARE0				TH1F	10001	-0.5		10000.5			spare		Events
+SPARE1				TH1F	10001	-0.5		10000.5			spare		Events
+SPARE2				TH1F	10001	-0.5		10000.5			spare		Events
+SPARE3				TH1F	10001	-0.5		10000.5			spare		Events
+SPARE4				TH1F	10001	-0.5		10000.5			spare		Events

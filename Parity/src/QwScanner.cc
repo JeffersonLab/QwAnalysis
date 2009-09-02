@@ -70,7 +70,7 @@ Int_t QwScanner::LoadChannelMap(TString mapfile){
 
       //  Push a new record into the element array
       if (modtype=="VQWK"){
-        //std::cout<<"modnum="<<modnum<<"    "<<"fADC_Data.size="<<fADC_Data.size()<<std::endl;
+        std::cout<<"modnum="<<modnum<<"    "<<"fADC_Data.size="<<fADC_Data.size()<<std::endl;
 	if (modnum >= (Int_t) fADC_Data.size())  fADC_Data.resize(modnum+1, new QwVQWK_Module());
 	fADC_Data.at(modnum)->SetChannel(channum, name);
       }
@@ -185,22 +185,31 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
   Int_t index = GetSubbankIndex(roc_id,bank_id);
 
   SetDataLoaded(kTRUE);
-
+  fDEBUG = 1;
+  if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer:  "
+                          << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
+                          << ", num_words "<<num_words<<", index "<<index<<std::endl;
   //  This is a VQWK bank if bank_id=2222
   if (bank_id==2222){
 
     if (index>=0 && num_words>0){
 
       //  This is a VQWK bank We want to process this ROC.  Begin looping through the data.
-      if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer:  "
-                          << "Begin processing ROC" << roc_id << std::endl;
+      if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer: Processing Bank "<<bank_id
+                            << " fADC_Data.size() = "<<fADC_Data.size()<<std::endl;
       UInt_t words_read = 0;
       for (size_t i=0; i<fADC_Data.size(); i++){
         if (fADC_Data.at(i) != NULL){
    	  words_read += fADC_Data.at(i)->ProcessEvBuffer(&(buffer[words_read]),
 						       num_words-words_read);
+          if (fDEBUG) {
+          std::cout<<"QwScanner::ProcessEvBuffer: "<<words_read<<" words_read, "<<num_words<<" num_words"<<" Data: ";
+          for(int j=0; j<words_read;j++)
+          std::cout<<std::hex<<buffer[j]<<std::dec<<" \n";
+          }
         }
       }
+      
       if (num_words != words_read){
         std::cerr << "QwScanner::ProcessEvBuffer:  There were "
 		  << num_words-words_read
@@ -210,21 +219,38 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
     }
   }
 
-  //  This is a QADC/TDC bank if bank_id=1111
+  //  This is a QADC/TDC bank (bank_id=1111)
   if (bank_id==1111){
 
     if (index>=0 && num_words>0){
       //  We want to process this ROC.  Begin looping through the data.
+      fDEBUG = 1;
+      if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer:  "
+                          << "Begin processing ROC" << roc_id <<", Bank "<<bank_id<< std::endl;
+
+
+          if (fDEBUG) 
+          std::cout<<"QwScanner::ProcessEvBuffer:"<<" Trigger Event Data: \n";
 
       for(size_t i=0; i<num_words ; i++){
         //  Decode this word as a V775TDC word.
         DecodeTDCWord(buffer[i]);
 
-        if (! IsSlotRegistered(index, GetTDCSlotNumber())) continue;
+        std::cout<<std::hex<<buffer[i]<<std::dec<<" "<<std::endl;
+	    std::cout << "   Parameters:  index=="<<index
+		      << "; GetV775SlotNumber()=="<<GetTDCSlotNumber()
+		      << "; GetV775ChannelNumber()=="<<GetTDCChannelNumber()
+		      << "; GetV775Data()=="<<GetTDCData()
+		      << std::endl;
 
+        std::cout<<"IsSlotRegistered = "<<IsSlotRegistered(index, GetTDCSlotNumber())<<std::endl;
+ //       if (! IsSlotRegistered(index, GetTDCSlotNumber())) continue;
+
+        std::cout<<"IsValidDataword() = "<<IsValidDataword()<<std::endl;
         if (IsValidDataword()){
 	  // This is a V775 TDC data word
 	  try {
+            std::cout<<"Filling raw data word ..."<<std::endl;
 	    FillRawWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),
 		        GetTDCData());
 	  }
@@ -258,6 +284,7 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
 
 void  QwScanner::ProcessEvent(){
   if (! HasDataLoaded()) return;
+  std::cout<<"Scanner Events will be processed here."<<std::endl;
 
 };
 
@@ -285,13 +312,17 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix){
 };
 
 void  QwScanner::FillHistograms(){
+  std::cout<<"QwScanner::FillHistograms():"<<std::endl;
   if (! HasDataLoaded()) return;
+
+  std::cout<<"QwScanner::FillHistograms(): Filling trigger data..."<<std::endl;
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).FillHistograms();
     }
   }
 
+  std::cout<<"QwScanner::FillHistograms(): Filling position data..."<<std::endl;
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
       fADC_Data.at(i)->FillHistograms();
@@ -534,9 +565,15 @@ void QwScanner::FillRawWord(Int_t bank_index,
 				 Int_t slot_num,
 				 Int_t chan, UInt_t data){
   Int_t modindex = GetModuleIndex(bank_index,slot_num);
+
+  std::cout<<"modindex = "<<modindex<<std::endl;
+
   if (modindex != -1){
     EModuleType modtype = EModuleType(fModulePtrs.at(modindex).at(chan).first);
     Int_t chanindex     = fModulePtrs.at(modindex).at(chan).second;
+
+  std::cout<<"   chanindex = "<<chanindex<<std::endl;
+
     if (modtype == EMPTY || chanindex == -1){
       //  This channel is not connected to anything.
       //  Do nothing.
@@ -549,6 +586,7 @@ void QwScanner::FillRawWord(Int_t bank_index,
 
 Int_t QwScanner::GetModuleIndex(size_t bank_index, size_t slot_num) const {
   Int_t modindex = -1;
+std::cout<<"====>>>>> bank_index "<<bank_index<<"   fModuleIndex.size() "<<fModuleIndex.size()<<std::endl;
   if (bank_index>=0 && bank_index<fModuleIndex.size()){
     if (slot_num>=0 && slot_num<fModuleIndex.at(bank_index).size()){
       modindex = fModuleIndex.at(bank_index).at(slot_num);
@@ -645,7 +683,9 @@ void QwScanner::RandomizeEventData(int helicity)
 {
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
-      fPMTs.at(i).at(j).RandomizeEventData(helicity);
+
+   //jpan: It is not strict to use i,j as slot number and channel number.
+      fPMTs.at(i).at(j).RandomizeEventData(helicity,i,j);
     }
   }
 

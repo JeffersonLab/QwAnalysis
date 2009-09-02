@@ -18,6 +18,7 @@ const UInt_t QwEventBuffer::kNullDataWord = 0;//'NULL';
 
 
 QwEventBuffer::QwEventBuffer():fDEBUG(kFALSE),fDataFileStem("QwRun_"),
+//QwEventBuffer::QwEventBuffer():fDEBUG(kTRUE),fDataFileStem("QwRun_"),
 			       fDataFileExtension("log"),
 			       fRunIsSegmented(kFALSE),
 			       fEvStreamMode(fEvStreamNull),
@@ -466,10 +467,10 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
     //  After trying the data in each subsystem, bump the
     //  fWordsSoFar to move to the next bank.
     if (fDEBUG) {
-      std::cerr << "ProcessEventBuffer: ROC="<<fROC<<"SubbankTag="<< fSubbankTag
-                <<"FragLength="<<fFragLength <<std::endl;
+      std::cerr << "ProcessEventBuffer: ROC="<<fROC<<", SubbankTag="<< fSubbankTag
+                <<", FragLength="<<fFragLength <<std::endl;
     }
-subsystems.ProcessEvBuffer(fROC, fSubbankTag,
+    subsystems.ProcessEvBuffer(fROC, fSubbankTag,
 			       &localbuff[fWordsSoFar],
 			       fFragLength);
     fWordsSoFar += fFragLength;

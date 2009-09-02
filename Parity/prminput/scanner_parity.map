@@ -13,13 +13,15 @@ roc=21
 !
 !default bank ID: bank=0
 !
-slot=2
+bank=1111
+!
+slot=0
 ! module.type  module.num  chan.num, det.type, det.name
   V792, 0, 0, scanner_qadc, quartz_front_adc
   V792, 0, 1, scanner_qadc, quartz_back_adc
 !
 !
-slot=4
+slot=1
 !module=V775
 ! module.type  module.num  chan.num, det.type, det.name
   V775, 1, 0, scanner_tdc, quartz_front_tdc
@@ -41,10 +43,10 @@ bank=2222
   VQWK, 0, 0, scanner_motion, SCAN_POW
   VQWK, 0, 1, scanner_motion, SCAN_POSX
   VQWK, 0, 2, scanner_motion, SCAN_POSY
-!  VQWK, 0, 3, scanner_motion, empty0
-!  VQWK, 0, 4, scanner_motion, empty1
-!  VQWK, 0, 5, scanner_motion, empty2
-!  VQWK, 0, 6, scanner_motion, empty3
-!  VQWK, 0, 7, scanner_motion, empty4
+  VQWK, 0, 3, scanner_motion, SPARE0
+  VQWK, 0, 4, scanner_motion, SPARE1
+  VQWK, 0, 5, scanner_motion, SPARE2
+  VQWK, 0, 6, scanner_motion, SPARE3
+  VQWK, 0, 7, scanner_motion, SPARE4
 !
 !END

@@ -184,7 +184,9 @@ static int kDebug = 1;
     // QwDetectors.at(1)->ConstructHistograms(rootfile.mkdir("scanner"));
     if (kDebug) std::cout<<" ==== Creating histograms ==== "<<std::endl;
     rootfile.cd();
+
     QwDetectors.ConstructHistograms(rootfile.mkdir("scanner_histo"));
+
     if (kDebug) std::cout<<"...Done. "<<std::endl;
 
     int EvtCounter = 0;
@@ -209,18 +211,21 @@ static int kDebug = 1;
       if (QwEvt.GetEventNumber() < cmdline.GetFirstEvent()) continue;
       else if (QwEvt.GetEventNumber() > cmdline.GetLastEvent()) break;
 
-      if(QwEvt.GetEventNumber()%100==0) {
-	std::cerr << "Number of events processed so far: "
-		  << QwEvt.GetEventNumber() << "\r";
+      if(QwEvt.GetEventNumber()%100==0 | (QwEvt.GetEventNumber()<=10) ) {
+	std::cout << "Number of events processed so far: "
+		  << QwEvt.GetEventNumber() << "\n";
       }
 
       //  Fill the subsystem objects with their respective data for this event.
       QwEvt.FillSubsystemData(QwDetectors);
 
+      // Process this events
+      QwDetectors.ProcessEvent();
+
       QwDetectors.FillHistograms();
 
     }
-    std::cout << "Number of events processed so far: "
+    std::cout << "Number of events processed: "
 	      << QwEvt.GetEventNumber() << std::endl;
     timer.Stop();
 
