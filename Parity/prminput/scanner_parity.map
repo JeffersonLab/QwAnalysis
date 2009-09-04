@@ -11,9 +11,9 @@
 !
 roc=21
 !
-!default bank ID: bank=0
+! QADC/TDC bank
 !
-bank=1111
+bank=2101
 !
 slot=0
 ! module.type  module.num  chan.num, det.type, det.name
@@ -30,10 +30,10 @@ slot=1
 !
 !
 !
-!The following map is defined for 2D linear motion
-!Bank ID is specificied as 2222 for scanner's VQWK
+!The following map is defined for scanner 2D linear motion
+!Bank ID is specificied for scanner's VQWK
 !
-bank=2222
+bank=2102
 !
 !The module.num for VQWK has to be independently counted.
 !

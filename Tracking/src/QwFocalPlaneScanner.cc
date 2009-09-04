@@ -183,8 +183,8 @@ Int_t QwFocalPlaneScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t
 
   SetDataLoaded(kTRUE);
 
-  //  This is a VQWK bank if bank_id=2222
-  if (bank_id==2222){
+  //  This is a VQWK bank if bank_id=2102
+  if (bank_id==2102){
 
     if (index>=0 && num_words>0){
 
@@ -355,7 +355,7 @@ void  QwFocalPlaneScanner::ReportConfiguration(){
 		<< ":  subbank index==" << ind
 		<< std::endl;
 
-      if (fBank_IDs.at(i).at(j)!=2222){
+      if (fBank_IDs.at(i).at(j)!=2102){
         for (size_t k=0; k<kMaxNumberOfModulesPerROC; k++){
 	  Int_t QadcTdcindex = GetModuleIndex(ind,k);
 	  if (QadcTdcindex != -1){ 

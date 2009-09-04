@@ -83,6 +83,7 @@ class QwScanner: public VQwSubsystem,
   void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
   void  ClearAllBankRegistrations();
   Int_t RegisterROCNumber(const UInt_t roc_id);
+  Int_t RegisterSubbank(const UInt_t bank_id);
 
   // Tells this object that it will decode data from the current bank
   Int_t RegisterSlotNumber(const UInt_t slot_id);

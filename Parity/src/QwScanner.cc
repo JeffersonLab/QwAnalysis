@@ -70,7 +70,7 @@ Int_t QwScanner::LoadChannelMap(TString mapfile){
 
       //  Push a new record into the element array
       if (modtype=="VQWK"){
-        std::cout<<"modnum="<<modnum<<"    "<<"fADC_Data.size="<<fADC_Data.size()<<std::endl;
+        //std::cout<<"modnum="<<modnum<<"    "<<"fADC_Data.size="<<fADC_Data.size()<<std::endl;
 	if (modnum >= (Int_t) fADC_Data.size())  fADC_Data.resize(modnum+1, new QwVQWK_Module());
 	fADC_Data.at(modnum)->SetChannel(channum, name);
       }
@@ -189,8 +189,8 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
   if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer:  "
                           << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
                           << ", num_words "<<num_words<<", index "<<index<<std::endl;
-  //  This is a VQWK bank if bank_id=2222
-  if (bank_id==2222){
+  //  This is a VQWK bank if bank_id=2102
+  if (bank_id==2102){
 
     if (index>=0 && num_words>0){
 
@@ -219,8 +219,8 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
     }
   }
 
-  //  This is a QADC/TDC bank (bank_id=1111)
-  if (bank_id==1111){
+  //  This is a QADC/TDC bank (bank_id=2101)
+  if (bank_id==2101){
 
     if (index>=0 && num_words>0){
       //  We want to process this ROC.  Begin looping through the data.
@@ -293,16 +293,12 @@ void  QwScanner::ProcessEvent(){
 
 void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix){
 
-  std::cout<<"Construct histograms for scanner:"<<std::endl;
-
-  std::cout<<"V792/V775 modules:"<<std::endl;
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).ConstructHistograms(folder, prefix);
     }
   }
 
-  std::cout<<"VQWK module:"<<std::endl;
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
       fADC_Data.at(i)->ConstructHistograms(folder, prefix);
@@ -400,7 +396,7 @@ void  QwScanner::ReportConfiguration(){
 		<< ":  subbank index==" << ind
 		<< std::endl;
 
-      if (fBank_IDs.at(i).at(j)!=2222){
+      if (fBank_IDs.at(i).at(j)==2101){
         for (size_t k=0; k<kMaxNumberOfModulesPerROC; k++){
 	  Int_t QadcTdcindex = GetModuleIndex(ind,k);
 	  if (QadcTdcindex != -1){
@@ -408,7 +404,8 @@ void  QwScanner::ReportConfiguration(){
 	    std::cout << "  Module#" << QadcTdcindex << std::endl;
             }
           }
-        }else {
+        }
+        else if (fBank_IDs.at(i).at(j)==2102) {
 	  std::cout << "    Number of QWAK:  " << fADC_Data.size() << std::endl;
        }
     }
@@ -510,12 +507,23 @@ Int_t QwScanner::RegisterROCNumber(const UInt_t roc_id){
   return fCurrentBankIndex;
 };
 
+Int_t QwScanner::RegisterSubbank(const UInt_t bank_id)
+{
+        VQwSubsystem::RegisterSubbank(bank_id);
+        fCurrentBankIndex++;
+        std::vector<Int_t> tmpvec(kMaxNumberOfModulesPerROC,-1);
+        fModuleIndex.push_back(tmpvec);
+        std::cout<<"Register Subbank "<<bank_id<<" with BankIndex "<<fCurrentBankIndex<<std::endl;
+};
+
+
 Int_t QwScanner::RegisterSlotNumber(UInt_t slot_id){
+
   std::pair<Int_t, Int_t> tmppair;
   tmppair.first  = -1;
   tmppair.second = -1;
   if (slot_id<kMaxNumberOfModulesPerROC){
-    if (fCurrentBankIndex>=0 && fCurrentBankIndex<=fModuleIndex.size()){
+    if (fCurrentBankIndex>=0 && fCurrentBankIndex<=fModuleIndex.size()){ 
       fModuleTypes.resize(fNumberOfModules+1);
       fModulePtrs.resize(fNumberOfModules+1);
       fModulePtrs.at(fNumberOfModules).resize(kMaxNumberOfChannelsPerModule,
@@ -586,7 +594,6 @@ void QwScanner::FillRawWord(Int_t bank_index,
 
 Int_t QwScanner::GetModuleIndex(size_t bank_index, size_t slot_num) const {
   Int_t modindex = -1;
-std::cout<<"====>>>>> bank_index "<<bank_index<<"   fModuleIndex.size() "<<fModuleIndex.size()<<std::endl;
   if (bank_index>=0 && bank_index<fModuleIndex.size()){
     if (slot_num>=0 && slot_num<fModuleIndex.at(bank_index).size()){
       modindex = fModuleIndex.at(bank_index).at(slot_num);
@@ -726,7 +733,7 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
     // Form CODA subbank header
     subbankheader.clear();
     subbankheader.push_back(LocalSumBuffer.size() + 1);    // subbank size
-    subbankheader.push_back((2222 << 16) | (0x01 << 8) | (1 & 0xff));
+    subbankheader.push_back((2102 << 16) | (0x01 << 8) | (1 & 0xff));
         // subbank tag | subbank type | event number
 
     // Form CODA bank/roc header
@@ -746,7 +753,8 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
     // Form CODA subbank header
     subbankheader.clear();
     subbankheader.push_back(LocalTrigBuffer.size() + 1);    //subbank size
-    subbankheader.push_back((1111 << 16) | (0x01 << 8) | (1 & 0xff));
+//    subbankheader.push_back((2101 << 16) | (0x01 << 8) | (1 & 0xff));
+    subbankheader.push_back((2101 << 16) | (0x01 << 8) | (1 & 0xff));
         // subbank tag | subbank type | event number
 
     // Form CODA bank/roc header

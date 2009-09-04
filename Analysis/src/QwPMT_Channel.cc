@@ -24,7 +24,10 @@ void QwPMT_Channel::ClearEventData(){
 
 void QwPMT_Channel::RandomizeEventData(int helicity, int SlotNum, int ChanNum){
 
-  UInt_t fV775Dataword = 123;  //fixed number for now
+  Double_t mean = 1500.0;
+  Double_t sigma = 300.0;
+  UInt_t fV775Dataword = gRandom->Gaus(mean,sigma);
+
   UInt_t fV775SlotNumber = SlotNum;
   UInt_t fV775ChannelNumber = ChanNum;
   const UInt_t fV775DataValidBit = 0x00004000;

@@ -11,6 +11,10 @@
 #include <vector>
 #include "TTree.h"
 
+//jpan: Mersenne Twistor: A 623-diminsionally equidistributed
+//uniform pseudorandom number generator
+#include "TRandom3.h"
+
 #include "VQwDataElement.h"
 #include "QwHistogramHelper.h"
 
@@ -24,7 +28,10 @@ class QwPMT_Channel: public VQwDataElement {
    *
    ******************************************************************/
  public:
-  QwPMT_Channel() { };
+  QwPMT_Channel() { 
+// Prepare the random number generator. 
+  gRandom->SetSeed(); };
+
   QwPMT_Channel(TString name){
     InitializeChannel(name);
   };

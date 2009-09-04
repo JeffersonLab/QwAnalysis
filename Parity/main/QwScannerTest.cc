@@ -109,7 +109,7 @@ static int kDebug = 1;
   for (int run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++) {
 
     TString filename = std::string(getenv("QWSCRATCH"))+"/data" + 
-                       TString("/QwRun_") + Form("%ld.",run) + TString("log.0");
+                       TString("/QwRun_") + Form("%ld.",run) + TString("log");
 
   if (kDebug) std::cout<<"Generating mock data for the scanner: "<<filename<<std::endl;
 
@@ -132,8 +132,8 @@ static int kDebug = 1;
     QwEvt.EncodeSubsystemData(QwDetectors);
 
       // Periodically print event number
-      if (kDebug && event % 100 == 0)
-        std::cout << "Generated " << event << " events." << std::endl;
+      if (kDebug && event % 1000 == 0 && event !=0)
+        std::cout << "Generated " << event << " events so far." << std::endl;
 
     }  //end of event loop
 
