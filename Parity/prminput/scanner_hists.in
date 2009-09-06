@@ -1,4 +1,4 @@
-#Beamline
+#FocalPlaneScanner
 #   This is the histogram parameter input file for the QwHistogramHelper class
 #   "." is the wildcard here!!!! Please use "." only (no "*") since we 
 #   require the exact same length for two strings to match!!!!
@@ -10,17 +10,23 @@
 ##############################################################################################
 ###  Scanner histograms
 
-quartz_front_adc		TH1F	4001	-0.5		4000.5			QuartzFrontADC	Events
-quartz_back_adc			TH1F	4001	-0.5		4000.5			QuartzBackADC	Events
-quartz_front_tdc		TH1F	4001	-0.5		4000.5			QuartzFrontTDC	Events
-quartz_back_tdc			TH1F	4001	-0.5		4000.5			QuartzBackTDC	Events
+scanner_quartz_front_adc		TH1F	4001	-0.5		4000.5			QuartzFrontADC	Events
+scanner_quartz_back_adc			TH1F	4001	-0.5		4000.5			QuartzBackADC	Events
+scanner_quartz_front_tdc		TH1F	4001	-0.5		4000.5			QuartzFrontTDC	Events
+scanner_quartz_back_tdc			TH1F	4001	-0.5		4000.5			QuartzBackTDC	Events
 
-SCAN_POW     			TH1F	10001	-0.5		10000.5			scan_pow	Events
-SCAN_POSX     			TH1F	10001	-0.5		10000.5			scan_posx	Events
-SCAN_POSY     			TH1F	10001	-0.5		10000.5			scan_posy	Events
+scanner_SCAN_POW     			TH1F	10000	0.0		5.0e9			scan_pow	Events
+scanner_SCAN_POSX     			TH1F	10000	0.0		5.0e9			scan_posx	Events
+scanner_SCAN_POSY     			TH1F	10000	0.0		5.0e9			scan_posy	Events
 
-SPARE0				TH1F	10001	-0.5		10000.5			spare		Events
-SPARE1				TH1F	10001	-0.5		10000.5			spare		Events
-SPARE2				TH1F	10001	-0.5		10000.5			spare		Events
-SPARE3				TH1F	10001	-0.5		10000.5			spare		Events
-SPARE4				TH1F	10001	-0.5		10000.5			spare		Events
+scanner_SPARE0				TH1F	10001	-5.0e9		5.0e9			spare0		Events
+scanner_SPARE1				TH1F	10001	-5.0e9		5.0e9			spare1		Events
+scanner_SPARE2				TH1F	10001	-5.0e9		5.0e9			spare2		Events
+scanner_SPARE3				TH1F	10001	-5.0e9		5.0e9			spare3		Events
+scanner_SPARE4				TH1F	10001	-5.0e9		5.0e9			spare4		Events
+
+scanner_position_x		TH1F	4000	310.0		350.0			X[cm]		Events
+scanner_position_y		TH1F	20000	-100.0		100.0			Y[cm]		Events
+scanner_rate			TH1F	20000	0.0		1500.0			rate[kps]	Events
+
+scanner_rate_map 	TH2F 	20000 	-100.0 	100.0 	4000 	310.0 	350.0 	X[cm] 	Y[cm]

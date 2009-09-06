@@ -77,7 +77,7 @@ void  QwHistogramHelper::LoadHistParamsFromFile(const std::string filename)
   fInputFile = filename;
   HISTPARMS tmpstruct;
 
-  //fDEBUG = 1;
+  fDEBUG = 1;
   if (fDEBUG) std::cout<< "file name "<<fInputFile<<std::endl;
 
   fHistParams.clear();
@@ -115,7 +115,7 @@ const QwHistogramHelper::HISTPARMS QwHistogramHelper::GetHistParamsFromList(cons
     }
   }
 
-//  fDEBUG = 1;
+  fDEBUG = 1;
   if (fDEBUG) {
     std::cout<<"Finding histogram defination from: "<<histname<<std::endl;
     std::cout<<"name "<<tmpstruct.name_title<<" type "<<tmpstruct.type<<

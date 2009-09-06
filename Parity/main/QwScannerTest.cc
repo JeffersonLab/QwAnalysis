@@ -103,7 +103,7 @@ static int kDebug = 1;
   if (kDebug) std::cout<<"\nGenerating mock data:\n\n";
 
   // Get the channels we want to process
-  QwScanner* scanner = (QwScanner*) QwDetectors.GetSubsystem("FPS");
+  //QwScanner* scanner = (QwScanner*) QwDetectors.GetSubsystem("FPS");
 
   // Run generation loop
   for (int run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++) {
@@ -184,10 +184,8 @@ static int kDebug = 1;
     // QwDetectors.at(1)->ConstructHistograms(rootfile.mkdir("scanner"));
     if (kDebug) std::cout<<" ==== Creating histograms ==== "<<std::endl;
     rootfile.cd();
-
-    QwDetectors.ConstructHistograms(rootfile.mkdir("scanner_histo"));
-
-    if (kDebug) std::cout<<"...Done. "<<std::endl;
+    TString prefix = TString("scanner_");
+    QwDetectors.ConstructHistograms(rootfile.mkdir("scanner_histo"),prefix);
 
     int EvtCounter = 0;
     while (QwEvt.GetEvent() == CODA_OK){

@@ -110,11 +110,28 @@ class QwScanner: public VQwSubsystem,
   //    We need a mapping of module,channel into PMT index, ADC/TDC
   std::vector< std::vector<QwPMT_Channel> > fPMTs;
 
+  // scanner specified histograms
+  std::vector<TH1*> fHistograms1D;
+  std::vector<TH2*> fHistograms2D;
+
  private:
 
   Double_t fPedestal;
   Double_t fCalibration;
   QwVQWK_Channel fTriumf_ADC;
+
+  Double_t fPositionX;
+  Double_t fPositionY;
+  Double_t fRate;
+
+  Double_t MainDetCenterX;
+  Double_t MainDetCenterY;
+
+  Double_t HomePositionOffsetX;
+  Double_t HomePositionOffsetY;
+
+  Double_t Cal_FactorX;
+  Double_t Cal_FactorY;
 
 };
 

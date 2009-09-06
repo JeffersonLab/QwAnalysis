@@ -119,15 +119,14 @@ Int_t QwVQWK_Module::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left)
     for (size_t i=0; i<fChannels.size(); i++){
       words_read += fChannels.at(i).ProcessEvBuffer(&(buffer[words_read]),
 						    num_words_left-words_read);
-    //std::cout<<"QwVQWK_Module::ProcessEvBuffer: fChannels.size()="
-    //         <<fChannels.size<<" words_read="<<words_read <<std::endl;
+    std::cout<<"QwVQWK_Module::ProcessEvBuffer: fChannels.size()="
+             <<fChannels.size()<<" words_read="<<words_read <<std::endl;
     }
     //  Now check for errors.
     fSequenceNumber  = fChannels.at(0).GetSequenceNumber();
     fEventIsGood &= fChannels.at(0).MatchNumberOfSamples(fIdealNumberOfSamples);
-    /*     std::cerr << "QwVQWK_Module::ProcessEvBuffer: fSequenceNumber==" << fSequenceNumber */
-    /* 	      << "; fIdealNumberOfSamples==" << fIdealNumberOfSamples */
-    /* 	      << std::endl; */
+    // std::cout << "QwVQWK_Module::ProcessEvBuffer: fSequenceNumber==" << fSequenceNumber
+    //           << "; fIdealNumberOfSamples==" << fIdealNumberOfSamples<< std::endl; 
     for (size_t i=1; i<fChannels.size(); i++){
       fEventIsGood &= fChannels.at(i).MatchSequenceNumber(fSequenceNumber);
       fEventIsGood &= fChannels.at(i).MatchNumberOfSamples(fIdealNumberOfSamples);

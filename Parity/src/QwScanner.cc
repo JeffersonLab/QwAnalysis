@@ -10,6 +10,8 @@
 
 #include "QwScanner.h"
 
+extern QwHistogramHelper gQwHists;
+
 const UInt_t QwScanner::kMaxNumberOfModulesPerROC     = 21;
 const UInt_t QwScanner::kMaxNumberOfChannelsPerModule = 32;
 
@@ -19,6 +21,15 @@ QwScanner::QwScanner(TString region_tmp)
 
     TString name = region_tmp;
     InitializeChannel(name,"raw");
+
+   MainDetCenterX = 327.0; //units: cm
+   MainDetCenterY = 0.0;
+
+   HomePositionOffsetX = 0.0;
+   HomePositionOffsetY = -100.0;
+
+   Cal_FactorX = 5.0; //units: cm/V, assume linear, 40cm/8V
+   Cal_FactorY = 25.0; //units: cm/V, assume linear, 200cm/8V
 };
 
 
@@ -205,7 +216,7 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
           if (fDEBUG) {
           std::cout<<"QwScanner::ProcessEvBuffer: "<<words_read<<" words_read, "<<num_words<<" num_words"<<" Data: ";
           for(int j=0; j<words_read;j++)
-          std::cout<<std::hex<<buffer[j]<<std::dec<<" \n";
+          std::cout<<std::hex<<buffer[j]<<std::dec<<std::endl;
           }
         }
       }
@@ -286,6 +297,18 @@ void  QwScanner::ProcessEvent(){
   if (! HasDataLoaded()) return;
   std::cout<<"Scanner Events will be processed here."<<std::endl;
 
+  for (size_t i=0; i<fPMTs.size(); i++){
+    for (size_t j=0; j<fPMTs.at(i).size(); j++){
+      fPMTs.at(i).at(j).ProcessEvent();
+    }
+  }
+
+  for (size_t i=0; i<fADC_Data.size(); i++){
+    if (fADC_Data.at(i) != NULL){
+      fADC_Data.at(i)->ProcessEvent();
+    }
+  }
+
 };
 
 
@@ -305,6 +328,12 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix){
     }
   }
 
+//construct specified scanner histograms 
+    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
+    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));
+    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_rate")));
+    fHistograms2D.push_back( gQwHists.Construct2DHist(TString("scanner_rate_map")));
+
 };
 
 void  QwScanner::FillHistograms(){
@@ -318,10 +347,20 @@ void  QwScanner::FillHistograms(){
     }
   }
 
-  std::cout<<"QwScanner::FillHistograms(): Filling position data..."<<std::endl;
+  std::cout<<"QwScanner::FillHistograms(): Filling position and rate data..."<<std::endl;
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
       fADC_Data.at(i)->FillHistograms();
+
+
+        fPositionX = fADC_Data.at(i)->GetChannel(TString("SCAN_POSX"))->GetAverageVolts();
+        fPositionX = fPositionX*Cal_FactorX + MainDetCenterX + HomePositionOffsetX;
+        fHistograms1D.at(0)->Fill(fPositionX);
+
+        fPositionY = fADC_Data.at(i)->GetChannel(TString("SCAN_POSY"))->GetAverageVolts();
+        fPositionY = fPositionY*Cal_FactorY + MainDetCenterY + HomePositionOffsetY;
+        fHistograms1D.at(1)->Fill(fPositionY);
+
     }
   }
 
@@ -380,6 +419,20 @@ void  QwScanner::DeleteHistograms(){
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
       fADC_Data.at(i)->DeleteHistograms();
+    }
+  }
+
+  for (size_t i=0; i<fHistograms1D.size(); i++){
+    if (fHistograms1D.at(i) != NULL){
+      fHistograms1D.at(i)->Delete();
+      fHistograms1D.at(i) =  NULL;
+    }
+  }
+
+  for (size_t i=0; i<fHistograms2D.size(); i++){
+    if (fHistograms2D.at(i) != NULL){
+      fHistograms2D.at(i)->Delete();
+      fHistograms2D.at(i) =  NULL;
     }
   }
 
@@ -715,12 +768,59 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
   std::vector<UInt_t> subbankheader;
   std::vector<UInt_t> rocheader;
 
+
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
       fADC_Data.at(i)->EncodeEventData(LocalSumBuffer);
     }
   }
 
+//replace mock data for ch1, ch2, ch3
+    Double_t kVQWK_VoltsPerBit = 76.29e-6;
+    UInt_t fNumberOfSamples = 16680;
+    UInt_t fSequenceNumber = 255;
+    UInt_t localbuf[6];
+
+//ch1: DC +8V power supply
+    localbuf[4] = 0;
+    for (size_t i = 0; i < 4; i++) {
+        localbuf[i] = (UInt_t) (8.0/kVQWK_VoltsPerBit * fNumberOfSamples/4.0);
+        localbuf[4] += localbuf[i]; // fHardwareBlockSum_raw
+    }
+    localbuf[5] = (fNumberOfSamples << 16 & 0xFFFF0000)
+                | (fSequenceNumber  << 8  & 0x0000FF00);
+
+    for (size_t i = 0; i < 6; i++){
+        LocalSumBuffer[i] =localbuf[i];
+    }
+
+//ch2: X motion, DC 2-8V, linearly change, back and forth
+    localbuf[4] = 0;
+    for (size_t i = 0; i < 4; i++) {
+        localbuf[i] = (UInt_t) (4.0/kVQWK_VoltsPerBit * fNumberOfSamples/4.0); //fix it to 4 V for now
+        localbuf[4] += localbuf[i]; // fHardwareBlockSum_raw
+    }
+    localbuf[5] = (fNumberOfSamples << 16 & 0xFFFF0000)
+                | (fSequenceNumber  << 8  & 0x0000FF00);
+
+    for (size_t i = 0; i < 6; i++){
+        LocalSumBuffer[6+i] =localbuf[i];
+    }
+
+//ch3: Y motion, step change, increase from 2 to 8 V
+    localbuf[4] = 0;
+    for (size_t i = 0; i < 4; i++) {
+        localbuf[i] = (UInt_t) (4.0/kVQWK_VoltsPerBit * fNumberOfSamples/4.0); //fix it to 5 V for now
+        localbuf[4] += localbuf[i]; // fHardwareBlockSum_raw
+    }
+    localbuf[5] = (fNumberOfSamples << 16 & 0xFFFF0000)
+                | (fSequenceNumber  << 8  & 0x0000FF00);
+
+    for (size_t i = 0; i < 6; i++){
+        LocalSumBuffer[12+i] =localbuf[i];
+    }
+
+//mock data for trigger events
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).EncodeEventData(LocalTrigBuffer);

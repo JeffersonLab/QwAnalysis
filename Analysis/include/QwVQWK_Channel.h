@@ -44,7 +44,7 @@ class QwVQWK_Channel: public VQwDataElement {
   void  InitializeChannel(TString name, TString datatosave){
     SetElementName(name);
     SetNumberOfDataWords(6);
-    fSamplesPerBlock = 16680;  //jpan: total samples = fSamplesPerBlock x fBlocksPerEvent
+    fSamplesPerBlock = 16680; //jpan: total samples = fSamplesPerBlock x fBlocksPerEvent
     fBlocksPerEvent = 4;
     fPedestal=0.0;
     fCalibrationFactor=1.;
@@ -89,6 +89,7 @@ class QwVQWK_Channel: public VQwDataElement {
 
   Double_t GetBlockValue(size_t blocknum){return fBlock[blocknum];};
   Double_t GetHardwareSum(){return fHardwareBlockSum;};
+  Double_t GetAverageVolts();
   //  Double_t GetSoftwareSum(){return fSoftwareBlockSum;};
 
   Double_t GetRawBlockValue(size_t blocknum){return fBlock_raw[blocknum];};
