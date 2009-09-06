@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------*//*!
 
- \file QwMockData.cc
+ \file QwMockDataGenerator.cc
 
  \brief Parity mock data generator, test code
 

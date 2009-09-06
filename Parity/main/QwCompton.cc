@@ -20,7 +20,7 @@
     asymmetries or sums between different variables.
 
     It might seem funny at first sight that there are functions that define
-    the sum, difference or ratio of two compton detectors.  But, after a
+    the sum, difference or ratio of two Compton detectors.  But, after a
     moment's thought, that is exactly what you need when you calculate an
     asymmetry over a helicity multiplet:
     \f[

@@ -1,14 +1,14 @@
 /**
- * \file	MQwSIS330.cc
+ * \file	MQwSIS3320_Channel.cc
  *
- * \brief	Implementation of the decoding of SIS3320 sampling ADC data buffers
+ * \brief	Implementation of the decoding of SIS3320 sampling ADC data
  *
  * \author	W. Deconinck
  * \date	2009-09-04 18:06:23
  * \ingroup	QwCompton
  *
- * The MQwSIS3320 class is defined to read the integrated and sampled data
- * from the Compton photon detector.  Because the scope of this module is
+ * The MQwSIS3320 set of classes is defined to read the integrated and sampled
+ * data from the Compton photon detector.  Because the scope of this module is
  * similar the the VQWK ADC module (integration and asymmetries), parts of
  * this class are very similar to QwVQWK_Channel.
  *
@@ -17,29 +17,41 @@
  *
  */
 
+#include "MQwSIS3320_Channel.h"
 
-#include "MQwSIS3320.h"
+
+// Initialize mode flags
+const unsigned int MQwSIS3320_Channel::MODE_ACCUMULATOR = 0x0;
+const unsigned int MQwSIS3320_Channel::MODE_LONG_WORD_SAMPLING = 0x1;
+const unsigned int MQwSIS3320_Channel::MODE_SHORT_WORD_SAMPLING = 0x2;
+const unsigned int MQwSIS3320_Channel::MODE_NOTREADY = 0xda00;
+// Initialize sampling mode format flags
+const unsigned int MQwSIS3320_Channel::FORMAT_MULTI_EVENT = 0x3;
+const unsigned int MQwSIS3320_Channel::FORMAT_SINGLE_EVENT = 0x4;
 
 /**
  * Conversion factor to translate the average bit count in an ADC
  * channel of the SIS3320 into average voltage.
- * There are 2^16 possible states over the full 10 V range.
+ * There are 2^12 possible states over the full 5 V range.
  */
-const Double_t MQwSIS3320::kVoltsPerBit = 10.0 / pow(2.0, 16);
-
+const Double_t MQwSIS3320_Channel::kVoltsPerBit = 5.0 / pow(2.0, 12);
 
 
 /**
- * Initialize the MQwSIS3320 channel by assigning it a name
+ * Initialize the MQwSIS3320_Channel by assigning it a name
+ * @param channel Number of the channel
  * @param name Name for the channel
  */
-void  MQwSIS3320::InitializeChannel(TString name)
+void  MQwSIS3320_Channel::InitializeChannel(UInt_t channel, TString name)
 {
+  // Inherited from VQwDataElement
   SetElementName(name);
   SetNumberOfDataWords(0);
 
-  // Default unassigned identification
-  fChannel = -1;
+  // Set channel number
+  fChannel = channel;
+
+  // Default values when no event read yet
   fCurrentEvent = -1;
   fHasSamplingData = kFALSE;
   fHasAccumulatorData = kFALSE;
@@ -60,7 +72,7 @@ void  MQwSIS3320::InitializeChannel(TString name)
  * Check whether the event is a good event from the number of read samples
  * @return kTRUE if samples have been read
  */
-Bool_t MQwSIS3320::IsGoodEvent()
+Bool_t MQwSIS3320_Channel::IsGoodEvent()
 {
   Bool_t fEventIsGood = kTRUE;
   fEventIsGood &= (GetNumberOfSamples() > 0);
@@ -68,13 +80,21 @@ Bool_t MQwSIS3320::IsGoodEvent()
 };
 
 /**
- * Clear the event data
+ * Clear the event data in sampling buffer and accumulators
  */
-void MQwSIS3320::ClearEventData()
+void MQwSIS3320_Channel::ClearEventData()
 {
-  fNumberOfSamples = 0;
-  fSamples.clear();
-  fSamplesRaw.clear();
+  // Clear the sampled events
+  for (size_t i = 0; i < fSamples.size(); i++)
+    fSamples.at(i).ClearEventData();
+  for (size_t i = 0; i < fSamplesRaw.size(); i++)
+    fSamplesRaw.at(i).ClearEventData();
+
+  // Clear the accumulators
+  for (size_t i = 0; i < fAccumulators.size(); i++)
+    fAccumulators.at(i).ClearEventData();
+  for (size_t i = 0; i < fAccumulatorsRaw.size(); i++)
+    fAccumulatorsRaw.at(i).ClearEventData();
 };
 
 /**
@@ -84,7 +104,7 @@ void MQwSIS3320::ClearEventData()
  * @param index ?
  * @return Number of words processed in this method
  */
-Int_t MQwSIS3320::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index)
+Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index)
 {
   UInt_t words_read = 0;
 
@@ -171,12 +191,12 @@ Int_t MQwSIS3320::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t 
     words_read = fNumberOfDataWords;
 
   } else {
-    std::cerr << "MQwSIS3320::ProcessEvBuffer: Not enough words!" << std::endl;
+    std::cerr << "MQwSIS3320_Channel::ProcessEvBuffer: Not enough words!" << std::endl;
   }
   return words_read;
 };
 
-void MQwSIS3320::EncodeEventData(std::vector<UInt_t> &buffer)
+void MQwSIS3320_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   Long_t sample;
   std::vector<UInt_t> header;
@@ -192,11 +212,11 @@ void MQwSIS3320::EncodeEventData(std::vector<UInt_t> &buffer)
     header.push_back(fNumberOfSamples); // Number of samples per event
     header.push_back(fNumberOfEvents); // Number of events
     // Data is stored with two short words per long word
-    for (size_t i = 0; i < fSamplesRaw.size() / 2; i++) {
-      sample  = fSamplesRaw.at(2*i) << 16;
-      sample |= fSamplesRaw.at(2*i+1);
-      samples.push_back(sample);
-    }
+//     for (size_t i = 0; i < fSamplesRaw.size() / 2; i++) {
+//       sample  = fSamplesRaw.at(2*i) << 16;
+//       sample |= fSamplesRaw.at(2*i+1);
+//       samples.push_back(sample);
+//     }
 
     for (size_t i = 0; i < header.size(); i++)
       buffer.push_back(header.at(i));
@@ -205,24 +225,75 @@ void MQwSIS3320::EncodeEventData(std::vector<UInt_t> &buffer)
   }
 };
 
-void MQwSIS3320::ProcessEvent()
+/**
+ * Process the event by removing pedestals and applying calibration
+ */
+void MQwSIS3320_Channel::ProcessEvent()
 {
-  fSamples.clear(); fSamples.resize(fSamplesRaw.size());
-  fSampleSum = 0;
-  for (size_t i = 0; i < fSamples.size(); i++) {
-    fSamples.at(i) = fCalibrationFactor * (fSamplesRaw.at(i) - fPedestal);
-    fSampleSum += fSamples.at(i);
+  for (size_t i = 0; i < fSamplesRaw.size(); i++)
+    fSamples.at(i) = (fSamplesRaw.at(i) - fPedestal) * fCalibrationFactor;
+  for (size_t i = 0; i < fAccumulatorsRaw.size(); i++) {
+    Double_t pedestal = fPedestal * fAccumulatorsRaw.at(i).GetNumberOfSamples();
+    fAccumulators.at(i) = (fAccumulatorsRaw.at(i) - pedestal) * fCalibrationFactor;
   }
 
   return;
 };
 
 /**
- * Assignment, operates on the processed data only
+ * Addition of offset
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320& MQwSIS3320::operator= (const MQwSIS3320 &value)
+const MQwSIS3320_Channel MQwSIS3320_Channel::operator+ (const Double_t &value) const
+{
+  MQwSIS3320_Channel result = *this;
+  result += value;
+  return result;
+};
+
+/**
+ * Subtraction of offset
+ * @param value Right-hand side
+ * @return Left-hand side
+ */
+const MQwSIS3320_Channel MQwSIS3320_Channel::operator- (const Double_t &value) const
+{
+  MQwSIS3320_Channel result = *this;
+  result -= value;
+  return result;
+};
+
+/**
+ * Addition
+ * @param value Right-hand side
+ * @return Left-hand side
+ */
+const MQwSIS3320_Channel MQwSIS3320_Channel::operator+ (const MQwSIS3320_Channel &value) const
+{
+  MQwSIS3320_Channel result = *this;
+  result += value;
+  return result;
+};
+
+/**
+ * Subtraction
+ * @param value Right-hand side
+ * @return Left-hand side
+ */
+const MQwSIS3320_Channel MQwSIS3320_Channel::operator- (const MQwSIS3320_Channel &value) const
+{
+  MQwSIS3320_Channel result = *this;
+  result -= value;
+  return result;
+};
+
+/**
+ * Assignment
+ * @param value Right-hand side
+ * @return Left-hand side
+ */
+MQwSIS3320_Channel& MQwSIS3320_Channel::operator= (const MQwSIS3320_Channel &value)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
@@ -232,11 +303,39 @@ MQwSIS3320& MQwSIS3320::operator= (const MQwSIS3320 &value)
 };
 
 /**
- * Addition assignment, operates on the processed data only
+ * Addition assignment of offset
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320& MQwSIS3320::operator+= (const MQwSIS3320 &value)
+MQwSIS3320_Channel& MQwSIS3320_Channel::operator+= (const Double_t &value)
+{
+  if (!IsNameEmpty()) {
+    for (size_t i = 0; i < fSamples.size(); i++)
+      this->fSamples.at(i) += value;
+  }
+  return *this;
+};
+
+/**
+ * Subtraction assignment of offset
+ * @param value Right-hand side
+ * @return Left-hand side
+ */
+MQwSIS3320_Channel& MQwSIS3320_Channel::operator-= (const Double_t &value)
+{
+  if (!IsNameEmpty()) {
+    for (size_t i = 0; i < fSamples.size(); i++)
+      this->fSamples.at(i) -= value;
+  }
+  return *this;
+};
+
+/**
+ * Addition assignment
+ * @param value Right-hand side
+ * @return Left-hand side
+ */
+MQwSIS3320_Channel& MQwSIS3320_Channel::operator+= (const MQwSIS3320_Channel &value)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
@@ -246,11 +345,11 @@ MQwSIS3320& MQwSIS3320::operator+= (const MQwSIS3320 &value)
 };
 
 /**
- * Subtraction assignment, operates on the processed data only
+ * Subtraction assignment
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320& MQwSIS3320::operator-= (const MQwSIS3320 &value)
+MQwSIS3320_Channel& MQwSIS3320_Channel::operator-= (const MQwSIS3320_Channel &value)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
@@ -260,32 +359,32 @@ MQwSIS3320& MQwSIS3320::operator-= (const MQwSIS3320 &value)
 };
 
 /**
- * Sum of two channels, operates on the processed data only
+ * Sum of two channels
  * @param value1
  * @param value2
  */
-void MQwSIS3320::Sum(MQwSIS3320 &value1, MQwSIS3320 &value2)
+void MQwSIS3320_Channel::Sum(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &value2)
 {
   *this =  value1;
   *this += value2;
 };
 
 /**
- * Difference of two channels, operates on the processed data only
+ * Difference of two channels
  * @param value1
  * @param value2
  */
-void MQwSIS3320::Difference(MQwSIS3320 &value1, MQwSIS3320 &value2)
+void MQwSIS3320_Channel::Difference(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &value2)
 {
   *this =  value1;
   *this -= value2;
 };
 
 /**
- * Addition of a offset term, operates on the processed data only
- * @param offset Offset term
+ * Addition of a offset
+ * @param offset
  */
-void MQwSIS3320::Offset(Double_t offset)
+void MQwSIS3320_Channel::Offset(Double_t offset)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
@@ -294,10 +393,10 @@ void MQwSIS3320::Offset(Double_t offset)
 };
 
 /**
- * Scaling by a scale factor, operates on the processed data only
- * @param scale Scale factor
+ * Scaling by a scale factor
+ * @param scale
  */
-void MQwSIS3320::Scale(Double_t scale)
+void MQwSIS3320_Channel::Scale(Double_t scale)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
@@ -310,7 +409,7 @@ void MQwSIS3320::Scale(Double_t scale)
  * @param seqnumber Sequence number
  * @return kTRUE if the sequence number matches
  */
-Bool_t MQwSIS3320::MatchSequenceNumber(UInt_t seqnumber)
+Bool_t MQwSIS3320_Channel::MatchSequenceNumber(UInt_t seqnumber)
 {
   Bool_t status = kTRUE;
   if (!IsNameEmpty()) {
@@ -324,7 +423,7 @@ Bool_t MQwSIS3320::MatchSequenceNumber(UInt_t seqnumber)
  * @param numsamples Number of samples
  * @return kTRUE if the number of samples matches
  */
-Bool_t MQwSIS3320::MatchNumberOfSamples(UInt_t numsamples)
+Bool_t MQwSIS3320_Channel::MatchNumberOfSamples(UInt_t numsamples)
 {
   Bool_t status = kTRUE;
   if (!IsNameEmpty()) {
@@ -335,11 +434,11 @@ Bool_t MQwSIS3320::MatchNumberOfSamples(UInt_t numsamples)
 
 
 /**
- * Print some debugging information about the MQwSIS3320 channel to std::cout
+ * Print some debugging information about the MQwSIS3320_Channel to std::cout
  */
-void MQwSIS3320::Print() const
+void MQwSIS3320_Channel::Print() const
 {
-  std::cout << "MQwSIS3320: " << GetElementName() << std::endl;
+  std::cout << "MQwSIS3320_Channel: " << GetElementName() << std::endl;
   std::cout << "fSamples: ";
   for (size_t i = 0; i < fSamples.size(); i++)
     std::cout << " " << fSamples.at(i);

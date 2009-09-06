@@ -18,9 +18,51 @@
 #include "QwHistogramHelper.h"
 #include <stdexcept>
 
+
 //*****************************************************************
 Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 {
+  TString varname, varvalue;
+  TString modtype, dettype, name;
+  Int_t modnum, channum;
+
+  QwParameterFile mapstr(mapfile.Data());  //Open the file
+  while (mapstr.ReadNextLine()) {
+    mapstr.TrimComment('!');   // Remove everything after a '!' character.
+    mapstr.TrimWhitespace();   // Get rid of leading and trailing whitespace (spaces or tabs).
+    if (mapstr.LineIsEmpty())  continue;
+
+    if (mapstr.HasVariablePair("=", varname, varvalue)) {
+      // This is a declaration line.  Decode it.
+      varname.ToLower();
+      UInt_t value = QwParameterFile::GetUInt(varvalue);
+      if (varname == "roc") {
+        RegisterROCNumber(value,0);
+      } else if (varname == "bank") {
+        RegisterSubbank(value);
+      }
+    } else {
+      //  Break this line into tokens to process it.
+      modtype   = mapstr.GetNextToken(", ").c_str();
+      modnum    = (atol(mapstr.GetNextToken(", ").c_str()));
+      channum   = (atol(mapstr.GetNextToken(", ").c_str()));
+      dettype   = mapstr.GetNextToken(", ").c_str();
+      name      = mapstr.GetNextToken(", ").c_str();
+
+      //  Push a new record into the element array
+      if (modtype == "SIS3320") {
+        if (modnum >= (Int_t) fSamplingADC.size())
+          fSamplingADC.push_back(MQwSIS3320_Channel());
+        fSamplingADC.at(modnum).InitializeChannel(channum, name);
+      } else if (modtype == "V775") {
+        // not yet
+      } else if (modtype == "V792") {
+        // not yet
+      } // end of switch (modtype)
+
+    } // end of if for token line
+  } // end of while over parameter file
+
   return 0;
 };
 
@@ -89,6 +131,15 @@ void QwComptonPhotonDetector::EncodeEventData(std::vector<UInt_t> &buffer)
 //*****************************************************************
 Int_t QwComptonPhotonDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
+  Int_t index = GetSubbankIndex(roc_id, bank_id);
+  std::cout << "Subbank index " << index << ": ";
+  std::cout << "fROC_IDs = " << fROC_IDs.at(index) << ", ";
+//  std::cout << "fBank_IDs = " << fBank_IDs.at(index) << std::endl;
+
+  if (index >= 0 && num_words > 0) {
+    //  We want to process this ROC.  Begin looping through the data.
+  }
+
   return 0;
 };
 

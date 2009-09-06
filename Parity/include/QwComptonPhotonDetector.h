@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "VQwSubsystemParity.h"
-#include "MQwSIS3320.h"
+#include "MQwSIS3320_Channel.h"
 #include "QwVQWK_Channel.h"
 
 class QwComptonPhotonDetector : public VQwSubsystemParity {
@@ -72,7 +72,7 @@ class QwComptonPhotonDetector : public VQwSubsystemParity {
 
   protected:
 
-    std::vector <MQwSIS3320> fSamplingADC;
+    std::vector <MQwSIS3320_Channel> fSamplingADC;
 
 // Proper MQwV775TDC and MQwV792ADC support not implemented yet (wdc, 2009-09-04)
 //    std::vector <MQwV775TDC> fIntegratingTDC;
