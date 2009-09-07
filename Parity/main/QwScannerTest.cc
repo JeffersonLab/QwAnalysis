@@ -38,6 +38,8 @@
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
 
+static bool sTree = true;
+
 Bool_t kInQwBatchMode = kFALSE;
 
 int main(Int_t argc,Char_t* argv[])
@@ -79,7 +81,8 @@ static int kDebug = 1;
   /// background detector plus two channels (there are two channels for each fully
   /// assembled detector) for noise setup.
 
-  QwSubsystemArrayParity QwDetectors;
+//    QwSubsystemArrayParity QwDetectors;
+  QwSubsystemArray QwDetectors;
 //  QwDetectors.push_back(new QwQuartzBar("MainDetectors"));
 //  QwDetectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
 
@@ -94,7 +97,7 @@ static int kDebug = 1;
   ///Specifies the same helicity pattern used by all subsystems
   ///to calculate asymmetries. The pattern is defined in the 
   ///QwHelicityPattern class.
-  QwHelicityPattern QwHelPat(QwDetectors,4);
+  //QwHelicityPattern QwHelPat(QwDetectors,4);
 
 
   //////////////////////////////////////////////////////////
@@ -102,8 +105,8 @@ static int kDebug = 1;
   //////////////////////////////////////////////////////////
   if (kDebug) std::cout<<"\nGenerating mock data:\n\n";
 
-  // Get the channels we want to process
-  //QwScanner* scanner = (QwScanner*) QwDetectors.GetSubsystem("FPS");
+  // Get subsystem
+  QwScanner* scanner = (QwScanner*) QwDetectors.GetSubsystem("FPS");
 
   // Run generation loop
   for (int run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++) {
@@ -128,8 +131,8 @@ static int kDebug = 1;
       QwDetectors.ClearEventData();
       QwDetectors.RandomizeEventData();
 
-    // Write this event to file
-    QwEvt.EncodeSubsystemData(QwDetectors);
+      // Write this event to file
+      QwEvt.EncodeSubsystemData(QwDetectors);
 
       // Periodically print event number
       if (kDebug && event % 1000 == 0 && event !=0)
@@ -182,10 +185,38 @@ static int kDebug = 1;
     //  To pass a subdirectory named "subdir", we would do:
     //    QwDetectors.at(1)->ConstructHistograms(rootfile.mkdir("subdir"));
     // QwDetectors.at(1)->ConstructHistograms(rootfile.mkdir("scanner"));
-    if (kDebug) std::cout<<" ==== Creating histograms ==== "<<std::endl;
+    if (kDebug) std::cout<<" ====>>>> Creating histograms:"<<std::endl;
     rootfile.cd();
     TString prefix = TString("scanner_");
-    QwDetectors.ConstructHistograms(rootfile.mkdir("scanner_histo"),prefix);
+    scanner->ConstructHistograms(rootfile.mkdir("scanner_histo"),prefix);
+
+    // ROOT file output (trees)
+    if (kDebug) std::cout<<" ====>>>> Creating tree:"<<std::endl;
+
+    Int_t eventnumber;
+    TTree *ScannerTrigTree;
+    TString prefix_trig = TString("trig_");
+    std::vector <Double_t> ScannerTrigVector;
+    if (sTree) {
+      rootfile.cd();
+      ScannerTrigTree = new TTree("Scanner_TrigTree","scanner trigevent data tree");
+      ScannerTrigVector.reserve(6000);
+      ScannerTrigTree->Branch("trigeventnumber",&eventnumber,"trigeventnumber/F");
+      scanner->ConstructBranchAndVector(ScannerTrigTree, prefix_trig, ScannerTrigVector);
+    }
+
+    TTree *ScannerSumTree;
+    TString prefix_sum = TString("sum_");
+    std::vector <Double_t> ScannerSumVector;
+    if (sTree) {
+      rootfile.cd();
+      ScannerSumTree = new TTree("Scanner_SumTree","scanner sumevent data tree");
+      ScannerSumVector.reserve(6000);
+      ScannerSumTree->Branch("sumeventnumber",&eventnumber,"sumeventnumber/F");
+      scanner->ConstructBranchAndVector(ScannerSumTree, prefix_sum, ScannerSumVector);
+    }
+
+
 
     int EvtCounter = 0;
     while (QwEvt.GetEvent() == CODA_OK){
@@ -221,6 +252,16 @@ static int kDebug = 1;
       QwDetectors.ProcessEvent();
 
       QwDetectors.FillHistograms();
+
+      // Fill the tree
+      if (sTree) {
+        //std::cout<<"Filling tree...\n";
+        eventnumber = QwEvt.GetEventNumber();
+        scanner->FillTreeVector(ScannerTrigVector, prefix_trig);
+        scanner->FillTreeVector(ScannerSumVector, prefix_sum);
+        ScannerTrigTree->Fill();
+        ScannerSumTree->Fill();
+      }
 
     }
     std::cout << "Number of events processed: "

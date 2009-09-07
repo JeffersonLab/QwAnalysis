@@ -22,14 +22,22 @@ QwScanner::QwScanner(TString region_tmp)
     TString name = region_tmp;
     InitializeChannel(name,"raw");
 
-   MainDetCenterX = 327.0; //units: cm
+   MainDetCenterX = 330.0; //units: cm
    MainDetCenterY = 0.0;
 
-   HomePositionOffsetX = 0.0;
+   HomePositionOffsetX = -20.0;
    HomePositionOffsetY = -100.0;
 
-   Cal_FactorX = 5.0; //units: cm/V, assume linear, 40cm/8V
-   Cal_FactorY = 25.0; //units: cm/V, assume linear, 200cm/8V
+   Cal_FactorX = 5.333; //units: cm/V, assume linear, 40cm/8V
+   Cal_FactorY = 26.667; //units: cm/V, assume linear, 200cm/8V
+
+   fCurrentPotentialX = 2.0; //units: Volts
+   fCurrentPotentialY = 2.0;
+   fVoltageOffsetX = 2.0; //units: Volts
+   fVoltageOffsetY = 2.0;
+
+   fDirectionX = PreDirectionX = 1.0;
+   fDirectionY = PreDirectionY = 1.0;
 };
 
 
@@ -196,7 +204,7 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
   Int_t index = GetSubbankIndex(roc_id,bank_id);
 
   SetDataLoaded(kTRUE);
-  fDEBUG = 1;
+  //fDEBUG = 1;
   if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer:  "
                           << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
                           << ", num_words "<<num_words<<", index "<<index<<std::endl;
@@ -215,7 +223,7 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
 						       num_words-words_read);
           if (fDEBUG) {
           std::cout<<"QwScanner::ProcessEvBuffer: "<<words_read<<" words_read, "<<num_words<<" num_words"<<" Data: ";
-          for(int j=0; j<words_read;j++)
+          for(UInt_t j=0; j<words_read; j++)
           std::cout<<std::hex<<buffer[j]<<std::dec<<std::endl;
           }
         }
@@ -235,7 +243,7 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
 
     if (index>=0 && num_words>0){
       //  We want to process this ROC.  Begin looping through the data.
-      fDEBUG = 1;
+      //fDEBUG = 1;
       if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer:  "
                           << "Begin processing ROC" << roc_id <<", Bank "<<bank_id<< std::endl;
 
@@ -247,21 +255,11 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
         //  Decode this word as a V775TDC word.
         DecodeTDCWord(buffer[i]);
 
-        std::cout<<std::hex<<buffer[i]<<std::dec<<" "<<std::endl;
-	    std::cout << "   Parameters:  index=="<<index
-		      << "; GetV775SlotNumber()=="<<GetTDCSlotNumber()
-		      << "; GetV775ChannelNumber()=="<<GetTDCChannelNumber()
-		      << "; GetV775Data()=="<<GetTDCData()
-		      << std::endl;
-
-        std::cout<<"IsSlotRegistered = "<<IsSlotRegistered(index, GetTDCSlotNumber())<<std::endl;
  //       if (! IsSlotRegistered(index, GetTDCSlotNumber())) continue;
 
-        std::cout<<"IsValidDataword() = "<<IsValidDataword()<<std::endl;
         if (IsValidDataword()){
 	  // This is a V775 TDC data word
 	  try {
-            std::cout<<"Filling raw data word ..."<<std::endl;
 	    FillRawWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),
 		        GetTDCData());
 	  }
@@ -295,7 +293,7 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
 
 void  QwScanner::ProcessEvent(){
   if (! HasDataLoaded()) return;
-  std::cout<<"Scanner Events will be processed here."<<std::endl;
+  //std::cout<<"Scanner Events will be processed here."<<std::endl;
 
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
@@ -329,37 +327,39 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix){
   }
 
 //construct specified scanner histograms 
+    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_power_supply")));
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));
-    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_rate")));
+    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_scaler")));
     fHistograms2D.push_back( gQwHists.Construct2DHist(TString("scanner_rate_map")));
 
 };
 
 void  QwScanner::FillHistograms(){
-  std::cout<<"QwScanner::FillHistograms():"<<std::endl;
+  //std::cout<<"QwScanner::FillHistograms():"<<std::endl;
   if (! HasDataLoaded()) return;
 
-  std::cout<<"QwScanner::FillHistograms(): Filling trigger data..."<<std::endl;
+  //std::cout<<"QwScanner::FillHistograms(): Filling trigger data..."<<std::endl;
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).FillHistograms();
     }
   }
 
-  std::cout<<"QwScanner::FillHistograms(): Filling position and rate data..."<<std::endl;
+  //std::cout<<"QwScanner::FillHistograms(): Filling position and rate data..."<<std::endl;
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
       fADC_Data.at(i)->FillHistograms();
 
+        fHistograms1D.at(0)->Fill(fADC_Data.at(i)->GetChannel(TString("SCAN_POW"))->GetAverageVolts());
 
         fPositionX = fADC_Data.at(i)->GetChannel(TString("SCAN_POSX"))->GetAverageVolts();
-        fPositionX = fPositionX*Cal_FactorX + MainDetCenterX + HomePositionOffsetX;
-        fHistograms1D.at(0)->Fill(fPositionX);
+        fPositionX = (fPositionX-fVoltageOffsetX)*Cal_FactorX + MainDetCenterX + HomePositionOffsetX;
+        fHistograms1D.at(1)->Fill(fPositionX);
 
         fPositionY = fADC_Data.at(i)->GetChannel(TString("SCAN_POSY"))->GetAverageVolts();
-        fPositionY = fPositionY*Cal_FactorY + MainDetCenterY + HomePositionOffsetY;
-        fHistograms1D.at(1)->Fill(fPositionY);
+        fPositionY = (fPositionY-fVoltageOffsetY)*Cal_FactorY + MainDetCenterY + HomePositionOffsetY;
+        fHistograms1D.at(2)->Fill(fPositionY);
 
     }
   }
@@ -369,41 +369,54 @@ void  QwScanner::FillHistograms(){
 
 void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
-  for (size_t i=0; i<fPMTs.size(); i++){
-    for (size_t j=0; j<fPMTs.at(i).size(); j++){
-      fPMTs.at(i).at(j).ConstructBranchAndVector(tree, prefix, values);
+  if(prefix == TString("trig_")){
+    for (size_t i=0; i<fPMTs.size(); i++){
+      for (size_t j=0; j<fPMTs.at(i).size(); j++){
+        fPMTs.at(i).at(j).ConstructBranchAndVector(tree, prefix, values);
+      }
     }
+  return;
   }
 
+  if(prefix == TString("sum_")){
   // Convert vector<float> to vector<double>
-  std::vector<double> dvalues(values.begin(), values.end());
-  for (size_t i=0; i<fADC_Data.size(); i++){
-    if (fADC_Data.at(i) != NULL){
-      fADC_Data.at(i)->ConstructBranchAndVector(tree, prefix, dvalues);
+    //std::vector<double> dvalues(values.begin(), values.end());
+    for (size_t i=0; i<fADC_Data.size(); i++){
+      if (fADC_Data.at(i) != NULL){
+        fADC_Data.at(i)->ConstructBranchAndVector(tree, prefix, values);
+      }
     }
+  return;
   }
 
 };
 
-void  QwScanner::FillTreeVector(std::vector<Double_t> &values)
+void  QwScanner::FillTreeVector(std::vector<Double_t> &values, TString &prefix)
 {
   if (! HasDataLoaded()) return;
-  for (size_t i=0; i<fPMTs.size(); i++){
-    for (size_t j=0; j<fPMTs.at(i).size(); j++){
-      fPMTs.at(i).at(j).FillTreeVector(values);
+
+  //fill trigvalues
+  if(prefix == TString("trig_")){
+    for (size_t i=0; i<fPMTs.size(); i++){
+      for (size_t j=0; j<fPMTs.at(i).size(); j++){
+        fPMTs.at(i).at(j).FillTreeVector(values);
+      }
     }
+  return;
   }
 
-  // Convert vector<float> to vector<double>
-  std::vector<double> dvalues(values.begin(), values.end());
-  for (size_t i=0; i<fADC_Data.size(); i++){
-    if (fADC_Data.at(i) != NULL){
-      fADC_Data.at(i)->FillTreeVector(dvalues);
-    } else {
-      std::cerr << "QwScanner::FillTreeVector:  "
+  //fill sumvalues
+  if(prefix == TString("sum_")){
+    for (size_t i=0; i<fADC_Data.size(); i++){
+      if (fADC_Data.at(i) != NULL){
+        fADC_Data.at(i)->FillTreeVector(values);
+      } else {
+        std::cerr << "QwScanner::FillTreeVector:  "
 		<< "fADC_Data.at(" << i << ") is NULL"
 		<< std::endl;
+      }
     }
+  return;
   }
 
 };
@@ -562,11 +575,12 @@ Int_t QwScanner::RegisterROCNumber(const UInt_t roc_id){
 
 Int_t QwScanner::RegisterSubbank(const UInt_t bank_id)
 {
-        VQwSubsystem::RegisterSubbank(bank_id);
+        Int_t stat = VQwSubsystem::RegisterSubbank(bank_id);
         fCurrentBankIndex++;
         std::vector<Int_t> tmpvec(kMaxNumberOfModulesPerROC,-1);
         fModuleIndex.push_back(tmpvec);
-        std::cout<<"Register Subbank "<<bank_id<<" with BankIndex "<<fCurrentBankIndex<<std::endl;
+        //std::cout<<"Register Subbank "<<bank_id<<" with BankIndex "<<fCurrentBankIndex<<std::endl;
+        return stat;
 };
 
 
@@ -627,13 +641,9 @@ void QwScanner::FillRawWord(Int_t bank_index,
 				 Int_t chan, UInt_t data){
   Int_t modindex = GetModuleIndex(bank_index,slot_num);
 
-  std::cout<<"modindex = "<<modindex<<std::endl;
-
   if (modindex != -1){
     EModuleType modtype = EModuleType(fModulePtrs.at(modindex).at(chan).first);
     Int_t chanindex     = fModulePtrs.at(modindex).at(chan).second;
-
-  std::cout<<"   chanindex = "<<chanindex<<std::endl;
 
     if (modtype == EMPTY || chanindex == -1){
       //  This channel is not connected to anything.
@@ -670,22 +680,25 @@ Int_t QwScanner::FindSignalIndex(const QwScanner::EModuleType modtype, const TSt
 
 
 /********************************************************/
-void QwScanner::SetEventData(Double_t* scannerevent, UInt_t sequencenumber)
+void QwScanner::SetTriggerEventData(Double_t TrigEventValue)
 {
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
-      fPMTs.at(i).at(j).SetValue(scannerevent[4+i]);
+      fPMTs.at(i).at(j).SetValue(TrigEventValue);
     }
   }
+}
 
+void QwScanner::SetPositionEventData(Double_t* PositionEvBuf, UInt_t sequencenumber)
+{
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
-      fADC_Data.at(i)->SetEventData(scannerevent,sequencenumber);
+      fADC_Data.at(i)->SetEventData(PositionEvBuf,sequencenumber);
     }
   }
-
   return;
 };
+
 
 /********************************************************/
 void QwScanner::SetPedestal(Double_t pedestal)
@@ -738,7 +751,15 @@ void QwScanner::SetRandomEventParameters(Double_t mean, Double_t sigma)
 
   return;
 };
+
 /********************************************************/
+//jpan: triggering scheme - still unclear!
+//VQWK module will be gated by beam helicity states 
+//QADC module will be in self-triggering mode, i.e., triggered
+//by the left-right PMT's coincidence with a low threshold setting.
+//TDC's will be started by the left and right PMT's coincidence,
+//stopped by the individual PMT
+//
 void QwScanner::RandomizeEventData(int helicity)
 {
   for (size_t i=0; i<fPMTs.size(); i++){
@@ -781,10 +802,14 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
     UInt_t fSequenceNumber = 255;
     UInt_t localbuf[6];
 
-//ch1: DC +8V power supply
+//ch1: DC +9.6 +/-0.2 V power supply
+    Double_t mean = 9.6;  //units: V
+    Double_t sigma = 0.0001;
+    Double_t pValue;
     localbuf[4] = 0;
     for (size_t i = 0; i < 4; i++) {
-        localbuf[i] = (UInt_t) (8.0/kVQWK_VoltsPerBit * fNumberOfSamples/4.0);
+        pValue = gRandom->Gaus(mean,sigma);
+        localbuf[i] = (UInt_t) (pValue/kVQWK_VoltsPerBit * fNumberOfSamples/4.0);
         localbuf[4] += localbuf[i]; // fHardwareBlockSum_raw
     }
     localbuf[5] = (fNumberOfSamples << 16 & 0xFFFF0000)
@@ -794,10 +819,20 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
         LocalSumBuffer[i] =localbuf[i];
     }
 
-//ch2: X motion, DC 2-8V, linearly change, back and forth
+//ch2: X motion, DC 2-9.5V, linear motion, back and forth
+// speed = 5cm/s, 0.02cm per helicity state (assume 4 ms duration)
+// Cal_FactorX = 5.333 cm/V, ==>> step size = 0.02cm / 5.333cm/V = 0.00375V,
+// so the voltage in each block will increase ~ 0.00375/4 = 0.0009375V
+    mean = 0.00375;  //units: V
+    sigma = 0.0000001;
+    if (fCurrentPotentialX>9.5) fDirectionX = -1.0;
+    if (fCurrentPotentialX<2.0) fDirectionX = 1.0;
+
     localbuf[4] = 0;
     for (size_t i = 0; i < 4; i++) {
-        localbuf[i] = (UInt_t) (4.0/kVQWK_VoltsPerBit * fNumberOfSamples/4.0); //fix it to 4 V for now
+        pValue = 0.25*gRandom->Gaus(mean,sigma);
+        fCurrentPotentialX+=pValue*fDirectionX;
+        localbuf[i] = (UInt_t) (fCurrentPotentialX/kVQWK_VoltsPerBit * fNumberOfSamples/4.0);
         localbuf[4] += localbuf[i]; // fHardwareBlockSum_raw
     }
     localbuf[5] = (fNumberOfSamples << 16 & 0xFFFF0000)
@@ -807,11 +842,30 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
         LocalSumBuffer[6+i] =localbuf[i];
     }
 
-//ch3: Y motion, step change, increase from 2 to 8 V
+//ch3: Y motion, stepping motion with 200 steps, increase from 2 to 9.5V, 
+// moving when X-motion changing direction, Cal_FactorY = 26.667 cm/V, 
+// each step = (9.5-2)V/200=0.0375V
+    mean = 0.0375;  //units: V
+    sigma = 0.0000001;
+    if (fCurrentPotentialY>9.5) fDirectionY = -1.0;
+    if (fCurrentPotentialY<2.0) fDirectionY = 1.0;
+
     localbuf[4] = 0;
-    for (size_t i = 0; i < 4; i++) {
-        localbuf[i] = (UInt_t) (4.0/kVQWK_VoltsPerBit * fNumberOfSamples/4.0); //fix it to 5 V for now
+    if (PreDirectionX != fDirectionX){
+      PreDirectionX = fDirectionX;
+      for (size_t i = 0; i < 4; i++) {
+        pValue = 0.25*gRandom->Gaus(mean,sigma);
+        fCurrentPotentialY+=pValue*fDirectionY;
+        localbuf[i] = (UInt_t) (fCurrentPotentialY/kVQWK_VoltsPerBit * fNumberOfSamples/4.0);
         localbuf[4] += localbuf[i]; // fHardwareBlockSum_raw
+      }
+    }
+    else {
+      for (size_t i = 0; i < 4; i++) {
+        fCurrentPotentialY=gRandom->Gaus(fCurrentPotentialY,sigma);
+        localbuf[i] = (UInt_t) (fCurrentPotentialY/kVQWK_VoltsPerBit * fNumberOfSamples/4.0);
+        localbuf[4] += localbuf[i]; // fHardwareBlockSum_raw
+      }
     }
     localbuf[5] = (fNumberOfSamples << 16 & 0xFFFF0000)
                 | (fSequenceNumber  << 8  & 0x0000FF00);
@@ -819,6 +873,7 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
     for (size_t i = 0; i < 6; i++){
         LocalSumBuffer[12+i] =localbuf[i];
     }
+
 
 //mock data for trigger events
   for (size_t i=0; i<fPMTs.size(); i++){
@@ -877,7 +932,7 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
        buffer.push_back(SumBuffer.at(i));
 
     // Print buffer
-    int kDebug = 1;
+    int kDebug = 0;
 
     if (kDebug) {
       std::cout << std::endl << "SumBuffer: ";

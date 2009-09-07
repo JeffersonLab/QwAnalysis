@@ -86,7 +86,6 @@ void  QwPMT_Channel::FillHistograms(){
   } else {
     if (fHistograms[index] != NULL)
       fHistograms[index]->Fill(this->fValue);
-      //std::cout<<"Histogram "<<GetElementName()<< " is filled with value "<<this->fValue<<std::endl; //jpan: test
     index += 1;
   }
 };
@@ -100,7 +99,7 @@ void  QwPMT_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
     fTreeArrayIndex  = values.size();
 
     values.push_back(0.0);
-    TString list = "/F";
+    TString list = "/D";
 
     fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
     tree->Branch(basename, &(values[fTreeArrayIndex]), list);

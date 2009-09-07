@@ -5,7 +5,7 @@
 
 
 
-const Bool_t QwVQWK_Channel::kDEBUG = kTRUE;
+const Bool_t QwVQWK_Channel::kDEBUG = kFALSE;
 
 
 // Randomness generator: Mersenne twister with period 2^19937 - 1
@@ -137,15 +137,15 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
       words_read = fNumberOfDataWords;
 
       if (kDEBUG && GetElementName()=="SCAN_POW") {
-        std::cout<<"Words read for scanner are:"<<std::endl;
+
         for (size_t i=0; i<5; i++){
 	  std::cout<<"  hex("<<std::hex<<localbuf[i]<<") dec("<<std::dec<<Double_t(localbuf[i])<<") ";
         }
         Double_t average = Double_t(localbuf[4])/fNumberOfSamples;
-        std::cout<<std::endl<<" SoftwareBlockSum_raw="<<fSoftwareBlockSum_raw
-                 <<"  NumberOfSamples="<<fNumberOfSamples
-                 <<"  average="<<average
-                 <<"  avg_voltage="<< kVQWK_VoltsPerBit*average<<std::endl;
+//         std::cout<<std::endl<<" SoftwareBlockSum_raw="<<fSoftwareBlockSum_raw
+//                  <<"  NumberOfSamples="<<fNumberOfSamples
+//                  <<"  average="<<average
+//                  <<"  avg_voltage="<< kVQWK_VoltsPerBit*average<<std::endl;
       }
 
       if (kDEBUG && GetElementName()=="Bar1Right")
@@ -211,8 +211,10 @@ void QwVQWK_Channel::ProcessEvent()
 };
 
 Double_t QwVQWK_Channel::GetAverageVolts(){
+  Double_t avgVolts =(fBlock[0]+fBlock[1]+fBlock[2]+fBlock[3])*kVQWK_VoltsPerBit/fNumberOfSamples;
+  //std::cout<<"QwVQWK_Channel::GetAverageVolts() = "<<avgVolts<<std::endl;
+  return avgVolts;
 
-  return (fBlock[0]+fBlock[1]+fBlock[2]+fBlock[3])*kVQWK_VoltsPerBit/fSamplesPerBlock/fBlocksPerEvent;
 };
 
 void QwVQWK_Channel::Print() const

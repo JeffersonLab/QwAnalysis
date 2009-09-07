@@ -43,7 +43,8 @@ class QwScanner: public VQwSubsystem,
   void  InitializeChannel(TString name, TString datatosave);
   void  ClearEventData();
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
-  void  SetEventData(Double_t* scannerevent, UInt_t sequencenumber);
+  void  SetTriggerEventData(Double_t TrigEventValue);
+  void  SetPositionEventData(Double_t* PositionEvBuf, UInt_t sequencenumber);
   void  SetPedestal(Double_t ped);
   void  SetCalibrationFactor(Double_t calib);
   void  RandomizeEventData(int helicity);
@@ -55,6 +56,7 @@ class QwScanner: public VQwSubsystem,
   void  DeleteHistograms();
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values, TString &prefix);
   void GetHitList(QwHitContainer & grandHitContainer){};
   void ReportConfiguration();
 
@@ -116,6 +118,13 @@ class QwScanner: public VQwSubsystem,
 
  private:
 
+  Double_t fCurrentPotentialX;
+  Double_t fCurrentPotentialY;
+  Double_t fDirectionX;
+  Double_t fDirectionY;
+  Double_t PreDirectionX;
+  Double_t PreDirectionY;
+
   Double_t fPedestal;
   Double_t fCalibration;
   QwVQWK_Channel fTriumf_ADC;
@@ -129,6 +138,9 @@ class QwScanner: public VQwSubsystem,
 
   Double_t HomePositionOffsetX;
   Double_t HomePositionOffsetY;
+
+  Double_t fVoltageOffsetX;
+  Double_t fVoltageOffsetY;
 
   Double_t Cal_FactorX;
   Double_t Cal_FactorY;

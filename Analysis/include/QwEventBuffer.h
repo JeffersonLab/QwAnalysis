@@ -64,6 +64,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
   };
   Int_t GetEventNumber(){return fEvtNumber;};
 
+
   Int_t  GetEvent();
   Int_t  WriteEvent(int* buffer);
 
@@ -156,8 +157,6 @@ class QwEventBuffer: public MQwCodaControlEvent{
   UInt_t fSubbankType;
   UInt_t fSubbankNum;
   UInt_t fROC;
-
-
 
 
 };

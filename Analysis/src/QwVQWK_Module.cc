@@ -119,8 +119,6 @@ Int_t QwVQWK_Module::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left)
     for (size_t i=0; i<fChannels.size(); i++){
       words_read += fChannels.at(i).ProcessEvBuffer(&(buffer[words_read]),
 						    num_words_left-words_read);
-    std::cout<<"QwVQWK_Module::ProcessEvBuffer: fChannels.size()="
-             <<fChannels.size()<<" words_read="<<words_read <<std::endl;
     }
     //  Now check for errors.
     fSequenceNumber  = fChannels.at(0).GetSequenceNumber();
