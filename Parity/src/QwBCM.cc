@@ -111,7 +111,7 @@ Bool_t QwBCM::ApplyHWChecks()
 
       if (!fTriumf_ADC.MatchSequenceNumber(fSequenceNo_Prev)){//we have a sequence number error
 	fEventIsGood&=kFALSE;       
-	std::cout<<" QwBCM "<<GetElementName()<<" Sequence number is not incrementing properly; previous value = "<<fSequenceNo_Prev<<" Current value= "<< fTriumf_ADC.GetSequenceNumber()<<std::endl;     
+	if (bDEBUG) std::cout<<" QwBCM "<<GetElementName()<<" Sequence number is not incrementing properly; previous value = "<<fSequenceNo_Prev<<" Current value= "<< fTriumf_ADC.GetSequenceNumber()<<std::endl;     
       }
    
       counter++;
@@ -127,7 +127,7 @@ Bool_t QwBCM::ApplyHWChecks()
 
       //check for the hw_sum is giving the same value
       if (fHW_Sum_Stuck_Counter>0){
-	std::cout<<" BCM hardware sum is same for more than  "<<fHW_Sum_Stuck_Counter<<" time consecutively  "<<std::endl;
+	if (bDEBUG) std::cout<<" BCM hardware sum is same for more than  "<<fHW_Sum_Stuck_Counter<<" time consecutively  "<<std::endl;
 	fEventIsGood&=kFALSE;
       }
 
@@ -139,7 +139,7 @@ Bool_t QwBCM::ApplyHWChecks()
       counter=0;//resetting the counter after IsGoodEvent() a faliure 
     }
   }else
-    std::cout<<GetElementName()<<" Ignored BCM "<<std::endl;  
+    if (bDEBUG) std::cout<<GetElementName()<<" Ignored BCM "<<std::endl;  
 
   
  
@@ -181,7 +181,7 @@ Bool_t QwBCM::ApplySingleEventCuts(){
 	  //std::cout<<" BCM Sample size "<<fTriumf_ADC.GetNumberOfSamples()<<std::endl;
 	}
 	else{
-	  std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fTriumf_ADC.GetHardwareSum();
+	  if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fTriumf_ADC.GetHardwareSum();
 	  status&=kFALSE;//kTRUE;//kFALSE;
 	}
       }else
@@ -191,7 +191,7 @@ Bool_t QwBCM::ApplySingleEventCuts(){
       // std::cout<<"QwBCM::"<<GetElementName()<<" event cuts falied "<<std::endl;
   }
   else{
-    std::cout<<" Hardware failed ";
+    if (bDEBUG) std::cout<<" Hardware failed ";
     status&=kFALSE;
   }
     
@@ -223,11 +223,11 @@ Bool_t QwBCM::CheckRunningAverages(Bool_t bDisplayAVG){
       status = kTRUE;
       fRunning_sigma=(fBCM_Running_AVG_square-(fBCM_Running_AVG*fBCM_Running_AVG))/Event_Counter;
       if (bDisplayAVG)
-	std::cout<<" Running AVG "<<GetElementName()<<" current running AVG "<<fBCM_Running_AVG<<" current running AVG^2: "<<fBCM_Running_AVG_square<<"Uncertainty in mean "<<fRunning_sigma<<std::endl;
+	std::cout<<" Running AVG "<<GetElementName()<<" current running AVG "<<fBCM_Running_AVG<<" current running AVG^2: "<<fBCM_Running_AVG_square<<"\n Uncertainty in mean "<<fRunning_sigma<<std::endl;
     }
     else{
       if (bDisplayAVG)
-	std::cout<<"QwBCM::"<<GetElementName()<<" current running AVG "<<fBCM_Running_AVG<<" is out of range ! current running AVG^2: "<<fBCM_Running_AVG_square<<std::endl;
+	std::cout<<" QwBCM::"<<GetElementName()<<" current running AVG "<<fBCM_Running_AVG<<" is out of range ! current running AVG^2: "<<fBCM_Running_AVG_square<<std::endl;
       status = kFALSE;
     }
   }

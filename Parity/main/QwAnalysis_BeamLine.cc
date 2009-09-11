@@ -45,7 +45,7 @@ int main(Int_t argc,Char_t* argv[])
   Bool_t bHelicity=kTRUE;
   Bool_t bTree=kTRUE;
   Bool_t bHisto=kTRUE;
-  Bool_t bEventCut=kTRUE;//kFALSE; //set this to kTRUE to activate event cuts
+  Bool_t bEventCut=kFALSE;//kTRUE; //set this to kTRUE to activate event cuts
 
   //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
   if (getenv("DISPLAY")==NULL

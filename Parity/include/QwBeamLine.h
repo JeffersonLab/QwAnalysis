@@ -44,6 +44,8 @@ class QwBeamDetectorID
   TString fdetectorname;
   TString fdetectortype; // stripline, bcm, ... this string is encoded by fTypeID
 
+  
+
   void Print();
 
 };
@@ -130,12 +132,12 @@ class QwBeamLine : public VQwSubsystemParity{
  private:
  std::vector<TString> DetectorTypes;// for example could be BCM, LUMI,BPMSTRIPLINE, etc..
 
-  static const Bool_t kDEBUG=kFALSE; 
+  
+  static const Bool_t bDEBUG=kFALSE; 
 
 };
 
 
-//const Bool_t QwBeamLine::kDEBUG = kFALSE;
 
 
 #endif

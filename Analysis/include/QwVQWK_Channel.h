@@ -162,6 +162,9 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t fMockGaussianMean;
   Double_t fMockGaussianSigma;
 
+
+
+const static Bool_t bDEBUG=kFALSE;//debugging display purposes
 };
 
 

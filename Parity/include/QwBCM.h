@@ -94,6 +94,8 @@ class QwBCM : public VQwDataElement{
   Double_t fBCM_Running_AVG;
   Double_t fBCM_Running_AVG_square;
   QwVQWK_Channel fTriumf_ADC;
+
+  const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
 };
 
 #endif

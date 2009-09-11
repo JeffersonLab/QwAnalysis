@@ -116,6 +116,8 @@ class QwBPMStripline : public VQwDataElement{
   Double_t fPrevious_HW_Sum[4];//stores the last event's hardware sum.
   Int_t fHW_Sum_Stuck_Counter[4];//increment this if HW_sum is stuck with one value
 
+  const static Bool_t bDEBUG=kFALSE;//debugging display purposes
+
   /* contains the beam position in the absolute frame defined as found reference...*/
 
 };

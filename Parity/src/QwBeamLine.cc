@@ -444,7 +444,7 @@ Bool_t QwBeamLine::ApplySingleEventCuts(){
     //std::cout<<"  BCM ["<<i<<"] "<<std::endl;
     test_BCM1=fBCM[i].ApplySingleEventCuts(); 
     test_BCM&=test_BCM1;
-    if(!test_BCM1) std::cout<<"******* QwBeamLine::SingleEventCuts()->BCM[ "<<i<<" , "<<fBCM[i].GetElementName()<<" ] ******\n";
+    if(!test_BCM1 && bDEBUG) std::cout<<"******* QwBeamLine::SingleEventCuts()->BCM[ "<<i<<" , "<<fBCM[i].GetElementName()<<" ] ******\n";
   }
   //if (!test_BCM)
   //fNumError_Evt_BCM++;//BCM falied  event counter for QwBeamLine
@@ -454,7 +454,7 @@ Bool_t QwBeamLine::ApplySingleEventCuts(){
     //std::cout<<"  BPM ["<<i<<"] "<<std::endl;
     test_BCM1=fStripline[i].ApplySingleEventCuts();
     test_BCM&=test_BCM1;
-    if(!test_BCM1) std::cout<<"******** QwBeamLine::SingleEventCuts()->BPMStripline[ "<<i<<" , "<<fStripline[i].GetElementName()<<" ] *****\n";
+    if(!test_BCM1 && bDEBUG) std::cout<<"******** QwBeamLine::SingleEventCuts()->BPMStripline[ "<<i<<" , "<<fStripline[i].GetElementName()<<" ] *****\n";
     }
   //if (!test_BCM1)
   //fNumError_Evt_BCM++;//BPM falied  event counter for QwBeamLine
@@ -487,12 +487,12 @@ Bool_t QwBeamLine::CheckRunningAverages(Bool_t bDisplayAVG){ //check the running
 
   
   
-  std::cout<<" Printing Running AVG for BCMs"<<std::endl;
+  std::cout<<" Printing Running AVG for BCMs "<<std::endl;
   for(size_t i=0;i<fBCM.size();i++){
     status&=fBCM[i].CheckRunningAverages(bDisplayAVG);    
   }
 
-  std::cout<<" Printing Running AVG for BPMStripLines"<<std::endl;
+  std::cout<<" Printing Running AVG for BPMStripLines "<<std::endl;
   for(size_t i=0;i<fStripline.size();i++){
     status&=fStripline[i].CheckRunningAverages(bDisplayAVG);    
   }

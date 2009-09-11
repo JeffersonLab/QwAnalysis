@@ -142,7 +142,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts(){
       }
       else{
 	status&=kFALSE;
-	std::cout<<" Rel X event cut failed ";
+	if (bDEBUG) std::cout<<" Rel X event cut failed ";
       }
       if (fRelPos[1].GetHardwareSum()<=fULimitY && fRelPos[1].GetHardwareSum()>=fLLimitY){//for RelY
 	//fRelPos_Running_AVG[1]=(((Event_Counter-1)*fRelPos_Running_AVG[1])/Event_Counter +  fRelPos[1].GetHardwareSum()/Event_Counter); //this is the running avg of the BCM
@@ -151,7 +151,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts(){
 	}
       else{
 	  status&=kFALSE;
-	  std::cout<<" Rel Y event cut failed ";
+	  if (bDEBUG) std::cout<<" Rel Y event cut failed ";
       }
       if (status){
 	Event_Counter++;//Increment the counter, it is a good event.
@@ -164,7 +164,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts(){
        status=kTRUE;
 
   }else{
-    std::cout<<" Hardware failed ";
+    if (bDEBUG) std::cout<<" Hardware failed ";
     status=kFALSE;
   }
 
@@ -218,22 +218,22 @@ Bool_t QwBPMStripline::CheckRunningAverages(Bool_t bDisplayAVG){
       status &= kTRUE;
       fRunning_sigma[0]=(fRelPos_Running_AVG_square[0]-(fRelPos_Running_AVG[0]*fRelPos_Running_AVG[0]))/Event_Counter;
       if (bDisplayAVG)
-	std::cout<<" Running AVG "<<GetElementName()<<"RelX current running AVG "<<fRelPos_Running_AVG[0]<<" current running AVG^2: "<<fRelPos_Running_AVG_square[0]<<"Uncertainty in mean "<<fRunning_sigma[0]<<std::endl;
+	std::cout<<" Running AVG "<<GetElementName()<<" RelX current running AVG "<<fRelPos_Running_AVG[0]<<" current running AVG^2: "<<fRelPos_Running_AVG_square[0]<<" \n Uncertainty in mean "<<fRunning_sigma[0]<<std::endl;
     }
     else{
       if (bDisplayAVG)
-	std::cout<<"QwBPMStripline::"<<GetElementName()<<"RelX current running AVG "<<fRelPos_Running_AVG[0]<<" is out of range !"<<" current running AVG^2: "<<fRelPos_Running_AVG_square[0]<<"Uncertainty in mean "<<fRunning_sigma[0]<<std::endl;
+	std::cout<<" QwBPMStripline::"<<GetElementName()<<" RelX current running AVG "<<fRelPos_Running_AVG[0]<<" is out of range ! "<<" current running AVG^2: "<<fRelPos_Running_AVG_square[0]<<"\n Uncertainty in mean "<<fRunning_sigma[0]<<std::endl;
       status &= kFALSE;
     }
     if (fRelPos_Running_AVG[1]<=fULimitY && fRelPos_Running_AVG[1]>=fLLimitY){
       status &= kTRUE;
       fRunning_sigma[1]=(fRelPos_Running_AVG_square[1]-(fRelPos_Running_AVG[1]*fRelPos_Running_AVG[1]))/Event_Counter;
       if (bDisplayAVG)
-	std::cout<<" Running AVG "<<GetElementName()<<"RelY current running AVG "<<fRelPos_Running_AVG[1]<<" current running AVG^2: "<<fRelPos_Running_AVG_square[1]<<"Uncertainty in mean "<<fRunning_sigma[1]<<std::endl;
+	std::cout<<" Running AVG "<<GetElementName()<<" RelY current running AVG "<<fRelPos_Running_AVG[1]<<" current running AVG^2: "<<fRelPos_Running_AVG_square[1]<<"\n Uncertainty in mean "<<fRunning_sigma[1]<<std::endl;
     }
     else{
       if (bDisplayAVG)
-	std::cout<<"QwBPMStripline::"<<GetElementName()<<"RelY current running AVG "<<fRelPos_Running_AVG[1]<<" is out of range !"<<" current running AVG^2: "<<fRelPos_Running_AVG_square[1]<<"Uncertainty in mean "<<fRunning_sigma[1]<<std::endl;
+	std::cout<<" QwBPMStripline:: "<<GetElementName()<<" RelY current running AVG "<<fRelPos_Running_AVG[1]<<" is out of range !"<<" current running AVG^2: "<<fRelPos_Running_AVG_square[1]<<"\n Uncertainty in mean "<<fRunning_sigma[1]<<std::endl;
     }
   }
   else
@@ -346,7 +346,7 @@ Bool_t QwBPMStripline::ApplyHWChecks()
 
 	//check for the hw_sum is giving the same value
 	if (fHW_Sum_Stuck_Counter[i] > 0){
-	  std::cout<<" BPM hardware sum is same for more than "<<fHW_Sum_Stuck_Counter[i]<<" time consecutively  "<<std::endl;
+	  if (bDEBUG) std::cout<<" BPM hardware sum is same for more than "<<fHW_Sum_Stuck_Counter[i]<<" time consecutively  "<<std::endl;
 	  status&=kFALSE;
 	}
 
@@ -361,8 +361,8 @@ Bool_t QwBPMStripline::ApplyHWChecks()
 	status= fWire[i].MatchNumberOfSamples(fSampleSize); //check for sample size
 
 	if (!status){	
-	  std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;  
-	  std::cout<<" wire[ "<<i<<" ] sequence num "<<fWire[i].GetSequenceNumber()<<" sample size "<<fWire[i].GetNumberOfSamples()<<std::endl;
+	  if (bDEBUG) std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;  
+	  if (bDEBUG) std::cout<<" wire[ "<<i<<" ] sequence num "<<fWire[i].GetSequenceNumber()<<" sample size "<<fWire[i].GetNumberOfSamples()<<std::endl;
 	  //std::cout<<" wire[0] sequence num "<<fWire[0].GetSequenceNumber()<<" sample size "<<fWire[0].GetNumberOfSamples()<<std::endl;
 	}
 	fEventIsGood &= status;
@@ -377,7 +377,7 @@ Bool_t QwBPMStripline::ApplyHWChecks()
   
       if (!fWire[0].MatchSequenceNumber(fSequenceNo_Prev)){
 	//fEventIsGood&=kFALSE; 
-	std::cout<<" QwBPMStripline "<<fWire[0].GetElementName()<<" Sequence number incorrect order predicted value= "<<fSequenceNo_Prev<<" Current value= "<< fWire[0].GetSequenceNumber()<<std::endl;     
+	if (bDEBUG) std::cout<<" QwBPMStripline "<<fWire[0].GetElementName()<<" Sequence number incorrect order predicted value= "<<fSequenceNo_Prev<<" Current value= "<< fWire[0].GetSequenceNumber()<<std::endl;     
       }      
       counter++;
     }else

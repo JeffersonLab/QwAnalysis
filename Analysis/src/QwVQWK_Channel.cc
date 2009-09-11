@@ -35,7 +35,7 @@ Bool_t QwVQWK_Channel::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
   if (GetNumberOfSamples()==0){
-    std::cout<<GetElementName()<<" Zero sample size "<<GetNumberOfSamples()<<std::endl;
+    if (bDEBUG) std::cout<<GetElementName()<<" Zero sample size "<<GetNumberOfSamples()<<std::endl;
     fEventIsGood=kFALSE;
   }
   else
@@ -541,7 +541,7 @@ Bool_t QwVQWK_Channel::MatchNumberOfSamples(size_t numsamp)
   if (!IsNameEmpty()){
     status = (fNumberOfSamples==numsamp);
     if (! status){
-      std::cerr << "QwVQWK_Channel::MatchNumberOfSamples:  Channel "
+      if (bDEBUG) std::cerr << "QwVQWK_Channel::MatchNumberOfSamples:  Channel "
 		<< GetElementName()
 		<< " had fNumberOfSamples==" << fNumberOfSamples
 		<< " and was supposed to have " << numsamp
