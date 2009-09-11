@@ -20,6 +20,27 @@
 const unsigned int MQwSIS3320_Accumulator::INDEX_NUM = 0;
 const unsigned int MQwSIS3320_Accumulator::INDEX_SUM = 1;
 
+
+Int_t MQwSIS3320_Accumulator::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement)
+{
+  UInt_t words_read = 0;
+  UInt_t index = 0;
+  if (num_words_left >= fNumberOfDataWords) {
+    // Read all words
+    fNumberOfSamples = buffer[0];
+    fAccumulatorSum = buffer[2];  // first assign Int_t to Long_t, so that we
+    fAccumulatorSum <<= 32L;      // can shift it into the higher registers
+    fAccumulatorSum += buffer[1];
+    words_read = fNumberOfDataWords;
+
+  } else {
+    std::cerr << "MQwSIS3320_Samples::ProcessEvBuffer: Not enough words!" << std::endl;
+  }
+
+  return words_read;
+};
+
+
 /**
  * Addition of offset to accumulated data
  * @param value Right-hand side

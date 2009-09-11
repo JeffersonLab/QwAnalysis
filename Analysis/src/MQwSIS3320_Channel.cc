@@ -29,6 +29,10 @@ const unsigned int MQwSIS3320_Channel::MODE_NOTREADY = 0xda00;
 const unsigned int MQwSIS3320_Channel::FORMAT_MULTI_EVENT = 0x3;
 const unsigned int MQwSIS3320_Channel::FORMAT_SINGLE_EVENT = 0x4;
 
+// Compile-time debug level
+const Bool_t MQwSIS3320_Channel::kDEBUG = kTRUE;
+
+
 /**
  * Conversion factor to translate the average bit count in an ADC
  * channel of the SIS3320 into average voltage.
@@ -87,21 +91,24 @@ void MQwSIS3320_Channel::ClearEventData()
   // Clear the sampled events
   for (size_t i = 0; i < fSamples.size(); i++)
     fSamples.at(i).ClearEventData();
+  fSamples.clear(); // and back to zero events
   for (size_t i = 0; i < fSamplesRaw.size(); i++)
     fSamplesRaw.at(i).ClearEventData();
+  fSamplesRaw.clear(); // and back to zero events
 
   // Clear the accumulators
   for (size_t i = 0; i < fAccumulators.size(); i++)
     fAccumulators.at(i).ClearEventData();
   for (size_t i = 0; i < fAccumulatorsRaw.size(); i++)
     fAccumulatorsRaw.at(i).ClearEventData();
+  // (the number of accumulators is constant, don't clear them)
 };
 
 /**
  * Extract the sampling and accumulator data from the CODA buffer
  * @param buffer Input buffer
  * @param num_words_left Number of words left in the input buffer
- * @param index ?
+ * @param index Starting position in the buffer
  * @return Number of words processed in this method
  */
 Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index)
@@ -127,12 +134,31 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
     // - number of samples per event in accumulator mode
     UInt_t local_mode = (buffer[1] >> 16) & 0xFFFF;
     UInt_t local_format = (buffer[1]) & 0xFFFF;
+    words_read = 2;
+    UInt_t packedtiming; // locals declared outside of switch/case
     switch (local_mode) {
 
       // This is an accumulator buffer
       case MODE_ACCUMULATOR:
-        fNumberOfDataWords = 2 + 6 * 3;
+        words_read--;
+        // TODO The -- is because we use one word to determine whether this is
+        // an accumulator block -> BAD!
 
+        // Read the accumulator blocks
+        for (size_t i = 0; i < fAccumulatorsRaw.size(); i++) {
+          words_read += fAccumulatorsRaw[i].ProcessEvBuffer(&(buffer[words_read]), num_words_left-words_read);
+          if (kDEBUG) std::cout << fAccumulatorsRaw[i] << std::endl;
+        }
+        // Read the threshold information
+        fAccumulatorDAC = buffer[words_read++];
+        fAccumulatorThreshold1 = buffer[words_read++];
+        fAccumulatorThreshold2 = buffer[words_read++];
+        // Read the timing information, packed in one word
+        packedtiming = buffer[words_read++];
+        fAccumulatorTimingAfter6  = (packedtiming >>= 8) & 0xFF;
+        fAccumulatorTimingBefore6 = (packedtiming >>= 8) & 0xFF;
+        fAccumulatorTimingAfter5  = (packedtiming >>= 8) & 0xFF;
+        fAccumulatorTimingBefore5 = (packedtiming >>= 8) & 0xFF;
 
         fHasAccumulatorData = kTRUE;
         break; // end of MODE_ACCUMULATOR
@@ -151,6 +177,18 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
             fSamplesPerEvent = buffer[3];
             fNumberOfEvents = buffer[4];
             fSamplePointer = 0;
+            words_read = 5;
+
+            // For all events in this buffer
+            fSamplesRaw.resize(fNumberOfEvents);
+            for (size_t event = 0; event < fNumberOfEvents; event++) {
+              // create a new raw sampled event
+              fSamplesRaw[event].SetNumberOfSamples(fSamplesPerEvent);
+              // pass the buffer to read the samples
+              words_read += fSamplesRaw[event].ProcessEvBuffer(&(buffer[words_read]), num_words_left-words_read);
+              if (kDEBUG) std::cout << fSamplesRaw[event] << std::endl;
+            }
+
             break;
 
           // This is a sampling buffer in single event mode:
@@ -162,6 +200,13 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
             fSamplesPerEvent = buffer[3];
             fNumberOfEvents = 1;
             fSamplePointer = buffer[2];
+
+            // Create a new raw sampled event
+            fSamplesRaw.resize(fNumberOfSamples);
+            // Pass the buffer to read the samples (only one event)
+            fSamplesRaw.at(0).SetNumberOfSamples(fSamplesPerEvent);
+            fSamplesRaw.at(0).ProcessEvBuffer(buffer, num_words_left, fSamplePointer);
+
             break;
 
           // Default
@@ -188,11 +233,10 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
 
     } // end of switch (local_mode)
 
-    words_read = fNumberOfDataWords;
-
   } else {
     std::cerr << "MQwSIS3320_Channel::ProcessEvBuffer: Not enough words!" << std::endl;
   }
+
   return words_read;
 };
 

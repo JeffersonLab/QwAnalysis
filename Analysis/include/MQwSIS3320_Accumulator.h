@@ -32,9 +32,9 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
   public:
 
     MQwSIS3320_Accumulator() {
+      SetNumberOfDataWords(3);
       fMinValue = 0; fMaxValue = 0;
       fMinTime = 0; fMaxTime = 0;
-      fData.clear();
     };
     ~MQwSIS3320_Accumulator() { };
 
@@ -46,8 +46,8 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
     const Int_t GetSum() const { return fAccumulatorSum; };
     const Int_t GetNumberOfSamples() const { return fNumberOfSamples; };
 
-    void  ClearEventData() { fData.clear(); };
-    Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement = 0) { };
+    void  ClearEventData() { fAccumulatorSum = 0; fNumberOfSamples = 0; };
+    Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement = 0);
 
     const MQwSIS3320_Accumulator operator/ (const Double_t &value) const;
     const MQwSIS3320_Accumulator operator* (const Double_t &value) const;
@@ -76,7 +76,6 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
 
   protected:
 
-    std::vector<UInt_t> fData; //! Accumulator data buffer
     Long_t fAccumulatorSum; //! Accumulator sum
     Int_t fNumberOfSamples; //! Number of accumulated samples
 

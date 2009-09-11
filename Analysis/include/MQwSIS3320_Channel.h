@@ -88,8 +88,13 @@ class MQwSIS3320_Channel: public VQwDataElement {
     MQwSIS3320_Samples& GetSamples(size_t i) { return fSamples.at(i); };
     MQwSIS3320_Samples& GetSamplesRaw(size_t i) { return fSamplesRaw.at(i); };
 
-    size_t GetSequenceNumber() { return (fSequenceNumber); };
-    size_t GetNumberOfSamples() { return (fNumberOfSamples); };
+    const size_t GetSequenceNumber() const { return (fSequenceNumber); };
+    const size_t GetNumberOfSamples() const { return (fNumberOfSamples); };
+    const size_t GetNumberOfAccumulators() const { return (fNumberOfAccumulators); };
+    void SetNumberOfAccumulators(UInt_t naccumulators) {
+      fNumberOfAccumulators = naccumulators;
+      fAccumulatorsRaw.resize(naccumulators);
+    };
 
     void SetPedestal(Double_t ped) {fPedestal = ped; return; };
     Double_t GetPedestal() { return fPedestal; };
@@ -138,6 +143,10 @@ class MQwSIS3320_Channel: public VQwDataElement {
 
     /* ADC accumulator data */
     Int_t fNumberOfAccumulators;
+    Int_t fAccumulatorDAC;
+    Int_t fAccumulatorThreshold1, fAccumulatorThreshold2;
+    Int_t fAccumulatorTimingBefore5, fAccumulatorTimingAfter5;
+    Int_t fAccumulatorTimingBefore6, fAccumulatorTimingAfter6;
     std::vector<MQwSIS3320_Accumulator> fAccumulators;
     std::vector<MQwSIS3320_Accumulator> fAccumulatorsRaw;
 

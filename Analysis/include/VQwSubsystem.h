@@ -74,6 +74,8 @@ class VQwSubsystem{
   virtual void  FillHistograms() = 0;
   virtual void  DeleteHistograms() = 0;
 
+  virtual void  Print();
+
 
  protected:
   void  ClearAllBankRegistrations();

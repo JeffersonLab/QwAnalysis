@@ -10,14 +10,16 @@
 Int_t ERROR = -1;
 
 
-void VQwSubsystem::ClearAllBankRegistrations(){
+void VQwSubsystem::ClearAllBankRegistrations()
+{
   fBank_IDs.clear();
   fROC_IDs.clear();
   fCurrentROC_ID    = -1;
   fCurrentBank_ID   = -1;
 };
 
-Int_t VQwSubsystem::FindIndex(const std::vector<UInt_t> &myvec, const UInt_t value) const {
+Int_t VQwSubsystem::FindIndex(const std::vector<UInt_t> &myvec, const UInt_t value) const
+{
   Int_t index = -1;
   for (size_t i=0 ; i < myvec.size(); i++ ){
     if (myvec[i]==value){
@@ -28,7 +30,8 @@ Int_t VQwSubsystem::FindIndex(const std::vector<UInt_t> &myvec, const UInt_t val
   return index;
 };
 
-Int_t VQwSubsystem::GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) const {
+Int_t VQwSubsystem::GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) const
+{
   //  Bool_t lDEBUG=kTRUE;
   Int_t index = -1;
   Int_t roc_index = FindIndex(fROC_IDs, roc_id);
@@ -43,7 +46,8 @@ Int_t VQwSubsystem::GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) c
   return index;
 };
 
-Int_t VQwSubsystem::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id = 0){
+Int_t VQwSubsystem::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id = 0)
+{
   Int_t stat = 0;
   Int_t roc_index = FindIndex(fROC_IDs, roc_id);
   if (roc_index==-1){
@@ -73,7 +77,8 @@ Int_t VQwSubsystem::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id 
   return stat;
 };
 
-Int_t VQwSubsystem::RegisterSubbank(const UInt_t bank_id){
+Int_t VQwSubsystem::RegisterSubbank(const UInt_t bank_id)
+{
   Int_t stat = 0;
   if (fCurrentROC_ID != -1){
     stat = RegisterROCNumber(fCurrentROC_ID, bank_id);
@@ -90,4 +95,13 @@ Int_t VQwSubsystem::RegisterSubbank(const UInt_t bank_id){
   return stat;
 };
 
-
+void VQwSubsystem::Print()
+{
+  std::cout << "Name of this subsystem: " << fSystemName << std::endl;
+  for (size_t roc_index = 0; roc_index < fROC_IDs.size(); roc_index++) {
+    std::cout << "ROC" << std::dec << fROC_IDs[roc_index] << ": ";
+    for (size_t bank_index = 0; bank_index < fBank_IDs[roc_index].size(); bank_index++)
+      std::cout << std::hex << "0x" << fBank_IDs[roc_index][bank_index] << " ";
+    std::cout << std::dec << std::endl;
+  }
+};

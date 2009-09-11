@@ -31,17 +31,29 @@ class MQwSIS3320_Samples: public VQwDataElement {
 
   public:
 
-    MQwSIS3320_Samples() {
-      fSamples.clear();
+    MQwSIS3320_Samples(UInt_t nsamples = 256) {
+      SetSamplesPerWord(2);
+      SetNumberOfSamples(nsamples);
     };
     ~MQwSIS3320_Samples() { };
 
     const Int_t GetSum() const { return std::accumulate(fSamples.begin(), fSamples.end(), 0); };
     const Int_t GetSample(size_t i) const { return fSamples.at(i); };
+
     const UInt_t GetNumberOfSamples() const { return fSamples.size(); };
+    void SetNumberOfSamples(const UInt_t nsamples) {
+      fSamples.resize(nsamples);
+      SetNumberOfDataWords(GetNumberOfSamples() / GetSamplesPerWord());
+    };
+
+    const UInt_t GetSamplesPerWord() const { return fSamplesPerWord; };
+    void SetSamplesPerWord(const UInt_t nsamples) {
+      fSamplesPerWord = nsamples;
+      SetNumberOfDataWords(GetNumberOfSamples() / GetSamplesPerWord());
+    };
 
     void  ClearEventData() { fSamples.clear(); };
-    Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement = 0) { };
+    Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement = 0);
 
     const MQwSIS3320_Samples operator/ (const Double_t &value) const;
     const MQwSIS3320_Samples operator* (const Double_t &value) const;
@@ -70,7 +82,8 @@ class MQwSIS3320_Samples: public VQwDataElement {
 
   protected:
 
-    std::vector<Int_t> fSamples; //! Samples data buffer
+    UInt_t fSamplesPerWord; //! Number of 12-bit sample values per data word
+    std::vector<Int_t> fSamples; //! Samples data buffer (allow for negative values)
 
   private:
 
@@ -80,7 +93,6 @@ class MQwSIS3320_Samples: public VQwDataElement {
 inline std::ostream& operator<< (std::ostream& stream, const MQwSIS3320_Samples& s) {
   for (size_t i = 0; i < s.GetNumberOfSamples(); i++)
     stream << s.GetSample(i) << " ";
-  stream << std::endl;
   return stream;
 };
 

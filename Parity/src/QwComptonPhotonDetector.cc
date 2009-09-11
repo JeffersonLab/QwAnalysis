@@ -26,7 +26,7 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
   TString modtype, dettype, name;
   Int_t modnum, channum;
 
-  QwParameterFile mapstr(mapfile.Data());  //Open the file
+  QwParameterFile mapstr(mapfile.Data());  // Open the file
   while (mapstr.ReadNextLine()) {
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing whitespace (spaces or tabs).
@@ -54,10 +54,11 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
         if (modnum >= (Int_t) fSamplingADC.size())
           fSamplingADC.push_back(MQwSIS3320_Channel());
         fSamplingADC.at(modnum).InitializeChannel(channum, name);
+        fSamplingADC.at(modnum).SetNumberOfAccumulators(6);
       } else if (modtype == "V775") {
-        // not yet
+        // not yet implemented
       } else if (modtype == "V792") {
-        // not yet
+        // not yet implemented
       } // end of switch (modtype)
 
     } // end of if for token line
@@ -131,16 +132,31 @@ void QwComptonPhotonDetector::EncodeEventData(std::vector<UInt_t> &buffer)
 //*****************************************************************
 Int_t QwComptonPhotonDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
-  Int_t index = GetSubbankIndex(roc_id, bank_id);
-  std::cout << "Subbank index " << index << ": ";
-  std::cout << "fROC_IDs = " << fROC_IDs.at(index) << ", ";
-//  std::cout << "fBank_IDs = " << fBank_IDs.at(index) << std::endl;
+  UInt_t words_read = 0;
 
+  // Get the subbank index (or -1 when no match)
+  Int_t index = GetSubbankIndex(roc_id, bank_id);
   if (index >= 0 && num_words > 0) {
+
     //  We want to process this ROC.  Begin looping through the data.
+    for (size_t i = 0; i < fSamplingADC.size(); i++) {
+      words_read += fSamplingADC[i].ProcessEvBuffer(&(buffer[words_read]), num_words-words_read);
+    }
+    for (size_t i = 0; i < fIntegratingTDC.size(); i++) {
+      //words_read += fIntegratingTDC[i].ProcessEvBuffer(&(buffer[words_read]), num_words-words_read);
+    }
+    for (size_t i = 0; i < fIntegratingADC.size(); i++) {
+      //words_read += fIntegratingADC[i].ProcessEvBuffer(&(buffer[words_read]), num_words-words_read);
+    }
+    if (num_words != words_read) {
+      std::cerr << "QwComptonPhotonDetector::ProcessEvBuffer:  There were "
+		<< num_words-words_read
+		<< " leftover words after decoding everything we recognize."
+		<< std::endl;
+    }
   }
 
-  return 0;
+  return words_read;
 };
 
 //*****************************************************************
@@ -408,7 +424,8 @@ void QwComptonPhotonDetector::FillTreeVector(std::vector<Double_t> &values)
  */
 void  QwComptonPhotonDetector::Print()
 {
-  std::cout << "Name of this subsystem: " <<fSystemName << std::endl;
+  VQwSubsystemParity::Print();
+
   std::cout << "there are " << fSamplingADC.size() << " sampling ADCs" << std::endl;
   std::cout << "there are " << fIntegratingTDC.size() << " integrating TDCs" << std::endl;
   std::cout << "there are " << fIntegratingADC.size() << " integrating ADCs" << std::endl;

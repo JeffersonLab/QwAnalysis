@@ -93,10 +93,10 @@ static const int kMultiplet = 4;
 static bool bDebug = true;
 
 // Activate components (no support for trees yet)
-static bool bHisto = true;
-static bool bHelicity = true;
+static bool bHisto = false;
+static bool bHelicity = false;
 static bool bComptonPhoton = true;
-static bool bComptonElectron = true;
+static bool bComptonElectron = false;
 
 int main(int argc, char* argv[])
 {
@@ -109,11 +109,13 @@ int main(int argc, char* argv[])
     detectors.push_back(new QwComptonPhotonDetector("Compton Photon Detector"));
     detectors.GetSubsystem("Compton Photon Detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/compton_channels.map");
     detectors.GetSubsystem("Compton Photon Detector")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/compton_pedestal.map");
+    ((QwComptonPhotonDetector*) detectors.GetSubsystem("Compton Photon Detector"))->Print();
   }
   if (bComptonElectron) {
     detectors.push_back(new QwComptonElectronDetector("Compton Electron Detector"));
     detectors.GetSubsystem("Compton Electron Detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/compton_channels.map");
     detectors.GetSubsystem("Compton Electron Detector")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/compton_pedestal.map");
+    ((QwComptonElectronDetector*) detectors.GetSubsystem("Compton Electron Detector"))->Print();
   }
   QwHelicityPattern helicitypattern(detectors,kMultiplet);
 
