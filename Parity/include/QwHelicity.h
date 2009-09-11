@@ -89,8 +89,10 @@ class QwHelicity : public VQwSubsystemParity{
    /* derived from VQwSubsystem */
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
-  Int_t LoadEventCuts(TString & filename);//derived from VQwSubsystemParity
-  Bool_t SingleEventCuts();//derived from VQwSubsystemParity
+  Int_t LoadEventCuts(TString  filename);//Loads event cuts applicabale to QwHelicity class, derived from VQwSubsystemParity
+  Bool_t ApplySingleEventCuts();//Apply event cuts in the QwHelicity class, derived from VQwSubsystemParity
+  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure, derived from VQwSubsystemParity
+  Bool_t CheckRunningAverages(Bool_t ); //check the running averages of sub systems and passing argument decide print AVG or not., derived from VQwSubsystemParity
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id,
 				   UInt_t* buffer, UInt_t num_words);

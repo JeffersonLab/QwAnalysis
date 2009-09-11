@@ -52,7 +52,7 @@ Int_t QwQuartzBar::LoadChannelMap(TString mapfile){
   return 0;
 };
 
-Int_t QwQuartzBar::LoadEventCuts(TString & filename){
+Int_t QwQuartzBar::LoadEventCuts(TString filename){
   return 0;
 };
 
@@ -202,10 +202,25 @@ Int_t QwQuartzBar::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer
   return 0;
 };
 
-Bool_t QwQuartzBar::SingleEventCuts(){
+Bool_t QwQuartzBar::ApplySingleEventCuts(){
   //For the QuartzBar no general routine to check validity
   return true;
 };
+
+Int_t QwQuartzBar::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+  
+  return 1;
+};
+
+
+//*****************************************************************
+
+Bool_t QwQuartzBar::CheckRunningAverages(Bool_t bDisplayAVG){ //check the running averages of sub systems and passing argument decide print AVG or not.
+
+  return kTRUE;
+}
+
+//*****************************************************************
 
 
 void  QwQuartzBar::ProcessEvent()

@@ -73,8 +73,11 @@ class QwBeamLine : public VQwSubsystemParity{
   /* derived from VQwSubsystem */
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
-  Int_t LoadEventCuts(TString & filename);//derived from VQwSubsystemParity
-  Bool_t SingleEventCuts();//derived from VQwSubsystemParity
+  Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
+  Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
+  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  Bool_t CheckRunningAverages(Bool_t ); //check the running averages of sub systems and passing argument decide print AVG or not.
+  
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   void  PrintDetectorID();
@@ -113,17 +116,21 @@ class QwBeamLine : public VQwSubsystemParity{
 /////
  protected:
  Int_t GetDetectorTypeID(TString name);
- Int_t GetDetectorIndex(Int_t TypeID, TString name);
+ Int_t GetDetectorIndex(Int_t TypeID, TString name);//when the type and the name is passed the detector index from appropriate vector will be returned
+ //for example if TypeID is bcm  then the index of the detector from fBCM vector for given name will be returnd.
  std::vector <QwBPMStripline> fStripline;
  std::vector <QwBCM> fBCM;
  std::vector <QwBeamDetectorID> fBeamDetectorID;
+
+
+ Int_t fNumError_Evt, fNumError_Evt_BCM, fNumError_Evt_BPM;
 
 
 /////
  private:
  std::vector<TString> DetectorTypes;// for example could be BCM, LUMI,BPMSTRIPLINE, etc..
 
-  static const Bool_t kDEBUG=kFALSE;
+  static const Bool_t kDEBUG=kFALSE; 
 
 };
 

@@ -77,7 +77,9 @@ void  QwHistogramHelper::LoadHistParamsFromFile(const std::string filename)
   fInputFile = filename;
   HISTPARMS tmpstruct;
 
-  fDEBUG = 1;
+  fDEBUG = 0;
+  //fDEBUG = 1;
+
   if (fDEBUG) std::cout<< "file name "<<fInputFile<<std::endl;
 
   fHistParams.clear();
@@ -115,7 +117,7 @@ const QwHistogramHelper::HISTPARMS QwHistogramHelper::GetHistParamsFromList(cons
     }
   }
 
-  fDEBUG = 1;
+  fDEBUG = 0;
   if (fDEBUG) {
     std::cout<<"Finding histogram defination from: "<<histname<<std::endl;
     std::cout<<"name "<<tmpstruct.name_title<<" type "<<tmpstruct.type<<
@@ -199,9 +201,7 @@ Bool_t QwHistogramHelper::DoesMatch(const std::string s, const std::string s_wil
      &&s1.Index(s2)==0){//found a match!
     return kTRUE;
   } else if (s1.Index(s2)==0){//found a match!
-    std::cout << "QwHistogramHelper:  Matching histogram \"" << s.c_str() 
-	      << "\" to wildcard pattern \"" 
-	      << s_wildcard.c_str() << "\"." << std::endl;
+    //std::cout << "QwHistogramHelper:  Matching histogram \"" << s.c_str()<< "\" to wildcard pattern \"" << s_wildcard.c_str() << "\"." << std::endl;
     return kTRUE;
   }
   else return kFALSE;

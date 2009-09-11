@@ -42,7 +42,7 @@ class VQwSubsystemParity : public VQwSubsystem {
     };
   
   virtual void FillTreeVector(std::vector<Double_t> &values)=0;
-  
+   
   virtual void Copy(VQwSubsystem *source) = 0;
   virtual VQwSubsystem* Copy()=0;
 
@@ -53,8 +53,10 @@ class VQwSubsystemParity : public VQwSubsystem {
   virtual void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)=0;
   virtual void Ratio(VQwSubsystem *numer, VQwSubsystem *denom)=0;
 
-  virtual Int_t LoadEventCuts(TString &filename)=0;//Will load the event cut file.
-  virtual Bool_t SingleEventCuts()=0;//impose single event cuts
+  virtual Int_t LoadEventCuts(TString filename)=0;//Will load the event cut file.
+  virtual Bool_t ApplySingleEventCuts()=0;//impose single event cuts
+  virtual Int_t GetEventcutErrorCounters()=0;// report number of events falied due to HW and event cut faliure
+  virtual Bool_t CheckRunningAverages(Bool_t )=0; //check the running averages of sub systems and passing argument decide print AVG or not.
 
   private:
   VQwSubsystemParity(){};  //  Private constructor.

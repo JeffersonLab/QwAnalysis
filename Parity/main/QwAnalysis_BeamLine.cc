@@ -25,7 +25,7 @@
 /*------------------------------------------------------------------------*//*!
 
  \file QwAnalysis_BeamLine.cc
-
+ 
  \brief main(...) function for the qwanalysis_beamline executable
 
 *//*-------------------------------------------------------------------------*/
@@ -45,6 +45,7 @@ int main(Int_t argc,Char_t* argv[])
   Bool_t bHelicity=kTRUE;
   Bool_t bTree=kTRUE;
   Bool_t bHisto=kTRUE;
+  Bool_t bEventCut=kTRUE;//kFALSE; //set this to kTRUE to activate event cuts
 
   //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
   if (getenv("DISPLAY")==NULL
@@ -61,34 +62,40 @@ int main(Int_t argc,Char_t* argv[])
   QwEventBuffer QwEvt;
 
   QwSubsystemArrayParity QwDetectors;
-  
+   VQwSubsystemParity * subsystem_tmp;//VQwSubsystemParity is the top most parent class for Parity subsystems.
+
   QwDetectors.push_back(new QwBeamLine("Injector BeamLine"));
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline.map");
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_pedestal.map");
+  subsystem_tmp=(VQwSubsystemParity *)QwDetectors.GetSubsystem("Injector BeamLine");
+  subsystem_tmp->LoadEventCuts(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline_eventcuts.in");//Pass the correct cuts file.
   QwDetectors.push_back(new QwHelicity("Helicity info"));
   QwDetectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_helicity.map");
   QwDetectors.GetSubsystem("Helicity info")->LoadInputParameters("");	
+  subsystem_tmp=(VQwSubsystemParity *)QwDetectors.GetSubsystem("Helicity info");
+  subsystem_tmp->LoadEventCuts(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline_eventcuts.in");
   QwHelicityPattern QwHelPat(QwDetectors,4);
-    
+     
   ///////
+  Double_t evnum=0.0;
+
   
   for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++)
-    {
+    { 
       //  Begin processing for the first run.
       //  Start the timer.
       timer.Start();
       
       //  Try to open the data file.
-      if (QwEvt.OpenDataFile(run) != CODA_OK)
-	{
-	  //  The data file can't be opened.
-	  //  Get ready to process the next run.
-	  std::cerr << "ERROR:  Unable to find data files for run "
-		    << run << ".  Moving to the next run.\n"
-		    << std::endl;
-	  timer.Stop();
-	  continue;
-	}
+      if (QwEvt.OpenDataFile(run) != CODA_OK){
+	//  The data file can't be opened.
+	//  Get ready to process the next run.
+	std::cerr << "ERROR:  Unable to find data files for run "
+		  << run << ".  Moving to the next run.\n"
+		  << std::endl;
+	timer.Stop();
+	continue;
+      }
       QwEvt.ResetControlParameters();
       //  Open the data files and root file
       //    OpenAllFiles(io, run);
@@ -98,21 +105,20 @@ int main(Int_t argc,Char_t* argv[])
       TFile rootfile(rootfilename,
 		     "RECREATE","QWeak ROOT file");
 	
-      if(bHisto)
-	{
-	  rootfile.cd();
-	  QwDetectors.ConstructHistograms(rootfile.mkdir("mps_histo"));
-	  if(bHelicity)
-	    {
-	      rootfile.cd();
-	      QwHelPat.ConstructHistograms(rootfile.mkdir("hel_histo"));
-	    }
-	}
+      if(bHisto){
+	rootfile.cd();
+	QwDetectors.ConstructHistograms(rootfile.mkdir("mps_histo"));
+	if(bHelicity)
+	  {
+	    rootfile.cd();
+	    QwHelPat.ConstructHistograms(rootfile.mkdir("hel_histo"));
+	  }
+      }
 
 
       TTree *mpstree;
       TTree *heltree;
-      Double_t evnum=0.0;
+      
       std::vector <Double_t> mpsvector;
       std::vector <Double_t> helvector;
 
@@ -123,7 +129,7 @@ int main(Int_t argc,Char_t* argv[])
 	  mpsvector.reserve(6000); 
 	  // if one defines more than 600 words in the full ntuple
 	  // results are going to get very very crazy.
-	  mpstree->Branch("evnum",&evnum,"evnum/F");
+	  mpstree->Branch("evnum",&evnum,"evnum/D");
 	  TString dummystr="";
 	  ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);  
 	  ((QwBeamLine*)QwDetectors.GetSubsystem("Helicity info"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);  
@@ -140,68 +146,74 @@ int main(Int_t argc,Char_t* argv[])
 	    }
 	}
 
-      while (QwEvt.GetEvent() == CODA_OK)
-	{
-	  //Loop over events in this CODA file
+      Int_t falied_events_counts=0;//count falied total events
 
-	  //  First, do processing of non-physics events...
-	  if (QwEvt.IsROCConfigurationEvent())
-	    {
-	      //  Send ROC configuration event data to the subsystem objects.
-	      QwEvt.FillSubsystemConfigurationData(QwDetectors);
-	    }
+      while (QwEvt.GetEvent() == CODA_OK){
+	//Loop over events in this CODA file
+
+	//  First, do processing of non-physics events...
+	if (QwEvt.IsROCConfigurationEvent()){
+	  //  Send ROC configuration event data to the subsystem objects.
+	  QwEvt.FillSubsystemConfigurationData(QwDetectors);
+	}
 	  
-	  //  Now, if this is not a physics event, go back and get a new event.
-	  if (! QwEvt.IsPhysicsEvent()) continue;
+	//  Now, if this is not a physics event, go back and get a new event.
+	if (! QwEvt.IsPhysicsEvent()) continue;
 
-	  //  Check to see if we want to process this event.
-	  if (QwEvt.GetEventNumber() < cmdline.GetFirstEvent()) continue;
-	  else if (QwEvt.GetEventNumber() > cmdline.GetLastEvent()) break;
- 	  if(bDebug)
- 	    {
-	      std::cout<<"==================================================== \n";
-	      std::cout<<" new event:: number ="<<QwEvt.GetEventNumber()<<"\n";
-	      std::cout<<"==================================================== \n";
-	    }
+	//  Check to see if we want to process this event.
+	if (QwEvt.GetEventNumber() < cmdline.GetFirstEvent()) continue;
+	else if (QwEvt.GetEventNumber() > cmdline.GetLastEvent()) break;
+	if(bDebug){
+	  std::cout<<"==================================================== \n";
+	  std::cout<<" new event:: number ="<<QwEvt.GetEventNumber()<<"\n";
+	  std::cout<<"==================================================== \n";
+	}
+	//std::cout<<"*********** event num "<<QwEvt.GetEventNumber()<<"*************************"<<std::endl;
+	//  Fill the subsystem objects with their respective data for this event.
+	QwEvt.FillSubsystemData(QwDetectors);
 	  
-	  //  Fill the subsystem objects with their respective data for this event.
-	  QwEvt.FillSubsystemData(QwDetectors);
-		  
-	 QwDetectors.ProcessEvent();
 
+	QwDetectors.ProcessEvent();
+	
+
+
+	//currently QwDetector.SingleEventCuts() will not block any invalid events:- Only for debugging 
+	if (QwDetectors.ApplySingleEventCuts() || !bEventCut){//The event pass the event cut constraints or can ignore it by setting bEventCut=kFALSE 
+	  //std::cout<<" *********** Valid event ************ "<<std::endl;
 	  if(bHelicity)
 	    QwHelPat.LoadEventData(QwDetectors);	  
 
-	 if(bHisto) QwDetectors.FillHistograms();
+	  if(bHisto) QwDetectors.FillHistograms();
 
 
-	 if(bTree)
-	   {
-	     evnum=QwEvt.GetEventNumber();
-	     ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->FillTreeVector(mpsvector);
-	     ((QwHelicity*)QwDetectors.GetSubsystem("Helicity info"))->FillTreeVector(mpsvector);
-	     mpstree->Fill();
-	   }
+	  if(bTree){
+	    evnum=QwEvt.GetEventNumber();
+	    std::cout<<" event "<<evnum<<std::endl;
+	    ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->FillTreeVector(mpsvector);
+	    ((QwHelicity*)QwDetectors.GetSubsystem("Helicity info"))->FillTreeVector(mpsvector);
+	    mpstree->Fill();
+	  }
 
-	  if(bHelicity&&QwHelPat.IsCompletePattern())
-	    {
-	      QwHelPat.CalculateAsymmetry();
-	      //	      QwHelPat.Print();
-	      if(bHisto) QwHelPat.FillHistograms();
+	  if(bHelicity&&QwHelPat.IsCompletePattern()){
+	    QwHelPat.CalculateAsymmetry();
+	    //	      QwHelPat.Print();
+	    if(bHisto) QwHelPat.FillHistograms();
 
-	      if(bTree) 
-		{
-		  QwHelPat.FillTreeVector(helvector);
-		  heltree->Fill();
-		}
-	      QwHelPat.ClearEventData();
+	    if(bTree){
+	      QwHelPat.FillTreeVector(helvector);
+	      heltree->Fill();
 	    }
-	      
-	  if(QwEvt.GetEventNumber()%1000==0)
-	    {
-	      std::cerr << "Number of events processed so far: " 
-			<< QwEvt.GetEventNumber() << "\r";
-	    }         
+	    QwHelPat.ClearEventData();
+	  }
+	}else{
+	  std::cout<<" Falied event "<<QwEvt.GetEventNumber()<<std::endl;
+	  falied_events_counts++;
+	}
+
+	if(QwEvt.GetEventNumber()%1000==0){
+	  std::cerr << "Number of events processed so far: " 
+		    << QwEvt.GetEventNumber() << "\r";
+	}         
       } 
 
       std::cout << "Number of events processed so far: " 
@@ -218,17 +230,24 @@ int main(Int_t argc,Char_t* argv[])
        *  segfault; but in additiona to that we should delete them     *
        *  here, in case we run over multiple runs at a time.           */
       if(bHisto||bTree)rootfile.Write(0,TObject::kOverwrite);
-      if(bHisto)
-	{
-	  std::cout<<"QwDetectors.DeleteHistograms\n";
-	  QwDetectors.DeleteHistograms();
-	  std::cout<<"QwHelPat.DeleteHistograms\n";
-	  QwHelPat.DeleteHistograms();
-	}
+      if(bHisto){
+	std::cout<<"QwDetectors.DeleteHistograms\n";
+	QwDetectors.DeleteHistograms();
+	std::cout<<"QwHelPat.DeleteHistograms\n";
+	QwHelPat.DeleteHistograms();
+      }
 
-      QwEvt.CloseDataFile();
+      QwEvt.CloseDataFile();      
       QwEvt.ReportRunSummary();
       
+      
+
+      QwDetectors.CheckRunningAverages(kTRUE);//check running averages
+      if (!bEventCut)
+	std::cout<<"Event cuts turned off! "<<std::endl;
+      else
+	QwDetectors.GetEventcutErrorCounters();//print the event cut error summery for each sub system
+      std::cout<<"Total events falied "<<falied_events_counts<< std::endl;      
       PrintInfo(timer);
       
     } //end of run loop

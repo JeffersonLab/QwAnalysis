@@ -80,6 +80,8 @@ class QwVQWK_Channel: public VQwDataElement {
 
   Bool_t MatchSequenceNumber(size_t seqnum);
   Bool_t MatchNumberOfSamples(size_t numsamp);
+  Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
+  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
@@ -104,7 +106,8 @@ class QwVQWK_Channel: public VQwDataElement {
   void SetCalibrationFactor(Double_t factor){fCalibrationFactor=factor; return;};
   Double_t GetCalibrationFactor(){return fCalibrationFactor;};
 
-  Bool_t IsGoodEvent();
+  // formarly known as IsGoodEvent()
+  Bool_t ApplyHWChecks(); //Check for harware errors in the devices and this is replaced for IsGoodEvent() routine
 
   void Copy(VQwDataElement *source);
 
@@ -151,6 +154,7 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t fBlock[4];         /*! Array of the sub-block data             */
   Double_t fHardwareBlockSum; /*! Module-based sum of the four sub-blocks */
   size_t fSequenceNumber;     /*! Event sequence number for this channel  */
+  size_t fPreviousSequenceNumber; /*! Previous event sequence number for this channel  */
   size_t fNumberOfSamples;    /*! Number of samples in the event          */
 
   /*  Parity mock data distributions */

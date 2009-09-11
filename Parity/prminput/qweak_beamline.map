@@ -126,6 +126,6 @@ Bank=0x3102
   VQWK, 11, 4,  bcm,  QWK_BCM0L02
   VQWK, 11, 5,  bcm,  QWK_Batery6
   VQWK, 11, 6,  bcm,  QWK_Batery7
-  VQWK, 11, 7,   bcm,  empty2
+  VQWK, 11, 7,   bcm,  PhaseMonitor
 
 !END

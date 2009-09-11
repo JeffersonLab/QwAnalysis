@@ -171,7 +171,88 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 };
 //*****************************************************************
 
-Int_t QwBeamLine::LoadEventCuts(TString & filename){
+Int_t QwBeamLine::LoadEventCuts(TString  filename){
+  Double_t ULX, LLX, ULY, LLY;
+  Int_t samplesize;
+  std::vector<Double_t> fBCMEventCuts;
+  std::vector<Double_t> fBPMEventCuts;
+  TString varname, varvalue, vartypeID;
+  std::cout<<" QwBeamLine::LoadEventCuts  "<<filename<<std::endl; 
+  QwParameterFile mapstr(filename.Data());  //Open the file
+
+   
+  
+  while (mapstr.ReadNextLine()){
+    //std::cout<<"********* In the loop  *************"<<std::endl;
+    mapstr.TrimComment('!');   // Remove everything after a '!' character.
+    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+    if (mapstr.LineIsEmpty())  continue;    
+    
+    if (mapstr.HasVariablePair("=",varname,vartypeID)){
+      //  This is a declaration line.  Decode it.
+      varname.ToLower();
+      vartypeID.ToLower();
+    }
+    else{
+      if (vartypeID == "bcm"){
+	fBCMEventCuts.clear();
+	varname= mapstr.GetNextToken(", ").c_str();              //detector name
+	varname.ToLower();
+	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BCM value
+	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BCM value
+	samplesize = (atoi(mapstr.GetNextToken(", ").c_str()));	//sample size
+	//	std::cout<<" sample size "<<samplesize<<std::endl;
+	//retrieve the detector from the vector.
+	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(vartypeID),varname);	
+	//update the Double vector
+	fBCMEventCuts.push_back(LLX);
+	fBCMEventCuts.push_back(ULX);
+	fBCMEventCuts.push_back(samplesize);
+	//std::cout<<"*****************************"<<std::endl;
+	//std::cout<<" Name from map "<<varname<<" Index ["<<det_index <<"] "<<std::endl;
+	//fBCM[det_index].Print();
+	fBCM[det_index].SetSingleEventCuts(fBCMEventCuts);
+	//std::cout<<"*****************************"<<std::endl;
+	
+      }
+      else if (vartypeID == "bpmstripline"){
+	fBPMEventCuts.clear();
+	varname= mapstr.GetNextToken(", ").c_str();              //detector name
+	varname.ToLower();
+	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline X
+	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline X
+	LLY = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline Y
+	ULY = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline Y
+	samplesize = (atoi(mapstr.GetNextToken(", ").c_str()));	//sample size
+	//std::cout<<varname<<" sample size "<<samplesize<<std::endl;
+	//std::cout<<" sample size "<<samplesize<<std::endl;
+	//retrieve the detector from the vector.
+	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(vartypeID),varname);	
+	//update the Double vector
+	fBPMEventCuts.push_back(LLX);
+	fBPMEventCuts.push_back(ULX);
+	fBPMEventCuts.push_back(LLY);
+	fBPMEventCuts.push_back(ULY);
+	fBPMEventCuts.push_back(samplesize);
+	//std::cout<<"*****************************"<<std::endl;
+	//std::cout<<" Name from map "<<varname<<" Index ["<<det_index <<"] "<<std::endl;
+	fStripline[det_index].SetSingleEventCuts(fBPMEventCuts);
+	//fStripline[det_index].Print();
+	//std::cout<<"*****************************"<<std::endl;
+	
+      }
+    }
+
+    
+    
+  }
+
+  //set the error counters to zero.
+  fNumError_Evt=0;
+  fNumError_Evt_BCM=0;
+  fNumError_Evt_BPM=0;
+
+
   return 0;
 };
 
@@ -348,11 +429,78 @@ Int_t QwBeamLine::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer,
   return 0;
 };
 
-Bool_t QwBeamLine::SingleEventCuts(){
+Bool_t QwBeamLine::ApplySingleEventCuts(){
   //currently this will check the IsGoodEvent() only!
-  std::cout<<" QwBeamLine::SingleEventCuts()"<<std::endl;
-  return IsGoodEvent();
+  //std::cout<<" QwBeamLine::SingleEventCuts() ";
+
+  Bool_t test_BCM=kTRUE;
+  Bool_t test_BCM1=kTRUE;
+
+  
+  
+
+
+  for(size_t i=0;i<fBCM.size();i++){
+    //std::cout<<"  BCM ["<<i<<"] "<<std::endl;
+    test_BCM1=fBCM[i].ApplySingleEventCuts(); 
+    test_BCM&=test_BCM1;
+    if(!test_BCM1) std::cout<<"******* QwBeamLine::SingleEventCuts()->BCM[ "<<i<<" , "<<fBCM[i].GetElementName()<<" ] ******\n";
+  }
+  //if (!test_BCM)
+  //fNumError_Evt_BCM++;//BCM falied  event counter for QwBeamLine
+    
+  
+  for(size_t i=0;i<fStripline.size();i++){
+    //std::cout<<"  BPM ["<<i<<"] "<<std::endl;
+    test_BCM1=fStripline[i].ApplySingleEventCuts();
+    test_BCM&=test_BCM1;
+    if(!test_BCM1) std::cout<<"******** QwBeamLine::SingleEventCuts()->BPMStripline[ "<<i<<" , "<<fStripline[i].GetElementName()<<" ] *****\n";
+    }
+  //if (!test_BCM1)
+  //fNumError_Evt_BCM++;//BPM falied  event counter for QwBeamLine
+    
+
+  if (!test_BCM)//total falied  event counter for QwBeamLine
+    fNumError_Evt++;
+    
+  
+
+  return test_BCM;
+   
 };
+
+Int_t QwBeamLine::GetEventcutErrorCounters(){
+
+  std::cout<<"*********QwBeamLine****************"<<std::endl;
+  std::cout<<" Falied total events "<<fNumError_Evt<<std::endl;
+  //std::cout<<" BCM Falied  events "<<fNumError_Evt_BCM<<std::endl;
+  //std::cout<<" BPM Falied  events "<<fNumError_Evt_BPM<<std::endl;
+  std::cout<<"*********End of error reporting****************"<<std::endl;
+  
+
+  return 1;
+}
+
+Bool_t QwBeamLine::CheckRunningAverages(Bool_t bDisplayAVG){ //check the running averages of sub systems and passing argument decide print AVG or not.
+
+  Bool_t status=kTRUE;;
+
+  
+  
+  std::cout<<" Printing Running AVG for BCMs"<<std::endl;
+  for(size_t i=0;i<fBCM.size();i++){
+    status&=fBCM[i].CheckRunningAverages(bDisplayAVG);    
+  }
+
+  std::cout<<" Printing Running AVG for BPMStripLines"<<std::endl;
+  for(size_t i=0;i<fStripline.size();i++){
+    status&=fStripline[i].CheckRunningAverages(bDisplayAVG);    
+  }
+  
+
+  return status;
+
+}
 
 
 void  QwBeamLine::ProcessEvent()
@@ -380,14 +528,8 @@ Int_t QwBeamLine::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t b
 Bool_t QwBeamLine::IsGoodEvent()
 {
   Bool_t test=kTRUE;
-  std::cerr << "in QwBeamLine::IsGoodEvent\n";
+  
 
-  for(size_t i=0;i<fStripline.size();i++)
-    test&=fStripline[i].IsGoodEvent();
-  for(size_t i=0;i<fBCM.size();i++)
-    test&=fBCM[i].IsGoodEvent();
-
-  if(!test) std::cerr<<" this is not a good event\n";
   return test;
 }
 
@@ -640,6 +782,11 @@ void  QwBeamLine::Print()
   std::cout<<"there are "<<fStripline.size()<<" striplines \n";
   std::cout<<"there are "<<fBCM.size()<<" bcm \n";
 
+
+  std::cout<<" Printing Running AVG and other channel info for BCMs"<<std::endl;
+  for(size_t i=0;i<fBCM.size();i++)
+    fBCM[i].Print();
+
   return;
 }
 
@@ -667,8 +814,13 @@ void  QwBeamDetectorID::Print()
     fIndex<<std::endl;
   std::cout<<"Subelement index= "<<
     fSubelement<<std::endl;
+  
+  
+  
 
   std::cout<<"==========================================\n";
+
+  
 
   return;
 }

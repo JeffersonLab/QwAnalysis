@@ -34,8 +34,11 @@ class QwQuartzBar: public VQwSubsystemParity {
   /*  Member functions derived from VQwSubsystemParity. */
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
-  Int_t LoadEventCuts(TString & filename);
-  Bool_t SingleEventCuts();
+  Int_t LoadEventCuts(TString  filename);
+  Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings 
+  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  Bool_t CheckRunningAverages(Bool_t ); //check the running averages of sub systems and passing argument decide print AVG or not.
+
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
   void  ClearEventData();
@@ -77,10 +80,10 @@ class QwQuartzBar: public VQwSubsystemParity {
   void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
 
 
-  Bool_t IsGoodEvent(){
+  Bool_t ApplyHWChecks(){//Check for harware errors in the devices
     Bool_t status = kTRUE;
     for (size_t i=0; i<fADC_Data.size(); i++){
-      status &= fADC_Data.at(i).IsGoodEvent();
+      status &= fADC_Data.at(i).ApplyHWChecks();
     }
     return status;
   };

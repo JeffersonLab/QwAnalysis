@@ -25,7 +25,11 @@ const TString QwBPMStripline::axis[3]={"X","Y","Z"};
 void  QwBPMStripline::InitializeChannel(TString name, Bool_t ROTATED)
 {
   bRotated=ROTATED;
+
   SetOffset(0,0,0);
+  counter=0;  //used to validate sequence number in the IsGoodEvent()
+  Event_Counter=0; //count event cut passes events for average calculation
+  
   for(int i=0;i<4;i++)
     {
       fWire[i].InitializeChannel(name+subelement[i],"raw");
@@ -33,12 +37,14 @@ void  QwBPMStripline::InitializeChannel(TString name, Bool_t ROTATED)
 	std::cout<<" Wire ["<<i<<"]="<<fWire[i].GetElementName()<<"\n";
     }
 
-  for(int i=0;i<2;i++)
+  for(int i=0;i<2;i++){
 	fRelPos[i].InitializeChannel(name+"Rel"+axis[i],"derived");
+	fRelPos_Running_AVG[i]=0;
+  }
 
   for(int i=0;i<3;i++)
 	fAbsPos[i].InitializeChannel(name+axis[i],"derived");
-
+ 
   SetElementName(name);
   bFullSave=kTRUE;
 
@@ -58,6 +64,7 @@ void QwBPMStripline::ClearEventData()
 
 	return;
 };
+
 /********************************************************/
 void QwBPMStripline::SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t meanY, Double_t sigmaY)
 {
@@ -117,15 +124,153 @@ void QwBPMStripline::EncodeEventData(std::vector<UInt_t> &buffer)
     fWire[i].EncodeEventData(buffer);
 };
 /********************************************************/
+ 
+Bool_t QwBPMStripline::ApplySingleEventCuts(){
+  Bool_t status=kTRUE;
+  
+  
+
+  if (fGoodEvent){
+
+
+    if (!(fULimitX==0 && fLLimitX==0 && fULimitY==0 && fLLimitY==0)){//if fULimitX, fLLimitX, fULimitY & fLLimitY  are non  zero then perform event cuts on this BCM.
+
+      //we only need to check two final values 
+      if (fRelPos[0].GetHardwareSum()<=fULimitX && fRelPos[0].GetHardwareSum()>=fLLimitX){ //for RelX
+	//fRelPos_Running_AVG[0]=(((Event_Counter-1)*fRelPos_Running_AVG[0])/Event_Counter +  fRelPos[0].GetHardwareSum()/Event_Counter); //this is the running avg of the BCM
+	status&=kTRUE;
+      }
+      else{
+	status&=kFALSE;
+	std::cout<<" Rel X event cut failed ";
+      }
+      if (fRelPos[1].GetHardwareSum()<=fULimitY && fRelPos[1].GetHardwareSum()>=fLLimitY){//for RelY
+	//fRelPos_Running_AVG[1]=(((Event_Counter-1)*fRelPos_Running_AVG[1])/Event_Counter +  fRelPos[1].GetHardwareSum()/Event_Counter); //this is the running avg of the BCM
+	status&=kTRUE;
+      //std::cout<<" ";
+	}
+      else{
+	  status&=kFALSE;
+	  std::cout<<" Rel Y event cut failed ";
+      }
+      if (status){
+	Event_Counter++;//Increment the counter, it is a good event.
+	CalculateRunningAverages();//calculate the averages for RelX and RelY
+	
+      }
+	
+    }
+    else
+       status=kTRUE;
+
+  }else{
+    std::cout<<" Hardware failed ";
+    status=kFALSE;
+  }
+
+
+  //std::cout<<"QwBPMStripline::"<<GetElementName()<<" sample size"<<fSampleSize<<std::endl;    
+  //if (!status)
+  //std::cout<<"QwBPMStripline::"<<GetElementName()<<" event cuts falied "<<std::endl;
+
+  
+  return status;
+};
+
+/********************************************************/
+
+Int_t QwBPMStripline::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+
+  return 1;
+}
+
+/********************************************************/
+void QwBPMStripline::ResetRunningAverages(){
+   std::cout<<"QwBPMStripline::"<<GetElementName();
+  for(Short_t i=0;i<2;i++){
+    std::cout<<"Running AVG "<<fRelPos_Running_AVG[i]<<" AVG^2 "<<fRelPos_Running_AVG_square[i];
+    fRelPos_Running_AVG[i]=0;
+    fRelPos_Running_AVG_square[i]=0;
+  }
+  std::cout<<std::endl;
+  Event_Counter=0;  
+}
+
+/********************************************************/
+
+void QwBPMStripline::CalculateRunningAverages(){
+  //calculate the running AVG
+  for(Short_t i=0;i<2;i++){
+    fRelPos_Running_AVG[i]=(((Event_Counter-1)*fRelPos_Running_AVG[i])/Event_Counter +  fRelPos[i].GetHardwareSum()/Event_Counter); //this is the running avg of the BCM
+    fRelPos_Running_AVG_square[i]=(((Event_Counter-1)*fRelPos_Running_AVG_square[i])/Event_Counter +  fRelPos[i].GetHardwareSum()*fRelPos[i].GetHardwareSum()/Event_Counter); //this is the running avg of the BCM 
+  }
+}
+
+/********************************************************/
+
+Bool_t QwBPMStripline::CheckRunningAverages(Bool_t bDisplayAVG){
+  Bool_t status;
+  Double_t fRunning_sigma[2];
+
+  if (!(fULimitX==0 && fLLimitX==0 && fULimitY==0 && fLLimitY==0)){// if samplesize is zero or less  BPM is not in the eventcut list ignore it.
+    
+    if (fRelPos_Running_AVG[0]<=fULimitX && fRelPos_Running_AVG[0]>=fLLimitX){
+      status &= kTRUE;
+      fRunning_sigma[0]=(fRelPos_Running_AVG_square[0]-(fRelPos_Running_AVG[0]*fRelPos_Running_AVG[0]))/Event_Counter;
+      if (bDisplayAVG)
+	std::cout<<" Running AVG "<<GetElementName()<<"RelX current running AVG "<<fRelPos_Running_AVG[0]<<" current running AVG^2: "<<fRelPos_Running_AVG_square[0]<<"Uncertainty in mean "<<fRunning_sigma[0]<<std::endl;
+    }
+    else{
+      if (bDisplayAVG)
+	std::cout<<"QwBPMStripline::"<<GetElementName()<<"RelX current running AVG "<<fRelPos_Running_AVG[0]<<" is out of range !"<<" current running AVG^2: "<<fRelPos_Running_AVG_square[0]<<"Uncertainty in mean "<<fRunning_sigma[0]<<std::endl;
+      status &= kFALSE;
+    }
+    if (fRelPos_Running_AVG[1]<=fULimitY && fRelPos_Running_AVG[1]>=fLLimitY){
+      status &= kTRUE;
+      fRunning_sigma[1]=(fRelPos_Running_AVG_square[1]-(fRelPos_Running_AVG[1]*fRelPos_Running_AVG[1]))/Event_Counter;
+      if (bDisplayAVG)
+	std::cout<<" Running AVG "<<GetElementName()<<"RelY current running AVG "<<fRelPos_Running_AVG[1]<<" current running AVG^2: "<<fRelPos_Running_AVG_square[1]<<"Uncertainty in mean "<<fRunning_sigma[1]<<std::endl;
+    }
+    else{
+      if (bDisplayAVG)
+	std::cout<<"QwBPMStripline::"<<GetElementName()<<"RelY current running AVG "<<fRelPos_Running_AVG[1]<<" is out of range !"<<" current running AVG^2: "<<fRelPos_Running_AVG_square[1]<<"Uncertainty in mean "<<fRunning_sigma[1]<<std::endl;
+    }
+  }
+  else
+    status = kTRUE;
+      
+  return status;
+}
+
+/********************************************************/
+
+Int_t QwBPMStripline::SetSingleEventCuts(std::vector<Double_t> & dEventCuts){
+
+  fLLimitX=dEventCuts.at(0);
+  fULimitX=dEventCuts.at(1);
+  fLLimitY=dEventCuts.at(2);
+  fULimitY=dEventCuts.at(3);
+  fSampleSize=(Int_t)dEventCuts.at(4);
+  
+  
+  
+  return 0; 
+};
+
+
+/********************************************************/
+
 void  QwBPMStripline::ProcessEvent()
 {
-  for(int i=0;i<4;i++)
-    fWire[i].ProcessEvent();
-
-  static QwVQWK_Channel numer("numerator"), denom("denominator");
-
-  if(IsGoodEvent())
+  if(ApplyHWChecks())// IsGoodEvent() is checking for hadware consistency.
     {
+
+      for(int i=0;i<4;i++)
+	fWire[i].ProcessEvent();
+
+
+      static QwVQWK_Channel numer("numerator"), denom("denominator");
+
       for(int i=0;i<2;i++)
 	{
 	  numer.Difference(fWire[i*2],fWire[i*2+1]);
@@ -157,7 +302,11 @@ void  QwBPMStripline::ProcessEvent()
 	}
       for(int i=0;i<3;i++)
 	fAbsPos[i].Offset(fOffset[i]);
-    }
+      
+      fGoodEvent=kTRUE; //this will notify hardware consistency check has succeded
+    } 
+  else
+    fGoodEvent=kFALSE; //this will notify hardware consistency check has failed
 
   return;
 };
@@ -172,16 +321,69 @@ void QwBPMStripline::Print()
 }
 
 /********************************************************/
-Bool_t QwBPMStripline::IsGoodEvent()
+Bool_t QwBPMStripline::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
-  for(int i=0;i<4;i++)
-    {
-      fEventIsGood &= fWire[i].IsGoodEvent();
-      fEventIsGood &= fWire[i].MatchSequenceNumber(fWire[0].GetSequenceNumber());
-      fEventIsGood &= fWire[i].MatchNumberOfSamples(fWire[0].GetNumberOfSamples());
-    }
 
+   Bool_t status;
+  //std::cout<<" wire[0] sequence num "<<fWire[0].GetSequenceNumber()<<" sample size "<<fWire[0].GetNumberOfSamples()<<std::endl;
+
+  if (fSampleSize>0){// if samplesize is 0 then this do not check for hardware check on this BPM.
+    
+    //std::cout<<"BPM  wire [0 ] sample size "<<fWire[0].GetNumberOfSamples()<<std::endl; 
+
+    for(int i=0;i<4;i++) 
+      {
+	
+	
+	//check for wire hw sums returing same values
+
+      	if (fPrevious_HW_Sum[i] != fWire[i].GetRawHardwareSum()){
+	  fPrevious_HW_Sum[i] = fWire[i].GetRawHardwareSum();
+	  fHW_Sum_Stuck_Counter[i]=0;
+	}else
+	  fHW_Sum_Stuck_Counter[i]++;//hw_sum is same increment the counter
+
+	//check for the hw_sum is giving the same value
+	if (fHW_Sum_Stuck_Counter[i] > 0){
+	  std::cout<<" BPM hardware sum is same for more than "<<fHW_Sum_Stuck_Counter[i]<<" time consecutively  "<<std::endl;
+	  status&=kFALSE;
+	}
+
+	
+
+	status= fWire[i].ApplyHWChecks(); 
+	fEventIsGood &= status;      
+	status= fWire[i].MatchSequenceNumber(fWire[0].GetSequenceNumber());
+      
+	fEventIsGood &= status;
+	
+	status= fWire[i].MatchNumberOfSamples(fSampleSize); //check for sample size
+
+	if (!status){	
+	  std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;  
+	  std::cout<<" wire[ "<<i<<" ] sequence num "<<fWire[i].GetSequenceNumber()<<" sample size "<<fWire[i].GetNumberOfSamples()<<std::endl;
+	  //std::cout<<" wire[0] sequence num "<<fWire[0].GetSequenceNumber()<<" sample size "<<fWire[0].GetNumberOfSamples()<<std::endl;
+	}
+	fEventIsGood &= status;
+	
+      
+      }
+    if (fEventIsGood){//if values are consistant within each BPMStripline
+      fSequenceNo_Prev++;
+      if (counter==0 || fWire[0].GetSequenceNumber()==0){//we have a repeating sequence number
+	fSequenceNo_Prev=fWire[0].GetSequenceNumber();     
+      }
+  
+      if (!fWire[0].MatchSequenceNumber(fSequenceNo_Prev)){
+	//fEventIsGood&=kFALSE; 
+	std::cout<<" QwBPMStripline "<<fWire[0].GetElementName()<<" Sequence number incorrect order predicted value= "<<fSequenceNo_Prev<<" Current value= "<< fWire[0].GetSequenceNumber()<<std::endl;     
+      }      
+      counter++;
+    }else
+      counter=0;//resetting the counter after IsGoodEvent() a faliure
+
+  /*
   if(!fEventIsGood||kDEBUG)
     {
       std::cerr<<"QwBPMStripline::IsGoodEvent()\n";
@@ -201,6 +403,12 @@ Bool_t QwBPMStripline::IsGoodEvent()
       if(!fEventIsGood) std::cerr<<"Unable to construct relative positions \n\n";
     }
 
+  */
+  }
+  else{
+    std::cout<<GetElementName()<<" Ignored BPMStripline "<<std::endl; 
+    fEventIsGood=kTRUE;
+  }
   return fEventIsGood;
 };
 /********************************************************/
@@ -485,6 +693,7 @@ void QwBPMStripline::Copy(VQwDataElement *source)
 	  throw std::invalid_argument(loc.Data());
 	}
     }
+
   catch (std::exception& e)
     {
       std::cerr << e.what() << std::endl;

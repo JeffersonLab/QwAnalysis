@@ -40,7 +40,9 @@ class QwSubsystemArrayParity:  public QwSubsystemArray {
   void Sum(QwSubsystemArrayParity &value1, QwSubsystemArrayParity &value2);
   void Difference(QwSubsystemArrayParity &value1, QwSubsystemArrayParity &value2);
   void Ratio(QwSubsystemArrayParity &numer, QwSubsystemArrayParity &denom);
-  Bool_t SingleEventCuts();
+  Bool_t ApplySingleEventCuts();
+  Int_t GetEventcutErrorCounters();
+  Bool_t CheckRunningAverages(Bool_t ); //check the running averages of sub systems and passing argument decide print AVG or not
 
  public:
   std::vector<TString> sFailedSubsystems;

@@ -170,13 +170,27 @@ Int_t QwHelicity::LoadInputParameters(TString pedestalfile)
   return 0;
 }
 //*****************************************************************
-Bool_t QwHelicity::SingleEventCuts(){
-  //currently this will check the IsGoodHelicity() only!
-  return IsGoodHelicity();
+
+Bool_t QwHelicity::ApplySingleEventCuts(){//impose single event cuts
+  
+  return kTRUE;  
 };
 
 //*****************************************************************
-void  QwHelicity::ProcessEvent()
+Int_t QwHelicity::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+  
+  return 1;  
+};
+
+//*****************************************************************
+
+Bool_t QwHelicity::CheckRunningAverages(Bool_t bDisplayAVG){ //check the running averages of sub systems and passing argument decide print AVG or not.
+
+  return kTRUE;
+};
+
+//*****************************************************************
+void  QwHelicity::ProcessEvent() 
 {
   Bool_t ldebug=kFALSE;
 
@@ -267,13 +281,13 @@ void  QwHelicity::ProcessEvent()
   ///////////////
   else if (dolocalhelicity2&& !dolocalhelicity){
     Int_t kinputregister, kpatterncounter, kmpscounter, kpatternphase;
-    //kinputregister = kmpscounter =  kpatterncounter = kpatternphase = 0;
+    kinputregister = kmpscounter =  kpatterncounter = kpatternphase = 0;
 
     // injector tests April 2009
-    UInt_t thisinputregister=fWord[kinputregister].fValue;
+  UInt_t thisinputregister=fWord[kinputregister].fValue;  //this is giving an runtime error
 
     //  Now fake the input register, MPS coutner, QRT counter, and QRT phase.
-    fEventNumber=fWord[kmpscounter].fValue;
+  fEventNumber=fWord[kmpscounter].fValue;  //this is giving an runtime error
 
     if ((thisinputregister & 0x4) == 0x4) //  Quartet bit is set.
       {
@@ -284,16 +298,18 @@ void  QwHelicity::ProcessEvent()
       {
 	fPatternPhaseNumber=fPatternPhaseNumberOld+1;       // Increment the QRT phase
       }
+
+    
     // folowing, a bunch of self consistancy checks
     // at this time (april 09) we trust the info from the input register more than the info
     //from the scaler (because the scaler we use rigth now are "hakcs")
     if(fEventNumber!=fEventNumberOld+1)
       std::cerr<<"QwHelicity::ProcessEvent read event# is not old_event#+1 \n";
-    if(fPatternNumber!= fWord[kpatterncounter].fValue)
+    if(fPatternNumber!= fWord[kpatterncounter].fValue) //this is giving an runtime error
       std::cerr<<"QwHelicity::ProcessEvent read pattern# is not equal to the one constructed from the input register \n";
-    if(fPatternPhaseNumber!= fWord[kpatternphase].fValue)
+    if(fPatternPhaseNumber!= fWord[kpatternphase].fValue)//this is giving an runtime error
       std::cerr<<"QwHelicity::ProcessEvent read pattern phase  is not equal to the one constructed from the input register \n";
-
+  
 
     fHelicityReported=0;
 
@@ -512,7 +528,7 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 };
 //////////////////////////////////////////////////////
 
-Int_t QwHelicity::LoadEventCuts(TString & filename){
+Int_t QwHelicity::LoadEventCuts(TString filename){
   return 0;
 };
 

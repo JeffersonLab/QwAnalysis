@@ -41,6 +41,12 @@ empty._block.    		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 empty._.w_raw	        	TH1F	1000	-5.0e9	5.0e9				Counts	Events
 emty._.w			TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 empty._sw-hw_raw		TH1F	1000	-5.0e2	5.0e2				Counts Events
+phasemonitor_block._raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
+phasemonitor_block.    		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+phasemonitor_.w_raw	        TH1F	1000	-5.0e9	5.0e9				Counts	Events
+phasemonitor_.w			TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+phasemonitor_sw-hw_raw		TH1F	1000	-5.0e2	5.0e2				Counts Events
+phasemonitor_SampleSize		TH1F	1000	-0.5	2.0e4				Sample Size
 qwk_....._block._raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
 qwk_....._block.    		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 qwk_....._.w_raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
@@ -71,6 +77,8 @@ qwk_.....Rel._.w		TH1F	2000	-5.0e1	5.0e1				mm	Events
 
 yield_empty._block.             TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_empty._.w                 TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_phasemonitor_block.       TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_phasemonitor_.w           TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_qwk_....._block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
 yield_qwk_....._block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_qwk_....._.w_raw  	TH1F	1000	-5.0e9	5.0e9			        Counts	Events
@@ -103,6 +111,8 @@ yield_qwk_.....Rel._.w  	TH1F	2000	-5.0e1	5.0e1			        mm	Events
 
 asym_empty._block.              TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
 asym_empty._hw                  TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
+asym_phasemonitor_block.        TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
+asym_phasemonitor_hw            TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
 asym_qwk_....._block.    	TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
 asym_qwk_....._hw		TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
 asym_qwk_......_block.    	TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events

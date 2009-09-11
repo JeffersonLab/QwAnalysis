@@ -26,21 +26,31 @@ boost::variate_generator < boost::mt19937, boost::normal_distribution<double> >
 /*!  Conversion factor to translate the average bit count in an ADC
  *   channel into average voltage.
  *   The base factor is 0.07929 mV per count, and zero counts corresponds
- *   to zero voltage.
+ *   to zero voltage. 
  */
 const Double_t QwVQWK_Channel::kVQWK_VoltsPerBit = 76.29e-6;
 
 /********************************************************/
-Bool_t QwVQWK_Channel::IsGoodEvent()
+Bool_t QwVQWK_Channel::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
-  fEventIsGood &= (GetRawHardwareSum()==GetRawSoftwareSum());
-  // at some point we want to have a check on the number of the samples in one block
+  if (GetNumberOfSamples()==0){
+    std::cout<<GetElementName()<<" Zero sample size "<<GetNumberOfSamples()<<std::endl;
+    fEventIsGood=kFALSE;
+  }
+  else
+    fEventIsGood &= (GetRawHardwareSum()==GetRawSoftwareSum());
+  
   // std::cout<<GetElementName()<<"  hws="<<GetHardwareSum()<<"  soft="<<GetSoftwareSum()<<std::endl;
 
   return fEventIsGood;
 };
 /********************************************************/
+Int_t QwVQWK_Channel::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+
+  return 1;
+}
+
 void QwVQWK_Channel::ClearEventData()
 {
   for (size_t i = 0; i < 4; i++) {
@@ -541,6 +551,15 @@ Bool_t QwVQWK_Channel::MatchNumberOfSamples(size_t numsamp)
   }
   return status;
 };
+
+Bool_t QwVQWK_Channel::ApplySingleEventCuts(){
+  
+
+  return kTRUE;
+};
+
+
+
 
 
 

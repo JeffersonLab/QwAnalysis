@@ -65,11 +65,11 @@ class QwFocalPlaneScanner: public VQwSubsystemTracking,
   QwFocalPlaneScanner& operator+=  (QwFocalPlaneScanner &value);
   QwFocalPlaneScanner& operator-=  (QwFocalPlaneScanner &value);
 
-  Bool_t IsGoodEvent(){
+  Bool_t ApplyHWChecks(){
     Bool_t status = kTRUE;
     for (size_t i=0; i<fADC_Data.size(); i++){
       if (fADC_Data.at(i) != NULL){
-	status &= fADC_Data.at(i)->IsGoodEvent();
+	status &= fADC_Data.at(i)->ApplyHWChecks();
       }
     }
     return status;

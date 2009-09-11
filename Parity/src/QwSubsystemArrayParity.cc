@@ -200,19 +200,20 @@ void QwSubsystemArrayParity::Ratio(QwSubsystemArrayParity &numer, QwSubsystemArr
 
 };
 
-Bool_t QwSubsystemArrayParity::SingleEventCuts(){
+Bool_t QwSubsystemArrayParity::ApplySingleEventCuts(){
   Int_t CountFalse;
   Bool_t status;
   VQwSubsystemParity *subsys_parity;
   CountFalse=0;
-  std::cout<<" here in QwSubsystemArrayParity::SingleEventCut()"<<std::endl;
+  //std::cout<<" here in QwSubsystemArrayParity::SingleEventCut()"<<std::endl;
   if (!empty()){
     for (iterator subsys = begin(); subsys != end(); ++subsys){
       subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
-      if (subsys_parity->SingleEventCuts())
+      if (!subsys_parity->ApplySingleEventCuts()) 
       {
 	CountFalse++;
 	//update the sFailedSubsystem vector
+	std::cout<<" ** Failed ** "<<" Subsystem name "<<((subsys)->get())->GetSubsystemName()<<std::endl;
 	sFailedSubsystems.push_back(((subsys)->get())->GetSubsystemName());
       }
     }
@@ -223,4 +224,53 @@ Bool_t QwSubsystemArrayParity::SingleEventCuts(){
     status = true;
 
  return status;
+}
+
+
+Bool_t QwSubsystemArrayParity::CheckRunningAverages(Bool_t bDiplayAVG){ //check the running averages of sub systems and passing argument decide print AVG or not
+  Int_t CountFalse;
+  Bool_t status;
+  VQwSubsystemParity *subsys_parity;
+  CountFalse=0;
+  //std::cout<<" here in QwSubsystemArrayParity::SingleEventCut()"<<std::endl;
+  if (!empty()){
+    for (iterator subsys = begin(); subsys != end(); ++subsys){
+      subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
+      if (!subsys_parity->CheckRunningAverages(bDiplayAVG)) 
+      {
+	CountFalse++;
+	//update the sFailedSubsystem vector
+	std::cout<<" ** Failed Running AVG ** "<<" Subsystem name "<<((subsys)->get())->GetSubsystemName()<<std::endl;
+	//sFailedSubsystems.push_back(((subsys)->get())->GetSubsystemName());
+      }
+    }
+  }
+  if (CountFalse > 0)
+    status = false;
+  else
+    status = true;
+
+ return status;
+}
+ 
+
+Int_t QwSubsystemArrayParity::GetEventcutErrorCounters(){
+
+  
+  VQwSubsystemParity *subsys_parity;
+  
+  
+  if (!empty()){
+    for (iterator subsys = begin(); subsys != end(); ++subsys){
+      subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
+      subsys_parity->GetEventcutErrorCounters();
+      
+	//std::cout<<" ** Failed ** "<<" Subsystem name "<<((subsys)->get())->GetSubsystemName()<<std::endl;
+	//sFailedSubsystems.push_back(((subsys)->get())->GetSubsystemName());
+     
+    }
+  }
+  
+
+  return 1;
 }

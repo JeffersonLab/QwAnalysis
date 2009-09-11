@@ -65,11 +65,11 @@ class QwScanner: public VQwSubsystem,
   QwScanner& operator+=  (QwScanner &value);
   QwScanner& operator-=  (QwScanner &value);
 
-  Bool_t IsGoodEvent(){
+  Bool_t ApplyHWChecks(){//Check for harware errors in the devices
     Bool_t status = kTRUE;
     for (size_t i=0; i<fADC_Data.size(); i++){
       if (fADC_Data.at(i) != NULL){
-	status &= fADC_Data.at(i)->IsGoodEvent();
+	status &= fADC_Data.at(i)->ApplyHWChecks();
       }
     }
     return status;

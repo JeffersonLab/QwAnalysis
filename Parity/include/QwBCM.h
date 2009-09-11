@@ -1,5 +1,5 @@
 /**********************************************************\
-* File: QwBPMStripline.h                                  *
+* File: QwBCM.h                                  *
 *                                                         *
 * Author:                                                 *
 * Time-stamp:                                             *
@@ -41,15 +41,25 @@ class QwBCM : public VQwDataElement{
   void  EncodeEventData(std::vector<UInt_t> &buffer);
 
   void  ProcessEvent();
-  Bool_t IsGoodEvent();
+  Bool_t ApplyHWChecks();//Check for harware errors in the devices
+  Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings 
+  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  Int_t SetSingleEventCuts(std::vector<Double_t> &);//two limts and sample size
+
+  void ResetRunningAverages();//will reset the average values and event counter
+  void CalculateRunningAverages();//calculate running averages for the BCM
+  Bool_t CheckRunningAverages(Bool_t bDisplayAVG);//check the avg values are within the event cut limits.
   void Print() const;
+
+
+  
 
   QwBCM& operator=  (const QwBCM &value);
   QwBCM& operator+= (const QwBCM &value);
   QwBCM& operator-= (const QwBCM &value);
   void Sum(QwBCM &value1, QwBCM &value2);
   void Difference(QwBCM &value1, QwBCM &value2);
-  void Ratio(QwBCM &numer, QwBCM &denom);
+  void Ratio(QwBCM &numer, QwBCM &denom); 
   void Scale(Double_t factor);
 
   void SetPedestal(Double_t ped);
@@ -72,7 +82,17 @@ class QwBCM : public VQwDataElement{
 
   Double_t fPedestal;
   Double_t fCalibration;
+  Double_t fULimit, fLLimit;
+  Double_t fSequenceNo_Prev;
+  Int_t fSampleSize;
+  Bool_t fGoodEvent;//used to validate sequence number in the IsGoodEvent()
+  Int_t counter;//used to validate sequence number in the IsGoodEvent()
+  Int_t Event_Counter;//counts event cut passed events
 
+  Double_t fPrevious_HW_Sum;//stores the last event's hardware sum.
+  Int_t fHW_Sum_Stuck_Counter;//increment this if HW_sum is stuck with one value
+  Double_t fBCM_Running_AVG;
+  Double_t fBCM_Running_AVG_square;
   QwVQWK_Channel fTriumf_ADC;
 };
 

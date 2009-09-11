@@ -68,8 +68,9 @@ class QwVQWK_Module {
 
 
   size_t GetSequenceNumber(){return (fSequenceNumber);};
-
-  Bool_t IsGoodEvent(){return fEventIsGood;};
+  
+  // formarly known as IsGoodEvent()
+  Bool_t ApplyHWChecks(){return fEventIsGood;}; //Check for harware errors in the devices and this is replaced for IsGoodEvent() routine
 
   void SetPedestal(Double_t pedestal);
   void SetCalibrationFactor(Double_t factor);
