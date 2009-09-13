@@ -83,17 +83,19 @@
 
 // Compton headers
 #include "QwComptonPhotonDetector.h"
-#include "QwComptonElectronDetector.h" // not really implemented (wdc)
-
+#include "QwComptonElectronDetector.h"
+//
+#include "MQwSIS3320_Channel.h"
 
 // Multiplet structure
 static const int kMultiplet = 4;
 
 // Debug level
-static bool bDebug = true;
+static bool bDebug = false;
 
-// Activate components (no support for trees yet)
-static bool bHisto = false;
+// Activate components
+static bool bTree = true;
+static bool bHisto = true;
 static bool bHelicity = false;
 static bool bComptonPhoton = true;
 static bool bComptonElectron = false;
@@ -105,11 +107,12 @@ int main(int argc, char* argv[])
 
   // Detector array
   QwSubsystemArrayParity detectors;
+  QwComptonPhotonDetector* photon = 0;
+  MQwSIS3320_Channel* sampling = 0;
   if (bComptonPhoton) {
     detectors.push_back(new QwComptonPhotonDetector("Compton Photon Detector"));
     detectors.GetSubsystem("Compton Photon Detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/compton_channels.map");
     detectors.GetSubsystem("Compton Photon Detector")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/compton_pedestal.map");
-    ((QwComptonPhotonDetector*) detectors.GetSubsystem("Compton Photon Detector"))->Print();
   }
   if (bComptonElectron) {
     detectors.push_back(new QwComptonElectronDetector("Compton Electron Detector"));
@@ -118,6 +121,12 @@ int main(int argc, char* argv[])
     ((QwComptonElectronDetector*) detectors.GetSubsystem("Compton Electron Detector"))->Print();
   }
   QwHelicityPattern helicitypattern(detectors,kMultiplet);
+
+  // Get the photon detector
+  if (bComptonPhoton) {
+    photon = (QwComptonPhotonDetector*) detectors.GetSubsystem("Compton Photon Detector");
+    sampling = photon->GetSIS3320Channel("compton");
+  }
 
   // Get the helicity
   QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystem("Helicity info");
@@ -142,6 +151,43 @@ int main(int argc, char* argv[])
     eventbuffer.ResetControlParameters();
 
 
+    // ROOT file output (histograms)
+    TString rootfilename = TString("QwMock_") + Form("%ld.root",run);
+    TFile rootfile(rootfilename, "RECREATE", "QWeak ROOT file");
+    if (bHisto) {
+      rootfile.cd();
+      detectors.ConstructHistograms(rootfile.mkdir("mps_histo"));
+      if (bHelicity) {
+        rootfile.cd();
+        helicitypattern.ConstructHistograms(rootfile.mkdir("hel_histo"));
+      }
+    }
+
+    // ROOT file output (trees)
+    TTree *mpstree;
+    TTree *heltree;
+    Int_t eventnumber;
+    std::vector <Double_t> mpsvector;
+    std::vector <Double_t> helvector;
+    if (bTree) {
+      // MPS events
+      rootfile.cd();
+      mpstree = new TTree("MPS_Tree","MPS event data tree");
+      mpsvector.reserve(6000);
+      mpstree->Branch("eventnumber",&eventnumber,"eventnumber/F");
+      TString dummystr="";
+      detectors.ConstructBranchAndVector(mpstree, dummystr, mpsvector);
+      rootfile.cd();
+      if (bHelicity) {
+        // Helicity events (per multiplet)
+        rootfile.cd();
+        heltree = new TTree("HEL_Tree","Helicity event data tree");
+        helvector.reserve(6000);
+        TString dummystr="";
+        helicitypattern.ConstructBranchAndVector(heltree, dummystr, helvector);
+      }
+    }
+
     // Loop over events in this CODA file
     while (eventbuffer.GetEvent() == CODA_OK) {
 
@@ -163,6 +209,10 @@ int main(int argc, char* argv[])
 
       // Process this events
       detectors.ProcessEvent();
+
+      // Print some debugging info
+      if (bComptonPhoton && bDebug)
+        sampling->Print();
 
       // Helicity pattern
       if (bHelicity)
@@ -188,6 +238,14 @@ int main(int argc, char* argv[])
       // Fill the histograms
       if (bHisto) detectors.FillHistograms();
 
+      // Fill the tree
+      if (bTree) {
+        eventnumber = eventbuffer.GetEventNumber();
+        detectors.FillTreeVector(mpsvector);
+        mpstree->Fill();
+      }
+
+
       // TODO We need another check here to test for pattern validity.  Right
       // now the first 24 cycles are also added to the histograms.
       if (bHelicity && helicitypattern.IsCompletePattern()) {
@@ -204,6 +262,13 @@ int main(int argc, char* argv[])
 
     } // end of loop over events
 
+    // Close ROOT file
+    rootfile.Write(0,TObject::kOverwrite);
+    // Delete histograms
+    if (bHisto) {
+      detectors.DeleteHistograms();
+      if (bHelicity) helicitypattern.DeleteHistograms();
+    }
     // Close data file and print run summary
     eventbuffer.CloseDataFile();
     eventbuffer.ReportRunSummary();

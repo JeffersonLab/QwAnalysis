@@ -53,8 +53,12 @@ class QwComptonElectronDetector : public VQwSubsystemParity {
     void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
     void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
     void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
-
     void Scale(Double_t factor);
+
+    Int_t LoadEventCuts(TString filename) { return 0; };
+    Bool_t ApplySingleEventCuts() { return kTRUE; };
+    Int_t GetEventcutErrorCounters() { return 0; };
+    Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();

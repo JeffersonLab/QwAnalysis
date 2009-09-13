@@ -31,7 +31,8 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
 
   public:
 
-    MQwSIS3320_Accumulator() {
+    MQwSIS3320_Accumulator(TString name = "auto") {
+      SetElementName(name);
       SetNumberOfDataWords(3);
       fMinValue = 0; fMaxValue = 0;
       fMinTime = 0; fMaxTime = 0;
@@ -43,7 +44,7 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
     const Int_t GetMinTime() const { return fMinTime; };
     const Int_t GetMaxTime() const { return fMaxTime; };
 
-    const Int_t GetSum() const { return fAccumulatorSum; };
+    const Int_t GetAccumulatorSum() const { return fAccumulatorSum; };
     const Int_t GetNumberOfSamples() const { return fNumberOfSamples; };
 
     void  ClearEventData() { fAccumulatorSum = 0; fNumberOfSamples = 0; };
@@ -69,6 +70,9 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
     void  ConstructHistograms(TDirectory *folder, TString &prefix) { };
     void  FillHistograms() { };
 
+    void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+    void  FillTreeVector(std::vector<Double_t> &values);
+
     // Output stream operator<< for an accumulator
     friend std::ostream& operator<< (std::ostream& stream, const MQwSIS3320_Accumulator& a);
 
@@ -84,6 +88,10 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
     int fMinValue, fMaxValue; //! Value-based accumulator limits
     int fMinTime, fMaxTime; //! Time-based accumulator limits
 
+    // Ntuple array indices
+    size_t fTreeArrayIndex; //! Index of this data element in tree
+    size_t fTreeArrayNumEntries; //! Number of entries from this data element
+
     static const unsigned int INDEX_NUM;
     static const unsigned int INDEX_SUM;
 
@@ -91,7 +99,7 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
 
 // Output stream operator<< for the accumulators
 inline std::ostream& operator<< (std::ostream& stream, const MQwSIS3320_Accumulator& a) {
-  stream << a.GetSum() << " (" << a.GetNumberOfSamples() << ")";
+  stream << a.GetAccumulatorSum() << " (" << a.GetNumberOfSamples() << ")";
   return stream;
 };
 

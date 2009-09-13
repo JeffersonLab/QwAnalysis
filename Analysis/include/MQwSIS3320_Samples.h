@@ -37,7 +37,8 @@ class MQwSIS3320_Samples: public VQwDataElement {
     };
     ~MQwSIS3320_Samples() { };
 
-    const Int_t GetSum() const { return std::accumulate(fSamples.begin(), fSamples.end(), 0); };
+    const Int_t GetSum() const;
+    const Int_t GetSum(UInt_t start, UInt_t stop) const;
     const Int_t GetSample(size_t i) const { return fSamples.at(i); };
 
     const UInt_t GetNumberOfSamples() const { return fSamples.size(); };
@@ -75,6 +76,9 @@ class MQwSIS3320_Samples: public VQwDataElement {
     void  ConstructHistograms(TDirectory *folder, TString &prefix) { };
     void  FillHistograms() { };
 
+    void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+    void  FillTreeVector(std::vector<Double_t> &values);
+
     // Output stream operator<< for an accumulator
     friend std::ostream& operator<< (std::ostream& stream, const MQwSIS3320_Samples& s);
 
@@ -86,6 +90,10 @@ class MQwSIS3320_Samples: public VQwDataElement {
     std::vector<Int_t> fSamples; //! Samples data buffer (allow for negative values)
 
   private:
+
+    // Ntuple array indices
+    size_t fTreeArrayIndex; //! Index of this data element in tree
+    size_t fTreeArrayNumEntries; //! Number of entries from this data element
 
 };
 

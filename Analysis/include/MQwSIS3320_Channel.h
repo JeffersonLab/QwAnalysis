@@ -39,8 +39,7 @@ class MQwSIS3320_Channel: public VQwDataElement {
 
   public:
 
-    MQwSIS3320_Channel() { };
-    MQwSIS3320_Channel(UInt_t channel, TString name) {
+    MQwSIS3320_Channel(UInt_t channel = 0, TString name = "auto") {
       InitializeChannel(channel, name);
     };
     ~MQwSIS3320_Channel() {
@@ -82,18 +81,26 @@ class MQwSIS3320_Channel: public VQwDataElement {
     void  ConstructHistograms(TDirectory *folder, TString &prefix) { };
     void  FillHistograms() { };
 
-    void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values) { };
-    void  FillTreeVector(std::vector<Double_t> &values) { };
+    void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+    void  FillTreeVector(std::vector<Double_t> &values);
 
     MQwSIS3320_Samples& GetSamples(size_t i) { return fSamples.at(i); };
     MQwSIS3320_Samples& GetSamplesRaw(size_t i) { return fSamplesRaw.at(i); };
 
     const size_t GetSequenceNumber() const { return (fSequenceNumber); };
-    const size_t GetNumberOfSamples() const { return (fNumberOfSamples); };
+
+    const size_t GetNumberOfEvents() const { return (fNumberOfEvents); };
+    void SetNumberOfEvents(UInt_t nevents) {
+      fNumberOfEvents = nevents;
+      fSamplesRaw.resize(nevents);
+      fSamples.resize(nevents);
+    };
+
     const size_t GetNumberOfAccumulators() const { return (fNumberOfAccumulators); };
     void SetNumberOfAccumulators(UInt_t naccumulators) {
       fNumberOfAccumulators = naccumulators;
       fAccumulatorsRaw.resize(naccumulators);
+      fAccumulators.resize(naccumulators);
     };
 
     void SetPedestal(Double_t ped) {fPedestal = ped; return; };
@@ -132,8 +139,6 @@ class MQwSIS3320_Channel: public VQwDataElement {
     /* In sampling mode we have multiple events in a single data block */
     Int_t fCurrentEvent; //! Current triggered event (allow for negative sentinel)
     UInt_t fNumberOfEvents; //! Number of triggered events
-    UInt_t fSamplesPerEvent; //! Number of sample per triggered event
-    UInt_t fNumberOfSamples; //! Total number of samples in the buffer
 
     /* ADC sample data */
     UInt_t fSampleFormat;

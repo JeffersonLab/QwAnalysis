@@ -30,7 +30,7 @@ const unsigned int MQwSIS3320_Channel::FORMAT_MULTI_EVENT = 0x3;
 const unsigned int MQwSIS3320_Channel::FORMAT_SINGLE_EVENT = 0x4;
 
 // Compile-time debug level
-const Bool_t MQwSIS3320_Channel::kDEBUG = kTRUE;
+const Bool_t MQwSIS3320_Channel::kDEBUG = kFALSE;
 
 
 /**
@@ -54,6 +54,22 @@ void  MQwSIS3320_Channel::InitializeChannel(UInt_t channel, TString name)
 
   // Set channel number
   fChannel = channel;
+
+  // Set accumulator names
+  for (size_t i = 0; i < fAccumulators.size(); i++) {
+    TString name = GetElementName() + TString("_accum") + Form("%ld",i);
+    fAccumulators[i].SetElementName(name);
+    fAccumulatorsRaw[i].SetElementName(name + "_raw");
+  }
+  fSamples.resize(1); fSamplesRaw.resize(1); // TODO This is done right now to
+  // make sure that we can create the tree branches.  If there is ever a
+  // triggered tree in the ROOT file, then we will need to figure out what
+  // to do with this.
+  for (size_t i = 0; i < fSamples.size(); i++) {
+    TString name = GetElementName() + TString("_samples") + Form("%ld",i);
+    fSamples[i].SetElementName(name);
+    fSamplesRaw[i].SetElementName(name + "_raw");
+  }
 
   // Default values when no event read yet
   fCurrentEvent = -1;
@@ -79,7 +95,8 @@ void  MQwSIS3320_Channel::InitializeChannel(UInt_t channel, TString name)
 Bool_t MQwSIS3320_Channel::IsGoodEvent()
 {
   Bool_t fEventIsGood = kTRUE;
-  fEventIsGood &= (GetNumberOfSamples() > 0);
+  for (size_t i = 0; i < fSamples.size(); i++)
+    fEventIsGood &= (fSamples[i].GetNumberOfSamples() > 0);
   return fEventIsGood;
 };
 
@@ -144,13 +161,28 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
         // TODO The -- is because we use one word to determine whether this is
         // an accumulator block -> BAD!
 
+        // Definition of the accumulators: (numbered from 1)
+        // 1: digital sum of all samples in the event
+        //
+        // 2: threshold 1 < sample value
+        // 3: threshold 2 < sample value <= threshold 1
+        // 4: sample value <= threshold 2
+        // Test: 1 == 2 + 3 + 4
+        //
+        // 6: sample value <= threshold 2
+        //    and add samples before and after
+        // 5: threshold 2 < sample value <= threshold 1
+        //    and add samples before and after
+        //    but samples added in accumulator 6 are not added to accumulator 5
+
         // Read the accumulator blocks
         for (size_t i = 0; i < fAccumulatorsRaw.size(); i++) {
           words_read += fAccumulatorsRaw[i].ProcessEvBuffer(&(buffer[words_read]), num_words_left-words_read);
-          if (kDEBUG) std::cout << fAccumulatorsRaw[i] << std::endl;
+          if (kDEBUG) std::cout << "Accum " << i+1 << ": " << fAccumulatorsRaw[i] << std::endl;
         }
         // Read the threshold information
         fAccumulatorDAC = buffer[words_read++];
+        // Thresholds are maximum 12 bits, so they seem to have wasted a word here :-)
         fAccumulatorThreshold1 = buffer[words_read++];
         fAccumulatorThreshold2 = buffer[words_read++];
         // Read the timing information, packed in one word
@@ -159,6 +191,21 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
         fAccumulatorTimingBefore6 = (packedtiming >>= 8) & 0xFF;
         fAccumulatorTimingAfter5  = (packedtiming >>= 8) & 0xFF;
         fAccumulatorTimingBefore5 = (packedtiming >>= 8) & 0xFF;
+        if (kDEBUG) {
+          std::cout << "DAC: " << fAccumulatorDAC << std::endl;
+          std::cout << "Thresholds: " << fAccumulatorThreshold1 << ", "
+                                      << fAccumulatorThreshold2 << std::endl;
+          std::cout << "Timings on accum 5: " << fAccumulatorTimingAfter5 << ", "
+                                              << fAccumulatorTimingBefore5 << std::endl;
+          std::cout << "Timings on accum 6: " << fAccumulatorTimingAfter6 << ", "
+                                              << fAccumulatorTimingBefore6 << std::endl;
+        }
+        if (kDEBUG) {
+          MQwSIS3320_Accumulator sum("sum");
+          sum = fAccumulatorsRaw[1] + fAccumulatorsRaw[2] + fAccumulatorsRaw[3];
+          std::cout << "Accum 1: " << fAccumulatorsRaw[0] << std::endl;
+          std::cout << "Accum 2 + 3 + 4: " << sum << std::endl;
+        }
 
         fHasAccumulatorData = kTRUE;
         break; // end of MODE_ACCUMULATOR
@@ -169,24 +216,25 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
 
       // This is a sampling buffer using short words
       case MODE_SHORT_WORD_SAMPLING:
+        UInt_t numberofsamples, numberofevents;
         switch (local_format) {
 
           // This is a sampling buffer in multi event mode:
           // - many events are saved in one buffer for a complete helicity event
           case FORMAT_MULTI_EVENT:
-            fSamplesPerEvent = buffer[3];
-            fNumberOfEvents = buffer[4];
+            numberofsamples = buffer[3];
+            numberofevents = buffer[4];
             fSamplePointer = 0;
             words_read = 5;
 
             // For all events in this buffer
-            fSamplesRaw.resize(fNumberOfEvents);
-            for (size_t event = 0; event < fNumberOfEvents; event++) {
+            SetNumberOfEvents(numberofevents);
+            for (size_t event = 0; event < GetNumberOfEvents(); event++) {
               // create a new raw sampled event
-              fSamplesRaw[event].SetNumberOfSamples(fSamplesPerEvent);
+              fSamplesRaw[event].SetNumberOfSamples(numberofsamples);
               // pass the buffer to read the samples
               words_read += fSamplesRaw[event].ProcessEvBuffer(&(buffer[words_read]), num_words_left-words_read);
-              if (kDEBUG) std::cout << fSamplesRaw[event] << std::endl;
+              if (kDEBUG) std::cout << "Samples " << event << ": " << fSamplesRaw[event] << std::endl;
             }
 
             break;
@@ -197,14 +245,14 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
           // - because a circular buffer is used the pointer to the last sample
           //   is stored
           case FORMAT_SINGLE_EVENT:
-            fSamplesPerEvent = buffer[3];
-            fNumberOfEvents = 1;
+            numberofsamples = buffer[3];
+            numberofevents = 1;
             fSamplePointer = buffer[2];
 
             // Create a new raw sampled event
-            fSamplesRaw.resize(fNumberOfSamples);
+            SetNumberOfEvents(numberofevents);
             // Pass the buffer to read the samples (only one event)
-            fSamplesRaw.at(0).SetNumberOfSamples(fSamplesPerEvent);
+            fSamplesRaw.at(0).SetNumberOfSamples(numberofsamples);
             fSamplesRaw.at(0).ProcessEvBuffer(buffer, num_words_left, fSamplePointer);
 
             break;
@@ -252,8 +300,9 @@ void MQwSIS3320_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
   } else {
     header.push_back(fChannel); // Channel number
     header.push_back(fSampleFormat); // Sample format (e.g. 0x20003)
-    header.push_back(fNumberOfSamples * fNumberOfEvents); // Total number of samples
-    header.push_back(fNumberOfSamples); // Number of samples per event
+// TODO
+//    header.push_back(fNumberOfSamples * fNumberOfEvents); // Total number of samples
+//    header.push_back(fNumberOfSamples); // Number of samples per event
     header.push_back(fNumberOfEvents); // Number of events
     // Data is stored with two short words per long word
 //     for (size_t i = 0; i < fSamplesRaw.size() / 2; i++) {
@@ -274,11 +323,13 @@ void MQwSIS3320_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
  */
 void MQwSIS3320_Channel::ProcessEvent()
 {
-  for (size_t i = 0; i < fSamplesRaw.size(); i++)
-    fSamples.at(i) = (fSamplesRaw.at(i) - fPedestal) * fCalibrationFactor;
+  // Because the sampling
+  for (size_t i = 0; i < fSamplesRaw.size(); i++) {
+    fSamples[i] = (fSamplesRaw[i] - fPedestal) * fCalibrationFactor;
+  }
   for (size_t i = 0; i < fAccumulatorsRaw.size(); i++) {
-    Double_t pedestal = fPedestal * fAccumulatorsRaw.at(i).GetNumberOfSamples();
-    fAccumulators.at(i) = (fAccumulatorsRaw.at(i) - pedestal) * fCalibrationFactor;
+    Double_t pedestal = fPedestal * fAccumulatorsRaw[i].GetNumberOfSamples();
+    fAccumulators[i] = (fAccumulatorsRaw[i] - pedestal) * fCalibrationFactor;
   }
 
   return;
@@ -470,12 +521,50 @@ Bool_t MQwSIS3320_Channel::MatchSequenceNumber(UInt_t seqnumber)
 Bool_t MQwSIS3320_Channel::MatchNumberOfSamples(UInt_t numsamples)
 {
   Bool_t status = kTRUE;
-  if (!IsNameEmpty()) {
-    status = (fNumberOfSamples == numsamples);
-  }
+// TOOO
+//  if (!IsNameEmpty()) {
+//    status = (fNumberOfSamples == numsamples);
+//  }
   return status;
 };
 
+
+void  MQwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
+{
+  // Accumulators
+  for (size_t i = 0; i < fAccumulators.size(); i++) {
+    fAccumulators[i].ConstructBranchAndVector(tree, prefix, values);
+    fAccumulatorsRaw[i].ConstructBranchAndVector(tree, prefix, values);
+  }
+  // Samples (only collected when running over data, so structure does not
+  // actually exist yet at time of branch construction)
+  //fSamples[0].ConstructBranchAndVector(tree, prefix, values);
+  //fSamplesRaw[0].ConstructBranchAndVector(tree, prefix, values);
+  // TODO See below for issues with including samples in the mps tree
+};
+
+void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values)
+{
+  // Accumulators
+  for (size_t i = 0; i < fAccumulators.size(); i++) {
+    fAccumulators[i].FillTreeVector(values);
+    fAccumulatorsRaw[i].FillTreeVector(values);
+  }
+  // Samples
+// TODO The following is disabled because it doesn't work.  The number of samples
+// varies from mps to mps, so we keep a dynamic list.  This causes problems because
+// the array indices that are fixed on an artificial dummy during the tree and branch
+// construction are gone when we get to a (new) actual event.  Garbage gets written
+// to the ROOT file and it plain doesn't work(TM).  Need a different approach to
+// trigger events: a dedicated tree (useful for qweak tracking too) or a subtree
+// of the existing MPS tree (correlation between mps and triggered events is clearer).
+// Let's see what we can come up with...
+//
+//  for (size_t i = 0; i < fSamples.size(); i++) {
+//    fSamples[i].FillTreeVector(values);
+//    fSamplesRaw[i].FillTreeVector(values);
+//  }
+};
 
 /**
  * Print some debugging information about the MQwSIS3320_Channel to std::cout
@@ -483,12 +572,20 @@ Bool_t MQwSIS3320_Channel::MatchNumberOfSamples(UInt_t numsamples)
 void MQwSIS3320_Channel::Print() const
 {
   std::cout << "MQwSIS3320_Channel: " << GetElementName() << std::endl;
-  std::cout << "fSamples: ";
-  for (size_t i = 0; i < fSamples.size(); i++)
-    std::cout << " " << fSamples.at(i);
-  std::cout << "fAccumulators: ";
-  for (size_t i = 0; i < fAccumulators.size(); i++)
-    std::cout << fAccumulators.at(i) << std::endl;
+  std::cout << "fSamplesRaw:" << std::endl;
+  for (size_t i = 0; i < fSamplesRaw.size(); i++) {
+    std::cout << i << ": " << fSamplesRaw.at(i) << std::endl;
+  }
+  std::cout << "fSamples:" << std::endl;
+  for (size_t i = 0; i < fSamples.size(); i++) {
+    std::cout << i << ": " << fSamples.at(i) << std::endl;
+  }
+  std::cout << "fAccumulators -> fAccumulatorsRaw:" << std::endl;
+  for (size_t i = 0; i < fAccumulators.size(); i++) {
+    std::cout << i << ": " << fAccumulatorsRaw.at(i) << " -> " << fAccumulators.at(i) << std::endl;
+  }
+  UInt_t nped = 15;
+  std::cout << "Pedestal is: " << fSamplesRaw[0].GetSum(0,nped) / (Double_t) nped << std::endl;
 
   return;
 }

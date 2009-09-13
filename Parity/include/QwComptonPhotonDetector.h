@@ -27,7 +27,6 @@ class QwComptonPhotonDetector : public VQwSubsystemParity {
 
   public:
     QwComptonPhotonDetector(TString name): VQwSubsystemParity(name) { };
-
    ~QwComptonPhotonDetector() {
       DeleteHistograms();
     };
@@ -55,8 +54,12 @@ class QwComptonPhotonDetector : public VQwSubsystemParity {
     void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
     void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
     void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
-
     void Scale(Double_t factor);
+
+    Int_t LoadEventCuts(TString filename) { return 0; };
+    Bool_t ApplySingleEventCuts() { return kTRUE; };
+    Int_t GetEventcutErrorCounters() { return 0; };
+    Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
@@ -70,11 +73,14 @@ class QwComptonPhotonDetector : public VQwSubsystemParity {
     Bool_t Compare(VQwSubsystem *source);
     void Print();
 
+    MQwSIS3320_Channel* GetSIS3320Channel(const TString name);
+
   protected:
 
     std::vector <MQwSIS3320_Channel> fSamplingADC;
 
 // Proper MQwV775TDC and MQwV792ADC support not implemented yet (wdc, 2009-09-04)
+// No data available anyway, so what's the point in having support in software yet?
 //    std::vector <MQwV775TDC> fIntegratingTDC;
 //    std::vector <MQwV792ADC> fIntegratingADC;
     std::vector <QwVQWK_Channel> fIntegratingTDC;

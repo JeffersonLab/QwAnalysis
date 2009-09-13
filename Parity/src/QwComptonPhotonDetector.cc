@@ -43,11 +43,11 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
       }
     } else {
       //  Break this line into tokens to process it.
-      modtype   = mapstr.GetNextToken(", ").c_str();
-      modnum    = (atol(mapstr.GetNextToken(", ").c_str()));
-      channum   = (atol(mapstr.GetNextToken(", ").c_str()));
-      dettype   = mapstr.GetNextToken(", ").c_str();
-      name      = mapstr.GetNextToken(", ").c_str();
+      modtype   = mapstr.GetNextToken(", \t").c_str();
+      modnum    = (atol(mapstr.GetNextToken(", \t").c_str()));
+      channum   = (atol(mapstr.GetNextToken(", \t").c_str()));
+      dettype   = mapstr.GetNextToken(", \t").c_str();
+      name      = mapstr.GetNextToken(", \t").c_str();
 
       //  Push a new record into the element array
       if (modtype == "SIS3320") {
@@ -76,6 +76,38 @@ Int_t QwComptonPhotonDetector::LoadEventCuts(TString & filename)
 //*****************************************************************
 Int_t QwComptonPhotonDetector::LoadInputParameters(TString pedestalfile)
 {
+  TString varname;
+  Double_t varped;
+  Double_t varcal;
+  Bool_t notfound = kTRUE;
+
+  // Open the file
+  QwParameterFile mapstr(pedestalfile.Data());
+  while (mapstr.ReadNextLine()) {
+    mapstr.TrimComment('!');   // Remove everything after a '!' character.
+    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+    if (mapstr.LineIsEmpty())  continue;
+    else {
+      varname = mapstr.GetNextToken(", \t").c_str();  // name of the channel
+      varname.ToLower();
+      varname.Remove(TString::kBoth,' ');
+      varped = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
+      varcal = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+    }
+
+    for (size_t i = 0; i < fSamplingADC.size() && notfound; i++) {
+      TString localname = fSamplingADC[i].GetElementName();
+      localname.ToLower();
+      if (localname == varname) {
+        fSamplingADC[i].SetPedestal(varped);
+        fSamplingADC[i].SetCalibrationFactor(varcal);
+        notfound = kFALSE;
+      }
+
+    } // end of loop over all sampling ADC channels
+
+  } // end of loop reading all lines of the pedestal file
+
   return 0;
 }
 
@@ -192,10 +224,10 @@ Bool_t QwComptonPhotonDetector::IsGoodEvent()
 
   for(size_t i=0;i<fSamplingADC.size();i++)
     test &= fSamplingADC[i].IsGoodEvent();
-  for(size_t i=0;i<fIntegratingTDC.size();i++)
-    test &= fIntegratingTDC[i].IsGoodEvent();
-  for(size_t i=0;i<fIntegratingADC.size();i++)
-    test &= fIntegratingADC[i].IsGoodEvent();
+//  for(size_t i=0;i<fIntegratingTDC.size();i++)
+//    test &= fIntegratingTDC[i].IsGoodEvent();
+//  for(size_t i=0;i<fIntegratingADC.size();i++)
+//    test &= fIntegratingADC[i].IsGoodEvent();
 
   if (!test) std::cerr << "This is not a good event!" << std::endl;
   return test;
@@ -477,3 +509,15 @@ VQwSubsystem*  QwComptonPhotonDetector::Copy()
   TheCopy->Copy(this);
   return TheCopy;
 }
+
+MQwSIS3320_Channel* QwComptonPhotonDetector::GetSIS3320Channel(const TString name)
+{
+  if (! fSamplingADC.empty()) {
+    for (std::vector<MQwSIS3320_Channel>::iterator adc = fSamplingADC.begin(); adc != fSamplingADC.end(); ++adc) {
+      if (adc->GetElementName() == name) {
+        return &(*adc);
+      }
+    }
+  }
+  return 0;
+};

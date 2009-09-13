@@ -50,6 +50,18 @@ Int_t MQwSIS3320_Samples::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
 };
 
 
+const Int_t MQwSIS3320_Samples::GetSum() const
+{
+  return std::accumulate(fSamples.begin(), fSamples.end(), 0);
+};
+
+const Int_t MQwSIS3320_Samples::GetSum(UInt_t start, UInt_t stop) const
+{
+  if (start >= fSamples.size() || stop >= fSamples.size()) return 0;
+  return std::accumulate(&fSamples.at(start), &fSamples.at(stop), 0);
+};
+
+
 /**
  * Addition of offset to sampled data
  * @param value Right-hand side
@@ -105,10 +117,8 @@ const MQwSIS3320_Samples MQwSIS3320_Samples::operator/ (const Double_t &value) c
  */
 MQwSIS3320_Samples& MQwSIS3320_Samples::operator*= (const Double_t &value)
 {
-  if (!IsNameEmpty()) {
-    for (size_t i = 0; i < fSamples.size(); i++)
-      this->fSamples.at(i) *= value;
-  }
+  for (size_t i = 0; i < fSamples.size(); i++)
+    this->fSamples.at(i) *= value;
   return *this;
 };
 
@@ -119,10 +129,8 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator*= (const Double_t &value)
  */
 MQwSIS3320_Samples& MQwSIS3320_Samples::operator/= (const Double_t &value)
 {
-  if (!IsNameEmpty()) {
-    for (size_t i = 0; i < fSamples.size(); i++)
-      this->fSamples.at(i) /= value;
-  }
+  for (size_t i = 0; i < fSamples.size(); i++)
+    this->fSamples.at(i) /= value;
   return *this;
 };
 
@@ -133,10 +141,8 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator/= (const Double_t &value)
  */
 MQwSIS3320_Samples& MQwSIS3320_Samples::operator+= (const Double_t &value)
 {
-  if (!IsNameEmpty()) {
-    for (size_t i = 0; i < fSamples.size(); i++)
-      this->fSamples.at(i) += value;
-  }
+  for (size_t i = 0; i < fSamples.size(); i++)
+    this->fSamples.at(i) += value;
   return *this;
 };
 
@@ -147,10 +153,8 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator+= (const Double_t &value)
  */
 MQwSIS3320_Samples& MQwSIS3320_Samples::operator-= (const Double_t &value)
 {
-  if (!IsNameEmpty()) {
-    for (size_t i = 0; i < fSamples.size(); i++)
-      this->fSamples.at(i) -= value;
-  }
+  for (size_t i = 0; i < fSamples.size(); i++)
+    this->fSamples.at(i) -= value;
   return *this;
 };
 
@@ -185,10 +189,8 @@ const MQwSIS3320_Samples MQwSIS3320_Samples::operator- (const MQwSIS3320_Samples
  */
 MQwSIS3320_Samples& MQwSIS3320_Samples::operator= (const MQwSIS3320_Samples &value)
 {
-  if (!IsNameEmpty()) {
-    for (size_t i = 0; i < fSamples.size(); i++)
-      this->fSamples.at(i) = value.fSamples.at(i);
-  }
+  for (size_t i = 0; i < fSamples.size(); i++)
+    this->fSamples.at(i) = value.fSamples.at(i);
   return *this;
 };
 
@@ -199,10 +201,8 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator= (const MQwSIS3320_Samples &val
  */
 MQwSIS3320_Samples& MQwSIS3320_Samples::operator+= (const MQwSIS3320_Samples &value)
 {
-  if (!IsNameEmpty()) {
-    for (size_t i = 0; i < fSamples.size(); i++)
-      this->fSamples.at(i) += value.fSamples.at(i);
-  }
+  for (size_t i = 0; i < fSamples.size(); i++)
+    this->fSamples.at(i) += value.fSamples.at(i);
   return *this;
 };
 
@@ -213,9 +213,47 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator+= (const MQwSIS3320_Samples &va
  */
 MQwSIS3320_Samples& MQwSIS3320_Samples::operator-= (const MQwSIS3320_Samples &value)
 {
-  if (!IsNameEmpty()) {
-    for (size_t i = 0; i < fSamples.size(); i++)
-      this->fSamples.at(i) -= value.fSamples.at(i);
-  }
+  for (size_t i = 0; i < fSamples.size(); i++)
+    this->fSamples.at(i) -= value.fSamples.at(i);
   return *this;
+};
+
+
+void  MQwSIS3320_Samples::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
+{
+  if (IsNameEmpty()) {
+    //  This list of samples is not used, so skip setting up the tree.
+  } else {
+    TString basename = prefix + GetElementName();
+    fTreeArrayIndex  = values.size();
+
+    values.push_back(0.0);
+    TString list = "sample0/D";
+    values.push_back(0.0);
+    list += ":sw_ped/D";
+    values.push_back(0.0);
+    list += ":sw_sum/D";
+
+    fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
+    tree->Branch(basename, &(values[fTreeArrayIndex]), list);
+  }
+};
+
+void MQwSIS3320_Samples::FillTreeVector(std::vector<Double_t> &values)
+{
+  if (fTreeArrayNumEntries <= 0) {
+    std::cerr << "MQwSIS3320_Samples::FillTreeVector:  fTreeArrayNumEntries == "
+              << fTreeArrayNumEntries << std::endl;
+  } else if (values.size() < fTreeArrayIndex + fTreeArrayNumEntries) {
+    std::cerr << "MQwSIS3320_Samples::FillTreeVector:  values.size() == "
+              << values.size()
+              << "; fTreeArrayIndex + fTreeArrayNumEntries == "
+              << fTreeArrayIndex + fTreeArrayNumEntries
+              << std::endl;
+  } else {
+    size_t index = fTreeArrayIndex;
+    values[index++] = GetSample(0);
+    values[index++] = GetSum(0, 15) / 15;
+    values[index++] = GetSum();
+  }
 };

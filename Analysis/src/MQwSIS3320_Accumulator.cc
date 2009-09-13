@@ -29,7 +29,7 @@ Int_t MQwSIS3320_Accumulator::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_l
     // Read all words
     fNumberOfSamples = buffer[0];
     fAccumulatorSum = buffer[2];  // first assign Int_t to Long_t, so that we
-    fAccumulatorSum <<= 32L;      // can shift it into the higher registers
+    fAccumulatorSum <<= sizeof(Int_t);      //  can shift it into the higher registers
     fAccumulatorSum += buffer[1];
     words_read = fNumberOfDataWords;
 
@@ -174,6 +174,7 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator= (const MQwSIS3320_Accu
 {
   if (!IsNameEmpty()) {
     this->fAccumulatorSum = value.fAccumulatorSum;
+    this->fNumberOfSamples = value.fNumberOfSamples;
   }
   return *this;
 };
@@ -187,6 +188,7 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator+= (const MQwSIS3320_Acc
 {
   if (!IsNameEmpty()) {
     this->fAccumulatorSum += value.fAccumulatorSum;
+    this->fNumberOfSamples += value.fNumberOfSamples;
   }
   return *this;
 };
@@ -200,6 +202,48 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator-= (const MQwSIS3320_Acc
 {
   if (!IsNameEmpty()) {
     this->fAccumulatorSum -= value.fAccumulatorSum;
+    this->fNumberOfSamples -= value.fNumberOfSamples;
   }
   return *this;
 };
+
+
+void  MQwSIS3320_Accumulator::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
+{
+  if (IsNameEmpty()) {
+    //  This accumulator is not used, so skip setting up the tree.
+  } else {
+    TString basename = prefix + GetElementName();
+    fTreeArrayIndex  = values.size();
+
+    values.push_back(0.0);
+    TString list = "sum/D";
+    values.push_back(0.0);
+    list += ":nevents/D"; // TODO this should actually be an int
+
+    fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
+    tree->Branch(basename, &(values[fTreeArrayIndex]), list);
+  }
+};
+
+void MQwSIS3320_Accumulator::FillTreeVector(std::vector<Double_t> &values)
+{
+  if (IsNameEmpty()) {
+    //  This accumulator is not used, so skip filling the tree vector.
+  } else if (fTreeArrayNumEntries <= 0) {
+    std::cerr << "MQwSIS3320_Accumulator::FillTreeVector:  fTreeArrayNumEntries == "
+              << fTreeArrayNumEntries << std::endl;
+  } else if (values.size() < fTreeArrayIndex + fTreeArrayNumEntries) {
+    std::cerr << "MQwSIS3320_Accumulator::FillTreeVector:  values.size() == "
+              << values.size()
+              << "; fTreeArrayIndex + fTreeArrayNumEntries == "
+              << fTreeArrayIndex + fTreeArrayNumEntries
+              << std::endl;
+  } else {
+    size_t index = fTreeArrayIndex;
+    values[index++] = this->GetAccumulatorSum();
+    values[index++] = this->GetNumberOfSamples();
+  }
+};
+
+
