@@ -64,6 +64,18 @@ void QwBPMStripline::ClearEventData()
 
 	return;
 };
+/********************************************************/
+
+void QwBPMStripline::ReportErrorCounters(){
+  for(int i=0;i<4;i++)
+    fWire[i].ReportErrorCounters();
+
+     
+  //std::cout<<"RelX ";
+  fRelPos[0].ReportErrorCounters();
+  //std::cout<<"RelY ";
+  fRelPos[1].ReportErrorCounters();
+};
 
 /********************************************************/
 void QwBPMStripline::SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t meanY, Double_t sigmaY)
@@ -141,6 +153,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts(){
 	status&=kTRUE;
       }
       else{
+	fRelPos[0].UpdateEventCutErrorCount();
 	status&=kFALSE;
 	if (bDEBUG) std::cout<<" Rel X event cut failed ";
       }
@@ -150,20 +163,23 @@ Bool_t QwBPMStripline::ApplySingleEventCuts(){
       //std::cout<<" ";
 	}
       else{
-	  status&=kFALSE;
-	  if (bDEBUG) std::cout<<" Rel Y event cut failed ";
+	fRelPos[1].UpdateEventCutErrorCount();
+	status&=kFALSE;
+	if (bDEBUG) std::cout<<" Rel Y event cut failed ";
       }
       if (status){
 	Event_Counter++;//Increment the counter, it is a good event.
-	CalculateRunningAverages();//calculate the averages for RelX and RelY
-	
+	CalculateRunningAverages();//calculate the averages for RelX and RelY	
       }
 	
     }
-    else
+    else             
        status=kTRUE;
+    
 
   }else{
+    for(int i=0;i<4;i++)
+	 fWire[i].UpdateHWErrorCount();
     if (bDEBUG) std::cout<<" Hardware failed ";
     status=kFALSE;
   }
@@ -325,7 +341,7 @@ Bool_t QwBPMStripline::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
 
-   Bool_t status;
+   Bool_t status=kTRUE;;
   //std::cout<<" wire[0] sequence num "<<fWire[0].GetSequenceNumber()<<" sample size "<<fWire[0].GetNumberOfSamples()<<std::endl;
 
   if (fSampleSize>0){// if samplesize is 0 then this do not check for hardware check on this BPM.

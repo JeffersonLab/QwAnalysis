@@ -33,6 +33,7 @@ class QwBPMStripline : public VQwDataElement{
 
   void  InitializeChannel(TString name, Bool_t ROTATED);
   void  ClearEventData();
+  void ReportErrorCounters();
 
   void  SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t meanY, Double_t sigmaY);
   void  RandomizeEventData(int helicity);

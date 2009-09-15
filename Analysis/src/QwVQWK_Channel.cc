@@ -591,4 +591,16 @@ void QwVQWK_Channel::Copy(VQwDataElement *source)
     return;
 }
 
+void  QwVQWK_Channel::ReportErrorCounters(){
+    if (fNumEvtsWithHWErrors>0) 
+      std::cout << "VQWK channel " << GetElementName() 
+		<< " had " << fNumEvtsWithHWErrors 
+		<< " events with a hardware faliure."
+		<< std::endl;
 
+    if (fNumEvtsWithEventCutsRejected>0) 
+      std::cout << "VQWK channel " << GetElementName() 
+		<< " had " << fNumEvtsWithEventCutsRejected 
+		<< " events rejected by Event Cuts."
+		<< std::endl;
+  };

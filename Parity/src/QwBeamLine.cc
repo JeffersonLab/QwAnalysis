@@ -247,11 +247,7 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
     
   }
 
-  //set the error counters to zero.
-  fNumError_Evt=0;
-  fNumError_Evt_BCM=0;
-  fNumError_Evt_BPM=0;
-
+  fQwBeamLineErrorCount=0; //set the error counter to zero
 
   return 0;
 };
@@ -456,12 +452,11 @@ Bool_t QwBeamLine::ApplySingleEventCuts(){
     test_BCM&=test_BCM1;
     if(!test_BCM1 && bDEBUG) std::cout<<"******** QwBeamLine::SingleEventCuts()->BPMStripline[ "<<i<<" , "<<fStripline[i].GetElementName()<<" ] *****\n";
     }
-  //if (!test_BCM1)
-  //fNumError_Evt_BCM++;//BPM falied  event counter for QwBeamLine
+  if (!test_BCM1 || !test_BCM)
+   fQwBeamLineErrorCount++;//BPM falied  event counter for QwBeamLine
     
 
-  if (!test_BCM)//total falied  event counter for QwBeamLine
-    fNumError_Evt++;
+  
     
   
 
@@ -469,14 +464,20 @@ Bool_t QwBeamLine::ApplySingleEventCuts(){
    
 };
 
-Int_t QwBeamLine::GetEventcutErrorCounters(){
+Int_t QwBeamLine::GetEventcutErrorCounters(){//inherited from the VQwSubsystemParity; this will display the error summary
 
   std::cout<<"*********QwBeamLine****************"<<std::endl;
-  std::cout<<" Falied total events "<<fNumError_Evt<<std::endl;
-  //std::cout<<" BCM Falied  events "<<fNumError_Evt_BCM<<std::endl;
-  //std::cout<<" BPM Falied  events "<<fNumError_Evt_BPM<<std::endl;
-  std::cout<<"*********End of error reporting****************"<<std::endl;
   
+  for(size_t i=0;i<fBCM.size();i++){
+    //std::cout<<"  BCM ["<<i<<"] "<<std::endl;
+    fBCM[i].ReportErrorCounters();    
+  } 
+
+   for(size_t i=0;i<fStripline.size();i++){
+     fStripline[i].ReportErrorCounters();
+   }
+   std::cout<<"Total failed events "<<  fQwBeamLineErrorCount<<std::endl;
+ std::cout<<"*********End of error QwBeamLine reporting****************"<<std::endl;
 
   return 1;
 }

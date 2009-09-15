@@ -32,6 +32,7 @@ class QwBCM : public VQwDataElement{
 
   void  InitializeChannel(TString name, TString datatosave);
   void  ClearEventData();
+  void ReportErrorCounters();
 
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);

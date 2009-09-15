@@ -46,6 +46,11 @@ void QwBCM::ClearEventData()
   return;
 };
 /********************************************************/
+void QwBCM::ReportErrorCounters(){
+  fTriumf_ADC.ReportErrorCounters();
+};
+
+/********************************************************/
 void QwBCM::SetRandomEventParameters(Double_t mean, Double_t sigma)
 {
   fTriumf_ADC.SetRandomEventParameters(mean, sigma);
@@ -181,6 +186,7 @@ Bool_t QwBCM::ApplySingleEventCuts(){
 	  //std::cout<<" BCM Sample size "<<fTriumf_ADC.GetNumberOfSamples()<<std::endl;
 	}
 	else{
+	  fTriumf_ADC.UpdateEventCutErrorCount();//update event cut falied counts
 	  if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fTriumf_ADC.GetHardwareSum();
 	  status&=kFALSE;//kTRUE;//kFALSE;
 	}
@@ -191,6 +197,7 @@ Bool_t QwBCM::ApplySingleEventCuts(){
       // std::cout<<"QwBCM::"<<GetElementName()<<" event cuts falied "<<std::endl;
   }
   else{
+    fTriumf_ADC.UpdateHWErrorCount();//update HW falied counter
     if (bDEBUG) std::cout<<" Hardware failed ";
     status&=kFALSE;
   }

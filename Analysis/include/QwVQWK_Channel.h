@@ -51,6 +51,8 @@ class QwVQWK_Channel: public VQwDataElement {
     fMockAsymmetry = 0.0;
     fMockGaussianMean = 0.0;
     fMockGaussianSigma = 0.0;
+    fNumEvtsWithHWErrors=0;//init error counters
+    fNumEvtsWithEventCutsRejected=0;//init error counters
     if(datatosave=="raw") fDataToSave=kRaw;
     else
       if(datatosave=="derived") fDataToSave=kDerived;
@@ -58,6 +60,15 @@ class QwVQWK_Channel: public VQwDataElement {
   };
 
   void  ClearEventData();
+
+  void ReportErrorCounters();//This will display the error summary for each device
+  void UpdateHWErrorCount(){//Update error counter for HW faliure
+    fNumEvtsWithHWErrors++;
+  }
+
+  void UpdateEventCutErrorCount(){//Update error counter for event cut faliure
+    fNumEvtsWithEventCutsRejected++;
+  }
 
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
@@ -161,6 +172,9 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t fMockAsymmetry;
   Double_t fMockGaussianMean;
   Double_t fMockGaussianSigma;
+
+  Int_t fNumEvtsWithHWErrors;//counts the HW falied events
+  Int_t fNumEvtsWithEventCutsRejected;////counts the Event cut rejected events
 
 
 
