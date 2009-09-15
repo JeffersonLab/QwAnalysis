@@ -45,7 +45,7 @@ int main(Int_t argc,Char_t* argv[])
   Bool_t bHelicity=kTRUE;
   Bool_t bTree=kTRUE;
   Bool_t bHisto=kTRUE;
-  Bool_t bEventCut=kTRUE;//kFALSE;//kTRUE; //set this to kTRUE to activate event cuts
+  Bool_t bEventCut=kFALSE;//kTRUE;//kFALSE;//kTRUE; //set this to kTRUE to activate event cuts
 
   //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
   if (getenv("DISPLAY")==NULL
@@ -188,14 +188,14 @@ int main(Int_t argc,Char_t* argv[])
 
 	  if(bTree){
 	    evnum=QwEvt.GetEventNumber();
-	    std::cout<<" event "<<evnum<<std::endl;
+	    //std::cout<<" event "<<evnum<<std::endl;
 	    ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->FillTreeVector(mpsvector);
 	    ((QwHelicity*)QwDetectors.GetSubsystem("Helicity info"))->FillTreeVector(mpsvector);
 	    mpstree->Fill();
 	  }
 
 	  if(bHelicity&&QwHelPat.IsCompletePattern()){
-	    std::cout<<" Complete quartet  "<<QwEvt.GetEventNumber()<<std::endl;
+	    //std::cout<<" Complete quartet  "<<QwEvt.GetEventNumber()<<std::endl;
 	    QwHelPat.CalculateAsymmetry();
 	    //	      QwHelPat.Print();
 	    if(bHisto) QwHelPat.FillHistograms();
