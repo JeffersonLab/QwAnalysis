@@ -422,7 +422,7 @@ Bool_t QwBPMStripline::ApplyHWChecks()
   */
   }
   else{
-    std::cout<<GetElementName()<<" Ignored BPMStripline "<<std::endl; 
+    if (bDEBUG) std::cout<<GetElementName()<<" Ignored BPMStripline "<<std::endl; 
     fEventIsGood=kTRUE;
   }
   return fEventIsGood;

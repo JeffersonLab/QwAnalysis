@@ -236,7 +236,7 @@ void  QwDriftChamberHDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
       //  This channel is not connected to anything.
       //  Do nothing.
     } else if (plane == (Int_t) kReferenceChannelPlaneNumber){
-      fReferenceData.at(wire).push_back(data);
+      fReferenceData.at(wire).push_back(data);//now wire contains the value fCurrentBankIndex so we can assign the ref timing data to it.
     } else {
 
       direction = fDirectionData.at(package-1).at(plane-1); //Wire Direction is accessed from the vector -Rakitha (10/23/2008)
@@ -253,7 +253,7 @@ void  QwDriftChamberHDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
 
 
 Int_t QwDriftChamberHDC::LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire){
-  fReferenceChannels.at(fCurrentBankIndex).first  = fCurrentTDCIndex;
+  fReferenceChannels.at(fCurrentBankIndex).first  = fCurrentTDCIndex;//fCurrentBankIndex is updated at RegisterROCNumber() and fCurrentTDCIndex is updated at RegisterSlotNumber() 
   fReferenceChannels.at(fCurrentBankIndex).second = chan;
   //  Register a reference channel with the wire equal to the bank index.
   fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPackage = 0;

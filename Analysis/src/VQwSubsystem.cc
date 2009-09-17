@@ -34,7 +34,7 @@ Int_t VQwSubsystem::GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) c
 {
   //  Bool_t lDEBUG=kTRUE;
   Int_t index = -1;
-  Int_t roc_index = FindIndex(fROC_IDs, roc_id);
+  Int_t roc_index = FindIndex(fROC_IDs, roc_id);//will return the vector index for the Roc from the vector fROC_IDs.
   if (roc_index>=0){
     index = FindIndex(fBank_IDs[roc_index],bank_id);
     if (index>=0){
@@ -49,15 +49,15 @@ Int_t VQwSubsystem::GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) c
 Int_t VQwSubsystem::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id = 0)
 {
   Int_t stat = 0;
-  Int_t roc_index = FindIndex(fROC_IDs, roc_id);
+  Int_t roc_index = FindIndex(fROC_IDs, roc_id);//will return the vector index for this roc_id on the vector fROC_IDs 
   if (roc_index==-1){
-    fROC_IDs.push_back(roc_id);
+    fROC_IDs.push_back(roc_id);//new ROC number is added.
     roc_index = (fROC_IDs.size() - 1);
     std::vector<UInt_t> tmpvec(1,bank_id);
     fBank_IDs.push_back(tmpvec);
   } else {
     Int_t bank_index = FindIndex(fBank_IDs[roc_index],bank_id);
-    if (bank_index==-1){
+    if (bank_index==-1){//if the bank_id is not registered then register it.
       fBank_IDs[roc_index].push_back(bank_id);
     } else {
       //  This subbank in this ROC has already been registered!

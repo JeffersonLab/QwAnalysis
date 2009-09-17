@@ -68,12 +68,14 @@ int main(Int_t argc,Char_t* argv[])
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline.map");
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_pedestal.map");
   subsystem_tmp=(VQwSubsystemParity *)QwDetectors.GetSubsystem("Injector BeamLine");
-  subsystem_tmp->LoadEventCuts(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline_eventcuts.in");//Pass the correct cuts file.
+  if (bEventCut)//load the event cut file only if event cut is turned on
+    subsystem_tmp->LoadEventCuts(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline_eventcuts.in");//Pass the correct cuts file.
   QwDetectors.push_back(new QwHelicity("Helicity info"));
   QwDetectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_helicity.map");
   QwDetectors.GetSubsystem("Helicity info")->LoadInputParameters("");	
   subsystem_tmp=(VQwSubsystemParity *)QwDetectors.GetSubsystem("Helicity info");
-  subsystem_tmp->LoadEventCuts(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline_eventcuts.in");
+  if (bEventCut)//load the event cut file only if event cut is turned on
+    subsystem_tmp->LoadEventCuts(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline_eventcuts.in");
   QwHelicityPattern QwHelPat(QwDetectors,4);
      
   ///////
@@ -175,7 +177,8 @@ int main(Int_t argc,Char_t* argv[])
 
 	QwDetectors.ProcessEvent();
 	
-
+	
+	  
 
 	//currently QwDetector.SingleEventCuts() will not block any invalid events:- Only for debugging 
 	if (QwDetectors.ApplySingleEventCuts() || !bEventCut){//The event pass the event cut constraints or can ignore it by setting bEventCut=kFALSE 
@@ -195,7 +198,7 @@ int main(Int_t argc,Char_t* argv[])
 	  }
 
 	  if(bHelicity&&QwHelPat.IsCompletePattern()){
-	    //std::cout<<" Complete quartet  "<<QwEvt.GetEventNumber()<<std::endl;
+	    std::cout<<" Complete quartet  "<<QwEvt.GetEventNumber()<<std::endl;
 	    QwHelPat.CalculateAsymmetry();
 	    //	      QwHelPat.Print();
 	    if(bHisto) QwHelPat.FillHistograms();
@@ -243,11 +246,13 @@ int main(Int_t argc,Char_t* argv[])
       
       
 
-      QwDetectors.CheckRunningAverages(kTRUE);//check running averages
+     
       if (!bEventCut)
 	std::cout<<"Event cuts turned off! "<<std::endl;
-      else
+      else{
+	QwDetectors.CheckRunningAverages(kTRUE);//check running averages
 	QwDetectors.GetEventcutErrorCounters();//print the event cut error summery for each sub system
+      }
       std::cout<<"Total events falied "<<falied_events_counts<< std::endl;      
       PrintInfo(timer);
       

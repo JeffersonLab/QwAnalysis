@@ -367,7 +367,7 @@ void QwDriftChamber::ClearAllBankRegistrations(){
 
 Int_t QwDriftChamber::RegisterROCNumber(const UInt_t roc_id){
   VQwSubsystemTracking::RegisterROCNumber(roc_id, 0);
-  fCurrentBankIndex = GetSubbankIndex(roc_id, 0);
+  fCurrentBankIndex = GetSubbankIndex(roc_id, 0);//subbank id is directly related to the ROC
   if (fReferenceChannels.size()<=fCurrentBankIndex){
     fReferenceChannels.resize(fCurrentBankIndex+1);
     fReferenceData.resize(fCurrentBankIndex+1);
@@ -378,6 +378,8 @@ Int_t QwDriftChamber::RegisterROCNumber(const UInt_t roc_id){
 
   return fCurrentBankIndex;
 };
+
+
 
 Int_t QwDriftChamber::RegisterSlotNumber(UInt_t slot_id){
   if (slot_id<kMaxNumberOfTDCsPerROC){
