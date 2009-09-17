@@ -94,6 +94,13 @@ Int_t QwScanner::LoadChannelMap(TString mapfile){
 	fADC_Data.at(modnum)->SetChannel(channum, name);
       }
 
+      else if (modtype=="SIS3801"){
+        //std::cout<<"modnum="<<modnum<<"    "<<"fSCAs.size="<<fSCAs.size()<<std::endl;
+	if (modnum >= (Int_t) fSCAs.size())  fSCAs.resize(modnum+1, new MQwSIS3801_Module());
+	fSCAs.at(modnum)->SetChannel(channum, name);
+
+      }
+
       else if (modtype=="V792" || modtype=="V775"){
 	RegisterModuleType(modtype);
       //  Check to see if we've encountered this channel or name yet
@@ -166,6 +173,12 @@ void  QwScanner::ClearEventData(){
     }
   }
 
+  for (size_t i=0; i<fSCAs.size(); i++){
+    if (fSCAs.at(i) != NULL){
+      fSCAs.at(i)->ClearEventData();
+    }
+  }
+
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
       fADC_Data.at(i)->ClearEventData();
@@ -208,8 +221,8 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
   if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer:  "
                           << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
                           << ", num_words "<<num_words<<", index "<<index<<std::endl;
-  //  This is a VQWK bank if bank_id=2102
-  if (bank_id==2102){
+  //  This is a VQWK bank if bank_id=2103
+  if (bank_id==2103){
 
     if (index>=0 && num_words>0){
 
@@ -222,9 +235,10 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
    	  words_read += fADC_Data.at(i)->ProcessEvBuffer(&(buffer[words_read]),
 						       num_words-words_read);
           if (fDEBUG) {
-          std::cout<<"QwScanner::ProcessEvBuffer: "<<words_read<<" words_read, "<<num_words<<" num_words"<<" Data: ";
+          std::cout<<"QwScanner::ProcessEvBuffer(VQWK): "<<words_read<<" words_read, "<<num_words<<" num_words"<<" Data: ";
           for(UInt_t j=0; j<words_read; j++)
-          std::cout<<std::hex<<buffer[j]<<std::dec<<std::endl;
+            std::cout<<"     "<<std::hex<<buffer[j]<<std::dec;
+          std::cout<<std::endl;
           }
         }
       }
@@ -238,18 +252,50 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
     }
   }
 
+
+  //  This is a SCA bank if bank_id=2102
+  if (bank_id==2102){
+
+    if (index>=0 && num_words>0){
+
+      //  This is a SCA bank We want to process this ROC.  Begin looping through the data.
+      if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer: Processing Bank "<<bank_id
+                            << " fSCAs.size() = "<<fSCAs.size()<<std::endl;
+      UInt_t words_read = 0;
+      for (size_t i=0; i<fSCAs.size(); i++){
+        if (fSCAs.at(i) != NULL){
+   	  words_read += fSCAs.at(i)->ProcessEvBuffer(&(buffer[words_read]),
+						       num_words-words_read);
+          if (fDEBUG) {
+          std::cout<<"QwScanner::ProcessEvBuffer(SCA): "<<words_read<<" words_read, "<<num_words<<" num_words"<<" Data: ";
+          for(UInt_t j=0; j<words_read; j++)
+            std::cout<<"     "<<std::hex<<buffer[j]<<std::dec;
+          std::cout<<std::endl;
+          }
+        }
+      }
+      
+      if (num_words != words_read){
+        std::cerr << "QwScanner::ProcessEvBuffer:  There were "
+		  << num_words-words_read
+		  << " leftover words after decoding everything we recognize."
+		  << std::endl;
+      }
+    }
+  }
+
+
   //  This is a QADC/TDC bank (bank_id=2101)
   if (bank_id==2101){
 
     if (index>=0 && num_words>0){
       //  We want to process this ROC.  Begin looping through the data.
-      //fDEBUG = 1;
       if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer:  "
                           << "Begin processing ROC" << roc_id <<", Bank "<<bank_id<< std::endl;
 
 
           if (fDEBUG) 
-          std::cout<<"QwScanner::ProcessEvBuffer:"<<" Trigger Event Data: \n";
+          std::cout<<"QwScanner::ProcessEvBuffer (trig) Data: \n";
 
       for(size_t i=0; i<num_words ; i++){
         //  Decode this word as a V775TDC word.
@@ -307,6 +353,12 @@ void  QwScanner::ProcessEvent(){
     }
   }
 
+  for (size_t i=0; i<fSCAs.size(); i++){
+    if (fSCAs.at(i) != NULL){
+      fSCAs.at(i)->ProcessEvent();
+    }
+  }
+
 };
 
 
@@ -320,6 +372,12 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix){
     }
   }
 
+  for (size_t i=0; i<fSCAs.size(); i++){
+    if (fSCAs.at(i) != NULL){
+      fSCAs.at(i)->ConstructHistograms(folder, prefix);
+    }
+  }
+
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
       fADC_Data.at(i)->ConstructHistograms(folder, prefix);
@@ -330,7 +388,7 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix){
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_power_supply")));
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));
-    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_scaler")));
+    //fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_scaler")));
     fHistograms2D.push_back( gQwHists.Construct2DHist(TString("scanner_rate_map")));
 
 };
@@ -343,6 +401,12 @@ void  QwScanner::FillHistograms(){
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).FillHistograms();
+    }
+  }
+
+  for (size_t i=0; i<fSCAs.size(); i++){
+    if (fSCAs.at(i) != NULL){
+      fSCAs.at(i)->FillHistograms();
     }
   }
 
@@ -472,7 +536,10 @@ void  QwScanner::ReportConfiguration(){
           }
         }
         else if (fBank_IDs.at(i).at(j)==2102) {
-	  std::cout << "    Number of QWAK:  " << fADC_Data.size() << std::endl;
+	  std::cout << "    Number of SIS3801 Scaler:  " << fSCAs.size() << std::endl;
+        }
+        else if (fBank_IDs.at(i).at(j)==2103) {
+	  std::cout << "    Number of TRIUMF ADC:  " << fADC_Data.size() << std::endl;
        }
     }
   }
@@ -616,22 +683,41 @@ const QwScanner::EModuleType QwScanner::RegisterModuleType(TString moduletype){
 
   if (moduletype=="V792"){
     fCurrentType = V792_ADC;
-  } else if (moduletype=="V775"){
+    fModuleTypes.at(fCurrentIndex) = fCurrentType;
+    if ((Int_t) fPMTs.size()<=fCurrentType){
+      fPMTs.resize(fCurrentType+1);
+    }
+  } 
+
+  else if (moduletype=="V775"){
     fCurrentType = V775_TDC;
+    fModuleTypes.at(fCurrentIndex) = fCurrentType;
+    if ((Int_t) fPMTs.size()<=fCurrentType){
+      fPMTs.resize(fCurrentType+1);
   }
-  fModuleTypes.at(fCurrentIndex) = fCurrentType;
-  if ((Int_t) fPMTs.size()<=fCurrentType){
-    fPMTs.resize(fCurrentType+1);
+
   }
+
+  else if (moduletype=="SIS3801"){
+
+
+
+  }
+
   return fCurrentType;
 };
 
 
 Int_t QwScanner::LinkChannelToSignal(const UInt_t chan, const TString &name){
   size_t index = fCurrentType;
-  fPMTs.at(index).push_back(QwPMT_Channel(name));
-  fModulePtrs.at(fCurrentIndex).at(chan).first  = index;
-  fModulePtrs.at(fCurrentIndex).at(chan).second = fPMTs.at(index).size() -1;
+  if (index == 0 || index == 1) {
+    fPMTs.at(index).push_back(QwPMT_Channel(name));
+    fModulePtrs.at(fCurrentIndex).at(chan).first  = index;
+    fModulePtrs.at(fCurrentIndex).at(chan).second = fPMTs.at(index).size() -1;
+  }
+  else if (index ==2) {
+    std::cout<<"scaler module has not been implemented yet."<<std::endl;
+  }
   std::cout<<"Linked channel"<<chan<<" to signal "<<name<<std::endl;
   return 0;
 };
@@ -770,6 +856,12 @@ void QwScanner::RandomizeEventData(int helicity)
     }
   }
 
+  for (size_t i=0; i<fSCAs.size(); i++){
+    if (fSCAs.at(i) != NULL){
+      fSCAs.at(i)->RandomizeEventData(helicity);
+    }
+  }
+
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
       fADC_Data.at(i)->RandomizeEventData(helicity);
@@ -782,9 +874,11 @@ void QwScanner::RandomizeEventData(int helicity)
 void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   std::vector<UInt_t> SumBuffer;
+  std::vector<UInt_t> ScaBuffer;
   std::vector<UInt_t> TrigBuffer;
 
   std::vector<UInt_t> LocalSumBuffer;
+  std::vector<UInt_t> LocalScaBuffer;
   std::vector<UInt_t> LocalTrigBuffer;
   std::vector<UInt_t> subbankheader;
   std::vector<UInt_t> rocheader;
@@ -875,6 +969,14 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
     }
 
 
+//mock data for scaler events
+  for (size_t i=0; i<fSCAs.size(); i++){
+    if (fSCAs.at(i) != NULL){
+      fSCAs.at(i)->EncodeEventData(LocalScaBuffer);
+    }
+  }
+
+
 //mock data for trigger events
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
@@ -888,7 +990,7 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
     // Form CODA subbank header
     subbankheader.clear();
     subbankheader.push_back(LocalSumBuffer.size() + 1);    // subbank size
-    subbankheader.push_back((2102 << 16) | (0x01 << 8) | (1 & 0xff));
+    subbankheader.push_back((2103 << 16) | (0x01 << 8) | (1 & 0xff));
         // subbank tag | subbank type | event number
 
     // Form CODA bank/roc header
@@ -902,6 +1004,28 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
     SumBuffer.insert(SumBuffer.end(), subbankheader.begin(), subbankheader.end());
     SumBuffer.insert(SumBuffer.end(), LocalSumBuffer.begin(), LocalSumBuffer.end());
   }
+
+
+  if (LocalScaBuffer.size() > 0) {
+
+    // Form CODA subbank header
+    subbankheader.clear();
+    subbankheader.push_back(LocalScaBuffer.size() + 1);    // subbank size
+    subbankheader.push_back((2102 << 16) | (0x01 << 8) | (1 & 0xff));
+        // subbank tag | subbank type | event number
+
+    // Form CODA bank/roc header
+    rocheader.clear();
+    rocheader.push_back(subbankheader.size() + LocalScaBuffer.size() + 1);    // bank/roc size
+    rocheader.push_back((fCurrentROC_ID << 16) | (0x10 << 8) | (1 & 0xff));
+        // bank tag == ROC | bank type | event number
+
+    // Add bank header, subbank header and element data to output buffer
+    ScaBuffer.insert(ScaBuffer.end(), rocheader.begin(), rocheader.end());
+    ScaBuffer.insert(ScaBuffer.end(), subbankheader.begin(), subbankheader.end());
+    ScaBuffer.insert(ScaBuffer.end(), LocalScaBuffer.begin(), LocalScaBuffer.end());
+  }
+
 
   if (LocalTrigBuffer.size() > 0) {
 
@@ -924,9 +1048,12 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
     TrigBuffer.insert(TrigBuffer.end(), LocalTrigBuffer.begin(), LocalTrigBuffer.end());
   }
 
-    //Copy elements from TrigBuffer and SumBuffer into buffer
+    //Copy elements from TrigBuffer, ScaBuffer and SumBuffer into buffer
     for (UInt_t i=0; i<TrigBuffer.size(); i++)
        buffer.push_back(TrigBuffer.at(i));
+
+    for (UInt_t i=0; i<ScaBuffer.size(); i++)
+       buffer.push_back(ScaBuffer.at(i));
 
     for (UInt_t i=0; i<SumBuffer.size(); i++)
        buffer.push_back(SumBuffer.at(i));
@@ -938,6 +1065,12 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
       std::cout << std::endl << "SumBuffer: ";
       for (size_t i = 0; i < SumBuffer.size(); i++)
         std::cout << std::hex << SumBuffer.at(i) << " ";
+      std::cout << std::dec << std::endl;
+    }
+    if (kDebug) {
+      std::cout << std::endl << "ScaBuffer: ";
+      for (size_t i = 0; i < ScaBuffer.size(); i++)
+        std::cout << std::hex << ScaBuffer.at(i) << " ";
       std::cout << std::dec << std::endl;
     }
     if (kDebug) {

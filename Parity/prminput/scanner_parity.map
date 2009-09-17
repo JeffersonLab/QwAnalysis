@@ -28,12 +28,21 @@ slot=1
   V775, 1, 1, scanner_tdc, quartz_back_tdc
 !
 !
+bank=2102
+!
+! slot=3
+! module.type  module.num  chan.num, det.type, det.name
+  SIS3801, 0, 0, scanner_sca, front_sca
+  SIS3801, 0, 1, scanner_sca, back_sca
+  SIS3801, 0, 2, scanner_sca, coincidence_sca
+!
+
 !
 !
 !The following map is defined for scanner 2D linear motion
 !Bank ID is specificied for scanner's VQWK
 !
-bank=2102
+bank=2103
 !
 !The module.num for VQWK has to be independently counted.
 !

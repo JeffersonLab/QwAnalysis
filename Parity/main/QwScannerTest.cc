@@ -32,6 +32,7 @@
 
 // Qweak headers
 #include "QwVQWK_Channel.h"
+#include "MQwSIS3801_Channel.h"
 #include "QwEventBuffer.h"
 #include "QwSubsystemArrayParity.h"
 #include "QwSubsystemArrayTracking.h"
@@ -178,13 +179,6 @@ static int kDebug = 1;
       std::cout<<" rootfilename="<<rootfilename<<"\n";
       TFile rootfile(rootfilename,"RECREATE","QWeak ROOT file");
 
-    //  Create the histograms for the QwDriftChamber subsystem object.
-    //  We can create a subfolder in the rootfile first, if we want,
-    //  and then pass it into the constructor.
-    //
-    //  To pass a subdirectory named "subdir", we would do:
-    //    QwDetectors.at(1)->ConstructHistograms(rootfile.mkdir("subdir"));
-    // QwDetectors.at(1)->ConstructHistograms(rootfile.mkdir("scanner"));
     if (kDebug) std::cout<<" ====>>>> Creating histograms:"<<std::endl;
     rootfile.cd();
     TString prefix = TString("scanner_");
@@ -193,7 +187,7 @@ static int kDebug = 1;
     // ROOT file output (trees)
     if (kDebug) std::cout<<" ====>>>> Creating tree:"<<std::endl;
 
-    Int_t eventnumber;
+    Int_t eventnumber = 0;
     TTree *ScannerTrigTree;
     TString prefix_trig = TString("trig_");
     std::vector <Double_t> ScannerTrigVector;
@@ -244,6 +238,8 @@ static int kDebug = 1;
 	std::cout << "Number of events processed so far: "
 		  << QwEvt.GetEventNumber() << "\n";
       }
+
+      eventnumber++;
 
       //  Fill the subsystem objects with their respective data for this event.
       QwEvt.FillSubsystemData(QwDetectors);

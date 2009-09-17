@@ -18,16 +18,19 @@
 
 #include "MQwV775TDC.h"
 #include "QwVQWK_Module.h"
+#include "MQwSIS3801_Module.h"
 
-#include "QwVQWK_Channel.h"
 #include "VQwDataElement.h"
+#include "QwVQWK_Channel.h"
+#include "MQwSIS3801_Channel.h"
 #include "QwPMT_Channel.h"
 
 class QwVQWK_Channel;
-///
-/// \ingroup QwTrackingAnl
+class MQwSIS3801_Channel;
+
 class QwScanner: public VQwSubsystem,
                  public MQwV775TDC,
+                 public MQwSIS3801_Module,
                  public QwVQWK_Module {
 
  public:
@@ -81,7 +84,12 @@ class QwScanner: public VQwSubsystem,
 
   enum EModuleType{EMPTY = -1, V775_TDC = 0, V792_ADC} fCurrentType;
   Bool_t fDEBUG;
+
+  //    We need a mapping of module,channel into PMT index, ADC/TDC
+  std::vector< std::vector<QwPMT_Channel> > fPMTs;
+  std::vector<MQwSIS3801_Module*> fSCAs;
   std::vector<QwVQWK_Module*> fADC_Data;
+
   void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
   void  ClearAllBankRegistrations();
   Int_t RegisterROCNumber(const UInt_t roc_id);
@@ -109,8 +117,6 @@ class QwScanner: public VQwSubsystem,
   std::vector< enum EModuleType > fModuleTypes;
   std::vector< std::vector< std::pair<Int_t, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel; gives the plane and wire assignment.
 
-  //    We need a mapping of module,channel into PMT index, ADC/TDC
-  std::vector< std::vector<QwPMT_Channel> > fPMTs;
 
   // scanner specified histograms
   std::vector<TH1*> fHistograms1D;
@@ -127,7 +133,6 @@ class QwScanner: public VQwSubsystem,
 
   Double_t fPedestal;
   Double_t fCalibration;
-  QwVQWK_Channel fTriumf_ADC;
 
   Double_t fPositionX;
   Double_t fPositionY;

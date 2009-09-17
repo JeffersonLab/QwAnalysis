@@ -28,6 +28,9 @@ scanner_SPARE4				TH1F	10001	-5.0e9		5.0e9			spare4		Events
 scanner_power_supply		TH1F	1000	8.0		10.0			PowSupply[V]		Events
 scanner_position_x		TH1F	2000	305.0		355.0			X[cm]		Events
 scanner_position_y		TH1F	2000	-110.0		110.0			Y[cm]		Events
-scanner_scaler			TH1F	1500	0.0		1500.0			rate[kps]	Events
+
+scanner_front_sca			TH1F	1500	0.0		1500.0			rate[kps]	Events
+scanner_back_sca			TH1F	1500	0.0		1500.0			rate[kps]	Events
+scanner_coincidence_sca			TH1F	1500	0.0		1500.0			rate[kps]	Events
 
 scanner_rate_map 	TH2F 	2000 	-100.0 	100.0 	400 	310.0 	350.0 	X[cm] 	Y[cm]
