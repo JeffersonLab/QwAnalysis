@@ -78,11 +78,11 @@ class QwHit : public TObject {
 
   const Double_t& GetDriftDistance()     const {return fDistance;};
 
-  void SetHitNumber(Int_t count){
+  void SetHitNumber(Int_t count) {
     fHitNumber=count;
   }
 
-  void SetDriftDistance(Double_t distance){
+  void SetDriftDistance(Double_t distance) {
     fDistance=distance;
   }
 
@@ -188,6 +188,10 @@ class QwHit : public TObject {
     Double_t rPos;		/// Position from level I track finding
     Double_t rPos2;		/// Position from level II decoding
 
+    // NOTE (wdc) Probably it makes sense to rename rPos and rPos2 to fPosition,
+    // which would be the first level signed track position with respect to the
+    // ideal wire position, and fPosition2, which would be the second level signed
+    // track position.
 
   ClassDef(QwHit,1);
 

@@ -33,6 +33,10 @@
 
 #include "QwTrackingTreeLine.h"
 
+#include <cmath>
+
+ClassImp(QwTrackingTreeLine);
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _b_end)
@@ -68,6 +72,9 @@ QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _
 
 
 
+/**
+ * Delete the tree line and the lists of hits depending on it
+ */
 QwTrackingTreeLine::~QwTrackingTreeLine()
 {
   // Delete the hits in this treeline
@@ -76,6 +83,46 @@ QwTrackingTreeLine::~QwTrackingTreeLine()
   }
 }
 
+
+/**
+ * Determine the chi^2 for a tree line, weighted by the number of hits
+ * @param treeline Tree line
+ * @return Weighted chi^2
+ */
+double QwTrackingTreeLine::GetChiWeight ()
+{
+  double weight;
+  // NOTE Added +1 to get this to work if numhits == nummiss (region 2 cosmics)
+  if (numhits >= nummiss)
+    weight = (double) (numhits + nummiss + 1)
+                    / (numhits - nummiss + 1);
+  else {
+    std::cerr << "miss = " << nummiss << ", hit = " << numhits << std::endl;
+    return 100000.0; // This is bad...
+  }
+  return weight * chi;
+}
+
+/**
+ * Determine the hit with the smallest drift distance, i.e. a first order
+ * estimate of the crossing of the track with the central wire plane.
+ * @param offset Optional offset to the position
+ * @return Hit with smallest drift distance
+ */
+QwHit* QwTrackingTreeLine::bestWireHit (double offset)
+{
+  double best_position = 9999.9;
+  int best_hit = 0;
+  // Get the best measured hit in the back
+  for (int hit = 0; hit < numhits; hit++) {
+    double position = fabs(hits[hit]->GetDriftDistance() - offset);
+    if (position < best_position) {
+      best_position = position;
+      best_hit = hit;
+    }
+  }
+  return hits[best_hit];
+}
 
 
 /*!--------------------------------------------------------------------------*\
@@ -100,6 +147,9 @@ const double QwTrackingTreeLine::CalculateAverageResidual()
 
 
 
+/**
+ * Print the tree line in a linked list
+ */
 void QwTrackingTreeLine::Print() {
   if (!this) return;
   std::cout << *this << std::endl;
@@ -107,18 +157,33 @@ void QwTrackingTreeLine::Print() {
 }
 
 
+/**
+ * Print the valid tree lines in a linked list
+ */
+void QwTrackingTreeLine::PrintValid() {
+  if (!this) return;
+  if (this->IsValid()) std::cout << *this << std::endl;
+  next->PrintValid();
+}
 
+
+/**
+ * Stream some info about the tree line
+ * @param stream Stream as lhs of the operator
+ * @param tl Tree line as rhs of the operator
+ * @return Stream as result of the operator
+ */
 ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl) {
   stream << "tl: ";
   stream << tl.a_beg << ", " << tl.a_end << " -- ";
   stream << tl.b_beg << ", " << tl.b_end;
   if (tl.chi > 0.0) { // treeline has been fitted
-    stream << "; hits:";
-    for (int hit = 0; hit < tl.numhits; hit++)
-      stream << " " << tl.hits[hit]->GetElement();
-    stream << ", cx = " << tl.cx;
+    stream << "; cx = " << tl.cx;
     stream << ", mx = " << tl.mx;
     stream << ", chi = " << tl.chi;
+    stream << ", hits:";
+    for (int hit = 0; hit < tl.numhits; hit++)
+      stream << " " << tl.usedhits[hit]->GetPlane() << "." << tl.usedhits[hit]->GetElement();
   }
   if (tl.isvoid) stream << " (void)";
   return stream;

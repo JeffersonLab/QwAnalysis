@@ -38,6 +38,8 @@ using std::cout; using std::cerr; using std::endl;
 
 using namespace QwTracking;
 
+class QwSubsystemArrayTracking;
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
@@ -67,7 +69,8 @@ class QwTrackingWorker : public VQwSystem {
 
     void BCheck (double E, QwPartialTrack *f, QwPartialTrack *b, double TVertex, double ZVertex);
     QwTrack* rcLinkUsedTracks (QwTrack *track, int package);
-    QwEvent* ProcessHits (QwHitContainer *hitlist);
+
+    QwEvent* ProcessHits (QwSubsystemArrayTracking *detectors, QwHitContainer *hitlist);
 
   private:
 

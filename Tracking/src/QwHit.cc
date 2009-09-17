@@ -34,7 +34,7 @@ QwHit::QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
   fTimeRes = 0.0;	/// Resolution of time (if appropriate)
 
   fDistance = 0.0;	/// Perpendicular distance from the wire to the track
-  fZPos = 0.0;		/// Detector position
+  fZPos = 0.0;		/// Hit position
 
   fSpatialResolution = 0.0;	/// Spatial resolution
   fTrackResolution = 0.0;	/// Tracking road width around hit
@@ -69,10 +69,15 @@ const Double_t QwHit::GetTrackResolution() const
   else return fTrackResolution;
 }
 
+/**
+ * Return the z position of the hit.  When a hit z position is manually assigned
+ * (i.e. for region 3 VDCs), that value is returned rather than the value stored
+ * in the detector info structure.
+ * @return Z position of the hit
+ */
 const double QwHit::GetZPosition() const {
-  if (pDetectorInfo)
-    return pDetectorInfo->fZPos;
-  else return fZPos;
+  if (fZPos != 0.0) return fZPos;
+  else return pDetectorInfo->GetZPosition();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

@@ -78,7 +78,7 @@ class QwTrackingTreeCombine {
 
 
     int bestx (double *xresult, double dist_cut,
-		QwHitContainer *hitlist, QwHit *h, QwHit **ha, double Dx = 0);
+		QwHitContainer *hitlist, QwHit **ha, double Dx = 0);
     int bestx (double *xresult,
 		QwHit *h, QwHit **ha);
 

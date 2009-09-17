@@ -2,6 +2,7 @@
 #define QWEVENT_H
 
 #include <list>
+#include <vector>
 
 #include "TObject.h"
 
@@ -40,7 +41,7 @@ class QwEvent: public TObject {
     QwTrack* track[kNumPackages];
 
     /*! list of vertices in this event */
-    std::vector < QwVertex* > vertex;
+    std::vector< QwVertex* > vertex;
 
 };
 

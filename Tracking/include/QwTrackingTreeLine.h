@@ -52,11 +52,16 @@ class QwTrackingTreeLine: public TObject {
      ~QwTrackingTreeLine();
 
     bool IsVoid() { return isvoid; };
+    bool IsValid() { return ! isvoid; };
     bool IsNotVoid() { return ! isvoid; };
     bool IsUsed() { return isused; };
     bool IsNotUsed() { return ! isused; };
 
+    double GetChiWeight ();
+    QwHit* bestWireHit (double offset = 0.0);
+
     void Print();
+    void PrintValid();
 
     friend ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl);
 
@@ -83,35 +88,37 @@ class QwTrackingTreeLine: public TObject {
 
 
 
-    bool isvoid;		/*!< has been found void */
-    bool isused;		/*!< used (part of parttrack) */
+    bool isvoid;		// has been found void
+    bool isused;		// used (part of parttrack)
 
-    double cx, mx, chi;		/*!< line parameters... */
-    double cov_cxmx[3];		/*!< errors in these */
+    double cx, mx, chi;		// line parameters...
+    double cov_cxmx[3];		// errors in these
 
-    int a_beg, a_end;		/*!< bin in first layer */
-    int b_beg, b_end;		/*!< bin in last layer */
+    int a_beg, a_end;		// bin in first layer
+    int b_beg, b_end;		// bin in last layer
 
-    int   numhits;		/*!< number of hits on this treeline */
-    int   nummiss;		/*!< number of planes without hits */
+    int   numhits;		// number of hits on this treeline
+    int   nummiss;		// number of planes without hits
 
-    QwHit *hits[2*TLAYERS];	/*!< hitarray */
-    QwHit thehits[2*TLAYERS];
+    QwHit *hits[2*TLAYERS];	// all hits that satisfy road requirement
+    QwHit *usedhits[TLAYERS];	// hits that correspond to optimal chi^2
 
     int   hasharray[2*TLAYERS];
-    int   ID;			/*!< adamo ID */
+    int   ID;			// adamo ID
 
-    int r3offset;		/*!< offset of demultiplexed group of 8 */
-    int firstwire, lastwire;	/*!< first and last wire in group of 8 */
+    int r3offset;		// offset of demultiplexed group of 8
+    int firstwire, lastwire;	// first and last wire in group of 8
 
-    QwTrackingTreeLine *next;	/*!< link to next list element */
+    QwTrackingTreeLine *next;	// link to next list element
 
   private:
 
-    double fAverageResidual;	/*!< average residual over all used hits */
+    double fAverageResidual;	// average residual over all used hits
+
+  ClassDef(QwTrackingTreeLine,1);
 
 }; // class QwTrackingTreeLine
 
-#endif //Q WTRACKINGTREELINE_H
+#endif // QWTRACKINGTREELINE_H
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

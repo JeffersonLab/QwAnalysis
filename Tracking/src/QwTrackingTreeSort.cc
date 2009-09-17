@@ -30,8 +30,13 @@
 
 #include "QwTrackingTreeSort.h"
 
+#include "QwDetectorInfo.h"
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+/**
+ * Initializes the module responsible for sorting tracks according to chi^2
+ */
 QwTrackingTreeSort::QwTrackingTreeSort ()
 {
   fDebug = 0; // Debug level
@@ -51,7 +56,6 @@ QwTrackingTreeSort::~QwTrackingTreeSort ()
 /* ======================================================================
  * checks for connected lines on the connectivity array
  * ====================================================================== */
-
 int QwTrackingTreeSort::connectiv (
 	char *ca,
 	int *array,
@@ -66,37 +70,6 @@ int QwTrackingTreeSort::connectiv (
       ret++;
   }
   return ret;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-double QwTrackingTreeSort::chiweight (QwTrackingTreeLine *treeline)
-{
-  double weight;
-  // NOTE Added +1 to get this to work if numhits == nummiss (region 2 cosmics)
-  if (treeline->numhits >= treeline->nummiss)
-    weight = (double) (treeline->numhits + treeline->nummiss + 1)
-                    / (treeline->numhits - treeline->nummiss + 1);
-  else {
-    cerr << "miss = " << treeline->nummiss << ", hit = " << treeline->numhits << endl;
-    return 100000.0; // This is bad...
-  }
-  return weight * treeline->chi;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-double QwTrackingTreeSort::ptchiweight (QwPartialTrack *pt)
-{
-  double fac;
-  if (pt->numhits >= pt->nummiss)
-    fac = (double) (pt->numhits + pt->nummiss + 1)
-                 / (pt->numhits - pt->nummiss + 1);
-  else {
-    cerr << "miss = " << pt->nummiss << ", hit = " << pt->numhits << endl;
-    return 100.0; // This is bad...
-  }
-  return fac * fac * pt->chi; // Why is 'fac' squared here, but not in chiweight?
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -247,8 +220,11 @@ int QwTrackingTreeSort::bestconnected (
 int QwTrackingTreeSort::rcPTCommonWires (QwPartialTrack *track1, QwPartialTrack *track2)
 {
   int common = 0;
-  for (int i = 0; i < 3; i++)
-    common += rcCommonWires (track1->tline[i], track2->tline[i]);
+  for (EQwDirectionID dir = kDirectionX; dir <= kDirectionV; dir++) {
+    if (! track1->tline[dir]) continue;
+    if (! track2->tline[dir]) continue;
+    common += rcCommonWires (track1->tline[dir], track2->tline[dir]);
+  }
   common /= 3;
   return common;
 }
@@ -474,17 +450,24 @@ int QwTrackingTreeSort::rcTreeConnSort (
 
       // If we have been doing this for too long already, give up already
       if (iteration > 100 ) {
+	if (fDebug) {
+	  cout << *treeline;
+	  cout << "... void because too many treelines already." << endl;
+	}
 	treeline->isvoid = true;
 	nTooManyTreeLines++;
 
       // Otherwise consider valid treelines
       } else if (treeline->isvoid == false) {
 	// Get weighted chi
-	double chi = chiweight (treeline);
+	double chi = treeline->GetChiWeight();
 
 	// Discard the treeline if chi is too large
 	if (chi > maxchi) {
-	  if (fDebug) cout << "Tree line void because chi^2 too high: " << chi << " > " << maxchi << endl;
+	  if (fDebug) {
+	    cout << *treeline;
+	    cout << "... void because chi^2 = " << chi << " above " << maxchi << endl;
+	  }
 	  treeline->isvoid = true;
 
 	// Otherwise consider this treeline
@@ -537,7 +520,7 @@ int QwTrackingTreeSort::rcTreeConnSort (
     if (treeline->isvoid == false) {
       tlarr[index]  = treeline;
       isvoid[index] = treeline->isvoid;
-      chi[index]    = chiweight(treeline);
+      chi[index]    = treeline->GetChiWeight();
       index++;
     }
   } // end of loop over treelines
@@ -599,6 +582,10 @@ int QwTrackingTreeSort::rcTreeConnSort (
     if (isvoid[i] != true) {
       tlarr[i]->isvoid = false;
     } else {
+      if (fDebug) {
+        cout << *tlarr[i];
+        cout << "... void for some reason." << endl;
+      }
       tlarr[i]->isvoid = true;
     }
   }
@@ -622,7 +609,7 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
   QwPartialTrack **ptarr, *parttrack;
   int num, idx, i, j, bestconn;
   int  *isvoid;
-  double   *chia, chi, maxch = 200.0, nmaxch, nminch;
+  double   *chia, chi, maxch = 2000.0, nmaxch, nminch;
   /* ------------------------------------------------------------------
    * find the number of used QwPartialTracks
    * ------------------------------------------------------------------ */
@@ -633,8 +620,12 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
     for (idx = 0, parttrack = parttracklist;
          parttrack; parttrack = parttrack->next) {
       if (parttrack->isvoid == false ) {
-        chi = ptchiweight(parttrack);
+        chi = parttrack->GetChiWeight();
         if (chi > maxch) {
+          if (fDebug) {
+            cout << *parttrack;
+            cout << "... void because chi^2 too high" << endl;
+          }
           parttrack->isvoid = true;
         } else {
           if (chi > nmaxch) {
@@ -683,7 +674,7 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
     if (parttrack->isvoid == false) {
       ptarr[idx]  = parttrack;
       isvoid[idx] = parttrack->isvoid;
-      chia[idx]   = ptchiweight(parttrack);
+      chia[idx]   = parttrack->GetChiWeight();
       idx++;
     }
   }
@@ -708,7 +699,7 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
         ptarr[i]->y,
         ptarr[i]->mx,
         ptarr[i]->my,
-        ptchiweight(ptarr[i]),
+        ptarr[i]->GetChiWeight(),
         ptarr[i]->nummiss,
         connectiv( 0, array, isvoid, num, i));
     }
@@ -753,7 +744,7 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
          ptarr[i]->y,
          ptarr[i]->mx,
          ptarr[i]->my,
-         ptchiweight(ptarr[i]),
+         ptarr[i]->GetChiWeight(),
          ptarr[i]->nummiss,
          connectiv( 0, array, isvoid, num, i));
     }

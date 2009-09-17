@@ -48,7 +48,6 @@ class QwTrackingTreeSort {
     int good;
 
     int rcTreeConnSort (QwTrackingTreeLine *head, EQwRegionID region);
-    double chiweight(QwTrackingTreeLine *tl );
     int connectiv( char *ca, int *array, int *isvoid, char size, int idx );
     int rcCommonWires(QwTrackingTreeLine *line1, QwTrackingTreeLine *line2 );
     int rcCommonWires_r3( QwTrackingTreeLine *line1, QwTrackingTreeLine *line2 );
@@ -62,7 +61,6 @@ class QwTrackingTreeSort {
 
 
     int rcPartConnSort (QwPartialTrack *head);
-    double ptchiweight (QwPartialTrack *pt);
     int rcPTCommonWires (QwPartialTrack *track1, QwPartialTrack *track2);
 
   private:
@@ -70,7 +68,7 @@ class QwTrackingTreeSort {
     int fDebug;
 
 
-};//class QwTrackingTreeSort
+}; // class QwTrackingTreeSort
 
 #endif // QWTRACKINGTREESORT_H
 

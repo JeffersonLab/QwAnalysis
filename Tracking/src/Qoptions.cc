@@ -54,7 +54,7 @@ void Qoptions::Get(const char *optname)
 	int maxlevels;
 
 	// Open options file
-	ifstream optfile(optname);
+	std::ifstream optfile(optname);
 	std::stringstream optstream;
 	optstream << optfile.rdbuf();
 

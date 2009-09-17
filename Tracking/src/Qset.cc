@@ -77,7 +77,7 @@ Qset::Qset()
 int Qset::FillDetectors (const char *geomname)
 {
 	// Open geometry file
-	ifstream geomfile(geomname);
+	std::ifstream geomfile(geomname);
 	std::stringstream geomstream;
 	geomstream << geomfile.rdbuf();
 
@@ -199,8 +199,7 @@ void Qset::DumpDetector (int i)
 
 //____________________________________________________________
 
-void Qset::LinkDetectors ()
-/*! \fn LinkDetector
+/*!
     \brief This function strings together groups of detector elements
 
     The list rcDET[] contains all detectors of the experiment, in the order
@@ -214,6 +213,7 @@ void Qset::LinkDetectors ()
     creates links to the next detectors in the same upper/lower half and with
     the same wire direction.
  */
+void Qset::LinkDetectors ()
 {
   EQwDetectorPackage package;
   EQwRegionID region;

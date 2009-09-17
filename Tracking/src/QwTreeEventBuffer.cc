@@ -621,7 +621,7 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
   int plane = detectorinfo->fPlane;
 
   // Detector geometry
-  double dx = detectorinfo->GetWireSpacing();
+  double dx = detectorinfo->GetElementSpacing();
   int central_wire = (detectorinfo->fTotalWires + 1) / 2;
 
   // Make the necessary transformations for the wires
@@ -698,7 +698,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
   int plane = detectorinfo->fPlane;
 
   // Detector geometry: wirespacing, width, central wire
-  double dx = detectorinfo->GetWireSpacing();
+  double dx = detectorinfo->GetElementSpacing();
   double dz = detectorinfo->fActiveWidthZ;
   int central_wire = (detectorinfo->fTotalWires + 1) / 2;
 

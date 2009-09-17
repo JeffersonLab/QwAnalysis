@@ -27,7 +27,6 @@ namespace bfs = boost::filesystem;
 #include "QwTypes.h"
 #include "options.h"
 #include "Det.h"
-#include "tracking.h"
 #include "globals.h"
 
 using namespace QwTracking;

@@ -352,7 +352,7 @@ int main(Int_t argc,Char_t* argv[])
       cout << "---" << endl;
       timeval start, finish;
       gettimeofday(&start, 0);
-      QwEvent *event = trackingworker->ProcessHits(&grandHitList);
+      QwEvent *event = trackingworker->ProcessHits(&QwDetectors, &grandHitList);
       gettimeofday(&finish, 0);
 
       // Now we can access the event and its partial tracks

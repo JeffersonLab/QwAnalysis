@@ -365,14 +365,16 @@ QwTrack* QwTrackingWorker::rcLinkUsedTracks (QwTrack *track, int package )
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 // TODO Should QwHitContainer be passed as const? (wdc)
-QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
+QwEvent* QwTrackingWorker::ProcessHits (
+	QwSubsystemArrayTracking *detectors,
+	QwHitContainer *hitlist)
 {
-  int dlayer = 0;	      /* number of detector planes in the search    */
+  int dlayer = 0;		/* number of detector planes in the search    */
   double A[kNumDirections][2];	/* conversion between xy and uv */
 
-  QwPartialTrack *parttrack; // list of partial tracks
-  QwEvent *event; // event structure
+  QwEvent *event = new QwEvent(); // event structure
 
+  // Tracking functionality is provided by these four sub-blocks.
   QwTrackingTreeSearch  *TreeSearch  = new QwTrackingTreeSearch();
   TreeSearch->SetDebugLevel(fDebug);
   QwTrackingTreeCombine *TreeCombine = new QwTrackingTreeCombine();
@@ -388,9 +390,6 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
   double ZVertex, bending, theta, phi, ESpec;
   int outbounds = 0;
   */
-
-  event = new QwEvent;
-  assert(event);
 
   /// Loop through all detector packages
   // Normally only two of these will generate actual tracks,
@@ -440,24 +439,28 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	  if (! rcDETRegion[package][region][dir]) {
 	    if (fDebug) cout << "[QwTrackingWorker::ProcessHits]     No such detector!" << endl;
 	    continue;
-	  } //kNumPackages*kNumRegions*kNumTypes*kNumDirections
-	  if (! fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
-                             +region*kNumTypes*kNumDirections+type*kNumDirections+dir]) {
+	  }
+
+/*! ---- 1st: check that the direction is tree-searchable               ---- */
+
+	  // The search tree for this detector will be stored in searchtree
+	  QwTrackingTreeRegion* searchtree
+	    = fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
+                        + region*kNumTypes*kNumDirections
+                        + type*kNumDirections
+                        + dir];
+
+	  // Check whether the search tree exists
+	  if (! searchtree) {
 	    if (fDebug) cout << "[QwTrackingWorker::ProcessHits]     No such tree!" << endl;
 	    continue;
 	  }
 
-/*! ---- 1st: check that the direction is tree-searchable               ---- */
-	  //cout << "fSearchTree(" << package << ","
-	  //			    << region << ","
-	  //			    << type << ","
-	  //			    << dir << ")" << endl;
-	  if (fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
-                             +region*kNumTypes*kNumDirections
-                             +type*kNumDirections+dir]->searchable == false) {
-	    (event->treeline[package][region][type][dir]) = 0;
-	    // printf("%i %i %i %i\n",package,region,type,dir);
-	    continue; // 'searchable' is set by tree.cc
+	  // Check whether the search tree is searchable
+	  if (searchtree->searchable == false) {
+	    event->treeline[package][region][type][dir] = 0;
+	    if (fDebug) cout << "[QwTrackingWorker::ProcessHits]     Search tree not searchable!" << endl;
+	    continue;
 	  }
 
 
@@ -481,6 +484,9 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
             dlayer = 0; /* set "number of detectors" to zero            */
 	    QwTrackingTreeLine *treelinelist1 = 0, *treelinelist2 = 0;
 
+	    // Set hit pattern for this region
+	    if (fDebug) cout << "Setting hit pattern (region 3)" << endl;
+
 	    /* Loop over the like-pitched planes in a region */
 	    int plane = 0;
 	    for (Det* rd = rcDETRegion[package][region][dir];
@@ -497,28 +503,27 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	      A[dir][0] = rd->rCos; /* cos (angle of wire pitch) */
 	      A[dir][1] = rd->rSin; /* sin (angle of wire pitch) */
 
-	      if (fDebug) cout << "Setting pattern hits (region 3)" << endl;
+	      // Reset hit pattern to zero for this layer
 	      for (int i = 0; i < NUMWIRESR3 + 1; i++) {
 	        memset(channelr3[i],     0,                1UL <<  levels      );
 	        memset(hashchannelr3[i], 0, sizeof(int) * (1UL << (levels - 1)));
 	      }
 
-	      /// Get the sublist of hits in this detector
-	      QwHitContainer *sublist = hitlist->GetSubList_Plane(region, package, rd->plane);
-	      if (fDebug) sublist->Print();
+	      /// Get the subhitlist of hits in this detector
+	      QwHitContainer *subhitlist = hitlist->GetSubList_Plane(region, package, rd->plane);
+	      if (fDebug) subhitlist->Print();
 	      // If no hits in this detector, skip to the next detector.
-	      if (! sublist) continue;
+	      if (! subhitlist) continue;
 
-	      // Loop over the hits in the sublist
-	      for (QwHitContainer::iterator hit = sublist->begin();
-		hit != sublist->end(); hit++) {
+	      // Loop over the hits in the subhitlist
+	      for (QwHitContainer::iterator hit = subhitlist->begin();
+		hit != subhitlist->end(); hit++) {
 
 		// See QwTrackingTreeSearch.cc for the different ways in which TsSetPoint
 		// can be called.
 		int wire = hit->GetElement();
 		TreeSearch->TsSetPoint(
-			fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
-                        +region*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth,
+			searchtree->rWidth,
 			&(*hit),
 			channelr3[wire],
 			hashchannelr3[wire],
@@ -545,20 +550,21 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	      // We can start the tree search now.
 	      // NOTE Somewhere around here a memory leak lurks
 	      if (fDebug) cout << "Searching for matching patterns (direction " << dir << ")" << endl;
-	      TreeSearch->TsSearch(&(fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
-                             +region*kNumTypes*kNumDirections+type*kNumDirections+dir]->node),
+	      TreeSearch->TsSearch(&(searchtree->node),
 				channelr3, hashchannelr3,
 				levels, NUMWIRESR3, TLAYERS);
 	      treelinelist = TreeSearch->GetListOfTreeLines();
+	      if (fDebug) {
+	        cout << "List of treelines:" << endl;
+	        treelinelist->Print();
+	      }
 
 	      if (fDebug) cout << "Sort patterns" <<  endl;
               if (fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
                              +region*kNumTypes*kNumDirections+type*kNumDirections+dir]) {
 
-		double width = fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
-			+ region*kNumTypes*kNumDirections
-			+ type*kNumDirections+dir]->rWidth;
-		TreeCombine->TlTreeLineSort (treelinelist, sublist,
+		double width = searchtree->rWidth;
+		TreeCombine->TlTreeLineSort (treelinelist, subhitlist,
 					package, region, type, dir,
 					1UL << (levels - 1), 0, dlayer, width);
 
@@ -574,8 +580,8 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	      // End the search for this set of like-pitched planes
 	      TreeSearch->EndSearch();
 
-	      // Delete sublist
-	      delete sublist;
+	      // Delete subhitlist
+	      delete subhitlist;
 
 	    } // end of loop over like-pitched planes in a region
 
@@ -599,6 +605,9 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	  /* Region 2 HDC */
 	  } else if (region == kRegionID2 && type == kTypeDriftHDC) {
 
+	    // Set ht pattern for this region
+	    if (fDebug) cout << "Setting hit pattern (region 2)" << endl;
+
 	    /* Loop over the like-pitched planes in a region */
 	    tlayers = 0;
 	    for (Det* rd = rcDETRegion[package][region][dir];
@@ -610,25 +619,24 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 	      // If detector is inactive for tracking, skip it
 	      if (rd->IsInactive()) continue;
 
-	      if (fDebug) cout << "Setting pattern hits (region 2)" << endl;
+	      // Reset hit pattern to zero for this layer
 	      memset(channelr2[tlayers],     0,                1UL <<  levels      );
 	      memset(hashchannelr2[tlayers], 0, sizeof(int) * (1UL << (levels - 1)));
 
-	      // Get the sublist of hits in this detector plane
-	      QwHitContainer *sublist = hitlist->GetSubList_Plane(region, package, rd->plane);
-	      if (fDebug) sublist->Print();
+	      // Get the subhitlist of hits in this detector plane
+	      QwHitContainer *subhitlist = hitlist->GetSubList_Plane(region, package, rd->plane);
+	      if (fDebug) subhitlist->Print();
 	      // If no hits in this detector, skip to the next detector.
-	      if (! sublist) continue;
-	      // Loop over the hits in the sublist
-	      for (QwHitContainer::iterator hit = sublist->begin();
-		hit != sublist->end(); hit++) {
+	      if (! subhitlist) continue;
+	      // Loop over the hits in the subhitlist
+	      for (QwHitContainer::iterator hit = subhitlist->begin();
+		hit != subhitlist->end(); hit++) {
 
 		// See QwTrackingTreeearch.cc for the different ways in which TsSetPoint
 		// can be called.
 		int wire = hit->GetElement();
 		TreeSearch->TsSetPoint(
-			fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
-                        +region*kNumTypes*kNumDirections+type*kNumDirections+dir]->rWidth,
+			searchtree->rWidth,
 			rd->WireSpacing,
 			&(*hit),
 			wire,
@@ -650,43 +658,45 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 
 	      } // end of loop over hits in this event
 
-	      // Delete sublist
-	      delete sublist;
+	      // Delete subhitlist
+	      delete subhitlist;
 
             } // end of loop over like-pitched planes in a region
 
 	    if (fDebug) cout << "Search for matching patterns (direction " << dir << ")" << endl;
-	    TreeSearch->TsSearch(&(fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
-                             +region*kNumTypes*kNumDirections+type*kNumDirections+dir]->node),
+	    TreeSearch->TsSearch(&(searchtree->node),
 				channelr2, hashchannelr2,
 				levels, 0, tlayers);
 	    treelinelist = TreeSearch->GetListOfTreeLines();
-	    if (fDebug) treelinelist->Print();
+	    if (fDebug) {
+	      cout << "List of treelines:" << endl;
+	      treelinelist->Print();
+	    }
 
 	    // Get the hit list for this package/region/direction
-	    QwHitContainer *sublist = hitlist->GetSubList_Dir(region, package, dir);
-	    if (fDebug) sublist->Print();
+	    QwHitContainer *subhitlist = hitlist->GetSubList_Dir(region, package, dir);
+	    if (fDebug) subhitlist->Print();
 
 	    if (fDebug) cout << "Sort patterns" << endl;
-            if (fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
-                             +region*kNumTypes*kNumDirections+type*kNumDirections+dir]) {
+            if (searchtree) {
 
-	      double width = fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
-			+ region*kNumTypes*kNumDirections
-			+ type*kNumDirections+dir]->rWidth;
-	      TreeCombine->TlTreeLineSort (treelinelist, sublist,
+	      double width = searchtree->rWidth;
+	      TreeCombine->TlTreeLineSort (treelinelist, subhitlist,
 					package, region, type, dir,
 					1UL << (levels - 1),
 					tlayers, 0, width);
 	    }
 	    event->treeline[package][region][type][dir] = treelinelist;
-	    if (fDebug) treelinelist->Print();
+	    if (fDebug) {
+	      cout << "List of treelines:" << endl;
+	      treelinelist->Print();
+	    }
 
 	    // End the search for this set of like-pitched planes
 	    TreeSearch->EndSearch();
 
-	    // Delete sublist
-	    delete sublist;
+	    // Delete subhitlist
+	    delete subhitlist;
 
 	  /* Any other region */
 	  } else {
@@ -699,6 +709,8 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 
 
 /*! ---- TASK 2: Combine the treelines into partial tracks             ---- */
+
+	QwPartialTrack* parttrack = 0; // list of partial tracks
 
 	// This if statement may be done wrong
 	// TODO (wdc) why does this have last index dir instead of something in scope?
@@ -751,11 +763,14 @@ QwEvent* QwTrackingWorker::ProcessHits (QwHitContainer *hitlist)
 
   } /* end of loop over the detector packages */
 
+
+  // Delete tracking objects
   if (TreeSearch)  delete TreeSearch;
   if (TreeCombine) delete TreeCombine;
   if (TreeSort)    delete TreeSort;
   if (TreeMatch)   delete TreeMatch;
 
+  // Return the event structure
   return event;
 }
 

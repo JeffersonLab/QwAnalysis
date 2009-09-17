@@ -25,6 +25,8 @@ class QwHitRootContainer: public TOrdCollection {
 
   public:
 
+    QwHitRootContainer() { };
+
     // Conversion methods from and to a QwHitContainer
     void Convert(QwHitContainer* hitlist);
     QwHitContainer* Convert();

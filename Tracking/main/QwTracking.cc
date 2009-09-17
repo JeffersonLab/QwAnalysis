@@ -133,6 +133,7 @@
 #include "Det.h"
 
 #include "tracking.h"
+
 #include "QwTrackingTreeRegion.h"
 
 #include "QwTrackingWorker.h"
@@ -235,7 +236,7 @@ int main (int argc, char* argv[])
 
 
 	  // Process the hit list through the tracking worker (i.e. do track reconstruction)
-	  event = trackingworker->ProcessHits(ASCIIgrandHitList);
+	  event = trackingworker->ProcessHits(&QwDetectors, ASCIIgrandHitList);
 
 	  // (wdc) Now we can access the event and its partial tracks
 	  // (e.g. list the partial track in the upper region 2 HDC)

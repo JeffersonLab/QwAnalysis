@@ -32,9 +32,24 @@ class QwDetectorInfo {
     const double GetTrackResolution() const { return fTrackResolution; };
     void SetTrackResolution(const double res) { fTrackResolution = res; };
 
-    // Get/set wire spacing
-    const double GetWireSpacing() const { return fWireSpacing; };
-    void SetWireSpacing(const double spacing) { fWireSpacing = spacing; };
+    // Get/set x and y position
+    const double GetXPosition() const { return fDetectorOriginX; };
+    const double GetYPosition() const { return fDetectorOriginY; };
+    void SetXYPosition(const double x, const double y) {
+      fDetectorOriginX = x;
+      fDetectorOriginY = y;
+    };
+    // Get/set z position
+    const double GetZPosition() const { return fZPos; };
+    void SetZPosition(const double z) { fZPos = z; };
+
+    // Get/set element direction
+    const EQwDirectionID GetElementDirection() const { return fDirection; };
+    void SetElementSpacing(const EQwDirectionID dir) { fDirection = dir; };
+
+    // Get/set element spacing
+    const double GetElementSpacing() const { return fWireSpacing; };
+    void SetElementSpacing(const double spacing) { fWireSpacing = spacing; };
 
     // Get/set detector rotation (in degrees)
     void SetDetectorRotation(const double rotation) { fDetectorRotation = rotation; };
