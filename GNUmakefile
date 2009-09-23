@@ -310,36 +310,6 @@ endif
 
 ############################
 ############################
-# Some set-up for the OpenSSL library use
-############################
-############################
-ifndef OPENSSL_DIR
-  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name openssl)),/usr/include/openssl)
-    $(warning Install the OpenSSL library on your system, or set the environment)
-    $(warning variable OPENSSL_DIR to the directory with the OpenSSL library.)
-    $(warning See the Qweak Wiki for installation and compilation instructions.)
-    $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
-    $(warning )
-    $(error   Error: Could not find the OpenSSL library)
-  endif
-  OPENSSL_VERSION = $(shell perl -ane "print /\#define\s+OPENSSL_VERSION_TEXT\s+\"OpenSSL\s+([\.\w\d]+)-.*\"/" /usr/include/openssl/opensslv.h)
-  OPENSSL_INC  =
-  OPENSSL_LIBS = -l crypto
-else
-  OPENSSL_VERSION = $(shell perl -ane "print /\#define\s+OPENSSL_VERSION_TEXT\s+\"OpenSSL\s+([\.\w\d]+)-.*\"/" ${OPENSSL_DIR}/include/opensslv.h)
-  OPENSSL_INC  = -I${OPENSSL_DIR}/include
-  OPENSSL_LIBS = -L${OPENSSL_DIR}/lib -l crypto
-endif
-
-#  We should also put a test on the openssl version number here.
-ifeq ($(OPENSSL_VERSION),)
-  $(error   Error: Could not determine OpenSSL version)
-endif
-
-
-
-############################
-############################
 # Some set-up for the Boost library use
 ############################
 ############################
@@ -409,7 +379,7 @@ INCFLAGS =  $(patsubst %,-I%,$(sort $(dir $(shell $(FIND) $(QWANALYSIS) | $(GREP
 # Qw include paths : /SomePath/QwAnalysis/Analysis/include/Foo.h -> -I./Analysis/include/
 
 
-INCFLAGS += $(OPENSSL_INC) $(BOOST_INC) -I./
+INCFLAGS += $(BOOST_INC) -I./
 # Necessary for dictionary files where include files are quoted with relative
 # path appended (default behaviour for root-cint)
 
@@ -425,7 +395,7 @@ ifneq ($(CXX),CC)
 endif
 LIBS =  -L$(QWLIB) -lQw
 LIBS +=  $(ROOTLIBS) $(ROOTGLIBS) $(CODALIBS)
-LIBS +=  $(OPENSSL_LIBS) $(BOOST_LIBS) $(LDLIBS)
+LIBS +=  $(BOOST_LIBS) $(LDLIBS)
 
 
 ############################
