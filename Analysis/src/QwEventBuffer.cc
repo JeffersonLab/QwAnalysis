@@ -14,11 +14,11 @@ const Int_t QwEventBuffer::kRunNotSegmented = -20;
 const Int_t QwEventBuffer::kNoNextDataFile  = -30;
 const Int_t QwEventBuffer::kFileHandleNotConfigured  = -40;
 
-const UInt_t QwEventBuffer::kNullDataWord = 0;//'NULL';
-
+/// This is the ASCII character array 'NULL', and is used by the
+/// DAQ to indicate a known empty buffer.
+const UInt_t QwEventBuffer::kNullDataWord = 0x4e554c4c; 
 
 QwEventBuffer::QwEventBuffer():fDEBUG(kFALSE),fDataFileStem("QwRun_"),
-//QwEventBuffer::QwEventBuffer():fDEBUG(kTRUE),fDataFileStem("QwRun_"),
 			       fDataFileExtension("log"),
 			       fRunIsSegmented(kFALSE),
 			       fEvStreamMode(fEvStreamNull),
