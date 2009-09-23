@@ -72,11 +72,6 @@ class QwEventBuffer: public MQwCodaControlEvent{
     return (fEvtType>=0x90 && fEvtType<=0xaf);
   };
 
-  void ClearEventData(std::vector<VQwSubsystem*> &subsystems);
-
-  Bool_t FillSubsystemConfigurationData(std::vector<VQwSubsystem*> &subsystems);
-  Bool_t FillSubsystemData(std::vector<VQwSubsystem*> &subsystems);
-
   Bool_t FillSubsystemConfigurationData(QwSubsystemArray &subsystems);
   Bool_t FillSubsystemData(QwSubsystemArray &subsystems);
 
@@ -88,6 +83,14 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Int_t EncodeEndEvent();
 
   void ResetFlags();
+
+ private:
+  //  These methods will be removed from a future version
+  void ClearEventData(std::vector<VQwSubsystem*> &subsystems);
+
+  Bool_t FillSubsystemConfigurationData(std::vector<VQwSubsystem*> &subsystems);
+  Bool_t FillSubsystemData(std::vector<VQwSubsystem*> &subsystems);
+
 
 
  protected:
