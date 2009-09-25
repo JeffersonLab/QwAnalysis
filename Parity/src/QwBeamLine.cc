@@ -22,6 +22,16 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   Int_t wordsofar=0;
   Int_t currentsubbankindex=-1;
 
+  std::vector<Double_t> fBCMEventCuts;//for initializing event cuts  
+  fBCMEventCuts.push_back(0);
+  fBCMEventCuts.push_back(0);
+  fBCMEventCuts.push_back(0);
+  std::vector<Double_t> fBPMEventCuts;//for initializing event cuts
+  fBPMEventCuts.push_back(0);
+  fBPMEventCuts.push_back(0);
+  fBPMEventCuts.push_back(0);
+  fBPMEventCuts.push_back(0);
+  fBPMEventCuts.push_back(0);
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
@@ -112,12 +122,14 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
 		QwBPMStripline localstripline(localBeamDetectorID.fdetectorname,!unrotated);
 		fStripline.push_back(localstripline);
+		fStripline[fStripline.size()-1].SetSingleEventCuts(fBPMEventCuts);//initialize the event cuts to zero
 		localBeamDetectorID.fIndex=fStripline.size()-1;
 	      }
 	    if(DetectorTypes[localBeamDetectorID.fTypeID]=="bcm")
 	      {
 		QwBCM localbcm(localBeamDetectorID.fdetectorname);
 		fBCM.push_back(localbcm);
+		fBCM[fBCM.size()-1].SetSingleEventCuts(fBCMEventCuts);//initialize the event cuts to zero
 		localBeamDetectorID.fIndex=fBCM.size()-1;
 	      }
 	  }
@@ -176,7 +188,7 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
   Int_t samplesize;
   std::vector<Double_t> fBCMEventCuts;
   std::vector<Double_t> fBPMEventCuts;
-  TString varname, varvalue, vartypeID;
+  TString varname, varvalue, vartypeID,device_type;
   std::cout<<" QwBeamLine::LoadEventCuts  "<<filename<<std::endl; 
   QwParameterFile mapstr(filename.Data());  //Open the file
 
@@ -192,18 +204,27 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
       //  This is a declaration line.  Decode it.
       varname.ToLower();
       vartypeID.ToLower();
+      if(varname=="sample_size")//reads the sample size in the system
+	samplesize = (atoi(vartypeID));	//sample size      
+      else
+	device_type=vartypeID;
+	
+      //std::cout<<" device name "<<device_name<<" Sample Size "<<samplesize<<std::endl;
+      
     }
     else{
-      if (vartypeID == "bcm"){
+      if (device_type == "bcm"){
+	
 	fBCMEventCuts.clear();
 	varname= mapstr.GetNextToken(", ").c_str();              //detector name
 	varname.ToLower();
+	std::cout<<" device name "<<varname<<" Sample Size "<<samplesize<<std::endl;
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BCM value
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BCM value
-	samplesize = (atoi(mapstr.GetNextToken(", ").c_str()));	//sample size
+	//samplesize = (atoi(mapstr.GetNextToken(", ").c_str()));	//sample size
 	//	std::cout<<" sample size "<<samplesize<<std::endl;
 	//retrieve the detector from the vector.
-	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(vartypeID),varname);	
+	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),varname);	
 	//update the Double vector
 	fBCMEventCuts.push_back(LLX);
 	fBCMEventCuts.push_back(ULX);
@@ -215,19 +236,20 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 	//std::cout<<"*****************************"<<std::endl;
 	
       }
-      else if (vartypeID == "bpmstripline"){
+      else if (device_type == "bpmstripline"){
 	fBPMEventCuts.clear();
 	varname= mapstr.GetNextToken(", ").c_str();              //detector name
 	varname.ToLower();
+	std::cout<<" device name "<<varname<<" Sample Size "<<samplesize<<std::endl;
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline X
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline X
 	LLY = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline Y
 	ULY = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline Y
-	samplesize = (atoi(mapstr.GetNextToken(", ").c_str()));	//sample size
+	//samplesize = (atoi(mapstr.GetNextToken(", ").c_str()));	//sample size
 	//std::cout<<varname<<" sample size "<<samplesize<<std::endl;
 	//std::cout<<" sample size "<<samplesize<<std::endl;
 	//retrieve the detector from the vector.
-	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(vartypeID),varname);	
+	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),varname);	
 	//update the Double vector
 	fBPMEventCuts.push_back(LLX);
 	fBPMEventCuts.push_back(ULX);

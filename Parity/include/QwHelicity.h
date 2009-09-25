@@ -180,12 +180,12 @@ class QwHelicity : public VQwSubsystemParity{
 
 
   static const Bool_t kDEBUG=kFALSE;
-  static const Bool_t dolocalhelicity=kFALSE;
+  static const Bool_t dolocalhelicity=kTRUE;//kFALSE;//temp word way to encode helicity
   // local helicity is a special mode for encoding helicity info
   // it is not the fullblown helicity encoding we want to use for the main
   // data taking. For example this was used during the injector data taking
   // in winter 2008-09 injector tests
-  static const Bool_t dolocalhelicity2=kTRUE;
+  static const Bool_t dolocalhelicity2=kFALSE;//kTRUE;//full blown mode
   static const Int_t kUndefinedHelicity= -9999;
 
 

@@ -138,8 +138,8 @@ Bool_t  QwHelicityPattern::IsCompletePattern()
   Int_t i=fPatternSize-1;
   while(filled && i>-1)
     {
-//       std::cout<<" i="<<i<<" is loaded ?"
-// 	       <<fEventLoaded[fEvents.size()-i-1]<<"\n";
+       std::cout<<" i="<<i<<" is loaded ?"
+ 	       <<fEventLoaded[fEvents.size()-i-1]<<"\n";
       if(!fEventLoaded[i])
 	filled=kFALSE;
       i--;

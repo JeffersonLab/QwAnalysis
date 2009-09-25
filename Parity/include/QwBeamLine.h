@@ -134,7 +134,7 @@ class QwBeamLine : public VQwSubsystemParity{
  Int_t fQwBeamLineErrorCount;
 
   
-  static const Bool_t bDEBUG=kFALSE; 
+ static const Bool_t bDEBUG=kFALSE; 
 
 };
 

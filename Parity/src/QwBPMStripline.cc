@@ -344,7 +344,7 @@ Bool_t QwBPMStripline::ApplyHWChecks()
    Bool_t status=kTRUE;;
   //std::cout<<" wire[0] sequence num "<<fWire[0].GetSequenceNumber()<<" sample size "<<fWire[0].GetNumberOfSamples()<<std::endl;
 
-  if (fSampleSize>0){// if samplesize is 0 then this do not check for hardware check on this BPM.
+  if (fSampleSize>0){// samplesize is 0 then do not check for hardware check on this BPM since this device is not on the event cut file.
     
     //std::cout<<"BPM  wire [0 ] sample size "<<fWire[0].GetNumberOfSamples()<<std::endl; 
 

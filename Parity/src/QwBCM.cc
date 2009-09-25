@@ -91,6 +91,7 @@ void  QwBCM::ProcessEvent()
   
   if(ApplyHWChecks())
     {
+      //std::cout<<"***********8Process Event()*************"<<std::endl;
       fTriumf_ADC.ProcessEvent();
       fGoodEvent=kTRUE;
     } 
@@ -104,7 +105,7 @@ Bool_t QwBCM::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;	
 
-  if (fSampleSize > 0){// if samplesize is 0 then this do not check for hardware check on this BCM.
+  if (fSampleSize > 0){// if samplesize is 0 then this do not check for hardware check on this BCM. Since this device is not on the event cut file.
     fEventIsGood&=fTriumf_ADC.ApplyHWChecks();//will check for consistancy between HWSUM and SWSUM also check sample size is non-zero
     fEventIsGood&=fTriumf_ADC.MatchNumberOfSamples(fSampleSize);//check the sample size is correct
     //Also need to check sequence number 
