@@ -12,6 +12,7 @@
 
 #include <vector>
 #include "TTree.h"
+#include "TRandom3.h"
 
 #include "VQwSubsystemTracking.h"
 #include "VQwSubsystemParity.h"
@@ -150,6 +151,12 @@ class QwScanner: public VQwSubsystem,
   Double_t Cal_FactorX;
   Double_t Cal_FactorY;
 
+  Int_t myTimer;
+  Int_t HelicityChanged;
+
+  Int_t FrontScaData;
+  Int_t BackScaData;
+  Int_t CoincidenceScaData;
 };
 
 #endif

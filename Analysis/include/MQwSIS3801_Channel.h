@@ -60,11 +60,14 @@ class MQwSIS3801_Channel: public VQwDataElement {
   }
 
   void  RandomizeEventData(int helicity);
-  void  SetEventData(Double_t &value);
+  void  SetEventData(Double_t value);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
 
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_t index=0);
   void  ProcessEvent();
+
+  Double_t  GetValue(){return fValue;};
+
 
   MQwSIS3801_Channel& operator=  (const MQwSIS3801_Channel &value);
   MQwSIS3801_Channel& operator+= (const MQwSIS3801_Channel &value);

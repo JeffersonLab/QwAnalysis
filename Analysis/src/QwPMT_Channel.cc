@@ -34,8 +34,6 @@ void QwPMT_Channel::RandomizeEventData(int helicity, int SlotNum, int ChanNum){
 
   UInt_t word = fV775Dataword | (fV775SlotNumber<<27);
   word = word | (fV775ChannelNumber<<16) | fV775DataValidBit;
-  //std::cout<<"word = "<<std::hex<<word<<std::dec<<std::endl;
-
   fValue = word;
 };
 

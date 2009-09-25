@@ -10,10 +10,10 @@
 ##############################################################################################
 ###  Scanner histograms
 
-scanner_quartz_front_adc		TH1F	4001	-0.5		4000.5			QuartzFrontADC	Events
-scanner_quartz_back_adc			TH1F	4001	-0.5		4000.5			QuartzBackADC	Events
-scanner_quartz_front_tdc		TH1F	4001	-0.5		4000.5			QuartzFrontTDC	Events
-scanner_quartz_back_tdc			TH1F	4001	-0.5		4000.5			QuartzBackTDC	Events
+scanner_quartz_front_adc		TH1F	4096	0.5		4096.5			QuartzFrontADC	Events
+scanner_quartz_back_adc			TH1F	4096	0.5		4096.5			QuartzBackADC	Events
+scanner_quartz_front_tdc		TH1F	4096	0.5		4096.5			QuartzFrontTDC	Events
+scanner_quartz_back_tdc			TH1F	4096	0.5		4096.5			QuartzBackTDC	Events
 
 scanner_SCAN_POW     			TH1F	10000	0.0		5.0e9			scan_pow	Events
 scanner_SCAN_POSX     			TH1F	10000	0.0		5.0e9			scan_posx	Events
@@ -29,8 +29,8 @@ scanner_power_supply		TH1F	1000	8.0		10.0			PowSupply[V]		Events
 scanner_position_x		TH1F	2000	305.0		355.0			X[cm]		Events
 scanner_position_y		TH1F	2000	-110.0		110.0			Y[cm]		Events
 
-scanner_front_sca			TH1F	1500	0.0		1500.0			rate[kps]	Events
-scanner_back_sca			TH1F	1500	0.0		1500.0			rate[kps]	Events
-scanner_coincidence_sca			TH1F	1500	0.0		1500.0			rate[kps]	Events
+scanner_front_sca			TH1F	1500	0.5		1500.5			rate[kps]	Events
+scanner_back_sca			TH1F	1500	0.5		1500.5			rate[kps]	Events
+scanner_coincidence_sca			TH1F	1500	0.5		1500.5			rate[kps]	Events
 
 scanner_rate_map 	TH2F 	2000 	-100.0 	100.0 	400 	310.0 	350.0 	X[cm] 	Y[cm]

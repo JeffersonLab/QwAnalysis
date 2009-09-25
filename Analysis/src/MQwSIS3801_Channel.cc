@@ -60,9 +60,10 @@ Int_t MQwSIS3801_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
   return words_read;
 };
 
-void MQwSIS3801_Channel::SetEventData(Double_t &value){
+void MQwSIS3801_Channel::SetEventData(Double_t value){
 
-  this->fValue = (UInt_t)value;
+  this->fValue = (UInt_t)value; 
+  //std::cout<<"fValue is set to: value = "<<value<<std::endl;
 
 }
 
@@ -72,7 +73,8 @@ void MQwSIS3801_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
     //  This channel is not used, but is present in the data stream.
     //  Skip over this data.
   } else {
-    buffer.push_back(UInt_t(this->fValue));
+    buffer.push_back(UInt_t(this->fValue)); 
+    //std::cout<<"this->fValue="<<this->fValue<<std::endl;
   }
 };
 

@@ -39,6 +39,7 @@ class QwPMT_Channel: public VQwDataElement {
 
   void  InitializeChannel(TString name){
     SetElementName(name);
+    ClearEventData();
   };
 
   void  ClearEventData();
@@ -47,6 +48,7 @@ class QwPMT_Channel: public VQwDataElement {
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement=0){return 0;};
 
   void  SetValue(Double_t data){fValue= data;};
+  Double_t GetValue(){return fValue;};
 
   void  ProcessEvent();
 

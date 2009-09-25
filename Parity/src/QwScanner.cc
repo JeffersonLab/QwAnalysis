@@ -38,6 +38,14 @@ QwScanner::QwScanner(TString region_tmp)
 
    fDirectionX = PreDirectionX = 1.0;
    fDirectionY = PreDirectionY = 1.0;
+
+   HelicityChanged = 0;
+   myTimer = abs(gRandom->Gaus(15,3));
+   FrontScaData = 0;
+   BackScaData = 0;
+   CoincidenceScaData = 0;
+
+
 };
 
 
@@ -844,7 +852,7 @@ void QwScanner::SetRandomEventParameters(Double_t mean, Double_t sigma)
 //QADC module will be in self-triggering mode, i.e., triggered
 //by the left-right PMT's coincidence with a low threshold setting.
 //TDC's will be started by the left and right PMT's coincidence,
-//stopped by the individual PMT
+//stopped by what??? (the individual PMT???)
 //
 void QwScanner::RandomizeEventData(int helicity)
 {
@@ -883,7 +891,63 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
   std::vector<UInt_t> subbankheader;
   std::vector<UInt_t> rocheader;
 
+  myTimer-=1;  //timer counting down
 
+if(myTimer>0){
+
+//mock data for trigger events
+  for (size_t i=0; i<fPMTs.size(); i++){
+    for (size_t j=0; j<fPMTs.at(i).size(); j++){
+      fPMTs.at(i).at(j).EncodeEventData(LocalTrigBuffer);
+
+      //assume a trimming level for the adc
+      Double_t front_adc_trimmer = 1200.0;
+      Double_t back_adc_trimmer = 1100.0;
+
+      Double_t front_adc_value = 0.0;
+      Double_t back_adc_value = 0.0;
+
+      if(fPMTs.at(i).at(j).GetElementName()==TString("quartz_front_adc")){
+         front_adc_value = UInt_t(fPMTs.at(i).at(j).GetValue())&0xFFF;
+         if (front_adc_value>front_adc_trimmer){
+             FrontScaData ++;
+             //std::cout<<"     front_adc_value, FrontScaData  "<<front_adc_value<<"   "<<FrontScaData<<std::endl;
+         }
+      }
+
+      if(fPMTs.at(i).at(j).GetElementName()==TString("quartz_back_adc")){
+         back_adc_value = UInt_t(fPMTs.at(i).at(j).GetValue())&0xFFF;
+         if (back_adc_value>back_adc_trimmer){
+             BackScaData ++;
+             //std::cout<<"     back_adc_value, BackScaData  "<<back_adc_value<<"   "<<BackScaData<<std::endl;
+         }
+      }
+
+      if(  (back_adc_value>back_adc_trimmer) && (back_adc_value>back_adc_trimmer) ) {
+        CoincidenceScaData ++;
+      }
+    }
+  }
+}
+
+else { //(myTimer ==0)
+
+//mock data for scaler events
+//replace mock data for ch0, ch1, ch2
+  for (size_t i=0; i<fSCAs.size(); i++){
+    if (fSCAs.at(i) != NULL){
+      fSCAs.at(i)->GetChannel(TString("front_sca"))->SetEventData(FrontScaData);
+      fSCAs.at(i)->GetChannel(TString("back_sca"))->SetEventData(BackScaData);
+      fSCAs.at(i)->GetChannel(TString("coincidence_sca"))->SetEventData(CoincidenceScaData);
+      fSCAs.at(i)->EncodeEventData(LocalScaBuffer);
+    }
+  }
+
+FrontScaData = 0;
+BackScaData = 0;
+CoincidenceScaData = 0;
+
+//mock data for position events
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
       fADC_Data.at(i)->EncodeEventData(LocalSumBuffer);
@@ -968,21 +1032,8 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer)
         LocalSumBuffer[12+i] =localbuf[i];
     }
 
-
-//mock data for scaler events
-  for (size_t i=0; i<fSCAs.size(); i++){
-    if (fSCAs.at(i) != NULL){
-      fSCAs.at(i)->EncodeEventData(LocalScaBuffer);
-    }
-  }
-
-
-//mock data for trigger events
-  for (size_t i=0; i<fPMTs.size(); i++){
-    for (size_t j=0; j<fPMTs.at(i).size(); j++){
-      fPMTs.at(i).at(j).EncodeEventData(LocalTrigBuffer);
-    }
-  }
+  myTimer = abs(gRandom->Gaus(15,3));
+} //end of if(myTimer ==0)
 
   // If there is element data, generate the subbank header
   if (LocalSumBuffer.size() > 0) {
