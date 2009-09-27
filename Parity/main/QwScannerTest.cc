@@ -39,8 +39,6 @@
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
 
-static bool sTree = true;
-
 Bool_t kInQwBatchMode = kFALSE;
 
 int main(Int_t argc,Char_t* argv[])
@@ -183,34 +181,7 @@ static int kDebug = 1;
     rootfile.cd();
     TString prefix = TString("scanner_");
     scanner->ConstructHistograms(rootfile.mkdir("scanner_histo"),prefix);
-
-    // ROOT file output (trees)
-    if (kDebug) std::cout<<" ====>>>> Creating tree:"<<std::endl;
-
-    Int_t eventnumber = 0;
-    TTree *ScannerTrigTree;
-    TString prefix_trig = TString("trig_");
-    std::vector <Double_t> ScannerTrigVector;
-    if (sTree) {
-      rootfile.cd();
-      ScannerTrigTree = new TTree("Scanner_TrigTree","scanner trigevent data tree");
-      ScannerTrigVector.reserve(6000);
-      ScannerTrigTree->Branch("trigeventnumber",&eventnumber,"trigeventnumber/F");
-      scanner->ConstructBranchAndVector(ScannerTrigTree, prefix_trig, ScannerTrigVector);
-    }
-
-    TTree *ScannerSumTree;
-    TString prefix_sum = TString("sum_");
-    std::vector <Double_t> ScannerSumVector;
-    if (sTree) {
-      rootfile.cd();
-      ScannerSumTree = new TTree("Scanner_SumTree","scanner sumevent data tree");
-      ScannerSumVector.reserve(6000);
-      ScannerSumTree->Branch("sumeventnumber",&eventnumber,"sumeventnumber/F");
-      scanner->ConstructBranchAndVector(ScannerSumTree, prefix_sum, ScannerSumVector);
-    }
-
-
+    scanner->ConstructTrees(&rootfile);
 
     int EvtCounter = 0;
     while (QwEvt.GetEvent() == CODA_OK){
@@ -239,8 +210,6 @@ static int kDebug = 1;
 		  << QwEvt.GetEventNumber() << "\n";
       }
 
-      eventnumber++;
-
       //  Fill the subsystem objects with their respective data for this event.
       QwEvt.FillSubsystemData(QwDetectors);
 
@@ -249,15 +218,7 @@ static int kDebug = 1;
 
       QwDetectors.FillHistograms();
 
-      // Fill the tree
-      if (sTree) {
-        //std::cout<<"Filling tree...\n";
-        eventnumber = QwEvt.GetEventNumber();
-        scanner->FillTreeVector(ScannerTrigVector, prefix_trig);
-        scanner->FillTreeVector(ScannerSumVector, prefix_sum);
-        ScannerTrigTree->Fill();
-        ScannerSumTree->Fill();
-      }
+      scanner->FillTrees();
 
     }
     std::cout << "Number of events processed: "

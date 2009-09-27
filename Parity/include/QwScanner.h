@@ -12,6 +12,7 @@
 
 #include <vector>
 #include "TTree.h"
+#include "TFile.h"
 #include "TRandom3.h"
 
 #include "VQwSubsystemTracking.h"
@@ -58,6 +59,8 @@ class QwScanner: public VQwSubsystem,
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();
+  void  ConstructTrees(TFile* rootfile);
+  void  FillTrees();
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values, TString &prefix);
@@ -135,6 +138,7 @@ class QwScanner: public VQwSubsystem,
   Double_t fPedestal;
   Double_t fCalibration;
 
+  Double_t fPowSupply;
   Double_t fPositionX;
   Double_t fPositionY;
   Double_t fRate;
@@ -152,11 +156,37 @@ class QwScanner: public VQwSubsystem,
   Double_t Cal_FactorY;
 
   Int_t myTimer;
-  Int_t HelicityChanged;
 
   Int_t FrontScaData;
   Int_t BackScaData;
   Int_t CoincidenceScaData;
+
+  Int_t eventnumber;
+  Int_t trigevtnum;
+  Int_t sumevtnum;
+  Double_t fFrontSCA;
+  Double_t fBackSCA;
+  Double_t fCoincidenceSCA;
+  Double_t fFrontADC;
+  Double_t fFrontTDC;
+  Double_t fBackADC;
+  Double_t fBackTDC;
+
+
+  TString prefix_trig;
+  TString prefix_sum;
+
+  std::vector <Double_t> ScannerTrigVector;
+  std::vector <Double_t> ScannerSumVector;
+
+  TTree *ScannerTrigTree;
+  TTree *ScannerSumTree;
+  TTree *ScannerEvtTree;
+
+  Int_t SumFlag;
+  Int_t TrigFlag;
+
+  Double_t get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalidity);
 };
 
 #endif

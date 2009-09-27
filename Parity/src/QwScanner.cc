@@ -39,13 +39,24 @@ QwScanner::QwScanner(TString region_tmp)
    fDirectionX = PreDirectionX = 1.0;
    fDirectionY = PreDirectionY = 1.0;
 
-   HelicityChanged = 0;
    myTimer = abs(gRandom->Gaus(15,3));
    FrontScaData = 0;
    BackScaData = 0;
    CoincidenceScaData = 0;
 
+   prefix_trig = TString("trig_");
+   prefix_sum = TString("sum_");
 
+   eventnumber = 0;
+   trigevtnum = 0;
+   sumevtnum = 0;
+   fFrontSCA = 0.0;
+   fBackSCA = 0.0;
+   fCoincidenceSCA = 0.0;
+   fFrontADC = 0.0;
+   fFrontTDC = 0.0;
+   fBackADC = 0.0;
+   fBackTDC = 0.0;
 };
 
 
@@ -229,8 +240,15 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
   if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer:  "
                           << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
                           << ", num_words "<<num_words<<", index "<<index<<std::endl;
+
+  SumFlag = 0;
+  TrigFlag = 0;
+
   //  This is a VQWK bank if bank_id=2103
   if (bank_id==2103){
+
+    sumevtnum++;
+    SumFlag = 5;
 
     if (index>=0 && num_words>0){
 
@@ -295,6 +313,9 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
 
   //  This is a QADC/TDC bank (bank_id=2101)
   if (bank_id==2101){
+
+    trigevtnum++;
+    TrigFlag = 5;
 
     if (index>=0 && num_words>0){
       //  We want to process this ROC.  Begin looping through the data.
@@ -370,8 +391,6 @@ void  QwScanner::ProcessEvent(){
 };
 
 
-//To-do: need to implement rate map, X-Y position, scaler
-
 void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix){
 
   for (size_t i=0; i<fPMTs.size(); i++){
@@ -396,7 +415,6 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix){
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_power_supply")));
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));
-    //fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_scaler")));
     fHistograms2D.push_back( gQwHists.Construct2DHist(TString("scanner_rate_map")));
 
 };
@@ -405,39 +423,128 @@ void  QwScanner::FillHistograms(){
   //std::cout<<"QwScanner::FillHistograms():"<<std::endl;
   if (! HasDataLoaded()) return;
 
-  //std::cout<<"QwScanner::FillHistograms(): Filling trigger data..."<<std::endl;
+  //Fill trigger data
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).FillHistograms();
+      if(fPMTs.at(i).at(j).GetElementName()==TString("quartz_front_adc"))
+        fFrontADC = fPMTs.at(i).at(j).GetValue();
+      if(fPMTs.at(i).at(j).GetElementName()==TString("quartz_back_adc"))
+        fBackADC = fPMTs.at(i).at(j).GetValue();
+      if(fPMTs.at(i).at(j).GetElementName()==TString("quartz_front_tdc"))
+        fFrontTDC = fPMTs.at(i).at(j).GetValue();
+      if(fPMTs.at(i).at(j).GetElementName()==TString("quartz_back_tdc"))
+        fBackTDC = fPMTs.at(i).at(j).GetValue();
     }
   }
 
-  for (size_t i=0; i<fSCAs.size(); i++){
-    if (fSCAs.at(i) != NULL){
-      fSCAs.at(i)->FillHistograms();
-    }
-  }
-
-  //std::cout<<"QwScanner::FillHistograms(): Filling position and rate data..."<<std::endl;
+  //Fill position data
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
       fADC_Data.at(i)->FillHistograms();
 
-        fHistograms1D.at(0)->Fill(fADC_Data.at(i)->GetChannel(TString("SCAN_POW"))->GetAverageVolts());
+        for(size_t j=0; j<fHistograms1D.size();j++){
+          if(fHistograms1D.at(j)->GetTitle()==TString("scanner_power_supply")){
+            fPowSupply = fADC_Data.at(i)->GetChannel(TString("SCAN_POW"))->GetAverageVolts();
+            fHistograms1D.at(j)->Fill(fPowSupply);
+          }
 
-        fPositionX = fADC_Data.at(i)->GetChannel(TString("SCAN_POSX"))->GetAverageVolts();
-        fPositionX = (fPositionX-fVoltageOffsetX)*Cal_FactorX + MainDetCenterX + HomePositionOffsetX;
-        fHistograms1D.at(1)->Fill(fPositionX);
+          if(fHistograms1D.at(j)->GetTitle()==TString("scanner_position_x")){
+            fPositionX = fADC_Data.at(i)->GetChannel(TString("SCAN_POSX"))->GetAverageVolts();
+            fPositionX = (fPositionX-fVoltageOffsetX)*Cal_FactorX + MainDetCenterX + HomePositionOffsetX;
+            fHistograms1D.at(j)->Fill(fPositionX);
+          }
 
-        fPositionY = fADC_Data.at(i)->GetChannel(TString("SCAN_POSY"))->GetAverageVolts();
-        fPositionY = (fPositionY-fVoltageOffsetY)*Cal_FactorY + MainDetCenterY + HomePositionOffsetY;
-        fHistograms1D.at(2)->Fill(fPositionY);
+          if(fHistograms1D.at(j)->GetTitle()==TString("scanner_position_y")){
+            fPositionY = fADC_Data.at(i)->GetChannel(TString("SCAN_POSY"))->GetAverageVolts();
+            fPositionY = (fPositionY-fVoltageOffsetY)*Cal_FactorY + MainDetCenterY + HomePositionOffsetY;
+            fHistograms1D.at(j)->Fill(fPositionY);
+          }
+        //std::cout<<"PositionX: "<<fPositionX<<"  PositionY: "<<fPositionY<<std::endl;
+        }
+    }
+  }
 
+  //Fill scaler data
+  for (size_t i=0; i<fSCAs.size(); i++){
+    if (fSCAs.at(i) != NULL){
+      fSCAs.at(i)->FillHistograms();
+      fRate = fSCAs.at(i)->GetChannel(TString("coincidence_sca"))->GetValue();
+      fCoincidenceSCA = fRate;
+      fFrontSCA = fSCAs.at(i)->GetChannel(TString("front_sca"))->GetValue();
+      fBackSCA = fSCAs.at(i)->GetChannel(TString("back_sca"))->GetValue();
+    }
+  }
+
+  //Fill rate map
+  for(size_t j=0; j<fHistograms2D.size();j++){
+    if(fHistograms2D.at(j)->GetTitle()==TString("scanner_rate_map")){
+      Int_t checkvalidity = 1;
+      Double_t PreValue = get_value( fHistograms2D.at(j), fPositionY, fPositionX, checkvalidity);
+      if(checkvalidity!=0){
+        if(PreValue>0){
+          fRate = (PreValue + fRate)*0.5;  //average value for this bin
+        }
+        fHistograms2D.at(j)->SetBinContent(fPositionY,fPositionX,fRate);
+        Int_t xbin = fHistograms2D.at(j)->GetXaxis()->FindBin( fPositionY ); 
+        Int_t ybin = fHistograms2D.at(j)->GetYaxis()->FindBin( fPositionX ); 
+        fHistograms2D.at(j)->SetBinContent( fHistograms2D.at(j)->GetBin( xbin, ybin ), fRate);
+      }
     }
   }
 
 };
 
+void  QwScanner::ConstructTrees(TFile *rootfile)
+{
+      rootfile->cd();
+
+      //raw data tree for sum/scaler event
+      ScannerTrigTree = new TTree("Scanner_TrigTree","scanner trigevent data tree");
+      ScannerTrigVector.reserve(6000);
+      ConstructBranchAndVector(ScannerTrigTree, prefix_trig, ScannerTrigVector);
+
+      //raw data tree for trigger event
+      ScannerSumTree = new TTree("Scanner_SumTree","scanner sumevent data tree");
+      ScannerSumVector.reserve(6000);
+      ConstructBranchAndVector(ScannerSumTree, prefix_sum, ScannerSumVector);
+
+      //correlated data tree for both sum and trigger events (with deducated position data)
+      ScannerEvtTree = new TTree("ScannerEvt","scanner event data tree");
+      ScannerEvtTree->Branch("eventnumber",&eventnumber,"eventnumber/I");
+      ScannerEvtTree->Branch("trigevtnum",&trigevtnum,"trigevtnum/I");
+      ScannerEvtTree->Branch("sumevtnum",&sumevtnum,"sumevtnum/I");
+      ScannerEvtTree->Branch("sumflag",&SumFlag,"sumflag/I");
+      ScannerEvtTree->Branch("trigflag",&TrigFlag,"trigflag/I");
+      ScannerEvtTree->Branch("pow_supply",&fPowSupply,"pow_supply/D");
+      ScannerEvtTree->Branch("position_x",&fPositionX,"position_x/D");
+      ScannerEvtTree->Branch("position_y",&fPositionY,"position_y/D");
+      ScannerEvtTree->Branch("front_sca",&fFrontSCA,"front_sca/D");
+      ScannerEvtTree->Branch("back_sca",&fBackSCA,"back_sca/D");
+      ScannerEvtTree->Branch("coincidence_sca",&fCoincidenceSCA,"coincidence_sca/D");
+      ScannerEvtTree->Branch("front_adc",&fFrontADC,"front_adc/D");
+      ScannerEvtTree->Branch("back_adc",&fBackADC,"back_adc/D");
+      ScannerEvtTree->Branch("front_tdc",&fFrontTDC,"front_tdc/D");
+      ScannerEvtTree->Branch("back_tdc",&fBackTDC,"back_tdc/D");
+
+};
+
+void  QwScanner::FillTrees()
+{
+     eventnumber++;
+
+     if(TrigFlag == 5){
+        FillTreeVector(ScannerTrigVector, prefix_trig);
+        ScannerTrigTree->Fill();
+     }
+
+     if(SumFlag == 5){
+        FillTreeVector(ScannerSumVector, prefix_sum);
+        ScannerSumTree->Fill();
+     }
+
+     ScannerEvtTree->Fill();
+};
 
 void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
@@ -458,6 +565,13 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vec
         fADC_Data.at(i)->ConstructBranchAndVector(tree, prefix, values);
       }
     }
+
+    for (size_t i=0; i<fSCAs.size(); i++){
+      if (fSCAs.at(i) != NULL){
+        fSCAs.at(i)->ConstructBranchAndVector(tree, prefix, values);
+      }
+    }
+
   return;
   }
 
@@ -471,7 +585,7 @@ void  QwScanner::FillTreeVector(std::vector<Double_t> &values, TString &prefix)
   if(prefix == TString("trig_")){
     for (size_t i=0; i<fPMTs.size(); i++){
       for (size_t j=0; j<fPMTs.at(i).size(); j++){
-        fPMTs.at(i).at(j).FillTreeVector(values);
+          fPMTs.at(i).at(j).FillTreeVector(values);
       }
     }
   return;
@@ -488,9 +602,18 @@ void  QwScanner::FillTreeVector(std::vector<Double_t> &values, TString &prefix)
 		<< std::endl;
       }
     }
-  return;
-  }
 
+    for (size_t i=0; i<fSCAs.size(); i++){
+      if (fSCAs.at(i) != NULL){
+        fSCAs.at(i)->FillTreeVector(values);
+      } else {
+        std::cerr << "QwScanner::FillTreeVector:  "
+		<< "fADC_Data.at(" << i << ") is NULL"
+		<< std::endl;
+      }
+    }
+  }
+  return;
 };
 
 
@@ -852,14 +975,20 @@ void QwScanner::SetRandomEventParameters(Double_t mean, Double_t sigma)
 //QADC module will be in self-triggering mode, i.e., triggered
 //by the left-right PMT's coincidence with a low threshold setting.
 //TDC's will be started by the left and right PMT's coincidence,
-//stopped by what??? (the individual PMT???)
+//stopped by what???
+//
+// The VQWK and scaler will be on the same gate (gate A), the QADC/TDC
+// on another gate (gate B, provided by the scanner coincidence). 
+// "A OR B" will give the gate(or readout interruption signal) for 
+// the master board.
 //
 void QwScanner::RandomizeEventData(int helicity)
 {
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
 
-   //jpan: It is not strict to use i,j as slot number and channel number.
+   //jpan: It is not strict to use i,j as slot number and channel number,
+  // but it is only for generating mock data anyway.
       fPMTs.at(i).at(j).RandomizeEventData(helicity,i,j);
     }
   }
@@ -1151,3 +1280,27 @@ void QwScanner::Print()
 
   return;
 }
+
+//scanner analysis utilities
+Double_t QwScanner::get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalidity)
+{
+  if (checkvalidity)
+    {
+      bool x_ok = ( h->GetXaxis()->GetXmin() < x && x < h->GetXaxis()->GetXmax() );
+      bool y_ok = ( h->GetYaxis()->GetXmin() < y && y < h->GetYaxis()->GetXmax() );
+     
+      if (! ( x_ok && y_ok)) 
+	{
+	  //if (!x_ok) std::cerr << "x value " << x << " out of range ["<< h->GetXaxis()->GetXmin() <<","<< h->GetXaxis()->GetXmax() << "]" << std::endl;
+	  //if (!y_ok) std::cerr << "y value " << y << " out of range ["<< h->GetYaxis()->GetXmin() <<","<< h->GetYaxis()->GetXmax() << "]" << std::endl;
+	  checkvalidity=0;
+	  return -1e20;
+	}
+    }
+
+  const int xbin = h->GetXaxis()->FindBin( x ); 
+  const int ybin = h->GetYaxis()->FindBin( y ); 
+
+  return h->GetBinContent( h->GetBin( xbin, ybin ));
+};
+
