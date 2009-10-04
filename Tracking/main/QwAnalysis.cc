@@ -193,9 +193,11 @@ int main(Int_t argc,Char_t* argv[])
   QwDetectors.GetSubsystem("MD")->LoadChannelMap("maindet_cosmics.map");
 
 
-  QwDetectors.push_back ( new QwFocalPlaneScanner ( "FPS" ) );
-  QwDetectors.GetSubsystem("FPS")->LoadChannelMap ( "scanner_cosmics.map" );
-  QwDetectors.GetSubsystem("FPS")->LoadInputParameters("");
+  //QwDetectors.push_back (new QwScanner( "FPS" ));
+  //QwScanner* scanner = (QwScanner*) QwDetectors.GetSubsystem("FPS");
+  //scanner->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput/scanner_channel.map" );
+  //scanner->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput/scanner_pedestal.map");
+
 
   boost::shared_ptr<QwHitContainer> fHitList;
   QwHitContainer grandHitList;
@@ -288,8 +290,6 @@ int main(Int_t argc,Char_t* argv[])
 
     QwDetectors.ConstructHistograms();
     ConstructBranchAndVector(HitTree,prebase,hitvector,grandHitList.size());//contruct branches for each wire in the system
-
-
 
 
     while (eventbuffer.GetEvent() == CODA_OK){

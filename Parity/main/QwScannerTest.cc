@@ -57,7 +57,7 @@ static int kDebug = 1;
   ///  all instances.
   ///  The "scratch" directory should be first.
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput");
 
   ///
   ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
@@ -88,8 +88,8 @@ static int kDebug = 1;
   // Test code for the focal plane scanner 
   if (kDebug) std::cout<<"Instantiate the scanner subsystem:"<<std::endl;
   QwDetectors.push_back (new QwScanner( "FPS" ));
-  QwDetectors.GetSubsystem("FPS")->LoadChannelMap ( "scanner_parity.map" );
-  QwDetectors.GetSubsystem("FPS")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/scanner_pedestal.map");
+  QwDetectors.GetSubsystem("FPS")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput/scanner_channel.map" );
+  QwDetectors.GetSubsystem("FPS")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput/scanner_pedestal.map");
 
 
   ///

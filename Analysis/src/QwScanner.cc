@@ -393,6 +393,8 @@ void  QwScanner::ProcessEvent(){
 
 void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix){
 
+  prefix = TString("scanner_");
+
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).ConstructHistograms(folder, prefix);

@@ -41,7 +41,7 @@ class MQwSIS3801_Channel: public VQwDataElement {
 
   void  InitializeChannel(TString name){
     fValue = 0;
-    SetNumberOfDataWords(1);  //SIS3801 - single word
+    SetNumberOfDataWords(1);  //SIS3801 - single word, 32 bits
     fNumEvtsWithHWErrors=0;//init error counters
     fNumEvtsWithEventCutsRejected=0;//init error counters
     SetElementName(name);
