@@ -17,4 +17,4 @@ nodenode::nodenode() { }
 
 nodenode::~nodenode() { }
 
-} // QwTracking
+} // namespace QwTracking

@@ -7,7 +7,7 @@
 #include <iostream>
 
 #include "options.h"
-#include "QwTrackingTree.h"
+#include "Det.h"
 
 #ifndef NDetMax
 # define NDetMax 1010

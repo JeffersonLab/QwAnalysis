@@ -1,4 +1,12 @@
 #include "QwTreeEventBuffer.h"
+
+#include "QwHit.h"
+#include "QwHitContainer.h"
+#include "QwParameterFile.h"
+#include "QwDetectorInfo.h"
+
+#include "Det.h"
+
 #include "uv2xy.h"
 
 #include <string>
@@ -393,7 +401,11 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
     double x = fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX.at(i1);
     double y = fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionY.at(i1);
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
-    if (hit) hitlist->push_back(*hit);
+    if (hit) {
+      // Add the hit to the hit list (it is copied) and delete local instance
+      hitlist->push_back(*hit);
+      delete hit;
+    }
   }
   if (fDebug >= 2) std::cout << "Processing Region2_ChamberFront_WirePlane2: "
 	<< fRegion2_ChamberFront_WirePlane2_NbOfHits << " hit(s)." << std::endl;
@@ -402,7 +414,10 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
     double x = fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionX.at(i1);
     double y = fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionY.at(i1);
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
-    if (hit) hitlist->push_back(*hit);
+    if (hit) {
+      hitlist->push_back(*hit);
+      delete hit;
+    }
   }
   if (fDebug >= 2) std::cout << "Processing Region2_ChamberFront_WirePlane3: "
 	<< fRegion2_ChamberFront_WirePlane3_NbOfHits << " hit(s)." << std::endl;
@@ -411,7 +426,10 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
     double x = fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionX.at(i1);
     double y = fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionY.at(i1);
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
-    if (hit) hitlist->push_back(*hit);
+    if (hit) {
+      hitlist->push_back(*hit);
+      delete hit;
+    }
   }
   if (fDebug >= 2) std::cout << "Processing Region2_ChamberFront_WirePlane4: "
 	<< fRegion2_ChamberFront_WirePlane4_NbOfHits << " hit(s)." << std::endl;
@@ -420,7 +438,10 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
     double x = fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionX.at(i1);
     double y = fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionY.at(i1);
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
-    if (hit) hitlist->push_back(*hit);
+    if (hit) {
+      hitlist->push_back(*hit);
+      delete hit;
+    }
   }
   if (fDebug >= 2) std::cout << "Processing Region2_ChamberFront_WirePlane5: "
 	<< fRegion2_ChamberFront_WirePlane5_NbOfHits << " hit(s)." << std::endl;
@@ -429,7 +450,10 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
     double x = fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionX.at(i1);
     double y = fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionY.at(i1);
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
-    if (hit) hitlist->push_back(*hit);
+    if (hit) {
+      hitlist->push_back(*hit);
+      delete hit;
+    }
   }
   if (fDebug >= 2) std::cout << "Processing Region2_ChamberFront_WirePlane6: "
 	<< fRegion2_ChamberFront_WirePlane6_NbOfHits << " hit(s)." << std::endl;
@@ -438,7 +462,10 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
     double x = fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionX.at(i1);
     double y = fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionY.at(i1);
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
-    if (hit) hitlist->push_back(*hit);
+    if (hit) {
+      hitlist->push_back(*hit);
+      delete hit;
+    }
   }
 
 
@@ -450,7 +477,10 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
     double x = fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionX.at(i1);
     double y = fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionY.at(i1);
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
-    if (hit) hitlist->push_back(*hit);
+    if (hit) {
+      hitlist->push_back(*hit);
+      delete hit;
+    }
   }
   if (fDebug >= 2) std::cout << "Processing Region2_ChamberBack_WirePlane2: "
 	<< fRegion2_ChamberBack_WirePlane2_NbOfHits << " hit(s)." << std::endl;
@@ -459,7 +489,10 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
     double x = fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionX.at(i1);
     double y = fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionY.at(i1);
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
-    if (hit) hitlist->push_back(*hit);
+    if (hit) {
+      hitlist->push_back(*hit);
+      delete hit;
+    }
   }
   if (fDebug >= 2) std::cout << "Processing Region2_ChamberBack_WirePlane3: "
 	<< fRegion2_ChamberBack_WirePlane3_NbOfHits << " hit(s)." << std::endl;
@@ -468,7 +501,10 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
     double x = fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionX.at(i1);
     double y = fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionY.at(i1);
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
-    if (hit) hitlist->push_back(*hit);
+    if (hit) {
+      hitlist->push_back(*hit);
+      delete hit;
+    }
   }
   if (fDebug >= 2) std::cout << "Processing Region2_ChamberBack_WirePlane4: "
 	<< fRegion2_ChamberBack_WirePlane4_NbOfHits << " hit(s)." << std::endl;
@@ -477,7 +513,10 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
     double x = fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionX.at(i1);
     double y = fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionY.at(i1);
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
-    if (hit) hitlist->push_back(*hit);
+    if (hit) {
+      hitlist->push_back(*hit);
+      delete hit;
+    }
   }
   if (fDebug >= 2) std::cout << "Processing Region2_ChamberBack_WirePlane5: "
 	<< fRegion2_ChamberBack_WirePlane5_NbOfHits << " hit(s)." << std::endl;
@@ -486,7 +525,10 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
     double x = fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionX.at(i1);
     double y = fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionY.at(i1);
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
-    if (hit) hitlist->push_back(*hit);
+    if (hit) {
+      hitlist->push_back(*hit);
+      delete hit;
+    }
   }
   if (fDebug >= 2) std::cout << "Processing Region2_ChamberBack_WirePlane6: "
 	<< fRegion2_ChamberBack_WirePlane6_NbOfHits << " hit(s)." << std::endl;
@@ -495,7 +537,10 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
     double x = fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionX.at(i1);
     double y = fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionY.at(i1);
     QwHit* hit = CreateHitRegion2(detectorinfo,x,y);
-    if (hit) hitlist->push_back(*hit);
+    if (hit) {
+      hitlist->push_back(*hit);
+      delete hit;
+    }
   }
 
 
@@ -609,6 +654,12 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
       Monte Carlo simulation and tracking codes.  For now there is no problem
       yet that has led us to fix this.
 
+ @param detectorinfo Detector information
+ @param x X coordinate of the track in the wire plane
+ @param y Y coordinate of the track in the wire plane
+
+ @return Pointer to the created hit object (needs to be deleted by caller)
+
 */
 QwHit* QwTreeEventBuffer::CreateHitRegion2 (
 	QwDetectorInfo* detectorinfo,
@@ -621,11 +672,18 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
   int plane = detectorinfo->fPlane;
 
   // Detector geometry
-  double dx = detectorinfo->GetElementSpacing();
-  int central_wire = (detectorinfo->fTotalWires + 1) / 2;
+  double angle = detectorinfo->GetElementAngle();
+  double offset = detectorinfo->GetElementOffset();
+  double spacing = detectorinfo->GetElementSpacing();
+  int central_wire = (detectorinfo->GetNumberOfElements() + 1) / 2;
 
   // Make the necessary transformations for the wires
-  Uv2xy uv2xy(region);
+  // (we are assuming identical offset for u and v)
+  // This transformation object is not used for x (naturally)
+  if (angle < 90.0) angle = 180.0 - angle; // angle for U is smaller than 90 deg
+  Uv2xy uv2xy (90.0 + angle, 90.0 - angle + 180.0);
+  uv2xy.SetOffset(offset, offset);
+  uv2xy.SetWireSpacing(spacing);
   switch (direction) {
     case kDirectionX:
       // Nothing needs to be done for direction X
@@ -638,15 +696,17 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
       break;
     default:
       std::cout << "Direction " << direction << " not handled in CreateHitRegion2!" << std::endl;
+      return 0;
   }
 
   // Because there is no real HDC central wire, the "central" wire corresponds
   // to x from -dx to 0.  For region 2 it is equal to 4, i.e. (nwires + 1) / 2.
-  int wire = (int) floor (x / dx) + central_wire;
-  // Calculate the actual position of this wire
-  double x_wire = (wire - central_wire) * dx;
+  int wire = (int) floor (x / spacing) + central_wire;
   // Check whether this wire is physical, return null if not possible
-  if ((wire < 1) || (wire > detectorinfo->fTotalWires)) return 0;
+  if ((wire < 1) || (wire > detectorinfo->GetNumberOfElements())) return 0;
+
+  // Calculate the actual position of this wire
+  double x_wire = (wire - central_wire) * spacing;
 
   // Calculate the drift distance
   double mean_distance = fabs(x - x_wire);
@@ -667,7 +727,7 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
   QwHit* hit = new QwHit(0,0,0,0, region, package, plane, direction, wire, 0);
   hit->SetDetectorInfo(detectorinfo);
   hit->SetDriftDistance(distance);
-  hit->SetSpatialResolution(dx);
+  hit->SetSpatialResolution(spacing);
 
   return hit;
 }
@@ -685,6 +745,14 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
       a fraction 1/3 of the thickness the hit is discared, otherwise we have
       too many hits compared with the data...
 
+ @param detectorinfo Detector information
+ @param x X coordinate of the track in the wire plane
+ @param y Y coordinate of the track in the wire plane
+ @param mx X slope of the track through the wire plane
+ @param my Y slope of the track through the wire plane
+
+ @return Standard list of hit objects
+
 */
 std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
 	QwDetectorInfo* detectorinfo,
@@ -698,12 +766,18 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
   int plane = detectorinfo->fPlane;
 
   // Detector geometry: wirespacing, width, central wire
-  double dx = detectorinfo->GetElementSpacing();
-  double dz = detectorinfo->fActiveWidthZ;
-  int central_wire = (detectorinfo->fTotalWires + 1) / 2;
+  double angle = detectorinfo->GetElementAngle();
+  double offset = detectorinfo->GetElementOffset();
+  double spacing = detectorinfo->GetElementSpacing();
+  double dz = detectorinfo->GetActiveWidthZ();
+  int central_wire = (detectorinfo->GetNumberOfElements() + 1) / 2;
+
+  // Create a list for the hits (will be returned)
+  std::vector<QwHit> hits;
 
   // Make the necessary transformations for the wires
-  Uv2xy uv2xy(region);
+  if (angle > 90.0) angle = 180.0 - angle; // angle for U is smaller than 90 deg
+  Uv2xy uv2xy (angle, 180.0 - angle); // angles for U and V
   double x1, x2;
   x1 = x2 = 0.0;
   switch (direction) {
@@ -717,6 +791,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
       break;
     default:
       std::cout << "Direction " << direction << " not handled in CreateHitRegion3!" << std::endl;
+      return hits;
   }
   // From here we only work with the coordinate x, it is understood that for
   // the u and v planes this is equivalent (by virtue of the previous switch
@@ -729,18 +804,17 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
   // The central wire corresponds to x from -0.5*dx to +0.5*dx and should be
   // equal to 141 for region 3, i.e. (nwires + 1) / 2 for odd nwires.  That is
   // the reason for the +0.5 in the argument of floor.
-  int wire1 = (int) floor (x1 / dx + 0.5) + central_wire;
-  int wire2 = (int) floor (x2 / dx + 0.5) + central_wire;
+  int wire1 = (int) floor (x1 / spacing + 0.5) + central_wire;
+  int wire2 = (int) floor (x2 / spacing + 0.5) + central_wire;
 
   // Find all wire hits for this detector plane
-  std::vector<QwHit> hits;
   for (int wire = wire1; wire <= wire2; wire++) {
 
     // Check whether this wire is physical, skip if not possible
-    if ((wire < 1) || (wire > detectorinfo->fTotalWires)) continue;
+    if ((wire < 1) || (wire > detectorinfo->GetNumberOfElements())) continue;
 
     // Calculate the actual position of this wire
-    double x_wire = (wire - central_wire) * dx;
+    double x_wire = (wire - central_wire) * spacing;
 
     // The drift distance is just the transverse (with respect to wire plane)
     // distance from the wire to the track, i.e. no angular dependence is
@@ -768,8 +842,9 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
     hit->SetDetectorInfo(detectorinfo);
     hit->SetHitNumber(fHitCounter++);
 
-    // Add hit to the list for this detector plane
+    // Add hit to the list for this detector plane and delete local instance
     hits.push_back(*hit);
+    delete hit;
   }
 
   // Return the short list of hits in this VDC plane

@@ -1,3 +1,6 @@
+#ifndef GLOBALS_H
+#define GLOBALS_H
+
 
 #define DLAYERS 4		/* max number of detectors of same dir
 				   in either the front or the back */
@@ -12,3 +15,6 @@
 
 // Number of wires in region 3
 #define NUMWIRESR3 281
+
+
+#endif // GLOBALS_H

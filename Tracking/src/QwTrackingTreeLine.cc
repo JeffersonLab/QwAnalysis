@@ -1,34 +1,18 @@
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-//
-// C++ Interface: QwTrackingTreeLine
-//
-// Description:
-//
-//
-// Author: Wouter Deconinck <wdconinc@mit.edu>, (C) 2008
-//
-//         Jie Pan <jpan@jlab.org>, Sat May 23 23:07:17 CDT 2009
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-/*! \class QwTrackingTreeLine
-
-    \file QwTrackingTreeLine.cc
-
-    \author Wouter Deconinck <wdconinc@mit.edu>
-    \author jpan <jpan@jlab.org>
-
-    \date Sun May 24 11:05:29 CDT 2009
-
-    \brief A container for track information
-
-    The QwTrackingTreeLine has a pointer to a set of hits.
-    It is passed to various track fitting procedures and
-    carries around the fit results.
-    This track is used for found tracks.
+/**
+ * \file	QwTrackingTreeLine.cc
+ *
+ * \brief	A container for track information
+ *
+ * \author	Wouter Deconinck <wdconinc@mit.edu>
+ * \author	Jie Pan <jpan@jlab.org>
+ * \date	Sun May 24 11:05:29 CDT 2009
+ * \ingroup	QwTracking
+ *
+ * The QwTrackingTreeLine has a pointer to a set of hits.  It is passed to
+ * various track fitting procedures and carries around the fit results.
+ *
  */
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #include "QwTrackingTreeLine.h"
@@ -85,8 +69,8 @@ QwTrackingTreeLine::~QwTrackingTreeLine()
 
 
 /**
- * Determine the chi^2 for a tree line, weighted by the number of hits
- * @param treeline Tree line
+ * Determine the chi^2 for a tree line, weighted by the number of hits.
+ *
  * @return Weighted chi^2
  */
 double QwTrackingTreeLine::GetChiWeight ()
@@ -124,12 +108,10 @@ QwHit* QwTrackingTreeLine::bestWireHit (double offset)
   return hits[best_hit];
 }
 
-
-/*!--------------------------------------------------------------------------*\
-
- \brief Calculate average residual of this partial track over all treelines
-
-*//*-------------------------------------------------------------------------*/
+/**
+ * Calculate average residual of this partial track over all treelines
+ * @return Average residual
+ */
 const double QwTrackingTreeLine::CalculateAverageResidual()
 {
   int numHits = 0;

@@ -126,19 +126,22 @@
 
 // Qweak Tracking headers
 #include "Qset.h"
-//#include "Qevent.h"
 #include "Qoptions.h"
 #include "options.h"
 
 #include "Det.h"
 
-#include "tracking.h"
-
+#include "QwASCIIEventBuffer.h"
 #include "QwTrackingTreeRegion.h"
 
 #include "QwTrackingWorker.h"
 #include "QwTrackingTree.h"
+
+// Qweak track/event headers
 #include "QwPartialTrack.h"
+#include "QwTrack.h"
+#include "QwEvent.h"
+
 
 #include "QwSubsystemArrayTracking.h"
 #include "QwDriftChamberHDC.h"
@@ -155,6 +158,9 @@ Det rcDET[NDetMax];
 Options opt;
 FILE *ASCII_textfile;
 const char FILE_NAME[] = "grandhits_output_ASCII.txt";
+
+
+void SaveHits(QwHitContainer &); //for debugging purposes - Rakitha (04/02/2009)
 
 ///
 /// \ingroup QwTrackingAnl

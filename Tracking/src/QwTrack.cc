@@ -1,6 +1,6 @@
 #include "QwTrack.h"
 
-ClassImp(QwTrack)
+ClassImp(QwTrack);
 
 QwTrack::QwTrack() { }
 

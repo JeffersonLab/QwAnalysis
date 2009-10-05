@@ -1,3 +1,14 @@
+/**
+ * \class	QwEvent	QwEvent.h
+ * \brief Contains a tracked event, including information from hits to tracks.
+ *
+ * A QwEvent contains all event information, from hits via partial track to
+ * complete tracks.  It serves as the final product of the tracking code.
+ *
+ * \ingroup QwTrackingAnl
+ *
+ */
+
 #ifndef QWEVENT_H
 #define QWEVENT_H
 
@@ -6,21 +17,14 @@
 
 #include "TObject.h"
 
-#include "QwTrackingTreeLine.h"
-#include "QwPartialTrack.h"
-#include "QwTrack.h"
-#include "QwVertex.h"
+#include "QwTypes.h"
 
-/*------------------------------------------------------------------------*//*!
+// Forward declarations
+class QwTrackingTreeLine;
+class QwPartialTrack;
+class QwTrack;
+class QwVertex;
 
- \brief Contains a tracked event, including information from hits to tracks.
-
- A QwEvent contains all event information, from hits via partial track to
- complete tracks.  It serves as the final product of the tracking code.
-
- \ingroup QwTrackingAnl
-
-*//*-------------------------------------------------------------------------*/
 class QwEvent: public TObject {
 
   public:
@@ -42,6 +46,8 @@ class QwEvent: public TObject {
 
     /*! list of vertices in this event */
     std::vector< QwVertex* > vertex;
+
+  //ClassDef(QwEvent,1);
 
 };
 

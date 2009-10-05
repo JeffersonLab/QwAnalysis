@@ -1,4 +1,12 @@
 #include "QwEvent.h"
+//ClassImp(QwEvent);
+
+
+#include "QwTrackingTreeLine.h"
+#include "QwPartialTrack.h"
+#include "QwTrack.h"
+#include "QwVertex.h"
+
 
 QwEvent::QwEvent()
 {

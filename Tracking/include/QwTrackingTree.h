@@ -22,16 +22,16 @@ namespace bfs = boost::filesystem;
 #include "nodenode.h"
 #include "shortnode.h"
 #include "shorttree.h"
+using QwTracking::treenode; using QwTracking::nodenode;
+using QwTracking::shortnode; using QwTracking::shorttree;
+
 #include "QwTrackingTreeRegion.h"
 
 #include "QwTypes.h"
-#include "options.h"
 #include "Det.h"
 #include "globals.h"
 
-using namespace QwTracking;
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
  \class QwTrackingTree
@@ -54,13 +54,12 @@ class QwTrackingTree {
     int maxlevel;	/*!< maximum level of the bin division within
 			     the treesearch database,
 			     i.e.: resolution = (detwidth) / (2^maxlevel) */
-    int tlayers;	//!< number of detector planes
+    int tlayers;	///< number of detector planes
     int hshsiz;
     int npat;
-    treenode* generic[HSHSIZ];	//!- flat list of all nodes in the tree
+    treenode* generic[HSHSIZ];	///< flat list of all nodes in the tree
     double zList[TLAYERS];
     double detwidth;
-    double rcSET_rMaxSlope;//this needs to be defined by rcSET.rMaxSlope
     treenode father;
     int xref;
     int maxref;
@@ -71,7 +70,10 @@ class QwTrackingTree {
     QwTrackingTree();
     ~QwTrackingTree();
 
-    void SetDebugLevel(int debuglevel) { debug = debuglevel; };
+    /// Set the debug level
+    void SetDebugLevel (const int debuglevel) { fDebug = debuglevel; };
+    /// Set the maximum allowed slope
+    void SetMaxSlope (const double maxslope) { fMaxSlope = maxslope; };
 
     int consistent (
 	treenode *tst,
@@ -121,11 +123,15 @@ class QwTrackingTree {
 
   private:
 
-    int debug; // debug level
+    int fDebug;		///< Debug level
 
+    double fMaxSlope;	///< Maximum allowed slope for tracks in this detector
+
+    /// Recursive method for pulling in the concise treesearch search database
     int _writetree (treenode *tn, FILE *fp, int tlayers);
+    /// Recursive method to read the concise treesearch database from disk
     int _readtree  (FILE *f, shorttree *stb, shortnode **father, int tlayers);
-
+    /// Recursive method to initialize and generate the treesearch database
     treenode* _inittree (
 	int tlayer,
 	EQwDetectorPackage package,
@@ -133,8 +139,6 @@ class QwTrackingTree {
 	EQwRegionID region,
 	EQwDirectionID dir);
 
-};
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+}; // class QwTrackingTree
 
 #endif // QWTRACKINGTREE_H

@@ -25,16 +25,27 @@
 #include <cstring>
 #include <sys/time.h>
 
+// Boost uBLAS (linear algebra) headers
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+
 // Qweak headers
 #include "QwHit.h"
 #include "QwDetectorInfo.h"
+#include "QwTrackingTree.h"
+#include "QwTrackingTreeLine.h"
+#include "QwPartialTrack.h"
+#include "QwTrack.h"
+#include "QwEvent.h"
+
+// Qweak headers
 #include "Det.h"
 #include "options.h"
 #include "matrix.h"
+#include "uv2xy.h"
 
 // Qweak tree object headers
 #include "QwTrackingTreeRegion.h"
-using namespace QwTracking;
 
 // Other Qweak modules
 #include "QwTrackingTreeSort.h"
@@ -148,147 +159,136 @@ int QwTrackingTreeCombine::chi_hashfind (
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-/*-------------------------------
-   BESTX : This is a much simplified
-   version of bestx.  It simply
-   matches the left/right wire hits
-   in r3 to the pattern being used.
---------------------------------*/
-int QwTrackingTreeCombine::bestx (
-	double *xresult,	//!- x position of the track in this plane
-	QwHit *h,		//!- hit to investigate
-	QwHit** ha)		//!- hit with the selected position
+/**
+ * Determines whether the left or right drift distance assignment is closer to
+ * the supplied coordinate for hits in region 3.
+ *
+ * @param track_position Position of the track through this detector plane
+ * @param hit Hit for which we want to resolve the left/right ambiguity
+ * @return Copy of the hit with the selected position
+ */
+QwHit* QwTrackingTreeCombine::bestx (
+	double track_position,
+	QwHit* hit)
 {
-  double position, distance, bestx;
-  double x = *xresult;
-
-  // Detector resolution (not actually used)
-  double resolution = h->GetSpatialResolution();
+  // Declarations
+  double position, distance, best_position;
 
   // First option of left/right ambiguity
-  position = h->GetDriftDistance();
-  distance = fabs(x - position);
-  // Is this best?
-  bestx = position;
+  position = + hit->GetDriftDistance();
+  distance = fabs(track_position - position);
+  // This is best position for now.
+  best_position = position;
 
   // Second option of left/right ambiguity
-  position = -h->GetDriftDistance();
-  distance = fabs(x - position);
-  // Is this best?
-  if (distance < bestx)
-    bestx = position;
+  position = - hit->GetDriftDistance();
+  distance = fabs(track_position - position);
+  // Is this a better position?
+  if (distance < best_position)
+    best_position = position;
 
   // Write the best hit (actually just uses the old structure)
-  ha[0] = new QwHit();
-  *ha[0] = *h;
-  ha[0]->next    = 0;
-  ha[0]->rResultPos =
-        ha[0]->rPos = bestx;
-  ha[0]->SetSpatialResolution(resolution);
+  QwHit* besthit = new QwHit(*hit);
+  besthit->next = 0; // only this entry in linked list
+  besthit->rResultPos =
+    besthit->rPos = best_position;
 
-  return 1;
+  return besthit;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-/* ------------------------------
-
-   BESTX : searches for the closest hit to
-   to *xresult and writes it
-   to *xresult. In addition the
-   hitchain is searched for hits
-   inbetween *xresult - resolution
-   and *xresult + resolution. All
-   corresponding hits that
-   are found are stored in *ha
-
-   Size of the arrays must be
-   MAXHITPERLINE
-
-   ------------------------------ */
+/**
+ * Determines whether the left or right drift distance assignment is closer to
+ * the supplied track coordinate for hits in region 2.
+ *
+ * @param xresult Position of the track crossing through this plane
+ * @param resolution Resolution in this detector plane
+ * @param hitlist Detected hit list (left/right ambiguity not resolved yet)
+ * @param ha Returned hit list (left/right ambiguity is now resolved)
+ * @param Dx Detector offset in the wire plane direction (default value is zero)
+ * @return Number of good hits
+ */
 int QwTrackingTreeCombine::bestx (
-	double *xresult,	//!- x position of the track in this plane
-	double resolution,	//!- resolution
-	QwHitContainer *hitlist,//!- hit list
-	QwHit **ha,		//!- returned hit list
-	double Dx)		//!- (default: Dx = 0)
+	double *xresult,
+	double resolution,
+	QwHitContainer *hitlist,
+	QwHit **ha,
+	double Dx)
 {
   //###############
   // DECLARATIONS #
   //###############
   int ngood = 0; // number of good hits that have been found already
-  double x = *xresult; // x is the x coordinate of the track in the plane
-  double position;
-  double adistance, distance, odist = 0.0;
+  double track_position = *xresult; // x is the x coordinate of the track in the plane
+  double odist = 0.0;
   double minimum = resolution; // will keep track of minimum distance
   double breakcut = 0;
   QwHit* first_hit = &(*(hitlist->begin()));
   const QwDetectorInfo* first_detector = first_hit->GetDetectorInfo();
-  double wirespace = hitlist->begin()->GetDetectorInfo()->GetElementSpacing();
+  double wirespacing = hitlist->begin()->GetDetectorInfo()->GetElementSpacing();
   // This assumes the same wirespacing for each R2 plane, and first hit defined
 
 
-
-  //#################################################
-  // Find good hits up to a max of MAXHITPERLINE.   #
-  // Uses a hard maximum distance cut 'resolution'. #
-  // If MAXHITPERLINE good hits are reached,        #
-  // replace good hits with better hits.            #
-  //#################################################
   if (hitlist->size() == 0) // ?
-    breakcut = wirespace + resolution; // wirespacing + bin resolution
+    breakcut = wirespacing + resolution; // wirespacing + bin resolution
 
   // Loop over the hit list
-  for (QwHitContainer::iterator hit = hitlist->begin(); hit != hitlist->end(); hit++) {
+  for (QwHitContainer::iterator hit = hitlist->begin();
+       hit != hitlist->end(); hit++) {
 
-    // Two options for the left/right ambiguity
+    // Consider the two options due to the left/right ambiguity
     for (int j = 0; j < 2; j++) {
-      position   = j ? (hit->GetElement() + 1) * wirespace + hit->GetDriftDistance() + Dx
-		     : (hit->GetElement() + 1) * wirespace - hit->GetDriftDistance() + Dx;
-      distance   = x - position;
-      adistance  = fabs(distance);
+      double hit_position =
+        j ? (hit->GetElement() + 1) * wirespacing + hit->GetDriftDistance() + Dx
+          : (hit->GetElement() + 1) * wirespacing - hit->GetDriftDistance() + Dx;
+      double signed_distance = track_position - hit_position;
+      double distance = fabs(signed_distance);
 
-      // Distance cut: only consider this hit if it is not too far away.
-      if (adistance < resolution) {
-        // Save only the MAXHITPERLINE best hits
-	if (ngood < MAXHITPERLINE ) {
-	  /* --- duplicate hits for calibration changes --- */
-	  ha[ngood] = new QwHit;
-	  // Copy the hit, but reset the pointers
-	  *ha[ngood] = *hit;
-	  ha[ngood]->next    = 0;
-	  // Store this position
-	  ha[ngood]->rResultPos = ha[ngood]->rPos = position;
+      // Only consider this hit if it is not too far away from the track position,
+      // i.e. within the drift distance resolution
+      if (distance < resolution) {
+
+        // Save only a maximum number of hits per track crossing through the plane
+        if (ngood < MAXHITPERLINE) {
+
+          // Duplicate this hit for calibration changes
+          ha[ngood] = new QwHit;
+          // Copy the hit, but reset the pointers
+          *ha[ngood] = *hit;
+          ha[ngood]->next    = 0;
+          // Store this position
+          ha[ngood]->rResultPos = ha[ngood]->rPos = hit_position;
 
           // ha[ngood]->SetZPos(hit->GetZPos());
-	  if (adistance < minimum) {
-	    *xresult = position;
-	    minimum = adistance;
-	  }
-	  ngood++;
+          if (distance < minimum) {
+            *xresult = hit_position;
+            minimum = distance;
+          }
+          ngood++;
 
 
-	// If we have already the maximum allowed number of hits,
-	// then try to save this hit if it is better than the others
-	} else {
-	  // Loop over the hits that we already saved
-	  for (int i = 0; i < ngood; i++) {
-	    distance = x - ha[i]->rPos;
-	    if (odist < 0)
-	      odist = -odist;
-	    if (adistance < odist) {
-	      *ha[i]   = *hit;
-	      ha[i]->next    = 0;
-	      ha[i]->rResultPos =
-	      ha[i]->rPos    = position;
-	      break;
-	    }
-	  }
-	}
+        // If we have already the maximum allowed number of hits,
+        // then save this hit only if it is better than the others
+        } else {
+          // Loop over the hits that we already saved
+          for (int i = 0; i < ngood; i++) {
+            distance = track_position - ha[i]->GetPosition();
+            if (odist < 0)
+              odist = -odist;
+            if (distance < odist) {
+              *ha[i]   = *hit;
+              ha[i]->next    = 0;
+              ha[i]->rResultPos =
+                ha[i]->rPos = hit_position;
+              break;
+            }
+          }
+        }
       } // end of distance cut
 
-      if (position == hit->rPos2)
-	break;
+      if (hit_position == hit->rPos2)
+        break;
 
     } // end of left/right ambiguity
 
@@ -387,9 +387,9 @@ void QwTrackingTreeCombine::weight_lsq (
 
   /* Set the hit values */
   for (int i = 0; i < n; i++) {
-    A(i,1) = -(hits[i]->GetDetectorInfo()->fZPos);
+    A(i,1) = -(hits[i]->GetDetectorInfo()->GetZPosition());
     y(i)   = - hits[i]->rResultPos;
-    double r = hits[i]->GetDetectorInfo()->fSpatialResolution;
+    double r = hits[i]->GetDetectorInfo()->GetSpatialResolution();
     G(i,i) = 1 / (r * r);
   }
 
@@ -585,7 +585,7 @@ int QwTrackingTreeCombine::contains (double var, QwHit **arr, int len)
 int QwTrackingTreeCombine::selectx (
 	double *xresult,
 	double resolution,
-	Det *detec,
+	/* Det *detec, */
 	QwHit *hitarray[],
 	QwHit **ha)
 {
@@ -600,11 +600,12 @@ int QwTrackingTreeCombine::selectx (
 
   for (num = MAXHITPERLINE * DLAYERS; num-- && *hitarray; hitarray++) {
     h = *hitarray;
-    // ?
-    if( !h->GetDetectorInfo() ||
-	(h->GetDetectorInfo()->GetID() != detec->ID)) {
-      continue;
-    }
+
+// There used to be a functionality with the detector info here.  Removed (wdc)
+//     if( !h->GetDetectorInfo() ||
+// 	(h->GetDetectorInfo()->GetID() != detec->ID)) {
+//       continue;
+//     }
 
     position = h->rResultPos;
 
@@ -621,23 +622,6 @@ int QwTrackingTreeCombine::selectx (
     }
   }
   return good;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-/* ----------------------------------------------------------------------
- * returns the z position of a crossing point of a detector
- * and a line with track parameters x and slope_x
- */
-double QwTrackingTreeCombine::detZPosition (
-	Det *det,
-	double x,
-	double slope_x,
-	double *xval)
-{
-  // TODO This should be method of something, not in QwTrackingTreeCombine...
-  cerr << "This function is just a stub" << endl;
-  return -9999;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -720,13 +704,13 @@ bool QwTrackingTreeCombine::InAcceptance (
  * dlayer: number of detector layers to search in
  * ------------------------------------------------------------------------- */
 bool QwTrackingTreeCombine::TlCheckForX (
-	double x1,  double x2,	//!- position at first and last planes
-	double dx1, double dx2,	//!- uncertainty at first and last planes
-	double Dx,		//!- offset between first and last planes
-	double z1,		//!- reference z coordinate
-	double Dz,		//!- distance between first and last planes
-	QwTrackingTreeLine *treeline,	//!- treeline to operate on
-	QwHitContainer *hitlist,	//!- hits list
+	double x1,  double x2,	///< position at first and last planes
+	double dx1, double dx2,	///< uncertainty at first and last planes
+	double Dx,		///< offset between first and last planes
+	double z1,		///< reference z coordinate
+	double Dz,		///< distance between first and last planes
+	QwTrackingTreeLine *treeline,	///< treeline to operate on
+	QwHitContainer *hitlist,	///< hits list
 	EQwDetectorPackage package,
 	EQwRegionID region,
 	EQwDetectorType type,
@@ -752,7 +736,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
   double minweight = 1e10;
   double stay_chi;
   bool ret   = false;		/* return value (pessimistic)             */
-  double MaxRoad = opt.R2maxroad; // TODO global opt
+  double MaxRoad = fMaxRoad;
 
   // Hit lists (TODO should be QwHitContainer?)
   QwHit *goodHits[DLAYERS][MAXHITPERLINE]; /* all hits in each detector plane */
@@ -839,12 +823,12 @@ bool QwTrackingTreeCombine::TlCheckForX (
         // goodHits is the returned list of hits
         nHitsInPlane[nPlanesWithHits] =
           bestx (&thisX, resnow, subhitlist, goodHits[nPlanesWithHits], 0.0);
-      else // for the second set of planes we need to add a detector offset
+      else // for the second set of planes we need to add the detector offset
         nHitsInPlane[nPlanesWithHits] =
           bestx (&thisX, resnow, subhitlist, goodHits[nPlanesWithHits], Dx);
 
     } else			/* in iteration process (not used by TlTreeLineSort)*/
-      nHitsInPlane[nPlanesWithHits] = selectx (&thisX, resnow, rd, treeline->hits, goodHits[nPlanesWithHits]);
+      nHitsInPlane[nPlanesWithHits] = selectx (&thisX, resnow,/* rd,*/ treeline->hits, goodHits[nPlanesWithHits]);
 
     /* If there are hits in this detector plane */
     if (nHitsInPlane[nPlanesWithHits]) {
@@ -992,11 +976,11 @@ OUTPUT : the best hits are added to treeline's hit list and treeline's
 	line parameters are set.
 --------------------------------*/
 int QwTrackingTreeCombine::TlMatchHits (
-	double x1, double x2,	//!- x coordinates at first/last wire (i.e. distances)
-	double z1, double z2,	//!- z coordinates of first/last wire (i.e. wire number)
-	QwTrackingTreeLine *treeline,	//!- determined treeline
-	QwHitContainer *hitlist,	//!- hit list
-	int tlayers)		//!- number of tree layers
+	double x1, double x2,	///< x coordinates at first/last wire (i.e. distances)
+	double z1, double z2,	///< z coordinates of first/last wire (i.e. wire number)
+	QwTrackingTreeLine *treeline,	///< determined treeline
+	QwHitContainer *hitlist,	///< hit list
+	int tlayers)		///< number of tree layers
 {
 // This is how region 2 handles this:
 //
@@ -1046,10 +1030,11 @@ int QwTrackingTreeCombine::TlMatchHits (
       // Skip if this is a different wire
       if (hit->GetElement() != thiswire) continue;
 
-      // Calculate the signed drift distance x at this wire
+      // Calculate the track position at this wire
       double thisX = slope * thisZ + intercept;
 
-      bestx (&thisX, &(*hit), &goodHits[nHits]);
+      // Determine the best hit assignment for this position
+      goodHits[nHits] = bestx (thisX, &(*hit));
       nHits++;
     }
   }
@@ -1197,7 +1182,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
        -------------------------------------------------- */
 
     // How large to make the 'road' along a track in which hits will be considered.
-    double MaxRoad = opt.R2maxroad; // TODO global opt
+    double MaxRoad = fMaxRoad;
 
     // Loop over all valid tree lines
     for (QwTrackingTreeLine *treeline = treelinelist; treeline;
@@ -1315,25 +1300,6 @@ int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
 
   Det *rd = rcDETRegion[kPackageUp][kRegionID2][kDirectionX];	//pointer to this detector
 
-  //##################
-  // Initializations #
-  //##################
-
-  Uv2xy uv2xy(kRegionID2);
-
-  // Set the angles for our reference frame
-  rCos[kDirectionX] = 1;//cos theta x
-  rSin[kDirectionX] = 0;//sin theta x
-  rCos[kDirectionU] = uv2xy.xy[0][0];//cos theta u
-  rSin[kDirectionU] = uv2xy.xy[0][1];//sin theta u
-  rCos[kDirectionV] = uv2xy.xy[1][0];//cos theta v
-  rSin[kDirectionV] = uv2xy.xy[1][1];//sin theta v
-
-  //set the offsets for the u,v,x axes
-  x0[kDirectionX] = 0;
-  x0[kDirectionU] = fabs(uv2xy.fOffset[0]) * rCos[kDirectionU] + uv2xy.fWirespacing;
-  x0[kDirectionV] = fabs(uv2xy.fOffset[1]) * rCos[kDirectionV] + uv2xy.fWirespacing;
-
   // Initialize the matrices
   double A[4][4];
   double *Ap = &A[0][0];
@@ -1343,6 +1309,38 @@ int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
     for (int j = 0; j < 4; j++)
       A[i][j] = 0.0;
   }
+
+  //##################
+  // Initializations #
+  //##################
+
+  // Find first hit that is not in an x wire
+  int hituv;
+  for (hituv = 0; hituv < Num; hituv++) {
+    if (Hit[hituv]->GetDetectorInfo()->GetElementDirection() != kDirectionX)
+      break;
+  }
+  double angle = Hit[hituv]->GetDetectorInfo()->GetElementAngle();
+  double offset = Hit[hituv]->GetDetectorInfo()->GetElementOffset();
+  double spacing = Hit[hituv]->GetDetectorInfo()->GetElementSpacing();
+  if (angle < 90.0) angle = 180.0 - angle; // angle for U is smaller than 90 deg
+  Uv2xy uv2xy_new (90.0 + angle, 90.0 - angle + 180.0);
+  uv2xy_new.SetOffset(offset, offset);
+  uv2xy_new.SetWireSpacing(spacing);
+  Uv2xy uv2xy(kRegionID2);
+
+  // Set the angles for our reference frame
+  rCos[kDirectionX] = 1;//cos theta x
+  rSin[kDirectionX] = 0;//sin theta x
+  rCos[kDirectionU] = uv2xy.fXY[0][0];//cos theta u
+  rSin[kDirectionU] = uv2xy.fXY[0][1];//sin theta u
+  rCos[kDirectionV] = uv2xy.fXY[1][0];//cos theta v
+  rSin[kDirectionV] = uv2xy.fXY[1][1];//sin theta v
+
+  // Set the offsets for the u,v,x axes (why fabs?)
+  x0[kDirectionX] = 0;
+  x0[kDirectionU] = fabs(uv2xy.fOffset[0]) * uv2xy.fXY[0][0] + uv2xy.fWireSpacing;
+  x0[kDirectionV] = fabs(uv2xy.fOffset[1]) * uv2xy.fXY[1][0] + uv2xy.fWireSpacing;
 
   // Calculate the metric matrix
   for (int i = 0; i < Num; i++) {
@@ -1388,15 +1386,19 @@ int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
   // Calculate the fit
   M_A_times_b (fit, cov, 4, 4, B); // fit = matrix cov * vector B
 
-  //calculate the line parameters in u,v,x directions
+  // Transform the offsets from XY to XUV coordinates
   bx[kDirectionX] = fit[0];
-  bx[kDirectionU] = (fit[0] + fabs(uv2xy.fOffset[0])) * rCos[kDirectionU]
-                  + fit[2] * rSin[kDirectionU] + uv2xy.fWirespacing;
-  bx[kDirectionV] = (fit[0] + fabs(uv2xy.fOffset[1])) * rCos[kDirectionV]
-                  + fit[2] * rSin[kDirectionV] + uv2xy.fWirespacing;
+  bx[kDirectionU] = uv2xy.xy2u(fit[0], fit[2]);
+  bx[kDirectionU] = (fit[0] + fabs(uv2xy.fOffset[0])) * uv2xy.fXY[0][0]
+                  + fit[2] * uv2xy.fXY[0][1] + uv2xy.fWireSpacing;
+  bx[kDirectionV] = uv2xy.xy2v(fit[0], fit[2]);
+  bx[kDirectionV] = (fit[0] + fabs(uv2xy.fOffset[1])) * uv2xy.fXY[1][0]
+                  + fit[2] * uv2xy.fXY[1][1] + uv2xy.fWireSpacing;
+
+  // Transform the slopes from XY to XUV coordinates
   mx[kDirectionX] = fit[1];
-  mx[kDirectionU] = fit[1] * rCos[kDirectionU] + fit[3] * rSin[kDirectionU];
-  mx[kDirectionV] = fit[1] * rCos[kDirectionV] + fit[3] * rSin[kDirectionV];
+  mx[kDirectionU] = uv2xy.xy2mu(fit[1], fit[3]);
+  mx[kDirectionV] = uv2xy.xy2mv(fit[1], fit[3]);
 
   // Calculate chi^2
   *chi = 0.0;
@@ -1404,7 +1406,7 @@ int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
     EQwDirectionID dir = Hit[i]->GetDetectorInfo()->fDirection;
     cff  = 1.0 / Hit[i]->GetSpatialResolution(); // cff  = 1.0 / Hit[i]->Resolution;
     cff *= cff;
-    uvx  = bx[dir] + mx[dir] * (Hit[i]->GetDetectorInfo()->fZPos);
+    uvx  = bx[dir] + mx[dir] * (Hit[i]->GetDetectorInfo()->GetZPosition());
     *chi += (uvx - Hit[i]->GetDriftDistance()) * (uvx - Hit[i]->GetDriftDistance()) * cff;
   }
   *chi = *chi / (Num - 4);
@@ -1447,38 +1449,41 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, doub
     //cerr << Hit[i]->Zpos << ',' << Hit[i]->rPos << ',' << Hit[i]->detec->dir << endl;
   }
 
-  Uv2xy uv2xy(kRegionID3);
+  // Create the transformation helper object
+  double angle = Hit[0]->GetDetectorInfo()->GetElementAngle();
+  // The angle for U is smaller than 90 deg, the other one is the complement
+  if (angle > 90.0) angle = 180.0 - angle;
+  Uv2xy uv2xy (angle, 180.0 - angle);
 
   // Set the angles for our frame
-  rCos[kDirectionU] = -uv2xy.xy[0][0];
-  rCos[kDirectionV] = -uv2xy.xy[1][0];
-  rSin[kDirectionU] = -uv2xy.xy[0][1];
-  rSin[kDirectionV] = -uv2xy.xy[1][1];
+  rCos[kDirectionU] = -uv2xy.fXY[0][0];
+  rCos[kDirectionV] = -uv2xy.fXY[1][0];
+  rSin[kDirectionU] = -uv2xy.fXY[0][1];
+  rSin[kDirectionV] = -uv2xy.fXY[1][1];
 
   /* Initialize */
   for (int i = 0; i < 4; i++) {
-    B[i] = 0;
+    B[i] = 0.0;
     for(int j = 0; j < 4; j++)
-      AA[i][j] = 0;
+      AA[i][j] = 0.0;
   }
 
   //##############################
   // Calculate the metric matrix #
   //##############################
-  for (int i = 0; i < Num; i++ ) {
-    //cerr << i << " " << Hit[i]->Zpos << " " << Hit[i]->rPos << " ";
-    cff  = 1.0 / Hit[i]->GetSpatialResolution(); // cff  = 1.0/Hit[i]->Resolution;
+  for (int i = 0; i < Num; i++) {
+    cff  = 1.0 / Hit[i]->GetSpatialResolution();
     cff *= cff;
     EQwDirectionID direction = Hit[i]->GetDetectorInfo()->fDirection;
     r[0] = rCos[direction];
-    r[1] = rCos[direction]*(Hit[i]->GetZPosition());
+    r[1] = rCos[direction] * (Hit[i]->GetZPosition());
     r[2] = rSin[direction];
-    r[3] = rSin[direction]*(Hit[i]->GetZPosition());
+    r[3] = rSin[direction] * (Hit[i]->GetZPosition());
 
     for (int k = 0; k < 4; k++) {
       B[k] += cff * r[k] * (Hit[i]->rPos) * (-1);
       for (int j = 0; j < 4; j++)
-	AA[k][j] += cff*r[k]*r[j];
+        AA[k][j] += cff * r[k] * r[j];
     }
   }
 
@@ -1501,10 +1506,10 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, doub
   // cerr << "3" << endl;
 
   //calculate the line parameters in u,v directions
-  bx[kDirectionU] = uv2xy.xy2u(fit[0],fit[2]);
-  bx[kDirectionV] = uv2xy.xy2v(fit[0],fit[2]);
-  mx[kDirectionU] = uv2xy.xy2u(fit[1],fit[3]);
-  mx[kDirectionV] = uv2xy.xy2v(fit[1],fit[3]);
+  bx[kDirectionU] = uv2xy.xy2u (fit[0], fit[2]);
+  bx[kDirectionV] = uv2xy.xy2v (fit[0], fit[2]);
+  mx[kDirectionU] = uv2xy.xy2u (fit[1], fit[3]);
+  mx[kDirectionV] = uv2xy.xy2v (fit[1], fit[3]);
 
   //ERROR : Somehow I've missed a negative sign somewhere and need to correct for it :
   fit[0] = -fit[0];
@@ -1533,14 +1538,16 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, doub
 
   double P1[3],P2[3],Pp1[3],Pp2[3];
   double ztrans,ytrans,xtrans,costheta,sintheta;
+
   //get some detector information
   if (Hit[0]->GetDetectorInfo()->fDirection == kDirectionU) {
-    // Yes, this really is the way it was in the original code!
+
     costheta = Hit[0]->GetDetectorInfo()->GetSinDetectorRotation();
     sintheta = Hit[0]->GetDetectorInfo()->GetCosDetectorRotation();
-    xtrans = Hit[0]->GetDetectorInfo()->fDetectorOriginX;
-    ytrans = Hit[0]->GetDetectorInfo()->fDetectorOriginY;
-    ztrans = Hit[0]->GetDetectorInfo()->fZPos;
+
+    xtrans = Hit[0]->GetDetectorInfo()->GetXPosition();
+    ytrans = Hit[0]->GetDetectorInfo()->GetYPosition();
+    ztrans = Hit[0]->GetDetectorInfo()->GetZPosition();
 
   } else {
     cerr << "Error : first hit is not in 1st u-plane" << endl;
@@ -1561,11 +1568,11 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, doub
 
   // rotate the points into the lab orientation
   Pp1[0] = P1[0];
-  Pp1[1] = P1[1]*costheta - P1[2]*sintheta;
-  Pp1[2] = P1[1]*sintheta + P1[2]*costheta;
+  Pp1[1] = P1[1] * costheta - P1[2] * sintheta;
+  Pp1[2] = P1[1] * sintheta + P1[2] * costheta;
   Pp2[0] = P2[0];
-  Pp2[1] = P2[1]*costheta - P2[2]*sintheta;
-  Pp2[2] = P2[1]*sintheta + P2[2]*costheta;
+  Pp2[1] = P2[1] * costheta - P2[2] * sintheta;
+  Pp2[2] = P2[1] * sintheta + P2[2] * costheta;
   //cerr << "(" << Pp1[0] << ',' << Pp1[1] << ',' << Pp1[2] << ')' << endl;
   //cerr << "(" << Pp2[0] << ',' << Pp2[1] << ',' << Pp2[2] << ')' << endl;
 
@@ -1578,8 +1585,8 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, doub
   Pp2[2] += ztrans;
 
   // calculate the new line
-  fit[1] = (Pp2[0]-Pp1[0]) / (Pp2[2]-Pp1[2]);
-  fit[3] = (Pp2[1]-Pp1[1]) / (Pp2[2]-Pp1[2]);
+  fit[1] = (Pp2[0] - Pp1[0]) / (Pp2[2] - Pp1[2]);
+  fit[3] = (Pp2[1] - Pp1[1]) / (Pp2[2] - Pp1[2]);
   fit[0] = Pp2[0] - fit[1] * Pp2[2];
   fit[2] = Pp2[1] - fit[3] * Pp2[2];
 
@@ -1621,9 +1628,9 @@ int QwTrackingTreeCombine::r3_TrackFit( int Num, QwHit **hit, double *fit, doubl
   if (hit[0]->GetDetectorInfo()->fDirection == kDirectionU) {
     costheta = hit[0]->GetDetectorInfo()->GetCosDetectorRotation();
     sintheta = hit[0]->GetDetectorInfo()->GetSinDetectorRotation();
-    xtrans = hit[0]->GetDetectorInfo()->fDetectorOriginX;
-    ytrans = hit[0]->GetDetectorInfo()->fDetectorOriginY;
-    ztrans = hit[0]->GetDetectorInfo()->fZPos;
+    xtrans = hit[0]->GetDetectorInfo()->GetXPosition();
+    ytrans = hit[0]->GetDetectorInfo()->GetYPosition();
+    ztrans = hit[0]->GetDetectorInfo()->GetZPosition();
 
   } else {
     cerr << "Error : first hit is not in 1st u-plane" << endl;
@@ -1869,8 +1876,8 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine(
       h = *hitarray;
       if (dir == kDirectionU) {
         if (!uv2xy[0][0]) {
-          uv2xy[0][0] = -fabs(h->GetDetectorInfo()->Wire_rcosX);
-          uv2xy[1][0] =  fabs(h->GetDetectorInfo()->Wire_rsinX);
+          uv2xy[0][0] = -fabs(h->GetDetectorInfo()->GetElementAngleCos());
+          uv2xy[1][0] =  fabs(h->GetDetectorInfo()->GetElementAngleSin());
 	}
         h->rPos2 = m * h->rPos + b;//v
         // h->rPos1 = h->Zpos;//u
@@ -1879,8 +1886,8 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine(
         //z is rPos
       } else {
         if (!uv2xy[0][1]) {
-          uv2xy[0][1]=fabs(h->GetDetectorInfo()->Wire_rcosX);
-          uv2xy[1][1]=fabs(h->GetDetectorInfo()->Wire_rsinX);
+          uv2xy[0][1] = fabs(h->GetDetectorInfo()->GetElementAngleCos());
+          uv2xy[1][1] = fabs(h->GetDetectorInfo()->GetElementAngleSin());
 	}
         // h->rPos1 = m * h->rPos + b;//u
         h->SetDriftDistance(m * h->GetDriftDistance() + b);//u
@@ -2165,8 +2172,8 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
     QwTrackingTreeLine *wu = uvl[kDirectionU];
     while (wu) {
       if (wu->isvoid) { // skip this treeline if it was no good
-	wu = wu->next;
-	continue;
+        wu = wu->next;
+        continue;
       }
       // Get wu's line parameters
       //    double mu = wu->mx; // slope
@@ -2176,32 +2183,33 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
       QwTrackingTreeLine *wv = uvl[kDirectionV];
       while (wv) {
         if (wv->isvoid) {
-	  wv = wv->next;
-	  continue;
+          wv = wv->next;
+          continue;
         }
-	// Get wv's line parameters
-	//	double mv = wv->mx; // slope
-	//	double xv = wv->cx; // constant
+        // Get wv's line parameters
+        //        double mv = wv->mx; // slope
+        //        double xv = wv->cx; // constant
 
 
-	QwPartialTrack *pt = TcTreeLineCombine2 (wu, wv, tlayer);
+        QwPartialTrack *pt = TcTreeLineCombine2 (wu, wv, tlayer);
 
-	if (pt) {
-	    pt->next   = pt_next;
-	    pt->bridge = 0;
-	    pt->pathlenoff = 0;
-	    pt->pathlenslo = 0;
-	    pt_next = pt;
+        if (pt) {
+            pt->next   = pt_next;
+            pt->bridge = 0;
+            pt->pathlenoff = 0;
+            pt->pathlenslo = 0;
+            pt_next = pt;
 
-	    parttracklist.push_back(pt);
+            parttracklist.push_back(pt);
 
-	    // Check whether this track went through the trigger and/or
-	    // the Cerenkov bar.
-	    checkR3(pt, package);
+            // Check whether this track went through the trigger and/or
+            // the cerenkov bar.
+            pt->DeterminePositionInTriggerScintillators(package);
+            pt->DeterminePositionInCerenkovBars(package);
 
-	}
+        }
 
-	// Next v treeline
+        // Next v treeline
         wv = wv->next;
       }
 
@@ -2218,7 +2226,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
   //################
   if (region == kRegionID2 && type == kTypeDriftHDC) {
 
-    double MaxXRoad = opt.R2maxXroad; // TODO global opt
+    double MaxXRoad = fMaxXRoad;
     Det *rd;
     for (rd = rcDETRegion[package][region][kDirectionX], i = 0;
          rd && i < tlayer; rd = rd->nextsame, i++) {
@@ -2333,6 +2341,8 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 
 	    parttracklist.push_back(pt);
 
+            pt->DeterminePositionInTarget();
+
 	  }
 	} else {
           if (fDebug) cout << "not close enough " << minimum << ',' << MaxXRoad << ',' << in_acceptance << endl;
@@ -2446,74 +2456,6 @@ void QwTrackingTreeCombine::ResidualWrite (QwEvent* event)
     }
   }
   return;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-/*------------------------------------------------------------------------*//*!
-
- This method checks whether the region 3 partial track has an intersection
- with the trigger scintillators or the Cerenkov bars in a detector package.
-
- The trigger scintillators are assumed to be the only (or at least the first)
- detectors in region 3 that are oriented in direction X.
-
- The cerenkov bars are assumed to be the only (or at least the first)
- detectors in region 3 that are oriented in direction Y.
-
- Geometric acceptance is calculated from the centers and widths in the
- geometry definition.  Tracks are drawn straight from region 3.
-
-*//*-------------------------------------------------------------------------*/
-int QwTrackingTreeCombine::checkR3 (QwPartialTrack *pt, EQwDetectorPackage package)
-{
-  double trig[3], cc[3];
-  double lim_trig[2][2], lim_cc[2][2];
-
-  // Get the trig scintillator
-  Det *rd = rcDETRegion[package][kRegionIDTrig][kDirectionX];
-
-  //get the point where the track intersects the detector planes
-  trig[2] = rd->Zpos;
-  trig[0] = pt->mx * trig[2] + pt->x;
-  trig[1] = pt->my * trig[2] + pt->y;
-  //get the detector boundaries
-  lim_trig[0][0] = rd->center[0] + rd->width[0]/2;
-  lim_trig[0][1] = rd->center[0] - rd->width[0]/2;
-  lim_trig[1][0] = rd->center[1] + rd->width[1]/2;
-  lim_trig[1][1] = rd->center[1] - rd->width[1]/2;
-
-  if (trig[0] < lim_trig[0][0]
-   && trig[0] > lim_trig[0][1]
-   && trig[1] < lim_trig[1][0]
-   && trig[1] > lim_trig[1][1]) {
-	pt->triggerhit = 1;
-	pt->trig[0]    = trig[0];
-	pt->trig[1]    = trig[1];
-	cout << "Trigger scintillator hit at : (" << trig[0] << "," << trig[1] << "," << trig[2] << ")" << endl;
-  } else pt->triggerhit = 0;
-
-  // Get the Cherenkov detector
-  rd = rcDETRegion[package][kRegionIDCer][kDirectionY];
-  cc[2] = rd->Zpos;
-  cc[0] = pt->mx * cc[2] + pt->x;
-  cc[1] = pt->my * cc[2] + pt->y;
-  lim_cc[0][0] = rd->center[0] + rd->width[0]/2;
-  lim_cc[0][1] = rd->center[0] - rd->width[0]/2;
-  lim_cc[1][0] = rd->center[1] + rd->width[1]/2;
-  lim_cc[1][1] = rd->center[1] - rd->width[1]/2;
-
-  if (cc[0] < lim_cc[0][0]
-   && cc[0] > lim_cc[0][1]
-   && cc[1] < lim_cc[1][0]
-   && cc[1] > lim_cc[1][1]) {
-	pt->cerenkovhit = 1;
-	pt->cerenkov[0] = cc[0];
-	pt->cerenkov[1] = cc[1];
-	cout << "Cerenkov bar hit at : (" << cc[0] << "," << cc[1] << "," << cc[2] << ")" << endl;
-  } else pt->cerenkovhit = 0;
-
-  return 0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

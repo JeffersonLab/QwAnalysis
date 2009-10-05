@@ -1,17 +1,17 @@
-//
-// C++ Implementation: shortnode
-//
-// Description:
-//
-//
-// Author: Wouter Deconinck <wdconinc@mit.edu>, (C) 2008
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
+/**
+ * \file	shortnode.cc
+ *
+ * \author	Wolfgang Wander <wwc@hermes.desy.de>
+ * \author	Burnham Stokes <bestokes@jlab.org>
+ * \author	Wouter Deconinck <wdconinc@mit.edu>
+ *
+ * \date	2009-09-04 18:06:23
+ * \ingroup	QwTrackingAnl
+ *
+ */
+
 #include "shortnode.h"
-#include <iostream>
-using std::cout; using std::cerr; using std::endl;
+#include "shorttree.h"
 
 namespace QwTracking {
 
@@ -25,8 +25,22 @@ shortnode::~shortnode()
   if (next) delete next;
 }
 
-void shortnode::print() {
-  tree->print();
+/**
+ * Print some debugging information
+ */
+void shortnode::Print() {
+  std::cout << *this << std::endl;
 }
 
-} // QwTracking
+/**
+ * Stream some info about the short node
+ * @param stream Stream as lhs of the operator
+ * @param sn Short node as rhs of the operator
+ * @return Stream as result of the operator
+ */
+std::ostream& operator<< (std::ostream& stream, const shortnode& sn) {
+  stream << *(sn.tree);
+  return stream;
+}
+
+} // namespace QwTracking

@@ -60,6 +60,7 @@ class QwTrackingTreeMatch {
     QwTrackingTreeMatch();
     ~QwTrackingTreeMatch();
 
+    /// Set the debug level
     void SetDebugLevel (int debug) { fDebug = debug; };
 
     //void TgInit (Track *track);
@@ -76,7 +77,7 @@ class QwTrackingTreeMatch {
 	QwPartialTrack *front,
 	QwPartialTrack *back,
 	QwTrack *tracklist,
-	EQwDetectorPackage package/*, enum Emethod method*/);
+	EQwDetectorPackage package);
 
     QwTrackingTreeLine* MatchR3 (
 	QwTrackingTreeLine *front,
@@ -87,11 +88,8 @@ class QwTrackingTreeMatch {
 
   private:
 
-        int fDebug;
+    int fDebug;
 
 }; //class QwTrackingTreeMatch
 
-
 #endif // QWTRACKINGTREEMATCH_H
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

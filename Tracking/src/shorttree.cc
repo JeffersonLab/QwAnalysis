@@ -1,17 +1,16 @@
-//
-// C++ Implementation: shorttree
-//
-// Description:
-//
-//
-// Author: Wouter Deconinck <wdconinc@mit.edu>, (C) 2008
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
-#include <iostream>
-using std::cout; using std::cerr; using std::endl;
+/**
+ * \file	shorttree.cc
+ *
+ * \author	Wolfgang Wander <wwc@hermes.desy.de>
+ * \author	Burnham Stokes <bestokes@jlab.org>
+ * \author	Wouter Deconinck <wdconinc@mit.edu>
+ *
+ * \date	2009-09-04 18:06:23
+ * \ingroup	QwTrackingAnl
+ *
+ */
 
+#include "shortnode.h"
 #include "shorttree.h"
 
 namespace QwTracking {
@@ -25,12 +24,26 @@ shorttree::~shorttree()
       delete son[i];
 }
 
-void shorttree::print() {
-  cout << "(" << minlevel << "," << "*" << ") ";
-  cout << "bits = " << bits << ": ";
-  for (int i = 0; i < TLAYERS; i++)
-    cout << bit[i] << "," ;
-  cout << "xref = " << xref << endl;
+/**
+ * Print some debugging information
+ */
+void shorttree::Print() {
+  std::cout << *this << std::endl;
 }
 
-} // QwTracking
+/**
+ * Stream some info about the short tree
+ * @param stream Stream as lhs of the operator
+ * @param st Short tree as rhs of the operator
+ * @return Stream as result of the operator
+ */
+std::ostream& operator<< (std::ostream& stream, const shorttree& st) {
+  stream << "(" << st.minlevel << "," << "*" << ") ";
+  stream << "bits = " << st.bits << ": ";
+  for (int i = 0; i < TLAYERS; i++)
+    stream << st.bit[i] << "," ;
+  stream << "xref = " << st.xref;
+  return stream;
+}
+
+} // namespace QwTracking

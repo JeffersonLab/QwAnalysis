@@ -219,7 +219,8 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
       x[1] = bpos->rPos;
 
       double slope = (y[1] - y[0]) / (x[1] - x[0]);
-      double intercept = y[1] - slope * x[1];
+      // NOTE unused:
+      //double intercept = y[1] - slope * x[1];
 
       double fslope = wirespacingf / frontline->mx;
       double bslope = wirespacingb / backline->mx;
@@ -321,12 +322,12 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 void QwTrackingTreeMatch::TgTrackPar (
-	QwPartialTrack *front,	//!- front partial track
-	QwPartialTrack *back,	//!- back partial track
-	double *theta,		//!- determined polar angle
-	double *phi,		//!- determined azimuthal angle
-	double *bending,	//!- bending in polar angle
-	double *ZVertex)	//!- determined z vertex
+	QwPartialTrack *front,	///< front partial track
+	QwPartialTrack *back,	///< back partial track
+	double *theta,		///< determined polar angle
+	double *phi,		///< determined azimuthal angle
+	double *bending,	///< bending in polar angle
+	double *ZVertex)	///< determined z vertex
 {
   *theta = atan(front->mx);
   *phi   = atan(front->my);
@@ -339,10 +340,10 @@ void QwTrackingTreeMatch::TgTrackPar (
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwTrack* QwTrackingTreeMatch::TgPartMatch (
-	QwPartialTrack *front,		//!- front partial track
-	QwPartialTrack *back,		//!- back partial track
-	QwTrack *tracklist,		//!- list of tracks
-	EQwDetectorPackage package	//!- package identifier
+	QwPartialTrack *front,		///< front partial track
+	QwPartialTrack *back,		///< back partial track
+	QwTrack *tracklist,		///< list of tracks
+	EQwDetectorPackage package	///< package identifier
 	/*enum Emethod method*/)
 {
   double bestchi = 1e10, chi;

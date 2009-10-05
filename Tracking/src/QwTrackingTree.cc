@@ -1,4 +1,3 @@
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
  \class QwTrackingTree
@@ -28,7 +27,7 @@
                      pattern by seeing if the pattern is consistent
                      with a straight line trajectory through a
                      detector with a slope less than or equal to
-                     the HRCSET MaxSlope parameter.
+                     the fMaxSlope parameter.
 
  (02) existent()   - this function checks if a possible treeline hit
                      pattern is already included in the tree search
@@ -87,7 +86,6 @@
                      each of the treelines.
 
 *//*-------------------------------------------------------------------------*/
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #include "QwTrackingTree.h"
 
@@ -96,7 +94,6 @@
 const string QwTrackingTree::TREEDIR("tree");
 
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-extern Options opt;
 
 /*! Defines are relevant for the storage of the trees in files. */
 #define OFFS1   2 /* Next Sons have to be linked to offset 1 nodelist */
@@ -114,7 +111,7 @@ extern Options opt;
 
 void QwTrackingTree::printtree (treenode* tn)
 {
-  tn->print();
+  tn->Print();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -131,11 +128,10 @@ void QwTrackingTree::printtree (treenode* tn)
     for each case.
 
 *//*-------------------------------------------------------------------------*/
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwTrackingTree::QwTrackingTree ()
 {
-  debug = 0; // debug level
+  fDebug = 0; // debug level
 
   tlayers = 8; // set tlayers == maxhits for now (for region 3)
 
@@ -159,14 +155,20 @@ QwTrackingTree::~QwTrackingTree ()
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*------------------------------------------------------------------------*//*!
 
- \fn consistent()
-
- \brief Determines whether the pattern is geometrically possible.
-
-*//*-------------------------------------------------------------------------*/
-
+/**
+ * \brief Determines whether the pattern is geometrically possible
+ *
+ *  ...
+ *
+ * @param tst
+ * @param level
+ * @param package
+ * @param type
+ * @param region
+ * @param dir
+ * @return
+ */
 int QwTrackingTree::consistent(
 	treenode *tst,
 	int level,
@@ -239,7 +241,7 @@ int QwTrackingTree::consistent(
     dy -= x0*binwidth; /// dy is decreased by a larger first layer bin
     dy += xf*binwidth; /// and increased by a larger last layer bin
 
-    if (fabs (dy / dza) > opt.R2maxslope) {
+    if (fabs (dy / dza) > fMaxSlope) {
       return 0;
     }
 
@@ -363,11 +365,22 @@ int QwTrackingTree::consistent(
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-treenode* QwTrackingTree::existent (treenode *tst, int hash)
+/**
+ * \brief Search for a node in the search tree
+ *
+ *  Starting with the hash value, the node is searched in the search tree.
+ *  When the bits are identical to an entry in the search tree, that entry
+ *  is returned.  Otherwise, when no match is found, null is returned.
+ *
+ * @param node Node to search for
+ * @param hash Hash value of the node
+ * @return Node in the tree, or null if not found
+ */
+treenode* QwTrackingTree::existent (treenode *node, int hash)
 {
   treenode *walk = generic[hash];
   while (walk) {
-    if (! memcmp (tst->bit, walk->bit, tlayers * sizeof(tst->bit[0])))
+    if (! memcmp (node->bit, walk->bit, tlayers * sizeof(node->bit[0])))
       return walk;		/* found it! */
     walk = walk->genlink;	/* nope, so look at the next pattern */
   }
@@ -402,24 +415,27 @@ treenode* QwTrackingTree::treedup (treenode *todup)
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*------------------------------------------------------------------------*//*!
 
- \fn marklin
-
- \brief Generates the treesearch pattern database.
-
-    This function generates the treesearch database.  For
-    a given father, it generates the 2^(treelayers)
-    possible son hit patterns.  Each son pattern is
-    checked to see if it is consistent with a trajectory
-    through the chamber.  If it is consistent, it is
-    inserted into the treesearch database and then, by a
-    recursive call to marklin(), its sons are generated.
-    marklin has different code for the different regions
-    due to the significant differences between them.
-
-*//*-------------------------------------------------------------------------*/
-
+/**
+ * \brief Generate the treesearch pattern database.
+ *
+ *  This function generates the treesearch database.  For
+ *  a given father, it generates the 2^(treelayers)
+ *  possible son hit patterns.  Each son pattern is
+ *  checked to see if it is consistent with a trajectory
+ *  through the chamber.  If it is consistent, it is
+ *  inserted into the treesearch database and then, by a
+ *  recursive call to marklin(), its sons are generated.
+ *  marklin has different code for the different regions
+ *  due to the significant differences between them.
+ *
+ * @param father Father node
+ * @param level Level of precision
+ * @param package Detector package
+ * @param type Detector type
+ * @param region Detector region
+ * @param dir Detector direction
+ */
 void QwTrackingTree::marklin (
 	treenode* father,
 	int level,
@@ -533,7 +549,7 @@ void QwTrackingTree::marklin (
         /* the pattern is completely unknown.  So, now check if
            it is consistent with a straight line trajectory
            through the tree-detectors whose slope is within the
-           window set by the Qoptions parameter R2maxslope.             */
+           window set by the Qoptions parameter fMaxSlope.             */
 
         if (consistent (&son, level+1, package, type, region, dir)) {
           /* the pattern is consistent, so now insert it into the
@@ -1051,12 +1067,13 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
 	/// Close the file after reading in the tree
 	if (!dontread) fclose(f);
 
-	trr->searchable = (stb ? true : false);
-	if (debug) cout << "Set searchable = " << trr->searchable << endl;
+	trr->SetSearchable(stb ? true : false);
+	if (fDebug) cout << "Set searchable = " << trr->IsSearchable() << endl;
 
-	trr->node.tree  = stb;
-	trr->node.next  = 0;
-	trr->rWidth     = width;
+	shortnode* node = trr->GetNode();
+	node->tree  = stb;
+	node->next  = 0;
+	trr->SetWidth(width);
 
 	return trr;
 }
@@ -1109,8 +1126,8 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
     /// If reading in doesn't work, clean up any partial trees
     /// that might have been read in already
     if( trr ) { // TODO Replace this free() and flush() stuff.
-      if( trr->node.tree )
-        free(trr->node.tree);
+      if( trr->GetNode()->tree )
+        free(trr->GetNode()->tree);
       free(trr);
     }
     fflush(stdout);
@@ -1231,8 +1248,8 @@ long QwTrackingTree::writetree (
 	bfs::path treepath(scratchdir / bfs::path(TREEDIR));
 	if (! bfs::exists(treepath)) {
 		bfs::create_directory(treepath);
-		if (debug) cout << "[QwTrackingTree::writetree] Created tree directory." << endl;
-		if (debug) cout << "   tree directory set to " << treepath.string() << endl;
+		if (fDebug) cout << "[QwTrackingTree::writetree] Created tree directory." << endl;
+		if (fDebug) cout << "   tree directory set to " << treepath.string() << endl;
 	}
 	if (! bfs::exists(treepath) || ! bfs::is_directory(treepath)) {
 		cout << "[QwTrackingTree::writetree] Warning: Could not create tree directory!" << endl;

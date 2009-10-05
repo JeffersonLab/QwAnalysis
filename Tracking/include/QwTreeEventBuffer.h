@@ -1,6 +1,9 @@
 #ifndef __QWEVENTTREEBUFFER__
 #define __QWEVENTTREEBUFFER__
 
+#include <vector>
+using std::vector;
+
 // ROOT headers
 #include "TROOT.h"
 #include "TFile.h"
@@ -8,17 +11,6 @@
 
 // Qweak headers
 #include "QwTypes.h"
-#include "QwEventBuffer.h"
-#include "QwParameterFile.h"
-
-#include "Det.h"
-#include "QwHit.h"
-
-#include "QwHitContainer.h"
-#include "QwDetectorInfo.h"
-
-#include <vector>
-using std::vector;
 
 // Boost math library for random number generation
 #include <boost/random.hpp>
@@ -27,7 +19,12 @@ using std::vector;
 ///
 /// \ingroup QwTrackingAnl
 
-class QwTreeEventBuffer : public QwEventBuffer
+// Forward declarations
+class QwHit;
+class QwHitContainer;
+class QwDetectorInfo;
+
+class QwTreeEventBuffer
 {
   public:
 
@@ -66,6 +63,9 @@ class QwTreeEventBuffer : public QwEventBuffer
     Int_t fEntries;
     Int_t fHitCounter;
 
+    // Event number
+    UInt_t fEvtNumber;
+
     // List of detector info objects (a.k.a. geometry information)
     vector <vector <QwDetectorInfo> > fDetectorInfo;
 
@@ -77,8 +77,8 @@ class QwTreeEventBuffer : public QwEventBuffer
     QwHit* CreateHitRegion2(QwDetectorInfo* detectorinfo, double x, double y);
     std::vector<QwHit> CreateHitRegion3(QwDetectorInfo* detectorinfo, double x, double y, double mx, double my);
 
-    // Region1 WirePlane 
-    // jpan: region1 has no wire plane, keep the name of 'WirePlane' 
+    // Region1 WirePlane
+    // jpan: region1 has no wire plane, keep the name of 'WirePlane'
     // in region1 for now for the naming consistance
     Int_t fRegion1_ChamberFront_WirePlane_PlaneHasBeenHit;
     Int_t fRegion1_ChamberFront_WirePlane_NbOfHits;

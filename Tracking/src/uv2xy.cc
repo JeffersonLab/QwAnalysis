@@ -3,6 +3,7 @@
 
 #include "uv2xy.h"
 
+#define PI 3.141592653589793
 
 #include "Det.h"
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
@@ -19,134 +20,200 @@ extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 //__________________________________________________________________
 Uv2xy::Uv2xy(EQwRegionID region)
 {
-  double uc,us,vc,vs;
-  double det;
-
   // Store region, TODO this class should at some point become 'one region only'
   fRegion = region;
 
+  SetOriginXYinUV(0.0, 0.0);
+  SetOriginUVinXY(0.0, 0.0);
+
   // Region 2
-  if(region == kRegionID2){  //jpan: determine working on which region
-  uc = rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->rCos*(-1);
-  us = rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->rSin;
-  vc = rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->rCos;
-  vs = rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->rSin*(-1);
+  if (region == kRegionID2) {  //jpan: determine working on which region
+    double cu = rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->rCos*(-1);
+    double su = rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->rSin;
+    double cv = rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->rCos;
+    double sv = rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->rSin*(-1);
 
-  fOffset[0]   = rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->PosOfFirstWire;
-  fOffset[1]   = rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->PosOfFirstWire;
-  fWirespacing = rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->WireSpacing;
+    fOffset[0]   = rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->PosOfFirstWire;
+    fOffset[1]   = rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->PosOfFirstWire;
+    fWireSpacing = rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->WireSpacing;
 
-  det = ( uc * vs - vc * us );
-  if( det ) {
-    uv[0][0] =  vs / det;
-    uv[0][1] = -us / det;
-    uv[1][0] = -vc / det;
-    uv[1][1] =  uc / det;
-  }
-  xy[0][0] =  uc;
-  xy[0][1] =  us;
-  xy[1][0] =  vc;
-  xy[1][1] =  vs;
+    double det = (cu * sv - cv * su);
+    if (det) {
+      fUV[0][0] =  sv / det;
+      fUV[0][1] = -su / det;
+      fUV[1][0] = -cv / det;
+      fUV[1][1] =  cu / det;
+    }
+    fXY[0][0] =  cu;
+    fXY[0][1] =  su;
+    fXY[1][0] =  cv;
+    fXY[1][1] =  sv;
 
-  }
 
-  else if(region == kRegionID3){
-  // Region 3
-  uc = rcDETRegion[kPackageUp][kRegionID3][kDirectionU]->rCos;
-  us = rcDETRegion[kPackageUp][kRegionID3][kDirectionU]->rSin;
-  vc = rcDETRegion[kPackageUp][kRegionID3][kDirectionV]->rCos;
-  vs = rcDETRegion[kPackageUp][kRegionID3][kDirectionV]->rSin;
+  } else if (region == kRegionID3) {
 
-  det = ( us * vc - vs * uc );
-  if( det ) {
-    uv[0][0] = vc / det;
-    uv[0][1] = uc / det;
-    uv[1][0] = vs / det;
-    uv[1][1] = us / det;
-  }
+    fOffset[0] = 0.0;
+    fOffset[1] = 0.0;
+    fWireSpacing = 0.0;
 
-  xy[0][0] =  us;
-  xy[0][1] = -uc;
-  xy[1][0] = -vs;
-  xy[1][1] =  vc;
+    // Region 3
+    double cu = rcDETRegion[kPackageUp][kRegionID3][kDirectionU]->rCos;
+    double su = rcDETRegion[kPackageUp][kRegionID3][kDirectionU]->rSin;
+    double cv = rcDETRegion[kPackageUp][kRegionID3][kDirectionV]->rCos;
+    double sv = rcDETRegion[kPackageUp][kRegionID3][kDirectionV]->rSin;
+
+// This is completely wrong: v is the first column of UV, but used in conjunction
+// with the u coordinates in uv2x and uv2y!  E.g. fUV[0][0] and fUV[1][0]
+    double det = (su * cv - sv * cu);
+    if (det) {
+      fUV[0][0] = cv / det;
+      fUV[0][1] = cu / det;
+      fUV[1][0] = sv / det;
+      fUV[1][1] = su / det;
+    }
+
+    fXY[0][0] =  su;
+    fXY[0][1] = -cu;
+    fXY[1][0] = -sv;
+    fXY[1][1] =  cv;
+
+//     double det = (cu * sv - cv * su);
+//     if (det) {
+//       fUV[0][0] = cu / det;
+//       fUV[0][1] = cv / det;
+//       fUV[1][0] = su / det;
+//       fUV[1][1] = sv / det;
+//     }
+//
+//     fXY[0][0] =  sv;
+//     fXY[0][1] = -cv;
+//     fXY[1][0] = -su;
+//     fXY[1][1] =  cu;
 
   }
 
 }
 
-Uv2xy::Uv2xy(double angleU, double offsetU, double offsetV, double wirespacing)
+
+/**
+ * Create a coordinate transformation helper object based on a single angle
+ *
+ * @param angleUdeg Angle (in degrees) of the U axis
+ */
+Uv2xy::Uv2xy(const double angleUdeg)
 {
-  // Wire offsets and wire spacing
-  fOffset[0] = offsetU;
-  fOffset[1] = offsetV;
-  fWirespacing = wirespacing;
+  // Reset region (TODO references to regions and wirespacing will be removed)
+  fRegion = kRegionIDNull;
+  fWireSpacing = 0.0;
 
-  // Angle for U wires
-  double uc = cos(angleU);
-  double us = sin(angleU);
+  // No offset of the origins
+  SetOffset(0.0, 0.0); // old
+  SetOriginUVinXY(0.0, 0.0);
 
-  // Angle for V wires
-  double angleV = 3.141592653589793 / 2.0 - angleU;
-  double vc = cos(angleV);
-  double vs = sin(angleV);
-
-  // (x,y) to (u,v) transformation
-  xy[0][0] =  us;
-  xy[0][1] = -uc;
-  xy[1][0] = -vs;
-  xy[1][1] =  vc;
-
-  // Invert: (u,v) to (x,y) transformation
-  double det = (us * vc - vs * uc);
-  if (det) {
-    uv[0][0] = vc / det;
-    uv[0][1] = uc / det;
-    uv[1][0] = vs / det;
-    uv[1][1] = us / det;
-  }
-
-
+  // Convert angles to radians and create the transformation matrices
+  fAngleUrad = angleUdeg * PI / 180.0;
+  fAngleVrad = PI - fAngleUrad;
+  InitializeRotationMatrices();
 }
 
 
-//__________________________________________________________________
+/**
+ * Create a coordinate transformation helper object based on two angles.
+ *
+ * @param angleUdeg Angle (in degrees) of the U axis
+ * @param angleVdeg Angle (in degrees) of the V axis
+ */
+Uv2xy::Uv2xy(const double angleUdeg, const double angleVdeg)
+{
+  // Reset region (TODO references to regions and wirespacing will be removed)
+  fRegion = kRegionIDNull;
+  fWireSpacing = 0.0;
+
+  // No offset of the origins
+  SetOffset(0.0, 0.0); // old
+  SetOriginUVinXY(0.0, 0.0);
+
+  // Convert angles to radians and create the transformation matrices
+  fAngleUrad = angleUdeg * PI / 180.0;
+  fAngleVrad = angleVdeg * PI / 180.0;
+  InitializeRotationMatrices();
+}
+
+
+/**
+ * Initialize the rotation matrices UV and XY based on the given angles
+ * for the U and V axes
+ *
+ * @param angleUrad Angle (in radians) of the U axis
+ * @param angleVrad Angle (in radians) of the V axis
+ */
+void Uv2xy::InitializeRotationMatrices()
+{
+  // Angle for u wires (in radians)
+  double cu = cos(fAngleUrad);
+  double su = sin(fAngleUrad);
+
+  // Angle for v wires (in radians)
+  double cv = cos(fAngleVrad);
+  double sv = sin(fAngleVrad);
+
+  // [x,y] to [u,v] transformation
+  fXY[0][0] =  sv;
+  fXY[0][1] = -cv;
+  fXY[1][0] = -su;
+  fXY[1][1] =  cu;
+
+  // [u,v] to [x,y] transformation (inverse)
+  double det = (cu * sv - su * cv);
+  if (det) {
+    fUV[0][0] = cu / det;
+    fUV[0][1] = cv / det;
+    fUV[1][0] = su / det;
+    fUV[1][1] = sv / det;
+  }
+}
+
+
 // The following functions need to have a shift put in to take into
 // account any offset positions between the different directions
+
 double Uv2xy::uv2x(double u, double v)
 {
-  if (fRegion == kRegionID2)
-    return (u + fOffset[0] * xy[0][0] - fWirespacing) * uv[0][0]
-         + (v + fOffset[1] * xy[1][0] - fWirespacing) * uv[0][1];
-  else
-    return u * uv[0][0] + v * uv[0][1];
+  return fUV[0][0] * (u + fOffset[0] * fXY[0][0] - fWireSpacing - fOriginXYinUV[0])
+       + fUV[0][1] * (v + fOffset[1] * fXY[1][0] - fWireSpacing - fOriginXYinUV[1]);
 }
-
-//__________________________________________________________________
 double Uv2xy::uv2y(double u, double v)
 {
-  if (fRegion == kRegionID2)
-    return (u + fOffset[0] * xy[0][0] - fWirespacing) * uv[1][0]
-         + (v + fOffset[1] * xy[1][0] - fWirespacing) * uv[1][1];
-  else
-    return u * uv[1][0] + v * uv[1][1];
+  return fUV[1][0] * (u + fOffset[0] * fXY[0][0] - fWireSpacing - fOriginXYinUV[0])
+       + fUV[1][1] * (v + fOffset[1] * fXY[1][0] - fWireSpacing - fOriginXYinUV[1]);
+}
+double Uv2xy::uv2mx(double u, double v)
+{
+  return fUV[0][0] * u + fUV[0][1] * v;
+}
+double Uv2xy::uv2my(double u, double v)
+{
+  return fUV[1][0] * u + fUV[1][1] * v;
 }
 
-//__________________________________________________________________
+
 double Uv2xy::xy2u(double x, double y)
 {
-  if (fRegion == kRegionID2)
-    return xy[0][0] * (x + fOffset[0]) + xy[0][1] * y + fWirespacing;
-  else
-    return xy[0][0] * x + xy[0][1] * y;
+  return fXY[0][0] * (x + fOffset[0] - fOriginUVinXY[0])
+       + fXY[0][1] * (y - fOriginUVinXY[1])
+       + fWireSpacing;
 }
-
-//__________________________________________________________________
 double Uv2xy::xy2v(double x, double y)
 {
-  if (fRegion == kRegionID2)
-    return xy[1][0] * (x + fOffset[1]) + xy[1][1] * y + fWirespacing;
-  else
-    return xy[1][0] * x + xy[1][1] * y;
+  return fXY[1][0] * (x + fOffset[1] - fOriginUVinXY[0])
+       + fXY[1][1] * (y - fOriginUVinXY[1])
+       + fWireSpacing;
 }
-//__________________________________________________________________
-
+double Uv2xy::xy2mu(double x, double y)
+{
+  return fXY[0][0] * x + fXY[0][1] * y;
+}
+double Uv2xy::xy2mv(double x, double y)
+{
+  return fXY[1][0] * x + fXY[1][1] * y;
+}

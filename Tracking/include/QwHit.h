@@ -103,6 +103,9 @@ class QwHit : public TObject {
   const Double_t GetTrackResolution() const;
   void SetTrackResolution(const double resolution) { fTrackResolution = resolution; };
 
+  const double GetPosition() const { return fPosition; };
+  void SetPosition(const double position) { fPosition = position; };
+
   const double GetZPosition() const;
   void SetZPosition(const double zpos) { fZPos = zpos; };
 
@@ -138,32 +141,38 @@ class QwHit : public TObject {
 
   //  Identification information for readout channels
 
-  Int_t fCrate;     /// ROC number
-  Int_t fModule;    /// F1TDC slot number, or module index
-  Int_t fChannel;   /// Channel number
-  Int_t fHitNumber; /// Index for multiple hits in a single channel on the left
-  Int_t fHitNumber_R;    ///index for multiple hits in a single channel on the right
+  Int_t fCrate;     ///< ROC number
+  Int_t fModule;    ///< F1TDC slot number, or module index
+  Int_t fChannel;   ///< Channel number
+  Int_t fHitNumber; ///< Index for multiple hits in a single channel on the left
+  Int_t fHitNumber_R;    ///< Index for multiple hits in a single channel on the right
 
   //  Identification information for the detector
-  Int_t fRegion;    /// Region 1, 2, 3, trigger scint., or cerenkov
-  Int_t fPackage;   /// Which arm of the rotator, or octant number
-  Int_t fDirection; /// Direction of the plane:  X, Y, U, V; R, theta; etc.
-  Int_t fPlane;     /// R or theta index for R1; plane index for R2 & R3
-  Int_t fElement;   /// Trace # for R1; wire # for R2 & R3; PMT # for others
-  QwDetectorInfo* pDetectorInfo; //! /// Pointer to the detector info object
+  Int_t fRegion;    ///< Region 1, 2, 3, trigger scint., or cerenkov
+  Int_t fPackage;   ///< Which arm of the rotator, or octant number
+  Int_t fDirection; ///< Direction of the plane:  X, Y, U, V; R, theta; etc.
+  Int_t fPlane;     ///< R or theta index for R1; plane index for R2 & R3
+  Int_t fElement;   ///< Trace # for R1; wire # for R2 & R3; PMT # for others
+  QwDetectorInfo* pDetectorInfo; //! ///< Pointer to the detector info object (not saved)
 
-  Bool_t fAmbiguousElement;  /// TRUE if this hit could come from two different elements (used by Region 3 tracking only)
-  Bool_t fLRAmbiguity;       /// TRUE if the other element is 8 wires "right"; FALSE if the other element is 8 wires "left" (used by Region 3 tracking only)
+  Bool_t fAmbiguousElement;  ///< TRUE if this hit could come from two different elements (used by Region 3 tracking only)
+  Bool_t fLRAmbiguity;       ///< TRUE if the other element is 8 wires "right"; FALSE if the other element is 8 wires "left" (used by Region 3 tracking only)
 
 
   //  Data specific to the hit
-  Double_t fRawTime;    /// Time as reported by TDC; it is UNSUBTRACTED
-  Double_t fTime;       /// Start corrected time, may also be further modified
-  Double_t fTimeRes;    /// Resolution of time (if appropriate)
+  Double_t fRawTime;    ///< Time as reported by TDC; it is UNSUBTRACTED
+  Double_t fTime;       ///< Start corrected time, may also be further modified
+  Double_t fTimeRes;    ///< Resolution of time (if appropriate)
 
-  Double_t fDistance;   /// Perpendicular distance from the wire to the track
-  Double_t fResidual;   /// Residual of this hit (distance - distance to fitted track)
-  Double_t fZPos;       /// Detector position???
+  Double_t fDistance;   ///< Perpendicular distance from the wire to the track,
+                        ///  as reconstructed from the drift time
+  Double_t fPosition;   ///< Reconstructed position of the hit in real x, u, v
+                        ///  coordinates perpendicular to the wires
+  Double_t fResidual;   ///< Residual of this hit (difference between the drift
+                        ///  distance and the distance to the fitted track)
+  Double_t fZPos;       ///< Lontigudinal position of the hit (this is mainly
+                        ///  used in region 3 where the z coordinate is taken
+                        ///  in the wire plane instead of perpendicular to it)
 
   Double_t fSpatialResolution;	/// Spatial resolution
   Double_t fTrackResolution;	/// Track resolution

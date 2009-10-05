@@ -1,25 +1,10 @@
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-//
-// C++ Interface: QwTrackingTreeSort
-//
-// Description:
-//
-//
-// Modified by: Wouter Deconinck <wdconinc@mit.edu>, (C) 2008
-//
-//              Jie Pan <jpan@jlab.org>, Sun May 24 14:29:42 CDT 2009
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-/*! \class QwTrackingTreeSort
-
-    \file QwTrackingTreeSort.h
-
-    $date: Sun May 24 14:29:42 CDT 2009 $
-
-    \brief This module is used to identify good track segments versus ghost tracks/hits.
+/**
+ * \class	QwTrackingTreeSort	QwTrackingTreeSort.h
+ *
+ * \brief This module is used to identify good track segments versus ghost tracks/hits.
+ *
+ * \date Sun May 24 14:29:42 CDT 2009
+ *
  */
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -29,7 +14,6 @@
 // Standard C and C++ headers
 #include <iostream>
 #include "QwTrackingTree.h"
-#include "QwTrackingTreeSearch.h"
 #include "QwPartialTrack.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

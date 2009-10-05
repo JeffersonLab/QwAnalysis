@@ -1,9 +1,9 @@
 /*------------------------------------------------------------------------*//*!
 
- \file QwEventDisplay.cc
+ \file QwHitContainerRead.cc
  \ingroup QwTrackingAnl
 
- \brief Example code for the event display routines
+ \brief Example code for reading a QwHitContainer
 
 *//*-------------------------------------------------------------------------*/
 

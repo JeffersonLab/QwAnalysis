@@ -1,7 +1,6 @@
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
- \class QwTrackingWorker
+ \file QwTrackingWorker.cc
 
  \brief Controls all the routines involved in finding tracks in an event.
 
@@ -70,9 +69,38 @@
                    track parameters and momentum for all found tracks.
 
 *//*-------------------------------------------------------------------------*/
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #include "QwTrackingWorker.h"
+
+// Standard C and C++ headers
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
+#include <iostream>
+using std::cout; using std::cerr; using std::endl;
+
+// Qweak headers
+#include "globals.h"
+#include "Qoptions.h"
+#include "options.h"
+#include "Det.h"
+
+// Tree search headers
+#include "QwTrackingTree.h"
+#include "QwTrackingTreeRegion.h"
+
+// Tracking modules
+#include "QwTrackingTreeSearch.h"
+#include "QwTrackingTreeCombine.h"
+#include "QwTrackingTreeSort.h"
+#include "QwTrackingTreeMatch.h"
+
+// Qweak track/event headers
+#include "QwPartialTrack.h"
+#include "QwTrack.h"
+#include "QwEvent.h"
+
 
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 extern Options opt;
@@ -152,6 +180,7 @@ void QwTrackingWorker::InitTree()
   double width = 0;
 
   QwTrackingTree *thetree = new QwTrackingTree();
+  thetree->SetMaxSlope(opt.R2maxslope);
 
   /// For each region (1, 2, 3, trigger, cerenkov, scanner)
   for (EQwRegionID region  = kRegionID1;
@@ -384,6 +413,11 @@ QwEvent* QwTrackingWorker::ProcessHits (
   QwTrackingTreeMatch   *TreeMatch   = new QwTrackingTreeMatch();
   TreeMatch->SetDebugLevel(fDebug);
 
+  // Process the options and set the respective flags in the modules
+  if (opt.showMatchingPatterns) TreeSearch->SetShowMatchingPatterns();
+  TreeCombine->SetMaxRoad(opt.R2maxroad);
+  TreeCombine->SetMaxXRoad(opt.R2maxXroad);
+
   /*
   int charge;
   int found_front = 0;
@@ -457,7 +491,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
 	  }
 
 	  // Check whether the search tree is searchable
-	  if (searchtree->searchable == false) {
+	  if (! searchtree->IsSearchable()) {
 	    event->treeline[package][region][type][dir] = 0;
 	    if (fDebug) cout << "[QwTrackingWorker::ProcessHits]     Search tree not searchable!" << endl;
 	    continue;
@@ -523,7 +557,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
 		// can be called.
 		int wire = hit->GetElement();
 		TreeSearch->TsSetPoint(
-			searchtree->rWidth,
+			searchtree->GetWidth(),
 			&(*hit),
 			channelr3[wire],
 			hashchannelr3[wire],
@@ -550,7 +584,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
 	      // We can start the tree search now.
 	      // NOTE Somewhere around here a memory leak lurks
 	      if (fDebug) cout << "Searching for matching patterns (direction " << dir << ")" << endl;
-	      TreeSearch->TsSearch(&(searchtree->node),
+	      TreeSearch->TsSearch(searchtree->GetNode(),
 				channelr3, hashchannelr3,
 				levels, NUMWIRESR3, TLAYERS);
 	      treelinelist = TreeSearch->GetListOfTreeLines();
@@ -563,7 +597,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
               if (fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
                              +region*kNumTypes*kNumDirections+type*kNumDirections+dir]) {
 
-		double width = searchtree->rWidth;
+		double width = searchtree->GetWidth();
 		TreeCombine->TlTreeLineSort (treelinelist, subhitlist,
 					package, region, type, dir,
 					1UL << (levels - 1), 0, dlayer, width);
@@ -636,7 +670,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
 		// can be called.
 		int wire = hit->GetElement();
 		TreeSearch->TsSetPoint(
-			searchtree->rWidth,
+			searchtree->GetWidth(),
 			rd->WireSpacing,
 			&(*hit),
 			wire,
@@ -664,7 +698,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
             } // end of loop over like-pitched planes in a region
 
 	    if (fDebug) cout << "Search for matching patterns (direction " << dir << ")" << endl;
-	    TreeSearch->TsSearch(&(searchtree->node),
+	    TreeSearch->TsSearch(searchtree->GetNode(),
 				channelr2, hashchannelr2,
 				levels, 0, tlayers);
 	    treelinelist = TreeSearch->GetListOfTreeLines();
@@ -680,7 +714,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
 	    if (fDebug) cout << "Sort patterns" << endl;
             if (searchtree) {
 
-	      double width = searchtree->rWidth;
+	      double width = searchtree->GetWidth();
 	      TreeCombine->TlTreeLineSort (treelinelist, subhitlist,
 					package, region, type, dir,
 					1UL << (levels - 1),

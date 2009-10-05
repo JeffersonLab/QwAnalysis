@@ -28,17 +28,21 @@
 #ifndef QWTRACKINGTREESEARCH_H
 #define QWTRACKINGTREESEARCH_H
 
-// Qweak tree object headers
-#include "shortnode.h"
-#include "QwHit.h"
-#include "QwTrackingTreeLine.h"
 #include "globals.h"
 
-using namespace QwTracking;
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 ///
 /// \ingroup QwTrackingAnl
+
+// Forward declarations
+namespace QwTracking {
+  class shortnode;
+  class shorttree;
+}
+using QwTracking::shortnode; using QwTracking::shorttree;
+
+class QwHit;
+class QwTrackingTreeLine;
+
 class QwTrackingTreeSearch {
 
   public:
@@ -49,7 +53,11 @@ class QwTrackingTreeSearch {
     QwTrackingTreeSearch();
     ~QwTrackingTreeSearch();
 
+    /// Set the debug level
     void SetDebugLevel (int debug) { fDebug = debug; };
+
+    /// Set the flag to show matching patterns when they are found
+    void SetShowMatchingPatterns(bool show = true) { fShowMatchingPatterns = show; };
 
     void BeginSearch ();
     void EndSearch ();
@@ -89,7 +97,8 @@ class QwTrackingTreeSearch {
 
   private:
 
-    int fDebug;			// debug level
+    int fDebug;			///< Debug level
+    bool fShowMatchingPatterns;	///< Flag to show matching patterns when found
 
     char **static_pattern;
     int  **static_hash;

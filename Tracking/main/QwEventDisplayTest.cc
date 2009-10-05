@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------*//*!
 
- \file QwEventDisplay.cc
+ \file QwEventDisplayTest.cc
  \ingroup QwTrackingAnl
 
  \brief Example code for the event display routines

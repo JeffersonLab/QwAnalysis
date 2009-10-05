@@ -26,7 +26,10 @@
 #include "options.h"
 
 #include "QwTrackingWorker.h"
+#include "QwPartialTrack.h"
+#include "QwTrack.h"
 #include "QwEvent.h"
+
 
 // Qweak Tree event buffer header
 #include "QwTreeEventBuffer.h"
@@ -37,7 +40,7 @@
 #include "QwDriftChamberVDC.h"
 #include "QwField.h"
 
-//Temporary global variables for sub-programs
+// Temporary global variables for sub-programs
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 Det rcDET[NDetMax];
 Options opt;
@@ -46,8 +49,8 @@ Options opt;
 // Debug level
 static const bool kDebug = false;
 // ROOT file output
-static const bool kTree = false;
-static const bool kHisto = false;
+static const bool kTree = true;
+static const bool kHisto = true;
 // Magnetic field
 static const bool kField = false;
 
@@ -122,11 +125,7 @@ int main (int argc, char* argv[])
   QwHit* hit = 0;
   if (kTree) {
     tree = new TTree("tree","Track list");
-    tree->Branch("track","QwPartialTrack",&parttrack);
-    tree->Branch("tlX","QwTrackingTreeLine",&tlX);
-    tree->Branch("tlU","QwTrackingTreeLine",&tlU);
-    tree->Branch("tlV","QwTrackingTreeLine",&tlV);
-    tree->Branch("hit","QwHit",&hit);
+    tree->Branch("tracks","QwPartialTrack",&parttrack);
   }
 
   // Loop over the events
@@ -150,11 +149,8 @@ int main (int argc, char* argv[])
 
     // Get the first partial track in the upper region 2 HDC
     parttrack = event->parttrack[kPackageUp][kRegionID2][kTypeDriftHDC];
-    if (parttrack) {
-      tlX = parttrack->tline[kDirectionX];
-      tlU = parttrack->tline[kDirectionU];
-      tlV = parttrack->tline[kDirectionV];
-    }
+    // Calculate average residual
+    if (parttrack) parttrack->SetAverageResidual();
     // Save to tree if there is a partial track
     if (kTree) if (parttrack) tree->Fill();
 

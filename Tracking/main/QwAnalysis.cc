@@ -60,6 +60,10 @@
 #include "QwTrackingWorker.h"
 #include "QwTrackingTree.h"
 
+// Qweak track/event headers
+#include "QwPartialTrack.h"
+#include "QwTrack.h"
+#include "QwEvent.h"
 
 
 //Temporary global variables for sub-programs

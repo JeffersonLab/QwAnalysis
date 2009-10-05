@@ -21,8 +21,6 @@ Rakitha (04/24/2009)
 #include <string>
 #include <cmath>
 
-//using namespace std;
-
 extern Det rcDET[NDetMax];
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 
@@ -76,13 +74,13 @@ Int_t QwASCIIEventBuffer::InitrcDETRegion( std::vector< std::vector< QwDetectorI
 };
 
 
-void  QwASCIIEventBuffer::GetrcDETRegion(QwHitContainer &HitList, Int_t event_no) 
+void  QwASCIIEventBuffer::GetrcDETRegion(QwHitContainer &HitList, Int_t event_no)
 {
   //  List of hits
   //    int nhits = 0;
   QwHit *newhit  = NULL;
   QwHit *hitlist = NULL;
-    
+
   // Detector region/type/direction identifiers
   EQwDetectorPackage package2;
   EQwRegionID        region2;
@@ -104,11 +102,11 @@ void  QwASCIIEventBuffer::GetrcDETRegion(QwHitContainer &HitList, Int_t event_no
 
 
   QwDetectorID local_id;
- 
+
   //  Loop through the QwHitContainer
   for (QwHitContainer::iterator qwhit = HitList.begin();
        qwhit != HitList.end(); qwhit++) {
-      
+
     local_id = qwhit->GetDetectorID();
     package  = (EQwDetectorPackage) local_id.fPackage;
     region   = (EQwRegionID)        local_id.fRegion;
@@ -212,51 +210,51 @@ void QwASCIIEventBuffer::AddDetector(QwDetectorInfo qwDetector, Int_t i) {
     else if (qwDetector.fRegion ==3)
         rcDET[i].sName="VDC";
     rcDET[i].sType = qwDetector.fType;
-    rcDET[i].Zpos = qwDetector.fZPos;
+    rcDET[i].Zpos = qwDetector.GetZPosition();
     rcDET[i].Rot = qwDetector.GetDetectorRotation();
-    rcDET[i].resolution = qwDetector.fSpatialResolution;
-    rcDET[i].TrackResolution = qwDetector.fTrackResolution;
-    rcDET[i].SlopeMatching=qwDetector.Slope_Match;
+    rcDET[i].resolution = qwDetector.GetSpatialResolution();
+    rcDET[i].TrackResolution = qwDetector.GetTrackResolution();
+    rcDET[i].SlopeMatching = qwDetector.GetSlopeMatching();
 
     rcDET[i].package = (EQwDetectorPackage)qwDetector.fPackage;
     rcDET[i].region = (EQwRegionID)qwDetector.fRegion;
     rcDET[i].type = (EQwDetectorType)qwDetector.fType;
     rcDET[i].dir  = (EQwDirectionID)qwDetector.fDirection;
 
-    rcDET[i].center[0] = qwDetector.fDetectorOriginX;
-    rcDET[i].center[1] = qwDetector.fDetectorOriginY;
+    rcDET[i].center[0] = qwDetector.GetXPosition();
+    rcDET[i].center[1] = qwDetector.GetYPosition();
 
-    rcDET[i].width[0] = qwDetector.fActiveWidthX;
-    rcDET[i].width[1] = qwDetector.fActiveWidthY;
-    rcDET[i].width[2] = qwDetector.fActiveWidthZ;
+    rcDET[i].width[0] = qwDetector.GetActiveWidthX();
+    rcDET[i].width[1] = qwDetector.GetActiveWidthY();
+    rcDET[i].width[2] = qwDetector.GetActiveWidthZ();
 
-    rcDET[i].WireSpacing = qwDetector.fWireSpacing;
-    rcDET[i].PosOfFirstWire=qwDetector.FirstWirePos;
-    rcDET[i].rCos=qwDetector.Wire_rcosX;
-    rcDET[i].rSin=qwDetector.Wire_rsinX;
-    rcDET[i].NumOfWires=qwDetector.fTotalWires;
-    rcDET[i].ID=qwDetector.fDetectorID;
-    rcDET[i].index=i;
+    rcDET[i].WireSpacing = qwDetector.GetElementSpacing();
+    rcDET[i].PosOfFirstWire = qwDetector.GetElementOffset();
+    rcDET[i].rCos = qwDetector.GetElementAngleCos();
+    rcDET[i].rSin = qwDetector.GetElementAngleSin();
+    rcDET[i].NumOfWires = qwDetector.GetNumberOfElements();
+    rcDET[i].ID = qwDetector.fDetectorID;
+    rcDET[i].index = i;
     rcDET[i].samesearched = 0;
 
     rcDET[i].SetActive();
 };
 
-Int_t QwASCIIEventBuffer::GetEvent() 
+Int_t QwASCIIEventBuffer::GetEvent()
 {
   //declaring varibles used during this routine
-  
+
   //    char line[256];
   //    int maxchar = 256;
-  
+
   Int_t currentevtno = 0;
-  
+
   //    Int_t Event;
   Int_t TotalHits = 0;
 
 
   std::string line1;
-  
+
   Double_t rPos1, Zpos, rPos2, resolution;
   Int_t wire;
 
@@ -266,13 +264,13 @@ Int_t QwASCIIEventBuffer::GetEvent()
 
   if (eventf->IsEOF())//at the end of  the last event the next GetEvent() call will terminate the QwTracking while loop by setting currentevtno=0.
     currentevtno=0;
-  
+
   if (fASCIIHits.size()>0)
     fASCIIHits.clear();//std::cout<<" Vector not empty "<<std::endl;
-  
-  
+
+
   while (eventf->ReadNextLine(line1)) {
-    
+
     if (fEvtNumber == 0) { //we are reading the first event
       //std::cout<<"Reading 1st event "<<std::endl;
       CurrentEvent=QwParameterFile::GetUInt(line1);
@@ -280,10 +278,10 @@ Int_t QwASCIIEventBuffer::GetEvent()
       eventf->ReadNextLine(line1);
       DetectId=QwParameterFile::GetUInt(line1);//reading the detectorId
       //std::cout<<"DET ID "<< DetectId <<std::endl;
-      
+
       //if routine is  starting a new event increment it
       currentevtno++;
-      
+
       //now we are going to read individual hits
       //reading no.of hits for this event
       eventf->ReadNextLine(line1);
@@ -292,10 +290,10 @@ Int_t QwASCIIEventBuffer::GetEvent()
       DetectId=QwParameterFile::GetUInt(line1);
       //std::cout<<" Event "<< fEvtNumber <<std::endl;
       //std::cout<<"DET ID "<< DetectId <<std::endl;
-      
+
       //If routine is in a middle of same event increment it
       currentevtno++;
-      
+
       //now we are going to read individual hits
       //reading no.of hits for this event
       eventf->ReadNextLine(line1);
@@ -315,25 +313,25 @@ Int_t QwASCIIEventBuffer::GetEvent()
       //}
     }
     fEvtNumber=CurrentEvent;
-    
-    
-    
-    
+
+
+
+
     //obtain the detector infomation
     package    = rcDET[DetectId].package;//top or bottom detector
     region     = rcDET[DetectId].region;//R1,2 or 3
     type       = rcDET[DetectId].type; //type of detector
     dir        = rcDET[DetectId].dir;
     resolution = rcDET[DetectId].resolution;
-    
+
     std::cout<<"Detector Id : "<<DetectId<<" package "<<rcDET[DetectId].package<<" region "<<rcDET[DetectId].region<<" type "<<rcDET[DetectId].type<<" DIR "<<rcDET[DetectId].dir <<std::endl;
-    
-    
-    
+
+
+
     TotalHits=QwParameterFile::GetUInt(line1);
     //std::cout<<" Total Hits "<<TotalHits<<std::endl;
-    
-    
+
+
     for (int cHits=0;cHits<TotalHits;cHits++) {
       eventf->ReadNextLine(line1);
       wire = QwParameterFile::GetUInt(line1);
@@ -345,9 +343,9 @@ Int_t QwASCIIEventBuffer::GetEvent()
       eventf->ReadNextLine(line1);
       rPos2=atof(line1.c_str());
       //std::cout<<" Wire Hit "<<wire;
-      
+
       //NOTE: In this QwHit object, plane is set to the DetectorId
-      
+
       currentHit=new QwHit(0,0,0,0,rcDET[DetectId].region,rcDET[DetectId].package, rcDET[DetectId].plane ,rcDET[DetectId].dir,wire,0) ; //order of parameters-> electronics stuffs are neglected, and  plane=DetectId and data is set to zero
       currentHit->SetDriftDistance(rPos1);
       currentHit->SetSpatialResolution(resolution);
@@ -355,7 +353,7 @@ Int_t QwASCIIEventBuffer::GetEvent()
       fASCIIHits.push_back(*currentHit);
     }
     //std::cout<<"Size of the Vector "<<fASCIIHits.size()<<std::endl;
-    
+
     //std::cout<<"Finish  Wire Hits "<<std::endl;
     //we are now complete with this event having  'numberhits' no.of hits  relating to DetectId detector.
     //next line in the file is the eventnumber
@@ -364,13 +362,13 @@ Int_t QwASCIIEventBuffer::GetEvent()
       break;
     }
     CurrentEvent=QwParameterFile::GetUInt(line1);
-    
+
     //std::cout<<"Reading Next event "<< CurrentEvent <<std::endl;
-    
-    
+
+
   }
-  
-  
+
+
   std::cout<<" Finished reading current event "<< fEvtNumber<<" Next Event "<<CurrentEvent <<" state "<<currentevtno<<std::endl;
   return currentevtno;
 }
@@ -394,7 +392,7 @@ Int_t QwASCIIEventBuffer::OpenDataFile(const TString filename,const TString rw="
 }
 //-----------------------------------------------------------
 
-Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits) 
+Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits)
 {
 
   // List of hits
@@ -422,18 +420,18 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits)
   //  Do something to clear rd->hitbydet for all
   //  detectors.
 
-    
+
   QwDetectorID local_id;
   //  Loop through the QwHitContainer
   for (QwHitContainer::iterator qwhit = qwhits.begin(); qwhit != qwhits.end(); qwhit++) {
     local_id = qwhit->GetDetectorID();
-      
+
     package = (EQwDetectorPackage) local_id.fPackage;
     region  = (EQwRegionID) local_id.fRegion;
     dir     = (EQwDirectionID) local_id.fDirection;
     plane   = local_id.fPlane;
-      
-      
+
+
     // when this is the first detector of the event
     if (firstdetec) {
       hitlist = NULL;
@@ -483,7 +481,7 @@ Int_t QwASCIIEventBuffer::ProcessHitContainer(QwHitContainer & qwhits)
 	if (DEBUG1) std::cout << "Detector plane " << rd->plane << std::endl;
       }
     }
-      
+
 
     newhit = new QwHit;
     assert(newhit);

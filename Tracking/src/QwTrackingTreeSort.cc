@@ -337,8 +337,8 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
 
 *//*-------------------------------------------------------------------------*/
 int QwTrackingTreeSort::rcCommonWires (
-	QwTrackingTreeLine *treeline1, //!- first tree line
-	QwTrackingTreeLine *treeline2) //!- second tree line
+	QwTrackingTreeLine *treeline1, ///< first tree line
+	QwTrackingTreeLine *treeline2) ///< second tree line
 {
   // Get the lists of hits associated with the two tree lines
   QwHit **hits1  = treeline1->hits;
@@ -422,8 +422,8 @@ int QwTrackingTreeSort::rcCommonWires (
 
 *//*-------------------------------------------------------------------------*/
 int QwTrackingTreeSort::rcTreeConnSort (
-	QwTrackingTreeLine *treelinelist,	//!- list of tree lines
-	EQwRegionID region)			//!- region
+	QwTrackingTreeLine *treelinelist,	///< list of tree lines
+	EQwRegionID region)			///< region
 {
   // Maximum allowed chi value (was 20000.0)
   double maxchi = 35000.0;

@@ -1,46 +1,34 @@
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+/**
+ * \class	QwTrackingWorker	QwTrackingWorker.h
+ *
+ * \brief	Controls all the routines involved in finding tracks in an event
+ *
+ * \author	Wolfgang Wander <wwc@hermes.desy.de>
+ * \author	Burnham Stokes <bestokes@jlab.org>
+ * \author	Wouter Deconinck <wdconinc@mit.edu>
+ *
+ * \date	2009-09-04 18:06:23
+ * \ingroup	QwTracking
+ *
+ */
 
 #ifndef QWTRACKINGWORKER_H
 #define QWTRACKINGWORKER_H
 
-// Standard C and C++ headers
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <cassert>
-#include <iostream>
-using std::cout; using std::cerr; using std::endl;
-
-// Qweak headers
-#include "globals.h"
-#include "Qoptions.h"
-#include "options.h"
-#include "Det.h"
-#include "QwHit.h"
-
-// Tree search headers
-#include "QwTrackingTree.h"
-#include "QwTrackingTreeRegion.h"
-
-// Qweak track/event headers
-#include "QwPartialTrack.h"
-#include "QwTrack.h"
-#include "QwEvent.h"
-
-// Tracking modules
-#include "QwTrackingTreeSearch.h"
-#include "QwTrackingTreeCombine.h"
-#include "QwTrackingTreeSort.h"
-#include "QwTrackingTreeMatch.h"
-
+// Necessary includes
 #include "QwTypes.h"
 #include "VQwSystem.h"
 
-using namespace QwTracking;
+#include "QwTrackingTreeRegion.h"
 
+// Forward declarations
 class QwSubsystemArrayTracking;
+class QwTrackingTree;
+class QwHitContainer;
+class QwPartialTrack;
+class QwTrack;
+class QwEvent;
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
  \class QwTrackingWorker
@@ -51,46 +39,52 @@ class QwSubsystemArrayTracking;
 
 *//*-------------------------------------------------------------------------*/
 
-class QwTrackingWorker : public VQwSystem {
+class QwTrackingWorker: public VQwSystem {
 
   public:
 
-    int tlayers;
-    int tlaym1;
+    int tlayers;	///< number of tracking layers
+    int tlaym1;		///< ...
 
-    int ngood;		//!- number of good events
-    int nbad;		//!- number of bad events
+    int ngood;		///< number of good events
+    int nbad;		///< number of bad events
+
 
     QwTrackingWorker(const char* name);
     ~QwTrackingWorker();
 
-    void SetDebugLevel (int debug) { fDebug = debug; };
+    /// \brief Get the debug level
     int GetDebugLevel () { return fDebug; };
+    /// \brief Set the debug level
+    void SetDebugLevel (int debug) { fDebug = debug; };
 
     void BCheck (double E, QwPartialTrack *f, QwPartialTrack *b, double TVertex, double ZVertex);
     QwTrack* rcLinkUsedTracks (QwTrack *track, int package);
 
+    /// \brief Process the hit list and construct the event
     QwEvent* ProcessHits (QwSubsystemArrayTracking *detectors, QwHitContainer *hitlist);
 
   private:
 
-    //!- pattern search tree for all configurations
-    QwTrackingTreeRegion *fSearchTree[kNumPackages * kNumRegions * kNumTypes * kNumDirections];
+    /// \brief Pattern search tree for all configurations
+    QwTrackingTreeRegion* fSearchTree[kNumPackages * kNumRegions * kNumTypes * kNumDirections];
 
-    //!- debug level
+    /// \brief Debug level
     int fDebug;
 
-    // Region 2 bit patterns
+    /// \brief Region 2 bit patterns
     char *channelr2[TLAYERS];
+    /// \brief Region 2 bit pattern hashes
     int  *hashchannelr2[TLAYERS];
 
-    // Region 3 bit patterns
+    /// \brief Region 3 bit patterns
     char *channelr3[NUMWIRESR3 + 1];
+    /// \brief Region 3 bit pattern hashes
     int  *hashchannelr3[NUMWIRESR3 + 1];
 
+    /// \brief Initialize the pattern search tree
     void InitTree();
 
-};
+}; // class QwTrackingWorker
 
 #endif // QWTRACKINGWORKER_H
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
