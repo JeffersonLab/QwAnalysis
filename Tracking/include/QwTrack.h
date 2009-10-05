@@ -1,11 +1,11 @@
 #ifndef QWTRACK_H
 #define QWTRACK_H
 
+#include "TObject.h"
+
 #include "QwPartialTrack.h"
 #include "QwBridge.h"
 #include "QwVertex.h"
-
-class Bridge;
 
 /*------------------------------------------------------------------------*//*!
 
@@ -22,7 +22,7 @@ class Bridge;
  \ingroup QwTrackingAnl
 
 *//*-------------------------------------------------------------------------*/
-class QwTrack {
+class QwTrack: public TObject {
 
   public:
 

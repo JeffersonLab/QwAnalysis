@@ -119,10 +119,6 @@ int main (int argc, char* argv[])
   // Create ROOT tree
   TTree* tree = 0;
   QwPartialTrack* parttrack = 0;
-  QwTrackingTreeLine* tlX = 0;
-  QwTrackingTreeLine* tlU = 0;
-  QwTrackingTreeLine* tlV = 0;
-  QwHit* hit = 0;
   if (kTree) {
     tree = new TTree("tree","Track list");
     tree->Branch("tracks","QwPartialTrack",&parttrack);
