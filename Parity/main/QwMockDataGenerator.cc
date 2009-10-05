@@ -89,9 +89,12 @@ int main(int argc, char* argv[])
   Double_t bcm_sigma = 1.0e4;
   for (int i = 0; i < 8; i++)
     bcm[i]->SetRandomEventParameters(bcm_mean, bcm_sigma);
-  // Set helicity asymmetry for one BCM
-  Double_t bcm_asym = 1.0e-3;
-  bcm[7]->SetRandomEventAsymmetry(bcm_asym);
+  // Set helicity asymmetry for the BCMs (0,1,2 are correlated)
+  bcm[3]->SetRandomEventAsymmetry(1.0e-4);
+  bcm[4]->SetRandomEventAsymmetry(1.0e-5);
+  bcm[5]->SetRandomEventAsymmetry(1.0e-6);
+  bcm[6]->SetRandomEventAsymmetry(1.0e-7);
+  bcm[7]->SetRandomEventAsymmetry(0.0);
 
   // Get some BPMs
   QwBPMStripline* bpm[2];
@@ -109,14 +112,14 @@ int main(int argc, char* argv[])
   QwQuartzBar* maindetector = (QwQuartzBar*) detectors.GetSubsystem("Main detector");
   Double_t bar_mean = 1.0e7;
   Double_t bar_sigma = 1.0e4;
-  Double_t bar_asym = 1.0e-4;
+  Double_t bar_asym = 1.0e-7;
   maindetector->SetRandomEventParameters(bar_mean, bar_sigma);
   maindetector->SetRandomEventAsymmetry(bar_asym);
   // Set a higher helicity asymmetry on one of the bars
   QwVQWK_Channel* bar1left = maindetector->GetChannel("Bar1Left");
   QwVQWK_Channel* bar1right = maindetector->GetChannel("Bar1Right");
-  Double_t bar_asym_1l =  2.0e-4;
-  Double_t bar_asym_1r = -2.0e-4;
+  Double_t bar_asym_1l =  2.0e-7;
+  Double_t bar_asym_1r = -2.0e-7;
   bar1left->SetRandomEventAsymmetry(bar_asym_1l);
   bar1right->SetRandomEventAsymmetry(bar_asym_1r);
 
@@ -151,8 +154,11 @@ int main(int argc, char* argv[])
 
 
     // Helicity initialization loop
-    unsigned int seed = 0x2; // 24-bit seed, should be larger than 0x1, 0x55 = 0101 0101
-    helicity->SetFirst24Bits(seed);
+    // 24-bit seed, should be larger than 0x1, 0x55 = 0101 0101
+    // Consecutive runs should have no trivially related seeds:
+    // e.g. with 0x2 * run, the first two files will be just 1 MPS offset...
+    unsigned int seed = 0x1234 ^ run;
+    helicity->SetFirst24Bits(seed & 0xFFFFFF);
 
 
     // Event generation loop
