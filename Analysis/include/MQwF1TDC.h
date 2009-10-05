@@ -10,6 +10,8 @@
 #define __MQwF1TDC__
 
 #include "Rtypes.h"
+#include <cstdlib>
+#include <iostream>
 
 ///
 /// \ingroup QwAnalysis
@@ -43,6 +45,7 @@ class MQwF1TDC{
   UInt_t GetTDCSlotNumber(){return fF1SlotNumber;};
   UInt_t GetTDCChannelNumber(){return fF1ChannelNumber;};
   UInt_t GetTDCData(){return fF1Dataword;};
+  UInt_t SubtractReference(UInt_t rawtime, UInt_t a);
   
 
  private:
@@ -53,6 +56,7 @@ class MQwF1TDC{
   static const UInt_t kF1Mask_HitFIFOFlag;
   static const UInt_t kF1Mask_ChannelNumber;
   static const UInt_t kF1Mask_Dataword;
+  static const UInt_t offset;
 
   Bool_t fF1HeaderFlag;
   UInt_t fF1SlotNumber;

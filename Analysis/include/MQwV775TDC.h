@@ -46,6 +46,7 @@ class MQwV775TDC{
   UInt_t GetTDCSlotNumber(){return fV775SlotNumber;};
   UInt_t GetTDCChannelNumber(){return fV775ChannelNumber;};
   UInt_t GetTDCData(){return fV775Dataword;};
+  UInt_t SubtractReference(UInt_t a, UInt_t rawtime);
   
  private:
   static const UInt_t kV775Mask_SlotNumber;
