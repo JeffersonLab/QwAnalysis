@@ -90,11 +90,11 @@ int main(int argc, char* argv[])
   for (int i = 0; i < 8; i++)
     bcm[i]->SetRandomEventParameters(bcm_mean, bcm_sigma);
   // Set helicity asymmetry for the BCMs (0,1,2 are correlated)
-  bcm[3]->SetRandomEventAsymmetry(1.0e-4);
-  bcm[4]->SetRandomEventAsymmetry(1.0e-5);
-  bcm[5]->SetRandomEventAsymmetry(1.0e-6);
-  bcm[6]->SetRandomEventAsymmetry(1.0e-7);
-  bcm[7]->SetRandomEventAsymmetry(0.0);
+  bcm[3]->SetRandomEventAsymmetry(1.0e-3);
+  bcm[4]->SetRandomEventAsymmetry(1.0e-4);
+  bcm[5]->SetRandomEventAsymmetry(1.0e-5);
+  bcm[6]->SetRandomEventAsymmetry(1.0e-6);
+  bcm[7]->SetRandomEventAsymmetry(1.0e-7);
 
   // Get some BPMs
   QwBPMStripline* bpm[2];
@@ -112,17 +112,28 @@ int main(int argc, char* argv[])
   QwQuartzBar* maindetector = (QwQuartzBar*) detectors.GetSubsystem("Main detector");
   Double_t bar_mean = 1.0e7;
   Double_t bar_sigma = 1.0e4;
-  Double_t bar_asym = 1.0e-7;
+  Double_t bar_asym = 1.0e-4;
   maindetector->SetRandomEventParameters(bar_mean, bar_sigma);
   maindetector->SetRandomEventAsymmetry(bar_asym);
-  // Set a higher helicity asymmetry on one of the bars
-  QwVQWK_Channel* bar1left = maindetector->GetChannel("Bar1Left");
-  QwVQWK_Channel* bar1right = maindetector->GetChannel("Bar1Right");
-  Double_t bar_asym_1l =  2.0e-7;
-  Double_t bar_asym_1r = -2.0e-7;
-  bar1left->SetRandomEventAsymmetry(bar_asym_1l);
-  bar1right->SetRandomEventAsymmetry(bar_asym_1r);
+  // Specific values
+  maindetector->GetChannel("Bar2Left")->SetRandomEventAsymmetry(1.0e-2);
+  maindetector->GetChannel("Bar2Right")->SetRandomEventAsymmetry(1.0e-2);
+  maindetector->GetChannel("Bar3Left")->SetRandomEventAsymmetry(1.0e-3);
+  maindetector->GetChannel("Bar3Right")->SetRandomEventAsymmetry(1.0e-3);
+  maindetector->GetChannel("Bar4Left")->SetRandomEventAsymmetry(1.0e-4);
+  maindetector->GetChannel("Bar4Right")->SetRandomEventAsymmetry(1.0e-4);
+  maindetector->GetChannel("Bar5Left")->SetRandomEventAsymmetry(1.0e-5);
+  maindetector->GetChannel("Bar5Right")->SetRandomEventAsymmetry(1.0e-5);
+  maindetector->GetChannel("Bar6Left")->SetRandomEventAsymmetry(1.0e-6);
+  maindetector->GetChannel("Bar6Right")->SetRandomEventAsymmetry(1.0e-6);
+  maindetector->GetChannel("Bar7Left")->SetRandomEventAsymmetry(1.0e-7);
+  maindetector->GetChannel("Bar7Right")->SetRandomEventAsymmetry(1.0e-7);
+  maindetector->GetChannel("Bar8Left")->SetRandomEventAsymmetry(1.0e-8);
+  maindetector->GetChannel("Bar8Right")->SetRandomEventAsymmetry(1.0e-8);
 
+  // Set a asymmetric helicity asymmetry on one of the bars
+  maindetector->GetChannel("Bar1Left")->SetRandomEventAsymmetry(1.0e-5);
+  maindetector->GetChannel("Bar1Right")->SetRandomEventAsymmetry(-1.0e-5);
 
 
   // Initialize randomness provider and distribution
@@ -154,6 +165,7 @@ int main(int argc, char* argv[])
 
 
     // Helicity initialization loop
+    helicity->SetEventPatternPhase(-1, -1, -1);
     // 24-bit seed, should be larger than 0x1, 0x55 = 0101 0101
     // Consecutive runs should have no trivially related seeds:
     // e.g. with 0x2 * run, the first two files will be just 1 MPS offset...

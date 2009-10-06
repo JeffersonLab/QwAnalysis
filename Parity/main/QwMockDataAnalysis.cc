@@ -169,25 +169,25 @@ int main(int argc, char* argv[])
         if      (helicity->GetHelicityDelayed() == 0) std::cout << "(-) ";
         else if (helicity->GetHelicityDelayed() == 1) std::cout << "(+) ";
         else std::cout << "(?) ";
-        if (helicity->GetPhaseNumber() == 4) {
+        if (helicity->GetPhaseNumber() == kMultiplet) {
           std::cout << std::hex << helicity->GetRandomSeedActual() << std::dec << ",  \t";
           std::cout << std::hex << helicity->GetRandomSeedDelayed() << std::dec << std::endl;
         }
       }
 
+      // Check for helicity validity (TODO I'd prefer to use kUndefinedHelicity)
+      if (bHelicity && helicity->GetHelicityDelayed() == -9999) continue;
 
       // Fill the histograms
       if (bHisto) detectors.FillHistograms();
 
-      // Fill the tree
+      // Fill the MPS tree
       if (bTree) {
         eventnumber = eventbuffer.GetEventNumber();
         detectors.FillTreeVector(mpsvector);
         mpstree->Fill();
       }
-
-      // TODO We need another check here to test for pattern validity.  Right
-      // now the first 24 cycles are also added to the histograms.
+      // Fill the helicity tree
       if (bHelicity && helicitypattern.IsCompletePattern()) {
         helicitypattern.CalculateAsymmetry();
         if (bHisto) helicitypattern.FillHistograms();
