@@ -10,6 +10,9 @@
 #include <cstring>
 
 // Boost uBLAS (linear algebra) headers
+#ifndef BOOST_VERSION
+#include <boost/version.hpp>
+#endif
 #if BOOST_VERSION <= 103200
 //    Boost 1.32.00 needs explicit includes of "functional.hpp" 
 //    and "operation.hpp".
