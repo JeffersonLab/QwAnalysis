@@ -26,8 +26,9 @@
 #include <sys/time.h>
 
 // Boost uBLAS (linear algebra) headers
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
+//    These are included by the inclusion of "matrix.h" below; pmk, 2009oct07.
+// #include <boost/numeric/ublas/vector.hpp>
+// #include <boost/numeric/ublas/matrix.hpp>
 
 // Qweak headers
 #include "QwHit.h"
