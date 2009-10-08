@@ -20,7 +20,7 @@
 #include "QwDriftChamberHDC.h"
 #include "QwDriftChamberVDC.h"
 
-#include "QwHitRootContainer.h"
+//#include "QwHitRootContainer.h"
 
 // Ignore the next few lines
 #include "Qoptions.h"
@@ -76,45 +76,21 @@ int main (int argc, char* argv[])
   qset.LinkDetectors();
   qset.DeterminePlanes();
 
-  // Open file
+
   TFile* file = new TFile("hitlist.root", "RECREATE");
-  TTree* tree = new TTree("tree", "Hit list");
-  QwHitRootContainer* rootlist = new QwHitRootContainer();
-  tree->Branch("hits","QwHitRootContainer",&rootlist);
+  TTree* tree = new TTree("tree", "HitContaner List");
 
-  // Loop over the events in the file
-  int fEntries = treebuffer->GetEntries();
-  for (int fEvtNum = 0; fEvtNum < fEntries; fEvtNum++) {
+  TList *hitContainerList = new TList();
 
-    // Print event number
-    if (kDebug) std::cout << "Event: " << fEvtNum << std::endl;
+  for (int fEvtNum = 0; fEvtNum < treebuffer->GetEntries() ; fEvtNum++) 
+    {
+      TObjArray *hitContainerNum = new TObjArray();
+      hitContainerNum  -> SetName( Form("EvtNum%d",fEvtNum) );
+      hitContainerList -> Add( hitContainerNum );
+      hitContainerNum  -> Add( treebuffer->GetHitList(fEvtNum) );
+    }
 
-    // Get hit list as QwHitContainer (new hit list)
-    QwHitContainer* hitlist = treebuffer->GetHitList(fEvtNum);
-    if (kDebug) hitlist->Print();
-
-    // Replace rootlist with QwHitContainer
-    rootlist->Convert(hitlist);
-
-    // Print the hitlist
-    if (kDebug) rootlist->Print();
-
-    // Save the event to tree
-    tree->Fill();
-
-    // Delete the hit list
-    delete hitlist;
-  }
-  // Delete the ROOT hit list
-  delete rootlist;
-
-  // Print results
-  if (kDebug) tree->Print();
-
-  // Output results
-  std::cout << "Successfully wrote " << tree->GetEntries() << " events." << std::endl;
-
-  // Write and close file
+  tree->Branch(hitContainerList,32000,4);
   file->Write();
   file->Close();
 

@@ -26,10 +26,12 @@
 
 ///
 /// \ingroup QwTrackingAnl
-class QwHitContainer:  public std::list<QwHit>, public TObject {
+class QwHitContainer: public std::list<QwHit>, public TObject {
  private:
-  typedef std::list<QwHit> QwHitArray;
+ /*  typedef std::list<QwHit> QwHitArray; */
  public:
+  typedef std::list<QwHit> QwHitArray;
+
   using QwHitArray::iterator;
   using QwHitArray::begin;
   using QwHitArray::end;
