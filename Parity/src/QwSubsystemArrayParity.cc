@@ -14,6 +14,14 @@
 
 //*****************************************************************
 
+VQwSubsystemParity* QwSubsystemArrayParity::GetSubsystem(const TString name)
+{
+  VQwSubsystemParity* tmp = NULL;
+  tmp=(VQwSubsystemParity*)  QwSubsystemArray::GetSubsystem(name);
+  
+  return tmp;
+}; 
+
 void  QwSubsystemArrayParity::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
   for (iterator subsys = begin(); subsys != end(); ++subsys) {

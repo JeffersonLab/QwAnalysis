@@ -1,6 +1,8 @@
 
 ROC=31
 Bank=0x3102
+!same sample size for ADCs in a given bank
+sample_size=400
 !
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED

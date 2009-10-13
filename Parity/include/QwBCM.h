@@ -46,6 +46,7 @@ class QwBCM : public VQwDataElement{
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings 
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Int_t SetSingleEventCuts(std::vector<Double_t> &);//two limts and sample size
+  void SetDefaultSampleSize(Int_t sample_size);
 
   void ResetRunningAverages();//will reset the average values and event counter
   void CalculateRunningAverages();//calculate running averages for the BCM
@@ -95,6 +96,8 @@ class QwBCM : public VQwDataElement{
   Double_t fBCM_Running_AVG;
   Double_t fBCM_Running_AVG_square;
   QwVQWK_Channel fTriumf_ADC;
+
+  Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check 
 
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
 };

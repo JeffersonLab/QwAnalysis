@@ -1,94 +1,67 @@
 
-!This file contains beamline event cut properties last updated 09/25/2009 based on run 752/755
-
-!to stop  particular BCM/BPM from using in the event cuts set all the limits to 0 so only HW checks are performed
+!This file contains beamline event cut properties last updated 10/13/2009 based on run 752/755
 
 
-typeID=bcm
-sample_size=400
-!lower limit, upper limit, sample size
+
+
+!device_type, device_name, device_flag, lower limit, upper limit
  
-!empty1, 	-44442.5, 	-74070.9
-empty1, 	0, 	0
-!empty2, 	-1.67887e+06, 	-2.79811e+0 
-empty2, 	0, 	0
- 
-!qwk_batext1, 	2.32896e+09, 	3.8816e+09 
 
-qwk_batext1, 	0, 	0 
+bcm, empty1, 		0, 	0,	0
 
-!qwk_batext2, 	1.12747e+09, 	1.87912e+09 
-qwk_batext2, 	0, 	0
+bcm, empty2, 		0, 	0,	0
  
-qwk_bcm0l02, 	1.20089e+06, 	2.00148e+06 
-!qwk_bcm0l02, 	0, 	0
- 
-!qwk_batery6, 	7.52126e+08, 	1.25354e+09 
-qwk_batery6, 	0, 	0
-!qwk_batery7, 	1.728e+09, 	2.88e+09 
-qwk_batery7, 	0, 	0
+bcm, qwk_batext1, 	0, 	0,	0 
 
+bcm, qwk_batext2,  	0, 	0,	0
  
-!phasemonitor, 	-179616, 	-299360 
-phasemonitor, 	0, 	0
+bcm, qwk_bcm0l02, 	1, 	1.20089e+06, 	2.00148e+06 
+!qwk_bcm0l02, 		0, 	0
+ 
+bcm, qwk_batery6,  	0, 	0,	0
+bcm, qwk_batery7, 	0, 	0,	0 
+bcm, phasemonitor, 	0, 	0,	0
 
 		
-typeID=bpmstripline
 
-!device name,   LLx,   ULx,  LLy,   ULy,  samplesize 
-qwk_qpd, 	2.67319, 	4.45531, 	1.31491, 	2.19152
-!qwk_qpd, 	0, 	0, 	0, 	0
 
-!qwk_1i02, 	1.34304, 	2.2384, 	1.47057, 	2.45095 
-qwk_1i02, 	0, 	0, 	0, 	0 
-!qwk_1i04, 	-0.348354, 	-0.580591, 	1.12413, 	1.87355 
-qwk_1i04, 	0, 	0, 	0, 	0
-!qwk_1i06, 	6.94079, 	11.568, 	10.2715, 	17.1192 
-!qwk_1i06, 	0, 	0, 	0, 	0
-!qwk_0i02, 	-0.256782, 	-0.42797, 	-2.18608, 	-3.64346 
-qwk_0i02, 	0, 	0, 	0, 	0
-!qwk_0i02a, 	0.20499, 	0.341651, 	0.397926, 	0.663209 
-qwk_0i02a, 	0, 	0, 	0, 	0
-!qwk_0i05, 	-1.96807, 	-3.28011, 	-0.740864, 	-1.23477 
-qwk_0i05, 	0, 	0, 	0, 	0
-!qwk_0i07, 	-3.29251, 	-5.48752, 	-1.8513, 	-3.0855 
-qwk_0i07, 	0, 	0, 	0, 	0
-!qwk_0l01, 	-5.16832, 	-8.61387, 	-4.18406, 	-6.97343 
-qwk_0l01, 	0, 	0, 	0, 	0
-!qwk_0l02, 	-3.45247, 	-5.75411, 	-2.04544, 	-3.40907 
-qwk_0l02, 	0, 	0, 	0, 	0
-!qwk_0l03, 	-2.63193, 	-4.38655, 	-9.22481, 	-15.3747
-qwk_0l03, 	0, 	0, 	0, 	0
-!qwk_0l04, 	-0.183044, 	-0.305073, 	-0.49327, 	-0.822116 
-qwk_0l04, 	0, 	0, 	0, 	0
-!qwk_0l05, 	-2.75417, 	-4.59029, 	-1.00958, 	-1.68263 
-qwk_0l05, 	0, 	0, 	0, 	0 
-!qwk_0l06, 	0.514048, 	0.856747, 	-1.91136, 	-3.18561 
-qwk_0l06, 	0, 	0, 	0, 	0
-!qwk_0l07, 	2.02933, 	3.38222, 	-2.00022, 	-3.3337
-qwk_0l07, 	0, 	0, 	0, 	0
-!qwk_0l08, 	0.836036, 	1.39339, 	-0.0156141, 	-0.0260234
-qwk_0l08, 	0, 	0, 	0, 	0
-!qwk_0l09, 	1.94201, 	3.23669, 	0.95485, 	1.59142 
-qwk_0l09, 	0, 	0, 	0, 	0 
-!qwk_0l10, 	0.202034, 	0.336723, 	0.12981, 	0.21635
-qwk_0l10, 	0, 	0, 	0, 	0 
-!qwk_0r01, 	-0.0815439, 	-0.135906, 	-0.509502, 	-0.849169 
-qwk_0r01, 	0, 	0, 	0, 	0 
-!qwk_0r02, 	-0.697195, 	-1.16199, 	1.21148, 	2.01913
-qwk_0r02, 	0, 	0, 	0, 	0 
-!qwk_0r05, 	3.42968, 	5.71614, 	2.32178, 	3.86964 
-qwk_0r05, 	0, 	0, 	0, 	0 
-!qwk_0r06, 	-2.5346, 	-4.22433, 	-1.63714, 	-2.72857 
-qwk_0r06, 	0, 	0, 	0, 	0
+!device type, device_name, device_flag,   LLx,   ULx,  LLy,   ULy, 
+bpmstripline, qwk_qpd, 1, 	2.67319, 	4.45531, 	1.31491, 	2.19152
+
+bpmstripline, qwk_1i02, 0, 	0, 	0, 	0, 	0 
+bpmstripline, qwk_1i04, 0, 	0, 	0, 	0, 	0
+!bpmstripline, qwk_1i06, 0, 	0, 	0, 	0, 	0
+bpmstripline, qwk_0i02, 0, 	0, 	0, 	0, 	0
+bpmstripline, qwk_0i02a, 0, 	0, 	0, 	0, 	0
+bpmstripline, qwk_0i05, 0, 	0, 	0, 	0, 	0
+bpmstripline, qwk_0i07, 0, 	0, 	0, 	0, 	0
+bpmstripline, qwk_0l01, 0, 	0, 	0, 	0, 	0
+bpmstripline, qwk_0l02, 0, 	0, 	0, 	0, 	0
+bpmstripline, qwk_0l03, 0, 	0, 	0, 	0, 	0
+bpmstripline, qwk_0l04, 0, 	0, 	0, 	0, 	0
+bpmstripline, qwk_0l05, 0, 	0, 	0, 	0, 	0 
+bpmstripline, qwk_0l06, 0, 	0, 	0, 	0, 	0
+bpmstripline, qwk_0l07, 0, 	0, 	0, 	0, 	0
+bpmstripline, qwk_0l08, 0, 	0, 	0, 	0, 	0
+bpmstripline, qwk_0l09, 0, 	0, 	0, 	0, 	0 
+bpmstripline, qwk_0l10, 0, 	0, 	0, 	0, 	0 
+bpmstripline, qwk_0r01, 0, 	0, 	0, 	0, 	0 
+bpmstripline, qwk_0r02, 0, 	0, 	0, 	0, 	0 
+bpmstripline, qwk_0r05, 0, 	0, 	0, 	0, 	0 
+bpmstripline, qwk_0r06, 0, 	0, 	0, 	0, 	0
 
 
 !This file contains beamline event cut properties
 
+!IMPORTANT
+!=========
+!Make sure when puting tabs in the map file entries, always put ", " before inserting a tab. 
+!Otherwise the routine QwParameterFile::GetNextToken(", ") will extract the entry with the tab character.
+
 !Comments
 !========
-!For each device we need to check HW and event cuts must be included in the event cut file. If upper and lower limits both set to zero then only HW checks are performed on the
-!device. If no entry is made for a particular device then no chekcs are performed. The sample size is set by using the sample_size=value entry. If the sample size on 
-!aparticlular device is different then set the sample size before the device and after the device set the sample size back to general value.
-!
-!
+!Devices that are not in the list are not subjected to any tests
+!Devices with device_flag = 0, will only be tested for HW checks. So no limits are needed.
+!Devices with device_flag = 1, will be subjected to both HW and event cut tests. Such devices needs to have upper and lower limits set on them.
+!For device_type =bcm only upper and lower limit of the calibrated charge on the ADC HW sum. (QwVQWK_Channel::fHardwareBlockSum)
+

@@ -34,12 +34,45 @@ const Double_t QwVQWK_Channel::kVQWK_VoltsPerBit = 76.29e-6;
 Bool_t QwVQWK_Channel::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
-  if (GetNumberOfSamples()==0){
-    if (bDEBUG) std::cout<<GetElementName()<<" Zero sample size "<<GetNumberOfSamples()<<std::endl;
-    fEventIsGood=kFALSE;
+ 
+  if (bDEBUG) 
+    std::cout<<" QwQWVK_Channel "<<GetElementName()<<"  "<<fNumberOfSamples_map<<std::endl;   
+  fEventIsGood &= MatchNumberOfSamples(fNumberOfSamples_map);//compare the default sample size with no.of samples read by the module
+  fEventIsGood &= (GetRawHardwareSum()==GetRawSoftwareSum());
+
+  
+
+  
+  if (fEventIsGood){
+    //check sequence number
+    fSequenceNo_Prev++;
+    if (fSequenceNo_Counter==0 || GetSequenceNumber()==0){//starting the data run 
+      fSequenceNo_Prev=GetSequenceNumber();     
+    }
+
+    if (!MatchSequenceNumber(fSequenceNo_Prev)){//we have a sequence number error
+      fEventIsGood&=kFALSE;       
+      if (bDEBUG) std::cout<<" QwQWVK_Channel "<<GetElementName()<<" Sequence number is not incrementing properly; previous value = "<<fSequenceNo_Prev<<" Current value= "<< GetSequenceNumber()<<std::endl;     
+    }
+
+    fSequenceNo_Counter++;
+
+    //Checking for HW_sum is returning same value.
+   if (fPrev_HardwareBlockSum != GetRawHardwareSum()){
+     //std::cout<<" BCM hardware sum is different  "<<std::endl;
+     fPrev_HardwareBlockSum = GetRawHardwareSum();
+     fADC_Same_NumEvt=0;
+   }else
+     fADC_Same_NumEvt++;//hw_sum is same increment the counter
+
+   //check for the hw_sum is giving the same value
+   if (fADC_Same_NumEvt>0){
+     if (bDEBUG) std::cout<<" BCM hardware sum is same for more than  "<<fADC_Same_NumEvt<<" time consecutively  "<<std::endl;
+     fEventIsGood&=kFALSE;
+   }
   }
   else
-    fEventIsGood &= (GetRawHardwareSum()==GetRawSoftwareSum());
+    fSequenceNo_Counter=0;//resetting the counter after ApplyHWChecks() a faliure 
   
   // std::cout<<GetElementName()<<"  hws="<<GetHardwareSum()<<"  soft="<<GetSoftwareSum()<<std::endl;
 
@@ -528,6 +561,7 @@ void QwVQWK_Channel::Scale(Double_t scale)
 
 Bool_t QwVQWK_Channel::MatchSequenceNumber(size_t seqnum)
 {
+  
   Bool_t status = kTRUE;
   if (!IsNameEmpty()){
     status = (fSequenceNumber==seqnum);
@@ -537,6 +571,7 @@ Bool_t QwVQWK_Channel::MatchSequenceNumber(size_t seqnum)
 
 Bool_t QwVQWK_Channel::MatchNumberOfSamples(size_t numsamp)
 {
+  //std::cout<<" QwQWVK_Channel "<<GetElementName()<<"  "<<fNumberOfSamples_map<<" "<<numsamp<<" "<<fNumberOfSamples<<std::endl; 
   Bool_t status = kTRUE;
   if (!IsNameEmpty()){
     status = (fNumberOfSamples==numsamp);

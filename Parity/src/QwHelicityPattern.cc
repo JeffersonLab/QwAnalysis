@@ -32,11 +32,13 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event, Int_t patter
 	      fEvents[i].Copy(&event);
 	      fEventNumber.push_back(-1);
 	    }
+	  fQuartetNumber=0;
 	  fYield.Copy(&event);
 	  fAsymmetry.Copy(&event);
 	  pos_sum.Copy(&event);
 	  neg_sum.Copy(&event);
 	  difference.Copy(&event);
+	  
 	  fCurrentPatternNumber=-1;
 	  fPatternSize=pattern_size;
 	  ClearEventData();
@@ -138,7 +140,7 @@ Bool_t  QwHelicityPattern::IsCompletePattern()
   Int_t i=fPatternSize-1;
   while(filled && i>-1)
     {
-       std::cout<<" i="<<i<<" is loaded ?"
+       std::cout<<" i="<<i<<" is loaded ?" 
  	       <<fEventLoaded[fEvents.size()-i-1]<<"\n";
       if(!fEventLoaded[i])
 	filled=kFALSE;
@@ -224,10 +226,14 @@ void  QwHelicityPattern::CalculateAsymmetry()
     }
   else
     {
+    
       IsGood=kTRUE;
+      fQuartetNumber++;
+      
       fYield.Sum(pos_sum,neg_sum);
       difference.Difference(pos_sum,neg_sum);
       fAsymmetry.Ratio(difference,fYield);
+      std::cout<<" pattern number ="<<fQuartetNumber<<"\n";
     }
 
   return;
@@ -241,6 +247,10 @@ void  QwHelicityPattern::ConstructHistograms(TDirectory *folder)
   fYield.ConstructHistograms(folder,prefix);
   prefix="asym_";
   fAsymmetry.ConstructHistograms(folder,prefix);
+  //prefix="HelPLUS_";
+  //pos_sum.ConstructHistograms(folder,prefix);
+  //prefix="HelNEG_";
+  //neg_sum.ConstructHistograms(folder,prefix);
   return;
 }
 
@@ -253,6 +263,8 @@ void  QwHelicityPattern::FillHistograms()
       fYield.FillHistograms();
       //  std::cout<<"************ ASYMMETRY ************\n";
       fAsymmetry.FillHistograms();
+      //pos_sum.FillHistograms();
+      //neg_sum.FillHistograms();	
     }
   return;
 }
@@ -313,8 +325,9 @@ void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values)
 
 void QwHelicityPattern::Print()
 {
-  std::cout<<"\n Pattern number ="<<fCurrentPatternNumber<<"\n";
+   std::cout<<"\n Pattern number ="<<fCurrentPatternNumber<<"\n";
   for(size_t i=0; i< (size_t) fPatternSize; i++)
     std::cout<<"event "<<fEventNumber[i]<<":"<<fEventLoaded[i]<<", "<<fHelicity[i]<<"\n";
   std::cout<<"Is a complete pattern ?(n/y:0/1) "<<IsCompletePattern()<<"\n";
+  
 }

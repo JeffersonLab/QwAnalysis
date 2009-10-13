@@ -24,7 +24,16 @@ class QwSubsystemArrayTracking:  public QwSubsystemArray {
   ~QwSubsystemArrayTracking(){};
   
   void GetHitList(QwHitContainer & grandHitList);//this will update the hit list from each subsystem
+  VQwSubsystemTracking* GetSubsystem(const TString name);
   
+};
+
+
+VQwSubsystemTracking* QwSubsystemArrayTracking::GetSubsystem(const TString name){
+  VQwSubsystemTracking* tmp = NULL;
+  tmp=(VQwSubsystemTracking*)  QwSubsystemArray::GetSubsystem(name);
+  
+  return tmp;
 };
 
 void QwSubsystemArrayTracking::GetHitList(QwHitContainer & grandHitList){

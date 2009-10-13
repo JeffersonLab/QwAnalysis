@@ -26,6 +26,7 @@ class QwBPMStripline : public VQwDataElement{
   QwBPMStripline(TString name, Bool_t ROTATED){
     InitializeChannel(name, ROTATED);
   };
+  
   ~QwBPMStripline() {DeleteHistograms();};
 
   Int_t ProcessEvBuffer(UInt_t* buffer, 
@@ -46,6 +47,7 @@ class QwBPMStripline : public VQwDataElement{
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t SetSingleEventCuts(std::vector<Double_t> &);
+  void SetDefaultSampleSize(Int_t sample_size);
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
 
   void ResetRunningAverages();//will reset the average values and event counter
@@ -116,6 +118,9 @@ class QwBPMStripline : public VQwDataElement{
   
   Double_t fPrevious_HW_Sum[4];//stores the last event's hardware sum.
   Int_t fHW_Sum_Stuck_Counter[4];//increment this if HW_sum is stuck with one value
+
+  Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check 
+
 
   const static Bool_t bDEBUG=kFALSE;//debugging display purposes
 

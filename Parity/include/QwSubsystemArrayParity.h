@@ -13,6 +13,7 @@
 #include <TTree.h>
 
 #include "QwSubsystemArray.h"
+#include "VQwSubsystemParity.h"
 
 ///
 /// \ingroup QwAnalysis_ADC
@@ -24,6 +25,8 @@ class QwSubsystemArrayParity:  public QwSubsystemArray {
   QwSubsystemArrayParity() {};
   ~QwSubsystemArrayParity(){
   };
+
+  VQwSubsystemParity* GetSubsystem(const TString name);
 
   void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values);
   void ConstructBranchAndVector(TTree *tree, std::vector <Double_t> &values) {

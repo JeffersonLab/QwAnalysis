@@ -105,45 +105,10 @@ Bool_t QwBCM::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;	
 
-  if (fSampleSize > 0){// if samplesize is 0 then this do not check for hardware check on this BCM. Since this device is not on the event cut file.
-    fEventIsGood&=fTriumf_ADC.ApplyHWChecks();//will check for consistancy between HWSUM and SWSUM also check sample size is non-zero
-    fEventIsGood&=fTriumf_ADC.MatchNumberOfSamples(fSampleSize);//check the sample size is correct
-    //Also need to check sequence number 
-    if (fEventIsGood){
-      fSequenceNo_Prev++;
-      if (counter==0 || fTriumf_ADC.GetSequenceNumber()==0){//starting the data run 
-	fSequenceNo_Prev=fTriumf_ADC.GetSequenceNumber();     
-      }
+  if (fDevice_flag != -1){// if fDevice_flag is -1  then do not check for hardware check on this BCM. Since this device is not on the event cut file.
+    //fEventIsGood&=fTriumf_ADC.MatchNumberOfSamples(fSampleSize);//check the sample size is correct
+    fEventIsGood&=fTriumf_ADC.ApplyHWChecks();//will check for consistancy between HWSUM and SWSUM also check for sample size
 
-      if (!fTriumf_ADC.MatchSequenceNumber(fSequenceNo_Prev)){//we have a sequence number error
-	fEventIsGood&=kFALSE;       
-	if (bDEBUG) std::cout<<" QwBCM "<<GetElementName()<<" Sequence number is not incrementing properly; previous value = "<<fSequenceNo_Prev<<" Current value= "<< fTriumf_ADC.GetSequenceNumber()<<std::endl;     
-      }
-   
-      counter++;
-
-      //Checking for HW_sum is returning same value.
-
-      if (fPrevious_HW_Sum != fTriumf_ADC.GetRawHardwareSum()){
-	//std::cout<<" BCM hardware sum is different  "<<std::endl;
-	fPrevious_HW_Sum = fTriumf_ADC.GetRawHardwareSum();
-	fHW_Sum_Stuck_Counter=0;
-      }else
-	fHW_Sum_Stuck_Counter++;//hw_sum is same increment the counter
-
-      //check for the hw_sum is giving the same value
-      if (fHW_Sum_Stuck_Counter>0){
-	if (bDEBUG) std::cout<<" BCM hardware sum is same for more than  "<<fHW_Sum_Stuck_Counter<<" time consecutively  "<<std::endl;
-	fEventIsGood&=kFALSE;
-      }
-
-
-
-      
-    }else{
-      //std::cout<<" QwBCM "<<GetElementName()<<" QwVQWK_Channel error "<<std::endl;
-      counter=0;//resetting the counter after IsGoodEvent() a faliure 
-    }
   }else
     if (bDEBUG) std::cout<<GetElementName()<<" Ignored BCM "<<std::endl;  
 
@@ -157,10 +122,15 @@ Bool_t QwBCM::ApplyHWChecks()
 Int_t QwBCM::SetSingleEventCuts(std::vector<Double_t> & dEventCuts){//two limts and sample size
   fLLimit=dEventCuts.at(0);
   fULimit=dEventCuts.at(1);
-  fSampleSize=(Int_t)dEventCuts.at(2);
+  fDevice_flag=dEventCuts.at(2);
+  //std::cout<<GetElementName()<<" BCM fDevice_flag "<<fDevice_flag<<std::endl;
   
   return 1;
 };
+
+void QwBCM::SetDefaultSampleSize(Int_t sample_size){
+  fTriumf_ADC.SetDefaultSampleSize((size_t)sample_size);
+}
   
 
 /********************************************************/
@@ -173,9 +143,7 @@ Bool_t QwBCM::ApplySingleEventCuts(){
    
 
   if (fGoodEvent){// if the BCM harware is good
-    if (!(fULimit==0 && fLLimit==0)){//  if fULimit & fLLimit  are non  zero then perform event cuts on this BCM.
-
-	  
+    if (fDevice_flag==1){// if fDevice_flag==1 then perform the event cut limit test	  
     
 	if (fTriumf_ADC.GetHardwareSum()<=fULimit && fTriumf_ADC.GetHardwareSum()>=fLLimit){ //I need to think about checking the limit of negative values (I think current limits have to be set backwards for -ve values)
 	  Event_Counter++;//Increment the counter, it is a good event.

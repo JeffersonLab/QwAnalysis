@@ -144,8 +144,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts(){
 
   if (fGoodEvent){
 
-
-    if (!(fULimitX==0 && fLLimitX==0 && fULimitY==0 && fLLimitY==0)){//if fULimitX, fLLimitX, fULimitY & fLLimitY  are non  zero then perform event cuts on this BCM.
+    if (fDevice_flag==1){//if fDevice_flag==1 then perform the event cut limit test
 
       //we only need to check two final values 
       if (fRelPos[0].GetHardwareSum()<=fULimitX && fRelPos[0].GetHardwareSum()>=fLLimitX){ //for RelX
@@ -266,13 +265,24 @@ Int_t QwBPMStripline::SetSingleEventCuts(std::vector<Double_t> & dEventCuts){
   fULimitX=dEventCuts.at(1);
   fLLimitY=dEventCuts.at(2);
   fULimitY=dEventCuts.at(3);
-  fSampleSize=(Int_t)dEventCuts.at(4);
-  
-  
+  fDevice_flag=(Int_t)dEventCuts.at(4);
+  //std::cout<<GetElementName()<<"BPM  fDevice_flag "<<fDevice_flag<<std::endl;
   
   return 0; 
 };
 
+
+
+
+/********************************************************/
+
+void QwBPMStripline::SetDefaultSampleSize(Int_t sample_size){
+
+  for(int i=0;i<4;i++)
+    fWire[i].SetDefaultSampleSize((size_t)sample_size);
+  
+  
+};
 
 /********************************************************/
 
@@ -341,10 +351,10 @@ Bool_t QwBPMStripline::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
 
-   Bool_t status=kTRUE;;
+   Bool_t status=kTRUE;
   //std::cout<<" wire[0] sequence num "<<fWire[0].GetSequenceNumber()<<" sample size "<<fWire[0].GetNumberOfSamples()<<std::endl;
 
-  if (fSampleSize>0){// samplesize is 0 then do not check for hardware check on this BPM since this device is not on the event cut file.
+  if (fDevice_flag!=-1){// samplesize is 0 then do not check for hardware check on this BPM since this device is not on the event cut file.
     
     //std::cout<<"BPM  wire [0 ] sample size "<<fWire[0].GetNumberOfSamples()<<std::endl; 
 
@@ -352,52 +362,22 @@ Bool_t QwBPMStripline::ApplyHWChecks()
       {
 	
 	
-	//check for wire hw sums returing same values
-
-      	if (fPrevious_HW_Sum[i] != fWire[i].GetRawHardwareSum()){
-	  fPrevious_HW_Sum[i] = fWire[i].GetRawHardwareSum();
-	  fHW_Sum_Stuck_Counter[i]=0;
-	}else
-	  fHW_Sum_Stuck_Counter[i]++;//hw_sum is same increment the counter
-
-	//check for the hw_sum is giving the same value
-	if (fHW_Sum_Stuck_Counter[i] > 0){
-	  if (bDEBUG) std::cout<<" BPM hardware sum is same for more than "<<fHW_Sum_Stuck_Counter[i]<<" time consecutively  "<<std::endl;
-	  status&=kFALSE;
-	}
-
-	
-
-	status= fWire[i].ApplyHWChecks(); 
-	fEventIsGood &= status;      
 	status= fWire[i].MatchSequenceNumber(fWire[0].GetSequenceNumber());
-      
+	fEventIsGood &= status;      
+	status= fWire[i].ApplyHWChecks();      
 	fEventIsGood &= status;
 	
-	status= fWire[i].MatchNumberOfSamples(fSampleSize); //check for sample size
 
 	if (!status){	
 	  if (bDEBUG) std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;  
 	  if (bDEBUG) std::cout<<" wire[ "<<i<<" ] sequence num "<<fWire[i].GetSequenceNumber()<<" sample size "<<fWire[i].GetNumberOfSamples()<<std::endl;
 	  //std::cout<<" wire[0] sequence num "<<fWire[0].GetSequenceNumber()<<" sample size "<<fWire[0].GetNumberOfSamples()<<std::endl;
 	}
-	fEventIsGood &= status;
+	
 	
       
       }
-    if (fEventIsGood){//if values are consistant within each BPMStripline
-      fSequenceNo_Prev++;
-      if (counter==0 || fWire[0].GetSequenceNumber()==0){//we have a repeating sequence number
-	fSequenceNo_Prev=fWire[0].GetSequenceNumber();     
-      }
-  
-      if (!fWire[0].MatchSequenceNumber(fSequenceNo_Prev)){
-	//fEventIsGood&=kFALSE; 
-	if (bDEBUG) std::cout<<" QwBPMStripline "<<fWire[0].GetElementName()<<" Sequence number incorrect order predicted value= "<<fSequenceNo_Prev<<" Current value= "<< fWire[0].GetSequenceNumber()<<std::endl;     
-      }      
-      counter++;
-    }else
-      counter=0;//resetting the counter after IsGoodEvent() a faliure
+    
 
   /*
   if(!fEventIsGood||kDEBUG)

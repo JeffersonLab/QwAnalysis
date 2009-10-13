@@ -47,6 +47,7 @@ class QwHelicityPattern{
   std::vector<Int_t> fEventNumber;
   Int_t fCurrentPatternNumber;
   Int_t fPatternSize;
+  Int_t fQuartetNumber;
 
   QwSubsystemArrayParity  fYield;
   QwSubsystemArrayParity  fAsymmetry;
@@ -55,6 +56,7 @@ class QwHelicityPattern{
   QwSubsystemArrayParity pos_sum;
   QwSubsystemArrayParity neg_sum;
   QwSubsystemArrayParity difference;
+  
   Bool_t IsGood; 
   
 };

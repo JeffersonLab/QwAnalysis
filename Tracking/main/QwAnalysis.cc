@@ -137,25 +137,23 @@ int main(Int_t argc,Char_t* argv[])
   std::vector< std::vector< QwDetectorInfo > > detector_info;
 
 
-  subsystem_tmp= (VQwSubsystemTracking *)QwDetectors.GetSubsystem("R2");
-  //this will load the detector geometry for Region 2 into QwDetectorInfo list.
+  
   //detector geometry is stored in "qweak_new.geo".
-  subsystem_tmp->LoadQweakGeometry("qweak_new.geo");
+  QwDetectors.GetSubsystem("R2")->LoadQweakGeometry("qweak_new.geo");
   //detector geometry in to the detector_info
-  subsystem_tmp->GetDetectorInfo(detector_info);
-
+  QwDetectors.GetSubsystem("R2")->GetDetectorInfo(detector_info);
 
 
 
 
   //Setting up the QTR  for Region 3
   //code to generate rcDET and rcDETRegion
-  subsystem_tmp= (VQwSubsystemTracking *)QwDetectors.GetSubsystem("R3");
-  //this will load the detector geometry for Region 3 into QwDetectorInfo list.
+
+  
   //detector geometry is stored in "qweak_new.geo".
-  subsystem_tmp->LoadQweakGeometry("qweak_new.geo");
+  QwDetectors.GetSubsystem("R3")->LoadQweakGeometry("qweak_new.geo");
   //detector geometry in to the detector_info
-  subsystem_tmp->GetDetectorInfo(detector_info);
+  QwDetectors.GetSubsystem("R3")->GetDetectorInfo(detector_info);
 
 
 

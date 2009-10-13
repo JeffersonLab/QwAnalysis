@@ -53,11 +53,19 @@ class QwVQWK_Channel: public VQwDataElement {
     fMockGaussianSigma = 0.0;
     fNumEvtsWithHWErrors=0;//init error counters
     fNumEvtsWithEventCutsRejected=0;//init error counters
+    fADC_Same_NumEvt=0;//init HW_Check counters
+    fPrev_HardwareBlockSum=0;//init HW_Check counters
+    fSequenceNo_Counter=0;//init HW_Check counters
     if(datatosave=="raw") fDataToSave=kRaw;
     else
       if(datatosave=="derived") fDataToSave=kDerived;
     return;
   };
+
+  void SetDefaultSampleSize(size_t NumberOfSamples_map){ //Will update the default sample size for the module.
+    fNumberOfSamples_map=NumberOfSamples_map;//this will be checked against the no.of samples read by the module 
+  };
+
 
   void  ClearEventData();
 
@@ -166,19 +174,26 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t fHardwareBlockSum; /*! Module-based sum of the four sub-blocks */
   size_t fSequenceNumber;     /*! Event sequence number for this channel  */
   size_t fPreviousSequenceNumber; /*! Previous event sequence number for this channel  */
-  size_t fNumberOfSamples;    /*! Number of samples in the event          */
+  size_t fNumberOfSamples;    /*! Number of samples  read through the module        */
+  size_t fNumberOfSamples_map;    /*! Number of samples in the expected to  read through the module. This value is set in the QwBeamline map file     */
 
   /*  Parity mock data distributions */
   Double_t fMockAsymmetry;
   Double_t fMockGaussianMean;
   Double_t fMockGaussianSigma;
 
-  Int_t fNumEvtsWithHWErrors;//counts the HW falied events
-  Int_t fNumEvtsWithEventCutsRejected;////counts the Event cut rejected events
+  Int_t fNumEvtsWithHWErrors;/*! Counts the HW falied events */
+  Int_t fNumEvtsWithEventCutsRejected;/*! Counts the Event cut rejected events */
 
 
+  Int_t fADC_Same_NumEvt;/*! Keep track of how many events with same ADC value returned.*/
+  Int_t fSequenceNo_Prev;/* ! Keep the sequence number of the last event */
+  Int_t fSequenceNo_Counter;/* ! Internal counter to keep track of the sequence number */
+  Double_t fPrev_HardwareBlockSum;/*! Previos Module-based sum of the four sub-blocks */
+  
 
-const static Bool_t bDEBUG=kFALSE;//debugging display purposes
+
+  const static Bool_t bDEBUG=kFALSE;//debugging display purposes
 };
 
 

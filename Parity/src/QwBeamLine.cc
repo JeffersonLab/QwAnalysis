@@ -21,17 +21,18 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   Int_t currentbankread=0;
   Int_t wordsofar=0;
   Int_t currentsubbankindex=-1;
+  Int_t fSample_size=0;
 
   std::vector<Double_t> fBCMEventCuts;//for initializing event cuts  
   fBCMEventCuts.push_back(0);
   fBCMEventCuts.push_back(0);
-  fBCMEventCuts.push_back(0);
+  fBCMEventCuts.push_back(-1);//device_flag is set to -1 
   std::vector<Double_t> fBPMEventCuts;//for initializing event cuts
   fBPMEventCuts.push_back(0);
   fBPMEventCuts.push_back(0);
   fBPMEventCuts.push_back(0);
   fBPMEventCuts.push_back(0);
-  fBPMEventCuts.push_back(0);
+  fBPMEventCuts.push_back(-1);//device_flag is set to -1 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
@@ -58,6 +59,10 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	{
 	  currentbankread=value;
 	  RegisterSubbank(value);
+	}
+      else if (varname=="sample_size")
+	{
+	  fSample_size=value;
 	}
     } else
       {
@@ -122,13 +127,17 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
 		QwBPMStripline localstripline(localBeamDetectorID.fdetectorname,!unrotated);
 		fStripline.push_back(localstripline);
-		fStripline[fStripline.size()-1].SetSingleEventCuts(fBPMEventCuts);//initialize the event cuts to zero
+		//std::cout<<" BCM sample size "<<fSample_size<<std::endl;
+		fStripline[fStripline.size()-1].SetSingleEventCuts(fBPMEventCuts);//initialize the event cuts to zero. This is before reading the event cut file. So for any device that is not on the list will carry these default values.
+		fStripline[fStripline.size()-1].SetDefaultSampleSize(fSample_size);
 		localBeamDetectorID.fIndex=fStripline.size()-1;
 	      }
 	    if(DetectorTypes[localBeamDetectorID.fTypeID]=="bcm")
 	      {
 		QwBCM localbcm(localBeamDetectorID.fdetectorname);
 		fBCM.push_back(localbcm);
+		//std::cout<<"BPM sample size "<<fSample_size<<std::endl;
+	       	fBCM[fBCM.size()-1].SetDefaultSampleSize(fSample_size);
 		fBCM[fBCM.size()-1].SetSingleEventCuts(fBCMEventCuts);//initialize the event cuts to zero
 		localBeamDetectorID.fIndex=fBCM.size()-1;
 	      }
@@ -186,9 +195,11 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 Int_t QwBeamLine::LoadEventCuts(TString  filename){
   Double_t ULX, LLX, ULY, LLY;
   Int_t samplesize;
+  Int_t check_flag;
   std::vector<Double_t> fBCMEventCuts;
   std::vector<Double_t> fBPMEventCuts;
-  TString varname, varvalue, vartypeID,device_type;
+  TString varname, varvalue, vartypeID;
+  TString device_type,device_name;
   std::cout<<" QwBeamLine::LoadEventCuts  "<<filename<<std::endl; 
   QwParameterFile mapstr(filename.Data());  //Open the file
 
@@ -198,7 +209,73 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
     //std::cout<<"********* In the loop  *************"<<std::endl;
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
-    if (mapstr.LineIsEmpty())  continue;    
+    if (mapstr.LineIsEmpty())  continue;   
+
+    device_type= mapstr.GetNextToken(", ").c_str();
+    device_type.ToLower();
+    device_name= mapstr.GetNextToken(", ").c_str();
+    device_name.ToLower();
+    check_flag= atoi(mapstr.GetNextToken(", ").c_str());//which tests to perform on the device
+
+    //set limits to zero
+    ULX=0;
+    LLX=0;
+    ULY=0;
+    LLY=0;
+
+    if (device_type == "bcm"){
+      
+      //std::cout<<" device name "<<device_name<<" device flag "<<check_flag<<std::endl;
+      if (check_flag==1){//then only we need event cut limits
+	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BCM value
+	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BCM value
+      }
+      //else
+      //std::cout<<" device name "<<device_name<<" device flag "<<check_flag<<std::endl;
+      //samplesize = (atoi(mapstr.GetNextToken(", ").c_str()));	//sample size
+      //	std::cout<<" sample size "<<samplesize<<std::endl;
+      //retrieve the detector from the vector.
+      //device_name="empty2";
+      Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
+      //std::cout<<"*****************************"<<std::endl;
+      //std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
+      //update the Double vector
+      fBCMEventCuts.clear();
+      fBCMEventCuts.push_back(LLX);
+      fBCMEventCuts.push_back(ULX);
+      fBCMEventCuts.push_back(check_flag);
+      
+      //fBCM[det_index].Print();
+      fBCM[det_index].SetSingleEventCuts(fBCMEventCuts);
+      //std::cout<<"*****************************"<<std::endl;
+	
+    }
+    else if (device_type == "bpmstripline"){
+      if (check_flag==1){//then only we need event cut limits
+	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline X
+	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline X
+	LLY = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline Y
+	ULY = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline Y
+      }
+      //else
+      //std::cout<<" device name "<<device_name<<" device flag "<<check_flag<<std::endl;
+      Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);	
+      //update the Double vector
+      fBPMEventCuts.clear();
+      fBPMEventCuts.push_back(LLX);
+      fBPMEventCuts.push_back(ULX);
+      fBPMEventCuts.push_back(LLY);
+      fBPMEventCuts.push_back(ULY);
+      fBPMEventCuts.push_back(check_flag);
+      //std::cout<<"*****************************"<<std::endl;
+      //std::cout<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
+      fStripline[det_index].SetSingleEventCuts(fBPMEventCuts);
+      //fStripline[det_index].Print();
+      //std::cout<<"*****************************"<<std::endl;
+    }
+      
+    
+    /*
     
     if (mapstr.HasVariablePair("=",varname,vartypeID)){
       //  This is a declaration line.  Decode it.
@@ -265,7 +342,7 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
       }
     }
 
-    
+    */
     
   }
 

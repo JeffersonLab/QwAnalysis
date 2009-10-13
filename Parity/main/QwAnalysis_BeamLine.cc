@@ -45,7 +45,7 @@ int main(Int_t argc,Char_t* argv[])
   Bool_t bHelicity=kTRUE;
   Bool_t bTree=kTRUE;
   Bool_t bHisto=kTRUE;
-  Bool_t bEventCut=kFALSE; //set this to kTRUE to activate event cuts
+  Bool_t bEventCut=kFALSE;//kTRUE;//set this to kTRUE to activate event cuts
 
   //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
   if (getenv("DISPLAY")==NULL
@@ -66,16 +66,13 @@ int main(Int_t argc,Char_t* argv[])
 
   QwDetectors.push_back(new QwBeamLine("Injector BeamLine"));
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline.map");
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_pedestal.map");
-  subsystem_tmp=(VQwSubsystemParity *)QwDetectors.GetSubsystem("Injector BeamLine");
-     subsystem_tmp->LoadEventCuts(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline_eventcuts.in");//Pass the correct cuts file.
+  QwDetectors.GetSubsystem("Injector BeamLine")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_pedestal.map");  
+  QwDetectors.GetSubsystem("Injector BeamLine")->LoadEventCuts(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline_eventcuts.in");//Pass the correct cuts file. 
   QwDetectors.push_back(new QwHelicity("Helicity info"));
   QwDetectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_helicity.map");
   QwDetectors.GetSubsystem("Helicity info")->LoadInputParameters("");	
-  subsystem_tmp=(VQwSubsystemParity *)QwDetectors.GetSubsystem("Helicity info");
-  if (bEventCut)//load the event cut file only if event cut is turned on
-    subsystem_tmp->LoadEventCuts(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline_eventcuts.in");
-  QwHelicityPattern QwHelPat(QwDetectors,4);
+  QwDetectors.GetSubsystem("Helicity info")->LoadEventCuts(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline_eventcuts.in");//Pass the correct cuts file. 
+   QwHelicityPattern QwHelPat(QwDetectors,4);
      
   ///////
   Double_t evnum=0.0;
@@ -249,6 +246,7 @@ int main(Int_t argc,Char_t* argv[])
       if (!bEventCut)
 	std::cout<<"Event cuts turned off! "<<std::endl;
       else{
+	QwHelPat.Print();
 	QwDetectors.CheckRunningAverages(kTRUE);//check running averages
 	QwDetectors.GetEventcutErrorCounters();//print the event cut error summery for each sub system
       }
