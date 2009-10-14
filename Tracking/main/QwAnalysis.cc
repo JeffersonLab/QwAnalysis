@@ -45,6 +45,9 @@
 #include "QwAnalysis.h"
 #include "TApplication.h"
 
+#include <sstream>
+
+
 #include <boost/shared_ptr.hpp>
 
 #include <sys/time.h>

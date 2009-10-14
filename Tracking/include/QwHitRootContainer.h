@@ -3,13 +3,17 @@
 
 #include <list>
 
+// ROOT headers
 #include <TOrdCollection.h>
+#include <TClonesArray.h>
+#include <TRefArray.h>
+#include <TBrowser.h>
 
 #include "QwHit.h"
 
 class QwHitContainer;
 
-class QwHitRootContainer: public TOrdCollection {
+class QwHitRootContainer: public TObject {
 
 // ROOT container class around the QwHitContainer.  Most helpful discussion
 // was found on http://root.cern.ch/root/roottalk/roottalk03/2997.html.  The
@@ -23,16 +27,31 @@ class QwHitRootContainer: public TOrdCollection {
 //
 //class QwHitRootContainer: public TOrdCollection, public std::list<QwHit> {
 
+  private:
+
+    Int_t fNQwHits; ///< Number of QwHits in the array
+    TClonesArray        *fQwHits; ///< Array of QwHits
+    static TClonesArray *gQwHits; ///< Static array of QwHits
+
   public:
 
-    QwHitRootContainer() { };
+    QwHitRootContainer();
+    virtual ~QwHitRootContainer();
+
+    // Housekeeping methods
+    void Clear(Option_t *option = "");
+    void Reset(Option_t *option = "");
+
+    // Creating and adding hits
+    QwHit* CreateNewHit();
+    void AddHit(QwHit* hit);
+
+    // Get the number of hits
+    Int_t GetSize() const { return fNQwHits; };
 
     // Conversion methods from and to a QwHitContainer
     void Convert(QwHitContainer* hitlist);
     QwHitContainer* Convert();
-
-    // Make this browseable
-    Bool_t IsFolder() { return kTRUE; };
 
     // Output function
     void Print();

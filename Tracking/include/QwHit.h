@@ -192,7 +192,8 @@ class QwHit : public TObject {
     //  hit is needed.  The various position values are used in multiple ways,
     //  and therefore are not strictly defined.
 
-    QwHit *next, *nextdet; 	/// next hit and next hit in same detector
+    QwHit *next;	//!	///< next hit
+    QwHit *nextdet;	//!	///< next hit in same detector
     Double_t rResultPos;	/// Resulting hit position
     Double_t rPos;		/// Position from level I track finding
     Double_t rPos2;		/// Position from level II decoding

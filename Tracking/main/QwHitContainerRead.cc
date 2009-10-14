@@ -31,7 +31,7 @@ Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 Det rcDET[NDetMax];
 Options opt;
 
-static const bool kDebug = false;
+static const bool kDebug = true;
 
 int main (int argc, char* argv[])
 {
@@ -44,22 +44,22 @@ int main (int argc, char* argv[])
   // Region 2 HDC
   QwDetectors->push_back(new QwDriftChamberHDC("R2"));
   QwDetectors->GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");
-  ((VQwSubsystemTracking*) QwDetectors->GetSubsystem("R2"))->LoadQweakGeometry("qweak_new.geo");
+  QwDetectors->GetSubsystem("R2")->LoadQweakGeometry("qweak_new.geo");
   // Region 3 VDC
   QwDetectors->push_back(new QwDriftChamberVDC("R3"));
   QwDetectors->GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
-  ((VQwSubsystemTracking*) QwDetectors->GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
+  QwDetectors->GetSubsystem("R3")->LoadQweakGeometry("qweak_new.geo");
 
   // Get vector with detector info (by region, plane number)
   std::vector< std::vector< QwDetectorInfo > > detector_info;
-  ((VQwSubsystemTracking*) QwDetectors->GetSubsystem("R2"))->GetDetectorInfo(detector_info);
-  ((VQwSubsystemTracking*) QwDetectors->GetSubsystem("R3"))->GetDetectorInfo(detector_info);
+  QwDetectors->GetSubsystem("R2")->GetDetectorInfo(detector_info);
+  QwDetectors->GetSubsystem("R3")->GetDetectorInfo(detector_info);
 
   // Open file
-  TFile* file = new TFile("hitlist.root");
-  TTree* tree = (TTree*) file->Get("tree");
+  TFile file("hitlist.root");
+  TTree* tree = (TTree*) file.Get("tree");
   TBranch* branch = tree->GetBranch("hits");
-  QwHitRootContainer* rootlist = new QwHitRootContainer();
+  QwHitRootContainer* rootlist = 0;
   branch->SetAddress(&rootlist);
 
   // Loop over the events in the file
@@ -70,7 +70,7 @@ int main (int argc, char* argv[])
     if (kDebug) std::cout << "Event: " << fEvtNum << std::endl;
 
     // Read next event into QwHitRootContainer format
-    branch->GetEntry(fEvtNum);
+    tree->GetEntry(fEvtNum);
     if (kDebug) {
       std::cout << "QwHitRootContainer hitlist: ";
       std::cout << "(" << rootlist->GetSize() << " hits)" << std::endl;
@@ -89,19 +89,20 @@ int main (int argc, char* argv[])
 
     // Do something
 
-    // Clear rootlist (because GetEntry() adds to the TOrdCollection!!!)
+    // Clear rootlist
     rootlist->Clear();
 
-    // Delete objects
+    // Delete the hitlist
     delete hitlist;
   }
+  // Delete the rootlist
   delete rootlist;
 
   // Output results
   std::cout << "Successfully read " << fEntries << " events." << std::endl;
 
   // Close file
-  file->Close();
+  file.Close();
 
   return 0;
 }

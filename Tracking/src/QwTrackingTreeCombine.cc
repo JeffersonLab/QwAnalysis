@@ -1976,8 +1976,10 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
   for (int i = 0; i < 3 * DLAYERS; i++)
     hits[i] = 0;
 
-  QwHit **hitarray, *h;
+  QwHit **hitarray = 0;
+  QwHit *h = 0;
   int hitc, num;
+
 
   /* Initialize */
   double fit[4];
