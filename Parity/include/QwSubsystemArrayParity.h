@@ -33,6 +33,8 @@ class QwSubsystemArrayParity:  public QwSubsystemArray {
   void Ratio(QwSubsystemArrayParity &numer, QwSubsystemArrayParity &denom);
   Bool_t SingleEventCuts();
 
+  void  ReportErrorCounters();
+
  public:
   std::vector<TString> sFailedSubsystems;
 

@@ -38,6 +38,16 @@ class QwBPMStripline : public VQwDataElement{
   Bool_t IsGoodEvent();	
   void Copy(VQwDataElement *source);
 
+  void  ReportErrorCounters(){
+    for(int i=0;i<4;i++) {
+      fWire[i].ReportErrorCounters();
+    }
+    for(int i=0;i<2;i++)
+      fRelPos[i].ReportErrorCounters();
+    for(int i=0;i<3;i++)
+      fAbsPos[i].ReportErrorCounters();
+  };
+
 
   QwBPMStripline& operator=  (const QwBPMStripline &value);
   QwBPMStripline& operator+= (const QwBPMStripline &value);

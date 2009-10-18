@@ -166,7 +166,7 @@ Int_t QwHelicity::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t b
 
 Int_t QwHelicity::LoadInputParameters(TString pedestalfile)
 {  
-  SetHelicityDelay(8); // that is the number of pattern delayed
+  SetHelicityDelay(2); // that is the number of pattern delayed
   return 0;
 }
 //*****************************************************************
@@ -178,6 +178,7 @@ Bool_t QwHelicity::SingleEventCuts(){
 //*****************************************************************
 void  QwHelicity::ProcessEvent()
 {
+  static Bool_t firstpattern = kTRUE;
   Bool_t ldebug=kFALSE;
 
   if (dolocalhelicity&& !dolocalhelicity2){
@@ -266,33 +267,80 @@ void  QwHelicity::ProcessEvent()
   }
   ///////////////
   else if (dolocalhelicity2&& !dolocalhelicity){
-  Int_t kinputregister, kpatterncounter, kmpscounter, kpatternphase;
+    //  Int_t kinputregister, kpatterncounter, kmpscounter, kpatternphase;
 
+    //     std::cout << "\nkinputregister, kpatterncounter, kmpscounter, kpatternphase:"
+    // 	      << kinputregister << kpatterncounter 
+    // 	      << kmpscounter << kpatternphase
+    // 	      << std::endl;
+    //     std::cout << "\nfWord[kinputregister], fWord[kpatterncounter], fWord[kmpscounter], fWord[kpatternphase]:"
+    // 	      << fWord[kinputregister].fValue 
+    // 	      << fWord[kpatterncounter].fValue 
+    // 	      << fWord[kmpscounter].fValue 
+    // 	      << fWord[kpatternphase].fValue 
+    // 	      << std::endl;
+    
     // injector tests April 2009
     UInt_t thisinputregister=fWord[kinputregister].fValue;
         
     //  Now fake the input register, MPS coutner, QRT counter, and QRT phase.
-    fEventNumber=fWord[kmpscounter].fValue;
- 
-    if ((thisinputregister & 0x4) == 0x4) //  Quartet bit is set.
-      {
-	fPatternPhaseNumber    = 1;  // Reset the QRT phase
-	fPatternNumber=fPatternNumberOld+1;     // Increment the QRT counter
-      }
-    else 
-      {
-	fPatternPhaseNumber=fPatternPhaseNumberOld+1;       // Increment the QRT phase
-      }
+    // fEventNumber = fEventNumberOld+1;
+    fEventNumber        = fWord[kmpscounter].fValue;
+    if (firstpattern && (thisinputregister & 0x4) == 0x4){
+      firstpattern   = kFALSE;
+      //       std::cout << "QwHelicity::ProcessEvent fWord[kpatterncounter].fValue=="
+      // 		<< fWord[kpatterncounter].fValue
+      // 		<< " fWord[kpatternphase].fValue + 1=="
+      // 		<< fWord[kpatternphase].fValue + 1
+      // 		<< " fEventNumber==" << fEventNumber 
+      // 		<< " thisinputregister ==" << Form("0x%x",thisinputregister)
+      // 		<< std::endl;
+    }
+    if (firstpattern){
+      fPatternNumber      = 0;
+      fPatternPhaseNumber = 0;
+      //       std::cout << "QwHelicity::ProcessEvent fWord[kpatterncounter].fValue=="
+      // 		<< fWord[kpatterncounter].fValue
+      // 		<< " fWord[kpatternphase].fValue + 1=="
+      // 		<< fWord[kpatternphase].fValue + 1
+      // 		<< " fEventNumber==" << fEventNumber 
+      // 		<< " thisinputregister ==" << Form("0x%x",thisinputregister)
+      // 		<< std::endl;
+    } else {
+      fPatternNumber      = fWord[kpatterncounter].fValue;
+      fPatternPhaseNumber = fWord[kpatternphase].fValue + 1;
+    }
+
+    //     if ((thisinputregister & 0x4) == 0x4) //  Quartet bit is set.
+    //       {
+    // 	if (1==1) {
+    // 	  fPatternNumber = fWord[kpatterncounter].fValue;
+    // 	  firstpattern   = kFALSE;
+    // 	} else {
+    // 	  fPatternNumber=fPatternNumberOld+1; // Increment the QRT counter
+    // 	}
+    // 	fPatternPhaseNumber    = 1;  // Reset the QRT phase
+    //       }
+    //     else 
+    //       {
+    // 	fPatternPhaseNumber=fPatternPhaseNumberOld+1;       // Increment the QRT phase
+    // 	fPatternNumber=fPatternNumberOld;
+    //       }
+
     // folowing, a bunch of self consistancy checks
     // at this time (april 09) we trust the info from the input register more than the info 
     //from the scaler (because the scaler we use rigth now are "hakcs")
     if(fEventNumber!=fEventNumberOld+1)
       std::cerr<<"QwHelicity::ProcessEvent read event# is not old_event#+1 \n";
-    if(fPatternNumber!= fWord[kpatterncounter].fValue)      
-      std::cerr<<"QwHelicity::ProcessEvent read pattern# is not equal to the one constructed from the input register \n";
-    if(fPatternPhaseNumber!= fWord[kpatternphase].fValue)      
-      std::cerr<<"QwHelicity::ProcessEvent read pattern phase  is not equal to the one constructed from the input register \n";
-    
+    //     if(fPatternNumber!= fWord[kpatterncounter].fValue)      
+    //       std::cerr<<"QwHelicity::ProcessEvent read pattern# is not equal to the one constructed from the input register \n";
+    //     if(fPatternPhaseNumber!= fWord[kpatternphase].fValue)      
+    //       std::cerr<<"QwHelicity::ProcessEvent read pattern phase  is not equal to the one constructed from the input register \n";
+    if ((thisinputregister & 0x4) == 0x4 && fPatternPhaseNumber != 1){
+      //  Quartet bit is set.
+      std::cerr<<"QwHelicity::ProcessEvent:  The Multiplet Sync bit is set, but the Pattern Phase ("
+	       << fPatternPhaseNumber << ") is not 1!" << std::endl;
+    }
 	    
     fHelicityReported=0;
 
@@ -391,11 +439,13 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	{
 	  currentrocread=value;
 	  RegisterROCNumber(value,0);
+	  fWordsPerSubbank.push_back( std::pair<Int_t, Int_t>(fWord.size(),fWord.size()));
 	} 
       else if (varname=="bank")
 	{
 	  currentbankread=value;
 	  RegisterSubbank(value);
+	  fWordsPerSubbank.push_back( std::pair<Int_t, Int_t>(fWord.size(),fWord.size()));
 	}
     } else
       {
@@ -417,7 +467,11 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	    wordsofar=0;
 	  }
 	
-	if(modtype!="WORD"|| dettype!="helicitydata")
+	if(modtype=="SKIP"){
+	  if (modnum<=0) wordsofar+=1;
+	  else           wordsofar+=modnum; 
+	} 
+	else if(modtype!="WORD"|| dettype!="helicitydata")
 	  {
 	    std::cerr << "QwHelicity::LoadChannelMap:  Unknown detector type: " 
 		      << dettype <<", the detector "<<namech<<" will not be decoded "
@@ -437,6 +491,7 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	    localword.fWordName=namech;
 	    localword.fWordType=dettype;
 	    fWord.push_back(localword);
+	    fWordsPerSubbank[currentsubbankindex].second = fWord.size();
 	    if(ldebug) std::cout<<"--"<<namech<<"--"<<fWord.size()-1<<"\n";
 	    if(dolocalhelicity)
 	      {
@@ -446,9 +501,9 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	    if(dolocalhelicity2)
 	      {
 		if(namech.Contains("input_register")) kinputregister= fWord.size()-1;
-		if(namech.Contains("MPS_counter")) kmpscounter= fWord.size()-1;
-		if(namech.Contains("PAT_counter")) kpatterncounter= fWord.size()-1;
-		if(namech.Contains("PAT_phase")) kpatternphase= fWord.size()-1;		
+		if(namech.Contains("mps_counter")) kmpscounter= fWord.size()-1;
+		if(namech.Contains("pat_counter")) kpatterncounter= fWord.size()-1;
+		if(namech.Contains("pat_phase")) kpatternphase= fWord.size()-1;		
 	      }
 	  }	
       }
@@ -487,7 +542,7 @@ Int_t QwHelicity::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer,
 		<< "Begin processing ROC" << roc_id 
 		<< " and subbank "<<bank_id
 		<< " number of words="<<num_words<<std::endl;
-    for(size_t i=0;i<fWord.size();i++)
+    for(size_t i=fWordsPerSubbank[index].first; i<fWordsPerSubbank[index].second; i++)
       if(fWord[i].fWordInSubbank+1<num_words)
 	fWord[i].fValue=buffer[fWord[i].fWordInSubbank];
       else

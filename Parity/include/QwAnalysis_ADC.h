@@ -25,7 +25,7 @@
 
 #include "QwHistogramHelper.h"
 
-#include "QwSubsystemArray.h"
+#include "QwSubsystemArrayParity.h"
 #include "QwQuartzBar.h"
 
 void PrintInfo(TStopwatch& timer, Int_t run);

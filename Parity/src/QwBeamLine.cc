@@ -260,6 +260,13 @@ Int_t QwBeamLine::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer,
 		<< "Begin processing ROC" << roc_id 
 		<< " and subbank "<<bank_id
 		<< " number of words="<<num_words<<std::endl;
+    if (buffer[0]==0xf0f0f0f0 && num_words%2==1){
+      buffer++;
+      if (lkDEBUG)
+	std::cout << "QwBeamLine::ProcessEvBuffer:  "
+		  << "Skipped padding word 0xf0f0f0f0 at beginning of buffer."
+		  << std::endl;
+    }
 
     for(size_t i=0;i<fBeamDetectorID.size();i++)
       {

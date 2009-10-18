@@ -1,3 +1,43 @@
+ROC=24
+!
+! Header=0xffdaf000
+SKIP 1
+WORD, 0,  0, helicitydata,  ha_input_register
+
+! Header=0xfffca001
+!  First HAPPEX scaler; 32 words, but no data
+SKIP 33
+
+! Header=0xffadc000
+!  First HAPPEX adc; none in INJ crate
+SKIP 1
+
+! Header=0xfffbd000
+!  HAPPEX timing board
+SKIP 1
+WORD, 0,  0, helicitydata,  ha_tb_data
+WORD, 0,  0, helicitydata,  ha_tb_rampdelay
+WORD, 0,  0, helicitydata,  ha_tb_integratetime
+WORD, 0,  0, helicitydata,  ha_tb_oversample
+WORD, 0,  0, helicitydata,  ha_tb_dac16
+WORD, 0,  0, helicitydata,  ha_tb_dac12
+
+! Header=0xfdacf000
+!  HAPPEX BMW words
+SKIP 1
+WORD, 0,  0, helicitydata,  ha_bmw_pulseclean
+WORD, 0,  0, helicitydata,  ha_bmw_obj_id
+WORD, 0,  0, helicitydata,  ha_bmw_value
+WORD, 0,  0, helicitydata,  ha_bmw_cycle
+!
+WORD, 0,  0, helicitydata,  ha_cleandata
+WORD, 0,  0, helicitydata,  ha_scandata1
+WORD, 0,  0, helicitydata,  ha_scandata2
+!
+WORD, 0,  0, helicitydata,  ha_ioctime
+WORD, 0,  0, helicitydata,  ha_ncnt
+
+
 ! this was for the december 08 data taking
 ROC=31
 Bank=0x3103
@@ -9,9 +49,15 @@ WORD, 0,  0, helicitydata,  output_register
 WORD, 0,  0, helicitydata,  MPS_counter
 WORD, 0,  0, helicitydata,  PAT_counter
 WORD, 0,  0, helicitydata,  PAT_phase
+!  Runs starting in Summer2009 have these three counter words added.
+WORD, 0,  0, helicitydata,  oversample_phase
+WORD, 0,  0, helicitydata,  gate_counter
+SKIP 1
+!
 WORD, 0,  0, helicitydata,  cleandata
 WORD, 0,  0, helicitydata,  scandata1
 WORD, 0,  0, helicitydata,  scandata2
+SKIP 1
 !END
 !
 ! this was for the december 08 data taking

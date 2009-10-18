@@ -135,6 +135,7 @@ class QwHelicity : public VQwSubsystemParity{
 /////
  protected:
   std::vector <QwWord> fWord; 
+  std::vector < std::pair<Int_t, Int_t> > fWordsPerSubbank;  // The indices of the first & last word in each subbank
 
   Int_t kuserbit;
   // this is used to tagged the userbit info among all the fWords 

@@ -104,6 +104,17 @@ class QwBeamLine : public VQwSubsystemParity{
   Bool_t Compare(VQwSubsystem *source);
   void Print();
 
+  void  ReportErrorCounters(){
+    std::cout << "\n===  BEGIN Qweak Beamline Error Counter output."
+	      << std::endl;
+    for(size_t i=0;i<fStripline.size();i++)
+      fStripline[i].ReportErrorCounters();
+    for(size_t i=0;i<fBCM.size();i++)
+      fBCM[i].ReportErrorCounters();
+    std::cout << "===  END Qweak Beamline Error Counter output.\n"
+	      << std::endl;
+  }
+
 /////
  protected:
  Int_t GetDetectorTypeID(TString name);

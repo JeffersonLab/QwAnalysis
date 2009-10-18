@@ -144,9 +144,15 @@ Int_t QwQuartzBar::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer
 
   if (index>=0 && num_words>0){
     //  We want to process this ROC.  Begin looping through the data.
-    if (fDEBUG) std::cout << "QwDriftChamber::ProcessEvBuffer:  "
+    if (fDEBUG) std::cout << "QwQuartzBar::ProcessEvBuffer:  "
                           << "Begin processing ROC" << roc_id << std::endl;
     UInt_t words_read = 0;
+    if (buffer[words_read]==0xf0f0f0f0 && num_words%2==1){
+      std::cout << "QwQuartzBar::ProcessEvBuffer:  "
+		<< "Skipped padding word 0xf0f0f0f0 at beginning of buffer."
+		<< std::endl;
+      words_read++;
+    }
     for (size_t i=0; i<fADC_Data.size(); i++){
       if (fADC_Data.at(i) != NULL){
  	words_read += fADC_Data.at(i)->ProcessEvBuffer(&(buffer[words_read]), 
@@ -173,13 +179,18 @@ void  QwQuartzBar::ProcessEvent()
 {
   // stub function= QwQuartzBar::ProcessEvent()
   // Buddhini & Julie, Jan 16, 2009
-  
+  for (size_t i=0; i<fADC_Data.size(); i++){
+    if (fADC_Data.at(i) != NULL){
+      fADC_Data.at(i)->ProcessEvent();
+    }
+  }
   return;
 };
 
 
 void  QwQuartzBar::ConstructHistograms(TDirectory *folder, TString &prefix){
   for (size_t i=0; i<fADC_Data.size(); i++){
+    std::cerr << "QwQuartzBar::ConstructHistograms: ADC("<<i<<")" << std::endl;
     if (fADC_Data.at(i) != NULL){
       fADC_Data.at(i)->ConstructHistograms(folder, prefix);
     }
@@ -252,7 +263,19 @@ Bool_t  QwQuartzBar::Compare(VQwSubsystem *source)
   // stub function= QwQuartzBar::Compare
   // Buddhini & Julie, Jan 16, 2009
   
-  return kTRUE;
+  Bool_t res=kTRUE;
+  if(typeid(*source)!=typeid(*this))  {
+    res=kFALSE;
+    //      std::cout<<" types are not ok \n";
+    //      std::cout<<" this is bypassed just for now but should be fixed eventually \n";
+  } else {
+    QwQuartzBar* input= (QwQuartzBar*)source;    
+    if(input->fADC_Data.size() != this->fADC_Data.size()){
+      res=kFALSE;
+      //	  std::cout<<" not the same number of modules \n";
+    }
+  }
+  return res;
 }
 
 VQwSubsystem&  QwQuartzBar::operator=  ( VQwSubsystem *value)

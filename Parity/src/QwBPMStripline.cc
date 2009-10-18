@@ -127,7 +127,7 @@ Bool_t QwBPMStripline::IsGoodEvent()
       fEventIsGood &= fWire[i].MatchNumberOfSamples(fWire[0].GetNumberOfSamples());	
     }
 
-  if(!fEventIsGood||kDEBUG)
+  if(!fEventIsGood && kDEBUG)
     {
       std::cerr<<"QwBPMStripline::IsGoodEvent()\n";
       std::cerr<<" test for BPM "<<GetElementName()<<"\n";

@@ -35,7 +35,11 @@ class QwBCM : public VQwDataElement{
   void  ProcessEvent();
   Bool_t IsGoodEvent();	
   void Print() const;
-  
+
+  void  ReportErrorCounters(){
+    fTriumf_ADC.ReportErrorCounters();
+  };
+
   QwBCM& operator=  (const QwBCM &value);
   QwBCM& operator+= (const QwBCM &value);
   QwBCM& operator-= (const QwBCM &value);

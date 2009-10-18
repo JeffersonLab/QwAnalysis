@@ -17,8 +17,8 @@ const Int_t QwEventBuffer::kFileHandleNotConfigured  = -40;
 const UInt_t QwEventBuffer::kNullDataWord = 'NULL';
 
 
-QwEventBuffer::QwEventBuffer():fDEBUG(kFALSE),fDataFileStem("QwRun_"),
-			       fDataFileExtension("log"),
+QwEventBuffer::QwEventBuffer():fDEBUG(kFALSE),fDataFileStem("parity09_"),
+			       fDataFileExtension("dat"),
 			       fRunIsSegmented(kFALSE),
 			       fEvStreamMode(fEvStreamNull),
 			       fEvStream(NULL),

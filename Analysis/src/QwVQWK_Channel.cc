@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 
-
+ 
 
 const Bool_t QwVQWK_Channel::kDEBUG = kFALSE;
 
@@ -420,6 +420,7 @@ Bool_t QwVQWK_Channel::MatchNumberOfSamples(size_t numsamp)
   if (!IsNameEmpty()){
     status = (fNumberOfSamples==numsamp);
     if (! status){
+      fNumEvtsWithErrors++;
       std::cerr << "QwVQWK_Channel::MatchNumberOfSamples:  Channel "
 		<< GetElementName()
 		<< " had fNumberOfSamples==" << fNumberOfSamples

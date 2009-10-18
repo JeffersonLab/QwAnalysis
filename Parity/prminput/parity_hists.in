@@ -16,6 +16,19 @@ pat_phase   			TH1F	11	-1.5 	9.5 				PatternPhase Counts
 hel_pat_phase   		TH1F	11	-1.5 	9.5 				PatternPhase Counts
 helicity			TH1F	5 	-2.5	2.5 				Helicity	Counts
 pattern_polarity		TH1F	5 	-2.5	2.5 				Pattern_polarity Counts
+input_register			TH1F	5 	-2.5	2.5 				Input_register	Counts
+output_register			TH1F	5 	-2.5	2.5 				Output_register	Counts
+mps_counter			TH1F	5 	-2.5	2.5 				mps_counter	Counts
+pat_counter			TH1F	5 	-2.5	2.5 				pat_counter	Counts
+pat_phase			TH1F	5 	-2.5	2.5 				pat_phase	Counts
+oversample_phase		TH1F	15 	-2.5	12.5 				oversample_phase	Counts
+gate_counter			TH1F	5 	-2.5	2.5 				gate_counter	Counts
+hel_input_register			TH1F	5 	-2.5	2.5 				hel_input_register	Counts
+hel_output_register			TH1F	5 	-2.5	2.5 				hel_output_register	Counts
+hel_mps_counter			TH1F	5 	-2.5	2.5 				hel_mps_counter	Counts
+hel_pat_counter			TH1F	5 	-2.5	2.5 				hel_pat_counter	Counts
+hel_oversample_phase		TH1F	5 	-2.5	2.5 				hel_oversample_phase	Counts
+hel_gate_counter		TH1F	5 	-2.5	2.5 				hel_gate_counter	Counts
 cleandata			TH1F	5 	-2.5	2.5 				Cleandata	Counts
 scandata1			TH1F	101 	-0.5	100.5 				Scandata1 	Counts
 scandata2			TH1F	101 	-0.5	100.5 				Scandata2	Counts
@@ -69,8 +82,10 @@ qwk_.....Rel._block.  		TH1F	2000	-5.0e1	5.0e1				mm	Events
 qwk_.....Rel._.w_raw		TH1F	1000	-5.0e1	5.0e1				mm	Events
 qwk_.....Rel._.w		TH1F	2000	-5.0e1	5.0e1				mm	Events
 
-yield_empty._block.             TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
-yield_empty._.w                 TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_......_block.             TH1F	6000	-4.0e8	4.0e8				CalibratedCounts Events
+yield_......_.w                 TH1F	6000	3.33e8  3.34e8				CalibratedCounts Events
+yield_......_.w_raw  		TH1F	1000	-5.0e6	5.0e6			        Counts	Events
+yield_......_sw-hw_raw		TH1F	1000	-5.0e2	5.0e2				CalibratedCounts Events
 yield_qwk_....._block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
 yield_qwk_....._block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_qwk_....._.w_raw  	TH1F	1000	-5.0e9	5.0e9			        Counts	Events
@@ -100,9 +115,11 @@ yield_qwk_.....Rel._block.  	TH1F	2000	-5.0e1	5.0e1				mm	Events
 yield_qwk_.....Rel._.w_raw	TH1F	1000	-5.0e1	5.0e1				mm	Events
 yield_qwk_.....Rel._.w  	TH1F	2000	-5.0e1	5.0e1			        mm	Events
 
-
-asym_empty._block.              TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
-asym_empty._hw                  TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
+asym_......_block.              TH1F	1000	-2.5e-2	2.5e-2				NoUnits Events
+asym_......_block._raw          TH1F	1000	-2.5e-2	2.5e-2				NoUnits Events
+asym_......_.w                  TH1F	4000	-2.0e-5	2.0e-5				NoUnits Events
+asym_......_.w_raw              TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
+asym_......_sw-hw_raw             TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
 asym_qwk_....._block.    	TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
 asym_qwk_....._hw		TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
 asym_qwk_......_block.    	TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
@@ -110,6 +127,8 @@ asym_qwk_......_hw		TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
 asym_qwk_......._block.    	TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
 asym_qwk_......._hw		TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
 
+diff_......_block.             TH1F	6000	-4.0e4	4.0e4				CalibratedCounts Events
+diff_......_.w                 TH1F	6000	-4.0e4	4.0e4				CalibratedCounts Events
 
 diff_qwk_...Rel._block.  	TH1F	2000	-5.0e1	5.0e1				mm	Events
 diff_qwk_...Rel._hw		TH1F	2000	-5.0e1	5.0e1				mm	Events
@@ -264,4 +283,13 @@ asymBar.Right_.w_volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
 asymBar.Right_seqnum		TH1F	301	-0.5		300.5			SequenceNumber	Events
 asymBar.Right_numsamples	TH1F	1001	-2.5		5002.5			NumberOfSamples	Events
 
+
+
+
+###  Fully wildcarded histograms.  Any channel starting with "ha_" will
+###  use these definitions if not matching something earlier in this file.
+ha_.+			TH1F	10001	-10001.	10001.				Value Events
+hel_ha_.+		TH1F	10001	-10001.	10001.				Value Events
+yieldha_.+		TH1F	10001	-10001.	10001.				Value Events
+asymha_.+		TH1F	10001	-10001.	10001.				Value Events
 

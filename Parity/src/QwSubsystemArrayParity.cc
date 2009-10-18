@@ -206,3 +206,16 @@ Bool_t QwSubsystemArrayParity::SingleEventCuts(){
 
  return status;
 }
+
+
+void  QwSubsystemArrayParity::ReportErrorCounters(){
+  if (!empty()){
+    for (iterator subsys = begin(); subsys != end(); ++subsys){
+      VQwSubsystemParity *ptr1 = 
+	dynamic_cast<VQwSubsystemParity*>((subsys)->get());
+      if (ptr1 != NULL){
+	ptr1->ReportErrorCounters();
+      }
+    }
+  }
+};

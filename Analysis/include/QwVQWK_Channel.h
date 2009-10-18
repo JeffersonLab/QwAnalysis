@@ -6,7 +6,7 @@
 \**********************************************************/
 
 #ifndef __QwVQWK_CHANNEL__
-#define __QwVQWK_CHANNEL__
+#define __QwVQWK_CHANNEL__ 
 
 #include <vector>
 #include <TTree.h>
@@ -32,11 +32,13 @@ class QwVQWK_Channel: public VQwDataElement {
  *         through member functions.
  ******************************************************************/
  public:
-  QwVQWK_Channel() { };
-  QwVQWK_Channel(TString name, TString datatosave="raw"){
+  QwVQWK_Channel():fNumEvtsWithErrors(0) { };
+  QwVQWK_Channel(TString name, TString datatosave="raw"):fNumEvtsWithErrors(0){
     InitializeChannel(name, datatosave);
   };
-  ~QwVQWK_Channel() {DeleteHistograms();};
+  ~QwVQWK_Channel() {
+    DeleteHistograms();
+  };
 
   void  InitializeChannel(TString name, TString datatosave){
     SetElementName(name);
@@ -48,6 +50,14 @@ class QwVQWK_Channel: public VQwDataElement {
     else
       if(datatosave=="derived") fDataToSave=kDerived;
     return;
+  };
+
+  void  ReportErrorCounters(){
+    if (fNumEvtsWithErrors>0) 
+      std::cout << "VQWK channel " << GetElementName() 
+		<< " had " << fNumEvtsWithErrors 
+		<< " events with a sample count mismatch."
+		<< std::endl;
   };
 
   void  ClearEventData();
@@ -111,7 +121,7 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t fCalibrationFactor; 
 
   /*  Channel information data members    */
-  
+  Int_t fNumEvtsWithErrors;
 
   /*  Channel configuration data members */
   UInt_t  fSamplesPerBlock;

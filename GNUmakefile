@@ -333,13 +333,13 @@ ifndef BOOST_INC_DIR
   BOOST_LIB_DIR = /usr/lib
   #  We should also put a test on the boost version number here.
   #
-  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" $(BOOST_INC_DIR)/version.hpp)
+#  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" $(BOOST_INC_DIR)/version.hpp)
   BOOST_INC  =
   BOOST_LIBS =
 else
   #  We should also put a test on the boost version number here.
   #
-  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" ${BOOST_INC_DIR}/version.hpp)
+#  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" ${BOOST_INC_DIR}/version.hpp)
   BOOST_INC  = -I${BOOST_INC_DIR}
   BOOST_LIBS = -L${BOOST_LIB_DIR}
 endif

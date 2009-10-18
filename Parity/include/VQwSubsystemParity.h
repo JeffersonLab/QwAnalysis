@@ -56,6 +56,8 @@ class VQwSubsystemParity : public VQwSubsystem {
   virtual Int_t LoadEventCuts(TString &filename)=0;//Will load the event cut file.
   virtual Bool_t SingleEventCuts()=0;//impose single event cuts
 
+  virtual void ReportErrorCounters(){};
+
   private:
   VQwSubsystemParity(){};  //  Private constructor.
 };
