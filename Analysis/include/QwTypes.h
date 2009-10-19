@@ -1,6 +1,9 @@
 #ifndef QWTYPES_H
 #define QWTYPES_H
 
+// C and C++ headers
+#include <map>
+
 // ROOT basic types
 #include <Rtypes.h>
 
@@ -60,6 +63,23 @@ inline EQwDetectorType& operator++ (EQwDetectorType &type, int) {
 }
 
 
+/// Helicity enumerator (don't use this as a signed int)
+enum EQwHelicity {
+  kHelicityUndefined,
+  kHelicityPositive,
+  kHelicityNegative
+};
+/// Use the static map kMapHelicity to get the helicity sign
+/// e.g.: kMapHelicity[kHelicityPositive] will return +1
+inline std::map < EQwHelicity, int > CreateHelicityMap()
+{
+  std::map < EQwHelicity, int > map;
+  map[kHelicityUndefined] = 0;
+  map[kHelicityPositive] = +1;
+  map[kHelicityNegative] = -1;
+  return map;
+}
+static std::map < EQwHelicity, int > kMapHelicity = CreateHelicityMap();
 
 
 ///
