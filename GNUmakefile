@@ -421,6 +421,9 @@ FILTER_OUT_TRASH    = $(SED) '/~$$/d' | $(SED) '/\#/d' | $(SED) '/JUNK/d'
 # FILTER_OUT_TRASH pipes stream and filters out '~', '.#' and '#*#'
 # typical editor backup file names
 
+FILTER_OUT_DOXYGEN    = $(SED) '/Doxygen/d'
+# FILTER_OUT_DOXYGEN pipes stream and filters out 'Doxygen'
+# where the html documentation tree is stored
 
 INTO_RELATIVE_PATH  = $(SED) 's/\//xxqqqqqxx/g' | $(SED) 's/$(subst /,xxqqqqqxx,$(QWANALYSIS))/./g' | $(SED) 's/xxqqqqqxx/\//g'
 # To be piped in
@@ -575,8 +578,8 @@ coda_lib:
 .auxLinkDefFiles : .auxDictFiles
 	@$(RM) .tmp1 .tmp2
 	@$(ECHO) Generating $@
-	@$(FIND) $(QWANALYSIS) | $(GREP) '\$(IncSuf)' | $(INTO_RELATIVE_PATH) | $(SED) '/\.svn/d;/LinkDef/d;/Dict/d;s/\$(IncSuf)//' > .tmp1
-	@$(FIND) $(QWANALYSIS) | $(GREP) LinkDef | $(INTO_RELATIVE_PATH) | $(SED) '/\.svn/d;s/LinkDef\$(IncSuf)//'> .tmp2
+	@$(FIND) $(QWANALYSIS) | $(GREP) '\$(IncSuf)' | $(INTO_RELATIVE_PATH) | $(FILTER_OUT_LIBRARYDIR_DEPS) | $(FILTER_OUT_DOXYGEN) | $(SED) '/\.svn/d;/LinkDef/d;/Dict/d;s/\$(IncSuf)//' > .tmp1
+	@$(FIND) $(QWANALYSIS) | $(GREP) LinkDef | $(INTO_RELATIVE_PATH) | $(FILTER_OUT_LIBRARYDIR_DEPS) | $(FILTER_OUT_DOXYGEN) | $(SED) '/\.svn/d;s/LinkDef\$(IncSuf)//'> .tmp2
 	@for file in `$(CAT) .tmp1`; \
 	do \
 	if [ "`$(GREP) $$file .tmp2`" != "" ]; \
