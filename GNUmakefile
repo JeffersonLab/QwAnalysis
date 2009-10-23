@@ -176,24 +176,6 @@ ROOTGLIBS    := $(shell $(ROOTCONFIG) --glibs)
 
 ############################
 ############################
-# JLab CODA package related variables :
-############################
-############################
-
-ifdef CODA
-CODACFLAGS   := -I$(CODA)/common/include -D__CODA_ET
-CODALIBS     := -L$(CODA_LIB) -let
-endif
-CODACFLAGS   += -I$(QWANALYSIS)/coda/include
-CODALIBS     += -L$(QWANALYSIS)/lib -lcoda
-      # -lmyevio : now integrated in our distribution (April 19 2001) ;
-      # Regenerated if necessary ; I had to rewrite CODA
-      # group's Makefile in $(QWEVIO)
-
-
-
-############################
-############################
 # Qw Paths :
 # They are set when $(QWANALYSIS)/SetupFiles/.QwSetup.csh (or .bash)
 # is sourced prior to the call for this Makefile.
@@ -243,6 +225,26 @@ endif
 ifneq ($(strip $(QWEVIO)),$(strip $(shell $(FIND) $(QWANALYSIS) -name coda)))
   $(error Aborting : QWEVIO variable is not set properly  Source the SetupFiles/.QwSetup.csh script first)
 endif
+
+
+
+############################
+############################
+# JLab CODA package related variables :
+############################
+############################
+
+ifdef CODA
+CODACFLAGS   := -I$(CODA)/common/include -D__CODA_ET
+CODALIBS     := -L$(CODA_LIB) -let
+endif
+CODACFLAGS   += -I$(QWANALYSIS)/coda/include
+CODALIBS     += -L$(QWANALYSIS)/lib -lcoda
+      # -lmyevio : now integrated in our distribution (April 19 2001) ;
+      # Regenerated if necessary ; I had to rewrite CODA
+      # group's Makefile in $(QWEVIO)
+
+
 
 ############################
 ############################
