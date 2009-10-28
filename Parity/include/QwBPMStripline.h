@@ -107,6 +107,7 @@ class QwBPMStripline : public VQwDataElement{
 
 
   QwVQWK_Channel fWire[4];
+  QwVQWK_Channel fWSum;
   QwVQWK_Channel fRelPos[2];
   Double_t fRelPos_Running_AVG[2];//BPM running AVG
   Double_t fRelPos_Running_AVG_square[2];//BPM running AVG square

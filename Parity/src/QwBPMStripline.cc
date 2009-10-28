@@ -37,6 +37,9 @@ void  QwBPMStripline::InitializeChannel(TString name, Bool_t ROTATED)
 	std::cout<<" Wire ["<<i<<"]="<<fWire[i].GetElementName()<<"\n";
     }
 
+  fWSum.InitializeChannel(name+"WSum","derived");
+
+
   for(int i=0;i<2;i++){
 	fRelPos[i].InitializeChannel(name+"Rel"+axis[i],"derived");
 	fRelPos_Running_AVG[i]=0;
@@ -62,6 +65,8 @@ void QwBPMStripline::ClearEventData()
   for(int i=0;i<3;i++)
 	fAbsPos[i].ClearEventData();
 
+  fWSum.ClearEventData();
+
 	return;
 };
 /********************************************************/
@@ -75,6 +80,8 @@ void QwBPMStripline::ReportErrorCounters(){
   fRelPos[0].ReportErrorCounters();
   //std::cout<<"RelY ";
   fRelPos[1].ReportErrorCounters();
+
+
 };
 
 /********************************************************/
@@ -294,6 +301,12 @@ void  QwBPMStripline::ProcessEvent()
       for(int i=0;i<4;i++)
 	fWire[i].ProcessEvent();
 
+      fWSum.ClearEventData();
+      
+      for(int i=0;i<4;i++)
+	fWSum+=fWire[i];
+
+      fWSum.Print();
 
       static QwVQWK_Channel numer("numerator"), denom("denominator");
 
@@ -343,6 +356,8 @@ void QwBPMStripline::Print()
     fWire[i].Print();
   for(int i=0;i<2;i++)
     fRelPos[i].Print();
+  fWSum.Print();
+
   return;
 }
 
@@ -471,6 +486,8 @@ QwBPMStripline& QwBPMStripline::operator= (const QwBPMStripline &value)
   if (GetElementName()!="")
   {
     this->bRotated=value.bRotated;
+    this->fWSum=value.fWSum;
+
 	for(int i=0;i<4;i++)
 		this->fWire[i]=value.fWire[i];
 	for(int i=0;i<2;i++)
@@ -488,6 +505,7 @@ QwBPMStripline& QwBPMStripline::operator+= (const QwBPMStripline &value)
 {
   if (GetElementName()!="")
     {
+      this->fWSum+=value.fWSum;
       for(int i=0;i<4;i++)
 	this->fWire[i]+=value.fWire[i];
       for(int i=0;i<2;i++)
@@ -502,6 +520,7 @@ QwBPMStripline& QwBPMStripline::operator-= (const QwBPMStripline &value)
 {
   if (GetElementName()!="")
     {
+      this->fWSum-=value.fWSum;
       for(int i=0;i<4;i++)
 	this->fWire[i]-=value.fWire[i];
       for(int i=0;i<2;i++)
@@ -527,8 +546,9 @@ void QwBPMStripline::Ratio(QwBPMStripline &numer, QwBPMStripline &denom)
 {
   // this function is called when forming asymmetries. In this case waht we actually want for the
   // stripline is the difference only not the asymmetries
+ 
   *this=numer;
-
+  this->fWSum.Ratio(numer.fWSum,denom.fWSum);
 //   if (GetElementName()!="")
 //     {
 //       for(int i=0;i<4;i++)
@@ -573,6 +593,8 @@ void  QwBPMStripline::ConstructHistograms(TDirectory *folder, TString &prefix)
     }
   else
     {
+      //we calculate the asym_ for the fWSum becasue its an asymmetry and not a difference.
+      fWSum.ConstructHistograms(folder, prefix);    
       TString thisprefix=prefix;
       if(prefix=="asym_")
 	thisprefix="diff_";
@@ -597,6 +619,7 @@ void  QwBPMStripline::FillHistograms()
     }
   else
     {
+      fWSum.FillHistograms();
       if(bFullSave)
 	for(int i=0;i<4;i++)
 	  fWire[i].FillHistograms();
@@ -615,6 +638,7 @@ void  QwBPMStripline::DeleteHistograms()
     }
   else
     {
+      fWSum.DeleteHistograms();
       if(bFullSave)
 	for(int i=0;i<4;i++)
 	  fWire[i].DeleteHistograms();
@@ -636,6 +660,9 @@ void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std
 	thisprefix="diff_";
 
       SetRootSaveStatus(prefix);
+
+      fWSum.ConstructBranchAndVector(tree,prefix,values);
+
       if(bFullSave)
 	for(int i=0;i<4;i++)
 	  fWire[i].ConstructBranchAndVector(tree,thisprefix,values);
@@ -651,6 +678,7 @@ void  QwBPMStripline::FillTreeVector(std::vector<Double_t> &values)
     //  This channel is not used, so skip filling the tree.
   } else
     {
+      fWSum.FillTreeVector(values);
       if(bFullSave)
 	for(int i=0;i<4;i++)
 	  fWire[i].FillTreeVector(values);
@@ -670,6 +698,7 @@ void QwBPMStripline::Copy(VQwDataElement *source)
        {
 	 QwBPMStripline* input = ((QwBPMStripline*)source);
 	 this->fElementName = input->fElementName;
+	 this->fWSum.Copy(&(input->fWSum));
 	 this->bRotated = input->bRotated;
 	 this->bFullSave = input->bFullSave;
 	 for(int i = 0; i < 3; i++)
