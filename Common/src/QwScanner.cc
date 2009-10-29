@@ -15,12 +15,16 @@ extern QwHistogramHelper gQwHists;
 const UInt_t QwScanner::kMaxNumberOfModulesPerROC     = 21;
 const UInt_t QwScanner::kMaxNumberOfChannelsPerModule = 32;
 
-//QwScanner::QwScanner(TString region_tmp):VQwSubsystemTracking(region_tmp){
-QwScanner::QwScanner(TString region_tmp)
-                    :VQwSubsystem(region_tmp){
 
-    TString name = region_tmp;
-    InitializeChannel(name,"raw");
+// Virtual base class inheritance requires that you initilialize
+// the base class explicitly.  See also other classes!
+QwScanner::QwScanner(TString region_tmp)
+                    : VQwSubsystem(region_tmp),
+                      VQwSubsystemTracking(region_tmp),
+                      VQwSubsystemParity(region_tmp)
+{
+   //TString name = region_tmp;
+   //InitializeChannel(name,"raw");
 
    MainDetCenterX = 330.0; //units: cm
    MainDetCenterY = 0.0;
@@ -268,7 +272,7 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
           }
         }
       }
-      
+
       if (num_words != words_read){
         std::cerr << "QwScanner::ProcessEvBuffer:  There were "
 		  << num_words-words_read
@@ -300,7 +304,7 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
           }
         }
       }
-      
+
       if (num_words != words_read){
         std::cerr << "QwScanner::ProcessEvBuffer:  There were "
 		  << num_words-words_read
@@ -323,16 +327,16 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
                           << "Begin processing ROC" << roc_id <<", Bank "<<bank_id<< std::endl;
 
 
-          if (fDEBUG) 
+          if (fDEBUG)
           std::cout<<"QwScanner::ProcessEvBuffer (trig) Data: \n";
 
       for(size_t i=0; i<num_words ; i++){
         //  Decode this word as a V775TDC word.
-        DecodeTDCWord(buffer[i]);
+        //DecodeTDCWord(buffer[i]);
 
  //       if (! IsSlotRegistered(index, GetTDCSlotNumber())) continue;
 
-        if (IsValidDataword()){
+/*        if (IsValidDataword()){
 	  // This is a V775 TDC data word
 	  try {
 	    FillRawWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),
@@ -357,7 +361,7 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
 		      << fModulePtrs.at(modindex).at(chan).second
 		      << std::endl;
 	  }
-        }
+        }*/
       }
     }
   }
@@ -413,7 +417,7 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix){
     }
   }
 
-//construct specified scanner histograms 
+//construct specified scanner histograms
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_power_supply")));
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));
@@ -488,8 +492,8 @@ void  QwScanner::FillHistograms(){
           fRate = (PreValue + fRate)*0.5;  //average value for this bin
         }
         fHistograms2D.at(j)->SetBinContent(fPositionY,fPositionX,fRate);
-        Int_t xbin = fHistograms2D.at(j)->GetXaxis()->FindBin( fPositionY ); 
-        Int_t ybin = fHistograms2D.at(j)->GetYaxis()->FindBin( fPositionX ); 
+        Int_t xbin = fHistograms2D.at(j)->GetXaxis()->FindBin( fPositionY );
+        Int_t ybin = fHistograms2D.at(j)->GetYaxis()->FindBin( fPositionX );
         fHistograms2D.at(j)->SetBinContent( fHistograms2D.at(j)->GetBin( xbin, ybin ), fRate);
       }
     }
@@ -790,7 +794,7 @@ Int_t QwScanner::RegisterSlotNumber(UInt_t slot_id){
   tmppair.first  = -1;
   tmppair.second = -1;
   if (slot_id<kMaxNumberOfModulesPerROC){
-    if (fCurrentBankIndex>=0 && fCurrentBankIndex<=fModuleIndex.size()){ 
+    if (fCurrentBankIndex>=0 && fCurrentBankIndex<=fModuleIndex.size()){
       fModuleTypes.resize(fNumberOfModules+1);
       fModulePtrs.resize(fNumberOfModules+1);
       fModulePtrs.at(fNumberOfModules).resize(kMaxNumberOfChannelsPerModule,
@@ -820,7 +824,7 @@ const QwScanner::EModuleType QwScanner::RegisterModuleType(TString moduletype){
     if ((Int_t) fPMTs.size()<=fCurrentType){
       fPMTs.resize(fCurrentType+1);
     }
-  } 
+  }
 
   else if (moduletype=="V775"){
     fCurrentType = V775_TDC;
@@ -973,15 +977,15 @@ void QwScanner::SetRandomEventParameters(Double_t mean, Double_t sigma)
 
 /********************************************************/
 //jpan: triggering scheme - still unclear!
-//VQWK module will be gated by beam helicity states 
+//VQWK module will be gated by beam helicity states
 //QADC module will be in self-triggering mode, i.e., triggered
 //by the left-right PMT's coincidence with a low threshold setting.
 //TDC's will be started by the left and right PMT's coincidence,
 //stopped by what???
 //
 // The VQWK and scaler will be on the same gate (gate A), the QADC/TDC
-// on another gate (gate B, provided by the scanner coincidence). 
-// "A OR B" will give the gate(or readout interruption signal) for 
+// on another gate (gate B, provided by the scanner coincidence).
+// "A OR B" will give the gate(or readout interruption signal) for
 // the master board.
 //
 void QwScanner::RandomizeEventData(int helicity)
@@ -1131,8 +1135,8 @@ CoincidenceScaData = 0;
         LocalSumBuffer[6+i] =localbuf[i];
     }
 
-//ch3: Y motion, stepping motion with 200 steps, increase from 2 to 9.5V, 
-// moving when X-motion changing direction, Cal_FactorY = 26.667 cm/V, 
+//ch3: Y motion, stepping motion with 200 steps, increase from 2 to 9.5V,
+// moving when X-motion changing direction, Cal_FactorY = 26.667 cm/V,
 // each step = (9.5-2)V/200=0.0375V
     mean = 0.0375;  //units: V
     sigma = 0.0000001;
@@ -1267,6 +1271,8 @@ CoincidenceScaData = 0;
 
 void QwScanner::Print()
 {
+  std::cout << "QwScanner: " << fSystemName << std::endl;
+
   //fTriumf_ADC.Print();
   for (size_t i=0; i<fADC_Data.size(); i++){
     if (fADC_Data.at(i) != NULL){
@@ -1290,8 +1296,8 @@ Double_t QwScanner::get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalid
     {
       bool x_ok = ( h->GetXaxis()->GetXmin() < x && x < h->GetXaxis()->GetXmax() );
       bool y_ok = ( h->GetYaxis()->GetXmin() < y && y < h->GetYaxis()->GetXmax() );
-     
-      if (! ( x_ok && y_ok)) 
+
+      if (! ( x_ok && y_ok))
 	{
 	  //if (!x_ok) std::cerr << "x value " << x << " out of range ["<< h->GetXaxis()->GetXmin() <<","<< h->GetXaxis()->GetXmax() << "]" << std::endl;
 	  //if (!y_ok) std::cerr << "y value " << y << " out of range ["<< h->GetYaxis()->GetXmin() <<","<< h->GetYaxis()->GetXmax() << "]" << std::endl;
@@ -1300,8 +1306,8 @@ Double_t QwScanner::get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalid
 	}
     }
 
-  const int xbin = h->GetXaxis()->FindBin( x ); 
-  const int ybin = h->GetYaxis()->FindBin( y ); 
+  const int xbin = h->GetXaxis()->FindBin( x );
+  const int ybin = h->GetYaxis()->FindBin( y );
 
   return h->GetBinContent( h->GetBin( xbin, ybin ));
 };

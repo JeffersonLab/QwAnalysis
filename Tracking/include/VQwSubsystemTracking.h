@@ -11,7 +11,7 @@
 class QwHitContainer;
 class QwDetectorInfo;
 
-class VQwSubsystemTracking: public VQwSubsystem {
+class VQwSubsystemTracking: virtual public VQwSubsystem {
   /******************************************************************
    *  Class: VQwSubsystemTracking
    *         Virtual base class for the classes containing the

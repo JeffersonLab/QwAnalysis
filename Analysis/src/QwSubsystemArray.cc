@@ -124,3 +124,14 @@ void  QwSubsystemArray::DeleteHistograms()
 
 //*****************************************************************
 
+void  QwSubsystemArray::Print()
+{
+  std::cout << "QwSubsystemArray: " << std::endl;
+  if (!empty()) {
+    for (iterator subsys = begin(); subsys != end(); subsys++) {
+      (*subsys)->Print();
+    }
+  }
+};
+
+

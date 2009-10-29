@@ -287,7 +287,7 @@ void  QwQuartzBar::Copy(VQwSubsystem *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {
-      QwQuartzBar* input = ((QwQuartzBar*) source);
+      QwQuartzBar* input = dynamic_cast<QwQuartzBar*>(source);
       this->fADC_Data.resize(input->fADC_Data.size());
       for (size_t i = 0; i < this->fADC_Data.size(); i++)
         this->fADC_Data[i].Copy(&(input->fADC_Data[i]));
@@ -324,7 +324,7 @@ Bool_t  QwQuartzBar::Compare(VQwSubsystem *value)
     result = kFALSE;
   } else {
     // Check whether the internal ADC module sizes are identical
-    QwQuartzBar* input = (QwQuartzBar*) value;
+    QwQuartzBar* input = dynamic_cast<QwQuartzBar*>(value);
     if (input->fADC_Data.size() != fADC_Data.size())
       result = kFALSE;
   }
@@ -336,7 +336,7 @@ VQwSubsystem&  QwQuartzBar::operator= (VQwSubsystem *value)
 
   if(Compare(value))
     {
-      QwQuartzBar* input = (QwQuartzBar*) value;
+      QwQuartzBar* input = dynamic_cast<QwQuartzBar*>(value);
       for (size_t i = 0; i < input->fADC_Data.size(); i++) {
 	this->fADC_Data.at(i) = input->fADC_Data.at(i);
       }
@@ -349,7 +349,7 @@ VQwSubsystem&  QwQuartzBar::operator+=  ( VQwSubsystem *value)
   // Buddhini, January 14,2009.
   if(Compare(value))
     {
-      QwQuartzBar* input = (QwQuartzBar*) value ;
+      QwQuartzBar* input = dynamic_cast<QwQuartzBar*>(value);
       for (size_t i = 0; i < input->fADC_Data.size(); i++) {
 	fADC_Data.at(i) += input->fADC_Data.at(i);
       }
@@ -362,7 +362,7 @@ VQwSubsystem&  QwQuartzBar::operator-=  ( VQwSubsystem *value)
   // Buddhini, January 14,2009.
   if(Compare(value))
     {
-      QwQuartzBar* input = (QwQuartzBar*) value;
+      QwQuartzBar* input = dynamic_cast<QwQuartzBar*>(value);
       for (size_t i = 0; i < input->fADC_Data.size(); i++) {
 	fADC_Data.at(i) -= input->fADC_Data.at(i);
       }
@@ -384,8 +384,8 @@ void QwQuartzBar::Difference(VQwSubsystem *value1,VQwSubsystem *value2){
 void QwQuartzBar::Ratio(VQwSubsystem *numer,VQwSubsystem  *denom){
 
   if(Compare(numer) && Compare(denom)){
-    QwQuartzBar& numer1 = *(QwQuartzBar*)numer;
-    QwQuartzBar& denom1 = *(QwQuartzBar*)denom;
+    QwQuartzBar& numer1 = *dynamic_cast<QwQuartzBar*>(numer);
+    QwQuartzBar& denom1 = *dynamic_cast<QwQuartzBar*>(denom);
 
 
     if (fADC_Data.size() == numer1.fADC_Data.size()

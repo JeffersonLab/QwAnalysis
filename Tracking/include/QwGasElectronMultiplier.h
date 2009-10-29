@@ -33,7 +33,7 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking{
    *
    ******************************************************************/
  public:  
-  QwGasElectronMultiplier(TString region_tmp):VQwSubsystemTracking(region_tmp){};
+  QwGasElectronMultiplier(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemTracking(region_tmp){};
 
   ~QwGasElectronMultiplier()
     {

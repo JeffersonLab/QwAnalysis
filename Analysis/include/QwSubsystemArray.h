@@ -62,6 +62,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void  FillHistograms();
   void  DeleteHistograms();
 
+  virtual void  Print();
 
  protected:
 
