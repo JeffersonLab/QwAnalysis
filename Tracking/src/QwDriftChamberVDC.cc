@@ -21,13 +21,14 @@ This generates identical set of hits to region 2 for region 3.
 #include "boost/bind.hpp"
 
 
-const UInt_t QwDriftChamberVDC::BackPlanenum=16;
+const UInt_t QwDriftChamberVDC::BackPlanenum=4;
 const UInt_t QwDriftChamberVDC::Linenum=8;
 
 QwDriftChamberVDC::QwDriftChamberVDC(TString region_tmp): QwDriftChamber(region_tmp,fWireHitsVDC){
   std::vector<QwDelayLine> temp;
   temp.resize(Linenum);
   DelayLineArray.resize(BackPlanenum,temp);
+  fDelayLinePtrs.resize(21);
   OK=0;
 };
 
@@ -190,16 +191,12 @@ void  QwDriftChamberVDC::SubtractReferenceTimes(){
       }
     }
     for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
-      hit1->SubtractReference(reftimes.at(hit1->GetSubbankID()));
+      hit1->SetTime( SubtractReference(hit1->GetRawTime(),reftimes.at(hit1->GetSubbankID())) );
     }
   }
-};
+} 
 
-Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector){
-  return 0;
-    }; 
-
-Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector, Double_t angle){
+Double_t  QwDriftChamberVDC::DoCalculate(Double_t drifttime, QwDetectorID detector, Double_t angle){
   Double_t a0=0,a1=0,b0=0,b1=0,b2=0,c0=0,c1=0;
   Double_t tsp1=0,tsp2=0,x=0;
 
@@ -227,29 +224,38 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetect
 
 
 void  QwDriftChamberVDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data){
-  Int_t tdcindex = GetTDCIndex(bank_index,slot_num);
+  //Int_t tdcindex = GetTDCIndex(bank_index,slot_num);
+  Int_t tdcindex=1;
   if (tdcindex != -1){
-    //    Int_t hitCount = 0;
-    //    Int_t package  = 2;
-    Int_t plane    = fTDCPtrs.at(tdcindex).at(chan).fPlane;
-    Int_t wire     = fTDCPtrs.at(tdcindex).at(chan).fElement;
-    //    Int_t direction;
+        Int_t hitCount = 1;
+        Int_t package  = 1;
+	//Int_t plane    = fTDCPtrs.at(tdcindex).at(chan).fPlane;
+	//Int_t wire     = fTDCPtrs.at(tdcindex).at(chan).fElement;
+
+	Int_t plane=-2;
+	if(chan<32)
+	  plane=fDelayLinePtrs.at(slot_num).at(chan).BackPlane;
+	Int_t wire=0;
+	Int_t direction=0;
+	
 
     if (plane == -1 || wire == -1){
       //  This channel is not connected to anything.
       //  Do nothing.
-    } else if (plane == (Int_t) kReferenceChannelPlaneNumber){
+      //  } else if (plane == (Int_t) kReferenceChannelPlaneNumber){
+      //fReferenceData.at(wire).push_back(data);
+    } else if (plane== -2 || chan ==32){
       fReferenceData.at(wire).push_back(data);
-    }/* else {
+    } else {
       //std::cout<<"At QwDriftChamberVDC::FillRawTDCWord_1"<<endl;
-      direction =fDirectionData.at(package-1).at(plane-1); //wire direction is accessed from the vector and updates the QwHit with it. Rakitha(10/23/2008)
+      //direction =fDirectionData.at(package-1).at(plane-1); //wire direction is accessed from the vector and updates the QwHit with it. Rakitha(10/23/2008)
 
-      hitCount=std::count_if(fTDCHits.begin(),fTDCHits.end(),boost::bind(&QwHit::WireMatches,_1,2,boost::ref(package),boost::ref(plane),boost::ref(wire)) );
+      // hitCount=std::count_if(fTDCHits.begin(),fTDCHits.end(),boost::bind(&QwHit::WireMatches,_1,2,boost::ref(package),boost::ref(plane),boost::ref(wire)) );
       //std::cout<<"At QwDriftChamberVDC::FillRawTDCWord_2"<<endl;
       fTDCHits.push_back(QwHit(bank_index, slot_num, chan, hitCount,3, package, plane,direction, wire, data));//in order-> bank index, slot num, chan, hitcount, region=3, package, plane,,direction, wire,wire hit time
 
     }
-    */
+    
   };
 };
 
@@ -310,16 +316,27 @@ Int_t QwDriftChamberVDC::AddChannelDefinition(const UInt_t plane, const UInt_t w
 }
 
 
+Int_t  QwDriftChamberVDC::LoadChannelMap(TString mapfile){
+  LoadMap(mapfile);
+}
+
+
+
+
+
 void QwDriftChamberVDC::LoadMap(TString& mapfile){
   //some type(like string,int)need to be changed to root type
 
   TString varname,varvalue;
+  UInt_t value;
   UInt_t channum;            //store temporary channel number
   UInt_t bpnum,lnnum;        //store temp backplane and line number
-  UInt_t pknum,plnum,firstwire,LR;         //store temp package,plane,firstwire and left or right information
-  std::vector<QwDelayLineID> tmpDelayLineID;
+  UInt_t pknum,plnum,dir,firstwire,LR;         //store temp package,plane,firstwire and left or right information
+  bool IsFirstChannel=true;
+
   std::vector<Double_t> tmpWindows;
   QwParameterFile mapstr ( mapfile.Data() );
+
   while ( mapstr.ReadNextLine() ) {
     mapstr.TrimComment ( '!' );
     mapstr.TrimWhitespace();
@@ -328,17 +345,27 @@ void QwDriftChamberVDC::LoadMap(TString& mapfile){
     if(mapstr.HasVariablePair("=",varname,varvalue))   //to judge whether we find a new slot
       {
 	varname.ToLower();
-	//	UInt_t value = atol ( varvalue.Data() );   //as long as the slot is in order, we do not need this line
-	if (tmpDelayLineID.size() !=0)
+	value = atol ( varvalue.Data() );   //as long as the slot is in order, we do not need this line
+	if (varname == "roc")
 	  {
-	    fDelayLinePtrs.push_back (tmpDelayLineID);
-	    tmpDelayLineID.clear();
+	    RegisterROCNumber(value);
+	    std::cout << "ROC number: " << value << std::endl;
 	  }
+	if(varname == "slot"){
+	  RegisterSlotNumber(value);
+	}
 	continue;        //go to the next line
       }
+
     channum=(atol(mapstr.GetNextToken ( ", \t()" ).c_str()));
     bpnum=(atol(mapstr.GetNextToken ( ", \t()" ).c_str()));
     lnnum=(atol(mapstr.GetNextToken ( ", \t()" ).c_str()));
+
+    if(channum ==0 && bpnum ==0){
+      if( IsFirstChannel == true ) IsFirstChannel = false;
+      else 
+	continue;
+ }
 
     if(bpnum == kReferenceChannelPlaneNumber)
       {
@@ -347,11 +374,12 @@ void QwDriftChamberVDC::LoadMap(TString& mapfile){
       }
 
     LR=(atol(mapstr.GetNextToken ( ", \t()" ).c_str()));
-    tmpDelayLineID.push_back(QwDelayLineID(bpnum,lnnum,LR));    //the slot and channel number must be in order
+    fDelayLinePtrs.at(value).push_back(QwDelayLineID(bpnum,lnnum,LR));    //the slot and channel number must be in order
     if(DelayLineArray.at(bpnum).at(lnnum).fill == false)   //if this delay line has not been filled in the data
       {
 	pknum=(atol(mapstr.GetNextToken ( ", \t()" ).c_str()));
 	plnum=(atol(mapstr.GetNextToken ( ", \t()" ).c_str()));
+	dir=(atol(mapstr.GetNextToken ( ", \t()" ).c_str()));
 	firstwire=(atol ( mapstr.GetNextToken ( ", \t()" ).c_str()));
 	string a=mapstr.GetNextToken(", \t()") ;
 	while (a.size() !=0){
@@ -360,21 +388,24 @@ void QwDriftChamberVDC::LoadMap(TString& mapfile){
 	}
 	DelayLineArray.at(bpnum).at(lnnum).Package=pknum;
 	DelayLineArray.at(bpnum).at(lnnum).Plane=plnum;
+	DelayLineArray.at(bpnum).at(lnnum).Direction=dir;
 	DelayLineArray.at(bpnum).at(lnnum).FirstWire=firstwire;
 	for (size_t i=0;i<tmpWindows.size() /2;i++)
 	  {
 	    std::pair<double,double> a(tmpWindows.at ( 2*i ),tmpWindows.at ( 2*i+1 ));
 	    DelayLineArray.at(bpnum).at(lnnum).Windows.push_back (a);
 	  }
+	std::cout << "DelayLine: back plane: " << bpnum << "line number " << lnnum << " Windows.size: "  << DelayLineArray.at(bpnum).at(lnnum).Windows.size() << std::endl;
 	DelayLineArray.at(bpnum).at(lnnum).fill=true;
+        tmpWindows.clear();								       
       }
   }
 
-  if(tmpDelayLineID.size() !=0)     //to push the last tmpDelayLineID vector into fDelayLinePtrs
+    /*  if(tmpDelayLineID.size() !=0)     //to push the last tmpDelayLineID vector into fDelayLinePtrs
     {
       fDelayLinePtrs.push_back(tmpDelayLineID);
       tmpDelayLineID.clear();
-    }
+      }*/
 }
 
 
@@ -413,13 +444,23 @@ void QwDriftChamberVDC::ProcessEvent(){
   //  Do the reference time subtration and subtration of time offsets.
   SubtractReferenceTimes();
 
+  double real_time=0,drift_distance=0;
+  double tmpTime=0,left_time=0,right_time=0;
+
+  int tmpCrate=0,tmpModule=0,tmpChan=0,tmpbp=0,tmpln=0;
+
+
+
   for(std::vector<QwHit>::iterator iter=fTDCHits.begin();iter!=fTDCHits.end();iter++){
     //this for loop will fill in the tdc hits data into the corresponding delay line
     QwElectronicsID tmpElectronicsID=iter->GetElectronicsID();
-    //    int tmpCrate=iter->GetSubbankID();
-    Int_t tmpModule=tmpElectronicsID.fModule;
-    Int_t tmpChan=tmpElectronicsID.fChannel;
-    const Double_t tmpTime=iter->GetTime();
+    tmpCrate=iter->GetSubbankID();
+    tmpModule=tmpElectronicsID.fModule;
+    tmpChan=tmpElectronicsID.fChannel;
+
+    tmpTime=iter->GetTime();
+
+    //std::cout << "tmpModule " << tmpModule << " tmpChan: " << tmpChan << " time: " <<  tmpTime << std::endl ;
 
     if (fDelayLinePtrs.at(tmpModule).at(tmpChan).Side == 0)
       DelayLineArray.at(fDelayLinePtrs.at(tmpModule).at(tmpChan).BackPlane).at(fDelayLinePtrs.at(tmpModule).at(tmpChan).Linenumber).LeftHits.push_back(tmpTime);
@@ -427,31 +468,53 @@ void QwDriftChamberVDC::ProcessEvent(){
       DelayLineArray.at(fDelayLinePtrs.at(tmpModule).at(tmpChan).BackPlane).at(fDelayLinePtrs.at(tmpModule).at(tmpChan).Linenumber).RightHits.push_back(tmpTime);
   }
 
+   
+
   for(std::vector<QwHit>::iterator iter=fTDCHits.begin();iter!=fTDCHits.end();iter++)
     {
       QwElectronicsID tmpElectronicsID=iter->GetElectronicsID();
-      QwDetectorID    tmpDetectorID=iter->GetDetectorID();
-      Int_t tmpCrate=iter->GetSubbankID();
-      const UInt_t tmpTime= (UInt_t) iter->GetTime();
-      Int_t tmpModule = tmpElectronicsID.fModule;
-      Int_t tmpChan   = tmpElectronicsID.fChannel;
-      Int_t tempbp    = fDelayLinePtrs.at(tmpModule).at(tmpChan).BackPlane;
-      Int_t templn    = fDelayLinePtrs.at(tmpModule).at(tmpChan).Linenumber;
-      if (DelayLineArray.at(tempbp).at(templn).processed == false)         //if this delay line has been processed
+      tmpCrate=iter->GetSubbankID();
+      tmpTime= iter->GetTime();
+      tmpModule = tmpElectronicsID.fModule;
+      tmpChan   = tmpElectronicsID.fChannel;
+      
+      tmpbp    = fDelayLinePtrs.at(tmpModule).at(tmpChan).BackPlane;
+      tmpln    = fDelayLinePtrs.at(tmpModule).at(tmpChan).Linenumber;
+
+      bool kDir=false;
+
+      if (DelayLineArray.at(tmpbp).at(tmpln).processed == false)         //if this delay line has been processed
 	{
-	  DelayLineArray.at(tempbp).at(templn).ProcessHits();
-	  Int_t Wirecount=DelayLineArray.at(tempbp).at(templn).Wire.size();
+	  int tmpdir= DelayLineArray.at(tmpbp).at(tmpln).Direction;
+
+	  if(tmpbp==0)
+	    kDir=false;
+	  else kDir=false;
+	  DelayLineArray.at(tmpbp).at(tmpln).ProcessHits(kDir);
+
+	  Int_t Wirecount=DelayLineArray.at(tmpbp).at(tmpln).Wire.size();
 	  for(Int_t i=0;i<Wirecount;i++)
 	    {
-	      Int_t Ambiguitycount=DelayLineArray.at(tempbp).at(templn).Wire.at(i).size();   //if there's a ambiguity, it's 2; if not, this is 1
-	      Int_t order_L=DelayLineArray.at(tempbp).at(templn).Hitscount.at(i).first;
-	      Int_t order_R=DelayLineArray.at(tempbp).at(templn).Hitscount.at(i).second;
+	      Int_t Ambiguitycount=DelayLineArray.at(tmpbp).at(tmpln).Wire.at(i).size();   //if there's a ambiguity, it's 2; if not, this is 1
+	      Int_t order_L=DelayLineArray.at(tmpbp).at(tmpln).Hitscount.at(i).first;
+	      Int_t order_R=DelayLineArray.at(tmpbp).at(tmpln).Hitscount.at(i).second;
+	      left_time=DelayLineArray.at(tmpbp).at(tmpln).LeftHits.at(order_L);
+	      right_time=DelayLineArray.at(tmpbp).at(tmpln).RightHits.at(order_R);
+
+	      real_time=(left_time+right_time)/2;
+	      real_time=0.1132*real_time;
+
 	      for(Int_t j=0;j<Ambiguitycount;j++)
 		{
-		  QwHit NewQwHit(tmpCrate,tmpModule ,tmpChan,order_L,3,DelayLineArray.at(tempbp).at(templn).Package,DelayLineArray.at (tempbp).at(templn).Plane,tmpDetectorID.fDirection,DelayLineArray.at(tempbp).at(templn).Wire.at(i).at(j),tmpTime);
+		  QwHit NewQwHit(tmpCrate,tmpModule ,tmpChan,order_L,3,DelayLineArray.at(tmpbp).at(tmpln).Package,DelayLineArray.at (tmpbp).at(tmpln).Plane,tmpdir,DelayLineArray.at(tmpbp).at(tmpln).Wire.at(i).at(j),real_time);
 		  NewQwHit.SetHitNumberR(order_R);
 
-		  Bool_t tmpAM=DelayLineArray.at(tempbp).at(templn).Ambiguous;
+		  real_time=1600-real_time;
+		  if(real_time<0) real_time=0;
+		  drift_distance=CalculateDriftDistance(real_time,iter->GetDetectorID());
+		  NewQwHit.SetDriftDistance(0.1*drift_distance);
+
+		  Bool_t tmpAM=DelayLineArray.at(tmpbp).at(tmpln).Ambiguous;
 		  if(j==0 && tmpAM==true)
 		    NewQwHit.AmbiguityID ( tmpAM,true );
 		  else if(j==1 && tmpAM==true)
@@ -463,3 +526,28 @@ void QwDriftChamberVDC::ProcessEvent(){
     }
 }
 
+
+ void QwDriftChamberVDC::ClearEventData(){
+   SetDataLoaded(kFALSE);
+   QwDetectorID this_det;
+   for(std::vector<QwHit>::iterator hit1=fTDCHits.begin();hit1!=fTDCHits.end();hit1++){
+     this_det = hit1->GetDetectorID();
+   }
+   fTDCHits.clear();
+   fWireHits.clear();
+   for(int i=0;i<DelayLineArray.size();i++)
+     {
+       int index=DelayLineArray.at(i).size();
+       for(int j=0;j<index;j++){
+	 DelayLineArray.at(i).at(j).processed=false;
+	 DelayLineArray.at(i).at(j).LeftHits.clear();
+	 DelayLineArray.at(i).at(j).RightHits.clear();
+	 DelayLineArray.at(i).at(j).Hitscount.clear();
+	 DelayLineArray.at(i).at(j).Wire.clear();
+       }
+     }
+   
+   for (size_t i=0;i<fReferenceData.size(); i++){
+     fReferenceData.at(i).clear();
+   }
+ }

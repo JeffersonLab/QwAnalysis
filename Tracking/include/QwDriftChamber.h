@@ -89,15 +89,33 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
 
   void  CalculateDriftDistance();
+
   virtual Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)=0;
+
+
+  // Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector,Double_t angle=45){
+
+  //  Double_t d=DoCalculate(drifttime,detector,angle);
+  //    return d;
+  // }
   
-  
+
+
+  void GetTDCHitList(QwHitContainer & grandHitContainer){
+         grandHitContainer.Append(fTDCHits);
+       };
+
+
   void GetHitList(QwHitContainer & grandHitContainer){
     //std::cout << " HDC "<<fTDCHits.size()<<std::endl;
-    grandHitContainer.Append(fTDCHits);
+    grandHitContainer.Append(fWireHits);
   };
   
   Int_t OK;
+
+  // private:
+
+  //  virtual Double_t DoCalculate(Double_t drifttime,QwDetectorID detector,Double_t angle)=0;
 
  protected:
   

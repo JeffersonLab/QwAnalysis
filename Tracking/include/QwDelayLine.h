@@ -29,17 +29,22 @@ using namespace std;
 class QwDelayLine
 {
  public:
-  QwDelayLine():Package(-1),Plane(-1),FirstWire(-1),fill(false),processed(false),Ambiguous(-1) {};
-  QwDelayLine(const int pk,const int pl,const int firstwire):Package(pk),Plane(pl),FirstWire(firstwire),fill(false),processed(false),Ambiguous(false) {};
+  QwDelayLine():Package(-1),Plane(-1),Direction(-1),t0_max(0),FirstWire(-1),fill(false),processed(false),Ambiguous(-1),change_max(false) {};
+
+    QwDelayLine(const int pk,const int pl,const int dir,const int firstwire):Package(pk),Plane(pl),Direction(dir),FirstWire(firstwire),t0_max(0),fill(false),processed(false),Ambiguous(false),change_max(false) {};
 
   ~QwDelayLine();
   int Package;
   int Plane;
+  int Direction;
   int FirstWire;
+  double t0_max;
+
 
   bool fill;              //whether this delay line has been filled in with information
   bool processed;
   bool Ambiguous;
+  bool change_max;
 
   vector<vector<int> > Wire;  // indexed by different hits and different wires because of the ambiguity in the same hit
   vector<pair<int,int> > Hitscount;
@@ -49,7 +54,7 @@ class QwDelayLine
   static const double TimeStep;
   static const int  WireStep;
 
-  void ProcessHits();
+  void ProcessHits(bool k);
   void Wirenumber(double&);
 
 };

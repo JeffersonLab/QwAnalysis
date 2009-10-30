@@ -55,17 +55,36 @@ class QwDriftChamberVDC: public QwDriftChamber {
 
  void  SubtractReferenceTimes();
 
- Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector, Double_t angle);
- Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
+ //Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector, Double_t angle);
+ // Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
 
+ Int_t LoadChannelMap(TString mapfile);
  void  LoadMap ( TString& );        //read the TDC convert QwDelayLine map
  void  ReadEvent ( TString& );     //read the events file
 
 
  void  ProcessEvent();
 
+ void ClearEventData();
+
+ //void GetHitList(QwHitContainer & grandHitContainer){
+ //  grandHitContainer.Append(fWireHits);
+ //};
+
   Int_t LoadQweakGeometry(TString mapfile );
+
+  Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector){
+    double angle=45,d=0;
+    d=DoCalculate(drifttime,detector,angle);
+    return d;
+ }
  
+
+ private:
+
+   Double_t DoCalculate(Double_t drifttime, QwDetectorID detector, Double_t angle);
+
+
  protected:
  void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
 

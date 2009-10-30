@@ -128,7 +128,7 @@ int main(Int_t argc,Char_t* argv[])
   QwDetectors.GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");//this map file was created by Mark Pitt to run actual QWEAK hits -Rakitha (23/10/2008)
 
   QwDetectors.push_back(new QwDriftChamberVDC("R3"));
-  QwDetectors.GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
+  QwDetectors.GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
 
 
 
@@ -334,7 +334,7 @@ int main(Int_t argc,Char_t* argv[])
 
 
       //  Fill the histograms for the subsystem objects.
-      QwDetectors.FillHistograms();
+      //QwDetectors.FillHistograms();
 
       //  Build a global vector consisting of each
       //  subsystems list concatenated together.
@@ -348,7 +348,7 @@ int main(Int_t argc,Char_t* argv[])
       grandHitList.sort();
       SaveHits(grandHitList);//Print the entire grand hit list to a file
       //SaveSubList(grandHitList);//Print a sub set of  hits list to a file
-      AsciiEvents1.GetrcDETRegion(grandHitList,evnum);
+      //AsciiEvents1.GetrcDETRegion(grandHitList,evnum);
 
       // Print hit list
       grandHitList.Print();

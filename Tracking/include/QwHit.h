@@ -112,9 +112,13 @@ class QwHit : public TObject {
   Bool_t IsFirstDetectorHit() { return (fHitNumber==0); };
   Bool_t IsUsed() { return fIsUsed; };
 
-  void SubtractReference(Double_t reftime){
-    fTime = fRawTime - reftime;
+  void SubtractTimeOffset(Double_t timeoffset){
+    fTime = fTime - timeoffset;
   };
+
+  void SetTime(Double_t time){
+    fTime=time;
+  }
 
 
 //below two metods retrieve subsets of QwHitContainer vector - rakitha (08/2008)

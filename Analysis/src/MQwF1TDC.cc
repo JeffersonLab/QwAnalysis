@@ -33,6 +33,7 @@ void MQwF1TDC::DecodeTDCWord(UInt_t &word){
 /* 	hit_fifo   = ((buffer[i] & kF1Mask_HitFIFOFlag)!=0); */
     fF1ChannelNumber = (word & kF1Mask_ChannelNumber)>>16;
     fF1Dataword      = (word & kF1Mask_Dataword);
+    //std::cout << "channel: " << fF1ChannelNumber << " raw time: " << fF1Dataword << std::endl;
   }
 };
 
