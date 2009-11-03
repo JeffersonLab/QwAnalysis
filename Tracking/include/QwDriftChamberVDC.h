@@ -58,8 +58,8 @@ class QwDriftChamberVDC: public QwDriftChamber {
  //Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector, Double_t angle);
  // Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
 
- Int_t LoadChannelMap(TString mapfile);
- void  LoadMap ( TString& );        //read the TDC convert QwDelayLine map
+ Int_t LoadChannelMap(TString& mapfile);
+ Int_t LoadMap ( TString& );        //read the TDC convert QwDelayLine map
  void  ReadEvent ( TString& );     //read the events file
 
 
@@ -78,7 +78,7 @@ class QwDriftChamberVDC: public QwDriftChamber {
     d=DoCalculate(drifttime,detector,angle);
     return d;
  }
- 
+
 
  private:
 

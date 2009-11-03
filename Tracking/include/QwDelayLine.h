@@ -29,9 +29,8 @@ using namespace std;
 class QwDelayLine
 {
  public:
-  QwDelayLine():Package(-1),Plane(-1),Direction(-1),t0_max(0),FirstWire(-1),fill(false),processed(false),Ambiguous(-1),change_max(false) {};
-
-    QwDelayLine(const int pk,const int pl,const int dir,const int firstwire):Package(pk),Plane(pl),Direction(dir),FirstWire(firstwire),t0_max(0),fill(false),processed(false),Ambiguous(false),change_max(false) {};
+  QwDelayLine():Package(-1),Plane(-1),Direction(-1),FirstWire(-1),t0_max(0),fill(false),processed(false),Ambiguous(-1),change_max(false) {};
+  QwDelayLine(const int pk,const int pl,const int dir,const int firstwire):Package(pk),Plane(pl),Direction(dir),FirstWire(firstwire),t0_max(0),fill(false),processed(false),Ambiguous(false),change_max(false) {};
 
   ~QwDelayLine();
   int Package;

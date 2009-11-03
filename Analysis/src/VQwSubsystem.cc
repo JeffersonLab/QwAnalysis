@@ -5,6 +5,24 @@
 * Time-stamp: <2007-05-08 15:40>                           *
 \**********************************************************/
 
+/*------------------------------------------------------------------------*//*!
+
+ \defgroup QwAnalysis QwAnalysis
+
+ \section myoverview Overview
+
+   Qweak Analysis Framework
+
+   Each subsystem will have a class derived from "VQwSubsystem", and
+   will be responsible for decoding of it's own data stream and any
+   special event processing required. QwSubsystemArray will handle
+   mutiple "VQwSubsystem" objects and one call on the QwSubsystemArray
+   will handle all the calls to that method in each subsystem.  Each
+   susbsytem will also own the histograms and ntupling functions used
+   for its data.
+
+*//*-------------------------------------------------------------------------*/
+
 #include "VQwSubsystem.h"
 
 Int_t ERROR = -1;
@@ -49,7 +67,7 @@ Int_t VQwSubsystem::GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) c
 Int_t VQwSubsystem::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id = 0)
 {
   Int_t stat = 0;
-  Int_t roc_index = FindIndex(fROC_IDs, roc_id);//will return the vector index for this roc_id on the vector fROC_IDs 
+  Int_t roc_index = FindIndex(fROC_IDs, roc_id);//will return the vector index for this roc_id on the vector fROC_IDs
   if (roc_index==-1){
     fROC_IDs.push_back(roc_id);//new ROC number is added.
     roc_index = (fROC_IDs.size() - 1);

@@ -10,6 +10,7 @@
 #define __QWCOMMANDLINE__
 
 #include <getopt.h>
+#include <iostream>
 #include <cstdlib>
 #include <string>
 #include <Rtypes.h>

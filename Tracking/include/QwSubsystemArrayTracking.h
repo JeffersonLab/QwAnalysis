@@ -18,30 +18,35 @@
 ///
 /// \ingroup QwTrackingAnl
 class QwSubsystemArrayTracking:  public QwSubsystemArray {
- 
+
  public:
   QwSubsystemArrayTracking() {};
   ~QwSubsystemArrayTracking(){};
-  
-  void GetHitList(QwHitContainer & grandHitList);//this will update the hit list from each subsystem
+
+  // This will update the hit list from each subsystem
+  void GetHitList(QwHitContainer & grandHitList);
+  void GetHitList(QwHitContainer * grandHitList);
+
   VQwSubsystemTracking* GetSubsystem(const TString name);
-  
+
 };
 
 
-VQwSubsystemTracking* QwSubsystemArrayTracking::GetSubsystem(const TString name){
+VQwSubsystemTracking* QwSubsystemArrayTracking::GetSubsystem(const TString name)
+{
   VQwSubsystemTracking* tmp = NULL;
   tmp=(VQwSubsystemTracking*)  QwSubsystemArray::GetSubsystem(name);
-  
+
   return tmp;
 };
 
-void QwSubsystemArrayTracking::GetHitList(QwHitContainer & grandHitList){
+void QwSubsystemArrayTracking::GetHitList(QwHitContainer & grandHitList)
+{
   if (!empty()){
     grandHitList.clear();
-    
+
     for (iterator subsys = begin(); subsys != end(); ++subsys){
-      VQwSubsystemTracking* tsubsys = 
+      VQwSubsystemTracking* tsubsys =
 	dynamic_cast<VQwSubsystemTracking*>((subsys)->get());
       if (tsubsys != NULL){
 	tsubsys->GetHitList(grandHitList);
@@ -54,6 +59,9 @@ void QwSubsystemArrayTracking::GetHitList(QwHitContainer & grandHitList){
   }
 };
 
-
+void QwSubsystemArrayTracking::GetHitList(QwHitContainer* hitlist)
+{
+  GetHitList(*hitlist);
+};
 
 #endif

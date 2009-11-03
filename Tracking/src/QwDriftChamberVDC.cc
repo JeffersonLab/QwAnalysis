@@ -194,7 +194,7 @@ void  QwDriftChamberVDC::SubtractReferenceTimes(){
       hit1->SetTime( SubtractReference(hit1->GetRawTime(),reftimes.at(hit1->GetSubbankID())) );
     }
   }
-} 
+}
 
 Double_t  QwDriftChamberVDC::DoCalculate(Double_t drifttime, QwDetectorID detector, Double_t angle){
   Double_t a0=0,a1=0,b0=0,b1=0,b2=0,c0=0,c1=0;
@@ -216,7 +216,7 @@ Double_t  QwDriftChamberVDC::DoCalculate(Double_t drifttime, QwDetectorID detect
   x = (drifttime - a0)/a1;}
   else if (drifttime <= tsp2){ // Select Region 2
   x = (-b1 + sqrt(b1*b1 - 4*b2*(b0-drifttime)))/(2*b2);}
-  else{                                  // Select Region 3  
+  else{                                  // Select Region 3
   x = (drifttime - c0)/c1;
 }
   return x;
@@ -237,7 +237,7 @@ void  QwDriftChamberVDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
 	  plane=fDelayLinePtrs.at(slot_num).at(chan).BackPlane;
 	Int_t wire=0;
 	Int_t direction=0;
-	
+
 
     if (plane == -1 || wire == -1){
       //  This channel is not connected to anything.
@@ -255,7 +255,7 @@ void  QwDriftChamberVDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
       fTDCHits.push_back(QwHit(bank_index, slot_num, chan, hitCount,3, package, plane,direction, wire, data));//in order-> bank index, slot num, chan, hitcount, region=3, package, plane,,direction, wire,wire hit time
 
     }
-    
+
   };
 };
 
@@ -316,15 +316,17 @@ Int_t QwDriftChamberVDC::AddChannelDefinition(const UInt_t plane, const UInt_t w
 }
 
 
-Int_t  QwDriftChamberVDC::LoadChannelMap(TString mapfile){
-  LoadMap(mapfile);
+Int_t  QwDriftChamberVDC::LoadChannelMap(TString& mapfile)
+{
+  return LoadMap(mapfile);
 }
 
 
 
 
 
-void QwDriftChamberVDC::LoadMap(TString& mapfile){
+Int_t QwDriftChamberVDC::LoadMap(TString& mapfile)
+{
   //some type(like string,int)need to be changed to root type
 
   TString varname,varvalue;
@@ -363,7 +365,7 @@ void QwDriftChamberVDC::LoadMap(TString& mapfile){
 
     if(channum ==0 && bpnum ==0){
       if( IsFirstChannel == true ) IsFirstChannel = false;
-      else 
+      else
 	continue;
  }
 
@@ -397,7 +399,7 @@ void QwDriftChamberVDC::LoadMap(TString& mapfile){
 	  }
 	std::cout << "DelayLine: back plane: " << bpnum << "line number " << lnnum << " Windows.size: "  << DelayLineArray.at(bpnum).at(lnnum).Windows.size() << std::endl;
 	DelayLineArray.at(bpnum).at(lnnum).fill=true;
-        tmpWindows.clear();								       
+        tmpWindows.clear();
       }
   }
 
@@ -468,7 +470,7 @@ void QwDriftChamberVDC::ProcessEvent(){
       DelayLineArray.at(fDelayLinePtrs.at(tmpModule).at(tmpChan).BackPlane).at(fDelayLinePtrs.at(tmpModule).at(tmpChan).Linenumber).RightHits.push_back(tmpTime);
   }
 
-   
+
 
   for(std::vector<QwHit>::iterator iter=fTDCHits.begin();iter!=fTDCHits.end();iter++)
     {
@@ -477,7 +479,7 @@ void QwDriftChamberVDC::ProcessEvent(){
       tmpTime= iter->GetTime();
       tmpModule = tmpElectronicsID.fModule;
       tmpChan   = tmpElectronicsID.fChannel;
-      
+
       tmpbp    = fDelayLinePtrs.at(tmpModule).at(tmpChan).BackPlane;
       tmpln    = fDelayLinePtrs.at(tmpModule).at(tmpChan).Linenumber;
 
@@ -546,7 +548,7 @@ void QwDriftChamberVDC::ProcessEvent(){
 	 DelayLineArray.at(i).at(j).Wire.clear();
        }
      }
-   
+
    for (size_t i=0;i<fReferenceData.size(); i++){
      fReferenceData.at(i).clear();
    }
