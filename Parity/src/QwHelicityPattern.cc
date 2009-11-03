@@ -9,8 +9,6 @@
 #include "QwHelicityPattern.h"
 #include "QwHistogramHelper.h"
 #include "QwHelicity.h"
-#include "QwQuartzBar.h"
-#include "QwAnalysis_BeamLine.h"
 
 
 #include <stdexcept>
@@ -38,7 +36,7 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event, Int_t patter
 	  pos_sum.Copy(&event);
 	  neg_sum.Copy(&event);
 	  difference.Copy(&event);
-	  
+
 	  fCurrentPatternNumber=-1;
 	  fPatternSize=pattern_size;
 	  ClearEventData();
@@ -140,7 +138,7 @@ Bool_t  QwHelicityPattern::IsCompletePattern()
   Int_t i=fPatternSize-1;
   while(filled && i>-1)
     {
-       std::cout<<" i="<<i<<" is loaded ?" 
+       std::cout<<" i="<<i<<" is loaded ?"
  	       <<fEventLoaded[fEvents.size()-i-1]<<"\n";
       if(!fEventLoaded[i])
 	filled=kFALSE;
@@ -226,10 +224,10 @@ void  QwHelicityPattern::CalculateAsymmetry()
     }
   else
     {
-    
+
       IsGood=kTRUE;
       fQuartetNumber++;
-      
+
       fYield.Sum(pos_sum,neg_sum);
       difference.Difference(pos_sum,neg_sum);
       fAsymmetry.Ratio(difference,fYield);
@@ -264,7 +262,7 @@ void  QwHelicityPattern::FillHistograms()
       //  std::cout<<"************ ASYMMETRY ************\n";
       fAsymmetry.FillHistograms();
       //pos_sum.FillHistograms();
-      //neg_sum.FillHistograms();	
+      //neg_sum.FillHistograms();
     }
   return;
 }
@@ -329,5 +327,5 @@ void QwHelicityPattern::Print()
   for(size_t i=0; i< (size_t) fPatternSize; i++)
     std::cout<<"event "<<fEventNumber[i]<<":"<<fEventLoaded[i]<<", "<<fHelicity[i]<<"\n";
   std::cout<<"Is a complete pattern ?(n/y:0/1) "<<IsCompletePattern()<<"\n";
-  
+
 }
