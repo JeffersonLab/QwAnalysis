@@ -51,8 +51,6 @@ static const bool kDebug = false;
 // ROOT file output
 static const bool kTree = true;
 static const bool kHisto = true;
-// Magnetic field
-static const bool kField = false;
 
 int main (int argc, char* argv[])
 {
@@ -64,6 +62,7 @@ int main (int argc, char* argv[])
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput");
 
+
   // Handle for the list of VQwSubsystemTracking objects
   QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking();
   // Region 2 HDC
@@ -74,6 +73,7 @@ int main (int argc, char* argv[])
   detectors->push_back(new QwDriftChamberVDC("R3"));
   detectors->GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
+
 
   // Get vector with detector info (by region, plane number)
   std::vector< std::vector< QwDetectorInfo > > detector_info;
@@ -103,10 +103,6 @@ int main (int argc, char* argv[])
   Qoptions qoptions;
   qoptions.Get((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.options").c_str());
 
-  // Load field map
-  QwField* qtor = 0;
-  if (kField) qtor = new QwField(std::string(getenv("QWFIELDMAP")));
-
   // Create the tracking worker
   QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
   if (kDebug) trackingworker->SetDebugLevel(1);
@@ -114,7 +110,10 @@ int main (int argc, char* argv[])
   // Open ROOT file
   TFile* file = 0;
   if (kHisto || kTree) {
-    file = new TFile("tracking.root", "RECREATE"); file->cd();
+    file = new TFile(TString(getenv("QWSCRATCH")) + "/rootfiles/QwSim.root",
+                     "RECREATE",
+                     "QWeak ROOT file with simulated event");
+    file->cd();
   }
   // Create ROOT tree
   TTree* tree = 0;

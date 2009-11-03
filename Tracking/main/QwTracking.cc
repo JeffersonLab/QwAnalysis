@@ -75,8 +75,8 @@
     the tracking code.
 
     In the region 3 part of the tracking code method QwTrackingWorker::ProcessHits,
-    there is a loop over the two VDC planes.  The QwTrackingTreeSearch::TsSetPoint method
-    is called for each plane to map the hits in the event to a bit pattern.
+    there is a loop over the two VDC planes.  The QwTrackingTreeSearch::TsSetPoint
+    method is called for each plane to map the hits in the event to a bit pattern.
     Next, the QwTrackingTreeSearch::TsSearch method is called to find all matching
     patterns for each plane. Finally, treecombine::TlTreeLineSort is called to
     obtain the track segment candidates for this wire plane.
@@ -91,12 +91,12 @@
 
     At this point there are sets of track candidates in the upstream and
     downstream planes of a single wire direction.  QwTrackingWorker::ProcessHits
-    next calls the QwTrackingTreeMatch::MatchR3 method which loops over the upstream and
-    downstream track candidates to identify which best line up according to
-    their slopes and intercepts.  QwTrackingTreeMatch::MatchR3 returns a new set of track
-    candidates which represent both planes in the same wire direction.  The loop
-    over the two wire directions is ended, with tracks in the <i>u</i> and
-    <i>v</i> directions.
+    next calls the QwTrackingTreeMatch::MatchR3 method which loops over the
+    upstream and downstream track candidates to identify which best line up
+    according to their slopes and intercepts.  QwTrackingTreeMatch::MatchR3
+    returns a new set of track candidates which represent both planes in the same
+    wire direction. The loop  over the two wire directions is ended, with tracks
+    in the <i>u</i> and <i>v</i> directions.
 
  \section code-overview Code Overview
 
@@ -111,93 +111,134 @@
 
 *//*-------------------------------------------------------------------------*/
 
-
 /*------------------------------------------------------------------------*//*!
 
  \file QwTracking.cc
+ \ingroup QwTrackingAnl
 
- \brief This is the main program which simply executes a series of commands
+ \brief This is the main executable for the tracking analysis.
 
 *//*-------------------------------------------------------------------------*/
 
-// Standard C and C++ headers
-#include <iostream>
-#include <cstdlib>
+// C and C++ headers
+#include <sys/time.h>
 
-// Qweak Tracking headers
-#include "Qset.h"
-#include "Qoptions.h"
-#include "options.h"
+// ROOT headers
+#include <TFile.h>
+#include <TTree.h>
+#include <TStopwatch.h>
 
-#include "Det.h"
-
-#include "QwASCIIEventBuffer.h"
+// Qweak headers
+#include "QwCommandLine.h"
+#include "QwParameterFile.h"
+#include "QwSubsystemArrayTracking.h"
+#include "QwGasElectronMultiplier.h"
+#include "QwDriftChamberHDC.h"
+#include "QwDriftChamberVDC.h"
+#include "QwTriggerScintillator.h"
+#include "QwMainDetector.h"
+#include "QwScanner.h"
+//
+#include "QwEventBuffer.h"
+//
+#include "QwHit.h"
+#include "QwHitContainer.h"
+#include "QwHitRootContainer.h"
 #include "QwTrackingTreeRegion.h"
-
 #include "QwTrackingWorker.h"
 #include "QwTrackingTree.h"
-
-// Qweak track/event headers
+#include "QwTrackingTreeLine.h"
 #include "QwPartialTrack.h"
 #include "QwTrack.h"
 #include "QwEvent.h"
 
-
-#include "QwSubsystemArrayTracking.h"
-#include "QwDriftChamberHDC.h"
-#include "QwDriftChamberVDC.h"
-
-
-#define NEventMax 10
+// Qweak headers (deprecated)
+#include "Det.h"
+#include "Qset.h"
+#include "Qoptions.h"
+#include "options.h"
 
 
-//Temporary global variables for sub-programs
-bool bWriteGlobal = false;
+// Global variables for tracking modules (deprecated)
+Options opt;
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 Det rcDET[NDetMax];
-Options opt;
-FILE *ASCII_textfile;
-const char FILE_NAME[] = "grandhits_output_ASCII.txt";
 
 
-void SaveHits(QwHitContainer &); //for debugging purposes - Rakitha (04/02/2009)
+// Debug level
+static const bool kDebug = false;
+// Tracking
+static const bool kTracking = false;
+// ROOT file output
+static const bool kTree = true;
+static const bool kHisto = true;
 
-///
-/// \ingroup QwTrackingAnl
-int main (int argc, char* argv[])
+
+// Main function
+int main(Int_t argc,Char_t* argv[])
 {
-  //This routines initialize QwHit and QwHitContainer related classes
-  QwASCIIEventBuffer asciibuffer;
-  QwHitContainer *ASCIIgrandHitList = new QwHitContainer();
-  asciibuffer.OpenDataFile((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.event").c_str(),"R");
-  ASCII_textfile = fopen(FILE_NAME, "wt");//for Debugging-QwHitContainer list save to this file
+  // Either the DISPLAY is not set or JOB_ID is defined: we take it as in batch mode.
+  Bool_t kInQwBatchMode = kFALSE;
+  if (getenv("DISPLAY") == NULL
+   || getenv("JOB_ID")  != NULL) {
+    kInQwBatchMode = kTRUE;
+    gROOT->SetBatch(kTRUE);
+  }
 
-  int iEvent = 1;  // event number of this event
-  int nEvent = 0;  // number of processed events
+  // Fill the search paths for the parameter files
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH")) + "/setupfiles");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Tracking/prminput");
 
+  // Parse command line options
+  QwCommandLine cmdline;
+  cmdline.Parse(argc, argv);
 
-  //  Fill the search paths for the parameter files
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput");
 
   // Handle for the list of VQwSubsystemTracking objects
-  QwSubsystemArrayTracking QwDetectors;
+  QwSubsystemArrayTracking detectors;
+  // Region 1 GEM
+  //detectors.push_back(new QwGasElectronMultiplier("R1"));
   // Region 2 HDC
-  QwDetectors.push_back(new QwDriftChamberHDC("R2"));
-  QwDetectors.GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");
-  ((VQwSubsystemTracking*) QwDetectors.GetSubsystem("R2"))->LoadQweakGeometry("qweak_new.geo");
+  detectors.push_back(new QwDriftChamberHDC("R2"));
+  detectors.GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");
+  ((VQwSubsystemTracking*) detectors.GetSubsystem("R2"))->LoadQweakGeometry("qweak_new.geo");
   // Region 3 VDC
-  QwDetectors.push_back(new QwDriftChamberVDC("R3"));
-  QwDetectors.GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
-  ((VQwSubsystemTracking*) QwDetectors.GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
+  detectors.push_back(new QwDriftChamberVDC("R3"));
+  //detectors.GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
+  //detectors.GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
+  ((VQwSubsystemTracking*) detectors.GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
+  // Trigger scintillators
+  //detectors.push_back(new QwTriggerScintillator("TS"));
+  // Main detector
+  //detectors.push_back(new QwMainDetector("MD"));
+  //detectors.GetSubsystem("MD")->LoadChannelMap("maindet_cosmics.map");
+  // Focal plane scanner (needs explicit cast because inherits from both)
+  //detectors.push_back(new QwScanner("FPS"));
+  //((VQwSubsystemTracking*) detectors.GetSubsystem("FPS"))->LoadChannelMap("scanner_channel.map" );
+  //((VQwSubsystemTracking*) detectors.GetSubsystem("FPS"))->LoadInputParameters("scanner_pedestal.map");
 
 
+  // Get vector with detector info (by region, plane number)
+  std::vector< std::vector< QwDetectorInfo > > detector_info;
+  detectors.GetSubsystem("R2")->GetDetectorInfo(detector_info);
+  detectors.GetSubsystem("R3")->GetDetectorInfo(detector_info);
+  // TODO This is handled incorrectly, it just adds the three package after the
+  // existing three packages from region 2...  GetDetectorInfo should descend
+  // into the packages and add only the detectors in those packages.
+  // Alternatively, we could implement this with a singly indexed vector (with
+  // only an id as primary index) and write a couple of helper functions to
+  // select the right subvectors of detectors.
+
+
+  // Create and fill old detector structures (deprecated)
   Qset qset;
-  qset.FillDetectors((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.geo").c_str());
+  qset.FillDetectors((std::string(getenv("QWANALYSIS")) + "/Tracking/prminput/qweak.geo").c_str());
   qset.LinkDetectors();
   qset.DeterminePlanes();
-  cout << "[QwTracking::main] Geometry loaded" << endl; // R3,R2
-  // Set second set of region 2 detector planes inactive
+
+  // Disable 'fake' detectors in region 2 cosmic data:
+  //   third and fourth plane for region 2 direction X, U, V
+  //   (they are trigger channels, always firing on wire 1)
   rcDETRegion[kPackageUp][kRegionID2][kDirectionX]->nextsame->nextsame->SetInactive();
   rcDETRegion[kPackageUp][kRegionID2][kDirectionX]->nextsame->nextsame->nextsame->SetInactive();
   rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->nextsame->nextsame->SetInactive();
@@ -205,90 +246,209 @@ int main (int argc, char* argv[])
   rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->nextsame->nextsame->SetInactive();
   rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->nextsame->nextsame->nextsame->SetInactive();
 
+
+  // Set global options (deprecated)
   Qoptions qoptions;
-  qoptions.Get((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.options").c_str());
-  cout << "[QwTracking::main] Options loaded" << endl; // R3,R2
+  qoptions.Get((std::string(getenv("QWANALYSIS")) + "/Tracking/prminput/qweak.options").c_str());
 
 
-  /// Event loop goes here
-
-  // R3 needs debugging in the 3-D fit
+  // Create the tracking worker
   QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
-  trackingworker->SetDebugLevel(1);
-
-  // The event loop should skip when iEvent is unphysical,
-  // or: GetEvent returns bool and GetEventNumber returns int
+  if (kDebug) trackingworker->SetDebugLevel(1);
 
 
-
-  QwEvent* event = 0;
-  nEvent = 0;
-
-  // This is the trial code for QwHitContainer converting into set
-  // of Hit list in rcDetRegion structure
-
-  iEvent = 2;
-  while (asciibuffer.GetEvent() && nEvent < NEventMax) { //this will read each event per loop
-	  iEvent = asciibuffer.GetEventNumber();//this will read the current event number
-	  cout << "[QwTracking::main] Event " << iEvent << endl;
-
-	  asciibuffer.GetHitList(*ASCIIgrandHitList); //will load the QwHitContainer from set of hits read from ASCII file qweak.event
-	  ASCIIgrandHitList->sort(); //sort the array
-	  SaveHits(*ASCIIgrandHitList);
-	  asciibuffer.ProcessHitContainer(*ASCIIgrandHitList);//now we decode our QwHitContainer list and pice together with the rcTreeRegion multi dimension array.
-
-	  // Print hit list
-	  ASCIIgrandHitList->Print();
+  // Create a timer
+  TStopwatch timer;
 
 
-	  // Process the hit list through the tracking worker (i.e. do track reconstruction)
-	  event = trackingworker->ProcessHits(&QwDetectors, ASCIIgrandHitList);
-
-	  // (wdc) Now we can access the event and its partial tracks
-	  // (e.g. list the partial track in the upper region 2 HDC)
-	  QwPartialTrack* listoftracks = event->parttrack[kPackageUp][kRegionID2][kTypeDriftHDC];
-	  for (QwPartialTrack* track = listoftracks;
-	                  track; track = track->next) {
-	    cout << *track << endl;
-	  } // but unfortunately this is still void
-          delete listoftracks;
+  // Create the event buffer
+  QwEventBuffer eventbuffer;
 
 
-	  ASCIIgrandHitList->clear();
+  char *hostname, *session;
+  const char *tmp;
 
-          delete event;
-	  nEvent++;
-	 }
+  // Loop over all runs
+  for (UInt_t run =  (UInt_t) cmdline.GetFirstRun();
+              run <= (UInt_t) cmdline.GetLastRun(); run++) {
+
+    //  Begin processing for the first run.
+    //  Start the timer.
+    timer.Start();
+    /* Does OnlineAnaysis need several runs? by jhlee */
+    if (cmdline.DoOnlineAnalysis()) {
+      /* Modify the call below for your ET system, if needed.
+         OpenETStream( ET host name , $SESSION , mode)
+         mode=0: wait forever
+         mode=1: timeout quickly
+      */
+
+      hostname = getenv("HOSTNAME");
+      session  = getenv("SESSION");
+      /* std::cout << "hostname is "<< hostname <<" and session is "<< session << ". " << std::endl; */
+      if (hostname == NULL || session == NULL) {
+        timer.Stop(); /*  don't need the timer, thus Stop; */
+
+        if      (hostname == NULL && session != NULL) tmp = " \"HOSTNAME\" ";
+        else if (hostname != NULL && session == NULL) tmp = " ET \"SESSION\" ";
+        else                                          tmp = " \"HOSTNAME\" and ET \"SESSION\" ";
+
+        std::cerr << "ERROR:  the" << tmp
+                  << "variable(s) is(are) not defined in your environment.\n"
+                  << "        This is needed to run the online analysis."
+                  << std::endl;
+        exit(EXIT_FAILURE);
+      } else {
+        std::cout << "Try to open the ET station. " << std::endl;
+        if (eventbuffer.OpenETStream(hostname, session, 0) == CODA_ERROR ) {
+          std::cerr << "ERROR:  Unable to open the ET station "
+                    << run << ".  Moving to the next run.\n"
+                    << std::endl;
+          timer.Stop();
+          continue;
+        }
+      }
+    }
+    else {
+      //  Try to open the data file.
+      if (eventbuffer.OpenDataFile(run) == CODA_ERROR){
+        //  The data file can't be opened.
+        //  Get ready to process the next run.
+        std::cerr << "ERROR:  Unable to find data files for run "
+                  << run << ".  Moving to the next run.\n"
+                  << std::endl;
+        timer.Stop();
+        continue;
+      }
+    }
+
+    eventbuffer.ResetControlParameters();
+
+    //     //  Configure database access mode, and load the calibrations
+    //     //  from the database.
+
+    //  Create the root file
+    boost::shared_ptr<TFile>
+      rootfile(new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
+                         "RECREATE",
+                         "QWeak ROOT file with real events"));
+
+    //  Create the histograms for the QwDriftChamber subsystem object.
+    //  We can create a subfolder in the rootfile first, if we want,
+    //  and then pass it into the constructor.
+    //
+    //  To pass a subdirectory named "subdir", we would do:
+    //    detectors.GetSubsystem("MD")->ConstructHistograms(rootfile->mkdir("subdir"));
+
+    // Open file
+    TTree* tree;
+    QwHitRootContainer* rootlist = new QwHitRootContainer();
+    if (kTree) {
+      tree = new TTree("tree", "Hit list");
+      tree->Branch("events", "QwHitRootContainer", &rootlist);
+    }
+
+    // Construct histograms
+    detectors.ConstructHistograms();
+
+    while (eventbuffer.GetEvent() == CODA_OK){
+      //  Loop over events in this CODA file
+      //  First, do processing of non-physics events...
+
+      //  Now, if this is not a physics event, go back and get
+      //  a new event.
+      if (! eventbuffer.IsPhysicsEvent()) continue;
+
+      //  Check to see if we want to process this event.
+      int eventnumber = eventbuffer.GetEventNumber();
+      if      (eventnumber < cmdline.GetFirstEvent()) continue;
+      else if (eventnumber > cmdline.GetLastEvent())  break;
+
+      if (eventnumber % 1000 == 0) {
+        std::cout << "Number of events processed so far: "
+                  << eventnumber << std::endl;
+      }
 
 
-	// Statistics
-	cout << endl;
-	cout << "Statistics:" << endl;
-	cout << " Good: " << trackingworker->ngood << endl;
-	cout << " Bad : " << trackingworker->nbad  << endl;
+      // Fill the subsystem objects with their respective data for this event.
+      eventbuffer.FillSubsystemData(detectors);
 
-	if (trackingworker) delete trackingworker;
+      // Process the event
+      detectors.ProcessEvent();
 
-	return 0;
+      // Fill the histograms for the subsystem objects.
+      detectors.FillHistograms();
+
+      // Create and fill hit list
+      QwHitContainer* hitlist = new QwHitContainer();
+      detectors.GetHitList(hitlist);
+
+      // Sorting the grand hit list
+      hitlist->sort();
+
+      // Print hit list
+      if (kDebug)
+        hitlist->Print();
+
+      // Convert the hit list to ROOT output format
+      rootlist->Convert(hitlist);
+
+      // Save the hitlist to the tree
+      if (kTree)
+        tree->Fill();
+
+
+      // Process the hit list through the tracking worker (i.e. do track reconstruction)
+      QwEvent* event = 0;
+      if (kTracking)
+        event = trackingworker->ProcessHits(&detectors, hitlist);
+
+
+      // Delete objects
+      if (hitlist) delete hitlist;
+      if (event)   delete event;
+
+    } // end of loop over events
+
+    // Delete objects
+    if (rootlist) delete rootlist;
+
+
+    // Print summary information
+    std::cout << "Total number of events processed: "
+              << eventbuffer.GetEventNumber() << std::endl;
+    std::cout << "Number of good partial tracks: "
+              << trackingworker->ngood << std::endl;
+    timer.Stop();
+
+
+    /*  Write to the root file, being sure to delete the old cycles  *
+     *  which were written by Autosave.                              *
+     *  Doing this will remove the multiple copies of the ntuples    *
+     *  from the root file.                                          */
+    if (rootfile != NULL) rootfile->Write(0, TObject::kOverwrite);
+
+    // Delete histograms in the subsystems
+    detectors.DeleteHistograms();
+
+    // Close CODA file
+    eventbuffer.CloseDataFile();
+    eventbuffer.ReportRunSummary();
+
+    // Write and close file (after last access to ROOT tree)
+    rootfile->Close();
+
+
+    // Print run summary information
+    std::cout << "Analysis of run " << run << std::endl
+              << "CPU time used:  " << timer.CpuTime() << " s" << std::endl
+              << "Real time used: " << timer.RealTime() << " s" << std::endl;
+
+
+  } // end of loop over runs
+
+
+
+  return 0;
 }
 
-
-
-void SaveHits(QwHitContainer & grandHitList)
-{
-
-
-  Double_t hitTime;
-  QwDetectorID qwhit;
-  std::cout<<"Printing Grand hit list"<<std::endl;
-  std::list<QwHit>::iterator p;
-  fprintf(ASCII_textfile," NEW EVENT \n");
-  for (p=grandHitList.begin();p!=grandHitList.end();p++){
-    qwhit=p->GetDetectorID();
-    hitTime=p->GetRawTime();
-    //std::cout<<" R "<<qwhit.fRegion<<" Pkg "<<qwhit.fPackage<<" Dir "<<qwhit.fDirection<<" W "<<qwhit.fElement<<std::endl;
-    fprintf(ASCII_textfile," R %d Pkg  %d Pl %d  Dir  %d Wire  %d Hit time %f Drift Distance %f Spatial Res. %f\n",qwhit.fRegion,qwhit.fPackage,qwhit.fPlane,qwhit.fDirection,qwhit.fElement,hitTime,p->GetDriftDistance(), p->GetSpatialResolution());
-
-  }
-
-}
