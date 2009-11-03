@@ -233,7 +233,7 @@ void  QwDriftChamberVDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
 	//Int_t wire     = fTDCPtrs.at(tdcindex).at(chan).fElement;
 
 	Int_t plane=-2;
-	if(chan<32)
+	if(slot_num==3)
 	  plane=fDelayLinePtrs.at(slot_num).at(chan).BackPlane;
 	Int_t wire=0;
 	Int_t direction=0;
@@ -244,7 +244,7 @@ void  QwDriftChamberVDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
       //  Do nothing.
       //  } else if (plane == (Int_t) kReferenceChannelPlaneNumber){
       //fReferenceData.at(wire).push_back(data);
-    } else if (plane== -2 || chan ==32){
+    } else if (slot_num==4){
       fReferenceData.at(wire).push_back(data);
     } else {
       //std::cout<<"At QwDriftChamberVDC::FillRawTDCWord_1"<<endl;
@@ -489,9 +489,9 @@ void QwDriftChamberVDC::ProcessEvent(){
 	{
 	  int tmpdir= DelayLineArray.at(tmpbp).at(tmpln).Direction;
 
-	  if(tmpbp==0)
+	  if(tmpbp==0 || tmpbp ==3)
 	    kDir=false;
-	  else kDir=false;
+	  else kDir=true;
 	  DelayLineArray.at(tmpbp).at(tmpln).ProcessHits(kDir);
 
 	  Int_t Wirecount=DelayLineArray.at(tmpbp).at(tmpln).Wire.size();
