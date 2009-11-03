@@ -205,7 +205,7 @@ int main(Int_t argc,Char_t* argv[])
   // Region 3 VDC
   detectors.push_back(new QwDriftChamberVDC("R3"));
   //detectors.GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
-  //detectors.GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
+  detectors.GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
   ((VQwSubsystemTracking*) detectors.GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
   // Trigger scintillators
   //detectors.push_back(new QwTriggerScintillator("TS"));
