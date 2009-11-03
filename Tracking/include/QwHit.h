@@ -120,6 +120,13 @@ class QwHit : public TObject {
     fTime=time;
   }
 
+  const Int_t GetModule()     const {return fModule;};
+  const Int_t GetChannel()    const {return fChannel;};
+  const Int_t GetHitNumber()  const {return fHitNumber;};
+  const Int_t GetHitNumberR() const {return fHitNumber_R;};
+  const Int_t GetRegion()     const {return fRegion;};
+  const Int_t GetPackage()    const {return fPackage;};
+  const Int_t GetDirection()  const {return fDirection;};
 
 //below two metods retrieve subsets of QwHitContainer vector - rakitha (08/2008)
 

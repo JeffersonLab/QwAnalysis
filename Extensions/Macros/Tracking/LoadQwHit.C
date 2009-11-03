@@ -16,10 +16,10 @@
   // Load Boost libraries
   gSystem->Load("libboost_filesystem");
   // Load basic Qweak analysis library
-  gSystem->Load("libQw");
+  gSystem->Load("libQw.so");
 
   // Load QwHit (and related) libraries
-  gSystem->Load("libQwHit");
-  gSystem->Load("libQwHitContainer");
-  gSystem->Load("libQwHitRootContainer");
+  gSystem->Load("libQwHit.so");
+  gSystem->Load("libQwHitContainer.so");
+  gSystem->Load("libQwHitRootContainer.so");
 }

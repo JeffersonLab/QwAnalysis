@@ -30,8 +30,10 @@ class QwHitRootContainer: public TObject {
   private:
 
     Int_t fNQwHits; ///< Number of QwHits in the array
-    TClonesArray        *fQwHits; ///< Array of QwHits
-    static TClonesArray *gQwHits; ///< Static array of QwHits
+    TClonesArray        *fQwHits; //->array of QwHits 
+    ///< Array of QwHits
+    static TClonesArray *gQwHits; //!            
+    ///< Static array of QwHits
 
   public:
 
@@ -55,6 +57,8 @@ class QwHitRootContainer: public TObject {
 
     // Output function
     void Print();
+
+    TClonesArray *GetHits() const { return fQwHits; }
 
   ClassDef(QwHitRootContainer,1);
 };
