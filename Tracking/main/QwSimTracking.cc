@@ -86,12 +86,6 @@ int main (int argc, char* argv[])
   // only an id as primary index) and write a couple of helper functions to
   // select the right subvectors of detectors.
 
-  // Load the simulated event file
-  std::string filename = std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QweakSim.root";
-  QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (filename, detector_info);
-  treebuffer->SetDebugLevel(1);
-  treebuffer->DisableResolutionEffects();
-
   // Load the geometry
   Qset qset;
   qset.FillDetectors((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.geo").c_str());
@@ -107,69 +101,70 @@ int main (int argc, char* argv[])
   QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
   if (kDebug) trackingworker->SetDebugLevel(1);
 
-  // Open ROOT file
-  TFile* file = 0;
-  if (kHisto || kTree) {
-    file = new TFile(TString(getenv("QWSCRATCH")) + "/rootfiles/QwSim.root",
-                     "RECREATE",
-                     "QWeak ROOT file with simulated event");
-    file->cd();
-  }
-  // Create ROOT tree
-  TTree* tree = 0;
-  QwPartialTrack* parttrack = 0;
-  if (kTree) {
-    tree = new TTree("tree","Track list");
-    tree->Branch("tracks","QwPartialTrack",&parttrack);
-  }
 
-  // Loop over the events
-  int fEntries = treebuffer->GetEntries();
-  for (int fEvtNum  = cmdline.GetFirstEvent();
-           fEvtNum <= cmdline.GetLastEvent() && fEvtNum < fEntries; fEvtNum++) {
+  // Loop over all runs
+  for (UInt_t run =  (UInt_t) cmdline.GetFirstRun();
+              run <= (UInt_t) cmdline.GetLastRun(); run++) {
 
-    // Get hit list
-    QwHitContainer* hitlist = treebuffer->GetHitList(fEvtNum);
+    // Load the simulated event file
+    TString filename = Form(TString(getenv("QWSCRATCH")) + "/data/QwSim_%d.root", run);
+    QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (filename, detector_info);
+    treebuffer->SetDebugLevel(1);
 
-    // Print hit list
-    if (kDebug) {
-      std::cout << "Printing hitlist ..." << std::endl;
-      hitlist->Print();
+    // Open ROOT file
+    TFile* file = 0;
+    if (kHisto || kTree) {
+      file = new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/QwSim_%d.root", run),
+                       "RECREATE",
+                       "QWeak ROOT file with simulated event");
+      file->cd();
     }
 
-    // Process the hit list through the tracking worker
-    QwEvent *event = trackingworker->ProcessHits(detectors, hitlist);
+    // Loop over the events
+    int fEntries = treebuffer->GetEntries();
+    for (int fEvtNum  = cmdline.GetFirstEvent();
+             fEvtNum <= cmdline.GetLastEvent() && fEvtNum < fEntries; fEvtNum++) {
 
-    // Do something with this event
+      // Get hit list
+      QwHitContainer* hitlist = treebuffer->GetHitList(fEvtNum);
 
-    // Get the first partial track in the upper region 2 HDC
-    parttrack = event->parttrack[kPackageUp][kRegionID2][kTypeDriftHDC];
-    // Calculate average residual
-    if (parttrack) parttrack->SetAverageResidual();
-    // Save to tree if there is a partial track
-    if (kTree) if (parttrack) tree->Fill();
+      // Print hit list
+      if (kDebug) {
+        std::cout << "Printing hitlist ..." << std::endl;
+        hitlist->Print();
+      }
 
-    // Delete the event again
-    delete hitlist;
-    delete event;
-  }
+      // Process the hit list through the tracking worker
+      QwEvent *event = trackingworker->ProcessHits(detectors, hitlist);
 
-  std::cout << "Number of good partial tracks found: "
-	    << trackingworker->ngood << std::endl;
+      // Do something with this event
 
-  // Print results
-  //tree->Print();
+      // Delete the event again
+      delete hitlist;
+      delete event;
+    }
 
-  // Write and close file
-  if (kTree || kHisto) {
-    file->Write();
-    file->Close();
-    delete file;
-  }
+    std::cout << "Number of good partial tracks found: "
+              << trackingworker->ngood << std::endl;
+
+    // Print results
+    //tree->Print();
+
+    // Write and close file
+    if (kTree || kHisto) {
+      file->Write();
+      file->Close();
+      delete file;
+    }
+
+    // Delete objects
+   delete treebuffer;
+
+  } // end of loop over runs
+
 
   // Delete objects
   delete detectors;
-  delete treebuffer;
   delete trackingworker;
 
   return 0;
