@@ -37,7 +37,13 @@ read(Int_t evID=1, Int_t hitID = 0, Int_t run_number=398)
   tree->SetBranchAddress("events",&hitContainer);
   
   int nevent  = tree->GetEntries();
-  
+  if(evID > nevent) 
+    {
+      evID = nevent-1;
+      printf("You selected the event number which is out of range.\n");
+      printf("Thus, the maximum event number %d is selected.\n", evID);
+    }
+
   //  access one event (hitContainer) in terms of id (event number)
   tree -> GetEntry(evID);
   //  total number is started from 0
@@ -52,24 +58,32 @@ read(Int_t evID=1, Int_t hitID = 0, Int_t run_number=398)
   printf("    --- %d hits (by TCloneArray)\n", hitN); 
   
   QwHit *hit = NULL;
+  if(hitID > hitN) 
+    {
+      hitID = hitN-1;
+      printf("    --- You selected the hit number which is out of range.\n");
+      printf("    --- Thus, the maximum hit number %d is selected.\n", hitID);
+    }
+
   hit = (QwHit *) hits_per_event->At(hitID);
   
   // All functions are defined in QwHit.h
-  
-  printf("    --- Subbank       %8d \n",  hit->GetSubbankID()); 
-  printf("    --- Module        %8d \n",  hit->GetModule()); 
-  printf("    --- Channel       %8d \n",  hit->GetChannel()); 
-  printf("    --- Region        %8d \n",  hit->GetRegion()); 
-  printf("    --- Package       %8d \n",  hit->GetPackage()); 
-  printf("    --- Direction     %8d \n\n", hit->GetDirection()); 
-  printf("    --- DriftDistance %12.2f \n", hit->GetDriftDistance());
-  printf("    --- RawTime       %12.2f \n", hit->GetRawTime());
-  printf("    --- Time          %12.2f \n", hit->GetTime());
-  printf("    --- HitNumber     %12d   \n", hit->GetHitNumber());
-  printf("    --- HitNumberR    %12d   \n", hit->GetHitNumberR());
+  printf("    -------------------------------- \n"); 
+  printf("    --- Subbank       %6d \n",  hit->GetSubbankID()); 
+  printf("    --- Module        %6d \n",  hit->GetModule()); 
+  printf("    --- Channel       %6d \n",  hit->GetChannel()); 
+  printf("    --- Region        %6d \n",  hit->GetRegion()); 
+  printf("    --- Package       %6d \n",  hit->GetPackage()); 
+  printf("    --- Direction     %6d \n", hit->GetDirection()); 
+  printf("    -------------------------------- \n"); 
+  printf("    --- DriftDistance %14.2f \n", hit->GetDriftDistance());
+  printf("    --- RawTime       %14.2f \n", hit->GetRawTime());
+  printf("    --- Time          %14.2f \n", hit->GetTime());
+  printf("    --- HitNumber     %14d   \n", hit->GetHitNumber());
+  printf("    --- HitNumberR    %14d   \n", hit->GetHitNumberR());
+  printf("    -------------------------------- \n"); 
 
 
-  //  hit->Clear();
   hitContainer->Clear();
   delete hitContainer; hitContainer=NULL;
  
