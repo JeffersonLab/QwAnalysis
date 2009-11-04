@@ -134,12 +134,15 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
 
 Bool_t  QwHelicityPattern::IsCompletePattern()
 {
+  Bool_t localdebug=kFALSE;
   Bool_t filled=kTRUE;
   Int_t i=fPatternSize-1;
   while(filled && i>-1)
     {
-       std::cout<<" i="<<i<<" is loaded ?"
- 	       <<fEventLoaded[fEvents.size()-i-1]<<"\n";
+      if (localdebug){
+        std::cout<<" i="<<i<<" is loaded ?"
+		 <<fEventLoaded[fEvents.size()-i-1]<<"\n";
+      }
       if(!fEventLoaded[i])
 	filled=kFALSE;
       i--;
@@ -231,7 +234,7 @@ void  QwHelicityPattern::CalculateAsymmetry()
       fYield.Sum(pos_sum,neg_sum);
       difference.Difference(pos_sum,neg_sum);
       fAsymmetry.Ratio(difference,fYield);
-      std::cout<<" pattern number ="<<fQuartetNumber<<"\n";
+      if (localdebug) std::cout<<" pattern number ="<<fQuartetNumber<<"\n";
     }
 
   return;

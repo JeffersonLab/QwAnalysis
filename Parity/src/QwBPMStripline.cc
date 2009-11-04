@@ -295,6 +295,8 @@ void QwBPMStripline::SetDefaultSampleSize(Int_t sample_size){
 
 void  QwBPMStripline::ProcessEvent()
 {
+  Bool_t localdebug = kFALSE;
+
   if(ApplyHWChecks())// IsGoodEvent() is checking for hadware consistency.
     {
 
@@ -306,7 +308,7 @@ void  QwBPMStripline::ProcessEvent()
       for(int i=0;i<4;i++)
 	fWSum+=fWire[i];
 
-      fWSum.Print();
+      if (localdebug) fWSum.Print();
 
       static QwVQWK_Channel numer("numerator"), denom("denominator");
 
