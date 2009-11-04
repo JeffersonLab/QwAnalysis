@@ -1,19 +1,23 @@
 #ifndef QWHITROOTCONTAINER_H
 #define QWHITROOTCONTAINER_H
-
+//nclude <iostream>
+//nclude <algorithm>
 #include <list>
+//nclude <vector>
 
 // ROOT headers
-#include <TOrdCollection.h>
-#include <TClonesArray.h>
-#include <TRefArray.h>
-#include <TBrowser.h>
+//#include "TOrdCollection.h"
+#include "TObject.h"
+#include "TClonesArray.h"
+#include "TRefArray.h"
+#include "TBrowser.h"
 
 #include "QwHit.h"
+#include "QwHitContainer.h"
 
 class QwHitContainer;
 
-class QwHitRootContainer: public TObject {
+class QwHitRootContainer : public TObject {
 
 // ROOT container class around the QwHitContainer.  Most helpful discussion
 // was found on http://root.cern.ch/root/roottalk/roottalk03/2997.html.  The
@@ -27,39 +31,39 @@ class QwHitRootContainer: public TObject {
 //
 //class QwHitRootContainer: public TOrdCollection, public std::list<QwHit> {
 
-  private:
+//  private:
 
-    Int_t fNQwHits; ///< Number of QwHits in the array
-    TClonesArray        *fQwHits; //->array of QwHits 
-    ///< Array of QwHits
-    static TClonesArray *gQwHits; //!            
-    ///< Static array of QwHits
+ public:
+  
+  Int_t               fNQwHits; ///< Number of QwHits in the array
+  TClonesArray        *fQwHits; //->array of QwHits ///< Array of QwHits
+  static TClonesArray *gQwHits; //!                 ///< Static array of QwHits
+  
+ public:
+  
+  QwHitRootContainer();
+  virtual ~QwHitRootContainer();
 
-  public:
+  // Housekeeping methods
+  void Clear(Option_t *option = "");
+  void Reset(Option_t *option = "");
 
-    QwHitRootContainer();
-    virtual ~QwHitRootContainer();
+  // Creating and adding hits
+  //  QwHit* CreateNewHit();
+  void AddHit(QwHit * );//QwHit *hit);
 
-    // Housekeeping methods
-    void Clear(Option_t *option = "");
-    void Reset(Option_t *option = "");
+  // Get the number of hits
+  Int_t GetSize() const { return fNQwHits; };
+  
+  // Conversion methods from and to a QwHitContainer
+  void Convert(QwHitContainer *hitlist);
+  QwHitContainer* Convert();
 
-    // Creating and adding hits
-    QwHit* CreateNewHit();
-    void AddHit(QwHit* hit);
-
-    // Get the number of hits
-    Int_t GetSize() const { return fNQwHits; };
-
-    // Conversion methods from and to a QwHitContainer
-    void Convert(QwHitContainer* hitlist);
-    QwHitContainer* Convert();
-
-    // Output function
-    void Print();
-
-    TClonesArray *GetHits() const { return fQwHits; }
-
+  // Output function
+  void Print();
+  
+  TClonesArray *GetHits() const { return fQwHits; };
+  
   ClassDef(QwHitRootContainer,1);
 };
 

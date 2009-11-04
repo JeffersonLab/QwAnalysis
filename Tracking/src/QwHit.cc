@@ -16,6 +16,43 @@ ClassImp(QwHit);
 
 QwHit::QwHit()
 {
+
+  fCrate       = 0;
+  fModule      = 0;
+  fChannel     = 0;  
+  fHitNumber   = 0;
+  fHitNumber_R = 0;
+
+  fRegion      = 0;   
+  fPackage     = 0;  
+  fDirection   = 0;
+  fPlane       = 0;    
+  fElement     = 0;  
+
+  fAmbiguousElement = false; 
+  fLRAmbiguity      = false; 
+
+
+  fRawTime = 0.0;  
+  fTime = 0.0;     
+  fTimeRes = 0.0;  
+  
+  fDistance = 0.0;
+  fPosition = 0.0;
+  fResidual = 0.0;
+  fZPos = 0.0;    
+  
+  fSpatialResolution = 0.0;
+  fTrackResolution = 0.0;	
+  
+  fIsUsed = false;
+
+  pDetectorInfo = NULL;
+  next = NULL;
+  nextdet = NULL;
+  rResultPos = 0.0;
+  rPos = 0.0;		
+  rPos2 = 0.0;		
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

@@ -27,7 +27,7 @@
 
 #include <iostream>
 
-#include <TObject.h>
+#include "TObject.h"
 
 #include "QwTypes.h"
 
@@ -43,7 +43,7 @@ class QwHit : public TObject {
 	Int_t region, Int_t package, Int_t plane, Int_t direction, Int_t wire,
 	UInt_t data);
 
-  ~QwHit();
+  virtual ~QwHit();
 
   void Print();
 
@@ -149,7 +149,7 @@ class QwHit : public TObject {
   Bool_t operator<(QwHit & obj);
 
  protected:
-
+  // public:
   //  Identification information for readout channels
 
   Int_t fCrate;     ///< ROC number

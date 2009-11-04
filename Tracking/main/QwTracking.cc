@@ -251,10 +251,13 @@ int main(Int_t argc,Char_t* argv[])
   Qoptions qoptions;
   qoptions.Get((std::string(getenv("QWANALYSIS")) + "/Tracking/prminput/qweak.options").c_str());
 
-
+  QwTrackingWorker *trackingworker = NULL;
   // Create the tracking worker
-  QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
-  if (kDebug) trackingworker->SetDebugLevel(1);
+  if (kTracking)
+    {  
+      trackingworker = new QwTrackingWorker("qwtrackingworker");
+      if (kDebug) trackingworker->SetDebugLevel(1);
+    }
 
 
   // Create a timer
@@ -263,6 +266,8 @@ int main(Int_t argc,Char_t* argv[])
 
   // Create the event buffer
   QwEventBuffer eventbuffer;
+
+  TFile *rootfile = NULL;
 
 
   char *hostname, *session;
@@ -328,11 +333,21 @@ int main(Int_t argc,Char_t* argv[])
     //     //  from the database.
 
     //  Create the root file
-    boost::shared_ptr<TFile>
-      rootfile(new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
-                         "RECREATE",
-                         "QWeak ROOT file with real events"));
+//      boost::shared_ptr<TFile>
+//        rootfile(new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
+//  			 "RECREATE",
+//  			 "QWeak ROOT file with real events"));
 
+    if(rootfile)
+      {
+	if(rootfile-> IsOpen()) rootfile->Close();
+	delete rootfile; rootfile=NULL;
+      }
+    
+    auto_ptr<TFile> rootfile (new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
+  					"RECREATE",
+  					"QWeak ROOT file with real events"));
+    
     //  Create the histograms for the QwDriftChamber subsystem object.
     //  We can create a subfolder in the rootfile first, if we want,
     //  and then pass it into the constructor.
@@ -341,23 +356,27 @@ int main(Int_t argc,Char_t* argv[])
     //    detectors.GetSubsystem("MD")->ConstructHistograms(rootfile->mkdir("subdir"));
 
     // Open file
-    TTree* tree;
-    QwHitRootContainer* rootlist = new QwHitRootContainer();
+    TTree* tree = NULL;
+    QwHitRootContainer* rootlist = NULL;
+  
     if (kTree) {
       tree = new TTree("tree", "Hit list");
+      rootlist = new QwHitRootContainer();
       tree->Branch("events", "QwHitRootContainer", &rootlist);
     }
 
     // Construct histograms
     detectors.ConstructHistograms();
 
+    QwHitContainer* hitlist = NULL;
+    QwEvent* event = NULL;
     while (eventbuffer.GetEvent() == CODA_OK){
       //  Loop over events in this CODA file
       //  First, do processing of non-physics events...
 
       //  Now, if this is not a physics event, go back and get
       //  a new event.
-      if (! eventbuffer.IsPhysicsEvent()) continue;
+      if (! eventbuffer.IsPhysicsEvent() ) continue;
 
       //  Check to see if we want to process this event.
       int eventnumber = eventbuffer.GetEventNumber();
@@ -368,8 +387,7 @@ int main(Int_t argc,Char_t* argv[])
         std::cout << "Number of events processed so far: "
                   << eventnumber << std::endl;
       }
-
-
+      
       // Fill the subsystem objects with their respective data for this event.
       eventbuffer.FillSubsystemData(detectors);
 
@@ -380,7 +398,8 @@ int main(Int_t argc,Char_t* argv[])
       detectors.FillHistograms();
 
       // Create and fill hit list
-      QwHitContainer* hitlist = new QwHitContainer();
+      hitlist = new QwHitContainer();
+
       detectors.GetHitList(hitlist);
 
       // Sorting the grand hit list
@@ -391,34 +410,35 @@ int main(Int_t argc,Char_t* argv[])
         hitlist->Print();
 
       // Convert the hit list to ROOT output format
-      rootlist->Convert(hitlist);
-
       // Save the hitlist to the tree
-      if (kTree)
+      if (kTree) {
+	rootlist->Convert(hitlist);
         tree->Fill();
+      }
 
 
       // Process the hit list through the tracking worker (i.e. do track reconstruction)
-      QwEvent* event = 0;
+   
       if (kTracking)
         event = trackingworker->ProcessHits(&detectors, hitlist);
 
 
       // Delete objects
-      if (hitlist) delete hitlist;
-      if (event)   delete event;
+      if (hitlist) delete hitlist; hitlist = NULL;
+      if (event)   delete event; event = NULL;
 
     } // end of loop over events
 
-    // Delete objects
-    if (rootlist) delete rootlist;
 
 
     // Print summary information
     std::cout << "Total number of events processed: "
               << eventbuffer.GetEventNumber() << std::endl;
-    std::cout << "Number of good partial tracks: "
-              << trackingworker->ngood << std::endl;
+    if (kTracking)
+      {
+	std::cout << "Number of good partial tracks: "
+		  << trackingworker->ngood << std::endl;
+      }
     timer.Stop();
 
 
@@ -426,7 +446,7 @@ int main(Int_t argc,Char_t* argv[])
      *  which were written by Autosave.                              *
      *  Doing this will remove the multiple copies of the ntuples    *
      *  from the root file.                                          */
-    if (rootfile != NULL) rootfile->Write(0, TObject::kOverwrite);
+    //    if (rootfile != NULL) rootfile->Write(0, TObject::kOverwrite);
 
     // Delete histograms in the subsystems
     detectors.DeleteHistograms();
@@ -436,8 +456,15 @@ int main(Int_t argc,Char_t* argv[])
     eventbuffer.ReportRunSummary();
 
     // Write and close file (after last access to ROOT tree)
+    rootfile->Write(0, TObject::kOverwrite);
+    //    if(rootfile -> IsOpen()) rootfile->Write(0, TObject::kOverwrite);
     rootfile->Close();
 
+    // Delete objects
+    if(trackingworker) delete trackingworker; trackingworker = NULL;
+    if (hitlist) delete hitlist; hitlist = NULL;
+    if (event)   delete event; event = NULL;
+    if (rootlist) delete rootlist; rootlist=NULL;
 
     // Print run summary information
     std::cout << "Analysis of run " << run << std::endl
