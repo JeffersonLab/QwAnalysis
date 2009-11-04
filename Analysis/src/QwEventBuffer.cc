@@ -719,9 +719,42 @@ Int_t QwEventBuffer::OpenDataFile(const TString filename, const TString rw)
     exit(1);
   }
   fDataFile = filename;
-  std::cout << "Opening data file:  " << fDataFile << std::endl;
+
+  if (rw.Contains("w",TString::kIgnoreCase)) {
+    // If we open a file for write access, let's suppose
+    // we've given the path we want to use.
+    std::cout << "Opening data file:  " << fDataFile << std::endl;
+  } else {
+    //  Let's try to find the data file for read access.
+    glob_t globbuf;
+    glob(fDataFile.Data(), GLOB_ERR, NULL, &globbuf);
+    if (globbuf.gl_pathc == 0){
+      //  Can't find the file; try in the "fDataDirectory".
+      fDataFile = fDataDirectory + filename;
+      glob(fDataFile.Data(), GLOB_ERR, NULL, &globbuf);
+    }
+    if (globbuf.gl_pathc == 0){
+      //  Can't find the file; try gzipped.
+      fDataFile = filename + ".gz";
+      glob(fDataFile.Data(), GLOB_ERR, NULL, &globbuf);
+    }
+    if (globbuf.gl_pathc == 0){
+      //  Can't find the file; try gzipped in the "fDataDirectory".
+      fDataFile = fDataDirectory + filename + ".gz";
+      glob(fDataFile.Data(), GLOB_ERR, NULL, &globbuf);
+    }
+    if (globbuf.gl_pathc == 1){
+      std::cout << "Opening data file:  " << fDataFile << std::endl;
+    } else {
+      fDataFile = filename;
+      std::cerr << "Unable to find "
+		<< filename.Data()  << " or "
+		<< (fDataDirectory + filename).Data()  << std::endl;
+    }
+    globfree(&globbuf);
+  }
   return fEvStream->codaOpen(fDataFile, rw);
-}
+};
 
 
 //------------------------------------------------------------

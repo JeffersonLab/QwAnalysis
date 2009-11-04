@@ -120,6 +120,8 @@
 #define EVBLOCKSIZE 8192*4
 #define EV_READ 0
 #define EV_WRITE 1
+#define EV_PIPE 2 
+#define EV_PIPEWRITE 3 
 #define EV_VERSION 1
 #define EV_MAGIC 0xc0da0100
 #define EV_HDSIZ 8
@@ -192,10 +194,35 @@ int evOpen(char *filename,char *flags,EVFILE **handle)
 //   }
 // }
 
-  switch (*flags)
-  case 'r': case 'R': {
-    a->file = fopen(filename,"r");
+  switch (*flags) {
+  case '\0': case 'r': case 'R':
     a->rw = EV_READ;
+    if(strcmp(filename,"-")==0) {
+      a->file = stdin;
+    } else if(filename[0] == '|') {
+      a->file = popen(filename+1,"r");
+      a->rw = EV_PIPE;          /* Make sure we know to use pclose */
+    } else {
+      a->file = fopen(filename,"r");
+      if(a->file) {
+	int compressed;
+	char bytes[2];
+	fread(bytes,2,1,a->file); /* Check magic bytes for compressions */
+	if(bytes[0]=='\037' && (bytes[1]=='\213' || bytes[1]=='\235')) {
+	  char *pipe_command;
+	  fclose(a->file);
+	  pipe_command = (char *)malloc(strlen(filename)+strlen("gunzip<")+1);
+	  strcpy(pipe_command,"gunzip<");
+	  strcat(pipe_command,filename);
+	  a->file = popen(pipe_command,"r");
+	  free(pipe_command);
+	  a->rw = EV_PIPE;
+	} else {
+	  fclose(a->file);
+	  a->file = fopen(filename,"r");
+	}
+      }
+    }
     if (a->file) {
       fread(header,sizeof(header),1,a->file); /* update: check nbytes return */
       if (header[EV_HD_MAGIC] != (int) EV_MAGIC) {
@@ -495,10 +522,14 @@ int evClose(EVFILE *handle)
   int status = 0, status2;
   a = handle;
   if (a->magic != (int) EV_MAGIC) return(S_EVFILE_BADHANDLE);
-  if(a->rw == EV_WRITE) {
+  if(a->rw == EV_WRITE  || a->rw==EV_PIPEWRITE) {
     status = evFlush(a);
   }
-  status2 = fclose(a->file);
+  if(a->rw == EV_PIPE || a->rw==EV_PIPEWRITE) {
+    status2 = pclose(a->file);
+  } else {
+    status2 = fclose(a->file);  
+  }
   free((char *)(a->buf));
   free((char *)a);
   if (status==0) status = status2;
