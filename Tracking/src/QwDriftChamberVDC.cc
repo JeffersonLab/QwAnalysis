@@ -316,7 +316,7 @@ Int_t QwDriftChamberVDC::AddChannelDefinition(const UInt_t plane, const UInt_t w
 }
 
 
-Int_t  QwDriftChamberVDC::LoadChannelMap(TString& mapfile)
+Int_t  QwDriftChamberVDC::LoadChannelMap(TString mapfile)
 {
   return LoadMap(mapfile);
 }
