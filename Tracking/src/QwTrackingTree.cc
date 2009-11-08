@@ -1000,8 +1000,8 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
 {
 
   FILE *f                   = NULL;
-  shorttree *stb            = NULL;
-  QwTrackingTreeRegion *trr = NULL;
+  shorttree *stb            = 0;
+  QwTrackingTreeRegion *trr = 0;
   
   Double_t width = 0.0;
   int32_t  num   =   0;
@@ -1040,8 +1040,8 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
       fclose(f);
       return 0;
     }
-    // cout << "Num = " << num << endl;
-    // cout << "Width = " << width << endl;
+//      cout << "Num = " << num << endl;
+//      cout << "Width = " << width << endl;
     
     /// Allocate a shorttree array
     stb = new shorttree[num];
@@ -1051,7 +1051,7 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
   else {
     
     width = rwidth;
-    stb = NULL;
+    stb = 0;
   }
   
   /// Allocate a QwTrackingTreeRegion object
@@ -1060,8 +1060,8 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
   /// ... and fill by recursively calling _readtree
   if (!dontread && _readtree (f, stb, 0, tlayers)) {
     //		free(stb);
-    delete [] stb; stb = NULL;
-    delete trr; trr = NULL;
+    delete [] stb; stb = 0;
+    delete trr; trr = 0;
     fclose(f);
     return 0;
   }

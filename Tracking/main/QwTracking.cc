@@ -384,8 +384,8 @@ int main(Int_t argc,Char_t* argv[])
       else if (eventnumber > cmdline.GetLastEvent())  break;
 
       if (eventnumber % 1000 == 0) {
-        std::cout << "Number of events processed so far: "
-                  << eventnumber << std::endl;
+	std::cout << "Number of events processed so far: "
+		  << eventnumber << std::endl;
       }
       
       // Fill the subsystem objects with their respective data for this event.
