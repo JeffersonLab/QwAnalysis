@@ -1004,7 +1004,7 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
   QwTrackingTreeRegion *trr = NULL;
   
   Double_t width = 0.0;
-  Long_t num     =   0;
+  int32_t  num   =   0;
   
   // Check whether the tree directory exists
   bfs::path scratchdir(std::string(getenv("QWSCRATCH")));
@@ -1102,8 +1102,8 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
 	EQwDirectionID dir)
 {
 // TODO: This routine assumes that the directory 'trees' exists and doesn't create it itself. (wdconinc)
-  QwTrackingTreeRegion *trr;
-  treenode  *back;
+  QwTrackingTreeRegion *trr = 0;
+  treenode  *back = 0;
   tlayers  = tlayer;
   maxlevel = levels+1;
   detwidth = width;
@@ -1274,7 +1274,7 @@ long QwTrackingTree::writetree (
 	}
 
 	/// Write 4 bytes to fill later with the number of different patterns
-	if (fwrite(&xref,  sizeof(long),   1L, file) != 1 ||
+	if (fwrite(&xref,  sizeof(int32_t),   1L, file) != 1 ||
 	    fwrite(&width, sizeof(double), 1L, file) != 1 ||
 	   _writetree(tn, file, tlayers)) { ///... and write whole tree
 		fclose(file);
@@ -1286,7 +1286,7 @@ long QwTrackingTree::writetree (
 	rewind(file);
 
 	/// Now write the total numer of different patterns,
-	if (fwrite(&xref, sizeof(long), 1L, file) != 1) {
+	if (fwrite(&xref, sizeof(int32_t), 1L, file) != 1) {
 		fclose(file);
 		return 0;
 	}
@@ -1313,9 +1313,9 @@ long QwTrackingTree::writetree (
 
 int QwTrackingTree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int tlayers)
 {
-  int c, sonny;
-  int Minlevel, Bits, Bit[TLAYERS];
-  long ref;
+  int32_t c, sonny;
+  int32_t Minlevel, Bits, Bit[TLAYERS];
+  int32_t ref;
 
   /// Go into an infinite loop while reading the file
   for(;;) {
@@ -1331,9 +1331,9 @@ int QwTrackingTree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int 
 		}
 
 		/// read in the node(?) information
-		if (fread(&Minlevel, sizeof(int),         1L, file) != 1 ||
-		    fread(&Bits,     sizeof(int),         1L, file) != 1 ||
-		    fread(&Bit,      sizeof(int)*tlayers, 1L, file) != 1) {
+		if (fread(&Minlevel, sizeof(int32_t),         1L, file) != 1 ||
+		    fread(&Bits,     sizeof(int32_t),         1L, file) != 1 ||
+		    fread(&Bit,      sizeof(int32_t)*tlayers, 1L, file) != 1) {
 			cout << "QTR: readtree failed. error #1. rebuilding treefiles." << endl;
 			return -1;
 		}
@@ -1346,56 +1346,56 @@ int QwTrackingTree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int 
 			(stb+ref)->bit[i] = Bit[i];
 		}
 		if (fath) { /// ... and append the patterns to the father's sons
-			shortnode* node = new shortnode;
-			assert(node);
-			node -> tree = stb+ref;
-			node -> next = *fath;
-			(*fath)      = node;
-			// node->tree->print(); /// use this for debugging purposes
+		  shortnode* node = new shortnode();
+		  assert(node);
+		  node -> tree = stb+ref;
+		  node -> next = *fath;
+		  (*fath)      = node;
+		  // node->tree->print(); /// use this for debugging purposes
 		}
-
+		
 		memset (stb[ref].son, 0, sizeof(stb[ref].son)); /// has no sons yet
-
+		
 		/// Read in the sons of this node
 		for(sonny = 0; sonny < 4; sonny++) {
-			if (_readtree(file, stb, stb[ref].son + sonny, tlayers)) {
-				cout << "c";
-				return -1;
-			}
+		  if (_readtree(file, stb, stb[ref].son + sonny, tlayers)) {
+		    cout << "c";
+		    return -1;
+		  }
 		}
-
-	/// \li If we encounter a reference, then read in the reference
+		
+		/// \li If we encounter a reference, then read in the reference
 	} else if (c == REFSON) {
-
-		if (fread (&ref, sizeof(ref), 1L, file) != 1) {
-			cout << "QTR: readtree failed. error #1. rebuilding treefiles." << endl;
-			return -1;
-		}
-		if (ref >= xref || ref < 0) { /// some error checking
-			cout << "QTR: readtree failed. error #3. rebuilding treefiles." << endl;
-			return -1;
-		}
-		if (!fath) { /// still some error checking
-			cout << "QTR: readtree failed. error #4. rebuilding treefiles." << endl;
-			return -1;
-		}
-		shortnode* node = new shortnode; /// create a new node
-		assert(node);
-		node -> tree = stb+ref;	/// and append the alread read-in tree
-		node -> next = *fath;	/// 'ref' to this node.
-		(*fath)      = node;
-
-	/// \li If we encounter an end token, then stop
+	  
+	  if (fread (&ref, sizeof(ref), 1L, file) != 1) {
+	    cout << "QTR: readtree failed. error #1. rebuilding treefiles." << endl;
+	    return -1;
+	  }
+	  if (ref >= xref || ref < 0) { /// some error checking
+	    cout << "QTR: readtree failed. error #3. rebuilding treefiles." << endl;
+	    return -1;
+	  }
+	  if (!fath) { /// still some error checking
+	    cout << "QTR: readtree failed. error #4. rebuilding treefiles." << endl;
+	    return -1;
+	  }
+	  shortnode* node = new shortnode(); /// create a new node
+	  assert(node);
+	  node -> tree = stb+ref;	/// and append the alread read-in tree
+	  node -> next = *fath;	/// 'ref' to this node.
+	  (*fath)      = node;
+	  
+	  /// \li If we encounter an end token, then stop
 	} else if( c == SONEND) {
-		break;
-
-	/// \li If we encounter something else, then fail
+	  break;
+	  
+	  /// \li If we encounter something else, then fail
 	} else {
-		cout << "QTR: readtree failed. error #2. rebuilding treefiles." << endl;
-		return -1;
+	  cout << "QTR: readtree failed. error #2. rebuilding treefiles." << endl;
+	  return -1;
 	}
   }
-
+  
   return 0;
 }
 

@@ -778,7 +778,8 @@ QwEvent* QwTrackingWorker::ProcessHits (
 	  if (fDebug) parttrack->Print();
           ngood++;
         } else {
-          cout << "Couldn't find a good partial track in region " << region << endl;
+	  if (fDebug)
+	    cout << "Couldn't find a good partial track in region " << region << endl;
           nbad++;
         }
 

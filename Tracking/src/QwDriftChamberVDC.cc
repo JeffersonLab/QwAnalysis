@@ -330,11 +330,11 @@ Int_t QwDriftChamberVDC::LoadMap(TString& mapfile)
   //some type(like string,int)need to be changed to root type
 
   TString varname,varvalue;
-  UInt_t value;
+  UInt_t value = 0;
   UInt_t channum;            //store temporary channel number
   UInt_t bpnum,lnnum;        //store temp backplane and line number
   UInt_t pknum,plnum,dir,firstwire,LR;         //store temp package,plane,firstwire and left or right information
-  bool IsFirstChannel=true;
+  Bool_t IsFirstChannel = true;
 
   std::vector<Double_t> tmpWindows;
   QwParameterFile mapstr ( mapfile.Data() );
@@ -365,9 +365,8 @@ Int_t QwDriftChamberVDC::LoadMap(TString& mapfile)
 
     if(channum ==0 && bpnum ==0){
       if( IsFirstChannel == true ) IsFirstChannel = false;
-      else
-	continue;
- }
+      else                         continue;
+    }
 
     if(bpnum == kReferenceChannelPlaneNumber)
       {
@@ -408,6 +407,7 @@ Int_t QwDriftChamberVDC::LoadMap(TString& mapfile)
       fDelayLinePtrs.push_back(tmpDelayLineID);
       tmpDelayLineID.clear();
       }*/
+  return OK;
 }
 
 
@@ -537,10 +537,12 @@ void QwDriftChamberVDC::ProcessEvent(){
    }
    fTDCHits.clear();
    fWireHits.clear();
-   for(int i=0;i<DelayLineArray.size();i++)
+   Int_t index = 0;
+   for(size_t i=0;i<DelayLineArray.size();i++)
      {
-       int index=DelayLineArray.at(i).size();
-       for(int j=0;j<index;j++){
+       index = DelayLineArray.at(i).size();
+
+       for(Int_t j=0;j<index;j++){
 	 DelayLineArray.at(i).at(j).processed=false;
 	 DelayLineArray.at(i).at(j).LeftHits.clear();
 	 DelayLineArray.at(i).at(j).RightHits.clear();

@@ -23,6 +23,7 @@ shortnode::shortnode()
 shortnode::~shortnode()
 {
   if (next) delete next;
+  if (tree) delete tree;
 }
 
 /**

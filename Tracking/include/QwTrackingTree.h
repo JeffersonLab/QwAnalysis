@@ -10,6 +10,8 @@
 #include <cstring>
 #include <cassert>
 #include <cmath>
+#include <inttypes.h>
+
 using std::cout; using std::cerr; using std::endl;
 
 // Boost filesystem headers
@@ -128,12 +130,12 @@ class QwTrackingTree {
     double fMaxSlope;	///< Maximum allowed slope for tracks in this detector
 
     /// Recursive method for pulling in the concise treesearch search database
-    int _writetree (treenode *tn, FILE *fp, int tlayers);
+    int _writetree (treenode *tn, FILE *fp, int32_t tlayers);
     /// Recursive method to read the concise treesearch database from disk
-    int _readtree  (FILE *f, shorttree *stb, shortnode **father, int tlayers);
+    int _readtree  (FILE *f, shorttree *stb, shortnode **father, int32_t tlayers);
     /// Recursive method to initialize and generate the treesearch database
     treenode* _inittree (
-	int tlayer,
+	int32_t tlayer,
 	EQwDetectorPackage package,
 	EQwDetectorType type,
 	EQwRegionID region,
