@@ -27,7 +27,7 @@
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
 #include "QwHistogramHelper.h"
-#include "QwQuartzBar.h"
+#include "QwMainCerenkovDetector.h"
 #include "QwSubsystemArrayParity.h"
 
 
@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
     detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
   }
   if (bQuartz) {
-    detectors.push_back(new QwQuartzBar("Main detector"));
+    detectors.push_back(new QwMainCerenkovDetector("Main detector"));
     detectors.GetSubsystem("Main detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_adc.map");
     detectors.GetSubsystem("Main detector")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
   }

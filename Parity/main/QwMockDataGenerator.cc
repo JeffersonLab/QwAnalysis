@@ -21,7 +21,7 @@
 #include "QwEventBuffer.h"
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
-#include "QwQuartzBar.h"
+#include "QwMainCerenkovDetector.h"
 #include "QwSubsystemArrayParity.h"
 #include "QwVQWK_Channel.h"
 
@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
   detectors.push_back(new QwHelicity("Helicity info"));
   detectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_helicity.map");
   detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
-  detectors.push_back(new QwQuartzBar("Main detector"));
+  detectors.push_back(new QwMainCerenkovDetector("Main detector"));
   detectors.GetSubsystem("Main detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_adc.map");
   detectors.GetSubsystem("Main detector")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
   QwHelicityPattern QwHelPat(detectors, kMultiplet);
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
 
 
   // Get the main detector channels we want to correlate
-  QwQuartzBar* maindetector = (QwQuartzBar*) detectors.GetSubsystem("Main detector");
+  QwMainCerenkovDetector* maindetector = (QwMainCerenkovDetector*) detectors.GetSubsystem("Main detector");
   Double_t bar_mean = 1.0e7;
   Double_t bar_sigma = 1.0e4;
   Double_t bar_asym = 1.0e-4;

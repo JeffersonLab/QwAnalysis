@@ -82,7 +82,7 @@ static int kDebug = 1;
 
 //    QwSubsystemArrayParity QwDetectors;
   QwSubsystemArray QwDetectors;
-//  QwDetectors.push_back(new QwQuartzBar("MainDetectors"));
+//  QwDetectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
 //  QwDetectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
 
   // Test code for the focal plane scanner 

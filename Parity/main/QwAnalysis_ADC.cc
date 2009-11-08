@@ -73,7 +73,7 @@ int main(Int_t argc,Char_t* argv[])
   /// background detector plus two channels (there are two channels for each fully
   /// assembled detector) for noise setup.
   QwSubsystemArrayParity QwDetectors;
-  QwDetectors.push_back(new QwQuartzBar("MainDetectors"));
+  QwDetectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
   QwDetectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
 
   ///
@@ -83,7 +83,7 @@ int main(Int_t argc,Char_t* argv[])
   QwHelicityPattern QwHelPat(QwDetectors,4);
 
 
-//   QwQuartzBar sum_outer(""), sum_inner(""), diff(""), sum(""), asym("");
+//   QwMainCerenkovDetector sum_outer(""), sum_inner(""), diff(""), sum(""), asym("");
 
 //   sum_outer.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
 //   sum_inner.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
@@ -136,7 +136,7 @@ int main(Int_t argc,Char_t* argv[])
 //     Double_t  evnum = 0.0;
 //     heltreevector.reserve(600);
 //     heltree->Branch("evnum", &evnum, "evnum/F");
-//     ((QwQuartzBar*)QwDetectors.at(0))->ConstructBranchAndVector(heltree, "", heltreevector);
+//     ((QwMainCerenkovDetector*)QwDetectors.at(0))->ConstructBranchAndVector(heltree, "", heltreevector);
 
 
 //     TTree *qrttree = new TTree("QRT_Tree","Quartet data tree");
@@ -176,9 +176,9 @@ int main(Int_t argc,Char_t* argv[])
       //  Fill the histograms for the QwDriftChamber subsystem object.
       QwDetectors.FillHistograms();
 
-//       if (((QwQuartzBar*)QwDetectors.at(0))->IsGoodEvent()){
+//       if (((QwMainCerenkovDetector*)QwDetectors.at(0))->IsGoodEvent()){
 // 	evnum = QwEvt.GetEventNumber();
-// 	((QwQuartzBar*)QwDetectors.at(0))->FillTreeVector(heltreevector);
+// 	((QwMainCerenkovDetector*)QwDetectors.at(0))->FillTreeVector(heltreevector);
 // 	heltree->Fill();
 //       }
 
@@ -187,13 +187,13 @@ int main(Int_t argc,Char_t* argv[])
 //       //  This basically just takes the pattern as always +--+.
 //       //
 //       if (QwEvt.GetEventNumber()%4 == 0){
-// 	sum_outer = *((QwQuartzBar*)QwDetectors.at(0));
+// 	sum_outer = *((QwMainCerenkovDetector*)QwDetectors.at(0));
 //       } else if (QwEvt.GetEventNumber()%4 == 1){
-// 	sum_inner = *((QwQuartzBar*)QwDetectors.at(0));
+// 	sum_inner = *((QwMainCerenkovDetector*)QwDetectors.at(0));
 //       } else if (QwEvt.GetEventNumber()%4 == 2){
-// 	sum_inner += *((QwQuartzBar*)QwDetectors.at(0));
+// 	sum_inner += *((QwMainCerenkovDetector*)QwDetectors.at(0));
 //       } else if (QwEvt.GetEventNumber()%4 == 3){
-// 	sum_outer += *((QwQuartzBar*)QwDetectors.at(0));
+// 	sum_outer += *((QwMainCerenkovDetector*)QwDetectors.at(0));
 // 	diff.Difference(sum_outer, sum_inner);
 // 	sum.Sum(sum_outer, sum_inner);
 // 	asym.Ratio(diff, sum);

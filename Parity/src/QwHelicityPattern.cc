@@ -289,13 +289,13 @@ void QwHelicityPattern::ConstructBranchAndVector(TTree *tree, TString & prefix, 
 //   ((QwBeamLine*)fYield.GetSubsystem("Injector Beamline Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
 //   ((QwHelicity*)fYield.GetSubsystem("Helicity Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
 //   thisprefix="yield";
-//   ((QwQuartzBar*)fYield.GetSubsystem("Quartz bar Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
+//   ((QwMainCerenkovDetector*)fYield.GetSubsystem("Quartz bar Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
 //
 //   thisprefix="asym_";
 //   ((QwBeamLine*)fAsymmetry.GetSubsystem("Injector Beamline Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
 //   ((QwHelicity*)fAsymmetry.GetSubsystem("Helicity Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
 //   thisprefix="asym";
-//   ((QwQuartzBar*)fAsymmetry.GetSubsystem("Quartz bar Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
+//   ((QwMainCerenkovDetector*)fAsymmetry.GetSubsystem("Quartz bar Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
 
   //  the following lines are the syntax we want at the end :
   //  fYield.ConstructBranchAndVector(tree, prefix,values);
@@ -312,11 +312,11 @@ void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values)
 
 //      ((QwBeamLine*)fYield.GetSubsystem("Injector Beamline Copy"))->FillTreeVector(values);
 //      ((QwHelicity*)fYield.GetSubsystem("Helicity Copy"))->FillTreeVector(values);
-//      ((QwQuartzBar*)fYield.GetSubsystem("Quartz bar Copy"))->FillTreeVector(values);
+//      ((QwMainCerenkovDetector*)fYield.GetSubsystem("Quartz bar Copy"))->FillTreeVector(values);
 //
 //      ((QwBeamLine*)fAsymmetry.GetSubsystem("Injector Beamline Copy"))->FillTreeVector(values);
 //      ((QwHelicity*)fAsymmetry.GetSubsystem("Helicity Copy"))->FillTreeVector(values);
-//      ((QwQuartzBar*)fAsymmetry.GetSubsystem("Quartz bar Copy"))->FillTreeVector(values);
+//      ((QwMainCerenkovDetector*)fAsymmetry.GetSubsystem("Quartz bar Copy"))->FillTreeVector(values);
   }
 
   return;

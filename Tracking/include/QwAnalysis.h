@@ -41,7 +41,7 @@
 #include "QwMainDetector.h"
 
 #include "QwScanner.h"
-//#include "QwQuartzBar.h"
+//#include "QwMainCerenkovDetector.h"
 #include "QwVQWK_Module.h"
 #include "QwVQWK_Channel.h"
 
