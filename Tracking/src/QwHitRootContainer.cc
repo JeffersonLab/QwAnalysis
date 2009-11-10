@@ -86,3 +86,8 @@ void QwHitRootContainer::Print()
   while ((hit = (QwHit*) iterator->Next()))
     std::cout << *hit << std::endl;
 }
+
+QwHit *QwHitRootContainer::GetHit (Int_t hitID) const
+{
+  return (QwHit*) fQwHits->At(hitID);
+}

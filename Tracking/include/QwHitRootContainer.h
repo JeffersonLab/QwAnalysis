@@ -63,6 +63,7 @@ class QwHitRootContainer : public TObject {
   void Print();
   
   TClonesArray *GetHits() const { return fQwHits; };
+  QwHit *GetHit (Int_t hitID) const ;
   
   ClassDef(QwHitRootContainer,1);
 };

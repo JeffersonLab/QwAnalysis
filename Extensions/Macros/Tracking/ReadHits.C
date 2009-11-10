@@ -1,3 +1,25 @@
+// Name  :   ReadHits.C
+// Author:   Jeong Han Lee
+// email :   jhlee@jlab.org
+// Date:     Tue Nov 10 16:55:06 EST 2009
+// Version:  0.0.1
+//
+//  An example script that uses a "generic USER way" in order to read 
+//  some useful information from "hit-based" ROOT output file created 
+//  by the QwAnalysis
+
+//
+// History:
+// 0.0.0     2009/11/04   created
+//                        add load_libraries(), read(), and read_event_number()
+//
+// 0.0.1     2009/11/11   introduce a "premature" plot_time_histogram_per_tdc()
+//                        to access a single information from ROOT file
+
+
+
+// Examples
+//
 // cd $QWANAYSIS
 // make distclean
 // make 
@@ -31,12 +53,13 @@ read(Int_t evID=1, Int_t hitID = 0, Int_t run_number=398)
 {
  
   TFile file(Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES_DIR"),run_number));
-  
   TTree* tree = (TTree*) file.Get("tree");
   QwHitRootContainer* hitContainer = NULL;
+  
   tree->SetBranchAddress("events",&hitContainer);
   
-  int nevent  = tree->GetEntries();
+  Int_t nevent  = tree->GetEntries();
+  
   if(evID > nevent) 
     {
       evID = nevent-1;
@@ -66,7 +89,8 @@ read(Int_t evID=1, Int_t hitID = 0, Int_t run_number=398)
     }
 
   hit = (QwHit *) hits_per_event->At(hitID);
-  
+  // At() : http://root.cern.ch/root/html/src/TObjArray.h.html#R3YkqE
+  // 
   // All functions are defined in QwHit.h
   printf("    -------------------------------- \n"); 
   printf("    --- Subbank       %6d \n",  hit->GetSubbankID()); 
@@ -84,6 +108,24 @@ read(Int_t evID=1, Int_t hitID = 0, Int_t run_number=398)
   printf("    -------------------------------- \n"); 
 
 
+  hit = (QwHit *) hits_per_event->UncheckedAt(hitID);
+  // UncheckedAt() : http://root.cern.ch/root/html/src/TObjArray.h.html#KyjP6
+  // All functions are defined in QwHit.h
+  printf("    -------------------------------- \n"); 
+  printf("    --- Subbank       %6d \n",  hit->GetSubbankID()); 
+  printf("    --- Module        %6d \n",  hit->GetModule()); 
+  printf("    --- Channel       %6d \n",  hit->GetChannel()); 
+  printf("    --- Region        %6d \n",  hit->GetRegion()); 
+  printf("    --- Package       %6d \n",  hit->GetPackage()); 
+  printf("    --- Direction     %6d \n", hit->GetDirection()); 
+  printf("    -------------------------------- \n"); 
+  printf("    --- DriftDistance %14.2f \n", hit->GetDriftDistance());
+  printf("    --- RawTime       %14.2f \n", hit->GetRawTime());
+  printf("    --- Time          %14.2f \n", hit->GetTime());
+  printf("    --- HitNumber     %14d   \n", hit->GetHitNumber());
+  printf("    --- HitNumberR    %14d   \n", hit->GetHitNumberR());
+  printf("    -------------------------------- \n"); 
+
   hitContainer->Clear();
   delete hitContainer; hitContainer=NULL;
  
@@ -91,25 +133,74 @@ read(Int_t evID=1, Int_t hitID = 0, Int_t run_number=398)
 }
 
 void 
-read_event_number(int id=1, char *filename="hitlist")
+read_event_number(int id=1, Int_t run_number=398)
 {
 
-  // Load the tree
-  TFile file(Form("%s.root", filename));
-
+  TFile file(Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES_DIR"),run_number));
+  
   TTree* tree = (TTree*) file.Get("tree");
   QwHitRootContainer* hitContainer = NULL;
   tree->SetBranchAddress("hits",&hitContainer);
 
 
-  int nevent  = tree->GetEntries();
+  Int_t nevent  = tree->GetEntries();
   tree -> GetEntry(id);
   printf("Event : %d, Hits %d\n", id, hitContainer->GetSize());
-
-
-
-
+  
+  
+  
+  
   hitContainer->Clear();
   delete hitContainer; hitContainer=NULL;
+  file.Close();
+}
+
+
+
+//
+// Histogram of the time value of all hits on a given TDC channel
+// TDC channel is started from 0 to N
+// Tue Nov 10 11:44:07 EST 2009
+//
+// premature funtion, doesn't show "plot" .
+
+void 
+plot_time_histogram_per_tdc(Int_t run_number=398, Int_t tdc_chan=0)
+{
+
+  TFile file(Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES_DIR"),run_number));
+  
+  TTree* tree = (TTree*) file.Get("tree");
+  QwHitRootContainer* hitContainer = NULL;
+  tree->SetBranchAddress("events",&hitContainer);
+
+  Int_t    nevent      = 0;
+  Int_t    nhit        = 0;
+  Double_t tdc_time    = 0.0;
+  Double_t tdc_rawtime = 0.0;
+  QwHit    *hit        = NULL;
+
+  nevent = tree -> GetEntries();
+   
+  for(Int_t i=0; i<nevent; i++)
+    {
+      tree -> GetEntry(i);
+      nhit = hitContainer->GetSize();
+      
+      for(Int_t j=0; j<nhit; j++)
+	{
+	  hit = (QwHit*) hitContainer->GetHit(j);
+	  if( (hit->GetChannel() == tdc_chan ) )
+	    {
+	      tdc_time    = hit->GetTime();
+	      tdc_rawtime = hit->GetRawTime();
+	      printf("TDC Chan %2d (evN,hitN) (%10d,%2d) T %16.2f, Traw %16.2f\n", 
+		     tdc_chan, i,j, tdc_time, tdc_rawtime);
+	    }
+	}
+      
+      hitContainer->Clear();
+    }
+  
   file.Close();
 }
