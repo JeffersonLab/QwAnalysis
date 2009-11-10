@@ -71,7 +71,8 @@ int main (int argc, char* argv[])
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R2"))->LoadQweakGeometry("qweak_new.geo");
   // Region 3 VDC
   detectors->push_back(new QwDriftChamberVDC("R3"));
-  detectors->GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
+  // detectors->GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
+  detectors->GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
 
 

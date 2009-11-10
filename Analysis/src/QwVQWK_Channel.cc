@@ -25,7 +25,7 @@ boost::variate_generator < boost::mt19937, boost::normal_distribution<double> >
 
 /*!  Conversion factor to translate the average bit count in an ADC
  *   channel into average voltage.
- *   The base factor is 0.07929 mV per count, and zero counts corresponds
+ *   The base factor is 0.07629 mV per count, and zero counts corresponds
  *   to zero voltage. 
  */
 const Double_t QwVQWK_Channel::kVQWK_VoltsPerBit = 76.29e-6;
@@ -476,7 +476,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value){
       }
       this->fHardwareBlockSum_raw= value.fHardwareBlockSum_raw;
       this->fSoftwareBlockSum_raw = value.fSoftwareBlockSum_raw;
-      this->fHardwareBlockSum= value.fHardwareBlockSum;
+      this->fHardwareBlockSum = value.fHardwareBlockSum;
       this->fNumberOfSamples  = value.fNumberOfSamples;
       this->fSequenceNumber   = value.fSequenceNumber;
     }

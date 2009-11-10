@@ -108,7 +108,7 @@ Int_t QwEventBuffer::EncodeSubsystemData(QwSubsystemArray &subsystems)
 {
   // Encode the data in the elements of the subsystem array
   std::vector<UInt_t> buffer;
-  subsystems.EncodeEventData(buffer);
+   subsystems.EncodeEventData(buffer);
 
   // Add CODA event header
   std::vector<UInt_t> header;
