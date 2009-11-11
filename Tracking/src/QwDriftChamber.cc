@@ -285,8 +285,10 @@ void  QwDriftChamber::FillHistograms()
   for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
     this_detid = hit1->GetDetectorID();
     if (this_detid.fPlane<=0 || this_detid.fElement<=0){
-      std::cout << "QwDriftChamber::FillHistograms:  Bad plane or element index:  fPlane=="
-		<< this_detid.fPlane << ", fElement==" << this_detid.fElement << std::endl;
+      if(fDEBUG) {
+	std::cout << "QwDriftChamber::FillHistograms:  Bad plane or element index:  fPlane=="
+		  << this_detid.fPlane << ", fElement==" << this_detid.fElement << std::endl;
+      }
       continue;
     }
 

@@ -4,7 +4,7 @@
 // Date:     Tue Nov 10 16:55:06 EST 2009
 // Version:  0.0.0
 //
-//  An example script that use a generic ROOT way in order to draw
+//  An example script that uses a "generic ROOT way" in order to draw
 //  some useful information from "hit-based" ROOT output file created 
 //  by the QwAnalysis
 //
