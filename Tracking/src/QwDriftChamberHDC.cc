@@ -14,7 +14,7 @@
 
 
 
-QwDriftChamberHDC::QwDriftChamberHDC(TString region_tmp): QwDriftChamber(region_tmp)
+QwDriftChamberHDC::QwDriftChamberHDC(TString region_tmp): QwDriftChamber(region_tmp,fTDCHits)
 {
   OK=0;
 };
