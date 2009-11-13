@@ -13,10 +13,10 @@ sample_size=400
   VQWK, 0, 1,  bpmstripline,  QWK_QPDYP
   VQWK, 0, 2,  bpmstripline,  QWK_QPDYM
   VQWK, 0, 3,  bpmstripline,  QWK_QPDXM
-  VQWK, 0, 4,  bcm,  empty1
-  VQWK, 0, 5,  bcm,  empty2
-  VQWK, 0, 6,  bcm,  QWK_Batext1
-  VQWK, 0, 7,  bcm,  QWK_Batext2
+  VQWK, 0, 4,  integrationpmt,  empty1
+  VQWK, 0, 5,  integrationpmt,  empty2
+  VQWK, 0, 6,  integrationpmt,  QWK_Batext1
+  VQWK, 0, 7,  integrationpmt,  QWK_Batext2
 
 !ADC1
   VQWK, 1, 0,  bpmstripline,  QWK_1I02XP,   UNROTATED

@@ -74,6 +74,11 @@ int main(Int_t argc,Char_t* argv[])
   QwDetectors.GetSubsystem("Helicity info")->LoadEventCuts(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline_eventcuts.in");//Pass the correct cuts file. 
    QwHelicityPattern QwHelPat(QwDetectors,4);
      
+   QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
+   QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline.map");
+
+
+
   ///////
   Double_t evnum=0.0;
 
@@ -131,6 +136,7 @@ int main(Int_t argc,Char_t* argv[])
 	  TString dummystr="";
 	  ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);  
 	  ((QwBeamLine*)QwDetectors.GetSubsystem("Helicity info"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);  
+	  ((QwBeamLine*)QwDetectors.GetSubsystem("Luminosity Monitors"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector); 
 	  // QwDetectors.ConstructBranchAndVector(mpstree, dummystr, mpsvector);
 	  // at some point we want to have some thing like that but it need to be implement in QwSubsystemArray
 	  rootfile.cd();
@@ -190,6 +196,7 @@ int main(Int_t argc,Char_t* argv[])
 	    //std::cout<<" event "<<evnum<<std::endl;
 	    ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->FillTreeVector(mpsvector);
 	    ((QwHelicity*)QwDetectors.GetSubsystem("Helicity info"))->FillTreeVector(mpsvector);
+	    ((QwLumi*)QwDetectors.GetSubsystem("Luminosity Monitors"))->FillTreeVector(mpsvector);
 	    mpstree->Fill();
 	  }
 
