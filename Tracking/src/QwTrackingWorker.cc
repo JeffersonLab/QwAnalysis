@@ -122,6 +122,11 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
   ngood = 0;
   nbad = 0;
 
+    R2Good = 0;
+    R2Bad = 0;
+    R3Good = 0;
+    R3Bad = 0;
+
     /* Reserve space for the bit patterns:
 
        The options file indicates the number of tree levels (how many times do
@@ -776,10 +781,15 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
         if (parttrack) {
 	  if (fDebug) parttrack->Print();
+          cout << "Find a good partial track in region " << region << endl;
           ngood++;
+          if(region==2) R2Good++;
+          if(region==3) R3Good++;
         } else {
 	  if (fDebug)
 	    cout << "Couldn't find a good partial track in region " << region << endl;
+          if(region ==2) R2Bad++;
+          if(region ==3) R3Bad++;
           nbad++;
         }
 
@@ -804,6 +814,11 @@ QwEvent* QwTrackingWorker::ProcessHits (
   if (TreeCombine) delete TreeCombine;
   if (TreeSort)    delete TreeSort;
   if (TreeMatch)   delete TreeMatch;
+
+//   if (fDebug)
+//     cout<<"R2Good, R2Bad, R3Good, R3Bad: "<<R2Good<<" "<<R2Bad<<" "<<R3Good<<" "<<R3Bad<<endl;
+//     cout<<"Efficiency:     region 2  "<<float(R2Good)/(R2Good+R2Bad)*100.0
+//         <<"%,     region 3  "<<float(R3Good)/(R3Good+R3Bad)*100.0<<"%"<<endl;
 
   // Return the event structure
   return event;

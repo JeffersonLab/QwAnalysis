@@ -36,6 +36,7 @@
 
 #include "QwCommandLine.h"
 #include "QwSubsystemArrayTracking.h"
+#include "QwGasElectronMultiplier.h"
 #include "QwDriftChamberHDC.h"
 #include "QwDriftChamberVDC.h"
 #include "QwField.h"
@@ -65,10 +66,17 @@ int main (int argc, char* argv[])
 
   // Handle for the list of VQwSubsystemTracking objects
   QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking();
+
+  // Region 1 GEM
+  detectors->push_back(new QwGasElectronMultiplier("R1"));
+//  detectors->GetSubsystem("R1")->LoadChannelMap("qweak_cosmics_hits.map");
+  ((VQwSubsystemTracking*) detectors->GetSubsystem("R1"))->LoadQweakGeometry("qweak_new.geo");
+
   // Region 2 HDC
   detectors->push_back(new QwDriftChamberHDC("R2"));
   detectors->GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R2"))->LoadQweakGeometry("qweak_new.geo");
+
   // Region 3 VDC
   detectors->push_back(new QwDriftChamberVDC("R3"));
   // detectors->GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
@@ -80,6 +88,7 @@ int main (int argc, char* argv[])
   std::vector< std::vector< QwDetectorInfo > > detector_info;
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R2"))->GetDetectorInfo(detector_info);
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->GetDetectorInfo(detector_info);
+  ((VQwSubsystemTracking*) detectors->GetSubsystem("R1"))->GetDetectorInfo(detector_info);
   // TODO This is handled incorrectly, it just adds the three package after the
   // existing three packages from region 2...  GetDetectorInfo should descend
   // into the packages and add only the detectors in those packages.

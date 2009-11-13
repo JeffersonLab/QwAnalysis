@@ -196,8 +196,12 @@ int main(Int_t argc,Char_t* argv[])
 
   // Handle for the list of VQwSubsystemTracking objects
   QwSubsystemArrayTracking detectors;
+
   // Region 1 GEM
-  //detectors.push_back(new QwGasElectronMultiplier("R1"));
+//  detectors.push_back(new QwGasElectronMultiplier("R1"));
+//  detectors.GetSubsystem("R1")->LoadChannelMap("qweak_cosmics_hits.map");
+//  ((VQwSubsystemTracking*) detectors.GetSubsystem("R1"))->LoadQweakGeometry("qweak_new.geo");
+
   // Region 2 HDC
   detectors.push_back(new QwDriftChamberHDC("R2"));
   detectors.GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");
@@ -220,6 +224,7 @@ int main(Int_t argc,Char_t* argv[])
 
   // Get vector with detector info (by region, plane number)
   std::vector< std::vector< QwDetectorInfo > > detector_info;
+//  detectors.GetSubsystem("R1")->GetDetectorInfo(detector_info);
   detectors.GetSubsystem("R2")->GetDetectorInfo(detector_info);
   detectors.GetSubsystem("R3")->GetDetectorInfo(detector_info);
   // TODO This is handled incorrectly, it just adds the three package after the

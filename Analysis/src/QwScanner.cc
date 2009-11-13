@@ -501,12 +501,12 @@ void  QwScanner::ConstructTrees(TFile *rootfile)
 {
       rootfile->cd();
 
-      //raw data tree for sum/scaler event
+      //raw data tree for trigger event
       ScannerTrigTree = new TTree("Scanner_TrigTree","scanner trigevent data tree");
       ScannerTrigVector.reserve(6000);
       ConstructBranchAndVector(ScannerTrigTree, prefix_trig, ScannerTrigVector);
 
-      //raw data tree for trigger event
+      //raw data tree for sum/scaler event
       ScannerSumTree = new TTree("Scanner_SumTree","scanner sumevent data tree");
       ScannerSumVector.reserve(6000);
       ConstructBranchAndVector(ScannerSumTree, prefix_sum, ScannerSumVector);

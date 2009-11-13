@@ -49,6 +49,10 @@ class QwTrackingWorker: public VQwSystem {
     int ngood;		///< number of good events
     int nbad;		///< number of bad events
 
+    int R2Good;
+    int R2Bad;
+    int R3Good;
+    int R3Bad;
 
     QwTrackingWorker(const char* name);
     ~QwTrackingWorker();

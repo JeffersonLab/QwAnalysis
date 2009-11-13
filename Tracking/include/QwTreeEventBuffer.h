@@ -74,6 +74,7 @@ class QwTreeEventBuffer
     void Clear();
 
     // Create a  hit at position (x,y) in the center of the specified detector
+    QwHit* CreateHitRegion1(QwDetectorInfo* detectorinfo, double x, double y);
     QwHit* CreateHitRegion2(QwDetectorInfo* detectorinfo, double x, double y);
     std::vector<QwHit> CreateHitRegion3(QwDetectorInfo* detectorinfo, double x, double y, double mx, double my);
 
@@ -215,6 +216,7 @@ class QwTreeEventBuffer
     // Region3
     Int_t fRegion3_ChamberFront_WirePlaneU_HasBeenHit;
     Int_t fRegion3_ChamberFront_WirePlaneU_NbOfHits;
+    vector <Int_t> fRegion3_ChamberFront_WirePlaneU_ParticleType;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalPositionX;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalPositionY;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalPositionZ;
@@ -224,6 +226,7 @@ class QwTreeEventBuffer
 
     Int_t fRegion3_ChamberFront_WirePlaneV_HasBeenHit;
     Int_t fRegion3_ChamberFront_WirePlaneV_NbOfHits;
+    vector <Int_t> fRegion3_ChamberFront_WirePlaneV_ParticleType;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneV_LocalPositionX;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneV_LocalPositionY;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneV_LocalPositionZ;
@@ -233,6 +236,7 @@ class QwTreeEventBuffer
 
     Int_t fRegion3_ChamberBack_WirePlaneU_HasBeenHit;
     Int_t fRegion3_ChamberBack_WirePlaneU_NbOfHits;
+    vector <Int_t> fRegion3_ChamberBack_WirePlaneU_ParticleType;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneU_LocalPositionX;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneU_LocalPositionY;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneU_LocalPositionZ;
@@ -242,6 +246,7 @@ class QwTreeEventBuffer
 
     Int_t fRegion3_ChamberBack_WirePlaneV_HasBeenHit;
     Int_t fRegion3_ChamberBack_WirePlaneV_NbOfHits;
+    vector <Int_t> fRegion3_ChamberBack_WirePlaneV_ParticleType;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalPositionX;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalPositionY;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalPositionZ;
