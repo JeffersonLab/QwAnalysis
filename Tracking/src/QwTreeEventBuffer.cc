@@ -686,6 +686,48 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
   return hitlist;
 }
 
+/*! Region 1 hit position determination
+
+      In region 1 we have the simulated position at the GEM plane in x and y
+      coordinates.  We simply transfer the x and y into r and phi, which are the
+      information that the R1 group is going to send to qwtracking program.
+
+ @param detectorinfo Detector information
+ @param x X coordinate of the track in the wire plane
+ @param y Y coordinate of the track in the wire plane
+ @return Pointer to the created hit object (needs to be deleted by caller)
+
+*/
+
+QwHit* QwTreeEventBuffer::CreateHitRegion1 (
+	QwDetectorInfo* detectorinfo,
+	double x, double y)
+{
+  // Detector identification
+  EQwRegionID region = detectorinfo->fRegion;
+  EQwDetectorPackage package = detectorinfo->fPackage;
+  EQwDirectionID direction = detectorinfo->fDirection;
+  int plane = detectorinfo->fPlane;
+
+  // Detector geometry
+  double zposition = detectorinfo->GetZPosition();
+  double xposition = detectorinfo->GetXPosition();
+  double yposition = detectorinfo->GetYPosition();
+
+  double globalx = x + xposition;  // Here, assuming that x points to left, y points up, z is along the beam
+  double globaly = y + yposition;
+  double r = sqrt(globalx*globalx+globaly*globaly);
+  double phi = atan2(globaly, globalx);  //return range [-pi,pi]
+
+  // Create a new hit
+  QwHit* hit = new QwHit(0,0,0,0, region, package, plane, direction, 0, 0);
+  hit->SetDetectorInfo(detectorinfo);
+  hit->SetZPosition(zposition);
+  hit->SetRPosition(r);
+  hit->SetPhiPosition(phi);
+
+  return hit;
+}
 
 /*! Region 2 wire position determination
 
@@ -707,15 +749,6 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
  @return Pointer to the created hit object (needs to be deleted by caller)
 
 */
-QwHit* QwTreeEventBuffer::CreateHitRegion1 (
-	QwDetectorInfo* detectorinfo,
-	double x, double y)
-{
-  // a stub
-  QwHit* hit = NULL;
-  return hit;
-}
-
 QwHit* QwTreeEventBuffer::CreateHitRegion2 (
 	QwDetectorInfo* detectorinfo,
 	double x, double y)

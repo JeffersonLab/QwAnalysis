@@ -93,7 +93,8 @@ void QwDetectorInfo::SetDetectorInfo (
     fDirection = kDirectionV;
   else if (planeDir == "y")
     fDirection = kDirectionY;
-
+  else if (planeDir == "r")
+    fDirection = kDirectionR;
 };
 
 ostream& operator<< (ostream& stream, QwDetectorInfo& det)

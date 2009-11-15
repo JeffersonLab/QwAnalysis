@@ -109,6 +109,12 @@ class QwHit : public TObject {
   const double GetZPosition() const;
   void SetZPosition(const double zpos) { fZPos = zpos; };
 
+  const double GetRPosition() const { return fRPos; };
+  void SetRPosition(const double rpos) { fRPos = rpos; };
+
+  const double GetPhiPosition() const { return fPhiPos; };
+  void SetPhiPosition(const double phipos) { fPhiPos = phipos; };
+
   Bool_t IsFirstDetectorHit() { return (fHitNumber==0); };
   Bool_t IsUsed() { return fIsUsed; };
 
@@ -184,6 +190,8 @@ class QwHit : public TObject {
   Double_t fZPos;       ///< Lontigudinal position of the hit (this is mainly
                         ///  used in region 3 where the z coordinate is taken
                         ///  in the wire plane instead of perpendicular to it)
+  Double_t fRPos;       ///< fRPos and fPhiPos are specificed for region 1
+  Double_t fPhiPos;   ///  hit location
 
   Double_t fSpatialResolution;	/// Spatial resolution
   Double_t fTrackResolution;	/// Track resolution

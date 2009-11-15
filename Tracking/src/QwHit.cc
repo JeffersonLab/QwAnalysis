@@ -133,10 +133,21 @@ ostream& operator<< (ostream& stream, const QwHit& hit) {
   stream << "region "    << hit.fRegion << ", ";
   stream << "dir "       << hit.fDirection << ", ";
   stream << "plane "     << hit.fPlane;
+
   if (hit.pDetectorInfo) stream << " (detector " << hit.pDetectorInfo << "), ";
   else stream << ", ";
-  stream << "element "   << hit.fElement << ", ";
-  stream << "distance "  << hit.fDistance;
+
+  if (hit.fRegion == 1)
+  {
+      stream << "radius "   << hit.fRPos << " cm, ";
+      stream << "phi "  << hit.fPhiPos << " ("<<hit.fPhiPos*180.0/3.1415927<<" deg)";
+  }
+  else 
+    {
+      stream << "element "   << hit.fElement << ", ";
+      stream << "distance "  << hit.fDistance;
+    }
+
   return stream;
 };
 

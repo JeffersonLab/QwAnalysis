@@ -20,7 +20,7 @@ enum EQwDirectionID {
   kDirectionNull,
   kDirectionX, kDirectionY,
   kDirectionU, kDirectionV,
-  kDirectionR, kDirectionTheta
+  kDirectionR, kDirectionPhi
 };
 
 // Currently up and down are considered two packages.
