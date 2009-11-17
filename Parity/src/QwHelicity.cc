@@ -172,6 +172,7 @@ Int_t QwHelicity::LoadInputParameters(TString pedestalfile)
 //*****************************************************************
 
 Bool_t QwHelicity::ApplySingleEventCuts(){//impose single event cuts
+
   
   return kTRUE;  
 };
@@ -182,12 +183,7 @@ Int_t QwHelicity::GetEventcutErrorCounters(){// report number of events falied d
   return 1;  
 };
 
-//*****************************************************************
 
-Bool_t QwHelicity::CheckRunningAverages(Bool_t bDisplayAVG){ //check the running averages of sub systems and passing argument decide print AVG or not.
-
-  return kTRUE;
-};
 
 //*****************************************************************
 void  QwHelicity::ProcessEvent() 
@@ -1262,9 +1258,13 @@ void QwHelicity::Ratio(VQwSubsystem  *value1, VQwSubsystem  *value2)
       *this =  value1;
 };
 
+void QwHelicity::Calculate_Running_Average(){
+};
 
+void QwHelicity::Do_RunningSum(){
 
-
+};
+ 
 
 Bool_t QwHelicity::Compare(VQwSubsystem *value)
 {

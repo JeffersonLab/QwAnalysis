@@ -1,67 +1,76 @@
 
-!This file contains beamline event cut properties last updated 10/13/2009 based on run 752/755
+!This file contains beamline event cut properties last updated 10/27/2009 based on run 752/755
 
+!Global switch to turn ON and OFF eventcut check
+!Available settings
+!To turn OFF all checks
+!EVENTCUTS = 0 
+!To turn OFF event cuts and perform only HW checks
+!EVENTCUTS = 1
+!To turn do both event cuts and HW checks
+!EVENTCUTS = 2
+EVENTCUTS = 0
 
-
-
-!device_type, device_name, device_flag, lower limit, upper limit
+!device_type, device_name, lower limit, upper limit
  
 
-!bcm, empty1, 		0, 	0,	0
+!bcm, empty1,	 	0,	0
 
-!bcm, empty2, 		0, 	0,	0
+!bcm, empty2, 		0, 	0
  
-!bcm, qwk_batext1, 	0, 	0,	0 
+!bcm, qwk_batext1, 	0, 	0
 
-!bcm, qwk_batext2,  	0, 	0,	0
+!bcm, qwk_batext2,  	0, 	0
  
-!bcm, qwk_bcm0l02, 	1, 	1.20089e+06, 	2.00148e+06 
-!qwk_bcm0l02, 		0, 	0
+bcm, qwk_bcm0l02, 	1.20089e+06, 	2.00148e+06 
+
  
-!bcm, qwk_batery6,  	0, 	0,	0
-!bcm, qwk_batery7, 	0, 	0,	0 
-!bcm, phasemonitor, 	0, 	0,	0
+!bcm, qwk_batery6,  	0,	0
+!bcm, qwk_batery7, 	0,	0 
+!bcm, phasemonitor, 	0,	0
 
 		
 
 
-!device type, device_name, device_flag,   LLx,   ULx,  LLy,   ULy, 
-!bpmstripline, qwk_qpd, 1, 	2.67319, 	4.45531, 	1.31491, 	2.19152
 
-!bpmstripline, qwk_1i02, 0, 	0, 	0, 	0, 	0 
-!bpmstripline, qwk_1i04, 0, 	0, 	0, 	0, 	0
-!bpmstripline, qwk_1i06, 0, 	0, 	0, 	0, 	0
-!bpmstripline, qwk_0i02, 0, 	0, 	0, 	0, 	0
-!bpmstripline, qwk_0i02a, 0, 	0, 	0, 	0, 	0
-!bpmstripline, qwk_0i05, 0, 	0, 	0, 	0, 	0
-!bpmstripline, qwk_0i07, 0, 	0, 	0, 	0, 	0
-!bpmstripline, qwk_0l01, 0, 	0, 	0, 	0, 	0
-!bpmstripline, qwk_0l02, 0, 	0, 	0, 	0, 	0
-!bpmstripline, qwk_0l03, 0, 	0, 	0, 	0, 	0
-!bpmstripline, qwk_0l04, 0, 	0, 	0, 	0, 	0
-!bpmstripline, qwk_0l05, 0, 	0, 	0, 	0, 	0 
-!bpmstripline, qwk_0l06, 0, 	0, 	0, 	0, 	0
-!bpmstripline, qwk_0l07, 0, 	0, 	0, 	0, 	0
-!bpmstripline, qwk_0l08, 0, 	0, 	0, 	0, 	0
-!bpmstripline, qwk_0l09, 0, 	0, 	0, 	0, 	0 
-!bpmstripline, qwk_0l10, 0, 	0, 	0, 	0, 	0 
-!bpmstripline, qwk_0r01, 0, 	0, 	0, 	0, 	0 
-!bpmstripline, qwk_0r02, 0, 	0, 	0, 	0, 	0 
-!bpmstripline, qwk_0r05, 0, 	0, 	0, 	0, 	0 
-!bpmstripline, qwk_0r06, 0, 	0, 	0, 	0, 	0
+
+bpmstripline, qwk_qpd, 2.67319, 	4.45531, 	1.31491, 	2.19152
+
+
+!bpmstripline, qwk_1i02, 0, 	0, 	0, 	0 
+!bpmstripline, qwk_1i04, 0, 	0, 	0, 	0
+!bpmstripline, qwk_1i06, 0, 	0, 	0, 	0
+!bpmstripline, qwk_0i02, 0, 	0, 	0, 	0
+!bpmstripline, qwk_0i02a, 0, 	0, 	0, 	0
+!bpmstripline, qwk_0i05, 0, 	0, 	0, 	0
+!bpmstripline, qwk_0i07, 0, 	0, 	0, 	0
+!bpmstripline, qwk_0l01, 0, 	0, 	0, 	0
+!bpmstripline, qwk_0l02, 0, 	0, 	0, 	0
+!bpmstripline, qwk_0l03, 0, 	0, 	0, 	0
+!bpmstripline, qwk_0l04, 0, 	0, 	0, 	0
+!bpmstripline, qwk_0l05, 0, 	0, 	0, 	0 
+!bpmstripline, qwk_0l06, 0, 	0, 	0, 	0
+!bpmstripline, qwk_0l07, 0, 	0, 	0, 	0
+!bpmstripline, qwk_0l08, 0, 	0, 	0, 	0
+!bpmstripline, qwk_0l09, 0, 	0, 	0, 	0 
+!bpmstripline, qwk_0l10, 0, 	0, 	0, 	0
+!bpmstripline, qwk_0r01, 0, 	0, 	0, 	0
+!bpmstripline, qwk_0r02, 0, 	0, 	0, 	0 
+!bpmstripline, qwk_0r05, 0, 	0, 	0, 	0 
+!bpmstripline, qwk_0r06, 0, 	0, 	0, 	0
 
 
 !This file contains beamline event cut properties
 
 !IMPORTANT
-!=========
+!---------
 !Make sure when puting tabs in the map file entries, always put ", " before inserting a tab. 
 !Otherwise the routine QwParameterFile::GetNextToken(", ") will extract the entry with the tab character.
 
 !Comments
-!========
-!Devices that are not in the list are not subjected to any tests
-!Devices with device_flag = 0, will only be tested for HW checks. So no limits are needed.
-!Devices with device_flag = 1, will be subjected to both HW and event cut tests. Such devices needs to have upper and lower limits set on them.
+!--------
+!Devices that are not in the list are not subjected event cut checks
+!All devices  will be tested for HW checks.
+!
 !For device_type =bcm only upper and lower limit of the calibrated charge on the ADC HW sum. (QwVQWK_Channel::fHardwareBlockSum)
 

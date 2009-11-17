@@ -26,13 +26,13 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   std::vector<Double_t> fBCMEventCuts;//for initializing event cuts  
   fBCMEventCuts.push_back(0);
   fBCMEventCuts.push_back(0);
-  fBCMEventCuts.push_back(-1);//device_flag is set to -1 
+  fBCMEventCuts.push_back(0);//device_flag 
   std::vector<Double_t> fBPMEventCuts;//for initializing event cuts
   fBPMEventCuts.push_back(0);
   fBPMEventCuts.push_back(0);
   fBPMEventCuts.push_back(0);
   fBPMEventCuts.push_back(0);
-  fBPMEventCuts.push_back(-1);//device_flag is set to -1 
+  fBPMEventCuts.push_back(0);//device_flag
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
@@ -196,155 +196,101 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
   Double_t ULX, LLX, ULY, LLY;
   Int_t samplesize;
   Int_t check_flag;
+  Int_t eventcut_flag;
   std::vector<Double_t> fBCMEventCuts;
   std::vector<Double_t> fBPMEventCuts;
-  TString varname, varvalue, vartypeID;
+  TString varname, varvalue, vartypeID,varname2, varvalue2;
   TString device_type,device_name;
   std::cout<<" QwBeamLine::LoadEventCuts  "<<filename<<std::endl; 
   QwParameterFile mapstr(filename.Data());  //Open the file
 
-   
+  eventcut_flag=1;
   
   while (mapstr.ReadNextLine()){
     //std::cout<<"********* In the loop  *************"<<std::endl;
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;   
-
-    device_type= mapstr.GetNextToken(", ").c_str();
-    device_type.ToLower();
-    device_name= mapstr.GetNextToken(", ").c_str();
-    device_name.ToLower();
-    check_flag= atoi(mapstr.GetNextToken(", ").c_str());//which tests to perform on the device
-
-    //set limits to zero
-    ULX=0;
-    LLX=0;
-    ULY=0;
-    LLY=0;
-
-    if (device_type == "bcm"){
-      
-      //std::cout<<" device name "<<device_name<<" device flag "<<check_flag<<std::endl;
-      if (check_flag==1){//then only we need event cut limits
-	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BCM value
-	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BCM value
-      }
-      //else
-      //std::cout<<" device name "<<device_name<<" device flag "<<check_flag<<std::endl;
-      //samplesize = (atoi(mapstr.GetNextToken(", ").c_str()));	//sample size
-      //	std::cout<<" sample size "<<samplesize<<std::endl;
-      //retrieve the detector from the vector.
-      //device_name="empty2";
-      Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
-      //std::cout<<"*****************************"<<std::endl;
-      //std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
-      //update the Double vector
-      fBCMEventCuts.clear();
-      fBCMEventCuts.push_back(LLX);
-      fBCMEventCuts.push_back(ULX);
-      fBCMEventCuts.push_back(check_flag);
-      
-      //fBCM[det_index].Print();
-      fBCM[det_index].SetSingleEventCuts(fBCMEventCuts);
-      //std::cout<<"*****************************"<<std::endl;
-	
-    }
-    else if (device_type == "bpmstripline"){
-      if (check_flag==1){//then only we need event cut limits
-	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline X
-	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline X
-	LLY = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline Y
-	ULY = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline Y
-      }
-      //else
-      //std::cout<<" device name "<<device_name<<" device flag "<<check_flag<<std::endl;
-      Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);	
-      //update the Double vector
-      fBPMEventCuts.clear();
-      fBPMEventCuts.push_back(LLX);
-      fBPMEventCuts.push_back(ULX);
-      fBPMEventCuts.push_back(LLY);
-      fBPMEventCuts.push_back(ULY);
-      fBPMEventCuts.push_back(check_flag);
-      //std::cout<<"*****************************"<<std::endl;
-      //std::cout<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
-      fStripline[det_index].SetSingleEventCuts(fBPMEventCuts);
-      //fStripline[det_index].Print();
-      //std::cout<<"*****************************"<<std::endl;
-    }
-      
     
-    /*
-    
-    if (mapstr.HasVariablePair("=",varname,vartypeID)){
-      //  This is a declaration line.  Decode it.
-      varname.ToLower();
-      vartypeID.ToLower();
-      if(varname=="sample_size")//reads the sample size in the system
-	samplesize = (atoi(vartypeID));	//sample size      
-      else
-	device_type=vartypeID;
-	
-      //std::cout<<" device name "<<device_name<<" Sample Size "<<samplesize<<std::endl;
-      
+    if (mapstr.HasVariablePair("=",varname2,varvalue2)){
+      if (varname2=="EVENTCUTS"){
+	//varname="";
+	eventcut_flag= QwParameterFile::GetUInt(varvalue2);
+	//std::cout<<"EVENT CUT FLAG "<<eventcut_flag<<std::endl;	
+      }
     }
     else{
+      device_type= mapstr.GetNextToken(", ").c_str();
+      device_type.ToLower();
+      device_name= mapstr.GetNextToken(", ").c_str();
+      device_name.ToLower();
+      
+
+      //set limits to zero
+      ULX=0;
+      LLX=0;
+      ULY=0;
+      LLY=0;
+
       if (device_type == "bcm"){
-	
-	fBCMEventCuts.clear();
-	varname= mapstr.GetNextToken(", ").c_str();              //detector name
-	varname.ToLower();
-	std::cout<<" device name "<<varname<<" Sample Size "<<samplesize<<std::endl;
+      
+	//std::cout<<" device name "<<device_name<<" device flag "<<check_flag<<std::endl;
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BCM value
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BCM value
+
 	//samplesize = (atoi(mapstr.GetNextToken(", ").c_str()));	//sample size
 	//	std::cout<<" sample size "<<samplesize<<std::endl;
 	//retrieve the detector from the vector.
-	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),varname);	
+	//device_name="empty2";
+	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
+	//std::cout<<"*****************************"<<std::endl;
+	//std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
 	//update the Double vector
+	fBCMEventCuts.clear();
 	fBCMEventCuts.push_back(LLX);
 	fBCMEventCuts.push_back(ULX);
-	fBCMEventCuts.push_back(samplesize);
-	//std::cout<<"*****************************"<<std::endl;
-	//std::cout<<" Name from map "<<varname<<" Index ["<<det_index <<"] "<<std::endl;
+	fBCMEventCuts.push_back(1);
+      
 	//fBCM[det_index].Print();
 	fBCM[det_index].SetSingleEventCuts(fBCMEventCuts);
 	//std::cout<<"*****************************"<<std::endl;
 	
       }
       else if (device_type == "bpmstripline"){
-	fBPMEventCuts.clear();
-	varname= mapstr.GetNextToken(", ").c_str();              //detector name
-	varname.ToLower();
-	std::cout<<" device name "<<varname<<" Sample Size "<<samplesize<<std::endl;
+      
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline X
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline X
 	LLY = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline Y
 	ULY = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline Y
-	//samplesize = (atoi(mapstr.GetNextToken(", ").c_str()));	//sample size
-	//std::cout<<varname<<" sample size "<<samplesize<<std::endl;
-	//std::cout<<" sample size "<<samplesize<<std::endl;
-	//retrieve the detector from the vector.
-	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),varname);	
+
+	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);	
 	//update the Double vector
+	fBPMEventCuts.clear();
 	fBPMEventCuts.push_back(LLX);
 	fBPMEventCuts.push_back(ULX);
 	fBPMEventCuts.push_back(LLY);
 	fBPMEventCuts.push_back(ULY);
-	fBPMEventCuts.push_back(samplesize);
+	fBPMEventCuts.push_back(1);
 	//std::cout<<"*****************************"<<std::endl;
-	//std::cout<<" Name from map "<<varname<<" Index ["<<det_index <<"] "<<std::endl;
-	fStripline[det_index].SetSingleEventCuts(fBPMEventCuts);
+	//std::cout<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
+	fStripline[det_index].SetSingleEventCuts(fBPMEventCuts);	
 	//fStripline[det_index].Print();
 	//std::cout<<"*****************************"<<std::endl;
-	
       }
     }
-
-    */
+      
+    
+    
     
   }
+  //update the event cut ON/OFF for all the devices
+  //std::cout<<"EVENT CUT FLAG"<<eventcut_flag<<std::endl;
+  for (Int_t i=0;i<fStripline.size();i++)
+    fStripline[i].SetEventCutMode(eventcut_flag);
+
+  for (Int_t i=0;i<fBCM.size();i++)
+    fBCM[i].SetEventCutMode(eventcut_flag);
+    
 
   fQwBeamLineErrorCount=0; //set the error counter to zero
 
@@ -565,42 +511,23 @@ Bool_t QwBeamLine::ApplySingleEventCuts(){
 
 Int_t QwBeamLine::GetEventcutErrorCounters(){//inherited from the VQwSubsystemParity; this will display the error summary
 
-  std::cout<<"*********QwBeamLine****************"<<std::endl;
-  
+  std::cout<<"*********QwBeamLine Error Summary****************"<<std::endl;
+  std::cout<<"Device name ||  Sample || SW_HW || Sequence || SameHW || EventCut\n";
   for(size_t i=0;i<fBCM.size();i++){
-    //std::cout<<"  BCM ["<<i<<"] "<<std::endl;
-    fBCM[i].ReportErrorCounters();    
+    //std::cout<<"*"<<std::endl;
+    fBCM[i].GetEventcutErrorCounters();    
   } 
 
    for(size_t i=0;i<fStripline.size();i++){
-     fStripline[i].ReportErrorCounters();
+     fStripline[i].GetEventcutErrorCounters();
    }
-   std::cout<<"Total failed events "<<  fQwBeamLineErrorCount<<std::endl;
- std::cout<<"*********End of error QwBeamLine reporting****************"<<std::endl;
-
+   //std::cout<<"Total failed events "<<  fQwBeamLineErrorCount<<std::endl;
+   //std::cout<<"*****End of error QwBeamLine reporting - Total failed events "<<fQwBeamLineErrorCount<<"*****"<<std::endl;
+   std::cout<<"---------------------------------------------------"<<std::endl;
+   std::cout<<std::endl;
   return 1;
 }
 
-Bool_t QwBeamLine::CheckRunningAverages(Bool_t bDisplayAVG){ //check the running averages of sub systems and passing argument decide print AVG or not.
-
-  Bool_t status=kTRUE;;
-
-  
-  
-  std::cout<<" Printing Running AVG for BCMs "<<std::endl;
-  for(size_t i=0;i<fBCM.size();i++){
-    status&=fBCM[i].CheckRunningAverages(bDisplayAVG);    
-  }
-
-  std::cout<<" Printing Running AVG for BPMStripLines "<<std::endl;
-  for(size_t i=0;i<fStripline.size();i++){
-    status&=fStripline[i].CheckRunningAverages(bDisplayAVG);    
-  }
-  
-
-  return status;
-
-}
 
 
 void  QwBeamLine::ProcessEvent()
@@ -612,9 +539,7 @@ void  QwBeamLine::ProcessEvent()
     fBCM[i].ProcessEvent();
 
 
-  // fStripline[0].Print();
-  //  fBCM[0].Print();
-
+  
   return;
 };
 
@@ -624,14 +549,6 @@ Int_t QwBeamLine::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t b
   return 0;
 };
 
-//*****************************************************************
-Bool_t QwBeamLine::IsGoodEvent()
-{
-  Bool_t test=kTRUE;
-  
-
-  return test;
-}
 
 
 //*****************************************************************
@@ -788,6 +705,25 @@ void QwBeamLine::Scale(Double_t factor)
   return;
 };
 
+void QwBeamLine::Calculate_Running_Average(){
+  std::cout<<"*********QwBeamLine device Averages****************"<<std::endl;
+  std::cout<<"Device \t    ||  Average\t || error\t || events"<<std::endl;
+  for(size_t i=0;i<fStripline.size();i++)
+    fStripline[i].Calculate_Running_Average();
+  for(size_t i=0;i<fBCM.size();i++)
+    fBCM[i].Calculate_Running_Average();
+  std::cout<<"---------------------------------------------------"<<std::endl;
+  std::cout<<std::endl;
+};
+
+void QwBeamLine::Do_RunningSum(){
+  for(size_t i=0;i<fStripline.size();i++)
+    fStripline[i].Do_RunningSum();
+  for(size_t i=0;i<fBCM.size();i++)
+    fBCM[i].Do_RunningSum();
+};
+ 
+
 Bool_t QwBeamLine::Compare(VQwSubsystem *value)
 {
   //  std::cout<<" Here in QwBeamLine::Compare \n";
@@ -918,8 +854,9 @@ void  QwBeamDetectorID::Print()
   
   
 
-  std::cout<<"==========================================\n";
-
+  
+  std::cout<<"---------------------------------------------------"<<std::endl;
+  std::cout<<std::endl;
   
 
   return;

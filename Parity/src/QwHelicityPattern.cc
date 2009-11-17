@@ -30,9 +30,10 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event, Int_t patter
 	      fEvents[i].Copy(&event);
 	      fEventNumber.push_back(-1);
 	    }
-	  fQuartetNumber=0;
+	  fQuartetNumber=0;//initialize the quartet number
 	  fYield.Copy(&event);
 	  fAsymmetry.Copy(&event);
+	  fAverage.Copy(&event);
 	  pos_sum.Copy(&event);
 	  neg_sum.Copy(&event);
 	  difference.Copy(&event);
@@ -147,6 +148,8 @@ Bool_t  QwHelicityPattern::IsCompletePattern()
 	filled=kFALSE;
       i--;
     }
+ 
+    
 
   return filled;
 }
@@ -229,15 +232,28 @@ void  QwHelicityPattern::CalculateAsymmetry()
     {
 
       IsGood=kTRUE;
-      fQuartetNumber++;
-
+      fQuartetNumber++;//Then increment the quartet number
+      std::cout<<" quartet count ="<<fQuartetNumber<<"\n";
+	
+      
       fYield.Sum(pos_sum,neg_sum);
+      fYield.Do_RunningSum();
       difference.Difference(pos_sum,neg_sum);
       fAsymmetry.Ratio(difference,fYield);
+      fAsymmetry.Do_RunningSum();
       if (localdebug) std::cout<<" pattern number ="<<fQuartetNumber<<"\n";
     }
 
   return;
+};
+//*****************************************************************
+void  QwHelicityPattern::CalculateRunningAverage(){
+  std::cout<<" Running average of asymmetry "<<std::endl;
+  std::cout<<" =============================="<<std::endl;
+  fAsymmetry.Calculate_Running_Average();
+  std::cout<<" Running average of Yields "<<std::endl;
+  std::cout<<" =============================="<<std::endl;
+  fYield.Calculate_Running_Average();
 };
 
 //*****************************************************************

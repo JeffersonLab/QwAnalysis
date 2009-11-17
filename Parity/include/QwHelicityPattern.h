@@ -28,6 +28,7 @@ class QwHelicityPattern{
   void  LoadEventData(QwSubsystemArrayParity &event);
   Bool_t IsCompletePattern();
   void  CalculateAsymmetry();
+  void CalculateRunningAverage();
 
   void  ConstructHistograms(){ConstructHistograms((TDirectory*)NULL);};
   void  ConstructHistograms(TDirectory *folder);
@@ -51,11 +52,13 @@ class QwHelicityPattern{
 
   QwSubsystemArrayParity  fYield;
   QwSubsystemArrayParity  fAsymmetry;
-
+  QwSubsystemArrayParity fAverage;
+  QwSubsystemArrayParity fRunningSum;
  private:
   QwSubsystemArrayParity pos_sum;
   QwSubsystemArrayParity neg_sum;
   QwSubsystemArrayParity difference;
+  
   
   Bool_t IsGood; 
   

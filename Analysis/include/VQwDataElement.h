@@ -41,6 +41,8 @@ class VQwDataElement{
     {std::cerr << "Crap!!!"<<std::endl;};
   virtual void Ratio(const VQwDataElement &numer, const VQwDataElement &denom)
     {std::cerr << "Crap!!!"<<std::endl;};
+  virtual void Running_Average(Int_t )
+    {std::cerr << "Running AVG"<<std::endl;};
 
   virtual void  ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
   virtual void  FillHistograms() = 0;
@@ -49,6 +51,7 @@ class VQwDataElement{
   virtual void Print(){};
 
   size_t GetNumberOfDataWords() {return fNumberOfDataWords;};
+  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
 
  protected:
   void SetNumberOfDataWords(const UInt_t &numwords) {fNumberOfDataWords = numwords;};

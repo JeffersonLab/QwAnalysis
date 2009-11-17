@@ -78,7 +78,6 @@ class QwBeamLine : public VQwSubsystemParity{
   Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
-  Bool_t CheckRunningAverages(Bool_t ); //check the running averages of sub systems and passing argument decide print AVG or not.
   
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -86,7 +85,7 @@ class QwBeamLine : public VQwSubsystemParity{
 
   void  ClearEventData();
   void  ProcessEvent();
-  Bool_t IsGoodEvent();
+  
 
   void RandomizeEventData(int helicity = 0);
   void EncodeEventData(std::vector<UInt_t> &buffer);
@@ -99,6 +98,9 @@ class QwBeamLine : public VQwSubsystemParity{
   void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
 
   void Scale(Double_t factor);
+  
+  void Calculate_Running_Average();
+  void Do_RunningSum(); 
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();

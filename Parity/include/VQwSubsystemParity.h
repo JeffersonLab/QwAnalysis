@@ -52,11 +52,12 @@ class VQwSubsystemParity : public VQwSubsystem {
   virtual void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)=0;
   virtual void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)=0;
   virtual void Ratio(VQwSubsystem *numer, VQwSubsystem *denom)=0;
+  virtual void Calculate_Running_Average()=0;
+  virtual void Do_RunningSum()=0;//update the running sums for devices
 
   virtual Int_t LoadEventCuts(TString filename)=0;//Will load the event cut file.
   virtual Bool_t ApplySingleEventCuts()=0;//impose single event cuts
   virtual Int_t GetEventcutErrorCounters()=0;// report number of events falied due to HW and event cut faliure
-  virtual Bool_t CheckRunningAverages(Bool_t )=0; //check the running averages of sub systems and passing argument decide print AVG or not.
 
   private:
   VQwSubsystemParity(){};  //  Private constructor.

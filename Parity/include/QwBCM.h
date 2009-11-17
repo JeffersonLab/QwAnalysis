@@ -32,7 +32,7 @@ class QwBCM : public VQwDataElement{
 
   void  InitializeChannel(TString name, TString datatosave);
   void  ClearEventData();
-  void ReportErrorCounters();
+  
 
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
@@ -46,11 +46,12 @@ class QwBCM : public VQwDataElement{
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings 
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Int_t SetSingleEventCuts(std::vector<Double_t> &);//two limts and sample size
-  void SetDefaultSampleSize(Int_t sample_size);
-
-  void ResetRunningAverages();//will reset the average values and event counter
-  void CalculateRunningAverages();//calculate running averages for the BCM
-  Bool_t CheckRunningAverages(Bool_t bDisplayAVG);//check the avg values are within the event cut limits.
+  void SetDefaultSampleSize(Int_t sample_size);  
+  void SetEventCutMode(Int_t bcuts){
+    bEVENTCUTMODE=bcuts;
+    fTriumf_ADC.SetEventCutMode(bcuts);
+  }
+  
   void Print() const;
 
 
@@ -63,6 +64,8 @@ class QwBCM : public VQwDataElement{
   void Difference(QwBCM &value1, QwBCM &value2);
   void Ratio(QwBCM &numer, QwBCM &denom); 
   void Scale(Double_t factor);
+  void Calculate_Running_Average();
+  void Do_RunningSum(); 
 
   void SetPedestal(Double_t ped);
   void SetCalibrationFactor(Double_t calib);
@@ -85,21 +88,21 @@ class QwBCM : public VQwDataElement{
   Double_t fPedestal;
   Double_t fCalibration;
   Double_t fULimit, fLLimit;
-  Double_t fSequenceNo_Prev;
-  Int_t fSampleSize;
+  //Double_t fSequenceNo_Prev;
+  //Int_t fSampleSize;
   Bool_t fGoodEvent;//used to validate sequence number in the IsGoodEvent()
-  Int_t counter;//used to validate sequence number in the IsGoodEvent()
-  Int_t Event_Counter;//counts event cut passed events
+  
 
-  Double_t fPrevious_HW_Sum;//stores the last event's hardware sum.
-  Int_t fHW_Sum_Stuck_Counter;//increment this if HW_sum is stuck with one value
-  Double_t fBCM_Running_AVG;
-  Double_t fBCM_Running_AVG_square;
+  
+  
   QwVQWK_Channel fTriumf_ADC;
 
   Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check 
+  Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
 
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
+  Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
+  
 };
 
 #endif

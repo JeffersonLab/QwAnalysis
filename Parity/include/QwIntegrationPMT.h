@@ -48,9 +48,14 @@ class QwIntegrationPMT : public VQwDataElement{
   Int_t SetSingleEventCuts(std::vector<Double_t> &);//two limts and sample size
   void SetDefaultSampleSize(Int_t sample_size);
 
-  void ResetRunningAverages();//will reset the average values and event counter
-  void CalculateRunningAverages();//calculate running averages for the IntegrationPMT
-  Bool_t CheckRunningAverages(Bool_t bDisplayAVG);//check the avg values are within the event cut limits.
+  void SetEventCutMode(Int_t bcuts){
+    bEVENTCUTMODE=bcuts;
+    fTriumf_ADC.SetEventCutMode(bcuts);
+  }
+
+  
+  void Calculate_Running_Average();
+  void Do_RunningSum(); 
   void Print() const;
 
 
@@ -85,21 +90,15 @@ class QwIntegrationPMT : public VQwDataElement{
   Double_t fPedestal;
   Double_t fCalibration;
   Double_t fULimit, fLLimit;
-  Double_t fSequenceNo_Prev;
-  Int_t fSampleSize;
   Bool_t fGoodEvent;//used to validate sequence number in the IsGoodEvent()
-  Int_t counter;//used to validate sequence number in the IsGoodEvent()
-  Int_t Event_Counter;//counts event cut passed events
 
-  Double_t fPrevious_HW_Sum;//stores the last event's hardware sum.
-  Int_t fHW_Sum_Stuck_Counter;//increment this if HW_sum is stuck with one value
-  Double_t fIntegrationPMT_Running_AVG;
-  Double_t fIntegrationPMT_Running_AVG_square;
   QwVQWK_Channel fTriumf_ADC;
 
   Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check 
+  Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
 
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
+  Bool_t bEVENTCUTMODE; //global switch to turn event cuts ON/OFF
 };
 
 #endif

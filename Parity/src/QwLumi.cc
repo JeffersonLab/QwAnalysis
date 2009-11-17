@@ -26,7 +26,7 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
   std::vector<Double_t> fIntegrationPMTEventCuts;//for initializing event cuts  
   fIntegrationPMTEventCuts.push_back(0);
   fIntegrationPMTEventCuts.push_back(0);
-  fIntegrationPMTEventCuts.push_back(-1);//device_flag is set to -1 
+  fIntegrationPMTEventCuts.push_back(0);//device_flag is set to 0 
    QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
@@ -155,6 +155,7 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
   Double_t ULX, LLX, ULY, LLY;
   Int_t samplesize;
   Int_t check_flag;
+  Int_t eventcut_flag;
   std::vector<Double_t> fIntegrationPMTEventCuts;
 
   TString varname, varvalue, vartypeID;
@@ -162,124 +163,59 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
   std::cout<<" QwLumi::LoadEventCuts  "<<filename<<std::endl; 
   QwParameterFile mapstr(filename.Data());  //Open the file
 
-   
+  eventcut_flag=1; 
   
   while (mapstr.ReadNextLine()){
     //std::cout<<"********* In the loop  *************"<<std::endl;
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;   
-
-    device_type= mapstr.GetNextToken(", ").c_str();
-    device_type.ToLower();
-    device_name= mapstr.GetNextToken(", ").c_str();
-    device_name.ToLower();
-    check_flag= atoi(mapstr.GetNextToken(", ").c_str());//which tests to perform on the device
-
-    //set limits to zero
-    ULX=0;
-    LLX=0;
-    ULY=0;
-    LLY=0;
-
-    if (device_type == "IntegrationPMT"){
-      
-      //std::cout<<" device name "<<device_name<<" device flag "<<check_flag<<std::endl;
-      if (check_flag==1){//then only we need event cut limits
-	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for IntegrationPMT value
-	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for IntegrationPMT value
+    if (mapstr.HasVariablePair("=",varname,varvalue)){
+      if (varname=="EVENTCUTS"){
+	//varname="";
+	eventcut_flag= QwParameterFile::GetUInt(varvalue);
+	//std::cout<<"EVENT CUT FLAG "<<eventcut_flag<<std::endl;	
       }
-      //else
-      //std::cout<<" device name "<<device_name<<" device flag "<<check_flag<<std::endl;
-      //samplesize = (atoi(mapstr.GetNextToken(", ").c_str()));	//sample size
-      //	std::cout<<" sample size "<<samplesize<<std::endl;
-      //retrieve the detector from the vector.
-      //device_name="empty2";
-      Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
-      //std::cout<<"*****************************"<<std::endl;
-      //std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
-      //update the Double vector
-      fIntegrationPMTEventCuts.clear();
-      fIntegrationPMTEventCuts.push_back(LLX);
-      fIntegrationPMTEventCuts.push_back(ULX);
-      fIntegrationPMTEventCuts.push_back(check_flag);
-      
-      //fIntegrationPMT[det_index].Print();
-      fIntegrationPMT[det_index].SetSingleEventCuts(fIntegrationPMTEventCuts);
-      //std::cout<<"*****************************"<<std::endl;
-	
-    }
-    
-    /*
-    
-    if (mapstr.HasVariablePair("=",varname,vartypeID)){
-      //  This is a declaration line.  Decode it.
-      varname.ToLower();
-      vartypeID.ToLower();
-      if(varname=="sample_size")//reads the sample size in the system
-	samplesize = (atoi(vartypeID));	//sample size      
-      else
-	device_type=vartypeID;
-	
-      //std::cout<<" device name "<<device_name<<" Sample Size "<<samplesize<<std::endl;
-      
     }
     else{
+      device_type= mapstr.GetNextToken(", ").c_str();
+      device_type.ToLower();
+      device_name= mapstr.GetNextToken(", ").c_str();
+      device_name.ToLower();
+      
+      //set limits to zero
+      ULX=0;
+      LLX=0;
+      ULY=0;
+      LLY=0;
+
       if (device_type == "IntegrationPMT"){
+      
+	//std::cout<<" device name "<<device_name<<" device flag "<<check_flag<<std::endl;
 	
-	fIntegrationPMTEventCuts.clear();
-	varname= mapstr.GetNextToken(", ").c_str();              //detector name
-	varname.ToLower();
-	std::cout<<" device name "<<varname<<" Sample Size "<<samplesize<<std::endl;
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for IntegrationPMT value
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for IntegrationPMT value
-	//samplesize = (atoi(mapstr.GetNextToken(", ").c_str()));	//sample size
-	//	std::cout<<" sample size "<<samplesize<<std::endl;
-	//retrieve the detector from the vector.
-	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),varname);	
+
+	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
+	//std::cout<<"*****************************"<<std::endl;
+	//std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
 	//update the Double vector
+	fIntegrationPMTEventCuts.clear();
 	fIntegrationPMTEventCuts.push_back(LLX);
 	fIntegrationPMTEventCuts.push_back(ULX);
-	fIntegrationPMTEventCuts.push_back(samplesize);
-	//std::cout<<"*****************************"<<std::endl;
-	//std::cout<<" Name from map "<<varname<<" Index ["<<det_index <<"] "<<std::endl;
+	fIntegrationPMTEventCuts.push_back(1);
+      
 	//fIntegrationPMT[det_index].Print();
 	fIntegrationPMT[det_index].SetSingleEventCuts(fIntegrationPMTEventCuts);
 	//std::cout<<"*****************************"<<std::endl;
 	
       }
-      else if (device_type == "bpmstripline"){
-	fBPMEventCuts.clear();
-	varname= mapstr.GetNextToken(", ").c_str();              //detector name
-	varname.ToLower();
-	std::cout<<" device name "<<varname<<" Sample Size "<<samplesize<<std::endl;
-	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline X
-	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline X
-	LLY = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline Y
-	ULY = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline Y
-	//samplesize = (atoi(mapstr.GetNextToken(", ").c_str()));	//sample size
-	//std::cout<<varname<<" sample size "<<samplesize<<std::endl;
-	//std::cout<<" sample size "<<samplesize<<std::endl;
-	//retrieve the detector from the vector.
-	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),varname);	
-	//update the Double vector
-	fBPMEventCuts.push_back(LLX);
-	fBPMEventCuts.push_back(ULX);
-	fBPMEventCuts.push_back(LLY);
-	fBPMEventCuts.push_back(ULY);
-	fBPMEventCuts.push_back(samplesize);
-	//std::cout<<"*****************************"<<std::endl;
-	//std::cout<<" Name from map "<<varname<<" Index ["<<det_index <<"] "<<std::endl;
-	fStripline[det_index].SetSingleEventCuts(fBPMEventCuts);
-	//fStripline[det_index].Print();
-	//std::cout<<"*****************************"<<std::endl;
-	
-      }
+    
     }
-
-    */
     
   }
+  for (Int_t i=0;i<fIntegrationPMT.size();i++)
+    fIntegrationPMT[i].SetEventCutMode(eventcut_flag);  
 
   fQwLumiErrorCount=0; //set the error counter to zero
 
@@ -454,33 +390,17 @@ Bool_t QwLumi::ApplySingleEventCuts(){
 
 Int_t QwLumi::GetEventcutErrorCounters(){//inherited from the VQwSubsystemParity; this will display the error summary
 
-  std::cout<<"*********QwLumi****************"<<std::endl;
-  
+  std::cout<<"*********QwLumi Error Summary****************"<<std::endl;
+  std::cout<<"Device name ||  Sample || SW_HW || Sequence || SameHW || EventCut\n";
   for(size_t i=0;i<fIntegrationPMT.size();i++){
     //std::cout<<"  IntegrationPMT ["<<i<<"] "<<std::endl;
     fIntegrationPMT[i].ReportErrorCounters();    
   } 
 
-  std::cout<<"Total failed events "<<  fQwLumiErrorCount<<std::endl;
- std::cout<<"*********End of error QwLumi reporting****************"<<std::endl;
+  //std::cout<<"Total failed events "<<  fQwLumiErrorCount<<std::endl;
+  //std::cout<<"*********End of error QwLumi reporting****************"<<std::endl;
 
   return 1;
-}
-
-Bool_t QwLumi::CheckRunningAverages(Bool_t bDisplayAVG){ //check the running averages of sub systems and passing argument decide print AVG or not.
-
-  Bool_t status=kTRUE;;
-
-  
-  
-  std::cout<<" Printing Running AVG for IntegrationPMTs "<<std::endl;
-  for(size_t i=0;i<fIntegrationPMT.size();i++){
-    status&=fIntegrationPMT[i].CheckRunningAverages(bDisplayAVG);    
-  }
-
-
-  return status;
-
 }
 
 
@@ -815,3 +735,10 @@ VQwSubsystem*  QwLumi::Copy()
   TheCopy->Copy(this);
   return TheCopy;
 }
+
+void QwLumi::Calculate_Running_Average(){
+
+};
+void QwLumi::Do_RunningSum(){
+
+};

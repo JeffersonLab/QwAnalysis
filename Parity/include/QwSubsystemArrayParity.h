@@ -43,12 +43,17 @@ class QwSubsystemArrayParity:  public QwSubsystemArray {
   void Sum(QwSubsystemArrayParity &value1, QwSubsystemArrayParity &value2);
   void Difference(QwSubsystemArrayParity &value1, QwSubsystemArrayParity &value2);
   void Ratio(QwSubsystemArrayParity &numer, QwSubsystemArrayParity &denom);
+  void Calculate_Running_Average();
+  void Do_RunningSum();//calculate the running sum at event level
   Bool_t ApplySingleEventCuts();
   Int_t GetEventcutErrorCounters();
-  Bool_t CheckRunningAverages(Bool_t ); //check the running averages of sub systems and passing argument decide print AVG or not
-
+ 
  public:
   std::vector<TString> sFailedSubsystems;
+  //Int_t fSubsystem_Error_Flag;
+  //static const Int_t kErrorFlag_Helicity=0x2;   // in Decimal 2. Helicity bit faliure
+  //static const Int_t kErrorFlag_Beamline=0x4;    // in Decimal 4.  Beamline faliure
+  
 
 };
 

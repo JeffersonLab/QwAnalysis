@@ -169,6 +169,19 @@ void QwSubsystemArrayParity::Difference(QwSubsystemArrayParity &value1, QwSubsys
   }
 };
 
+void QwSubsystemArrayParity::Calculate_Running_Average(){
+   for (iterator subsys = begin(); subsys != end(); ++subsys) {
+    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
+    subsys_parity->Calculate_Running_Average();
+  }
+
+}
+void QwSubsystemArrayParity::Do_RunningSum(){
+   for (iterator subsys = begin(); subsys != end(); ++subsys) {
+    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
+    subsys_parity->Do_RunningSum();
+  }
+};
 
 
 void QwSubsystemArrayParity::Ratio(QwSubsystemArrayParity &numer, QwSubsystemArrayParity &denom )
@@ -211,6 +224,7 @@ void QwSubsystemArrayParity::Ratio(QwSubsystemArrayParity &numer, QwSubsystemArr
 Bool_t QwSubsystemArrayParity::ApplySingleEventCuts(){
   Int_t CountFalse;
   Bool_t status;
+  //fSubsystem_Error_Flag=0;//set the error flag
   VQwSubsystemParity *subsys_parity;
   CountFalse=0;
   //std::cout<<" here in QwSubsystemArrayParity::SingleEventCut()"<<std::endl;
@@ -235,32 +249,7 @@ Bool_t QwSubsystemArrayParity::ApplySingleEventCuts(){
 }
 
 
-Bool_t QwSubsystemArrayParity::CheckRunningAverages(Bool_t bDiplayAVG){ //check the running averages of sub systems and passing argument decide print AVG or not
-  Int_t CountFalse;
-  Bool_t status;
-  VQwSubsystemParity *subsys_parity;
-  CountFalse=0;
-  //std::cout<<" here in QwSubsystemArrayParity::SingleEventCut()"<<std::endl;
-  if (!empty()){
-    for (iterator subsys = begin(); subsys != end(); ++subsys){
-      subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
-      if (!subsys_parity->CheckRunningAverages(bDiplayAVG)) 
-      {
-	CountFalse++;
-	//update the sFailedSubsystem vector
-	std::cout<<" ** Failed Running AVG ** "<<" Subsystem name "<<((subsys)->get())->GetSubsystemName()<<std::endl;
-	//sFailedSubsystems.push_back(((subsys)->get())->GetSubsystemName());
-      }
-    }
-  }
-  if (CountFalse > 0)
-    status = false;
-  else
-    status = true;
 
- return status;
-}
- 
 
 Int_t QwSubsystemArrayParity::GetEventcutErrorCounters(){
 

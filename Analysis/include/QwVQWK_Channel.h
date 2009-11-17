@@ -51,7 +51,6 @@ class QwVQWK_Channel: public VQwDataElement {
     fMockAsymmetry = 0.0;
     fMockGaussianMean = 0.0;
     fMockGaussianSigma = 0.0;
-    fNumEvtsWithHWErrors=0;//init error counters
     fNumEvtsWithEventCutsRejected=0;//init error counters
     fADC_Same_NumEvt=0;//init HW_Check counters
     fPrev_HardwareBlockSum=0;//init HW_Check counters
@@ -59,6 +58,15 @@ class QwVQWK_Channel: public VQwDataElement {
     if(datatosave=="raw") fDataToSave=kRaw;
     else
       if(datatosave=="derived") fDataToSave=kDerived;
+
+    fGoodEventCount=0;//initialize the event counter
+    fRunning_sum=0;
+    fRunning_sum_square=0;
+    //init error counters//
+    fErrorCount_sample=0;//for sample size check 
+    fErrorCount_SW_HW=0;//HW_sum==SW_sum check
+    fErrorCount_Sequence=0;//sequence number check
+    fErrorCount_SameHW=0;//check to see ADC returning same HW value 
     return;
   };
 
@@ -70,10 +78,8 @@ class QwVQWK_Channel: public VQwDataElement {
   void  ClearEventData();
 
   void ReportErrorCounters();//This will display the error summary for each device
-  void UpdateHWErrorCount(){//Update error counter for HW faliure
-    fNumEvtsWithHWErrors++;
-  }
-
+  
+  
   void UpdateEventCutErrorCount(){//Update error counter for event cut faliure
     fNumEvtsWithEventCutsRejected++;
   }
@@ -96,11 +102,17 @@ class QwVQWK_Channel: public VQwDataElement {
   void Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom);
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
+  void Calculate_Running_Average();//passe the current event count in the run to calculate running average
+  void Do_RunningSum();
 
   Bool_t MatchSequenceNumber(size_t seqnum);
   Bool_t MatchNumberOfSamples(size_t numsamp);
-  Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
+  Bool_t ApplySingleEventCuts(Double_t LL,Double_t UL);//check values read from modules are at desired level
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+
+  void SetEventCutMode(Int_t bcuts){
+    bEVENTCUTMODE=bcuts;
+  }
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
@@ -126,7 +138,7 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t GetCalibrationFactor(){return fCalibrationFactor;};
 
   // formarly known as IsGoodEvent()
-  Bool_t ApplyHWChecks(); //Check for harware errors in the devices and this is replaced for IsGoodEvent() routine
+  Int_t ApplyHWChecks(); //Check for harware errors in the devices and this is replaced for IsGoodEvent() routine. This will return the device error code.
 
   void Copy(VQwDataElement *source);
 
@@ -182,14 +194,43 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t fMockGaussianMean;
   Double_t fMockGaussianSigma;
 
-  Int_t fNumEvtsWithHWErrors;/*! Counts the HW falied events */
+  
   Int_t fNumEvtsWithEventCutsRejected;/*! Counts the Event cut rejected events */
+
+  //set of error counters for each HW test.
+  
+  Int_t fErrorCount_sample;//for sample size check
+  Int_t fErrorCount_SW_HW;//HW_sum==SW_sum check
+  Int_t fErrorCount_Sequence;//sequence number check
+  Int_t fErrorCount_SameHW;//check to see ADC returning same HW value
+  
+
+  static const Int_t kErrorFlag_sample=0x2;   // in Decimal 2.  for sample size check
+  static const Int_t kErrorFlag_SW_HW=0x4;    // in Decimal 4.  HW_sum==SW_sum check
+  static const Int_t kErrorFlag_Sequence=0x8; // in Decimal 8.  sequence number check
+  static const Int_t kErrorFlag_SameHW=0x10;   //in Decimal 16.  check to see ADC returning same HW value
+  static const Int_t kErrorFlag_EventCut_L=0x20;   //in Decimal 32.  check to see ADC falied lower limit of the event cut
+  static const Int_t kErrorFlag_EventCut_U=0x40;   //in Decimal 64  check to see ADC falied upper limit of the event cut
+  
+  
+  
+  Int_t fDeviceErrorCode;/*! Unique error code for HW failed beam line devices */
 
 
   Int_t fADC_Same_NumEvt;/*! Keep track of how many events with same ADC value returned.*/
   Int_t fSequenceNo_Prev;/* ! Keep the sequence number of the last event */
   Int_t fSequenceNo_Counter;/* ! Internal counter to keep track of the sequence number */
   Double_t fPrev_HardwareBlockSum;/*! Previos Module-based sum of the four sub-blocks */
+
+  Double_t fRunning_sum;//Running sum for the device 
+  Double_t fRunning_sum_square;//Running sum square for the device 
+  Double_t fAverage_n;/* Running average for the device !*/
+  Double_t fAverage_n_square;/* Running average square for the device !*/
+
+  Int_t fGoodEventCount;//counts the HW and event check passed events
+
+  Int_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
+  
   
 
 

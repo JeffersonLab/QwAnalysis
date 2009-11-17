@@ -32,10 +32,6 @@ void  QwIntegrationPMT::InitializeChannel(TString name, TString datatosave)
   SetPedestal(0.);
   SetCalibrationFactor(1.);
   fTriumf_ADC.InitializeChannel(name,datatosave);
-  counter=0; //used to validate sequence number in the IsGoodEvent()
-  Event_Counter=0;//used to calculate the running AVG 
-  fIntegrationPMT_Running_AVG=0;
-  fIntegrationPMT_Running_AVG_square=0;
   SetElementName(name);
   return;
 };
@@ -89,14 +85,8 @@ void QwIntegrationPMT::EncodeEventData(std::vector<UInt_t> &buffer)
 void  QwIntegrationPMT::ProcessEvent()
 {
   
-  if(ApplyHWChecks())
-    {
-      //std::cout<<"***********8Process Event()*************"<<std::endl;
-      fTriumf_ADC.ProcessEvent();
-      fGoodEvent=kTRUE;
-    } 
-  else
-    fGoodEvent=kFALSE; 
+  fTriumf_ADC.ProcessEvent();
+  
  
   return;
 };
@@ -105,14 +95,8 @@ Bool_t QwIntegrationPMT::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;	
 
-  if (fDevice_flag != -1){// if fDevice_flag is -1  then do not check for hardware check on this IntegrationPMT. Since this device is not on the event cut file.
-    //fEventIsGood&=fTriumf_ADC.MatchNumberOfSamples(fSampleSize);//check the sample size is correct
-    fEventIsGood&=fTriumf_ADC.ApplyHWChecks();//will check for consistancy between HWSUM and SWSUM also check for sample size
-
-  }else
-    if (bDEBUG) std::cout<<GetElementName()<<" Ignored IntegrationPMT "<<std::endl;  
-
-  
+    fDeviceErrorCode=fTriumf_ADC.ApplyHWChecks();//will check for consistancy between HWSUM and SWSUM also check for sample size
+    fEventIsGood=(fDeviceErrorCode & 0x0);//if no HW error return true 
  
   
   return fEventIsGood;  
@@ -136,46 +120,27 @@ void QwIntegrationPMT::SetDefaultSampleSize(Int_t sample_size){
 //*/  
 
 /********************************************************/
-Bool_t QwIntegrationPMT::ApplySingleEventCuts(){
-  //std::cout<<" QwIntegrationPMT::SingleEventCuts() "<<std::endl;
-  Bool_t status=kTRUE;
-  //if (status)
-  //std::cout<<" Seq_num (IntegrationPMT) "<<fTriumf_ADC.GetSequenceNumber()<<std::endl;
+Bool_t QwIntegrationPMT::ApplySingleEventCuts(){ 
 
-   
-
-  if (fGoodEvent){// if the IntegrationPMT harware is good
-    if (fDevice_flag==1){// if fDevice_flag==1 then perform the event cut limit test	  
+  
+//std::cout<<" QwBCM::SingleEventCuts() "<<std::endl;
+  Bool_t status=kTRUE;   
+  ApplyHWChecks();//first apply HW checks and update HW  error flags.
+  
+  if (fDevice_flag==1){// if fDevice_flag==1 then perform the event cut limit test	  
     
-	if (fTriumf_ADC.GetHardwareSum()<=fULimit && fTriumf_ADC.GetHardwareSum()>=fLLimit){ //I need to think about checking the limit of negative values (I think current limits have to be set backwards for -ve values)
-	  Event_Counter++;//Increment the counter, it is a good event.
-
-	  //calculate the running AVG
-	  fIntegrationPMT_Running_AVG=(((Event_Counter-1)*fIntegrationPMT_Running_AVG)/Event_Counter +  fTriumf_ADC.GetHardwareSum()/Event_Counter); //this is the running avg of the IntegrationPMT
-	  fIntegrationPMT_Running_AVG_square=(((Event_Counter-1)*fIntegrationPMT_Running_AVG_square)/Event_Counter +  fTriumf_ADC.GetHardwareSum()*fTriumf_ADC.GetHardwareSum()/Event_Counter); //this is the running avg squre of the IntegrationPMT
-	  status&=kTRUE;
-	  //std::cout<<" IntegrationPMT Sample size "<<fTriumf_ADC.GetNumberOfSamples()<<std::endl;
-	}
-	else{
-	  fTriumf_ADC.UpdateEventCutErrorCount();//update event cut falied counts
-	  if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fTriumf_ADC.GetHardwareSum();
-	  status&=kFALSE;//kTRUE;//kFALSE;
-	}
-      }else
-	status &=kTRUE;
-
-      //if (!status)
-      // std::cout<<"QwIntegrationPMT::"<<GetElementName()<<" event cuts falied "<<std::endl;
-  }
-  else{
-    fTriumf_ADC.UpdateHWErrorCount();//update HW falied counter
-    if (bDEBUG) std::cout<<" Hardware failed ";
-    status&=kFALSE;
-  }
-    
-
-
-
+    //if (fTriumf_ADC.GetHardwareSum()<=fULimit && fTriumf_ADC.GetHardwareSum()>=fLLimit){ // Check event cuts + HW check status
+    if (fTriumf_ADC.ApplySingleEventCuts(fLLimit,fULimit)){    
+      status=kTRUE;
+      //std::cout<<" BCM Sample size "<<fTriumf_ADC.GetNumberOfSamples()<<std::endl;
+    }
+    else{
+      fTriumf_ADC.UpdateEventCutErrorCount();//update event cut falied counts
+      if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fTriumf_ADC.GetHardwareSum();
+      status&=kFALSE;//kTRUE;//kFALSE;
+    }
+  }else
+    status =kTRUE;     
 
 
   return status;
@@ -188,49 +153,6 @@ Int_t QwIntegrationPMT::GetEventcutErrorCounters(){// report number of events fa
 
   return 1;
 }
-
-/********************************************************/
-
-Bool_t QwIntegrationPMT::CheckRunningAverages(Bool_t bDisplayAVG){
-  Bool_t status;
-
-  Double_t fRunning_sigma;
-
-  if (!(fULimit==0 && fLLimit==0)){// if samplesize is -1 then this IntegrationPMT is not in the eventcut list ignore it.
-    if (fIntegrationPMT_Running_AVG<=fULimit && fIntegrationPMT_Running_AVG>=fLLimit){
-      status = kTRUE;
-      fRunning_sigma=(fIntegrationPMT_Running_AVG_square-(fIntegrationPMT_Running_AVG*fIntegrationPMT_Running_AVG))/Event_Counter;
-      if (bDisplayAVG)
-	std::cout<<" Running AVG "<<GetElementName()<<" current running AVG "<<fIntegrationPMT_Running_AVG<<" current running AVG^2: "<<fIntegrationPMT_Running_AVG_square<<"\n Uncertainty in mean "<<fRunning_sigma<<std::endl;
-    }
-    else{
-      if (bDisplayAVG)
-	std::cout<<" QwIntegrationPMT::"<<GetElementName()<<" current running AVG "<<fIntegrationPMT_Running_AVG<<" is out of range ! current running AVG^2: "<<fIntegrationPMT_Running_AVG_square<<std::endl;
-      status = kFALSE;
-    }
-  }
-  else
-    status = kTRUE;
-      
-  return status;
-};
-
-void QwIntegrationPMT::CalculateRunningAverages(){
-  
-  //calculate the running AVG
-  fIntegrationPMT_Running_AVG=(((Event_Counter-1)*fIntegrationPMT_Running_AVG)/Event_Counter +  fTriumf_ADC.GetHardwareSum()/Event_Counter); //this is the running avg of the IntegrationPMT
-  fIntegrationPMT_Running_AVG_square=(((Event_Counter-1)*fIntegrationPMT_Running_AVG_square)/Event_Counter +  fTriumf_ADC.GetHardwareSum()*fTriumf_ADC.GetHardwareSum()/Event_Counter); //this is the running avg squre of the IntegrationPMT
- 
-};
-
-/********************************************************/
-
-void QwIntegrationPMT::ResetRunningAverages(){
-  std::cout<<"QwIntegrationPMT::"<<GetElementName()<<" current running AVG "<<fIntegrationPMT_Running_AVG<<" is out of range ! current running AVG^2 "<<fIntegrationPMT_Running_AVG_square<<std::endl;
-  Event_Counter=0;
-  fIntegrationPMT_Running_AVG=0;
-  fIntegrationPMT_Running_AVG_square=0;
-};
 
 
 /********************************************************/
@@ -415,3 +337,10 @@ void  QwIntegrationPMT::Copy(VQwDataElement *source)
 }
 
 
+void QwIntegrationPMT::Calculate_Running_Average(){
+  fTriumf_ADC.Calculate_Running_Average();
+};
+
+void QwIntegrationPMT::Do_RunningSum(){
+  fTriumf_ADC.Do_RunningSum();
+};

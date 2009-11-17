@@ -76,7 +76,9 @@ class QwLumi : public VQwSubsystemParity{
   Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
-  Bool_t CheckRunningAverages(Bool_t ); //check the running averages of sub systems and passing argument decide print AVG or not.
+  
+  void Calculate_Running_Average();
+  void Do_RunningSum(); 
   
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);

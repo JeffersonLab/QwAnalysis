@@ -92,7 +92,6 @@ class QwHelicity : public VQwSubsystemParity{
   Int_t LoadEventCuts(TString  filename);//Loads event cuts applicabale to QwHelicity class, derived from VQwSubsystemParity
   Bool_t ApplySingleEventCuts();//Apply event cuts in the QwHelicity class, derived from VQwSubsystemParity
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure, derived from VQwSubsystemParity
-  Bool_t CheckRunningAverages(Bool_t ); //check the running averages of sub systems and passing argument decide print AVG or not., derived from VQwSubsystemParity
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id,
 				   UInt_t* buffer, UInt_t num_words);
@@ -132,6 +131,8 @@ class QwHelicity : public VQwSubsystemParity{
   void Scale(Double_t factor){return;};
   void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
   void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
+  void Calculate_Running_Average();
+  void Do_RunningSum();
   // end of "empty" functions
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);

@@ -34,7 +34,7 @@ class QwBPMStripline : public VQwDataElement{
 
   void  InitializeChannel(TString name, Bool_t ROTATED);
   void  ClearEventData();
-  void ReportErrorCounters();
+  
 
   void  SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t meanY, Double_t sigmaY);
   void  RandomizeEventData(int helicity);
@@ -49,10 +49,8 @@ class QwBPMStripline : public VQwDataElement{
   Int_t SetSingleEventCuts(std::vector<Double_t> &);
   void SetDefaultSampleSize(Int_t sample_size);
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-
-  void ResetRunningAverages();//will reset the average values and event counter
-  void CalculateRunningAverages();//calculate running averages for the BCM
-  Bool_t CheckRunningAverages(Bool_t bDisplayAVG);//check the avg values are within the event cut limits.
+  void SetEventCutMode(Int_t bcuts);
+  
 
   void Copy(VQwDataElement *source);
 
@@ -64,6 +62,9 @@ class QwBPMStripline : public VQwDataElement{
   void Difference(QwBPMStripline &value1, QwBPMStripline &value2);
   void Ratio(QwBPMStripline &numer, QwBPMStripline &denom);
   void Scale(Double_t factor);
+ 
+  void Calculate_Running_Average();
+  void Do_RunningSum(); 
 
   void SetOffset(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset);
   UInt_t GetSubElementIndex(TString subname);
@@ -101,29 +102,24 @@ class QwBPMStripline : public VQwDataElement{
 
 
   Double_t fULimitX, fLLimitX, fULimitY, fLLimitY;//this sets the upper and lower limits on the X & Y of the BPM stripline
-  Int_t fSampleSize;
-  Int_t fSequenceNo_Prev;//used to validate sequence number in the IsGoodEvent()
-  Int_t counter;//used to validate sequence number in the IsGoodEvent()
-
-
+ 
   QwVQWK_Channel fWire[4];
   QwVQWK_Channel fWSum;
   QwVQWK_Channel fRelPos[2];
-  Double_t fRelPos_Running_AVG[2];//BPM running AVG
-  Double_t fRelPos_Running_AVG_square[2];//BPM running AVG square
+  
+  
   /* These channels contain the beam position within the frame of the BPM*/
   QwVQWK_Channel fAbsPos[3];
   
-  Int_t Event_Counter;
-
+    
   
-  Double_t fPrevious_HW_Sum[4];//stores the last event's hardware sum.
-  Int_t fHW_Sum_Stuck_Counter[4];//increment this if HW_sum is stuck with one value
 
   Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check 
-
+  Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
 
   const static Bool_t bDEBUG=kFALSE;//debugging display purposes
+
+  Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
 
   /* contains the beam position in the absolute frame defined as found reference...*/
 

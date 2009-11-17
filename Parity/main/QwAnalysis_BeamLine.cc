@@ -34,6 +34,8 @@
 #include "TApplication.h"
 #include <boost/shared_ptr.hpp>
 
+
+
 Bool_t kInQwBatchMode = kFALSE;
 
 ///
@@ -45,7 +47,6 @@ int main(Int_t argc,Char_t* argv[])
   Bool_t bHelicity=kTRUE;
   Bool_t bTree=kTRUE;
   Bool_t bHisto=kTRUE;
-  Bool_t bEventCut=kFALSE;//kTRUE;//set this to kTRUE to activate event cuts
 
   //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
   if (getenv("DISPLAY")==NULL
@@ -71,13 +72,15 @@ int main(Int_t argc,Char_t* argv[])
   QwDetectors.push_back(new QwHelicity("Helicity info"));
   QwDetectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_helicity.map");
   QwDetectors.GetSubsystem("Helicity info")->LoadInputParameters("");	
-  QwDetectors.GetSubsystem("Helicity info")->LoadEventCuts(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline_eventcuts.in");//Pass the correct cuts file. 
-   QwHelicityPattern QwHelPat(QwDetectors,4);
+  
+  
+ 
      
-   QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
-   QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline.map");
-
-
+  QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
+  QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline.map");//current map file is for the beamline.
+  QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_lumi_eventcuts.in");//Pass the correct cuts file. 
+  
+   QwHelicityPattern QwHelPat(QwDetectors,4);
 
   ///////
   Double_t evnum=0.0;
@@ -182,11 +185,15 @@ int main(Int_t argc,Char_t* argv[])
 	
 	  
 
-	//currently QwDetector.SingleEventCuts() will not block any invalid events:- Only for debugging 
-	if (QwDetectors.ApplySingleEventCuts() || !bEventCut){//The event pass the event cut constraints or can ignore it by setting bEventCut=kFALSE 
-	  //std::cout<<" *********** Valid event ************ "<<std::endl;
+	//currently QwHelicity::ApplySingleEventCuts() will check for actual helicity bit for 1 or 0 and falied the test if it is different
+	if (QwDetectors.ApplySingleEventCuts()){//The event pass the event cut constraints 
+	  
+	  //QwDetectors.Do_RunningSum();//accimulate the running sum to calculate the event base running AVG 
+
+	  
 	  if(bHelicity)
-	    QwHelPat.LoadEventData(QwDetectors);	  
+	    QwHelPat.LoadEventData(QwDetectors);
+	  	  
 
 	  if(bHisto) QwDetectors.FillHistograms();
 
@@ -212,7 +219,7 @@ int main(Int_t argc,Char_t* argv[])
 	    }
 	    QwHelPat.ClearEventData();
 	  }
-	}else{
+	}else{	  
 	  std::cout<<" Falied event "<<QwEvt.GetEventNumber()<<std::endl;
 	  falied_events_counts++;
 	}
@@ -221,10 +228,15 @@ int main(Int_t argc,Char_t* argv[])
 	  std::cerr << "Number of events processed so far: " 
 		    << QwEvt.GetEventNumber() << "\r";
 	}         
-      } 
+      }
+
+      
 
       std::cout << "Number of events processed so far: " 
 		<< QwEvt.GetEventNumber() << std::endl;
+
+      //This will print running averages 
+      QwHelPat.CalculateRunningAverage();//this will calculate running averages for Asymmetries and Yields per quartet
       timer.Stop();
 
       /*  Write to the root file, being sure to delete the old cycles  *
@@ -250,14 +262,13 @@ int main(Int_t argc,Char_t* argv[])
       
 
      
-      if (!bEventCut)
-	std::cout<<"Event cuts turned off! "<<std::endl;
-      else{
-	QwHelPat.Print();
-	QwDetectors.CheckRunningAverages(kTRUE);//check running averages
-	QwDetectors.GetEventcutErrorCounters();//print the event cut error summery for each sub system
-      }
-      std::cout<<"Total events falied "<<falied_events_counts<< std::endl;      
+     
+      //QwHelPat.Print();	
+    
+      //QwDetectors.Calculate_Running_Average();//this will calculate running averages for Yields per event basis
+      QwDetectors.GetEventcutErrorCounters();//print the event cut error summery for each sub system
+      std::cout<<"QwAnalysis_Beamline Total events falied "<<falied_events_counts<< std::endl;     
+     
       PrintInfo(timer);
       
     } //end of run loop
