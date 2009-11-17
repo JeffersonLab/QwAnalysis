@@ -24,7 +24,6 @@
 #include "QwHistogramHelper.h"
 #include "VQwSubsystem.h"
 #include "QwBeamLine.h"
-
 #include "QwLumi.h"
 
 #include "VQwDataElement.h"
@@ -32,6 +31,7 @@
 #include "QwSubsystemArrayParity.h"
 #include "QwHelicityPattern.h"
 #include "QwScanner.h"
+
 
 void PrintInfo(TStopwatch& timer);
 

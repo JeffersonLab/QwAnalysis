@@ -80,6 +80,8 @@ int main(Int_t argc,Char_t* argv[])
   QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline.map");//current map file is for the beamline.
   QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_lumi_eventcuts.in");//Pass the correct cuts file. 
   
+
+  
    QwHelicityPattern QwHelPat(QwDetectors,4);
 
   ///////

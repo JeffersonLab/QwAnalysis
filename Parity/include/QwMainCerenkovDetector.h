@@ -37,7 +37,6 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   Int_t LoadEventCuts(TString  filename);
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings 
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-  Bool_t CheckRunningAverages(Bool_t ); //check the running averages of sub systems and passing argument decide print AVG or not.
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
@@ -88,7 +87,8 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
     return status;
   };
 
-
+  void Calculate_Running_Average();
+  void Do_RunningSum(); 
 
 
  protected:

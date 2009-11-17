@@ -215,10 +215,16 @@ Int_t QwMainCerenkovDetector::GetEventcutErrorCounters(){// report number of eve
 
 //*****************************************************************
 
-Bool_t QwMainCerenkovDetector::CheckRunningAverages(Bool_t bDisplayAVG){ //check the running averages of sub systems and passing argument decide print AVG or not.
+void QwMainCerenkovDetector::Calculate_Running_Average(){
 
-  return kTRUE;
-}
+};
+
+
+//*****************************************************************
+
+void QwMainCerenkovDetector::Do_RunningSum(){
+  
+}; 
 
 //*****************************************************************
 
