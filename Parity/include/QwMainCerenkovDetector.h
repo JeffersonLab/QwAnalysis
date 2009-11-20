@@ -1,5 +1,5 @@
 /**********************************************************\
-* File: QwQuartzBar.h                                      *
+* File: QwMainCerenkovDetector.h                           *
 *                                                          *
 * Author: P. M. King                                       *
 * Time-stamp: <2007-05-08 15:40>                           *
@@ -8,8 +8,8 @@
 ///
 /// \ingroup QwAnalysis_ADC
 
-#ifndef __QWQUARTZBAR__
-#define __QWQUARTZBAR__
+#ifndef __QWMAINCERENKOVDETECTOR__
+#define __QWMAINCERENKOVDETECTOR__
 
 #include <vector>
 #include <TTree.h>
@@ -19,15 +19,15 @@
 #include "QwVQWK_Module.h"
 
 
-class QwQuartzBar: public VQwSubsystemParity {
+class QwMainCerenkovDetector: public VQwSubsystemParity {
   /******************************************************************
-   *  Class: QwQuartzBar
+   *  Class: QwMainCerenkovDetector
    *
    *
    ******************************************************************/
  public:
-  QwQuartzBar(TString region_tmp):VQwSubsystemParity(region_tmp) { };
-  ~QwQuartzBar() {
+  QwMainCerenkovDetector(TString region_tmp):VQwSubsystemParity(region_tmp) { };
+  ~QwMainCerenkovDetector() {
     DeleteHistograms();
   };
 
