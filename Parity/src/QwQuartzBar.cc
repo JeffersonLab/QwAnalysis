@@ -1,15 +1,15 @@
 /**********************************************************\
-* File: QwMainCerenkovDetector.cc                                   *
+* File: QwQuartzBar.cc                                   *
 *                                                          *
 * Author: P. M. King                                       *
 * Time-stamp: <2007-05-08 15:40>                           *
 \**********************************************************/
 
-#include "QwMainCerenkovDetector.h"
+#include "QwQuartzBar.h"
 
 #include <sstream>
 
-Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile){
+Int_t QwQuartzBar::LoadChannelMap(TString mapfile){
   TString varname, varvalue;
   TString modtype, dettype, name;
   Int_t modnum, channum;
@@ -52,15 +52,15 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile){
   return 0;
 };
 
-Int_t QwMainCerenkovDetector::LoadEventCuts(TString filename){
+Int_t QwQuartzBar::LoadEventCuts(TString filename){
   return 0;
 };
 
 
 
-Int_t QwMainCerenkovDetector::LoadInputParameters(TString pedestalfile)
+Int_t QwQuartzBar::LoadInputParameters(TString pedestalfile)
 {
-  //   stub function = QwMainCerenkovDetector::LoadInputParameters
+  //   stub function = QwQuartzBar::LoadInputParameters
   //added by Buddhini++++January 16, 2009
   Bool_t ldebug=kFALSE;
   TString varname;
@@ -98,14 +98,14 @@ Int_t QwMainCerenkovDetector::LoadInputParameters(TString pedestalfile)
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-void  QwMainCerenkovDetector::ClearEventData(){
+void  QwQuartzBar::ClearEventData(){
   for (size_t i=0; i<fADC_Data.size(); i++){
     fADC_Data.at(i).ClearEventData();
   }
 };
 
 /********************************************************/
-void QwMainCerenkovDetector::SetRandomEventParameters(Double_t mean, Double_t sigma)
+void QwQuartzBar::SetRandomEventParameters(Double_t mean, Double_t sigma)
 {
   // Set parameters on all QwVQWK_Modules
   for (size_t i = 0; i < fADC_Data.size(); i++)
@@ -113,7 +113,7 @@ void QwMainCerenkovDetector::SetRandomEventParameters(Double_t mean, Double_t si
   return;
 };
 
-void QwMainCerenkovDetector::SetRandomEventAsymmetry(Double_t asymmetry)
+void QwQuartzBar::SetRandomEventAsymmetry(Double_t asymmetry)
 {
   // Set asymmetry on all QwVQWK_Modules
   for (size_t i = 0; i < fADC_Data.size(); i++)
@@ -121,7 +121,7 @@ void QwMainCerenkovDetector::SetRandomEventAsymmetry(Double_t asymmetry)
   return;
 };
 
-void QwMainCerenkovDetector::RandomizeEventData(int helicity)
+void QwQuartzBar::RandomizeEventData(int helicity)
 {
   // Randomize all QwVQWK_Modules
   for (size_t i = 0; i < fADC_Data.size(); i++)
@@ -129,7 +129,7 @@ void QwMainCerenkovDetector::RandomizeEventData(int helicity)
 }
 
 //*****************************************************************
-void QwMainCerenkovDetector::EncodeEventData(std::vector<UInt_t> &buffer)
+void QwQuartzBar::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   std::vector<UInt_t> elements;
   elements.clear();
@@ -164,7 +164,7 @@ void QwMainCerenkovDetector::EncodeEventData(std::vector<UInt_t> &buffer)
 }
 
 //*****************************************************************
-Int_t QwMainCerenkovDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
+Int_t QwQuartzBar::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   Int_t index = GetSubbankIndex(roc_id,bank_id);
   if (index>=0 && num_words>0){
@@ -180,7 +180,7 @@ Int_t QwMainCerenkovDetector::ProcessConfigurationBuffer(const UInt_t roc_id, co
 
 
 
-Int_t QwMainCerenkovDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words){
+Int_t QwQuartzBar::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words){
   Int_t index = GetSubbankIndex(roc_id,bank_id);
 
   if (index>=0 && num_words>0){
@@ -193,7 +193,7 @@ Int_t QwMainCerenkovDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UIn
 						       num_words-words_read);
     }
     if (num_words != words_read){
-      std::cerr << "QwMainCerenkovDetector::ProcessEvBuffer:  There were "
+      std::cerr << "QwQuartzBar::ProcessEvBuffer:  There were "
 		<< num_words-words_read
 		<< " leftover words after decoding everything we recognize."
 		<< std::endl;
@@ -202,12 +202,12 @@ Int_t QwMainCerenkovDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UIn
   return 0;
 };
 
-Bool_t QwMainCerenkovDetector::ApplySingleEventCuts(){
+Bool_t QwQuartzBar::ApplySingleEventCuts(){
   //For the QuartzBar no general routine to check validity
   return true;
 };
 
-Int_t QwMainCerenkovDetector::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+Int_t QwQuartzBar::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
   
   return 1;
 };
@@ -215,23 +215,11 @@ Int_t QwMainCerenkovDetector::GetEventcutErrorCounters(){// report number of eve
 
 //*****************************************************************
 
-void QwMainCerenkovDetector::Calculate_Running_Average(){
-
-};
 
 
-//*****************************************************************
-
-void QwMainCerenkovDetector::Do_RunningSum(){
-  
-}; 
-
-//*****************************************************************
-
-
-void  QwMainCerenkovDetector::ProcessEvent()
+void  QwQuartzBar::ProcessEvent()
 {
-  // stub function= QwMainCerenkovDetector::ProcessEvent()
+  // stub function= QwQuartzBar::ProcessEvent()
   // Buddhini & Julie, Jan 16, 2009
 
   for (size_t i = 0; i < fADC_Data.size(); i++) {
@@ -242,20 +230,20 @@ void  QwMainCerenkovDetector::ProcessEvent()
 };
 
 
-void  QwMainCerenkovDetector::ConstructHistograms(TDirectory *folder, TString &prefix){
+void  QwQuartzBar::ConstructHistograms(TDirectory *folder, TString &prefix){
   for (size_t i = 0; i < fADC_Data.size(); i++) {
     fADC_Data.at(i).ConstructHistograms(folder, prefix);
   }
 };
 
-void  QwMainCerenkovDetector::FillHistograms()
+void  QwQuartzBar::FillHistograms()
 {
   for (size_t i = 0; i < fADC_Data.size(); i++) {
     fADC_Data.at(i).FillHistograms();
   }
 };
 
-void  QwMainCerenkovDetector::DeleteHistograms()
+void  QwQuartzBar::DeleteHistograms()
 {
   for (size_t i = 0; i < fADC_Data.size(); i++)
     fADC_Data.at(i).DeleteHistograms();
@@ -264,21 +252,21 @@ void  QwMainCerenkovDetector::DeleteHistograms()
 }
 
 
-void  QwMainCerenkovDetector::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
+void  QwQuartzBar::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
   for (size_t i = 0; i < fADC_Data.size(); i++) {
     fADC_Data.at(i).ConstructBranchAndVector(tree, prefix, values);
   }
 };
 
-void  QwMainCerenkovDetector::FillTreeVector(std::vector<Double_t> &values)
+void  QwQuartzBar::FillTreeVector(std::vector<Double_t> &values)
 {
   for (size_t i = 0; i < fADC_Data.size(); i++) {
     fADC_Data.at(i).FillTreeVector(values);
   }
 };
 
-QwVQWK_Channel* QwMainCerenkovDetector::GetChannel(const TString name)
+QwVQWK_Channel* QwQuartzBar::GetChannel(const TString name)
 {
   if (! fADC_Data.empty()) {
     for (std::vector<QwVQWK_Module>::iterator module = fADC_Data.begin(); module != fADC_Data.end(); ++module) {
@@ -289,16 +277,16 @@ QwVQWK_Channel* QwMainCerenkovDetector::GetChannel(const TString name)
   return 0;
 };
 //****************************************************************Added *By Buddhini
-void  QwMainCerenkovDetector::Copy(VQwSubsystem *source)
+void  QwQuartzBar::Copy(VQwSubsystem *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {
-      QwMainCerenkovDetector* input = ((QwMainCerenkovDetector*) source);
+      QwQuartzBar* input = ((QwQuartzBar*) source);
       this->fADC_Data.resize(input->fADC_Data.size());
       for (size_t i = 0; i < this->fADC_Data.size(); i++)
         this->fADC_Data[i].Copy(&(input->fADC_Data[i]));
     } else {
-      TString loc = "Standard exception from QwMainCerenkovDetector::Copy = "
+      TString loc = "Standard exception from QwQuartzBar::Copy = "
         + source->GetSubsystemName() + " "
         + this->GetSubsystemName() + " are not of the same type";
       throw std::invalid_argument(loc.Data());
@@ -311,10 +299,10 @@ void  QwMainCerenkovDetector::Copy(VQwSubsystem *source)
   return;
 }
 
-VQwSubsystem*  QwMainCerenkovDetector::Copy()
+VQwSubsystem*  QwQuartzBar::Copy()
 {
-  // stub function= QwMainCerenkovDetector::Copy()
-  QwMainCerenkovDetector* TheCopy = new QwMainCerenkovDetector("Quartz bar Copy");
+  // stub function= QwQuartzBar::Copy()
+  QwQuartzBar* TheCopy = new QwQuartzBar("Quartz bar Copy");
   TheCopy->Copy(this);
   return TheCopy;
 }
@@ -322,7 +310,7 @@ VQwSubsystem*  QwMainCerenkovDetector::Copy()
 
 
 
-Bool_t  QwMainCerenkovDetector::Compare(VQwSubsystem *value)
+Bool_t  QwQuartzBar::Compare(VQwSubsystem *value)
 {
   Bool_t result = kTRUE;
   // Check whether the types are identical
@@ -330,19 +318,19 @@ Bool_t  QwMainCerenkovDetector::Compare(VQwSubsystem *value)
     result = kFALSE;
   } else {
     // Check whether the internal ADC module sizes are identical
-    QwMainCerenkovDetector* input = (QwMainCerenkovDetector*) value;
+    QwQuartzBar* input = (QwQuartzBar*) value;
     if (input->fADC_Data.size() != fADC_Data.size())
       result = kFALSE;
   }
   return result;
 }
 
-VQwSubsystem&  QwMainCerenkovDetector::operator= (VQwSubsystem *value)
+VQwSubsystem&  QwQuartzBar::operator= (VQwSubsystem *value)
 {
 
   if(Compare(value))
     {
-      QwMainCerenkovDetector* input = (QwMainCerenkovDetector*) value;
+      QwQuartzBar* input = (QwQuartzBar*) value;
       for (size_t i = 0; i < input->fADC_Data.size(); i++) {
 	this->fADC_Data.at(i) = input->fADC_Data.at(i);
       }
@@ -350,12 +338,12 @@ VQwSubsystem&  QwMainCerenkovDetector::operator= (VQwSubsystem *value)
   return *this;
 };
 
-VQwSubsystem&  QwMainCerenkovDetector::operator+=  ( VQwSubsystem *value)
+VQwSubsystem&  QwQuartzBar::operator+=  ( VQwSubsystem *value)
 {
   // Buddhini, January 14,2009.
   if(Compare(value))
     {
-      QwMainCerenkovDetector* input = (QwMainCerenkovDetector*) value ;
+      QwQuartzBar* input = (QwQuartzBar*) value ;
       for (size_t i = 0; i < input->fADC_Data.size(); i++) {
 	fADC_Data.at(i) += input->fADC_Data.at(i);
       }
@@ -363,12 +351,12 @@ VQwSubsystem&  QwMainCerenkovDetector::operator+=  ( VQwSubsystem *value)
   return *this;
 };
 
-VQwSubsystem&  QwMainCerenkovDetector::operator-=  ( VQwSubsystem *value)
+VQwSubsystem&  QwQuartzBar::operator-=  ( VQwSubsystem *value)
 {
   // Buddhini, January 14,2009.
   if(Compare(value))
     {
-      QwMainCerenkovDetector* input = (QwMainCerenkovDetector*) value;
+      QwQuartzBar* input = (QwQuartzBar*) value;
       for (size_t i = 0; i < input->fADC_Data.size(); i++) {
 	fADC_Data.at(i) -= input->fADC_Data.at(i);
       }
@@ -377,21 +365,21 @@ VQwSubsystem&  QwMainCerenkovDetector::operator-=  ( VQwSubsystem *value)
 };
 
 
-void QwMainCerenkovDetector::Sum(VQwSubsystem *value1,VQwSubsystem *value2){
+void QwQuartzBar::Sum(VQwSubsystem *value1,VQwSubsystem *value2){
   *this =  value1;
   *this += value2;
 };
 
-void QwMainCerenkovDetector::Difference(VQwSubsystem *value1,VQwSubsystem *value2){
+void QwQuartzBar::Difference(VQwSubsystem *value1,VQwSubsystem *value2){
   *this =  value1;
   *this -= value2;
 };
 
-void QwMainCerenkovDetector::Ratio(VQwSubsystem *numer,VQwSubsystem  *denom){
+void QwQuartzBar::Ratio(VQwSubsystem *numer,VQwSubsystem  *denom){
 
   if(Compare(numer) && Compare(denom)){
-    QwMainCerenkovDetector& numer1 = *(QwMainCerenkovDetector*)numer;
-    QwMainCerenkovDetector& denom1 = *(QwMainCerenkovDetector*)denom;
+    QwQuartzBar& numer1 = *(QwQuartzBar*)numer;
+    QwQuartzBar& denom1 = *(QwQuartzBar*)denom;
 
 
     if (fADC_Data.size() == numer1.fADC_Data.size()
@@ -400,9 +388,16 @@ void QwMainCerenkovDetector::Ratio(VQwSubsystem *numer,VQwSubsystem  *denom){
         fADC_Data.at(i).Ratio(numer1.fADC_Data.at(i), denom1.fADC_Data.at(i));
       }
     } else {
-      std::cerr << "QwMainCerenkovDetector::operator-=:  Problems!!!"
+      std::cerr << "QwQuartzBar::operator-=:  Problems!!!"
 		<< std::endl;
     }
   }
 };
 
+void QwQuartzBar::Calculate_Running_Average(){
+
+};
+void QwQuartzBar::Do_RunningSum(){
+
+};
+ 

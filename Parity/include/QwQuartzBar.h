@@ -1,5 +1,5 @@
 /**********************************************************\
-* File: QwMainCerenkovDetector.h                                      *
+* File: QwQuartzBar.h                                      *
 *                                                          *
 * Author: P. M. King                                       *
 * Time-stamp: <2007-05-08 15:40>                           *
@@ -8,8 +8,8 @@
 ///
 /// \ingroup QwAnalysis_ADC
 
-#ifndef __QWMAINCERENKOVDETECTOR__
-#define __QWMAINCERENKOVDETECTOR__
+#ifndef __QWQUARTZBAR__
+#define __QWQUARTZBAR__
 
 #include <vector>
 #include <TTree.h>
@@ -19,15 +19,15 @@
 #include "QwVQWK_Module.h"
 
 
-class QwMainCerenkovDetector: public VQwSubsystemParity {
+class QwQuartzBar: public VQwSubsystemParity {
   /******************************************************************
-   *  Class: QwMainCerenkovDetector
+   *  Class: QwQuartzBar
    *
    *
    ******************************************************************/
  public:
-  QwMainCerenkovDetector(TString region_tmp):VQwSubsystemParity(region_tmp) { };
-  ~QwMainCerenkovDetector() {
+  QwQuartzBar(TString region_tmp):VQwSubsystemParity(region_tmp) { };
+  ~QwQuartzBar() {
     DeleteHistograms();
   };
 
@@ -37,7 +37,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   Int_t LoadEventCuts(TString  filename);
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings 
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-
+  
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
   void  ClearEventData();
@@ -77,6 +77,8 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   void Sum(VQwSubsystem *value1, VQwSubsystem *value2);
   void Difference(VQwSubsystem *value1,VQwSubsystem *value2);
   void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
+  void Calculate_Running_Average();
+  void Do_RunningSum();
 
 
   Bool_t ApplyHWChecks(){//Check for harware errors in the devices
@@ -87,8 +89,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
     return status;
   };
 
-  void Calculate_Running_Average();
-  void Do_RunningSum(); 
+
 
 
  protected:
