@@ -32,7 +32,7 @@
 
 // Qweak headers
 #include "QwVQWK_Channel.h"
-#include "MQwSIS3801_Channel.h"
+#include "QwSIS3801_Channel.h"
 #include "QwEventBuffer.h"
 #include "QwSubsystemArrayParity.h"
 #include "QwSubsystemArrayTracking.h"

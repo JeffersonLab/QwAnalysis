@@ -1,30 +1,30 @@
 /**********************************************************\
-* File: MQwSIS3801_Channel.cc                              *
+* File: QwSIS3801_Channel.cc                              *
 *                                                          *
 * Author: J. Pan                                           *
 * Date:   Thu Sep 16 18:08:33 CDT 2009                     *
 \**********************************************************/
 
-#include "MQwSIS3801_Channel.h"
+#include "QwSIS3801_Channel.h"
 #include "QwHistogramHelper.h"
 #include <stdexcept>
 
 
-const Bool_t MQwSIS3801_Channel::kDEBUG = kFALSE;
+const Bool_t QwSIS3801_Channel::kDEBUG = kFALSE;
 
 
 /********************************************************/
-Int_t MQwSIS3801_Channel::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+Int_t QwSIS3801_Channel::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
 
   return 1;
 }
 
-void MQwSIS3801_Channel::ClearEventData()
+void QwSIS3801_Channel::ClearEventData()
 {
   fValue = 0;
 };
 
-void MQwSIS3801_Channel::RandomizeEventData(int helicity)
+void QwSIS3801_Channel::RandomizeEventData(int helicity)
 {
    
   Double_t mean = 300.0;
@@ -38,7 +38,7 @@ void MQwSIS3801_Channel::RandomizeEventData(int helicity)
 };
 
 
-Int_t MQwSIS3801_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index)
+Int_t QwSIS3801_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index)
 {
   UInt_t words_read = 0;
   if (IsNameEmpty()){
@@ -54,20 +54,20 @@ Int_t MQwSIS3801_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
 
   else
       {
-	std::cerr << "MQwSIS3801_Channel::ProcessEvBuffer: Not enough words!"
+	std::cerr << "QwSIS3801_Channel::ProcessEvBuffer: Not enough words!"
 		  << std::endl;
       }
   return words_read;
 };
 
-void MQwSIS3801_Channel::SetEventData(Double_t value){
+void QwSIS3801_Channel::SetEventData(Double_t value){
 
   this->fValue = (UInt_t)value; 
   //std::cout<<"fValue is set to: value = "<<value<<std::endl;
 
 }
 
-void MQwSIS3801_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
+void QwSIS3801_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   if (IsNameEmpty()) {
     //  This channel is not used, but is present in the data stream.
@@ -79,21 +79,21 @@ void MQwSIS3801_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
 };
 
 
-void MQwSIS3801_Channel::ProcessEvent()
+void QwSIS3801_Channel::ProcessEvent()
 {
   //scaler events processed here.
   return;
 };
 
 
-void MQwSIS3801_Channel::Print() const
+void QwSIS3801_Channel::Print() const
 {
   std::cout<<"***************************************"<<"\n";
-  std::cout<<"MQwSIS3801 channel: "<<GetElementName()<<"\n"<<"\n";
+  std::cout<<"QwSIS3801 channel: "<<GetElementName()<<"\n"<<"\n";
   return;
 }
 
-void  MQwSIS3801_Channel::ConstructHistograms(TDirectory *folder, TString &prefix){
+void  QwSIS3801_Channel::ConstructHistograms(TDirectory *folder, TString &prefix){
   //  If we have defined a subdirectory in the ROOT file, then change into it.
   if (folder != NULL) folder->cd();
 
@@ -111,7 +111,7 @@ void  MQwSIS3801_Channel::ConstructHistograms(TDirectory *folder, TString &prefi
   }
 };
 
-void  MQwSIS3801_Channel::FillHistograms(){
+void  QwSIS3801_Channel::FillHistograms(){
 
   size_t index=0;
   if (IsNameEmpty()){
@@ -125,7 +125,7 @@ void  MQwSIS3801_Channel::FillHistograms(){
 };
 
 
-void  MQwSIS3801_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
+void  QwSIS3801_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (IsNameEmpty()){
     //  This channel is not used, so skip setting up the tree.
@@ -141,15 +141,15 @@ void  MQwSIS3801_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix,
   }
 };
 
-void  MQwSIS3801_Channel::FillTreeVector(std::vector<Double_t> &values)
+void  QwSIS3801_Channel::FillTreeVector(std::vector<Double_t> &values)
 {
   if (IsNameEmpty()){
     //  This channel is not used, so skip setting up the tree.
   } else if (fTreeArrayNumEntries<=0){
-    std::cerr << "MQwSIS3801_Channel::FillTreeVector:  fTreeArrayNumEntries=="
+    std::cerr << "QwSIS3801_Channel::FillTreeVector:  fTreeArrayNumEntries=="
 	      << fTreeArrayNumEntries << std::endl;
   } else if (values.size() < fTreeArrayIndex+fTreeArrayNumEntries){
-    std::cerr << "MQwSIS3801_Channel::FillTreeVector:  values.size()=="
+    std::cerr << "QwSIS3801_Channel::FillTreeVector:  values.size()=="
 	      << values.size()
 	      << "; fTreeArrayIndex+fTreeArrayNumEntries=="
 	      << fTreeArrayIndex+fTreeArrayNumEntries
@@ -161,7 +161,7 @@ void  MQwSIS3801_Channel::FillTreeVector(std::vector<Double_t> &values)
 };
 
 
-MQwSIS3801_Channel& MQwSIS3801_Channel::operator= (const MQwSIS3801_Channel &value){
+QwSIS3801_Channel& QwSIS3801_Channel::operator= (const QwSIS3801_Channel &value){
   if (!IsNameEmpty()) {
     this->fValue  = value.fValue;
   }
@@ -169,37 +169,37 @@ MQwSIS3801_Channel& MQwSIS3801_Channel::operator= (const MQwSIS3801_Channel &val
 };
 
 
-MQwSIS3801_Channel& MQwSIS3801_Channel::operator+= (const MQwSIS3801_Channel &value){
+QwSIS3801_Channel& QwSIS3801_Channel::operator+= (const QwSIS3801_Channel &value){
   if (!IsNameEmpty()){
     this->fValue  += value.fValue;
   }
   return *this;
 };
 
-MQwSIS3801_Channel& MQwSIS3801_Channel::operator-= (const MQwSIS3801_Channel &value){
+QwSIS3801_Channel& QwSIS3801_Channel::operator-= (const QwSIS3801_Channel &value){
   if (!IsNameEmpty()){
     this->fValue  -= value.fValue;
   }
   return *this;
 };
 
-void MQwSIS3801_Channel::Sum(MQwSIS3801_Channel &value1, MQwSIS3801_Channel &value2){
+void QwSIS3801_Channel::Sum(QwSIS3801_Channel &value1, QwSIS3801_Channel &value2){
   *this =  value1;
   *this += value2;
 };
 
-void MQwSIS3801_Channel::Difference(MQwSIS3801_Channel &value1, MQwSIS3801_Channel &value2){
+void QwSIS3801_Channel::Difference(QwSIS3801_Channel &value1, QwSIS3801_Channel &value2){
   *this =  value1;
   *this -= value2;
 };
 
-void MQwSIS3801_Channel::Ratio(MQwSIS3801_Channel &numer, MQwSIS3801_Channel &denom){
+void QwSIS3801_Channel::Ratio(QwSIS3801_Channel &numer, QwSIS3801_Channel &denom){
   if (!IsNameEmpty()){
 
   }
 };
 
-void MQwSIS3801_Channel::Offset(Double_t offset)
+void QwSIS3801_Channel::Offset(Double_t offset)
 {
   if (!IsNameEmpty())
     {
@@ -208,7 +208,7 @@ void MQwSIS3801_Channel::Offset(Double_t offset)
 };
 
 
-void MQwSIS3801_Channel::Scale(Double_t scale)
+void QwSIS3801_Channel::Scale(Double_t scale)
 {
   if (!IsNameEmpty())
     {
@@ -218,7 +218,7 @@ void MQwSIS3801_Channel::Scale(Double_t scale)
 
 
 
-Bool_t MQwSIS3801_Channel::ApplySingleEventCuts(){
+Bool_t QwSIS3801_Channel::ApplySingleEventCuts(){
   
 
   return kTRUE;
@@ -226,19 +226,19 @@ Bool_t MQwSIS3801_Channel::ApplySingleEventCuts(){
 
 
 
-void MQwSIS3801_Channel::Copy(VQwDataElement *source)
+void QwSIS3801_Channel::Copy(VQwDataElement *source)
 {
     try
     {
      if(typeid(*source)==typeid(*this))
        {
-	 MQwSIS3801_Channel* input=((MQwSIS3801_Channel*)source);
+	 QwSIS3801_Channel* input=((QwSIS3801_Channel*)source);
 	 this->fElementName=input->fElementName;
 
        }
      else
        {
-	 TString loc="Standard exception from MQwSIS3801_Channel::Copy = "
+	 TString loc="Standard exception from QwSIS3801_Channel::Copy = "
 	   +source->GetElementName()+" "
 	   +this->GetElementName()+" are not of the same type";
 	 throw std::invalid_argument(loc.Data());
@@ -252,7 +252,7 @@ void MQwSIS3801_Channel::Copy(VQwDataElement *source)
     return;
 }
 
-void  MQwSIS3801_Channel::ReportErrorCounters(){
+void  QwSIS3801_Channel::ReportErrorCounters(){
     if (fNumEvtsWithHWErrors>0) 
       std::cout << "SIS3801 channel " << GetElementName() 
 		<< " had " << fNumEvtsWithHWErrors 

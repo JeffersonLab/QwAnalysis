@@ -1,12 +1,12 @@
 /**********************************************************\
-* File: MQwSIS3801_Channel.h                               *
+* File: QwSIS3801_Channel.h                               *
 *                                                          *
 * Author: J. Pan                                           *
 * Date:   Thu Sep 16 18:08:33 CDT 2009                     *
 \**********************************************************/
 
-#ifndef __MQwSIS3801_CHANNEL__
-#define __MQwSIS3801_CHANNEL__
+#ifndef __QwSIS3801_CHANNEL__
+#define __QwSIS3801_CHANNEL__
 
 #include <vector>
 #include "TTree.h"
@@ -30,14 +30,14 @@
 /// \ingroup QwAnalysis_ADC
 ///
 /// \ingroup QwAnalysis_BL
-class MQwSIS3801_Channel: public VQwDataElement {
+class QwSIS3801_Channel: public VQwDataElement {
 
  public:
-  MQwSIS3801_Channel() { };
-  MQwSIS3801_Channel(TString name){
+  QwSIS3801_Channel() { };
+  QwSIS3801_Channel(TString name){
     InitializeChannel(name);
   };
-  ~MQwSIS3801_Channel() {DeleteHistograms();};
+  ~QwSIS3801_Channel() {DeleteHistograms();};
 
   void  InitializeChannel(TString name){
     fValue = 0;
@@ -69,12 +69,12 @@ class MQwSIS3801_Channel: public VQwDataElement {
   Double_t  GetValue(){return fValue;};
 
 
-  MQwSIS3801_Channel& operator=  (const MQwSIS3801_Channel &value);
-  MQwSIS3801_Channel& operator+= (const MQwSIS3801_Channel &value);
-  MQwSIS3801_Channel& operator-= (const MQwSIS3801_Channel &value);
-  void Sum(MQwSIS3801_Channel &value1, MQwSIS3801_Channel &value2);
-  void Difference(MQwSIS3801_Channel &value1, MQwSIS3801_Channel &value2);
-  void Ratio(MQwSIS3801_Channel &numer, MQwSIS3801_Channel &denom);
+  QwSIS3801_Channel& operator=  (const QwSIS3801_Channel &value);
+  QwSIS3801_Channel& operator+= (const QwSIS3801_Channel &value);
+  QwSIS3801_Channel& operator-= (const QwSIS3801_Channel &value);
+  void Sum(QwSIS3801_Channel &value1, QwSIS3801_Channel &value2);
+  void Difference(QwSIS3801_Channel &value1, QwSIS3801_Channel &value2);
+  void Ratio(QwSIS3801_Channel &numer, QwSIS3801_Channel &denom);
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
 

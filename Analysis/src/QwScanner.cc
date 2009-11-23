@@ -115,7 +115,7 @@ Int_t QwScanner::LoadChannelMap(TString mapfile){
 
       else if (modtype=="SIS3801"){
         //std::cout<<"modnum="<<modnum<<"    "<<"fSCAs.size="<<fSCAs.size()<<std::endl;
-	if (modnum >= (Int_t) fSCAs.size())  fSCAs.resize(modnum+1, new MQwSIS3801_Module());
+	if (modnum >= (Int_t) fSCAs.size())  fSCAs.resize(modnum+1, new QwSIS3801_Module());
 	fSCAs.at(modnum)->SetChannel(channum, name);
 
       }
