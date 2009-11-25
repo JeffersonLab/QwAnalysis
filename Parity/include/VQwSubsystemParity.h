@@ -20,7 +20,7 @@
 /// \ingroup QwAnalysis_ADC
 ///
 /// \ingroup QwAnalysis_BL
-class VQwSubsystemParity : public VQwSubsystem {
+class VQwSubsystemParity : virtual public VQwSubsystem {
   /******************************************************************
    *  Class: VQwSubsystemBeamLine
    *         Virtual base class for the classes containing the

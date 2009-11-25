@@ -33,12 +33,10 @@ class QwDriftChamberHDC: public QwDriftChamber {
    ******************************************************************/
  public:
   QwDriftChamberHDC(TString region_tmp);
-
-  
-
-  
-
-  
+  ~QwDriftChamberHDC()
+    {
+      DeleteHistograms();
+    };
 
   /* Unique virtual member functions from QwDrifChamber base class */
 

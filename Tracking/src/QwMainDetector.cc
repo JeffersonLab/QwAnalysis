@@ -12,7 +12,9 @@ const UInt_t QwMainDetector::kMaxNumberOfChannelsPerModule = 32;
 
 
 
-QwMainDetector::QwMainDetector(TString region_tmp):VQwSubsystemTracking(region_tmp){
+QwMainDetector::QwMainDetector(TString region_tmp):VQwSubsystem(region_tmp),
+                                                   VQwSubsystemTracking(region_tmp)
+{
 };
 
 QwMainDetector::~QwMainDetector(){

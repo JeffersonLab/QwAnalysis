@@ -1,5 +1,5 @@
 /**********************************************************\
-* File: QwScanner.h                              *
+* File: QwScanner.h                                        *
 *                                                          *
 * Author: J. Pan                                           *
 * jpan@jlab.org                                            *
@@ -28,16 +28,40 @@
 #include "QwPMT_Channel.h"
 
 class QwVQWK_Channel;
-class QwSIS3801_Channel;
+class MQwSIS3801_Channel;
 
-class QwScanner: public VQwSubsystem,
-                 public MQwV775TDC,
-                 public QwSIS3801_Module,
-                 public QwVQWK_Module {
+class QwScanner: public VQwSubsystemTracking,
+                 public VQwSubsystemParity
+{
 
  public:
-  QwScanner(TString region_tmp);
-  ~QwScanner();
+
+   QwScanner(TString region_tmp);
+
+   virtual ~QwScanner();
+
+  // VQwSubsystem methods
+    VQwSubsystem& operator=  (VQwSubsystem *value) { return *this; };
+    VQwSubsystem& operator+= (VQwSubsystem *value) { return *this; };
+    VQwSubsystem& operator-= (VQwSubsystem *value) { return *this; };
+    void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2) { return; };
+    void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2) { return; };
+    void Ratio(VQwSubsystem *numer, VQwSubsystem *denom) { return; };
+    void Scale(Double_t factor) { return; };
+
+    void Calculate_Running_Average(){return;};
+    void Do_RunningSum(){return;};//update the running sums for devices
+
+  //
+    Int_t LoadEventCuts(TString filename) { return 0; };
+    Bool_t ApplySingleEventCuts() { return kTRUE; };
+    Int_t GetEventcutErrorCounters() { return 0; };
+    Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
+  //
+    void Copy(VQwSubsystem *source) { return; };
+    VQwSubsystem*  Copy() { return this; };
+    Bool_t Compare(VQwSubsystem *source) { return kTRUE; };
+
 
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
@@ -62,7 +86,7 @@ class QwScanner: public VQwSubsystem,
   void  ConstructTrees(TFile* rootfile);
   void  FillTrees();
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) { };
   void  FillTreeVector(std::vector<Double_t> &values, TString &prefix);
   void GetHitList(QwHitContainer & grandHitContainer){};
   void ReportConfiguration();

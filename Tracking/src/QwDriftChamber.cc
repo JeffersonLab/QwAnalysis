@@ -19,7 +19,9 @@ const UInt_t QwDriftChamber::kReferenceChannelPlaneNumber = 99;
 
 // OK, fDEBUG, fNumberOfTDCs
 QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHits_TEMP)
-  :VQwSubsystemTracking(region_tmp),fWireHits(fWireHits_TEMP)
+  :VQwSubsystem(region_tmp),
+   VQwSubsystemTracking(region_tmp),
+   fWireHits(fWireHits_TEMP)
 {
   OK            = 0;
   fDEBUG        = kFALSE;

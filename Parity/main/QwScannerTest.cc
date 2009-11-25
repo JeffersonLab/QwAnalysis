@@ -105,7 +105,7 @@ static int kDebug = 1;
   if (kDebug) std::cout<<"\nGenerating mock data:\n\n";
 
   // Get subsystem
-  QwScanner* scanner = (QwScanner*) QwDetectors.GetSubsystem("FPS");
+  QwScanner* scanner = dynamic_cast<QwScanner*> (QwDetectors.GetSubsystem("FPS"));
 
   // Run generation loop
   for (int run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++) {

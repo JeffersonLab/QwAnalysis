@@ -57,7 +57,7 @@ class QwBeamDetectorID
 class QwBeamLine : public VQwSubsystemParity{
   /////
  public:
-  QwBeamLine(TString region_tmp):VQwSubsystemParity(region_tmp)
+  QwBeamLine(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
     {
       // these declaration need to be coherent with the enum vector EBeamInstrumentType
       DetectorTypes.push_back("bpmstripline");

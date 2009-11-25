@@ -56,7 +56,7 @@ class QwLumiDetectorID
 class QwLumi : public VQwSubsystemParity{
   /////
  public:
-  QwLumi(TString region_tmp):VQwSubsystemParity(region_tmp)
+  QwLumi(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
     {
       // these declaration need to be coherent with the enum vector ELumiInstrumentType
       DetectorTypes.push_back("IntegrationPMT");

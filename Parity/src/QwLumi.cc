@@ -494,7 +494,7 @@ VQwSubsystem&  QwLumi::operator=  (VQwSubsystem *value)
   //  std::cout<<" here in QwLumi::operator= \n";
   if(Compare(value))
     {
-      QwLumi* input = (QwLumi*) value;
+      QwLumi* input = dynamic_cast<QwLumi*> (value);
      
       for(size_t i=0;i<input->fIntegrationPMT.size();i++)
 	this->fIntegrationPMT[i]=input->fIntegrationPMT[i];
@@ -506,7 +506,7 @@ VQwSubsystem&  QwLumi::operator+=  (VQwSubsystem *value)
 {
   if(Compare(value))
     {
-      QwLumi* input= (QwLumi*)value ;
+      QwLumi* input= dynamic_cast<QwLumi*>(value) ;
       
       for(size_t i=0;i<input->fIntegrationPMT.size();i++)
 	this->fIntegrationPMT[i]+=input->fIntegrationPMT[i];
@@ -519,7 +519,7 @@ VQwSubsystem&  QwLumi::operator-=  (VQwSubsystem *value)
 
   if(Compare(value))
     {
-      QwLumi* input= (QwLumi*)value;
+      QwLumi* input= dynamic_cast<QwLumi*>(value);
      
       for(size_t i=0;i<input->fIntegrationPMT.size();i++)
 	this->fIntegrationPMT[i]-=input->fIntegrationPMT[i];
@@ -552,8 +552,8 @@ void QwLumi::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 {
   if(Compare(numer)&&Compare(denom))
     {
-      QwLumi* innumer= (QwLumi*)numer ;
-      QwLumi* indenom= (QwLumi*)denom ;
+      QwLumi* innumer= dynamic_cast<QwLumi*>(numer) ;
+      QwLumi* indenom= dynamic_cast<QwLumi*>(denom) ;
       
       for(size_t i=0;i<innumer->fIntegrationPMT.size();i++)
 	this->fIntegrationPMT[i].Ratio(innumer->fIntegrationPMT[i],indenom->fIntegrationPMT[i]);
@@ -583,7 +583,7 @@ Bool_t QwLumi::Compare(VQwSubsystem *value)
     }
   else
     {
-      QwLumi* input= (QwLumi*)value;
+      QwLumi* input= dynamic_cast<QwLumi*>(value);
 	if(input->fIntegrationPMT.size()!=fIntegrationPMT.size())
 	  {
 	  res=kFALSE;
@@ -704,7 +704,7 @@ void  QwLumi::Copy(VQwSubsystem *source)
     {
      if(typeid(*source)==typeid(*this))
 	{
-	  QwLumi* input=((QwLumi*)source);
+	  QwLumi* input= dynamic_cast<QwLumi*>(source);
 	 
 	  this->fIntegrationPMT.resize(input->fIntegrationPMT.size());
 	  for(size_t i=0;i<this->fIntegrationPMT.size();i++)

@@ -24,7 +24,7 @@
 class QwComptonElectronDetector : public VQwSubsystemParity {
 
   public:
-    QwComptonElectronDetector(TString name): VQwSubsystemParity(name) { };
+    QwComptonElectronDetector(TString name): VQwSubsystem(region_tmp),VQwSubsystemParity(name) { };
 
    ~QwComptonElectronDetector() {
       DeleteHistograms();

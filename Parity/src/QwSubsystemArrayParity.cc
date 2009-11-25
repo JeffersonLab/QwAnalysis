@@ -17,7 +17,7 @@
 VQwSubsystemParity* QwSubsystemArrayParity::GetSubsystem(const TString name)
 {
   VQwSubsystemParity* tmp = NULL;
-  tmp=(VQwSubsystemParity*)  QwSubsystemArray::GetSubsystem(name);
+  tmp=dynamic_cast<VQwSubsystemParity*>  (QwSubsystemArray::GetSubsystem(name));
   
   return tmp;
 }; 

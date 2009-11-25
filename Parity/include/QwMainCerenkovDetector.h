@@ -26,7 +26,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
    *
    ******************************************************************/
  public:
-  QwMainCerenkovDetector(TString region_tmp):VQwSubsystemParity(region_tmp) { };
+  QwMainCerenkovDetector(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp) { };
   ~QwMainCerenkovDetector() {
     DeleteHistograms();
   };

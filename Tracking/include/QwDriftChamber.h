@@ -44,13 +44,8 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   QwDriftChamber(TString region_tmp);
   QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHits_TEMP);
 
-  ~QwDriftChamber()
-    {
-      DeleteHistograms();
-    };
-  
- 
-    
+  virtual ~QwDriftChamber(){};
+
   /*  Member functions derived from VQwSubsystem. */
 
   

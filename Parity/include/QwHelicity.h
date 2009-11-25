@@ -65,7 +65,7 @@ class QwHelicity : public VQwSubsystemParity{
   /////
  public:
 
-  QwHelicity(TString region_tmp):VQwSubsystemParity(region_tmp)
+  QwHelicity(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
     {
       fEventNumberOld=-1; fEventNumber=-1;
       fPatternPhaseNumberOld=-1; fPatternPhaseNumber=-1;

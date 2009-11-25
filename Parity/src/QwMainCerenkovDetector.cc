@@ -281,7 +281,7 @@ void  QwMainCerenkovDetector::Copy(VQwSubsystem *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {
-      QwMainCerenkovDetector* input = ((QwMainCerenkovDetector*) source);
+      QwMainCerenkovDetector* input = dynamic_cast<QwMainCerenkovDetector*> (source);
       this->fADC_Data.resize(input->fADC_Data.size());
       for (size_t i = 0; i < this->fADC_Data.size(); i++)
         this->fADC_Data[i].Copy(&(input->fADC_Data[i]));
@@ -318,7 +318,7 @@ Bool_t  QwMainCerenkovDetector::Compare(VQwSubsystem *value)
     result = kFALSE;
   } else {
     // Check whether the internal ADC module sizes are identical
-    QwMainCerenkovDetector* input = (QwMainCerenkovDetector*) value;
+    QwMainCerenkovDetector* input = dynamic_cast<QwMainCerenkovDetector*> (value);
     if (input->fADC_Data.size() != fADC_Data.size())
       result = kFALSE;
   }
@@ -330,7 +330,7 @@ VQwSubsystem&  QwMainCerenkovDetector::operator= (VQwSubsystem *value)
 
   if(Compare(value))
     {
-      QwMainCerenkovDetector* input = (QwMainCerenkovDetector*) value;
+      QwMainCerenkovDetector* input = dynamic_cast<QwMainCerenkovDetector*> (value);
       for (size_t i = 0; i < input->fADC_Data.size(); i++) {
 	this->fADC_Data.at(i) = input->fADC_Data.at(i);
       }
@@ -343,7 +343,7 @@ VQwSubsystem&  QwMainCerenkovDetector::operator+=  ( VQwSubsystem *value)
   // Buddhini, January 14,2009.
   if(Compare(value))
     {
-      QwMainCerenkovDetector* input = (QwMainCerenkovDetector*) value ;
+      QwMainCerenkovDetector* input = dynamic_cast<QwMainCerenkovDetector*> (value) ;
       for (size_t i = 0; i < input->fADC_Data.size(); i++) {
 	fADC_Data.at(i) += input->fADC_Data.at(i);
       }
@@ -356,7 +356,7 @@ VQwSubsystem&  QwMainCerenkovDetector::operator-=  ( VQwSubsystem *value)
   // Buddhini, January 14,2009.
   if(Compare(value))
     {
-      QwMainCerenkovDetector* input = (QwMainCerenkovDetector*) value;
+      QwMainCerenkovDetector* input = dynamic_cast<QwMainCerenkovDetector*> (value);
       for (size_t i = 0; i < input->fADC_Data.size(); i++) {
 	fADC_Data.at(i) -= input->fADC_Data.at(i);
       }
@@ -378,8 +378,8 @@ void QwMainCerenkovDetector::Difference(VQwSubsystem *value1,VQwSubsystem *value
 void QwMainCerenkovDetector::Ratio(VQwSubsystem *numer,VQwSubsystem  *denom){
 
   if(Compare(numer) && Compare(denom)){
-    QwMainCerenkovDetector& numer1 = *(QwMainCerenkovDetector*)numer;
-    QwMainCerenkovDetector& denom1 = *(QwMainCerenkovDetector*)denom;
+    QwMainCerenkovDetector& numer1 = * dynamic_cast<QwMainCerenkovDetector*>(numer);
+    QwMainCerenkovDetector& denom1 = * dynamic_cast<QwMainCerenkovDetector*>(denom);
 
 
     if (fADC_Data.size() == numer1.fADC_Data.size()

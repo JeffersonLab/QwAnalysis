@@ -1146,7 +1146,8 @@ void QwHelicity::Copy(VQwSubsystem *source)
     {
      if(typeid(*source)==typeid(*this))
 	{
-	  QwHelicity* input=((QwHelicity*)source);
+	  //QwHelicity* input=((QwHelicity*)source);
+          QwHelicity* input = dynamic_cast<QwHelicity*>(source);
 	  this->fWord.resize(input->fWord.size());
 	  for(size_t i=0;i<this->fWord.size();i++)
 	    {
@@ -1185,7 +1186,8 @@ VQwSubsystem&  QwHelicity::operator=  (VQwSubsystem *value)
 
   if(Compare(value))
     {
-      QwHelicity* input= (QwHelicity*)value;
+      //QwHelicity* input= (QwHelicity*)value;
+      QwHelicity* input= dynamic_cast<QwHelicity*>(value);
       for(size_t i=0;i<input->fWord.size();i++)
 	this->fWord[i].fValue=input->fWord[i].fValue;
       this->fHelicityActual=input->fHelicityActual;
@@ -1216,7 +1218,8 @@ VQwSubsystem&  QwHelicity::operator+=  (VQwSubsystem *value)
   // refers to elements in the same pattern
   if(Compare(value))
     {
-      QwHelicity* input= (QwHelicity*)value;
+      //QwHelicity* input= (QwHelicity*)value;
+      QwHelicity* input= dynamic_cast<QwHelicity*>(value);
       for(size_t i=0;i<input->fWord.size();i++)
 	{
 	  if(this->fWord[i].fValue!=input->fWord[i].fValue)
@@ -1275,7 +1278,7 @@ Bool_t QwHelicity::Compare(VQwSubsystem *value)
     }
   else
     {
-      QwHelicity* input= (QwHelicity*)value;
+      QwHelicity* input= dynamic_cast<QwHelicity*>(value);
       if(input->fWord.size()!=fWord.size())
 	{
 	res=kFALSE;

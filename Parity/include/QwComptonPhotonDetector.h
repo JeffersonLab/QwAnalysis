@@ -26,7 +26,7 @@
 class QwComptonPhotonDetector : public VQwSubsystemParity {
 
   public:
-    QwComptonPhotonDetector(TString name): VQwSubsystemParity(name) { };
+    QwComptonPhotonDetector(TString name):VQwSubsystem(region_tmp), VQwSubsystemParity(name) { };
    ~QwComptonPhotonDetector() {
       DeleteHistograms();
     };

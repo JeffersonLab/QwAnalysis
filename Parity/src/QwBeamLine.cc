@@ -626,7 +626,8 @@ VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
   //  std::cout<<" here in QwBeamLine::operator= \n";
   if(Compare(value))
     {
-      QwBeamLine* input = (QwBeamLine*) value;
+      //QwBeamLine* input = (QwBeamLine*) value;
+      QwBeamLine* input = dynamic_cast<QwBeamLine*>(value);
       for(size_t i=0;i<input->fStripline.size();i++)
 	this->fStripline[i]=input->fStripline[i];
       for(size_t i=0;i<input->fBCM.size();i++)
@@ -639,7 +640,8 @@ VQwSubsystem&  QwBeamLine::operator+=  (VQwSubsystem *value)
 {
   if(Compare(value))
     {
-      QwBeamLine* input= (QwBeamLine*)value ;
+      //QwBeamLine* input= (QwBeamLine*)value ;
+      QwBeamLine* input = dynamic_cast<QwBeamLine*>(value);
       for(size_t i=0;i<input->fStripline.size();i++)
 	this->fStripline[i]+=input->fStripline[i];
       for(size_t i=0;i<input->fBCM.size();i++)
@@ -653,7 +655,8 @@ VQwSubsystem&  QwBeamLine::operator-=  (VQwSubsystem *value)
 
   if(Compare(value))
     {
-      QwBeamLine* input= (QwBeamLine*)value;
+      //QwBeamLine* input= (QwBeamLine*)value;
+      QwBeamLine* input = dynamic_cast<QwBeamLine*>(value);
       for(size_t i=0;i<input->fStripline.size();i++)
 	this->fStripline[i]-=input->fStripline[i];
       for(size_t i=0;i<input->fBCM.size();i++)
@@ -684,8 +687,10 @@ void QwBeamLine::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 {
   if(Compare(numer)&&Compare(denom))
     {
-      QwBeamLine* innumer= (QwBeamLine*)numer ;
-      QwBeamLine* indenom= (QwBeamLine*)denom ;
+      //QwBeamLine* innumer= (QwBeamLine*)numer ;
+      QwBeamLine* innumer = dynamic_cast<QwBeamLine*>(numer);
+      //QwBeamLine* indenom= (QwBeamLine*)denom ;
+      QwBeamLine* indenom = dynamic_cast<QwBeamLine*>(denom);
       for(size_t i=0;i<innumer->fStripline.size();i++)
 	this->fStripline[i].Ratio(innumer->fStripline[i],indenom->fStripline[i]);
       for(size_t i=0;i<innumer->fBCM.size();i++)
@@ -737,7 +742,8 @@ Bool_t QwBeamLine::Compare(VQwSubsystem *value)
     }
   else
     {
-      QwBeamLine* input= (QwBeamLine*)value;
+      //QwBeamLine* input= (QwBeamLine*)value;
+      QwBeamLine* input = dynamic_cast<QwBeamLine*>(value);
       if(input->fStripline.size()!=fStripline.size())
 	{
 	  //	  std::cout<<" not the same number of striplines \n";
@@ -870,7 +876,8 @@ void  QwBeamLine::Copy(VQwSubsystem *source)
     {
      if(typeid(*source)==typeid(*this))
 	{
-	  QwBeamLine* input=((QwBeamLine*)source);
+	  //QwBeamLine* input=((QwBeamLine*)source);
+          QwBeamLine* input = dynamic_cast<QwBeamLine*>(source);
 	  this->fStripline.resize(input->fStripline.size());
 	  for(size_t i=0;i<this->fStripline.size();i++)
 	      this->fStripline[i].Copy(&(input->fStripline[i]));

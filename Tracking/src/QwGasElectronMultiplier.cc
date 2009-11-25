@@ -9,7 +9,8 @@
 
 #include "QwGasElectronMultiplier.h"
 
-  QwGasElectronMultiplier::QwGasElectronMultiplier(TString region_tmp):VQwSubsystemTracking(region_tmp){};
+  QwGasElectronMultiplier::QwGasElectronMultiplier(TString region_tmp):VQwSubsystem(region_tmp),
+                                                                       VQwSubsystemTracking(region_tmp){};
 
   QwGasElectronMultiplier::~QwGasElectronMultiplier()
     {

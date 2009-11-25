@@ -1,4 +1,3 @@
-
 /**********************************************************\
 * File: QwSubsystemArrayTracking.h                         *
 *                                                          *
@@ -35,7 +34,7 @@ class QwSubsystemArrayTracking:  public QwSubsystemArray {
 VQwSubsystemTracking* QwSubsystemArrayTracking::GetSubsystem(const TString name)
 {
   VQwSubsystemTracking* tmp = NULL;
-  tmp=(VQwSubsystemTracking*)  QwSubsystemArray::GetSubsystem(name);
+  tmp = dynamic_cast<VQwSubsystemTracking*>  (QwSubsystemArray::GetSubsystem(name));
 
   return tmp;
 };
@@ -61,7 +60,7 @@ void QwSubsystemArrayTracking::GetHitList(QwHitContainer & grandHitList)
 
 void QwSubsystemArrayTracking::GetHitList(QwHitContainer* hitlist)
 {
-  GetHitList(*hitlist);
+  GetHitList(* hitlist);
 };
 
 #endif

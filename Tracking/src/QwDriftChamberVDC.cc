@@ -24,7 +24,9 @@ This generates identical set of hits to region 2 for region 3.
 const UInt_t QwDriftChamberVDC::BackPlanenum=4;
 const UInt_t QwDriftChamberVDC::Linenum=8;
 
-QwDriftChamberVDC::QwDriftChamberVDC(TString region_tmp): QwDriftChamber(region_tmp,fWireHitsVDC){
+QwDriftChamberVDC::QwDriftChamberVDC(TString region_tmp):VQwSubsystem(region_tmp),
+                                                         QwDriftChamber(region_tmp,fWireHitsVDC)
+{
   std::vector<QwDelayLine> temp;
   temp.resize(Linenum);
   DelayLineArray.resize(BackPlanenum,temp);
