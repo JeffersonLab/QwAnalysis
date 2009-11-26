@@ -158,6 +158,9 @@
 #include "Qoptions.h"
 #include "options.h"
 
+// Qweak logging facility
+#include "QwLog.h"
+
 
 // Global variables for tracking modules (deprecated)
 Options opt;
@@ -177,6 +180,11 @@ static const bool kHisto = true;
 // Main function
 int main(Int_t argc,Char_t* argv[])
 {
+  // Message logging facilities
+  gQwLog.InitLogfile("QwTracking.log");
+  gQwLog.SetScreenThreshold(QwLog::kMessage);
+  gQwLog.SetFileThreshold(QwLog::kDebug);
+
   // Either the DISPLAY is not set or JOB_ID is defined: we take it as in batch mode.
   Bool_t kInQwBatchMode = kFALSE;
   if (getenv("DISPLAY") == NULL
@@ -259,7 +267,7 @@ int main(Int_t argc,Char_t* argv[])
   QwTrackingWorker *trackingworker = NULL;
   // Create the tracking worker
   if (kTracking)
-    {  
+    {
       trackingworker = new QwTrackingWorker("qwtrackingworker");
       if (kDebug) trackingworker->SetDebugLevel(1);
     }
@@ -303,17 +311,17 @@ int main(Int_t argc,Char_t* argv[])
         else if (hostname != NULL && session == NULL) tmp = " ET \"SESSION\" ";
         else                                          tmp = " \"HOSTNAME\" and ET \"SESSION\" ";
 
-        std::cerr << "ERROR:  the" << tmp
-                  << "variable(s) is(are) not defined in your environment.\n"
-                  << "        This is needed to run the online analysis."
-                  << std::endl;
+        QwError << "ERROR:  the" << tmp
+                << "variable(s) is(are) not defined in your environment.\n"
+                << "        This is needed to run the online analysis."
+                << QwLog::endl;
         exit(EXIT_FAILURE);
       } else {
-        std::cout << "Try to open the ET station. " << std::endl;
+        QwMessage << "Try to open the ET station. " << QwLog::endl;
         if (eventbuffer.OpenETStream(hostname, session, 0) == CODA_ERROR ) {
-          std::cerr << "ERROR:  Unable to open the ET station "
-                    << run << ".  Moving to the next run.\n"
-                    << std::endl;
+          QwError << "ERROR:  Unable to open the ET station "
+                  << run << ".  Moving to the next run.\n"
+                  << QwLog::endl;
           timer.Stop();
           continue;
         }
@@ -324,9 +332,9 @@ int main(Int_t argc,Char_t* argv[])
       if (eventbuffer.OpenDataFile(run) == CODA_ERROR){
         //  The data file can't be opened.
         //  Get ready to process the next run.
-        std::cerr << "ERROR:  Unable to find data files for run "
-                  << run << ".  Moving to the next run.\n"
-                  << std::endl;
+        QwError << "ERROR:  Unable to find data files for run "
+                << run << ".  Moving to the next run.\n"
+                << QwLog::endl;
         timer.Stop();
         continue;
       }
@@ -348,11 +356,11 @@ int main(Int_t argc,Char_t* argv[])
 	if(rootfile-> IsOpen()) rootfile->Close();
 	delete rootfile; rootfile=NULL;
       }
-    
+
     auto_ptr<TFile> rootfile (new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
   					"RECREATE",
   					"QWeak ROOT file with real events"));
-    
+
     //  Create the histograms for the QwDriftChamber subsystem object.
     //  We can create a subfolder in the rootfile first, if we want,
     //  and then pass it into the constructor.
@@ -363,7 +371,7 @@ int main(Int_t argc,Char_t* argv[])
     // Open file
     TTree* tree = NULL;
     QwHitRootContainer* rootlist = NULL;
-  
+
     if (kTree) {
       tree = new TTree("tree", "Hit list");
       rootlist = new QwHitRootContainer();
@@ -389,10 +397,10 @@ int main(Int_t argc,Char_t* argv[])
       else if (eventnumber > cmdline.GetLastEvent())  break;
 
       if (eventnumber % 1000 == 0) {
-	std::cout << "Number of events processed so far: "
-		  << eventnumber << std::endl;
+	QwMessage << "Number of events processed so far: "
+		  << eventnumber << QwLog::endl;
       }
-      
+
       // Fill the subsystem objects with their respective data for this event.
       eventbuffer.FillSubsystemData(detectors);
 
@@ -423,7 +431,7 @@ int main(Int_t argc,Char_t* argv[])
 
 
       // Process the hit list through the tracking worker (i.e. do track reconstruction)
-   
+
       if (kTracking)
         event = trackingworker->ProcessHits(&detectors, hitlist);
 
@@ -437,12 +445,12 @@ int main(Int_t argc,Char_t* argv[])
 
 
     // Print summary information
-    std::cout << "Total number of events processed: "
-              << eventbuffer.GetEventNumber() << std::endl;
+    QwMessage << "Total number of events processed: "
+              << eventbuffer.GetEventNumber() << QwLog::endl;
     if (kTracking)
       {
-	std::cout << "Number of good partial tracks: "
-		  << trackingworker->ngood << std::endl;
+	QwMessage << "Number of good partial tracks: "
+		  << trackingworker->ngood << QwLog::endl;
       }
     timer.Stop();
 
@@ -472,9 +480,9 @@ int main(Int_t argc,Char_t* argv[])
     if (rootlist) delete rootlist; rootlist=NULL;
 
     // Print run summary information
-    std::cout << "Analysis of run " << run << std::endl
-              << "CPU time used:  " << timer.CpuTime() << " s" << std::endl
-              << "Real time used: " << timer.RealTime() << " s" << std::endl;
+    QwMessage << "Analysis of run " << run << QwLog::endl
+              << "CPU time used:  " << timer.CpuTime() << " s" << QwLog::endl
+              << "Real time used: " << timer.RealTime() << " s" << QwLog::endl;
 
 
   } // end of loop over runs
