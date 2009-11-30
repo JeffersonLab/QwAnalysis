@@ -28,6 +28,7 @@ class QwHitContainer;
 class QwPartialTrack;
 class QwTrack;
 class QwEvent;
+class QwBridge;
 
 /*------------------------------------------------------------------------*//*!
 
@@ -88,6 +89,8 @@ class QwTrackingWorker: public VQwSystem {
 
     /// \brief Initialize the pattern search tree
     void InitTree();
+
+    QwBridge *bridge;
 
 }; // class QwTrackingWorker
 

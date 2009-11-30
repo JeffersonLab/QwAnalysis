@@ -2209,7 +2209,6 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
             // the cerenkov bar.
             pt->DeterminePositionInTriggerScintillators(package);
             pt->DeterminePositionInCerenkovBars(package);
-
         }
 
         // Next v treeline
@@ -2345,7 +2344,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	    parttracklist.push_back(pt);
 
             pt->DeterminePositionInTarget();
-
+            pt->DetermineHitInHDC(package);
 	  }
 	} else {
           if (fDebug) cout << "not close enough " << minimum << ',' << MaxXRoad << ',' << in_acceptance << endl;

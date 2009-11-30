@@ -2,6 +2,7 @@
 #define QWPARTIALTRACK_H
 
 #include <iostream>
+#include <math.h>
 
 #include "TObject.h"
 
@@ -31,6 +32,7 @@ class QwPartialTrack: public TObject {
 
     bool IsVoid() { return isvoid; };
     bool IsValid() { return ! isvoid; };
+    bool IsGood() { return isgood; };
     bool IsNotValid() { return ! isvoid; };
     bool IsUsed() { return isused; };
     bool IsNotUsed() { return ! isused; };
@@ -49,6 +51,7 @@ class QwPartialTrack: public TObject {
     /// Determine intersection with cerenkov bars
     int DeterminePositionInCerenkovBars (EQwDetectorPackage package);
 
+    int DetermineHitInHDC (EQwDetectorPackage package);
 
     // Average residuals
     const double GetAverageResidual() const { return fAverageResidual; };
@@ -80,10 +83,15 @@ class QwPartialTrack: public TObject {
     Bool_t isvoid;		///< marked as being void
 
     int triggerhit;		///< Did this track pass through the trigger?
-    double trig[2];		///< x-y position at trigger face
+    double trig[3];		///< x-y-z position at trigger face
 
     int cerenkovhit;		///< Did this track pass through the cerenkov bar?
-    double cerenkov[2];		///< x-y position at Cerenkov bar face
+    double cerenkov[3];		///< x-y-z position at Cerenkov bar face
+
+    bool isgood;
+
+    double pR2hit[3];
+    double uvR2hit[3];
 
     QwPartialTrack *next; //!	///< linked list (not saved)
 

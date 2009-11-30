@@ -8,7 +8,7 @@ extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 QwPartialTrack::QwPartialTrack()
 {
   x = 0.0; y = 0.0; mx = 0.0; my = 0.0;
-  isvoid = false; isused = false;
+  isvoid = false;  isused = false; isgood = false;
   next = 0;
   for (int i = 0; i < kNumDirections; i++)
     tline[i] = 0;
@@ -192,11 +192,81 @@ int QwPartialTrack::DeterminePositionInCerenkovBars (EQwDetectorPackage package)
    && cc[0] > lim_cc[0][1]
    && cc[1] < lim_cc[1][0]
    && cc[1] > lim_cc[1][1]) {
+
+    isgood = true;
     cerenkovhit = 1;
+
     cerenkov[0] = cc[0];
     cerenkov[1] = cc[1];
+    cerenkov[2] = cc[2];
     std::cout << "Cerenkov bar hit at : (" << cc[0] << "," << cc[1] << "," << cc[2] << ")" << std::endl;
-  } else cerenkovhit = 0;
+  } else {
+    cerenkovhit = 0;
+    isgood = false;
+  }
 
   return cerenkovhit;
+}
+
+int QwPartialTrack::DetermineHitInHDC (EQwDetectorPackage package)
+{
+  double hdc_front[3], hdc_back[3];
+  double lim_hdc[2][2];
+
+  // Get the HDC detector
+  Det* rd = rcDETRegion[package][kRegionID2][kDirectionX];
+  // Get the point where the track intersects the detector planes
+  hdc_front[2] = rd->Zpos;
+  hdc_front[0] = mx * hdc_front[2] + x;
+  hdc_front[1] = my * hdc_front[2] + y;
+
+  // Get the HDC detector
+  rd = rcDETRegion[package][kRegionID2][kDirectionV];
+  // Get the point where the track intersects the detector planes
+  hdc_back[2] = rd->Zpos;
+  hdc_back[0] = mx * hdc_back[2] + x;
+  hdc_back[1] = my * hdc_back[2] + y;
+
+  // Get the detector boundaries
+  lim_hdc[0][0] = rd->center[0] + rd->width[0]/2;
+  lim_hdc[0][1] = rd->center[0] - rd->width[0]/2;
+  lim_hdc[1][0] = rd->center[1] + rd->width[1]/2;
+  lim_hdc[1][1] = rd->center[1] - rd->width[1]/2;
+
+  if (hdc_front[0] < lim_hdc[0][0]
+   && hdc_front[0] > lim_hdc[0][1]
+   && hdc_front[1] < lim_hdc[1][0]
+   && hdc_front[1] > lim_hdc[1][1]
+   && hdc_back[0] < lim_hdc[0][0]
+   && hdc_back[0] > lim_hdc[0][1]
+   && hdc_back[1] < lim_hdc[1][0]
+   && hdc_back[1] > lim_hdc[1][1]) {
+
+    isgood = true;
+
+    pR2hit[0] = hdc_back[0];
+    pR2hit[1] = hdc_back[1];
+    pR2hit[2] = hdc_back[2];
+
+    double dx = (hdc_back[0]-hdc_front[0]);
+    double dy = (hdc_back[1]-hdc_front[1]);
+    double dz = (hdc_back[2]-hdc_front[2]);
+    double r = sqrt(dx*dx+dy*dy+dz*dz);
+    uvR2hit[0] = dx/r;
+    uvR2hit[1] = dy/r;
+    uvR2hit[2] = dz/r;
+    std::cout << "HDC front hit at : (" 
+              << hdc_front[0] << "," << hdc_front[1] << "," << hdc_front[2] << ")" << std::endl;
+    std::cout << "HDC back  hit at : (" 
+              << hdc_back[0] << "," << hdc_back[1] << "," << hdc_back[2] << ")" << std::endl;
+    std::cout << "Partial track direction vector: ("
+              << uvR2hit[0] << "," << uvR2hit[1] << "," << uvR2hit[2] << ")" << std::endl;
+    double degree = 180.0/3.1415927;
+    std::cout << "Partial track direction angle: theta="
+              << acos(uvR2hit[2])*degree <<" deg, phi=" << atan(uvR2hit[1]/uvR2hit[0])*degree<<" deg"<< std::endl;
+  } else {
+    isgood = false;
+  }
+
+  return 0;
 }

@@ -30,7 +30,6 @@
 #include "QwTrack.h"
 #include "QwEvent.h"
 
-
 // Qweak Tree event buffer header
 #include "QwTreeEventBuffer.h"
 
@@ -39,7 +38,6 @@
 #include "QwGasElectronMultiplier.h"
 #include "QwDriftChamberHDC.h"
 #include "QwDriftChamberVDC.h"
-#include "QwField.h"
 
 // Temporary global variables for sub-programs
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
@@ -62,7 +60,6 @@ int main (int argc, char* argv[])
   // Fill the search paths for the parameter files
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput");
-
 
   // Handle for the list of VQwSubsystemTracking objects
   QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking();
