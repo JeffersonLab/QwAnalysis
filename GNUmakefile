@@ -348,6 +348,7 @@ else
   BOOST_LIBS += -lboost_filesystem
 endif
 
+ BOOST_LIBS += -lboost_program_options -ldl
 
 ############################
 ############################
