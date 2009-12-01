@@ -39,6 +39,9 @@
 #include "QwDriftChamberHDC.h"
 #include "QwDriftChamberVDC.h"
 
+#include "QwLog.h"
+#include "QwOptions.h"
+
 // Temporary global variables for sub-programs
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 Det rcDET[NDetMax];
@@ -53,9 +56,20 @@ static const bool kHisto = true;
 
 int main (int argc, char* argv[])
 {
-  // Parse command line options
-  QwCommandLine cmdline;
-  cmdline.Parse(argc, argv);
+  // Set the command line arguments and configuration file
+  gQwOptions.SetCommandLine(argc, argv);
+  gQwOptions.SetConfigFile("qwsimtracking.conf");
+  // Define some options
+  gQwOptions.AddOptions()("run,r", po::value<string>(), "run range in format #[:#]");
+  gQwOptions.AddOptions()("event,e", po::value<string>(), "event range in format #[:#]");
+
+
+  // Message logging facilities
+  if (gQwOptions.HasValue("logfile"))
+    gQwLog.InitLogFile(gQwOptions.GetValue<string>("logfile"));
+  gQwLog.SetFileThreshold(QwLog::QwLogLevel(gQwOptions.GetValue<int>("loglevel-file")));
+  gQwLog.SetScreenThreshold(QwLog::QwLogLevel(gQwOptions.GetValue<int>("loglevel-screen")));
+
 
   // Fill the search paths for the parameter files
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
@@ -98,7 +112,7 @@ int main (int argc, char* argv[])
   qset.FillDetectors((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.geo").c_str());
   qset.LinkDetectors();
   qset.DeterminePlanes();
-  cout << "[QwTracking::main] Geometry loaded" << endl; // R3,R2
+  std::cout << "[QwTracking::main] Geometry loaded" << std::endl; // R3,R2
 
   // Set global options
   Qoptions qoptions;
@@ -110,8 +124,8 @@ int main (int argc, char* argv[])
 
 
   // Loop over all runs
-  for (UInt_t run =  (UInt_t) cmdline.GetFirstRun();
-              run <= (UInt_t) cmdline.GetLastRun(); run++) {
+  for (UInt_t run =  (UInt_t) gQwOptions.GetIntValuePairFirst("run");
+              run <= (UInt_t) gQwOptions.GetIntValuePairLast("run"); run++) {
 
     // Load the simulated event file
     TString filename = Form(TString(getenv("QWSCRATCH")) + "/data/QwSim_%d.root", run);
@@ -129,8 +143,8 @@ int main (int argc, char* argv[])
 
     // Loop over the events
     int fEntries = treebuffer->GetEntries();
-    for (int fEvtNum  = cmdline.GetFirstEvent();
-             fEvtNum <= cmdline.GetLastEvent() && fEvtNum < fEntries; fEvtNum++) {
+    for (int fEvtNum  = gQwOptions.GetIntValuePairFirst("event");
+             fEvtNum <= gQwOptions.GetIntValuePairLast("event") && fEvtNum < fEntries; fEvtNum++) {
 
       // Get hit list
       QwHitContainer* hitlist = treebuffer->GetHitList(fEvtNum);

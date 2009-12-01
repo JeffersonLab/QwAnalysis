@@ -1,9 +1,21 @@
+/*!
+ * \file   QwLog.h
+ * \brief  A logfile class, based on an identical class in the Hermes analyzer
+ *
+ * \author Wouter Deconinck
+ * \date   2009-11-25
+ */
+
 #ifndef QWLOG_HH
 #define QWLOG_HH
 
+// System headers
 #include <iostream>
 #include <iomanip>
+#include <string>
+using std::string;
 
+// Qweak headers
 #include "QwTypes.h"
 
 /*! \def QwError
@@ -70,7 +82,7 @@ class QwLog : public std::ostream {
 
     /*! \brief Initialize the log file with name 'name'
      */
-    void                        InitLogfile(const char* name);
+    void                        InitLogFile(const string name);
 
     /*! \brief Set the screen log level
      */

@@ -1,88 +1,141 @@
+/*!
+ * \file   QwOptions.cc
+ * \brief  An options class which parses command line, config file and environment
+ *
+ * \author Wouter Deconinck
+ * \date   2009-12-01
+ */
+
 #include "QwOptions.h"
 
 // System headers
 #include <iostream>
+#include <fstream>
+#include <cstdlib>
+#include <climits>
 
-// Qweak headers
-#include "QwLog.h"
+
+// Since QwLog depends on QwOptions, we cannot have QwOptions depend on QwLog.
+// Therefore, logging here is done using std::cout and std::cerr.  The header
+// file <iostream> is therefore included directly.
 
 
-po::options_description QwOptions::fDescription("Allowed options");
+// Statically defined option descriptions
+po::options_description QwOptions::fOptions("Allowed options");
 
-QwOptions::QwOptions(int argc, char* argv[], string file)
+// Globally defined instance of the options object
+QwOptions gQwOptions;
+
+
+/**
+ * The default constructor sets up the options description object with some
+ * options that should always be there.  The other options can be setup
+ * wherever this object is accessible.
+ */
+QwOptions::QwOptions()
+  : fConfigFile(""), fParsed(false)
 {
-  // Declare the supported options
-  fDescription.add_options()
+  // Declare the generic options
+  fOptions.add_options()
     ("help",  "print this help message")
     ("usage", "print this help message")
-    ("verbose", "print verbose messages")
-    ("logfile", po::value<string>(), "log file")
-    ("loglevel-screen", po::value<int>()->default_value(2), "log level for screen output")
-    ("loglevel-file",   po::value<int>()->default_value(4), "log level for file output")
-    ("run",   po::value<string>(), "run range in format #[:#]")
-    ("event", po::value<string>(), "event range in format #[:#]")
   ;
+}
 
-  po::store(po::parse_command_line(argc, argv, fDescription), fVariablesMap);
+/**
+ * Destructor where we clean up locally allocated memory
+ */
+QwOptions::~QwOptions()
+{
+  // Clean up the copy of the command line arguments
+  // Note: only the array of arguments is allocated, the arguments themselves
+  // are still owned by main.
+  if (fArgc > 0)
+    delete[] fArgv;
+}
+
+/**
+ * Make a local copy of the command line arguments so they are available.
+ * @param argc Number of arguments
+ * @param argv[] Array of arguments
+ */
+void QwOptions::SetCommandLine(int argc, char* argv[])
+{
+  fArgc = argc;
+  fArgv = new char*[fArgc];
+  for (int i = 0; i < argc; i++) {
+    fArgv[i] = argv[i];
+  }
+  fParsed = false;
+}
+
+
+/**
+ * Parse the command line arguments for options and warn when encountering
+ * an unknown option, then notify the variables map.  Print usage instructions
+ * when no options are given, or when explicitly asked for.
+ */
+void QwOptions::ParseCommandLine()
+{
+  try {
+    po::store(po::parse_command_line(fArgc, fArgv, fOptions), fVariablesMap);
+  } catch (std::exception const& e) {
+    std::cerr << "Warning: " << e.what() << " while parsing command line arguments" << std::endl;
+    return;
+  }
   po::notify(fVariablesMap);
 
   // If no arguments or option help/usage, print help text.
-  if (argc == 1 || fVariablesMap.count("help") || fVariablesMap.count("usage")) {
+  if (fArgc == 1 || fVariablesMap.count("help") || fVariablesMap.count("usage")) {
     Usage();
     exit(1);
   }
 }
 
-
-QwOptions::~QwOptions()
+/**
+ * Parse the configuration file for options and warn when encountering
+ * an unknown option, then notify the variables map.
+ */
+void QwOptions::ParseConfigFile()
 {
+  std::ifstream configfile(fConfigFile.c_str());
+  std::stringstream configstream;
+  configstream << configfile.rdbuf();
+
+  try {
+    po::store(po::parse_config_file(configstream, fOptions), fVariablesMap);
+  } catch (std::exception const& e) {
+    std::cerr << "Warning: " << e.what() << " while parsing configuration file" << std::endl;
+    return;
+  }
+  po::notify(fVariablesMap);
 }
 
 
+
+/**
+ * Print usage instructions
+ */
 void QwOptions::Usage()
 {
-  // TODO Could add some more info here about QwAnalysis in general...
-  std::cout << fDescription << "\n";
+  std::cout << "Welcome to the Qweak analyzer code." << std::endl;
+  std::cout << std::endl;
+  std::cout << fOptions << "\n";
 }
 
-double QwOptions::GetDoubleValue(string key)
-{
-  if (fVariablesMap.count(key))
-    return fVariablesMap[key].as<double>();
-  else
-    return 0.0;
-}
 
-string QwOptions::GetStringValue(string key)
-{
-  if (fVariablesMap.count(key))
-    return fVariablesMap[key].as<string>();
-  else
-    return "";
-}
-
-bool QwOptions::GetBoolValue(string key)
-{
-  if (fVariablesMap.count(key))
-    return true;
-  else
-    return false;
-}
-
-int QwOptions::GetIntValue(string key)
-{
-  if (fVariablesMap.count(key))
-    return fVariablesMap[key].as<int>();
-  else
-    return 0;
-}
-
+/**
+ * Get a pair of integers specified as a colon-separated range
+ * @param key Option key
+ * @return Pair of integers
+ */
 std::pair<int,int> QwOptions::GetIntValuePair(string key)
 {
   std::pair<int, int> mypair;
   mypair.first = 0;
   mypair.second = 0;
 
+  if (fParsed == false) Parse();
   if (fVariablesMap.count(key)) {
     string range = fVariablesMap[key].as<string>();
     mypair = ParseIntRange(range);
@@ -120,7 +173,7 @@ std::pair<int, int> QwOptions::ParseIntRange(string range)
     } else if (pos == range.length()-1) {
       // Separator is the last character
       mypair.first  = atoi(range.substr(0,pos).c_str());
-      mypair.second = kMaxInt;
+      mypair.second = INT_MAX;
     } else {
       mypair.first  = atoi(range.substr(0,pos).c_str());
       mypair.second = atoi(range.substr(pos+1, end).c_str());
@@ -129,19 +182,19 @@ std::pair<int, int> QwOptions::ParseIntRange(string range)
 
   //  Check the values for common errors.
   if (mypair.first < 0){
-    QwError << "The first value must not be negative!"
-            << QwLog::endl;
+    std::cerr << "The first value must not be negative!"
+              << std::endl;
     exit(1);
   } else if (mypair.first > mypair.second){
-    QwError << "The first value must not be larger than the second value"
-            << QwLog::endl;
+    std::cerr << "The first value must not be larger than the second value"
+              << std::endl;
     exit(1);
   }
 
   //  Print the contents of the pair for debugging.
-  QwVerbose << "The range goes from " << mypair.first
+  std::cout << "The range goes from " << mypair.first
             << " to " << mypair.second
-            << QwLog::endl;
+            << std::endl;
 
   return mypair;
 };

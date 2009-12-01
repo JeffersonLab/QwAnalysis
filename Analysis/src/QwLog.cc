@@ -8,10 +8,16 @@
 
 #include "QwLog.h"
 
+// System headers
 #include <fstream>
 
+// Qweak headers
+#include "QwOptions.h"
+
+// Create the static logger object (with streams to screen and file)
 QwLog gQwLog;
 
+// Reset the end-of-line flags
 static Bool_t QwLogScreenAtNewLine = kTRUE;
 static Bool_t QwLogFileAtNewLine = kTRUE;
 
@@ -20,6 +26,11 @@ static Bool_t QwLogFileAtNewLine = kTRUE;
 QwLog::QwLog()
 : std::ostream(std::cerr.rdbuf())
 {
+  // Define some options
+  gQwOptions.AddOptions()("logfile", po::value<string>(), "log file");
+  gQwOptions.AddOptions()("loglevel-file", po::value<int>()->default_value(4), "log level for file output");
+  gQwOptions.AddOptions()("loglevel-screen", po::value<int>()->default_value(2), "log level for screen output");
+
   fScreenThreshold = kMessage;
   fScreen = &std::cerr;
 
@@ -46,14 +57,14 @@ QwLog::~QwLog()
 
 /*! Initialize the log file with name 'name'
  */
-void QwLog::InitLogfile(const char* name)
+void QwLog::InitLogFile(const string name)
 {
   if (fFile) {
     delete fFile;
     fFile = 0;
   }
 
-  fFile = new std::ofstream(name, std::ios::app | std::ios::out);
+  fFile = new std::ofstream(name.c_str(), std::ios::app | std::ios::out);
   fFileThreshold = kMessage;
 }
 

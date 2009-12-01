@@ -181,7 +181,7 @@ static const bool kHisto = true;
 int main(Int_t argc,Char_t* argv[])
 {
   // Message logging facilities
-  gQwLog.InitLogfile("QwTracking.log");
+  gQwLog.InitLogFile("QwTracking.log");
   gQwLog.SetScreenThreshold(QwLog::kMessage);
   gQwLog.SetFileThreshold(QwLog::kDebug);
 
@@ -357,7 +357,7 @@ int main(Int_t argc,Char_t* argv[])
 	delete rootfile; rootfile=NULL;
       }
 
-    auto_ptr<TFile> rootfile (new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
+    std::auto_ptr<TFile> rootfile (new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
   					"RECREATE",
   					"QWeak ROOT file with real events"));
 
