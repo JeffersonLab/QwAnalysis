@@ -383,6 +383,7 @@ int main(Int_t argc,Char_t* argv[])
 
     QwHitContainer* hitlist = NULL;
     QwEvent* event = NULL;
+    Int_t eventnumber = 0;
     while (eventbuffer.GetEvent() == CODA_OK){
       //  Loop over events in this CODA file
       //  First, do processing of non-physics events...
@@ -392,7 +393,8 @@ int main(Int_t argc,Char_t* argv[])
       if (! eventbuffer.IsPhysicsEvent() ) continue;
 
       //  Check to see if we want to process this event.
-      int eventnumber = eventbuffer.GetEventNumber();
+      eventnumber = eventbuffer.GetEventNumber();
+
       if      (eventnumber < cmdline.GetFirstEvent()) continue;
       else if (eventnumber > cmdline.GetLastEvent())  break;
 

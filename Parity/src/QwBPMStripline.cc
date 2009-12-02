@@ -66,7 +66,7 @@ void QwBPMStripline::ClearEventData()
 
   fWSum.ClearEventData();
 
-	return;
+  return;
 };
 /********************************************************/
 
@@ -80,7 +80,7 @@ Int_t QwBPMStripline::GetEventcutErrorCounters(){
   //std::cout<<"RelY ";
   fRelPos[1].GetEventcutErrorCounters();
 
-
+  return 1;
 };
 
 /********************************************************/

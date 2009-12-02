@@ -122,3 +122,52 @@ draw_hit(Int_t run_number=398)
   //     Double_t rPos2;		/// Position from level II decoding
   
 }
+
+
+
+
+void 
+access_hit(Int_t run_number=398)
+{
+
+  TStopwatch timer;
+  timer.Start();
+
+  TFile file(Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES_DIR"),run_number));
+  if (file.IsZombie()) 
+    {
+      printf("Error opening file\n");  
+      exit(-1);
+    }
+  else
+    {
+      TTree* tree = (TTree*) file.Get("tree");
+      QwHitRootContainer* hitContainer = NULL;
+      tree->SetBranchAddress("events",&hitContainer);
+      tree->Draw(">>TrawList", "fQwHits.fRawTime");
+
+      TEventList* TrawList=(TEventList*)gDirectory->Get("TrawList");
+      Int_t    nevent      = 0;
+      Int_t    nhit        = 0;
+      Double_t tdc_rawtime = 0.0;
+
+      nevent = TrawList->GetN();
+
+      printf("total event %d\n", nevent);
+
+      for (Int_t i=0;i<nevent;i++) 
+	{
+	  tree->GetEntry(TrawList->GetEntry(i));
+	  nhit = hitContainer->GetSize();
+	  if( i%10000 == 0) printf(" nhit %12d %8d\n", i, nhit);
+
+	}
+    }
+
+  file.Close();
+
+  timer.Stop();
+
+  std::cout << "CPU time used:  " << timer.CpuTime() << " s" << std::endl
+	    << "Real time used: " << timer.RealTime() << " s" << std::endl;
+}

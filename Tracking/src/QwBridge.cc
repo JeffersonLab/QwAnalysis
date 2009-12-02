@@ -25,7 +25,7 @@ QwBridge::QwBridge() {
 };
 QwBridge::~QwBridge() {};
 
-int QwBridge::LoadMagneticFieldMap() {
+void QwBridge::LoadMagneticFieldMap() {
     B_Field = new QwMagneticField();
     B_Field->ReadFieldMap(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/MainMagnet_FieldMap.dat");
 };

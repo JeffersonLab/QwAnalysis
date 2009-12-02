@@ -31,7 +31,7 @@ class QwTrajectory {
     QwTrajectory();
     ~QwTrajectory(){};
 
-    int SetMagneticField(QwMagneticField *bfield){ B_Field = bfield; };
+    void SetMagneticField(QwMagneticField *bfield){ B_Field = bfield; };
 
     double EstimateInitialMomentum(TVector3 direction);
 

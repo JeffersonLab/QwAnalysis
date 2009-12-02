@@ -31,7 +31,7 @@ class QwBridge {
     QwMagneticField *B_Field;
 
 //NOTE jpan: where is the best location to load the field map?
-    int LoadMagneticFieldMap();
+    void LoadMagneticFieldMap();
     int BridgeFrontBackPartialTrack(TVector3 startpoint, TVector3 direction, TVector3 endpoint);
     int Shooting(TVector3 fStartPoint, TVector3 fDirection, TVector3 fEndPoint);
 

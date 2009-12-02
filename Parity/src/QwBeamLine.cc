@@ -285,10 +285,10 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
   }
   //update the event cut ON/OFF for all the devices
   //std::cout<<"EVENT CUT FLAG"<<eventcut_flag<<std::endl;
-  for (Int_t i=0;i<fStripline.size();i++)
+  for (size_t i=0;i<fStripline.size();i++)
     fStripline[i].SetEventCutMode(eventcut_flag);
 
-  for (Int_t i=0;i<fBCM.size();i++)
+  for (size_t i=0;i<fBCM.size();i++)
     fBCM[i].SetEventCutMode(eventcut_flag);
     
 

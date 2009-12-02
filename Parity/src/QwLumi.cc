@@ -214,7 +214,7 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
     }
     
   }
-  for (Int_t i=0;i<fIntegrationPMT.size();i++)
+  for (Size_t i=0;i<fIntegrationPMT.size();i++)
     fIntegrationPMT[i].SetEventCutMode(eventcut_flag);  
 
   fQwLumiErrorCount=0; //set the error counter to zero
