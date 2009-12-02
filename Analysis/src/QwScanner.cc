@@ -40,7 +40,7 @@ QwScanner::QwScanner(TString region_tmp)
    fDirectionX = PreDirectionX = 1.0;
    fDirectionY = PreDirectionY = 1.0;
 
-   myTimer = abs(gRandom->Gaus(15,3));
+   myTimer = abs((Int_t) gRandom->Gaus(15,3));
    FrontScaData = 0;
    BackScaData = 0;
    CoincidenceScaData = 0;
@@ -1164,7 +1164,7 @@ CoincidenceScaData = 0;
         LocalSumBuffer[12+i] =localbuf[i];
     }
 
-  myTimer = abs(gRandom->Gaus(15,3));
+    myTimer = abs((Int_t) gRandom->Gaus(15,3));
 } //end of if(myTimer ==0)
 
   // If there is element data, generate the subbank header

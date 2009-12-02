@@ -108,7 +108,7 @@ int QwBridge::Shooting(TVector3 fStartPoint, TVector3 fDirection, TVector3 fEndP
   //TODO - need to take into account of the energy loss along the trajectories, assume ~6 MeV for now.
   //     - need slope matching as well
 
-        if (abs(r[0]-rh)<res) {
+        if (fabs(r[0]-rh)<res) {
             momentum = p[1]+0.006;
             std::cout<<"Expected hit location: ("<<xh<<", "<<yh<<", "<<fEndPoint.Z()<<")"<<std::endl;
             std::cout<<"Converged after "<<n+1<<" iterations at ("<<endpoint.X()<<", "<<endpoint.Y()<<", "<<endpoint.Z()

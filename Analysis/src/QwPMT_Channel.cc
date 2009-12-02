@@ -26,7 +26,7 @@ void QwPMT_Channel::RandomizeEventData(int helicity, int SlotNum, int ChanNum){
 
   Double_t mean = 1500.0;
   Double_t sigma = 300.0;
-  UInt_t fV775Dataword = gRandom->Gaus(mean,sigma);
+  UInt_t fV775Dataword = abs( (Int_t)gRandom->Gaus(mean,sigma) );
 
   UInt_t fV775SlotNumber = SlotNum;
   UInt_t fV775ChannelNumber = ChanNum;

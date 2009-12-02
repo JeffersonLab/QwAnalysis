@@ -29,7 +29,7 @@ void QwSIS3801_Channel::RandomizeEventData(int helicity)
    
   Double_t mean = 300.0;
   Double_t sigma = 50.0;
-  UInt_t Dataword = gRandom->Gaus(mean,sigma);
+  UInt_t Dataword = abs((Int_t)gRandom->Gaus(mean,sigma));
 
   //At this point, I am not clear about the sigle word structure yet.
   //How many bits will be configured for data, which bits will be configured for user info?
@@ -212,7 +212,7 @@ void QwSIS3801_Channel::Scale(Double_t scale)
 {
   if (!IsNameEmpty())
     {
-	this->fValue  = this->fValue*scale;
+      this->fValue  = (UInt_t)( this->fValue*scale);
     }
 };
 

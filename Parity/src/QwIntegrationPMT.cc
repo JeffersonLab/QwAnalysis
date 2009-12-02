@@ -106,7 +106,7 @@ Bool_t QwIntegrationPMT::ApplyHWChecks()
 Int_t QwIntegrationPMT::SetSingleEventCuts(std::vector<Double_t> & dEventCuts){//two limts and sample size
   fLLimit=dEventCuts.at(0);
   fULimit=dEventCuts.at(1);
-  fDevice_flag=dEventCuts.at(2);
+  fDevice_flag=(Int_t)dEventCuts.at(2);
   //std::cout<<GetElementName()<<" IntegrationPMT fDevice_flag "<<fDevice_flag<<std::endl;
   
   return 1;

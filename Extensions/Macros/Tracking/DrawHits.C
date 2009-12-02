@@ -11,7 +11,9 @@
 //
 // History:
 // 0.0.0     2009/11/10   created
-
+//
+// 0.0.1     2009/11/11   introduce a "premature" access_hit()
+//                        
 
 // Examples
 //

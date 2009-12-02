@@ -195,7 +195,7 @@ Int_t QwBPMStripline::SetSingleEventCuts(std::vector<Double_t> & dEventCuts){
   fULimitX=dEventCuts.at(1);
   fLLimitY=dEventCuts.at(2);
   fULimitY=dEventCuts.at(3);
-  fDevice_flag=dEventCuts.at(4);
+  fDevice_flag=(Int_t)dEventCuts.at(4);
   //std::cout<<GetElementName()<<"BPM  fDevice_flag "<<fDevice_flag<<std::endl;
   
   return 0; 
