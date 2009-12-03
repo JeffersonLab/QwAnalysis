@@ -32,10 +32,6 @@ double QwTrajectory::EstimateInitialMomentum(TVector3 direction){
 
 };
 
-TVector3 GetMomentum(){
-  return TVector3(0.0,0.0,0.0);
-};
-
 //************************************************************
 //     RK4 integration for trajectory and field integral.
 //     linear dimensions must be in m and b in tesla
@@ -51,8 +47,11 @@ TVector3 GetMomentum(){
 //     where ds is the displacement along the trajectory (=h, the int. step)
 //
 //input: values of the cordinates (x0,y0,z0), slopes (vx0,vy0,vz0) at starting point
-//output: coordinates of endpoint
+//output: coordinates of endpoint, direction at endpoint and field integral
 //*************************************************************
+
+// If the endpoint is at upstream and startpoint is at downstream,
+// the electron will swim backward
 
 TVector3 QwTrajectory::Integrate(double E0,
                                 TVector3 startpoint,
@@ -89,11 +88,22 @@ TVector3 QwTrajectory::Integrate(double E0,
     yy[0]=startpoint.Y()*0.01;
     zz[0]=startpoint.Z()*0.01;
 
-    uvx[0]=direction.X();
-    uvy[0]=direction.Y();
-    uvz[0]=direction.Z();
+    //reverse coordinates for backward swiming
+    if (startpoint.Z()>z_endplane) {
+       xx[0]=-xx[0];
+       zz[0]=-zz[0];
+       uvx[0]=direction.X();
+       uvy[0]=-direction.Y();
+       uvz[0]=direction.Z();
+       z_endplane=-z_endplane;
+    }
+    else {  //forward swiming
+       uvx[0]=direction.X();
+       uvy[0]=direction.Y();
+       uvz[0]=direction.Z();
+    }
 
-    for (;;) {  // integration loop
+    while ( fabs(zz[0]-z_endplane)>=step ) {  // integration loop
 
         //values of the cordinates, unit vector and field at start of interval
         x1=xx[0];
@@ -216,8 +226,15 @@ TVector3 QwTrajectory::Integrate(double E0,
 //                    <<", "<<xx[0]*100.0<<", "<<yy[0]*100.0<<", "<<zz[0]*100.0<<",      "
 //                    <<bx*10000.0<<", "<<by*10000.0<<", "<<bz*10000.0<<std::endl;
 
-        if (zz[0] >= z_endplane)
-            return TVector3(xx[0]*100.0,yy[0]*100.0,zz[0]*100.0);
+    } //end of while loop
+
+    //reverse coordinates for backward swiming
+    if (startpoint.Z()>z_endplane) {
+       xx[0]=-xx[0];
+       zz[0]=-zz[0];
+       uvy[0]=-uvy[0];
     }
+
+    return TVector3(xx[0]*100.0,yy[0]*100.0,zz[0]*100.0);
 }
 

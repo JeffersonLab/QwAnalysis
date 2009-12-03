@@ -7,7 +7,9 @@
 #include "QwMagneticField.h"
 #include "QwTrajectory.h"
 
-/*! \brief This class has not yet been implemented */
+#define MAX_ITERATION 10
+
+/*! \brief This class bridge the front and back partial track to find out the momentum */
 ///
 /// \ingroup QwTrackingAnl
 
@@ -32,8 +34,12 @@ class QwBridge {
 
 //NOTE jpan: where is the best location to load the field map?
     void LoadMagneticFieldMap();
-    int BridgeFrontBackPartialTrack(TVector3 startpoint, TVector3 direction, TVector3 endpoint);
-    int Shooting(TVector3 fStartPoint, TVector3 fDirection, TVector3 fEndPoint);
+    int BridgeFrontBackPartialTrack(TVector3 startpoint,
+                                    TVector3 startpointdirection,
+                                    TVector3 endpoint,
+                                    TVector3 endpointdirection);
+    int Filter(TVector3 fStartPoint, TVector3 fStartDirection, TVector3 fEndPoint, TVector3 fEndDirection);
+    int Shooting(TVector3 fStartPoint, TVector3 fStartDirection, TVector3 fEndPoint, TVector3 fEndDirection);
 
     double GetMomentum(){ return momentum; };
 

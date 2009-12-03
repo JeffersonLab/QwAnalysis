@@ -20,9 +20,7 @@
 #include <TRotation.h>
 #include "QwMagneticField.h"
 
-// Z boundary of the magnetic field
-#define ZLOW -250.0
-#define ZHIGH 250.0
+// scale factor of the magnetic field
 #define BSCALE 1.04
 
 class QwTrajectory {
@@ -40,7 +38,6 @@ class QwTrajectory {
 
 
     TVector3 GetFieldIntegral() { return TVector3(bdlx,bdly,bdlz); };
-    TVector3 GetMomentum(){ return momentum; };
     double GetDirectionX(){ return uvx[0]; };
     double GetDirectionY(){ return uvy[0]; };
     double GetDirectionZ(){ return uvz[0]; };

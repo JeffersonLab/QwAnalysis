@@ -175,6 +175,8 @@ int QwPartialTrack::DeterminePositionInCerenkovBars (EQwDetectorPackage package)
   double cc[3];
   double lim_cc[2][2];
 
+  //std::cout<<"r3: x, y, mx, my: "<<x<<", "<<y<<", "<<mx<<", "<<my<<std::endl;
+
   // Get the Cherenkov detector
   Det* rd = rcDETRegion[package][kRegionIDCer][kDirectionY];
 
@@ -199,7 +201,17 @@ int QwPartialTrack::DeterminePositionInCerenkovBars (EQwDetectorPackage package)
     cerenkov[0] = cc[0];
     cerenkov[1] = cc[1];
     cerenkov[2] = cc[2];
-    std::cout << "Cerenkov bar hit at : (" << cc[0] << "," << cc[1] << "," << cc[2] << ")" << std::endl;
+
+    pR3hit[0] = cerenkov[0];
+    pR3hit[1] = cerenkov[1];
+    pR3hit[2] = cerenkov[2];
+
+    uvR3hit[0] = mx/sqrt(1+mx*mx+my*my);
+    uvR3hit[1] = my/sqrt(1+mx*mx+my*my);
+    uvR3hit[2] = 1/sqrt(1+mx*mx+my*my);
+
+    std::cout << "Cerenkov bar hit at : (" << cc[0] << "," << cc[1] << "," << cc[2] << ")   "
+              << "direction ("<<uvR3hit[0]<<","<<uvR3hit[1]<<","<<uvR3hit[2] << std::endl;
   } else {
     cerenkovhit = 0;
     isgood = false;
@@ -212,6 +224,8 @@ int QwPartialTrack::DetermineHitInHDC (EQwDetectorPackage package)
 {
   double hdc_front[3], hdc_back[3];
   double lim_hdc[2][2];
+
+  //std::cout<<"r2: x, y, mx, my: "<<x<<", "<<y<<", "<<mx<<", "<<my<<std::endl;
 
   // Get the HDC detector
   Det* rd = rcDETRegion[package][kRegionID2][kDirectionX];
@@ -262,8 +276,17 @@ int QwPartialTrack::DetermineHitInHDC (EQwDetectorPackage package)
     std::cout << "Partial track direction vector: ("
               << uvR2hit[0] << "," << uvR2hit[1] << "," << uvR2hit[2] << ")" << std::endl;
     double degree = 180.0/3.1415927;
+
     std::cout << "Partial track direction angle: theta="
               << acos(uvR2hit[2])*degree <<" deg, phi=" << atan(uvR2hit[1]/uvR2hit[0])*degree<<" deg"<< std::endl;
+
+    double ux = mx/sqrt(1+mx*mx+my*my);
+    double uy = my/sqrt(1+mx*mx+my*my);
+    double uz = 1/sqrt(1+mx*mx+my*my);
+
+    std::cout<<"direction vector calculated from mx,my: ("<<ux<<", "<<uy<<", "<<uz<<")  theta="
+             <<acos(uz)*degree<<", phi="<< atan(uy/ux)*degree<<std::endl;
+
   } else {
     isgood = false;
   }

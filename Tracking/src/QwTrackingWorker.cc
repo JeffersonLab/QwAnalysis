@@ -822,13 +822,17 @@ QwEvent* QwTrackingWorker::ProcessHits (
                 TVector3 R2hit(event->parttrack[package][kRegionID2][kTypeDriftHDC]->pR2hit[0],
                                event->parttrack[package][kRegionID2][kTypeDriftHDC]->pR2hit[1],
                                event->parttrack[package][kRegionID2][kTypeDriftHDC]->pR2hit[2]);
-                TVector3 unitvector(event->parttrack[package][kRegionID2][kTypeDriftHDC]->uvR2hit[0],
-                                    event->parttrack[package][kRegionID2][kTypeDriftHDC]->uvR2hit[1],
-                                    event->parttrack[package][kRegionID2][kTypeDriftHDC]->uvR2hit[2]);
-                TVector3 cerenkovhit(event->parttrack[package][kRegionID3][kTypeDriftVDC]->cerenkov[0],
-                                     event->parttrack[package][kRegionID3][kTypeDriftVDC]->cerenkov[1],
-                                     event->parttrack[package][kRegionID3][kTypeDriftVDC]->cerenkov[2]);
-                int status = bridge->BridgeFrontBackPartialTrack(R2hit, unitvector, cerenkovhit);
+                TVector3 R2direction(event->parttrack[package][kRegionID2][kTypeDriftHDC]->uvR2hit[0],
+                                     event->parttrack[package][kRegionID2][kTypeDriftHDC]->uvR2hit[1],
+                                     event->parttrack[package][kRegionID2][kTypeDriftHDC]->uvR2hit[2]);
+                TVector3 R3hit(event->parttrack[package][kRegionID3][kTypeDriftVDC]->pR3hit[0],
+                               event->parttrack[package][kRegionID3][kTypeDriftVDC]->pR3hit[1],
+                               event->parttrack[package][kRegionID3][kTypeDriftVDC]->pR3hit[2]);
+                TVector3 R3direction(event->parttrack[package][kRegionID3][kTypeDriftVDC]->uvR3hit[0],
+                                     event->parttrack[package][kRegionID3][kTypeDriftVDC]->uvR3hit[1],
+                                     event->parttrack[package][kRegionID3][kTypeDriftVDC]->uvR3hit[2]);
+
+                int status = bridge->BridgeFrontBackPartialTrack(R2hit, R2direction, R3hit, R3direction);
 
                 if (status == 0) 
                   std::cout<<"======>>>> Bridged a track (momentum = "<<bridge->GetMomentum()<<" GeV)"<<std::endl;

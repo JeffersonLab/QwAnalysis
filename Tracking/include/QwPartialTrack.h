@@ -90,8 +90,11 @@ class QwPartialTrack: public TObject {
 
     bool isgood;
 
-    double pR2hit[3];
-    double uvR2hit[3];
+    double pR2hit[3];           ///< x-y-z position at R2
+    double uvR2hit[3];          ///< direction at R2
+
+    double pR3hit[3];           ///< x-y-z position at R3
+    double uvR3hit[3];          ///< direction at R3
 
     QwPartialTrack *next; //!	///< linked list (not saved)
 
