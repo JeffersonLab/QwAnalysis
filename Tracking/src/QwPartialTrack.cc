@@ -1,12 +1,24 @@
 #include "QwPartialTrack.h"
 ClassImp(QwPartialTrack);
 
+#include "TMath.h"
+
+// Initialize the static lists
+TClonesArray* QwPartialTrack::gQwTreeLines = 0;
 
 #include "Det.h"
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 
 QwPartialTrack::QwPartialTrack()
 {
+  // Create the static TClonesArray for the tree lines if not existing yet
+  if (! gQwTreeLines)
+    gQwTreeLines = new TClonesArray("QwTrackingTreeLine", QWPARTIALTRACK_MAX_NUM_TREELINES);
+  // Set local TClonesArray to static TClonesArray and zero hits
+  fQwTreeLines = gQwTreeLines;
+  fNQwTreeLines = 0;
+
+
   x = 0.0; y = 0.0; mx = 0.0; my = 0.0;
   isvoid = false;  isused = false; isgood = false;
   next = 0;
@@ -58,6 +70,57 @@ const double QwPartialTrack::CalculateAverageResidual()
 }
 
 
+// Clear the local TClonesArrays
+void QwPartialTrack::Clear(Option_t *option)
+{
+  ClearTreeLines();
+};
+
+// Delete the static TClonesArrays
+void QwPartialTrack::Reset(Option_t *option)
+{
+  ResetTreeLines();
+};
+
+// Create a new QwTreeLine
+QwTrackingTreeLine* QwPartialTrack::CreateNewTreeLine()
+{
+  TClonesArray &treelines = *fQwTreeLines;
+  QwTrackingTreeLine *treeline = new (treelines[fNQwTreeLines++]) QwTrackingTreeLine();
+  return treeline;
+};
+
+// Add an existing QwTreeLine
+void QwPartialTrack::AddTreeLine(QwTrackingTreeLine* treeline)
+{
+  QwTrackingTreeLine* newtreeline = CreateNewTreeLine();
+  *newtreeline = *treeline;
+  fQwTreeLines2.push_back(*treeline);
+};
+
+// Clear the local TClonesArray of tree lines
+void QwPartialTrack::ClearTreeLines(Option_t *option)
+{
+  fQwTreeLines->Clear(option); // Clear the local TClonesArray
+  fNQwTreeLines = 0; // No tree lines in local TClonesArray
+};
+
+// Delete the static TClonesArray of tree lines
+void QwPartialTrack::ResetTreeLines(Option_t *option)
+{
+  delete gQwTreeLines;
+  gQwTreeLines = 0;
+}
+
+// Print the tree lines
+void QwPartialTrack::PrintTreeLines()
+{
+  TIterator* iterator = fQwTreeLines->MakeIterator();
+  QwTrackingTreeLine* treeline = 0;
+  while ((treeline = (QwTrackingTreeLine*) iterator->Next()))
+    std::cout << *treeline << std::endl;
+}
+
 
 /**
  * Print some debugging information
@@ -93,6 +156,31 @@ ostream& operator<< (ostream& stream, const QwPartialTrack& pt) {
   return stream;
 };
 
+
+/**
+ * Determines the position of the track at the given z position
+ */
+TVector3 QwPartialTrack::GetPosition(double z)
+{
+  TVector3 position;
+  position.SetX(x + mx * z);
+  position.SetY(y + my * z);
+  position.SetZ(z);
+  return position;
+}
+
+/**
+ * Determines the direction of the track at the given z position
+ */
+TVector3 QwPartialTrack::GetDirection(double z)
+{
+  TVector3 direction;
+  double kz = sqrt(mx * mx + my * my + 1);
+  direction.SetX(mx / kz);
+  direction.SetY(my / kz);
+  direction.SetZ(1  / kz);
+  return direction;
+}
 
 /**
  * This method checks determines the intersection of the partial track
@@ -233,6 +321,10 @@ int QwPartialTrack::DetermineHitInHDC (EQwDetectorPackage package)
   hdc_front[2] = rd->Zpos;
   hdc_front[0] = mx * hdc_front[2] + x;
   hdc_front[1] = my * hdc_front[2] + y;
+  TVector3 hdc_front_vector = GetPosition(rd->Zpos);
+  std::cout << hdc_front_vector.X() << ", "
+            << hdc_front_vector.Y() << ", "
+            << hdc_front_vector.Z() << std::endl;
 
   // Get the HDC detector
   rd = rcDETRegion[package][kRegionID2][kDirectionV];
@@ -240,6 +332,10 @@ int QwPartialTrack::DetermineHitInHDC (EQwDetectorPackage package)
   hdc_back[2] = rd->Zpos;
   hdc_back[0] = mx * hdc_back[2] + x;
   hdc_back[1] = my * hdc_back[2] + y;
+  TVector3 hdc_back_vector = GetPosition(rd->Zpos);
+  std::cout << hdc_back_vector.X() << ", "
+            << hdc_back_vector.Y() << ", "
+            << hdc_back_vector.Z() << std::endl;
 
   // Get the detector boundaries
   lim_hdc[0][0] = rd->center[0] + rd->width[0]/2;
@@ -266,16 +362,22 @@ int QwPartialTrack::DetermineHitInHDC (EQwDetectorPackage package)
     double dy = (hdc_back[1]-hdc_front[1]);
     double dz = (hdc_back[2]-hdc_front[2]);
     double r = sqrt(dx*dx+dy*dy+dz*dz);
+
     uvR2hit[0] = dx/r;
     uvR2hit[1] = dy/r;
     uvR2hit[2] = dz/r;
-    std::cout << "HDC front hit at : (" 
+    std::cout << "HDC front hit at : ("
               << hdc_front[0] << "," << hdc_front[1] << "," << hdc_front[2] << ")" << std::endl;
-    std::cout << "HDC back  hit at : (" 
+    std::cout << "HDC back  hit at : ("
               << hdc_back[0] << "," << hdc_back[1] << "," << hdc_back[2] << ")" << std::endl;
     std::cout << "Partial track direction vector: ("
               << uvR2hit[0] << "," << uvR2hit[1] << "," << uvR2hit[2] << ")" << std::endl;
     double degree = 180.0/3.1415927;
+
+    TVector3 partial_track_vector = GetDirection();
+    std::cout << partial_track_vector.X() << ", "
+              << partial_track_vector.Y() << ", "
+              << partial_track_vector.Z() << std::endl;
 
     std::cout << "Partial track direction angle: theta="
               << acos(uvR2hit[2])*degree <<" deg, phi=" << atan(uvR2hit[1]/uvR2hit[0])*degree<<" deg"<< std::endl;
@@ -286,6 +388,9 @@ int QwPartialTrack::DetermineHitInHDC (EQwDetectorPackage package)
 
     std::cout<<"direction vector calculated from mx,my: ("<<ux<<", "<<uy<<", "<<uz<<")  theta="
              <<acos(uz)*degree<<", phi="<< atan(uy/ux)*degree<<std::endl;
+
+    std::cout << TMath::RadToDeg() * GetDirectionTheta() << ", "
+              << TMath::RadToDeg() * GetDirectionPhi() << std::endl;
 
   } else {
     isgood = false;

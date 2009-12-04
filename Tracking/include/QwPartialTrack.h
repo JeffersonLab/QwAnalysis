@@ -4,8 +4,12 @@
 #include <iostream>
 #include <math.h>
 
+// ROOT headers
 #include "TObject.h"
+#include "TClonesArray.h"
+#include "TVector3.h"
 
+// Qweak headers
 #include "globals.h"
 #include "QwTrackingTreeLine.h"
 #include "QwBridge.h"
@@ -24,12 +28,21 @@
 *//*-------------------------------------------------------------------------*/
 class QwPartialTrack: public TObject {
 
+  private:
+
+    // Tree lines
+    #define QWPARTIALTRACK_MAX_NUM_TREELINES 1000
+    Int_t fNQwTreeLines; ///< Number of QwTreeLines in the array
+    TClonesArray        *fQwTreeLines; ///< Array of QwTreeLines
+    static TClonesArray *gQwTreeLines; ///< Static array of QwTreeLines
+
+
   public: // methods
 
     QwPartialTrack();
     ~QwPartialTrack();
 
-
+    // Valid and used flags
     bool IsVoid() { return isvoid; };
     bool IsValid() { return ! isvoid; };
     bool IsGood() { return isgood; };
@@ -37,18 +50,45 @@ class QwPartialTrack: public TObject {
     bool IsUsed() { return isused; };
     bool IsNotUsed() { return ! isused; };
 
+    // Housekeeping methods for lists
+    void Clear(Option_t *option = "");
+    void Reset(Option_t *option = "");
+
+    // Creating and adding tree lines
+    QwTrackingTreeLine* CreateNewTreeLine();
+    void AddTreeLine(QwTrackingTreeLine* treeline);
+    void ClearTreeLines(Option_t *option = "");
+    void ResetTreeLines(Option_t *option = "");
+    // Get the number of partial tracks
+    Int_t GetNumberOfTreeLines() const { return fNQwTreeLines; };
+    // Print the list of tree lines
+    void PrintTreeLines();
+
+    // Get the weighted chi squared
     double GetChiWeight ();
 
     void Print();
     void PrintValid();
     friend ostream& operator<< (ostream& stream, const QwPartialTrack& pt);
 
+    /// \brief Return the vertex at position z
+    TVector3 GetPosition(double z);
+    /// \brief Return the direction at position z
+    TVector3 GetDirection(double z = 0.0);
+    /// \brief Return the phi angle at position z
+    Double_t GetDirectionPhi(double z = 0.0) {
+      return GetDirection(z).Phi();
+    };
+    /// \brief Return the theta angle at position z
+    Double_t GetDirectionTheta(double z = 0.0) {
+      return GetDirection(z).Theta();
+    };
 
-    /// Determine vertex in the target
+    /// \brief Determine vertex in the target
     int DeterminePositionInTarget ();
-    /// Determine intersection with trigger scintillators
+    /// \brief Determine intersection with trigger scintillators
     int DeterminePositionInTriggerScintillators (EQwDetectorPackage package);
-    /// Determine intersection with cerenkov bars
+    /// \brief Determine intersection with cerenkov bars
     int DeterminePositionInCerenkovBars (EQwDetectorPackage package);
 
     int DetermineHitInHDC (EQwDetectorPackage package);
@@ -66,13 +106,15 @@ class QwPartialTrack: public TObject {
 
   public: // members
 
+    std::vector <QwTrackingTreeLine> fQwTreeLines2;
+
     Double_t x;			///< x coordinate (at MAGNET_CENTER)
     Double_t y;			///< y coordinate (at MAGNET_CENTER)
     Double_t mx;		///< x slope
     Double_t my;		///< y slope
     Double_t chi;		///< combined chi square
     double Cov_Xv[4][4];	///< covariance matrix
-    QwTrackingTreeLine *tline[kNumDirections];		///< tree line in u v and x
+    QwTrackingTreeLine *tline[kNumDirections];	//!	///< tree line in u v and x
     double  clProb;		///< prob. that this cluster belongs to track
     double  pathlenoff;		///< pathlength offset
     double  pathlenslo;		///< pathlength slope
