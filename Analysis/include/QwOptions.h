@@ -76,7 +76,15 @@ class QwOptions {
     /** \brief Set the configuration file
      */
     void SetConfigFile(string configfile) {
-      fConfigFile = configfile;
+      fConfigFiles.clear();
+      fConfigFiles.push_back(configfile);
+      fParsed = false;
+    };
+
+    /** \brief Add a configuration file
+     */
+    void AddConfigFile(string configfile) {
+      fConfigFiles.push_back(configfile);
       fParsed = false;
     };
 
@@ -85,8 +93,8 @@ class QwOptions {
      */
     void Parse() {
       ParseCommandLine();
-      ParseConfigFile();
       ParseEnvironment();
+      ParseConfigFile();
       fParsed = true;
     };
 
@@ -137,7 +145,7 @@ class QwOptions {
 
     /** \brief Parse the environment variables
      */
-    void ParseEnvironment() { };
+    void ParseEnvironment();
 
     /** \brief Parse a range of integers as #:# where either can be missing
      */
@@ -146,7 +154,7 @@ class QwOptions {
 
     /** \brief Configuration file
      */
-    string fConfigFile;
+    std::vector<string> fConfigFiles;
 
     /** \brief Command line arguments
      *

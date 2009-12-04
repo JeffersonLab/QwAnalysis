@@ -33,8 +33,11 @@ QwOptions gQwOptions;
  * wherever this object is accessible.
  */
 QwOptions::QwOptions()
-  : fConfigFile(""), fParsed(false)
+  : fParsed(false)
 {
+  // No default config files
+  fConfigFiles.clear();
+
   // Declare the generic options
   fOptions.add_options()
     ("help",  "print this help message")
@@ -78,10 +81,9 @@ void QwOptions::SetCommandLine(int argc, char* argv[])
 void QwOptions::ParseCommandLine()
 {
   try {
-    po::store(po::parse_command_line(fArgc, fArgv, fOptions), fVariablesMap);
+    po::store(po::command_line_parser(fArgc, fArgv).options(fOptions).allow_unregistered().run(), fVariablesMap);
   } catch (std::exception const& e) {
     std::cerr << "Warning: " << e.what() << " while parsing command line arguments" << std::endl;
-    return;
   }
   po::notify(fVariablesMap);
 
@@ -93,22 +95,38 @@ void QwOptions::ParseCommandLine()
 }
 
 /**
+ * Parse the environment variables for options and notify the variables map.
+ */
+void QwOptions::ParseEnvironment()
+{
+  try {
+    po::store(po::parse_environment(fOptions, "Qw"), fVariablesMap);
+  } catch (std::exception const& e) {
+    std::cerr << "Warning: " << e.what() << " while parsing environment variables" << std::endl;
+  }
+  po::notify(fVariablesMap);
+}
+
+/**
  * Parse the configuration file for options and warn when encountering
  * an unknown option, then notify the variables map.
  */
 void QwOptions::ParseConfigFile()
 {
-  std::ifstream configfile(fConfigFile.c_str());
-  std::stringstream configstream;
-  configstream << configfile.rdbuf();
+  for (size_t i = 0; i < fConfigFiles.size(); i++) {
+    std::ifstream configfile(fConfigFiles.at(i).c_str());
+    std::stringstream configstream;
+    configstream << configfile.rdbuf();
 
-  try {
-    po::store(po::parse_config_file(configstream, fOptions), fVariablesMap);
-  } catch (std::exception const& e) {
-    std::cerr << "Warning: " << e.what() << " while parsing configuration file" << std::endl;
-    return;
+    try {
+      po::store(po::parse_config_file(configstream, fOptions), fVariablesMap);
+    } catch (std::exception const& e) {
+      std::cerr << "Warning: " << e.what()
+                << " while parsing configuration file "
+                << fConfigFiles.at(i) << std::endl;
+    }
+    po::notify(fVariablesMap);
   }
-  po::notify(fVariablesMap);
 }
 
 
