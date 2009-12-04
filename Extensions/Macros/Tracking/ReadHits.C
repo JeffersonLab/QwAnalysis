@@ -2,7 +2,7 @@
 // Author:   Jeong Han Lee
 // email :   jhlee@jlab.org
 // Date:     Tue Nov 10 16:55:06 EST 2009
-// Version:  0.0.1
+// Version:  0.0.3
 //
 //  An example script that uses a "generic USER way" in order to read 
 //  some useful information from "hit-based" ROOT output file created 
@@ -26,17 +26,37 @@
 
 // Examples
 //
-// cd $QWANAYSIS
-// make distclean
-// make 
-// cd Extensions/Macro/Tracking/
-// sh lib.sh
-// qwtracking -r 398
-// 
-// .L ReadHits.C
-// read(12)
-// or 
-// read(12,4)
+//   cd QwAnalysis_new
+//   make distclean
+//   make
+//   qwtracking -r 398
+//   qwtracking -r 1567
+
+//   cd QwAnalysis_new/Extensions/Macros/Tracking/
+//   sh lib.sh
+//   root -l
+
+//   root [0] .L ReadHits.C
+//   root [1] read(12)
+// *** Event         12
+//     --- 17 hits (by QwHitRootContainer)
+//     --- 17 hits (by TCloneArray)
+//     --------------------------------
+//     --- Subbank            0
+//     --- Module             8
+//     --- Channel           47
+//     --- Region             2
+//     --- Package            1
+//     --- Direction          1
+//     --------------------------------
+//     --- DriftDistance           0.58
+//     --- RawTime             39908.00
+//     --- Time           4294949823.00
+//     --- HitNumber                 10
+//     --- HitNumberR       -1235436668
+//     --------------------------------
+//   root [2] plot_time_histogram_per_tdc()
+//   root [3] plot_time_histogram_per_tdc(1567, 10, 0, 10000)
 
 
 // Here I use the following defintions:
@@ -52,6 +72,8 @@
 //  gSystem->Load("./libQwHitRootContainer.so");
 //}
 
+const Int_t BUFFERSIZE = 1000;
+const Int_t BINNUMBER = 2048;
 
 void
 check_libraries()
@@ -78,7 +100,7 @@ IQR(TH1D &histo)
 
 
 void 
-read(Int_t evID=1, Int_t hitID = 0, Int_t run_number=398)
+read(Int_t evID=1, Int_t hitID = -1, Int_t run_number=1567)
 {
 
   check_libraries();
@@ -109,7 +131,11 @@ read(Int_t evID=1, Int_t hitID = 0, Int_t run_number=398)
   TClonesArray *hits_per_event = (TClonesArray*) hitContainer->GetHits();
   
   //one can also access how many hits are in there
-  Int_t hitN = hits_per_event  -> GetEntries();
+  Int_t hitN      = 0;
+  Int_t hit_begin = 0;
+  Int_t hit_end   = 0;
+
+  hitN = hits_per_event  -> GetEntries();
   printf("    --- %d hits (by TCloneArray)\n", hitN); 
 
   if(hitN == 0) 
@@ -127,27 +153,38 @@ read(Int_t evID=1, Int_t hitID = 0, Int_t run_number=398)
 	  printf("    --- Thus, the maximum hit number %d is selected.\n", hitID);
 	}
       
-      
-      
-      hit = (QwHit *) hits_per_event->At(hitID);
-      // At() : http://root.cern.ch/root/html/src/TObjArray.h.html#R3YkqE
-      // 
-      // All functions are defined in QwHit.h
-      printf("    -------------------------------- \n"); 
-      printf("    --- Subbank       %6d \n",  hit->GetSubbankID()); 
-      printf("    --- Module        %6d \n",  hit->GetModule()); 
-      printf("    --- Channel       %6d \n",  hit->GetChannel()); 
-      printf("    --- Region        %6d \n",  hit->GetRegion()); 
-      printf("    --- Package       %6d \n",  hit->GetPackage()); 
-      printf("    --- Direction     %6d \n", hit->GetDirection()); 
-      printf("    -------------------------------- \n"); 
-      printf("    --- DriftDistance %14.2f \n", hit->GetDriftDistance());
-      printf("    --- RawTime       %14.2f \n", hit->GetRawTime());
-      printf("    --- Time          %14.2f \n", hit->GetTime());
-      printf("    --- HitNumber     %14d   \n", hit->GetHitNumber());
-      printf("    --- HitNumberR    %14d   \n", hit->GetHitNumberR());
-      printf("    -------------------------------- \n"); 
-      
+      if( hitID == -1 ) 
+	{
+	  hit_begin = 0;
+	  hit_end   = hitN;
+	}
+      else
+	{
+	  hit_begin = hitID;
+	  hit_end   = hitID +1;
+	}
+      for(Int_t i=hit_begin; i< hit_end; i++)
+	{
+	  hit = (QwHit *) hits_per_event->At(i);
+	  // At() : http://root.cern.ch/root/html/src/TObjArray.h.html#R3YkqE
+	  // 
+	  // All functions are defined in QwHit.h
+	  printf("    Hit %d                           \n", i);
+	  printf("    -------------------------------- \n"); 
+	  printf("    --- Subbank       %6d \n",  hit->GetSubbankID()); 
+	  printf("    --- Module        %6d \n",  hit->GetModule()); 
+	  printf("    --- Channel       %6d \n",  hit->GetChannel()); 
+	  printf("    --- Region        %6d \n",  hit->GetRegion()); 
+	  printf("    --- Package       %6d \n",  hit->GetPackage()); 
+	  printf("    --- Direction     %6d \n",  hit->GetDirection()); 
+	  printf("    -------------------------------- \n"); 
+	  printf("    --- DriftDistance %14.2f \n", hit->GetDriftDistance());
+	  printf("    --- RawTime       %14.2f \n", hit->GetRawTime());
+	  printf("    --- Time          %14.2f \n", hit->GetTime());
+	  printf("    --- HitNumber     %14d   \n", hit->GetHitNumber());
+	  printf("    --- HitNumberR    %14d   \n", hit->GetHitNumberR());
+	  printf("    -------------------------------- \n"); 
+	}
       
       // hit = (QwHit *) hits_per_event->UncheckedAt(hitID);
       //// UncheckedAt() : http://root.cern.ch/root/html/src/TObjArray.h.html#KyjP6
@@ -222,7 +259,7 @@ typedef struct {
 void 
 histogram_range_per_tdc(Int_t run_number=398, Bool_t debug=false, Int_t tdc_chan=0)
 {
- check_libraries();
+  check_libraries();
 
   TStopwatch timer;
   timer.Start();
@@ -297,6 +334,7 @@ histogram_range_per_tdc(Int_t run_number=398, Bool_t debug=false, Int_t tdc_chan
 // Histogram of the time value of all hits that are assigned to a given TDC channel
 // (tdc_chan) for events  (event_begin:event_end) in a given run (run_number).
 // --------------------------------------------------------------------------------
+// valid for region 2 and region 3, not sure region 1 
 void 
 plot_time_histogram_per_tdc(Int_t run_number=398, Int_t tdc_chan=0, UInt_t event_begin=0, UInt_t event_end=0, Int_t smooth_n=1)
 {
@@ -322,8 +360,9 @@ plot_time_histogram_per_tdc(Int_t run_number=398, Int_t tdc_chan=0, UInt_t event
   TFile *file =  new TFile(Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES_DIR"),run_number));
   if (file->IsZombie()) 
     {
-      printf("Error opening file\n");  
-      exit(-1);
+      printf("Error opening file\n"); 
+      delete time_per_tdc_canvas;time_per_tdc_canvas = NULL;
+      return;
     }
   else
     {
@@ -348,8 +387,8 @@ plot_time_histogram_per_tdc(Int_t run_number=398, Int_t tdc_chan=0, UInt_t event
  	  region          = i+1;
 	  histo_region[i] = new TH1D(Form("Region%dTraw", region), 
   				     Form("Time Raw Histogram per channel %d of Region %d", 
-  					  tdc_chan, region), 2048, 0, 0);
-	  histo_region[i] -> SetDefaultBufferSize(4000);
+  					  tdc_chan, region), BINNUMBER, 0, 0);
+	  histo_region[i] -> SetDefaultBufferSize(1000);
 	}
 
       Bool_t region_status[4] = {true, false, false, false};
@@ -371,7 +410,7 @@ plot_time_histogram_per_tdc(Int_t run_number=398, Int_t tdc_chan=0, UInt_t event
 		  tdc_rawtime = hit->GetRawTime();
 		  region      = hit->GetRegion();
 		  if(!region_status[region]) region_status[region] = true;
-		  if(ev_i%100==0) printf("evID %d region %d, Traw %d\n", ev_i, region, tdc_rawtime);
+		  if(ev_i%2==0) printf("evID %d region %d, Traw %d\n", ev_i, region, tdc_rawtime);
 		  histo_region[region-1] -> Fill(tdc_rawtime);
 		}
 	    }
@@ -394,7 +433,7 @@ plot_time_histogram_per_tdc(Int_t run_number=398, Int_t tdc_chan=0, UInt_t event
 	  if(region_status[region]) 
 	    {
 	      histo_region[i] -> SetLineColor(kRed);
-	      histo_region[i] -> GetXaxis()-> SetTitle("Time (s)");
+	      histo_region[i] -> GetXaxis()-> SetTitle("Time");
 	      histo_region[i] -> GetYaxis()-> SetTitle("Number of measurements");
 	      histo_region[i] -> GetXaxis()-> CenterTitle();
 	      histo_region[i] -> GetYaxis()-> CenterTitle();
@@ -421,6 +460,7 @@ plot_time_histogram_per_tdc(Int_t run_number=398, Int_t tdc_chan=0, UInt_t event
 // Histogram of the time value of all hits that are assigned to a given drift 
 // chammber wire (wire) for events  (event_begin:event_end) in a given run (run_number).
 // --------------------------------------------------------------------------------
+// valid for region 2 and region 3, not sure for region 1
 void 
 plot_time_histogram_per_wire(Int_t run_number=398, Int_t wire=0, UInt_t event_begin=0, UInt_t event_end=0, Int_t smooth_n=1)
 {
@@ -446,8 +486,9 @@ plot_time_histogram_per_wire(Int_t run_number=398, Int_t wire=0, UInt_t event_be
   TFile *file =  new TFile(Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES_DIR"),run_number));
   if (file->IsZombie()) 
     {
-      printf("Error opening file\n");  
-      exit(-1);
+      printf("Error opening file\n"); 
+      delete time_per_wire_canvas; time_per_wire_canvas = NULL;
+      return;
     }
   else
     {
@@ -472,8 +513,8 @@ plot_time_histogram_per_wire(Int_t run_number=398, Int_t wire=0, UInt_t event_be
  	  region          = i+1;
 	  histo_region[i] = new TH1D(Form("Region%dTraw", region), 
   				     Form("Time Raw Histogram per wire %d of Region %d", 
-  					  wire, region), 2048, 0, 0);
-	  histo_region[i] -> SetDefaultBufferSize(4000);
+  					  wire, region), BINNUMBER, 0, 0);
+	  histo_region[i] -> SetDefaultBufferSize(1000);
 	}
 
       Bool_t region_status[4] = {true, false, false, false};
@@ -495,7 +536,7 @@ plot_time_histogram_per_wire(Int_t run_number=398, Int_t wire=0, UInt_t event_be
 		  tdc_rawtime = hit->GetRawTime();
 		  region      = hit->GetRegion();
 		  if(!region_status[region]) region_status[region] = true;
-		  if(ev_i%100==0) printf("evID %d region %d, Traw %d\n", ev_i, region, tdc_rawtime);
+		  if(ev_i%2==0) printf("evID %d region %d, Traw %d\n", ev_i, region, tdc_rawtime);
 		  histo_region[region-1] -> Fill(tdc_rawtime);
 		}
 	    }
@@ -518,7 +559,7 @@ plot_time_histogram_per_wire(Int_t run_number=398, Int_t wire=0, UInt_t event_be
 	  if(region_status[region]) 
 	    {
 	      histo_region[i] -> SetLineColor(kRed);
-	      histo_region[i] -> GetXaxis()-> SetTitle("Time (s)");
+	      histo_region[i] -> GetXaxis()-> SetTitle("Time");
 	      histo_region[i] -> GetYaxis()-> SetTitle("Number of measurements");
 	      histo_region[i] -> GetXaxis()-> CenterTitle();
 	      histo_region[i] -> GetYaxis()-> CenterTitle();
@@ -530,6 +571,271 @@ plot_time_histogram_per_wire(Int_t run_number=398, Int_t wire=0, UInt_t event_be
 	      region_tex -> DrawLatex(0.5,0.5,Form("Region %d has no data", region));
 	    }
 	}
+    }
+  //     file->Close();
+  // if one cloese the file in the ROOT script, there are nothing on the canvas.
+  timer.Stop();
+  
+  printf("Time used : CPU %8.2f, Real %8.2f (sec)\n", timer.CpuTime(), timer.RealTime());
+      
+}
+
+ 
+// need to understand what people wants to do.... not ready to use
+// // --------------------------------------------------------------------------------
+// // Histogram of the difference between two time values from two specific TDC
+// // channels for events  (event_begin:event_end) in a given run (run_number).
+// // --------------------------------------------------------------------------------
+// // valid for region 3
+// void 
+// plot_difftime_histogram(Int_t run_number=1567, Int_t tchan_one=0, Int_t tchan_two=9, UInt_t event_begin=0, UInt_t event_end=0, Int_t smooth_n=1)
+// {
+
+ 
+//   if( (event_begin > event_end) )
+//     {
+//       printf("You selected the wrong range of the event\n");
+//       return;
+//     }
+//   if ( (event_begin == event_end) && (event_begin != 0))
+//     {
+//       event_begin = 0;
+//       printf("The event range is not allowed\n");
+//     }
+
+//   Bool_t debug =false;
+
+//   check_libraries();
+//   TStopwatch timer;
+//   timer.Start();
+
+//   TCanvas *diff_time_canvas = new TCanvas("diff_time_canvas","diff time from 2 TDC channels",10,10,1200,360);
+    
+//   TFile *file =  new TFile(Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES_DIR"),run_number));
+//   if (file->IsZombie()) 
+//     {
+//       printf("Error opening file\n"); 
+//       delete diff_time_canvas; diff_time_canvas = NULL;
+//       return;
+//     }
+//   else
+//     {
+//       TTree* tree = (TTree*) file->Get("tree");
+//       QwHitRootContainer* hitContainer = NULL;
+//       tree->SetBranchAddress("events",&hitContainer);
+//       Double_t chan[3]        = {tchan_one, tchan_two, -1};
+//       Int_t    nevent         = 0;
+//       Int_t    nhit           = 0;
+//       Double_t tdc_rawtime[2] = {0.0};
+//       Short_t  region         = 0;
+//       QwHit    *hit           = NULL;
+//       Int_t    ev_i           = 0; 
+//       Int_t    hit_i          = 0;
+//       TH1D     *histo[3]       = {NULL};
+//       Bool_t   chan_status[2] = {false};
+//       Double_t diff_time      = 0.0;
+      
+//       nevent = tree -> GetEntries();
+//       printf("Run %d TDC channels [%d,%d] total event %d\n", run_number, tchan_one, tchan_two,  nevent);
+      
+//       region          = 3;
+//       for(Short_t i=0; i<3; i++)
+// 	{
+// 	  histo[i] = new TH1D(Form("chan_%d", i), 
+// 			      Form("Diff Time Raw Histogram with Chan %d", i ), BINNUMBER, 0, 0);
+// 	  histo[i] -> SetDefaultBufferSize(BUFFERSIZE);
+// 	}
+      
+
+//       //   Bool_t region_status[4] = {true, false, false, false};
+
+//       if(event_end == 0) event_end = nevent;
+      
+//       printf("You selected the events with [%d,%d]\n", event_begin, event_end);
+
+//       for(ev_i=event_begin; ev_i<event_end; ev_i++)
+// 	{
+// 	  tree -> GetEntry(ev_i);
+// 	  nhit = hitContainer->GetSize();
+	  
+// 	  for(hit_i=0; hit_i<nhit; hit_i++)
+// 	    {
+// 	      hit    = (QwHit*) hitContainer->GetHit(hit_i);
+// 	      region = hit->GetRegion();
+// 	      if ( region != 3 ) 
+// 		{
+// 		  printf("This function is valid for only region 3\n");
+// 		  delete diff_time_canvas; diff_time_canvas = NULL;
+// 		  return;
+// 		}
+// 	      if( hit->GetChannel() == chan[0] )
+// 		{
+// 		  histo[0] -> Fill(hit->GetRawTime());
+// 		}
+// 	      if( hit->GetChannel() == chan[1] )
+// 		{
+// 		  histo[1] -> Fill(hit->GetRawTime());
+// 		}
+// 	    }
+// 	  hitContainer->Clear();
+// 	}
+
+//       diff_time_canvas -> Divide(3,1);  
+
+//       histo[2] -> Add(histo[0], histo[1], 1, 1);
+//       TLatex *region_tex = new TLatex();
+//       region_tex -> SetTextSize(0.05);
+//       region_tex -> SetTextColor(kRed);
+//       region_tex -> SetTextAlign(22);
+      
+//      for(Short_t i=0; i<3; i++) 
+// 	{
+// 	  diff_time_canvas -> cd(i+1);
+// 	  histo[i] -> SetLineColor(kRed);
+// 	  histo[i] -> GetXaxis()-> SetTitle("Diff Time");
+// 	  histo[i] -> GetYaxis()-> SetTitle("Number of measurements");
+// 	  histo[i] -> GetXaxis()-> CenterTitle();
+// 	  histo[i] -> GetYaxis()-> CenterTitle();
+// 	  histo[i] -> Smooth(smooth_n);
+// 	  histo[i] -> Draw();
+// 	}
+//  //      else
+// // 	{
+// // 	  region_tex -> DrawLatex(0.5,0.5, "This data has no information that you are interested");
+// // 	}
+//     }
+//   //     file->Close();
+//   // if one cloese the file in the ROOT script, there are nothing on the canvas.
+//   timer.Stop();
+  
+//   printf("Time used : CPU %8.2f, Real %8.2f (sec)\n", timer.CpuTime(), timer.RealTime());
+      
+// }
+
+ 
+
+
+// --------------------------------------------------------------------------------
+// Plot of the number of events with a given wire having a hit, plotted vs. wire 
+// number
+// --------------------------------------------------------------------------------
+
+void 
+plot_nevent_per_wire(Int_t run_number=1567, UInt_t event_begin=0, UInt_t event_end=0, Int_t smooth_n=1)
+{
+
+ 
+  if( (event_begin > event_end) )
+    {
+      printf("You selected the wrong range of the event\n");
+      return;
+    }
+  if ( (event_begin == event_end) && (event_begin != 0))
+    {
+      event_begin = 0;
+      printf("The event range is not allowed\n");
+    }
+
+  Bool_t debug =false;
+
+  check_libraries();
+  TStopwatch timer;
+  timer.Start();
+
+  TCanvas *nevent_wire_canvas = new TCanvas("nevent_wire_canvas","Nevent VS wire",10,10,1200,360);
+    
+  TFile *file =  new TFile(Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES_DIR"),run_number));
+  if (file->IsZombie()) 
+    {
+      printf("Error opening file\n"); 
+      delete nevent_wire_canvas; nevent_wire_canvas = NULL;
+      return;
+    }
+  else
+    {
+      TTree* tree = (TTree*) file->Get("tree");
+      QwHitRootContainer* hitContainer = NULL;
+      tree->SetBranchAddress("events",&hitContainer);
+      Double_t chan[3]        = {tchan_one, tchan_two, -1};
+      Int_t    nevent         = 0;
+      Int_t    nhit           = 0;
+      Double_t tdc_rawtime[2] = {0.0};
+      Short_t  region         = 0;
+      QwHit    *hit           = NULL;
+      Int_t    ev_i           = 0; 
+      Int_t    hit_i          = 0;
+      TH1D     *histo[3]       = {NULL};
+      Bool_t   chan_status[2] = {false};
+      Double_t nevent_wire      = 0.0;
+      
+      nevent = tree -> GetEntries();
+      printf("Run %d TDC channels [%d,%d] total event %d\n", run_number, tchan_one, tchan_two,  nevent);
+      
+      region          = 3;
+      for(Short_t i=0; i<3; i++)
+	{
+	  histo[i] = new TH1D(Form("chan_%d", i), 
+			      Form("Diff Time Raw Histogram with Chan %d", i ), BINNUMBER, 0, 0);
+	  histo[i] -> SetDefaultBufferSize(BUFFERSIZE);
+	}
+      
+
+      //   Bool_t region_status[4] = {true, false, false, false};
+
+      if(event_end == 0) event_end = nevent;
+      
+      printf("You selected the events with [%d,%d]\n", event_begin, event_end);
+
+      for(ev_i=event_begin; ev_i<event_end; ev_i++)
+	{
+	  tree -> GetEntry(ev_i);
+	  nhit = hitContainer->GetSize();
+	  
+	  for(hit_i=0; hit_i<nhit; hit_i++)
+	    {
+	      hit    = (QwHit*) hitContainer->GetHit(hit_i);
+	      region = hit->GetRegion();
+	      if ( region != 3 ) 
+		{
+		  printf("This function is valid for only region 3\n");
+		  delete nevent_wire_canvas; nevent_wire_canvas = NULL;
+		  return;
+		}
+	      if( hit->GetChannel() == chan[0] )
+		{
+		  histo[0] -> Fill(hit->GetRawTime());
+		}
+	      if( hit->GetChannel() == chan[1] )
+		{
+		  histo[1] -> Fill(hit->GetRawTime());
+		}
+	    }
+	  hitContainer->Clear();
+	}
+
+      nevent_wire_canvas -> Divide(3,1);  
+
+      histo[2] -> Add(histo[0], histo[1], 1, 1);
+      TLatex *region_tex = new TLatex();
+      region_tex -> SetTextSize(0.05);
+      region_tex -> SetTextColor(kRed);
+      region_tex -> SetTextAlign(22);
+      
+     for(Short_t i=0; i<3; i++) 
+	{
+	  nevent_wire_canvas -> cd(i+1);
+	  histo[i] -> SetLineColor(kRed);
+	  histo[i] -> GetXaxis()-> SetTitle("Diff Time");
+	  histo[i] -> GetYaxis()-> SetTitle("Number of measurements");
+	  histo[i] -> GetXaxis()-> CenterTitle();
+	  histo[i] -> GetYaxis()-> CenterTitle();
+	  histo[i] -> Smooth(smooth_n);
+	  histo[i] -> Draw();
+	}
+ //      else
+// 	{
+// 	  region_tex -> DrawLatex(0.5,0.5, "This data has no information that you are interested");
+// 	}
     }
   //     file->Close();
   // if one cloese the file in the ROOT script, there are nothing on the canvas.
