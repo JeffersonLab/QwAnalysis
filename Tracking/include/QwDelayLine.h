@@ -19,7 +19,7 @@
 
 #include <vector>
 #include <utility>
-using namespace std;
+using std::vector;
 
 /**
 	@author siyuan yang <sxyang@linux-ehar>
@@ -46,8 +46,8 @@ class QwDelayLine
   bool change_max;
 
   vector<vector<int> > Wire;  // indexed by different hits and different wires because of the ambiguity in the same hit
-  vector<pair<int,int> > Hitscount;
-  vector<pair<double,double> > Windows;
+  vector<std::pair<int,int> > Hitscount;
+  vector<std::pair<double,double> > Windows;
   vector<double> LeftHits;
   vector<double> RightHits;
   static const double TimeStep;

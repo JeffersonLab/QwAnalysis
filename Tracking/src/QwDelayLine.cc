@@ -18,11 +18,11 @@ const int    QwDelayLine::WireStep=8;
 void QwDelayLine::Wirenumber(double& time){
   int temp = 0;
   vector<int> tempwire;
-  int Guess = (int) (0.1132*(time-(Windows.at( 0 ).first+Windows.at( 0 ).second) /2)/TimeStep);          
+  int Guess = (int) (0.1132*(time-(Windows.at( 0 ).first+Windows.at( 0 ).second) /2)/TimeStep);
   // there's two conditions:
   // first, that the value of time-average value of the first window can not be smaller than -2.6;
-  // second, the right bound of the last window minus the left bound of the first window should be 
-  // smaller than Windows.size()*TimeStep(because we must require that Guess shoulde be smaller than 
+  // second, the right bound of the last window minus the left bound of the first window should be
+  // smaller than Windows.size()*TimeStep(because we must require that Guess shoulde be smaller than
   // the Windows.size(),otherwise, the first command below Window.at(Guess) will be out of boundary!!)
 
   if(Guess >= (int) Windows.size()) Guess = (int) Windows.size() - 1;
@@ -48,7 +48,7 @@ void QwDelayLine::Wirenumber(double& time){
 	      break;
 	    }
 
-	} 
+	}
     }
   else
     {
@@ -93,7 +93,7 @@ void QwDelayLine::ProcessHits(bool k){
 	    if(k==false)
 	      delta_t=-(LeftHits.at( i )-RightHits.at( j ));
 	    else delta_t= LeftHits.at( i )-RightHits.at( j );
-			
+
 	    if(delta_t < Windows.at ( 0 ).first)
 	      {
 		//	std::cout << " delta_t is unphysical,continue" << std::endl;
@@ -107,7 +107,7 @@ void QwDelayLine::ProcessHits(bool k){
 	    else
 	      {
 		Wirenumber(delta_t);
-		pair<int,int> hitspair(i,j);
+		std::pair<int,int> hitspair(i,j);
 		Hitscount.push_back (hitspair);
 		//first_match = j+1;
 	      }
