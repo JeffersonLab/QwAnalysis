@@ -284,7 +284,7 @@ Int_t QwDriftChamberVDC::BuildWireDataStructure(const UInt_t chan, const UInt_t 
       //std::cout << "chan: " << chan << " " << plane << std::endl;
     fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPackage = package;
     fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPlane   = plane;
-    fTDCPtrs.at(fCurrentTDCIndex).at(chan).fElement = wire;       
+    fTDCPtrs.at(fCurrentTDCIndex).at(chan).fElement = wire;
     if (plane>=fWiresPerPlane.size()){
 	fWiresPerPlane.resize(plane+1);
 	//fWiresPerPlane.resize(plane);
@@ -392,10 +392,10 @@ Int_t QwDriftChamberVDC::LoadChannelMap(TString mapfile)
     //BuildWireDataStructure(channum,pknum,plnum,firstwire);
     if(DelayLineArray.at(bpnum).at(lnnum).fill == false)   //if this delay line has not been filled in the data
       {
-	string a=mapstr.GetNextToken(", \t()") ;
+	std::string a = mapstr.GetNextToken(", \t()") ;
 	while (a.size() !=0){
 	  tmpWindows.push_back(atof(a.c_str()));
-	  a=mapstr.GetNextToken(", \t()");
+	  a = mapstr.GetNextToken(", \t()");
 	}
 	DelayLineArray.at(bpnum).at(lnnum).Package=pknum;
 	DelayLineArray.at(bpnum).at(lnnum).Plane=plnum;
