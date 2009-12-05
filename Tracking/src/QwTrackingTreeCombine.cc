@@ -935,6 +935,9 @@ bool QwTrackingTreeCombine::TlCheckForX (
       }
     }
 
+    // Set the detector info pointer
+    treeline->SetDetectorInfo(treeline->hits[0]->GetDetectorInfo());
+
     // Check whether we found an optimal track
     if (best_permutation == -1)
       ret = false;	// acceptable hit assignment NOT found
@@ -1060,11 +1063,15 @@ int QwTrackingTreeCombine::TlMatchHits (
   //################
   //SET PARAMATERS #
   //################
+
   treeline->cx  = cx;
   treeline->mx  = mx;     /* return track parameters: x, slope, chi */
   treeline->chi = chi;
   treeline->numhits = nHits;
   memcpy(treeline->cov_cxmx, cov, sizeof cov);
+
+  // Set the detector info pointer
+  treeline->SetDetectorInfo(treeline->hits[0]->GetDetectorInfo());
 
   int ret = 1;  //need to set up a check that the missing hits is not greater than 1.
   if (! ret) {
@@ -1313,28 +1320,33 @@ int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
   // Initializations #
   //##################
 
-  // Find first hit that is not in an x wire
-  int hituv;
-  for (hituv = 0; hituv < Num; hituv++) {
-    if (Hit[hituv]->GetDetectorInfo()->GetElementDirection() != kDirectionX)
+  // Find first hit on a u wire and a v wire
+  int hitu = 0;
+  for (hitu = 0; hitu < Num; hitu++)
+    if (Hit[hitu]->GetDetectorInfo()->GetElementDirection() == kDirectionU)
       break;
-  }
-  double angle = Hit[hituv]->GetDetectorInfo()->GetElementAngle();
-  double offset = Hit[hituv]->GetDetectorInfo()->GetElementOffset();
-  double spacing = Hit[hituv]->GetDetectorInfo()->GetElementSpacing();
+  int hitv = 0;
+  for (hitv = 0; hitv < Num; hitv++)
+    if (Hit[hitv]->GetDetectorInfo()->GetElementDirection() == kDirectionV)
+      break;
+
+  // Transformation from [u,v] to [x,y]
+  double angle = Hit[hitu]->GetDetectorInfo()->GetElementAngle();
+  double offsetu = Hit[hitu]->GetDetectorInfo()->GetElementOffset();
+  double offsetv = Hit[hitv]->GetDetectorInfo()->GetElementOffset();
+  double spacing = Hit[hitu]->GetDetectorInfo()->GetElementSpacing();
   if (angle < 90.0) angle = 180.0 - angle; // angle for U is smaller than 90 deg
-  Uv2xy uv2xy_new (90.0 + angle, 90.0 - angle + 180.0);
-  uv2xy_new.SetOffset(offset, offset);
-  uv2xy_new.SetWireSpacing(spacing);
-  Uv2xy uv2xy(kRegionID2);
+  Uv2xy uv2xy(90.0 + angle, 90.0 + 180.0 - angle);
+  uv2xy.SetOffset(offsetu, offsetv);
+  uv2xy.SetWireSpacing(spacing);
 
   // Set the angles for our reference frame
-  rCos[kDirectionX] = 1;//cos theta x
-  rSin[kDirectionX] = 0;//sin theta x
-  rCos[kDirectionU] = uv2xy.fXY[0][0];//cos theta u
-  rSin[kDirectionU] = uv2xy.fXY[0][1];//sin theta u
-  rCos[kDirectionV] = uv2xy.fXY[1][0];//cos theta v
-  rSin[kDirectionV] = uv2xy.fXY[1][1];//sin theta v
+  rCos[kDirectionX] = 1; // cos theta x
+  rSin[kDirectionX] = 0; // sin theta x
+  rCos[kDirectionU] = uv2xy.fXY[0][0]; // cos theta u
+  rSin[kDirectionU] = uv2xy.fXY[0][1]; // sin theta u
+  rCos[kDirectionV] = uv2xy.fXY[1][0]; // cos theta v
+  rSin[kDirectionV] = uv2xy.fXY[1][1]; // sin theta v
 
   // Set the offsets for the u,v,x axes (why fabs?)
   x0[kDirectionX] = 0;
@@ -2276,8 +2288,15 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
         double v1 = xv + zx1 * mv;
         double v2 = xv + zx2 * mv;
 
-        // Transform u,v to x,y
-        Uv2xy uv2xy(region);
+        // Transformation from [u,v] to [x,y]
+        double angle = wu->GetDetectorInfo()->GetElementAngle();
+        double offsetu = wu->GetDetectorInfo()->GetElementOffset();
+        double offsetv = wv->GetDetectorInfo()->GetElementOffset();
+        double spacing = wu->GetDetectorInfo()->GetElementSpacing();
+        Uv2xy uv2xy(90.0 + angle, 90.0 + 180.0 - angle);
+        uv2xy.SetOffset(offsetu, offsetv);
+        uv2xy.SetWireSpacing(spacing);
+
         // for x
         double x1 = uv2xy.uv2x(u1, v1);
         double x2 = uv2xy.uv2x(u2, v2);

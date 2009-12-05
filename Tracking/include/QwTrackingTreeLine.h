@@ -133,7 +133,14 @@ class QwTrackingTreeLine: public TObject {
     //! Calculate and set the average residuals
     void SetAverageResidual() { fAverageResidual = CalculateAverageResidual(); };
 
+    //! \brief Get the detector info pointer
+    QwDetectorInfo* GetDetectorInfo () const { return pDetectorInfo; };
+    //! \brief Set the detector info pointer
+    void SetDetectorInfo(QwDetectorInfo *detectorinfo) { pDetectorInfo = detectorinfo; };
+
   private:
+
+    QwDetectorInfo* pDetectorInfo; //!	///< Pointer to the detector info object (not saved)
 
     EQwRegionID fRegion;		///< Region
     EQwDetectorPackage fPackage;	///< Package

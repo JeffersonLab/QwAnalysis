@@ -92,7 +92,7 @@ class QwHit : public TObject {
   const int GetElement() const { return fElement; };
   void SetElement(int element) { fElement = element; };
 
-  const QwDetectorInfo* GetDetectorInfo () const { return pDetectorInfo; };
+  QwDetectorInfo* GetDetectorInfo () const { return pDetectorInfo; };
   void SetDetectorInfo(QwDetectorInfo *detectorinfo) { pDetectorInfo = detectorinfo; };
 
   const int GetPlane() const { return fPlane; };

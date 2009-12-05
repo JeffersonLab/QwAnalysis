@@ -4,9 +4,8 @@
 #include "uv2xy.h"
 
 #define PI 3.141592653589793
-
-#include "Det.h"
-extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
+#define DEG2RAD PI/180.0
+#define RAD2DEG 180.0/PI
 
 /* For Region 2, the x wires actually measure a coordinate in the lab y direction.
    So for the reconstruction of tracks in R2, I will use a coordinate system
@@ -17,83 +16,6 @@ extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
    the u and v coordinates had to be shifted a bit due to the origin being
    placed at one wire spacing below the midpoint of the first x-wire.
 */
-//__________________________________________________________________
-Uv2xy::Uv2xy(EQwRegionID region)
-{
-  // Store region, TODO this class should at some point become 'one region only'
-  fRegion = region;
-
-  SetOriginXYinUV(0.0, 0.0);
-  SetOriginUVinXY(0.0, 0.0);
-
-  // Region 2
-  if (region == kRegionID2) {  //jpan: determine working on which region
-    double cu = rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->rCos*(-1);
-    double su = rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->rSin;
-    double cv = rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->rCos;
-    double sv = rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->rSin*(-1);
-
-    fOffset[0]   = rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->PosOfFirstWire;
-    fOffset[1]   = rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->PosOfFirstWire;
-    fWireSpacing = rcDETRegion[kPackageUp][kRegionID2][kDirectionU]->WireSpacing;
-
-    double det = (cu * sv - cv * su);
-    if (det) {
-      fUV[0][0] =  sv / det;
-      fUV[0][1] = -su / det;
-      fUV[1][0] = -cv / det;
-      fUV[1][1] =  cu / det;
-    }
-    fXY[0][0] =  cu;
-    fXY[0][1] =  su;
-    fXY[1][0] =  cv;
-    fXY[1][1] =  sv;
-
-
-  } else if (region == kRegionID3) {
-
-    fOffset[0] = 0.0;
-    fOffset[1] = 0.0;
-    fWireSpacing = 0.0;
-
-    // Region 3
-    double cu = rcDETRegion[kPackageUp][kRegionID3][kDirectionU]->rCos;
-    double su = rcDETRegion[kPackageUp][kRegionID3][kDirectionU]->rSin;
-    double cv = rcDETRegion[kPackageUp][kRegionID3][kDirectionV]->rCos;
-    double sv = rcDETRegion[kPackageUp][kRegionID3][kDirectionV]->rSin;
-
-// This is completely wrong: v is the first column of UV, but used in conjunction
-// with the u coordinates in uv2x and uv2y!  E.g. fUV[0][0] and fUV[1][0]
-    double det = (su * cv - sv * cu);
-    if (det) {
-      fUV[0][0] = cv / det;
-      fUV[0][1] = cu / det;
-      fUV[1][0] = sv / det;
-      fUV[1][1] = su / det;
-    }
-
-    fXY[0][0] =  su;
-    fXY[0][1] = -cu;
-    fXY[1][0] = -sv;
-    fXY[1][1] =  cv;
-
-//     double det = (cu * sv - cv * su);
-//     if (det) {
-//       fUV[0][0] = cu / det;
-//       fUV[0][1] = cv / det;
-//       fUV[1][0] = su / det;
-//       fUV[1][1] = sv / det;
-//     }
-//
-//     fXY[0][0] =  sv;
-//     fXY[0][1] = -cv;
-//     fXY[1][0] = -su;
-//     fXY[1][1] =  cu;
-
-  }
-
-}
-
 
 /**
  * Create a coordinate transformation helper object based on a single angle
@@ -111,7 +33,7 @@ Uv2xy::Uv2xy(const double angleUdeg)
   SetOriginUVinXY(0.0, 0.0);
 
   // Convert angles to radians and create the transformation matrices
-  fAngleUrad = angleUdeg * PI / 180.0;
+  fAngleUrad = angleUdeg * DEG2RAD;
   fAngleVrad = PI - fAngleUrad;
   InitializeRotationMatrices();
 }
@@ -134,8 +56,8 @@ Uv2xy::Uv2xy(const double angleUdeg, const double angleVdeg)
   SetOriginUVinXY(0.0, 0.0);
 
   // Convert angles to radians and create the transformation matrices
-  fAngleUrad = angleUdeg * PI / 180.0;
-  fAngleVrad = angleVdeg * PI / 180.0;
+  fAngleUrad = angleUdeg * DEG2RAD;
+  fAngleVrad = angleVdeg * DEG2RAD;
   InitializeRotationMatrices();
 }
 

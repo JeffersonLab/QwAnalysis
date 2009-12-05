@@ -760,6 +760,7 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
   int plane = detectorinfo->fPlane;
 
   // Detector geometry
+  // TODO Do we need to worry about u and v differences in offset here?
   double angle = detectorinfo->GetElementAngle();
   double offset = detectorinfo->GetElementOffset();
   double spacing = detectorinfo->GetElementSpacing();
@@ -769,7 +770,7 @@ QwHit* QwTreeEventBuffer::CreateHitRegion2 (
   // (we are assuming identical offset for u and v)
   // This transformation object is not used for x (naturally)
   if (angle < 90.0) angle = 180.0 - angle; // angle for U is smaller than 90 deg
-  Uv2xy uv2xy (90.0 + angle, 90.0 - angle + 180.0);
+  Uv2xy uv2xy (90.0 + angle, 90.0 + 180.0 - angle);
   uv2xy.SetOffset(offset, offset);
   uv2xy.SetWireSpacing(spacing);
   switch (direction) {
