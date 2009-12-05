@@ -167,9 +167,9 @@ Det rcDET[NDetMax];
 
 
 // Debug level
-static const bool kDebug = true;
+static const bool kDebug = false;
 // Tracking
-static const bool kTracking = true;
+static const bool kTracking = false;
 // ROOT file output
 static const bool kTree = true;
 static const bool kHisto = true;
@@ -180,7 +180,7 @@ int main(Int_t argc,Char_t* argv[])
 {
   // Message logging facilities
   gQwLog.InitLogFile("QwTracking.log");
-  gQwLog.SetScreenThreshold(QwLog::kDebug);
+  gQwLog.SetScreenThreshold(QwLog::kMessage);
   gQwLog.SetFileThreshold(QwLog::kDebug);
 
   // Either the DISPLAY is not set or JOB_ID is defined: we take it as in batch mode.
@@ -417,10 +417,9 @@ int main(Int_t argc,Char_t* argv[])
 
       if (hitlist->size() == 0) continue;
       if (hitlist->size() < 5) {
-        std::cout << "skipped: " << hitlist->size() << " hits" << std::endl;
+        std::cout << "Event skipped: only " << hitlist->size() << " hits" << std::endl;
         continue;
       }
-
 
       // Print hit list
       if (kDebug) {
@@ -428,14 +427,10 @@ int main(Int_t argc,Char_t* argv[])
         hitlist->Print();
       }
 
-      nevents++;
-
-      continue;
-
       // Convert the hit list to ROOT output format
       // Save the hitlist to the tree
       if (kTree) {
-	rootlist->Convert(hitlist);
+        rootlist->Convert(hitlist);
         tree->Fill();
       }
 
@@ -449,6 +444,8 @@ int main(Int_t argc,Char_t* argv[])
       // Delete objects
       if (hitlist) delete hitlist; hitlist = NULL;
       if (event)   delete event; event = NULL;
+
+      nevents++;
 
     } // end of loop over events
 
