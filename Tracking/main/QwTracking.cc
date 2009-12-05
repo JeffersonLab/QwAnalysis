@@ -155,23 +155,21 @@
 // Qweak headers (deprecated)
 #include "Det.h"
 #include "Qset.h"
-#include "Qoptions.h"
-#include "options.h"
 
 // Qweak logging facility
 #include "QwLog.h"
+#include "QwOptions.h"
 
 
 // Global variables for tracking modules (deprecated)
-Options opt;
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 Det rcDET[NDetMax];
 
 
 // Debug level
-static const bool kDebug = false;
+static const bool kDebug = true;
 // Tracking
-static const bool kTracking = false;
+static const bool kTracking = true;
 // ROOT file output
 static const bool kTree = true;
 static const bool kHisto = true;
@@ -182,7 +180,7 @@ int main(Int_t argc,Char_t* argv[])
 {
   // Message logging facilities
   gQwLog.InitLogFile("QwTracking.log");
-  gQwLog.SetScreenThreshold(QwLog::kMessage);
+  gQwLog.SetScreenThreshold(QwLog::kDebug);
   gQwLog.SetFileThreshold(QwLog::kDebug);
 
   // Either the DISPLAY is not set or JOB_ID is defined: we take it as in batch mode.
@@ -259,10 +257,6 @@ int main(Int_t argc,Char_t* argv[])
   rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->nextsame->nextsame->SetInactive();
   rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->nextsame->nextsame->nextsame->SetInactive();
 
-
-  // Set global options (deprecated)
-  Qoptions qoptions;
-  qoptions.Get((std::string(getenv("QWANALYSIS")) + "/Tracking/prminput/qweak.options").c_str());
 
   QwTrackingWorker *trackingworker = NULL;
   // Create the tracking worker
@@ -383,7 +377,8 @@ int main(Int_t argc,Char_t* argv[])
 
     QwHitContainer* hitlist = NULL;
     QwEvent* event = NULL;
-    Int_t eventnumber = 0;
+    Int_t nevents = 0;
+    Int_t eventnumber = -1;
     while (eventbuffer.GetEvent() == CODA_OK){
       //  Loop over events in this CODA file
       //  First, do processing of non-physics events...
@@ -420,9 +415,22 @@ int main(Int_t argc,Char_t* argv[])
       // Sorting the grand hit list
       hitlist->sort();
 
+      if (hitlist->size() == 0) continue;
+      if (hitlist->size() < 5) {
+        std::cout << "skipped: " << hitlist->size() << " hits" << std::endl;
+        continue;
+      }
+
+
       // Print hit list
-      if (kDebug)
+      if (kDebug) {
+        std::cout << "Event " << eventnumber << std::endl;
         hitlist->Print();
+      }
+
+      nevents++;
+
+      continue;
 
       // Convert the hit list to ROOT output format
       // Save the hitlist to the tree
@@ -447,13 +455,11 @@ int main(Int_t argc,Char_t* argv[])
 
 
     // Print summary information
-    QwMessage << "Total number of events processed: "
-              << eventbuffer.GetEventNumber() << QwLog::endl;
-    if (kTracking)
-      {
-	QwMessage << "Number of good partial tracks: "
-		  << trackingworker->ngood << QwLog::endl;
-      }
+    QwMessage << "Total number of events processed: " << nevents << QwLog::endl;
+    if (kTracking) {
+      QwMessage << "Number of good partial tracks: "
+                << trackingworker->ngood << QwLog::endl;
+    }
     timer.Stop();
 
 
@@ -483,9 +489,10 @@ int main(Int_t argc,Char_t* argv[])
 
     // Print run summary information
     QwMessage << "Analysis of run " << run << QwLog::endl
-              << "CPU time used:  " << timer.CpuTime() << " s" << QwLog::endl
-              << "Real time used: " << timer.RealTime() << " s" << QwLog::endl;
-
+              << "CPU time used:  " << timer.CpuTime() << " s "
+              << "(" << timer.CpuTime() / nevents << " s per event)" << QwLog::endl
+              << "Real time used: " << timer.RealTime() << " s "
+              << "(" << timer.RealTime() / nevents << " s per event)" << QwLog::endl;
 
   } // end of loop over runs
 

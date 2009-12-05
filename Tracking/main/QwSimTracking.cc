@@ -22,8 +22,6 @@
 // Qweak Tracking headers
 #include "Det.h"
 #include "Qset.h"
-#include "Qoptions.h"
-#include "options.h"
 
 #include "QwTrackingWorker.h"
 #include "QwPartialTrack.h"
@@ -39,13 +37,12 @@
 #include "QwDriftChamberHDC.h"
 #include "QwDriftChamberVDC.h"
 
-#include "QwLog.h"
 #include "QwOptions.h"
+#include "QwLog.h"
 
 // Temporary global variables for sub-programs
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 Det rcDET[NDetMax];
-Options opt;
 
 
 // Debug level
@@ -59,7 +56,13 @@ int main (int argc, char* argv[])
   // Set the command line arguments and configuration file
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.SetConfigFile("qwsimtracking.conf");
-  // Define some options
+  // Define logging options
+  gQwOptions.AddOptions()("logfile", po::value<string>(), "log file");
+  gQwOptions.AddOptions()("loglevel-file", po::value<int>()->default_value(4),
+                          "log level for file output");
+  gQwOptions.AddOptions()("loglevel-screen", po::value<int>()->default_value(2),
+                          "log level for screen output");
+  // Define execution options
   gQwOptions.AddOptions()("run,r", po::value<string>(), "run range in format #[:#]");
   gQwOptions.AddOptions()("event,e", po::value<string>(), "event range in format #[:#]");
 
@@ -114,14 +117,9 @@ int main (int argc, char* argv[])
   qset.DeterminePlanes();
   std::cout << "[QwTracking::main] Geometry loaded" << std::endl; // R3,R2
 
-  // Set global options
-  Qoptions qoptions;
-  qoptions.Get((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.options").c_str());
-
   // Create the tracking worker
   QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
   if (kDebug) trackingworker->SetDebugLevel(1);
-
 
   // Loop over all runs
   for (UInt_t run =  (UInt_t) gQwOptions.GetIntValuePairFirst("run");

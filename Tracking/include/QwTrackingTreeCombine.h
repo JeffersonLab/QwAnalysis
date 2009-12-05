@@ -126,7 +126,7 @@ class QwTrackingTreeCombine {
 		int tlayer);
 
     QwPartialTrack* TlTreeCombine (
-		QwTrackingTreeLine *uvl[kNumDirections], long bins, EQwDetectorPackage package,
+		QwTrackingTreeLine *uvl[kNumDirections], EQwDetectorPackage package,
 		EQwRegionID region, EQwDetectorType type, int tlayer, int dlayer,
 		QwTrackingTreeRegion **myTreeRegion);
 

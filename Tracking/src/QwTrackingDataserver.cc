@@ -4,7 +4,6 @@
 #include "QwTypes.h"
 #include "Det.h"
 #include "QwTrackingTreeRegion.h"
-#include "options.h"
 
 // Qweak hit container
 #include "QwHitContainer.h"

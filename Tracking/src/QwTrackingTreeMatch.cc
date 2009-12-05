@@ -165,7 +165,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
   int numflines = 0;
   for (QwTrackingTreeLine* frontline = frontlist; frontline;
        frontline = frontline->next, numflines++) {
-    if (frontline->isvoid) continue;
+    if (frontline->IsVoid()) continue;
     for (int hit = 0; hit < frontline->numhits; hit++) {
       frontline->hits[hit]->SetZPosition((frontline->hits[hit]->GetElement() - 141) * wirespacingf);
       if (dir == kDirectionV) frontline->hits[hit]->rPos += d_uv;
@@ -176,7 +176,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
   int numblines = 0;
   for (QwTrackingTreeLine* backline = backlist; backline;
        backline = backline->next, numblines++) {
-    if (backline->isvoid) continue;
+    if (backline->IsVoid()) continue;
     for (int hit = 0; hit < backline->numhits; hit++) {
       backline->hits[hit]->SetZPosition((backline->hits[hit]->GetElement() - 141) * wirespacingb + d2u);
       backline->hits[hit]->rPos = backline->hits[hit]->rPos + d;
@@ -200,7 +200,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
        frontline = frontline->next, ifront++) {
 
     fmatches[ifront] = -1;
-    if (frontline->isvoid) continue; // Skip it if it's no good
+    if (frontline->IsVoid()) continue; // Skip it if it's no good
 
     QwHit* fpos = frontline->bestWireHit();
     bestmatch = 99;
@@ -210,7 +210,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
     for (QwTrackingTreeLine* backline = backlist; backline;
          backline = backline->next, iback++) {
 
-      if (backline->isvoid) continue;
+      if (backline->IsVoid()) continue;
       QwHit* bpos = backline->bestWireHit(d);
 
       y[0] = fpos->GetZPosition(); // Z position (i.e. wire direction)
@@ -298,7 +298,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
         lineptr->chi = chi;
         lineptr->numhits = nhits;
         lineptr->nummiss = 2*TLAYERS - nhits;
-        lineptr->isvoid = false;
+        lineptr->SetValid();
 
         for (int hit = 0; hit < fronthits; hit++)
           lineptr->usedhits[hit] = DetecHits[hit];

@@ -15,14 +15,14 @@
 #ifndef QWTRACKINGWORKER_H
 #define QWTRACKINGWORKER_H
 
-// Necessary includes
-#include "QwTypes.h"
+// Qweak headers
 #include "VQwSystem.h"
-
-#include "QwTrackingTreeRegion.h"
+#include "QwTypes.h"
+#include "globals.h"
 
 // Forward declarations
 class QwSubsystemArrayTracking;
+class QwTrackingTreeRegion;
 class QwTrackingTree;
 class QwHitContainer;
 class QwPartialTrack;
@@ -81,14 +81,26 @@ class QwTrackingWorker: public VQwSystem {
     char *channelr2[TLAYERS];
     /// \brief Region 2 bit pattern hashes
     int  *hashchannelr2[TLAYERS];
+    /// \brief Region 2 levels
+    int  levelsr2;
 
     /// \brief Region 3 bit patterns
     char *channelr3[NUMWIRESR3 + 1];
     /// \brief Region 3 bit pattern hashes
     int  *hashchannelr3[NUMWIRESR3 + 1];
+    /// \brief Region 3 levels
+    int  levelsr3;
 
     /// \brief Initialize the pattern search tree
     void InitTree();
+
+    /** \brief Define command line and config file options
+     */
+    void DefineOptions();
+
+    // Local flags
+    bool fShowEventPattern;
+    bool fShowMatchingPattern;
 
     QwBridge *bridge;
 

@@ -11,7 +11,6 @@
 // Qweak support headers
 #include "Det.h"
 #include "Qset.h"
-#include "Qoptions.h"
 
 // Qweak headers
 #include "QwEventBuffer.h"

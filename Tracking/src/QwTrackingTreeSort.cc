@@ -454,11 +454,11 @@ int QwTrackingTreeSort::rcTreeConnSort (
 	  cout << *treeline;
 	  cout << "... void because too many treelines already." << endl;
 	}
-	treeline->isvoid = true;
+	treeline->SetVoid();
 	nTooManyTreeLines++;
 
       // Otherwise consider valid treelines
-      } else if (treeline->isvoid == false) {
+      } else if (treeline->IsValid()) {
 	// Get weighted chi
 	double chi = treeline->GetChiWeight();
 
@@ -468,7 +468,7 @@ int QwTrackingTreeSort::rcTreeConnSort (
 	    cout << *treeline;
 	    cout << "... void because chi^2 = " << chi << " above " << maxchi << endl;
 	  }
-	  treeline->isvoid = true;
+	  treeline->SetVoid();
 
 	// Otherwise consider this treeline
 	} else {
@@ -517,9 +517,9 @@ int QwTrackingTreeSort::rcTreeConnSort (
   index = 0;
   for (QwTrackingTreeLine* treeline = treelinelist;
        treeline; treeline = treeline->next) {
-    if (treeline->isvoid == false) {
+    if (treeline->IsValid()) {
       tlarr[index]  = treeline;
-      isvoid[index] = treeline->isvoid;
+      isvoid[index] = treeline->IsVoid();
       chi[index]    = treeline->GetChiWeight();
       index++;
     }
@@ -580,13 +580,13 @@ int QwTrackingTreeSort::rcTreeConnSort (
   }
   for (int i = 0; i < nTreeLines; i++) {
     if (isvoid[i] != true) {
-      tlarr[i]->isvoid = false;
+      tlarr[i]->SetValid();
     } else {
       if (fDebug) {
         cout << *tlarr[i];
         cout << "... void for some reason." << endl;
       }
-      tlarr[i]->isvoid = true;
+      tlarr[i]->SetVoid();
     }
   }
 

@@ -11,7 +11,6 @@
 // Qweak support headers
 #include "Det.h"
 #include "Qset.h"
-#include "Qoptions.h"
 
 // Qweak tracking worker
 #include "QwTrackingWorker.h"
@@ -20,7 +19,6 @@ class QwTrackingAnalyzer : public VQwAnalyzer {
 
   private:
     Qset fGeometry;
-    Qoptions fOptions;
 
     QwHitContainer* fHitList;
     QwTrackingWorker* fTrackingWorker;

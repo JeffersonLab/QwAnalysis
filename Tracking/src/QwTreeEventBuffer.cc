@@ -855,7 +855,6 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
 
   // Detector geometry: wirespacing, width, central wire
   double angle = detectorinfo->GetElementAngle();
-  double offset = detectorinfo->GetElementOffset();
   double spacing = detectorinfo->GetElementSpacing();
   double dz = detectorinfo->GetActiveWidthZ();
   int central_wire = (detectorinfo->GetNumberOfElements() + 1) / 2;

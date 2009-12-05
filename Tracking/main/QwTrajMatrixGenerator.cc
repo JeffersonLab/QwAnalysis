@@ -24,7 +24,6 @@
 
 // Qweak Tracking headers
 #include "Det.h"
-#include "options.h"
 #include "QwTrajectory.h"
 #include "QwMagneticField.h"
 
@@ -33,7 +32,6 @@
 // Temporary global variables for sub-programs
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 Det rcDET[NDetMax];
-Options opt;
 
 
 

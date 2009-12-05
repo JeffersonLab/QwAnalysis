@@ -6,7 +6,6 @@
 #include "QwTypes.h"
 #include "Det.h"
 #include "QwTrackingTreeRegion.h"
-#include "options.h"
 
 // Qweak tracking worker
 #include "QwTrackingWorker.h"
@@ -15,8 +14,6 @@
 Det* rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 // rcDET is a list of detectors
 Det rcDET[NDetMax];
-// opt is a global options object (yuk!)
-Options opt;
 
 
 //ClassImp(QwTrackingAnalyzer)

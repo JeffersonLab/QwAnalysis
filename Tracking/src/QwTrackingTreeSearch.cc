@@ -821,7 +821,7 @@ int QwTrackingTreeSearch::exists (int *newa, int front, int back, QwTrackingTree
 
   for (tl = treeline ; tl; tl = tl->next) { /* loop over the treelines */
 
-    if (tl->isvoid) /* if the treeline has been voided, go onto next one */
+    if (tl->IsVoid()) /* if the treeline has been voided, go onto next one */
       continue;
     over = 0;
     if (tl->a_beg <= front && front <= tl->a_end)

@@ -16,21 +16,41 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #include "QwTrackingTreeLine.h"
+ClassImp(QwTrackingTreeLine);
 
+// C and C++ headers
 #include <cmath>
 
-ClassImp(QwTrackingTreeLine);
+// Qweak headers
+#include "QwHit.h"
+#include "QwHitContainer.h"
+
+
+// Initialize the static list of hits
+TClonesArray* QwTrackingTreeLine::gQwHits = 0;
+
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _b_end)
 {
-  isvoid = false;	// treeline is not void yet
-  isused = false;	// treeline is not part of a partial track yet
+  // Create the static TClonesArray for the hits if not existing yet
+  if (! gQwHits)
+    gQwHits = new TClonesArray("QwHit", QWTREELINE_MAX_NUM_HITS);
+  // Set local TClonesArray to static TClonesArray and zero hits
+  fQwHits = gQwHits;
+  fNQwHits = 0;
+
+  fQwHits2 = new TRefArray();
+
+
+  // Reset the void and used flags
+  fIsVoid = false;	// treeline is not void yet
+  fIsUsed = false;	// treeline is not part of a partial track yet
 
   next = 0;		// no next element yet in linked-list
 
-  cx = mx = chi = 0.0;	//
+  cx = mx = chi = 0.0;
 
   for (int i = 0; i < 3; i++)
     cov_cxmx[i] = 0.0;
@@ -65,6 +85,61 @@ QwTrackingTreeLine::~QwTrackingTreeLine()
   for (int i = 0; i < 2*TLAYERS; i++) {
     if (hits[i]) delete hits[i];
   }
+}
+
+
+// Clear the local TClonesArray of hits
+void QwTrackingTreeLine::ClearHits(Option_t *option)
+{
+  fQwHits->Clear(option); // Clear the local TClonesArray
+  fNQwHits = 0; // No hits in local TClonesArray
+};
+
+// Delete the static TClonesArray of hits
+void QwTrackingTreeLine::ResetHits(Option_t *option)
+{
+  delete gQwHits;
+  gQwHits = 0;
+};
+
+// Create a new QwHit
+QwHit* QwTrackingTreeLine::CreateNewHit()
+{
+  TClonesArray &hits = *fQwHits;
+  QwHit *hit = new (hits[fNQwHits++]) QwHit();
+  return hit;
+};
+
+// Add an existing QwHit
+void QwTrackingTreeLine::AddHit(QwHit* hit)
+{
+  QwHit* newhit = CreateNewHit();
+  *newhit = *hit;
+  fQwHits2->Add(hit);
+  fQwHits3.push_back(*hit);
+};
+
+// Add the hits of a QwHitContainer to the TClonesArray
+void QwTrackingTreeLine::AddHitContainer(QwHitContainer* hitlist)
+{
+  ClearHits();
+  for (QwHitContainer::iterator hit = hitlist->begin();
+       hit != hitlist->end(); hit++) {
+    QwHit* p = &(*hit);
+    AddHit(p);
+  }
+}
+
+// Get the hits from the TClonesArray to a QwHitContainer
+QwHitContainer* QwTrackingTreeLine::GetHitContainer()
+{
+  QwHitContainer* hitlist = new QwHitContainer();
+  TIterator* iterator = fQwHits->MakeIterator();
+  QwHit* hit = 0;
+  while ((hit = (QwHit*) iterator->Next())) {
+    hitlist->push_back(*hit);
+  }
+  return hitlist;
 }
 
 
@@ -167,6 +242,6 @@ ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl) {
     for (int hit = 0; hit < tl.numhits; hit++)
       stream << " " << tl.usedhits[hit]->GetPlane() << "." << tl.usedhits[hit]->GetElement();
   }
-  if (tl.isvoid) stream << " (void)";
+  if (tl.IsVoid()) stream << " (void)";
   return stream;
 };
