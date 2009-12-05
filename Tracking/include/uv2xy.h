@@ -1,3 +1,11 @@
+/*!
+ * \file   uv2xy.h
+ * \brief  A helper object for transformation between [u,v] and [x,y] frames
+ *
+ * \author Wouter Deconinck
+ * \date   2009-12-05
+ */
+
 #ifndef UV2XY_H
 #define UV2XY_H
 
@@ -10,43 +18,43 @@
 
 class QwHit;
 
-/*------------------------------------------------------------------------*//*!
-
- \class Uv2xy
- \ingroup QwTrackingAnl
-
- \brief Converts between (u,v) and (x,y) coordinates
-
-   This class is to be used to convert the un-orthogonal(word?) u and v
-   coordinates of the Region 2 and 3 drift chamber wire planes into
-   x and y coordinates.
-
-   The transformation formulas with identical origins are
-   \f[
-     x = u \cdot \cos \theta_u + v \cdot \cos \theta_v, \qquad
-     y = u \cdot \sin \theta_u + v \cdot \sin \theta_v,
-   \f]
-   \f[
-     u = x \cdot \sin \theta_v - y \cdot \cos \theta_v, \qquad
-     v = - x \cdot \sin \theta_u + y \cdot \cos \theta_u,
-   \f]
-   with \f$ \theta_u \f$ the angle of the u wires and \f$ \theta_v \f$
-   the angle of the v wires with respect to the x axis.
-   When \f$ \theta_u \f$ and \f$ \theta_v \f$ are not orthogonal, the
-   transformation matrices are not normalized.
-
-   The origins are not identical and an offset has to be included.
-
-*//*-------------------------------------------------------------------------*/
+/**
+ *
+ * \class Uv2xy
+ * \ingroup QwTrackingAnl
+ *
+ * \brief Converts between (u,v) and (x,y) coordinates
+ *
+ * This class is to be used to convert the un-orthogonal(word?) u and v
+ * coordinates of the Region 2 and 3 drift chamber wire planes into
+ * x and y coordinates.
+ *
+ * The transformation formulas with identical origins are
+ * \f[
+ *   x = u \cdot \cos \theta_u + v \cdot \cos \theta_v, \qquad
+ *   y = u \cdot \sin \theta_u + v \cdot \sin \theta_v,
+ * \f]
+ * \f[
+ *   u = x \cdot \sin \theta_v - y \cdot \cos \theta_v, \qquad
+ *   v = - x \cdot \sin \theta_u + y \cdot \cos \theta_u,
+ * \f]
+ * with \f$ \theta_u \f$ the angle of the u wires and \f$ \theta_v \f$
+ * the angle of the v wires with respect to the x axis.
+ * When \f$ \theta_u \f$ and \f$ \theta_v \f$ are not orthogonal, the
+ * transformation matrices are not normalized.
+ *
+ * The origins are not identical and an offset has to be included.
+ *
+ */
 class Uv2xy {
 
   public:
 
-    /// Create a transformation helper by region
+    /// \brief Create a transformation helper by region
     Uv2xy(EQwRegionID region);
-    /// Create a transformation helper from one angle
+    /// \brief Create a transformation helper from one angle
     Uv2xy(const double angleUdeg);
-    /// Create a transformation helper from two angles
+    /// \brief Create a transformation helper from two angles
     Uv2xy(const double angleUdeg, const double angleVdeg);
 
     /// \brief Set the wire spacing (perpendicular distance between wires)
@@ -123,6 +131,7 @@ class Uv2xy {
     /// \brief Transform from [x,y] to mv
     double xy2mv(double x, double y);
 
+  private:
 
     double fUV[2][2];	///< Transformation matrix UV from [u,v] to [x,y],
                         ///  which satisifies \f$ [x,y] = UV * [u,v] \f$
@@ -132,21 +141,16 @@ class Uv2xy {
     double fOffset[2];		///< Offset in [x,y] coordinates
     double fWireSpacing;	///< Wirespacing in the u/v direction
 
-  friend class QwTrackingTreeCombine;
-
-  protected:
-
-  private:
-
-    EQwRegionID fRegion;
-
     double fAngleUrad;		///< Angle of the U direction in radians
     double fAngleVrad;		///< Angle of the V direction in radians
 
     double fOriginXYinUV[2];	///< Origin of the XY system in UV coordinates
     double fOriginUVinXY[2];	///< Origin of the UV system in XY coordinates
 
+    /// \brief Initialize the rotation matrixes based on the stored angles
     void InitializeRotationMatrices();
+
+  friend class QwTrackingTreeCombine;
 
 }; // class Uv2xy
 

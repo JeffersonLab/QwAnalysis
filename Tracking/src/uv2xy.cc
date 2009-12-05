@@ -1,7 +1,15 @@
-#include <cstdio>
-#include <cmath>
+/*!
+ * \file   uv2xy.h
+ * \brief  A helper object for transformation between [u,v] and [x,y] frames
+ *
+ * \author Wouter Deconinck
+ * \date   2009-12-05
+ */
 
 #include "uv2xy.h"
+
+#include <cstdio>
+#include <cmath>
 
 #define PI 3.141592653589793
 #define DEG2RAD PI/180.0
@@ -24,8 +32,7 @@
  */
 Uv2xy::Uv2xy(const double angleUdeg)
 {
-  // Reset region (TODO references to regions and wirespacing will be removed)
-  fRegion = kRegionIDNull;
+  // Reset wire spacing
   fWireSpacing = 0.0;
 
   // No offset of the origins
@@ -47,8 +54,7 @@ Uv2xy::Uv2xy(const double angleUdeg)
  */
 Uv2xy::Uv2xy(const double angleUdeg, const double angleVdeg)
 {
-  // Reset region (TODO references to regions and wirespacing will be removed)
-  fRegion = kRegionIDNull;
+  // Reset wire spacing
   fWireSpacing = 0.0;
 
   // No offset of the origins
@@ -63,11 +69,8 @@ Uv2xy::Uv2xy(const double angleUdeg, const double angleVdeg)
 
 
 /**
- * Initialize the rotation matrices UV and XY based on the given angles
- * for the U and V axes
- *
- * @param angleUrad Angle (in radians) of the U axis
- * @param angleVrad Angle (in radians) of the V axis
+ * Initialize the rotation matrices UV and XY based on the stored angles
+ * for the U and V axes.
  */
 void Uv2xy::InitializeRotationMatrices()
 {

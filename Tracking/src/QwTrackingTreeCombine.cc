@@ -1290,7 +1290,12 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 *//*-------------------------------------------------------------------------*/
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi)
+int QwTrackingTreeCombine::r2_TrackFit (
+	int Num,
+	QwHit **Hit,
+	double *fit,
+	double *cov,
+	double *chi)
 {
   using namespace boost::numeric::ublas;
 

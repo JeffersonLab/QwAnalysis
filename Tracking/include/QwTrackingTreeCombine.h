@@ -93,6 +93,7 @@ class QwTrackingTreeCombine {
 		double *slope, double *xshift, double cov[3], double *chi,
 		QwHit **hits, int n, double z1, int offset, int tlayers);
 
+
     int selectx (double *xresult, double dist_cut, QwHit *hitarray[], QwHit **ha);
     int contains (double var, QwHit **arr, int len);
 
@@ -132,6 +133,7 @@ class QwTrackingTreeCombine {
 
     void ResidualWrite (QwEvent *event);
 
+    int r2_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi);
     int r3_TrackFit (int Num, QwHit **Hit, double *fit, double *cov, double *chi, double uv2xy[2][2]);
     int r3_TrackFit2 (int Num, QwHit **Hit, double *fit, double *cov, double *chi);
 
