@@ -124,10 +124,20 @@ void QwOptions::ParseConfigFile()
     configstream << configfile.rdbuf();
 
     try {
+#if BOOST_VERSION >= 103500
+      // Boost version after 1.35 have bool allow_unregistered = false in
+      // their signature.  This allows for unknown options in the config file.
+      po::store(po::parse_config_file(configstream, fOptions, true), fVariablesMap);
+#else
+      // Boost versions before 1.35 cannot handle files with unregistered options.
       po::store(po::parse_config_file(configstream, fOptions), fVariablesMap);
+#endif
     } catch (std::exception const& e) {
       QwWarning << e.what() << " while parsing configuration file "
                 << fConfigFiles.at(i) << QwLog::endl;
+#if BOOST_VERSION < 103500
+      QwWarning << "the entire configuration file was ignored!" << QwLog::endl;
+#endif
       QwMessage << fOptions << QwLog::endl;
     }
     po::notify(fVariablesMap);
