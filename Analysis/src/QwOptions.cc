@@ -14,17 +14,14 @@
 #include <cstdlib>
 #include <climits>
 
-
-// Since QwLog depends on QwOptions, we cannot have QwOptions depend on QwLog.
-// Therefore, logging here is done using std::cout and std::cerr.  The header
-// file <iostream> is therefore included directly.
-
-
 // Statically defined option descriptions
 po::options_description QwOptions::fOptions("Allowed options");
 
 // Globally defined instance of the options object
 QwOptions gQwOptions;
+
+// Qweak headers
+#include "QwLog.h"
 
 
 /**
@@ -40,8 +37,9 @@ QwOptions::QwOptions()
 
   // Declare the generic options
   fOptions.add_options()
-    ("help",  "print this help message")
-    ("usage", "print this help message")
+    ("help,h", "print this help message")
+    ("usage",  "print this help message")
+    ("config,c", po::value<string>(), "configuration file to read")
   ;
 }
 
@@ -83,7 +81,7 @@ void QwOptions::ParseCommandLine()
   try {
     po::store(po::command_line_parser(fArgc, fArgv).options(fOptions).allow_unregistered().run(), fVariablesMap);
   } catch (std::exception const& e) {
-    std::cerr << "Warning: " << e.what() << " while parsing command line arguments" << std::endl;
+    QwWarning << e.what() << " while parsing command line arguments" << QwLog::endl;
   }
   po::notify(fVariablesMap);
 
@@ -91,6 +89,13 @@ void QwOptions::ParseCommandLine()
   if (fArgc == 1 || fVariablesMap.count("help") || fVariablesMap.count("usage")) {
     Usage();
     exit(1);
+  }
+
+  // If a configuration file is spcified, load it.
+  if (fVariablesMap.count("config") > 0) {
+    QwWarning << "Using configuration file "
+              << fVariablesMap["config"].as<string>() << QwLog::endl;
+    SetConfigFile(fVariablesMap["config"].as<string>());
   }
 }
 
@@ -102,7 +107,7 @@ void QwOptions::ParseEnvironment()
   try {
     po::store(po::parse_environment(fOptions, "Qw"), fVariablesMap);
   } catch (std::exception const& e) {
-    std::cerr << "Warning: " << e.what() << " while parsing environment variables" << std::endl;
+    QwWarning << e.what() << " while parsing environment variables" << QwLog::endl;
   }
   po::notify(fVariablesMap);
 }
@@ -121,9 +126,9 @@ void QwOptions::ParseConfigFile()
     try {
       po::store(po::parse_config_file(configstream, fOptions), fVariablesMap);
     } catch (std::exception const& e) {
-      std::cerr << "Warning: " << e.what()
-                << " while parsing configuration file "
-                << fConfigFiles.at(i) << std::endl;
+      QwWarning << e.what() << " while parsing configuration file "
+                << fConfigFiles.at(i) << QwLog::endl;
+      QwMessage << fOptions << QwLog::endl;
     }
     po::notify(fVariablesMap);
   }
@@ -136,9 +141,9 @@ void QwOptions::ParseConfigFile()
  */
 void QwOptions::Usage()
 {
-  std::cout << "Welcome to the Qweak analyzer code." << std::endl;
-  std::cout << std::endl;
-  std::cout << fOptions << "\n";
+  QwMessage << "Welcome to the Qweak analyzer code." << QwLog::endl;
+  QwMessage << QwLog::endl;
+  QwMessage << fOptions << QwLog::endl;
 }
 
 
@@ -200,19 +205,19 @@ std::pair<int, int> QwOptions::ParseIntRange(string range)
 
   //  Check the values for common errors.
   if (mypair.first < 0){
-    std::cerr << "The first value must not be negative!"
-              << std::endl;
+    QwError << "The first value must not be negative!"
+            << QwLog::endl;
     exit(1);
   } else if (mypair.first > mypair.second){
-    std::cerr << "The first value must not be larger than the second value"
-              << std::endl;
+    QwError << "The first value must not be larger than the second value"
+            << QwLog::endl;
     exit(1);
   }
 
   //  Print the contents of the pair for debugging.
-  std::cout << "The range goes from " << mypair.first
+  QwVerbose << "The range goes from " << mypair.first
             << " to " << mypair.second
-            << std::endl;
+            << QwLog::endl;
 
   return mypair;
 };

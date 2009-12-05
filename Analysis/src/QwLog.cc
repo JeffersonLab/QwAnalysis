@@ -11,9 +11,6 @@
 // System headers
 #include <fstream>
 
-// Qweak headers
-#include "QwOptions.h"
-
 // Create the static logger object (with streams to screen and file)
 QwLog gQwLog;
 
@@ -26,11 +23,6 @@ static Bool_t QwLogFileAtNewLine = kTRUE;
 QwLog::QwLog()
 : std::ostream(std::cerr.rdbuf())
 {
-  // Define some options
-  gQwOptions.AddOptions()("logfile", po::value<string>(), "log file");
-  gQwOptions.AddOptions()("loglevel-file", po::value<int>()->default_value(4), "log level for file output");
-  gQwOptions.AddOptions()("loglevel-screen", po::value<int>()->default_value(2), "log level for screen output");
-
   fScreenThreshold = kMessage;
   fScreen = &std::cerr;
 

@@ -15,8 +15,15 @@
 #include <string>
 using std::string;
 
+/*!
+ * \note Because QwOptions depends on QwLog, and QwLog depends also on QwOptions,
+ * we cannot include QwOptions in the QwLog header file here.  QwLog is treated
+ * as more basic than QwOptions.
+ */
+
 // Qweak headers
 #include "QwTypes.h"
+
 
 /*! \def QwError
  *  \brief Predefined log drain for errors
