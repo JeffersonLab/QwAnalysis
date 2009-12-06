@@ -13,7 +13,7 @@
 #define PI 3.141592653589793
 
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class QwDetectorInfo {
   ///
   ///  Tracking detector information class.  This will be used in an array

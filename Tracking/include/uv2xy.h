@@ -21,7 +21,7 @@ class QwHit;
 /**
  *
  * \class Uv2xy
- * \ingroup QwTrackingAnl
+ * \ingroup QwTracking
  *
  * \brief Converts between (u,v) and (x,y) coordinates
  *
@@ -133,9 +133,9 @@ class Uv2xy {
 
   private:
 
-    double fUV[2][2];	///< Transformation matrix UV from [u,v] to [x,y],
+    double fUV[2][2];	///< \brief Transformation matrix UV from [u,v] to [x,y],
                         ///  which satisifies \f$ [x,y] = UV * [u,v] \f$
-    double fXY[2][2];	///< Transformation matrix XY from [x,y] to [u,v]
+    double fXY[2][2];	///< \brief Transformation matrix XY from [x,y] to [u,v],
                         ///  which satisifies \f$ [u,v] = XY * [x,y] \f$
 
     double fOffset[2];		///< Offset in [x,y] coordinates
@@ -150,6 +150,7 @@ class Uv2xy {
     /// \brief Initialize the rotation matrixes based on the stored angles
     void InitializeRotationMatrices();
 
+  /// \brief Friend class because of heavy use of private attributes
   friend class QwTrackingTreeCombine;
 
 }; // class Uv2xy

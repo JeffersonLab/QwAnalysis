@@ -19,7 +19,7 @@
 
 
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
   /******************************************************************
    *  Class: QwTriggerScintillator

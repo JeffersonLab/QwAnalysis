@@ -19,7 +19,7 @@
 
 
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
   /******************************************************************
    *  Class: QwMainDetector

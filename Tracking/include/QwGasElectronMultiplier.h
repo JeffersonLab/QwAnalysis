@@ -27,7 +27,7 @@
 class QwHitContainer;
 
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class QwGasElectronMultiplier: public VQwSubsystemTracking{
   /******************************************************************
    *  Class: QwGasElectronMultiplier

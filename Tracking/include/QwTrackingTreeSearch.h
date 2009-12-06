@@ -31,7 +31,7 @@
 #include "globals.h"
 
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 
 // Forward declarations
 namespace QwTracking {

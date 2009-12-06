@@ -5,7 +5,7 @@
 #include "VQwSubsystem.h"
 
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 
 // Forward declarations
 class QwHitContainer;

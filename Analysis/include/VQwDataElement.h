@@ -1,9 +1,10 @@
-/**********************************************************\
-* File: VQwDataElement.h                                     *
-*                                                          *
-* Author: P. M. King                                       *
-* Time-stamp: <2007-05-08 15:40>                           *
-\**********************************************************/
+/*!
+ * \file   VQwDataElement.h
+ * \brief  Definition of the pure virtual base class of all data elements
+ *
+ * \author P. M. King
+ * \date   2007-05-08 15:40
+ */
 
 #ifndef __VQWDATAELEMENT__
 #define __VQWDATAELEMENT__
@@ -15,65 +16,116 @@
 #include "TDirectory.h"
 #include "TH1.h"
 
-///
-/// \ingroup QwAnalysis
-class VQwDataElement{
+/**
+ *  \class   VQwDataElement
+ *  \ingroup QwAnalysis
+ *  \brief   The pure virtual base class of all data elements
+ *
+ * Each stream of data inherits from this virtual base class, which requires
+ * some standard operations on it such as ratios, summing, subtraction.  The
+ * specific implementation of those operation is left to be implemented by the
+ * implemented inherited classes, but this class sets up the structure.
+ *
+ * As an example, all individual VQWK channels inherit from this class and
+ * implement the pure virtual functions of VQwDataElement.
+ *
+ * \dot
+ * digraph example {
+ *   node [shape=round, fontname=Helvetica, fontsize=10];
+ *   VQwDataElement [ label="VQwDataElement" URL="\ref VQwDataElement"];
+ *   QwVQWK_Channel [ label="QwVQWK_Channel" URL="\ref QwVQWK_Channel"];
+ *   VQwDataElement -> QwVQWK_Channel;
+ * }
+ * \enddot
+ */
+class VQwDataElement {
+
  public:
+
   VQwDataElement(){};
   //  VQwDataElement(UInt_t numwords):fNumberOfDataWords(numwords) {};
   virtual ~VQwDataElement();
 
-  Bool_t IsNameEmpty() const {return fElementName.IsNull();};
-  void SetElementName(const TString &name) {fElementName = name;};
-  TString GetElementName() const {return fElementName;};
+  /*! \brief Is the name of this element empty? */
+  Bool_t IsNameEmpty() const { return fElementName.IsNull(); };
+  /*! \brief Set the name of this element */
+  void SetElementName(const TString &name) { fElementName = name; };
+  /*! \brief Get the name of this element */
+  TString GetElementName() const { return fElementName; };
 
+  /*! \brief Clear the event data in this element */
   virtual void  ClearEventData() = 0;
+  /*! \brief Process the CODA event buffer for this element */
   virtual Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement=0) = 0;
 
+  /*! \brief Assignment operator */
   virtual VQwDataElement& operator= (const VQwDataElement &value);
+  /*! \brief Addition-assignment operator */
   virtual VQwDataElement& operator+= (const VQwDataElement &value)
-    {std::cerr << "Crap!!!"<<std::endl;return *this;};
+    { std::cerr << "Operation += not defined!" << std::endl; return *this; };
+  /*! \brief Subtraction-assignment operator */
   virtual VQwDataElement& operator-= (const VQwDataElement &value)
-    {std::cerr << "Crap!!!"<<std::endl;return *this;};
+    { std::cerr << "Operation -= not defined!" << std::endl; return *this; };
+  /*! \brief Sum operator */
   virtual void Sum(const VQwDataElement &value1, const VQwDataElement &value2)
-    {std::cerr << "Crap!!!"<<std::endl;};
+    { std::cerr << "Sum not defined!" << std::endl; };
+  /*! \brief Difference operator */
   virtual void Difference(const VQwDataElement &value1, const VQwDataElement &value2)
-    {std::cerr << "Crap!!!"<<std::endl;};
+    { std::cerr << "Difference not defined!" << std::endl; };
+  /*! \brief Ratio operator */
   virtual void Ratio(const VQwDataElement &numer, const VQwDataElement &denom)
-    {std::cerr << "Crap!!!"<<std::endl;};
-  virtual void Running_Average(Int_t )
-    {std::cerr << "Running AVG"<<std::endl;};
+    { std::cerr << "Ratio not defined!" << std::endl; };
 
+  /*! \brief Running average calculation */
+  virtual void Running_Average(Int_t )
+    { std::cerr << "Running average not defined!" << std::endl; };
+
+  /*! \brief Construct the histograms for this data element */
   virtual void  ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
+  /*! \brief Fill the histograms for this data element */
   virtual void  FillHistograms() = 0;
+  /*! \brief Delete the histograms for this data element */
   void  DeleteHistograms();
 
-  virtual void Print(){};
+  /*! \brief Print out information for this data element */
+  virtual void Print() { std::cout << fElementName << std::endl; };
 
+  /*! \brief Get the number of data words in this data element */
   size_t GetNumberOfDataWords() {return fNumberOfDataWords;};
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
 
  protected:
+  /*! \brief Set the number of data words in this data element */
   void SetNumberOfDataWords(const UInt_t &numwords) {fNumberOfDataWords = numwords;};
 
  protected:
-  TString fElementName;
-  UInt_t  fNumberOfDataWords;
+  TString fElementName; ///< Name of this data element
+  UInt_t  fNumberOfDataWords; ///< Number of data words in this data element
 
+  /// Histograms associated with this data element
   std::vector<TH1*> fHistograms;
-};
+
+}; // class VQwDataElement
 
 
 inline VQwDataElement::~VQwDataElement(){
 };
 
+/**
+ * Assignment operator sets the name and number of data words
+ */
 inline VQwDataElement& VQwDataElement::operator= (const VQwDataElement &value){
   fElementName       = value.fElementName;
   fNumberOfDataWords = value.fNumberOfDataWords;
   return *this;
 };
 
-inline void  VQwDataElement::DeleteHistograms(){
+
+/**
+ * Delete the histograms for with this data element
+ */
+inline void VQwDataElement::DeleteHistograms()
+{
   for (size_t i=0; i<fHistograms.size(); i++){
     if (fHistograms.at(i) != NULL){
       fHistograms.at(i)->Delete();
@@ -83,8 +135,4 @@ inline void  VQwDataElement::DeleteHistograms(){
   fHistograms.clear();
 };
 
-
-
-
-
-#endif
+#endif // __VQWDATAELEMENT__

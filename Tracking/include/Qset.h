@@ -12,7 +12,7 @@
 *//*-------------------------------------------------------------------------*/
 
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class Qset {
 
   public:

@@ -1,6 +1,6 @@
 /**
  * \class	QwTrackingTreeRegion	QwTrackingTreeRegion.h
- * \ingroup	QwTrackingAnl
+ * \ingroup	QwTracking
  *
  * \author	Burnham Stokes <bestokes@jlab.org>
  * \author	Wouter Deconinck <wdconinc@jlab.org>

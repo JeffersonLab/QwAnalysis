@@ -15,7 +15,7 @@
 
 
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class QwSubsystemArrayTracking:  public QwSubsystemArray {
 
  public:

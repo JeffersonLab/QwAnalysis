@@ -4,7 +4,7 @@
  *  \date   2008feb13
  *  \brief  Draft skeleton for the decoding-to-QTR interface class.
  *
- *  \ingroup QwTrackingAnl
+ *  \ingroup QwTracking
  *
  *  This would either be used to generate the list of "Hit" elements
  *  used by QTR, or QTR (and this class) would be modified to use this

@@ -33,7 +33,7 @@
 
 
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   /******************************************************************
    *  Class: QwDriftChamber

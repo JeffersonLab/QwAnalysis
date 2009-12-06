@@ -8,7 +8,7 @@
  *
  *  The Newton-Raphson method is used to solve for the momentum of the track.
  *
- *  \ingroup QwTrackingAnl
+ *  \ingroup QwTracking
  *
  */
 

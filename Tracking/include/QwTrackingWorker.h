@@ -36,7 +36,7 @@ class QwBridge;
 
  \brief Controls all the routines involved in finding tracks in an event.
 
- \ingroup QwTrackingAnl
+ \ingroup QwTracking
 
 *//*-------------------------------------------------------------------------*/
 

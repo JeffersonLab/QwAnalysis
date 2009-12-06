@@ -1,16 +1,17 @@
-/**
- * \class	shortnode	shortnode.h
- *
- * \author	Wolfgang Wander <wwc@hermes.desy.de>
- * \author	Burnham Stokes <bestokes@jlab.org>
- * \author	Wouter Deconinck <wdconinc@mit.edu>
- *
- * \date	2009-09-04 18:06:23
- * \ingroup	QwTrackingAnl
- *
- * \brief Similar to a nodenode.
- *
- */
+/*------------------------------------------------------------------------*//*!
+
+ \file shortnode.h
+ \ingroup QwTracking
+
+ \author	Wolfgang Wander <wwc@hermes.desy.de>
+ \author	Burnham Stokes <bestokes@jlab.org>
+ \author	Wouter Deconinck <wdconinc@mit.edu>
+
+ \date		2009-09-04 18:06:23
+
+ \brief Definition of a shortnode, the short version of a nodenode
+
+*//*-------------------------------------------------------------------------*/
 
 #ifndef QWTRACKINGSHORTNODE_H
 #define QWTRACKINGSHORTNODE_H
@@ -22,6 +23,13 @@ namespace QwTracking {
 // Forward declaration due to cyclic dependency
 class shorttree;
 
+/**
+ * \class	shortnode
+ * \ingroup	QwTracking
+ *
+ * \brief Similar to a nodenode.
+ *
+ */
 class shortnode {
 
   public:

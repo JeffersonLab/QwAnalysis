@@ -36,7 +36,7 @@ class QwHit;
     a slightly more sensible name than Det...
  */
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class Det {
 
   public:

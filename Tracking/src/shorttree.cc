@@ -1,14 +1,17 @@
-/**
- * \file	shorttree.cc
- *
- * \author	Wolfgang Wander <wwc@hermes.desy.de>
- * \author	Burnham Stokes <bestokes@jlab.org>
- * \author	Wouter Deconinck <wdconinc@mit.edu>
- *
- * \date	2009-09-04 18:06:23
- * \ingroup	QwTrackingAnl
- *
- */
+/*------------------------------------------------------------------------*//*!
+
+ \file shortnode.cc
+ \ingroup QwTracking
+
+ \author	Wolfgang Wander <wwc@hermes.desy.de>
+ \author	Burnham Stokes <bestokes@jlab.org>
+ \author	Wouter Deconinck <wdconinc@mit.edu>
+
+ \date		2009-09-04 18:06:23
+
+ \brief Definition of a shorttree, the short version of a treenode
+
+*//*-------------------------------------------------------------------------*/
 
 #include "shortnode.h"
 #include "shorttree.h"
@@ -17,6 +20,9 @@ namespace QwTracking {
 
 shorttree::shorttree() { }
 
+/**
+ * Destructor deletes the memory occupied by the sons
+ */
 shorttree::~shorttree()
 {
   for (int i = 0; i < 4; i++)

@@ -25,7 +25,7 @@
 
 
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class QwHitContainer: public std::list<QwHit>, public TObject {
  private:
  /*  typedef std::list<QwHit> QwHitArray; */

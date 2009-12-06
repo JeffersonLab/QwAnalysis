@@ -17,7 +17,7 @@ using std::vector;
 
 
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 
 // Forward declarations
 class QwHit;

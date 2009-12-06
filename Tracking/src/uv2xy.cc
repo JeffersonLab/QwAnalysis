@@ -1,5 +1,5 @@
 /*!
- * \file   uv2xy.h
+ * \file   uv2xy.cc
  * \brief  A helper object for transformation between [u,v] and [x,y] frames
  *
  * \author Wouter Deconinck

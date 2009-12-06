@@ -23,6 +23,9 @@ QwOptions gQwOptions;
 // Qweak headers
 #include "QwLog.h"
 
+// Initialize the static command line arguments to zero
+int QwOptions::fArgc = 0;
+char** QwOptions::fArgv = 0;
 
 /**
  * The default constructor sets up the options description object with some
@@ -51,18 +54,20 @@ QwOptions::~QwOptions()
   // Clean up the copy of the command line arguments
   // Note: only the array of arguments is allocated, the arguments themselves
   // are still owned by main.
-  if (fArgc > 0)
+  if (fArgv)
     delete[] fArgv;
 }
 
 /**
- * Make a local copy of the command line arguments so they are available.
+ * Make a local copy of the command line arguments so they are available
+ * for later parsing.
  * @param argc Number of arguments
  * @param argv[] Array of arguments
  */
 void QwOptions::SetCommandLine(int argc, char* argv[])
 {
   fArgc = argc;
+  if (fArgv) delete[] fArgv;
   fArgv = new char*[fArgc];
   for (int i = 0; i < argc; i++) {
     fArgv[i] = argv[i];
@@ -91,7 +96,7 @@ void QwOptions::ParseCommandLine()
     exit(1);
   }
 
-  // If a configuration file is spcified, load it.
+  // If a configuration file is specified, load it.
   if (fVariablesMap.count("config") > 0) {
     QwWarning << "Using configuration file "
               << fVariablesMap["config"].as<string>() << QwLog::endl;
@@ -147,7 +152,7 @@ void QwOptions::ParseConfigFile()
 
 
 /**
- * Print usage instructions
+ * Print usage information
  */
 void QwOptions::Usage()
 {

@@ -6,7 +6,7 @@
  * A QwVertex contains the coordinates and uncertainties of a vertex.  It could
  * link back to the tracks and partial tracks that intersect at this vertex.
  *
- * \ingroup QwTrackingAnl
+ * \ingroup QwTracking
  *
  */
 

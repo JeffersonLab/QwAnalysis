@@ -19,7 +19,7 @@
  allows for combining different QwPartialTracks with each other, and selecting
  the optimal fit.
 
- \ingroup QwTrackingAnl
+ \ingroup QwTracking
 
 *//*-------------------------------------------------------------------------*/
 class QwTrack: public TObject {

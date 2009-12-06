@@ -11,7 +11,7 @@
 
 /*! \brief This class bridge the front and back partial track to find out the momentum */
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 
 class QwBridge {
 

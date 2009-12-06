@@ -704,10 +704,10 @@ bool QwTrackingTreeCombine::TlCheckForX (
 	double Dz,		///< distance between first and last planes
 	QwTrackingTreeLine *treeline,	///< treeline to operate on
 	QwHitContainer *hitlist,	///< hits list
-	EQwDetectorPackage package,
-	EQwRegionID region,
-	EQwDetectorType type,
-	EQwDirectionID dir,
+	EQwDetectorPackage package,	///< package
+	EQwRegionID region,		///< region
+	EQwDetectorType type,		///< detector type
+	EQwDirectionID dir,		///< detector direction
 	int dlayer,
 	int tlayer,
 	int iteration,

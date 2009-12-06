@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------*//*!
 
- \file QwTrajMatrixGenerator.cc \ingroup QwTrackingAnl
+ \file QwTrajMatrixGenerator.cc \ingroup QwTracking
 
  \author J. Pan
  \date Thu Dec  3 15:22:20 CST 2009

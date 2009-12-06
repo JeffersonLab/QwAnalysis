@@ -26,7 +26,7 @@
 
 
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class QwASCIIEventBuffer : public QwEventBuffer
 {
 

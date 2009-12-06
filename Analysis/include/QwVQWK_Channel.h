@@ -154,7 +154,7 @@ class QwVQWK_Channel: public VQwDataElement {
   static boost::mt19937 fRandomnessGenerator;
   static boost::normal_distribution<double> fNormalDistribution;
   static boost::variate_generator
-    < boost::mt19937, boost::normal_distribution<double> >fNormalRandomVariable;
+    < boost::mt19937, boost::normal_distribution<double> > fNormalRandomVariable;
 
   Int_t fDataToSave;
 

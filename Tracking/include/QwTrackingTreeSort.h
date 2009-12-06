@@ -18,7 +18,7 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class QwTrackingTreeSort {
 
   public:

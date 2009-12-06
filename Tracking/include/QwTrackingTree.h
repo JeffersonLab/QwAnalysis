@@ -43,7 +43,7 @@ using QwTracking::shortnode; using QwTracking::shorttree;
     The pattern database is used to determine whether subsets
     of hits resemble track segments.
 
- \ingroup QwTrackingAnl
+ \ingroup QwTracking
 
 *//*-------------------------------------------------------------------------*/
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

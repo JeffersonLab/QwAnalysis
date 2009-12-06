@@ -5,7 +5,7 @@
  * A QwEvent contains all event information, from hits over partial track to
  * complete tracks.  It serves as the final product of the tracking code.
  *
- * \ingroup QwTrackingAnl
+ * \ingroup QwTracking
  *
  */
 

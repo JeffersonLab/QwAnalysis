@@ -21,15 +21,15 @@
 
 
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class QwPMT_Channel: public VQwDataElement {
   /******************************************************************
    *  Class: QwPMT_Channel
    *
    ******************************************************************/
  public:
-  QwPMT_Channel() { 
-// Prepare the random number generator. 
+  QwPMT_Channel() {
+// Prepare the random number generator.
   gRandom->SetSeed(); };
 
   QwPMT_Channel(TString name){

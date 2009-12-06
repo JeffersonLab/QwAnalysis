@@ -25,7 +25,7 @@ using std::vector;
 	@author siyuan yang <sxyang@linux-ehar>
 */
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class QwDelayLine
 {
  public:

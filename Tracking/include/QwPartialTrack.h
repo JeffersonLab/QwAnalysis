@@ -23,7 +23,7 @@
  It is constructed by combining multiple tree lines together, and in turn
  used to construct the complete track.
 
- \ingroup QwTrackingAnl
+ \ingroup QwTracking
 
 *//*-------------------------------------------------------------------------*/
 class QwPartialTrack: public TObject {

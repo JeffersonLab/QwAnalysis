@@ -3,7 +3,7 @@
  *  \date   Thu Nov 26 11:44:51 CST 2009
  *  \brief  Raytrace for trajectory in magnetic field.
  *
- *  \ingroup QwTrackingAnl
+ *  \ingroup QwTracking
  *
  *   Integrating the equations of motion for electrons in the QTOR.
  *   The 4'th order Runge-Kutta method is used.

@@ -31,7 +31,7 @@ using std::cout; using std::cerr; using std::endl;
     the need for this class.
 */
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class chi_hash {
 
   public:
