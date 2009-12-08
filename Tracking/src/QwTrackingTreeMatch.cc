@@ -222,8 +222,8 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
       // NOTE unused:
       //double intercept = y[1] - slope * x[1];
 
-      double fslope = wirespacingf / frontline->mx;
-      double bslope = wirespacingb / backline->mx;
+      double fslope = wirespacingf / frontline->fSlope;
+      double bslope = wirespacingb / backline->fSlope;
 
       // TODO Fudge fudge fudge
       slope *= 2.0;
@@ -291,11 +291,11 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
         }
 
         // Fit a line to the hits
-        double mx, cx, chi, cov[3];
-        TreeCombine->weight_lsq_r3 (&mx, &cx, cov, &chi, DetecHits, nhits, 0, -1, 2*TLAYERS);
-        lineptr->mx = mx;
-        lineptr->cx = cx;
-        lineptr->chi = chi;
+        double slope, offset, chi, cov[3];
+        TreeCombine->weight_lsq_r3 (&slope, &offset, cov, &chi, DetecHits, nhits, 0, -1, 2*TLAYERS);
+        lineptr->fSlope = slope;
+        lineptr->fOffset = offset;
+        lineptr->fChi = chi;
         lineptr->numhits = nhits;
         lineptr->nummiss = 2*TLAYERS - nhits;
         lineptr->SetValid();
@@ -329,12 +329,12 @@ void QwTrackingTreeMatch::TgTrackPar (
 	double *bending,	///< bending in polar angle
 	double *ZVertex)	///< determined z vertex
 {
-  *theta = atan(front->mx);
-  *phi   = atan(front->my);
+  *theta = atan(front->fSlopeX);
+  *phi   = atan(front->fSlopeY);
   if (bending && back)
-    *bending = atan(back->mx) - *theta;
-  *ZVertex = - ( (front->mx * front->x  + front->my * front->y)
-	       / (front->mx * front->mx + front->my * front->my));
+    *bending = atan(back->fSlopeX) - *theta;
+  *ZVertex = - ( (front->fSlopeX * front->fOffsetX + front->fSlopeY * front->fOffsetY)
+	       / (front->fSlopeX * front->fSlopeX  + front->fSlopeY * front->fSlopeY));
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -356,7 +356,7 @@ QwTrack* QwTrackingTreeMatch::TgPartMatch (
 
   while (back) {
     /* --------- check for the cuts on magnetic bridging ------------ */
-    if (back->isvoid == false
+    if (back->IsVoid() == false
 	 //removed all the following cuts
 	  /*&& (fabs(front->y-back->y))            < rcSET.rMagnMatchY[m]*3.0
 	  && (fabs(front->x-back->x ))           < rcSET.rMagnMatchX[m]*3.0
@@ -396,10 +396,10 @@ QwTrack* QwTrackingTreeMatch::TgPartMatch (
 	bridge->ySOff = rcZEval( ZVertex, theta, phi, P, 2);
       } else
 	bridge->Momentum = 0.0;
-      bridge->ySlopeMatch = back->my - front->my;
-      bridge->xMatch      = v2 = back->x  - front->x  + bridge->xOff;
-      bridge->yMatch      = v1 = back->y  - front->y  + bridge->yOff;
-      bridge->ySMatch     = v3 = back->my - front->my + bridge->ySOff;
+      bridge->ySlopeMatch = back->fSlopeY - front->fSlopeY;
+      bridge->xMatch      = v2 = back->fOffsetX - front->fOffsetX + bridge->xOff;
+      bridge->yMatch      = v1 = back->fOffsetY - front->fOffsetY + bridge->yOff;
+      bridge->ySMatch     = v3 = back->fSlopeY  - front->fSlopeY  + bridge->ySOff;
 
 
 	double rcSET_rMagnMatchYSl0 = 0.03;//INSERTED FROM HRCSET.C FUNCTION
@@ -419,17 +419,11 @@ QwTrack* QwTrackingTreeMatch::TgPartMatch (
       //newtrack->method = method;
       newtrack->front  = front;
       newtrack->back = back;
-/*NOT SURE WHAT THIS BPHOTOSEARCH IS FOR, BUT IT SEEMS USELESS AT THIS POINT
-      if( bPhotoSearch )
-	newtrack->Used = true;
-      else
-	newtrack->Used = false;
-*/
 
       /* ------ a weighted measure for the quality of bridging ------ */
 
       chi = v1 * v1 + v2 * v2 + v3 * v3;
-      newtrack->fChi  = sqrt(chi + front->chi*front->chi + back->chi*back->chi);
+      newtrack->fChi  = sqrt(chi + front->fChi * front->fChi + back->fChi * back->fChi);
       if(bestchi > chi) {
 	besttrack = newtrack;
 	bestchi = chi;
@@ -444,12 +438,12 @@ QwTrack* QwTrackingTreeMatch::TgPartMatch (
   if (besttrack) {
     int mtch = 1;
     besttrack->isused = true;	/* set the parttrack used flags */
-    besttrack->front->isused = true;
-    besttrack->back->isused = true;
+    besttrack->front->fIsUsed = true;
+    besttrack->back->fIsUsed = true;
 	double rcSET_rXSlopeSep = 0.01;//INSERTED FROM HRCSET
         std::cerr << "Error : bogus value used" << std::endl;
     for( trackwalk = ret; trackwalk ; trackwalk = trackwalk->next ) {
-      if( fabs( newtrack->back->mx - besttrack->back->mx ) > rcSET_rXSlopeSep )
+      if( fabs( newtrack->back->fSlopeX - besttrack->back->fSlopeX ) > rcSET_rXSlopeSep )
         mtch ++;
     }
     besttrack->yTracks = mtch;

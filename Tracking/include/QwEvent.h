@@ -1,14 +1,3 @@
-/**
- * \class	QwEvent	QwEvent.h
- * \brief Contains a tracked event, i.e. all information from hits to tracks
- *
- * A QwEvent contains all event information, from hits over partial track to
- * complete tracks.  It serves as the final product of the tracking code.
- *
- * \ingroup QwTracking
- *
- */
-
 #ifndef QWEVENT_H
 #define QWEVENT_H
 
@@ -34,6 +23,15 @@ class QwTrack;
 class QwVertex;
 
 
+/**
+ * \class QwEventHeader
+ * \ingroup QwTracking
+ *
+ * \brief Contains header information of a tarcked event
+ *
+ * Objects of this class contain the header information of a tracked event,
+ * such as the run number, event number, the trigger type, etc.
+ */
 class QwEventHeader: public TObject {
 
   private:
@@ -75,6 +73,15 @@ class QwEventHeader: public TObject {
 };
 
 
+/**
+ * \class QwEvent
+ * \ingroup QwTracking
+ *
+ * \brief Contains a tracked event, i.e. all information from hits to tracks
+ *
+ * A QwEvent contains all event information, from hits over partial track to
+ * complete tracks.  It serves as the final product of the tracking code.
+ */
 class QwEvent: public TObject {
 
   public:
@@ -94,11 +101,11 @@ class QwEvent: public TObject {
     TClonesArray        *fQwTreeLines; ///< Array of QwTreeLines
     static TClonesArray *gQwTreeLines; ///< Static array of QwTreeLines
 
-    // Tree lines (2nd attempt at getting this into the TBrowser)
+    // Tree lines (2)
     Int_t fNQwTreeLines2; ///< Number of QwTreeLines in the array
     TObjArray *fQwTreeLines2; ///< Array of QwTreeLines
 
-    // Tree lines (3rd attempt)
+    // Tree lines (3)
     std::vector <QwTrackingTreeLine> fQwTreeLines3;
 
     // Partial tracks
@@ -120,22 +127,30 @@ class QwEvent: public TObject {
     void Clear(Option_t *option = ""); // Clear the current event
     void Reset(Option_t *option = ""); // Reset the static arrays (periodically)
 
-    // Creating, adding, and getting hits
+    //! \name Hit list maintenance for output to ROOT files
+    // @{
+    //! \brief Create a new hit
     QwHit* CreateNewHit();
+    //! \brief Add an existing hit as a copy
     void AddHit(QwHit* hit);
+    //! \brief Clear the list of hits
     void ClearHits(Option_t *option = "");
+    //! \brief Reset the list of hits
     void ResetHits(Option_t *option = "");
-    // Adding, and getting hit containers
+    //! \brief Add the hits in a hit container as a copy
     void AddHitContainer(QwHitContainer* hitlist);
+    //! \brief Get the list of hits as a hit container
     QwHitContainer* GetHitContainer();
-    // Get the number of hits
+    //! \brief Get the number of hits
     Int_t GetNumberOfHits() const { return fNQwHits; };
-    // Print the list of hits
+    //! \brief Print the list of hits
     void PrintHits();
+    // @}
 
     // Creating and adding tree lines
     QwTrackingTreeLine* CreateNewTreeLine();
     void AddTreeLine(QwTrackingTreeLine* treeline);
+    void AddTreeLineList(QwTrackingTreeLine* treeline);
     void ClearTreeLines(Option_t *option = "");
     void ResetTreeLines(Option_t *option = "");
     // Get the number of tree lines
@@ -143,7 +158,7 @@ class QwEvent: public TObject {
     // Print the list of tree lines
     void PrintTreeLines();
 
-    // Creating and adding tree lines
+    //! \brief Create a new hit
     QwTrackingTreeLine* CreateNewTreeLine2();
     void AddTreeLine2(QwTrackingTreeLine* treeline);
     void ClearTreeLines2(Option_t *option = "");

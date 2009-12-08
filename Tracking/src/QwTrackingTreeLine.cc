@@ -41,7 +41,7 @@ QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _
   fQwHits = gQwHits;
   fNQwHits = 0;
 
-  fQwHits2 = new TRefArray();
+  //fQwHits2 = new TRefArray();
 
 
   // Reset the void and used flags
@@ -50,10 +50,11 @@ QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _
 
   next = 0;		// no next element yet in linked-list
 
-  cx = mx = chi = 0.0;
+  fOffset = fSlope = 0.0;
+  fChi = 0.0;
 
   for (int i = 0; i < 3; i++)
-    cov_cxmx[i] = 0.0;
+    fCov[i] = 0.0;
 
   a_beg = _a_beg;
   a_end = _a_end;
@@ -115,8 +116,8 @@ void QwTrackingTreeLine::AddHit(QwHit* hit)
 {
   QwHit* newhit = CreateNewHit();
   *newhit = *hit;
-  fQwHits2->Add(hit);
-  fQwHits3.push_back(*hit);
+  //fQwHits2->Add(hit);
+  //fQwHits3.push_back(*hit);
 };
 
 // Add the hits of a QwHitContainer to the TClonesArray
@@ -159,7 +160,7 @@ double QwTrackingTreeLine::GetChiWeight ()
     std::cerr << "miss = " << nummiss << ", hit = " << numhits << std::endl;
     return 100000.0; // This is bad...
   }
-  return weight * chi;
+  return weight * fChi;
 }
 
 /**
@@ -234,10 +235,10 @@ ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl) {
   stream << "tl: ";
   stream << tl.a_beg << ", " << tl.a_end << " -- ";
   stream << tl.b_beg << ", " << tl.b_end;
-  if (tl.chi > 0.0) { // treeline has been fitted
-    stream << "; cx = " << tl.cx;
-    stream << ", mx = " << tl.mx;
-    stream << ", chi = " << tl.chi;
+  if (tl.fChi > 0.0) { // treeline has been fitted
+    stream << "; fOffset = " << tl.fOffset;
+    stream << ", fSlope = " << tl.fSlope;
+    stream << ", fChi = " << tl.fChi;
     stream << ", hits:";
     for (int hit = 0; hit < tl.numhits; hit++)
       stream << " " << tl.usedhits[hit]->GetPlane() << "." << tl.usedhits[hit]->GetElement();

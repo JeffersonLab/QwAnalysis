@@ -619,14 +619,14 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
     nminch = maxch;
     for (idx = 0, parttrack = parttracklist;
          parttrack; parttrack = parttrack->next) {
-      if (parttrack->isvoid == false ) {
+      if (parttrack->fIsVoid == false ) {
         chi = parttrack->GetChiWeight();
         if (chi > maxch) {
           if (fDebug) {
             cout << *parttrack;
             cout << "... void because chi^2 too high" << endl;
           }
-          parttrack->isvoid = true;
+          parttrack->fIsVoid = true;
         } else {
           if (chi > nmaxch) {
             nmaxch = chi;
@@ -671,9 +671,9 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
 
   for (idx = 0, parttrack = parttracklist;
        parttrack; parttrack = parttrack->next) {
-    if (parttrack->isvoid == false) {
+    if (parttrack->fIsVoid == false) {
       ptarr[idx]  = parttrack;
-      isvoid[idx] = parttrack->isvoid;
+      isvoid[idx] = parttrack->fIsVoid;
       chia[idx]   = parttrack->GetChiWeight();
       idx++;
     }
@@ -753,9 +753,9 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
   for (i = 0; i < num; i++) {
     if (isvoid[i] != true) {
       //Statist[method].QwPartialTracksUsed[where][part] ++;
-      ptarr[i]->isvoid = false;
+      ptarr[i]->fIsVoid = false;
     } else
-      ptarr[i]->isvoid = true;
+      ptarr[i]->fIsVoid = true;
   }
 
   // Free malloc'ed arrays

@@ -182,6 +182,15 @@ void QwEvent::AddTreeLine(QwTrackingTreeLine* treeline)
   *newtreeline = *treeline;
 };
 
+// Add a linked list of QwTreeLine's
+void QwEvent::AddTreeLineList(QwTrackingTreeLine* treelinelist)
+{
+  for (QwTrackingTreeLine *treeline = treelinelist;
+         treeline && treeline->IsValid();
+         treeline =  treeline->next)
+    AddTreeLine(treeline);
+};
+
 // Clear the local TClonesArray of tree lines
 void QwEvent::ClearTreeLines(Option_t *option)
 {

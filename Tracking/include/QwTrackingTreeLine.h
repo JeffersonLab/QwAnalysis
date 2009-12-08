@@ -56,9 +56,9 @@ class QwTrackingTreeLine: public TObject {
     TClonesArray        *fQwHits; ///< Array of QwHits
     static TClonesArray *gQwHits; ///< Static array of QwHits
 
-    TRefArray *fQwHits2;
+    //TRefArray *fQwHits2;
 
-    std::vector<QwHit> fQwHits3;
+    //std::vector<QwHit> fQwHits3;
 
   public:
 
@@ -152,8 +152,9 @@ class QwTrackingTreeLine: public TObject {
 
   public:
 
-    double cx, mx, chi;			///< line parameters...
-    double cov_cxmx[3];			///< errors in these
+    double fOffset, fSlope;		///< track offset and slope
+    double fChi;			///< chi squared(?)
+    double fCov[3];			///< covariance matrix of offset and slope
 
     int a_beg, a_end;			///< bin in first layer
     int b_beg, b_end;			///< bin in last layer

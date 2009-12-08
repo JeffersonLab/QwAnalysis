@@ -19,8 +19,9 @@ QwPartialTrack::QwPartialTrack()
   fNQwTreeLines = 0;
 
 
-  x = 0.0; y = 0.0; mx = 0.0; my = 0.0;
-  isvoid = false;  isused = false; isgood = false;
+  fOffsetX = 0.0; fOffsetY = 0.0;
+  fSlopeX = 0.0;  fSlopeY = 0.0;
+  fIsVoid = false; fIsUsed = false; fIsGood = false;
   next = 0;
   for (int i = 0; i < kNumDirections; i++)
     tline[i] = 0;
@@ -35,18 +36,19 @@ QwPartialTrack::~QwPartialTrack() { }
  */
 double QwPartialTrack::GetChiWeight ()
 {
-  double weight;
   // Determine the weight if there enough hits
-  if (numhits >= nummiss)
-    // NOTE Added +1 to get this to work if numhits == nummiss
-    weight = (double) (numhits + nummiss + 1)
-                    / (numhits - nummiss + 1);
-  else {
+  if (numhits >= nummiss) {
+    // NOTE Added +1 to get this to work if numhits == nummiss (wdc)
+    double weight = (double) (numhits + nummiss + 1)
+                           / (numhits - nummiss + 1);
+    return weight * weight * fChi;
+    // TODO Why is the weight squared here, but not in the weighted chi^2 for treelines?
+
+  } else {
+
     std::cerr << "miss = " << nummiss << ", hit = " << numhits << std::endl;
     return 100.0; // This is bad...
   }
-  return weight * weight * chi;
-  // TODO Why is the weight squared here, but not in the weighted chi^2 for treelines?
 }
 
 
@@ -147,12 +149,12 @@ void QwPartialTrack::PrintValid()
  */
 ostream& operator<< (ostream& stream, const QwPartialTrack& pt) {
   stream << "pt: ";
-  stream << "(x,y) = (" << pt.x  << ", " << pt.y  << "), ";
-  stream << "d/dz(x,y) = (" << pt.mx << ", " << pt.my << ")";
-  if (pt.chi > 0.0) { // parttrack has been fitted
-    stream << ", chi = " << pt.chi;
+  stream << "(x,y) = (" << pt.fOffsetX << ", " << pt.fOffsetY << "), ";
+  stream << "d/dz(x,y) = (" << pt.fSlopeX << ", " << pt.fSlopeY << ")";
+  if (pt.fChi > 0.0) { // parttrack has been fitted
+    stream << ", chi = " << pt.fChi;
   }
-  if (pt.isvoid) stream << " (void)";
+  if (pt.IsVoid()) stream << " (void)";
   return stream;
 };
 
@@ -163,8 +165,8 @@ ostream& operator<< (ostream& stream, const QwPartialTrack& pt) {
 TVector3 QwPartialTrack::GetPosition(double z)
 {
   TVector3 position;
-  position.SetX(x + mx * z);
-  position.SetY(y + my * z);
+  position.SetX(fOffsetX + fSlopeX * z);
+  position.SetY(fOffsetY + fSlopeY * z);
   position.SetZ(z);
   return position;
 }
@@ -175,10 +177,10 @@ TVector3 QwPartialTrack::GetPosition(double z)
 TVector3 QwPartialTrack::GetDirection(double z)
 {
   TVector3 direction;
-  double kz = sqrt(mx * mx + my * my + 1);
-  direction.SetX(mx / kz);
-  direction.SetY(my / kz);
-  direction.SetZ(1  / kz);
+  double kz = sqrt(fSlopeX * fSlopeX + fSlopeY * fSlopeY + 1);
+  direction.SetX(fSlopeX / kz);
+  direction.SetY(fSlopeY / kz);
+  direction.SetZ(1 / kz);
   return direction;
 }
 
@@ -189,16 +191,11 @@ TVector3 QwPartialTrack::GetDirection(double z)
  * \note At this point the target defined at one z value only.  A more careful
  * determination of the primary vertex will be implemented using the general
  * QwVertex class, e.g. QwVertex* primary_vertex = QwVertex (partial_track, beam)
- *
- * @return zero
  */
 int QwPartialTrack::DeterminePositionInTarget ()
 {
-  double primary[3];
-  primary[2] = 0.0; // z position of target (crude)
-  primary[0] = mx * primary[2] + x;
-  primary[1] = my * primary[2] + y;
-  std::cout << "Target vertex at : (" << primary[0] << "," << primary[1] << "," << primary[2] << ")" << std::endl;
+  TVector3 primary = GetPosition(0.0);
+  std::cout << "Target vertex at : (" << primary.X() << "," << primary.Y() << "," << primary.Z() << ")" << std::endl;
   return 0;
 }
 
@@ -225,8 +222,8 @@ int QwPartialTrack::DeterminePositionInTriggerScintillators (EQwDetectorPackage 
 
   // Get the point where the track intersects the detector planes
   trig[2] = rd->Zpos;
-  trig[0] = mx * trig[2] + x;
-  trig[1] = my * trig[2] + y;
+  trig[0] = fSlopeX * trig[2] + fOffsetX;
+  trig[1] = fSlopeY * trig[2] + fOffsetY;
   // Get the detector boundaries
   lim_trig[0][0] = rd->center[0] + rd->width[0]/2;
   lim_trig[0][1] = rd->center[0] - rd->width[0]/2;
@@ -270,8 +267,8 @@ int QwPartialTrack::DeterminePositionInCerenkovBars (EQwDetectorPackage package)
 
   // Get the point where the track intersects the detector planes
   cc[2] = rd->Zpos;
-  cc[0] = mx * cc[2] + x;
-  cc[1] = my * cc[2] + y;
+  cc[0] = fSlopeX * cc[2] + fOffsetX;
+  cc[1] = fSlopeY * cc[2] + fOffsetY;
   // Get the detector boundaries
   lim_cc[0][0] = rd->center[0] + rd->width[0]/2;
   lim_cc[0][1] = rd->center[0] - rd->width[0]/2;
@@ -283,7 +280,7 @@ int QwPartialTrack::DeterminePositionInCerenkovBars (EQwDetectorPackage package)
    && cc[1] < lim_cc[1][0]
    && cc[1] > lim_cc[1][1]) {
 
-    isgood = true;
+    fIsGood = true;
     cerenkovhit = 1;
 
     cerenkov[0] = cc[0];
@@ -294,15 +291,16 @@ int QwPartialTrack::DeterminePositionInCerenkovBars (EQwDetectorPackage package)
     pR3hit[1] = cerenkov[1];
     pR3hit[2] = cerenkov[2];
 
-    uvR3hit[0] = mx/sqrt(1+mx*mx+my*my);
-    uvR3hit[1] = my/sqrt(1+mx*mx+my*my);
-    uvR3hit[2] = 1/sqrt(1+mx*mx+my*my);
+    double kz = sqrt(fSlopeX * fSlopeX + fSlopeY * fSlopeY + 1);
+    uvR3hit[0] = fSlopeX / kz;
+    uvR3hit[1] = fSlopeY / kz;
+    uvR3hit[2] = 1 / kz;
 
     std::cout << "Cerenkov bar hit at : (" << cc[0] << "," << cc[1] << "," << cc[2] << ")   "
               << "direction ("<<uvR3hit[0]<<","<<uvR3hit[1]<<","<<uvR3hit[2] << std::endl;
   } else {
     cerenkovhit = 0;
-    isgood = false;
+    fIsGood = false;
   }
 
   return cerenkovhit;
@@ -310,7 +308,6 @@ int QwPartialTrack::DeterminePositionInCerenkovBars (EQwDetectorPackage package)
 
 int QwPartialTrack::DetermineHitInHDC (EQwDetectorPackage package)
 {
-  double hdc_front[3], hdc_back[3];
   double lim_hdc[2][2];
 
   //std::cout<<"r2: x, y, mx, my: "<<x<<", "<<y<<", "<<mx<<", "<<my<<std::endl;
@@ -318,24 +315,18 @@ int QwPartialTrack::DetermineHitInHDC (EQwDetectorPackage package)
   // Get the HDC detector
   Det* rd = rcDETRegion[package][kRegionID2][kDirectionX];
   // Get the point where the track intersects the detector planes
-  hdc_front[2] = rd->Zpos;
-  hdc_front[0] = mx * hdc_front[2] + x;
-  hdc_front[1] = my * hdc_front[2] + y;
-  TVector3 hdc_front_vector = GetPosition(rd->Zpos);
-  std::cout << hdc_front_vector.X() << ", "
-            << hdc_front_vector.Y() << ", "
-            << hdc_front_vector.Z() << std::endl;
+  TVector3 hdc_front = GetPosition(rd->Zpos);
+  std::cout << hdc_front.X() << ", "
+            << hdc_front.Y() << ", "
+            << hdc_front.Z() << std::endl;
 
   // Get the HDC detector
   rd = rcDETRegion[package][kRegionID2][kDirectionV];
   // Get the point where the track intersects the detector planes
-  hdc_back[2] = rd->Zpos;
-  hdc_back[0] = mx * hdc_back[2] + x;
-  hdc_back[1] = my * hdc_back[2] + y;
-  TVector3 hdc_back_vector = GetPosition(rd->Zpos);
-  std::cout << hdc_back_vector.X() << ", "
-            << hdc_back_vector.Y() << ", "
-            << hdc_back_vector.Z() << std::endl;
+  TVector3 hdc_back = GetPosition(rd->Zpos);
+  std::cout << hdc_back.X() << ", "
+            << hdc_back.Y() << ", "
+            << hdc_back.Z() << std::endl;
 
   // Get the detector boundaries
   lim_hdc[0][0] = rd->center[0] + rd->width[0]/2;
@@ -343,57 +334,37 @@ int QwPartialTrack::DetermineHitInHDC (EQwDetectorPackage package)
   lim_hdc[1][0] = rd->center[1] + rd->width[1]/2;
   lim_hdc[1][1] = rd->center[1] - rd->width[1]/2;
 
-  if (hdc_front[0] < lim_hdc[0][0]
-   && hdc_front[0] > lim_hdc[0][1]
-   && hdc_front[1] < lim_hdc[1][0]
-   && hdc_front[1] > lim_hdc[1][1]
-   && hdc_back[0] < lim_hdc[0][0]
-   && hdc_back[0] > lim_hdc[0][1]
-   && hdc_back[1] < lim_hdc[1][0]
-   && hdc_back[1] > lim_hdc[1][1]) {
+  if (hdc_front.X() < lim_hdc[0][0]
+   && hdc_front.X() > lim_hdc[0][1]
+   && hdc_front.Y() < lim_hdc[1][0]
+   && hdc_front.Y() > lim_hdc[1][1]
+   && hdc_back.X() < lim_hdc[0][0]
+   && hdc_back.X() > lim_hdc[0][1]
+   && hdc_back.Y() < lim_hdc[1][0]
+   && hdc_back.Y() > lim_hdc[1][1]) {
 
-    isgood = true;
+    fIsGood = true;
 
-    pR2hit[0] = hdc_back[0];
-    pR2hit[1] = hdc_back[1];
-    pR2hit[2] = hdc_back[2];
+    pR2hit[0] = hdc_back.X();
+    pR2hit[1] = hdc_back.Y();
+    pR2hit[2] = hdc_back.Z();
 
-    double dx = (hdc_back[0]-hdc_front[0]);
-    double dy = (hdc_back[1]-hdc_front[1]);
-    double dz = (hdc_back[2]-hdc_front[2]);
-    double r = sqrt(dx*dx+dy*dy+dz*dz);
-
-    uvR2hit[0] = dx/r;
-    uvR2hit[1] = dy/r;
-    uvR2hit[2] = dz/r;
     std::cout << "HDC front hit at : ("
-              << hdc_front[0] << "," << hdc_front[1] << "," << hdc_front[2] << ")" << std::endl;
+              << hdc_front.X() << "," << hdc_front.Y() << "," << hdc_front.Z() << ")" << std::endl;
     std::cout << "HDC back  hit at : ("
-              << hdc_back[0] << "," << hdc_back[1] << "," << hdc_back[2] << ")" << std::endl;
+              << hdc_back.X() << "," << hdc_back.Y() << "," << hdc_back.Z() << ")" << std::endl;
+
+    TVector3 partial_track = GetDirection();
     std::cout << "Partial track direction vector: ("
-              << uvR2hit[0] << "," << uvR2hit[1] << "," << uvR2hit[2] << ")" << std::endl;
-    double degree = 180.0/3.1415927;
+              << partial_track.X() << "," << partial_track.Y() << "," << partial_track.Z() << ")" << std::endl;
 
-    TVector3 partial_track_vector = GetDirection();
-    std::cout << partial_track_vector.X() << ", "
-              << partial_track_vector.Y() << ", "
-              << partial_track_vector.Z() << std::endl;
+    std::cout << "Partial track direction angle: "
+              << "theta = " << TMath::RadToDeg() * GetDirectionTheta() << " deg,"
+              << "phi = " << TMath::RadToDeg() * GetDirectionPhi() << " deg" << std::endl;
 
-    std::cout << "Partial track direction angle: theta="
-              << acos(uvR2hit[2])*degree <<" deg, phi=" << atan(uvR2hit[1]/uvR2hit[0])*degree<<" deg"<< std::endl;
-
-    double ux = mx/sqrt(1+mx*mx+my*my);
-    double uy = my/sqrt(1+mx*mx+my*my);
-    double uz = 1/sqrt(1+mx*mx+my*my);
-
-    std::cout<<"direction vector calculated from mx,my: ("<<ux<<", "<<uy<<", "<<uz<<")  theta="
-             <<acos(uz)*degree<<", phi="<< atan(uy/ux)*degree<<std::endl;
-
-    std::cout << TMath::RadToDeg() * GetDirectionTheta() << ", "
-              << TMath::RadToDeg() * GetDirectionPhi() << std::endl;
 
   } else {
-    isgood = false;
+    fIsGood = false;
   }
 
   return 0;

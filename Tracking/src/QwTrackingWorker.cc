@@ -370,7 +370,7 @@ void QwTrackingWorker::BCheck (double E, QwPartialTrack *f, QwPartialTrack *b, d
         test = fopen("magcheck","w");
     if ( test && E > 0.0) {
         fprintf(test,"%f %f %f %f %f %f\n",
-                /*phys_carlo.E,*/E,Es,f->mx,f->my, TVertex, ZVertex);
+                /*phys_carlo.E,*/E,Es, f->fSlopeX, f->fSlopeY, TVertex, ZVertex);
     }
 }
 
@@ -441,9 +441,11 @@ QwEvent* QwTrackingWorker::ProcessHits (
     QwHitContainer *hitlist)
 {
     int dlayer = 0;		/* number of detector planes in the search    */
-    double A[kNumDirections][2];	/* conversion between xy and uv */
 
-    QwEvent *event = new QwEvent(); // event structure
+    // Create a new event structure
+    QwEvent *event = new QwEvent();
+    // and fill it with the hitlist
+    event->AddHitContainer(hitlist);
 
     // Tracking functionality is provided by these four sub-blocks.
     QwTrackingTreeSearch  *TreeSearch  = new QwTrackingTreeSearch();
@@ -572,10 +574,6 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             // If detector is inactive for tracking, skip it
                             if (rd->IsInactive()) continue;
 
-                            // Set angles for this direction (U or V)
-                            A[dir][0] = rd->rCos; /* cos (angle of wire pitch) */
-                            A[dir][1] = rd->rSin; /* sin (angle of wire pitch) */
-
                             // Reset hit pattern to zero for this layer
                             for (int i = 0; i < NUMWIRESR3 + 1; i++) {
                                 memset(channelr3[i],     0,                1UL <<  levelsr3      );
@@ -659,8 +657,6 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         } // end of loop over like-pitched planes in a region
 
                         QwDebug << "Matching region 3 segments" << QwLog::endl;
-                        // (wdc) If no treelinelist1 or treelinelist2 is found, then skip matching.
-                        //       Otherwise this gets confused due to the scintillators.
                         if (treelinelist1 || treelinelist2) {
                             if (fDebug) {
                                 cout << "VDC1:" << endl;
@@ -676,7 +672,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
 
 
-                        /* Region 2 HDC */
+                    /* Region 2 HDC */
                     } else if (region == kRegionID2 && type == kTypeDriftHDC) {
 
                         // Set ht pattern for this region
@@ -761,6 +757,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                                                          tlayers, 0, width);
                         }
                         event->treeline[package][region][type][dir] = treelinelist;
+                        event->AddTreeLineList(treelinelist);
                         if (fDebug) {
                             cout << "List of treelines:" << endl;
                             treelinelist->Print();
