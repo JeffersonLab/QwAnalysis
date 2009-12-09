@@ -1,14 +1,14 @@
 //
 //  date: Sun Nov 29 22:28:23 CST 2009
 //
-//  jpan: QTOR field map reading class. 
+//  jpan: QTOR field map reading class.
 //        Modified from the Qweak geant4 simulation code
 //
 
 #include "QwMagneticField.h"
 #include "TMath.h"
 
-QwMagneticField::QwMagneticField() 
+QwMagneticField::QwMagneticField()
   :invertX(false),invertY(false),invertZ(false)
 {
    std::cout << std::endl << "###### Calling QwMagneticField::QwMagneticField " << std::endl << std::endl;
@@ -25,10 +25,10 @@ QwMagneticField::QwMagneticField()
    // new field map boundaries
    phiMinFromMap =    0.0;
    phiMaxFromMap =  359.0;
-   
+
    zMinFromMap = -250.0;
    zMaxFromMap =  250.0;
-   
+
    gridstepsize_r   = 2.0;
    gridstepsize_phi = 1.0;
    gridstepsize_z   = 2.0;
@@ -41,13 +41,15 @@ QwMagneticField::QwMagneticField()
 
   InitializeGrid();
 
+  fInterpolationMethod = kTrilinearInterpolation;
+
   std::cout << std::endl << "###### Leaving QwMagneticField::QwMagneticField " << std::endl << std::endl;
 }
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void QwMagneticField::InitializeGrid()
 {
   std::cout << std::endl << "###### Calling QwMagneticField::Initialize " << std::endl << std::endl;
-  
+
   nGridPointsInR   =  int ( (rMaxFromMap   - rMinFromMap)   /gridstepsize_r   ) + 1;
   nGridPointsInZ   =  int ( (zMaxFromMap   - zMinFromMap)   /gridstepsize_z   ) + 1;
   nGridPointsInPhi =  int ( (phiMaxFromMap - phiMinFromMap) /gridstepsize_phi ) + 1;
@@ -55,7 +57,7 @@ void QwMagneticField::InitializeGrid()
   BFieldGridData_X.clear();
   BFieldGridData_Y.clear();
   BFieldGridData_Z.clear();
-  
+
   fGridSize = (int)(nGridPointsInR*nGridPointsInZ*nGridPointsInPhi);
 
   BFieldGridData_X.resize(fGridSize);
@@ -67,9 +69,9 @@ void QwMagneticField::InitializeGrid()
     BFieldGridData_X[i] = 0.0;
     BFieldGridData_Y[i] = 0.0;
     BFieldGridData_Z[i] = 0.0;
-  } 
-  
-    
+  }
+
+
   std::cout << std::endl << "###### Leaving QwMagneticField::Initialize " << std::endl << std::endl;
 }
 
@@ -102,7 +104,7 @@ void QwMagneticField::ReadFieldMap(std::string filename)
 
 
   std::cout << "--------------------------------------------------------------------------------" << std::endl;
-  std::cout << " Magnetic field interpolation: Reading the field grid from " <<std::endl<<filename<< std::endl; 
+  std::cout << " Magnetic field interpolation: Reading the field grid from " <<std::endl<<filename<< std::endl;
   std::cout << "--------------------------------------------------------------------------------" << std::endl;
 
   unsigned int entries = 0;
@@ -116,7 +118,7 @@ void QwMagneticField::ReadFieldMap(std::string filename)
 
     inputfile >> raw_R_cm >> raw_Z_cm >> raw_Phi_deg >> bx >> by >> bz;
 
-    ind = (int)((raw_Phi_deg - phiMinFromMap)/gridstepsize_phi 
+    ind = (int)((raw_Phi_deg - phiMinFromMap)/gridstepsize_phi
 		  + nGridPointsInPhi*(raw_R_cm - rMinFromMap)/gridstepsize_r
 		  + nGridPointsInPhi*nGridPointsInR*(raw_Z_cm - zMinFromMap)/gridstepsize_z);
 
@@ -148,8 +150,8 @@ void QwMagneticField::ReadFieldMap(std::string filename)
 //   fclose(fp);
 
   std::cout << "... done reading" << nlines << "lines" << std::endl;
-  
-  
+
+
   std::cout << std::endl << "###### Leaving QwMagneticField::ReadFieldMap " << std::endl << std::endl;
 }
 
@@ -161,8 +163,8 @@ QwMagneticField::~QwMagneticField()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void QwMagneticField::GetFieldValueFromGridCell( const int GridPoint_R,
-							const int GridPoint_Phi, 
-							const int GridPoint_Z, 
+							const int GridPoint_Phi,
+							const int GridPoint_Z,
 							double *BFieldGridValue ) const
 {
   // get the value of the cell ix, iy,iz
@@ -173,54 +175,69 @@ void QwMagneticField::GetFieldValueFromGridCell( const int GridPoint_R,
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-void QwMagneticField::GetFieldValue(const double Point[3], double *Bfield, double scalefactor ) const
+void QwMagneticField::GetFieldValue(const double point[3], double *field, double scalefactor) const
 {
+  // Calculate radius and phi
+  double xyRadius = sqrt(point[0] * point[0] + point[1] * point[1]);
+  double z = point[2];
 
-  double lpoint[3] = {Point[0],Point[1],Point[2]};
-
-  if(lpoint[2] < zMinFromMap || lpoint[2] > zMaxFromMap){
-    Bfield[0] = 0.0;
-    Bfield[1] = 0.0;
-    Bfield[2] = 0.0;
+  // Field map boundaries in z
+  if (z < zMinFromMap || z > zMaxFromMap){
+    field[0] = 0.0;
+    field[1] = 0.0;
+    field[2] = 0.0;
     return;
   }
-
-  double xyRadius;
-  double phi;
-  double z;
-
-  xyRadius = sqrt(lpoint[0]*lpoint[0] + lpoint[1]*lpoint[1]);
+  // Field map boundaries in r
   if(xyRadius < rMinFromMap || xyRadius > rMaxFromMap){
-    Bfield[0] = 0.0;
-    Bfield[1] = 0.0;
-    Bfield[2] = 0.0;
+    field[0] = 0.0;
+    field[1] = 0.0;
+    field[2] = 0.0;
     return;
   }
 
-//   printf("zMinFromMap = %f\n",zMinFromMap);
-//   printf("zMinFromMap = %f\n",zMaxFromMap);
-//   printf("xs = %f, ys = %f, zs = %f\n",lpoint[0],lpoint[1],lpoint[2]);
+  double trPhy = TMath::Pi() / 8.0;
+  double fpoint[3] = { point[0] * TMath::Sin(trPhy) + point[1] * TMath::Cos(trPhy),
+                      -point[0] * TMath::Cos(trPhy) + point[1] * TMath::Sin(trPhy),
+                       point[2] };
 
-  z = lpoint[2];
-  double trPhy = TMath::Pi()/8.0;
 
-  double fpoint[3]={lpoint[0]*TMath::Sin(trPhy)+lpoint[1]*TMath::Cos(trPhy),
-                     -lpoint[0]*TMath::Cos(trPhy)+lpoint[1]*TMath::Sin(trPhy),
-                      lpoint[2]};
+  double phi = TMath::ATan2(fpoint[1], fpoint[0]) * TMath::RadToDeg();
+  if (phi < 0) phi += 360;
 
-//   printf("xf = %f, yf = %f, zf = %f\n",fpoint[0],fpoint[1],fpoint[2]);
-  
-  if(fpoint[0] == 0 && fpoint[1] > 0) phi =  90.0;//*degree;
-  if(fpoint[0] < 0 && fpoint[1] == 0) phi = 180.0;//*degree;
-  if(fpoint[0] == 0 && fpoint[1] < 0) phi = 270.0;//*degree;
-  if(fpoint[0] > 0 && fpoint[1] == 0) phi = 360.0;//*degree;
+  double rpoint[3] = { xyRadius, phi, z };
 
-  if(fpoint[0] > 0 && fpoint[1] > 0) phi = TMath::ATan(fpoint[1]/fpoint[0])*TMath::RadToDeg();//*degree;
-  if(fpoint[0] < 0 && fpoint[1] > 0) phi = (TMath::Pi()+TMath::ATan(fpoint[1]/fpoint[0]))*TMath::RadToDeg();//*degree;
-  if(fpoint[0] < 0 && fpoint[1] < 0) phi = (TMath::Pi()+TMath::ATan(fpoint[1]/fpoint[0]))*TMath::RadToDeg();//*degree;
-  if(fpoint[0] > 0 && fpoint[1] < 0) phi = (2.0*TMath::Pi()+TMath::ATan(fpoint[1]/fpoint[0]))*TMath::RadToDeg();//*degree;
- 
-//   printf("phi = %f\n",phi);
+  switch (fInterpolationMethod) {
+
+    case kTrilinearInterpolation:
+      CalculateTrilinear(rpoint, field);
+      break;
+
+    case kNearestNeighborInterpolation:
+      CalculateNearestNeighbor(rpoint, field);
+      break;
+
+    default: field = 0;
+  }
+
+  // Field rotation
+  double new_field[3];
+  new_field[0] = field[0] * TMath::Sin(trPhy) - field[1] * TMath::Cos(trPhy);
+  new_field[1] = field[0] * TMath::Cos(trPhy) + field[1] * TMath::Sin(trPhy);
+
+  // Field scaling
+  field[0] = new_field[0] * scalefactor;
+  field[1] = new_field[1] * scalefactor;
+  field[2] *= scalefactor;
+}
+
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+void QwMagneticField::CalculateTrilinear(double point[3], double *field) const
+{
+  double xyRadius = point[0];
+  double phi = point[1];
+  double z = point[2];
 
   double r_int, phi_int, z_int;
   double r_frac,phi_frac,z_frac;
@@ -231,7 +248,7 @@ void QwMagneticField::GetFieldValue(const double Point[3], double *Bfield, doubl
 
 //   printf("r_frac %f, phi_frac %f, z_frac %f\n",r_frac,phi_frac,z_frac);
 //   printf("r_int %f, phi_int %f, z_int %f\n",r_int,phi_int,z_int);
- 
+
   double r_rem   = static_cast<int>(r_int)%static_cast<int>(gridstepsize_r)+r_frac;
   double phi_rem = static_cast<int>(phi_int)%static_cast<int>(gridstepsize_phi)+phi_frac;
   double z_rem   = static_cast<int>(z)%static_cast<int>(gridstepsize_z)+z_frac;
@@ -244,21 +261,21 @@ void QwMagneticField::GetFieldValue(const double Point[3], double *Bfield, doubl
 
 //   printf("r_rem %f, phi_rem %f, z_rem %f\n",r_rem,phi_rem,z_rem);
 
-  int ind1 = (int)((phi - phi_rem - phiMinFromMap)/gridstepsize_phi 
+  int ind1 = (int)((phi - phi_rem - phiMinFromMap)/gridstepsize_phi
 		       + nGridPointsInPhi*(xyRadius - r_rem - rMinFromMap)/gridstepsize_r
 		       + nGridPointsInPhi*nGridPointsInR*(z - z_rem - zMinFromMap)/gridstepsize_z);
 
 //   printf("ind 1 = %d, r = %f, z = %f, phi = %f\n",ind1, xyRadius - r_rem, z - z_rem, phi - phi_rem);
 //   printf("Bx %f, By %f, Bz %f\n",BFieldGridData_X[ind1],BFieldGridData_Y[ind1],BFieldGridData_Z[ind1]);
 
-  int ind2 = (int)((phi - phi_rem - phiMinFromMap)/gridstepsize_phi 
+  int ind2 = (int)((phi - phi_rem - phiMinFromMap)/gridstepsize_phi
 		       + nGridPointsInPhi*(xyRadius - r_rem - rMinFromMap)/gridstepsize_r
 		       + nGridPointsInPhi*nGridPointsInR*((z - z_rem - zMinFromMap)/gridstepsize_z+1));
-  
+
 //   printf("ind 2 = %d, r = %f, z = %f, phi = %f\n",ind2, xyRadius - r_rem, z - z_rem + gridstepsize_z, phi - phi_rem);
 //   printf("Bx %f, By %f, Bz %f\n",BFieldGridData_X[ind2],BFieldGridData_Y[ind2],BFieldGridData_Z[ind2]);
 
-  int ind3 = (int)((phi - phi_rem - phiMinFromMap)/gridstepsize_phi + 1 
+  int ind3 = (int)((phi - phi_rem - phiMinFromMap)/gridstepsize_phi + 1
 		       + nGridPointsInPhi*(xyRadius - r_rem - rMinFromMap)/gridstepsize_r
 		       + nGridPointsInPhi*nGridPointsInR*((z - z_rem - zMinFromMap)/gridstepsize_z));
 
@@ -272,28 +289,28 @@ void QwMagneticField::GetFieldValue(const double Point[3], double *Bfield, doubl
 //   printf("ind 4 = %d, r = %f, z = %f, phi = %f\n",ind4, xyRadius - r_rem, z - z_rem + gridstepsize_z, phi - phi_rem + gridstepsize_phi);
 //   printf("Bx %f, By %f, Bz %f\n",BFieldGridData_X[ind4],BFieldGridData_Y[ind4],BFieldGridData_Z[ind4]);
 
-  int ind5 = (int)((phi - phi_rem - phiMinFromMap)/gridstepsize_phi 
+  int ind5 = (int)((phi - phi_rem - phiMinFromMap)/gridstepsize_phi
 		       + nGridPointsInPhi*((xyRadius - r_rem - rMinFromMap)/gridstepsize_r + 1)
 		       + nGridPointsInPhi*nGridPointsInR*((z - z_rem - zMinFromMap)/gridstepsize_z));
 
 //   printf("ind 5 = %d, r = %f, z = %f, phi = %f\n",ind5, xyRadius - r_rem + gridstepsize_r, z - z_rem, phi - phi_rem);
 //   printf("Bx %f, By %f, Bz %f\n",BFieldGridData_X[ind5],BFieldGridData_Y[ind5],BFieldGridData_Z[ind5]);
 
-  int ind6 = (int)((phi - phi_rem - phiMinFromMap)/gridstepsize_phi 
+  int ind6 = (int)((phi - phi_rem - phiMinFromMap)/gridstepsize_phi
 		       + nGridPointsInPhi*((xyRadius - r_rem - rMinFromMap)/gridstepsize_r + 1)
 		       + nGridPointsInPhi*nGridPointsInR*((z - z_rem - zMinFromMap)/gridstepsize_z + 1));
 
 //   printf("ind 6 = %d, r = %f, z = %f, phi = %f\n",ind6, xyRadius - r_rem + gridstepsize_r, z - z_rem + gridstepsize_z, phi - phi_rem);
 //   printf("Bx %f, By %f, Bz %f\n",BFieldGridData_X[ind6],BFieldGridData_Y[ind6],BFieldGridData_Z[ind6]);
 
-  int ind7 = (int)((phi - phi_rem - phiMinFromMap)/gridstepsize_phi + 1 
+  int ind7 = (int)((phi - phi_rem - phiMinFromMap)/gridstepsize_phi + 1
 		       + nGridPointsInPhi*((xyRadius - r_rem - rMinFromMap)/gridstepsize_r + 1)
 		       + nGridPointsInPhi*nGridPointsInR*((z - z_rem - zMinFromMap)/gridstepsize_z));
 
 //   printf("ind 7 = %d, r = %f, z = %f, phi = %f\n",ind7, xyRadius - r_rem + gridstepsize_r, z - z_rem, phi - phi_rem + gridstepsize_phi);
 //   printf("Bx %f, By %f, Bz %f\n",BFieldGridData_X[ind7],BFieldGridData_Y[ind7],BFieldGridData_Z[ind7]);
 
-  int ind8 = (int)((phi - phi_rem - phiMinFromMap)/gridstepsize_phi + 1 
+  int ind8 = (int)((phi - phi_rem - phiMinFromMap)/gridstepsize_phi + 1
 		       + nGridPointsInPhi*((xyRadius - r_rem - rMinFromMap)/gridstepsize_r + 1)
 		       + nGridPointsInPhi*nGridPointsInR*((z - z_rem - zMinFromMap)/gridstepsize_z + 1));
 
@@ -306,15 +323,15 @@ void QwMagneticField::GetFieldValue(const double Point[3], double *Bfield, doubl
      ind7 >= (int)(nGridPointsInR*nGridPointsInZ*nGridPointsInPhi) ||
      ind8 >= (int)(nGridPointsInR*nGridPointsInZ*nGridPointsInPhi)){
 
-    Bfield[0] = 0.0;
-    Bfield[1] = 0.0;
-    Bfield[2] = 0.0;
+    field[0] = 0.0;
+    field[1] = 0.0;
+    field[2] = 0.0;
     return;
   }
 
   double Bx_ANSYS, By_ANSYS, Bz_ANSYS;
 
-//   Full 3-dimensional version: trilinear interpolation
+  // Full 3-dimensional version: trilinear interpolation
   Bx_ANSYS =
     BFieldGridData_X[ind1] * (1-r_local) * (1-phi_local) * (1-z_local) +
     BFieldGridData_X[ind2] * (1-r_local) * (1-phi_local) *    z_local  +
@@ -324,8 +341,7 @@ void QwMagneticField::GetFieldValue(const double Point[3], double *Bfield, doubl
     BFieldGridData_X[ind6] *    r_local  * (1-phi_local) *    z_local  +
     BFieldGridData_X[ind7] *    r_local  *    phi_local  * (1-z_local) +
     BFieldGridData_X[ind8] *    r_local  *    phi_local  *    z_local ;
-	
-	
+
   By_ANSYS =
     BFieldGridData_Y[ind1] * (1-r_local) * (1-phi_local) * (1-z_local) +
     BFieldGridData_Y[ind2] * (1-r_local) * (1-phi_local) *    z_local  +
@@ -335,7 +351,6 @@ void QwMagneticField::GetFieldValue(const double Point[3], double *Bfield, doubl
     BFieldGridData_Y[ind6] *    r_local  * (1-phi_local) *    z_local  +
     BFieldGridData_Y[ind7] *    r_local  *    phi_local  * (1-z_local) +
     BFieldGridData_Y[ind8] *    r_local  *    phi_local  *    z_local ;
-  
 
   Bz_ANSYS =
     BFieldGridData_Z[ind1] * (1-r_local) * (1-phi_local) * (1-z_local) +
@@ -346,15 +361,65 @@ void QwMagneticField::GetFieldValue(const double Point[3], double *Bfield, doubl
     BFieldGridData_Z[ind6] *    r_local  * (1-phi_local) *    z_local  +
     BFieldGridData_Z[ind7] *    r_local  *    phi_local  * (1-z_local) +
     BFieldGridData_Z[ind8] *    r_local  *    phi_local  *    z_local ;
-  
-  Bfield[0] = Bx_ANSYS*TMath::Sin(trPhy)-By_ANSYS*TMath::Cos(trPhy)*scalefactor;
-  Bfield[1] = Bx_ANSYS*TMath::Cos(trPhy)+By_ANSYS*TMath::Sin(trPhy)*scalefactor;
-  Bfield[2] = Bz_ANSYS*scalefactor;
+
+  field[0] = Bx_ANSYS;
+  field[1] = By_ANSYS;
+  field[2] = Bz_ANSYS;
 
 //   printf("Bx %f, By %f, Bz %f\n",BFieldGridData_X[ind1],BFieldGridData_Y[ind1],BFieldGridData_Z[ind1]);
 //   printf("Bix %f, Biy %f, Biz %f\n",Bx_ANSYS,By_ANSYS,Bz_ANSYS);
 //   printf("Btx %f, Bty %f, Btz %f\n",Bfield[0],Bfield[1],Bfield[2]);
-  
-} //end of QwMagneticField::GetFieldValue()
+
+} // end of QwMagneticField::CalculateTrilinear()
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+void QwMagneticField::CalculateNearestNeighbor(double point[3], double *field) const
+{
+  double xyRadius = point[0];
+  double phi = point[1];
+  double z = point[2];
+
+  double r_int,  phi_int,  z_int;
+  double r_frac, phi_frac, z_frac;
+
+  r_frac   = modf(xyRadius,&r_int);
+  phi_frac = modf(phi,&phi_int);
+  z_frac   = modf(z,&z_int);
+
+  double r_rem   = static_cast<int>(r_int) % static_cast<int>(gridstepsize_r) + r_frac;
+  double phi_rem = static_cast<int>(phi_int) % static_cast<int>(gridstepsize_phi) + phi_frac;
+  double z_rem   = static_cast<int>(z) % static_cast<int>(gridstepsize_z) + z_frac;
+
+  double r_local   = (r_rem) / gridstepsize_r;
+  double phi_local = (phi_rem) / gridstepsize_phi;
+  double z_local   = (z_rem) / gridstepsize_z;
+
+  // Fast 3-dimensional nearest neighbor
+  int ind_r = 0;
+  if (r_local > 0.5) ind_r = 1;
+
+  int ind_phi = 0;
+  if (phi_local > 0.5) ind_phi = 1;
+
+  int ind_z = 0;
+  if (z_local > 0.5) ind_z = 1;
+
+  int ind = (int)((phi - phi_rem - phiMinFromMap)/gridstepsize_phi + ind_phi
+          + nGridPointsInPhi*((xyRadius - r_rem - rMinFromMap)/gridstepsize_r  + ind_r)
+          + nGridPointsInPhi*nGridPointsInR*((z - z_rem - zMinFromMap)/gridstepsize_z + ind_z));
+
+  if (ind >= (int)(nGridPointsInR * nGridPointsInZ * nGridPointsInPhi)) {
+    field[0] = 0.0;
+    field[1] = 0.0;
+    field[2] = 0.0;
+    return;
+  }
+
+  field[0] = BFieldGridData_X[ind];
+  field[1] = BFieldGridData_Y[ind];
+  field[2] = BFieldGridData_Z[ind];
+
+} // QwMagneticField::CalculateNearestNeighbor()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

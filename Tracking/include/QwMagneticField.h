@@ -1,7 +1,7 @@
 //
 //  date: Sun Nov 29 22:28:23 CST 2009
 //
-//  jpan: QTOR field map reading class. 
+//  jpan: QTOR field map reading class.
 //        Modified from the Qweak geant4 simulation code
 //
 
@@ -17,18 +17,37 @@
 #include <TVector3.h>
 #include <TRotation.h>
 
+
+enum EQwInterpolationMethod {
+  kTrilinearInterpolation,
+  kDoubleBilinearInterpolation,
+  kNearestNeighborInterpolation
+};
+
+
 class QwMagneticField
 {
-public:
+  public:
 
   QwMagneticField();
   virtual ~QwMagneticField();
 
-  void GetFieldValue( const   double Point[3], double *Bfield, double scalefactor ) const;  
-  void GetFieldValueFromGridCell( const  int GridPoint_R, 
-				  const  int GridPoint_Phi, 
-				  const  int GridPoint_Z, 
+  /// \brief Set the interpolation method
+  void SetInterpolationMethod(const EQwInterpolationMethod method)
+    { fInterpolationMethod = method; };
+  /// \brief Get the interpolation method
+  const EQwInterpolationMethod GetInterpolationMethod() const
+    { return fInterpolationMethod; };
+
+  void GetFieldValue(const double Point[3], double *Bfield, double scalefactor) const;
+  void GetFieldValueFromGridCell( const  int GridPoint_R,
+				  const  int GridPoint_Phi,
+				  const  int GridPoint_Z,
 				  double *BFieldGridValue ) const;
+
+  void CalculateTrilinear(double point[3], double *field) const;
+  void CalculateDoubleBilinear(double point[3], double *field) const;
+  void CalculateNearestNeighbor(double point[3], double *field) const;
 
   void InitializeGrid();
   void ReadFieldMap(std::string filename);
@@ -48,24 +67,26 @@ public:
 
 private:
 
+  EQwInterpolationMethod fInterpolationMethod;
+
   int nGridPointsInR;
   int nGridPointsInPhi;
-  int nGridPointsInZ;  
+  int nGridPointsInZ;
 
   double rMinFromMap;
   double rMaxFromMap;
-   
+
   double phiMinFromMap;
   double phiMaxFromMap;
-   
+
   double zMinFromMap;
   double zMaxFromMap;
-   
+
   double gridstepsize_r;
   double gridstepsize_phi;
   double gridstepsize_z;
 
-  double Unit_Bfield; // units of field map 
+  double Unit_Bfield; // units of field map
 
   int fGridSize;
 
@@ -81,7 +102,7 @@ private:
   bool   invertX, invertY, invertZ;
 
   TVector3* BField_ANSYS;
-  
+
   double BFieldScalingFactor;
 
 };
