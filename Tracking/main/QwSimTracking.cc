@@ -37,7 +37,7 @@
 #include "QwDriftChamberHDC.h"
 #include "QwDriftChamberVDC.h"
 
-#include "QwOptions.h"
+#include "QwOptionsTracking.h"
 #include "QwLog.h"
 
 // Temporary global variables for sub-programs
@@ -56,22 +56,14 @@ int main (int argc, char* argv[])
   // Set the command line arguments and configuration file
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.SetConfigFile("qwsimtracking.conf");
-  // Define logging options
-  gQwOptions.AddOptions()("logfile", po::value<string>(), "log file");
-  gQwOptions.AddOptions()("loglevel-file", po::value<int>()->default_value(4),
-                          "log level for file output");
-  gQwOptions.AddOptions()("loglevel-screen", po::value<int>()->default_value(2),
-                          "log level for screen output");
-  // Define execution options
-  gQwOptions.AddOptions()("run,r", po::value<string>(), "run range in format #[:#]");
-  gQwOptions.AddOptions()("event,e", po::value<string>(), "event range in format #[:#]");
-
+  // Define options
+  gQwOptions.DefineOptions();
 
   // Message logging facilities
-  if (gQwOptions.HasValue("logfile"))
-    gQwLog.InitLogFile(gQwOptions.GetValue<string>("logfile"));
-  gQwLog.SetFileThreshold(QwLog::QwLogLevel(gQwOptions.GetValue<int>("loglevel-file")));
-  gQwLog.SetScreenThreshold(QwLog::QwLogLevel(gQwOptions.GetValue<int>("loglevel-screen")));
+  if (gQwOptions.HasValue("QwLog.logfile"))
+    gQwLog.InitLogFile(gQwOptions.GetValue<string>("QwLog.logfile"));
+  gQwLog.SetFileThreshold(QwLog::QwLogLevel(gQwOptions.GetValue<int>("QwLog.loglevel-file")));
+  gQwLog.SetScreenThreshold(QwLog::QwLogLevel(gQwOptions.GetValue<int>("QwLog.loglevel-screen")));
 
 
   // Fill the search paths for the parameter files

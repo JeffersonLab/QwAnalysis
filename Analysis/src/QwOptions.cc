@@ -15,7 +15,8 @@
 #include <climits>
 
 // Statically defined option descriptions
-po::options_description QwOptions::fOptions("Allowed options");
+po::options_description QwOptions::fDefaultOptions("Default options");
+po::options_description QwOptions::fOptions("Specialized options");
 
 // Globally defined instance of the options object
 QwOptions gQwOptions;
@@ -39,11 +40,22 @@ QwOptions::QwOptions()
   fConfigFiles.clear();
 
   // Declare the generic options
-  fOptions.add_options()
-    ("help,h", "print this help message")
-    ("usage",  "print this help message")
-    ("config,c", po::value<string>(), "configuration file to read")
-  ;
+  AddDefaultOptions()("usage",  "print this help message");
+  AddDefaultOptions()("help,h", "print this help message");
+  AddDefaultOptions()("config,c", po::value<string>(), "configuration file to read");
+
+  // Define the execution options
+  AddDefaultOptions()("run,r", po::value<string>(),
+                      "run range in format #[:#]");
+  AddDefaultOptions()("event,e", po::value<string>()->default_value("0:"),
+                      "event range in format #[:#]");
+
+  // Define the logging options
+  AddOptions()("QwLog.logfile", po::value<string>(), "log file");
+  AddOptions()("QwLog.loglevel-file", po::value<int>()->default_value(4),
+               "log level for file output");
+  AddOptions()("QwLog.loglevel-screen", po::value<int>()->default_value(2),
+               "log level for screen output");
 }
 
 /**
@@ -84,6 +96,7 @@ void QwOptions::SetCommandLine(int argc, char* argv[])
 void QwOptions::ParseCommandLine()
 {
   try {
+    po::store(po::command_line_parser(fArgc, fArgv).options(fDefaultOptions).allow_unregistered().run(), fVariablesMap);
     po::store(po::command_line_parser(fArgc, fArgv).options(fOptions).allow_unregistered().run(), fVariablesMap);
   } catch (std::exception const& e) {
     QwWarning << e.what() << " while parsing command line arguments" << QwLog::endl;
@@ -110,6 +123,7 @@ void QwOptions::ParseCommandLine()
 void QwOptions::ParseEnvironment()
 {
   try {
+    po::store(po::parse_environment(fDefaultOptions, "Qw"), fVariablesMap);
     po::store(po::parse_environment(fOptions, "Qw"), fVariablesMap);
   } catch (std::exception const& e) {
     QwWarning << e.what() << " while parsing environment variables" << QwLog::endl;
@@ -132,9 +146,11 @@ void QwOptions::ParseConfigFile()
 #if BOOST_VERSION >= 103500
       // Boost version after 1.35 have bool allow_unregistered = false in
       // their signature.  This allows for unknown options in the config file.
+      po::store(po::parse_config_file(configstream, fDefaultOptions, true), fVariablesMap);
       po::store(po::parse_config_file(configstream, fOptions, true), fVariablesMap);
 #else
       // Boost versions before 1.35 cannot handle files with unregistered options.
+      po::store(po::parse_config_file(configstream, fDefaultOptions), fVariablesMap);
       po::store(po::parse_config_file(configstream, fOptions), fVariablesMap);
 #endif
     } catch (std::exception const& e) {
@@ -143,7 +159,6 @@ void QwOptions::ParseConfigFile()
 #if BOOST_VERSION < 103500
       QwWarning << "the entire configuration file was ignored!" << QwLog::endl;
 #endif
-      QwMessage << fOptions << QwLog::endl;
     }
     po::notify(fVariablesMap);
   }
@@ -158,6 +173,7 @@ void QwOptions::Usage()
 {
   QwMessage << "Welcome to the Qweak analyzer code." << QwLog::endl;
   QwMessage << QwLog::endl;
+  QwMessage << fDefaultOptions << QwLog::endl;
   QwMessage << fOptions << QwLog::endl;
 }
 

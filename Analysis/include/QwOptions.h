@@ -90,82 +90,76 @@ class QwOptions {
 
   public:
 
-    /** \brief Default constructor
-     */
+    /// \brief Default constructor
     QwOptions();
 
-    /** \brief Constructor with command line arguments
-     */
+    /// \brief Constructor with command line arguments
     QwOptions(int argc, char* argv[]) {
       SetCommandLine(argc, argv);
     };
-    /** \brief Constructor with configuration file
-     */
+    /// \brief Constructor with configuration file
     QwOptions(string configfile) {
       SetConfigFile(configfile);
     };
-    /** \brief Constructor with command line arguments and configuration file
-     */
+    /// \brief Constructor with command line arguments and configuration file
     QwOptions(int argc, char* argv[], string configfile) {
       SetCommandLine(argc, argv);
       SetConfigFile(configfile);
     };
 
-    /** \brief Default destructor
-     */
+    /// \brief Default destructor
     virtual ~QwOptions();
 
 
-    /** \brief Add a recognized option
-     */
+    /// \brief Add a default option
+    po::options_description_easy_init AddDefaultOptions() {
+      fParsed = false;
+      return fDefaultOptions.add_options();
+    };
+    /// \brief Add an option
     po::options_description_easy_init AddOptions() {
       fParsed = false;
       return fOptions.add_options();
     };
 
 
-    /** \brief Print usage information
-     */
+    /// \brief Print usage information
     void Usage();
 
+    /// \brief Define the options
+    void DefineOptions();
 
-    /** \brief Set the command line arguments
-     */
+    /// \brief Set the command line arguments
     void SetCommandLine(int argc, char* argv[]);
 
-    /** \brief Set a configuration file
-     */
+    /// \brief Set a configuration file
     void SetConfigFile(string configfile) {
       fConfigFiles.clear();
       fConfigFiles.push_back(configfile);
       fParsed = false;
     };
 
-    /** \brief Add a configuration file
-     */
+    /// \brief Add a configuration file
     void AddConfigFile(string configfile) {
       fConfigFiles.push_back(configfile);
       fParsed = false;
     };
 
-    /** \brief Add some configuration files
-     */
+    /// \brief Add some configuration files
     void AddConfigFile(vector<string> configfiles) {
       for (size_t i = 0; i < configfiles.size(); i++)
         fConfigFiles.push_back(configfiles.at(i));
       fParsed = false;
     };
 
-    /** \brief List the configuration files
-     */
+    /// \brief List the configuration files
     void ListConfigFiles() {
       for (size_t i = 0; i < fConfigFiles.size(); i++)
         QwMessage << fConfigFiles.at(i) << QwLog::endl;
     };
 
 
-    /** \brief Parse all sources of options
-     */
+    /// \brief Parse all sources of options
     void Parse() {
       ParseCommandLine();
       ParseEnvironment();
@@ -174,15 +168,13 @@ class QwOptions {
     };
 
 
-    /** \brief Has this key been defined
-     */
+    /// \brief Has this key been defined
     bool HasValue(string key) {
       if (fParsed == false) Parse();
       return (fVariablesMap.count(key) > 0);
     };
 
-    /** \brief Get a templated value
-     */
+    /// \brief Get a templated value
     template < class T >
     T GetValue(string key) {
       if (fParsed == false) Parse();
@@ -196,43 +188,35 @@ class QwOptions {
       }
     }
 
-    /** \brief Get a pair of integer values
-     */
+    /// \brief Get a pair of integer values
     std::pair<int,int> GetIntValuePair(string key);
 
-    /** \brief Get the first of a pair of integer values
-     */
+    /// \brief Get the first of a pair of integer values
     int GetIntValuePairFirst(string key) {
       return GetIntValuePair(key).first;
     };
 
-    /** \brief Get the last of a pair of integer values
-     */
+    /// \brief Get the last of a pair of integer values
     int GetIntValuePairLast(string key) {
       return GetIntValuePair(key).second;
     };
 
   private:
 
-    /** \brief Parse the command line arguments
-     */
+    /// \brief Parse the command line arguments
     void ParseCommandLine();
 
-    /** \brief Parse the configuration file
-     */
+    /// \brief Parse the configuration file
     void ParseConfigFile();
 
-    /** \brief Parse the environment variables
-     */
+    /// \brief Parse the environment variables
     void ParseEnvironment();
 
-    /** \brief Parse a range of integers as #:# where either can be missing
-     */
+    /// \brief Parse a range of integers as #:# where either can be missing
     std::pair<int, int> ParseIntRange(string range);
 
 
-    /** \brief Configuration file
-     */
+    /// \brief Configuration file
     vector<string> fConfigFiles;
 
     /** \brief Command line arguments
@@ -244,6 +228,7 @@ class QwOptions {
     static int fArgc;
     static char** fArgv;
 
+    static po::options_description fDefaultOptions;
     static po::options_description fOptions;
     po::variables_map fVariablesMap;
 
@@ -252,4 +237,4 @@ class QwOptions {
 
 extern QwOptions gQwOptions;
 
-#endif // QWOPTIONS
+#endif // QWOPTIONS_H

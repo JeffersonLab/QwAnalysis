@@ -58,6 +58,9 @@ class QwTrackingWorker: public VQwSystem {
     QwTrackingWorker(const char* name);
     ~QwTrackingWorker();
 
+    /// \brief Define command line and config file options
+    static void DefineOptions();
+
     /// \brief Get the debug level
     int GetDebugLevel () { return fDebug; };
     /// \brief Set the debug level
@@ -93,10 +96,6 @@ class QwTrackingWorker: public VQwSystem {
 
     /// \brief Initialize the pattern search tree
     void InitTree();
-
-    /** \brief Define command line and config file options
-     */
-    void DefineOptions();
 
     // Local flags
     bool fShowEventPattern;

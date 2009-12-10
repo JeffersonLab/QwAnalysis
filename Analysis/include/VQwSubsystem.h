@@ -50,6 +50,9 @@ class VQwSubsystem {
 
   virtual ~VQwSubsystem(){};
 
+  /// \brief Define options function (note: no virtual static functions in C++)
+  static void DefineOptions() { /* No default options defined */ };
+
   TString GetSubsystemName() const {return fSystemName;};
   Bool_t  HasDataLoaded() const  {return fIsDataLoaded;}
 
