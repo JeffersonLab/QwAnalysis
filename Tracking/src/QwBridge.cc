@@ -18,6 +18,8 @@
 
 #include "QwBridge.h"
 
+#include <boost/multi_array.hpp>
+
 #define TESTEVENT
 //#define BACKSWIM
 
@@ -30,7 +32,7 @@ QwBridge::~QwBridge() {};
 
 void QwBridge::LoadMagneticFieldMap() {
     B_Field = new QwMagneticField();
-    B_Field->ReadFieldMap(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/MainMagnet_FieldMap.dat");
+    B_Field->ReadFieldMapFile(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/MainMagnet_FieldMap.dat");
 };
 
 int QwBridge::BridgeFrontBackPartialTrack(TVector3 startpoint,
@@ -208,3 +210,114 @@ int QwBridge::Filter(TVector3 fStartPoint, TVector3 fStartDirection, TVector3 fE
     return 0;
 
 }
+
+
+
+int QwBridge::LoadMomentumMatrix() {
+
+  Double_t degree = 180.0/3.1415926535897932;
+
+  Int_t    gridnum;
+  Double_t p;
+  //Double_t x[3],y[3],z[3],ux[3],uy[3],uz[3];
+  Double_t position_r[3],position_phi[3];
+  Double_t direction_theta[3],direction_phi[3];
+
+  //Double_t theta,phi;
+  TVector3 startpoint,startdirection,endpoint,enddirection;
+
+  //open file
+  TString rootfilename=std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QwTrajMatrix.root";
+  TFile* rootfile = TFile::Open(rootfilename,"read");
+  rootfile->cd();
+
+  TTree *momentum_tree = (TTree *)rootfile->Get("Momentum_Tree");
+
+//  momentum_tree->SetBranchAddress("gridnum",&gridnum);
+
+  momentum_tree->SetBranchAddress("position_r0", &position_r[0]);
+  momentum_tree->SetBranchAddress("position_phi0", &position_phi[0]);
+  momentum_tree->SetBranchAddress("direction_theta0",&direction_theta[0]);
+  momentum_tree->SetBranchAddress("direction_phi0",&direction_phi[0]);
+
+  momentum_tree->SetBranchAddress("position_r1", &position_r[1]);
+  momentum_tree->SetBranchAddress("position_phi1", &position_phi[1]);
+  momentum_tree->SetBranchAddress("direction_theta1",&direction_theta[1]);
+  momentum_tree->SetBranchAddress("direction_phi1",&direction_phi[1]);
+
+  momentum_tree->SetBranchAddress("position_r2", &position_r[2]);
+  momentum_tree->SetBranchAddress("position_phi2", &position_phi[2]);
+  momentum_tree->SetBranchAddress("direction_theta2",&direction_theta[2]);
+  momentum_tree->SetBranchAddress("direction_phi2",&direction_phi[2]);
+
+  momentum_tree->SetBranchAddress("p",  &p);
+
+
+  PartialTrackParameter backtrackparameter;
+
+  Int_t numberOfEntries = momentum_tree->GetEntries();
+  std::cout<<"Total grid points: "<<numberOfEntries<<std::endl;
+
+  //build index (phi always changes from 0 to 360 degree with dphi=1.0 degree)
+  int momentum_min = (int) (100*momentum_tree->GetMinimum("p"));  //dp = 0.01 GeV
+  int momentum_max = (int) (100*momentum_tree->GetMaximum("p")) +1 ;
+  int position_r0_min = (int) (2*momentum_tree->GetMinimum("position_r0"));  // dr ~0.5 cm
+  int position_r0_max = (int) (2*momentum_tree->GetMaximum("position_r0"))+1;
+  int direction_theta0_min = (int) (2*momentum_tree->GetMinimum("direction_theta0")); //dtheta = 0.5 degree
+  int direction_theta0_max = (int) (2*momentum_tree->GetMaximum("direction_theta0")) +1;
+
+
+  std::cout<<"p_min, p_max: "<<momentum_min<<","<<momentum_max<<std::endl;
+  std::cout<<"r0_min, r0_max: "<<position_r0_min<<","<<position_r0_max<<std::endl;
+  std::cout<<"theta0_min, theta0_max: "<<direction_theta0_min<<","<<direction_theta0_max<<std::endl;
+
+
+//NOTE jpan: I am not sure the performance of the boost multi_array.
+// It could be slower than a native 1D array.
+
+//  uint index_size = (momentum_max-momentum_min)*(position_r0_max-position_r0_min)
+//                 *(direction_theta0_max-direction_theta0_min)*360;
+// int *index = new int[index_size];
+
+  // Create a 4D array to store index
+  typedef boost::multi_array<int, 4> indexing_array;
+  typedef indexing_array::index index;
+  indexing_array table_index(boost::extents[momentum_max-momentum_min][position_r0_max-position_r0_min]
+                                           [360][direction_theta0_max-direction_theta0_min]);
+
+
+  std::vector <PartialTrackParameter> backtrackparametertable;
+  backtrackparametertable.reserve(numberOfEntries);
+
+  std::cout<<"Start to read data"<<std::endl;
+
+  for ( uint i=0; i<numberOfEntries; i++){
+    momentum_tree->GetEntry(i);
+    backtrackparameter.position_r = (float)position_r[2];
+    backtrackparameter.position_phi = (float)position_phi[2];
+    backtrackparameter.direction_theta = (float)direction_theta[2];
+    backtrackparameter.direction_phi = (float)direction_phi[2];
+
+    // NOTE direction_phi[0] ~ position_phi[0], so we only need to index one of them
+    int index_momentum = (int)(p*100)-momentum_min;
+    int index_pos_r = (int)(2*position_r[0])-position_r0_min;
+    int index_pos_phi = (int)position_phi[0];
+    int index_dir_theta = (int)(2*direction_theta[0])-direction_theta0_min;
+    // int index_dir_phi = (int)direction_phi[0]; 
+
+    //std::cout<<"index_momentum "<<index_momentum<<",  index_pos_r "<<index_pos_r
+    //         <<",  index_pos_phi "<<index_pos_phi<<",  index_dir_theta "<<index_dir_theta<<std::endl;
+
+    //  build indexing array
+    table_index[index_momentum][index_pos_r][index_pos_phi][index_dir_theta] = i;
+
+    backtrackparametertable.push_back( backtrackparameter);
+  }
+
+  rootfile->Close();
+
+  delete rootfile;
+
+  return 0;
+};
+

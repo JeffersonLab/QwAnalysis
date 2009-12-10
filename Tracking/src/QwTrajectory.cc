@@ -12,8 +12,8 @@ QwTrajectory::QwTrajectory() {
       yy[i]=0.0;
       zz[i]=0.0; 
       uvx[i] = 0.0;  // unit vector
-      uvx[i] = 0.0;
-      uvx[i] = 0.0;
+      uvy[i] = 0.0;
+      uvz[i] = 0.0;
     }
 
     bdlx = 0.0;
