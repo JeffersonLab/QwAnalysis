@@ -494,6 +494,7 @@ VQwSubsystem&  QwLumi::operator=  (VQwSubsystem *value)
   //  std::cout<<" here in QwLumi::operator= \n";
   if(Compare(value))
     {
+      VQwSubsystem::operator=(value);
       QwLumi* input = dynamic_cast<QwLumi*> (value);
      
       for(size_t i=0;i<input->fIntegrationPMT.size();i++)
@@ -704,6 +705,7 @@ void  QwLumi::Copy(VQwSubsystem *source)
     {
      if(typeid(*source)==typeid(*this))
 	{
+	  VQwSubsystem::Copy(source);
 	  QwLumi* input= dynamic_cast<QwLumi*>(source);
 	 
 	  this->fIntegrationPMT.resize(input->fIntegrationPMT.size());

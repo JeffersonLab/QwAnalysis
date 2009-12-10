@@ -210,7 +210,7 @@ int main(Int_t argc,Char_t* argv[])
 	  }
 
 	  if(bHelicity&&QwHelPat.IsCompletePattern()){
-	    std::cout<<" Complete quartet  "<<QwEvt.GetEventNumber()<<std::endl;
+	    //std::cout<<" Complete quartet  "<<QwEvt.GetEventNumber()<<std::endl;
 	    QwHelPat.CalculateAsymmetry();
 	    //	      QwHelPat.Print();
 	    if(bHisto) QwHelPat.FillHistograms();

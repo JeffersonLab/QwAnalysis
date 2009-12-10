@@ -280,6 +280,7 @@ QwVQWK_Channel* QwMainCerenkovDetector::GetChannel(const TString name)
 void  QwMainCerenkovDetector::Copy(VQwSubsystem *source)
 {
   try {
+    VQwSubsystem::Copy(source);
     if (typeid(*source) == typeid(*this)) {
       QwMainCerenkovDetector* input = dynamic_cast<QwMainCerenkovDetector*> (source);
       this->fADC_Data.resize(input->fADC_Data.size());
@@ -330,6 +331,7 @@ VQwSubsystem&  QwMainCerenkovDetector::operator= (VQwSubsystem *value)
 
   if(Compare(value))
     {
+      VQwSubsystem::operator=(value);
       QwMainCerenkovDetector* input = dynamic_cast<QwMainCerenkovDetector*> (value);
       for (size_t i = 0; i < input->fADC_Data.size(); i++) {
 	this->fADC_Data.at(i) = input->fADC_Data.at(i);

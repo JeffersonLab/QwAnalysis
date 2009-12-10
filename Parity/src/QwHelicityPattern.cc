@@ -233,7 +233,7 @@ void  QwHelicityPattern::CalculateAsymmetry()
 
       IsGood=kTRUE;
       fQuartetNumber++;//Then increment the quartet number
-      std::cout<<" quartet count ="<<fQuartetNumber<<"\n";
+      //std::cout<<" quartet count ="<<fQuartetNumber<<"\n";
 	
       
       fYield.Sum(pos_sum,neg_sum);

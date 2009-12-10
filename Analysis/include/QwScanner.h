@@ -58,7 +58,7 @@ class QwScanner: public VQwSubsystemTracking,
     Int_t GetEventcutErrorCounters() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
   //
-    void Copy(VQwSubsystem *source) { return; };
+    void Copy(VQwSubsystem *source) { VQwSubsystem::Copy(source); return; };
     VQwSubsystem*  Copy() { return this; };
     Bool_t Compare(VQwSubsystem *source) { return kTRUE; };
 

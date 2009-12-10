@@ -115,6 +115,7 @@ void QwComptonElectronDetector::ClearEventData()
 VQwSubsystem&  QwComptonElectronDetector::operator=  (VQwSubsystem *value)
 {
   if (Compare(value)) {
+    VQwSubsystem::operator=(value);
     QwComptonElectronDetector* input = (QwComptonElectronDetector*) value;
   }
   return *this;
@@ -221,6 +222,7 @@ void  QwComptonElectronDetector::Copy(VQwSubsystem *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {
+      VQwSubsystem::Copy(source);
       QwComptonElectronDetector* input = ((QwComptonElectronDetector*) source);
 
     } else {

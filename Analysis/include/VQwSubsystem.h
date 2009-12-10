@@ -104,8 +104,9 @@ class VQwSubsystem {
   /*! \brief Print some information about the subsystem
    */
   virtual void  Print();
-
-
+  virtual void Copy(VQwSubsystem *source);//Must call at the beginning of all subsystems rotuine call to Copy(VQwSubsystem *source)  by  using VQwSubsystem::Copy(source)
+  virtual VQwSubsystem&  operator=  (VQwSubsystem *value);//Must call at the beginning of all subsystems rotuine call to operator=  (VQwSubsystem *value)  by VQwSubsystem::operator=(value)
+  
  protected:
 
   /*! \brief Clear all registration of ROC and Bank IDs for this subsystem

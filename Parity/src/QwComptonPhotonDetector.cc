@@ -250,6 +250,7 @@ void QwComptonPhotonDetector::ClearEventData()
 VQwSubsystem&  QwComptonPhotonDetector::operator=  (VQwSubsystem *value)
 {
   if (Compare(value)) {
+    VQwSubsystem::operator=(value);
     QwComptonPhotonDetector* input = (QwComptonPhotonDetector*) value;
     for (size_t i = 0; i < input->fSamplingADC.size(); i++)
       this->fSamplingADC[i] = input->fSamplingADC[i];
@@ -473,6 +474,7 @@ void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {
+      VQwSubsystem::Copy(source);
       QwComptonPhotonDetector* input = ((QwComptonPhotonDetector*) source);
       this->fSamplingADC.resize(input->fSamplingADC.size());
       for (size_t i = 0; i < this->fSamplingADC.size(); i++)

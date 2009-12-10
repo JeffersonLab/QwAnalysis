@@ -627,6 +627,7 @@ VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
   if(Compare(value))
     {
       //QwBeamLine* input = (QwBeamLine*) value;
+      VQwSubsystem::operator=(value);
       QwBeamLine* input = dynamic_cast<QwBeamLine*>(value);
       for(size_t i=0;i<input->fStripline.size();i++)
 	this->fStripline[i]=input->fStripline[i];
@@ -877,6 +878,7 @@ void  QwBeamLine::Copy(VQwSubsystem *source)
      if(typeid(*source)==typeid(*this))
 	{
 	  //QwBeamLine* input=((QwBeamLine*)source);
+	  VQwSubsystem::Copy(source);
           QwBeamLine* input = dynamic_cast<QwBeamLine*>(source);
 	  this->fStripline.resize(input->fStripline.size());
 	  for(size_t i=0;i<this->fStripline.size();i++)

@@ -1147,6 +1147,7 @@ void QwHelicity::Copy(VQwSubsystem *source)
      if(typeid(*source)==typeid(*this))
 	{
 	  //QwHelicity* input=((QwHelicity*)source);
+	  VQwSubsystem::Copy(source);
           QwHelicity* input = dynamic_cast<QwHelicity*>(source);
 	  this->fWord.resize(input->fWord.size());
 	  for(size_t i=0;i<this->fWord.size();i++)
@@ -1187,6 +1188,7 @@ VQwSubsystem&  QwHelicity::operator=  (VQwSubsystem *value)
   if(Compare(value))
     {
       //QwHelicity* input= (QwHelicity*)value;
+      VQwSubsystem::operator=(value);
       QwHelicity* input= dynamic_cast<QwHelicity*>(value);
       for(size_t i=0;i<input->fWord.size();i++)
 	this->fWord[i].fValue=input->fWord[i].fValue;
