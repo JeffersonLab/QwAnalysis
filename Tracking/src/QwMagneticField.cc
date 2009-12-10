@@ -182,6 +182,9 @@ void QwMagneticField::ReadFieldMap(std::istream& input)
     if (fabs(r_local)   > 0.1) continue;
     if (fabs(phi_local) > 0.1) continue;
 
+    // Calculate the index
+    ind = Index(ind_r, ind_phi, ind_z);
+
     // Expand the field map if necessary
     if (ind >= fGridSize) {
       unsigned int oldsize = fGridSize;
@@ -199,8 +202,8 @@ void QwMagneticField::ReadFieldMap(std::istream& input)
     }
 
     // Calculate the radial field components
-    br =    bx * cos(phi) + by * sin(phi);
-    bphi = -bx * sin(phi) + by * cos(phi);
+    br =    bx * TMath::Cos(phi * TMath::DegToRad()) + by * TMath::Sin(phi * TMath::DegToRad());
+    bphi = -bx * TMath::Sin(phi * TMath::DegToRad()) + by * TMath::Cos(phi * TMath::DegToRad());
 
     // Store the field components after scaling
     BFieldGridData_X[ind]   = bx   * fUnitBfield * fFieldScalingFactor;
