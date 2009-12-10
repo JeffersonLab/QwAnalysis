@@ -7,10 +7,10 @@
 
 #include "QwMagneticField.h"
 
-#ifdef __USE_IOSTREAMS
+#ifdef __USE_BOOST_IOSTREAMS
 // Boost IOstreams headers
 // There is support for gzipped iostreams as magnetic field maps.  Compile with
-// -D __USE_IOSTREAMS
+// -D __USE_BOOST_IOSTREAMS
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/copy.hpp>
@@ -23,39 +23,41 @@
 QwMagneticField::QwMagneticField()
   :invertX(false),invertY(false),invertZ(false)
 {
-   std::cout << std::endl << "###### Calling QwMagneticField::QwMagneticField " << std::endl << std::endl;
+  std::cout << std::endl << "###### Calling QwMagneticField::QwMagneticField " << std::endl << std::endl;
 
-   // needed later for field rotation
-   BField_ANSYS = new TVector3();
+  // needed later for field rotation
+  BField_ANSYS = new TVector3();
 
-   // initialize field map parameters
-   // here: from the QTOR field map file
+  // initialize field map parameters
+  // here: from the QTOR field map file
 
-   rMinFromMap =     2.0;
-   rMaxFromMap =   300.0;
+  rMinFromMap =     2.0;
+  rMaxFromMap =   300.0;
 
-   // new field map boundaries
-   phiMinFromMap =    0.0;
-   phiMaxFromMap =  359.0;
+  // new field map boundaries
+  phiMinFromMap =    0.0;
+  phiMaxFromMap =  359.0;
 
-   zMinFromMap = -250.0;
-   zMaxFromMap =  250.0;
+  zMinFromMap = -250.0;
+  zMaxFromMap =  250.0;
 
-   gridstepsize_r   = 2.0;
-   gridstepsize_phi = 1.0;
-   gridstepsize_z   = 2.0;
+  gridstepsize_r   = 2.0;
+  gridstepsize_phi = 1.0;
+  gridstepsize_z   = 2.0;
 
-   fUnitBfield = 0.1;    //kilogauss;    // units of new field map ???? yes, tested it (1kG = 0.1T)
+  fUnitBfield = 0.1;    //kilogauss;    // units of new field map ???? yes, tested it (1kG = 0.1T)
                                          // used field unit tesla withs results in a too strong field
 
-   // initialize variables
-   //Initialize();
+  // initialize variables
+  //Initialize();
 
+  // Set some initial variables
+  fInterpolationMethod = kTrilinearInterpolation; // trilinear interpolation
+  fDataReductionFactor = 1; // no data reduction
+  fFieldScalingFactor = 1.0; // no scaling
+
+  // Initialize the grid
   InitializeGrid();
-
-  fInterpolationMethod = kTrilinearInterpolation;
-  fDataReductionFactor = 1;
-  fFieldScalingFactor = 1.0;
 
   std::cout << std::endl << "###### Leaving QwMagneticField::QwMagneticField " << std::endl << std::endl;
 }
@@ -64,9 +66,15 @@ void QwMagneticField::InitializeGrid()
 {
   std::cout << std::endl << "###### Calling QwMagneticField::Initialize " << std::endl << std::endl;
 
-  nGridPointsInR   =  int ( (rMaxFromMap   - rMinFromMap)   /gridstepsize_r   ) + 1;
-  nGridPointsInZ   =  int ( (zMaxFromMap   - zMinFromMap)   /gridstepsize_z   ) + 1;
-  nGridPointsInPhi =  int ( (phiMaxFromMap - phiMinFromMap) /gridstepsize_phi ) + 1;
+  gridstepsize_r   *= fDataReductionFactor;
+  gridstepsize_phi *= fDataReductionFactor;
+  gridstepsize_z   *= fDataReductionFactor;
+
+  nGridPointsInR   = int ( (rMaxFromMap   - rMinFromMap)   / gridstepsize_r  ) + 1;
+  nGridPointsInZ   = int ( (zMaxFromMap   - zMinFromMap)   / gridstepsize_z  ) + 1;
+  nGridPointsInPhi = int ( (phiMaxFromMap - phiMinFromMap) / gridstepsize_phi) + 1;
+
+  fGridSize = nGridPointsInR * nGridPointsInPhi * nGridPointsInZ;
 
   BFieldGridData_X.clear();
   BFieldGridData_Y.clear();
@@ -74,23 +82,20 @@ void QwMagneticField::InitializeGrid()
   BFieldGridData_R.clear();
   BFieldGridData_Phi.clear();
 
-  fGridSize = (int)(nGridPointsInR*nGridPointsInZ*nGridPointsInPhi);
-
   BFieldGridData_X.resize(fGridSize);
   BFieldGridData_Y.resize(fGridSize);
   BFieldGridData_Z.resize(fGridSize);
   BFieldGridData_R.resize(fGridSize);
   BFieldGridData_Phi.resize(fGridSize);
 
-  for (int i = 0; i < (int)(nGridPointsInR*nGridPointsInZ*nGridPointsInPhi); i++) {
-
-    BFieldGridData_X[i] = 0.0;
-    BFieldGridData_Y[i] = 0.0;
-    BFieldGridData_Z[i] = 0.0;
-    BFieldGridData_R[i] = 0.0;
+  // Set the field values to zero
+  for (int i = 0; i < fGridSize; i++) {
+    BFieldGridData_X[i]   = 0.0;
+    BFieldGridData_Y[i]   = 0.0;
+    BFieldGridData_Z[i]   = 0.0;
+    BFieldGridData_R[i]   = 0.0;
     BFieldGridData_Phi[i] = 0.0;
   }
-
 
   std::cout << std::endl << "###### Leaving QwMagneticField::Initialize " << std::endl << std::endl;
 }
@@ -114,7 +119,7 @@ void QwMagneticField::ReadFieldMapFile(std::string filename)
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void QwMagneticField::ReadFieldMapZip(std::string filename)
 {
-#ifdef __USE_IOSTREAMS
+#ifdef __USE_BOOST_IOSTREAMS
   // Create a gzip filter for the field map file
   boost::iostreams::filtering_istream inputfile;
   inputfile.push(boost::iostreams::gzip_decompressor());
@@ -138,8 +143,7 @@ void QwMagneticField::ReadFieldMap(std::istream& input)
   int oct = 0;
   int ind = 0;
 
-  int raw_R_cm = 0, raw_Z_cm = 0, raw_Phi_deg = 0;
-  double val_R = 0, val_Z = 0, val_Phi = 0;
+  int r = 0, z = 0, phi = 0;
   field_t bx = 0.0, by = 0.0, bz = 0.0, br = 0.0, bphi = 0.0;
 
 
@@ -156,25 +160,29 @@ void QwMagneticField::ReadFieldMap(std::istream& input)
   unsigned int entries = 0;
   while (input.good()) {
 
-    // Progress bar
-    if (entries % (fGridSize / 10) == 0)
-      std::cout << 100 * entries / fGridSize << "%" << std::flush;
-    if (entries % (fGridSize / 10) != 0 && entries % (fGridSize / 40) == 0)
-      std::cout << "." << std::flush;
+    // Read a line of data (into integer position and float/double field)
+    input >> r >> z >> phi >> bx >> by >> bz;
 
-    input >> raw_R_cm >> raw_Z_cm >> raw_Phi_deg >> bx >> by >> bz;
+    // Calculate the grid-normalized coordinates
+    double r_grid   = (r   - rMinFromMap)   / gridstepsize_r;
+    double phi_grid = (phi - phiMinFromMap) / gridstepsize_phi;
+    double z_grid   = (z   - zMinFromMap)   / gridstepsize_z;
 
-    // Calculate the indices
-    int ind_phi = static_cast<int>((raw_Phi_deg - phiMinFromMap) / gridstepsize_phi);
-    int ind_r = static_cast<int>((raw_R_cm - rMinFromMap) / gridstepsize_r);
-    int ind_z = static_cast<int>((raw_Z_cm - zMinFromMap) / gridstepsize_z);
+    // Calculate the local coordinates and cell position
+    double r_int, phi_int, z_int;
+    double r_local   = modf(r_grid,   &r_int);
+    double phi_local = modf(phi_grid, &phi_int);
+    double z_local   = modf(z_grid,   &z_int);
+    unsigned int ind_r   = static_cast<int>(r_int);
+    unsigned int ind_phi = static_cast<int>(phi_int);
+    unsigned int ind_z   = static_cast<int>(z_int);
 
-    // Calculate the radial field components
-    br =    bx * cos(raw_Phi_deg) + by * sin(raw_Phi_deg);
-    bphi = -bx * sin(raw_Phi_deg) + by * cos(raw_Phi_deg);
+    // Data reduction: discard if the point is not on a grid node
+    if (fabs(z_local)   > 0.1) continue;
+    if (fabs(r_local)   > 0.1) continue;
+    if (fabs(phi_local) > 0.1) continue;
 
-    ind = Index(ind_r, ind_phi, ind_z);
-
+    // Expand the field map if necessary
     if (ind >= fGridSize) {
       unsigned int oldsize = fGridSize;
       unsigned int newsize = (int)(1.10 * fGridSize) + 1;
@@ -190,7 +198,12 @@ void QwMagneticField::ReadFieldMap(std::istream& input)
       BFieldGridData_Phi.resize(newsize);
     }
 
-    BFieldGridData_X[ind]   = bx   * fUnitBfield * fFieldScalingFactor;  // unit: [T]
+    // Calculate the radial field components
+    br =    bx * cos(phi) + by * sin(phi);
+    bphi = -bx * sin(phi) + by * cos(phi);
+
+    // Store the field components after scaling
+    BFieldGridData_X[ind]   = bx   * fUnitBfield * fFieldScalingFactor;
     BFieldGridData_Y[ind]   = by   * fUnitBfield * fFieldScalingFactor;
     BFieldGridData_Z[ind]   = bz   * fUnitBfield * fFieldScalingFactor;
     BFieldGridData_R[ind]   = br   * fUnitBfield * fFieldScalingFactor;
@@ -198,10 +211,18 @@ void QwMagneticField::ReadFieldMap(std::istream& input)
 
     //std::cout<<"bx by bz :"<<bx<<", "<<by<<", "<<bz<<std::endl;
 
+    // Progress bar (TODO This doesn't work if you guess the grid size wrong
+    if (entries % (fGridSize / 10) == 0)
+      std::cout << 100 * entries / fGridSize << "%" << std::flush;
+    if (entries % (fGridSize / 10) != 0 && entries % (fGridSize / 40) == 0)
+      std::cout << "." << std::flush;
+
     entries++;
   };
 
-  std::cout << "... done reading " << entries << " entries" << std::endl;
+  std::cout << std::endl;
+  std::cout << "Read from stream " << entries << " entries" << std::endl;
+  std::cout << "The grid size is " << fGridSize << std::endl;
 
   std::cout << std::endl << "###### Leaving QwMagneticField::ReadFieldMap " << std::endl << std::endl;
 }

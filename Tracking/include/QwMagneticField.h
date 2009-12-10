@@ -49,7 +49,7 @@ class QwMagneticField {
 
     /// \brief Set the data reduction factor
     void SetDataReductionFactor(const Int_t datareductionfactor)
-      { fDataReductionFactor = datareductionfactor; };
+      { fDataReductionFactor = datareductionfactor; InitializeGrid(); };
     /// \brief Get the data reduction factor
     const Int_t GetDataReductionFactor() const
       { return fDataReductionFactor; };
@@ -165,9 +165,9 @@ inline const unsigned int QwMagneticField::Index(
 	const unsigned int index_phi,
 	const unsigned int index_z) const
 {
-  return index_phi
-         + nGridPointsInPhi * index_r
-         + nGridPointsInPhi * nGridPointsInR * index_z;
+  return index_z
+         + nGridPointsInZ * index_r
+         + nGridPointsInZ * nGridPointsInR * index_phi;
 }
 
 #endif // _QwMagneticField_h_
