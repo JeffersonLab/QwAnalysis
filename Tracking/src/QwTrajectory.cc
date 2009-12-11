@@ -487,6 +487,7 @@ int QwTrajectory::LoadMomentumMatrix() {
     //open file
     TString rootfilename=std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QwTrajMatrix.root";
     TFile* rootfile = TFile::Open(rootfilename,"read");
+    if (! rootfile) return 0;
     rootfile->cd();
 
     TTree *momentum_tree = (TTree *)rootfile->Get("Momentum_Tree");
