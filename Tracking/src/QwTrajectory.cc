@@ -21,6 +21,11 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #include "QwTrajectory.h"
+
+#include <cstdlib>
+
+#include "QwMagneticField.h"
+
 //#include <boost/multi_array.hpp>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

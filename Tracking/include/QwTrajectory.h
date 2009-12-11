@@ -27,7 +27,8 @@
 #include <TVector3.h>
 #include <TRotation.h>
 
-#include "QwMagneticField.h"
+// Forward declarations
+class QwMagneticField;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -79,7 +80,7 @@ class QwTrajectory {
     TVector3 Integrate(double E0,
                        TVector3 startpoint,
                        TVector3 direction,
-                       double step, 
+                       double step,
                        double z_endplane);
 
     double GetMomentum(){ return momentum; };

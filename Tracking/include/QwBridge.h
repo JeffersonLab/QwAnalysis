@@ -1,10 +1,23 @@
 #ifndef QWBRIDGE_H
 #define QWBRIDGE_H
 
+// System headers
+#include <math.h>
+
+// ROOT headers
+#include <TVector3.h>
+#include <TFile.h>
+#include <TTree.h>
+
+// Qweak headers
 #include "QwHit.h"
 #include "QwHitContainer.h"
-#include "QwMagneticField.h"
-#include "QwTrajectory.h"
+
+// Forward declarations
+class QwMagneticField;
+class QwTrajectory;
+
+#define MAX_ITERATION 10
 
 /*! \brief This class bridge the front and back partial track to find out the momentum */
 ///
