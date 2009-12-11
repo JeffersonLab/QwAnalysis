@@ -21,13 +21,17 @@
 #ifndef QWTRACKINGTREEREGION_H
 #define QWTRACKINGTREEREGION_H
 
+// System headers
 #include <iostream>
+
+// Qweak headers
+#include "VQwTrackingElement.h"
 #include "shortnode.h"
 #include "globals.h"
 
 using QwTracking::shortnode;
 
-class QwTrackingTreeRegion {
+class QwTrackingTreeRegion: public VQwTrackingElement {
 
   public:
 

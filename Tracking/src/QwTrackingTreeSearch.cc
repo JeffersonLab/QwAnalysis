@@ -74,7 +74,7 @@
                         specified treenode has already been accepted as
                         a valid treeline.
 
- (07) _TsSearch()     - this highly recursive function implements the
+ (07) _SearchTreeLines() - this highly recursive function implements the
                         treesearch algorithm.  For a specified list of
                         nodenodes, this function examines the attached
                         treenode.  If the bit pattern in the treenode
@@ -92,8 +92,8 @@
                         to the linked list of treelines being accumulated
                         by the treesearch.
 
- (08) TsSearch()      - this function initiates the treesearch for a set
-                        of tree-planes by calling the _TsSearch() function
+ (08) SearchTreeLines() - this function initiates the treesearch for a set
+                        of tree-planes by calling the _SearchTreeLines() function
                         described above.
 
     $date: Mon May 25 10:48:12 CDT 2009 $
@@ -177,8 +177,7 @@ QwTrackingTreeLine* QwTrackingTreeSearch::GetListOfTreeLines ()
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*---------------------------------------------------------------------------*\
-
+/**
   wireselection() - this function steps through the hits from the unprimed
                     and primed planes for a tree-plane to decide whether
                     hits should or should not be paired together when the
@@ -210,9 +209,7 @@ QwTrackingTreeLine* QwTrackingTreeSearch::GetListOfTreeLines ()
             (4) Hit **Xn       - pointer to the next hit to consider for
                                  the primed plane
 
-\*---------------------------------------------------------------------------*/
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
+ */
 void QwTrackingTreeSearch::wireselection (QwHit **x, QwHit **X, QwHit **xn, QwHit **Xn, double maxdist)
 {
   std::cerr << "[QwTrackingTreeSearch::wireselection] Warning: This needs revision!" << std::endl;
@@ -284,8 +281,7 @@ void QwTrackingTreeSearch::wireselection (QwHit **x, QwHit **X, QwHit **xn, QwHi
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo...
-/*---------------------------------------------------------------------------*\
-
+/**
   _setpoints() - this function sets the bins in a hit pattern for a
                  range of positions.  The range of hit patterns is specified
                  by a start and a stop position in the detector.  This
@@ -309,9 +305,7 @@ void QwTrackingTreeSearch::wireselection (QwHit **x, QwHit **X, QwHit **xn, QwHi
                                        tree-detector
             (2) int  *hash           - pointer to ???
 
-\*---------------------------------------------------------------------------*/
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
+*/
 void QwTrackingTreeSearch::_setpoints (
 	double posStart,
 	double posEnd,
@@ -376,8 +370,7 @@ void QwTrackingTreeSearch::_setpoints (
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*---------------------------------------------------------------------------*\
-
+/**
   _setpoint() - this function sets the bins in the hit pattern for a
                 range of positions around a central point within a specified
                 distance/resolution by calling the setpoint() function
@@ -400,9 +393,7 @@ void QwTrackingTreeSearch::_setpoints (
                                        tree-detector
             (2) int  *hash           - pointer to ???
 
-\*---------------------------------------------------------------------------*/
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
+ */
 void QwTrackingTreeSearch::_setpoint (
 	double position,
 	double resolution,
@@ -416,8 +407,7 @@ void QwTrackingTreeSearch::_setpoint (
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*---------------------------------------------------------------------------*\
-
+/**
   setpoint() - this function sets the bins in the hit pattern for a range
                of positions specified by a center point and a half-distance
                around the center point by calling the _setpoint() function
@@ -464,9 +454,7 @@ void QwTrackingTreeSearch::_setpoint (
             (03) int  *hasha       - pointer to ???
             (04) int  *hashb       - pointer to ???
 
-\*---------------------------------------------------------------------------*/
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
+ */
 void QwTrackingTreeSearch::setpoint (
 	double off,
 	double h1,
@@ -492,8 +480,7 @@ void QwTrackingTreeSearch::setpoint (
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*---------------------------------------------------------------------------*\
-
+/**
   TsSetPoint() - this function creates the bit patterns for two partner
                  planes (planes with the like-pitched wires in the
                  same chamber.
@@ -540,9 +527,7 @@ void QwTrackingTreeSearch::setpoint (
             (04) int  *hasha          - pointer to ???
             (05) int  *hashb          - pointer to ???
 
-\*---------------------------------------------------------------------------*/
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
+ */
 // This TsSetPoint version is designed for setting the pattern
 // for one hit at a time, using the QwHit class.
 int QwTrackingTreeSearch::TsSetPoint (
@@ -567,8 +552,6 @@ int QwTrackingTreeSearch::TsSetPoint (
   return 1;
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*---------------------------------------------------------------------------*/
 // This TsSetPoint version is designed for setting the pattern for Region 2
 // doing one hit at a time, using the QwHit class.
 int QwTrackingTreeSearch::TsSetPoint (
@@ -790,8 +773,7 @@ int QwTrackingTreeSearch::TsSetPoint (
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*---------------------------------------------------------------------------*\
-
+/**
   exists() - this function searches through the link-list of valid treelines
              to see if the bit pattern for the specified treenode has already
              been accepted as a valid treeline.
@@ -804,9 +786,7 @@ int QwTrackingTreeSearch::TsSetPoint (
    outputs: (1) int exists()       - =0 if a treeline is not located
                                      =1 otherwise
 
-\*---------------------------------------------------------------------------*/
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
+ */
 int QwTrackingTreeSearch::exists (int *newa, int front, int back, QwTrackingTreeLine *treeline)
 {
   int *olda;
@@ -874,9 +854,8 @@ int QwTrackingTreeSearch::exists (int *newa, int front, int back, QwTrackingTree
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*---------------------------------------------------------------------------*\
-
-  _TsSearch() - this highly recursive function implements the treesearch
+/**
+  _SearchTreeLines() - this highly recursive function implements the treesearch
                 algorithm.  For a specified list of nodenodes, this function
                 examines the attached treenode.  If the bit pattern in the
                 treenode does not match the bit pattern from the event, the
@@ -910,10 +889,8 @@ int QwTrackingTreeSearch::exists (int *newa, int front, int back, QwTrackingTree
     global
    outputs: Treeline *lTreeLines - pointer to the link-list of valid treelines.
 
-\*---------------------------------------------------------------------------*/
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-void QwTrackingTreeSearch::_TsSearch (
+ */
+void QwTrackingTreeSearch::_SearchTreeLines (
 	shortnode *node,
 	int level,
 	int offset,
@@ -1105,11 +1082,11 @@ if (numWires > 0) { /* Region 3 */
           if (rev ^ reverse) {
             off2 = (offset << 1) + 1;
             for (off = 0; off < 2; off++)
-              _TsSearch (*cnode++, nlevel, off2 - off, row_offset, 2, numWires);
+              _SearchTreeLines (*cnode++, nlevel, off2 - off, row_offset, 2, numWires);
           } else {
             off2 = offset << 1;
             for( off = 0; off < 2; off++)
-              _TsSearch (*cnode++, nlevel, off2 + off, row_offset, 0, numWires);
+              _SearchTreeLines (*cnode++, nlevel, off2 + off, row_offset, 0, numWires);
           }
         } /* highly optimized - time critical */
         //std::cout << "sons done" << std::endl;
@@ -1218,11 +1195,11 @@ if (numWires > 0) { /* Region 3 */
 	    if (rev ^ reverse) {
 	      off2 = (offset << 1) + 1;
 	      for (off = 0; off < 2; off++)
-	      	_TsSearch (*cnode++, nlevel, off2 - off, 0, 2, 0);
+	        _SearchTreeLines (*cnode++, nlevel, off2 - off, 0, 2, 0);
 	    } else {
 	      off2 = offset << 1;
 	      for (off = 0; off < 2; off++) {
-	      	_TsSearch (*cnode++, nlevel, off2 + off, 0, 0, 0);
+	        _SearchTreeLines (*cnode++, nlevel, off2 + off, 0, 0, 0);
               }
 	    }
 	  } /* highly optimized - time critical */
@@ -1236,10 +1213,9 @@ if (numWires > 0) { /* Region 3 */
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*---------------------------------------------------------------------------*\
-
-  TsSearch() - this function initiates the treesearch for a set of tree-
-               detectors by calling the _TsSearch() function described
+/**
+  SearchTreeLines() - this function initiates the treesearch for a set of tree-
+               detectors by calling the _SearchTreeLines() function described
                above.
 
     inputs: (1) shortnode *node    -
@@ -1248,11 +1224,9 @@ if (numWires > 0) { /* Region 3 */
             (4) int maxlevel       -
             (5) int numWires       -
 
-   outputs: there are no explicit output from this function.  However,
-            implicitly, it creates the linked list of valid treelines.
-
-\*---------------------------------------------------------------------------*/
-void QwTrackingTreeSearch::TsSearch (
+   outputs: the linked list of valid treelines
+ */
+QwTrackingTreeLine* QwTrackingTreeSearch::SearchTreeLines (
 	shortnode *node,
 	char **pattern,
 	int  **hashpat,
@@ -1267,13 +1241,14 @@ void QwTrackingTreeSearch::TsSearch (
   /*static_front    = front;*/
 
   if (numWires) {
-    // The region 3 version of TsSearch (search for every wire)
+    // The region 3 version of SearchTreeLines (search for every wire)
     for (int i = 0; i <= numWires - tlayers; i++)
-      _TsSearch (node, 0, 0, i, 0, numWires);
+      _SearchTreeLines (node, 0, 0, i, 0, numWires);
 
   } else
-    // The region 2 version of TsSearch
-      _TsSearch (node, 0, 0, 0, 0, 0);
-}
+    // The region 2 version of SearchTreeLines
+      _SearchTreeLines (node, 0, 0, 0, 0, 0);
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+  // Return the list of tree lines
+  return lTreeLines;
+}

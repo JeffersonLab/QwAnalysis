@@ -87,13 +87,13 @@ static std::map < EQwHelicity, int > kMapHelicity = CreateHelicityMap();
 class QwDetectorID
 {
  public:
-  QwDetectorID():fRegion(-1),fPackage(-1),fPlane(-1),fDirection(-1),fElement(-1){};
+  QwDetectorID():fRegion(kRegionIDNull),fPackage(-1),fPlane(-1),fDirection(-1),fElement(-1){};
 
-  QwDetectorID(const Int_t region, const Int_t package, const Int_t plane,const Int_t direction, const
+  QwDetectorID(const EQwRegionID region, const Int_t package, const Int_t plane,const Int_t direction, const
   Int_t wire):fRegion(region),fPackage(package),fPlane(plane),fDirection(direction),fElement(wire){};
 
  public:
-  int fRegion;  // region 1, 2, 3, triggg. scint or cerenkov
+  EQwRegionID fRegion;  // region 1, 2, 3, triggg. scint or cerenkov
   int fPackage; // which arm of the rotator or octant number
   int fPlane;   // R or theta index for R1; plane index for R2 & R3
   int fDirection; //direction of the wire plane X,Y,U,V etc - Rakitha (10/23/2008)

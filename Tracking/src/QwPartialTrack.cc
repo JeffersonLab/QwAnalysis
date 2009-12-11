@@ -316,17 +316,11 @@ int QwPartialTrack::DetermineHitInHDC (EQwDetectorPackage package)
   Det* rd = rcDETRegion[package][kRegionID2][kDirectionX];
   // Get the point where the track intersects the detector planes
   TVector3 hdc_front = GetPosition(rd->Zpos);
-  std::cout << hdc_front.X() << ", "
-            << hdc_front.Y() << ", "
-            << hdc_front.Z() << std::endl;
 
   // Get the HDC detector
   rd = rcDETRegion[package][kRegionID2][kDirectionV];
   // Get the point where the track intersects the detector planes
   TVector3 hdc_back = GetPosition(rd->Zpos);
-  std::cout << hdc_back.X() << ", "
-            << hdc_back.Y() << ", "
-            << hdc_back.Z() << std::endl;
 
   // Get the detector boundaries
   lim_hdc[0][0] = rd->center[0] + rd->width[0]/2;

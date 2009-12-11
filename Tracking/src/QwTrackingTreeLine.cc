@@ -235,6 +235,10 @@ ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl) {
   stream << "tl: ";
   stream << tl.a_beg << ", " << tl.a_end << " -- ";
   stream << tl.b_beg << ", " << tl.b_end;
+  if (tl.GetRegion() != kRegionIDNull) { // treeline has geometry identification
+    stream << " (" << tl.GetRegion() << "/" << "?UD"[tl.GetPackage()];
+    stream << "/" << "?xyuvrq"[tl.GetDirection()] << ")";
+  }
   if (tl.fChi > 0.0) { // treeline has been fitted
     stream << "; fOffset = " << tl.fOffset;
     stream << ", fSlope = " << tl.fSlope;

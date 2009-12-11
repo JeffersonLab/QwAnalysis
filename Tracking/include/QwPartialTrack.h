@@ -1,3 +1,11 @@
+/*!
+ * \file   QwPartialTrack.h
+ * \brief  Definition of the partial track class
+ *
+ * \author Wouter Deconinck
+ * \date   2009-12-11
+ */
+
 #ifndef QWPARTIALTRACK_H
 #define QWPARTIALTRACK_H
 
@@ -10,23 +18,22 @@
 #include "TVector3.h"
 
 // Qweak headers
+#include "VQwTrackingElement.h"
 #include "globals.h"
 #include "QwTrackingTreeLine.h"
 #include "QwBridge.h"
 
 
-/*------------------------------------------------------------------------*//*!
-
- \brief Contains the straight part of a track in one region only.
-
- A QwPartialTrack contains tracking information for one region only.
- It is constructed by combining multiple tree lines together, and in turn
- used to construct the complete track.
-
- \ingroup QwTracking
-
-*//*-------------------------------------------------------------------------*/
-class QwPartialTrack: public TObject {
+/**
+ * \class QwPartialTrack
+ * \ingroup QwTracking
+ * \brief Contains the straight part of a track in one region only.
+ *
+ * A QwPartialTrack contains tracking information for one region only.
+ * It is constructed by combining multiple tree lines together, and in turn
+ * used to construct the complete track.
+ */
+class QwPartialTrack: public VQwTrackingElement {
 
   private:
 

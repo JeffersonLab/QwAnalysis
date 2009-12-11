@@ -19,46 +19,46 @@ QwHit::QwHit()
 
   fCrate       = 0;
   fModule      = 0;
-  fChannel     = 0;  
+  fChannel     = 0;
   fHitNumber   = 0;
   fHitNumber_R = 0;
 
-  fRegion      = 0;   
-  fPackage     = 0;  
+  fRegion      = kRegionIDNull;
+  fPackage     = 0;
   fDirection   = 0;
-  fPlane       = 0;    
-  fElement     = 0;  
+  fPlane       = 0;
+  fElement     = 0;
 
-  fAmbiguousElement = false; 
-  fLRAmbiguity      = false; 
+  fAmbiguousElement = false;
+  fLRAmbiguity      = false;
 
 
-  fRawTime = 0.0;  
-  fTime = 0.0;     
-  fTimeRes = 0.0;  
-  
+  fRawTime = 0.0;
+  fTime = 0.0;
+  fTimeRes = 0.0;
+
   fDistance = 0.0;
   fPosition = 0.0;
   fResidual = 0.0;
-  fZPos = 0.0;    
-  
+  fZPos = 0.0;
+
   fSpatialResolution = 0.0;
-  fTrackResolution = 0.0;	
-  
+  fTrackResolution = 0.0;
+
   fIsUsed = false;
 
   pDetectorInfo = NULL;
   next = NULL;
   nextdet = NULL;
   rResultPos = 0.0;
-  rPos = 0.0;		
-  rPos2 = 0.0;		
+  rPos = 0.0;
+  rPos2 = 0.0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwHit::QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
-       Int_t region, Int_t package, Int_t plane, Int_t direction, Int_t wire,
+       EQwRegionID region, Int_t package, Int_t plane, Int_t direction, Int_t wire,
        UInt_t data):
        fCrate(bank_index),fModule(slot_num),fChannel(chan),
        fHitNumber(hitcount),fRegion(region), fPackage(package),
@@ -129,9 +129,9 @@ void QwHit::Print()
 
 ostream& operator<< (ostream& stream, const QwHit& hit) {
   stream << "hit: ";
-  stream << "package "   << hit.fPackage << ", ";
+  stream << "package "   << "?UD"[hit.fPackage] << ", ";
   stream << "region "    << hit.fRegion << ", ";
-  stream << "dir "       << hit.fDirection << ", ";
+  stream << "dir "       << "?xyuvrq"[hit.fDirection] << ", ";
   stream << "plane "     << hit.fPlane;
 
   if (hit.pDetectorInfo) stream << " (detector " << hit.pDetectorInfo << "), ";
@@ -142,7 +142,7 @@ ostream& operator<< (ostream& stream, const QwHit& hit) {
       stream << "radius "   << hit.fRPos << " cm, ";
       stream << "phi "  << hit.fPhiPos << " ("<<hit.fPhiPos*180.0/3.1415927<<" deg)";
   }
-  else 
+  else
     {
       stream << "element "   << hit.fElement << ", ";
       stream << "distance "  << hit.fDistance;

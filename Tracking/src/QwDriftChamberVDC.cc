@@ -254,7 +254,7 @@ void  QwDriftChamberVDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
 
       // hitCount=std::count_if(fTDCHits.begin(),fTDCHits.end(),boost::bind(&QwHit::WireMatches,_1,2,boost::ref(package),boost::ref(plane),boost::ref(wire)) );
       //std::cout<<"At QwDriftChamberVDC::FillRawTDCWord_2"<<endl;
-      fTDCHits.push_back(QwHit(bank_index, slot_num, chan, hitCount,3, package, plane,direction, wire, data));//in order-> bank index, slot num, chan, hitcount, region=3, package, plane,,direction, wire,wire hit time
+      fTDCHits.push_back(QwHit(bank_index, slot_num, chan, hitCount, kRegionID3, package, plane,direction, wire, data));//in order-> bank index, slot num, chan, hitcount, region=3, package, plane,,direction, wire,wire hit time
 
     }
 
@@ -438,7 +438,7 @@ void QwDriftChamberVDC::ReadEvent(TString& eventfile){
     channum = (atol(mapstr.GetNextToken( ", \t()" ).c_str()));
     signal  = (atof(mapstr.GetNextToken( ", \t()" ).c_str()));
     //std::cout << "signal is: " << signal << endl;
-    fTDCHits.push_back(QwHit(value,slotnum,channum,0,3,0,0,0,0, (UInt_t) signal));
+    fTDCHits.push_back(QwHit(value,slotnum,channum,0, kRegionID3,0,0,0,0, (UInt_t) signal));
   }        //only know TDC information and time value
 }
 
@@ -515,7 +515,7 @@ void QwDriftChamberVDC::ProcessEvent(){
 
 	      for(Int_t j=0;j<Ambiguitycount;j++)
 		{
-		  QwHit NewQwHit(tmpCrate,tmpModule ,tmpChan,order_L,3,DelayLineArray.at(tmpbp).at(tmpln).Package,DelayLineArray.at (tmpbp).at(tmpln).Plane,tmpdir,DelayLineArray.at(tmpbp).at(tmpln).Wire.at(i).at(j),left_time);
+		  QwHit NewQwHit(tmpCrate,tmpModule ,tmpChan,order_L, kRegionID3, DelayLineArray.at(tmpbp).at(tmpln).Package,DelayLineArray.at (tmpbp).at(tmpln).Plane,tmpdir,DelayLineArray.at(tmpbp).at(tmpln).Wire.at(i).at(j),left_time);
 
 		  //AddChannelDefinition(DelayLineArray.at (tmpbp).at(tmpln).Plane,DelayLineArray.at(tmpbp).at(tmpln).Wire.at(i).at(j) );
 		  NewQwHit.SetHitNumberR(order_R);

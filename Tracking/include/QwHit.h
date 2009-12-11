@@ -40,7 +40,7 @@ class QwHit : public TObject {
   QwHit();
 
   QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
-	Int_t region, Int_t package, Int_t plane, Int_t direction, Int_t wire,
+	EQwRegionID region, Int_t package, Int_t plane, Int_t direction, Int_t wire,
 	UInt_t data);
 
   virtual ~QwHit();
@@ -126,13 +126,13 @@ class QwHit : public TObject {
     fTime=time;
   }
 
-  const Int_t GetModule()     const {return fModule;};
-  const Int_t GetChannel()    const {return fChannel;};
-  const Int_t GetHitNumber()  const {return fHitNumber;};
-  const Int_t GetHitNumberR() const {return fHitNumber_R;};
-  const Int_t GetRegion()     const {return fRegion;};
-  const Int_t GetPackage()    const {return fPackage;};
-  const Int_t GetDirection()  const {return fDirection;};
+  const Int_t GetModule()       const {return fModule;};
+  const Int_t GetChannel()      const {return fChannel;};
+  const Int_t GetHitNumber()    const {return fHitNumber;};
+  const Int_t GetHitNumberR()   const {return fHitNumber_R;};
+  const EQwRegionID GetRegion() const {return fRegion;};
+  const Int_t GetPackage()      const {return fPackage;};
+  const Int_t GetDirection()    const {return fDirection;};
 
 //below two metods retrieve subsets of QwHitContainer vector - rakitha (08/2008)
 
@@ -165,11 +165,11 @@ class QwHit : public TObject {
   Int_t fHitNumber_R;    ///< Index for multiple hits in a single channel on the right
 
   //  Identification information for the detector
-  Int_t fRegion;    ///< Region 1, 2, 3, trigger scint., or cerenkov
-  Int_t fPackage;   ///< Which arm of the rotator, or octant number
-  Int_t fDirection; ///< Direction of the plane:  X, Y, U, V; R, theta; etc.
-  Int_t fPlane;     ///< R or theta index for R1; plane index for R2 & R3
-  Int_t fElement;   ///< Trace # for R1; wire # for R2 & R3; PMT # for others
+  EQwRegionID fRegion; ///< Region 1, 2, 3, trigger scint., or cerenkov
+  Int_t fPackage;      ///< Which arm of the rotator, or octant number
+  Int_t fDirection;    ///< Direction of the plane:  X, Y, U, V; R, theta; etc.
+  Int_t fPlane;        ///< R or theta index for R1; plane index for R2 & R3
+  Int_t fElement;      ///< Trace # for R1; wire # for R2 & R3; PMT # for others
   QwDetectorInfo* pDetectorInfo; //! ///< Pointer to the detector info object (not saved)
 
   Bool_t fAmbiguousElement;  ///< TRUE if this hit could come from two different elements (used by Region 3 tracking only)

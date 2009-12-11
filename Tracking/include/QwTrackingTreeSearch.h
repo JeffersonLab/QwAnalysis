@@ -50,17 +50,23 @@ class QwTrackingTreeSearch {
     /*int    static_front;*/
     int tlayers;
 
+    /// \brief Constructor
     QwTrackingTreeSearch();
+    /// \brief Destructor
     ~QwTrackingTreeSearch();
 
-    /// Set the debug level
+    /// \brief Set the debug level
     void SetDebugLevel (int debug) { fDebug = debug; };
 
-    /// Set the flag to show matching patterns when they are found
+    /// \brief Set the flag to show matching patterns when they are found
     void SetShowMatchingPatterns(bool show = true) { fShowMatchingPatterns = show; };
 
+    /// \brief Prepare for the beginning of the tree search
     void BeginSearch ();
+    /// \brief Clean up after the end of the tree search
     void EndSearch ();
+
+    /// \brief Get the list of tree lines
     QwTrackingTreeLine* GetListOfTreeLines ();
 
     void wireselection (QwHit **x, QwHit **X, QwHit **xn, QwHit**Xn, double maxdist);
@@ -90,9 +96,9 @@ class QwTrackingTreeSearch {
 		QwHit *hit, int wire,
 		char *pattern, int *hash, unsigned binwidth);
 
-    // Tree search method
-    void TsSearch (shortnode *node, char *pattern[16], int *hashpat[16],
-	 	int maxlevel, int numWires, int tlayer);
+    /// \brief Search for the tree lines consistent with the bit pattern
+    QwTrackingTreeLine* SearchTreeLines (shortnode *node, char *pattern[16],
+	 	int *hashpat[16], int maxlevel, int numWires, int tlayer);
 
 
   private:
@@ -114,10 +120,8 @@ class QwTrackingTreeSearch {
 		unsigned binwidth, char *pattern, int *hash);
 
     // Recursive tree search method
-    void _TsSearch (shortnode *node, int level, int offset, int row_offset, int reverse, int numWires);
+    void _SearchTreeLines (shortnode *node, int level, int offset, int row_offset, int reverse, int numWires);
 
-}; //class QwTrackingTreeSearch
+}; // class QwTrackingTreeSearch
 
-#endif //QWTRACKINGTREESEARCH_H
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+#endif // QWTRACKINGTREESEARCH_H

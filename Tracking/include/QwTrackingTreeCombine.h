@@ -100,7 +100,7 @@ class QwTrackingTreeCombine {
     bool TlCheckForX (
 		double x1, double x2, double dx1, double dx2, double Dx, double z1, double dz,
 		QwTrackingTreeLine *treefill, QwHitContainer *hitlist,
-		EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type, EQwDirectionID dir,
+		EQwDetectorPackage package, EQwRegionID region, EQwDirectionID dir,
 		int  dlayer, int tlayer, int iteration, int stay_tuned, double width);
 
     int TlMatchHits (
@@ -109,7 +109,7 @@ class QwTrackingTreeCombine {
 		int tlayers);
 
     bool InAcceptance (EQwDetectorPackage package, EQwRegionID region, double cx, double mx, double cy, double my);
-    void TlTreeLineSort (QwTrackingTreeLine *tl, QwHitContainer *hl, EQwDetectorPackage package, EQwRegionID region, EQwDetectorType type, EQwDirectionID dir, unsigned long bins, int tlayer, int dlayer, double width);
+    void TlTreeLineSort (QwTrackingTreeLine *tl, QwHitContainer *hl, EQwDetectorPackage package, EQwRegionID region, EQwDirectionID dir, unsigned long bins, int tlayer, int dlayer, double width);
 
     // Combine the tree lines in partial tracks for region 2 and region 3
     QwPartialTrack* TcTreeLineCombine (
@@ -128,7 +128,7 @@ class QwTrackingTreeCombine {
 
     QwPartialTrack* TlTreeCombine (
 		QwTrackingTreeLine *uvl[kNumDirections], EQwDetectorPackage package,
-		EQwRegionID region, EQwDetectorType type, int tlayer, int dlayer,
+		EQwRegionID region, int tlayer, int dlayer,
 		QwTrackingTreeRegion **myTreeRegion);
 
     void ResidualWrite (QwEvent *event);

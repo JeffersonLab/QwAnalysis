@@ -21,24 +21,23 @@
 #include <vector>
 
 // ROOT headers
-#include "TObject.h"
-#include "TClonesArray.h"
-#include "TObjArray.h"
-#include "TRefArray.h"
+#include <TObject.h>
+#include <TClonesArray.h>
+#include <TObjArray.h>
+#include <TRefArray.h>
 
 // Qweak headers
+#include "VQwTrackingElement.h"
 #include "QwTypes.h"
+#include "QwHitPattern.h"
 #include "globals.h"
 
 // Maximum number of detectors combined for left-right ambiguity resolution
 #define TREELINE_MAX_NUM_LAYERS 8
 
-
-#include "QwHit.h"
-
-
 // Forward declarations
 class QwHit;
+class QwHitPattern;
 class QwHitContainer;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -46,7 +45,7 @@ class QwHitContainer;
 ///
 /// \ingroup QwTracking
 
-class QwTrackingTreeLine: public TObject {
+class QwTrackingTreeLine: public VQwTrackingElement {
 
   private:
 
@@ -116,12 +115,12 @@ class QwTrackingTreeLine: public TObject {
 
     //! Returns resolution at the first detector plane
     double GetResolutionFirst (double binwidth) {
-      return (a_beg - a_end) * binwidth;
+      return (a_end - a_beg) * binwidth;
     };
 
     //! Returns resolution at the last detector plane
     double GetResolutionLast (double binwidth) {
-      return (b_beg - b_end) * binwidth;
+      return (b_end - b_beg) * binwidth;
     };
 
     //! Get the average residuals
@@ -133,24 +132,15 @@ class QwTrackingTreeLine: public TObject {
     //! Calculate and set the average residuals
     void SetAverageResidual() { fAverageResidual = CalculateAverageResidual(); };
 
-    //! \brief Get the detector info pointer
-    QwDetectorInfo* GetDetectorInfo () const { return pDetectorInfo; };
-    //! \brief Set the detector info pointer
-    void SetDetectorInfo(QwDetectorInfo *detectorinfo) { pDetectorInfo = detectorinfo; };
 
   private:
-
-    QwDetectorInfo* pDetectorInfo; //!	///< Pointer to the detector info object (not saved)
-
-    EQwRegionID fRegion;		///< Region
-    EQwDetectorPackage fPackage;	///< Package
-    EQwDirectionID fDirection;		///< Direction
-    Int_t fPlane;			///< Detector plane
 
     bool fIsVoid;			///< has been found void
     bool fIsUsed;			///< has been used (part of parttrack)
 
   public:
+
+    QwHitPattern* fMatchingPattern;	///< matching hit pattern
 
     double fOffset, fSlope;		///< track offset and slope
     double fChi;			///< chi squared(?)

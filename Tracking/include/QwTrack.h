@@ -1,28 +1,37 @@
+/*!
+ * \file   QwTrack.h
+ * \brief  Definition of the track class
+ *
+ * \author Wouter Deconinck
+ * \date   2009-12-11
+ */
+
 #ifndef QWTRACK_H
 #define QWTRACK_H
 
-#include "TObject.h"
+// ROOT headers
+#include <TObject.h>
 
+// Qweak headers
+#include "VQwTrackingElement.h"
 #include "QwPartialTrack.h"
 #include "QwBridge.h"
 #include "QwVertex.h"
 
-/*------------------------------------------------------------------------*//*!
-
- \brief Contains the complete track as a concatenation of partial tracks
-
- A QwTrack contains the complete description of the track as a concatenation
- of multiple partial tracks.  Associated with the track is the kinematical
- information, for use in the final Q^2 determination.
-
- Several vectors of QwPartialTracks are stored in the QwTrack object.  This
- allows for combining different QwPartialTracks with each other, and selecting
- the optimal fit.
-
- \ingroup QwTracking
-
-*//*-------------------------------------------------------------------------*/
-class QwTrack: public TObject {
+/**
+ * \class QwTrack
+ * \ingroup QwTracking
+ * \brief Contains the complete track as a concatenation of partial tracks
+ *
+ * A QwTrack contains the complete description of the track as a concatenation
+ * of multiple partial tracks.  Associated with the track is the kinematical
+ * information, for use in the final Q^2 determination.
+ *
+ * Several vectors of QwPartialTracks are stored in the QwTrack object.  This
+ * allows for combining different QwPartialTracks with each other, and selecting
+ * the optimal fit.
+ */
+class QwTrack: public VQwTrackingElement {
 
   public:
 
@@ -74,6 +83,6 @@ class QwTrack: public TObject {
 
   ClassDef(QwTrack,1);
 
-};
+}; // class QwTrack
 
 #endif // QWTRACK_H
