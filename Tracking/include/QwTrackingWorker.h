@@ -29,6 +29,7 @@ class QwPartialTrack;
 class QwTrack;
 class QwEvent;
 class QwBridge;
+class QwTrajectory;
 
 /*------------------------------------------------------------------------*//*!
 
@@ -101,7 +102,7 @@ class QwTrackingWorker: public VQwSystem {
     bool fShowEventPattern;
     bool fShowMatchingPattern;
 
-    QwBridge *bridge;
+    QwTrajectory *trajectory;
 
 }; // class QwTrackingWorker
 

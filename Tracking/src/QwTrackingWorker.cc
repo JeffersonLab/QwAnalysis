@@ -108,6 +108,8 @@ using std::endl;
 #include "QwOptions.h"
 #include "QwLog.h"
 
+#include "QwTrajectory.h"
+
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -158,8 +160,10 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
     // Initialize the pattern database
     InitTree();
 
-    bridge = new QwBridge();
-    //bridge->LoadMagneticFieldMap();
+    trajectory = new QwTrajectory();
+
+    // Load magnetic field map
+    //trajectory->LoadMagneticFieldMap();
 
     /* Reset counters of number of good and bad events */
     ngood = 0;
@@ -854,10 +858,10 @@ QwEvent* QwTrackingWorker::ProcessHits (
                                      event->parttrack[package][kRegionID3][kTypeDriftVDC]->uvR3hit[1],
                                      event->parttrack[package][kRegionID3][kTypeDriftVDC]->uvR3hit[2]);
 
-                int status = bridge->BridgeFrontBackPartialTrack(R2hit, R2direction, R3hit, R3direction);
+                int status = trajectory->BridgeFrontBackPartialTrack(R2hit, R2direction, R3hit, R3direction);
 
                 if (status == 0)
-                  std::cout<<"======>>>> Bridged a track (momentum = "<<bridge->GetMomentum()<<" GeV)"<<std::endl;
+                  std::cout<<"======>>>> Bridged a track (momentum = "<<trajectory->GetMomentum()<<" GeV)"<<std::endl;
                 else std::cout<<"======>>>> No luck on bridging this track."<<std::endl;
             }
         }

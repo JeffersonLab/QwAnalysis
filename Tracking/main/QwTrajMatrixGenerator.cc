@@ -49,23 +49,13 @@ Det rcDET[NDetMax];
 
 int main (int argc, char* argv[]) {
 
-
     double degree = 180.0/3.1415926535897932;
 
     QwMagneticField* B_Field = new QwMagneticField();
     QwTrajectory* trajectory = new QwTrajectory();
 
-
     B_Field->ReadFieldMapFile(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/MainMagnet_FieldMap.dat");
     trajectory->SetMagneticField(B_Field);
-
-//  test reading B field value 
-//    double Point[3] = {0.0,0.0, 100.0};
-//    double Bfield[3];
-//    B_Field->GetFieldValue(Point, Bfield, 1.04);
-//    std::cout<<Point[0]<<","<<Point[1]<<","<<Point[2]<<std::endl;
-//    std::cout<<Bfield[0]<<","<<Bfield[1]<<","<<Bfield[2]<<std::endl;
-//    return 0;
 
     int    gridnum;
     double x[3],y[3],z[3],ux[3],uy[3],uz[3];
@@ -240,15 +230,10 @@ int main (int argc, char* argv[]) {
 
     rootfile->Write(0, TObject::kOverwrite);
     rootfile->Close();
-    delete rootfile;
 
+    delete rootfile;
     delete trajectory;
     delete B_Field;
-
-
-    // test the QwBridge::LoadMomentumMatrix()
-    QwBridge::LoadMomentumMatrix();
-
 
     return 0;
 
