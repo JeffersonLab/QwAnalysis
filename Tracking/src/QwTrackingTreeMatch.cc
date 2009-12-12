@@ -388,14 +388,14 @@ QwTrack* QwTrackingTreeMatch::TgPartMatch (
 	ZVertex = DZA+DZW;
       P = rcPEval( ZVertex, theta, phi, bending);
       if( P > 0.0 ) {
-	bridge->Momentum = P;
+	bridge->fMomentum = P;
 	if( bending < 0 )
 	  P = -P;
 	bridge->xOff  = rcZEval( ZVertex, theta, phi, P, 0);
 	bridge->yOff  = rcZEval( ZVertex, theta, phi, P, 1);
 	bridge->ySOff = rcZEval( ZVertex, theta, phi, P, 2);
       } else
-	bridge->Momentum = 0.0;
+	bridge->fMomentum = 0.0;
       bridge->ySlopeMatch = back->fSlopeY - front->fSlopeY;
       bridge->xMatch      = v2 = back->fOffsetX - front->fOffsetX + bridge->xOff;
       bridge->yMatch      = v1 = back->fOffsetY - front->fOffsetY + bridge->yOff;

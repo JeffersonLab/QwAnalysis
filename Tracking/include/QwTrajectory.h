@@ -19,9 +19,9 @@
 
 #include <iostream>
 #include <vector>
-//#include <boost/multi_array.hpp>
 
 // ROOT headers
+#include <TSystem.h>
 #include <TFile.h>
 #include <TTree.h>
 #include <TVector3.h>
@@ -32,6 +32,9 @@ class QwMagneticField;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+// degree = 180.0/3.1415926535897932
+#define DEGREE 57.295779513
+
 // scale factor of the magnetic field
 #define BSCALE 1.04
 
@@ -41,13 +44,13 @@ class QwMagneticField;
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
   // temporary class for store partial track parameter
-  class PartialTrackParameter{
+  class QwPartialTrackParameter{
 
     public:
-      float position_r;
-      float position_phi;
-      float direction_theta;
-      float direction_phi;
+      float fPositionR;
+      float fPositionPhi;
+      float fDirectionTheta;
+      float fDirectionPhi;
 
   };
 
@@ -60,20 +63,18 @@ class QwTrajectory {
     ~QwTrajectory();
 
     void LoadMagneticFieldMap();
-    void SetMagneticField(QwMagneticField *bfield){ B_Field = bfield; };
+    void SetMagneticField(QwMagneticField *bfield){ fBfield = bfield; };
 
     int LoadMomentumMatrix();
 
-    int BridgeFrontBackPartialTrack(TVector3 startpoint,
-                                    TVector3 startpointdirection,
-                                    TVector3 endpoint,
-                                    TVector3 endpointdirection);
+    int BridgeFrontBackPartialTrack(TVector3 startpoint, TVector3 startpointdirection,
+                                    TVector3 endpoint, TVector3 endpointdirection);
 
-    int Filter(TVector3 fStartPoint, TVector3 fStartDirection,
-               TVector3 fEndPoint, TVector3 fEndDirection);
+    int Filter(TVector3 startpoint, TVector3 startpointdirection,
+               TVector3 endpoint, TVector3 endpointdirection);
 
-    int Shooting(TVector3 fStartPoint, TVector3 fStartDirection,
-                 TVector3 fEndPoint, TVector3 fEndDirection);
+    int Shooting(TVector3 startpoint, TVector3 startpointdirection,
+                 TVector3 endpoint, TVector3 endpointdirection);
 
     double EstimateInitialMomentum(TVector3 direction);
 
@@ -83,27 +84,27 @@ class QwTrajectory {
                        double step,
                        double z_endplane);
 
-    double GetMomentum(){ return momentum; };
-    double GetDirectionX(){ return uvx[0]; };
-    double GetDirectionY(){ return uvy[0]; };
-    double GetDirectionZ(){ return uvz[0]; };
-    TVector3 GetFieldIntegral() { return TVector3(bdlx,bdly,bdlz); };
+    double GetMomentum(){ return fMomentum; };
+    double GetDirectionX(){ return fDirectionX[0]; };
+    double GetDirectionY(){ return fDirectionY[0]; };
+    double GetDirectionZ(){ return fDirectionZ[0]; };
+    TVector3 GetFieldIntegral() { return TVector3(fBdlx,fBdly,fBdlz); };
 
  private:
 
-    QwMagneticField *B_Field;
+    QwMagneticField *fBfield;
 
-    double bdlx; /// x component of the field integral
-    double bdly; /// y component of the field integral
-    double bdlz; /// z component of the field integral
+    double fPositionX[2], fPositionY[2], fPositionZ[2];     /// coordinates of position
+    double fDirectionX[2], fDirectionY[2], fDirectionZ[2];  /// unit vector of momentum
 
-    double xx[2], yy[2], zz[2];     /// coordinates of position
-    double uvx[2], uvy[2], uvz[2];  /// unit vector of momentum
+    double fBdlx; /// x component of the field integral
+    double fBdly; /// y component of the field integral
+    double fBdlz; /// z component of the field integral
 
-    double momentum;  /// electron momentum
+    double fMomentum;  /// electron momentum
 
-    int *table_index;   /// index of the look-up table
-    std::vector <PartialTrackParameter> backtrackparametertable;  /// look-up table
+    int *fTableIndex;   /// index of the look-up table
+    std::vector <QwPartialTrackParameter> fBackTrackParameterTable;  /// look-up table
 
 }; // class QwTrajectory
 

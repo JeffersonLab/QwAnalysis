@@ -36,7 +36,7 @@ class QwBridge {
     double yMatch;		/// match in y
     double ySMatch;		/// matching in Yslope
     double xMatch;		/// match in x
-    double Momentum;		/// momentum
+    double fMomentum;		/// momentum
     QwHit *hits;  		/// matching hits
     QwHitContainer qwhits;	/// matching hits
 

@@ -41,6 +41,9 @@
 
 #include "QwBridge.h"
 
+// degree = 180.0/3.1415926535897932
+#define DEGREE 57.295779513
+
 // Temporary global variables for sub-programs
 Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 Det rcDET[NDetMax];
@@ -48,8 +51,6 @@ Det rcDET[NDetMax];
 
 
 int main (int argc, char* argv[]) {
-
-    double degree = 180.0/3.1415926535897932;
 
     QwMagneticField* B_Field = new QwMagneticField();
     QwTrajectory* trajectory = new QwTrajectory();
@@ -156,9 +157,9 @@ int main (int argc, char* argv[]) {
 //                         continue;
 
                     //intersection position and direction with the z=-250 cm plane
-                    ux[0] = sin(theta/degree)*cos(phi/degree);
-                    uy[0] = sin(theta/degree)*sin(phi/degree);
-                    uz[0] = cos(theta/degree);
+                    ux[0] = sin(theta/DEGREE)*cos(phi/DEGREE);
+                    uy[0] = sin(theta/DEGREE)*sin(phi/DEGREE);
+                    uz[0] = cos(theta/DEGREE);
                     startdirection = TVector3(ux[0],uy[0],uz[0]);
 
                     double r = (z[0]-vertex_z)/uz[0];
@@ -167,7 +168,7 @@ int main (int argc, char* argv[]) {
                     startpoint = TVector3(x[0],y[0],z[0]);
 
                     position_r[0] = sqrt(x[0]*x[0]+y[0]*y[0]);
-                    position_phi[0] = atan2(y[0],x[0])*degree;
+                    position_phi[0] = atan2(y[0],x[0])*DEGREE;
                     if (position_phi[0]<0.0) position_phi[0] = position_phi[0]+360.0;
                     direction_theta[0] = theta;
                     direction_phi[0] = phi;
@@ -182,7 +183,7 @@ int main (int argc, char* argv[]) {
                     uz[1] = trajectory->GetDirectionZ();
 
                     position_r[1] = sqrt(x[1]*x[1]+y[1]*y[1]);
-                    position_phi[1] = atan2(y[1],x[1])*degree;
+                    position_phi[1] = atan2(y[1],x[1])*DEGREE;
                     if (position_phi[1]<0.0) position_phi[1] = position_phi[1]+360.0;
                     direction_theta[1] = theta;
                     direction_phi[1] = phi;
@@ -196,10 +197,10 @@ int main (int argc, char* argv[]) {
                     uz[2] = uz[1];
 
                     position_r[2] = sqrt(x[2]*x[2]+y[2]*y[2]);
-                    position_phi[2] = atan2(y[2],x[2])*degree;
+                    position_phi[2] = atan2(y[2],x[2])*DEGREE;
                     if (position_phi[2]<0.0) position_phi[2] = position_phi[2]+360.0;
-                    direction_theta[2] = uz[2]*degree;
-                    direction_phi[2] = atan2(uy[2],ux[2])*degree;
+                    direction_theta[2] = uz[2]*DEGREE;
+                    direction_phi[2] = atan2(uy[2],ux[2])*DEGREE;
                     if (direction_phi[2]<0.0) direction_phi[2] = direction_phi[2]+360.0;
 
                     gridnum++;
