@@ -1,4 +1,10 @@
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+/*!
+ * \file   QwTrackingTree.h
+ * \brief  Definition of the track search tree
+ *
+ * \author Wouter Deconinck
+ * \date   2009-12-11
+ */
 
 #ifndef QWTRACKINGTREE_H
 #define QWTRACKINGTREE_H
@@ -11,7 +17,6 @@
 #include <cassert>
 #include <cmath>
 #include <inttypes.h>
-
 using std::cout; using std::cerr; using std::endl;
 
 // Boost filesystem headers
@@ -27,28 +32,23 @@ namespace bfs = boost::filesystem;
 using QwTracking::treenode; using QwTracking::nodenode;
 using QwTracking::shortnode; using QwTracking::shorttree;
 
-#include "QwTrackingTreeRegion.h"
-
+// Qweak headers
 #include "QwTypes.h"
-#include "Det.h"
+#include "VQwTrackingElement.h"
 #include "globals.h"
 
+// Forward declarations
+class QwTrackingTreeRegion;
 
-/*------------------------------------------------------------------------*//*!
-
- \class QwTrackingTree
-
- \brief Creates and manages the treesearch pattern database.
-
-    The pattern database is used to determine whether subsets
-    of hits resemble track segments.
-
- \ingroup QwTracking
-
-*//*-------------------------------------------------------------------------*/
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-class QwTrackingTree {
+/**
+ * \class QwTrackingTree
+ * \ingroup QwTracking
+ * \brief Creates and manages the treesearch pattern database.
+ *
+ * The pattern database is used to determine whether subsets
+ * of hits resemble track segments.
+ */
+class QwTrackingTree: public VQwTrackingElement {
 
   public:
 
@@ -66,7 +66,7 @@ class QwTrackingTree {
     int xref;
     int maxref;
 
-    static const string TREEDIR;
+    static const std::string TREEDIR;
 
     // Constructor/Destructor (TODO should take some option info)
     QwTrackingTree();

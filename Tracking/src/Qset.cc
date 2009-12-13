@@ -83,7 +83,7 @@ int Qset::FillDetectors (const char *geomname)
 
 	// Run over all entries
 	int i = 0;
-	string type, name;
+	std::string type, name;
 	while (!geomstream.eof() && name.compare("END") != 0) {
 
 		// read first line of the record

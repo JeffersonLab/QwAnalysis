@@ -42,13 +42,13 @@ using QwTracking::shortnode; using QwTracking::shorttree;
 
 class QwHit;
 class QwTrackingTreeLine;
+class QwTrackingTreeRegion;
 
 class QwTrackingTreeSearch {
 
   public:
 
-    /*int    static_front;*/
-    int tlayers;
+    int fNumLayers;
 
     /// \brief Constructor
     QwTrackingTreeSearch();
@@ -86,24 +86,23 @@ class QwTrackingTreeSearch {
 		int *hasha, int *hashb,
 		unsigned binwidth);
     int TsSetPoint (double detectorwidth,
-		QwHit *H,
+		QwHit *hit,
 		char *pattern, int *hash, unsigned binwidth);
-//    int TsSetPoint (double detectorwidth, double wirespacing,
-//		QwHit *H, double wire,
-//		char *pattern, int *hash, unsigned binwidth);
 
     int TsSetPoint (double detectorwidth, double wirespacing,
-		QwHit *hit, int wire,
+		QwHit *hit,
 		char *pattern, int *hash, unsigned binwidth);
 
-    /// \brief Search for the tree lines consistent with the bit pattern
-    QwTrackingTreeLine* SearchTreeLines (shortnode *node, char *pattern[16],
-	 	int *hashpat[16], int maxlevel, int numWires, int tlayer);
+    /// \brief Search for the tree lines consistent with the hit pattern
+    QwTrackingTreeLine* SearchTreeLines (QwTrackingTreeRegion *searchtree,
+		char *pattern[16], int *hashpat[16],
+		int maxlevel, int numwires, int tlayer);
 
 
   private:
 
     int fDebug;			///< Debug level
+
     bool fShowMatchingPatterns;	///< Flag to show matching patterns when found
 
     char **static_pattern;
@@ -114,13 +113,13 @@ class QwTrackingTreeSearch {
     int nTreeLines;		// number of tree lines found
 
     // Recursive tree pattern methods
-    void _setpoints (double posStart, double posEnd, double detectorwidth,
+    void _setpoints (double pos_start, double pos_end, double detectorwidth,
 		unsigned binwidth, char *pattern, int *hash);
     void _setpoint (double position, double resolution, double detectorwidth,
 		unsigned binwidth, char *pattern, int *hash);
 
     // Recursive tree search method
-    void _SearchTreeLines (shortnode *node, int level, int offset, int row_offset, int reverse, int numWires);
+    void _SearchTreeLines (shortnode *node, int level, int offset, int row_offset, int reverse, int numwires);
 
 }; // class QwTrackingTreeSearch
 

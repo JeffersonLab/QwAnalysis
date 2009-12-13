@@ -29,7 +29,6 @@
 // Qweak headers
 #include "VQwTrackingElement.h"
 #include "QwTypes.h"
-#include "QwHitPattern.h"
 #include "globals.h"
 
 // Maximum number of detectors combined for left-right ambiguity resolution
@@ -140,7 +139,7 @@ class QwTrackingTreeLine: public VQwTrackingElement {
 
   public:
 
-    QwHitPattern* fMatchingPattern;	///< matching hit pattern
+    QwHitPattern* fMatchingPattern; //!	///< matching hit pattern
 
     double fOffset, fSlope;		///< track offset and slope
     double fChi;			///< chi squared(?)

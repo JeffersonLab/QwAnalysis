@@ -15,6 +15,10 @@
 // Qweak headers
 #include "VQwTrackingElement.h"
 
+// Forward declarations
+class QwHit;
+class QwHitContainer;
+
 /**
  *  \class QwHitPattern
  *  \ingroup QwTracking
@@ -32,78 +36,97 @@
  * The options file indicates the number of tree levels (how many times we
  * go to finer binning).  The total number of bits is determined using
  * bit shift operators:
- *   (1UL << levels) == 2^levels
- *   (1UL << (levels - 1)) == 2^(levels-1)
+ *   Total number of bins + 1 = (1UL << levels) == 2^levels
+ *   Number of bins at bottom = (1UL << (levels - 1)) == 2^(levels-1)
  * For e.g. 4 levels we need 1 + 2 + 4 + 8 = 15 = (2^4 - 1) bits.
  */
 class QwHitPattern: public VQwTrackingElement {
 
   public:
 
-    /// \brief Create a hit pattern with specified number of layers and depth
-    QwHitPattern(unsigned int layers, unsigned int levels) {
-      fLayers = layers;
-      fLevels = levels;
-      fBins = new unsigned int[fLayers];
-      fHash = new unsigned int[fLayers];
-      fChannel = new char*[fLayers];
-      fHashChannel = new int*[fLayers];
-      for (unsigned int layer = 0; layer < fLayers; layer++) {
-        fBins[layer] = (1UL << fLevels); // i.e. 2^fLevels
-        fHash[layer] = (1UL << (fLevels - 1)); // i.e. 2^(fLevels-1)
-        fChannel[layer] = new char[fBins[layer]];
-        fHashChannel[layer] =  new int[fHash[layer]];
-      }
+    /// \brief Default constructor
+    QwHitPattern():fLevels(0),fBins(0),fBinWidth(0),fPattern(0),fPatternHash(0) { };
+    /// \brief Constructor with hit pattern depth
+    QwHitPattern(const unsigned int levels) {
+      SetNumberOfLevels(levels);
+      Reset();
+    };
+    /// \brief Copy constructor
+    QwHitPattern(const QwHitPattern& pattern) {
+      SetNumberOfLevels(pattern.fLevels);
+      for (unsigned int bin = 0; bin < fBins; bin++)
+        fPattern[bin] = pattern.fPattern[bin];
+      for (unsigned int hash = 0; hash < fBinWidth; hash++)
+        fPatternHash[hash] = pattern.fPatternHash[hash];
     };
 
     /// \brief Delete the hit pattern
     ~QwHitPattern() {
-      for (unsigned int layer = 0; layer < fLayers; layer++) {
-        delete[] fHashChannel[layer];
-        delete[] fChannel[layer];
-      }
-      delete[] fHashChannel;
-      delete[] fChannel;
-      delete[] fHash; delete[] fBins;
+      if (fPatternHash) delete[] fPatternHash;
+      if (fPattern)     delete[] fPattern;
     };
+
+    /// \brief Set the hit pattern depth
+    void SetNumberOfLevels(const unsigned int levels) {
+      if (levels == 0) return;
+      fLevels = levels;
+      fBins = (1UL << fLevels); // total number of bins, i.e. 2^fLevels
+      fBinWidth = (1UL << (fLevels - 1)); // maximum bin division, i.e. 2^(fLevels-1)
+      fPattern = new char[fBins];
+      fPatternHash =  new int[fBinWidth];
+    };
+    /// \brief Get the hit pattern depth
+    const unsigned int GetNumberOfLevels() const { return fLevels; };
+    /// \brief Get the number of bins
+    const unsigned int GetNumberOfBins() const { return fBins; };
+    /// \brief Get the finest bin width
+    const unsigned int GetFinestBinWidth() const { return fBinWidth; };
 
     /// \brief Reset the contents of the hit pattern
     void Reset() {
-      for (unsigned int layer = 0; layer < fLayers; layer++) {
-        for (unsigned int bin = 0; bin < fBins[layer]; bin++)
-          fChannel[layer][bin] = 0;
-        for (unsigned int hash = 0; hash < fHash[layer]; hash++)
-          fHashChannel[layer][hash] = 0;
-      }
+      for (unsigned int bin = 0; bin < fBins; bin++)
+        fPattern[bin] = 0;
+      for (unsigned int hash = 0; hash < fBinWidth; hash++)
+        fPatternHash[hash] = 0;
+    };
+
+    /// \brief Set the hit pattern bins for the specified hit
+    void SetHit(double detectorwidth, QwHit* hit);
+    /// \brief Set the hit pattern bins for the specified hit list
+    void SetHitList(double detectorwidth, QwHitContainer* hitlist);
+
+    /// \brief Get the hit pattern
+    void GetPattern(char* pattern) const {
+      for (unsigned int bin = 0; bin < fBins; bin++)
+        pattern[bin] = fPattern[bin];
+    };
+    /// \brief Get the hit pattern hash
+    void GetPatternHash(int* patternhash) const {
+      for (unsigned int hash = 0; hash < fBinWidth; hash++)
+        patternhash[hash] = fPatternHash[hash];
     };
 
   private:
 
-    unsigned int fLayers; ///< Number of tracking layers
+    /// \brief Recursive tree pattern method on a point with resolution
+    void _SetPoint (double position, double resolution, double detectorwidth);
+
+    /// \brief Recursive tree pattern method on a range of points
+    void _SetPoints (double pos_start, double pos_end, double detectorwidth);
+
+
     unsigned int fLevels; ///< Depth of the tree search
 
-    unsigned int* fBins;
-    unsigned int* fHash;
+    unsigned int fBins;
+    unsigned int fBinWidth;
 
-    char** fChannel;
-    int** fHashChannel;
+    char* fPattern;
+    int*  fPatternHash;
 
   friend ostream& operator<< (ostream& stream, const QwHitPattern& hitpattern);
 
-}; // class QwHitPattern
+  ClassDef(QwHitPattern,1);
 
-inline ostream& operator<< (ostream& stream, const QwHitPattern& hitpattern)
-{
-  for (unsigned int layer = 0; layer < hitpattern.fLayers; layer++) {
-    for (unsigned int bin = 0; bin < (1UL << hitpattern.fLevels) - 1; bin++) {
-      if (hitpattern.fChannel[layer][bin] == 1)
-          stream << "|";
-      else
-          stream << ".";
-    }
-    stream << std::endl;
-  }
-  return stream;
-}
+}; // class QwHitPattern
 
 #endif // QWHITPATTERN_H

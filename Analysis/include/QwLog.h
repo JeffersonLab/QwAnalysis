@@ -89,7 +89,7 @@ class QwLog : public std::ostream {
 
     /*! \brief Initialize the log file with name 'name'
      */
-    void                        InitLogFile(const string name);
+    void                        InitLogFile(const std::string name);
 
     /*! \brief Set the screen log level
      */

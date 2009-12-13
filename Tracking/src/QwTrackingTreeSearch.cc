@@ -116,8 +116,11 @@
 // Qweak headers
 #include "globals.h"
 #include "QwHit.h"
+#include "QwDetectorInfo.h"
 #include "QwTrackingTreeLine.h"
+#include "QwTrackingTreeRegion.h"
 
+// Qweak tracking tree headers
 #include "shortnode.h"
 #include "shorttree.h"
 
@@ -141,7 +144,7 @@ QwTrackingTreeSearch::QwTrackingTreeSearch ()
 {
   fDebug = 1;	// Reset debug level
 
-  tlayers = TLAYERS;
+  fNumLayers = TLAYERS;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -307,8 +310,8 @@ void QwTrackingTreeSearch::wireselection (QwHit **x, QwHit **X, QwHit **xn, QwHi
 
 */
 void QwTrackingTreeSearch::_setpoints (
-	double posStart,
-	double posEnd,
+	double pos_start,
+	double pos_end,
 	double detectorwidth,
 	unsigned binwidth,
 	char *pattern,
@@ -320,16 +323,15 @@ void QwTrackingTreeSearch::_setpoints (
 
 /* ---- compute the first bin in the deepest tree level to turn on     ---- */
 
-  ia = (int) floor (posStart / detectorwidth * binwidth);
+  ia = (int) floor (pos_start / detectorwidth * binwidth);
 
 /* ---- compute the last bin in the deepest tree level to turn on      ---- */
 
-  ie = (int) floor (posEnd   / detectorwidth * binwidth);
+  ie = (int) floor (pos_end   / detectorwidth * binwidth);
 
 /* ---- step through each of the bins at the deepest bin-division
         level in the hit pattern and turn on the bits in the
         pattern at all the bin-division levels for this bin.           ---- */
-  //std::cerr << "(" << ia << "," << ie << "," << posStart<< "," << posEnd << "," << detectorwidth<< "," << binwidth << ")" << std::endl;
 
   for (int j = ia; j <= ie; j++) { /* loop over the bins to be set */
 
@@ -558,11 +560,14 @@ int QwTrackingTreeSearch::TsSetPoint (
 	double detectorwidth,
 	double wirespacing,
 	QwHit *hit,
-	int wire,
 	char *pattern,
 	int *hash,
 	unsigned binwidth)
 {
+  // Get the wire number
+  int wire = hit->GetElement();
+  wirespacing = hit->GetDetectorInfo()->GetElementSpacing();
+
   // Set the points on the front/top side of the wire (R3/R2)
   _setpoints(wirespacing * (wire+1) - hit->GetDriftDistance() - hit->GetTrackResolution(),
 	     wirespacing * (wire+1) - hit->GetDriftDistance() + hit->GetTrackResolution(),
@@ -795,7 +800,7 @@ int QwTrackingTreeSearch::exists (int *newa, int front, int back, QwTrackingTree
   int over;
 
   newmiss = 0;
-  for (i = 0; i < tlayers; i++)
+  for (i = 0; i < fNumLayers; i++)
     if (! newa[i])
       newmiss++;
 
@@ -820,7 +825,7 @@ int QwTrackingTreeSearch::exists (int *newa, int front, int back, QwTrackingTree
     oldmiss = 0;
     diff    = 0;
 
-    for (i = 0; i < tlayers; i++) {
+    for (i = 0; i < fNumLayers; i++) {
       if (! olda[i]) {
 	oldmiss++;
       } else {
@@ -833,9 +838,9 @@ int QwTrackingTreeSearch::exists (int *newa, int front, int back, QwTrackingTree
     if (! diff) {
       if ((newmiss == 0 && oldmiss == 0) ||
 	  (!newa[0] && !olda[0]) ||
-          (!newa[tlayers-1] && !olda[tlayers-1]) ||
-	  (newmiss && !oldmiss && (!newa[0] || !newa[tlayers-1])) ||
-	  (oldmiss && !newmiss && (!olda[0] || !olda[tlayers-1]))
+          (!newa[fNumLayers-1] && !olda[fNumLayers-1]) ||
+	  (newmiss && !oldmiss && (!newa[0] || !newa[fNumLayers-1])) ||
+	  (oldmiss && !newmiss && (!olda[0] || !olda[fNumLayers-1]))
 	) {
 	if (tl->a_beg > front)
 	  tl->a_beg = front;
@@ -920,11 +925,11 @@ void QwTrackingTreeSearch::_SearchTreeLines (
 
   /* ---- Compute the offset in the bit pattern for the start
           position of this level of bin-division                     ---- */
-  pattern_start <<= level+1;
+  pattern_start <<= level + 1;
   pattern_start &= (unsigned long) 0xffffffffL >> (32 - static_maxlevel);
   //if (fDebug) std::cout << "pattern start = " << pattern_start << std::endl;
   if (level == 0) {
-    for (int u = nullhits = 0; u < tlayers; u++) {
+    for (int u = nullhits = 0; u < fNumLayers; u++) {
       if (static_pattern[u+row_offset][pattern_start])
         has_hits[u] = 1;
       else {
@@ -948,7 +953,7 @@ if (numWires > 0) { /* Region 3 */
           of the treesearch?                                         ---- */
     //std::cout << "minlevel = " << tree->minlevel << std::endl;
     //std::cout << "row_offset = " << row_offset << std::endl;
-    if (tree->minlevel > level+1) { /* check for level boundaries */
+    if (tree->minlevel > level + 1) { /* check for level boundaries */
       std::cerr << "hrm..." << std::endl;
       node = node->next; /* no, so look at the next nodenode */
       continue;
@@ -959,27 +964,27 @@ if (numWires > 0) { /* Region 3 */
     specified in the treenode are on                           ---- */
     pattern_offset = pattern_start + offset;
     tree_pattern = tree->bit;
-    if( reverse ) {
+    if (reverse) {
       //std::cout << "reversed..." << std::endl;
-      for(i = matched = 0; i < tlayers; i++) {  /* loop over tree-planes */
+      for (i = matched = 0; i < fNumLayers; i++) {  /* loop over tree-planes */
         x = (*tree_pattern++);
         std::cerr << "ERROR : reversed patterns need checking/debugging" << std::endl;
-        if(static_pattern[i+row_offset][pattern_offset - x]) {
+        if (static_pattern[i+row_offset][pattern_offset - x]) {
           matched++; /* number of matched tree-planes */
-          if(i<firstwire)firstwire=i;
-          if(i>lastwire)lastwire=i;
+          if (i < firstwire) firstwire = i;
+          if (i > lastwire) lastwire = i;
         }
       }
     } else {
-      //std::cout << numWires << "," << tlayers << std::endl;
-      for(i = matched = 0; i < tlayers; i++) {  /* loop over tree-planes */
+      //std::cout << numWires << "," << fNumLayers << std::endl;
+      for (i = matched = 0; i < fNumLayers; i++) {  /* loop over tree-planes */
         x = (*tree_pattern++);
-        if(static_pattern[i+row_offset][pattern_offset + x]) {
+        if (static_pattern[i+row_offset][pattern_offset + x]) {
           matched++; /* number of matched tree-planes */
-          if(i<firstwire)firstwire=i;
-          if(i>lastwire && x!=0)lastwire=i;
+          if (i < firstwire) firstwire = i;
+          if (i > lastwire && x != 0) lastwire = i;
 
-        } else if (x == 0 && has_hits[i] == 0 ) {
+        } else if (x == 0 && has_hits[i] == 0) {
           matched++; //matching null hits which are allowed in these patterns
         }
       }
@@ -988,7 +993,7 @@ if (numWires > 0) { /* Region 3 */
     /* ---- Check if there was the treenode is match now that the
     matching has been completely tested.                      ---- */
 
-    if (matched == tlayers && nullhits < 5) {
+    if (matched == fNumLayers && nullhits < 5) {
       //std::cout << "match found " << std::endl;
       //std::cout << "sons are " << std::endl;
       //std::cout << "-----------" << std::endl;
@@ -1015,18 +1020,18 @@ if (numWires > 0) { /* Region 3 */
         /* all level done -> insert treeline */
         /* ---- ---- */
         backbin = reverse ?
-          offset - tree->bit[tlayers-1] : offset + tree->bit[tlayers-1];
+          offset - tree->bit[fNumLayers-1] : offset + tree->bit[fNumLayers-1];
         //std::cerr << "back =" << backbin << std::endl;
         if (reverse) {
           backbin = 0;
-          for (i = 0; i < tlayers; i++) {
+          for (i = 0; i < fNumLayers; i++) {
             if (offset - tree->bit[i] > backbin)
               backbin = offset - tree->bit[i];
           }
 
         } else {
           backbin = 0;
-          for (i = 0; i < tlayers; i++) {
+          for (i = 0; i < fNumLayers; i++) {
             if (offset + tree->bit[i] > backbin)
               backbin = offset + tree->bit[i];
           }
@@ -1035,8 +1040,8 @@ if (numWires > 0) { /* Region 3 */
         frontbin = reverse ?
           offset - tree->bit[0] : offset + tree->bit[0];
         //backbin = reverse ?
-        //  offset - tree->bit[tlayers-1] : offset + tree->bit[tlayers-1];
-        for (int i = 0; i < tlayers; i++) {
+        //  offset - tree->bit[fNumLayers-1] : offset + tree->bit[fNumLayers-1];
+        for (int i = 0; i < fNumLayers; i++) {
           bin = reverse ?
             offset - tree->bit[i] : offset + tree->bit[i];
           hashpat[i] = static_hash[i][bin];
@@ -1045,7 +1050,7 @@ if (numWires > 0) { /* Region 3 */
         miss = 0;
         if (static_pattern[0+row_offset][frontbin] == 0)
           miss = 1;
-        else if( static_pattern[tlayers-1+row_offset][backbin] == 0)
+        else if( static_pattern[fNumLayers-1+row_offset][backbin] == 0)
           miss = 1;
 
         /* Check whether this treeline already exists */
@@ -1060,7 +1065,7 @@ if (numWires > 0) { /* Region 3 */
 	  nTreeLines++;
 
 	  /* Copy hash pattern */
-	  memcpy(lineptr->hasharray, hashpat, sizeof(int) * tlayers);
+	  memcpy(lineptr->hasharray, hashpat, sizeof(int) * fNumLayers);
 
 	  /* Missed front or back planes (?) */
 	  /* (only used until TreeLineSort) */
@@ -1089,7 +1094,6 @@ if (numWires > 0) { /* Region 3 */
               _SearchTreeLines (*cnode++, nlevel, off2 + off, row_offset, 0, numWires);
           }
         } /* highly optimized - time critical */
-        //std::cout << "sons done" << std::endl;
       }
     }
     node = node->next; /* ok, there wasn't a match, so go onto the
@@ -1118,13 +1122,13 @@ if (numWires > 0) { /* Region 3 */
       pattern_offset = pattern_start + offset;
       tree_pattern = tree->bit;
       if (reverse) {
-	for (i = matched = 0; i < tlayers; i++) {  /* loop over tree-planes */
+	for (i = matched = 0; i < fNumLayers; i++) {  /* loop over tree-planes */
 	  if (static_pattern[i][pattern_offset - *tree_pattern++]) {
 	    matched++; /* number of matched tree-planes */
 	  }
 	}
       } else {
-	for (i = matched = 0; i < tlayers; i++) {  /* loop over tree-planes */
+	for (i = matched = 0; i < fNumLayers; i++) {  /* loop over tree-planes */
 	  if (static_pattern[i][pattern_offset + *tree_pattern++]) {
 	    matched++; /* number of matched tree-planes */
 	  }
@@ -1137,7 +1141,7 @@ if (numWires > 0) { /* Region 3 */
 
       // (wdc) Allow for two planes without hits.
 
-      if (matched >= tlayers - 2) {
+      if (matched >= fNumLayers - 2) {
 
 	/* ---- Yes, there is a match, so now check if all the levels
 		of the treesearch have been done.  If so, then we have
@@ -1148,9 +1152,9 @@ if (numWires > 0) { /* Region 3 */
 	  /* all levels done -> now insert treeline */
 	  frontbin = reverse ? offset - tree->bit[0]
 			     : offset + tree->bit[0];
-	  backbin  = reverse ? offset - tree->bit[tlayers-1]
-			     : offset + tree->bit[tlayers-1];
-	  for (int i = 0; i < tlayers; i++) {
+	  backbin  = reverse ? offset - tree->bit[fNumLayers-1]
+			     : offset + tree->bit[fNumLayers-1];
+	  for (int i = 0; i < fNumLayers; i++) {
 	    bin = reverse ? offset - tree->bit[i]
 			  : offset + tree->bit[i];
 	    hashpat[i] = static_hash[i][bin];
@@ -1160,7 +1164,7 @@ if (numWires > 0) { /* Region 3 */
 	  miss = 0;
 	  if (static_pattern[0][frontbin] == 0)
 	    miss = 1;
-	  else if (static_pattern[tlayers-1][backbin] == 0)
+	  else if (static_pattern[fNumLayers-1][backbin] == 0)
 	    miss = 1;
 
 	  /* Check whether this treeline already exists */
@@ -1176,7 +1180,7 @@ if (numWires > 0) { /* Region 3 */
 	    nTreeLines++;
 
 	    /* Copy hash pattern */
-	    memcpy(lineptr->hasharray, hashpat, sizeof(int) * tlayers);
+	    memcpy(lineptr->hasharray, hashpat, sizeof(int) * fNumLayers);
 
 	    /* Missed front or back planes (?) */
 	    /* (only used until TreeLineSort) */
@@ -1191,7 +1195,6 @@ if (numWires > 0) { /* Region 3 */
 
 	  for (rev = 0; rev < 4; rev += 2) {
 	    cnode = tree->son + rev;
-            //if(!*cnode)std::cerr << "no son" << std::endl;
 	    if (rev ^ reverse) {
 	      off2 = (offset << 1) + 1;
 	      for (off = 0; off < 2; off++)
@@ -1213,41 +1216,49 @@ if (numWires > 0) { /* Region 3 */
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 /**
-  SearchTreeLines() - this function initiates the treesearch for a set of tree-
-               detectors by calling the _SearchTreeLines() function described
-               above.
-
-    inputs: (1) shortnode *node    -
-            (2) char *pattern[4]   -
-            (3) int *hashpat[4]    -
-            (4) int maxlevel       -
-            (5) int numWires       -
-
-   outputs: the linked list of valid treelines
+ * Initiate the treesearch for a set of tree detectors by calling the
+ * recursive _SearchTreeLines() function.
+ *
+ * @param searchtree Pattern search tree
+ * @param pattern Hit pattern
+ * @param hashpat Hash pattern
+ * @param maxlevel Maximum number of levels
+ * @param numwires Number of wires in region 3
+ * @param numlayers Number of layers in region 3
+ * @return Linked list of treelines
  */
 QwTrackingTreeLine* QwTrackingTreeSearch::SearchTreeLines (
-	shortnode *node,
+	QwTrackingTreeRegion* searchtree,
 	char **pattern,
 	int  **hashpat,
 	int maxlevel,
-	int numWires,
-	int tlayer)
+	int numwires,
+	int numlayers)
 {
-  tlayers = tlayer;
+  // Determine the top node of the search tree for the recursive search
+  shortnode* topnode = searchtree->GetNode();
+
+  fNumLayers = numlayers;
+
   static_maxlevel = maxlevel;
   static_pattern  = pattern;
   static_hash     = hashpat;
-  /*static_front    = front;*/
 
-  if (numWires) {
+  /// For every wire we perform a recursive search.  For region 2 the number of
+  /// wires is set to zero, so this will only execute once for every plane.
+  /// For region 3 we will run over all the wires in the plane, and consider the
+  /// next fNumLayers wires (so we need to end early).
+
+  if (numwires > 0) {
     // The region 3 version of SearchTreeLines (search for every wire)
-    for (int i = 0; i <= numWires - tlayers; i++)
-      _SearchTreeLines (node, 0, 0, i, 0, numWires);
+    for (int wire = 0; wire <= numwires - fNumLayers; wire++)
+      _SearchTreeLines (topnode, 0, 0, wire, 0, numwires);
 
   } else
     // The region 2 version of SearchTreeLines
-      _SearchTreeLines (node, 0, 0, 0, 0, 0);
+      _SearchTreeLines (topnode, 0, 0, 0, 0, 0);
 
   // Return the list of tree lines
   return lTreeLines;

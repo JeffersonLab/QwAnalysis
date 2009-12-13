@@ -105,6 +105,7 @@ using std::endl;
 #include "QwTrack.h"
 #include "QwEvent.h"
 #include "QwBridge.h"
+#include "QwDetectorInfo.h"
 
 #include "QwOptions.h"
 #include "QwLog.h"
@@ -141,12 +142,6 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
 
     /* Reserve space for region 2 bit patterns and initialize */
     levelsr2 = gQwOptions.GetValue<int>("QwTracking.R2.levels");
-    for (int i = 0; i < TLAYERS; i++) {
-        channelr2[i]     = (char*) malloc (1UL << levelsr2);
-        memset (channelr2[i], 0,          (1UL << levelsr2));
-        hashchannelr2[i] =  (int*) malloc (sizeof(int) * (1UL << (levelsr2 - 1)));
-        memset (hashchannelr2[i], 0,      (sizeof(int) * (1UL << (levelsr2 - 1))));
-    }
 
     /* Reserve space for region 3 bit patterns and initialize */
     levelsr3 = gQwOptions.GetValue<int>("QwTracking.R3.levels");
@@ -184,10 +179,6 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
 QwTrackingWorker::~QwTrackingWorker ()
 {
     // Free memory reserved for region 2 and region 3 bit patterns
-    for (int i = 0; i < TLAYERS; i++) {
-        free(channelr2[i]);
-        free(hashchannelr2[i]);
-    }
     for (int i = 0; i < NUMWIRESR3 + 1; i++) {
         free(channelr3[i]);
         free(hashchannelr3[i]);
@@ -328,6 +319,12 @@ void QwTrackingWorker::InitTree()
                                                  type,
                                                  region,
                                                  direction);
+
+          // Set the detector identification
+          fSearchTree[index]->SetRegion(region);
+          fSearchTree[index]->SetPackage(package);
+          fSearchTree[index]->SetDirection(direction);
+          // Plane unknown, element not applicable: keep them at null values
 
         } // end of loop over wire directions
 
@@ -627,7 +624,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             // We can start the tree search now.
                             // NOTE Somewhere around here a memory leak lurks
                             QwDebug << "Searching for matching patterns (direction " << dir << ")" << QwLog::endl;
-                            treelinelist = TreeSearch->SearchTreeLines(searchtree->GetNode(),
+                            treelinelist = TreeSearch->SearchTreeLines(searchtree,
                                                  channelr3, hashchannelr3, levelsr3,
                                                  NUMWIRESR3, TLAYERS);
                             if (fDebug) {
@@ -636,8 +633,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             }
 
                             QwDebug << "Sort patterns" << QwLog::endl;
-                            if (fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
-                                            +region*kNumTypes*kNumDirections+type*kNumDirections+dir]) {
+                            if (searchtree) {
 
                                 double width = searchtree->GetWidth();
                                 TreeCombine->TlTreeLineSort (treelinelist, subhitlist,
@@ -683,6 +679,9 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         // Set ht pattern for this region
                         QwDebug << "Setting hit pattern (region 2)" << QwLog::endl;
 
+                        // Create a vector of hit patterns
+                        std::vector<QwHitPattern> patterns;
+
                         /* Loop over the like-pitched planes in a region */
                         tlayers = 0;
                         for (Det* rd = rcDETRegion[package][region][dir];
@@ -694,53 +693,44 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             // If detector is inactive for tracking, skip it
                             if (rd->IsInactive()) continue;
 
-                            // Reset hit pattern to zero for this layer
-                            memset(channelr2[tlayers],     0,                1UL <<  levelsr2      );
-                            memset(hashchannelr2[tlayers], 0, sizeof(int) * (1UL << (levelsr2 - 1)));
-
                             // Get the subhitlist of hits in this detector plane
                             QwHitContainer *subhitlist = hitlist->GetSubList_Plane(region, package, rd->plane);
                             if (fDebug) subhitlist->Print();
+
                             // If no hits in this detector, skip to the next detector.
                             if (! subhitlist) continue;
-                            // Loop over the hits in the subhitlist
-                            for (QwHitContainer::iterator hit = subhitlist->begin();
-                                    hit != subhitlist->end(); hit++) {
 
-                                // See QwTrackingTreeearch.cc for the different ways in which TsSetPoint
-                                // can be called.
-                                int wire = hit->GetElement();
-                                TreeSearch->TsSetPoint(
-                                    searchtree->GetWidth(),
-                                    rd->WireSpacing,
-                                    &(*hit),
-                                    wire,
-                                    channelr2[tlayers],
-                                    hashchannelr2[tlayers],
-                                    1U << (levelsr2 - 1));
-
-                                // Print hit pattern, if requested
-                                if (fShowEventPattern) {
-                                    cout << "l" << wire << ":";
-                                    for (int i = 0; i < (signed int) (1UL << levelsr2) - 1; i++) {
-                                        if (channelr2[tlayers][i] == 1)
-                                            cout << "|";
-                                        else
-                                            cout << ".";
-                                    }
-                                    cout << endl;
-                                }
-
-                            } // end of loop over hits in this event
+                            // Construct the hit pattern for this set of hits
+                            QwHitPattern hitpattern(levelsr2);
+                            hitpattern.SetHitList(searchtree->GetWidth(), subhitlist);
+                            // Add hit pattern to the vector
+                            patterns.push_back(hitpattern);
 
                             // Delete subhitlist
                             delete subhitlist;
 
                         } // end of loop over like-pitched planes in a region
 
+                        // Print hit pattern, if requested
+                        if (fShowEventPattern)
+                          for (size_t layer = 0; layer < patterns.size(); layer++)
+                            QwMessage << patterns.at(layer) << QwLog::endl;
+
+                        // Copy the new hit patterns into the old array structure
+                        // TODO This is temporary
+                        int levels = patterns.at(0).GetNumberOfLevels();
+                        char* channel[patterns.size()];
+                        int*  hashchannel[patterns.size()];
+                        for (size_t layer = 0; layer < patterns.size(); layer++) {
+                          channel[layer] = new char[patterns.at(layer).GetNumberOfBins()];
+                          hashchannel[layer] = new int[patterns.at(layer).GetFinestBinWidth()];
+                          patterns.at(layer).GetPattern(channel[layer]);
+                          patterns.at(layer).GetPatternHash(hashchannel[layer]);
+                        }
+
                         QwDebug << "Search for matching patterns (direction " << dir << ")" << QwLog::endl;
-                        treelinelist = TreeSearch->SearchTreeLines(searchtree->GetNode(),
-                                             channelr2, hashchannelr2, levelsr2,
+                        treelinelist = TreeSearch->SearchTreeLines(searchtree,
+                                             channel, hashchannel, levels,
                                              0, tlayers);
                         // TODO These treelines should contain the region id etc
                         // We should set the QwDetectorInfo link here already,

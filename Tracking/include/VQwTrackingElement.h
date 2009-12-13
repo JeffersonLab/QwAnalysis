@@ -72,6 +72,15 @@ class VQwTrackingElement: public TObject {
     /// \brief Set the element number
     void SetElement(int element) { fElement = element; };
 
+    /// \brief Copy the geometry info from another object
+    void SetGeometryTo(const VQwTrackingElement& e) {
+      fRegion = e.fRegion;
+      fPackage = e.fPackage;
+      fDirection = e.fDirection;
+      fPlane = e.fPlane;
+      fElement = e.fElement;
+    };
+
   private:
 
     // This will stay empty until we have completely moved away from Det to the

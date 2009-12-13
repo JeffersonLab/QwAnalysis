@@ -25,13 +25,18 @@
  */
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+#include "QwTrackingTreeMatch.h"
+
+// System C and C++ headers
 #include <cstdio>
 #include <fstream>
 #include <cassert>
 #include <cstdlib>
 
-#include "QwTrackingTreeMatch.h"
+// Qweak headers
 #include "QwTrackingTreeCombine.h"
+
+#include "Det.h"
 
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 

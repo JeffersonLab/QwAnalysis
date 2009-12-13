@@ -89,9 +89,15 @@
 
 #include "QwTrackingTree.h"
 
+// Qweak headers
+#include "QwTrackingTreeRegion.h"
+
+// Deprecated Qweak headers
+#include "Det.h"
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-const string QwTrackingTree::TREEDIR("tree");
+const std::string QwTrackingTree::TREEDIR("tree");
 
 extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 
@@ -1002,15 +1008,15 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
   FILE *f                   = NULL;
   shorttree *stb            = 0;
   QwTrackingTreeRegion *trr = 0;
-  
+
   Double_t width = 0.0;
   int32_t  num   =   0;
-  
+
   // Check whether the tree directory exists
   bfs::path scratchdir(std::string(getenv("QWSCRATCH")));
   bfs::path treepath(scratchdir / bfs::path(TREEDIR));
   bfs::path fullfilename;
-  
+
   if (! bfs::exists(treepath) || ! bfs::is_directory(treepath)) {
     cout << "[QwTrackingTree::readtree] Warning: Could not find tree directory." << endl;
     cout << "   tree directory: " << treepath.string() << endl;
@@ -1020,8 +1026,8 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
   }
   // Construct full path and file name
   fullfilename = treepath / bfs::path(filename);
-  
-  
+
+
   xref = 0;
   if (!dontread) {
     /// Open the file for reading and complain if this fails
@@ -1031,7 +1037,7 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
       cerr << "tree file: " << fullfilename.string() << endl;
       return 0;
     }
-    
+
     /// If num and width cannot be read, then the file is invalid
     if (fread(&num, sizeof(num), 1L, f) < 1 ||
 	fread(&width, sizeof(width), 1L, f) < 1 ) {
@@ -1042,18 +1048,18 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
     }
 //      cout << "Num = " << num << endl;
 //      cout << "Width = " << width << endl;
-    
+
     /// Allocate a shorttree array
     stb = new shorttree[num];
     assert(stb);
-    
-  } 
+
+  }
   else {
-    
+
     width = rwidth;
     stb = 0;
   }
-  
+
   /// Allocate a QwTrackingTreeRegion object
   trr = new QwTrackingTreeRegion();
   maxref = num;
@@ -1065,18 +1071,18 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
     fclose(f);
     return 0;
   }
-  
+
   /// Close the file after reading in the tree
   if (!dontread) fclose(f);
-  
+
   trr->SetSearchable(stb ? true : false);
   if (fDebug) cout << "Set searchable = " << trr->IsSearchable() << endl;
-  
+
   shortnode* node = trr->GetNode();
   node->tree  = stb;
   node->next  = 0;
   trr->SetWidth(width);
-  
+
 
   return trr;
 }
@@ -1353,9 +1359,9 @@ int QwTrackingTree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int 
 		  (*fath)      = node;
 		  // node->tree->print(); /// use this for debugging purposes
 		}
-		
+
 		memset (stb[ref].son, 0, sizeof(stb[ref].son)); /// has no sons yet
-		
+
 		/// Read in the sons of this node
 		for(sonny = 0; sonny < 4; sonny++) {
 		  if (_readtree(file, stb, stb[ref].son + sonny, tlayers)) {
@@ -1363,10 +1369,10 @@ int QwTrackingTree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int 
 		    return -1;
 		  }
 		}
-		
+
 		/// \li If we encounter a reference, then read in the reference
 	} else if (c == REFSON) {
-	  
+
 	  if (fread (&ref, sizeof(ref), 1L, file) != 1) {
 	    cout << "QTR: readtree failed. error #1. rebuilding treefiles." << endl;
 	    return -1;
@@ -1384,18 +1390,18 @@ int QwTrackingTree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int 
 	  node -> tree = stb+ref;	/// and append the alread read-in tree
 	  node -> next = *fath;	/// 'ref' to this node.
 	  (*fath)      = node;
-	  
+
 	  /// \li If we encounter an end token, then stop
 	} else if( c == SONEND) {
 	  break;
-	  
+
 	  /// \li If we encounter something else, then fail
 	} else {
 	  cout << "QTR: readtree failed. error #2. rebuilding treefiles." << endl;
 	  return -1;
 	}
   }
-  
+
   return 0;
 }
 

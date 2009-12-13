@@ -23,6 +23,7 @@ ClassImp(QwTrackingTreeLine);
 
 // Qweak headers
 #include "QwHit.h"
+#include "QwHitPattern.h"
 #include "QwHitContainer.h"
 
 

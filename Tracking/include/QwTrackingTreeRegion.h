@@ -1,5 +1,26 @@
+/*!
+ * \file   QwTrackingTree.h
+ * \brief  Definition of the track search tree
+ *
+ * \author Wouter Deconinck
+ * \date   2009-12-11
+ */
+
+#ifndef QWTRACKINGTREEREGION_H
+#define QWTRACKINGTREEREGION_H
+
+// System headers
+#include <iostream>
+
+// Qweak headers
+#include "VQwTrackingElement.h"
+#include "shortnode.h"
+#include "globals.h"
+
+using QwTracking::shortnode;
+
 /**
- * \class	QwTrackingTreeRegion	QwTrackingTreeRegion.h
+ * \class	QwTrackingTreeRegion
  * \ingroup	QwTracking
  *
  * \author	Burnham Stokes <bestokes@jlab.org>
@@ -17,29 +38,17 @@
  * designed to contain patterns which ressemble tracks passing through the VDC.
  *
  */
-
-#ifndef QWTRACKINGTREEREGION_H
-#define QWTRACKINGTREEREGION_H
-
-// System headers
-#include <iostream>
-
-// Qweak headers
-#include "VQwTrackingElement.h"
-#include "shortnode.h"
-#include "globals.h"
-
-using QwTracking::shortnode;
-
 class QwTrackingTreeRegion: public VQwTrackingElement {
 
   public:
 
+    /// \brief Default constructor
     QwTrackingTreeRegion();
+    /// \brief Default destructor
     ~QwTrackingTreeRegion();
 
     /// \brief Is this region searchable?
-    bool IsSearchable() { return fSearchable; };
+    const bool IsSearchable() const { return fSearchable; };
     /// \brief Set this tree region to searchable
     void SetSearchable(bool searchable = true) { fSearchable = searchable; };
 
@@ -47,13 +56,14 @@ class QwTrackingTreeRegion: public VQwTrackingElement {
     shortnode* GetNode() { return &fNode; };
 
     /// \brief Get the width
-    double GetWidth() { return fWidth; };
+    const double GetWidth() const { return fWidth; };
     /// \brief Set the width
     void SetWidth(double width) { fWidth = width; };
 
   private:
 
     int fDebug;		///< Debug level
+
     bool fSearchable;	///< Is this tree region searchable?
 
     shortnode fNode;	///< Top node of this tree region
