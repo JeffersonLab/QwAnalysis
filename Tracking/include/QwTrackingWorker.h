@@ -81,17 +81,9 @@ class QwTrackingWorker: public VQwSystem {
     /// \brief Debug level
     int fDebug;
 
-    /// \brief Region 2 bit patterns
-    char *channelr2[TLAYERS];
-    /// \brief Region 2 bit pattern hashes
-    int  *hashchannelr2[TLAYERS];
     /// \brief Region 2 levels
     int  levelsr2;
 
-    /// \brief Region 3 bit patterns
-    char *channelr3[NUMWIRESR3 + 1];
-    /// \brief Region 3 bit pattern hashes
-    int  *hashchannelr3[NUMWIRESR3 + 1];
     /// \brief Region 3 levels
     int  levelsr3;
 

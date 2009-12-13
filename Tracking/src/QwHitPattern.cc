@@ -16,7 +16,7 @@ ClassImp(QwHitPattern);
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-static int static_hashgen = 1;
+static unsigned int static_hashgen = 1;
 
 /**
  * Create a hash key
@@ -29,19 +29,95 @@ static int hashgen()
   return static_hashgen;
 }
 
-void QwHitPattern::SetHitList(
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+/**
+ * Assignment operator for hit patterns.
+ * @param rhs Right hand side
+ * @return Left hand side
+ */
+QwHitPattern& QwHitPattern::operator= (const QwHitPattern& rhs)
+{
+  // Check whether this is ourselves.
+  if (this == &rhs) return *this;
+  // Copy the levels and pattern data
+  SetNumberOfLevels(rhs.fLevels);
+  for (unsigned int bin = 0; bin < fBins; bin++)
+    fPattern[bin] = rhs.fPattern[bin];
+  for (unsigned int hash = 0; hash < fBinWidth; hash++)
+    fPatternHash[hash] = rhs.fPatternHash[hash];
+  return *this;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+/**
+ * Addition-assignment operator for hit patterns.  This is important for
+ * multiple hits on a single wire.
+ *
+ * TODO figure out how this affects region 2 and region 3
+ *
+ * Requirements are:
+ *   hitpattern += 0 == hitpattern
+ *   0 += hitpattern == hitpattern
+ *   hitpattern1 += hitpattern2 == hitpattern as obtained by TreeSearch code
+ *
+ * The hash pattern is not so important, but the hit pattern has to match!
+ *
+ * @param rhs Right hand side
+ * @return Left hand side
+ */
+QwHitPattern& QwHitPattern::operator+= (const QwHitPattern& rhs)
+{
+  // If lhs is zero we assign rhs and return
+  if (fLevels == 0) return *this = rhs;
+  // Check whether levels is equal
+  if (fLevels == rhs.fLevels) {
+    for (unsigned int bin = 0; bin < fBins; bin++)
+      fPattern[bin] |= rhs.fPattern[bin];
+  }
+  return *this;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+/**
+ * Set the hit pattern bins for the specified HDC-type hit list.
+ *
+ * @param detectorwidth Width of the detector
+ * @param hitlist Hit list
+ */
+void QwHitPattern::SetHDCHitList(
 	const double detectorwidth,
 	QwHitContainer* hitlist)
 {
   for (QwHitContainer::iterator hit  = hitlist->begin();
                                 hit != hitlist->end(); hit++)
-    SetHit(detectorwidth, &(*hit));
+    SetHDCHit(detectorwidth, &(*hit));
 }
-
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /**
+ * Set the hit pattern bins for the specified VDC-type hit list.
+ *
+ * @param detectorwidth Width of the detector
+ * @param hitlist Hit list
+ */
+void QwHitPattern::SetVDCHitList(
+	const double detectorwidth,
+	QwHitContainer* hitlist)
+{
+  for (QwHitContainer::iterator hit  = hitlist->begin();
+                                hit != hitlist->end(); hit++)
+    SetVDCHit(detectorwidth, &(*hit));
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+/**
+ * Set the hit pattern bins for the specified HDC-type hit.
+ *
  * The planes are treated as individual tree-detectors.  In this case,
  * a separate hit pattern is created for both planes and the above described
  * searching for paired hits is not employed.  (This method is the standard
@@ -50,7 +126,7 @@ void QwHitPattern::SetHitList(
  * @param detectorwidth Width of the detector
  * @param hit Hit
  */
-void QwHitPattern::SetHit (
+void QwHitPattern::SetHDCHit (
 	double detectorwidth,
 	QwHit* hit)
 {
@@ -66,6 +142,35 @@ void QwHitPattern::SetHit (
   // Set the points on the back/bottom side of the wire (R3/R2)
   _SetPoints(wirespacing * (wire+1) + hit->GetDriftDistance() - hit->GetTrackResolution(),
 	     wirespacing * (wire+1) + hit->GetDriftDistance() + hit->GetTrackResolution(),
+	     detectorwidth);
+
+  return;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+/**
+ * Set the hit pattern bins for the specified VDC-type hit.
+ *
+ * (TODO Need to elaborate on how this is different exactly)
+ *
+ * @param detectorwidth Width of the detector
+ * @param hit Hit
+ */
+void QwHitPattern::SetVDCHit (
+	double detectorwidth,
+	QwHit *hit)
+{
+  double halfwidth = (detectorwidth / 2.0); /* half-width of the detector (in cm) */
+
+  // Set the points on the front/top side of the wire (R3/R2)
+  _SetPoints(halfwidth - hit->GetDriftDistance() - hit->GetTrackResolution(),
+	     halfwidth - hit->GetDriftDistance() + hit->GetTrackResolution(),
+	     detectorwidth);
+
+  // Set the points on the back/bottom side of the wire (R3/R2)
+  _SetPoints(halfwidth + hit->GetDriftDistance() - hit->GetTrackResolution(),
+	     halfwidth + hit->GetDriftDistance() + hit->GetTrackResolution(),
 	     detectorwidth);
 
   return;
@@ -110,7 +215,7 @@ void QwHitPattern::_SetPoints (
   int ia, ie;
   int hashint = hashgen();
   unsigned int binwidth = fBinWidth;
-  char* pattern = fPattern;
+  unsigned char* pattern = fPattern;
 
 /* ---- compute the first bin in the deepest tree level to turn on     ---- */
 

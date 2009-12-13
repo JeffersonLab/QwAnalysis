@@ -53,11 +53,7 @@ class QwHitPattern: public VQwTrackingElement {
     };
     /// \brief Copy constructor
     QwHitPattern(const QwHitPattern& pattern) {
-      SetNumberOfLevels(pattern.fLevels);
-      for (unsigned int bin = 0; bin < fBins; bin++)
-        fPattern[bin] = pattern.fPattern[bin];
-      for (unsigned int hash = 0; hash < fBinWidth; hash++)
-        fPatternHash[hash] = pattern.fPatternHash[hash];
+      *this = pattern;
     };
 
     /// \brief Delete the hit pattern
@@ -72,8 +68,8 @@ class QwHitPattern: public VQwTrackingElement {
       fLevels = levels;
       fBins = (1UL << fLevels); // total number of bins, i.e. 2^fLevels
       fBinWidth = (1UL << (fLevels - 1)); // maximum bin division, i.e. 2^(fLevels-1)
-      fPattern = new char[fBins];
-      fPatternHash =  new int[fBinWidth];
+      fPattern = new unsigned char[fBins];
+      fPatternHash =  new unsigned int[fBinWidth];
     };
     /// \brief Get the hit pattern depth
     const unsigned int GetNumberOfLevels() const { return fLevels; };
@@ -90,10 +86,20 @@ class QwHitPattern: public VQwTrackingElement {
         fPatternHash[hash] = 0;
     };
 
-    /// \brief Set the hit pattern bins for the specified hit
-    void SetHit(double detectorwidth, QwHit* hit);
-    /// \brief Set the hit pattern bins for the specified hit list
-    void SetHitList(double detectorwidth, QwHitContainer* hitlist);
+    /// \brief Set the hit pattern bins for the specified HDC-type hit
+    void SetHDCHit(double detectorwidth, QwHit* hit);
+    /// \brief Set the hit pattern bins for the specified VDC-type hit
+    void SetVDCHit(double detectorwidth, QwHit* hit);
+    /// \brief Set the hit pattern bins for the specified HDC-type hit list
+    void SetHDCHitList(double detectorwidth, QwHitContainer* hitlist);
+    /// \brief Set the hit pattern bins for the specified VDC-type hit list
+    void SetVDCHitList(double detectorwidth, QwHitContainer* hitlist);
+
+    /// \brief Has this pattern any hit?
+    const bool HasHits() const {
+      if (fPattern == 0) return false;
+      else return fPattern[fBins-2] == 1;
+    };
 
     /// \brief Get the hit pattern
     void GetPattern(char* pattern) const {
@@ -105,6 +111,11 @@ class QwHitPattern: public VQwTrackingElement {
       for (unsigned int hash = 0; hash < fBinWidth; hash++)
         patternhash[hash] = fPatternHash[hash];
     };
+
+    /// \brief Assignment operator
+    QwHitPattern& operator=(const QwHitPattern& rhs);
+    /// \brief Addition-assignment operator
+    QwHitPattern& operator+=(const QwHitPattern& rhs);
 
   private:
 
@@ -120,8 +131,8 @@ class QwHitPattern: public VQwTrackingElement {
     unsigned int fBins;
     unsigned int fBinWidth;
 
-    char* fPattern;
-    int*  fPatternHash;
+    unsigned char* fPattern;
+    unsigned int*  fPatternHash;
 
   friend ostream& operator<< (ostream& stream, const QwHitPattern& hitpattern);
 

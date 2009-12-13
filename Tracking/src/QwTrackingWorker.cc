@@ -130,28 +130,11 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
     fDebug = 0;
 
 
-    /** Reserve space for the bit patterns
-     *
-     * The options file indicates the number of tree levels (how many times do
-     * we go to finer binning).  The total number of bits is determined using
-     * bit shift operators:
-     *   (1UL << levels) == 2^levels
-     *   (1UL << (levels - 1)) == 2^(levels-1)
-     * For e.g. 4 levels we need 1 + 2 + 4 + 8 = 15 = (2^4 - 1) bits.
-     */
-
-    /* Reserve space for region 2 bit patterns and initialize */
+    // Number of levels (search tree depth) for region 2
     levelsr2 = gQwOptions.GetValue<int>("QwTracking.R2.levels");
 
-    /* Reserve space for region 3 bit patterns and initialize */
+    // Number of levels (search tree depth) for region 3
     levelsr3 = gQwOptions.GetValue<int>("QwTracking.R3.levels");
-    for (int i = 0; i < NUMWIRESR3 + 1; i++) {
-        channelr3[i]     = (char*) malloc (1UL << levelsr3);
-        memset (channelr3[i], 0,          (1UL << levelsr3));
-        hashchannelr3[i] =  (int*) malloc (sizeof(int) * (1UL << (levelsr3 - 1)));
-        memset (hashchannelr3[i], 0,      (sizeof(int) * (1UL << (levelsr3 - 1))));
-    }
-
 
     // Initialize the pattern database
     InitTree();
@@ -178,11 +161,7 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
 
 QwTrackingWorker::~QwTrackingWorker ()
 {
-    // Free memory reserved for region 2 and region 3 bit patterns
-    for (int i = 0; i < NUMWIRESR3 + 1; i++) {
-        free(channelr3[i]);
-        free(hashchannelr3[i]);
-    }
+
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -577,11 +556,9 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             // If detector is inactive for tracking, skip it
                             if (rd->IsInactive()) continue;
 
-                            // Reset hit pattern to zero for this layer
-                            for (int i = 0; i < NUMWIRESR3 + 1; i++) {
-                                memset(channelr3[i],     0,                1UL <<  levelsr3      );
-                                memset(hashchannelr3[i], 0, sizeof(int) * (1UL << (levelsr3 - 1)));
-                            }
+                            // Create a vector of hit patterns
+                            std::vector<QwHitPattern> patterns;
+                            patterns.resize(NUMWIRESR3);
 
                             /// Get the subhitlist of hits in this detector
                             QwHitContainer *subhitlist = hitlist->GetSubList_Plane(region, package, rd->plane);
@@ -593,39 +570,41 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             for (QwHitContainer::iterator hit = subhitlist->begin();
                                     hit != subhitlist->end(); hit++) {
 
-                                // See QwTrackingTreeSearch.cc for the different ways in which TsSetPoint
-                                // can be called.
+                                // Construct the hit pattern for this set of hits
+                                QwHitPattern hitpattern(levelsr3);
+                                hitpattern.SetVDCHit(searchtree->GetWidth(), &(*hit));
+                                // Add hit pattern to the vector
                                 int wire = hit->GetElement();
-                                TreeSearch->TsSetPoint(
-                                    searchtree->GetWidth(),
-                                    &(*hit),
-                                    channelr3[wire],
-                                    hashchannelr3[wire],
-                                    1UL << (levelsr3 - 1));
-
-                                // Print hit pattern, if requested
-                                if (fShowEventPattern) {
-                                    cout << "w" << wire << ":";
-                                    for (int i = 0; i < (signed int) (1UL << levelsr3) - 1; i++) {
-                                        if (channelr3[wire][i] == 1)
-                                            cout << "|";
-                                        else
-                                            cout << ".";
-                                    }
-                                    cout << endl;
-                                }
+                                patterns.at(wire) += hitpattern;
 
                             } // end of loop over hits in this event
 
                             // Start the search for this set of like-pitched planes
                             TreeSearch->BeginSearch();
 
+                            // Print hit pattern, if requested
+                            if (fShowEventPattern)
+                              for (size_t wire = 0; wire < patterns.size(); wire++)
+                                if (patterns.at(wire).HasHits())
+                                  QwMessage << patterns.at(wire) << QwLog::endl;
+
+                            // Copy the new hit patterns into the old array structure
+                            // TODO This is temporary
+                            char* channel[patterns.size()];
+                            int*  hashchannel[patterns.size()];
+                            for (size_t wire = 0; wire < patterns.size(); wire++) {
+                              channel[wire] = new char[patterns.at(wire).GetNumberOfBins()];
+                              hashchannel[wire] = new int[patterns.at(wire).GetFinestBinWidth()];
+                              patterns.at(wire).GetPattern(channel[wire]);
+                              patterns.at(wire).GetPatternHash(hashchannel[wire]);
+                            }
+
                             // All hits in this detector (VDC) are added to the bit pattern.
                             // We can start the tree search now.
                             // NOTE Somewhere around here a memory leak lurks
                             QwDebug << "Searching for matching patterns (direction " << dir << ")" << QwLog::endl;
                             treelinelist = TreeSearch->SearchTreeLines(searchtree,
-                                                 channelr3, hashchannelr3, levelsr3,
+                                                 channel, hashchannel, levelsr3,
                                                  NUMWIRESR3, TLAYERS);
                             if (fDebug) {
                                 cout << "List of treelines:" << endl;
@@ -702,7 +681,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                             // Construct the hit pattern for this set of hits
                             QwHitPattern hitpattern(levelsr2);
-                            hitpattern.SetHitList(searchtree->GetWidth(), subhitlist);
+                            hitpattern.SetHDCHitList(searchtree->GetWidth(), subhitlist);
                             // Add hit pattern to the vector
                             patterns.push_back(hitpattern);
 
