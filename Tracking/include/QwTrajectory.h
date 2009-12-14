@@ -27,8 +27,9 @@
 #include <TVector3.h>
 #include <TRotation.h>
 
+#include "QwMagneticField.h"
 // Forward declarations
-class QwMagneticField;
+//class QwMagneticField;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
