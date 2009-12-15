@@ -511,7 +511,7 @@ void QwDriftChamberVDC::ProcessEvent(){
 	      right_time=DelayLineArray.at(tmpbp).at(tmpln).RightHits.at(order_R);
 
 	      real_time=(left_time+right_time)/2;
-	      real_time=0.1132*real_time;
+	      real_time=1430-0.1132*real_time;
 
 	      for(Int_t j=0;j<Ambiguitycount;j++)
 		{
@@ -519,18 +519,15 @@ void QwDriftChamberVDC::ProcessEvent(){
 
 		  //AddChannelDefinition(DelayLineArray.at (tmpbp).at(tmpln).Plane,DelayLineArray.at(tmpbp).at(tmpln).Wire.at(i).at(j) );
 		  NewQwHit.SetHitNumberR(order_R);
+		  if(real_time<0) continue;
 		  NewQwHit.SetTime(real_time);
 
-		  real_time=1600-real_time;
-		  if(real_time<0) real_time=0;
-		  drift_distance=CalculateDriftDistance(real_time,iter->GetDetectorID());
-		  NewQwHit.SetDriftDistance(0.1*drift_distance);
+		  drift_distance=0.1*CalculateDriftDistance(real_time,iter->GetDetectorID());
+		  NewQwHit.SetDriftDistance(drift_distance);
 
 		  //Bool_t tmpAM=DelayLineArray.at(tmpbp).at(tmpln).Ambiguous;
-		  if(j==0 && tmpAM==true)
-		    NewQwHit.AmbiguityID ( tmpAM,true );
-		  else if(j==1 && tmpAM==true)
-		    NewQwHit.AmbiguityID(tmpAM,false);
+		  
+		  NewQwHit.SetAmbiguityID ( tmpAM,j );
 		  fWireHits.push_back(NewQwHit);
 		}
 	    }

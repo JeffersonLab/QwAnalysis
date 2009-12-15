@@ -62,7 +62,7 @@ class QwHit : public TObject {
 
 
 
-  void AmbiguityID ( const Bool_t amelement,const Bool_t amlr )       //this function might be modified later
+  void SetAmbiguityID ( const Bool_t amelement,const Bool_t amlr )       //this function might be modified later
   {
     fAmbiguousElement=amelement;
     fLRAmbiguity=amlr;
