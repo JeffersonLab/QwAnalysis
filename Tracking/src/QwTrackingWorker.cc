@@ -142,7 +142,8 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
     trajectory = new QwTrajectory();
 
     // Load magnetic field map
-    //trajectory->LoadMagneticFieldMap();
+    trajectory->LoadMagneticFieldMap();
+    trajectory->LoadMomentumMatrix();
 
     /* Reset counters of number of good and bad events */
     ngood = 0;
@@ -811,7 +812,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
         //jpan: The following code is for testing the raytrace class
 
-        if (false && event->parttrack[package][kRegionID2][kTypeDriftHDC]
+        if (true && event->parttrack[package][kRegionID2][kTypeDriftHDC]
                   && event->parttrack[package][kRegionID3][kTypeDriftVDC]) {
 
             if (fDebug) std::cout<<"Bridging front and back partialtrack:"<<std::endl;
@@ -832,10 +833,13 @@ QwEvent* QwTrackingWorker::ProcessHits (
                                      event->parttrack[package][kRegionID3][kTypeDriftVDC]->uvR3hit[1],
                                      event->parttrack[package][kRegionID3][kTypeDriftVDC]->uvR3hit[2]);
 
-                int status = trajectory->BridgeFrontBackPartialTrack(R2hit, R2direction, R3hit, R3direction);
+                trajectory->SetStartAndEndPoints(R2hit, R2direction, R3hit, R3direction);
+                int status = trajectory->BridgeFrontBackPartialTrack();
 
-                if (status == 0)
-                  std::cout<<"======>>>> Bridged a track (momentum = "<<trajectory->GetMomentum()<<" GeV)"<<std::endl;
+                if (status == 0){
+                  std::cout<<"======>>>> Bridged a track"<<std::endl;
+                  trajectory->PrintInfo();
+                }
                 else std::cout<<"======>>>> No luck on bridging this track."<<std::endl;
             }
         }

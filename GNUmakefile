@@ -166,10 +166,11 @@ ifndef ROOTSYS
 endif
 ROOTCONFIG   := $(ROOTSYS)/bin/root-config
 ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags)
-ROOTLIBS     := $(shell $(ROOTCONFIG) --new --libs) -lTreePlayer -lGX11
+ROOTLIBS     := $(shell $(ROOTCONFIG) --new --libs) -lTreePlayer -lGX11 -lMathMore
         # -lNew : for map file capability
         # -lTreePlayer -lProof : for user loops calling tree
         #                        variables under conditions
+        # -lMathMore : for using ROOT advanced math library
 ROOTGLIBS    := $(shell $(ROOTCONFIG) --glibs)
 
 

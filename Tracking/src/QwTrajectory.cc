@@ -6,10 +6,14 @@
  *
  *  \ingroup QwTracking
  *
- *   Integrating the equations of motion for electrons in the QTOR.
- *   The 4'th order Runge-Kutta method is used.
- *
- *   The Newton-Raphson method is used to solve for the momentum of the track.
+ *   Firstly, unresonable bridging candidates will be filtered out, others
+ *   which can pass through the filter will be matched in a look-up table.
+ *   If there is a match, the momentum will be determined by interpolation.
+ *   In case there is not a match in the look-up table, the bridging candidates
+ *   will then be sent into a shooting routine for bridging and momentum
+ *   determination. The Newton-Raphson method is used in the shooting routine,
+ *   and the 4'th order Runge-Kutta method is used for tntegrating the equations
+ *   of motion for electrons in the QTOR magnetic field.
  *
  */
 
@@ -23,6 +27,7 @@
 #include <cstdlib>
 
 #include "QwMagneticField.h"
+#include "QwBridge.h"
 #include "QwTrajectory.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -34,20 +39,45 @@
 
 QwTrajectory::QwTrajectory() {
 
-    for (int i=0;i<2;i++) {
-        fPositionX[i]=0.0;     // position
-        fPositionY[i]=0.0;
-        fPositionZ[i]=0.0;
-        fDirectionX[i] = 0.0;  // unit vector
-        fDirectionY[i] = 0.0;
-        fDirectionZ[i] = 0.0;
-    }
+    fStartPosition = TVector3(0.0,0.0,0.0);
+    fStartDirection = TVector3(0.0,0.0,0.0);
+    fStartPositionR = 0.0;
+    fStartPositionPhi = 0.0;
+    fStartDirectionTheta = 0.0;
+    fStartDirectionPhi = 0.0;
+
+    fEndPosition = TVector3(0.0,0.0,0.0);
+    fEndDirection = TVector3(0.0,0.0,0.0);
+    fEndPositionR = 0.0;
+    fEndPositionPhi = 0.0;
+    fEndDirectionTheta = 0.0;
+    fEndDirectionPhi = 0.0;
+
+    fHitLocation = TVector3(0.0,0.0,0.0);
+    fHitDirection = TVector3(0.0,0.0,0.0);
+    fHitLocationR = 0.0;
+    fHitLocationPhi = 0.0;
+    fHitDirectionTheta = 0.0;
+    fHitDirectionPhi = 0.0;
 
     fBdlx = 0.0;
     fBdly = 0.0;
     fBdlz = 0.0;
 
-    LoadMomentumMatrix();
+    fPositionXOff = 0.0;
+    fPositionYOff = 0.0;
+    fDirectionXOff = 0.0;
+    fDirectionYOff = 0.0;
+    fDirectionZOff = 0.0;
+    fPositionROff = 0.0;
+    fPositionPhiOff = 0.0;
+    fDirectionThetaOff = 0.0;
+    fDirectionPhiOff = 0.0;
+
+    fBfield = NULL;
+
+    fSimFlag = 0;
+
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -67,22 +97,46 @@ void QwTrajectory::LoadMagneticFieldMap() {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrajectory::BridgeFrontBackPartialTrack(TVector3 startpoint,
-                                              TVector3 startpointdirection,
-                                              TVector3 endpoint,
-                                              TVector3 endpointdirection) {
+void QwTrajectory::SetStartAndEndPoints(TVector3 startpoint, TVector3 startpointdirection,
+                                        TVector3 endpoint, TVector3 endpointdirection) {
+
+    fStartPosition = startpoint;
+    fStartDirection = startpointdirection;
+    fEndPosition = endpoint;
+    fEndDirection = endpointdirection;
+
+    fStartPositionR = sqrt(fStartPosition.X()*fStartPosition.X()+fStartPosition.Y()*fStartPosition.Y());
+    fStartPositionPhi = atan2(fStartPosition.Y(),fStartPosition.X())*DEGREE;
+    if (fStartPositionPhi<0) fStartPositionPhi = fStartPositionPhi+360.0;
+
+    fStartDirectionTheta = acos(fStartDirection.Z())*DEGREE;
+    fStartDirectionPhi = atan2(fStartDirection.Y(),fStartDirection.X())*DEGREE;
+    if (fStartDirectionPhi<0) fStartDirectionPhi = fStartDirectionPhi+360.0;
+
+    fEndPositionR = sqrt(fEndPosition.X()*fEndPosition.X()+fEndPosition.Y()*fEndPosition.Y());
+    fEndPositionPhi = atan2(fEndPosition.Y(),fEndPosition.X())*DEGREE;
+    if (fEndPositionPhi<0) fEndPositionPhi = fEndPositionPhi+360.0;
+
+    fEndDirectionTheta = acos(fEndDirection.Z())*DEGREE;
+    fEndDirectionPhi = atan2(fEndDirection.Y(),fEndDirection.X())*DEGREE;
+    if (fEndDirectionPhi<0) fEndDirectionPhi = fEndDirectionPhi+360.0;
+};
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+int QwTrajectory::BridgeFrontBackPartialTrack() {
 
     int status;
-    SetMagneticField(fBfield);
-    status = Filter(startpoint,startpointdirection,endpoint,endpointdirection);
 
 #ifdef TESTEVENT
-//test code: shoot an electron from target with ~8 deg scattering angle
-    //startpoint = TVector3(0.0,0.0,-650.0);
-    //direction = TVector3(0.0,sin(8.0*3.1415927/180.0),cos(8.0*3.1415927/180.0));
-    //endpoint = TVector3(2.38, 322.6, 571.1);
+//test event 1: shoot an electron from target with ~8 deg scattering angle
+    TVector3 startpoint(0.0,0.0,-650.0);
+    TVector3 startpointdirection(0.0,sin(10.0*3.1415927/180.0),cos(10.0*3.1415927/180.0));
+    TVector3 endpoint(2.38, 330.6, 571.1);
+    TVector3 endpointdirection(0.0,sin(23.0*3.1415927/180.0),cos(23.0*3.1415927/180.0));
 
-//This single ideal test event is chosen from G4 simulation with momentum=1.148817139
+
+//Test event 2: this single ideal test event is chosen from G4 simulation with momentum=1.148817139
 // endpoint direction is calculated from hit in trigger scintillator and C-bar
     std::cout<<std::endl<<"Test the bridging code with an ideal MC event:"<<std::endl;
 
@@ -112,139 +166,284 @@ int QwTrajectory::BridgeFrontBackPartialTrack(TVector3 startpoint,
     //end of defination of backward swiming
 #endif
 
-    std::cout<<"swiming from : ("<<startpoint.X()<<","<<startpoint.Y()<<","<<startpoint.Z()<<")   "
-    <<"direction ("<<startpointdirection.X()<<","<<startpointdirection.Y()<<","<<startpointdirection.Z()<<")  "
-    <<"with momentum "<<testR*0.001<<" GeV"<<std::endl;
-    std::cout<<"expected hit at : ("<<endpoint.X()<<","<<endpoint.Y()<<","<<endpoint.Z()<<")   "
-    <<"direction ("<<endpointdirection.X()<<", "<<endpointdirection.Y()<<", "<<endpointdirection.Z()<<")"<<std::endl;
     status = 0;
 #endif
 //end of test event
 
-    if (status == 0)
-        status = Shooting(startpoint,startpointdirection,endpoint,endpointdirection);
-    if (status == 0) return 0;
-    else return -1;
+
+    SetStartAndEndPoints(startpoint,startpointdirection,endpoint,endpointdirection);
+
+    status = Filter();
+    if (status == -1)   return -1;
+
+    status = SearchTable();
+
+    if (status == -1)   status = Shooting();
+
+//  DoForcedBridging(TVector3 startpoint, TVector3 startpointdirection,
+//                         TVector3 endpoint, TVector3 endpointdirection);
+
+    return status;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrajectory::Shooting(TVector3 startpoint, TVector3 startpointdirection,
-                           TVector3 endpoint, TVector3 endpointdirection) {
+// The angle limits will be determined from MC simulation results
+int QwTrajectory::Filter() {
 
-    double res = 1.0; //position determination [cm]
-    double step_size = 0.2; // integration step size [cm]
-    double dp = 0.05; //momentum variation [GeV]
-
-    double p[2],x[2],y[2],r[2],xh,yh,rh;
-    TVector3 localendpoint;
-
-    if (startpoint.Z()<=endpoint.Z())
-        p[0] = EstimateInitialMomentum(startpointdirection);
-    else
-        p[0] = EstimateInitialMomentum(endpointdirection);
-
-    std::cout<<"estimated momentum: "<<p[0]<<std::endl;
-
-    xh = endpoint.X();
-    yh = endpoint.Y();
-    rh = sqrt(xh*xh+yh*yh);
-
-    int n;
-    for (n=1; n<=MAX_ITERATION; n++) {
-
-        localendpoint = Integrate(p[0]-dp, startpoint, startpointdirection, step_size, endpoint.Z());
-        x[0]=localendpoint.X();
-        y[0]=localendpoint.Y();
-
-        localendpoint = Integrate(p[0]+dp, startpoint, startpointdirection, step_size, endpoint.Z());
-        x[1]=localendpoint.X();
-        y[1]=localendpoint.Y();
-
-        r[0] = sqrt(x[0]*x[0]+y[0]*y[0]);
-        r[1] = sqrt(x[1]*x[1]+y[1]*y[1]);
-
-        p[1] = p[0] -0.5*dp*(r[0]+r[1]-2.0*rh)/(r[1]-r[0]);
-
-        //std::cout<<"momentum: p0, p1:  "<<p[0]<<", "<<p[1]<<std::endl;
-        //std::cout<<"hit location: x0, y0, x1, y1, r0, r1:  "<<x[0]<<", "<<y[0]
-        //         <<", "<<x[1]<<", "<<y[1]<<", "<<r[0]<<", "<<r[1]<<std::endl;
-
-        localendpoint = Integrate(p[1], startpoint, startpointdirection, step_size, endpoint.Z());
-        x[0]=localendpoint.X();
-        y[0]=localendpoint.Y();
-        r[0] = sqrt(x[0]*x[0]+y[0]*y[0]);
-
-        //TODO - need to take into account of the energy loss along the trajectories, assume ~2 MeV for now.
-        //     - need slope matching as well
-
-        double dx = x[0]-xh;
-        double dy = y[0]-yh;
-        double dr = sqrt(dx*dx+dy*dy);
-        if ( dr<res) {
-            if (startpoint.Z()<=endpoint.Z())
-                fMomentum = p[1]+0.002;
-            else
-                fMomentum = p[1]-0.002;
-            std::cout<<"Converged after "<<n<<" iterations at ("
-            <<localendpoint.X()<<", "<<localendpoint.Y()<<", "<<localendpoint.Z()
-            <<"), with momentum "<<fMomentum<<" GeV and direction ("
-            <<fDirectionX[0]<<", "<<fDirectionY[0]<<", "<<fDirectionZ[0]<<")" <<std::endl;
-            return 0;
-        }
-
-        p[0] = p[1];
-        /*
-                // renormalization of the start direction vector
-                double ur = sqrt(startdirection.X()*startdirection.X()+
-                                 startdirection.Y()*startdirection.Y()+
-                                 startdirection.Z()*startdirection.Z());
-                startdirection.SetX(startdirection.X()/ur);
-                startdirection.SetY(startdirection.Y()/ur);
-                startdirection.SetZ(startdirection.Z()/ur);
-
-                std::cout<<"new direction: ("<<startdirection.X()<<","<<startdirection.Y()<<","
-                         <<startdirection.Z()<<")"<<std::endl;
-        */
-    }
-
-    std::cerr<<"Can't converge after "<<n<<" iterations."<<std::endl;
-    std::cerr<<"Hit at at ("<<localendpoint.X()<<", "<<localendpoint.Y()<<", "<<localendpoint.Z()
-    <<"), with momentum "<<p[1]<<" GeV and direction ("
-    <<fDirectionX[0]<<", "<<fDirectionY[0]<<", "<<fDirectionZ[0]<<")" <<std::endl;
-    return -1;
-};
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-// The filtering limits will be determined from MC simulation results
-int QwTrajectory::Filter(TVector3 startpoint, TVector3 startdirection,
-                         TVector3 endpoint, TVector3 enddirection) {
-
-    double start_theta, start_phi, end_theta, end_phi;
-
-    start_theta = acos(startdirection.Z())*DEGREE;
-    start_phi = atan2(startdirection.Y(),startdirection.X())*DEGREE;
-
-    end_theta = acos(enddirection.Z())*DEGREE;
-    end_phi = atan2(enddirection.Y(),enddirection.X())*DEGREE;
-
-    if (start_theta<4.0*DEGREE || start_theta>13.0*DEGREE) {    // scattering angle limit
-        std::cerr<<"Filter: scattering angle ("<<start_theta<<" degree) is out of range"<<std::endl;
+    // swimming direction limit
+    if (fStartPosition.Z()>=fEndPosition.Z()) {
+        std::cerr<<"Filter: start point location is at downstream of end point location"<<std::endl;
         return -1;
     }
 
-    double dtheta = end_theta-start_theta;
-    double dphi = end_phi - start_phi;
-    if (dtheta<8.0*DEGREE || dtheta>25.0*DEGREE || fabs(dphi)>5.0*DEGREE) { //bending angle limit in B field
+    // scattering angle limit
+    if ((fStartDirectionTheta < 4.0) || (fStartDirectionTheta > 13.0)) {
+        std::cerr<<"Filter: scattering angle ("<<fStartDirectionTheta<<" degree) is out of range"<<std::endl;
+        return -1;
+    }
+
+    //bending angle limit in B field
+    double dtheta = (fEndDirectionTheta-fStartDirectionTheta);
+    double dphi = (fEndDirectionPhi - fStartDirectionPhi);
+    if (dtheta<6.0 || dtheta>25.0 || fabs(dphi)>8.0) {
         std::cerr<<"Filter: bending angles (theta="<<dtheta<<" degree, phi="<<dphi
         <<" degree) in B field are out of range"<<std::endl;
         return -1;
     }
 
     return 0;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+int QwTrajectory::SearchTable() {
+
+    // front track position and angles at z= -250 cm plane
+    double r = fabs(fStartPosition.Z()-(-250.0))/fStartDirection.Z();
+    double x = fStartPosition.X() + r*fStartDirection.X();
+    double y = fStartPosition.Y() + r*fStartDirection.Y();
+
+    double position_r = sqrt(x*x+y*y);
+    double position_phi = fStartPositionPhi;
+    double direction_theta = fStartDirectionTheta;
+
+    double vertex_z = fStartPosition.Z() - position_r/tan(acos(fStartDirection.Z()));
+
+    // expected hit position and angles at z= +570 cm plane
+    r = fabs(fEndPosition.Z()-570.0)/fEndDirection.Z();
+    x = fEndPosition.X() - r*fEndDirection.X();
+    y = fEndPosition.Y() - r*fEndDirection.Y();
+
+    double expectedhitposition_r = sqrt(x*x+y*y);
+    double expectedhitposition_phi = atan2(y,x)*DEGREE;
+    if (expectedhitposition_phi<0.0)
+        expectedhitposition_phi = expectedhitposition_phi + 360.0;
+
+    bool isintable =   ((int)position_r >= R_MIN) && ((int)position_r < R_MAX) &&
+                       ((int)position_phi >= PHI_MIN) && ((int)position_phi <PHI_MAX) &&
+                       ((int)vertex_z > VERTEXZ_MIN) && ((int)vertex_z < VERTEXZ_MAX);
+
+    // search the table
+    if ( ! isintable ) {
+        std::cout<<"vertex_z="<<vertex_z<<std::endl;
+        std::cout<<"position_r="<<position_r<<std::endl;
+        std::cout<<"position_phi="<<position_phi<<std::endl;
+        std::cout<<"direction_theta="<<direction_theta<<std::endl;
+        std::cout<<"This potential track is not listed in the table."<<std::endl;
+        return -1;
+    }
+
+    // find the index of the neighbour tracks
+    int index_pos_r = ((int)(position_r+0.5)-R_MIN)/DR;
+    int index_pos_phi = ((int)(position_phi+0.5)-PHI_MIN)/DPHI;
+    int index_vertex_z = ((int)(vertex_z+0.5)-VERTEXZ_MIN)/DZ;
+
+    // build two subsets of the table
+    std::vector <QwPartialTrackParameter> backtrackparametersublist;
+    QwPartialTrackParameter backtrackparameter;
+    double *iP = new double[P_MAX-P_MIN+1];  //hold momentum for inteprolation
+    double *iR = new double[P_MAX-P_MIN+1];  //hold radial position for inteprolation
+
+    // NOTE jpan: ROOT::Math::GSLInterpolator::Eval(double) requires that
+    // x values must be monotonically increasing.
+
+    for (int p = P_MIN; p<=P_MAX; p+=DP) {
+        // build index
+        int index_momentum = ((int)p-P_MIN)/DP;
+        uint index = index_momentum*R_GRIDSIZE*PHI_GRIDSIZE*Z_GRIDSIZE
+                     + index_pos_r*PHI_GRIDSIZE*Z_GRIDSIZE
+                     + index_pos_phi*Z_GRIDSIZE
+                     + index_vertex_z ;
+
+        // keep iR monotonically increasing with the index
+        int ind = (P_MAX-P_MIN)/DP-index_momentum;
+
+        backtrackparameter = fBackTrackParameterTable.at(index);
+
+        iP[ind] = ((double)p)/1000.0;
+        iR[ind] = backtrackparameter.fPositionR;
+        backtrackparametersublist.push_back( backtrackparameter );
+        //std::cout<<"ind, iP, iR:   "<<ind<<", "<<iP[ind]<<", "<<iR[ind]<<std::endl;
+    }
+
+    //NOTE The dr/dp on focal plane is about 1 cm per 10 MeV
+
+    if (backtrackparametersublist.front().fPositionR  < expectedhitposition_r ||
+            backtrackparametersublist.back().fPositionR  > expectedhitposition_r ) {
+        std::cout<<"No match in look-up table!"<<std::endl;
+        return -1;
+    }
+
+    // the hit is within the momentum limits, do interpolation for momentum
+
+    // We can choose among the following methods:
+    // CSPLINE, LINEAR, POLYNOMIAL,
+    // CSPLINE_PERIODIC, AKIMA, AKIMA_PERIODIC
+    UInt_t size = backtrackparametersublist.size();
+    ROOT::Math::Interpolator inter(size, ROOT::Math::Interpolation::kPOLYNOMIAL);
+    inter.SetData(size, iR, iP);
+    fMomentum = inter.Eval(expectedhitposition_r)+0.002;  // [GeV]
+
+    delete iP;
+    delete iR;
+
+    // take the track parameter from the nearest track
+    if (fMomentum<0.96 || fMomentum>1.165) {
+        std::cerr<<"Out of momentum range: determined momentum by looking up table: "
+        << fMomentum<<" GeV"<<std::endl;
+        return -1;
+    }
+
+    backtrackparameter = backtrackparametersublist.at(((int)(fMomentum*1000.0+0.5)-P_MIN)/DP);
+
+    // set matching info
+    double sin_theta = sin(backtrackparameter.fDirectionTheta/DEGREE);
+    double cos_theta = cos(backtrackparameter.fDirectionTheta/DEGREE);
+    double sin_phi = sin(backtrackparameter.fDirectionPhi/DEGREE);
+    double cos_phi = cos(backtrackparameter.fDirectionPhi/DEGREE);
+    double sin_PHI = sin(backtrackparameter.fPositionPhi/DEGREE);
+    double cos_PHI = cos(backtrackparameter.fPositionPhi/DEGREE);
+
+    fHitLocation = TVector3(backtrackparameter.fPositionR*cos_PHI,
+                            backtrackparameter.fPositionR*sin_PHI,
+                            570.0);
+
+    fHitDirection = TVector3(sin_theta*cos_phi,sin_theta*sin_phi,cos_theta);
+
+    // extend to z = fEndPosition.Z() plane
+    r = (fEndPosition.Z()-570.0)/fHitDirection.Z();
+    x = fHitLocation.X() + r*fHitDirection.X();
+    y = fHitLocation.Y() + r*fHitDirection.Y();
+    fHitLocation = TVector3(x,y,fEndPosition.Z());
+    fHitLocationR = sqrt(x*x+y*y);
+    fHitLocationPhi = atan2(y,x)*DEGREE;
+    if (fHitLocationPhi<0.0)  fHitLocationPhi += 360.0;
+    fHitLocation = TVector3(x,y,fEndPosition.Z());
+
+    fHitDirectionTheta = acos(fHitDirection.Z())*DEGREE;
+    fHitDirectionPhi = atan2(fHitDirection.Y(),fHitDirection.X())*DEGREE;
+    if (fHitDirectionPhi<0.0) fHitDirectionPhi+=360.0;
+
+    // errors
+    fPositionROff = fHitLocationR - fEndPositionR;
+    fPositionPhiOff = fHitLocationPhi - fEndPositionPhi;
+    fDirectionThetaOff = fHitDirectionTheta - fEndDirectionTheta;
+    fDirectionPhiOff = fHitDirectionPhi - fEndDirectionPhi;
+
+    fPositionXOff = fHitLocation.X() - fEndPosition.X();
+    fPositionYOff = fHitLocation.Y() - fEndPosition.Y();
+
+    fDirectionXOff = fHitDirection.X() - fEndDirection.X();
+    fDirectionYOff = fHitDirection.Y() - fEndDirection.Y();
+    fDirectionZOff = fHitDirection.Z() - fEndDirection.Z();
+
+    if ( fabs(fPositionROff)<2.0 && fabs(fPositionPhiOff)<4.0 &&
+            fabs(fDirectionThetaOff)<1.0 && fabs(fDirectionPhiOff)<4.0 ) {
+
+        std::cout<<"======>>>>> Found a good match in the look-up table"<<std::endl;
+        return 0;
+    } else {
+        std::cout<<"Didn't find a good match in the look-up table"<<std::endl;
+        return -1;
+    }
+
 
 }
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+int QwTrajectory::Shooting() {
+
+    double res = 1.0; //position determination [cm]
+    double step_size = 1.0; // integration step size [cm]
+    double dp = 0.01; //momentum variation [GeV]
+
+    double p[2],x[2],y[2],r[2];
+
+    p[0] = p[1] = EstimateInitialMomentum(fStartDirection);
+    //std::cout<<"estimated momentum: "<<p[0]<<std::endl;
+
+    int n;
+    for (n=1; n<=MAX_ITERATION; n++) {
+
+        Integrate(p[0]-dp, step_size);
+        x[0]=fHitLocation.X();
+        y[0]=fHitLocation.Y();
+
+        Integrate(p[0]+dp, step_size);
+        x[1]=fHitLocation.X();
+        y[1]=fHitLocation.Y();
+
+        r[0] = sqrt(x[0]*x[0]+y[0]*y[0]);
+        r[1] = sqrt(x[1]*x[1]+y[1]*y[1]);
+
+        if (r[0]!=r[1])
+            p[1] = p[0] -0.5*dp*(r[0]+r[1]-2.0*fEndPositionR)/(r[1]-r[0]);
+
+        //TODO - need to take into account of the energy loss along the trajectories, assume ~2 MeV for now.
+        //     - need slope matching as well
+
+        Integrate(p[1], step_size);
+        x[0]=fHitLocation.X();
+        y[0]=fHitLocation.Y();
+
+        fHitLocationR = sqrt(x[0]*x[0]+y[0]*y[0]);
+        fHitLocationPhi = atan2(y[0],x[0])*DEGREE;
+        if (fHitLocationPhi<0.0) fHitLocationPhi+=360;
+
+        fHitDirectionTheta = acos(fHitDirection.Z())*DEGREE;
+        fHitDirectionPhi = atan2(fHitDirection.Y(),fHitDirection.X())*DEGREE;
+        if (fHitDirectionPhi<0.0) fHitDirectionPhi+=360;
+
+        fPositionXOff = fHitLocation.X() - fEndPosition.X();
+        fPositionYOff = fHitLocation.Y() - fEndPosition.Y();
+
+        fDirectionXOff = fHitDirection.X() - fEndDirection.X();
+        fDirectionYOff = fHitDirection.Y() - fEndDirection.Y();
+        fDirectionZOff = fHitDirection.Z() - fEndDirection.Z();
+
+        fPositionROff = fHitLocationR - fEndPositionR;
+        fPositionPhiOff = fHitLocationPhi - fEndPositionPhi;
+
+        fDirectionThetaOff = fHitDirectionTheta - fEndDirectionTheta;
+        fDirectionPhiOff = fHitDirectionPhi - fEndDirectionPhi;
+
+        if ( fPositionROff<res) {
+            fMomentum = p[1]+0.002;
+            std::cout<<"Converged after "<<n<<" iterations."<<std::endl;
+            return 0;
+        }
+
+        p[0] = p[1];
+    }
+
+    std::cerr<<"Can't converge after "<<n<<" iterations."<<std::endl;
+    std::cerr<<"Hit at at ("<<fHitLocation.X()<<", "<<fHitLocation.Y()<<", "<<fHitLocation.Z()
+    <<"), with momentum "<<p[1]<<" GeV and direction ("
+    <<fHitDirection.X()<<", "<<fHitDirection.Y()<<", "<<fHitDirection.Z()<<")" <<std::endl;
+    return -1;
+};
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -280,13 +479,11 @@ double QwTrajectory::EstimateInitialMomentum(TVector3 direction) {
 // If the endpoint is at upstream and startpoint is at downstream,
 // the electron will swim backward
 
-TVector3 QwTrajectory::Integrate(double E0,
-                                 TVector3 startpoint,
-                                 TVector3 direction,
-                                 double step,
-                                 double z_endplane) {
+int QwTrajectory::Integrate(double e0, double step) {
 
 // local variables
+    double xx[2],yy[2],zz[2];
+    double uvx[2],uvy[2],uvz[2];
     double x,y,z,x1,y1,z1;
     double vx,vy,vz,vx1,vy1,vz1;
     double dx1,dy1,dz1;
@@ -302,42 +499,42 @@ TVector3 QwTrajectory::Integrate(double E0,
     double point[3];
     double bfield[3];
 
-    double beta = -0.2998/E0;
+    double beta = -0.2998/e0;
     fBdlx=0.0;
     fBdly=0.0;
     fBdlz=0.0;
 
 // convert linear dimensions cm -> m
     step = step*0.01;
-    z_endplane = z_endplane*0.01;
+    double z_endplane = fEndPosition.Z()*0.01;
 
-    fPositionX[0]=startpoint.X()*0.01;
-    fPositionY[0]=startpoint.Y()*0.01;
-    fPositionZ[0]=startpoint.Z()*0.01;
+    xx[0]=fStartPosition.X()*0.01;
+    yy[0]=fStartPosition.Y()*0.01;
+    zz[0]=fStartPosition.Z()*0.01;
 
     //reverse coordinates for backward swiming
-    if (startpoint.Z()>z_endplane) {
-        fPositionX[0]=-fPositionX[0];
-        fPositionZ[0]=-fPositionZ[0];
-        fDirectionX[0]=direction.X();
-        fDirectionY[0]=-direction.Y();
-        fDirectionZ[0]=direction.Z();
+    if (fStartPosition.Z()*0.01>z_endplane) {
+        xx[0]=-xx[0];
+        zz[0]=-zz[0];
+        uvx[0]= fStartDirection.X();
+        uvy[0]=-fStartDirection.Y();
+        uvz[0]= fStartDirection.Z();
         z_endplane=-z_endplane;
     } else { //forward swiming
-        fDirectionX[0]=direction.X();
-        fDirectionY[0]=direction.Y();
-        fDirectionZ[0]=direction.Z();
+        uvx[0]=fStartDirection.X();
+        uvy[0]=fStartDirection.Y();
+        uvz[0]=fStartDirection.Z();
     }
 
-    while ( fabs(fPositionZ[0]-z_endplane)>=step ) {  // integration loop
+    while ( fabs(zz[0]-z_endplane)>=step ) {  // integration loop
 
         //values of the cordinates, unit vector and field at start of interval
-        x1=fPositionX[0];
-        y1=fPositionY[0];
-        z1=fPositionZ[0];
-        vx1=fDirectionX[0];
-        vy1=fDirectionY[0];
-        vz1=fDirectionZ[0];
+        x1=xx[0];
+        y1=yy[0];
+        z1=zz[0];
+        vx1=uvx[0];
+        vy1=uvy[0];
+        vz1=uvz[0];
 
         point[0]=x1*100.0;
         point[1]=y1*100.0;
@@ -346,10 +543,6 @@ TVector3 QwTrajectory::Integrate(double E0,
         bx = bfield[0];
         by = bfield[1];
         bz = bfield[2];
-
-//          std::cout<<"x1, y1, z1, bx, by, bz :    "
-//                    <<", "<<point[0]<<", "<<point[1]<<", "<<point[2]<<",      "
-//                    <<bx*10000.0<<", "<<by*10000.0<<", "<<bz*10000.0<<std::endl;
 
 //     first approximation to the changes in the variables for step h (k1)
         dx1=step*vx1;
@@ -434,46 +627,43 @@ TVector3 QwTrajectory::Integrate(double E0,
         dvz4=step*beta*(vx*by-vy*bx);
 
 //final estimates of trajectory
-        fPositionX[1]=fPositionX[0]+(dx1+2.0*dx2+2.0*dx3+dx4)/6.0;
-        fPositionY[1]=fPositionY[0]+(dy1+2.0*dy2+2.0*dy3+dy4)/6.0;
-        fPositionZ[1]=fPositionZ[0]+(dz1+2.0*dz2+2.0*dz3+dz4)/6.0;
-        fDirectionX[1]=fDirectionX[0]+(dvx1+2.0*dvx2+2.0*dvx3+dvx4)/6.0;
-        fDirectionY[1]=fDirectionY[0]+(dvy1+2.0*dvy2+2.0*dvy3+dvy4)/6.0;
-        fDirectionZ[1]=fDirectionZ[0]+(dvz1+2.0*dvz2+2.0*dvz3+dvz4)/6.0;
+        xx[1]=xx[0]+(dx1+2.0*dx2+2.0*dx3+dx4)/6.0;
+        yy[1]=yy[0]+(dy1+2.0*dy2+2.0*dy3+dy4)/6.0;
+        zz[1]=zz[0]+(dz1+2.0*dz2+2.0*dz3+dz4)/6.0;
+        uvx[1]=uvx[0]+(dvx1+2.0*dvx2+2.0*dvx3+dvx4)/6.0;
+        uvy[1]=uvy[0]+(dvy1+2.0*dvy2+2.0*dvy3+dvy4)/6.0;
+        uvz[1]=uvz[0]+(dvz1+2.0*dvz2+2.0*dvz3+dvz4)/6.0;
 
-        fPositionX[0]=fPositionX[1];
-        fPositionY[0]=fPositionY[1];
-        fPositionZ[0]=fPositionZ[1];
-        fDirectionX[0]=fDirectionX[1];
-        fDirectionY[0]=fDirectionY[1];
-        fDirectionZ[0]=fDirectionZ[1];
-
-//          std::cout<<"fPositionX, fPositionY, fPositionZ, bx, by, bz :    "
-//                    <<", "<<fPositionX[0]*100.0<<", "<<fPositionY[0]*100.0<<", "<<fPositionZ[0]*100.0<<",      "
-//                    <<bx*10000.0<<", "<<by*10000.0<<", "<<bz*10000.0<<std::endl;
+        xx[0]=xx[1];
+        yy[0]=yy[1];
+        zz[0]=zz[1];
+        uvx[0]=uvx[1];
+        uvy[0]=uvy[1];
+        uvz[0]=uvz[1];
 
     } //end of while loop
 
     //reverse coordinates for backward swiming
-    if (startpoint.Z()>z_endplane) {
-        fPositionX[0]=-fPositionX[0];
-        fPositionZ[0]=-fPositionZ[0];
-        fDirectionY[0]=-fDirectionY[0];
+    if (fStartPosition.Z()*0.01>z_endplane) {
+        xx[0]=-xx[0];
+        zz[0]=-zz[0];
+        uvy[0]=-uvy[0];
     }
 
-    return TVector3(fPositionX[0]*100.0,fPositionY[0]*100.0,fPositionZ[0]*100.0);
+    fHitLocation = TVector3(xx[0]*100.0,yy[0]*100.0,zz[0]*100.0);
+    fHitDirection = TVector3(uvx[0],uvy[0],uvz[0]);
+
+    return 0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 int QwTrajectory::LoadMomentumMatrix() {
 
-    Double_t p;
-    //Double_t x[3],y[3],z[3],ux[3],uy[3],uz[3];
-    Double_t position_r[3],position_phi[3];
-    Double_t direction_theta[3],direction_phi[3];
+    Int_t   index;
+    Double_t position_r,position_phi;
+    Double_t direction_theta,direction_phi;
 
-    //Double_t theta,phi;
     TVector3 startpoint,startdirection,endpoint,enddirection;
 
     //open file
@@ -491,86 +681,272 @@ int QwTrajectory::LoadMomentumMatrix() {
 
     TTree *momentum_tree = (TTree *)rootfile->Get("Momentum_Tree");
 
-    momentum_tree->SetBranchAddress("position_r0", &position_r[0]);
-    momentum_tree->SetBranchAddress("position_phi0", &position_phi[0]);
-    momentum_tree->SetBranchAddress("direction_theta0",&direction_theta[0]);
-    momentum_tree->SetBranchAddress("direction_phi0",&direction_phi[0]);
+    std::cout<<"Read data from look-up table"<<std::endl;
 
-    momentum_tree->SetBranchAddress("position_r1", &position_r[1]);
-    momentum_tree->SetBranchAddress("position_phi1", &position_phi[1]);
-    momentum_tree->SetBranchAddress("direction_theta1",&direction_theta[1]);
-    momentum_tree->SetBranchAddress("direction_phi1",&direction_phi[1]);
-
-    momentum_tree->SetBranchAddress("position_r2", &position_r[2]);
-    momentum_tree->SetBranchAddress("position_phi2", &position_phi[2]);
-    momentum_tree->SetBranchAddress("direction_theta2",&direction_theta[2]);
-    momentum_tree->SetBranchAddress("direction_phi2",&direction_phi[2]);
-
-    momentum_tree->SetBranchAddress("p",  &p);
-
-
-    QwPartialTrackParameter backtrackparameter;
+    momentum_tree->SetBranchAddress("index",&index);
+    momentum_tree->SetBranchAddress("position_r", &position_r);
+    momentum_tree->SetBranchAddress("position_phi", &position_phi);
+    momentum_tree->SetBranchAddress("direction_theta",&direction_theta);
+    momentum_tree->SetBranchAddress("direction_phi",&direction_phi);
 
     Int_t numberOfEntries = momentum_tree->GetEntries();
-    std::cout<<"Total grid points: "<<numberOfEntries<<std::endl;
 
-    //build index (phi always changes from 0 to 360 degree with dphi=1.0 degree)
-    int momentum_min = (int) (100*momentum_tree->GetMinimum("p"));  //dp = 0.01 GeV
-    int momentum_max = (int) (100*momentum_tree->GetMaximum("p")) +1 ;
-    int position_r0_min = (int) (2*momentum_tree->GetMinimum("position_r0"));  // dr ~0.5 cm
-    int position_r0_max = (int) (2*momentum_tree->GetMaximum("position_r0"))+1;
-    int direction_theta0_min = (int) (2*momentum_tree->GetMinimum("direction_theta0")); //dtheta = 0.5 degree
-    int direction_theta0_max = (int) (2*momentum_tree->GetMaximum("direction_theta0")) +1;
-
-
-    std::cout<<"p_min, p_max: "<<momentum_min<<","<<momentum_max<<std::endl;
-    std::cout<<"r0_min, r0_max: "<<position_r0_min<<","<<position_r0_max<<std::endl;
-    std::cout<<"theta0_min, theta0_max: "<<direction_theta0_min<<","<<direction_theta0_max<<std::endl;
-
-    int gridsize_momentum = momentum_max-momentum_min+1;
-    int gridsize_position_r0 = position_r0_max-position_r0_min+1;
-    int gridsize_position_phi0 = 360;
-    int gridsize_direction_theta0 = direction_theta0_max-direction_theta0_min+1;
-    uint index_size = gridsize_momentum*gridsize_position_r0*gridsize_position_phi0*gridsize_direction_theta0;
-
-    fTableIndex = new int[index_size];
+    QwPartialTrackParameter backtrackparameter;
     fBackTrackParameterTable.reserve(numberOfEntries);
 
-    std::cout<<"Start to read data"<<std::endl;
+    std::cout<<"total grid points : "<<numberOfEntries<<std::endl;
 
     for ( Int_t i=0; i<numberOfEntries; i++) {
         momentum_tree->GetEntry(i);
-        backtrackparameter.fPositionR = (float)position_r[2];
-        backtrackparameter.fPositionPhi = (float)position_phi[2];
-        backtrackparameter.fDirectionTheta = (float)direction_theta[2];
-        backtrackparameter.fDirectionPhi = (float)direction_phi[2];
 
-        // NOTE direction_phi[0] ~ position_phi[0], so we only need to index one of them
-        int index_momentum = (int)(p*100)-momentum_min;
-        int index_pos_r = (int)(2*position_r[0])-position_r0_min;
-        int index_pos_phi = (int)position_phi[0];
-        int index_dir_theta = (int)(2*direction_theta[0])-direction_theta0_min;
-        // int index_dir_phi = (int)direction_phi[0];
+        // only z=+570 cm plane data
+        backtrackparameter.fPositionR = (float)position_r;
+        backtrackparameter.fPositionPhi = (float)position_phi;
+        backtrackparameter.fDirectionTheta = (float)direction_theta;
+        backtrackparameter.fDirectionPhi = (float)direction_phi;
 
-        //std::cout<<"index_momentum "<<index_momentum<<",  index_pos_r "<<index_pos_r
-        //         <<",  index_pos_phi "<<index_pos_phi<<",  index_dir_theta "<<index_dir_theta<<std::endl;
-
-        //  build indexing array
-        //  fTableIndex[index_momentum][index_pos_r][index_pos_phi][index_dir_theta] = i;
-        int multi_index = index_momentum*gridsize_position_r0*gridsize_position_phi0*gridsize_direction_theta0
-                          + index_pos_r*gridsize_position_phi0*gridsize_direction_theta0
-                          + index_pos_phi*gridsize_direction_theta0
-                          + index_dir_theta ;
-        fTableIndex[multi_index] = i;
-
-        fBackTrackParameterTable.push_back( backtrackparameter);
+        fBackTrackParameterTable.push_back(backtrackparameter);
     }
 
+    std::cout<<"...done."<<std::endl;
     rootfile->Close();
     delete rootfile;
-
     return 0;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+QwBridge* QwTrajectory::GetBridgingInfo() {
+
+    QwBridge* bridgeinfo = new QwBridge();
+
+    bridgeinfo->xOff = fPositionXOff;
+    bridgeinfo->yOff = fPositionYOff;
+
+    // and something?
+
+    return bridgeinfo;
+
+};
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+void QwTrajectory::PrintInfo() {
+
+    std::cout<<std::endl<<"   Front/back bridging information"<<std::endl;
+    std::cout<<"====================================================================="<<std::endl;
+    std::cout<<"swiming from :    location (x,y,z) : ("<<fStartPosition.X()<<", "
+    <<fStartPosition.Y()<<", "
+    <<fStartPosition.Z()<<")"<<std::endl;
+
+    std::cout<<"                         (R,PHI,Z) : ("<<fStartPositionR<<", "
+    <<fStartPositionPhi<<", "
+    <<fStartPosition.Z()<<")"<<std::endl;
+
+    std::cout<<"              direction (ux,uy,uz) : ("<<fStartDirection.X()<<", "
+    <<fStartDirection.Y()<<", "
+    <<fStartDirection.Z()<<")"<<std::endl;
+
+    std::cout<<"                       (theta,phi) : ("<<fStartDirectionTheta<<", "
+    <<fStartDirectionPhi<<")"<<std::endl;
+
+    std::cout<<"          to :    location (x,y,z) : ("<<fEndPosition.X()<<", "
+    <<fEndPosition.Y()<<", "
+    <<fEndPosition.Z()<<")"<<std::endl;
+
+    std::cout<<"                         (R,PHI,Z) : ("<<fEndPositionR<<", "
+    <<fEndPositionPhi<<", "
+    <<fEndPosition.Z()<<")"<<std::endl;
+
+    std::cout<<"              direction (ux,uy,uz) : ("<<fEndDirection.X()<<", "
+    <<fEndDirection.Y()<<", "
+    <<fEndDirection.Z()<<")"<<std::endl;
+
+    std::cout<<"                       (theta,phi) : ("<<fEndDirectionTheta<<", "
+    <<fEndDirectionPhi<<")"<<std::endl;
+
+    std::cout<<" matched hit :    location (x,y,z) : ("<<fHitLocation.X()<<", "
+    <<fHitLocation.Y()<<", "
+    <<fHitLocation.Z()<<")"<<std::endl;
+
+    std::cout<<"                         (R,PHI,Z) : ("<<fHitLocationR<<", "
+    <<fHitLocationPhi<<", "
+    <<fHitLocation.Z()<<")"<<std::endl;
+
+    std::cout<<"              direction (ux,uy,uz) : ("<<fHitDirection.X()<<", "
+    <<fHitDirection.Y()<<", "
+    <<fHitDirection.Z()<<")"<<std::endl;
+
+    std::cout<<"                       (theta,phi) : ("<<fHitDirectionTheta<<", "
+    <<fHitDirectionPhi<<")"<<std::endl;
+
+    std::cout<<"       error :            dR, dPHI : "<<fPositionROff<<", "<<fPositionPhiOff<<" [cm,deg]"<<std::endl;
+    std::cout<<"                      dtheta, dphi : "<<fDirectionThetaOff<<", "<<fDirectionPhiOff<<" [deg,deg]"<<std::endl;
+
+    std::cout<<"                          momentum : "<<fMomentum<<" GeV"<<std::endl;
+    std::cout<<"====================================================================="<<std::endl<<std::endl;
+};
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+void QwTrajectory::ReadSimPartialTrack() {
+
+    if (fSimFlag == 0) {
+        //initialize tree
+
+        fSimFlag = 1;
+    }
+
+    // Get an entry from the tree
+
+
+    //Set start and end point and direction
+
+};
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+void QwTrajectory::GenerateLookUpTable() {
+
+    UInt_t    gridnum;
+    UInt_t    index;
+    UInt_t    ind_p,ind_r,ind_phi,ind_z;
+
+    Int_t  p;
+    Int_t  r;
+    Int_t  phi;
+    Int_t  vertex_z;
+
+    Double_t  theta;
+    Double_t  x[3],y[3],z[3],ux[3],uy[3],uz[3];
+
+    Double_t  position_r,position_phi;   //z=570 cm plane
+    Double_t  direction_theta,direction_phi;
+
+    Double_t  step_size = 1.0; // [cm]
+    TVector3  startpoint,startdirection,endpoint,enddirection;
+
+    z[0] = -250.0; // [cm]
+    z[1] =  250.0; // [cm]
+    z[2] =  570.0; // [cm]
+
+    UInt_t grid_size = P_GRIDSIZE*Z_GRIDSIZE*R_GRIDSIZE*PHI_GRIDSIZE;
+
+    //open file and set up output tree
+    TString rootfilename=std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QwTrajMatrix.root";
+    TFile* rootfile = new TFile(rootfilename,"RECREATE","Qweak momentum matrix");
+    rootfile->cd();
+
+    TTree *momentum_tree = new TTree("Momentum_Tree","momentum data tree");
+
+    // This table is linearly indexed with 1D index
+    momentum_tree->Branch("index",&index,"index/I");
+
+// position and direction at focal plane
+    momentum_tree->Branch("position_r", &position_r, "position_r/D");
+    momentum_tree->Branch("position_phi", &position_phi, "position_phi/D");
+    momentum_tree->Branch("direction_theta",&direction_theta,"direction_theta/D");
+    momentum_tree->Branch("direction_phi",&direction_phi,"direction_phi/D");
+
+    std::cout<<"Start to generate trajectory data, total grid size: "<<grid_size<<std::endl;
+
+    // Create a timer
+    TStopwatch timer;
+    timer.Start();
+
+    // calculate traj's, the loop sequence should be kept as
+    // p_loop{  r_loop{ phi_loop{ vertex_z loop{} } } } to
+    // make sure the table is indexed correctly
+
+    gridnum = 0;
+
+    for (p=P_MIN; p<=P_MAX; p+=DP) {
+        for (r=R_MIN;r<=R_MAX; r+=DR) {      // r and phi are specified on z=-250 cm plane
+            for (phi=PHI_MIN;phi<=PHI_MAX; phi+=DPHI) {
+                for (vertex_z=VERTEXZ_MIN; vertex_z<=VERTEXZ_MAX; vertex_z+=DZ) {
+
+                    ind_p = (p-P_MIN)/DP;
+                    ind_r = (r-R_MIN)/DR;
+                    ind_phi = (phi-PHI_MIN)/DPHI;
+                    ind_z = (vertex_z-VERTEXZ_MIN)/DZ;
+                    index = ind_p*R_GRIDSIZE*PHI_GRIDSIZE*Z_GRIDSIZE +
+                            ind_r*PHI_GRIDSIZE*Z_GRIDSIZE +
+                            ind_phi*Z_GRIDSIZE +
+                            ind_z;
+
+                    //intersection position and direction with the z=-250 cm plane
+                    theta = atan2(r,(-250.0-vertex_z))*DEGREE;
+
+                    ux[0] = sin(theta/DEGREE)*cos((double)phi/DEGREE);
+                    uy[0] = sin(theta/DEGREE)*sin((double)phi/DEGREE);
+                    uz[0] = cos(theta/DEGREE);
+                    startdirection = TVector3(ux[0],uy[0],uz[0]);
+
+                    x[0] = (double)r*cos((double)phi/DEGREE);
+                    y[0] = (double)r*sin((double)phi/DEGREE);
+                    startpoint = TVector3(x[0],y[0],z[0]);
+
+                    enddirection = TVector3(0.0,0.0,0.0);
+                    endpoint = TVector3(0.0,0.0,z[1]);
+
+                    SetStartAndEndPoints(startpoint, startdirection,
+                                         endpoint, enddirection);
+
+                    //raytrace from startplane (z=-250 cm) to endplane (z=+250 cm)
+                    // p in [GeV] for the integration
+                    Integrate((double)p*0.001, step_size);
+                    x[1] = GetHitLocationX();
+                    y[1] = GetHitLocationY();
+                    ux[1] = GetHitDirectionX();
+                    uy[1] = GetHitDirectionY();
+                    uz[1] = GetHitDirectionZ();
+
+                    // Extending the back stright tracks onto z=+570 cm focal plane
+                    double R = (z[2]-z[1])/uz[1];
+                    x[2] = x[1] + R*ux[2];
+                    y[2] = y[1] + R*uy[2];
+                    ux[2] = ux[1];
+                    uy[2] = uy[1];
+                    uz[2] = uz[1];
+
+                    position_r = sqrt(x[2]*x[2]+y[2]*y[2]);
+                    position_phi = atan2(y[2],x[2])*DEGREE;
+                    if (position_phi<0.0) position_phi = position_phi+360.0;
+                    direction_theta = acos(uz[2])*DEGREE;
+                    direction_phi = atan2(uy[2],ux[2])*DEGREE;
+                    if (direction_phi<0.0) direction_phi = direction_phi+360.0;
+
+                    gridnum++;
+
+                    //fill tree
+                    momentum_tree->Fill();
+
+                    if (gridnum % 1000 == 0)   {
+                        std::cout<<"."<<std::flush;
+                        if ((gridnum % 100000) == 0 || gridnum == grid_size)   {
+                            std::cout<<100*gridnum/grid_size<<"%"<<std::flush;
+                            momentum_tree->AutoSave();
+                            gDirectory->Purge();
+                        }
+                    }
+                } //end of vertex_z loop
+            } //end of phi loop
+        } //end of r loop
+    } //end of p loop
+
+    timer.Stop();
+
+    std::cout<<"  done."<<std::endl<<"generated "<<gridnum<<" trajectories."<<std::endl;
+
+    std::cout<<"CPU time used:  " << timer.CpuTime() << " s "
+    << "(" << timer.CpuTime() / gridnum << " s per trajectory)" << std::endl
+    << "Real time used: " << timer.RealTime() << " s "
+    << "(" << timer.RealTime() / gridnum << " s per trajectory)" << std::endl;
+
+    rootfile->Write(0, TObject::kOverwrite);
+    rootfile->Close();
+
+    delete rootfile;
+};
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
