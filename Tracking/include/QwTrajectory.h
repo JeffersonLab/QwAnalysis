@@ -28,6 +28,13 @@
 #include <Math/Interpolator.h>
 #include <TStopwatch.h>
 
+//  KLUDGE:  Add this header file to force the compiler to build
+//  the correct dependency structure.  The proper thing would
+//  be to have the Makefile recurse through all classes that
+//  any included class depends on; I have a partial solution
+//  but it isn't ready to commit tonight (2009dec15; pking).
+#include "QwMagneticField.h"
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 // degree = 180.0/3.1415926535897932
