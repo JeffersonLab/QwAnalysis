@@ -165,14 +165,14 @@ ifndef ROOTSYS
   endif
 endif
 ROOTCONFIG   := $(ROOTSYS)/bin/root-config
-ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags)
+ROOTDEFINE   := $(shell $(ROOTCONFIG) --features | $(SED) 's/\(\s*\)\([a-zA-Z0-9_]*\)/\1-D__ROOT_HAS_\2/g;y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
+ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags) $(ROOTDEFINE)
 ROOTLIBS     := $(shell $(ROOTCONFIG) --new --libs) -lTreePlayer -lGX11 -lMathMore
         # -lNew : for map file capability
         # -lTreePlayer -lProof : for user loops calling tree
         #                        variables under conditions
         # -lMathMore : for using ROOT advanced math library
 ROOTGLIBS    := $(shell $(ROOTCONFIG) --glibs)
-
 
 
 ############################

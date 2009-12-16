@@ -25,7 +25,6 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TVector3.h>
-#include <Math/Interpolator.h>
 #include <TStopwatch.h>
 
 //  KLUDGE:  Add this header file to force the compiler to build
@@ -33,7 +32,14 @@
 //  be to have the Makefile recurse through all classes that
 //  any included class depends on; I have a partial solution
 //  but it isn't ready to commit tonight (2009dec15; pking).
+// Qweak headers
 #include "QwMagneticField.h"
+
+#ifdef __ROOT_HAS_MATHMORE
+# include <Math/Interpolator.h>
+#else
+# warning "The QwTrajectory look-up table momentum determination will not be built!"
+#endif
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
