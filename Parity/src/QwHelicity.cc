@@ -466,6 +466,7 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	namech.ToLower();
 	keyword = mapstr.GetNextToken(", ").c_str();
 	keyword.ToLower();
+	// Notice that "namech" and "keyword" are now forced to lower-case.
 
 	if(currentsubbankindex!=GetSubbankIndex(currentrocread,currentbankread))
 	  {
@@ -494,6 +495,9 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	    localword.fWordType=dettype;
 	    fWord.push_back(localword);
 	    if(ldebug) std::cout<<"--"<<namech<<"--"<<fWord.size()-1<<"\n";
+	    
+	    // Notice that "namech" is in lower-case, so these checks
+	    // should all be in lower-case
 	    if(dolocalhelicity)
 	      {
 		if(namech.Contains("userbit")) kuserbit=fWord.size()-1;
@@ -502,9 +506,9 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	    if(dolocalhelicity2)
 	      {
 		if(namech.Contains("input_register")) kinputregister= fWord.size()-1;
-		if(namech.Contains("MPS_counter")) kmpscounter= fWord.size()-1;
-		if(namech.Contains("PAT_counter")) kpatterncounter= fWord.size()-1;
-		if(namech.Contains("PAT_phase")) kpatternphase= fWord.size()-1;
+		if(namech.Contains("mps_counter")) kmpscounter= fWord.size()-1;
+		if(namech.Contains("pat_counter")) kpatterncounter= fWord.size()-1;
+		if(namech.Contains("pat_phase")) kpatternphase= fWord.size()-1;
 	      }
 	  }
       }
