@@ -35,7 +35,7 @@
 // Qweak headers
 #include "QwMagneticField.h"
 
-#ifdef __ROOT_HAS_MATHMORE
+#if defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
 # include <Math/Interpolator.h>
 #else
 # warning "The QwTrajectory look-up table momentum determination will not be built!"

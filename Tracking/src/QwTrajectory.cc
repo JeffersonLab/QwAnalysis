@@ -302,15 +302,13 @@ int QwTrajectory::SearchTable() {
     // CSPLINE_PERIODIC, AKIMA, AKIMA_PERIODIC
     UInt_t size = backtrackparametersublist.size();
 
-#ifdef __ROOT_HAS_MATHMORE
+#if defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
 
 #if ROOT_VERSION_CODE >= ROOT_VERSION(5,22,0)
     // Newer version of the MathMore plugin use kPOLYNOMIAL
-    #warning "Using newer version of MathMore plugin."
     ROOT::Math::Interpolator inter(size, ROOT::Math::Interpolation::kPOLYNOMIAL);
 #else
-    // Older version of the MathMore plugin use kPOLYNOMIAL
-    #warning "Using older version of MathMore plugin."
+    // Older version of the MathMore plugin use POLYNOMIAL
     ROOT::Math::Interpolator inter(size, ROOT::Math::Interpolation::POLYNOMIAL);
 #endif
 
@@ -380,14 +378,14 @@ int QwTrajectory::SearchTable() {
         return -1;
     }
 
-#else // __ROOT_HAS_MATHMORE
+#else // defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
 
     // No support for ROOT MathMore: warn user and return failure
     std::cout << "No support for QwTrajectory interpolation." << std::endl;
     std::cout << "Please install the ROOT MathMore plugin and recompile." << std::endl;
     return -1;
 
-#endif // __ROOT_HAS_MATHMORE
+#endif // defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
 
 }
 

@@ -166,7 +166,7 @@ ifndef ROOTSYS
 endif
 ROOTCONFIG   := $(ROOTSYS)/bin/root-config
 ROOTDEFINE   := $(shell $(ROOTCONFIG) --features | $(SED) 's/\(\s*\)\([a-zA-Z0-9_]*\)/\1-D__ROOT_HAS_\2/g;y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
-ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags) $(ROOTDEFINE)
+ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags)
 ROOTLIBS     := $(shell $(ROOTCONFIG) --new --libs) -lTreePlayer -lGX11
         # -lNew : for map file capability
         # -lTreePlayer -lProof : for user loops calling tree
@@ -174,10 +174,11 @@ ROOTLIBS     := $(shell $(ROOTCONFIG) --new --libs) -lTreePlayer -lGX11
 ROOTGLIBS    := $(shell $(ROOTCONFIG) --glibs)
 
 # -lMathMore : for using ROOT advanced math library
-ifneq ($(shell $(ECHO) $(ROOTDEFINE) | $(GREP) __ROOT_HAS_MATHMORE),)
+ifeq ($(shell $(ROOTCONFIG) --has-mathmore),yes)
+  ROOTCFLAGS += -D__ROOT_HAS_MATHMORE
   ROOTLIBS += -lMathMore
 else
-  $(warning The ROOT MathMore plugin was not found on your system.  Functionality might be reduced.)
+  $(warning The ROOT MathMore plugin was not found on your system.  Expect reduced functionality.)
 endif
 
 ############################
