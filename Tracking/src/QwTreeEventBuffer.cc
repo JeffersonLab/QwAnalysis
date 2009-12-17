@@ -12,9 +12,6 @@
 #include <string>
 #include <cmath>
 
-extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-extern Det rcDET[NDetMax];
-
 #define PI 3.141592653589793
 #define VSIZE 100
 

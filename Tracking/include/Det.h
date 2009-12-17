@@ -18,8 +18,8 @@
 // Qweak headers
 #include "QwTypes.h"
 
-//#define NDetMax 100
-#define NDetMax 1010 //for track reconstruction libraries
+// Maximum number of tracking detectors
+#define NDetMax 1010
 
 /// First declare the Hit and Det are objects, because they contain
 /// pointers to each other.
@@ -91,5 +91,7 @@ class Det {
 
 };
 
+extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
+extern Det rcDET[NDetMax];
 
 #endif // DET_H

@@ -99,8 +99,6 @@
 
 const std::string QwTrackingTree::TREEDIR("tree");
 
-extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-
 /*! Defines are relevant for the storage of the trees in files. */
 #define OFFS1   2 /* Next Sons have to be linked to offset 1 nodelist */
 #define SONEND  3 /* End of son-description */

@@ -38,8 +38,6 @@
 
 #include "Det.h"
 
-extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 double rcPEval( double vz, double te, double ph, double bend){

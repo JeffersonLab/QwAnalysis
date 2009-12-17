@@ -48,10 +48,6 @@
 #include "QwOptions.h"
 
 
-// Global variables for tracking modules (deprecated)
-Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-Det rcDET[NDetMax];
-
 
 // Debug level
 static const bool kDebug = false;

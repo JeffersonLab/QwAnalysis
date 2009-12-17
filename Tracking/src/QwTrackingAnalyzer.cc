@@ -10,11 +10,6 @@
 // Qweak tracking worker
 #include "QwTrackingWorker.h"
 
-// rcDETRegion is a 3D array of lists (yes!)
-Det* rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-// rcDET is a list of detectors
-Det rcDET[NDetMax];
-
 
 //ClassImp(QwTrackingAnalyzer)
 

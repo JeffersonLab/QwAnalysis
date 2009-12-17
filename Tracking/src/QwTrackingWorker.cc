@@ -112,8 +112,6 @@ using std::endl;
 
 #include "QwTrajectory.h"
 
-extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)

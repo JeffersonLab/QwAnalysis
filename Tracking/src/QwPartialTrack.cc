@@ -7,7 +7,6 @@ ClassImp(QwPartialTrack);
 TClonesArray* QwPartialTrack::gQwTreeLines = 0;
 
 #include "Det.h"
-extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
 
 QwPartialTrack::QwPartialTrack()
 {

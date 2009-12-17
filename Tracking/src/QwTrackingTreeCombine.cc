@@ -56,10 +56,6 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
 QwTrackingTreeCombine::QwTrackingTreeCombine()
 {
   fDebug = 0; // Debug level
@@ -746,7 +742,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
 
   // Bin 'resolution'
   // TODO This should be retrieved from the QwHitPattern stored inside the tree line
-  int levels;
+  int levels = 0;
   switch (region) {
     case kRegionID2: levels = gQwOptions.GetValue<int>("QwTracking.R2.levels"); break;
     case kRegionID3: levels = gQwOptions.GetValue<int>("QwTracking.R2.levels"); break;

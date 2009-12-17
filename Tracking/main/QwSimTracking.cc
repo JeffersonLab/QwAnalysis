@@ -40,10 +40,6 @@
 #include "QwOptionsTracking.h"
 #include "QwLog.h"
 
-// Temporary global variables for sub-programs
-Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-Det rcDET[NDetMax];
-
 
 // Debug level
 static const bool kDebug = false;

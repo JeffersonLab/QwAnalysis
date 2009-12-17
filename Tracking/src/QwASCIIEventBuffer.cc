@@ -21,10 +21,6 @@ Rakitha (04/24/2009)
 #include <string>
 #include <cmath>
 
-extern Det rcDET[NDetMax];
-extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-
-
 
 
 #define PI 3.141592653589793
