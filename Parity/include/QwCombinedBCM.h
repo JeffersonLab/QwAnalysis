@@ -5,35 +5,41 @@
 * Time-stamp:                                             *
 \**********************************************************/
 
-#ifndef __QwVQWK_BCM__
-#define __QwVQWK_BCM__
+#ifndef __QwVQWK_COMBINEDBCM__
+#define __QwVQWK_COMBINEDBCM__
 
 #include <vector>
 #include <TTree.h>
 
 #include "QwVQWK_Channel.h"
-
+#include "QwBCM.h"
 
 /*****************************************************************
 *  Class:
 ******************************************************************/
-///
-/// \ingroup QwAnalysis_BL
-class QwBCM : public VQwDataElement{
-/////
-  friend class QwCombinedBCM;
- public:
-  QwBCM() { };
-  QwBCM(TString name){
-    InitializeChannel(name,"raw");
-  };
-  ~QwBCM() {DeleteHistograms();};
 
+class QwCombinedBCM : public VQwDataElement{
+/////
+ public:
+  QwCombinedBCM() { };
+  QwCombinedBCM(TString name){
+    InitializeChannel(name, "derived");
+  };
+  ~QwCombinedBCM() {DeleteHistograms();};
+
+
+
+
+  void Add(QwBCM* bcm, Double_t weight  ); ///added by me
+  
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
+  void  ClearEventData();
 
   void  InitializeChannel(TString name, TString datatosave);
-  void  ClearEventData();
   
+  void ReportErrorCounters();
+
+  void CalculateAverage();
 
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
@@ -47,23 +53,22 @@ class QwBCM : public VQwDataElement{
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings 
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Int_t SetSingleEventCuts(std::vector<Double_t> &);//two limts and sample size
-  void SetDefaultSampleSize(Int_t sample_size);  
+  void SetDefaultSampleSize(Int_t sample_size);
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;
-    fTriumf_ADC.SetEventCutMode(bcuts);
+    fCombined_bcm.SetEventCutMode(bcuts);
   }
-  
   void Print() const;
-
+  
 
   
 
-  QwBCM& operator=  (const QwBCM &value);
-  QwBCM& operator+= (const QwBCM &value);
-  QwBCM& operator-= (const QwBCM &value);
-  void Sum(QwBCM &value1, QwBCM &value2);
-  void Difference(QwBCM &value1, QwBCM &value2);
-  void Ratio(QwBCM &numer, QwBCM &denom); 
+  QwCombinedBCM& operator=  (const QwCombinedBCM &value);
+  QwCombinedBCM& operator+= (const QwCombinedBCM &value);
+  QwCombinedBCM& operator-= (const QwCombinedBCM &value);
+  void Sum(QwCombinedBCM &value1, QwCombinedBCM &value2);
+  void Difference(QwCombinedBCM &value1, QwCombinedBCM &value2);
+  void Ratio(QwCombinedBCM &numer, QwCombinedBCM &denom); 
   void Scale(Double_t factor);
   void Calculate_Running_Average();
   void Do_RunningSum(); 
@@ -80,28 +85,30 @@ class QwBCM : public VQwDataElement{
 
   void Copy(VQwDataElement *source);
 
+
 /////
  protected:
-
+  
+  QwVQWK_Channel fCombined_bcm;
 /////
  private:
   
-  Double_t fPedestal;
-  Double_t fCalibration;
+  Double_t fCalibration; 
   Double_t fULimit, fLLimit;
-  Bool_t fGoodEvent;//used to validate sequence number in the IsGoodEvent()
-  
+  Double_t fSequenceNo_Prev;
 
-  
-  
-  QwVQWK_Channel fTriumf_ADC;
+  Bool_t fGoodEvent;//used to validate sequence number in the IsGoodEvent() */
 
-  Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check 
+  std::vector <QwBCM*> fElement;
+  std::vector <Double_t> fWeights;
+
+
+  Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check  */
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
 
-  const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
+  const static  Bool_t bDEBUG=kFALSE;//debugging display purposes */
   Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
-  
+
 };
 
 #endif

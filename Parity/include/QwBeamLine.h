@@ -15,15 +15,16 @@
 
 #include "QwBPMStripline.h"
 #include "QwBCM.h"
-
+#include "QwCombinedBCM.h"
 
 enum EBeamInstrumentType{kBPMStripline = 0,
-			 kBCM};
+			 kBCM,
+			 kCombinedBCM
+};
 // this emun vector needs to be coherent with the DetectorTypes declaration in the QwBeamLine constructor
 
 
-///
-/// \ingroup QwAnalysis_BL
+
 class QwBeamDetectorID
 {
  public:
@@ -31,22 +32,22 @@ class QwBeamDetectorID
     fSubelement(999999),fmoduletype(""),fdetectorname("")
     {};
 
-  int fSubbankIndex;
-  int fWordInSubbank; //first word reported for this channel in the subbank
+    int fSubbankIndex;
+    int fWordInSubbank; //first word reported for this channel in the subbank
                       //(eg VQWK channel report 6 words for each event, scalers oly report one word per event)
-  // The first word of the subbank gets fWordInSubbank=0
+    // The first word of the subbank gets fWordInSubbank=0
 
-  int fTypeID;     // type of detector eg: lumi or stripline, etc..
-  int fIndex;      // index of this detector in the vector containing all the detector of same type
-  UInt_t fSubelement; // some detectors have many subelements (eg stripline have 4 antenas) some have only one sub element(eg lumis have one channel)
-
-  TString fmoduletype; // eg: VQWK, SCALER
-  TString fdetectorname;
-  TString fdetectortype; // stripline, bcm, ... this string is encoded by fTypeID
+    int fTypeID;     // type of detector eg: lumi or stripline, etc..
+    int fIndex;      // index of this detector in the vector containing all the detector of same type
+    UInt_t fSubelement; // some detectors have many subelements (eg stripline have 4 antenas) some have only one sub element(eg lumis have one channel)
+    
+    TString fmoduletype; // eg: VQWK, SCALER
+    TString fdetectorname;
+    TString fdetectortype; // stripline, bcm, ... this string is encoded by fTypeID
 
   
 
-  void Print();
+    void Print();
 
 };
 
@@ -62,9 +63,10 @@ class QwBeamLine : public VQwSubsystemParity{
       // these declaration need to be coherent with the enum vector EBeamInstrumentType
       DetectorTypes.push_back("bpmstripline");
       DetectorTypes.push_back("bcm");
+      DetectorTypes.push_back("combinedbcm");
       for(size_t i=0;i<DetectorTypes.size();i++)
 	DetectorTypes[i].ToLower();
-
+      
     };
 
   ~QwBeamLine() {
@@ -124,7 +126,9 @@ class QwBeamLine : public VQwSubsystemParity{
  //for example if TypeID is bcm  then the index of the detector from fBCM vector for given name will be returnd.
  std::vector <QwBPMStripline> fStripline;
  std::vector <QwBCM> fBCM;
+ std::vector <QwCombinedBCM> fBCMCombo;
  std::vector <QwBeamDetectorID> fBeamDetectorID;
+
 
 
  
