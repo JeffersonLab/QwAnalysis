@@ -100,7 +100,6 @@ class QwTrackingTreeCombine {
     bool TlCheckForX (
 		double x1, double x2, double dx1, double dx2, double Dx, double z1, double dz,
 		QwTrackingTreeLine *treefill, QwHitContainer *hitlist,
-		EQwDetectorPackage package, EQwRegionID region, EQwDirectionID dir,
 		int  dlayer, int tlayer, int iteration, int stay_tuned, double width);
 
     int TlMatchHits (

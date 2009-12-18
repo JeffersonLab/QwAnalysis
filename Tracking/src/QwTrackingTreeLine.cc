@@ -62,8 +62,8 @@ QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _
   b_beg = _b_beg;
   b_end = _b_end;
 
-  numhits = 0;
-  nummiss = 0;
+  fNumHits = 0;
+  fNumMiss = 0;
 
   for (int i = 0; i < 2 * TLAYERS; i++) {
     hits[i] = 0;	/*!< hitarray */
@@ -117,8 +117,7 @@ void QwTrackingTreeLine::AddHit(QwHit* hit)
 {
   QwHit* newhit = CreateNewHit();
   *newhit = *hit;
-  //fQwHits2->Add(hit);
-  //fQwHits3.push_back(*hit);
+  fQwHits2.push_back(hit);
 };
 
 // Add the hits of a QwHitContainer to the TClonesArray
@@ -153,12 +152,12 @@ QwHitContainer* QwTrackingTreeLine::GetHitContainer()
 double QwTrackingTreeLine::GetChiWeight ()
 {
   double weight;
-  // NOTE Added +1 to get this to work if numhits == nummiss (region 2 cosmics)
-  if (numhits >= nummiss)
-    weight = (double) (numhits + nummiss + 1)
-                    / (numhits - nummiss + 1);
+  // NOTE Added +1 to get this to work if fNumHits == fNumMiss (region 2 cosmics)
+  if (fNumHits >= fNumMiss)
+    weight = (double) (fNumHits + fNumMiss + 1)
+                    / (fNumHits - fNumMiss + 1);
   else {
-    std::cerr << "miss = " << nummiss << ", hit = " << numhits << std::endl;
+    std::cerr << "miss = " << fNumMiss << ", hits = " << fNumHits << std::endl;
     return 100000.0; // This is bad...
   }
   return weight * fChi;
@@ -175,7 +174,7 @@ QwHit* QwTrackingTreeLine::bestWireHit (double offset)
   double best_position = 9999.9;
   int best_hit = 0;
   // Get the best measured hit in the back
-  for (int hit = 0; hit < numhits; hit++) {
+  for (int hit = 0; hit < fNumHits; hit++) {
     double position = fabs(hits[hit]->GetDriftDistance() - offset);
     if (position < best_position) {
       best_position = position;
@@ -245,8 +244,9 @@ ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl) {
     stream << ", fSlope = " << tl.fSlope;
     stream << ", fChi = " << tl.fChi;
     stream << ", hits:";
-    for (int hit = 0; hit < tl.numhits; hit++)
-      stream << " " << tl.usedhits[hit]->GetPlane() << "." << tl.usedhits[hit]->GetElement();
+    stream << " (" << tl.fQwHits2.size() << ")";
+    for (size_t hit = 0; hit < tl.fQwHits2.size(); hit++)
+      stream << " " << tl.fQwHits2.at(hit)->GetPlane() << "." << tl.fQwHits2.at(hit)->GetElement();
   }
   if (tl.IsVoid()) stream << " (void)";
   return stream;

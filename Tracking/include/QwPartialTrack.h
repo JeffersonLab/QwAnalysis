@@ -113,7 +113,7 @@ class QwPartialTrack: public VQwTrackingElement {
 
   public: // members
 
-    std::vector <QwTrackingTreeLine> fQwTreeLines2;
+    std::vector <QwTrackingTreeLine*> fQwTreeLines2;
 
     Double_t fOffsetX;		///< x coordinate (at MAGNET_CENTER)
     Double_t fOffsetY;		///< y coordinate (at MAGNET_CENTER)
@@ -125,7 +125,7 @@ class QwPartialTrack: public VQwTrackingElement {
     double  clProb;		///< prob. that this cluster belongs to track
     double  pathlenoff;		///< pathlength offset
     double  pathlenslo;		///< pathlength slope
-    QwBridge *bridge;		///< magnetic field bridging
+    QwBridge *bridge;	//!	///< magnetic field bridging
     bool fIsUsed;		///< used (part of a track)
     Int_t  nummiss;		///< missing hits
     Int_t  numhits;		///< used hits

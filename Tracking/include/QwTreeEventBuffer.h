@@ -30,7 +30,7 @@ class QwTreeEventBuffer
 
     QwTreeEventBuffer(const TString filename,
                       vector <vector <QwDetectorInfo> > & detector_info);
-    ~QwTreeEventBuffer() { fFile->Close(); };
+    ~QwTreeEventBuffer() { fFile->Close(); delete fFile; };
 
     QwHitContainer* GetHitList(int event);
     void SetDebugLevel (int debug) { fDebug = debug; };

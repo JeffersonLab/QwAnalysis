@@ -909,7 +909,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
   shorttree *tree;	/* for searching in children of node*/
   shortnode **cnode;
   shortnode **matchsons;
-  QwTrackingTreeLine  *lineptr;	/* evt. append to the treeline */
+  QwTrackingTreeLine *treeline; /* evt. append to the treeline */
   int       *tree_pattern;
   int hashpat[TLAYERS];
   int off, rev, off2, nlevel = level+1, i, bin, x;
@@ -930,6 +930,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
   //if (fDebug) std::cout << "pattern start = " << pattern_start << std::endl;
   if (level == 0) {
     for (int u = nullhits = 0; u < fNumLayers; u++) {
+      //if (fDebug && level > 0) std::cerr << u+row_offset << "," << pattern_start << std::endl;
       if (static_pattern[u+row_offset][pattern_start])
         has_hits[u] = 1;
       else {
@@ -979,6 +980,7 @@ if (numWires > 0) { /* Region 3 */
       //std::cout << numWires << "," << fNumLayers << std::endl;
       for (i = matched = 0; i < fNumLayers; i++) {  /* loop over tree-planes */
         x = (*tree_pattern++);
+        //if (fDebug && level > 0) std::cerr << i+row_offset << "," << pattern_offset+x << std::endl;
         if (static_pattern[i+row_offset][pattern_offset + x]) {
           matched++; /* number of matched tree-planes */
           if (i < firstwire) firstwire = i;
@@ -1059,26 +1061,26 @@ if (numWires > 0) { /* Region 3 */
 	  if (fShowMatchingPatterns) tree->Print();
 
 	  /* Create new treeline */
-	  lineptr = new QwTrackingTreeLine (frontbin, frontbin, backbin, backbin);
-	  assert(lineptr);
+	  treeline = new QwTrackingTreeLine (frontbin, frontbin, backbin, backbin);
+
 	  /* Number of treelines found */
 	  nTreeLines++;
 
 	  /* Copy hash pattern */
-	  memcpy(lineptr->hasharray, hashpat, sizeof(int) * fNumLayers);
+	  memcpy(treeline->hasharray, hashpat, sizeof(int) * fNumLayers);
 
 	  /* Missed front or back planes (?) */
 	  /* (only used until TreeLineSort) */
-	  lineptr->nummiss = miss;
+	  treeline->fNumMiss = miss;
 
 	  /* Region 3 specific treeline info */
-          lineptr->r3offset = row_offset;
-          lineptr->firstwire = firstwire;
-          lineptr->lastwire  = lastwire;
+          treeline->r3offset = row_offset;
+          treeline->firstwire = firstwire;
+          treeline->lastwire  = lastwire;
 
 	  /* Add this treeline to the linked-list */
-	  lineptr->next = lTreeLines;
-	  lTreeLines = lineptr;
+	  treeline->next = lTreeLines;
+	  lTreeLines = treeline;
 
 }
       } else {                  /* check son patterns */
@@ -1174,21 +1176,21 @@ if (numWires > 0) { /* Region 3 */
 	    if (fShowMatchingPatterns) tree->Print();
 
 	    /* Create new treeline */
-	    lineptr = new QwTrackingTreeLine (frontbin, frontbin, backbin, backbin);
-	    assert(lineptr);
+	    treeline = new QwTrackingTreeLine (frontbin, frontbin, backbin, backbin);
+	    assert(treeline);
 	    /* Number of treelines found */
 	    nTreeLines++;
 
 	    /* Copy hash pattern */
-	    memcpy(lineptr->hasharray, hashpat, sizeof(int) * fNumLayers);
+	    memcpy(treeline->hasharray, hashpat, sizeof(int) * fNumLayers);
 
 	    /* Missed front or back planes (?) */
 	    /* (only used until TreeLineSort) */
-	    lineptr->nummiss = miss;
+	    treeline->fNumMiss = miss;
 
 	    /* Add this treeline to the linked-list */
-	    lineptr->next = lTreeLines;
-	    lTreeLines = lineptr;
+	    treeline->next = lTreeLines;
+	    lTreeLines = treeline;
 	  }
 
 	} else {			/* check son patterns */
@@ -1252,7 +1254,26 @@ QwTrackingTreeLine* QwTrackingTreeSearch::SearchTreeLines (
   /// next fNumLayers wires (so we need to end early).
 
   if (numwires > 0) {
-    // The region 3 version of SearchTreeLines (search for every wire)
+    // NOTE (wdc) This seems horribly inefficient.  When there are eight empty
+    // wires, _SearchTreeLines checks all eight and returns.  Next step is to
+    // do this the same for the eight wires displaced by ONE wire!  Seven of the
+    // wires are redone without any use.  Maybe _SearchTreeLines could return
+    // a cumulative number of hits in that set, and increment by 8 if there was
+    // not a single hit.  Or even better return the first wire with hit in the
+    // set of fNumLayers wires, so we can increment immediately to that one.
+
+    // Determine which groups of fNumLayers wires need to be considered:
+    // only those groups of fNumLayers wires with at least one hit are to be
+    // considered
+    bool consider[numwires + fNumLayers]; // too long, not initialized
+    for (int wire = 0; wire < numwires; wire++) {
+      if (pattern[wire][(1UL << maxlevel) - 2] == 1)
+        for (int i = 0; i < fNumLayers; i++)
+          consider[wire+i] = true;
+    }
+
+    // The region 3 version of SearchTreeLines (search for every set of fNumLayers wires)
+
     for (int wire = 0; wire <= numwires - fNumLayers; wire++)
       _SearchTreeLines (topnode, 0, 0, wire, 0, numwires);
 

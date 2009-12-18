@@ -28,6 +28,7 @@
 
 // Qweak headers
 #include "VQwTrackingElement.h"
+#include "QwHit.h"
 #include "QwTypes.h"
 #include "globals.h"
 
@@ -35,7 +36,7 @@
 #define TREELINE_MAX_NUM_LAYERS 8
 
 // Forward declarations
-class QwHit;
+//class QwHit;
 class QwHitPattern;
 class QwHitContainer;
 
@@ -46,6 +47,9 @@ class QwHitContainer;
 
 class QwTrackingTreeLine: public VQwTrackingElement {
 
+/// \todo TODO This class needs a non-trivial copy constructor which ensures
+/// that the hits are copied correctly.
+
   private:
 
     // Hits
@@ -54,9 +58,7 @@ class QwTrackingTreeLine: public VQwTrackingElement {
     TClonesArray        *fQwHits; ///< Array of QwHits
     static TClonesArray *gQwHits; ///< Static array of QwHits
 
-    //TRefArray *fQwHits2;
-
-    //std::vector<QwHit> fQwHits3;
+    std::vector < QwHit* > fQwHits2;
 
   public:
 
@@ -106,17 +108,14 @@ class QwTrackingTreeLine: public VQwTrackingElement {
     double GetPositionFirst (double binwidth) {
       return 0.5 * (a_beg + a_end) * binwidth;
     };
-
     //! Returns position at the last detector plane
     double GetPositionLast (double binwidth) {
       return 0.5 * (b_beg + b_end) * binwidth;
     };
-
     //! Returns resolution at the first detector plane
     double GetResolutionFirst (double binwidth) {
       return (a_end - a_beg) * binwidth;
     };
-
     //! Returns resolution at the last detector plane
     double GetResolutionLast (double binwidth) {
       return (b_end - b_beg) * binwidth;
@@ -131,6 +130,14 @@ class QwTrackingTreeLine: public VQwTrackingElement {
     //! Calculate and set the average residuals
     void SetAverageResidual() { fAverageResidual = CalculateAverageResidual(); };
 
+    //! Set the chi^2
+    void SetChi(const double chi) { fChi = chi; };
+    //! Get the chi^2
+    const double GetChi() const { return fChi; };
+    //! Set the covariance
+    void SetCov(const double* cov) { fCov[0] = cov[0]; fCov[1] = cov[1]; fCov[2] = cov[2]; };
+    //! Get the covariance
+    const double* GetCov() const { return fCov; };
 
   private:
 
@@ -148,8 +155,8 @@ class QwTrackingTreeLine: public VQwTrackingElement {
     int a_beg, a_end;			///< bin in first layer
     int b_beg, b_end;			///< bin in last layer
 
-    int   numhits;			///< number of hits on this treeline
-    int   nummiss;			///< number of planes without hits
+    int   fNumHits;			///< number of hits on this treeline
+    int   fNumMiss;			///< number of planes without hits
 
     QwHit *hits[2*TLAYERS];	//!	///< all hits that satisfy road requirement
     QwHit *usedhits[TLAYERS];	//!	///< hits that correspond to optimal chi^2

@@ -38,10 +38,12 @@ static int hashgen()
  */
 QwHitPattern& QwHitPattern::operator= (const QwHitPattern& rhs)
 {
-  // Check whether this is ourselves.
+  // Check whether this is ourselves
   if (this == &rhs) return *this;
-  // Copy the levels and pattern data
   SetNumberOfLevels(rhs.fLevels);
+  // If lhs is zero we assign rhs and return
+  if (fLevels == 0) return *this;
+  // Copy the levels and pattern data
   for (unsigned int bin = 0; bin < fBins; bin++)
     fPattern[bin] = rhs.fPattern[bin];
   for (unsigned int hash = 0; hash < fBinWidth; hash++)

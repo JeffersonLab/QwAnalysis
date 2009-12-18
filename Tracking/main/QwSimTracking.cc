@@ -1,6 +1,7 @@
 /*------------------------------------------------------------------------*//*!
 
- \file QwSimTracking.cc \ingroup QwTrackingAnl
+ \file QwSimTracking.cc
+ \ingroup QwTracking
 
  \brief Example of the QwTreeEventBuffer class to read QweakSimG4 events
 
@@ -19,26 +20,26 @@
 #include <TFile.h>
 #include <TTree.h>
 
-// Qweak Tracking headers
+// Qweak headers
+#include "QwOptionsTracking.h"
+#include "QwLog.h"
+
+// Deprecated Qweak headers
 #include "Det.h"
 #include "Qset.h"
 
+// Qweak event buffer and tracking worker
+#include "QwTreeEventBuffer.h"
+#include "QwHitRootContainer.h"
 #include "QwTrackingWorker.h"
-#include "QwPartialTrack.h"
-#include "QwTrack.h"
 #include "QwEvent.h"
 
-// Qweak Tree event buffer header
-#include "QwTreeEventBuffer.h"
-
-#include "QwCommandLine.h"
+// Qweak tracking subsystem headers
 #include "QwSubsystemArrayTracking.h"
 #include "QwGasElectronMultiplier.h"
 #include "QwDriftChamberHDC.h"
 #include "QwDriftChamberVDC.h"
 
-#include "QwOptionsTracking.h"
-#include "QwLog.h"
 
 
 // Debug level
@@ -49,29 +50,31 @@ static const bool kHisto = true;
 
 int main (int argc, char* argv[])
 {
-  // Set the command line arguments and configuration file
+  /// First, we set the command line arguments and the configuration filename,
+  /// and we define the options that can be used in them (using QwOptions).
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.SetConfigFile("qwsimtracking.conf");
-  // Define options
+  // Define the command line options
   gQwOptions.DefineOptions();
 
-  // Message logging facilities
+  /// Now we setup the message logging facilities with the requested loglevels.
   if (gQwOptions.HasValue("QwLog.logfile"))
     gQwLog.InitLogFile(gQwOptions.GetValue<string>("QwLog.logfile"));
   gQwLog.SetFileThreshold(QwLog::QwLogLevel(gQwOptions.GetValue<int>("QwLog.loglevel-file")));
   gQwLog.SetScreenThreshold(QwLog::QwLogLevel(gQwOptions.GetValue<int>("QwLog.loglevel-screen")));
 
-
-  // Fill the search paths for the parameter files
+  /// We fill the search paths for the parameter files.
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput");
 
-  // Handle for the list of VQwSubsystemTracking objects
+
+  /// For the tracking analysis we create the QwSubsystemArrayTracking list
+  /// which contains the VQwSubsystemTracking objects.
   QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking();
 
   // Region 1 GEM
   detectors->push_back(new QwGasElectronMultiplier("R1"));
-//  detectors->GetSubsystem("R1")->LoadChannelMap("qweak_cosmics_hits.map");
+  //detectors->GetSubsystem("R1")->LoadChannelMap("qweak_cosmics_hits.map");
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R1"))->LoadQweakGeometry("qweak_new.geo");
 
   // Region 2 HDC
@@ -81,7 +84,6 @@ int main (int argc, char* argv[])
 
   // Region 3 VDC
   detectors->push_back(new QwDriftChamberVDC("R3"));
-  // detectors->GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
   detectors->GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
 
@@ -105,35 +107,49 @@ int main (int argc, char* argv[])
   qset.DeterminePlanes();
   std::cout << "[QwTracking::main] Geometry loaded" << std::endl; // R3,R2
 
-  // Create the tracking worker
+  /// Next, we create the tracking worker that will pull coordinate the tracking.
   QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
   if (kDebug) trackingworker->SetDebugLevel(1);
 
-  // Loop over all runs
-  for (UInt_t run =  (UInt_t) gQwOptions.GetIntValuePairFirst("run");
-              run <= (UInt_t) gQwOptions.GetIntValuePairLast("run"); run++) {
+
+  /// We loop over all requested runs.
+  for (UInt_t runnumber =  (UInt_t) gQwOptions.GetIntValuePairFirst("run");
+              runnumber <= (UInt_t) gQwOptions.GetIntValuePairLast("run");
+              runnumber++) {
 
     // Load the simulated event file
-    TString filename = Form(TString(getenv("QWSCRATCH")) + "/data/QwSim_%d.root", run);
+    TString filename = Form(TString(getenv("QWSCRATCH")) + "/data/QwSim_%d.root", runnumber);
     QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (filename, detector_info);
     treebuffer->SetDebugLevel(1);
 
     // Open ROOT file
     TFile* file = 0;
+    TTree* tree = 0;
+    QwEvent* event = 0;
+    QwHitRootContainer* roothitlist = 0;
     if (kHisto || kTree) {
-      file = new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/QwSim_%d.root", run),
+      file = new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/QwSim_%d.root", runnumber),
                        "RECREATE",
                        "QWeak ROOT file with simulated event");
       file->cd();
     }
+    if (kTree) {
+      tree = new TTree("tree", "QwTracking");
+      tree->Branch("hits", "QwHitRootContainer", &roothitlist);
+      tree->Branch("events", "QwEvent", &event);
+    }
 
-    // Loop over the events
+
+    /// We loop over all requested events.
     int fEntries = treebuffer->GetEntries();
-    for (int fEvtNum  = gQwOptions.GetIntValuePairFirst("event");
-             fEvtNum <= gQwOptions.GetIntValuePairLast("event") && fEvtNum < fEntries; fEvtNum++) {
+    for (int eventnumber  = gQwOptions.GetIntValuePairFirst("event");
+             eventnumber <= gQwOptions.GetIntValuePairLast("event") &&
+             eventnumber < fEntries; eventnumber++) {
 
-      // Get hit list
-      QwHitContainer* hitlist = treebuffer->GetHitList(fEvtNum);
+      /// We get the hit list from the event buffer.
+      QwHitContainer* hitlist = treebuffer->GetHitList(eventnumber);
+      roothitlist = new QwHitRootContainer();
+      roothitlist->Convert(hitlist);
 
       // Print hit list
       if (kDebug) {
@@ -141,21 +157,32 @@ int main (int argc, char* argv[])
         hitlist->Print();
       }
 
-      // Process the hit list through the tracking worker
-      QwEvent *event = trackingworker->ProcessHits(detectors, hitlist);
+      /// We process the hit list through the tracking worker and get a new
+      /// QwEvent object back.
+      event = trackingworker->ProcessHits(detectors, hitlist);
+
 
       // Do something with this event
+      event->GetEventHeader()->SetRunNumber(runnumber);
+      event->GetEventHeader()->SetEventNumber(eventnumber);
+      event->Print();
 
-      // Delete the event again
+
+      // Fill the tree
+      if (kTree) tree->Fill();
+
+      // Delete the hit lists and reconstructed event
+      delete roothitlist;
       delete hitlist;
       delete event;
-    }
+
+    } // end of loop over events
 
     std::cout << "Number of good partial tracks found: "
               << trackingworker->ngood << std::endl;
 
     // Print results
-    //tree->Print();
+    if (kDebug) tree->Print();
 
     // Write and close file
     if (kTree || kHisto) {

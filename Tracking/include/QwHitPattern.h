@@ -58,14 +58,15 @@ class QwHitPattern: public VQwTrackingElement {
 
     /// \brief Delete the hit pattern
     ~QwHitPattern() {
+      if (fLevels == 0) return;
       if (fPatternHash) delete[] fPatternHash;
       if (fPattern)     delete[] fPattern;
     };
 
     /// \brief Set the hit pattern depth
     void SetNumberOfLevels(const unsigned int levels) {
-      if (levels == 0) return;
       fLevels = levels;
+      if (fLevels == 0) return;
       fBins = (1UL << fLevels); // total number of bins, i.e. 2^fLevels
       fBinWidth = (1UL << (fLevels - 1)); // maximum bin division, i.e. 2^(fLevels-1)
       fPattern = new unsigned char[fBins];

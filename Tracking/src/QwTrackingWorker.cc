@@ -140,8 +140,8 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
     trajectory = new QwTrajectory();
 
     // Load magnetic field map
-    trajectory->LoadMagneticFieldMap();
-    trajectory->LoadMomentumMatrix();
+    //trajectory->LoadMagneticFieldMap();
+    //trajectory->LoadMomentumMatrix();
 
     /* Reset counters of number of good and bad events */
     ngood = 0;
@@ -160,7 +160,7 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
 
 QwTrackingWorker::~QwTrackingWorker ()
 {
-
+  delete trajectory;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -558,6 +558,10 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             // Create a vector of hit patterns
                             std::vector<QwHitPattern> patterns;
                             patterns.resize(NUMWIRESR3);
+                            if (patterns.at(0).GetNumberOfBins() == 0)
+                              for (size_t wire = 0; wire < patterns.size(); wire++)
+                                patterns.at(wire).SetNumberOfLevels(levelsr3);
+
 
                             /// Get the subhitlist of hits in this detector
                             QwHitContainer *subhitlist = hitlist->GetSubList_Plane(region, package, rd->plane);
@@ -585,7 +589,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             if (fShowEventPattern)
                               for (size_t wire = 0; wire < patterns.size(); wire++)
                                 if (patterns.at(wire).HasHits())
-                                  QwMessage << patterns.at(wire) << QwLog::endl;
+                                  QwMessage << wire << ":" << patterns.at(wire) << QwLog::endl;
 
                             // Copy the new hit patterns into the old array structure
                             // TODO This is temporary
@@ -605,18 +609,29 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             treelinelist = TreeSearch->SearchTreeLines(searchtree,
                                                  channel, hashchannel, levelsr3,
                                                  NUMWIRESR3, TLAYERS);
+
+                            // Delete the old array structures
+                            for (size_t wire = 0; wire < patterns.size(); wire++) {
+                              delete[] channel[wire];
+                              delete[] hashchannel[wire];
+                            }
+
+                            // Print list of tree lines
                             if (fDebug) {
                                 cout << "List of treelines:" << endl;
                                 treelinelist->Print();
                             }
 
-                            QwDebug << "Sort patterns" << QwLog::endl;
+                            QwDebug << "Calculate chi^2" << QwLog::endl;
                             if (searchtree) {
 
                                 double width = searchtree->GetWidth();
                                 TreeCombine->TlTreeLineSort (treelinelist, subhitlist,
                                                              package, region, dir,
                                                              1UL << (levelsr3 - 1), 0, dlayer, width);
+
+                                QwDebug << "Sort patterns" << QwLog::endl;
+                                TreeSort->rcTreeConnSort (treelinelist, region);
 
                                 if (plane == 0) {
                                     treelinelist1 = treelinelist;
@@ -665,21 +680,30 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         for (Det* rd = rcDETRegion[package][region][dir];
                                 rd; rd = rd->nextsame, tlayers++) {
 
+                            // Get plane number
+                            Int_t plane = rd->plane;
+
                             // Print detector info
                             if (fDebug) rd->print();
 
                             // If detector is inactive for tracking, skip it
-                            if (rd->IsInactive()) continue;
+                            if (rd->IsInactive()) {
+                              patterns.push_back(QwHitPattern(levelsr2));
+                              continue;
+                            }
 
                             // Get the subhitlist of hits in this detector plane
-                            QwHitContainer *subhitlist = hitlist->GetSubList_Plane(region, package, rd->plane);
+                            QwHitContainer *subhitlist = hitlist->GetSubList_Plane(region, package, plane);
                             if (fDebug) subhitlist->Print();
-
-                            // If no hits in this detector, skip to the next detector.
-                            if (! subhitlist) continue;
 
                             // Construct the hit pattern for this set of hits
                             QwHitPattern hitpattern(levelsr2);
+                            // Set the detector identification
+                            hitpattern.SetRegion(region);
+                            hitpattern.SetPackage(package);
+                            hitpattern.SetDirection(dir);
+                            hitpattern.SetPlane(plane);
+                            // Set the hit pattern
                             hitpattern.SetHDCHitList(searchtree->GetWidth(), subhitlist);
                             // Add hit pattern to the vector
                             patterns.push_back(hitpattern);
@@ -710,10 +734,25 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         treelinelist = TreeSearch->SearchTreeLines(searchtree,
                                              channel, hashchannel, levels,
                                              0, tlayers);
+
+                        // Delete the old array structures
+                        for (size_t layer = 0; layer < patterns.size(); layer++) {
+                          delete[] channel[layer];
+                          delete[] hashchannel[layer];
+                        }
+
                         // TODO These treelines should contain the region id etc
                         // We should set the QwDetectorInfo link here already,
                         // or manually set the QwDetectorID fields.  Also, we
                         // should put QwDetectorInfo in the searchtree object.
+                        for (QwTrackingTreeLine* treeline = treelinelist;
+                             treeline; treeline = treeline->next) {
+                          treeline->SetRegion(region);
+                          treeline->SetPackage(package);
+                          treeline->SetDirection(dir);
+                        }
+
+                        // Print the list of tree lines
                         if (fDebug) {
                             cout << "List of treelines:" << endl;
                             treelinelist->Print();
@@ -724,7 +763,6 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         if (fDebug) subhitlist->Print();
 
                         QwDebug << "Calculate chi^2" << QwLog::endl;
-                        QwDebug << "Sort patterns" << QwLog::endl;
                         if (searchtree) {
 
                             double width = searchtree->GetWidth();
@@ -733,12 +771,16 @@ QwEvent* QwTrackingWorker::ProcessHits (
                                                          1UL << (levelsr2 - 1),
                                                          tlayers, 0, width);
                         }
-                        event->treeline[package][region][type][dir] = treelinelist;
-                        event->AddTreeLineList(treelinelist);
+
+                        QwDebug << "Sort patterns" << QwLog::endl;
+                        TreeSort->rcTreeConnSort (treelinelist, region);
+
                         if (fDebug) {
                             cout << "List of treelines:" << endl;
                             treelinelist->Print();
                         }
+                        event->treeline[package][region][type][dir] = treelinelist;
+                        event->AddTreeLineList(treelinelist);
 
                         // End the search for this set of like-pitched planes
                         TreeSearch->EndSearch();
@@ -783,6 +825,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                 /*! ---- TASK 4: Hook up the partial track info to the event info     ---- */
 
                 event->parttrack[package][region][type] = parttrack;
+                event->AddPartialTrackList(parttrack);
 
                 if (parttrack) {
                     if (fDebug) parttrack->Print();
@@ -810,7 +853,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
         //jpan: The following code is for testing the raytrace class
 
-        if (true && event->parttrack[package][kRegionID2][kTypeDriftHDC]
+        if (false && event->parttrack[package][kRegionID2][kTypeDriftHDC]
                   && event->parttrack[package][kRegionID3][kTypeDriftVDC]) {
 
             if (fDebug) std::cout<<"Bridging front and back partialtrack:"<<std::endl;

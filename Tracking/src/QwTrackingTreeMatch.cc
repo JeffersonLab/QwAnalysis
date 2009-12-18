@@ -169,7 +169,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
   for (QwTrackingTreeLine* frontline = frontlist; frontline;
        frontline = frontline->next, numflines++) {
     if (frontline->IsVoid()) continue;
-    for (int hit = 0; hit < frontline->numhits; hit++) {
+    for (int hit = 0; hit < frontline->fNumHits; hit++) {
       frontline->hits[hit]->SetZPosition((frontline->hits[hit]->GetElement() - 141) * wirespacingf);
       if (dir == kDirectionV) frontline->hits[hit]->rPos += d_uv;
     }
@@ -180,7 +180,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
   for (QwTrackingTreeLine* backline = backlist; backline;
        backline = backline->next, numblines++) {
     if (backline->IsVoid()) continue;
-    for (int hit = 0; hit < backline->numhits; hit++) {
+    for (int hit = 0; hit < backline->fNumHits; hit++) {
       backline->hits[hit]->SetZPosition((backline->hits[hit]->GetElement() - 141) * wirespacingb + d2u);
       backline->hits[hit]->rPos = backline->hits[hit]->rPos + d;
       if (dir == kDirectionV) backline->hits[hit]->rPos += d_uv;
@@ -257,8 +257,6 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
   //################################
   // Create the combined treelines #
   //################################
-  QwTrackingTreeLine* lineptr = new QwTrackingTreeLine;
-  assert(lineptr);
 
   // Loop over the tree lines in the front VDC
   ifront = 0;
@@ -273,17 +271,20 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
       // If this front segment was matched to this back segment
       if (fmatches[ifront] == iback) {
 
+        // Create a new tree line
+        QwTrackingTreeLine* treeline = new QwTrackingTreeLine;
+
         // Set the hits for front VDC
-        int fronthits = frontline->numhits;
+        int fronthits = frontline->fNumHits;
         for (int hit = 0; hit < fronthits; hit++) {
           DetecHits[hit] = frontline->hits[hit];
-          lineptr->hits[hit] = frontline->hits[hit];
+          treeline->hits[hit] = frontline->hits[hit];
         }
         // Set the hits for back VDC
-        int backhits = backline->numhits;
+        int backhits = backline->fNumHits;
         for (int hit = 0; hit < backhits; hit++) {
           DetecHits[hit+fronthits] = backline->hits[hit];
-          lineptr->hits[hit+fronthits] = backline->hits[hit];
+          treeline->hits[hit+fronthits] = backline->hits[hit];
         }
         int nhits = fronthits + backhits;
         // Debug output
@@ -296,24 +297,27 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
         // Fit a line to the hits
         double slope, offset, chi, cov[3];
         TreeCombine->weight_lsq_r3 (&slope, &offset, cov, &chi, DetecHits, nhits, 0, -1, 2*TLAYERS);
-        lineptr->fSlope = slope;
-        lineptr->fOffset = offset;
-        lineptr->fChi = chi;
-        lineptr->numhits = nhits;
-        lineptr->nummiss = 2*TLAYERS - nhits;
-        lineptr->SetValid();
+        treeline->fSlope = slope;
+        treeline->fOffset = offset;
+        treeline->fChi = chi;
+        treeline->fNumHits = nhits;
+        treeline->fNumMiss = 2*TLAYERS - nhits;
+        treeline->SetValid();
 
         for (int hit = 0; hit < fronthits; hit++)
-          lineptr->usedhits[hit] = DetecHits[hit];
+          treeline->usedhits[hit] = DetecHits[hit];
         for (int hit = fronthits; hit < fronthits + backhits; hit++)
-          lineptr->usedhits[hit] = DetecHits[hit];
+          treeline->usedhits[hit] = DetecHits[hit];
 
-        lineptr->next = combined;
-        combined = lineptr;
+        treeline->next = combined;
+        combined = treeline;
         matchfound = 1;
       }
     }
   }
+
+  // Delete the tree combining object
+  delete TreeCombine;
 
   if (!matchfound) {
     return 0;

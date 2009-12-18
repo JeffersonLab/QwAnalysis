@@ -69,8 +69,18 @@ class QwEventHeader: public TObject {
     void SetBeamHelicity(const EQwHelicity helicity) { fBeamHelicity = helicity; };
     EQwHelicity GetBeamHelicity() const { return fBeamHelicity; };
 
+    /// \brief Output stream operator
+    friend ostream& operator<< (ostream& stream, const QwEventHeader& h);
+
   ClassDef(QwEventHeader,1);
 };
+
+/// Output stream operator
+inline ostream& operator<< (ostream& stream, const QwEventHeader& h) {
+  stream << "Run " << h.fRunNumber << ", ";
+  stream << "event " << h.fEventNumber << ":";
+  return stream;
+}
 
 
 /**
@@ -102,11 +112,11 @@ class QwEvent: public TObject {
     static TClonesArray *gQwTreeLines; ///< Static array of QwTreeLines
 
     // Tree lines (2)
-    Int_t fNQwTreeLines2; ///< Number of QwTreeLines in the array
-    TObjArray *fQwTreeLines2; ///< Array of QwTreeLines
+    //Int_t fNQwTreeLines2; ///< Number of QwTreeLines in the array
+    //TObjArray *fQwTreeLines2; ///< Array of QwTreeLines
 
     // Tree lines (3)
-    std::vector <QwTrackingTreeLine> fQwTreeLines3;
+    //std::vector<QwTrackingTreeLine*> fQwTreeLines3;
 
     // Partial tracks
     #define QWEVENT_MAX_NUM_PARTIALTRACKS 1000
@@ -147,38 +157,43 @@ class QwEvent: public TObject {
     void PrintHits();
     // @}
 
-    // Creating and adding tree lines
+    //! \name Tree line list maintenance for output to ROOT files
+    // @{
+    //! \brief Create a new tree line
     QwTrackingTreeLine* CreateNewTreeLine();
+    //! \brief Add an existing tree line as a copy
     void AddTreeLine(QwTrackingTreeLine* treeline);
-    void AddTreeLineList(QwTrackingTreeLine* treeline);
+    //! \brief Add a list of existing tree lines as a copy
+    void AddTreeLineList(QwTrackingTreeLine* treelinelist);
+    //! \brief Clear the list of tree lines
     void ClearTreeLines(Option_t *option = "");
+    //! \brief Reset the list of tree lines
     void ResetTreeLines(Option_t *option = "");
-    // Get the number of tree lines
+    //! \brief Get the number of tree lines
     Int_t GetNumberOfTreeLines() const { return fNQwTreeLines; };
-    // Print the list of tree lines
+    //! \brief Print the list of tree lines
     void PrintTreeLines();
+    // @}
 
-    //! \brief Create a new hit
-    QwTrackingTreeLine* CreateNewTreeLine2();
-    void AddTreeLine2(QwTrackingTreeLine* treeline);
-    void ClearTreeLines2(Option_t *option = "");
-    void ResetTreeLines2(Option_t *option = "");
-    // Get the number of tree lines
-    Int_t GetNumberOfTreeLines2() const { return fNQwTreeLines2; };
-    // Print the list of tree lines
-    void PrintTreeLines2();
-
-    // Creating and adding partial tracks
+    //! \name Partial track list maintenance for output to ROOT files
+    // @{
+    //! \brief Create a new partial track
     QwPartialTrack* CreateNewPartialTrack();
+    //! \brief Add an existing partial track as a copy
     void AddPartialTrack(QwPartialTrack* partialtrack);
+    //! \brief Add a list of existing partial tracks as a copy
+    void AddPartialTrackList(QwPartialTrack* partialtracklist);
+    //! \brief Clear the list of partial tracks
     void ClearPartialTracks(Option_t *option = "");
+    //! \brief Reset the list of partial tracks
     void ResetPartialTracks(Option_t *option = "");
-    // Get the number of partial tracks
+    //! \brief Get the number of partial tracks
     Int_t GetNumberOfPartialTracks() const { return fNQwPartialTracks; };
-    // Print the list of partial tracks
+    //! \brief Print the list of partial tracks
     void PrintPartialTracks();
+    // @}
 
-    // Output function
+    //! \brief Print the event
     void Print();
 
   public:

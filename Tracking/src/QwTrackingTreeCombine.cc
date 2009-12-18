@@ -696,9 +696,6 @@ bool QwTrackingTreeCombine::TlCheckForX (
 	double Dz,		///< distance between first and last planes
 	QwTrackingTreeLine *treeline,	///< treeline to operate on
 	QwHitContainer *hitlist,	///< hits list
-	EQwDetectorPackage package,	///< package
-	EQwRegionID region,		///< region
-	EQwDirectionID dir,		///< detector direction
 	int dlayer,
 	int tlayer,
 	int iteration,
@@ -743,7 +740,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
   // Bin 'resolution'
   // TODO This should be retrieved from the QwHitPattern stored inside the tree line
   int levels = 0;
-  switch (region) {
+  switch (treeline->GetRegion()) {
     case kRegionID2: levels = gQwOptions.GetValue<int>("QwTracking.R2.levels"); break;
     case kRegionID3: levels = gQwOptions.GetValue<int>("QwTracking.R2.levels"); break;
     default: break;
@@ -761,6 +758,11 @@ bool QwTrackingTreeCombine::TlCheckForX (
   int nHitsInPlane[DLAYERS];	/* number of good hits in a detector plane */
   int nPermutations = 1;	/* number of permutations of hit assignments */
   int plane = 0; // plane number
+
+  EQwRegionID region = treeline->GetRegion();
+  EQwDetectorPackage package = treeline->GetPackage();
+  EQwDirectionID dir = treeline->GetDirection();
+
   for (Det* rd = rcDETRegion[package][region][dir];
        rd; rd = rd->nextsame, plane++) {
 
@@ -888,7 +890,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
 	     (x1 + orig_slope * (endZ - z1)));
 	stay_chi += dh * dh;
       }
-      if (stay_chi + chi + dlayer-nPlanesWithHits < minweight) {
+      if (stay_chi + chi + dlayer - nPlanesWithHits < minweight) {
 	/* has this been the best track so far? */
 	minweight   = stay_chi + chi + dlayer - nPlanesWithHits;
 	best_chi    = chi;
@@ -900,15 +902,11 @@ bool QwTrackingTreeCombine::TlCheckForX (
 
     } // end of loop over all possible permutations
 
-    //for (j = 0; j < nPlanesWithHits; j++) {
-    //  cerr << dir << ',' << usedHits[j]->Zpos << ',' << usedHits[j]->rResultPos << endl;
-    //}
-    //cerr << "line = " << mmx << ',' << mcx << ',' << chi << endl;
     treeline->fOffset  = best_offset;
     treeline->fSlope  = best_slope;
     treeline->fChi = best_chi;
-    treeline->numhits = nPlanesWithHits;
-    memcpy (treeline->fCov, best_cov, sizeof best_cov);
+    treeline->fNumHits = nPlanesWithHits;
+    treeline->SetCov(best_cov);
 
     // Select the best permutation (if it was found)
     if (best_permutation != -1) {
@@ -924,6 +922,11 @@ bool QwTrackingTreeCombine::TlCheckForX (
 	treeline->usedhits[plane] = usedHits[plane];
 	if (usedHits[plane])
 	  usedHits[plane]->fIsUsed = true;
+      }
+
+      // Store the final set of hits for output
+      for (int plane = 0; plane < nPlanesWithHits; plane++) {
+        if (usedHits[plane]) treeline->AddHit(usedHits[plane]);
       }
     }
 
@@ -942,13 +945,13 @@ bool QwTrackingTreeCombine::TlCheckForX (
   // was found, set the treeline to void.
   if (ret) {
     treeline->SetValid();
-    treeline->nummiss = dlayer - nPlanesWithHits;
+    treeline->fNumMiss = dlayer - nPlanesWithHits;
   } else {
     if (fDebug) {
       QwDebug << *treeline << "... void because no best hit assignment." << QwLog::endl;
     }
     treeline->SetVoid();
-    treeline->nummiss = dlayer;
+    treeline->fNumMiss = dlayer;
   }
 
   // Return whether an acceptable hit assignment was found
@@ -1055,10 +1058,10 @@ int QwTrackingTreeCombine::TlMatchHits (
   //SET PARAMATERS #
   //################
 
-  treeline->fOffset = offset;
-  treeline->fSlope  = slope;     /* return track parameters: offset, slope, chi */
-  treeline->fChi    = chi;
-  treeline->numhits = nHits;
+  treeline->fOffset  = offset;
+  treeline->fSlope   = slope;     /* return track parameters: offset, slope, chi */
+  treeline->fChi     = chi;
+  treeline->fNumHits = nHits;
   memcpy(treeline->fCov, cov, sizeof cov);
 
   // Set the detector info pointer
@@ -1067,12 +1070,12 @@ int QwTrackingTreeCombine::TlMatchHits (
   int ret = 1;  //need to set up a check that the missing hits is not greater than 1.
   if (! ret) {
     treeline->SetVoid();
-    treeline->nummiss = nWires - nHits;
+    treeline->fNumMiss = nWires - nHits;
   } else {
     QwDebug << "Treeline: voided because no best hit assignment" << QwLog::endl;
     QwDebug << "...well, actually this hasn't been implemented properly yet." << QwLog::endl;
     treeline->SetValid();
-    treeline->nummiss = nWires - nHits;
+    treeline->fNumMiss = nWires - nHits;
   }
   return ret;
 }
@@ -1181,12 +1184,6 @@ void QwTrackingTreeCombine::TlTreeLineSort (
     for (QwTrackingTreeLine *treeline = treelinelist;
            treeline; treeline = treeline->next) {
 
-      // Set the geometry information in the tree line
-      // TODO This should be smoother (wdc)
-      treeline->SetRegion(region);
-      treeline->SetPackage(package);
-      treeline->SetDirection(dir);
-
       if (treeline->IsVoid()) {
         // No tree lines should be void yet
         QwWarning << "Warning: No tree lines should have been voided yet!" << QwLog::endl;
@@ -1212,7 +1209,6 @@ void QwTrackingTreeCombine::TlTreeLineSort (
       TlCheckForX (
         x1, x2, dx1, dx2, Dx, z1, Dz,
         treeline, hitlist,
-        package, region, dir,
         tlayer, tlayer, 0, 0, width);
 
       // Debug output
@@ -1247,12 +1243,6 @@ void QwTrackingTreeCombine::TlTreeLineSort (
     cout << "List of treelines:" << endl;
     treelinelist->Print();
   }
-
-  /* Sort tracks */
-  QwTrackingTreeSort* treesort = new QwTrackingTreeSort();
-  treesort->SetDebugLevel(fDebug);
-  treesort->rcTreeConnSort (treelinelist, region);
-  if (treesort) delete treesort;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -1765,17 +1755,17 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine2(
   // Put all the hits into the array hits, with lenght the total number of hits
   // in the u and v directions.  Not all of the entries will be filled (because
   // not all hits h will be h->used), so it is an upper limit.
-  QwHit *hits[wu->numhits + wv->numhits];
+  QwHit *hits[wu->fNumHits + wv->fNumHits];
   for (hitc = 0, dir = kDirectionU; dir <= kDirectionV; dir++) {
 
     switch (dir) {
       case kDirectionU:
         hitarray = wu->hits;
-        num = wu->numhits;
+        num = wu->fNumHits;
         break;
       case kDirectionV:
         hitarray = wv->hits;
-        num = wv->numhits;
+        num = wv->fNumHits;
         break;
       default:
         hitarray = 0;
@@ -1822,7 +1812,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine2(
     for (int j = 0; j < 4; j++)
       pt->fCov[i][j] = cov[i][j];
 
-  pt->numhits = wu->numhits + wv->numhits;
+  pt->numhits = wu->fNumHits + wv->fNumHits;
   pt->tline[kDirectionU] = wu;
   pt->tline[kDirectionV] = wv;
 
@@ -1867,12 +1857,12 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine(
   for (hitc = 0, dir = kDirectionU; dir <= kDirectionV; dir++) {
     if (dir == kDirectionU) {
       hitarray = wu->hits;
-      num = wu->numhits;
+      num = wu->fNumHits;
       m = 1.0 / wv->fSlope;
       b = -wv->fOffset / wv->fSlope;
     } else {
       hitarray = wv->hits;
-      num = wv->numhits;
+      num = wv->fNumHits;
       m = 1.0/ wu->fSlope;
       b = -wu->fOffset / wu->fSlope;
     }
@@ -1938,7 +1928,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine(
     for (int j = 0; j < 4; j++ )
       pt->fCov[i][j] = cov[i][j];
 
-  pt->numhits = wu->numhits + wv->numhits;
+  pt->numhits = wu->fNumHits + wv->fNumHits;
   pt->tline[kDirectionU] = wu;
   pt->tline[kDirectionV] = wv;
 
@@ -2038,8 +2028,8 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
     for (int j = 0; j < 4; j++)
       pt->fCov[i][j] = cov[i][j];
 
-  pt->nummiss = wu->nummiss + wv->nummiss + wx->nummiss;
-  pt->numhits = wu->numhits + wv->numhits + wx->numhits;
+  pt->nummiss = wu->fNumMiss + wv->fNumMiss + wx->fNumMiss;
+  pt->numhits = wu->fNumHits + wv->fNumHits + wx->fNumHits;
 
   // Store tree lines
   pt->tline[kDirectionX] = wx;
@@ -2270,7 +2260,8 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	// (TODO no x hit will never give a partial track!)
 	QwTrackingTreeLine *wx = uvl[kDirectionX];
         QwTrackingTreeLine *best_wx = 0; // start with null, no solution guaranteed
-        double distance, distance1, distance2, minimum = 1e10;
+        double distance, distance1, distance2;
+        double minimum = 1.0e10;
 	while (wx) {
 	  if (wx->IsVoid()) {
 	    wx = wx->next;
@@ -2325,6 +2316,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
             pt->DetermineHitInHDC(package);
 	  }
 	} else {
+          delete pt;
           QwDebug << "not close enough " << minimum << ',' << fMaxXRoad << ',' << in_acceptance << QwLog::endl;
         }
         wv = wv->next;

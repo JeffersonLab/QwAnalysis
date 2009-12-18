@@ -254,7 +254,7 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
   //Count the wires shared between the treelines #
   //##############################################
   int i1 = 0, i2 = 0;
-  for ( ; i1 < line1->numhits && i2 < line2->numhits ; ) {
+  for ( ; i1 < line1->fNumHits && i2 < line2->fNumHits ; ) {
     if (hits1[i1]->GetElement() == hits2[i2]->GetElement()) {
       if (hits1[i1]->fIsUsed && hits2[i2]->fIsUsed)
 	common++;
@@ -271,7 +271,7 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
       total++;
     }
   }
-  total += line1->numhits - i1 + line2->numhits - i2;
+  total += line1->fNumHits - i1 + line2->fNumHits - i2;
 /*
   for( ;; ) {
     // A

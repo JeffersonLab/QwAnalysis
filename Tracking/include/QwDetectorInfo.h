@@ -51,6 +51,11 @@ class QwDetectorInfo {
       SetZPosition(z);
     };
 
+    // Get/set active flag
+    const bool IsActive() const { return fIsActive; };
+    void SetActive(const bool active = true) { fIsActive = active; };
+    void SetNotActive(const bool active = false) { fIsActive = active; };
+
     // Get/set x and y active width
     const double GetActiveWidthX() const { return fActiveWidthX; };
     const double GetActiveWidthY() const { return fActiveWidthY; };
@@ -109,17 +114,19 @@ class QwDetectorInfo {
     // Output stream operator
     friend ostream& operator<< (ostream& stream, QwDetectorInfo& det);
 
-    // Identification info for readout channels. Filled at load time.
-    Int_t fCrate; //ROC number
-    Int_t fModule; //F1TDC slot number or module index
-    Int_t fChannel; //channel number
-
     // Detector information
     EQwDetectorType fType;
     EQwDetectorPackage fPackage;
     EQwRegionID fRegion;
     EQwDirectionID fDirection;
     Int_t fPlane;
+
+  private:
+
+    // Identification info for readout channels. Filled at load time.
+    Int_t fCrate; //ROC number
+    Int_t fModule; //F1TDC slot number or module index
+    Int_t fChannel; //channel number
 
     // Geometry information
     Double_t fDetectorOriginX;	///< Detector position in x
@@ -129,7 +136,8 @@ class QwDetectorInfo {
       /// with respect to the vertical position.  Region 2 has zero degrees here.
       /// Region 3 is rotated around the y axis over approximately 65 degrees.
 
-  private:
+    Bool_t fIsActive;		///< Is this detector activated in tracking
+
     Double_t fSpatialResolution;///< Spatial resolution (how accurate is the timing info)
     Double_t fTrackResolution;	///< Track resolution (how accurate are the tracks through the hits)
     Double_t fSlopeMatching;	///< Slope matching resolution (how accurate do the tracks line up)

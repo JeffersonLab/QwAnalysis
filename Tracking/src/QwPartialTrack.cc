@@ -96,7 +96,7 @@ void QwPartialTrack::AddTreeLine(QwTrackingTreeLine* treeline)
 {
   QwTrackingTreeLine* newtreeline = CreateNewTreeLine();
   *newtreeline = *treeline;
-  fQwTreeLines2.push_back(*treeline);
+  fQwTreeLines2.push_back(treeline);
 };
 
 // Clear the local TClonesArray of tree lines

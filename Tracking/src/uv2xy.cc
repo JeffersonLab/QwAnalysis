@@ -33,10 +33,10 @@
 Uv2xy::Uv2xy(const double angleUdeg)
 {
   // Reset wire spacing
-  fWireSpacing = 0.0;
+  SetWireSpacing(0.0);
 
   // No offset of the origins
-  SetOffset(0.0, 0.0); // old
+  SetOffset(0.0, 0.0);
   SetOriginUVinXY(0.0, 0.0);
 
   // Convert angles to radians and create the transformation matrices
@@ -55,10 +55,10 @@ Uv2xy::Uv2xy(const double angleUdeg)
 Uv2xy::Uv2xy(const double angleUdeg, const double angleVdeg)
 {
   // Reset wire spacing
-  fWireSpacing = 0.0;
+  SetWireSpacing(0.0);
 
   // No offset of the origins
-  SetOffset(0.0, 0.0); // old
+  SetOffset(0.0, 0.0);
   SetOriginUVinXY(0.0, 0.0);
 
   // Convert angles to radians and create the transformation matrices
