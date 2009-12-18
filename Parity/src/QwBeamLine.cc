@@ -601,6 +601,20 @@ Int_t QwBeamLine::GetEventcutErrorCounters(){//inherited from the VQwSubsystemPa
 }
 
 
+Int_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag 
+  Int_t ErrorFlag;
+  ErrorFlag=0;
+  for(size_t i=0;i<fBCM.size();i++){
+    ErrorFlag |= fBCM[i].GetEventcutErrorFlag();    
+  } 
+  for(size_t i=0;i<fStripline.size();i++){
+    ErrorFlag |= fStripline[i].GetEventcutErrorFlag();
+  }
+  return ErrorFlag;
+
+}
+
+
 
 void  QwBeamLine::ProcessEvent()
 {
@@ -975,6 +989,7 @@ void  QwBeamLine::Copy(VQwSubsystem *source)
     {
      if(typeid(*source)==typeid(*this))
 	{
+	  VQwSubsystem::Copy(source);
 	  //QwBeamLine* input=((QwBeamLine*)source);
           QwBeamLine* input = dynamic_cast<QwBeamLine*>(source);
 	  this->fStripline.resize(input->fStripline.size());

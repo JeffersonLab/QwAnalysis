@@ -92,6 +92,7 @@ class QwHelicity : public VQwSubsystemParity{
   Int_t LoadEventCuts(TString  filename);//Loads event cuts applicabale to QwHelicity class, derived from VQwSubsystemParity
   Bool_t ApplySingleEventCuts();//Apply event cuts in the QwHelicity class, derived from VQwSubsystemParity
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure, derived from VQwSubsystemParity
+  Int_t GetEventcutErrorFlag();//return the error flag 
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id,
 				   UInt_t* buffer, UInt_t num_words);

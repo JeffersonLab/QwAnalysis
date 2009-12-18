@@ -22,7 +22,7 @@ EVENTCUTS = 0
 
 !bcm, qwk_batext2,  	0, 	0
  
-bcm, qwk_bcm0l02, 	1.20089e+06, 	2.00148e+06 
+!bcm, qwk_bcm0l02, 	1.20089e+06, 	2.00148e+06 
 
  
 !bcm, qwk_batery6,  	0,	0
@@ -34,7 +34,7 @@ bcm, qwk_bcm0l02, 	1.20089e+06, 	2.00148e+06
 
 
 
-bpmstripline, qwk_qpd, 2.67319, 	4.45531, 	1.31491, 	2.19152
+!bpmstripline, qwk_qpd, 2.67319, 	4.45531, 	1.31491, 	2.19152
 
 
 !bpmstripline, qwk_1i02, 0, 	0, 	0, 	0 

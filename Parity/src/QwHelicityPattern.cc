@@ -79,15 +79,20 @@ void QwHelicityPattern::ClearEventData()
 
 void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
 {
+  
   Bool_t localdebug=kFALSE;
   QwHelicity* input=((QwHelicity*)event.GetSubsystem("Helicity info"));
-  IsGood=kFALSE;
-
+  IsGood=kFALSE; 
   Long_t localPatternNumber=input->GetPatternNumber();
   Int_t localPhaseNumber=input->GetPhaseNumber();
   Int_t localHelicityActual=input->GetHelicityActual();
   Long_t localEventNumber=input->GetEventNumber();
-
+  /*
+  Long_t localPatternNumber=1;//input->GetPatternNumber();
+  Int_t localPhaseNumber=1;//input->GetPhaseNumber();
+  Int_t localHelicityActual=1;//input->GetHelicityActual();
+  Long_t localEventNumber=1;//input->GetEventNumber();
+  */
   if(localdebug) {
     std::cout<<"\n ###################################\n";
     std::cout<<"QwHelicityPattern::LoadEventData :: ";

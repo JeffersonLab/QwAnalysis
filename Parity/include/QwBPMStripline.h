@@ -49,6 +49,10 @@ class QwBPMStripline : public VQwDataElement{
   Int_t SetSingleEventCuts(std::vector<Double_t> &);
   void SetDefaultSampleSize(Int_t sample_size);
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  Int_t GetEventcutErrorFlag(){//return the error flag 
+    return fDeviceErrorCode;
+  };
+
   void SetEventCutMode(Int_t bcuts);
   
 

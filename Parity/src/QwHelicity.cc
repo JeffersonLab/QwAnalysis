@@ -183,7 +183,12 @@ Int_t QwHelicity::GetEventcutErrorCounters(){// report number of events falied d
   return 1;  
 };
 
+//*****************************************************************
+Int_t QwHelicity::GetEventcutErrorFlag(){//return the error flag 
 
+  return 0;
+
+}
 
 //*****************************************************************
 void  QwHelicity::ProcessEvent() 
@@ -1150,6 +1155,7 @@ void QwHelicity::Copy(VQwSubsystem *source)
     {
      if(typeid(*source)==typeid(*this))
 	{
+	  VQwSubsystem::Copy(source);
 	  //QwHelicity* input=((QwHelicity*)source);
 	  VQwSubsystem::Copy(source);
           QwHelicity* input = dynamic_cast<QwHelicity*>(source);
@@ -1209,7 +1215,17 @@ VQwSubsystem&  QwHelicity::operator=  (VQwSubsystem *value)
       this->fHelicityBitMinus=input->fHelicityBitMinus;
       this->fGoodHelicity=input->fGoodHelicity;
       this->fGoodPattern=input->fGoodPattern;
-    }
+      /*
+      std::cerr << "QwHelicity::operator=:  "
+		<< " input->fEventNumber=="<< input->fEventNumber
+		<< " input->fPatternNumber=="<< input->fPatternNumber
+		<< " input->fPatternPhaseNumber=="<< input->fPatternPhaseNumber
+		<< " this->fEventNumber=="<< this->fEventNumber
+		<< " this->fPatternNumber=="<< this->fPatternNumber
+		<< " this->fPatternPhaseNumber=="<< this->fPatternPhaseNumber
+		<< std::endl;
+      */ 
+    }      
   return *this;
 };
 

@@ -67,6 +67,7 @@ class QwVQWK_Channel: public VQwDataElement {
     fErrorCount_SW_HW=0;//HW_sum==SW_sum check
     fErrorCount_Sequence=0;//sequence number check
     fErrorCount_SameHW=0;//check to see ADC returning same HW value 
+    
     return;
   };
 
@@ -109,6 +110,9 @@ class QwVQWK_Channel: public VQwDataElement {
   Bool_t MatchNumberOfSamples(size_t numsamp);
   Bool_t ApplySingleEventCuts(Double_t LL,Double_t UL);//check values read from modules are at desired level
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  Int_t GetEventcutErrorFlag(){//return the error flag 
+    return fDeviceErrorCode;
+  };
 
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;
@@ -235,6 +239,9 @@ class QwVQWK_Channel: public VQwDataElement {
 
 
   const static Bool_t bDEBUG=kFALSE;//debugging display purposes
+
+
+  
 };
 
 

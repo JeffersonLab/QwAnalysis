@@ -127,6 +127,7 @@ Bool_t QwBCM::ApplySingleEventCuts(){
       if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fTriumf_ADC.GetHardwareSum();
       status&=kFALSE;//kTRUE;//kFALSE;
     }
+    fDeviceErrorCode|=fTriumf_ADC.GetEventcutErrorFlag();//retrun the error flag for event cuts
   }else
     status =kTRUE;     
 

@@ -160,6 +160,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts(){
       status=kFALSE;
       if (bDEBUG) std::cout<<" Rel X event cut failed ";
     }
+    fDeviceErrorCode|=fRelPos[0].GetEventcutErrorFlag();//Get the Event cut error flag for RelX
     //if (fRelPos[1].GetHardwareSum()<=fULimitY && fRelPos[1].GetHardwareSum()>=fLLimitY){//for RelY
     if (fRelPos[1].ApplySingleEventCuts(fLLimitY,fULimitY)){
       status&=kTRUE;
@@ -170,7 +171,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts(){
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Rel Y event cut failed ";
     }
-    
+    fDeviceErrorCode|=fRelPos[1].GetEventcutErrorFlag();//Get the Event cut error flag for RelY
 	
   }
   else             
@@ -287,20 +288,15 @@ Bool_t QwBPMStripline::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
    
-  
-   for(int i=0;i<4;i++) 
-     {
-       fDeviceErrorCode|= fWire[i].ApplyHWChecks();  //OR the error code from each wire
-       fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 since zero means HW is good.	
-
-	 if (bDEBUG) std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;  
-	 if (bDEBUG) std::cout<<" wire[ "<<i<<" ] sequence num "<<fWire[i].GetSequenceNumber()<<" sample size "<<fWire[i].GetNumberOfSamples()<<std::endl;
-     }
-	
+  fDeviceErrorCode=0;
+  for(int i=0;i<4;i++) 
+    {
+      fDeviceErrorCode|= fWire[i].ApplyHWChecks();  //OR the error code from each wire
+      fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 since zero means HW is good.	
       
-      
-    
-
+      if (bDEBUG) std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;  
+      if (bDEBUG) std::cout<<" wire[ "<<i<<" ] sequence num "<<fWire[i].GetSequenceNumber()<<" sample size "<<fWire[i].GetNumberOfSamples()<<std::endl;
+    }
  
   
 

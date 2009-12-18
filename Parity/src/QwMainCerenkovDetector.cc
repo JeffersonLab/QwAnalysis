@@ -215,6 +215,12 @@ Int_t QwMainCerenkovDetector::GetEventcutErrorCounters(){// report number of eve
 
 //*****************************************************************
 
+Int_t QwMainCerenkovDetector::GetEventcutErrorFlag(){//return the error flag 
+
+  return 0;
+
+}
+//*****************************************************************
 
 
 void  QwMainCerenkovDetector::ProcessEvent()

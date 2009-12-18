@@ -32,6 +32,7 @@
 #include "QwHelicityPattern.h"
 #include "QwScanner.h"
 
+#include "QwEventRing.h"
 
 void PrintInfo(TStopwatch& timer);
 

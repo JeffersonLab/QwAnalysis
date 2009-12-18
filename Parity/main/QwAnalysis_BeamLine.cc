@@ -37,6 +37,7 @@
 
 
 Bool_t kInQwBatchMode = kFALSE;
+Bool_t bRING_READY;
 
 ///
 /// \ingroup QwAnalysis_BL
@@ -81,10 +82,12 @@ int main(Int_t argc,Char_t* argv[])
   QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_lumi_eventcuts.in");//Pass the correct cuts file. 
   
 
+
+
   
    QwHelicityPattern QwHelPat(QwDetectors,4);
-
-  ///////
+   QwEventRing fEventRing(QwDetectors,8,8,8);//Event ring of 8; 8 hold off events, 8 minimum failed events is a beam trip
+   
   Double_t evnum=0.0;
 
   
@@ -153,6 +156,8 @@ int main(Int_t argc,Char_t* argv[])
 	      TString dummystr="";
 	      QwHelPat.ConstructBranchAndVector(heltree, dummystr, helvector);
 	    }
+
+	  
 	}
 
       Int_t falied_events_counts=0;//count falied total events
@@ -193,11 +198,23 @@ int main(Int_t argc,Char_t* argv[])
 	  //QwDetectors.Do_RunningSum();//accimulate the running sum to calculate the event base running AVG 
 
 	  
-	  if(bHelicity)
-	    QwHelPat.LoadEventData(QwDetectors);
+	  if(bHelicity){
+	    
+	    fEventRing.push(QwDetectors);//add event to the ring
+	    //std::cerr << "After QwEventRing::push()" <<std::endl;
+	    bRING_READY=fEventRing.IsReady();
+	    if (bRING_READY){//check to see ring is ready	      
+	      //fEventRing.pop();
+	      QwHelPat.LoadEventData(fEventRing.pop());
+	    }
+	    
+	    //QwHelPat.LoadEventData(QwDetectors);
+	  }	  
+
+
 	  	  
 
-	  if(bHisto) QwDetectors.FillHistograms();
+	  if(bHisto) QwDetectors.FillHistograms(); 
 
 
 	  if(bTree){
@@ -223,6 +240,7 @@ int main(Int_t argc,Char_t* argv[])
 	  }
 	}else{	  
 	  std::cout<<" Falied event "<<QwEvt.GetEventNumber()<<std::endl;
+	  fEventRing.FailedEvent(QwDetectors.GetEventcutErrorFlag()); //event cut failed update the ring status
 	  falied_events_counts++;
 	}
 

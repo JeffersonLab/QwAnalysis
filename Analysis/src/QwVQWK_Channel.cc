@@ -35,7 +35,11 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
   Bool_t bStatus;
-  fDeviceErrorCode=0x0;//Initialize the error flag 
+  fDeviceErrorCode=0;//Initialize the error flag 
+
+  
+    
+
   if (bEVENTCUTMODE>0){//Global switch to ON/OFF event cuts set at the event cut file
 
     if (bDEBUG) 
@@ -44,16 +48,16 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
   
     bStatus= MatchNumberOfSamples(fNumberOfSamples_map);//compare the default sample size with no.of samples read by the module
   
-    fEventIsGood &=bStatus;
+    
     if (!bStatus){
-      fDeviceErrorCode+=kErrorFlag_sample;
+      fDeviceErrorCode|=kErrorFlag_sample;
       fErrorCount_sample++; //increment the error counter
     }
     //check SW and HW return the same sum
     bStatus= (GetRawHardwareSum()==GetRawSoftwareSum());
-    fEventIsGood &=bStatus;
+    //fEventIsGood =bStatus;
     if (!bStatus){
-      fDeviceErrorCode+=kErrorFlag_SW_HW; 
+      fDeviceErrorCode|=kErrorFlag_SW_HW; 
       fErrorCount_SW_HW++;
     }
   
@@ -66,8 +70,8 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
     }
 
     if (!MatchSequenceNumber(fSequenceNo_Prev)){//we have a sequence number error
-      fEventIsGood&=kFALSE;   
-      fDeviceErrorCode+=kErrorFlag_Sequence; 
+      fEventIsGood=kFALSE;   
+      fDeviceErrorCode|=kErrorFlag_Sequence; 
       fErrorCount_Sequence++;
       if (bDEBUG) std::cout<<" QwQWVK_Channel "<<GetElementName()<<" Sequence number is not incrementing properly; previous value = "<<fSequenceNo_Prev<<" Current value= "<< GetSequenceNumber()<<std::endl;     
     }
@@ -85,8 +89,7 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
     //check for the hw_sum is giving the same value
     if (fADC_Same_NumEvt>0){//we have ADC stuck with same value
       if (bDEBUG) std::cout<<" BCM hardware sum is same for more than  "<<fADC_Same_NumEvt<<" time consecutively  "<<std::endl;
-      fEventIsGood&=kFALSE;
-      fDeviceErrorCode+=kErrorFlag_SameHW;
+      fDeviceErrorCode|=kErrorFlag_SameHW;
       fErrorCount_SameHW++;
     }
     if (!fEventIsGood)
@@ -95,7 +98,7 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
   }
   else
     fDeviceErrorCode=0;
-
+  
     
 
   return fDeviceErrorCode;
@@ -656,9 +659,9 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts(Double_t LL,Double_t UL){
     }
     else{
       if (GetHardwareSum()> UL)
-	fDeviceErrorCode+=kErrorFlag_EventCut_U;
+	fDeviceErrorCode|=kErrorFlag_EventCut_U;
       else
-	fDeviceErrorCode+=kErrorFlag_EventCut_L;
+	fDeviceErrorCode|=kErrorFlag_EventCut_L;
       status=kFALSE;
     }
     

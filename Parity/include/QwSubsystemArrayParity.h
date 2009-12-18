@@ -46,6 +46,7 @@ class QwSubsystemArrayParity:  public QwSubsystemArray {
   void Do_RunningSum();//calculate the running sum at event level
   Bool_t ApplySingleEventCuts();
   Int_t GetEventcutErrorCounters();
+  Int_t GetEventcutErrorFlag();//return the error flag 
  
  public:
   std::vector<TString> sFailedSubsystems;

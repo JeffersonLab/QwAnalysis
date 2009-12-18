@@ -43,7 +43,6 @@ class VQwSubsystemParity : virtual public VQwSubsystem {
   
   virtual void FillTreeVector(std::vector<Double_t> &values)=0;
    
-  
   virtual VQwSubsystem&  operator= (VQwSubsystem *value)=0;//VQwSubsystem routine is overridden. Call it at the beginning by VQwSubsystem::operator=(value)
   virtual VQwSubsystem&  operator+= (VQwSubsystem *value)=0;
   virtual VQwSubsystem&  operator-= (VQwSubsystem *value)=0;
@@ -56,6 +55,7 @@ class VQwSubsystemParity : virtual public VQwSubsystem {
   virtual Int_t LoadEventCuts(TString filename)=0;//Will load the event cut file.
   virtual Bool_t ApplySingleEventCuts()=0;//impose single event cuts
   virtual Int_t GetEventcutErrorCounters()=0;// report number of events falied due to HW and event cut faliure
+  virtual Int_t GetEventcutErrorFlag()=0;//return the error flag to the main routine
 
   virtual VQwSubsystem* Copy()=0;
 

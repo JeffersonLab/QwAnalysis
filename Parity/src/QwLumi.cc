@@ -403,6 +403,12 @@ Int_t QwLumi::GetEventcutErrorCounters(){//inherited from the VQwSubsystemParity
   return 1;
 }
 
+Int_t QwLumi::GetEventcutErrorFlag(){//return the error flag 
+
+  return 0;
+
+}
+
 
 void  QwLumi::ProcessEvent()
 {
