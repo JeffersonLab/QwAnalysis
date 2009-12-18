@@ -55,6 +55,13 @@ void QwHitRootContainer::AddHit(QwHit *hit )
    *newhit = *hit;
  };
 
+QwHit *QwHitRootContainer::AddQwHit()
+ {
+   TClonesArray &hits = *fQwHits;
+   QwHit *hit = new (hits[fNQwHits++]) QwHit();
+   return hit;
+ };
+
 // Convert from a QwHitContainer hitlist to the TOrdCollection
 void QwHitRootContainer::Convert(QwHitContainer *hitlist)
 {
@@ -65,6 +72,34 @@ void QwHitRootContainer::Convert(QwHitContainer *hitlist)
       AddHit(p);
     }
 }
+
+
+void QwHitRootContainer::ConvertTest(QwHitContainer *hitlist)
+{
+  Clear("C");
+  QwHit *qwhit; 
+  for (QwHitContainer::iterator hit_from_hitcontainer = hitlist->begin(); hit_from_hitcontainer != hitlist->end(); hit_from_hitcontainer++)
+    {
+      //     std::cout << *hit << std::endl;
+      qwhit = AddQwHit();
+      qwhit = &(*hit_from_hitcontainer);
+    }
+  return;
+}
+
+
+// void QwHitRootContainer::ConvertTest(QwHitContainer *hitlist)
+// {
+//   Clear("C");
+//   QwHit *whit; 
+//   for (QwHitContainer::iterator hit = hitlist->begin(); hit != hitlist->end(); hit++)
+//     {
+//       std::cout << *hit << std::endl;
+      
+//       AddQwHit(*hit);
+//     }
+//   return;
+// }
 
 // Convert from this TOrdCollection to a QwHitContainer hitlist
 QwHitContainer* QwHitRootContainer::Convert()

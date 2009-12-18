@@ -16,43 +16,80 @@ ClassImp(QwHit);
 
 QwHit::QwHit()
 {
+  fCrate             = 0;
+  fModule            = 0;
+  fChannel           = 0;
+  fHitNumber         = 0;
+  fHitNumber_R       = 0;
+  fRegion            = kRegionIDNull;
+  fPackage           = 0;
+  fDirection         = 0;
+  fPlane             = 0;
+  fElement           = 0;
 
-  fCrate       = 0;
-  fModule      = 0;
-  fChannel     = 0;
-  fHitNumber   = 0;
-  fHitNumber_R = 0;
+  fAmbiguousElement  = false;
+  fLRAmbiguity       = false;
 
-  fRegion      = kRegionIDNull;
-  fPackage     = 0;
-  fDirection   = 0;
-  fPlane       = 0;
-  fElement     = 0;
-
-  fAmbiguousElement = false;
-  fLRAmbiguity      = false;
-
-
-  fRawTime = 0.0;
-  fTime = 0.0;
-  fTimeRes = 0.0;
-
-  fDistance = 0.0;
-  fPosition = 0.0;
-  fResidual = 0.0;
-  fZPos = 0.0;
-
+  fRawTime           = 0.0;
+  fTime              = 0.0;
+  fTimeRes           = 0.0;
+  fDistance          = 0.0;
+  fPosition          = 0.0;
+  fResidual          = 0.0;
+  fZPos              = 0.0;
+  fRPos              = 0.0;
+  fPhiPos            = 0.0;
   fSpatialResolution = 0.0;
-  fTrackResolution = 0.0;
+  fTrackResolution   = 0.0;
 
-  fIsUsed = false;
+  fIsUsed            = false;
+  pDetectorInfo      = NULL;
+  next               = NULL;
+  nextdet            = NULL;
 
-  pDetectorInfo = NULL;
-  next = NULL;
-  nextdet = NULL;
-  rResultPos = 0.0;
-  rPos = 0.0;
-  rPos2 = 0.0;
+  rResultPos         = 0.0;
+  rPos               = 0.0;
+  rPos2              = 0.0;
+}
+
+
+
+QwHit::QwHit(const QwHit &hit)
+{
+  fCrate             = hit.fCrate;
+  fModule            = hit.fModule;
+  fChannel           = hit.fChannel;
+  fHitNumber         = hit.fHitNumber;
+  fHitNumber_R       = hit.fHitNumber_R;
+  fRegion            = hit.fRegion;
+  fPackage           = hit.fPackage;
+  fDirection         = hit.fDirection;
+  fPlane             = hit.fPlane;
+  fElement           = hit.fElement;
+
+  fAmbiguousElement  = hit.fAmbiguousElement;
+  fLRAmbiguity       = hit.fLRAmbiguity;
+
+  fRawTime           = hit.fRawTime;
+  fTime              = hit.fTime;
+  fTimeRes           = hit.fTimeRes;
+  fDistance          = hit.fDistance;
+  fPosition          = hit.fPosition;
+  fResidual          = hit.fResidual;
+  fZPos              = hit.fZPos;
+  fRPos              = hit.fRPos;
+  fPhiPos            = hit.fPhiPos;
+  fSpatialResolution = hit.fSpatialResolution;
+  fTrackResolution   = hit.fTrackResolution; 
+
+  fIsUsed            = hit.fIsUsed;
+  pDetectorInfo      = hit.pDetectorInfo;
+  next               = hit.next;
+  nextdet            = hit.next;
+
+  rResultPos         = hit.rResultPos;
+  rPos               = hit.rPos;	
+  rPos2              = hit.rPos2;	
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -91,6 +128,49 @@ QwHit::QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+
+QwHit & QwHit::operator=(const QwHit & hit)
+{
+  if(this == & hit)
+    return *this;
+  fCrate             = hit.fCrate;
+  fModule            = hit.fModule;
+  fChannel           = hit.fChannel;
+  fHitNumber         = hit.fHitNumber;
+  fHitNumber_R       = hit.fHitNumber_R;
+  fRegion            = hit.fRegion;
+  fPackage           = hit.fPackage;
+  fDirection         = hit.fDirection;
+  fPlane             = hit.fPlane;
+  fElement           = hit.fElement;
+
+  fAmbiguousElement  = hit.fAmbiguousElement;
+  fLRAmbiguity       = hit.fLRAmbiguity;
+
+  fRawTime           = hit.fRawTime;
+  fTime              = hit.fTime;
+  fTimeRes           = hit.fTimeRes;
+  fDistance          = hit.fDistance;
+  fPosition          = hit.fPosition;
+  fResidual          = hit.fResidual;
+  fZPos              = hit.fZPos;
+  fRPos              = hit.fRPos;
+  fPhiPos            = hit.fPhiPos;
+  fSpatialResolution = hit.fSpatialResolution;
+  fTrackResolution   = hit.fTrackResolution; 
+
+  fIsUsed            = hit.fIsUsed;
+  pDetectorInfo      = hit.pDetectorInfo;
+  next               = hit.next;
+  nextdet            = hit.next;
+
+  rResultPos         = hit.rResultPos;
+  rPos               = hit.rPos;	
+  rPos2              = hit.rPos2;	
+
+  
+}
 
 const Double_t QwHit::GetSpatialResolution() const
 {

@@ -38,10 +38,12 @@ class QwHit : public TObject {
  public:
 
   QwHit();
-
+  QwHit(const QwHit &);
   QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
 	EQwRegionID region, Int_t package, Int_t plane, Int_t direction, Int_t wire,
 	UInt_t data);
+
+  QwHit & operator = (const QwHit &);
 
   virtual ~QwHit();
 
