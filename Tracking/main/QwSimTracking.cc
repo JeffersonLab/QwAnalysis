@@ -125,8 +125,8 @@ int main (int argc, char* argv[])
     // Open ROOT file
     TFile* file = 0;
     TTree* tree = 0;
-    QwEvent* event = 0;
-    QwHitRootContainer* roothitlist = 0;
+    QwEvent* event = new QwEvent();
+    QwHitRootContainer* roothitlist = new QwHitRootContainer();
     if (kHisto || kTree) {
       file = new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/QwSim_%d.root", runnumber),
                        "RECREATE",
@@ -148,7 +148,6 @@ int main (int argc, char* argv[])
 
       /// We get the hit list from the event buffer.
       QwHitContainer* hitlist = treebuffer->GetHitList(eventnumber);
-      roothitlist = new QwHitRootContainer();
       roothitlist->Convert(hitlist);
 
       // Print hit list
@@ -172,11 +171,13 @@ int main (int argc, char* argv[])
       if (kTree) tree->Fill();
 
       // Delete the hit lists and reconstructed event
-      delete roothitlist;
       delete hitlist;
       delete event;
 
     } // end of loop over events
+
+    // Delete the ROOT hit list
+    delete roothitlist;
 
     std::cout << "Number of good partial tracks found: "
               << trackingworker->ngood << std::endl;

@@ -471,7 +471,6 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
 
   double A[tlayers][2], G[tlayers][tlayers], AtGA[2][2];
   double AtGy[2], y[tlayers], x[2];
-  double resolution = 0.1;
 
   /* Initialize the matrices and vectors */
   for (int i = 0; i < n; i++)
@@ -2260,7 +2259,6 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	// (TODO no x hit will never give a partial track!)
 	QwTrackingTreeLine *wx = uvl[kDirectionX];
         QwTrackingTreeLine *best_wx = 0; // start with null, no solution guaranteed
-        double distance, distance1, distance2;
         double minimum = 1.0e10;
 	while (wx) {
 	  if (wx->IsVoid()) {
@@ -2275,9 +2273,9 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	  double xx1 = offset_x + slope_x * zx1;
           double xx2 = offset_x + slope_x * zx2;
 	  // Difference with x coordinates from u,v treeline track
-          distance1 = fabs(x1 - xx1);
-          distance2 = fabs(x2 - xx2);
-	  distance = distance1 + distance2;
+          double distance1 = fabs(x1 - xx1);
+          double distance2 = fabs(x2 - xx2);
+	  double distance = distance1 + distance2;
 
 	  // Keep track of best x treeline
           if (distance < minimum) {
