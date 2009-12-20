@@ -70,6 +70,17 @@ void QwIntegrationPMT::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
   fTriumf_ADC.SetHardwareSum(hwsum, sequencenumber);
   return;
 };
+
+Double_t QwIntegrationPMT::GetHardwareSum()
+{
+  return fTriumf_ADC.GetHardwareSum();
+};
+
+Double_t QwIntegrationPMT::GetBlockValue(Int_t blocknum)
+{
+  return fTriumf_ADC.GetBlockValue(blocknum);
+};
+
 /********************************************************/
 void QwIntegrationPMT::SetEventData(Double_t* block, UInt_t sequencenumber)
 {
@@ -280,7 +291,6 @@ void  QwIntegrationPMT::ConstructBranchAndVector(TTree *tree, TString &prefix, s
   } else
     {
       fTriumf_ADC.ConstructBranchAndVector(tree, prefix,values);
-      // this functions doesn't do anything yet
     }
   return;
 };
@@ -292,7 +302,6 @@ void  QwIntegrationPMT::FillTreeVector(std::vector<Double_t> &values)
   } else
     {
       fTriumf_ADC.FillTreeVector(values);
-      // this functions doesn't do anything yet
     }
   return;
 };

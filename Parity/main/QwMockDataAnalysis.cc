@@ -64,7 +64,10 @@ int main(int argc, char* argv[])
   }
   if (bQuartz) {
     detectors.push_back(new QwMainCerenkovDetector("Main detector"));
-    detectors.GetSubsystem("Main detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_adc.map");
+    //detectors.GetSubsystem("Main detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_adc.map");
+
+    detectors.GetSubsystem("Main detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
+
     detectors.GetSubsystem("Main detector")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
   }
   if (bHelicity) {

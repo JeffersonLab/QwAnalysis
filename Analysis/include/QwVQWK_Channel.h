@@ -67,7 +67,6 @@ class QwVQWK_Channel: public VQwDataElement {
     fErrorCount_SW_HW=0;//HW_sum==SW_sum check
     fErrorCount_Sequence=0;//sequence number check
     fErrorCount_SameHW=0;//check to see ADC returning same HW value 
-    
     return;
   };
 

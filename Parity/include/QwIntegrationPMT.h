@@ -37,7 +37,11 @@ class QwIntegrationPMT : public VQwDataElement{
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
   void  RandomizeEventData(int helicity);
+
   void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
+  Double_t GetHardwareSum();
+  Double_t GetBlockValue(Int_t blocknum);
+
   void  SetEventData(Double_t* block, UInt_t sequencenumber);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
 
@@ -58,6 +62,8 @@ class QwIntegrationPMT : public VQwDataElement{
   void Do_RunningSum(); 
   void Print() const;
 
+  Double_t GetRawBlockValue(size_t blocknum)
+           {return fTriumf_ADC.GetRawBlockValue(blocknum);};
 
   
 

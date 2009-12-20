@@ -145,6 +145,7 @@ class QwScanner: public VQwSubsystemTracking,
   std::vector< enum EModuleType > fModuleTypes;
   std::vector< std::vector< std::pair<Int_t, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel; gives the plane and wire assignment.
 
+  Int_t GetEventcutErrorFlag() { return 0; };//return the error flag to the main routine
 
   // scanner specified histograms
   std::vector<TH1*> fHistograms1D;

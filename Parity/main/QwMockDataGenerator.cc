@@ -54,7 +54,11 @@ int main(int argc, char* argv[])
   detectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_helicity.map");
   detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
   detectors.push_back(new QwMainCerenkovDetector("Main detector"));
-  detectors.GetSubsystem("Main detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_adc.map");
+  //detectors.GetSubsystem("Main detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_adc.map");
+//   detectors.GetSubsystem("Main detector")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
+//   QwHelicityPattern QwHelPat(detectors, kMultiplet);
+
+  detectors.GetSubsystem("Main detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
   detectors.GetSubsystem("Main detector")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
   QwHelicityPattern QwHelPat(detectors, kMultiplet);
 

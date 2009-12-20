@@ -487,7 +487,10 @@ void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values)
 	values[index++]=this->fSequenceNumber;
       }
   }
-  if (kDEBUG && GetElementName()=="Bar1Right"){
+  //if (kDEBUG && GetElementName()=="bar1right"){
+  if (kDEBUG && (GetElementName()=="bar1left_bar5left_sum" || GetElementName()=="bar1right"))
+    {
+    std::cerr<<"Fill vector for "<<GetElementName()<<std::endl;
     std::cerr << "&(values["<<fTreeArrayIndex<<"])=="<< &(values[fTreeArrayIndex])
 	      << std::endl;
     size_t index=fTreeArrayIndex;
@@ -522,10 +525,10 @@ QwVQWK_Channel& QwVQWK_Channel::operator+= (const QwVQWK_Channel &value){
   if (!IsNameEmpty()){
     for (size_t i=0; i<4; i++){
       this->fBlock[i] += value.fBlock[i];
-      this->fBlock_raw[i]=0;
+      this->fBlock_raw[i]+=value.fBlock[i];
     }
-    this->fHardwareBlockSum_raw =0;
-    this->fSoftwareBlockSum_raw =0;
+    this->fHardwareBlockSum_raw =value.fHardwareBlockSum_raw;
+    this->fSoftwareBlockSum_raw =value.fSoftwareBlockSum_raw;
     this->fHardwareBlockSum += value.fHardwareBlockSum;
     this->fNumberOfSamples  += value.fNumberOfSamples;
     this->fSequenceNumber   = 0;

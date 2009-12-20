@@ -15,9 +15,14 @@
 #include <TTree.h>
 
 #include "VQwSubsystemParity.h"
-
 #include "QwVQWK_Module.h"
 
+#include "QwIntegrationPMT.h"
+#include "QwCombinedPMT.h"
+
+class QwMainCerenkovDetectorID;
+
+enum EMainDetInstrumentType{kIntegrationPMT, kCombinedPMT};
 
 class QwMainCerenkovDetector: public VQwSubsystemParity {
   /******************************************************************
@@ -26,7 +31,14 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
    *
    ******************************************************************/
  public:
-  QwMainCerenkovDetector(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp) { };
+  QwMainCerenkovDetector(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp) {
+      // these declaration need to be coherent with the enum vector ELumiInstrumentType
+      DetectorTypes.push_back("IntegrationPMT");
+      DetectorTypes.push_back("CombinationPMT");
+      for(size_t i=0;i<DetectorTypes.size();i++)
+        DetectorTypes[i].ToLower();
+ };
+
   ~QwMainCerenkovDetector() {
     DeleteHistograms();
   };
@@ -40,9 +52,10 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   Int_t GetEventcutErrorFlag();//return the error flag 
   
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
   void  ClearEventData();
-  Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  Bool_t IsGoodEvent();
 
   void  ProcessEvent();
 
@@ -63,12 +76,12 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
 
-  QwVQWK_Channel* GetChannel(const TString name);
+  QwIntegrationPMT* GetChannel(const TString name);
 
   void Copy(VQwSubsystem *source);
   VQwSubsystem*  Copy();
   Bool_t Compare(VQwSubsystem *source);
-
+  void Scale(Double_t factor);
 
   VQwSubsystem&  operator=  ( VQwSubsystem *value);
   VQwSubsystem&  operator+= ( VQwSubsystem *value);
@@ -81,29 +94,74 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   void Calculate_Running_Average();
   void Do_RunningSum();
 
+  QwIntegrationPMT* GetIntegrationPMT(const TString name);
+
 
   Bool_t ApplyHWChecks(){//Check for harware errors in the devices
     Bool_t status = kTRUE;
-    for (size_t i=0; i<fADC_Data.size(); i++){
-      status &= fADC_Data.at(i).ApplyHWChecks();
+    for (size_t i=0; i<fIntegrationPMT.size(); i++){
+      status &= fIntegrationPMT.at(i).ApplyHWChecks();
     }
     return status;
   };
 
-
+  void Print();
+  void  PrintDetectorID();
 
 
  protected:
   Bool_t fDEBUG;
 
+ Int_t GetDetectorTypeID(TString name);
 
+ // when the type and the name is passed the detector index from appropriate vector
+ // will be returned. For example if TypeID is IntegrationPMT  then the index of
+ // the detector from fIntegrationPMT vector for given name will be returnd.
+ Int_t GetDetectorIndex(Int_t TypeID, TString name);
 
-  std::vector<QwVQWK_Module> fADC_Data;
+  //std::vector<QwVQWK_Module> fADC_Data;
 
+  std::vector <QwIntegrationPMT> fIntegrationPMT;
+  std::vector <QwCombinedPMT> fCombinedPMT;
+  std::vector <QwMainCerenkovDetectorID> fMainDetID;
 
+  private:
 
+  static const Bool_t bDEBUG=kFALSE; 
+  std::vector<TString> DetectorTypes;// for example could be IntegrationPMT, LUMI,BPMSTRIPLINE, etc..
+  Int_t fMainDetErrorCount;
 
 };
+
+
+class QwMainCerenkovDetectorID
+{
+ public:
+  QwMainCerenkovDetectorID():fSubbankIndex(-1),fWordInSubbank(-1),fTypeID(-1),fIndex(-1),
+    fSubelement(999999),fmoduletype(""),fdetectorname("")
+    {};
+
+  int fSubbankIndex;
+  int fWordInSubbank; //first word reported for this channel in the subbank
+                      //(eg VQWK channel report 6 words for each event, scalers oly report one word per event)
+  // The first word of the subbank gets fWordInSubbank=0
+
+  int fTypeID;     // type of detector
+  int fIndex;      // index of this detector in the vector containing all the detector of same type
+  UInt_t fSubelement; // some detectors have many subelements (eg stripline have 4 antenas)
+                      // some have only one sub element(eg lumis have one channel)
+
+  TString fmoduletype; // eg: VQWK, SCALER
+  TString fdetectorname;
+  TString fdetectortype; // stripline, IntegrationPMT, ... this string is encoded by fTypeID
+
+  std::vector<TString> fCombinedChannelNames;
+  std::vector<Double_t> fWeight;
+
+  void Print();
+
+};
+
 
 #endif
 
