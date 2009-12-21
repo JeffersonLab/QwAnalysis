@@ -156,8 +156,8 @@ class QwHit : public TObject {
 
   Bool_t operator<(QwHit & obj);
 
- protected:
-  // public:
+  // protected:
+ public:
   //  Identification information for readout channels
 
   Int_t fCrate;     ///< ROC number

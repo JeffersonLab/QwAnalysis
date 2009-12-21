@@ -43,9 +43,9 @@ QwHit::QwHit()
   fTrackResolution   = 0.0;
 
   fIsUsed            = false;
-  pDetectorInfo      = NULL;
-  next               = NULL;
-  nextdet            = NULL;
+  pDetectorInfo      = 0;
+  next               = 0;
+  nextdet            = 0;
 
   rResultPos         = 0.0;
   rPos               = 0.0;
@@ -169,7 +169,8 @@ QwHit & QwHit::operator=(const QwHit & hit)
   rPos               = hit.rPos;	
   rPos2              = hit.rPos2;	
 
-  
+  return *this;
+
 }
 
 const Double_t QwHit::GetSpatialResolution() const

@@ -31,6 +31,11 @@ void QwHitRootContainer::Clear(Option_t *option)
   fNQwHits = 0; // No hits in local TClonesArray
 };
 
+void QwHitRootContainer::Delete(Option_t *option)
+{
+  fQwHits->Delete(option);
+};
+
 // Delete the static TClonesArray
 void QwHitRootContainer::Reset(Option_t *option)
 {
@@ -51,16 +56,30 @@ void QwHitRootContainer::AddHit(QwHit *hit )
  {
    TClonesArray &hits = *fQwHits;
    QwHit *newhit = new (hits[fNQwHits++]) QwHit();
-   //  QwHit* newhit = CreateNewHit();
    *newhit = *hit;
  };
 
-QwHit *QwHitRootContainer::AddQwHit()
+QwHit *QwHitRootContainer::AddQwHit(QwHit &in)
+ {
+   TClonesArray &hits = *fQwHits;
+   printf("fNQwHits %d :", fNQwHits);
+   QwHit *hit = new (hits[fNQwHits++]) QwHit();
+
+   hit = &in;
+   printf("&hits %p &in %p hit %p\n", &hits, &in, hit);
+   
+   return hit;
+ };
+
+
+QwHit *QwHitRootContainer::AddQwHit2()
  {
    TClonesArray &hits = *fQwHits;
    QwHit *hit = new (hits[fNQwHits++]) QwHit();
    return hit;
  };
+
+
 
 // Convert from a QwHitContainer hitlist to the TOrdCollection
 void QwHitRootContainer::Convert(QwHitContainer *hitlist)
@@ -76,30 +95,50 @@ void QwHitRootContainer::Convert(QwHitContainer *hitlist)
 
 void QwHitRootContainer::ConvertTest(QwHitContainer *hitlist)
 {
-  Clear("C");
+  Clear();
   QwHit *qwhit; 
-  for (QwHitContainer::iterator hit_from_hitcontainer = hitlist->begin(); hit_from_hitcontainer != hitlist->end(); hit_from_hitcontainer++)
+  for (QwHitContainer::iterator hit = hitlist->begin(); hit != hitlist->end(); hit++)
     {
-      //     std::cout << *hit << std::endl;
-      qwhit = AddQwHit();
-      qwhit = &(*hit_from_hitcontainer);
+      std::cout << *hit << std::endl;
+      qwhit = (QwHit*) AddQwHit((QwHit &) *hit);
+      printf("qwhit %p\n", qwhit);
+      std::cout <<*qwhit << std::endl;
+  //     printf("qwhit %p, *hit %p\n", &qwhit, *hit);
     }
   return;
 }
 
 
-// void QwHitRootContainer::ConvertTest(QwHitContainer *hitlist)
-// {
-//   Clear("C");
-//   QwHit *whit; 
-//   for (QwHitContainer::iterator hit = hitlist->begin(); hit != hitlist->end(); hit++)
-//     {
-//       std::cout << *hit << std::endl;
-      
-//       AddQwHit(*hit);
-//     }
-//   return;
-// }
+void QwHitRootContainer::ConvertTest2(QwHitContainer *hitlist)
+{
+  Clear();
+  
+  for (QwHitContainer::iterator hit = hitlist->begin(); hit != hitlist->end(); hit++)
+    {
+      TClonesArray &hits = *fQwHits;
+      new (hits[fNQwHits++]) QwHit((QwHit&)*hit);
+    }
+  return;
+}
+
+
+void QwHitRootContainer::ConvertTest3(QwHitContainer *hitlist)
+{
+  Clear("C");
+  fNQwHits = 0;
+  
+  for (QwHitContainer::iterator hit = hitlist->begin(); hit != hitlist->end(); hit++)
+    {
+      printf("===================== hit list %p\n", &hit);
+      std::cout << *hit << std::endl;
+      QwHit *qwhit = AddQwHit2();
+      qwhit = &(*hit);
+      printf("===================== root hit list %p\n", &qwhit);
+      std::cout << *qwhit << std::endl;
+    }
+  return;
+}
+
 
 // Convert from this TOrdCollection to a QwHitContainer hitlist
 QwHitContainer* QwHitRootContainer::Convert()

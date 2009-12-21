@@ -47,11 +47,13 @@ class QwHitRootContainer : public TObject {
   // Housekeeping methods
   void Clear(Option_t *option = "");
   void Reset(Option_t *option = "");
+  void Delete(Option_t *option = "");
 
   // Creating and adding hits
   //  QwHit* CreateNewHit();
   void AddHit(QwHit * );//QwHit *hit);
-  QwHit* AddQwHit();
+  QwHit* AddQwHit(QwHit &in);
+  QwHit* AddQwHit2();
 
   // Get the number of hits
   Int_t GetSize() const { return fNQwHits; };
@@ -61,6 +63,8 @@ class QwHitRootContainer : public TObject {
   QwHitContainer* Convert();
 
   void ConvertTest(QwHitContainer *hitlist);
+  void ConvertTest2(QwHitContainer *hitlist);
+  void ConvertTest3(QwHitContainer *hitlist);
 
   // Output function
   void Print();
