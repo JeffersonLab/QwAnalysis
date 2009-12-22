@@ -206,6 +206,7 @@ int evOpen(char *filename,char *flags,EVFILE **handle)
       a->file = fopen(filename,"r");
       if(a->file) {
 	int compressed;
+	compressed = 0;
 	char bytes[2];
 	fread(bytes,2,1,a->file); /* Check magic bytes for compressions */
 	if(bytes[0]=='\037' && (bytes[1]=='\213' || bytes[1]=='\235')) {

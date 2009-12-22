@@ -230,7 +230,7 @@ void  QwDriftChamberVDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
   Int_t tdcindex=1;
   if (tdcindex != -1){
         Int_t hitCount = 1;
-        Int_t package  = 1;
+        EQwDetectorPackage package  = kPackageUp;
 	//Int_t plane    = fTDCPtrs.at(tdcindex).at(chan).fPlane;
 	//Int_t wire     = fTDCPtrs.at(tdcindex).at(chan).fElement;
 
@@ -238,7 +238,7 @@ void  QwDriftChamberVDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
 	if(slot_num==3)
 	  plane=fDelayLinePtrs.at(slot_num).at(chan).BackPlane;
 	Int_t wire=0;
-	Int_t direction=0;
+	EQwDirectionID direction=kDirectionNull;
 
 
     if (plane == -1 || wire == -1){
@@ -422,6 +422,9 @@ void QwDriftChamberVDC::ReadEvent(TString& eventfile){
   //  UInt_t pknum,plnum;         //store temp package,plane,firstwire and left or right information
   UInt_t value = 0;
   Double_t signal = 0.0; // double? unsigned int ? by jhlee
+  EQwDetectorPackage package = kPackageNull;
+  EQwDirectionID direction = kDirectionNull;
+    
   QwParameterFile mapstr(eventfile.Data());
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment( '!' );
@@ -438,7 +441,7 @@ void QwDriftChamberVDC::ReadEvent(TString& eventfile){
     channum = (atol(mapstr.GetNextToken( ", \t()" ).c_str()));
     signal  = (atof(mapstr.GetNextToken( ", \t()" ).c_str()));
     //std::cout << "signal is: " << signal << endl;
-    fTDCHits.push_back(QwHit(value,slotnum,channum,0, kRegionID3,0,0,0,0, (UInt_t) signal));
+    fTDCHits.push_back(QwHit(value,slotnum,channum,0, kRegionID3,package,0,direction,0, (UInt_t) signal));
   }        //only know TDC information and time value
 }
 
@@ -515,7 +518,11 @@ void QwDriftChamberVDC::ProcessEvent(){
 
 	      for(Int_t j=0;j<Ambiguitycount;j++)
 		{
-		  QwHit NewQwHit(tmpCrate,tmpModule ,tmpChan,order_L, kRegionID3, DelayLineArray.at(tmpbp).at(tmpln).Package,DelayLineArray.at (tmpbp).at(tmpln).Plane,tmpdir,DelayLineArray.at(tmpbp).at(tmpln).Wire.at(i).at(j),left_time);
+		  QwHit NewQwHit(tmpCrate, tmpModule, tmpChan, order_L, kRegionID3, 
+				 (EQwDetectorPackage) DelayLineArray.at(tmpbp).at(tmpln).Package, 
+				 DelayLineArray.at(tmpbp).at(tmpln).Plane,
+				 (EQwDirectionID) tmpdir,DelayLineArray.at(tmpbp).at(tmpln).Wire.at(i).at(j),
+				 left_time);
 
 		  //AddChannelDefinition(DelayLineArray.at (tmpbp).at(tmpln).Plane,DelayLineArray.at(tmpbp).at(tmpln).Wire.at(i).at(j) );
 		  NewQwHit.SetHitNumberR(order_R);

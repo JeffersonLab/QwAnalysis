@@ -4,7 +4,7 @@
  *  \brief  the decoding-to-QTR interface class.
  *
  */
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 
 #include "QwHit.h"
 
@@ -12,7 +12,6 @@ ClassImp(QwHit);
 
 #include "QwDetectorInfo.h"
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwHit::QwHit()
 {
@@ -22,8 +21,8 @@ QwHit::QwHit()
   fHitNumber         = 0;
   fHitNumber_R       = 0;
   fRegion            = kRegionIDNull;
-  fPackage           = 0;
-  fDirection         = 0;
+  fPackage           = kPackageNull;
+  fDirection         = kDirectionNull;
   fPlane             = 0;
   fElement           = 0;
 
@@ -92,42 +91,57 @@ QwHit::QwHit(const QwHit &hit)
   rPos2              = hit.rPos2;	
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwHit::QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
-       EQwRegionID region, Int_t package, Int_t plane, Int_t direction, Int_t wire,
-       UInt_t data):
-       fCrate(bank_index),fModule(slot_num),fChannel(chan),
-       fHitNumber(hitcount),fRegion(region), fPackage(package),
-       fDirection(direction), fPlane(plane), fElement(wire),
-       fAmbiguousElement(kFALSE),fLRAmbiguity(kFALSE)
+       EQwRegionID region, EQwDetectorPackage package, Int_t plane, EQwDirectionID direction, Int_t wire,
+       UInt_t data)
+//  :
+//       fCrate(bank_index),fModule(slot_num),fChannel(chan),
+//       fHitNumber(hitcount),fRegion(region), fPackage(package),
+//       fDirection(direction), fPlane(plane), fElement(wire),
+//       fAmbiguousElement(kFALSE),fLRAmbiguity(kFALSE)
 {
-  fRawTime = data;
+  fCrate             = bank_index;
+  fModule            = slot_num;
+  fChannel           = chan;
+  fHitNumber         = hitcount;
+  fHitNumber_R       = 0;
 
-  fTime = 0.0;		/// Start corrected time, may also be further modified
-  fTimeRes = 0.0;	/// Resolution of time (if appropriate)
+  fRegion            = region;
+  fPackage           = package;
+  fDirection         = direction;
+  fPlane             = plane;
+  fElement           = wire;
 
-  fDistance = 0.0;	/// Perpendicular distance from the wire to the track
-  fZPos = 0.0;		/// Hit position
+  fAmbiguousElement  = false;
+  fLRAmbiguity       = false;
 
+  fRawTime           = data;
+  fTime              = 0.0;	/// Start corrected time, may also be further modified
+  fTimeRes           = 0.0;	/// Resolution of time (if appropriate)
+  fDistance          = 0.0;	/// Perpendicular distance from the wire to the track
+  fZPos              = 0.0;	/// Hit position
+  fRPos              = 0.0;
+  fPhiPos            = 0.0;
+  fSpatialResolution = 0.0;
+  fTrackResolution   = 0.0;
   fSpatialResolution = 0.0;	/// Spatial resolution
-  fTrackResolution = 0.0;	/// Tracking road width around hit
+  fTrackResolution   = 0.0;	/// Tracking road width around hit
 
-  fIsUsed = false;	/// Is this hit used in a tree line?
+  fIsUsed            = false;	/// Is this hit used in a tree line?
 
-  pDetectorInfo = 0;	/// Pointer to detector info object
+  pDetectorInfo      = 0;	/// Pointer to detector info object
+  next               = 0;
+  nextdet            = 0;      	/*!<next hit and next hit in same detector */
 
-  wire = 0;			/*!< wire ID                           */
-  rPos2 = 0.0;			/*!< rPos2 from level II decoding      */
-  //detec = 0;			/*!< which detector                    */
-  next = nextdet = 0; 		/*!< next hit and next hit in same detector */
-  //ID = 0;			/*!< event ID                          */
-  rResultPos = 0.0;		/*!< Resulting hit position            */
-  rPos = 0.0;			/*!< Position of from track finding    */
+  rResultPos         = 0.0;     /*!< Resulting hit position            */
+  rPos               = 0.0;	/*!< Position of from track finding    */
+  rPos2              = 0.0;	/*!< rPos2 from level II decoding      */
+ 
+ 
 
 };
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 
 QwHit & QwHit::operator=(const QwHit & hit)
@@ -198,7 +212,6 @@ const double QwHit::GetZPosition() const {
   else return pDetectorInfo->GetZPosition();
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 void QwHit::Print()
 {
@@ -206,7 +219,6 @@ void QwHit::Print()
   std::cout << *this << std::endl;
 };
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 ostream& operator<< (ostream& stream, const QwHit& hit) {
   stream << "hit: ";
@@ -292,7 +304,8 @@ ostream& operator<< (ostream& stream, const QwHit& hit) {
 
 QwHit::~QwHit()
 {
-
+  if(next) delete next; next = 0;
+  if(nextdet) delete nextdet ; nextdet = 0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

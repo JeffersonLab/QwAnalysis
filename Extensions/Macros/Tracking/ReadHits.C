@@ -211,7 +211,7 @@ read(Int_t evID=1, Int_t hitID = -1, Int_t run_number=1567)
 }
 
 void 
-read_event_number(int id=1, Int_t run_number=398)
+read_event_number(int id=1, Int_t run_number=1567)
 {
 
  check_libraries();
@@ -257,7 +257,7 @@ typedef struct {
 
 
 void 
-histogram_range_per_tdc(Int_t run_number=398, Bool_t debug=false, Int_t tdc_chan=0)
+histogram_range_per_tdc(Int_t run_number=1567, Bool_t debug=false, Int_t tdc_chan=0)
 {
   check_libraries();
 
@@ -336,7 +336,7 @@ histogram_range_per_tdc(Int_t run_number=398, Bool_t debug=false, Int_t tdc_chan
 // --------------------------------------------------------------------------------
 // valid for region 2 and region 3, not sure region 1 
 void 
-plot_time_histogram_per_tdc(Int_t run_number=398, Int_t tdc_chan=0, UInt_t event_begin=0, UInt_t event_end=0, Int_t smooth_n=1)
+plot_time_histogram_per_tdc(Int_t run_number=1567, Int_t tdc_chan=0, UInt_t event_begin=0, UInt_t event_end=0, Int_t smooth_n=1)
 {
 
   if( (event_begin > event_end) )
@@ -378,7 +378,8 @@ plot_time_histogram_per_tdc(Int_t run_number=398, Int_t tdc_chan=0, UInt_t event
       Int_t    ev_i        = 0; 
       Int_t    hit_i       = 0;
       TH1D     *histo_region[3] = {NULL, NULL, NULL};
-
+      Int_t   tmp = 0;
+      
       nevent = tree -> GetEntries();
       printf("Run %d TDC channel %d total event %d\n", run_number, tdc_chan,  nevent);
       
@@ -410,8 +411,9 @@ plot_time_histogram_per_tdc(Int_t run_number=398, Int_t tdc_chan=0, UInt_t event
 		  tdc_rawtime = hit->GetRawTime();
 		  region      = hit->GetRegion();
 		  if(!region_status[region]) region_status[region] = true;
-		  if(ev_i%2==0) printf("evID %d region %d, Traw %d\n", ev_i, region, tdc_rawtime);
-		  histo_region[region-1] -> Fill(tdc_rawtime);
+		  if(ev_i%100==0) printf("evID %d region %d, Traw %d\n", ev_i, region, tdc_rawtime);
+		  tmp = region -1;
+		  histo_region[tmp] -> Fill(tdc_rawtime);
 		}
 	    }
 	  
@@ -462,7 +464,7 @@ plot_time_histogram_per_tdc(Int_t run_number=398, Int_t tdc_chan=0, UInt_t event
 // --------------------------------------------------------------------------------
 // valid for region 2 and region 3, not sure for region 1
 void 
-plot_time_histogram_per_wire(Int_t run_number=398, Int_t wire=0, UInt_t event_begin=0, UInt_t event_end=0, Int_t smooth_n=1)
+plot_time_histogram_per_wire(Int_t run_number=1567, Int_t wire=0, UInt_t event_begin=0, UInt_t event_end=0, Int_t smooth_n=1)
 {
 
   if( (event_begin > event_end) )

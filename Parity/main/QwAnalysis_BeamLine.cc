@@ -41,7 +41,7 @@ Bool_t bRING_READY;
 
 ///
 /// \ingroup QwAnalysis_BL
-int main(Int_t argc,Char_t* argv[])
+Int_t main(Int_t argc, Char_t* argv[])
 {
 
   Bool_t bDebug=kFALSE;
@@ -64,7 +64,8 @@ int main(Int_t argc,Char_t* argv[])
   QwEventBuffer QwEvt;
 
   QwSubsystemArrayParity QwDetectors;
-   VQwSubsystemParity * subsystem_tmp;//VQwSubsystemParity is the top most parent class for Parity subsystems.
+  VQwSubsystemParity * subsystem_tmp;//VQwSubsystemParity is the top most parent class for Parity subsystems.
+  subsystem_tmp = 0;
 
   QwDetectors.push_back(new QwBeamLine("Injector BeamLine"));
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline.map");
@@ -85,8 +86,8 @@ int main(Int_t argc,Char_t* argv[])
 
 
   
-   QwHelicityPattern QwHelPat(QwDetectors,4);
-   QwEventRing fEventRing(QwDetectors,8,8,8);//Event ring of 8; 8 hold off events, 8 minimum failed events is a beam trip
+  QwHelicityPattern QwHelPat(QwDetectors,4);
+  QwEventRing fEventRing(QwDetectors,8,8,8);//Event ring of 8; 8 hold off events, 8 minimum failed events is a beam trip
    
   Double_t evnum=0.0;
 
@@ -127,8 +128,8 @@ int main(Int_t argc,Char_t* argv[])
       }
 
 
-      TTree *mpstree;
-      TTree *heltree;
+      TTree *mpstree =0;
+      TTree *heltree =0;
       
       std::vector <Double_t> mpsvector;
       std::vector <Double_t> helvector;

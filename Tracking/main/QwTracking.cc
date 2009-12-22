@@ -157,7 +157,7 @@ int main(Int_t argc,Char_t* argv[])
   // Create the event buffer
   QwEventBuffer eventbuffer;
 
-  TFile *rootfile = NULL;
+ 
 
 
   char *hostname, *session;
@@ -219,24 +219,19 @@ int main(Int_t argc,Char_t* argv[])
 
     eventbuffer.ResetControlParameters();
 
-    //     //  Configure database access mode, and load the calibrations
-    //     //  from the database.
-
-    //  Create the root file
-//      boost::shared_ptr<TFile>
-//        rootfile(new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
-//  			 "RECREATE",
-//  			 "QWeak ROOT file with real events"));
-
+    TFile *rootfile = 0;
     if(rootfile)
       {
 	if(rootfile-> IsOpen()) rootfile->Close();
 	delete rootfile; rootfile=NULL;
       }
 
-    std::auto_ptr<TFile> rootfile (new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
-  					"RECREATE",
-  					"QWeak ROOT file with real events"));
+    rootfile = new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
+			"RECREATE",
+			 "QWeak ROOT file with real events");
+    //    std::auto_ptr<TFile> rootfile (new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
+//   					"RECREATE",
+//   					"QWeak ROOT file with real events"));
 
     //  Create the histograms for the QwDriftChamber subsystem object.
     //  We can create a subfolder in the rootfile first, if we want,
@@ -276,7 +271,7 @@ int main(Int_t argc,Char_t* argv[])
       if      (eventnumber < cmdline.GetFirstEvent()) continue;
       else if (eventnumber > cmdline.GetLastEvent())  break;
 
-      if (eventnumber % 1000 == 0) {
+      if (eventnumber % 10000 == 0) {
 	QwMessage << "Number of events processed so far: "
 		  << eventnumber << QwLog::endl;
       }
@@ -300,8 +295,8 @@ int main(Int_t argc,Char_t* argv[])
 
       if (hitlist->size() == 0) continue;
       if (hitlist->size() < 5) {
-        std::cout << "Event skipped: only " << hitlist->size() << " hits" << std::endl;
-        continue;
+	//   std::cout << "Event skipped: only " << hitlist->size() << " hits" << std::endl;
+	continue;
       }
 
       // Print hit list
@@ -310,11 +305,14 @@ int main(Int_t argc,Char_t* argv[])
         hitlist->Print();
       }
 
-      // Convert the hit list to ROOT output format
+      // Conver the hit list to ROOT output format
       // Save the hitlist to the tree
       if (kTree) {
-        rootlist->Convert(hitlist);
-        tree->Fill();
+	//	rootlist->Convert(hitlist);
+	//	rootlist -> ConvertTest2(hitlist);
+	rootlist -> Build(*hitlist);
+	//rootlist -> ConvertTest4(hitlist);
+	tree->Fill();
       }
 
 
@@ -358,8 +356,9 @@ int main(Int_t argc,Char_t* argv[])
 
     // Write and close file (after last access to ROOT tree)
     rootfile->Write(0, TObject::kOverwrite);
-    //    if(rootfile -> IsOpen()) rootfile->Write(0, TObject::kOverwrite);
     rootfile->Close();
+
+    delete rootfile; rootfile = 0;
 
     // Delete objects
     if(trackingworker) delete trackingworker; trackingworker = NULL;

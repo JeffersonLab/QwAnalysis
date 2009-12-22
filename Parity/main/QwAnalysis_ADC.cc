@@ -42,7 +42,7 @@ Bool_t kInQwBatchMode = kFALSE;
 static const int kMultiplet = 4;
 
 // Debug level
-static bool bDebug = true;
+//static bool bDebug = true;
 
 // Activate components
 static bool bTree = true;

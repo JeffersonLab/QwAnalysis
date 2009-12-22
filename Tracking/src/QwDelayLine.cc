@@ -81,7 +81,9 @@ void QwDelayLine::ProcessHits(bool k){
   int hitscount=LeftHits.size();
   int hitscount_R=RightHits.size();
   int wincount=Windows.size();
-  int first_match = 0;
+  int first_match;
+  first_match = 0;
+
   if(hitscount ==0 || hitscount_R ==0){
   }// do nothing
   else{

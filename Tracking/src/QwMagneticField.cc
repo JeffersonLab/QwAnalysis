@@ -137,10 +137,14 @@ void QwMagneticField::ReadFieldMap(std::istream& input)
 {
   std::cout << std::endl << "###### Calling QwMagneticField::ReadFieldMap " << std::endl << std::endl;
 
-  int r_index = 0;
-  int phi_index = 0;
-  int z_index = 0;
-  int oct = 0;
+  int r_index;
+  int phi_index;
+  int z_index;
+  int oct;
+  r_index = 0;
+  phi_index = 0;
+  z_index = 0;
+  oct = 0;
   int ind = 0;
 
   int r = 0, z = 0, phi = 0;
@@ -187,7 +191,8 @@ void QwMagneticField::ReadFieldMap(std::istream& input)
 
     // Expand the field map if necessary
     if (ind >= fGridSize) {
-      unsigned int oldsize = fGridSize;
+      unsigned int oldsize = 0;
+      oldsize = fGridSize;
       unsigned int newsize = (int)(1.10 * fGridSize) + 1;
       //std::cout << "[QwMagneticField] Warning: Need to resize the field map"
       //                      << " from " << oldsize

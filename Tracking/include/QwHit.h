@@ -28,7 +28,6 @@
 #include <iostream>
 
 #include "TObject.h"
-
 #include "QwTypes.h"
 
 class QwDetectorInfo;
@@ -40,122 +39,141 @@ class QwHit : public TObject {
   QwHit();
   QwHit(const QwHit &);
   QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
-	EQwRegionID region, Int_t package, Int_t plane, Int_t direction, Int_t wire,
-	UInt_t data);
-
-  QwHit & operator = (const QwHit &);
+	EQwRegionID region, EQwDetectorPackage package, Int_t plane, 
+	EQwDirectionID direction, Int_t wire, UInt_t data);
 
   virtual ~QwHit();
 
-  void Print();
-
+  QwHit & operator = (const QwHit &);
+  Bool_t operator<(QwHit & obj);
   friend ostream& operator<< (ostream& stream, const QwHit& hit);
 
-  Int_t GetSubbankID(){return fCrate;};
+  void Print();
 
-  QwDetectorID GetDetectorID(){
+  const Int_t           GetSubbankID()    const { return fCrate; };
+  const Int_t           GetModule()       const { return fModule; };
+  const Int_t           GetChannel()      const { return fChannel; };
+  const Int_t           GetHitNumber()    const { return fHitNumber; };
+  const Int_t           GetHitNumberR()   const { return fHitNumber_R; };
+  const EQwRegionID     GetRegion()       const { return fRegion; };
+  const EQwDetectorPackage GetPackage()   const { return fPackage; };
+  const EQwDirectionID  GetDirection()    const { return fDirection; };
+  const Int_t           GetPlane()        const { return fPlane; };
+  const Int_t           GetElement()      const { return fElement; };
+
+  QwDetectorInfo*       GetDetectorInfo() const { return pDetectorInfo; };
+  
+  const Bool_t          AmbiguousElement()const { return fAmbiguousElement; };
+  const Bool_t          LRAmbiguity()     const { return fLRAmbiguity; };
+
+  const Double_t&       GetRawTime()      const { return fRawTime; };
+  const Double_t&       GetTime()         const { return fTime; };
+  const Double_t        GetTimeRes()      const { return fTimeRes; };
+  const Double_t&       GetDriftDistance()const { return fDistance; };
+  const Double_t        GetPosition()     const { return fPosition; };
+  const Double_t        GetResidual()     const { return fResidual; };
+  const Double_t        GetZPos()         const { return fZPos; };
+  const Double_t        GetZPosition()    const; // QwHit.cc
+  const Double_t        GetRPosition()    const { return fRPos; };
+  const Double_t        GetPhiPosition()  const { return fPhiPos; };
+
+  const Double_t        GetSpatialResolution() const; // QwHit.cc
+  const Double_t        GetTrackResolution()   const; // QwHit.cc
+
+  const Bool_t          IsUsed()          const { return fIsUsed; };
+
+
+  const QwDetectorID GetDetectorID() const 
+  {
     return QwDetectorID(fRegion,fPackage,fPlane,fDirection,fElement);
   };
+  
 
-
-  QwElectronicsID GetElectronicsID(){
+  const QwElectronicsID GetElectronicsID() const
+  {
     return QwElectronicsID ( fModule,fChannel );
   };
 
+  //
+  // *next, *nextdet
+  // rResultPos, rPos, rPos2
+  //
 
+  void SetSubbankID(const Int_t bank_index)         { fCrate = bank_index; };
+  void SetModule(const Int_t slot_num)              { fModule = slot_num; };
+  void SetChannel(const Int_t chan)                 { fChannel = chan; };
+  void SetHitNumber(const Int_t hitcount)           { fHitNumber = hitcount; };
+  void SetHitNumberR(const Int_t hitcountr)         { fHitNumber_R = hitcountr; };
+  void SetRegion(const EQwRegionID region)          { fRegion = region; };
+  void SetPackage(const EQwDetectorPackage package) { fPackage = package; };
+  void SetDirection(const EQwDirectionID direction) { fDirection = direction; };
+  void SetPlane(const Int_t plane)                  { fPlane = plane; };
+  void SetElement(const Int_t element)              { fElement = element; };
+  
+  void SetDetectorInfo(QwDetectorInfo *detectorinfo){ pDetectorInfo = detectorinfo; };
+  void SetAmbiguousElement(const Bool_t amelement)  { fAmbiguousElement = amelement; };
+  void SetLRAmbiguity(const Bool_t amlr)            { fLRAmbiguity = amlr; };
 
-  void SetAmbiguityID ( const Bool_t amelement,const Bool_t amlr )       //this function might be modified later
+  void SetAmbiguityID (const Bool_t amelement, const Bool_t amlr )       //this function might be modified later
   {
-    fAmbiguousElement=amelement;
-    fLRAmbiguity=amlr;
+    SetAmbiguousElement(amelement);
+    SetLRAmbiguity(amlr);
   };
 
-  void SetHitNumberR ( const Int_t hitcountR ){
-    fHitNumber_R=hitcountR;
+  void SetRawTime(const Double_t rawtime)           { fRawTime = rawtime; };
+  void SetTime(const Double_t time)                 { fTime = time; };
+  void SetTimeRes(const Double_t timeres)           { fTimeRes = timeres; };
+  void SetDriftDistance(const Double_t distance)    { fDistance = distance; };
+  void SetPosition(const Double_t position)         { fPosition = position; };
+  void SetResidual(const Double_t residual)         { fResidual = residual; };
+  void SetZPos(const Double_t zpos)                 { fZPos = zpos; };
+  void SetZPosition(const Double_t zposition)       { fZPos = zposition; };
+  void SetRPosition(const Double_t rpos)            { fRPos = rpos; };
+  void SetPhiPosition(const Double_t phipos)        { fPhiPos = phipos; };
+
+
+  void SetSpatialResolution(const Double_t sresolution) { fSpatialResolution = sresolution; };
+  void SetTrackResolution(const Double_t tresolution)   { fTrackResolution = tresolution; };
+
+  void SetIsUsed(const Bool_t isused)               { fIsUsed = isused; }; 
+
+  //
+  // *next, *nextdet
+  // rResultPos, rPos, rPos2
+  //
+
+  
+
+  Bool_t IsFirstDetectorHit() 
+  { 
+    return (fHitNumber==0); 
   };
 
-
-  const Double_t& GetRawTime() const {return fRawTime;};
-  const Double_t& GetTime()    const {return fTime;};
-
-  const Double_t& GetDriftDistance()     const {return fDistance;};
-
-  void SetHitNumber(Int_t count) {
-    fHitNumber=count;
-  }
-
-  void SetDriftDistance(Double_t distance) {
-    fDistance=distance;
-  }
-
-  void SetZPos(double zp) { fZPos = zp; };
-  double GetZPos() { return fZPos; };
-
-  const int GetElement() const { return fElement; };
-  void SetElement(int element) { fElement = element; };
-
-  QwDetectorInfo* GetDetectorInfo () const { return pDetectorInfo; };
-  void SetDetectorInfo(QwDetectorInfo *detectorinfo) { pDetectorInfo = detectorinfo; };
-
-  const int GetPlane() const { return fPlane; };
-
-  const Double_t GetSpatialResolution() const;
-  void SetSpatialResolution(const double resolution) { fSpatialResolution = resolution; };
-
-  const Double_t GetTrackResolution() const;
-  void SetTrackResolution(const double resolution) { fTrackResolution = resolution; };
-
-  const double GetPosition() const { return fPosition; };
-  void SetPosition(const double position) { fPosition = position; };
-
-  const double GetZPosition() const;
-  void SetZPosition(const double zpos) { fZPos = zpos; };
-
-  const double GetRPosition() const { return fRPos; };
-  void SetRPosition(const double rpos) { fRPos = rpos; };
-
-  const double GetPhiPosition() const { return fPhiPos; };
-  void SetPhiPosition(const double phipos) { fPhiPos = phipos; };
-
-  Bool_t IsFirstDetectorHit() { return (fHitNumber==0); };
-  Bool_t IsUsed() { return fIsUsed; };
-
-  void SubtractTimeOffset(Double_t timeoffset){
+  void SubtractTimeOffset(Double_t timeoffset)
+  {     
     fTime = fTime - timeoffset;
   };
-
-  void SetTime(Double_t time){
-    fTime=time;
-  }
-
-  const Int_t GetModule()       const {return fModule;};
-  const Int_t GetChannel()      const {return fChannel;};
-  const Int_t GetHitNumber()    const {return fHitNumber;};
-  const Int_t GetHitNumberR()   const {return fHitNumber_R;};
-  const EQwRegionID GetRegion() const {return fRegion;};
-  const Int_t GetPackage()      const {return fPackage;};
-  const Int_t GetDirection()    const {return fDirection;};
-
-//below two metods retrieve subsets of QwHitContainer vector - rakitha (08/2008)
+  
+  
+  //below two metods retrieve subsets of QwHitContainer vector - rakitha (08/2008)
 
   const Bool_t PlaneMatches(EQwRegionID region, EQwDetectorPackage package, Int_t plane)
-    {
-      return (fRegion == region && fPackage == package && fPlane == plane);
-    };
+  {
+    return (fRegion == region && fPackage == package && fPlane == plane);
+  };
   const Bool_t DirMatches(EQwRegionID region, EQwDetectorPackage package, EQwDirectionID dir)
-    {
-      return (fRegion == region && fPackage == package && fDirection == dir);
-    };
-
+  {
+    return (fRegion == region && fPackage == package && fDirection == dir);
+  };
+  
   //main use of this method is to count no.of hits for a given wire and update the fHitNumber - rakitha (08/2008)
-
+  
   Bool_t WireMatches(Int_t region, Int_t package, Int_t plane, Int_t wire)
-    {
-      return (fRegion == region && fPackage == package && fElement == fElement);
-    };
-
-  Bool_t operator<(QwHit & obj);
-
+  {
+    return (fRegion == region && fPackage == package && fElement == fElement);
+  };
+  
+  
   // protected:
  public:
   //  Identification information for readout channels
@@ -168,8 +186,8 @@ class QwHit : public TObject {
 
   //  Identification information for the detector
   EQwRegionID fRegion; ///< Region 1, 2, 3, trigger scint., or cerenkov
-  Int_t fPackage;      ///< Which arm of the rotator, or octant number
-  Int_t fDirection;    ///< Direction of the plane:  X, Y, U, V; R, theta; etc.
+  EQwDetectorPackage fPackage;      ///< Which arm of the rotator, or octant number
+  EQwDirectionID fDirection;    ///< Direction of the plane:  X, Y, U, V; R, theta; etc.
   Int_t fPlane;        ///< R or theta index for R1; plane index for R2 & R3
   Int_t fElement;      ///< Trace # for R1; wire # for R2 & R3; PMT # for others
   QwDetectorInfo* pDetectorInfo; //! ///< Pointer to the detector info object (not saved)

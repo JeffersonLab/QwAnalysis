@@ -158,6 +158,7 @@ Int_t QwCombinedBCM::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buf
  //  fCombined_bcm.ProcessEvBuffer(buffer,word_position_in_buffer);
 
 //   return word_position_in_buffer;
+  return 0;
 };
 /********************************************************/
 QwCombinedBCM& QwCombinedBCM::operator= (const QwCombinedBCM &value)

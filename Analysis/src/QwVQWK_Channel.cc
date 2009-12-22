@@ -131,7 +131,9 @@ void QwVQWK_Channel::RandomizeEventData(int helicity)
 {
   // The blocks are assumed to be independent measurements
   Double_t block[fBlocksPerEvent];
-  Double_t sqrt_fBlocksPerEvent = sqrt(fBlocksPerEvent);
+  Double_t sqrt_fBlocksPerEvent = 0.0;
+  sqrt_fBlocksPerEvent = sqrt(fBlocksPerEvent);
+
   for (size_t i = 0; i < fBlocksPerEvent; i++)
     block[i] = fMockGaussianMean * (1 + helicity * fMockAsymmetry) / fBlocksPerEvent
              + fMockGaussianSigma / sqrt_fBlocksPerEvent * fNormalRandomVariable();
@@ -167,7 +169,8 @@ void QwVQWK_Channel::SetEventData(Double_t* block, UInt_t sequencenumber)
   fSequenceNumber = sequencenumber;
   fNumberOfSamples = 16680;
 
-  Double_t thispedestal = fPedestal * fNumberOfSamples;
+  Double_t thispedestal = 0.0;
+  thispedestal = fPedestal * fNumberOfSamples;
 
   for (size_t i = 0; i < fBlocksPerEvent; i++)
       fBlock_raw[i] = fBlock[i] / fCalibrationFactor +
@@ -181,7 +184,8 @@ void QwVQWK_Channel::SetEventData(Double_t* block, UInt_t sequencenumber)
 Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index)
 {
   UInt_t words_read = 0;
-  Long_t localbuf[6];
+  Long_t localbuf[6] = {0};
+
   if (IsNameEmpty()){
     //  This channel is not used, but is present in the data stream.
     //  Skip over this data.
@@ -214,7 +218,8 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
         for (size_t i=0; i<5; i++){
 	  std::cout<<"  hex("<<std::hex<<localbuf[i]<<") dec("<<std::dec<<Double_t(localbuf[i])<<") ";
         }
-        Double_t average = Double_t(localbuf[4])/fNumberOfSamples;
+        Double_t average = 0.0;
+	average = Double_t(localbuf[4])/fNumberOfSamples;
 //         std::cout<<std::endl<<" SoftwareBlockSum_raw="<<fSoftwareBlockSum_raw
 //                  <<"  NumberOfSamples="<<fNumberOfSamples
 //                  <<"  average="<<average
@@ -245,7 +250,7 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
 
 void QwVQWK_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
 {
-  Long_t localbuf[6];
+  Long_t localbuf[6] = {0};
 
   if (IsNameEmpty()) {
     //  This channel is not used, but is present in the data stream.
@@ -271,9 +276,10 @@ void QwVQWK_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
 
 void QwVQWK_Channel::ProcessEvent()
 {
-  Double_t thispedestal = fPedestal * fNumberOfSamples;
+  Double_t thispedestal = 0.0;
+  thispedestal = fPedestal * fNumberOfSamples;
 
-  for (int i = 0; i < 4; i++)
+  for (Int_t i = 0; i < 4; i++)
       fBlock[i]= fCalibrationFactor *
 	(fBlock_raw[i] - thispedestal / (fBlocksPerEvent*1.));
 
@@ -284,7 +290,8 @@ void QwVQWK_Channel::ProcessEvent()
 };
 
 Double_t QwVQWK_Channel::GetAverageVolts(){
-  Double_t avgVolts =(fBlock[0]+fBlock[1]+fBlock[2]+fBlock[3])*kVQWK_VoltsPerBit/fNumberOfSamples;
+  Double_t avgVolts = 0.0;
+  avgVolts = (fBlock[0]+fBlock[1]+fBlock[2]+fBlock[3])*kVQWK_VoltsPerBit/fNumberOfSamples;
   //std::cout<<"QwVQWK_Channel::GetAverageVolts() = "<<avgVolts<<std::endl;
   return avgVolts;
 

@@ -215,7 +215,7 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
                 }
             }
 
-          if (fMainDetID[i].fCombinedChannelNames.size()==chanmatched)
+          if ((Int_t) fMainDetID[i].fCombinedChannelNames.size()==chanmatched)
             {
               for (size_t l=0; l<fMainDetID[i].fCombinedChannelNames.size(); l++)
                 {
@@ -264,6 +264,8 @@ Int_t QwMainCerenkovDetector::LoadEventCuts(TString  filename)
   std::cout<<" QwMainCerenkovDetector::LoadEventCuts  "<<filename<<std::endl;
   QwParameterFile mapstr(filename.Data());  //Open the file
 
+  samplesize = 0;
+  check_flag = 0;
   eventcut_flag=1;
 
   while (mapstr.ReadNextLine())

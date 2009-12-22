@@ -163,6 +163,8 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
   std::cout<<" QwLumi::LoadEventCuts  "<<filename<<std::endl; 
   QwParameterFile mapstr(filename.Data());  //Open the file
 
+  samplesize = 0;
+  check_flag = 0;
   eventcut_flag=1; 
   
   while (mapstr.ReadNextLine()){

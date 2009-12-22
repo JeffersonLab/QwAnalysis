@@ -118,7 +118,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	    QwCombinedBCM localcombo(localBCMComboID.fdetectorname); //create a new combo with combo name
 	    fBCMCombo.push_back(localcombo); //add to the array of combos
 	    // for(Int_t n=0;n<fBCMCombo.size();n++){
-	    for(Int_t i=0;i<fDeviceName.size();i++)
+	    for(size_t i=0;i<fDeviceName.size();i++)
 	      {
 		index=GetDetectorIndex(GetDetectorTypeID(combotype),fDeviceName[i]);
 		//std::cout<<"QwBeamline :: device index"<<index<<"for device "<<fDeviceName[i]<<"with weight :"<<fDeviceWeight[i]<<"\n";
@@ -278,6 +278,9 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
   std::cout<<" QwBeamLine::LoadEventCuts  "<<filename<<std::endl; 
   QwParameterFile mapstr(filename.Data());  //Open the file
 
+  samplesize = 0;
+  check_flag = 0;
+		
   eventcut_flag=1;
   
   while (mapstr.ReadNextLine()){
