@@ -34,13 +34,13 @@ class QwHitRootContainer : public TObject {
 //  private:
 
  public:
-  
+
   Int_t               fNQwHits; ///< Number of QwHits in the array
-  TClonesArray        *fQwHits; //->array of QwHits ///< Array of QwHits
-  static TClonesArray *gQwHits; //!                 ///< Static array of QwHits
-  
+  TClonesArray        *fQwHits; ///< Array of QwHits
+  static TClonesArray *gQwHits; //! ///< Static array of QwHits
+
  public:
-  
+
   QwHitRootContainer();
   virtual ~QwHitRootContainer();
 
@@ -56,7 +56,7 @@ class QwHitRootContainer : public TObject {
 
   // Get the number of hits
   Int_t GetSize() const { return fNQwHits; };
-  
+
   // Conversion methods from and to a QwHitContainer
   void Convert(QwHitContainer *hitlist);
   QwHitContainer* Convert();
@@ -65,11 +65,12 @@ class QwHitRootContainer : public TObject {
   
   // Output function
   void Print();
-  
+
   TClonesArray *GetHits() const { return fQwHits; };
   QwHit *GetHit (Int_t hitID) const ;
-  
+
   ClassDef(QwHitRootContainer,1);
-};
+
+}; // class QwHitRootContainer
 
 #endif // QWHITROOTCONTAINER_H

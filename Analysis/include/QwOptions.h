@@ -57,13 +57,21 @@ namespace po = boost::program_options;
  * gQwOptions.AddOptions()("range,r", po::value<string>(), "range-valued option");
  * gQwOptions.AddOptions()("def-int", po::value<int>()->default_value(1), "int-valued option, default of 1");
  * \endcode
- * You can use AddOptions() in the constructor of your calls to make options
- * available to your object (and all other objects).
+ * For boolean-valued options you might want to use zero_tokens() to allow the
+ * option to be specified as --bool instead of --bool yes.
+ * \code
+ * gQwOptions.AddOptions()("bool,b", po::value<bool>()->zero_tokens(), "boolean-valued option");
+ * \endcode
+ *
+ * It is easiest if you define your options in a static function DefineOptions()
+ * and then call that function in the QwOptionsTracking.h or QwOptionsParity.h
+ * header files.  This ensures that only a single call to gQwOptions.DefineOptions()
+ * will load all the options and provide the information on a --help call.
  *
  * To use the options, check first for the existence with HasValue(key), then
  * get their value using GetValue<type>(key).  Flags defined without type are
  * treated as 'existence-only' keys, so use HasValue(key) on them instead of
- * GetValue<bool>(key).  If you define an options as bool, you should still use
+ * GetValue<bool>(key).  If you define an option as bool, you should still use
  * the regular GetValue<bool>(key) to retrieve the value.
  * \code
  * // Test for presence of the option before using its value

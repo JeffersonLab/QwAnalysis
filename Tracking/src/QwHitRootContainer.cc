@@ -12,6 +12,7 @@ QwHitRootContainer::QwHitRootContainer()
   if (! gQwHits) gQwHits = new TClonesArray("QwHit", 100000);
   // Set local TClonesArray to static TClonesArray and zero hits
   fQwHits = gQwHits;
+  fQwHits->Clear();
   fNQwHits = 0;
 };
 
@@ -38,7 +39,7 @@ void QwHitRootContainer::Delete(Option_t *option)
 // Delete the static TClonesArray
 void QwHitRootContainer::Reset(Option_t *option)
 {
-  delete gQwHits;  
+  delete gQwHits;
   gQwHits = 0;
 };
 
@@ -61,7 +62,7 @@ void QwHitRootContainer::AddQwHit(QwHit &in)
 void QwHitRootContainer::Convert(QwHitContainer *hitlist)
 {
   Delete();
-  for (QwHitContainer::iterator hit = hitlist->begin(); hit != hitlist->end(); hit++) 
+  for (QwHitContainer::iterator hit = hitlist->begin(); hit != hitlist->end(); hit++)
     {
       QwHit* p = &(*hit);
       AddHit(p);

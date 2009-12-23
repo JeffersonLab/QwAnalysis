@@ -45,7 +45,9 @@ QwOptions::QwOptions()
   AddDefaultOptions()("config,c", po::value<string>(), "configuration file to read");
 
   // Define the execution options
-  AddDefaultOptions()("run,r", po::value<string>(),
+  AddDefaultOptions()("online", po::value<bool>()->zero_tokens(),
+                      "use online data stream");
+  AddDefaultOptions()("run,r", po::value<string>()->default_value("0:0"),
                       "run range in format #[:#]");
   AddDefaultOptions()("event,e", po::value<string>()->default_value("0:"),
                       "event range in format #[:#]");

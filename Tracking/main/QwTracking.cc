@@ -15,8 +15,11 @@
 #include <TTree.h>
 #include <TStopwatch.h>
 
+// Qweak logging facility
+#include "QwLog.h"
+#include "QwOptionsTracking.h"
+
 // Qweak headers
-#include "QwCommandLine.h"
 #include "QwParameterFile.h"
 #include "QwSubsystemArrayTracking.h"
 #include "QwGasElectronMultiplier.h"
@@ -43,10 +46,6 @@
 #include "Det.h"
 #include "Qset.h"
 
-// Qweak logging facility
-#include "QwLog.h"
-#include "QwOptions.h"
-
 
 
 // Debug level
@@ -61,6 +60,13 @@ static const bool kHisto = true;
 // Main function
 int main(Int_t argc,Char_t* argv[])
 {
+  /// First, we set the command line arguments and the configuration filename,
+  /// and we define the options that can be used in them (using QwOptions).
+  gQwOptions.SetCommandLine(argc, argv);
+  gQwOptions.SetConfigFile("qwtracking.conf");
+  // Define the command line options
+  gQwOptions.DefineOptions();
+
   // Message logging facilities
   gQwLog.InitLogFile("QwTracking.log");
   gQwLog.SetScreenThreshold(QwLog::kMessage);
@@ -77,10 +83,6 @@ int main(Int_t argc,Char_t* argv[])
   // Fill the search paths for the parameter files
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH")) + "/setupfiles");
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Tracking/prminput");
-
-  // Parse command line options
-  QwCommandLine cmdline;
-  cmdline.Parse(argc, argv);
 
 
   // Handle for the list of VQwSubsystemTracking objects
@@ -157,21 +159,31 @@ int main(Int_t argc,Char_t* argv[])
   // Create the event buffer
   QwEventBuffer eventbuffer;
 
- 
+
 
 
   char *hostname, *session;
   const char *tmp;
 
   // Loop over all runs
-  for (UInt_t run =  (UInt_t) cmdline.GetFirstRun();
-              run <= (UInt_t) cmdline.GetLastRun(); run++) {
+  for (UInt_t run =  (UInt_t) gQwOptions.GetIntValuePairFirst("run");
+              run <= (UInt_t) gQwOptions.GetIntValuePairLast("run");
+              run++) {
 
     //  Begin processing for the first run.
     //  Start the timer.
     timer.Start();
+
     /* Does OnlineAnaysis need several runs? by jhlee */
-    if (cmdline.DoOnlineAnalysis()) {
+    if (gQwOptions.GetValue<bool>("online")) {
+
+      // Check whether CODA ET streams are compiled in
+      #ifndef __CODA_ET
+        std::cerr << "\nERROR:  Online mode will not work without the CODA libraries!"
+                  << std::endl;
+        break;
+      #endif
+
       /* Modify the call below for your ET system, if needed.
          OpenETStream( ET host name , $SESSION , mode)
          mode=0: wait forever
@@ -242,19 +254,20 @@ int main(Int_t argc,Char_t* argv[])
 
     // Open file
     TTree* tree = NULL;
+    QwEvent* event = NULL;
     QwHitRootContainer* rootlist = NULL;
 
     if (kTree) {
       tree = new TTree("tree", "Hit list");
       rootlist = new QwHitRootContainer();
-      tree->Branch("events", "QwHitRootContainer", &rootlist);
+      tree->Branch("hits", "QwHitRootContainer", &rootlist);
+      tree->Branch("events", "QwEvent", &event);
     }
 
     // Construct histograms
     detectors.ConstructHistograms();
 
     QwHitContainer* hitlist = NULL;
-    QwEvent* event = NULL;
     Int_t nevents = 0;
     Int_t eventnumber = -1;
     while (eventbuffer.GetEvent() == CODA_OK){
@@ -268,8 +281,8 @@ int main(Int_t argc,Char_t* argv[])
       //  Check to see if we want to process this event.
       eventnumber = eventbuffer.GetEventNumber();
 
-      if      (eventnumber < cmdline.GetFirstEvent()) continue;
-      else if (eventnumber > cmdline.GetLastEvent())  break;
+      if      (eventnumber < gQwOptions.GetIntValuePairFirst("event")) continue;
+      else if (eventnumber > gQwOptions.GetIntValuePairLast("event"))  break;
 
       if (eventnumber % 1000 == 0) {
 	QwMessage << "Number of events processed so far: "
@@ -323,8 +336,8 @@ int main(Int_t argc,Char_t* argv[])
 
 
       // Delete objects
-      if (hitlist) delete hitlist; hitlist = NULL;
-      if (event)   delete event; event = NULL;
+      if (hitlist)  delete hitlist; hitlist = 0;
+      if (event)    delete event; event = 0;
 
       nevents++;
 
@@ -361,10 +374,10 @@ int main(Int_t argc,Char_t* argv[])
     delete rootfile; rootfile = 0;
 
     // Delete objects
-    if(trackingworker) delete trackingworker; trackingworker = NULL;
-    if (hitlist) delete hitlist; hitlist = NULL;
-    if (event)   delete event; event = NULL;
-    if (rootlist) delete rootlist; rootlist=NULL;
+    if (trackingworker) delete trackingworker; trackingworker = NULL;
+    if (hitlist)  delete hitlist; hitlist = NULL;
+    if (event)    delete event; event = NULL;
+    if (rootlist) delete rootlist; rootlist = NULL;
 
     // Print run summary information
     QwMessage << "Analysis of run " << run << QwLog::endl
