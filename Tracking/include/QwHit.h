@@ -43,8 +43,8 @@ class QwHit : public TObject {
 	EQwDirectionID direction, Int_t wire, UInt_t data);
 
   virtual ~QwHit();
-
-  QwHit & operator = (const QwHit &);
+  
+  QwHit & operator = (const QwHit& hit);
   Bool_t operator<(QwHit & obj);
   friend ostream& operator<< (ostream& stream, const QwHit& hit);
 
@@ -73,7 +73,7 @@ class QwHit : public TObject {
   const Double_t        GetPosition()     const { return fPosition; };
   const Double_t        GetResidual()     const { return fResidual; };
   const Double_t        GetZPos()         const { return fZPos; };
-  const Double_t        GetZPosition()    const; // QwHit.cc
+  const Double_t        GetZPosition()    const;      // QwHit.cc
   const Double_t        GetRPosition()    const { return fRPos; };
   const Double_t        GetPhiPosition()  const { return fPhiPos; };
 
@@ -82,17 +82,8 @@ class QwHit : public TObject {
 
   const Bool_t          IsUsed()          const { return fIsUsed; };
 
-
-  const QwDetectorID GetDetectorID() const 
-  {
-    return QwDetectorID(fRegion,fPackage,fPlane,fDirection,fElement);
-  };
-  
-
-  const QwElectronicsID GetElectronicsID() const
-  {
-    return QwElectronicsID ( fModule,fChannel );
-  };
+  const QwDetectorID    GetDetectorID()   const;      // QwHit.cc
+  const QwElectronicsID GetElectronicsID()const;      // QwHit.cc
 
   //
   // *next, *nextdet
@@ -114,11 +105,7 @@ class QwHit : public TObject {
   void SetAmbiguousElement(const Bool_t amelement)  { fAmbiguousElement = amelement; };
   void SetLRAmbiguity(const Bool_t amlr)            { fLRAmbiguity = amlr; };
 
-  void SetAmbiguityID (const Bool_t amelement, const Bool_t amlr )       //this function might be modified later
-  {
-    SetAmbiguousElement(amelement);
-    SetLRAmbiguity(amlr);
-  };
+  void SetAmbiguityID (const Bool_t amelement, const Bool_t amlr);  // QwHit.cc
 
   void SetRawTime(const Double_t rawtime)           { fRawTime = rawtime; };
   void SetTime(const Double_t time)                 { fTime = time; };
@@ -142,105 +129,81 @@ class QwHit : public TObject {
   // rResultPos, rPos, rPos2
   //
 
+  Bool_t IsFirstDetectorHit()                  {  return (fHitNumber==0); };
+  void SubtractTimeOffset(Double_t timeoffset) { fTime = fTime - timeoffset; }; 
   
-
-  Bool_t IsFirstDetectorHit() 
-  { 
-    return (fHitNumber==0); 
-  };
-
-  void SubtractTimeOffset(Double_t timeoffset)
-  {     
-    fTime = fTime - timeoffset;
-  };
-  
-  
-  //below two metods retrieve subsets of QwHitContainer vector - rakitha (08/2008)
-
-  const Bool_t PlaneMatches(EQwRegionID region, EQwDetectorPackage package, Int_t plane)
-  {
-    return (fRegion == region && fPackage == package && fPlane == plane);
-  };
-  const Bool_t DirMatches(EQwRegionID region, EQwDetectorPackage package, EQwDirectionID dir)
-  {
-    return (fRegion == region && fPackage == package && fDirection == dir);
-  };
-  
-  //main use of this method is to count no.of hits for a given wire and update the fHitNumber - rakitha (08/2008)
-  
-  Bool_t WireMatches(Int_t region, Int_t package, Int_t plane, Int_t wire)
-  {
-    return (fRegion == region && fPackage == package && fElement == fElement);
-  };
-  
+  // three functions and their comments can be found in QwHit.cc, 
+  const Bool_t PlaneMatches(EQwRegionID region, EQwDetectorPackage package, Int_t plane);
+  const Bool_t DirMatches(EQwRegionID region, EQwDetectorPackage package, EQwDirectionID dir);
+  const Bool_t WireMatches(Int_t region, Int_t package, Int_t plane, Int_t wire);
   
   // protected:
  public:
   //  Identification information for readout channels
 
-  Int_t fCrate;     ///< ROC number
-  Int_t fModule;    ///< F1TDC slot number, or module index
-  Int_t fChannel;   ///< Channel number
-  Int_t fHitNumber; ///< Index for multiple hits in a single channel on the left
-  Int_t fHitNumber_R;    ///< Index for multiple hits in a single channel on the right
+  Int_t fCrate;                      ///< ROC number
+  Int_t fModule;                     ///< F1TDC slot number, or module index
+  Int_t fChannel;                    ///< Channel number
+  Int_t fHitNumber;                  ///< Index for multiple hits in a single channel on the left
+  Int_t fHitNumber_R;                ///< Index for multiple hits in a single channel on the right
 
   //  Identification information for the detector
-  EQwRegionID fRegion; ///< Region 1, 2, 3, trigger scint., or cerenkov
-  EQwDetectorPackage fPackage;      ///< Which arm of the rotator, or octant number
-  EQwDirectionID fDirection;    ///< Direction of the plane:  X, Y, U, V; R, theta; etc.
-  Int_t fPlane;        ///< R or theta index for R1; plane index for R2 & R3
-  Int_t fElement;      ///< Trace # for R1; wire # for R2 & R3; PMT # for others
+  EQwRegionID        fRegion;        ///< Region 1, 2, 3, trigger scint., or cerenkov
+  EQwDetectorPackage fPackage;       ///< Which arm of the rotator, or octant number
+  EQwDirectionID     fDirection;     ///< Direction of the plane:  X, Y, U, V; R, theta; etc.
+  Int_t              fPlane;         ///< R or theta index for R1; plane index for R2 & R3
+  Int_t              fElement;       ///< Trace # for R1; wire # for R2 & R3; PMT # for others
   QwDetectorInfo* pDetectorInfo; //! ///< Pointer to the detector info object (not saved)
 
-  Bool_t fAmbiguousElement;  ///< TRUE if this hit could come from two different elements (used by Region 3 tracking only)
-  Bool_t fLRAmbiguity;       ///< TRUE if the other element is 8 wires "right"; FALSE if the other element is 8 wires "left" (used by Region 3 tracking only)
+  Bool_t fAmbiguousElement;          ///< TRUE if this hit could come from two different elements 
+                                     ///  (used by Region 3 tracking only)
+  Bool_t fLRAmbiguity;               ///< TRUE  if the other element is 8 wires "right"; 
+                                     ///  FALSE if the other element is 8 wires "left" (used by Region 3 tracking only)
 
 
   //  Data specific to the hit
-  Double_t fRawTime;    ///< Time as reported by TDC; it is UNSUBTRACTED
-  Double_t fTime;       ///< Start corrected time, may also be further modified
-  Double_t fTimeRes;    ///< Resolution of time (if appropriate)
+  Double_t fRawTime;                 ///< Time as reported by TDC; it is UNSUBTRACTED
+  Double_t fTime;                    ///< Start corrected time, may also be further modified
+  Double_t fTimeRes;                 ///< Resolution of time (if appropriate)
+  Double_t fDistance;                ///< Perpendicular distance from the wire to the track,
+                                     ///  as reconstructed from the drift time
+  Double_t fPosition;                ///< Reconstructed position of the hit in real x, u, v
+                                     ///  coordinates perpendicular to the wires
+  Double_t fResidual;                ///< Residual of this hit (difference between the drift
+                                     ///  distance and the distance to the fitted track)
+  Double_t fZPos;                    ///< Lontigudinal position of the hit (this is mainly
+                                     ///  used in region 3 where the z coordinate is taken
+                                     ///  in the wire plane instead of perpendicular to it)
+  Double_t fRPos;                    ///< fRPos and fPhiPos are specificed for region 1
+  Double_t fPhiPos;                  ///  hit location
+  Double_t fSpatialResolution;       ///  Spatial resolution
+  Double_t fTrackResolution;         ///  Track resolution
 
-  Double_t fDistance;   ///< Perpendicular distance from the wire to the track,
-                        ///  as reconstructed from the drift time
-  Double_t fPosition;   ///< Reconstructed position of the hit in real x, u, v
-                        ///  coordinates perpendicular to the wires
-  Double_t fResidual;   ///< Residual of this hit (difference between the drift
-                        ///  distance and the distance to the fitted track)
-  Double_t fZPos;       ///< Lontigudinal position of the hit (this is mainly
-                        ///  used in region 3 where the z coordinate is taken
-                        ///  in the wire plane instead of perpendicular to it)
-  Double_t fRPos;       ///< fRPos and fPhiPos are specificed for region 1
-  Double_t fPhiPos;   ///  hit location
+ public: // Sorry, will write accessors later (wdconinc)
 
-  Double_t fSpatialResolution;	/// Spatial resolution
-  Double_t fTrackResolution;	/// Track resolution
-
-  public: // Sorry, will write accessors later (wdconinc)
-
-    Bool_t fIsUsed;	/// Is this hit used in a tree line?
+  Bool_t fIsUsed;     //!            /// Is this hit used in a tree line?
 
 
   // The following public section are taken from the original Hit class
   // for merging the Hit class into the QwHit class.
 
-  public:
+ public:
 
-    //  Hits for individual detector elements are strung together.  They also
-    //  have a pointer back to the detector in case more information about the
-    //  hit is needed.  The various position values are used in multiple ways,
-    //  and therefore are not strictly defined.
+  //  Hits for individual detector elements are strung together.  They also
+  //  have a pointer back to the detector in case more information about the
+  //  hit is needed.  The various position values are used in multiple ways,
+  //  and therefore are not strictly defined.
 
-    QwHit *next;	//!	///< next hit
-    QwHit *nextdet;	//!	///< next hit in same detector
-    Double_t rResultPos;	/// Resulting hit position
-    Double_t rPos;		/// Position from level I track finding
-    Double_t rPos2;		/// Position from level II decoding
+  QwHit *next;	        //!	///< next hit
+  QwHit *nextdet;	//!	///< next hit in same detector
+  Double_t rResultPos;  	/// Resulting hit position
+  Double_t rPos;		/// Position from level I track finding
+  Double_t rPos2;		/// Position from level II decoding
 
-    // NOTE (wdc) Probably it makes sense to rename rPos and rPos2 to fPosition,
-    // which would be the first level signed track position with respect to the
-    // ideal wire position, and fPosition2, which would be the second level signed
-    // track position.
+  // NOTE (wdc) Probably it makes sense to rename rPos and rPos2 to fPosition,
+  // which would be the first level signed track position with respect to the
+  // ideal wire position, and fPosition2, which would be the second level signed
+  // track position.
 
   ClassDef(QwHit,1);
 

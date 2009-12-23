@@ -271,7 +271,7 @@ int main(Int_t argc,Char_t* argv[])
       if      (eventnumber < cmdline.GetFirstEvent()) continue;
       else if (eventnumber > cmdline.GetLastEvent())  break;
 
-      if (eventnumber % 10000 == 0) {
+      if (eventnumber % 1000 == 0) {
 	QwMessage << "Number of events processed so far: "
 		  << eventnumber << QwLog::endl;
       }
