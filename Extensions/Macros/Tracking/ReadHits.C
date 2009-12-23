@@ -64,16 +64,13 @@
 // each event has several hits
 
 
-//void 
-//load_libraries()
-//{
-//  gSystem->Load("./libQwHit.so");
-//  gSystem->Load("./libQwHitContainer.so");
-//  gSystem->Load("./libQwHitRootContainer.so");
-//}
+const Int_t BUFFERSIZE = 1000;      // BufferSize of TH1 for automatic range of histogram
+const Int_t BINNUMBER  = 2048;      // Default bin number (not yet done automatically)
 
-const Int_t BUFFERSIZE = 1000;
-const Int_t BINNUMBER = 2048;
+const char  BRANCHNAME[5] = "hits"; // Must be the same as the branch name in QwTracking.cc
+                                    // or a main source which is used to create a ROOT file,
+                                    // which one try to open here.
+
 
 void
 check_libraries()
@@ -81,10 +78,16 @@ check_libraries()
   if(!TClassTable::GetDict("QwHit"))              gSystem -> Load("./libQwHit.so");
   if(!TClassTable::GetDict("QwHitContainer"))     gSystem -> Load("./libQwHitContainer.so");
   if(!TClassTable::GetDict("QwHitRootContainer")) gSystem -> Load("./libQwHitRootContainer.so");
+  //   if(!TClassTable::GetDict("QwEvent"))            gSystem -> Load("./libQwEvent.so");
+  //   if(!TClassTable::GetDict("QwEventHeader"))      gSystem -> Load("./libQwEventHeader.so");
+  //   if(!TClassTable::GetDict("QwTrackingTreeLine")) gSystem -> Load("./libQwTrackingTreeLine.so");
+  //   if(!TClassTable::GetDict("VQwTrackingElement")) gSystem -> Load("./libVQwTrackingElement.so");
+  //   if(!TClassTable::GetDict("QwPartialTrack"))     gSystem -> Load("./libQwPartialTrack.so");
+
 }
 
 
-
+// This function will be used to calculate or find an automatic bin number of TH1.
 void
 IQR(TH1D &histo)
 {
@@ -106,13 +109,14 @@ read(Int_t evID=1, Int_t hitID = -1, Int_t run_number=1567)
   check_libraries();
   //  IQR();
 
+
   TFile file(Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES_DIR"),run_number));
-  TTree* tree = (TTree*) file.Get("tree");
-  QwHitRootContainer* hitContainer = NULL;
-  
-  tree->SetBranchAddress("events",&hitContainer);
-  
-  Int_t nevent  = tree->GetEntries();
+
+  QwHitRootContainer* hitContainer = 0;
+  Int_t nevent = 0;
+  TTree* tree  = (TTree*) file.Get("tree");
+  tree->SetBranchAddress(BRANCHNAME, &hitContainer);
+  nevent  = tree->GetEntries();
   
   if(evID > nevent) 
     {
@@ -120,7 +124,7 @@ read(Int_t evID=1, Int_t hitID = -1, Int_t run_number=1567)
       printf("You selected the event number which is out of range.\n");
       printf("Thus, the maximum event number %d is selected.\n", evID);
     }
-
+  
   //  access one event (hitContainer) in terms of id (event number)
   tree -> GetEntry(evID);
   //  total number is started from 0
@@ -145,10 +149,10 @@ read(Int_t evID=1, Int_t hitID = -1, Int_t run_number=1567)
   else 
     {
       
-      QwHit *hit = NULL;
+      QwHit *hit = 0;
       if(hitID > hitN) 
 	{
-	  hitID = hitN-1;
+	  hitID = hitN - 1;
 	  printf("    --- You selected the hit number which is out of range.\n");
 	  printf("    --- Thus, the maximum hit number %d is selected.\n", hitID);
 	}
@@ -205,7 +209,7 @@ read(Int_t evID=1, Int_t hitID = -1, Int_t run_number=1567)
       //   printf("    -------------------------------- \n"); 
     } 
   hitContainer->Clear();
-  delete hitContainer; hitContainer=NULL;
+  delete hitContainer; hitContainer = 0;
   
   file.Close();
 }
@@ -219,8 +223,8 @@ read_event_number(int id=1, Int_t run_number=1567)
   TFile file(Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES_DIR"),run_number));
   
   TTree* tree = (TTree*) file.Get("tree");
-  QwHitRootContainer* hitContainer = NULL;
-  tree->SetBranchAddress("hits",&hitContainer);
+  QwHitRootContainer* hitContainer = 0;
+  tree->SetBranchAddress(BRANCHNAME, &hitContainer);
 
 
   Int_t nevent  = tree->GetEntries();
@@ -231,7 +235,7 @@ read_event_number(int id=1, Int_t run_number=1567)
   
   
   hitContainer->Clear();
-  delete hitContainer; hitContainer=NULL;
+  delete hitContainer; hitContainer = NULL;
   file.Close();
 }
 
@@ -255,9 +259,17 @@ typedef struct {
 } range;
 
 
+void 
+show_stopwatch(TStopwatch &watch)
+{
+  printf("Time used : CPU %8.2f, Real %8.2f (sec)\n", watch.CpuTime(), watch.RealTime());
+}
+
 
 void 
-histogram_range_per_tdc(Int_t run_number=1567, Bool_t debug=false, Int_t tdc_chan=0)
+histogram_range_per_tdc(Int_t run_number=1567, 
+			Bool_t debug=false, 
+			Int_t tdc_chan=0)
 {
   check_libraries();
 
@@ -275,7 +287,7 @@ histogram_range_per_tdc(Int_t run_number=1567, Bool_t debug=false, Int_t tdc_cha
     {
       TTree* tree = (TTree*) file.Get("tree");
       QwHitRootContainer* hitContainer = NULL;
-      tree->SetBranchAddress("events",&hitContainer);
+      tree->SetBranchAddress(BRANCHNAME,&hitContainer);
       
       Int_t    nevent      = 0;
       Int_t    nhit        = 0;
@@ -321,7 +333,7 @@ histogram_range_per_tdc(Int_t run_number=1567, Bool_t debug=false, Int_t tdc_cha
   file.Close();
   timer.Stop();
 
-  printf("Time used : CPU %8.2f, Real %8.2f (sec)\n", timer.CpuTime(), timer.RealTime());
+  show_stopwatch(timer);
 
   //    range h_range = {0.0, 0.0};
   // T raw range is [        0.00.     61070.00] with 398  (region2)
@@ -336,7 +348,11 @@ histogram_range_per_tdc(Int_t run_number=1567, Bool_t debug=false, Int_t tdc_cha
 // --------------------------------------------------------------------------------
 // valid for region 2 and region 3, not sure region 1 
 void 
-plot_time_histogram_per_tdc(Int_t run_number=1567, Int_t tdc_chan=0, UInt_t event_begin=0, UInt_t event_end=0, Int_t smooth_n=1)
+plot_time_histogram_per_tdc(Int_t run_number=1567, 
+			    Int_t tdc_chan=0, 
+			    UInt_t event_begin=0, 
+			    UInt_t event_end=0, 
+			    Int_t smooth_n=1)
 {
 
   if( (event_begin > event_end) )
@@ -368,7 +384,7 @@ plot_time_histogram_per_tdc(Int_t run_number=1567, Int_t tdc_chan=0, UInt_t even
     {
       TTree* tree = (TTree*) file->Get("tree");
       QwHitRootContainer* hitContainer = NULL;
-      tree->SetBranchAddress("events",&hitContainer);
+      tree->SetBranchAddress(BRANCHNAME,&hitContainer);
       
       Int_t    nevent      = 0;
       Int_t    nhit        = 0;
@@ -452,7 +468,7 @@ plot_time_histogram_per_tdc(Int_t run_number=1567, Int_t tdc_chan=0, UInt_t even
   // if one cloese the file in the ROOT script, there are nothing on the canvas.
   timer.Stop();
   
-  printf("Time used : CPU %8.2f, Real %8.2f (sec)\n", timer.CpuTime(), timer.RealTime());
+  show_stopwatch(timer);
       
 }
 
@@ -496,7 +512,7 @@ plot_time_histogram_per_wire(Int_t run_number=1567, Int_t wire=0, UInt_t event_b
     {
       TTree* tree = (TTree*) file->Get("tree");
       QwHitRootContainer* hitContainer = NULL;
-      tree->SetBranchAddress("events",&hitContainer);
+      tree->SetBranchAddress(BRANCHNAME,&hitContainer);
       
       Int_t    nevent      = 0;
       Int_t    nhit        = 0;
@@ -577,8 +593,8 @@ plot_time_histogram_per_wire(Int_t run_number=1567, Int_t wire=0, UInt_t event_b
   //     file->Close();
   // if one cloese the file in the ROOT script, there are nothing on the canvas.
   timer.Stop();
-  
-  printf("Time used : CPU %8.2f, Real %8.2f (sec)\n", timer.CpuTime(), timer.RealTime());
+  show_stopwatch(timer);
+
       
 }
 
@@ -722,129 +738,130 @@ plot_time_histogram_per_wire(Int_t run_number=1567, Int_t wire=0, UInt_t event_b
 // number
 // --------------------------------------------------------------------------------
 
-void 
-plot_nevent_per_wire(Int_t run_number=1567, UInt_t event_begin=0, UInt_t event_end=0, Int_t smooth_n=1)
-{
-
+// void 
+// plot_nevent_per_wire(Int_t run_number   = 1567, 
+// 		     UInt_t event_begin = 0, 
+// 		     UInt_t event_end   = 0, 
+// 		     Int_t smooth_n     = 1)
+// {
  
-  if( (event_begin > event_end) )
-    {
-      printf("You selected the wrong range of the event\n");
-      return;
-    }
-  if ( (event_begin == event_end) && (event_begin != 0))
-    {
-      event_begin = 0;
-      printf("The event range is not allowed\n");
-    }
+//   if( (event_begin > event_end) )
+//     {
+//       printf("You selected the wrong range of the event\n");
+//       return;
+//     }
+//   if ( (event_begin == event_end) && (event_begin != 0))
+//     {
+//       event_begin = 0;
+//       printf("The event range is not allowed\n");
+//     }
 
-  Bool_t debug =false;
+//   Bool_t debug =false;
 
-  check_libraries();
-  TStopwatch timer;
-  timer.Start();
+//   check_libraries();
+//   TStopwatch timer;
+//   timer.Start();
 
-  TCanvas *nevent_wire_canvas = new TCanvas("nevent_wire_canvas","Nevent VS wire",10,10,1200,360);
+//   TCanvas *nevent_wire_canvas = new TCanvas("nevent_wire_canvas","Nevent VS wire",10,10,1200,360);
     
-  TFile *file =  new TFile(Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES_DIR"),run_number));
-  if (file->IsZombie()) 
-    {
-      printf("Error opening file\n"); 
-      delete nevent_wire_canvas; nevent_wire_canvas = NULL;
-      return;
-    }
-  else
-    {
-      TTree* tree = (TTree*) file->Get("tree");
-      QwHitRootContainer* hitContainer = NULL;
-      tree->SetBranchAddress("events",&hitContainer);
-      Double_t chan[3]        = {tchan_one, tchan_two, -1};
-      Int_t    nevent         = 0;
-      Int_t    nhit           = 0;
-      Double_t tdc_rawtime[2] = {0.0};
-      Short_t  region         = 0;
-      QwHit    *hit           = NULL;
-      Int_t    ev_i           = 0; 
-      Int_t    hit_i          = 0;
-      TH1D     *histo[3]       = {NULL};
-      Bool_t   chan_status[2] = {false};
-      Double_t nevent_wire      = 0.0;
+//   TFile *file =  new TFile(Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES_DIR"),run_number));
+//   if (file->IsZombie()) 
+//     {
+//       printf("Error opening file\n"); 
+//       delete nevent_wire_canvas; nevent_wire_canvas = NULL;
+//       return;
+//     }
+//   else
+//     {
+//       TTree* tree = (TTree*) file->Get("tree");
+//       QwHitRootContainer* hitContainer = NULL;
+//       tree->SetBranchAddress(BRANCHNAME, &hitContainer);
+//       Double_t chan[3]        = {tchan_one, tchan_two, -1};
+//       Int_t    nevent         = 0;
+//       Int_t    nhit           = 0;
+//       Double_t tdc_rawtime[2] = {0.0};
+//       Short_t  region         = 0;
+//       QwHit    *hit           = NULL;
+//       Int_t    ev_i           = 0; 
+//       Int_t    hit_i          = 0;
+//       TH1D     *histo[3]       = {NULL};
+//       Bool_t   chan_status[2] = {false};
+//       Double_t nevent_wire      = 0.0;
       
-      nevent = tree -> GetEntries();
-      printf("Run %d TDC channels [%d,%d] total event %d\n", run_number, tchan_one, tchan_two,  nevent);
+//       nevent = tree -> GetEntries();
+//       printf("Run %d TDC channels [%d,%d] total event %d\n", run_number, tchan_one, tchan_two,  nevent);
       
-      region          = 3;
-      for(Short_t i=0; i<3; i++)
-	{
-	  histo[i] = new TH1D(Form("chan_%d", i), 
-			      Form("Diff Time Raw Histogram with Chan %d", i ), BINNUMBER, 0, 0);
-	  histo[i] -> SetDefaultBufferSize(BUFFERSIZE);
-	}
-      
-
-      //   Bool_t region_status[4] = {true, false, false, false};
-
-      if(event_end == 0) event_end = nevent;
-      
-      printf("You selected the events with [%d,%d]\n", event_begin, event_end);
-
-      for(ev_i=event_begin; ev_i<event_end; ev_i++)
-	{
-	  tree -> GetEntry(ev_i);
-	  nhit = hitContainer->GetSize();
-	  
-	  for(hit_i=0; hit_i<nhit; hit_i++)
-	    {
-	      hit    = (QwHit*) hitContainer->GetHit(hit_i);
-	      region = hit->GetRegion();
-	      if ( region != 3 ) 
-		{
-		  printf("This function is valid for only region 3\n");
-		  delete nevent_wire_canvas; nevent_wire_canvas = NULL;
-		  return;
-		}
-	      if( hit->GetChannel() == chan[0] )
-		{
-		  histo[0] -> Fill(hit->GetRawTime());
-		}
-	      if( hit->GetChannel() == chan[1] )
-		{
-		  histo[1] -> Fill(hit->GetRawTime());
-		}
-	    }
-	  hitContainer->Clear();
-	}
-
-      nevent_wire_canvas -> Divide(3,1);  
-
-      histo[2] -> Add(histo[0], histo[1], 1, 1);
-      TLatex *region_tex = new TLatex();
-      region_tex -> SetTextSize(0.05);
-      region_tex -> SetTextColor(kRed);
-      region_tex -> SetTextAlign(22);
-      
-     for(Short_t i=0; i<3; i++) 
-	{
-	  nevent_wire_canvas -> cd(i+1);
-	  histo[i] -> SetLineColor(kRed);
-	  histo[i] -> GetXaxis()-> SetTitle("Diff Time");
-	  histo[i] -> GetYaxis()-> SetTitle("Number of measurements");
-	  histo[i] -> GetXaxis()-> CenterTitle();
-	  histo[i] -> GetYaxis()-> CenterTitle();
-	  histo[i] -> Smooth(smooth_n);
-	  histo[i] -> Draw();
-	}
- //      else
+//       region          = 3;
+//       for(Short_t i=0; i<3; i++)
 // 	{
-// 	  region_tex -> DrawLatex(0.5,0.5, "This data has no information that you are interested");
+// 	  histo[i] = new TH1D(Form("chan_%d", i), 
+// 			      Form("Diff Time Raw Histogram with Chan %d", i ), BINNUMBER, 0, 0);
+// 	  histo[i] -> SetDefaultBufferSize(BUFFERSIZE);
 // 	}
-    }
-  //     file->Close();
-  // if one cloese the file in the ROOT script, there are nothing on the canvas.
-  timer.Stop();
-  
-  printf("Time used : CPU %8.2f, Real %8.2f (sec)\n", timer.CpuTime(), timer.RealTime());
       
-}
+
+//       //   Bool_t region_status[4] = {true, false, false, false};
+
+//       if(event_end == 0) event_end = nevent;
+      
+//       printf("You selected the events with [%d,%d]\n", event_begin, event_end);
+
+//       for(ev_i=event_begin; ev_i<event_end; ev_i++)
+// 	{
+// 	  tree -> GetEntry(ev_i);
+// 	  nhit = hitContainer->GetSize();
+	  
+// 	  for(hit_i=0; hit_i<nhit; hit_i++)
+// 	    {
+// 	      hit    = (QwHit*) hitContainer->GetHit(hit_i);
+// 	      region = hit->GetRegion();
+// 	      if ( region != 3 ) 
+// 		{
+// 		  printf("This function is valid for only region 3\n");
+// 		  delete nevent_wire_canvas; nevent_wire_canvas = NULL;
+// 		  return;
+// 		}
+// 	      if( hit->GetChannel() == chan[0] )
+// 		{
+// 		  histo[0] -> Fill(hit->GetRawTime());
+// 		}
+// 	      if( hit->GetChannel() == chan[1] )
+// 		{
+// 		  histo[1] -> Fill(hit->GetRawTime());
+// 		}
+// 	    }
+// 	  hitContainer->Clear();
+// 	}
+
+//       nevent_wire_canvas -> Divide(3,1);  
+
+//       histo[2] -> Add(histo[0], histo[1], 1, 1);
+//       TLatex *region_tex = new TLatex();
+//       region_tex -> SetTextSize(0.05);
+//       region_tex -> SetTextColor(kRed);
+//       region_tex -> SetTextAlign(22);
+      
+//      for(Short_t i=0; i<3; i++) 
+// 	{
+// 	  nevent_wire_canvas -> cd(i+1);
+// 	  histo[i] -> SetLineColor(kRed);
+// 	  histo[i] -> GetXaxis()-> SetTitle("Diff Time");
+// 	  histo[i] -> GetYaxis()-> SetTitle("Number of measurements");
+// 	  histo[i] -> GetXaxis()-> CenterTitle();
+// 	  histo[i] -> GetYaxis()-> CenterTitle();
+// 	  histo[i] -> Smooth(smooth_n);
+// 	  histo[i] -> Draw();
+// 	}
+//  //      else
+// // 	{
+// // 	  region_tex -> DrawLatex(0.5,0.5, "This data has no information that you are interested");
+// // 	}
+//     }
+//   //     file->Close();
+//   // if one cloese the file in the ROOT script, there are nothing on the canvas.
+//   timer.Stop();
+//   show_stopwatch(timer);
+      
+// }
 
  
