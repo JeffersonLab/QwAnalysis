@@ -89,7 +89,8 @@ QwHit::QwHit(const QwHit &hit)
   rResultPos         = hit.rResultPos;
   rPos               = hit.rPos;	
   rPos2              = hit.rPos2;	
-}
+
+};
 
 
 QwHit::QwHit(Int_t bank_index, 
@@ -144,8 +145,6 @@ QwHit::QwHit(Int_t bank_index,
 
 QwHit::~QwHit()
 {
-  if(next)          delete next; next = 0;
-  if(nextdet)       delete nextdet ; nextdet = 0;
 };
 
 
@@ -196,10 +195,11 @@ QwHit & QwHit::operator=(const QwHit& hit)
 
 
 //'<' is overloaded for the sorting algorithm
-//note:
-
-//fDirection in the sorting - rakitha (08/23/2008)
-//Sorting order Region -> Direction -> Package -> Plane -> Wire Element -> Wire Hit Order - rakitha (08/23/2008)
+// note:
+// fDirection in the sorting - rakitha (08/23/2008)
+// Sorting order 
+// Region -> Direction -> Package -> Plane -> Wire Element -> Wire Hit Order
+// - rakitha (08/23/2008)
 Bool_t QwHit::operator<(QwHit & obj)
 {
   Bool_t bCompare = false;
@@ -261,7 +261,6 @@ Bool_t QwHit::operator<(QwHit & obj)
     {//;
       bCompare = false;
     }//;
-  
   
   return bCompare;
 
@@ -345,19 +344,26 @@ void QwHit::SetAmbiguityID (const Bool_t amelement, const Bool_t amlr)
   SetLRAmbiguity(amlr);
 };
 
-//below two metods retrieve subsets of QwHitContainer vector - rakitha (08/2008)
-const Bool_t QwHit::PlaneMatches(EQwRegionID region, EQwDetectorPackage package, Int_t plane)
+// below two metods retrieve subsets of QwHitContainer vector 
+// - rakitha (08/2008)
+const Bool_t QwHit::PlaneMatches(EQwRegionID region, 
+				 EQwDetectorPackage package, 
+				 Int_t plane)
 {
   return (fRegion == region && fPackage == package && fPlane == plane);
 };
 
-const Bool_t QwHit::DirMatches(EQwRegionID region, EQwDetectorPackage package, EQwDirectionID dir)
+const Bool_t QwHit::DirMatches(EQwRegionID region, 
+			       EQwDetectorPackage package, 
+			       EQwDirectionID dir)
 {
   return (fRegion == region && fPackage == package && fDirection == dir);
 };
 
-//main use of this method is to count no.of hits for a given wire and update the fHitNumber - rakitha (08/2008)
-const Bool_t QwHit::WireMatches(Int_t region, Int_t package, Int_t plane, Int_t wire)
+// main use of this method is to count no.of hits for a given wire 
+// and update the fHitNumber - rakitha (08/2008)
+const Bool_t QwHit::WireMatches(Int_t region, Int_t package, 
+				Int_t plane,  Int_t wire)
 {
   return (fRegion == region && fPackage == package && fPlane == plane && fElement == wire);
 };

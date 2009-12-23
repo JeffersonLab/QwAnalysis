@@ -105,7 +105,7 @@ class QwHit : public TObject {
   void SetAmbiguousElement(const Bool_t amelement)  { fAmbiguousElement = amelement; };
   void SetLRAmbiguity(const Bool_t amlr)            { fLRAmbiguity = amlr; };
 
-  void SetAmbiguityID (const Bool_t amelement, const Bool_t amlr);  // QwHit.cc
+  void SetAmbiguityID(const Bool_t amelement, const Bool_t amlr);  // QwHit.cc
 
   void SetRawTime(const Double_t rawtime)           { fRawTime = rawtime; };
   void SetTime(const Double_t time)                 { fTime = time; };

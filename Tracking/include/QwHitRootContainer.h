@@ -53,9 +53,6 @@ class QwHitRootContainer : public TObject {
   //  QwHit* CreateNewHit();
   void AddHit(QwHit * );//QwHit *hit);
   void AddQwHit(QwHit &in);
-  QwHit* AddQwHit();
-  QwHit* AddQwHit2();
-  QwHit* AddQwHit4(QwHit &in);
 
   // Get the number of hits
   Int_t GetSize() const { return fNQwHits; };
@@ -64,10 +61,6 @@ class QwHitRootContainer : public TObject {
   void Convert(QwHitContainer *hitlist);
   QwHitContainer* Convert();
 
- 
-  void ConvertTest2(QwHitContainer *hitlist);
-  void ConvertTest3(QwHitContainer *hitlist);
-  void ConvertTest4(QwHitContainer *hitlist);
   void Build(QwHitContainer& hitcontainer);
   
   // Output function
