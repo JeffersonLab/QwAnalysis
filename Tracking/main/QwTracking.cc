@@ -58,7 +58,7 @@ static const bool kHisto = true;
 
 
 // Main function
-int main(Int_t argc,Char_t* argv[])
+Int_t main(Int_t argc, Char_t* argv[])
 {
   /// First, we set the command line arguments and the configuration filename,
   /// and we define the options that can be used in them (using QwOptions).
@@ -74,8 +74,9 @@ int main(Int_t argc,Char_t* argv[])
 
   // Either the DISPLAY is not set or JOB_ID is defined: we take it as in batch mode.
   Bool_t kInQwBatchMode = kFALSE;
+
   if (getenv("DISPLAY") == NULL
-   || getenv("JOB_ID")  != NULL) {
+      || getenv("JOB_ID")  != NULL) {
     kInQwBatchMode = kTRUE;
     gROOT->SetBatch(kTRUE);
   }
@@ -143,14 +144,13 @@ int main(Int_t argc,Char_t* argv[])
   rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->nextsame->nextsame->nextsame->SetInactive();
 
 
-  QwTrackingWorker *trackingworker = NULL;
+  QwTrackingWorker *trackingworker = 0;
   // Create the tracking worker
-  if (kTracking)
-    {
-      trackingworker = new QwTrackingWorker("qwtrackingworker");
-      if (kDebug) trackingworker->SetDebugLevel(1);
-    }
-
+  if (kTracking) {
+    trackingworker = new QwTrackingWorker("qwtrackingworker");
+    if (kDebug) trackingworker->SetDebugLevel(1);
+  }
+  
 
   // Create a timer
   TStopwatch timer;
@@ -205,7 +205,8 @@ int main(Int_t argc,Char_t* argv[])
                 << "        This is needed to run the online analysis."
                 << QwLog::endl;
         exit(EXIT_FAILURE);
-      } else {
+      } 
+      else {
         QwMessage << "Try to open the ET station. " << QwLog::endl;
         if (eventbuffer.OpenETStream(hostname, session, 0) == CODA_ERROR ) {
           QwError << "ERROR:  Unable to open the ET station "
@@ -232,19 +233,18 @@ int main(Int_t argc,Char_t* argv[])
     eventbuffer.ResetControlParameters();
 
     TFile *rootfile = 0;
-    if(rootfile)
-      {
-	if(rootfile-> IsOpen()) rootfile->Close();
-	delete rootfile; rootfile=NULL;
-      }
+    if(rootfile) {
+      if(rootfile-> IsOpen()) rootfile->Close();
+      delete rootfile; rootfile=0;
+    }
 
     rootfile = new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
-			"RECREATE",
+			 "RECREATE",
 			 "QWeak ROOT file with real events");
     //    std::auto_ptr<TFile> rootfile (new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
-//   					"RECREATE",
-//   					"QWeak ROOT file with real events"));
-
+    //   					"RECREATE",
+    //   					"QWeak ROOT file with real events"));
+    
     //  Create the histograms for the QwDriftChamber subsystem object.
     //  We can create a subfolder in the rootfile first, if we want,
     //  and then pass it into the constructor.
@@ -253,9 +253,9 @@ int main(Int_t argc,Char_t* argv[])
     //    detectors.GetSubsystem("MD")->ConstructHistograms(rootfile->mkdir("subdir"));
 
     // Open file
-    TTree* tree = NULL;
-    QwEvent* event = NULL;
-    QwHitRootContainer* rootlist = NULL;
+    TTree* tree = 0;
+    QwEvent* event = 0;
+    QwHitRootContainer* rootlist = 0;
 
     if (kTree) {
       tree = new TTree("tree", "Hit list");
@@ -267,9 +267,10 @@ int main(Int_t argc,Char_t* argv[])
     // Construct histograms
     detectors.ConstructHistograms();
 
-    QwHitContainer* hitlist = NULL;
-    Int_t nevents = 0;
-    Int_t eventnumber = -1;
+    QwHitContainer* hitlist = 0;
+    Int_t nevents           = 0;
+    Int_t eventnumber       = -1;
+
     while (eventbuffer.GetEvent() == CODA_OK){
       //  Loop over events in this CODA file
       //  First, do processing of non-physics events...
@@ -277,57 +278,56 @@ int main(Int_t argc,Char_t* argv[])
       //  Now, if this is not a physics event, go back and get
       //  a new event.
       if (! eventbuffer.IsPhysicsEvent() ) continue;
-
+      
       //  Check to see if we want to process this event.
       eventnumber = eventbuffer.GetEventNumber();
-
+      
       if      (eventnumber < gQwOptions.GetIntValuePairFirst("event")) continue;
       else if (eventnumber > gQwOptions.GetIntValuePairLast("event"))  break;
-
+      
       if (eventnumber % 1000 == 0) {
 	QwMessage << "Number of events processed so far: "
 		  << eventnumber << QwLog::endl;
       }
-
+      
       // Fill the subsystem objects with their respective data for this event.
       eventbuffer.FillSubsystemData(detectors);
-
+      
       // Process the event
       detectors.ProcessEvent();
-
+      
       // Fill the histograms for the subsystem objects.
       detectors.FillHistograms();
-
+      
       // Create and fill hit list
       hitlist = new QwHitContainer();
-
+      
       detectors.GetHitList(hitlist);
-
+      
       // Sorting the grand hit list
       hitlist->sort();
-
+      
       if (hitlist->size() == 0) continue;
-      if (hitlist->size() < 5) {
-	//   std::cout << "Event skipped: only " << hitlist->size() << " hits" << std::endl;
-	continue;
+      if (kTracking) {
+	if (hitlist->size() < 5) {
+	  std::cout << "Event skipped: only " << hitlist->size() << " hits" << std::endl;
+	  continue;
+	}
       }
-
       // Print hit list
       if (kDebug) {
         std::cout << "Event " << eventnumber << std::endl;
         hitlist->Print();
       }
-
+      
       // Conver the hit list to ROOT output format
       // Save the hitlist to the tree
       if (kTree) {
 	//	rootlist->Convert(hitlist);
-	//	rootlist -> ConvertTest2(hitlist);
 	rootlist -> Build(*hitlist);
-	//rootlist -> ConvertTest4(hitlist);
-	tree->Fill();
+	tree -> Fill();
       }
-
+      
 
       // Process the hit list through the tracking worker (i.e. do track reconstruction)
 
@@ -351,8 +351,8 @@ int main(Int_t argc,Char_t* argv[])
       QwMessage << "Number of good partial tracks: "
                 << trackingworker->ngood << QwLog::endl;
     }
-    timer.Stop();
 
+    timer.Stop();
 
     /*  Write to the root file, being sure to delete the old cycles  *
      *  which were written by Autosave.                              *
@@ -371,13 +371,13 @@ int main(Int_t argc,Char_t* argv[])
     rootfile->Write(0, TObject::kOverwrite);
     rootfile->Close();
 
-    delete rootfile; rootfile = 0;
 
     // Delete objects
-    if (trackingworker) delete trackingworker; trackingworker = NULL;
-    if (hitlist)  delete hitlist; hitlist = NULL;
-    if (event)    delete event; event = NULL;
-    if (rootlist) delete rootlist; rootlist = NULL;
+    delete rootfile; rootfile = 0;
+    if (trackingworker) delete trackingworker; trackingworker = 0;
+    if (hitlist)        delete hitlist; hitlist = 0;
+    if (event)          delete event; event = 0;
+    if (rootlist)       delete rootlist; rootlist = 0;
 
     // Print run summary information
     QwMessage << "Analysis of run " << run << QwLog::endl

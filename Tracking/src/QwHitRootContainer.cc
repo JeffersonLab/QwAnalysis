@@ -13,7 +13,6 @@ QwHitRootContainer::QwHitRootContainer()
   // Set local TClonesArray to static TClonesArray and zero hits
   fQwHits = gQwHits;
   fQwHits->Clear();
-  fNQwHits = 0;
 };
 
 // Destructor
@@ -22,18 +21,20 @@ QwHitRootContainer::~QwHitRootContainer()
   // Delete the static TClonesArray
   Reset();
   // Set local TClonesArray to null
-  fQwHits = NULL;
+  fQwHits = 0;
 };
 
 // Clear the local TClonesArray
 void QwHitRootContainer::Clear(Option_t *option)
 {
   fQwHits->Clear(option);
+  fNQwHits = 0;
 };
 
 void QwHitRootContainer::Delete(Option_t *option)
 {
   fQwHits->Delete(option);
+  fNQwHits = 0;
 };
 
 // Delete the static TClonesArray
@@ -61,7 +62,7 @@ void QwHitRootContainer::AddQwHit(QwHit &in)
 // Convert from a QwHitContainer hitlist to the TOrdCollection
 void QwHitRootContainer::Convert(QwHitContainer *hitlist)
 {
-  Delete();
+  Clear();
   for (QwHitContainer::iterator hit = hitlist->begin(); hit != hitlist->end(); hit++)
     {
       QwHit* p = &(*hit);
@@ -74,15 +75,11 @@ void QwHitRootContainer::Build(QwHitContainer &hitcontainer)
   // Save current Object count
   // Int_t ObjectNumber = TProcessID::GetObjectCount();
    Clear();
-   // Clear the number of hits
-   fNQwHits  = 0;
-
    QwHitContainer::iterator hititerator;
    for (hititerator = hitcontainer.begin(); hititerator != hitcontainer.end(); hititerator++)
      {
        AddQwHit(*hititerator);
      }
-
    //   TProcessID::SetObjectCount(ObjectNumber);
    return;
 }
@@ -95,7 +92,7 @@ QwHitContainer* QwHitRootContainer::Convert()
 {
   QwHitContainer* hitlist = new QwHitContainer();
   TIterator* iterator = fQwHits->MakeIterator();
-  QwHit* hit = NULL;
+  QwHit* hit = 0;
   while ((hit = (QwHit*) iterator->Next())) {
     hitlist->push_back(*hit);
   }
