@@ -744,7 +744,7 @@ void QwTrackingTree::marklin (
       }
       son.bits++;
       sonptr = nodeexists( father->son[offs+flip], &son);
-      hsh = (son.bit[tlayers-1]+son.bit[1])%HSHSIZ;
+      hsh = (son.bit[tlayers-1] + son.bit[1]) % HSHSIZ;
 
 
       /*if(sonptr){for(j=0;j<maxhits;j++)cout << son.bit[j] << " " ;cout <<  "exists" << endl;}

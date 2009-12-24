@@ -30,6 +30,10 @@
 
 #include "globals.h"
 
+#define MAX_TREELINES 1000
+#define MAX_MISSED_VDC_WIRES 7
+#define MAX_MISSED_HDC_PLANES 2
+
 ///
 /// \ingroup QwTracking
 
@@ -60,11 +64,6 @@ class QwTrackingTreeSearch {
 
     /// \brief Set the flag to show matching patterns when they are found
     void SetShowMatchingPatterns(bool show = true) { fShowMatchingPatterns = show; };
-
-    /// \brief Prepare for the beginning of the tree search
-    void BeginSearch ();
-    /// \brief Clean up after the end of the tree search
-    void EndSearch ();
 
     /// \brief Get the list of tree lines
     QwTrackingTreeLine* GetListOfTreeLines ();

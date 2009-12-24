@@ -172,10 +172,10 @@ void QwTrackingWorker::DefineOptions()
 
     // General options
     gQwOptions.AddOptions()("QwTracking.showeventpattern",
-                            po::value<bool>()->default_value(false),
+                            po::value<bool>()->zero_tokens()->default_value(false),
                             "show bit pattern for all events");
     gQwOptions.AddOptions()("QwTracking.showmatchingpattern",
-                            po::value<bool>()->default_value(false),
+                            po::value<bool>()->zero_tokens()->default_value(false),
                             "show bit pattern for matching tracks");
     // Region 2
     gQwOptions.AddOptions()("QwTracking.R2.levels",
@@ -527,9 +527,6 @@ QwEvent* QwTrackingWorker::ProcessHits (
                                   linked list                                              ---- */
 
                     // Start the search for this set of like-pitched planes
-                    // TODO (wdc) take a careful look at where TreeSearch should be
-                    // instantiated and where BeginSearch and EndSearch should go
-                    TreeSearch->BeginSearch();
                     QwTrackingTreeLine* treelinelist = 0; // local list of found tree lines
 
                     /*! ---- 3rd: create the bit patterns for the hits                     ---- */
@@ -582,9 +579,6 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                             } // end of loop over hits in this event
 
-                            // Start the search for this set of like-pitched planes
-                            TreeSearch->BeginSearch();
-
                             // Print hit pattern, if requested
                             if (fShowEventPattern)
                               for (size_t wire = 0; wire < patterns.size(); wire++)
@@ -616,6 +610,17 @@ QwEvent* QwTrackingWorker::ProcessHits (
                               delete[] hashchannel[wire];
                             }
 
+                            // TODO These treelines should contain the region id etc
+                            // We should set the QwDetectorInfo link here already,
+                            // or manually set the QwDetectorID fields.  Also, we
+                            // should put QwDetectorInfo in the searchtree object.
+                            for (QwTrackingTreeLine* treeline = treelinelist;
+                                 treeline; treeline = treeline->next) {
+                              treeline->SetRegion(region);
+                              treeline->SetPackage(package);
+                              treeline->SetDirection(dir);
+                            }
+
                             // Print list of tree lines
                             if (fDebug) {
                                 cout << "List of treelines:" << endl;
@@ -623,32 +628,28 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             }
 
                             QwDebug << "Calculate chi^2" << QwLog::endl;
-                            if (searchtree) {
+                            double width = searchtree->GetWidth();
+                            TreeCombine->TlTreeLineSort (treelinelist, subhitlist,
+                                                         package, region, dir,
+                                                         1UL << (levelsr3 - 1), 0, dlayer, width);
 
-                                double width = searchtree->GetWidth();
-                                TreeCombine->TlTreeLineSort (treelinelist, subhitlist,
-                                                             package, region, dir,
-                                                             1UL << (levelsr3 - 1), 0, dlayer, width);
+                            QwDebug << "Sort patterns" << QwLog::endl;
+                            TreeSort->rcTreeConnSort (treelinelist, region);
 
-                                QwDebug << "Sort patterns" << QwLog::endl;
-                                TreeSort->rcTreeConnSort (treelinelist, region);
-
-                                if (plane == 0) {
-                                    treelinelist1 = treelinelist;
-                                } else if (plane == 1) {
-                                    treelinelist2 = treelinelist;
-                                }
-
+                            if (plane == 0) {
+                                treelinelist1 = treelinelist;
+                            } else if (plane == 1) {
+                                treelinelist2 = treelinelist;
                             }
-                            dlayer++;
 
-                            // End the search for this set of like-pitched planes
-                            TreeSearch->EndSearch();
+                            dlayer++;
 
                             // Delete subhitlist
                             delete subhitlist;
 
                         } // end of loop over like-pitched planes in a region
+                        event->AddTreeLineList(treelinelist1);
+                        event->AddTreeLineList(treelinelist2);
 
                         QwDebug << "Matching region 3 segments" << QwLog::endl;
                         if (treelinelist1 || treelinelist2) {
@@ -661,6 +662,8 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             treelinelist = TreeMatch->MatchR3 (treelinelist1, treelinelist2, package, region, dir);
                         }
                         event->treeline[package][region][type][dir] = treelinelist;
+                        event->AddTreeLineList(treelinelist);
+
                         tlayers = TLAYERS;     /* remember the number of tree-detector */
                         tlaym1  = tlayers - 1; /* remember tlayers - 1 for convenience */
 
@@ -781,9 +784,6 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         }
                         event->treeline[package][region][type][dir] = treelinelist;
                         event->AddTreeLineList(treelinelist);
-
-                        // End the search for this set of like-pitched planes
-                        TreeSearch->EndSearch();
 
                         // Delete subhitlist
                         delete subhitlist;

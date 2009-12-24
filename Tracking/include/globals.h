@@ -9,9 +9,6 @@
 #define MAXHITPERLINE 4	/* maximum number of hits in 1 detector plane
 				   which will be considered to belong to the
 				   track, if several hits are near the line */
-#define HSHSIZ 511
-
-#define TREELINABORT 1000
 
 // Number of wires in region 3
 #define NUMWIRESR3 281

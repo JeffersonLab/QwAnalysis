@@ -37,6 +37,9 @@ using QwTracking::shortnode; using QwTracking::shorttree;
 #include "VQwTrackingElement.h"
 #include "globals.h"
 
+// Definitions
+#define HSHSIZ 511
+
 // Forward declarations
 class QwTrackingTreeRegion;
 

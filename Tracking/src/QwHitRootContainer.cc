@@ -45,19 +45,19 @@ void QwHitRootContainer::Reset(Option_t *option)
 };
 
 // Add an existing QwHit
-void QwHitRootContainer::AddHit(QwHit *hit )
- {
-   TClonesArray &hits = *fQwHits;
-   QwHit *newhit = new (hits[fNQwHits++]) QwHit();
-   *newhit = *hit;
- };
+void QwHitRootContainer::AddHit(QwHit *hit)
+{
+  TClonesArray &hits = *fQwHits;
+  QwHit *newhit = new (hits[fNQwHits++]) QwHit();
+  *newhit = *hit;
+};
 
 void QwHitRootContainer::AddQwHit(QwHit &in)
- {
-   TClonesArray &hits = *fQwHits;
-   new (hits[fNQwHits++]) QwHit(in);
-   return;
- };
+{
+  TClonesArray &hits = *fQwHits;
+  new (hits[fNQwHits++]) QwHit(in);
+  return;
+};
 
 // Convert from a QwHitContainer hitlist to the TOrdCollection
 void QwHitRootContainer::Convert(QwHitContainer *hitlist)
@@ -74,18 +74,15 @@ void QwHitRootContainer::Build(QwHitContainer &hitcontainer)
 {
   // Save current Object count
   // Int_t ObjectNumber = TProcessID::GetObjectCount();
-   Clear();
-   QwHitContainer::iterator hititerator;
-   for (hititerator = hitcontainer.begin(); hititerator != hitcontainer.end(); hititerator++)
-     {
-       AddQwHit(*hititerator);
-     }
-   //   TProcessID::SetObjectCount(ObjectNumber);
-   return;
+  Clear();
+  QwHitContainer::iterator hititerator;
+  for (hititerator = hitcontainer.begin(); hititerator != hitcontainer.end(); hititerator++)
+    {
+      AddQwHit(*hititerator);
+    }
+  //   TProcessID::SetObjectCount(ObjectNumber);
+  return;
 }
-
-
-
 
 // Convert from this TOrdCollection to a QwHitContainer hitlist
 QwHitContainer* QwHitRootContainer::Convert()
