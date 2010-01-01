@@ -40,10 +40,8 @@ void QwDetectorInfo::SetDetectorInfo (
   SetTrackResolution(track_res);
   SetSlopeMatching(slope_match);
 
-  fDetectorOriginX = Det_originX;
-  fDetectorOriginY = Det_originY;
-  fDetectorOriginZ = Det_originZ;
-  fDetectorRotation = rot;
+  SetXYZPosition(Det_originX, Det_originY, Det_originZ);
+  SetDetectorRotation(rot);
 
   fActiveWidthX = ActivewidthX;
   fActiveWidthY = ActivewidthY;

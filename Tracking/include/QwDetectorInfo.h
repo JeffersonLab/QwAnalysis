@@ -84,7 +84,7 @@ class QwDetectorInfo {
     const double GetElementAngleCos() const { return fElementAngleCos; };
     const double GetElementAngleSin() const { return fElementAngleSin; };
     void SetElementAngle(const double angle) {
-      fElementAngle = angle;
+      fElementAngle = angle; // in degrees
       fElementAngleCos = std::cos(angle * PI / 180.0);
       fElementAngleSin = std::sin(angle * PI / 180.0);
     };
@@ -99,13 +99,17 @@ class QwDetectorInfo {
     void SetNumberOfElements(const int nelements) { fNumberOfElements = nelements; };
 
     // Get/set detector rotation (in degrees)
-    void SetDetectorRotation(const double rotation) { fDetectorRotation = rotation; };
     const double GetDetectorRotation() const { return fDetectorRotation; };
-    const double GetCosDetectorRotation() const {
-      return std::cos(fDetectorRotation * PI / 180.0);
-    };
-    const double GetSinDetectorRotation() const {
-      return std::sin(fDetectorRotation * PI / 180.0);
+    const double GetDetectorRotationInDeg() const { return fDetectorRotation; };
+    const double GetDetectorRotationInRad() const { return fDetectorRotation * PI / 180.0; };
+    const double GetDetectorRotationCos() const { return fDetectorRotationCos; };
+    const double GetDetectorRotationSin() const { return fDetectorRotationSin; };
+    const double GetCosDetectorRotation() const { return fDetectorRotationCos; }; // deprecated
+    const double GetSinDetectorRotation() const { return fDetectorRotationSin; }; // deprecated
+    void SetDetectorRotation(const double rotation) {
+      fDetectorRotation = rotation; // in degrees
+      fDetectorRotationCos = std::cos(rotation * PI / 180.0);
+      fDetectorRotationSin = std::sin(rotation * PI / 180.0);
     };
 
     // Get unique detector ID
@@ -132,9 +136,12 @@ class QwDetectorInfo {
     Double_t fDetectorOriginX;	///< Detector position in x
     Double_t fDetectorOriginY;	///< Detector position in y
     Double_t fDetectorOriginZ;	///< Detector position in z
-    Double_t fDetectorRotation;	///< Orientation of the detector around the y axis
-      /// with respect to the vertical position.  Region 2 has zero degrees here.
-      /// Region 3 is rotated around the y axis over approximately 65 degrees.
+    Double_t fDetectorRotation;	///< Orientation of the detector around the
+      /// Y axis with respect to the X axis.  Region 2 has zero degrees here.
+      /// Region 3 is rotated around the Y axis over approximately 65 degrees.
+      /// \todo This is an inconsistent definition of coordinate frames.
+    Double_t fDetectorRotationCos;	///< Cos of detector orientation
+    Double_t fDetectorRotationSin;	///< Sin of detector orientation
 
     Bool_t fIsActive;		///< Is this detector activated in tracking
 
@@ -147,7 +154,7 @@ class QwDetectorInfo {
     Double_t fActiveWidthZ;	///< Active volume in z
 
     Double_t fElementSpacing;	///< Perpendicular distance between the elements
-    Double_t fElementAngle;	///< Element orientation with respect to x
+    Double_t fElementAngle;	///< Element orientation with respect to the X axis
     Double_t fElementAngleCos;	///< Cos of the element orientation
     Double_t fElementAngleSin;	///< Sin of the element orientation
     Double_t fElementOffset;	///< Position of the first element (it is not

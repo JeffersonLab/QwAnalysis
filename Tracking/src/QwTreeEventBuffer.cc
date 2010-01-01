@@ -215,12 +215,12 @@ QwTreeEventBuffer::QwTreeEventBuffer (
 		&fRegion3_ChamberFront_WirePlaneU_LocalPositionY);
   fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.LocalPositionZ",
 		&fRegion3_ChamberFront_WirePlaneU_LocalPositionZ);
-  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.LocalMomentumX",
-		&fRegion3_ChamberFront_WirePlaneU_LocalMomentumX);
-  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.LocalMomentumY",
-		&fRegion3_ChamberFront_WirePlaneU_LocalMomentumY);
-  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.LocalMomentumZ",
-		&fRegion3_ChamberFront_WirePlaneU_LocalMomentumZ);
+  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.GlobalMomentumX",
+		&fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX);
+  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.GlobalMomentumY",
+		&fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY);
+  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.GlobalMomentumZ",
+		&fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ);
 
   fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneV.HasBeenHit",
 		&fRegion3_ChamberFront_WirePlaneV_HasBeenHit);
@@ -234,12 +234,12 @@ QwTreeEventBuffer::QwTreeEventBuffer (
 		&fRegion3_ChamberFront_WirePlaneV_LocalPositionY);
   fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneV.LocalPositionZ",
 		&fRegion3_ChamberFront_WirePlaneV_LocalPositionZ);
-  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneV.LocalMomentumX",
-		&fRegion3_ChamberFront_WirePlaneV_LocalMomentumX);
-  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneV.LocalMomentumY",
-		&fRegion3_ChamberFront_WirePlaneV_LocalMomentumY);
-  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneV.LocalMomentumZ",
-		&fRegion3_ChamberFront_WirePlaneV_LocalMomentumZ);
+  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneV.GlobalMomentumX",
+		&fRegion3_ChamberFront_WirePlaneV_GlobalMomentumX);
+  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneV.GlobalMomentumY",
+		&fRegion3_ChamberFront_WirePlaneV_GlobalMomentumY);
+  fTree->SetBranchAddress("Region3.ChamberFront.WirePlaneV.GlobalMomentumZ",
+		&fRegion3_ChamberFront_WirePlaneV_GlobalMomentumZ);
 
   fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneU.HasBeenHit",
 		&fRegion3_ChamberBack_WirePlaneU_HasBeenHit);
@@ -253,12 +253,12 @@ QwTreeEventBuffer::QwTreeEventBuffer (
 		&fRegion3_ChamberBack_WirePlaneU_LocalPositionY);
   fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneU.LocalPositionZ",
 		&fRegion3_ChamberBack_WirePlaneU_LocalPositionZ);
-  fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneU.LocalMomentumX",
-		&fRegion3_ChamberBack_WirePlaneU_LocalMomentumX);
-  fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneU.LocalMomentumY",
-		&fRegion3_ChamberBack_WirePlaneU_LocalMomentumY);
-  fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneU.LocalMomentumZ",
-		&fRegion3_ChamberBack_WirePlaneU_LocalMomentumZ);
+  fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneU.GlobalMomentumX",
+		&fRegion3_ChamberBack_WirePlaneU_GlobalMomentumX);
+  fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneU.GlobalMomentumY",
+		&fRegion3_ChamberBack_WirePlaneU_GlobalMomentumY);
+  fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneU.GlobalMomentumZ",
+		&fRegion3_ChamberBack_WirePlaneU_GlobalMomentumZ);
 
   fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneV.HasBeenHit",
 		&fRegion3_ChamberBack_WirePlaneV_HasBeenHit);
@@ -272,12 +272,12 @@ QwTreeEventBuffer::QwTreeEventBuffer (
 		&fRegion3_ChamberBack_WirePlaneV_LocalPositionY);
   fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneV.LocalPositionZ",
 		&fRegion3_ChamberBack_WirePlaneV_LocalPositionZ);
-  fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneV.LocalMomentumX",
-		&fRegion3_ChamberBack_WirePlaneV_LocalMomentumX);
-  fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneV.LocalMomentumY",
-		&fRegion3_ChamberBack_WirePlaneV_LocalMomentumY);
-  fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneV.LocalMomentumZ",
-		&fRegion3_ChamberBack_WirePlaneV_LocalMomentumZ);
+  fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneV.GlobalMomentumX",
+		&fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX);
+  fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneV.GlobalMomentumY",
+		&fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY);
+  fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneV.GlobalMomentumZ",
+		&fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ);
 
   fEntries = fTree->GetEntries();
   if (fDebug>=1) std::cout << "Entries in event file: " << fEntries << std::endl;
@@ -577,6 +577,46 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
     }
   }
 
+  // The local reference frame in which the region 3 hits are stored in the MC
+  // file is centered at the wire plane center, has the z axis pointing towards
+  // the target, the y axis pointing towards the beam pipe, and the x axis to
+  // the left for the 'up' octant to form a right-handed frame.
+  //
+  // This is rather different from the global reference frame which has the z
+  // axis pointing away from the target in the downstream direction, the y axis
+  // away from the beam pipe (vertically upwards for the 'up' octant), and the
+  // x axis to the left for the 'up' octant to form a right-handed frame.
+  //
+  // In addition, of course, the local frame is tilted around the x axis such
+  // that the axis between the local xy (wire) plane and the global z axis is
+  // approximately 65 degrees.
+  //
+  // The global momentum components are used because there seems to be a problem
+  // with the local components in the MC file.  For one event the following
+  // values are stored (wdc, 2009-12-31, event 0 in QwSim_100.root):
+  //         local     global (units: cm and MeV)
+  //       x =  6.80    6.80
+  //       y = -7.65    269.7
+  //       z = -0.00    439.6
+  //      Px = 12.13    12.13
+  //      Py = -3498    441.3
+  //      Pz = -2113    1067.3
+  //     |P| = 4086.5   1155.0
+  // (for a beam energy of 1165.0 MeV)
+  //
+  // Detector rotation around the x axis: the Px, Py and Pz are given in the
+  // lab reference frame, but the local detector plane coordinate system is
+  // rotated around the lab x axis.  We need to correct the slopes for this
+  // rotation to obtain the slope with respect to the wire plane.  This means
+  // a rotation over -theta around x for z,y.
+  //
+  // Sign observations (because the z axis is pointing towards the incoming
+  // tracks):
+  // - negative slope means that the track is going 'in the direction of' that
+  //   coordinate axis (i.e. negative mx means that the track is going roughly
+  //   in the direction of the x axis),
+  // - positive slope means that the track is going 'against the direction of'
+  //   that coordinate axis.
 
   // Region 3 front planes (u,v)
   if (fDebug >= 2) std::cout << "Processing Region3_ChamberFront_WirePlaneU: "
@@ -585,23 +625,32 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
   for (int i1 = 0; i1 < fRegion3_ChamberFront_WirePlaneU_NbOfHits && i1 < VSIZE; i1++) {
     if (fDebug >= 2) std::cout << "hit in "  << *detectorinfo << std::endl;
 
-    if(fRegion3_ChamberFront_WirePlaneU_ParticleType.at(i1) != 2){ //we don't care about gamma particles now
+    // We don't care about gamma particles now
+    if(fRegion3_ChamberFront_WirePlaneU_ParticleType.at(i1) == 2) continue;
 
     // Get the position and momentum (for slope calculation)
     double x = fRegion3_ChamberFront_WirePlaneU_LocalPositionX.at(i1);
     double y = fRegion3_ChamberFront_WirePlaneU_LocalPositionY.at(i1);
-    double xMomentum = fRegion3_ChamberFront_WirePlaneU_LocalMomentumX.at(i1);
-    double yMomentum = fRegion3_ChamberFront_WirePlaneU_LocalMomentumY.at(i1);
-    double zMomentum = fRegion3_ChamberFront_WirePlaneU_LocalMomentumZ.at(i1);
-    double mx =  xMomentum/zMomentum;
-    double my =  yMomentum/zMomentum;
+    double xMomentum = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.at(i1);
+    double yMomentum = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.at(i1);
+    double zMomentum = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ.at(i1);
+
+    // Detector rotation around the x axis
+    double cos_theta =   detectorinfo->GetDetectorRotationCos();
+    double sin_theta = - detectorinfo->GetDetectorRotationSin();
+    // Rotation over -theta around x for z,y
+    double xMomentum2 = xMomentum; // no change in x
+    double yMomentum2 = sin_theta * yMomentum - cos_theta * zMomentum;
+    double zMomentum2 = cos_theta * yMomentum + sin_theta * zMomentum;
+    // Slopes
+    double mx = xMomentum2 / zMomentum2;
+    double my = yMomentum2 / zMomentum2;
 
     // Fill a vector with the hits for this track
     std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my);
 
     // Append this vector of hits to the QwHitContainer.
     hitlist->Append(hits);
-    }
   }
 
   if (fDebug >= 2) std::cout << "Processing Region3_ChamberFront_WirePlaneV: "
@@ -610,22 +659,32 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
   for (int i2 = 0; i2 < fRegion3_ChamberFront_WirePlaneV_NbOfHits && i2 < VSIZE; i2++) {
     if (fDebug >= 2) std::cout << "hit in "  << *detectorinfo << std::endl;
 
-    if(fRegion3_ChamberFront_WirePlaneV_ParticleType.at(i2) != 2){ //we don't care about gamma particles
+    // We don't care about gamma particles
+    if(fRegion3_ChamberFront_WirePlaneV_ParticleType.at(i2) == 2) continue;
+
     // Get the position and momentum (for slope calculation)
     double x = fRegion3_ChamberFront_WirePlaneV_LocalPositionX.at(i2);
     double y = fRegion3_ChamberFront_WirePlaneV_LocalPositionY.at(i2);
-    double xMomentum = fRegion3_ChamberFront_WirePlaneV_LocalMomentumX.at(i2);
-    double yMomentum = fRegion3_ChamberFront_WirePlaneV_LocalMomentumY.at(i2);
-    double zMomentum = fRegion3_ChamberFront_WirePlaneV_LocalMomentumZ.at(i2);
-    double mx =  xMomentum/zMomentum;
-    double my =  yMomentum/zMomentum;
+    double xMomentum = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumX.at(i2);
+    double yMomentum = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumY.at(i2);
+    double zMomentum = fRegion3_ChamberFront_WirePlaneV_GlobalMomentumZ.at(i2);
+
+    // Detector rotation around the x axis
+    double cos_theta =   detectorinfo->GetDetectorRotationCos();
+    double sin_theta = - detectorinfo->GetDetectorRotationSin();
+    // Rotation over -theta around x for z,y
+    double xMomentum2 = xMomentum; // no change in x
+    double yMomentum2 = sin_theta * yMomentum - cos_theta * zMomentum;
+    double zMomentum2 = cos_theta * yMomentum + sin_theta * zMomentum;
+    // Slopes
+    double mx = xMomentum2 / zMomentum2;
+    double my = yMomentum2 / zMomentum2;
 
     // Fill a vector with the hits for this track
     std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my);
 
     // Append this vector of hits to the QwHitContainer.
     hitlist->Append(hits);
-  }
   }
 
   // Region 3 back planes (u',v')
@@ -635,22 +694,32 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
   for (int i3 = 0; i3 < fRegion3_ChamberBack_WirePlaneU_NbOfHits && i3 < VSIZE; i3++) {
     if (fDebug >= 2) std::cout << "hit in "  << *detectorinfo << std::endl;
 
-    if(fRegion3_ChamberBack_WirePlaneU_ParticleType.at(i3) != 2){ //we don't care about gamma particles
+    // We don't care about gamma particles
+    if(fRegion3_ChamberBack_WirePlaneU_ParticleType.at(i3) == 2) continue;
+
     // Get the position and momentum (for slope calculation)
     double x = fRegion3_ChamberBack_WirePlaneU_LocalPositionX.at(i3);
     double y = fRegion3_ChamberBack_WirePlaneU_LocalPositionY.at(i3);
-    double xMomentum = fRegion3_ChamberBack_WirePlaneU_LocalMomentumX.at(i3);
-    double yMomentum = fRegion3_ChamberBack_WirePlaneU_LocalMomentumY.at(i3);
-    double zMomentum = fRegion3_ChamberBack_WirePlaneU_LocalMomentumZ.at(i3);
-    double mx =  xMomentum/zMomentum;
-    double my =  yMomentum/zMomentum;
+    double xMomentum = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumX.at(i3);
+    double yMomentum = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumY.at(i3);
+    double zMomentum = fRegion3_ChamberBack_WirePlaneU_GlobalMomentumZ.at(i3);
+
+    // Detector rotation around the x axis
+    double cos_theta =   detectorinfo->GetDetectorRotationCos();
+    double sin_theta = - detectorinfo->GetDetectorRotationSin();
+    // Rotation over -theta around x for z,y
+    double xMomentum2 = xMomentum; // no change in x
+    double yMomentum2 = sin_theta * yMomentum - cos_theta * zMomentum;
+    double zMomentum2 = cos_theta * yMomentum + sin_theta * zMomentum;
+    // Slopes
+    double mx = xMomentum2 / zMomentum2;
+    double my = yMomentum2 / zMomentum2;
 
     // Fill a vector with the hits for this track
     std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my);
 
     // Append this vector of hits to the QwHitContainer.
     hitlist->Append(hits);
-  }
   }
 
   if (fDebug >= 2) std::cout << "Processing Region3_ChamberBack_WirePlaneV: "
@@ -659,22 +728,32 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
   for (int i4 = 0; i4 < fRegion3_ChamberBack_WirePlaneV_NbOfHits && i4 < VSIZE; i4++) {
     if (fDebug >= 2) std::cout << "hit in " << *detectorinfo << std::endl;
 
-    if(fRegion3_ChamberBack_WirePlaneV_ParticleType.at(i4) != 2){ //we don't care about gamma particles
+    // We don't care about gamma particles
+    if (fRegion3_ChamberBack_WirePlaneV_ParticleType.at(i4) == 2) continue;
+
     // Get the position and momentum (for slope calculation)
     double x = fRegion3_ChamberBack_WirePlaneV_LocalPositionX.at(i4);
     double y = fRegion3_ChamberBack_WirePlaneV_LocalPositionY.at(i4);
-    double xMomentum = fRegion3_ChamberBack_WirePlaneV_LocalMomentumX.at(i4);
-    double yMomentum = fRegion3_ChamberBack_WirePlaneV_LocalMomentumY.at(i4);
-    double zMomentum = fRegion3_ChamberBack_WirePlaneV_LocalMomentumZ.at(i4);
-    double mx =  xMomentum/zMomentum;
-    double my =  yMomentum/zMomentum;
+    double xMomentum = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX.at(i4);
+    double yMomentum = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY.at(i4);
+    double zMomentum = fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ.at(i4);
+
+    // Detector rotation around the x axis
+    double cos_theta =   detectorinfo->GetDetectorRotationCos();
+    double sin_theta = - detectorinfo->GetDetectorRotationSin();
+    // Rotation over -theta around x for z,y
+    double xMomentum2 = xMomentum; // no change in x
+    double yMomentum2 = sin_theta * yMomentum - cos_theta * zMomentum;
+    double zMomentum2 = cos_theta * yMomentum + sin_theta * zMomentum;
+    // Slopes
+    double mx = xMomentum2 / zMomentum2;
+    double my = yMomentum2 / zMomentum2;
 
     // Fill a vector with the hits for this track
     std::vector<QwHit> hits = CreateHitRegion3(detectorinfo,x,y,mx,my);
 
     // Append this vector of hits to the QwHitContainer.
     hitlist->Append(hits);
-  }
   }
 
 
@@ -852,7 +931,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
   int plane = detectorinfo->fPlane;
 
   // Detector geometry: wirespacing, width, central wire
-  double angle = detectorinfo->GetElementAngle();
+  double angle   = detectorinfo->GetElementAngle();
   double spacing = detectorinfo->GetElementSpacing();
   double dz = detectorinfo->GetActiveWidthZ();
   int central_wire = (detectorinfo->GetNumberOfElements() + 1) / 2;
@@ -918,8 +997,8 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
       distance = fabs(mean_distance + sigma_distance * normal());
     }
 
-    // Skip the hit if is far away (low efficiency?)  TODO This is not rigorous
-    if (distance > dz/3) continue;
+    // Skip the hit if is outside of the chamber
+    if (distance > dz/2) continue;
 
     // Create a new hit
     QwHit* hit = new QwHit(0,0,0,0, region, package, plane, direction, wire, 0);
@@ -1053,30 +1132,30 @@ void QwTreeEventBuffer::ReserveSpace ()
   fRegion3_ChamberFront_WirePlaneU_LocalPositionX.reserve(VSIZE);
   fRegion3_ChamberFront_WirePlaneU_LocalPositionY.reserve(VSIZE);
   fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.reserve(VSIZE);
-  fRegion3_ChamberFront_WirePlaneU_LocalMomentumX.reserve(VSIZE);
-  fRegion3_ChamberFront_WirePlaneU_LocalMomentumY.reserve(VSIZE);
-  fRegion3_ChamberFront_WirePlaneU_LocalMomentumZ.reserve(VSIZE);
+  fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.reserve(VSIZE);
+  fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.reserve(VSIZE);
+  fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ.reserve(VSIZE);
 
   fRegion3_ChamberFront_WirePlaneV_LocalPositionX.reserve(VSIZE);
   fRegion3_ChamberFront_WirePlaneV_LocalPositionY.reserve(VSIZE);
   fRegion3_ChamberFront_WirePlaneV_LocalPositionZ.reserve(VSIZE);
-  fRegion3_ChamberFront_WirePlaneV_LocalMomentumX.reserve(VSIZE);
-  fRegion3_ChamberFront_WirePlaneV_LocalMomentumY.reserve(VSIZE);
-  fRegion3_ChamberFront_WirePlaneV_LocalMomentumZ.reserve(VSIZE);
+  fRegion3_ChamberFront_WirePlaneV_GlobalMomentumX.reserve(VSIZE);
+  fRegion3_ChamberFront_WirePlaneV_GlobalMomentumY.reserve(VSIZE);
+  fRegion3_ChamberFront_WirePlaneV_GlobalMomentumZ.reserve(VSIZE);
 
   fRegion3_ChamberBack_WirePlaneU_LocalPositionX.reserve(VSIZE);
   fRegion3_ChamberBack_WirePlaneU_LocalPositionY.reserve(VSIZE);
   fRegion3_ChamberBack_WirePlaneU_LocalPositionZ.reserve(VSIZE);
-  fRegion3_ChamberBack_WirePlaneU_LocalMomentumX.reserve(VSIZE);
-  fRegion3_ChamberBack_WirePlaneU_LocalMomentumY.reserve(VSIZE);
-  fRegion3_ChamberBack_WirePlaneU_LocalMomentumZ.reserve(VSIZE);
+  fRegion3_ChamberBack_WirePlaneU_GlobalMomentumX.reserve(VSIZE);
+  fRegion3_ChamberBack_WirePlaneU_GlobalMomentumY.reserve(VSIZE);
+  fRegion3_ChamberBack_WirePlaneU_GlobalMomentumZ.reserve(VSIZE);
 
   fRegion3_ChamberBack_WirePlaneV_LocalPositionX.reserve(VSIZE);
   fRegion3_ChamberBack_WirePlaneV_LocalPositionY.reserve(VSIZE);
   fRegion3_ChamberBack_WirePlaneV_LocalPositionZ.reserve(VSIZE);
-  fRegion3_ChamberBack_WirePlaneV_LocalMomentumX.reserve(VSIZE);
-  fRegion3_ChamberBack_WirePlaneV_LocalMomentumY.reserve(VSIZE);
-  fRegion3_ChamberBack_WirePlaneV_LocalMomentumZ.reserve(VSIZE);
+  fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX.reserve(VSIZE);
+  fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY.reserve(VSIZE);
+  fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ.reserve(VSIZE);
 }
 
 void QwTreeEventBuffer::Clear ()
@@ -1220,34 +1299,34 @@ void QwTreeEventBuffer::Clear ()
   fRegion3_ChamberFront_WirePlaneU_LocalPositionX.clear();
   fRegion3_ChamberFront_WirePlaneU_LocalPositionY.clear();
   fRegion3_ChamberFront_WirePlaneU_LocalPositionZ.clear();
-  fRegion3_ChamberFront_WirePlaneU_LocalMomentumX.clear();
-  fRegion3_ChamberFront_WirePlaneU_LocalMomentumY.clear();
-  fRegion3_ChamberFront_WirePlaneU_LocalMomentumZ.clear();
+  fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.clear();
+  fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.clear();
+  fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ.clear();
 
   fRegion3_ChamberFront_WirePlaneV_HasBeenHit = 0;
   fRegion3_ChamberFront_WirePlaneV_NbOfHits = 0;
   fRegion3_ChamberFront_WirePlaneV_LocalPositionX.clear();
   fRegion3_ChamberFront_WirePlaneV_LocalPositionY.clear();
   fRegion3_ChamberFront_WirePlaneV_LocalPositionZ.clear();
-  fRegion3_ChamberFront_WirePlaneV_LocalMomentumX.clear();
-  fRegion3_ChamberFront_WirePlaneV_LocalMomentumY.clear();
-  fRegion3_ChamberFront_WirePlaneV_LocalMomentumZ.clear();
+  fRegion3_ChamberFront_WirePlaneV_GlobalMomentumX.clear();
+  fRegion3_ChamberFront_WirePlaneV_GlobalMomentumY.clear();
+  fRegion3_ChamberFront_WirePlaneV_GlobalMomentumZ.clear();
 
   fRegion3_ChamberBack_WirePlaneU_HasBeenHit = 0;
   fRegion3_ChamberBack_WirePlaneU_NbOfHits = 0;
   fRegion3_ChamberBack_WirePlaneU_LocalPositionX.clear();
   fRegion3_ChamberBack_WirePlaneU_LocalPositionY.clear();
   fRegion3_ChamberBack_WirePlaneU_LocalPositionZ.clear();
-  fRegion3_ChamberBack_WirePlaneU_LocalMomentumX.clear();
-  fRegion3_ChamberBack_WirePlaneU_LocalMomentumY.clear();
-  fRegion3_ChamberBack_WirePlaneU_LocalMomentumZ.clear();
+  fRegion3_ChamberBack_WirePlaneU_GlobalMomentumX.clear();
+  fRegion3_ChamberBack_WirePlaneU_GlobalMomentumY.clear();
+  fRegion3_ChamberBack_WirePlaneU_GlobalMomentumZ.clear();
 
   fRegion3_ChamberBack_WirePlaneV_HasBeenHit = 0;
   fRegion3_ChamberBack_WirePlaneV_NbOfHits = 0;
   fRegion3_ChamberBack_WirePlaneV_LocalPositionX.clear();
   fRegion3_ChamberBack_WirePlaneV_LocalPositionY.clear();
   fRegion3_ChamberBack_WirePlaneV_LocalPositionZ.clear();
-  fRegion3_ChamberBack_WirePlaneV_LocalMomentumX.clear();
-  fRegion3_ChamberBack_WirePlaneV_LocalMomentumY.clear();
-  fRegion3_ChamberBack_WirePlaneV_LocalMomentumZ.clear();
+  fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX.clear();
+  fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY.clear();
+  fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ.clear();
 }

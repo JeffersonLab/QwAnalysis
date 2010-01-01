@@ -220,9 +220,9 @@ class QwTreeEventBuffer
     vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalPositionX;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalPositionY;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalPositionZ;
-    vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalMomentumX;
-    vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalMomentumY;
-    vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalMomentumZ;
+    vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX;
+    vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY;
+    vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ;
 
     Int_t fRegion3_ChamberFront_WirePlaneV_HasBeenHit;
     Int_t fRegion3_ChamberFront_WirePlaneV_NbOfHits;
@@ -230,9 +230,9 @@ class QwTreeEventBuffer
     vector <Float_t> fRegion3_ChamberFront_WirePlaneV_LocalPositionX;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneV_LocalPositionY;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneV_LocalPositionZ;
-    vector <Float_t> fRegion3_ChamberFront_WirePlaneV_LocalMomentumX;
-    vector <Float_t> fRegion3_ChamberFront_WirePlaneV_LocalMomentumY;
-    vector <Float_t> fRegion3_ChamberFront_WirePlaneV_LocalMomentumZ;
+    vector <Float_t> fRegion3_ChamberFront_WirePlaneV_GlobalMomentumX;
+    vector <Float_t> fRegion3_ChamberFront_WirePlaneV_GlobalMomentumY;
+    vector <Float_t> fRegion3_ChamberFront_WirePlaneV_GlobalMomentumZ;
 
     Int_t fRegion3_ChamberBack_WirePlaneU_HasBeenHit;
     Int_t fRegion3_ChamberBack_WirePlaneU_NbOfHits;
@@ -240,9 +240,9 @@ class QwTreeEventBuffer
     vector <Float_t> fRegion3_ChamberBack_WirePlaneU_LocalPositionX;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneU_LocalPositionY;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneU_LocalPositionZ;
-    vector <Float_t> fRegion3_ChamberBack_WirePlaneU_LocalMomentumX;
-    vector <Float_t> fRegion3_ChamberBack_WirePlaneU_LocalMomentumY;
-    vector <Float_t> fRegion3_ChamberBack_WirePlaneU_LocalMomentumZ;
+    vector <Float_t> fRegion3_ChamberBack_WirePlaneU_GlobalMomentumX;
+    vector <Float_t> fRegion3_ChamberBack_WirePlaneU_GlobalMomentumY;
+    vector <Float_t> fRegion3_ChamberBack_WirePlaneU_GlobalMomentumZ;
 
     Int_t fRegion3_ChamberBack_WirePlaneV_HasBeenHit;
     Int_t fRegion3_ChamberBack_WirePlaneV_NbOfHits;
@@ -250,9 +250,9 @@ class QwTreeEventBuffer
     vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalPositionX;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalPositionY;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalPositionZ;
-    vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalMomentumX;
-    vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalMomentumY;
-    vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalMomentumZ;
+    vector <Float_t> fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX;
+    vector <Float_t> fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY;
+    vector <Float_t> fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ;
 
 };
 
