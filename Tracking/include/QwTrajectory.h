@@ -105,14 +105,13 @@ public:
 
     void GenerateLookUpTable();
 
-    void SetStartAndEndPoints(TVector3 startpoint, TVector3 startpointdirection,
-                              TVector3 endpoint, TVector3 endpointdirection);
+    void SetStartAndEndPoints(TVector3 startposition, TVector3 startdirection,
+                              TVector3 endposition, TVector3 enddirection);
 
     int BridgeFrontBackPartialTrack();
 
-    int DoForcedBridging(TVector3 startpoint, TVector3 startpointdirection,
-                         TVector3 endpoint, TVector3 endpointdirection) {
-        return 0;
+    int DoForcedBridging() {
+        return -1;
     };
 
     int Integrate(double e0, double step);
@@ -164,6 +163,11 @@ public:
 
     void PrintInfo();
 
+    int ReadSimPartialTrack(const TString filename, int evtnum,
+                            TVector3 *startpoint, TVector3 *startpointdirection,
+                            TVector3 *endpoint, TVector3 *endpointdirection);
+    void GetBridgingResult(Double_t *buffer);
+
 private:
 
     int Filter();
@@ -173,8 +177,6 @@ private:
     int Shooting();
 
     double EstimateInitialMomentum(TVector3 direction);
-
-    void ReadSimPartialTrack();
 
 private:
 
@@ -213,6 +215,36 @@ private:
     double fDirectionZOff;
 
     int fSimFlag;
+
+    // Region2 WirePlane1
+    Int_t fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit;
+    Int_t fRegion2_ChamberFront_WirePlane1_NbOfHits;
+    std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX;
+    std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY;
+    std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ;
+    std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumX;
+    std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumY;
+    std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumZ;
+
+    // Region3 WirePlaneU
+    Int_t fRegion3_ChamberFront_WirePlaneU_HasBeenHit;
+    Int_t fRegion3_ChamberFront_WirePlaneU_NbOfHits;
+    std::vector <Int_t> fRegion3_ChamberFront_WirePlaneU_ParticleType;
+    std::vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalPositionX;
+    std::vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalPositionY;
+    std::vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ;
+    std::vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX;
+    std::vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY;
+    std::vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ;
+
+    Float_t fPrimary_OriginVertexKineticEnergy;
+    Float_t fMomentumOff;
+
+    Int_t fMatchFlag; // MatchFlag = -2 : cannot match
+                      // MatchFlag = -1 : potential track cannot pass through the filter
+                      // MatchFlag = 0; : matched with look-up table
+                      // MatchFlag = 1; : matched by using shooting method
+                      // MatchFlag = 2; : potential track is forced to match
 
 }; // class QwTrajectory
 

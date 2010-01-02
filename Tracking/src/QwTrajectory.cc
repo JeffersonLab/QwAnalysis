@@ -32,7 +32,9 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-#define TESTEVENT
+#define VSIZE 100
+
+//#define TESTEVENT
 //#define BACKSWIM
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -167,21 +169,19 @@ int QwTrajectory::BridgeFrontBackPartialTrack() {
 #endif
 
     status = 0;
+    SetStartAndEndPoints(startpoint,startpointdirection,endpoint,endpointdirection);
+
 #endif
 //end of test event
 
-
-    SetStartAndEndPoints(startpoint,startpointdirection,endpoint,endpointdirection);
-
+    fMatchFlag = -2;
     status = Filter();
-    if (status == -1)   return -1;
+    if (status == -1)  return -1;
 
     status = SearchTable();
+    if (status == -1)  status = Shooting();
 
-    if (status == -1)   status = Shooting();
-
-//  DoForcedBridging(TVector3 startpoint, TVector3 startpointdirection,
-//                         TVector3 endpoint, TVector3 endpointdirection);
+//    if (status == -1)  status = DoForcedBridging();
 
     return status;
 };
@@ -194,21 +194,24 @@ int QwTrajectory::Filter() {
     // swimming direction limit
     if (fStartPosition.Z()>=fEndPosition.Z()) {
         std::cerr<<"Filter: start point location is at downstream of end point location"<<std::endl;
+        fMatchFlag = -1;
         return -1;
     }
 
     // scattering angle limit
     if ((fStartDirectionTheta < 4.0) || (fStartDirectionTheta > 13.0)) {
         std::cerr<<"Filter: scattering angle ("<<fStartDirectionTheta<<" degree) is out of range"<<std::endl;
+        fMatchFlag = -1;
         return -1;
     }
 
     //bending angle limit in B field
     double dtheta = (fEndDirectionTheta-fStartDirectionTheta);
     double dphi = (fEndDirectionPhi - fStartDirectionPhi);
-    if (dtheta<6.0 || dtheta>25.0 || fabs(dphi)>8.0) {
-        std::cerr<<"Filter: bending angles (theta="<<dtheta<<" degree, phi="<<dphi
+    if (dtheta<5.0 || dtheta>25.0 || fabs(dphi)>10.0) {
+        std::cerr<<"Filter: bending angles (dtheta="<<dtheta<<" degree, dphi="<<dphi
         <<" degree) in B field are out of range"<<std::endl;
+        fMatchFlag = -1;
         return -1;
     }
 
@@ -228,12 +231,12 @@ int QwTrajectory::SearchTable() {
     double position_phi = fStartPositionPhi;
     double direction_theta = fStartDirectionTheta;
 
-    double vertex_z = fStartPosition.Z() - position_r/tan(acos(fStartDirection.Z()));
+    double vertex_z = -250.0 - position_r/tan(acos(fStartDirection.Z()));
 
     // expected hit position and angles at z= +570 cm plane
     r = fabs(fEndPosition.Z()-570.0)/fEndDirection.Z();
-    x = fEndPosition.X() - r*fEndDirection.X();
-    y = fEndPosition.Y() - r*fEndDirection.Y();
+    x = fEndPosition.X() + r*fEndDirection.X();
+    y = fEndPosition.Y() + r*fEndDirection.Y();
 
     double expectedhitposition_r = sqrt(x*x+y*y);
     double expectedhitposition_phi = atan2(y,x)*DEGREE;
@@ -313,7 +316,7 @@ int QwTrajectory::SearchTable() {
 #endif
 
     inter.SetData(size, iR, iP);
-    fMomentum = inter.Eval(expectedhitposition_r)+0.002;  // [GeV]
+    fMomentum = inter.Eval(expectedhitposition_r) + 0.0036;  // [GeV]
 
     delete iP;
     delete iR;
@@ -371,7 +374,8 @@ int QwTrajectory::SearchTable() {
     if ( fabs(fPositionROff)<2.0 && fabs(fPositionPhiOff)<4.0 &&
             fabs(fDirectionThetaOff)<1.0 && fabs(fDirectionPhiOff)<4.0 ) {
 
-        std::cout<<"======>>>>> Found a good match in the look-up table"<<std::endl;
+        //std::cout<<"======>>>>> Found a good match in the look-up table"<<std::endl;
+        fMatchFlag = 0;
         return 0;
     } else {
         std::cout<<"Didn't find a good match in the look-up table"<<std::endl;
@@ -448,8 +452,9 @@ int QwTrajectory::Shooting() {
         fDirectionPhiOff = fHitDirectionPhi - fEndDirectionPhi;
 
         if ( fPositionROff<res) {
-            fMomentum = p[1]+0.002;
+            fMomentum = p[1] + 0.0036;
             std::cout<<"Converged after "<<n<<" iterations."<<std::endl;
+            fMatchFlag = 1;
             return 0;
         }
 
@@ -807,23 +812,6 @@ void QwTrajectory::PrintInfo() {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void QwTrajectory::ReadSimPartialTrack() {
-
-    if (fSimFlag == 0) {
-        //initialize tree
-
-        fSimFlag = 1;
-    }
-
-    // Get an entry from the tree
-
-
-    //Set start and end point and direction
-
-};
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
 void QwTrajectory::GenerateLookUpTable() {
 
     UInt_t    gridnum;
@@ -965,6 +953,225 @@ void QwTrajectory::GenerateLookUpTable() {
     rootfile->Close();
 
     delete rootfile;
+};
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+// ReadSimPartialTrack access the disk and read a single event from the geant4 simulated
+// root file for each call, and set the start/end positions and directions. There is no
+// buffer for the event. The effiency is low in this way, but ok for test purpose.
+
+int QwTrajectory::ReadSimPartialTrack(const TString filename, int evtnum,
+                                      TVector3 *startposition, TVector3 *startdirection,
+                                      TVector3 *endposition, TVector3 *enddirection) {
+
+    if (fSimFlag == 0) {
+        //initialize tree
+
+        fSimFlag = 1;
+    }
+
+    // Get an entry from the tree
+    // Allocate memory and initialize them
+    // Reserve Space
+
+    // Region2 WirePlane1
+    fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX.reserve(VSIZE);
+    fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY.reserve(VSIZE);
+    fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ.reserve(VSIZE);
+    fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumX.reserve(VSIZE);
+    fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumY.reserve(VSIZE);
+    fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumZ.reserve(VSIZE);
+
+    // Region3 WirePlaneU
+    fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.reserve(VSIZE);
+    fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.reserve(VSIZE);
+    fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.reserve(VSIZE);
+    fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.reserve(VSIZE);
+    fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.reserve(VSIZE);
+    fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ.reserve(VSIZE);
+
+    //Clear
+
+    // Region2 WirePlane1
+    fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit = 0;
+    fRegion2_ChamberFront_WirePlane1_NbOfHits = 0;
+    fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX.clear();
+    fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY.clear();
+    fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ.clear();
+    fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumX.clear();
+    fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumY.clear();
+
+    // Region3 WirePlaneU
+    fRegion3_ChamberFront_WirePlaneU_HasBeenHit = 0;
+    fRegion3_ChamberFront_WirePlaneU_NbOfHits = 0;
+    fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.clear();
+    fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.clear();
+    fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.clear();
+    fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.clear();
+    fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.clear();
+
+    fPrimary_OriginVertexKineticEnergy = 0.0;
+    fMomentumOff = 0.0;
+
+    // Open ROOT file
+    TFile *simrootfile = new TFile (filename);
+    TTree *g4simtree = (TTree*) simrootfile->Get("QweakSimG4_Tree");
+    g4simtree->SetMakeClass(1);
+
+    int totalentries = g4simtree->GetEntries();
+    if (evtnum>=totalentries) {
+        delete g4simtree;
+        delete simrootfile;
+        std::cerr<<"Out of range: Event number "<<evtnum<<" >= Total events "<<totalentries<<std::endl;
+        return -1;
+    }
+
+    // Attach to region 1 branches
+    // WirePlane1
+    g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneHasBeenHit",
+                                &fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit);
+    g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.NbOfHits",
+                                &fRegion2_ChamberFront_WirePlane1_NbOfHits);
+    g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneGlobalPositionX",
+                                &fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX);
+    g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneGlobalPositionY",
+                                &fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY);
+    g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneGlobalPositionZ",
+                                &fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ);
+    g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneGlobalMomentumX",
+                                &fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumX);
+    g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneGlobalMomentumY",
+                                &fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumY);
+    g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneGlobalMomentumZ",
+                                &fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumZ);
+
+    // Attach to region 3 branches
+    g4simtree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.HasBeenHit",
+                                &fRegion3_ChamberFront_WirePlaneU_HasBeenHit);
+    g4simtree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.NbOfHits",
+                                &fRegion3_ChamberFront_WirePlaneU_NbOfHits);
+    g4simtree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.ParticleType",
+                                &fRegion3_ChamberFront_WirePlaneU_ParticleType);
+    g4simtree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.GlobalPositionX",
+                                &fRegion3_ChamberFront_WirePlaneU_GlobalPositionX);
+    g4simtree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.GlobalPositionY",
+                                &fRegion3_ChamberFront_WirePlaneU_GlobalPositionY);
+    g4simtree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.GlobalPositionZ",
+                                &fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ);
+    g4simtree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.GlobalMomentumX",
+                                &fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX);
+    g4simtree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.GlobalMomentumY",
+                                &fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY);
+    g4simtree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.GlobalMomentumZ",
+                                &fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ);
+
+    g4simtree->SetBranchAddress("Primary.OriginVertexKineticEnergy",
+                                &fPrimary_OriginVertexKineticEnergy);
+
+    g4simtree->GetBranch("Region2.ChamberFront.WirePlane1.PlaneHasBeenHit")->GetEntry(evtnum);
+    g4simtree->GetBranch("Region3.ChamberFront.WirePlaneU.HasBeenHit")->GetEntry(evtnum);
+
+    if (fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit == 5 &&
+            fRegion3_ChamberFront_WirePlaneU_HasBeenHit == 5) {
+        g4simtree->GetEntry(evtnum);
+    } else {
+        std::cerr << "Reading G4Sim Event: skip an empty event - event#" << evtnum << std::endl;
+    }
+
+    // take the first hit for now
+    fRegion2_ChamberFront_WirePlane1_NbOfHits = 1;
+    fRegion3_ChamberFront_WirePlaneU_NbOfHits = 1;
+
+    //Set start and end point and direction
+    for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane1_NbOfHits && i1 < VSIZE; i1++) {
+
+        // Get the position and direction
+        double x = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX.at(i1);
+        double y = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY.at(i1);
+        double z = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ.at(i1);
+        double xMomentum = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumX.at(i1);
+        double yMomentum = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumY.at(i1);
+        double zMomentum = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumZ.at(i1);
+
+        double momentum = sqrt(xMomentum*xMomentum+yMomentum*yMomentum+zMomentum*zMomentum);
+        *startposition = TVector3(x,y,z);
+        *startdirection = TVector3(xMomentum/momentum,yMomentum/momentum,zMomentum/momentum);
+    }
+
+    for (int i1 = 0; i1 < fRegion3_ChamberFront_WirePlaneU_NbOfHits && i1 < VSIZE; i1++) {
+        if (fRegion3_ChamberFront_WirePlaneU_ParticleType.at(i1) != 2) { //we don't care about gamma particles now
+
+            // Get the position and direction
+            double x = fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.at(i1);
+            double y = fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.at(i1);
+            double z = fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.at(i1);
+            fEndPosition = TVector3(x,y,z);
+
+            double xMomentum = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.at(i1);
+            double yMomentum = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.at(i1);
+            double zMomentum = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ.at(i1);
+
+            double momentum = sqrt(xMomentum*xMomentum+yMomentum*yMomentum+zMomentum*zMomentum);
+            *endposition = TVector3(x,y,z);
+            *enddirection = TVector3(xMomentum/momentum,yMomentum/momentum,zMomentum/momentum);
+        }
+    }
+    fPrimary_OriginVertexKineticEnergy = fPrimary_OriginVertexKineticEnergy*0.001;
+    //std::cout<<"origin vertex momentum: "<<fPrimary_OriginVertexKineticEnergy<<std::endl;
+
+    delete g4simtree;
+    delete simrootfile;
+    return 0;
+};
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+void QwTrajectory::GetBridgingResult(Double_t *buffer) {
+
+    buffer[0] = fStartPosition.X();
+    buffer[1] = fStartPosition.Y();
+    buffer[2] = fStartPosition.Z();
+    buffer[3] = fStartPositionR;
+    buffer[4] = fStartPositionPhi;
+    buffer[5] = fStartDirection.X();
+    buffer[6] = fStartDirection.Y();
+    buffer[7] = fStartDirection.Z();
+    buffer[8] = fStartDirectionTheta;
+    buffer[9] = fStartDirectionPhi;
+
+    buffer[10] = fEndPosition.X();
+    buffer[11] = fEndPosition.Y();
+    buffer[12] = fEndPosition.Z();
+    buffer[13] = fEndPositionR;
+    buffer[14] = fEndPositionPhi;
+    buffer[15] = fEndDirection.X();
+    buffer[16] = fEndDirection.Y();
+    buffer[17] = fEndDirection.Z();
+    buffer[18] = fEndDirectionTheta;
+    buffer[19] = fEndDirectionPhi;
+
+    buffer[20] = fHitLocation.X();
+    buffer[21] = fHitLocation.Y();
+    buffer[22] = fHitLocation.Z();
+    buffer[23] = fHitLocationR;
+    buffer[24] = fHitLocationPhi;
+    buffer[25] = fHitDirection.X();
+    buffer[26] = fHitDirection.Y();
+    buffer[27] = fHitDirection.Z();
+    buffer[28] = fHitDirectionTheta;
+    buffer[29] = fHitDirectionPhi;
+
+    buffer[30] = fPositionROff;
+    buffer[31] = fPositionPhiOff;
+    buffer[32] = fDirectionThetaOff;
+    buffer[33] = fDirectionPhiOff;
+    buffer[34] = fMomentum;
+    buffer[35] = fPrimary_OriginVertexKineticEnergy;
+
+    fMomentumOff = fMomentum-fPrimary_OriginVertexKineticEnergy;
+    buffer[36] = fMomentumOff;
+    buffer[37] = fMatchFlag;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
