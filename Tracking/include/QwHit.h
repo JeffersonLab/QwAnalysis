@@ -1,10 +1,30 @@
-
 /*! \file   QwHit.h
- *  \author P. M. King
- *  \date   2008feb13
  *  \brief  Draft skeleton for the decoding-to-QTR interface class.
  *
+ *  \author P. M. King
+ *  \date   2008feb13
+ */
+
+#ifndef QWHIT_H
+#define QWHIT_H
+
+// System headers
+#include <iostream>
+
+// ROOT headers
+#include "TObject.h"
+
+// Qweak headers
+#include "QwTypes.h"
+
+// Forward declarations
+class QwDetectorInfo;
+
+/**
+ *  \class QwHit
  *  \ingroup QwTracking
+ *
+ *  \brief Hit structure uniquely defining each hit
  *
  *  This would either be used to generate the list of "Hit" elements
  *  used by QTR, or QTR (and this class) would be modified to use this
@@ -19,37 +39,37 @@
  *  A rough example which ought to work for Region 2 exists as the
  *  QwDriftChamber class (although the decoding uses a previous algorithm
  *  and is in the process of being rewritten to support this form).
- *
  */
-
-#ifndef QWHIT_H
-#define QWHIT_H
-
-#include <iostream>
-
-#include "TObject.h"
-#include "QwTypes.h"
-
-class QwDetectorInfo;
-
 class QwHit : public TObject {
 
  public:
 
+  //! \name Constructors
+  // (documented in QwHit.cc)
+  // @{
   QwHit();
-  QwHit(const QwHit &);
+  QwHit(const QwHit& hit);
+  QwHit(const QwHit* hit);
   QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
-	EQwRegionID region, EQwDetectorPackage package, Int_t plane, 
+	EQwRegionID region, EQwDetectorPackage package, Int_t plane,
 	EQwDirectionID direction, Int_t wire, UInt_t data);
+  // @}
 
+  //! \brief Destructor
   virtual ~QwHit();
-  
-  QwHit & operator = (const QwHit& hit);
-  Bool_t operator<(QwHit & obj);
+
+  //! \brief Assignment operator
+  QwHit& operator= (const QwHit& hit);
+  //! \brief Ordering operator
+  Bool_t operator< (QwHit& hit);
+  //! \brief Output stream operator
   friend ostream& operator<< (ostream& stream, const QwHit& hit);
 
+  //! \brief Print debugging information
   void Print();
 
+  //! \name Getter functions
+  // @{
   const Int_t           GetSubbankID()    const { return fCrate; };
   const Int_t           GetModule()       const { return fModule; };
   const Int_t           GetChannel()      const { return fChannel; };
@@ -62,7 +82,7 @@ class QwHit : public TObject {
   const Int_t           GetElement()      const { return fElement; };
 
   QwDetectorInfo*       GetDetectorInfo() const { return pDetectorInfo; };
-  
+
   const Bool_t          AmbiguousElement()const { return fAmbiguousElement; };
   const Bool_t          LRAmbiguity()     const { return fLRAmbiguity; };
 
@@ -84,12 +104,11 @@ class QwHit : public TObject {
 
   const QwDetectorID    GetDetectorID()   const;      // QwHit.cc
   const QwElectronicsID GetElectronicsID()const;      // QwHit.cc
+  // @}
 
-  //
-  // *next, *nextdet
-  // rResultPos, rPos, rPos2
-  //
 
+  //! \name Setter functions
+  // @{
   void SetSubbankID(const Int_t bank_index)         { fCrate = bank_index; };
   void SetModule(const Int_t slot_num)              { fModule = slot_num; };
   void SetChannel(const Int_t chan)                 { fChannel = chan; };
@@ -100,7 +119,7 @@ class QwHit : public TObject {
   void SetDirection(const EQwDirectionID direction) { fDirection = direction; };
   void SetPlane(const Int_t plane)                  { fPlane = plane; };
   void SetElement(const Int_t element)              { fElement = element; };
-  
+
   void SetDetectorInfo(QwDetectorInfo *detectorinfo){ pDetectorInfo = detectorinfo; };
   void SetAmbiguousElement(const Bool_t amelement)  { fAmbiguousElement = amelement; };
   void SetLRAmbiguity(const Bool_t amlr)            { fLRAmbiguity = amlr; };
@@ -122,25 +141,20 @@ class QwHit : public TObject {
   void SetSpatialResolution(const Double_t sresolution) { fSpatialResolution = sresolution; };
   void SetTrackResolution(const Double_t tresolution)   { fTrackResolution = tresolution; };
 
-  void SetIsUsed(const Bool_t isused)               { fIsUsed = isused; }; 
+  void SetUsed(const Bool_t isused = true)          { fIsUsed = isused; };
+  // @}
 
-  //
-  // *next, *nextdet
-  // rResultPos, rPos, rPos2
-  //
+  Bool_t IsFirstDetectorHit()                  {  return (fHitNumber == 0); };
+  void SubtractTimeOffset(Double_t timeoffset) { fTime = fTime - timeoffset; };
 
-  Bool_t IsFirstDetectorHit()                  {  return (fHitNumber==0); };
-  void SubtractTimeOffset(Double_t timeoffset) { fTime = fTime - timeoffset; }; 
-  
-  // three functions and their comments can be found in QwHit.cc, 
+  // three functions and their comments can be found in QwHit.cc,
   const Bool_t PlaneMatches(EQwRegionID region, EQwDetectorPackage package, Int_t plane);
   const Bool_t DirMatches(EQwRegionID region, EQwDetectorPackage package, EQwDirectionID dir);
   const Bool_t WireMatches(Int_t region, Int_t package, Int_t plane, Int_t wire);
-  
-  // protected:
- public:
-  //  Identification information for readout channels
 
+ public:
+
+  //  Identification information for readout channels
   Int_t fCrate;                      ///< ROC number
   Int_t fModule;                     ///< F1TDC slot number, or module index
   Int_t fChannel;                    ///< Channel number
@@ -155,9 +169,9 @@ class QwHit : public TObject {
   Int_t              fElement;       ///< Trace # for R1; wire # for R2 & R3; PMT # for others
   QwDetectorInfo* pDetectorInfo; //! ///< Pointer to the detector info object (not saved)
 
-  Bool_t fAmbiguousElement;          ///< TRUE if this hit could come from two different elements 
+  Bool_t fAmbiguousElement;          ///< TRUE if this hit could come from two different elements
                                      ///  (used by Region 3 tracking only)
-  Bool_t fLRAmbiguity;               ///< TRUE  if the other element is 8 wires "right"; 
+  Bool_t fLRAmbiguity;               ///< TRUE  if the other element is 8 wires "right";
                                      ///  FALSE if the other element is 8 wires "left" (used by Region 3 tracking only)
 
 
@@ -175,19 +189,17 @@ class QwHit : public TObject {
                                      ///  used in region 3 where the z coordinate is taken
                                      ///  in the wire plane instead of perpendicular to it)
   Double_t fRPos;                    ///< fRPos and fPhiPos are specificed for region 1
-  Double_t fPhiPos;                  ///  hit location
-  Double_t fSpatialResolution;       ///  Spatial resolution
-  Double_t fTrackResolution;         ///  Track resolution
+  Double_t fPhiPos;                  ///< Hit location
+  Double_t fSpatialResolution;       ///< Spatial resolution
+  Double_t fTrackResolution;         ///< Track resolution
 
- public: // Sorry, will write accessors later (wdconinc)
+  Bool_t fIsUsed; //!                ///< Is this hit used in a tree line?
 
-  Bool_t fIsUsed;     //!            /// Is this hit used in a tree line?
 
+ public:
 
   // The following public section are taken from the original Hit class
   // for merging the Hit class into the QwHit class.
-
- public:
 
   //  Hits for individual detector elements are strung together.  They also
   //  have a pointer back to the detector in case more information about the
@@ -196,9 +208,9 @@ class QwHit : public TObject {
 
   QwHit *next;	        //!	///< next hit
   QwHit *nextdet;	//!	///< next hit in same detector
-  Double_t rResultPos;  	/// Resulting hit position
-  Double_t rPos;		/// Position from level I track finding
-  Double_t rPos2;		/// Position from level II decoding
+  Double_t rResultPos;  	///< Resulting hit position
+  Double_t rPos;		///< Position from level I track finding
+  Double_t rPos2;		///< Position from level II decoding
 
   // NOTE (wdc) Probably it makes sense to rename rPos and rPos2 to fPosition,
   // which would be the first level signed track position with respect to the
@@ -207,6 +219,6 @@ class QwHit : public TObject {
 
   ClassDef(QwHit,1);
 
-};
+}; // class QwHit
 
-#endif
+#endif // QWHIT_H

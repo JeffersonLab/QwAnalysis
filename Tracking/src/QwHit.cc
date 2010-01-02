@@ -1,16 +1,19 @@
 /*! \file   QwHit.cc
+ *  \brief  Implementation of the decoding-to-QTR interface class.
+ *
  *  \author Jie Pan
  *  \date   Wed Jul  8 16:18:53 CDT 2009
- *  \brief  the decoding-to-QTR interface class.
- *
  */
 
-
 #include "QwHit.h"
-#include "QwDetectorInfo.h"
-
 ClassImp(QwHit);
 
+// Qweak headers
+#include "QwDetectorInfo.h"
+
+/**
+ * Default constructor
+ */
 QwHit::QwHit()
 {
   fCrate             = 0;
@@ -51,7 +54,10 @@ QwHit::QwHit()
 }
 
 
-
+/**
+ * Copy-constructor with object argument
+ * @param hit Hit object
+ */
 QwHit::QwHit(const QwHit &hit)
 {
   fCrate             = hit.fCrate;
@@ -80,28 +86,50 @@ QwHit::QwHit(const QwHit &hit)
   fRPos              = hit.fRPos;
   fPhiPos            = hit.fPhiPos;
   fSpatialResolution = hit.fSpatialResolution;
-  fTrackResolution   = hit.fTrackResolution; 
+  fTrackResolution   = hit.fTrackResolution;
 
   fIsUsed            = hit.fIsUsed;
 
   next               = hit.next;
-  nextdet            = hit.next;
+  nextdet            = hit.nextdet;
   rResultPos         = hit.rResultPos;
-  rPos               = hit.rPos;	
-  rPos2              = hit.rPos2;	
-
+  rPos               = hit.rPos;
+  rPos2              = hit.rPos2;
 };
 
 
-QwHit::QwHit(Int_t bank_index, 
-	     Int_t slot_num, 
-	     Int_t chan, 
+/**
+ * Copy-constructor with pointer argument
+ * @param hit Pointer to a hit
+ */
+QwHit::QwHit(const QwHit* hit)
+{
+  *this = *hit;
+};
+
+
+/**
+ * Constructor with hit parameters
+ * @param bank_index Subbank index
+ * @param slot_num Slot number
+ * @param chan Channel number
+ * @param hitcount Hit number
+ * @param region Region
+ * @param package Package
+ * @param plane Plane number
+ * @param direction Element direction
+ * @param wire Element number
+ * @param data Data block
+ */
+QwHit::QwHit(Int_t bank_index,
+	     Int_t slot_num,
+	     Int_t chan,
 	     Int_t hitcount,
-	     EQwRegionID region, 
-	     EQwDetectorPackage package, 
-	     Int_t plane, 
-	     EQwDirectionID direction, 
-	     Int_t wire, 
+	     EQwRegionID region,
+	     EQwDetectorPackage package,
+	     Int_t plane,
+	     EQwDirectionID direction,
+	     Int_t wire,
 	     UInt_t data)
 {
   fCrate             = bank_index;
@@ -139,17 +167,23 @@ QwHit::QwHit(Int_t bank_index,
   rResultPos         = 0.0;     /*!< Resulting hit position            */
   rPos               = 0.0;	/*!< Position of from track finding    */
   rPos2              = 0.0;	/*!< rPos2 from level II decoding      */
- 
 };
 
 
+/**
+ * Destructor (no action)
+ */
 QwHit::~QwHit()
 {
 };
 
 
-
-QwHit & QwHit::operator=(const QwHit& hit)
+/**
+ * Assignment operator
+ * @param hit Right-hand side
+ * @return Left-hand side
+ */
+QwHit& QwHit::operator=(const QwHit& hit)
 {
   if(this == & hit)
     return *this;
@@ -158,7 +192,7 @@ QwHit & QwHit::operator=(const QwHit& hit)
   fChannel           = hit.fChannel;
   fHitNumber         = hit.fHitNumber;
   fHitNumber_R       = hit.fHitNumber_R;
- 
+
   fRegion            = hit.fRegion;
   fPackage           = hit.fPackage;
   fDirection         = hit.fDirection;
@@ -179,28 +213,30 @@ QwHit & QwHit::operator=(const QwHit& hit)
   fRPos              = hit.fRPos;
   fPhiPos            = hit.fPhiPos;
   fSpatialResolution = hit.fSpatialResolution;
-  fTrackResolution   = hit.fTrackResolution; 
+  fTrackResolution   = hit.fTrackResolution;
 
   fIsUsed            = hit.fIsUsed;
- 
+
   next               = hit.next;
-  nextdet            = hit.next;
+  nextdet            = hit.nextdet;
   rResultPos         = hit.rResultPos;
-  rPos               = hit.rPos;	
-  rPos2              = hit.rPos2;	
+  rPos               = hit.rPos;
+  rPos2              = hit.rPos2;
 
   return *this;
 };
 
 
-
-//'<' is overloaded for the sorting algorithm
-// note:
-// fDirection in the sorting - rakitha (08/23/2008)
-// Sorting order 
-// Region -> Direction -> Package -> Plane -> Wire Element -> Wire Hit Order
-// - rakitha (08/23/2008)
-Bool_t QwHit::operator<(QwHit & obj)
+/**
+ * Ordering operator, with ordering defined as
+ *  region -> direction -> package -> plane -> element -> hit order
+ * \author Rakitha
+ * \date 08/23/2008
+ *
+ * @param obj Right-hand side
+ * @return Ordering
+ */
+Bool_t QwHit::operator<(QwHit& obj)
 {
   Bool_t bCompare = false;
 
@@ -222,7 +258,7 @@ Bool_t QwHit::operator<(QwHit & obj)
 	    }//;;;
 	  else if (fPackage == obj.fPackage)
 	    {//;;;
-	      if (fPlane < obj.fPlane) 
+	      if (fPlane < obj.fPlane)
 		{//;;;;
 		  bCompare = true;
 		}//;;;;
@@ -261,24 +297,29 @@ Bool_t QwHit::operator<(QwHit & obj)
     {//;
       bCompare = false;
     }//;
-  
+
   return bCompare;
 
 };
 
 
-
-ostream& operator<< (ostream& stream, const QwHit& hit) 
+/**
+ * Output stream operator
+ * @param stream Stream
+ * @param hit Hit object
+ * @return Output stream
+ */
+ostream& operator<< (ostream& stream, const QwHit& hit)
 {
   stream << "hit: ";
   stream << "package "   << "?UD"[hit.fPackage] << ", ";
   stream << "region "    << hit.fRegion << ", ";
   stream << "dir "       << "?xyuvrq"[hit.fDirection] << ", ";
   stream << "plane "     << hit.fPlane;
-  
+
   if (hit.pDetectorInfo) stream << " (detector " << hit.pDetectorInfo << "), ";
   else                   stream << ", ";
-  
+
   if (hit.fRegion == 1)
     {
       stream << "radius " << hit.fRPos   << " cm, ";
@@ -289,17 +330,21 @@ ostream& operator<< (ostream& stream, const QwHit& hit)
       stream << "element "  << hit.fElement << ", ";
       stream << "distance " << hit.fDistance;
     }
-  
+
   return stream;
 };
 
 
+/**
+ * Print debugging information by using the output stream operator.
+ *
+ * \note The use of the output stream operator is preferred.
+ */
 void QwHit::Print()
 {
-  if (! this) return;
+  if (! this) return; // do nothing if this is a null object
   std::cout << *this << std::endl;
 };
-
 
 
 /**
@@ -308,8 +353,7 @@ void QwHit::Print()
  * in the detector info structure.
  * @return Z position of the hit
  */
-
-const Double_t QwHit::GetZPosition() const 
+const Double_t QwHit::GetZPosition() const
 {
   if (fZPos != 0.0)  return fZPos;
   else               return pDetectorInfo->GetZPosition();
@@ -327,11 +371,11 @@ const Double_t QwHit::GetTrackResolution() const
   else               return fTrackResolution;
 };
 
-const QwDetectorID QwHit::GetDetectorID() const 
+const QwDetectorID QwHit::GetDetectorID() const
 {
   return QwDetectorID(fRegion,fPackage,fPlane,fDirection,fElement);
 };
- 
+
 const QwElectronicsID QwHit::GetElectronicsID() const
 {
   return QwElectronicsID(fModule,fChannel);
@@ -344,25 +388,25 @@ void QwHit::SetAmbiguityID (const Bool_t amelement, const Bool_t amlr)
   SetLRAmbiguity(amlr);
 };
 
-// below two metods retrieve subsets of QwHitContainer vector 
+// below two metods retrieve subsets of QwHitContainer vector
 // - rakitha (08/2008)
-const Bool_t QwHit::PlaneMatches(EQwRegionID region, 
-				 EQwDetectorPackage package, 
+const Bool_t QwHit::PlaneMatches(EQwRegionID region,
+				 EQwDetectorPackage package,
 				 Int_t plane)
 {
   return (fRegion == region && fPackage == package && fPlane == plane);
 };
 
-const Bool_t QwHit::DirMatches(EQwRegionID region, 
-			       EQwDetectorPackage package, 
+const Bool_t QwHit::DirMatches(EQwRegionID region,
+			       EQwDetectorPackage package,
 			       EQwDirectionID dir)
 {
   return (fRegion == region && fPackage == package && fDirection == dir);
 };
 
-// main use of this method is to count no.of hits for a given wire 
+// main use of this method is to count no.of hits for a given wire
 // and update the fHitNumber - rakitha (08/2008)
-const Bool_t QwHit::WireMatches(Int_t region, Int_t package, 
+const Bool_t QwHit::WireMatches(Int_t region, Int_t package,
 				Int_t plane,  Int_t wire)
 {
   return (fRegion == region && fPackage == package && fPlane == plane && fElement == wire);

@@ -83,18 +83,21 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
+// ROOT headers
 #include <TVector3.h>
 
 // Qweak headers
+#include "QwOptions.h"
+#include "QwLog.h"
 #include "globals.h"
 #include "Det.h"
 
-// Tree search headers
+// Qweak tree search headers
 #include "QwHitPattern.h"
 #include "QwTrackingTree.h"
 #include "QwTrackingTreeRegion.h"
 
-// Tracking modules
+// Qweak tracking modules
 #include "QwTrackingTreeSearch.h"
 #include "QwTrackingTreeCombine.h"
 #include "QwTrackingTreeSort.h"
@@ -106,54 +109,48 @@ using std::endl;
 #include "QwEvent.h"
 #include "QwBridge.h"
 #include "QwDetectorInfo.h"
-
-#include "QwOptions.h"
-#include "QwLog.h"
-
 #include "QwTrajectory.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
 {
-    QwDebug << "###### Calling QwTrackingWorker::QwTrackingWorker ()" << QwLog::endl;
+  QwDebug << "###### Calling QwTrackingWorker::QwTrackingWorker ()" << QwLog::endl;
 
-    // Define config file options
-    DefineOptions();
-    // Use the options to set local flags
-    fShowEventPattern = gQwOptions.GetValue<bool>("QwTracking.showeventpattern");
-    fShowMatchingPattern = gQwOptions.GetValue<bool>("QwTracking.showmatchingpattern");
+  // Use the options to set local flags
+  fShowEventPattern = gQwOptions.GetValue<bool>("QwTracking.showeventpattern");
+  fShowMatchingPattern = gQwOptions.GetValue<bool>("QwTracking.showmatchingpattern");
 
-    // Debug level
-    fDebug = 0;
+  // Debug level
+  fDebug = 0;
 
 
-    // Number of levels (search tree depth) for region 2
-    levelsr2 = gQwOptions.GetValue<int>("QwTracking.R2.levels");
+  // Number of levels (search tree depth) for region 2
+  levelsr2 = gQwOptions.GetValue<int>("QwTracking.R2.levels");
 
-    // Number of levels (search tree depth) for region 3
-    levelsr3 = gQwOptions.GetValue<int>("QwTracking.R3.levels");
+  // Number of levels (search tree depth) for region 3
+  levelsr3 = gQwOptions.GetValue<int>("QwTracking.R3.levels");
 
-    // Initialize the pattern database
-    InitTree();
+  // Initialize the pattern database
+  InitTree();
 
-    trajectory = new QwTrajectory();
+  trajectory = new QwTrajectory();
 
-    // Load magnetic field map
-    //trajectory->LoadMagneticFieldMap();
-    //trajectory->LoadMomentumMatrix();
+  // Load magnetic field map
+  //trajectory->LoadMagneticFieldMap();
+  //trajectory->LoadMomentumMatrix();
 
-    /* Reset counters of number of good and bad events */
-    ngood = 0;
-    nbad = 0;
+  /* Reset counters of number of good and bad events */
+  ngood = 0;
+  nbad = 0;
 
-    R2Good = 0;
-    R2Bad = 0;
-    R3Good = 0;
-    R3Bad = 0;
+  R2Good = 0;
+  R2Bad = 0;
+  R3Good = 0;
+  R3Bad = 0;
 
 
-    QwDebug << "###### Leaving QwTrackingWorker::QwTrackingWorker ()" << QwLog::endl;
+  QwDebug << "###### Leaving QwTrackingWorker::QwTrackingWorker ()" << QwLog::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -167,34 +164,33 @@ QwTrackingWorker::~QwTrackingWorker ()
 
 void QwTrackingWorker::DefineOptions()
 {
-    // Global options for the tracking worker
-    gQwOptions.AddConfigFile("Tracking/prminput/qwtracking.conf");
+  // Global options for the tracking worker
+  gQwOptions.AddConfigFile("Tracking/prminput/qwtracking.conf");
 
-    // General options
-    gQwOptions.AddOptions()("QwTracking.showeventpattern",
-                            po::value<bool>()->zero_tokens()->default_value(false),
-                            "show bit pattern for all events");
-    gQwOptions.AddOptions()("QwTracking.showmatchingpattern",
-                            po::value<bool>()->zero_tokens()->default_value(false),
-                            "show bit pattern for matching tracks");
-    // Region 2
-    gQwOptions.AddOptions()("QwTracking.R2.levels",
-                            po::value<int>()->default_value(8),
-                            "number of search tree levels in region 2");
-    gQwOptions.AddOptions()("QwTracking.R2.maxslope",
-                            po::value<float>()->default_value(0.862),
-                            "maximum allowed slope for region 2 tracks");
-    gQwOptions.AddOptions()("QwTracking.R2.maxroad",
-                            po::value<float>()->default_value(1.4),
-                            "maximum allowed road width for region 2 tracks");
-    gQwOptions.AddOptions()("QwTracking.R2.maxxroad",
-                            po::value<float>()->default_value(25.0),
-                            "maximum allowed X road width for region 2 tracks");
-    // Region 3
-    gQwOptions.AddOptions()("QwTracking.R3.levels",
-                            po::value<int>()->default_value(4),
-                            "number of search tree levels in region 3");
-
+  // General options
+  gQwOptions.AddOptions()("QwTracking.showeventpattern",
+                          po::value<bool>()->zero_tokens()->default_value(false),
+                          "show bit pattern for all events");
+  gQwOptions.AddOptions()("QwTracking.showmatchingpattern",
+                          po::value<bool>()->zero_tokens()->default_value(false),
+                          "show bit pattern for matching tracks");
+  // Region 2
+  gQwOptions.AddOptions()("QwTracking.R2.levels",
+                          po::value<int>()->default_value(8),
+                          "number of search tree levels in region 2");
+  gQwOptions.AddOptions()("QwTracking.R2.maxslope",
+                          po::value<float>()->default_value(0.862),
+                          "maximum allowed slope for region 2 tracks");
+  gQwOptions.AddOptions()("QwTracking.R2.maxroad",
+                          po::value<float>()->default_value(1.4),
+                          "maximum allowed road width for region 2 tracks");
+  gQwOptions.AddOptions()("QwTracking.R2.maxxroad",
+                          po::value<float>()->default_value(25.0),
+                          "maximum allowed X road width for region 2 tracks");
+  // Region 3
+  gQwOptions.AddOptions()("QwTracking.R3.levels",
+                          po::value<int>()->default_value(4),
+                          "number of search tree levels in region 3");
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -541,9 +537,11 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         QwDebug << "Setting hit pattern (region 3)" << QwLog::endl;
 
                         /* Loop over the like-pitched planes in a region */
-                        int plane = 0;
                         for (Det* rd = rcDETRegion[package][region][dir];
-                                rd; rd = rd->nextsame, plane++) {
+                                rd; rd = rd->nextsame) {
+
+                            // Get plane number
+                            Int_t plane = rd->plane;
 
                             // Print detector info
                             if (fDebug) cout << "      ";
@@ -561,7 +559,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
 
                             /// Get the subhitlist of hits in this detector
-                            QwHitContainer *subhitlist = hitlist->GetSubList_Plane(region, package, rd->plane);
+                            QwHitContainer *subhitlist = hitlist->GetSubList_Plane(region, package, plane);
                             if (fDebug) subhitlist->Print();
                             // If no hits in this detector, skip to the next detector.
                             if (! subhitlist) continue;
@@ -619,6 +617,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                               treeline->SetRegion(region);
                               treeline->SetPackage(package);
                               treeline->SetDirection(dir);
+                              treeline->SetPlane(plane);
                             }
 
                             // Print list of tree lines
@@ -636,11 +635,10 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             QwDebug << "Sort patterns" << QwLog::endl;
                             TreeSort->rcTreeConnSort (treelinelist, region);
 
-                            if (plane == 0) {
+                            if (plane < 3)
                                 treelinelist1 = treelinelist;
-                            } else if (plane == 1) {
+                            else
                                 treelinelist2 = treelinelist;
-                            }
 
                             dlayer++;
 
@@ -659,7 +657,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                                 cout << "VDC2:" << endl;
                                 treelinelist2->Print();
                             }
-                            treelinelist = TreeMatch->MatchR3 (treelinelist1, treelinelist2, package, region, dir);
+                            treelinelist = TreeMatch->MatchRegion3 (treelinelist1, treelinelist2);
                         }
                         event->treeline[package][region][type][dir] = treelinelist;
                         event->AddTreeLineList(treelinelist);

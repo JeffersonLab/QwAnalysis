@@ -6,6 +6,7 @@
 
 // ROOT headers
 #include "TObject.h"
+#include "TString.h"
 #include "TClonesArray.h"
 #include "TRefArray.h"
 #include "TObjArray.h"

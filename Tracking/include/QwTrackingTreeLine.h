@@ -1,23 +1,16 @@
 /**
- * \class	QwTrackingTreeLine	QwTrackingTreeLine.h
+ * \file   QwTrackingTreeLine.h
+ * \brief  Definition of the one-dimensional track stubs
  *
- * \brief	A container for track information
- *
- * \author	Wouter Deconinck <wdconinc@mit.edu>
- * \author	Jie Pan <jpan@jlab.org>
- * \date	Sun May 24 11:05:29 CDT 2009
- * \ingroup	QwTracking
- *
- * The QwTrackingTreeLine has a pointer to a set of hits.  It is passed to
- * various track fitting procedures and carries around the fit results.
- *
+ * \author Wouter Deconinck <wdconinc@mit.edu>
+ * \author Jie Pan <jpan@jlab.org>
+ * \date   Sun May 24 11:05:29 CDT 2009
  */
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #ifndef QWTRACKINGTREELINE_H
 #define QWTRACKINGTREELINE_H
 
+// System headers
 #include <vector>
 
 // ROOT headers
@@ -28,37 +21,44 @@
 
 // Qweak headers
 #include "VQwTrackingElement.h"
-#include "QwHit.h"
 #include "QwTypes.h"
+#include "QwHit.h"
 #include "globals.h"
 
 // Maximum number of detectors combined for left-right ambiguity resolution
 #define TREELINE_MAX_NUM_LAYERS 8
 
 // Forward declarations
-//class QwHit;
+class QwHit;
 class QwHitPattern;
 class QwHitContainer;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-///
-/// \ingroup QwTracking
-
+/**
+ *  \class QwTrackingTreeLine
+ *  \ingroup QwTracking
+ *  \brief One-dimensional (u, v, or x) track stubs and associated hits
+ *
+ * The QwTrackingTreeLine has a pointer to a set of hits.  It is passed to
+ * various track fitting procedures and carries around the fit results.
+ *
+ * \todo This class needs a non-trivial copy constructor which ensures
+ * that the hits are copied correctly.
+ */
 class QwTrackingTreeLine: public VQwTrackingElement {
-
-/// \todo TODO This class needs a non-trivial copy constructor which ensures
-/// that the hits are copied correctly.
 
   private:
 
     // Hits
-    #define QWTREELINE_MAX_NUM_HITS 1000
-    Int_t fNQwHits; ///< Number of QwHits in the array
-    TClonesArray        *fQwHits; ///< Array of QwHits
-    static TClonesArray *gQwHits; ///< Static array of QwHits
+    //#define QWTREELINE_MAX_NUM_HITS 1000
+    //TClonesArray        *fQwHits; ///< Array of QwHits
+    //static TClonesArray *gQwHits; ///< Static array of QwHits
 
-    std::vector < QwHit* > fQwHits2;
+    //! Number of hits in this tree line
+    Int_t fNQwHits;
+    //! List of hits in this tree line
+    std::vector < QwHit* > fQwHits;
 
   public:
 
@@ -81,29 +81,40 @@ class QwTrackingTreeLine: public VQwTrackingElement {
     const bool IsNotUsed() const { return ! fIsUsed; };
     void SetNotUsed(const bool isused = false) { fIsUsed = isused; };
 
-    // Housekeeping methods
-    void ClearHits(Option_t *option = "");
-    void ResetHits(Option_t *option = "");
-
-    // Creating, adding, and getting hits and hit containers
+    //! \name Creating, adding, and getting hits and hit containers
+    // @{
+    //! \brief Create a new empty hit
     QwHit* CreateNewHit();
+    //! \brief Add an existing hit
     void AddHit(QwHit* hit);
+    //! \brief Add an existing hit container
     void AddHitContainer(QwHitContainer* hitlist);
+    //! \brief Get the number of hits
+    Int_t GetNumberOfHits() const;
+    //! \brief Get a specific hit
+    QwHit* GetHit(int i = 0);
+    //! \brief Get the hits as a hit container
     QwHitContainer* GetHitContainer();
-    // Get the number of hits
-    Int_t GetNumberOfHits() const { return fNQwHits; };
+    //! \brief Clear the list of hits
+    void ClearHits(Option_t *option = "");
+    //! \brief Reset the list of hits
+    void ResetHits(Option_t *option = "");
+    // @}
 
-    //! Returns the weighted chi^2
+    //! \brief Get the weighted chi^2
     double GetChiWeight ();
 
-    //! Returns the hit with the best
-    QwHit* bestWireHit (double offset = 0.0);
+    //! \brief Get the hit with the smallest drift distance
+    QwHit* GetBestWireHit (double offset = 0.0);
 
     void Print();
     void PrintValid();
 
+    //! \brief Output stream operator
     friend ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl);
 
+    //! \name Positions and resolutions in wire planes
+    // @{
     //! Returns position at the first detector plane
     double GetPositionFirst (double binwidth) {
       return 0.5 * (a_beg + a_end) * binwidth;
@@ -120,7 +131,10 @@ class QwTrackingTreeLine: public VQwTrackingElement {
     double GetResolutionLast (double binwidth) {
       return (b_end - b_beg) * binwidth;
     };
+    // @}
 
+    //! \name Calculate the residuals
+    // @{
     //! Get the average residuals
     const double GetAverageResidual() const { return fAverageResidual; };
     //! Set the average residuals
@@ -129,6 +143,7 @@ class QwTrackingTreeLine: public VQwTrackingElement {
     const double CalculateAverageResidual();
     //! Calculate and set the average residuals
     void SetAverageResidual() { fAverageResidual = CalculateAverageResidual(); };
+    // @}
 
     //! Set the chi^2
     void SetChi(const double chi) { fChi = chi; };
@@ -158,8 +173,8 @@ class QwTrackingTreeLine: public VQwTrackingElement {
     int   fNumHits;			///< number of hits on this treeline
     int   fNumMiss;			///< number of planes without hits
 
-    QwHit *hits[2*TLAYERS];	//!	///< all hits that satisfy road requirement
-    QwHit *usedhits[TLAYERS];	//!	///< hits that correspond to optimal chi^2
+    QwHit* hits[2*TLAYERS];	//!	///< all hits that satisfy road requirement
+    QwHit* usedhits[TLAYERS];	//!	///< hits that correspond to optimal chi^2
 
     int   hasharray[2*TLAYERS];	//!
     int   ID;				///< adamo ID

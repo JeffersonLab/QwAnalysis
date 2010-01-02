@@ -80,9 +80,11 @@ class QwTrackingTreeCombine {
     /// Set the maximum X road width (?)
     void SetMaxXRoad (const double maxxroad) { fMaxXRoad = maxxroad; };
 
-    int bestx (double *xresult, double dist_cut,
+    /// \brief Select the left or right hit assignment for HDC hits
+    int SelectLeftRightHit (double *xresult, double dist_cut,
 		QwHitContainer *hitlist, QwHit **ha, double Dx = 0);
-    QwHit* bestx (double track_position, QwHit* hit);
+    /// \brief Select the left or right hit assignment for VDC hits
+    QwHit* SelectLeftRightHit (double track_position, QwHit* hit);
 
 
     void mul_do (int i, int mul, int l, int *r, QwHit *hx[DLAYERS][MAXHITPERLINE], QwHit **ha);

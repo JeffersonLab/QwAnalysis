@@ -150,7 +150,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     trackingworker = new QwTrackingWorker("qwtrackingworker");
     if (kDebug) trackingworker->SetDebugLevel(1);
   }
-  
+
 
   // Create a timer
   TStopwatch timer;
@@ -166,8 +166,10 @@ Int_t main(Int_t argc, Char_t* argv[])
   const char *tmp;
 
   // Loop over all runs
-  for (UInt_t run =  (UInt_t) gQwOptions.GetIntValuePairFirst("run");
-              run <= (UInt_t) gQwOptions.GetIntValuePairLast("run");
+  UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
+  UInt_t runnumber_max = (UInt_t) gQwOptions.GetIntValuePairLast("run");
+  for (UInt_t run  = runnumber_min;
+              run <= runnumber_max;
               run++) {
 
     //  Begin processing for the first run.
@@ -205,7 +207,7 @@ Int_t main(Int_t argc, Char_t* argv[])
                 << "        This is needed to run the online analysis."
                 << QwLog::endl;
         exit(EXIT_FAILURE);
-      } 
+      }
       else {
         QwMessage << "Try to open the ET station. " << QwLog::endl;
         if (eventbuffer.OpenETStream(hostname, session, 0) == CODA_ERROR ) {
@@ -244,7 +246,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     //    std::auto_ptr<TFile> rootfile (new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
     //   					"RECREATE",
     //   					"QWeak ROOT file with real events"));
-    
+
     //  Create the histograms for the QwDriftChamber subsystem object.
     //  We can create a subfolder in the rootfile first, if we want,
     //  and then pass it into the constructor.
@@ -271,6 +273,8 @@ Int_t main(Int_t argc, Char_t* argv[])
     Int_t nevents           = 0;
     Int_t eventnumber       = -1;
 
+    Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
+    Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
     while (eventbuffer.GetEvent() == CODA_OK){
       //  Loop over events in this CODA file
       //  First, do processing of non-physics events...
@@ -278,56 +282,55 @@ Int_t main(Int_t argc, Char_t* argv[])
       //  Now, if this is not a physics event, go back and get
       //  a new event.
       if (! eventbuffer.IsPhysicsEvent() ) continue;
-      
+
       //  Check to see if we want to process this event.
       eventnumber = eventbuffer.GetEventNumber();
-      
-      if      (eventnumber < gQwOptions.GetIntValuePairFirst("event")) continue;
-      else if (eventnumber > gQwOptions.GetIntValuePairLast("event"))  break;
-      
+      if      (eventnumber < eventnumber_min) continue;
+      else if (eventnumber > eventnumber_max) break;
+
       if (eventnumber % 1000 == 0) {
 	QwMessage << "Number of events processed so far: "
 		  << eventnumber << QwLog::endl;
       }
-      
+
       // Fill the subsystem objects with their respective data for this event.
       eventbuffer.FillSubsystemData(detectors);
-      
+
       // Process the event
       detectors.ProcessEvent();
-      
+
       // Fill the histograms for the subsystem objects.
       detectors.FillHistograms();
-      
+
       // Create and fill hit list
       hitlist = new QwHitContainer();
-      
+
       detectors.GetHitList(hitlist);
-      
+
       // Sorting the grand hit list
       hitlist->sort();
-      
+
       if (hitlist->size() == 0) continue;
       if (kTracking) {
-	if (hitlist->size() < 5) {
-	  std::cout << "Event skipped: only " << hitlist->size() << " hits" << std::endl;
-	  continue;
-	}
+        if (hitlist->size() < 5) {
+          std::cout << "Event skipped: only " << hitlist->size() << " hits" << std::endl;
+          continue;
+        }
       }
       // Print hit list
       if (kDebug) {
         std::cout << "Event " << eventnumber << std::endl;
         hitlist->Print();
       }
-      
+
       // Conver the hit list to ROOT output format
       // Save the hitlist to the tree
       if (kTree) {
-	//	rootlist->Convert(hitlist);
-	rootlist -> Build(*hitlist);
-	tree -> Fill();
+        //rootlist->Convert(hitlist);
+        rootlist -> Build(*hitlist);
+        tree -> Fill();
       }
-      
+
 
       // Process the hit list through the tracking worker (i.e. do track reconstruction)
 

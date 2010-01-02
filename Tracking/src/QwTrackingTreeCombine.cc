@@ -164,7 +164,7 @@ int QwTrackingTreeCombine::chi_hashfind (
  * @param hit Hit for which we want to resolve the left/right ambiguity
  * @return Copy of the hit with the selected position
  */
-QwHit* QwTrackingTreeCombine::bestx (
+QwHit* QwTrackingTreeCombine::SelectLeftRightHit (
 	double track_position,
 	QwHit* hit)
 {
@@ -187,7 +187,8 @@ QwHit* QwTrackingTreeCombine::bestx (
   // Write the best hit (actually just uses the old structure)
   QwHit* besthit = new QwHit(*hit);
   besthit->next = 0; // only this entry in linked list
-  besthit->rResultPos =
+  besthit->fPosition =
+    besthit->rResultPos =
     besthit->rPos = best_position;
 
   return besthit;
@@ -206,7 +207,7 @@ QwHit* QwTrackingTreeCombine::bestx (
  * @param Dx Detector offset in the wire plane direction (default value is zero)
  * @return Number of good hits
  */
-int QwTrackingTreeCombine::bestx (
+int QwTrackingTreeCombine::SelectLeftRightHit (
 	double *xresult,
 	double resolution,
 	QwHitContainer *hitlist,
@@ -253,7 +254,7 @@ int QwTrackingTreeCombine::bestx (
           *ha[ngood] = *hit;
           ha[ngood]->next    = 0;
           // Store this position
-          ha[ngood]->rResultPos = ha[ngood]->rPos = hit_position;
+          ha[ngood]->fPosition = ha[ngood]->rResultPos = ha[ngood]->rPos = hit_position;
 
           // ha[ngood]->SetZPos(hit->GetZPos());
           if (distance < minimum) {
@@ -274,7 +275,8 @@ int QwTrackingTreeCombine::bestx (
             if (distance < odist) {
               *ha[i]   = *hit;
               ha[i]->next    = 0;
-              ha[i]->rResultPos =
+              ha[i]->fPosition =
+                ha[i]->rResultPos =
                 ha[i]->rPos = hit_position;
               break;
             }
@@ -485,7 +487,7 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
       A[i][1] = -hits[i]->GetZPosition(); //used by matchR3
       y[i]    = -hits[i]->rPos;
     } else {
-      A[i][1] = -(i+offset); //used by Tl MatchHits
+      A[i][1] = -(i + offset); //used by Tl MatchHits
       y[i]    = -hits[i]->rResultPos;
     }
     double r = 1.0 / hits[i]->GetSpatialResolution();
@@ -493,20 +495,20 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
   }
 
   /* Calculate right hand side: -A^T G y  */
-  for (int i = 0; i < 2; i++) {
+  for (int k = 0; k < 2; k++) {
     double s = 0.0;
-    for (int k = 0; k < n; k++)
-      s += (A[k][i]) * G[k][k] * y[k];
-    AtGy[i] = s;
+    for (int i = 0; i < n; i++)
+      s += (A[i][k]) * G[i][i] * y[i];
+    AtGy[k] = s;
   }
 
   /* Calculate the left hand side: A^T * G * A  */
-  for (int i = 0; i < 2; i++) {
+  for (int j = 0; j < 2; j++) {
     for (int k = 0; k < 2; k++) {
       double s = 0.0;
-      for (int j = 0; j < n; j++)
-        s += (A[j][i]) * G[j][j] * A[j][k];
-      AtGA[i][k] = s;
+      for (int i = 0; i < n; i++)
+        s += (A[i][j]) * G[i][i] * A[i][k];
+      AtGA[j][k] = s;
     }
   }
 
@@ -519,8 +521,8 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
   AtGA[1][0] /= -det;
 
   /* Solve equation: x = (A^T * G * A)^-1 * (A^T * G * y) */
-  for (int i = 0; i < 2; i++)
-    x[i] = AtGA[i][0] * AtGy[0] + AtGA[i][1] * AtGy[1];
+  for (int k = 0; k < 2; k++)
+    x[k] = AtGA[k][0] * AtGy[0] + AtGA[k][1] * AtGy[1];
   *slope  = x[1];
   *xshift = x[0];
   /* Calculate covariance */
@@ -803,8 +805,8 @@ bool QwTrackingTreeCombine::TlCheckForX (
      && tlayer == dlayer)
       resnow -= resolution * (fMaxRoad - 1.0);
 
-    // bestx finds the hits which occur closest to the path through
-    // the first and last detectors:
+    // SelectLeftRightHit finds the hits which occur closest to the path
+    // through the first and last detectors:
     // nHitsInPlane is the number of good hits at each detector layer
     if (! iteration) {          /* first track finding process */
       if (plane < 2)
@@ -814,10 +816,10 @@ bool QwTrackingTreeCombine::TlCheckForX (
         // subhitlist is the hit list
         // goodHits is the returned list of hits
         nHitsInPlane[nPlanesWithHits] =
-          bestx (&thisX, resnow, subhitlist, goodHits[nPlanesWithHits], 0.0);
+          SelectLeftRightHit (&thisX, resnow, subhitlist, goodHits[nPlanesWithHits], 0.0);
       else // for the second set of planes we need to add the detector offset
         nHitsInPlane[nPlanesWithHits] =
-          bestx (&thisX, resnow, subhitlist, goodHits[nPlanesWithHits], Dx);
+          SelectLeftRightHit (&thisX, resnow, subhitlist, goodHits[nPlanesWithHits], Dx);
 
     } else			/* in iteration process (not used by TlTreeLineSort)*/
       nHitsInPlane[nPlanesWithHits] = selectx (&thisX, resnow,/* rd,*/ treeline->hits, goodHits[nPlanesWithHits]);
@@ -834,7 +836,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
 
   // Now the hits that have been found in the road are copied to treeline->hits
   // This is done by using the temporary pointer hitarray
-  if (! iteration) { // return the hits found in bestx()
+  if (! iteration) { // return the hits found in SelectLeftRightHit()
     QwHit **hitarray = treeline->hits;
     for (int planeWithHits = 0; planeWithHits < nPlanesWithHits; planeWithHits++ ) {
       for (int hitInPlane = 0; hitInPlane < nHitsInPlane[planeWithHits]; hitInPlane++ ) {
@@ -914,13 +916,13 @@ bool QwTrackingTreeCombine::TlCheckForX (
 
       // Reset the used flags
       for (int i = 0; i < MAXHITPERLINE * DLAYERS && treeline->hits[i]; i++)
-	treeline->hits[i]->fIsUsed = false;
+	treeline->hits[i]->SetUsed(false);
 
       // Set the used flag on all hits that are used in this treeline
       for (int plane = 0; plane < nPlanesWithHits; plane++) {
 	treeline->usedhits[plane] = usedHits[plane];
 	if (usedHits[plane])
-	  usedHits[plane]->fIsUsed = true;
+	  usedHits[plane]->SetUsed(true);
       }
 
       // Store the final set of hits for output
@@ -1009,29 +1011,23 @@ int QwTrackingTreeCombine::TlMatchHits (
   int nWires = abs(treeline->lastwire - treeline->firstwire + 1);
 
 
-  // Loop over the pattern positions
+  // Loop over the hits with wires in this tree line
   int nHits = 0;
-  for (int wire = treeline->firstwire;
-           wire <= treeline->lastwire;
-           wire++) {
+  for (QwHitContainer::iterator hit = hitlist->begin();
+       hit != hitlist->end() && nHits < tlayers; hit++) {
+
+    // Skip if this wire is not part of the tree line
+    if (hit->GetElement() < treeline->r3offset + treeline->firstwire
+     && hit->GetElement() > treeline->r3offset + treeline->lastwire) continue;
 
     // Calculate the wire number and associated z coordinate
-    int thiswire = treeline->r3offset + wire;
-    double thisZ = (double) thiswire;
+    double thisZ = (double) hit->GetElement();
+    // Calculate the track position at this wire
+    double thisX = track_slope * thisZ + intercept;
 
-    // Loop over the hit list to find hits in this wire
-    for (QwHitContainer::iterator hit = hitlist->begin();
-         hit != hitlist->end() && nHits < tlayers; hit++) {
-      // Skip if this is a different wire
-      if (hit->GetElement() != thiswire) continue;
-
-      // Calculate the track position at this wire
-      double thisX = track_slope * thisZ + intercept;
-
-      // Determine the best hit assignment for this position
-      goodHits[nHits] = bestx (thisX, &(*hit));
-      nHits++;
-    }
+    // Determine the best hit assignment for this position
+    goodHits[nHits] = SelectLeftRightHit (thisX, &(*hit));
+    nHits++;
   }
 
   if (nHits != nWires) QwWarning << "WARNING NHITS != NGOODHITS " << nWires << "," << nHits << QwLog::endl;
@@ -1040,9 +1036,10 @@ int QwTrackingTreeCombine::TlMatchHits (
   //RETURN HITS FOUND IN BESTX #
   //############################
   for (int hit = 0; hit < nHits; hit++) {
-    goodHits[hit]->fIsUsed = true;
+    goodHits[hit]->SetUsed(true);
     treeline->usedhits[hit] = goodHits[hit];
     treeline->hits[hit] = treeline->usedhits[hit];
+    treeline->AddHit(goodHits[hit]);
   }
 
   //######################
@@ -1061,7 +1058,7 @@ int QwTrackingTreeCombine::TlMatchHits (
   treeline->fSlope   = slope;     /* return track parameters: offset, slope, chi */
   treeline->fChi     = chi;
   treeline->fNumHits = nHits;
-  memcpy(treeline->fCov, cov, sizeof cov);
+  treeline->SetCov(cov);
 
   // Set the detector info pointer
   treeline->SetDetectorInfo(treeline->hits[0]->GetDetectorInfo());
@@ -1538,8 +1535,8 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, doub
   //get some detector information
   if (Hit[0]->GetDetectorInfo()->fDirection == kDirectionU) {
 
-    costheta = Hit[0]->GetDetectorInfo()->GetSinDetectorRotation();
-    sintheta = Hit[0]->GetDetectorInfo()->GetCosDetectorRotation();
+    costheta = Hit[0]->GetDetectorInfo()->GetDetectorRotationSin();
+    sintheta = Hit[0]->GetDetectorInfo()->GetDetectorRotationCos();
 
     xtrans = Hit[0]->GetDetectorInfo()->GetXPosition();
     ytrans = Hit[0]->GetDetectorInfo()->GetYPosition();
@@ -1622,8 +1619,8 @@ int QwTrackingTreeCombine::r3_TrackFit( int Num, QwHit **hit, double *fit, doubl
 
   // get some detector information
   if (hit[0]->GetDetectorInfo()->fDirection == kDirectionU) {
-    costheta = hit[0]->GetDetectorInfo()->GetCosDetectorRotation();
-    sintheta = hit[0]->GetDetectorInfo()->GetSinDetectorRotation();
+    costheta = hit[0]->GetDetectorInfo()->GetDetectorRotationCos();
+    sintheta = hit[0]->GetDetectorInfo()->GetDetectorRotationSin();
     xtrans = hit[0]->GetDetectorInfo()->GetXPosition();
     ytrans = hit[0]->GetDetectorInfo()->GetYPosition();
     ztrans = hit[0]->GetDetectorInfo()->GetZPosition();
@@ -1780,7 +1777,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine2(
     for (int i = 0; i < num && *hitarray; i++, hitarray++) {
       h = *hitarray;
       ntotal++;
-      if (h->fIsUsed != 0) {
+      if (h->IsUsed() != 0) {
 	hits[hitc] = h;
 	hitc++;
       }
@@ -1893,7 +1890,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine(
       // gnu3 << h->rPos << " " << h->rPos1 << " " << h->rPos2 << endl;
       gnu3 << h->rPos << " " << h->GetDriftDistance() << " " << h->rPos2 << endl;
       //string all the hits together
-      if(h->fIsUsed !=0){
+      if(h->IsUsed() != 0) {
         hits[hitc++] = h;
       }
     }
@@ -1998,7 +1995,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
     for (num = MAXHITPERLINE * DLAYERS; num-- && *hitarray; hitarray++) {
       h = *hitarray;
       ntotal++;
-      if (h->fIsUsed != 0 && hitc < DLAYERS*3)
+      if (h->IsUsed() != 0 && hitc < DLAYERS*3)
 	hits[hitc++] = h;
     }
   }

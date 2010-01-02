@@ -57,13 +57,11 @@ class QwTrackingTreeMatch {
 
   public:
 
-    QwTrackingTreeMatch();
-    ~QwTrackingTreeMatch();
+    QwTrackingTreeMatch(): fDebug(0) { };
+    ~QwTrackingTreeMatch() { };
 
     /// Set the debug level
     void SetDebugLevel (int debug) { fDebug = debug; };
-
-    //void TgInit (Track *track);
 
     void TgTrackPar (
 	QwPartialTrack *front,
@@ -79,17 +77,15 @@ class QwTrackingTreeMatch {
 	QwTrack *tracklist,
 	EQwDetectorPackage package);
 
-    QwTrackingTreeLine* MatchR3 (
-	QwTrackingTreeLine *front,
-	QwTrackingTreeLine *back,
-	EQwDetectorPackage package,
-	EQwRegionID region,
-	EQwDirectionID dir);
+    //! Match the tree lines in two planes in region 3
+    QwTrackingTreeLine* MatchRegion3 (
+	QwTrackingTreeLine *frontlist,
+	QwTrackingTreeLine *backlist);
 
   private:
 
     int fDebug;
 
-}; //class QwTrackingTreeMatch
+}; // class QwTrackingTreeMatch
 
 #endif // QWTRACKINGTREEMATCH_H

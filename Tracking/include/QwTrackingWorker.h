@@ -1,15 +1,11 @@
-/**
- * \class	QwTrackingWorker	QwTrackingWorker.h
+/*!
+ * \file   QwTrackingWorker.h
+ * \brief  Controls all the routines involved in finding tracks in an event
  *
- * \brief	Controls all the routines involved in finding tracks in an event
- *
- * \author	Wolfgang Wander <wwc@hermes.desy.de>
- * \author	Burnham Stokes <bestokes@jlab.org>
- * \author	Wouter Deconinck <wdconinc@mit.edu>
- *
- * \date	2009-09-04 18:06:23
- * \ingroup	QwTracking
- *
+ * \author Wolfgang Wander <wwc@hermes.desy.de>
+ * \author Burnham Stokes <bestokes@jlab.org>
+ * \author Wouter Deconinck <wdconinc@mit.edu>
+ * \date   2009-09-04 18:06:23
  */
 
 #ifndef QWTRACKINGWORKER_H
@@ -31,16 +27,14 @@ class QwEvent;
 class QwBridge;
 class QwTrajectory;
 
-/*------------------------------------------------------------------------*//*!
-
- \class QwTrackingWorker
-
- \brief Controls all the routines involved in finding tracks in an event.
-
- \ingroup QwTracking
-
-*//*-------------------------------------------------------------------------*/
-
+/**
+ *  \class QwTrackingWorker
+ *  \ingroup QwTracking
+ *  \brief Controls all the routines involved in finding tracks in an event
+ *
+ * The tracking worker coordinates the track finding based on the hit list
+ * provided to the ProcessHits() method.
+ */
 class QwTrackingWorker: public VQwSystem {
 
   public:

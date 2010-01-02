@@ -113,13 +113,16 @@ int main (int argc, char* argv[])
 
 
   /// We loop over all requested runs.
-  for (UInt_t runnumber =  (UInt_t) gQwOptions.GetIntValuePairFirst("run");
-              runnumber <= (UInt_t) gQwOptions.GetIntValuePairLast("run");
+  UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
+  UInt_t runnumber_max = (UInt_t) gQwOptions.GetIntValuePairLast("run");
+  for (UInt_t runnumber  = runnumber_min;
+              runnumber <= runnumber_max;
               runnumber++) {
 
     // Load the simulated event file
     TString filename = Form(TString(getenv("QWSCRATCH")) + "/data/QwSim_%d.root", runnumber);
     QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (filename, detector_info);
+    treebuffer->EnableResolutionEffects();
     treebuffer->SetDebugLevel(1);
 
     // Open ROOT file
@@ -141,9 +144,12 @@ int main (int argc, char* argv[])
 
 
     /// We loop over all requested events.
-    int fEntries = treebuffer->GetEntries();
-    for (int eventnumber  = gQwOptions.GetIntValuePairFirst("event");
-             eventnumber <= gQwOptions.GetIntValuePairLast("event") &&
+    Int_t events = 0;
+    Int_t fEntries = treebuffer->GetEntries();
+    Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
+    Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
+    for (int eventnumber  = eventnumber_min;
+             eventnumber <= eventnumber_max &&
              eventnumber < fEntries; eventnumber++) {
 
       /// We get the hit list from the event buffer.
@@ -170,6 +176,10 @@ int main (int argc, char* argv[])
       // Fill the tree
       if (kTree) tree->Fill();
 
+
+      // Event has been processed
+      events++;
+
       // Delete the hit lists and reconstructed event
       delete hitlist;
       delete event;
@@ -181,6 +191,10 @@ int main (int argc, char* argv[])
 
     std::cout << "Number of good partial tracks found: "
               << trackingworker->ngood << std::endl;
+    std::cout << "Region 2: "
+              << trackingworker->R2Good << std::endl;
+    std::cout << "Region 3: "
+              << trackingworker->R3Good << std::endl;
 
     // Print results
     if (kDebug) tree->Print();

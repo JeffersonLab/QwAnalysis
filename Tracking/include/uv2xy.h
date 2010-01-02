@@ -43,6 +43,11 @@ class QwHit;
  * When \f$ \theta_u \f$ and \f$ \theta_v \f$ are not orthogonal, the
  * transformation matrices are not normalized.
  *
+ * It is important to realize that the angle of the U wires is not necessarily
+ * equal to the angle of the U axis!  If U wires are strung at constant values
+ * of the U coordinate (i.e. with u = 1 wire, u = 2 wire, u = 3 wire, etc),
+ * the angle of the U wires is 90 deg minus the angle of the U axis.
+ *
  * The origins are not identical and an offset has to be included.
  *
  */
