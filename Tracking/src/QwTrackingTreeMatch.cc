@@ -1,29 +1,13 @@
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-//
-// C++ Interface: QwTrackingTreeMatch
-//
-// Description:
-//
-//
-// Author: Burnham Stocks <bestokes@jlab.org>
-// Original HRC Author: wolfgang Wander <wwc@hermes.desy.de>
-//
-// Modified by: Wouter Deconinck <wdconinc@mit.edu>, (C) 2008
-//              Jie Pan <jpan@jlab.org>, Thu May 28 22:01:11 CDT 2009
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-/*! \class QwTrackingTreeMatch
-
-    \file QwTrackingTreeMatch.cc
-
-    $date: Thu May 28 22:01:11 CDT 2009 $
-
-    \brief This module matches track segments for individual wire planes.
+/**
+ *  \file   QwTrackingTreeMatch.cc
+ *  \brief  Module that matches track segments for pairs of wire planes
+ *
+ *  \author Burnham Stocks <bestokes@jlab.org>
+ *  \author Wouter Deconinck <wdconinc@mit.edu>
+ *  \author Jie Pan <jpan@jlab.org>
+ *
+ *  \date   Thu May 28 22:01:11 CDT 2009
  */
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #include "QwTrackingTreeMatch.h"
 
@@ -38,7 +22,10 @@
 #include "QwDetectorInfo.h"
 #include "QwTrackingTreeCombine.h"
 
-#include "Det.h"
+// Qweak tracking headers
+#include "QwTrackingTreeLine.h"
+#include "QwPartialTrack.h"
+#include "QwTrack.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -79,6 +66,12 @@ double rcZEval( double vz, double te, double ph, double mom, int idx){
  *
  * \todo This function requires the wire planes to be parallel.
  *
+ * \image html QwTrackingTreeMatch-1.jpg
+ * \image html QwTrackingTreeMatch-2.jpg
+ * \image html QwTrackingTreeMatch-3.jpg
+ * \image html QwTrackingTreeMatch-4.jpg
+ * \image html QwTrackingTreeMatch-5.jpg
+ *
  * @param frontlist List of tree lines in the front plane
  * @param backlist List of tree lines in the back plane
  * @return List of tree lines after matching
@@ -87,11 +80,6 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 	QwTrackingTreeLine* frontlist,
 	QwTrackingTreeLine* backlist)
 {
-  // Get detector identification (from first tree line in front detector)
-  EQwRegionID region = frontlist->GetRegion();
-  EQwDetectorPackage package = frontlist->GetPackage();
-  EQwDirectionID direction = frontlist->GetDirection();
-
   // Check the region of the tree lines (only region 3 is allowed)
   if (frontlist->GetRegion() != kRegionID3
     || backlist->GetRegion() != kRegionID3) {
@@ -173,20 +161,6 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
     QwWarning << "[TreeMatch::MatchR3] Horizontal shifts between VDC planes are ignored"
               << QwLog::endl;
 
-  // Get the distance between the first u and v planes (TODO remove rcDETRegion)
-  double d_uv = 0.0;
-  if (direction == kDirectionV) {
-    double RotCos = rcDETRegion[package][region][kDirectionU]->rRotCos;
-    double RotSin = rcDETRegion[package][region][kDirectionU]->rRotSin;
-    double RotTan = RotSin / RotCos;
-
-    d_uv  = rcDETRegion[package][region][kDirectionV]->Zpos
-          - rcDETRegion[package][region][kDirectionU]->Zpos;
-    d_uv += ( rcDETRegion[package][region][kDirectionU]->center[1]
-            - rcDETRegion[package][region][kDirectionV]->center[1] ) / RotTan;
-    d_uv *= RotSin;
-  }
-
   // For the good tree lines in the front and back VDC planes, we first need
   // to set the 'z' coordinate in the wire direction.
 
@@ -202,7 +176,6 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
     for (int hit = 0; hit < frontline->fNumHits; hit++) {
       double zpos = (frontline->hits[hit]->GetElement() - 141) * wirespacing_f;
       frontline->hits[hit]->SetZPosition(zpos);
-      if (direction == kDirectionV) frontline->hits[hit]->fPosition += d_uv;
     }
   }
 
@@ -216,8 +189,6 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
     for (int hit = 0; hit < backline->fNumHits; hit++) {
       double zpos = (backline->hits[hit]->GetElement() - 141) * wirespacing_b;
       backline->hits[hit]->SetZPosition(zpos + u_para);
-      //backline->hits[hit]->fPosition += d_perp;
-      if (direction == kDirectionV) backline->hits[hit]->fPosition += d_uv;
     }
   }
 
@@ -266,11 +237,10 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
       x[0] = fpos->GetPosition(); // X position (i.e. drift distance)
       x[1] = bpos->GetPosition() + d_perp; // shifted by perpendicular distance
 
+      // Slope between the front and back plane central hits
       double slope = (y[1] - y[0]) / (x[1] - x[0]);
-      //double slope = (x[1] - x[0]) / (y[1] - y[0]);
-      // NOTE unused:
-      //double intercept = y[1] - slope * x[1];
 
+      // Slope of the front and back tree line
       double fslope = wirespacing_f / frontline->fSlope;
       double bslope = wirespacing_b / backline->fSlope;
 
@@ -291,6 +261,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
         fmatches[ifront] = iback;
         bmatches[iback] = ifront;
         bestmatch = bestmatches[iback] = fabs(fslope - slope) + fabs(bslope - slope);
+
       } // end of if good match
 
     } // end of loop over back VDC tree lines
