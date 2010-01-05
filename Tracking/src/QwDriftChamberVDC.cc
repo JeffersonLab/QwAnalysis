@@ -424,7 +424,7 @@ void QwDriftChamberVDC::ReadEvent(TString& eventfile){
   Double_t signal = 0.0; // double? unsigned int ? by jhlee
   EQwDetectorPackage package = kPackageNull;
   EQwDirectionID direction = kDirectionNull;
-    
+
   QwParameterFile mapstr(eventfile.Data());
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment( '!' );
@@ -518,9 +518,10 @@ void QwDriftChamberVDC::ProcessEvent(){
 
 	      for(Int_t j=0;j<Ambiguitycount;j++)
 		{
-		  QwHit NewQwHit(tmpCrate, tmpModule, tmpChan, order_L, kRegionID3, 
-				 (EQwDetectorPackage) DelayLineArray.at(tmpbp).at(tmpln).Package, 
-				 DelayLineArray.at(tmpbp).at(tmpln).Plane,
+		  EQwDetectorPackage package = (EQwDetectorPackage) DelayLineArray.at(tmpbp).at(tmpln).Package;
+		  Int_t plane = DelayLineArray.at(tmpbp).at(tmpln).Plane;
+		  QwHit NewQwHit(tmpCrate, tmpModule, tmpChan, order_L, kRegionID3,
+				 package, plane,
 				 (EQwDirectionID) tmpdir,DelayLineArray.at(tmpbp).at(tmpln).Wire.at(i).at(j),
 				 left_time);
 
@@ -529,11 +530,14 @@ void QwDriftChamberVDC::ProcessEvent(){
 		  if(real_time<0) continue;
 		  NewQwHit.SetTime(real_time);
 
+		  QwDetectorInfo* local_info = & fDetectorInfo.at(package).at(plane);
+		  NewQwHit.SetDetectorInfo(local_info);
+
 		  drift_distance=0.1*CalculateDriftDistance(real_time,iter->GetDetectorID());
 		  NewQwHit.SetDriftDistance(drift_distance);
 
 		  //Bool_t tmpAM=DelayLineArray.at(tmpbp).at(tmpln).Ambiguous;
-		  
+
 		  NewQwHit.SetAmbiguityID ( tmpAM,j );
 		  fWireHits.push_back(NewQwHit);
 		}
