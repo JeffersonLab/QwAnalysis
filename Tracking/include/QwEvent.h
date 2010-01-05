@@ -1,7 +1,7 @@
 #ifndef QWEVENT_H
 #define QWEVENT_H
 
-// C and C++ headers
+// System headers
 #include <vector>
 
 // ROOT headers
@@ -28,7 +28,7 @@ class QwVertex;
  * \class QwEventHeader
  * \ingroup QwTracking
  *
- * \brief Contains header information of a tarcked event
+ * \brief Contains header information of a tracked event
  *
  * Objects of this class contain the header information of a tracked event,
  * such as the run number, event number, the trigger type, etc.
@@ -49,26 +49,45 @@ class QwEventHeader: public TObject {
 
   public:
 
+    /// Default constructor
     QwEventHeader(){};
+    /// Constructor with run and event number
+    QwEventHeader(const UInt_t run, const ULong_t event) {
+      fRunNumber = run;
+      fEventNumber = event;
+    };
+    /// Destructor
     virtual ~QwEventHeader(){};
 
+    /// Set the run number
     void SetRunNumber(const UInt_t runnumber) { fRunNumber = runnumber; };
-    UInt_t GetRunNumber() const { return fRunNumber; };
+    /// Get the run number
+    const UInt_t GetRunNumber() const { return fRunNumber; };
 
+    /// Set the event number
     void SetEventNumber(const ULong_t eventnumber) { fEventNumber = eventnumber; };
-    ULong_t GetEventNumber() const { return fEventNumber; };
+    /// Get the event number
+    const ULong_t GetEventNumber() const { return fEventNumber; };
 
+    /// Set the event time
     void SetEventTime(const ULong_t eventtime) { fEventTime = eventtime; };
-    ULong_t GetEventTime() const { return fEventTime; };
+    /// Get the event time
+    const ULong_t GetEventTime() const { return fEventTime; };
 
+    /// Set the event type
     void SetEventType(const UInt_t eventtype) { fEventType = eventtype; };
-    UInt_t GetEventType() const { return fEventType; };
+    /// Get the event type
+    const UInt_t GetEventType() const { return fEventType; };
 
+    /// Set the event trigger
     void SetEventTrigger(const UInt_t eventtrigger) { fEventTrigger = eventtrigger; };
-    UInt_t GetEventTrigger() const { return fEventTrigger; };
+    /// Get the event trigger
+    const UInt_t GetEventTrigger() const { return fEventTrigger; };
 
+    /// Set the beam helicity
     void SetBeamHelicity(const EQwHelicity helicity) { fBeamHelicity = helicity; };
-    EQwHelicity GetBeamHelicity() const { return fBeamHelicity; };
+    /// Get the beam helicity
+    const EQwHelicity GetBeamHelicity() const { return fBeamHelicity; };
 
     /// \brief Output stream operator
     friend ostream& operator<< (ostream& stream, const QwEventHeader& h);
@@ -100,11 +119,51 @@ class QwEvent: public TObject {
     // Event header
     QwEventHeader* fEventHeader;
 
-    // Hits
-    #define QWEVENT_MAX_NUM_HITS 1000
+
+    /// Storage of tracking results
+    /// - static TClonesArray:
+    ///   Pros: - new/delete cost reduced from O(n^2) to O(n) by preallocation
+    ///   Cons: - static array prevents multiple simultaneous events
+    ///         - could be prevented by using Clear() instead of delete, and
+    ///           with a non-static global list
+    ///         - nesting is difficult
+    /// - local TClonesArray:
+    ///   Pros: - new/delete cost reduced from O(n^2) to O(n) by preallocation
+    ///         - multiple events each have own preallocated list, so Clear()
+    ///           should be used
+    ///   Cons: - nesting is still difficult
+    /// - std::vector<TObject*>:
+    ///   Pros: - handled transparently by recent ROOT versions (> 4, it seems)
+    ///         - easier integration with non-ROOT QwAnalysis structures
+    ///   Cons: - preallocation not included, O(n^2) cost due to new/delete,
+    ///           but not copying full object, only pointers
+    ///
+    /// In all cases there still seems to be a problem with the ROOT TBrowser
+    /// when two identical branches with TClonesArrays are in the same tree.
+    /// When drawing leafs from the second branch, the first branch is drawn.
+
     Int_t fNQwHits; ///< Number of QwHits in the array
-    TClonesArray        *fQwHits; ///< Array of QwHits
-    static TClonesArray *gQwHits; ///< Static array of QwHits
+    #define QWHITS_IN_STL_VECTOR
+
+    #ifdef QWHITS_IN_STATIC_TCLONESARRAY
+      // Static TClonesArray approach to QwHit storage
+      #define QWEVENT_MAX_NUM_HITS 1000
+      static TClonesArray *gQwHits; ///< Persistent static array of QwHits
+      TClonesArray        *fQwHits; ///< Array of QwHits
+    #endif // QWHITS_IN_STATIC_TCLONESARRAY
+
+    #ifdef QWHITS_IN_LOCAL_TCLONESARRAY
+      // Local TClonesArray approach to QwHit storage
+      #define QWEVENT_MAX_NUM_HITS 1000
+      TClonesArray *gQwHits; ///< Persistent local array of QwHits
+      TClonesArray *fQwHits; ///< Array of QwHits
+    #endif // QWHITS_IN_LOCAL_TCLONESARRAY
+
+    #ifdef QWHITS_IN_STL_VECTOR
+      // STL vector approach to QwHit storage
+      std::vector<QwHit*> fQwHits; ///< Array of QwHits
+    #endif // QWHITS_IN_STL_VECTOR
+
 
     // Tree lines
     #define QWEVENT_MAX_NUM_TREELINES 1000
@@ -112,12 +171,6 @@ class QwEvent: public TObject {
     TClonesArray        *fQwTreeLines; ///< Array of QwTreeLines
     static TClonesArray *gQwTreeLines; ///< Static array of QwTreeLines
 
-    // Tree lines (2)
-    //Int_t fNQwTreeLines2; ///< Number of QwTreeLines in the array
-    //TObjArray *fQwTreeLines2; ///< Array of QwTreeLines
-
-    // Tree lines (3)
-    //std::vector<QwTrackingTreeLine*> fQwTreeLines3;
 
     // Partial tracks
     #define QWEVENT_MAX_NUM_PARTIALTRACKS 1000
@@ -133,6 +186,8 @@ class QwEvent: public TObject {
 
     // Event header
     QwEventHeader* GetEventHeader() { return fEventHeader; };
+    void SetEventHeader(QwEventHeader& eventheader) { *fEventHeader = eventheader; };
+    void SetEventHeader(QwEventHeader* eventheader) { *fEventHeader = *eventheader; };
 
     // Housekeeping methods for lists
     void Clear(Option_t *option = ""); // Clear the current event
