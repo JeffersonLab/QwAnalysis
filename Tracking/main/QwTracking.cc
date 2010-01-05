@@ -51,7 +51,7 @@
 // Debug level
 static const bool kDebug = false;
 // Tracking
-static const bool kTracking = false;
+static const bool kTracking = true;
 // ROOT file output
 static const bool kTree = true;
 static const bool kHisto = true;
@@ -302,21 +302,18 @@ Int_t main(Int_t argc, Char_t* argv[])
       // Fill the histograms for the subsystem objects.
       detectors.FillHistograms();
 
+      // Create the event header with the run and event number
+      QwEventHeader* header = new QwEventHeader(run, eventnumber);
+
       // Create and fill hit list
       hitlist = new QwHitContainer();
-
       detectors.GetHitList(hitlist);
-
       // Sorting the grand hit list
       hitlist->sort();
 
+      // Skip empty events
       if (hitlist->size() == 0) continue;
-      if (kTracking) {
-        if (hitlist->size() < 5) {
-          std::cout << "Event skipped: only " << hitlist->size() << " hits" << std::endl;
-          continue;
-        }
-      }
+
       // Print hit list
       if (kDebug) {
         std::cout << "Event " << eventnumber << std::endl;
@@ -324,18 +321,26 @@ Int_t main(Int_t argc, Char_t* argv[])
       }
 
       // Conver the hit list to ROOT output format
-      // Save the hitlist to the tree
-      if (kTree) {
-        //rootlist->Convert(hitlist);
-        rootlist -> Build(*hitlist);
-        tree -> Fill();
+      //rootlist->Convert(hitlist);
+      rootlist->Build(*hitlist);
+
+
+      // Track reconstruction
+      if (kTracking) {
+        // Process the hits
+        event = trackingworker->ProcessHits(&detectors, hitlist);
+
+        // Assign the event header
+        event->SetEventHeader(header);
+
+        // Print the reconstructed event
+        if (kDebug) event->Print();
       }
 
 
-      // Process the hit list through the tracking worker (i.e. do track reconstruction)
-
-      if (kTracking)
-        event = trackingworker->ProcessHits(&detectors, hitlist);
+      // Save the hitlist to the tree
+      if (kTree)
+        tree->Fill();
 
 
       // Delete objects

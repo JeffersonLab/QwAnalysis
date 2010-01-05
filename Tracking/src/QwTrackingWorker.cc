@@ -650,7 +650,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         event->AddTreeLineList(treelinelist2);
 
                         QwDebug << "Matching region 3 segments" << QwLog::endl;
-                        if (treelinelist1 || treelinelist2) {
+                        if (treelinelist1 && treelinelist2) {
                             if (fDebug) {
                                 cout << "VDC1:" << endl;
                                 treelinelist1->Print();
