@@ -41,7 +41,7 @@
 //                        * move "lib.sh" into this script by using a quick and dirty
 //                          method.
 // 0.0.8     2010/01/06   * replace "direction" with "plane" in oder to get reasonable
-//                          plot for Region 2
+//                          plots for Region 2
 //                        * Region 3 :
 //                                     direction 3 (U) == plane 1
 //                                     direction 4 (V) == plane 2
@@ -1475,6 +1475,7 @@ plot_rawtime_histogram_per_wire(Int_t run_number=1567,
 	      
 	    }
 	}
+      rawtime_per_wire_canvas -> cd();
 
     }
   //     file->Close();
@@ -1875,28 +1876,10 @@ plot_nevent_per_wire(Int_t run_number   = 1567,
 		    }
 		}
 	    }
-	  
-// 	  for(Short_t j=0; j<6; j++)
-// 	    {
+	  nevent_per_wire_canvas -> cd();
 
-// 	      nevent_per_wire_canvas -> cd(padnumber);
-// 	      //	  gPad -> SetLogy();
-// 	      if(region_status[region] && direction_status[direction]) 
-// 		{
-// 		  histo_region[i][j] -> SetLineColor(kRed);
-// 		  if(i==0)  histo_region[i][j] -> GetXaxis()-> SetTitle("Element #");
-// 		  else      histo_region[i][j] -> GetXaxis()-> SetTitle("Wire #");
-// 		  histo_region[i][j] -> GetYaxis()-> SetTitle("Number of Events");
-// // 		  histo_region[i][j] -> GetXaxis()-> CenterTitle();
-// // 		  histo_region[i][j] -> GetYaxis()-> CenterTitle();
-// 		  histo_region[i][j] -> Draw();
-// 		}
-// 	      else
-// 		{
-// 		  region_tex -> DrawLatex(0.5,0.5,Form("Region %d direction %d has no data", region, direction));
-// 		}
-// 	    }
 	}
+    
     }
 
   timer.Stop();
@@ -2202,7 +2185,7 @@ plot_nwire_hits_per_event(Int_t run_number   = 1567,
 	    }
 	}
 	  
-
+     nevent_per_wire_canvas -> cd();
 // 	  for(Short_t j=0; j<6; j++)
 // 	    {
 // 	      direction = j+1;

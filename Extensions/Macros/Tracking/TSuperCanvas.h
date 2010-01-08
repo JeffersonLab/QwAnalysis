@@ -42,7 +42,7 @@
 
 #ifndef _TSUPERCANVAS_H_
 #define _TSUPERCANVAS_H_
-
+#include "TROOT.h"
 #include "TGFrame.h"
 #include "TGNumberEntry.h"
 #include "TGDoubleSlider.h"
@@ -56,7 +56,7 @@
 #include "TLine.h"
 #include "TGraphErrors.h"
 #include "TMath.h"
-
+#include "TVirtualX.h"
 // funny colors: http://www.faqs.org/docs/abs/HTML/colorizing.html
 //           or: http://linuxgazette.net/issue65/padala.html
 #define RED       "\E[31m"
@@ -79,32 +79,40 @@ class TSuperCanvas : public TCanvas
   TSuperCanvas(const Char_t* name, const Char_t* title, Int_t ww, Int_t wh, Float_t menumargin=0.0);
   TSuperCanvas(const Char_t* name, const Char_t* title, Int_t wtopx, Int_t wtopy, Int_t ww, Int_t wh, Float_t menumargin=0.0);
   virtual ~TSuperCanvas();
+
   virtual void Initialize();
   virtual void ClearPointers();
   virtual void Divide(Int_t nx=1, Int_t ny=1, Float_t xmargin=0.01, Float_t ymargin=0.01, Int_t color=0);
+
   //  virtual void Divide(Int_t nx=1, Int_t ny=1, Float_t xmargin=0.01, Float_t ymargin=0.01, Int_t color=0, Float_t menumargin=-1.0);
+
   void MakeMenu(TSuperCanvas **me, Float_t menumargin=-1.0);
+
   virtual void HandleInput(EEventType event, Int_t px, Int_t py);
   virtual void Measure(Int_t px, Int_t py);
 
+ 
   void SetMenuMargin(Float_t menumargin) {menu_margin = menumargin;};
-
+  Bool_t SliceTH2(Int_t px);
+  //  void DynamicSliceTH2(Int_t px);
+  
  private:
-  //  TGTransientFrame *ConfigureDialog;
+  
   void Configure();
-  //  void DrawEventStatus(Int_t event, Int_t px, Int_t py, TObject *selected);
+  
   Float_t  menu_margin;
   Int_t    meas_status;
   Float_t  meas_x1, meas_x2, meas_y1, meas_y2;
   Float_t  peakpos[10];
   TLine   *peakline[10];
-
+  
   Double_t SamplingRate, ScrollRate;
 
   TVirtualPad *MaximizedPad;
   Double_t MaxmizedPad_xlow, MaxmizedPad_ylow, MaxmizedPad_xup, MaxmizedPad_yup;
-
+  
   TButton *closebutton, *crossbutton, *eventbutton, *toolbutton, *logxbutton, *logybutton;
+  
 
   ClassDef(TSuperCanvas,1);
 };

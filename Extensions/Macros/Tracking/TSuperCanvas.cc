@@ -39,6 +39,8 @@
 //    The distance will be dumped on "xterminal" as the following example:
 //    dist. meas.: dX = 1.20e+01 dY = -6.90e+00 dist = 1.39e+01
 
+
+// *) "x", "y" : projection X, Y of TH2 histogram
 // *) more ....
 
 
@@ -79,6 +81,7 @@ TSuperCanvas::~TSuperCanvas()
  if (toolbutton)   delete toolbutton;   toolbutton   = NULL;
  if (logxbutton)   delete logxbutton;   logxbutton   = NULL;
  if (logybutton)   delete logybutton;   logybutton   = NULL;
+
 };
 
 void 
@@ -115,7 +118,8 @@ TSuperCanvas::Initialize()
 
 };
 
-void TSuperCanvas::ClearPointers()
+void 
+TSuperCanvas::ClearPointers()
 {
   MaximizedPad = NULL;
 };
@@ -273,7 +277,7 @@ TSuperCanvas::MakeMenu(TSuperCanvas **me, Float_t menumargin)
 void 
 TSuperCanvas::HandleInput(EEventType event, Int_t px, Int_t py)
 {
-  //printf("event=%d @( %d ; %d )\n", event, px, py);
+  //  printf("event=%d @( %d ; %d )\n", event, px, py);
   //-----------------------------------------------------------------//
   if (event==7) // i.e. mouse button 1 down + shift pressed
     {
@@ -428,6 +432,14 @@ TSuperCanvas::HandleInput(EEventType event, Int_t px, Int_t py)
 	    MaximizedPad = NULL;
 	  thispad->Update();
 	};
+      if(( px=='x') || (px == 'y') )
+	{
+	  SliceTH2(px);
+	}
+//  	{
+// 	  printf("%d\n", px);
+//  	  DynamicSliceTH2(px);
+//  	};
     };
   //-----------------------------------------------------------------//
   // finally, if not yet returned, call default HandleInput method:
@@ -484,6 +496,164 @@ TSuperCanvas::Configure()
   printf("  ScrollRate = %6.2e %%\n", ScrollRate*100.0);
   return;
 };
+
+
+// void 
+// TSuperCanvas::DynamicSliceTH2(Int_t px)
+// {
+
+//   TObject *mouse_obj = gPad -> GetSelected();
+
+//   if((mouse_obj->InheritsFrom("TH2")) )
+//     {
+//       Int_t    pxy = 0;
+//       Float_t upxy = 0.0;
+//       Float_t   xy = 0.0;
+//       if( px == 'y')
+// 	{
+// 	  pxy  = gPad -> GetEventX();
+// 	  upxy = gPad -> AbsPixeltoX(pxy);
+// 	  xy   = gPad -> PadtoX(upxy);
+// 	}
+//       else if( px == 'x' )
+// 	{
+// 	  pxy  = gPad -> GetEventY();
+// 	  upxy = gPad -> AbsPixeltoY(pxy);
+// 	  xy   = gPad -> PadtoY(upxy);
+// 	}
+//       else
+// 	{
+// 	  printf("%s TSuperCanvas: Sorry, no Slice possible %s\n", BOLD, NORMAL);
+// 	  return;
+// 	}
+
+//       TVirtualPad *padsav = gPad;
+//       TCanvas *c2 = NULL;
+//       //   c2 (TCanvas*)gROOT->GetListOfCanvases()->FindObject("c2");
+//       if(c2) delete c2->GetPrimitive("Projection");
+//       else   c2 = new TCanvas("c2","Projection Canvas",40,40,700,500);
+//       c2->SetGrid();
+//       c2->cd();
+//       TH2 *h = NULL;
+//       h = (TH2*) mouse_obj;
+//       Int_t bin = 0;
+//       if( px == 'y' ) bin = h->GetXaxis()->FindBin(xy);
+//       if( px == 'x' ) bin = h->GetYaxis()->FindBin(xy);
+
+//       TH1D *hp = NULL;
+//       if( px == 'y' ) hp = h->ProjectionY("",bin,bin);
+//       if( px == 'x' ) hp = h->ProjectionX("",bin,bin);
+
+//       hp->SetFillColor(38);
+//       char title[80];
+//       sprintf(title,"Projection of bin=%d",bin);
+//       hp->SetName("Projection");
+//       hp->SetTitle(title);
+//       if( px == 'x' ) hp->GetXaxis() -> SetTitle(h->GetXaxis() -> GetTitle());
+//       if( px == 'y' ) hp->GetXaxis() -> SetTitle(h->GetYaxis() -> GetTitle());
+//       hp->Draw("");
+//       c2->Update();
+//       padsav->cd();
+//     }
+//   else
+//     {
+//       printf("%s TSuperCanvas: Sorry, no Slice possible for non-TH2 objects...%s\n", BOLD, NORMAL);
+//     }
+//   return;
+
+// };
+
+
+Bool_t 
+TSuperCanvas::SliceTH2(Int_t px)
+{
+  gPad->GetCanvas()->FeedbackMode(kTRUE);
+
+  TObject *mouse_obj = gPad -> GetSelected();
+  TPad *mouse_pad    = (TPad*)gPad -> GetSelectedPad();
+  TObject *click_obj = this->GetClickSelected();
+  TPad *click_pad    = (TPad*) this-> GetClickSelectedPad();
+
+  printf("gpad      : %d, %s\n", mouse_pad->GetNumber(), mouse_obj->GetName() );
+  printf("click_obj : %d, %s\n", click_pad->GetNumber(), click_obj->GetName() );
+  
+  if( (mouse_obj->InheritsFrom("TH2")) )
+    {
+      Int_t    pxy = 0;
+      Float_t upxy = 0.0;
+      Float_t   xy = 0.0;
+      
+      TH2 *selected_hist2 = (TH2*) mouse_obj;  
+      TH1D *sliced_hist   = NULL;
+      Int_t xbin_number   = 0;
+      Int_t ybin_number   = 0;
+
+      if( px == 'y')
+	{
+	  pxy         = gPad -> GetEventX();
+	  upxy        = gPad -> AbsPixeltoX(pxy);
+	  xy          = gPad -> PadtoX(upxy);
+	  xbin_number = selected_hist2->GetXaxis()->FindBin(xy);
+	  sliced_hist = selected_hist2->ProjectionY("",xbin_number,xbin_number);
+	  sliced_hist -> GetXaxis()->SetTitle( selected_hist2->GetYaxis()->GetTitle() );
+	  sliced_hist -> SetTitle(Form("%s Projection of bin = %d", selected_hist2-> GetTitle(), xbin_number));
+	}
+      else if( px == 'x' )
+	{
+	  pxy         = gPad -> GetEventY();
+	  upxy        = gPad -> AbsPixeltoY(pxy);
+	  xy          = gPad -> PadtoY(upxy);
+	  ybin_number = selected_hist2->GetYaxis()->FindBin(xy);
+	  sliced_hist = selected_hist2->ProjectionX("", ybin_number, ybin_number);
+	  sliced_hist->GetXaxis()->SetTitle( selected_hist2->GetXaxis()->GetTitle() );
+	  sliced_hist -> SetTitle(Form("%s Projection of bin = %d", selected_hist2-> GetTitle(), ybin_number));
+
+	}
+      else
+	{
+	  printf("%s That is not a choice. There are x and y projections. %s\n", BOLD, NORMAL);
+	  return false;
+	}
+      
+      sliced_hist -> SetName("Projection");
+      
+      TCanvas *slice_canvas = new TCanvas("slice_canvas","Projection Canvas",20,20,640,480);
+
+      slice_canvas ->ToggleToolTips();
+      //      slice_canvas -> cd();
+      sliced_hist  -> SetLineColor(kRed);
+      sliced_hist  -> Draw();
+
+      slice_canvas ->Update();
+
+
+      // back to the original selected pad TH2
+    
+      mouse_pad->SetCursor(kPointer);
+      this->cd( mouse_pad->GetNumber() );
+      this->SetSelectedPad( mouse_pad );
+      this->SetClickSelectedPad( click_pad );
+      this->SetSelected( mouse_obj );
+      this->SetClickSelected( click_obj );
+    
+      // TVirtualX.h
+      //      enum ECursor { kBottomLeft, kBottomRight, kTopLeft, kTopRight,
+      // 		     kBottomSide, kLeftSide, kTopSide, kRightSide,
+      // 		     kMove, kCross, kArrowHor, kArrowVer, kHand, kRotate,
+      // 		     kPointer, kArrowRight, kCaret, kWatch, kNoDrop };
+
+   
+
+      return true;
+    }
+  else
+    {
+      printf("%s TSuperCanvas: Sorry, no Slice possible for non-TH2 objects...%s\n", BOLD, NORMAL);
+      return false;
+    }
+
+};
+
 
 
 #if defined(__MAKECINT__)
