@@ -15,12 +15,13 @@ enum EQwRegionID {
   kRegionID1,    kRegionID2,   kRegionID3,
   kRegionIDTrig, kRegionIDCer, kRegionIDScanner};
 
-static const Int_t kNumDirections = 7;
+static const Int_t kNumDirections = 9;
 enum EQwDirectionID {
   kDirectionNull,
   kDirectionX, kDirectionY,
   kDirectionU, kDirectionV,
-  kDirectionR, kDirectionPhi
+  kDirectionR, kDirectionPhi,
+  kDirectionLeft, kDirectionRight
 };
 
 // Currently up and down are considered two packages.
@@ -79,7 +80,7 @@ inline std::map < EQwHelicity, int > CreateHelicityMap()
   map[kHelicityNegative] = -1;
   return map;
 }
-static std::map < EQwHelicity, int > kMapHelicity = CreateHelicityMap();
+static const std::map < EQwHelicity, int > kMapHelicity = CreateHelicityMap();
 
 
 ///

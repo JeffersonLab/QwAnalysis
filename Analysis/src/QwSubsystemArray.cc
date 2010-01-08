@@ -13,31 +13,49 @@
 
 //*****************************************************************
 
-void QwSubsystemArray::push_back(VQwSubsystem* subsys){
-    if (subsys==NULL){
-      std::cerr << "QwSubsystemArray::push_back():  NULL subsys"
-		<< std::endl;
-      //  This is an empty subsystem...
-      //  Do nothing for now.
-    } else if (!this->empty() && GetSubsystem(subsys->GetSubsystemName())){
-      //  There is already a subsystem with this name!
-    } else {
-      boost::shared_ptr<VQwSubsystem> tmpptr(subsys);
-      SubsysPtrs::push_back(tmpptr);
-    }
-  };
+/**
+ * Add the subsystem to this array.  Do nothing if the subsystem is null or if
+ * there is already a subsystem with that name in the array.
+ * @param subsys Subsystem to add to the array
+ */
+void QwSubsystemArray::push_back(VQwSubsystem* subsys)
+{
+  if (subsys == NULL) {
+    std::cerr << "QwSubsystemArray::push_back():  NULL subsys"
+              << std::endl;
+    //  This is an empty subsystem...
+    //  Do nothing for now.
+  } else if (!this->empty() && GetSubsystem(subsys->GetSubsystemName())){
+    //  There is already a subsystem with this name!
+    std::cerr << "QwSubsystemArray::push_back():  subsys" << subsys->GetSubsystemName()
+              << " already exists" << std::endl;
+  } else {
+    boost::shared_ptr<VQwSubsystem> tmpptr(subsys);
+    SubsysPtrs::push_back(tmpptr);
+    // Set the parent of the subsystem to this array
+    tmpptr->SetParent(this);
+  }
+};
 
 
-VQwSubsystem* QwSubsystemArray::GetSubsystem(const TString name)
+/**
+ * Get the subsystem in this array with the spcified name
+ * @param name Name of the subsystem
+ * @return Pointer to the subsystem
+ */
+VQwSubsystem* QwSubsystemArray::GetSubsystem(const TString& name)
 {
   VQwSubsystem* tmp = NULL;
-  if (!empty()){
-    for (const_iterator subsys = begin(); subsys != end(); ++subsys){
+  if (!empty()) {
+    // Loop over the subsystems
+    for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
+      // Check the name of this subsystem
       // std::cout<<"QwSubsystemArray::GetSubsystem available name=="<<(*subsys)->GetSubsystemName()<<"== to be compared to =="<<name<<"==\n";
-      if ((*subsys)->GetSubsystemName() == name){
+      if ((*subsys)->GetSubsystemName() == name) {
 	tmp = (*subsys).get();
 	//std::cout<<"QwSubsystemArray::GetSubsystem found a matching name \n";
       } else {
+        // nothing
       }
     }
   }
@@ -124,3 +142,9 @@ void  QwSubsystemArray::DeleteHistograms()
 
 //*****************************************************************
 
+void  QwSubsystemArray::Print()
+{
+  if (!empty())
+    for (iterator subsys = begin(); subsys != end(); ++subsys)
+      std::cout << (*subsys)->GetSubsystemName() << std::endl;
+};

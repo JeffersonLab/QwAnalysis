@@ -37,9 +37,11 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   ~QwSubsystemArray(){
   };
 
+  /// \brief Add the subsystem to this array
   void push_back(VQwSubsystem* subsys);
 
-  VQwSubsystem* GetSubsystem(const TString name);
+  /// \brief Get the subsystem with the specified name
+  VQwSubsystem* GetSubsystem(const TString& name);
 
   //each of the methods below will call their counterpart method separately.
 
@@ -62,6 +64,8 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void  FillHistograms();
   void  DeleteHistograms();
 
+  /// \brief Print some information about the subsystem
+  void Print();
 
  protected:
 

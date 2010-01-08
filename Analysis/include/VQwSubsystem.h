@@ -15,7 +15,11 @@
 #include <TString.h>
 #include <TDirectory.h>
 
+// Qweak headers
 #include "QwParameterFile.h"
+
+// Forward declarations
+class QwSubsystemArray;
 
 /**
  *  \class   VQwSubsystem
@@ -55,6 +59,13 @@ class VQwSubsystem {
 
   TString GetSubsystemName() const {return fSystemName;};
   Bool_t  HasDataLoaded() const  {return fIsDataLoaded;}
+
+  /// \brief Set the parent of this subsystem to the specified array
+  void SetParent(QwSubsystemArray* parent);
+  /// \brief Get the parent of this subsystem
+  QwSubsystemArray* GetParent(const unsigned int parent = 0) const;
+  /// \brief Get the sibling with specified name
+  VQwSubsystem* GetSibling(const TString& name) const;
 
   virtual Int_t LoadChannelMap(TString mapfile) = 0;
   virtual Int_t LoadInputParameters(TString mapfile) = 0;
@@ -107,7 +118,7 @@ class VQwSubsystem {
 
   virtual void Copy(VQwSubsystem *source);//Must call at the beginning of all subsystems rotuine call to Copy(VQwSubsystem *source)  by  using VQwSubsystem::Copy(source)
   virtual VQwSubsystem&  operator=  (VQwSubsystem *value);//Must call at the beginning of all subsystems rotuine call to operator=  (VQwSubsystem *value)  by VQwSubsystem::operator=(value)
-  
+
 
  protected:
 
@@ -126,7 +137,7 @@ class VQwSubsystem {
   Int_t GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) const;
   void  SetDataLoaded(Bool_t flag){fIsDataLoaded = flag;};
 
- 
+
 
 
  protected:
@@ -148,7 +159,8 @@ class VQwSubsystem {
   /// Vector of Bank IDs per ROC ID associated with this subsystem
   std::vector< std::vector<UInt_t> > fBank_IDs;
 
-
+  /// Vector of pointers to subsystem arrays that contain this subsystem
+  std::vector<QwSubsystemArray*> fArrays;
 
 
  protected:

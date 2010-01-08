@@ -25,6 +25,11 @@ using std::string;
 #include "QwTypes.h"
 
 
+/*! \def QwOut
+ *  \brief Predefined log drain for explicit output
+ */
+#define QwOut      gQwLog(QwLog::kAlways)
+
 /*! \def QwError
  *  \brief Predefined log drain for errors
  */
@@ -58,7 +63,8 @@ using std::string;
  *
  * This class should not be used directly. Instead one can write text to the
  * screen or a log file via the predefined log drains QwError, QwWarning,
- * QwMessage, QwVerbose and QwDebug.
+ * QwMessage, QwVerbose and QwDebug.  A special log drain QwOut will always
+ * be printed and is reserved for output \b explicitly requested by the user.
  *
  * An example could be:
 \verbatim
@@ -72,11 +78,12 @@ class QwLog : public std::ostream {
     //! Loglevels
     /*! enum of possible log levels */
     enum QwLogLevel {
-      kError     =  0, /*!< Error loglevel */
+      kAlways    = -1, /*!< Explicit output  */
+      kError     =  0, /*!< Error loglevel   */
       kWarning   =  1, /*!< Warning loglevel */
       kMessage   =  2, /*!< Message loglevel */
       kVerbose   =  3, /*!< Verbose loglevel */
-      kDebug     =  4  /*!< Debug loglevel */
+      kDebug     =  4  /*!< Debug loglevel   */
     };
 
     /*! \brief The constructor
