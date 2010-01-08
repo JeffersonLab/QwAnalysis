@@ -76,6 +76,17 @@ class VQwSubsystem {
   virtual Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) = 0;
 
   virtual void  ProcessEvent() = 0;
+  /*! \brief Request processed data from other subsystems for internal
+   *         use in the second event processing stage.  Not all derived
+   *         classes will require data from other subsystems.
+   */
+  virtual void  ExchangeProcessedData() { };
+  /*! \brief Process the event data again, including data from other
+   *         subsystems.  Not all derived classes will require 
+   *         a second stage of event data processing.
+   */
+  virtual void  ProcessEvent_2() { };
+
 
   // Not all derived classes will have the following functions
   virtual void  RandomizeEventData(int helicity) { };

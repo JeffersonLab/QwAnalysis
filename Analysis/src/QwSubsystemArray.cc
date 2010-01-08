@@ -93,8 +93,11 @@ Int_t QwSubsystemArray::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_i
 
 void  QwSubsystemArray::ProcessEvent()
 {
-  if (!empty())
+  if (!empty()){
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::ProcessEvent));
+    std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::ExchangeProcessedData));
+    std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::ProcessEvent_2));
+  }
 };
 
 
