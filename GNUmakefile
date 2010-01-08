@@ -545,21 +545,21 @@ coda_lib:
 .auxDepends: .auxLibFiles
 	@$(ECHO) Generating .auxLibFiles
 	@$(RM) .auxLibFiles
-	@for libstem in `$(CAT) .auxSrcFiles | $(SED) 's/\.\///' | $(SED) 's/\/.*//' | sort -u`;\
-	do \
-	libname=`$(ECHO) Qw$$libstem | $(SED) 's/QwAnalysis/Qw/'`; \
-	$(ECHO) $(QWLIB)/lib$$libname$(DllSuf) | $(INTO_RELATIVE_PATH) >> .auxLibFiles; \
-	$(ECHO) $(QWLIB)/lib$$libname$(DllSuf): `$(GREP) "./$$libstem" .auxSrcFiles .auxDictFiles | $(AWK) -F ":" '{print $$2}'` | $(TO_LINE) | $(INTO_RELATIVE_PATH) | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/g' | $(ADD_ANTISLASH) | $(FILTER_OUT_FOREIGN_DEPS) >> .auxDepends; \
-	$(ECHO) >> .auxDepends; \
-	$(ECHO) $(TAB)$(LIBTOOL) $(SOFLAGS) $(LDFLAGS) '$$^' -o $(QWLIB)/lib$$libname$(DllSuf) | $(INTO_RELATIVE_PATH) >> .auxDepends; \
-	$(ECHO) $(TAB)@$(ECHO) >> .auxDepends; \
-	$(ECHO) >> .auxDepends; \
-	done
+	@$(ECHO) $(QWLIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) > .auxLibFiles
+	@$(ECHO) $(QWLIB)/libQw$(DllSuf): `$(CAT) .auxSrcFiles` `$(CAT) .auxDictFiles` \
+		| $(TO_LINE) \
+		| $(INTO_RELATIVE_PATH) \
+		| $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/g' \
+		| $(ADD_ANTISLASH) \
+		| $(FILTER_OUT_FOREIGN_DEPS) >> .auxDepends
+	@$(ECHO) >> .auxDepends
+	@$(ECHO) $(TAB)$(LIBTOOL) $(SOFLAGS) $(LDFLAGS) '$$^' -o $(QWLIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) >> .auxDepends
+	@$(ECHO) $(TAB)@$(ECHO) >> .auxDepends
+	@$(ECHO) >> .auxDepends
 	@for file in `$(CAT) 2>&1 .auxMainFiles`; \
 	do \
-	libstem=`$(ECHO) $$file | $(SED) 's/\.\///' | $(SED) 's/\/.*//'`; \
-	$(ECHO) $(QWBIN)/`$(ECHO) $$file | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`: `$(ECHO) $$file | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/'` `$(GREP) libQw$(DllSuf) .auxLibFiles`  `$(GREP) libQw$$libstem$(DllSuf) .auxLibFiles` | $(INTO_RELATIVE_PATH) >> .auxDepends; \
-	$(ECHO) $(TAB)$(LD) $(CXXFLAGS) '$$<'  $(LIBS) -lQw$$libstem  $(LDFLAGS) -o '$$@' | $(INTO_RELATIVE_PATH) >> .auxDepends; \
+	$(ECHO) $(QWBIN)/`$(ECHO) $$file | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`: `$(ECHO) $$file | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/'` `$(CAT) .auxLibFiles`  | $(INTO_RELATIVE_PATH) >> .auxDepends; \
+	$(ECHO) $(TAB)$(LD) $(CXXFLAGS) '$$<' $(LIBS) $(LDFLAGS) -o '$$@' | $(INTO_RELATIVE_PATH) >> .auxDepends; \
 	$(ECHO) $(TAB)@$(ECHO) >> .auxDepends; \
 	$(ECHO) >> .auxDepends; \
 	done
@@ -610,13 +610,21 @@ coda_lib:
 	for file in `$(CAT) 2>&1 .auxSrcFiles`; \
 	do \
 	$(RM) .tmp; \
+	$(RM) .tmperror; \
 	$(ECHO) Writing dependencies for file $$file...; \
-	$(ECHO) `$(DIRNAME) $$file`/`$(GCC) $(CPPFLAGS) 2>&1 -MM $$file` \
+	$(ECHO) `$(DIRNAME) $$file`/`$(GCC) $(CPPFLAGS) 2>.tmperror -MM $$file` \
 	| $(TO_LINE) \
 	| $(INTO_RELATIVE_PATH) \
 	| $(ADD_ANTISLASH) \
 	| $(FILTER_OUT_FOREIGN_DEPS) \
 	>> .tmp; \
+	if [ ! -e .tmperror ];\
+	then \
+	$(ECHO) "Aborting:  Unable to locate a file in the include paths:"; \
+	$(CAT) .tmperror; \
+	exit 1; \
+	fi;\
+	$(RM) .tmperror; \
 	$(CAT) .tmp | $(GREP) -v "\/$$(stem $$file)\." | $(SED) "s/\/include\//\/src\//g;s/\$(IncSuf)/\$(SrcSuf)/g;s/\\\//g" >> .aux; \
 	if [ "`$(CAT) .tmp | $(GREP) /In | $(SED) '/In[A-Za-z0-9\/_]/d'`" = "" ]; \
 	then \
@@ -630,6 +638,31 @@ coda_lib:
 	$(RM) .auxSrcFiles; \
 	$(TOUCH) .auxSrcFiles; \
 	$(ECHO) Checking for nested dependencies...; \
+	for file in `$(CAT) 2>&1 .aux`; \
+	do \
+	if [ "`$(GREP) $$file .auxSrcFiles`" = "" ]; \
+	then \
+	if [ -f $$file ]; \
+	then \
+	$(ECHO) $$file | $(FILTER_OUT_LIBRARYDIR_DEPS) >> .auxSrcFiles; \
+	$(ECHO) `$(GCC) $(CPPFLAGS) 2>.tmperror -MM $$file` \
+	| $(TO_LINE) \
+	| $(INTO_RELATIVE_PATH) \
+	| $(FILTER_OUT_FOREIGN_DEPS) \
+	| $(GREP) -v "\/$$(stem $$file)\." \
+	| $(SED) "s/\/include\//\/src\//g;s/\$(IncSuf)/\$(SrcSuf)/g;s/\\\//g" \
+	>> .aux; \
+	if [ ! -e .tmperror ];\
+	then \
+	$(ECHO) "Aborting:  Unable to locate a file in the include paths:"; \
+	$(CAT) .tmperror; \
+	exit 1; \
+	fi;\
+	$(RM) .tmperror; \
+	fi; \
+	fi; \
+	done; \
+	$(ECHO) Checking for double-nested dependencies...; \
 	for file in `$(CAT) 2>&1 .aux`; \
 	do \
 	if [ "`$(GREP) $$file .auxSrcFiles`" = "" ]; \
