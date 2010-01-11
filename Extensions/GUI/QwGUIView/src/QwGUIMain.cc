@@ -42,6 +42,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   std::set_new_handler(0);
 
   MainDetSubSystem   = NULL;  
+  LumiDetSubSystem   = NULL;
   dMWWidth           = w;
   dMWHeight          = h;
   dCurRun            = 0;
@@ -95,6 +96,9 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
   if(!GetSubSystemPtr("Main Detectors"))
     MainDetSubSystem = new QwGUIMainDetector(fClient->GetRoot(), this, dTab,"Main Detectors",
+					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
+  if(!GetSubSystemPtr("Lumi Detectors"))
+    LumiDetSubSystem = new QwGUILumiDetector(fClient->GetRoot(), this, dTab,"Lumi Detectors",
 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
 }

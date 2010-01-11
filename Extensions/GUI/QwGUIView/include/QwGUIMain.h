@@ -83,6 +83,7 @@
 #include <TGIcon.h>
 
 #include "QwGUIMainDetector.h"
+#include "QwGUILumiDetector.h"
 
 class QwGUIMain : public TGMainFrame {
   
@@ -95,6 +96,7 @@ class QwGUIMain : public TGMainFrame {
 
   //!Main detector sub system class
   QwGUIMainDetector      *MainDetSubSystem;
+  QwGUILumiDetector      *LumiDetSubSystem;
 			 
   //!Initial width of the application window set in main()
   Int_t                   dMWWidth;

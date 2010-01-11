@@ -16,6 +16,7 @@ OBJECTS	      =
 OBJECTS       += QwGUIMain.o
 OBJECTS       += QwGUISubSystem.o
 OBJECTS       += QwGUIMainDetector.o
+OBJECTS       += QwGUILumiDetector.o
 # Now append the object files that Don't require a CINT dictionary.
 NODICTOBJECTS =
 #NODICTOBJECTS += NMpContainer.o
