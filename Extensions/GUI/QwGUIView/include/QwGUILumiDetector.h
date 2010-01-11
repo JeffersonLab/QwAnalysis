@@ -84,7 +84,7 @@ class QwGUILumiDetector : public QwGUISubSystem {
 
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
   //!These are the names by which the histograms are identified within the root file.
-  static const char   *LumiDetectorHists[MAIN_DET_HST_NUM];
+  static const char   *LumiDetectorHists[LUMI_DET_HST_NUM];
 
  protected:
 

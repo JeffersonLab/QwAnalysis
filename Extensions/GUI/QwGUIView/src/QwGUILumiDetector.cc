@@ -47,7 +47,7 @@ void QwGUILumiDetector::MakeLayout()
 				"QwGUILumiDetector",
 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
   TCanvas *mc = dCanvas->GetCanvas();
-  mc->Divide( MAIN_DET_HST_NUM/2, MAIN_DET_HST_NUM/2);
+  mc->Divide( LUMI_DET_HST_NUM/2, LUMI_DET_HST_NUM/2);
 
 }
 
@@ -75,7 +75,7 @@ void QwGUILumiDetector::OnNewDataContainer()
   ClearData();
 
   if(dROOTCont){
-    for(int p = 0; p < MAIN_DET_HST_NUM; p++){
+    for(int p = 0; p < LUMI_DET_HST_NUM; p++){
 	
       obj = dROOTCont->ReadData(LumiDetectorHists[p]);
       if(obj){
@@ -136,7 +136,7 @@ void QwGUILumiDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
   if(event == kButton1Double){
     Int_t pad = dCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
     
-    if(pad > 0 && pad <= MAIN_DET_HST_NUM)
+    if(pad > 0 && pad <= LUMI_DET_HST_NUM)
       {
 	RSDataWindow *dMiscWindow = new RSDataWindow(GetParent(), this,
 						     GetNewWindowName(),"QwGUILumiDetector",
