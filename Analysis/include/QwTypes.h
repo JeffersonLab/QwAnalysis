@@ -120,12 +120,12 @@ class QwElectronicsID
 /// \ingroup QwAnalysis
 class QwDelayLineID{
  public:
- QwDelayLineID():BackPlane(-1),Linenumber(-1),Side(-1){};
- QwDelayLineID(const int fBackPlane, const int fLinenumber, const int fSide):BackPlane(fBackPlane),Linenumber(fLinenumber),Side(fSide){};
+ QwDelayLineID():fBackPlane(-1),fLineNumber(-1),fSide(-1){};
+ QwDelayLineID(const int backplane, const int linenumber, const int side):fBackPlane(backplane),fLineNumber(linenumber),fSide(side){};
 
- int BackPlane;
- int Linenumber;
- int Side;
+ Int_t fBackPlane;
+ Int_t fLineNumber;
+ Int_t fSide;
 };
 
 
