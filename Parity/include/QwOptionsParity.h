@@ -18,9 +18,11 @@
 #include "QwOptions.h"
 
 // Qweak parity subsystems that provide options
+#include "QwDatabase.h"
 
 void QwOptions::DefineOptions() {
   /* No options defined */
+  gQwDatabase.DefineOptions();
 }
 
 #endif // QWOPTIONSPARITY_H
