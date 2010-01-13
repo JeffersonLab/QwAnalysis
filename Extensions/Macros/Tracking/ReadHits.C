@@ -1800,6 +1800,8 @@ plot_nevent_per_wire(Int_t run_number   = 1567,
 
       //      nevent_per_wire_canvas -> SetMenuMargin(0.1);
       nevent_per_wire_canvas -> Divide(6,4);  
+      nevent_per_wire_canvas -> ToggleEventStatus();
+      nevent_per_wire_canvas -> ToggleToolTips();
       
       TLatex *region_tex = NULL;
       region_tex = new TLatex();
@@ -1876,8 +1878,8 @@ plot_nevent_per_wire(Int_t run_number   = 1567,
 		    }
 		}
 	    }
-	  nevent_per_wire_canvas -> cd();
-
+	  //	  nevent_per_wire_canvas -> cd();
+	  
 	}
     
     }
@@ -1918,14 +1920,14 @@ plot_nwire_hits_per_event(Int_t run_number   = 1567,
   
   timer.Start();
  
-  TSuperCanvas *nevent_per_wire_canvas = new TSuperCanvas("wire_hits_per_event_canvas","wire_hits_per_event",10,10,1000,640);
+  TSuperCanvas *nwire_hits_per_event_canvas = new TSuperCanvas("wire_hits_per_event_canvas","wire_hits_per_event",10,10,1000,640);
   
   TFile *file =  new TFile(Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES_DIR"), run_number));
   
   if (file->IsZombie()) 
     {
       printf("Error opening file\n"); 
-      delete nevent_per_wire_canvas;nevent_per_wire_canvas = NULL;
+      delete nwire_hits_per_event_canvas;nwire_hits_per_event_canvas = NULL;
       return;
     }
   else
@@ -2073,11 +2075,11 @@ plot_nwire_hits_per_event(Int_t run_number   = 1567,
 	  hitContainer->Clear();
 	}
 
-      //      nevent_per_wire_canvas -> SetMenuMargin(0.1);
-      nevent_per_wire_canvas -> ToggleEventStatus();
-      nevent_per_wire_canvas -> ToggleToolTips();
-      nevent_per_wire_canvas -> Divide(6,4); 
-      //      nevent_per_wire_canvas ->FeedbackMode(kTRUE);
+      //      nwire_hits_per_event_canvas -> SetMenuMargin(0.1);
+      nwire_hits_per_event_canvas -> ToggleEventStatus();
+      nwire_hits_per_event_canvas -> ToggleToolTips();
+      nwire_hits_per_event_canvas -> Divide(6,4); 
+      //      nwire_hits_per_event_canvas ->FeedbackMode(kTRUE);
   
       
       TLatex *region_tex = NULL;
@@ -2098,8 +2100,8 @@ plot_nwire_hits_per_event(Int_t run_number   = 1567,
 	    {
 	      direction = j+1;
 	      padnumber = direction;
-	      nevent_per_wire_canvas -> cd(padnumber);
-	      // 	      nevent_per_wire_canvas -> FeedbackMode(kTRUE);
+	      nwire_hits_per_event_canvas -> cd(padnumber);
+	      // 	      nwire_hits_per_event_canvas -> FeedbackMode(kTRUE);
 	      //	      printf("region 1 pad %d\n", padnumber);
 	      if(direction_status[direction]) 
 		{
@@ -2130,8 +2132,8 @@ plot_nwire_hits_per_event(Int_t run_number   = 1567,
 	    {
 	      plane     = j+1;
 	      padnumber = 6 + plane;
-	      nevent_per_wire_canvas -> cd(padnumber);
-	      // 	      nevent_per_wire_canvas ->FeedbackMode(kTRUE);
+	      nwire_hits_per_event_canvas -> cd(padnumber);
+	      // 	      nwire_hits_per_event_canvas ->FeedbackMode(kTRUE);
 	      //	      printf("region 2 pad %d \n", padnumber);
 	      if(plane_status[plane]) 
 		{
@@ -2162,8 +2164,8 @@ plot_nwire_hits_per_event(Int_t run_number   = 1567,
 	      plane     = j+1;
 	      padnumber = 18 + plane;
 	      //	      printf("region 3 pad %d \n", padnumber);
-	      nevent_per_wire_canvas -> cd(padnumber);
- 	      nevent_per_wire_canvas -> FeedbackMode(kTRUE);
+	      nwire_hits_per_event_canvas -> cd(padnumber);
+ 	      nwire_hits_per_event_canvas -> FeedbackMode(kTRUE);
 	      if(plane_status[plane]) 
 		{
 		  gStyle -> SetOptStat(0);
@@ -2185,12 +2187,12 @@ plot_nwire_hits_per_event(Int_t run_number   = 1567,
 	    }
 	}
 	  
-     nevent_per_wire_canvas -> cd();
+     //     nwire_hits_per_event_canvas -> cd();
 // 	  for(Short_t j=0; j<6; j++)
 // 	    {
 // 	      direction = j+1;
 // 	      padnumber = 6*(region-1) + direction;
-// 	      nevent_per_wire_canvas -> cd(padnumber);
+// 	      nwire_hits_per_event_canvas -> cd(padnumber);
 
 // 	      if(region_status[region] && direction_status[direction]) 
 // 		{
