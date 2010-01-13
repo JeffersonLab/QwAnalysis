@@ -64,6 +64,7 @@ AWK      := awk
 BASENAME := basename
 CAT      := cat
 CD       := cd
+CHMOD    := chmod
 DIRNAME  := dirname
 ECHO     := echo
 FIND     := find
@@ -745,7 +746,11 @@ coda_lib:
 .EXES:
 	@$(ECHO) $(EXES)  | $(TO_LINE) > .EXES
 
-
+qweak-config: qweak-config.in
+	@$(CAT) $< | $(SED) 's!%QWANALYSIS%!$(QWANALYSIS)!' | $(SED) 's!%LIBS%!$(LIBS)!'   \
+	           | $(SED) 's!%QWLIB%!$(QWLIB)!' | $(SED) 's!%QWBIN%!$(QWBIN)!'           \
+	           | $(SED) 's!%LDFLAGS%!$(LDFLAGS)!' | $(SED) 's!%CPPFLAGS%!$(CPPFLAGS)!' \
+	           > bin/$@
 
 ############################
 ############################

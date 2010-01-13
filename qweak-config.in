@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Loop over the arguments
+while [ $# -ne 0 ] ; do
+
+	# Treat cases
+	case $1 in
+		(--qwanalysis)	echo -n %QWANALYSIS% ;;
+		(--bin)		echo -n %QWBIN% ;;
+		(--lib)		echo -n %QWLIB% ;;
+		(--libs)	echo -n %LIBS% ;;
+		(--ldflags)	echo -n %LDFLAGS% ;;
+		(--cppflags)	echo -n %CPPFLAGS% ;;
+	esac
+
+	# Shift to the next argument
+	shift
+done
+
+# Finish with a new line
+# (disabled because it could break command lines)
+#echo
