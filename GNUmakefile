@@ -751,6 +751,7 @@ qweak-config: qweak-config.in
 	           | $(SED) 's!%QWLIB%!$(QWLIB)!' | $(SED) 's!%QWBIN%!$(QWBIN)!'           \
 	           | $(SED) 's!%LDFLAGS%!$(LDFLAGS)!' | $(SED) 's!%CPPFLAGS%!$(CPPFLAGS)!' \
 	           > bin/$@
+	@$(CHMOD) a+x bin/$@
 
 ############################
 ############################
