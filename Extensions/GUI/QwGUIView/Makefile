@@ -18,7 +18,7 @@ OBJECTS       += QwGUISubSystem.o
 OBJECTS       += QwGUIMainDetector.o
 OBJECTS       += QwGUILumiDetector.o
 OBJECTS       += TSuperCanvas.o
-OBJECTS       += QwGUITrackingSystem.o
+#OBJECTS       += QwGUITrackingSystem.o
 # Now append the object files that Don't require a CINT dictionary.
 NODICTOBJECTS =
 #NODICTOBJECTS += NMpContainer.o

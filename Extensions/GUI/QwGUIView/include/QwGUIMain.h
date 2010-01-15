@@ -84,7 +84,7 @@
 
 #include "QwGUIMainDetector.h"
 #include "QwGUILumiDetector.h"
-#include "QwGUITrackingSystem.h"
+//#include "QwGUITrackingSystem.h"
 
 class QwGUIMain : public TGMainFrame {
   
@@ -98,7 +98,7 @@ class QwGUIMain : public TGMainFrame {
   //!Main detector sub system class
   QwGUIMainDetector      *MainDetSubSystem;
   QwGUILumiDetector      *LumiDetSubSystem;
-  QwGUITrackingSystem    *TrackingSystem;
+  //  QwGUITrackingSystem    *TrackingSystem;
 			 
   //!Initial width of the application window set in main()
   Int_t                   dMWWidth;
