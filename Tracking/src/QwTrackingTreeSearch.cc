@@ -932,7 +932,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
             of the treesearch?                                         ---- */
       //std::cout << "minlevel = " << tree->minlevel << std::endl;
       //std::cout << "row_offset = " << row_offset << std::endl;
-      if (tree->minlevel > level + 1) { /* check for level boundaries */
+      if (tree->fMinLevel > level + 1) { /* check for level boundaries */
         std::cerr << "hrm..." << std::endl;
         node = node->next; /* no, so look at the next nodenode */
         continue;
@@ -1084,7 +1084,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
       /* ---- Is the hit pattern in this treenode valid for this level
               of the treesearch?                                         ---- */
 
-      if (tree->minlevel >= level) { /* check for level boundaries */
+      if (tree->fMinLevel >= level) { /* check for level boundaries */
         node = node->next; /* no, so look at the next nodenode */
         continue;
       }

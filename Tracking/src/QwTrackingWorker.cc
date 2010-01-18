@@ -78,6 +78,7 @@
 #include <cstring>
 #include <cassert>
 #include <iostream>
+#include <sstream>
 
 using std::cout;
 using std::cerr;
@@ -157,6 +158,10 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
 
 QwTrackingWorker::~QwTrackingWorker ()
 {
+  // TODO This causes a segmentation fault in ROOT's memory management
+  for (int i = 0; i < kNumPackages * kNumRegions * kNumTypes * kNumDirections; i++)
+    if (fSearchTree[i]) delete fSearchTree[i];
+
   delete trajectory;
 }
 
@@ -197,10 +202,6 @@ void QwTrackingWorker::DefineOptions()
 
 void QwTrackingWorker::InitTree()
 {
-  // Create a new search tree
-  QwTrackingTree *thetree = new QwTrackingTree();
-  thetree->SetMaxSlope(gQwOptions.GetValue<float>("QwTracking.R2.maxslope"));
-
   /// For each region (1, 2, 3, trigger, cerenkov, scanner)
   for (EQwRegionID region  = kRegionID1;
                    region <= kRegionID3; region++) {
@@ -230,10 +231,13 @@ void QwTrackingWorker::InitTree()
         for (EQwDirectionID direction  = kDirectionX;
                             direction <= kDirectionV; direction++) {
 
+          // Create a new search tree
+          QwTrackingTree *thetree = new QwTrackingTree();
+          thetree->SetMaxSlope(gQwOptions.GetValue<float>("QwTracking.R2.maxslope"));
+
           int levels = 0;
           int numlayers = 0;
           double width = 0.0;
-          char filename[256]; // TODO bad!
 
           // Skip wire direction Y
           if (direction == kDirectionY) continue;
@@ -272,20 +276,20 @@ void QwTrackingWorker::InitTree()
 
           /// Set up the filename with the following format
           ///   tree[numlayers]-[levels]-[u|l]-[1|2|3]-[d|g|t|c]-[n|u|v|x|y].tre
-          sprintf(filename, "tree%d-%d-%c-%c-%c-%c.tre",
-                  numlayers,
-                  levels,
-                  "0ud"[package],
-                  "0123TCS"[region],
-                  "0hvgtc"[type],
-                  "0xyuvrq"[direction]);
-          QwDebug << "Tree filename: " << filename << QwLog::endl;
+          std::stringstream filename;
+          filename << "tree" << numlayers
+                      << "-" << levels
+                      << "-" << "0ud"[package]
+                      << "-" << "0123TCS"[region]
+                      << "-" << "0hvgtc"[type]
+                      << "-" << "0xyuvrq"[direction] << ".tre";
+          QwDebug << "Tree filename: " << filename.str() << QwLog::endl;
 
           /// Each element of fSearchTree will point to a pattern database
           int index = package*kNumRegions*kNumTypes*kNumDirections
                       +region*kNumTypes*kNumDirections
                       +type*kNumDirections+direction;
-          fSearchTree[index] = thetree->inittree(filename,
+          fSearchTree[index] = thetree->inittree(filename.str(),
                                                  levels,
                                                  numlayers,
                                                  width,
@@ -300,6 +304,9 @@ void QwTrackingWorker::InitTree()
           fSearchTree[index]->SetDirection(direction);
           // Plane unknown, element not applicable: keep them at null values
 
+          // Delete the tree object
+          delete thetree;
+
         } // end of loop over wire directions
 
       } // end of loop over detector types
@@ -307,8 +314,6 @@ void QwTrackingWorker::InitTree()
     } // end of loop over packages
 
   } // end of loop over regions
-
-  if (thetree) delete thetree;
 
 }
 
