@@ -36,14 +36,17 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
   Bool_t fEventIsGood=kTRUE;
   Bool_t bStatus;
   fDeviceErrorCode=0;//Initialize the error flag 
-
+  /*
+  //debug- Ring analysis
+  fEventCounter++;
+  fTripCounter++;
+  */
   
-    
 
   if (bEVENTCUTMODE>0){//Global switch to ON/OFF event cuts set at the event cut file
 
     if (bDEBUG) 
-      std::cout<<" QwQWVK_Channel "<<GetElementName()<<"  "<<fNumberOfSamples_map<<std::endl;  
+      std::cout<<" QwQWVK_Channel "<<GetElementName()<<"  "<<GetNumberOfSamples()<<std::endl;  
     //Sample size check  
   
     bStatus= MatchNumberOfSamples(fNumberOfSamples_map);//compare the default sample size with no.of samples read by the module
@@ -98,8 +101,21 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
   }
   else
     fDeviceErrorCode=0;
+
+  /*
+  //debug- Ring analysis  
+  if (fEventCounter%100000==0){
+    bTrip=kTRUE;
+    fTripCounter=0;
+  }
+
+  if (bTrip && fTripCounter==10)
+    bTrip=kFALSE;
+
+  if (bTrip)
+    fHardwareBlockSum=0;
   
-    
+  */
 
   return fDeviceErrorCode;
 };
@@ -613,7 +629,7 @@ void QwVQWK_Channel::Calculate_Running_Average(){
   }else{
     fAverage_n=fRunning_sum/fGoodEventCount;
     fAverage_n_square=fRunning_sum_square/fGoodEventCount;
-    std::cout<<GetElementName()<<" \t "<<this->fAverage_n <<" \t "<<((fAverage_n_square-fAverage_n*fAverage_n)/fGoodEventCount) <<" \t "<<fGoodEventCount <<std::endl;
+    std::cout<<GetElementName()<<" \t "<<this->fAverage_n <<" \t "<<sqrt(((fAverage_n_square-fAverage_n*fAverage_n)/fGoodEventCount)) <<" \t "<<fGoodEventCount <<std::endl;
   }
 
    

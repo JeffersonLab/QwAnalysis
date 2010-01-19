@@ -67,6 +67,12 @@ class QwVQWK_Channel: public VQwDataElement {
     fErrorCount_SW_HW=0;//HW_sum==SW_sum check
     fErrorCount_Sequence=0;//sequence number check
     fErrorCount_SameHW=0;//check to see ADC returning same HW value 
+    /*
+    //debug- Ring analysis
+    fEventCounter=1;
+    bTrip=kFALSE;
+    */
+    
     return;
   };
 
@@ -233,9 +239,14 @@ class QwVQWK_Channel: public VQwDataElement {
   Int_t fGoodEventCount;//counts the HW and event check passed events
 
   Int_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
-  
-  
 
+  /*
+  //debug- Ring analysis
+  Int_t fEventCounter;
+  Int_t fTripCounter;
+  Bool_t bTrip;
+  
+  */
 
   const static Bool_t bDEBUG=kFALSE;//debugging display purposes
 

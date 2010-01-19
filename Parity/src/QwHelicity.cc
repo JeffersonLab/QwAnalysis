@@ -808,7 +808,7 @@ void  QwHelicity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::ve
 /////////////////////////////////////////////////////////////////
 void  QwHelicity::FillTreeVector(std::vector<Double_t> &values)
 {
-  //  std::cout<<"QwHelicity::FillTreeVector fHistoType="<<fHistoType<<"\n";
+  //std::cout<<"QwHelicity::FillTreeVector fPatternNumber="<<fPatternNumber<<"\n";
 
   size_t index=fTreeArrayIndex;
   if(fHistoType==kHelSaveMPS)
