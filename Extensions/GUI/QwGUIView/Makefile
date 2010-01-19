@@ -18,7 +18,7 @@ OBJECTS       += QwGUISubSystem.o
 OBJECTS       += QwGUIMainDetector.o
 OBJECTS       += QwGUILumiDetector.o
 OBJECTS       += TSuperCanvas.o
-#OBJECTS       += QwGUITrackingSystem.o
+OBJECTS       += QwGUITrackingSystem.o
 # Now append the object files that Don't require a CINT dictionary.
 NODICTOBJECTS =
 #NODICTOBJECTS += NMpContainer.o
@@ -34,7 +34,7 @@ MFILE         = Makefile
 # the correct flag settings are: 
 
 DEBUGFLAGS    = #-DQWGUI_DEBUG
-CXX           = g++
+CXX           = gcc
 CXXFLAGS      = -Wall -fPIC -DVERS="\"$(VERS)\"" -g #-O2
 LD            = g++
 LDFLAGS       = #-O2
@@ -46,8 +46,12 @@ ROOTCFLAGS   := $(shell root-config --cflags)
 ROOTLIBS     := $(shell root-config --libs)
 ROOTGLIBS    := $(shell root-config --glibs)
 
+QWINCLUDE    = -I$(QWANALYSIS)/Analysis/include -I$(QWANALYSIS)/Tracking/include -I$(QWANANLSYS)/Parity/include 
+QWLIBS       = $(QWANALYSIS)/lib
+
+
 CXXFLAGS     += $(DEBUGFLAGS) $(ROOTCFLAGS) -Wno-deprecated
-LIBS          = $(ROOTLIBS) $(SYSLIBS)
+LIBS          = $(ROOTLIBS) $(SYSLIBS) $(QWLIBS)
 GLIBS         = $(ROOTGLIBS) $(SYSLIBS)
 
 ENSCRIPT      = @enscript -2Gjr -o
@@ -62,14 +66,14 @@ $(APPLIC): $(OBJECTS) $(NODICTOBJECTS) $(DICTS) $(RDATALIB)
 	@echo "$@ done"
 
 %.o : $(PRG_SOURCE)/%.cc
-	$(CXX) -c $(CXXFLAGS) $< -I$(PRG_INCLUDE) -I$(LIBINCLUDE)
+	$(CXX) -c $(CXXFLAGS) $< -I$(PRG_INCLUDE) -I$(LIBINCLUDE)   $(QWINCLUDE)
 
 %Dict.o : %Dict.cc
-	$(CXX) -c $(CXXFLAGS) $< -I$(PRG_INCLUDE) -I$(LIBINCLUDE)
+	$(CXX) -c $(CXXFLAGS) $< -I$(PRG_INCLUDE) -I$(LIBINCLUDE)  $(QWINCLUDE)
 
 %Dict.cc : $(PRG_INCLUDE)/%.h
 	@echo "Generating dictionary $@..."
-	rootcint -f $@ -c -I$(LIBINCLUDE) $^
+	rootcint -f $@ -c -I$(LIBINCLUDE) $(QWINCLUDE)  $^
 
 clean:
 	rm -f ./*.o ./core ./*~ ./*Dict.cc ./*Dict.h ./~* ./G__*.* source/*~ \
