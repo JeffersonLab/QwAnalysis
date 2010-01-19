@@ -72,15 +72,16 @@ enum EQwHelicity {
 };
 /// Use the static map kMapHelicity to get the helicity sign
 /// e.g.: kMapHelicity[kHelicityPositive] will return +1
-inline std::map < EQwHelicity, int > CreateHelicityMap()
+typedef std::map < EQwHelicity, int > QwHelicityMap;
+inline QwHelicityMap CreateHelicityMap()
 {
-  std::map < EQwHelicity, int > map;
+  QwHelicityMap map;
   map[kHelicityUndefined] = 0;
   map[kHelicityPositive] = +1;
   map[kHelicityNegative] = -1;
   return map;
 }
-static const std::map < EQwHelicity, int > kMapHelicity = CreateHelicityMap();
+static const QwHelicityMap kMapHelicity = CreateHelicityMap();
 
 
 ///
@@ -127,6 +128,5 @@ class QwDelayLineID{
  Int_t fLineNumber;
  Int_t fSide;
 };
-
 
 #endif
