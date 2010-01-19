@@ -84,7 +84,7 @@
 
 #include "QwGUIMainDetector.h"
 #include "QwGUILumiDetector.h"
-
+#include "QwGUIInjector.h"
 
 #include "QwGUITrackingSystem.h"
 
@@ -100,6 +100,7 @@ class QwGUIMain : public TGMainFrame {
   //!Main detector sub system class
   QwGUIMainDetector      *MainDetSubSystem;
   QwGUILumiDetector      *LumiDetSubSystem;
+  QwGUIInjector          *InjectorSubSystem;
 
   QwGUITrackingSystem    *TrackingSystem;
 			 

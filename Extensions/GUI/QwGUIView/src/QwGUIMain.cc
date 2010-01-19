@@ -43,6 +43,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
   MainDetSubSystem   = NULL;  
   LumiDetSubSystem   = NULL;
+  InjectorSubSystem  = NULL;
 
   TrackingSystem     = NULL;
 
@@ -103,16 +104,19 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   if(!GetSubSystemPtr("Lumi Detectors"))
     LumiDetSubSystem = new QwGUILumiDetector(fClient->GetRoot(), this, dTab,"Lumi Detectors",
 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
-
+  if(!GetSubSystemPtr("Injector"))
+    InjectorSubSystem = new QwGUIInjector(fClient->GetRoot(), this, dTab,"Injector",
+					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
   // The below lines are added for only "Tracking System" test purpose, because
   // the QwGUITrackingSystem class is not inherited from  QwGUISubSystem 
   // but TGCompositeFrame directly. I miminize the effect on the QwGUIMain 
   // 
-  TrackingSystem = new QwGUITrackingSystem(this, dTab->AddTab("Tracking System"), dMWWidth-15,dMWHeight-180);
+  TrackingSystem = new QwGUITrackingSystem(this, dTab->AddTab("Tracking System"), 
+					   dMWWidth-15,dMWHeight-180);
   MapSubwindows();
   Layout();
-  //
+  //////////////////////
 }
 
 QwGUIMain::~QwGUIMain()
