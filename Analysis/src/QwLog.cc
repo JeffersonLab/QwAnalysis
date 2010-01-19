@@ -18,6 +18,10 @@ QwLog gQwLog;
 static Bool_t QwLogScreenAtNewLine = kTRUE;
 static Bool_t QwLogFileAtNewLine = kTRUE;
 
+// Log file open modes
+const std::ios_base::openmode QwLog::kTruncate = std::ios::trunc;
+const std::ios_base::openmode QwLog::kAppend = std::ios::app;
+
 /*! The constructor initializes the screen stream and resets the file stream
  */
 QwLog::QwLog()
@@ -49,14 +53,15 @@ QwLog::~QwLog()
 
 /*! Initialize the log file with name 'name'
  */
-void QwLog::InitLogFile(const string name)
+void QwLog::InitLogFile(const string name, const std::ios_base::openmode mode)
 {
   if (fFile) {
     delete fFile;
     fFile = 0;
   }
 
-  fFile = new std::ofstream(name.c_str(), std::ios::app | std::ios::out);
+  std::ios_base::openmode flags = std::ios::out | mode;
+  fFile = new std::ofstream(name.c_str(), flags);
   fFileThreshold = kMessage;
 }
 

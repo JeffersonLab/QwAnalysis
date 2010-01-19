@@ -86,6 +86,10 @@ class QwLog : public std::ostream {
       kDebug     =  4  /*!< Debug loglevel   */
     };
 
+    //! Log file open modes
+    static const std::ios_base::openmode kTruncate;
+    static const std::ios_base::openmode kAppend;
+
     /*! \brief The constructor
      */
     QwLog();
@@ -96,7 +100,7 @@ class QwLog : public std::ostream {
 
     /*! \brief Initialize the log file with name 'name'
      */
-    void                        InitLogFile(const std::string name);
+    void                        InitLogFile(const std::string name, const std::ios_base::openmode mode = kAppend);
 
     /*! \brief Set the screen log level
      */
