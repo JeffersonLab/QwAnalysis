@@ -39,7 +39,6 @@ class QwCombinedBCM : public VQwDataElement{
   
   void ReportErrorCounters();
 
-  void CalculateAverage();
 
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);

@@ -83,9 +83,11 @@ void QwCombinedBCM::EncodeEventData(std::vector<UInt_t> &buffer)
 };
 
 
-/********************************************************/
-void QwCombinedBCM::CalculateAverage(){
 
+/********************************************************/
+void  QwCombinedBCM::ProcessEvent()
+{
+ 
   Bool_t ldebug = kFALSE;
   QwVQWK_Channel* ftmpADC; 
   Double_t  total_weights=0;
@@ -114,14 +116,6 @@ void QwCombinedBCM::CalculateAverage(){
     std::cout<<"***************** \n";
   }
   
-}
-
-/********************************************************/
-void  QwCombinedBCM::ProcessEvent()
-{
- 
-  CalculateAverage(); //Calculate the weigted averages of the hardware sum and each of the four blocks.
-
   return;
 };
 
