@@ -55,7 +55,7 @@
 
 #include "TSuperCanvas.h"
 #include <math.h>
-
+#include <cstdlib>
 
 ClassImp(TSuperCanvas);
 
@@ -534,7 +534,7 @@ TSuperCanvas::SliceTH2(Int_t px, Int_t py)
 	  sliced_hist  -> SetFillColor(38);
 	  sliced_hist  -> Draw();
 
-	  slice_canvas -> ToggleToolTips();
+	  //slice_canvas -> ToggleToolTips();
 	  slice_canvas -> Update();
 	}
     }
