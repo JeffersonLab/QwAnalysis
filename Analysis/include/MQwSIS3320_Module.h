@@ -19,14 +19,18 @@
 /** \def SIS3320_CHANNELS Number of channels in a SIS3320 module */
 #define SIS3320_CHANNELS 8
 
+// System headers
 #include <iostream>
 #include <vector>
 #include <numeric>
-#include "TTree.h"
+
+// ROOT headers
+#include <TTree.h>
 
 // Boost math library for random number generation
-#include "boost/random.hpp"
+#include <boost/random.hpp>
 
+// Qweak headers
 #include "VQwDataElement.h"
 #include "MQwSIS3320_Channel.h"
 

@@ -1,0 +1,11 @@
+ROC=1
+
+! Multiple subbanks in one ROC for the same subsystem is still a problem...
+
+Bank=0x0211
+! module.type, module.num  chan.num, det.type, det.name
+SIS3320,	0,	0,	accum,	compton
+
+Bank=0x0212
+! module.type, module.num  chan.num, det.type, det.name
+SIS3320,	0,	0,	sample,	compton

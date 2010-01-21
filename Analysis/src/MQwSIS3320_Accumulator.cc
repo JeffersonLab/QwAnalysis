@@ -16,10 +16,12 @@
 
 #include "MQwSIS3320_Accumulator.h"
 
+// Qweak headers
+#include "QwLog.h"
+
 // Fields in accumulator data buffer
 const unsigned int MQwSIS3320_Accumulator::INDEX_NUM = 0;
 const unsigned int MQwSIS3320_Accumulator::INDEX_SUM = 1;
-
 
 Int_t MQwSIS3320_Accumulator::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement)
 {

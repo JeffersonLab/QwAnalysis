@@ -82,7 +82,7 @@ class VQwSubsystem {
    */
   virtual void  ExchangeProcessedData() { };
   /*! \brief Process the event data again, including data from other
-   *         subsystems.  Not all derived classes will require 
+   *         subsystems.  Not all derived classes will require
    *         a second stage of event data processing.
    */
   virtual void  ProcessEvent_2() { };
@@ -92,39 +92,58 @@ class VQwSubsystem {
   virtual void  RandomizeEventData(int helicity) { };
   virtual void  EncodeEventData(std::vector<UInt_t> &buffer) { };
 
-
-  /*! \brief Construct the histograms for this subsystem
-   */
-  virtual void  ConstructHistograms()
-    {
-      TString tmpstr("");
-      ConstructHistograms((TDirectory*)NULL, tmpstr);
-    };
-  /*! \brief Construct the histograms for this subsystem in a folder
-   */
-  virtual void  ConstructHistograms(TDirectory *folder)
-    {
-      TString tmpstr("");
-      ConstructHistograms(folder,tmpstr);
-    };
-  /*! \brief Construct the histograms for this subsystem with a prefix
-   */
-  virtual void  ConstructHistograms(TString &prefix)
-    {
-      ConstructHistograms((TDirectory*)NULL, prefix);
-    };
-  /*! \brief Construct the histograms for this subsystem in a folder with a prefix
-   */
+  /// \name Histogram construction and maintenance
+  // @{
+  /// Construct the histograms for this subsystem
+  virtual void  ConstructHistograms() {
+    TString tmpstr("");
+    ConstructHistograms((TDirectory*) NULL, tmpstr);
+  };
+  /// Construct the histograms for this subsystem in a folder
+  virtual void  ConstructHistograms(TDirectory *folder) {
+    TString tmpstr("");
+    ConstructHistograms(folder, tmpstr);
+  };
+  /// Construct the histograms for this subsystem with a prefix
+  virtual void  ConstructHistograms(TString &prefix) {
+    ConstructHistograms((TDirectory*) NULL, prefix);
+  };
+  /// \brief Construct the histograms for this subsystem in a folder with a prefix
   virtual void  ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
-  /*! \brief Fill the histograms for this subsystem
-   */
+  /// \brief Fill the histograms for this subsystem
   virtual void  FillHistograms() = 0;
-  /*! \brief Delete the histograms for this subsystem
-   */
+  /// \brief Delete the histograms for this subsystem
   virtual void  DeleteHistograms() = 0;
+  // @}
 
-  /*! \brief Print some information about the subsystem
-   */
+  /// \name Tree construction and maintenance
+  /// These functions are not purely virtual, since not every subsystem is
+  /// expected to implement them.  They are intended for expert output to
+  /// trees.
+  // @{
+  /// \brief Construct the tree for this subsystem
+  virtual void  ConstructTree() {
+    TString tmpstr("");
+    ConstructTree((TDirectory*) NULL, tmpstr);
+  };
+  /// \brief Construct the tree for this subsystem in a folder
+  virtual void  ConstructTree(TDirectory *folder) {
+    TString tmpstr("");
+    ConstructTree(folder, tmpstr);
+  };
+  /// \brief Construct the tree for this subsystem with a prefix
+  virtual void  ConstructTree(TString &prefix) {
+    ConstructTree((TDirectory*) NULL, prefix);
+  };
+  /// \brief Construct the tree for this subsystem in a folder with a prefix
+  virtual void  ConstructTree(TDirectory *folder, TString &prefix) { return; };
+  /// \brief Fill the tree for this subsystem
+  virtual void  FillTree() { return; };
+  /// \brief Delete the tree for this subsystem
+  virtual void  DeleteTree() { return; };
+  // @}
+
+  /// \brief Print some information about the subsystem
   virtual void  Print();
 
   virtual void Copy(VQwSubsystem *source);//Must call at the beginning of all subsystems rotuine call to Copy(VQwSubsystem *source)  by  using VQwSubsystem::Copy(source)

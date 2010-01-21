@@ -17,17 +17,25 @@
 #ifndef __QwComptonPhotonDetector__
 #define __QwComptonPhotonDetector__
 
+// System headers
 #include <vector>
 
+// ROOT headers
+#include <TTree.h>
+
+// Qweak headers
 #include "VQwSubsystemParity.h"
 #include "MQwSIS3320_Channel.h"
 #include "QwVQWK_Channel.h"
 
-class QwComptonPhotonDetector : public VQwSubsystemParity {
+class QwComptonPhotonDetector: public VQwSubsystemParity {
 
   public:
-    QwComptonPhotonDetector(TString name):VQwSubsystem(region_tmp), VQwSubsystemParity(name) { };
-   ~QwComptonPhotonDetector() {
+
+    /// \brief Constructor
+    QwComptonPhotonDetector(TString name): VQwSubsystem(name), VQwSubsystemParity(name) { };
+    /// \brief Destructor
+    ~QwComptonPhotonDetector() {
       DeleteHistograms();
     };
 
@@ -59,11 +67,19 @@ class QwComptonPhotonDetector : public VQwSubsystemParity {
     Int_t LoadEventCuts(TString filename) { return 0; };
     Bool_t ApplySingleEventCuts() { return kTRUE; };
     Int_t GetEventcutErrorCounters() { return 0; };
+    Int_t GetEventcutErrorFlag() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
+
+    void Calculate_Running_Average() { };
+    void Do_RunningSum() { };
 
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
     void  DeleteHistograms();
+
+    void  ConstructTree(TDirectory *folder, TString &prefix);
+    void  FillTree();
+    void  DeleteTree();
 
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  FillTreeVector(std::vector<Double_t> &values);
@@ -77,12 +93,19 @@ class QwComptonPhotonDetector : public VQwSubsystemParity {
 
   protected:
 
+    /// Expert tree
+    TTree* fTree;
+    /// Expert tree fields
+    Int_t fTree_fNEvents;
+
+    /// List of sampling ADC channels
     std::vector <MQwSIS3320_Channel> fSamplingADC;
 
-// Proper MQwV775TDC and MQwV792ADC support not implemented yet (wdc, 2009-09-04)
-// No data available anyway, so what's the point in having support in software yet?
-//    std::vector <MQwV775TDC> fIntegratingTDC;
-//    std::vector <MQwV792ADC> fIntegratingADC;
+    /// List of integrating QDC and TDC channels
+    // Proper MQwV775TDC and MQwV792ADC support not implemented yet (wdc, 2009-09-04)
+    // No data available anyway, so what's the point in having support in software yet?
+    //    std::vector <MQwV775TDC> fIntegratingTDC;
+    //    std::vector <MQwV792ADC> fIntegratingADC;
     std::vector <QwVQWK_Channel> fIntegratingTDC;
     std::vector <QwVQWK_Channel> fIntegratingADC;
 

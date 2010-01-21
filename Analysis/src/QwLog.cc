@@ -105,7 +105,7 @@ QwLog& QwLog::operator()(QwLogLevel level)
       case kMessage: *(fFile) << " MM"; break;
       case kVerbose: *(fFile) << " VV"; break;
       case kDebug:   *(fFile) << " DD"; break;
-      default: *(fFile) << "  "; break;
+      default: *(fFile) << "   "; break;
       }
       *(fFile) << " - ";
       QwLogFileAtNewLine = kFALSE;
