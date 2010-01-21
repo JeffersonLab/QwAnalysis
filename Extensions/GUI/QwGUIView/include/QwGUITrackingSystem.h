@@ -61,13 +61,14 @@ class QwGUITrackingSystem : public TGCompositeFrame {
 
  private:
 
+  TGHorizontalFrame   *hframe[2];
   TGGroupFrame        *gframe[1];
   TGHorizontalFrame   *g0hframe[2];
   TGVerticalFrame     *g0vframe[1];
 
-  TGNumberEntry       *num_entry[1];
-  TGLabel             *num_label[1];
-  TGTextButton        *txt_button[1];
+  TGNumberEntry       *num_entry[3];
+  TGLabel             *num_label[2];
+  TGTextButton        *txt_button[2];
 
   Pixel_t             green;
   Pixel_t             red;
