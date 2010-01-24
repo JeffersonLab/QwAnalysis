@@ -134,11 +134,6 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt
 
 void  QwTriggerScintillator::ProcessEvent(){
   if (! HasDataLoaded()) return;
-  for (size_t i=0; i<fPMTs.size(); i++){
-    for (size_t j=0; j<fPMTs.at(i).size(); j++){
-      fPMTs.at(i).at(j).ProcessEvent();
-    }
-  }
 };
 
 
