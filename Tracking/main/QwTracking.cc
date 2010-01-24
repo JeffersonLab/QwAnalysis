@@ -85,6 +85,8 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH")) + "/setupfiles");
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Tracking/prminput");
 
+  //  Load the histogram parameter definitions
+  gQwHists.LoadHistParamsFromFile("cosmics_hists.in");
 
   // Handle for the list of VQwSubsystemTracking objects
   QwSubsystemArrayTracking detectors;
@@ -104,7 +106,8 @@ Int_t main(Int_t argc, Char_t* argv[])
   detectors.GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
   ((VQwSubsystemTracking*) detectors.GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
   // Trigger scintillators
-  //detectors.push_back(new QwTriggerScintillator("TS"));
+  detectors.push_back(new QwTriggerScintillator("TS"));
+  ((VQwSubsystemTracking*) detectors.GetSubsystem("TS"))->LoadChannelMap("trigscint_cosmics.map");
   // Main detector
   //detectors.push_back(new QwMainDetector("MD"));
   //detectors.GetSubsystem("MD")->LoadChannelMap("maindet_cosmics.map");
@@ -254,20 +257,21 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  To pass a subdirectory named "subdir", we would do:
     //    detectors.GetSubsystem("MD")->ConstructHistograms(rootfile->mkdir("subdir"));
 
+    // Construct histograms
+    detectors.ConstructHistograms(rootfile->mkdir("histos"));
+
     // Open file
     TTree* tree = 0;
     QwEvent* event = 0;
     QwHitRootContainer* rootlist = 0;
 
     if (kTree) {
+      rootfile->cd(); // back to the top directory
       tree = new TTree("tree", "Hit list");
       rootlist = new QwHitRootContainer();
       tree->Branch("hits", "QwHitRootContainer", &rootlist);
       tree->Branch("events", "QwEvent", &event);
     }
-
-    // Construct histograms
-    detectors.ConstructHistograms();
 
     QwHitContainer* hitlist = 0;
     Int_t nevents           = 0;
@@ -275,7 +279,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
     Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
-    while (eventbuffer.GetEvent() == CODA_OK){
+    while (eventbuffer.GetEvent() == CODA_OK) {
       //  Loop over events in this CODA file
       //  First, do processing of non-physics events...
 
@@ -368,17 +372,16 @@ Int_t main(Int_t argc, Char_t* argv[])
      *  from the root file.                                          */
     //    if (rootfile != NULL) rootfile->Write(0, TObject::kOverwrite);
 
+    // Write and close file (after last access to ROOT tree)
+    rootfile->Write(0, TObject::kOverwrite);
+    //rootfile->Close(); // closing rootfile causes segfaults when deleting histos
+
     // Delete histograms in the subsystems
     detectors.DeleteHistograms();
 
     // Close CODA file
     eventbuffer.CloseDataFile();
     eventbuffer.ReportRunSummary();
-
-    // Write and close file (after last access to ROOT tree)
-    rootfile->Write(0, TObject::kOverwrite);
-    rootfile->Close();
-
 
     // Delete objects
     delete rootfile; rootfile = 0;
