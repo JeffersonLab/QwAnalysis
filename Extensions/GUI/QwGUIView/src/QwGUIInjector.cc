@@ -48,7 +48,6 @@ void QwGUIInjector::MakeLayout()
 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
   TCanvas *mc = dCanvas->GetCanvas();
   mc->Divide( INJECTOR_DET_HST_NUM/2, INJECTOR_DET_HST_NUM/2);
-  PlotData();
 }
 
 void QwGUIInjector::OnReceiveMessage(char *obj)
@@ -89,6 +88,7 @@ void QwGUIInjector::OnNewDataContainer()
       }
     }
   }  
+  PlotData();
 
 }
 

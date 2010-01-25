@@ -764,7 +764,7 @@ TObject *RDataContainer::ReadData(const char *objname)
   //If the file format is of "root object" (*.root), then...
   //
   //The function performs mode (dMode) checks and returns without
-  //doing anything excpet pass an error message if the file was 
+  //doing anything except pass an error message if the file was 
   //opened as write only.
 
   TObject *obj;
