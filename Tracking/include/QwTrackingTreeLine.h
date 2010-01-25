@@ -145,6 +145,14 @@ class QwTrackingTreeLine: public VQwTrackingElement {
     void SetAverageResidual() { fAverageResidual = CalculateAverageResidual(); };
     // @}
 
+    //! Set the offset
+    void SetOffset(const double offset) { fOffset = offset; };
+    //! Get the offset
+    const double GetOffset() const { return fOffset; };
+    //! Set the slope
+    void SetSlope(const double slope) { fSlope = slope; };
+    //! Get the slope
+    const double GetSlope() const { return fSlope; };
     //! Set the chi^2
     void SetChi(const double chi) { fChi = chi; };
     //! Get the chi^2
@@ -163,7 +171,8 @@ class QwTrackingTreeLine: public VQwTrackingElement {
 
     QwHitPattern* fMatchingPattern; //!	///< matching hit pattern
 
-    double fOffset, fSlope;		///< track offset and slope
+    double fOffset;			///< track offset
+    double fSlope;			///< track slope
     double fChi;			///< chi squared(?)
     double fCov[3];			///< covariance matrix of offset and slope
 

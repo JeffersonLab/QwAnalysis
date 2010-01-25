@@ -1,4 +1,5 @@
-/*! \file   QwHit.h
+/**
+ *  \file   QwHit.h
  *  \brief  Draft skeleton for the decoding-to-QTR interface class.
  *
  *  \author P. M. King

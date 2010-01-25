@@ -421,10 +421,8 @@ void QwTrackingTreeCombine::weight_lsq (
   double sum = 0.0;
   for (int i = 0; i < n; i++) {
 
-//     r  = (*slope * (hits[i]->Zpos - MAGNET_CENTER) + *offset
-// 	  - hits[i]->rResultPos);
-    double r  = (*slope * (hits[i]->GetZPosition()) + *offset
-		- hits[i]->rResultPos);
+    double r  = (*slope * (hits[i]->GetDetectorInfo()->GetZPosition())
+                + *offset - hits[i]->rResultPos);
 
     sum += G(i,i) * r * r;
   }
@@ -483,9 +481,8 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
   //###########
   for (int i = 0; i < n; i++) {
     if (offset == -1) {
-      // A[i][1] = -hits[i]->Zpos; //used by matchR3
       A[i][1] = -hits[i]->GetZPosition(); //used by matchR3
-      y[i]    = -hits[i]->rPos;
+      y[i]    = -hits[i]->GetPosition();
     } else {
       A[i][1] = -(i + offset); //used by Tl MatchHits
       y[i]    = -hits[i]->rResultPos;
@@ -493,6 +490,8 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
     double r = 1.0 / hits[i]->GetSpatialResolution();
     G[i][i] = r * r;
   }
+  //for (int i = 0; i < n; i++)
+  //  std::cout << A[i][0] << ", " << A[i][1] << "|" << G[i][i] << "|" << y[i] << std::endl;
 
   /* Calculate right hand side: -A^T G y  */
   for (int k = 0; k < 2; k++) {
@@ -501,6 +500,7 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
       s += (A[i][k]) * G[i][i] * y[i];
     AtGy[k] = s;
   }
+  //std::cout << AtGy[0] << "," << AtGy[1] << std::endl;
 
   /* Calculate the left hand side: A^T * G * A  */
   for (int j = 0; j < 2; j++) {
@@ -511,6 +511,7 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
       AtGA[j][k] = s;
     }
   }
+  //std::cout << AtGA[0][0] << "," << AtGA[0][1] << "," << AtGA[1][0] << "," << AtGA[1][1] << std::endl;
 
   /* Calculate inverse of A^T * G * A */
   double det = (AtGA[0][0] * AtGA[1][1] - AtGA[1][0] * AtGA[0][1]);
@@ -519,6 +520,7 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
   AtGA[1][1] = h / det;
   AtGA[0][1] /= -det;
   AtGA[1][0] /= -det;
+  //std::cout << AtGA[0][0] << "," << AtGA[0][1] << "," << AtGA[1][0] << "," << AtGA[1][1] << std::endl;
 
   /* Solve equation: x = (A^T * G * A)^-1 * (A^T * G * y) */
   for (int k = 0; k < 2; k++)
@@ -533,8 +535,7 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
   double s = 0.0;
   if (offset == -1) {
     for (int i = 0; i < n; i++) {
-      // r  = *slope * (hits[i]->Zpos - z1) + *xshift - hits[i]->rResultPos;
-      double r  = *slope * (hits[i]->GetZPosition() - z1) + *xshift - hits[i]->rResultPos;
+      double r  = *slope * (hits[i]->GetZPosition() - z1) + *xshift - hits[i]->GetPosition();
       s  += G[i][i] * r * r;
     }
   } else {

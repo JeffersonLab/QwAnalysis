@@ -9,6 +9,7 @@
 ClassImp(QwHit);
 
 // Qweak headers
+#include "QwLog.h"
 #include "QwDetectorInfo.h"
 
 /**
@@ -329,6 +330,7 @@ ostream& operator<< (ostream& stream, const QwHit& hit)
     {
       stream << "element "  << hit.fElement << ", ";
       stream << "distance " << hit.fDistance;
+      if (hit.fAmbiguousElement) stream << " (?)";
     }
 
   return stream;
@@ -356,19 +358,28 @@ void QwHit::Print()
 const Double_t QwHit::GetZPosition() const
 {
   if (fZPos != 0.0)  return fZPos;
-  else               return pDetectorInfo->GetZPosition();
+  else {
+    QwWarning << "Improper QwHit::GetZPosition() call" << QwLog::endl;
+    return pDetectorInfo->GetZPosition();
+  }
 };
 
 const Double_t QwHit::GetSpatialResolution() const
 {
   if (pDetectorInfo) return pDetectorInfo->GetSpatialResolution();
-  else               return fSpatialResolution;
+  else {
+    QwWarning << "Improper QwHit::GetSpatialResolution() call" << QwLog::endl;
+    return fSpatialResolution;
+  }
 };
 
 const Double_t QwHit::GetTrackResolution() const
 {
   if (pDetectorInfo) return pDetectorInfo->GetTrackResolution();
-  else               return fTrackResolution;
+  else {
+    QwWarning << "Improper QwHit::GetTrackResolution() call" << QwLog::endl;
+    return fTrackResolution;
+  }
 };
 
 const QwDetectorID QwHit::GetDetectorID() const
