@@ -48,7 +48,7 @@ Added by Buddhini to display the injector beamline data.
 #include <TRootCanvas.h>
 #include "QwGUISubSystem.h"
 #include "RSDataWindow.h"
-
+#include "TSuperCanvas.h"
 
 class QwGUIInjector : public QwGUISubSystem {
 
@@ -57,6 +57,10 @@ class QwGUIInjector : public QwGUISubSystem {
   TRootEmbeddedCanvas *dCanvas;  
   TGLayoutHints       *dTabLayout; 
   TGLayoutHints       *dCnvLayout; 
+  TGLayoutHints       *dBtnLayout;
+
+  TGTextButton        *dButtonPos;
+  TGTextButton        *dButtonCharge;
 
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;

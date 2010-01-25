@@ -18,6 +18,9 @@ QwGUIInjector::QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTa
   dCnvLayout = NULL;
   dBtnLayout = NULL;
 
+  dButtonPos = NULL;
+  dButtonCharge = NULL;
+
   AddThisTab(this);
   //MakeLayout();
 }
@@ -61,13 +64,20 @@ void QwGUIInjector::MakeLayout()
   AddFrame(dButtonPos, dBtnLayout);
   AddFrame(dButtonCharge, dBtnLayout);
 
+  dButtonPos -> Associate(this);
+  dButtonCharge -> Associate(this);
+
+
   dCanvas->GetCanvas()->SetBorderMode(0);
   dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
 				"QwGUIInjector",
 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
-  TCanvas *mc = dCanvas->GetCanvas();
-  mc->Divide( INJECTOR_DET_HST_NUM/2, INJECTOR_DET_HST_NUM/2);
+
+ Int_t wid = dCanvas->GetCanvasWindowId();
+ TSuperCanvas *super_canvas = new TSuperCanvas("testsuit", 10, 10, wid);
+ dCanvas->AdoptCanvas(super_canvas);
+ super_canvas -> Divide( INJECTOR_DET_HST_NUM/2, INJECTOR_DET_HST_NUM/2);
 
 }
 
@@ -92,11 +102,15 @@ void QwGUIInjector::OnNewDataContainer()
 
   TObject *obj;
   TObject *copy;
+
+  TObject *nt;
+  nt = NULL;
+
   ClearData();
 
   std::cout<<"On new Data container!!!!!!\n";
   if(dROOTCont){
-    nt = (TTree*)dROOTCont->Get("HEL_Tree"); 
+    //   nt = (TTree*)dROOTCont->Get("HEL_Tree"); 
     for(int p = 0; p < INJECTOR_DET_HST_NUM; p++){
       obj = dROOTCont->ReadData(InjectorHists[p]);
       if(obj==NULL)  std::cout<<"no data for injector\n";
@@ -138,9 +152,10 @@ void QwGUIInjector::ClearData()
 
 void QwGUIInjector::PlotData()
 {
-  Int_t ind = 1;
+  Int_t ind = 0;
   TObject *obj;
 
+  ind = 1;
   std::cout<<"In plot data !!!!!!\n";
   TCanvas *mc = dCanvas->GetCanvas();
  
@@ -209,7 +224,6 @@ Bool_t QwGUIInjector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  {
 	    TCanvas *mc = dCanvas->GetCanvas();
 	    TIter next(HistArray.MakeIterator());
-	    Int_t ind = 1;
 	    
 	    switch(parm1)
 	      {
@@ -218,7 +232,6 @@ Bool_t QwGUIInjector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		mc->Clear();  
 		mc->Divide( 2,2);
 		mc->SetFillColor(11);
-
 // 		for(Int_t i=0;i<2;i++){
 // 		  InjectorHists[INJECTOR_DET_HST_NUM];
 // 		  std::cout<<InjectorHists[i]<<std::endl;
@@ -239,6 +252,7 @@ Bool_t QwGUIInjector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 // 		mc->Update();
 
   		PlotData();
+		mc->Update();
 		break;
 
 	      case 2:
@@ -248,7 +262,7 @@ Bool_t QwGUIInjector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		mc->Divide( 2,2);
 		mc->cd(1);
 		f->Draw();
-
+		mc->Update();
 		break;
 	      }
 

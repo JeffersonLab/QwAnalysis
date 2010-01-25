@@ -6,52 +6,15 @@
  \author	Juergen Diefenbach <defi@kph.uni-mainz.de>
  \author	Jeong Han Lee      <jhlee@jlab.org>
 
- \date		2010-01-12 17:25:57
+ \date		2010-01-25 14:45:50
 
  \brief        Implementation of ROOT "super" canvas.
 
 
 *//*-------------------------------------------------------------------------*/
 
-// They're meant to supplement some "missing" methods, which are very useful 
-// in everyday live, but anyhow for some reasons not implemented in original ROOT.
-//
 
-// This TSuperCanvas was degined for the PVA4 experiment at MAMI, Germany. 
-// The second author (Lee) obtained permission from the PVA4 collaboration
-// in order to use and modify this code for the Qweak experiment at JLab. 
-//
-
-// TO DO...
-// * must test this class into "a stand-alone GUI program" with valgrind
-
-
-// Select a pad with middle mouse button (wheel)
-//
-// *) "g" : grid on/off
-// *) "m" : zoom on/off
-// *) "l" : y log scale on/off
-
-// *) "f" : FFT on with a selection of TH1 histogram
-//    "ctrl+f" : close fft canvas
-
-// *) measure a distance between two points (A, B)  on a selected pad,
-//    Shift + mouse 1 (left) down (click) on A and + click on B
-//    The distance will be dumped on "xterminal" as the following example:
-//    dist. meas.: dX = 1.20e+01 dY = -6.90e+00 dist = 1.39e+01
-
-
-// *) "x", "y" : projection X, Y of TH2 histogram
-//    "ctrl+x", "ctrl+y" : close projection canvas.
-
-// *) more ....
-
-
-// History:
-// 0.0.0     2009/12/27   started
-// 0.0.1     2010/01/12   rewrite FFT for TH1 and introduce Projection X,
-//                        Y for TH2 
-
+// See detailed history in its header file
 
 #include "TSuperCanvas.h"
 #include <math.h>
@@ -71,6 +34,14 @@ TSuperCanvas::TSuperCanvas(const Char_t* name, const Char_t* title,
 { 
   Initialize(); 
 };
+
+TSuperCanvas::TSuperCanvas(const char* name, Int_t ww, Int_t  wh, Int_t  winid)
+  : TCanvas(name, ww, wh, winid)
+{ 
+  Initialize(); 
+};
+
+
 
 TSuperCanvas::~TSuperCanvas()
 {

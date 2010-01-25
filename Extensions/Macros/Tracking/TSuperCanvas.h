@@ -6,7 +6,7 @@
  \author	Juergen Diefenbach <defi@kph.uni-mainz.de>
  \author	Jeong Han Lee      <jhlee@jlab.org>
 
- \date		2010-01-12 17:25:57
+  \date		2010-01-25 14:45:50
 
  \brief        Implementation of ROOT "super" canvas.
 
@@ -59,6 +59,10 @@
 //                        * introduce SetCurrentPad() in order to
 //                          select an active pad according to the mouse
 //                          position
+// 0.0.2     2010/01/25   * introduce one constructor in order to use
+//                          TSuperCanvas into an embedded canvas 
+
+
 
 
 #ifndef _TSUPERCANVAS_H_
@@ -100,6 +104,8 @@ class TSuperCanvas : public TCanvas
  public:
   TSuperCanvas(const Char_t* name, const Char_t* title, Int_t ww, Int_t wh, Float_t menumargin=0.0);
   TSuperCanvas(const Char_t* name, const Char_t* title, Int_t wtopx, Int_t wtopy, Int_t ww, Int_t wh, Float_t menumargin=0.0);
+  TSuperCanvas(const char* name, Int_t ww, Int_t  wh, Int_t  winid);
+
   virtual ~TSuperCanvas();
 
   virtual void Initialize();

@@ -38,7 +38,7 @@ OutPutOpt     = -o
 # For Linux with egcs, gcc 2.9x, gcc 3.x (>= RedHat 5.2)
 # the correct flag settings for root are: 
 
-CXX           = g++
+CXX           = gcc
 CXXFLAGS      = -O -Wall -fPIC # -g
 AR            = ar
 ARFLAGS       = -r
