@@ -3,10 +3,10 @@
 ClassImp(QwGUIInjector);
 
 const char *QwGUIInjector::InjectorHists[INJECTOR_DET_HST_NUM] = 
-  { "yield_qwk_bcm0l02.hw_sum",
-    "asym_qwk_bcm0l02.hw_sum",
-    "diff_qwk_1i02RelX.hw_sum",
-    "diff_qwk_1i02RelY.hw_sum"};
+  { "yield_qwk_bcm0l02",
+    "asym_qwk_bcm0l02",
+    "diff_qwk_1i02RelX",
+    "diff_qwk_1i02RelY"};
 
 QwGUIInjector::QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTab *tab,
 			       const char *objName, const char *mainname, UInt_t w, UInt_t h)
@@ -73,11 +73,11 @@ void QwGUIInjector::MakeLayout()
 				"QwGUIInjector",
 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
-
- Int_t wid = dCanvas->GetCanvasWindowId();
- TSuperCanvas *super_canvas = new TSuperCanvas("testsuit", 10, 10, wid);
- dCanvas->AdoptCanvas(super_canvas);
- super_canvas -> Divide( INJECTOR_DET_HST_NUM/2, INJECTOR_DET_HST_NUM/2);
+  Int_t wid = dCanvas->GetCanvasWindowId();
+  //TSuperCanvas *super_canvas = new TSuperCanvas("testsuit", 10, 10, wid);
+  TCanvas *super_canvas = new TCanvas("testsuit", 10, 10, wid);
+  dCanvas->AdoptCanvas(super_canvas);
+  super_canvas -> Divide( INJECTOR_DET_HST_NUM/2, INJECTOR_DET_HST_NUM/2);
 
 }
 
@@ -102,28 +102,32 @@ void QwGUIInjector::OnNewDataContainer()
 
   TObject *obj;
   TObject *copy;
-
-  TObject *nt;
-  nt = NULL;
-
+  TTree *tree;
+  
+  TBranch *tmpbranch;
   ClearData();
+
 
   std::cout<<"On new Data container!!!!!!\n";
   if(dROOTCont){
-    //   nt = (TTree*)dROOTCont->Get("HEL_Tree"); 
+    tree  = (TTree*) dROOTCont->ReadData("HEL_Tree"); 
+    //    tree -> Print();
     for(int p = 0; p < INJECTOR_DET_HST_NUM; p++){
-      obj = dROOTCont->ReadData(InjectorHists[p]);
-      if(obj==NULL)  std::cout<<"no data for injector\n";
-      if(obj){
+      obj = (TObject*) tree->GetBranch(InjectorHists[p]);
+      if (obj == NULL)  printf("NO %s data for injector\n", InjectorHists[p]);
+      std::cout << obj << std::endl;
+      if(obj) {
 	std::cout<<"ggggggggggggg\n";
 	if(obj->InheritsFrom("TH1")){
-	std::cout<<"gggggg\n";
-	
+	  std::cout<<"gggggg\n";
+	  
 	  copy = obj->Clone();
 	  ((TH1*)copy)->SetName(Form("%s_cp",((TH1*)obj)->GetName()));
 	  ((TH1*)copy)->SetDirectory(0);
 	  HistArray.Add(copy);
 	}
+
+
       }
     }
   }  

@@ -102,8 +102,10 @@ class TSuperCanvas : public TCanvas
 {
 
  public:
-  TSuperCanvas(const Char_t* name, const Char_t* title, Int_t ww, Int_t wh, Float_t menumargin=0.0);
-  TSuperCanvas(const Char_t* name, const Char_t* title, Int_t wtopx, Int_t wtopy, Int_t ww, Int_t wh, Float_t menumargin=0.0);
+/*   TSuperCanvas(const Char_t* name, const Char_t* title, Int_t ww, Int_t wh, Float_t menumargin=0.0); */
+/*   TSuperCanvas(const Char_t* name, const Char_t* title, Int_t wtopx, Int_t wtopy, Int_t ww, Int_t wh, Float_t menumargin=0.0); */
+  TSuperCanvas(const Char_t* name, const Char_t* title, Int_t ww, Int_t wh);
+  TSuperCanvas(const Char_t* name, const Char_t* title, Int_t wtopx, Int_t wtopy, Int_t ww, Int_t wh);
   TSuperCanvas(const char* name, Int_t ww, Int_t  wh, Int_t  winid);
 
   virtual ~TSuperCanvas();
@@ -129,7 +131,7 @@ class TSuperCanvas : public TCanvas
   
  private:
   
-  void Configure();
+  //  void Configure();
   
   Float_t  menu_margin;
   Int_t    meas_status;
@@ -137,7 +139,8 @@ class TSuperCanvas : public TCanvas
   Float_t  peakpos[10];
   TLine   *peakline[10];
   
-  Double_t SamplingRate, ScrollRate;
+  Double_t scroll_rate;
+  //  Double_t SamplingRate, ScrollRate;
 
   TVirtualPad *MaximizedPad;
   Double_t MaxmizedPad_xlow, MaxmizedPad_ylow, MaxmizedPad_xup, MaxmizedPad_yup;

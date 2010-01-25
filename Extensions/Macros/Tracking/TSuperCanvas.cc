@@ -22,18 +22,33 @@
 
 ClassImp(TSuperCanvas);
 
-TSuperCanvas::TSuperCanvas(const Char_t* name, const Char_t* title, Int_t ww, Int_t wh, Float_t menumargin)
-  : TCanvas(name, title, ww, wh), menu_margin(menumargin) 
+// TSuperCanvas::TSuperCanvas(const Char_t* name, const Char_t* title, Int_t ww, Int_t wh, Float_t menumargin)
+//   : TCanvas(name, title, ww, wh), menu_margin(menumargin) 
+// { 
+//   Initialize(); 
+// };
+
+// TSuperCanvas::TSuperCanvas(const Char_t* name, const Char_t* title, 
+// 			   Int_t wtopx, Int_t wtopy, Int_t ww, Int_t wh, Float_t menumargin)
+//   : TCanvas(name, title, wtopx, wtopy, ww, wh), menu_margin(menumargin) 
+// { 
+//   Initialize(); 
+// };
+
+TSuperCanvas::TSuperCanvas(const Char_t* name, const Char_t* title, Int_t ww, Int_t wh)
+  : TCanvas(name, title, ww, wh)
 { 
   Initialize(); 
 };
 
 TSuperCanvas::TSuperCanvas(const Char_t* name, const Char_t* title, 
-			   Int_t wtopx, Int_t wtopy, Int_t ww, Int_t wh, Float_t menumargin)
-  : TCanvas(name, title, wtopx, wtopy, ww, wh), menu_margin(menumargin) 
+			   Int_t wtopx, Int_t wtopy, Int_t ww, Int_t wh)
+  : TCanvas(name, title, wtopx, wtopy, ww, wh)
 { 
   Initialize(); 
 };
+
+
 
 TSuperCanvas::TSuperCanvas(const char* name, Int_t ww, Int_t  wh, Int_t  winid)
   : TCanvas(name, ww, wh, winid)
@@ -74,14 +89,16 @@ TSuperCanvas::Initialize()
   logxbutton  = NULL;
   logybutton  = NULL;
   
-  SamplingRate = 1.0;
-  ScrollRate   = 0.03;
+  //  SamplingRate = 1.0;
+  //  ScrollRate   = 0.03;
 
   meas_status  = 0;
   meas_x1      = 0.0;
   meas_x2      = 0.0;
   meas_y1      = 0.0;
   meas_y2      = 0.0;
+
+  menu_margin  = 0.0;
 
   MaxmizedPad_xlow = 0.0;
   MaxmizedPad_ylow = 0.0;
@@ -256,6 +273,7 @@ TSuperCanvas::MakeMenu(TSuperCanvas **me, Float_t menumargin)
 
 void 
 TSuperCanvas::HandleInput(EEventType event, Int_t px, Int_t py)
+//  :TCanvas::HandleInput(event, px, py)
 {
   //printf("event=%d @( %d ; %d )\n", event, px, py);
   //-----------------------------------------------------------------//
@@ -266,44 +284,41 @@ TSuperCanvas::HandleInput(EEventType event, Int_t px, Int_t py)
     };
   //-----------------------------------------------------------------//
   if (event==kKeyPress)
-    if ((py==4114)||(py==4116))
-      {
-	TObject *selected = gPad->GetSelected();
-	TAxis   *axis     = NULL;
-	
-	if (strstr(selected->IsA()->GetName(), "TH1"))
-	  axis = ((TH1*)selected)->GetXaxis();
-	//if (strstr(selected->IsA()->GetName(), "TH2"))
-	//axis = ((TH2*)selected)->GetXaxis();
-	if (strstr(selected->IsA()->GetName(), "TGraph"))
-	  axis = ((TGraph*)selected)->GetXaxis();
-	
-	if (axis==NULL)
-	  return;
-	
-	Int_t    first = axis->GetFirst();
-	Int_t    last  = axis->GetLast();
-	Int_t    dist  = Int_t( Double_t (last-first)*ScrollRate);
-
-	if (py==4114) dist *= -1;
-	
-	Double_t low   = axis->GetBinLowEdge(first+dist);
-	Double_t up    = axis->GetBinUpEdge(last+dist);
-	
-	axis->SetRangeUser(low, up);
-	
-	if (strstr(selected->IsA()->GetName(), "TH1"))
-	  ((TH1*)selected)->Draw();
-	//if (strstr(selected->IsA()->GetName(), "TH2"))
-	//  ((TH2*)selected)->Draw();
-	if (strstr(selected->IsA()->GetName(), "TGraph"))
-	  ((TGraph*)selected)->Draw();
-	
-	Update();
-      };
-  //-----------------------------------------------------------------//
-  if (event==kKeyPress)
     {
+      if ((py==4114)||(py==4116))
+	{
+	  TObject *selected = gPad->GetSelected();
+	  TAxis   *axis     = NULL;
+	
+	  if (strstr(selected->IsA()->GetName(), "TH1"))
+	    axis = ((TH1*)selected)->GetXaxis();
+	  //if (strstr(selected->IsA()->GetName(), "TH2"))
+	  //axis = ((TH2*)selected)->GetXaxis();
+	  if (strstr(selected->IsA()->GetName(), "TGraph"))
+	    axis = ((TGraph*)selected)->GetXaxis();
+	  
+	  if (axis==NULL)  return;
+	  
+
+	  scroll_rate = 0.03;
+
+	  Int_t    first = axis->GetFirst();
+	  Int_t    last  = axis->GetLast();
+	  Int_t    dist  = Int_t( Double_t (last-first)*scroll_rate);
+	  
+	  if (py==4114) dist *= -1;
+	  
+	  Double_t low   = axis->GetBinLowEdge(first+dist);
+	  Double_t up    = axis->GetBinUpEdge(last+dist);
+	  
+	  axis->SetRangeUser(low, up);
+	  
+	  if (strstr(selected->IsA()->GetName(), "TH1"))    ((TH1*)selected)->Draw();
+	  // if (strstr(selected->IsA()->GetName(), "TH2"))   ((TH2*)selected)->Draw();
+	  if (strstr(selected->IsA()->GetName(), "TGraph")) ((TGraph*)selected)->Draw();
+	  Update();
+	};
+      //-----------------------------------------------------------------//
       // 'px' contains the ASCII-code of the pressed key:
       if (py=='f') // show FFT of selected histogram
 	{
@@ -331,7 +346,6 @@ TSuperCanvas::HandleInput(EEventType event, Int_t px, Int_t py)
 	      meas_status=0; // reset measurement status
 	      Update();
 	    };
-	  return;
 	};
       //-----------------------------------------------------------------//
       if (px=='c')                        //      DELETE PEAKS           //
@@ -345,7 +359,7 @@ TSuperCanvas::HandleInput(EEventType event, Int_t px, Int_t py)
 		}
 	      printf("peak positions have been deleted...\n");
 	    };
-	  this->Update();
+	  Update();
 	};
       //-----------------------------------------------------------------//
       if (px=='l')                        //          LOG Y              //
@@ -361,20 +375,23 @@ TSuperCanvas::HandleInput(EEventType event, Int_t px, Int_t py)
 	  Update();
 	};
       //-----------------------------------------------------------------//
-      if (px=='C')                        //        CONFIGURE            //
-	{
-	  Configure();
-	};
+//       if (px=='C')                        //        CONFIGURE            //
+// 	{
+// 	  Configure();
+// 	};
       //-----------------------------------------------------------------//
       if (px=='m')                        //         MAGNIFY             //
 	{
 	  MagnifyPad();
+	  
 	};
       //-----------------------------------------------------------------//
       if(( py=='x') || (py == 'y') ) // PROJECTION X, Y of TH2
 	{
 	  SliceTH2(px,py);
+	  Update();
 	}
+      return;
     };
   //-----------------------------------------------------------------//
   // finally, if not yet returned, call default HandleInput method:
@@ -414,23 +431,24 @@ TSuperCanvas::Measure(Int_t px, Int_t py)
   return;
 };
 
-void 
-TSuperCanvas::Configure()
-{
-  Char_t input[512];
-  printf(" --- Configuration of TSuperCanvas: ---\n\n");
-  printf("Sampling rate: (currently %6.2e Hz) ", SamplingRate); 
-  scanf("%s", input);
+// void 
+// TSuperCanvas::Configure()
+// {
+//   Char_t input[512];
+//   SamplingRate = 1.0;
+//   printf(" --- Configuration of TSuperCanvas: ---\n\n");
+//   printf("Sampling rate: (currently %6.2e Hz) ", SamplingRate); 
+//   scanf("%s", input);
   
-  if (atof(input)>0.0) SamplingRate = atof(input);
-  printf("  SamplingRate = %6.2e Hz\n\n", SamplingRate);
-  printf("Scroll rate: (currently %6.2e %%) ", ScrollRate); 
-  scanf("%s", input);
+//   if (atof(input)>0.0) SamplingRate = atof(input);
+//   printf("  SamplingRate = %6.2e Hz\n\n", SamplingRate);
+//   printf("Scroll rate: (currently %6.2e %%) ", ScrollRate); 
+//   scanf("%s", input);
 
-  if ((atof(input)>0.0)&&(atof(input)<100.0))   SamplingRate = atof(input)/100.0;
-  printf("  ScrollRate = %6.2e %%\n", ScrollRate*100.0);
-  return;
-};
+//   if ((atof(input)>0.0)&&(atof(input)<100.0))   SamplingRate = atof(input)/100.0;
+//   printf("  ScrollRate = %6.2e %%\n", ScrollRate*100.0);
+//   return;
+// };
 
 
 
@@ -670,11 +688,13 @@ TSuperCanvas::SetBackBeforePad(TPad* pad)
 void
 TSuperCanvas::SetCurrentPad(Bool_t debug)
 {
-  TVirtualPad *spad = this->GetSelectedPad();
-  Int_t scanvas_id  = spad->GetCanvasID();
-
+  TVirtualPad *spad = NULL;
+  Int_t scanvas_id  = 0;
+  spad = this ->GetSelectedPad();
+  scanvas_id = spad->GetCanvasID();
   // make the SelectedPad and the ClickSelectedPad are the same.
-  this -> SetClickSelectedPad((TPad*)spad);
+  this-> SetClickSelectedPad((TPad*)spad);
+
   if(debug)
     {
       printf(" CANVAS ID %d    ----------\n", scanvas_id); 
@@ -698,8 +718,10 @@ TSuperCanvas::SetCurrentPad(Bool_t debug)
 void
 TSuperCanvas::PrintPad(TVirtualPad* pad)
 {
-  TObject     *obj  = pad -> GetSelected();
-  TVirtualPad *mpad = pad -> GetMother();
+  TObject     *obj  = NULL;
+  obj = pad -> GetSelected();
+  TVirtualPad *mpad = NULL;
+  mpad = pad -> GetMother();
 
   printf("*** Mom Pad %30s : Num %2d CvsID %2d EvID %2d \n",
 	 mpad->GetName(), mpad->GetNumber(), mpad->GetCanvasID(), mpad->GetEvent());
