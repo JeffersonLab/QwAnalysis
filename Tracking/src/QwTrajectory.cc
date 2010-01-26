@@ -232,7 +232,7 @@ int QwTrajectory::SearchTable() {
     for (int p = P_MIN; p<=P_MAX; p+=DP) {
         // build index
         int index_momentum = ((int)p-P_MIN)/DP;
-        uint index = index_momentum*R_GRIDSIZE*PHI_GRIDSIZE*Z_GRIDSIZE
+        unsigned int index = index_momentum*R_GRIDSIZE*PHI_GRIDSIZE*Z_GRIDSIZE
                      + index_pos_r*PHI_GRIDSIZE*Z_GRIDSIZE
                      + index_pos_phi*Z_GRIDSIZE
                      + index_vertex_z ;
