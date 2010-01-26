@@ -31,7 +31,6 @@
 *//*-------------------------------------------------------------------------*/
 
 #include <QwGUIMain.h>
-#include <sys/statfs.h>
 
 QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   : TGMainFrame(p, w, h)

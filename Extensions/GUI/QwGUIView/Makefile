@@ -35,7 +35,7 @@ MFILE         = Makefile
 # the correct flag settings are: 
 
 DEBUGFLAGS    = #-DQWGUI_DEBUG
-CXX           = gcc
+CXX           = g++
 CXXFLAGS      = -Wall -fPIC -DVERS="\"$(VERS)\"" -g #-O2
 LD            = g++
 LDFLAGS       = #-O2
