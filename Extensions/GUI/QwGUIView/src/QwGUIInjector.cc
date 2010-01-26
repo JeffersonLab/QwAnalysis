@@ -2,11 +2,22 @@
 
 ClassImp(QwGUIInjector);
 
+
+const char *QwGUIInjector::InjectorTrees[INJECTOR_DET_TRE_NUM] = 
+  {
+    "HEL_Tree",
+    "MPS_Tree"
+  };
 const char *QwGUIInjector::InjectorHists[INJECTOR_DET_HST_NUM] = 
-  { "yield_qwk_bcm0l02",
-    "asym_qwk_bcm0l02",
-    "diff_qwk_1i02RelX",
-    "diff_qwk_1i02RelY"};
+  { "yield_qwk_bcm0l02.hw_sum",
+    "asym_qwk_bcm0l02.hw_sum",
+    "yield_phasemonitor.hw_sum",
+    "phasemonitor.hw_sum",
+    "asym_phasemonitor.hw_sum", 
+    "qwk_bcm0l02.hw_sum"};
+
+    //    "diff_qwk_1i02RelX.hw_sum",
+    //    "diff_qwk_1i02RelY.hw_sum"};
 
 QwGUIInjector::QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTab *tab,
 			       const char *objName, const char *mainname, UInt_t w, UInt_t h)
@@ -55,7 +66,7 @@ void QwGUIInjector::MakeLayout()
   //                       "gROOT->GetVersion());");
 
   dButtonCharge = new TGTextButton(this, "&Beam Charge", 2);
-  //dButtonCharge->SetCommand("printf(\"Reading charge asymmetires \n\")" );
+  // dButtonCharge->SetCommand("printf(\"Reading charge asymmetires \n\")" );
  
   dTabFrame->AddFrame(dCanvas,dCnvLayout);
   dTabFrame->Resize(GetWidth(),GetHeight());
@@ -73,11 +84,14 @@ void QwGUIInjector::MakeLayout()
 				"QwGUIInjector",
 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
-  Int_t wid = dCanvas->GetCanvasWindowId();
-  //TSuperCanvas *super_canvas = new TSuperCanvas("testsuit", 10, 10, wid);
-  TCanvas *super_canvas = new TCanvas("testsuit", 10, 10, wid);
-  dCanvas->AdoptCanvas(super_canvas);
-  super_canvas -> Divide( INJECTOR_DET_HST_NUM/2, INJECTOR_DET_HST_NUM/2);
+ //  TCanvas *mc = dCanvas->GetCanvas();
+//   mc->Divide( INJECTOR_DET_HST_NUM/2, INJECTOR_DET_HST_NUM/2);
+
+   Int_t wid = dCanvas->GetCanvasWindowId();
+   TSuperCanvas *super_canvas = new TSuperCanvas("", 10, 10, wid);
+   dCanvas->AdoptCanvas(super_canvas);
+
+   super_canvas -> Divide( INJECTOR_DET_HST_NUM/2, INJECTOR_DET_HST_NUM/2);
 
 }
 
@@ -97,49 +111,32 @@ void QwGUIInjector::OnObjClose(char *obj)
   }
 }
 
+
 void QwGUIInjector::OnNewDataContainer()
 {
 
   TObject *obj;
   TObject *copy;
-  TTree *tree;
-  
-  TBranch *tmpbranch;
+ 
   ClearData();
 
-
-  std::cout<<"On new Data container!!!!!!\n";
   if(dROOTCont){
-    tree  = (TTree*) dROOTCont->ReadData("HEL_Tree"); 
-    //    tree -> Print();
-    for(int p = 0; p < INJECTOR_DET_HST_NUM; p++){
-      obj = (TObject*) tree->GetBranch(InjectorHists[p]);
-      if (obj == NULL)  printf("NO %s data for injector\n", InjectorHists[p]);
-      std::cout << obj << std::endl;
-      if(obj) {
-	std::cout<<"ggggggggggggg\n";
-	if(obj->InheritsFrom("TH1")){
-	  std::cout<<"gggggg\n";
-	  
+    for(int p = 0; p < INJECTOR_DET_TRE_NUM; p++) {
+      obj = dROOTCont->ReadTree(InjectorTrees[p]);
+      if(obj)
+	{
 	  copy = obj->Clone();
-	  ((TH1*)copy)->SetName(Form("%s_cp",((TH1*)obj)->GetName()));
-	  ((TH1*)copy)->SetDirectory(0);
 	  HistArray.Add(copy);
 	}
-
-
-      }
     }
-  }  
-
-  PlotData();
-
-}
+    PlotData();
+  }
+};
 
 void QwGUIInjector::OnRemoveThisTab()
 {
 
-}
+};
 
 void QwGUIInjector::ClearData()
 {
@@ -156,27 +153,29 @@ void QwGUIInjector::ClearData()
 
 void QwGUIInjector::PlotData()
 {
-  Int_t ind = 0;
+  bool debug = false;
+
   TObject *obj;
-
-  ind = 1;
-  std::cout<<"In plot data !!!!!!\n";
   TCanvas *mc = dCanvas->GetCanvas();
- 
-  TIter next(HistArray.MakeIterator());
-  obj = next();
-  while(obj){
-    mc->cd(ind);
-    ((TH1*)obj)->Draw("");
-    ind++;
-    obj = next();
-    std::cout<<obj->GetName()<<"\n";
-  }
 
+  for(int t=0; t<INJECTOR_DET_TRE_NUM; t++) 
+    {
+      obj = HistArray.At(t);
+      if(debug) printf("%s\n", obj->GetName());
+      for(Short_t p = 0; p < INJECTOR_DET_HST_NUM; p++) 
+	{
+	  if( ((TTree*) obj)->FindLeaf(InjectorHists[p]) )
+	    {
+	      if(debug) printf("%s\n",InjectorHists[p]);
+	      mc -> cd(p+1);
+	      obj -> Draw(InjectorHists[p]);
+	    }
+	}
+    }
+  
   mc->Modified();
   mc->Update();
-
-}
+};
 
 void QwGUIInjector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 {
@@ -235,7 +234,6 @@ Bool_t QwGUIInjector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		printf("text button id %ld pressed\n", parm1);	
 		mc->Clear();  
 		mc->Divide( 2,2);
-		mc->SetFillColor(11);
 // 		for(Int_t i=0;i<2;i++){
 // 		  InjectorHists[INJECTOR_DET_HST_NUM];
 // 		  std::cout<<InjectorHists[i]<<std::endl;
@@ -260,13 +258,15 @@ Bool_t QwGUIInjector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		break;
 
 	      case 2:
-		printf("text button id %ld pressed\n", parm1);
-		mc->Clear();
-		TF1* f = new TF1("f","sin(x)",0,10);
-		mc->Divide( 2,2);
-		mc->cd(1);
-		f->Draw();
-		mc->Update();
+		
+// 		printf("text button id %ld pressed\n", parm1);
+ 
+		PlotData();
+// 		TF1* f = new TF1("f","sin(x)",0,10);
+// 		mc->Divide( 2,2);
+// 		mc->cd(1);
+// 		f->Draw();
+
 		break;
 	      }
 

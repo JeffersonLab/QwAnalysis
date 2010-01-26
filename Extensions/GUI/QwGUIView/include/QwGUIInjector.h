@@ -32,8 +32,8 @@ Added by Buddhini to display the injector beamline data.
  */
 //=============================================================================
 
-#define INJECTOR_DET_HST_NUM      4           
-
+#define INJECTOR_DET_HST_NUM      6           
+#define INJECTOR_DET_TRE_NUM      2
 ///
 /// \ingroup QwGUIInjector
 
@@ -90,6 +90,7 @@ class QwGUIInjector : public QwGUISubSystem {
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
   //!These are the names by which the histograms are identified within the root file.
   static const char   *InjectorHists[INJECTOR_DET_HST_NUM];
+  static const char   *InjectorTrees[INJECTOR_DET_TRE_NUM];
 
  protected:
 
