@@ -1,5 +1,5 @@
 #include <QwGUILumiDetector.h>
-#include <iostream.h>
+#include <iostream>
 #include "TLine.h"
 
 ClassImp(QwGUILumiDetector);
