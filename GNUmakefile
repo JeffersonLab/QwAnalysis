@@ -303,7 +303,7 @@ CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
 LD             = gcc
 LIBTOOL 	   = libtool
-LDFLAGS        = -bind_at_load
+LDFLAGS        = 
 LDLIBS         = -lSystemStubs
 SOFLAGS        =
 DllSuf        := .dylib
@@ -351,9 +351,9 @@ endif
 
 #  List the Boost libraries to be linked to the analyzer.
 ifeq ($(strip $(shell $(FIND) $(BOOST_LIB_DIR) -maxdepth 1 -name libboost_filesystem-mt.so)),$(BOOST_LIB_DIR)/libboost_filesystem-mt.so)
-  BOOST_LIBS += -lboost_filesystem-mt -lboost_program_options-mt
+  BOOST_LIBS += -lboost_filesystem-mt -lboost_system-mt -lboost_program_options-mt
 else
-  BOOST_LIBS += -lboost_filesystem -lboost_program_options
+  BOOST_LIBS += -lboost_filesystem -lboost_system -lboost_program_options
 endif
 
 BOOST_LIBS += -ldl
