@@ -298,10 +298,10 @@ endif
 
 ifeq ($(ARCH),Darwin)
 
-CXX            := gcc-3.3
+CXX            := gcc
 CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
-LD             = gcc-3.3
+LD             = gcc
 LIBTOOL 	   = libtool
 LDFLAGS        = -bind_at_load
 LDLIBS         = -lSystemStubs
