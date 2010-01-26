@@ -187,11 +187,14 @@ echo ROOTSYS already defined: $ROOTSYS
 else
   if [[ $OSNAME = "SunOS" ]]; then
     export ROOTSYS=/u/apps/root/3.01-03/root
+  elif /usr/bin/which root-config; then
+    export ROOTSYS=$(root-config --prefix)
   else
     export ROOTSYS=/usr/local/root
   fi
-  if [[ ! -d $ROOTSYS ]]; then
-    export ROOTSYS=/usr
+  if [[ ! -x ${ROOTSYS}/bin/root ]]; then
+    echo "please define ROOTSYS or add root-config to your PATH"
+    exit 1
   fi
   echo "Setting ROOTSYS to " $ROOTSYS
 fi
