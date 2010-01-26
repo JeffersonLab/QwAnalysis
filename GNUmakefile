@@ -185,7 +185,7 @@ endif
 ############################
 ############################
 # Qw Paths :
-# They are set when $(QWANALYSIS)/SetupFiles/.QwSetup.csh (or .bash)
+# They are set when $(QWANALYSIS)/SetupFiles/.Qwcshrc (or .bash)
 # is sourced prior to the call for this Makefile.
 # A priori they won't be modified. They are (don't uncomment) :
 # QWANALYSIS := /home/lenoble/QwAnalysis
@@ -204,10 +204,10 @@ ifndef QWANALYSIS
   QWANALYSIS := $(shell pwd)
 endif
 ifeq ($(strip $(QWANALYSIS)),)
-  $(error Aborting : QWANALYSIS variable is not set.  Source the SetupFiles/.QwSetup.csh script first)
+  $(error Aborting : QWANALYSIS variable is not set.  Source the SetupFiles/.Qwcshrc script first)
 endif
 ifneq ($(strip $(QWANALYSIS)),$(strip $(shell pwd)))
-  $(error Aborting : QWANALYSIS variable disagrees with the working directory.  Source the SetupFiles/.QwSetup.csh script first)
+  $(error Aborting : QWANALYSIS variable disagrees with the working directory.  Source the SetupFiles/.Qwcshrc script first)
 endif
 
 ifndef QWBIN
@@ -215,7 +215,7 @@ ifndef QWBIN
   QWBIN := $(QWANALYSIS)/bin
 endif
 ifneq ($(strip $(QWBIN)),$(strip $(shell $(FIND) $(QWANALYSIS) -name bin)))
-  $(error Aborting : QWBIN variable is not set properly  Source the SetupFiles/.QwSetup.csh script first)
+  $(error Aborting : QWBIN variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
 endif
 
 ifndef QWLIB
@@ -223,7 +223,7 @@ ifndef QWLIB
   QWLIB := $(QWANALYSIS)/lib
 endif
 ifneq ($(strip $(QWLIB)),$(strip $(shell $(FIND) $(QWANALYSIS) -name lib)))
-  $(error Aborting : QWLIB variable is not set properly  Source the SetupFiles/.QwSetup.csh script first)
+  $(error Aborting : QWLIB variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
 endif
 
 ifndef QWEVIO
@@ -231,7 +231,7 @@ ifndef QWEVIO
   QWEVIO := $(QWANALYSIS)/coda
 endif
 ifneq ($(strip $(QWEVIO)),$(strip $(shell $(FIND) $(QWANALYSIS) -name coda)))
-  $(error Aborting : QWEVIO variable is not set properly  Source the SetupFiles/.QwSetup.csh script first)
+  $(error Aborting : QWEVIO variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
 endif
 
 
