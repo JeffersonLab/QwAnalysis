@@ -78,6 +78,8 @@ class QwDriftChamberVDC: public QwDriftChamber {
 
    Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector, Double_t angle);
 
+   void  FillHistograms();
+
 
  protected:
  void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
