@@ -1801,7 +1801,7 @@ plot_nevent_per_wire(Int_t run_number   = 1567,
       //      nevent_per_wire_canvas -> SetMenuMargin(0.1);
       nevent_per_wire_canvas -> Divide(6,4);  
       nevent_per_wire_canvas -> ToggleEventStatus();
-      nevent_per_wire_canvas -> ToggleToolTips();
+      //      nevent_per_wire_canvas -> ToggleToolTips();
       
       TLatex *region_tex = NULL;
       region_tex = new TLatex();
@@ -2077,7 +2077,7 @@ plot_nwire_hits_per_event(Int_t run_number   = 1567,
 
       //      nwire_hits_per_event_canvas -> SetMenuMargin(0.1);
       nwire_hits_per_event_canvas -> ToggleEventStatus();
-      nwire_hits_per_event_canvas -> ToggleToolTips();
+      //      nwire_hits_per_event_canvas -> ToggleToolTips();
       nwire_hits_per_event_canvas -> Divide(6,4); 
       //      nwire_hits_per_event_canvas ->FeedbackMode(kTRUE);
   
