@@ -764,7 +764,7 @@ TObject *RDataContainer::ReadData(const char *objname)
   //If the file format is of "root object" (*.root), then...
   //
   //The function performs mode (dMode) checks and returns without
-  //doing anything excpet pass an error message if the file was 
+  //doing anything except pass an error message if the file was 
   //opened as write only.
 
   TObject *obj;
@@ -1041,6 +1041,53 @@ int RDataContainer::ReadData(Double_t *data, int rows, int cols)
   FlushMessages();
   SetMessage(FILE_NOT_OPEN,"ReadData",(int)dType,M_CONT_ERROR_MSG);
   return FILE_READ_ERROR;
+}
+
+
+TObject *RDataContainer::ReadTree(const char *treename)
+{
+  TObject *obj;
+  TTree *temptree;
+  if(dMode == FM_UPDATE || dMode == FM_READ){  
+    if(dType == FT_ROOT){
+      if(fRfile != NULL){
+	if(fRfile->IsOpen()){
+	  temptree = (TTree*) fRfile->Get(treename);
+	  obj = (TObject*) temptree;
+	  //	  obj = fRfile->Get(objname);
+	  if(obj != NULL){
+	    return obj;
+	  }
+	  else{
+	    FlushMessages();
+	    SetMessage(ROOT_OBJCRT_ERROR,"ReadData",(int)dType,M_CONT_ERROR_MSG);
+	    return NULL;	
+	  }
+	}
+	else{
+	  FlushMessages();
+	  SetMessage(ROOT_OPEN_ERROR,"ReadData",(int)dType,M_CONT_ERROR_MSG);
+	  return NULL;
+	}
+      }
+      else{
+	FlushMessages();
+	SetMessage(PNTR_NULL_ERROR,"ReadData",(int)dType,M_CONT_ERROR_MSG);
+	return NULL;
+      }
+    }
+    else {
+      FlushMessages();
+      SetMessage(READ_TYPE_ERROR,"ReadData",(int)dType,M_CONT_ERROR_MSG);
+      return NULL;
+    }
+  }
+  else{
+    FlushMessages();
+    SetMessage(WRITE_MODE_ERROR,"ReadData",(int)dType,M_CONT_ERROR_MSG);
+    return NULL;
+  }
+  
 }
 
 int RDataContainer::ReadData(Double_t *x, int row)

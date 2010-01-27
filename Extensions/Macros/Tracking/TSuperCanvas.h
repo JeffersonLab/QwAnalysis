@@ -6,7 +6,7 @@
  \author	Juergen Diefenbach <defi@kph.uni-mainz.de>
  \author	Jeong Han Lee      <jhlee@jlab.org>
 
- \date		2009-12-27 18:06:23
+  \date		2010-01-25 14:45:50
 
  \brief        Implementation of ROOT "super" canvas.
 
@@ -30,14 +30,39 @@
 // *) "m" : zoom on/off
 // *) "l" : y log scale on/off
 
-// *) "f" : FFT on with a selection of TH1 histogram
+// *) "f"      : FFT on with a selection of TH1 histogram
+//               open a new canvas of FFT result.
+//    "ctrl+f" : close the result canvas of FFT
 
 // *) measure a distance between two points (A, B)  on a selected pad,
 //    Shift + mouse 1 (left) down (click) on A and + click on B
 //    The distance will be dumped on "xterminal" as the following example:
 //    dist. meas.: dX = 1.20e+01 dY = -6.90e+00 dist = 1.39e+01
 
+// *) "x"       : projection X of TH2 histogram
+//                open a new canvas of this projection result
+//    "ctrl+x"  : close the result canvas of the projection
+// *) "y"       : projection Y of TH2 histogram
+//                open a new canvas of this projection result
+//    "ctrl+y"  : close the result canvas of the projection
+
+
 // *) more ....
+
+
+
+// History:
+// 0.0.0     2009/12/27   * create TSuperCanvas class based on the orignal 
+//                          Juergen's  TSuperClass class
+// 0.0.1     2010/01/12   * introduce a new canvas for a FFT result and 
+//                          Projection X,Y results
+//                        * introduce SetCurrentPad() in order to
+//                          select an active pad according to the mouse
+//                          position
+// 0.0.2     2010/01/25   * introduce one constructor in order to use
+//                          TSuperCanvas into an embedded canvas 
+
+
 
 
 #ifndef _TSUPERCANVAS_H_
@@ -57,6 +82,7 @@
 #include "TGraphErrors.h"
 #include "TMath.h"
 #include "TVirtualX.h"
+
 // funny colors: http://www.faqs.org/docs/abs/HTML/colorizing.html
 //           or: http://linuxgazette.net/issue65/padala.html
 #define RED       "\E[31m"
@@ -76,8 +102,12 @@ class TSuperCanvas : public TCanvas
 {
 
  public:
-  TSuperCanvas(const Char_t* name, const Char_t* title, Int_t ww, Int_t wh, Float_t menumargin=0.0);
-  TSuperCanvas(const Char_t* name, const Char_t* title, Int_t wtopx, Int_t wtopy, Int_t ww, Int_t wh, Float_t menumargin=0.0);
+/*   TSuperCanvas(const Char_t* name, const Char_t* title, Int_t ww, Int_t wh, Float_t menumargin=0.0); */
+/*   TSuperCanvas(const Char_t* name, const Char_t* title, Int_t wtopx, Int_t wtopy, Int_t ww, Int_t wh, Float_t menumargin=0.0); */
+  TSuperCanvas(const Char_t* name, const Char_t* title, Int_t ww, Int_t wh);
+  TSuperCanvas(const Char_t* name, const Char_t* title, Int_t wtopx, Int_t wtopy, Int_t ww, Int_t wh);
+  TSuperCanvas(const char* name, Int_t ww, Int_t  wh, Int_t  winid);
+
   virtual ~TSuperCanvas();
 
   virtual void Initialize();
@@ -93,12 +123,15 @@ class TSuperCanvas : public TCanvas
 
  
   void SetMenuMargin(Float_t menumargin) {menu_margin = menumargin;};
-  Bool_t SliceTH2(Int_t px);
-  //  void DynamicSliceTH2(Int_t px);
+  void SliceTH2(Int_t px, Int_t py);
+  void DiscreteFourierTransform(Int_t px, Int_t py);
+  void MagnifyPad();
+  void PrintPad(TVirtualPad* pad);
+
   
  private:
   
-  void Configure();
+  //  void Configure();
   
   Float_t  menu_margin;
   Int_t    meas_status;
@@ -106,13 +139,16 @@ class TSuperCanvas : public TCanvas
   Float_t  peakpos[10];
   TLine   *peakline[10];
   
-  Double_t SamplingRate, ScrollRate;
+  Double_t scroll_rate;
+  //  Double_t SamplingRate, ScrollRate;
 
   TVirtualPad *MaximizedPad;
   Double_t MaxmizedPad_xlow, MaxmizedPad_ylow, MaxmizedPad_xup, MaxmizedPad_yup;
   
   TButton *closebutton, *crossbutton, *eventbutton, *toolbutton, *logxbutton, *logybutton;
-  
+
+  void SetBackBeforePad(TPad* cpad);
+  void SetCurrentPad(Bool_t debug=false);
 
   ClassDef(TSuperCanvas,1);
 };

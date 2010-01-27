@@ -6,62 +6,57 @@
  \author	Juergen Diefenbach <defi@kph.uni-mainz.de>
  \author	Jeong Han Lee      <jhlee@jlab.org>
 
- \date		2009-12-27 18:06:23
+ \date		2010-01-25 14:45:50
 
  \brief        Implementation of ROOT "super" canvas.
 
 
 *//*-------------------------------------------------------------------------*/
 
-// They're meant to supplement some "missing" methods, which are very useful 
-// in everyday live, but anyhow for some reasons not implemented in original ROOT.
-//
 
-// This TSuperCanvas was degined for the PVA4 experiment at MAMI, Germany. 
-// The second author (Lee) obtained permission from the PVA4 collaboration
-// in order to use and modify this code for the Qweak experiment at JLab. 
-//
-
-// TO DO...
-// * must test this class into "a stand-alone GUI program" with valgrind
-
-
-// Select a pad with middle mouse button (wheel)
-//
-// *) "g" : grid on/off
-// *) "m" : zoom on/off
-// *) "l" : y log scale on/off
-
-// *) "f" : FFT on with a selection of TH1 histogram
-
-// *) measure a distance between two points (A, B)  on a selected pad,
-//    Shift + mouse 1 (left) down (click) on A and + click on B
-//    The distance will be dumped on "xterminal" as the following example:
-//    dist. meas.: dX = 1.20e+01 dY = -6.90e+00 dist = 1.39e+01
-
-
-// *) "x", "y" : projection X, Y of TH2 histogram
-// *) more ....
-
+// See detailed history in its header file
 
 #include "TSuperCanvas.h"
 #include <math.h>
-
+#include <cstdlib>
 
 ClassImp(TSuperCanvas);
 
-TSuperCanvas::TSuperCanvas(const Char_t* name, const Char_t* title, Int_t ww, Int_t wh, Float_t menumargin)
-  : TCanvas(name, title, ww, wh), menu_margin(menumargin) 
+// TSuperCanvas::TSuperCanvas(const Char_t* name, const Char_t* title, Int_t ww, Int_t wh, Float_t menumargin)
+//   : TCanvas(name, title, ww, wh), menu_margin(menumargin) 
+// { 
+//   Initialize(); 
+// };
+
+// TSuperCanvas::TSuperCanvas(const Char_t* name, const Char_t* title, 
+// 			   Int_t wtopx, Int_t wtopy, Int_t ww, Int_t wh, Float_t menumargin)
+//   : TCanvas(name, title, wtopx, wtopy, ww, wh), menu_margin(menumargin) 
+// { 
+//   Initialize(); 
+// };
+
+TSuperCanvas::TSuperCanvas(const Char_t* name, const Char_t* title, Int_t ww, Int_t wh)
+  : TCanvas(name, title, ww, wh)
 { 
   Initialize(); 
 };
 
 TSuperCanvas::TSuperCanvas(const Char_t* name, const Char_t* title, 
-			   Int_t wtopx, Int_t wtopy, Int_t ww, Int_t wh, Float_t menumargin)
-  : TCanvas(name, title, wtopx, wtopy, ww, wh), menu_margin(menumargin) 
+			   Int_t wtopx, Int_t wtopy, Int_t ww, Int_t wh)
+  : TCanvas(name, title, wtopx, wtopy, ww, wh)
 { 
   Initialize(); 
 };
+
+
+
+TSuperCanvas::TSuperCanvas(const char* name, Int_t ww, Int_t  wh, Int_t  winid)
+  : TCanvas(name, ww, wh, winid)
+{ 
+  Initialize(); 
+};
+
+
 
 TSuperCanvas::~TSuperCanvas()
 {
@@ -94,14 +89,16 @@ TSuperCanvas::Initialize()
   logxbutton  = NULL;
   logybutton  = NULL;
   
-  SamplingRate = 1.0;
-  ScrollRate   = 0.03;
+  //  SamplingRate = 1.0;
+  //  ScrollRate   = 0.03;
 
   meas_status  = 0;
   meas_x1      = 0.0;
   meas_x2      = 0.0;
   meas_y1      = 0.0;
   meas_y2      = 0.0;
+
+  menu_margin  = 0.0;
 
   MaxmizedPad_xlow = 0.0;
   MaxmizedPad_ylow = 0.0;
@@ -159,8 +156,8 @@ TSuperCanvas::Divide(Int_t nx, Int_t ny, Float_t xmargin, Float_t ymargin,
   if (color == 0) color = GetFillColor();
   // special bottom margin for menu:
   Float_t margin = menu_margin;
-//   if (menumargin>=0.0)
-//     margin = menumargin;
+  //   if (menumargin>=0.0)
+  //     margin = menumargin;
   if (xmargin > 0 && ymargin > 0)
     {
       //general case
@@ -276,8 +273,9 @@ TSuperCanvas::MakeMenu(TSuperCanvas **me, Float_t menumargin)
 
 void 
 TSuperCanvas::HandleInput(EEventType event, Int_t px, Int_t py)
+//  :TCanvas::HandleInput(event, px, py)
 {
-  //  printf("event=%d @( %d ; %d )\n", event, px, py);
+  //printf("event=%d @( %d ; %d )\n", event, px, py);
   //-----------------------------------------------------------------//
   if (event==7) // i.e. mouse button 1 down + shift pressed
     {
@@ -286,70 +284,45 @@ TSuperCanvas::HandleInput(EEventType event, Int_t px, Int_t py)
     };
   //-----------------------------------------------------------------//
   if (event==kKeyPress)
-    if ((py==4114)||(py==4116))
-      {
-	TObject *selected = gPad->GetSelected();
-	TAxis   *axis     = NULL;
-	
-	if (strstr(selected->IsA()->GetName(), "TH1"))
-	  axis = ((TH1*)selected)->GetXaxis();
-	//if (strstr(selected->IsA()->GetName(), "TH2"))
-	//axis = ((TH2*)selected)->GetXaxis();
-	if (strstr(selected->IsA()->GetName(), "TGraph"))
-	  axis = ((TGraph*)selected)->GetXaxis();
-	
-	if (axis==NULL)
-	  return;
-	
-	Int_t    first = axis->GetFirst();
-	Int_t    last  = axis->GetLast();
-	Int_t    dist  = Int_t( Double_t (last-first)*ScrollRate);
-
-	if (py==4114) dist *= -1;
-	
-	Double_t low   = axis->GetBinLowEdge(first+dist);
-	Double_t up    = axis->GetBinUpEdge(last+dist);
-	
-	axis->SetRangeUser(low, up);
-	
-	if (strstr(selected->IsA()->GetName(), "TH1"))
-	  ((TH1*)selected)->Draw();
-	//if (strstr(selected->IsA()->GetName(), "TH2"))
-	//  ((TH2*)selected)->Draw();
-	if (strstr(selected->IsA()->GetName(), "TGraph"))
-	  ((TGraph*)selected)->Draw();
-	
-	Update();
-      };
-  //-----------------------------------------------------------------//
-  if (event==kKeyPress)
     {
-      // 'px' contains the ASCII-code of the pressed key:
-      if (px=='f') // show FFT of selected histogram
+      if ((py==4114)||(py==4116))
 	{
-	  TObject *graphics = gPad->GetSelected();
-	  if (strstr(graphics->IsA()->GetName(), "TH1"))
-	    {
-	      TH1* ffth=NULL;
-	      ffth = ((TH1*)graphics)->FFT(ffth, (Option_t*)"MAG");
-	      if (ffth)
-		{
-		  ffth->SetTitle(Form("%s sepctrum", (TH1*)graphics->GetTitle()));
-		  ffth->Draw();
-		}
-	      else
-		{
-		  printf("%s TSuperCanvas: Sorry, not able to create FFT, check ROOT installation for FFT support...%s\n", BOLD, NORMAL);
-		}
-	      TAxis *xa = ffth->GetXaxis();
-	      xa->SetRangeUser(xa->GetBinLowEdge(1), xa->GetBinUpEdge(xa->GetNbins())/2.0);
-	      gPad->SetLogy();
-	      Update();
-	      printf("FFT for >%s< generated...\n", graphics->GetName());
-	    }
-	  else
-	    printf("%s TSuperCanvas: Sorry, no FFT possible for non-TH1 graphics objects...%s\n", BOLD, NORMAL);
-	  return;
+	  TObject *selected = gPad->GetSelected();
+	  TAxis   *axis     = NULL;
+	
+	  if (strstr(selected->IsA()->GetName(), "TH1"))
+	    axis = ((TH1*)selected)->GetXaxis();
+	  //if (strstr(selected->IsA()->GetName(), "TH2"))
+	  //axis = ((TH2*)selected)->GetXaxis();
+	  if (strstr(selected->IsA()->GetName(), "TGraph"))
+	    axis = ((TGraph*)selected)->GetXaxis();
+	  
+	  if (axis==NULL)  return;
+	  
+
+	  scroll_rate = 0.03;
+
+	  Int_t    first = axis->GetFirst();
+	  Int_t    last  = axis->GetLast();
+	  Int_t    dist  = Int_t( Double_t (last-first)*scroll_rate);
+	  
+	  if (py==4114) dist *= -1;
+	  
+	  Double_t low   = axis->GetBinLowEdge(first+dist);
+	  Double_t up    = axis->GetBinUpEdge(last+dist);
+	  
+	  axis->SetRangeUser(low, up);
+	  
+	  if (strstr(selected->IsA()->GetName(), "TH1"))    ((TH1*)selected)->Draw();
+	  // if (strstr(selected->IsA()->GetName(), "TH2"))   ((TH2*)selected)->Draw();
+	  if (strstr(selected->IsA()->GetName(), "TGraph")) ((TGraph*)selected)->Draw();
+	  Update();
+	};
+      //-----------------------------------------------------------------//
+      // 'px' contains the ASCII-code of the pressed key:
+      if (py=='f') // show FFT of selected histogram
+	{
+	  DiscreteFourierTransform(px, py);
 	};
       //-----------------------------------------------------------------//
       if ( (px>='0') && (px<='9') )      //     SAVE PEAK POSIITONS      //
@@ -373,7 +346,6 @@ TSuperCanvas::HandleInput(EEventType event, Int_t px, Int_t py)
 	      meas_status=0; // reset measurement status
 	      Update();
 	    };
-	  return;
 	};
       //-----------------------------------------------------------------//
       if (px=='c')                        //      DELETE PEAKS           //
@@ -403,43 +375,23 @@ TSuperCanvas::HandleInput(EEventType event, Int_t px, Int_t py)
 	  Update();
 	};
       //-----------------------------------------------------------------//
-      if (px=='C')                        //        CONFIGURE            //
-	{
-	  Configure();
-	};
+//       if (px=='C')                        //        CONFIGURE            //
+// 	{
+// 	  Configure();
+// 	};
       //-----------------------------------------------------------------//
       if (px=='m')                        //         MAGNIFY             //
 	{
-	  TVirtualPad *thispad = gPad;
-	  // If there's already a maximized pad, shrink it to normal size again:
-	  if (MaximizedPad)
-	    {
-	      //printf(" shrinking old maximized pad to ( %lf ; %lf ) ( %lf ; %lf )...\n",
-	      //     MaxmizedPad_xlow, MaxmizedPad_ylow, MaxmizedPad_xup, MaxmizedPad_yup);
-	      MaximizedPad->SetPad(MaxmizedPad_xlow, MaxmizedPad_ylow, MaxmizedPad_xup, MaxmizedPad_yup);
-	    };
-	  // If the former maxmized pad is no equal to the selected pad, maximize selected pad:
-	  if (MaximizedPad!=thispad)
-	    {
-	      //printf(" maximizing selected pad...\n");
-	      // store original size of selected pad:
-	      thispad->GetPadPar(MaxmizedPad_xlow, MaxmizedPad_ylow, MaxmizedPad_xup, MaxmizedPad_yup);
-	      thispad->SetPad(0.05, 0.05, 0.95, 0.95);
-	      thispad->Pop();
-	      MaximizedPad = thispad;
-	    }
-	  else
-	    MaximizedPad = NULL;
-	  thispad->Update();
+	  MagnifyPad();
+	  
 	};
-      if(( px=='x') || (px == 'y') )
+      //-----------------------------------------------------------------//
+      if(( py=='x') || (py == 'y') ) // PROJECTION X, Y of TH2
 	{
-	  SliceTH2(px);
+	  SliceTH2(px,py);
+	  Update();
 	}
-//  	{
-// 	  printf("%d\n", px);
-//  	  DynamicSliceTH2(px);
-//  	};
+      return;
     };
   //-----------------------------------------------------------------//
   // finally, if not yet returned, call default HandleInput method:
@@ -479,182 +431,310 @@ TSuperCanvas::Measure(Int_t px, Int_t py)
   return;
 };
 
-void 
-TSuperCanvas::Configure()
-{
-  Char_t input[512];
-  printf(" --- Configuration of TSuperCanvas: ---\n\n");
-  printf("Sampling rate: (currently %6.2e Hz) ", SamplingRate); 
-  scanf("%s", input);
-  
-  if (atof(input)>0.0) SamplingRate = atof(input);
-  printf("  SamplingRate = %6.2e Hz\n\n", SamplingRate);
-  printf("Scroll rate: (currently %6.2e %%) ", ScrollRate); 
-  scanf("%s", input);
-
-  if ((atof(input)>0.0)&&(atof(input)<100.0))   SamplingRate = atof(input)/100.0;
-  printf("  ScrollRate = %6.2e %%\n", ScrollRate*100.0);
-  return;
-};
-
-
 // void 
-// TSuperCanvas::DynamicSliceTH2(Int_t px)
+// TSuperCanvas::Configure()
 // {
+//   Char_t input[512];
+//   SamplingRate = 1.0;
+//   printf(" --- Configuration of TSuperCanvas: ---\n\n");
+//   printf("Sampling rate: (currently %6.2e Hz) ", SamplingRate); 
+//   scanf("%s", input);
+  
+//   if (atof(input)>0.0) SamplingRate = atof(input);
+//   printf("  SamplingRate = %6.2e Hz\n\n", SamplingRate);
+//   printf("Scroll rate: (currently %6.2e %%) ", ScrollRate); 
+//   scanf("%s", input);
 
-//   TObject *mouse_obj = gPad -> GetSelected();
-
-//   if((mouse_obj->InheritsFrom("TH2")) )
-//     {
-//       Int_t    pxy = 0;
-//       Float_t upxy = 0.0;
-//       Float_t   xy = 0.0;
-//       if( px == 'y')
-// 	{
-// 	  pxy  = gPad -> GetEventX();
-// 	  upxy = gPad -> AbsPixeltoX(pxy);
-// 	  xy   = gPad -> PadtoX(upxy);
-// 	}
-//       else if( px == 'x' )
-// 	{
-// 	  pxy  = gPad -> GetEventY();
-// 	  upxy = gPad -> AbsPixeltoY(pxy);
-// 	  xy   = gPad -> PadtoY(upxy);
-// 	}
-//       else
-// 	{
-// 	  printf("%s TSuperCanvas: Sorry, no Slice possible %s\n", BOLD, NORMAL);
-// 	  return;
-// 	}
-
-//       TVirtualPad *padsav = gPad;
-//       TCanvas *c2 = NULL;
-//       //   c2 (TCanvas*)gROOT->GetListOfCanvases()->FindObject("c2");
-//       if(c2) delete c2->GetPrimitive("Projection");
-//       else   c2 = new TCanvas("c2","Projection Canvas",40,40,700,500);
-//       c2->SetGrid();
-//       c2->cd();
-//       TH2 *h = NULL;
-//       h = (TH2*) mouse_obj;
-//       Int_t bin = 0;
-//       if( px == 'y' ) bin = h->GetXaxis()->FindBin(xy);
-//       if( px == 'x' ) bin = h->GetYaxis()->FindBin(xy);
-
-//       TH1D *hp = NULL;
-//       if( px == 'y' ) hp = h->ProjectionY("",bin,bin);
-//       if( px == 'x' ) hp = h->ProjectionX("",bin,bin);
-
-//       hp->SetFillColor(38);
-//       char title[80];
-//       sprintf(title,"Projection of bin=%d",bin);
-//       hp->SetName("Projection");
-//       hp->SetTitle(title);
-//       if( px == 'x' ) hp->GetXaxis() -> SetTitle(h->GetXaxis() -> GetTitle());
-//       if( px == 'y' ) hp->GetXaxis() -> SetTitle(h->GetYaxis() -> GetTitle());
-//       hp->Draw("");
-//       c2->Update();
-//       padsav->cd();
-//     }
-//   else
-//     {
-//       printf("%s TSuperCanvas: Sorry, no Slice possible for non-TH2 objects...%s\n", BOLD, NORMAL);
-//     }
+//   if ((atof(input)>0.0)&&(atof(input)<100.0))   SamplingRate = atof(input)/100.0;
+//   printf("  ScrollRate = %6.2e %%\n", ScrollRate*100.0);
 //   return;
-
 // };
 
 
-Bool_t 
-TSuperCanvas::SliceTH2(Int_t px)
+
+// "x" (120,120)  with selecting TH1 object
+//             Do X projection 
+// "CTRL + x" (24, 120) with selecting TH1 object
+//               Close the canvas from the result of Projection X
+//
+// "y" (121,121)  with selecting TH1 object
+//             Do Y projection 
+// "CTRL + y" (25, 121) with selecting TH1 object
+//               Close the canvas from the result of Projection Y
+void 
+TSuperCanvas::SliceTH2(Int_t px, Int_t py)
 {
-  gPad->GetCanvas()->FeedbackMode(kTRUE);
 
-  TObject *mouse_obj = gPad -> GetSelected();
-  TPad *mouse_pad    = (TPad*)gPad -> GetSelectedPad();
-  TObject *click_obj = this->GetClickSelected();
-  TPad *click_pad    = (TPad*) this-> GetClickSelectedPad();
+  SetCurrentPad();
+  TObject *current_obj = gPad -> GetSelected();
+  TPad    *current_pad = (TPad*) gPad;
 
-  printf("gpad      : %d, %s\n", mouse_pad->GetNumber(), mouse_obj->GetName() );
-  printf("click_obj : %d, %s\n", click_pad->GetNumber(), click_obj->GetName() );
-  
-  if( (mouse_obj->InheritsFrom("TH2")) )
+  if( (current_obj->InheritsFrom("TH2")) )
     {
-      Int_t    pxy = 0;
-      Float_t upxy = 0.0;
-      Float_t   xy = 0.0;
+      TSuperCanvas *slice_canvas = (TSuperCanvas*)gROOT->GetListOfCanvases()->FindObject("slice_canvas");
       
-      TH2 *selected_hist2 = (TH2*) mouse_obj;  
-      TH1D *sliced_hist   = NULL;
-      Int_t xbin_number   = 0;
-      Int_t ybin_number   = 0;
-
-      if( px == 'y')
+      if(slice_canvas) 
 	{
-	  pxy         = gPad -> GetEventX();
-	  upxy        = gPad -> AbsPixeltoX(pxy);
-	  xy          = gPad -> PadtoX(upxy);
-	  xbin_number = selected_hist2->GetXaxis()->FindBin(xy);
-	  sliced_hist = selected_hist2->ProjectionY("",xbin_number,xbin_number);
-	  sliced_hist -> GetXaxis()->SetTitle( selected_hist2->GetYaxis()->GetTitle() );
-	  sliced_hist -> SetTitle(Form("%s Projection of bin = %d", selected_hist2-> GetTitle(), xbin_number));
+	  slice_canvas -> Close(); delete slice_canvas; slice_canvas = NULL;
 	}
-      else if( px == 'x' )
+      
+      slice_canvas = new TSuperCanvas("slice_canvas","Projection Canvas",20,20,640,480);
+      
+      if( (px==24) || (px==25) )
 	{
-	  pxy         = gPad -> GetEventY();
-	  upxy        = gPad -> AbsPixeltoY(pxy);
-	  xy          = gPad -> PadtoY(upxy);
-	  ybin_number = selected_hist2->GetYaxis()->FindBin(xy);
-	  sliced_hist = selected_hist2->ProjectionX("", ybin_number, ybin_number);
-	  sliced_hist->GetXaxis()->SetTitle( selected_hist2->GetXaxis()->GetTitle() );
-	  sliced_hist -> SetTitle(Form("%s Projection of bin = %d", selected_hist2-> GetTitle(), ybin_number));
-
+	  slice_canvas -> Close(); delete slice_canvas; slice_canvas = NULL;
+	  SetBackBeforePad(current_pad);
+	  return;
 	}
       else
 	{
-	  printf("%s That is not a choice. There are x and y projections. %s\n", BOLD, NORMAL);
-	  return false;
+	  Int_t    pxy        = 0;
+	  Float_t upxy        = 0.0;
+	  Float_t   xy        = 0.0;
+	  Int_t bin_number    = 0;
+	  TH2 *selected_hist2 = (TH2*) current_obj;  
+	  TH1D *sliced_hist   = NULL;
+	  
+	  if( py == 'x' )
+	    {
+	      pxy         = current_pad -> GetEventY();
+	      upxy        = current_pad -> AbsPixeltoY(pxy);
+	      xy          = current_pad -> PadtoY(upxy);
+	      bin_number  = selected_hist2->GetYaxis()->FindBin(xy);
+	      sliced_hist = selected_hist2->ProjectionX("", bin_number, bin_number);
+	      sliced_hist -> GetXaxis()->SetTitle( selected_hist2->GetXaxis()->GetTitle() );
+	      sliced_hist -> SetTitle(Form("%s Projection of bin = %d", selected_hist2-> GetTitle(), bin_number));
+	    }
+	  if( py == 'y')
+	    {
+	      pxy         = current_pad -> GetEventX();
+	      upxy        = current_pad -> AbsPixeltoX(pxy);
+	      xy          = current_pad -> PadtoX(upxy);
+	      bin_number  = selected_hist2->GetXaxis()->FindBin(xy);
+	      sliced_hist = selected_hist2->ProjectionY("", bin_number, bin_number);
+	      sliced_hist -> GetXaxis()->SetTitle( selected_hist2->GetYaxis()->GetTitle() );
+	      sliced_hist -> SetTitle(Form("%s Projection of bin = %d", selected_hist2-> GetTitle(), bin_number));
+	    }
+	  
+	  //      printf("pxy %3d, upxy %4.2f xy %4.2f bin %d\n", pxy, upxy, xy, bin_number);
+	  
+	  sliced_hist  -> SetName("Projection");
+	  sliced_hist  -> SetLineColor(kRed);
+	  sliced_hist  -> SetFillColor(38);
+	  sliced_hist  -> Draw();
+
+	  //slice_canvas -> ToggleToolTips();
+	  slice_canvas -> Update();
 	}
-      
-      sliced_hist -> SetName("Projection");
-      
-      TCanvas *slice_canvas = new TCanvas("slice_canvas","Projection Canvas",20,20,640,480);
-
-      slice_canvas ->ToggleToolTips();
-      //      slice_canvas -> cd();
-      sliced_hist  -> SetLineColor(kRed);
-      sliced_hist  -> Draw();
-
-      slice_canvas ->Update();
-
-
-      // back to the original selected pad TH2
-    
-      mouse_pad->SetCursor(kPointer);
-      this->cd( mouse_pad->GetNumber() );
-      this->SetSelectedPad( mouse_pad );
-      this->SetClickSelectedPad( click_pad );
-      this->SetSelected( mouse_obj );
-      this->SetClickSelected( click_obj );
-    
-      // TVirtualX.h
-      //      enum ECursor { kBottomLeft, kBottomRight, kTopLeft, kTopRight,
-      // 		     kBottomSide, kLeftSide, kTopSide, kRightSide,
-      // 		     kMove, kCross, kArrowHor, kArrowVer, kHand, kRotate,
-      // 		     kPointer, kArrowRight, kCaret, kWatch, kNoDrop };
-
-   
-
-      return true;
     }
   else
     {
       printf("%s TSuperCanvas: Sorry, no Slice possible for non-TH2 objects...%s\n", BOLD, NORMAL);
-      return false;
     }
-
+  
+  SetBackBeforePad(current_pad);
+  return;
 };
 
 
+
+
+
+// "f" (102,102)  with selecting TH1 object
+//               Do  FFT of the selected TH1 (mouse over)
+// "CTRL + f" (6, 102) with selecting TH1 object
+//               Close the FFT result canvas
+//
+// It is not allowed to do FFT again on the result of FFT
+// because I don't know how to get back the original Pad 
+// between difference canvases
+
+void 
+TSuperCanvas::DiscreteFourierTransform(Int_t px, Int_t py)
+{
+  if( py != 'f')  
+    {
+      printf("something wrong \n");
+      return;
+    }
+
+  SetCurrentPad();
+  TObject *current_obj = gPad -> GetSelected();
+  TPad    *current_pad = (TPad*) gPad;
+
+  //   Int_t current_canvas_id = gPad->GetCanvasID();
+  //   Int_t open_canvas_id = 0;
+  
+  //   PrintPad(current_pad);
+  
+
+  // printf("%s name %s\n", current_obj->GetTitle(), current_obj->GetName());
+
+  if(strstr(current_obj->GetName(), "FFT") )
+    {
+      printf("%s TSuperCanvas: Sorry, no FFT possible for a FFT result...%s\n", BOLD, NORMAL);
+      SetBackBeforePad(current_pad);
+      return;
+    }
+  if( (current_obj->InheritsFrom("TH1")) )
+    {
+      TSuperCanvas *dft_canvas = (TSuperCanvas*)gROOT->GetListOfCanvases()->FindObject("dft_canvas");
+      
+      if(dft_canvas)
+	{
+	  dft_canvas -> Close(); delete dft_canvas; dft_canvas = NULL;
+	}
+      
+      dft_canvas = new TSuperCanvas("dft_canvas","Projection Canvas",20,20,640,480);
+      //       open_canvas_id = dft_canvas -> GetCanvasID();
+
+      if( (px==6) ) // CTRL+f (6,102)
+	{
+	  dft_canvas -> Close(); delete dft_canvas; dft_canvas = NULL;
+	  SetBackBeforePad(current_pad);
+	  return;
+	}
+      else
+	{
+
+	    
+	  TH1 *hist    = (TH1*) current_obj;
+	  TH1 *fft_out = NULL;
+	  fft_out = hist->FFT(fft_out, "Mag R2C");
+	  if (fft_out)
+	    {
+	      fft_out -> SetTitle( Form("%s sepctrum", hist->GetTitle()) );
+	      fft_out -> SetName("FFT");
+	      fft_out -> SetLineColor(kRed);
+	      fft_out -> Draw();
+
+	      TAxis *xa = fft_out->GetXaxis();
+	      xa -> SetRangeUser(xa->GetBinLowEdge(1), xa->GetBinUpEdge(xa->GetNbins())/2.0);
+
+	      //  gPad->SetLogy();
+	      //  dft_canvas -> ToggleToolTips();
+	      dft_canvas -> Update();
+	    }
+	  else
+	    {  
+	      printf("%s TSuperCanvas: Sorry, not able to create FFT, check ROOT installation for FFT support...%s\n", BOLD, NORMAL);
+	    }
+	}
+    }
+  else
+    {
+      printf("%s TSuperCanvas: Sorry, no FFT possible for non-TH1 graphics objects...%s\n", BOLD, NORMAL);
+    }
+ 
+ //  if(current_canvas_id == open_canvas_id)
+//     SetBackBeforePad((TPad*)gPad);
+//   else
+    SetBackBeforePad(current_pad);
+  
+  return;
+
+}
+
+
+void 
+TSuperCanvas::MagnifyPad()
+{
+  SetCurrentPad();
+  
+  // If there's already a maximized pad, shrink it to normal size again:
+  TVirtualPad *thispad = gPad;
+  if (MaximizedPad)
+    {
+      //printf(" shrinking old maximized pad to ( %lf ; %lf ) ( %lf ; %lf )...\n",
+      //     MaxmizedPad_xlow, MaxmizedPad_ylow, MaxmizedPad_xup, MaxmizedPad_yup);
+      MaximizedPad->SetPad(MaxmizedPad_xlow, MaxmizedPad_ylow, MaxmizedPad_xup, MaxmizedPad_yup);
+    };
+  
+  // If the former maxmized pad is no equal to the selected pad, maximize selected pad:
+  if (MaximizedPad!=thispad)
+    {
+      //printf(" maximizing selected pad...\n");
+      // store original size of selected pad:
+      thispad->GetPadPar(MaxmizedPad_xlow, MaxmizedPad_ylow, MaxmizedPad_xup, MaxmizedPad_yup);
+      thispad->SetPad(0.05, 0.05, 0.95, 0.95);
+      thispad->Pop();
+      MaximizedPad = thispad;
+    }
+  else
+    {
+      MaximizedPad = NULL;
+    }
+
+  this -> Update();
+  return;
+}
+
+void
+TSuperCanvas::SetBackBeforePad(TPad* pad)
+{
+  this -> cd (pad ->GetNumber());
+  this -> SetSelectedPad( pad );
+  this -> SetClickSelectedPad( pad );
+  this -> Update();
+  return;
+}
+
+// Thre are three types of Pads in one canvas
+// 1) fSelectedPad      -> following the mouse point over the canvas
+// 2) fClickSelectedPad -> once one click the left mouse button over the pad
+// 3) gPad              -> after cd()...
+// I want the current pad will be a pad when a key is pressed over this pad.
+
+void
+TSuperCanvas::SetCurrentPad(Bool_t debug)
+{
+  TVirtualPad *spad = NULL;
+  Int_t scanvas_id  = 0;
+  spad = this ->GetSelectedPad();
+  scanvas_id = spad->GetCanvasID();
+  // make the SelectedPad and the ClickSelectedPad are the same.
+  this-> SetClickSelectedPad((TPad*)spad);
+
+  if(debug)
+    {
+      printf(" CANVAS ID %d    ----------\n", scanvas_id); 
+      printf("     SelectedPad ----------\n"); PrintPad(spad);
+      printf("ClickSelectedPad ----------\n"); PrintPad(fClickSelectedPad);
+      printf("Before Move the Current Pad\n"); PrintPad((TVirtualPad*)gPad);
+    }
+  // move the Current Pad to the selected Pad (follows the mouse point)
+  this -> cd( spad->GetNumber() );
+  // update the canvas.
+  this -> Update();
+  
+  if(debug)
+    {
+      printf("After Move the Current Pad \n"); PrintPad((TVirtualPad*)gPad);
+    }
+  
+  return ;
+}
+
+void
+TSuperCanvas::PrintPad(TVirtualPad* pad)
+{
+  TObject     *obj  = NULL;
+  obj = pad -> GetSelected();
+  TVirtualPad *mpad = NULL;
+  mpad = pad -> GetMother();
+
+  printf("*** Mom Pad %30s : Num %2d CvsID %2d EvID %2d \n",
+	 mpad->GetName(), mpad->GetNumber(), mpad->GetCanvasID(), mpad->GetEvent());
+  printf("***     Pad %30s : Num %2d CvsID %2d EvID %2d : obj %s\n", 
+	 pad->GetName(), pad->GetNumber(), pad-> GetCanvasID(), pad->GetEvent(),
+	 obj->GetName());
+  
+  //  printf(" %s pad %d canvas id %d Event %d &s :  obj %s\n", 
+  //	 mpad->GetNumber(), mpad-> GetCanvasID(), mpad->GetEvent(), mpad->GetName()
+  //	 mobj->GetName());
+  
+  
+}
 
 #if defined(__MAKECINT__)
 #pragma link C++ class TSuperCanvas;
