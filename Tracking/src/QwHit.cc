@@ -9,7 +9,7 @@
 ClassImp(QwHit);
 
 // Qweak headers
-#include "QwLog.h"
+//#include "QwLog.h"
 #include "QwDetectorInfo.h"
 
 /**
@@ -359,7 +359,7 @@ const Double_t QwHit::GetZPosition() const
 {
   if (fZPos != 0.0)  return fZPos;
   else {
-    QwWarning << "Improper QwHit::GetZPosition() call" << QwLog::endl;
+    //    QwWarning << "Improper QwHit::GetZPosition() call" << QwLog::endl;
     return pDetectorInfo->GetZPosition();
   }
 };
@@ -368,7 +368,7 @@ const Double_t QwHit::GetSpatialResolution() const
 {
   if (pDetectorInfo) return pDetectorInfo->GetSpatialResolution();
   else {
-    QwWarning << "Improper QwHit::GetSpatialResolution() call" << QwLog::endl;
+    //    QwWarning << "Improper QwHit::GetSpatialResolution() call" << QwLog::endl;
     return fSpatialResolution;
   }
 };
@@ -377,7 +377,7 @@ const Double_t QwHit::GetTrackResolution() const
 {
   if (pDetectorInfo) return pDetectorInfo->GetTrackResolution();
   else {
-    QwWarning << "Improper QwHit::GetTrackResolution() call" << QwLog::endl;
+    //    QwWarning << "Improper QwHit::GetTrackResolution() call" << QwLog::endl;
     return fTrackResolution;
   }
 };
