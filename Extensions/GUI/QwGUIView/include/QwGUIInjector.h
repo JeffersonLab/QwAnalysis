@@ -55,7 +55,7 @@ class QwGUIInjector : public QwGUISubSystem {
 
   
   TGHorizontalFrame   *dTabFrame;
-  TGVerticalFrame     *dSubFrame;
+   TGVerticalFrame    *dControlsFrame;
   TRootEmbeddedCanvas *dCanvas;  
   TGLayoutHints       *dTabLayout; 
   TGLayoutHints       *dCnvLayout; 
@@ -63,6 +63,7 @@ class QwGUIInjector : public QwGUISubSystem {
   TGLayoutHints       *dBtnLayout;
   TGTextButton        *dButtonPos;
   TGTextButton        *dButtonCharge;
+  TGTextButton        *dButtonPosVariation;
 
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;
@@ -83,6 +84,9 @@ class QwGUIInjector : public QwGUISubSystem {
 
 
   void                 PlotChargeData();
+
+
+  void                 CompareCharge();  
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes

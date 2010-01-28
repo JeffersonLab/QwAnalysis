@@ -1,10 +1,11 @@
 #include "QwGUIInjector.h"
-
+#include <TG3DLine.h>
 ClassImp(QwGUIInjector);
 
 enum QwGUIInjectorIndentificator {
   BA_POSSITION,
-  BA_CHARGE
+  BA_CHARGE,
+  BA_CHARGE_VAR
 };
 
 const char *QwGUIInjector::InjectorTrees[INJECTOR_DET_TRE_NUM] = 
@@ -16,10 +17,10 @@ const char *QwGUIInjector::InjectorTrees[INJECTOR_DET_TRE_NUM] =
 const char *QwGUIInjector::InjectorBPM[INJECTOR_BPM_NUM]=
   {"qwk_1i02","qwk_1i04","qwk_1i06","qwk_0i02","qwk_0i02a",
    "qwk_0i05"
-   //   "qwk_0i07","qwk_0l01","qwk_0l02","qwk_0l03",
-//      "qwk_0l04","qwk_0l05","qwk_0l06","qwk_0l07","qwk_0l08",
-//      "qwk_0l09","qwk_0l10","qwk_0r01","qwk_0r02","qwk_0r05",
-//      "qwk_0r06
+//    "qwk_0i07","qwk_0l01","qwk_0l02","qwk_0l03",
+//    "qwk_0l04","qwk_0l05","qwk_0l06","qwk_0l07","qwk_0l08",
+//    "qwk_0l09","qwk_0l10","qwk_0r01","qwk_0r02","qwk_0r05",
+//    "qwk_0r06"
 
     };
 
@@ -35,27 +36,21 @@ QwGUIInjector::QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTa
   : QwGUISubSystem(p,main,tab,objName,mainname,w,h)
 { 
   dTabFrame = NULL;
-  dSubFrame = NULL;
+  dControlsFrame = NULL;
   dCanvas = NULL;  
-  dTabLayout = NULL;
-  dCnvLayout = NULL;
-  dSubLayout = NULL;
   dBtnLayout = NULL;
   dButtonPos = NULL;
   dButtonCharge = NULL;
-
   AddThisTab(this);
 
 }
 
 QwGUIInjector::~QwGUIInjector()
 {
-  if(dTabFrame)  delete dTabFrame;
-  if(dSubFrame)  delete dSubFrame;
-  if(dCanvas)    delete dCanvas;  
-  if(dTabLayout) delete dTabLayout;
-  if(dCnvLayout) delete dCnvLayout;
-  if(dBtnLayout) delete dBtnLayout;
+  if(dTabFrame)       delete dTabFrame;
+  if(dControlsFrame)  delete dControlsFrame;
+  if(dCanvas)         delete dCanvas;  
+  if(dBtnLayout)      delete dBtnLayout;
 
   RemoveThisTab(this);
   IsClosing(GetName());
@@ -64,40 +59,42 @@ QwGUIInjector::~QwGUIInjector()
 void QwGUIInjector::MakeLayout()
 {
 
-  dTabLayout = new TGLayoutHints( kLHintsTop | kLHintsExpandX | kLHintsExpandY);  
-  dCnvLayout = new TGLayoutHints( kLHintsTop | kLHintsExpandX | kLHintsExpandY, 10, 10, 10, 10);
-  // dSubLayout = new TGLayoutHints( kLHintsCenterX| kLHintsCenterY, 10, 10, 10, 10);
-  dBtnLayout = new TGLayoutHints( kLHintsCenterX , 5,5,5,5);
+  SetCleanup(kDeepCleanup);
+
+  dTabFrame= new  TGHorizontalFrame(this);  
+  AddFrame(dTabFrame, new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY, 5, 5));
+
+
+  dControlsFrame = new TGVerticalFrame(this);
+  dTabFrame->AddFrame(dControlsFrame, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 5, 5, 5, 5));
   
+  TGVertical3DLine *separator = new TGVertical3DLine(this);
+  dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
+
+  dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200); 
+  dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
+
  
-  dTabFrame = new TGHorizontalFrame(this,10,10);  
-  AddFrame(dTabFrame,dTabLayout); // Add tab to the main frame
- 
-
-  //dSubFrame = new TGVerticalFrame(this,10,10);
-  //dTabFrame->AddFrame(dSubFrame,dSubLayout);
-  //dTabFrame->Resize(GetWidth(),GetHeight());
-  dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,8, 10);  
-  dTabFrame->AddFrame(dCanvas,dCnvLayout); //Add the canvas to the tab
-
-
-   
-  dTabFrame->Resize(GetWidth(),GetHeight());
-
-
-  dButtonPos = new TGTextButton(this, "&Beam Position Differences", BA_POSSITION);
-  dButtonCharge = new TGTextButton(this, "&Beam Charge Asymmetries", BA_CHARGE);
-  AddFrame(dButtonPos,dBtnLayout);
-  AddFrame(dButtonCharge,dBtnLayout);
-  //dSubFrame->AddFrame(dButtonPos,dBtnLayout);
-  //dSubFrame->Resize(GetWidth(),GetHeight());
-  //dSubFrame->AddFrame(dButtonCharge, dBtnLayout);
-  //dSubFrame->Resize(GetWidth(),GetHeight());
+  //dControlsFrame->AddFrame( dButtonPos, new TGLayoutHints(kLHintsBottom | kLHintsExpandX, 0, 0, 0, 5));
   
+ //  TGGroupFrame *group = new TGGroupFrame(dControlsFrame, "Controls");
+//   group->SetTitlePos(TGGroupFrame::kCenter);
+
+  dButtonPos = new TGTextButton(dControlsFrame, "&Beam Position Differences", BA_POSSITION);
+  dButtonCharge = new TGTextButton(dControlsFrame, "&Beam Charge Asymmetries", BA_CHARGE);
+  dButtonPosVariation = new TGTextButton(dControlsFrame, "&Beam Position Variation", BA_CHARGE_VAR);
+  dBtnLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
+
+  dControlsFrame->AddFrame(dButtonPos,dBtnLayout );
+  dControlsFrame->AddFrame(dButtonCharge,dBtnLayout);
+  dControlsFrame->AddFrame(dButtonPosVariation, dBtnLayout);
+  
+  // dControlsFrame->AddFrame(group,new TGLayoutHints(kLHintsExpandX));
+
 
   dButtonPos -> Associate(this);
   dButtonCharge -> Associate(this);
-
+  dButtonPosVariation -> Associate(this);
 
   dCanvas->GetCanvas()->SetBorderMode(0);
   dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
@@ -107,10 +104,10 @@ void QwGUIInjector::MakeLayout()
  //  TCanvas *mc = dCanvas->GetCanvas();
 //   mc->Divide( 2, 4);
 
-   Int_t wid = dCanvas->GetCanvasWindowId();
-   TSuperCanvas *super_canvas = new TSuperCanvas("", 10, 10, wid);
-   dCanvas->AdoptCanvas(super_canvas);
-   super_canvas -> Divide(2,4);
+  Int_t wid = dCanvas->GetCanvasWindowId();
+  TSuperCanvas *super_canvas = new TSuperCanvas("", 10, 10, wid);
+  dCanvas->AdoptCanvas(super_canvas);
+  super_canvas -> Divide(2,4);
 
 }
 
@@ -179,7 +176,7 @@ void QwGUIInjector::PlotPosData(){
   TObject *obj;
   TCanvas *mc = dCanvas->GetCanvas();
   
-  mc->Divide(3,2);
+  mc->Divide(4,3);
 
   obj = HistArray.At(1);  // Get MPS tree
   if(ldebug) printf("%s\n", obj->GetName());
@@ -188,18 +185,27 @@ void QwGUIInjector::PlotPosData(){
     {
       char * histo;
       sprintf (histo, "%sRelX.hw_sum",InjectorBPM[p] );
-
       if( ((TTree*) obj)->FindLeaf(histo))
 	{
 	  if(ldebug) printf("%s\n",InjectorBPM[p]);
 	  mc -> cd(p+1);
 	  obj -> Draw(histo);
 	}
-    }  
+      sprintf (histo, "%sRelY.hw_sum",InjectorBPM[p] );
+      if( ((TTree*) obj)->FindLeaf(histo))
+	{
+	  if(ldebug) printf("%s\n",InjectorBPM[p]);
+	  mc -> cd(2*(p+1));
+	  obj -> Draw(histo);
+	}
+
+   }  
 
   mc->Modified();
   mc->Update();
 }
+
+
 
 void QwGUIInjector::PlotChargeData(){
 
@@ -207,9 +213,9 @@ void QwGUIInjector::PlotChargeData(){
  
   TObject *objc;
   TCanvas *mc = dCanvas->GetCanvas();
- 
-  mc->Divide(4,2);
 
+  mc->Divide(4,3);
+  
   objc = HistArray.At(0);  // Get HEL tree
   
   if(ldebug) printf("%s\n", objc->GetName());
@@ -229,6 +235,81 @@ void QwGUIInjector::PlotChargeData(){
   mc->Modified();
   mc->Update();
 }
+
+
+void QwGUIInjector::CompareCharge(){
+
+ //  bool ldebug = false;
+
+//   TObject *obj;
+//   TCanvas *mc = dCanvas->GetCanvas();
+  
+//   Double_t mena_charge[INJECTOR_BPM_NUM];
+//   Double_t relx[INJECTOR_BPM_NUM], rely[INJECTOR_BPM_NUM],
+//     erx[INJECTOR_BPM_NUM],ery[INJECTOR_BPM_NUM],
+//     err[INJECTOR_BPM_NUM],name[INJECTOR_BPM_NUM+1];
+
+//   //mc->Divide(INJECTOR_BPM_NUM/2,INJECTOR_BPM_NUM/2);
+
+//   obj = HistArray.At(1);  // Get MPS tree
+//   if(ldebug) printf("%s\n", obj->GetName());
+  
+//   for(Short_t p = 0; p <INJECTOR_BPM_NUM ; p++) 
+//     {
+//       char * histo;
+//       sprintf (histo, "%sRelX.hw_sum>>htemp",InjectorBPM[p] );
+//       if( ((TTree*) obj)->FindLeaf(histo))
+// 	{
+// 	  if(ldebug) printf("%s\n",InjectorBCM[p]);
+// 	  mc -> cd(p+1);
+// 	  obj -> Draw(histo);
+// 	  TH1* htemp = mc->GetPrimitive(histo);
+// 	  //(TH1D*) htemp = (TH1*)(gDirectory)->GetObject("histo");
+// 	  relx[p]=htemp->GetMean();
+// 	  erx[p]=(htemp->GetRMS())/sqrt(htemp->GetEntries());
+// 	}
+      
+//       sprintf (histo, "%sRelY.hw_sum>>htemp",InjectorBPM[p] );
+//       if( ((TTree*) obj)->FindLeaf(histo))
+// 	{
+// 	  if(ldebug) printf("%s\n",InjectorBPM[p]);
+// 	  mc -> cd(2*(p+1));
+// 	  obj -> Draw(histo);
+// 	  rel[p]=htemp->GetMean();
+// 	  ery[p]=(htemp->GetRMS())/sqrt(htemp->GetEntries());
+// 	}
+//       name[p]+=0;
+//     }  
+  
+//   gx  = new TGraphErrors(INJECTOR_BPM_NUM,name,relx,err,erx);
+//   //gx = new TGraph(21,name,relx);
+//   gx->SetTitle("#Delta x Variation");
+//   gx->GetYaxis()->SetTitle("#Delta x (#mum)");
+//   gx->SetMarkerStyle(8);
+//   gx->SetMarkerSize(0.8);
+
+ 
+//   gy  = new TGraphErrors(ndevices,name,rely,err,ery);
+//   //gy = new TGraph(ndevices,name,rely);
+//   gy->SetTitle("#Delta y Variation");
+//   gy->GetYaxis()->SetTitle("#Delta y(#mum)");
+//   gy->SetMarkerStyle(8);
+//   gy->SetMarkerSize(0.8);
+
+//   for (Int_t j=1;j<=ndevices;j++)     
+//     {
+//       gx->GetXaxis()->SetBinLabel(4.5*j,devicelist[j-1]);
+//       gy->GetXaxis()->SetBinLabel(4.5*j,devicelist[j-1]); 
+//     } 
+  
+//   c2->cd(2); 
+//   gx->Draw("ap");
+
+//   mc->Modified();
+//   mc->Update();
+}
+
+
 
 void QwGUIInjector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 {
