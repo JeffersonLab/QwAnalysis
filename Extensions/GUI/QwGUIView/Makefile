@@ -24,6 +24,31 @@ OBJECTS       += QwGUITrackingSystem.o
 NODICTOBJECTS =
 #NODICTOBJECTS += NMpContainer.o
 
+
+
+QWOBJECTS     = $(QWANALYSIS)/Tracking/src/QwHit.o 
+QWOBJECTS    += $(QWANALYSIS)/Tracking/src/QwHitRootContainer.o 
+QWOBJECTS    += $(QWANALYSIS)/Tracking/src/QwHitContainer.o 
+QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwHitDict.o 
+QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwHitContainerDict.o 
+QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwHitRootContainerDict.o 
+
+
+
+#QWOBJECTS    += $(QWANALYSIS)/Tracking/src/QwEvent.o 
+##QWOBJECTS    += $(QWANALYSIS)/Tracking/src/QwEventHeader.o 
+#QWOBJECTS    += $(QWANALYSIS)/Tracking/src/QwTrackingTreeLine.o 
+#QWOBJECTS    += $(QWANALYSIS)/Tracking/src/VQwTrackingElement.o 
+#QWOBJECTS    += $(QWANALYSIS)/Tracking/src/QwPartialTrack.o 
+#QWOBJECTS    += $(QWANALYSIS)/Tracking/src/Det.o  # for QwPartialTrack
+
+#QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwEventDict.o 
+##QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwEventHeaderDict.o 
+#QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwTrackingTreeLineDict.o 
+#QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/VQwTrackingElementDict.o 
+#QWOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwPartialTrackDict.o 
+
+
 # Have this after all the object files are listed so that dictionaries
 # will be made automatically.
 DICTS		= $(OBJECTS:.o=Dict.o)
@@ -48,20 +73,21 @@ ROOTLIBS     := $(shell root-config --libs)
 ROOTGLIBS    := $(shell root-config --glibs)
 
 QWINCLUDE    = -I$(QWANALYSIS)/Analysis/include -I$(QWANALYSIS)/Tracking/include -I$(QWANANLSYS)/Parity/include 
-QWLIBS       = $(QWANALYSIS)/lib
+QwLIBS       = 
+
 
 
 CXXFLAGS     += $(DEBUGFLAGS) $(ROOTCFLAGS) -Wno-deprecated
-LIBS          = $(ROOTLIBS) $(SYSLIBS) $(QWLIBS)
-GLIBS         = $(ROOTGLIBS) $(SYSLIBS)
+LIBS          = $(ROOTLIBS) $(SYSLIBS) $(QWLIBS) 
+GLIBS         = $(ROOTGLIBS) $(SYSLIBS) $(QWLIBS) 
 
 ENSCRIPT      = @enscript -2Gjr -o
 #------------------------------------------------------------------------------------
 
 
 all: $(APPLIC)
-
-$(APPLIC): $(OBJECTS) $(NODICTOBJECTS) $(DICTS) $(RDATALIB)
+$(QWOBJECT)
+$(APPLIC): $(OBJECTS) $(NODICTOBJECTS) $(QWOBJECTS) $(DICTS) $(RDATALIB) 
 	$(CXX) -o $@ $(LDFLAGS) $(GLIBS) $(GEOMLIB) $^
 	ln -sf QwGUIView/$@ ../QwGUI
 	@echo "$@ done"
