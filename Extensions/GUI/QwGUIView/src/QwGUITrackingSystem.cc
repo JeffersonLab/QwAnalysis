@@ -446,7 +446,7 @@ QwGUITrackingSystem::ManipulateHistograms()
 //   Int_t    xbinN[3]    = {0, 0, 0};
 //   Int_t    ybinN[3]    = {RG_ONE_WIRE_NUM, RG_TWO_WIRE_NUM, RG_THR_WIRE_NUM}; // more than the number of wires
       
-  get_number = num_entry[3] -> GetNumber();
+  get_number = (UInt_t) num_entry[3] -> GetNumber();
 
   
   for(Short_t i=0; i<3; i++)
