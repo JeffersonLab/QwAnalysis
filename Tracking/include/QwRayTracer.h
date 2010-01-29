@@ -1,22 +1,15 @@
-/*! \file   QwTrajectory.h
- *  \author J. Pan
+/*! \file   QwRayTracer.h
+ *  \brief  Definition of the ray-tracing bridging method for R2/R3 partial tracks
+ *
+ *  \author Jie Pan
+ *  \author Wouter Deconinck <wdconinc@mit.edu>
  *  \date   Thu Nov 26 11:44:51 CST 2009
- *  \brief  Raytrace in magnetic field to bridging R2/R3 partial tracks.
- *
- *  \ingroup QwTracking
- *
- *   Integrating the equations of motion for electrons in the QTOR.
- *   The 4'th order Runge-Kutta method is used.
- *
- *   The Newton-Raphson method is used to solve for the momentum of the track.
- *
  */
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+#ifndef QWRAYTRACER_H
+#define QWRAYTRACER_H
 
-#ifndef __QWTRAJECTORY_H__
-#define __QWTRAJECTORY_H__
-
+// System headers
 #include <iostream>
 #include <vector>
 
@@ -36,10 +29,13 @@
 // Qweak headers
 #include "QwMagneticField.h"
 
+// Qweak headers
+#include "VQwBridgingMethod.h"
+
 #if defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
 # include <Math/Interpolator.h>
 #else
-# warning "The QwTrajectory look-up table momentum determination will not be built!"
+# warning "The QwRayTracer look-up table momentum determination will not be built!"
 #endif
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -95,11 +91,21 @@ public:
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-class QwTrajectory {
+/** \class QwRayTracer
+ *  \ingroup QwTracking
+ *
+ *   Integrating the equations of motion for electrons in the QTOR.
+ *   The 4'th order Runge-Kutta method is used.
+ *
+ *   The Newton-Raphson method is used to solve for the momentum of the track.
+ *
+ */
+class QwRayTracer: public VQwBridgingMethod {
 
-public:
-    QwTrajectory();
-    ~QwTrajectory();
+  public:
+
+    QwRayTracer();
+    virtual ~QwRayTracer();
 
     void LoadMagneticFieldMap();
     int LoadMomentumMatrix();
@@ -171,7 +177,7 @@ public:
                             std::vector<TVector3> *enddirection);
     void GetBridgingResult(Double_t *buffer);
 
-private:
+  private:
 
     int Filter();
 
@@ -181,7 +187,7 @@ private:
 
     double EstimateInitialMomentum(TVector3 direction);
 
-private:
+  private:
 
     QwMagneticField *fBfield;
 
@@ -250,8 +256,6 @@ private:
                       // MatchFlag = 1; : matched by using shooting method
                       // MatchFlag = 2; : potential track is forced to match
 
-}; // class QwTrajectory
+}; // class QwRayTracer
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-#endif  // __QWTRAJECTORY_H__
+#endif // QWRAYTRACER_H

@@ -20,21 +20,21 @@
 
 // Qweak Tracking headers
 #include "Det.h"
-#include "QwTrajectory.h"
+#include "QwRayTracer.h"
 
-// Temporary global variables for sub-programs
-Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-Det rcDET[NDetMax];
-
+// TODO (wdc) We should probably do something similar with the momentum lookup
+// table as for the tracking search trees.  The default method should be the
+// lookup table, but if there is no lookup table cached it should regenerate
+// one.
 
 int main (int argc, char* argv[]) {
 
-    QwTrajectory* trajectory = new QwTrajectory();
-    trajectory->LoadMagneticFieldMap();
+    QwRayTracer* raytracer = new QwRayTracer();
+    raytracer->LoadMagneticFieldMap();
 
-    trajectory->GenerateLookUpTable();
+    raytracer->GenerateLookUpTable();
 
-    delete trajectory;
+    delete raytracer;
 
     return 0;
 

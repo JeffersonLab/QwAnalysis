@@ -1,5 +1,5 @@
 
-/*! \file   QwTrajectory.cc
+/*! \file   QwRayTracer.cc
  *  \author J. Pan
  *  \date   Thu Nov 26 12:27:10 CST 2009
  *  \brief  Raytrace in magnetic field to bridging R2/R3 partial tracks.
@@ -28,7 +28,7 @@
 
 #include "QwMagneticField.h"
 #include "QwBridge.h"
-#include "QwTrajectory.h"
+#include "QwRayTracer.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -39,7 +39,7 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-QwTrajectory::QwTrajectory() {
+QwRayTracer::QwRayTracer() {
 
     fStartPosition = TVector3(0.0,0.0,0.0);
     fStartDirection = TVector3(0.0,0.0,0.0);
@@ -84,13 +84,13 @@ QwTrajectory::QwTrajectory() {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-QwTrajectory::~QwTrajectory() {
+QwRayTracer::~QwRayTracer() {
 
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void QwTrajectory::LoadMagneticFieldMap() {
+void QwRayTracer::LoadMagneticFieldMap() {
 
     fBfield = new QwMagneticField();
     fBfield->ReadFieldMapFile(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/MainMagnet_FieldMap.dat");
@@ -99,7 +99,7 @@ void QwTrajectory::LoadMagneticFieldMap() {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void QwTrajectory::SetStartAndEndPoints(TVector3 startposition, TVector3 startdirection,
+void QwRayTracer::SetStartAndEndPoints(TVector3 startposition, TVector3 startdirection,
                                         TVector3 endposition, TVector3 enddirection) {
 
     fStartPosition = startposition;
@@ -126,7 +126,7 @@ void QwTrajectory::SetStartAndEndPoints(TVector3 startposition, TVector3 startdi
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrajectory::BridgeFrontBackPartialTrack() {
+int QwRayTracer::BridgeFrontBackPartialTrack() {
 
     int status;
 
@@ -147,7 +147,7 @@ int QwTrajectory::BridgeFrontBackPartialTrack() {
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 // The angle limits will be determined from MC simulation results
-int QwTrajectory::Filter() {
+int QwRayTracer::Filter() {
 
     // swimming direction limit
     if (fStartPosition.Z()>=fEndPosition.Z()) {
@@ -178,7 +178,7 @@ int QwTrajectory::Filter() {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrajectory::SearchTable() {
+int QwRayTracer::SearchTable() {
 
     // front track position and angles at z= -250 cm plane
     double r = fabs(fStartPosition.Z()-(-250.0))/fStartDirection.Z();
@@ -343,7 +343,7 @@ int QwTrajectory::SearchTable() {
 #else // defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
 
     // No support for ROOT MathMore: warn user and return failure
-    std::cout << "No support for QwTrajectory interpolation." << std::endl;
+    std::cout << "No support for QwRayTracer interpolation." << std::endl;
     std::cout << "Please install the ROOT MathMore plugin and recompile." << std::endl;
     return -1;
 
@@ -353,7 +353,7 @@ int QwTrajectory::SearchTable() {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrajectory::Shooting() {
+int QwRayTracer::Shooting() {
 
     double res = 1.0; //position determination [cm]
     double step_size = 1.0; // integration step size [cm]
@@ -435,7 +435,7 @@ int QwTrajectory::Shooting() {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-double QwTrajectory::EstimateInitialMomentum(TVector3 direction) {
+double QwRayTracer::EstimateInitialMomentum(TVector3 direction) {
 
     double cth = direction.Z();        // cos(theta) = uz/r, where ux,uy,uz form a unit vector
     double wp = 0.93828;              // proton mass [GeV]
@@ -467,7 +467,7 @@ double QwTrajectory::EstimateInitialMomentum(TVector3 direction) {
 // If the endpoint is at upstream and startpoint is at downstream,
 // the electron will swim backward
 
-int QwTrajectory::Integrate(double e0, double step) {
+int QwRayTracer::Integrate(double e0, double step) {
 
 // local variables
     double xx[2],yy[2],zz[2];
@@ -646,7 +646,7 @@ int QwTrajectory::Integrate(double e0, double step) {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrajectory::LoadMomentumMatrix() {
+int QwRayTracer::LoadMomentumMatrix() {
 
     Int_t   index;
     Double_t position_r,position_phi;
@@ -704,7 +704,7 @@ int QwTrajectory::LoadMomentumMatrix() {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-QwBridge* QwTrajectory::GetBridgingInfo() {
+QwBridge* QwRayTracer::GetBridgingInfo() {
 
     QwBridge* bridgeinfo = new QwBridge();
 
@@ -719,7 +719,7 @@ QwBridge* QwTrajectory::GetBridgingInfo() {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void QwTrajectory::PrintInfo() {
+void QwRayTracer::PrintInfo() {
 
     std::cout<<std::endl<<"   Front/back bridging information"<<std::endl;
     std::cout<<"====================================================================="<<std::endl;
@@ -777,7 +777,7 @@ void QwTrajectory::PrintInfo() {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void QwTrajectory::GenerateLookUpTable() {
+void QwRayTracer::GenerateLookUpTable() {
 
     UInt_t    gridnum;
     UInt_t    index;
@@ -926,7 +926,7 @@ void QwTrajectory::GenerateLookUpTable() {
 // root file for each call, and set the start/end positions and directions. There is no
 // buffer for the event. The effiency is low in this way, but ok for test purpose.
 
-int QwTrajectory::ReadSimPartialTrack(const TString filename, int evtnum,
+int QwRayTracer::ReadSimPartialTrack(const TString filename, int evtnum,
                                       std::vector<TVector3> *startposition,
                                       std::vector<TVector3> *startdirection,
                                       std::vector<TVector3> *endposition,
@@ -1140,7 +1140,7 @@ int QwTrajectory::ReadSimPartialTrack(const TString filename, int evtnum,
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void QwTrajectory::GetBridgingResult(Double_t *buffer) {
+void QwRayTracer::GetBridgingResult(Double_t *buffer) {
 
     buffer[0] = fStartPosition.X();
     buffer[1] = fStartPosition.Y();

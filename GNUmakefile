@@ -14,7 +14,7 @@
 ############################
 ############################
 
-DEBUG := -g
+DEBUG := -g -O0
 # Add -g if you need to debug (but you'd better
 # first type 'make distclean' to enable full
 # recompilation with this flag).
@@ -121,9 +121,9 @@ EXCLUDEDIRS = coda Extensions
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
  ifneq ($(CODA),)
   #  The realtime executables should be added in this section.
-  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline
+  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwtrajmatrixgenerator
  else
-  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline
+  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwtrajmatrixgenerator
  endif
 else
  EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
@@ -131,9 +131,9 @@ endif
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
  ifneq ($(CODA),)
   #  The realtime executables should be added in this section.
-  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline
+  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwtrajmatrixgenerator
  else
-  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline
+  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwtrajmatrixgenerator
  endif
 endif
 # overridden by "make 'EXES=exe1 exe2 ...'"
