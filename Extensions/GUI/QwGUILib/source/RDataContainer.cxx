@@ -644,15 +644,16 @@ int RDataContainer::OpenFile(const char *filename)
 
 int RDataContainer::GetNumOfRootObjects()
 {
-  if(fRfile != NULL)
-    if(fRfile->IsOpen())
+  if(fRfile != NULL) {
+    if(fRfile->IsOpen()){      
       return fRfile->GetNkeys();
+    }
     else{
       FlushMessages();
       SetMessage(ROOT_OPEN_ERROR,"GetNumOfRootObjects",(int)dType,M_CONT_ERROR_MSG);
       return -1;
     }
-
+  }
   FlushMessages();
   SetMessage(PNTR_NULL_ERROR,"GetNumOfRootObjects",(int)dType,M_CONT_ERROR_MSG);
   return -1;
@@ -660,7 +661,7 @@ int RDataContainer::GetNumOfRootObjects()
 
 int RDataContainer::GetListOfRootObjects(TString str[])
 {
-  if(fRfile != NULL)
+  if(fRfile != NULL){
     if(fRfile->IsOpen()){
       TIter next(fRfile->GetListOfKeys());
       TKey *key;
@@ -676,6 +677,7 @@ int RDataContainer::GetListOfRootObjects(TString str[])
       SetMessage(ROOT_OPEN_ERROR,"GetListOfRootObjects",(int)dType,M_CONT_ERROR_MSG);
       return FILE_READ_ERROR;
     }
+  }
 
   FlushMessages();
   SetMessage(PNTR_NULL_ERROR,"GetListOfRootObjects",(int)dType,M_CONT_ERROR_MSG);
@@ -684,7 +686,7 @@ int RDataContainer::GetListOfRootObjects(TString str[])
 
 char *RDataContainer::GetObjectType(const char *name)
 {
-  if(fRfile != NULL)
+  if(fRfile != NULL){
     if(fRfile->IsOpen()){
       
       return (char*)fRfile->Get(name)->ClassName();
@@ -694,7 +696,7 @@ char *RDataContainer::GetObjectType(const char *name)
       SetMessage(ROOT_OPEN_ERROR,"GetObjectType",(int)dType,M_CONT_ERROR_MSG);
       return NULL;
     }
-  
+  }
   FlushMessages();
   SetMessage(PNTR_NULL_ERROR,"GetObjectType",(int)dType,M_CONT_ERROR_MSG);
   return NULL;

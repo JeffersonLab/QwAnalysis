@@ -1,34 +1,6 @@
-//=============================================================================
-// 
-//   ---------------------------
-//  | Doxygen File Information |
-//  ---------------------------
-/**
- 
-   \file QwGUITrackingSystem.h
-   \author Michael Gericke
-   \author Jeong Han Lee
-     
-*/
-//=============================================================================
-// 
-//=============================================================================
-// 
-//   ---------------------------
-//  | Doxygen Class Information |
-//  ---------------------------
-/**
-   \class QwGUITrackingSystem
-    
-   \brief 
-
-   This is Gericke's original code for the main detector.  
-   Jeong Han tried to test TSuperCanvas within GUI framework
-    
- */
-//=============================================================================
-
-
+// Name  :   QwGUITrackingSystem.h
+// Author:   Jeong Han Lee
+// email :   jhlee@jlab.org
 
 #ifndef QWGUITRACKINGSYSTEM_H
 #define QWGUITRACKINGSYSTEM_H
@@ -49,13 +21,18 @@
 #include "TFile.h"
 #include "TSystem.h"
 
+#include "TH1D.h"
+#include "TH2I.h"
+
+
 #include "TSuperCanvas.h"
 #include "QwHit.h"
 #include "QwHitContainer.h"
 #include "QwHitRootContainer.h"
 
-#define BOT_BUTTON_NUM         3
 
+
+#define BOT_BUTTON_NUM         3
 
 #define HFRAME_NUM             2
 #define GFRAME_NUM             1
@@ -64,27 +41,43 @@
 
 #define NUM_ENTRY_NUM          4
 #define LABEL_NUM              3
-#define TXT_BUTTON_NUM         5
+#define TXT_BUTTON_NUM         6
 #define CHK_BUTTON_NUM         1
 
 #define BUTTON_GRP_NUM         3
 #define RAI_BUTTON_NUM         7
 
 
+#define RG_ONE_HIST_NUM        6
+#define RG_TWO_HIST_NUM        12
+#define RG_THR_HIST_NUM        2
+
+
+#define RG_ONE_WIRE_NUM        30
+#define RG_TWO_WIRE_NUM        30
+#define RG_THR_WIRE_NUM        290
+
+#define BUFFERSIZE             1000      // BufferSize of TH1 for automatic range of histogram
+#define BINNUMBER              1024      // Default bin
+
+
+#define REQUEST_TYPE_NUM       2
+#define SELECT_TYPE_NUM        2
+
 
 class QwGUITrackingSystem : public TGCompositeFrame {
 
  private:
 
-  TGHorizontalFrame   *hframe[HFRAME_NUM];
-  TGGroupFrame        *gframe[GFRAME_NUM];
+  TGHorizontalFrame   *hframe  [HFRAME_NUM];
+  TGGroupFrame        *gframe  [GFRAME_NUM];
   TGHorizontalFrame   *g0hframe[G0HFRAME_NUM];
-  TGVerticalFrame     *g0vframe[1];
+  TGVerticalFrame     *g0vframe[G0VFRAME_NUM];
 
  
 
-  TGNumberEntry       *num_entry[NUM_ENTRY_NUM];
-  TGLabel             *num_label[LABEL_NUM];
+  TGNumberEntry       *num_entry [NUM_ENTRY_NUM];
+  TGLabel             *num_label [LABEL_NUM];
   TGTextButton        *txt_button[TXT_BUTTON_NUM];
   TGCheckButton       *chk_button[CHK_BUTTON_NUM];
 
@@ -103,11 +96,36 @@ class QwGUITrackingSystem : public TGCompositeFrame {
   UInt_t              default_event_range[2];
   UInt_t              total_physics_event_number;
 
+  UInt_t              d_request; // [0,1] can be extended 
+  UInt_t              d_select;  // [0,1]    "
+  Short_t             d_region;  // [1,3]    "
 
   Bool_t              event_range_status;
   Bool_t              load_rootfile_status;
 
-  TFile               *rootfile;
+  TFile               *root_file;
+  TTree               *qwhit_tree;
+  QwHit               *qwhit;
+  QwHitRootContainer  *qwhit_container;
+  
+  TH1D *hist1_region1[RG_ONE_HIST_NUM];
+  TH1D *hist1_region2[RG_TWO_HIST_NUM];
+  TH1D *hist1_region3[RG_THR_HIST_NUM];
+
+  TH2I *hist2_region1[RG_ONE_HIST_NUM];
+  TH2I *hist2_region2[RG_TWO_HIST_NUM];
+  TH2I *hist2_region3[RG_THR_HIST_NUM];
+
+  static const char *request_types[REQUEST_TYPE_NUM];
+  static const char *select_types [SELECT_TYPE_NUM];
+
+  Short_t GetRegion () { return d_region; };
+  UInt_t  GetSelect () { return d_select; };
+  UInt_t  GetRequest() { return d_request;};
+
+  void    SetRegion (Short_t in) { d_region  = in;};
+  void    SetSelect (UInt_t  in) { d_select  = in;};
+  void    SetRequest(UInt_t  in) { d_request = in;};
 
  public:
   
@@ -117,15 +135,15 @@ class QwGUITrackingSystem : public TGCompositeFrame {
   virtual Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2);
 
 
-  Bool_t  OpenRootFile();
+  Bool_t  OpenRootFile ();
   void    CloseRootFile();
-  void    ResetButtons();
-  void    EnableButtons();
+  void    ResetButtons (Bool_t main_buttons);
+  void    EnableButtons(Bool_t main_buttons);
   void    SetEventRange();
   void    DefaultEventRange(Bool_t entry_status);
-  void    ResetEventRange(Bool_t entry_status);
+  void    ResetEventRange  (Bool_t entry_status);
 
-
+  void    ManipulateHistograms();
 
   ClassDef(QwGUITrackingSystem,0);
 };
