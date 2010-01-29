@@ -22,16 +22,17 @@ enum QwGUITrackingSystemIndentificator {
 
 
 
-const char *QwGUITrackingSystem::request_types[REQUEST_TYPE_NUM]=
-  {  "time"
-   , "rawtime"
+const char *const QwGUITrackingSystem::request_types[REQUEST_TYPE_NUM]=
+  {  "Time"
+   , "fRawTime"
   };
 
 
-const char *QwGUITrackingSystem::select_types[SELECT_TYPE_NUM]=
+const char *const QwGUITrackingSystem::select_types[SELECT_TYPE_NUM]=
   {  "channel"
    , "wire"
   };
+
 
 
 
@@ -40,6 +41,10 @@ QwGUITrackingSystem::QwGUITrackingSystem(const TGWindow *main, TGCompositeFrame 
 
   gClient->GetColorByName("green", green);
   gClient->GetColorByName("red",   red);
+
+
+  canvas = NULL;
+  progress_bar = NULL;
 
   run_number     = 1567;
   event_range[0] = 0;
@@ -116,6 +121,9 @@ QwGUITrackingSystem::~QwGUITrackingSystem()
   delete [] hist2_region1;
   delete [] hist2_region2;
   delete [] hist2_region3;
+
+  delete    progress_bar;
+  delete    canvas;
 
 };
 
@@ -281,115 +289,29 @@ QwGUITrackingSystem::CreateFrame(TGCompositeFrame *parent, UInt_t w, UInt_t h)
 };
 
 
-
 void
-QwGUITrackingSystem::SetEventRange() 
+QwGUITrackingSystem::PlotDraw()
 {
-  for(Short_t i=0; i<2; i++)
-    {
-      event_range[i] = (UInt_t) num_entry[i+1] -> GetNumber();
-    }
-  
-  if( (event_range[0] ==0) && (event_range[1] ==0) )
-    {
-      event_range[0] = 0;
-      event_range[1] = total_physics_event_number;
-    }
-  else
-    {
-      if (!(event_range[0] < event_range[1]) ) 
- 	{
- 	  event_range[1] = event_range[0] + 10;
- 	  num_entry  [2]-> SetNumber(event_range[1]);
-	  printf("Your selected range is not allowed. And ");
- 	  // force to set max range 10 larger than min range
- 	}
-    }
-  printf("Event Range [%d,%d] is used to do your request.\n", event_range[0], event_range[1]);
+  SetEventRange();
 
-  event_range_status = true;
-  return;
-}
-
-void 
-QwGUITrackingSystem::DefaultEventRange(Bool_t entry_status=true) 
-{
-  for(Short_t i=0; i<2; i++)
-    {
-      num_entry[i+1] -> SetNumber(default_event_range[i]);
-      num_entry[i+1] -> SetState (entry_status);
-    }
-  event_range_status = true;
-  return;
-}
-
-
-void 
-QwGUITrackingSystem::ResetEventRange(Bool_t entry_status=false) 
-{
-  for(Short_t i=0; i<2; i++)
-    {
-      event_range[i] = 0;
-      num_entry[i+1] -> SetNumber(event_range[i]);
-      num_entry[i+1] -> SetState(entry_status);
-    }
-  chk_button[0] -> SetState(kButtonUp);
-  event_range_status = false;
-  return;
-}
-
-
-
-Bool_t
-QwGUITrackingSystem::OpenRootFile()
-{
+  UInt_t get_number = (UInt_t) num_entry[3] -> GetNumber();
+  Short_t  region      = 0;
+  Int_t    plane       = 0;
  
-  run_number = (UInt_t) num_entry[0] -> GetNumber();
-  root_file   = new TFile( Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES_DIR"), run_number) );
-  
-  if (root_file->IsZombie()) 
-    {
-      printf("Error opening file.\n"); 
-      ResetButtons(true);
-      return false;
-    }
-  else
-    {
-      qwhit_tree  = (TTree*) root_file->Get("tree");
-      qwhit_tree -> SetBranchAddress("hits", &qwhit_container);
-      total_physics_event_number = qwhit_tree -> GetEntries();
 
-      EnableButtons(true);
-
-      return true;
-
-    }
-};
+  // canvas = new TSuperCanvas("rawtime_per_tdc_canvas","time per tdc channel",10,10,1200,800);
+  canvas = CheckCanvas(this, canvas, "test", false);
+  canvas ->  SetWindowSize(1024,648);
 
 
-void
-QwGUITrackingSystem::CloseRootFile()
-{
+  printf("%s\n",Form("%s per %s %d  RG %d PL %d", request_types[d_request], select_types[d_select], get_number, region, plane));
+  qwhit_tree -> Dump();
+  qwhit_tree ->Draw("hits.fQwHits.fRawTime", "events.fQwHits.fElement==4")  ;
 
-  if (qwhit_container)
-    {
-      qwhit_container -> Clear();
-      delete qwhit_container; 
-      qwhit_container = NULL;
-    }
-  if (qwhit_tree)
-    {
-      delete qwhit_tree;
-      qwhit_tree = NULL;
-    }
+  gPad   -> Update();
+  canvas -> Modified();
 
-  if( root_file -> IsOpen() ) root_file->Close();
-  delete root_file; root_file = NULL;
-  printf("The opened ROOT file is closed\n");
-  return;
-};
-
-
+}
 
 
 void
@@ -398,57 +320,47 @@ QwGUITrackingSystem::ManipulateHistograms()
   SetEventRange();
 
 
- //  for(Short_t i=0;i<RG_ONE_HIST_NUM;i++) 
-//     {
-//       if(hist1_region1[i]) 
-// 	{
-// 	  delete hist1_region1[i];
-// 	  hist1_region1[i] = NULL;
-// 	}
-//     }
-//   for(Short_t i=0;i<RG_TWO_HIST_NUM;i++) 
-//     {
-//       if(hist1_region2[i]) 
-// 	{
-// 	  delete hist1_region2[i];
-// 	  hist1_region2[i] = NULL;
-// 	}
-//     }
-//   for(Short_t i=0;i<RG_THR_HIST_NUM;i++) 
-//     {
-//       if(hist1_region3[i]) 
-// 	{
-// 	  delete hist1_region3[i];
-// 	  hist1_region3[i] = NULL;
-// 	}
-//     }
 
   UInt_t get_number = 0;
 
 
-//   Int_t    nhit        = 0;
-//   Int_t    ev_i        = 0; 
-//   Int_t    hit_i       = 0;
-          
-//   Double_t tdc_rawtime = 0.0;
-//   Double_t tdc_time    = 0.0;
+  Int_t    nhit        = 0;
+  UInt_t    ev_i        = 0; 
+  Int_t    hit_i       = 0;
 
-//   UInt_t   tdc_chan    = 0;
-//   UInt_t   wire_number = 0;
+  Int_t    crate       = 0;
+  Int_t    module      = 0;
+  Int_t    channel     = 0;
+  Int_t    hitnumber   = 0;
+  Int_t    hitnumber_r = 0;
+
   Short_t  region      = 0;
-//   Short_t  wire        = 0;
-//   Short_t  package     = 0;
+  Short_t  package     = 0;
   Short_t  direction   = 0;
-  Short_t  plane       = 0;
-//   Short_t  tmp         = 0;
+  Int_t    plane       = 0;
+  Int_t    element     = 0; //  Trace # for R1; wire # for R2 & R3; PMT # for others
+
+  Double_t rawtime            = 0.0;
+  Double_t time               = 0.0;
+  Double_t time_resolution    = 0.0;
+  Double_t distance           = 0.0;
+  Double_t position           = 0.0;
+  Double_t residual           = 0.0;
+  Double_t z_position         = 0.0;
+  Double_t r_position         = 0.0;
+  Double_t phi_position       = 0.0;
+  Double_t spatial_resolution = 0.0;
+  Double_t track_resolution   = 0.0;
+
+  //  Short_t  tmp         = 0;
 
 //   Double_t offset      = -0.5;
 //   Int_t    xbinN[3]    = {0, 0, 0};
 //   Int_t    ybinN[3]    = {RG_ONE_WIRE_NUM, RG_TWO_WIRE_NUM, RG_THR_WIRE_NUM}; // more than the number of wires
-      
+
   get_number = (UInt_t) num_entry[3] -> GetNumber();
 
-  
+
   for(Short_t i=0; i<3; i++)
     {
       region          = i+1;
@@ -458,23 +370,28 @@ QwGUITrackingSystem::ManipulateHistograms()
 	  for(Short_t j=0; j<RG_ONE_HIST_NUM; j++)
 	    {
 	      direction = j+1;
-	      hist1_region1[j]=  new TH1D(Form("RG%dDIR%d", region, direction), 
+	      sprintf(text_buffer, "RG%dDIR%d", region, direction);
+	      CheckOldObject(text_buffer);
+	      hist1_region1[j]=  new TH1D(text_buffer,
 					  Form("%s per %s %d  RG %d DIR %d", request_types[d_request], select_types[d_select], get_number, region, direction), 
 					  BINNUMBER, 0, 0); 
 	      hist1_region1[j] -> SetDefaultBufferSize(BUFFERSIZE);
+	      printf("%s\n",Form("%s per %s %d  RG %d DIR %d", request_types[d_request], select_types[d_select], get_number, region, direction));
 	    }
 	}
-      printf("%s\n",Form("%s per %s %d  RG %d DIR %d", request_types[d_request], select_types[d_select], get_number, region, direction));
-
+   
       if( region==2 )
 	{
 	  for(Short_t j=0; j<RG_TWO_HIST_NUM; j++)
 	    {
 	      plane = j+1; 
-	      hist1_region2[j]=  new TH1D(Form("RG%dPL%d", region, plane), 
+	      sprintf(text_buffer, "RG%dPL%d", region, plane);
+	      CheckOldObject(text_buffer);
+	      hist1_region2[j]=  new TH1D(text_buffer,
 					  Form("%s per %s %d  RG %d DIR %d", request_types[d_request], select_types[d_select], get_number, region, direction), 
 					  BINNUMBER, 0, 0); 
 	      hist1_region2[j] -> SetDefaultBufferSize(BUFFERSIZE);
+	      printf("%s\n",Form("%s per %s %d  RG %d PL %d", request_types[d_request], select_types[d_select], get_number, region, plane));
 	    }
 	}
       
@@ -483,53 +400,88 @@ QwGUITrackingSystem::ManipulateHistograms()
 	  for(Short_t j=0; j<RG_THR_HIST_NUM; j++)
 	    {
 	      plane = j+1; 
-	      hist1_region3[j]=  new TH1D(Form("RG%dPL%d", region, plane), 
+	      sprintf(text_buffer, "RG%dPL%d", region, plane);
+	      CheckOldObject(text_buffer);
+	      hist1_region3[j]=  new TH1D(text_buffer,
 					  Form("%s per %s %d  RG %d DIR %d", request_types[d_request], select_types[d_select], get_number, region, direction), 
 					  BINNUMBER, 0, 0); 
 	      hist1_region3[j] -> SetDefaultBufferSize(BUFFERSIZE);
+	      printf("%s\n",Form("%s per %s %d  RG %d PL %d", request_types[d_request], select_types[d_select], get_number, region, plane));
 	    }
 	}
     }
   
+      for(ev_i=event_range[0]; ev_i<event_range[1]; ev_i++)
+      {
+	qwhit_tree -> GetEntry(ev_i);
+	nhit = qwhit_container->GetSize();
+	printf("*** Event %10d\n", ev_i);
+	printf("    --- %d hits (by QwHitRootContainer)\n", nhit);
+
+	for(hit_i=0; hit_i<nhit; hit_i++)
+	  {
+	    qwhit             = (QwHit*) qwhit_container->GetHit(hit_i);
+	    crate              = qwhit->GetSubbankID();
+	    module             = qwhit->GetModule();
+	    channel            = qwhit->GetChannel();
+	    hitnumber          = qwhit->GetHitNumber();
+	    hitnumber_r        = qwhit->GetHitNumberR();
+
+	    region             = (Short_t) qwhit->GetRegion();
+	    package            = (Short_t) qwhit->GetPackage(); // package will be used to extend this function to different VDCs or HDCs
+	    direction          = (Short_t) qwhit->GetDirection();
+	    plane              = qwhit->GetPlane();
+	    element            = qwhit->GetElement();
+
+	    rawtime            = qwhit->GetRawTime();
+	    time               = qwhit->GetTime();
+	    time_resolution    = qwhit->GetTimeRes();
+	    distance           = qwhit->GetDriftDistance();
+	    position           = qwhit->GetPosition();
+	    residual           = qwhit->GetResidual();
+	    z_position         = qwhit->GetZPos();
+	    r_position         = qwhit->GetRPosition();
+	    phi_position       = qwhit->GetPhiPosition();
+	    spatial_resolution = qwhit->GetSpatialResolution();
+	    track_resolution   = qwhit->GetTrackResolution();
+
+
+
+
+
+
+
+
+	    if( (event_range[1]-event_range[0] < 10))
+	      {
+		printf("    QwHit %d                         \n", hit_i);
+		printf("    -------------------------------- \n"); 
+		
+		printf("    --- Subbank       %6d \n",  crate);
+		printf("    --- Module        %6d \n",  module);
+		printf("    --- Channel       %6d \n",  channel);
+		printf("    --- HitNumber     %6d \n",  hitnumber);
+		printf("    --- HitNumber_r   %6d \n",  hitnumber_r);
+		printf("    --- Region        %6d \n",  region);
+		printf("    --- Package       %6d \n",  package);
+		printf("    --- Direction     %6d \n",  direction);
+		
+		// 	    printf("    -------------------------------- \n"); 
+		// 	    printf("    --- DriftDistance %14.2f \n", hit->GetDriftDistance());
+		// 	    printf("    --- RawTime       %14.2f \n", hit->GetRawTime());
+		// 	    printf("    --- Time          %14.2f \n", hit->GetTime());
+		// 	    printf("    --- HitNumber     %14d   \n", hit->GetHitNumber());
+		// 	    printf("    --- HitNumberR    %14d   \n", hit->GetHitNumberR());
+		// 	    printf("    -------------------------------- \n"); 
+	      }
+	  }
+
+	qwhit_container->Clear();
+      }
+
   return;
 };
 
-
-
-
-void 
-QwGUITrackingSystem::ResetButtons(Bool_t main_buttons)
-{
-  if(main_buttons)
-    {
-      txt_button[0] -> SetEnabled(true);
-      txt_button[0] -> ChangeBackground(red);
-      for(Short_t i=1; i< TXT_BUTTON_NUM; i++) txt_button[i] -> SetEnabled(false);
-    }
-  else
-    {
-      for(Short_t i=3; i< TXT_BUTTON_NUM; i++) txt_button[i] -> SetEnabled(false);
-    }
-  return;
-}
-
-
-
-void 
-QwGUITrackingSystem::EnableButtons(Bool_t main_buttons)
-{
-  if(main_buttons)
-    {
-      txt_button[0] -> SetEnabled(false);
-      txt_button[0] -> ChangeBackground(green);
-      for(Short_t i=1; i< TXT_BUTTON_NUM-3; i++) txt_button[i] -> SetEnabled(true);
-    }
-  else
-    {
-      for(Short_t i=3; i< TXT_BUTTON_NUM; i++) txt_button[i] -> SetEnabled(true);
-    }
-  return;
-}
 
 
 Bool_t 
@@ -549,7 +501,7 @@ QwGUITrackingSystem::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		{
 		case  BA_CLOSECANVAS:
 		  {;;;
-		    printf("there is no canvas yes\n");
+		    CheckCanvas(this, canvas, "c", true);
 		  };;;
 		  break;
 		case  BA_HELP:
@@ -586,6 +538,7 @@ QwGUITrackingSystem::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		  break;
 		case   BA_TEXTBUTTONFOR:
 		  {;;;
+		    PlotDraw();
 		    printf("you pressed PLOT button\n");
 		  };;;
 		  break;
@@ -725,6 +678,8 @@ QwGUITrackingSystem::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		{
 		case BA_RUN_NUMBER:
 		  {;;;
+		    ResetButtons(true);
+		    if(root_file) CloseRootFile();
 		  };;; 
 		  break;
 		case BA_CHWIRE_NUMBER:
@@ -753,3 +708,217 @@ QwGUITrackingSystem::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
   
   return kTRUE;
 };
+
+
+
+
+//
+//
+// private functions
+//
+//
+void 
+QwGUITrackingSystem::CheckOldObject(Char_t* name)
+{
+  TObject *obj;
+  obj = (TObject*) gROOT->FindObject(name); 
+  if(obj) 
+    {
+      delete obj; 
+      obj = NULL;
+    }
+}
+
+
+void
+QwGUITrackingSystem::SetEventRange() 
+{
+  for(Short_t i=0; i<2; i++)
+    {
+      event_range[i] = (UInt_t) num_entry[i+1] -> GetNumber();
+    }
+  
+  if( (event_range[0] ==0) && (event_range[1] ==0) )
+    {
+      event_range[0] = 0;
+      event_range[1] = total_physics_event_number;
+    }
+  else
+    {
+      if (!(event_range[0] < event_range[1]) ) 
+ 	{
+ 	  event_range[1] = event_range[0] + 10;
+ 	  num_entry  [2]-> SetNumber(event_range[1]);
+	  printf("Your selected range is not allowed. And ");
+ 	  // force to set max range 10 larger than min range
+ 	}
+    }
+  printf("Event Range [%d,%d] is used to do your request.\n", event_range[0], event_range[1]);
+
+  event_range_status = true;
+  return;
+}
+
+void 
+QwGUITrackingSystem::DefaultEventRange() 
+{
+  event_range_status = true;
+  for(Short_t i=0; i<2; i++)
+    {
+      num_entry[i+1] -> SetNumber(default_event_range[i]);
+      num_entry[i+1] -> SetState (event_range_status);
+    }
+
+  return;
+}
+
+
+void 
+QwGUITrackingSystem::ResetEventRange() 
+{
+  event_range_status = false;
+  for(Short_t i=0; i<2; i++)
+    {
+      event_range[i] = 0;
+      num_entry[i+1] -> SetNumber(event_range[i]);
+      num_entry[i+1] -> SetState(event_range_status);
+    }
+  chk_button[0] -> SetState(kButtonUp);
+
+  return;
+}
+
+
+
+Bool_t
+QwGUITrackingSystem::OpenRootFile()
+{
+ 
+  run_number = (UInt_t) num_entry[0] -> GetNumber();
+  root_file   = new TFile( Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES_DIR"), run_number) );
+  
+  if (root_file->IsZombie()) 
+    {
+      printf("Error opening file.\n"); 
+      ResetButtons(true);
+      return false;
+    }
+  else
+    {
+      qwhit_tree  = (TTree*) root_file->Get("tree");
+      qwhit_tree -> SetBranchAddress("hits", &qwhit_container);
+      total_physics_event_number = qwhit_tree -> GetEntries();
+
+      EnableButtons(true);
+
+      return true;
+
+    }
+};
+
+
+void
+QwGUITrackingSystem::CloseRootFile()
+{
+
+  if (qwhit_container)
+    {
+      qwhit_container -> Clear();
+      delete qwhit_container; 
+      qwhit_container = NULL;
+    }
+  if (qwhit_tree)
+    {
+      delete qwhit_tree;
+      qwhit_tree = NULL;
+    }
+
+  if( root_file -> IsOpen() ) root_file->Close();
+  delete root_file; root_file = NULL;
+  printf("The opened ROOT file is closed\n");
+  return;
+};
+
+
+
+
+void 
+QwGUITrackingSystem::ResetButtons(Bool_t main_buttons)
+{
+  if(main_buttons)
+    {
+      txt_button[0] -> SetEnabled(true);
+      txt_button[0] -> ChangeBackground(red);
+      for(Short_t i=1; i< TXT_BUTTON_NUM; i++) txt_button[i] -> SetEnabled(false);
+    }
+  else
+    {
+      for(Short_t i=3; i< TXT_BUTTON_NUM; i++) txt_button[i] -> SetEnabled(false);
+    }
+  return;
+}
+
+
+
+void 
+QwGUITrackingSystem::EnableButtons(Bool_t main_buttons)
+{
+  if(main_buttons)
+    {
+      txt_button[0] -> SetEnabled(false);
+      txt_button[0] -> ChangeBackground(green);
+      for(Short_t i=1; i< TXT_BUTTON_NUM-3; i++) txt_button[i] -> SetEnabled(true);
+    }
+  else
+    {
+      for(Short_t i=3; i< TXT_BUTTON_NUM; i++) txt_button[i] -> SetEnabled(true);
+    }
+  return;
+}
+
+
+
+
+TSuperCanvas 
+*QwGUITrackingSystem::CheckCanvas(const TGWindow *main, TSuperCanvas *temp_canvas, const char* name, bool close_status)
+{
+  TSeqCollection *canvas_collection = gROOT->GetListOfCanvases();
+  
+  if ( !(strcmp(name,"c"))  ) 
+    {
+      TCanvas *obj;
+      TIter next(canvas_collection, true);
+      obj = (TCanvas*) next();
+      while(obj){    
+	obj->Close();
+	delete obj;
+	obj = (TCanvas*) next();
+      }
+      canvas_collection->Clear();
+      return NULL;
+    }
+  else
+    {
+      temp_canvas = (TSuperCanvas*)canvas_collection->FindObject(name);
+      //      gStyle -> SetCanvasBorderSize(0);
+      //   gStyle -> SetCanvasBorderMode(0);
+      //   gStyle -> SetCanvasColor(kWhite);
+      //   gStyle -> SetPadBorderMode(1);
+      //   gStyle -> SetPadBorderSize(0);
+      //   gStyle -> SetFrameBorderMode(0);  // Strange red boarder on right and botton axis
+      //   gStyle -> SetTitleFillColor(kWhite);
+      if(!close_status)
+	{
+	  if(!temp_canvas) temp_canvas =  new TSuperCanvas(name, Form("%s canvas", name), 600,480);
+	  else             temp_canvas -> Clear();
+	  canvas_collection->Clear();
+	  return temp_canvas;
+	}
+      else
+	{
+	  if(temp_canvas)  temp_canvas -> Close();
+	  canvas_collection->Clear();
+	  return NULL;
+	}
+    }
+}

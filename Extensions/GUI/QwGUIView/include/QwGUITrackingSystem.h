@@ -6,6 +6,8 @@
 #define QWGUITRACKINGSYSTEM_H
 
 #include <Riostream.h>
+#include "TROOT.h"
+#include "TSystem.h"
 #include "TGWindow.h"
 #include "TCanvas.h"
 #include "TGFrame.h"
@@ -19,11 +21,14 @@
 #include "TGLayout.h"
 #include "TTree.h"
 #include "TFile.h"
-#include "TSystem.h"
+
+
+#include "TGProgressBar.h"
+
 
 #include "TH1D.h"
 #include "TH2I.h"
-
+#include "TObjArray.h"
 
 #include "TSuperCanvas.h"
 #include "QwHit.h"
@@ -69,6 +74,9 @@ class QwGUITrackingSystem : public TGCompositeFrame {
 
  private:
 
+  TSuperCanvas        *canvas;
+  TGHProgressBar      *progress_bar;
+
   TGHorizontalFrame   *hframe  [HFRAME_NUM];
   TGGroupFrame        *gframe  [GFRAME_NUM];
   TGHorizontalFrame   *g0hframe[G0HFRAME_NUM];
@@ -111,13 +119,13 @@ class QwGUITrackingSystem : public TGCompositeFrame {
   TH1D *hist1_region1[RG_ONE_HIST_NUM];
   TH1D *hist1_region2[RG_TWO_HIST_NUM];
   TH1D *hist1_region3[RG_THR_HIST_NUM];
-
+  
   TH2I *hist2_region1[RG_ONE_HIST_NUM];
   TH2I *hist2_region2[RG_TWO_HIST_NUM];
   TH2I *hist2_region3[RG_THR_HIST_NUM];
 
-  static const char *request_types[REQUEST_TYPE_NUM];
-  static const char *select_types [SELECT_TYPE_NUM];
+  static const char *const request_types[REQUEST_TYPE_NUM];
+  static const char *const select_types [SELECT_TYPE_NUM];
 
   Short_t GetRegion () { return d_region; };
   UInt_t  GetSelect () { return d_select; };
@@ -126,6 +134,17 @@ class QwGUITrackingSystem : public TGCompositeFrame {
   void    SetRegion (Short_t in) { d_region  = in;};
   void    SetSelect (UInt_t  in) { d_select  = in;};
   void    SetRequest(UInt_t  in) { d_request = in;};
+
+  void    CheckOldObject(Char_t* name);
+  void    ResetButtons (Bool_t main_buttons);
+  void    EnableButtons(Bool_t main_buttons);
+  void    SetEventRange();
+  void    DefaultEventRange();
+  void    ResetEventRange  ();
+
+  TSuperCanvas *CheckCanvas(const TGWindow *main, TSuperCanvas *temp_canvas, const char* name, bool close_status);
+
+  Char_t  text_buffer[256];
 
  public:
   
@@ -137,12 +156,8 @@ class QwGUITrackingSystem : public TGCompositeFrame {
 
   Bool_t  OpenRootFile ();
   void    CloseRootFile();
-  void    ResetButtons (Bool_t main_buttons);
-  void    EnableButtons(Bool_t main_buttons);
-  void    SetEventRange();
-  void    DefaultEventRange(Bool_t entry_status);
-  void    ResetEventRange  (Bool_t entry_status);
 
+  void    PlotDraw();
   void    ManipulateHistograms();
 
   ClassDef(QwGUITrackingSystem,0);
