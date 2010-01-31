@@ -67,7 +67,7 @@ class QwHitContainer: public std::list<QwHit>, public TObject {
 
 
   void Print ();
-  friend std::ostream& operator<< (std::ostream& stream, QwHitContainer& hitlist);
+  friend std::ostream& operator<< (std::ostream& stream, const QwHitContainer& hitlist);
 
 
   ClassDef(QwHitContainer,1);

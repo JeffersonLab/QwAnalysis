@@ -93,13 +93,8 @@ class QwHit : public TObject {
   const Double_t&       GetDriftDistance()const { return fDistance; };
   const Double_t        GetPosition()     const { return fPosition; };
   const Double_t        GetResidual()     const { return fResidual; };
-  const Double_t        GetZPos()         const { return fZPos; };
-  const Double_t        GetZPosition()    const;      // QwHit.cc
-  const Double_t        GetRPosition()    const { return fRPos; };
-  const Double_t        GetPhiPosition()  const { return fPhiPos; };
-
-  const Double_t        GetSpatialResolution() const; // QwHit.cc
-  const Double_t        GetTrackResolution()   const; // QwHit.cc
+  const Double_t        GetZPos()         const { return fZPosition; };
+  const Double_t        GetZPosition()    const { return fZPosition; };
 
   const Bool_t          IsUsed()          const { return fIsUsed; };
 
@@ -133,10 +128,8 @@ class QwHit : public TObject {
   void SetDriftDistance(const Double_t distance)    { fDistance = distance; };
   void SetPosition(const Double_t position)         { fPosition = position; };
   void SetResidual(const Double_t residual)         { fResidual = residual; };
-  void SetZPos(const Double_t zpos)                 { fZPos = zpos; };
-  void SetZPosition(const Double_t zposition)       { fZPos = zposition; };
-  void SetRPosition(const Double_t rpos)            { fRPos = rpos; };
-  void SetPhiPosition(const Double_t phipos)        { fPhiPos = phipos; };
+  void SetZPos(const Double_t zposition)            { fZPosition = zposition; };
+  void SetZPosition(const Double_t zposition)       { fZPosition = zposition; };
 
 
   void SetSpatialResolution(const Double_t sresolution) { fSpatialResolution = sresolution; };
@@ -186,11 +179,9 @@ class QwHit : public TObject {
                                      ///  coordinates perpendicular to the wires
   Double_t fResidual;                ///< Residual of this hit (difference between the drift
                                      ///  distance and the distance to the fitted track)
-  Double_t fZPos;                    ///< Lontigudinal position of the hit (this is mainly
+  Double_t fZPosition;               ///< Lontigudinal position of the hit (this is mainly
                                      ///  used in region 3 where the z coordinate is taken
                                      ///  in the wire plane instead of perpendicular to it)
-  Double_t fRPos;                    ///< fRPos and fPhiPos are specificed for region 1
-  Double_t fPhiPos;                  ///< Hit location
   Double_t fSpatialResolution;       ///< Spatial resolution
   Double_t fTrackResolution;         ///< Track resolution
 

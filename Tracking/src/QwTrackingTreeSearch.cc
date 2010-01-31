@@ -139,7 +139,7 @@ static int hashgen(void) {
 
 QwTrackingTreeSearch::QwTrackingTreeSearch ()
 {
-  fDebug = 1;	// Reset debug level
+  fDebug = 1; // Reset debug level
 
   fNumLayers = TLAYERS;
 }
@@ -211,7 +211,7 @@ void QwTrackingTreeSearch::wireselection (QwHit **x, QwHit **X, QwHit **xn, QwHi
                     primed hits.  So, it needs to be considered by
                     itself as the bit pattern is constructed.  Also,
                     the next scan should begin with the next hit on
-		    this unprimed plane and see if it can be paired
+                    this unprimed plane and see if it can be paired
                     with the current hit on the primed plane.          ---- */
 
       *Xn = *X;            /* keep current point as starting point for
@@ -226,8 +226,8 @@ void QwTrackingTreeSearch::wireselection (QwHit **x, QwHit **X, QwHit **xn, QwHi
                     unprimed hits.  So, it needs to be considered by
                     itself as the bit pattern is constructed.  Also,
                     the next scan should begin with the next hit on
-		    this primed plane and see if it can be paired
-		    with the current hit on the unprimed plane.        ---- */
+                    this primed plane and see if it can be paired
+                    with the current hit on the unprimed plane.        ---- */
 
       *xn = *x;            /* keep current point as starting point for
                               the unprimed hits in the next scan          */
@@ -239,8 +239,8 @@ void QwTrackingTreeSearch::wireselection (QwHit **x, QwHit **X, QwHit **xn, QwHi
 
     /* ---- CASE 3: the primed hit and the unprimed hit are paired.
                     So, both need to be considered as the hit pattern
-		    is constructed.  Also, the next scan should begin
-		    with the next hit on each of these planes.         ---- */
+                    is constructed.  Also, the next scan should begin
+                    with the next hit on each of these planes.         ---- */
 
       *xn = (*x)->nextdet; /* use next hit as the starting point for the
                               unprimed hits in the next scan             */
@@ -320,9 +320,9 @@ void QwTrackingTreeSearch::_setpoints (
     pattern  = oldpattern; /* pointer to start of the bit pattern           */
 
 /* ---- check if the bin is inside the detector                        ---- */
-    	//I added "(signed int)" to the
-	//following line to prevent the warning from comparing signed and
-	//unsigned integers
+        //I added "(signed int)" to the
+        //following line to prevent the warning from comparing signed and
+        //unsigned integers
     if (i >= (signed int) binwidth)
       return;
     if (i < 0)
@@ -334,12 +334,12 @@ void QwTrackingTreeSearch::_setpoints (
     if (pattern) {
       while (binwidth) {       /* starting at maximum depth, loop over
                                   each depth of the treesearch           */
-	pattern[i] = 1;        /* turn on the bit in this bin            */
-	pattern   += binwidth; /* set ahead to the part of the bit
+        pattern[i] = 1;        /* turn on the bit in this bin            */
+        pattern   += binwidth; /* set ahead to the part of the bit
                                   pattern in which the bits for the
                                   next higher bin-division are stored    */
-	i        >>= 1;        /* go up one depth of the depth           */
-	binwidth >>= 1;        /* size of the bit pattern for the next
+        i        >>= 1;        /* go up one depth of the depth           */
+        binwidth >>= 1;        /* size of the bit pattern for the next
                                   higher bin-division is half of the
                                   size of the bit pattern for a given
                                   level of bin-division.                 */
@@ -495,7 +495,7 @@ void QwTrackingTreeSearch::setpoint (
                                         plane of this tree-detector
             (04) Hit *Hb              - linked list of hits for the primed
                                         plane of this tree-detector
-	    (05) unsigned binwidth    - width of a bin (in cm) at the deepest
+            (05) unsigned binwidth    - width of a bin (in cm) at the deepest
                                         bin-division in the treesearch.
 
    outputs: (01) int TsSetPoint()     - the number of single and paired hits
@@ -520,14 +520,14 @@ int QwTrackingTreeSearch::TsSetPoint (
   double dw2 = (detectorwidth / 2.0); /* half-width of the detector (in cm) */
 
   // Set the points on the front/top side of the wire (R3/R2)
-  _setpoints(dw2 - hit->GetDriftDistance() - hit->GetTrackResolution(),
-	     dw2 - hit->GetDriftDistance() + hit->GetTrackResolution(),
-	     detectorwidth, binwidth, pattern, hash);
+  _setpoints(dw2 - hit->GetDriftDistance() - hit->GetDetectorInfo()->GetTrackResolution(),
+             dw2 - hit->GetDriftDistance() + hit->GetDetectorInfo()->GetTrackResolution(),
+             detectorwidth, binwidth, pattern, hash);
 
   // Set the points on the back/bottom side of the wire (R3/R2)
-  _setpoints(dw2 + hit->GetDriftDistance() - hit->GetTrackResolution(),
-	     dw2 + hit->GetDriftDistance() + hit->GetTrackResolution(),
-	     detectorwidth, binwidth, pattern, hash);
+  _setpoints(dw2 + hit->GetDriftDistance() - hit->GetDetectorInfo()->GetTrackResolution(),
+             dw2 + hit->GetDriftDistance() + hit->GetDetectorInfo()->GetTrackResolution(),
+             detectorwidth, binwidth, pattern, hash);
 
   return 1;
 }
@@ -547,14 +547,14 @@ int QwTrackingTreeSearch::TsSetPoint (
   wirespacing = hit->GetDetectorInfo()->GetElementSpacing();
 
   // Set the points on the front/top side of the wire (R3/R2)
-  _setpoints(wirespacing * (wire+1) - hit->GetDriftDistance() - hit->GetTrackResolution(),
-	     wirespacing * (wire+1) - hit->GetDriftDistance() + hit->GetTrackResolution(),
-	     detectorwidth, binwidth, pattern, hash);
+  _setpoints(wirespacing * (wire+1) - hit->GetDriftDistance() - hit->GetDetectorInfo()->GetTrackResolution(),
+             wirespacing * (wire+1) - hit->GetDriftDistance() + hit->GetDetectorInfo()->GetTrackResolution(),
+             detectorwidth, binwidth, pattern, hash);
 
   // Set the points on the back/bottom side of the wire (R3/R2)
-  _setpoints(wirespacing * (wire+1) + hit->GetDriftDistance() - hit->GetTrackResolution(),
-	     wirespacing * (wire+1) + hit->GetDriftDistance() + hit->GetTrackResolution(),
-	     detectorwidth, binwidth, pattern, hash);
+  _setpoints(wirespacing * (wire+1) + hit->GetDriftDistance() - hit->GetDetectorInfo()->GetTrackResolution(),
+             wirespacing * (wire+1) + hit->GetDriftDistance() + hit->GetDetectorInfo()->GetTrackResolution(),
+             detectorwidth, binwidth, pattern, hash);
 
   return 0;
 }
@@ -634,35 +634,35 @@ int QwTrackingTreeSearch::TsSetPoint (
 
       int found = 0; /* clear "I found a pairing" flag */
       if (fabs(Ha->GetDriftDistance() - Hb->GetDriftDistance()) < maxdistance){ /* left A w/ left B */
-	found = 1; /* set "I found a pairing" flag */
-	setpoint (dw2,
-		  Ha->GetDriftDistance(), Ha->GetTrackResolution(),
-		  Hb->GetDriftDistance(), Hb->GetTrackResolution(),
+        found = 1; /* set "I found a pairing" flag */
+        setpoint (dw2,
+		  Ha->GetDriftDistance(), Ha->GetDetectorInfo()->GetTrackResolution(),
+		  Hb->GetDriftDistance(), Hb->GetDetectorInfo()->GetTrackResolution(),
 		  detectorwidth, binwidth, patterna, patternb,
 		  hasha, hashb);
       }
       if (fabs(Ha->rPos2 - Hb->GetDriftDistance()) < maxdistance) { /* rght A w/left B */
-	found = 1; /* set "I found a pairing" flag */
-	setpoint (dw2,
-		  Ha->rPos2, Ha->GetTrackResolution(),
-		  Hb->GetDriftDistance(), Hb->GetTrackResolution(),
+        found = 1; /* set "I found a pairing" flag */
+        setpoint (dw2,
+		  Ha->rPos2, Ha->GetDetectorInfo()->GetTrackResolution(),
+		  Hb->GetDriftDistance(), Hb->GetDetectorInfo()->GetTrackResolution(),
 		  detectorwidth, binwidth, patterna, patternb,
 		  hasha, hashb);
       }
       if (fabs(Ha->GetDriftDistance() - Hb->rPos2) < maxdistance) { /* left B w/rght B */
-	found = 1; /* set "I found a pairing flag */
-	setpoint (dw2,
-		  Ha->GetDriftDistance(), Ha->GetTrackResolution(),
-		  Hb->rPos2, Hb->GetTrackResolution(),
+        found = 1; /* set "I found a pairing flag */
+        setpoint (dw2,
+		  Ha->GetDriftDistance(), Ha->GetDetectorInfo()->GetTrackResolution(),
+		  Hb->rPos2, Hb->GetDetectorInfo()->GetTrackResolution(),
 		  detectorwidth, binwidth, patterna, patternb,
 		  hasha, hashb);
       }
       /* 270996 - correct Hb to Ha below - finally ,-) */
       if (fabs(Ha->rPos2 - Hb->rPos2) < maxdistance) { /* rght A w/rght B */
-	found = 1; /* set "I found a pairing" flag */
-	setpoint (dw2,
-		  Ha->rPos2, Ha->GetTrackResolution(),
-		  Hb->rPos2, Hb->GetTrackResolution(),
+        found = 1; /* set "I found a pairing" flag */
+        setpoint (dw2,
+		  Ha->rPos2, Ha->GetDetectorInfo()->GetTrackResolution(),
+		  Hb->rPos2, Hb->GetDetectorInfo()->GetTrackResolution(),
 		  detectorwidth, binwidth, patterna, patternb,
 		  hasha, hashb);
       }
@@ -674,31 +674,31 @@ int QwTrackingTreeSearch::TsSetPoint (
                 bit pattern as unpaired hits.                       ---- */
 
       if (! found) {
-	if (patternb) {  /* treating the two planes as individual
+        if (patternb) {  /* treating the two planes as individual
                             tree-planes, so put hit into both patterns */
-	  setpoint (dw2,
-		    Ha->GetDriftDistance(), Ha->GetTrackResolution(),
-		    Hb->GetDriftDistance(), Hb->GetTrackResolution(),
+          setpoint (dw2,
+		    Ha->GetDriftDistance(), Ha->GetDetectorInfo()->GetTrackResolution(),
+		    Hb->GetDriftDistance(), Hb->GetDetectorInfo()->GetTrackResolution(),
 		    detectorwidth, binwidth, patterna, patternb,
 		    hasha, hashb);
-	  setpoint (dw2,
-		    Ha->rPos2, Ha->GetTrackResolution(),
-		    Hb->rPos2, Hb->GetTrackResolution(),
+          setpoint (dw2,
+		    Ha->rPos2, Ha->GetDetectorInfo()->GetTrackResolution(),
+		    Hb->rPos2, Hb->GetDetectorInfo()->GetTrackResolution(),
 		    detectorwidth, binwidth, patterna, patternb,
 		    hasha, hashb);
-	} else {         /* treating the two planes as one tree-plane,
+        } else {         /* treating the two planes as one tree-plane,
                             so just put it into the one pattern        */
-	  _setpoints (Ha->GetDriftDistance()+dw2 - 0.5 * maxdistance - Ha->GetTrackResolution(),
-		      Ha->GetDriftDistance()+dw2 + 0.5 * maxdistance + Ha->GetTrackResolution(),
+          _setpoints (Ha->GetDriftDistance()+dw2 - 0.5 * maxdistance - Ha->GetDetectorInfo()->GetTrackResolution(),
+		      Ha->GetDriftDistance()+dw2 + 0.5 * maxdistance + Ha->GetDetectorInfo()->GetTrackResolution(),
 		      detectorwidth, binwidth, patterna, hasha);
-	  _setpoints (Ha->rPos2+dw2 - 0.5 * maxdistance - Ha->GetTrackResolution(),
-		      Ha->rPos2+dw2 + 0.5 * maxdistance + Ha->GetTrackResolution(),
+          _setpoints (Ha->rPos2+dw2 - 0.5 * maxdistance - Ha->GetDetectorInfo()->GetTrackResolution(),
+		      Ha->rPos2+dw2 + 0.5 * maxdistance + Ha->GetDetectorInfo()->GetTrackResolution(),
 		      detectorwidth, binwidth, patterna, hasha);
-	  _setpoints (Hb->GetDriftDistance()+dw2 - 0.5 * maxdistance - Hb->GetTrackResolution(),
-		      Hb->GetDriftDistance()+dw2 + 0.5 * maxdistance + Hb->GetTrackResolution(),
+          _setpoints (Hb->GetDriftDistance()+dw2 - 0.5 * maxdistance - Hb->GetDetectorInfo()->GetTrackResolution(),
+		      Hb->GetDriftDistance()+dw2 + 0.5 * maxdistance + Hb->GetDetectorInfo()->GetTrackResolution(),
 		      detectorwidth, binwidth, patterna, hasha);
-	  _setpoints (Hb->rPos2+dw2 - 0.5 * maxdistance - Hb->GetTrackResolution(),
-		      Hb->rPos2+dw2 + 0.5 * maxdistance + Hb->GetTrackResolution(),
+          _setpoints (Hb->rPos2+dw2 - 0.5 * maxdistance - Hb->GetDetectorInfo()->GetTrackResolution(),
+		      Hb->rPos2+dw2 + 0.5 * maxdistance + Hb->GetDetectorInfo()->GetTrackResolution(),
 		      detectorwidth, binwidth, patterna, hasha);
 	}
       }
@@ -711,39 +711,45 @@ int QwTrackingTreeSearch::TsSetPoint (
 
 
     } else if (Ha) { /* this hit's on plane A */
+
+      double track_resolution = Ha->GetDetectorInfo()->GetTrackResolution();
+
       if( patternb ) { /* treating the two planes as two tree-planes,
                           so insert the hit into the bit pattern for
                           this plane                                    */
- 	_setpoint( dw2 + Ha->GetDriftDistance(), Ha->GetTrackResolution(),
+        _setpoint( dw2 + Ha->GetDriftDistance(), track_resolution,
 		   detectorwidth, binwidth, patterna, hasha);
-	_setpoint( dw2 + Ha->rPos2, Ha->GetTrackResolution(),
+        _setpoint( dw2 + Ha->rPos2, track_resolution,
 		   detectorwidth, binwidth, patterna, hasha);
       } else {         /* treating the two planes as one tree-plane,
                           so insert this hit into the bit pattern for
                           this single tree-plane                        */
-	_setpoints(Ha->GetDriftDistance()+dw2 - 0.5 * maxdistance - Ha->GetTrackResolution(),
-		   Ha->GetDriftDistance()+dw2 + 0.5 * maxdistance + Ha->GetTrackResolution(),
+        _setpoints(Ha->GetDriftDistance()+dw2 - 0.5 * maxdistance - track_resolution,
+		   Ha->GetDriftDistance()+dw2 + 0.5 * maxdistance + track_resolution,
 		   detectorwidth, binwidth, patterna, hasha);
-	_setpoints(Ha->rPos2+dw2 - 0.5 * maxdistance - Ha->GetTrackResolution(),
-		   Ha->rPos2+dw2 + 0.5 * maxdistance + Ha->GetTrackResolution(),
+        _setpoints(Ha->rPos2+dw2 - 0.5 * maxdistance - track_resolution,
+		   Ha->rPos2+dw2 + 0.5 * maxdistance + track_resolution,
 		   detectorwidth, binwidth, patterna, hasha);
       }
     } else {           /* this hit's on plane B */
+
+      double track_resolution = Hb->GetDetectorInfo()->GetTrackResolution();
+
       if (patternb) {  /* treating the two planes as two tree-planes,
                           so insert the hit into the bit pattern for
                           this plane                                    */
-	_setpoint (dw2 + Hb->GetDriftDistance(), Hb->GetTrackResolution(),
+        _setpoint (dw2 + Hb->GetDriftDistance(), track_resolution,
 		   detectorwidth, binwidth, patternb, hashb);
-	_setpoint (dw2 + Hb->rPos2, Hb->GetTrackResolution(),
+        _setpoint (dw2 + Hb->rPos2, track_resolution,
 		   detectorwidth, binwidth, patternb, hashb);
       } else {         /* treating the two planes as one tree-planes,
                           so insert the hit into the hit pattern for
                           this single tree-plane                        */
-	_setpoints (Hb->GetDriftDistance()+dw2 - 0.5 * maxdistance - Hb->GetTrackResolution(),
-		    Hb->GetDriftDistance()+dw2 + 0.5 * maxdistance + Hb->GetTrackResolution(),
+        _setpoints (Hb->GetDriftDistance()+dw2 - 0.5 * maxdistance - track_resolution,
+		    Hb->GetDriftDistance()+dw2 + 0.5 * maxdistance + track_resolution,
 		    detectorwidth, binwidth, patterna, hasha);
-	_setpoints (Hb->rPos2+dw2 - 0.5 * maxdistance - Hb->GetTrackResolution(),
-		    Hb->rPos2+dw2 + 0.5 * maxdistance + Hb->GetTrackResolution(),
+        _setpoints (Hb->rPos2+dw2 - 0.5 * maxdistance - track_resolution,
+		    Hb->rPos2+dw2 + 0.5 * maxdistance + track_resolution,
 		    detectorwidth, binwidth, patterna, hasha);
       }
     }
@@ -805,31 +811,31 @@ int QwTrackingTreeSearch::exists (int *newa, int front, int back, QwTrackingTree
 
     for (i = 0; i < fNumLayers; i++) {
       if (! olda[i]) {
-	oldmiss++;
+        oldmiss++;
       } else {
-	if (newa[i] && olda[i] != newa[i]) {
-	  diff = 1;
-	  break;
-	}
+        if (newa[i] && olda[i] != newa[i]) {
+          diff = 1;
+          break;
+        }
       }
     }
     if (! diff) {
       if ((newmiss == 0 && oldmiss == 0) ||
-	  (!newa[0] && !olda[0]) ||
+          (!newa[0] && !olda[0]) ||
           (!newa[fNumLayers-1] && !olda[fNumLayers-1]) ||
-	  (newmiss && !oldmiss && (!newa[0] || !newa[fNumLayers-1])) ||
-	  (oldmiss && !newmiss && (!olda[0] || !olda[fNumLayers-1]))
-	) {
-	if (tl->a_beg > front)
-	  tl->a_beg = front;
-	if (tl->a_end < front)
-	  tl->a_end = front;
-	if (tl->b_beg > back)
-	  tl->b_beg = back;
-	if (tl->b_end < back)
-	  tl->b_end = back;
+          (newmiss && !oldmiss && (!newa[0] || !newa[fNumLayers-1])) ||
+          (oldmiss && !newmiss && (!olda[0] || !olda[fNumLayers-1]))
+        ) {
+        if (tl->a_beg > front)
+          tl->a_beg = front;
+        if (tl->a_end < front)
+          tl->a_end = front;
+        if (tl->b_beg > back)
+          tl->b_beg = back;
+        if (tl->b_end < back)
+          tl->b_end = back;
         //std::cerr << "!diff" << std::endl;
-	return 1;
+        return 1;
       }
     }
   }
@@ -864,8 +870,8 @@ int QwTrackingTreeSearch::exists (int *newa, int front, int back, QwTrackingTree
     global
     inputs: (1) char **static_pattern - the bit pattern from the event
             (2) char **static_hash    -
-	    (3) int static_maxlevel   -
-	    (4) int static_front      -
+            (3) int static_maxlevel   -
+            (4) int static_front      -
 
    outputs: there are no explicit output from this function.
 
@@ -884,12 +890,11 @@ void QwTrackingTreeSearch::_SearchTreeLines (
   unsigned long pattern_start = (unsigned long) 0xffffffffL;
   /*                               to add to the offset   */
   unsigned long pattern_offset;
-  shorttree *tree;	/* for searching in children of node*/
+  shorttree *tree; /* for searching in children of node*/
   int       *tree_pattern;
   int hashpat[TLAYERS];
   int nextlevel = level + 1, x;
   int miss, matched;
-  int nullhits = 0;
   int firstwire = 1000, lastwire = -1;
   //int front_miss = 0;
 
@@ -905,6 +910,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
   pattern_start <<= level + 1;
   pattern_start &= (unsigned long) 0xffffffffL >> (32 - static_maxlevel);
   //if (fDebug) std::cout << "pattern start = " << pattern_start << std::endl;
+  int nullhits = 0;
   if (level == 0) {
     for (int u = nullhits = 0; u < fNumLayers; u++) {
       //if (fDebug && level > 0) std::cerr << u+row_offset << "," << pattern_start << std::endl;
@@ -971,10 +977,13 @@ void QwTrackingTreeSearch::_SearchTreeLines (
         }
       }
       //std::cout << "matched = " << matched << std::endl;
-      /* ---- Check if there was the treenode is match now that the
-      matching has been completely tested.                      ---- */
 
-      if (matched == fNumLayers && nullhits < MAX_MISSED_VDC_WIRES) {
+
+      /// Check if there was the treenode is match now that the
+      /// matching has been completely tested.
+
+      if (matched == fNumLayers && nullhits <= MAX_MISSED_VDC_WIRES) {
+
         //std::cout << "match found " << std::endl;
         //std::cout << "sons are " << std::endl;
         //std::cout << "-----------" << std::endl;
@@ -992,11 +1001,12 @@ void QwTrackingTreeSearch::_SearchTreeLines (
         std::cout << "-----------"<< std::endl;
         */
 
-        /* ---- Yes, there is a match, so now check if all the levels
-                of the treesearch have been done.  If so, then we have
-                found a valid treeline.                                 ---- */
+        /// Yes, there is a match, so now check if all the levels of the
+        /// tree search have been done.
 
         if (level == static_maxlevel - 1) {
+
+          /// If so, then we have found a valid treeline.
 
           int backbin = reverse ? offset - tree->bit[fNumLayers-1]
                                 : offset + tree->bit[fNumLayers-1];
@@ -1047,37 +1057,50 @@ void QwTrackingTreeSearch::_SearchTreeLines (
             treeline->fNumMiss = miss;
 
             /* Region 3 specific treeline info */
-            treeline->r3offset = row_offset;
-            treeline->firstwire = firstwire;
-            treeline->lastwire  = lastwire;
+            treeline->fR3Offset = row_offset;
+            treeline->fR3FirstWire = firstwire;
+            treeline->fR3LastWire  = lastwire;
 
             /* Add this treeline to the linked-list */
             treeline->next = lTreeLines;
             lTreeLines = treeline;
           }
 
-        } else {                  /* check son patterns */
+
+        } else { // if (level != static_maxlevel - 1)
+
+          /// If not, then we descend to check the son patterns
+
           for (int rev = 0; rev < 4; rev += 2) {
+
             shortnode** cnode = tree->son + rev;
+
             if (rev ^ reverse) {
               int off2 = (offset << 1) + 1;
               for (int off = 0; off < 2; off++)
                 _SearchTreeLines (*cnode++, nextlevel, off2 - off, row_offset, 2, numWires);
             } else {
-              int off2 = offset << 1;
+              int off2 = (offset << 1);
               for (int off = 0; off < 2; off++)
                 _SearchTreeLines (*cnode++, nextlevel, off2 + off, row_offset, 0, numWires);
             }
-          } /* highly optimized - time critical */
-        }
+
+          } // end of for over son nodes
+
+        } // end of if we have reached the maximum level (level == static_maxlevel - 1)
+
       }
-      node = node->next; /* ok, there wasn't a match, so go onto the
-                                next nodenode                         */
+
+      // There was no match, so go onto the next nodenode
+      node = node->next;
+
     } /* end of loop over nodenodes */
+
+
 
   } else { /* Region 2 */
 
-    while (node) {			/* search in all nodes */
+    while (node) { /* search in all nodes */
       tree = node->tree;
 
 
@@ -1216,8 +1239,10 @@ QwTrackingTreeLine* QwTrackingTreeSearch::SearchTreeLines (
   // Determine the top node of the search tree for the recursive search
   shortnode* topnode = searchtree->GetNode();
 
+  // Store the number of layers
   fNumLayers = numlayers;
 
+  // Store the maximum level, pattern and hash
   static_maxlevel = maxlevel;
   static_pattern  = pattern;
   static_hash     = hashpat;
@@ -1232,28 +1257,30 @@ QwTrackingTreeLine* QwTrackingTreeSearch::SearchTreeLines (
   /// next fNumLayers wires (so we need to end early).
 
   if (numwires > 0) {
-    // NOTE (wdc) This seems horribly inefficient.  When there are eight empty
-    // wires, _SearchTreeLines checks all eight and returns.  Next step is to
-    // do this the same for the eight wires displaced by ONE wire!  Seven of the
-    // wires are redone without any use.  Maybe _SearchTreeLines could return
-    // a cumulative number of hits in that set, and increment by 8 if there was
-    // not a single hit.  Or even better return the first wire with hit in the
-    // set of fNumLayers wires, so we can increment immediately to that one.
 
-    // Determine which groups of fNumLayers wires need to be considered:
-    // only those groups of fNumLayers wires with at least one hit are to be
+    // Determine which groups of numlayers wires need to be considered:
+    // only those groups of numlayers wires with at least one hit are to be
     // considered
-    bool consider[numwires + fNumLayers]; // too long, not initialized
+    std::vector<int> wiregroups;
+    int last_wire_with_hit = -1;
     for (int wire = 0; wire < numwires; wire++) {
-      if (pattern[wire][(1UL << maxlevel) - 2] == 1)
-        for (int i = 0; i < fNumLayers; i++)
-          consider[wire+i] = true;
+      // if this wire was hit
+      if (pattern[wire][(1UL << maxlevel) - 2] == 1) {
+        // set all previous numlayers-1 groups active (including this wire)
+        for (int wiregroup = std::max(wire - numlayers + 1, last_wire_with_hit);
+             wiregroup <= wire; wiregroup++) {
+          if (wiregroup < 0) continue; // no negative wires
+          wiregroups.push_back(wiregroup);
+        }
+        last_wire_with_hit = wire;
+      }
     }
 
-    // The region 3 version of SearchTreeLines (search for every set of fNumLayers wires)
-
-    for (int wire = 0; wire <= numwires - fNumLayers; wire++)
-      _SearchTreeLines (topnode, 0, 0, wire, 0, numwires);
+    // The region 3 version of SearchTreeLines
+    // (search for groups of numlayers wires)
+    for (size_t i = 0; i < wiregroups.size(); i++) {
+      _SearchTreeLines (topnode, 0, 0, wiregroups.at(i), 0, numwires);
+    }
 
   } else
     // The region 2 version of SearchTreeLines

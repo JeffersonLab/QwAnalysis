@@ -9,7 +9,6 @@
 ClassImp(QwHit);
 
 // Qweak headers
-//#include "QwLog.h"
 #include "QwDetectorInfo.h"
 
 /**
@@ -39,9 +38,7 @@ QwHit::QwHit()
   fDistance          = 0.0;
   fPosition          = 0.0;
   fResidual          = 0.0;
-  fZPos              = 0.0;
-  fRPos              = 0.0;
-  fPhiPos            = 0.0;
+  fZPosition         = 0.0;
   fSpatialResolution = 0.0;
   fTrackResolution   = 0.0;
 
@@ -61,41 +58,7 @@ QwHit::QwHit()
  */
 QwHit::QwHit(const QwHit &hit)
 {
-  fCrate             = hit.fCrate;
-  fModule            = hit.fModule;
-  fChannel           = hit.fChannel;
-  fHitNumber         = hit.fHitNumber;
-  fHitNumber_R       = hit.fHitNumber_R;
-
-  fRegion            = hit.fRegion;
-  fPackage           = hit.fPackage;
-  fDirection         = hit.fDirection;
-  fPlane             = hit.fPlane;
-  fElement           = hit.fElement;
-  pDetectorInfo      = hit.pDetectorInfo;
-
-  fAmbiguousElement  = hit.fAmbiguousElement;
-  fLRAmbiguity       = hit.fLRAmbiguity;
-
-  fRawTime           = hit.fRawTime;
-  fTime              = hit.fTime;
-  fTimeRes           = hit.fTimeRes;
-  fDistance          = hit.fDistance;
-  fPosition          = hit.fPosition;
-  fResidual          = hit.fResidual;
-  fZPos              = hit.fZPos;
-  fRPos              = hit.fRPos;
-  fPhiPos            = hit.fPhiPos;
-  fSpatialResolution = hit.fSpatialResolution;
-  fTrackResolution   = hit.fTrackResolution;
-
-  fIsUsed            = hit.fIsUsed;
-
-  next               = hit.next;
-  nextdet            = hit.nextdet;
-  rResultPos         = hit.rResultPos;
-  rPos               = hit.rPos;
-  rPos2              = hit.rPos2;
+  *this = hit;
 };
 
 
@@ -155,9 +118,7 @@ QwHit::QwHit(Int_t bank_index,
   fDistance          = 0.0;	/// Perpendicular distance from the wire to the track
   fPosition          = 0.0;
   fResidual          = 0.0;
-  fZPos              = 0.0;	/// Hit position
-  fRPos              = 0.0;
-  fPhiPos            = 0.0;
+  fZPosition         = 0.0;	/// Hit position
   fSpatialResolution = 0.0;	/// Spatial resolution
   fTrackResolution   = 0.0;	/// Tracking road width around hit
 
@@ -210,9 +171,7 @@ QwHit& QwHit::operator=(const QwHit& hit)
   fDistance          = hit.fDistance;
   fPosition          = hit.fPosition;
   fResidual          = hit.fResidual;
-  fZPos              = hit.fZPos;
-  fRPos              = hit.fRPos;
-  fPhiPos            = hit.fPhiPos;
+  fZPosition         = hit.fZPosition;
   fSpatialResolution = hit.fSpatialResolution;
   fTrackResolution   = hit.fTrackResolution;
 
@@ -315,23 +274,15 @@ ostream& operator<< (ostream& stream, const QwHit& hit)
   stream << "hit: ";
   stream << "package "   << "?UD"[hit.fPackage] << ", ";
   stream << "region "    << hit.fRegion << ", ";
-  stream << "dir "       << "?xyuvrq"[hit.fDirection] << ", ";
+  stream << "dir "       << "?xyuvrf"[hit.fDirection] << ", ";
   stream << "plane "     << hit.fPlane;
 
   if (hit.pDetectorInfo) stream << " (detector " << hit.pDetectorInfo << "), ";
   else                   stream << ", ";
 
-  if (hit.fRegion == 1)
-    {
-      stream << "radius " << hit.fRPos   << " cm, ";
-      stream << "phi "    << hit.fPhiPos << " ("<<hit.fPhiPos*180.0/3.1415927<<" deg)";
-    }
-  else
-    {
-      stream << "element "  << hit.fElement << ", ";
-      stream << "distance " << hit.fDistance;
-      if (hit.fAmbiguousElement) stream << " (?)";
-    }
+  stream << "element "  << hit.fElement << ", ";
+  if (hit.fDistance > 0.0) stream << "distance " << hit.fDistance;
+  if (hit.fAmbiguousElement) stream << " (?)";
 
   return stream;
 };
@@ -348,39 +299,6 @@ void QwHit::Print()
   std::cout << *this << std::endl;
 };
 
-
-/**
- * Return the z position of the hit.  When a hit z position is manually assigned
- * (i.e. for region 3 VDCs), that value is returned rather than the value stored
- * in the detector info structure.
- * @return Z position of the hit
- */
-const Double_t QwHit::GetZPosition() const
-{
-  if (fZPos != 0.0)  return fZPos;
-  else {
-    //    QwWarning << "Improper QwHit::GetZPosition() call" << QwLog::endl;
-    return pDetectorInfo->GetZPosition();
-  }
-};
-
-const Double_t QwHit::GetSpatialResolution() const
-{
-  if (pDetectorInfo) return pDetectorInfo->GetSpatialResolution();
-  else {
-    //    QwWarning << "Improper QwHit::GetSpatialResolution() call" << QwLog::endl;
-    return fSpatialResolution;
-  }
-};
-
-const Double_t QwHit::GetTrackResolution() const
-{
-  if (pDetectorInfo) return pDetectorInfo->GetTrackResolution();
-  else {
-    //    QwWarning << "Improper QwHit::GetTrackResolution() call" << QwLog::endl;
-    return fTrackResolution;
-  }
-};
 
 const QwDetectorID QwHit::GetDetectorID() const
 {

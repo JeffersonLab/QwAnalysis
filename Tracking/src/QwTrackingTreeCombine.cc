@@ -487,7 +487,7 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
       A[i][1] = -(i + offset); //used by Tl MatchHits
       y[i]    = -hits[i]->rResultPos;
     }
-    double r = 1.0 / hits[i]->GetSpatialResolution();
+    double r = 1.0 / hits[i]->GetDetectorInfo()->GetSpatialResolution();
     G[i][i] = r * r;
   }
   //for (int i = 0; i < n; i++)
@@ -1009,7 +1009,7 @@ int QwTrackingTreeCombine::TlMatchHits (
   double intercept = x1 - track_slope * z1;
 
   // Number of wires that can possibly be hit for this treeline
-  int nWires = abs(treeline->lastwire - treeline->firstwire + 1);
+  int nWires = abs(treeline->fR3LastWire - treeline->fR3FirstWire + 1);
 
 
   // Loop over the hits with wires in this tree line
@@ -1018,8 +1018,8 @@ int QwTrackingTreeCombine::TlMatchHits (
        hit != hitlist->end() && nHits < tlayers; hit++) {
 
     // Skip if this wire is not part of the tree line
-    if (hit->GetElement() < treeline->r3offset + treeline->firstwire
-     && hit->GetElement() > treeline->r3offset + treeline->lastwire) continue;
+    if (hit->GetElement() < treeline->fR3Offset + treeline->fR3FirstWire
+     && hit->GetElement() > treeline->fR3Offset + treeline->fR3LastWire) continue;
 
     // Calculate the wire number and associated z coordinate
     double thisZ = (double) hit->GetElement();
@@ -1049,7 +1049,7 @@ int QwTrackingTreeCombine::TlMatchHits (
   double chi = 0.0;
   double slope = 0.0, offset = 0.0;
   double cov[3] = {0.0, 0.0, 0.0};
-  weight_lsq_r3 (&slope, &offset, cov, &chi, treeline->hits, nHits, z1, treeline->r3offset, tlayers);
+  weight_lsq_r3 (&slope, &offset, cov, &chi, treeline->hits, nHits, z1, treeline->fR3Offset, tlayers);
 
   //################
   //SET PARAMATERS #
@@ -1115,9 +1115,9 @@ void QwTrackingTreeCombine::TlTreeLineSort (
                              treeline = treeline->next) {
 
       // First wire position
-      double z1 = (double) (treeline->r3offset + treeline->firstwire);
+      double z1 = (double) (treeline->fR3Offset + treeline->fR3FirstWire);
       // Last wire position
-      double z2 = (double) (treeline->r3offset + treeline->lastwire);
+      double z2 = (double) (treeline->fR3Offset + treeline->fR3LastWire);
 
       // Bin width (bins in the direction of chamber thickness)
       double dx = width / (double) bins;
@@ -1338,7 +1338,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
 
   // Calculate the metric matrix
   for (int i = 0; i < Num; i++) {
-    cff  = 1.0 / Hit[i]->GetSpatialResolution();
+    cff  = 1.0 / Hit[i]->GetDetectorInfo()->GetSpatialResolution();
     cff *= cff;
     EQwDirectionID dir = Hit[i]->GetDetectorInfo()->fDirection;
     r[0] = rCos[dir];
@@ -1398,7 +1398,7 @@ int QwTrackingTreeCombine::r2_TrackFit (
   *chi = 0.0;
   for (int i = 0; i < Num; i++) {
     EQwDirectionID dir = Hit[i]->GetDetectorInfo()->fDirection;
-    cff  = 1.0 / Hit[i]->GetSpatialResolution(); // cff  = 1.0 / Hit[i]->Resolution;
+    cff  = 1.0 / Hit[i]->GetDetectorInfo()->GetSpatialResolution();
     cff *= cff;
     uvx  = offset[dir] + slope[dir] * (Hit[i]->GetDetectorInfo()->GetZPosition());
     *chi += (uvx - Hit[i]->GetDriftDistance()) * (uvx - Hit[i]->GetDriftDistance()) * cff;
@@ -1466,7 +1466,7 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, doub
   // Calculate the metric matrix #
   //##############################
   for (int i = 0; i < Num; i++) {
-    cff  = 1.0 / Hit[i]->GetSpatialResolution();
+    cff  = 1.0 / Hit[i]->GetDetectorInfo()->GetSpatialResolution();
     cff *= cff;
     EQwDirectionID direction = Hit[i]->GetDetectorInfo()->fDirection;
     r[0] = rCos[direction];
@@ -1519,7 +1519,7 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, doub
   *chi = 0;
   for (int i = 0; i < Num; i++) {
     EQwDirectionID direction = Hit[i]->GetDetectorInfo()->fDirection;
-    cff  = 1.0 / Hit[i]->GetSpatialResolution();
+    cff  = 1.0 / Hit[i]->GetDetectorInfo()->GetSpatialResolution();
     cff *= cff;
     uvx  = offset[direction] + slope[direction] * (Hit[i]->GetZPosition());
     *chi += (uvx - Hit[i]->rPos) * (uvx - Hit[i]->rPos) * cff;

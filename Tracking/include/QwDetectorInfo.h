@@ -116,7 +116,7 @@ class QwDetectorInfo {
     const int GetID() const { return fDetectorID; };
 
     // Output stream operator
-    friend ostream& operator<< (ostream& stream, QwDetectorInfo& det);
+    friend ostream& operator<< (ostream& stream, const QwDetectorInfo& det);
 
     // Detector information
     EQwDetectorType fType;

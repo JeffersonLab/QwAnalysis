@@ -306,8 +306,8 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
         for (int hit = 0; hit < backhits; hit++) {
           treeline->hits[hit+fronthits] = new QwHit(backline->hits[hit]);
           DetecHits[hit+fronthits] = treeline->hits[hit+fronthits];
-          DetecHits[hit+fronthits]->fZPos     += u_para;
-          DetecHits[hit+fronthits]->fPosition += d_perp;
+          DetecHits[hit+fronthits]->fZPosition += u_para;
+          DetecHits[hit+fronthits]->fPosition  += d_perp;
         }
         int nhits = fronthits + backhits;
 

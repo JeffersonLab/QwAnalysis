@@ -93,6 +93,9 @@ using std::endl;
 #include "globals.h"
 #include "Det.h"
 
+// Qweak GEM cluster finding
+#include "QwGEMClusterFinder.h"
+
 // Qweak tree search headers
 #include "QwHitPattern.h"
 #include "QwTrackingTree.h"
