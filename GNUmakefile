@@ -123,7 +123,7 @@ ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
   #  The realtime executables should be added in this section.
   EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline
  else
-  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline
+  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator
  endif
 else
  EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
@@ -133,7 +133,7 @@ ifeq ($(filter config,$(MAKECMDGOALS)),config)
   #  The realtime executables should be added in this section.
   EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline
  else
-  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline
+  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator
  endif
 endif
 # overridden by "make 'EXES=exe1 exe2 ...'"

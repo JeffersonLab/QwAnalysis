@@ -3,8 +3,8 @@
 ClassImp(QwGUIMainDetector);
 
 const char *QwGUIMainDetector::MainDetectorHists[MAIN_DET_HST_NUM] = 
-  { "C20AXM_hw_raw","C20AXM_block2_raw",
-    "AmpCh1_block1_raw","H00_YP_block1_raw"};
+  {"bar1left","bar2left","bar3left","bar4left","bar5left","bar6left","bar7left","bar8left",
+   "bar1right","bar2right","bar3right","bar4right","bar5right","bar6right","bar7right","bar8right"};
 
 QwGUIMainDetector::QwGUIMainDetector(const TGWindow *p, const TGWindow *main, const TGTab *tab,
 			       const char *objName, const char *mainname, UInt_t w, UInt_t h)
@@ -14,6 +14,12 @@ QwGUIMainDetector::QwGUIMainDetector(const TGWindow *p, const TGWindow *main, co
   dCanvas = NULL;  
   dTabLayout = NULL;
   dCnvLayout = NULL;
+
+//   QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
+//   QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
+
+//   TString mapfile = "qweak_adc.map";
+//   QwParameterFile mapstr(mapfile.Data());
 
   AddThisTab(this);
 }
@@ -47,7 +53,7 @@ void QwGUIMainDetector::MakeLayout()
 				"QwGUIMainDetector",
 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
   TCanvas *mc = dCanvas->GetCanvas();
-  mc->Divide( MAIN_DET_HST_NUM/2, MAIN_DET_HST_NUM/2);
+  mc->Divide(4,4);
 
 }
 
@@ -71,25 +77,49 @@ void QwGUIMainDetector::OnNewDataContainer()
 {
 
   TObject *obj;
-  TObject *copy;
+  TTree *tree;
+  TBranch *branch;
+  Double_t val;
   ClearData();
+  TH1D *hst[MAIN_DET_HST_NUM];
 
   if(dROOTCont){
-    for(int p = 0; p < MAIN_DET_HST_NUM; p++){
+    
+    obj = dROOTCont->ReadData("MD_Tree");
+    if(obj){
+      if(obj->InheritsFrom("TTree")){
+	tree = (TTree*)obj->Clone();
 	
-      obj = dROOTCont->ReadData(MainDetectorHists[p]);
-      if(obj){
-
-	if(obj->InheritsFrom("TH1")){
-	  copy = obj->Clone();
-	  ((TH1*)copy)->SetName(Form("%s_cp",((TH1*)obj)->GetName()));
-	  ((TH1*)copy)->SetDirectory(0);
-	  HistArray.Add(copy);
+	for(int i = 0; i < MAIN_DET_HST_NUM; i++){
+	  sprintf(dMiscbuffer,"%s:hw_sum_raw",MainDetectorHists[i]);
+	  tree->Draw(dMiscbuffer,"","goff",tree->GetEntries(),0);
+	  sprintf(dMiscbuffer2,"hst%02d",i);
+	  hst[i] = new TH1D(dMiscbuffer2,dMiscbuffer,1000,9,11);
+	  for(int j = 0; j < tree->GetEntries(); j++){
+	    //printf("Value %1.2e\n",tree->GetV1()[i]);
+	    hst[i]->Fill(tree->GetV1()[j]*1.0e-6);
+	  }
+	  HistArray.Add(hst[i]);
 	}
       }
-    }
-  }  
+    }  
+  }
   PlotData();
+
+//     for(int p = 0; p < MAIN_DET_HST_NUM; p++){
+	
+//       obj = dROOTCont->ReadData(MainDetectorHists[p]);
+//       if(obj){
+
+// 	if(obj->InheritsFrom("TH1")){
+// 	  copy = obj->Clone();
+// 	  ((TH1*)copy)->SetName(Form("%s_cp",((TH1*)obj)->GetName()));
+// 	  ((TH1*)copy)->SetDirectory(0);
+// 	  HistArray.Add(copy);
+// 	}
+//       }
+//     }
+
 }
 
 void QwGUIMainDetector::OnRemoveThisTab()

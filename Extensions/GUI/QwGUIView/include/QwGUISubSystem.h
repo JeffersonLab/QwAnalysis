@@ -63,10 +63,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   char             dMainName[NAME_STR_MAX];
   //!The name/lable of this subsystem object, as passed to the constructor
   char             dThisName[NAME_STR_MAX];
-  //!Buffer, mainly used in message passing and for other temporary storage.
-  char             dMiscbuffer[MSG_SIZE_MAX];
-  //!Buffer, mainly used in message passing and for other temporary storage.
-  char             dMiscbuffer2[MSG_SIZE_MAX];
 
   //!The tab menu ID associated with this subsystem
   Long_t           dTabMenuID;   
@@ -84,6 +80,11 @@ class QwGUISubSystem : public TGCompositeFrame {
   TGWindow        *dParent;
 
  protected:
+
+  //!Buffer, mainly used in message passing and for other temporary storage.
+  char             dMiscbuffer[MSG_SIZE_MAX];
+  //!Buffer, mainly used in message passing and for other temporary storage.
+  char             dMiscbuffer2[MSG_SIZE_MAX];
 
   //!This is a data container reference, it contains the root file and provides a series of 
   //!convenience access functions. The pointer is set by the QwGUIMain class, when a new ROOT file is opened,

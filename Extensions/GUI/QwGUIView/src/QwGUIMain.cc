@@ -111,8 +111,8 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   // the QwGUITrackingSystem class is not inherited from  QwGUISubSystem 
   // but TGCompositeFrame directly. I miminize the effect on the QwGUIMain 
   // 
-  TrackingSystem = new QwGUITrackingSystem(this, dTab->AddTab("Tracking System"), 
-					   dMWWidth-15,dMWHeight-180);
+   TrackingSystem = new QwGUITrackingSystem(this, dTab->AddTab("Tracking System"), 
+ 					   dMWWidth-15,dMWHeight-180);
   MapSubwindows();
   Layout();
   //////////////////////

@@ -28,7 +28,7 @@
  */
 //=============================================================================
 
-#define MAIN_DET_HST_NUM      4           
+#define MAIN_DET_HST_NUM      16           
 
 ///
 /// \ingroup QwGUIMain
@@ -44,7 +44,7 @@
 #include <TRootCanvas.h>
 #include "QwGUISubSystem.h"
 #include "RSDataWindow.h"
-
+//#include "QwParameterFile.h"
 
 class QwGUIMainDetector : public QwGUISubSystem {
 
