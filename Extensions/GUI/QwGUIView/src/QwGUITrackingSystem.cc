@@ -86,9 +86,9 @@ QwGUITrackingSystem::QwGUITrackingSystem(const TGWindow *main, TGCompositeFrame 
 
 
 
-//   for(Short_t i=0;i<RG_ONE_HIST_NUM;i++) hist1_region1[i] = NULL;
-//   for(Short_t i=0;i<RG_TWO_HIST_NUM;i++) hist1_region2[i] = NULL;
-//   for(Short_t i=0;i<RG_THR_HIST_NUM;i++) hist1_region3[i] = NULL;
+  for(Short_t i=0;i<RG_ONE_HIST_NUM;i++) sumhist1_region1[i] = NULL;
+  for(Short_t i=0;i<RG_TWO_HIST_NUM;i++) sumhist1_region2[i] = NULL;
+  for(Short_t i=0;i<RG_THR_HIST_NUM;i++) sumhist1_region3[i] = NULL;
 
   for(Short_t i=0;i<RG_ONE_HIST_NUM;i++) hist2_region1[i] = NULL;
   for(Short_t i=0;i<RG_TWO_HIST_NUM;i++) hist2_region2[i] = NULL;
@@ -148,9 +148,9 @@ QwGUITrackingSystem::~QwGUITrackingSystem()
   delete [] b_button;
 
 
-//   delete [] hist1_region1;
-//   delete [] hist1_region2;
-//   delete [] hist1_region3;
+  delete [] sumhist1_region1;
+  delete [] sumhist1_region2;
+  delete [] sumhist1_region3;
 
   delete [] hist2_region1;
   delete [] hist2_region2;
@@ -354,32 +354,32 @@ QwGUITrackingSystem::ManipulateHistograms()
 
 
   Int_t    nhit        = 0;
-  UInt_t    ev_i       = 0; 
+  Int_t    ev_i       = 0; 
   Int_t    hit_i       = 0;
 
-  Int_t    crate       = 0;
-  Int_t    module      = 0;
+//   Int_t    crate       = 0;
+//   Int_t    module      = 0;
   Int_t    channel     = 0;
-  Int_t    hitnumber   = 0;
-  Int_t    hitnumber_r = 0;
+//   Int_t    hitnumber   = 0;
+//   Int_t    hitnumber_r = 0;
   
   Short_t  region      = 0;
-  Short_t  package     = 0;
+//   Short_t  package     = 0;
   Short_t  direction   = 0;
   Int_t    plane       = 0;
   Int_t    element      = 0; //  Trace # for R1; wire # for R2 & R3; PMT # for others
 
   Double_t rawtime  = 0.0;
   Double_t time     = 0.0;
-  Double_t time_resolution    = 0.0;
-  Double_t distance           = 0.0;
-  Double_t position           = 0.0;
-  Double_t residual           = 0.0;
-  Double_t z_position         = 0.0;
-  Double_t r_position         = 0.0;
-  Double_t phi_position       = 0.0;
-  Double_t spatial_resolution = 0.0;
-  Double_t track_resolution   = 0.0;
+//   Double_t time_resolution    = 0.0;
+//   Double_t distance           = 0.0;
+//   Double_t position           = 0.0;
+//   Double_t residual           = 0.0;
+//   Double_t z_position         = 0.0;
+//   Double_t r_position         = 0.0;
+//   Double_t phi_position       = 0.0;
+//   Double_t spatial_resolution = 0.0;
+//   Double_t track_resolution   = 0.0;
   
   //   Short_t  tmp         = 0;
    
@@ -389,11 +389,11 @@ QwGUITrackingSystem::ManipulateHistograms()
   Int_t    xbinN[3]    = {0, 0, 0};
   Int_t    ybinN[3]    = {RG_ONE_WIRE_NUM, RG_TWO_WIRE_NUM, RG_THR_WIRE_NUM}; // more than the number of wires
 
-  Int_t    wire_axis_range[3][2];
-  Int_t    event_axis_range[3][2];
+  Double_t    wire_axis_range[3][2];
+  Double_t    event_axis_range[3][2];
 
   Int_t    select_number = 0;
-  select_number =  num_entry[3] -> GetNumber();
+  select_number =  (Int_t )num_entry[3] -> GetNumber();
    
   for(Short_t i=0; i<3; i++)
     {
@@ -403,7 +403,7 @@ QwGUITrackingSystem::ManipulateHistograms()
       event_axis_range[i][0] = event_range[0]+offset;
       event_axis_range[i][1] = event_range[1]+offset;
 
-      xbinN[i] = event_axis_range[i][1] -  event_axis_range[i][0];
+      xbinN[i] = (Int_t) (event_axis_range[i][1] -  event_axis_range[i][0]);
 
       region = i+1;
       if( region==1 ) 
@@ -414,7 +414,7 @@ QwGUITrackingSystem::ManipulateHistograms()
 	      direction = j+1;
 	      sprintf(text_buffer, "H1RG%dPL%d", region, plane);
 	      CheckOldObject(text_buffer);
-	      hist1_region1[4][j]=  new TH1D(text_buffer,
+	      sumhist1_region1[j]=  new TH1D(text_buffer,
 					     Form("Number of Events per Wire of RG %d DIR %d", region, direction), 
 					     ybinN[i], wire_axis_range[i][0], wire_axis_range[i][1]);
 
@@ -444,7 +444,7 @@ QwGUITrackingSystem::ManipulateHistograms()
 	      plane = j+1; 
 	      sprintf(text_buffer, "H1RG%dPL%d", region, plane);
 	      CheckOldObject(text_buffer);
-	      hist1_region2[4][j]=  new TH1D(text_buffer,
+	      sumhist1_region2[j]=  new TH1D(text_buffer,
 					     Form("Number of Events per Wire of RG %d PL %d", region, plane), 
 					     ybinN[i], wire_axis_range[i][0], wire_axis_range[i][1]);
 	      sprintf(text_buffer, "H2RG%dPL%d", region, plane);
@@ -476,12 +476,12 @@ QwGUITrackingSystem::ManipulateHistograms()
 	      plane = j+1;
 	      sprintf(text_buffer, "H1RG%dPL%d", region, plane);
 	      CheckOldObject(text_buffer);
- 	      hist1_region3[4][j]=  new TH1D(text_buffer,
+ 	      sumhist1_region3[j]=  new TH1D(text_buffer,
 					     Form("Number of Events per Wire of RG %d PL %d", region, plane), 
 					     ybinN[i], wire_axis_range[i][0], wire_axis_range[i][1]);
 	      sprintf(text_buffer, "H2RG%dPL%d", region, plane);
 	      CheckOldObject(text_buffer);
-	      hist2_region2[j]=  new TH2I(text_buffer,
+	      hist2_region3[j]=  new TH2I(text_buffer,
 					  Form("Number of Events per Wire of RG %d PL %d", region, plane), 
 					  xbinN[i], event_axis_range[i][0], event_axis_range[i][1],
 					  ybinN[i], wire_axis_range [i][0], wire_axis_range [i][1]);
@@ -531,18 +531,19 @@ QwGUITrackingSystem::ManipulateHistograms()
 
 	  if(region == 1) 
 	    {
-	      hist1_region1[4][direction-1] -> Fill(element);
-	      //	      hist2_region1[direction-1]    -> Fill(ev_i, element);
+	      sumhist1_region1[direction-1] -> Fill(element);
+	      hist2_region1[direction-1]    -> Fill(ev_i, element);
 	    }
 	  if(region == 2) 
 	    {
-	      hist1_region2[4][plane-1] -> Fill(element);
-	      //	      hist2_region2[plane-1]    -> Fill(ev_i, element);
+	      sumhist1_region2[plane-1] -> Fill(element);
+	      hist2_region2[plane-1]    -> Fill(ev_i, element);
 	    }
 	  if(region == 3) 
 	    {
-	      hist1_region3[4][plane-1] -> Fill(element);
-	      //	      hist2_region3[plane-1]    -> Fill(ev_i, element);
+	      sumhist1_region3[plane-1] -> Fill(element);
+	      //	      printf("evi %d element %d\n", ev_i, element);
+	      hist2_region3[plane-1]    -> Fill(ev_i, element);
 	    }
 
 
@@ -726,12 +727,12 @@ QwGUITrackingSystem::PlotEventVsWire()
 	  padnumber = plane;
 	  canvas -> cd(padnumber);
 	  // 		  gStyle -> SetOptStat(0);
-	  if( hist1_region2[4][plane-1]->GetEntries() != 0)
+	  if( sumhist1_region2[plane-1]->GetEntries() != 0)
 	    {
-	      hist1_region2[4][plane-1] -> SetLineColor(kRed);
-	      hist1_region2[4][plane-1] -> GetXaxis()-> SetTitle("Wire #");
-	      hist1_region2[4][plane-1] -> GetYaxis()-> SetTitle("Number of Events");
-	      hist1_region2[4][plane-1] -> Draw();
+	      sumhist1_region2[plane-1] -> SetLineColor(kRed);
+	      sumhist1_region2[plane-1] -> GetXaxis()-> SetTitle("Wire #");
+	      sumhist1_region2[plane-1] -> GetYaxis()-> SetTitle("Number of Events");
+	      sumhist1_region2[plane-1] -> Draw();
 	    }
 	  else
 	    {
@@ -748,12 +749,12 @@ QwGUITrackingSystem::PlotEventVsWire()
 	  padnumber = plane;
 	  //	      printf("region 3 pad %d \n", padnumber);
 	  canvas -> cd(padnumber);
-	  if( hist1_region3[4][plane-1]->GetEntries() != 0)
+	  if( sumhist1_region3[plane-1]->GetEntries() != 0)
 	    {
-	      hist1_region3[4][plane-1] -> SetLineColor(kRed);
-	      hist1_region3[4][plane-1] -> GetXaxis()-> SetTitle("Wire #");
-	      hist1_region3[4][plane-1] -> GetYaxis()-> SetTitle("Number of Events");
-	      hist1_region3[4][plane-1] -> Draw();
+	      sumhist1_region3[plane-1] -> SetLineColor(kRed);
+	      sumhist1_region3[plane-1] -> GetXaxis()-> SetTitle("Wire #");
+	      sumhist1_region3[plane-1] -> GetYaxis()-> SetTitle("Number of Events");
+	      sumhist1_region3[plane-1] -> Draw();
 	    }
 	  else
 	    {
@@ -803,12 +804,13 @@ QwGUITrackingSystem::PlotHittedWireVsEvent()
 	  padnumber = plane;
 	  canvas -> cd(padnumber);
 	  // 		  gStyle -> SetOptStat(0);
-	  if( hist1_region2[4][plane-1]->GetEntries() != 0)
+	  if( hist2_region2[plane-1]->GetEntries() != 0)
 	    {
-	      hist1_region2[4][plane-1] -> SetLineColor(kRed);
-	      hist1_region2[4][plane-1] -> GetXaxis()-> SetTitle("Wire #");
-	      hist1_region2[4][plane-1] -> GetYaxis()-> SetTitle("Number of Events");
-	      hist1_region2[4][plane-1] -> Draw();
+ 	      gStyle -> SetOptStat(0);
+ 	      gStyle -> SetPalette(1);
+	      hist2_region2[plane-1] -> GetXaxis()-> SetTitle("Event #");
+	      hist2_region2[plane-1] -> GetYaxis()-> SetTitle("Wire #");
+	      hist2_region2[plane-1] -> Draw("COLZ");
 	    }
 	  else
 	    {
@@ -825,12 +827,13 @@ QwGUITrackingSystem::PlotHittedWireVsEvent()
 	  padnumber = plane;
 	  //	      printf("region 3 pad %d \n", padnumber);
 	  canvas -> cd(padnumber);
-	  if( hist1_region3[4][plane-1]->GetEntries() != 0)
+	  if( hist2_region3[plane-1]->GetEntries() != 0)
 	    {
-	      hist1_region3[4][plane-1] -> SetLineColor(kRed);
-	      hist1_region3[4][plane-1] -> GetXaxis()-> SetTitle("Wire #");
-	      hist1_region3[4][plane-1] -> GetYaxis()-> SetTitle("Number of Events");
-	      hist1_region3[4][plane-1] -> Draw();
+ 	      gStyle -> SetOptStat(0);
+ 	      gStyle -> SetPalette(1);
+	      hist2_region3[plane-1] -> GetXaxis()-> SetTitle("Event #");
+	      hist2_region3[plane-1] -> GetYaxis()-> SetTitle("Wire #");
+	      hist2_region3[plane-1] -> Draw("COLZ");
 	    }
 	  else
 	    {
@@ -1270,13 +1273,13 @@ TSuperCanvas *QwGUITrackingSystem::CheckCanvas(const TGWindow *main, TSuperCanva
   else
     {
       temp_canvas = (TSuperCanvas*)canvas_collection->FindObject(name);
-      //      gStyle -> SetCanvasBorderSize(0);
-      //   gStyle -> SetCanvasBorderMode(0);
-      //   gStyle -> SetCanvasColor(kWhite);
-      //   gStyle -> SetPadBorderMode(1);
-      //   gStyle -> SetPadBorderSize(0);
-      //   gStyle -> SetFrameBorderMode(0);  // Strange red boarder on right and botton axis
-      //   gStyle -> SetTitleFillColor(kWhite);
+      gStyle -> SetCanvasBorderSize(0);
+      gStyle -> SetCanvasBorderMode(0);
+      gStyle -> SetCanvasColor(kWhite);
+      gStyle -> SetPadBorderMode(1);
+      gStyle -> SetPadBorderSize(0);
+      gStyle -> SetFrameBorderMode(0);  // Strange red boarder on right and botton axis
+      gStyle -> SetTitleFillColor(kWhite);
       if(!close_status)
 	{
 	  if(!temp_canvas) temp_canvas =  new TSuperCanvas(name, Form("%s canvas", name), 600,480);

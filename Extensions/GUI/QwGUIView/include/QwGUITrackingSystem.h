@@ -22,6 +22,7 @@
 #include "TTree.h"
 #include "TFile.h"
 #include "TLatex.h"
+#include "TStyle.h"
 
 #include "TGProgressBar.h"
 
@@ -69,7 +70,7 @@
 #define REQUEST_TYPE_NUM       2
 #define SELECT_TYPE_NUM        2
 
-#define HIST_ONED_NUM          5
+#define HIST_ONED_NUM          4
 // one for 
 /* #define HIST_TWOD_NUM          2 */
 
@@ -103,7 +104,7 @@ class QwGUITrackingSystem : public TGCompositeFrame {
 
   UInt_t              run_number;
   UInt_t              ch_wire_number;
-  UInt_t              event_range[2];
+  Int_t              event_range[2];
   UInt_t              default_event_range[2];
   UInt_t              total_physics_event_number;
 
@@ -147,6 +148,12 @@ class QwGUITrackingSystem : public TGCompositeFrame {
   TH1D *hist1_region2[HIST_ONED_NUM][RG_TWO_HIST_NUM];
   TH1D *hist1_region3[HIST_ONED_NUM][RG_THR_HIST_NUM];
   
+
+  TH1D *sumhist1_region1[RG_ONE_HIST_NUM];
+  TH1D *sumhist1_region2[RG_TWO_HIST_NUM];
+  TH1D *sumhist1_region3[RG_THR_HIST_NUM];
+
+
 /*   TH2I *hist2_region1[HIST_TWOD_NUM][RG_ONE_HIST_NUM]; */
 /*   TH2I *hist2_region2[HIST_TWOD_NUM][RG_TWO_HIST_NUM]; */
 /*   TH2I *hist2_region3[HIST_TWOD_NUM][RG_THR_HIST_NUM]; */
