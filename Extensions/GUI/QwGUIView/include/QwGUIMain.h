@@ -72,7 +72,6 @@
 #include <TGSplitter.h>
 #include <TGLabel.h>
 #include <TGMenu.h>
-#include <TG3DLine.h>
 #include <TObjArray.h>
 #include <TRootEmbeddedCanvas.h>
 #include <TGTextEntry.h>
@@ -148,7 +147,7 @@ class QwGUIMain : public TGMainFrame {
   TGLayoutHints          *dRunEntryLayout;
   TGLabel                *dRunEntryLabel;
   TGHorizontal3DLine     *dHorizontal3DLine;
-  TGHorizontalFrame      *dUtilityFrame;  
+  TGHorizontalFrame      *dUtilityFrame;
   TGLayoutHints          *dUtilityLayout;
 		    
   //!Main window tab environment

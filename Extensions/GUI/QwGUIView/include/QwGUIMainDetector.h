@@ -28,10 +28,20 @@
  */
 //=============================================================================
 
-#define MAIN_DET_HST_NUM      16           
-
 ///
 /// \ingroup QwGUIMain
+
+#define MAIN_DET_HST_NUM      16           
+
+enum ENDataPlotType {
+  PLOT_TYPE_HISTO,           
+  PLOT_TYPE_GRAPH,           
+};
+
+enum MDMenuIdentifiers {
+  M_DATA_HISTO,
+  M_DATA_GRAPH,
+};
 
 #ifndef QWGUIMAINDETECTOR_H
 #define QWGUIMAINDETECTOR_H
@@ -40,6 +50,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <vector>
+using std::vector;
+
+
+#include <TG3DLine.h>
 #include <TRootEmbeddedCanvas.h>
 #include <TRootCanvas.h>
 #include "QwGUISubSystem.h"
@@ -49,25 +64,50 @@
 class QwGUIMainDetector : public QwGUISubSystem {
 
   
-  TGHorizontalFrame   *dTabFrame;
+  TGVerticalFrame   *dTabFrame;
   TRootEmbeddedCanvas *dCanvas;  
   TGLayoutHints       *dTabLayout; 
   TGLayoutHints       *dCnvLayout; 
 
+  TGComboBox             *dTBinEntry;
+  TGLayoutHints          *dTBinEntryLayout;
+  TGNumberEntry          *dRunEntry;
+  TGLayoutHints          *dRunEntryLayout;
+  TGLabel                *dRunEntryLabel;
+  TGHorizontal3DLine     *dHorizontal3DLine;
+  TGHorizontalFrame      *dUtilityFrame;  
+  TGLayoutHints          *dUtilityLayout;
+
+  TGMenuBar              *dMenuBar;
+  TGPopupMenu            *dMenuData;
+  TGLayoutHints          *dMenuBarLayout; 
+  TGLayoutHints          *dMenuBarItemLayout;
+
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;
+
+  //!An object array to store graph pointers -- good for use in cleanup.
+  TObjArray            GraphArray;
   
   //!An object array to store data window pointers -- good for use in cleanup.
   TObjArray            DataWindowArray;
 
-  //!This function just plots some histograms in the main canvas, just for illustrative purposes
-  //!for now.
+  //!This function plots histograms of the data in the current file, in the main canvas.
   //!
   //!Parameters:
   //! - none
   //!
   //!Return value: none
-  void                 PlotData();
+  void                 PlotHistograms();
+
+  //!This function plots time graphs of the data in the current file, in the main canvas.
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none
+  void                 PlotGraphs();
+
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
@@ -79,9 +119,19 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!Return value: none  
   void                 ClearData();
 
+  Int_t GetCurrentDataLength(Int_t det) {return det >= 0 && det < MAIN_DET_HST_NUM ? dCurrentData[det].size() : -1;};
+
+  void SetPlotDataType(ENDataPlotType type) {dDataPlotType = type;};
+  ENDataPlotType GetPlotDataType() {return dDataPlotType;};
+
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
   //!These are the names by which the histograms are identified within the root file.
   static const char   *MainDetectorHists[MAIN_DET_HST_NUM];
+
+  //!Stores the data items (events) from the tree for all detectors
+  vector <Double_t> dCurrentData[MAIN_DET_HST_NUM];
+
+  ENDataPlotType dDataPlotType;
 
  protected:
 

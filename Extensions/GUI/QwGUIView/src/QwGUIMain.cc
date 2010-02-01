@@ -196,47 +196,47 @@ void QwGUIMain::MakeMenuLayout()
 void QwGUIMain::MakeUtilityLayout()
 {
 
-  dUtilityLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop | kLHintsExpandX, 2,2,2,2);
-  dTBinEntryLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
-  dRunEntryLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 2, 2, 2, 2); 
+//   dUtilityLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop | kLHintsExpandX, 2,2,2,2);
+//   dTBinEntryLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
+//   dRunEntryLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 2, 2, 2, 2); 
 
-  dHorizontal3DLine = new TGHorizontal3DLine(this);
-  AddFrame(dHorizontal3DLine, new TGLayoutHints(kLHintsTop | kLHintsExpandX));
+//   dHorizontal3DLine = new TGHorizontal3DLine(this);
+//   AddFrame(dHorizontal3DLine, new TGLayoutHints(kLHintsTop | kLHintsExpandX));
 
-  dUtilityFrame = new TGHorizontalFrame(this,60,10);
-  dTBinEntry = new TGComboBox(dUtilityFrame,M_TBIN_SELECT);
-  dTBinEntry->Associate(this);
-  dUtilityFrame->AddFrame(dTBinEntry,dTBinEntryLayout);
-//   for (int i = 0; i < VME2_MP_SIZE; i++){
-//     tof = GetTBinWidth()*(i+0.5)+GetMPOffset();
-//     eng = pow((21030.0/438/tof),2);
-//     sprintf(dTOFBINStrings[i],"Bin %03d: tof %6.2f ms; Eng %9.2f meV", i, tof, eng);
-//     dTBinEntry->AddEntry(dTOFBINStrings[i], i+1);
+//   dUtilityFrame = new TGHorizontalFrame(this,60,10);
+//   dTBinEntry = new TGComboBox(dUtilityFrame,M_TBIN_SELECT);
+//   dTBinEntry->Associate(this);
+//   dUtilityFrame->AddFrame(dTBinEntry,dTBinEntryLayout);
+// //   for (int i = 0; i < VME2_MP_SIZE; i++){
+// //     tof = GetTBinWidth()*(i+0.5)+GetMPOffset();
+// //     eng = pow((21030.0/438/tof),2);
+// //     sprintf(dTOFBINStrings[i],"Bin %03d: tof %6.2f ms; Eng %9.2f meV", i, tof, eng);
+// //     dTBinEntry->AddEntry(dTOFBINStrings[i], i+1);
+// //   }
+//   dTBinEntry->Resize(280, 20);
+
+//   if(!dClArgs.realtime){
+//     dRunEntry = new TGNumberEntry(dUtilityFrame,GetCurrentRunNumber(),6,M_RUN_SELECT,
+// 				  TGNumberFormat::kNESInteger,
+// 				  TGNumberFormat::kNEANonNegative,
+// 				  TGNumberFormat::kNELLimitMinMax,1,999999); 
+//     if(dRunEntry){
+//       dRunEntryLabel = new TGLabel(dUtilityFrame,"Run Number:"); 
+//       if(dRunEntryLabel){
+// 	dUtilityFrame->AddFrame(dRunEntryLabel,dRunEntryLayout);
+//       }
+//       dRunEntry->Associate(this);
+//       dUtilityFrame->AddFrame(dRunEntry,dRunEntryLayout);
+//     }
 //   }
-  dTBinEntry->Resize(280, 20);
 
-  if(!dClArgs.realtime){
-    dRunEntry = new TGNumberEntry(dUtilityFrame,GetCurrentRunNumber(),6,M_RUN_SELECT,
-				  TGNumberFormat::kNESInteger,
-				  TGNumberFormat::kNEANonNegative,
-				  TGNumberFormat::kNELLimitMinMax,1,999999); 
-    if(dRunEntry){
-      dRunEntryLabel = new TGLabel(dUtilityFrame,"Run Number:"); 
-      if(dRunEntryLabel){
-	dUtilityFrame->AddFrame(dRunEntryLabel,dRunEntryLayout);
-      }
-      dRunEntry->Associate(this);
-      dUtilityFrame->AddFrame(dRunEntry,dRunEntryLayout);
-    }
-  }
+//   if(dClArgs.realtime){
+//     const TGPicture *ipic =(TGPicture *)gClient->GetPicture("realtime.xpm"); 
+//     TGIcon *icon = new TGIcon(dUtilityFrame,ipic,500,40); 
+//     dUtilityFrame->AddFrame(icon,new TGLayoutHints(kLHintsLeft | kLHintsBottom,1,15,1,1));
+//   }
 
-  if(dClArgs.realtime){
-    const TGPicture *ipic =(TGPicture *)gClient->GetPicture("realtime.xpm"); 
-    TGIcon *icon = new TGIcon(dUtilityFrame,ipic,500,40); 
-    dUtilityFrame->AddFrame(icon,new TGLayoutHints(kLHintsLeft | kLHintsBottom,1,15,1,1));
-  }
-
-  AddFrame(dUtilityFrame,dUtilityLayout);
+//   AddFrame(dUtilityFrame,dUtilityLayout);
 }
 
 void QwGUIMain::MakeMainTab()
@@ -1305,7 +1305,7 @@ int main(int argc, char **argv)
     strcat(expl,"4) -c        Columns. Ex: (-c 23) selects columns 2 and 3.\n\n");
     strcat(expl,"9) -help     Prints this help \n\n");
 
-    printf(expl);
+    printf("%s",expl);
   }
   else{
     TApplication theApp("QwGUIData", &argc, argv);

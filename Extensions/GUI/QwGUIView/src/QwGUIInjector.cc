@@ -183,7 +183,7 @@ void QwGUIInjector::PlotPosData(){
   
   for(Short_t p = 0; p <INJECTOR_BPM_NUM ; p++) 
     {
-      char * histo;
+      char * histo = NULL;
       sprintf (histo, "%sRelX.hw_sum",InjectorBPM[p] );
       if( ((TTree*) obj)->FindLeaf(histo))
 	{
@@ -222,7 +222,7 @@ void QwGUIInjector::PlotChargeData(){
   
   for(Short_t k = 0; k <INJECTOR_BCM_NUM ; k++) 
     {
-      char * histoc; 
+      char * histoc = NULL; 
       sprintf (histoc, "asym_%s.hw_sum",InjectorBCM[k] );
       if(((TTree*)objc)->FindLeaf(histoc))
 	{
