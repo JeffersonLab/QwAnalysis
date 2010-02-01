@@ -19,7 +19,7 @@
 /**
  *  \class QwGEMCluster
  *  \ingroup QwTracking
- *  \brief Cluster finder for GEM hits
+ *  \brief Cluster of GEM hits
  *
  * Description to follow.
  *
@@ -29,29 +29,70 @@ class QwGEMCluster: public VQwTrackingElement {
   public:
 
     /// \brief Default constructor
-    QwGEMCluster(): VQwTrackingElement() { };
+    QwGEMCluster() { };
     /// \brief Destructor
-    virtual ~QwGEMCluster() {
-      delete fStripsR;
-      delete fStripsPhi;
+    virtual ~QwGEMCluster() { };
+
+    // Set the strips
+    void SetStrips(const QwHitContainer* strips) {
+      fStrips.Append(strips);
+    };
+    void SetStrips(const QwHitContainer& strips) {
+      fStrips.Append(strips);
     };
 
-    double GetR() const;
-    double GetPhi() const;
-    double GetX() const;
-    double GetY() const;
+    // Accessors for strip mean and sigma
+    const double GetStripMean() const { return fStripMean; };
+    const double GetStripSigma() const { return fStripSigma; };
+    const double GetStripVariance() const { return fStripVariance; };
+
+    // Accessors for cluster position and uncertainty
+    const double GetPosition() const { return fPosition; };
+    const double GetUncertainty() const { return fUncertainty; };
+
+    //! \brief Output stream operator
+    friend ostream& operator<< (ostream& stream, const QwGEMCluster& cluster);
+
+    /// The cluster finder is friend of the clusters
+    friend class QwGEMClusterFinder;
 
   private:
 
-    double fR;
-    double fPhi;
-    double fX;
-    double fY;
-    double fZ;
+    // Strip mean, standard deviation and variance
+    double fStripMean;
+    double fStripSigma;
+    double fStripVariance;
 
-    QwHitContainer* fStripsR;
-    QwHitContainer* fStripsPhi;
+    // Cluster position and uncertainty
+    double fPosition;
+    double fUncertainty;
+
+    // Strip list for the cluster
+    QwHitContainer fStrips;
 
 }; // class QwGEMCluster
+
+/**
+ * Output stream operator
+ * @param stream Stream
+ * @param cluster Cluster object
+ * @return Output stream
+ */
+inline ostream& operator<< (ostream& stream, const QwGEMCluster& cluster)
+{
+  stream << "cluster: ";
+  stream << "package "   << "?UD"[cluster.GetPackage()] << ", ";
+  stream << "region "    << "123"[cluster.GetRegion()] << ", ";
+  stream << "dir "       << "?xyuvrf"[cluster.GetDirection()] << ", ";
+  stream << "plane "     << cluster.GetPlane();
+
+  if (cluster.GetDetectorInfo()) stream << " (detector " << cluster.GetDetectorInfo() << "), ";
+  else                           stream << ", ";
+
+  stream << "strip "  << cluster.fStripMean << " +/- " << cluster.fStripSigma << ", ";
+  stream << "position " << cluster.fPosition << " +/- " << cluster.fUncertainty;
+
+  return stream;
+};
 
 #endif // QWGEMCLUSTER_H

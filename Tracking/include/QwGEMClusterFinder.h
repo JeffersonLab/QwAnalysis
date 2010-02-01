@@ -32,15 +32,10 @@ class QwGEMClusterFinder {
     /// \brief Destructor
     virtual ~QwGEMClusterFinder() { };
 
-    /// \brief Set the detector info pointers for the r and phi detectors
-    void SetDetectorInfo(const QwDetectorInfo* info_r, const QwDetectorInfo* info_phi);
-
-
-    /// \brief Find the cluster corresponding to two sets of hits
-    std::vector<QwGEMCluster> FindClusters(QwHitContainer* hits_r, QwHitContainer* hits_phi);
+    /// \brief Find the cluster in the hit list
+    std::vector<QwGEMCluster> FindClusters(const QwHitContainer* hits);
 
   private:
-
 
 }; // class QwGEMClusterFinder
 
