@@ -21,7 +21,7 @@
 #include "TGLayout.h"
 #include "TTree.h"
 #include "TFile.h"
-
+#include "TLatex.h"
 
 #include "TGProgressBar.h"
 
@@ -62,13 +62,16 @@
 #define RG_TWO_WIRE_NUM        30
 #define RG_THR_WIRE_NUM        290
 
-#define BUFFERSIZE             1000      // BufferSize of TH1 for automatic range of histogram
+#define BUFFERSIZE             2000      // BufferSize of TH1 for automatic range of histogram
 #define BINNUMBER              1024      // Default bin
 
 
 #define REQUEST_TYPE_NUM       2
 #define SELECT_TYPE_NUM        2
 
+#define HIST_ONED_NUM          5
+// one for 
+/* #define HIST_TWOD_NUM          2 */
 
 class QwGUITrackingSystem : public TGCompositeFrame {
 
@@ -115,17 +118,43 @@ class QwGUITrackingSystem : public TGCompositeFrame {
   TTree               *qwhit_tree;
   QwHit               *qwhit;
   QwHitRootContainer  *qwhit_container;
+
   
-  TH1D *hist1_region1[RG_ONE_HIST_NUM];
-  TH1D *hist1_region2[RG_TWO_HIST_NUM];
-  TH1D *hist1_region3[RG_THR_HIST_NUM];
+
+/*   TH1D *hist1_region1[RG_ONE_HIST_NUM]; */
+/*   TH1D *hist1_region2[RG_TWO_HIST_NUM]; */
+/*   TH1D *hist1_region3[RG_THR_HIST_NUM]; */
+
+/*   TH1D *hist1_region1[RG_ONE_HIST_NUM]; */
+/*   TH1D *hist1_region2[RG_TWO_HIST_NUM]; */
+/*   TH1D *hist1_region3[RG_THR_HIST_NUM]; */
+
+/*   TH1D *hist1_region1[RG_ONE_HIST_NUM]; */
+/*   TH1D *hist1_region2[RG_TWO_HIST_NUM]; */
+/*   TH1D *hist1_region3[RG_THR_HIST_NUM]; */
+
+/*   TH1D *hist1_region1[RG_ONE_HIST_NUM]; */
+/*   TH1D *hist1_region2[RG_TWO_HIST_NUM]; */
+/*   TH1D *hist1_region3[RG_THR_HIST_NUM]; */
+
   
   TH2I *hist2_region1[RG_ONE_HIST_NUM];
   TH2I *hist2_region2[RG_TWO_HIST_NUM];
   TH2I *hist2_region3[RG_THR_HIST_NUM];
 
+  
+  TH1D *hist1_region1[HIST_ONED_NUM][RG_ONE_HIST_NUM];
+  TH1D *hist1_region2[HIST_ONED_NUM][RG_TWO_HIST_NUM];
+  TH1D *hist1_region3[HIST_ONED_NUM][RG_THR_HIST_NUM];
+  
+/*   TH2I *hist2_region1[HIST_TWOD_NUM][RG_ONE_HIST_NUM]; */
+/*   TH2I *hist2_region2[HIST_TWOD_NUM][RG_TWO_HIST_NUM]; */
+/*   TH2I *hist2_region3[HIST_TWOD_NUM][RG_THR_HIST_NUM]; */
+
   static const char *const request_types[REQUEST_TYPE_NUM];
   static const char *const select_types [SELECT_TYPE_NUM];
+  static const char *const hist1_types  [HIST_ONED_NUM]; 
+
 
   Short_t GetRegion () { return d_region; };
   UInt_t  GetSelect () { return d_select; };
@@ -141,10 +170,15 @@ class QwGUITrackingSystem : public TGCompositeFrame {
   void    SetEventRange();
   void    DefaultEventRange();
   void    ResetEventRange  ();
+  void    ResetProgressBar();
 
   TSuperCanvas *CheckCanvas(const TGWindow *main, TSuperCanvas *temp_canvas, const char* name, bool close_status);
 
   Char_t  text_buffer[256];
+
+  Bool_t  region_status[4];
+  Bool_t  direction_status[7];
+  Bool_t  plane_status[13];
 
  public:
   
@@ -158,6 +192,8 @@ class QwGUITrackingSystem : public TGCompositeFrame {
   void    CloseRootFile();
 
   void    PlotDraw();
+  void    PlotEventVsWire();
+  void    PlotHittedWireVsEvent();
   void    ManipulateHistograms();
 
   ClassDef(QwGUITrackingSystem,0);

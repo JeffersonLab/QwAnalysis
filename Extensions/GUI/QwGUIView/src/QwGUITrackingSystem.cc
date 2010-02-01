@@ -24,13 +24,21 @@ enum QwGUITrackingSystemIndentificator {
 
 const char *const QwGUITrackingSystem::request_types[REQUEST_TYPE_NUM]=
   {  "Time"
-   , "fRawTime"
+   , "RawTime"
   };
 
 
 const char *const QwGUITrackingSystem::select_types[SELECT_TYPE_NUM]=
   {  "channel"
    , "wire"
+  };
+
+
+const char *const QwGUITrackingSystem::hist1_types[HIST_ONED_NUM]=
+  {"Time at channel"
+   , "RawTime at channel"
+   , "Time at wire"
+   , "RawTime at wire"
   };
 
 
@@ -51,6 +59,7 @@ QwGUITrackingSystem::QwGUITrackingSystem(const TGWindow *main, TGCompositeFrame 
   event_range[1] = 0;
 
   default_event_range[0] = 0;
+  //  default_event_range[1] = 1000;
   default_event_range[1] = 1000;
 
   total_physics_event_number = 0;
@@ -67,7 +76,7 @@ QwGUITrackingSystem::QwGUITrackingSystem(const TGWindow *main, TGCompositeFrame 
   for(Short_t i=0;i<BUTTON_GRP_NUM;i++) btn_group [i] = NULL;
   for(Short_t i=0;i<RAI_BUTTON_NUM;i++) rad_button[i] = NULL;
   
-  event_range_status   = false;
+  event_range_status   = true;
   load_rootfile_status = false;
 
   root_file       = NULL;
@@ -75,17 +84,41 @@ QwGUITrackingSystem::QwGUITrackingSystem(const TGWindow *main, TGCompositeFrame 
   qwhit           = NULL;
   qwhit_container = NULL;
 
-  for(Short_t i=0;i<RG_ONE_HIST_NUM;i++) hist1_region1[i] = NULL;
-  for(Short_t i=0;i<RG_TWO_HIST_NUM;i++) hist1_region2[i] = NULL;
-  for(Short_t i=0;i<RG_THR_HIST_NUM;i++) hist1_region3[i] = NULL;
+
+
+//   for(Short_t i=0;i<RG_ONE_HIST_NUM;i++) hist1_region1[i] = NULL;
+//   for(Short_t i=0;i<RG_TWO_HIST_NUM;i++) hist1_region2[i] = NULL;
+//   for(Short_t i=0;i<RG_THR_HIST_NUM;i++) hist1_region3[i] = NULL;
 
   for(Short_t i=0;i<RG_ONE_HIST_NUM;i++) hist2_region1[i] = NULL;
   for(Short_t i=0;i<RG_TWO_HIST_NUM;i++) hist2_region2[i] = NULL;
   for(Short_t i=0;i<RG_THR_HIST_NUM;i++) hist2_region3[i] = NULL;
 
-  d_region = 3;
+
+  for(Short_t j=0;j<HIST_ONED_NUM;j++)
+    {
+      for(Short_t i=0;i<RG_ONE_HIST_NUM;i++) hist1_region1[j][i] = NULL;
+      for(Short_t i=0;i<RG_TWO_HIST_NUM;i++) hist1_region2[j][i] = NULL;
+      for(Short_t i=0;i<RG_THR_HIST_NUM;i++) hist1_region3[j][i] = NULL;
+    }
+
+//   for(Short_t j=0;j<HIST_TWOD_NUM;j++)
+//     {
+//       for(Short_t i=0;i<RG_ONE_HIST_NUM;i++) hist2_region1[j][i] = NULL;
+//       for(Short_t i=0;i<RG_TWO_HIST_NUM;i++) hist2_region2[j][i] = NULL;
+//       for(Short_t i=0;i<RG_THR_HIST_NUM;i++) hist2_region3[j][i] = NULL;
+//     }
+
+  d_region  = 3;
   d_request = 0;
   d_select  = 0;
+  
+  region_status[0]    = true;
+  for(Short_t i=1;i<4;i++)  region_status[i] = false;
+  direction_status[0] = true;
+  for(Short_t i=1;i<7;i++)  direction_status[i] = false;
+  plane_status[0]     = true;
+  for(Short_t i=1;i<13;i++) plane_status[i] = false;
 
   CreateFrame(parent,w, h);
 
@@ -114,13 +147,28 @@ QwGUITrackingSystem::~QwGUITrackingSystem()
   delete    bframe;
   delete [] b_button;
 
-  delete [] hist1_region1;
-  delete [] hist1_region2;
-  delete [] hist1_region3;
+
+//   delete [] hist1_region1;
+//   delete [] hist1_region2;
+//   delete [] hist1_region3;
 
   delete [] hist2_region1;
   delete [] hist2_region2;
   delete [] hist2_region3;
+
+ for(Short_t j=0;j<HIST_ONED_NUM;j++)
+    {
+      for(Short_t i=0;i<RG_ONE_HIST_NUM;i++) delete hist1_region1[j][i];
+      for(Short_t i=0;i<RG_TWO_HIST_NUM;i++) delete hist1_region2[j][i];
+      for(Short_t i=0;i<RG_THR_HIST_NUM;i++) delete hist1_region3[j][i];
+    }
+
+//  for(Short_t j=0;j<HIST_TWOD_NUM;j++)
+//     {
+//       for(Short_t i=0;i<RG_ONE_HIST_NUM;i++) hist2_region1[j][i] = NULL;
+//       for(Short_t i=0;i<RG_TWO_HIST_NUM;i++) hist2_region2[j][i] = NULL;
+//       for(Short_t i=0;i<RG_THR_HIST_NUM;i++) hist2_region3[j][i] = NULL;
+//     }
 
   delete    progress_bar;
   delete    canvas;
@@ -156,89 +204,96 @@ QwGUITrackingSystem::CreateFrame(TGCompositeFrame *parent, UInt_t w, UInt_t h)
   Short_t digital_width     = 10;
   Short_t run_number_min    = 1;
   Short_t event_num_min     = 0;
-  Short_t default_event_num = 0;
-  
+
   // hframe [0] 
-  num_label[0]  = new TGLabel(hframe[0], "Run #");
-  num_entry[0]  = new TGNumberEntry(hframe[0], run_number, digital_width, BA_RUN_NUMBER, 
-				    TGNumberFormat::kNESInteger,
-				    TGNumberFormat::kNEAPositive,
-				    TGNumberFormat::kNELLimitMin, run_number_min);
+  num_label [0]  = new TGLabel(hframe[0], "Run #");
+  num_entry [0]  = new TGNumberEntry(hframe[0], run_number, digital_width, BA_RUN_NUMBER, 
+				     TGNumberFormat::kNESInteger,
+				     TGNumberFormat::kNEAPositive,
+				     TGNumberFormat::kNELLimitMin, run_number_min);
   chk_button[0] = new TGCheckButton (hframe[0], "Event Range", BA_CHKBUTTON_ONE);
   num_label [1] = new TGLabel(hframe[0], "Evt #");
   
   digital_width = 4;
-  num_entry[1] = new TGNumberEntry(hframe[0], default_event_num, digital_width, BA_EVENT_NUMBER_START, 
-				   TGNumberFormat::kNESInteger,
-				   TGNumberFormat::kNEANonNegative,
-				   TGNumberFormat::kNELLimitMin, event_num_min);
-  num_entry[2] = new TGNumberEntry(hframe[0], default_event_num, digital_width, BA_EVENT_NUMBER_END, 
-				   TGNumberFormat::kNESInteger,
-				   TGNumberFormat::kNEANonNegative,
-				   TGNumberFormat::kNELLimitMin, event_num_min);
+  num_entry [1] = new TGNumberEntry(hframe[0], default_event_range[0], digital_width, BA_EVENT_NUMBER_START, 
+				    TGNumberFormat::kNESInteger,
+				    TGNumberFormat::kNEANonNegative,
+				    TGNumberFormat::kNELLimitMin, event_num_min);
+  num_entry [2] = new TGNumberEntry(hframe[0], default_event_range[1], digital_width, BA_EVENT_NUMBER_END, 
+				    TGNumberFormat::kNESInteger,
+				    TGNumberFormat::kNEANonNegative,
+				    TGNumberFormat::kNELLimitMin, event_num_min);
   
-  hframe[0] -> AddFrame(num_label [0], new TGLayoutHints(kLHintsCenterX,0,0,4,0));
-  hframe[0] -> AddFrame(num_entry [0], new TGLayoutHints(kLHintsExpandX,0,0,0,0));
-  hframe[0] -> AddFrame(chk_button[0], new TGLayoutHints(kLHintsCenterX,4,0,4,0));
-  hframe[0] -> AddFrame(num_label [1], new TGLayoutHints(kLHintsCenterX,0,0,4,0));
-  hframe[0] -> AddFrame(num_entry [1], new TGLayoutHints(kLHintsExpandX,0,0,0,0));
-  hframe[0] -> AddFrame(num_entry [2], new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+  hframe    [0] -> AddFrame(num_label [0], new TGLayoutHints(kLHintsCenterX,0,0,4,0));
+  hframe    [0] -> AddFrame(num_entry [0], new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+  hframe    [0] -> AddFrame(chk_button[0], new TGLayoutHints(kLHintsCenterX,4,0,4,0));
+  hframe    [0] -> AddFrame(num_label [1], new TGLayoutHints(kLHintsCenterX,0,0,4,0));
+  hframe    [0] -> AddFrame(num_entry [1], new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+  hframe    [0] -> AddFrame(num_entry [2], new TGLayoutHints(kLHintsExpandX,0,0,0,0));
 
-  num_entry [1] -> SetState(false);
-  num_entry [2] -> SetState(false);
+  //  num_entry [1] -> SetState(false);
+  //  num_entry [2] -> SetState(false);
 
-  chk_button[0] -> SetState(kButtonUp);
+  chk_button[0] -> SetState(kButtonDown);
   chk_button[0] -> SetToolTipText("Turn on/off Select Range");
 
 
   //
   // hframe [1] 
   //
-  txt_button [0] = new TGTextButton(hframe[1], "Load Hit-based ROOT file", BA_TEXTBUTTONONE);
-  txt_button [1] = new TGTextButton(hframe[1], "Manipulate Histograms",    BA_TEXTBUTTONTWO);
-  txt_button [2] = new TGTextButton(hframe[1], "Close the ROOT file",      BA_TEXTBUTTONTHR);
+  progress_bar  = new TGHProgressBar(hframe[1], TGProgressBar::kFancy, 180);
+  txt_button[0] = new TGTextButton(hframe[1], "Load Hit-based ROOT file", BA_TEXTBUTTONONE);
+  txt_button[1] = new TGTextButton(hframe[1], "Manipulate Histograms",    BA_TEXTBUTTONTWO);
+  txt_button[2] = new TGTextButton(hframe[1], "Close the ROOT file",      BA_TEXTBUTTONTHR);
 
-  txt_button [0] -> SetToolTipText(" Not yet decided to be here or not.\n Just get a glimpse of what advanced Tracking GUI might be like in the future.\n Stand-alone or inside QwGUIMain? I am not sure....");
+  txt_button[0] -> SetToolTipText(" Not yet decided to be here or not.\n Just get a glimpse of what advanced Tracking GUI might be like in the future.\n Stand-alone or inside QwGUIMain? I am not sure....");
 
-  hframe[1] -> AddFrame(txt_button[0], new TGLayoutHints(kLHintsExpandX,4,1,4,1));
-  hframe[1] -> AddFrame(txt_button[1], new TGLayoutHints(kLHintsExpandX,0,0,4,0));
-  hframe[1] -> AddFrame(txt_button[2], new TGLayoutHints(kLHintsExpandX,0,8,4,1));
+  hframe    [1] -> AddFrame(progress_bar,  new TGLayoutHints(kLHintsCenterX,4,0,0,0));
+  hframe    [1] -> AddFrame(txt_button[0], new TGLayoutHints(kLHintsExpandX,0,1,4,1));
+  hframe    [1] -> AddFrame(txt_button[1], new TGLayoutHints(kLHintsExpandX,0,0,4,0));
+  hframe    [1] -> AddFrame(txt_button[2], new TGLayoutHints(kLHintsExpandX,0,8,4,1));
 
-  gframe[0] = new TGGroupFrame(parent, "ReadHits.C prototype GUI version and test TSuperCanvas", kVerticalFrame);
-  parent   -> AddFrame(gframe[0],  new TGLayoutHints(kLHintsCenterX|kLHintsExpandX,0,0,0,0));
+  //  progress_bar -> ShowPosition(true, false, "Read : %.0f percent");
+  progress_bar -> Percent(true);
+  progress_bar -> ShowPos(true);
+  progress_bar -> SetBarColor("red");
+  progress_bar -> SetFillType(TGProgressBar::kBlockFill);
 
-  g0hframe[0] = new TGHorizontalFrame(gframe[0]);
-  g0hframe[1] = new TGHorizontalFrame(gframe[0]);
-  g0hframe[2] = new TGHorizontalFrame(gframe[0]);
-  gframe  [0] -> AddFrame(g0hframe[0], new TGLayoutHints(kLHintsCenterX|kLHintsExpandX,0,0,0,0));
-  gframe  [0] -> AddFrame(g0hframe[1], new TGLayoutHints(kLHintsCenterX|kLHintsExpandX,0,0,0,0));
-  gframe  [0] -> AddFrame(g0hframe[2], new TGLayoutHints(kLHintsCenterX|kLHintsExpandX,0,0,0,0));
+  gframe    [0] = new TGGroupFrame(parent, "ReadHits.C prototype GUI version and test TSuperCanvas", kVerticalFrame);
+  parent       -> AddFrame(gframe[0],  new TGLayoutHints(kLHintsCenterX|kLHintsExpandX,0,0,0,0));
+
+  g0hframe  [0] = new TGHorizontalFrame(gframe[0]);
+  g0hframe  [1] = new TGHorizontalFrame(gframe[0]);
+  g0hframe  [2] = new TGHorizontalFrame(gframe[0]);
+  gframe    [0] -> AddFrame(g0hframe[0], new TGLayoutHints(kLHintsCenterX|kLHintsExpandX,0,0,0,0));
+  gframe    [0] -> AddFrame(g0hframe[1], new TGLayoutHints(kLHintsCenterX|kLHintsExpandX,0,0,0,0));
+  gframe    [0] -> AddFrame(g0hframe[2], new TGLayoutHints(kLHintsCenterX|kLHintsExpandX,0,0,0,0));
 
   //
   // hframe[1] - g0hframe[0]
   //
-  btn_group[0] = new TGButtonGroup(g0hframe[0],"Select Region", kHorizontalFrame);
-  g0hframe[0] -> AddFrame(btn_group[0], new TGLayoutHints(kLHintsCenterX|kLHintsExpandX,0,0,0,0));
+  btn_group [0] = new TGButtonGroup(g0hframe[0],"Select Region", kHorizontalFrame);
+  g0hframe  [0] -> AddFrame(btn_group[0], new TGLayoutHints(kLHintsCenterX|kLHintsExpandX,0,0,0,0));
 
   rad_button[0] = new TGRadioButton(btn_group[0], "Region 1 (GEM)", BA_REGION_ONE);
   rad_button[1] = new TGRadioButton(btn_group[0], "Region 2 (HDC)", BA_REGION_TWO);
   rad_button[2] = new TGRadioButton(btn_group[0], "Region 3 (VDC)", BA_REGION_THR);
 
   rad_button[2] -> SetState(kButtonDown);
-  btn_group[0]  -> SetLayoutHints(new TGLayoutHints(kLHintsCenterX,0,0,10,0));
+  btn_group [0] -> SetLayoutHints(new TGLayoutHints(kLHintsCenterX,0,0,10,0));
    
   //
   // hframe[1] - g0hframe[1]
   //
-  btn_group[1] = new TGButtonGroup  (g0hframe[1], "", kVerticalFrame);
-  num_label[1] = new TGLabel        (g0hframe[1], "Histogream Per ");
-  btn_group[2] = new TGButtonGroup  (g0hframe[1], "", kVerticalFrame);
-  g0vframe [0] = new TGVerticalFrame(g0hframe[1]);
+  btn_group [1] = new TGButtonGroup  (g0hframe[1], "", kVerticalFrame);
+  num_label [1] = new TGLabel        (g0hframe[1], "Histogram with");
+  btn_group [2] = new TGButtonGroup  (g0hframe[1], "", kVerticalFrame);
+  g0vframe  [0] = new TGVerticalFrame(g0hframe[1]);
   
-  g0hframe [1] -> AddFrame(btn_group[1], new TGLayoutHints(kLHintsCenterX,0,0,0,0));
-  g0hframe [1] -> AddFrame(num_label[1], new TGLayoutHints(kLHintsCenterY,0,0,40,0));
-  g0hframe [1] -> AddFrame(btn_group[2], new TGLayoutHints(kLHintsCenterX,0,0,0));
-  g0hframe [1] -> AddFrame(g0vframe [0], new TGLayoutHints(kLHintsCenterX|kLHintsExpandX,0,0,0,0));
+  g0hframe  [1] -> AddFrame(btn_group[1], new TGLayoutHints(kLHintsCenterX,0,0,0,0));
+  g0hframe  [1] -> AddFrame(num_label[1], new TGLayoutHints(kLHintsCenterY,0,0,40,0));
+  g0hframe  [1] -> AddFrame(btn_group[2], new TGLayoutHints(kLHintsCenterX,0,0,0));
+  g0hframe  [1] -> AddFrame(g0vframe [0], new TGLayoutHints(kLHintsCenterX|kLHintsExpandX,0,0,0,0));
   
 
   rad_button[3] = new TGRadioButton(btn_group[1], "Time",    BA_TIME);
@@ -249,19 +304,19 @@ QwGUITrackingSystem::CreateFrame(TGCompositeFrame *parent, UInt_t w, UInt_t h)
   rad_button[3] -> SetState(kButtonDown);
   rad_button[5] -> SetState(kButtonDown);
 
-  btn_group[1] -> SetLayoutHints(new TGLayoutHints(kLHintsExpandX,0,0,0,0));
-  btn_group[2] -> SetLayoutHints(new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+  btn_group [1] -> SetLayoutHints(new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+  btn_group [2] -> SetLayoutHints(new TGLayoutHints(kLHintsExpandX,0,0,0,0));
 
   
   ch_wire_number = 10;
   digital_width  = 4;
-  num_entry[3]   = new TGNumberEntry(g0vframe[0], ch_wire_number, digital_width, BA_CHWIRE_NUMBER, 
+  num_entry [3]  = new TGNumberEntry(g0vframe[0], ch_wire_number, digital_width, BA_CHWIRE_NUMBER, 
 				     TGNumberFormat::kNESInteger,
 				     TGNumberFormat::kNEAPositive,
 				     TGNumberFormat::kNELLimitMin, 0);
   txt_button[3]  = new TGTextButton(g0vframe[0], "PLOT",   BA_TEXTBUTTONFOR);
-  g0vframe[0] -> AddFrame(num_entry[3],  new TGLayoutHints(kLHintsCenterX|kLHintsExpandX,20,0,10,0));
-  g0vframe[0] -> AddFrame(txt_button[3], new TGLayoutHints(kLHintsExpandX,20,1,4,1));
+  g0vframe  [0] -> AddFrame(num_entry[3],  new TGLayoutHints(kLHintsCenterX|kLHintsExpandX,20,0,10,0));
+  g0vframe  [0] -> AddFrame(txt_button[3], new TGLayoutHints(kLHintsExpandX,20,1,4,1));
 
 
   //
@@ -289,43 +344,17 @@ QwGUITrackingSystem::CreateFrame(TGCompositeFrame *parent, UInt_t w, UInt_t h)
 };
 
 
-void
-QwGUITrackingSystem::PlotDraw()
-{
-  SetEventRange();
-
-  UInt_t get_number = (UInt_t) num_entry[3] -> GetNumber();
-  Short_t  region      = 0;
-  Int_t    plane       = 0;
- 
-
-  // canvas = new TSuperCanvas("rawtime_per_tdc_canvas","time per tdc channel",10,10,1200,800);
-  canvas = CheckCanvas(this, canvas, "test", false);
-  canvas ->  SetWindowSize(1024,648);
-
-
-  printf("%s\n",Form("%s per %s %d  RG %d PL %d", request_types[d_request], select_types[d_select], get_number, region, plane));
-  qwhit_tree -> Dump();
-  qwhit_tree ->Draw("hits.fQwHits.fRawTime", "events.fQwHits.fElement==4")  ;
-
-  gPad   -> Update();
-  canvas -> Modified();
-
-}
-
 
 void
 QwGUITrackingSystem::ManipulateHistograms()
 {
+  ResetProgressBar();
   SetEventRange();
 
 
 
-  UInt_t get_number = 0;
-
-
   Int_t    nhit        = 0;
-  UInt_t    ev_i        = 0; 
+  UInt_t    ev_i       = 0; 
   Int_t    hit_i       = 0;
 
   Int_t    crate       = 0;
@@ -333,15 +362,15 @@ QwGUITrackingSystem::ManipulateHistograms()
   Int_t    channel     = 0;
   Int_t    hitnumber   = 0;
   Int_t    hitnumber_r = 0;
-
+  
   Short_t  region      = 0;
   Short_t  package     = 0;
   Short_t  direction   = 0;
   Int_t    plane       = 0;
-  Int_t    element     = 0; //  Trace # for R1; wire # for R2 & R3; PMT # for others
+  Int_t    element      = 0; //  Trace # for R1; wire # for R2 & R3; PMT # for others
 
-  Double_t rawtime            = 0.0;
-  Double_t time               = 0.0;
+  Double_t rawtime  = 0.0;
+  Double_t time     = 0.0;
   Double_t time_resolution    = 0.0;
   Double_t distance           = 0.0;
   Double_t position           = 0.0;
@@ -351,47 +380,92 @@ QwGUITrackingSystem::ManipulateHistograms()
   Double_t phi_position       = 0.0;
   Double_t spatial_resolution = 0.0;
   Double_t track_resolution   = 0.0;
+  
+  //   Short_t  tmp         = 0;
+   
+  
+  Double_t offset      = -0.5;
+  
+  Int_t    xbinN[3]    = {0, 0, 0};
+  Int_t    ybinN[3]    = {RG_ONE_WIRE_NUM, RG_TWO_WIRE_NUM, RG_THR_WIRE_NUM}; // more than the number of wires
 
-  //  Short_t  tmp         = 0;
+  Int_t    wire_axis_range[3][2];
+  Int_t    event_axis_range[3][2];
 
-//   Double_t offset      = -0.5;
-//   Int_t    xbinN[3]    = {0, 0, 0};
-//   Int_t    ybinN[3]    = {RG_ONE_WIRE_NUM, RG_TWO_WIRE_NUM, RG_THR_WIRE_NUM}; // more than the number of wires
-
-  get_number = (UInt_t) num_entry[3] -> GetNumber();
-
-
+  Int_t    select_number = 0;
+  select_number =  num_entry[3] -> GetNumber();
+   
   for(Short_t i=0; i<3; i++)
     {
-      region          = i+1;
+      wire_axis_range[i][0] = offset;
+      wire_axis_range[i][1] = ybinN[i]+offset;
       
+      event_axis_range[i][0] = event_range[0]+offset;
+      event_axis_range[i][1] = event_range[1]+offset;
+
+      xbinN[i] = event_axis_range[i][1] -  event_axis_range[i][0];
+
+      region = i+1;
       if( region==1 ) 
 	{
+
 	  for(Short_t j=0; j<RG_ONE_HIST_NUM; j++)
 	    {
 	      direction = j+1;
-	      sprintf(text_buffer, "RG%dDIR%d", region, direction);
+	      sprintf(text_buffer, "H1RG%dPL%d", region, plane);
 	      CheckOldObject(text_buffer);
-	      hist1_region1[j]=  new TH1D(text_buffer,
-					  Form("%s per %s %d  RG %d DIR %d", request_types[d_request], select_types[d_select], get_number, region, direction), 
-					  BINNUMBER, 0, 0); 
-	      hist1_region1[j] -> SetDefaultBufferSize(BUFFERSIZE);
-	      printf("%s\n",Form("%s per %s %d  RG %d DIR %d", request_types[d_request], select_types[d_select], get_number, region, direction));
+	      hist1_region1[4][j]=  new TH1D(text_buffer,
+					     Form("Number of Events per Wire of RG %d DIR %d", region, direction), 
+					     ybinN[i], wire_axis_range[i][0], wire_axis_range[i][1]);
+
+	      sprintf(text_buffer, "H2RG%dPL%d", region, plane);
+	      CheckOldObject(text_buffer);
+	      hist2_region1[j]=  new TH2I(text_buffer,
+					  Form("Number of Events per Wire of RG %d DIR %d", region, direction), 
+					  xbinN[i], event_axis_range[i][0], event_axis_range[i][1],
+					  ybinN[i], wire_axis_range [i][0], wire_axis_range [i][1]);
+
+	      for(Short_t k=0; k<HIST_ONED_NUM; k++)
+		{
+		  sprintf(text_buffer, "RG%dDR%d_%d", region, direction, k);
+		  CheckOldObject(text_buffer);
+		  hist1_region1[k][j]=  new TH1D(text_buffer,
+						 Form("%s-%d  RG %d DIR %d", hist1_types[k], select_number, region, direction), 
+						 BINNUMBER, 0, 0); 
+		  hist1_region1[k][j] -> SetDefaultBufferSize(BUFFERSIZE);
+		  //		  printf("TH1D %s\n", text_buffer);
+		}
 	    }
 	}
-   
       if( region==2 )
 	{
 	  for(Short_t j=0; j<RG_TWO_HIST_NUM; j++)
 	    {
 	      plane = j+1; 
-	      sprintf(text_buffer, "RG%dPL%d", region, plane);
+	      sprintf(text_buffer, "H1RG%dPL%d", region, plane);
 	      CheckOldObject(text_buffer);
-	      hist1_region2[j]=  new TH1D(text_buffer,
-					  Form("%s per %s %d  RG %d DIR %d", request_types[d_request], select_types[d_select], get_number, region, direction), 
-					  BINNUMBER, 0, 0); 
-	      hist1_region2[j] -> SetDefaultBufferSize(BUFFERSIZE);
-	      printf("%s\n",Form("%s per %s %d  RG %d PL %d", request_types[d_request], select_types[d_select], get_number, region, plane));
+	      hist1_region2[4][j]=  new TH1D(text_buffer,
+					     Form("Number of Events per Wire of RG %d PL %d", region, plane), 
+					     ybinN[i], wire_axis_range[i][0], wire_axis_range[i][1]);
+	      sprintf(text_buffer, "H2RG%dPL%d", region, plane);
+	      CheckOldObject(text_buffer);
+	      hist2_region2[j]=  new TH2I(text_buffer,
+					  Form("Number of Events per Wire of RG %d PL %d", region, plane), 
+					  xbinN[i], event_axis_range[i][0], event_axis_range[i][1],
+					  ybinN[i], wire_axis_range [i][0], wire_axis_range [i][1]);
+
+	      for(Short_t k=0; k<HIST_ONED_NUM; k++)
+		{
+
+		  sprintf(text_buffer, "RG%dPL%d_%d", region, plane, k);
+		  CheckOldObject(text_buffer);
+		  hist1_region2[k][j]=  new TH1D(text_buffer,
+						 Form("%s-%d  RG %d PL %d", hist1_types[k], select_number, region, plane), 
+						 BINNUMBER, 0, 0); 
+		  hist1_region2[k][j] -> SetDefaultBufferSize(BUFFERSIZE);
+		  //		  printf("TH1D %s\n", text_buffer);
+		}
+	       
 	    }
 	}
       
@@ -399,89 +473,376 @@ QwGUITrackingSystem::ManipulateHistograms()
 	{
 	  for(Short_t j=0; j<RG_THR_HIST_NUM; j++)
 	    {
-	      plane = j+1; 
-	      sprintf(text_buffer, "RG%dPL%d", region, plane);
+	      plane = j+1;
+	      sprintf(text_buffer, "H1RG%dPL%d", region, plane);
 	      CheckOldObject(text_buffer);
-	      hist1_region3[j]=  new TH1D(text_buffer,
-					  Form("%s per %s %d  RG %d DIR %d", request_types[d_request], select_types[d_select], get_number, region, direction), 
-					  BINNUMBER, 0, 0); 
-	      hist1_region3[j] -> SetDefaultBufferSize(BUFFERSIZE);
-	      printf("%s\n",Form("%s per %s %d  RG %d PL %d", request_types[d_request], select_types[d_select], get_number, region, plane));
+ 	      hist1_region3[4][j]=  new TH1D(text_buffer,
+					     Form("Number of Events per Wire of RG %d PL %d", region, plane), 
+					     ybinN[i], wire_axis_range[i][0], wire_axis_range[i][1]);
+	      sprintf(text_buffer, "H2RG%dPL%d", region, plane);
+	      CheckOldObject(text_buffer);
+	      hist2_region2[j]=  new TH2I(text_buffer,
+					  Form("Number of Events per Wire of RG %d PL %d", region, plane), 
+					  xbinN[i], event_axis_range[i][0], event_axis_range[i][1],
+					  ybinN[i], wire_axis_range [i][0], wire_axis_range [i][1]);
+
+	      for(Short_t k=0; k<HIST_ONED_NUM; k++)
+		{
+		  sprintf(text_buffer, "RG%dPL%d_%d", region, plane, k);
+		  CheckOldObject(text_buffer);
+		  hist1_region3[k][j]=  new TH1D(text_buffer,
+						 Form("%s-%d  RG %d PL %d", hist1_types[k], select_number, region, plane), 
+						 BINNUMBER, 0, 0); 
+		  hist1_region3[k][j] -> SetDefaultBufferSize(BUFFERSIZE);
+		  //		  printf("TH1D %s\n", text_buffer);
+		}
 	    }
 	}
     }
+       
+
+
+
+//   region = 0;
+//   plane  = 0;
+//   direction = 0;
+
+ 
+
+  for(ev_i=event_range[0]; ev_i<event_range[1]; ev_i++)
+    {
+      qwhit_tree -> GetEntry(ev_i);
+      nhit = qwhit_container->GetSize();
+      //      printf("*** Event %10d\n", ev_i);
+      //      printf("    --- %d hits (by QwHitRootContainer)\n", nhit);
+
+      for(hit_i=0; hit_i<nhit; hit_i++)
+	{
+	  qwhit   = (QwHit*) qwhit_container->GetHit(hit_i);
+
+	  channel = qwhit->GetChannel();
+	  element = qwhit->GetElement();
+	  time    = qwhit->GetTime();
+	  rawtime = qwhit->GetRawTime();
+
+	  region  = qwhit->GetRegion();
+	  plane   = qwhit->GetPlane();
+	  direction = qwhit->GetDirection();
+
+	  if(region == 1) 
+	    {
+	      hist1_region1[4][direction-1] -> Fill(element);
+	      //	      hist2_region1[direction-1]    -> Fill(ev_i, element);
+	    }
+	  if(region == 2) 
+	    {
+	      hist1_region2[4][plane-1] -> Fill(element);
+	      //	      hist2_region2[plane-1]    -> Fill(ev_i, element);
+	    }
+	  if(region == 3) 
+	    {
+	      hist1_region3[4][plane-1] -> Fill(element);
+	      //	      hist2_region3[plane-1]    -> Fill(ev_i, element);
+	    }
+
+
+
+	  if(region ==1)
+	    {
+	    }
+	  else
+	    {
+	      if (select_number == channel)
+		{
+		  if(region == 2) 
+		    {
+		      hist1_region2[0][plane-1] -> Fill(time);
+		      hist1_region2[1][plane-1] -> Fill(rawtime);
+		    }
+		  if(region == 3)
+		    {
+		      hist1_region3[0][plane-1] -> Fill(time);
+		      hist1_region3[1][plane-1] -> Fill(rawtime);
+		    }
+		}
+ 	      if (select_number == element)
+ 		{
+ 		  if(region == 2) 
+ 		    {
+ 		      hist1_region2[2][plane-1] -> Fill(time);
+ 		      hist1_region2[3][plane-1] -> Fill(rawtime);
+ 		    }
+ 		  if(region == 3)
+ 		    {
+ 		      hist1_region3[2][plane-1] -> Fill(time);
+ 		      hist1_region3[3][plane-1] -> Fill(rawtime);
+ 		    }
+ 		}
+	    }
+	  qwhit->Clear();
+	}
+      qwhit_container->Clear();
+      Float_t inc = 100.0/(Double_t)event_range[1];
+      if(ev_i > (Int_t) 90/inc) progress_bar -> SetBarColor("lightblue");
+      progress_bar -> Increment(inc);
+    }
   
-      for(ev_i=event_range[0]; ev_i<event_range[1]; ev_i++)
-      {
-	qwhit_tree -> GetEntry(ev_i);
-	nhit = qwhit_container->GetSize();
-	printf("*** Event %10d\n", ev_i);
-	printf("    --- %d hits (by QwHitRootContainer)\n", nhit);
+  txt_button[1] -> SetEnabled(false);
 
-	for(hit_i=0; hit_i<nhit; hit_i++)
-	  {
-	    qwhit             = (QwHit*) qwhit_container->GetHit(hit_i);
-	    crate              = qwhit->GetSubbankID();
-	    module             = qwhit->GetModule();
-	    channel            = qwhit->GetChannel();
-	    hitnumber          = qwhit->GetHitNumber();
-	    hitnumber_r        = qwhit->GetHitNumberR();
-
-	    region             = (Short_t) qwhit->GetRegion();
-	    package            = (Short_t) qwhit->GetPackage(); // package will be used to extend this function to different VDCs or HDCs
-	    direction          = (Short_t) qwhit->GetDirection();
-	    plane              = qwhit->GetPlane();
-	    element            = qwhit->GetElement();
-
-	    rawtime            = qwhit->GetRawTime();
-	    time               = qwhit->GetTime();
-	    time_resolution    = qwhit->GetTimeRes();
-	    distance           = qwhit->GetDriftDistance();
-	    position           = qwhit->GetPosition();
-	    residual           = qwhit->GetResidual();
-	    z_position         = qwhit->GetZPos();
-	    r_position         = qwhit->GetRPosition();
-	    phi_position       = qwhit->GetPhiPosition();
-	    spatial_resolution = qwhit->GetSpatialResolution();
-	    track_resolution   = qwhit->GetTrackResolution();
-
-
-
-
-
-
-
-
-	    if( (event_range[1]-event_range[0] < 10))
-	      {
-		printf("    QwHit %d                         \n", hit_i);
-		printf("    -------------------------------- \n"); 
-		
-		printf("    --- Subbank       %6d \n",  crate);
-		printf("    --- Module        %6d \n",  module);
-		printf("    --- Channel       %6d \n",  channel);
-		printf("    --- HitNumber     %6d \n",  hitnumber);
-		printf("    --- HitNumber_r   %6d \n",  hitnumber_r);
-		printf("    --- Region        %6d \n",  region);
-		printf("    --- Package       %6d \n",  package);
-		printf("    --- Direction     %6d \n",  direction);
-		
-		// 	    printf("    -------------------------------- \n"); 
-		// 	    printf("    --- DriftDistance %14.2f \n", hit->GetDriftDistance());
-		// 	    printf("    --- RawTime       %14.2f \n", hit->GetRawTime());
-		// 	    printf("    --- Time          %14.2f \n", hit->GetTime());
-		// 	    printf("    --- HitNumber     %14d   \n", hit->GetHitNumber());
-		// 	    printf("    --- HitNumberR    %14d   \n", hit->GetHitNumberR());
-		// 	    printf("    -------------------------------- \n"); 
-	      }
-	  }
-
-	qwhit_container->Clear();
-      }
 
   return;
 };
 
+
+void
+QwGUITrackingSystem::PlotDraw()
+{
+
+  Int_t  region    = 0;
+  Int_t  plane     = 0;
+
+  canvas = new TSuperCanvas("rawtime_per_tdc_canvas","time per tdc channel",10,10,1200,800);
+//   //  canvas = CheckCanvas(this, canvas, "test", false);
+  canvas -> SetWindowSize(1024,648);
+ 
+   
+  TLatex *region_tex = NULL;
+  region_tex = new TLatex();
+  region_tex -> SetTextSize(0.05);
+  region_tex -> SetTextColor(kRed);
+  region_tex -> SetTextAlign(22);
+  
+  Short_t padnumber = 0;
+
+  region = GetRegion();
+  
+  Int_t type = 0;
+  if(d_request == 0) //Time
+    {
+      if(d_select == 0) type = 0; // time at channel
+      if(d_select == 1) type = 2; // time at wire
+    }
+  if(d_request == 1)
+    {
+      if(d_select == 0) type = 1;  // rawtime at channel
+      if(d_select == 1) type = 3; //  rawtime at wire
+    }
+
+  if(region == 1)
+    {
+      region_tex -> DrawLatex(0.5,0.5, "NO Region 1 data was in the ROOT file");
+    }
+
+  if(region == 2)
+    {
+      canvas -> Divide(4,3);
+      for(Short_t j=0; j<12; j++)
+	{
+	  plane     = j+1;
+	  padnumber = plane;
+	  canvas -> cd(padnumber);
+	  // 		  gStyle -> SetOptStat(0);
+	  if( hist1_region2[type][plane-1]->GetEntries() != 0)
+	    {
+	      hist1_region2[type][plane-1] -> SetLineColor(kRed);
+	      hist1_region2[type][plane-1] -> GetXaxis()-> SetTitle(Form("%s", request_types[d_request]));
+	      hist1_region2[type][plane-1] -> GetYaxis()-> SetTitle("Number of Events");
+	      hist1_region2[type][plane-1] -> Draw();
+	    }
+	  else
+	    {
+	      region_tex -> DrawLatex(0.5,0.5,Form("RG %1d PL %1d : NO data", region, plane));
+	    }
+	}
+    }
+  if( region == 3)
+    {
+      canvas -> Divide(2,1);
+      for(Short_t j=0; j<2; j++)
+	{
+	  plane     = j+1;
+	  padnumber = plane;
+	  //	      printf("region 3 pad %d \n", padnumber);
+	  canvas -> cd(padnumber);
+	  if( hist1_region3[type][plane-1]->GetEntries() != 0)
+	    {
+	 
+	      hist1_region3[type][plane-1] -> SetLineColor(kRed);
+	      hist1_region3[type][plane-1] -> GetXaxis()-> SetTitle(Form("%s", request_types[d_request]));
+	      hist1_region3[type][plane-1] -> GetYaxis()-> SetTitle("Number of Events");
+	      hist1_region3[type][plane-1] -> Draw();
+	    }
+	  else
+	    {
+	      region_tex -> DrawLatex(0.5,0.5,Form("RG %1d PL %1d : NO data", region, plane));
+	    }
+	}
+
+      //   printf("%s\n",Form("%s per %s %d  RG %d PL %d", request_types[d_request], select_types[d_select], get_number, region, plane));
+      //   qwhit_tree -> Dump();
+      //   qwhit_tree ->Draw("hits.fQwHits.fRawTime", "hits.fQwHits.fElement==4")  ;
+    } 
+  canvas -> Modified();
+  canvas -> Update();
+  
+  return;
+};
+
+
+
+void
+QwGUITrackingSystem::PlotEventVsWire()
+{
+
+  Int_t  region    = 0;
+  Int_t  plane     = 0;
+
+  canvas = new TSuperCanvas("rawtime_per_tdc_canvas","time per tdc channel",10,10,1200,800);
+//   //  canvas = CheckCanvas(this, canvas, "test", false);
+  canvas -> SetWindowSize(1024,648);
+ 
+   
+  TLatex *region_tex = NULL;
+  region_tex = new TLatex();
+  region_tex -> SetTextSize(0.05);
+  region_tex -> SetTextColor(kRed);
+  region_tex -> SetTextAlign(22);
+  
+  Short_t padnumber = 0;
+
+  region = GetRegion();
+  
+  if(region == 1)
+    {
+      region_tex -> DrawLatex(0.5,0.5, "NO Region 1 data was in the ROOT file");
+    }
+
+  if(region == 2)
+    {
+      canvas -> Divide(4,3);
+      for(Short_t j=0; j<12; j++)
+	{
+	  plane     = j+1;
+	  padnumber = plane;
+	  canvas -> cd(padnumber);
+	  // 		  gStyle -> SetOptStat(0);
+	  if( hist1_region2[4][plane-1]->GetEntries() != 0)
+	    {
+	      hist1_region2[4][plane-1] -> SetLineColor(kRed);
+	      hist1_region2[4][plane-1] -> GetXaxis()-> SetTitle("Wire #");
+	      hist1_region2[4][plane-1] -> GetYaxis()-> SetTitle("Number of Events");
+	      hist1_region2[4][plane-1] -> Draw();
+	    }
+	  else
+	    {
+	      region_tex -> DrawLatex(0.5,0.5,Form("RG %1d PL %1d : NO data", region, plane));
+	    }
+	}
+    }
+  if( region == 3)
+    {
+      canvas -> Divide(2,1);
+      for(Short_t j=0; j<2; j++)
+	{
+	  plane     = j+1;
+	  padnumber = plane;
+	  //	      printf("region 3 pad %d \n", padnumber);
+	  canvas -> cd(padnumber);
+	  if( hist1_region3[4][plane-1]->GetEntries() != 0)
+	    {
+	      hist1_region3[4][plane-1] -> SetLineColor(kRed);
+	      hist1_region3[4][plane-1] -> GetXaxis()-> SetTitle("Wire #");
+	      hist1_region3[4][plane-1] -> GetYaxis()-> SetTitle("Number of Events");
+	      hist1_region3[4][plane-1] -> Draw();
+	    }
+	  else
+	    {
+	      region_tex -> DrawLatex(0.5,0.5,Form("RG %1d PL %1d : NO data", region, plane));
+	    }
+	}
+    } 
+  canvas -> Modified();
+  canvas -> Update();
+  
+  return;
+};
+
+void
+QwGUITrackingSystem::PlotHittedWireVsEvent()
+{
+
+  Int_t  region    = 0;
+  Int_t  plane     = 0;
+
+  canvas = new TSuperCanvas("rawtime_per_tdc_canvas","time per tdc channel",10,10,1200,800);
+//   //  canvas = CheckCanvas(this, canvas, "test", false);
+  canvas -> SetWindowSize(1024,648);
+ 
+   
+  TLatex *region_tex = NULL;
+  region_tex = new TLatex();
+  region_tex -> SetTextSize(0.05);
+  region_tex -> SetTextColor(kRed);
+  region_tex -> SetTextAlign(22);
+  
+  Short_t padnumber = 0;
+
+  region = GetRegion();
+  
+  if(region == 1)
+    {
+      region_tex -> DrawLatex(0.5,0.5, "NO Region 1 data was in the ROOT file");
+    }
+
+  if(region == 2)
+    {
+      canvas -> Divide(4,3);
+      for(Short_t j=0; j<12; j++)
+	{
+	  plane     = j+1;
+	  padnumber = plane;
+	  canvas -> cd(padnumber);
+	  // 		  gStyle -> SetOptStat(0);
+	  if( hist1_region2[4][plane-1]->GetEntries() != 0)
+	    {
+	      hist1_region2[4][plane-1] -> SetLineColor(kRed);
+	      hist1_region2[4][plane-1] -> GetXaxis()-> SetTitle("Wire #");
+	      hist1_region2[4][plane-1] -> GetYaxis()-> SetTitle("Number of Events");
+	      hist1_region2[4][plane-1] -> Draw();
+	    }
+	  else
+	    {
+	      region_tex -> DrawLatex(0.5,0.5,Form("RG %1d PL %1d : NO data", region, plane));
+	    }
+	}
+    }
+  if( region == 3)
+    {
+      canvas -> Divide(2,1);
+      for(Short_t j=0; j<2; j++)
+	{
+	  plane     = j+1;
+	  padnumber = plane;
+	  //	      printf("region 3 pad %d \n", padnumber);
+	  canvas -> cd(padnumber);
+	  if( hist1_region3[4][plane-1]->GetEntries() != 0)
+	    {
+	      hist1_region3[4][plane-1] -> SetLineColor(kRed);
+	      hist1_region3[4][plane-1] -> GetXaxis()-> SetTitle("Wire #");
+	      hist1_region3[4][plane-1] -> GetYaxis()-> SetTitle("Number of Events");
+	      hist1_region3[4][plane-1] -> Draw();
+	    }
+	  else
+	    {
+	      region_tex -> DrawLatex(0.5,0.5,Form("RG %1d PL %1d : NO data", region, plane));
+	    }
+	}
+    } 
+  canvas -> Modified();
+  canvas -> Update();
+  
+  return;
+};
 
 
 Bool_t 
@@ -531,7 +892,7 @@ QwGUITrackingSystem::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		  break;
 		case   BA_TEXTBUTTONTHR:
 		  {;;;
-		    ResetEventRange();
+
 		    ResetButtons(true);
 		    CloseRootFile();
 		  };;;
@@ -539,17 +900,16 @@ QwGUITrackingSystem::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		case   BA_TEXTBUTTONFOR:
 		  {;;;
 		    PlotDraw();
-		    printf("you pressed PLOT button\n");
 		  };;;
 		  break;
 		case   BA_TEXTBUTTONFIV:
 		  {;;;
-		    printf("you pressed 5 button\n");
+		    PlotEventVsWire();
 		  };;;
 		  break;
 		case   BA_TEXTBUTTONSIX:
 		  {;;;
-		    printf("you pressed 6 button\n");
+		    PlotHittedWireVsEvent();
 		  };;;
 		  break;
 		default:
@@ -684,6 +1044,7 @@ QwGUITrackingSystem::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		  break;
 		case BA_CHWIRE_NUMBER:
 		  {;;;
+		    ResetButtons(true);
 		  };;; 
 		  break;
 		default:
@@ -768,7 +1129,7 @@ QwGUITrackingSystem::DefaultEventRange()
       num_entry[i+1] -> SetNumber(default_event_range[i]);
       num_entry[i+1] -> SetState (event_range_status);
     }
-
+  chk_button[0] ->  SetState(kButtonDown);
   return;
 }
 
@@ -776,11 +1137,11 @@ QwGUITrackingSystem::DefaultEventRange()
 void 
 QwGUITrackingSystem::ResetEventRange() 
 {
-  event_range_status = false;
+  event_range_status = true;
   for(Short_t i=0; i<2; i++)
     {
       event_range[i] = 0;
-      num_entry[i+1] -> SetNumber(event_range[i]);
+      num_entry[i+1] -> SetNumber(0);
       num_entry[i+1] -> SetState(event_range_status);
     }
   chk_button[0] -> SetState(kButtonUp);
@@ -820,7 +1181,8 @@ QwGUITrackingSystem::OpenRootFile()
 void
 QwGUITrackingSystem::CloseRootFile()
 {
-
+  ResetProgressBar();
+  DefaultEventRange();
   if (qwhit_container)
     {
       qwhit_container -> Clear();
@@ -877,10 +1239,18 @@ QwGUITrackingSystem::EnableButtons(Bool_t main_buttons)
 }
 
 
+void
+QwGUITrackingSystem::ResetProgressBar()
+{
+  progress_bar -> Reset();
+  progress_bar -> SetBarColor("red");
+  return;
+}
 
 
-TSuperCanvas 
-*QwGUITrackingSystem::CheckCanvas(const TGWindow *main, TSuperCanvas *temp_canvas, const char* name, bool close_status)
+
+
+TSuperCanvas *QwGUITrackingSystem::CheckCanvas(const TGWindow *main, TSuperCanvas *temp_canvas, const char* name, bool close_status)
 {
   TSeqCollection *canvas_collection = gROOT->GetListOfCanvases();
   
