@@ -23,8 +23,6 @@ QwGUIMainDetector::QwGUIMainDetector(const TGWindow *p, const TGWindow *main, co
 
   AddThisTab(this);
 
-  //  HistArray.SetOwner(true);
-
   ClearData();
 
 }
@@ -99,10 +97,8 @@ void QwGUIMainDetector::OnReceiveMessage(char *obj)
 void QwGUIMainDetector::OnObjClose(char *obj)
 {
   if(!strcmp(obj,"dROOTFile")){
-    printf("Called QwGUIMainDetector::OnObjClose\n");
-
+//     printf("Called QwGUIMainDetector::OnObjClose\n");
     dROOTCont = NULL;
-    ClearData();
   }
 }
 
@@ -129,6 +125,7 @@ void QwGUIMainDetector::OnNewDataContainer()
 	  grp[i] = new TGraph();
 	  grp[i]->SetTitle(Form("%s:hw_sum_raw",MainDetectorHists[i]));
 	  grp[i]->SetName(Form("grp%02d",i));
+	  hst[i]->SetDirectory(0);
 
 	  for(int j = 0; j < tree->GetEntries(); j++){
 	    dCurrentData[i].push_back(tree->GetV1()[j]);
@@ -169,19 +166,19 @@ void QwGUIMainDetector::OnRemoveThisTab()
 void QwGUIMainDetector::ClearData()
 {
 
-//   TObject *obj;
-//   TIter nexth(HistArray.MakeIterator());
-//   obj = nexth();
-//   while(obj){    
-//     delete obj;
-//     obj = nexth();
-//   }
-//   TIter nextg(GraphArray.MakeIterator());
-//   obj = nextg();
-//   while(obj){    
-//     delete obj;
-//     obj = nextg();
-//   }
+  TObject *obj;
+  TIter nexth(HistArray.MakeIterator());
+  obj = nexth();
+  while(obj){    
+    delete obj;
+    obj = nexth();
+  }
+  TIter nextg(GraphArray.MakeIterator());
+  obj = nextg();
+  while(obj){    
+    delete obj;
+    obj = nextg();
+  }
   HistArray.Clear();
   GraphArray.Clear();
 

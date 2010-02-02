@@ -602,16 +602,16 @@ void QwGUIMain::OnObjClose(const char *objname)
 #endif
   }
 
-  TObject *obj;
-  TIter next(SubSystemArray.MakeIterator());
-  obj = next();
-  while(obj){
-    QwGUISubSystem *entry = (QwGUISubSystem*)obj;
-    if(!strcmp(objname,entry->GetName())){
-      SubSystemArray.Remove(entry);
-    }
-    obj = next();
-  }
+//   TObject *obj;
+//   TIter next(SubSystemArray.MakeIterator());
+//   obj = next();
+//   while(obj){
+//     QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+//     if(!strcmp(objname,entry->GetName())){
+//       SubSystemArray.Remove(entry);
+//     }
+//     obj = next();
+//   }
 }
 
 void QwGUIMain::OnReceiveMessage(const char *obj)
@@ -625,6 +625,13 @@ void QwGUIMain::OnReceiveMessage(const char *obj)
     ptr = sbSystem->GetMessage();
     if(ptr)
       Append(ptr,sbSystem->IfTimeStamp());
+  }
+  if(name.Contains("dROOTFile")){
+
+    ptr = dROOTFile->GetMessage();
+    if(ptr)
+      Append(ptr,kTrue);
+
   }
 }
 
@@ -794,11 +801,6 @@ Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
     obj = next();
   }
   
-
-//   if(IsArrayAllocated()){
-//     for(int i = 0; i < 48; i++)
-//       dDetector[i]->SetDataContainer(dROOTFile);
-//   }
   SetRootFileOpen(kTrue);
   SetRootFileName(filename);
   return PROCESS_OK;
@@ -820,7 +822,7 @@ void QwGUIMain::CloseRootFile()
 {  
 
   if(dROOTFile != NULL){
-    dROOTFile->Close();
+    dROOTFile->Close(kFalse);
     dROOTFile = NULL;
   }
   SetRootFileOpen(kFalse);

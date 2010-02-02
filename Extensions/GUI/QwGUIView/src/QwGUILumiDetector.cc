@@ -87,7 +87,7 @@ void QwGUILumiDetector::OnReceiveMessage(char *obj)
 void QwGUILumiDetector::OnObjClose(char *obj)
 {
   if(!strcmp(obj,"dROOTFile")){
-    printf("Called QwGUILumiDetector::OnObjClose\n");
+//     printf("Called QwGUILumiDetector::OnObjClose\n");
 
     dROOTCont = NULL;
   }

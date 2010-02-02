@@ -121,7 +121,7 @@ void QwGUIInjector::OnReceiveMessage(char *obj)
 void QwGUIInjector::OnObjClose(char *obj)
 {
   if(!strcmp(obj,"dROOTFile")){
-    printf("Called QwGUIInjector::OnObjClose\n");
+//     printf("Called QwGUIInjector::OnObjClose\n");
 
     dROOTCont = NULL;
   }
