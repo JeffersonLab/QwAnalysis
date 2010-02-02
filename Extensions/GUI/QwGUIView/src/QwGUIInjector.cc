@@ -181,9 +181,10 @@ void QwGUIInjector::PlotPosData(){
   obj = HistArray.At(1);  // Get MPS tree
   if(ldebug) printf("%s\n", obj->GetName());
   
+  char histo[128];
   for(Short_t p = 0; p <INJECTOR_BPM_NUM ; p++) 
     {
-      char * histo = NULL;
+    
       sprintf (histo, "%sRelX.hw_sum",InjectorBPM[p] );
       if( ((TTree*) obj)->FindLeaf(histo))
 	{
@@ -220,9 +221,11 @@ void QwGUIInjector::PlotChargeData(){
   
   if(ldebug) printf("%s\n", objc->GetName());
   
+  char histoc[128];
+
   for(Short_t k = 0; k <INJECTOR_BCM_NUM ; k++) 
     {
-      char * histoc = NULL; 
+    
       sprintf (histoc, "asym_%s.hw_sum",InjectorBCM[k] );
       if(((TTree*)objc)->FindLeaf(histoc))
 	{
