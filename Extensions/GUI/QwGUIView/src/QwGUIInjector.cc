@@ -165,59 +165,69 @@ void QwGUIInjector::ClearData()
   //     delete obj;
   //     obj = next();
   //   }
-  HistArray.Delete();//Clear();
+  HistArray.Clear();//Clear();
 }
 
 
 void QwGUIInjector::PlotPosData(){
 
-  bool ldebug = false;
-
   TObject *obj;
-  TCanvas *mc = dCanvas->GetCanvas();
-  
-  mc->Divide(4,3);
-
   obj = HistArray.At(1);  // Get MPS tree
-  if(ldebug) printf("%s\n", obj->GetName());
-  
-  char histo[128];
-  for(Short_t p = 0; p <INJECTOR_BPM_NUM ; p++) 
+  if(! obj) return;
+  // prevent crash when executing this function
+  // if a ROOT file doesn't contain MPS tree
+  else
     {
-    
-      sprintf (histo, "%sRelX.hw_sum",InjectorBPM[p] );
-      if( ((TTree*) obj)->FindLeaf(histo))
+      bool ldebug = false;
+      TCanvas *mc = dCanvas->GetCanvas();
+      
+      mc->Divide(4,3);
+      
+      if(ldebug) printf("%s\n", obj->GetName());
+      
+      char histo[128];
+      for(Short_t p = 0; p <INJECTOR_BPM_NUM ; p++) 
 	{
-	  if(ldebug) printf("%s\n",InjectorBPM[p]);
-	  mc -> cd(p+1);
-	  obj -> Draw(histo);
-	}
-      sprintf (histo, "%sRelY.hw_sum",InjectorBPM[p] );
-      if( ((TTree*) obj)->FindLeaf(histo))
-	{
-	  if(ldebug) printf("%s\n",InjectorBPM[p]);
-	  mc -> cd(2*(p+1));
-	  obj -> Draw(histo);
-	}
-
-   }  
-
-  mc->Modified();
-  mc->Update();
+	  
+	  sprintf (histo, "%sRelX.hw_sum",InjectorBPM[p] );
+	  if( ((TTree*) obj)->FindLeaf(histo))
+	    {
+	      if(ldebug) printf("%s\n",InjectorBPM[p]);
+	      mc -> cd(p+1);
+	      obj -> Draw(histo);
+	    }
+	  sprintf (histo, "%sRelY.hw_sum",InjectorBPM[p] );
+	  if( ((TTree*) obj)->FindLeaf(histo))
+	    {
+	      if(ldebug) printf("%s\n",InjectorBPM[p]);
+	      mc -> cd(2*(p+1));
+	      obj -> Draw(histo);
+	    }
+	  
+	}  
+      
+      mc->Modified();
+      mc->Update();
+    }
+  return;
 }
 
 
 
 void QwGUIInjector::PlotChargeData(){
 
+  TObject *objc;
+  objc = HistArray.At(0);  // Get HEL tree
+  if(! objc) return; 
+  // prevent crash when executing this function
+  // if a ROOT file doesn't contain HEL tree
+
+
   bool ldebug = false;
  
-  TObject *objc;
   TCanvas *mc = dCanvas->GetCanvas();
 
   mc->Divide(4,3);
-  
-  objc = HistArray.At(0);  // Get HEL tree
   
   if(ldebug) printf("%s\n", objc->GetName());
   

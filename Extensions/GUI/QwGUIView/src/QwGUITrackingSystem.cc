@@ -60,7 +60,7 @@ QwGUITrackingSystem::QwGUITrackingSystem(const TGWindow *main, TGCompositeFrame 
 
   default_event_range[0] = 0;
   //  default_event_range[1] = 1000;
-  default_event_range[1] = 1000;
+  default_event_range[1] = 2000;
 
   total_physics_event_number = 0;
 
@@ -84,7 +84,7 @@ QwGUITrackingSystem::QwGUITrackingSystem(const TGWindow *main, TGCompositeFrame 
   qwhit           = NULL;
   qwhit_container = NULL;
 
-
+  region_tex      = NULL;
 
   for(Short_t i=0;i<RG_ONE_HIST_NUM;i++) sumhist1_region1[i] = NULL;
   for(Short_t i=0;i<RG_TWO_HIST_NUM;i++) sumhist1_region2[i] = NULL;
@@ -127,6 +127,8 @@ QwGUITrackingSystem::QwGUITrackingSystem(const TGWindow *main, TGCompositeFrame 
 QwGUITrackingSystem::~QwGUITrackingSystem()
 {
 
+  delete    region_tex;
+  
   delete    root_file;
   delete    qwhit_container;
   delete    qwhit_tree;
@@ -607,7 +609,6 @@ QwGUITrackingSystem::PlotDraw()
   canvas -> SetWindowSize(1024,648);
  
    
-  TLatex *region_tex = NULL;
   region_tex = new TLatex();
   region_tex -> SetTextSize(0.05);
   region_tex -> SetTextColor(kRed);
@@ -703,7 +704,6 @@ QwGUITrackingSystem::PlotEventVsWire()
   canvas -> SetWindowSize(1024,648);
  
    
-  TLatex *region_tex = NULL;
   region_tex = new TLatex();
   region_tex -> SetTextSize(0.05);
   region_tex -> SetTextColor(kRed);
@@ -780,7 +780,6 @@ QwGUITrackingSystem::PlotHittedWireVsEvent()
   canvas -> SetWindowSize(1024,648);
  
    
-  TLatex *region_tex = NULL;
   region_tex = new TLatex();
   region_tex -> SetTextSize(0.05);
   region_tex -> SetTextColor(kRed);
@@ -865,7 +864,8 @@ QwGUITrackingSystem::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		{
 		case  BA_CLOSECANVAS:
 		  {;;;
-		    CheckCanvas(this, canvas, "c", true);
+		    //		    CheckCanvas(this, canvas, "c", true);
+		    printf("This button does not work :-)\n");
 		  };;;
 		  break;
 		case  BA_HELP:
@@ -1169,6 +1169,11 @@ QwGUITrackingSystem::OpenRootFile()
     }
   else
     {
+      if(qwhit_container) 
+	{
+	  delete qwhit_container;
+	  qwhit_container = NULL;
+	}
       qwhit_tree  = (TTree*) root_file->Get("tree");
       qwhit_tree -> SetBranchAddress("hits", &qwhit_container);
       total_physics_event_number = qwhit_tree -> GetEntries();
@@ -1253,45 +1258,45 @@ QwGUITrackingSystem::ResetProgressBar()
 
 
 
-TSuperCanvas *QwGUITrackingSystem::CheckCanvas(const TGWindow *main, TSuperCanvas *temp_canvas, const char* name, bool close_status)
-{
-  TSeqCollection *canvas_collection = gROOT->GetListOfCanvases();
+// TSuperCanvas *QwGUITrackingSystem::CheckCanvas(const TGWindow *main, TSuperCanvas *temp_canvas, const char* name, bool close_status)
+// {
+//   TSeqCollection *canvas_collection = gROOT->GetListOfCanvases();
   
-  if ( !(strcmp(name,"c"))  ) 
-    {
-      TCanvas *obj;
-      TIter next(canvas_collection, true);
-      obj = (TCanvas*) next();
-      while(obj){    
-	obj->Close();
-	delete obj;
-	obj = (TCanvas*) next();
-      }
-      canvas_collection->Clear();
-      return NULL;
-    }
-  else
-    {
-      temp_canvas = (TSuperCanvas*)canvas_collection->FindObject(name);
-      gStyle -> SetCanvasBorderSize(0);
-      gStyle -> SetCanvasBorderMode(0);
-      gStyle -> SetCanvasColor(kWhite);
-      gStyle -> SetPadBorderMode(1);
-      gStyle -> SetPadBorderSize(0);
-      gStyle -> SetFrameBorderMode(0);  // Strange red boarder on right and botton axis
-      gStyle -> SetTitleFillColor(kWhite);
-      if(!close_status)
-	{
-	  if(!temp_canvas) temp_canvas =  new TSuperCanvas(name, Form("%s canvas", name), 600,480);
-	  else             temp_canvas -> Clear();
-	  canvas_collection->Clear();
-	  return temp_canvas;
-	}
-      else
-	{
-	  if(temp_canvas)  temp_canvas -> Close();
-	  canvas_collection->Clear();
-	  return NULL;
-	}
-    }
-}
+//   if ( !(strcmp(name,"c"))  ) 
+//     {
+//       TCanvas *obj;
+//       TIter next(canvas_collection, true);
+//       obj = (TCanvas*) next();
+//       while(obj){    
+// 	obj->Close();
+// 	delete obj;
+// 	obj = (TCanvas*) next();
+//       }
+//       canvas_collection->Clear();
+//       return NULL;
+//     }
+//   else
+//     {
+//       temp_canvas = (TSuperCanvas*)canvas_collection->FindObject(name);
+//       gStyle -> SetCanvasBorderSize(0);
+//       gStyle -> SetCanvasBorderMode(0);
+//       gStyle -> SetCanvasColor(kWhite);
+//       gStyle -> SetPadBorderMode(1);
+//       gStyle -> SetPadBorderSize(0);
+//       gStyle -> SetFrameBorderMode(0);  // Strange red boarder on right and botton axis
+//       gStyle -> SetTitleFillColor(kWhite);
+//       if(!close_status)
+// 	{
+// 	  if(!temp_canvas) temp_canvas =  new TSuperCanvas(name, Form("%s canvas", name), 600,480);
+// 	  else             temp_canvas -> Clear();
+// 	  canvas_collection->Clear();
+// 	  return temp_canvas;
+// 	}
+//       else
+// 	{
+// 	  if(temp_canvas)  temp_canvas -> Close();
+// 	  canvas_collection->Clear();
+// 	  return NULL;
+// 	}
+//     }
+// }

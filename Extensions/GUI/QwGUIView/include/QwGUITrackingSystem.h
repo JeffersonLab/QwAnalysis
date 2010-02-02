@@ -102,6 +102,8 @@ class QwGUITrackingSystem : public TGCompositeFrame {
   Pixel_t             green;
   Pixel_t             red;
 
+  TLatex              *region_tex;
+
   UInt_t              run_number;
   UInt_t              ch_wire_number;
   Int_t              event_range[2];
@@ -179,7 +181,7 @@ class QwGUITrackingSystem : public TGCompositeFrame {
   void    ResetEventRange  ();
   void    ResetProgressBar();
 
-  TSuperCanvas *CheckCanvas(const TGWindow *main, TSuperCanvas *temp_canvas, const char* name, bool close_status);
+  //  TSuperCanvas *CheckCanvas(const TGWindow *main, TSuperCanvas *temp_canvas, const char* name, bool close_status);
 
   Char_t  text_buffer[256];
 

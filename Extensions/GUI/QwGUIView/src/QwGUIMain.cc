@@ -1312,6 +1312,7 @@ int main(int argc, char **argv)
     printf("%s",expl);
   }
   else{
+    
     TApplication theApp("QwGUIData", &argc, argv);
 
     gROOT->SetStyle("Plain");
@@ -1322,7 +1323,6 @@ int main(int argc, char **argv)
     }
 
     QwGUIMain mainWindow(gClient->GetRoot(), dClArgs, 800,600);
-
 
     gViewMain = &mainWindow;
 

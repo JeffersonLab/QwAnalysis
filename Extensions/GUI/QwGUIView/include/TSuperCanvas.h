@@ -62,7 +62,8 @@
 // 0.0.2     2010/01/25   * introduce one constructor in order to use
 //                          TSuperCanvas into an embedded canvas 
 // 0.0.3     2010/02/01   * some bugs were fixed
-
+//                        * comment out several methods which are
+//                          ill-defined. 
 
 
 #ifndef _TSUPERCANVAS_H_
@@ -136,8 +137,8 @@ class TSuperCanvas : public TCanvas
   Float_t  menu_margin;
   Int_t    meas_status;
   Float_t  meas_x1, meas_x2, meas_y1, meas_y2;
-  Float_t  peakpos[10];
-  TLine   *peakline[10];
+/*   Float_t  peakpos[10]; */
+/*   TLine   *peakline[10]; */
   
   Double_t scroll_rate;
   //  Double_t SamplingRate, ScrollRate;

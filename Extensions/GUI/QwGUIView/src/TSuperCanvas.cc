@@ -60,14 +60,14 @@ TSuperCanvas::TSuperCanvas(const char* name, Int_t ww, Int_t  wh, Int_t  winid)
 
 TSuperCanvas::~TSuperCanvas()
 {
-  for (Short_t p=0; p<10; p++)
-    {
-      if(peakline[p])
-	{
-	  delete peakline[p];
-	  peakline[p] = NULL;
-	}
-    }
+//   for (Short_t p=0; p<10; p++)
+//     {
+//       if(peakline[p])
+// 	{
+// 	  delete peakline[p];
+// 	  peakline[p] = NULL;
+// 	}
+//     }
  
 //  if (closebutton)  delete closebutton;  closebutton  = NULL;
 //  if (crossbutton)  delete crossbutton;  crossbutton  = NULL;
@@ -104,11 +104,11 @@ TSuperCanvas::Initialize()
   MaxmizedPad_xup  = 0.0;
   MaxmizedPad_yup  = 0.0;
 
-  for (Short_t p=0; p<10; p++)
-    {
-      peakpos[p]  = 0.0;
-      peakline[p] = NULL;
-    };
+//   for (Short_t p=0; p<10; p++)
+//     {
+//       peakpos[p]  = 0.0;
+//       peakline[p] = NULL;
+//     };
 
   MaximizedPad = NULL;
 
@@ -329,42 +329,42 @@ TSuperCanvas::HandleInput(EEventType event, Int_t px, Int_t py)
 	  DiscreteFourierTransform(px, py);
 	};
       //-----------------------------------------------------------------//
-      if ( (px>='0') && (px<='9') )      //     SAVE PEAK POSIITONS      //
-	{
-	  if (meas_status==1) // user has selected coordinated by shift-click on pad?
-	    {
-	      Int_t p = px-'0';
-	      peakpos[p]  = meas_x1;
-	      peakline[p] = new TLine(peakpos[p], 0., peakpos[p], meas_y1);
-	      if ( p==0 )
-		{ 
-		  printf("\r pedestal position saved...\n");
-		  peakline[p]->SetLineColor(kBlue);
-		}
-	      else
-		{
-		  printf("\r peak position %d saved...\n", p);
-		  peakline[p]->SetLineColor(kRed);
-		};
-	      peakline[p]->Draw();
-	      meas_status=0; // reset measurement status
-	      Update();
-	    };
-	};
+  //     if ( (px>='0') && (px<='9') )      //     SAVE PEAK POSIITONS      //
+// 	{
+// 	  if (meas_status==1) // user has selected coordinated by shift-click on pad?
+// 	    {
+// 	      Int_t p = px-'0';
+// 	      peakpos[p]  = meas_x1;
+// 	      peakline[p] = new TLine(peakpos[p], 0., peakpos[p], meas_y1);
+// 	      if ( p==0 )
+// 		{ 
+// 		  printf("\r pedestal position saved...\n");
+// 		  peakline[p]->SetLineColor(kBlue);
+// 		}
+// 	      else
+// 		{
+// 		  printf("\r peak position %d saved...\n", p);
+// 		  peakline[p]->SetLineColor(kRed);
+// 		};
+// 	      peakline[p]->Draw();
+// 	      meas_status=0; // reset measurement status
+// 	      Update();
+// 	    };
+// 	};
       //-----------------------------------------------------------------//
-      if (px=='c')                        //      DELETE PEAKS           //
-	{
-	  for (Int_t p=0; p<10; p++)
-	    {
-	      if (peakline[p]) 
-		{
-		  delete peakline[p];
-		  peakpos[p]=0.0;
-		}
-	      printf("peak positions have been deleted...\n");
-	    };
-	  Update();
-	};
+//       if (px=='c')                        //      DELETE PEAKS           //
+// 	{
+// 	  for (Int_t p=0; p<10; p++)
+// 	    {
+// 	      if (peakline[p]) 
+// 		{
+// 		  delete peakline[p];
+// 		  peakpos[p]=0.0;
+// 		}
+// 	      printf("peak positions have been deleted...\n");
+// 	    };
+// 	  Update();
+// 	};
       //-----------------------------------------------------------------//
       if (px=='l')                        //          LOG Y              //
 	{
