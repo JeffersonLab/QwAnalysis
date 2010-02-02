@@ -61,7 +61,7 @@
 //                          position
 // 0.0.2     2010/01/25   * introduce one constructor in order to use
 //                          TSuperCanvas into an embedded canvas 
-
+// 0.0.3     2010/02/01   * some bugs were fixed
 
 
 
@@ -116,7 +116,7 @@ class TSuperCanvas : public TCanvas
 
   //  virtual void Divide(Int_t nx=1, Int_t ny=1, Float_t xmargin=0.01, Float_t ymargin=0.01, Int_t color=0, Float_t menumargin=-1.0);
 
-  void MakeMenu(TSuperCanvas **me, Float_t menumargin=-1.0);
+  void MakeMenu(TSuperCanvas **me, Float_t menumargin);
 
   virtual void HandleInput(EEventType event, Int_t px, Int_t py);
   virtual void Measure(Int_t px, Int_t py);
@@ -143,9 +143,12 @@ class TSuperCanvas : public TCanvas
   //  Double_t SamplingRate, ScrollRate;
 
   TVirtualPad *MaximizedPad;
-  Double_t MaxmizedPad_xlow, MaxmizedPad_ylow, MaxmizedPad_xup, MaxmizedPad_yup;
+  Double_t MaxmizedPad_xlow;
+  Double_t MaxmizedPad_ylow;
+  Double_t MaxmizedPad_xup;
+  Double_t MaxmizedPad_yup;
   
-  TButton *closebutton, *crossbutton, *eventbutton, *toolbutton, *logxbutton, *logybutton;
+  //TButton *closebutton, *crossbutton, *eventbutton, *toolbutton, *logxbutton, *logybutton;
 
   void SetBackBeforePad(TPad* cpad);
   void SetCurrentPad(Bool_t debug=false);

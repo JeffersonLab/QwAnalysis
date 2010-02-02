@@ -456,6 +456,8 @@ Char_t *QwGUIMain::GetTime()
     sprintf(dTime,"0%d:%d:%d",ltime->tm_hour,ltime->tm_min,ltime->tm_sec);
   else
     sprintf(dTime,"%d:%d:%d",ltime->tm_hour,ltime->tm_min,ltime->tm_sec);
+
+  delete cutime; cutime = NULL;
   return dTime;
 }
 
@@ -844,7 +846,7 @@ Int_t QwGUIMain::Append(const char *buffer,Bool_t T_Stamp)
   int lnum = 0;
   int cutoff = 110;//64;
   const char *ptr;
-  char *line;
+  char *line; 
   int  index;
   char *tmpbuffer = new char[size];
   TGLongPosition pos;
@@ -885,7 +887,7 @@ Int_t QwGUIMain::Append(const char *buffer,Bool_t T_Stamp)
 	  pos.fY = cText->RowCount();
 	  cText->InsText(pos, tmpbuffer);
 	  lnum++;
-
+	  
 	  delete[] line;
 	  if(buffer[i] == '\n'){
 	    index = i+1;
@@ -917,7 +919,7 @@ Int_t QwGUIMain::Append(const char *buffer,Bool_t T_Stamp)
     dLogEdit->Goto(cText->RowCount(),
 		   cText->GetLineLength((Long_t)(cText->RowCount()-1)));
   }
-
+  delete [] tmpbuffer;
   return LOG_PROCESS_OK;
 }
 

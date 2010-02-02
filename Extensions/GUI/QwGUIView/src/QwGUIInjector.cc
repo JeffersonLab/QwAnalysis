@@ -158,14 +158,14 @@ void QwGUIInjector::OnRemoveThisTab()
 void QwGUIInjector::ClearData()
 {
 
-  TObject *obj;
-  TIter next(HistArray.MakeIterator());
-  obj = next();
-  while(obj){    
-    delete obj;
-    obj = next();
-  }
-  HistArray.Clear();
+  //  TObject *obj;
+  //   TIter next(HistArray.MakeIterator());
+  //   obj = next();
+  //   while(obj){    
+  //     delete obj;
+  //     obj = next();
+  //   }
+  HistArray.Delete();//Clear();
 }
 
 

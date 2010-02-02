@@ -23,6 +23,8 @@ QwGUIMainDetector::QwGUIMainDetector(const TGWindow *p, const TGWindow *main, co
 
   AddThisTab(this);
 
+  //  HistArray.SetOwner(true);
+
   ClearData();
 
 }
@@ -167,19 +169,19 @@ void QwGUIMainDetector::OnRemoveThisTab()
 void QwGUIMainDetector::ClearData()
 {
 
-  TObject *obj;
-  TIter nexth(HistArray.MakeIterator());
-  obj = nexth();
-  while(obj){    
-    delete obj;
-    obj = nexth();
-  }
-  TIter nextg(GraphArray.MakeIterator());
-  obj = nextg();
-  while(obj){    
-    delete obj;
-    obj = nextg();
-  }
+//   TObject *obj;
+//   TIter nexth(HistArray.MakeIterator());
+//   obj = nexth();
+//   while(obj){    
+//     delete obj;
+//     obj = nexth();
+//   }
+//   TIter nextg(GraphArray.MakeIterator());
+//   obj = nextg();
+//   while(obj){    
+//     delete obj;
+//     obj = nextg();
+//   }
   HistArray.Clear();
   GraphArray.Clear();
 

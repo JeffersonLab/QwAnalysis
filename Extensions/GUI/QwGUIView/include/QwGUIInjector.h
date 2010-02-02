@@ -42,11 +42,12 @@ Added by Buddhini to display the injector beamline data.
 #define QWGUIINJECTOR_H
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <TRootEmbeddedCanvas.h>
-#include <TRootCanvas.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+
+#include "TRootEmbeddedCanvas.h"
+#include "TRootCanvas.h"
 #include "QwGUISubSystem.h"
 #include "RSDataWindow.h"
 #include "TSuperCanvas.h"

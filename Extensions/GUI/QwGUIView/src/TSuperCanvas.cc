@@ -60,34 +60,33 @@ TSuperCanvas::TSuperCanvas(const char* name, Int_t ww, Int_t  wh, Int_t  winid)
 
 TSuperCanvas::~TSuperCanvas()
 {
- for (Short_t p=0; p<10; p++)
-   {
-     if(peakline[p])
-       {
-	 delete peakline[p];
-	 peakline[p] = NULL;
-       }
-   }
+  for (Short_t p=0; p<10; p++)
+    {
+      if(peakline[p])
+	{
+	  delete peakline[p];
+	  peakline[p] = NULL;
+	}
+    }
  
- if (MaximizedPad) delete MaximizedPad; MaximizedPad = NULL;
- if (closebutton)  delete closebutton;  closebutton  = NULL;
- if (crossbutton)  delete crossbutton;  crossbutton  = NULL;
- if (eventbutton)  delete eventbutton;  eventbutton  = NULL;
- if (toolbutton)   delete toolbutton;   toolbutton   = NULL;
- if (logxbutton)   delete logxbutton;   logxbutton   = NULL;
- if (logybutton)   delete logybutton;   logybutton   = NULL;
+//  if (closebutton)  delete closebutton;  closebutton  = NULL;
+//  if (crossbutton)  delete crossbutton;  crossbutton  = NULL;
+//  if (eventbutton)  delete eventbutton;  eventbutton  = NULL;
+//  if (toolbutton)   delete toolbutton;   toolbutton   = NULL;
+//  if (logxbutton)   delete logxbutton;   logxbutton   = NULL;
+//  if (logybutton)   delete logybutton;   logybutton   = NULL;
 
 };
 
 void 
 TSuperCanvas::Initialize()
 {
-  closebutton = NULL;
-  crossbutton = NULL;
-  eventbutton = NULL;
-  toolbutton  = NULL;
-  logxbutton  = NULL;
-  logybutton  = NULL;
+//   closebutton = NULL;
+//   crossbutton = NULL;
+//   eventbutton = NULL;
+//   toolbutton  = NULL;
+//   logxbutton  = NULL;
+//   logybutton  = NULL;
   
   //  SamplingRate = 1.0;
   //  ScrollRate   = 0.03;
@@ -244,28 +243,33 @@ TSuperCanvas::Divide(Int_t nx, Int_t ny, Float_t xmargin, Float_t ymargin,
 void 
 TSuperCanvas::MakeMenu(TSuperCanvas **me, Float_t menumargin)
 {
-  Float_t x      = 0.0;
-  Float_t dx     = 0.2;
-  Float_t margin = menu_margin;
-  if (menumargin>0.0)
-    margin = menumargin;
-  if (me)
-    closebutton = new TButton("close", Form("((TCanvas*)%p)->Close(); (*((TCanvas**)%p))=NULL;", *me, me), x, 0.0, x+dx/1.5, margin);
-  else
-    closebutton = new TButton("close", Form("((TCanvas*)%p)->Close();", this), x, 0.0, x+dx/1.5, margin);
-  
-  closebutton->Draw(); x+=dx/1.5;
-  crossbutton = new TButton("crosshair", Form("((TCanvas*)%p)->SetCrosshair(!(((TCanvas*)%p)->HasCrosshair()));", this, this), x, 0.0, x+dx, margin);
-  crossbutton->Draw(); x+=dx;
-  eventbutton = new TButton("event status", Form("((TCanvas*)%p)->ToggleEventStatus();", this), x, 0.0, x+dx, margin);
-  eventbutton->Draw(); x+=dx;
-  toolbutton  = new TButton("toolbar", Form("((TCanvas*)%p)->ToggleToolBar();", this), x, 0.0, x+dx, margin);
-  toolbutton->Draw(); x+=dx;
+//   Float_t x      = 0.0;
+//   Float_t dx     = 0.2;
+//   Float_t margin = 0.0;
+//   margin = menu_margin;
 
-  logxbutton  = new TButton("lg x", "int val=gPad->GetLogx(); gPad->SetLogx(!val);", x, 0.0, x+dx/2.25, margin);
-  logxbutton->Draw(); x+=dx/2.25;
-  logybutton  = new TButton("lg y", "int val=gPad->GetLogy(); gPad->SetLogy(!val);", x, 0.0, x+dx/2.25, margin);
-  logybutton->Draw(); x+=dx/2.25;
+//   if (menumargin>0.0) margin = menumargin;
+//   if (me)
+//     {
+//       closebutton = new TButton("close", Form("((TCanvas*)%p)->Close(); (*((TCanvas**)%p))=NULL;", *me, me), x, 0.0, x+dx/1.5, margin);
+//     }
+//   else
+//     {
+//       closebutton = new TButton("close", Form("((TCanvas*)%p)->Close();", this), x, 0.0, x+dx/1.5, margin);
+//     }
+  
+//   closebutton->Draw(); x+=dx/1.5;
+//   crossbutton = new TButton("crosshair", Form("((TCanvas*)%p)->SetCrosshair(!(((TCanvas*)%p)->HasCrosshair()));", this, this), x, 0.0, x+dx, margin);
+//   crossbutton->Draw(); x+=dx;
+//   eventbutton = new TButton("event status", Form("((TCanvas*)%p)->ToggleEventStatus();", this), x, 0.0, x+dx, margin);
+//   eventbutton->Draw(); x+=dx;
+//   toolbutton  = new TButton("toolbar", Form("((TCanvas*)%p)->ToggleToolBar();", this), x, 0.0, x+dx, margin);
+//   toolbutton->Draw(); x+=dx;
+  
+//   logxbutton  = new TButton("lg x", "int val=gPad->GetLogx(); gPad->SetLogx(!val);", x, 0.0, x+dx/2.25, margin);
+//   logxbutton->Draw(); x+=dx/2.25;
+//   logybutton  = new TButton("lg y", "int val=gPad->GetLogy(); gPad->SetLogy(!val);", x, 0.0, x+dx/2.25, margin);
+//   logybutton->Draw(); x+=dx/2.25;
 
   return;
 };
