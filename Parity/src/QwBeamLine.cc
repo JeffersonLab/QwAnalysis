@@ -68,11 +68,9 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	}                                 
       else if (varname=="begincombo")
 	{
-	  //std::cout<<"QwBeamline :: Decoding BCM combo!\n";
+	  std::cout<<"QwBeamline :: Decoding BCM combo!\n";
 	  combolistdecoded = kFALSE;
 	  combotype = varvalue;
-	  //std::cout<<"Combo type :"<<combotype<<"\n";
-
 	  while(mapstr.ReadNextLine()&&!combolistdecoded){
 	    mapstr.TrimComment('!');   // Remove everything after a '!' character.
 	    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
@@ -87,8 +85,8 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		}
 	      else 
 		{
-		comboname = varvalue;
-		comboname.ToLower();
+		  comboname = varvalue;
+		  comboname.ToLower();
 		}
 	    }
 	    else
@@ -100,36 +98,55 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		fDeviceWeight.push_back( atof(mapstr.GetNextToken(", ").c_str()));				
 	      }
 	  }
-
+	  
 	  
 	  QwBeamDetectorID localBCMComboID;
 	  localBCMComboID.fdetectortype=combotype;
-	  localBCMComboID.fTypeID=GetDetectorTypeID(combotype);
 	  localBCMComboID.fdetectorname=comboname;
-
+	  
+	  localBCMComboID.fTypeID=GetDetectorTypeID(combotype);
+	  std::cout<<" combo id ="<<localBCMComboID.fTypeID<<"\n";
+	  if(localBCMComboID.fTypeID==-1)
+	    {
+	      std::cerr << "QwBeamLine::LoadChannelMap:  Unknown detector type: "
+			<< combotype <<", the detector "<<comboname<<" will not be decoded "
+			<< std::endl;
+	      combolistdecoded=kTRUE;
+	      continue;
+	    }
+	  ////
+	  if(DetectorTypes[localBCMComboID.fTypeID]=="combinedbcm")
+	    localBCMComboID.fdetectorname=comboname(0,comboname.Sizeof()-1);
+	  //
+	  //std::cout<<localBCMComboID.fdetectorname<<"\n";
+	  ///
 	  localBCMComboID.fIndex=
 	    GetDetectorIndex(localBCMComboID.fTypeID,
 			     localBCMComboID.fdetectorname);
-
-
-	if(localBCMComboID.fIndex==-1)
-	  {
-	 
-	    QwCombinedBCM localcombo(localBCMComboID.fdetectorname); //create a new combo with combo name
-	    fBCMCombo.push_back(localcombo); //add to the array of combos
-	    // for(Int_t n=0;n<fBCMCombo.size();n++){
-	    for(size_t i=0;i<fDeviceName.size();i++)
-	      {
-		index=GetDetectorIndex(GetDetectorTypeID(combotype),fDeviceName[i]);
-		//std::cout<<"QwBeamline :: device index"<<index<<"for device "<<fDeviceName[i]<<"with weight :"<<fDeviceWeight[i]<<"\n";
-		fBCMCombo[fBCMCombo.size()-1].Add(&fBCM[index],fDeviceWeight[i]);
-	
-	      }
-	    fDeviceName.clear();   //reset the device vector for the next combo
-	    fDeviceWeight.clear(); //reset the device weights for the next combo
-	    //}
-	  }
-	}
+	  
+	  
+	  
+	  if(localBCMComboID.fIndex==-1)
+	    {
+	      if(DetectorTypes[localBCMComboID.fTypeID]=="combinedbcm")/////
+		{
+		  QwCombinedBCM localcombo(localBCMComboID.fdetectorname); //create a new combo with combo name
+		  fBCMCombo.push_back(localcombo); //add to the array of combos
+		  // for(Int_t n=0;n<fBCMCombo.size();n++){
+		  for(size_t i=0;i<fDeviceName.size();i++)
+		    {
+		      index=GetDetectorIndex(GetDetectorTypeID("bcm"),fDeviceName[i]);
+		      fBCMCombo[fBCMCombo.size()-1].Add(&fBCM[index],fDeviceWeight[i]);
+		      
+		    }
+	      fDeviceName.clear();   //reset the device vector for the next combo
+	      fDeviceWeight.clear(); //reset the device weights for the next combo
+		}
+	    }
+	  
+	  if(combolistdecoded)
+	    fBeamDetectorID.push_back(localBCMComboID);
+	}/////
     }
     else
       {
@@ -156,7 +173,6 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	localBeamDetectorID.fmoduletype=modtype;
 	localBeamDetectorID.fSubbankIndex=currentsubbankindex;
 	localBeamDetectorID.fdetectortype=dettype;
-	
 	localBeamDetectorID.fWordInSubbank=wordsofar;
 	if(modtype=="VQWK")wordsofar+=6;
 	else if(modtype=="SCALER")wordsofar+=1;
@@ -720,12 +736,15 @@ VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
   //  std::cout<<" here in QwBeamLine::operator= \n";
   if(Compare(value))
     {
-      //QwBeamLine* input = (QwBeamLine*) value;
+   
       QwBeamLine* input = dynamic_cast<QwBeamLine*>(value);
+
       for(size_t i=0;i<input->fStripline.size();i++)
 	this->fStripline[i]=input->fStripline[i];
       for(size_t i=0;i<input->fBCM.size();i++)
 	this->fBCM[i]=input->fBCM[i];
+      for(size_t i=0;i<input->fBCMCombo.size();i++)
+	this->fBCMCombo[i]=input->fBCMCombo[i];
     }
   return *this;
 };
@@ -795,6 +814,11 @@ void QwBeamLine::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 	this->fBCM[i].Ratio(innumer->fBCM[i],indenom->fBCM[i]);
       for(size_t i=0;i<innumer->fBCMCombo.size();i++)
 	this->fBCMCombo[i].Ratio(innumer->fBCMCombo[i],indenom->fBCMCombo[i]);
+
+      // For the combined bcm, maybe we might want to think about getting 
+      // the asymmetry using the asymmetries of the individual bcms with a
+      // weight. But right now it is unclear if wer really need to have that
+      // option.
     }
   return;
 };
@@ -996,27 +1020,31 @@ void  QwBeamLine::Copy(VQwSubsystem *source)
 	  //QwBeamLine* input=((QwBeamLine*)source);
           QwBeamLine* input = dynamic_cast<QwBeamLine*>(source);
 	  this->fStripline.resize(input->fStripline.size());
+	  
 	  for(size_t i=0;i<this->fStripline.size();i++)
-	      this->fStripline[i].Copy(&(input->fStripline[i]));
+	    this->fStripline[i].Copy(&(input->fStripline[i]));
+	  
 	  this->fBCM.resize(input->fBCM.size());
 	  for(size_t i=0;i<this->fBCM.size();i++)
 	    this->fBCM[i].Copy(&(input->fBCM[i]));
-	  for(size_t i=0;i<this->fBCMCombo.size();i++)
+	  
+	  this->fBCMCombo.resize(input->fBCMCombo.size());
+	  for(size_t i=0;i<this->fBCMCombo.size();i++){
 	    this->fBCMCombo[i].Copy(&(input->fBCMCombo[i]));
+	  }
 	}
-      else
-	{
+     else
+       {
 	  TString loc="Standard exception from QwBeamLine::Copy = "
 	    +source->GetSubsystemName()+" "
 	    +this->GetSubsystemName()+" are not of the same type";
 	  throw std::invalid_argument(loc.Data());
-	}
+       }
     }
   catch (std::exception& e)
     {
       std::cerr << e.what() << std::endl;
     }
-  // this->Print();
 
   return;
 }
