@@ -87,8 +87,9 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   
   QwHelicityPattern QwHelPat(QwDetectors,4);
-  QwEventRing fEventRing(QwDetectors,120,60,8);//Event ring of 120; 60 hold off events, 8 minimum failed events is a beam trip
-   
+  //QwEventRing fEventRing(QwDetectors,120,60,8);//Event ring of 120; 60 hold off events, 8 minimum failed events is a beam trip
+  QwEventRing fEventRing(QwDetectors,32,8,16); //Event ring of 32; 8 hold off events, 16  minimum failed events is a beam trip
+  //QwEventRing fEventRing(QwDetectors,1200,600,600);
   Double_t evnum=0.0;
 
   
@@ -196,7 +197,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 	//currently QwHelicity::ApplySingleEventCuts() will check for actual helicity bit for 1 or 0 and falied the test if it is different
 	if (QwDetectors.ApplySingleEventCuts()){//The event pass the event cut constraints 
 	  
-	  QwDetectors.Do_RunningSum();//accimulate the running sum to calculate the event base running AVG 
+	  //QwDetectors.Do_RunningSum();//accimulate the running sum to calculate the event base running AVG 
 
 	  
 	  if(bHelicity){
@@ -290,7 +291,7 @@ Int_t main(Int_t argc, Char_t* argv[])
      
       //QwHelPat.Print();	
     
-      QwDetectors.Calculate_Running_Average();//this will calculate running averages for Yields per event basis
+      //QwDetectors.Calculate_Running_Average();//this will calculate running averages for Yields per event basis
       QwDetectors.GetEventcutErrorCounters();//print the event cut error summery for each sub system
       std::cout<<"QwAnalysis_Beamline Total events falied "<<falied_events_counts<< std::endl;     
      

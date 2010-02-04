@@ -51,10 +51,10 @@
 // Debug level
 static const bool kDebug = false;
 // Tracking
-static const bool kTracking = true;
+static const bool kTracking =kTRUE;//false; //set to false for R1 debugging - Rakitha (01/07/2010)
 // ROOT file output
-static const bool kTree = true;
-static const bool kHisto = true;
+static const bool kTree =kTRUE;//true; //set to false for R1 debugging - Rakitha (01/07/2010)
+static const bool kHisto = kFALSE;//false;//true; //set to false for R1 debugging - Rakitha (01/07/2010)
 
 
 // Main function
@@ -67,7 +67,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   // Define the command line options
   gQwOptions.DefineOptions();
 
-  // Message logging facilities
+  // Message logging facilities 
   gQwLog.InitLogFile("QwTracking.log");
   gQwLog.SetScreenThreshold(QwLog::kMessage);
   gQwLog.SetFileThreshold(QwLog::kDebug);
@@ -81,6 +81,8 @@ Int_t main(Int_t argc, Char_t* argv[])
     gROOT->SetBatch(kTRUE);
   }
 
+  gQwHists.LoadHistParamsFromFile(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/cosmics_hists.in");
+
   // Fill the search paths for the parameter files
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH")) + "/setupfiles");
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Tracking/prminput");
@@ -90,11 +92,14 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   // Handle for the list of VQwSubsystemTracking objects
   QwSubsystemArrayTracking detectors;
-
+  
   // Region 1 GEM
-//  detectors.push_back(new QwGasElectronMultiplier("R1"));
-//  detectors.GetSubsystem("R1")->LoadChannelMap("qweak_cosmics_hits.map");
-//  ((VQwSubsystemTracking*) detectors.GetSubsystem("R1"))->LoadQweakGeometry("qweak_new.geo");
+  detectors.push_back(new QwGasElectronMultiplier("R1"));
+  detectors.GetSubsystem("R1")->LoadChannelMap("qweak_R1.map");
+  detectors.GetSubsystem("R1")->LoadQweakGeometry("qweak_new.geo");
+
+  
+  
 
   // Region 2 HDC
   detectors.push_back(new QwDriftChamberHDC("R2"));
@@ -119,7 +124,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   // Get vector with detector info (by region, plane number)
   std::vector< std::vector< QwDetectorInfo > > detector_info;
-//  detectors.GetSubsystem("R1")->GetDetectorInfo(detector_info);
+  detectors.GetSubsystem("R1")->GetDetectorInfo(detector_info);
   detectors.GetSubsystem("R2")->GetDetectorInfo(detector_info);
   detectors.GetSubsystem("R3")->GetDetectorInfo(detector_info);
   // TODO This is handled incorrectly, it just adds the three package after the
@@ -147,6 +152,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   rcDETRegion[kPackageUp][kRegionID2][kDirectionV]->nextsame->nextsame->nextsame->SetInactive();
 
 
+
   QwTrackingWorker *trackingworker = 0;
   // Create the tracking worker
   if (kTracking) {
@@ -154,6 +160,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     if (kDebug) trackingworker->SetDebugLevel(1);
   }
 
+  
 
   // Create a timer
   TStopwatch timer;
@@ -233,7 +240,7 @@ Int_t main(Int_t argc, Char_t* argv[])
         timer.Stop();
         continue;
       }
-    }
+    } 
 
     eventbuffer.ResetControlParameters();
 
@@ -258,9 +265,10 @@ Int_t main(Int_t argc, Char_t* argv[])
     //    detectors.GetSubsystem("MD")->ConstructHistograms(rootfile->mkdir("subdir"));
 
     // Construct histograms
-    detectors.ConstructHistograms(rootfile->mkdir("histos"));
+    //detectors.ConstructHistograms(rootfile->mkdir("histos"));
 
     // Open file
+    
     TTree* tree = 0;
     QwEvent* event = 0;
     QwHitRootContainer* rootlist = 0;
@@ -273,6 +281,11 @@ Int_t main(Int_t argc, Char_t* argv[])
       tree->Branch("events", "QwEvent", &event);
     }
 
+    if(kHisto){
+	rootfile->cd();
+	detectors.ConstructHistograms(rootfile->mkdir("tracking_histo"));
+	rootfile->cd();
+    }
     QwHitContainer* hitlist = 0;
     Int_t nevents           = 0;
     Int_t eventnumber       = -1;
@@ -304,7 +317,9 @@ Int_t main(Int_t argc, Char_t* argv[])
       detectors.ProcessEvent();
 
       // Fill the histograms for the subsystem objects.
-      detectors.FillHistograms();
+      if(kHisto) detectors.FillHistograms();
+
+      
 
       // Create the event header with the run and event number
       QwEventHeader* header = new QwEventHeader(run, eventnumber);
@@ -325,8 +340,8 @@ Int_t main(Int_t argc, Char_t* argv[])
       }
 
       // Conver the hit list to ROOT output format
-      //rootlist->Convert(hitlist);
-      rootlist->Build(*hitlist);
+      //if (kTree) rootlist->Convert(hitlist);
+      if (kTree) rootlist->Build(*hitlist);
 
 
       // Track reconstruction
@@ -376,8 +391,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile->Write(0, TObject::kOverwrite);
     //rootfile->Close(); // closing rootfile causes segfaults when deleting histos
 
-    // Delete histograms in the subsystems
-    detectors.DeleteHistograms();
+    
 
     // Close CODA file
     eventbuffer.CloseDataFile();
@@ -389,6 +403,9 @@ Int_t main(Int_t argc, Char_t* argv[])
     if (hitlist)        delete hitlist; hitlist = 0;
     if (event)          delete event; event = 0;
     if (rootlist)       delete rootlist; rootlist = 0;
+
+    // Delete histograms in the subsystems
+     if(kHisto) detectors.DeleteHistograms();
 
     // Print run summary information
     QwMessage << "Analysis of run " << run << QwLog::endl

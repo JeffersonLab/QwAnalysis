@@ -41,7 +41,6 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
   fEventCounter++;
   fTripCounter++;
   */
-  
 
   if (bEVENTCUTMODE>0){//Global switch to ON/OFF event cuts set at the event cut file
 
@@ -76,7 +75,7 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
       fEventIsGood=kFALSE;   
       fDeviceErrorCode|=kErrorFlag_Sequence; 
       fErrorCount_Sequence++;
-      if (bDEBUG) std::cout<<" QwQWVK_Channel "<<GetElementName()<<" Sequence number is not incrementing properly; previous value = "<<fSequenceNo_Prev<<" Current value= "<< GetSequenceNumber()<<std::endl;     
+      if (bDEBUG)       std::cout<<" QwQWVK_Channel "<<GetElementName()<<" Sequence number  previous value = "<<fSequenceNo_Prev<<" Current value= "<< GetSequenceNumber()<<std::endl;     
     }
 
     fSequenceNo_Counter++;
@@ -102,21 +101,25 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
   else
     fDeviceErrorCode=0;
 
-  /*
+  /*  
   //debug- Ring analysis  
   if (fEventCounter%100000==0){
     bTrip=kTRUE;
     fTripCounter=0;
   }
-
-  if (bTrip && fTripCounter==10)
+  
+  if (bTrip && fTripCounter==801)
     bTrip=kFALSE;
 
-  if (bTrip)
-    fHardwareBlockSum=0;
-  
+  if (bTrip){
+    if (fTripCounter<401)
+      fHardwareBlockSum=fHardwareBlockSum*exp(-1*fTripCounter/75);//special lines to induce decaying beam trip
+    else
+      fHardwareBlockSum=fHardwareBlockSum*exp(-1*(800-fTripCounter)/75);
+  }
   */
-
+  
+  
   return fDeviceErrorCode;
 };
 

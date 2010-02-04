@@ -74,9 +74,10 @@ class QwVQWK_Channel: public VQwDataElement {
     /*
     //debug- Ring analysis
     fEventCounter=1;
+    fTripCounter=0;
     bTrip=kFALSE;
     */
-    
+    fDeviceErrorCode=0;
     return;
   };
 
@@ -114,7 +115,7 @@ class QwVQWK_Channel: public VQwDataElement {
   void Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom);
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
-  void Calculate_Running_Average();//passe the current event count in the run to calculate running average
+  void Calculate_Running_Average();//pass the current event count in the run to calculate running average
   void Do_RunningSum();
 
   Bool_t MatchSequenceNumber(size_t seqnum);
@@ -250,13 +251,13 @@ class QwVQWK_Channel: public VQwDataElement {
 
   Int_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
 
-  /*
+  /*  
   //debug- Ring analysis
   Int_t fEventCounter;
   Int_t fTripCounter;
   Bool_t bTrip;
-  
   */
+  
 
   const static Bool_t bDEBUG=kFALSE;//debugging display purposes
 
