@@ -174,8 +174,9 @@ void QwGUIInjector::PlotPosData(){
   // if a ROOT file doesn't contain MPS tree
 
   bool ldebug = true;
-      
-  mc->Divide(5,5);
+ 
+  Int_t cnt = 0;     
+  mc->Divide(7,7);
   
   if(ldebug) {
     printf("PlotPosData ---------------------------------\n");
@@ -189,24 +190,25 @@ void QwGUIInjector::PlotPosData(){
       
       if( ! strcmp(InjectorDevices[p],"qwk_bcm0l02" )){
 	//donothing
-	//std::cout<<"bcm\n";
       }
       else{
-	//std::cout<<"bpm\n";
+	cnt++;
 	sprintf (histo, "%sRelX.hw_sum",InjectorDevices[p] );
 	if( ((TTree*) obj)->FindLeaf(histo) )
 	  {
 	    if(ldebug) printf("Found a histogram name %22s\n", histo);
-	    mc -> cd(p+1);
+	    mc -> cd(cnt);
 	    obj -> Draw(histo);
+	    gPad->Update();
 	  }
 
 	sprintf (histo, "%sRelY.hw_sum",InjectorDevices[p] );
 	if( ((TTree*) obj)->FindLeaf(histo) )
 	  {
 	    if(ldebug) printf("Found a histogram name %22s\n", histo);
-	    mc -> cd(2*(p+1));
+	    mc -> cd(cnt+INJECTOR_DEV_NUM);
 	    obj -> Draw(histo);
+	    gPad->Update();
 	  }
 
       }
@@ -258,6 +260,7 @@ void QwGUIInjector::PlotChargeData(){
 	  if(ldebug) printf("%s\n", histoc);
 	  mc -> cd(k+1);
 	  objc -> Draw(histoc);
+	  gPad->Update();
 	}
     }  
   
@@ -268,24 +271,23 @@ void QwGUIInjector::PlotChargeData(){
 
 void QwGUIInjector::PositionDifferences(){
 
-  bool ldebug = true;
+  bool ldebug = false;
   
   TObject *objp;
   if(! objp) return; 
   TCanvas *mc = dCanvas->GetCanvas();
+
   mc->Clear();
-  
+  mc->Divide(1,2);
+
   Double_t relx[INJECTOR_DEV_NUM], rely[INJECTOR_DEV_NUM];
   Double_t erx[INJECTOR_DEV_NUM],ery[INJECTOR_DEV_NUM];
   Double_t err[INJECTOR_DEV_NUM],name[INJECTOR_DEV_NUM+1];
 
   Char_t* post[2]={"RelX","RelY"};
-  
-  mc->Divide(7,7);
 
   TObject *obj;
-  TObject *test;
-
+ 
   TH1D* h[INJECTOR_DEV_NUM] = {NULL};
 
   obj = HistArray.At(1);  // Get MPS tree
@@ -295,9 +297,9 @@ void QwGUIInjector::PositionDifferences(){
   }
 
   char histo[128];
-  //  TH1 *htemp;
   
   Int_t cnt = 0;
+
   for(Short_t p = 0; p <INJECTOR_DEV_NUM ; p++) 
     {
       if(!strcmp(InjectorDevices[p],"qwk_bcm0l02"))
@@ -306,53 +308,74 @@ void QwGUIInjector::PositionDifferences(){
       else
 	{
 	  sprintf (histo, "%sRelX.hw_sum", InjectorDevices[p]);
-	  
 	  if( ((TTree*) obj)->FindLeaf(histo) )
 	    {
 	      cnt++;
 	      if(ldebug) printf("Found %2d : a histogram name %22s\n", cnt, histo);
-	      mc -> cd(cnt);
 	      obj -> Draw(histo);
 	      h[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
-	      gPad->Update();
-	      
-	      mc -> cd(cnt+INJECTOR_DEV_NUM);
-	      h[p] -> GetXaxis() -> SetTitle("x name");
-	      h[p] -> GetYaxis() -> SetTitle("y name");
 	      h[p] -> Draw();
-	      gPad->SetFrameBorderMode(3);
-	      gPad->Update();
-	      
+	      relx[cnt]= h[p]->GetMean();
+	      erx[cnt]=h[p]->GetRMS()/sqrt(h[p]->GetEntries());
+	      //std::cout<<relx[cnt]<<"       "<<erx[cnt]<<"\n"; 
+	    }
+
+	  sprintf (histo, "%sRelY.hw_sum", InjectorDevices[p]);	  
+	  if( ((TTree*) obj)->FindLeaf(histo) )
+	    {
+	      if(ldebug) printf("\nFound %2d : a histogram name %22s\n", cnt, histo);
+	      obj -> Draw(histo);
+	      h[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
+	      h[p] -> Draw();
+	      rely[cnt]= h[p]->GetMean();
+	      ery[cnt]=h[p]->GetRMS()/sqrt(h[p]->GetEntries());
+	      name[cnt]=cnt+1;
+	      err[cnt]=0.0; 
 	    }
 	}
     }  
   
-  //   TGraphErrors* gx  = new TGraphErrors(INJECTOR_BPM_NUM,name,relx,err,erx);
-  //   //gx = new TGraph(21,name,relx);
-  //   gx->SetTitle("#Delta x Variation");
-  //   gx->GetYaxis()->SetTitle("#Delta x (#mum)");
-  //   gx->SetMarkerStyle(8);
-  //   gx->SetMarkerSize(0.8);
+  mc->Clear();
+  mc->Divide(1,2);
+  
+  TGraphErrors* gx  = new TGraphErrors(cnt,name,relx,err,erx);
+  gx->SetTitle("#Delta x Variation");
+  gx->GetYaxis()->SetTitle("#Delta x (nm)");
+  gx->SetMarkerStyle(8);
+  gx->SetMarkerSize(0.8);
   
   
-  //   TGraphErrors* gy  = new TGraphErrors(INJECTOR_BPM_NUM,name,rely,err,ery);
-  //   //gy = new TGraph(ndevices,name,rely);
-  //   gy->SetTitle("#Delta y Variation");
-  //   gy->GetYaxis()->SetTitle("#Delta y(#mum)");
-  //   gy->SetMarkerStyle(8);
-  //   gy->SetMarkerSize(0.8);
+  TGraphErrors* gy  = new TGraphErrors(cnt,name,rely,err,ery);
+  gy->SetTitle("#Delta y Variation");
+  gy->GetYaxis()->SetTitle("#Delta y(nm)");
+  gy->SetMarkerStyle(8);
+  gy->SetMarkerSize(0.8);
   
-  //   for (Int_t j=1;j<=INJECTOR_BPM_NUM;j++)     
-  //     {
-  //       gx->GetXaxis()->SetBinLabel(4.5*j,InjectorBPM[j-1]);
-  //       gy->GetXaxis()->SetBinLabel(4.5*j,InjectorBPM[j-1]); 
-  //     } 
+  Int_t k=0;
+  for (Int_t j=1;j<=cnt;j++)     
+    {
+      if(!strcmp(InjectorDevices[j],"qwk_bcm0l02"))
+	{
+	  //skip
+	}else{
+	k++;
+	gx->GetXaxis()->SetBinLabel(4.5*k,InjectorDevices[j-1]);
+	gy->GetXaxis()->SetBinLabel(4.5*k,InjectorDevices[j-1]);
+      } 
+    } 
   
- 
+  mc->cd(1);
+  gx->Draw("ap");
+  gPad->Update();
+
+  mc->cd(2);
+  gy->Draw("ap");
+  gPad->Update();
+
   if(ldebug) printf("----------------------------------------------------\n");
   mc->Modified();
   mc->Update();
-
+  
   return;
 }
 
