@@ -1136,7 +1136,8 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	break;
 	
       case M_ROOT_FILE_CLOSE:
-	if(dRootFileOpen) CloseRootFile();
+	//	if(dRootFileOpen) CloseRootFile();
+	CloseRootFile();
 	break;
 	
       case M_FILE_CLOSE:
