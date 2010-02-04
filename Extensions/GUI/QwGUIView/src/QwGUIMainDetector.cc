@@ -107,7 +107,7 @@ void QwGUIMainDetector::OnNewDataContainer()
 
   if(dROOTCont){
     
-    obj = dROOTCont->ReadData("MD_Tree");
+    obj = dROOTCont->ReadData("MPS_Tree");
     if(obj){
       if(obj->InheritsFrom("TTree")){
 	tree = (TTree*)obj->Clone();
