@@ -32,8 +32,7 @@ Added by Buddhini to display the injector beamline data.
  */
 //=============================================================================
 
-#define INJECTOR_BPM_NUM          6 
-#define INJECTOR_BCM_NUM          7        
+#define INJECTOR_DEV_NUM          22        
 #define INJECTOR_DET_TRE_NUM      2
 ///
 /// \ingroup QwGUIInjector
@@ -81,13 +80,14 @@ class QwGUIInjector : public QwGUISubSystem {
   //!Return value: none
   // void                 PlotData();
 
-  void                 PlotPosData();
+  void PlotPosData();
 
 
-  void                 PlotChargeData();
+  void PlotChargeData();
 
 
-  void                 CompareCharge();  
+  void PositionDifferences();
+  
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
@@ -102,8 +102,7 @@ class QwGUIInjector : public QwGUISubSystem {
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
   //!These are the names by which the histograms are identified within the root file.
 
-  static const char   *InjectorBPM[INJECTOR_BPM_NUM];
-  static const char   *InjectorBCM[INJECTOR_BCM_NUM];
+  static const char   *InjectorDevices[INJECTOR_DEV_NUM];
   static const char   *InjectorTrees[INJECTOR_DET_TRE_NUM];
 
  protected:
