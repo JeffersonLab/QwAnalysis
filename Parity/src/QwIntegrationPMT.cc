@@ -45,7 +45,12 @@ void QwIntegrationPMT::ClearEventData()
 void QwIntegrationPMT::ReportErrorCounters(){
   fTriumf_ADC.ReportErrorCounters();
 };
-
+/********************************************************/
+void QwIntegrationPMT::SetRandomEventDriftParameters(Double_t Amplitude, Double_t Phase, Double_t Frequency)
+{
+  fTriumf_ADC.SetRandomEventDriftParameters(Amplitude, Phase, Frequency);
+  return;
+};
 /********************************************************/
 void QwIntegrationPMT::SetRandomEventParameters(Double_t mean, Double_t sigma)
 {
@@ -85,6 +90,12 @@ Double_t QwIntegrationPMT::GetBlockValue(Int_t blocknum)
 void QwIntegrationPMT::SetEventData(Double_t* block, UInt_t sequencenumber)
 {
   fTriumf_ADC.SetEventData(block, sequencenumber);
+  return;
+};
+/********************************************************/
+void QwIntegrationPMT::SetEventNumber(int event)
+{
+  fTriumf_ADC.SetEventNumber(event);
   return;
 };
 /********************************************************/

@@ -150,9 +150,15 @@ void QwVQWK_Channel::RandomizeEventData(int helicity)
   Double_t sqrt_fBlocksPerEvent = 0.0;
   sqrt_fBlocksPerEvent = sqrt(fBlocksPerEvent);
 
+  Double_t drift = fMockDriftAmplitude*sin(2.0*3.1415*fMockDriftFrequency*1.06e-3*fEventNumber + fMockDriftPhase);
+  if(GetElementName()=="bar3left")
+    printf("event %d drift = %f\n",fEventNumber,drift);
+
   for (size_t i = 0; i < fBlocksPerEvent; i++)
     block[i] = fMockGaussianMean * (1 + helicity * fMockAsymmetry) / fBlocksPerEvent
-             + fMockGaussianSigma / sqrt_fBlocksPerEvent * fNormalRandomVariable();
+      + fMockGaussianSigma / sqrt_fBlocksPerEvent * fNormalRandomVariable()
+      + drift/fBlocksPerEvent;
+
   SetEventData(block);
 };
 
@@ -162,6 +168,13 @@ void QwVQWK_Channel::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
   for (size_t i = 0; i < fBlocksPerEvent; i++)
     block[i] = hwsum / fBlocksPerEvent;
   SetEventData(block);
+};
+
+void QwVQWK_Channel::SetRandomEventDriftParameters(Double_t Amplitude, Double_t Phase, Double_t Frequency)
+{
+  fMockDriftAmplitude  = Amplitude;
+  fMockDriftPhase      = Phase;
+  fMockDriftFrequency  = Frequency;
 };
 
 void QwVQWK_Channel::SetRandomEventParameters(Double_t mean, Double_t sigma)

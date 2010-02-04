@@ -48,9 +48,13 @@ class QwVQWK_Channel: public VQwDataElement {
     fBlocksPerEvent = 4;
     fPedestal=0.0;
     fCalibrationFactor=1.;
+    fMockDriftAmplitude  = 0;
+    fMockDriftPhase      = 0;
+    fMockDriftFrequency  = 0;
     fMockAsymmetry = 0.0;
     fMockGaussianMean = 0.0;
     fMockGaussianSigma = 0.0;
+    fEventNumber = 0;
     fNumEvtsWithEventCutsRejected=0;//init error counters
     fADC_Same_NumEvt=0;//init HW_Check counters
     fPrev_HardwareBlockSum=0;//init HW_Check counters
@@ -90,9 +94,11 @@ class QwVQWK_Channel: public VQwDataElement {
     fNumEvtsWithEventCutsRejected++;
   }
 
+  void  SetRandomEventDriftParameters(Double_t Amplitude, Double_t Phase, Double_t Frequency);
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
   void  RandomizeEventData(int helicity);
+  void  SetEventNumber(int event) {fEventNumber = event;};
   void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
   void  SetEventData(Double_t* block, UInt_t sequencenumber = 0);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
@@ -197,12 +203,16 @@ class QwVQWK_Channel: public VQwDataElement {
   size_t fPreviousSequenceNumber; /*! Previous event sequence number for this channel  */
   size_t fNumberOfSamples;    /*! Number of samples  read through the module        */
   size_t fNumberOfSamples_map;    /*! Number of samples in the expected to  read through the module. This value is set in the QwBeamline map file     */
+  size_t fEventNumber;
 
   /*  Parity mock data distributions */
   Double_t fMockAsymmetry;
   Double_t fMockGaussianMean;
   Double_t fMockGaussianSigma;
-
+  Double_t fMockDriftAmplitude;
+  Double_t fMockDriftPhase;    
+  Double_t fMockDriftFrequency;
+  
   
   Int_t fNumEvtsWithEventCutsRejected;/*! Counts the Event cut rejected events */
 

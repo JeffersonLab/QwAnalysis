@@ -23,6 +23,8 @@ QwGUIMainDetector::QwGUIMainDetector(const TGWindow *p, const TGWindow *main, co
 
   AddThisTab(this);
 
+  SetDFTCalculated(kFalse);
+
   ClearData();
 
 }
@@ -55,23 +57,15 @@ void QwGUIMainDetector::MakeLayout()
   
   dMenuData = new TGPopupMenu(fClient->GetRoot());
   dMenuData->AddEntry("Yield &Histogram", M_DATA_HISTO);
-  dMenuData->AddSeparator();
   dMenuData->AddEntry("Yield &Graph", M_DATA_GRAPH);
+  dMenuData->AddEntry("Yield &DFT", M_DFT_HISTO);
+//   dMenuData->AddSeparator();
 
   dMenuBar = new TGMenuBar(this, 1, 1, kHorizontalFrame);
   dMenuBar->AddPopup("&Data", dMenuData, dMenuBarItemLayout);
 
   dTabFrame->AddFrame(dMenuBar, dMenuBarLayout);
   dMenuData->Associate(this);
-
-
-//   dUtilityLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop | kLHintsExpandX, 0,0,1,2);
-// //   dTBinEntryLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
-// //   dRunEntryLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 2, 2, 2, 2); 
-//   dUtilityFrame = new TGHorizontalFrame(dTabFrame,60,10);
-//   dTabFrame->AddFrame(dUtilityFrame,dUtilityLayout);
-// //   dHorizontal3DLine = new TGHorizontal3DLine(dTabFrame);
-// //   dTabFrame->AddFrame(dHorizontal3DLine, new TGLayoutHints(kLHintsTop | kLHintsExpandX));
 
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,10, 10);     
   dTabFrame->AddFrame(dCanvas,dCnvLayout);
@@ -108,8 +102,8 @@ void QwGUIMainDetector::OnNewDataContainer()
   TObject *obj;
   TTree *tree;
   ClearData();
-  TH1D *hst[MAIN_DET_HST_NUM];
-  TGraph *grp[MAIN_DET_HST_NUM];
+  TH1D *hst;
+  TGraph *grp;
 
   if(dROOTCont){
     
@@ -121,21 +115,20 @@ void QwGUIMainDetector::OnNewDataContainer()
 	for(int i = 0; i < MAIN_DET_HST_NUM; i++){
 
 	  tree->Draw(Form("%s:hw_sum_raw",MainDetectorHists[i]),"","goff",tree->GetEntries(),0);
-	  hst[i] = new TH1D(Form("hst%02d",i),Form("%s:hw_sum_raw",MainDetectorHists[i]),1000,9,11);
-	  grp[i] = new TGraph();
-	  grp[i]->SetTitle(Form("%s:hw_sum_raw",MainDetectorHists[i]));
-	  grp[i]->SetName(Form("grp%02d",i));
-	  hst[i]->SetDirectory(0);
+	  hst = new TH1D(Form("hst%02d",i),Form("%s:hw_sum_raw",MainDetectorHists[i]),1000,9,11);
+	  grp = new TGraph();
+	  grp->SetTitle(Form("%s:hw_sum_raw",MainDetectorHists[i]));
+	  grp->SetName(Form("grp%02d",i));
+	  hst->SetDirectory(0);
 
 	  for(int j = 0; j < tree->GetEntries(); j++){
 	    dCurrentData[i].push_back(tree->GetV1()[j]);
-	    hst[i]->Fill(tree->GetV1()[j]*1.0e-6);
-	    grp[i]->SetPoint(j,j*1.06+1,tree->GetV1()[j]*1.0e-6);
+	    hst->Fill(tree->GetV1()[j]*1.0e-6);
+	    grp->SetPoint(j,j*1.06+1,tree->GetV1()[j]*1.0e-6);
 	  }
-	  HistArray.Add(hst[i]);
-	  GraphArray.Add(grp[i]);
-	}
-	
+	  HistArray.Add(hst);
+	  GraphArray.Add(grp);
+	}	
       }
     }  
   }
@@ -179,8 +172,16 @@ void QwGUIMainDetector::ClearData()
     delete obj;
     obj = nextg();
   }
+
+  TIter nextd(DFTArray.MakeIterator());
+  obj = nextd();
+  while(obj){    
+    delete obj;
+    obj = nextd();
+  }
   HistArray.Clear();
   GraphArray.Clear();
+  DFTArray.Clear();
 
   for(int i = 0; i < MAIN_DET_HST_NUM; i++){
     dCurrentData[i].clear();
@@ -233,6 +234,95 @@ void QwGUIMainDetector::PlotGraphs()
   SetPlotDataType(PLOT_TYPE_GRAPH);
 }
 
+void QwGUIMainDetector::PlotDFT()
+{
+  if(!IsDFTCalculated())
+    CalculateDFT();
+
+  Int_t ind = 1;
+
+  TCanvas *mc = dCanvas->GetCanvas();
+
+  TObject *obj;
+  TIter next(DFTArray.MakeIterator());
+  obj = next();
+  while(obj){
+    mc->cd(ind);
+    ((TH1*)obj)->Draw();
+    ind++;
+    obj = next();
+  }
+
+  mc->Modified();
+  mc->Update();
+
+  SetPlotDataType(PLOT_TYPE_DFT);
+  
+}
+
+void QwGUIMainDetector::CalculateDFT()
+{
+  Int_t N = 0;                   //Current number of events/helicity
+                                 //states in the data.
+
+  Double_t dt = 1.06e-3;         //Sampling interval in seconds,
+                                 //corresponding to the current
+                                 //helicity reversal rate.
+
+  Double_t T = 0;                //Sampling time (run length) in seconds;
+
+  Double_t fmax = 1.0/(2*dt);    //Maximum frequency bandwidth set accodingt
+                                 //to the Nyquist sampling criterion.  
+
+  Double_t df;                   //Frequency resolution= 1/T
+
+  Int_t M = (Int_t)(N/2);        //Number of frequency samples = fmax/df = N/2;
+
+  Double_t fValx  = 0;            //Temporary variable to hold the frequency coordinate
+  Double_t fValyR = 0;            //Temporary variable to hold the real component of the frequency amplitude coordinate
+  Double_t fValyI = 0;            //Temporary variable to hold the imaginary component of the frequency amplitude coordinate
+
+  Double_t tValx = 0;//new Double_t;            //Temporary variable to hold the time coordinate
+  Double_t tValy = 0;//new Double_t;            //Temporary variable to hold the time sample value coordinate
+
+  TH1D *hst;
+  TGraph *grp;
+
+  TObject *obj;
+  TIter next(GraphArray.MakeIterator());
+  obj = next();
+  while(obj){
+    grp = ((TGraph*)obj);
+    N = grp->GetN();
+    T = N*dt;
+    df = 1.0/T;
+    M = (Int_t)(N/2);
+
+    hst = new TH1D(Form("%s_DFT",grp->GetName()),Form("%s DFT",grp->GetTitle()),M,0,fmax);
+
+    for(int j = 0; j < M; j++){
+      fValx = j*df;
+      fValyR = 0;
+      fValyI = 0;
+      for(int k = 0; k < N; k++){
+	if(grp->GetPoint(k,tValx,tValy) > 0){
+	  fValyR += tValy*TMath::Cos(2*TMath::Pi()*j*k/N);
+	  fValyI += tValy*TMath::Sin(2*TMath::Pi()*j*k/N);
+	}
+	else{
+	  fValyI += 0;
+	  fValyR += 0;
+	}
+      } 
+      hst->SetBinContent(j+1,sqrt(fValyR*fValyR+fValyI*fValyI));
+    }
+    DFTArray.Add(hst);
+    obj = next();
+  }
+
+  SetDFTCalculated(kTrue);
+}
+
 void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 {
   if(event == kButton1Double){
@@ -258,7 +348,7 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
 
 	RSDataWindow *dMiscWindow = new RSDataWindow(GetParent(), this,
 						     GetNewWindowName(),"QwGUIMainDetector",
-						     HistArray[pad-1]->GetTitle(), PT_HISTO_1D,600,400);
+						     HistArray[pad-1]->GetTitle(), PT_GRAPH,600,400);
 	if(!dMiscWindow){
 	  return;
 	}
@@ -266,6 +356,19 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
 	dMiscWindow->SetPlotTitle((char*)GraphArray[pad-1]->GetTitle());
 	dMiscWindow->DrawData(*((TGraph*)GraphArray[pad-1]));
 	SetLogMessage(Form("Looking at graph %s\n",(char*)GraphArray[pad-1]->GetTitle()),kTrue);
+      }
+      else if(GetPlotDataType() == PLOT_TYPE_DFT){
+
+	RSDataWindow *dMiscWindow = new RSDataWindow(GetParent(), this,
+						     GetNewWindowName(),"QwGUIMainDetector",
+						     DFTArray[pad-1]->GetTitle(), PT_HISTO_1D,600,400);
+	if(!dMiscWindow){
+	  return;
+	}
+	DataWindowArray.Add(dMiscWindow);
+	dMiscWindow->SetPlotTitle((char*)DFTArray[pad-1]->GetTitle());
+	dMiscWindow->DrawData(*((TH1D*)DFTArray[pad-1]));
+	SetLogMessage(Form("Looking at graph %s\n",(char*)DFTArray[pad-1]->GetTitle()),kTrue);
       }
     }
   }
@@ -314,7 +417,10 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       case M_DATA_GRAPH:
 	PlotGraphs();
 	break;
-	
+
+      case M_DFT_HISTO:
+	PlotDFT();
+	break;	
 
       default:
 	break;

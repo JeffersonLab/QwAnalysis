@@ -36,11 +36,13 @@
 enum ENDataPlotType {
   PLOT_TYPE_HISTO,           
   PLOT_TYPE_GRAPH,           
+  PLOT_TYPE_DFT,           
 };
 
 enum MDMenuIdentifiers {
   M_DATA_HISTO,
   M_DATA_GRAPH,
+  M_DFT_HISTO,
 };
 
 #ifndef QWGUIMAINDETECTOR_H
@@ -57,6 +59,7 @@ using std::vector;
 #include <TG3DLine.h>
 #include <TRootEmbeddedCanvas.h>
 #include <TRootCanvas.h>
+#include <TMath.h>
 #include "QwGUISubSystem.h"
 #include "RSDataWindow.h"
 //#include "QwParameterFile.h"
@@ -86,8 +89,11 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;
 
-  //!An object array to store graph pointers -- good for use in cleanup.
+  //!An object array to store graph pointers.
   TObjArray            GraphArray;
+
+  //!An object array to store histogram pointers for the DFT.
+  TObjArray            DFTArray;
   
   //!An object array to store data window pointers -- good for use in cleanup.
   TObjArray            DataWindowArray;
@@ -108,6 +114,15 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!Return value: none
   void                 PlotGraphs();
 
+  //!This function plots time graphs of the data in the current file, in the main canvas.
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none
+  void                 PlotDFT();
+
+
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
@@ -119,19 +134,25 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!Return value: none  
   void                 ClearData();
 
-  Int_t GetCurrentDataLength(Int_t det) {return det >= 0 && det < MAIN_DET_HST_NUM ? dCurrentData[det].size() : -1;};
+  Int_t                GetCurrentDataLength(Int_t det) {return det >= 0 && det < MAIN_DET_HST_NUM ? dCurrentData[det].size() : -1;};
 
-  void SetPlotDataType(ENDataPlotType type) {dDataPlotType = type;};
-  ENDataPlotType GetPlotDataType() {return dDataPlotType;};
+  void                 SetPlotDataType(ENDataPlotType type) {dDataPlotType = type;};
+  ENDataPlotType       GetPlotDataType() {return dDataPlotType;};
 
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
   //!These are the names by which the histograms are identified within the root file.
   static const char   *MainDetectorHists[MAIN_DET_HST_NUM];
 
   //!Stores the data items (events) from the tree for all detectors
-  vector <Double_t> dCurrentData[MAIN_DET_HST_NUM];
+  vector <Double_t>    dCurrentData[MAIN_DET_HST_NUM];
+  vector <Double_t>    dCurrentDataDFT[MAIN_DET_HST_NUM];
 
-  ENDataPlotType dDataPlotType;
+  ENDataPlotType       dDataPlotType;
+  Bool_t               dDFTCalculated;
+  void                 SetDFTCalculated(Bool_t flag) {dDFTCalculated = flag;};
+  Bool_t               IsDFTCalculated() {return dDFTCalculated;};
+  void                 CalculateDFT();
+
 
  protected:
 

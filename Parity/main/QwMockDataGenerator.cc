@@ -139,6 +139,7 @@ int main(int argc, char* argv[])
   maindetector->GetChannel("Bar1Left")->SetRandomEventAsymmetry(1.0e-5);
   maindetector->GetChannel("Bar1Right")->SetRandomEventAsymmetry(-1.0e-5);
 
+  maindetector->GetChannel("Bar3Left")->SetRandomEventDriftParameters(1.0e6,0,1000);
 
   // Initialize randomness provider and distribution
   boost::mt19937 randomnessGenerator(999); // Mersenne twister with seed (see below)
@@ -211,6 +212,7 @@ int main(int argc, char* argv[])
 
       // Fill the detectors with randomized data
       int myhelicity = helicity->GetHelicityActual() ? +1 : -1;
+      maindetector->GetChannel("Bar3Left")->SetEventNumber(event);
       detectors.RandomizeEventData(myhelicity);
 
       // Secondly introduce correlations between variables
