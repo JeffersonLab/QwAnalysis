@@ -815,25 +815,25 @@ QwHitContainer* QwTreeEventBuffer::GetHitList (int eventnumber)
 
 std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion1 (
 	QwDetectorInfo* detectorinfo,
-	const double x, const double y)
+	const double x_local, const double y_local)
 {
   // Detector identification
   EQwRegionID region = detectorinfo->fRegion;
   EQwDetectorPackage package = detectorinfo->fPackage;
   EQwDirectionID direction = detectorinfo->fDirection;
   int plane = detectorinfo->fPlane;
-  int central_strip = detectorinfo->GetNumberOfElements() / 2;
+  double offset = detectorinfo->GetElementOffset();
   double spacing = detectorinfo->GetElementSpacing();
+  int numberofelements = detectorinfo->GetNumberOfElements();
 
   // Detector geometry
   double x_detector = detectorinfo->GetXPosition();
   double y_detector = detectorinfo->GetYPosition();
 
-  // Global r,phi coordinates
-  double x_global = x + x_detector;  // Here, assuming that x points to left, y points up, z is along the beam
-  double y_global = y + y_detector;
-  double r = sqrt(x_global * x_global + y_global * y_global);
-  double phi = atan2 (y_global, x_global);
+  // Global r,y coordinates
+  double x = x_local + x_detector;
+  double y = y_local + y_detector;
+  double r = sqrt(x * x + y * y);
 
   // Create a list for the hits (will be returned)
   std::vector<QwHit> hits;
@@ -843,19 +843,24 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion1 (
   int strip2 = 0;
   switch (direction) {
     case kDirectionR:
-      strip1 = (int) floor (r / spacing) + central_strip - 2;
-      strip2 = (int) floor (r / spacing) + central_strip + 2;
+      strip1 = (int) floor ((r - offset) / spacing) - 2;
+      strip2 = (int) floor ((r - offset) / spacing) + 2;
       break;
-    case kDirectionPhi:
-      strip1 = (int) floor (phi / spacing) + central_strip - 2;
-      strip2 = (int) floor (phi / spacing) + central_strip + 2;
+    case kDirectionY:
+      strip1 = (int) floor ((y - offset) / spacing) - 2;
+      strip2 = (int) floor ((y - offset) / spacing) + 2;
       break;
     default:
       QwError << "Direction " << direction << " not handled in CreateHitRegion1!" << QwLog::endl;
       return hits;
   }
 
+  // Add the hit strips to the hit list
   for (int strip = strip1; strip <= strip2; strip++) {
+
+    // Throw out unphysical hits
+    if (strip <= 0 || strip > numberofelements) continue;
+
     // Create a new hit
     QwHit* hit = new QwHit(0,0,0,0, region, package, plane, direction, strip, 0);
     hit->SetDetectorInfo(detectorinfo);
