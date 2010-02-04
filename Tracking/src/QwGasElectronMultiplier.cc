@@ -363,16 +363,24 @@ void QwGasElectronMultiplier::AddHit(Int_t VFAT_index,Int_t channel){//Add a new
   //Transverse strips
     Plane=kDirectionY;//for transverse strips
     if (VFAT_index==2){
-      if (channel<=64)
-	Strip=127-2*(channel-1);
-      else
-	Strip=128-2*(128-channel);	
+      if (channel<=64){
+	//Strip=127-2*(channel-1);
+	Strip=127-2*(channel-1)+128;//128 offset added 
+      }
+      else{
+	//Strip=128-2*(128-channel);
+	Strip=128-2*(128-channel)+128;//128 offset added 
+      }
     }
     else if (VFAT_index==3){
-      if (channel<=64)
-	Strip=-1*(2+2*(channel-1));
-      else
-	Strip=-1*(1+2*(128-channel));	
+      if (channel<=64){
+	//Strip=-1*(2+2*(channel-1));
+	Strip=-1*(2+2*(channel-1))+128;
+      }
+      else{
+	//Strip=-1*(1+2*(128-channel));
+	Strip=-1*(1+2*(128-channel))+128;
+      }
     }  
     //Add the transverse hit
     //hitCount gives the total number of hits on a given wire
