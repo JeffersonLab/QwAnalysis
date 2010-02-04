@@ -5,7 +5,7 @@ ClassImp(QwGUIInjector);
 enum QwGUIInjectorIndentificator {
   BA_POSSITION,
   BA_CHARGE,
-  BA_CHARGE_VAR
+  BA_POS_VAR
 };
 
 const char *QwGUIInjector::InjectorTrees[INJECTOR_DET_TRE_NUM] = 
@@ -14,21 +14,13 @@ const char *QwGUIInjector::InjectorTrees[INJECTOR_DET_TRE_NUM] =
     "MPS_Tree"
   };
 
-const char *QwGUIInjector::InjectorBPM[INJECTOR_BPM_NUM]=
+const char *QwGUIInjector::InjectorDevices[INJECTOR_DEV_NUM]=
   {"qwk_1i02","qwk_1i04","qwk_1i06","qwk_0i02","qwk_0i02a",
-   "qwk_0i05"
-//    "qwk_0i07","qwk_0l01","qwk_0l02","qwk_0l03",
-//    "qwk_0l04","qwk_0l05","qwk_0l06","qwk_0l07","qwk_0l08",
-//    "qwk_0l09","qwk_0l10","qwk_0r01","qwk_0r02","qwk_0r05",
-//    "qwk_0r06"
-
+   "qwk_0i05","qwk_0i07","qwk_0l01","qwk_0l02","qwk_bcm0l02",
+   "qwk_0l03","qwk_0l04","qwk_0l05","qwk_0l06","qwk_0l07",
+   "qwk_0l08","qwk_0l09","qwk_0l10","qwk_0r01","qwk_0r02",
+   "qwk_0r05","qwk_0r06"
     };
-
-const char *QwGUIInjector::InjectorBCM[INJECTOR_BCM_NUM]=
-  {"qwk_bcm0l02","qwk_1i02WSum","qwk_1i04WSum","qwk_1i06WSum","qwk_0i02WSum","qwk_0i02aWSum",
-   "qwk_0i05WSum"
-    };
-
 
 
 QwGUIInjector::QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTab *tab,
@@ -82,7 +74,7 @@ void QwGUIInjector::MakeLayout()
 
   dButtonPos = new TGTextButton(dControlsFrame, "&Beam Position Differences", BA_POSSITION);
   dButtonCharge = new TGTextButton(dControlsFrame, "&Beam Charge Asymmetries", BA_CHARGE);
-  dButtonPosVariation = new TGTextButton(dControlsFrame, "&Beam Position Variation", BA_CHARGE_VAR);
+  dButtonPosVariation = new TGTextButton(dControlsFrame, "&Beam Position Variation", BA_POS_VAR);
   dBtnLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
 
   dControlsFrame->AddFrame(dButtonPos,dBtnLayout );
@@ -145,8 +137,6 @@ void QwGUIInjector::OnNewDataContainer()
 	  HistArray.Add(copy);
 	}
     }
-    
-    // PlotPosData();
   }
 };
 
@@ -172,44 +162,55 @@ void QwGUIInjector::ClearData()
 void QwGUIInjector::PlotPosData(){
 
   TObject *obj;
+
+
+
+  TCanvas *mc = dCanvas->GetCanvas();
+  mc->Clear();
+
   obj = HistArray.At(1);  // Get MPS tree
   if(! obj) return;
   // prevent crash when executing this function
   // if a ROOT file doesn't contain MPS tree
-  else
+
+  bool ldebug = false;
+      
+  mc->Divide(5,5);
+  
+  if(ldebug) printf("%s\n", obj->GetName());
+      
+  for(Short_t p = 0; p <INJECTOR_DEV_NUM ; p++) 
     {
-      bool ldebug = false;
-      TCanvas *mc = dCanvas->GetCanvas();
-      
-      mc->Divide(4,3);
-      
-      if(ldebug) printf("%s\n", obj->GetName());
-      
-      char histo[128];
-      for(Short_t p = 0; p <INJECTOR_BPM_NUM ; p++) 
-	{
-	  
-	  sprintf (histo, "%sRelX.hw_sum",InjectorBPM[p] );
-	  if( ((TTree*) obj)->FindLeaf(histo))
-	    {
-	      if(ldebug) printf("%s\n",InjectorBPM[p]);
-	      mc -> cd(p+1);
-	      obj -> Draw(histo);
-	    }
-	  sprintf (histo, "%sRelY.hw_sum",InjectorBPM[p] );
-	  if( ((TTree*) obj)->FindLeaf(histo))
-	    {
-	      if(ldebug) printf("%s\n",InjectorBPM[p]);
-	      mc -> cd(2*(p+1));
-	      obj -> Draw(histo);
-	    }
-	  
-	}  
-      
-      mc->Modified();
-      mc->Update();
-    }
+      if(InjectorDevices[p]== "qwk_bcm0l02"){
+	//donothing
+	//std::cout<<"bcm\n";
+      }
+      else{
+	//std::cout<<"bpm\n";
+	char histo[128];
+	sprintf (histo, "%sRelX.hw_sum",InjectorDevices[p] );
+	if( ((TTree*) obj)->FindLeaf(histo))
+	  {
+	    if(ldebug) printf("%s\n",InjectorDevices[p]);
+	    mc -> cd(p+1);
+	    obj -> Draw(histo);
+	  }
+	sprintf (histo, "%sRelY.hw_sum",InjectorDevices[p] );
+	if( ((TTree*) obj)->FindLeaf(histo))
+	  {
+	    if(ldebug) printf("%s\n",InjectorDevices[p]);
+	    mc -> cd(2*(p+1));
+	    obj -> Draw(histo);
+	  }
+      }
+    }  
+  
+  
+  mc->Modified();
+  mc->Update();
+  
   return;
+  
 }
 
 
@@ -219,6 +220,7 @@ void QwGUIInjector::PlotChargeData(){
   TObject *objc;
   objc = HistArray.At(0);  // Get HEL tree
   if(! objc) return; 
+  
   // prevent crash when executing this function
   // if a ROOT file doesn't contain HEL tree
 
@@ -226,100 +228,117 @@ void QwGUIInjector::PlotChargeData(){
   bool ldebug = false;
  
   TCanvas *mc = dCanvas->GetCanvas();
+  mc->Clear();
+  mc->Divide(4,6);
 
-  mc->Divide(4,3);
-  
   if(ldebug) printf("%s\n", objc->GetName());
   
-  char histoc[128];
 
-  for(Short_t k = 0; k <INJECTOR_BCM_NUM ; k++) 
+
+  for(Short_t k = 0; k <INJECTOR_DEV_NUM ; k++) 
     {
-    
-      sprintf (histoc, "asym_%s.hw_sum",InjectorBCM[k] );
+      char histoc[128];
+
+      if(InjectorDevices[k]=="qwk_bcm0l02")
+	{    
+	  sprintf (histoc, "asym_%s.hw_sum",InjectorDevices[k] );
+	}else{
+	sprintf (histoc, "asym_%sWSum.hw_sum",InjectorDevices[k] );
+      }
+      
       if(((TTree*)objc)->FindLeaf(histoc))
 	{
-	  if(ldebug) printf("%s\n",InjectorBCM[k]);
+	  if(ldebug) printf("%s\n",InjectorDevices[k]);
 	  mc -> cd(k+1);
 	  objc -> Draw(histoc);
 	}
     }  
-
+  
   mc->Modified();
   mc->Update();
 }
 
 
-void QwGUIInjector::CompareCharge(){
+void QwGUIInjector::PositionDifferences(){
 
- //  bool ldebug = false;
-
-//   TObject *obj;
-//   TCanvas *mc = dCanvas->GetCanvas();
+  bool ldebug = false;
   
-//   Double_t mena_charge[INJECTOR_BPM_NUM];
-//   Double_t relx[INJECTOR_BPM_NUM], rely[INJECTOR_BPM_NUM],
-//     erx[INJECTOR_BPM_NUM],ery[INJECTOR_BPM_NUM],
-//     err[INJECTOR_BPM_NUM],name[INJECTOR_BPM_NUM+1];
+  TObject *objp;
+  if(! objp) return; 
+  TCanvas *mc = dCanvas->GetCanvas();
+    mc->Clear();
+  Double_t relx[INJECTOR_DEV_NUM], rely[INJECTOR_DEV_NUM],
+    erx[INJECTOR_DEV_NUM],ery[INJECTOR_DEV_NUM],
+    err[INJECTOR_DEV_NUM],name[INJECTOR_DEV_NUM+1];
 
-//   //mc->Divide(INJECTOR_BPM_NUM/2,INJECTOR_BPM_NUM/2);
+  char* post[2]={"RelX","RelY"};
+  
+  mc->Divide(5,5);
 
-//   obj = HistArray.At(1);  // Get MPS tree
-//   if(ldebug) printf("%s\n", obj->GetName());
+  TObject *obj;
+
+  TH1* h[22];
+  obj = HistArray.At(1);  // Get MPS tree
+  if(ldebug) printf("%s\n", obj->GetName());
   
-//   for(Short_t p = 0; p <INJECTOR_BPM_NUM ; p++) 
-//     {
-//       char * histo;
-//       sprintf (histo, "%sRelX.hw_sum>>htemp",InjectorBPM[p] );
-//       if( ((TTree*) obj)->FindLeaf(histo))
-// 	{
-// 	  if(ldebug) printf("%s\n",InjectorBCM[p]);
-// 	  mc -> cd(p+1);
-// 	  obj -> Draw(histo);
-// 	  TH1* htemp = mc->GetPrimitive(histo);
-// 	  //(TH1D*) htemp = (TH1*)(gDirectory)->GetObject("histo");
-// 	  relx[p]=htemp->GetMean();
-// 	  erx[p]=(htemp->GetRMS())/sqrt(htemp->GetEntries());
-// 	}
-      
-//       sprintf (histo, "%sRelY.hw_sum>>htemp",InjectorBPM[p] );
-//       if( ((TTree*) obj)->FindLeaf(histo))
-// 	{
-// 	  if(ldebug) printf("%s\n",InjectorBPM[p]);
-// 	  mc -> cd(2*(p+1));
-// 	  obj -> Draw(histo);
-// 	  rel[p]=htemp->GetMean();
-// 	  ery[p]=(htemp->GetRMS())/sqrt(htemp->GetEntries());
-// 	}
-//       name[p]+=0;
-//     }  
+  for(Short_t p = 0; p <INJECTOR_DEV_NUM ; p++) 
+    {
+
+      if(InjectorDevices[p]== "qwk_bcm0l02"){
+	//donothing
+      }
+      else{
+	char histo[128];
+	sprintf (histo, "%sRelX.hw_sum",InjectorDevices[p] );
+	if( ((TTree*) obj)->FindLeaf(histo))
+	  {
+	    if(ldebug) printf("%s\n",InjectorDevices[p]);
+	    mc -> cd(p+1);
+	    obj -> Draw(histo);
+	    //	    h[p] =(TH1*)(mc->GetPrimitive("htemp"));
+	    //mc -> cd(2*(p+1));
+	    //h[p]->Draw();
+
+	  }
+// 	sprintf (histo, "%sRelY.hw_sum",InjectorDevices[p] );
+// 	if( ((TTree*) obj)->FindLeaf(histo))
+// 	  {
+// 	    if(ldebug) printf("%s\n",InjectorDevices[p]);
+// 	    mc -> cd(2*(p+1));
+// 	    obj -> Draw(histo);
+// 	  }
+      }
+    }  
   
-//   gx  = new TGraphErrors(INJECTOR_BPM_NUM,name,relx,err,erx);
+//   TGraphErrors* gx  = new TGraphErrors(INJECTOR_BPM_NUM,name,relx,err,erx);
 //   //gx = new TGraph(21,name,relx);
 //   gx->SetTitle("#Delta x Variation");
 //   gx->GetYaxis()->SetTitle("#Delta x (#mum)");
 //   gx->SetMarkerStyle(8);
 //   gx->SetMarkerSize(0.8);
-
- 
-//   gy  = new TGraphErrors(ndevices,name,rely,err,ery);
+  
+  
+//   TGraphErrors* gy  = new TGraphErrors(INJECTOR_BPM_NUM,name,rely,err,ery);
 //   //gy = new TGraph(ndevices,name,rely);
 //   gy->SetTitle("#Delta y Variation");
 //   gy->GetYaxis()->SetTitle("#Delta y(#mum)");
 //   gy->SetMarkerStyle(8);
 //   gy->SetMarkerSize(0.8);
 
-//   for (Int_t j=1;j<=ndevices;j++)     
+//   for (Int_t j=1;j<=INJECTOR_BPM_NUM;j++)     
 //     {
-//       gx->GetXaxis()->SetBinLabel(4.5*j,devicelist[j-1]);
-//       gy->GetXaxis()->SetBinLabel(4.5*j,devicelist[j-1]); 
+//       gx->GetXaxis()->SetBinLabel(4.5*j,InjectorBPM[j-1]);
+//       gy->GetXaxis()->SetBinLabel(4.5*j,InjectorBPM[j-1]); 
 //     } 
   
-//   c2->cd(2); 
+//   mc->cd(1); 
 //   gx->Draw("ap");
 
-//   mc->Modified();
-//   mc->Update();
+//   mc->cd(2); 
+//   gy->Draw("ap");
+   
+ mc->Modified();
+ mc->Update();
 }
 
 
@@ -329,7 +348,7 @@ void QwGUIInjector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
   if(event == kButton1Double){
     Int_t pad = dCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
     
-    if(pad > 0 && pad <= INJECTOR_BCM_NUM)
+    if(pad > 0 && pad <= INJECTOR_DEV_NUM)
       {
 	RSDataWindow *dMiscWindow = new RSDataWindow(GetParent(), this,
 						     GetNewWindowName(),"QwGUIInjector",
@@ -373,25 +392,25 @@ Bool_t QwGUIInjector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  {
 	  case kCM_BUTTON:
 	    {
-	      TCanvas *mc = dCanvas->GetCanvas();
-	      TIter next(HistArray.MakeIterator());
-	      
 	      switch(parm1)
 		{
 		case   BA_POSSITION:
 		  //printf("text button id %ld pressed\n", parm1);	
-		  mc->Clear();  
 		  PlotPosData();
-		  mc->Update();
 		  break;
 		  
 		case BA_CHARGE:
 		  
 		  //printf("text button id %ld pressed\n", parm1);
-		  mc->Clear(); 
 		  PlotChargeData();
-		  mc->Update();
 		  break;
+
+		case BA_POS_VAR:
+		  
+		  //printf("text button id %ld pressed\n", parm1);
+		  PositionDifferences();
+		  break;
+
 		}
 	      
 	      break;
