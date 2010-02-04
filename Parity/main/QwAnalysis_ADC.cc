@@ -236,11 +236,11 @@ int main(Int_t argc,Char_t* argv[]) {
             }
 
             //  Fill the subsystem objects with their respective data for this event.
-            eventbuffer.FillSubsystemData(detectors);
+            //eventbuffer.FillSubsystemData(detectors);
 
 
             //  Fill the histograms for the QwDriftChamber subsystem object.
-            detectors.FillHistograms();
+            //detectors.FillHistograms();
 
 //       if (((QwMainCerenkovDetector*)detectors.at(0))->IsGoodEvent()){
 // 	evnum = eventbuffer.GetEventNumber();
