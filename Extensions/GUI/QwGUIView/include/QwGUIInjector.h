@@ -43,10 +43,15 @@ Added by Buddhini to display the injector beamline data.
 
 #include <cstdlib>
 #include <cstdio>
-#include <cstring>
+
+#include <iostream>
+#include <iomanip>
+#include <string>
+
 
 #include "TRootEmbeddedCanvas.h"
 #include "TRootCanvas.h"
+#include "TVirtualPad.h"
 #include "QwGUISubSystem.h"
 #include "RSDataWindow.h"
 #include "TSuperCanvas.h"

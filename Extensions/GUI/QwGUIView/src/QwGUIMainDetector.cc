@@ -113,21 +113,23 @@ void QwGUIMainDetector::OnNewDataContainer()
 	tree = (TTree*)obj->Clone();
 	
 	for(int i = 0; i < MAIN_DET_HST_NUM; i++){
-
-	  tree->Draw(Form("%s:hw_sum_raw",MainDetectorHists[i]),"","goff",tree->GetEntries(),0);
-	  hst = new TH1D(Form("hst%02d",i),Form("%s:hw_sum_raw",MainDetectorHists[i]),1000,9,11);
-	  grp = new TGraph();
-	  grp->SetTitle(Form("%s:hw_sum_raw",MainDetectorHists[i]));
-	  grp->SetName(Form("grp%02d",i));
-	  hst->SetDirectory(0);
-
-	  for(int j = 0; j < tree->GetEntries(); j++){
-	    dCurrentData[i].push_back(tree->GetV1()[j]);
-	    hst->Fill(tree->GetV1()[j]*1.0e-6);
-	    grp->SetPoint(j,j*1.06+1,tree->GetV1()[j]*1.0e-6);
+	  if ( tree -> FindLeaf(Form("%s:hw_sum_raw",MainDetectorHists[i])) ) 
+	  {
+	    tree->Draw(Form("%s:hw_sum_raw",MainDetectorHists[i]),"","goff",tree->GetEntries(),0);
+	    hst = new TH1D(Form("hst%02d",i),Form("%s:hw_sum_raw",MainDetectorHists[i]),1000,9,11);
+	    grp = new TGraph();
+	    grp->SetTitle(Form("%s:hw_sum_raw",MainDetectorHists[i]));
+	    grp->SetName(Form("grp%02d",i));
+	    hst->SetDirectory(0);
+	    
+	    for(int j = 0; j < tree->GetEntries(); j++){
+	      dCurrentData[i].push_back(tree->GetV1()[j]);
+	      hst->Fill(tree->GetV1()[j]*1.0e-6);
+	      grp->SetPoint(j,j*1.06+1,tree->GetV1()[j]*1.0e-6);
+	    }
+	    HistArray.Add(hst);
+	    GraphArray.Add(grp);
 	  }
-	  HistArray.Add(hst);
-	  GraphArray.Add(grp);
 	}	
       }
     }  
