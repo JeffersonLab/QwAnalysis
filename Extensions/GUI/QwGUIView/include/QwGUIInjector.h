@@ -122,6 +122,8 @@ class QwGUIInjector : public QwGUISubSystem {
   //!Return value: none  
   virtual void         MakeLayout();
 
+  void                 SummaryHist(TH1*in);
+
  public:
   
   QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTab *tab,

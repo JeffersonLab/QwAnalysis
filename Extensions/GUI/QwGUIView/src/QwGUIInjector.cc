@@ -281,16 +281,18 @@ void QwGUIInjector::PositionDifferences(){
   mc->Divide(1,2);
 
   Double_t relx[INJECTOR_DEV_NUM], rely[INJECTOR_DEV_NUM];
-  Double_t erx[INJECTOR_DEV_NUM],ery[INJECTOR_DEV_NUM];
-  Double_t err[INJECTOR_DEV_NUM],name[INJECTOR_DEV_NUM+1];
+  Double_t erx [INJECTOR_DEV_NUM], ery[INJECTOR_DEV_NUM];
+  Double_t err [INJECTOR_DEV_NUM], name[INJECTOR_DEV_NUM+1];
 
-  Char_t* post[2]={"RelX","RelY"};
+  //  Char_t* post[2]={"RelX","RelY"};
 
   TObject *obj;
  
-  TH1D* h[INJECTOR_DEV_NUM] = {NULL};
+  TH1D* histx[INJECTOR_DEV_NUM] = {NULL};
+  TH1D* histy[INJECTOR_DEV_NUM] = {NULL};
 
   obj = HistArray.At(1);  // Get MPS tree
+
   if(ldebug) {
     printf("PositionDiffercences -------------------------------\n");
     printf("Found a tree name is %s \n", obj->GetName());
@@ -313,10 +315,11 @@ void QwGUIInjector::PositionDifferences(){
 	      cnt++;
 	      if(ldebug) printf("Found %2d : a histogram name %22s\n", cnt, histo);
 	      obj -> Draw(histo);
-	      h[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
-	      h[p] -> Draw();
-	      relx[cnt]= h[p]->GetMean();
-	      erx[cnt]=h[p]->GetRMS()/sqrt(h[p]->GetEntries());
+	      histx[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
+	      histx[p] -> SetName(histo);
+	      relx[cnt] = histx[p]->GetMean();
+	      erx[cnt]  = histx[p]->GetRMS()/sqrt(histx[p]->GetEntries());
+	      SummaryHist(histx[p]);
 	      //std::cout<<relx[cnt]<<"       "<<erx[cnt]<<"\n"; 
 	    }
 
@@ -325,12 +328,13 @@ void QwGUIInjector::PositionDifferences(){
 	    {
 	      if(ldebug) printf("\nFound %2d : a histogram name %22s\n", cnt, histo);
 	      obj -> Draw(histo);
-	      h[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
-	      h[p] -> Draw();
-	      rely[cnt]= h[p]->GetMean();
-	      ery[cnt]=h[p]->GetRMS()/sqrt(h[p]->GetEntries());
+	      histy[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
+	      histy[p] -> SetName(histo);
+	      rely[cnt] = histy[p]->GetMean();
+	      ery[cnt]  = histy[p]->GetRMS()/sqrt(histy[p]->GetEntries());
 	      name[cnt]=cnt+1;
 	      err[cnt]=0.0; 
+	      SummaryHist(histy[p]);
 	    }
 	}
     }  
@@ -357,10 +361,11 @@ void QwGUIInjector::PositionDifferences(){
       if(!strcmp(InjectorDevices[j],"qwk_bcm0l02"))
 	{
 	  //skip
-	}else{
+	}
+      else{
 	k++;
-	gx->GetXaxis()->SetBinLabel(4.5*k,InjectorDevices[j-1]);
-	gy->GetXaxis()->SetBinLabel(4.5*k,InjectorDevices[j-1]);
+	gx->GetXaxis()->SetBinLabel((Int_t) 4.5*k,InjectorDevices[j-1]);
+	gy->GetXaxis()->SetBinLabel((Int_t) 4.5*k,InjectorDevices[j-1]);
       } 
     } 
   
@@ -490,4 +495,26 @@ Bool_t QwGUIInjector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
     }
   
   return kTRUE;
+}
+
+
+
+void 
+QwGUIInjector::SummaryHist(TH1 *in)
+{
+
+  Double_t out[4] = {0.0};
+
+  out[0] = in -> GetMean();
+  out[1] = in -> GetMeanError();
+  out[2] = in -> GetRMS();
+  out[3] = in -> GetRMSError();
+
+  printf("%sName%s", BOLD, NORMAL);
+  printf("%22s", in->GetName());
+  printf("  %sMean%s%s", BOLD, NORMAL, " : ");
+  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, GREEN, out[1], NORMAL);
+  printf("  %sSD%s%s", BOLD, NORMAL, " : ");
+  printf("[%s%+4.2e%s +- %s%+4.2e%s]\n", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
+  return;
 }
