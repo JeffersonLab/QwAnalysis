@@ -20,11 +20,71 @@
 
 #include "QwTrackingTreeRegion.h"
 
-QwTrackingTreeRegion::QwTrackingTreeRegion()
-{
-  fDebug = 0; // debug level
-}
+// Qweak headers
+#include "QwLog.h"
+#include "shortnode.h"
+#include "shorttree.h"
 
+/**
+ * Destructor
+ */
 QwTrackingTreeRegion::~QwTrackingTreeRegion()
 {
+  // Debug information
+  QwDebug << "Deleting QwTrackingTreeRegion: " << this << QwLog::endl;
+
+  // First, delete the nodes by going through the list of trees and following
+  // implicitly the linked list of next pointers without branching out through
+  // the tree pointers
+  QwDebug << "Deleting linked lists of node objects..." << QwLog::endl;
+  for (int i = 0; i < fNode.GetNumberOfTrees(); i++)
+    for (int j = 0; j < 4; j++)
+      if (fNode.tree[i].son[j]) {
+        delete fNode.tree[i].son[j];
+        fNode.tree[i].son[j] = 0;
+      }
+
+  // Then delete the remaining flat list of trees
+  QwDebug << "Deleting flat list of tree objects..." << QwLog::endl;
+  delete[] fNode.tree;
+
+  // Report memory statistics
+  if (shortnode::GetCount() > 0 || shorttree::GetCount() > 0) {
+    QwMessage << "Memory occupied by tree objects (should be a single shortnode when all trees cleared):" << QwLog::endl;
+    QwMessage << "- allocated shortnode objects: " << shortnode::GetCount() << QwLog::endl;
+    QwMessage << "- allocated shorttree objects: " << shorttree::GetCount() << QwLog::endl;
+  }
+}
+
+
+/**
+ * Print the list of trees
+ */
+void QwTrackingTreeRegion::PrintTrees() const
+{
+  QwOut << "Trees:" << QwLog::endl;
+  for (int i = 0; i < fNode.GetNumberOfTrees(); i++) {
+    QwOut << "tree " << i << ": ";
+    fNode.tree[i].Print(1);
+  }
+}
+
+
+/**
+ * Print the list of nodes
+ */
+void QwTrackingTreeRegion::PrintNodes() const
+{
+  QwOut << "Nodes:" << QwLog::endl;
+  for (int i = 0; i < fNode.GetNumberOfTrees(); i++) {
+    QwOut << "tree " << i << ":" << QwLog::endl;
+    for (int j = 0; j < 4; j++) {
+      shortnode* node = fNode.tree[i].son[j];
+      if (node) QwOut << " son " << j << ":" << QwLog::endl;
+      while (node) {
+        QwOut << "  " << node << ": " << *node << QwLog::endl;
+        node = node->next;
+      } // loop over linked list of nodes
+    } // loop over the four sons
+  } // loop over list of trees
 }

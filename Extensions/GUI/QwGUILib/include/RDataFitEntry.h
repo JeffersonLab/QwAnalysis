@@ -47,7 +47,7 @@ typedef struct FitOptions {
   Style_t  markerStyle;
   Size_t   markerSize;
 
-};
+} FitOptions;
 
 
 class RDataFitEntry : public TGTransientFrame {

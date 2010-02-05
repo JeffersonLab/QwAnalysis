@@ -15,10 +15,45 @@
 
 #include "nodenode.h"
 
+// Qweak headers
+#include "QwLog.h"
+
 namespace QwTracking {
 
-nodenode::nodenode() { }
+int nodenode::fCount = 0;
+int nodenode::fDebug = 0;
 
-nodenode::~nodenode() { }
+
+/**
+ * Constructor with next and tree pointers
+ * @param next Pointer to the next node in the linked list
+ * @param tree Pointer to the next tree for this node
+ */
+nodenode::nodenode(nodenode* next, treenode* tree)
+{
+  // Initialize pointers
+  fNext = next;
+  fTree = tree;
+
+  // Count objects
+  fCount++;
+}
+
+
+/**
+ * Destructor
+ */
+nodenode::~nodenode()
+{
+  QwDebug << "Deleting nodenode: " << this << QwLog::endl;
+
+  // Delete the pointer to the next node
+  if (fNext) delete fNext;
+
+  QwDebug << "Done deleting nodenode: " << this << QwLog::endl;
+
+  // Count objects
+  fCount--;
+}
 
 } // namespace QwTracking

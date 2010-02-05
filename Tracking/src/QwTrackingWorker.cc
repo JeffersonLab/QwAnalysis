@@ -78,6 +78,7 @@
 #include <cstring>
 #include <cassert>
 #include <iostream>
+#include <sstream>
 
 using std::cout;
 using std::cerr;
@@ -91,6 +92,9 @@ using std::endl;
 #include "QwLog.h"
 #include "globals.h"
 #include "Det.h"
+
+// Qweak GEM cluster finding
+#include "QwGEMClusterFinder.h"
 
 // Qweak tree search headers
 #include "QwHitPattern.h"
@@ -157,6 +161,10 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
 
 QwTrackingWorker::~QwTrackingWorker ()
 {
+  // TODO This causes a segmentation fault in ROOT's memory management
+  for (int i = 0; i < kNumPackages * kNumRegions * kNumTypes * kNumDirections; i++)
+    if (fSearchTree[i]) delete fSearchTree[i];
+
   delete trajectory;
 }
 
@@ -197,10 +205,6 @@ void QwTrackingWorker::DefineOptions()
 
 void QwTrackingWorker::InitTree()
 {
-  // Create a new search tree
-  QwTrackingTree *thetree = new QwTrackingTree();
-  thetree->SetMaxSlope(gQwOptions.GetValue<float>("QwTracking.R2.maxslope"));
-
   /// For each region (1, 2, 3, trigger, cerenkov, scanner)
   for (EQwRegionID region  = kRegionID1;
                    region <= kRegionID3; region++) {
@@ -230,10 +234,13 @@ void QwTrackingWorker::InitTree()
         for (EQwDirectionID direction  = kDirectionX;
                             direction <= kDirectionV; direction++) {
 
+          // Create a new search tree
+          QwTrackingTree *thetree = new QwTrackingTree();
+          thetree->SetMaxSlope(gQwOptions.GetValue<float>("QwTracking.R2.maxslope"));
+
           int levels = 0;
           int numlayers = 0;
           double width = 0.0;
-          char filename[256]; // TODO bad!
 
           // Skip wire direction Y
           if (direction == kDirectionY) continue;
@@ -272,20 +279,20 @@ void QwTrackingWorker::InitTree()
 
           /// Set up the filename with the following format
           ///   tree[numlayers]-[levels]-[u|l]-[1|2|3]-[d|g|t|c]-[n|u|v|x|y].tre
-          sprintf(filename, "tree%d-%d-%c-%c-%c-%c.tre",
-                  numlayers,
-                  levels,
-                  "0ud"[package],
-                  "0123TCS"[region],
-                  "0hvgtc"[type],
-                  "0xyuvrq"[direction]);
-          QwDebug << "Tree filename: " << filename << QwLog::endl;
+          std::stringstream filename;
+          filename << "tree" << numlayers
+                      << "-" << levels
+                      << "-" << "0ud"[package]
+                      << "-" << "0123TCS"[region]
+                      << "-" << "0hvgtc"[type]
+                      << "-" << "0xyuvrq"[direction] << ".tre";
+          QwDebug << "Tree filename: " << filename.str() << QwLog::endl;
 
           /// Each element of fSearchTree will point to a pattern database
           int index = package*kNumRegions*kNumTypes*kNumDirections
                       +region*kNumTypes*kNumDirections
                       +type*kNumDirections+direction;
-          fSearchTree[index] = thetree->inittree(filename,
+          fSearchTree[index] = thetree->inittree(filename.str(),
                                                  levels,
                                                  numlayers,
                                                  width,
@@ -300,6 +307,9 @@ void QwTrackingWorker::InitTree()
           fSearchTree[index]->SetDirection(direction);
           // Plane unknown, element not applicable: keep them at null values
 
+          // Delete the tree object
+          delete thetree;
+
         } // end of loop over wire directions
 
       } // end of loop over detector types
@@ -307,8 +317,6 @@ void QwTrackingWorker::InitTree()
     } // end of loop over packages
 
   } // end of loop over regions
-
-  if (thetree) delete thetree;
 
 }
 
@@ -465,6 +473,28 @@ QwEvent* QwTrackingWorker::ProcessHits (
         // TODO jpan: The Geant4 now can generate any octant data, you just need to command it through
         // a macro file. I'll put the tracking detector ratation commands onto the UI manu later.
         if (package != kPackageUp) continue;
+
+        /// Find the region 1 clusters in this package
+        QwHitContainer *hitlist_region1_r = hitlist->GetSubList_Plane(kRegionID1, package, 1);
+        QwHitContainer *hitlist_region1_phi = hitlist->GetSubList_Plane(kRegionID1, package, 2);
+        QwGEMClusterFinder* clusterfinder = new QwGEMClusterFinder();
+        std::vector<QwGEMCluster> clusters_r;
+        std::vector<QwGEMCluster> clusters_phi;
+        if (hitlist_region1_r->size() > 0) {
+            clusters_r = clusterfinder->FindClusters(hitlist_region1_r);
+        }
+        if (hitlist_region1_phi->size() > 0) {
+            clusters_phi = clusterfinder->FindClusters(hitlist_region1_phi);
+        }
+        for (std::vector<QwGEMCluster>::iterator cluster = clusters_r.begin();
+                cluster != clusters_r.end(); cluster++) {
+            QwDebug << *cluster << QwLog::endl;
+        }
+        for (std::vector<QwGEMCluster>::iterator cluster = clusters_phi.begin();
+                cluster != clusters_phi.end(); cluster++) {
+            QwDebug << *cluster << QwLog::endl;
+        }
+        delete clusterfinder; // TODO (wdc) should go somewhere else
 
         /// Loop through the detector regions
         for (EQwRegionID region  = kRegionID2;

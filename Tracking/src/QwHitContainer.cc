@@ -103,9 +103,9 @@ void QwHitContainer::Print ()
   std::cout << *this << std::endl;
 }
 
-std::ostream& operator<< (std::ostream& stream, QwHitContainer& hitlist)
+std::ostream& operator<< (std::ostream& stream, const QwHitContainer& hitlist)
 {
-  for (QwHitContainer::iterator hit = hitlist.begin(); hit != hitlist.end(); hit++)
+  for (QwHitContainer::const_iterator hit = hitlist.begin(); hit != hitlist.end(); hit++)
     stream << *hit << std::endl;
   return stream;
 }

@@ -77,12 +77,14 @@ NAME=HDC
  drift, -289.910, 0, 1e-2, 1e-1, 1e-2, d, 2, d, v, 0, -35.7716, 28.5725, 38.10, -9999, 1.1684, 11.0992, 0.6, 0.8, 32, 35
 !GEM Z location: -558 cm (in actual Qweak), -542.2 cm (in MC simulation, front chamber), -534.0 cm (in MC simulation, back chamber), chamber thickness (unknown)
 NAME=GEM
- drift, -542.2, 0, -9999, -9999, -9999, u, 1, g, r, 0, 19.19, 12.0, 25.4, 3.0, -9999, -9999, -9999, -9999, -9999, 36
+ drift, -542.2, 0, 0.4, 0.4, -9999, u, 1, g, r, 0, 19.19, 12.0, 24.42, 1.0, 0.477886, 68.1, -9999, -9999, 512, 36
 NAME=GEM
- drift, -534.0, 0, -9999, -9999, -9999, u, 1, g, r, 0, 19.19, 12.0, 25.4, 3.0, -9999, -9999, -9999, -9999, -9999, 37
+ drift, -542.2, 0, 0.4, 0.4, -9999, u, 1, g, y, 0, 19.19, 12.0, 15.585, 1.0, 0.31373, -40.0, -9999, -9999, 256, 37
 NAME=GEM
- drift, -542.2, 0, -9999, -9999, -9999, d, 1, g, r, 0, -19.19, 12.0, 25.4, 3.0, -9999, -9999, -9999, -9999, -9999, 38
+ drift, -542.2, 0, 0.4, 0.4, -9999, d, 1, g, r, 0, -19.19, 12.0, 24.42, 1.0, 0.477886, -68.1, -9999, -9999, 512, 38
 NAME=GEM
- drift, -534.0, 0, -9999, -9999, -9999, d, 1, g, r, 0, -19.19, 12.0, 25.4, 3.0, -9999, -9999, -9999, -9999, -9999, 39
+ drift, -542.2, 0, 0.4, 0.4, -9999, d, 1, g, y, 0, -19.19, 12.0, 15.585, 1.0, 0.31373, 40.0, -9999, -9999, 256, 39
+
+! sType, Zpos, Rot, Spatial Res., Track Res, slope matching, up/low, region, type, plane dir, detector originx, y, active width x, y, z, wire spacing, 1st wire pos., rcos of wire oirentation w.r.t x, rsin, no.of wires, ID
 
 !END
