@@ -49,12 +49,12 @@
 
 
 // Debug level
-static const bool kDebug = false;
+static const bool kDebug = kFALSE;
 // Tracking
-static const bool kTracking =kTRUE;//false; //set to false for R1 debugging - Rakitha (01/07/2010)
+static const bool kTracking = kTRUE;
 // ROOT file output
-static const bool kTree =kTRUE;//true; //set to false for R1 debugging - Rakitha (01/07/2010)
-static const bool kHisto = kFALSE;//false;//true; //set to false for R1 debugging - Rakitha (01/07/2010)
+static const bool kTree = kTRUE;
+static const bool kHisto = kTRUE;
 
 
 // Main function
@@ -70,7 +70,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   // Message logging facilities 
   gQwLog.InitLogFile("QwTracking.log");
   gQwLog.SetScreenThreshold(QwLog::kMessage);
-  gQwLog.SetFileThreshold(QwLog::kDebug);
+  gQwLog.SetFileThreshold(QwLog::kMessage);
 
   // Either the DISPLAY is not set or JOB_ID is defined: we take it as in batch mode.
   Bool_t kInQwBatchMode = kFALSE;
@@ -389,23 +389,24 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     // Write and close file (after last access to ROOT tree)
     rootfile->Write(0, TObject::kOverwrite);
-    //rootfile->Close(); // closing rootfile causes segfaults when deleting histos
-
-    
 
     // Close CODA file
     eventbuffer.CloseDataFile();
     eventbuffer.ReportRunSummary();
 
-    // Delete objects
-    delete rootfile; rootfile = 0;
+    // Delete histograms in the subsystems
+    if(kHisto) detectors.DeleteHistograms();
+
+    // Close ROOT file
+    rootfile->Close();
+    // Note: Closing rootfile too early causes segfaults when deleting histos
+    
+    // Delete objects (this is confusing: the if only applies to the delete)
+    if (rootfile)       delete rootfile; rootfile = 0;
     if (trackingworker) delete trackingworker; trackingworker = 0;
     if (hitlist)        delete hitlist; hitlist = 0;
     if (event)          delete event; event = 0;
     if (rootlist)       delete rootlist; rootlist = 0;
-
-    // Delete histograms in the subsystems
-     if(kHisto) detectors.DeleteHistograms();
 
     // Print run summary information
     QwMessage << "Analysis of run " << run << QwLog::endl
