@@ -1,4 +1,0 @@
-! Map file for GEM detectors
-ROC=2
-BANK=29971
-!Bank is in decimal to add another bank under same roc, include BANK=value pair under ROC=value pair

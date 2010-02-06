@@ -22,6 +22,10 @@
 #include "Det.h"
 #include "QwTrajectory.h"
 
+// Temporary global variables for sub-programs
+Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
+Det rcDET[NDetMax];
+
 
 int main (int argc, char* argv[]) {
 

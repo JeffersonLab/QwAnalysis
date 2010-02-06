@@ -16,7 +16,6 @@
 #ifndef QWTRACKINGSHORTTREE_H
 #define QWTRACKINGSHORTTREE_H
 
-// Qweak headers
 #include "globals.h"
 #include "shortnode.h"
 
@@ -37,31 +36,20 @@ class shorttree {
 
   public:
 
-    /// \brief Default constructor
     shorttree();
-    /// \brief Destructor
     ~shorttree();
 
-    int fMinLevel;
+    int minlevel;
     int bits;
     int bit[TLAYERS];
     int xref;
 
-    shortnode* son[4];
+    shortnode *son[4];
 
     /// \brief Print some debugging information
-    void Print(int indent = 0);
+    void Print();
     /// \brief Output stream operator
     friend std::ostream& operator<< (std::ostream& stream, const shorttree& st);
-
-    /// Get number of objects
-    static const int GetCount() { return fCount; };
-
-  private:
-
-    static int fCount; /// Object counter
-
-    static int fDebug; /// Debug level
 
 }; // class shorttree
 

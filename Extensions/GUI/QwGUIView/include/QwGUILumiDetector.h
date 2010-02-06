@@ -56,10 +56,7 @@ class QwGUILumiDetector : public QwGUISubSystem {
   TRootEmbeddedCanvas *dCanvas;  
   TGLayoutHints       *dTabLayout; 
   TGLayoutHints       *dCnvLayout; 
-  TGLayoutHints       *dBtnLayout;
 
-  TGTextButton        *dButtonUser;
-  TGTextButton        *dButtonDetail;
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;
   
@@ -125,7 +122,6 @@ class QwGUILumiDetector : public QwGUISubSystem {
   virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
 
   ClassDef(QwGUILumiDetector,0);
-
 };
 
 #endif

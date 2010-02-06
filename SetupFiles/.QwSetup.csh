@@ -189,10 +189,6 @@ else
   else
     setenv ROOTSYS             /usr/local/root
   endif
-  if (! -x ${ROOTSYS}/bin/root ) then
-    echo "couldn't find a working ROOT.  maybe use root-config to set ROOTSYS"
-    exit 1;
-  endif
   echo "Setting ROOTSYS to " ${ROOTSYS}
 endif
 

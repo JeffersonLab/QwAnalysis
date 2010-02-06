@@ -46,10 +46,6 @@ class QwHitContainer: public std::list<QwHit>, public TObject {
     this->insert(this->end(), list.begin(), list.end());
   };
 
-  void Append(const QwHitContainer* list) {
-    this->insert(this->end(), list->begin(), list->end());
-  };
-
   void Append(std::vector<QwHit> &list) {
     this->insert(this->end(), list.begin(), list.end());
   };
@@ -71,7 +67,7 @@ class QwHitContainer: public std::list<QwHit>, public TObject {
 
 
   void Print ();
-  friend std::ostream& operator<< (std::ostream& stream, const QwHitContainer& hitlist);
+  friend std::ostream& operator<< (std::ostream& stream, QwHitContainer& hitlist);
 
 
   ClassDef(QwHitContainer,1);

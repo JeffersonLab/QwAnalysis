@@ -95,7 +95,6 @@ class RDataContainer : public TQObject {
 
   virtual int   OpenFile(const char *);  
   TObject      *ReadData(const char *);
-  TObject      *ReadTree(const char *);
   int           ReadData(Double_t*,int);
   int           ReadData(Double_t*,int,int);
   int           ReadData(Double_t*,int,int,int);

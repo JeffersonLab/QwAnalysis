@@ -19,7 +19,7 @@ QwTriggerScintillator::QwTriggerScintillator(TString region_tmp):VQwSubsystem(re
 
 QwTriggerScintillator::~QwTriggerScintillator(){
   DeleteHistograms();
-
+  
   fPMTs.clear();
 };
 
@@ -106,7 +106,7 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt
 		      GetTDCData());
 	}
 	catch (std::exception& e) {
-	  std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
+	  std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: " 
 		    << e.what() << std::endl;
 	  Int_t chan = GetTDCChannelNumber();
 	  std::cerr << "   Parameters:  index=="<<index
@@ -134,6 +134,7 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt
 
 void  QwTriggerScintillator::ProcessEvent(){
   if (! HasDataLoaded()) return;
+  
 };
 
 
@@ -167,7 +168,7 @@ void  QwTriggerScintillator::FillTreeVector(std::vector<Double_t> &values)
 {
   if (! HasDataLoaded()) return;
   for (size_t i=0; i<fPMTs.size(); i++){
-    for (size_t j=0; j<fPMTs.at(i).size(); j++){
+    for (size_t j=0; j<fPMTs.at(i).size(); j++){  
       fPMTs.at(i).at(j).FillTreeVector(values);
     }
   }
@@ -178,7 +179,7 @@ void  QwTriggerScintillator::DeleteHistograms(){
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).DeleteHistograms();
-    }
+    } 
   }
 };
 
@@ -186,7 +187,7 @@ void  QwTriggerScintillator::DeleteHistograms(){
 QwTriggerScintillator& QwTriggerScintillator::operator=  (const QwTriggerScintillator &value){
   if (fPMTs.size() == value.fPMTs.size()){
     for (size_t i=0; i<fPMTs.size(); i++){
-      for (size_t j=0; j<fPMTs.at(i).size(); j++){
+      for (size_t j=0; j<fPMTs.at(i).size(); j++){	
 	fPMTs.at(i).at(j) = value.fPMTs.at(i).at(j);
       }
     }
@@ -262,15 +263,15 @@ Int_t QwTriggerScintillator::LinkChannelToSignal(const UInt_t chan, const TStrin
   size_t index = fCurrentType;
   fPMTs.at(index).push_back(QwPMT_Channel(name));
   fModulePtrs.at(fCurrentIndex).at(chan).first  = index;
-  fModulePtrs.at(fCurrentIndex).at(chan).second =
+  fModulePtrs.at(fCurrentIndex).at(chan).second = 
     fPMTs.at(index).size() -1;
 
   return 0;
 
 };
 
-void QwTriggerScintillator::FillRawWord(Int_t bank_index,
-				 Int_t slot_num,
+void QwTriggerScintillator::FillRawWord(Int_t bank_index, 
+				 Int_t slot_num, 
 				 Int_t chan, UInt_t data){
   Int_t modindex = GetModuleIndex(bank_index,slot_num);
   if (modindex != -1){

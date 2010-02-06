@@ -1084,16 +1084,15 @@ void RSDataWindow::SaveCanvas()
 
 void RSDataWindow::PrintCanvas()
 {
-  int flag;
   strcpy(dMiscbuffer,"printout.ps");
   fPlotCanvas->Print(dMiscbuffer);
   strcpy(dMiscbuffer,"convert -size 600x424 printout.ps ");
   strcat(dMiscbuffer,"-resize 600x424 smallprintout.ps");
-  flag = system(dMiscbuffer);
+  system(dMiscbuffer);
   strcpy(dMiscbuffer,"lpr smallprintout.ps");
-  flag = system(dMiscbuffer);
+  system(dMiscbuffer);
   strcpy(dMiscbuffer,"rm smallprintout.ps printout.ps");
-  flag = system(dMiscbuffer);  
+  system(dMiscbuffer);  
 }
 
 void RSDataWindow::CloseWindow()

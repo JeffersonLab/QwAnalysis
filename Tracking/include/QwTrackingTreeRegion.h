@@ -15,9 +15,9 @@
 // Qweak headers
 #include "VQwTrackingElement.h"
 #include "shortnode.h"
-#include "shorttree.h"
+#include "globals.h"
+
 using QwTracking::shortnode;
-using QwTracking::shorttree;
 
 /**
  * \class	QwTrackingTreeRegion
@@ -37,19 +37,14 @@ using QwTracking::shorttree;
  * Only the VDC is designed to measure track positions, so these two databases
  * designed to contain patterns which ressemble tracks passing through the VDC.
  *
- * The structure of a tree region is as follows.  The tree region contains a
- * flat list of shorttree objects which is read in sequentially from the cached
- * tree file.  The shorttree objects have son pointers to shortnode objects.
- * For each shorttree there is a linked list of shortnode objects using the
- * next pointers, which branches off to other trees using the tree pointers.
  */
 class QwTrackingTreeRegion: public VQwTrackingElement {
 
   public:
 
-    /// Default constructor
-    QwTrackingTreeRegion(): fDebug(0) { };
-    /// \brief Destructor
+    /// \brief Default constructor
+    QwTrackingTreeRegion();
+    /// \brief Default destructor
     ~QwTrackingTreeRegion();
 
     /// \brief Is this region searchable?
@@ -65,13 +60,6 @@ class QwTrackingTreeRegion: public VQwTrackingElement {
     /// \brief Set the width
     void SetWidth(double width) { fWidth = width; };
 
-    /// Print the lists of trees and nodes
-    void Print() const { PrintTrees(); PrintNodes(); };
-    /// \brief Print the list of trees
-    void PrintTrees() const;
-    /// \brief Print the list of nodes
-    void PrintNodes() const;
-
   private:
 
     int fDebug;		///< Debug level
@@ -79,7 +67,6 @@ class QwTrackingTreeRegion: public VQwTrackingElement {
     bool fSearchable;	///< Is this tree region searchable?
 
     shortnode fNode;	///< Top node of this tree region
-
     double fWidth;	///< Width of the detector plane (i.e. number of wires * wire spacing)
 
 }; // class QwTrackingTreeRegion

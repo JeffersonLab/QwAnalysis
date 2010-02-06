@@ -13,58 +13,28 @@
 
 *//*-------------------------------------------------------------------------*/
 
-#include "shorttree.h"
-
-// Qweak headers
-#include "QwLog.h"
-
-// Qweak tree headers
 #include "shortnode.h"
+#include "shorttree.h"
 
 namespace QwTracking {
 
-int shorttree::fCount = 0;
-int shorttree::fDebug = 0;
-
-/**
- * Default constructor, initializes the son pointer to null
- */
-shorttree::shorttree()
-{
-  for (int i = 0; i < 4; i++)
-    son[i] = 0;
-
-  // Count objects
-  fCount++;
-}
+shorttree::shorttree() { }
 
 /**
  * Destructor deletes the memory occupied by the sons
  */
 shorttree::~shorttree()
 {
-  // Count objects
-  fCount--;
+  for (int i = 0; i < 4; i++)
+    if (son[i])
+      delete son[i];
 }
 
 /**
  * Print some debugging information
  */
-void shorttree::Print(int indent)
-{
-  // Print this node
-  std::string indentation;
-  for (int i = 0; i < indent; i++) indentation += " ";
-  QwOut << this << ": " << *this << QwLog::endl;
-
-  // Descend to the sons of this node
-  for (int i = 0; i < 4; i++) {
-    shortnode* node = this->son[i];
-    if (node) {
-      QwOut << indentation << "son " <<  i << ": ";
-      node->Print(indent+1);
-    }
-  }
+void shorttree::Print() {
+  std::cout << *this << std::endl;
 }
 
 /**
@@ -73,9 +43,8 @@ void shorttree::Print(int indent)
  * @param st Short tree as rhs of the operator
  * @return Stream as result of the operator
  */
-std::ostream& operator<< (std::ostream& stream, const shorttree& st)
-{
-  stream << "(" << st.fMinLevel << "," << "*" << ") ";
+std::ostream& operator<< (std::ostream& stream, const shorttree& st) {
+  stream << "(" << st.minlevel << "," << "*" << ") ";
   stream << "bits = " << st.bits << ": ";
   for (int i = 0; i < TLAYERS; i++)
     stream << st.bit[i] << "," ;

@@ -213,8 +213,8 @@ Bool_t RDataContainer::SetMessage(const char *msg, const char *func, int TS, int
   else
     strcpy(str,dObjName);
 
-  SendMessageSignal(str);
-    
+    SendMessageSignal(str);
+
   return kTrue;
 }
 
@@ -644,16 +644,15 @@ int RDataContainer::OpenFile(const char *filename)
 
 int RDataContainer::GetNumOfRootObjects()
 {
-  if(fRfile != NULL) {
-    if(fRfile->IsOpen()){      
+  if(fRfile != NULL)
+    if(fRfile->IsOpen())
       return fRfile->GetNkeys();
-    }
     else{
       FlushMessages();
       SetMessage(ROOT_OPEN_ERROR,"GetNumOfRootObjects",(int)dType,M_CONT_ERROR_MSG);
       return -1;
     }
-  }
+
   FlushMessages();
   SetMessage(PNTR_NULL_ERROR,"GetNumOfRootObjects",(int)dType,M_CONT_ERROR_MSG);
   return -1;
@@ -661,7 +660,7 @@ int RDataContainer::GetNumOfRootObjects()
 
 int RDataContainer::GetListOfRootObjects(TString str[])
 {
-  if(fRfile != NULL){
+  if(fRfile != NULL)
     if(fRfile->IsOpen()){
       TIter next(fRfile->GetListOfKeys());
       TKey *key;
@@ -677,7 +676,6 @@ int RDataContainer::GetListOfRootObjects(TString str[])
       SetMessage(ROOT_OPEN_ERROR,"GetListOfRootObjects",(int)dType,M_CONT_ERROR_MSG);
       return FILE_READ_ERROR;
     }
-  }
 
   FlushMessages();
   SetMessage(PNTR_NULL_ERROR,"GetListOfRootObjects",(int)dType,M_CONT_ERROR_MSG);
@@ -686,7 +684,7 @@ int RDataContainer::GetListOfRootObjects(TString str[])
 
 char *RDataContainer::GetObjectType(const char *name)
 {
-  if(fRfile != NULL){
+  if(fRfile != NULL)
     if(fRfile->IsOpen()){
       
       return (char*)fRfile->Get(name)->ClassName();
@@ -696,7 +694,7 @@ char *RDataContainer::GetObjectType(const char *name)
       SetMessage(ROOT_OPEN_ERROR,"GetObjectType",(int)dType,M_CONT_ERROR_MSG);
       return NULL;
     }
-  }
+  
   FlushMessages();
   SetMessage(PNTR_NULL_ERROR,"GetObjectType",(int)dType,M_CONT_ERROR_MSG);
   return NULL;
@@ -766,7 +764,7 @@ TObject *RDataContainer::ReadData(const char *objname)
   //If the file format is of "root object" (*.root), then...
   //
   //The function performs mode (dMode) checks and returns without
-  //doing anything except pass an error message if the file was 
+  //doing anything excpet pass an error message if the file was 
   //opened as write only.
 
   TObject *obj;
@@ -1045,58 +1043,10 @@ int RDataContainer::ReadData(Double_t *data, int rows, int cols)
   return FILE_READ_ERROR;
 }
 
-
-TObject *RDataContainer::ReadTree(const char *treename)
-{
-  TObject *obj;
-  TTree *temptree;
-  if(dMode == FM_UPDATE || dMode == FM_READ){  
-    if(dType == FT_ROOT){
-      if(fRfile != NULL){
-	if(fRfile->IsOpen()){
-	  temptree = (TTree*) fRfile->Get(treename);
-	  obj = (TObject*) temptree;
-	  //	  obj = fRfile->Get(objname);
-	  if(obj != NULL){
-	    return obj;
-	  }
-	  else{
-	    FlushMessages();
-	    SetMessage(ROOT_OBJCRT_ERROR,"ReadData",(int)dType,M_CONT_ERROR_MSG);
-	    return NULL;	
-	  }
-	}
-	else{
-	  FlushMessages();
-	  SetMessage(ROOT_OPEN_ERROR,"ReadData",(int)dType,M_CONT_ERROR_MSG);
-	  return NULL;
-	}
-      }
-      else{
-	FlushMessages();
-	SetMessage(PNTR_NULL_ERROR,"ReadData",(int)dType,M_CONT_ERROR_MSG);
-	return NULL;
-      }
-    }
-    else {
-      FlushMessages();
-      SetMessage(READ_TYPE_ERROR,"ReadData",(int)dType,M_CONT_ERROR_MSG);
-      return NULL;
-    }
-  }
-  else{
-    FlushMessages();
-    SetMessage(WRITE_MODE_ERROR,"ReadData",(int)dType,M_CONT_ERROR_MSG);
-    return NULL;
-  }
-  
-}
-
 int RDataContainer::ReadData(Double_t *x, int row)
 {
   //Read a whole row of a typical row-column data files
   
-  int flag;
   int numcol;
 //   Double_t trash;
   if(dOpen) {
@@ -1109,9 +1059,9 @@ int RDataContainer::ReadData(Double_t *x, int row)
 	      if(SetRowColumn(row,1) == FILE_PROCESS_OK){
 		for(int j = 0; j < numcol; j++){
 		  if(j == numcol-1) 
-		    flag = fscanf(dFp,"%lf",&x[j]);
+		    fscanf(dFp,"%lf",&x[j]);
 		  else
-		    flag = fscanf(dFp,"%lf ",&x[j]);
+		    fscanf(dFp,"%lf ",&x[j]);
 		}
 	      }
 	      else{
@@ -1153,7 +1103,6 @@ int RDataContainer::ReadData(Double_t *x, int row)
 
 int RDataContainer::ReadData(Double_t *x, int ri, int c,int num)
 {
-  int flag;
   int numcol;
   Double_t trash;
   if(dOpen) {
@@ -1170,9 +1119,9 @@ int RDataContainer::ReadData(Double_t *x, int ri, int c,int num)
 		for(int i = 0; i < num; i++){
 		  for(int j = 0; j < numcol; j++){
 		    if(j == c-1)
-		      flag = fscanf(dFp,"%lf ",&x[i]);
+		      fscanf(dFp,"%lf ",&x[i]);
 		    else
-		      flag = fscanf(dFp,"%lf ",&trash);
+		      fscanf(dFp,"%lf ",&trash);
 		  }
 		}
 	      }
@@ -1248,7 +1197,6 @@ int RDataContainer::ReadData(Double_t *x, Double_t *y,
   //doing anything except pass an error message if the file was 
   //opened as write only.
 
-  int flag;
   int numcol;
   Double_t trash;
   int skip = abs(c2-c1)-1;
@@ -1270,11 +1218,11 @@ int RDataContainer::ReadData(Double_t *x, Double_t *y,
 		for(int i = 0; i < num; i++){
 		  for(int j = 0; j < numcol; j++){
 		    if(j == ci-1)
-		      flag = fscanf(dFp,"%lf ",&x[i]);
+		      fscanf(dFp,"%lf ",&x[i]);
 		    else if(j == ci+skip) 
-		      flag = fscanf(dFp,"%lf ",&y[i]);
+		      fscanf(dFp,"%lf ",&y[i]);
 		    else
-		      flag = fscanf(dFp,"%lf ",&trash);
+		      fscanf(dFp,"%lf ",&trash);
 		  }
 		}
 	      }
@@ -1296,7 +1244,7 @@ int RDataContainer::ReadData(Double_t *x, Double_t *y,
 	      if(SetRowColumn(ri,1) == FILE_PROCESS_OK){
 		
 		for(int i = 0; i < num; i++){
-		  flag = fscanf(dFp,"%lf ",&x[i]);		  
+		  fscanf(dFp,"%lf ",&x[i]);		  
 		}
 	      }
 	      else{

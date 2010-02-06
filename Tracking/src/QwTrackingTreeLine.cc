@@ -65,7 +65,7 @@ QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _
   }
 
   ID = 0;
-  fR3Offset = fR3FirstWire = fR3LastWire = 0;
+  r3offset = firstwire = lastwire = 0;
 
 
 }
@@ -263,7 +263,7 @@ ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl) {
     stream << ", hits:";
     stream << " (" << tl.fQwHits.size() << ")";
     for (size_t hit = 0; hit < tl.fQwHits.size(); hit++)
-      stream << " " << tl.fQwHits.at(hit)->GetPlane() << ":" << tl.fQwHits.at(hit)->GetElement();
+      stream << " " << tl.fQwHits.at(hit)->GetPlane() << "." << tl.fQwHits.at(hit)->GetElement();
   }
   if (tl.IsVoid()) stream << " (void)";
   return stream;

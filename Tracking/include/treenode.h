@@ -16,11 +16,8 @@
 #ifndef QWTRACKINGTREENODE_H
 #define QWTRACKINGTREENODE_H
 
-// System headers
 #include <iostream>
 
-// Qweak headers
-#include "QwLog.h"
 #include "globals.h"
 
 /**
@@ -55,53 +52,22 @@ class treenode {
 
   public:
 
-    /// \brief Default constructor
     treenode();
-    /// \brief Copy-constructor from object
-    treenode(treenode& node);
-    /// \brief Copy-constructor from pointer
-    treenode(treenode* node);
-    /// \brief Destructor
     ~treenode();
 
-    int fMaxLevel, fMinLevel;
+    int maxlevel, minlevel;
     int bits;
     int bit[TLAYERS];
     int xref;
     int pattern_offset;
 
-    /// Set the next node
-    void SetNext(treenode* next) {
-      if (next == this) {
-        QwError << "Trying to link next to self" << QwLog::endl; return;
-      }
-      fNext = next;
-    };
-    /// Get the next node
-    treenode* GetNext() const { return fNext; };
-    /// Get the next node (non-standard notation)
-    treenode* next() const { return fNext; };
+    nodenode *son[4];		///< Each tree has 4 son nodes
+    treenode *genlink;		///< Link back to the generating tree
 
     /// \brief Print some debugging information
-    void Print(int indent = 0);
+    void Print();
     /// \brief Output stream operator
     friend std::ostream& operator<< (std::ostream& stream, const treenode& tn);
-
-    /// Get number of objects
-    static const int GetCount() { return fCount; };
-
-  public:
-
-    ///< Each tree has four son nodes
-    nodenode* fSon[4];
-
-  private:
-
-    ///< Link to the next tree node
-    treenode* fNext;
-
-    static int fCount; /// Object counter
-    static int fDebug; /// Debug level
 
 }; // class treenode
 
