@@ -24,14 +24,14 @@ This generates identical set of hits to region 2 for region 3.
 const UInt_t QwDriftChamberVDC::kBackPlaneNum=4;
 const UInt_t QwDriftChamberVDC::kLineNum=8;
 
-QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ) :VQwSubsystem ( region_tmp ),
-       QwDriftChamber ( region_tmp,fWireHitsVDC ) {
-	//QwDriftChamber ( region_tmp,fTDCHits ) {
-    std::vector<QwDelayLine> temp;
-    temp.resize ( kLineNum );
-    fDelayLineArray.resize ( kBackPlaneNum,temp );
-    fDelayLinePtrs.resize ( 21 );
-    OK=0;
+QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ): VQwSubsystem ( region_tmp ),
+							     QwDriftChamber ( region_tmp,fWireHitsVDC ) {
+  SetReferenceParameters(-30000., 30000., 64495., 8929.);
+  std::vector<QwDelayLine> temp;
+  temp.resize ( kLineNum );
+  fDelayLineArray.resize ( kBackPlaneNum,temp );
+  fDelayLinePtrs.resize ( 21 );
+  OK=0;
 };
 
 Int_t QwDriftChamberVDC::LoadQweakGeometry ( TString mapfile ) {

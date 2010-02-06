@@ -191,7 +191,7 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
     }
     for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
 
-      hit1->SetTime(SubtractReference(hit1->GetTime(),reftimes.at(hit1->GetSubbankID())) );
+      hit1->SetTime(SubtractReference(hit1->GetRawTime(),reftimes.at(hit1->GetSubbankID())) );
       if (counter>0){
 	if (hit1->GetDetectorID().fPlane==7){//this will read the first hit time of trig_h1
 	  trig_h1=hit1->GetTime();

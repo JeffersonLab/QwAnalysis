@@ -1,3 +1,4 @@
+
 /**********************************************************\
 * File: MQwF1TDC.h                                           *
 *                                                          *
@@ -45,8 +46,18 @@ class MQwF1TDC{
   UInt_t GetTDCSlotNumber(){return fF1SlotNumber;};
   UInt_t GetTDCChannelNumber(){return fF1ChannelNumber;};
   UInt_t GetTDCData(){return fF1Dataword;};
-  UInt_t SubtractReference(UInt_t rawtime, UInt_t a);
-  
+
+  void SetReferenceParameters(Double_t mindiff, Double_t maxdiff,
+			      Double_t offset, Double_t shift){
+    fMinDiff   = mindiff;
+    fMaxDiff   = maxdiff;
+    fOffset    = offset;
+    fTimeShift = shift;
+  };
+
+  //  UInt_t SubtractReference(UInt_t rawtime, UInt_t a);
+  Double_t SubtractReference(Double_t rawtime, Double_t reftime);
+
 
  private:
   static const UInt_t kF1Mask_SlotNumber;
@@ -56,12 +67,20 @@ class MQwF1TDC{
   static const UInt_t kF1Mask_HitFIFOFlag;
   static const UInt_t kF1Mask_ChannelNumber;
   static const UInt_t kF1Mask_Dataword;
-  static const UInt_t offset;
+  //  static const UInt_t offset;
 
   Bool_t fF1HeaderFlag;
   UInt_t fF1SlotNumber;
   UInt_t fF1ChannelNumber;
   UInt_t fF1Dataword;
+
+  //  These variables are used in the SubtractReference routine.
+  Double_t fMinDiff;
+  Double_t fMaxDiff;
+  Double_t fOffset;
+  Double_t fTimeShift;
+
+  
 
 };
 
