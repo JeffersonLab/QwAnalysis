@@ -113,7 +113,7 @@ using std::endl;
 #include "QwEvent.h"
 #include "QwBridge.h"
 #include "QwDetectorInfo.h"
-#include "QwRayTracer.h"
+#include "QwTrajectory.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -138,11 +138,11 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
   // Initialize the pattern database
   InitTree();
 
-  raytracer = new QwRayTracer();
+  trajectory = new QwTrajectory();
 
   // Load magnetic field map
-  //raytracer->LoadMagneticFieldMap();
-  //raytracer->LoadMomentumMatrix();
+  //trajectory->LoadMagneticFieldMap();
+  //trajectory->LoadMomentumMatrix();
 
   /* Reset counters of number of good and bad events */
   ngood = 0;
@@ -165,7 +165,7 @@ QwTrackingWorker::~QwTrackingWorker ()
   for (int i = 0; i < kNumPackages * kNumRegions * kNumTypes * kNumDirections; i++)
     if (fSearchTree[i]) delete fSearchTree[i];
 
-  delete raytracer;
+  delete trajectory;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -902,12 +902,12 @@ QwEvent* QwTrackingWorker::ProcessHits (
                                      event->parttrack[package][kRegionID3][kTypeDriftVDC]->uvR3hit[1],
                                      event->parttrack[package][kRegionID3][kTypeDriftVDC]->uvR3hit[2]);
 
-                raytracer->SetStartAndEndPoints(R2hit, R2direction, R3hit, R3direction);
-                int status = raytracer->BridgeFrontBackPartialTrack();
+                trajectory->SetStartAndEndPoints(R2hit, R2direction, R3hit, R3direction);
+                int status = trajectory->BridgeFrontBackPartialTrack();
 
                 if (status == 0){
                   std::cout<<"======>>>> Bridged a track"<<std::endl;
-                  raytracer->PrintInfo();
+                  trajectory->PrintInfo();
                 }
                 else std::cout<<"======>>>> No luck on bridging this track."<<std::endl;
             }

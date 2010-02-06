@@ -1,10 +1,7 @@
-/*! \file   QwRayTracer.h
- *
- *  \author Jie Pan <jpan@jlab.org>
- *  \author Wouter Deconinck <wdconinc@mit.edu>
- *
+/*! \file   QwTrajectory.h
+ *  \author J. Pan
  *  \date   Thu Nov 26 11:44:51 CST 2009
- *  \brief  Definition of the ray-tracing bridging method for R2/R3 partial tracks
+ *  \brief  Raytrace in magnetic field to bridging R2/R3 partial tracks.
  *
  *  \ingroup QwTracking
  *
@@ -17,8 +14,8 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-#ifndef __QWRAYTRACER_H__
-#define __QWRAYTRACER_H__
+#ifndef __QWTRAJECTORY_H__
+#define __QWTRAJECTORY_H__
 
 #include <iostream>
 #include <vector>
@@ -42,7 +39,7 @@
 #if defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
 # include <Math/Interpolator.h>
 #else
-# warning "The QwRayTracer look-up table momentum determination will not be built!"
+# warning "The QwTrajectory look-up table momentum determination will not be built!"
 #endif
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -98,11 +95,11 @@ public:
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-class QwRayTracer {
+class QwTrajectory {
 
 public:
-    QwRayTracer();
-    ~QwRayTracer();
+    QwTrajectory();
+    ~QwTrajectory();
 
     void LoadMagneticFieldMap();
     int LoadMomentumMatrix();
@@ -225,7 +222,6 @@ private:
     // Region2 WirePlane1
     Int_t fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit;
     Int_t fRegion2_ChamberFront_WirePlane1_NbOfHits;
-    //std::vector <Int_t> fRegion2_ChamberFront_WirePlane1_ParticleType;
     std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX;
     std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY;
     std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ;
@@ -254,7 +250,7 @@ private:
                       // MatchFlag = 1; : matched by using shooting method
                       // MatchFlag = 2; : potential track is forced to match
 
-}; // class QwRayTracer
+}; // class QwTrajectory
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
