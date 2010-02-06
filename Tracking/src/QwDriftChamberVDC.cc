@@ -256,6 +256,7 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
 
             // hitCount=std::count_if(fTDCHits.begin(),fTDCHits.end(),boost::bind(&QwHit::WireMatches,_1,2,boost::ref(package),boost::ref(plane),boost::ref(wire)) );
             //std::cout<<"At QwDriftChamberVDC::FillRawTDCWord_2"<<endl;
+            hitCount=std::count_if(fTDCHits.begin(),fTDCHits.end(),boost::bind(&QwHit::WireMatches,_1,3,boost::ref(package),boost::ref(plane),boost::ref(wire)) );
             fTDCHits.push_back ( QwHit ( bank_index, slot_num, chan, hitCount, kRegionID3, package, plane,direction, wire, data ) );//in order-> bank index, slot num, chan, hitcount, region=3, package, plane,,direction, wire,wire hit time
 
         }
@@ -268,15 +269,7 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
 
 
 
-Int_t QwDriftChamberVDC::LinkReferenceChannel ( const UInt_t chan, const UInt_t plane, const UInt_t wire ) {
-    fReferenceChannels.at ( fCurrentBankIndex ).first  = fCurrentTDCIndex;
-    fReferenceChannels.at ( fCurrentBankIndex ).second = chan;
-    //  Register a reference channel with the wire equal to the bank index.
-    fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPackage = 0;
-    fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPlane   = plane;
-    fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fElement = fCurrentBankIndex;
-    return OK;
-};
+
 
 Int_t QwDriftChamberVDC::BuildWireDataStructure ( const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire ) {
     if ( plane == kReferenceChannelPlaneNumber ) {

@@ -257,16 +257,6 @@ void  QwDriftChamberHDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
 
 
 
-Int_t QwDriftChamberHDC::LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire){
-  fReferenceChannels.at(fCurrentBankIndex).first  = fCurrentTDCIndex;//fCurrentBankIndex is updated at RegisterROCNumber() and fCurrentTDCIndex is updated at RegisterSlotNumber()
-  fReferenceChannels.at(fCurrentBankIndex).second = chan;
-  //  Register a reference channel with the wire equal to the bank index.
-  fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPackage = 0;
-  fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPlane   = plane;
-  fTDCPtrs.at(fCurrentTDCIndex).at(chan).fElement = fCurrentBankIndex;
-  return OK;
-};
-
 Int_t QwDriftChamberHDC::BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire){
   if (plane == kReferenceChannelPlaneNumber){
     LinkReferenceChannel(chan, plane, wire);

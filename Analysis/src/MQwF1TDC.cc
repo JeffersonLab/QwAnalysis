@@ -83,7 +83,7 @@ Double_t MQwF1TDC::SubtractReference(Double_t rawtime, Double_t reftime)
   else if( real_time > fMaxDiff) {
     real_time -= fOffset;
   }
-  real_time = real_time - fTimeShift;
+  real_time = real_time + fTimeShift;
   return real_time;
 }
 
