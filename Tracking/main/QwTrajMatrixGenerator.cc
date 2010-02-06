@@ -20,17 +20,17 @@
 
 // Qweak Tracking headers
 #include "Det.h"
-#include "QwTrajectory.h"
+#include "QwRayTracer.h"
 
 
 int main (int argc, char* argv[]) {
 
-    QwTrajectory* trajectory = new QwTrajectory();
-    trajectory->LoadMagneticFieldMap();
+    QwRayTracer* raytracer = new QwRayTracer();
+    raytracer->LoadMagneticFieldMap();
 
-    trajectory->GenerateLookUpTable();
+    raytracer->GenerateLookUpTable();
 
-    delete trajectory;
+    delete raytracer;
 
     return 0;
 

@@ -1,10 +1,10 @@
-// This is an example for testing the bridging code in the qwtrajectory class
+// This is an example for testing the bridging code
 
 // Qweak Tracking headers
 #include "QwOptionsTracking.h"
 #include "QwParameterFile.h"
 #include "Det.h"
-#include "QwTrajectory.h"
+#include "QwRayTracer.h"
 
 int main (int argc, char* argv[]) {
 
@@ -21,12 +21,12 @@ int main (int argc, char* argv[]) {
     QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
     QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput");
 
-    QwTrajectory* trajectory = new QwTrajectory();
+    QwRayTracer* raytracer = new QwRayTracer();
 
-    trajectory->LoadMagneticFieldMap();
-    //trajectory->GenerateLookUpTable();
+    raytracer->LoadMagneticFieldMap();
+    //raytracer->GenerateLookUpTable();
 
-    trajectory->LoadMomentumMatrix();
+    raytracer->LoadMomentumMatrix();
 
     for (UInt_t runnumber =  (UInt_t) gQwOptions.GetIntValuePairFirst("run");
             runnumber <= (UInt_t) gQwOptions.GetIntValuePairLast("run");
@@ -110,7 +110,7 @@ int main (int argc, char* argv[]) {
             std::vector<TVector3> endpointdirection;
 
             // This is slow due to accessing the disk every time
-            int status = trajectory->ReadSimPartialTrack(inputfilename, eventnumber,
+            int status = raytracer->ReadSimPartialTrack(inputfilename, eventnumber,
                          &startpoint, &startpointdirection,
                          &endpoint, &endpointdirection);
             if (status == -1) {
@@ -120,12 +120,13 @@ int main (int argc, char* argv[]) {
             evtnum++;
 
             // TODO process multi-hit
-            for (size_t i=0; i<startpoint.size(); i++) {
-                for (size_t j=0; j<endpoint.size(); j++) {
-                    trajectory->SetStartAndEndPoints(startpoint[i], startpointdirection[i],
+            // Take only one hit in each region for now by setting i<1 && j<1
+            for (size_t i=0; i<startpoint.size() && i<1; i++) {
+                for (size_t j=0; j<endpoint.size() && j<1; j++) {
+                    raytracer->SetStartAndEndPoints(startpoint[i], startpointdirection[i],
                                                      endpoint[j], endpointdirection[j]);
                     timer.Start();
-                    status = trajectory->BridgeFrontBackPartialTrack();
+                    status = raytracer->BridgeFrontBackPartialTrack();
                     timer.Stop();
                     CpuTime = timer.CpuTime();
                     RealTime = timer.RealTime();
@@ -134,10 +135,10 @@ int main (int argc, char* argv[]) {
                     if (status == 0) {
                         if (debug) {
                             std::cout<<"======>>>> Bridged a track"<<std::endl;
-                            trajectory->PrintInfo();
+                            raytracer->PrintInfo();
                         }
                         TrackID++;
-                        trajectory->GetBridgingResult(bridgingresult);
+                        raytracer->GetBridgingResult(bridgingresult);
                         tree->Fill();
                     } else
                         if (debug) std::cout<<"======>>>> No luck on bridging this track."<<std::endl;
@@ -159,7 +160,7 @@ int main (int argc, char* argv[]) {
         delete outfile;
     }
 
-    delete trajectory;
+    delete raytracer;
 
     return 0;
 

@@ -15,7 +15,7 @@
 
 // Forward declarations
 class QwMagneticField;
-class QwTrajectory;
+class QwRayTracer;
 
 #define MAX_ITERATION 10
 

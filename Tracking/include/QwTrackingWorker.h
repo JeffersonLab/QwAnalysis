@@ -15,6 +15,7 @@
 #include "VQwSystem.h"
 #include "QwTypes.h"
 #include "globals.h"
+#include "QwRayTracer.h"
 
 // Forward declarations
 class QwSubsystemArrayTracking;
@@ -25,7 +26,6 @@ class QwPartialTrack;
 class QwTrack;
 class QwEvent;
 class QwBridge;
-class QwTrajectory;
 
 /**
  *  \class QwTrackingWorker
@@ -88,7 +88,7 @@ class QwTrackingWorker: public VQwSystem {
     bool fShowEventPattern;
     bool fShowMatchingPattern;
 
-    QwTrajectory *trajectory;
+    QwRayTracer *raytracer;
 
 }; // class QwTrackingWorker
 
