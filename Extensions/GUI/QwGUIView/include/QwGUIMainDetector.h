@@ -31,7 +31,7 @@
 ///
 /// \ingroup QwGUIMain
 
-#define MAIN_DET_HST_NUM      16           
+#define MAIN_DET_INDEX      16           
 
 enum ENDataPlotType {
   PLOT_TYPE_HISTO,           
@@ -61,8 +61,8 @@ using std::vector;
 #include <TRootCanvas.h>
 #include <TMath.h>
 #include "QwGUISubSystem.h"
-#include "RSDataWindow.h"
-//#include "QwParameterFile.h"
+#include "QwGUIDataWindow.h"
+#include "RNumberEntryDialog.h"
 
 class QwGUIMainDetector : public QwGUISubSystem {
 
@@ -98,6 +98,9 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!An object array to store data window pointers -- good for use in cleanup.
   TObjArray            DataWindowArray;
 
+  //!A dioalog for number entry ...  
+  RNumberEntryDialog   *dNumberEntryDlg;
+
   //!This function plots histograms of the data in the current file, in the main canvas.
   //!
   //!Parameters:
@@ -114,15 +117,13 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!Return value: none
   void                 PlotGraphs();
 
-  //!This function plots time graphs of the data in the current file, in the main canvas.
+  //!This function plots histograms of the data discrete fourier transform, in the main canvas.
   //!
   //!Parameters:
   //! - none
   //!
   //!Return value: none
   void                 PlotDFT();
-
-
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
@@ -134,26 +135,26 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!Return value: none  
   void                 ClearData();
 
-  Int_t                GetCurrentDataLength(Int_t det) {return det >= 0 && det < MAIN_DET_HST_NUM ? dCurrentData[det].size() : -1;};
+  Int_t                GetCurrentDataLength(Int_t det) {return det >= 0 && det < MAIN_DET_INDEX ? dCurrentData[det].size() : -1;};
 
   void                 SetPlotDataType(ENDataPlotType type) {dDataPlotType = type;};
   ENDataPlotType       GetPlotDataType() {return dDataPlotType;};
 
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
   //!These are the names by which the histograms are identified within the root file.
-  static const char   *MainDetectorHists[MAIN_DET_HST_NUM];
+  static const char   *MainDetectorDataNames[MAIN_DET_INDEX];
+  static const int    *MainDetectorDataIndex[MAIN_DET_INDEX];
 
   //!Stores the data items (events) from the tree for all detectors
-  vector <Double_t>    dCurrentData[MAIN_DET_HST_NUM];
-  vector <Double_t>    dCurrentDataDFT[MAIN_DET_HST_NUM];
+  vector <Double_t>    dCurrentData[MAIN_DET_INDEX];
+  vector <Double_t>    dCurrentDataDFT[MAIN_DET_INDEX];
 
   ENDataPlotType       dDataPlotType;
   Bool_t               dDFTCalculated;
   void                 SetDFTCalculated(Bool_t flag) {dDFTCalculated = flag;};
   Bool_t               IsDFTCalculated() {return dDFTCalculated;};
   void                 CalculateDFT();
-
-
+  
  protected:
 
   //!Overwritten virtual function from QwGUISubSystem::MakeLayout(). This function simply adds an
@@ -185,6 +186,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   virtual void        OnObjClose(char *);
   virtual void        OnReceiveMessage(char*);
   virtual void        OnRemoveThisTab();
+          void        OnUpdatePlot(char *);
 
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
   virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
