@@ -34,33 +34,20 @@ class VQwAnalyzer : public VQwSystem {
     Bool_t kTree;
 
   public:
-    VQwAnalyzer (const char* name = 0): VQwSystem (name) { };
+    VQwAnalyzer (const char* name = 0): VQwSystem(name) { };
     virtual ~VQwAnalyzer() { };
 
     virtual QwSubsystemArray* GetSubsystemArray() { return fDetectors; };
 
-    virtual void OpenRootFile() { // TODO this could be in VQwAnalyzer itself
-      QwError << "VQwAnalyzer::OpenRootFile not implemented!" << QwLog::endl;
-      return;
-    };
-    virtual void CloseRootFile() {
-//       // Write ROOT file
-//       fRootFile->Write(0, TObject::kOverwrite);
-//       // Delete histograms
-//       if (kHisto) fDetectors->DeleteHistograms();
-//       // Close ROOT file
-//       fRootFile->Close();
-//       delete fRootFile;
-
-      return;
-    };
+    virtual void OpenRootFile(Int_t run);
+    virtual void CloseRootFile();
 
     virtual void ProcessEvent() {
       QwError << "VQwAnalyzer::ProcessEvent not implemented!" << QwLog::endl;
       return;
     };
 
-  ClassDef(VQwAnalyzer,1); // corresponding ClassImp in QwRoot.h
+  ClassDef(VQwAnalyzer,1);
 };
 
 #endif // __VQwAnalyzer_h__

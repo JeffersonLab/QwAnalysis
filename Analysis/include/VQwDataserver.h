@@ -51,12 +51,7 @@ class VQwDataserver : public VQwSystem {
       QwError << "VQwDataserver::OpenDataStream not implemented!" << QwLog::endl;
       return -1;
     };
-    virtual void CloseDataFile() {
-//       // Close CODA file
-//       fEventBuffer->CloseDataFile();
-//       fEventBuffer->ReportRunSummary();
-      return;
-    };
+    virtual void CloseDataFile();
 
 
     virtual void FillSubsystemData(QwSubsystemArray* detectors) {

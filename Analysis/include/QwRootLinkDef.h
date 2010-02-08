@@ -6,7 +6,5 @@
 
 #pragma link C++ class VQwSystem+;
 #pragma link C++ class QwRoot+;
-#pragma link C++ class VQwDataserver+;
-#pragma link C++ class VQwAnalyzer+;
 
 #endif

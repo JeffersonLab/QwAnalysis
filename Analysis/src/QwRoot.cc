@@ -17,11 +17,9 @@ ClassImp(QwRoot);
 
 // Qweak analyzer
 #include "VQwAnalyzer.h"
-ClassImp(VQwAnalyzer);
 
 // Qweak dataserver
 #include "VQwDataserver.h"
-ClassImp(VQwDataserver);
 
 void* QwRootThread (void* arg)
 {
@@ -137,7 +135,7 @@ void QwRoot::OfflineLoop()
     // TODO Check return value
 
     // Open output for this run
-    fAnalyzers->OpenRootFile();
+    fAnalyzers->OpenRootFile(run);
 
     Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
     Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
@@ -148,17 +146,24 @@ void QwRoot::OfflineLoop()
       if      (eventnumber < eventnumber_min) continue;
       else if (eventnumber > eventnumber_max) break;
 
+      // Find idle analyzer object or wait
+
       // Fill subsystem data
       fDataserver->FillSubsystemData(fAnalyzers->GetSubsystemArray());
 
-      // Spin an analyzer thread
-      fAnalyzerThreads = new TThread("QwAnalyzerThread",
-				(void(*) (void*))&(QwAnalyzerThread),
-				(void*) fAnalyzers);
-      fAnalyzerThreads->Run();
+      // Spin analyzer thread
+//       fAnalyzerThreads = new TThread("QwAnalyzerThread",
+// 				(void(*) (void*))&(QwAnalyzerThread),
+// 				(void*) fAnalyzers);
+//       fAnalyzerThreads->Run();
+
+      //TThread::Ps();
+      //TThread::Sleep(1);
+      //fAnalyzerThreads->Join();
+      //TThread::Ps();
 
       // Process this event by analyzer
-//       fAnalyzers->ProcessEvent();
+      fAnalyzers->ProcessEvent();
 
       if (eventnumber % 1000 == 0) {
         QwMessage << "Number of events processed so far: "
