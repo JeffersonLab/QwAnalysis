@@ -34,8 +34,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
 
  public:
   QwSubsystemArray() {};
-  ~QwSubsystemArray(){
-  };
+  virtual ~QwSubsystemArray() { };
 
   /// \brief Add the subsystem to this array
   void push_back(VQwSubsystem* subsys);

@@ -1,46 +1,50 @@
 #include "QwTrackingDataserver.h"
+ClassImp(QwTrackingDataserver);
 
-// Qweak Tracking headers
+// Qweak headers
 #include "QwTypes.h"
-#include "Det.h"
-#include "QwTrackingTreeRegion.h"
-
-// Qweak hit container
+#include "QwEventBuffer.h"
+#include "QwTrackingWorker.h"
 #include "QwHitContainer.h"
-#include "QwASCIIEventBuffer.h"
-
-//ClassImp(QwTrackingDataserver)
 
 QwTrackingDataserver::QwTrackingDataserver (const char* name) : VQwDataserver (name)
 {
-  // Initialize QwHitContainer
-  fEventBuffer.OpenDataFile(398);
+  fEventBuffer = new QwEventBuffer;
 
-  // Instantiate hit list
-  fHitList = new QwHitContainer;
 }
 
 QwTrackingDataserver::~QwTrackingDataserver()
 {
-  delete fHitList;
+
 }
 
-void QwTrackingDataserver::NextEvent()
+Int_t QwTrackingDataserver::GetRun(Int_t run)
 {
-  // get next event
-  fEventBuffer.GetEvent();
+  // Open run
+  if (fEventBuffer->OpenDataFile(run) == CODA_ERROR) return CODA_ERROR;
 
-  // this will load the QwHitContainer from set of hits read from ASCII file qweak.event
-  fHitList->clear();
-  fEventBuffer.GetHitList (*fHitList);
-  // sort the array
-  fHitList->sort();
-  // now we decode our QwHitContainer list and piece together with the
-  // rcTreeRegion multi-dimension array.
-  fEventBuffer.ProcessHitContainer(*fHitList);
+  // Reset the event buffer
+  fEventBuffer->ResetControlParameters();
+
+  return CODA_OK;
 }
 
-QwHitContainer* QwTrackingDataserver::GetHitList()
+Int_t QwTrackingDataserver::GetEvent()
 {
-  return fHitList;
+  // Get event
+  return fEventBuffer->GetEvent();
 }
+
+Int_t QwTrackingDataserver::GetEventNumber()
+{
+  // Get event number
+  return fEventBuffer->GetEventNumber();
+}
+
+void QwTrackingDataserver::FillSubsystemData(QwSubsystemArray* detectors)
+{
+  // Fill subsystem data
+  fEventBuffer->FillSubsystemData(*detectors);
+
+  // TODO Since this is so generic, it could go up to the VQwDataserver
+};

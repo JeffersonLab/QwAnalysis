@@ -117,7 +117,7 @@ using std::endl;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
+QwTrackingWorker::QwTrackingWorker (const char* name)
 {
   QwDebug << "###### Calling QwTrackingWorker::QwTrackingWorker ()" << QwLog::endl;
 

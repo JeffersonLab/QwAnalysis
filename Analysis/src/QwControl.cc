@@ -6,18 +6,19 @@
 using std::cout; using std::endl;
 
 // ROOT headers
-#include "TROOT.h"
+#include <TROOT.h>
 
 // Qweak headers
 #include "QwRoot.h"
+#include "QwOptions.h"
+#include "QwHistogramHelper.h"
+#include "QwParameterFile.h"
 
-// Qweak analyzers
+// Qweak analyzer
 #include "VQwAnalyzer.h"
-#include "QwTrackingAnalyzer.h"
 
-// Qweak dataservers
+// Qweak dataserver
 #include "VQwDataserver.h"
-#include "QwTrackingDataserver.h"
 
 
 // Global pointers
@@ -29,8 +30,6 @@ VQwDataserver* gQwDataserver = NULL;
 QwControl* QwControl::fExists = NULL;  // Pointer to this interface
 
 
-ClassImp(QwControl)
-
 //--------------------------------------------------------------------------
 QwControl::QwControl (const char* appClassName, int* argc, char** argv,
 		      void* options, int numOptions, bool noLogo) :
@@ -38,6 +37,24 @@ QwControl::QwControl (const char* appClassName, int* argc, char** argv,
 {
   gQwControl = this;
 
+  /// Set the command line arguments and the configuration filename
+  gQwOptions.SetCommandLine(*argc, argv);
+  gQwOptions.SetConfigFile("qwanalysis.conf");
+
+  /// Message logging facilities
+  gQwLog.InitLogFile("QwAnalysis.log");
+  gQwLog.SetScreenThreshold(QwLog::kMessage);
+  gQwLog.SetFileThreshold(QwLog::kMessage);
+
+  /// Load the histogram definitions
+  gQwHists.LoadHistParamsFromFile(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/cosmics_hists.in");
+
+  /// Fill the search paths for the parameter files
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH")) + "/setupfiles");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Tracking/prminput");
+
+
+  // Default options
   fIsBatch = false;	// Start Qw-Root interface
   fIsOnline = true;	// Use online decoded data stream
 
@@ -82,19 +99,19 @@ QwControl::~QwControl()
   }
 }
 
-void QwControl::StartDataserver()
+void QwControl::StartDataserver(VQwDataserver* dataserver)
 {
   // Create the dataserver
-  gQwDataserver = gQwRoot->CreateDataserver("QwTrackingDataserver");
+  gQwDataserver = dataserver;
   if (! gQwDataserver)
     return;
   gQwRoot->SetDataserver(gQwDataserver);
 }
 
-void QwControl::StartAnalyzer()
+void QwControl::StartAnalyzer(VQwAnalyzer* analyzer)
 {
   // Create the analyzer
-  gQwAnalyzer = gQwRoot->CreateAnalyzer("QwTrackingAnalyzer");
+  gQwAnalyzer = analyzer;
   if (! gQwAnalyzer)
     return;
   gQwRoot->SetAnalyzer(gQwAnalyzer);
@@ -106,8 +123,7 @@ void QwControl::StartAnalyzer()
   if (fIsBatch) {
     while (! gQwRoot->IsFinished()) sleep(1);
     exit(0);
-  }
-  else{
+  } else {
     Run();
   }
 }

@@ -5,36 +5,31 @@
 #include "VQwAnalyzer.h"
 
 // ROOT headers
-#include "TROOT.h"
-#include "TH1F.h"
+#include <TROOT.h>
 
-// Qweak support headers
-#include "Det.h"
-#include "Qset.h"
-
-// Qweak tracking worker
-#include "QwTrackingWorker.h"
+// Forward declarations
+class QwSubsystemArrayTracking;
+class QwTrackingWorker;
+class QwHitContainer;
 
 class QwTrackingAnalyzer : public VQwAnalyzer {
 
   private:
-    Qset fGeometry;
+    QwHitContainer* fHitList;			//!
+    QwTrackingWorker* fTrackingWorker;		//!
 
-    QwHitContainer* fHitList;
-    QwTrackingWorker* fTrackingWorker;
+    // Flags
+    Bool_t kTracking;
 
   public:
-    TH1F* fHisto1;
-    TH1F* fHisto2;
+    QwTrackingAnalyzer (const char* name = 0);
+    virtual ~QwTrackingAnalyzer();
 
-    QwTrackingAnalyzer (const char*);
-    ~QwTrackingAnalyzer();
+    QwSubsystemArrayTracking* GetSubsystemArrayTracking();
 
-    void SetHitList(QwHitContainer* hitlist) { fHitList = hitlist; };
+    void ProcessEvent();
 
-    void Process();
-
-  //ClassDef(QwTrackingAnalyzer,1)
+  ClassDef(QwTrackingAnalyzer,1);
 };
 
 #endif // __QwTrackingAnalyzer_h__

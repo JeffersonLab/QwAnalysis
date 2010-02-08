@@ -2,12 +2,15 @@
 #define __QwControl_h__
 
 // Inherits from
-#include "TRint.h"
+#include <TRint.h>
+
+// Forward declarations
+class VQwDataserver;
+class VQwAnalyzer;
 
 // Global pointers recognised by CINT
 R__EXTERN class QwControl* gQwControl;
 R__EXTERN class QwRoot*    gQwRoot;
-
 
 class QwControl : public TRint {
 
@@ -23,12 +26,8 @@ class QwControl : public TRint {
     QwControl (const char* appClassName, int* argc, char** argv,
 		void* options = NULL, int numOptions = -1, bool noLogo = 0);
     virtual ~QwControl();
-    virtual void StartAnalyzer();
-    virtual void StartDataserver();
-
-
-  ClassDef(QwControl,1)
-
+    virtual void StartAnalyzer(VQwAnalyzer* analyzer);
+    virtual void StartDataserver(VQwDataserver* dataserver);
 };
 
 #endif

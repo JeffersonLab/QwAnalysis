@@ -1,40 +1,46 @@
 #ifndef __QwRoot_h__
 #define __QwRoot_h__
 
-#include "TThread.h"
+// ROOT headers
+#include <TThread.h>
 
+// Qweak headers
 #include "VQwSystem.h"
+
+// Qweak analyzer and dataserver
 #include "VQwAnalyzer.h"
 #include "VQwDataserver.h"
 
-void* QwRunThread (void*);
+#define NUM_ANALYZERS 4
+
+void* QwRootThread (void*);
+void* QwAnalyzerThread (void*);
 
 class QwRoot : public VQwSystem {
 
   private:
-    TThread* fRunThread;	// thread with analyzer
+    TThread* fRootThread;	// thread with main analysis loop
+    TThread* fAnalyzerThreads;	// thread with analyzers objects
 
-    VQwAnalyzer* fAnalyzer;	// analyzer
+    VQwAnalyzer* fAnalyzers;	// analyzers
     VQwDataserver* fDataserver;	// dataserver
 
     bool fIsOnline;	// Are we running online (CODA stream) or offline (ASCII)
     bool fIsFinished;	// Are we at the end of the data stream yet
 
   public:
-    QwRoot (const char* name, bool = false): VQwSystem(name) { };
-    ~QwRoot() { };
+    QwRoot (const char* name = 0, bool = false): VQwSystem(name) { };
+    virtual ~QwRoot();
 
     void Run();
     void Start();
     void OnlineLoop();
     void OfflineLoop();
 
-    // analyzer creation and starting
-    VQwAnalyzer* CreateAnalyzer (const char* name);
+    // Set the analyzer
     void SetAnalyzer (VQwAnalyzer* analyzer);
 
-    // dataserver creation and starting
-    VQwDataserver* CreateDataserver (const char* name);
+    // Set the dataserver
     void SetDataserver (VQwDataserver* dataserver);
 
 
@@ -43,7 +49,7 @@ class QwRoot : public VQwSystem {
     void SetIsFinished (bool finished) { fIsFinished = finished; };
     bool IsFinished () { return fIsFinished; };
 
-  ClassDef(QwRoot,1)
+  ClassDef(QwRoot,1);
 };
 
 #endif // __QwRoot_h__

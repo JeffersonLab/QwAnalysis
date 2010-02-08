@@ -1,38 +1,37 @@
+#include "VQwSystem.h"
+ClassImp(VQwSystem);
 #include "QwRoot.h"
+ClassImp(QwRoot);
 
 // Standard C and C++ headers
 #include <iostream>
 #include <cstdlib>
-using std::cout; using std::endl;
 
 // ROOT headers
-#include "TROOT.h"
-#include "TBenchmark.h"
+#include <TROOT.h>
+#include <TBenchmark.h>
 
 // Qweak headers
-#include "VQwSystem.h"
-#include "QwASCIIEventBuffer.h"
+#include "QwLog.h"
+#include "QwOptions.h"
 
-// Qweak analyzers
+// Qweak analyzer
 #include "VQwAnalyzer.h"
-#include "QwTrackingAnalyzer.h"
+ClassImp(VQwAnalyzer);
 
-// Qweak dataservers
+// Qweak dataserver
 #include "VQwDataserver.h"
-#include "QwTrackingDataserver.h"
+ClassImp(VQwDataserver);
 
-
-ClassImp(QwRoot)
-
-
-void* QwRunThread (void* arg)
+void* QwRootThread (void* arg)
 {
-  // Threaded running of the analyzer
+  // Threaded running of the command prompt
   // so that other tasks may be performed
 
+  TThread::Printf("New QwRoot thread\n");
   if (! ((TObject*) arg)->InheritsFrom("QwRoot")) {
-    TThread::Printf(" Error...QwRoot base class not supplied\n");
-    return NULL;;
+    TThread::Printf(" Error... QwRoot base class not supplied\n");
+    return NULL;
   }
   QwRoot* qr = (QwRoot*) arg;
   qr->Run();
@@ -40,26 +39,49 @@ void* QwRunThread (void* arg)
 }
 
 //---------------------------------------------------------------------------
+void* QwAnalyzerThread (void* arg)
+{
+  // Threaded running of the analyzer
+  // so that other tasks may be performed
+
+  TThread::Printf("New VQwAnalyzer thread\n");
+  if (! ((TObject*) arg)->InheritsFrom("VQwAnalyzer")) {
+    TThread::Printf(" Error... VQwAnalyzer base class not supplied\n");
+    return NULL;
+  }
+  VQwAnalyzer* ana = (VQwAnalyzer*) arg;
+  ana->ProcessEvent();
+  TThread::Printf("VQwAnalyzer thread done\n");
+  return NULL;
+}
+
+//---------------------------------------------------------------------------
 void QwRoot::Run()
 {
   // Run online or offline analysis
-  // Offline handles ascii file(s)
 
   gBenchmark = new TBenchmark();
   gBenchmark->Start("QwRootRunThread");
 
-  // Set up analysis
+  // Set up analysis parameters from config file
   //fAnalysis->FileConfig (fAnalysisSetup);
 
-  // Online
   if (fIsOnline) {
-    // Connect to data stream
-    // if (data stream) data loop;
+  // Online
 
-  // Offline
+    // Connect to CODA data stream
+    //fDataserver->Connect();
+
+    // Loop while data
+    OnlineLoop();
+
   } else {
+  // Offline
+
+    // Loop while data
     OfflineLoop();
   }
+
   gBenchmark->Show("QwRootRunThread");
   fIsFinished = true;
 }
@@ -70,89 +92,114 @@ void QwRoot::Start()
   // Start the analysis thread. This will run in the background
   // but will produce to occasional warning or info message
 
-  if (fRunThread) {
-    printf(" Warning...deleting old RunThread and starting new one,\n");
-    fRunThread->Delete();
+  if (fRootThread) {
+    printf(" Warning... deleting old QwRootThread and starting new one,\n");
+    fRootThread->Delete();
   }
-  printf(" Starting new RunThread.\n");
-  fRunThread = new TThread("QwRunThread",
-			   (void(*) (void*))&(QwRunThread),
+  printf(" Starting new QwRootThread.\n");
+  fRootThread = new TThread("QwRootThread",
+			   (void(*) (void*))&(QwRootThread),
 			   (void*) this);
-  fRunThread->Run();
+  fRootThread->Run();
   return;
 }
 
 //-----------------------------------------------------------------------------
 void QwRoot::OnlineLoop()
 {
-  // Loop while online data
+  // Loop while there is online data
+  while (fDataserver->GetEvent() == 0) { // TODO: CODA_OK
 
-    // Wait until buffer ready
+    // Fill subsystem data
+    fDataserver->FillSubsystemData(fAnalyzers->GetSubsystemArray());
 
-    // Process event
+    // Process this event by analyzer
+    fAnalyzers->ProcessEvent();
 
-  // Finish
+  } // end of loop over events
 }
 
 //-----------------------------------------------------------------------------
 void QwRoot::OfflineLoop()
 {
-  // Loop over the offline data sources (ascii files, ntuples from geant)
+  // Loop over all requested runs
+  Int_t runnumber_min = gQwOptions.GetIntValuePairFirst("run");
+  Int_t runnumber_max = gQwOptions.GetIntValuePairLast("run");
+  for (Int_t run  = runnumber_min;
+             run <= runnumber_max;
+             run++) {
 
-  // Setup file name
+    // Print run number
+    QwMessage << "Processing run " << run << QwLog::endl;
 
-  int nEvent = 0;	// number of processed events
-  int nEventMax = 10;	// maximum number of events
+    // Try to open the data file
+    fDataserver->GetRun(run);
+    // TODO Check return value
 
-  while (nEvent < nEventMax) {
-    // Get next event from dataserver
-    fDataserver->NextEvent();
-    fAnalyzer->SetHitList (fDataserver->GetHitList());
+    // Open output for this run
+    fAnalyzers->OpenRootFile();
 
-    // Process this event
-    fAnalyzer->Process();
+    Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
+    Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
+    while (fDataserver->GetEvent() == 0) { // TODO: CODA_OK
 
-    nEvent++;
-  }
+      //  Check to see if we want to process this event.
+      Int_t eventnumber = fDataserver->GetEventNumber();
+      if      (eventnumber < eventnumber_min) continue;
+      else if (eventnumber > eventnumber_max) break;
+
+      // Fill subsystem data
+      fDataserver->FillSubsystemData(fAnalyzers->GetSubsystemArray());
+
+      // Spin an analyzer thread
+      fAnalyzerThreads = new TThread("QwAnalyzerThread",
+				(void(*) (void*))&(QwAnalyzerThread),
+				(void*) fAnalyzers);
+      fAnalyzerThreads->Run();
+
+      // Process this event by analyzer
+//       fAnalyzers->ProcessEvent();
+
+      if (eventnumber % 1000 == 0) {
+        QwMessage << "Number of events processed so far: "
+                  << eventnumber << QwLog::endl;
+      }
+
+    } // end of loop over events
+
+    // Close output for this run
+    fAnalyzers->CloseRootFile();
+
+    // Close event buffer
+    fDataserver->CloseDataFile();
+
+  } // end of loop over runs
 }
 
-//-----------------------------------------------------------------------------
-VQwAnalyzer* QwRoot::CreateAnalyzer (const char* name)
-{
-  if (strcmp (name, "QwTrackingAnalyzer") == 0) {
-    VQwAnalyzer* analyzer = new QwTrackingAnalyzer (name);
-    return analyzer;
-  }
-  return 0;
-}
 //-----------------------------------------------------------------------------
 void QwRoot::SetAnalyzer (VQwAnalyzer* analyzer)
 {
-// TODO (wdc) Why doesn't this work? (and in SetDataserver below)
-//  if (! analyzer->InheritsFrom("VQwAnalyzer")) {
-//    std::cout << "Error: analysis has to inherit from VQwAnalyzer!" << std::endl;
-//    return;
-//  }
-  fAnalyzer = analyzer;
+  if (! analyzer->InheritsFrom("VQwAnalyzer")) {
+    QwError << "QwRoot analysis has to inherit from VQwAnalyzer!" << QwLog::endl;
+    return;
+  }
+  fAnalyzers = analyzer;
   return;
 }
 
 //-----------------------------------------------------------------------------
-VQwDataserver* QwRoot::CreateDataserver (const char* name)
-{
-  if (strcmp (name, "QwTrackingDataserver") == 0) {
-    VQwDataserver* dataserver = new QwTrackingDataserver (name);
-    return dataserver;
-  }
-  return 0;
-}
-//-----------------------------------------------------------------------------
 void QwRoot::SetDataserver (VQwDataserver* dataserver)
 {
-//  if (! dataserver->InheritsFrom("VQwDataserver")) {
-//    std::cout << "Error: dataserver has to inherit from VQwDataserver!" << std::endl;
-//    return;
-//  }
+  if (! dataserver->InheritsFrom("VQwDataserver")) {
+    QwError << "QwRoot dataserver has to inherit from VQwDataserver!" << QwLog::endl;
+    return;
+  }
   fDataserver = dataserver;
   return;
+}
+
+//-----------------------------------------------------------------------------
+QwRoot::~QwRoot () {
+  if (fDataserver)  delete fDataserver;
+  if (fAnalyzers) delete fAnalyzers; // TODO delete all
 }

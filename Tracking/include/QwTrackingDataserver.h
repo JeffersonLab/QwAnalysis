@@ -5,31 +5,27 @@
 #include "VQwDataserver.h"
 
 // ROOT headers
-#include "TROOT.h"
-#include "TH1F.h"
+#include <TROOT.h>
 
-// Qweak support headers
-#include "Det.h"
-#include "Qset.h"
-
-// Qweak headers
-#include "QwEventBuffer.h"
-#include "QwTrackingWorker.h"
+// Forward declarations
+class QwEventBuffer;
 
 class QwTrackingDataserver : public VQwDataserver {
 
   private:
-    QwEventBuffer fEventBuffer;
-    QwHitContainer* fHitList;
 
   public:
-    QwTrackingDataserver (const char*);
-    ~QwTrackingDataserver();
+    QwTrackingDataserver (const char* name = 0);
+    virtual ~QwTrackingDataserver();
 
-    void NextEvent();
-    QwHitContainer* GetHitList();
+    Int_t GetRun(Int_t run);
 
-  //ClassDef(QwTrackingDataserver,1)
+    Int_t GetEvent();
+    Int_t GetEventNumber();
+
+    void FillSubsystemData(QwSubsystemArray* detectors);
+
+  ClassDef(QwTrackingDataserver,1);
 };
 
 #endif // __QwTrackingDataserver_h__
