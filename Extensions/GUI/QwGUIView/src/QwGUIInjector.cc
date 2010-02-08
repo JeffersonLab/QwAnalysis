@@ -97,7 +97,7 @@ void QwGUIInjector::MakeLayout()
 //   mc->Divide( 2, 4);
 
   Int_t wid = dCanvas->GetCanvasWindowId();
-  TSuperCanvas *super_canvas = new TSuperCanvas("", 10, 10, wid);
+  TCanvas *super_canvas = new TCanvas("", 10, 10, wid);
   dCanvas->AdoptCanvas(super_canvas);
   super_canvas -> Divide(2,4);
 
@@ -273,8 +273,6 @@ void QwGUIInjector::PositionDifferences(){
 
   bool ldebug = false;
   
-  TObject *objp;
-  if(! objp) return; 
   TCanvas *mc = dCanvas->GetCanvas();
 
   mc->Clear();
@@ -287,7 +285,8 @@ void QwGUIInjector::PositionDifferences(){
   //  Char_t* post[2]={"RelX","RelY"};
 
   TObject *obj;
- 
+  if(! obj) return; 
+
   TH1D* histx[INJECTOR_DEV_NUM] = {NULL};
   TH1D* histy[INJECTOR_DEV_NUM] = {NULL};
 

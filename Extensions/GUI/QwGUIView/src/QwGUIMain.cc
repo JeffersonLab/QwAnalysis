@@ -44,8 +44,6 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   LumiDetSubSystem   = NULL;
   InjectorSubSystem  = NULL;
 
-  TrackingSystem     = NULL;
-
   dMWWidth           = w;
   dMWHeight          = h;
   dCurRun            = 0;
@@ -110,15 +108,6 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
     EventDisplaySubSystem = new QwGUIEventDisplay(fClient->GetRoot(), this, dTab, "Event Display",
 					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
 
-  // The below lines are added for only "Tracking System" test purpose, because
-  // the QwGUITrackingSystem class is not inherited from  QwGUISubSystem
-  // but TGCompositeFrame directly. I miminize the effect on the QwGUIMain
-  //
-   TrackingSystem = new QwGUITrackingSystem(this, dTab->AddTab("Tracking System"),
- 					   dMWWidth-15,dMWHeight-180);
-  MapSubwindows();
-  Layout();
-  //////////////////////
 }
 
 QwGUIMain::~QwGUIMain()
