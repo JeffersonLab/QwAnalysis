@@ -206,7 +206,7 @@ endif
 ifeq ($(strip $(QWANALYSIS)),)
   $(error Aborting : QWANALYSIS variable is not set.  Source the SetupFiles/.Qwcshrc script first)
 endif
-ifneq ($(strip $(QWANALYSIS)),$(strip $(shell pwd)))
+ifneq ($(shell test $(QWANALYSIS) -ef $(shell pwd) || echo false),)
   $(error Aborting : QWANALYSIS variable disagrees with the working directory.  Source the SetupFiles/.Qwcshrc script first)
 endif
 
