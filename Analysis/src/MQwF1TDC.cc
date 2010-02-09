@@ -9,7 +9,7 @@
 
 
 MQwF1TDC::MQwF1TDC(): fMinDiff(-1.0*kMaxInt), fMaxDiff(1.0*kMaxInt), 
-		      fOffset(0.0), fTimeShift(0.0)
+		      fOffset(0.0), fTimeShift(0.0), fSignFlip(kFALSE)
 { };
 
 MQwF1TDC::~MQwF1TDC() { };
@@ -76,14 +76,17 @@ Double_t MQwF1TDC::SubtractReference(Double_t rawtime, Double_t reftime)
   //      fTimeShift =   8929
   //
   Double_t real_time = rawtime - reftime;  
-  
+
   if( real_time < fMinDiff ) {
     real_time += fOffset;
   }
   else if( real_time > fMaxDiff) {
     real_time -= fOffset;
   }
-  real_time = real_time + fTimeShift;
+  if (fSignFlip)
+    real_time = -1.0*real_time + fTimeShift;
+  else
+    real_time = real_time + fTimeShift;
   return real_time;
 }
 
