@@ -22,6 +22,8 @@ using std::string;
 #include "QwTypes.h"
 #include "QwLog.h"
 #include "QwOptions.h"
+#define EXPAND_MY_SSQLS_STATICS
+#include "QwSSQLS.h"
 
 
 /**
@@ -46,6 +48,11 @@ class QwDatabase: private mysqlpp::Connection {
     void Disconnect() {disconnect();}; //<! Close an open database connection
     const string GetServerVersion() {return server_version();}; //<! Get database server version
     void DefineOptions(); //!< Defines available class options for QwOptions
+    mysqlpp::Query Query(const char *qstr=0) {return query(qstr);} //<! Generate a query to the database.
+    mysqlpp::Query Query(const std::string &qstr) {return query(qstr);} //<! Generate a query to the database.
+    const UInt_t GetRunNumber() {return fRunNumber;} //<! Run number getter
+    const UInt_t GetRunID() {return fRunID;} //<! Run ID getter
+    bool SetRunNumber(const UInt_t runnum); //<! Run number setter
 
   private:
 
@@ -57,6 +64,9 @@ class QwDatabase: private mysqlpp::Connection {
     string fDBPassword; //!< DB account password
     UInt_t fDBPortNumber; //!< Port number to connect to on server (mysql default port is 3306)
     bool fValidConnection; //!< True if a valid connection was established using defined connection information
+
+    UInt_t fRunNumber; //!< Run number of current run
+    UInt_t fRunID; //!< run_id of current run
 
 };
 

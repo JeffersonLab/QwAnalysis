@@ -27,7 +27,7 @@ QwDatabase::QwDatabase() : Connection()
   fDatabase=fDBServer=fDBUsername=fDBPassword=""; 
   fDBPortNumber=0;
   fValidConnection=false;
-
+  fRunNumber=fRunID=0;
 
 }
 
@@ -77,7 +77,7 @@ bool QwDatabase::ValidateConnection() {
   if (gQwOptions.HasValue("dbserver")) {
     server = gQwOptions.GetValue<string>("dbserver");
   } else {
-    QwMessage << "QwDatabase::ValidateConnection() : No database username supplied.  Attempting localhost." << QwLog::endl;
+    QwMessage << "QwDatabase::ValidateConnection() : No database server supplied.  Attempting localhost." << QwLog::endl;
     server = "localhost";
   }
 
@@ -160,3 +160,32 @@ void QwDatabase::DefineOptions()
 
 }
 
+/*!
+ * Sets run number for subsequent database interactions.  Makes sure correct
+ * entry exists in run table and retrieves run_id.
+ */
+bool QwDatabase::SetRunNumber(const UInt_t runnum)
+{
+
+  QwDebug << "Made it into QwDatabase::SetRunNumber()" << QwLog::endl;
+
+  try {
+    gQwDatabase.Connect();
+
+    mysqlpp::Query query=gQwDatabase.Query();
+    query << "SELECT * FROM run WHERE run_number = " << runnum;
+    vector<run> res;
+    query.storein(res);
+
+    QwDebug << "Number of rows returned:  " << res.size() << QwLog::endl;
+
+    gQwDatabase.Connect();
+  }
+  catch (const mysqlpp::Exception& er) {
+    QwError << er.what() << QwLog::endl;
+    return false;
+  }
+
+  return true;
+
+}
