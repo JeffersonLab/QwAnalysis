@@ -1,11 +1,8 @@
 /*!
+ * \file QwTrackingControl.cc
+ * \ingroup QwThreadSafe
  *
- * \file QwControl.cc
- *
- * \brief Program which starts a dataserver, an analyzer and a Qw-Root prompt
- *
- * \ingroup QwTracking
- *
+ * \brief Executable which starts a dataserver, an analyzer and a Qw-Root prompt
  */
 
 // Qweak headers
@@ -16,14 +13,15 @@
 
 int main (int argc, char** argv)
 {
-  // Define the command line options
+  /// Define the command line options
   gQwOptions.DefineOptions();
-  // Start Qw-Root command prompt
+  /// Start "Qw-Root>" command prompt
   QwControl* qwctrl = new QwControl ("Qweak-Root Analyzer", &argc, argv);
-  // Start dataserver
+  /// Start dataserver
   qwctrl->StartDataserver(new QwTrackingDataserver("dataserver"));
-  // Start analyzer
+  /// Start analyzer
   qwctrl->StartAnalyzer(new QwTrackingAnalyzer("analyzer"));
+  /// Run the analysis
   qwctrl->Run();
   delete qwctrl;
 }

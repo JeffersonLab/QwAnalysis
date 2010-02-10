@@ -58,7 +58,7 @@ QwControl::QwControl (const char* appClassName, int* argc, char** argv,
   fIsBatch = false;	// Start Qw-Root interface
   fIsOnline = true;	// Use online decoded data stream
 
-  // Command line options
+  // Command line options (TODO use gQwOptions)
   for (int i = 1; i < *argc; i++) {
     if (strcmp("--batch", argv[i]) == 0) fIsBatch = true;
     else if (strcmp("--offline", argv[i]) == 0) fIsOnline = false;
@@ -73,7 +73,7 @@ QwControl::QwControl (const char* appClassName, int* argc, char** argv,
   SetPrompt("Qw-Root:%d> ");
 
   // Qw-Root interface
-  gQwRoot = new QwRoot("QwRoot", fIsBatch);
+  gQwRoot = new QwRoot("QwRoot");
   gQwRoot->SetIsOnline(fIsOnline);
 
   // Prepare data sources

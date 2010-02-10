@@ -21,24 +21,28 @@ QwTrackingDataserver::~QwTrackingDataserver()
 Int_t QwTrackingDataserver::GetRun(Int_t run)
 {
   // Open run
-  if (fEventBuffer->OpenDataFile(run) == CODA_ERROR) return CODA_ERROR;
+  Int_t status = fEventBuffer->OpenDataFile(run);
+  if (status != CODA_OK) return status;
 
   // Reset the event buffer
   fEventBuffer->ResetControlParameters();
 
-  return CODA_OK;
+  // Store run number
+  fCurrentRun = run;
+
+  return status;
 }
 
 Int_t QwTrackingDataserver::GetEvent()
 {
   // Get event
-  return fEventBuffer->GetEvent();
-}
+  Int_t status = fEventBuffer->GetEvent();
+  if (status != CODA_OK) return status;
 
-Int_t QwTrackingDataserver::GetEventNumber()
-{
-  // Get event number
-  return fEventBuffer->GetEventNumber();
+  // Store event number
+  fCurrentEvent = fEventBuffer->GetEventNumber();
+
+  return status;
 }
 
 void QwTrackingDataserver::FillSubsystemData(QwSubsystemArray* detectors)

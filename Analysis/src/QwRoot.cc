@@ -21,11 +21,16 @@ ClassImp(QwRoot);
 // Qweak dataserver
 #include "VQwDataserver.h"
 
+//---------------------------------------------------------------------------
+/**
+ * Start a QwRoot thread
+ * @param arg QwRoot object pointer
+ * @return Null
+ */
 void* QwRootThread (void* arg)
 {
   // Threaded running of the command prompt
   // so that other tasks may be performed
-
   TThread::Printf("New QwRoot thread\n");
   if (! ((TObject*) arg)->InheritsFrom("QwRoot")) {
     TThread::Printf(" Error... QwRoot base class not supplied\n");
@@ -37,11 +42,15 @@ void* QwRootThread (void* arg)
 }
 
 //---------------------------------------------------------------------------
+/**
+ * Start a VQwAnalyzer thread
+ * @param arg QwRoot object pointer
+ * @return Null
+ */
 void* QwAnalyzerThread (void* arg)
 {
   // Threaded running of the analyzer
   // so that other tasks may be performed
-
   TThread::Printf("New VQwAnalyzer thread\n");
   if (! ((TObject*) arg)->InheritsFrom("VQwAnalyzer")) {
     TThread::Printf(" Error... VQwAnalyzer base class not supplied\n");
@@ -51,6 +60,25 @@ void* QwAnalyzerThread (void* arg)
   ana->ProcessEvent();
   TThread::Printf("VQwAnalyzer thread done\n");
   return NULL;
+}
+
+//-----------------------------------------------------------------------------
+/**
+ * Constructor
+ * @param name Name of this system
+ */
+QwRoot::QwRoot (const char* name): VQwSystem(name)
+{
+
+};
+
+//-----------------------------------------------------------------------------
+/**
+ * Destructor to delete the dataserver and analyzers
+ */
+QwRoot::~QwRoot () {
+  if (fDataserver) delete fDataserver;
+  if (fAnalyzers)  delete fAnalyzers; // TODO delete all
 }
 
 //---------------------------------------------------------------------------
@@ -201,10 +229,4 @@ void QwRoot::SetDataserver (VQwDataserver* dataserver)
   }
   fDataserver = dataserver;
   return;
-}
-
-//-----------------------------------------------------------------------------
-QwRoot::~QwRoot () {
-  if (fDataserver)  delete fDataserver;
-  if (fAnalyzers) delete fAnalyzers; // TODO delete all
 }

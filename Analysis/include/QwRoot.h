@@ -16,31 +16,45 @@
 void* QwRootThread (void*);
 void* QwAnalyzerThread (void*);
 
+/**
+ *  \class QwRoot
+ *  \ingroup QwThreadSafe
+ *  \brief The framework of a generic analysis
+ *
+ * The QwRoot class implements the framework of a generic Qweak analysis.
+ */
 class QwRoot : public VQwSystem {
 
   private:
-    TThread* fRootThread;	// thread with main analysis loop
-    TThread* fAnalyzerThreads;	// thread with analyzers objects
+    TThread* fRootThread;	///< thread with main analysis loop
+    TThread* fAnalyzerThreads;	///< thread with analyzers objects
 
-    VQwAnalyzer* fAnalyzers;	// analyzers
-    VQwDataserver* fDataserver;	// dataserver
+    VQwAnalyzer* fAnalyzers;	///< analyzers
+    VQwDataserver* fDataserver;	///< dataserver
 
     bool fIsOnline;	// Are we running online (CODA stream) or offline (ASCII)
     bool fIsFinished;	// Are we at the end of the data stream yet
 
   public:
-    QwRoot (const char* name = 0, bool = false): VQwSystem(name) { };
+    /// \brief Default constructor
+    QwRoot (const char* name = 0);
+    /// \brief Destructor
     virtual ~QwRoot();
 
+    /// Run the generic analysis
     void Run();
+    /// Start a thread with the analysis
     void Start();
+
+    /// \brief Online event loop
     void OnlineLoop();
+    /// \brief Offline event loop
     void OfflineLoop();
 
-    // Set the analyzer
+    /// Set the analyzer
     void SetAnalyzer (VQwAnalyzer* analyzer);
 
-    // Set the dataserver
+    /// Set the dataserver
     void SetDataserver (VQwDataserver* dataserver);
 
 
