@@ -115,6 +115,7 @@
 
 // Qweak headers
 #include "QwLog.h"
+#include "QwOptions.h"
 #include "globals.h"
 #include "QwHit.h"
 #include "QwDetectorInfo.h"
@@ -142,6 +143,9 @@ QwTrackingTreeSearch::QwTrackingTreeSearch ()
   fDebug = 1; // Reset debug level
 
   fNumLayers = TLAYERS;
+
+  fMaxMissedPlanes = gQwOptions.GetValue<int>("QwTracking.R2.MaxMissedPlanes");
+  fMaxMissedWires  = gQwOptions.GetValue<int>("QwTracking.R3.MaxMissedWires");
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -901,7 +905,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
   // Array that contains whether the HDC layer (or VDC wire) had a hit
   static int has_hits[TLAYERS];
 
-  if (nTreeLines > MAX_TREELINES)
+  if (nTreeLines > TREESEARCH_MAX_TREELINES)
     return;
 
 
@@ -982,7 +986,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
       /// Check if there was the treenode is match now that the
       /// matching has been completely tested.
 
-      if (matched == fNumLayers && nullhits <= MAX_MISSED_VDC_WIRES) {
+      if (matched == fNumLayers && nullhits <= fMaxMissedWires) {
 
         //std::cout << "match found " << std::endl;
         //std::cout << "sons are " << std::endl;
@@ -1138,9 +1142,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
       /* ---- Check if there was a treenode match now that the
               matching has been completely tested.                      ---- */
 
-      // (wdc) Allow for two planes without hits.
-
-      if (matched >= fNumLayers - MAX_MISSED_HDC_PLANES) {
+      if (matched >= fNumLayers - fMaxMissedPlanes) {
 
         /* ---- Yes, there is a match, so now check if all the levels
                 of the treesearch have been done.  If so, then we have

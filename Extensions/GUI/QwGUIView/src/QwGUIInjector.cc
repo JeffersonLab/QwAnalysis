@@ -97,7 +97,7 @@ void QwGUIInjector::MakeLayout()
 //   mc->Divide( 2, 4);
 
   Int_t wid = dCanvas->GetCanvasWindowId();
-  TSuperCanvas *super_canvas = new TSuperCanvas("", 10, 10, wid);
+  TCanvas *super_canvas = new TCanvas("", 10, 10, wid);
   dCanvas->AdoptCanvas(super_canvas);
   super_canvas -> Divide(2,4);
 
@@ -273,8 +273,6 @@ void QwGUIInjector::PositionDifferences(){
 
   bool ldebug = false;
   
-  TObject *objp;
-  if(! objp) return; 
   TCanvas *mc = dCanvas->GetCanvas();
 
   mc->Clear();
@@ -287,7 +285,8 @@ void QwGUIInjector::PositionDifferences(){
   //  Char_t* post[2]={"RelX","RelY"};
 
   TObject *obj;
- 
+  if(! obj) return; 
+
   TH1D* histx[INJECTOR_DEV_NUM] = {NULL};
   TH1D* histy[INJECTOR_DEV_NUM] = {NULL};
 
@@ -449,7 +448,6 @@ Bool_t QwGUIInjector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		  break;
 
 		case BA_POS_VAR:
-		  
 		  //printf("text button id %ld pressed\n", parm1);
 		  PositionDifferences();
 		  break;
@@ -504,17 +502,20 @@ QwGUIInjector::SummaryHist(TH1 *in)
 {
 
   Double_t out[4] = {0.0};
+  Double_t test   = 0.0;
 
   out[0] = in -> GetMean();
   out[1] = in -> GetMeanError();
   out[2] = in -> GetRMS();
   out[3] = in -> GetRMSError();
+  test   = in -> GetRMS()/sqrt(in->GetEntries());
 
   printf("%sName%s", BOLD, NORMAL);
   printf("%22s", in->GetName());
   printf("  %sMean%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, GREEN, out[1], NORMAL);
+  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
   printf("  %sSD%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]\n", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
+  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
+  printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
   return;
 }

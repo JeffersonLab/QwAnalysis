@@ -59,6 +59,9 @@
 QwTrackingTreeCombine::QwTrackingTreeCombine()
 {
   fDebug = 0; // Debug level
+
+  // Get maximum number of HDC planes
+  fMaxMissedPlanes = gQwOptions.GetValue<int>("QwTracking.R2.MaxMissedPlanes");
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -856,8 +859,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
   // uses : MUL_DO     #
   //        WEIGHT_LSQ #
   //####################
-  int rcSETiMissingTL0 = 1; // allow some planes without hits
-  if (nPlanesWithHits >= dlayer - rcSETiMissingTL0) {
+  if (nPlanesWithHits >= dlayer - fMaxMissedPlanes) {
 
     // Loop over all possible permutations
     int best_permutation = -1;

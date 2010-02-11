@@ -226,7 +226,8 @@ RSDataWindow::RSDataWindow(const TGWindow *p, const TGWindow *main,
 // 			     (Int_t)(((TGFrame *) main)->GetHeight() - fHeight) >> 1,
 // 				  ax, ay, wdum);
 //   Move(ax, ay);
-  
+
+  SetName(dObjName);
   SetWindowName("Plot Window");
   
 //   MapWindow();
@@ -806,7 +807,7 @@ void RSDataWindow::ScaleWindowData()
   Int_t retval= 0;
 
   new RNumberEntryDialog(fClient->GetRoot(), this, "ScaleFactor","RSDataWindow",
-			 "Scale Factor Entry",&scaleF,&retval,600,300);
+			 "Scale Factor Entry",0,&scaleF,&retval,600,300);
   if(!retval) return;
 
   TObject *obj = dPlotCont->GetObject(dPlotCont->GetPlotCount()-1);
@@ -977,13 +978,13 @@ void RSDataWindow::ClearPlots()
 
 }
 
-void RSDataWindow::AddMenuPopup(char* str, TGPopupMenu* popup)
+void RSDataWindow::AddMenuPopup(const char* str, TGPopupMenu* popup)
 {
   if(!popup) return;
   fMenuBar->AddPopup(str, popup, fMenuBarItemLayout);  
 }
 
-void RSDataWindow::AddPopupEntry(char* str, Int_t ID, TGPopupMenu* popup)
+void RSDataWindow::AddPopupEntry(const char* str, Int_t ID, TGPopupMenu* popup)
 {
   if(!popup){
     fMenuTools->AddEntry(str,ID);

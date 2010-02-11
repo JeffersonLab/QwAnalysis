@@ -45,6 +45,7 @@
 #include <TGTab.h>
 #include "RDataContainer.h"
 #include "QwGUIMainDef.h"
+#include "QwGUIProgressDialog.h"
 
 class QwGUISubSystem : public TGCompositeFrame {
 
@@ -151,6 +152,18 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!
   //!Return value: none  
   void             SetLogMessage(const char *buffer, Bool_t tStamp = kFalse);
+
+
+
+  void             IncreaseProgress(Int_t *nItems1, Int_t *nItems2, Int_t *nItems3, 
+				    Int_t  nInc1,   Int_t  nInc2,   Int_t  nInc3);
+
+  void             InitProgressDlg(const char* title, const char *macrotext, const char *microtext, const char *microtext2, 
+				   Int_t nitems1, Int_t nitems2, Int_t nitems3, Int_t nLevels);
+
+  Bool_t               dProcessHalt;
+
+  QwGUIProgressDialog *dProgrDlg;
 
  public:
   
@@ -270,14 +283,15 @@ class QwGUISubSystem : public TGCompositeFrame {
 
   //!This revceiver function can be overwritten by the derived subsystem class to connect to another object's 
   //!IsClosing member function (a new data container or window for example), if it is anticipated that there are
-  //!cleanup tasks to perform when this object is destroyed. 
+  //!cleanup tasks to perform when this object is destroyed. Derived classes should always call 
+  //!QwGUISubSystem::OnObjClose(char *) in the derived OnObjClose(char *).
   //!
   //!Parameters:
   //! - 1) Subsystem object name/label: will the same as the one passed to the constructor of the object.
   //!      (see QwGUIMainDetector for an example).
   //!
   //!Return value: none  
-  virtual void     OnObjClose(char *) {};
+  virtual void     OnObjClose(char *);
 
   //!This revceiver function can be overwritten by the derived subsystem class to connect to another object's 
   //!SendMessageSignal member function (a new data container or window for example), if it is anticipated that 

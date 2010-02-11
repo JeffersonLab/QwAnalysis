@@ -14,22 +14,24 @@ PRG_SOURCE    = ./src
 # Here we list the object files that require a CINT dictionary.
 OBJECTS	      =
 OBJECTS       += QwGUIMain.o
+OBJECTS       += QwGUIProgressDialog.o
+OBJECTS       += QwGUIPlotOptionsDialog.o
+OBJECTS       += QwGUIDataWindow.o
 OBJECTS       += QwGUISubSystem.o
 OBJECTS       += QwGUIMainDetector.o
 OBJECTS       += QwGUILumiDetector.o
 OBJECTS       += QwGUIInjector.o
 OBJECTS       += QwGUIEventDisplay.o
-OBJECTS       += TSuperCanvas.o
-OBJECTS       += QwGUITrackingSystem.o
+
 # Now append the object files that Don't require a CINT dictionary.
-NODICTOBJECTS   = QwHit.o
-NODICTOBJECTS  += QwHitRootContainer.o
-NODICTOBJECTS  += QwHitContainer.o
+#NODICTOBJECTS   = QwHit.o
+#NODICTOBJECTS  += QwHitRootContainer.o
+#NODICTOBJECTS  += QwHitContainer.o
 #NODICTOBJECTS  += QwParameterFile.o
 
-QWDICTOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwHitDict.o
-QWDICTOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwHitContainerDict.o
-QWDICTOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwHitRootContainerDict.o
+#QWDICTOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwHitDict.o
+#QWDICTOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwHitContainerDict.o
+#QWDICTOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwHitRootContainerDict.o
 
 QWTRSOURCE = $(QWANALYSIS)/Tracking/src
 QWANSOURCE = $(QWANALYSIS)/Analysis/src

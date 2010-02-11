@@ -86,7 +86,6 @@
 #include "QwGUIInjector.h"
 #include "QwGUIEventDisplay.h"
 
-#include "QwGUITrackingSystem.h"
 
 class QwGUIMain : public TGMainFrame {
 
@@ -103,7 +102,6 @@ class QwGUIMain : public TGMainFrame {
   QwGUIInjector          *InjectorSubSystem;
   QwGUIEventDisplay      *EventDisplaySubSystem;
 
-  QwGUITrackingSystem    *TrackingSystem;
 
   //!Initial width of the application window set in main()
   Int_t                   dMWWidth;

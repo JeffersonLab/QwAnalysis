@@ -215,6 +215,7 @@ RDataWindow::RDataWindow(const TGWindow *p, const TGWindow *main,
 				  ax, ay, wdum);
   Move(ax, ay);
   
+  SetName(dObjName);
   SetWindowName("Plot Window");
   
   MapWindow();
@@ -794,7 +795,7 @@ void RDataWindow::ScaleWindowData()
   Int_t retval= 0;
 
   new RNumberEntryDialog(fClient->GetRoot(), this, "ScaleFactor","RDataWindow",
-			 "Scale Factor Entry",&scaleF,&retval,600,300);
+			 "Scale Factor Entry",0,&scaleF,&retval,600,300);
   if(!retval) return;
 
   TObject *obj = dPlotCont->GetObject(dPlotCont->GetPlotCount()-1);
