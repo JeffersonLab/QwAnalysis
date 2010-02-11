@@ -46,8 +46,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   Bool_t bDebug=kFALSE;
   Bool_t bHelicity=kTRUE;
-  Bool_t bTree=kTRUE;
-  Bool_t bHisto=kTRUE;
+  Bool_t bTree=kTRUE;//kTRUE;
+  Bool_t bHisto=kTRUE;//kTRUE;
 
   //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
   if (getenv("DISPLAY")==NULL
@@ -197,8 +197,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 	//currently QwHelicity::ApplySingleEventCuts() will check for actual helicity bit for 1 or 0 and falied the test if it is different
 	if (QwDetectors.ApplySingleEventCuts()){//The event pass the event cut constraints 
 	  
-	  //QwDetectors.Do_RunningSum();//accimulate the running sum to calculate the event base running AVG 
-
+	 
 	  
 	  if(bHelicity){
 	    
@@ -215,7 +214,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  }	  
 
 
-	  	  
+	  QwDetectors.Do_RunningSum();//accimulate the running sum to calculate the event base running AVG 
+	   
 
 	  if(bHisto) QwDetectors.FillHistograms(); 
 
@@ -263,6 +263,9 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       //This will print running averages 
       QwHelPat.CalculateRunningAverage();//this will calculate running averages for Asymmetries and Yields per quartet
+      std::cout<<"Event Based Running average"<<std::endl;
+      std::cout<<"==========================="<<std::endl;
+      QwDetectors.Calculate_Running_Average();//this will calculate running averages for Yields per event basis
       timer.Stop();
 
       /*  Write to the root file, being sure to delete the old cycles  *
@@ -291,7 +294,7 @@ Int_t main(Int_t argc, Char_t* argv[])
      
       //QwHelPat.Print();	
     
-      //QwDetectors.Calculate_Running_Average();//this will calculate running averages for Yields per event basis
+      
       QwDetectors.GetEventcutErrorCounters();//print the event cut error summery for each sub system
       std::cout<<"QwAnalysis_Beamline Total events falied "<<falied_events_counts<< std::endl;     
      

@@ -9,7 +9,7 @@
 !EVENTCUTS = 1
 !To turn do both event cuts and HW checks
 !EVENTCUTS = 2
-EVENTCUTS = 0
+EVENTCUTS = 1
 
 !device_type, device_name, lower limit, upper limit
  
@@ -22,7 +22,7 @@ EVENTCUTS = 0
 
 !bcm, qwk_batext2,  	0, 	0
  
-bcm, qwk_bcm0l02, 	1.20089e+06, 	2.00148e+06 
+!bcm, qwk_bcm0l02, 	1.20089e+06, 	2.00148e+06 
 
  
 !bcm, qwk_batery6,  	0,	0

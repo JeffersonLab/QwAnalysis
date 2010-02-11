@@ -71,6 +71,7 @@ class QwVQWK_Channel: public VQwDataElement {
     fErrorCount_SW_HW=0;//HW_sum==SW_sum check
     fErrorCount_Sequence=0;//sequence number check
     fErrorCount_SameHW=0;//check to see ADC returning same HW value 
+    fErrorCount_ZeroHW=0;
     /*
     //debug- Ring analysis
     fEventCounter=1;
@@ -223,14 +224,16 @@ class QwVQWK_Channel: public VQwDataElement {
   Int_t fErrorCount_SW_HW;//HW_sum==SW_sum check
   Int_t fErrorCount_Sequence;//sequence number check
   Int_t fErrorCount_SameHW;//check to see ADC returning same HW value
+  Int_t fErrorCount_ZeroHW;//check to see ADC returning zero
   
 
   static const Int_t kErrorFlag_sample=0x2;   // in Decimal 2.  for sample size check
   static const Int_t kErrorFlag_SW_HW=0x4;    // in Decimal 4.  HW_sum==SW_sum check
   static const Int_t kErrorFlag_Sequence=0x8; // in Decimal 8.  sequence number check
   static const Int_t kErrorFlag_SameHW=0x10;   //in Decimal 16.  check to see ADC returning same HW value
-  static const Int_t kErrorFlag_EventCut_L=0x20;   //in Decimal 32.  check to see ADC falied lower limit of the event cut
-  static const Int_t kErrorFlag_EventCut_U=0x40;   //in Decimal 64  check to see ADC falied upper limit of the event cut
+  static const Int_t kErrorFlag_ZeroHW=0x20;   //in Decimal 32.  check to see ADC returning zero
+  static const Int_t kErrorFlag_EventCut_L=0x40;   //in Decimal 64  check to see ADC falied upper limit of the event cut
+  static const Int_t kErrorFlag_EventCut_U=0x80;   //in Decimal 128  check to see ADC falied upper limit of the event cut
   
   
   

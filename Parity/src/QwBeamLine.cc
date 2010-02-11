@@ -26,17 +26,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   Int_t index=0;
   Bool_t combolistdecoded;
 
-  std::vector<Double_t> fBCMEventCuts;//for initializing event cuts  
-  fBCMEventCuts.push_back(0);
-  fBCMEventCuts.push_back(0);
-  fBCMEventCuts.push_back(0);//device_flag 
-  std::vector<Double_t> fBPMEventCuts;//for initializing event cuts
-  fBPMEventCuts.push_back(0);
-  fBPMEventCuts.push_back(0);
-  fBPMEventCuts.push_back(0);
-  fBPMEventCuts.push_back(0);
-  fBPMEventCuts.push_back(0);//device_flag
-
+ 
   std::vector<TString> fDeviceName;
   std::vector<Double_t> fDeviceWeight;
  
@@ -210,8 +200,6 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		
 		QwBPMStripline localstripline(localBeamDetectorID.fdetectorname,!unrotated);
 		fStripline.push_back(localstripline);
-		  //std::cout<<" BCM sample size "<<fSample_size<<std::endl;
-		fStripline[fStripline.size()-1].SetSingleEventCuts(fBPMEventCuts);//initialize the event cuts to zero. This is before reading the event cut file. So for any device that is not on the list will carry these default values.
 		fStripline[fStripline.size()-1].SetDefaultSampleSize(fSample_size);
 		localBeamDetectorID.fIndex=fStripline.size()-1;
 	      }
@@ -219,9 +207,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	      {
 		QwBCM localbcm(localBeamDetectorID.fdetectorname);
 		fBCM.push_back(localbcm);
-		  //std::cout<<"BPM sample size "<<fSample_size<<std::endl;
 		fBCM[fBCM.size()-1].SetDefaultSampleSize(fSample_size);
-		fBCM[fBCM.size()-1].SetSingleEventCuts(fBCMEventCuts);//initialize the event cuts to zero
 		localBeamDetectorID.fIndex=fBCM.size()-1;
 	      }
 	  }
@@ -287,8 +273,6 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
   Int_t samplesize;
   Int_t check_flag;
   Int_t eventcut_flag;
-  std::vector<Double_t> fBCMEventCuts;
-  std::vector<Double_t> fBPMEventCuts;
   TString varname, varvalue, vartypeID,varname2, varvalue2;
   TString device_type,device_name;
   std::cout<<" QwBeamLine::LoadEventCuts  "<<filename<<std::endl; 
@@ -337,15 +321,10 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 	//device_name="empty2";
 	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
 	//std::cout<<"*****************************"<<std::endl;
-	//std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
-	//update the Double vector
-	fBCMEventCuts.clear();
-	fBCMEventCuts.push_back(LLX);
-	fBCMEventCuts.push_back(ULX);
-	fBCMEventCuts.push_back(1);
-      
+	//std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<eventcut_flag<<std::endl;
+     
 	//fBCM[det_index].Print();
-	fBCM[det_index].SetSingleEventCuts(fBCMEventCuts);
+	fBCM[det_index].SetSingleEventCuts(LLX,ULX);//(fBCMEventCuts);
 	//std::cout<<"*****************************"<<std::endl;
 	
       }
@@ -357,16 +336,10 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 	ULY = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline Y
 
 	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);	
-	//update the Double vector
-	fBPMEventCuts.clear();
-	fBPMEventCuts.push_back(LLX);
-	fBPMEventCuts.push_back(ULX);
-	fBPMEventCuts.push_back(LLY);
-	fBPMEventCuts.push_back(ULY);
-	fBPMEventCuts.push_back(1);
+	
 	//std::cout<<"*****************************"<<std::endl;
-	//std::cout<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
-	fStripline[det_index].SetSingleEventCuts(fBPMEventCuts);	
+	//std::cout<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<eventcut_flag<<std::endl;
+	fStripline[det_index].SetSingleEventCuts(LLX, ULX, LLY,ULY  );	
 	//fStripline[det_index].Print();
 	//std::cout<<"*****************************"<<std::endl;
       }
@@ -375,8 +348,9 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
   }
   //update the event cut ON/OFF for all the devices
   //std::cout<<"EVENT CUT FLAG"<<eventcut_flag<<std::endl;
-  for (size_t i=0;i<fStripline.size();i++)
+  for (size_t i=0;i<fStripline.size();i++){
     fStripline[i].SetEventCutMode(eventcut_flag);
+  }
 
   for (size_t i=0;i<fBCM.size();i++)
     fBCM[i].SetEventCutMode(eventcut_flag);
@@ -603,7 +577,7 @@ Bool_t QwBeamLine::ApplySingleEventCuts(){
 Int_t QwBeamLine::GetEventcutErrorCounters(){//inherited from the VQwSubsystemParity; this will display the error summary
 
   std::cout<<"*********QwBeamLine Error Summary****************"<<std::endl;
-  std::cout<<"Device name ||  Sample || SW_HW || Sequence || SameHW || EventCut\n";
+  std::cout<<"Device name ||  Sample || SW_HW || Sequence || SameHW || ZeroHW || EventCut\n";
   for(size_t i=0;i<fBCM.size();i++){
     //std::cout<<"*"<<std::endl;
     fBCM[i].GetEventcutErrorCounters();    
