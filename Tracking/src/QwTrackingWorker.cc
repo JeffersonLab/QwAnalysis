@@ -195,10 +195,17 @@ void QwTrackingWorker::DefineOptions()
   gQwOptions.AddOptions()("QwTracking.R2.maxxroad",
                           po::value<float>()->default_value(25.0),
                           "maximum allowed X road width for region 2 tracks");
+  gQwOptions.AddOptions()("QwTracking.R2.MaxMissedPlanes",
+                          po::value<int>()->default_value(1),
+                          "maximum number of missed planes");
+
   // Region 3
   gQwOptions.AddOptions()("QwTracking.R3.levels",
                           po::value<int>()->default_value(4),
                           "number of search tree levels in region 3");
+  gQwOptions.AddOptions()("QwTracking.R3.MaxMissedWires",
+                          po::value<int>()->default_value(3),
+                          "maximum number of missed wires");
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

@@ -51,7 +51,11 @@ void MQwV775TDC::DecodeTDCWord(UInt_t &word){
   }
 };
 
-UInt_t MQwV775TDC::SubtractReference(UInt_t a, UInt_t rawtime){
-  UInt_t b=rawtime;
-  return b;
+// UInt_t MQwV775TDC::SubtractReference(UInt_t a, UInt_t rawtime){
+//   UInt_t b=rawtime;
+//   return b;
+// }
+Double_t MQwV775TDC::SubtractReference(Double_t rawtime, Double_t reftime){
+  Double_t real_time = rawtime - reftime;  
+  return real_time;
 }

@@ -239,9 +239,9 @@ void QwEvent::AddTreeLine(QwTrackingTreeLine* treeline)
 void QwEvent::AddTreeLineList(QwTrackingTreeLine* treelinelist)
 {
   for (QwTrackingTreeLine *treeline = treelinelist;
-         treeline && treeline->IsValid();
-         treeline =  treeline->next)
-    AddTreeLine(treeline);
+         treeline; treeline = treeline->next)
+    if (treeline->IsValid())
+      AddTreeLine(treeline);
 };
 
 // Clear the local TClonesArray of tree lines
@@ -288,9 +288,9 @@ void QwEvent::AddPartialTrack(QwPartialTrack* partialtrack)
 void QwEvent::AddPartialTrackList(QwPartialTrack* partialtracklist)
 {
   for (QwPartialTrack *partialtrack = partialtracklist;
-         partialtrack && partialtrack->IsValid();
-         partialtrack =  partialtrack->next)
-    AddPartialTrack(partialtrack);
+         partialtrack; partialtrack =  partialtrack->next)
+    if (partialtrack->IsValid())
+      AddPartialTrack(partialtrack);
 };
 
 // Clear the local TClonesArray of hits

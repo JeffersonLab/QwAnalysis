@@ -280,8 +280,8 @@ ostream& operator<< (ostream& stream, const QwHit& hit)
   if (hit.pDetectorInfo) stream << " (detector " << hit.pDetectorInfo << "), ";
   else                   stream << ", ";
 
-  stream << "element "  << hit.fElement << ", ";
-  if (hit.fDistance > 0.0) stream << "distance " << hit.fDistance;
+  stream << "element "  << hit.fElement;
+  if (hit.fDistance != 0.0) stream << ", distance " << hit.fDistance;
   if (hit.fAmbiguousElement) stream << " (?)";
 
   return stream;
