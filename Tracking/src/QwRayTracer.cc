@@ -1,26 +1,22 @@
 
 /*! \file   QwRayTracer.cc
- *  \author J. Pan
+ *  \author Jie Pan <jpan@jlab.org>
+ *  \author Wouter Deconinck <wdconinc@mit.edu>
  *  \date   Thu Nov 26 12:27:10 CST 2009
  *  \brief  Raytrace in magnetic field to bridging R2/R3 partial tracks.
  *
  *  \ingroup QwTracking
  *
- *   Firstly, unresonable bridging candidates will be filtered out, others
+ *   Firstly, unreasonable bridging candidates will be filtered out, others
  *   which can pass through the filter will be matched in a look-up table.
  *   If there is a match, the momentum will be determined by interpolation.
- *   In case there is not a match in the look-up table, the bridging candidates
+ *   In case there is no match in the look-up table, the bridging candidates
  *   will then be sent into a shooting routine for bridging and momentum
  *   determination. The Newton-Raphson method is used in the shooting routine,
- *   and the 4'th order Runge-Kutta method is used for tntegrating the equations
+ *   and the 4'th order Runge-Kutta method is used for integrating the equations
  *   of motion for electrons in the QTOR magnetic field.
  *
  */
-
-// jpan: This is a simple bridging routine. It works for simulated event now.
-// More works need to be done on the restruction part of the tracking code
-// to provide resonable bridging candidates.
-
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -165,13 +161,40 @@ int QwRayTracer::Filter() {
 
     //bending angle limit in B field
     double dtheta = (fEndDirectionTheta-fStartDirectionTheta);
-    double dphi = (fEndDirectionPhi - fStartDirectionPhi);
-    if (dtheta<5.0 || dtheta>25.0 || fabs(dphi)>10.0) {
-        std::cerr<<"Filter: bending angles (dtheta="<<dtheta<<" degree, dphi="<<dphi
+    if (dtheta<6.0 || dtheta>22.0) {
+        std::cerr<<"Filter: bending angles (dtheta="<<dtheta
         <<" degree) in B field are out of range"<<std::endl;
         fMatchFlag = -1;
         return -1;
     }
+
+    double dphi = (fEndDirectionPhi - fStartDirectionPhi);
+    if (fabs(dphi)>10.0) {
+        std::cerr<<"Filter: bending angles (dphi="<<dphi
+        <<" degree) in B field are out of range"<<std::endl;
+        fMatchFlag = -1;
+        return -1;
+    }
+
+    //scattering vertex limits and position phi limits (QTOR keep-out zone)
+    // front track position and angles at z= -250 cm plane
+    double r = fabs(fStartPosition.Z()-(-250.0))/fStartDirection.Z();
+    double x = fStartPosition.X() + r*fStartDirection.X();
+    double y = fStartPosition.Y() + r*fStartDirection.Y();
+
+    double position_r = sqrt(x*x+y*y);
+    double position_phi = fStartPositionPhi;
+    double direction_theta = fStartDirectionTheta;
+
+    double vertex_z = -250.0 - position_r/tan(acos(fStartDirection.Z()));
+
+    if (vertex_z<(-672.0) || vertex_z>(-628.0)) {
+        std::cerr<<"Filter: scattering vertex z="<<vertex_z<<" cm is out of range"<<std::endl;
+        fMatchFlag = -1;
+        return -1;
+    }
+
+    // TODO: add in QTOR keep-out zones
 
     return 0;
 }
@@ -232,10 +255,11 @@ int QwRayTracer::SearchTable() {
     for (int p = P_MIN; p<=P_MAX; p+=DP) {
         // build index
         int index_momentum = ((int)p-P_MIN)/DP;
-        uint index = index_momentum*R_GRIDSIZE*PHI_GRIDSIZE*Z_GRIDSIZE
-                     + index_pos_r*PHI_GRIDSIZE*Z_GRIDSIZE
-                     + index_pos_phi*Z_GRIDSIZE
-                     + index_vertex_z ;
+
+        unsigned int index = index_momentum*R_GRIDSIZE*PHI_GRIDSIZE*Z_GRIDSIZE
+                             + index_pos_r*PHI_GRIDSIZE*Z_GRIDSIZE
+                             + index_pos_phi*Z_GRIDSIZE
+                             + index_vertex_z ;
 
         // keep iR monotonically increasing with the index
         int ind = (P_MAX-P_MIN)/DP-index_momentum;
@@ -303,10 +327,9 @@ int QwRayTracer::SearchTable() {
     fHitDirection = TVector3(sin_theta*cos_phi,sin_theta*sin_phi,cos_theta);
 
     // extend to z = fEndPosition.Z() plane
-    r = (fEndPosition.Z()-570.0)/fHitDirection.Z();
-    x = fHitLocation.X() + r*fHitDirection.X();
-    y = fHitLocation.Y() + r*fHitDirection.Y();
-    fHitLocation = TVector3(x,y,fEndPosition.Z());
+    r = fabs(fEndPosition.Z()-570.0)/fHitDirection.Z();
+    x = fHitLocation.X() - r*fHitDirection.X();
+    y = fHitLocation.Y() - r*fHitDirection.Y();
     fHitLocationR = sqrt(x*x+y*y);
     fHitLocationPhi = atan2(y,x)*DEGREE;
     if (fHitLocationPhi<0.0)  fHitLocationPhi += 360.0;
@@ -355,9 +378,9 @@ int QwRayTracer::SearchTable() {
 
 int QwRayTracer::Shooting() {
 
-    double res = 1.0; //position determination [cm]
+    double res = 0.2; //0.5; //position determination [cm]
     double step_size = 1.0; // integration step size [cm]
-    double dp = 0.01; //momentum variation [GeV]
+    double dp = 0.005; // 0.01; //momentum variation [GeV]
 
     double p[2],x[2],y[2],r[2];
 
@@ -380,9 +403,6 @@ int QwRayTracer::Shooting() {
 
         if (r[0]!=r[1])
             p[1] = p[0] -0.5*dp*(r[0]+r[1]-2.0*fEndPositionR)/(r[1]-r[0]);
-
-        //TODO - need to take into account of the energy loss along the trajectories, assume ~7 MeV for now.
-        //     - need slope matching as well
 
         Integrate(p[1], step_size);
         x[0]=fHitLocation.X();
@@ -410,7 +430,7 @@ int QwRayTracer::Shooting() {
         fDirectionPhiOff = fHitDirectionPhi - fEndDirectionPhi;
 
         if ( fPositionROff<res) {
-            fMomentum = p[1]; // + 0.007;
+            fMomentum = p[1];
             std::cout<<"Converged after "<<n<<" iterations."<<std::endl;
 
             if (fMomentum<0.980 || fMomentum>1.165) {
@@ -660,7 +680,7 @@ int QwRayTracer::LoadMomentumMatrix() {
     if (gSystem->AccessPathName(rootfilename)) {
         std::cerr <<std::endl<< "Cannot find the momentum look-up table!"<<std::endl;
         std::cerr<<"Run qwtrajmatrixgenerator to generate one."<<std::endl<<std::endl;
-        return 0;
+        exit(0);
     }
 
     TFile* rootfile = new TFile(rootfilename,"read");
@@ -777,148 +797,6 @@ void QwRayTracer::PrintInfo() {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void QwRayTracer::GenerateLookUpTable() {
-
-    UInt_t    gridnum;
-    UInt_t    index;
-    UInt_t    ind_p,ind_r,ind_phi,ind_z;
-
-    Int_t  p;
-    Int_t  r;
-    Int_t  phi;
-    Int_t  vertex_z;
-
-    Double_t  theta;
-    Double_t  x[3],y[3],z[3],ux[3],uy[3],uz[3];
-
-    Double_t  position_r,position_phi;   //z=570 cm plane
-    Double_t  direction_theta,direction_phi;
-
-    Double_t  step_size = 1.0; // [cm]
-    TVector3  startpoint,startdirection,endpoint,enddirection;
-
-    z[0] = -250.0; // [cm]
-    z[1] =  250.0; // [cm]
-    z[2] =  570.0; // [cm]
-
-    UInt_t grid_size = P_GRIDSIZE*Z_GRIDSIZE*R_GRIDSIZE*PHI_GRIDSIZE;
-
-    //open file and set up output tree
-    TString rootfilename=std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QwTrajMatrix.root";
-    TFile* rootfile = new TFile(rootfilename,"RECREATE","Qweak momentum matrix");
-    rootfile->cd();
-
-    TTree *momentum_tree = new TTree("Momentum_Tree","momentum data tree");
-
-    // This table is linearly indexed with 1D index
-    momentum_tree->Branch("index",&index,"index/I");
-
-// position and direction at focal plane
-    momentum_tree->Branch("position_r", &position_r, "position_r/D");
-    momentum_tree->Branch("position_phi", &position_phi, "position_phi/D");
-    momentum_tree->Branch("direction_theta",&direction_theta,"direction_theta/D");
-    momentum_tree->Branch("direction_phi",&direction_phi,"direction_phi/D");
-
-    std::cout<<"Start to generate trajectory data, total grid size: "<<grid_size<<std::endl;
-
-    // Create a timer
-    TStopwatch timer;
-    timer.Start();
-
-    // calculate traj's, the loop sequence should be kept as
-    // p_loop{  r_loop{ phi_loop{ vertex_z loop{} } } } to
-    // make sure the table is indexed correctly
-
-    gridnum = 0;
-
-    for (p=P_MIN; p<=P_MAX; p+=DP) {
-        for (r=R_MIN;r<=R_MAX; r+=DR) {      // r and phi are specified on z=-250 cm plane
-            for (phi=PHI_MIN;phi<=PHI_MAX; phi+=DPHI) {
-                for (vertex_z=VERTEXZ_MIN; vertex_z<=VERTEXZ_MAX; vertex_z+=DZ) {
-
-                    ind_p = (p-P_MIN)/DP;
-                    ind_r = (r-R_MIN)/DR;
-                    ind_phi = (phi-PHI_MIN)/DPHI;
-                    ind_z = (vertex_z-VERTEXZ_MIN)/DZ;
-                    index = ind_p*R_GRIDSIZE*PHI_GRIDSIZE*Z_GRIDSIZE +
-                            ind_r*PHI_GRIDSIZE*Z_GRIDSIZE +
-                            ind_phi*Z_GRIDSIZE +
-                            ind_z;
-
-                    //intersection position and direction with the z=-250 cm plane
-                    theta = atan2(r,(-250.0-vertex_z))*DEGREE;
-
-                    ux[0] = sin(theta/DEGREE)*cos((double)phi/DEGREE);
-                    uy[0] = sin(theta/DEGREE)*sin((double)phi/DEGREE);
-                    uz[0] = cos(theta/DEGREE);
-                    startdirection = TVector3(ux[0],uy[0],uz[0]);
-
-                    x[0] = (double)r*cos((double)phi/DEGREE);
-                    y[0] = (double)r*sin((double)phi/DEGREE);
-                    startpoint = TVector3(x[0],y[0],z[0]);
-
-                    enddirection = TVector3(0.0,0.0,0.0);
-                    endpoint = TVector3(0.0,0.0,z[1]);
-
-                    SetStartAndEndPoints(startpoint, startdirection,
-                                         endpoint, enddirection);
-
-                    //raytrace from startplane (z=-250 cm) to endplane (z=+250 cm)
-                    // p in [GeV] for the integration
-                    Integrate((double)p*0.001, step_size);
-                    x[1] = GetHitLocationX();
-                    y[1] = GetHitLocationY();
-                    ux[1] = GetHitDirectionX();
-                    uy[1] = GetHitDirectionY();
-                    uz[1] = GetHitDirectionZ();
-
-                    // Extending the back stright tracks onto z=+570 cm focal plane
-                    double R = (z[2]-z[1])/uz[1];
-                    x[2] = x[1] + R*ux[2];
-                    y[2] = y[1] + R*uy[2];
-                    ux[2] = ux[1];
-                    uy[2] = uy[1];
-                    uz[2] = uz[1];
-
-                    position_r = sqrt(x[2]*x[2]+y[2]*y[2]);
-                    position_phi = atan2(y[2],x[2])*DEGREE;
-                    if (position_phi<0.0) position_phi = position_phi+360.0;
-                    direction_theta = acos(uz[2])*DEGREE;
-                    direction_phi = atan2(uy[2],ux[2])*DEGREE;
-                    if (direction_phi<0.0) direction_phi = direction_phi+360.0;
-
-                    gridnum++;
-
-                    //fill tree
-                    momentum_tree->Fill();
-
-                    if (gridnum % 1000 == 0)   {
-                        std::cout<<"."<<std::flush;
-                        if ((gridnum % 100000) == 0 || gridnum == grid_size)   {
-                            std::cout<<100*gridnum/grid_size<<"%"<<std::flush;
-                            momentum_tree->AutoSave();
-                            gDirectory->Purge();
-                        }
-                    }
-                } //end of vertex_z loop
-            } //end of phi loop
-        } //end of r loop
-    } //end of p loop
-
-    timer.Stop();
-
-    std::cout<<"  done."<<std::endl<<"generated "<<gridnum<<" trajectories."<<std::endl;
-
-    std::cout<<"CPU time used:  " << timer.CpuTime() << " s "
-    << "(" << timer.CpuTime() / gridnum << " s per trajectory)" << std::endl
-    << "Real time used: " << timer.RealTime() << " s "
-    << "(" << timer.RealTime() / gridnum << " s per trajectory)" << std::endl;
-
-    rootfile->Write(0, TObject::kOverwrite);
-    rootfile->Close();
-
-    delete rootfile;
-};
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -1001,6 +879,8 @@ int QwRayTracer::ReadSimPartialTrack(const TString filename, int evtnum,
                                 &fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit);
     g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.NbOfHits",
                                 &fRegion2_ChamberFront_WirePlane1_NbOfHits);
+    //g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.ParticleType",
+    //                            &fRegion2_ChamberFront_WirePlane1_ParticleType);
     g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneGlobalPositionX",
                                 &fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX);
     g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneGlobalPositionY",
@@ -1052,44 +932,48 @@ int QwRayTracer::ReadSimPartialTrack(const TString filename, int evtnum,
         std::cerr << "Reading G4Sim Event: skip an empty event - event#" << evtnum << std::endl;
     }
 
-    // In case of taking the first hit only, let
+    // In case of taking the first hit/track only, let
     //fRegion2_ChamberFront_WirePlane1_NbOfHits = 1;
     //fRegion3_ChamberFront_WirePlaneU_NbOfHits = 1;
 
     //Set start and end point and direction
     for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane1_NbOfHits && i1 < VSIZE; i1++) {
+        //we don't care about gamma particles now
+        // TODO assign particle type for R2 hits in geant4
+        //if (fRegion2_ChamberFront_WirePlane1_ParticleType.at(i1) != 2)
+        {
+            // Get the position and direction
+            double x = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX.at(i1);
+            double y = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY.at(i1);
+            double z = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ.at(i1);
+            double xMomentum = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumX.at(i1);
+            double yMomentum = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumY.at(i1);
+            double zMomentum = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumZ.at(i1);
 
-        // Get the position and direction
-        double x = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX.at(i1);
-        double y = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY.at(i1);
-        double z = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ.at(i1);
-        double xMomentum = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumX.at(i1);
-        double yMomentum = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumY.at(i1);
-        double zMomentum = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumZ.at(i1);
+            // smear off the positions to ~500 um
+            double sigma = 0.05;  // 0.05 [cm]
+            x = gRandom->Gaus(x,sigma);
+            y = gRandom->Gaus(y,sigma);
+            startposition->push_back( TVector3(x,y,z));
 
-        // smear off the positions to ~500 um
-        double sigma = 0.05;  // 0.05 [cm]
-        x = gRandom->Gaus(x,sigma);
-        y = gRandom->Gaus(y,sigma);
-        startposition->push_back( TVector3(x,y,z));
+            // smear off direction to ~0.1 degree
+            double momentum = sqrt(xMomentum*xMomentum+yMomentum*yMomentum+zMomentum*zMomentum);
+            double ux = xMomentum/momentum;
+            double uy = yMomentum/momentum;
+            double uz = zMomentum/momentum;
+            double directionTheta = acos(uz)*DEGREE;
+            double directionPhi = atan2(uy,ux)*DEGREE;
+            double sigma_theta = 0.1;
+            double sigma_phi = 0.1;
+            directionTheta = gRandom->Gaus(directionTheta, sigma_theta);
+            directionPhi = gRandom->Gaus(directionPhi, sigma_phi);
+            if (directionPhi<0) directionPhi = directionPhi+360.0;
 
-        // smear off direction to ~0.1 degree
-        double momentum = sqrt(xMomentum*xMomentum+yMomentum*yMomentum+zMomentum*zMomentum);
-        double ux = xMomentum/momentum;
-        double uy = yMomentum/momentum;
-        double uz = zMomentum/momentum;
-        double directionTheta = acos(uz)*DEGREE;
-        double directionPhi = atan2(uy,ux)*DEGREE;
-        double sigma_theta = 0.1;
-        double sigma_phi = 0.1;
-        directionTheta = gRandom->Gaus(directionTheta, sigma_theta);
-        directionPhi = gRandom->Gaus(directionPhi, sigma_phi);
-        if (directionPhi<0) directionPhi = directionPhi+360.0;
-
-        ux = sin(directionTheta/DEGREE)*cos(directionPhi/DEGREE);
-        uy = sin(directionTheta/DEGREE)*sin(directionPhi/DEGREE);
-        uz = cos(directionTheta/DEGREE);
-        startdirection->push_back( TVector3(ux,uy,uz));
+            ux = sin(directionTheta/DEGREE)*cos(directionPhi/DEGREE);
+            uy = sin(directionTheta/DEGREE)*sin(directionPhi/DEGREE);
+            uz = cos(directionTheta/DEGREE);
+            startdirection->push_back( TVector3(ux,uy,uz));
+        }
     }
 
     for (int i1 = 0; i1 < fRegion3_ChamberFront_WirePlaneU_NbOfHits && i1 < VSIZE; i1++) {
@@ -1179,18 +1063,29 @@ void QwRayTracer::GetBridgingResult(Double_t *buffer) {
     buffer[31] = fPositionPhiOff;
     buffer[32] = fDirectionThetaOff;
     buffer[33] = fDirectionPhiOff;
-    buffer[34] = fMomentum;
+
+    // jpan: fMomentum is the determined momentum on the z=-250 cm plane.
+    // In order to get the scattered momentum (P') inside the target,
+    // we should use MC simulation to get the energy loss from scattering
+    // vertex to z=-250 cm plane as a correction. This correction should
+    // be added onto P' to get the final determined momentum.
+    // When the correct scattering angle is determined, it could be used for
+    // this purpose.
+
+    double momentum_correction = 0.0; //0.032;  // assume 32 MeV with multi-scattering, etc.
+    double PP = fMomentum + momentum_correction;
+    buffer[34] = PP;
 
     double Mp = 0.938272013;    // Mass of the Proton
-    double P0 = Mp*fMomentum/(Mp-fMomentum*(1-cos(fStartDirectionTheta/DEGREE))); //pre-scattering energy
-    double Q2 = 2.0*Mp*(P0-fMomentum);
+    double P0 = Mp*PP/(Mp-PP*(1-cos(fStartDirectionTheta/DEGREE))); //pre-scattering energy
+    double Q2 = 2.0*Mp*(P0-PP);
     buffer[35] = P0;
     buffer[36] = Q2;
 
     buffer[37] = fPrimary_OriginVertexKineticEnergy;
     buffer[38] = fPrimary_PrimaryQ2;
 
-    double MomentumOff = fMomentum-fPrimary_OriginVertexKineticEnergy;
+    double MomentumOff = PP-fPrimary_OriginVertexKineticEnergy;
     double Q2_Off = Q2-fPrimary_PrimaryQ2;
     buffer[39] = MomentumOff;
     buffer[40] = Q2_Off;

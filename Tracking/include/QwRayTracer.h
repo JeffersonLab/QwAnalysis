@@ -1,15 +1,25 @@
 /*! \file   QwRayTracer.h
+ *
+ *  \author Jie Pan <jpan@jlab.org>
+ *  \author Wouter Deconinck <wdconinc@mit.edu>
+ *
+ *  \date   Thu Nov 26 11:44:51 CST 2009
  *  \brief  Definition of the ray-tracing bridging method for R2/R3 partial tracks
  *
- *  \author Jie Pan
- *  \author Wouter Deconinck <wdconinc@mit.edu>
- *  \date   Thu Nov 26 11:44:51 CST 2009
+ *  \ingroup QwTracking
+ *
+ *   Integrating the equations of motion for electrons in the QTOR.
+ *   The 4'th order Runge-Kutta method is used.
+ *
+ *   The Newton-Raphson method is used to solve for the momentum of the track.
+ *
  */
 
-#ifndef QWRAYTRACER_H
-#define QWRAYTRACER_H
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-// System headers
+#ifndef __QWRAYTRACER_H__
+#define __QWRAYTRACER_H__
+
 #include <iostream>
 #include <vector>
 
@@ -28,9 +38,6 @@
 //  but it isn't ready to commit tonight (2009dec15; pking).
 // Qweak headers
 #include "QwMagneticField.h"
-
-// Qweak headers
-#include "VQwBridgingMethod.h"
 
 #if defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
 # include <Math/Interpolator.h>
@@ -91,21 +98,11 @@ public:
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-/** \class QwRayTracer
- *  \ingroup QwTracking
- *
- *   Integrating the equations of motion for electrons in the QTOR.
- *   The 4'th order Runge-Kutta method is used.
- *
- *   The Newton-Raphson method is used to solve for the momentum of the track.
- *
- */
-class QwRayTracer: public VQwBridgingMethod {
+class QwRayTracer {
 
-  public:
-
+public:
     QwRayTracer();
-    virtual ~QwRayTracer();
+    ~QwRayTracer();
 
     void LoadMagneticFieldMap();
     int LoadMomentumMatrix();
@@ -177,7 +174,7 @@ class QwRayTracer: public VQwBridgingMethod {
                             std::vector<TVector3> *enddirection);
     void GetBridgingResult(Double_t *buffer);
 
-  private:
+private:
 
     int Filter();
 
@@ -187,7 +184,7 @@ class QwRayTracer: public VQwBridgingMethod {
 
     double EstimateInitialMomentum(TVector3 direction);
 
-  private:
+private:
 
     QwMagneticField *fBfield;
 
@@ -228,6 +225,7 @@ class QwRayTracer: public VQwBridgingMethod {
     // Region2 WirePlane1
     Int_t fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit;
     Int_t fRegion2_ChamberFront_WirePlane1_NbOfHits;
+    //std::vector <Int_t> fRegion2_ChamberFront_WirePlane1_ParticleType;
     std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX;
     std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY;
     std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ;
@@ -258,4 +256,6 @@ class QwRayTracer: public VQwBridgingMethod {
 
 }; // class QwRayTracer
 
-#endif // QWRAYTRACER_H
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+#endif  // __QWTRAJECTORY_H__
