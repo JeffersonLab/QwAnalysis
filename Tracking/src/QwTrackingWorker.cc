@@ -141,7 +141,7 @@ QwTrackingWorker::QwTrackingWorker (const char* name)
   raytracer = new QwRayTracer();
 
   // Load magnetic field map
-  //raytracer->LoadMagneticFieldMap();
+  //raytracer::LoadMagneticFieldMap();
   //raytracer->LoadMomentumMatrix();
 
   /* Reset counters of number of good and bad events */

@@ -23,9 +23,7 @@ int main (int argc, char* argv[]) {
 
     QwRayTracer* raytracer = new QwRayTracer();
 
-    raytracer->LoadMagneticFieldMap();
-    //raytracer->GenerateLookUpTable();
-
+    QwRayTracer::LoadMagneticFieldMap();
     raytracer->LoadTrajMatrix();
 
     for (UInt_t runnumber =  (UInt_t) gQwOptions.GetIntValuePairFirst("run");

@@ -38,6 +38,7 @@
 //  but it isn't ready to commit tonight (2009dec15; pking).
 // Qweak headers
 #include "QwMagneticField.h"
+#include "QwTrajMatrix.h"
 
 #if defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
 # include <Math/Interpolator.h>
@@ -81,20 +82,8 @@
 
 // Forward declarations
 class QwMagneticField;
+class QwPartialTrackParameter;
 class QwBridge;
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-// temporary class for store partial track parameter
-class QwPartialTrackParameter {
-
-public:
-    float fPositionR;
-    float fPositionPhi;
-    float fDirectionTheta;
-    float fDirectionPhi;
-
-};
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -104,8 +93,8 @@ public:
     QwRayTracer();
     ~QwRayTracer();
 
-    void LoadMagneticFieldMap();
-    int LoadTrajMatrix();
+    static void LoadMagneticFieldMap();
+    void LoadTrajMatrix();
 
     void SetStartAndEndPoints(TVector3 startposition, TVector3 startdirection,
                               TVector3 endposition, TVector3 enddirection);
@@ -175,16 +164,13 @@ public:
 private:
 
     int Filter();
-
     int SearchTable();
-
     int Shooting();
-
     double EstimateInitialMomentum(TVector3 direction);
 
 private:
 
-    QwMagneticField *fBfield;
+    static QwMagneticField *fBfield;
 
     double fBdlx; /// x component of the field integral
     double fBdly; /// y component of the field integral
