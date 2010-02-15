@@ -26,7 +26,7 @@ int main (int argc, char* argv[]) {
     raytracer->LoadMagneticFieldMap();
     //raytracer->GenerateLookUpTable();
 
-    raytracer->LoadMomentumMatrix();
+    raytracer->LoadTrajMatrix();
 
     for (UInt_t runnumber =  (UInt_t) gQwOptions.GetIntValuePairFirst("run");
             runnumber <= (UInt_t) gQwOptions.GetIntValuePairLast("run");

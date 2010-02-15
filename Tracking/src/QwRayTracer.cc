@@ -666,7 +666,7 @@ int QwRayTracer::Integrate(double e0, double step) {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwRayTracer::LoadMomentumMatrix() {
+int QwRayTracer::LoadTrajMatrix() {
 
     Int_t   index;
     Double_t position_r,position_phi;

@@ -33,7 +33,9 @@ class QwIntegrationPMT : public VQwDataElement{
   void  InitializeChannel(TString name, TString datatosave);
   void  ClearEventData();
   void ReportErrorCounters();
+/********************************************************/
 
+  void  SetRandomEventDriftParameters(Double_t Amplitude, Double_t Phase, Double_t Frequency);
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
   void  RandomizeEventData(int helicity);
@@ -51,6 +53,7 @@ class QwIntegrationPMT : public VQwDataElement{
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Int_t SetSingleEventCuts(std::vector<Double_t> &);//two limts and sample size
   void SetDefaultSampleSize(Int_t sample_size);
+  void SetEventNumber(int event);
 
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;

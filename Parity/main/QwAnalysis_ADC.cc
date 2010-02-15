@@ -137,26 +137,28 @@ int main(Int_t argc,Char_t* argv[]) {
         //  To pass a subdirectory named "subdir", we would do:
         //    detectors.at(1)->ConstructHistograms(rootfile.mkdir("subdir"));
             rootfile.cd();
-            detectors.ConstructHistograms(rootfile.mkdir("md_histo"));
+            detectors.ConstructHistograms(rootfile.mkdir("mps_histo"));
             if (bHelicity) {
                 rootfile.cd();
                 helicitypattern.ConstructHistograms(rootfile.mkdir("hel_histo"));
             }
 
 
-        TTree *mdtree;
+        TTree *mpstree;
         TTree *heltree;
 
-        std::vector <Double_t> mdvector;
+        std::vector <Double_t> mpsvector;
         std::vector <Double_t> helvector;
 
         if (bTree) {
             rootfile.cd();
-            mdtree=new TTree("MD_Tree","Main detector event data tree");
-            mdvector.reserve(6000);
-            mdtree->Branch("evnum",&evnum,"evnum/D");
+            mpstree=new TTree("MPS_Tree","MPS event data tree");
+            mpsvector.reserve(6000);
+            mpstree->Branch("evnum",&evnum,"evnum/D");
             TString dummystr="";
-            ((QwMainCerenkovDetector*)detectors.GetSubsystem("MainDetectors"))->ConstructBranchAndVector(mdtree, dummystr, mdvector);
+
+            ((QwMainCerenkovDetector*)detectors.GetSubsystem("MainDetectors"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
+	  ((QwHelicity*)detectors.GetSubsystem("Helicity info"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
             rootfile.cd();
             if (bHelicity) {
                 rootfile.cd();
@@ -215,8 +217,8 @@ int main(Int_t argc,Char_t* argv[]) {
             // Fill the detector trees
             if (bTree) {
                 evnum = eventbuffer.GetEventNumber();
-                detectors.FillTreeVector(mdvector);
-                mdtree->Fill();
+                detectors.FillTreeVector(mpsvector);
+                mpstree->Fill();
             }
             // Fill the helicity tree
             if (bHelicity && helicitypattern.IsCompletePattern()) {
@@ -236,11 +238,11 @@ int main(Int_t argc,Char_t* argv[]) {
             }
 
             //  Fill the subsystem objects with their respective data for this event.
-            eventbuffer.FillSubsystemData(detectors);
+            //eventbuffer.FillSubsystemData(detectors);
 
 
             //  Fill the histograms for the QwDriftChamber subsystem object.
-            detectors.FillHistograms();
+            //detectors.FillHistograms();
 
 //       if (((QwMainCerenkovDetector*)detectors.at(0))->IsGoodEvent()){
 // 	evnum = eventbuffer.GetEventNumber();

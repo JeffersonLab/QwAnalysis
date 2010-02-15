@@ -87,7 +87,6 @@ class QwDriftChamberVDC: public QwDriftChamber {
 
  protected:
 
-  Int_t LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire);
   Int_t BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire);
   Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire);
 

@@ -46,8 +46,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   Bool_t bDebug=kFALSE;
   Bool_t bHelicity=kTRUE;
-  Bool_t bTree=kTRUE;
-  Bool_t bHisto=kTRUE;
+  Bool_t bTree=kTRUE;//kTRUE;
+  Bool_t bHisto=kTRUE;//kTRUE;
 
   //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
   if (getenv("DISPLAY")==NULL
@@ -87,8 +87,9 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   
   QwHelicityPattern QwHelPat(QwDetectors,4);
-  QwEventRing fEventRing(QwDetectors,8,8,8);//Event ring of 8; 8 hold off events, 8 minimum failed events is a beam trip
-   
+  //QwEventRing fEventRing(QwDetectors,120,60,8);//Event ring of 120; 60 hold off events, 8 minimum failed events is a beam trip
+  QwEventRing fEventRing(QwDetectors,32,8,16); //Event ring of 32; 8 hold off events, 16  minimum failed events is a beam trip
+  //QwEventRing fEventRing(QwDetectors,1200,600,600);
   Double_t evnum=0.0;
 
   
@@ -196,14 +197,14 @@ Int_t main(Int_t argc, Char_t* argv[])
 	//currently QwHelicity::ApplySingleEventCuts() will check for actual helicity bit for 1 or 0 and falied the test if it is different
 	if (QwDetectors.ApplySingleEventCuts()){//The event pass the event cut constraints 
 	  
-	  //QwDetectors.Do_RunningSum();//accimulate the running sum to calculate the event base running AVG 
-
+	 
 	  
 	  if(bHelicity){
 	    
 	    fEventRing.push(QwDetectors);//add event to the ring
 	    //std::cerr << "After QwEventRing::push()" <<std::endl;
 	    bRING_READY=fEventRing.IsReady();
+	    
 	    if (bRING_READY){//check to see ring is ready	      
 	      //fEventRing.pop();
 	      QwHelPat.LoadEventData(fEventRing.pop());
@@ -213,7 +214,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  }	  
 
 
-	  	  
+	  QwDetectors.Do_RunningSum();//accimulate the running sum to calculate the event base running AVG 
+	   
 
 	  if(bHisto) QwDetectors.FillHistograms(); 
 
@@ -227,20 +229,23 @@ Int_t main(Int_t argc, Char_t* argv[])
 	    mpstree->Fill();
 	  }
 
-	  if(bHelicity&&QwHelPat.IsCompletePattern()){
-	    //std::cout<<" Complete quartet  "<<QwEvt.GetEventNumber()<<std::endl;
+	  if(bHelicity && QwHelPat.IsCompletePattern() && bRING_READY){
+	    //QwHelicity * tmp=(QwHelicity *)QwDetectors.GetSubsystem("Helicity info");
+	    //std::cout<<" Complete quartet  Good Helicity "<<std::endl;
 	    QwHelPat.CalculateAsymmetry();
-	    //	      QwHelPat.Print();
-	    if(bHisto) QwHelPat.FillHistograms();
+	    //QwHelPat.Print();
+	    if (QwHelPat.IsGoodAsymmetry()){
+	      if(bHisto) QwHelPat.FillHistograms();
 
-	    if(bTree){
-	      QwHelPat.FillTreeVector(helvector);
-	      heltree->Fill();
+	      if(bTree){
+		QwHelPat.FillTreeVector(helvector);
+		heltree->Fill();
+	      }
+	      QwHelPat.ClearEventData();
 	    }
-	    QwHelPat.ClearEventData();
 	  }
 	}else{	  
-	  std::cout<<" Falied event "<<QwEvt.GetEventNumber()<<std::endl;
+	  //std::cout<<" Failed event "<<QwEvt.GetEventNumber()<<std::endl;
 	  fEventRing.FailedEvent(QwDetectors.GetEventcutErrorFlag()); //event cut failed update the ring status
 	  falied_events_counts++;
 	}
@@ -258,6 +263,9 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       //This will print running averages 
       QwHelPat.CalculateRunningAverage();//this will calculate running averages for Asymmetries and Yields per quartet
+      std::cout<<"Event Based Running average"<<std::endl;
+      std::cout<<"==========================="<<std::endl;
+      QwDetectors.Calculate_Running_Average();//this will calculate running averages for Yields per event basis
       timer.Stop();
 
       /*  Write to the root file, being sure to delete the old cycles  *
@@ -286,7 +294,7 @@ Int_t main(Int_t argc, Char_t* argv[])
      
       //QwHelPat.Print();	
     
-      //QwDetectors.Calculate_Running_Average();//this will calculate running averages for Yields per event basis
+      
       QwDetectors.GetEventcutErrorCounters();//print the event cut error summery for each sub system
       std::cout<<"QwAnalysis_Beamline Total events falied "<<falied_events_counts<< std::endl;     
      

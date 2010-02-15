@@ -105,9 +105,7 @@ public:
     ~QwRayTracer();
 
     void LoadMagneticFieldMap();
-    int LoadMomentumMatrix();
-
-    void GenerateLookUpTable();
+    int LoadTrajMatrix();
 
     void SetStartAndEndPoints(TVector3 startposition, TVector3 startdirection,
                               TVector3 endposition, TVector3 enddirection);

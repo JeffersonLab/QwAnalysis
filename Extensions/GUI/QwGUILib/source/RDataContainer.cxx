@@ -213,8 +213,8 @@ Bool_t RDataContainer::SetMessage(const char *msg, const char *func, int TS, int
   else
     strcpy(str,dObjName);
 
-    SendMessageSignal(str);
-
+  SendMessageSignal(str);
+    
   return kTrue;
 }
 
@@ -1047,6 +1047,7 @@ int RDataContainer::ReadData(Double_t *x, int row)
 {
   //Read a whole row of a typical row-column data files
   
+  int flag;
   int numcol;
 //   Double_t trash;
   if(dOpen) {
@@ -1059,9 +1060,9 @@ int RDataContainer::ReadData(Double_t *x, int row)
 	      if(SetRowColumn(row,1) == FILE_PROCESS_OK){
 		for(int j = 0; j < numcol; j++){
 		  if(j == numcol-1) 
-		    fscanf(dFp,"%lf",&x[j]);
+		    flag = fscanf(dFp,"%lf",&x[j]);
 		  else
-		    fscanf(dFp,"%lf ",&x[j]);
+		    flag = fscanf(dFp,"%lf ",&x[j]);
 		}
 	      }
 	      else{
@@ -1103,6 +1104,7 @@ int RDataContainer::ReadData(Double_t *x, int row)
 
 int RDataContainer::ReadData(Double_t *x, int ri, int c,int num)
 {
+  int flag;
   int numcol;
   Double_t trash;
   if(dOpen) {
@@ -1119,9 +1121,9 @@ int RDataContainer::ReadData(Double_t *x, int ri, int c,int num)
 		for(int i = 0; i < num; i++){
 		  for(int j = 0; j < numcol; j++){
 		    if(j == c-1)
-		      fscanf(dFp,"%lf ",&x[i]);
+		      flag = fscanf(dFp,"%lf ",&x[i]);
 		    else
-		      fscanf(dFp,"%lf ",&trash);
+		      flag = fscanf(dFp,"%lf ",&trash);
 		  }
 		}
 	      }
@@ -1197,6 +1199,7 @@ int RDataContainer::ReadData(Double_t *x, Double_t *y,
   //doing anything except pass an error message if the file was 
   //opened as write only.
 
+  int flag;
   int numcol;
   Double_t trash;
   int skip = abs(c2-c1)-1;
@@ -1218,11 +1221,11 @@ int RDataContainer::ReadData(Double_t *x, Double_t *y,
 		for(int i = 0; i < num; i++){
 		  for(int j = 0; j < numcol; j++){
 		    if(j == ci-1)
-		      fscanf(dFp,"%lf ",&x[i]);
+		      flag = fscanf(dFp,"%lf ",&x[i]);
 		    else if(j == ci+skip) 
-		      fscanf(dFp,"%lf ",&y[i]);
+		      flag = fscanf(dFp,"%lf ",&y[i]);
 		    else
-		      fscanf(dFp,"%lf ",&trash);
+		      flag = fscanf(dFp,"%lf ",&trash);
 		  }
 		}
 	      }
@@ -1244,7 +1247,7 @@ int RDataContainer::ReadData(Double_t *x, Double_t *y,
 	      if(SetRowColumn(ri,1) == FILE_PROCESS_OK){
 		
 		for(int i = 0; i < num; i++){
-		  fscanf(dFp,"%lf ",&x[i]);		  
+		  flag = fscanf(dFp,"%lf ",&x[i]);		  
 		}
 	      }
 	      else{

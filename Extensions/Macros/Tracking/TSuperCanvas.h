@@ -59,6 +59,12 @@
 //                        * introduce SetCurrentPad() in order to
 //                          select an active pad according to the mouse
 //                          position
+// 0.0.3     2010/02/01   * some bugs were fixed
+//                        * comment out several methods which are
+//                          ill-defined. 
+// 0.0.3     2010/02/01   * some bugs were fixed
+//                        * comment out several methods which are
+//                          ill-defined. 
 
 
 #ifndef _TSUPERCANVAS_H_
@@ -108,7 +114,7 @@ class TSuperCanvas : public TCanvas
 
   //  virtual void Divide(Int_t nx=1, Int_t ny=1, Float_t xmargin=0.01, Float_t ymargin=0.01, Int_t color=0, Float_t menumargin=-1.0);
 
-  void MakeMenu(TSuperCanvas **me, Float_t menumargin=-1.0);
+  void MakeMenu(TSuperCanvas **me, Float_t menumargin);
 
   virtual void HandleInput(EEventType event, Int_t px, Int_t py);
   virtual void Measure(Int_t px, Int_t py);
@@ -128,15 +134,18 @@ class TSuperCanvas : public TCanvas
   Float_t  menu_margin;
   Int_t    meas_status;
   Float_t  meas_x1, meas_x2, meas_y1, meas_y2;
-  Float_t  peakpos[10];
-  TLine   *peakline[10];
+/*   Float_t  peakpos[10]; */
+/*   TLine   *peakline[10]; */
   
   Double_t SamplingRate, ScrollRate;
 
   TVirtualPad *MaximizedPad;
-  Double_t MaxmizedPad_xlow, MaxmizedPad_ylow, MaxmizedPad_xup, MaxmizedPad_yup;
+  Double_t MaxmizedPad_xlow;
+  Double_t MaxmizedPad_ylow;
+  Double_t MaxmizedPad_xup;
+  Double_t MaxmizedPad_yup;
   
-  TButton *closebutton, *crossbutton, *eventbutton, *toolbutton, *logxbutton, *logybutton;
+  //TButton *closebutton, *crossbutton, *eventbutton, *toolbutton, *logxbutton, *logybutton;
 
   void SetBackBeforePad(TPad* cpad);
   void SetCurrentPad(Bool_t debug=false);

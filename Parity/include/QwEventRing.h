@@ -68,7 +68,7 @@ class QwEventRing{
   
   FILE *out_file;   
   static const Bool_t bDEBUG=kFALSE;//kTRUE;
-  static const Bool_t bDEBUG_Write=kFALSE;//kTRUE;//kFALSE;
+  static const Bool_t bDEBUG_Write=kFALSE;
   
 
 };

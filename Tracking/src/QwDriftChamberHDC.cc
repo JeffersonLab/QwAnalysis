@@ -191,7 +191,7 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
     }
     for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
 
-      hit1->SetTime(SubtractReference(hit1->GetTime(),reftimes.at(hit1->GetSubbankID())) );
+      hit1->SetTime(SubtractReference(hit1->GetRawTime(),reftimes.at(hit1->GetSubbankID())) );
       if (counter>0){
 	if (hit1->GetDetectorID().fPlane==7){//this will read the first hit time of trig_h1
 	  trig_h1=hit1->GetTime();
@@ -256,16 +256,6 @@ void  QwDriftChamberHDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
 
 
 
-
-Int_t QwDriftChamberHDC::LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire){
-  fReferenceChannels.at(fCurrentBankIndex).first  = fCurrentTDCIndex;//fCurrentBankIndex is updated at RegisterROCNumber() and fCurrentTDCIndex is updated at RegisterSlotNumber()
-  fReferenceChannels.at(fCurrentBankIndex).second = chan;
-  //  Register a reference channel with the wire equal to the bank index.
-  fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPackage = 0;
-  fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPlane   = plane;
-  fTDCPtrs.at(fCurrentTDCIndex).at(chan).fElement = fCurrentBankIndex;
-  return OK;
-};
 
 Int_t QwDriftChamberHDC::BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire){
   if (plane == kReferenceChannelPlaneNumber){
