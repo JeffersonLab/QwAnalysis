@@ -98,10 +98,21 @@ void QwOptions::SetCommandLine(int argc, char* argv[])
 void QwOptions::ParseCommandLine()
 {
   try {
+#if BOOST_VERSION >= 103300
+    //  Boost version after 1.33.00 allow unrecognized options to be 
+    //  passed through the parser.
     po::store(po::command_line_parser(fArgc, fArgv).options(fDefaultOptions).allow_unregistered().run(), fVariablesMap);
     po::store(po::command_line_parser(fArgc, fArgv).options(fOptions).allow_unregistered().run(), fVariablesMap);
+#else
+    //  Boost versions before 1.33.00 do not recognize "allow_unregistered".
+    po::store(po::command_line_parser(fArgc, fArgv).options(fDefaultOptions).run(), fVariablesMap);
+    po::store(po::command_line_parser(fArgc, fArgv).options(fOptions).run(), fVariablesMap);
+#endif
   } catch (std::exception const& e) {
     QwWarning << e.what() << " while parsing command line arguments" << QwLog::endl;
+#if BOOST_VERSION < 103300
+    QwWarning << "ALL command line arguments may have been ignored!" << QwLog::endl;
+#endif
   }
   po::notify(fVariablesMap);
 
