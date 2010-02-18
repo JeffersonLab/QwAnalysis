@@ -1,0 +1,6 @@
+How to restore qw_test.sql database
+
+[] mysql -u root -p  qw_test < qw_test.sql
+
+
+It is useful in oder to test this branch to connect "localhost"
