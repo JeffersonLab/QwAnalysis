@@ -144,8 +144,9 @@ bool QwDatabase::Connect()
 
 /*! This function is used to initiate a database connection without using QwOption class
  */
-Bool_t QwDatabase::SetConnect(TString dbserver, TString dbname, TString dbuser, TString dbpasswd, UInt_t dbport) 
+Bool_t QwDatabase::SetConnect(TString dbname, TString dbserver, TString dbuser, TString dbpasswd, UInt_t dbport) 
 {
+  
   /* Open a connection to the database using the predefined parameters.
    * Must call QwDatabase::ConnectionInfo() first.
    */
@@ -253,15 +254,18 @@ bool QwDatabase::SetRunNumber(const UInt_t runnum)
  */
 void QwDatabase::PrintServerInfo()
 {
-
-
   if (fValidConnection) 
     {
-      printf("QwDatabase -------------------\n");
-      printf("Database server %10s\n", fDBServer.c_str());
-      printf("         name   %10s\n", fDatabase.c_str());    
-      printf("         user   %10s\n", fDBUsername.c_str());
-      printf("         port   %10d\n", fDBPortNumber);
+      printf("\n");
+      printf("QwDatabase MySQL ");
+      printf("%s v%s %s -----------------\n", BOLD, GetServerVersion().c_str(), NORMAL);
+  
+      printf("Database server : %s%10s%s",  RED,  fDBServer.c_str(), NORMAL);
+      printf(" name   : %s%12s%s",  BLUE, fDatabase.c_str(), NORMAL);    
+      printf(" user   : %s%6s%s",  RED, fDBUsername.c_str(), NORMAL);
+      printf(" port   : %s%6d%s\n",  BLUE, fDBPortNumber, NORMAL);
+      printf(" %s\n", server_status().c_str());
+      printf("\n");
     } 
   else 
     {

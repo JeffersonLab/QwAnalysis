@@ -26,7 +26,7 @@ using std::string;
 #include "QwSSQLS.h"
 
 #include "TString.h"
-#include <cstdio>
+#include "QwColor.h"
 /**
  *  \class QwDatabase
  *  \ingroup QwAnalysis
@@ -46,7 +46,7 @@ class QwDatabase: private mysqlpp::Connection {
     ~QwDatabase(); //!< Destructor
 
     bool Connect(); //!< Open a connection to the database using the predefined parameters.  
-    Bool_t SetConnect(TString dbserver, TString dbname, TString dbuser, TString dbpasswd, UInt_t dbport);
+    Bool_t SetConnect(TString dbname, TString dbserver, TString dbuser, TString dbpasswd, UInt_t dbport = 0);
     void Disconnect() {disconnect();}; //<! Close an open database connection
     const string GetServerVersion() {return server_version();}; //<! Get database server version
     void DefineOptions(); //!< Defines available class options for QwOptions

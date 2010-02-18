@@ -281,9 +281,8 @@ main(Int_t argc, Char_t* argv[])
   //   gQwOptions.Parse();
   
   // until no errors.
-  gQwDatabase.SetConnect("localhost","qw_test", "qwreplay", "replay", 0);
+  gQwDatabase.SetConnect("qw_test", "localhost","qwreplay", "replay");
   gQwDatabase.PrintServerInfo();
-  // QwMessage << "Database server version is " << gQwDatabase.GetServerVersion() << QwLog::endl;
 
   
   //   try {
