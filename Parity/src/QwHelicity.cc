@@ -334,7 +334,7 @@ void  QwHelicity::ProcessEvent()
       break; 
       ///////////////
     case kHelInputRegisterMode :
- 
+      ProcessEventInputRegisterMode();
       break;
     default:
       std::cerr<<"QwHelicity::ProcessEvent no instructions on how to decode the helicity !!!!\n";
