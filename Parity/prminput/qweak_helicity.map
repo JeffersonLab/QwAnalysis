@@ -1,4 +1,19 @@
-! this was for the december 08 data taking
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!  input file for decoding the helicity subsystem
+!!  Of note in this file:
+!!  HelicityDecodingMode : will tell which mode of decoding is in use
+!!  			 : for now it can be  InputRegisterMode, UserbitMode
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!Injector data during happex data taking: run 12331, 12354, 12356
+!HelicityDecodingMode=InputRegisterMode
+!ROC=23
+!
+! Header=0xfdacf000
+! HAPPEX BMW words
+!SKIP 148
+!WORD, 0,  0, helicitydata,  ha_cleandata
+!WORD, 0,  0, helicitydata,  ha_scandata1
 !ROC=31
 !Bank=0x3103
 !
@@ -14,7 +29,12 @@
 !WORD, 0,  0, helicitydata,  scandata2
 !END
 !
-! this was for the december 08 data taking
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+HelicityDecodingMode=UserbitMode 
+PatternPhase=4
 ROC=31
 Bank=0x3101
 !

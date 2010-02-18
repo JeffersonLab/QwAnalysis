@@ -63,7 +63,7 @@ Bool_t QwHelicity::IsGoodPhaseNumber()
 {
   Bool_t results;
 
-  if((fPatternPhaseNumber == MaxPatternPhase)  && (fPatternNumber == fPatternNumberOld )) //maximum phase of old pattern
+  if((fPatternPhaseNumber == fMaxPatternPhase)  && (fPatternNumber == fPatternNumberOld )) //maximum phase of old pattern
      results = kTRUE;
   else if((fPatternPhaseNumber == fPatternPhaseNumberOld+1) && (fPatternNumber == fPatternNumberOld))
     results = kTRUE;
@@ -72,7 +72,7 @@ Bool_t QwHelicity::IsGoodPhaseNumber()
   else
     results = kFALSE;
 
-  if(fPatternPhaseNumber>MaxPatternPhase)
+  if(fPatternPhaseNumber>fMaxPatternPhase)
     results=kFALSE;
 
  if(!results)
@@ -189,157 +189,165 @@ Int_t QwHelicity::GetEventcutErrorFlag(){//return the error flag
   return 0;
 
 }
+//*****************************************************************
+void QwHelicity::ProcessEventUserbitMode()
+{
+  //std::cout<<"In  QwHelicity::ProcessEventUserbitMode() \n";
 
+
+  // In this version of the code, the helicty is extracted for a userbit configuration.
+  // This is not what we plan to have for Qweak but what we used for the winter 2008-09
+  // injector tests
+  Bool_t ldebug=kFALSE;
+  UInt_t userbits;
+  static UInt_t lastuserbits  = 0xFF;
+  UInt_t scaleroffset=fWord[kscalercounter].fValue/32;
+  
+  if(scaleroffset==1)
+    {
+      userbits = (fWord[kuserbit].fValue & 0xE0000000)>>28;
+      
+      //  Now fake the input register, MPS coutner, QRT counter, and QRT phase.
+      fEventNumber=fEventNumberOld+1;
+      
+      lastuserbits = userbits;
+      
+      if (lastuserbits==0xFF)
+	{
+	  fPatternPhaseNumber    = 1;
+	}
+      else
+	{
+	  if ((lastuserbits & 0x8) == 0x8) //  Quartet bit is set.
+	    {
+	      fPatternPhaseNumber    = 1;  // Reset the QRT phase
+	      fPatternNumber=fPatternNumberOld+1;     // Increment the QRT counter
+	    }
+	  else
+	    {
+	      fPatternPhaseNumber=fPatternPhaseNumberOld+1;       // Increment the QRT phase
+	    }
+	  
+	  fHelicityReported=0;
+	  
+	  if ((lastuserbits & 0x4) == 0x4){ //  Helicity bit is set.
+	    fHelicityReported    |= 1; // Set the InputReg HEL+ bit.
+	    fHelicityBitPlus=kTRUE;
+	    fHelicityBitMinus=kFALSE;
+	  } else {
+	    fHelicityReported    |= 0; // Set the InputReg HEL- bit.
+	    fHelicityBitPlus=kFALSE;
+	    fHelicityBitMinus=kTRUE;
+	  }
+	}
+    }
+  else
+    {
+      std::cerr<<" QwHelicity::ProcessEvent finding a missed read event in the scaler\n";
+      if(ldebug)
+	{
+	  std::cout<<" QwHelicity::ProcessEvent finding a missed read event in the scaler\n";
+	  std::cout<<" QwHelicity::ProcessEvent :"<<scaleroffset<<" events were missed \n";
+	  std::cout<<" before manipulation \n";
+	  Print();
+	}
+      //there was more than one event since the last reading of the scalers
+      //ie we should read only one event at the time,
+      //if not something is wrong
+      fEventNumber=fEventNumberOld+scaleroffset;
+      Int_t localphase=fPatternPhaseNumberOld;
+      Int_t localpatternnumber=fPatternNumberOld;
+      for (UInt_t i=0;i<scaleroffset;i++)
+	{
+	  fPatternPhaseNumber=localphase+1;
+	  if(fPatternPhaseNumber>4)
+	    {
+	      fPatternNumber=localpatternnumber+fPatternPhaseNumber/4;
+	      fPatternPhaseNumber=fPatternPhaseNumber-4;
+	      localpatternnumber=fPatternNumber;
+	    }
+	  localphase=fPatternPhaseNumber;
+	}
+      //Reset helicity predictor because we are not sure of what we are doing
+      fHelicityReported=-1;
+      ResetPredictor();
+      if(ldebug)
+	{
+	  std::cout<<" after manipulation \n";
+	  Print();
+	}
+    }
+  
+  return;
+}
+//*****************************************************************
+void QwHelicity::ProcessEventInputRegisterMode()
+{
+  static Bool_t firstpattern = kTRUE;
+  
+  UInt_t thisinputregister=fWord[kinputregister].fValue;  
+  
+  fEventNumber=fWord[kmpscounter].fValue;  
+  if (firstpattern && (thisinputregister & 0x4) == 0x4){
+    firstpattern   = kFALSE;
+  }
+  if (firstpattern){
+    fPatternNumber      = 0;
+    fPatternPhaseNumber = 0;
+  } else {
+    fPatternPhaseNumber=fWord[kpatternphase].fValue+1; // remember we expect the firt phase to be 1 and not 0
+    fPatternNumber=fWord[kpatterncounter].fValue;
+  }
+  
+  // folowing, a bunch of self consistancy checks   
+  if(fEventNumber!=fEventNumberOld+1)
+    std::cerr<<"QwHelicity::ProcessEvent read event# is not old_event#+1 \n";
+  
+  if ((thisinputregister & 0x4) == 0x4 && fPatternPhaseNumber != 1){
+    //  Quartet bit is set.
+    std::cerr<<"QwHelicity::ProcessEvent:  The Multiplet Sync bit is set, but the Pattern Phase ("
+	     << fPatternPhaseNumber << ") is not 1!" << std::endl;
+  }	
+  // end of consistancy checks
+  
+  fHelicityReported=0;
+  
+  if ((thisinputregister & 0x1) == 0x1){ //  Helicity bit is set.
+    fHelicityReported    |= 1; // Set the InputReg HEL+ bit.
+    fHelicityBitPlus=kTRUE;
+    fHelicityBitMinus=kFALSE;
+  } else {
+    fHelicityReported    |= 0; // Set the InputReg HEL- bit.
+    fHelicityBitPlus=kFALSE;
+    fHelicityBitMinus=kTRUE;
+  }
+  
+  return;
+}
 //*****************************************************************
 void  QwHelicity::ProcessEvent() 
 {
-  Bool_t ldebug=kFALSE;
-
-  if (dolocalhelicity&& !dolocalhelicity2){
-    // In this version of the code, the helicty is extracted for a userbit configuartion.
-    // This is not what we plan to have for Qweak but what we used for the winter 2008-09
-    // injector tests
-
-    UInt_t userbits;
-    static UInt_t lastuserbits  = 0xFF;
-    UInt_t scaleroffset=fWord[kscalercounter].fValue/32;
-
-    if(scaleroffset==1)
-      {
-	userbits = (fWord[kuserbit].fValue & 0xE0000000)>>28;
-
-	//  Now fake the input register, MPS coutner, QRT counter, and QRT phase.
-	fEventNumber=fEventNumberOld+1;
-
-	lastuserbits = userbits;
-
-	if (lastuserbits==0xFF)
-	  {
-	    fPatternPhaseNumber    = 1;
-	  }
-	else
-	  {
-	    if ((lastuserbits & 0x8) == 0x8) //  Quartet bit is set.
-	      {
-		fPatternPhaseNumber    = 1;  // Reset the QRT phase
-		fPatternNumber=fPatternNumberOld+1;     // Increment the QRT counter
-	      }
-	    else
-	      {
-		fPatternPhaseNumber=fPatternPhaseNumberOld+1;       // Increment the QRT phase
-	      }
-
-	    fHelicityReported=0;
-
-	    if ((lastuserbits & 0x4) == 0x4){ //  Helicity bit is set.
-	      fHelicityReported    |= 1; // Set the InputReg HEL+ bit.
-	      fHelicityBitPlus=kTRUE;
-	      fHelicityBitMinus=kFALSE;
-	    } else {
-	      fHelicityReported    |= 0; // Set the InputReg HEL- bit.
-	      fHelicityBitPlus=kFALSE;
-	      fHelicityBitMinus=kTRUE;
-	    }
-	  }
-      }
-    else
-      {
-	std::cerr<<" QwHelicity::ProcessEvent finding a missed read event in the scaler\n";
-	if(ldebug)
-	  {
-	    std::cout<<" QwHelicity::ProcessEvent finding a missed read event in the scaler\n";
-	    std::cout<<" QwHelicity::ProcessEvent :"<<scaleroffset<<" events were missed \n";
-	    std::cout<<" before manipulation \n";
-	    Print();
-	  }
-	//there was more than one event since the last reading of the scalers
-	//ie we should read only one event at the time,
-	//if not something is wrong
-	fEventNumber=fEventNumberOld+scaleroffset;
-	Int_t localphase=fPatternPhaseNumberOld;
-	Int_t localpatternnumber=fPatternNumberOld;
-	for (UInt_t i=0;i<scaleroffset;i++)
-	  {
-	    fPatternPhaseNumber=localphase+1;
-	    if(fPatternPhaseNumber>4)
-	      {
-		fPatternNumber=localpatternnumber+fPatternPhaseNumber/4;
-		fPatternPhaseNumber=fPatternPhaseNumber-4;
-		localpatternnumber=fPatternNumber;
-	      }
-	    localphase=fPatternPhaseNumber;
-	  }
-	//Reset helicity predictor because we are not sure of what we are doing
-	fHelicityReported=-1;
-	ResetPredictor();
-	if(ldebug)
-	  {
-	    std::cout<<" after manipulation \n";
-	    Print();
-	  }
-      }
-  }
-  ///////////////
-  else if (dolocalhelicity2&& !dolocalhelicity){
-    Int_t kinputregister, kpatterncounter, kmpscounter, kpatternphase;
-    kinputregister = kmpscounter =  kpatterncounter = kpatternphase = 0;
-
-    // injector tests April 2009
-  UInt_t thisinputregister=fWord[kinputregister].fValue;  //this is giving an runtime error
-
-    //  Now fake the input register, MPS coutner, QRT counter, and QRT phase.
-  fEventNumber=fWord[kmpscounter].fValue;  //this is giving an runtime error
-
-    if ((thisinputregister & 0x4) == 0x4) //  Quartet bit is set.
-      {
-	fPatternPhaseNumber    = 1;  // Reset the QRT phase
-	fPatternNumber=fPatternNumberOld+1;     // Increment the QRT counter
-      }
-    else
-      {
-	fPatternPhaseNumber=fPatternPhaseNumberOld+1;       // Increment the QRT phase
-      }
-
-    
-    // folowing, a bunch of self consistancy checks
-    // at this time (april 09) we trust the info from the input register more than the info
-    //from the scaler (because the scaler we use rigth now are "hakcs")
-    if(fEventNumber!=fEventNumberOld+1)
-      std::cerr<<"QwHelicity::ProcessEvent read event# is not old_event#+1 \n";
-    if(fPatternNumber!= fWord[kpatterncounter].fValue) //this is giving an runtime error
-      std::cerr<<"QwHelicity::ProcessEvent read pattern# is not equal to the one constructed from the input register \n";
-    if(fPatternPhaseNumber!= fWord[kpatternphase].fValue)//this is giving an runtime error
-      std::cerr<<"QwHelicity::ProcessEvent read pattern phase  is not equal to the one constructed from the input register \n";
-  
-
-    fHelicityReported=0;
-
-    if ((thisinputregister & 0x1) == 0x1){ //  Helicity bit is set.
-      fHelicityReported    |= 1; // Set the InputReg HEL+ bit.
-      fHelicityBitPlus=kTRUE;
-      fHelicityBitMinus=kFALSE;
-    } else {
-      fHelicityReported    |= 0; // Set the InputReg HEL- bit.
-      fHelicityBitPlus=kFALSE;
-      fHelicityBitMinus=kTRUE;
+  switch (fHelicityDecodingMode)
+    {
+    case kHelUserbitMode :
+      ProcessEventUserbitMode();
+      break; 
+      ///////////////
+    case kHelInputRegisterMode :
+ 
+      break;
+    default:
+      std::cerr<<"QwHelicity::ProcessEvent no instructions on how to decode the helicity !!!!\n";
+      abort();
     }
-  }
-  else  if(dolocalhelicity && dolocalhelicity2)
-    std::cerr<<"QwHelicity::ProcessEvent both dolocalhelicity and dolocalhelicity2 are kTRUE this is ambiguous  decoding is impossible !\n";
-  else
-    std::cerr<<"QwHelicity::ProcessEvent no instructions on how to decode the helicity !!!!\n";
 
-
+ 
   ///////////////
 
   if(fHelicityBitPlus==fHelicityBitMinus)
     fHelicityReported=-1;
-    //if dolocalhelicity then this test doesn't make much sense
-    //but if we get the bit info for the code then this become a meaningful test
 
   PredictHelicity();
-  //  if(fPatternPhaseNumber==1)
-  //    Print();
 
   return;
   }
@@ -402,8 +410,8 @@ void QwHelicity::Print()
  	   << fPatternNumberOld<<", "
  	   << fPatternPhaseNumberOld<<"\n";
 
-  std::cout<<"delta = \n(fEventNumberOld)-(MaxPatternPhase)x(fPatternNumberOld)-(fPatternPhaseNumberOld)= "
-	   <<((fEventNumberOld)-(MaxPatternPhase)*(fPatternNumberOld)-(fPatternPhaseNumberOld))<<"\n";
+  std::cout<<"delta = \n(fEventNumberOld)-(fMaxPatternPhase)x(fPatternNumberOld)-(fPatternPhaseNumberOld)= "
+	   <<((fEventNumberOld)-(fMaxPatternPhase)*(fPatternNumberOld)-(fPatternPhaseNumberOld))<<"\n";
 
   std::cout<<"Helicity Reported, Delayed, Actual ="
 	   << fHelicityReported<<","
@@ -452,11 +460,33 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	{
 	  currentrocread=value;
 	  RegisterROCNumber(value,0);
+	  fWordsPerSubbank.push_back( std::pair<Int_t, Int_t>(fWord.size(),fWord.size()));
 	}
       else if (varname=="bank")
 	{
 	  currentbankread=value;
 	  RegisterSubbank(value);
+	  fWordsPerSubbank.push_back( std::pair<Int_t, Int_t>(fWord.size(),fWord.size()));
+	}
+      else if (varname=="patternphase")
+	{
+	  fMaxPatternPhase=value;
+	  std::cout<<" fMaxPatternPhase "<<fMaxPatternPhase<<std::endl;
+	}
+      else if (varname=="helicitydecodingmode")
+	{
+	  if
+	    (varvalue=="InputRegisterMode") fHelicityDecodingMode=kHelInputRegisterMode;
+	  else if
+	    (varvalue=="UserbitMode") fHelicityDecodingMode=kHelUserbitMode;
+	  else if
+	    (varvalue=="HelLocalyMadeUp") fHelicityDecodingMode=kHelLocalyMadeUp;
+	  else
+	    {
+	      std::cerr<<"The helicity decoding mode read in file "<<mapfile<<"\n";
+	      std::cerr<<" is not recognized in function QwHelicity::LoadChannelMap \n";
+	      std::cerr<<" Quiting this execution \n";
+	    }
 	}
     } else
       {
@@ -499,22 +529,24 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	    localword.fWordName=namech;
 	    localword.fWordType=dettype;
 	    fWord.push_back(localword);
+	    fWordsPerSubbank[currentsubbankindex].second = fWord.size();
 	    if(ldebug) std::cout<<"--"<<namech<<"--"<<fWord.size()-1<<"\n";
 	    
 	    // Notice that "namech" is in lower-case, so these checks
 	    // should all be in lower-case
-	    if(dolocalhelicity)
+	    switch (fHelicityDecodingMode)
 	      {
+	      case kHelUserbitMode :
 		if(namech.Contains("userbit")) kuserbit=fWord.size()-1;
 		if(namech.Contains("scalercounter")) kscalercounter=fWord.size()-1;
-	      }
-	    if(dolocalhelicity2)
-	      {
+		break;
+	      case kHelInputRegisterMode :
 		if(namech.Contains("input_register")) kinputregister= fWord.size()-1;
 		if(namech.Contains("mps_counter")) kmpscounter= fWord.size()-1;
 		if(namech.Contains("pat_counter")) kpatterncounter= fWord.size()-1;
 		if(namech.Contains("pat_phase")) kpatternphase= fWord.size()-1;
-	      }
+		break;
+	      }	    
 	  }
       }
   }
@@ -552,24 +584,26 @@ Int_t QwHelicity::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer,
 		<< "Begin processing ROC" << roc_id
 		<< " and subbank "<<bank_id
 		<< " number of words="<<num_words<<std::endl;
-    for(size_t i=0;i<fWord.size();i++)
-      if((UInt_t) fWord[i].fWordInSubbank+1<num_words)
+    
+    for(size_t i=fWordsPerSubbank[index].first; i<fWordsPerSubbank[index].second; i++)
+      if(fWord[i].fWordInSubbank+1<num_words)
 	fWord[i].fValue=buffer[fWord[i].fWordInSubbank];
       else
-	{
+	{	
 	  std::cout<<"There is not enough word in the buffer to read data for "
 		   <<fWord[i].fWordName<<"\n";
 	  std::cout<<"words in this buffer:"<<num_words<<" tyring to read woord number ="
 		   <<fWord[i].fWordInSubbank<<"\n";
 	}
-
-    }
   if(lkDEBUG)
     {
       std::cout<<"Done with Processing this event \n";
-      for(size_t i=0;i<fWord.size();i++)
+      for(size_t i=0;i<fWord.size();i++){
+	std::cout<<" word number = "<<i<<" ";
 	fWord[i].Print();
+      }
     }
+  }
   lkDEBUG=kFALSE;
   return 0;
 }
