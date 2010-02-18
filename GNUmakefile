@@ -363,7 +363,7 @@ BOOST_LIBS += -ldl
 ############################
 ############################
 ifndef MYSQL_INC_DIR
-	ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name mysql)),/usr/include/mysql)
+  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name mysql)),/usr/include/mysql)
     $(warning Install the MySQL client library on your system, or set the environment)
     $(warning variables MYSQL_INC_DIR and MYSQL_LIB_DIR to the directory with)
     $(warning the MySQL headers and libraries, respectively.)
@@ -371,9 +371,10 @@ ifndef MYSQL_INC_DIR
     $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
     $(warning )
     $(error   Error: Could not find the MySQL library)
+  else
+    MYSQL_INC_DIR = /usr/include/mysql
+    MYSQL_LIB_DIR = /usr/lib/mysql
   endif
-  MYSQL_INC_DIR = 
-  MYSQL_LIB_DIR = 
 endif
 
 MYSQL_INC  = -I${MYSQL_INC_DIR}
@@ -385,17 +386,23 @@ MYSQL_LIBS = -L${MYSQL_LIB_DIR} -lmysqlclient
 ############################
 ############################
 ifndef MYSQLPP_INC_DIR
-	ifneq ($(strip $(shell $(FIND) /usr/local/include -maxdepth 1 -name mysql++)),/usr/local/include/mysql++)
-    $(warning Install the MySQL++ library on your system, or set the environment)
-    $(warning variables MYSQLPP_INC_DIR and MYSQLPP_LIB_DIR to the directory with)
-    $(warning the MySQL++ headers and libraries, respectively.)
-    $(warning See the Qweak Wiki for installation and compilation instructions.)
-    $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
-    $(warning )
-    $(error   Error: Could not find the MySQL++ library)
+  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name mysql++)),/usr/include/mysql++)
+    ifneq ($(strip $(shell $(FIND) /usr/local/include -maxdepth 1 -name mysql++)),/usr/local/include/mysql++)
+      $(warning Install the MySQL++ library on your system, or set the environment)
+      $(warning variables MYSQLPP_INC_DIR and MYSQLPP_LIB_DIR to the directory with)
+      $(warning the MySQL++ headers and libraries, respectively.)
+      $(warning See the Qweak Wiki for installation and compilation instructions.)
+      $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
+      $(warning )
+      $(error   Error: Could not find the MySQL++ library)
+    else
+      MYSQLPP_INC_DIR = /usr/local/include/mysql++
+      MYSQLPP_LIB_DIR = /usr/local/lib
+    endif
+  else
+    MYSQLPP_INC_DIR = /usr/include/mysql++
+    MYSQLPP_LIB_DIR = /usr/lib
   endif
-  MYSQLPP_INC_DIR = /usr/local/include/mysql++
-  MYSQLPP_LIB_DIR = /usr/local/lib
 endif
 
 MYSQLPP_INC  = -I${MYSQLPP_INC_DIR}
