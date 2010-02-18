@@ -86,6 +86,7 @@ bool QwDatabase::ValidateConnection() {
   //
   try {
     connect(dbname.c_str(), server.c_str(), username.c_str(), password.c_str(), (unsigned int) port);
+    //    connect(dbname.Data(), server.Data(), username.Data(), password.Data(), (unsigned int) port);
   } catch (std::exception const& e) {
     QwError << "QwDatabase::ValidateConnection() : " << QwLog::endl;
     QwError << e.what() << " while validating connection" << QwLog::endl;
@@ -134,11 +135,67 @@ bool QwDatabase::Connect()
 
   if (fValidConnection) {
     return connect(fDatabase.c_str(), fDBServer.c_str(), fDBUsername.c_str(), fDBPassword.c_str(), (unsigned int) fDBPortNumber);
-    
+    //   return connect(fDatabase.Data(), fDBServer.Data(), fDBUsername.Data(), fDBPassword.Data(), (unsigned int) fDBPortNumber);
   } else {
     QwError << "QwDatabase::Connect() : Must establish valid connection to database." << QwLog::endl;
     return false;
   }
+}
+
+/*! This function is used to initiate a database connection without using QwOption class
+ */
+Bool_t QwDatabase::SetConnect(TString dbserver, TString dbname, TString dbuser, TString dbpasswd, UInt_t dbport) 
+{
+  /* Open a connection to the database using the predefined parameters.
+   * Must call QwDatabase::ConnectionInfo() first.
+   */
+
+  // Make sure not already connected
+  if (connected()) return true;
+
+  // If never connected before, then make sure connection parameters form
+  // valid connection
+  if (!fValidConnection) 
+    {
+      try 
+	{
+	  connect(dbname, dbserver, dbuser, dbpasswd, dbport);
+	} 
+      catch (std::exception const& e) 
+	{
+	  QwError << "QwDatabase::ValidateConnection() : " << QwLog::endl;
+	  QwError << e.what() << " while validating connection" << QwLog::endl;
+	  QwError << "Database name = " << dbname <<QwLog::endl;
+	  QwError << "Database server = " << dbserver <<QwLog::endl;
+	  QwError << "Database username = " << dbuser <<QwLog::endl;
+	  QwError << "Database port = " << dbport <<QwLog::endl;
+	  QwError << "Exiting." << QwLog::endl;
+	  exit(1);
+	}
+      // Success!
+      QwMessage << "QwDatabase::ValidateConnection() : Successfully connected to requested database." << QwLog::endl;
+      
+      // Connection was good so update member variables and disconnect from
+      // database
+      fDatabase=dbname;
+      fDBServer=dbserver;
+      fDBUsername=dbuser;
+      fDBPassword=dbpasswd;
+      fDBPortNumber=dbport;
+      fValidConnection=true;
+      disconnect();
+    }
+
+  if (fValidConnection) 
+    {
+      return connect(fDatabase.c_str(), fDBServer.c_str(), fDBUsername.c_str(), fDBPassword.c_str(), (unsigned int) fDBPortNumber);
+      //   return connect(fDatabase.Data(), fDBServer.Data(), fDBUsername.Data(), fDBPassword.Data(), (unsigned int) fDBPortNumber);
+    } 
+  else 
+    {
+      QwError << "QwDatabase::Connect() : Must establish valid connection to database." << QwLog::endl;
+      return false;
+    }
 }
 
 
@@ -188,4 +245,29 @@ bool QwDatabase::SetRunNumber(const UInt_t runnum)
 
   return true;
 
+}
+
+
+/*!
+ * This function prints the server information.
+ */
+void QwDatabase::PrintServerInfo()
+{
+
+
+  if (fValidConnection) 
+    {
+      printf("QwDatabase -------------------\n");
+      printf("Database server %10s\n", fDBServer.c_str());
+      printf("         name   %10s\n", fDatabase.c_str());    
+      printf("         user   %10s\n", fDBUsername.c_str());
+      printf("         port   %10d\n", fDBPortNumber);
+    } 
+  else 
+    {
+      printf("There is no connection\n");
+
+    }
+
+  return;
 }

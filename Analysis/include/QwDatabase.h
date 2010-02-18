@@ -25,7 +25,8 @@ using std::string;
 #define EXPAND_MY_SSQLS_STATICS
 #include "QwSSQLS.h"
 
-
+#include "TString.h"
+#include <cstdio>
 /**
  *  \class QwDatabase
  *  \ingroup QwAnalysis
@@ -45,6 +46,7 @@ class QwDatabase: private mysqlpp::Connection {
     ~QwDatabase(); //!< Destructor
 
     bool Connect(); //!< Open a connection to the database using the predefined parameters.  
+    Bool_t SetConnect(TString dbserver, TString dbname, TString dbuser, TString dbpasswd, UInt_t dbport);
     void Disconnect() {disconnect();}; //<! Close an open database connection
     const string GetServerVersion() {return server_version();}; //<! Get database server version
     void DefineOptions(); //!< Defines available class options for QwOptions
@@ -53,6 +55,8 @@ class QwDatabase: private mysqlpp::Connection {
     const UInt_t GetRunNumber() {return fRunNumber;} //<! Run number getter
     const UInt_t GetRunID() {return fRunID;} //<! Run ID getter
     bool SetRunNumber(const UInt_t runnum); //<! Run number setter
+
+    void PrintServerInfo();
 
   private:
 

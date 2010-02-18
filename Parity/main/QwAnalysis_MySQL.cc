@@ -64,15 +64,16 @@ main(Int_t argc, Char_t* argv[])
       
       //  Try to open the data file.
       if (QwEvt.OpenDataFile(run) != CODA_OK)
-      {
-	//  The data file can't be opened.
-	//  Get ready to process the next run.
-	std::cerr << "ERROR:  Unable to find data files for run "
-		  << run << ".  Moving to the next run.\n"
-		  << std::endl;
-	timer.Stop();
-	continue;
-      }
+	{
+	  //  The data file can't be opened.
+	  //  Get ready to process the next run.
+	  std::cerr << "ERROR:  Unable to find data files for run "
+		    << run << ".  Moving to the next run.\n"
+		    << std::endl;
+	  timer.Stop();
+	  continue;
+	}
+
       QwEvt.ResetControlParameters();
       //  Open the data files and root file
       //  OpenAllFiles(io, run);
@@ -84,16 +85,16 @@ main(Int_t argc, Char_t* argv[])
 		     "RECREATE","Qweak MySQL ROOT file");
       
       if(bHisto)
-      {
-	rootfile.cd();
-	QwDetectors.ConstructHistograms(rootfile.mkdir("mps_histo"));
+	{
+	  rootfile.cd();
+	  QwDetectors.ConstructHistograms(rootfile.mkdir("mps_histo"));
         
-	if(bHelicity)
-        {
-          rootfile.cd();
-          QwHelPat.ConstructHistograms(rootfile.mkdir("hel_histo"));
-        }
-      }
+	  if(bHelicity)
+	    {
+	      rootfile.cd();
+	      QwHelPat.ConstructHistograms(rootfile.mkdir("hel_histo"));
+	    }
+	}
 
 
       TTree *mpstree = NULL;
@@ -103,108 +104,108 @@ main(Int_t argc, Char_t* argv[])
       std::vector <Double_t> helvector;
 
       if(bTree)
-      {
-        rootfile.cd();
-        mpstree = new TTree("MPS_Tree","MPS event data tree");
-        mpsvector.reserve(6000); 
-        // if one defines more than 600 words in the full ntuple
-        // results are going to get very very crazy.
-        mpstree->Branch("evnum",&evnum,"evnum/D");
+	{
+	  rootfile.cd();
+	  mpstree = new TTree("MPS_Tree","MPS event data tree");
+	  mpsvector.reserve(6000); 
+	  // if one defines more than 600 words in the full ntuple
+	  // results are going to get very very crazy.
+	  mpstree->Branch("evnum",&evnum,"evnum/D");
 
-        TString dummystr="";
+	  TString dummystr="";
         
-        ( (QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine")   )->ConstructBranchAndVector(mpstree, dummystr, mpsvector);  
-        ( (QwBeamLine*)QwDetectors.GetSubsystem("Helicity info")       )->ConstructBranchAndVector(mpstree, dummystr, mpsvector);  
-        ( (QwBeamLine*)QwDetectors.GetSubsystem("Luminosity Monitors") )->ConstructBranchAndVector(mpstree, dummystr, mpsvector); 
+	  ( (QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine")   )->ConstructBranchAndVector(mpstree, dummystr, mpsvector);  
+	  ( (QwBeamLine*)QwDetectors.GetSubsystem("Helicity info")       )->ConstructBranchAndVector(mpstree, dummystr, mpsvector);  
+	  ( (QwBeamLine*)QwDetectors.GetSubsystem("Luminosity Monitors") )->ConstructBranchAndVector(mpstree, dummystr, mpsvector); 
 	  // QwDetectors.ConstructBranchAndVector(mpstree, dummystr, mpsvector);
 	  // at some point we want to have some thing like that but it need to be implement in QwSubsystemArray
         
-        //        rootfile.cd();
+	  //        rootfile.cd();
 
-        if(bHelicity)
-        {
-          rootfile.cd();
-          heltree = new TTree("HEL_Tree","Helicity event data tree");	      
-          helvector.reserve(6000); 
-          //          TString dummystr="";
-          QwHelPat.ConstructBranchAndVector(heltree, dummystr, helvector);
-        }
-      }
+	  if(bHelicity)
+	    {
+	      rootfile.cd();
+	      heltree = new TTree("HEL_Tree","Helicity event data tree");	      
+	      helvector.reserve(6000); 
+	      //          TString dummystr="";
+	      QwHelPat.ConstructBranchAndVector(heltree, dummystr, helvector);
+	    }
+	}
       
       Int_t falied_events_counts = 0;//count falied total events
       Int_t event_number = 0;
       
       while (QwEvt.GetEvent() == CODA_OK)
-      {
-        event_number = QwEvt.GetEventNumber();
+	{
+	  event_number = QwEvt.GetEventNumber();
             
         
-	if (QwEvt.IsROCConfigurationEvent())  QwEvt.FillSubsystemConfigurationData(QwDetectors);
-	if ( !QwEvt.IsPhysicsEvent() ) continue;
-        //  Check to see if we want to process this event.
-	if      ( event_number < cmdline.GetFirstEvent() ) continue;
-	else if ( event_number > cmdline.GetLastEvent()  ) break;
-        else
-        {
-          if(bDebug)
-          {
-            printf("==================================================== \n");
-            printf(" new event:: number = %d\n", event_number);
-            printf("==================================================== \n");
-          }
+	  if (QwEvt.IsROCConfigurationEvent())  QwEvt.FillSubsystemConfigurationData(QwDetectors);
+	  if ( !QwEvt.IsPhysicsEvent() ) continue;
+	  //  Check to see if we want to process this event.
+	  if      ( event_number < cmdline.GetFirstEvent() ) continue;
+	  else if ( event_number > cmdline.GetLastEvent()  ) break;
+	  else
+	    {
+	      if(bDebug)
+		{
+		  printf("==================================================== \n");
+		  printf(" new event:: number = %d\n", event_number);
+		  printf("==================================================== \n");
+		}
           
-          QwEvt.FillSubsystemData(QwDetectors);
-          QwDetectors.ProcessEvent();
+	      QwEvt.FillSubsystemData(QwDetectors);
+	      QwDetectors.ProcessEvent();
           
-          //currently QwHelicity::ApplySingleEventCuts() will check for actual helicity bit for 1 or 0 and falied the test if it is different
-          if( QwDetectors.ApplySingleEventCuts() )
-          {
-            //The event pass the event cut constraints 
-            //QwDetectors.Do_RunningSum();//accimulate the running sum to calculate the event base running AVG 
-            if(bHelicity)
-            {
-              fEventRing.push(QwDetectors); //add event to the ring
-              if( fEventRing.IsReady() ) QwHelPat.LoadEventData(fEventRing.pop());
-            }	  
+	      //currently QwHelicity::ApplySingleEventCuts() will check for actual helicity bit for 1 or 0 and falied the test if it is different
+	      if( QwDetectors.ApplySingleEventCuts() )
+		{
+		  //The event pass the event cut constraints 
+		  //QwDetectors.Do_RunningSum();//accimulate the running sum to calculate the event base running AVG 
+		  if(bHelicity)
+		    {
+		      fEventRing.push(QwDetectors); //add event to the ring
+		      if( fEventRing.IsReady() ) QwHelPat.LoadEventData(fEventRing.pop());
+		    }	  
             
-            if(bHisto) QwDetectors.FillHistograms(); 
+		  if(bHisto) QwDetectors.FillHistograms(); 
 
-            if(bTree) 
-            {
-              evnum = (Double_t) event_number;
-              ( (QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine")  )->FillTreeVector(mpsvector);
-              ( (QwHelicity*)QwDetectors.GetSubsystem("Helicity info")      )->FillTreeVector(mpsvector);
-              ( (QwLumi*)    QwDetectors.GetSubsystem("Luminosity Monitors"))->FillTreeVector(mpsvector);
-              mpstree->Fill();
-            }
+		  if(bTree) 
+		    {
+		      evnum = (Double_t) event_number;
+		      ( (QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine")  )->FillTreeVector(mpsvector);
+		      ( (QwHelicity*)QwDetectors.GetSubsystem("Helicity info")      )->FillTreeVector(mpsvector);
+		      ( (QwLumi*)    QwDetectors.GetSubsystem("Luminosity Monitors"))->FillTreeVector(mpsvector);
+		      mpstree->Fill();
+		    }
 
-            if(bHelicity&&QwHelPat.IsCompletePattern())
-            {
-              //std::cout<<" Complete quartet  "<<QwEvt.GetEventNumber()<<std::endl;
-              QwHelPat.CalculateAsymmetry();
-              //	      QwHelPat.Print();
-              if(bHisto) QwHelPat.FillHistograms();
+		  if(bHelicity&&QwHelPat.IsCompletePattern())
+		    {
+		      //std::cout<<" Complete quartet  "<<QwEvt.GetEventNumber()<<std::endl;
+		      QwHelPat.CalculateAsymmetry();
+		      //	      QwHelPat.Print();
+		      if(bHisto) QwHelPat.FillHistograms();
               
-              if(bTree){
-                QwHelPat.FillTreeVector(helvector);
-                heltree->Fill();
-              }
-              QwHelPat.ClearEventData();
-            }
-          }
-          else
-          {	  
-            printf(" Falied event %d\n", event_number);
-            fEventRing.FailedEvent(QwDetectors.GetEventcutErrorFlag()); //event cut failed update the ring status
-            falied_events_counts++;
-          }
-          if(event_number%1000==0){
-            printf("\tNumber of events processed so far: %12d\n", event_number);
-          }
-        }
+		      if(bTree){
+			QwHelPat.FillTreeVector(helvector);
+			heltree->Fill();
+		      }
+		      QwHelPat.ClearEventData();
+		    }
+		}
+	      else
+		{	  
+		  printf(" Falied event %d\n", event_number);
+		  fEventRing.FailedEvent(QwDetectors.GetEventcutErrorFlag()); //event cut failed update the ring status
+		  falied_events_counts++;
+		}
+	      if(event_number%1000==0){
+		printf("\tNumber of events processed so far: %12d\n", event_number);
+	      }
+	    }
         
         
-      }
+	}
       
       
       
@@ -224,10 +225,10 @@ main(Int_t argc, Char_t* argv[])
        *  here, in case we run over multiple runs at a time.           */
       if(bHisto||bTree) rootfile.Write(0,TObject::kOverwrite);
       if(bHisto)
-      {
-	printf("QwDetectors.DeleteHistograms\n"); QwDetectors.DeleteHistograms();
-	printf("QwHelPat.DeleteHistograms\n\n");    QwHelPat.DeleteHistograms();
-      }
+	{
+	  printf("QwDetectors.DeleteHistograms\n"); QwDetectors.DeleteHistograms();
+	  printf("QwHelPat.DeleteHistograms\n\n");    QwHelPat.DeleteHistograms();
+	}
 
       QwEvt.CloseDataFile(); 
       printf("*** Begin ::: ReportRunSummary()\n");
@@ -247,24 +248,43 @@ main(Int_t argc, Char_t* argv[])
       
     } //end of run loop
   
-
-  //   // Setup screen and file logging
-  //   gQwLog.InitLogFile("qwdb_test.log");
-  //   //  gQwLog.SetFileThreshold(QwLog::kDebug);
-  //   //  gQwLog.SetScreenThreshold(QwLog::kDebug);
   
-  //   // Set up command line and file options processing
+  //   //--- gQwOptions is defined in Analysis/include/QwOptions.h
+  //   //--- as extern QwOptions gQwOptions;
+  //   //--- without SetCommandLine(), there is an error (stop!)
+  //   //--- with this, the following warning message
+  //   //--- Warning: unknown option -r while parsing command line arguments
   //   gQwOptions.SetCommandLine(argc, argv);
-  //   gQwOptions.SetConfigFile("qwdatabase.conf");
-  //   // Get errors about not recognizing options when use config file
-  //   //gQwOptions.SetConfigFile("Parity/prminput/qwdatabase.conf");
-  //   gQwOptions.DefineOptions();
+  //   //--- with the directory structure, there is a warning as
+  //   //--- Warning: unknown option QwDatabase.dbserver while parsing configuration file 
+  //   //---          /home/jhlee/QwAnalysis/branches/spayde/Parity/prminput/qweak_mysql.conf
+  //   //--- Warning: the entire configuration file was ignored!
+
+  //   gQwOptions.SetConfigFile( Form("%s/Parity/prminput/qweak_mysql.conf", getenv("QWANALYSIS")) );
+
+  //   //--- the following configuration is OK
+  //   //--- I couldn't see the Waring messages.
+  //   //gQwOptions.SetConfigFile("qweak_mysql.conf");
+  //   //--- empty funciton, do I need to run?
+  //   // gQwOptions.DefineOptions();
+  //   // gQwOptions.ListConfigFiles();
+
+  //   // gQwDatabase is defined in Analysis/include/QwDatabase.h
+  //   // extern QwDatabase gQwDatabase;
+  //   // DefineOptions() calls AddOptions in gQwOptions
+  //   gQwDatabase.DefineOptions();
+
+  //   //--- I couldn't find any routine to read information inside the configuration file.
+  //   //--- Thus, I add this, but it returns some errors
+  //   //--- Error: QwDatabase::ValidateConnection() : No database supplied.  Unable to connect.
+  //   //--- Error: QwDatabase::Connect() : Must establish valid connection to database.
+  //   gQwOptions.Parse();
   
-  //   // Start testing
-  //   QwDebug << "qwdb_test:  Hello there!" << QwLog::endl;
-  
-  //   gQwDatabase.Connect();
-  //   QwMessage << "Database server version is " << gQwDatabase.GetServerVersion() << QwLog::endl;
+  // until no errors.
+  gQwDatabase.SetConnect("localhost","qw_test", "qwreplay", "replay", 0);
+  gQwDatabase.PrintServerInfo();
+  // QwMessage << "Database server version is " << gQwDatabase.GetServerVersion() << QwLog::endl;
+
   
   //   try {
   //     mysqlpp::Query query = gQwDatabase.Query("select * from run limit 10");

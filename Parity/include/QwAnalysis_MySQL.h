@@ -30,11 +30,8 @@
 
 #include "QwEventRing.h"
 
-#include "QwLog.h"
-#include "QwOptions.h"
 #include "QwOptionsParity.h"
 #include "QwDatabase.h"
-//#include "QwSSQLS.h"
 
 #include <cstdio>
 #include <cstdlib>
