@@ -248,40 +248,44 @@ main(Int_t argc, Char_t* argv[])
       
     } //end of run loop
   
-  
+  //  gQwOptions.DefineOptions();
+
   //   //--- gQwOptions is defined in Analysis/include/QwOptions.h
   //   //--- as extern QwOptions gQwOptions;
   //   //--- without SetCommandLine(), there is an error (stop!)
   //   //--- with this, the following warning message
   //   //--- Warning: unknown option -r while parsing command line arguments
-  //   gQwOptions.SetCommandLine(argc, argv);
+  // gQwOptions.SetCommandLine(argc, argv);
   //   //--- with the directory structure, there is a warning as
   //   //--- Warning: unknown option QwDatabase.dbserver while parsing configuration file 
   //   //---          /home/jhlee/QwAnalysis/branches/spayde/Parity/prminput/qweak_mysql.conf
   //   //--- Warning: the entire configuration file was ignored!
 
-  //   gQwOptions.SetConfigFile( Form("%s/Parity/prminput/qweak_mysql.conf", getenv("QWANALYSIS")) );
+  // gQwOptions.SetConfigFile( Form("%s/Parity/prminput/qweak_mysql.conf", getenv("QWANALYSIS")) );
 
   //   //--- the following configuration is OK
   //   //--- I couldn't see the Waring messages.
-  //   //gQwOptions.SetConfigFile("qweak_mysql.conf");
+
+  //  gQwOptions.SetConfigFile("./qweak_mysql.conf");
   //   //--- empty funciton, do I need to run?
-  //   // gQwOptions.DefineOptions();
+  //  gQwOptions.DefineOptions();
   //   // gQwOptions.ListConfigFiles();
 
   //   // gQwDatabase is defined in Analysis/include/QwDatabase.h
   //   // extern QwDatabase gQwDatabase;
   //   // DefineOptions() calls AddOptions in gQwOptions
-  //   gQwDatabase.DefineOptions();
+
 
   //   //--- I couldn't find any routine to read information inside the configuration file.
   //   //--- Thus, I add this, but it returns some errors
   //   //--- Error: QwDatabase::ValidateConnection() : No database supplied.  Unable to connect.
   //   //--- Error: QwDatabase::Connect() : Must establish valid connection to database.
-  //   gQwOptions.Parse();
+  //  gQwOptions.Parse();
+  //  std::cout << gQwOptions.GetValue<unsigned int>("dbport") << std::endl;
   
   // until no errors.
   gQwDatabase.SetConnect("qw_test", "localhost","qwreplay", "replay");
+  //  gQwDatabase.Connect();
   gQwDatabase.PrintServerInfo();
 
   

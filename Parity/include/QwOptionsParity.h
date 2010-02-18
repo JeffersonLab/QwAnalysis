@@ -22,7 +22,7 @@
 
 void QwOptions::DefineOptions() {
   /* No options defined */
-  gQwDatabase.DefineOptions();
+  QwDatabase::DefineOptions();
 }
 
 #endif // QWOPTIONSPARITY_H

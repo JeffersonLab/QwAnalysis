@@ -49,7 +49,7 @@ class QwDatabase: private mysqlpp::Connection {
     Bool_t SetConnect(TString dbname, TString dbserver, TString dbuser, TString dbpasswd, UInt_t dbport = 0);
     void Disconnect() {disconnect();}; //<! Close an open database connection
     const string GetServerVersion() {return server_version();}; //<! Get database server version
-    void DefineOptions(); //!< Defines available class options for QwOptions
+    static void DefineOptions(); //!< Defines available class options for QwOptions
     mysqlpp::Query Query(const char *qstr=0) {return query(qstr);} //<! Generate a query to the database.
     mysqlpp::Query Query(const std::string &qstr) {return query(qstr);} //<! Generate a query to the database.
     const UInt_t GetRunNumber() {return fRunNumber;} //<! Run number getter

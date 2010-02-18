@@ -210,11 +210,11 @@ Bool_t QwDatabase::SetConnect(TString dbname, TString dbserver, TString dbuser, 
 void QwDatabase::DefineOptions()
 {  
   // Specify command line options for use by QwDatabase
-  gQwOptions.AddOptions()("dbname", po::value<string>(), "database name");
-  gQwOptions.AddOptions()("dbserver", po::value<string>(), "database server name");
-  gQwOptions.AddOptions()("dbusername", po::value<string>(), "database username");
-  gQwOptions.AddOptions()("dbpassword", po::value<string>(), "database password");
-  gQwOptions.AddOptions()("dbport", po::value<int>()->default_value(0), "database server port number (defaults to standard mysql port)");
+  gQwOptions.AddOptions()("QwDatabase.dbname", po::value<string>(), "database name");
+  gQwOptions.AddOptions()("QwDatabase.dbserver", po::value<string>(), "database server name");
+  gQwOptions.AddOptions()("QwDatabase.dbusername", po::value<string>(), "database username");
+  gQwOptions.AddOptions()("QwDatabase.dbpassword", po::value<string>(), "database password");
+  gQwOptions.AddOptions()("QwDatabase.dbport", po::value<int>()->default_value(0), "database server port number (defaults to standard mysql port)");
 
 }
 
