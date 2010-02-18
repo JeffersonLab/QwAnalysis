@@ -83,19 +83,15 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	      {
 		dev_name=mapstr.GetNextToken(", ").c_str();
 		dev_name.ToLower();
-		//std::cout<<"Got element "<<dev_name<<"\n";
 		fDeviceName.push_back(dev_name);
 		fDeviceWeight.push_back( atof(mapstr.GetNextToken(", ").c_str()));				
 	      }
 	  }
 	  
-	  
-	  QwBeamDetectorID localBCMComboID;
-	  localBCMComboID.fdetectortype=combotype;
-	  localBCMComboID.fdetectorname=comboname;
-	  
-	  localBCMComboID.fTypeID=GetDetectorTypeID(combotype);
-	  std::cout<<" combo id ="<<localBCMComboID.fTypeID<<"\n";
+	  QwBeamDetectorID localBCMComboID(-1, -1, comboname, combotype, "none", this);	  
+
+
+
 	  if(localBCMComboID.fTypeID==-1)
 	    {
 	      std::cerr << "QwBeamLine::LoadChannelMap:  Unknown detector type: "
@@ -104,12 +100,10 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	      combolistdecoded=kTRUE;
 	      continue;
 	    }
-	  ////
-	  if(DetectorTypes[localBCMComboID.fTypeID]=="combinedbcm")
+	  
+	  if(fgDetectorTypeNames[localBCMComboID.fTypeID]=="combinedbcm")
 	    localBCMComboID.fdetectorname=comboname(0,comboname.Sizeof()-1);
-	  //
-	  //std::cout<<localBCMComboID.fdetectorname<<"\n";
-	  ///
+
 	  localBCMComboID.fIndex=
 	    GetDetectorIndex(localBCMComboID.fTypeID,
 			     localBCMComboID.fdetectorname);
@@ -118,25 +112,24 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	  
 	  if(localBCMComboID.fIndex==-1)
 	    {
-	      if(DetectorTypes[localBCMComboID.fTypeID]=="combinedbcm")/////
+	      if(fgDetectorTypeNames[localBCMComboID.fTypeID]=="combinedbcm")/////
 		{
 		  QwCombinedBCM localcombo(localBCMComboID.fdetectorname); //create a new combo with combo name
 		  fBCMCombo.push_back(localcombo); //add to the array of combos
-		  // for(Int_t n=0;n<fBCMCombo.size();n++){
 		  for(size_t i=0;i<fDeviceName.size();i++)
 		    {
 		      index=GetDetectorIndex(GetDetectorTypeID("bcm"),fDeviceName[i]);
 		      fBCMCombo[fBCMCombo.size()-1].Add(&fBCM[index],fDeviceWeight[i]);
 		      
 		    }
-	      fDeviceName.clear();   //reset the device vector for the next combo
-	      fDeviceWeight.clear(); //reset the device weights for the next combo
+		  fDeviceName.clear();   //reset the device vector for the next combo
+		  fDeviceWeight.clear(); //reset the device weights for the next combo
 		}
 	    }
 	  
 	  if(combolistdecoded)
 	    fBeamDetectorID.push_back(localBCMComboID);
-	}/////
+	}
     }
     else
       {
@@ -158,12 +151,10 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	    wordsofar=0;
 	  }
 	
-	QwBeamDetectorID localBeamDetectorID;
-	localBeamDetectorID.fdetectorname=namech;
-	localBeamDetectorID.fmoduletype=modtype;
-	localBeamDetectorID.fSubbankIndex=currentsubbankindex;
-	localBeamDetectorID.fdetectortype=dettype;
-	localBeamDetectorID.fWordInSubbank=wordsofar;
+
+        QwBeamDetectorID localBeamDetectorID(currentsubbankindex, wordsofar,namech, dettype, modtype, this);
+
+
 	if(modtype=="VQWK")wordsofar+=6;
 	else if(modtype=="SCALER")wordsofar+=1;
 	else
@@ -175,7 +166,6 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	    continue;
 	  }
 	
-	localBeamDetectorID.fTypeID=GetDetectorTypeID(dettype);
 	if(localBeamDetectorID.fTypeID==-1)
 	  {
 	    std::cerr << "QwBeamLine::LoadChannelMap:  Unknown detector type: "
@@ -185,7 +175,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	    continue;
 	  }
 	
-	if(DetectorTypes[localBeamDetectorID.fTypeID]=="bpmstripline")
+	if(fgDetectorTypeNames[localBeamDetectorID.fTypeID]=="bpmstripline")
 	  localBeamDetectorID.fdetectorname=namech(0,namech.Sizeof()-3);
 	
 	localBeamDetectorID.fIndex=
@@ -194,7 +184,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	
 	if(localBeamDetectorID.fIndex==-1)
 	  {
-	    if(DetectorTypes[localBeamDetectorID.fTypeID]=="bpmstripline")
+	    if(fgDetectorTypeNames[localBeamDetectorID.fTypeID]=="bpmstripline")
 	      {
 		Bool_t unrotated(keyword=="unrotated");
 		
@@ -203,7 +193,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		fStripline[fStripline.size()-1].SetDefaultSampleSize(fSample_size);
 		localBeamDetectorID.fIndex=fStripline.size()-1;
 	      }
-	    if(DetectorTypes[localBeamDetectorID.fTypeID]=="bcm")
+	    if(fgDetectorTypeNames[localBeamDetectorID.fTypeID]=="bcm")
 	      {
 		QwBCM localbcm(localBeamDetectorID.fdetectorname);
 		fBCM.push_back(localbcm);
@@ -212,7 +202,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	      }
 	  }
 	
-	if(DetectorTypes[localBeamDetectorID.fTypeID]=="bpmstripline")
+	if(fgDetectorTypeNames[localBeamDetectorID.fTypeID]=="bpmstripline")
 	  {
 	    TString subname=namech(namech.Sizeof()-3,2);
 	    UInt_t localsubindex=
@@ -253,9 +243,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   
   }
 
-  
-  //  std::cout<<"QwBeamline::Done decoding device list! \n";
-  
+    
   if(ldebug)
     {
       std::cout<<"Done with Load map channel \n";
@@ -266,6 +254,28 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
   return 0;
 };
+
+QwBeamDetectorID::QwBeamDetectorID(Int_t subbankid, Int_t wordssofar,
+				   TString name, TString dettype, 
+				   TString modtype, QwBeamLine * obj):
+  fSubbankIndex(subbankid),fWordInSubbank(wordssofar),
+  fmoduletype(modtype),fdetectorname(name),kUnknownDeviceType(-1),fdetectortype(dettype)
+{
+  fTypeID = kUnknownDeviceType;
+  for(size_t i=0;i<obj->fgDetectorTypeNames.size();i++){
+    if(dettype == obj->fgDetectorTypeNames[i]){
+      fTypeID = EBeamInstrumentType(i);
+      break;
+    }
+  }
+//   if (fTypeID == kUnknownDeviceType) {
+//     std::cerr << "QwBeamDetectorID::QwBeamDetectorID:  Unknown detector type: "
+//   	      << dettype <<", the detector "<<name<<" will not be decoded "
+//   	      << std::endl;
+//   }
+};
+
+
 //*****************************************************************
 
 Int_t QwBeamLine::LoadEventCuts(TString  filename){
@@ -648,9 +658,9 @@ void QwBeamLine::ClearEventData()
 Int_t QwBeamLine::GetDetectorTypeID(TString name)
 {
   Int_t result=-1;
-  for(size_t i=0;i<DetectorTypes.size();i++)
-    if(name==DetectorTypes[i])
-      {result=i;i=DetectorTypes.size()+1;}
+  for(size_t i=0;i<fgDetectorTypeNames.size();i++)
+    if(name==fgDetectorTypeNames[i])
+      {result=i;i=fgDetectorTypeNames.size()+1;}
   return result;
 };
 
