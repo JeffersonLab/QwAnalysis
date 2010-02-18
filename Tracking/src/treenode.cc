@@ -29,6 +29,9 @@ int treenode::fDebug = 0;
  */
 treenode::treenode()
 {
+  // Set the size (TODO could become variable in constructor, or static)
+  fSize = TLAYERS;
+
   // Initialize pointers
   fNext = 0;
   for (int i = 0; i < 4; i++) fSon[i] = 0;

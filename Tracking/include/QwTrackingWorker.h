@@ -13,7 +13,6 @@
 
 // Qweak headers
 #include "QwTypes.h"
-#include "globals.h"
 
 // Forward declarations
 class QwSubsystemArrayTracking;

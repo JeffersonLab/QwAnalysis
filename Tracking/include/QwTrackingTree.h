@@ -38,7 +38,6 @@ using QwTracking::shortnode; using QwTracking::shorttree;
 // Qweak headers
 #include "QwTypes.h"
 #include "VQwTrackingElement.h"
-#include "globals.h"
 
 // Definitions
 #define HSHSIZ 511	///< Length of the hash table (as header define)
@@ -123,11 +122,15 @@ class QwTrackingTree: public VQwTrackingElement {
 
     int fDebug;		///< Debug level
 
+    // Number of rows in the bit pattern (VDC wires or HDC planes)
+    unsigned int fNumLayers;	///< Number of detector planes
+    unsigned int& fNumPlanes;	///< Number of planes in the region 2 HDCs
+    unsigned int& fNumWires;	///< Number of wires in a region 3 VDC group
+
     int fHashSize;	///< Length of the hash table (as member field)
 
     double fMaxSlope;	///< Maximum allowed slope for tracks in this detector
-    int fNPatterns;	///< Number of valid patterns in the tree
-    int fNLayers;	///< Number of detector planes
+    int fNumPatterns;	///< Number of valid patterns in the tree
 
     int xref;
     int maxref;
@@ -140,8 +143,9 @@ class QwTrackingTree: public VQwTrackingElement {
     treenode* fFather;
 
     /// Hash table: the list of all nodes in the tree, organized in linked
-    /// lists and sorted by hash value
-    treenode* fHashTable[HSHSIZ];
+    /// lists and sorted by hash value; an array of pointers to treenodes.
+    //treenode* fHashTable[HSHSIZ];
+    treenode** fHashTable;
 
     /// \brief Recursive method for pulling in the concise treesearch search database
     int _writetree (treenode *tn, FILE *fp, int32_t tlayers);

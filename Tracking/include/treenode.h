@@ -70,6 +70,8 @@ class treenode {
     int xref;
     int pattern_offset;
 
+    unsigned int fSize;
+
     /// Set the next node
     void SetNext(treenode* next) {
       if (next == this) {
@@ -81,6 +83,9 @@ class treenode {
     treenode* GetNext() const { return fNext; };
     /// Get the next node (non-standard notation)
     treenode* next() const { return fNext; };
+
+    /// Get size of the bit array
+    const unsigned int size() const { return fSize; };
 
     /// \brief Print some debugging information
     void Print(int indent = 0);

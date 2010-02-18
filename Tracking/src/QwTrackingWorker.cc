@@ -204,7 +204,7 @@ void QwTrackingWorker::DefineOptions()
                           po::value<int>()->default_value(4),
                           "number of search tree levels in region 3");
   gQwOptions.AddOptions()("QwTracking.R3.MaxMissedWires",
-                          po::value<int>()->default_value(3),
+                          po::value<int>()->default_value(4),
                           "maximum number of missed wires");
 }
 
