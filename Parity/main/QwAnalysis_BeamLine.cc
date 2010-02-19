@@ -53,8 +53,19 @@ Int_t main(Int_t argc, Char_t* argv[])
   if (getenv("DISPLAY")==NULL
       ||getenv("JOB_ID")!=NULL) kInQwBatchMode = kTRUE;
   gROOT->SetBatch(kTRUE);
-  
-  gQwHists.LoadHistParamsFromFile(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/parity_hists.in");
+
+  ///  Fill the search paths for the parameter files; this sets a static
+  ///  variable within the QwParameterFile class which will be used by
+  ///  all instances.
+  ///  The "scratch" directory should be first.
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
+
+  ///
+  ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
+  ///  histogram helper: QwHistogramHelper
+  ///  
+  gQwHists.LoadHistParamsFromFile("parity_hists.in");
   
   TStopwatch timer;
   
@@ -68,19 +79,19 @@ Int_t main(Int_t argc, Char_t* argv[])
   subsystem_tmp = 0;
 
   QwDetectors.push_back(new QwBeamLine("Injector BeamLine"));
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline.map");
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_pedestal.map");  
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadEventCuts(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline_eventcuts.in");//Pass the correct cuts file. 
+  QwDetectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
+  QwDetectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");  
+  QwDetectors.GetSubsystem("Injector BeamLine")->LoadEventCuts("qweak_beamline_eventcuts.in");//Pass the correct cuts file. 
   QwDetectors.push_back(new QwHelicity("Helicity info"));
-  QwDetectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_helicity.map");
+  QwDetectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
   QwDetectors.GetSubsystem("Helicity info")->LoadInputParameters("");	
   
   
  
      
   QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
-  QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline.map");//current map file is for the beamline.
-  QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_lumi_eventcuts.in");//Pass the correct cuts file. 
+  QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap("qweak_beamline.map");//current map file is for the beamline.
+  QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file. 
   
 
 

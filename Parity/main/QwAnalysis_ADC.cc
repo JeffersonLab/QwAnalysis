@@ -85,14 +85,14 @@ int main(Int_t argc,Char_t* argv[]) {
     QwSubsystemArrayParity detectors;
     detectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
     detectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
-    //detectors.GetSubsystem("Main detector")->             LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_pedestal.map");
+    //detectors.GetSubsystem("Main detector")->             LoadInputParameters("qweak_pedestal.map");
     ///
     ///Specifies the same helicity pattern used by all subsystems
     ///to calculate asymmetries. The pattern is defined in the
     ///QwHelicityPattern class.
     if (bHelicity) {
         detectors.push_back(new QwHelicity("Helicity info"));
-        detectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_helicity.map");
+        detectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
         detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
     }
     QwHelicityPattern helicitypattern(detectors,kMultiplet);
@@ -102,11 +102,11 @@ int main(Int_t argc,Char_t* argv[]) {
 
 //   QwMainCerenkovDetector sum_outer(""), sum_inner(""), diff(""), sum(""), asym("");
 
-//   sum_outer.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
-//   sum_inner.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
-//   sum.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
-//   diff.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
-//   asym.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
+//   sum_outer.LoadChannelMap("qweak_adc.map");
+//   sum_inner.LoadChannelMap("qweak_adc.map");
+//   sum.LoadChannelMap("qweak_adc.map");
+//   diff.LoadChannelMap("qweak_adc.map");
+//   asym.LoadChannelMap("qweak_adc.map");
 
     Double_t evnum=0.0;
 
@@ -300,6 +300,7 @@ int main(Int_t argc,Char_t* argv[]) {
         //     NTs->ClearNTs(io); //destroy nts according to the i/o flags
         //     CloseAllFiles(io); //close all the output files
         detectors.DeleteHistograms();
+	helicitypattern.DeleteHistograms();
 
 
         eventbuffer.CloseDataFile();
