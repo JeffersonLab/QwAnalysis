@@ -7,6 +7,8 @@
 // ROOT basic types
 #include <Rtypes.h>
 
+// Qweak headers
+#include "QwUnits.h"
 
 // Enumerator types for regions and directions
 static const Int_t kNumRegions = 7;

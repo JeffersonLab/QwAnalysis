@@ -23,15 +23,15 @@ void QwBCM::SetPedestal(Double_t pedestal)
 void QwBCM::SetCalibrationFactor(Double_t calib)
 {
 	fCalibration=calib;
-	fTriumf_ADC.SetCalibrationFactor(fCalibration); 
+	fTriumf_ADC.SetCalibrationFactor(fCalibration);
 	return;
 };
-/********************************************************/ 
+/********************************************************/
 void  QwBCM::InitializeChannel(TString name, TString datatosave)
 {
   SetPedestal(0.);
   SetCalibrationFactor(1.);
-  fTriumf_ADC.InitializeChannel(name,datatosave);  
+  fTriumf_ADC.InitializeChannel(name,datatosave);
   SetElementName(name);
   //set default limits to event cuts
   fLLimit=0;//init two timits
@@ -46,6 +46,18 @@ void QwBCM::ClearEventData()
 };
 
 
+/********************************************************/
+void QwBCM::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
+{
+  fTriumf_ADC.SetRandomEventDriftParameters(amplitude, phase, frequency);
+  return;
+};
+/********************************************************/
+void QwBCM::AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
+{
+  fTriumf_ADC.AddRandomEventDriftParameters(amplitude, phase, frequency);
+  return;
+};
 /********************************************************/
 void QwBCM::SetRandomEventParameters(Double_t mean, Double_t sigma)
 {
@@ -77,26 +89,32 @@ void QwBCM::SetEventData(Double_t* block, UInt_t sequencenumber)
   return;
 };
 /********************************************************/
+void QwBCM::SetEventNumber(int event)
+{
+  fTriumf_ADC.SetEventNumber(event);
+  return;
+};
+/********************************************************/
 void QwBCM::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   fTriumf_ADC.EncodeEventData(buffer);
 };
 /********************************************************/
 void  QwBCM::ProcessEvent()
-{  
+{
   fTriumf_ADC.ProcessEvent();
   return;
 };
 /********************************************************/
 Bool_t QwBCM::ApplyHWChecks()
 {
-  Bool_t fEventIsGood=kTRUE;	
+  Bool_t fEventIsGood=kTRUE;
 
   fDeviceErrorCode=fTriumf_ADC.ApplyHWChecks();//will check for HW consistancy and return the error code (=0 is HW good)
   fEventIsGood=(fDeviceErrorCode & 0x0);//if no HW error return true
- 
-  
-  return fEventIsGood;  
+
+
+  return fEventIsGood;
 };
 /********************************************************/
 
@@ -109,16 +127,16 @@ Int_t QwBCM::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){//std::vector<Doub
 void QwBCM::SetDefaultSampleSize(Int_t sample_size){
   fTriumf_ADC.SetDefaultSampleSize((size_t)sample_size);
 }
-  
+
 
 /********************************************************/
 Bool_t QwBCM::ApplySingleEventCuts(){
   //std::cout<<" QwBCM::SingleEventCuts() "<<std::endl;
-  Bool_t status=kTRUE;   
+  Bool_t status=kTRUE;
   ApplyHWChecks();//first apply HW checks and update HW  error flags.
-  
-   
-  if (fTriumf_ADC.ApplySingleEventCuts(fLLimit,fULimit)){    
+
+
+  if (fTriumf_ADC.ApplySingleEventCuts(fLLimit,fULimit)){
     status=kTRUE;
   }
   else{
@@ -127,7 +145,7 @@ Bool_t QwBCM::ApplySingleEventCuts(){
     status&=kFALSE;
   }
   fDeviceErrorCode|=fTriumf_ADC.GetEventcutErrorFlag();//retrun the error flag for event cuts
-   
+
 
   return status;
 

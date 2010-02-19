@@ -23,10 +23,10 @@ void QwIntegrationPMT::SetPedestal(Double_t pedestal)
 void QwIntegrationPMT::SetCalibrationFactor(Double_t calib)
 {
 	fCalibration=calib;
-	fTriumf_ADC.SetCalibrationFactor(fCalibration); 
+	fTriumf_ADC.SetCalibrationFactor(fCalibration);
 	return;
 };
-/********************************************************/ 
+/********************************************************/
 void  QwIntegrationPMT::InitializeChannel(TString name, TString datatosave)
 {
   SetPedestal(0.);
@@ -46,9 +46,15 @@ void QwIntegrationPMT::ReportErrorCounters(){
   fTriumf_ADC.ReportErrorCounters();
 };
 /********************************************************/
-void QwIntegrationPMT::SetRandomEventDriftParameters(Double_t Amplitude, Double_t Phase, Double_t Frequency)
+void QwIntegrationPMT::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
 {
-  fTriumf_ADC.SetRandomEventDriftParameters(Amplitude, Phase, Frequency);
+  fTriumf_ADC.SetRandomEventDriftParameters(amplitude, phase, frequency);
+  return;
+};
+/********************************************************/
+void QwIntegrationPMT::AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
+{
+  fTriumf_ADC.AddRandomEventDriftParameters(amplitude, phase, frequency);
   return;
 };
 /********************************************************/
@@ -106,22 +112,22 @@ void QwIntegrationPMT::EncodeEventData(std::vector<UInt_t> &buffer)
 /********************************************************/
 void  QwIntegrationPMT::ProcessEvent()
 {
-  
+
   fTriumf_ADC.ProcessEvent();
-  
- 
+
+
   return;
 };
 /********************************************************/
 Bool_t QwIntegrationPMT::ApplyHWChecks()
 {
-  Bool_t fEventIsGood=kTRUE;	
+  Bool_t fEventIsGood=kTRUE;
 
     fDeviceErrorCode=fTriumf_ADC.ApplyHWChecks();//will check for consistancy between HWSUM and SWSUM also check for sample size
-    fEventIsGood=(fDeviceErrorCode & 0x0);//if no HW error return true 
- 
-  
-  return fEventIsGood;  
+    fEventIsGood=(fDeviceErrorCode & 0x0);//if no HW error return true
+
+
+  return fEventIsGood;
 };
 /********************************************************/
 
@@ -130,29 +136,29 @@ Int_t QwIntegrationPMT::SetSingleEventCuts(std::vector<Double_t> & dEventCuts){/
   fULimit=dEventCuts.at(1);
   fDevice_flag=(Int_t)dEventCuts.at(2);
   //std::cout<<GetElementName()<<" IntegrationPMT fDevice_flag "<<fDevice_flag<<std::endl;
-  
+
   return 1;
 };
 
 
-///* will not compile with Buddhini's code 12nov09 
+///* will not compile with Buddhini's code 12nov09
 void QwIntegrationPMT::SetDefaultSampleSize(Int_t sample_size){
  fTriumf_ADC.SetDefaultSampleSize((size_t)sample_size);
 }
-//*/  
+//*/
 
 /********************************************************/
-Bool_t QwIntegrationPMT::ApplySingleEventCuts(){ 
+Bool_t QwIntegrationPMT::ApplySingleEventCuts(){
 
-  
+
 //std::cout<<" QwBCM::SingleEventCuts() "<<std::endl;
-  Bool_t status=kTRUE;   
+  Bool_t status=kTRUE;
   ApplyHWChecks();//first apply HW checks and update HW  error flags.
-  
-  if (fDevice_flag==1){// if fDevice_flag==1 then perform the event cut limit test	  
-    
+
+  if (fDevice_flag==1){// if fDevice_flag==1 then perform the event cut limit test
+
     //if (fTriumf_ADC.GetHardwareSum()<=fULimit && fTriumf_ADC.GetHardwareSum()>=fLLimit){ // Check event cuts + HW check status
-    if (fTriumf_ADC.ApplySingleEventCuts(fLLimit,fULimit)){    
+    if (fTriumf_ADC.ApplySingleEventCuts(fLLimit,fULimit)){
       status=kTRUE;
       //std::cout<<" BCM Sample size "<<fTriumf_ADC.GetNumberOfSamples()<<std::endl;
     }
@@ -162,7 +168,7 @@ Bool_t QwIntegrationPMT::ApplySingleEventCuts(){
       status&=kFALSE;//kTRUE;//kFALSE;
     }
   }else
-    status =kTRUE;     
+    status =kTRUE;
 
 
   return status;

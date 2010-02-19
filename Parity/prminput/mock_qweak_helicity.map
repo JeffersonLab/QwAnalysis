@@ -1,3 +1,6 @@
+HelicityDecodingMode=UserbitMode
+PatternPhase=4
+
 ROC=31
 Bank=0x3101
 
