@@ -23,7 +23,11 @@ class QwHelicityPattern{
    ******************************************************************/
  public:
   QwHelicityPattern(QwSubsystemArrayParity &event, Int_t pattern_size);
-  ~QwHelicityPattern(){};
+  ~QwHelicityPattern() {
+    std::cerr << "Starting ~QwHelicityPattern()" << std::endl;
+    std::cerr << "fEvents.size()=="<<fEvents.size()
+	      << std::endl;
+  };
 
   void  LoadEventData(QwSubsystemArrayParity &event);
   Bool_t IsCompletePattern();

@@ -20,6 +20,7 @@
 
 // Forward declarations
 class QwSubsystemArray;
+class VQwDataElement;
 
 /**
  *  \class   VQwSubsystem
@@ -66,6 +67,17 @@ class VQwSubsystem {
   QwSubsystemArray* GetParent(const unsigned int parent = 0) const;
   /// \brief Get the sibling with specified name
   VQwSubsystem* GetSibling(const TString& name) const;
+
+  /// \brief Request a named value which is owned by an external subsystem;
+  ///        the request will be handled by the parent subsystem array
+  Bool_t RequestExternalValue(TString name,  VQwDataElement* value);
+
+  /// \brief Return a named value to the parent subsystem array to be
+  ///        delivered to a different subsystem.
+  virtual  Bool_t ReturnInternalValue(TString name, 
+				      VQwDataElement* value) const {
+    return kFALSE;
+  };
 
   virtual Int_t LoadChannelMap(TString mapfile) = 0;
   virtual Int_t LoadInputParameters(TString mapfile) = 0;

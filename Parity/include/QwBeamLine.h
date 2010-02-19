@@ -67,6 +67,8 @@ class QwBeamLine : public VQwSubsystemParity{
   void  ProcessEvent();
   
 
+  Bool_t ReturnInternalValue(TString name, VQwDataElement* value) const;
+
   void RandomizeEventData(int helicity = 0);
   void EncodeEventData(std::vector<UInt_t> &buffer);
 
@@ -96,6 +98,8 @@ class QwBeamLine : public VQwSubsystemParity{
 
   QwBPMStripline* GetBPMStripline(const TString name);
   QwBCM* GetBCM(const TString name);
+  const QwBPMStripline* GetBPMStripline(const TString name) const;
+  const QwBCM* GetBCM(const TString name) const;
   
   std::vector<TString> fgDetectorTypeNames; 
 

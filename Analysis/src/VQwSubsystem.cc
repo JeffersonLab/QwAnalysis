@@ -89,6 +89,22 @@ VQwSubsystem* VQwSubsystem::GetSibling(const TString& name) const
     return 0; // GetParent() prints error already
 };
 
+/**
+ * Get the value corresponding to some variable name from a different
+ * subsystem.
+ * @param name  Name of the desired variable
+ * @param value Pointer to the value to be filled by the call
+ * @return Status of the request:  TRUE indicates the variable was found
+ */
+Bool_t VQwSubsystem::RequestExternalValue(TString name,
+					  VQwDataElement* value)
+{
+  QwSubsystemArray* parent = GetParent();
+  if (parent!=0){
+    return parent->RequestExternalValue(name, value);
+  }
+  return kFALSE;
+};
 
 void VQwSubsystem::ClearAllBankRegistrations()
 {

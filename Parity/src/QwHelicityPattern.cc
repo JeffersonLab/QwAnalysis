@@ -45,7 +45,7 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event, Int_t patter
       else
 	{
 	  TString loc=
-	    "Standard exception from QwHelicityPattern : the pattern size has to be even;  rigth now pattern_size=";
+	    "Standard exception from QwHelicityPattern : the pattern size has to be even;  right now pattern_size=";
 	  loc+=Form("%d",pattern_size);
 	  throw std::invalid_argument(loc.Data());
 	}

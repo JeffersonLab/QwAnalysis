@@ -9,6 +9,10 @@
 
 #include <sstream>
 
+#include "QwSubsystemArray.h"
+#include "QwLog.h"
+
+
 Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 {
   Bool_t ldebug=kFALSE;
@@ -595,6 +599,22 @@ void  QwMainCerenkovDetector::ProcessEvent()
 
   return;
 };
+
+void  QwMainCerenkovDetector::ExchangeProcessedData()
+{
+  if (RequestExternalValue(fTargetCharge.GetElementName(), &fTargetCharge)){
+    //    fTargetCharge.Print();
+  } else {
+    QwError << "QwMainCerenkovDetector could not get "
+	    << "external value for q_targ" << QwLog::endl;
+  }
+};
+
+void  QwMainCerenkovDetector::ProcessEvent_2()
+{
+};
+
+
 
 
 void  QwMainCerenkovDetector::ConstructHistograms(TDirectory *folder, TString &prefix)

@@ -9,6 +9,7 @@
 #define __QWSUBSYSTEMARRAY__
 
 #include <vector>
+#include <map>
 #include <Rtypes.h>
 #include <TString.h>
 #include <TDirectory.h>
@@ -58,6 +59,29 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
 
   void  ProcessEvent();
 
+  Bool_t RequestExternalValue(TString name, VQwDataElement* value) const {
+    //  If this has a parent, we should escalate the call to that object,
+    //  but so far we don't have that capability.
+    return ReturnInternalValue(name, value);
+  };
+
+  Bool_t ReturnInternalValue(TString name, VQwDataElement* value) const {
+    Bool_t foundit = kFALSE;
+    //  First try to find the value in the list of published values.
+    //  So far this list is not filled though.
+    std::map<TString, VQwSubsystem*>::const_iterator iter = fPublishedValues.find(name);
+    if( iter != fPublishedValues.end() ) {
+      foundit = (iter->second)->ReturnInternalValue(name, value);
+    } 
+    //  If the value is not yet published, try asking the subsystems for it.
+    for (const_iterator subsys = begin(); (!foundit)&&(subsys != end()); ++subsys){
+      foundit = (*subsys)->ReturnInternalValue(name, value);
+    }
+    return foundit;
+  };
+  
+
+
   /// \name Histogram construction and maintenance
   // @{
   /// Construct the histograms for this subsystem
@@ -105,6 +129,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
 
  protected:
 
+  std::map<TString, VQwSubsystem*>  fPublishedValues;
 
 
 };
