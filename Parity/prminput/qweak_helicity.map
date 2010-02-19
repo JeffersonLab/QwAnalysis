@@ -7,6 +7,7 @@
 
 !Injector data during happex data taking: run 12331, 12354, 12356
 !HelicityDecodingMode=InputRegisterMode
+!PatternPhase=4
 !ROC=23
 !
 ! Header=0xfdacf000
@@ -14,6 +15,15 @@
 !SKIP 148
 !WORD, 0,  0, helicitydata,  ha_cleandata
 !WORD, 0,  0, helicitydata,  ha_scandata1
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!INPUT REGISTER MODE
+
+!HelicityDecodingMode=InputRegisterMode
+!PatternPhase=4
 !ROC=31
 !Bank=0x3103
 !
@@ -33,7 +43,9 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-HelicityDecodingMode=UserbitMode 
+!USER BIT MODE
+
+HelicityDecodingMode= UserbitMode    
 PatternPhase=4
 ROC=31
 Bank=0x3101

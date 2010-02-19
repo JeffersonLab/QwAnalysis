@@ -283,6 +283,7 @@ void QwHelicity::ProcessEventUserbitMode()
 //*****************************************************************
 void QwHelicity::ProcessEventInputRegisterMode()
 {
+  /*
   static Bool_t firstpattern = kTRUE;
   
   UInt_t thisinputregister=fWord[kinputregister].fValue;  
@@ -321,7 +322,64 @@ void QwHelicity::ProcessEventInputRegisterMode()
     fHelicityBitPlus=kFALSE;
     fHelicityBitMinus=kTRUE;
   }
-  
+  */
+
+
+  //--------------------------------------------------------------
+  static Bool_t firstpattern = kTRUE;
+   
+   UInt_t thisinputregister=fWord[kinputregister].fValue;  
+   
+   fEventNumber=fWord[kmpscounter].fValue;  
+   if (firstpattern && (thisinputregister & 0x4) == 0x4){
+     firstpattern   = kFALSE;
+   }
+ 
+   if (firstpattern){
+     fPatternNumber      = 0;
+     fPatternPhaseNumber = 0;
+   } else {
+     fPatternPhaseNumber=fWord[kpatternphase].fValue+1; // remember we expect the  firt phase to be 1 and not 0
+     fPatternNumber=fWord[kpatterncounter].fValue;
+   }
+   /*
+   // folowing, a bunch of self consistancy checks   
+   if(fEventNumber!=fEventNumberOld+1)
+   std::cerr<<"QwHelicity::ProcessEvent read event# is not old_event#+1 \n";
+   */
+   if ((thisinputregister & 0x4) == 0x4) //  Quartet bit is set.
+     {
+       //std::cerr<<"QwHelicity::ProcessEvent:  The Multiplet Sync bit is set, but the Pattern Phase (" << fPatternPhaseNumber << ") is not 1!" << std::endl;
+       fPatternPhaseNumber    = 1;  // Reset the QRT phase
+       fPatternNumber = fPatternNumberOld+1;     // Increment the QRT  counter
+     }
+   else
+     {
+       fPatternPhaseNumber=fPatternPhaseNumberOld+1; // Increment the QRT phase
+     } 
+ 
+ 
+   if(fEventNumber!=fEventNumberOld+1)
+     std::cerr<<"QwHelicity::ProcessEvent read event# is not  old_event#+1 \n";
+   
+   if ((thisinputregister & 0x4) == 0x4 && fPatternPhaseNumber != 1){
+     //  Quartet bit is set.
+     std::cerr<<"QwHelicity::ProcessEvent:  The Multiplet Sync bit is  set, but  the Pattern Phase (" << fPatternPhaseNumber << ") is not 1!" << std::endl;
+   }	
+   // end of consistancy checks
+   
+   fHelicityReported=0;
+   
+   if ((thisinputregister & 0x1) == 0x1){ //  Helicity bit is set.
+     fHelicityReported    |= 1; // Set the InputReg HEL+ bit.
+     fHelicityBitPlus=kTRUE;
+     fHelicityBitMinus=kFALSE;
+   } else {
+     fHelicityReported    |= 0; // Set the InputReg HEL- bit.
+     fHelicityBitPlus=kFALSE;
+     fHelicityBitMinus=kTRUE;
+   }
+
   return;
 }
 //*****************************************************************
