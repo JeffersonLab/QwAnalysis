@@ -11,6 +11,9 @@
 // System headers
 #include <fstream>
 
+// Qweak headers
+#include "QwColor.h"
+
 // Create the static logger object (with streams to screen and file)
 QwLog gQwLog;
 
@@ -88,8 +91,9 @@ QwLog& QwLog::operator()(QwLogLevel level)
   if (fScreen && fLogLevel <= fScreenThreshold) {
     if (QwLogScreenAtNewLine) {
       switch (level) {
-      case kError:   *(fScreen) << "Error: "; break;
-      case kWarning: *(fScreen) << "Warning: "; break;
+      case kError:   *(fScreen) << QwColor(Qw::kBoldRed) << "Error: "; break;
+      case kWarning: *(fScreen) << QwColor(Qw::kRed) << "Warning: "
+                                << QwColor(Qw::kWhite); break;
       default: break;
       }
       QwLogScreenAtNewLine = kFALSE;
@@ -160,7 +164,7 @@ QwLog& QwLog::operator<<(std::ostream& (*manip) (std::ostream&))
 std::ostream& QwLog::endl(std::ostream& strm)
 {
   if (gQwLog.fScreen && gQwLog.fLogLevel <= gQwLog.fScreenThreshold) {
-    *(gQwLog.fScreen) << std::endl;
+    *(gQwLog.fScreen) << QwColor(Qw::kWhite) << std::endl;
     QwLogScreenAtNewLine = kTRUE;
   }
   if (gQwLog.fFile && gQwLog.fLogLevel <= gQwLog.fFileThreshold) {
