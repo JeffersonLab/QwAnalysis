@@ -19,7 +19,6 @@
 
 // Qweak headers
 #include "VQwTrackingElement.h"
-#include "globals.h"
 #include "QwTrackingTreeLine.h"
 #include "QwBridge.h"
 

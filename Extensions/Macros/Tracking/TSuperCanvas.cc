@@ -6,105 +6,90 @@
  \author	Juergen Diefenbach <defi@kph.uni-mainz.de>
  \author	Jeong Han Lee      <jhlee@jlab.org>
 
- \date		2010-01-12 17:25:57
+ \date		2010-01-25 14:45:50
 
  \brief        Implementation of ROOT "super" canvas.
 
 
 *//*-------------------------------------------------------------------------*/
 
-// They're meant to supplement some "missing" methods, which are very useful 
-// in everyday live, but anyhow for some reasons not implemented in original ROOT.
-//
 
-// This TSuperCanvas was degined for the PVA4 experiment at MAMI, Germany. 
-// The second author (Lee) obtained permission from the PVA4 collaboration
-// in order to use and modify this code for the Qweak experiment at JLab. 
-//
-
-// TO DO...
-// * must test this class into "a stand-alone GUI program" with valgrind
-
-
-// Select a pad with middle mouse button (wheel)
-//
-// *) "g" : grid on/off
-// *) "m" : zoom on/off
-// *) "l" : y log scale on/off
-
-// *) "f" : FFT on with a selection of TH1 histogram
-//    "ctrl+f" : close fft canvas
-
-// *) measure a distance between two points (A, B)  on a selected pad,
-//    Shift + mouse 1 (left) down (click) on A and + click on B
-//    The distance will be dumped on "xterminal" as the following example:
-//    dist. meas.: dX = 1.20e+01 dY = -6.90e+00 dist = 1.39e+01
-
-
-// *) "x", "y" : projection X, Y of TH2 histogram
-//    "ctrl+x", "ctrl+y" : close projection canvas.
-
-// *) more ....
-
-
-// History:
-// 0.0.0     2009/12/27   started
-// 0.0.1     2010/01/12   rewrite FFT for TH1 and introduce Projection X,
-//                        Y for TH2 
-
+// See detailed history in its header file
 
 #include "TSuperCanvas.h"
 #include <math.h>
-
+#include <cstdlib>
 
 ClassImp(TSuperCanvas);
 
-TSuperCanvas::TSuperCanvas(const Char_t* name, const Char_t* title, Int_t ww, Int_t wh, Float_t menumargin)
-  : TCanvas(name, title, ww, wh), menu_margin(menumargin) 
+// TSuperCanvas::TSuperCanvas(const Char_t* name, const Char_t* title, Int_t ww, Int_t wh, Float_t menumargin)
+//   : TCanvas(name, title, ww, wh), menu_margin(menumargin) 
+// { 
+//   Initialize(); 
+// };
+
+// TSuperCanvas::TSuperCanvas(const Char_t* name, const Char_t* title, 
+// 			   Int_t wtopx, Int_t wtopy, Int_t ww, Int_t wh, Float_t menumargin)
+//   : TCanvas(name, title, wtopx, wtopy, ww, wh), menu_margin(menumargin) 
+// { 
+//   Initialize(); 
+// };
+
+TSuperCanvas::TSuperCanvas(const Char_t* name, const Char_t* title, Int_t ww, Int_t wh)
+  : TCanvas(name, title, ww, wh)
 { 
   Initialize(); 
 };
 
 TSuperCanvas::TSuperCanvas(const Char_t* name, const Char_t* title, 
-			   Int_t wtopx, Int_t wtopy, Int_t ww, Int_t wh, Float_t menumargin)
-  : TCanvas(name, title, wtopx, wtopy, ww, wh), menu_margin(menumargin) 
+			   Int_t wtopx, Int_t wtopy, Int_t ww, Int_t wh)
+  : TCanvas(name, title, wtopx, wtopy, ww, wh)
 { 
   Initialize(); 
 };
 
+
+
+TSuperCanvas::TSuperCanvas(const char* name, Int_t ww, Int_t  wh, Int_t  winid)
+  : TCanvas(name, ww, wh, winid)
+{ 
+  Initialize(); 
+};
+
+
+
 TSuperCanvas::~TSuperCanvas()
 {
- for (Short_t p=0; p<10; p++)
-   {
-     if(peakline[p])
-       {
-	 delete peakline[p];
-	 peakline[p] = NULL;
-       }
-   }
+//   for (Short_t p=0; p<10; p++)
+//     {
+//       if(peakline[p])
+// 	{
+// 	  delete peakline[p];
+// 	  peakline[p] = NULL;
+// 	}
+//     }
  
- if (MaximizedPad) delete MaximizedPad; MaximizedPad = NULL;
- if (closebutton)  delete closebutton;  closebutton  = NULL;
- if (crossbutton)  delete crossbutton;  crossbutton  = NULL;
- if (eventbutton)  delete eventbutton;  eventbutton  = NULL;
- if (toolbutton)   delete toolbutton;   toolbutton   = NULL;
- if (logxbutton)   delete logxbutton;   logxbutton   = NULL;
- if (logybutton)   delete logybutton;   logybutton   = NULL;
+//  if (closebutton)  delete closebutton;  closebutton  = NULL;
+//  if (crossbutton)  delete crossbutton;  crossbutton  = NULL;
+//  if (eventbutton)  delete eventbutton;  eventbutton  = NULL;
+//  if (toolbutton)   delete toolbutton;   toolbutton   = NULL;
+//  if (logxbutton)   delete logxbutton;   logxbutton   = NULL;
+//  if (logybutton)   delete logybutton;   logybutton   = NULL;
 
 };
 
 void 
 TSuperCanvas::Initialize()
 {
-  closebutton = NULL;
-  crossbutton = NULL;
-  eventbutton = NULL;
-  toolbutton  = NULL;
-  logxbutton  = NULL;
-  logybutton  = NULL;
+//   closebutton = NULL;
+//   crossbutton = NULL;
+//   eventbutton = NULL;
+//   toolbutton  = NULL;
+//   logxbutton  = NULL;
+//   logybutton  = NULL;
   
-  SamplingRate = 1.0;
-  ScrollRate   = 0.03;
+  //  SamplingRate = 1.0;
+  //  ScrollRate   = 0.03;
 
   meas_status  = 0;
   meas_x1      = 0.0;
@@ -112,16 +97,18 @@ TSuperCanvas::Initialize()
   meas_y1      = 0.0;
   meas_y2      = 0.0;
 
+  menu_margin  = 0.0;
+
   MaxmizedPad_xlow = 0.0;
   MaxmizedPad_ylow = 0.0;
   MaxmizedPad_xup  = 0.0;
   MaxmizedPad_yup  = 0.0;
 
-  for (Short_t p=0; p<10; p++)
-    {
-      peakpos[p]  = 0.0;
-      peakline[p] = NULL;
-    };
+//   for (Short_t p=0; p<10; p++)
+//     {
+//       peakpos[p]  = 0.0;
+//       peakline[p] = NULL;
+//     };
 
   MaximizedPad = NULL;
 
@@ -256,28 +243,33 @@ TSuperCanvas::Divide(Int_t nx, Int_t ny, Float_t xmargin, Float_t ymargin,
 void 
 TSuperCanvas::MakeMenu(TSuperCanvas **me, Float_t menumargin)
 {
-  Float_t x      = 0.0;
-  Float_t dx     = 0.2;
-  Float_t margin = menu_margin;
-  if (menumargin>0.0)
-    margin = menumargin;
-  if (me)
-    closebutton = new TButton("close", Form("((TCanvas*)%p)->Close(); (*((TCanvas**)%p))=NULL;", *me, me), x, 0.0, x+dx/1.5, margin);
-  else
-    closebutton = new TButton("close", Form("((TCanvas*)%p)->Close();", this), x, 0.0, x+dx/1.5, margin);
-  
-  closebutton->Draw(); x+=dx/1.5;
-  crossbutton = new TButton("crosshair", Form("((TCanvas*)%p)->SetCrosshair(!(((TCanvas*)%p)->HasCrosshair()));", this, this), x, 0.0, x+dx, margin);
-  crossbutton->Draw(); x+=dx;
-  eventbutton = new TButton("event status", Form("((TCanvas*)%p)->ToggleEventStatus();", this), x, 0.0, x+dx, margin);
-  eventbutton->Draw(); x+=dx;
-  toolbutton  = new TButton("toolbar", Form("((TCanvas*)%p)->ToggleToolBar();", this), x, 0.0, x+dx, margin);
-  toolbutton->Draw(); x+=dx;
+//   Float_t x      = 0.0;
+//   Float_t dx     = 0.2;
+//   Float_t margin = 0.0;
+//   margin = menu_margin;
 
-  logxbutton  = new TButton("lg x", "int val=gPad->GetLogx(); gPad->SetLogx(!val);", x, 0.0, x+dx/2.25, margin);
-  logxbutton->Draw(); x+=dx/2.25;
-  logybutton  = new TButton("lg y", "int val=gPad->GetLogy(); gPad->SetLogy(!val);", x, 0.0, x+dx/2.25, margin);
-  logybutton->Draw(); x+=dx/2.25;
+//   if (menumargin>0.0) margin = menumargin;
+//   if (me)
+//     {
+//       closebutton = new TButton("close", Form("((TCanvas*)%p)->Close(); (*((TCanvas**)%p))=NULL;", *me, me), x, 0.0, x+dx/1.5, margin);
+//     }
+//   else
+//     {
+//       closebutton = new TButton("close", Form("((TCanvas*)%p)->Close();", this), x, 0.0, x+dx/1.5, margin);
+//     }
+  
+//   closebutton->Draw(); x+=dx/1.5;
+//   crossbutton = new TButton("crosshair", Form("((TCanvas*)%p)->SetCrosshair(!(((TCanvas*)%p)->HasCrosshair()));", this, this), x, 0.0, x+dx, margin);
+//   crossbutton->Draw(); x+=dx;
+//   eventbutton = new TButton("event status", Form("((TCanvas*)%p)->ToggleEventStatus();", this), x, 0.0, x+dx, margin);
+//   eventbutton->Draw(); x+=dx;
+//   toolbutton  = new TButton("toolbar", Form("((TCanvas*)%p)->ToggleToolBar();", this), x, 0.0, x+dx, margin);
+//   toolbutton->Draw(); x+=dx;
+  
+//   logxbutton  = new TButton("lg x", "int val=gPad->GetLogx(); gPad->SetLogx(!val);", x, 0.0, x+dx/2.25, margin);
+//   logxbutton->Draw(); x+=dx/2.25;
+//   logybutton  = new TButton("lg y", "int val=gPad->GetLogy(); gPad->SetLogy(!val);", x, 0.0, x+dx/2.25, margin);
+//   logybutton->Draw(); x+=dx/2.25;
 
   return;
 };
@@ -285,6 +277,7 @@ TSuperCanvas::MakeMenu(TSuperCanvas **me, Float_t menumargin)
 
 void 
 TSuperCanvas::HandleInput(EEventType event, Int_t px, Int_t py)
+//  :TCanvas::HandleInput(event, px, py)
 {
   //printf("event=%d @( %d ; %d )\n", event, px, py);
   //-----------------------------------------------------------------//
@@ -295,87 +288,83 @@ TSuperCanvas::HandleInput(EEventType event, Int_t px, Int_t py)
     };
   //-----------------------------------------------------------------//
   if (event==kKeyPress)
-    if ((py==4114)||(py==4116))
-      {
-	TObject *selected = gPad->GetSelected();
-	TAxis   *axis     = NULL;
-	
-	if (strstr(selected->IsA()->GetName(), "TH1"))
-	  axis = ((TH1*)selected)->GetXaxis();
-	//if (strstr(selected->IsA()->GetName(), "TH2"))
-	//axis = ((TH2*)selected)->GetXaxis();
-	if (strstr(selected->IsA()->GetName(), "TGraph"))
-	  axis = ((TGraph*)selected)->GetXaxis();
-	
-	if (axis==NULL)
-	  return;
-	
-	Int_t    first = axis->GetFirst();
-	Int_t    last  = axis->GetLast();
-	Int_t    dist  = Int_t( Double_t (last-first)*ScrollRate);
-
-	if (py==4114) dist *= -1;
-	
-	Double_t low   = axis->GetBinLowEdge(first+dist);
-	Double_t up    = axis->GetBinUpEdge(last+dist);
-	
-	axis->SetRangeUser(low, up);
-	
-	if (strstr(selected->IsA()->GetName(), "TH1"))
-	  ((TH1*)selected)->Draw();
-	//if (strstr(selected->IsA()->GetName(), "TH2"))
-	//  ((TH2*)selected)->Draw();
-	if (strstr(selected->IsA()->GetName(), "TGraph"))
-	  ((TGraph*)selected)->Draw();
-	
-	Update();
-      };
-  //-----------------------------------------------------------------//
-  if (event==kKeyPress)
     {
+      if ((py==4114)||(py==4116))
+	{
+	  TObject *selected = gPad->GetSelected();
+	  TAxis   *axis     = NULL;
+	
+	  if (strstr(selected->IsA()->GetName(), "TH1"))
+	    axis = ((TH1*)selected)->GetXaxis();
+	  //if (strstr(selected->IsA()->GetName(), "TH2"))
+	  //axis = ((TH2*)selected)->GetXaxis();
+	  if (strstr(selected->IsA()->GetName(), "TGraph"))
+	    axis = ((TGraph*)selected)->GetXaxis();
+	  
+	  if (axis==NULL)  return;
+	  
+
+	  scroll_rate = 0.03;
+
+	  Int_t    first = axis->GetFirst();
+	  Int_t    last  = axis->GetLast();
+	  Int_t    dist  = Int_t( Double_t (last-first)*scroll_rate);
+	  
+	  if (py==4114) dist *= -1;
+	  
+	  Double_t low   = axis->GetBinLowEdge(first+dist);
+	  Double_t up    = axis->GetBinUpEdge(last+dist);
+	  
+	  axis->SetRangeUser(low, up);
+	  
+	  if (strstr(selected->IsA()->GetName(), "TH1"))    ((TH1*)selected)->Draw();
+	  // if (strstr(selected->IsA()->GetName(), "TH2"))   ((TH2*)selected)->Draw();
+	  if (strstr(selected->IsA()->GetName(), "TGraph")) ((TGraph*)selected)->Draw();
+	  Update();
+	};
+      //-----------------------------------------------------------------//
       // 'px' contains the ASCII-code of the pressed key:
       if (py=='f') // show FFT of selected histogram
 	{
 	  DiscreteFourierTransform(px, py);
 	};
       //-----------------------------------------------------------------//
-      if ( (px>='0') && (px<='9') )      //     SAVE PEAK POSIITONS      //
-	{
-	  if (meas_status==1) // user has selected coordinated by shift-click on pad?
-	    {
-	      Int_t p = px-'0';
-	      peakpos[p]  = meas_x1;
-	      peakline[p] = new TLine(peakpos[p], 0., peakpos[p], meas_y1);
-	      if ( p==0 )
-		{ 
-		  printf("\r pedestal position saved...\n");
-		  peakline[p]->SetLineColor(kBlue);
-		}
-	      else
-		{
-		  printf("\r peak position %d saved...\n", p);
-		  peakline[p]->SetLineColor(kRed);
-		};
-	      peakline[p]->Draw();
-	      meas_status=0; // reset measurement status
-	      Update();
-	    };
-	  return;
-	};
+  //     if ( (px>='0') && (px<='9') )      //     SAVE PEAK POSIITONS      //
+// 	{
+// 	  if (meas_status==1) // user has selected coordinated by shift-click on pad?
+// 	    {
+// 	      Int_t p = px-'0';
+// 	      peakpos[p]  = meas_x1;
+// 	      peakline[p] = new TLine(peakpos[p], 0., peakpos[p], meas_y1);
+// 	      if ( p==0 )
+// 		{ 
+// 		  printf("\r pedestal position saved...\n");
+// 		  peakline[p]->SetLineColor(kBlue);
+// 		}
+// 	      else
+// 		{
+// 		  printf("\r peak position %d saved...\n", p);
+// 		  peakline[p]->SetLineColor(kRed);
+// 		};
+// 	      peakline[p]->Draw();
+// 	      meas_status=0; // reset measurement status
+// 	      Update();
+// 	    };
+// 	};
       //-----------------------------------------------------------------//
-      if (px=='c')                        //      DELETE PEAKS           //
-	{
-	  for (Int_t p=0; p<10; p++)
-	    {
-	      if (peakline[p]) 
-		{
-		  delete peakline[p];
-		  peakpos[p]=0.0;
-		}
-	      printf("peak positions have been deleted...\n");
-	    };
-	  this->Update();
-	};
+//       if (px=='c')                        //      DELETE PEAKS           //
+// 	{
+// 	  for (Int_t p=0; p<10; p++)
+// 	    {
+// 	      if (peakline[p]) 
+// 		{
+// 		  delete peakline[p];
+// 		  peakpos[p]=0.0;
+// 		}
+// 	      printf("peak positions have been deleted...\n");
+// 	    };
+// 	  Update();
+// 	};
       //-----------------------------------------------------------------//
       if (px=='l')                        //          LOG Y              //
 	{
@@ -390,20 +379,23 @@ TSuperCanvas::HandleInput(EEventType event, Int_t px, Int_t py)
 	  Update();
 	};
       //-----------------------------------------------------------------//
-      if (px=='C')                        //        CONFIGURE            //
-	{
-	  Configure();
-	};
+//       if (px=='C')                        //        CONFIGURE            //
+// 	{
+// 	  Configure();
+// 	};
       //-----------------------------------------------------------------//
       if (px=='m')                        //         MAGNIFY             //
 	{
 	  MagnifyPad();
+	  
 	};
       //-----------------------------------------------------------------//
       if(( py=='x') || (py == 'y') ) // PROJECTION X, Y of TH2
 	{
 	  SliceTH2(px,py);
+	  Update();
 	}
+      return;
     };
   //-----------------------------------------------------------------//
   // finally, if not yet returned, call default HandleInput method:
@@ -443,23 +435,24 @@ TSuperCanvas::Measure(Int_t px, Int_t py)
   return;
 };
 
-void 
-TSuperCanvas::Configure()
-{
-  Char_t input[512];
-  printf(" --- Configuration of TSuperCanvas: ---\n\n");
-  printf("Sampling rate: (currently %6.2e Hz) ", SamplingRate); 
-  scanf("%s", input);
+// void 
+// TSuperCanvas::Configure()
+// {
+//   Char_t input[512];
+//   SamplingRate = 1.0;
+//   printf(" --- Configuration of TSuperCanvas: ---\n\n");
+//   printf("Sampling rate: (currently %6.2e Hz) ", SamplingRate); 
+//   scanf("%s", input);
   
-  if (atof(input)>0.0) SamplingRate = atof(input);
-  printf("  SamplingRate = %6.2e Hz\n\n", SamplingRate);
-  printf("Scroll rate: (currently %6.2e %%) ", ScrollRate); 
-  scanf("%s", input);
+//   if (atof(input)>0.0) SamplingRate = atof(input);
+//   printf("  SamplingRate = %6.2e Hz\n\n", SamplingRate);
+//   printf("Scroll rate: (currently %6.2e %%) ", ScrollRate); 
+//   scanf("%s", input);
 
-  if ((atof(input)>0.0)&&(atof(input)<100.0))   SamplingRate = atof(input)/100.0;
-  printf("  ScrollRate = %6.2e %%\n", ScrollRate*100.0);
-  return;
-};
+//   if ((atof(input)>0.0)&&(atof(input)<100.0))   SamplingRate = atof(input)/100.0;
+//   printf("  ScrollRate = %6.2e %%\n", ScrollRate*100.0);
+//   return;
+// };
 
 
 
@@ -534,7 +527,7 @@ TSuperCanvas::SliceTH2(Int_t px, Int_t py)
 	  sliced_hist  -> SetFillColor(38);
 	  sliced_hist  -> Draw();
 
-	  slice_canvas -> ToggleToolTips();
+	  //slice_canvas -> ToggleToolTips();
 	  slice_canvas -> Update();
 	}
     }
@@ -699,11 +692,13 @@ TSuperCanvas::SetBackBeforePad(TPad* pad)
 void
 TSuperCanvas::SetCurrentPad(Bool_t debug)
 {
-  TVirtualPad *spad = this->GetSelectedPad();
-  Int_t scanvas_id  = spad->GetCanvasID();
-
+  TVirtualPad *spad = NULL;
+  Int_t scanvas_id  = 0;
+  spad = this ->GetSelectedPad();
+  scanvas_id = spad->GetCanvasID();
   // make the SelectedPad and the ClickSelectedPad are the same.
-  this -> SetClickSelectedPad((TPad*)spad);
+  this-> SetClickSelectedPad((TPad*)spad);
+
   if(debug)
     {
       printf(" CANVAS ID %d    ----------\n", scanvas_id); 
@@ -727,8 +722,10 @@ TSuperCanvas::SetCurrentPad(Bool_t debug)
 void
 TSuperCanvas::PrintPad(TVirtualPad* pad)
 {
-  TObject     *obj  = pad -> GetSelected();
-  TVirtualPad *mpad = pad -> GetMother();
+  TObject     *obj  = NULL;
+  obj = pad -> GetSelected();
+  TVirtualPad *mpad = NULL;
+  mpad = pad -> GetMother();
 
   printf("*** Mom Pad %30s : Num %2d CvsID %2d EvID %2d \n",
 	 mpad->GetName(), mpad->GetNumber(), mpad->GetCanvasID(), mpad->GetEvent());

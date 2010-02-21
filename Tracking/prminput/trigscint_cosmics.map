@@ -1,0 +1,23 @@
+!
+!
+!
+ROC=2
+!
+!  The 775N and 792N have channels numbers upshifted by one bit
+!  compared to the ECL counterparts.  Multiply front panel
+!  channel number by two to get the effective channel number.
+!
+slot=3
+module=V792
+! channel, signalname
+0,	left_adc
+2,      right_adc
+!
+!
+slot=5
+module=V775
+! channel, signalname
+0,	left_tdc
+2,	right_tdc
+4,	meantimer_tdc
+!END

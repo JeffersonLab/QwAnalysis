@@ -31,8 +31,6 @@ int nodenode::fDebug = 0;
  */
 nodenode::nodenode(nodenode* next, treenode* tree)
 {
-  QwDebug << "New nodenode: " << this << QwLog::endl;
-
   // Initialize pointers
   fNext = next;
   fTree = tree;

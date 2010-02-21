@@ -29,7 +29,8 @@ int treenode::fDebug = 0;
  */
 treenode::treenode()
 {
-  QwDebug << "New treenode: " << this << QwLog::endl;
+  // Set the size (TODO could become variable in constructor, or static)
+  fSize = TLAYERS;
 
   // Initialize pointers
   fNext = 0;
@@ -45,8 +46,7 @@ treenode::treenode()
  */
 treenode::treenode(treenode& node)
 {
-  QwDebug << "New treenode: " << this << QwLog::endl;
-
+  // Copy the node
   *this = node;
 
   // Set the external reference link
@@ -66,8 +66,7 @@ treenode::treenode(treenode& node)
  */
 treenode::treenode(treenode* node)
 {
-  QwDebug << "New treenode: " << this << QwLog::endl;
-
+  // Copy the node
   *this = *node;
 
   // Set the external reference link

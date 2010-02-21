@@ -93,6 +93,9 @@ using std::endl;
 #include "globals.h"
 #include "Det.h"
 
+// Qweak GEM cluster finding
+#include "QwGEMClusterFinder.h"
+
 // Qweak tree search headers
 #include "QwHitPattern.h"
 #include "QwTrackingTree.h"
@@ -114,7 +117,7 @@ using std::endl;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
+QwTrackingWorker::QwTrackingWorker (const char* name)
 {
   QwDebug << "###### Calling QwTrackingWorker::QwTrackingWorker ()" << QwLog::endl;
 
@@ -192,10 +195,17 @@ void QwTrackingWorker::DefineOptions()
   gQwOptions.AddOptions()("QwTracking.R2.maxxroad",
                           po::value<float>()->default_value(25.0),
                           "maximum allowed X road width for region 2 tracks");
+  gQwOptions.AddOptions()("QwTracking.R2.MaxMissedPlanes",
+                          po::value<int>()->default_value(1),
+                          "maximum number of missed planes");
+
   // Region 3
   gQwOptions.AddOptions()("QwTracking.R3.levels",
                           po::value<int>()->default_value(4),
                           "number of search tree levels in region 3");
+  gQwOptions.AddOptions()("QwTracking.R3.MaxMissedWires",
+                          po::value<int>()->default_value(4),
+                          "maximum number of missed wires");
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -470,6 +480,28 @@ QwEvent* QwTrackingWorker::ProcessHits (
         // TODO jpan: The Geant4 now can generate any octant data, you just need to command it through
         // a macro file. I'll put the tracking detector ratation commands onto the UI manu later.
         if (package != kPackageUp) continue;
+
+        /// Find the region 1 clusters in this package
+        QwHitContainer *hitlist_region1_r = hitlist->GetSubList_Plane(kRegionID1, package, 1);
+        QwHitContainer *hitlist_region1_phi = hitlist->GetSubList_Plane(kRegionID1, package, 2);
+        QwGEMClusterFinder* clusterfinder = new QwGEMClusterFinder();
+        std::vector<QwGEMCluster> clusters_r;
+        std::vector<QwGEMCluster> clusters_phi;
+        if (hitlist_region1_r->size() > 0) {
+            clusters_r = clusterfinder->FindClusters(hitlist_region1_r);
+        }
+        if (hitlist_region1_phi->size() > 0) {
+            clusters_phi = clusterfinder->FindClusters(hitlist_region1_phi);
+        }
+        for (std::vector<QwGEMCluster>::iterator cluster = clusters_r.begin();
+                cluster != clusters_r.end(); cluster++) {
+            QwDebug << *cluster << QwLog::endl;
+        }
+        for (std::vector<QwGEMCluster>::iterator cluster = clusters_phi.begin();
+                cluster != clusters_phi.end(); cluster++) {
+            QwDebug << *cluster << QwLog::endl;
+        }
+        delete clusterfinder; // TODO (wdc) should go somewhere else
 
         /// Loop through the detector regions
         for (EQwRegionID region  = kRegionID2;

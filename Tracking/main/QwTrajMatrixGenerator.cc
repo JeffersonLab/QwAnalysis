@@ -22,11 +22,6 @@
 #include "Det.h"
 #include "QwRayTracer.h"
 
-// TODO (wdc) We should probably do something similar with the momentum lookup
-// table as for the tracking search trees.  The default method should be the
-// lookup table, but if there is no lookup table cached it should regenerate
-// one.
-
 int main (int argc, char* argv[]) {
 
     QwRayTracer* raytracer = new QwRayTracer();

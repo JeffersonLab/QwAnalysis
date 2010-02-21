@@ -45,6 +45,7 @@
 #include <TGTab.h>
 #include "RDataContainer.h"
 #include "QwGUIMainDef.h"
+#include "QwGUIProgressDialog.h"
 
 class QwGUISubSystem : public TGCompositeFrame {
 
@@ -63,10 +64,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   char             dMainName[NAME_STR_MAX];
   //!The name/lable of this subsystem object, as passed to the constructor
   char             dThisName[NAME_STR_MAX];
-  //!Buffer, mainly used in message passing and for other temporary storage.
-  char             dMiscbuffer[MSG_SIZE_MAX];
-  //!Buffer, mainly used in message passing and for other temporary storage.
-  char             dMiscbuffer2[MSG_SIZE_MAX];
 
   //!The tab menu ID associated with this subsystem
   Long_t           dTabMenuID;   
@@ -85,10 +82,15 @@ class QwGUISubSystem : public TGCompositeFrame {
 
  protected:
 
+  //!Buffer, mainly used in message passing and for other temporary storage.
+  char             dMiscbuffer[MSG_SIZE_MAX];
+  //!Buffer, mainly used in message passing and for other temporary storage.
+  char             dMiscbuffer2[MSG_SIZE_MAX];
+
   //!This is a data container reference, it contains the root file and provides a series of 
   //!convenience access functions. The pointer is set by the QwGUIMain class, when a new ROOT file is opened,
-  //!by calling the member function SetDataContainer(RDataContainer *cont) in this class.  There is not 
-  //!direct instantce of this container kept within the class. 
+  //!by calling the member function SetDataContainer(RDataContainer *cont) in this class.  There is no 
+  //!direct instance of this container kept within the class. 
   RDataContainer  *dROOTCont;
 
   //!This function must be defined by the derived class, to implement the overal layout of the subsystem class.
@@ -150,6 +152,18 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!
   //!Return value: none  
   void             SetLogMessage(const char *buffer, Bool_t tStamp = kFalse);
+
+
+
+  void             IncreaseProgress(Int_t *nItems1, Int_t *nItems2, Int_t *nItems3, 
+				    Int_t  nInc1,   Int_t  nInc2,   Int_t  nInc3);
+
+  void             InitProgressDlg(const char* title, const char *macrotext, const char *microtext, const char *microtext2, 
+				   Int_t nitems1, Int_t nitems2, Int_t nitems3, Int_t nLevels);
+
+  Bool_t               dProcessHalt;
+
+  QwGUIProgressDialog *dProgrDlg;
 
  public:
   
@@ -269,14 +283,15 @@ class QwGUISubSystem : public TGCompositeFrame {
 
   //!This revceiver function can be overwritten by the derived subsystem class to connect to another object's 
   //!IsClosing member function (a new data container or window for example), if it is anticipated that there are
-  //!cleanup tasks to perform when this object is destroyed. 
+  //!cleanup tasks to perform when this object is destroyed. Derived classes should always call 
+  //!QwGUISubSystem::OnObjClose(char *) in the derived OnObjClose(char *).
   //!
   //!Parameters:
   //! - 1) Subsystem object name/label: will the same as the one passed to the constructor of the object.
   //!      (see QwGUIMainDetector for an example).
   //!
   //!Return value: none  
-  virtual void     OnObjClose(char *) {};
+  virtual void     OnObjClose(char *);
 
   //!This revceiver function can be overwritten by the derived subsystem class to connect to another object's 
   //!SendMessageSignal member function (a new data container or window for example), if it is anticipated that 

@@ -5,8 +5,9 @@
 //  ---------------------------
 /**
  
-   \file QwGUILumiDetector.h
+   \file QwGUIInjector.h
    \author Michael Gericke
+   \author Buddhini Waidyawansa
      
 */
 //=============================================================================
@@ -17,49 +18,70 @@
 //  | Doxygen Class Information |
 //  ---------------------------
 /**
-   \class QwGUILumiDetector
+   \class QwGUIInjector
     
    \brief Handles the display of the lumi detector data.  
 
-   The QwGUILumiDetector class handles the display of the lumi detector data.
+   The QwGUIInjector class handles the display of the lumi detector data.
    It implements several functions to manipulate the data and calculate certain
    basic diagnostic quantities.
 
-   This is Gericke's original code for the main detector.  John Leacock 
-   modified it to work with the lumis.
-    
+   This is Gericke's original code for the main detector. 
+Added by Buddhini to display the injector beamline data.
+
  */
 //=============================================================================
 
-#define LUMI_DET_HST_NUM      4           
-
+#define INJECTOR_DEV_NUM          22        
+#define INJECTOR_DET_TRE_NUM      2
 ///
-/// \ingroup QwGUILumi
+/// \ingroup QwGUIInjector
 
-#ifndef QWGUILUMIDETECTOR_H
-#define QWGUILUMIDETECTOR_H
+#ifndef QWGUIINJECTOR_H
+#define QWGUIINJECTOR_H
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <TRootEmbeddedCanvas.h>
-#include <TRootCanvas.h>
+#include <cstdlib>
+#include <cstdio>
+
+#include <iostream>
+#include <iomanip>
+#include <string>
+
+
+#include "TRootEmbeddedCanvas.h"
+#include "TRootCanvas.h"
+#include "TVirtualPad.h"
 #include "QwGUISubSystem.h"
 #include "RSDataWindow.h"
 
+#define RED       "\E[31m"
+#define GREEN     "\E[32m"
+#define BLUE      "\E[34m"
+#define BOLD      "\033[1m"
+#define BOLDRED   "\E[31m\033[1m"
+#define BOLDGREEN "\E[32m\033[1m"
+#define BOLDBLUE  "\E[34m\033[1m"
+#define BACKRED   "\E[31m\033[7m"
+#define BACKGREEN "\E[32m\033[7m"
+#define BACKBLUE  "\E[34m\033[7m"
+#define NORMAL    "\033[0m"
 
-class QwGUILumiDetector : public QwGUISubSystem {
+
+class QwGUIInjector : public QwGUISubSystem {
 
   
   TGHorizontalFrame   *dTabFrame;
+   TGVerticalFrame    *dControlsFrame;
   TRootEmbeddedCanvas *dCanvas;  
   TGLayoutHints       *dTabLayout; 
   TGLayoutHints       *dCnvLayout; 
+  TGLayoutHints       *dSubLayout;
   TGLayoutHints       *dBtnLayout;
+  TGTextButton        *dButtonPos;
+  TGTextButton        *dButtonCharge;
+  TGTextButton        *dButtonPosVariation;
 
-  TGTextButton        *dButtonUser;
-  TGTextButton        *dButtonDetail;
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;
   
@@ -73,7 +95,16 @@ class QwGUILumiDetector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none
-  void                 PlotData();
+  // void                 PlotData();
+
+  void PlotPosData();
+
+
+  void PlotChargeData();
+
+
+  void PositionDifferences();
+  
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
@@ -87,7 +118,9 @@ class QwGUILumiDetector : public QwGUISubSystem {
 
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
   //!These are the names by which the histograms are identified within the root file.
-  static const char   *LumiDetectorHists[LUMI_DET_HST_NUM];
+
+  static const char   *InjectorDevices[INJECTOR_DEV_NUM];
+  static const char   *InjectorTrees[INJECTOR_DET_TRE_NUM];
 
  protected:
 
@@ -101,11 +134,13 @@ class QwGUILumiDetector : public QwGUISubSystem {
   //!Return value: none  
   virtual void         MakeLayout();
 
+  void                 SummaryHist(TH1*in);
+
  public:
   
-  QwGUILumiDetector(const TGWindow *p, const TGWindow *main, const TGTab *tab,
+  QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTab *tab,
 		    const char *objName, const char *mainname, UInt_t w, UInt_t h);
-  ~QwGUILumiDetector();
+  ~QwGUIInjector();
 
 
   //!Overwritten virtual function from QwGUISubSystem::OnNewDataContainer(). This function retrieves
@@ -124,8 +159,7 @@ class QwGUILumiDetector : public QwGUISubSystem {
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
   virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
 
-  ClassDef(QwGUILumiDetector,0);
-
+  ClassDef(QwGUIInjector,0);
 };
 
 #endif

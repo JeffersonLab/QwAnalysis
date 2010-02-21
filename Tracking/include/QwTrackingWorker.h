@@ -12,9 +12,7 @@
 #define QWTRACKINGWORKER_H
 
 // Qweak headers
-#include "VQwSystem.h"
 #include "QwTypes.h"
-#include "globals.h"
 #include "QwRayTracer.h"
 
 // Forward declarations
@@ -35,7 +33,7 @@ class QwBridge;
  * The tracking worker coordinates the track finding based on the hit list
  * provided to the ProcessHits() method.
  */
-class QwTrackingWorker: public VQwSystem {
+class QwTrackingWorker {
 
   public:
 

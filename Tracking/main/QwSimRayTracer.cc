@@ -10,7 +10,6 @@
 #include "QwForcedBridging.h"
 #include "QwLookupTable.h"
 
-
 int main (int argc, char* argv[]) {
 
     bool debug = false;
