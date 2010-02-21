@@ -681,7 +681,7 @@ void  QwHelicity::ConstructHistograms(TDirectory *folder, TString &prefix)
 
 void  QwHelicity::DeleteHistograms()
 {
-    std::cout<<"QwHelicity::DeleteHistograms for system="<<fSystemName<<" fHistograms.size="<<fHistograms.size()<<"\n";
+  //  std::cout<<"QwHelicity::DeleteHistograms for system="<<fSystemName<<" fHistograms.size="<<fHistograms.size()<<"\n";
   if((fHistoType==kHelSaveMPS)||(fHistoType==kHelSavePattern))
     {
       for (size_t i=0; i<fHistograms.size(); i++){

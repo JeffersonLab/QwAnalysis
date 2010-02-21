@@ -18,7 +18,6 @@
 // Forward declarations
 class QwHit;
 class QwHitContainer;
-class QwGEMCluster;
 class QwTrackingTreeLine;
 class QwPartialTrack;
 class QwTrack;
@@ -254,9 +253,6 @@ class QwEvent: public TObject {
     void Print();
 
   public:
-
-    /*! List of QwGEMCluster objects */
-    std::vector<QwGEMCluster*> fGEMClusters;
 
     /*! list of tree lines [upper/lower][region][type][u/v/x/y] */
     QwTrackingTreeLine* treeline[kNumPackages][kNumRegions][kNumTypes][kNumDirections]; //!

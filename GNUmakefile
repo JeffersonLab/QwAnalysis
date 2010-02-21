@@ -14,7 +14,7 @@
 ############################
 ############################
 
-DEBUG := -g
+DEBUG := -g -O0
 # Add -g if you need to debug (but you'd better
 # first type 'make distclean' to enable full
 # recompilation with this flag).
@@ -121,9 +121,9 @@ EXCLUDEDIRS = coda Extensions
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
  ifneq ($(CODA),)
   #  The realtime executables should be added in this section.
-  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline
+  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwtrajmatrixgenerator
  else
-  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator
+  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwtrajmatrixgenerator
  endif
 else
  EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
@@ -131,9 +131,9 @@ endif
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
  ifneq ($(CODA),)
   #  The realtime executables should be added in this section.
-  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline
+  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwtrajmatrixgenerator
  else
-  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator
+  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwtrajmatrixgenerator
  endif
 endif
 # overridden by "make 'EXES=exe1 exe2 ...'"
@@ -185,7 +185,7 @@ endif
 ############################
 ############################
 # Qw Paths :
-# They are set when $(QWANALYSIS)/SetupFiles/.Qwcshrc (or .bash)
+# They are set when $(QWANALYSIS)/SetupFiles/.QwSetup.csh (or .bash)
 # is sourced prior to the call for this Makefile.
 # A priori they won't be modified. They are (don't uncomment) :
 # QWANALYSIS := /home/lenoble/QwAnalysis
@@ -204,10 +204,10 @@ ifndef QWANALYSIS
   QWANALYSIS := $(shell pwd)
 endif
 ifeq ($(strip $(QWANALYSIS)),)
-  $(error Aborting : QWANALYSIS variable is not set.  Source the SetupFiles/.Qwcshrc script first)
+  $(error Aborting : QWANALYSIS variable is not set.  Source the SetupFiles/.QwSetup.csh script first)
 endif
-ifneq ($(shell test $(QWANALYSIS) -ef $(shell pwd) || echo false),)
-  $(error Aborting : QWANALYSIS variable disagrees with the working directory.  Source the SetupFiles/.Qwcshrc script first)
+ifneq ($(strip $(QWANALYSIS)),$(strip $(shell pwd)))
+  $(error Aborting : QWANALYSIS variable disagrees with the working directory.  Source the SetupFiles/.QwSetup.csh script first)
 endif
 
 ifndef QWBIN
@@ -215,7 +215,7 @@ ifndef QWBIN
   QWBIN := $(QWANALYSIS)/bin
 endif
 ifneq ($(strip $(QWBIN)),$(strip $(shell $(FIND) $(QWANALYSIS) -name bin)))
-  $(error Aborting : QWBIN variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
+  $(error Aborting : QWBIN variable is not set properly  Source the SetupFiles/.QwSetup.csh script first)
 endif
 
 ifndef QWLIB
@@ -223,7 +223,7 @@ ifndef QWLIB
   QWLIB := $(QWANALYSIS)/lib
 endif
 ifneq ($(strip $(QWLIB)),$(strip $(shell $(FIND) $(QWANALYSIS) -name lib)))
-  $(error Aborting : QWLIB variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
+  $(error Aborting : QWLIB variable is not set properly  Source the SetupFiles/.QwSetup.csh script first)
 endif
 
 ifndef QWEVIO
@@ -231,7 +231,7 @@ ifndef QWEVIO
   QWEVIO := $(QWANALYSIS)/coda
 endif
 ifneq ($(strip $(QWEVIO)),$(strip $(shell $(FIND) $(QWANALYSIS) -name coda)))
-  $(error Aborting : QWEVIO variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
+  $(error Aborting : QWEVIO variable is not set properly  Source the SetupFiles/.QwSetup.csh script first)
 endif
 
 
@@ -251,51 +251,6 @@ CODALIBS     += -L$(QWANALYSIS)/lib -lcoda
       # -lmyevio : now integrated in our distribution (April 19 2001) ;
       # Regenerated if necessary ; I had to rewrite CODA
       # group's Makefile in $(QWEVIO)
-
-
-
-
-############################
-############################
-# Some set-up for the Boost library use
-############################
-############################
-ifndef BOOST_INC_DIR
-  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name boost)),/usr/include/boost)
-    $(warning Install the Boost library on your system, or set the environment)
-    $(warning variables BOOST_INC_DIR and BOOST_LIB_DIR to the directory with)
-    $(warning the Boost headers and libraries, respectively.)
-    $(warning See the Qweak Wiki for installation and compilation instructions.)
-    $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
-    $(warning )
-    $(error   Error: Could not find the Boost library)
-  endif
-  BOOST_INC_DIR = /usr/include/boost
-  BOOST_LIB_DIR = /usr/lib
-  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" $(BOOST_INC_DIR)/version.hpp)
-  BOOST_INC  =
-  BOOST_LIBS =
-else
-  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" ${BOOST_INC_DIR}/version.hpp)
-  BOOST_INC  = -I${BOOST_INC_DIR}
-  BOOST_LIBS = -L${BOOST_LIB_DIR}
-endif
-
-#  We should also put a test on the boost version number here.
-ifeq ($(BOOST_VERSION),)
-  $(error   Error: Could not determine Boost version)
-endif
-
-#  List the Boost libraries to be linked to the analyzer.
-ifeq ($(strip $(shell $(FIND) $(BOOST_LIB_DIR) -maxdepth 1 -name libboost_filesystem-mt.so)),$(BOOST_LIB_DIR)/libboost_filesystem-mt.so)
-#  BOOST_LIBS += -lboost_filesystem-mt -lboost_system-mt -lboost_program_options-mt
- BOOST_LIBS += -lboost_filesystem-mt -lboost_program_options-mt
-else
-#  BOOST_LIBS += -lboost_filesystem -lboost_system -lboost_program_options
- BOOST_LIBS += -lboost_filesystem -lboost_program_options
-endif
-
-BOOST_LIBS += -ldl
 
 
 
@@ -343,12 +298,12 @@ endif
 
 ifeq ($(ARCH),Darwin)
 
-CXX            := gcc
+CXX            := gcc-3.3
 CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
-LD             = gcc
+LD             = gcc-3.3
 LIBTOOL 	   = libtool
-LDFLAGS        = 
+LDFLAGS        = -bind_at_load
 LDLIBS         = -lSystemStubs
 SOFLAGS        =
 DllSuf        := .dylib
@@ -360,15 +315,48 @@ ROOTLIBS     := $(shell $(ROOTCONFIG) --libs) -lTreePlayer -lGX11 -lpthread -lTh
 # Fatal in <CustomReAlloc2>: storage area overwritten
 # aborting
 
-ifeq ($(strip $(shell $(FIND) $(BOOST_LIB_DIR) -maxdepth 1 -name libboost_filesystem-mt.so)),$(BOOST_LIB_DIR)/libboost_filesystem-mt.so)
-  BOOST_LIBS += -lboost_system-mt
+endif
+
+
+############################
+############################
+# Some set-up for the Boost library use
+############################
+############################
+ifndef BOOST_INC_DIR
+  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name boost)),/usr/include/boost)
+    $(warning Install the Boost library on your system, or set the environment)
+    $(warning variables BOOST_INC_DIR and BOOST_LIB_DIR to the directory with)
+    $(warning the Boost headers and libraries, respectively.)
+    $(warning See the Qweak Wiki for installation and compilation instructions.)
+    $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
+    $(warning )
+    $(error   Error: Could not find the Boost library)
+  endif
+  BOOST_INC_DIR = /usr/include/boost
+  BOOST_LIB_DIR = /usr/lib
+  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" $(BOOST_INC_DIR)/version.hpp)
+  BOOST_INC  =
+  BOOST_LIBS =
 else
-  BOOST_LIBS += -lboost_system
+  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" ${BOOST_INC_DIR}/version.hpp)
+  BOOST_INC  = -I${BOOST_INC_DIR}
+  BOOST_LIBS = -L${BOOST_LIB_DIR}
 endif
 
-
+#  We should also put a test on the boost version number here.
+ifeq ($(BOOST_VERSION),)
+  $(error   Error: Could not determine Boost version)
 endif
 
+#  List the Boost libraries to be linked to the analyzer.
+ifeq ($(strip $(shell $(FIND) $(BOOST_LIB_DIR) -maxdepth 1 -name libboost_filesystem-mt.so)),$(BOOST_LIB_DIR)/libboost_filesystem-mt.so)
+  BOOST_LIBS += -lboost_filesystem-mt -lboost_program_options-mt
+else
+  BOOST_LIBS += -lboost_filesystem -lboost_program_options
+endif
+
+BOOST_LIBS += -ldl
 
 ############################
 ############################

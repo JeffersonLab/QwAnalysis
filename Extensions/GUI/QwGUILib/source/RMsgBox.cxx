@@ -223,7 +223,6 @@ void RMsgBox::PMsgBox(const char *title, const char *msg,
 
    // set names
 
-   SetName(dObjName);
    SetWindowName(title);
    SetIconName(title);
    SetClassHints("MsgBox", "MsgBox");

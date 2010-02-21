@@ -37,8 +37,6 @@ class QwHelicityPattern{
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
 
-  Bool_t IsGoodAsymmetry(){ return IsGood;};
-
   void  ClearEventData();
   void  Print();
 

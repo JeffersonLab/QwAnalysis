@@ -84,7 +84,7 @@ class QwHelicity : public VQwSubsystemParity{
 
   ~QwHelicity()
     {
-//      DeleteHistograms();
+      DeleteHistograms();
     };
    /* derived from VQwSubsystem */
   Int_t LoadChannelMap(TString mapfile);

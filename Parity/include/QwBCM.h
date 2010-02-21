@@ -50,7 +50,7 @@ class QwBCM : public VQwDataElement{
     return fDeviceErrorCode;
   }
 
-  Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size
+  Int_t SetSingleEventCuts(std::vector<Double_t> &);//two limts and sample size
   void SetDefaultSampleSize(Int_t sample_size);  
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;
@@ -100,6 +100,7 @@ class QwBCM : public VQwDataElement{
   
   QwVQWK_Channel fTriumf_ADC;
 
+  Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check 
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
 
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes

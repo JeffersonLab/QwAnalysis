@@ -30,7 +30,9 @@
 
 #include "globals.h"
 
-#define TREESEARCH_MAX_TREELINES 1000
+#define MAX_TREELINES 1000
+#define MAX_MISSED_VDC_WIRES 7
+#define MAX_MISSED_HDC_PLANES 2
 
 ///
 /// \ingroup QwTracking
@@ -101,10 +103,6 @@ class QwTrackingTreeSearch {
     int fDebug;			///< Debug level
 
     bool fShowMatchingPatterns;	///< Flag to show matching patterns when found
-
-    // Maximum missed wires and planes
-    int fMaxMissedPlanes;	///< Maximum number of missed planes in region 2
-    int fMaxMissedWires;	///< Maximum number of missed wires in region 3
 
     char **static_pattern;
     int  **static_hash;

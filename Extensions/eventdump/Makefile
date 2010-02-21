@@ -5,7 +5,7 @@ ExePrefix = x
 ExeSuffix = 
 DepSuffix = d
 
-EXENAME 	:= eventdump
+EXENAME 	:= EventDump
 EXECUTABLE	:= $(ExePrefix)$(EXENAME)$(ExeSuffix)	
 
 ROOTCONFIG   	:= root-config

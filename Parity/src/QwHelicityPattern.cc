@@ -278,17 +278,16 @@ void  QwHelicityPattern::ConstructHistograms(TDirectory *folder)
 
 void  QwHelicityPattern::FillHistograms()
 {
-  //std::cout<<"QwHelicityPattern::FillHistograms ";
+  //  std::cout<<"QwHelicityPattern::FillHistograms \n";
   if(IsGood)
     {
-      //std::cout<<"************ YIELD ************\n";
+      //  std::cout<<"************ YIELD ************\n";
       fYield.FillHistograms();
       //  std::cout<<"************ ASYMMETRY ************\n";
       fAsymmetry.FillHistograms();
       //pos_sum.FillHistograms();
       //neg_sum.FillHistograms();
     }
-  //std::cout<<"\n";
   return;
 }
 

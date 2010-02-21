@@ -200,19 +200,8 @@ enum CommandIdentifiers {
   M_HELP_ABOUT,
 
   M_CANVAS,
-
-  M_HISTO_CLOSE,
-  M_HISTO_ENTRY_SET,
-  M_HISTO_ENTRY_CANCEL,
   
   M_TABS   //always needs to be last in the list!
-};
-
-enum ENDataType {
-  DDT_MD,
-  DDT_BCM,
-  DDT_BPM,
-  DDT_HEL,
 };
 
 

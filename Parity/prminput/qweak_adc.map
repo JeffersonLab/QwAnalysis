@@ -47,8 +47,8 @@ sample_size=400
 ! when naming the DetName, do not use arithmetic and logic operators, such as +,-, &, and so on
 !
 ! ModuleType, Chan#, NumberOfCombinedChan's, DetType, DetName, PhysicalChanNames, WeightNumbers,
-  VPMT, 0, 2,  CombinationPMT,  Bar1Left_Bar5Left,     Bar1Left,   Bar5Left,  1.0,  1.0
-  VPMT, 1, 2,  CombinationPMT,  Bar2Left_Bar6Left,     Bar2Left,   Bar6Left,  1.0,  1.0
+  VPMT, 0, 2,  CombinationPMT,  Bar1Left_Bar5Left,     Bar1Left,   Bar5Left,  1.0,  1.01
+  VPMT, 1, 2,  CombinationPMT,  Bar2Left_Bar6Left,     Bar2Left,   Bar6Left,  1.0,  0.99
   VPMT, 2, 2,  CombinationPMT,  Bar3Left_Bar7Left,     Bar3Left,   Bar7Left,  1.0,  1.0
   VPMT, 3, 2,  CombinationPMT,  Bar4Left_Bar8Left,     Bar4Left,   Bar8Left,  1.0,  1.0
   VPMT, 4, 2,  CombinationPMT,  Bar1Right_Bar5Right,   Bar1Right,  Bar5Right, 1.0,  1.0

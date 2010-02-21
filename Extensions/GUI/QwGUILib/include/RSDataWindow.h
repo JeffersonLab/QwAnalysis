@@ -144,8 +144,8 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
   virtual ~RSDataWindow();
 
   Bool_t               AddGraphs(){return dAddGraphs;};
-  void                 AddMenuPopup(const char*,TGPopupMenu*);
-  void                 AddPopupEntry(const char*,Int_t ID, TGPopupMenu* pop = 0);
+  void                 AddMenuPopup(char*,TGPopupMenu*);
+  void                 AddPopupEntry(char*,Int_t ID, TGPopupMenu* pop = 0);
 
   void                 CloseConnection(); 
   virtual void         CloseWindow();

@@ -48,13 +48,9 @@ class QwVQWK_Channel: public VQwDataElement {
     fBlocksPerEvent = 4;
     fPedestal=0.0;
     fCalibrationFactor=1.;
-    fMockDriftAmplitude  = 0;
-    fMockDriftPhase      = 0;
-    fMockDriftFrequency  = 0;
     fMockAsymmetry = 0.0;
     fMockGaussianMean = 0.0;
     fMockGaussianSigma = 0.0;
-    fEventNumber = 0;
     fNumEvtsWithEventCutsRejected=0;//init error counters
     fADC_Same_NumEvt=0;//init HW_Check counters
     fPrev_HardwareBlockSum=0;//init HW_Check counters
@@ -71,14 +67,6 @@ class QwVQWK_Channel: public VQwDataElement {
     fErrorCount_SW_HW=0;//HW_sum==SW_sum check
     fErrorCount_Sequence=0;//sequence number check
     fErrorCount_SameHW=0;//check to see ADC returning same HW value 
-    fErrorCount_ZeroHW=0;
-    /*
-    //debug- Ring analysis
-    fEventCounter=1;
-    fTripCounter=0;
-    bTrip=kFALSE;
-    */
-    fDeviceErrorCode=0;
     return;
   };
 
@@ -96,11 +84,9 @@ class QwVQWK_Channel: public VQwDataElement {
     fNumEvtsWithEventCutsRejected++;
   }
 
-  void  SetRandomEventDriftParameters(Double_t Amplitude, Double_t Phase, Double_t Frequency);
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
   void  RandomizeEventData(int helicity);
-  void  SetEventNumber(int event) {fEventNumber = event;};
   void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
   void  SetEventData(Double_t* block, UInt_t sequencenumber = 0);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
@@ -116,7 +102,7 @@ class QwVQWK_Channel: public VQwDataElement {
   void Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom);
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
-  void Calculate_Running_Average();//pass the current event count in the run to calculate running average
+  void Calculate_Running_Average();//passe the current event count in the run to calculate running average
   void Do_RunningSum();
 
   Bool_t MatchSequenceNumber(size_t seqnum);
@@ -205,16 +191,12 @@ class QwVQWK_Channel: public VQwDataElement {
   size_t fPreviousSequenceNumber; /*! Previous event sequence number for this channel  */
   size_t fNumberOfSamples;    /*! Number of samples  read through the module        */
   size_t fNumberOfSamples_map;    /*! Number of samples in the expected to  read through the module. This value is set in the QwBeamline map file     */
-  size_t fEventNumber;
 
   /*  Parity mock data distributions */
   Double_t fMockAsymmetry;
   Double_t fMockGaussianMean;
   Double_t fMockGaussianSigma;
-  Double_t fMockDriftAmplitude;
-  Double_t fMockDriftPhase;    
-  Double_t fMockDriftFrequency;
-  
+
   
   Int_t fNumEvtsWithEventCutsRejected;/*! Counts the Event cut rejected events */
 
@@ -224,16 +206,14 @@ class QwVQWK_Channel: public VQwDataElement {
   Int_t fErrorCount_SW_HW;//HW_sum==SW_sum check
   Int_t fErrorCount_Sequence;//sequence number check
   Int_t fErrorCount_SameHW;//check to see ADC returning same HW value
-  Int_t fErrorCount_ZeroHW;//check to see ADC returning zero
   
 
   static const Int_t kErrorFlag_sample=0x2;   // in Decimal 2.  for sample size check
   static const Int_t kErrorFlag_SW_HW=0x4;    // in Decimal 4.  HW_sum==SW_sum check
   static const Int_t kErrorFlag_Sequence=0x8; // in Decimal 8.  sequence number check
   static const Int_t kErrorFlag_SameHW=0x10;   //in Decimal 16.  check to see ADC returning same HW value
-  static const Int_t kErrorFlag_ZeroHW=0x20;   //in Decimal 32.  check to see ADC returning zero
-  static const Int_t kErrorFlag_EventCut_L=0x40;   //in Decimal 64  check to see ADC falied upper limit of the event cut
-  static const Int_t kErrorFlag_EventCut_U=0x80;   //in Decimal 128  check to see ADC falied upper limit of the event cut
+  static const Int_t kErrorFlag_EventCut_L=0x20;   //in Decimal 32.  check to see ADC falied lower limit of the event cut
+  static const Int_t kErrorFlag_EventCut_U=0x40;   //in Decimal 64  check to see ADC falied upper limit of the event cut
   
   
   
@@ -253,14 +233,9 @@ class QwVQWK_Channel: public VQwDataElement {
   Int_t fGoodEventCount;//counts the HW and event check passed events
 
   Int_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
-
-  /*  
-  //debug- Ring analysis
-  Int_t fEventCounter;
-  Int_t fTripCounter;
-  Bool_t bTrip;
-  */
   
+  
+
 
   const static Bool_t bDEBUG=kFALSE;//debugging display purposes
 

@@ -1,10 +1,15 @@
-// This is an example for testing the bridging code
+// This is an example for testing the bridging code in the qwraytracer class
 
 // Qweak Tracking headers
 #include "QwOptionsTracking.h"
 #include "QwParameterFile.h"
 #include "Det.h"
+
+// Qweak bridging methods
 #include "QwRayTracer.h"
+#include "QwForcedBridging.h"
+#include "QwLookupTable.h"
+
 
 int main (int argc, char* argv[]) {
 
@@ -23,8 +28,10 @@ int main (int argc, char* argv[]) {
 
     QwRayTracer* raytracer = new QwRayTracer();
 
-    QwRayTracer::LoadMagneticFieldMap();
-    raytracer->LoadTrajMatrix();
+    raytracer->LoadMagneticFieldMap();
+    //raytracer->GenerateLookUpTable();
+
+    raytracer->LoadMomentumMatrix();
 
     for (UInt_t runnumber =  (UInt_t) gQwOptions.GetIntValuePairFirst("run");
             runnumber <= (UInt_t) gQwOptions.GetIntValuePairLast("run");
@@ -118,9 +125,8 @@ int main (int argc, char* argv[]) {
             evtnum++;
 
             // TODO process multi-hit
-            // Take only one hit in each region for now by setting i<1 && j<1
-            for (size_t i=0; i<startpoint.size() && i<1; i++) {
-                for (size_t j=0; j<endpoint.size() && j<1; j++) {
+            for (size_t i=0; i<startpoint.size(); i++) {
+                for (size_t j=0; j<endpoint.size(); j++) {
                     raytracer->SetStartAndEndPoints(startpoint[i], startpointdirection[i],
                                                      endpoint[j], endpointdirection[j]);
                     timer.Start();

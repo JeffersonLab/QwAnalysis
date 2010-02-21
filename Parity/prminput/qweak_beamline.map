@@ -130,14 +130,14 @@ sample_size=400
   VQWK, 11, 6,  bcm,  QWK_Batery7
   VQWK, 11, 7,   bcm,  PhaseMonitor
 
-beginCOMBO=combinedbcm
+beginCOMBO=bcm
 name = qwk_target_charge
 !name		wieght
  QWK_BCM0L02,  1.0
  empty1,  0.8
 endCOMBO=bcm
 
-beginCOMBO=combinedbcm
+beginCOMBO=bcm
 name = qwk_average_charge
 !name		wieght
 

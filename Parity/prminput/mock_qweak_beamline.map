@@ -5,7 +5,7 @@ Bank=0x3102
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
 
-sample_size=16680
+
 !ADC11
   VQWK, 11, 0,  bpmstripline,  QWK_0R06XP
   VQWK, 11, 1,  bpmstripline,  QWK_0R06XM

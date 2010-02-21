@@ -1,25 +1,15 @@
 /*! \file   QwRayTracer.h
- *
- *  \author Jie Pan <jpan@jlab.org>
- *  \author Wouter Deconinck <wdconinc@mit.edu>
- *
- *  \date   Thu Nov 26 11:44:51 CST 2009
  *  \brief  Definition of the ray-tracing bridging method for R2/R3 partial tracks
  *
- *  \ingroup QwTracking
- *
- *   Integrating the equations of motion for electrons in the QTOR.
- *   The 4'th order Runge-Kutta method is used.
- *
- *   The Newton-Raphson method is used to solve for the momentum of the track.
- *
+ *  \author Jie Pan
+ *  \author Wouter Deconinck <wdconinc@mit.edu>
+ *  \date   Thu Nov 26 11:44:51 CST 2009
  */
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+#ifndef QWRAYTRACER_H
+#define QWRAYTRACER_H
 
-#ifndef __QWRAYTRACER_H__
-#define __QWRAYTRACER_H__
-
+// System headers
 #include <iostream>
 #include <vector>
 
@@ -38,7 +28,9 @@
 //  but it isn't ready to commit tonight (2009dec15; pking).
 // Qweak headers
 #include "QwMagneticField.h"
-#include "QwTrajMatrix.h"
+
+// Qweak headers
+#include "VQwBridgingMethod.h"
 
 #if defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
 # include <Math/Interpolator.h>
@@ -82,19 +74,43 @@
 
 // Forward declarations
 class QwMagneticField;
-class QwPartialTrackParameter;
 class QwBridge;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-class QwRayTracer {
+// temporary class for store partial track parameter
+class QwPartialTrackParameter {
 
 public:
-    QwRayTracer();
-    ~QwRayTracer();
+    float fPositionR;
+    float fPositionPhi;
+    float fDirectionTheta;
+    float fDirectionPhi;
 
-    static void LoadMagneticFieldMap();
-    void LoadTrajMatrix();
+};
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+/** \class QwRayTracer
+ *  \ingroup QwTracking
+ *
+ *   Integrating the equations of motion for electrons in the QTOR.
+ *   The 4'th order Runge-Kutta method is used.
+ *
+ *   The Newton-Raphson method is used to solve for the momentum of the track.
+ *
+ */
+class QwRayTracer: public VQwBridgingMethod {
+
+  public:
+
+    QwRayTracer();
+    virtual ~QwRayTracer();
+
+    void LoadMagneticFieldMap();
+    int LoadMomentumMatrix();
+
+    void GenerateLookUpTable();
 
     void SetStartAndEndPoints(TVector3 startposition, TVector3 startdirection,
                               TVector3 endposition, TVector3 enddirection);
@@ -161,16 +177,19 @@ public:
                             std::vector<TVector3> *enddirection);
     void GetBridgingResult(Double_t *buffer);
 
-private:
+  private:
 
     int Filter();
+
     int SearchTable();
+
     int Shooting();
+
     double EstimateInitialMomentum(TVector3 direction);
 
-private:
+  private:
 
-    static QwMagneticField *fBfield;
+    QwMagneticField *fBfield;
 
     double fBdlx; /// x component of the field integral
     double fBdly; /// y component of the field integral
@@ -209,7 +228,6 @@ private:
     // Region2 WirePlane1
     Int_t fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit;
     Int_t fRegion2_ChamberFront_WirePlane1_NbOfHits;
-    //std::vector <Int_t> fRegion2_ChamberFront_WirePlane1_ParticleType;
     std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX;
     std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY;
     std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ;
@@ -240,6 +258,4 @@ private:
 
 }; // class QwRayTracer
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-#endif  // __QWTRAJECTORY_H__
+#endif // QWRAYTRACER_H

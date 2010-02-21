@@ -161,13 +161,12 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
     QwWarning << "[TreeMatch::MatchR3] Horizontal shifts between VDC planes are ignored"
               << QwLog::endl;
 
-
   // For the good tree lines in the front and back VDC planes, we first need
-  // to set the 'z' coordinate in the wire direction.  The 'z' position for
-  // VDC planes is the coordinate in the wire plane.  By definition, the
-  // middle wire (141) has a 'z' position of zero.
+  // to set the 'z' coordinate in the wire direction.
 
   // Loop over the tree lines in the front VDC plane to set the 'z' position.
+  // The 'z' position for VDC planes is the coordinate in the wire plane.  By
+  // definition the middle wire (141) has a 'z' position of zero.
   int numflines = 0;
   for (QwTrackingTreeLine* frontline = frontlist; frontline;
        frontline = frontline->next, numflines++) {
@@ -179,6 +178,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
       frontline->hits[hit]->SetZPosition(zpos);
     }
   }
+
   // Loop over the tree lines in the back VDC plane to set the 'z' position
   int numblines = 0;
   for (QwTrackingTreeLine* backline = backlist; backline;
@@ -188,7 +188,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
     // Loop over all hits of the valid tree lines
     for (int hit = 0; hit < backline->fNumHits; hit++) {
       double zpos = (backline->hits[hit]->GetElement() - 141) * wirespacing_b;
-      backline->hits[hit]->SetZPosition(zpos);
+      backline->hits[hit]->SetZPosition(zpos + u_para);
     }
   }
 
@@ -235,10 +235,10 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
       y[0] = fpos->GetZPosition(); // Z position (i.e. wire direction)
       y[1] = bpos->GetZPosition();
       x[0] = fpos->GetPosition(); // X position (i.e. drift distance)
-      x[1] = bpos->GetPosition();
+      x[1] = bpos->GetPosition() + d_perp; // shifted by perpendicular distance
 
       // Slope between the front and back plane central hits
-      double slope = (u_para + y[1] - y[0]) / (d_perp + x[1] - x[0]);
+      double slope = (y[1] - y[0]) / (x[1] - x[0]);
 
       // Slope of the front and back tree line
       double fslope = wirespacing_f / frontline->fSlope;
@@ -306,8 +306,6 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
         for (int hit = 0; hit < backhits; hit++) {
           treeline->hits[hit+fronthits] = new QwHit(backline->hits[hit]);
           DetecHits[hit+fronthits] = treeline->hits[hit+fronthits];
-          DetecHits[hit+fronthits]->fZPosition += u_para;
-          DetecHits[hit+fronthits]->fPosition  += d_perp;
         }
         int nhits = fronthits + backhits;
 
@@ -321,27 +319,17 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
         // Fit a line to the hits
         double slope, offset, chi, cov[3];
         TreeCombine->weight_lsq_r3 (&slope, &offset, cov, &chi, DetecHits, nhits, 0, -1, 2*TLAYERS);
-
-        // Store the determined offset, slope, and chi^2 into the tree line
-        treeline->SetOffset(offset);
-        treeline->SetSlope(slope);
-        treeline->SetChi(chi);
-
+        treeline->fSlope = slope;
+        treeline->fOffset = offset;
+        treeline->fChi = chi;
         treeline->fNumHits = nhits;
         treeline->fNumMiss = 2 * TLAYERS - nhits;
-
-        // Set the tree line valid
         treeline->SetValid();
 
-        // Store the final set of hits into this tree line
-        for (int hit = 0; hit < fronthits; hit++) {
+        for (int hit = 0; hit < fronthits; hit++)
           treeline->usedhits[hit] = DetecHits[hit];
-          treeline->AddHit(DetecHits[hit]);
-        }
-        for (int hit = fronthits; hit < fronthits + backhits; hit++) {
+        for (int hit = fronthits; hit < fronthits + backhits; hit++)
           treeline->usedhits[hit] = DetecHits[hit];
-          treeline->AddHit(DetecHits[hit]);
-        }
 
         treeline->next = treelinelist;
         treelinelist = treeline;

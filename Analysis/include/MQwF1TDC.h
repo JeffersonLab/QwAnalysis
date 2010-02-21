@@ -1,4 +1,3 @@
-
 /**********************************************************\
 * File: MQwF1TDC.h                                           *
 *                                                          *
@@ -46,19 +45,8 @@ class MQwF1TDC{
   UInt_t GetTDCSlotNumber(){return fF1SlotNumber;};
   UInt_t GetTDCChannelNumber(){return fF1ChannelNumber;};
   UInt_t GetTDCData(){return fF1Dataword;};
-
-  void SetReferenceParameters(Double_t mindiff, Double_t maxdiff,
-			      Double_t offset, Double_t shift, Bool_t signflip){
-    fMinDiff   = mindiff;
-    fMaxDiff   = maxdiff;
-    fOffset    = offset;
-    fTimeShift = shift;
-    fSignFlip  = signflip;
-  };
-
-  //  UInt_t SubtractReference(UInt_t rawtime, UInt_t a);
-  Double_t SubtractReference(Double_t rawtime, Double_t reftime);
-
+  UInt_t SubtractReference(UInt_t rawtime, UInt_t a);
+  
 
  private:
   static const UInt_t kF1Mask_SlotNumber;
@@ -68,28 +56,13 @@ class MQwF1TDC{
   static const UInt_t kF1Mask_HitFIFOFlag;
   static const UInt_t kF1Mask_ChannelNumber;
   static const UInt_t kF1Mask_Dataword;
-  //  static const UInt_t offset;
+  static const UInt_t offset;
 
   Bool_t fF1HeaderFlag;
   UInt_t fF1SlotNumber;
   UInt_t fF1ChannelNumber;
   UInt_t fF1Dataword;
 
-  //  These variables are used in the SubtractReference routine.
-  Double_t fMinDiff;     ///< Low edge of acceptable range of F1TDC channel time/reference time difference
-  Double_t fMaxDiff;     ///< High edge of acceptable range of F1TDC channel time/reference time difference
-
-  Double_t fOffset;      ///< Correction to move F1TDC channel time/reference time difference back into acceptable range.
-                         ///  It will depend on the exact F1TDC configuration.
-
-  Double_t fTimeShift;   ///< "Small" correction to all reference-time-subtracted times;
-                         ///  NOTE:  this would preferrably be done by a different function than 
-                         ///  MQwF1TDC::SubtractReference, but R3 has this correction designed in for now.
-
-  Bool_t   fSignFlip;    ///< Flips the reported time to be (reference - raw) instead of (raw - reference)
-                         ///  NOTE:  This is required by R3, as the time-to-distance calculation is based on
-                         ///  (reference - raw + fTimeShift)
-                         ///  TODO:  This should be REMOVED, and R3 time-to-distance fixed to expect (raw - reference)
 };
 
 

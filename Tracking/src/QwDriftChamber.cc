@@ -417,14 +417,3 @@ Int_t QwDriftChamber::GetTDCIndex(size_t bank_index, size_t slot_num) const {
   }
   return tdcindex;
 };
-
-
-Int_t QwDriftChamber::LinkReferenceChannel ( const UInt_t chan, const UInt_t plane, const UInt_t wire ) {
-    fReferenceChannels.at ( fCurrentBankIndex ).first  = fCurrentTDCIndex;
-    fReferenceChannels.at ( fCurrentBankIndex ).second = chan;
-    //  Register a reference channel with the wire equal to the bank index.
-    fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPackage = 0;
-    fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPlane   = plane;
-    fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fElement = fCurrentBankIndex;
-    return OK;
-};

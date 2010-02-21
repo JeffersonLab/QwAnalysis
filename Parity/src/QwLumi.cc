@@ -89,7 +89,9 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	else if(modtype=="SCALER")wordsofar+=1;
 	else
 	  {
-	    //std::cerr << "QwLumi::LoadChannelMap:  Unknown module type: "<< modtype <<", the detector "<<namech<<" will not be decoded "<< std::endl;
+	    std::cerr << "QwLumi::LoadChannelMap:  Unknown module type: "
+		      << modtype <<", the detector "<<namech<<" will not be decoded "
+		      << std::endl;
 	    lineok=kFALSE;
 	    continue;
 	  }
@@ -97,7 +99,9 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	localLumiDetectorID.fTypeID=GetDetectorTypeID(dettype);
 	if(localLumiDetectorID.fTypeID==-1)
 	  {
-	    //std::cerr << "QwLumi::LoadChannelMap:  Unknown detector type: "<< dettype <<", the detector "<<namech<<" will not be decoded "<< std::endl;
+	    std::cerr << "QwLumi::LoadChannelMap:  Unknown detector type: "
+		      << dettype <<", the detector "<<namech<<" will not be decoded "
+		      << std::endl;
 	    lineok=kFALSE;
 	    continue;
 	  }

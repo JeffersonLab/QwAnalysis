@@ -33,9 +33,6 @@ void  QwBCM::InitializeChannel(TString name, TString datatosave)
   SetCalibrationFactor(1.);
   fTriumf_ADC.InitializeChannel(name,datatosave);  
   SetElementName(name);
-  //set default limits to event cuts
-  fLLimit=0;//init two timits
-  fULimit=0;//init two timits
   return;
 };
 /********************************************************/
@@ -100,9 +97,10 @@ Bool_t QwBCM::ApplyHWChecks()
 };
 /********************************************************/
 
-Int_t QwBCM::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){//std::vector<Double_t> & dEventCuts){//two limts and sample size
-  fLLimit=LL;
-  fULimit=UL;
+Int_t QwBCM::SetSingleEventCuts(std::vector<Double_t> & dEventCuts){//two limts and sample size
+  fLLimit=dEventCuts.at(0);
+  fULimit=dEventCuts.at(1);
+  fDevice_flag=(Int_t) dEventCuts.at(2);  
   return 1;
 };
 
@@ -117,17 +115,21 @@ Bool_t QwBCM::ApplySingleEventCuts(){
   Bool_t status=kTRUE;   
   ApplyHWChecks();//first apply HW checks and update HW  error flags.
   
-   
-  if (fTriumf_ADC.ApplySingleEventCuts(fLLimit,fULimit)){    
-    status=kTRUE;
-  }
-  else{
-    fTriumf_ADC.UpdateEventCutErrorCount();//update event cut falied counts
-    if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fTriumf_ADC.GetHardwareSum();
-    status&=kFALSE;
-  }
-  fDeviceErrorCode|=fTriumf_ADC.GetEventcutErrorFlag();//retrun the error flag for event cuts
-   
+  if (fDevice_flag==1){// if fDevice_flag==1 then perform the event cut limit test	  
+    
+    //if (fTriumf_ADC.GetHardwareSum()<=fULimit && fTriumf_ADC.GetHardwareSum()>=fLLimit){ // Check event cuts + HW check status
+    if (fTriumf_ADC.ApplySingleEventCuts(fLLimit,fULimit)){    
+      status=kTRUE;
+      //std::cout<<" BCM Sample size "<<fTriumf_ADC.GetNumberOfSamples()<<std::endl;
+    }
+    else{
+      fTriumf_ADC.UpdateEventCutErrorCount();//update event cut falied counts
+      if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fTriumf_ADC.GetHardwareSum();
+      status&=kFALSE;//kTRUE;//kFALSE;
+    }
+    fDeviceErrorCode|=fTriumf_ADC.GetEventcutErrorFlag();//retrun the error flag for event cuts
+  }else
+    status =kTRUE;     
 
   return status;
 

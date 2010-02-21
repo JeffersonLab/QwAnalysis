@@ -93,11 +93,9 @@ void QwDetectorInfo::SetDetectorInfo (
     fDirection = kDirectionY;
   else if (planeDir == "r")
     fDirection = kDirectionR;
-  else if (planeDir == "f")
-    fDirection = kDirectionPhi;
 };
 
-ostream& operator<< (ostream& stream, const QwDetectorInfo& det)
+ostream& operator<< (ostream& stream, QwDetectorInfo& det)
 {
   stream << "det " << det.fDetectorID << ": ";
   stream << "package " << det.fPackage << ", ";
