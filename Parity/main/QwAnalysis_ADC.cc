@@ -50,7 +50,16 @@ static bool bHelicity=true;
 
 ///
 /// \ingroup QwAnalysis_ADC
-int main(Int_t argc,Char_t* argv[]) {
+int main(Int_t argc,Char_t* argv[])
+{
+    /// First, we set the command line arguments and the configuration filename,
+    /// and we define the options that can be used in them (using QwOptions).
+    gQwOptions.SetCommandLine(argc, argv);
+    gQwOptions.SetConfigFile("qwanalysis_adc.conf");
+    // Define the command line options
+    DefineOptionsParity(gQwOptions);
+
+
     //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
     if (getenv("DISPLAY")==NULL
             ||getenv("JOB_ID")!=NULL) kInQwBatchMode = kTRUE;
@@ -70,9 +79,6 @@ int main(Int_t argc,Char_t* argv[]) {
     gQwHists.LoadHistParamsFromFile("parity_hists.in");
 
     TStopwatch timer;
-
-    QwCommandLine cmdline;
-    cmdline.Parse(argc, argv);
 
     ///
     /// Instantiate event buffer
@@ -110,7 +116,13 @@ int main(Int_t argc,Char_t* argv[]) {
 
     Double_t evnum=0.0;
 
-    for (Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++) {
+    // Loop over all runs
+    UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
+    UInt_t runnumber_max = (UInt_t) gQwOptions.GetIntValuePairLast("run");
+    for (UInt_t run  = runnumber_min;
+                run <= runnumber_max;
+                run++) {
+
         //  Begin processing for the first run.
         //  Start the timer.
         timer.Start();
@@ -190,16 +202,22 @@ int main(Int_t argc,Char_t* argv[]) {
 //     asym.ConstructBranchAndVector(qrttree, "asym", qrttreevector);
 
 
+        Int_t eventnumber = -1;
+        Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
+        Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
         while (eventbuffer.GetEvent() == CODA_OK) {
 
             if (eventbuffer.IsROCConfigurationEvent()) {
                 eventbuffer.FillSubsystemConfigurationData(detectors);
             }
 
+            // Now, if this is not a physics event, go back and get a new event.
             if (! eventbuffer.IsPhysicsEvent()) continue;
 
-            if (eventbuffer.GetEventNumber() < cmdline.GetFirstEvent()) continue;
-            else if (eventbuffer.GetEventNumber() > cmdline.GetLastEvent()) break;
+            // Check to see if we want to process this event.
+            eventnumber = eventbuffer.GetEventNumber();
+            if      (eventnumber < eventnumber_min) continue;
+            else if (eventnumber > eventnumber_max) break;
 
             eventbuffer.FillSubsystemData(detectors);
             detectors.ProcessEvent();

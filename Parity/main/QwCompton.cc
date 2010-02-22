@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.SetConfigFile("qwcompton.conf");
   // Define the command line options
-  gQwOptions.DefineOptions();
+  DefineOptionsParity(gQwOptions);
 
   // Message logging facilities
   gQwLog.InitLogFile("QwCompton.log", QwLog::kTruncate);
@@ -340,6 +340,5 @@ int main(int argc, char* argv[])
     eventbuffer.ReportRunSummary();
 
   } // end of loop over runs
-
 
 }

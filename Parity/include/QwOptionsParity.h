@@ -19,7 +19,8 @@
 
 // Qweak parity subsystems that provide options
 
-void QwOptions::DefineOptions() {
+void DefineOptionsParity(QwOptions& options)
+{
   /* No options defined */
 }
 

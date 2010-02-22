@@ -15,15 +15,17 @@
 #include <string>
 using std::string;
 
+// Qweak headers
+#include "QwTypes.h"
+
 /*!
  * \note Because QwOptions depends on QwLog, and QwLog depends also on QwOptions,
  * we cannot include QwOptions in the QwLog header file here.  QwLog is treated
  * as more basic than QwOptions.
  */
 
-// Qweak headers
-#include "QwTypes.h"
-
+// Forward declarations
+class QwOptions;
 
 /*! \def QwOut
  *  \brief Predefined log drain for explicit output
@@ -74,6 +76,9 @@ using std::string;
 class QwLog : public std::ostream {
 
   public:
+
+    /// \brief Define available class options for QwOptions
+    static void DefineOptions(QwOptions* options);
 
     //! Loglevels
     /*! enum of possible log levels */

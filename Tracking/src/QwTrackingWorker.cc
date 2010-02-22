@@ -170,40 +170,40 @@ QwTrackingWorker::~QwTrackingWorker ()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void QwTrackingWorker::DefineOptions()
+void QwTrackingWorker::DefineOptions(QwOptions& options)
 {
   // Global options for the tracking worker
-  gQwOptions.AddConfigFile("Tracking/prminput/qwtracking.conf");
+  options.AddConfigFile("Tracking/prminput/qwtracking.conf");
 
   // General options
-  gQwOptions.AddOptions()("QwTracking.showeventpattern",
+  options.AddOptions()("QwTracking.showeventpattern",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "show bit pattern for all events");
-  gQwOptions.AddOptions()("QwTracking.showmatchingpattern",
+  options.AddOptions()("QwTracking.showmatchingpattern",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "show bit pattern for matching tracks");
   // Region 2
-  gQwOptions.AddOptions()("QwTracking.R2.levels",
+  options.AddOptions()("QwTracking.R2.levels",
                           po::value<int>()->default_value(8),
                           "number of search tree levels in region 2");
-  gQwOptions.AddOptions()("QwTracking.R2.maxslope",
+  options.AddOptions()("QwTracking.R2.maxslope",
                           po::value<float>()->default_value(0.862),
                           "maximum allowed slope for region 2 tracks");
-  gQwOptions.AddOptions()("QwTracking.R2.maxroad",
+  options.AddOptions()("QwTracking.R2.maxroad",
                           po::value<float>()->default_value(1.4),
                           "maximum allowed road width for region 2 tracks");
-  gQwOptions.AddOptions()("QwTracking.R2.maxxroad",
+  options.AddOptions()("QwTracking.R2.maxxroad",
                           po::value<float>()->default_value(25.0),
                           "maximum allowed X road width for region 2 tracks");
-  gQwOptions.AddOptions()("QwTracking.R2.MaxMissedPlanes",
+  options.AddOptions()("QwTracking.R2.MaxMissedPlanes",
                           po::value<int>()->default_value(1),
                           "maximum number of missed planes");
 
   // Region 3
-  gQwOptions.AddOptions()("QwTracking.R3.levels",
+  options.AddOptions()("QwTracking.R3.levels",
                           po::value<int>()->default_value(4),
                           "number of search tree levels in region 3");
-  gQwOptions.AddOptions()("QwTracking.R3.MaxMissedWires",
+  options.AddOptions()("QwTracking.R3.MaxMissedWires",
                           po::value<int>()->default_value(4),
                           "maximum number of missed wires");
 }

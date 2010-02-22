@@ -13,6 +13,7 @@
 
 // Qweak headers
 #include "QwColor.h"
+#include "QwOptions.h"
 
 // Create the static logger object (with streams to screen and file)
 QwLog gQwLog;
@@ -51,6 +52,23 @@ QwLog::~QwLog()
     delete fFile;
     fFile = 0;
   }
+}
+
+
+/**
+ * Defines configuration options for QwDatabase class using QwOptions
+ * functionality.
+ *
+ * @param options Options object
+ */
+void QwLog::DefineOptions(QwOptions* options)
+{
+  // Define the logging options
+  options->AddOptions()("QwLog.logfile", po::value<string>(), "log file");
+  options->AddOptions()("QwLog.loglevel-file", po::value<int>()->default_value(4),
+                "log level for file output");
+  options->AddOptions()("QwLog.loglevel-screen", po::value<int>()->default_value(2),
+                "log level for screen output");
 }
 
 
