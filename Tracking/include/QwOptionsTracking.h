@@ -22,6 +22,10 @@
 
 void DefineOptionsTracking(QwOptions& options)
 {
+  /* Define general options */
+  QwOptions::DefineOptions(options);
+
+  /* Define tracking options */
   QwTrackingWorker::DefineOptions(options);
 }
 

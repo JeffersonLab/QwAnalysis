@@ -17,10 +17,12 @@
 // Qweak options header (should be first)
 #include "QwOptions.h"
 
-// Qweak parity subsystems that provide options
-
 void DefineOptionsParity(QwOptions& options)
 {
+  /* Define general options */
+  QwOptions::DefineOptions(options);
+
+  /* Define parity options */
   /* No options defined */
 }
 
