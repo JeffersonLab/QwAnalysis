@@ -9,9 +9,10 @@
 #include "QwDatabase.h"
 
 // System headers
-//#include <fstream>
 
 // Qweak headers
+#define EXPAND_MY_SSQLS_STATICS
+#include "QwSSQLS.h"
 
 // Create the static logger object (with streams to screen and file)
 QwDatabase gQwDatabase;

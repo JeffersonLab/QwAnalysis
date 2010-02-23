@@ -7,7 +7,7 @@
  */
 
 #ifndef QWDATABASE_HH
-#define QWDATABASE_HH 
+#define QWDATABASE_HH
 
 // System headers
 //#include <iostream>
@@ -15,18 +15,19 @@
 #include <string>
 using std::string;
 
-//Third Party Headers
+// Third Party Headers
 #include <mysql++.h>
+
+// ROOT headers
+#include "TString.h"
 
 // Qweak headers
 #include "QwTypes.h"
 #include "QwLog.h"
-#include "QwOptions.h"
-#define EXPAND_MY_SSQLS_STATICS
-#include "QwSSQLS.h"
-
-#include "TString.h"
 #include "QwColor.h"
+#include "QwOptions.h"
+//#include "QwSSQLS.h"
+
 /**
  *  \class QwDatabase
  *  \ingroup QwAnalysis
@@ -45,7 +46,7 @@ class QwDatabase: private mysqlpp::Connection {
 
     ~QwDatabase(); //!< Destructor
 
-    bool Connect(); //!< Open a connection to the database using the predefined parameters.  
+    bool Connect(); //!< Open a connection to the database using the predefined parameters.
     Bool_t SetConnect(TString dbname, TString dbserver, TString dbuser, TString dbpasswd, UInt_t dbport = 0);
     void Disconnect() {disconnect();}; //<! Close an open database connection
     const string GetServerVersion() {return server_version();}; //<! Get database server version

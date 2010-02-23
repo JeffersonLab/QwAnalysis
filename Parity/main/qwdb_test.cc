@@ -4,7 +4,7 @@
 #include "QwOptions.h"
 #include "QwOptionsParity.h"
 #include "QwDatabase.h"
-//#include "QwSSQLS.h"
+#include "QwSSQLS.h"
 
 int main(int argc,char* argv[]) {
   // Setup screen and file logging
@@ -14,11 +14,8 @@ int main(int argc,char* argv[]) {
 
   // Set up command line and file options processing
   gQwOptions.SetCommandLine(argc, argv);
-  gQwOptions.SetConfigFile("qweak_mysql.conf");
+  gQwOptions.SetConfigFile("Parity/prminput/qweak_mysql.conf");
   DefineOptionsParity(gQwOptions);
-  // Get errors about not recognizing options when use config file
-  //gQwOptions.SetConfigFile("Parity/prminput/qweak_mysql.conf");
-  //gQwOptions.DefineOptions();
 
   // Start testing
   QwDebug << "qwdb_test:  Hello there!" << QwLog::endl;
