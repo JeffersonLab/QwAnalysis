@@ -9,14 +9,14 @@
 int main(int argc,char* argv[]) {
   // Setup screen and file logging
   gQwLog.InitLogFile("qwdb_test.log");
-//  gQwLog.SetFileThreshold(QwLog::kDebug);
-//  gQwLog.SetScreenThreshold(QwLog::kDebug);
+  gQwLog.SetFileThreshold(QwLog::kDebug);
+  gQwLog.SetScreenThreshold(QwLog::kDebug);
 
   // Set up command line and file options processing
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.SetConfigFile("qwdatabase.conf");
   // Get errors about not recognizing options when use config file
-  //gQwOptions.SetConfigFile("Parity/prminput/qwdatabase.conf");
+  //gQwOptions.SetConfigFile("Parity/prminput/qweak_mysql.conf");
   gQwOptions.DefineOptions();
 
   // Start testing
@@ -24,6 +24,8 @@ int main(int argc,char* argv[]) {
 
   gQwDatabase.Connect();
   QwMessage << "Database server version is " << gQwDatabase.GetServerVersion() << QwLog::endl;
+
+  gQwDatabase.PrintServerInfo();
 
   try {
     mysqlpp::Query query = gQwDatabase.Query("select * from run limit 10");
@@ -43,7 +45,13 @@ int main(int argc,char* argv[]) {
     return(-1);
   }
 
+  QwDebug << "fRunNumber = " << gQwDatabase.GetRunNumber() << QwLog::endl;
+  QwDebug << "fRunID = " << gQwDatabase.GetRunID() << QwLog::endl;
+
   const UInt_t runnum = 5;
   gQwDatabase.SetRunNumber(runnum);
+
+  QwDebug << "fRunNumber = " << gQwDatabase.GetRunNumber() << QwLog::endl;
+  QwDebug << "fRunID = " << gQwDatabase.GetRunID() << QwLog::endl;
 
 }

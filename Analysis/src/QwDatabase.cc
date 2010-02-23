@@ -35,7 +35,7 @@ QwDatabase::QwDatabase() : Connection()
  */
 QwDatabase::~QwDatabase()
 {
-  QwDebug << "QwDatabase::~QwDatabase() : Good-bye World from G0Database destructor!" << QwLog::endl;
+  QwDebug << "QwDatabase::~QwDatabase() : Good-bye World from QwDatabase destructor!" << QwLog::endl;
   Disconnect();
 }
 
@@ -51,31 +51,31 @@ bool QwDatabase::ValidateConnection() {
   // Retrieve options
   //
   string dbname, server, username, password;
-  Int_t port = gQwOptions.GetValue<int>("dbport");
+  Int_t port = gQwOptions.GetValue<int>("QwDatabse.dbport");
 
-  if (gQwOptions.HasValue("dbname")) {
-    dbname = gQwOptions.GetValue<string>("dbname");
+  if (gQwOptions.HasValue("QwDatabase.dbname")) {
+    dbname = gQwOptions.GetValue<string>("QwDatabase.dbname");
   } else {
     QwError << "QwDatabase::ValidateConnection() : No database supplied.  Unable to connect." << QwLog::endl;
     return false;
   }
 
-  if (gQwOptions.HasValue("dbusername")) {
-    username = gQwOptions.GetValue<string>("dbusername");
+  if (gQwOptions.HasValue("QwDatabase.dbusername")) {
+    username = gQwOptions.GetValue<string>("QwDatabase.dbusername");
   } else {
     QwError << "QwDatabase::ValidateConnection() : No database username supplied.  Unable to connect." << QwLog::endl;
     return false;
   }
 
-  if (gQwOptions.HasValue("dbpassword")) {
-    password = gQwOptions.GetValue<string>("dbpassword");
+  if (gQwOptions.HasValue("QwDatabase.dbpassword")) {
+    password = gQwOptions.GetValue<string>("QwDatabase.dbpassword");
   } else {
     QwError << "QwDatabase::ValidateConnection() : No database password supplied.  Unable to connect." << QwLog::endl;
     return false;
   }
 
-  if (gQwOptions.HasValue("dbserver")) {
-    server = gQwOptions.GetValue<string>("dbserver");
+  if (gQwOptions.HasValue("QwDatabase.dbserver")) {
+    server = gQwOptions.GetValue<string>("QwDatabase.dbserver");
   } else {
     QwMessage << "QwDatabase::ValidateConnection() : No database server supplied.  Attempting localhost." << QwLog::endl;
     server = "localhost";
@@ -237,7 +237,19 @@ bool QwDatabase::SetRunNumber(const UInt_t runnum)
 
     QwDebug << "Number of rows returned:  " << res.size() << QwLog::endl;
 
-    gQwDatabase.Connect();
+    if (res.size()!=1) {
+      QwError << "Unable to find unique run number " << runnum << " in database." << QwLog::endl;
+      QwError << "Run number query returned " << res.size() << "rows." << QwLog::endl;
+      QwError << "Please make sure that the database contains one unique entry for this run." << QwLog::endl;
+      return false;
+    }
+
+    QwDebug << "Run ID = " << res.at(0).run_id << QwLog::endl;
+
+    fRunNumber = runnum;
+    fRunID = res.at(0).run_id;
+
+    gQwDatabase.Disconnect();
   }
   catch (const mysqlpp::Exception& er) {
     QwError << er.what() << QwLog::endl;
