@@ -101,7 +101,7 @@ int main(Int_t argc,Char_t* argv[])
         detectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
         detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
     }
-    QwHelicityPattern helicitypattern(detectors,kMultiplet);
+    QwHelicityPattern helicitypattern(detectors);//multiplet size is set within the QwHelicityPattern class
 
     // Get the helicity
     QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystem("Helicity info");

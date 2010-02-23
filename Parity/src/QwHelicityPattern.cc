@@ -16,14 +16,17 @@
 
 
 /*****************************************************************/
-QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event, Int_t pattern_size)
+QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
 {
+  QwHelicity* input=((QwHelicity*)event.GetSubsystem("Helicity info"));
+  fPatternSize=input->GetMaxPatternPhase();
+  std::cout<<"QwHelicity::MaxPatternPhase = "<<fPatternSize<<std::endl;
   try
     {
-      if(pattern_size%2 == 0)
+      if(fPatternSize%2 == 0)
 	{
-	  fEvents.resize(pattern_size);
-	  for(int i=0;i<pattern_size;i++)
+	  fEvents.resize(fPatternSize);
+	  for(int i=0;i<fPatternSize;i++)
 	    {
 	      fHelicity.push_back(-9999);
 	      fEventLoaded.push_back(kFALSE);
@@ -37,16 +40,14 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event, Int_t patter
 	  pos_sum.Copy(&event);
 	  neg_sum.Copy(&event);
 	  difference.Copy(&event);
-
 	  fCurrentPatternNumber=-1;
-	  fPatternSize=pattern_size;
 	  ClearEventData();
 	}
       else
 	{
 	  TString loc=
 	    "Standard exception from QwHelicityPattern : the pattern size has to be even;  rigth now pattern_size=";
-	  loc+=Form("%d",pattern_size);
+	  loc+=Form("%d",fPatternSize);
 	  throw std::invalid_argument(loc.Data());
 	}
     }
