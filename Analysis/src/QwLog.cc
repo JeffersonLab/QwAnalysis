@@ -111,7 +111,7 @@ QwLog& QwLog::operator()(QwLogLevel level)
       switch (level) {
       case kError:   *(fScreen) << QwColor(Qw::kRed) << "Error: "; break;
       case kWarning: *(fScreen) << QwColor(Qw::kRed) << "Warning: "
-                                << QwColor(Qw::kWhite); break;
+                                << QwColor(Qw::kNormal); break;
       default: break;
       }
       QwLogScreenAtNewLine = kFALSE;
@@ -182,7 +182,7 @@ QwLog& QwLog::operator<<(std::ostream& (*manip) (std::ostream&))
 std::ostream& QwLog::endl(std::ostream& strm)
 {
   if (gQwLog.fScreen && gQwLog.fLogLevel <= gQwLog.fScreenThreshold) {
-    *(gQwLog.fScreen) << QwColor(Qw::kWhite) << std::endl;
+    *(gQwLog.fScreen) << QwColor(Qw::kNormal) << std::endl;
     QwLogScreenAtNewLine = kTRUE;
   }
   if (gQwLog.fFile && gQwLog.fLogLevel <= gQwLog.fFileThreshold) {
