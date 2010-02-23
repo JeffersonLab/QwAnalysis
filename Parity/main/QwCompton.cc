@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
     detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
   }
   // Helicity pattern
-  QwHelicityPattern helicitypattern(detectors, kMultiplet);
+  QwHelicityPattern helicitypattern(detectors);
 
   // Get the SIS3320 channel for debugging
   MQwSIS3320_Channel* sampling = 0;

@@ -100,7 +100,7 @@ int main(Int_t argc,Char_t* argv[])
   ///Specifies the same helicity pattern used by all subsystems
   ///to calculate asymmetries. The pattern is defined in the
   ///QwHelicityPattern class.
-  //QwHelicityPattern QwHelPat(QwDetectors,4);
+  //QwHelicityPattern QwHelPat(QwDetectors);
 
 
   //////////////////////////////////////////////////////////
