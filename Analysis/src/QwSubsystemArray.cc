@@ -145,6 +145,40 @@ void  QwSubsystemArray::DeleteHistograms()
 
 //*****************************************************************
 
+/**
+ * Construct the tree for this subsystem
+ * @param folder Directory where to construct the tree
+ * @param prefix Prefix for the name of the tree
+ */
+void  QwSubsystemArray::ConstructTree(TDirectory *folder, TString &prefix)
+{
+  if (!empty()) {
+    for (iterator subsys = begin(); subsys != end(); ++subsys){
+      (*subsys)->ConstructTree(folder, prefix);
+    }
+  }
+};
+
+/**
+ * Fill the tree for this subsystem
+ */
+void  QwSubsystemArray::FillTree()
+{
+  if (!empty())
+    std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::FillTree));
+};
+
+/**
+ * Delete the tree for this subsystem
+ */
+void  QwSubsystemArray::DeleteTree()
+{
+  if (!empty())
+    std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::DeleteTree));
+};
+
+//*****************************************************************
+
 void  QwSubsystemArray::Print()
 {
   if (!empty())

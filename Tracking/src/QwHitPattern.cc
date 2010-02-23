@@ -134,17 +134,19 @@ void QwHitPattern::SetHDCHit (
 {
   // Get the wire number
   int wire = hit->GetElement();
-  double wirespacing = hit->GetDetectorInfo()->GetElementSpacing();
+  double drift_distance = hit->GetDriftDistance();
+  double wire_spacing = hit->GetDetectorInfo()->GetElementSpacing();
+  double track_resolution = hit->GetDetectorInfo()->GetTrackResolution();
 
   // Set the points on the front/top side of the wire (R3/R2)
-  _SetPoints(wirespacing * (wire+1) - hit->GetDriftDistance() - hit->GetTrackResolution(),
-	     wirespacing * (wire+1) - hit->GetDriftDistance() + hit->GetTrackResolution(),
-	     detectorwidth);
+  _SetPoints(wire_spacing * (wire+1) - drift_distance - track_resolution,
+             wire_spacing * (wire+1) - drift_distance + track_resolution,
+             detectorwidth);
 
   // Set the points on the back/bottom side of the wire (R3/R2)
-  _SetPoints(wirespacing * (wire+1) + hit->GetDriftDistance() - hit->GetTrackResolution(),
-	     wirespacing * (wire+1) + hit->GetDriftDistance() + hit->GetTrackResolution(),
-	     detectorwidth);
+  _SetPoints(wire_spacing * (wire+1) + drift_distance - track_resolution,
+             wire_spacing * (wire+1) + drift_distance + track_resolution,
+             detectorwidth);
 
   return;
 }
@@ -164,16 +166,18 @@ void QwHitPattern::SetVDCHit (
 	QwHit *hit)
 {
   double halfwidth = (detectorwidth / 2.0); /* half-width of the detector (in cm) */
+  double drift_distance = hit->GetDriftDistance();
+  double track_resolution = hit->GetDetectorInfo()->GetTrackResolution();
 
   // Set the points on the front/top side of the wire (R3/R2)
-  _SetPoints(halfwidth - hit->GetDriftDistance() - hit->GetTrackResolution(),
-	     halfwidth - hit->GetDriftDistance() + hit->GetTrackResolution(),
-	     detectorwidth);
+  _SetPoints(halfwidth - drift_distance - track_resolution,
+             halfwidth - drift_distance + track_resolution,
+             detectorwidth);
 
   // Set the points on the back/bottom side of the wire (R3/R2)
-  _SetPoints(halfwidth + hit->GetDriftDistance() - hit->GetTrackResolution(),
-	     halfwidth + hit->GetDriftDistance() + hit->GetTrackResolution(),
-	     detectorwidth);
+  _SetPoints(halfwidth + drift_distance - track_resolution,
+             halfwidth + drift_distance + track_resolution,
+             detectorwidth);
 
   return;
 }

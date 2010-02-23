@@ -145,6 +145,9 @@ class QwTrackingTreeCombine {
     double fMaxRoad;
     double fMaxXRoad;
 
+    /// Maximum number of missed planes in region 2
+    int fMaxMissedPlanes;
+
     // The following is largely useless (or at least the use is not understood).
     // Only chi_hashinsert is ever called, but never anything is searched in the
     // hash table...

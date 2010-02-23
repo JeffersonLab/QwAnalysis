@@ -16,7 +16,7 @@ const Int_t QwEventBuffer::kFileHandleNotConfigured  = -40;
 
 /// This is the ASCII character array 'NULL', and is used by the
 /// DAQ to indicate a known empty buffer.
-const UInt_t QwEventBuffer::kNullDataWord = 0x4e554c4c; 
+const UInt_t QwEventBuffer::kNullDataWord = 0x4e554c4c;
 
 QwEventBuffer::QwEventBuffer():fDEBUG(kFALSE),fDataFileStem("QwRun_"),
 			       fDataFileExtension("log"),
@@ -572,10 +572,10 @@ Bool_t QwEventBuffer::DataFileIsSegmented()
       /* There are no file segments and no base file            *
        * Produce and error message and exit.                    */
       std::cerr << "\n      There are no file segments either!!" << std::endl;
-      globfree(&globbuf);
-      //  Don't exit.
-      //      exit(1);
-      fRunIsSegmented = kTRUE;
+
+      // This could mean a single gzipped file!
+      fRunIsSegmented = kFALSE;
+
     } else {
       /* There are file segments.                               *
        * Determine the segment numbers and fill fRunSegments    *

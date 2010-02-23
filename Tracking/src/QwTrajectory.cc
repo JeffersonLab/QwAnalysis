@@ -99,13 +99,13 @@ void QwTrajectory::LoadMagneticFieldMap() {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void QwTrajectory::SetStartAndEndPoints(TVector3 startpoint, TVector3 startpointdirection,
-                                        TVector3 endpoint, TVector3 endpointdirection) {
+void QwTrajectory::SetStartAndEndPoints(TVector3 startposition, TVector3 startdirection,
+                                        TVector3 endposition, TVector3 enddirection) {
 
-    fStartPosition = startpoint;
-    fStartDirection = startpointdirection;
-    fEndPosition = endpoint;
-    fEndDirection = endpointdirection;
+    fStartPosition = startposition;
+    fStartDirection = startdirection;
+    fEndPosition = endposition;
+    fEndDirection = enddirection;
 
     fStartPositionR = sqrt(fStartPosition.X()*fStartPosition.X()+fStartPosition.Y()*fStartPosition.Y());
     fStartPositionPhi = atan2(fStartPosition.Y(),fStartPosition.X())*DEGREE;
@@ -130,50 +130,6 @@ int QwTrajectory::BridgeFrontBackPartialTrack() {
 
     int status;
 
-#ifdef TESTEVENT
-//test event 1: shoot an electron from target with ~8 deg scattering angle
-    TVector3 startpoint(0.0,0.0,-650.0);
-    TVector3 startpointdirection(0.0,sin(10.0*3.1415927/180.0),cos(10.0*3.1415927/180.0));
-    TVector3 endpoint(2.38, 330.6, 571.1);
-    TVector3 endpointdirection(0.0,sin(23.0*3.1415927/180.0),cos(23.0*3.1415927/180.0));
-
-
-//Test event 2: this single ideal test event is chosen from G4 simulation with momentum=1.148817139
-// endpoint direction is calculated from hit in trigger scintillator and C-bar
-    std::cout<<std::endl<<"Test the bridging code with an ideal MC event:"<<std::endl;
-
-    double testUx = 71.882591-70.384743;
-    double testUy = 328.381226-322.522278;
-    double testUz = 570.717773-555.592896;
-    double testR = sqrt(testUx*testUx+testUy*testUy+testUz*testUz);
-    endpointdirection = TVector3(testUx/testR,testUy/testR,testUz/testR);
-
-    testUx = 29.548246; //momentum component of the hit at R2 back chamber wireplane 6
-    testUy = 170.25393;
-    testUz = 1136.2637;
-    testR = sqrt(testUx*testUx+testUy*testUy+testUz*testUz);
-    startpointdirection = TVector3(testUx/testR,testUy/testR,testUz/testR);
-
-    endpoint = TVector3(71.882591,328.381226,570.717773);    // hit position on Cerenkov bar
-    startpoint = TVector3(9.0694189,53.198646,-280.2352);   //hit position on R2 back chamber
-
-#ifdef BACKSWIM
-    // backward swiming
-    TVector3 swap = startpoint;
-    startpoint = endpoint;
-    endpoint = swap;
-    swap = startpointdirection;
-    startpointdirection = endpointdirection;
-    endpointdirection = swap;
-    //end of defination of backward swiming
-#endif
-
-    status = 0;
-    SetStartAndEndPoints(startpoint,startpointdirection,endpoint,endpointdirection);
-
-#endif
-//end of test event
-
     fMatchFlag = -2;
     status = Filter();
     if (status == -1)  return -1;
@@ -181,7 +137,9 @@ int QwTrajectory::BridgeFrontBackPartialTrack() {
     status = SearchTable();
     if (status == -1)  status = Shooting();
 
-//    if (status == -1)  status = DoForcedBridging();
+    // status = Shooting();
+
+    // if (status == -1)  status = DoForcedBridging();
 
     return status;
 };
@@ -274,7 +232,7 @@ int QwTrajectory::SearchTable() {
     for (int p = P_MIN; p<=P_MAX; p+=DP) {
         // build index
         int index_momentum = ((int)p-P_MIN)/DP;
-        uint index = index_momentum*R_GRIDSIZE*PHI_GRIDSIZE*Z_GRIDSIZE
+        unsigned int index = index_momentum*R_GRIDSIZE*PHI_GRIDSIZE*Z_GRIDSIZE
                      + index_pos_r*PHI_GRIDSIZE*Z_GRIDSIZE
                      + index_pos_phi*Z_GRIDSIZE
                      + index_vertex_z ;
@@ -292,8 +250,8 @@ int QwTrajectory::SearchTable() {
 
     //NOTE The dr/dp on focal plane is about 1 cm per 10 MeV
 
-    if (backtrackparametersublist.front().fPositionR  < expectedhitposition_r ||
-            backtrackparametersublist.back().fPositionR  > expectedhitposition_r ) {
+    if ( (backtrackparametersublist.front().fPositionR  < expectedhitposition_r) &&
+            (backtrackparametersublist.back().fPositionR   > expectedhitposition_r) ) {
         std::cout<<"No match in look-up table!"<<std::endl;
         return -1;
     }
@@ -307,7 +265,7 @@ int QwTrajectory::SearchTable() {
 
 #if defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
 
-#if ROOT_VERSION_CODE >= ROOT_VERSION(5,22,0)
+#if ROOT_VERSION_CODE >= ROOT_VERSION(5,20,0)
     // Newer version of the MathMore plugin use kPOLYNOMIAL
     ROOT::Math::Interpolator inter(size, ROOT::Math::Interpolation::kPOLYNOMIAL);
 #else
@@ -316,13 +274,13 @@ int QwTrajectory::SearchTable() {
 #endif
 
     inter.SetData(size, iR, iP);
-    fMomentum = inter.Eval(expectedhitposition_r) + 0.0036;  // [GeV]
+    fMomentum = inter.Eval(expectedhitposition_r);  // + 0.0016;  // [GeV]
 
     delete iP;
     delete iR;
 
     // take the track parameter from the nearest track
-    if (fMomentum<0.96 || fMomentum>1.165) {
+    if (fMomentum<0.98 || fMomentum>1.165) {
         std::cerr<<"Out of momentum range: determined momentum by looking up table: "
         << fMomentum<<" GeV"<<std::endl;
         return -1;
@@ -423,7 +381,7 @@ int QwTrajectory::Shooting() {
         if (r[0]!=r[1])
             p[1] = p[0] -0.5*dp*(r[0]+r[1]-2.0*fEndPositionR)/(r[1]-r[0]);
 
-        //TODO - need to take into account of the energy loss along the trajectories, assume ~2 MeV for now.
+        //TODO - need to take into account of the energy loss along the trajectories, assume ~7 MeV for now.
         //     - need slope matching as well
 
         Integrate(p[1], step_size);
@@ -452,8 +410,15 @@ int QwTrajectory::Shooting() {
         fDirectionPhiOff = fHitDirectionPhi - fEndDirectionPhi;
 
         if ( fPositionROff<res) {
-            fMomentum = p[1] + 0.0036;
+            fMomentum = p[1]; // + 0.007;
             std::cout<<"Converged after "<<n<<" iterations."<<std::endl;
+
+            if (fMomentum<0.980 || fMomentum>1.165) {
+                std::cerr<<"Out of momentum range: determined momentum by shooting: "
+                << fMomentum<<" GeV"<<std::endl;
+                return -1;
+            }
+
             fMatchFlag = 1;
             return 0;
         }
@@ -962,8 +927,10 @@ void QwTrajectory::GenerateLookUpTable() {
 // buffer for the event. The effiency is low in this way, but ok for test purpose.
 
 int QwTrajectory::ReadSimPartialTrack(const TString filename, int evtnum,
-                                      TVector3 *startposition, TVector3 *startdirection,
-                                      TVector3 *endposition, TVector3 *enddirection) {
+                                      std::vector<TVector3> *startposition,
+                                      std::vector<TVector3> *startdirection,
+                                      std::vector<TVector3> *endposition,
+                                      std::vector<TVector3> *enddirection) {
 
     if (fSimFlag == 0) {
         //initialize tree
@@ -1012,7 +979,8 @@ int QwTrajectory::ReadSimPartialTrack(const TString filename, int evtnum,
     fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.clear();
 
     fPrimary_OriginVertexKineticEnergy = 0.0;
-    fMomentumOff = 0.0;
+    fPrimary_CrossSectionWeight = 0.0;
+    //fMomentumOff = 0.0;
 
     // Open ROOT file
     TFile *simrootfile = new TFile (filename);
@@ -1068,6 +1036,11 @@ int QwTrajectory::ReadSimPartialTrack(const TString filename, int evtnum,
 
     g4simtree->SetBranchAddress("Primary.OriginVertexKineticEnergy",
                                 &fPrimary_OriginVertexKineticEnergy);
+    g4simtree->SetBranchAddress("Primary.PrimaryQ2",
+                                &fPrimary_PrimaryQ2);
+    g4simtree->SetBranchAddress("Primary.CrossSectionWeight",
+                                &fPrimary_CrossSectionWeight);
+
 
     g4simtree->GetBranch("Region2.ChamberFront.WirePlane1.PlaneHasBeenHit")->GetEntry(evtnum);
     g4simtree->GetBranch("Region3.ChamberFront.WirePlaneU.HasBeenHit")->GetEntry(evtnum);
@@ -1079,9 +1052,9 @@ int QwTrajectory::ReadSimPartialTrack(const TString filename, int evtnum,
         std::cerr << "Reading G4Sim Event: skip an empty event - event#" << evtnum << std::endl;
     }
 
-    // take the first hit for now
-    fRegion2_ChamberFront_WirePlane1_NbOfHits = 1;
-    fRegion3_ChamberFront_WirePlaneU_NbOfHits = 1;
+    // In case of taking the first hit only, let
+    //fRegion2_ChamberFront_WirePlane1_NbOfHits = 1;
+    //fRegion3_ChamberFront_WirePlaneU_NbOfHits = 1;
 
     //Set start and end point and direction
     for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane1_NbOfHits && i1 < VSIZE; i1++) {
@@ -1094,9 +1067,29 @@ int QwTrajectory::ReadSimPartialTrack(const TString filename, int evtnum,
         double yMomentum = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumY.at(i1);
         double zMomentum = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumZ.at(i1);
 
+        // smear off the positions to ~500 um
+        double sigma = 0.05;  // 0.05 [cm]
+        x = gRandom->Gaus(x,sigma);
+        y = gRandom->Gaus(y,sigma);
+        startposition->push_back( TVector3(x,y,z));
+
+        // smear off direction to ~0.1 degree
         double momentum = sqrt(xMomentum*xMomentum+yMomentum*yMomentum+zMomentum*zMomentum);
-        *startposition = TVector3(x,y,z);
-        *startdirection = TVector3(xMomentum/momentum,yMomentum/momentum,zMomentum/momentum);
+        double ux = xMomentum/momentum;
+        double uy = yMomentum/momentum;
+        double uz = zMomentum/momentum;
+        double directionTheta = acos(uz)*DEGREE;
+        double directionPhi = atan2(uy,ux)*DEGREE;
+        double sigma_theta = 0.1;
+        double sigma_phi = 0.1;
+        directionTheta = gRandom->Gaus(directionTheta, sigma_theta);
+        directionPhi = gRandom->Gaus(directionPhi, sigma_phi);
+        if (directionPhi<0) directionPhi = directionPhi+360.0;
+
+        ux = sin(directionTheta/DEGREE)*cos(directionPhi/DEGREE);
+        uy = sin(directionTheta/DEGREE)*sin(directionPhi/DEGREE);
+        uz = cos(directionTheta/DEGREE);
+        startdirection->push_back( TVector3(ux,uy,uz));
     }
 
     for (int i1 = 0; i1 < fRegion3_ChamberFront_WirePlaneU_NbOfHits && i1 < VSIZE; i1++) {
@@ -1106,15 +1099,35 @@ int QwTrajectory::ReadSimPartialTrack(const TString filename, int evtnum,
             double x = fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.at(i1);
             double y = fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.at(i1);
             double z = fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.at(i1);
-            fEndPosition = TVector3(x,y,z);
+            //fEndPosition = TVector3(x,y,z);
 
             double xMomentum = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.at(i1);
             double yMomentum = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.at(i1);
             double zMomentum = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ.at(i1);
 
+            // smear off the positions to ~500 um
+            double sigma = 0.05;  // 0.05 [cm]
+            x = gRandom->Gaus(x,sigma);
+            y = gRandom->Gaus(y,sigma);
+            endposition->push_back( TVector3(x,y,z));
+
+            // smear off direction to ~0.1 degree
             double momentum = sqrt(xMomentum*xMomentum+yMomentum*yMomentum+zMomentum*zMomentum);
-            *endposition = TVector3(x,y,z);
-            *enddirection = TVector3(xMomentum/momentum,yMomentum/momentum,zMomentum/momentum);
+            double ux = xMomentum/momentum;
+            double uy = yMomentum/momentum;
+            double uz = zMomentum/momentum;
+            double directionTheta = acos(uz)*DEGREE;
+            double directionPhi = atan2(uy,ux)*DEGREE;
+            double sigma_theta = 0.1;
+            double sigma_phi = 0.1;
+            directionTheta = gRandom->Gaus(directionTheta, sigma_theta);
+            directionPhi = gRandom->Gaus(directionPhi, sigma_phi);
+            if (directionPhi<0) directionPhi = directionPhi+360.0;
+
+            ux = sin(directionTheta/DEGREE)*cos(directionPhi/DEGREE);
+            uy = sin(directionTheta/DEGREE)*sin(directionPhi/DEGREE);
+            uz = cos(directionTheta/DEGREE);
+            enddirection->push_back( TVector3(ux,uy,uz));
         }
     }
     fPrimary_OriginVertexKineticEnergy = fPrimary_OriginVertexKineticEnergy*0.001;
@@ -1167,11 +1180,22 @@ void QwTrajectory::GetBridgingResult(Double_t *buffer) {
     buffer[32] = fDirectionThetaOff;
     buffer[33] = fDirectionPhiOff;
     buffer[34] = fMomentum;
-    buffer[35] = fPrimary_OriginVertexKineticEnergy;
 
-    fMomentumOff = fMomentum-fPrimary_OriginVertexKineticEnergy;
-    buffer[36] = fMomentumOff;
-    buffer[37] = fMatchFlag;
+    double Mp = 0.938272013;    // Mass of the Proton
+    double P0 = Mp*fMomentum/(Mp-fMomentum*(1-cos(fStartDirectionTheta/DEGREE))); //pre-scattering energy
+    double Q2 = 2.0*Mp*(P0-fMomentum);
+    buffer[35] = P0;
+    buffer[36] = Q2;
+
+    buffer[37] = fPrimary_OriginVertexKineticEnergy;
+    buffer[38] = fPrimary_PrimaryQ2;
+
+    double MomentumOff = fMomentum-fPrimary_OriginVertexKineticEnergy;
+    double Q2_Off = Q2-fPrimary_PrimaryQ2;
+    buffer[39] = MomentumOff;
+    buffer[40] = Q2_Off;
+    buffer[41] = fPrimary_CrossSectionWeight;
+    buffer[42] = fMatchFlag;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

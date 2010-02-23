@@ -15,15 +15,17 @@
 #include <string>
 using std::string;
 
+// Qweak headers
+#include "QwTypes.h"
+
 /*!
  * \note Because QwOptions depends on QwLog, and QwLog depends also on QwOptions,
  * we cannot include QwOptions in the QwLog header file here.  QwLog is treated
  * as more basic than QwOptions.
  */
 
-// Qweak headers
-#include "QwTypes.h"
-
+// Forward declarations
+class QwOptions;
 
 /*! \def QwOut
  *  \brief Predefined log drain for explicit output
@@ -75,6 +77,9 @@ class QwLog : public std::ostream {
 
   public:
 
+    /// \brief Define available class options for QwOptions
+    static void DefineOptions(QwOptions* options);
+
     //! Loglevels
     /*! enum of possible log levels */
     enum QwLogLevel {
@@ -86,6 +91,10 @@ class QwLog : public std::ostream {
       kDebug     =  4  /*!< Debug loglevel   */
     };
 
+    //! Log file open modes
+    static const std::ios_base::openmode kTruncate;
+    static const std::ios_base::openmode kAppend;
+
     /*! \brief The constructor
      */
     QwLog();
@@ -96,7 +105,7 @@ class QwLog : public std::ostream {
 
     /*! \brief Initialize the log file with name 'name'
      */
-    void                        InitLogFile(const std::string name);
+    void                        InitLogFile(const std::string name, const std::ios_base::openmode mode = kAppend);
 
     /*! \brief Set the screen log level
      */

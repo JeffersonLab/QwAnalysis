@@ -1,8 +1,11 @@
 #include "QwVQWK_Channel.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
 
-
+// Qweak headers
+#include "QwUnits.h"
+#include "QwHistogramHelper.h"
 
 
 const Bool_t QwVQWK_Channel::kDEBUG = kFALSE;
@@ -26,7 +29,7 @@ boost::variate_generator < boost::mt19937, boost::normal_distribution<double> >
 /*!  Conversion factor to translate the average bit count in an ADC
  *   channel into average voltage.
  *   The base factor is 0.07629 mV per count, and zero counts corresponds
- *   to zero voltage. 
+ *   to zero voltage.
  */
 const Double_t QwVQWK_Channel::kVQWK_VoltsPerBit = 76.29e-6;
 
@@ -35,20 +38,22 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
   Bool_t bStatus;
-  fDeviceErrorCode=0;//Initialize the error flag 
-
-  
-    
+  fDeviceErrorCode=0;//Initialize the error flag
+  /*
+  //debug- Ring analysis
+  fEventCounter++;
+  fTripCounter++;
+  */
 
   if (bEVENTCUTMODE>0){//Global switch to ON/OFF event cuts set at the event cut file
 
-    if (bDEBUG) 
-      std::cout<<" QwQWVK_Channel "<<GetElementName()<<"  "<<fNumberOfSamples_map<<std::endl;  
-    //Sample size check  
-  
+    if (bDEBUG)
+      std::cout<<" QwQWVK_Channel "<<GetElementName()<<"  "<<GetNumberOfSamples()<<std::endl;
+    //Sample size check
+
     bStatus= MatchNumberOfSamples(fNumberOfSamples_map);//compare the default sample size with no.of samples read by the module
-  
-    
+
+
     if (!bStatus){
       fDeviceErrorCode|=kErrorFlag_sample;
       fErrorCount_sample++; //increment the error counter
@@ -57,23 +62,23 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
     bStatus= (GetRawHardwareSum()==GetRawSoftwareSum());
     //fEventIsGood =bStatus;
     if (!bStatus){
-      fDeviceErrorCode|=kErrorFlag_SW_HW; 
+      fDeviceErrorCode|=kErrorFlag_SW_HW;
       fErrorCount_SW_HW++;
     }
-  
 
-  
+
+
     //check sequence number
     fSequenceNo_Prev++;
-    if (fSequenceNo_Counter==0 || GetSequenceNumber()==0){//starting the data run 
-      fSequenceNo_Prev=GetSequenceNumber();     
+    if (fSequenceNo_Counter==0 || GetSequenceNumber()==0){//starting the data run
+      fSequenceNo_Prev=GetSequenceNumber();
     }
 
     if (!MatchSequenceNumber(fSequenceNo_Prev)){//we have a sequence number error
-      fEventIsGood=kFALSE;   
-      fDeviceErrorCode|=kErrorFlag_Sequence; 
+      fEventIsGood=kFALSE;
+      fDeviceErrorCode|=kErrorFlag_Sequence;
       fErrorCount_Sequence++;
-      if (bDEBUG) std::cout<<" QwQWVK_Channel "<<GetElementName()<<" Sequence number is not incrementing properly; previous value = "<<fSequenceNo_Prev<<" Current value= "<< GetSequenceNumber()<<std::endl;     
+      if (bDEBUG)       std::cout<<" QwQWVK_Channel "<<GetElementName()<<" Sequence number  previous value = "<<fSequenceNo_Prev<<" Current value= "<< GetSequenceNumber()<<std::endl;
     }
 
     fSequenceNo_Counter++;
@@ -92,14 +97,39 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
       fDeviceErrorCode|=kErrorFlag_SameHW;
       fErrorCount_SameHW++;
     }
+
+    //check for the hw_sum is zero
+    if (GetRawHardwareSum()==0){
+      fDeviceErrorCode|=kErrorFlag_ZeroHW;
+      fErrorCount_ZeroHW++;
+    }
     if (!fEventIsGood)
-      fSequenceNo_Counter=0;//resetting the counter after ApplyHWChecks() a faliure 
-    
+      fSequenceNo_Counter=0;//resetting the counter after ApplyHWChecks() a faliure
+
   }
   else
     fDeviceErrorCode=0;
-  
-    
+
+
+
+  /*
+  //debug- Ring analysis
+  if (fEventCounter%100000==0){
+    bTrip=kTRUE;
+    fTripCounter=0;
+  }
+
+  if (bTrip && fTripCounter==801)
+    bTrip=kFALSE;
+
+  if (bTrip){
+    if (fTripCounter<401)
+      fHardwareBlockSum=fHardwareBlockSum*exp(-1*fTripCounter/75);//special lines to induce decaying beam trip
+    else
+      fHardwareBlockSum=fHardwareBlockSum*exp(-1*(800-fTripCounter)/75);
+  }
+  */
+
 
   return fDeviceErrorCode;
 };
@@ -107,8 +137,57 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
 /********************************************************/
 
 
+void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
+{
+  SetElementName(name);
+  SetNumberOfDataWords(6);
+  fSamplesPerBlock = 16680; //jpan: total samples = fSamplesPerBlock x fBlocksPerEvent
+  fBlocksPerEvent = 4;
+  fPedestal=0.0;
+  fCalibrationFactor=1.;
 
+  // Mock drifts
+  fMockDriftAmplitude.clear();
+  fMockDriftFrequency.clear();
+  fMockDriftPhase.clear();
 
+  // Mock asymmetries
+  fMockAsymmetry = 0.0;
+  fMockGaussianMean = 0.0;
+  fMockGaussianSigma = 0.0;
+
+  fEventNumber = 0;
+
+  // Event cuts
+  fNumEvtsWithEventCutsRejected=0;//init error counters
+  fADC_Same_NumEvt=0;//init HW_Check counters
+  fPrev_HardwareBlockSum=0;//init HW_Check counters
+  fSequenceNo_Counter=0;//init HW_Check counters
+
+  if (datatosave=="raw") fDataToSave=kRaw;
+  else
+    if (datatosave=="derived") fDataToSave=kDerived;
+
+  fGoodEventCount=0;//initialize the event counter
+  fRunning_sum=0;
+  fRunning_sum_square=0;
+  //init error counters//
+  fErrorCount_sample=0;//for sample size check
+  fErrorCount_SW_HW=0;//HW_sum==SW_sum check
+  fErrorCount_Sequence=0;//sequence number check
+  fErrorCount_SameHW=0;//check to see ADC returning same HW value
+  fErrorCount_ZeroHW=0;
+  /*
+  //debug- Ring analysis
+  fEventCounter=1;
+  fTripCounter=0;
+  bTrip=kFALSE;
+  */
+  fDeviceErrorCode=0;
+  return;
+}
+
+/********************************************************/
 Int_t QwVQWK_Channel::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
   ReportErrorCounters();//print the summary
   return 1;
@@ -134,9 +213,19 @@ void QwVQWK_Channel::RandomizeEventData(int helicity)
   Double_t sqrt_fBlocksPerEvent = 0.0;
   sqrt_fBlocksPerEvent = sqrt(fBlocksPerEvent);
 
+  // Calculate drift
+  Double_t time = fEventNumber * Qw::ms; // WARNING: Hard-coded helicity window!!!
+  Double_t drift = 0.0;
+  for (size_t i = 0; i < fMockDriftFrequency.size(); i++) {
+    drift += fMockDriftAmplitude[i] * sin(2.0 * Qw::pi * fMockDriftFrequency[i] * time + fMockDriftPhase[i]);
+  }
+
+  // Calculate signal
   for (size_t i = 0; i < fBlocksPerEvent; i++)
     block[i] = fMockGaussianMean * (1 + helicity * fMockAsymmetry) / fBlocksPerEvent
-             + fMockGaussianSigma / sqrt_fBlocksPerEvent * fNormalRandomVariable();
+      + fMockGaussianSigma / sqrt_fBlocksPerEvent * fNormalRandomVariable()
+      + drift / fBlocksPerEvent;
+
   SetEventData(block);
 };
 
@@ -146,6 +235,26 @@ void QwVQWK_Channel::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
   for (size_t i = 0; i < fBlocksPerEvent; i++)
     block[i] = hwsum / fBlocksPerEvent;
   SetEventData(block);
+};
+
+void QwVQWK_Channel::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
+{
+  // Clear existing values
+  fMockDriftAmplitude.clear();
+  fMockDriftFrequency.clear();
+  fMockDriftPhase.clear();
+  // Add new values
+  fMockDriftAmplitude.push_back(amplitude);
+  fMockDriftFrequency.push_back(frequency);
+  fMockDriftPhase.push_back(phase);
+};
+
+void QwVQWK_Channel::AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
+{
+  // Add new values
+  fMockDriftAmplitude.push_back(amplitude);
+  fMockDriftFrequency.push_back(frequency);
+  fMockDriftPhase.push_back(phase);
 };
 
 void QwVQWK_Channel::SetRandomEventParameters(Double_t mean, Double_t sigma)
@@ -483,7 +592,7 @@ void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values)
       values[index++] = this->GetBlockValue(i);
     }
     values[index++] = this->fNumberOfSamples;
-    
+
     values[index++] = this->fDeviceErrorCode;
     if(fDataToSave==kRaw)
       {
@@ -573,10 +682,16 @@ void QwVQWK_Channel::Difference(QwVQWK_Channel &value1, QwVQWK_Channel &value2){
 void QwVQWK_Channel::Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom){
   if (!IsNameEmpty()){
     for (size_t i=0; i<4; i++){
-      this->fBlock[i] = (numer.fBlock[i]) / (denom.fBlock[i]);
-      this->fBlock_raw[i]=0;
+      if (denom.fBlock[i]!=0){
+	this->fBlock[i] = (numer.fBlock[i]) / (denom.fBlock[i]);
+	this->fBlock_raw[i]=0;
+      }else
+	this->fBlock[i] = 0;
     }
-    this->fHardwareBlockSum = (numer.fHardwareBlockSum) / (denom.fHardwareBlockSum);
+    if (denom.fHardwareBlockSum!=0)//this fail safe check is needed when EVENTCUTS (HW) are turned off.
+      this->fHardwareBlockSum = (numer.fHardwareBlockSum) / (denom.fHardwareBlockSum);
+    else
+      this->fHardwareBlockSum = 0;
     this->fSoftwareBlockSum_raw = 0;
     this->fHardwareBlockSum_raw = 0;
     this->fNumberOfSamples = denom.fNumberOfSamples;
@@ -606,32 +721,34 @@ void QwVQWK_Channel::Scale(Double_t scale)
     }
 };
 
-void QwVQWK_Channel::Calculate_Running_Average(){ 
+void QwVQWK_Channel::Calculate_Running_Average(){
 
   if (!fGoodEventCount){
     std::cout<<GetElementName()<<"\t0\t 0\t 0"<<std::endl;
   }else{
     fAverage_n=fRunning_sum/fGoodEventCount;
     fAverage_n_square=fRunning_sum_square/fGoodEventCount;
-    std::cout<<GetElementName()<<" \t "<<this->fAverage_n <<" \t "<<((fAverage_n_square-fAverage_n*fAverage_n)/fGoodEventCount) <<" \t "<<fGoodEventCount <<std::endl;
+    std::cout<<GetElementName()<<" \t "<<this->fAverage_n <<" \t "<<sqrt(((fAverage_n_square-fAverage_n*fAverage_n)/fGoodEventCount)) <<" \t "<<fGoodEventCount <<std::endl;
+
   }
 
-   
+
 };
 
 void QwVQWK_Channel::Do_RunningSum(){
   if (fDeviceErrorCode == 0){//if the device HW is good
-    
+
     fRunning_sum+=fHardwareBlockSum;//increase the sum. sum square and event counter
     fRunning_sum_square+=fHardwareBlockSum*fHardwareBlockSum;
     fGoodEventCount++;
   }
+
 };
 
 
 Bool_t QwVQWK_Channel::MatchSequenceNumber(size_t seqnum)
 {
-  
+
   Bool_t status = kTRUE;
   if (!IsNameEmpty()){
     status = (fSequenceNumber==seqnum);
@@ -641,7 +758,7 @@ Bool_t QwVQWK_Channel::MatchSequenceNumber(size_t seqnum)
 
 Bool_t QwVQWK_Channel::MatchNumberOfSamples(size_t numsamp)
 {
-  //std::cout<<" QwQWVK_Channel "<<GetElementName()<<"  "<<fNumberOfSamples_map<<" "<<numsamp<<" "<<fNumberOfSamples<<std::endl; 
+  //std::cout<<" QwQWVK_Channel "<<GetElementName()<<"  "<<fNumberOfSamples_map<<" "<<numsamp<<" "<<fNumberOfSamples<<std::endl;
   Bool_t status = kTRUE;
   if (!IsNameEmpty()){
     status = (fNumberOfSamples==numsamp);
@@ -657,15 +774,17 @@ Bool_t QwVQWK_Channel::MatchNumberOfSamples(size_t numsamp)
   return status;
 };
 
-Bool_t QwVQWK_Channel::ApplySingleEventCuts(Double_t LL,Double_t UL){
+Bool_t QwVQWK_Channel::ApplySingleEventCuts(Double_t LL=0,Double_t UL=0){
   Bool_t status;
   if (bEVENTCUTMODE==2){//Global switch to ON/OFF event cuts set at the event cut file
 
-    if (GetHardwareSum()<=UL && GetHardwareSum()>=LL){
+    if (LL==0 && UL==0){
+      status=kTRUE;
+    } else  if (GetHardwareSum()<=UL && GetHardwareSum()>=LL){
       if (!fDeviceErrorCode)
 	status=kTRUE;
       else
-	status=kFALSE;//If the device HW is falied 
+	status=kFALSE;//If the device HW is falied
     }
     else{
       if (GetHardwareSum()> UL)
@@ -674,7 +793,9 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts(Double_t LL,Double_t UL){
 	fDeviceErrorCode|=kErrorFlag_EventCut_L;
       status=kFALSE;
     }
-    
+
+
+
   }
   else
     status=kTRUE;
@@ -704,8 +825,8 @@ void QwVQWK_Channel::Copy(VQwDataElement *source)
 	 this->fRunning_sum=input->fRunning_sum;
 	 this->fRunning_sum_square=input->fRunning_sum_square;
 	 this->fAverage_n= input->fAverage_n;
-	 this->fAverage_n_square=input->fAverage_n_square;  
-	 this->fGoodEventCount=input->fGoodEventCount;  
+	 this->fAverage_n_square=input->fAverage_n_square;
+	 this->fGoodEventCount=input->fGoodEventCount;
        }
      else
        {
@@ -724,22 +845,23 @@ void QwVQWK_Channel::Copy(VQwDataElement *source)
 }
 
 void  QwVQWK_Channel::ReportErrorCounters(){
- 
-    
-  
-  if (fErrorCount_sample || fErrorCount_SW_HW || fErrorCount_Sequence || fErrorCount_SameHW || fNumEvtsWithEventCutsRejected){
-     std::cout<<GetElementName();  
+
+
+
+  if (fErrorCount_sample || fErrorCount_SW_HW || fErrorCount_Sequence || fErrorCount_SameHW || fErrorCount_ZeroHW || fNumEvtsWithEventCutsRejected){
+     std::cout<<GetElementName();
      //if (fErrorCount_sample)
-       std::cout <<"\t"<<fErrorCount_sample; 
+       std::cout <<"\t"<<fErrorCount_sample;
        //if (fErrorCount_SW_HW)
-      std::cout <<"\t"<<fErrorCount_SW_HW; 
+      std::cout <<"\t"<<fErrorCount_SW_HW;
       //if (fErrorCount_Sequence )
-      std::cout <<" \t "<<fErrorCount_Sequence; 
+      std::cout <<" \t "<<fErrorCount_Sequence;
       //if (fErrorCount_SameHW)
-      std::cout <<" \t "<<fErrorCount_SameHW ; 
-      //if (fNumEvtsWithEventCutsRejected) 
+      std::cout <<" \t "<<fErrorCount_SameHW ;
+      std::cout <<" \t "<<fErrorCount_ZeroHW ;
+      //if (fNumEvtsWithEventCutsRejected)
       std::cout<< " \t " << fNumEvtsWithEventCutsRejected<<"\n";
       //if (fErrorCount_sample || fErrorCount_SW_HW || fErrorCount_Sequence || fErrorCount_SameHW)
-      //std::cout <<"*************End of Error summary*****************"<<std::endl; 
+      //std::cout <<"*************End of Error summary*****************"<<std::endl;
   }
 };

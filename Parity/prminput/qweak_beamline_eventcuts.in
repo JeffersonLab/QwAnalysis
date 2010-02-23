@@ -9,7 +9,7 @@
 !EVENTCUTS = 1
 !To turn do both event cuts and HW checks
 !EVENTCUTS = 2
-EVENTCUTS = 0
+EVENTCUTS = 1
 
 !device_type, device_name, lower limit, upper limit
  

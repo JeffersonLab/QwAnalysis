@@ -79,10 +79,10 @@ void QwHelicityPattern::ClearEventData()
 
 void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
 {
-  
+
   Bool_t localdebug=kFALSE;
   QwHelicity* input=((QwHelicity*)event.GetSubsystem("Helicity info"));
-  IsGood=kFALSE; 
+  IsGood=kFALSE;
   Long_t localPatternNumber=input->GetPatternNumber();
   Int_t localPhaseNumber=input->GetPhaseNumber();
   Int_t localHelicityActual=input->GetHelicityActual();
@@ -119,7 +119,7 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
     {
       Int_t locali=localPhaseNumber-1;
       if(localdebug) std::cout<<"QwHelicityPattern::LoadEventData local i="<<locali<<"\n";
-      if (locali == -1) {
+      if (locali < 0) {
         std::cerr << "Negative array index set to zero!  Check code!" << std::endl;
         locali = 0;
       }
@@ -153,8 +153,8 @@ Bool_t  QwHelicityPattern::IsCompletePattern()
 	filled=kFALSE;
       i--;
     }
- 
-    
+
+
 
   return filled;
 }
@@ -239,8 +239,8 @@ void  QwHelicityPattern::CalculateAsymmetry()
       IsGood=kTRUE;
       fQuartetNumber++;//Then increment the quartet number
       //std::cout<<" quartet count ="<<fQuartetNumber<<"\n";
-	
-      
+
+
       fYield.Sum(pos_sum,neg_sum);
       fYield.Do_RunningSum();
       difference.Difference(pos_sum,neg_sum);
@@ -278,16 +278,17 @@ void  QwHelicityPattern::ConstructHistograms(TDirectory *folder)
 
 void  QwHelicityPattern::FillHistograms()
 {
-  //  std::cout<<"QwHelicityPattern::FillHistograms \n";
+  //std::cout<<"QwHelicityPattern::FillHistograms ";
   if(IsGood)
     {
-      //  std::cout<<"************ YIELD ************\n";
+      //std::cout<<"************ YIELD ************\n";
       fYield.FillHistograms();
       //  std::cout<<"************ ASYMMETRY ************\n";
       fAsymmetry.FillHistograms();
       //pos_sum.FillHistograms();
       //neg_sum.FillHistograms();
     }
+  //std::cout<<"\n";
   return;
 }
 

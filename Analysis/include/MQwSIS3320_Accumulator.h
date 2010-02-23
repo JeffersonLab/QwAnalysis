@@ -17,14 +17,18 @@
 #ifndef __MQwSIS3320_Accumulator__
 #define __MQwSIS3320_Accumulator__
 
+// System headers
 #include <iostream>
 #include <vector>
 #include <numeric>
-#include "TTree.h"
+
+// ROOT headers
+#include <TTree.h>
 
 // Boost math library for random number generation
-#include "boost/random.hpp"
+#include <boost/random.hpp>
 
+// Qweak headers
 #include "VQwDataElement.h"
 
 class MQwSIS3320_Accumulator: public VQwDataElement {

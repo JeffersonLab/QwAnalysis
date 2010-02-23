@@ -20,7 +20,8 @@
 ///
 /// \ingroup QwAnalysis_BL
 class QwBPMStripline : public VQwDataElement{
-/////
+  friend class QwCombinedBPM;  ///bbb
+
  public:
   QwBPMStripline() { };
   QwBPMStripline(TString name, Bool_t ROTATED){
@@ -46,7 +47,7 @@ class QwBPMStripline : public VQwDataElement{
 
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  Int_t SetSingleEventCuts(std::vector<Double_t> &);
+  Int_t SetSingleEventCuts(Double_t minX, Double_t maxX, Double_t minY, Double_t maxY );
   void SetDefaultSampleSize(Int_t sample_size);
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Int_t GetEventcutErrorFlag(){//return the error flag 
@@ -118,7 +119,6 @@ class QwBPMStripline : public VQwDataElement{
     
   
 
-  Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check 
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
 
   const static Bool_t bDEBUG=kFALSE;//debugging display purposes

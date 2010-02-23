@@ -20,9 +20,10 @@
 // Qweak parity subsystems that provide options
 #include "QwDatabase.h"
 
-void QwOptions::DefineOptions() {
+void DefineOptionsParity(QwOptions& options)
+{
   /* No options defined */
-  QwDatabase::DefineOptions();
+  QwDatabase::DefineOptions(options);
 }
 
 #endif // QWOPTIONSPARITY_H

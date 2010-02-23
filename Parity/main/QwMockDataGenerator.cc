@@ -16,6 +16,7 @@
 #include "THaCodaFile.h"
 
 // Qweak headers
+#include "QwLog.h"
 #include "QwBeamLine.h"
 #include "QwCommandLine.h"
 #include "QwEventBuffer.h"
@@ -33,8 +34,11 @@
 // Multiplet structure
 static const int kMultiplet = 4;
 
+// Beam trips on qwk_bcm0l03
+static const bool kBeamTrips = false;
+
 // Debug
-static bool kDebug = false;
+static const bool kDebug = false;
 
 int main(int argc, char* argv[])
 {
@@ -139,6 +143,7 @@ int main(int argc, char* argv[])
   maindetector->GetChannel("Bar1Left")->SetRandomEventAsymmetry(1.0e-5);
   maindetector->GetChannel("Bar1Right")->SetRandomEventAsymmetry(-1.0e-5);
 
+  maindetector->GetChannel("Bar3Left")->SetRandomEventDriftParameters(1.0e6,0,60);
 
   // Initialize randomness provider and distribution
   boost::mt19937 randomnessGenerator(999); // Mersenne twister with seed (see below)
@@ -158,7 +163,7 @@ int main(int argc, char* argv[])
 
     // Open new output file
     // (giving run number as argument to OpenDataFile confuses the segment search)
-    TString filename = TString("QwMock_") + Form("%ld.",run) + TString("log");
+    TString filename = Form("QwMock_%ld.log", run);
     if (eventbuffer.OpenDataFile(filename,"W") != CODA_OK) {
       std::cout << "Error: could not open file!" << std::endl;
       return 0;
@@ -209,8 +214,35 @@ int main(int argc, char* argv[])
         }
       }
 
+
+      // Cause a beam trip :-)
+      //
+      // If the kBeamTrips flag is set, beam trips are included every 'period'
+      // events.  The beam trip has a length of 'length' events.  The BCM is
+      // still randomized, but the mean is adjusted by a linear ramp down.  It
+      // then jumps up immediately again.
+      if (kBeamTrips) {
+        int second = 1000; // number of helicity events in a second
+        int minute = 60 * second;
+        int hour = 60 * minute;
+        int period = hour / 10; // time between trips
+        int length = 1 * second; // length of a beam trip (ramp down)
+
+        // Periodicity
+        if (event % period == period - length)
+          std::cout << "Beam trips again! Call MCC!" << std::endl;
+        if (event % period >= period - length) {
+          // Do the ramp down
+          QwBCM* bcm = beamline->GetBCM("qwk_bcm0l03");
+          double scale = double(period - (event % period)) / double(length);
+          bcm->SetRandomEventParameters(bcm_mean * scale, bcm_sigma);
+        }
+      } // end of beam trips
+
+
       // Fill the detectors with randomized data
       int myhelicity = helicity->GetHelicityActual() ? +1 : -1;
+      maindetector->GetChannel("Bar3Left")->SetEventNumber(event);
       detectors.RandomizeEventData(myhelicity);
 
       // Secondly introduce correlations between variables
@@ -268,6 +300,8 @@ int main(int argc, char* argv[])
     eventbuffer.EncodeEndEvent();
     eventbuffer.CloseDataFile();
     eventbuffer.ReportRunSummary();
+
+    QwMessage << "Wrote mock data run " << filename << " successfully." << QwLog::endl;
 
   } // end of run loop
 

@@ -1,12 +1,15 @@
 #include "QwPartialTrack.h"
 ClassImp(QwPartialTrack);
 
+// ROOT headers
 #include "TMath.h"
+
+// Qweak headers
+#include "QwLog.h"
+#include "Det.h"
 
 // Initialize the static lists
 TClonesArray* QwPartialTrack::gQwTreeLines = 0;
-
-#include "Det.h"
 
 QwPartialTrack::QwPartialTrack()
 {
@@ -45,7 +48,7 @@ double QwPartialTrack::GetChiWeight ()
 
   } else {
 
-    std::cerr << "miss = " << nummiss << ", hit = " << numhits << std::endl;
+    QwDebug << "miss = " << nummiss << ", hit = " << numhits << QwLog::endl;
     return 100.0; // This is bad...
   }
 }
@@ -119,7 +122,7 @@ void QwPartialTrack::PrintTreeLines()
   TIterator* iterator = fQwTreeLines->MakeIterator();
   QwTrackingTreeLine* treeline = 0;
   while ((treeline = (QwTrackingTreeLine*) iterator->Next()))
-    std::cout << *treeline << std::endl;
+    QwVerbose << *treeline << QwLog::endl;
 }
 
 
@@ -129,7 +132,7 @@ void QwPartialTrack::PrintTreeLines()
 void QwPartialTrack::Print()
 {
   if (!this) return;
-  std::cout << *this << std::endl;
+  QwVerbose << *this << QwLog::endl;
   if (next) next->Print();
 }
 
@@ -139,7 +142,7 @@ void QwPartialTrack::Print()
 void QwPartialTrack::PrintValid()
 {
   if (!this) return;
-  if (this->IsValid()) std::cout << *this << std::endl;
+  if (this->IsValid()) QwVerbose << *this << QwLog::endl;
   if (next) next->PrintValid();
 }
 
@@ -194,7 +197,7 @@ TVector3 QwPartialTrack::GetDirection(double z)
 int QwPartialTrack::DeterminePositionInTarget ()
 {
   TVector3 primary = GetPosition(0.0);
-  std::cout << "Target vertex at : (" << primary.X() << "," << primary.Y() << "," << primary.Z() << ")" << std::endl;
+  QwVerbose << "Target vertex at : (" << primary.X() << "," << primary.Y() << "," << primary.Z() << ")" << QwLog::endl;
   return 0;
 }
 
@@ -236,7 +239,7 @@ int QwPartialTrack::DeterminePositionInTriggerScintillators (EQwDetectorPackage 
     triggerhit = 1;
     trig[0]    = trig[0];
     trig[1]    = trig[1];
-    std::cout << "Trigger scintillator hit at : (" << trig[0] << "," << trig[1] << "," << trig[2] << ")" << std::endl;
+    QwVerbose << "Trigger scintillator hit at : (" << trig[0] << "," << trig[1] << "," << trig[2] << ")" << QwLog::endl;
   } else triggerhit = 0;
 
   return triggerhit;
@@ -259,7 +262,7 @@ int QwPartialTrack::DeterminePositionInCerenkovBars (EQwDetectorPackage package)
   double cc[3];
   double lim_cc[2][2];
 
-  //std::cout<<"r3: x, y, mx, my: "<<x<<", "<<y<<", "<<mx<<", "<<my<<std::endl;
+  //QwVerbose<<"r3: x, y, mx, my: "<<x<<", "<<y<<", "<<mx<<", "<<my<<QwLog::endl;
 
   // Get the Cherenkov detector
   Det* rd = rcDETRegion[package][kRegionIDCer][kDirectionY];
@@ -295,8 +298,8 @@ int QwPartialTrack::DeterminePositionInCerenkovBars (EQwDetectorPackage package)
     uvR3hit[1] = fSlopeY / kz;
     uvR3hit[2] = 1 / kz;
 
-    std::cout << "Cerenkov bar hit at : (" << cc[0] << "," << cc[1] << "," << cc[2] << ")   "
-              << "direction ("<<uvR3hit[0]<<","<<uvR3hit[1]<<","<<uvR3hit[2] << std::endl;
+    QwVerbose << "Cerenkov bar hit at : (" << cc[0] << "," << cc[1] << "," << cc[2] << ")   "
+              << "direction ("<<uvR3hit[0]<<","<<uvR3hit[1]<<","<<uvR3hit[2] << QwLog::endl;
   } else {
     cerenkovhit = 0;
     fIsGood = false;
@@ -309,7 +312,7 @@ int QwPartialTrack::DetermineHitInHDC (EQwDetectorPackage package)
 {
   double lim_hdc[2][2];
 
-  //std::cout<<"r2: x, y, mx, my: "<<x<<", "<<y<<", "<<mx<<", "<<my<<std::endl;
+  //QwVerbose<<"r2: x, y, mx, my: "<<x<<", "<<y<<", "<<mx<<", "<<my<<QwLog::endl;
 
   // Get the HDC detector
   Det* rd = rcDETRegion[package][kRegionID2][kDirectionX];
@@ -342,18 +345,18 @@ int QwPartialTrack::DetermineHitInHDC (EQwDetectorPackage package)
     pR2hit[1] = hdc_back.Y();
     pR2hit[2] = hdc_back.Z();
 
-    std::cout << "HDC front hit at : ("
-              << hdc_front.X() << "," << hdc_front.Y() << "," << hdc_front.Z() << ")" << std::endl;
-    std::cout << "HDC back  hit at : ("
-              << hdc_back.X() << "," << hdc_back.Y() << "," << hdc_back.Z() << ")" << std::endl;
+    QwVerbose << "HDC front hit at : ("
+              << hdc_front.X() << "," << hdc_front.Y() << "," << hdc_front.Z() << ")" << QwLog::endl;
+    QwVerbose << "HDC back  hit at : ("
+              << hdc_back.X() << "," << hdc_back.Y() << "," << hdc_back.Z() << ")" << QwLog::endl;
 
     TVector3 partial_track = GetDirection();
-    std::cout << "Partial track direction vector: ("
-              << partial_track.X() << "," << partial_track.Y() << "," << partial_track.Z() << ")" << std::endl;
+    QwVerbose << "Partial track direction vector: ("
+              << partial_track.X() << "," << partial_track.Y() << "," << partial_track.Z() << ")" << QwLog::endl;
 
-    std::cout << "Partial track direction angle: "
+    QwVerbose << "Partial track direction angle: "
               << "theta = " << TMath::RadToDeg() * GetDirectionTheta() << " deg,"
-              << "phi = " << TMath::RadToDeg() * GetDirectionPhi() << " deg" << std::endl;
+              << "phi = " << TMath::RadToDeg() * GetDirectionPhi() << " deg" << QwLog::endl;
 
 
   } else {

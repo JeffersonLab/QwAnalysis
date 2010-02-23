@@ -15,6 +15,7 @@
 //
 //  plot_time_track(3,60,0,1000,1567): this function will create a tree named temp.root under current directory, which cont//  ains the time and distance distribution of wire 60 only from 3 wires track. That means if wire#60 is involved in a 4 wi//  re track, the time and distance will not be counted here. So the only difference between the previous two is the second//  argument, which represents the wire number.
 // 
+//  plot_time_hits_track, this function will creat the same tree structure as plot_time_track(). The difference is that it //  will contain all hits from that track, no particular wire is picked up.
 
 const Int_t BUFFERSIZE = 1000;
 const Int_t BINNUMBER = 4096;
@@ -79,7 +80,7 @@ time_order(std::vector<Double_t>& time, Int_t& start,Int_t& wire){
 
 
 
-void read(Int_t evID=0, Int_t hitID = -1, Int_t run_number=1567){
+void read(Int_t evID=0, Int_t hitID = -1, Int_t run_number=1672){
 
 
   check_libraries();
@@ -173,7 +174,7 @@ void read(Int_t evID=0, Int_t hitID = -1, Int_t run_number=1567){
 // this function will draw the histogram of the event which has #wires tracks
 
 void  
-plot_event_track(Int_t wires=3,Int_t event_begin=-1,Int_t event_end=-1,Int_t run_number=1567)
+plot_event_track(Int_t wires=3,Int_t event_begin=-1,Int_t event_end=-1,Int_t run_number=1672)
 {
     check_libraries();
     std::vector<Int_t> temp_wire;
@@ -322,7 +323,7 @@ plot_event_track(Int_t wires=3,Int_t event_begin=-1,Int_t event_end=-1,Int_t run
 
 // this function will draw the histogram of the time from a certain wire during the #wires track
 void  
-plot_time_track(Int_t wires=3,Int_t wire_num=1,Int_t event_begin=-1,Int_t event_end=-1,Int_t run_number=1567)
+plot_time_track(Int_t wires=3,Int_t wire_num=1,Int_t event_begin=-1,Int_t event_end=-1,Int_t run_number=1672)
 {
     check_libraries();
     std::vector<Int_t> temp_wire;
@@ -494,7 +495,7 @@ plot_time_track(Int_t wires=3,Int_t wire_num=1,Int_t event_begin=-1,Int_t event_
 // this function is used to plot the distribution of wires given the contiguous wires in the track
 
 void  
-plot_wire_track(Int_t wires=3,Int_t event_begin=-1,Int_t event_end=-1,Int_t run_number=1567)
+plot_wire_track(Int_t wires=3,Int_t event_begin=-1,Int_t event_end=-1,Int_t run_number=1672)
 {
     check_libraries();
     std::vector<Int_t> temp_wire;
@@ -641,15 +642,162 @@ plot_wire_track(Int_t wires=3,Int_t event_begin=-1,Int_t event_end=-1,Int_t run_
 }
 
 
+//*********************************************************************************************
+plot_time_hits_track(Int_t wires=3,Int_t event_begin=-1,Int_t event_end=-1,Int_t run_number=1672)
+{
+    check_libraries();
+    std::vector<Int_t> temp_wire;
+    std::vector<Double_t> temp_time;
+    std::vector<Double_t> temp_distance;
+    Double_t drift_time=0,drift_distance=0;
 
 
+    if( event_begin > event_end)
+    {
+	printf("You selected the wrong range of the event\n");
+	return;
+    }
+    Bool debug = false;
+    check_libraries();
+    TStopwatch timer;
+    timer.Start();
+
+     //TCanvas* time_per_track_canvas= new TCanvas("time_track_canvas","time",10,10,1100,700);
+    
+    TFile* file= new TFile(Form("%s/rootfiles/Qweak_%d.root",getenv("QWANALYSIS"),run_number));
+    TFile* f=new TFile("temp.root","RECREATE");
+    
+    if(file->IsZombie())
+    {
+	printf("Error opening file\n");
+	delete time_per_track_canvas;
+	return;
+	    }
+    else{
+	TTree* tree=(TTree*)file->Get("tree");
+	
+	TTree* tree2=new TTree("tree","data of time and distance");
+	tree2->Branch("time",&drift_time,"drift_time/D");
+	tree2->Branch("distance",&drift_distance,"drift_distance/D");
+	
+	
+	QwHitRootContainer* hitcontainer=NULL;
+	tree->SetBranchAddress("hits",&hitcontainer);
+	Double_t tdc_time=0,tdc_distance=0;
+	Int_t nevent=0,nhit=0;
+	Int_t plane=0,wire=0,old_wire=0,start_wire=0;
+	QwHit* hit=NULL;
+	
+
+	nevent= tree -> GetEntries();
+	printf("Run %d has total event %d\n", run_number,nevent);
+
+	if(event_begin==-1 || event_end == -1){
+	    event_begin=0;
+	    event_end=nevent-1;
+	}
 
 
+		for(Int_t ev_i=event_begin;ev_i<=event_end;ev_i++){
+	    
+	    //tree2->Fill();
+	    //test++;
 
 
+	    tree->GetEntry(ev_i);
+	    nhit=hitcontainer->GetSize();
+	    if(nhit<wires) continue;   //if in this event, the hit number is smaller than 5, go to next one
+ 
+	    hit = (QwHit*) hitcontainer->GetHit(0);
+	      plane=hit->GetPlane();
+	      if(plane==2) wire=(hit->GetElement())+1000;
+	      else wire=hit->GetElement();
+	      tdc_time=hit->GetTime();
+	      tdc_distance=hit->GetDriftDistance();
+	      temp_wire.push_back(wire);
+	      temp_time.push_back(tdc_time);
+	      temp_distance.push_back(tdc_distance);
+	    
+	      	for(Int_t hit_i=1; hit_i<nhit; hit_i++)
+	    {
+	      hit = (QwHit*) hitcontainer->GetHit(hit_i);
+	      old_wire=wire;
+	      plane=hit->GetPlane();
+	      if(plane==2) wire=(hit->GetElement())+1000;
+	      else wire=hit->GetElement();
+	      if(wire==old_wire) continue;
+	      tdc_time=hit->GetTime();
+	      tdc_distance=hit->GetDriftDistance();
+	      temp_wire.push_back(wire);
+	      temp_time.push_back(tdc_time);
+	      temp_distance.push_back(tdc_distance);
+	    }
+	
+	
+	
+	Int_t count=0,found=0,sum=0;
+	//std::vector<Int_t> index_found;
+	
+	std::vector<Int_t>::iterator w_beg=temp_wire.begin();
+	std::vector<Int_t>::iterator w_end=temp_wire.end();
+	std::vector<Int_t>::iterator w=w_beg;
+	std::vector<Int_t>::iterator w_old=w;
+	Int_t index=0,index_old=0,center=0;
+	start_wire= *w;
+	
+
+	while ( w!=w_end )
+        {
+
+	    sum+= ( *w++ );
+	    index++;
+	    count++;
+	    if ( sum == ( count*start_wire+count* ( count-1 ) /2 ) ) continue;
+	    if ( ( --count ) == wires )
+	    {
+	       	if(time_order(temp_time,index_old,wires)==true)
+		{ 
+		    
+		    for(Int_t i=0;i<wires;i++)
+		     {
+			 drift_time=temp_time.at(i+index_old);
+			 drift_distance=temp_distance.at(i+index_old);
+			 tree2->Fill();
+			 //histo->Fill(temp_time.at(wire_num-start_wire+index_old));
+		     }
+		}
+	    }
+	    --w;
+	    index_old=--index;
+	    count=0;
+	    sum=0;
+	    start_wire= *w ;
+
+	}
 
 
+	if ( count == wires )
+	{
+	    if(time_order(temp_time,index_old,wires)==true){
+		for(Int_t i=0;i<wires;i++)
+		     {
+			 drift_time=temp_time.at(i+index_old);
+			 drift_distance=temp_distance.at(i+index_old);
+			 tree2->Fill();
+			 //histo->Fill(temp_time.at(wire_num-start_wire+index_old));
+		     }
+	    }
+	}
+        temp_time.clear();
+	temp_wire.clear();
+	temp_distance.clear();
+   	}
+    } 
+    f->Write();
+    timer.Stop();
 
+    printf("Time used : CPU %8.2f, Real %8.2f (sec)\n", timer.CpuTime(), timer.RealTime());
+	}
 
 
 

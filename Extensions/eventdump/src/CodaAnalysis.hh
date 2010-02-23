@@ -1,14 +1,16 @@
 #ifndef CODA_ANALYSIS_HH
 #define CODA_ANALYSIS_HH
 
-#include <iostream>
-#include <iomanip>
-#include <string>
 
 #include "TROOT.h"
 #include "TFile.h"
 
 #include "THaCodaFile.h"
+
+
+#include <iostream>
+#include <iomanip>
+#include <string>
 
 using namespace std;
 
@@ -44,7 +46,7 @@ private :
   bool          pause_exist_status;
   bool          end_exist_status;
 
-  static const char *const  event_type[21];
+  static const char *const  char_event_type[21];
 
 public:
   CodaAnalysis(const char *s);

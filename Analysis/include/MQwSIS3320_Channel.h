@@ -23,14 +23,18 @@
 #ifndef __MQwSIS3320_Channel__
 #define __MQwSIS3320_Channel__
 
+// System headers
 #include <iostream>
 #include <vector>
 #include <numeric>
-#include "TTree.h"
+
+// ROOT headers
+#include <TTree.h>
 
 // Boost math library for random number generation
-#include "boost/random.hpp"
+#include <boost/random.hpp>
 
+// Qweak headers
 #include "VQwDataElement.h"
 #include "MQwSIS3320_Accumulator.h"
 #include "MQwSIS3320_Samples.h"
@@ -103,10 +107,10 @@ class MQwSIS3320_Channel: public VQwDataElement {
       fAccumulators.resize(naccumulators);
     };
 
-    void SetPedestal(Double_t ped) {fPedestal = ped; return; };
-    Double_t GetPedestal() { return fPedestal; };
-    void SetCalibrationFactor(Double_t factor) { fCalibrationFactor = factor; return; };
-    Double_t GetCalibrationFactor() { return fCalibrationFactor; };
+    void SetPedestal(const Double_t ped) { fPedestal = ped; };
+    const Double_t GetPedestal() const { return fPedestal; };
+    void SetCalibrationFactor(const Double_t factor) { fCalibrationFactor = factor; };
+    const Double_t GetCalibrationFactor() const { return fCalibrationFactor; };
 
     Bool_t IsGoodEvent();
 
@@ -133,6 +137,7 @@ class MQwSIS3320_Channel: public VQwDataElement {
 
     /* ADC Calibration */
     static const Double_t kVoltsPerBit;
+    static const Double_t kNanoSecondsPerSample;
     Double_t fPedestal;
     Double_t fCalibrationFactor;
 
@@ -145,6 +150,13 @@ class MQwSIS3320_Channel: public VQwDataElement {
     UInt_t fSamplePointer;
     std::vector<MQwSIS3320_Samples> fSamples;
     std::vector<MQwSIS3320_Samples> fSamplesRaw;
+    //
+    MQwSIS3320_Samples fAverageSamples;
+    MQwSIS3320_Samples fAverageSamplesRaw;
+    std::vector<Double_t> fTimeWindowAverages;
+    std::vector<std::pair<UInt_t, UInt_t> > fTimeWindows;
+    std::vector<Double_t> fSampleWindowAverages;
+    std::vector<std::pair<Double_t, Double_t> > fSampleWindows;
 
     /* ADC accumulator data */
     Int_t fNumberOfAccumulators;

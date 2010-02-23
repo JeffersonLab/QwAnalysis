@@ -35,8 +35,8 @@ QwDatabase::QwDatabase() : Connection()
  */
 QwDatabase::~QwDatabase()
 {
-  QwDebug << "QwDatabase::~QwDatabase() : Good-bye World from QwDatabase destructor!" << QwLog::endl;
   Disconnect();
+//  QwDebug << "QwDatabase::~QwDatabase() : Good-bye World from QwDatabase destructor!" << QwLog::endl;
 }
 
 /*! This function is used to load the connection information for the
@@ -51,7 +51,7 @@ bool QwDatabase::ValidateConnection() {
   // Retrieve options
   //
   string dbname, server, username, password;
-  Int_t port = gQwOptions.GetValue<int>("QwDatabse.dbport");
+  Int_t port = gQwOptions.GetValue<int>("QwDatabase.dbport");
 
   if (gQwOptions.HasValue("QwDatabase.dbname")) {
     dbname = gQwOptions.GetValue<string>("QwDatabase.dbname");
@@ -207,14 +207,14 @@ Bool_t QwDatabase::SetConnect(TString dbname, TString dbserver, TString dbuser, 
  * Should apparently by called by QwOptions::DefineOptions() in
  * QwParityOptions.h
  */
-void QwDatabase::DefineOptions()
+void QwDatabase::DefineOptions(QwOptions& options)
 {  
   // Specify command line options for use by QwDatabase
-  gQwOptions.AddOptions()("QwDatabase.dbname", po::value<string>(), "database name");
-  gQwOptions.AddOptions()("QwDatabase.dbserver", po::value<string>(), "database server name");
-  gQwOptions.AddOptions()("QwDatabase.dbusername", po::value<string>(), "database username");
-  gQwOptions.AddOptions()("QwDatabase.dbpassword", po::value<string>(), "database password");
-  gQwOptions.AddOptions()("QwDatabase.dbport", po::value<int>()->default_value(0), "database server port number (defaults to standard mysql port)");
+  options.AddOptions()("QwDatabase.dbname", po::value<string>(), "database name");
+  options.AddOptions()("QwDatabase.dbserver", po::value<string>(), "database server name");
+  options.AddOptions()("QwDatabase.dbusername", po::value<string>(), "database username");
+  options.AddOptions()("QwDatabase.dbpassword", po::value<string>(), "database password");
+  options.AddOptions()("QwDatabase.dbport", po::value<int>()->default_value(0), "database server port number (defaults to standard mysql port)");
 
 }
 

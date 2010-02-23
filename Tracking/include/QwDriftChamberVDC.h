@@ -68,7 +68,7 @@ class QwDriftChamberVDC: public QwDriftChamber {
   Int_t LoadQweakGeometry(TString mapfile );
 
   Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector){
-    double angle=45,d=0;
+    double angle=60,d=0;
     d=CalculateDriftDistance(drifttime,detector,angle);
     return d;
  }
@@ -77,6 +77,8 @@ class QwDriftChamberVDC: public QwDriftChamber {
  protected:
 
    Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector, Double_t angle);
+
+   void  FillHistograms();
 
 
  protected:
@@ -87,7 +89,6 @@ class QwDriftChamberVDC: public QwDriftChamber {
 
  protected:
 
-  Int_t LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire);
   Int_t BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire);
   Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire);
 
@@ -95,9 +96,9 @@ class QwDriftChamberVDC: public QwDriftChamber {
 
 
 
-  static const UInt_t BackPlanenum;
-  static const UInt_t Linenum;
-  std::vector<std::vector<QwDelayLine> > DelayLineArray;      //indexed by backplane and line number
+  static const UInt_t kBackPlaneNum;
+  static const UInt_t kLineNum;
+  std::vector<std::vector<QwDelayLine> > fDelayLineArray;      //indexed by backplane and line number
   std::vector<std::vector<QwDelayLineID> > fDelayLinePtrs;  //indexed by slot and channel number
   std::vector< QwHit > fWireHitsVDC;
 

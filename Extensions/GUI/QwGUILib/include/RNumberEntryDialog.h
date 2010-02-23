@@ -16,8 +16,10 @@
 #include <TGFrame.h>
 #include <TSystem.h>
 #include <TGButton.h>
+#include <TGLabel.h>
 #include <TEnv.h>
 #include <TGNumberEntry.h>
+#include <TList.h>
 #include <RDataContainerDef.h>
 #include <string.h>
 
@@ -35,19 +37,21 @@ private:
   TGTextButton      *fCancel;
   TGTextButton      *fOk;
   TGVerticalFrame   *frame;
+  TGVerticalFrame   *fLabelFrame;
   TGHorizontalFrame *fBttnframe;
   TGHorizontalFrame *fEntrframe;
-  TGLayoutHints     *fHint, *fHint2, *fHint3, *fHint4;
-  
+  TGLayoutHints     *fHint, *fHint2, *fHint3, *fHint4, *fHint5;
+  TList             *fMsgList;                    // text (list of TGLabels)
+
  public:
   RNumberEntryDialog(const TGWindow *p, const TGWindow *main, 
 		     const char* objname, const char *ownername, const char* title,
-		     Double_t *Number, Int_t *retval, UInt_t w, UInt_t h);
+		     const char *msg, Double_t *Number, Int_t *retval, UInt_t w, UInt_t h);
   virtual ~RNumberEntryDialog();
   
   virtual void      CloseWindow();
   virtual Bool_t    ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2);
-  void              IsClosing(char *);
+  void              IsClosing(const char *);
 
   ClassDef(RNumberEntryDialog,0);
 };

@@ -25,6 +25,7 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TVector3.h>
+#include <TRandom3.h>
 #include <TStopwatch.h>
 
 //  KLUDGE:  Add this header file to force the compiler to build
@@ -55,22 +56,22 @@
 // lool-up table parameters, p in [MeV], r and z in [cm], theta and phi in [degree]
 #define P_MAX          1180
 #define P_MIN          980
-#define DP             20
+#define DP             10
 #define P_GRIDSIZE     ((P_MAX-P_MIN)/DP+1)
 
 #define R_MAX          100
 #define R_MIN          30
-#define DR             2
+#define DR             1
 #define R_GRIDSIZE     ((R_MAX-R_MIN)/DR+1)
 
 #define PHI_MAX        360
 #define PHI_MIN        0
-#define DPHI           2
+#define DPHI           1
 #define PHI_GRIDSIZE   ((PHI_MAX-PHI_MIN)/DPHI+1)
 
 #define VERTEXZ_MAX    -630
 #define VERTEXZ_MIN    -670
-#define DZ             4
+#define DZ             2
 #define Z_GRIDSIZE     ((VERTEXZ_MAX-VERTEXZ_MIN)/DZ+1)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -164,8 +165,10 @@ public:
     void PrintInfo();
 
     int ReadSimPartialTrack(const TString filename, int evtnum,
-                            TVector3 *startpoint, TVector3 *startpointdirection,
-                            TVector3 *endpoint, TVector3 *endpointdirection);
+                            std::vector<TVector3> *startposition,
+                            std::vector<TVector3> *startdirection,
+                            std::vector<TVector3> *endposition,
+                            std::vector<TVector3> *enddirection);
     void GetBridgingResult(Double_t *buffer);
 
 private:
@@ -238,7 +241,8 @@ private:
     std::vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ;
 
     Float_t fPrimary_OriginVertexKineticEnergy;
-    Float_t fMomentumOff;
+    Float_t fPrimary_PrimaryQ2;
+    Float_t fPrimary_CrossSectionWeight;
 
     Int_t fMatchFlag; // MatchFlag = -2 : cannot match
                       // MatchFlag = -1 : potential track cannot pass through the filter

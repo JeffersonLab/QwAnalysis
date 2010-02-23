@@ -17,16 +17,20 @@
 #ifndef __QwComptonElectronDetector__
 #define __QwComptonElectronDetector__
 
+// System headers
 #include <vector>
 
+// Qweak headers
 #include "VQwSubsystemParity.h"
 
-class QwComptonElectronDetector : public VQwSubsystemParity {
+class QwComptonElectronDetector: public VQwSubsystemParity {
 
   public:
-    QwComptonElectronDetector(TString name): VQwSubsystem(region_tmp),VQwSubsystemParity(name) { };
 
-   ~QwComptonElectronDetector() {
+    /// \brief Constructor
+    QwComptonElectronDetector(TString name): VQwSubsystem(name), VQwSubsystemParity(name) { };
+    /// \brief Destructor
+    ~QwComptonElectronDetector() {
       DeleteHistograms();
     };
 
@@ -58,7 +62,11 @@ class QwComptonElectronDetector : public VQwSubsystemParity {
     Int_t LoadEventCuts(TString filename) { return 0; };
     Bool_t ApplySingleEventCuts() { return kTRUE; };
     Int_t GetEventcutErrorCounters() { return 0; };
+    Int_t GetEventcutErrorFlag() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
+
+    void Calculate_Running_Average() { };
+    void Do_RunningSum() { };
 
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();

@@ -6,11 +6,6 @@
 #include "Det.h"
 #include "QwTrajectory.h"
 
-// Temporary global variables for sub-programs
-Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-Det rcDET[NDetMax];
-
-
 int main (int argc, char* argv[]) {
 
     bool debug = false;
@@ -44,11 +39,12 @@ int main (int argc, char* argv[]) {
         TFile *outfile = new TFile(outputfilename, "RECREATE", "Bridging result");
         outfile->cd();
         TTree *tree = new TTree("tree", "Bridging");
-        Double_t bridgingresult[38];
-        Int_t eventnumber;
+        Double_t bridgingresult[43];
+        Int_t eventnumber, TrackID;
         Double_t CpuTime, RealTime;
 
         tree->Branch("eventnumber",&eventnumber,"eventnumber/I");
+        tree->Branch("TrackID",&TrackID,"TrackID/I");
 
         tree->Branch("StartPositionX",&bridgingresult[0],"StartPositionX/D");
         tree->Branch("StartPositionY",&bridgingresult[1],"StartPositionY/D");
@@ -64,7 +60,7 @@ int main (int argc, char* argv[]) {
         tree->Branch("EndPositionX",&bridgingresult[10],"EndPositionX/D");
         tree->Branch("EndPositionY",&bridgingresult[11],"EndPositionY/D");
         tree->Branch("EndPositionZ",&bridgingresult[12],"EndPositionZ/D");
-        tree->Branch("EndPositionP",&bridgingresult[13],"EndPositionR/D");
+        tree->Branch("EndPositionR",&bridgingresult[13],"EndPositionR/D");
         tree->Branch("EndPositionPhi",&bridgingresult[14],"EndPositionPhi/D");
         tree->Branch("EndDirectionX",&bridgingresult[15],"EndDirectionX/D");
         tree->Branch("EndDirectionY",&bridgingresult[16],"EndDirectionY/D");
@@ -88,21 +84,30 @@ int main (int argc, char* argv[]) {
         tree->Branch("DirectionThetaOff",&bridgingresult[32],"DirectionThetaOff/D");
         tree->Branch("DirectionPhiOff",&bridgingresult[33],"DirectionPhiOff/D");
         tree->Branch("DeterminedMomentum",&bridgingresult[34],"DeterminedMomentum/D");
+        tree->Branch("PreScatteringMomentum",&bridgingresult[35],"PreScatteringMomentum/D");
+        tree->Branch("DeterminedQ2",&bridgingresult[36],"DeterminedQ2/D");
 
-        tree->Branch("OriginVertexMomentum",&bridgingresult[35],"OriginVertexMomentum/D");
-        tree->Branch("MomentumOff",&bridgingresult[36],"MomentumOff/D");
-        tree->Branch("MatchFlag",&bridgingresult[37],"MatchFlag/D");
+        tree->Branch("OriginVertexMomentum",&bridgingresult[37],"OriginVertexMomentum/D");
+        tree->Branch("PrimaryQ2",&bridgingresult[38],"PrimaryQ2/D");
+
+        tree->Branch("MomentumOff",&bridgingresult[39],"MomentumOff/D");
+        tree->Branch("Q2_Off",&bridgingresult[40],"Q2_Off/D");
+        tree->Branch("CrossSectionWeight",&bridgingresult[41],"CrossSectionWeight/D");
+
+        tree->Branch("MatchFlag",&bridgingresult[42],"MatchFlag/D");
         tree->Branch("CpuTime",&CpuTime,"CpuTime/D");
         tree->Branch("RealTime",&RealTime,"RealTime/D");
 
         Int_t evtnum=0;
+        TrackID = 0;
         for ( eventnumber  = gQwOptions.GetIntValuePairFirst("event");
                 eventnumber <= gQwOptions.GetIntValuePairLast("event"); eventnumber++) {
 
-            TVector3 startpoint;
-            TVector3 startpointdirection;
-            TVector3 endpoint;
-            TVector3 endpointdirection;
+            // vector to hold multi-hit
+            std::vector<TVector3> startpoint;
+            std::vector<TVector3> startpointdirection;
+            std::vector<TVector3> endpoint;
+            std::vector<TVector3> endpointdirection;
 
             // This is slow due to accessing the disk every time
             int status = trajectory->ReadSimPartialTrack(inputfilename, eventnumber,
@@ -113,24 +118,34 @@ int main (int argc, char* argv[]) {
             }
 
             evtnum++;
-            trajectory->SetStartAndEndPoints(startpoint, startpointdirection,
-                                             endpoint, endpointdirection);
-            timer.Start();
-            status = trajectory->BridgeFrontBackPartialTrack();
-            timer.Stop();
-            CpuTime = timer.CpuTime();
-            RealTime = timer.RealTime();
-            timer.Reset();
 
-            if (status == 0) {
-                if (debug) {
-                    std::cout<<"======>>>> Bridged a track"<<std::endl;
-                    trajectory->PrintInfo();
-                }
-                trajectory->GetBridgingResult(bridgingresult);
-                tree->Fill();
-            } else
-                if (debug) std::cout<<"======>>>> No luck on bridging this track."<<std::endl;
+            // TODO process multi-hit
+            for (size_t i=0; i<startpoint.size(); i++) {
+                for (size_t j=0; j<endpoint.size(); j++) {
+                    trajectory->SetStartAndEndPoints(startpoint[i], startpointdirection[i],
+                                                     endpoint[j], endpointdirection[j]);
+                    timer.Start();
+                    status = trajectory->BridgeFrontBackPartialTrack();
+                    timer.Stop();
+                    CpuTime = timer.CpuTime();
+                    RealTime = timer.RealTime();
+                    timer.Reset();
+
+                    if (status == 0) {
+                        if (debug) {
+                            std::cout<<"======>>>> Bridged a track"<<std::endl;
+                            trajectory->PrintInfo();
+                        }
+                        TrackID++;
+                        trajectory->GetBridgingResult(bridgingresult);
+                        tree->Fill();
+                    } else
+                        if (debug) std::cout<<"======>>>> No luck on bridging this track."<<std::endl;
+
+
+                } //end of j-loop
+            } // end of i-loop
+
 
             if (evtnum%100==0) {
                 tree->AutoSave();

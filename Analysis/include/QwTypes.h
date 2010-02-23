@@ -7,6 +7,8 @@
 // ROOT basic types
 #include <Rtypes.h>
 
+// Qweak headers
+#include "QwUnits.h"
 
 // Enumerator types for regions and directions
 static const Int_t kNumRegions = 7;
@@ -72,15 +74,16 @@ enum EQwHelicity {
 };
 /// Use the static map kMapHelicity to get the helicity sign
 /// e.g.: kMapHelicity[kHelicityPositive] will return +1
-inline std::map < EQwHelicity, int > CreateHelicityMap()
+typedef std::map < EQwHelicity, int > QwHelicityMap;
+inline QwHelicityMap CreateHelicityMap()
 {
-  std::map < EQwHelicity, int > map;
+  QwHelicityMap map;
   map[kHelicityUndefined] = 0;
   map[kHelicityPositive] = +1;
   map[kHelicityNegative] = -1;
   return map;
 }
-static const std::map < EQwHelicity, int > kMapHelicity = CreateHelicityMap();
+static const QwHelicityMap kMapHelicity = CreateHelicityMap();
 
 
 ///
@@ -120,13 +123,12 @@ class QwElectronicsID
 /// \ingroup QwAnalysis
 class QwDelayLineID{
  public:
- QwDelayLineID():BackPlane(-1),Linenumber(-1),Side(-1){};
- QwDelayLineID(const int fBackPlane, const int fLinenumber, const int fSide):BackPlane(fBackPlane),Linenumber(fLinenumber),Side(fSide){};
+ QwDelayLineID():fBackPlane(-1),fLineNumber(-1),fSide(-1){};
+ QwDelayLineID(const int backplane, const int linenumber, const int side):fBackPlane(backplane),fLineNumber(linenumber),fSide(side){};
 
- int BackPlane;
- int Linenumber;
- int Side;
+ Int_t fBackPlane;
+ Int_t fLineNumber;
+ Int_t fSide;
 };
-
 
 #endif

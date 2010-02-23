@@ -80,11 +80,12 @@ class QwHelicity : public VQwSubsystemParity{
       fHelicityBitMinus=kFALSE;
       fGoodHelicity=kFALSE;
       fGoodPattern=kFALSE;
+      fHelicityDecodingMode=-1;
     };
 
   ~QwHelicity()
     {
-      DeleteHistograms();
+//      DeleteHistograms();
     };
    /* derived from VQwSubsystem */
   Int_t LoadChannelMap(TString mapfile);
@@ -97,6 +98,10 @@ class QwHelicity : public VQwSubsystemParity{
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id,
 				   UInt_t* buffer, UInt_t num_words);
   Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  void  ProcessEventUserbitMode();//ProcessEvent has two modes Userbit and Inputregister modes
+  void  ProcessEventInputRegisterMode();
+
+
   void  PrintDetectorID();
 
   void  ClearEventData();
@@ -148,7 +153,24 @@ class QwHelicity : public VQwSubsystemParity{
 
 /////
  protected:
+   enum HelicityRootSavingType{kHelSaveMPS = 0,
+			      kHelSavePattern,
+			      kHelNoSave};
+  
+  enum HelicityEncodingType{kHelUserbitMode=0,
+			    kHelInputRegisterMode,
+			    kHelLocalyMadeUp};
+  // this values allow to switch the code between different helicity encoding mode. 
+  
   std::vector <QwWord> fWord;
+  std::vector < std::pair<Int_t, Int_t> > fWordsPerSubbank;  // The indices of the first & last word in each subbank
+
+  Int_t fHelicityDecodingMode; 
+  // this variable is set at initialization in function QwHelicity::LoadChannelMap
+  // it allows one to customize the helicity decoding mode
+  // the helicity decoding mode will take one of the value of enum  HelicityEncodingType
+
+  
 
   Int_t kuserbit;
   // this is used to tagged the userbit info among all the fWords
@@ -200,8 +222,8 @@ class QwHelicity : public VQwSubsystemParity{
   //stores the random seed to predict the reported helcity
   Int_t fHelicityDelay;
   //number of events the helicity is delayed by before being reported
-  static const Int_t MaxPatternPhase =4;
-
+  //static const Int_t MaxPatternPhase =4;
+  Int_t fMaxPatternPhase;
   Bool_t IsGoodPatternNumber();
   Bool_t IsGoodEventNumber();
   Bool_t MatchActualHelicity(Int_t actual);

@@ -17,7 +17,10 @@
 #include <cassert>
 #include <cmath>
 #include <inttypes.h>
-using std::cout; using std::cerr; using std::endl;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::string;
 
 // Boost filesystem headers
 #include "boost/filesystem/operations.hpp"
@@ -35,10 +38,9 @@ using QwTracking::shortnode; using QwTracking::shorttree;
 // Qweak headers
 #include "QwTypes.h"
 #include "VQwTrackingElement.h"
-#include "globals.h"
 
 // Definitions
-#define HSHSIZ 511
+#define HSHSIZ 511	///< Length of the hash table (as header define)
 
 // Forward declarations
 class QwTrackingTreeRegion;
@@ -55,30 +57,22 @@ class QwTrackingTree: public VQwTrackingElement {
 
   public:
 
-    // objects
-    int maxlevel;	/*!< maximum level of the bin division within
-			     the treesearch database,
-			     i.e.: resolution = (detwidth) / (2^maxlevel) */
-    int tlayers;	///< number of detector planes
-    int hshsiz;
-    int npat;
-    treenode* generic[HSHSIZ];	///< flat list of all nodes in the tree
-    double zList[TLAYERS];
-    double detwidth;
-    treenode father;
-    int xref;
-    int maxref;
-
-    static const std::string TREEDIR;
-
-    // Constructor/Destructor (TODO should take some option info)
+    /// \brief Default constructor (TODO should take some option info)
     QwTrackingTree();
+    /// \brief Destructor
     ~QwTrackingTree();
 
     /// Set the debug level
     void SetDebugLevel (const int debuglevel) { fDebug = debuglevel; };
     /// Set the maximum allowed slope
     void SetMaxSlope (const double maxslope) { fMaxSlope = maxslope; };
+
+    /// Print the full tree and hash table
+    void Print() const { PrintTree(); PrintHashTable(); };
+    /// \brief Print the full tree
+    void PrintTree() const;
+    /// \brief Print the hash table
+    void PrintHashTable() const;
 
     int consistent (
 	treenode *tst,
@@ -89,35 +83,30 @@ class QwTrackingTree: public VQwTrackingElement {
 	EQwDirectionID dir);
     treenode* existent (treenode *tst, int hash);
     treenode* nodeexists (nodenode *nd, treenode *tr);
-    treenode* treedup (treenode *todup);
     void marklin (
-	treenode *Father,
+	treenode *node,
 	int level,
 	EQwDetectorPackage package,
 	EQwDetectorType type,
 	EQwRegionID region,
 	EQwDirectionID dir);
 
-    void treeout (treenode *tn, int level, int off);
-    void printtree (treenode *tn);
-    void freetree ();
-
     long writetree (
-	char *fn,
+	string filename,
 	treenode *tn,
 	int levels,
 	int tlayers,
 	double width);
 
     QwTrackingTreeRegion* readtree (
-	char *filename,
+	string filename,
 	int levels,
 	int tlayers,
 	double rwidth,
-	int dontread);
+	bool regenerate);
 
     QwTrackingTreeRegion* inittree (
-	char *filename,
+	string filename,
 	int levels,
 	int tlayer,
 	double width,
@@ -128,15 +117,41 @@ class QwTrackingTree: public VQwTrackingElement {
 
   private:
 
+    /// Name of the tree directory (in $QWSCRATCH), as static member field
+    static const std::string fgTreeDir;
+
     int fDebug;		///< Debug level
 
-    double fMaxSlope;	///< Maximum allowed slope for tracks in this detector
+    // Number of rows in the bit pattern (VDC wires or HDC planes)
+    unsigned int fNumLayers;	///< Number of detector planes
+    unsigned int& fNumPlanes;	///< Number of planes in the region 2 HDCs
+    unsigned int& fNumWires;	///< Number of wires in a region 3 VDC group
 
-    /// Recursive method for pulling in the concise treesearch search database
+    int fHashSize;	///< Length of the hash table (as member field)
+
+    double fMaxSlope;	///< Maximum allowed slope for tracks in this detector
+    int fNumPatterns;	///< Number of valid patterns in the tree
+
+    int xref;
+    int maxref;
+
+    int fMaxLevel;	/*!< maximum level of the bin division within
+			     the treesearch database,
+			     i.e.: resolution = width / (2^maxlevel) */
+
+    /// Father node: the main entry point to the tree
+    treenode* fFather;
+
+    /// Hash table: the list of all nodes in the tree, organized in linked
+    /// lists and sorted by hash value; an array of pointers to treenodes.
+    //treenode* fHashTable[HSHSIZ];
+    treenode** fHashTable;
+
+    /// \brief Recursive method for pulling in the concise treesearch search database
     int _writetree (treenode *tn, FILE *fp, int32_t tlayers);
-    /// Recursive method to read the concise treesearch database from disk
+    /// \brief Recursive method to read the concise treesearch database from disk
     int _readtree  (FILE *f, shorttree *stb, shortnode **father, int32_t tlayers);
-    /// Recursive method to initialize and generate the treesearch database
+    /// \brief Recursive method to initialize and generate the treesearch database
     treenode* _inittree (
 	int32_t tlayer,
 	EQwDetectorPackage package,

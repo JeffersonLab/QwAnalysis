@@ -17,15 +17,26 @@
 #ifndef __MQwSIS3320_Samples__
 #define __MQwSIS3320_Samples__
 
+// System headers
 #include <iostream>
 #include <vector>
 #include <numeric>
-#include "TTree.h"
+
+// ROOT headers
+#include <TTree.h>
 
 // Boost math library for random number generation
-#include "boost/random.hpp"
+#include <boost/random.hpp>
 
+// Qweak headers
 #include "VQwDataElement.h"
+
+/// At this point the samples are hard-coded to be of Float_t data type.
+/// Ideally, this should be templated out, so that the channel can have
+/// UInt_t raw samples, Float_t processed samples, and Double_t average
+/// samples.  Seems to cause too many problems right now and needs some
+/// thinking.
+typedef Double_t MQwSIS3320_Type;
 
 class MQwSIS3320_Samples: public VQwDataElement {
 
@@ -37,9 +48,9 @@ class MQwSIS3320_Samples: public VQwDataElement {
     };
     ~MQwSIS3320_Samples() { };
 
-    const Int_t GetSum() const;
-    const Int_t GetSum(UInt_t start, UInt_t stop) const;
-    const Int_t GetSample(size_t i) const { return fSamples.at(i); };
+    const MQwSIS3320_Type GetSum() const;
+    const MQwSIS3320_Type GetSample(size_t i) const { return fSamples.at(i); };
+    const MQwSIS3320_Type GetSumInTimeWindow(const UInt_t start, const UInt_t stop) const;
 
     const UInt_t GetNumberOfSamples() const { return fSamples.size(); };
     void SetNumberOfSamples(const UInt_t nsamples) {
@@ -87,7 +98,7 @@ class MQwSIS3320_Samples: public VQwDataElement {
   protected:
 
     UInt_t fSamplesPerWord; //! Number of 12-bit sample values per data word
-    std::vector<Int_t> fSamples; //! Samples data buffer (allow for negative values)
+    std::vector<MQwSIS3320_Type> fSamples; //! Samples data buffer
 
   private:
 
@@ -98,7 +109,8 @@ class MQwSIS3320_Samples: public VQwDataElement {
 };
 
 // Output stream operator<< for the samples
-inline std::ostream& operator<< (std::ostream& stream, const MQwSIS3320_Samples& s) {
+inline std::ostream& operator<< (std::ostream& stream, const MQwSIS3320_Samples& s)
+{
   for (size_t i = 0; i < s.GetNumberOfSamples(); i++)
     stream << s.GetSample(i) << " ";
   return stream;
