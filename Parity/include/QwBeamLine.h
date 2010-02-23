@@ -16,10 +16,12 @@
 #include "QwBPMStripline.h"
 #include "QwBCM.h"
 #include "QwCombinedBCM.h"
+#include "QwCombinedBPM.h"
 
 enum EBeamInstrumentType{kBPMStripline = 0,
 			 kBCM,
-			 kCombinedBCM
+			 kCombinedBCM,
+			 kCombinedBPM
 };
 
 // this emun vector needs to be coherent with the DetectorTypes declaration in the QwBeamLine constructor
@@ -30,8 +32,6 @@ class QwBeamDetectorID;
 *  Class:
 ******************************************************************/
 class QwBeamLine : public VQwSubsystemParity{
-  /////
-  // friend class QwBeamDetectorID;
 
  public:
 
@@ -41,6 +41,7 @@ class QwBeamLine : public VQwSubsystemParity{
       fgDetectorTypeNames.push_back("bpmstripline");
       fgDetectorTypeNames.push_back("bcm");
       fgDetectorTypeNames.push_back("combinedbcm");
+      fgDetectorTypeNames.push_back("combinedbpm");
       for(size_t i=0;i<fgDetectorTypeNames.size();i++)
 	fgDetectorTypeNames[i].ToLower();
       
@@ -108,6 +109,7 @@ class QwBeamLine : public VQwSubsystemParity{
  std::vector <QwBPMStripline> fStripline;
  std::vector <QwBCM> fBCM;
  std::vector <QwCombinedBCM> fBCMCombo;
+ std::vector <QwCombinedBPM> fBPMCombo;
  std::vector <QwBeamDetectorID> fBeamDetectorID;
 
  
