@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
     detectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_helicity.map");
     detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
   }
-  QwHelicityPattern helicitypattern(detectors,kMultiplet);
+  QwHelicityPattern helicitypattern(detectors);
 
   // Get the helicity
   QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystem("Helicity info");

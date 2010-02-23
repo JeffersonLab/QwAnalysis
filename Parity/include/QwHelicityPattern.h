@@ -22,7 +22,7 @@ class QwHelicityPattern{
    *
    ******************************************************************/
  public:
-  QwHelicityPattern(QwSubsystemArrayParity &event, Int_t pattern_size);
+  QwHelicityPattern(QwSubsystemArrayParity &event);
   ~QwHelicityPattern(){};
 
   void  LoadEventData(QwSubsystemArrayParity &event);

@@ -109,7 +109,7 @@ QwLog& QwLog::operator()(QwLogLevel level)
   if (fScreen && fLogLevel <= fScreenThreshold) {
     if (QwLogScreenAtNewLine) {
       switch (level) {
-      case kError:   *(fScreen) << QwColor(Qw::kBoldRed) << "Error: "; break;
+      case kError:   *(fScreen) << QwColor(Qw::kRed) << "Error: "; break;
       case kWarning: *(fScreen) << QwColor(Qw::kRed) << "Warning: "
                                 << QwColor(Qw::kWhite); break;
       default: break;

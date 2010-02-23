@@ -53,8 +53,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   Bool_t bDebug=kFALSE;
   Bool_t bHelicity=kTRUE;
-  Bool_t bTree=kTRUE;//kTRUE;
-  Bool_t bHisto=kTRUE;//kTRUE;
+  Bool_t bTree=kTRUE;
+  Bool_t bHisto=kFALSE;//kTRUE;
 
   //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
   if (getenv("DISPLAY")==NULL
@@ -87,12 +87,8 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");  
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadEventCuts("qweak_beamline_eventcuts.in");//Pass the correct cuts file. 
   QwDetectors.push_back(new QwHelicity("Helicity info"));
-  QwDetectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
-  QwDetectors.GetSubsystem("Helicity info")->LoadInputParameters("");
-
-
-
-
+  QwDetectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_helicity.map");
+  QwDetectors.GetSubsystem("Helicity info")->LoadInputParameters("");	
   QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
   QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap("qweak_beamline.map");//current map file is for the beamline.
   QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file. 
@@ -102,10 +98,10 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
 
-  QwHelicityPattern QwHelPat(QwDetectors,4);
+  QwHelicityPattern QwHelPat(QwDetectors);//multiplet size is set within the QwHelicityPattern class
   //QwEventRing fEventRing(QwDetectors,120,60,8);//Event ring of 120; 60 hold off events, 8 minimum failed events is a beam trip
-  QwEventRing fEventRing(QwDetectors,32,8,16); //Event ring of 32; 8 hold off events, 16  minimum failed events is a beam trip
-  //QwEventRing fEventRing(QwDetectors,1200,600,600);
+  //QwEventRing fEventRing(QwDetectors,32,8,16); //Event ring of 32; 8 hold off events, 16  minimum failed events is a beam trip
+  QwEventRing fEventRing(QwDetectors,32,16,4);
   Double_t evnum=0.0;
 
 

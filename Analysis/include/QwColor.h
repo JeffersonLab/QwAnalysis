@@ -35,53 +35,58 @@
 #define BOLDBLUE    "\E[34m\033[1m"
 #define BOLDMAGENTA "\E[35m\033[1m"
 #define BOLDCYAN    "\E[36m\033[1m"
-#define BOLDWHITE    "\E[37m\033[1m"
+#define BOLDWHITE   "\E[37m\033[1m"
 
 #define BACKRED     "\E[31m\033[7m"
 #define BACKGREEN   "\E[32m\033[7m"
 #define BACKBLUE    "\E[34m\033[7m"
 #define NORMAL      "\033[0m"
 
+// All colors need to go in a namespace because of conflicts with ROOT colors.
+// Really, ROOT should have its colors in a namespace.
 namespace Qw {
 
-enum EQwColor {
-  kBlack, kRed, kGreen, kBrown, kBlue, kMagenta, kCyan, kWhite, kBold,
-  kBoldRed, kBoldGreen, kBoldBrown, kBoldBlue, kBoldMagenta, kBoldCyan, kBoldWhite,
-  kBackRed, kBackGreen, kBackBlue, kNormal
-};
-
-typedef std::map<EQwColor, std::string> QwColorMap;
-inline QwColorMap CreateColorMap()
-{
-  QwColorMap map;
-  map[kBlack] = BLACK;
-  map[kRed] = RED;
-  map[kGreen] = GREEN;
-  map[kBrown] = BROWN;
-  map[kBlue] = BLUE;
-  map[kMagenta] = MAGENTA;
-  map[kCyan] = CYAN;
-  map[kBoldRed] = BOLDRED;
-  map[kBoldGreen] = BOLDGREEN;
-  map[kBoldBrown] = BOLDBROWN;
-  map[kBoldBlue] = BOLDBLUE;
-  map[kBoldMagenta] = BOLDMAGENTA;
-  map[kBoldCyan] = BOLDCYAN;
-  map[kWhite] = WHITE;
-  return map;
-};
-static QwColorMap kColorMap = CreateColorMap();
+  enum EQwColor {
+    kBlack, kRed, kGreen, kBrown, kBlue, kMagenta, kCyan, kWhite, kBold,
+    kBoldRed, kBoldGreen, kBoldBrown, kBoldBlue, kBoldMagenta, kBoldCyan, kBoldWhite,
+    kBackRed, kBackGreen, kBackBlue, kNormal
+  };
 
 }; // namespace Qw
+
+typedef std::map<Qw::EQwColor, std::string> QwColorMap;
 
 class QwColor
 {
   public:
 
     QwColor(const Qw::EQwColor f = Qw::kWhite, const Qw::EQwColor b = Qw::kBlack)
-    : foreground(f), background(b) { }
+    : foreground(f), background(b) { };
+    virtual ~QwColor() { };
 
   friend std::ostream& operator<<(std::ostream& out, const QwColor& color);
+
+  protected:
+
+    static QwColorMap CreateColorMap() {
+      QwColorMap map;
+      map[Qw::kBlack] = BLACK;
+      map[Qw::kRed] = RED;
+      map[Qw::kGreen] = GREEN;
+      map[Qw::kBrown] = BROWN;
+      map[Qw::kBlue] = BLUE;
+      map[Qw::kMagenta] = MAGENTA;
+      map[Qw::kCyan] = CYAN;
+      map[Qw::kBoldRed] = BOLDRED;
+      map[Qw::kBoldGreen] = BOLDGREEN;
+      map[Qw::kBoldBrown] = BOLDBROWN;
+      map[Qw::kBoldBlue] = BOLDBLUE;
+      map[Qw::kBoldMagenta] = BOLDMAGENTA;
+      map[Qw::kBoldCyan] = BOLDCYAN;
+      map[Qw::kWhite] = WHITE;
+      return map;
+    };
+    static QwColorMap kColorMap;
 
   private:
 
@@ -90,10 +95,9 @@ class QwColor
 
 }; // class QwColor
 
-
 inline std::ostream& operator<<(std::ostream& out, const QwColor& color)
 {
-  return out << Qw::kColorMap[color.foreground];
+  return out << color.kColorMap[color.foreground];
 }
 
 #endif // QWCOLOR_H

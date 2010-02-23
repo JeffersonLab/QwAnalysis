@@ -24,7 +24,7 @@ QwDatabase gQwDatabase;
 QwDatabase::QwDatabase() : Connection()
 {
   // Initialize member fields
-  fDatabase=fDBServer=fDBUsername=fDBPassword=""; 
+  fDatabase=fDBServer=fDBUsername=fDBPassword="";
   fDBPortNumber=0;
   fValidConnection=false;
   fRunNumber=fRunID=0;
@@ -36,7 +36,7 @@ QwDatabase::QwDatabase() : Connection()
 QwDatabase::~QwDatabase()
 {
   Disconnect();
-//  QwDebug << "QwDatabase::~QwDatabase() : Good-bye World from QwDatabase destructor!" << QwLog::endl;
+  QwDebug << "QwDatabase::~QwDatabase() : Good-bye World from QwDatabase destructor!" << QwLog::endl;
 }
 
 /*! This function is used to load the connection information for the
@@ -47,7 +47,7 @@ QwDatabase::~QwDatabase()
  */
 bool QwDatabase::ValidateConnection() {
 
-  // 
+  //
   // Retrieve options
   //
   string dbname, server, username, password;
@@ -118,7 +118,7 @@ bool QwDatabase::ValidateConnection() {
 
 /*! This function is used to initiate a database connection.
  */
-bool QwDatabase::Connect() 
+bool QwDatabase::Connect()
 {
   /* Open a connection to the database using the predefined parameters.
    * Must call QwDatabase::ConnectionInfo() first.
@@ -144,9 +144,9 @@ bool QwDatabase::Connect()
 
 /*! This function is used to initiate a database connection without using QwOption class
  */
-Bool_t QwDatabase::SetConnect(TString dbname, TString dbserver, TString dbuser, TString dbpasswd, UInt_t dbport) 
+Bool_t QwDatabase::SetConnect(TString dbname, TString dbserver, TString dbuser, TString dbpasswd, UInt_t dbport)
 {
-  
+
   /* Open a connection to the database using the predefined parameters.
    * Must call QwDatabase::ConnectionInfo() first.
    */
@@ -156,13 +156,13 @@ Bool_t QwDatabase::SetConnect(TString dbname, TString dbserver, TString dbuser, 
 
   // If never connected before, then make sure connection parameters form
   // valid connection
-  if (!fValidConnection) 
+  if (!fValidConnection)
     {
-      try 
+      try
 	{
 	  connect(dbname, dbserver, dbuser, dbpasswd, dbport);
-	} 
-      catch (std::exception const& e) 
+	}
+      catch (std::exception const& e)
 	{
 	  QwError << "QwDatabase::ValidateConnection() : " << QwLog::endl;
 	  QwError << e.what() << " while validating connection" << QwLog::endl;
@@ -175,7 +175,7 @@ Bool_t QwDatabase::SetConnect(TString dbname, TString dbserver, TString dbuser, 
 	}
       // Success!
       QwMessage << "QwDatabase::ValidateConnection() : Successfully connected to requested database." << QwLog::endl;
-      
+
       // Connection was good so update member variables and disconnect from
       // database
       fDatabase=dbname;
@@ -187,12 +187,12 @@ Bool_t QwDatabase::SetConnect(TString dbname, TString dbserver, TString dbuser, 
       disconnect();
     }
 
-  if (fValidConnection) 
+  if (fValidConnection)
     {
       return connect(fDatabase.c_str(), fDBServer.c_str(), fDBUsername.c_str(), fDBPassword.c_str(), (unsigned int) fDBPortNumber);
       //   return connect(fDatabase.Data(), fDBServer.Data(), fDBUsername.Data(), fDBPassword.Data(), (unsigned int) fDBPortNumber);
-    } 
-  else 
+    }
+  else
     {
       QwError << "QwDatabase::Connect() : Must establish valid connection to database." << QwLog::endl;
       return false;
@@ -202,13 +202,13 @@ Bool_t QwDatabase::SetConnect(TString dbname, TString dbserver, TString dbuser, 
 
 /*!
  * Defines configuration options for QwDatabase class using QwOptions
- * functionality.  
+ * functionality.
  *
  * Should apparently by called by QwOptions::DefineOptions() in
  * QwParityOptions.h
  */
 void QwDatabase::DefineOptions(QwOptions& options)
-{  
+{
   // Specify command line options for use by QwDatabase
   options.AddOptions()("QwDatabase.dbname", po::value<string>(), "database name");
   options.AddOptions()("QwDatabase.dbserver", po::value<string>(), "database server name");
@@ -266,20 +266,20 @@ bool QwDatabase::SetRunNumber(const UInt_t runnum)
  */
 void QwDatabase::PrintServerInfo()
 {
-  if (fValidConnection) 
+  if (fValidConnection)
     {
       printf("\n");
       printf("QwDatabase MySQL ");
       printf("%s v%s %s -----------------\n", BOLD, GetServerVersion().c_str(), NORMAL);
-  
+
       printf("Database server : %s%10s%s",  RED,  fDBServer.c_str(), NORMAL);
-      printf(" name   : %s%12s%s",  BLUE, fDatabase.c_str(), NORMAL);    
+      printf(" name   : %s%12s%s",  BLUE, fDatabase.c_str(), NORMAL);
       printf(" user   : %s%6s%s",  RED, fDBUsername.c_str(), NORMAL);
       printf(" port   : %s%6d%s\n",  BLUE, fDBPortNumber, NORMAL);
       printf(" %s\n", server_status().c_str());
       printf("\n");
-    } 
-  else 
+    }
+  else
     {
       printf("There is no connection\n");
 

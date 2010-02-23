@@ -22,21 +22,21 @@
 
 !INPUT REGISTER MODE
 
-!HelicityDecodingMode=InputRegisterMode
-!PatternPhase=4
-!ROC=31
-!Bank=0x3103
+HelicityDecodingMode=InputRegisterMode
+PatternPhase=4
+ROC=31
+Bank=0x3103
 !
 ! module.type, module.num  chan.num, det.type, det.name
 !
-!WORD, 0,  0, helicitydata,  input_register
-!WORD, 0,  0, helicitydata,  output_register
-!WORD, 0,  0, helicitydata,  MPS_counter
-!WORD, 0,  0, helicitydata,  PAT_counter
-!WORD, 0,  0, helicitydata,  PAT_phase
-!WORD, 0,  0, helicitydata,  cleandata
-!WORD, 0,  0, helicitydata,  scandata1
-!WORD, 0,  0, helicitydata,  scandata2
+WORD, 0,  0, helicitydata,  input_register
+WORD, 0,  0, helicitydata,  output_register
+WORD, 0,  0, helicitydata,  MPS_counter
+WORD, 0,  0, helicitydata,  PAT_counter
+WORD, 0,  0, helicitydata,  PAT_phase
+WORD, 0,  0, helicitydata,  cleandata
+WORD, 0,  0, helicitydata,  scandata1
+WORD, 0,  0, helicitydata,  scandata2
 !END
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -45,18 +45,18 @@
 
 !USER BIT MODE
 
-HelicityDecodingMode= UserbitMode    
-PatternPhase=4
-ROC=31
-Bank=0x3101
+!HelicityDecodingMode= UserbitMode    
+!PatternPhase=4
+!ROC=31
+!Bank=0x3101
 !
 ! module.type, module.num  chan.num, det.type, det.name
 !
-WORD, 0,  0, helicitydata,  cleandata
-WORD, 0,  0, helicitydata,  scandata1
-WORD, 0,  0, helicitydata,  scandata2
-WORD, 0,  0, helicitydata,  scalerheader
-WORD, 0,  0, helicitydata,  scalercounter
-WORD, 0,  0, helicitydata,  userbit 
+!WORD, 0,  0, helicitydata,  cleandata
+!WORD, 0,  0, helicitydata,  scandata1
+!WORD, 0,  0, helicitydata,  scandata2
+!WORD, 0,  0, helicitydata,  scalerheader
+!WORD, 0,  0, helicitydata,  scalercounter
+!WORD, 0,  0, helicitydata,  userbit 
 !END
  
