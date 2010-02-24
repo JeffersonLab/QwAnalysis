@@ -47,6 +47,15 @@ class nodenode {
     /// \brief Destructor
     ~nodenode();
 
+  private:
+
+    /// Pointer to the next node
+    nodenode* fNext;
+    /// Pointer to the next tree
+    treenode* fTree;
+
+  public:
+
     /// Set the tree
     void SetTree(treenode* tree) {
       fTree = tree;
@@ -67,9 +76,6 @@ class nodenode {
     /// Get the next node (non-standard notation)
     nodenode* next() const { return fNext; };
 
-    /// Get number of objects
-    static const int GetCount() { return fCount; };
-
   private:
 
     static int fCount; /// Object counter
@@ -77,10 +83,8 @@ class nodenode {
 
   public:
 
-    /// Pointer to the next node
-    nodenode* fNext;
-    /// Pointer to the next tree
-    treenode* fTree;
+    /// Get number of objects
+    static const int GetCount() { return fCount; };
 
 }; // class nodenode
 

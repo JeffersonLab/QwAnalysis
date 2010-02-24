@@ -39,14 +39,14 @@ QwTrackingTreeRegion::~QwTrackingTreeRegion()
   QwDebug << "Deleting linked lists of node objects..." << QwLog::endl;
   for (int i = 0; i < fNode.GetNumberOfTrees(); i++)
     for (int j = 0; j < 4; j++)
-      if (fNode.tree[i].son[j]) {
-        delete fNode.tree[i].son[j];
-        fNode.tree[i].son[j] = 0;
+      if (fNode.GetTree(i)->son[j]) {
+        delete fNode.GetTree(i)->son[j];
+        fNode.GetTree(i)->son[j] = 0;
       }
 
   // Then delete the remaining flat list of trees
   QwDebug << "Deleting flat list of tree objects..." << QwLog::endl;
-  delete[] fNode.tree;
+  delete[] fNode.GetTree();
 
   // Report memory statistics
   if (shortnode::GetCount() > 0 || shorttree::GetCount() > 0) {
@@ -65,7 +65,7 @@ void QwTrackingTreeRegion::PrintTrees() const
   QwOut << "Trees:" << QwLog::endl;
   for (int i = 0; i < fNode.GetNumberOfTrees(); i++) {
     QwOut << "tree " << i << ": ";
-    fNode.tree[i].Print(1);
+    fNode.GetTree(i)->Print(1);
   }
 }
 
@@ -79,11 +79,11 @@ void QwTrackingTreeRegion::PrintNodes() const
   for (int i = 0; i < fNode.GetNumberOfTrees(); i++) {
     QwOut << "tree " << i << ":" << QwLog::endl;
     for (int j = 0; j < 4; j++) {
-      shortnode* node = fNode.tree[i].son[j];
+      shortnode* node = fNode.GetTree(i)->son[j];
       if (node) QwOut << " son " << j << ":" << QwLog::endl;
       while (node) {
         QwOut << "  " << node << ": " << *node << QwLog::endl;
-        node = node->next;
+        node = node->GetNext();
       } // loop over linked list of nodes
     } // loop over the four sons
   } // loop over list of trees

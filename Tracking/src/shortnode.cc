@@ -32,8 +32,8 @@ int shortnode::fDebug = 0;
 shortnode::shortnode()
 {
   // Initialize pointers
-  next = 0;
-  tree = 0;
+  fNext = 0;
+  fTree = 0;
   // No tree pointed at yet
   fNTrees = 0;
 
@@ -47,14 +47,28 @@ shortnode::shortnode()
 shortnode::~shortnode()
 {
   // Delete the next node in the linked list (recursion)
-  if (next) delete next;
+  if (fNext) delete fNext;
 
   // Count objects
   fCount--;
 }
 
 /**
+ * Get the tree, or an indexed tree if this is an array of trees.
+ * @param i The index of the tree (default is zero)
+ * @return Pointer to the tree
+ */
+shorttree* shortnode::GetTree(int i) const
+{
+  if (fNTrees > 1 && i < fNTrees)
+    return &(fTree[i]);
+  else
+    return fTree;
+}
+
+/**
  * Print some debugging information
+ * @param indent Indentation level
  */
 void shortnode::Print(int indent)
 {
@@ -64,15 +78,15 @@ void shortnode::Print(int indent)
   QwOut << this << ": " << *this << QwLog::endl;
 
   // Print next node
-  if (next) {
+  if (fNext) {
     QwOut << indentation << "next: ";
-    next->Print(indent+1);
+    fNext->Print(indent+1);
   }
 
   // Print tree
-  if (tree) {
+  if (fTree) {
     QwOut << indentation << "tree: ";
-    tree->Print(indent+1);
+    fTree->Print(indent+1);
   }
 }
 
@@ -84,7 +98,7 @@ void shortnode::Print(int indent)
  */
 std::ostream& operator<< (std::ostream& stream, const shortnode& sn)
 {
-  stream << *(sn.tree);
+  stream << *(sn.GetTree());
   return stream;
 }
 

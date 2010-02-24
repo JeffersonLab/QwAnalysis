@@ -241,10 +241,6 @@ void QwTrackingWorker::InitTree()
         for (EQwDirectionID direction  = kDirectionX;
                             direction <= kDirectionV; direction++) {
 
-          // Create a new search tree
-          QwTrackingTree *thetree = new QwTrackingTree();
-          thetree->SetMaxSlope(gQwOptions.GetValue<float>("QwTracking.R2.maxslope"));
-
           int levels = 0;
           int numlayers = 0;
           double width = 0.0;
@@ -283,6 +279,10 @@ void QwTrackingWorker::InitTree()
               width = rcDETRegion[package][region][direction]->width[2];
               levels = levelsr3;
           }
+
+          /// Create a new search tree
+          QwTrackingTree *thetree = new QwTrackingTree(numlayers);
+          thetree->SetMaxSlope(gQwOptions.GetValue<float>("QwTracking.R2.maxslope"));
 
           /// Set up the filename with the following format
           ///   tree[numlayers]-[levels]-[u|l]-[1|2|3]-[d|g|t|c]-[n|u|v|x|y].tre
@@ -637,7 +637,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             QwDebug << "Searching for matching patterns (direction " << dir << ")" << QwLog::endl;
                             treelinelist = TreeSearch->SearchTreeLines(searchtree,
                                                  channel, hashchannel, levelsr3,
-                                                 NUMWIRESR3, TLAYERS);
+                                                 NUMWIRESR3, MAX_LAYERS);
 
                             // Delete the old array structures
                             for (size_t wire = 0; wire < patterns.size(); wire++) {
@@ -699,7 +699,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         event->treeline[package][region][type][dir] = treelinelist;
                         event->AddTreeLineList(treelinelist);
 
-                        tlayers = TLAYERS;     /* remember the number of tree-detector */
+                        tlayers = MAX_LAYERS;  /* remember the number of tree-detector */
                         tlaym1  = tlayers - 1; /* remember tlayers - 1 for convenience */
 
 
