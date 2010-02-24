@@ -9,6 +9,7 @@
 #include "QwHistogramHelper.h"
 #include <stdexcept>
 
+#include "QwLog.h"
 
 extern QwHistogramHelper gQwHists;
 
@@ -34,7 +35,8 @@ Bool_t QwHelicity::IsGoodPatternNumber()
 
   if(!results)
     {
-      std::cout<<"QwHelicity::IsGoodPatternNumber: \n this is not s good pattern number indeed:\n";
+      QwWarning << "QwHelicity::IsGoodPatternNumber: \n this is not s good pattern number indeed:"
+		<< QwLog::endl;
       Print();
     }
 
@@ -52,7 +54,8 @@ Bool_t QwHelicity::IsGoodEventNumber()
 
  if(!results)
     {
-      std::cout<<"QwHelicity::IsGoodEventNumber: \n this is not a good event number indeed:\n";
+      QwWarning << "QwHelicity::IsGoodEventNumber: \n this is not a good event number indeed:"
+		<< QwLog::endl;
       Print();
     }
   return results;
@@ -77,7 +80,8 @@ Bool_t QwHelicity::IsGoodPhaseNumber()
 
  if(!results)
     {
-      std::cout<<"QwHelicity::IsGoodPhaseNumber:  not a good phase number \n";
+      QwWarning << "QwHelicity::IsGoodPhaseNumber:  not a good phase number"
+		<< QwLog::endl;
       Print();
     }
 

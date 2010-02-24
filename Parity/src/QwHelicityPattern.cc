@@ -13,6 +13,7 @@
 
 #include <stdexcept>
 
+#include "QwLog.h"
 
 
 /*****************************************************************/
@@ -121,7 +122,7 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
       Int_t locali=localPhaseNumber-1;
       if(localdebug) std::cout<<"QwHelicityPattern::LoadEventData local i="<<locali<<"\n";
       if (locali < 0) {
-        std::cerr << "Negative array index set to zero!  Check code!" << std::endl;
+        QwError << "Negative array index set to zero!  Check code!" << QwLog::endl;
         locali = 0;
       }
       fEvents[locali] = event;
