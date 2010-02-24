@@ -55,7 +55,6 @@ enum MDMenuIdentifiers {
 #include <vector>
 using std::vector;
 
-
 #include <TG3DLine.h>
 #include <TRootEmbeddedCanvas.h>
 #include <TRootCanvas.h>
