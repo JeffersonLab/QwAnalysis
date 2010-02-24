@@ -65,6 +65,41 @@ how to configure "localhost" MySQL server.
    | localhost | root             | 
    +-----------+------------------+
 
+
+   mysql> create user qwadmin@localhost identified by '*******';
+   mysql> show grants for qwadmin@localhost;
+   +---------------------------------------------------------------------
+   | Grants for qwadmin@localhost                                        
+   +---------------------------------------------------------------------
+   | GRANT USAGE ON *.* TO 'qwadmin'@'localhost' IDENTIFIED BY PASSWORD '
+   +---------------------------------------------------------------------
+
+   mysql> select host, user from mysql.user;
+   +-----------+----------+
+   | host      | user     |
+   +-----------+----------+
+   | localhost | qwadmin  | 
+   | localhost | qwreplay | 
+   | localhost | root     | 
+   +-----------+----------+
+   mysql> grant super on *.* to qwadmin@localhost;
+   mysql> show grants for qwadmin@localhost;
+   +--------------------------------------------------------------------
+   | Grants for qwadmin@localhost                                       
+   +--------------------------------------------------------------------
+   | GRANT SUPER ON *.* TO 'qwadmin'@'localhost' IDENTIFIED BY PASSWORD 
+   +--------------------------------------------------------------------
+
+   mysql> grant all privileges on `qw\_%`.* to qwadmin@localhost;
+   mysql> show grants for qwadmin@localhost;
+   +--------------------------------------------------------------------
+   | Grants for qwadmin@localhost                                       
+   +--------------------------------------------------------------------
+   | GRANT SUPER ON *.* TO 'qwadmin'@'localhost' IDENTIFIED BY PASSWORD 
+   | GRANT ALL PRIVILEGES ON `qw\_%`.* TO 'qwadmin'@'localhost'         
+   +--------------------------------------------------------------------
+
+
 * setup qw_test databases by using qw_test.sql file
 
   [] mysql -u root -p  qw_test < qw_test.sql

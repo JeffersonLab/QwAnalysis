@@ -30,8 +30,14 @@
 
 #include "QwEventRing.h"
 
+#include "QwColor.h"
 #include "QwOptionsParity.h"
 #include "QwDatabase.h"
+
+#include "TMySQLServer.h"
+#include "TMySQLResult.h"
+#include "TSQLTableInfo.h"
+#include "TSQLRow.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -42,6 +48,13 @@
 #include <fstream>
 #include <vector>
 #include <new>
+
+
+const char *const run_type[4] = 
+  {
+    "good", "bad", "junk", "spiky"
+  };
+
 
 
 void PrintInfo(TStopwatch& timer);
