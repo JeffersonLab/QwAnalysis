@@ -107,6 +107,10 @@ class QwLog : public std::ostream {
      */
     void                        InitLogFile(const std::string name, const std::ios_base::openmode mode = kAppend);
 
+    /*! \brief Set the screen color mode
+     */
+    void                        SetScreenColor(bool flag);
+
     /*! \brief Set the screen log level
      */
     void                        SetScreenThreshold(int thr);
@@ -161,6 +165,9 @@ class QwLog : public std::ostream {
     std::ostream               *fFile;
     //! Log level of this stream
     QwLogLevel                  fLogLevel;
+
+    //! Flag to disable color (static)
+    static bool                 fUseColor;
 
 };
 

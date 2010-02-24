@@ -73,16 +73,32 @@ namespace Qw {
 
 }; // namespace Qw
 
+// Map of the enum to the defined strings
 typedef std::map<Qw::EQwColor, std::string> QwColorMap;
 
+/**
+ *  \class QwColor
+ *  \ingroup QwAnalysis
+ *  \brief A color changing class for the output stream
+ *
+ * This class changes the color in the output stream by inserting 'magic'
+ * escape sequences that are interpreted by smart terminals.  On dumb terminals
+ * this will probably just print garbage.  To use the color, a QwColor object
+ * should be streamed to the output stream:
+ * \code
+ * QwMessage << "Hello, " << QwColor(Qw::kRed) << "Qweak!" << QwLog::endl;
+ * \endcode
+ */
 class QwColor
 {
   public:
 
+    /// Default constructor
     QwColor(const Qw::EQwColor f = Qw::kDefaultForeground, const Qw::EQwColor b = Qw::kDefaultBackground)
     : foreground(f), background(b) { };
     virtual ~QwColor() { };
 
+  /// \brief Output stream operator
   friend std::ostream& operator<<(std::ostream& out, const QwColor& color);
 
   protected:
@@ -122,11 +138,12 @@ class QwColor
 
   private:
 
-    Qw::EQwColor foreground;
-    Qw::EQwColor background; // not yet supported
+    Qw::EQwColor foreground; ///< Foreground color
+    Qw::EQwColor background; ///< Background color (not yet supported)
 
 }; // class QwColor
 
+/// Output stream operator which uses the enum-to-escape-code mapping
 inline std::ostream& operator<<(std::ostream& out, const QwColor& color)
 {
   return out << color.kColorMap[color.foreground];

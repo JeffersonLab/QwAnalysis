@@ -192,7 +192,7 @@ class QwOptions {
                   << fVariablesMap[key].as<T>() << QwLog::endl;
         return fVariablesMap[key].as<T>();
       } else {
-        QwWarning << "Variable " << key << " unknown" << QwLog::endl;
+        QwError << "Variable " << key << " unknown" << QwLog::endl;
         return 0;
       }
     }
