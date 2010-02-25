@@ -64,6 +64,10 @@ class QwHelicityPattern{
   
   Bool_t IsGood; 
   
+
+  Int_t fPATTERNPHASEOFFSET;
+  Bool_t bPATTERNPHASEOFFSET;
+
 };
 
 

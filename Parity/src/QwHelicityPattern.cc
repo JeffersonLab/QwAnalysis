@@ -21,6 +21,10 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
 {
   QwHelicity* input=((QwHelicity*)event.GetSubsystem("Helicity info"));
   fPatternSize=input->GetMaxPatternPhase();
+
+  bPATTERNPHASEOFFSET=kFALSE;
+  fPATTERNPHASEOFFSET=1;//Phase number offset is set to 1 by default and will be set to 0 if phase number starts from 0
+
   std::cout<<"QwHelicity::MaxPatternPhase = "<<fPatternSize<<std::endl;
   try
     {
@@ -119,7 +123,13 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
     }
   else
     {
-      Int_t locali=localPhaseNumber-1;
+      if (!bPATTERNPHASEOFFSET && localPhaseNumber==0){//identify Phase Number starts with either 1 or 0 and set the offset
+	fPATTERNPHASEOFFSET=0;
+	bPATTERNPHASEOFFSET=kTRUE;
+      }
+	
+      Int_t locali=localPhaseNumber-fPATTERNPHASEOFFSET;
+      
       if(localdebug) std::cout<<"QwHelicityPattern::LoadEventData local i="<<locali<<"\n";
       if (locali < 0) {
         QwError << "Negative array index set to zero!  Check code!" << QwLog::endl;
