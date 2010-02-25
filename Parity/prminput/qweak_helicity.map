@@ -25,15 +25,15 @@
 !Need to set PATTERNPHASEOFFSET = 1 (when pattern number starts with 1) or 0 (when pattern number starts with 0)
 !default value for PATTERNPHASEOFFSET = 1 is set within the code itself which works fine with regular injector/beamline/parity mock data
 !uncomment below line only if phase number start from 0
-PATTERNPHASEOFFSET=0
+!PATTERNPHASEOFFSET=0
 
 
 HelicityDecodingMode=InputRegisterMode
-PatternPhase=8
+PatternPhase=4
 
 !seed size is either 24 bit or 30 bit. default is 24 bit
 !RandSeedBits=24
-RandSeedBits=30
+!RandSeedBits=30
 
 ROC=31
 Bank=0x3103
