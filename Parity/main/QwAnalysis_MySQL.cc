@@ -57,6 +57,20 @@ main(Int_t argc, Char_t* argv[])
 
   UInt_t cnt = 0;
 
+  TSQLServer *serv = TSQLServer::Connect("mysql://localhost/qw_test", "qwreplay", "replay");
+  //TSQLServer *serv = TSQLServer::Connect("mysql://localhost/qw_test", "qwadmin", "S1n2+h3taW");
+  
+  if( serv->IsConnected() )
+    {
+      printf("--------------------------------------------------------\n");
+      printf(" Connected DB Server info: %s %s %s \n", BOLD, serv->ServerInfo(), NORMAL);
+      printf("--------------------------------------------------------\n");
+    }
+  else
+    {
+      printf("no connection\n");
+    }
+
   for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++)
     {
       
@@ -142,8 +156,9 @@ main(Int_t argc, Char_t* argv[])
 	  event_number = QwEvt.GetEventNumber();
 
 
-	  if (QwEvt.IsROCConfigurationEvent())  QwEvt.FillSubsystemConfigurationData(QwDetectors);
-	  if ( !QwEvt.IsPhysicsEvent() ) continue;
+	  if      ( QwEvt.IsROCConfigurationEvent() ) QwEvt.FillSubsystemConfigurationData(QwDetectors);
+	  if      ( !QwEvt.IsPhysicsEvent()         ) continue;
+
 	  //  Check to see if we want to process this event.
 	  if      ( event_number < cmdline.GetFirstEvent() ) continue;
 	  else if ( event_number > cmdline.GetLastEvent()  ) break;
@@ -243,47 +258,27 @@ main(Int_t argc, Char_t* argv[])
       // Start test TSQLServer based on ROOT system
 
       cnt++;
-
-      TSQLServer *serv = TSQLServer::Connect("mysql://localhost/qw_test", "qwreplay", "replay");
-      //TSQLServer *serv = TSQLServer::Connect("mysql://localhost/qw_test", "qwadmin", "S1n2+h3taW");
-      
-      if( serv->IsConnected() )
-	{
-	  printf("--------------------------------------------------------\n");
-	  printf(" Connected DB Server info: %s %s %s \n", BOLD, serv->ServerInfo(), NORMAL);
-	  printf("--------------------------------------------------------\n");
-	}
-      else
-	{
-	  printf("no connection\n");
-	}
-      
       TSQLResult *res = NULL;
-      //   res = serv->Query("DELETE FROM run");
-      //      delete res;
-      // //     res = serv->Query("TRUNCATE TABLE run");
-      // //     delete res;
-      
       char buff[1024];
       sprintf(buff, "INSERT INTO run (run_number, run_type, start_time, end_time) VALUES (%d, '%s', '%s', '%s');", 
-	      run, run_type[QwEvt.GetRunType()], QwEvt.GetStartSQLTime().Data(), QwEvt.GetEndSQLTime().Data());
+ 	      run, run_type[QwEvt.GetRunType()], QwEvt.GetStartSQLTime().Data(), QwEvt.GetEndSQLTime().Data());
       res = serv->Query(buff);
       
-
       if(res == NULL) 
-	{
-	  sprintf(buff, "UPDATE run SET run_number=%d, run_type='%s', start_time='%s', end_time='%s' where run_id=%d",
-		  run, run_type[QwEvt.GetRunType()], QwEvt.GetStartSQLTime().Data(), QwEvt.GetEndSQLTime().Data(), cnt);
-	  res = serv->Query(buff);
-	}
+ 	{
+ 	  sprintf(buff, "UPDATE run SET run_number=%d, run_type='%s', start_time='%s', end_time='%s' where run_id=%d",
+ 		  run, run_type[QwEvt.GetRunType()], QwEvt.GetStartSQLTime().Data(), QwEvt.GetEndSQLTime().Data(), cnt);
+ 	  res = serv->Query(buff);
+ 	}
 
       printf("%s%s%s\n", BOLD, buff, NORMAL);
       delete res; res = NULL;
-      delete serv;serv = NULL;
+      QwDetectors.FillMySQLServer(serv, run);
+
 
     } //end of run loop
   
-
+  delete serv;serv = NULL;
   
 //     for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++)
 //     {     

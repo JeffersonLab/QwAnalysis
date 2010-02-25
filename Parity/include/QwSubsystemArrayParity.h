@@ -33,6 +33,7 @@ class QwSubsystemArrayParity:  public QwSubsystemArray {
     ConstructBranchAndVector(tree,tmpstr,values);
   };
   void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillMySQLServer(TSQLServer *server, UInt_t run_id_cnt);
 
   void Copy(QwSubsystemArrayParity *source);
 

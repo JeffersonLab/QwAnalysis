@@ -14,6 +14,8 @@
 #include <vector>
 #include <TTree.h>
 
+
+
 #include "VQwSubsystemParity.h"
 #include "QwVQWK_Module.h"
 
@@ -75,6 +77,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillMySQLServer(TSQLServer *server, UInt_t run_id_cnt){};
 
   QwIntegrationPMT* GetChannel(const TString name);
 
