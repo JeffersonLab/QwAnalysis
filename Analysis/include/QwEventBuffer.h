@@ -52,8 +52,8 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
 
   Int_t OpenDataFile(UInt_t current_run, Short_t seg);
-  Int_t OpenDataFile(UInt_t current_run);
-  Int_t OpenDataFile(const TString filename, const TString rw);
+  Int_t OpenDataFile(UInt_t current_run, const TString rw = "R");
+  Int_t OpenDataFile(const TString filename, const TString rw = "R");
   Int_t CloseDataFile();
 
   Int_t OpenETStream(TString computer, TString session, int mode);
@@ -64,19 +64,33 @@ class QwEventBuffer: public MQwCodaControlEvent{
   };
   Int_t GetEventNumber(){return fEvtNumber;};
 
+
   Int_t  GetEvent();
-  
+  Int_t  WriteEvent(int* buffer);
+
   Bool_t IsROCConfigurationEvent(){
     return (fEvtType>=0x90 && fEvtType<=0xaf);
   };
 
-  Bool_t FillSubsystemConfigurationData(std::vector<VQwSubsystem*> &subsystems);
-  Bool_t FillSubsystemData(std::vector<VQwSubsystem*> &subsystems);
-
   Bool_t FillSubsystemConfigurationData(QwSubsystemArray &subsystems);
   Bool_t FillSubsystemData(QwSubsystemArray &subsystems);
 
+
+  Int_t EncodeSubsystemData(QwSubsystemArray &subsystems);
+  Int_t EncodePrestartEvent(int runnumber, int runtype = 0);
+  Int_t EncodeGoEvent();
+  Int_t EncodePauseEvent();
+  Int_t EncodeEndEvent();
+
   void ResetFlags();
+
+ private:
+  //  These methods will be removed from a future version
+  void ClearEventData(std::vector<VQwSubsystem*> &subsystems);
+
+  Bool_t FillSubsystemConfigurationData(std::vector<VQwSubsystem*> &subsystems);
+  Bool_t FillSubsystemData(std::vector<VQwSubsystem*> &subsystems);
+
 
 
  protected:
@@ -85,16 +99,17 @@ class QwEventBuffer: public MQwCodaControlEvent{
   const TString fDataFileExtension;
 
   TString fDataDirectory;
-  
+
   TString fDataFile;
 
   UInt_t fRunNumber;
-  
+
 
  protected:
   Int_t  GetFileEvent();
   Int_t  GetEtEvent();
 
+  Int_t WriteFileEvent(int* buffer);
 
   Bool_t DataFileIsSegmented();
 
@@ -104,17 +119,16 @@ class QwEventBuffer: public MQwCodaControlEvent{
   void DecodeEventIDBank(UInt_t *buffer);
   Bool_t DecodeSubbankHeader(UInt_t *buffer);
 
-
   const TString&  DataFile(const UInt_t run, const Short_t seg);
-  
+
   void SetEventLength(const ULong_t tmplength) {fEvtLength = tmplength;};
   void SetEventType(const UInt_t tmptype) {fEvtType = tmptype;};
   void SetWordsSoFar(const ULong_t tmpwords) {fWordsSoFar = tmpwords;};
- 
+
 
 
  protected:
-  
+
 
   Bool_t fRunIsSegmented;
 
@@ -142,12 +156,10 @@ class QwEventBuffer: public MQwCodaControlEvent{
   UInt_t fStatSum;
 
   UInt_t fFragLength;
-  UInt_t fSubbankTag;  
-  UInt_t fSubbankType;  
+  UInt_t fSubbankTag;
+  UInt_t fSubbankType;
   UInt_t fSubbankNum;
   UInt_t fROC;
-
-
 
 
 };

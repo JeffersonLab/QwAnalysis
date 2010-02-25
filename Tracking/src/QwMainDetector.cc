@@ -12,7 +12,9 @@ const UInt_t QwMainDetector::kMaxNumberOfChannelsPerModule = 32;
 
 
 
-QwMainDetector::QwMainDetector(TString region_tmp):VQwSubsystemTracking(region_tmp){
+QwMainDetector::QwMainDetector(TString region_tmp):VQwSubsystem(region_tmp),
+                                                   VQwSubsystemTracking(region_tmp)
+{
 };
 
 QwMainDetector::~QwMainDetector(){
@@ -26,7 +28,8 @@ QwMainDetector::~QwMainDetector(){
 Int_t QwMainDetector::LoadChannelMap(TString mapfile){
   TString varname, varvalue;
   TString modtype, dettype, name;
-  Int_t modnum, channum;
+  //  Int_t modnum;
+  Int_t channum;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine()){
@@ -152,7 +155,7 @@ void  QwMainDetector::FillHistograms(){
   }
 };
 
-void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Float_t> &values)
+void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Double_t> &values)
 {
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
@@ -161,7 +164,7 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix, std:
   }
 };
 
-void  QwMainDetector::FillTreeVector(std::vector<Float_t> &values)
+void  QwMainDetector::FillTreeVector(std::vector<Double_t> &values)
 {
   if (! HasDataLoaded()) return;
   for (size_t i=0; i<fPMTs.size(); i++){
@@ -249,7 +252,7 @@ const QwMainDetector::EModuleType QwMainDetector::RegisterModuleType(TString mod
     fCurrentType = V775_TDC;
   }
   fModuleTypes.at(fCurrentIndex) = fCurrentType;
-  if (fPMTs.size()<=fCurrentType){
+  if ((Int_t)fPMTs.size()<=fCurrentType){
     fPMTs.resize(fCurrentType+1);
   }
   return fCurrentType;
@@ -262,6 +265,8 @@ Int_t QwMainDetector::LinkChannelToSignal(const UInt_t chan, const TString &name
   fModulePtrs.at(fCurrentIndex).at(chan).first  = index;
   fModulePtrs.at(fCurrentIndex).at(chan).second = 
     fPMTs.at(index).size() -1;
+
+  return 0;
 };
 
 void QwMainDetector::FillRawWord(Int_t bank_index, 

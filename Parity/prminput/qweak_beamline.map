@@ -1,6 +1,11 @@
 
 ROC=31
 Bank=0x3102
+!same sample size for ADCs in a given bank
+!  HAPPEX 30 Hz:  16480
+!  HAPPEX 120 Hz:  3824
+!  HAPPEX 240 Hz:  1916
+sample_size=3824
 !
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
@@ -126,6 +131,29 @@ Bank=0x3102
   VQWK, 11, 4,  bcm,  QWK_BCM0L02
   VQWK, 11, 5,  bcm,  QWK_Batery6
   VQWK, 11, 6,  bcm,  QWK_Batery7
-  VQWK, 11, 7,  bcm,  empty3
+  VQWK, 11, 7,   bcm,  PhaseMonitor
+
+beginCOMBO=combinedbcm
+name = qwk_target_charge
+!name		wieght
+ QWK_BCM0L02,  1.0
+ empty1,  0.8
+ QWK_Batery7, 0.9
+endCOMBO=combinedbcm
+
+beginCOMBO=combinedbcm
+name = qwk_average_charge
+!name		wieght
+
+ QWK_Batery6, 0.1
+ QWK_Batery7, 0.9
+endCOMBO=combinedbcm
+
+beginCOMBO=combinedbpm
+name = qwk_target_position
+!name		wieght
+ QWK_QPD, 0.1
+ QWK_1I02, 0.9
+endCOMBO=combinedbpm
 
 !END

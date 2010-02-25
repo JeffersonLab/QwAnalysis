@@ -14,15 +14,17 @@ const Int_t QwEventBuffer::kRunNotSegmented = -20;
 const Int_t QwEventBuffer::kNoNextDataFile  = -30;
 const Int_t QwEventBuffer::kFileHandleNotConfigured  = -40;
 
-const UInt_t QwEventBuffer::kNullDataWord = 'NULL';
-
+/// This is the ASCII character array 'NULL', and is used by the
+/// DAQ to indicate a known empty buffer.
+const UInt_t QwEventBuffer::kNullDataWord = 0x4e554c4c;
 
 QwEventBuffer::QwEventBuffer():fDEBUG(kFALSE),fDataFileStem("parity09_"),
 			       fDataFileExtension("dat"),
 			       fRunIsSegmented(kFALSE),
 			       fEvStreamMode(fEvStreamNull),
 			       fEvStream(NULL),
-			       fPhysicsEventFlag(kFALSE)
+			       fPhysicsEventFlag(kFALSE),
+			       fEvtNumber(0)
 {
   fDataDirectory = getenv("DATADIR");
   if (fDataDirectory.Length() == 0){
@@ -45,7 +47,6 @@ Int_t QwEventBuffer::GetEvent()
   }
   return status;
 }
-  
 
 Int_t QwEventBuffer::GetFileEvent(){
   Int_t status = CODA_OK;
@@ -78,6 +79,119 @@ Int_t QwEventBuffer::GetEtEvent(){
   }
   return status;
 };
+
+
+Int_t QwEventBuffer::WriteEvent(int* buffer)
+{
+  Int_t status = kFileHandleNotConfigured;
+  ResetFlags();
+  if (fEvStreamMode==fEvStreamFile){
+    status = WriteFileEvent(buffer);
+  } else if (fEvStreamMode==fEvStreamET) {
+    std::cout << "No support for writing to ET streams" << std::endl;
+    status = CODA_ERROR;
+  }
+  return status;
+}
+
+Int_t QwEventBuffer::WriteFileEvent(int* buffer)
+{
+  Int_t status = CODA_OK;
+  //  fEvStream is of inherited type THaCodaData,
+  //  but codaWrite is only defined for THaCodaFile.
+  status = ((THaCodaFile*)fEvStream)->codaWrite(buffer);
+  return status;
+};
+
+
+Int_t QwEventBuffer::EncodeSubsystemData(QwSubsystemArray &subsystems)
+{
+  // Encode the data in the elements of the subsystem array
+  std::vector<UInt_t> buffer;
+   subsystems.EncodeEventData(buffer);
+
+  // Add CODA event header
+  std::vector<UInt_t> header;
+  header.push_back((0x0001 << 16) | (0x10 << 8) | 0xCC);
+		// event type | event data type | event ID (0xCC for CODA event)
+  header.push_back(4);	// size of header field
+  header.push_back((0xC000 << 16) | (0x01 << 8) | 0x00);
+		// bank type | bank data type (0x01 for uint32) | bank ID (0x00 for header event)
+  header.push_back(++fEvtNumber); // event number (initialized to 0,
+		// so increment before use to agree with CODA number)
+  header.push_back(1);	// event class
+  header.push_back(0);	// status summary
+
+  // Copy the encoded event buffer into an array of integers,
+  // as expected by the CODA routines.
+  // Size of the event buffer in long words
+  int codabuffer[header.size() + buffer.size() + 1];
+  // First entry contains the buffer size
+  int k = 0;
+  codabuffer[k++] = header.size() + buffer.size();
+  for (size_t i = 0; i < header.size(); i++)
+    codabuffer[k++] = header.at(i);
+  for (size_t i = 0; i < buffer.size(); i++)
+    codabuffer[k++] = buffer.at(i);
+
+  // Now write the buffer to the stream
+  Int_t status = WriteEvent(codabuffer);
+  // and report success or fail
+  return status;
+};
+
+
+Int_t QwEventBuffer::EncodePrestartEvent(int runnumber, int runtype)
+{
+  int buffer[5];
+  int localtime = (int) time(0);
+  buffer[0] = 4; // length
+  buffer[1] = ((kPRESTART_EVENT << 16) | (0x01 << 8) | 0xCC);
+  buffer[2] = localtime;
+  buffer[3] = runnumber;
+  buffer[4] = runtype;
+  ProcessPrestart(localtime, runnumber, runtype);
+  return WriteEvent(buffer);
+}
+Int_t QwEventBuffer::EncodeGoEvent()
+{
+  int buffer[5];
+  int localtime = (int) time(0);
+  int eventcount = 0;
+  buffer[0] = 4; // length
+  buffer[1] = ((kGO_EVENT << 16) | (0x01 << 8) | 0xCC);
+  buffer[2] = localtime;
+  buffer[3] = 0; // (unused)
+  buffer[4] = eventcount;
+  ProcessGo(localtime, eventcount);
+  return WriteEvent(buffer);
+}
+Int_t QwEventBuffer::EncodePauseEvent()
+{
+  int buffer[5];
+  int localtime = (int) time(0);
+  int eventcount = 0;
+  buffer[0] = 4; // length
+  buffer[1] = ((kPAUSE_EVENT << 16) | (0x01 << 8) | 0xCC);
+  buffer[2] = localtime;
+  buffer[3] = 0; // (unused)
+  buffer[4] = eventcount;
+  ProcessPause(localtime, eventcount);
+  return WriteEvent(buffer);
+}
+Int_t QwEventBuffer::EncodeEndEvent()
+{
+  int buffer[5];
+  int localtime = (int) time(0);
+  int eventcount = 0;
+  buffer[0] = 4; // length
+  buffer[1] = ((kEND_EVENT << 16) | (0x01 << 8) | 0xCC);
+  buffer[2] = localtime;
+  buffer[3] = 0; // (unused)
+  buffer[4] = eventcount;
+  ProcessEnd(localtime, eventcount);
+  return WriteEvent(buffer);
+}
 
 
 void QwEventBuffer::ResetFlags(){
@@ -180,7 +294,7 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(std::vector<VQwSubsystem*> 
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
   if (fBankDataType == 0x10){
     //
-    while (okay = DecodeSubbankHeader(&localbuff[fWordsSoFar])){
+    while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
       //  If this bank has further subbanks, restart the loop.
       if (fSubbankType == 0x10) continue;
       //  If this bank only contains the word 'NULL' then skip
@@ -192,8 +306,8 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(std::vector<VQwSubsystem*> 
       for (std::vector<VQwSubsystem*>::iterator this_subsys = subsystems.begin();
 	   this_subsys < subsystems.end(); this_subsys++){
 	if ((*this_subsys) == NULL) continue;
-	(*this_subsys)->ProcessConfigurationBuffer(rocnum, fSubbankTag, 
-						   &localbuff[fWordsSoFar], 
+	(*this_subsys)->ProcessConfigurationBuffer(rocnum, fSubbankTag,
+						   &localbuff[fWordsSoFar],
 						   fFragLength);
       }
       fWordsSoFar += fFragLength;
@@ -203,8 +317,8 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(std::vector<VQwSubsystem*> 
     for (std::vector<VQwSubsystem*>::iterator this_subsys = subsystems.begin();
 	 this_subsys < subsystems.end(); this_subsys++){
       if ((*this_subsys) == NULL) continue;
-      (*this_subsys)->ProcessConfigurationBuffer(rocnum, 0, 
-						 &localbuff[fWordsSoFar], 
+      (*this_subsys)->ProcessConfigurationBuffer(rocnum, 0,
+						 &localbuff[fWordsSoFar],
 						 fEvtLength);
     }
     fWordsSoFar += fEvtLength;
@@ -213,18 +327,25 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(std::vector<VQwSubsystem*> 
 };
 
 
-Bool_t QwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> &subsystems){
-  //
-  Bool_t okay = kTRUE;
+void QwEventBuffer::ClearEventData(std::vector<VQwSubsystem*> &subsystems)
+{
   //  Clear the old event information from the subsystems.
   for (std::vector<VQwSubsystem*>::iterator this_subsys = subsystems.begin();
        this_subsys < subsystems.end(); this_subsys++){
     if ((*this_subsys) == NULL) continue;
     (*this_subsys)->ClearEventData();
   }
+};
+
+Bool_t QwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> &subsystems)
+{
+  //
+  Bool_t okay = kTRUE;
+  //  Clear the old event information from the subsystems
+  ClearEventData(subsystems);
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
-  while (okay = DecodeSubbankHeader(&localbuff[fWordsSoFar])){
+  while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
     //  If this bank has further subbanks, restart the loop.
     if (fSubbankType == 0x10) continue;
     //  If this bank only contains the word 'NULL' then skip
@@ -237,7 +358,7 @@ Bool_t QwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> &subsystems){
     if (fDEBUG) {
       std::cerr << "QwEventBuffer::FillSubsystemData:  "
 		<< "Beginning loop: fWordsSoFar=="<<fWordsSoFar
-		<<std::endl;    
+		<<std::endl;
     }
     //  Loop through the subsystems and try to store the data
     //  from this bank in each subsystem.
@@ -252,15 +373,15 @@ Bool_t QwEventBuffer::FillSubsystemData(std::vector<VQwSubsystem*> &subsystems){
     for (std::vector<VQwSubsystem*>::iterator this_subsys = subsystems.begin();
 	 this_subsys < subsystems.end(); this_subsys++){
       if ((*this_subsys) == NULL) continue;
-      (*this_subsys)->ProcessEvBuffer(fROC, fSubbankTag, 
-				      &localbuff[fWordsSoFar], 
+      (*this_subsys)->ProcessEvBuffer(fROC, fSubbankTag,
+				      &localbuff[fWordsSoFar],
 				      fFragLength);
     }
     fWordsSoFar += fFragLength;
     if (fDEBUG) {
       std::cerr << "QwEventBuffer::FillSubsystemData:  "
 		<< "Ending loop: fWordsSoFar=="<<fWordsSoFar
-		<<std::endl;    
+		<<std::endl;
     }
   }
   return okay;
@@ -282,7 +403,7 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystem
 	    << std::endl;
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
-  while (okay = DecodeSubbankHeader(&localbuff[fWordsSoFar])){
+  while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
     //  If this bank has further subbanks, restart the loop.
     if (fSubbankType == 0x10) continue;
     //  If this bank only contains the word 'NULL' then skip
@@ -300,13 +421,13 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystem
     //  After trying the data in each subsystem, bump the
     //  fWordsSoFar to move to the next bank.
     subsystems.ProcessConfigurationBuffer(rocnum, fSubbankTag,
-					  &localbuff[fWordsSoFar], 
+					  &localbuff[fWordsSoFar],
 					  fFragLength);
     fWordsSoFar += fFragLength;
     if (fDEBUG) {
       std::cerr << "QwEventBuffer::FillSubsystemConfigurationData:  "
 		<< "Ending loop: fWordsSoFar=="<<fWordsSoFar
-		<<std::endl;    
+		<<std::endl;
     }
   }
   return okay;
@@ -317,10 +438,10 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
   Bool_t okay = kTRUE;
   //  Clear the old event information from the subsystems.
   subsystems.ClearEventData();
-  
+
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
-  while (okay = DecodeSubbankHeader(&localbuff[fWordsSoFar])){
+  while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
     //  If this bank has further subbanks, restart the loop.
     if (fSubbankType == 0x10) continue;
     //  If this bank only contains the word 'NULL' then skip
@@ -333,7 +454,7 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
     if (fDEBUG) {
       std::cerr << "QwEventBuffer::FillSubsystemData:  "
 		<< "Beginning loop: fWordsSoFar=="<<fWordsSoFar
-		<<std::endl;    
+		<<std::endl;
     }
     //  Loop through the subsystems and try to store the data
     //  from this bank in each subsystem.
@@ -345,14 +466,18 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
     //
     //  After trying the data in each subsystem, bump the
     //  fWordsSoFar to move to the next bank.
-    subsystems.ProcessEvBuffer(fROC, fSubbankTag, 
-			       &localbuff[fWordsSoFar], 
+    if (fDEBUG) {
+      std::cerr << "ProcessEventBuffer: ROC="<<fROC<<", SubbankTag="<< fSubbankTag
+                <<", FragLength="<<fFragLength <<std::endl;
+    }
+    subsystems.ProcessEvBuffer(fROC, fSubbankTag,
+			       &localbuff[fWordsSoFar],
 			       fFragLength);
     fWordsSoFar += fFragLength;
     if (fDEBUG) {
       std::cerr << "QwEventBuffer::FillSubsystemData:  "
 		<< "Ending loop: fWordsSoFar=="<<fWordsSoFar
-		<<std::endl;    
+		<<std::endl;
     }
   }
   return okay;
@@ -385,7 +510,7 @@ Bool_t QwEventBuffer::DecodeSubbankHeader(UInt_t *buffer){
     }
     if (fWordsSoFar+2+fFragLength > fEvtLength){
       //  Trouble, because we'll have too many words!
-      std::cerr << "fWordsSoFar+2+fFragLength=="<<fWordsSoFar+2+fFragLength 
+      std::cerr << "fWordsSoFar+2+fFragLength=="<<fWordsSoFar+2+fFragLength
 		<< " and fEvtLength==" << fEvtLength
 		<< std::endl;
       okay = kFALSE;
@@ -447,10 +572,10 @@ Bool_t QwEventBuffer::DataFileIsSegmented()
       /* There are no file segments and no base file            *
        * Produce and error message and exit.                    */
       std::cerr << "\n      There are no file segments either!!" << std::endl;
-      globfree(&globbuf);
-      //  Don't exit.
-      //      exit(1);
-      fRunIsSegmented = kTRUE;
+
+      // This could mean a single gzipped file!
+      fRunIsSegmented = kFALSE;
+
     } else {
       /* There are file segments.                               *
        * Determine the segment numbers and fill fRunSegments    *
@@ -522,7 +647,7 @@ Int_t QwEventBuffer::OpenNextSegment()
      *  We should not have entered this routine, but      *
      *  since we are here, don't do anything.             */
     status = kRunNotSegmented;
-    
+
   } else if (fRunSegments.size()==0){
     /*  There are actually no file segments located.      *
      *  Return "kNoNextDataFile", but don't print an      *
@@ -561,7 +686,7 @@ Int_t QwEventBuffer::OpenDataFile(UInt_t current_run, Short_t seg)
 
 //------------------------------------------------------------
 //call this routine if the run is not segmented
-Int_t QwEventBuffer::OpenDataFile(UInt_t current_run)
+Int_t QwEventBuffer::OpenDataFile(UInt_t current_run, const TString rw)
 {
   Int_t status;
   fRunNumber = current_run;
@@ -569,7 +694,7 @@ Int_t QwEventBuffer::OpenDataFile(UInt_t current_run)
   if (DataFileIsSegmented()){
     status = OpenNextSegment();
   } else {
-    status = OpenDataFile(DataFile(fRunNumber),"R");
+    status = OpenDataFile(DataFile(fRunNumber),rw);
   }
   return status;
 };
@@ -577,7 +702,7 @@ Int_t QwEventBuffer::OpenDataFile(UInt_t current_run)
 
 
 //------------------------------------------------------------
-Int_t QwEventBuffer::OpenDataFile(const TString filename, const TString rw = "R")
+Int_t QwEventBuffer::OpenDataFile(const TString filename, const TString rw)
 {
   if (fEvStreamMode==fEvStreamNull){
     if (fDEBUG){
@@ -594,9 +719,42 @@ Int_t QwEventBuffer::OpenDataFile(const TString filename, const TString rw = "R"
     exit(1);
   }
   fDataFile = filename;
-  std::cout << "Opening data file:  " << fDataFile << std::endl;
+
+  if (rw.Contains("w",TString::kIgnoreCase)) {
+    // If we open a file for write access, let's suppose
+    // we've given the path we want to use.
+    std::cout << "Opening data file:  " << fDataFile << std::endl;
+  } else {
+    //  Let's try to find the data file for read access.
+    glob_t globbuf;
+    glob(fDataFile.Data(), GLOB_ERR, NULL, &globbuf);
+    if (globbuf.gl_pathc == 0){
+      //  Can't find the file; try in the "fDataDirectory".
+      fDataFile = fDataDirectory + filename;
+      glob(fDataFile.Data(), GLOB_ERR, NULL, &globbuf);
+    }
+    if (globbuf.gl_pathc == 0){
+      //  Can't find the file; try gzipped.
+      fDataFile = filename + ".gz";
+      glob(fDataFile.Data(), GLOB_ERR, NULL, &globbuf);
+    }
+    if (globbuf.gl_pathc == 0){
+      //  Can't find the file; try gzipped in the "fDataDirectory".
+      fDataFile = fDataDirectory + filename + ".gz";
+      glob(fDataFile.Data(), GLOB_ERR, NULL, &globbuf);
+    }
+    if (globbuf.gl_pathc == 1){
+      std::cout << "Opening data file:  " << fDataFile << std::endl;
+    } else {
+      fDataFile = filename;
+      std::cerr << "Unable to find "
+		<< filename.Data()  << " or "
+		<< (fDataDirectory + filename).Data()  << std::endl;
+    }
+    globfree(&globbuf);
+  }
   return fEvStream->codaOpen(fDataFile, rw);
-}
+};
 
 
 //------------------------------------------------------------

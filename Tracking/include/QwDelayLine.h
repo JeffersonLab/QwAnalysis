@@ -13,44 +13,52 @@
 #ifndef QWDELAYLINE_H
 #define QWDELAYLINE_H
 
+#include "QwParameterFile.h"
+#include "QwTypes.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
 
 #include <vector>
 #include <utility>
-using namespace std;
+using std::vector;
 
 /**
 	@author siyuan yang <sxyang@linux-ehar>
 */
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class QwDelayLine
 {
  public:
-  QwDelayLine():Package(-1),Plane(-1),FirstWire(-1),fill(false),processed(false),Ambiguous(-1) {};
-  QwDelayLine(const int pk,const int pl,const int firstwire):Package(pk),Plane(pl),FirstWire(firstwire),fill(false),processed(false),Ambiguous(false) {};
+  QwDelayLine():fPackage(kPackageNull),fPlane(-1),fDirection(kDirectionNull),fFirstWire(-1),Fill(false),Processed(false),Ambiguous(-1) {};
+  QwDelayLine(const Int_t pk,const Int_t pl,const Int_t dir,const Int_t firstwire):fPackage((EQwDetectorPackage)pk),fPlane(pl),fDirection((EQwDirectionID)dir),fFirstWire(firstwire),Fill(false),Processed(false),Ambiguous(false){};
 
   ~QwDelayLine();
-  int Package;
-  int Plane;
-  int FirstWire;
+  //Int_t fPackage;
+  //Int_t fPlane;
+  //Int_t fDirection;
+  EQwDetectorPackage fPackage;
+  Int_t fPlane;
+  EQwDirectionID fDirection;
+  Int_t fFirstWire;
 
-  bool fill;              //whether this delay line has been filled in with information
-  bool processed;
-  bool Ambiguous;
 
-  vector<vector<int> > Wire;  // indexed by different hits and different wires because of the ambiguity in the same hit
-  vector<pair<int,int> > Hitscount;
-  vector<pair<double,double> > Windows;
-  vector<double> LeftHits;
-  vector<double> RightHits;
-  static const double TimeStep;
-  static const int  WireStep;
+  Bool_t Fill;              //whether this delay line has been filled in with information
+  Bool_t Processed;
+  Bool_t Ambiguous;
 
-  void ProcessHits();
-  void Wirenumber(double&);
+  vector<vector<Int_t> > Wire;  // indexed by different hits and different wires because of the ambiguity in the same hit
+  vector<std::pair<Int_t,Int_t> > Hitscount;
+  vector<std::pair<Double_t,Double_t> > Windows;
+  vector<Double_t> LeftHits;
+  vector<Double_t> RightHits;
+  static const Double_t kTimeStep;
+  static const Int_t  kWireStep;
+
+  void ProcessHits(Bool_t k);
+  void Wirenumber(Double_t&);
 
 };
 

@@ -171,6 +171,10 @@ if (-d ${QWSCRATCH})  then
       echo \*\*\*\* subdirectory tmp missing, creating
       mkdir -p ${QWSCRATCH}/tmp
     endif
+    if (! -d ${QWSCRATCH}/tree)  then
+      echo \*\*\*\* subdirectory tree missing, creating
+      mkdir -p ${QWSCRATCH}/tree
+    endif
     if (! -d ${QWSCRATCH}/work)  then
       echo \*\*\*\* subdirectory work missing, creating
       mkdir -p ${QWSCRATCH}/work
@@ -184,6 +188,10 @@ else
     setenv ROOTSYS             /u/apps/root/3.01-03/root
   else
     setenv ROOTSYS             /usr/local/root
+  endif
+  if (! -x ${ROOTSYS}/bin/root ) then
+    echo "couldn't find a working ROOT.  maybe use root-config to set ROOTSYS"
+    exit 1;
   endif
   echo "Setting ROOTSYS to " ${ROOTSYS}
 endif

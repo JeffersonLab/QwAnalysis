@@ -3,12 +3,15 @@
 
 
 #include "VQwSubsystem.h"
-#include "QwHitContainer.h"
-#include "QwDetectorInfo.h"
 
 ///
-/// \ingroup QwTrackingAnl
-class VQwSubsystemTracking: public VQwSubsystem{
+/// \ingroup QwTracking
+
+// Forward declarations
+class QwHitContainer;
+class QwDetectorInfo;
+
+class VQwSubsystemTracking: virtual public VQwSubsystem {
   /******************************************************************
    *  Class: VQwSubsystemTracking
    *         Virtual base class for the classes containing the
@@ -21,11 +24,11 @@ class VQwSubsystemTracking: public VQwSubsystem{
   VQwSubsystemTracking(TString region_tmp):VQwSubsystem(region_tmp){ };
 
   virtual ~VQwSubsystemTracking(){};
- 
+
   virtual void  GetHitList(QwHitContainer & grandHitContainer)=0;
   virtual Int_t LoadQweakGeometry(TString mapfile)=0;//will load the detector geometry file. This method is called individually from each subsystem
   virtual Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detect_info)=0;
- 
+
  private:
   VQwSubsystemTracking(){};  //  Private constructor.
 

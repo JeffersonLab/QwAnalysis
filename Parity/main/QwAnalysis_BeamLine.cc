@@ -34,12 +34,21 @@
 #include "TApplication.h"
 #include <boost/shared_ptr.hpp>
 
+
+
 Bool_t kInQwBatchMode = kFALSE;
+Bool_t bRING_READY;
 
 ///
 /// \ingroup QwAnalysis_BL
-int main(Int_t argc,Char_t* argv[])
+Int_t main(Int_t argc, Char_t* argv[])
 {
+  // First, we set the command line arguments and the configuration filename,
+  // and we define the options that can be used in them (using QwOptions).
+  gQwOptions.SetCommandLine(argc, argv);
+  gQwOptions.SetConfigFile("qwanalysis_beamline.conf");
+  // Define the command line options
+  DefineOptionsParity(gQwOptions);
 
   // modified value for maximum size of tree
   Long64_t kMAXTREESIZE = 10000000000LL;
@@ -49,75 +58,101 @@ int main(Int_t argc,Char_t* argv[])
   Bool_t bDebug=kFALSE;
   Bool_t bHelicity=kTRUE;
   Bool_t bTree=kTRUE;
-  Bool_t bHisto=kTRUE;
+  Bool_t bHisto=kFALSE;//kTRUE;
 
   //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
   if (getenv("DISPLAY")==NULL
       ||getenv("JOB_ID")!=NULL) kInQwBatchMode = kTRUE;
   gROOT->SetBatch(kTRUE);
-  
-  gQwHists.LoadHistParamsFromFile(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/parity_hists.in");
+
+  ///  Fill the search paths for the parameter files; this sets a static
+  ///  variable within the QwParameterFile class which will be used by
+  ///  all instances.
+  ///  The "scratch" directory should be first.
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
+
+  ///
+  ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
+  ///  histogram helper: QwHistogramHelper
+  ///  
+  gQwHists.LoadHistParamsFromFile("parity_hists.in");
   
   TStopwatch timer;
-  
-  QwCommandLine cmdline;
-  cmdline.Parse(argc, argv);
-  
+
   QwEventBuffer QwEvt;
 
   QwSubsystemArrayParity QwDetectors;
-  
+  VQwSubsystemParity * subsystem_tmp;//VQwSubsystemParity is the top most parent class for Parity subsystems.
+  subsystem_tmp = 0;
+
   QwDetectors.push_back(new QwBeamLine("Injector BeamLine"));
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_beamline.map");
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_pedestal.map");
+  QwDetectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
+  QwDetectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");  
+  QwDetectors.GetSubsystem("Injector BeamLine")->LoadEventCuts("qweak_beamline_eventcuts.in");//Pass the correct cuts file. 
   QwDetectors.push_back(new QwHelicity("Helicity info"));
   QwDetectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_helicity.map");
   QwDetectors.GetSubsystem("Helicity info")->LoadInputParameters("");	
-  QwHelicityPattern QwHelPat(QwDetectors,4);
-    
-  ///////
+  QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
+  QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap("qweak_beamline.map");//current map file is for the beamline.
+  QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file. 
   
-  for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++)
-    {
+
+
+
+
+
+  QwHelicityPattern QwHelPat(QwDetectors);//multiplet size is set within the QwHelicityPattern class
+  //QwEventRing fEventRing(QwDetectors,120,60,8);//Event ring of 120; 60 hold off events, 8 minimum failed events is a beam trip
+  //QwEventRing fEventRing(QwDetectors,32,8,16); //Event ring of 32; 8 hold off events, 16  minimum failed events is a beam trip
+  QwEventRing fEventRing(QwDetectors,32,16,4);
+  Double_t evnum=0.0;
+
+
+  // Loop over all runs
+  UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
+  UInt_t runnumber_max = (UInt_t) gQwOptions.GetIntValuePairLast("run");
+  for (UInt_t run  = runnumber_min;
+              run <= runnumber_max;
+              run++) {
+
       //  Begin processing for the first run.
       //  Start the timer.
       timer.Start();
-      
+
       //  Try to open the data file.
-      if (QwEvt.OpenDataFile(run) != CODA_OK)
-	{
-	  //  The data file can't be opened.
-	  //  Get ready to process the next run.
-	  std::cerr << "ERROR:  Unable to find data files for run "
-		    << run << ".  Moving to the next run.\n"
-		    << std::endl;
-	  timer.Stop();
-	  continue;
-	}
+      if (QwEvt.OpenDataFile(run) != CODA_OK){
+	//  The data file can't be opened.
+	//  Get ready to process the next run.
+	std::cerr << "ERROR:  Unable to find data files for run "
+		  << run << ".  Moving to the next run.\n"
+		  << std::endl;
+	timer.Stop();
+	continue;
+      }
       QwEvt.ResetControlParameters();
       //  Open the data files and root file
       //    OpenAllFiles(io, run);
- 
+
       TString rootfilename=std::string(getenv("QW_ROOTFILES_DIR"))+Form("/Qweak_BeamLine_%d.root",run);
       std::cout<<" rootfilename="<<rootfilename<<"\n";
       TFile rootfile(rootfilename,
 		     "RECREATE","QWeak ROOT file");
-	
-      if(bHisto)
-	{
-	  rootfile.cd();
-	  QwDetectors.ConstructHistograms(rootfile.mkdir("mps_histo"));
-	  if(bHelicity)
-	    {
-	      rootfile.cd();
-	      QwHelPat.ConstructHistograms(rootfile.mkdir("hel_histo"));
-	    }
-	}
+
+      if(bHisto){
+	rootfile.cd();
+	QwDetectors.ConstructHistograms(rootfile.mkdir("mps_histo"));
+	if(bHelicity)
+	  {
+	    rootfile.cd();
+	    QwHelPat.ConstructHistograms(rootfile.mkdir("hel_histo"));
+	  }
+      }
 
 
-      TTree *mpstree;
-      TTree *heltree;
-      Double_t evnum=0.0;
+      TTree *mpstree =0;
+      TTree *heltree =0;
+
       std::vector <Double_t> mpsvector;
       std::vector <Double_t> helvector;
 
@@ -129,10 +164,11 @@ int main(Int_t argc,Char_t* argv[])
 	  mpsvector.reserve(6000); 
 	  // if one defines more than 600 words in the full ntuple
 	  // results are going to get very very crazy.
-	  mpstree->Branch("evnum",&evnum,"evnum/F");
+	  mpstree->Branch("evnum",&evnum,"evnum/D");
 	  TString dummystr="";
-	  ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);  
-	  ((QwBeamLine*)QwDetectors.GetSubsystem("Helicity info"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);  
+	  ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
+	  ((QwBeamLine*)QwDetectors.GetSubsystem("Helicity info"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
+	  ((QwBeamLine*)QwDetectors.GetSubsystem("Luminosity Monitors"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
 	  // QwDetectors.ConstructBranchAndVector(mpstree, dummystr, mpsvector);
 	  // at some point we want to have some thing like that but it need to be implement in QwSubsystemArray
 	  rootfile.cd();
@@ -145,74 +181,120 @@ int main(Int_t argc,Char_t* argv[])
 	      TString dummystr="";
 	      QwHelPat.ConstructBranchAndVector(heltree, dummystr, helvector);
 	    }
+
+
 	}
 
-      while (QwEvt.GetEvent() == CODA_OK)
-	{
-	  //Loop over events in this CODA file
+      Int_t falied_events_counts=0;//count falied total events
 
-	  //  First, do processing of non-physics events...
-	  if (QwEvt.IsROCConfigurationEvent())
-	    {
-	      //  Send ROC configuration event data to the subsystem objects.
-	      QwEvt.FillSubsystemConfigurationData(QwDetectors);
+
+      // Loop over events in this CODA file
+      Int_t eventnumber = -1;
+      Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
+      Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
+      while (QwEvt.GetEvent() == CODA_OK) {
+
+	//  First, do processing of non-physics events...
+	if (QwEvt.IsROCConfigurationEvent()){
+	  //  Send ROC configuration event data to the subsystem objects.
+	  QwEvt.FillSubsystemConfigurationData(QwDetectors);
+	}
+
+	//  Now, if this is not a physics event, go back and get a new event.
+	if (! QwEvt.IsPhysicsEvent()) continue;
+
+        // Check to see if we want to process this event.
+        eventnumber = QwEvt.GetEventNumber();
+        if      (eventnumber < eventnumber_min) continue;
+        else if (eventnumber > eventnumber_max) break;
+
+	if(bDebug){
+	  std::cout<<"==================================================== \n";
+	  std::cout<<" new event:: number ="<<QwEvt.GetEventNumber()<<"\n";
+	  std::cout<<"==================================================== \n";
+	}
+	//std::cout<<"*********** event num "<<QwEvt.GetEventNumber()<<"*************************"<<std::endl;
+	//  Fill the subsystem objects with their respective data for this event.
+	QwEvt.FillSubsystemData(QwDetectors);
+
+
+	QwDetectors.ProcessEvent();
+
+
+
+
+	//currently QwHelicity::ApplySingleEventCuts() will check for actual helicity bit for 1 or 0 and falied the test if it is different
+	if (QwDetectors.ApplySingleEventCuts()){//The event pass the event cut constraints
+
+
+
+	  if(bHelicity){
+
+	    fEventRing.push(QwDetectors);//add event to the ring
+	    //std::cerr << "After QwEventRing::push()" <<std::endl;
+	    bRING_READY=fEventRing.IsReady();
+
+	    if (bRING_READY){//check to see ring is ready
+	      //fEventRing.pop();
+	      QwHelPat.LoadEventData(fEventRing.pop());
 	    }
-	  
-	  //  Now, if this is not a physics event, go back and get a new event.
-	  if (! QwEvt.IsPhysicsEvent()) continue;
 
-	  //  Check to see if we want to process this event.
-	  if (QwEvt.GetEventNumber() < cmdline.GetFirstEvent()) continue;
-	  else if (QwEvt.GetEventNumber() > cmdline.GetLastEvent()) break;
- 	  if(bDebug)
- 	    {
-	      std::cout<<"==================================================== \n";
-	      std::cout<<" new event:: number ="<<QwEvt.GetEventNumber()<<"\n";
-	      std::cout<<"==================================================== \n";
-	    }
-	  
-	  //  Fill the subsystem objects with their respective data for this event.
-	  QwEvt.FillSubsystemData(QwDetectors);
-		  
-	 QwDetectors.ProcessEvent();
-
-	  if(bHelicity)
-	    QwHelPat.LoadEventData(QwDetectors);	  
-
-	 if(bHisto) QwDetectors.FillHistograms();
+	    //QwHelPat.LoadEventData(QwDetectors);
+	  }
 
 
-	 if(bTree)
-	   {
-	     evnum=QwEvt.GetEventNumber();
-	     ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->FillTreeVector(mpsvector);
-	     ((QwHelicity*)QwDetectors.GetSubsystem("Helicity info"))->FillTreeVector(mpsvector);
-	     mpstree->Fill();
-	   }
+	  QwDetectors.Do_RunningSum();//accimulate the running sum to calculate the event base running AVG
 
-	  if(bHelicity&&QwHelPat.IsCompletePattern())
-	    {
-	      QwHelPat.CalculateAsymmetry();
-	      //	      QwHelPat.Print();
+
+	  if(bHisto) QwDetectors.FillHistograms();
+
+
+	  if(bTree){
+	    evnum=QwEvt.GetEventNumber();
+	    //std::cout<<" event "<<evnum<<std::endl;
+	    ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->FillTreeVector(mpsvector);
+	    ((QwHelicity*)QwDetectors.GetSubsystem("Helicity info"))->FillTreeVector(mpsvector);
+	    ((QwLumi*)QwDetectors.GetSubsystem("Luminosity Monitors"))->FillTreeVector(mpsvector);
+	    mpstree->Fill();
+	  }
+
+	  if(bHelicity && QwHelPat.IsCompletePattern() && bRING_READY){
+	    //QwHelicity * tmp=(QwHelicity *)QwDetectors.GetSubsystem("Helicity info");
+	    //std::cout<<" Complete quartet  Good Helicity "<<std::endl;
+	    QwHelPat.CalculateAsymmetry();
+	    //QwHelPat.Print();
+	    if (QwHelPat.IsGoodAsymmetry()){
 	      if(bHisto) QwHelPat.FillHistograms();
 
-	      if(bTree) 
-		{
-		  QwHelPat.FillTreeVector(helvector);
-		  heltree->Fill();
-		}
+	      if(bTree){
+		QwHelPat.FillTreeVector(helvector);
+		heltree->Fill();
+	      }
 	      QwHelPat.ClearEventData();
 	    }
-	      
-	  if(QwEvt.GetEventNumber()%1000==0)
-	    {
-	      std::cerr << "Number of events processed so far: " 
-			<< QwEvt.GetEventNumber() << "\r";
-	    }         
-      } 
+	  }
+	}else{
+	  //std::cout<<" Failed event "<<QwEvt.GetEventNumber()<<std::endl;
+	  fEventRing.FailedEvent(QwDetectors.GetEventcutErrorFlag()); //event cut failed update the ring status
+	  falied_events_counts++;
+	}
 
-      std::cout << "Number of events processed so far: " 
+	if(QwEvt.GetEventNumber()%1000==0){
+	  std::cerr << "Number of events processed so far: "
+		    << QwEvt.GetEventNumber() << "\r";
+	}
+      }
+
+
+
+      std::cout << "Number of events processed so far: "
 		<< QwEvt.GetEventNumber() << std::endl;
+
+      //This will print running averages
+      QwHelPat.CalculateRunningAverage();//this will calculate running averages for Asymmetries and Yields per quartet
+      std::cout<<"Event Based Running average"<<std::endl;
+      std::cout<<"==========================="<<std::endl;
+      QwDetectors.Calculate_Running_Average();//this will calculate running averages for Yields per event basis
       timer.Stop();
 
       /*  Write to the root file, being sure to delete the old cycles  *
@@ -225,26 +307,35 @@ int main(Int_t argc,Char_t* argv[])
        *  segfault; but in additiona to that we should delete them     *
        *  here, in case we run over multiple runs at a time.           */
       if(bHisto||bTree)rootfile.Write(0,TObject::kOverwrite);
-      if(bHisto)
-	{
-	  std::cout<<"QwDetectors.DeleteHistograms\n";
-	  QwDetectors.DeleteHistograms();
-	  std::cout<<"QwHelPat.DeleteHistograms\n";
-	  QwHelPat.DeleteHistograms();
-	}
+      if(bHisto){
+	std::cout<<"QwDetectors.DeleteHistograms\n";
+	QwDetectors.DeleteHistograms();
+	std::cout<<"QwHelPat.DeleteHistograms\n";
+	QwHelPat.DeleteHistograms();
+      }
 
       QwEvt.CloseDataFile();
 
       QwDetectors.ReportErrorCounters();
 
       QwEvt.ReportRunSummary();
-      
+
+
+
+
+
+      //QwHelPat.Print();
+
+
+      QwDetectors.GetEventcutErrorCounters();//print the event cut error summery for each sub system
+      std::cout<<"QwAnalysis_Beamline Total events falied "<<falied_events_counts<< std::endl;
+
       PrintInfo(timer);
-      
+
     } //end of run loop
-  
+
   std::cerr << "I have done everything I can do..." << std::endl;
-  
+
   return 0;
 }
 

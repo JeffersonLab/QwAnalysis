@@ -1,0 +1,167 @@
+/**
+ * \defgroup QwTracking QwTracking
+ *
+ * \section trackingoverview Overview of the Qweak Track Reconstruction package
+ *
+ *    The Qweak Track Reconstruction package (QTR) was originally based upon
+ *    software developed for the HERMES experiment.  In both experiments,
+ *    charged particles pass through drift chambers without the presence of a
+ *    magnetic field.  In each experiment, upstream and downstream straight track
+ *    segments are connected by a magnetic field inwhich there are no detectors.
+ *    Therefore track reconstruction is performed separately for the upstream and
+ *    downstream regions, and then a fit is performed to match the tracks in the
+ *    magnetic field.
+ *
+ *    The main difference between the experiments in terms of track
+ *    reconstruction, is that in HERMES there were multiple types of tracked
+ *    particles, and thus particle identification was an additional requirement.
+ *    in Qweak, only electrons will be tracked, therefore there is no need for
+ *    particle identification algorithms.  Additionally, due to the nature of the
+ *    Qweak experiment, precision is of the utmost importance.  This requires the
+ *    development of calibration routines which include but are not limited to:
+ *    fitting drift-time-to-distance functions, detector alignment, detector plane
+ *    alignment, and possibly drift chamber wire alignment.
+ *
+ *    QTR makes use of pattern recognition in order to identify good tracks from
+ *    a set of hits.  In the simplest case, a single electron track produces a
+ *    nominal set of hits in each drift chamber (DC) wire it passes.  In reality,
+ *    DC wires may suffer from various inefficiencies.  They may fire all the
+ *    time, without the presence of a charged particle track, giving rise to false
+ *    hits.  They may also fail and not fire at all, creating gaps in the data
+ *    set.  Additionally, in the case of multiple tracks, pattern recognition must
+ *    be used to identify which hits belong to which track.  While it is not
+ *    currently the plan to run at a beam current which would produce a
+ *    significant percentage of multi-track events, the reconstruction software
+ *    should be flexible in this aspect so that running conditions are not
+ *    constrained by software capabilities.
+ *
+ * \section HDCvsVDC Differences between Region 2 HDCs and Region 3 VDCs
+ *
+ *    Due to the fundamental differences between the HDCs in region 2 and the
+ *    VDCs in region 3, they are treated differently in the tracking code too.
+ *
+ *    \subsection HDCvsVDC-HDC The region 2 HDCs
+ *
+ *    In the HDCs (Horizontal Drift Chambers), there are four planes of wires in
+ *    each direction, and the nominal particle track is very rougly perpendicular
+ *    to the wire planes.  Due to the HDC design, an individual hit determines the
+ *    distance of closest approach to the wire.  From this distance and a rough
+ *    calculation of the entrance angle, the position of ht eparticle on the wire
+ *    plane may be determined.  Therefore, each plane is divided into a bit array
+ *    with the hit position(s) corresponding to the 'on' bit(s) in the array.
+ *    The 2D pattern is then created from the set of planes that lie in the same
+ *    direction.
+ *
+ *    \subsection HDCvsVDC-VDC The region 3 VDCs
+ *
+ *    The VDCs (Vertical Drift Chambers) are constructed with an array of signal
+ *    wires that lie between two cathode planes.  The chambers are oriented such
+ *    that the nominal particle trajectories traverse four to eight of the drift
+ *    cells in a single plane.  Given an approximate entrance angle, the drift
+ *    time (measured using a TDC) is correlated with the distance of the track
+ *    to the wire, on a line between the wire and the cathode plane.  Therefore,
+ *    each plane of wires has its own 2D bit pattern, consisting of the wire
+ *    number on one axis, and the drift distance on the other axis.  Currently,
+ *    the bit pattern contains eight columns, corresponding to the maximum number
+ *    of hits for ideal tracks.
+ *
+ *    Due to the large number of sense wires, limited space and funding, and the
+ *    complication of rotating the detectors in the lab, each TDC measurement will
+ *    correspond to a group of eight non-consecutive sense wires.  The
+ *    multiplicity arising from this setup may generate ambiguities in the
+ *    identification of the correct wire hit by an electron.  In the case of
+ *    multiple tracks in a single event, these ambiguities must be resolved by
+ *    the tracking code.
+ *
+ *    In the region 3 part of the tracking code method QwTrackingWorker::ProcessHits,
+ *    there is a loop over the two VDC planes.  The QwTrackingTreeSearch::TsSetPoint
+ *    method is called for each plane to map the hits in the event to a bit pattern.
+ *    Next, the QwTrackingTreeSearch::TsSearch method is called to find all matching
+ *    patterns for each plane. Finally, TreeCombine::TlTreeLineSort is called to
+ *    obtain the track segment candidates for this wire plane.
+ *
+ *    TreeCombine::TlTreeLineSort first matches a subset of the hits in the event
+ *    to the matching patterns.  This is done by checking which hits are closest
+ *    to the bits in the patterns.  Once the correct hits are identified, they
+ *    are fit to a line and a chi-square value is calculated.
+ *    TreeCombine::TlTreeLineSort then uses the treesort class to sort the track
+ *    candidates by likelihood.  Each track candidate is strung together into
+ *    a linked list and is available to the QwTrackingWorker::ProcessHits.
+ *
+ *    At this point there are sets of track candidates in the upstream and
+ *    downstream planes of a single wire direction.  QwTrackingWorker::ProcessHits
+ *    next calls the QwTrackingTreeMatch::MatchR3 method which loops over the
+ *    upstream and downstream track candidates to identify which best line up
+ *    according to their slopes and intercepts.  QwTrackingTreeMatch::MatchR3
+ *    returns a new set of track candidates which represent both planes in the same
+ *    wire direction. The loop  over the two wire directions is ended, with tracks
+ *    in the <i>u</i> and <i>v</i> directions.
+ *
+ * \section code-overview Code Overview
+ *
+ *    The Qweak Tracking code is built around four main tracking modules:
+ *    - QwTrackingWorker (the main entry point)
+ *    - QwTrackingTreeSearch
+ *    - QwTrackingTreeCombine
+ *    - QwTrackingTreeSort
+ *    - QwTrackingTreeMatch
+ *
+ *    The organization is done by the module QwTrackingWorker.
+ *
+ */
+
+
+/**
+ * \page tutorial_tracking Tutorial on using the tracking analyzer
+ *
+ * The tracking analyzer has two main executables: QwTracking and QwSimTracking.
+ * The first executable runs on CODA data files, the second executable runs only
+ * on ROOT data files generated by the Geant4 Monte Carlo simulation.
+ *
+ */
+
+/**
+ * \page examples_tracking Examples using the tracking analyzer
+ *
+ * Here are some examples on how to run the tracking analyzer
+ * - \subpage tracking_example_01
+ *
+ */
+
+/**
+ * \page tracking_example_01 Tracking example 01: Analyzing Monte Carlo events
+ *
+ * In this example we will show how to run the tracking analyzer on events
+ * generated by the QweakSimG4 Monte Carlo simulation.  The output format will
+ * be explained.
+ *
+ * We will assume that you have a suitable data file available, or that you have
+ * access to an example data file on the JLab group disk.  You can also download
+ * an example data file from the wiki at
+ *   https://qweak.jlab.org/wiki/index.php/Reference_Data_Files,
+ * or directly from
+ *   http://qweak.jlab.org/Example_datafiles/QwSim_100.root.
+ * Store this data file in your '$QWSCRATCH/data' directory.
+ *
+ * To analyze the example data file corresponding to run number 100 (the suffix
+ * after QwSim) and only considering the events from 1 to 10, execute the
+ * following command (make sure that your environment settings are correct):
+ * \code
+ *   bin/qwsimtracking -r 100 -e 1:10
+ * \endcode
+ *
+ * This should give you output that looks like this (for every event):
+\verbatim
+   Reading event 10
+   Region 1: 1,1 hit(s).
+   Region 2: 1,1,1,1,1,1,1,1,1,1,1,1 hit(s).
+   Region 3: 1,1,1,1 hit(s).
+   Target vertex at : (-8.19734,27.728,0)
+   HDC front hit at : (-0.555645,27.6773,-341.749)
+   HDC back  hit at : (-0.640838,27.6779,-337.939)
+   Partial track direction vector: (-0.022355,0.000148421,0.99975)
+   Partial track direction angle: theta=1.28098 deg, phi=-0.380397 deg
+   direction vector calculated from mx,my: (-0.022355, 0.000148421, 0.99975)  theta=1.28098, phi=-0.380397
+\endverbatim
+ *
+ */

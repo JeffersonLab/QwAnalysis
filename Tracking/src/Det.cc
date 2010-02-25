@@ -12,7 +12,14 @@
 #include <iostream>
 using std::cout; using std::cerr; using std::endl;
 
+// Qweak headers
+#include "QwTypes.h"
 #include "Det.h"
+
+// Global variables for tracking modules (deprecated)
+Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
+Det rcDET[NDetMax];
+
 
 void Det::print()
 {

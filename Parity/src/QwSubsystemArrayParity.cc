@@ -14,13 +14,39 @@
 
 //*****************************************************************
 
+VQwSubsystemParity* QwSubsystemArrayParity::GetSubsystem(const TString name)
+{
+  VQwSubsystemParity* tmp = NULL;
+  tmp=dynamic_cast<VQwSubsystemParity*>  (QwSubsystemArray::GetSubsystem(name));
+  
+  return tmp;
+}; 
+
+void  QwSubsystemArrayParity::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
+{
+  for (iterator subsys = begin(); subsys != end(); ++subsys) {
+    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
+    subsys_parity->ConstructBranchAndVector(tree, prefix, values);
+  }
+};
+
+void  QwSubsystemArrayParity::FillTreeVector(std::vector<Double_t> &values)
+{
+  for (iterator subsys = begin(); subsys != end(); ++subsys) {
+    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
+    subsys_parity->FillTreeVector(values);
+  }
+};
+
+
+//*****************************************************************
 
 void  QwSubsystemArrayParity::Copy(QwSubsystemArrayParity *source)
 {
   if (!source->empty()){
     for (iterator subsys = source->begin(); subsys != source->end(); ++subsys )
       {
-	VQwSubsystemParity *srcptr = 
+	VQwSubsystemParity *srcptr =
 	    dynamic_cast<VQwSubsystemParity*>(subsys->get());
 	if (srcptr != NULL){
 	  this->push_back(srcptr->Copy());
@@ -42,11 +68,11 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator= (const QwSubsystemArra
 	  //  Either the source or the destination subsystem
 	  //  are null
 	} else {
-	  VQwSubsystemParity *ptr1 = 
+	  VQwSubsystemParity *ptr1 =
 	    dynamic_cast<VQwSubsystemParity*>(this->at(i).get());
 	  if (typeid(*ptr1)==typeid(*(source.at(i).get()))){
 	    if(localdebug) std::cout<<" here in QwSubsystemArrayParity::operator= types mach \n";
-	    *(ptr1) = source.at(i).get();	
+	    *(ptr1) = source.at(i).get();
 	  } else {
 	    //  Subsystems don't match
 	      std::cerr<<" QwSubsystemArrayParity::operator= types do not mach \n";
@@ -65,7 +91,7 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator= (const QwSubsystemArra
 
 
 QwSubsystemArrayParity& QwSubsystemArrayParity::operator+= (const QwSubsystemArrayParity &value)
-{  
+{
   if (!value.empty()){
     if (this->size() == value.size()){
       for(size_t i=0;i<value.size();i++){
@@ -73,11 +99,11 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator+= (const QwSubsystemArr
 	  //  Either the value or the destination subsystem
 	  //  are null
 	} else {
-	  VQwSubsystemParity *ptr1 = 
+	  VQwSubsystemParity *ptr1 =
 	    dynamic_cast<VQwSubsystemParity*>(this->at(i).get());
 	  if (typeid(*ptr1)==typeid(*(value.at(i).get()))){
 	    *(ptr1) += value.at(i).get();
-	    //std::cout<<"QwSubsystemArrayParity::operator+ here where types match \n";	    
+	    //std::cout<<"QwSubsystemArrayParity::operator+ here where types match \n";
 	  } else {
 	    std::cerr<<"QwSubsystemArrayParity::operator+ here where types don't match \n";
 	    std::cerr<<" typeid(ptr1)="<< typeid(ptr1).name() <<" but typeid(value.at(i)))="<<typeid(value.at(i)).name()<<"\n";
@@ -95,7 +121,7 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator+= (const QwSubsystemArr
 };
 
 QwSubsystemArrayParity& QwSubsystemArrayParity::operator-= (const QwSubsystemArrayParity &value)
-{  
+{
   if (!value.empty()){
     if (this->size() == value.size()){
       for(size_t i=0;i<value.size();i++){
@@ -103,7 +129,7 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator-= (const QwSubsystemArr
 	  //  Either the value or the destination subsystem
 	  //  are null
 	} else {
-	  VQwSubsystemParity *ptr1 = 
+	  VQwSubsystemParity *ptr1 =
 	    dynamic_cast<VQwSubsystemParity*>(this->at(i).get());
 	  if (typeid(*ptr1)==typeid(*(value.at(i).get()))){
 	    *(ptr1) -= value.at(i).get();
@@ -143,6 +169,19 @@ void QwSubsystemArrayParity::Difference(QwSubsystemArrayParity &value1, QwSubsys
   }
 };
 
+void QwSubsystemArrayParity::Calculate_Running_Average(){
+   for (iterator subsys = begin(); subsys != end(); ++subsys) {
+    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
+    subsys_parity->Calculate_Running_Average();
+  }
+
+}
+void QwSubsystemArrayParity::Do_RunningSum(){
+   for (iterator subsys = begin(); subsys != end(); ++subsys) {
+    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
+    subsys_parity->Do_RunningSum();
+  }
+};
 
 
 void QwSubsystemArrayParity::Ratio(QwSubsystemArrayParity &numer, QwSubsystemArrayParity &denom )
@@ -158,7 +197,7 @@ void QwSubsystemArrayParity::Ratio(QwSubsystemArrayParity &numer, QwSubsystemArr
           //  Either the value or the destination subsystem  are null
 	  if(localdebug) std::cout<<"Either the value or the destination subsystem  are null\n";
         } else {
-	  VQwSubsystemParity *ptr1 = 
+	  VQwSubsystemParity *ptr1 =
 	    dynamic_cast<VQwSubsystemParity*>(this->at(i).get());
 	  if (typeid(*ptr1)==typeid(*(denom.at(i).get())))
             {
@@ -182,19 +221,21 @@ void QwSubsystemArrayParity::Ratio(QwSubsystemArrayParity &numer, QwSubsystemArr
 
 };
 
-Bool_t QwSubsystemArrayParity::SingleEventCuts(){
+Bool_t QwSubsystemArrayParity::ApplySingleEventCuts(){
   Int_t CountFalse;
   Bool_t status;
+  //fSubsystem_Error_Flag=0;//set the error flag
   VQwSubsystemParity *subsys_parity;
   CountFalse=0;
-  std::cout<<" here in QwSubsystemArrayParity::SingleEventCut()"<<std::endl;
+  //std::cout<<" here in QwSubsystemArrayParity::SingleEventCut()"<<std::endl;
   if (!empty()){
     for (iterator subsys = begin(); subsys != end(); ++subsys){
       subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
-      if (subsys_parity->SingleEventCuts()) 
+      if (!subsys_parity->ApplySingleEventCuts()) 
       {
 	CountFalse++;
 	//update the sFailedSubsystem vector
+	//std::cout<<" ** Failed ** "<<" Subsystem name "<<((subsys)->get())->GetSubsystemName()<<std::endl;
 	sFailedSubsystems.push_back(((subsys)->get())->GetSubsystemName());
       }
     }
@@ -218,4 +259,41 @@ void  QwSubsystemArrayParity::ReportErrorCounters(){
       }
     }
   }
+};
+
+
+Int_t QwSubsystemArrayParity::GetEventcutErrorCounters(){
+
+  
+  VQwSubsystemParity *subsys_parity;
+  
+  
+  if (!empty()){
+    for (iterator subsys = begin(); subsys != end(); ++subsys){
+      subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
+      subsys_parity->GetEventcutErrorCounters();
+      
+	//std::cout<<" ** Failed ** "<<" Subsystem name "<<((subsys)->get())->GetSubsystemName()<<std::endl;
+	//sFailedSubsystems.push_back(((subsys)->get())->GetSubsystemName());
+     
+    }
+  }
+  
+
+  return 1;
+}
+
+Int_t QwSubsystemArrayParity::GetEventcutErrorFlag(){// report number of events falied due to HW and event cut faliure
+  VQwSubsystemParity *subsys_parity;
+  Int_t ErrorFlag;
+  
+  ErrorFlag=0;
+  if (!empty()){
+    for (iterator subsys = begin(); subsys != end(); ++subsys){
+      subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
+      ErrorFlag |= subsys_parity->GetEventcutErrorFlag();      
+    }
+  }
+  
+  return ErrorFlag;
 };

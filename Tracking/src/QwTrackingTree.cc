@@ -1,4 +1,3 @@
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
  \class QwTrackingTree
@@ -28,7 +27,7 @@
                      pattern by seeing if the pattern is consistent
                      with a straight line trajectory through a
                      detector with a slope less than or equal to
-                     the HRCSET MaxSlope parameter.
+                     the fMaxSlope parameter.
 
  (02) existent()   - this function checks if a possible treeline hit
                      pattern is already included in the tree search
@@ -40,10 +39,6 @@
                      returns a pointer to the pattern within the tree
                      database.  Otherwise, it returns 0.
 
- (04) treedup()    - this function duplicates a treeline hit pattern.  It
-                     returns a pointer to the copy of the treeline hit
-                     pattern.
-
  (05) marklin()    - this function generates the treesearch database.  For
                      a given father, it generates the 2^(treelayers)
                      possible son hit patterns.  Each son pattern is
@@ -51,9 +46,6 @@
                      through the chamber.  If it is consistent, it is
                      inserted into the treesearch database and then, by a
                      recursive call to marklin(), its sons are generated.
-
- (06) treeout()    - a debugging function which displays the hit patterns
-                     for an entry in the treesearch database.
 
  (07) _inittree()  - this function initializes the treesearch database and
                      then calls marklin() to generate the database.
@@ -66,9 +58,6 @@
                      readtree() will read back this file to form the concise
                      treesearch database (so-called short tree) used by the
                      treesearch algorithm.
-
- (10) freetree()   - this function clears the treesearch database and
-                     frees up the memory that was used.
 
  (11) _readtree()  - a recursive function (called by readtree()) to read the
                      concise treesearch database (so-called short tree) from
@@ -87,16 +76,20 @@
                      each of the treelines.
 
 *//*-------------------------------------------------------------------------*/
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #include "QwTrackingTree.h"
 
+// Qweak headers
+#include "QwLog.h"
+#include "QwTypes.h"
+#include "QwTrackingTreeRegion.h"
+
+// Deprecated Qweak headers
+#include "Det.h"
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-const string QwTrackingTree::TREEDIR("tree");
-
-extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
-extern Options opt;
+const std::string QwTrackingTree::fgTreeDir("tree");
 
 /*! Defines are relevant for the storage of the trees in files. */
 #define OFFS1   2 /* Next Sons have to be linked to offset 1 nodelist */
@@ -112,9 +105,31 @@ extern Options opt;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void QwTrackingTree::printtree (treenode* tn)
+/**
+ * Print the full tree
+ */
+void QwTrackingTree::PrintTree() const
 {
-  tn->print();
+  // The first entry of the hash table is the root of the tree.  The node fFather
+  // is only the root node that is copied before the tree is constructed, so it
+  // stays empty.
+  QwOut << "Tree:" << QwLog::endl;
+  fHashTable[0]->Print();
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+void QwTrackingTree::PrintHashTable() const
+{
+  QwOut << "Hash table:" << QwLog::endl;
+  for (int i = 0; i < fHashSize; i++) {
+    QwOut << "hash " << i << ":" << QwLog::endl;
+    treenode* node = fHashTable[i];
+    while (node) {
+      QwOut << node << ": " << *node << QwLog::endl;
+      node = node->GetNext();
+    }
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -131,42 +146,80 @@ void QwTrackingTree::printtree (treenode* tn)
     for each case.
 
 *//*-------------------------------------------------------------------------*/
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-QwTrackingTree::QwTrackingTree ()
+QwTrackingTree::QwTrackingTree(unsigned int numlayers)
+: fNumPlanes(fNumLayers),fNumWires(fNumLayers)
 {
-  debug = 0; // debug level
+  fDebug = 0; // debug level
 
-  tlayers = 8; // set tlayers == maxhits for now (for region 3)
+  fNumLayers = numlayers; // Set the number of layers in the search tree
+  // fNumPlanes = fNumLayers = 4 is number of region 2 HDC planes
+  // fNumWires  = fNumLayers = 8 is number of region 3 VDC wires per group
 
-  hshsiz = 511;
+  // Until variable hash table sizes are implemented, the local hash size should
+  // be equal to the value defined in the header.
+  fHashSize = HSHSIZ;
+  fHashTable = new treenode*[fHashSize];
 
   // Initialize the QwTrackingTree structure
-  father.genlink = 0;
-  for (int i = 0; i < 4; i++) father.son[i] = 0;
-  father.maxlevel = -1;
-  father.minlevel = -1;
-  father.bits = 1;
-  for (int i = 0; i < TLAYERS; i++) father.bit[i] = 0;
-  father.xref = -1;
-  npat = 0;
+  fFather = new treenode(fNumLayers);
+  fFather->fMaxLevel = -1;
+  fFather->fMinLevel = -1;
+  fFather->fWidth = 1;
+  for (unsigned int i = 0; i < fFather->size(); i++) fFather->fBit[i] = 0;
+  fFather->fRef = -1;
+
+  // Reset the number of patterns generated
+  fNumPatterns = 0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwTrackingTree::~QwTrackingTree ()
 {
+  // Debug information
+  QwDebug << "Deleting QwTrackingTree: " << this << QwLog::endl;
+
+  // Delete all top links in the hash table
+  QwDebug << "Deleting fHashTable..." << QwLog::endl;
+  for (int i = 0; i < fHashSize; i++) {
+    treenode* node = fHashTable[i];
+    while (node) {
+      treenode* node_next = node->GetNext();
+      delete node;
+      node = node_next;
+    }
+  }
+  // Delete hash table itself
+  delete[] fHashTable;
+
+  // Delete father node
+  QwDebug << "Deleting fFather..." << QwLog::endl;
+  delete fFather;
+
+  // Report memory statistics
+  if (treenode::GetCount() > 0 || nodenode::GetCount() > 0) {
+    QwMessage << "Memory occupied by tree objects (should be close to zero when all trees cleared):" << QwLog::endl;
+    QwMessage << "- allocated treenode objects: " << treenode::GetCount() << QwLog::endl;
+    QwMessage << "- allocated nodenode objects: " << nodenode::GetCount() << QwLog::endl;
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*------------------------------------------------------------------------*//*!
 
- \fn consistent()
-
- \brief Determines whether the pattern is geometrically possible.
-
-*//*-------------------------------------------------------------------------*/
-
+/**
+ * \brief Determines whether the pattern is geometrically possible
+ *
+ *  ...
+ *
+ * @param tst
+ * @param level
+ * @param package
+ * @param type
+ * @param region
+ * @param dir
+ * @return
+ */
 int QwTrackingTree::consistent(
 	treenode *tst,
 	int level,
@@ -179,7 +232,7 @@ int QwTrackingTree::consistent(
   // DECLARATIONS #
   //###############
   int i;
-  int *b = tst->bit;	/* For faster access to pattern in tst->bit */
+  int *b = tst->fBit;	/* For faster access to pattern in tst->bit */
   double x0;		/* Bitnumber in the first tree-detector,
                            i.e. treelayer 0                         */
   double x3e, x3a;	/* Bitnumber in last / last checked layer   */
@@ -205,6 +258,8 @@ int QwTrackingTree::consistent(
     double off;		/// radial offset between upstream and downstream HDC chambers
     double xiL, xiR;	/// the left(min) and right(max) edges of the bin at the current plane
 
+    y0 = binwidth = dy = off = 0.0;
+
     /// find the z position of each tree-detector relative to the first tree-detector
     for (rd = rcDETRegion[package][region][dir], i = 0;
          rd && i < templayers;
@@ -214,12 +269,15 @@ int QwTrackingTree::consistent(
 
       if (i) {                       // Compute the relative position to the upstream plane
         z[i] = zv - z[0];
-	if (z[i] < z[0]) cout << "ERROR: R2 PLANES OUT OF ORDER" << endl;
+	if (z[i] < z[0]) {
+	  QwError << "Region 2 planes are out of order" << QwLog::endl;
+	  exit(1);
+	}
 	/// the offset distance between the first and last planes of this wire direction
 	if (i == templayers-1) dy = off = fabs((rd->center[1] - y0)*rd->rCos);
       } else {
         z[0] = zv;
-        binwidth = rd->NumOfWires * rd->WireSpacing / (1<<level); /// the binwidth at this level
+        binwidth = rd->NumOfWires * rd->WireSpacing / (1 << level); /// the binwidth at this level
 	y0 = fabs(rd->center[1]); /// the first plane's radial distance
       }
     }
@@ -233,15 +291,16 @@ int QwTrackingTree::consistent(
 
     /*  first check if a straight track through the bins in the
            first and the last tree-detectors fulfill the max angle
-           condition set in Qoptions     */
-    dy -= x0*binwidth; /// dy is decreased by a larger first layer bin
-    dy += xf*binwidth; /// and increased by a larger last layer bin
+           condition set in QwOptions     */
+    dy -= x0 * binwidth; /// dy is decreased by a larger first layer bin
+    dy += xf * binwidth; /// and increased by a larger last layer bin
 
-    if (fabs (dy / dza) > opt.R2maxslope) {
+    if (fabs (dy / dza) > fMaxSlope) {
       return 0;
     }
 
-    if (b[0] == 1 && b[1] == 1 && b[2] == 0 && b[3] == 0 /*&& level == 5*/) cout << "gotcha" << endl;
+    if (b[0] == 1 && b[1] == 1 && b[2] == 0 && b[3] == 0 /*&& level == 5*/)
+      cout << "gotcha" << endl;
     /* check if all the bits are along a straight line by
        looping through each pair of outer tree-detectors and
        seeing if the bins on the enclosed tree-detectors are
@@ -278,7 +337,7 @@ int QwTrackingTree::consistent(
     int templayers = 8;
 
 
-    double xf = 0, zf;
+    double xf = 0, zf = 0.0;
     double z[templayers];
     double cellwidth = 1; // distance between wires
     //double cellwidth = 1.11125;
@@ -316,7 +375,7 @@ int QwTrackingTree::consistent(
     /* ----- first check if a straight track through the bins in the
              first and the last tree-detectors fulfill the max angle
              condition                                                 ----- */
-    double m_min = -((double) tlayers - 1) / ((double) (1 << level) - 1);
+    double m_min = -((double) fNumLayers - 1) / ((double) (1 << level) - 1);
     double m_max = -(4.0 - 1.0) / ((double) (1 << level) - 1);
     double m = -((double) zf) / ((double) (xf - x0));
 
@@ -354,20 +413,31 @@ int QwTrackingTree::consistent(
   // OR ELSE  #
   //###########
   } else {
-    cout << "Warning: no support for the creation of this search tree." << endl;
+    QwWarning << "Warning: no support for the creation of this search tree." << QwLog::endl;
     return 0;
   }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-treenode* QwTrackingTree::existent (treenode *tst, int hash)
+/**
+ * \brief Search for a node in the search tree
+ *
+ *  Starting with the hash value, the node is searched in the search tree.
+ *  When the bits are identical to an entry in the search tree, that entry
+ *  is returned.  Otherwise, when no match is found, null is returned.
+ *
+ * @param node Node to search for
+ * @param hash Hash value of the node
+ * @return Node in the tree, or null if not found
+ */
+treenode* QwTrackingTree::existent (treenode *node, int hash)
 {
-  treenode *walk = generic[hash];
+  treenode *walk = fHashTable[hash];
   while (walk) {
-    if (! memcmp (tst->bit, walk->bit, tlayers * sizeof(tst->bit[0])))
-      return walk;		/* found it! */
-    walk = walk->genlink;	/* nope, so look at the next pattern */
+    if (! memcmp (node->fBit, walk->fBit, fNumLayers * sizeof(node->fBit[0])))
+      return walk;          /* found it! */
+    walk = walk->GetNext(); /* nope, so look at the next pattern */
   }
   return 0;
 }
@@ -377,47 +447,109 @@ treenode* QwTrackingTree::existent (treenode *tst, int hash)
 treenode* QwTrackingTree::nodeexists (nodenode* node, treenode* tr)
 {
   while (node) {
-    if (! memcmp(node->tree->bit, tr->bit, tlayers * sizeof(tr->bit[0])))
-      return node->tree;		/* found it! */
-    node = node->next;		/* nope, so look at the next son of this father */
+    if (! node->GetTree()) {
+      QwError << "Floor gone from under my feet!" << QwLog::endl;
+      return 0;
+    }
+    if (! memcmp(node->GetTree()->fBit, tr->fBit, fNumLayers * sizeof(tr->fBit[0])))
+      return node->GetTree();		/* found it! */
+    node = node->GetNext();		/* nope, so look at the next son of this father */
   }
   return 0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-treenode* QwTrackingTree::treedup (treenode *todup)
-{
-  // TODO (wdc) Copy constructor for treenode
-  treenode* ret = new treenode;	/* allocate the memory for the treenode	*/
-  assert(ret);			/* cry if there was an error		*/
-
-  *ret = *todup;		/* copy the treenode todup to
-				   the new treenode			*/
-  ret->xref = -1L;		/* set the external reference
-				   link					*/
-  return ret;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*------------------------------------------------------------------------*//*!
-
- \fn marklin
-
- \brief Generates the treesearch pattern database.
-
-    This function generates the treesearch database.  For
-    a given father, it generates the 2^(treelayers)
-    possible son hit patterns.  Each son pattern is
-    checked to see if it is consistent with a trajectory
-    through the chamber.  If it is consistent, it is
-    inserted into the treesearch database and then, by a
-    recursive call to marklin(), its sons are generated.
-    marklin has different code for the different regions
-    due to the significant differences between them.
-
-*//*-------------------------------------------------------------------------*/
-
+/**
+ *  This recursive function generates the treesearch database.  For a given
+ *  father node, it generates the 2^fNumLayers possible son hit patterns.
+ *  Each son pattern is checked to see if it is consistent with a trajectory
+ *  through the detector.  If it is consistent, it is inserted into the tree
+ *  search database and then, by a recursive call to this function, its sons
+ *  are generated.  marklin has different code for the different regions due
+ *  to the significant differences between them.
+ *
+ *  Reminder about the bit pattern:
+ *  - there are n levels of bin division, so 8,4,2,1 bins for 4 levels,
+ *  - there are rows corresponding with the HDC planes or VDC wires.
+ *
+ *  HDC planes (spaces between the 5 levels of bin division)
+ *  for 16 bins in wire coordinate (e.g. 16 wires)
+ *  and zero distance resolution
+ *  \code
+ *   plane 1: ......|.........  ...|....  .|..  |.  |
+ *   plane 2: .......|........  ...|....  .|..  |.  |
+ *   plane 3: ........|.......  ....|...  ..|.  .|  |
+ *   plane 4: .........|......  ....|...  ..|.  .|  |
+ *  \endcode
+ *
+ *  VDC wires (spaces between the 4 levels of bin division)
+ *  for 8 bins in drift distance and zero distance resolution
+ *  \code
+ *   wire 159: |.......  |...  |.  |
+ *   wire 160: .|......  |...  |.  |
+ *   wire 161: ..|.....  .|..  |.  |
+ *   wire 162: ...|....  .|..  |.  |
+ *   wire 163: .....|..  ..|.  .|  |
+ *   wire 164: ......|.  ...|  .|  |
+ *   wire 165: .......|  ...|  .|  |
+ *  \endcode
+ *
+ *  When constructing the hit patterns, we start from level 0 (i.e. 1 bin).
+ *  There are 2^fNumLayers possible hit patterns, in order of generation:
+ *  \code
+ *   plane 1:  1  0  1  0  1  0  1  0  1  0  1  0  1  0  1  0
+ *   plane 2:  1  1  0  0  1  1  0  0  1  1  0  0  1  1  0  0
+ *   plane 3:  1  1  1  1  0  0  0  0  1  1  1  1  0  0  0  0
+ *   plane 4:  1  1  1  1  1  1  1  1  0  0  0  0  0  0  0  0
+ *  \endcode
+ *  The number indicates the bin in this particular level of bin division.
+ *  For the lowest level 0 there are two bins at every layer.  The hit is
+ *  either in bin 0 or bin 1.
+ *
+ *  At the next level, there are again 2^fNumLayers possible hit patterns,
+ *  based on the hit pattern of the previous level.  The relation from the
+ *  hit pattern at the previous level and the 16 binary combinations above
+ *  to the hit pattern at this level is given by
+ *    bin at this level = 2^(bin at previous level) - 1 + (combination).
+ *
+ *  For the level 1 (with 4 bins), and hit pattern 0,0,1,1 at level 0:
+ *  \code
+ *   plane 1: e.g. 0   +   1  0  1  0  1  0  1  0  1  0  1  0  1  0  1  0
+ *   plane 2:      0   +   1  1  0  0  1  1  0  0  1  1  0  0  1  1  0  0
+ *   plane 3:      1   +   1  1  1  1  0  0  0  0  1  1  1  1  0  0  0  0
+ *   plane 4:      1   +   1  1  1  1  1  1  1  1  0  0  0  0  0  0  0  0
+ *  \endcode
+ *  This works out as follows:
+ *  \code
+ *   plane 1:  1  0  1  0  1  0  1  0  1  0  1  0  1  0  1  0
+ *   plane 2:  1  1  0  0  1  1  0  0  1  1  0  0  1  1  0  0
+ *   plane 3:  3  3  3  3  2  2  2  2  3  3  3  3  2  2  2  2
+ *   plane 4:  3  3  3  3  3  3  3  3  2  2  2  2  2  2  2  2
+ *  \endcode
+ *  For the combination 1,0,3,2 this can be visualized as:
+ *  \code
+ *   plane 1: |. (0) + 1 -> .|.. (1)
+ *   plane 2: |. (0) + 0 -> |... (0)
+ *   plane 3: .| (1) + 1 -> ...| (3)
+ *   plane 4: .| (1) + 0 -> ..|. (2)
+ *  \endcode
+ *
+ *  Clearly, some of the combinations do not correspond to a straight track.
+ *  The combination 1,0,3,2 is an example.  To throw out these invalid tracks
+ *  we calculate the largest and smallest bin and compare it to the difference
+ *  between the first and last bin.
+ *
+ *  Also, the combination 0,0,2,2 is basically identical to 1,1,3,3 up to a
+ *  shift.  They are therefore treated as identical track candidates.
+ *
+ * @param father Father node
+ * @param level Level of precision
+ * @param package Detector package
+ * @param type Detector type
+ * @param region Detector region
+ * @param dir Detector direction
+ */
 void QwTrackingTree::marklin (
 	treenode* father,
 	int level,
@@ -426,47 +558,46 @@ void QwTrackingTree::marklin (
 	EQwRegionID region,
 	EQwDirectionID dir)
 {
-  //###############
-  // DECLARATIONS #
-  //###############
-  treenode son;
-  treenode *sonptr;
-  int i,j;
-  int offs;
-  int flip;
-  int maxs;
-  int insert_hitpattern;
-  int hsh;
+  // Local copy of the father node
+  treenode son = *father;
 
-  if (level == maxlevel) return;
-  son = *father;
-  i = (1 << tlayers);	// (1 << x) is equal to 2^x
-			/* Number of possible son patterns for this father */
+  // If we have reached the maximum depth of the tree, do nothing.
+  if (level == fMaxLevel) return;
 
   //###########
   // REGION 2 #
   //###########
   if (region == kRegionID2 && type == kTypeDriftHDC) {
-    tlayers = 4; /// Four u, v, or x wire planes an electron can cross
-    i = (1 << tlayers);
-    while (i--) {    //loop through all possibilities
-      offs = 1;
-      maxs = 0;
-      flip = 0;
-      for (j = 0; j < tlayers; j++) {
-	if (i & (1 << j)) {
-	  son.bit[j] = (father->bit[j]<<1) + 1;
-	} else {
-	  son.bit[j] = (father->bit[j]<<1);
-	}
-	offs = (int) std::min (offs, son.bit[j]);
-	maxs = (int) std::max (maxs, son.bit[j]);
 
+    // There are four u, v, or x wire planes.
+    fNumPlanes = 4;
+
+    // Loop through all possible variations of the bit pattern.
+    //
+    // In binary this will run over 1111, 1110, 1101,..., 0010, 0001, 0000,
+    // where each bit position is a plane (here with four planes).
+    int plane_combination = (1 << fNumPlanes); // i.e. 2^fNumPlanes
+    while (plane_combination--) {
+      int min_bin = 1;
+      int max_bin = 0;
+      int offs = 0;
+      int flip = 0;
+      for (unsigned int plane = 0; plane < fNumPlanes; plane++) {
+        // If this plane is active in this combination
+	if (plane_combination & (1 << plane)) {
+	  son.fBit[plane] = (father->fBit[plane] << 1) + 1;
+	} else {
+	  son.fBit[plane] = (father->fBit[plane] << 1);
+	}
+	// Keep track of minimum and maximum bin at any plane
+	min_bin = (int) std::min (min_bin, son.fBit[plane]);
+	max_bin = (int) std::max (max_bin, son.fBit[plane]);
       }
 
-      son.bits = son.bit[tlayers-1] - son.bit[0];//width in bins between first and last planes
+      // Width in bins between first and last planes
+      son.fWidth = son.fBit[fNumPlanes-1] - son.fBit[0];
 
-      /* check that the hits on the internal tree-detector planes
+      /* Check that the hits on the internal tree-detector planes
          are enclosed by the hits on the two outer tree-detector
          planes.  If not, the pattern cannot have a straight line
          put through it, so just stop with it.
@@ -476,46 +607,43 @@ void QwTrackingTree::marklin (
          detector (3) is not enclosed by the bins for the two
          outer detectors (1 and 2).                             */
 
-
-      if (maxs - offs > abs(son.bits))
+      if (max_bin - min_bin > abs(son.fWidth))
         continue;
 
-      /* compute the offset of this hit pattern and, if non-zero,
+      /* Compute the offset of this hit pattern and, if non-zero,
          shift the pattern over by the offset                   */
 
-      if (offs) {			/* If there is an offset, so         */
-        for (j = 0; j < tlayers; j++)	/* shift all hits over this offset   */
-	  son.bit[j]--;
+      if (min_bin) { // If there is a non-zero offset, then
+        offs = 1;    // set "pattern is offset" flag, and shift down
+        for (unsigned int plane = 0; plane < fNumPlanes; plane++)
+          son.fBit[plane]--; // ... so decrement is sufficient
       }
-      /* see if the hit pattern is a flipped pattern and, if so,
+
+      /* See if the hit pattern is a flipped pattern and, if so,
          set the "pattern is flipped" flag and flip the pattern */
 
-
-      if (son.bits < 0) {		  /* If hit pattern is flippable, then      */
-        flip = 2;			  /* (1) set "pattern is flipped" flag, and */
-        son.bits = -son.bits;	  /* (2) flip the hit pattern               */
-//bits B
-        for (j = 0; j < tlayers; j++)
-	  son.bit[j] = son.bits-son.bit[j];
+      if (son.fWidth < 0) {	  /* If hit pattern is flippable, then      */
+        flip = 2;		  /* (1) set "pattern is flipped" flag, and */
+        son.fWidth = -son.fWidth; /* (2) flip the hit pattern               */
+        for (unsigned int plane = 0; plane < fNumPlanes; plane++)
+          son.fBit[plane] = son.fWidth - son.fBit[plane];
       }
 
-      /* compute the width (in bins) of the hit pattern          */
-      son.bits++;/* Remember: bins are numbered from 0 to
-//bits C
-      n, so we need to add 1 here to compute the width         */
+      /* Compute the width (in bins) of the hit pattern          */
+      son.fWidth++;
+      /* Remember: bins are numbered from 0 to n,
+         so we need to add 1 here to compute the width           */
 
-      /* look at the other sons of this father to see if this
+      /* Look at the other sons of this father to see if this
          particular son is already known to the father           */
+      treenode* sonptr = nodeexists (father->fSon[offs + flip], &son);
 
-      sonptr = nodeexists (father->son[offs+flip], &son);
-
-      /*  compute the hash value of this particular son for use
-         with the genlink hash search of the full treesearch
-         database                                                  */
-      hsh = (son.bit[tlayers-1] + son.bit[1]) % HSHSIZ;
+      /* Compute the hash value of this particular son for use
+         with the hash search of the full treesearch database    */
+      int hash = (son.fBit[fNumPlanes-1] + son.fBit[1]) % fHashSize;
 
       /*  initializes the "insert pattern" flag                     */
-      insert_hitpattern = 1; /* right now, set this flag to insertt it  */
+      int insert_hitpattern = 1; /* right now, set this flag to insert it  */
 
       /* if the hit pattern for this son was not located when
          the other sons of this father were searched, then look
@@ -526,53 +654,43 @@ void QwTrackingTree::marklin (
          hit pattern so that its hit pattern is valid at this
          level of the treesearch division.
                                                                    */
+      if (! sonptr && 0 == (sonptr = existent (&son, hash))) {
 
-      if (! sonptr && 0 == (sonptr = existent (&son, hsh))) {
+
         /* the pattern is completely unknown.  So, now check if
            it is consistent with a straight line trajectory
            through the tree-detectors whose slope is within the
-           window set by the Qoptions parameter R2maxslope.             */
+           window set by the QwOptions parameter fMaxSlope.             */
 
         if (consistent (&son, level+1, package, type, region, dir)) {
           /* the pattern is consistent, so now insert it into the
              treesearch database by:                              */
 	  /*  1st: Create space for this new treenode             */
-	  sonptr = treedup (&son);
+	  sonptr = new treenode(son);
 
 	  /*  2nd: Since this treenode has no sons at the moment,
               zero the son pointers for this treenode             */
-	  sonptr->son[0] = sonptr->son[1] =
-	    sonptr->son[2] = sonptr->son[3] = 0;
+	  sonptr->fSon[0] = sonptr->fSon[1] =
+	    sonptr->fSon[2] = sonptr->fSon[3] = 0;
 
 	  /*  3rd: Since the hit pattern in this treenode is only
               known to be valid at this level of bin divsion,
               set the minimum and maximum valid level for this
               treenode to this level                              */
 
-	  sonptr->maxlevel = sonptr->minlevel = level;
+	  sonptr->fMaxLevel = sonptr->fMinLevel = level;
 
-	  /*  4th: Update the genlink hash table so that this
+	  /*  4th: Update the hash table so that this
               treenode will be examined during future searches
               of the entire treesearch database.                  */
-	  sonptr->genlink = generic[hsh];      /* Append the pattern onto the    */
-                                               /* end of genlink hash table.     */
-	  generic[hsh] = sonptr;               /* update the genlink hash table. */
+	  sonptr->SetNext(fHashTable[hash]);  /* Append the pattern onto the */
+                                              /* end of the hash table.      */
+	  fHashTable[hash] = sonptr;          /* update the hash table.      */
+
+	  fNumPatterns++;
 
 	  /*  5th: Call marklin() recursively to generate the sons of
               this tree node                                      */
-	  npat++;
-          /*
-	  cout << "good" <<endl;
-	  for (int k = 0; k < tlayers; k++) {
-	    for (int l = 0; l < (2 << level); l++) {
-	      if (son.bit[k] == l)
-	        cout << "x ";
-	      else
-	        cout << "0 ";
-	    }
-	    cout << endl;
-	  }
-          */
 	  marklin (sonptr, level+1, package, type, region, dir);
 
         } else {
@@ -582,9 +700,9 @@ void QwTrackingTree::marklin (
 	  insert_hitpattern = 0; /* set "insert pattern" flag to not keep it */
           /*
 	  cout << "inconsistent" << endl;
-	  for (int k = 0; k < tlayers; k++) {
+	  for (int k = 0; k < fNumPlanes; k++) {
 	    for (int l = 0; l < 2 << level; l++) {
-	      if (son.bit[k] == l)
+	      if (son.fBit[k] == l)
 	        cout << "x ";
 	      else
 	        cout << "0 ";
@@ -598,167 +716,155 @@ void QwTrackingTree::marklin (
            needs to be updated so that it will be valid this level
            of bin division.                                         */
 
-      } else if ((sonptr->minlevel > level && consistent(&son, level+1, package, type, region, dir))
-	       || sonptr->maxlevel < level) {
+      } else if ((sonptr->fMinLevel > level && consistent(&son, level+1, package, type, region, dir))
+	       || sonptr->fMaxLevel < level) {
 
 	/*  1st: Update the levels of the found treenode to
             include this level                                  */
-        sonptr->minlevel = (int) std::min (level, sonptr->minlevel);
-	sonptr->maxlevel = (int) std::max (level, sonptr->maxlevel);
+        sonptr->fMinLevel = (int) std::min (level, sonptr->fMinLevel);
+	sonptr->fMaxLevel = (int) std::max (level, sonptr->fMaxLevel);
+
+        fNumPatterns++;
 
 	/*  2nd: Update the levels of all the sons for this
-            treenode
-                                      */
-          /*
-	  cout << "good" <<endl;
-	  for (int k = 0; k < tlayers; k++) {
-	    for (int l = 0; l < 2 << level; l++) {
-	      if (son.bit[k] == l)
-	        cout << "x ";
-	      else
-	        cout << "0 ";
-	    }
-	    cout << endl;
-	  }
-          */
-        npat++;
+            treenode                                      */
 	marklin (sonptr, level+1, package, type, region, dir);
       }
 
-	/* Since one of the recursive call to marklin()
-           for building a son's generation could have already
-           inserted the hit pattern for this son into the
-           database, a final check is made to see if the hit
-           pattern is already in the database before actually
-           inserting the treenode into the database                 */
+      /* Since one of the recursive call to marklin()
+         for building a son's generation could have already
+         inserted the hit pattern for this son into the
+         database, a final check is made to see if the hit
+         pattern is already in the database before actually
+         inserting the treenode into the database                 */
       if (insert_hitpattern  &&                        /* "insert pattern"
                                                           flag is set and    */
-        ! nodeexists (father->son[offs+flip], &son)) { /* final check if hit
+        ! nodeexists (father->fSon[offs+flip], &son)) { /* final check if hit
                                                           pattern is already
 							  in the database    */
 
-        nodenode *nodptr = new nodenode;		/* create a nodenode  */
-	assert(nodptr);                                  /* cry if error     */
-        nodptr->next           = father->son[offs+flip]; /* append it onto
-                                                            the son list     */
-	nodptr->tree           = sonptr;
-	father->son[offs+flip] = nodptr;
+        nodenode* nodptr = new nodenode();		/* create a nodenode  */
+        nodptr->SetNext(father->fSon[offs+flip]); /* append it to the son list */
+	nodptr->SetTree(sonptr);
+	father->fSon[offs+flip] = nodptr;
       }
-    }
-  }
+
+    } // end of loop over bins
+
+  } // end of region 2
 
   //###########
   // REGION 3 #
   //###########
   else if (region == kRegionID3 && type == kTypeDriftVDC) {
-    tlayers = 8;
-    offs = 1;
-    maxs = 0;
-    flip = 0;
-    int maxhits = 8; // max # of cells that can be hit in wanted tracks
-    i = (1 << maxhits);
-    while (i--) { // loop through all possibilities
-      for (j = 0; j < maxhits; j++) { // this loop creates each possible pattern
 
-	if(i & (1<<j)){
-	  son.bit[j] = (father->bit[j]<<1)+1;
+    // There are 8 wires in each demultiplexed VDC group
+    fNumWires = 8;
+
+    int offs = 1;
+    int maxs = 0;
+    int flip = 0;
+
+    int wire_combination = (1 << fNumWires);
+    while (wire_combination--) { // loop through all possibilities
+      for (unsigned int wire = 0; wire < fNumWires; wire++) { // this loop creates each possible pattern
+
+	if (wire_combination & (1 << wire)) {
+	  son.fBit[wire] = (father->fBit[wire] << 1) + 1;
+	} else {
+	  son.fBit[wire] = (father->fBit[wire] << 1);
 	}
-	else{
-	  son.bit[j] = father->bit[j]<<1;
-	}
-	offs = (int) std::min (offs,son.bit[j]);
-	maxs = (int) std::max (maxs,son.bit[j]);
+	offs = (int) std::min (offs,son.fBit[wire]);
+	maxs = (int) std::max (maxs,son.fBit[wire]);
       }
 
 
-      //Cut patterns in which there are hits that lie outside the road         between the first and last hits, i.e. :
-      //  X 0      0 X
-      //  0 X  or  X 0
-      //  0 X      0 X
-      //  X 0       0 X
-      son.bits = son.bit[maxhits-1] - son.bit[0];
-      //cout << "-------------------------" << endl;
-      int cutback =0;
-      int cutflag =0;
-      for(j=1;j<maxhits;j++){
-        if(son.bit[j]<son.bit[j-1]){//if the bin decreases
-          if(son.bit[j])//and it's nonzero cut it
+      // Cut patterns in which there are hits that lie outside the road
+      // between the first and last hits, i.e. :
+      //   X 0      0 X
+      //   0 X  or  X 0
+      //   0 X      0 X
+      //   X 0      0 X
+      son.fWidth = son.fBit[fNumWires-1] - son.fBit[0];
+
+      int cutback = 0;
+      int cutflag = 0;
+      for (unsigned int wire = 1; wire < fNumWires; wire++) {
+        if (son.fBit[wire] < son.fBit[wire-1]) { // if the bin decreases
+          if (son.fBit[wire]) // and it's nonzero cut it
             cutflag++;
-          if(!son.bit[j]){//but if it's zero, make sure it stays zero
+          if (! son.fBit[wire]) { // but if it's zero, make sure it stays zero
             cutback++;
-            if(cutback==1)son.bits = son.bit[j-1] - son.bit[0];
+            if (cutback == 1) son.fWidth = son.fBit[wire-1] - son.fBit[0];
           }
         }
-        if(son.bit[j] && cutback)
+        if (son.fBit[wire] && cutback)
           cutflag++;
       }
-      if(cutflag){
+      if (cutflag) {
         /*
         cout << "Cut :" ;
-        for(j=0;j<maxhits;j++)
-          cout << son.bit[j] << " " ;
+        for (unsigned int wire = 0; wire < fNumWires; wire++)
+          cout << son.fBit[wire] << " " ;
         cout << endl;*/
         continue;
       }
-      if( offs){/* If there is an offset, so         */
+      if (offs) { /* If there is an offset, so         */
         /*cout << "Offset :" ;
-        for(j=0;j<maxhits;j++)
-          cout << son.bit[j] << " " ;
+        for (unsigned int wire = 0; wire < fNumWires; wire++)
+          cout << son.fBit[wire] << " " ;
         cout << endl;
         */
-        for( j = 0; j< maxhits; j++) /* shift all hits over this                   offset   */
-          son.bit[j] --;
+        for (unsigned int wire = 0; wire < fNumWires; wire++) /* shift all hits over this                   offset   */
+          son.fBit[wire]--;
       }
-      if(son.bits < 0){
+      if (son.fWidth < 0) {
         /*cout << "Flip :" ;
-        for(j=0;j<maxhits;j++)
-          cout << son.bit[j] << " " ;
+        for (unsigned int wire = 0; wire < fNumWires; wire++)
+          cout << son.fBit[wire] << " " ;
         cout << endl;
     */
-        flip =2 ;
-        son.bits = -son.bits;
-        for(j=0;j<maxhits;j++)
-          son.bit[j] = son.bits-son.bit[j];
+        flip = 2;
+        son.fWidth = -son.fWidth;
+        for (unsigned int wire = 0; wire < fNumWires; wire++)
+          son.fBit[wire] = son.fWidth - son.fBit[wire];
       }
-      son.bits++;
-      sonptr = nodeexists( father->son[offs+flip], &son);
-      hsh = (son.bit[tlayers-1]+son.bit[1])%HSHSIZ;
+      son.fWidth++;
+
+      treenode* sonptr = nodeexists(father->fSon[offs+flip], &son);
+
+      int hash = (son.fBit[fNumWires-1] + son.fBit[1]) % fHashSize;
 
 
-      /*if(sonptr){for(j=0;j<maxhits;j++)cout << son.bit[j] << " " ;cout <<  "exists" << endl;}
-      else{ for(j=0;j<maxhits;j++)cout << son.bit[j] << " " ;cout << endl;}
-      cout << "hsh = " << son.bit[tlayers-1] << "," << son.bit[1] << "," << hshsiz << "," << hsh << endl;
+      /*if(sonptr){for(j=0;j<fNumWires;j++)cout << son.fBit[j] << " " ;cout <<  "exists" << endl;}
+      else{ for(j=0;j<fNumWires;j++)cout << son.fBit[j] << " " ;cout << endl;}
+      cout << "hash = " << son.fBit[fNumWires-1] << "," << son.fBit[1] << "," << hshsiz << "," << hash << endl;
       cout << "level : " << level << endl;
-      cout << "bits : " << son.bits << endl;*/
-      insert_hitpattern = 1;
-      if( !sonptr&& 0 == (sonptr= existent( &son, hsh))){
-        if( consistent( &son, level+1,package,type,region,dir)) {
+      cout << "bits : " << son.fWidth << endl;*/
+      int insert_hitpattern = 1;
+      if (! sonptr&& 0 == (sonptr = existent(&son, hash))) {
+        if (consistent (&son, level+1, package, type, region, dir)) {
           //cout << "Adding treenode..." << endl;
 
-          sonptr = treedup( &son);
-          sonptr->son[0] = sonptr->son[1] =
-          sonptr->son[2] = sonptr->son[3] = 0;
-          sonptr->maxlevel =
-          sonptr->minlevel = level;
-          sonptr->genlink = generic[hsh];
-          generic[hsh] = sonptr;
-          npat++;
-          /*cout << "good" <<endl;
-          for(int k=0;k<tlayers;k++){
-            for(int l=0;l< 2<<(level);l++){
-              if(son.bit[k]==l)cout << "x ";
-              else cout << "0 ";
-            }
-            cout << endl;
-          }
-          */
-          marklin( sonptr, level+1,package,type,region,dir);
-        }
-        else{/*
+          sonptr = new treenode(son);
+          sonptr->fSon[0] = sonptr->fSon[1] =
+            sonptr->fSon[2] = sonptr->fSon[3] = 0;
+          sonptr->fMaxLevel =
+            sonptr->fMinLevel = level;
+
+          sonptr->SetNext(fHashTable[hash]);
+          fHashTable[hash] = sonptr;
+
+          fNumPatterns++;
+
+          marklin (sonptr, level+1, package, type, region, dir);
+
+        } else { /*
+
           cout << "inconsistent" << endl;
-          for(int k=0;k<tlayers;k++){
+          for(int k=0;k<fNumWires;k++){
             for(int l=0;l< 2<<(level);l++){
-              if(son.bit[k]==l)cout << "x ";
+              if(son.fBit[k]==l)cout << "x ";
               else cout << "0 ";
             }
             cout << endl;
@@ -767,199 +873,120 @@ void QwTrackingTree::marklin (
           insert_hitpattern = 0;
         }
       }
-      else if( (sonptr->minlevel > level  && consistent( &son, level+1,package,type,region,dir) )||sonptr->maxlevel < level) {
-        sonptr->minlevel = (int) std::min (level,sonptr->minlevel);
-        sonptr->maxlevel = (int) std::max (level,sonptr->maxlevel);
-        /*for(int k=0;k<tlayers;k++){
-          for(int l=0;l< 2<<(level);l++){
-            if(son.bit[k]==l)cout << "x ";
-            else cout << "0 ";
-          }
-          cout << endl;
-        }
-        */
+      else if ( (sonptr->fMinLevel > level
+                 && consistent(&son, level+1, package, type, region, dir) )
+              || sonptr->fMaxLevel < level) {
+        sonptr->fMinLevel = (int) std::min (level,sonptr->fMinLevel);
+        sonptr->fMaxLevel = (int) std::max (level,sonptr->fMaxLevel);
 
-        marklin( sonptr, level+1,package,type,region,dir);
+        marklin (sonptr, level+1, package, type, region, dir);
       }
 
-      if( insert_hitpattern  &&                          /* "insert pattern"
-                                                          flag is set and    */
-              !nodeexists( father->son[offs+flip], &son)) {
+      if (insert_hitpattern  /* "insert pattern" flag is set and    */
+        && ! nodeexists (father->fSon[offs+flip], &son)) {
 
-        nodenode* nodptr = new nodenode;		/* create a nodenode  */
-        assert(nodptr);                                    /* cry if error       */
-        nodptr->next             = father->son[offs+flip]; /* append it onto
-                                                          the son list       */
-        nodptr->tree             = sonptr;
-        father->son[offs+flip] = nodptr;
-        //cout << "father's son " << offs+flip << " set" << endl;
+        nodenode* nodptr = new nodenode();		 /* create a nodenode  */
+        nodptr->SetNext(father->fSon[offs+flip]); /* append it to the son list */
+        nodptr->SetTree(sonptr);
+        father->fSon[offs+flip] = nodptr;
       }
-
     }
 
+  } // end of region 3
 
   //########
   // OTHER #
   //########
-  } else {
+  else {
 
-    while (i--) {
-      offs = 1;
-      maxs = 0;
-      flip = 0;
+    QwError << "What are you doing here?!?  Call the software expert now!" << QwLog::endl;
 
-      for (j = 0; j < tlayers; j++) {
-        //cout << "for("<< j << "," << tlayers << "," <<
-        //father->bit[j] << "," << (1<<j) << "," << i << ")" << endl;
+    int layer_combination = (1 << fNumLayers);
+    while (layer_combination--) {
+      int offs = 1;
+      int maxs = 0;
+      int flip = 0;
+
+      for (unsigned int layer = 0; layer < fNumLayers; layer++) {
+        //cout << "for("<< layer << "," << fNumLayers << "," <<
+        //father->fBit[layer] << "," << (1<<layer) << "," << layer_combination << ")" << endl;
 
 
-        if(i & (1<<j)){
-          son.bit[j] = (father->bit[j]<<1)+1;
-          }
-        else{
-          son.bit[j] = father->bit[j]<<1;
+        if (layer_combination & (1 << layer)) {
+          son.fBit[layer] = (father->fBit[layer] << 1) + 1;
+        } else {
+          son.fBit[layer] = (father->fBit[layer] << 1);
         }
-        offs = (int) std::min (offs,son.bit[j]);
-        maxs = (int) std::max (maxs,son.bit[j]);
+        offs = (int) std::min (offs, son.fBit[layer]);
+        maxs = (int) std::max (maxs, son.fBit[layer]);
       }
-      son.bits = son.bit[tlayers-1] - son.bit[0];
-      //cout << "(" << maxs << "," << offs << "," << son.bits << ")" << endl;
-      if(maxs-offs > abs(son.bits)){
+      son.fWidth = son.fBit[fNumLayers-1] - son.fBit[0];
+      //cout << "(" << maxs << "," << offs << "," << son.fWidth << ")" << endl;
+      if (maxs - offs > abs(son.fWidth)) {
         //cout << "yes" << endl;
         continue;
       }
 
-      if(offs)
-        for(j=0;j<tlayers;j++)
-          son.bit[j]--;
+      if (offs)
+        for (unsigned int layer = 0; layer < fNumLayers; layer++)
+          son.fBit[layer]--;
 
-      if(son.bits < 0){
-        flip =2 ;
-        son.bits = -son.bits;
-        for(j=0;j<tlayers;j++)
-          son.bit[j] = son.bits-son.bit[j];
+      if (son.fWidth < 0) {
+        flip = 2;
+        son.fWidth = -son.fWidth;
+        for (unsigned int layer = 0; layer < fNumLayers; layer++)
+          son.fBit[layer] = son.fWidth - son.fBit[layer];
       }
-      son.bits++;
-      sonptr= nodeexists(father->son[offs+flip],&son);
-      hsh = (son.bit[tlayers-1]+son.bit[1])%hshsiz;
-      cout << "hsh = " << hsh << endl;
-      insert_hitpattern = 1;
+      son.fWidth++;
 
-      if( !sonptr&& 0 == (sonptr= existent( &son, hsh))) {
+      treenode* sonptr = nodeexists(father->fSon[offs+flip], &son);
+
+      int hash = (son.fBit[fNumLayers-1] + son.fBit[1]) % fHashSize;
+      //cout << "hash = " << hash << endl;
+      int insert_hitpattern = 1;
+
+      if (! sonptr && 0 == (sonptr = existent(&son, hash))) {
         //cout << "Pattern is unknown" << endl;
         //cout << "-----------" << endl;
         //son.print();
         //cout << "-----------" << endl;
-        if( consistent( &son, level+1,package,type,region,dir)) {
+        if (consistent(&son, level+1, package, type, region, dir)) {
           //cout << "Adding treenode..." << endl;
-          sonptr = treedup( &son);
-          sonptr->son[0] = sonptr->son[1] =
-          sonptr->son[2] = sonptr->son[3] = 0;
-          sonptr->maxlevel =
-          sonptr->minlevel = level;
-          sonptr->genlink = generic[hsh];
-          generic[hsh] = sonptr;
-          marklin( sonptr, level+1,package,type,region,dir);
+          sonptr = new treenode(son);
+          sonptr->fSon[0] = sonptr->fSon[1] =
+            sonptr->fSon[2] = sonptr->fSon[3] = 0;
+          sonptr->fMaxLevel =
+            sonptr->fMinLevel = level;
+
+          sonptr->SetNext(fHashTable[hash]);
+          fHashTable[hash] = sonptr;
+
+          marklin (sonptr, level+1, package, type, region, dir);
         }
         else
           insert_hitpattern = 0;
       }
-      else if( (sonptr->minlevel > level  && consistent( &son, level+1,package,type,region,dir) )
-      || sonptr->maxlevel < level) {
-        sonptr->minlevel = (int) std::min (level,sonptr->minlevel);
-        sonptr->maxlevel = (int) std::max (level,sonptr->maxlevel);
-        marklin( sonptr, level+1,package,type,region,dir);
+      else if ( (sonptr->fMinLevel > level  && consistent( &son, level+1,package,type,region,dir) )
+      || sonptr->fMaxLevel < level) {
+        sonptr->fMinLevel = (int) std::min (level,sonptr->fMinLevel);
+        sonptr->fMaxLevel = (int) std::max (level,sonptr->fMaxLevel);
+        marklin (sonptr, level+1, package, type, region, dir);
       }
-      //cout << "insert_hitpattern = " << insert_hitpattern << endl;
 
-      if( insert_hitpattern  &&                          /* "insert pattern"
+      if (insert_hitpattern &&                          /* "insert pattern"
                                                             flag is set and    */
-          !nodeexists( father->son[offs+flip], &son)) {
+          ! nodeexists (father->fSon[offs+flip], &son)) {
 
-        nodenode* nodptr = new nodenode;		/* create a nodenode  */
-        assert(nodptr);                                    /* cry if error       */
-        nodptr->next             = father->son[offs+flip]; /* append it onto
-                                                            the son list       */
-        nodptr->tree             = sonptr;
-        father->son[offs+flip] = nodptr;
-        //cout << "father's son " << offs+flip << " set" << endl;
+        nodenode* nodptr = new nodenode();		/* create a nodenode  */
+        nodptr->SetNext(father->fSon[offs+flip]); /* append it to the son list */
+        nodptr->SetTree(sonptr);
+        father->fSon[offs+flip] = nodptr;
       }
     }
-  }
-}
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+  } // end of other region
 
-void QwTrackingTree::treeout (treenode *tn, int level, int off)
-// TODO (wdc) wtf? nested double loop over i???  this can't be right!
-{
-  nodenode *nd;
-  int v;
-
-  if (level == maxlevel)	/* the level of the treenode is deeper     */
-    return;			/* than the depth of the database.         */
-
-  for (int i = 0; i < tlayers; i++) {  /* loop over tree-detectors in hit pattern */
-    v = tn->bit[i];		/* the "on" bin for a tree-detector        */
-    if (off & 2)		/* is it reversed?                         */
-      v = tn->bits - 1 - v;	/*   yes, then flip it                     */
-    if (off & 1)		/* is it offset?                           */
-      v++;			/*   yes, then apply the offset            */
-    printf("%d%*s|%*s*%*s|\n", level, level, "",/* print the bin for this  */
-      v, "", tn->bits - 1 - v, "");		/* tree-detector           */
-    puts("");
-
-    for (i = 0; i < 4; i++) {	/* now loop over the four types (normal,
-                                   offset, flipped, flipped offset) of
-                                   the sons below this treenode            */
-      nd = tn->son[i];		/* nodenode for the son type               */
-      while (nd) {		/* loop over nodenodes of this type        */
-        treeout(nd->tree, level+1, i); /* display this nodenode's treenode */
-        nd = nd->next;                 /* next son of this type bitte */
-      }
-    }
-  } /* end of loop over tree-detectors */
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-void QwTrackingTree::freetree()
-{
-	treenode *tn,*ltn;
-	nodenode *nd,*lnd;
-	int i,j;
-
-	for( i = 0; i < HSHSIZ; i++) { /* loop over the entries in the genlink
-                                    hash table                            */
-
-		tn = generic[i];		 /* fetch the first treenode for this
-				    hash entry                            */
-		while(tn) {                  /* loop over the treenodes for this hash
-                                    table entry                           */
-
-			for( j = 0; j < 4; j++) {  /* loop over the four types of sons
-                                    connected to this treenode            */
-
-				nd = tn->son[j];         /* fetch the first nodenode of this type */
-				while(nd) {              /* loop over all nodenodes of this type  */
-					nd = (lnd = nd)->next; /* lnd = pointer to treenode attached
-                                          to this nodenode                */
-	                         /*  nd = next nodenode attached to this
-                                          nodenode                        */
-					free(lnd);             /* free the memory for the treenode      */
-				} /* end loop over nodenodes */
-
-			}
-			tn = (ltn = tn)->genlink;  /* ltn = this treenode                   */
-                                 /*  tn = genlink treenode attached to
-				          this treenode                   */
-			free(ltn);                 /* free the memory for this treenode     */
-
-		} /* end loop over genlink treenodes for a hash table entry */
-	} /* end loop over the genlink hash table entries */
-
-	return;
-}
+};
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -968,83 +995,97 @@ void QwTrackingTree::freetree()
     @param levels	The number of levels
     @param tlayers	The number of layers
     @param rwidth	The distance between the wires/strips
-    @param dontread	Variable to bypass reading stored trees
+    @param skipreading	Flag to skip the reading of cached trees
 
     @return		The search treeregion
  */
 
 QwTrackingTreeRegion* QwTrackingTree::readtree (
-	char *filename,
+	string filename,
 	int levels,
 	int tlayers,
 	double rwidth,
-	int dontread)
+	bool skipreading)
 {
-	FILE *f = 0;
+  FILE *file                = 0;
+  shorttree *stb            = 0;
+  QwTrackingTreeRegion *trr = 0;
 
-	shorttree *stb;
-	QwTrackingTreeRegion *trr;
+  Double_t width = 0.0;
+  int32_t  num   =   0;
 
-	double width;
-	long num;
+  // Check whether the tree directory exists
+  bfs::path scratchdir(std::string(getenv("QWSCRATCH")));
+  bfs::path treepath(scratchdir / bfs::path(fgTreeDir));
+  bfs::path fullfilename;
 
-	xref = 0;
-	if (!dontread) {
-		/// Open the file for reading and complain if this fails
-		f = fopen(filename, "rb");
-		if (!f) {
-			cout << "Error: file not found!" << filename << endl;
-			return 0;
-		}
+  if (! bfs::exists(treepath) || ! bfs::is_directory(treepath)) {
+    QwWarning << "Could not find tree directory." << QwLog::endl
+              << "tree directory = " << treepath.string() << QwLog::endl;
+    treepath = bfs::path(".");
+    QwMessage << "Falling back to local directory for tree files..." << QwLog::endl
+              << "tree directory = " << treepath.string() << QwLog::endl;
+  }
+  // Construct full path and file name
+  fullfilename = treepath / bfs::path(filename);
 
-		/// If num and width cannot be read, then the file is invalid
-		if (fread(&num, sizeof(num), 1L, f) < 1 ||
-		    fread(&width, sizeof(width), 1L, f) < 1 ) {
-			cout << "Error: file appears invalid!" << filename << endl;
-			fclose(f);
-			return 0;
-		}
-		// cout << "Num = " << num << endl;
-		// cout << "Width = " << width << endl;
 
-		/// Allocate a shorttree array
-		stb = new shorttree[num];
-		assert(stb);
+  fRef = 0;
 
-	} else {
+  // Skip the reading of the trees
+  if (skipreading) return 0;
 
-		width = rwidth;
-		stb = 0;
-	}
+  /// Open the file for reading and complain if this fails
+  file = fopen(fullfilename.string().c_str(), "rb");
+  if (! file) {
+    QwWarning << "Tree file not found.  Rebuilding..." << QwLog::endl
+              << "tree file = " << fullfilename.string() << QwLog::endl;
+    return 0;
+  }
 
-	/// Allocate a QwTrackingTreeRegion object
-	trr = new QwTrackingTreeRegion;
-	maxref = num;
-	/// ... and fill by recursively calling _readtree
-	if (!dontread && _readtree (f, stb, 0, tlayers)) {
-		free(stb);
-		free(trr);
-		fclose(f);
-		stb = 0;
-		return 0;
-	}
+  /// If num and width cannot be read, then the file is invalid
+  if (fread(&num,   sizeof(num),   1L, file) < 1 ||
+      fread(&width, sizeof(width), 1L, file) < 1 ) {
+    QwWarning << "Tree file appears invalid.  Rebuilding..." << QwLog::endl
+              << "tree file = " << fullfilename.string() << QwLog::endl;
+    fclose(file);
+    return 0;
+  }
 
-	/// Close the file after reading in the tree
-	if (!dontread) fclose(f);
+  /// Allocate a shorttree array
+  stb = new shorttree[num];
 
-	trr->searchable = (stb ? true : false);
-	if (debug) cout << "Set searchable = " << trr->searchable << endl;
+  /// Allocate a QwTrackingTreeRegion object
+  trr = new QwTrackingTreeRegion();
+  fMaxRef = num;
+  /// ... and fill by recursively calling _readtree
+  if (_readtree (file, stb, 0, tlayers) < 0) {
+    // Errors occurred while reading the tree
+    delete [] stb; stb = 0;
+    delete trr; trr = 0;
+    QwWarning << "Tree file appears invalid.  Rebuilding..." << QwLog::endl
+              << "tree file = " << fullfilename.string() << QwLog::endl;
+    fclose(file);
+    return 0;
+  }
 
-	trr->node.tree  = stb;
-	trr->node.next  = 0;
-	trr->rWidth     = width;
+  /// Close the file after reading in the tree
+  if (file) fclose(file);
 
-	return trr;
+  trr->SetSearchable(stb ? true : false);
+  QwDebug << "Set searchable = " << trr->IsSearchable() << QwLog::endl;
+
+  shortnode* node = trr->GetNode();
+  node->SetTree(stb, num);
+  node->SetNext(0);
+  trr->SetWidth(width);
+
+  return trr;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-/*! This function checks whether a pattern database requested by rcInittree
+/*! This function checks whether a pattern database requested by inittree
     already exists.  If not, it will call _inittree to create the database,
     write it out, then read it in again.  To force the generation of new databases,
     simply remove the old ones from the 'trees' directory.  If options are set
@@ -1053,7 +1094,7 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
  */
 
 QwTrackingTreeRegion* QwTrackingTree::inittree (
-	char *filename,
+	string filename,
 	int levels,
 	int tlayer,
 	double width,
@@ -1063,13 +1104,11 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
 	EQwDirectionID dir)
 {
 // TODO: This routine assumes that the directory 'trees' exists and doesn't create it itself. (wdconinc)
-  QwTrackingTreeRegion *trr;
-  treenode  *back;
-  tlayers  = tlayer;
-  maxlevel = levels+1;
-  detwidth = width;
-  if (tlayer == 0)
-    return 0;
+  QwTrackingTreeRegion *trr = 0;
+  fNumLayers  = tlayer;
+  fMaxLevel = levels + 1;
+
+  if (tlayer == 0) return 0;
 
   // TODO: I disabled the next part to get past a segfault (wdconinc, 08-Dec-2008)
   // (wdc, 29-May-2009) no wonder it segfaults, no malloc/new yet on trr
@@ -1082,46 +1121,34 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
 //   }
 
   /*! Try to read in an existing database */
-  int dontread = 0;
-  if (0 == (trr = readtree(filename, levels, tlayer, width, dontread)) ) {
-
-    //cout << package << " " << type << " " << region << endl;
-    //cout << "pattern generation forced" << endl;
-    /// If reading in doesn't work, clean up any partial trees
-    /// that might have been read in already
-    if( trr ) { // TODO Replace this free() and flush() stuff.
-      if( trr->node.tree )
-        free(trr->node.tree);
-      free(trr);
-    }
-    fflush(stdout);
+  QwMessage << "Attempting to read tree from " << filename << QwLog::endl;
+  bool regenerate = true; // flag to force regeneration every time
+  trr = readtree(filename, levels, tlayer, width, regenerate);
+  if (trr == 0) {
 
     /// Generate a new tree database
-    back = _inittree (tlayer, package, type, region, dir);
-
-    if( !back ) {
-      cout << "QTR: Tree couldn't be built.\n";
+    treenode* back = _inittree (tlayer, package, type, region, dir);
+    if (! back) {
+      QwError << "Search tree could not be built." << QwLog::endl;
       exit(1);
     }
-    cout << " Generated.\n";
-    fflush(stdout);
+    QwMessage << " Generated " << fNumPatterns << " patterns" << QwLog::endl;
 
     /// Write the generated tree to disk for faster access later
-    if( !writetree(filename, back, levels, tlayer, width)) {
-      cout << "QTR: Tree couldn't be written.\n";
+    if (writetree(filename, back, levels, tlayer, width) < 0) {
+      QwError << "Search tree could not be written." << QwLog::endl;
       exit(1);
     }
-    cout << " Cached.\n";
-    fflush(stdout);
+    QwMessage << " Cached in " << filename << QwLog::endl;
 
-    /// Free the tree structure
-    //freetree();
-    /// and read it in again to get the shorter tree search format
-    if( 0 == (trr = readtree(filename,levels,tlayer, width, 0))) {
-      cout << "QTR: New tree couldn't be read.\n";
+    // TODO Here we need to delete something, I think (wdc)
+
+    /// Read it in again to get the shorter tree search format
+    trr = readtree(filename, levels, tlayer, width, 0);
+    if (trr == 0) {
+      QwError << "New tree could not be read." << QwLog::endl;
       exit(1);
     }
-    cout << " Done.\n";
   }
   return trr;
 }
@@ -1140,52 +1167,66 @@ treenode* QwTrackingTree::_inittree (
 	EQwRegionID region,
 	EQwDirectionID dir)
 {
-  treenode *ret = treedup(&father); /// generate a copy of the father to start off this treesearch database
-  memset (generic, 0, sizeof(generic)); /// clear genlink hash table
-  marklin (ret, 0, package, type, region, dir);///call the recursive tree generator
-  ret->genlink = generic[0];/// finally, add the father to the genlink hash table
-  generic[0] = ret;
-  cout << "npat : " << npat << " " << region << " " << dir << endl;
-  npat = 0;
-  return ret;
+  /// Generate a copy of the father node to start off this tree search database
+  treenode *node = new treenode(fFather);
+
+  /// Clear the hash table
+  fNumPatterns = 0;
+  // TODO Replace with delete/new if constructor is not sufficient
+  memset (fHashTable, 0, sizeof(fHashTable));
+
+  /// Call the recursive tree generator
+  marklin (node, 0, package, type, region, dir);
+
+  /// Finally, add the father node to the hash table
+  node->SetNext(fHashTable[0]);
+  fHashTable[0] = node;
+
+  // Print the number of patterns
+  QwDebug << "Generated fNumPatterns = " << fNumPatterns << " patterns" << QwLog::endl;
+
+  // Return the node
+  return node;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-/*! This function iteratively writes the patterns to the database.
+/**
+ * This function iteratively writes the patterns to the database.
+ * @param tn Tree node to write to file
+ * @param fp File pointer to write to
+ * @param tlayers Number of layers
+ * @return Number of references written
  */
-
 int QwTrackingTree::_writetree (treenode *tn, FILE *fp, int tlayers)
 {
   nodenode* nd;
-  //tn->print();///use this for debugging.
-  if (tn->xref == -1) {/// pattern has never been written
-    tn->xref = xref++;/// set its reference
+
+  if (tn->fRef == -1) {/// pattern has never been written
+    tn->fRef = fRef++;/// set its reference
 
     if (fputc (REALSON, fp) == EOF || /// and write all pattern data
-        fwrite(&tn->minlevel, sizeof(int), 1L, fp) != 1 ||
-        fwrite(&tn->bits,     sizeof(int), 1L, fp) != 1 ||
-        fwrite(tn->bit,       sizeof(int), (size_t) tlayers, fp) != (unsigned int)tlayers )
+        fwrite(&tn->fMinLevel, sizeof(int), 1L, fp) != 1 ||
+        fwrite(&tn->fWidth,    sizeof(int), 1L, fp) != 1 ||
+        fwrite( tn->fBit,      sizeof(int), (size_t) tlayers, fp) != (unsigned int)tlayers )
       return -1;
 
     for (int i = 0; i < 4; i++) {
-      nd = tn->son[i];
-      //cout << "son" << endl;
+      nd = tn->fSon[i];
       while (nd) {///write the sons of this treenode (and their sons, etc)
-        if (_writetree(nd->tree, fp, tlayers))
+        if (_writetree(nd->GetTree(), fp, tlayers) < 0)
           return -1;
-        nd = nd->next;
-        //cout << "bro" << endl;
+        nd = nd->next();
       }
       if (fputc (SONEND, fp) == EOF) /// set the marker for end of sonlist
         return -1;
     }
   } else { /// else - only write a reference to
     if (fputc (REFSON, fp) == EOF  || /// a former written pattern
-        fwrite (&tn->xref, sizeof(tn->xref), 1L, fp) != 1)
+        fwrite (&tn->fRef, sizeof(tn->fRef), 1L, fp) != 1)
       return -1;
   }
-  return 0;
+  return fRef;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -1197,61 +1238,66 @@ int QwTrackingTree::_writetree (treenode *tn, FILE *fp, int tlayers)
  */
 
 long QwTrackingTree::writetree (
-	char *filename,
+	string filename,
 	treenode *tn,
 	int levels,
 	int tlayers,
 	double width)
 {
-	// Ensure that the tree directory is created correctly
-	bfs::path treedirpath((std::string(getenv("QWANALYSIS")) + "/" + TREEDIR).c_str());
-	if (! bfs::exists(treedirpath)) {
-		bfs::create_directory(treedirpath);
-		if (debug) cout << "[QwTrackingTree::writetree] Created tree directory." << endl;
-	}
-	if (! bfs::exists(treedirpath) || ! bfs::is_directory(treedirpath)) {
-		cout << "[QwTrackingTree::writetree] Error: could not create tree directory!" << endl;
-		return 0;
-	}
+  // Ensure that the tree directory is created correctly
+  bfs::path scratchdir(std::string(getenv("QWSCRATCH")));
+  if (! bfs::exists(scratchdir)) {
+    QwError << "QWSCRATCH directory does not exist!" << QwLog::endl
+            << "QWSCRATCH = " << scratchdir.string() << QwLog::endl;
+    exit(1);
+  }
+  bfs::path treepath(scratchdir / bfs::path(fgTreeDir));
+  if (! bfs::exists(treepath)) {
+    bfs::create_directory(treepath);
+    QwDebug << "Created tree directory." << QwLog::endl;
+    QwDebug << "tree directory = " << treepath.string() << QwLog::endl;
+  }
+  if (! bfs::exists(treepath) || ! bfs::is_directory(treepath)) {
+    QwWarning << "Could not create tree directory!" << QwLog::endl
+              << "tree directory = " << treepath.string() << QwLog::endl;
+    treepath = bfs::path(".");
+    QwWarning << "Falling back to local directory for tree files..." << QwLog::endl
+              << "tree directory = " << treepath.string() << QwLog::endl;
+  }
+  // Construct full path and file name
+  bfs::path fullfilename = treepath / bfs::path(filename);
 
-	// Open the output stream
-	FILE *file = fopen(filename, "wb");
-	xref = 0;
-	if (!file) { /// error checking
-		char *fwsn = strrchr(filename,'/'); /// try to write local file
-		if (fwsn++) {
-			file = fopen(fwsn, "wb+");
-			if (file)
-				strcpy(filename, fwsn);
-		}
-	}
+  // Open the output stream
+  FILE *file = fopen(fullfilename.string().c_str(), "wb");
+  fRef = 0;
+  if (!file) {
+    QwWarning << "Could not open tree file.  Rebuilding..." << QwLog::endl
+              << "tree file = " << filename << QwLog::endl;
+    return 0;
+  }
 
-	if (!file) {
-		return 0;
-	}
+  /// Write 4 bytes to fill later with the number of different patterns
+  if (fwrite(&fRef,  sizeof(int32_t), 1L, file) != 1 ||
+      fwrite(&width, sizeof(double),  1L, file) != 1 ||
+      _writetree(tn, file, tlayers) < 0) { ///... and write whole tree
+    fclose(file);
+    return 0;
+  }
+  if (fputc(SONEND, file) == EOF) /// append marker for end of son list
+    return -1;
 
-	/// Write 4 bytes to fill later with the number of different patterns
-	if (fwrite(&xref,  sizeof(long),   1L, file) != 1 ||
-	    fwrite(&width, sizeof(double), 1L, file) != 1 ||
-	   _writetree(tn, file, tlayers)) { ///... and write whole tree
-		fclose(file);
-		return 0;
-	}
-	if (fputc(SONEND, file) == EOF) /// append marker for end of son list
-		return -1;
+  rewind(file);
 
-	rewind(file);
+  /// Now write the total numer of different patterns,
+  if (fwrite(&fRef, sizeof(int32_t), 1L, file) != 1) {
+    fclose(file);
+    return 0;
+  }
+  /// close the file
+  fclose(file);
 
-	/// Now write the total numer of different patterns,
-	if (fwrite(&xref, sizeof(long), 1L, file) != 1) {
-		fclose(file);
-		return 0;
-	}
-	/// close the file
-	fclose(file);
-
-	/// and return the number of different patterns
-	return xref;
+  /// and return the number of different patterns
+  return fRef;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -1262,98 +1308,108 @@ long QwTrackingTree::writetree (
 
     @param	file	The opened file
     @param	stb	A shorttree
-    @param	fath	A list of father nodes
+    @param	father	A list of father nodes
     @param	tlayers	The number of layers(?)
 
-    @return	Returns negative on error, zero otherwise
+    @return	Returns negative on error, otherwise number of references read
  */
 
-int QwTrackingTree::_readtree(FILE *file, shorttree *stb, shortnode **fath, int tlayers)
+int QwTrackingTree::_readtree(
+	FILE *file,
+	shorttree *stb,
+	shortnode **father,
+	int tlayers)
 {
-  int c, sonny;
-  int Minlevel, Bits, Bit[TLAYERS];
-  long ref;
-
   /// Go into an infinite loop while reading the file
-  for(;;) {
-	/// Read the next record type
-	c = fgetc(file);
+  for (;;) {
 
-	/// \li If we encounter a real pattern, then ...
-	if (c == REALSON) {
+    /// Read the next record type
+    int32_t type = fgetc(file);
 
-		if (xref >= maxref) {
-			cout << "QTR: readtree failed. error #5. rebuilding treefiles." << endl;
-			return -1;
-		}
 
-		/// read in the node(?) information
-		if (fread(&Minlevel, sizeof(int),         1L, file) != 1 ||
-		    fread(&Bits,     sizeof(int),         1L, file) != 1 ||
-		    fread(&Bit,      sizeof(int)*tlayers, 1L, file) != 1) {
-			cout << "QTR: readtree failed. error #1. rebuilding treefiles." << endl;
-			return -1;
-		}
+    /// \li If we encounter a real pattern, then ...
+    if (type == REALSON) {
 
-		ref = xref;
-		xref++;
-		(stb+ref)->minlevel = Minlevel;
-		(stb+ref)->bits = Bits;
-		for (int i = 0; i < tlayers; i++) {
-			(stb+ref)->bit[i] = Bit[i];
-		}
-		if (fath) { /// ... and append the patterns to the father's sons
-			shortnode* node = new shortnode;
-			assert(node);
-			node -> tree = stb+ref;
-			node -> next = *fath;
-			(*fath)      = node;
-			// node->tree->print(); /// use this for debugging purposes
-		}
+      if (fRef >= fMaxRef) {
+        QwWarning << "QTR: readtree failed. Rebuilding treefiles." << QwLog::endl
+                  << "More nodes in file than announced in header!" << QwLog::endl;
+        return -1;
+      }
 
-		memset (stb[ref].son, 0, sizeof(stb[ref].son)); /// has no sons yet
+      /// read in the node(?) information
+      int32_t minlevel = 0;
+      int32_t width = 0;
+      int32_t bit[tlayers];
+      for (int i = 0; i < tlayers; i++) bit[i] = 0; // initialize to zero
+      if (fread(&minlevel, sizeof(int32_t),           1L, file) != 1 ||
+          fread(&width,    sizeof(int32_t),           1L, file) != 1 ||
+          fread(&bit,      sizeof(int32_t) * tlayers, 1L, file) != 1) {
+        QwWarning << "QTR: readtree failed. Rebuilding treefiles." << QwLog::endl
+                  << "Header could not be read" << QwLog::endl;
+        return -1;
+      }
 
-		/// Read in the sons of this node
-		for(sonny = 0; sonny < 4; sonny++) {
-			if (_readtree(file, stb, stb[ref].son + sonny, tlayers)) {
-				cout << "c";
-				return -1;
-			}
-		}
+      int32_t ref = fRef;
+      fRef++;
+      (stb+ref)->fMinLevel = minlevel;
+      (stb+ref)->fWidth = width;
+      for (int i = 0; i < tlayers; i++)
+        (stb+ref)->fBit[i] = bit[i];
 
-	/// \li If we encounter a reference, then read in the reference
-	} else if (c == REFSON) {
+      if (father) { /// ... and append the patterns to the father's sons
+        shortnode* node = new shortnode();
+        node->SetTree(stb + ref);
+        node->SetNext(*father);
+        (*father) = node;
+      }
 
-		if (fread (&ref, sizeof(ref), 1L, file) != 1) {
-			cout << "QTR: readtree failed. error #1. rebuilding treefiles." << endl;
-			return -1;
-		}
-		if (ref >= xref || ref < 0) { /// some error checking
-			cout << "QTR: readtree failed. error #3. rebuilding treefiles." << endl;
-			return -1;
-		}
-		if (!fath) { /// still some error checking
-			cout << "QTR: readtree failed. error #4. rebuilding treefiles." << endl;
-			return -1;
-		}
-		shortnode* node = new shortnode; /// create a new node
-		assert(node);
-		node -> tree = stb+ref;	/// and append the alread read-in tree
-		node -> next = *fath;	/// 'ref' to this node.
-		(*fath)      = node;
+      /// Read in the sons of this node
+      for (int32_t son = 0; son < 4; son++) {
+        if (_readtree(file, stb, stb[ref].son + son, tlayers) < 0) {
+          QwWarning << "An error... don't know what happened..." << QwLog::endl;
+          return -1;
+        }
+      }
 
-	/// \li If we encounter an end token, then stop
-	} else if( c == SONEND) {
-		break;
 
-	/// \li If we encounter something else, then fail
-	} else {
-		cout << "QTR: readtree failed. error #2. rebuilding treefiles." << endl;
-		return -1;
-	}
+    /// \li If we encounter a reference, then read in the reference
+    } else if (type == REFSON) {
+
+      int32_t ref;
+      if (fread (&ref, sizeof(ref), 1L, file) != 1) {
+        QwWarning << "QTR: readtree failed. Rebuilding treefiles." << QwLog::endl
+                  << "Could not read reference field." << QwLog::endl;
+        return -1;
+      }
+      if (ref >= fRef || ref < 0) { /// some error checking
+        QwWarning << "QTR: readtree failed. Rebuilding treefiles." << QwLog::endl
+                  << "Reference field contains nonsense." << QwLog::endl;
+        return -1;
+      }
+      if (!father) { /// still some error checking
+        QwWarning << "QTR: readtree failed. Rebuilding treefiles." << QwLog::endl
+                  << "Father node invalid." << QwLog::endl;
+        return -1;
+      }
+      shortnode* node = new shortnode(); /// create a new node
+      node->SetTree(stb + ref);	/// and append the alread read-in tree
+      node->SetNext(*father);	/// 'ref' to this node.
+      (*father) = node;
+
+
+    /// \li If we encounter an end token, then stop
+    } else if (type == SONEND) {
+      break;
+
+
+    /// \li If we encounter something else, then fail
+    } else {
+      QwError << "Reading cached tree failed, rebuilding tree files." << QwLog::endl;
+      return -1;
+    }
   }
 
-  return 0;
+  return fRef;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

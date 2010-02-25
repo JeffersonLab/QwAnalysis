@@ -9,7 +9,7 @@
 #define __QWTRIGGERSCINTILLATOR__
 
 #include <vector>
-#include <TTree.h>
+#include "TTree.h"
 
 #include "VQwSubsystemTracking.h"
 
@@ -19,7 +19,7 @@
 
 
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
   /******************************************************************
    *  Class: QwTriggerScintillator
@@ -33,7 +33,7 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadQweakGeometry(TString mapfile){return 0;};
-  Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info){};
+  Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info){return 0;};
   Int_t LoadInputParameters(TString mapfile){return 0;};
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -47,8 +47,8 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
   void  FillHistograms();
   void  DeleteHistograms();
 
-  void  ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Float_t> &values);
-  void  FillTreeVector(std::vector<Float_t> &values);
+  void  ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values);
 
 
   void GetHitList(QwHitContainer & grandHitContainer){};

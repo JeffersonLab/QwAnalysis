@@ -12,12 +12,14 @@ const UInt_t QwTriggerScintillator::kMaxNumberOfChannelsPerModule = 32;
 
 
 
-QwTriggerScintillator::QwTriggerScintillator(TString region_tmp):VQwSubsystemTracking(region_tmp){
+QwTriggerScintillator::QwTriggerScintillator(TString region_tmp):VQwSubsystem(region_tmp),
+                                                                 VQwSubsystemTracking(region_tmp)
+{
 };
 
 QwTriggerScintillator::~QwTriggerScintillator(){
   DeleteHistograms();
-  
+
   fPMTs.clear();
 };
 
@@ -26,7 +28,8 @@ QwTriggerScintillator::~QwTriggerScintillator(){
 Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
   TString varname, varvalue;
   TString modtype, dettype, name;
-  Int_t modnum, channum;
+  //  Int_t modnum;
+  Int_t channum;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine()){
@@ -103,7 +106,7 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt
 		      GetTDCData());
 	}
 	catch (std::exception& e) {
-	  std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: " 
+	  std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
 		    << e.what() << std::endl;
 	  Int_t chan = GetTDCChannelNumber();
 	  std::cerr << "   Parameters:  index=="<<index
@@ -131,7 +134,6 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt
 
 void  QwTriggerScintillator::ProcessEvent(){
   if (! HasDataLoaded()) return;
-  
 };
 
 
@@ -152,7 +154,7 @@ void  QwTriggerScintillator::FillHistograms(){
   }
 };
 
-void  QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Float_t> &values)
+void  QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Double_t> &values)
 {
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
@@ -161,11 +163,11 @@ void  QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString prefi
   }
 };
 
-void  QwTriggerScintillator::FillTreeVector(std::vector<Float_t> &values)
+void  QwTriggerScintillator::FillTreeVector(std::vector<Double_t> &values)
 {
   if (! HasDataLoaded()) return;
   for (size_t i=0; i<fPMTs.size(); i++){
-    for (size_t j=0; j<fPMTs.at(i).size(); j++){  
+    for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).FillTreeVector(values);
     }
   }
@@ -176,7 +178,7 @@ void  QwTriggerScintillator::DeleteHistograms(){
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).DeleteHistograms();
-    } 
+    }
   }
 };
 
@@ -184,7 +186,7 @@ void  QwTriggerScintillator::DeleteHistograms(){
 QwTriggerScintillator& QwTriggerScintillator::operator=  (const QwTriggerScintillator &value){
   if (fPMTs.size() == value.fPMTs.size()){
     for (size_t i=0; i<fPMTs.size(); i++){
-      for (size_t j=0; j<fPMTs.at(i).size(); j++){	
+      for (size_t j=0; j<fPMTs.at(i).size(); j++){
 	fPMTs.at(i).at(j) = value.fPMTs.at(i).at(j);
       }
     }
@@ -249,7 +251,7 @@ const QwTriggerScintillator::EModuleType QwTriggerScintillator::RegisterModuleTy
     fCurrentType = V775_TDC;
   }
   fModuleTypes.at(fCurrentIndex) = fCurrentType;
-  if (fPMTs.size()<=fCurrentType){
+  if ((Int_t)fPMTs.size()<=fCurrentType){
     fPMTs.resize(fCurrentType+1);
   }
   return fCurrentType;
@@ -260,12 +262,15 @@ Int_t QwTriggerScintillator::LinkChannelToSignal(const UInt_t chan, const TStrin
   size_t index = fCurrentType;
   fPMTs.at(index).push_back(QwPMT_Channel(name));
   fModulePtrs.at(fCurrentIndex).at(chan).first  = index;
-  fModulePtrs.at(fCurrentIndex).at(chan).second = 
+  fModulePtrs.at(fCurrentIndex).at(chan).second =
     fPMTs.at(index).size() -1;
+
+  return 0;
+
 };
 
-void QwTriggerScintillator::FillRawWord(Int_t bank_index, 
-				 Int_t slot_num, 
+void QwTriggerScintillator::FillRawWord(Int_t bank_index,
+				 Int_t slot_num,
 				 Int_t chan, UInt_t data){
   Int_t modindex = GetModuleIndex(bank_index,slot_num);
   if (modindex != -1){

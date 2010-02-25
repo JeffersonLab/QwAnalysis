@@ -10,6 +10,7 @@
 #define __QWCOMMANDLINE__
 
 #include <getopt.h>
+#include <iostream>
 #include <cstdlib>
 #include <string>
 #include <Rtypes.h>
@@ -64,8 +65,10 @@ void QwCommandLine::Usage()
 	    << "\t           starting vlue will be taken to be zero.\n"
 	    << "\t           If the final character is a colon, the\n"
 	    << "\t           ending value will be taken to be "
-	    << kMaxInt << ".\n"
-	    << std::endl;
+	    << kMaxInt << ".\n";
+    //<<"\t --ring(#,#,#) Following are required to enter \n  \t\t1. Event ring size\n \t\t2. no. of hold off events \n \t\t3.  minimum no. of event required to cancell the ring\n"
+    
+    //<< std::endl;
   exit(1);
 };
 

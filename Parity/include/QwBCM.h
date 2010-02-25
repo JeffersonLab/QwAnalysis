@@ -1,5 +1,5 @@
 /**********************************************************\
-* File: QwBPMStripline.h                                  *
+* File: QwBCM.h                                  *
 *                                                         *
 * Author:                                                 *
 * Time-stamp:                                             *
@@ -15,30 +15,58 @@
 
 
 /*****************************************************************
-*  Class: 
+*  Class:
 ******************************************************************/
 ///
 /// \ingroup QwAnalysis_BL
 class QwBCM : public VQwDataElement{
 /////
+  friend class QwCombinedBCM;
  public:
   QwBCM() { };
   QwBCM(TString name){
     InitializeChannel(name,"raw");
   };
   ~QwBCM() {DeleteHistograms();};
-  
+
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
 
   void  InitializeChannel(TString name, TString datatosave);
   void  ClearEventData();
+
+
+  void  SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
+  void  AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
+  void  SetRandomEventParameters(Double_t mean, Double_t sigma);
+  void  SetRandomEventAsymmetry(Double_t asymmetry);
+  void  RandomizeEventData(int helicity);
+  void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
+  void  SetEventData(Double_t* block, UInt_t sequencenumber);
+  void  EncodeEventData(std::vector<UInt_t> &buffer);
+  void SetEventNumber(int event);
+
   void  ProcessEvent();
-  Bool_t IsGoodEvent();	
+  Bool_t ApplyHWChecks();//Check for harware errors in the devices
+  Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
+  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  Int_t GetEventcutErrorFlag(){//return the error flag
+    return fDeviceErrorCode;
+  }
+
+  Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size
+  void SetDefaultSampleSize(Int_t sample_size);
+  void SetEventCutMode(Int_t bcuts){
+    bEVENTCUTMODE=bcuts;
+    fTriumf_ADC.SetEventCutMode(bcuts);
+  }
+
   void Print() const;
 
   void  ReportErrorCounters(){
     fTriumf_ADC.ReportErrorCounters();
   };
+
+
 
   QwBCM& operator=  (const QwBCM &value);
   QwBCM& operator+= (const QwBCM &value);
@@ -47,10 +75,12 @@ class QwBCM : public VQwDataElement{
   void Difference(QwBCM &value1, QwBCM &value2);
   void Ratio(QwBCM &numer, QwBCM &denom);
   void Scale(Double_t factor);
-  
+  void Calculate_Running_Average();
+  void Do_RunningSum();
+
   void SetPedestal(Double_t ped);
   void SetCalibrationFactor(Double_t calib);
-    
+
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
 
@@ -59,17 +89,28 @@ class QwBCM : public VQwDataElement{
   void  DeleteHistograms();
 
   void Copy(VQwDataElement *source);
-;
+
 /////
  protected:
-  
+
 /////
  private:
- 
+
   Double_t fPedestal;
   Double_t fCalibration;
+  Double_t fULimit, fLLimit;
+  Bool_t fGoodEvent;//used to validate sequence number in the IsGoodEvent()
+
+
+
 
   QwVQWK_Channel fTriumf_ADC;
+
+  Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
+
+  const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
+  Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
+
 };
 
 #endif

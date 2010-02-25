@@ -11,7 +11,7 @@
 
 void QwVQWK_Module::SetChannel(size_t channel, TString &name)
 {
-//   std::cerr << "QwVQWK_Module::SetChannel:  Trying to set channel " 
+//   std::cerr << "QwVQWK_Module::SetChannel:  Trying to set channel "
 // 	    << channel << " to name "
 // 	    << name
 // 	    << "; current name==\"" << fChannels.at(channel).GetElementName()
@@ -20,10 +20,11 @@ void QwVQWK_Module::SetChannel(size_t channel, TString &name)
     std::cerr << "QwVQWK_Module::SetChannel:  Channel number out of range: channel==" << channel << std::endl;
   } else if (fChannels.at(channel).GetElementName()!="") {
     std::cerr << "QwVQWK_Module::SetChannel:  Channel " << channel << " already has a name: "
-	      << fChannels.at(channel).GetElementName() 
+	      << fChannels.at(channel).GetElementName()
 	      << ".  We can't rename it!."
 	      << std::endl;
   } else {
+    std::cout << "VQWK: Set channel" << channel << " to " << name << std::endl;
     fChannels.at(channel).InitializeChannel(name,"raw");
   }
 };
@@ -69,7 +70,47 @@ void QwVQWK_Module::ClearEventData()
   fEventIsGood = kTRUE;
 };
 
+void QwVQWK_Module::SetRandomEventParameters(Double_t mean, Double_t sigma)
+{
+  // Set parameters on all QwVQWK_Channels
+  for (size_t i = 0; i < fChannels.size(); i++)
+    fChannels.at(i).SetRandomEventParameters(mean, sigma);
+  return;
+};
 
+void QwVQWK_Module::SetRandomEventAsymmetry(Double_t asymmetry)
+{
+  // Set asymmetry on all QwVQWK_Channels
+  for (size_t i = 0; i < fChannels.size(); i++)
+    fChannels.at(i).SetRandomEventAsymmetry(asymmetry);
+  return;
+};
+
+void QwVQWK_Module::RandomizeEventData(int helicity)
+{
+  // Randomize all QwVQWK_Channels
+  for (size_t i = 0; i < fChannels.size(); i++) {
+    fChannels.at(i).RandomizeEventData(helicity);
+  }
+  fEventIsGood = kTRUE;
+
+}
+//jpan: set mock data
+void QwVQWK_Module::SetEventData(Double_t* buffer, UInt_t sequencenumber)
+{
+  for (size_t i=0; i<fChannels.size(); i++){
+    fChannels.at(i).SetEventData(buffer,sequencenumber);
+  }
+  fEventIsGood = kTRUE;
+};
+
+//jpan: encode data for each channel
+void QwVQWK_Module::EncodeEventData(std::vector<UInt_t> &buffer)
+{
+  for (size_t i=0; i<fChannels.size(); i++){
+    fChannels.at(i).EncodeEventData(buffer);
+  }
+};
 
 Int_t QwVQWK_Module::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left)
 {
@@ -82,9 +123,8 @@ Int_t QwVQWK_Module::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left)
     //  Now check for errors.
     fSequenceNumber  = fChannels.at(0).GetSequenceNumber();
     fEventIsGood &= fChannels.at(0).MatchNumberOfSamples(fIdealNumberOfSamples);
-    /*     std::cerr << "QwVQWK_Module::ProcessEvBuffer: fSequenceNumber==" << fSequenceNumber */
-    /* 	      << "; fIdealNumberOfSamples==" << fIdealNumberOfSamples */
-    /* 	      << std::endl; */
+    // std::cout << "QwVQWK_Module::ProcessEvBuffer: fSequenceNumber==" << fSequenceNumber
+    //           << "; fIdealNumberOfSamples==" << fIdealNumberOfSamples<< std::endl; 
     for (size_t i=1; i<fChannels.size(); i++){
       fEventIsGood &= fChannels.at(i).MatchSequenceNumber(fSequenceNumber);
       fEventIsGood &= fChannels.at(i).MatchNumberOfSamples(fIdealNumberOfSamples);
@@ -141,6 +181,20 @@ void  QwVQWK_Module::FillTreeVector(std::vector<Double_t> &values)
   }
 };
 
+QwVQWK_Channel* QwVQWK_Module::GetChannel(const TString name)
+{
+  QwVQWK_Channel* tmp = NULL;
+  if (! fChannels.empty()) {
+    for (size_t i = 0; i < fChannels.size(); i++) {
+      if (fChannels.at(i).GetElementName() == name) {
+        tmp = &(fChannels.at(i));
+      }
+    }
+  }
+  return tmp;
+};
+
+
 QwVQWK_Module& QwVQWK_Module::operator= (const QwVQWK_Module &value)
 {
   for (size_t i=0; i<fChannels.size(); i++){
@@ -191,7 +245,52 @@ void QwVQWK_Module::Ratio(QwVQWK_Module &numer, QwVQWK_Module &denom)
   }
 };
 
+void QwVQWK_Module::SetPedestal(Double_t pedestal)
+{
+  for (size_t i=0; i<fChannels.size(); i++){
+    fChannels.at(i).SetPedestal(pedestal);
+  }
+};
 
+void QwVQWK_Module::SetCalibrationFactor(Double_t factor)
+{
+  for (size_t i=0; i<fChannels.size(); i++){
+    fChannels.at(i).SetCalibrationFactor(factor);
+  }
+};
+
+
+void QwVQWK_Module::InitializeChannel(TString name, TString datatosave)
+{
+  for (size_t i=0; i<fChannels.size(); i++){
+    fChannels.at(i).InitializeChannel(name,datatosave);
+  }
+};
+
+void QwVQWK_Module::Copy(QwVQWK_Module *source)
+{
+  try {
+    if (typeid(*source) == typeid(*this)) {
+      QwVQWK_Module* input = ((QwVQWK_Module*) source);
+      for (size_t i = 0; i < this->fChannels.size(); i++)
+        this->fChannels[i].Copy(&(input->fChannels[i]));
+    } else {
+      TString loc("Standard exception from QwVQWK_Module::Copy = ");
+      loc += TString("arguments are not of the same type");
+      throw std::invalid_argument(loc.Data());
+    }
+  }
+  catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
+};
+
+void  QwVQWK_Module::Print() const
+{
+  for (size_t i = 0; i < fChannels.size(); i++) {
+    fChannels.at(i).Print();
+  }
+};
 
 
 

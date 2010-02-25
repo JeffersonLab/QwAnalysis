@@ -1,10 +1,11 @@
 #ifndef QWEVENTDISPLAY_H
 #define QWEVENTDISPLAY_H
 
-
 // sev.C Q-Weak event display
-// author: Rakitha Beminiwattha, Ohio University
+// author: ???, Virginia Tech
+// editor: Wouter Deconinck, Massachusetts Insitute of Technology email: wdconinc@mit.edu
 // editor: Marcus Hendricks, George Washington University email: marcuseh@gwu.edu
+
 #include <TGClient.h>
 #include <TCanvas.h>
 #include <TF1.h>
@@ -136,9 +137,21 @@
 #ifndef ROOT_TGuiBldDragManager
 #include "TGuiBldDragManager.h"
 #endif
+/* #ifndef ROOT_TGLayoutHints
+#include "TGLayoutHints.h"
+#endif */
+
+
+// Forward declarations to prevent ROOT-Cint from getting confused
+class QwHitContainer;
+class QwEventBuffer;
+class QwTreeEventBuffer;
+class QwSubsystemArrayTracking;
 
 
 class QwEventDisplay: public TGMainFrame {
+
+ public:
 
   RQ_OBJECT("QwEventDisplay")
 
@@ -182,16 +195,49 @@ class QwEventDisplay: public TGMainFrame {
   TPolyMarker *points;
   TPolyMarker *R3points;
 
+  TLine* R2lx;
+  TLine* R2lu;
+  TLine* R2lv;
+  TLine* R2lxPrime;
+  TLine* R2luPrime;
+  TLine* R2lvPrime;
+  // Region 2 fit lines
+  TLine* R2xzfit;
+  TLine* R2yzfit;
+  // Region 2 boxes
+  TBox* R2b1;
+  TBox* R2b2;
+  TBox* R2b3;
+  // Region 2 canvas labels for particle paths
+  TPaveLabel* R2label1;
+  TPaveLabel* R2label2;
+  TPaveLabel* R2label3;
+  // Region 3 lines
+  TLine* R3lu;
+  TLine* R3lv;
+  TLine* R3luPrime;
+  TLine* R3lvPrime;
+
+  // Event buffer (excluded from dictionary by the comment tag)
+  QwTreeEventBuffer *fEventBuffer;		//!
+  QwSubsystemArrayTracking *fSubsystemArray;	//!
+
  public:
 
   QwEventDisplay(const TGWindow *p, UInt_t w, UInt_t h);
-
   virtual ~QwEventDisplay();
+
+  void SetEventBuffer(QwTreeEventBuffer *eventbuffer) { fEventBuffer = eventbuffer; };
+  void SetSubsystemArray(QwSubsystemArrayTracking *subsystemarray) { fSubsystemArray = subsystemarray; };
+
   void DoAdvance();
   void DoPrevious();
   void DrawEvent();
   void DoRemoveAll();
-}; // end object QwEventDisplay
 
+
+  ClassDef(QwEventDisplay,1)
+
+}; // end object QwEventDisplay
 
 #endif // QWEVENTDISPLAY

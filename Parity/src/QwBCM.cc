@@ -1,5 +1,5 @@
 /**********************************************************\
-* File: QwBPMStripline.h                                  *
+* File: QwBCM.h                                  *
 *                                                         *
 * Author:                                                 *
 * Time-stamp:                                             *
@@ -29,11 +29,13 @@ void QwBCM::SetCalibrationFactor(Double_t calib)
 /********************************************************/
 void  QwBCM::InitializeChannel(TString name, TString datatosave)
 {
-  SetPedestal(0.);	
+  SetPedestal(0.);
   SetCalibrationFactor(1.);
   fTriumf_ADC.InitializeChannel(name,datatosave);
-
   SetElementName(name);
+  //set default limits to event cuts
+  fLLimit=0;//init two timits
+  fULimit=0;//init two timits
   return;
 };
 /********************************************************/
@@ -42,29 +44,126 @@ void QwBCM::ClearEventData()
   fTriumf_ADC.ClearEventData();
   return;
 };
+
+
+/********************************************************/
+void QwBCM::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
+{
+  fTriumf_ADC.SetRandomEventDriftParameters(amplitude, phase, frequency);
+  return;
+};
+/********************************************************/
+void QwBCM::AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
+{
+  fTriumf_ADC.AddRandomEventDriftParameters(amplitude, phase, frequency);
+  return;
+};
+/********************************************************/
+void QwBCM::SetRandomEventParameters(Double_t mean, Double_t sigma)
+{
+  fTriumf_ADC.SetRandomEventParameters(mean, sigma);
+  return;
+};
+/********************************************************/
+void QwBCM::SetRandomEventAsymmetry(Double_t asymmetry)
+{
+  fTriumf_ADC.SetRandomEventAsymmetry(asymmetry);
+  return;
+};
+/********************************************************/
+void QwBCM::RandomizeEventData(int helicity)
+{
+  fTriumf_ADC.RandomizeEventData(helicity);
+  return;
+};
+/********************************************************/
+void QwBCM::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
+{
+  fTriumf_ADC.SetHardwareSum(hwsum, sequencenumber);
+  return;
+};
+/********************************************************/
+void QwBCM::SetEventData(Double_t* block, UInt_t sequencenumber)
+{
+  fTriumf_ADC.SetEventData(block, sequencenumber);
+  return;
+};
+/********************************************************/
+void QwBCM::SetEventNumber(int event)
+{
+  fTriumf_ADC.SetEventNumber(event);
+  return;
+};
+/********************************************************/
+void QwBCM::EncodeEventData(std::vector<UInt_t> &buffer)
+{
+  fTriumf_ADC.EncodeEventData(buffer);
+};
 /********************************************************/
 void  QwBCM::ProcessEvent()
 {
-  if(IsGoodEvent())
-    {
-      fTriumf_ADC.ProcessEvent();
-    } 
-
+  fTriumf_ADC.ProcessEvent();
   return;
 };
-/********************************************************/ 
-Bool_t QwBCM::IsGoodEvent()
+/********************************************************/
+Bool_t QwBCM::ApplyHWChecks()
 {
-  Bool_t fEventIsGood=kTRUE;			
-  fEventIsGood&=fTriumf_ADC.IsGoodEvent();
-  
+  Bool_t fEventIsGood=kTRUE;
+
+  fDeviceErrorCode=fTriumf_ADC.ApplyHWChecks();//will check for HW consistancy and return the error code (=0 is HW good)
+  fEventIsGood=(fDeviceErrorCode & 0x0);//if no HW error return true
+
+
   return fEventIsGood;
 };
 /********************************************************/
+
+Int_t QwBCM::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){//std::vector<Double_t> & dEventCuts){//two limts and sample size
+  fLLimit=LL;
+  fULimit=UL;
+  return 1;
+};
+
+void QwBCM::SetDefaultSampleSize(Int_t sample_size){
+  fTriumf_ADC.SetDefaultSampleSize((size_t)sample_size);
+}
+
+
+/********************************************************/
+Bool_t QwBCM::ApplySingleEventCuts(){
+  //std::cout<<" QwBCM::SingleEventCuts() "<<std::endl;
+  Bool_t status=kTRUE;
+  ApplyHWChecks();//first apply HW checks and update HW  error flags.
+
+
+  if (fTriumf_ADC.ApplySingleEventCuts(fLLimit,fULimit)){
+    status=kTRUE;
+  }
+  else{
+    fTriumf_ADC.UpdateEventCutErrorCount();//update event cut falied counts
+    if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fTriumf_ADC.GetHardwareSum();
+    status&=kFALSE;
+  }
+  fDeviceErrorCode|=fTriumf_ADC.GetEventcutErrorFlag();//retrun the error flag for event cuts
+
+
+  return status;
+
+};
+
+/********************************************************/
+
+Int_t QwBCM::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+  fTriumf_ADC.GetEventcutErrorCounters();
+  return 1;
+}
+
+
+
 Int_t QwBCM::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement)
 {
   fTriumf_ADC.ProcessEvBuffer(buffer,word_position_in_buffer);
-  
+
   return word_position_in_buffer;
 };
 /********************************************************/
@@ -75,13 +174,13 @@ QwBCM& QwBCM::operator= (const QwBCM &value)
     {
       this->fTriumf_ADC=value.fTriumf_ADC;
       this->fPedestal=value.fPedestal;
-      this->fCalibration=value.fCalibration;	
+      this->fCalibration=value.fCalibration;
     }
 //   std::cout<<" to be copied \n";
 //   value.Print();
 //   std::cout<<" copied \n";
 //   this->Print();
- 
+
   return *this;
 };
 
@@ -94,7 +193,7 @@ QwBCM& QwBCM::operator+= (const QwBCM &value)
       this->fCalibration=0;
     }
   return *this;
-};			
+};
 
 QwBCM& QwBCM::operator-= (const QwBCM &value)
 {
@@ -105,7 +204,7 @@ QwBCM& QwBCM::operator-= (const QwBCM &value)
       this->fCalibration=0;
     }
   return *this;
-};				
+};
 
 
 void QwBCM::Sum(QwBCM &value1, QwBCM &value2){
@@ -136,10 +235,20 @@ void QwBCM::Scale(Double_t factor)
   fTriumf_ADC.Scale(factor);
   return;
 }
-	
+
+void QwBCM::Calculate_Running_Average(){
+  fTriumf_ADC.Calculate_Running_Average();
+};
+
+void QwBCM::Do_RunningSum(){
+  fTriumf_ADC.Do_RunningSum();
+};
 
 void QwBCM::Print() const
 {
+  //std::cout<<"QwVQWK_Channel Info " <<std::endl;
+  //std::cout<<" Running AVG "<<GetElementName()<<" current running AVG "<<BCM_Running_AVG<<std::endl;
+  std::cout<<"QwVQWK_Channel Info " <<std::endl;
   fTriumf_ADC.Print();
   return;
 }
@@ -150,7 +259,7 @@ void  QwBCM::ConstructHistograms(TDirectory *folder, TString &prefix)
   if (GetElementName()=="")
     {
       //  This channel is not used, so skip filling the histograms.
-    } 
+    }
   else
     {
       fTriumf_ADC.ConstructHistograms(folder, prefix);
@@ -163,12 +272,12 @@ void  QwBCM::FillHistograms()
   if (GetElementName()=="")
     {
       //  This channel is not used, so skip filling the histograms.
-    } 
+    }
   else
     {
       fTriumf_ADC.FillHistograms();
     }
- 
+
 
   return;
 };
@@ -206,7 +315,7 @@ void  QwBCM::DeleteHistograms()
       fTriumf_ADC.DeleteHistograms();
     }
   return;
-};	
+};
 /********************************************************/
 void  QwBCM::Copy(VQwDataElement *source)
 {
@@ -228,11 +337,11 @@ void  QwBCM::Copy(VQwDataElement *source)
 	  throw std::invalid_argument(loc.Data());
 	}
     }
-  catch (std::exception& e) 
+  catch (std::exception& e)
     {
-      std::cerr << e.what() << std::endl; 
+      std::cerr << e.what() << std::endl;
     }
-  
+
   return;
 }
 

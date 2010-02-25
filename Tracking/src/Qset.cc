@@ -6,7 +6,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "QwTrackingTree.h"
+#include "Det.h"
 
 #ifndef NDetMax
 # define NDetMax 1010
@@ -77,13 +77,13 @@ Qset::Qset()
 int Qset::FillDetectors (const char *geomname)
 {
 	// Open geometry file
-	ifstream geomfile(geomname);
+	std::ifstream geomfile(geomname);
 	std::stringstream geomstream;
 	geomstream << geomfile.rdbuf();
 
 	// Run over all entries
 	int i = 0;
-	string type, name;
+	std::string type, name;
 	while (!geomstream.eof() && name.compare("END") != 0) {
 
 		// read first line of the record
@@ -189,18 +189,17 @@ void Qset::DumpDetector (int i)
 // This function prints select parameters of the detectors
 // (TODO: this should be a method of Det)
 {
-	cout << rcDET[i].ID << ": " << rcDET[i].sName << " (" << rcDET[i].sType << ")" << endl;
-	cout << "z = " << rcDET[i].Zpos << " cm (region " << rcDET[i].region << ")" << endl;
-	cout << rcDET[i].package << " " << rcDET[i].type << " " << rcDET[i].dir << endl;
-	cout << endl;
+	std::cout << rcDET[i].ID << ": " << rcDET[i].sName << " (" << rcDET[i].sType << ")" << std::endl;
+	std::cout << "z = " << rcDET[i].Zpos << " cm (region " << rcDET[i].region << ")" << std::endl;
+	std::cout << rcDET[i].package << " " << rcDET[i].type << " " << rcDET[i].dir << std::endl;
+	std::cout << std::endl;
 
 	return;
 }
 
 //____________________________________________________________
 
-void Qset::LinkDetectors ()
-/*! \fn LinkDetector
+/*!
     \brief This function strings together groups of detector elements
 
     The list rcDET[] contains all detectors of the experiment, in the order
@@ -214,6 +213,7 @@ void Qset::LinkDetectors ()
     creates links to the next detectors in the same upper/lower half and with
     the same wire direction.
  */
+void Qset::LinkDetectors ()
 {
   EQwDetectorPackage package;
   EQwRegionID region;
@@ -230,7 +230,7 @@ void Qset::LinkDetectors ()
 
   /// For all detectors in the experiment
   for (int i = 0; i < numdetectors; i++) {
-    if (debug) cout << i << ": ";
+    if (debug) std::cout << i << ": ";
     rd = &rcDET[i]; // get a pointer to the detector
 
     /// and if a search for similar detectors has not been done yet
@@ -256,14 +256,14 @@ void Qset::LinkDetectors ()
          && rnd->dir     == dir
          && rnd->region  == region
          && !rnd->samesearched ) {
-          if (debug) cout << l << " ";
+          if (debug) std::cout << l << " ";
           rnd->samesearched = 1;
           rwd = (rwd->nextsame = rnd);
         }
       }
       rd->samesearched = 1;
     }
-    if (debug) cout << endl;
+    if (debug) std::cout << std::endl;
   }
 }
 
@@ -304,13 +304,13 @@ void Qset::DeterminePlanes ()
 	}
       } // end of first loop over directions
       if (nPlanes == 0) continue;
-      if (debug) cout << "Number of planes: " << nPlanes << endl;
+      if (debug) std::cout << "Number of planes: " << nPlanes << std::endl;
 
       if (debug) {
-        cout << "Planes: ";
+        std::cout << "Planes: ";
         for (int i = 0 ; i < nPlanes ; i++)
-          cout << index[i] << "(" << zPlane[i] << ") ";
-        cout << endl;
+          std::cout << index[i] << "(" << zPlane[i] << ") ";
+        std::cout << std::endl;
       }
 
       /// Loop over all planes to set the order (planes start at 1, not at 0)
@@ -330,8 +330,8 @@ void Qset::DeterminePlanes ()
 
 	// Set the plane number and increase by one
 	rcDET[index_min].plane = plane;
-	if (debug) cout << "plane: " << plane << " -> index: " << index_min << " ";
-	if (debug) cout << "(z = " << z_min << ")" << endl;
+	if (debug) std::cout << "plane: " << plane << " -> index: " << index_min << " ";
+	if (debug) std::cout << "(z = " << z_min << ")" << std::endl;
 
 	// Replace the found maximum with the last one in the array
 	zPlane[i_min] = zPlane[nPlanes-plane];

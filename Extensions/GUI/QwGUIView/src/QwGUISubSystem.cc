@@ -17,6 +17,8 @@ QwGUISubSystem::QwGUISubSystem(const TGWindow *p, const TGWindow *main,
 
   TabMenuEntryChecked(kFalse);
 
+  dProgrDlg          = NULL;
+
   Connect("AddThisTab(QwGUISubSystem*)",dMainName,(void*)main,"AddATab(QwGUISubSystem*)");  
   Connect("RemoveThisTab(QwGUISubSystem*)",dMainName,(void*)main,"RemoveTab(QwGUISubSystem*)");  
   Connect("IsClosing(const char*)",dMainName,(void*)main,"OnObjClose(const char*)");    
@@ -27,6 +29,60 @@ QwGUISubSystem::QwGUISubSystem(const TGWindow *p, const TGWindow *main,
 QwGUISubSystem::~QwGUISubSystem()
 {
 
+}
+
+void QwGUISubSystem::InitProgressDlg(const char* title, const char *macrotext, const char *microtext, 
+				     const char *microtext2, Int_t nitems1, Int_t nitems2, Int_t nitems3, Int_t nLevels)
+{
+  dProgrDlg = new QwGUIProgressDialog((const TGWindow*)dParent, 
+				      (const TGWindow*)dMain, 
+				      "dProgrDlg","QwGUIMain",
+				      title,macrotext,microtext,
+				      microtext2,nitems1,nitems2, 
+				      nitems3,600,300,kTrue,nLevels);
+
+  Connect(dProgrDlg,"IsClosing(char*)","QwGUISubSystem",(void*)this,
+	  "OnObjClose(char*)");
+  dProcessHalt = kFalse;
+  gSystem->ProcessEvents();
+}
+
+void QwGUISubSystem::IncreaseProgress(Int_t *nItems1, Int_t *nItems2, Int_t *nItems3, 
+				      Int_t  nInc1,   Int_t  nInc2,   Int_t  nInc3)
+{
+  TGFrame *frame = (TGFrame*)dMain;
+  if(dProgrDlg){
+    if(nItems1){
+      if(*nItems1 >= nInc1){
+	frame->SendMessage(dProgrDlg,
+			   MK_MSG((EWidgetMessageTypes)kC_PR_DIALOG,
+				  (EWidgetMessageTypes)kCM_PR_MSG),
+			   M_PR_RUN,*nItems1);
+	gSystem->ProcessEvents();
+	*nItems1 = 0;
+      }    
+    }
+    if(nItems2){
+      if(*nItems2 >= nInc2){
+	frame->SendMessage(dProgrDlg,
+			   MK_MSG((EWidgetMessageTypes)kC_PR_DIALOG,
+				  (EWidgetMessageTypes)kCM_PR_MSG),
+			   M_PR_SEQ,*nItems2);
+	gSystem->ProcessEvents();
+	*nItems2 = 0;
+      }
+    }
+    if(nItems3){
+      if(*nItems3 >= nInc3){
+	frame->SendMessage(dProgrDlg,
+			   MK_MSG((EWidgetMessageTypes)kC_PR_DIALOG,
+				  (EWidgetMessageTypes)kCM_PR_MSG),
+			   M_PR_SEQ2,*nItems3);
+	gSystem->ProcessEvents();
+	*nItems3 = 0;
+      }
+    }
+  }
 }
 
 const char* QwGUISubSystem::GetNewWindowName()
@@ -64,6 +120,12 @@ void QwGUISubSystem::SetLogMessage(const char *buffer, Bool_t tStamp)
   dLogTStampFlag = tStamp;
   SendMessageSignal(GetName());
 }
+
+void QwGUISubSystem::OnObjClose(char *obj)
+{
+
+};
+
 
 void QwGUISubSystem::AddThisTab(QwGUISubSystem* sbSystem)
 {

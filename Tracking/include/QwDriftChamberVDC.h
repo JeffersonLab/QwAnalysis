@@ -28,7 +28,7 @@
 
 
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class QwDriftChamberVDC: public QwDriftChamber {
   /******************************************************************
    *  Class: QwDriftChamberVDC
@@ -37,16 +37,10 @@ class QwDriftChamberVDC: public QwDriftChamber {
    ******************************************************************/
  public:
   QwDriftChamberVDC(TString region_tmp);
-
-
-
-
-
-
-
-
-
-
+  ~QwDriftChamberVDC()
+    {
+      DeleteHistograms();
+    };
   /* Unique virtual member functions from QwDrifChamber base class */
 
  public:
@@ -55,17 +49,38 @@ class QwDriftChamberVDC: public QwDriftChamber {
 
  void  SubtractReferenceTimes();
 
- Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector, Double_t angle);
- Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
+ //Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector, Double_t angle);
+ // Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
 
- void  LoadMap ( TString& );        //read the TDC convert QwDelayLine map
+ Int_t LoadChannelMap(TString mapfile);
+ //Int_t LoadMap ( TString& );        //read the TDC convert QwDelayLine map
  void  ReadEvent ( TString& );     //read the events file
 
 
  void  ProcessEvent();
 
+ void ClearEventData();
+
+ //void GetHitList(QwHitContainer & grandHitContainer){
+ //  grandHitContainer.Append(fWireHits);
+ //};
+
   Int_t LoadQweakGeometry(TString mapfile );
- 
+
+  Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector){
+    double angle=60,d=0;
+    d=CalculateDriftDistance(drifttime,detector,angle);
+    return d;
+ }
+
+
+ protected:
+
+   Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector, Double_t angle);
+
+   void  FillHistograms();
+
+
  protected:
  void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
 
@@ -74,7 +89,6 @@ class QwDriftChamberVDC: public QwDriftChamber {
 
  protected:
 
-  Int_t LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire);
   Int_t BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire);
   Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire);
 
@@ -82,9 +96,9 @@ class QwDriftChamberVDC: public QwDriftChamber {
 
 
 
-  static const UInt_t BackPlanenum;
-  static const UInt_t Linenum;
-  std::vector<std::vector<QwDelayLine> > DelayLineArray;      //indexed by backplane and line number
+  static const UInt_t kBackPlaneNum;
+  static const UInt_t kLineNum;
+  std::vector<std::vector<QwDelayLine> > fDelayLineArray;      //indexed by backplane and line number
   std::vector<std::vector<QwDelayLineID> > fDelayLinePtrs;  //indexed by slot and channel number
   std::vector< QwHit > fWireHitsVDC;
 

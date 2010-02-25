@@ -50,7 +50,7 @@ class QwHistogramHelper{
   TH2F* Construct2DHist(const std::string inputfile, const std::string name_title);
   
  protected:
-  typedef struct HISTPARMS {
+  struct HISTPARMS {
     std::string name_title;
     std::string type;
     Int_t nbins;

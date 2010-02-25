@@ -33,7 +33,7 @@
 
 
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   /******************************************************************
    *  Class: QwDriftChamber
@@ -44,13 +44,8 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   QwDriftChamber(TString region_tmp);
   QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHits_TEMP);
 
-    ~QwDriftChamber()
-    {
-      DeleteHistograms();
-    }
+  virtual ~QwDriftChamber(){};
 
-  Int_t OK;
-    
   /*  Member functions derived from VQwSubsystem. */
 
   
@@ -89,78 +84,89 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
 
   void  CalculateDriftDistance();
+
   virtual Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)=0;
+
+
+  // Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector,Double_t angle=45){
+
+  //  Double_t d=DoCalculate(drifttime,detector,angle);
+  //    return d;
+  // }
   
-  
+
+
+  void GetTDCHitList(QwHitContainer & grandHitContainer){
+         grandHitContainer.Append(fTDCHits);
+       };
+
+
   void GetHitList(QwHitContainer & grandHitContainer){
     //std::cout << " HDC "<<fTDCHits.size()<<std::endl;
-    grandHitContainer.Append(fTDCHits);
- };
-   
+    grandHitContainer.Append(fWireHits);
+  };
+  
+  Int_t OK;
 
-protected:
+  // private:
 
- Int_t LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire);
- virtual Int_t BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire)=0;
- virtual Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire)= 0;
-
-
+  //  virtual Double_t DoCalculate(Double_t drifttime,QwDetectorID detector,Double_t angle)=0;
 
  protected:
- virtual void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data) = 0;
-
-
-
-
+  
+  Int_t LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire);
+  virtual Int_t BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire)=0;
+  virtual Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire)= 0;
+  
+  
+  
  protected:
-   void  ClearAllBankRegistrations();
-   Int_t RegisterROCNumber(const UInt_t roc_id);
-
-   Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
-
-   
-
-   Int_t GetTDCIndex(size_t bank_index, size_t slot_num) const;
-
-   Bool_t IsSlotRegistered(Int_t bank_index, Int_t slot_num) const
-     {
-       return (GetTDCIndex(bank_index,slot_num) != -1);
-     };
-
-
-
+  virtual void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data) = 0;
+  
+  
+  
+  
+ protected:
+  void  ClearAllBankRegistrations();
+  Int_t RegisterROCNumber(const UInt_t roc_id);
+  
+  Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
+  
+  
+  
+  Int_t GetTDCIndex(size_t bank_index, size_t slot_num) const;
+  
+  Bool_t IsSlotRegistered(Int_t bank_index, Int_t slot_num) const
+  {
+    return (GetTDCIndex(bank_index,slot_num) != -1);
+  };
+  
+  
+  
  protected:
   Bool_t fDEBUG;
   
   TString fRegion;  ///  Name of this subsystem (the region).
-
-
+  
+  
  protected:
   size_t fCurrentBankIndex;
   Int_t fCurrentSlot;
   Int_t fCurrentTDCIndex;
-
+  
  protected:
   static const UInt_t kMaxNumberOfTDCsPerROC;
   static const UInt_t kMaxNumberOfChannelsPerTDC;
-
+  
   static const UInt_t kReferenceChannelPlaneNumber;
-
+  
   Int_t fNumberOfTDCs;
 
-
-std::vector< std::vector<Int_t> > fTDC_Index;  //  TDC index, indexed by bank_index and slot_number
+  std::vector< std::vector<Int_t> > fTDC_Index;  //  TDC index, indexed by bank_index and slot_number
   std::vector< std::pair<Int_t, Int_t> > fReferenceChannels;
-
-  
   std::vector< QwHit > fTDCHits;
-
   std::vector< QwHit > &fWireHits;
-
-
-
-
-  std::vector<Int_t>   fWiresPerPlane;
+  std::vector< Int_t > fWiresPerPlane;
 
   //  NOTE:  The plane and wire indices count from "1" instead 
   //         of from "0".  

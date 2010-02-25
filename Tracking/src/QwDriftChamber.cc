@@ -17,15 +17,25 @@ const UInt_t QwDriftChamber::kMaxNumberOfChannelsPerTDC = 64;
 const UInt_t QwDriftChamber::kReferenceChannelPlaneNumber = 99;
 
 
-
-QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHits_TEMP):VQwSubsystemTracking(region_tmp),fDEBUG(kFALSE),fNumberOfTDCs(0),OK(0),fWireHits(fWireHits_TEMP)
+// OK, fDEBUG, fNumberOfTDCs
+QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHits_TEMP)
+  :VQwSubsystem(region_tmp),
+   VQwSubsystemTracking(region_tmp),
+   fWireHits(fWireHits_TEMP)
 {
+  OK            = 0;
+  fDEBUG        = kFALSE;
+  fNumberOfTDCs = 0;
   
 };
 
-QwDriftChamber::QwDriftChamber(TString region_tmp):VQwSubsystemTracking(region_tmp),fDEBUG(kFALSE),fNumberOfTDCs(0),OK(0),fWireHits(fTDCHits)
+QwDriftChamber::QwDriftChamber(TString region_tmp)
+  :VQwSubsystemTracking(region_tmp),fWireHits(fTDCHits)
 {
-  
+  OK            = 0;
+  fDEBUG        = kFALSE;
+  fNumberOfTDCs = 0;
+
 };
 
 
@@ -33,6 +43,7 @@ QwDriftChamber::QwDriftChamber(TString region_tmp):VQwSubsystemTracking(region_t
 Int_t QwDriftChamber::LoadChannelMap(TString mapfile){
   TString varname, varvalue;
   UInt_t  chan, package, plane, wire, direction, DIRMODE;
+  wire = plane = package = 0;
   DIRMODE=0;
   
 
@@ -196,64 +207,69 @@ void  QwDriftChamber::ConstructHistograms(TDirectory *folder, TString& prefix)
   //  If we have defined a subdirectory in the ROOT file, then change into it.
   if (folder != NULL) folder->cd();
 
-  
 
   //  Now create the histograms...
 
   TString region = GetSubsystemName();
 
+
   //  Loop over the number of planes.  
 
   for (size_t i=1;i<fWiresPerPlane.size();i++) {
     ///////////////First set of histos////////////////////////////////
-    TotHits[i] = new TH1F(Form("%s%sHitsOnEachWirePlane%d", prefix.Data() ,region.Data(),i),
+      TotHits[i] = new TH1F(Form("%s%sHitsOnEachWirePlane%d", prefix.Data() ,region.Data(),i),
 			  Form("Total hits on all wires in plane %d",i),
-			  fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5);
-    TotHits[i]->GetXaxis()->SetTitle("Wire #");
-    TotHits[i]->GetYaxis()->SetTitle("Events");
+      		  fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5);
+      
+      TotHits[i]->GetXaxis()->SetTitle("Wire #");
+      TotHits[i]->GetYaxis()->SetTitle("Events");
     
     
     ///////////////Second set of histos////////////////////////////////
-    WiresHit[i] = new TH1F(Form("%s%sWiresHitPlane%d", prefix.Data() ,region.Data(),i),
+      WiresHit[i] = new TH1F(Form("%s%sWiresHitPlane%d", prefix.Data() ,region.Data(),i),
 			   Form("Number of Wires Hit in plane %d",i),
 			   20,-0.5,20.5);
-    WiresHit[i]->GetXaxis()->SetTitle("Wires Hit per Event");
-    WiresHit[i]->GetYaxis()->SetTitle("Events");
+      WiresHit[i]->GetXaxis()->SetTitle("Wires Hit per Event");
+      WiresHit[i]->GetYaxis()->SetTitle("Events");
 
     //////////////Third set of histos/////////////////////////////////
-    HitsWire[i] = new TH2F(Form("%s%sHitsOnEachWirePerEventPlane%d", prefix.Data() ,region.Data(),i),
+      HitsWire[i] = new TH2F(Form("%s%sHitsOnEachWirePerEventPlane%d", prefix.Data() ,region.Data(),i),
 			   Form("hits on all wires per event in plane %d",i),
 			   fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5,
 			   7,0.5,7.5);
-    
-    HitsWire[i]->GetXaxis()->SetTitle("Wire Number");
-    HitsWire[i]->GetYaxis()->SetTitle("Hits");
+     
+      HitsWire[i]->GetXaxis()->SetTitle("Wire Number");
+      HitsWire[i]->GetYaxis()->SetTitle("Hits");
 
     /////////////Fourth set of histos//////////////////////////////////////
-    TOFP[i] = new TH1F(Form("%s%sTimeofFlightPlane%d", prefix.Data() ,region.Data(),i),
+      TOFP[i] = new TH1F(Form("%s%sTimeofFlightPlane%d", prefix.Data() ,region.Data(),i),
 		       Form("Subtracted time of flight for events in plane %d",i),
 		       400,-65000,65000);
-    TOFP[i]->GetXaxis()->SetTitle("Time of Flight");
-    TOFP[i]->GetYaxis()->SetTitle("Hits");
-    TOFP_raw[i] = new TH1F(Form("%s%sRawTimeofFlightPlane%d", prefix.Data() ,region.Data(),i),
+      TOFP[i]->GetXaxis()->SetTitle("Time of Flight");
+      TOFP[i]->GetYaxis()->SetTitle("Hits");
+
+      
+      TOFP_raw[i] = new TH1F(Form("%s%sRawTimeofFlightPlane%d", prefix.Data() ,region.Data(),i),
 		       Form("Raw time of flight for events in plane %d",i),
 		       400,-65000,65000);
-    TOFP_raw[i]->GetXaxis()->SetTitle("Time of Flight");
-    TOFP_raw[i]->GetYaxis()->SetTitle("Hits");
+      TOFP_raw[i]->GetXaxis()->SetTitle("Time of Flight");
+      TOFP_raw[i]->GetYaxis()->SetTitle("Hits");
     
     //////////////Fifth set of histos/////////////////////////////////////
-    TOFW[i] = new TH2F(Form("%s%sTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),i),
+      
+      TOFW[i] = new TH2F(Form("%s%sTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),i),
 		       Form("Subtracted time of flight for each wire in plane %d",i),
 		       fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5,
 		       100,-40000,65000);
-    TOFW[i]->GetXaxis()->SetTitle("Wire Number");
-    TOFW[i]->GetYaxis()->SetTitle("Time of Flight");
-    TOFW_raw[i] = new TH2F(Form("%s%sRawTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),i),
+      TOFW[i]->GetXaxis()->SetTitle("Wire Number");
+      TOFW[i]->GetYaxis()->SetTitle("Time of Flight");
+
+      TOFW_raw[i] = new TH2F(Form("%s%sRawTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),i),
 		       Form("Raw time of flight for each wire in plane %d",i),
 		       fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5,
 		       100,-40000,65000);
-    TOFW_raw[i]->GetXaxis()->SetTitle("Wire Number");
-    TOFW_raw[i]->GetYaxis()->SetTitle("Time of Flight");
+      TOFW_raw[i]->GetXaxis()->SetTitle("Wire Number");
+      TOFW_raw[i]->GetYaxis()->SetTitle("Time of Flight");
   }
 };
 
@@ -261,36 +277,36 @@ void  QwDriftChamber::ConstructHistograms(TDirectory *folder, TString& prefix)
 void  QwDriftChamber::FillHistograms()
 {
   
-
   if (! HasDataLoaded()) return;
 
-  
   
   QwDetectorID   this_detid;
   QwDetectorInfo *this_det;
   
   //  Fill all of the histograms.
+  
 
   std::vector<Int_t> wireshitperplane(fWiresPerPlane.size(),0);
 
   for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
     this_detid = hit1->GetDetectorID();
+    //std::cout << "fElement during FillHistogram: " << this_detid.fElement << std::endl;
     if (this_detid.fPlane<=0 || this_detid.fElement<=0){
-      std::cout << "QwDriftChamber::FillHistograms:  Bad plane or element index:  fPlane=="
-		<< this_detid.fPlane << ", fElement==" << this_detid.fElement << std::endl;
+      if(fDEBUG) {
+	std::cout << "QwDriftChamber::FillHistograms:  Bad plane or element index:  fPlane=="
+		  << this_detid.fPlane << ", fElement==" << this_detid.fElement << std::endl;
+      }
       continue;
     }
-
-    this_det   = &(fWireData.at(this_detid.fPlane).at(this_detid.fElement));
-
     
+   
+    this_det   = &(fWireData.at(this_detid.fPlane).at(this_detid.fElement));
+     
     if (hit1->IsFirstDetectorHit()){
       //  If this is the first hit for this detector, then let's plot the
       //  total number of hits this wire had. 
-
-      HitsWire[this_detid.fPlane]->Fill(this_detid.fElement,this_det->GetNumHits());
-
-
+	HitsWire[this_detid.fPlane]->Fill(this_detid.fElement,this_det->GetNumHits());
+     
       //  Also increment the total number of events in whichthis wire was hit.
       TotHits[this_detid.fPlane]->Fill(this_detid.fElement,1);
       //  Increment the number of wires hit in this plane
@@ -308,44 +324,46 @@ void  QwDriftChamber::FillHistograms()
   }
 
   for (size_t iplane=1; iplane<fWiresPerPlane.size(); iplane++) {
-    WiresHit[iplane]->Fill(wireshitperplane[iplane]);
-    
-  }
+      WiresHit[iplane]->Fill(wireshitperplane[iplane]);
 
+     }
 };
 
-void  QwDriftChamber::DeleteHistograms()
+
+  void  QwDriftChamber::DeleteHistograms()
 {
   //  Run the destructors for all of the histogram object pointers.
-  for (size_t i=1;i<fWiresPerPlane.size();i++) {
+  //for (size_t i=1;i<fWiresPerPlane.size();i++) {
+    for (size_t i=1;i<fWiresPerPlane.size();i++) {
     ///////////First set of histos//////////////////////////
-    if (TotHits[i]!=NULL){
-      TotHits[i]->Delete(); TotHits[i] = NULL;
+      if (TotHits[i]!= NULL){
+      TotHits[i]->Delete();  TotHits[i] = NULL;
     }
     /////////Second set of histos///////////////////////////
-    if (WiresHit[i]!=NULL){
-      WiresHit[i]->Delete(); WiresHit[i] = NULL;
+      if (WiresHit[i]!= NULL){
+      WiresHit[i]->Delete();  WiresHit[i] = NULL;
     }
     ////////Third set of histos/////////////////////////////
-    if (HitsWire[i]!=NULL){
-      HitsWire[i]->Delete(); HitsWire[i] = NULL;
+      if (HitsWire[i]!= NULL){
+      HitsWire[i]->Delete();  HitsWire[i] = NULL;
     }
     ////////Fourth set of histos////////////////////////////
-    if (TOFP[i]!=NULL){
-      TOFP[i]->Delete(); TOFP[i] = NULL;
+      if (TOFP[i]!= NULL){
+      TOFP[i]->Delete();  TOFP[i] = NULL;
     }
-    if (TOFP_raw[i]!=NULL){
-      TOFP_raw[i]->Delete(); TOFP_raw[i] = NULL;
+      if (TOFP_raw[i]!= NULL){
+      TOFP_raw[i]->Delete();  TOFP_raw[i] = NULL;
     }
     //////////Fifth set of histos///////////////////////////
-    if (TOFW[i]!=NULL){
-      TOFW[i]->Delete(); TOFW[i] = NULL;
+      if (TOFW[i]!= NULL){
+      TOFW[i]->Delete();  TOFW[i] = NULL;
     }
-    if (TOFW_raw[i]!=NULL){
-      TOFW_raw[i]->Delete(); TOFW_raw[i] = NULL;
+      if (TOFW_raw[i]!= NULL){
+      TOFW_raw[i]->Delete();  TOFW_raw[i] = NULL;
     }
-  }
+    }     
 };
+
 
 
 void QwDriftChamber::ClearAllBankRegistrations(){
@@ -358,7 +376,7 @@ void QwDriftChamber::ClearAllBankRegistrations(){
 
 Int_t QwDriftChamber::RegisterROCNumber(const UInt_t roc_id){
   VQwSubsystemTracking::RegisterROCNumber(roc_id, 0);
-  fCurrentBankIndex = GetSubbankIndex(roc_id, 0);
+  fCurrentBankIndex = GetSubbankIndex(roc_id, 0);//subbank id is directly related to the ROC
   if (fReferenceChannels.size()<=fCurrentBankIndex){
     fReferenceChannels.resize(fCurrentBankIndex+1);
     fReferenceData.resize(fCurrentBankIndex+1);
@@ -369,6 +387,8 @@ Int_t QwDriftChamber::RegisterROCNumber(const UInt_t roc_id){
 
   return fCurrentBankIndex;
 };
+
+
 
 Int_t QwDriftChamber::RegisterSlotNumber(UInt_t slot_id){
   if (slot_id<kMaxNumberOfTDCsPerROC){
@@ -396,4 +416,15 @@ Int_t QwDriftChamber::GetTDCIndex(size_t bank_index, size_t slot_num) const {
     }
   }
   return tdcindex;
+};
+
+
+Int_t QwDriftChamber::LinkReferenceChannel ( const UInt_t chan, const UInt_t plane, const UInt_t wire ) {
+    fReferenceChannels.at ( fCurrentBankIndex ).first  = fCurrentTDCIndex;
+    fReferenceChannels.at ( fCurrentBankIndex ).second = chan;
+    //  Register a reference channel with the wire equal to the bank index.
+    fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPackage = 0;
+    fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPlane   = plane;
+    fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fElement = fCurrentBankIndex;
+    return OK;
 };

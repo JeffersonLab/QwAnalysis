@@ -7,6 +7,7 @@
 #include "QwDriftChamberHDC.h"
 
 #include "QwParameterFile.h"
+#include "QwLog.h"
 
 #include<boost/bind.hpp>
 
@@ -14,7 +15,8 @@
 
 
 
-QwDriftChamberHDC::QwDriftChamberHDC(TString region_tmp): QwDriftChamber(region_tmp)
+QwDriftChamberHDC::QwDriftChamberHDC(TString region_tmp):VQwSubsystem(region_tmp),
+                                                         QwDriftChamber(region_tmp,fTDCHits)
 {
   OK=0;
 };
@@ -24,12 +26,14 @@ QwDriftChamberHDC::QwDriftChamberHDC(TString region_tmp): QwDriftChamber(region_
 //LoadQweakGeometry will load QwDetectorInfo vector from a map file
 //Currently this method is specific to each region
 
-Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile){
+Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile)
+{
 
-  std::cout<<"Region 2 Qweak Geometry Loading..... "<<std::endl;
+  QwMessage << "Region 2 Qweak Geometry Loading..... " << QwLog::endl;
 
   TString varname, varvalue,package, direction,dType;
-  Int_t  chan,  plane, TotalWires,detectorId,region, DIRMODE;
+  //  Int_t  chan;
+  Int_t  plane, TotalWires,detectorId,region, DIRMODE;
   Double_t Zpos,rot,sp_res, track_res,slope_match,Det_originX,Det_originY,ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin;
 
   //std::vector< QwDetectorInfo >  fDetectorGeom;
@@ -38,7 +42,9 @@ Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile){
 
   fDetectorInfo.clear();
   fDetectorInfo.resize(kNumPackages);
-  Int_t pkg,pln;
+
+  //  Int_t pkg,pln;
+
 
   DIRMODE=0;
 
@@ -81,7 +87,10 @@ Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile){
       W_rsin = (atof(mapstr.GetNextToken(", ").c_str()));
       TotalWires = (atol(mapstr.GetNextToken(", ").c_str()));
       detectorId = (atol(mapstr.GetNextToken(", ").c_str()));
-      //std::cout<<"Detector ID "<<detectorId<<" "<<varvalue<<" Package "<<package<<" Plane "<<Zpos<<" Region "<<region<<std::endl;
+
+      QwDebug << " Detector ID " << detectorId << " " << varvalue
+              << " Package " << package << " Plane " << Zpos
+              << " Region " << region << QwLog::endl;
 
       if (region==2){
 	    temp_Detector.SetDetectorInfo(dType, Zpos, rot, sp_res, track_res, slope_match, package, region, direction, Det_originX, Det_originY, ActiveWidthX, ActiveWidthY, ActiveWidthZ, WireSpace, FirstWire, W_rcos, W_rsin, TotalWires, detectorId);
@@ -95,26 +104,26 @@ Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile){
     }
 
   }
-  std::cout<<"Loaded Qweak Geometry"<<" Total Detectors in pkg_d 1 "<<fDetectorInfo.at(kPackageUp).size()<< " pkg_d 2 "<<fDetectorInfo.at(kPackageDown).size()<<std::endl;
+  QwMessage << "Loaded Qweak Geometry"<<" Total Detectors in pkg_d 1 "<<fDetectorInfo.at(kPackageUp).size()<< " pkg_d 2 "<<fDetectorInfo.at(kPackageDown).size() << QwLog::endl;
 
-  std::cout << "Sorting detector info..." << std::endl;
+  QwMessage << "Sorting detector info..." << QwLog::endl;
   plane = 1;
   std::sort(fDetectorInfo.at(kPackageUp).begin(),
             fDetectorInfo.at(kPackageUp).end());
-  for (int i = 0; i < fDetectorInfo.at(kPackageUp).size(); i++) {
+  for (UInt_t i = 0; i < fDetectorInfo.at(kPackageUp).size(); i++) {
     fDetectorInfo.at(kPackageUp).at(i).fPlane = plane++;
-    std::cout<<" Region "<<fDetectorInfo.at(kPackageUp).at(i).fRegion<<" Detector ID "<<fDetectorInfo.at(kPackageUp).at(i).fDetectorID << std::endl;
+    QwMessage << " Region " << fDetectorInfo.at(kPackageUp).at(i).fRegion << " Detector ID " << fDetectorInfo.at(kPackageUp).at(i).fDetectorID << QwLog::endl;
   }
 
   plane = 1;
   std::sort(fDetectorInfo.at(kPackageDown).begin(),
             fDetectorInfo.at(kPackageDown).end());
-  for (int i = 0; i < fDetectorInfo.at(kPackageDown).size(); i++) {
+  for (UInt_t i = 0; i < fDetectorInfo.at(kPackageDown).size(); i++) {
     fDetectorInfo.at(kPackageDown).at(i).fPlane = plane++;
-    std::cout<<" Region "<<fDetectorInfo.at(kPackageDown).at(i).fRegion<<" Detector ID " << fDetectorInfo.at(kPackageDown).at(i).fDetectorID << std::endl;
+    QwMessage << " Region " << fDetectorInfo.at(kPackageDown).at(i).fRegion << " Detector ID " << fDetectorInfo.at(kPackageDown).at(i).fDetectorID << QwLog::endl;
   }
 
-  std::cout<<"Qweak Geometry Loaded "<<std::endl;
+  QwMessage << "Qweak Geometry Loaded " << QwLog::endl;
 
 
 
@@ -132,25 +141,25 @@ void  QwDriftChamberHDC::ReportConfiguration(){
   for (size_t i = 0; i<fROC_IDs.size(); i++){
     for (size_t j=0; j<fBank_IDs.at(i).size(); j++){
       Int_t ind = GetSubbankIndex(fROC_IDs.at(i),fBank_IDs.at(i).at(j));
-      std::cout << "ROC " << fROC_IDs.at(i)
+      QwMessage << "ROC " << fROC_IDs.at(i)
 		<< ", subbank " << fBank_IDs.at(i).at(j)
 		<< ":  subbank index==" << ind
-		<< std::endl;
+		<< QwLog::endl;
       for (size_t k=0; k<kMaxNumberOfTDCsPerROC; k++){
 	Int_t tdcindex = GetTDCIndex(ind,k);
-	std::cout << "    Slot " << k;
+	QwMessage << "    Slot " << k;
 	if (tdcindex == -1)
-	  std::cout << "  Empty" << std::endl;
+	  QwMessage << "  Empty" << QwLog::endl;
 	else
-	  std::cout << "  TDC#" << tdcindex << std::endl;
+	  QwMessage << "  TDC#" << tdcindex << QwLog::endl;
       }
     }
   }
   for (size_t i=0; i<fWiresPerPlane.size(); i++){
     if (fWiresPerPlane.at(i) == 0) continue;
-    std::cout << "Plane " << i << " has " << fWireData.at(i).size()
+    QwMessage << "Plane " << i << " has " << fWireData.at(i).size()
 	      << " wires"
-	      <<std::endl;
+	      << QwLog::endl;
   }
 };
 
@@ -182,7 +191,7 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
     }
     for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
 
-      hit1->SubtractReference(reftimes.at(hit1->GetSubbankID()));
+      hit1->SetTime(SubtractReference(hit1->GetRawTime(),reftimes.at(hit1->GetSubbankID())) );
       if (counter>0){
 	if (hit1->GetDetectorID().fPlane==7){//this will read the first hit time of trig_h1
 	  trig_h1=hit1->GetTime();
@@ -221,25 +230,25 @@ void  QwDriftChamberHDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
 {
   Int_t tdcindex = GetTDCIndex(bank_index,slot_num);
   if (tdcindex != -1){
-    Int_t direction;
-    Int_t hitCount=0;
-    Int_t package = 1;//one package available
-    Int_t plane   = fTDCPtrs.at(tdcindex).at(chan).fPlane;
-    Int_t wire    = fTDCPtrs.at(tdcindex).at(chan).fElement;
+    EQwDirectionID direction = kDirectionNull;
+    Int_t hitCount = 0;
+    EQwDetectorPackage package  =   kPackageUp;//one package available
+    Int_t plane    = fTDCPtrs.at(tdcindex).at(chan).fPlane;
+    Int_t wire     = fTDCPtrs.at(tdcindex).at(chan).fElement;
 
     //Int_t hitCount;
     if (plane == -1 || wire == -1){
       //  This channel is not connected to anything.
       //  Do nothing.
-    } else if (plane == kReferenceChannelPlaneNumber){
-      fReferenceData.at(wire).push_back(data);
+    } else if (plane == (Int_t) kReferenceChannelPlaneNumber){
+      fReferenceData.at(wire).push_back(data);//now wire contains the value fCurrentBankIndex so we can assign the ref timing data to it.
     } else {
 
-      direction = fDirectionData.at(package-1).at(plane-1); //Wire Direction is accessed from the vector -Rakitha (10/23/2008)
+      direction = (EQwDirectionID)fDirectionData.at(package-1).at(plane-1); //Wire Direction is accessed from the vector -Rakitha (10/23/2008)
 
       //hitCount gives the total number of hits on a given wire -Rakitha (10/23/2008)
       hitCount=std::count_if(fTDCHits.begin(),fTDCHits.end(),boost::bind(&QwHit::WireMatches,_1,2,boost::ref(package),boost::ref(plane),boost::ref(wire)) );
-      fTDCHits.push_back(QwHit(bank_index, slot_num, chan, hitCount,2, package, plane,direction, wire, data));//in order-> bank index, slot num, chan, hitcount, region=2, package, plane,,direction, wire,wire hit time
+      fTDCHits.push_back(QwHit(bank_index, slot_num, chan, hitCount, kRegionID2, package, plane,direction, wire, data));//in order-> bank index, slot num, chan, hitcount, region=2, package, plane,,direction, wire,wire hit time
 
     }
   };
@@ -247,16 +256,6 @@ void  QwDriftChamberHDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
 
 
 
-
-Int_t QwDriftChamberHDC::LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire){
-  fReferenceChannels.at(fCurrentBankIndex).first  = fCurrentTDCIndex;
-  fReferenceChannels.at(fCurrentBankIndex).second = chan;
-  //  Register a reference channel with the wire equal to the bank index.
-  fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPackage = 0;
-  fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPlane   = plane;
-  fTDCPtrs.at(fCurrentTDCIndex).at(chan).fElement = fCurrentBankIndex;
-  return OK;
-};
 
 Int_t QwDriftChamberHDC::BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire){
   if (plane == kReferenceChannelPlaneNumber){
@@ -282,14 +281,14 @@ Int_t QwDriftChamberHDC::AddChannelDefinition(const UInt_t plane, const UInt_t w
     fWireData.at(i).resize(fWiresPerPlane.at(i));
   }
   for (size_t i=0; i<fTDC_Index.size(); i++){
-    Int_t refchan = i;
+    //  Int_t refchan = i;
     for (size_t j=0; j<fTDC_Index.at(i).size(); j++){
       Int_t mytdc = fTDC_Index.at(i).at(j);
       if (mytdc!=-1){
 	for (size_t k=0; k<fTDCPtrs.at(mytdc).size(); k++){
 	  //	  Int_t package = fTDCPtrs.at(mytdc).at(k).fPackage;
 	  Int_t plane   = fTDCPtrs.at(mytdc).at(k).fPlane;
-	  if (plane>0 && plane !=kReferenceChannelPlaneNumber){
+	  if (plane>0 && plane != (Int_t) kReferenceChannelPlaneNumber){
 	    Int_t wire  = fTDCPtrs.at(mytdc).at(k).fElement;
 	    fWireData.at(plane).at(wire).SetElectronics(i,j,k);
 	  }

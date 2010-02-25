@@ -46,7 +46,16 @@ class MQwV775TDC{
   UInt_t GetTDCSlotNumber(){return fV775SlotNumber;};
   UInt_t GetTDCChannelNumber(){return fV775ChannelNumber;};
   UInt_t GetTDCData(){return fV775Dataword;};
-  
+
+  void SetReferenceParameters(Double_t mindiff, Double_t maxdiff,
+			      Double_t offset, Double_t shift){
+    //  Do nothing, but keep this function to behave like
+    //  the MQwF1TDC class.
+  };
+
+  //  UInt_t SubtractReference(UInt_t a, UInt_t rawtime);  
+  Double_t SubtractReference(Double_t rawtime, Double_t reftime);
+
  private:
   static const UInt_t kV775Mask_SlotNumber;
   static const UInt_t kV775Mask_WordType;

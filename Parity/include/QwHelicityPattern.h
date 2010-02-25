@@ -22,12 +22,13 @@ class QwHelicityPattern{
    *
    ******************************************************************/
  public:
-  QwHelicityPattern(QwSubsystemArrayParity &event, Int_t pattern_size);
+  QwHelicityPattern(QwSubsystemArrayParity &event);
   ~QwHelicityPattern(){};
 
   void  LoadEventData(QwSubsystemArrayParity &event);
   Bool_t IsCompletePattern();
   void  CalculateAsymmetry();
+  void CalculateRunningAverage();
 
   void  ConstructHistograms(){ConstructHistograms((TDirectory*)NULL);};
   void  ConstructHistograms(TDirectory *folder);
@@ -35,6 +36,8 @@ class QwHelicityPattern{
   void  DeleteHistograms();
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
+
+  Bool_t IsGoodAsymmetry(){ return IsGood;};
 
   void  ClearEventData();
   void  Print();
@@ -47,14 +50,18 @@ class QwHelicityPattern{
   std::vector<Int_t> fEventNumber;
   Int_t fCurrentPatternNumber;
   Int_t fPatternSize;
+  Int_t fQuartetNumber;
 
   QwSubsystemArrayParity  fYield;
   QwSubsystemArrayParity  fAsymmetry;
-
+  QwSubsystemArrayParity fAverage;
+  QwSubsystemArrayParity fRunningSum;
  private:
   QwSubsystemArrayParity pos_sum;
   QwSubsystemArrayParity neg_sum;
   QwSubsystemArrayParity difference;
+  
+  
   Bool_t IsGood; 
   
 };

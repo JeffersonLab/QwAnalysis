@@ -1,39 +1,31 @@
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-//
-// C++ Interface: QwTrackingTreeMatch
-//
-// Description:
-//
-//
-// Author: Burnham Stocks <bestokes@jlab.org>
-// Original HRC Author: wolfgang Wander <wwc@hermes.desy.de>
-//
-// Modified by: Wouter Deconinck <wdconinc@mit.edu>, (C) 2008
-//              Jie Pan <jpan@jlab.org>, Thu May 28 22:01:11 CDT 2009
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-/*! \class QwTrackingTreeMatch
-
-    \file QwTrackingTreeMatch.cc
-
-    $date: Thu May 28 22:01:11 CDT 2009 $
-
-    \brief This module matches track segments for individual wire planes.
+/**
+ *  \file   QwTrackingTreeMatch.cc
+ *  \brief  Module that matches track segments for pairs of wire planes
+ *
+ *  \author Burnham Stocks <bestokes@jlab.org>
+ *  \author Wouter Deconinck <wdconinc@mit.edu>
+ *  \author Jie Pan <jpan@jlab.org>
+ *
+ *  \date   Thu May 28 22:01:11 CDT 2009
  */
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+#include "QwTrackingTreeMatch.h"
+
+// System C and C++ headers
 #include <cstdio>
 #include <fstream>
 #include <cassert>
 #include <cstdlib>
 
-#include "QwTrackingTreeMatch.h"
+// Qweak headers
+#include "QwLog.h"
+#include "QwDetectorInfo.h"
 #include "QwTrackingTreeCombine.h"
 
-extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
+// Qweak tracking headers
+#include "QwTrackingTreeLine.h"
+#include "QwPartialTrack.h"
+#include "QwTrack.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -51,335 +43,357 @@ double rcZEval( double vz, double te, double ph, double mom, int idx){
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-//returns the best measured wire hit
-QwHit* bestWireHit (QwTrackingTreeLine *treeline, double pos_offset = 0)
+/**
+ * Match the tree lines in two like-pitched planes in region 3.
+ *
+ * In this function the list of tree lines in the front VDC plane is combined
+ * with the list of tree lines in the back VDC plane.  The resulting list of
+ * combined tree lines is returned as a linked-list.  The criterion for keeping
+ * a combined tree line is that the following slopes are within their slope
+ * matching resolutions:
+ * - the slope of the tree line through the front plane,
+ * - the slope between the central hits in the front and back planes,
+ * - the slope of the tree line through the back plane.
+ *
+ * The reference frame for the matching is defined with the center of the first
+ * wire plane at the origin.  The center of the second wire plane is then at
+ * (0, d_para, d_perp) assuming no lateral displacement.  The difference in the
+ * u coordinate between the center of the chambers is then given by u_para.
+ *
+ * The line slopes are calculated in a different reference frame: the distance
+ * between the wires (in the plane) is represented by z, the perpendicular
+ * distance from the wire is represented by x.
+ *
+ * \todo This function requires the wire planes to be parallel.
+ *
+ * \image html QwTrackingTreeMatch-1.jpg
+ * \image html QwTrackingTreeMatch-2.jpg
+ * \image html QwTrackingTreeMatch-3.jpg
+ * \image html QwTrackingTreeMatch-4.jpg
+ * \image html QwTrackingTreeMatch-5.jpg
+ *
+ * @param frontlist List of tree lines in the front plane
+ * @param backlist List of tree lines in the back plane
+ * @return List of tree lines after matching
+ */
+QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
+	QwTrackingTreeLine* frontlist,
+	QwTrackingTreeLine* backlist)
 {
-  double best_pos = 9999.9;
-  int best_hit = 0;
-  // Get the best measured hit in the back
-  for (int hit = 0; hit < treeline->numhits; hit++) {
-    double pos = fabs(treeline->hits[hit]->GetDriftDistance() - pos_offset);
-    if (pos < best_pos) {
-      best_pos = pos;
-      best_hit = hit;
-    }
-  }
-  return treeline->hits[best_hit];
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-QwTrackingTreeMatch::QwTrackingTreeMatch()
-{
-  debug = 0; // debug level
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-QwTrackingTreeMatch::~QwTrackingTreeMatch()
-{
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-/* VDC reference frame : The center of the upstream u or v wire plane is placed
-   at the origin.  The u or v wire plane is in the y-z plane.  The center of the
-   downstream u or v plane is at (d,d2,0).  The line slopes are calculated with
-   a different reference frame: distance between wires representing dy and
-   distance from wire representing dx.
-*/
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-// This function requires the wire planes to be parallel
-QwTrackingTreeLine *QwTrackingTreeMatch::MatchR3 (
-	QwTrackingTreeLine *frontlist,
-	QwTrackingTreeLine *backlist,
-	EQwDetectorPackage package,
-	EQwRegionID region,
-	EQwDirectionID dir)
-{
-  if (region != kRegionID3) {
-    std::cerr << "Error, this function is only for R3" << std::endl;
+  // Check the region of the tree lines (only region 3 is allowed)
+  if (frontlist->GetRegion() != kRegionID3
+    || backlist->GetRegion() != kRegionID3) {
+    QwError << "[TreeMatch::MatchR3] Tree line matching is only valid for region 3!"
+            << QwLog::endl;
     return 0;
   }
 
-  //###############
-  // DECLARATIONS #
-  //###############
-  QwTrackingTreeLine *combined;
-  double x[2],y[2],z[3],zp[2];
-  QwHit *fpos, *bpos;
-  double d,d2,d2u,d_uv;
-  double pi = acos(-1.0), theta;
-  double wirespacingf, wirespacingb, d_to_1st_wire_f, d_to_1st_wire_b;
-  Det *rd;
-  int i,j;
-  double slope,intercept,fslope,bslope;
-  double fsloperes,bsloperes;
-  double bestmatch;
-  double mx,cx,cov[3],chi;
-  double RotCos,RotSin,RotTan;
-  int nhits,fhits,bhits;
-  int matchfound = 0;
+  // Check whether the front and back planes are consistent
+  if (frontlist->GetRegion()    != backlist->GetRegion()
+   || frontlist->GetPackage()   != backlist->GetPackage()
+   || frontlist->GetDirection() != backlist->GetDirection()) {
+    QwError << "[TreeMatch::MatchR3] The front and back planes are not consistent!"
+            << QwLog::endl;
+    return 0;
+  }
+
+  // Check whether the planes are different
+  if (frontlist->GetPlane() == backlist->GetPlane()) {
+    QwError << "[TreeMatch::MatchR3] The front and back planes are identical!"
+            << QwLog::endl;
+    return 0;
+  }
+
+
+  // Initialize the list of combined tree lines to null
+  QwTrackingTreeLine* treelinelist = 0;
+
+  // Initialize the tree combine object (TODO can this be avoided?)
   QwTrackingTreeCombine *TreeCombine = new QwTrackingTreeCombine();
-  QwHit *DetecHits[2*TLAYERS];
-
-  ofstream gnu1,gnu2;
-  if (dir == kDirectionU) {
-    gnu1.open("gnu1.dat");
-    gnu2.open("gnu2.dat");
-  }
-
-  //###################################
-  // Get distance between planes, etc #
-  //###################################
-  rd = rcDETRegion[package][region][dir];
-  theta = rd->Rot/360*2*pi;
-  //get the u value for the first wire.
-  d_to_1st_wire_f = rd->rSin * rd->PosOfFirstWire;
-  // due to reverse order
-  d_to_1st_wire_f = d_to_1st_wire_f - rd->NumOfWires * rd->WireSpacing;
-  wirespacingf = rd->WireSpacing;
-  fsloperes = rd->SlopeMatching;
-  x[0]= rd->center[0];
-  y[0]= rd->center[1];
-  z[0]= rd->Zpos;
-  zp[0] = z[0]-y[0]/tan(theta);
-
-  rd = rd->nextsame;
-  x[1]= rd->center[0];
-  y[1]= rd->center[1];
-  z[1]= rd->Zpos;
-  zp[1] = z[1]-y[1]/tan(theta);
-
-  d = (zp[1]-zp[0])*sin(theta); // distance between planes
-  // cerr << "d = " << d << endl;
-  wirespacingb = rd->WireSpacing;
-  bsloperes = rd->SlopeMatching;
-  // get the u value for the first wire.
-  d_to_1st_wire_b = rd->rSin * rd->PosOfFirstWire;
-  // due to reverse order
-  d_to_1st_wire_b = d_to_1st_wire_b - rd->NumOfWires * rd->WireSpacing;
 
 
-  // Get the distance between the u and v planes
-  if (dir == kDirectionV) {
-    RotCos = rcDETRegion[package][region][kDirectionU]->rRotCos;
-    RotSin = rcDETRegion[package][region][kDirectionU]->rRotSin;
-    RotTan = RotSin/RotCos;
+  /// Set up the geometry of the two wire planes: distances between them,
+  /// relative orientation, etc.
 
-    d_uv  = rcDETRegion[package][region][kDirectionV]->Zpos
-          - rcDETRegion[package][region][kDirectionU]->Zpos;
-    d_uv += ( rcDETRegion[package][region][kDirectionU]->center[1]
-            - rcDETRegion[package][region][kDirectionV]->center[1] ) / RotTan;
-    d_uv *= RotSin;
-  }
+  // Get detector identification (TODO not assigned correctly yet)
+  //QwDetectorInfo* frontdetector = frontlist->GetDetectorInfo();
+  //QwDetectorInfo* backdetector  = backlist->GetDetectorInfo();
+  // TODO We currently get the detector info from the first tree line hit
+  QwDetectorInfo* frontdetector = frontlist->GetHit(0)->GetDetectorInfo();
+  QwDetectorInfo* backdetector  = backlist->GetHit(0)->GetDetectorInfo();
 
-  //######################################
-  // Get the radial offset of the planes #
-  //######################################
-  // warning : this assumes the planes are parallel.
+  // Rotation of the detector planes around the x axis
+  double cos_theta = frontdetector->GetDetectorRotationCos();
+  double sin_theta = frontdetector->GetDetectorRotationSin();
 
-  z[2] = z[0] + d * sin(theta);
-  //d2 = (z[2] - z[1]) / cos(theta);
-  d2 = (y[1] - y[0]) / sin(theta) + (zp[1] - zp[0]) * cos(theta);
-  d2u = d2 * fabs(rd->rCos);
+  // Get the u value for the first wire in the front plane
+  double d_to_1st_wire_f = frontdetector->GetElementAngleSin() * frontdetector->GetElementOffset();
+  // ... due to reverse order
+  d_to_1st_wire_f -= frontdetector->GetNumberOfElements() * frontdetector->GetElementSpacing();
 
-  //##########################
-  //Revise the hit positions #
-  //##########################
-  if (dir == kDirectionU) {
-    for (int i = 0; i < rd->NumOfWires; i++) {
-      gnu2 << "0 " << (i - 141)*wirespacingf << " " << d << " " <<  (i - 141)*wirespacingb +d2u << endl;
-    }
-  }
+  // Get the u value for the first wire in the back plane
+  double d_to_1st_wire_b = backdetector->GetElementAngleSin() * backdetector->GetElementOffset();
+  // ... due to reverse order
+  d_to_1st_wire_b -= backdetector->GetNumberOfElements() * backdetector->GetElementSpacing();
 
+  // Wire spacing and slope matching parameters for front and back planes
+  double wirespacing_f = frontdetector->GetElementSpacing();
+  double wirespacing_b = backdetector->GetElementSpacing();
+  double sloperes_f = frontdetector->GetSlopeMatching();
+  double sloperes_b = backdetector->GetSlopeMatching();
+
+  // Differences in position between the front and back detector planes
+  double delta_x = backdetector->GetXPosition() - frontdetector->GetXPosition();
+  double delta_y = backdetector->GetYPosition() - frontdetector->GetYPosition();
+  double delta_z = backdetector->GetZPosition() - frontdetector->GetZPosition();
+
+  // Distance between the chamber centers perpendicular to the wire planes
+  double d_perp = delta_z * sin_theta - delta_y * cos_theta;
+  // Distance between the chamber centers parallel to the wire planes
+  double d_para = delta_z * cos_theta + delta_y * sin_theta;
+  // Parallel distance between the chamber centers in u or v coordinates
+  double u_para = d_para * fabs(frontdetector->GetElementAngleCos());
+
+  // TODO A difference in x coordinate between the two chambers is ignored.
+  // This might become relevant if misalignment needs to be included.  The
+  // helper class uv2xy could be used here.
+  if (delta_x > 0.1)
+    QwWarning << "[TreeMatch::MatchR3] Horizontal shifts between VDC planes are ignored"
+              << QwLog::endl;
+
+
+  // For the good tree lines in the front and back VDC planes, we first need
+  // to set the 'z' coordinate in the wire direction.  The 'z' position for
+  // VDC planes is the coordinate in the wire plane.  By definition, the
+  // middle wire (141) has a 'z' position of zero.
+
+  // Loop over the tree lines in the front VDC plane to set the 'z' position.
   int numflines = 0;
   for (QwTrackingTreeLine* frontline = frontlist; frontline;
-       frontline = frontline->next) {
-    numflines++;
-    if (frontline->isvoid) continue;
-    for (int hit = 0; hit < frontline->numhits; hit++) {
-      frontline->hits[hit]->SetZPosition((frontline->hits[hit]->GetElement() - 141) * wirespacingf);
-      if (dir == kDirectionV) frontline->hits[hit]->rPos += d_uv;
+       frontline = frontline->next, numflines++) {
+    // Skip the the void tree lines
+    if (frontline->IsVoid()) continue;
+    // Loop over all hits of the valid tree lines
+    for (int hit = 0; hit < frontline->fNumHits; hit++) {
+      double zpos = (frontline->hits[hit]->GetElement() - 141) * wirespacing_f;
+      frontline->hits[hit]->SetZPosition(zpos);
     }
   }
-
+  // Loop over the tree lines in the back VDC plane to set the 'z' position
   int numblines = 0;
   for (QwTrackingTreeLine* backline = backlist; backline;
-       backline = backline->next) {
-    numblines++;
-    if (backline->isvoid) continue;
-    for (int hit = 0; hit < backline->numhits; hit++) {
-      backline->hits[hit]->SetZPosition((backline->hits[hit]->GetElement() - 141) * wirespacingb + d2u);
-      backline->hits[hit]->rPos = backline->hits[hit]->rPos + d;
-      if (dir == kDirectionV) backline->hits[hit]->rPos += d_uv;
+       backline = backline->next, numblines++) {
+    // Skip the the void tree lines
+    if (backline->IsVoid()) continue;
+    // Loop over all hits of the valid tree lines
+    for (int hit = 0; hit < backline->fNumHits; hit++) {
+      double zpos = (backline->hits[hit]->GetElement() - 141) * wirespacing_b;
+      backline->hits[hit]->SetZPosition(zpos);
     }
   }
 
 
-  int matches[numflines];
-  int bmatches[numblines];
-  double bestmatches[numblines];
   //###############################
   // Find matching track segments #
   //###############################
+  int fmatches[numflines]; // matches indexed by front tree lines
+  int bmatches[numblines]; // matches indexed by back tree lines
+
+  // Initialize the array of best matches for all back plane tree lines
+  double bestmatches[numblines];
   for (int i = 0; i < numblines; i++) bestmatches[i] = 99;
-  i = 0;
-  // Loop over front track segments
+
+  // Loop over the tree lines in the front VDC plane
+  int ifront = 0;
   for (QwTrackingTreeLine* frontline = frontlist; frontline;
-       frontline = frontline->next) {
-    matches[i] = -1;
-    i++;
-    if (frontline->isvoid) continue; //skip it if it's no good
+       frontline = frontline->next, ifront++) {
 
-    if (dir == kDirectionU) {
-      for (int hit = 0; hit < frontline->numhits; hit++) {
-        gnu1 << frontline->hits[hit]->GetZPosition() << " " << frontline->hits[hit]->rPos << endl;
-      }
-    }
-    fpos = bestWireHit(frontline);
-    j = 0;
-    bestmatch = 99;
+    // Skip void tree lines
+    if (frontline->IsVoid()) continue; // Skip it if it's no good
+
+    // Get the hit with smallest drift distance
+    QwHit* fpos = frontline->GetBestWireHit();
+
+    // No match found yet
+    fmatches[ifront] = -1;
+    double bestmatch = 99;
+
+    // Loop over the tree lines in the back VDC plane
+    int iback = 0;
     for (QwTrackingTreeLine* backline = backlist; backline;
-         backline = backline->next) {
-      j++;
-      if (backline->isvoid) continue;
-      if (dir == kDirectionU) {
-        for (int hit = 0; hit < backline->numhits; hit++) {
-         gnu1 << backline->hits[hit]->GetZPosition() << " " << backline->hits[hit]->rPos << endl;//gnu1 << backline->hits[l]->Zpos << " " << backline->hits[l]->rPos << endl;
+         backline = backline->next, iback++) {
+
+      // Skip void tree lines
+      if (backline->IsVoid()) continue;
+
+      // Get the hit with smallest drift distance around the center of the
+      // second wire plane.
+      QwHit* bpos = backline->GetBestWireHit();
+
+      // Get the positions of the best wire hit
+      double x[2], y[2];
+      y[0] = fpos->GetZPosition(); // Z position (i.e. wire direction)
+      y[1] = bpos->GetZPosition();
+      x[0] = fpos->GetPosition(); // X position (i.e. drift distance)
+      x[1] = bpos->GetPosition();
+
+      // Slope between the front and back plane central hits
+      double slope = (u_para + y[1] - y[0]) / (d_perp + x[1] - x[0]);
+
+      // Slope of the front and back tree line
+      double fslope = wirespacing_f / frontline->fSlope;
+      double bslope = wirespacing_b / backline->fSlope;
+
+      // Check whether this is a good match
+      if (fabs(fslope - slope) <= sloperes_f
+       && fabs(bslope - slope) <= sloperes_b
+       && fabs(fslope - slope) + fabs(bslope - slope) < bestmatch) {
+
+        // If the back segment has been matched already
+        if (bestmatches[iback] != 99) {
+          // Check if it's better than what we had already
+          bestmatch = fabs(fslope - slope) + fabs(bslope - slope);
+          if (bestmatch > bestmatches[iback]) continue;
+          else fmatches[bmatches[iback]] = -1;
         }
-      }
-      bpos = bestWireHit(backline,d);
 
-      y[0] = fpos->GetZPosition(); //y[0]=fpos->Zpos;
-      y[1] = bpos->GetZPosition(); // y[1]=bpos->Zpos;
-      x[0] = fpos->rPos;
-      x[1] = bpos->rPos;
+        // Set the match on both match arrays
+        fmatches[ifront] = iback;
+        bmatches[iback] = ifront;
+        bestmatch = bestmatches[iback] = fabs(fslope - slope) + fabs(bslope - slope);
 
-      slope = (y[1] - y[0]) / (x[1] - x[0]);
-      intercept = y[1] - slope * x[1];
+      } // end of if good match
 
-      fslope = wirespacingf / frontline->mx;
-      bslope = wirespacingb / backline->mx;
-      if (fabs(fslope - slope) <= fsloperes
-         && fabs(bslope - slope) <= bsloperes
-         && fabs(fslope - slope) + fabs(bslope - slope) < bestmatch) {//if it's a good match
-        if (bestmatches[j-1] != 99) {// if the back segment has been matched already
-              bestmatch = fabs(fslope - slope) + fabs(bslope - slope);
-              if (bestmatch > bestmatches[j-1]) continue;//check if it's better
-              else matches[bmatches[j-1]] = -1;//if so, remove the bad match
-        }
-        //cerr << "match found " << i << " " << j-1 << endl;
-        matches[i] = j-1;//set the match on both match arrays
-        bmatches[j-1] = i;
-        bestmatch = bestmatches[j-1] = fabs(fslope - slope) + fabs(bslope - slope);
-      }
-      //cerr << x[0] << "," << y[0] << "," << x[1] << "," << y[1] << endl;
+    } // end of loop over back VDC tree lines
 
-      //cerr << "slope = " << fslope << "," << slope << "," << bslope << endl;
-      //cerr << "line = " << slope << "*x + " << intercept << endl;
-      //cerr << "fline = " << wirespacingf/frontline->mx << "*x + " << -wirespacingf*(frontline->cx)/frontline->mx - wirespacingf*141<< endl;
-      //cerr << "mx = " << frontline->mx << endl;
-      //cerr << "cx = " << frontline->cx << endl;
-    }
-  }
+  } // end of loop over front VDC tree lines
+
   //################################
   // Create the combined treelines #
   //################################
-  QwTrackingTreeLine* lineptr = new QwTrackingTreeLine;
-  assert(lineptr);
 
-  i = 0;
+  // Loop over the tree lines in the front VDC plane
+  ifront = 0;
   for (QwTrackingTreeLine* frontline = frontlist; frontline;
-       frontline = frontline->next, i++) {
-    j = 0;
-    for (QwTrackingTreeLine* backline = backlist; backline;
-         backline = backline->next, j++) {
-      // If this front segment was matched to this back segment
-      if (matches[i] == j) {
-        //set the hits
-        matchfound = 1;
-	fhits = frontline->numhits;
-        bhits = backline->numhits;
-        for (int hit = 0; hit < fhits; hit++) {
-	  DetecHits[hit] = frontline->hits[hit];
-          lineptr->hits[hit] = frontline->hits[hit];
-	}
-	for (int hit = 0; hit < bhits; hit++) {
-	  DetecHits[hit+fhits] = backline->hits[hit];
-	  lineptr->hits[hit+fhits] = backline->hits[hit];
-        }
-        nhits = fhits + bhits;
-        for (int hit = 0; hit < nhits; hit++) {
-	 // cerr << DetecHits[k]->Zpos << " " << DetecHits[k]->rPos << endl;
-	}
-        // fit a line to the hits
-        TreeCombine->weight_lsq_r3 (&mx, &cx, cov, &chi, DetecHits, nhits, 0, -1, 2*TLAYERS);
-        lineptr->mx = mx;
-        lineptr->cx = cx;
-        lineptr->chi = chi;
-        lineptr->numhits = nhits;
-        lineptr->nummiss = 2*TLAYERS - nhits;
-        lineptr->isvoid = false;
+       frontline = frontline->next, ifront++) {
 
-        //cerr << "line = " << 1/mx << "x + (" << -cx/mx << ")" << endl;
-	//string the tracks together
-        lineptr->next = combined;
-        combined = lineptr;
+    // Loop over the tree lines in the back VDC plane
+    int iback = 0;
+    for (QwTrackingTreeLine* backline = backlist; backline;
+         backline = backline->next, iback++) {
+
+      // If this front segment was matched to this back segment
+      if (fmatches[ifront] == iback) {
+
+        // Create a new tree line
+        QwTrackingTreeLine* treeline = new QwTrackingTreeLine;
+        // Set the detector identification
+        treeline->SetRegion(frontline->GetRegion());
+        treeline->SetPackage(frontline->GetPackage());
+        treeline->SetDirection(frontline->GetDirection());
+
+        QwHit *DetecHits[2*MAX_LAYERS];
+        for (int i = 0; i < 2*MAX_LAYERS; i++) DetecHits[i] = 0;
+
+        // Set the hits for front VDC
+        int fronthits = frontline->fNumHits;
+        for (int hit = 0; hit < fronthits; hit++) {
+          treeline->hits[hit] = new QwHit(frontline->hits[hit]);
+          DetecHits[hit] = treeline->hits[hit];
+        }
+        // Set the hits for back VDC
+        int backhits = backline->fNumHits;
+        for (int hit = 0; hit < backhits; hit++) {
+          treeline->hits[hit+fronthits] = new QwHit(backline->hits[hit]);
+          DetecHits[hit+fronthits] = treeline->hits[hit+fronthits];
+          DetecHits[hit+fronthits]->fZPosition += u_para;
+          DetecHits[hit+fronthits]->fPosition  += d_perp;
+        }
+        int nhits = fronthits + backhits;
+
+        // Debug output
+        if (fDebug) {
+          for (int hit = 0; hit < nhits; hit++) {
+            std::cout << DetecHits[hit]->GetZPosition() << " " << DetecHits[hit]->GetPosition() << endl;
+          }
+        }
+
+        // Fit a line to the hits
+        double slope, offset, chi, cov[3];
+        TreeCombine->weight_lsq_r3 (&slope, &offset, cov, &chi, DetecHits, nhits, 0, -1, 2*MAX_LAYERS);
+
+        // Store the determined offset, slope, and chi^2 into the tree line
+        treeline->SetOffset(offset);
+        treeline->SetSlope(slope);
+        treeline->SetChi(chi);
+
+        treeline->fNumHits = nhits;
+        treeline->fNumMiss = 2 * MAX_LAYERS - nhits;
+
+        // Set the tree line valid
+        treeline->SetValid();
+
+        // Store the final set of hits into this tree line
+        for (int hit = 0; hit < fronthits; hit++) {
+          treeline->usedhits[hit] = DetecHits[hit];
+          treeline->AddHit(DetecHits[hit]);
+        }
+        for (int hit = fronthits; hit < fronthits + backhits; hit++) {
+          treeline->usedhits[hit] = DetecHits[hit];
+          treeline->AddHit(DetecHits[hit]);
+        }
+
+        treeline->next = treelinelist;
+        treelinelist = treeline;
       }
     }
   }
-  gnu1.close();
-  gnu2.close();
-  if (!matchfound) {
-    return 0;
-  }
-  combined->next = 0;
-  //cerr << "Matching Done" << endl;
-  //cerr << combined->isvoid << endl;
-  return combined;
+
+  // Delete the tree combining object
+  delete TreeCombine;
+
+  // Return the list of matched tree lines (if no tree lines found, this is null)
+  return treelinelist;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 void QwTrackingTreeMatch::TgTrackPar (
-	QwPartialTrack *front,	//!- front partial track
-	QwPartialTrack *back,	//!- back partial track
-	double *theta,		//!- determined polar angle
-	double *phi,		//!- determined azimuthal angle
-	double *bending,	//!- bending in polar angle
-	double *ZVertex)	//!- determined z vertex
+	QwPartialTrack *front,	///< front partial track
+	QwPartialTrack *back,	///< back partial track
+	double *theta,		///< determined polar angle
+	double *phi,		///< determined azimuthal angle
+	double *bending,	///< bending in polar angle
+	double *ZVertex)	///< determined z vertex
 {
-  *theta = atan(front->mx);
-  *phi   = atan(front->my);
+  *theta = atan(front->fSlopeX);
+  *phi   = atan(front->fSlopeY);
   if (bending && back)
-    *bending = atan(back->mx) - *theta;
-  *ZVertex = - ( (front->mx * front->x  + front->my * front->y)
-	       / (front->mx * front->mx + front->my * front->my));
+    *bending = atan(back->fSlopeX) - *theta;
+  *ZVertex = - ( (front->fSlopeX * front->fOffsetX + front->fSlopeY * front->fOffsetY)
+	       / (front->fSlopeX * front->fSlopeX  + front->fSlopeY * front->fSlopeY));
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwTrack* QwTrackingTreeMatch::TgPartMatch (
-	QwPartialTrack *front,		//!- front partial track
-	QwPartialTrack *back,		//!- back partial track
-	QwTrack *tracklist,		//!- list of tracks
-	EQwDetectorPackage package	//!- package identifier
+	QwPartialTrack *front,		///< front partial track
+	QwPartialTrack *back,		///< back partial track
+	QwTrack *tracklist,		///< list of tracks
+	EQwDetectorPackage package	///< package identifier
 	/*enum Emethod method*/)
 {
   double bestchi = 1e10, chi;
   double v1, v2, v3;
   QwTrack *ret = 0, *newtrack = 0, *besttrack = 0, *trackwalk, *ytrackwalk;
-  Bridge *bridge;
+  QwBridge *bridge;
   //int m = method == meth_std ? 0 : 1;
   double theta, ZVertex, phi, bending, P;
 
 
   while (back) {
     /* --------- check for the cuts on magnetic bridging ------------ */
-    if (back->isvoid == false
+    if (back->IsVoid() == false
 	 //removed all the following cuts
 	  /*&& (fabs(front->y-back->y))            < rcSET.rMagnMatchY[m]*3.0
 	  && (fabs(front->x-back->x ))           < rcSET.rMagnMatchX[m]*3.0
@@ -400,7 +414,7 @@ QwTrack* QwTrackingTreeMatch::TgPartMatch (
       else if (back->bridge)	/* or back one (mckalman) ? */
 	bridge = back->bridge;
       else
-	bridge = new Bridge;//QCnew( 1, Bridge );
+	bridge = new QwBridge;
       assert (bridge);
       TgTrackPar( front, back, &theta, &phi, &bending, &ZVertex);
 
@@ -411,18 +425,18 @@ QwTrack* QwTrackingTreeMatch::TgPartMatch (
 	ZVertex = DZA+DZW;
       P = rcPEval( ZVertex, theta, phi, bending);
       if( P > 0.0 ) {
-	bridge->Momentum = P;
+	bridge->fMomentum = P;
 	if( bending < 0 )
 	  P = -P;
 	bridge->xOff  = rcZEval( ZVertex, theta, phi, P, 0);
 	bridge->yOff  = rcZEval( ZVertex, theta, phi, P, 1);
 	bridge->ySOff = rcZEval( ZVertex, theta, phi, P, 2);
       } else
-	bridge->Momentum = 0.0;
-      bridge->ySlopeMatch = back->my - front->my;
-      bridge->xMatch      = v2 = back->x  - front->x  + bridge->xOff;
-      bridge->yMatch      = v1 = back->y  - front->y  + bridge->yOff;
-      bridge->ySMatch     = v3 = back->my - front->my + bridge->ySOff;
+	bridge->fMomentum = 0.0;
+      bridge->ySlopeMatch = back->fSlopeY - front->fSlopeY;
+      bridge->xMatch      = v2 = back->fOffsetX - front->fOffsetX + bridge->xOff;
+      bridge->yMatch      = v1 = back->fOffsetY - front->fOffsetY + bridge->yOff;
+      bridge->ySMatch     = v3 = back->fSlopeY  - front->fSlopeY  + bridge->ySOff;
 
 
 	double rcSET_rMagnMatchYSl0 = 0.03;//INSERTED FROM HRCSET.C FUNCTION
@@ -442,17 +456,11 @@ QwTrack* QwTrackingTreeMatch::TgPartMatch (
       //newtrack->method = method;
       newtrack->front  = front;
       newtrack->back = back;
-/*NOT SURE WHAT THIS BPHOTOSEARCH IS FOR, BUT IT SEEMS USELESS AT THIS POINT
-      if( bPhotoSearch )
-	newtrack->Used = true;
-      else
-	newtrack->Used = false;
-*/
 
       /* ------ a weighted measure for the quality of bridging ------ */
 
       chi = v1 * v1 + v2 * v2 + v3 * v3;
-      newtrack->chi  = sqrt(chi + front->chi*front->chi + back->chi*back->chi);
+      newtrack->fChi  = sqrt(chi + front->fChi * front->fChi + back->fChi * back->fChi);
       if(bestchi > chi) {
 	besttrack = newtrack;
 	bestchi = chi;
@@ -467,12 +475,12 @@ QwTrack* QwTrackingTreeMatch::TgPartMatch (
   if (besttrack) {
     int mtch = 1;
     besttrack->isused = true;	/* set the parttrack used flags */
-    besttrack->front->isused = true;
-    besttrack->back->isused = true;
+    besttrack->front->fIsUsed = true;
+    besttrack->back->fIsUsed = true;
 	double rcSET_rXSlopeSep = 0.01;//INSERTED FROM HRCSET
         std::cerr << "Error : bogus value used" << std::endl;
     for( trackwalk = ret; trackwalk ; trackwalk = trackwalk->next ) {
-      if( fabs( newtrack->back->mx - besttrack->back->mx ) > rcSET_rXSlopeSep )
+      if( fabs( newtrack->back->fSlopeX - besttrack->back->fSlopeX ) > rcSET_rXSlopeSep )
         mtch ++;
     }
     besttrack->yTracks = mtch;
@@ -496,7 +504,7 @@ QwTrack* QwTrackingTreeMatch::TgPartMatch (
 	  continue;
 	*/
 	if(ytrackwalk->isused && ytrackwalk->back == newtrack->back ) {
-	  if (ytrackwalk->chi > newtrack->chi) {
+	  if (ytrackwalk->fChi > newtrack->fChi) {
 	    ytrackwalk->isused = 0;
 	  } else {
 	    newtrack->isused = 0;

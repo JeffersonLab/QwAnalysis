@@ -6,6 +6,7 @@
 \**********************************************************/
 
 #include "MQwV775TDC.h"
+#include <iostream>
 
 
 const UInt_t MQwV775TDC::kV775Mask_SlotNumber        = 0xf8000000;  // 27-31
@@ -30,6 +31,7 @@ const UInt_t MQwV775TDC::kV775WordType_Datum    = 0;
 
 
 void MQwV775TDC::DecodeTDCWord(UInt_t &word){
+  
   fV775SlotNumber = (word & kV775Mask_SlotNumber)>>27;
   UInt_t wordtype = (word & kV775Mask_WordType)>>24;
   if (wordtype == kV775WordType_Datum){
@@ -48,3 +50,12 @@ void MQwV775TDC::DecodeTDCWord(UInt_t &word){
     fV775Dataword      = 0;
   }
 };
+
+// UInt_t MQwV775TDC::SubtractReference(UInt_t a, UInt_t rawtime){
+//   UInt_t b=rawtime;
+//   return b;
+// }
+Double_t MQwV775TDC::SubtractReference(Double_t rawtime, Double_t reftime){
+  Double_t real_time = rawtime - reftime;  
+  return real_time;
+}

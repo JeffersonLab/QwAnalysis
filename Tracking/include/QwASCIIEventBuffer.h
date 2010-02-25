@@ -26,7 +26,7 @@
 
 
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class QwASCIIEventBuffer : public QwEventBuffer
 {
 
@@ -74,31 +74,22 @@ class QwASCIIEventBuffer : public QwEventBuffer
 
 
   enum EQwDetectorPackage package;//from QwTypes.h
-  enum EQwRegionID region;//from QwTypes.h
-  enum EQwDirectionID dir;//from QwTypes.h
-  enum EQwDetectorType type;//from QwTypes.h
-
-
+  enum EQwRegionID        region; //from QwTypes.h
+  enum EQwDirectionID     dir;    //from QwTypes.h
+  enum EQwDetectorType    type;   //from QwTypes.h
 
 
   QwParameterFile *eventf ;
-  Int_t CurrentEvent;
 
-  int DetectId;
-
-
-
+  UInt_t CurrentEvent;
+  Int_t  DetectId;
 
 
   QwHit * currentHit;
+
   std::vector< QwHit > fASCIIHits;
-
   std::vector< std::vector< QwDetectorInfo > > fDetectorInfo;//detector geometires
-
   Int_t DetectorCounter; //counts total detectors added to the rcDET 
-
-
-
 
 
 };

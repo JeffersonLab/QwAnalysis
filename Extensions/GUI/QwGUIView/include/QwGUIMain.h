@@ -1,47 +1,47 @@
 //=============================================================================
-// 
+//
 //   ---------------------------
 //  | Doxygen File Information |
 //  ---------------------------
 /**
- 
+
    \file QwGUIMain.h
    \author Michael Gericke
-     
+
 */
 //=============================================================================
-// 
+//
 //=============================================================================
-// 
+//
 //   ---------------------------
 //  | Doxygen Class Information |
 //  ---------------------------
 /**
    \class QwGUIMain
-    
-   \brief Qweak GUI Interface  
+
+   \brief Qweak GUI Interface
 
    The QwGUIMain class provides the main data interface GUI. It is the top level
-   window, through which most communication with the operating system happens (except 
+   window, through which most communication with the operating system happens (except
    for transient windows, such as dialog boxes). The main menu and the main tab
-   environment are defined in this class. All sub systems are instantiated in this 
+   environment are defined in this class. All sub systems are instantiated in this
    class' constructor and their instances are kept in an object array for cleanup
-   purposes. Each subsystem has a tab associated with itself and is given a menu entry 
-   to control visbility of this tab. This happens automatically on creation of the 
+   purposes. Each subsystem has a tab associated with itself and is given a menu entry
+   to control visbility of this tab. This happens automatically on creation of the
    instance, with a single function call from a new sub system constructor.
 
-   The class ties together all communication between other classes. It facilitates the 
-   opening and closing of common files and provides access to the data for all other 
-   classes (except dialog boxes and special data transient windows, which have their 
+   The class ties together all communication between other classes. It facilitates the
+   opening and closing of common files and provides access to the data for all other
+   classes (except dialog boxes and special data transient windows, which have their
    own file access methods). The details of what is done with the data is left to the
    implementation of the individual sub systems, which communicate with each other
    and this class via singal passing.
 
-   The class also implements a data log (with its own tab) which receives and posts 
-   messages, from anywhere within the program. Each sub system can send messages to 
-   the log, either with or without a time stamp. At the same time, the log serves as 
-   a basic text editor, so that notes and comments can be added by the user. 
-    
+   The class also implements a data log (with its own tab) which receives and posts
+   messages, from anywhere within the program. Each sub system can send messages to
+   the log, either with or without a time stamp. At the same time, the log serves as
+   a basic text editor, so that notes and comments can be added by the user.
+
  */
 //=============================================================================
 
@@ -58,6 +58,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <TGTab.h>
 
@@ -72,7 +73,6 @@
 #include <TGSplitter.h>
 #include <TGLabel.h>
 #include <TGMenu.h>
-#include <TG3DLine.h>
 #include <TObjArray.h>
 #include <TRootEmbeddedCanvas.h>
 #include <TGTextEntry.h>
@@ -83,9 +83,13 @@
 #include <TGIcon.h>
 
 #include "QwGUIMainDetector.h"
+#include "QwGUILumiDetector.h"
+#include "QwGUIInjector.h"
+#include "QwGUIEventDisplay.h"
+#include "QwGUIHelpBrowser.h"
 
 class QwGUIMain : public TGMainFrame {
-  
+
   RQ_OBJECT("QwGUIMain");
 
  private:
@@ -95,7 +99,12 @@ class QwGUIMain : public TGMainFrame {
 
   //!Main detector sub system class
   QwGUIMainDetector      *MainDetSubSystem;
-			 
+  QwGUILumiDetector      *LumiDetSubSystem;
+  QwGUIInjector          *InjectorSubSystem;
+  QwGUIEventDisplay      *EventDisplaySubSystem;
+
+  QwGUIHelpBrowser          *dHelpBrowser;
+
   //!Initial width of the application window set in main()
   Int_t                   dMWWidth;
 
@@ -126,27 +135,27 @@ class QwGUIMain : public TGMainFrame {
 
   Char_t                  dTime[NAME_STR_MAX];
   Char_t                  dDate[NAME_STR_MAX];
-		        
+
   //!Command line argument structure (not currently implemented)
   ClineArgs               dClArgs;
 
-  //!ROOT file data container a wrapper class for many common file types 
+  //!ROOT file data container a wrapper class for many common file types
   RDataContainer         *dROOTFile;
-		    		    
-  //!Standard GUI widgets and layouts for the main window 
+
+  //!Standard GUI widgets and layouts for the main window
   TGComboBox             *dTBinEntry;
   TGLayoutHints          *dTBinEntryLayout;
   TGNumberEntry          *dRunEntry;
   TGLayoutHints          *dRunEntryLayout;
   TGLabel                *dRunEntryLabel;
   TGHorizontal3DLine     *dHorizontal3DLine;
-  TGHorizontalFrame      *dUtilityFrame;  
+  TGHorizontalFrame      *dUtilityFrame;
   TGLayoutHints          *dUtilityLayout;
-		    
+
   //!Main window tab environment
   TGTab                  *dTab;
   TGLayoutHints          *dTabLayout;
-		        
+
   //!Main window canvas -- has its own permanent tab and can display
   //!plots that are always needed
   TRootEmbeddedCanvas    *dMainCanvas;
@@ -160,39 +169,39 @@ class QwGUIMain : public TGMainFrame {
   TGTextEdit             *dLogEdit;
   TGHorizontalFrame      *dLogTabFrame;
   TGLayoutHints          *dLogTabLayout;
-  TGLayoutHints          *dLogEditLayout; 
-		        
+  TGLayoutHints          *dLogEditLayout;
+
   //!Menubar widgets
   TGMenuBar              *dMenuBar;
   TGPopupMenu            *dMenuFile;
   TGPopupMenu            *dMenuTabs;
-  TGPopupMenu            *dMenuHelp;		        
-  TGLayoutHints          *dMenuBarLayout; 
+  TGPopupMenu            *dMenuHelp;
+  TGLayoutHints          *dMenuBarLayout;
   TGLayoutHints          *dMenuBarItemLayout;
   TGLayoutHints          *dMenuBarHelpLayout;
-		        
+
   //!This function is used to append new messages to the log book. It cannot
   //!be used from other classes. Instead, the QwGUISubSystem class implements the
-  //!SendMessageSignal() and GetMessage() connection mechanism and derived subsystem classes 
+  //!SendMessageSignal() and GetMessage() connection mechanism and derived subsystem classes
   //!use SetLogMessage() to pass messages to the log (see QwGUIMainDetector class for an example).
   //!
-  //!Parameters: 
+  //!Parameters:
   //! - 1) Text to be added to the log (must be allocated and filled prior to passing)
-  //! - 2) Flag to specify whether the time of the log message should be indicated 
+  //! - 2) Flag to specify whether the time of the log message should be indicated
   //!
   //!Return value: Error value;
   Int_t                   Append(const char *buffer,Bool_t T_Stamp = kFalse);
 
-  //!This function is used via the program menu and should not be called directly. 
+  //!This function is used via the program menu and should not be called directly.
   void                    CloseLogFile();
-  //!This function is used via the program menu and should not be called directly. 
+  //!This function is used via the program menu and should not be called directly.
   void                    CloseRootFile();
 
   //!This function is related to the SubSystemArray storage array and should be called
-  //!before a new subsystem is instantiated. This mechanism prevents multiple instantiations of 
+  //!before a new subsystem is instantiated. This mechanism prevents multiple instantiations of
   //!of the same subsystem. It can also be called to obtain the pointer to an existing subsystem.
   //!
-  //!Parameters: 
+  //!Parameters:
   //! - 1) Name of the subsystem (identical to the one that appears in the tab label)
   //!
   //!Return value: subsystem pointer
@@ -201,34 +210,34 @@ class QwGUIMain : public TGMainFrame {
   //!This function returns the name of a file to be openend/saved, as obtained from user input
   //!via a dialog box. This function does not open the file.
   //!
-  //!Parameters: 
+  //!Parameters:
   //! - 1) Filename container (must be allocated before passing to function)
   //! - 2) File extension container (must be allocated and specify desired file type extension
   //!                             valid extensions are: .root, .dat, .txt, .csv, and .log
-  //! - 3) File status: 
+  //! - 3) File status:
   //!                - FS_NEW (new file which has never been saved before -- dialog box is opened
   //!                         as a "save as" box ...)
   //!                - FS_OLD (file was previously saved -- dialog box is opened
   //!                        as a standard "file open" box ...)
-  //! - 4) Specifies whether to notify user of file operation and give a continue/cancel option 
+  //! - 4) Specifies whether to notify user of file operation and give a continue/cancel option
   //!   dialog box. Argument 5 must be allocated when this is set to kTrue.
   //! - 5) Notification text container to be shown when parameter 4 is set to kTrue.
   //!
   //!Return value: Error value.
-  Int_t                   GetFilenameFromDialog(char *, const char *, 
+  Int_t                   GetFilenameFromDialog(char *, const char *,
 						ERFileStatus status = FS_OLD,
 						Bool_t kNotify = kFalse,
 						const char *notifytext = NULL);
 
   //!This function looks for the index of a tab with the specified name (same as tab label).
-  //!The tab index is used to add and/or remove tabs from the tab environment. 
+  //!The tab index is used to add and/or remove tabs from the tab environment.
   //!
   //!Parameters:
   //! - 1) Name of label of the tab (must be allocated and filled before passing)
   //!
   //!Return value: Tab index
   Int_t                   GetTabIndex(const char *);
-  
+
   //!This function implements the log book tab.
   void                    MakeLogTab();
   //!This function implements the main data window tab.
@@ -239,7 +248,7 @@ class QwGUIMain : public TGMainFrame {
   void                    MakeUtilityLayout();
   //!This function initiates the final tab layout after a new tab has been added.
   void                   MapLayout(){dTab->MapSubwindows(); dTab->Layout();}
-  //!This function initiates the final tab layout after a tab has been removed. 
+  //!This function initiates the final tab layout after a tab has been removed.
   void                   UnMapLayout(Int_t tab){dTab->RemoveTab(tab); dTab->Layout();};
 
   //!This function opens a new log file. If there is no log tab, a new tab is created automatically
@@ -254,7 +263,7 @@ class QwGUIMain : public TGMainFrame {
   Int_t                   OpenLogFile(ERFileStatus status = FS_OLD, const char* file = NULL);
 
   //!This function is called via menu selection.
-  //!It opens a new root file. If no file name is specified, the function asks the 
+  //!It opens a new root file. If no file name is specified, the function asks the
   //!user for a filename via the GetFilenameFromDialog(...) function. The function instantiates
   //!a new generic data container from the class RDataContainer. This container is passed to all
   //!instantiated susbsystems and allows each of them to read the data specific to the subsystem.
@@ -272,7 +281,7 @@ class QwGUIMain : public TGMainFrame {
 
   //!This function removes the log book tab, when the correpsonding menu item is selected. The
   //!data in the current log book is not lost or closed when the tab is removed.
-  //! 
+  //!
   //!Parameters:
   //! - none
   //!
@@ -280,7 +289,7 @@ class QwGUIMain : public TGMainFrame {
   void                    RemoveLogTab();
 
   //!This function can be used to save a log file, with or without the use of a file dialog box.
-  //!  
+  //!
   //!Parameters:
   //! - 1) File status: Only used if parameter 2 is NULL. In that case the file status is passed on
   //!                   to the function GetFilenameFromDialog(...).
@@ -291,17 +300,17 @@ class QwGUIMain : public TGMainFrame {
   Int_t                   SaveLogFile(ERFileStatus status = FS_OLD, const char* file = NULL);
 
 
-  //!This function is used to set the currently open log book file name, when it is saved or opened 
+  //!This function is used to set the currently open log book file name, when it is saved or opened
   //!from an existing file.
-  //!  
+  //!
   //!Parameters:
-  //! - 1) Filename container  
+  //! - 1) Filename container
   //!
   //!Return value: none
   void                    SetLogFileName(const char *name){strcpy(dLogfilename,name);};
 
   //!This function sets the log file open or closed flag.
-  //!  
+  //!
   //!Parameters:
   //! - 1) Boolean Open/Close Flag
   //!
@@ -310,15 +319,15 @@ class QwGUIMain : public TGMainFrame {
 
   //!This function is used to set the current root file name, when it is saved or opened from an existing
   //!file.
-  //!  
+  //!
   //!Parameters:
-  //! - 1) Filename container  
+  //! - 1) Filename container
   //!
   //!Return value: none
   void                    SetRootFileName(char *name){strcpy(dRootfilename,name);};
 
   //!This function sets the root file open or closed flag.
-  //!  
+  //!
   //!Parameters:
   //! - 1) Boolean Open/Close Flag
   //!
@@ -327,65 +336,65 @@ class QwGUIMain : public TGMainFrame {
 
   void                    SleepWithEvents(int seconds);
   TCanvas                *SplitCanvas(TRootEmbeddedCanvas *,int,int,const char*);
-		        
+
 
   //!This function checks to see if a tab with a certain name is already active.
-  //!  
+  //!
   //!Parameters:
   //! - 1) Tab label container (must be allocated and of nonzero length)
   //!
   //!Return value: Boolean flag = kTrue if a tab of the given name exists, otherwise returns kFalse
   Bool_t                  TabActive(const char *);
-		        
-  //!If the current text in the log book tab editor is not already saved under a filename, then
-  //!function obtains a new filename and saves the text to the file with that name. Otherwise the
-  //!the text is written to the file that is currently open.
-  //!  
-  //!Parameters:
-  //! - 1) Filename container
-  //!
-  //!Return value: Error value
-  Int_t                   WriteLogData(const char*);  
 
   //!If the current text in the log book tab editor is not already saved under a filename, then
   //!function obtains a new filename and saves the text to the file with that name. Otherwise the
   //!the text is written to the file that is currently open.
-  //!  
+  //!
+  //!Parameters:
+  //! - 1) Filename container
+  //!
+  //!Return value: Error value
+  Int_t                   WriteLogData(const char*);
+
+  //!If the current text in the log book tab editor is not already saved under a filename, then
+  //!function obtains a new filename and saves the text to the file with that name. Otherwise the
+  //!the text is written to the file that is currently open.
+  //!
   //!Parameters:
   //! - 1) Filename container
   //!
   //!Return value: Error value
 
   //!Not yet implemented.
-  Int_t                   WriteRootData();  
+  Int_t                   WriteRootData();
 
  public:
   QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h);
   virtual ~QwGUIMain();
 
   ///
-  ///Each subsystem class must call the following function on 
-  ///construction, to add a tab for itself. 
+  ///Each subsystem class must call the following function on
+  ///construction, to add a tab for itself.
   ///What actually happens is that the QwGUISubSystem parent class has a function
   ///called AddThisTab(QwGUISubSystem*), which must be called by the derived subsystem
   ///class. This function uses the ROOT "Connect" mechanism to call the QwGUIMain function
   ///AddATab(QwGUISubSystem*), i.e. this function.
-  /// 
+  ///
   ///The function adds a menu item to the tabs menu, which enables the
   ///user to show/hide the given subsytem tab. This function should never be
-  ///called directly.  
-  ///It is recommended to use a unique label for the tab; one that is 
+  ///called directly.
+  ///It is recommended to use a unique label for the tab; one that is
   ///different from any of the other labels in the menu. This is done by supplying
   ///the subsystem label to the QwGUISubSystem class on construction of the corresponding
   ///object. So, the menu label (and the corresponding tab label) will have
   ///the same name as the subsystem itself. The subsystem classes are constructed in the
   ///QwGUIMain class constructor and one should use the GetSubSystemPtr(const char*) function
-  ///to make sure that a subsystem with a given name doesn't already exist. 
+  ///to make sure that a subsystem with a given name doesn't already exist.
   ///One can run the compiled program to see which menu labels are already
-  ///used. 
-  //!  
+  ///used.
+  //!
   //!Parameters:
-  //! - 1) sub system pointer 
+  //! - 1) sub system pointer
   //!
   //!Return value: Error value
   void                   AddATab(QwGUISubSystem*);
@@ -393,7 +402,7 @@ class QwGUIMain : public TGMainFrame {
   //!This function is called when the main application closes it is an overwrite from
   //!from the ROOT TGMainFrame class and can be used to perform cleanup tasks before
   //!the application terminates.
-  //!  
+  //!
   //!Parameters:
   //! - none
   //!
@@ -402,18 +411,18 @@ class QwGUIMain : public TGMainFrame {
 
   //!This function returns the current date.
   Char_t                *GetDate();
-  //!This function return the current run number. 
+  //!This function return the current run number.
   Int_t                  GetCurrentRunNumber(){return dCurRun;};
-  //!This function return the current log book file name. 
+  //!This function return the current log book file name.
   char*                  GetLogFileName(){return dLogfilename;};
   //!This function return a new unique tab menu ID. It is used each time a
   //!new subsystem is added to the list of tabs.
   Int_t                  GetNewTabMenuID() {MCnt++; return M_TABS+MCnt;}
-  //!This function return the current root file name.   
+  //!This function return the current root file name.
   char*                  GetRootFileName(){return dRootfilename;};
 
   //! This function returns the menu ID for a menu entry corresponding to
-  //! the tab with name "TabName"; needed when checking (showing) and 
+  //! the tab with name "TabName"; needed when checking (showing) and
   //! unchecking (hiding) tabs.
   //!
   //!Parameters:
@@ -421,9 +430,9 @@ class QwGUIMain : public TGMainFrame {
   //!
   //!Return value: tab ID integer
   Int_t                  GetTabMenuID(const char *TabName);
-  
+
   //! This function returns the menu label for a menu entry corresponding to
-  //! the tab with menu ID = mID; needed when checking (showing) and 
+  //! the tab with menu ID = mID; needed when checking (showing) and
   //! unchecking (hiding) tabs.
   //!
   //!Parameters:
@@ -443,19 +452,19 @@ class QwGUIMain : public TGMainFrame {
   Bool_t                 IsRootFileOpen(){return dRootFileOpen;};
 
   //!Signal receiver function, called when the log file is closed via the context menu provided
-  //!by the TGTextEdit object. 
+  //!by the TGTextEdit object.
   //!Sets the dLogFileOpen to false and removes the filename string from variable dLogfilename.
   void                   LogClosed();
   //!Signal receiver function, called when a log file is opened via the context menu provided
   //!by the TGTextEdit object.
-  //!Sets the dLogFileOpen to true and adds the filename to variable dLogfilename, unless 
+  //!Sets the dLogFileOpen to true and adds the filename to variable dLogfilename, unless
   //!the file is new and unnamed. The filenames are obtained from the TGTextEdit object.
   void                   LogOpened();
   //!Signal receiver function, called when a log file is saved via the context menu provided
   //!by the TGTextEdit object.
   //!Sets the dLogFileOpen to true and adds the filename to variable dLogfilename.
   //!The filenames are obtained from the TGTextEdit object.
-  void                   LogSaved(); 
+  void                   LogSaved();
   //!Signal receiver function, called when a log file is saved via the context menu.
   //!Sets the dLogFileOpen to true and adds the NEW filename to variable dLogfilename.
   //!The filenames are obtained from the TGTextEdit object.
@@ -482,8 +491,8 @@ class QwGUIMain : public TGMainFrame {
   //!Return value: none
   void                   OnLogMessage(const char *);
   //!Receiver function, called when a connected object is being terminated.
-  //!Used for cleanup purposes. All classes derived from QwGUISubSuystem are forced to 
-  //!send a signal to this receiver. See QwGUISubSuystem class constructor for an example 
+  //!Used for cleanup purposes. All classes derived from QwGUISubSuystem are forced to
+  //!send a signal to this receiver. See QwGUISubSuystem class constructor for an example
   //!of how this is done.
   //!
   //!Parameters:
@@ -502,7 +511,7 @@ class QwGUIMain : public TGMainFrame {
   //!Return value: none
   void                   OnReceiveMessage(const char *);
 
-  //!Receiver function, called when a connected canvas pad is mouse selected. 
+  //!Receiver function, called when a connected canvas pad is mouse selected.
   //!
   //!Parameters:
   //! - 1) Pointer to the selected pad within the canvas
@@ -511,33 +520,33 @@ class QwGUIMain : public TGMainFrame {
   //!
   //!Return value: none
   void                   PadIsPicked(TPad* selpad, TObject* selected, Int_t event);
-  
+
   //!This function is overwritten from the TGMainFrame class, to handle all mouse and keyboard interactions
   //!with any main window widget or menu item. Dialog box classes and other sub frames can handle
-  //!their own interactions within their own ProcessMessage functions. 
+  //!their own interactions within their own ProcessMessage functions.
   //!
   //!Parameters:
   //! - 1) Message type, such as kC_TEXTENTRY or kC_COMMAND (which includes kCM_MENU), etc ...
-  //! - 2) Widget identifier (the ID passed to the widget on instantiation or addition to a menu) 
+  //! - 2) Widget identifier (the ID passed to the widget on instantiation or addition to a menu)
   //! - 3) not used
   //!
-  //!Return value: none  
+  //!Return value: none
   virtual Bool_t         ProcessMessage(Long_t msg, Long_t parm1, Long_t);
 
-  
-  ///This function is called to remove a tab. 
-  ///Each subsystem class must call this function on desstruction, to remove its tab. 
+
+  ///This function is called to remove a tab.
+  ///Each subsystem class must call this function on desstruction, to remove its tab.
   ///What actually happens is that the QwGUISubSystem parent class has a function
   ///called RemoveThisTab(QwGUISubSystem*), which must be called by the derived subsystem
   ///class. This function uses the ROOT "Connect" mechanism to call the QwGUIMain function
   ///RemoveTab(QwGUISubSystem*), i.e. this function.
-  /// 
+  ///
   ///The function disables the correspondig menu item on the tabs menu, which enables the
   ///user to show/hide the given subsytem tab. This function should never be
-  ///called directly.  
-  //!  
+  ///called directly.
+  //!
   //!Parameters:
-  //! - 1) sub system pointer 
+  //! - 1) sub system pointer
   //!
   //!Return value: Error value
   void                   RemoveTab(QwGUISubSystem*);

@@ -1,3 +1,13 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!  input file for decoding the helicity subsystem
+!!  Of note in this file:
+!!  HelicityDecodingMode : will tell which mode of decoding is in use
+!!                       : for now it can be  InputRegisterMode, UserbitMode
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+HelicityDecodingMode=InputRegisterMode
+PatternPhase=4
+
 ROC=24
 !
 ! Header=0xffdaf000
@@ -38,7 +48,6 @@ WORD, 0,  0, helicitydata,  ha_ioctime
 WORD, 0,  0, helicitydata,  ha_ncnt
 
 
-! this was for the december 08 data taking
 ROC=31
 Bank=0x3103
 !
@@ -60,7 +69,14 @@ WORD, 0,  0, helicitydata,  scandata2
 SKIP 1
 !END
 !
-! this was for the december 08 data taking
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!USER BIT MODE
+
+!HelicityDecodingMode= UserbitMode    
+!PatternPhase=4
 !ROC=31
 !Bank=0x3101
 !
@@ -73,3 +89,4 @@ SKIP 1
 !WORD, 0,  0, helicitydata,  scalercounter
 !WORD, 0,  0, helicitydata,  userbit 
 !END
+ 

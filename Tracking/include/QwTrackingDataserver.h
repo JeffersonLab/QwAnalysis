@@ -11,16 +11,16 @@
 // Qweak support headers
 #include "Det.h"
 #include "Qset.h"
-#include "Qoptions.h"
 
-// Qweak tracking worker
+// Qweak headers
+#include "QwEventBuffer.h"
 #include "QwTrackingWorker.h"
 
 class QwTrackingDataserver : public VQwDataserver {
 
   private:
-    QwASCIIEventBuffer fASCIIbuffer;
-    QwHitContainer* fASCIIgrandHitList;
+    QwEventBuffer fEventBuffer;
+    QwHitContainer* fHitList;
 
   public:
     QwTrackingDataserver (const char*);

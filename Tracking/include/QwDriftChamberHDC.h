@@ -24,7 +24,7 @@
 
 
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class QwDriftChamberHDC: public QwDriftChamber {
   /******************************************************************
    *  Class: QwDriftChamberHDC
@@ -33,12 +33,10 @@ class QwDriftChamberHDC: public QwDriftChamber {
    ******************************************************************/
  public:
   QwDriftChamberHDC(TString region_tmp);
-
-  
-
-  
-
-  
+  ~QwDriftChamberHDC()
+    {
+      DeleteHistograms();
+    };
 
   /* Unique virtual member functions from QwDrifChamber base class */
 
@@ -48,10 +46,14 @@ class QwDriftChamberHDC: public QwDriftChamber {
 
  void  SubtractReferenceTimes();
 
- Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
+ 
 
  Int_t LoadQweakGeometry(TString mapfile );
  void  ProcessEvent();
+
+
+
+ Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
 
  protected:
  void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
@@ -61,7 +63,6 @@ class QwDriftChamberHDC: public QwDriftChamber {
 
  protected:
 
-  Int_t LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire);
   Int_t BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire);
   Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire);
 

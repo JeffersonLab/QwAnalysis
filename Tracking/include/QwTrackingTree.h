@@ -1,4 +1,10 @@
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+/*!
+ * \file   QwTrackingTree.h
+ * \brief  Definition of the track search tree
+ *
+ * \author Wouter Deconinck
+ * \date   2009-12-11
+ */
 
 #ifndef QWTRACKINGTREE_H
 #define QWTRACKINGTREE_H
@@ -10,7 +16,11 @@
 #include <cstring>
 #include <cassert>
 #include <cmath>
-using std::cout; using std::cerr; using std::endl;
+#include <inttypes.h>
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::string;
 
 // Boost filesystem headers
 #include "boost/filesystem/operations.hpp"
@@ -22,57 +32,47 @@ namespace bfs = boost::filesystem;
 #include "nodenode.h"
 #include "shortnode.h"
 #include "shorttree.h"
-#include "QwTrackingTreeRegion.h"
+using QwTracking::treenode; using QwTracking::nodenode;
+using QwTracking::shortnode; using QwTracking::shorttree;
 
+// Qweak headers
 #include "QwTypes.h"
-#include "options.h"
-#include "Det.h"
-#include "tracking.h"
-#include "globals.h"
+#include "VQwTrackingElement.h"
 
-using namespace QwTracking;
+// Definitions
+#define HSHSIZ 511	///< Length of the hash table (as header define)
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*------------------------------------------------------------------------*//*!
+// Forward declarations
+class QwTrackingTreeRegion;
 
- \class QwTrackingTree
-
- \brief Creates and manages the treesearch pattern database.
-
-    The pattern database is used to determine whether subsets
-    of hits resemble track segments.
-
- \ingroup QwTrackingAnl
-
-*//*-------------------------------------------------------------------------*/
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-class QwTrackingTree {
+/**
+ * \class QwTrackingTree
+ * \ingroup QwTracking
+ * \brief Creates and manages the treesearch pattern database.
+ *
+ * The pattern database is used to determine whether subsets
+ * of hits resemble track segments.
+ */
+class QwTrackingTree: public VQwTrackingElement {
 
   public:
 
-    // objects
-    int maxlevel;	/*!< maximum level of the bin division within
-			     the treesearch database,
-			     i.e.: resolution = (detwidth) / (2^maxlevel) */
-    int tlayers;	//!< number of detector planes
-    int hshsiz;
-    int npat;
-    treenode* generic[HSHSIZ];	//!- flat list of all nodes in the tree
-    double zList[TLAYERS];
-    double detwidth;
-    double rcSET_rMaxSlope;//this needs to be defined by rcSET.rMaxSlope
-    treenode father;
-    int xref;
-    int maxref;
-
-    static const string TREEDIR;
-
-    // Constructor/Destructor (TODO should take some option info)
-    QwTrackingTree();
+    /// \brief Default constructor
+    QwTrackingTree(unsigned int numlayers = MAX_LAYERS);
+    /// \brief Destructor
     ~QwTrackingTree();
 
-    void SetDebugLevel(int debuglevel) { debug = debuglevel; };
+    /// Set the debug level
+    void SetDebugLevel (const int debuglevel) { fDebug = debuglevel; };
+    /// Set the maximum allowed slope
+    void SetMaxSlope (const double maxslope) { fMaxSlope = maxslope; };
+
+    /// Print the full tree and hash table
+    void Print() const { PrintTree(); PrintHashTable(); };
+    /// \brief Print the full tree
+    void PrintTree() const;
+    /// \brief Print the hash table
+    void PrintHashTable() const;
 
     int consistent (
 	treenode *tst,
@@ -83,35 +83,32 @@ class QwTrackingTree {
 	EQwDirectionID dir);
     treenode* existent (treenode *tst, int hash);
     treenode* nodeexists (nodenode *nd, treenode *tr);
-    treenode* treedup (treenode *todup);
+
+    /// \brief Recursively generate the treesearch pattern database
     void marklin (
-	treenode *Father,
+	treenode *node,
 	int level,
 	EQwDetectorPackage package,
 	EQwDetectorType type,
 	EQwRegionID region,
 	EQwDirectionID dir);
 
-    void treeout (treenode *tn, int level, int off);
-    void printtree (treenode *tn);
-    void freetree ();
-
     long writetree (
-	char *fn,
+	string filename,
 	treenode *tn,
 	int levels,
 	int tlayers,
 	double width);
 
     QwTrackingTreeRegion* readtree (
-	char *filename,
+	string filename,
 	int levels,
 	int tlayers,
 	double rwidth,
-	int dontread);
+	bool regenerate);
 
     QwTrackingTreeRegion* inittree (
-	char *filename,
+	string filename,
 	int levels,
 	int tlayer,
 	double width,
@@ -122,20 +119,50 @@ class QwTrackingTree {
 
   private:
 
-    int debug; // debug level
+    /// Name of the tree directory (in $QWSCRATCH), as static member field
+    static const std::string fgTreeDir;
 
-    int _writetree (treenode *tn, FILE *fp, int tlayers);
-    int _readtree  (FILE *f, shorttree *stb, shortnode **father, int tlayers);
+    int fDebug;		///< Debug level
 
+    // Number of rows in the bit pattern (VDC wires or HDC planes)
+    unsigned int fNumLayers;	///< Number of detector planes
+    unsigned int& fNumPlanes;	///< Number of planes in the region 2 HDCs
+    unsigned int& fNumWires;	///< Number of wires in a region 3 VDC group
+
+    int fHashSize;	///< Length of the hash table (as member field)
+
+    double fMaxSlope;	///< Maximum allowed slope for tracks in this detector
+    int fNumPatterns;	///< Number of valid patterns in the tree
+
+    /// Reference
+    int fRef;
+    /// Maximum number of references in the cached tree file
+    int fMaxRef;
+
+    int fMaxLevel;	/*!< maximum level of the bin division within
+			     the treesearch database,
+			     i.e.: resolution = width / (2^maxlevel) */
+
+    /// Father node: the main entry point to the tree
+    treenode* fFather;
+
+    /// Hash table: the list of all nodes in the tree, organized in linked
+    /// lists and sorted by hash value; an array of pointers to treenodes.
+    //treenode* fHashTable[HSHSIZ];
+    treenode** fHashTable;
+
+    /// \brief Recursive method for pulling in the concise treesearch search database
+    int _writetree (treenode *tn, FILE *fp, int32_t tlayers);
+    /// \brief Recursive method to read the concise treesearch database from disk
+    int _readtree  (FILE *f, shorttree *stb, shortnode **father, int32_t tlayers);
+    /// \brief Recursive method to initialize and generate the treesearch database
     treenode* _inittree (
-	int tlayer,
+	int32_t tlayer,
 	EQwDetectorPackage package,
 	EQwDetectorType type,
 	EQwRegionID region,
 	EQwDirectionID dir);
 
-};
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+}; // class QwTrackingTree
 
 #endif // QWTRACKINGTREE_H

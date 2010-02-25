@@ -1,15 +1,23 @@
 #ifndef QWHITROOTCONTAINER_H
 #define QWHITROOTCONTAINER_H
-
+//nclude <iostream>
+//nclude <algorithm>
 #include <list>
+//nclude <vector>
 
-#include <TOrdCollection.h>
+// ROOT headers
+//#include "TOrdCollection.h"
+#include "TObject.h"
+#include "TClonesArray.h"
+#include "TRefArray.h"
+#include "TBrowser.h"
 
 #include "QwHit.h"
+#include "QwHitContainer.h"
 
 class QwHitContainer;
 
-class QwHitRootContainer: public TObject {
+class QwHitRootContainer : public TObject {
 
 // ROOT container class around the QwHitContainer.  Most helpful discussion
 // was found on http://root.cern.ch/root/roottalk/roottalk03/2997.html.  The
@@ -21,37 +29,48 @@ class QwHitRootContainer: public TObject {
 // of in the QwHitContainer.cc.  Moving almost all of it to QwHitContainer.cc
 // should fix a lot of rootcint issues.
 //
-//class QwHitRootContainer: public TObject, public std::list<QwHit> {
+//class QwHitRootContainer: public TOrdCollection, public std::list<QwHit> {
 
-  private:
+//  private:
 
-    // Local collection of pointers to TObjects (i.e. QwHits).
-    // The name fQwHitContainer was choses so it looks like a QwHitContainer
-    // in the ROOT tree browser.
-    TOrdCollection* fQwHitContainer;
+ public:
 
-  public:
+  Int_t               fNQwHits; ///< Number of QwHits in the array
+  TClonesArray        *fQwHits; ///< Array of QwHits
+  static TClonesArray *gQwHits; //! ///< Static array of QwHits
 
-    // Constructor
-    QwHitRootContainer() {
-      fQwHitContainer = new TOrdCollection;
-    };
-    // Destructor
-    virtual ~QwHitRootContainer() {
-      delete fQwHitContainer;
-    }
+ public:
 
-    // Append a QwHitContainer to the TOrdCollection
-    void Clear();
-    void Append(QwHitContainer* hitlist);
-    void Replace(QwHitContainer* hitlist);
-    Int_t GetSize() { return fQwHitContainer->GetSize(); };
+  QwHitRootContainer();
+  virtual ~QwHitRootContainer();
 
-    // Read the hit container from TOrdCollection to QwHitContainer
-    QwHitContainer* Read();
+  // Housekeeping methods
+  void Clear(Option_t *option = "");
+  void Reset(Option_t *option = "");
+  void Delete(Option_t *option = "");
 
+  // Creating and adding hits
+  //  QwHit* CreateNewHit();
+  void AddHit(QwHit * );//QwHit *hit);
+  void AddQwHit(QwHit &in);
 
-  ClassDef(QwHitRootContainer,1)
-};
+  // Get the number of hits
+  Int_t GetSize() const { return fNQwHits; };
+
+  // Conversion methods from and to a QwHitContainer
+  void Convert(QwHitContainer *hitlist);
+  QwHitContainer* Convert();
+
+  void Build(QwHitContainer& hitcontainer);
+  
+  // Output function
+  void Print();
+
+  TClonesArray *GetHits() const { return fQwHits; };
+  QwHit *GetHit (Int_t hitID) const ;
+
+  ClassDef(QwHitRootContainer,1);
+
+}; // class QwHitRootContainer
 
 #endif // QWHITROOTCONTAINER_H

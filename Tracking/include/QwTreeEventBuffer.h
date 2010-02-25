@@ -1,5 +1,21 @@
+/*------------------------------------------------------------------------*//*!
+
+ \file QwTreeEventBuffer.h
+ \ingroup QwTracking
+
+ \brief Definition of the class that reads simulated QweakSimG4 events
+
+*//*-------------------------------------------------------------------------*/
+
 #ifndef __QWEVENTTREEBUFFER__
 #define __QWEVENTTREEBUFFER__
+
+// System headers
+#include <vector>
+using std::vector;
+
+// Boost math library for random number generation
+#include <boost/random.hpp>
 
 // ROOT headers
 #include "TROOT.h"
@@ -8,53 +24,64 @@
 
 // Qweak headers
 #include "QwTypes.h"
-#include "QwEventBuffer.h"
-#include "QwParameterFile.h"
 
-#include "Det.h"
-#include "QwHit.h"
+// Forward declarations
+class QwHit;
+class QwHitContainer;
+class QwDetectorInfo;
+class QwEvent;
 
-#include "QwHitContainer.h"
-#include "QwDetectorInfo.h"
-
-#include <vector>
-using std::vector;
-
-// Boost math library for random number generation
-#include <boost/random.hpp>
-
-
-///
-/// \ingroup QwTrackingAnl
-
-class QwTreeEventBuffer : public QwEventBuffer
+/**
+ *  \class QwTreeEventBuffer
+ *  \ingroup QwTracking
+ *
+ *  \brief Read simulated QweakSimG4 events and generate hit lists
+ *
+ * The QwTreeEventBuffer reads simulated events from the ROOT file generated
+ * by the QweakSimG4 Geant4 Monte Carlo.  From the positions at the wire planes
+ * it generates the appropriate hit lists that can then be used to benchmark
+ * the tracking code.
+ */
+class QwTreeEventBuffer
 {
   public:
 
+    /// \brief Constructor with file name and spectrometer geometry
     QwTreeEventBuffer(const TString filename,
                       vector <vector <QwDetectorInfo> > & detector_info);
-    ~QwTreeEventBuffer() { fFile->Close(); };
+    /// Destructor
+    virtual ~QwTreeEventBuffer() { fFile->Close(); delete fFile; };
 
-    QwHitContainer* GetHitList(int event);
+    /// Set the debug level
     void SetDebugLevel (int debug) { fDebug = debug; };
 
-    // Resolution effects (smearing of drift distances)
+    /// \brief Get the hit list for the specified event
+    QwHitContainer* GetHitList(int event);
+
+    /// \brief Get the simulated event information
+    QwEvent* GetEvent(int event);
+
+    /// Enable resolution effects (smearing of drift distances)
     void EnableResolutionEffects() { fDoResolutionEffects = true; };
-    void DisableResolutionEffects() { fDoResolutionEffects = true; };
+    /// Disable resolution effects (smearing of drift distances)
+    void DisableResolutionEffects() { fDoResolutionEffects = false; };
+    /// Get the status of resolution effects simulation
     bool GetResolutionEffects() { return fDoResolutionEffects; };
 
-    int GetEntries() {return fEntries;};
+    /// Get the number of entries in the loaded run
+    int GetEntries() { return fEntries; };
 
+    /// Set the spectrometer geometry
     void SetDetectorInfo (vector <vector <QwDetectorInfo> > & detector_info) {
       fDetectorInfo = detector_info;
     };
 
   private:
 
-    // Debug level
+    /// Debug level
     int fDebug;
 
-    // Resolution effects
+    /// Resolution effects flag
     bool fDoResolutionEffects;
     // Randomness provider and distribution for resolution effects
     boost::mt19937 fRandomnessGenerator; // Mersenne twister
@@ -66,6 +93,9 @@ class QwTreeEventBuffer : public QwEventBuffer
     Int_t fEntries;
     Int_t fHitCounter;
 
+    // Event number
+    UInt_t fEvtNumber;
+
     // List of detector info objects (a.k.a. geometry information)
     vector <vector <QwDetectorInfo> > fDetectorInfo;
 
@@ -73,12 +103,18 @@ class QwTreeEventBuffer : public QwEventBuffer
     void ReserveSpace();
     void Clear();
 
-    // Create a  hit at position (x,y) in the center of the specified detector
-    QwHit* CreateHitRegion2(QwDetectorInfo* detectorinfo, double x, double y);
-    std::vector<QwHit> CreateHitRegion3(QwDetectorInfo* detectorinfo, double x, double y, double mx, double my);
+    /// \name Create hit at from the track position (x,y) and track momentum (mx,my)
+    // @{
+    /// \brief Create a set of hits for one track in region 1
+    std::vector<QwHit> CreateHitRegion1(QwDetectorInfo* detectorinfo, const double x, const double y);
+    /// \brief Create a hit for one track in region 2
+    QwHit* CreateHitRegion2(QwDetectorInfo* detectorinfo, const double x, const double y);
+    /// \brief Create a set of hits for one track in region 3
+    std::vector<QwHit> CreateHitRegion3(QwDetectorInfo* detectorinfo, const double x, const double y, const double mx, const double my);
+    // @}
 
-    // Region1 WirePlane 
-    // jpan: region1 has no wire plane, keep the name of 'WirePlane' 
+    // Region1 WirePlane
+    // jpan: region1 has no wire plane, keep the name of 'WirePlane'
     // in region1 for now for the naming consistance
     Int_t fRegion1_ChamberFront_WirePlane_PlaneHasBeenHit;
     Int_t fRegion1_ChamberFront_WirePlane_NbOfHits;
@@ -215,40 +251,44 @@ class QwTreeEventBuffer : public QwEventBuffer
     // Region3
     Int_t fRegion3_ChamberFront_WirePlaneU_HasBeenHit;
     Int_t fRegion3_ChamberFront_WirePlaneU_NbOfHits;
+    vector <Int_t> fRegion3_ChamberFront_WirePlaneU_ParticleType;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalPositionX;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalPositionY;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalPositionZ;
-    vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalMomentumX;
-    vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalMomentumY;
-    vector <Float_t> fRegion3_ChamberFront_WirePlaneU_LocalMomentumZ;
+    vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX;
+    vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY;
+    vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ;
 
     Int_t fRegion3_ChamberFront_WirePlaneV_HasBeenHit;
     Int_t fRegion3_ChamberFront_WirePlaneV_NbOfHits;
+    vector <Int_t> fRegion3_ChamberFront_WirePlaneV_ParticleType;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneV_LocalPositionX;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneV_LocalPositionY;
     vector <Float_t> fRegion3_ChamberFront_WirePlaneV_LocalPositionZ;
-    vector <Float_t> fRegion3_ChamberFront_WirePlaneV_LocalMomentumX;
-    vector <Float_t> fRegion3_ChamberFront_WirePlaneV_LocalMomentumY;
-    vector <Float_t> fRegion3_ChamberFront_WirePlaneV_LocalMomentumZ;
+    vector <Float_t> fRegion3_ChamberFront_WirePlaneV_GlobalMomentumX;
+    vector <Float_t> fRegion3_ChamberFront_WirePlaneV_GlobalMomentumY;
+    vector <Float_t> fRegion3_ChamberFront_WirePlaneV_GlobalMomentumZ;
 
     Int_t fRegion3_ChamberBack_WirePlaneU_HasBeenHit;
     Int_t fRegion3_ChamberBack_WirePlaneU_NbOfHits;
+    vector <Int_t> fRegion3_ChamberBack_WirePlaneU_ParticleType;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneU_LocalPositionX;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneU_LocalPositionY;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneU_LocalPositionZ;
-    vector <Float_t> fRegion3_ChamberBack_WirePlaneU_LocalMomentumX;
-    vector <Float_t> fRegion3_ChamberBack_WirePlaneU_LocalMomentumY;
-    vector <Float_t> fRegion3_ChamberBack_WirePlaneU_LocalMomentumZ;
+    vector <Float_t> fRegion3_ChamberBack_WirePlaneU_GlobalMomentumX;
+    vector <Float_t> fRegion3_ChamberBack_WirePlaneU_GlobalMomentumY;
+    vector <Float_t> fRegion3_ChamberBack_WirePlaneU_GlobalMomentumZ;
 
     Int_t fRegion3_ChamberBack_WirePlaneV_HasBeenHit;
     Int_t fRegion3_ChamberBack_WirePlaneV_NbOfHits;
+    vector <Int_t> fRegion3_ChamberBack_WirePlaneV_ParticleType;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalPositionX;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalPositionY;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalPositionZ;
-    vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalMomentumX;
-    vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalMomentumY;
-    vector <Float_t> fRegion3_ChamberBack_WirePlaneV_LocalMomentumZ;
+    vector <Float_t> fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX;
+    vector <Float_t> fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY;
+    vector <Float_t> fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ;
 
-};
+}; // class QwTreeEventBuffer
 
 #endif // __QWTREEEVENTBUFFER__

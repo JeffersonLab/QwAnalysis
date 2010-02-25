@@ -1,4 +1,4 @@
-# Makefile for Qweak analysis code : gmake required
+# Makefile for Qweak analysis code : make required
 # P. M. King
 # 2006-11-07
 #
@@ -16,7 +16,7 @@
 
 DEBUG := -g
 # Add -g if you need to debug (but you'd better
-# first type 'gmake distclean' to enable full
+# first type 'make distclean' to enable full
 # recompilation with this flag).
 # Add -O0 if you find that the compiler optimizes
 # away some of the variables you are interested in.
@@ -29,7 +29,7 @@ DEFAULTADD = $(ADD)
 # Should contain extra flag to pass to the precompiler
 # ADD is a variable you should not set in this Makefile but either
 # in your.cshrc file or from the prompt line when you type
-# "gmake [config] 'ADD=-D__PADDLES'" instead of simply "gmake [config]"
+# "make [config] 'ADD=-D__PADDLES'" instead of simply "make [config]"
 # Use DEFAULTADD to set extra flags you always want to have for your
 # customized compiling e.g replace above line "DEFAULTADD := $(ADD)" by
 # "DEFAULTADD := $(ADD) -D__PADDLES"
@@ -64,6 +64,7 @@ AWK      := awk
 BASENAME := basename
 CAT      := cat
 CD       := cd
+CHMOD    := chmod
 DIRNAME  := dirname
 ECHO     := echo
 FIND     := find
@@ -73,7 +74,7 @@ GCC      := gcc
       # It is not correlated to $(CXX) and $(LD) which depend on $(ARCH)
 GREP     := grep
 LS       := ls
-MAKE     := gmake
+MAKE     := make
 RM       := \rm -f
       # 'rm' is often aliases as 'rm -i', so '\rm' instead
 CP       := \cp
@@ -120,9 +121,9 @@ EXCLUDEDIRS = coda Extensions
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
  ifneq ($(CODA),)
   #  The realtime executables should be added in this section.
-  EXES := qwtracking qwsimtracking qwanalysis qwanalysis_adc qwanalysis_beamline
+  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline
  else
-  EXES := qwtracking qwsimtracking qwanalysis qwanalysis_adc qwanalysis_beamline
+  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator
  endif
 else
  EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
@@ -130,17 +131,17 @@ endif
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
  ifneq ($(CODA),)
   #  The realtime executables should be added in this section.
-  EXES := qwtracking qwsimtracking qwanalysis qwanalysis_adc qwanalysis_beamline
+  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline
  else
-  EXES := qwtracking qwsimtracking qwanalysis qwanalysis_adc qwanalysis_beamline
+  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator
  endif
 endif
-# overridden by "gmake 'EXES=exe1 exe2 ...'"
+# overridden by "make 'EXES=exe1 exe2 ...'"
 
 ifneq ($(filter qwrealtime,$(EXES)),)
  ifeq ($(CODA),)
   $(error qwrealtime requires CODA)
-  # With version 3.77 or earlier of gmake, the message is simply 'missing separator.  Stop.'
+  # With version 3.77 or earlier of make, the message is simply 'missing separator.  Stop.'
  endif
 endif
 
@@ -152,15 +153,85 @@ endif
 ############################
 ############################
 
-ROOTCFLAGS   := $(shell root-config --cflags)
-ROOTLIBS     := $(shell root-config --new --libs) -lTreePlayer -lGX11
+
+ifndef ROOTSYS
+  ROOTSYS := $(shell root-config --prefix)
+  ifndef ROOTSYS
+    $(warning ROOTSYS variable is not defined and root-config did not return a location.)
+    $(warning Use the script SetupFiles/SET_ME_UP.csh or SetupFiles/SET_ME_UP.bash first.)
+    $(warning See the Qweak Wiki for installation and compilation instructions.)
+    $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
+    $(warning )
+    $(error   Error: No ROOT installation could be found)
+  endif
+endif
+ROOTCONFIG   := $(ROOTSYS)/bin/root-config
+## ROOTDEFINE   := $(shell $(ROOTCONFIG) --features | $(SED) 's/\(\s*\)\([a-zA-Z0-9_]*\)/\1-D__ROOT_HAS_\2/g;y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
+ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags)
+ROOTLIBS     := $(shell $(ROOTCONFIG) --new --libs) -lTreePlayer -lGX11
         # -lNew : for map file capability
         # -lTreePlayer -lProof : for user loops calling tree
         #                        variables under conditions
-ROOTGLIBS    := $(shell root-config --glibs)
-ifndef ROOTSYS
-  $(warning Warning: ROOTSYS variable is not defined.)
-  $(warning Source the script SetupFiles/SET_ME_UP.csh or SetupFiles/SET_ME_UP.bash first.)
+ROOTGLIBS    := $(shell $(ROOTCONFIG) --glibs)
+
+# -lMathMore : for using ROOT advanced math library
+ifeq ($(shell $(ROOTCONFIG) --has-mathmore),yes)
+  ROOTCFLAGS += -D__ROOT_HAS_MATHMORE
+  ROOTLIBS += -lMathMore
+else
+  $(warning The ROOT MathMore plugin was not found on your system.  Expect reduced functionality.)
+endif
+
+############################
+############################
+# Qw Paths :
+# They are set when $(QWANALYSIS)/SetupFiles/.Qwcshrc (or .bash)
+# is sourced prior to the call for this Makefile.
+# A priori they won't be modified. They are (don't uncomment) :
+# QWANALYSIS := /home/lenoble/QwAnalysis
+# Not the actual value, but $(MAKE) is run from
+# this directory
+# QWBIN      := $(QWANALYSIS)/bin
+# QWLIB      := $(QWANALYSIS)/lib
+############################
+############################
+#  These next lines check the paths and exit if there is a problem.
+############################
+############################
+
+ifndef QWANALYSIS
+  $(warning Warning : QWANALYSIS variable is not defined.  Setting to current directory.)
+  QWANALYSIS := $(shell pwd)
+endif
+ifeq ($(strip $(QWANALYSIS)),)
+  $(error Aborting : QWANALYSIS variable is not set.  Source the SetupFiles/.Qwcshrc script first)
+endif
+ifneq ($(shell test $(QWANALYSIS) -ef $(shell pwd) || echo false),)
+  $(error Aborting : QWANALYSIS variable disagrees with the working directory.  Source the SetupFiles/.Qwcshrc script first)
+endif
+
+ifndef QWBIN
+  $(warning Warning : QWBIN variable is not defined.  Setting to QWANALSYIS/bin.)
+  QWBIN := $(QWANALYSIS)/bin
+endif
+ifneq ($(strip $(QWBIN)),$(strip $(shell $(FIND) $(QWANALYSIS) -name bin)))
+  $(error Aborting : QWBIN variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
+endif
+
+ifndef QWLIB
+  $(warning Warning : QWLIB variable is not defined.  Setting to QWANALSYIS/lib.)
+  QWLIB := $(QWANALYSIS)/lib
+endif
+ifneq ($(strip $(QWLIB)),$(strip $(shell $(FIND) $(QWANALYSIS) -name lib)))
+  $(error Aborting : QWLIB variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
+endif
+
+ifndef QWEVIO
+  $(warning Warning : QWEVIO variable is not defined.  Setting to QWANALSYIS/coda.)
+  QWEVIO := $(QWANALYSIS)/coda
+endif
+ifneq ($(strip $(QWEVIO)),$(strip $(shell $(FIND) $(QWANALYSIS) -name coda)))
+  $(error Aborting : QWEVIO variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
 endif
 
 
@@ -183,57 +254,50 @@ CODALIBS     += -L$(QWANALYSIS)/lib -lcoda
 
 
 
-############################
-############################
-# Qw Paths :
-# They are set when $(QWANALYSIS)/SetupFiles/.QwSetup.csh (or .bash)
-# is sourced prior to the call for this Makefile.
-# A priori they won't be modified. They are (don't uncomment) :
-# QWANALYSIS := /home/lenoble/QwAnalysis
-# Not the actual value, but $(MAKE) is run from
-# this directory
-# QWBIN      := $(QWANALYSIS)/bin
-# QWLIB      := $(QWANALYSIS)/lib
-############################
-############################
-#  These next lines check the paths and exit if there is a problem.
-############################
-############################
 
-ifndef QWANALYSIS
-  $(warning Warning : QWANALYSIS variable is not defined.  Setting to source directory.)
-  QWANALYSIS := $(shell pwd)
-endif
-ifeq ($(strip $(QWANALYSIS)),)
-  $(error Aborting : QWANALYSIS variable is not set.  Source the SetupFiles/.QwSetup.csh script first.)
-endif
-ifneq ($(strip $(QWANALYSIS)),$(strip $(shell pwd)))
-  $(error Aborting : QWANALYSIS variable disagrees with the working directory.  Source the SetupFiles/.QwSetup.csh script first.)
-endif
-
-ifndef QWBIN
-  $(warning Warning : QWBIN variable is not defined.  Setting to QWANALSYIS/bin.)
-  QWBIN := $(QWANALYSIS)/bin
-endif
-ifneq ($(strip $(QWBIN)),$(strip $(shell $(FIND) $(QWANALYSIS) -name bin)))
-  $(error Aborting : QWBIN variable is not set properly  Source the SetupFiles/.QwSetup.csh script first.)
+############################
+############################
+# Some set-up for the Boost library use
+############################
+############################
+ifndef BOOST_INC_DIR
+  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name boost)),/usr/include/boost)
+    $(warning Install the Boost library on your system, or set the environment)
+    $(warning variables BOOST_INC_DIR and BOOST_LIB_DIR to the directory with)
+    $(warning the Boost headers and libraries, respectively.)
+    $(warning See the Qweak Wiki for installation and compilation instructions.)
+    $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
+    $(warning )
+    $(error   Error: Could not find the Boost library)
+  endif
+  BOOST_INC_DIR = /usr/include/boost
+  BOOST_LIB_DIR = /usr/lib
+  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" $(BOOST_INC_DIR)/version.hpp)
+  BOOST_INC  =
+  BOOST_LIBS =
+else
+  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" ${BOOST_INC_DIR}/version.hpp)
+  BOOST_INC  = -I${BOOST_INC_DIR}
+  BOOST_LIBS = -L${BOOST_LIB_DIR}
 endif
 
-ifndef QWLIB
-  $(warning Warning : QWLIB variable is not defined.  Setting to QWANALSYIS/lib.)
-  QWLIB := $(QWANALYSIS)/lib
-endif
-ifneq ($(strip $(QWLIB)),$(strip $(shell $(FIND) $(QWANALYSIS) -name lib)))
-  $(error Aborting : QWLIB variable is not set properly  Source the SetupFiles/.QwSetup.csh script first.)
+#  We should also put a test on the boost version number here.
+ifeq ($(BOOST_VERSION),)
+  $(error   Error: Could not determine Boost version)
 endif
 
-ifndef QWEVIO
-  $(warning Warning : QWEVIO variable is not defined.  Setting to QWANALSYIS/coda.)
-  QWEVIO := $(QWANALYSIS)/coda
+#  List the Boost libraries to be linked to the analyzer.
+ifeq ($(strip $(shell $(FIND) $(BOOST_LIB_DIR) -maxdepth 1 -name libboost_filesystem-mt.so)),$(BOOST_LIB_DIR)/libboost_filesystem-mt.so)
+#  BOOST_LIBS += -lboost_filesystem-mt -lboost_system-mt -lboost_program_options-mt
+ BOOST_LIBS += -lboost_filesystem-mt -lboost_program_options-mt
+else
+#  BOOST_LIBS += -lboost_filesystem -lboost_system -lboost_program_options
+ BOOST_LIBS += -lboost_filesystem -lboost_program_options
 endif
-ifneq ($(strip $(QWEVIO)),$(strip $(shell $(FIND) $(QWANALYSIS) -name coda)))
-  $(error Aborting : QWEVIO variable is not set properly  Source the SetupFiles/.QwSetup.csh script first.)
-endif
+
+BOOST_LIBS += -ldl
+
+
 
 ############################
 ############################
@@ -248,16 +312,16 @@ CXX            := gcc
 CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
 LD             = gcc
-LDFLAGS        = -Wl,-rpath,$(QWLIB)
+LDFLAGS	       = -Wl,-rpath,$(QWLIB)
 LDLIBS         =
 SOFLAGS        = -shared
 
 ROOTCFLAGS   := $(ROOTCFLAGS) -D_REENTRANT
-        # -D_REENTRANT : 'root-config --cflags' gives incomplete result
+        # -D_REENTRANT : '$(ROOTCONFIG) --cflags' gives incomplete result
         #                on some environment
 
 ROOTLIBS     := $(ROOTLIBS) -lpthread  -lThread
-        # -lpthread : because 'root-config --libs' gives incomplete result
+        # -lpthread : because '$(ROOTCONFIG) --libs' gives incomplete result
         #             on gzero and libet.so requires it
         # -lThread:   Required for compilation on Linux systems with
         #             ROOT 4.04/02 or 5.08/00 (first noted by J-S Real
@@ -279,76 +343,30 @@ endif
 
 ifeq ($(ARCH),Darwin)
 
-CXX            := gcc-3.3
+CXX            := gcc
 CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
-LD             = gcc-3.3
+LD             = gcc
 LIBTOOL 	   = libtool
-LDFLAGS        = -bind_at_load
+LDFLAGS        = 
 LDLIBS         = -lSystemStubs
 SOFLAGS        =
 DllSuf        := .dylib
 
-ROOTCFLAGS   := $(shell root-config --cflags)
-ROOTLIBS     := $(shell root-config --libs) -lTreePlayer -lGX11 -lpthread -lThread
+ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags)
+ROOTLIBS     := $(shell $(ROOTCONFIG) --libs) -lTreePlayer -lGX11 -lpthread -lThread
 # --new give a runtime error on darwin and root 4.04 :
 # <CustomReAlloc2>: passed oldsize 64, should be 0
 # Fatal in <CustomReAlloc2>: storage area overwritten
 # aborting
 
-endif
-
-
-############################
-############################
-# Some set-up for the OpenSSL library use
-############################
-############################
-ifndef OPENSSL_DIR
-  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name openssl)),/usr/include/openssl)
-$(error Aborting : Cannot find the /usr/include/openssl.  Set OPENSSL_DIR to the location of the openssl installation.)
-endif
-#  We should also put a test on the openssl version number here.
-#
-  OPENSSL_INC  =
-  OPENSSL_LIBS = -l crypto
-else
-#  We should also put a test on the openssl version number here.
-#
-  OPENSSL_INC  = -I${OPENSSL_DIR}/include
-  OPENSSL_LIBS = -L${OPENSSL_DIR}/lib -l crypto
-endif
-
-
-############################
-############################
-# Some set-up for the Boost library use
-############################
-############################
-ifndef BOOST_INC_DIR
-  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name boost)),/usr/include/boost)
-    $(error Aborting : Cannot find the /usr/include/boost.  Set BOOST_INC_DIR and BOOST_LIB_DIR to the location of the Boost installation.)
-  endif
-  BOOST_INC_DIR = /usr/include/boost
-  BOOST_LIB_DIR = /usr/lib
-  #  We should also put a test on the boost version number here.
-  #
-#  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" $(BOOST_INC_DIR)/version.hpp)
-  BOOST_INC  =
-  BOOST_LIBS =
-else
-  #  We should also put a test on the boost version number here.
-  #
-#  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" ${BOOST_INC_DIR}/version.hpp)
-  BOOST_INC  = -I${BOOST_INC_DIR}
-  BOOST_LIBS = -L${BOOST_LIB_DIR}
-endif
-
-#  List the Boost libraries to be linked to the analyzer.
 ifeq ($(strip $(shell $(FIND) $(BOOST_LIB_DIR) -maxdepth 1 -name libboost_filesystem-mt.so)),$(BOOST_LIB_DIR)/libboost_filesystem-mt.so)
-  BOOST_LIBS += -lboost_filesystem-mt
+  BOOST_LIBS += -lboost_system-mt
 else
-  BOOST_LIBS += -lboost_filesystem
+  BOOST_LIBS += -lboost_system
+endif
+
+
 endif
 
 
@@ -360,7 +378,7 @@ endif
 
 ifeq ($(strip $(shell $(QWANALYSIS)/SetupFiles/checkrootversion | $(GREP) WARNING | $(SED) 's/\*//g')),WARNING)
 $(error Aborting : ROOT version 3.01/02 or later required)
-# With version 3.77 or earlier of gmake, the message is simply 'missing separator.  Stop.'
+# With version 3.77 or earlier of make, the message is simply 'missing separator.  Stop.'
 endif
 
 ifeq ($(strip $(shell $(QWANALYSIS)/SetupFiles/checkrootversion | $(GREP) older)),but older than 3.01/06)
@@ -369,7 +387,7 @@ endif
 
 ifeq ($(CXX),)
 $(error $(ARCH) invalid architecture)
-# With version 3.77 or earlier of gmake, the message is simply 'missing separator.  Stop.'
+# With version 3.77 or earlier of make, the message is simply 'missing separator.  Stop.'
 endif
 
 
@@ -384,7 +402,7 @@ INCFLAGS =  $(patsubst %,-I%,$(sort $(dir $(shell $(FIND) $(QWANALYSIS) | $(GREP
 # Qw include paths : /SomePath/QwAnalysis/Analysis/include/Foo.h -> -I./Analysis/include/
 
 
-INCFLAGS += $(OPENSSL_INC) $(BOOST_INC) -I./
+INCFLAGS += $(BOOST_INC) -I./
 # Necessary for dictionary files where include files are quoted with relative
 # path appended (default behaviour for root-cint)
 
@@ -400,7 +418,7 @@ ifneq ($(CXX),CC)
 endif
 LIBS =  -L$(QWLIB) -lQw
 LIBS +=  $(ROOTLIBS) $(ROOTGLIBS) $(CODALIBS)
-LIBS +=  $(OPENSSL_LIBS) $(BOOST_LIBS) $(LDLIBS)
+LIBS +=  $(BOOST_LIBS) $(LDLIBS)
 
 
 ############################
@@ -426,6 +444,9 @@ FILTER_OUT_TRASH    = $(SED) '/~$$/d' | $(SED) '/\#/d' | $(SED) '/JUNK/d'
 # FILTER_OUT_TRASH pipes stream and filters out '~', '.#' and '#*#'
 # typical editor backup file names
 
+FILTER_OUT_DOXYGEN    = $(SED) '/Doxygen/d'
+# FILTER_OUT_DOXYGEN pipes stream and filters out 'Doxygen'
+# where the html documentation tree is stored
 
 INTO_RELATIVE_PATH  = $(SED) 's/\//xxqqqqqxx/g' | $(SED) 's/$(subst /,xxqqqqqxx,$(QWANALYSIS))/./g' | $(SED) 's/xxqqqqqxx/\//g'
 # To be piped in
@@ -482,8 +503,8 @@ ifneq ($(strip $(ADD)),)
 	$(ECHO) ; \
 	$(ECHO) \*\*\* ADD options have changed since last config; \
 	$(ECHO) \*\*\* Removing involved object files... ; \
-	$(ECHO) \*\*\* Rerun \'gmake config\' with your new options; \
-	$(ECHO) \*\*\* Then rerun \'gmake\' \(you can omit your new options\); \
+	$(ECHO) \*\*\* Rerun \'make config\' with your new options; \
+	$(ECHO) \*\*\* Then rerun \'make\' \(you can omit your new options\); \
 	$(ECHO) ; \
 	for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .ADD),$(ADD)) $(filter-out $(ADD),$(shell $(CAT) .ADD)) | $(REMOVE_-D))); \
 	do \
@@ -498,8 +519,8 @@ ifneq ($(strip $(EXES)),)
 	$(ECHO) ; \
 	$(ECHO) \*\*\* EXES choice has changed since last config; \
 	$(ECHO) \*\*\* Removing involved object files... ; \
-	$(ECHO) \*\*\* Rerun \'gmake config\' with your new options; \
-	$(ECHO) \*\*\* Then rerun \'gmake\' \(you can omit your new options\); \
+	$(ECHO) \*\*\* Rerun \'make config\' with your new options; \
+	$(ECHO) \*\*\* Then rerun \'make\' \(you can omit your new options\); \
 	$(ECHO) ; \
 	for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .EXES),$(EXES)) $(filter-out $(EXES),$(shell $(CAT) .EXES)) | $(REMOVE_-D))); \
 	do \
@@ -537,21 +558,21 @@ coda_lib:
 .auxDepends: .auxLibFiles
 	@$(ECHO) Generating .auxLibFiles
 	@$(RM) .auxLibFiles
-	@for libstem in `$(CAT) .auxSrcFiles | $(SED) 's/\.\///' | $(SED) 's/\/.*//' | sort -u`;\
-	do \
-	libname=`$(ECHO) Qw$$libstem | $(SED) 's/QwAnalysis/Qw/'`; \
-	$(ECHO) $(QWLIB)/lib$$libname$(DllSuf) | $(INTO_RELATIVE_PATH) >> .auxLibFiles; \
-	$(ECHO) $(QWLIB)/lib$$libname$(DllSuf): `$(GREP) "./$$libstem" .auxSrcFiles .auxDictFiles | $(AWK) -F ":" '{print $$2}'` | $(TO_LINE) | $(INTO_RELATIVE_PATH) | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/g' | $(ADD_ANTISLASH) | $(FILTER_OUT_FOREIGN_DEPS) >> .auxDepends; \
-	$(ECHO) >> .auxDepends; \
-	$(ECHO) $(TAB)$(LIBTOOL) $(SOFLAGS) $(LDFLAGS) '$$^' -o $(QWLIB)/lib$$libname$(DllSuf) | $(INTO_RELATIVE_PATH) >> .auxDepends; \
-	$(ECHO) $(TAB)@$(ECHO) >> .auxDepends; \
-	$(ECHO) >> .auxDepends; \
-	done
+	@$(ECHO) $(QWLIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) > .auxLibFiles
+	@$(ECHO) $(QWLIB)/libQw$(DllSuf): `$(CAT) .auxSrcFiles` `$(CAT) .auxDictFiles` \
+		| $(TO_LINE) \
+		| $(INTO_RELATIVE_PATH) \
+		| $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/g' \
+		| $(ADD_ANTISLASH) \
+		| $(FILTER_OUT_FOREIGN_DEPS) >> .auxDepends
+	@$(ECHO) >> .auxDepends
+	@$(ECHO) $(TAB)$(LIBTOOL) $(SOFLAGS) $(LDFLAGS) '$$^' -o $(QWLIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) >> .auxDepends
+	@$(ECHO) $(TAB)@$(ECHO) >> .auxDepends
+	@$(ECHO) >> .auxDepends
 	@for file in `$(CAT) 2>&1 .auxMainFiles`; \
 	do \
-	libstem=`$(ECHO) $$file | $(SED) 's/\.\///' | $(SED) 's/\/.*//'`; \
-	$(ECHO) $(QWBIN)/`$(ECHO) $$file | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`: `$(ECHO) $$file | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/'` `$(GREP) libQw$(DllSuf) .auxLibFiles`  `$(GREP) libQw$$libstem$(DllSuf) .auxLibFiles` | $(INTO_RELATIVE_PATH) >> .auxDepends; \
-	$(ECHO) $(TAB)$(LD) $(CXXFLAGS) '$$<' $(LIBS) -lQw$$libstem $(LDFLAGS) -o '$$@' | $(INTO_RELATIVE_PATH) >> .auxDepends; \
+	$(ECHO) $(QWBIN)/`$(ECHO) $$file | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`: `$(ECHO) $$file | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/'` `$(CAT) .auxLibFiles`  | $(INTO_RELATIVE_PATH) >> .auxDepends; \
+	$(ECHO) $(TAB)$(LD) $(CXXFLAGS) '$$<' $(LIBS) $(LDFLAGS) -o '$$@' | $(INTO_RELATIVE_PATH) >> .auxDepends; \
 	$(ECHO) $(TAB)@$(ECHO) >> .auxDepends; \
 	$(ECHO) >> .auxDepends; \
 	done
@@ -580,8 +601,8 @@ coda_lib:
 .auxLinkDefFiles : .auxDictFiles
 	@$(RM) .tmp1 .tmp2
 	@$(ECHO) Generating $@
-	@$(FIND) $(QWANALYSIS) | $(GREP) '\$(IncSuf)' | $(INTO_RELATIVE_PATH) | $(SED) '/\.svn/d;/LinkDef/d;/Dict/d;s/\$(IncSuf)//' > .tmp1
-	@$(FIND) $(QWANALYSIS) | $(GREP) LinkDef | $(INTO_RELATIVE_PATH) | $(SED) '/\.svn/d;s/LinkDef\$(IncSuf)//'> .tmp2
+	@$(FIND) $(QWANALYSIS) | $(GREP) '\$(IncSuf)' | $(INTO_RELATIVE_PATH) | $(FILTER_OUT_LIBRARYDIR_DEPS) | $(FILTER_OUT_DOXYGEN) | $(SED) '/\.svn/d;/LinkDef/d;/Dict/d;s/\$(IncSuf)//' > .tmp1
+	@$(FIND) $(QWANALYSIS) | $(GREP) LinkDef | $(INTO_RELATIVE_PATH) | $(FILTER_OUT_LIBRARYDIR_DEPS) | $(FILTER_OUT_DOXYGEN) | $(SED) '/\.svn/d;s/LinkDef\$(IncSuf)//'> .tmp2
 	@for file in `$(CAT) .tmp1`; \
 	do \
 	if [ "`$(GREP) $$file .tmp2`" != "" ]; \
@@ -602,13 +623,21 @@ coda_lib:
 	for file in `$(CAT) 2>&1 .auxSrcFiles`; \
 	do \
 	$(RM) .tmp; \
+	$(RM) .tmperror; \
 	$(ECHO) Writing dependencies for file $$file...; \
-	$(ECHO) `$(DIRNAME) $$file`/`$(GCC) $(CPPFLAGS) 2>&1 -MM $$file` \
+	$(ECHO) `$(DIRNAME) $$file`/`$(GCC) $(CPPFLAGS) 2>.tmperror -MM $$file` \
 	| $(TO_LINE) \
 	| $(INTO_RELATIVE_PATH) \
 	| $(ADD_ANTISLASH) \
 	| $(FILTER_OUT_FOREIGN_DEPS) \
 	>> .tmp; \
+	if [ ! -e .tmperror ];\
+	then \
+	$(ECHO) "Aborting:  Unable to locate a file in the include paths:"; \
+	$(CAT) .tmperror; \
+	exit 1; \
+	fi;\
+	$(RM) .tmperror; \
 	$(CAT) .tmp | $(GREP) -v "\/$$(stem $$file)\." | $(SED) "s/\/include\//\/src\//g;s/\$(IncSuf)/\$(SrcSuf)/g;s/\\\//g" >> .aux; \
 	if [ "`$(CAT) .tmp | $(GREP) /In | $(SED) '/In[A-Za-z0-9\/_]/d'`" = "" ]; \
 	then \
@@ -622,6 +651,31 @@ coda_lib:
 	$(RM) .auxSrcFiles; \
 	$(TOUCH) .auxSrcFiles; \
 	$(ECHO) Checking for nested dependencies...; \
+	for file in `$(CAT) 2>&1 .aux`; \
+	do \
+	if [ "`$(GREP) $$file .auxSrcFiles`" = "" ]; \
+	then \
+	if [ -f $$file ]; \
+	then \
+	$(ECHO) $$file | $(FILTER_OUT_LIBRARYDIR_DEPS) >> .auxSrcFiles; \
+	$(ECHO) `$(GCC) $(CPPFLAGS) 2>.tmperror -MM $$file` \
+	| $(TO_LINE) \
+	| $(INTO_RELATIVE_PATH) \
+	| $(FILTER_OUT_FOREIGN_DEPS) \
+	| $(GREP) -v "\/$$(stem $$file)\." \
+	| $(SED) "s/\/include\//\/src\//g;s/\$(IncSuf)/\$(SrcSuf)/g;s/\\\//g" \
+	>> .aux; \
+	if [ ! -e .tmperror ];\
+	then \
+	$(ECHO) "Aborting:  Unable to locate a file in the include paths:"; \
+	$(CAT) .tmperror; \
+	exit 1; \
+	fi;\
+	$(RM) .tmperror; \
+	fi; \
+	fi; \
+	done; \
+	$(ECHO) Checking for double-nested dependencies...; \
 	for file in `$(CAT) 2>&1 .aux`; \
 	do \
 	if [ "`$(GREP) $$file .auxSrcFiles`" = "" ]; \
@@ -704,7 +758,12 @@ coda_lib:
 .EXES:
 	@$(ECHO) $(EXES)  | $(TO_LINE) > .EXES
 
-
+qweak-config: qweak-config.in
+	@$(CAT) $< | $(SED) 's!%QWANALYSIS%!$(QWANALYSIS)!' | $(SED) 's!%LIBS%!$(LIBS)!'   \
+	           | $(SED) 's!%QWLIB%!$(QWLIB)!' | $(SED) 's!%QWBIN%!$(QWBIN)!'           \
+	           | $(SED) 's!%LDFLAGS%!$(LDFLAGS)!' | $(SED) 's!%CPPFLAGS%!$(CPPFLAGS)!' \
+	           > bin/$@
+	@$(CHMOD) a+x bin/$@
 
 ############################
 ############################

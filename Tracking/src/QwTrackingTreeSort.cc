@@ -30,8 +30,13 @@
 
 #include "QwTrackingTreeSort.h"
 
+#include "QwDetectorInfo.h"
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+/**
+ * Initializes the module responsible for sorting tracks according to chi^2
+ */
 QwTrackingTreeSort::QwTrackingTreeSort ()
 {
   fDebug = 0; // Debug level
@@ -51,7 +56,6 @@ QwTrackingTreeSort::~QwTrackingTreeSort ()
 /* ======================================================================
  * checks for connected lines on the connectivity array
  * ====================================================================== */
-
 int QwTrackingTreeSort::connectiv (
 	char *ca,
 	int *array,
@@ -66,37 +70,6 @@ int QwTrackingTreeSort::connectiv (
       ret++;
   }
   return ret;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-double QwTrackingTreeSort::chiweight (QwTrackingTreeLine *treeline)
-{
-  double weight;
-  // NOTE Added +1 to get this to work if numhits == nummiss (region 2 cosmics)
-  if (treeline->numhits >= treeline->nummiss)
-    weight = (double) (treeline->numhits + treeline->nummiss + 1)
-                    / (treeline->numhits - treeline->nummiss + 1);
-  else {
-    cerr << "miss = " << treeline->nummiss << ", hit = " << treeline->numhits << endl;
-    return 100000.0; // This is bad...
-  }
-  return weight * treeline->chi;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-double QwTrackingTreeSort::ptchiweight (QwPartialTrack *pt)
-{
-  double fac;
-  if (pt->numhits >= pt->nummiss)
-    fac = (double) (pt->numhits + pt->nummiss + 1)
-                 / (pt->numhits - pt->nummiss + 1);
-  else {
-    cerr << "miss = " << pt->nummiss << ", hit = " << pt->numhits << endl;
-    return 100.0; // This is bad...
-  }
-  return fac * fac * pt->chi; // Why is 'fac' squared here, but not in chiweight?
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -247,8 +220,11 @@ int QwTrackingTreeSort::bestconnected (
 int QwTrackingTreeSort::rcPTCommonWires (QwPartialTrack *track1, QwPartialTrack *track2)
 {
   int common = 0;
-  for (int i = 0; i < 3; i++)
-    common += rcCommonWires (track1->tline[i], track2->tline[i]);
+  for (EQwDirectionID dir = kDirectionX; dir <= kDirectionV; dir++) {
+    if (! track1->tline[dir]) continue;
+    if (! track2->tline[dir]) continue;
+    common += rcCommonWires (track1->tline[dir], track2->tline[dir]);
+  }
   common /= 3;
   return common;
 }
@@ -278,9 +254,9 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
   //Count the wires shared between the treelines #
   //##############################################
   int i1 = 0, i2 = 0;
-  for ( ; i1 < line1->numhits && i2 < line2->numhits ; ) {
+  for ( ; i1 < line1->fNumHits && i2 < line2->fNumHits ; ) {
     if (hits1[i1]->GetElement() == hits2[i2]->GetElement()) {
-      if (hits1[i1]->fIsUsed && hits2[i2]->fIsUsed)
+      if (hits1[i1]->IsUsed() && hits2[i2]->IsUsed())
 	common++;
       i1++;
       i2++;
@@ -295,13 +271,13 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
       total++;
     }
   }
-  total += line1->numhits - i1 + line2->numhits - i2;
+  total += line1->fNumHits - i1 + line2->fNumHits - i2;
 /*
   for( ;; ) {
     // A
     if( fw & 1 ) {//Set i1 equal to the index of the next hit used in line1
       i1++;
-      for( ; i1 < TLAYERS && hits1[i1]; i1++)
+      for( ; i1 < MAX_LAYERS && hits1[i1]; i1++)
 	if( hits1[i1]->used ) {
 	  total1++;
 	  break;
@@ -310,15 +286,15 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
     // B
     if( fw & 2 ) {//Set i2 equal to the index of the next hit used in line2
       i2++;
-      for( ; i2 < TLAYERS && hits2[i2]; i2++)
+      for( ; i2 < MAX_LAYERS && hits2[i2]; i2++)
 	if( hits2[i2]->used ) {
 	  total2++;
 	  break;
 	}
     }
     // ---
-    if( i1 == TLAYERS || ! hits1[i1] ||
-	i2 == TLAYERS || ! hits2[i2] )
+    if( i1 == MAX_LAYERS || ! hits1[i1] ||
+	i2 == MAX_LAYERS || ! hits2[i2] )
       break;//break if we reach the end of the hits in either line
     //-----------------------------------------------------------
     //The following lines separate hits in different detectors
@@ -361,8 +337,8 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
 
 *//*-------------------------------------------------------------------------*/
 int QwTrackingTreeSort::rcCommonWires (
-	QwTrackingTreeLine *treeline1, //!- first tree line
-	QwTrackingTreeLine *treeline2) //!- second tree line
+	QwTrackingTreeLine *treeline1, ///< first tree line
+	QwTrackingTreeLine *treeline2) ///< second tree line
 {
   // Get the lists of hits associated with the two tree lines
   QwHit **hits1  = treeline1->hits;
@@ -386,7 +362,7 @@ int QwTrackingTreeSort::rcCommonWires (
       i1++;
       // Advance until we reach the end of the list or find a hit
       for ( ; i1 < DLAYERS*MAXHITPERLINE && hits1[i1]; i1++)
-	if (hits1[i1]->fIsUsed) {
+	if (hits1[i1]->IsUsed()) {
 	  total1++;
 	  break;
 	}
@@ -397,7 +373,7 @@ int QwTrackingTreeSort::rcCommonWires (
       i2++;
       // Advance until we reach the end of the list or find a hit
       for ( ; i2 < DLAYERS*MAXHITPERLINE && hits2[i2]; i2++)
-	if (hits2[i2]->fIsUsed) {
+	if (hits2[i2]->IsUsed()) {
 	  total2++;
 	  break;
 	}
@@ -446,8 +422,8 @@ int QwTrackingTreeSort::rcCommonWires (
 
 *//*-------------------------------------------------------------------------*/
 int QwTrackingTreeSort::rcTreeConnSort (
-	QwTrackingTreeLine *treelinelist,	//!- list of tree lines
-	EQwRegionID region)			//!- region
+	QwTrackingTreeLine *treelinelist,	///< list of tree lines
+	EQwRegionID region)			///< region
 {
   // Maximum allowed chi value (was 20000.0)
   double maxchi = 35000.0;
@@ -474,18 +450,25 @@ int QwTrackingTreeSort::rcTreeConnSort (
 
       // If we have been doing this for too long already, give up already
       if (iteration > 100 ) {
-	treeline->isvoid = true;
+	if (fDebug) {
+	  cout << *treeline;
+	  cout << "... void because too many treelines already." << endl;
+	}
+	treeline->SetVoid();
 	nTooManyTreeLines++;
 
       // Otherwise consider valid treelines
-      } else if (treeline->isvoid == false) {
+      } else if (treeline->IsValid()) {
 	// Get weighted chi
-	double chi = chiweight (treeline);
+	double chi = treeline->GetChiWeight();
 
 	// Discard the treeline if chi is too large
 	if (chi > maxchi) {
-	  if (fDebug) cout << "Tree line void because chi^2 too high: " << chi << " > " << maxchi << endl;
-	  treeline->isvoid = true;
+	  if (fDebug) {
+	    cout << *treeline;
+	    cout << "... void because chi^2 = " << chi << " above " << maxchi << endl;
+	  }
+	  treeline->SetVoid();
 
 	// Otherwise consider this treeline
 	} else {
@@ -534,10 +517,10 @@ int QwTrackingTreeSort::rcTreeConnSort (
   index = 0;
   for (QwTrackingTreeLine* treeline = treelinelist;
        treeline; treeline = treeline->next) {
-    if (treeline->isvoid == false) {
+    if (treeline->IsValid()) {
       tlarr[index]  = treeline;
-      isvoid[index] = treeline->isvoid;
-      chi[index]    = chiweight(treeline);
+      isvoid[index] = treeline->IsVoid();
+      chi[index]    = treeline->GetChiWeight();
       index++;
     }
   } // end of loop over treelines
@@ -597,9 +580,13 @@ int QwTrackingTreeSort::rcTreeConnSort (
   }
   for (int i = 0; i < nTreeLines; i++) {
     if (isvoid[i] != true) {
-      tlarr[i]->isvoid = false;
+      tlarr[i]->SetValid();
     } else {
-      tlarr[i]->isvoid = true;
+      if (fDebug) {
+        cout << *tlarr[i];
+        cout << "... void for some reason." << endl;
+      }
+      tlarr[i]->SetVoid();
     }
   }
 
@@ -622,7 +609,7 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
   QwPartialTrack **ptarr, *parttrack;
   int num, idx, i, j, bestconn;
   int  *isvoid;
-  double   *chia, chi, maxch = 200.0, nmaxch, nminch;
+  double   *chia, chi, maxch = 2000.0, nmaxch, nminch;
   /* ------------------------------------------------------------------
    * find the number of used QwPartialTracks
    * ------------------------------------------------------------------ */
@@ -632,10 +619,14 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
     nminch = maxch;
     for (idx = 0, parttrack = parttracklist;
          parttrack; parttrack = parttrack->next) {
-      if (parttrack->isvoid == false ) {
-        chi = ptchiweight(parttrack);
+      if (parttrack->fIsVoid == false ) {
+        chi = parttrack->GetChiWeight();
         if (chi > maxch) {
-          parttrack->isvoid = true;
+          if (fDebug) {
+            cout << *parttrack;
+            cout << "... void because chi^2 too high" << endl;
+          }
+          parttrack->fIsVoid = true;
         } else {
           if (chi > nmaxch) {
             nmaxch = chi;
@@ -680,10 +671,10 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
 
   for (idx = 0, parttrack = parttracklist;
        parttrack; parttrack = parttrack->next) {
-    if (parttrack->isvoid == false) {
+    if (parttrack->fIsVoid == false) {
       ptarr[idx]  = parttrack;
-      isvoid[idx] = parttrack->isvoid;
-      chia[idx]   = ptchiweight(parttrack);
+      isvoid[idx] = parttrack->fIsVoid;
+      chia[idx]   = parttrack->GetChiWeight();
       idx++;
     }
   }
@@ -708,7 +699,7 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
         ptarr[i]->y,
         ptarr[i]->mx,
         ptarr[i]->my,
-        ptchiweight(ptarr[i]),
+        ptarr[i]->GetChiWeight(),
         ptarr[i]->nummiss,
         connectiv( 0, array, isvoid, num, i));
     }
@@ -753,7 +744,7 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
          ptarr[i]->y,
          ptarr[i]->mx,
          ptarr[i]->my,
-         ptchiweight(ptarr[i]),
+         ptarr[i]->GetChiWeight(),
          ptarr[i]->nummiss,
          connectiv( 0, array, isvoid, num, i));
     }
@@ -762,9 +753,9 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
   for (i = 0; i < num; i++) {
     if (isvoid[i] != true) {
       //Statist[method].QwPartialTracksUsed[where][part] ++;
-      ptarr[i]->isvoid = false;
+      ptarr[i]->fIsVoid = false;
     } else
-      ptarr[i]->isvoid = true;
+      ptarr[i]->fIsVoid = true;
   }
 
   // Free malloc'ed arrays

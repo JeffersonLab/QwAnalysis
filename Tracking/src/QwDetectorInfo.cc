@@ -14,7 +14,7 @@
 
 void QwDetectorInfo::SetDetectorInfo (
 	TString sdType,
-	Double_t Zpos1,
+	Double_t Det_originZ,
 	Double_t rot,
 	Double_t  sp_res,
 	Double_t  track_res,
@@ -35,21 +35,22 @@ void QwDetectorInfo::SetDetectorInfo (
 	Int_t detId)
 {
   // Detector geometry parameters
-  fZPos = Zpos1;
-  fDetectorRotation = rot;
-  fSpatialResolution = sp_res;
-  fTrackResolution = track_res;
-  Slope_Match = slope_match;
-  fDetectorOriginX = Det_originX;
-  fDetectorOriginY = Det_originY;
+
+  SetSpatialResolution(sp_res);
+  SetTrackResolution(track_res);
+  SetSlopeMatching(slope_match);
+
+  SetXYZPosition(Det_originX, Det_originY, Det_originZ);
+  SetDetectorRotation(rot);
+
   fActiveWidthX = ActivewidthX;
   fActiveWidthY = ActivewidthY;
   fActiveWidthZ = ActivewidthZ;
-  fWireSpacing = WireSpace;
-  FirstWirePos = FirstWire;
-  Wire_rcosX = W_rcos;
-  Wire_rsinX = W_rsin;
-  fTotalWires = totalwires;
+
+  SetElementSpacing(WireSpace);
+  SetElementOffset(FirstWire);
+  SetElementAngle(W_rcos, W_rsin);
+  SetNumberOfElements(totalwires);
 
   fDetectorID = detId;
 
@@ -90,15 +91,18 @@ void QwDetectorInfo::SetDetectorInfo (
     fDirection = kDirectionV;
   else if (planeDir == "y")
     fDirection = kDirectionY;
-
+  else if (planeDir == "r")
+    fDirection = kDirectionR;
+  else if (planeDir == "f")
+    fDirection = kDirectionPhi;
 };
 
-ostream& operator<< (ostream& stream, QwDetectorInfo& det)
+ostream& operator<< (ostream& stream, const QwDetectorInfo& det)
 {
   stream << "det " << det.fDetectorID << ": ";
   stream << "package " << det.fPackage << ", ";
   stream << "region " << det.fRegion << ", ";
-  stream << "dir " << det.fDirection << " ";
-  stream << "(z = " << det.fZPos << " cm)";
+  stream << "dir " << det.GetElementDirection() << " ";
+  stream << "(z = " << det.GetZPosition() << " cm)";
   return stream;
 }

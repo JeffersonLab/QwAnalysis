@@ -1,5 +1,7 @@
 #include "QwTrack.h"
 
-//QwTrack::QwTrack() { } // inline
+ClassImp(QwTrack);
 
-//QwTrack::~QwTrack() { } // inline
+QwTrack::QwTrack() { }
+
+QwTrack::~QwTrack() { }

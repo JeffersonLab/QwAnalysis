@@ -14,11 +14,12 @@
 
 // Standard C and C++ headers
 #include <string>
-using std::string;
 
+// Qweak headers
 #include "QwTypes.h"
 
-#define NDetMax 100
+// Maximum number of tracking detectors
+#define NDetMax 1010
 
 /// First declare the Hit and Det are objects, because they contain
 /// pointers to each other.
@@ -35,15 +36,15 @@ class QwHit;
     a slightly more sensible name than Det...
  */
 ///
-/// \ingroup QwTrackingAnl
+/// \ingroup QwTracking
 class Det {
 
   public:
 
-    string sName;		/*!< Name of the detector */
+    std::string sName;		/*!< Name of the detector */
 
     //Why we need two kinds of type parameters? Can we only use EQwDetectorType type?
-    string sType;		/*!< Type of the detector */
+    std::string sType;		/*!< Type of the detector */
     double Zpos;		/*!< Z position */
     double Rot;			/*!< rotation angle */
     double rRotCos,rRotSin;	/*!< cos and sin of the rotation angle */
@@ -90,5 +91,7 @@ class Det {
 
 };
 
+extern Det *rcDETRegion[kNumPackages][kNumRegions][kNumDirections];
+extern Det rcDET[NDetMax];
 
 #endif // DET_H
