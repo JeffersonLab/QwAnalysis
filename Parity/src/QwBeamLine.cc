@@ -280,7 +280,7 @@ QwBeamDetectorID::QwBeamDetectorID(Int_t subbankid, Int_t wordssofar,
 				   TString name, TString dettype, 
 				   TString modtype, QwBeamLine * obj):
   fSubbankIndex(subbankid),fWordInSubbank(wordssofar),
-  fmoduletype(modtype),fdetectorname(name),kUnknownDeviceType(-1),fdetectortype(dettype)
+  fmoduletype(modtype),fdetectorname(name),fdetectortype(dettype),kUnknownDeviceType(-1)
 {
   fTypeID = kUnknownDeviceType;
   for(size_t i=0;i<obj->fgDetectorTypeNames.size();i++){
