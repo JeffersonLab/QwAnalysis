@@ -82,7 +82,7 @@ VQwSubsystem* VQwSubsystem::GetSibling(const TString& name) const
 {
   // Get the parent and check for existence
   QwSubsystemArray* parent = GetParent();
-  if (parent)
+  if (parent != 0)
     // Return the subsystem with name in the parent
     return parent->GetSubsystem(name);
   else
@@ -92,18 +92,46 @@ VQwSubsystem* VQwSubsystem::GetSibling(const TString& name) const
 /**
  * Get the value corresponding to some variable name from a different
  * subsystem.
- * @param name  Name of the desired variable
+ * @param name Name of the desired variable
  * @param value Pointer to the value to be filled by the call
- * @return Status of the request:  TRUE indicates the variable was found
+ * @return True if the variable was found, false if not found
  */
-Bool_t VQwSubsystem::RequestExternalValue(TString name,
-					  VQwDataElement* value)
+const Bool_t VQwSubsystem::RequestExternalValue(
+	TString name,
+	VQwDataElement* value) const
 {
+  // Get the parent and check for existence (NOTE: only one parent supported)
   QwSubsystemArray* parent = GetParent();
-  if (parent!=0){
+  if (parent != 0) {
+    // Request the named variable from the parent, return true if found
     return parent->RequestExternalValue(name, value);
   }
-  return kFALSE;
+  return kFALSE; // Error: could not find variable in parent
+};
+
+
+/**
+ * Publish a variable name to the subsystem array
+ * @param name Name of the variable
+ * @param desc Description of the variable
+ * @return True if the variable could be published, false otherwise
+ */
+const Bool_t VQwSubsystem::PublishInternalValue(const TString name, const TString desc) const
+{
+  // Get the parent and check for existence
+  QwSubsystemArray* parent = GetParent();
+  if (parent != 0) {
+    // Publish the variable with name in the parent
+    if (parent->PublishInternalValue(name, desc, this) == kFALSE) {
+      QwError << "Could not publish variable " << name
+              << " in subsystem " << GetSubsystemName() << "!" << QwLog::endl;
+      return kFALSE; // Error: variable could not be puslished
+    }
+  } else {
+    QwError << "I am an orphan :-(" << QwLog::endl;
+    return kFALSE; // Error: no parent defined
+  }
+  return kTRUE; // Success
 };
 
 void VQwSubsystem::ClearAllBankRegistrations()

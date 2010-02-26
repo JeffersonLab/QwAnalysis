@@ -28,22 +28,22 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   Int_t index=0;
   Bool_t combolistdecoded;
 
- 
+
   std::vector<TString> fDeviceName;
   std::vector<Double_t> fDeviceWeight;
- 
+
   QwParameterFile mapstr(mapfile.Data());  //Open the file
 
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
-    
-    
+
+
     if (mapstr.HasVariablePair("=",varname,varvalue)){ //  This is a declaration line.  Decode it.
       varname.ToLower();
       UInt_t value = QwParameterFile::GetUInt(varvalue);
-      
+
       if (varname=="roc")
 	{
 	  currentrocread=value;
@@ -57,7 +57,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
       else if (varname=="sample_size")
 	{
 	  fSample_size=value;
-	}                                 
+	}
       else if (varname=="begincombo")
 	{
 	  std::cout<<"QwBeamline :: Decoding BCM combo!\n";
@@ -68,14 +68,14 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
 
 	    if (mapstr.LineIsEmpty())  continue;
-	    
+
 	    if (mapstr.HasVariablePair("=",varname,varvalue)) {
 	      if (varname=="endCOMBO")
 		{
 		  combolistdecoded = kTRUE;
-		  //std::cout<<"End decoding combo list:"<<comboname<<"\n";	      
+		  //std::cout<<"End decoding combo list:"<<comboname<<"\n";
 		}
-	      else 
+	      else
 		{
 		  comboname = varvalue;
 		  comboname.ToLower();
@@ -86,11 +86,11 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		dev_name=mapstr.GetNextToken(", ").c_str();
 		dev_name.ToLower();
 		fDeviceName.push_back(dev_name);
-		fDeviceWeight.push_back( atof(mapstr.GetNextToken(", ").c_str()));				
+		fDeviceWeight.push_back( atof(mapstr.GetNextToken(", ").c_str()));
 	      }
 	  }
-	  
-	  QwBeamDetectorID localBCMComboID(-1, -1, comboname, combotype, "none", this);	  
+
+	  QwBeamDetectorID localBCMComboID(-1, -1, comboname, combotype, "none", this);
 
 
 
@@ -102,16 +102,16 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	      combolistdecoded=kTRUE;
 	      continue;
 	    }
-	  
+
 	  if(fgDetectorTypeNames[localBCMComboID.fTypeID]=="combinedbcm")
 	    localBCMComboID.fdetectorname=comboname(0,comboname.Sizeof()-1);
 
 	  localBCMComboID.fIndex=
 	    GetDetectorIndex(localBCMComboID.fTypeID,
 			     localBCMComboID.fdetectorname);
-	  
-	  
-	  
+
+
+
 	  if(localBCMComboID.fIndex==-1)
 	    {
 	      if(fgDetectorTypeNames[localBCMComboID.fTypeID]=="combinedbcm")/////
@@ -122,13 +122,13 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		    {
 		      index=GetDetectorIndex(GetDetectorTypeID("bcm"),fDeviceName[i]);
 		      fBCMCombo[fBCMCombo.size()-1].Add(&fBCM[index],fDeviceWeight[i]);
-		      
+
 		    }
 		  fDeviceName.clear();   //reset the device vector for the next combo
 		  fDeviceWeight.clear(); //reset the device weights for the next combo
 		}
 	    }
-	  
+
 	  if(combolistdecoded)
 	    fBeamDetectorID.push_back(localBCMComboID);
 	}
@@ -146,13 +146,13 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	namech.ToLower();
 	keyword = mapstr.GetNextToken(", ").c_str();
 	keyword.ToLower();
-	
+
 	if(currentsubbankindex!=GetSubbankIndex(currentrocread,currentbankread))
 	  {
 	    currentsubbankindex=GetSubbankIndex(currentrocread,currentbankread);
 	    wordsofar=0;
 	  }
-	
+
 
         QwBeamDetectorID localBeamDetectorID(currentsubbankindex, wordsofar,namech, dettype, modtype, this);
 
@@ -167,7 +167,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	    lineok=kFALSE;
 	    continue;
 	  }
-	
+
 	if(localBeamDetectorID.fTypeID==-1)
 	  {
 	    std::cerr << "QwBeamLine::LoadChannelMap:  Unknown detector type: "
@@ -176,20 +176,20 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	    lineok=kFALSE;
 	    continue;
 	  }
-	
+
 	if(fgDetectorTypeNames[localBeamDetectorID.fTypeID]=="bpmstripline")
 	  localBeamDetectorID.fdetectorname=namech(0,namech.Sizeof()-3);
-	
+
 	localBeamDetectorID.fIndex=
 	  GetDetectorIndex(localBeamDetectorID.fTypeID,
 			   localBeamDetectorID.fdetectorname);
-	
+
 	if(localBeamDetectorID.fIndex==-1)
 	  {
 	    if(fgDetectorTypeNames[localBeamDetectorID.fTypeID]=="bpmstripline")
 	      {
 		Bool_t unrotated(keyword=="unrotated");
-		
+
 		QwBPMStripline localstripline(localBeamDetectorID.fdetectorname,!unrotated);
 		fStripline.push_back(localstripline);
 		fStripline[fStripline.size()-1].SetDefaultSampleSize(fSample_size);
@@ -203,7 +203,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		localBeamDetectorID.fIndex=fBCM.size()-1;
 	      }
 	  }
-	
+
 	if(fgDetectorTypeNames[localBeamDetectorID.fTypeID]=="bpmstripline")
 	  {
 	    TString subname=namech(namech.Sizeof()-3,2);
@@ -227,7 +227,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		  continue;
 		}
 	  }
-		  
+
 	  if(ldebug)
 	    {
 	      localBeamDetectorID.Print();
@@ -236,16 +236,16 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	      else
 		std::cout<<"FALSE"<<std::endl;
 	    }
-	
+
 	if(lineok)
 	  fBeamDetectorID.push_back(localBeamDetectorID);
-	
+
       }
-    
-  
+
+
   }
 
-    
+
   if(ldebug)
     {
       std::cout<<"Done with Load map channel \n";
@@ -258,7 +258,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 };
 
 QwBeamDetectorID::QwBeamDetectorID(Int_t subbankid, Int_t wordssofar,
-				   TString name, TString dettype, 
+				   TString name, TString dettype,
 				   TString modtype, QwBeamLine * obj):
   fSubbankIndex(subbankid),fWordInSubbank(wordssofar),
   fmoduletype(modtype),fdetectorname(name),kUnknownDeviceType(-1),fdetectortype(dettype)
@@ -287,25 +287,25 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
   Int_t eventcut_flag;
   TString varname, varvalue, vartypeID,varname2, varvalue2;
   TString device_type,device_name;
-  std::cout<<" QwBeamLine::LoadEventCuts  "<<filename<<std::endl; 
+  std::cout<<" QwBeamLine::LoadEventCuts  "<<filename<<std::endl;
   QwParameterFile mapstr(filename.Data());  //Open the file
 
   samplesize = 0;
   check_flag = 0;
-		
+
   eventcut_flag=1;
-  
+
   while (mapstr.ReadNextLine()){
     //std::cout<<"********* In the loop  *************"<<std::endl;
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
-    if (mapstr.LineIsEmpty())  continue;   
-    
+    if (mapstr.LineIsEmpty())  continue;
+
     if (mapstr.HasVariablePair("=",varname2,varvalue2)){
       if (varname2=="EVENTCUTS"){
 	//varname="";
 	eventcut_flag= QwParameterFile::GetUInt(varvalue2);
-	//std::cout<<"EVENT CUT FLAG "<<eventcut_flag<<std::endl;	
+	//std::cout<<"EVENT CUT FLAG "<<eventcut_flag<<std::endl;
       }
     }
     else{
@@ -313,7 +313,7 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
       device_type.ToLower();
       device_name= mapstr.GetNextToken(", ").c_str();
       device_name.ToLower();
-      
+
 
       //set limits to zero
       ULX=0;
@@ -322,7 +322,7 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
       LLY=0;
 
       if (device_type == "bcm"){
-      
+
 	//std::cout<<" device name "<<device_name<<" device flag "<<check_flag<<std::endl;
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BCM value
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BCM value
@@ -334,29 +334,29 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
 	//std::cout<<"*****************************"<<std::endl;
 	//std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<eventcut_flag<<std::endl;
-     
+
 	//fBCM[det_index].Print();
 	fBCM[det_index].SetSingleEventCuts(LLX,ULX);//(fBCMEventCuts);
 	//std::cout<<"*****************************"<<std::endl;
-	
+
       }
       else if (device_type == "bpmstripline"){
-      
+
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline X
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline X
 	LLY = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline Y
 	ULY = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline Y
 
-	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);	
-	
+	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
+
 	//std::cout<<"*****************************"<<std::endl;
 	//std::cout<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<eventcut_flag<<std::endl;
-	fStripline[det_index].SetSingleEventCuts(LLX, ULX, LLY,ULY  );	
+	fStripline[det_index].SetSingleEventCuts(LLX, ULX, LLY,ULY  );
 	//fStripline[det_index].Print();
 	//std::cout<<"*****************************"<<std::endl;
       }
     }
-        
+
   }
   //update the event cut ON/OFF for all the devices
   //std::cout<<"EVENT CUT FLAG"<<eventcut_flag<<std::endl;
@@ -366,7 +366,7 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 
   for (size_t i=0;i<fBCM.size();i++)
     fBCM[i].SetEventCutMode(eventcut_flag);
-    
+
 
   fQwBeamLineErrorCount=0; //set the error counter to zero
 
@@ -402,7 +402,7 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 	  varname.Remove(TString::kBoth,' ');
 	  varped= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
 	  varcal= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
-	  varweight= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the statistical weight 
+	  varweight= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the statistical weight
 
 	  //if(ldebug) std::cout<<"inputs for channel "<<varname
 	  //	      <<": ped="<<varped<<": cal="<<varcal<<": weight="<<varweight<<"\n";
@@ -557,17 +557,17 @@ Bool_t QwBeamLine::ApplySingleEventCuts(){
   Bool_t test_BCM=kTRUE;
   Bool_t test_BCM1=kTRUE;
 
-  
+
   for(size_t i=0;i<fBCM.size();i++){
     //std::cout<<"  BCM ["<<i<<"] "<<std::endl;
-    test_BCM1=fBCM[i].ApplySingleEventCuts(); 
+    test_BCM1=fBCM[i].ApplySingleEventCuts();
     test_BCM&=test_BCM1;
     if(!test_BCM1 && bDEBUG) std::cout<<"******* QwBeamLine::SingleEventCuts()->BCM[ "<<i<<" , "<<fBCM[i].GetElementName()<<" ] ******\n";
   }
   //if (!test_BCM)
   //fNumError_Evt_BCM++;//BCM falied  event counter for QwBeamLine
-    
-  
+
+
   for(size_t i=0;i<fStripline.size();i++){
     //std::cout<<"  BPM ["<<i<<"] "<<std::endl;
     test_BCM1=fStripline[i].ApplySingleEventCuts();
@@ -576,14 +576,14 @@ Bool_t QwBeamLine::ApplySingleEventCuts(){
     }
   if (!test_BCM1 || !test_BCM)
    fQwBeamLineErrorCount++;//BPM falied  event counter for QwBeamLine
-    
 
-  
-    
-  
+
+
+
+
 
   return test_BCM;
-   
+
 };
 
 Int_t QwBeamLine::GetEventcutErrorCounters(){//inherited from the VQwSubsystemParity; this will display the error summary
@@ -592,8 +592,8 @@ Int_t QwBeamLine::GetEventcutErrorCounters(){//inherited from the VQwSubsystemPa
   std::cout<<"Device name ||  Sample || SW_HW || Sequence || SameHW || ZeroHW || EventCut\n";
   for(size_t i=0;i<fBCM.size();i++){
     //std::cout<<"*"<<std::endl;
-    fBCM[i].GetEventcutErrorCounters();    
-  } 
+    fBCM[i].GetEventcutErrorCounters();
+  }
 
    for(size_t i=0;i<fStripline.size();i++){
      fStripline[i].GetEventcutErrorCounters();
@@ -606,12 +606,12 @@ Int_t QwBeamLine::GetEventcutErrorCounters(){//inherited from the VQwSubsystemPa
 }
 
 
-Int_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag 
+Int_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
   Int_t ErrorFlag;
   ErrorFlag=0;
   for(size_t i=0;i<fBCM.size();i++){
-    ErrorFlag |= fBCM[i].GetEventcutErrorFlag();    
-  } 
+    ErrorFlag |= fBCM[i].GetEventcutErrorFlag();
+  }
   for(size_t i=0;i<fStripline.size();i++){
     ErrorFlag |= fStripline[i].GetEventcutErrorFlag();
   }
@@ -628,12 +628,12 @@ void  QwBeamLine::ProcessEvent()
 
   for(size_t i=0;i<fBCM.size();i++)
     fBCM[i].ProcessEvent();
-  
+
   for(size_t i=0;i<fBCMCombo.size();i++){
     // std::cout<<"new combo :"<<fBCMCombo[i].GetElementName()<<"\n";
     fBCMCombo[i].ProcessEvent();
   }
-  
+
   return;
 };
 
@@ -643,8 +643,24 @@ Int_t QwBeamLine::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t b
   return 0;
 };
 
-Bool_t QwBeamLine::ReturnInternalValue(TString name,
-				       VQwDataElement* value) const{
+const Bool_t QwBeamLine::PublishInternalValues() const
+{
+  // Publish variables
+  Bool_t status = kTRUE;
+  status = status && PublishInternalValue("q_targ", "Calculated charge on target");
+  return status;
+};
+
+
+/**
+ * Return the value of variable name
+ * @param name Name of the desired variable
+ * @param value Pointer to the value to be filled by the call
+ * @return True if the variable was found, false if not found
+ */
+const Bool_t QwBeamLine::ReturnInternalValue(TString name,
+				       VQwDataElement* value) const
+{
   std::cout << "QwBeamLine::ReturnInternalValue called for value name, "
 	    << name.Data() << std::endl;
   Bool_t foundit = kFALSE;
@@ -749,7 +765,7 @@ VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
   //  std::cout<<" here in QwBeamLine::operator= \n";
   if(Compare(value))
     {
-   
+
       QwBeamLine* input = dynamic_cast<QwBeamLine*>(value);
 
       for(size_t i=0;i<input->fStripline.size();i++)
@@ -828,7 +844,7 @@ void QwBeamLine::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
       for(size_t i=0;i<innumer->fBCMCombo.size();i++)
 	this->fBCMCombo[i].Ratio(innumer->fBCMCombo[i],indenom->fBCMCombo[i]);
 
-      // For the combined bcm, maybe we might want to think about getting 
+      // For the combined bcm, maybe we might want to think about getting
       // the asymmetry using the asymmetries of the individual bcms with a
       // weight. But right now it is unclear if wer really need to have that
       // option.
@@ -870,7 +886,7 @@ void QwBeamLine::Do_RunningSum(){
   for(size_t i=0;i<fBCMCombo.size();i++)
     fBCMCombo[i].Do_RunningSum();
 };
- 
+
 
 Bool_t QwBeamLine::Compare(VQwSubsystem *value)
 {
@@ -1009,14 +1025,14 @@ void  QwBeamDetectorID::Print()
     fIndex<<std::endl;
   std::cout<<"Subelement index= "<<
     fSubelement<<std::endl;
-  
-  
-  
 
-  
+
+
+
+
   std::cout<<"---------------------------------------------------"<<std::endl;
   std::cout<<std::endl;
-  
+
 
   return;
 }
@@ -1033,14 +1049,14 @@ void  QwBeamLine::Copy(VQwSubsystem *source)
 	  //QwBeamLine* input=((QwBeamLine*)source);
           QwBeamLine* input = dynamic_cast<QwBeamLine*>(source);
 	  this->fStripline.resize(input->fStripline.size());
-	  
+
 	  for(size_t i=0;i<this->fStripline.size();i++)
 	    this->fStripline[i].Copy(&(input->fStripline[i]));
-	  
+
 	  this->fBCM.resize(input->fBCM.size());
 	  for(size_t i=0;i<this->fBCM.size();i++)
 	    this->fBCM[i].Copy(&(input->fBCM[i]));
-	  
+
 	  this->fBCMCombo.resize(input->fBCMCombo.size());
 	  for(size_t i=0;i<this->fBCMCombo.size();i++){
 	    this->fBCMCombo[i].Copy(&(input->fBCMCombo[i]));

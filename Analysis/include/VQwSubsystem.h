@@ -68,13 +68,20 @@ class VQwSubsystem {
   /// \brief Get the sibling with specified name
   VQwSubsystem* GetSibling(const TString& name) const;
 
+  /// \brief Publish a variable name to the parent subsystem array
+  const Bool_t PublishInternalValue(const TString name, const TString desc) const;
+  /// \brief Publish all variables of the subsystem
+  virtual const Bool_t PublishInternalValues() const {
+    return kTRUE; // when not implemented, this returns success
+  };
+
   /// \brief Request a named value which is owned by an external subsystem;
   ///        the request will be handled by the parent subsystem array
-  Bool_t RequestExternalValue(TString name,  VQwDataElement* value);
+  const Bool_t RequestExternalValue(TString name, VQwDataElement* value) const;
 
   /// \brief Return a named value to the parent subsystem array to be
   ///        delivered to a different subsystem.
-  virtual  Bool_t ReturnInternalValue(TString name, 
+  virtual const Bool_t ReturnInternalValue(TString name,
 				      VQwDataElement* value) const {
     return kFALSE;
   };
