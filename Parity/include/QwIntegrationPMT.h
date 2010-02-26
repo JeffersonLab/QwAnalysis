@@ -33,7 +33,10 @@ class QwIntegrationPMT : public VQwDataElement{
   void  InitializeChannel(TString name, TString datatosave);
   void  ClearEventData();
   void ReportErrorCounters();
+/********************************************************/
 
+  void  SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
+  void  AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
   void  RandomizeEventData(int helicity);
@@ -47,32 +50,33 @@ class QwIntegrationPMT : public VQwDataElement{
 
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
-  Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings 
+  Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Int_t SetSingleEventCuts(std::vector<Double_t> &);//two limts and sample size
   void SetDefaultSampleSize(Int_t sample_size);
+  void SetEventNumber(int event);
 
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;
     fTriumf_ADC.SetEventCutMode(bcuts);
   }
 
-  
+
   void Calculate_Running_Average();
-  void Do_RunningSum(); 
+  void Do_RunningSum();
   void Print() const;
 
   Double_t GetRawBlockValue(size_t blocknum)
            {return fTriumf_ADC.GetRawBlockValue(blocknum);};
 
-  
+
 
   QwIntegrationPMT& operator=  (const QwIntegrationPMT &value);
   QwIntegrationPMT& operator+= (const QwIntegrationPMT &value);
   QwIntegrationPMT& operator-= (const QwIntegrationPMT &value);
   void Sum(QwIntegrationPMT &value1, QwIntegrationPMT &value2);
   void Difference(QwIntegrationPMT &value1, QwIntegrationPMT &value2);
-  void Ratio(QwIntegrationPMT &numer, QwIntegrationPMT &denom); 
+  void Ratio(QwIntegrationPMT &numer, QwIntegrationPMT &denom);
   void Scale(Double_t factor);
 
   void SetPedestal(Double_t ped);
@@ -100,7 +104,7 @@ class QwIntegrationPMT : public VQwDataElement{
 
   QwVQWK_Channel fTriumf_ADC;
 
-  Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check 
+  Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
 
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes

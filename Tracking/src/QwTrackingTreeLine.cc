@@ -59,13 +59,13 @@ QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _
   fNumHits = 0;
   fNumMiss = 0;
 
-  for (int i = 0; i < 2 * TLAYERS; i++) {
+  for (int i = 0; i < 2 * MAX_LAYERS; i++) {
     hits[i] = 0;	/*!< hitarray */
     hasharray[i] = 0;
   }
 
   ID = 0;
-  r3offset = firstwire = lastwire = 0;
+  fR3Offset = fR3FirstWire = fR3LastWire = 0;
 
 
 }
@@ -78,7 +78,7 @@ QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _
 QwTrackingTreeLine::~QwTrackingTreeLine()
 {
   // Delete the hits in this treeline
-  for (int i = 0; i < 2*TLAYERS; i++) {
+  for (int i = 0; i < 2 * MAX_LAYERS; i++) {
     if (hits[i]) delete hits[i];
   }
 }
@@ -205,7 +205,7 @@ const double QwTrackingTreeLine::CalculateAverageResidual()
 {
   int numHits = 0;
   double sumResiduals = 0.0;
-  for (int layer = 0; layer < 2 * TLAYERS; layer++) {
+  for (int layer = 0; layer < 2 * MAX_LAYERS; layer++) {
     for (QwHit* hit = hits[layer]; hit; hit = hit->next) {
       if (hit->IsUsed()) {
         numHits++;
@@ -263,7 +263,7 @@ ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl) {
     stream << ", hits:";
     stream << " (" << tl.fQwHits.size() << ")";
     for (size_t hit = 0; hit < tl.fQwHits.size(); hit++)
-      stream << " " << tl.fQwHits.at(hit)->GetPlane() << "." << tl.fQwHits.at(hit)->GetElement();
+      stream << " " << tl.fQwHits.at(hit)->GetPlane() << ":" << tl.fQwHits.at(hit)->GetElement();
   }
   if (tl.IsVoid()) stream << " (void)";
   return stream;

@@ -22,7 +22,7 @@
 
 // Qweak headers
 #include "QwBeamLine.h"
-#include "QwCommandLine.h"
+#include "QwOptionsParity.h"
 #include "QwEventBuffer.h"
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
@@ -52,6 +52,14 @@ static bool bQuartz = true;
 
 int main(int argc, char* argv[])
 {
+  // First, we set the command line arguments and the configuration filename,
+  // and we define the options that can be used in them (using QwOptions).
+  gQwOptions.SetCommandLine(argc, argv);
+  gQwOptions.SetConfigFile("qwmockdataanalysis.conf");
+  // Define the command line options
+  DefineOptionsParity(gQwOptions);
+
+
   // Load histogram definitions
   gQwHists.LoadHistParamsFromFile(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/parity_hists.in");
 
@@ -75,7 +83,7 @@ int main(int argc, char* argv[])
     detectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_helicity.map");
     detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
   }
-  QwHelicityPattern helicitypattern(detectors,kMultiplet);
+  QwHelicityPattern helicitypattern(detectors);
 
   // Get the helicity
   QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystem("Helicity info");
@@ -84,12 +92,12 @@ int main(int argc, char* argv[])
   QwEventBuffer eventbuffer;
 
 
-  // Parse command line arguments
-  QwCommandLine commandline;
-  commandline.Parse(argc, argv);
-
-  // Loop over the requested runs
-  for (int run = commandline.GetFirstRun(); run <= commandline.GetLastRun(); run++) {
+  // Loop over all runs
+  UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
+  UInt_t runnumber_max = (UInt_t) gQwOptions.GetIntValuePairLast("run");
+  for (UInt_t run  = runnumber_min;
+              run <= runnumber_max;
+              run++) {
 
     // Data file (input)
     TString datafilename = TString("QwMock_") + Form("%ld.log",run);
@@ -101,7 +109,7 @@ int main(int argc, char* argv[])
 
 
     // ROOT file output (histograms)
-    TString rootfilename = TString("QwMock_") + Form("%ld.root",run);
+    TString rootfilename = TString(getenv("QWSCRATCH")) + TString("/rootfiles/QwMock_") + Form("%ld.root",run);
     TFile rootfile(rootfilename, "RECREATE", "QWeak ROOT file");
     if (bHisto) {
       rootfile.cd();
@@ -137,6 +145,8 @@ int main(int argc, char* argv[])
 
 
     // Loop over events in this CODA file
+    Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
+    Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
     while (eventbuffer.GetEvent() == CODA_OK) {
 
       // First, do processing of non-physics events...
@@ -149,8 +159,9 @@ int main(int argc, char* argv[])
       if (! eventbuffer.IsPhysicsEvent()) continue;
 
       //  Check to see if we want to process this event.
-      if (eventbuffer.GetEventNumber() < commandline.GetFirstEvent()) continue;
-      else if (eventbuffer.GetEventNumber() > commandline.GetLastEvent()) break;
+      eventnumber = eventbuffer.GetEventNumber();
+      if      (eventnumber < eventnumber_min) continue;
+      else if (eventnumber > eventnumber_max) break;
 
       // Fill the subsystem objects with their respective data for this event.
       eventbuffer.FillSubsystemData(detectors);

@@ -33,7 +33,7 @@ CodaAnalysis::~CodaAnalysis()
 };
 
 
-const char *const CodaAnalysis::event_type[21] = 
+const char *const CodaAnalysis::char_event_type[21] = 
   {
     "", "Physics","",
     "","","","","","",
@@ -165,14 +165,13 @@ CodaAnalysis::CheckCodaFile(bool summary_status)
   else
     {
       static const int MAXEVTYPE = 40; //200; Why 200?
-      int evtype_sum[MAXEVTYPE] = {0};
+      int evtype_sum[MAXEVTYPE]  = {0};
       
       for (short kk=0; kk<MAXEVTYPE; kk++) evtype_sum[kk] = 0;
       
       unsigned int total_nevent = 0;
-      
-      short event_type = 0;
-      int  *dbuffer    = NULL;
+      short        event_type = 0;
+      int          *dbuffer     = NULL;
       
       while ( (coda_file->codaRead()) == S_SUCCESS ) 
 	{
@@ -215,11 +214,16 @@ CodaAnalysis::CheckCodaFile(bool summary_status)
 	{
 	  printf("Summary of event types in file %s\n", filename);
 	  
-	  for (short ety=0; ety<MAXEVTYPE; ety++) 
+	  for (int ety=0; ety<MAXEVTYPE; ety++) 
 	    {
 	      if (evtype_sum[ety] != 0) 
 		{
-		  printf("Event Type [%2d]  Number in file = %d\n", ety, evtype_sum[ety]);
+		  printf("Event Type ");
+		  if(ety == 1 ) {text_attribute(BOLD); text_color(BLUE);}
+		  else          text_color(RED);
+		  printf("%8s ", char_event_type[ety]);
+		  reset_color();
+		  printf("[%2d] : total EvNum  %d\n",  ety, evtype_sum[ety]);
 		}
 	    }
 	  
@@ -263,7 +267,7 @@ CodaAnalysis::PrintBuffer(int*buffer)
   text_attribute(BOLD);
   if(evtype==PhysicsEvent) text_color(BLUE);
   else                     text_color(RED);
-  printf("%7s ", event_type[evtype]);
+  printf("%8s ", char_event_type[evtype]);
   reset_color();
   printf("EvNum ");
   

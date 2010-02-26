@@ -58,7 +58,7 @@ void QwTrajMatrix::GenerateTrajMatrix() {
     UInt_t grid_size = P_GRIDSIZE*Z_GRIDSIZE*R_GRIDSIZE*PHI_GRIDSIZE;
 
     QwRayTracer* raytracer = new QwRayTracer();
-    raytracer->LoadMagneticFieldMap();
+    //raytracer->LoadMagneticFieldMap();
 
     //open file and set up output tree
     TString rootfilename=std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QwTrajMatrix.root";
@@ -177,3 +177,74 @@ void QwTrajMatrix::GenerateTrajMatrix() {
     delete rootfile;
     delete raytracer;
 };
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+int QwTrajMatrix::ReadTrajMatrixFile( std::vector <QwPartialTrackParameter> *backtrackparametertable ) {
+
+    Int_t   index;
+    Double_t position_r,position_phi;
+    Double_t direction_theta,direction_phi;
+
+    TVector3 startpoint,startdirection,endpoint,enddirection;
+
+    //open file
+    TString rootfilename=std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QwTrajMatrix.root";
+
+    if (gSystem->AccessPathName(rootfilename)) {
+       std::cout <<std::endl<< "Cannot find the momentum look-up table!"<<std::endl;
+       std::cout<<"Would you like to generate one? (Y/N)"<<std::endl;
+       std::cout<<"It's going to take a while, maybe a few hours, to generate the file. ";
+
+       char choice;
+       std::cin >> choice;
+       if (choice == 'y' || choice == 'Y'){
+          std::cout <<std::endl<<std::endl;
+          GenerateTrajMatrix();
+       }
+       else {
+          std::cout <<std::endl<<std::endl<< "Program termined."<<std::endl<<std::endl;
+          exit(0);
+       }
+    }
+
+    TFile* rootfile = new TFile(rootfilename,"read");
+    if (! rootfile) return 0;
+    rootfile->cd();
+
+    TTree *momentum_tree = (TTree *)rootfile->Get("Momentum_Tree");
+
+    std::cout<<"Read data from look-up table"<<std::endl;
+
+    momentum_tree->SetBranchAddress("index",&index);
+    momentum_tree->SetBranchAddress("position_r", &position_r);
+    momentum_tree->SetBranchAddress("position_phi", &position_phi);
+    momentum_tree->SetBranchAddress("direction_theta",&direction_theta);
+    momentum_tree->SetBranchAddress("direction_phi",&direction_phi);
+
+    Int_t numberOfEntries = momentum_tree->GetEntries();
+
+    QwPartialTrackParameter backtrackparameter;
+    backtrackparametertable->reserve(numberOfEntries);
+
+    std::cout<<"total grid points : "<<numberOfEntries<<std::endl;
+
+    for ( Int_t i=0; i<numberOfEntries; i++) {
+        momentum_tree->GetEntry(i);
+
+        // only z=+570 cm plane data
+        backtrackparameter.fPositionR = (float)position_r;
+        backtrackparameter.fPositionPhi = (float)position_phi;
+        backtrackparameter.fDirectionTheta = (float)direction_theta;
+        backtrackparameter.fDirectionPhi = (float)direction_phi;
+
+        backtrackparametertable->push_back(backtrackparameter);
+    }
+
+    std::cout<<"...done."<<std::endl;
+    rootfile->Close();
+    delete rootfile;
+    return 0;
+};
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

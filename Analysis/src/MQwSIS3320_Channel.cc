@@ -19,6 +19,8 @@
 
 #include "MQwSIS3320_Channel.h"
 
+// Qweak headers
+#include "QwLog.h"
 
 // Initialize mode flags
 const unsigned int MQwSIS3320_Channel::MODE_ACCUMULATOR = 0x0;
@@ -39,6 +41,12 @@ const Bool_t MQwSIS3320_Channel::kDEBUG = kFALSE;
  * There are 2^12 possible states over the full 5 V range.
  */
 const Double_t MQwSIS3320_Channel::kVoltsPerBit = 5.0 / pow(2.0, 12);
+
+/**
+ * Conversion factor to translate the single sampling period to time.
+ * The ADC will sample at 250 MHz, corresponding with 4 ns per sample.
+ */
+const Double_t MQwSIS3320_Channel::kNanoSecondsPerSample = 4.0;
 
 
 /**
@@ -61,15 +69,18 @@ void  MQwSIS3320_Channel::InitializeChannel(UInt_t channel, TString name)
     fAccumulators[i].SetElementName(name);
     fAccumulatorsRaw[i].SetElementName(name + "_raw");
   }
-  fSamples.resize(1); fSamplesRaw.resize(1); // TODO This is done right now to
-  // make sure that we can create the tree branches.  If there is ever a
-  // triggered tree in the ROOT file, then we will need to figure out what
-  // to do with this.
-  for (size_t i = 0; i < fSamples.size(); i++) {
-    TString name = GetElementName() + TString("_samples") + Form("%ld",i);
-    fSamples[i].SetElementName(name);
-    fSamplesRaw[i].SetElementName(name + "_raw");
-  }
+
+  // Start with zero samples
+  fSamples.resize(0); fSamplesRaw.resize(0);
+  // Clear the average samples
+  fAverageSamples.ClearEventData();
+  fAverageSamplesRaw.ClearEventData();
+
+  //for (size_t i = 0; i < fSamples.size(); i++) {
+  //  TString name = GetElementName() + TString("_samples") + Form("%ld",i);
+  //  fSamples[i].SetElementName(name);
+  //  fSamplesRaw[i].SetElementName(name + "_raw");
+  //}
 
   // Default values when no event read yet
   fCurrentEvent = -1;
@@ -112,6 +123,9 @@ void MQwSIS3320_Channel::ClearEventData()
   for (size_t i = 0; i < fSamplesRaw.size(); i++)
     fSamplesRaw.at(i).ClearEventData();
   fSamplesRaw.clear(); // and back to zero events
+  // Clear the average samples
+  fAverageSamples.ClearEventData();
+  fAverageSamplesRaw.ClearEventData();
 
   // Clear the accumulators
   for (size_t i = 0; i < fAccumulators.size(); i++)
@@ -178,7 +192,7 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
         // Read the accumulator blocks
         for (size_t i = 0; i < fAccumulatorsRaw.size(); i++) {
           words_read += fAccumulatorsRaw[i].ProcessEvBuffer(&(buffer[words_read]), num_words_left-words_read);
-          if (kDEBUG) std::cout << "Accum " << i+1 << ": " << fAccumulatorsRaw[i] << std::endl;
+          if (kDEBUG) QwOut << "Accum " << i+1 << ": " << fAccumulatorsRaw[i] << QwLog::endl;
         }
         // Read the threshold information
         fAccumulatorDAC = buffer[words_read++];
@@ -192,19 +206,19 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
         fAccumulatorTimingAfter5  = (packedtiming >>= 8) & 0xFF;
         fAccumulatorTimingBefore5 = (packedtiming >>= 8) & 0xFF;
         if (kDEBUG) {
-          std::cout << "DAC: " << fAccumulatorDAC << std::endl;
-          std::cout << "Thresholds: " << fAccumulatorThreshold1 << ", "
-                                      << fAccumulatorThreshold2 << std::endl;
-          std::cout << "Timings on accum 5: " << fAccumulatorTimingAfter5 << ", "
-                                              << fAccumulatorTimingBefore5 << std::endl;
-          std::cout << "Timings on accum 6: " << fAccumulatorTimingAfter6 << ", "
-                                              << fAccumulatorTimingBefore6 << std::endl;
+          QwOut << "DAC: " << fAccumulatorDAC << QwLog::endl;
+          QwOut << "Thresholds: " << fAccumulatorThreshold1 << ", "
+                                  << fAccumulatorThreshold2 << QwLog::endl;
+          QwOut << "Timings on accum 5: " << fAccumulatorTimingAfter5 << ", "
+                                          << fAccumulatorTimingBefore5 << QwLog::endl;
+          QwOut << "Timings on accum 6: " << fAccumulatorTimingAfter6 << ", "
+                                          << fAccumulatorTimingBefore6 << QwLog::endl;
         }
         if (kDEBUG) {
           MQwSIS3320_Accumulator sum("sum");
           sum = fAccumulatorsRaw[1] + fAccumulatorsRaw[2] + fAccumulatorsRaw[3];
-          std::cout << "Accum 1: " << fAccumulatorsRaw[0] << std::endl;
-          std::cout << "Accum 2 + 3 + 4: " << sum << std::endl;
+          QwOut << "Accum 1: " << fAccumulatorsRaw[0] << QwLog::endl;
+          QwOut << "Accum 2 + 3 + 4: " << sum << QwLog::endl;
         }
 
         fHasAccumulatorData = kTRUE;
@@ -216,25 +230,37 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
 
       // This is a sampling buffer using short words
       case MODE_SHORT_WORD_SAMPLING:
-        UInt_t numberofsamples, numberofevents;
+        UInt_t numberofsamples, numberofevents_expected, numberofevents_actual;
         switch (local_format) {
 
           // This is a sampling buffer in multi event mode:
           // - many events are saved in one buffer for a complete helicity event
+          case 0x2: // TODO Due to a problem in the crl, a lot of test data has this
           case FORMAT_MULTI_EVENT:
             numberofsamples = buffer[3];
-            numberofevents = buffer[4];
+            numberofevents_expected = buffer[4];
             fSamplePointer = 0;
             words_read = 5;
 
             // For all events in this buffer
-            SetNumberOfEvents(numberofevents);
+            SetNumberOfEvents(numberofevents_expected);
+            numberofevents_actual = 0; // double check while reading the events
             for (size_t event = 0; event < GetNumberOfEvents(); event++) {
               // create a new raw sampled event
               fSamplesRaw[event].SetNumberOfSamples(numberofsamples);
               // pass the buffer to read the samples
-              words_read += fSamplesRaw[event].ProcessEvBuffer(&(buffer[words_read]), num_words_left-words_read);
-              if (kDEBUG) std::cout << "Samples " << event << ": " << fSamplesRaw[event] << std::endl;
+              UInt_t samples_read = fSamplesRaw[event].ProcessEvBuffer(&(buffer[words_read]), num_words_left-words_read);
+              // check whether we actually read any data
+              if (samples_read == 0) break;
+              // an actual sampled event was read
+              words_read += samples_read;
+              numberofevents_actual++;
+              if (kDEBUG) QwOut << "Samples " << event << ": " << fSamplesRaw[event] << QwLog::endl;
+            }
+            if (numberofevents_expected != numberofevents_actual) {
+              QwWarning << "MQwSIS3320_Channel: Expected " << numberofevents_expected << " events, "
+                        << "but only read " << numberofevents_actual << "." << QwLog::endl;
+              SetNumberOfEvents(numberofevents_actual);
             }
 
             break;
@@ -246,11 +272,11 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
           //   is stored
           case FORMAT_SINGLE_EVENT:
             numberofsamples = buffer[3];
-            numberofevents = 1;
+            numberofevents_expected = 1;
             fSamplePointer = buffer[2];
 
             // Create a new raw sampled event
-            SetNumberOfEvents(numberofevents);
+            SetNumberOfEvents(numberofevents_expected);
             // Pass the buffer to read the samples (only one event)
             fSamplesRaw.at(0).SetNumberOfSamples(numberofsamples);
             fSamplesRaw.at(0).ProcessEvBuffer(buffer, num_words_left, fSamplePointer);
@@ -259,7 +285,8 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
 
           // Default
           default:
-            std::cerr << "Error: Received unknown sampling format!" << std::endl;
+            QwError << "MQwSIS3320_Channel: Received unknown sampling format: "
+                    << std::hex << local_format << std::dec << "." << QwLog::endl;
             words_read = 0;
             return words_read;
 
@@ -270,19 +297,20 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
 
       // This is an incomplete buffer
       case MODE_NOTREADY:
-        std::cerr << "Error: SIS3320 was not ready yet!" << std::endl;
+        QwError << "MQwSIS3320_Channel: SIS3320 was not ready yet!" << QwLog::endl;
         break; // end of MODE_NOTREADY
 
       // Default
       default:
-        std::cerr << "Error: Received unknown mode!" << std::endl;
+        QwError << "MQwSIS3320_Channel: Received unknown mode: "
+                << std::hex << local_mode << "." << QwLog::endl;
         words_read = 0;
         return words_read;
 
     } // end of switch (local_mode)
 
   } else {
-    std::cerr << "MQwSIS3320_Channel::ProcessEvBuffer: Not enough words!" << std::endl;
+    QwError << "MQwSIS3320_Channel: Not enough words while processing buffer!" << QwLog::endl;
   }
 
   return words_read;
@@ -323,13 +351,37 @@ void MQwSIS3320_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
  */
 void MQwSIS3320_Channel::ProcessEvent()
 {
-  // Because the sampling
+  // Correct for pedestal and calibration factor
+  fSamples.resize(fSamplesRaw.size());
   for (size_t i = 0; i < fSamplesRaw.size(); i++) {
     fSamples[i] = (fSamplesRaw[i] - fPedestal) * fCalibrationFactor;
   }
   for (size_t i = 0; i < fAccumulatorsRaw.size(); i++) {
     Double_t pedestal = fPedestal * fAccumulatorsRaw[i].GetNumberOfSamples();
     fAccumulators[i] = (fAccumulatorsRaw[i] - pedestal) * fCalibrationFactor;
+  }
+
+  // Calculate the average sample snapshot
+  if (fSamples.size() > 0) {
+    fAverageSamples.SetNumberOfSamples(fSamples[0].GetNumberOfSamples());
+    fAverageSamplesRaw.SetNumberOfSamples(fSamples[0].GetNumberOfSamples());
+  }
+  for (size_t i = 0; i < fSamples.size(); i++) {
+    fAverageSamples += fSamples[i];
+    fAverageSamplesRaw += fSamplesRaw[i];
+  }
+  if (fSamples.size() > 0) {
+    fAverageSamples /= fSamples.size();
+    fAverageSamplesRaw /= fSamplesRaw.size();
+  }
+
+  // Calculate the windowed sample sums
+  for (size_t i = 0; i < fSamples.size(); i++) {
+    for (size_t timewindow = 0; timewindow < fTimeWindows.size(); timewindow++) {
+      UInt_t start = fTimeWindows[timewindow].first;
+      UInt_t stop = fTimeWindows[timewindow].second;
+      fTimeWindowAverages[timewindow] += fSamples[i].GetSumInTimeWindow(start, stop);
+    }
   }
 
   return;
@@ -567,25 +619,32 @@ void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values)
 };
 
 /**
- * Print some debugging information about the MQwSIS3320_Channel to std::cout
+ * Print some debugging information about the MQwSIS3320_Channel
  */
 void MQwSIS3320_Channel::Print() const
 {
-  std::cout << "MQwSIS3320_Channel: " << GetElementName() << std::endl;
-  std::cout << "fSamplesRaw:" << std::endl;
+  QwOut << "MQwSIS3320_Channel \"" << GetElementName() << "\":" << QwLog::endl;
+  QwOut << "Number of events: " << GetNumberOfEvents() << QwLog::endl;
+  QwOut << "fSamplesRaw:" << QwLog::endl;
   for (size_t i = 0; i < fSamplesRaw.size(); i++) {
-    std::cout << i << ": " << fSamplesRaw.at(i) << std::endl;
+    QwOut << "event "  << i << ": " << fSamplesRaw.at(i) << QwLog::endl;
   }
-  std::cout << "fSamples:" << std::endl;
+  QwOut << "avg: " << fAverageSamplesRaw << QwLog::endl;
+  QwOut << "avg sum: " << fAverageSamplesRaw.GetSum() << QwLog::endl;
+  QwOut << "fSamples:" << QwLog::endl;
   for (size_t i = 0; i < fSamples.size(); i++) {
-    std::cout << i << ": " << fSamples.at(i) << std::endl;
+    QwOut << "event " << i << ": " << fSamples.at(i) << QwLog::endl;
   }
-  std::cout << "fAccumulators -> fAccumulatorsRaw:" << std::endl;
+  QwOut << "avg: " << fAverageSamples << QwLog::endl;
+  QwOut << "avg sum: " << fAverageSamples.GetSum() << QwLog::endl;
+  QwOut << "fAccumulators -> fAccumulatorsRaw:" << QwLog::endl;
   for (size_t i = 0; i < fAccumulators.size(); i++) {
-    std::cout << i << ": " << fAccumulatorsRaw.at(i) << " -> " << fAccumulators.at(i) << std::endl;
+    QwOut << i << ": " << fAccumulatorsRaw.at(i) << " -> " << fAccumulators.at(i) << QwLog::endl;
   }
-  UInt_t nped = 15;
-  std::cout << "Pedestal is: " << fSamplesRaw[0].GetSum(0,nped) / (Double_t) nped << std::endl;
+  UInt_t nped = 10;
+  if (fSamplesRaw.size() > 0) {
+    QwOut << "Average pedestal is: " << fAverageSamplesRaw.GetSumInTimeWindow(0, nped) / (Double_t) nped << QwLog::endl;
+  }
 
   return;
 }

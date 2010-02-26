@@ -50,7 +50,16 @@ static bool bHelicity=true;
 
 ///
 /// \ingroup QwAnalysis_ADC
-int main(Int_t argc,Char_t* argv[]) {
+int main(Int_t argc,Char_t* argv[])
+{
+    /// First, we set the command line arguments and the configuration filename,
+    /// and we define the options that can be used in them (using QwOptions).
+    gQwOptions.SetCommandLine(argc, argv);
+    gQwOptions.SetConfigFile("qwanalysis_adc.conf");
+    // Define the command line options
+    DefineOptionsParity(gQwOptions);
+
+
     //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
     if (getenv("DISPLAY")==NULL
             ||getenv("JOB_ID")!=NULL) kInQwBatchMode = kTRUE;
@@ -71,9 +80,6 @@ int main(Int_t argc,Char_t* argv[]) {
 
     TStopwatch timer;
 
-    QwCommandLine cmdline;
-    cmdline.Parse(argc, argv);
-
     ///
     /// Instantiate event buffer
     QwEventBuffer eventbuffer;
@@ -85,32 +91,38 @@ int main(Int_t argc,Char_t* argv[]) {
     QwSubsystemArrayParity detectors;
     detectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
     detectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
-    //detectors.GetSubsystem("Main detector")->             LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_pedestal.map");
+    //detectors.GetSubsystem("Main detector")->             LoadInputParameters("qweak_pedestal.map");
     ///
     ///Specifies the same helicity pattern used by all subsystems
     ///to calculate asymmetries. The pattern is defined in the
     ///QwHelicityPattern class.
     if (bHelicity) {
         detectors.push_back(new QwHelicity("Helicity info"));
-        detectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_helicity.map");
+        detectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
         detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
     }
-    QwHelicityPattern helicitypattern(detectors,kMultiplet);
+    QwHelicityPattern helicitypattern(detectors);//multiplet size is set within the QwHelicityPattern class
 
     // Get the helicity
     QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystem("Helicity info");
 
 //   QwMainCerenkovDetector sum_outer(""), sum_inner(""), diff(""), sum(""), asym("");
 
-//   sum_outer.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
-//   sum_inner.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
-//   sum.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
-//   diff.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
-//   asym.LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
+//   sum_outer.LoadChannelMap("qweak_adc.map");
+//   sum_inner.LoadChannelMap("qweak_adc.map");
+//   sum.LoadChannelMap("qweak_adc.map");
+//   diff.LoadChannelMap("qweak_adc.map");
+//   asym.LoadChannelMap("qweak_adc.map");
 
     Double_t evnum=0.0;
 
-    for (Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++) {
+    // Loop over all runs
+    UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
+    UInt_t runnumber_max = (UInt_t) gQwOptions.GetIntValuePairLast("run");
+    for (UInt_t run  = runnumber_min;
+                run <= runnumber_max;
+                run++) {
+
         //  Begin processing for the first run.
         //  Start the timer.
         timer.Start();
@@ -137,26 +149,28 @@ int main(Int_t argc,Char_t* argv[]) {
         //  To pass a subdirectory named "subdir", we would do:
         //    detectors.at(1)->ConstructHistograms(rootfile.mkdir("subdir"));
             rootfile.cd();
-            detectors.ConstructHistograms(rootfile.mkdir("md_histo"));
+            detectors.ConstructHistograms(rootfile.mkdir("mps_histo"));
             if (bHelicity) {
                 rootfile.cd();
                 helicitypattern.ConstructHistograms(rootfile.mkdir("hel_histo"));
             }
 
 
-        TTree *mdtree;
+        TTree *mpstree;
         TTree *heltree;
 
-        std::vector <Double_t> mdvector;
+        std::vector <Double_t> mpsvector;
         std::vector <Double_t> helvector;
 
         if (bTree) {
             rootfile.cd();
-            mdtree=new TTree("MD_Tree","Main detector event data tree");
-            mdvector.reserve(6000);
-            mdtree->Branch("evnum",&evnum,"evnum/D");
+            mpstree=new TTree("MPS_Tree","MPS event data tree");
+            mpsvector.reserve(6000);
+            mpstree->Branch("evnum",&evnum,"evnum/D");
             TString dummystr="";
-            ((QwMainCerenkovDetector*)detectors.GetSubsystem("MainDetectors"))->ConstructBranchAndVector(mdtree, dummystr, mdvector);
+
+            ((QwMainCerenkovDetector*)detectors.GetSubsystem("MainDetectors"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
+	  ((QwHelicity*)detectors.GetSubsystem("Helicity info"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
             rootfile.cd();
             if (bHelicity) {
                 rootfile.cd();
@@ -188,16 +202,22 @@ int main(Int_t argc,Char_t* argv[]) {
 //     asym.ConstructBranchAndVector(qrttree, "asym", qrttreevector);
 
 
+        Int_t eventnumber = -1;
+        Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
+        Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
         while (eventbuffer.GetEvent() == CODA_OK) {
 
             if (eventbuffer.IsROCConfigurationEvent()) {
                 eventbuffer.FillSubsystemConfigurationData(detectors);
             }
 
+            // Now, if this is not a physics event, go back and get a new event.
             if (! eventbuffer.IsPhysicsEvent()) continue;
 
-            if (eventbuffer.GetEventNumber() < cmdline.GetFirstEvent()) continue;
-            else if (eventbuffer.GetEventNumber() > cmdline.GetLastEvent()) break;
+            // Check to see if we want to process this event.
+            eventnumber = eventbuffer.GetEventNumber();
+            if      (eventnumber < eventnumber_min) continue;
+            else if (eventnumber > eventnumber_max) break;
 
             eventbuffer.FillSubsystemData(detectors);
             detectors.ProcessEvent();
@@ -215,8 +235,8 @@ int main(Int_t argc,Char_t* argv[]) {
             // Fill the detector trees
             if (bTree) {
                 evnum = eventbuffer.GetEventNumber();
-                detectors.FillTreeVector(mdvector);
-                mdtree->Fill();
+                detectors.FillTreeVector(mpsvector);
+                mpstree->Fill();
             }
             // Fill the helicity tree
             if (bHelicity && helicitypattern.IsCompletePattern()) {
@@ -236,11 +256,11 @@ int main(Int_t argc,Char_t* argv[]) {
             }
 
             //  Fill the subsystem objects with their respective data for this event.
-            eventbuffer.FillSubsystemData(detectors);
+            //eventbuffer.FillSubsystemData(detectors);
 
 
             //  Fill the histograms for the QwDriftChamber subsystem object.
-            detectors.FillHistograms();
+            //detectors.FillHistograms();
 
 //       if (((QwMainCerenkovDetector*)detectors.at(0))->IsGoodEvent()){
 // 	evnum = eventbuffer.GetEventNumber();
@@ -298,6 +318,7 @@ int main(Int_t argc,Char_t* argv[]) {
         //     NTs->ClearNTs(io); //destroy nts according to the i/o flags
         //     CloseAllFiles(io); //close all the output files
         detectors.DeleteHistograms();
+	helicitypattern.DeleteHistograms();
 
 
         eventbuffer.CloseDataFile();

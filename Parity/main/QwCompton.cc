@@ -31,6 +31,16 @@
     between the two laser helicity states, which could give us access to
     systematic differences between the two beam helicity states).
 
+    The details of how this addition and subtraction is performed have to be
+    specified by the subsystem developer.  For example, in the case of the
+    QwComptonPhotonDetector, each helicity window consists of a varying number
+    of sampled photon detector pulses.  The goal could be to use the above
+    formula to get an 'asymmety spectrum' of the pulses.  In this case, one
+    would have to take care not to add 10 positive helicity events and only
+    8 negative helicity events.  The normalization has to be included in the
+    addition and subtraction.  The same thing is true in accumulator mode,
+    where the zeroth accumulator (sample counter) should be used to normalize.
+
     \subsection comptonphotondetector Photon detector subsystem
 
     The only subsystem of the Compton polarimeter that has been implemented
@@ -74,7 +84,8 @@
 #include "THaCodaFile.h"
 
 // Qweak headers
-#include "QwCommandLine.h"
+#include "QwLog.h"
+#include "QwOptionsParity.h"
 #include "QwEventBuffer.h"
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
@@ -98,33 +109,60 @@ static bool bTree = true;
 static bool bHisto = true;
 static bool bHelicity = false;
 static bool bComptonPhoton = true;
-static bool bComptonElectron = false;
+static bool bComptonElectron = true;
 
 int main(int argc, char* argv[])
 {
+  //Set the command line arguments and the configuration filename
+  gQwOptions.SetCommandLine(argc, argv);
+  gQwOptions.SetConfigFile("qwcompton.conf");
+  // Define the command line options
+  DefineOptionsParity(gQwOptions);
+
+  // Message logging facilities
+  gQwLog.InitLogFile("QwCompton.log", QwLog::kTruncate);
+  gQwLog.SetScreenThreshold(QwLog::kMessage);
+  gQwLog.SetFileThreshold(QwLog::kDebug);
+
   // Load histogram definitions
-  gQwHists.LoadHistParamsFromFile(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/parity_hists_compton.in");
+  gQwHists.LoadHistParamsFromFile(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/parity_hists.in");
 
   // Detector array
   QwSubsystemArrayParity detectors;
+  // Photon detector
   QwComptonPhotonDetector* photon = 0;
-  MQwSIS3320_Channel* sampling = 0;
   if (bComptonPhoton) {
     detectors.push_back(new QwComptonPhotonDetector("Compton Photon Detector"));
-    detectors.GetSubsystem("Compton Photon Detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/compton_channels.map");
-    detectors.GetSubsystem("Compton Photon Detector")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/compton_pedestal.map");
+    photon = dynamic_cast<QwComptonPhotonDetector*> (detectors.GetSubsystem("Compton Photon Detector"));
+    if (photon) {
+      photon->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/compton_photon_channels.map");
+      photon->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/compton_photon_pedestal.map");
+      photon->Print();
+    } else QwError << "Could not initialize photon detector!" << QwLog::endl;
   }
+  // Electron detector
+  QwComptonElectronDetector* electron = 0;
   if (bComptonElectron) {
     detectors.push_back(new QwComptonElectronDetector("Compton Electron Detector"));
-    detectors.GetSubsystem("Compton Electron Detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/compton_channels.map");
-    detectors.GetSubsystem("Compton Electron Detector")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/compton_pedestal.map");
-    ((QwComptonElectronDetector*) detectors.GetSubsystem("Compton Electron Detector"))->Print();
+    electron = dynamic_cast<QwComptonElectronDetector*> (detectors.GetSubsystem("Compton Electron Detector"));
+    if (electron) {
+      electron->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/compton_electron_channels.map");
+      electron->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/compton_electron_pedestal.map");
+      electron->Print();
+    } else QwError << "Could not initialize electron detector!" << QwLog::endl;
   }
-  QwHelicityPattern helicitypattern(detectors,kMultiplet);
+  // Helicity subsystem
+  if (bHelicity) {
+    detectors.push_back(new QwHelicity("Helicity info"));
+    detectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_helicity.map");
+    detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
+  }
+  // Helicity pattern
+  QwHelicityPattern helicitypattern(detectors);
 
-  // Get the photon detector
+  // Get the SIS3320 channel for debugging
+  MQwSIS3320_Channel* sampling = 0;
   if (bComptonPhoton) {
-    photon = (QwComptonPhotonDetector*) detectors.GetSubsystem("Compton Photon Detector");
     sampling = photon->GetSIS3320Channel("compton");
   }
 
@@ -135,24 +173,25 @@ int main(int argc, char* argv[])
   QwEventBuffer eventbuffer;
 
 
-  // Parse command line arguments
-  QwCommandLine commandline;
-  commandline.Parse(argc, argv);
-
-  // Loop over the requested runs
-  for (int run = commandline.GetFirstRun(); run <= commandline.GetLastRun(); run++) {
+  // Loop over all runs
+  UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
+  UInt_t runnumber_max = (UInt_t) gQwOptions.GetIntValuePairLast("run");
+  for (UInt_t run  = runnumber_min;
+              run <= runnumber_max;
+              run++) {
 
     // Data file (input)
     TString datafilename = TString("Compton_") + Form("%ld.log",run);
     if (eventbuffer.OpenDataFile(datafilename,"R") != CODA_OK) {
-      std::cout << "Error: could not open file!" << std::endl;
+      QwError << "Could not open file!" << QwLog::endl;
       return 0;
     }
     eventbuffer.ResetControlParameters();
 
 
     // ROOT file output (histograms)
-    TString rootfilename = TString("QwMock_") + Form("%ld.root",run);
+    TString rootfilename = TString(getenv("QWSCRATCH")) + TString("/rootfiles/")
+                         + TString("Compton_") + Form("%ld.root",run);
     TFile rootfile(rootfilename, "RECREATE", "QWeak ROOT file");
     if (bHisto) {
       rootfile.cd();
@@ -161,6 +200,12 @@ int main(int argc, char* argv[])
         rootfile.cd();
         helicitypattern.ConstructHistograms(rootfile.mkdir("hel_histo"));
       }
+    }
+
+    // ROOT file output (expert tree)
+    if (bTree) {
+      rootfile.cd();
+      detectors.ConstructTree(rootfile.mkdir("expert"));
     }
 
     // ROOT file output (trees)
@@ -188,7 +233,16 @@ int main(int argc, char* argv[])
       }
     }
 
+    // Fake helicity generation (awaiting real helicity signals)
+    if (bHelicity) {
+      helicity->SetEventPatternPhase(-1, -1, -1);
+      unsigned int seed = 0x1234 ^ run;
+      helicity->SetFirst24Bits(seed & 0xFFFFFF);
+    }
+
     // Loop over events in this CODA file
+    Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
+    Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
     while (eventbuffer.GetEvent() == CODA_OK) {
 
       // First, do processing of non-physics events...
@@ -201,42 +255,51 @@ int main(int argc, char* argv[])
       if (! eventbuffer.IsPhysicsEvent()) continue;
 
       //  Check to see if we want to process this event.
-      if (eventbuffer.GetEventNumber() < commandline.GetFirstEvent()) continue;
-      else if (eventbuffer.GetEventNumber() > commandline.GetLastEvent()) break;
+      Int_t eventnumber = eventbuffer.GetEventNumber();
+      if      (eventnumber < eventnumber_min) continue;
+      else if (eventnumber > eventnumber_max) break;
 
       // Fill the subsystem objects with their respective data for this event.
       eventbuffer.FillSubsystemData(detectors);
 
+      // Fake helicity pattern
+      if (bHelicity) {
+        helicity->SetEventPatternPhase(eventnumber, eventnumber / kMultiplet, eventnumber % kMultiplet + 1);
+        helicity->RunPredictor();
+      }
+
       // Process this events
       detectors.ProcessEvent();
-
-      // Print some debugging info
-      if (bComptonPhoton && bDebug)
-        sampling->Print();
 
       // Helicity pattern
       if (bHelicity)
         helicitypattern.LoadEventData(detectors);
 
       // Print the helicity information
-      if (bHelicity && bDebug) {
+      if (bHelicity /* && bDebug */ ) {
         // - actual helicity
-        if      (helicity->GetHelicityActual() == 0) std::cout << "-";
-        else if (helicity->GetHelicityActual() == 1) std::cout << "+";
-        else std::cout << "?";
+        if      (helicity->GetHelicityActual() == 0) QwOut << "-";
+        else if (helicity->GetHelicityActual() == 1) QwOut << "+";
+        else QwOut << "?";
         // - delayed helicity
-        if      (helicity->GetHelicityDelayed() == 0) std::cout << "(-) ";
-        else if (helicity->GetHelicityDelayed() == 1) std::cout << "(+) ";
-        else std::cout << "(?) ";
+        if      (helicity->GetHelicityDelayed() == 0) QwOut << "(-) ";
+        else if (helicity->GetHelicityDelayed() == 1) QwOut << "(+) ";
+        else QwOut << "(?) ";
         if (helicity->GetPhaseNumber() == kMultiplet) {
-          std::cout << std::hex << helicity->GetRandomSeedActual() << std::dec << ",  \t";
-          std::cout << std::hex << helicity->GetRandomSeedDelayed() << std::dec << std::endl;
+          QwOut << std::hex << helicity->GetRandomSeedActual() << std::dec << ",  \t";
+          QwOut << std::hex << helicity->GetRandomSeedDelayed() << std::dec << QwLog::endl;
         }
       }
 
+      // Print some debugging info
+      if (bComptonPhoton && bDebug)
+        sampling->Print();
 
       // Fill the histograms
       if (bHisto) detectors.FillHistograms();
+
+      // Fill the expert tree
+      if (bTree) detectors.FillTree();
 
       // Fill the tree
       if (bTree) {
@@ -257,10 +320,13 @@ int main(int argc, char* argv[])
       // Periodically print event number
       if ((bDebug && eventbuffer.GetEventNumber() % 1000 == 0)
                   || eventbuffer.GetEventNumber() % 10000 == 0)
-        std::cout << "Number of events processed so far: "
-                  << eventbuffer.GetEventNumber() << std::endl;
+        QwMessage << "Number of events processed so far: "
+                  << eventbuffer.GetEventNumber() << QwLog::endl;
 
     } // end of loop over events
+
+    QwMessage << "Last event processed: "
+              << eventbuffer.GetEventNumber() << QwLog::endl;
 
     // Close ROOT file
     rootfile.Write(0,TObject::kOverwrite);
@@ -274,6 +340,5 @@ int main(int argc, char* argv[])
     eventbuffer.ReportRunSummary();
 
   } // end of loop over runs
-
 
 }

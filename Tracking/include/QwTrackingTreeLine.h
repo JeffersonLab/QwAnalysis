@@ -145,6 +145,14 @@ class QwTrackingTreeLine: public VQwTrackingElement {
     void SetAverageResidual() { fAverageResidual = CalculateAverageResidual(); };
     // @}
 
+    //! Set the offset
+    void SetOffset(const double offset) { fOffset = offset; };
+    //! Get the offset
+    const double GetOffset() const { return fOffset; };
+    //! Set the slope
+    void SetSlope(const double slope) { fSlope = slope; };
+    //! Get the slope
+    const double GetSlope() const { return fSlope; };
     //! Set the chi^2
     void SetChi(const double chi) { fChi = chi; };
     //! Get the chi^2
@@ -163,7 +171,8 @@ class QwTrackingTreeLine: public VQwTrackingElement {
 
     QwHitPattern* fMatchingPattern; //!	///< matching hit pattern
 
-    double fOffset, fSlope;		///< track offset and slope
+    double fOffset;			///< track offset
+    double fSlope;			///< track slope
     double fChi;			///< chi squared(?)
     double fCov[3];			///< covariance matrix of offset and slope
 
@@ -173,14 +182,14 @@ class QwTrackingTreeLine: public VQwTrackingElement {
     int   fNumHits;			///< number of hits on this treeline
     int   fNumMiss;			///< number of planes without hits
 
-    QwHit* hits[2*TLAYERS];	//!	///< all hits that satisfy road requirement
-    QwHit* usedhits[TLAYERS];	//!	///< hits that correspond to optimal chi^2
+    QwHit* hits[2*MAX_LAYERS];	//!	///< all hits that satisfy road requirement
+    QwHit* usedhits[MAX_LAYERS];//!	///< hits that correspond to optimal chi^2
 
-    int   hasharray[2*TLAYERS];	//!
+    int   hasharray[2*MAX_LAYERS];	//!
     int   ID;				///< adamo ID
 
-    int r3offset;			///< offset of demultiplexed group of 8
-    int firstwire, lastwire;		///< first and last wire in group of 8
+    int fR3Offset;			///< offset of demultiplexed group of 8
+    int fR3FirstWire, fR3LastWire;	///< first and last wire in group of 8
 
     QwTrackingTreeLine *next;	//!	///< link to next list element
 

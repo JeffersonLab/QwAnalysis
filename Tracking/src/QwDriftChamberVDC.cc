@@ -24,13 +24,14 @@ This generates identical set of hits to region 2 for region 3.
 const UInt_t QwDriftChamberVDC::kBackPlaneNum=4;
 const UInt_t QwDriftChamberVDC::kLineNum=8;
 
-QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ) :VQwSubsystem ( region_tmp ),
-        QwDriftChamber ( region_tmp,fWireHitsVDC ) {
-    std::vector<QwDelayLine> temp;
-    temp.resize ( kLineNum );
-    fDelayLineArray.resize ( kBackPlaneNum,temp );
-    fDelayLinePtrs.resize ( 21 );
-    OK=0;
+QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ): VQwSubsystem ( region_tmp ),
+							     QwDriftChamber ( region_tmp,fWireHitsVDC ) {
+  SetReferenceParameters(-30000., 30000., 64495., 8929., kTRUE);
+  std::vector<QwDelayLine> temp;
+  temp.resize ( kLineNum );
+  fDelayLineArray.resize ( kBackPlaneNum,temp );
+  fDelayLinePtrs.resize ( 21 );
+  OK=0;
 };
 
 Int_t QwDriftChamberVDC::LoadQweakGeometry ( TString mapfile ) {
@@ -196,109 +197,34 @@ void  QwDriftChamberVDC::SubtractReferenceTimes() {
     }
 }
 
-Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDetectorID detector, Double_t angle ) {
-    Double_t a0=0,a1=0,b0=0,b1=0,b2=0,c0=0,c1=0,x=0;
-    Double_t cut1=1,cut2=5;
-    Double_t delta_d1=0.05,delta_d2=0.05;
-    Double_t d[4]={0};
+
+
+
+Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector, Double_t angle) {
+    Double_t p[11]={-0.742002,9.99584	,-3.48159,	16.5797	,-0.144378,	13.3434,	0.785242,	-20.939,	21.6484,	-25.1623,	22.377};
+    Double_t x=0;
+    Double_t cut[4]={0.5,1.5,4,6};
     Double_t t[4]={0};
+    t[0]=0.5*(p[0]+p[1]*cut[0]+p[2]+p[3]*cut[0]);
+    t[1]=0.5*(p[2]+p[3]*cut[1]+p[4]+p[5]*cut[1]+p[6]*cut[1]*cut[1]);
+    t[2]=0.5*(p[4]+p[5]*cut[2]+p[6]*cut[2]*cut[2]+p[7]+p[8]*cut[2]);
+    t[3]=0.5*(p[7]+p[8]*cut[3]+p[9]+p[10]*cut[3]);
 
 
-    /*a0=-3.48422+0.0286254*angle;
-    a1=28.6858-0.293514*angle;
-    b0=-19.467+0.477792*angle;
-    b1=38.7557-0.595964*angle;
-    b2=-1.37907+0.0521888*angle;
-    c0=27.7324-1.19175*angle;
-    c1=22.3955-0.00131218*angle;*/
-
-    a0=-2.23845+0.0267962*angle;
-    a1=27.9416-0.342558*angle;
-    b0=1.25994-0.0525925*angle;
-    b1=24.4128-0.234989*angle;
-    b2=1.94248-0.0270343*angle;
-    c0=54.7796-1.7836*angle;
-    c1=22.9911-0.0142861*angle;
-
-    /*std::cout << a0 << std::endl;
-    std::cout << a1 << std::endl;
-    std::cout << b0 << std::endl;
-    std::cout << b1 << std::endl;
-    std::cout << b2 << std::endl;
-    std::cout << c0 << std::endl;
-    std::cout << c1 << std::endl;*/
-
-    d[0]=cut1-delta_d1;
-    d[1]=cut1+delta_d1;
-    d[2]=cut2-delta_d2;
-    //delta_d2=0.1;
-    d[3]=cut2+delta_d2;
-
-    t[0]=a0+a1*d[0];
-    t[3]=c0+c1*d[3];
-    t[1]=b0+b1*d[1]+b2*d[1]*d[1];
-    t[2]=b0+b1*d[2]+b2*d[2]*d[2];
-
-    //std::cout << t[0] << " " << t[1] << " " << t[2] << " " << t[3] << " " << std::endl;
-
-    //the cutpoInt_t is 2.1 and 5.9;
-    //tsp1=b0+2.1*b1+2.1*2.1*b2;
-    //tsp2=b0+5.9*b1+5.9*5.9*b2;
-    if ( drifttime <= t[0] ) {
-        x = ( drifttime - a0 ) /a1;
-    } else if ( drifttime <= t[1] ) {
-        x = ( d[1]-d[0] ) * ( drifttime-t[0] ) / ( t[1]-t[0] ) +d[0];
-    } else if ( drifttime <= t[2] ) {
-        x = ( -b1 + sqrt ( b1*b1 - 4*b2* ( b0-drifttime ) ) ) / ( 2*b2 );
-    } else if ( drifttime <= t[3] ) {
-        x = ( d[3]-d[2] ) * ( drifttime-t[2] ) / ( t[3]-t[2] ) +d[2];
-    } else {
-        x= ( drifttime - c0 ) /c1;
-    }
-    //std::cout << "time: " << drifttime << " distance:" << x << std::endl; 
+    if (drifttime < t[0])
+        x = (drifttime - p[0])/p[1];
+    else if ( drifttime >=t[0] && drifttime < t[1])
+        x = (drifttime-p[2])/p[3];
+    else if (drifttime>=t[1] && drifttime < t[2])
+        x = (-p[5] + sqrt(p[5]*p[5] - 4*p[6]*(p[4]-drifttime)))/(2*p[6]);
+    else if (drifttime>=t[2]&& drifttime <t[3])
+        x = (drifttime-p[7])/p[8];
+    else if (drifttime>=t[3])
+        x=(drifttime-p[9])/p[10];
+	//if(drifttime>=4 && drifttime < 4.1)
+	//std::cout << "drifttime: " << drifttime << " " << "x: " << x << std::endl;
     return x;
 };
-
-/*Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector, Double_t angle){
-  Double_t a0=0,a1=0,b0=0,b1=0,b2=0,c0=0,c1=0;
-  Double_t tsp1=0,tsp2=0,x=0;
-  Double_t cut1=1,cut2=5;
-
-  a0=-3.48422+0.0286254*angle;
-  a1=28.6858-0.293514*angle;
-  b0=-19.467+0.477792*angle;
-  b1=38.7557-0.595964*angle;
-  b2=-1.37907+0.0521888*angle;
-  c0=27.7324-1.19175*angle;
-  c1=22.3955-0.00131218*angle;*/
-/*a0=-2.20348+0.0260419*angle;
-a1=27.5391-0.334669*angle;
-b0=-4.95925+0.0856336*angle;
-b1=30.0832-0.361088*angle;
-b2=0.288922+0.00984447*angle;
-c0=36.9526-1.38131*angle;
-c1=22.5735-0.00492575*angle;
-
-a0=-2.23845+0.0267962*angle;
-a1=27.9416-0.342558*angle;
-b0=1.25994-0.0525925*angle;
-b1=24.4128-0.234989*angle;
-b2=1.94248-0.0270343*angle;
-c0=54.7796-1.7836*angle;
-c1=22.9911-0.0142861*angle;
-
-tsp1=b0+cut1*b1+cut1*cut1*b2;
-tsp2=b0+cut2*b1+cut2*cut2*b2;
-
-if (drifttime < tsp1) {                    // Select Region 1
-x = (drifttime - a0)/a1;}
-else if (drifttime <= tsp2){ // Select Region 2
-x = (-b1 + sqrt(b1*b1 - 4*b2*(b0-drifttime)))/(2*b2);}
-else{                                  // Select Region 3
-x = (drifttime - c0)/c1;
-}
-return x;
-};*/
 
 
 void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data ) {
@@ -330,6 +256,7 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
 
             // hitCount=std::count_if(fTDCHits.begin(),fTDCHits.end(),boost::bind(&QwHit::WireMatches,_1,2,boost::ref(package),boost::ref(plane),boost::ref(wire)) );
             //std::cout<<"At QwDriftChamberVDC::FillRawTDCWord_2"<<endl;
+            hitCount=std::count_if(fTDCHits.begin(),fTDCHits.end(),boost::bind(&QwHit::WireMatches,_1,3,boost::ref(package),boost::ref(plane),boost::ref(wire)) );
             fTDCHits.push_back ( QwHit ( bank_index, slot_num, chan, hitCount, kRegionID3, package, plane,direction, wire, data ) );//in order-> bank index, slot num, chan, hitcount, region=3, package, plane,,direction, wire,wire hit time
 
         }
@@ -342,15 +269,7 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
 
 
 
-Int_t QwDriftChamberVDC::LinkReferenceChannel ( const UInt_t chan, const UInt_t plane, const UInt_t wire ) {
-    fReferenceChannels.at ( fCurrentBankIndex ).first  = fCurrentTDCIndex;
-    fReferenceChannels.at ( fCurrentBankIndex ).second = chan;
-    //  Register a reference channel with the wire equal to the bank index.
-    fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPackage = 0;
-    fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPlane   = plane;
-    fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fElement = fCurrentBankIndex;
-    return OK;
-};
+
 
 Int_t QwDriftChamberVDC::BuildWireDataStructure ( const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire ) {
     if ( plane == kReferenceChannelPlaneNumber ) {
@@ -398,6 +317,65 @@ Int_t QwDriftChamberVDC::AddChannelDefinition ( const UInt_t plane, const UInt_t
     }
     return OK;
 }
+
+
+void  QwDriftChamberVDC::FillHistograms()
+{
+  
+  if (! HasDataLoaded()) return;
+
+  
+  QwDetectorID   this_detid;
+  QwDetectorInfo *this_det;
+  
+  //  Fill all of the histograms.
+  
+
+  std::vector<Int_t> wireshitperplane(fWiresPerPlane.size(),0);
+
+  
+  //for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
+	for(std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
+	
+    this_detid = hit1->GetDetectorID();
+    //std::cout << "fElement during FillHistogram: " << this_detid.fElement << std::endl;
+    if (this_detid.fPlane<=0 || this_detid.fElement<=0){
+      if(fDEBUG) {
+	std::cout << "QwDriftChamber::FillHistograms:  Bad plane or element index:  fPlane=="
+		  << this_detid.fPlane << ", fElement==" << this_detid.fElement << std::endl;
+      }
+      continue;
+    }
+    
+ 
+    this_det   = &(fWireData.at(this_detid.fPlane).at(this_detid.fElement));
+//std::cout << "getnumberhits: " << this_det->GetNumHits() << std::endl;
+    if (hit1->IsFirstDetectorHit()){
+      //  If this is the first hit for this detector, then let's plot the
+      //  total number of hits this wire had. 
+	HitsWire[this_detid.fPlane]->Fill(this_detid.fElement,this_det->GetNumHits());
+     
+      //  Also increment the total number of events in whichthis wire was hit.
+      TotHits[this_detid.fPlane]->Fill(this_detid.fElement,1);
+      //  Increment the number of wires hit in this plane
+      wireshitperplane.at(this_detid.fPlane) += 1;
+    }
+
+    //  Fill ToF histograms
+    TOFP_raw[this_detid.fPlane]->Fill(hit1->GetRawTime());
+    TOFW_raw[this_detid.fPlane]->Fill(this_detid.fElement,hit1->GetRawTime());
+    TOFP[this_detid.fPlane]->Fill(hit1->GetTime());
+    TOFW[this_detid.fPlane]->Fill(this_detid.fElement,hit1->GetTime());
+    
+    
+
+  }
+
+  for (size_t iplane=1; iplane<fWiresPerPlane.size(); iplane++) {
+      WiresHit[iplane]->Fill(wireshitperplane[iplane]);
+
+     }
+};
 
 
 //Int_t  QwDriftChamberVDC::LoadChannelMap(TString mapfile)
@@ -464,7 +442,10 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile ) {
         dir= mapstr.GetNextToken ( ", \t()" ).c_str();
         firstwire= ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
 
-        //BuildWireDataStructure(channum,pknum,plnum,firstwire);
+	if( pknum== "u")
+        BuildWireDataStructure(channum,kPackageUp,plnum,firstwire);
+	else if(pknum== "d")
+	BuildWireDataStructure(channum,kPackageDown,plnum,firstwire);
         if ( fDelayLineArray.at ( bpnum ).at ( lnnum ).Fill == false ) { //if this delay line has not been Filled in the data
             std::string a = mapstr.GetNextToken ( ", \t()" ) ;
             while ( a.size() !=0 ) {
@@ -572,8 +553,8 @@ void QwDriftChamberVDC::ProcessEvent() {
         tmpln    = fDelayLinePtrs.at ( tmpModule ).at ( tmpChan ).fLineNumber;
         plane =    fDelayLineArray.at ( tmpbp ).at ( tmpln ).fPlane;
         //EQwDetectorPackage package = ( EQwDetectorPackage ) fDelayLineArray.at ( tmpbp ).at ( tmpln ).fPackage;
-	EQwDetectorPackage package = fDelayLineArray.at ( tmpbp ).at ( tmpln ).fPackage;
-	EQwDirectionID direction = fDelayLineArray.at ( tmpbp ).at ( tmpln ).fDirection;
+        EQwDetectorPackage package = fDelayLineArray.at ( tmpbp ).at ( tmpln ).fPackage;
+        EQwDirectionID direction = fDelayLineArray.at ( tmpbp ).at ( tmpln ).fDirection;
 
 
         if ( fDelayLineArray.at ( tmpbp ).at ( tmpln ).Processed == false ) { //if this delay line has been Processed
@@ -600,7 +581,7 @@ void QwDriftChamberVDC::ProcessEvent() {
                 for ( Int_t j=0;j<Ambiguitycount;j++ ) {
                     wire_hit=fDelayLineArray.at ( tmpbp ).at ( tmpln ).Wire.at ( i ).at ( j );
                     wire_array.push_back ( wire_hit );
-                    mycount=count ( wire_array.begin(),wire_array.end(),wire_hit );
+                    mycount=count ( wire_array.begin(),wire_array.end(),wire_hit )-1;
 
 
                     QwHit NewQwHit ( tmpCrate, tmpModule, tmpChan, mycount, kRegionID3,
@@ -608,7 +589,7 @@ void QwDriftChamberVDC::ProcessEvent() {
                                      direction,fDelayLineArray.at ( tmpbp ).at ( tmpln ).Wire.at ( i ).at ( j ),
                                      left_time );
 
-                    //AddChannelDefinition(fDelayLineArray.at (tmpbp).at(tmpln).Plane,fDelayLineArray.at(tmpbp).at(tmpln).Wire.at(i).at(j) );
+                    AddChannelDefinition(fDelayLineArray.at (tmpbp).at(tmpln).fPlane,fDelayLineArray.at(tmpbp).at(tmpln).Wire.at(i).at(j) );
                     NewQwHit.SetHitNumberR ( order_R );
                     if ( real_time<0 ) continue;
                     NewQwHit.SetTime ( real_time );

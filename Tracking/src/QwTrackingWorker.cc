@@ -93,6 +93,9 @@ using std::endl;
 #include "globals.h"
 #include "Det.h"
 
+// Qweak GEM cluster finding
+#include "QwGEMClusterFinder.h"
+
 // Qweak tree search headers
 #include "QwHitPattern.h"
 #include "QwTrackingTree.h"
@@ -114,7 +117,7 @@ using std::endl;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
+QwTrackingWorker::QwTrackingWorker (const char* name)
 {
   QwDebug << "###### Calling QwTrackingWorker::QwTrackingWorker ()" << QwLog::endl;
 
@@ -138,7 +141,7 @@ QwTrackingWorker::QwTrackingWorker (const char* name) : VQwSystem(name)
   raytracer = new QwRayTracer();
 
   // Load magnetic field map
-  //raytracer->LoadMagneticFieldMap();
+  //raytracer::LoadMagneticFieldMap();
   //raytracer->LoadMomentumMatrix();
 
   /* Reset counters of number of good and bad events */
@@ -167,35 +170,42 @@ QwTrackingWorker::~QwTrackingWorker ()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void QwTrackingWorker::DefineOptions()
+void QwTrackingWorker::DefineOptions(QwOptions& options)
 {
   // Global options for the tracking worker
-  gQwOptions.AddConfigFile("Tracking/prminput/qwtracking.conf");
+  options.AddConfigFile("Tracking/prminput/qwtracking.conf");
 
   // General options
-  gQwOptions.AddOptions()("QwTracking.showeventpattern",
+  options.AddOptions()("QwTracking.showeventpattern",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "show bit pattern for all events");
-  gQwOptions.AddOptions()("QwTracking.showmatchingpattern",
+  options.AddOptions()("QwTracking.showmatchingpattern",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "show bit pattern for matching tracks");
   // Region 2
-  gQwOptions.AddOptions()("QwTracking.R2.levels",
+  options.AddOptions()("QwTracking.R2.levels",
                           po::value<int>()->default_value(8),
                           "number of search tree levels in region 2");
-  gQwOptions.AddOptions()("QwTracking.R2.maxslope",
+  options.AddOptions()("QwTracking.R2.maxslope",
                           po::value<float>()->default_value(0.862),
                           "maximum allowed slope for region 2 tracks");
-  gQwOptions.AddOptions()("QwTracking.R2.maxroad",
+  options.AddOptions()("QwTracking.R2.maxroad",
                           po::value<float>()->default_value(1.4),
                           "maximum allowed road width for region 2 tracks");
-  gQwOptions.AddOptions()("QwTracking.R2.maxxroad",
+  options.AddOptions()("QwTracking.R2.maxxroad",
                           po::value<float>()->default_value(25.0),
                           "maximum allowed X road width for region 2 tracks");
+  options.AddOptions()("QwTracking.R2.MaxMissedPlanes",
+                          po::value<int>()->default_value(1),
+                          "maximum number of missed planes");
+
   // Region 3
-  gQwOptions.AddOptions()("QwTracking.R3.levels",
+  options.AddOptions()("QwTracking.R3.levels",
                           po::value<int>()->default_value(4),
                           "number of search tree levels in region 3");
+  options.AddOptions()("QwTracking.R3.MaxMissedWires",
+                          po::value<int>()->default_value(4),
+                          "maximum number of missed wires");
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -230,10 +240,6 @@ void QwTrackingWorker::InitTree()
         /// ... and for each wire direction (X, Y, U, V, R, theta)
         for (EQwDirectionID direction  = kDirectionX;
                             direction <= kDirectionV; direction++) {
-
-          // Create a new search tree
-          QwTrackingTree *thetree = new QwTrackingTree();
-          thetree->SetMaxSlope(gQwOptions.GetValue<float>("QwTracking.R2.maxslope"));
 
           int levels = 0;
           int numlayers = 0;
@@ -273,6 +279,10 @@ void QwTrackingWorker::InitTree()
               width = rcDETRegion[package][region][direction]->width[2];
               levels = levelsr3;
           }
+
+          /// Create a new search tree
+          QwTrackingTree *thetree = new QwTrackingTree(numlayers);
+          thetree->SetMaxSlope(gQwOptions.GetValue<float>("QwTracking.R2.maxslope"));
 
           /// Set up the filename with the following format
           ///   tree[numlayers]-[levels]-[u|l]-[1|2|3]-[d|g|t|c]-[n|u|v|x|y].tre
@@ -471,6 +481,28 @@ QwEvent* QwTrackingWorker::ProcessHits (
         // a macro file. I'll put the tracking detector ratation commands onto the UI manu later.
         if (package != kPackageUp) continue;
 
+        /// Find the region 1 clusters in this package
+        QwHitContainer *hitlist_region1_r = hitlist->GetSubList_Plane(kRegionID1, package, 1);
+        QwHitContainer *hitlist_region1_phi = hitlist->GetSubList_Plane(kRegionID1, package, 2);
+        QwGEMClusterFinder* clusterfinder = new QwGEMClusterFinder();
+        std::vector<QwGEMCluster> clusters_r;
+        std::vector<QwGEMCluster> clusters_phi;
+        if (hitlist_region1_r->size() > 0) {
+            clusters_r = clusterfinder->FindClusters(hitlist_region1_r);
+        }
+        if (hitlist_region1_phi->size() > 0) {
+            clusters_phi = clusterfinder->FindClusters(hitlist_region1_phi);
+        }
+        for (std::vector<QwGEMCluster>::iterator cluster = clusters_r.begin();
+                cluster != clusters_r.end(); cluster++) {
+            QwDebug << *cluster << QwLog::endl;
+        }
+        for (std::vector<QwGEMCluster>::iterator cluster = clusters_phi.begin();
+                cluster != clusters_phi.end(); cluster++) {
+            QwDebug << *cluster << QwLog::endl;
+        }
+        delete clusterfinder; // TODO (wdc) should go somewhere else
+
         /// Loop through the detector regions
         for (EQwRegionID region  = kRegionID2;
                 region <= kRegionID3; region++) {
@@ -605,7 +637,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             QwDebug << "Searching for matching patterns (direction " << dir << ")" << QwLog::endl;
                             treelinelist = TreeSearch->SearchTreeLines(searchtree,
                                                  channel, hashchannel, levelsr3,
-                                                 NUMWIRESR3, TLAYERS);
+                                                 NUMWIRESR3, MAX_LAYERS);
 
                             // Delete the old array structures
                             for (size_t wire = 0; wire < patterns.size(); wire++) {
@@ -667,7 +699,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         event->treeline[package][region][type][dir] = treelinelist;
                         event->AddTreeLineList(treelinelist);
 
-                        tlayers = TLAYERS;     /* remember the number of tree-detector */
+                        tlayers = MAX_LAYERS;  /* remember the number of tree-detector */
                         tlaym1  = tlayers - 1; /* remember tlayers - 1 for convenience */
 
 

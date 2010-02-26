@@ -26,10 +26,14 @@ int treenode::fDebug = 0;
 
 /**
  * Default constructor
+ * @param size Size of the bit pattern (default value is MAX_LAYERS)
  */
-treenode::treenode()
+treenode::treenode(unsigned int size)
 {
-  QwDebug << "New treenode: " << this << QwLog::endl;
+  // Set the size
+  fSize = size;
+  fBit = new int[fSize];
+  for (unsigned int i = 0; i < fSize; i++) fBit[i] = 0;
 
   // Initialize pointers
   fNext = 0;
@@ -45,12 +49,15 @@ treenode::treenode()
  */
 treenode::treenode(treenode& node)
 {
-  QwDebug << "New treenode: " << this << QwLog::endl;
-
+  // Copy the node
   *this = node;
 
+  // Copy the bit pattern
+  fBit = new int[fSize];
+  for (unsigned int i = 0; i < fSize; i++) fBit[i] = node.fBit[i];
+
   // Set the external reference link
-  this->xref = -1L;
+  this->fRef = -1L;
 
   // Initialize pointers
   fNext = 0;
@@ -66,12 +73,15 @@ treenode::treenode(treenode& node)
  */
 treenode::treenode(treenode* node)
 {
-  QwDebug << "New treenode: " << this << QwLog::endl;
-
+  // Copy the node
   *this = *node;
 
+  // Copy the bit pattern
+  fBit = new int[fSize];
+  for (unsigned int i = 0; i < fSize; i++) fBit[i] = node->fBit[i];
+
   // Set the external reference link
-  this->xref = -1L;
+  this->fRef = -1L;
 
   // Initialize pointers
   fNext = 0;
@@ -81,6 +91,9 @@ treenode::treenode(treenode* node)
   fCount++;
 };
 
+/**
+ * Destructor
+ */
 treenode::~treenode()
 {
   QwDebug << "Deleting treenode: " << this << QwLog::endl;
@@ -88,6 +101,9 @@ treenode::~treenode()
   // Delete the sons
   for (int i = 0; i < 4; i++)
     if (fSon[i]) delete fSon[i];
+
+  // Delete the bit pattern
+  delete[] fBit;
 
   // Count objects
   fCount--;
@@ -133,10 +149,10 @@ void treenode::Print(int indent)
 std::ostream& operator<< (std::ostream& stream, const treenode& tn)
 {
   stream << "(" << tn.fMinLevel << "," << tn.fMaxLevel << ") ";
-  stream << "bits = " << tn.bits << ": ";
-  for (int i = 0; i < TLAYERS; i++)
-    stream << tn.bit[i] << "," ;
-  stream << "xref = " << tn.xref;
+  for (unsigned int i = 0; i < tn.fSize; i++)
+    stream << tn.fBit[i] << ",";
+  stream << " width = " << tn.fWidth << ",";
+  stream << " ref = " << tn.fRef;
   return stream;
 }
 

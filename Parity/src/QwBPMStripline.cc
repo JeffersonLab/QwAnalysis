@@ -50,6 +50,12 @@ void  QwBPMStripline::InitializeChannel(TString name, Bool_t ROTATED)
   SetElementName(name);
   bFullSave=kTRUE;
 
+  //set default limits to event cuts 
+  fULimitX=0;
+  fLLimitX=0;
+  fULimitY=0;
+  fLLimitY=0;
+
   return;
 };
 /********************************************************/
@@ -148,10 +154,6 @@ Bool_t QwBPMStripline::ApplySingleEventCuts(){
   
   ApplyHWChecks();//first apply HW checks and update HW  error flags.
 
-  if (fDevice_flag==1){//if fDevice_flag==1 then perform the event cut limit test
-
-    //we only need to check two final values 
-    //if (fRelPos[0].GetHardwareSum()<=fULimitX && fRelPos[0].GetHardwareSum()>=fLLimitX){ //for RelX
     if (fRelPos[0].ApplySingleEventCuts(fLLimitX,fULimitX)){ //for RelX  
       status=kTRUE;
     }
@@ -173,9 +175,6 @@ Bool_t QwBPMStripline::ApplySingleEventCuts(){
     }
     fDeviceErrorCode|=fRelPos[1].GetEventcutErrorFlag();//Get the Event cut error flag for RelY
 	
-  }
-  else             
-    status=kTRUE;
     
 
   
@@ -190,14 +189,12 @@ Bool_t QwBPMStripline::ApplySingleEventCuts(){
 
 
 
-Int_t QwBPMStripline::SetSingleEventCuts(std::vector<Double_t> & dEventCuts){
+Int_t QwBPMStripline::SetSingleEventCuts(Double_t minX, Double_t maxX, Double_t minY, Double_t maxY ){
 
-  fLLimitX=dEventCuts.at(0);
-  fULimitX=dEventCuts.at(1);
-  fLLimitY=dEventCuts.at(2);
-  fULimitY=dEventCuts.at(3);
-  fDevice_flag=(Int_t)dEventCuts.at(4);
-  //std::cout<<GetElementName()<<"BPM  fDevice_flag "<<fDevice_flag<<std::endl;
+  fLLimitX=minX;
+  fULimitX=maxX;
+  fLLimitY=minY;
+  fULimitY=maxY;
   
   return 0; 
 };
@@ -245,12 +242,12 @@ void  QwBPMStripline::ProcessEvent()
       if(kDEBUG)
 	{
 	  std::cout<<" stripline name="<<fElementName<<axis[i];
-	  std::cout<<" event number="<<fWire[i*2].GetSequenceNumber()<<"\n";
+	  std::cout<<" event number= "<<fWire[i*2].GetSequenceNumber()<<" \n";
 	  std::cout<<" hw  Wire["<<i*2<<"]="<<fWire[i*2].GetHardwareSum()<<"  ";
 	  std::cout<<" hw  Wire["<<i*2+1<<"]="<<fWire[i*2+1].GetHardwareSum()<<"\n";
-	  std::cout<<" hw numerator="<<numer.GetHardwareSum()<<"  ";
-	  std::cout<<" hw denominator="<<denom.GetHardwareSum()<<"\n";
-	  std::cout<<" hw  fRelPos["<<i<<"]="<<fRelPos[i].GetHardwareSum()<<"\n \n";
+	  std::cout<<" hw numerator= "<<numer.GetHardwareSum()<<"  ";
+	  std::cout<<" hw denominator= "<<denom.GetHardwareSum()<<"\n";
+	  std::cout<<" hw  fRelPos["<<axis[i]<<"]="<<fRelPos[i].GetHardwareSum()<<"\n \n";
 	}
     }
   if(bRotated)
@@ -454,18 +451,18 @@ void QwBPMStripline::Scale(Double_t factor)
 
 void QwBPMStripline::Calculate_Running_Average(){
   for(int i=0;i<2;i++)
-    {
-      fRelPos[i].Calculate_Running_Average();
-      fAbsPos[i].Calculate_Running_Average();
-    }
+    fRelPos[i].Calculate_Running_Average();      
+
+  for(int i=0;i<3;i++)
+    fAbsPos[i].Calculate_Running_Average();
 };
 
 void QwBPMStripline::Do_RunningSum(){
   for(int i=0;i<2;i++)
-    {
-      fRelPos[i].Do_RunningSum();
-      fAbsPos[i].Do_RunningSum();
-    }
+    fRelPos[i].Do_RunningSum();
+      
+  for(int i=0;i<3;i++)
+    fAbsPos[i].Do_RunningSum();
 };
 
 

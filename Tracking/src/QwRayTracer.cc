@@ -72,7 +72,7 @@ QwRayTracer::QwRayTracer() {
     fDirectionThetaOff = 0.0;
     fDirectionPhiOff = 0.0;
 
-    fBfield = NULL;
+    //fBfield = NULL;
 
     fSimFlag = 0;
 
@@ -86,11 +86,25 @@ QwRayTracer::~QwRayTracer() {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+QwMagneticField* QwRayTracer::fBfield;// = new QwMagneticField();
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+// Need a static member function to initialize the static *fBfield.
 void QwRayTracer::LoadMagneticFieldMap() {
 
-    fBfield = new QwMagneticField();
-    fBfield->ReadFieldMapFile(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/MainMagnet_FieldMap.dat");
+    QwRayTracer::fBfield = new QwMagneticField();
+    QwRayTracer::fBfield->ReadFieldMapFile(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/MainMagnet_FieldMap.dat");
 
+};
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+void QwRayTracer::LoadTrajMatrix() {
+
+    QwTrajMatrix* trajmatrix = new QwTrajMatrix();
+    trajmatrix->ReadTrajMatrixFile(&fBackTrackParameterTable);
+    delete trajmatrix;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -547,7 +561,7 @@ int QwRayTracer::Integrate(double e0, double step) {
         point[0]=x1*100.0;
         point[1]=y1*100.0;
         point[2]=z1*100.0;
-        fBfield->GetFieldValue(point, bfield, BSCALE);
+        QwRayTracer::fBfield->GetFieldValue(point, bfield, BSCALE);
         bx = bfield[0];
         by = bfield[1];
         bz = bfield[2];
@@ -570,7 +584,7 @@ int QwRayTracer::Integrate(double e0, double step) {
         point[0]=x*100.0;
         point[1]=y*100.0;
         point[2]=z*100.0;
-        fBfield->GetFieldValue(point, bfield, BSCALE);
+        QwRayTracer::fBfield->GetFieldValue(point, bfield, BSCALE);
         bx = bfield[0];
         by = bfield[1];
         bz = bfield[2];
@@ -593,7 +607,7 @@ int QwRayTracer::Integrate(double e0, double step) {
         point[0]=x*100.0;
         point[1]=y*100.0;
         point[2]=z*100.0;
-        fBfield->GetFieldValue(point, bfield, BSCALE);
+        QwRayTracer::fBfield->GetFieldValue(point, bfield, BSCALE);
         bx = bfield[0];
         by = bfield[1];
         bz = bfield[2];
@@ -616,7 +630,7 @@ int QwRayTracer::Integrate(double e0, double step) {
         point[0]=x*100.0;
         point[1]=y*100.0;
         point[2]=z*100.0;
-        fBfield->GetFieldValue(point, bfield, BSCALE);
+        QwRayTracer::fBfield->GetFieldValue(point, bfield, BSCALE);
         bx = bfield[0];
         by = bfield[1];
         bz = bfield[2];
@@ -664,63 +678,6 @@ int QwRayTracer::Integrate(double e0, double step) {
     return 0;
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-int QwRayTracer::LoadMomentumMatrix() {
-
-    Int_t   index;
-    Double_t position_r,position_phi;
-    Double_t direction_theta,direction_phi;
-
-    TVector3 startpoint,startdirection,endpoint,enddirection;
-
-    //open file
-    TString rootfilename=std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QwTrajMatrix.root";
-
-    if (gSystem->AccessPathName(rootfilename)) {
-        std::cerr <<std::endl<< "Cannot find the momentum look-up table!"<<std::endl;
-        std::cerr<<"Run qwtrajmatrixgenerator to generate one."<<std::endl<<std::endl;
-        exit(0);
-    }
-
-    TFile* rootfile = new TFile(rootfilename,"read");
-    if (! rootfile) return 0;
-    rootfile->cd();
-
-    TTree *momentum_tree = (TTree *)rootfile->Get("Momentum_Tree");
-
-    std::cout<<"Read data from look-up table"<<std::endl;
-
-    momentum_tree->SetBranchAddress("index",&index);
-    momentum_tree->SetBranchAddress("position_r", &position_r);
-    momentum_tree->SetBranchAddress("position_phi", &position_phi);
-    momentum_tree->SetBranchAddress("direction_theta",&direction_theta);
-    momentum_tree->SetBranchAddress("direction_phi",&direction_phi);
-
-    Int_t numberOfEntries = momentum_tree->GetEntries();
-
-    QwPartialTrackParameter backtrackparameter;
-    fBackTrackParameterTable.reserve(numberOfEntries);
-
-    std::cout<<"total grid points : "<<numberOfEntries<<std::endl;
-
-    for ( Int_t i=0; i<numberOfEntries; i++) {
-        momentum_tree->GetEntry(i);
-
-        // only z=+570 cm plane data
-        backtrackparameter.fPositionR = (float)position_r;
-        backtrackparameter.fPositionPhi = (float)position_phi;
-        backtrackparameter.fDirectionTheta = (float)direction_theta;
-        backtrackparameter.fDirectionPhi = (float)direction_phi;
-
-        fBackTrackParameterTable.push_back(backtrackparameter);
-    }
-
-    std::cout<<"...done."<<std::endl;
-    rootfile->Close();
-    delete rootfile;
-    return 0;
-};
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 

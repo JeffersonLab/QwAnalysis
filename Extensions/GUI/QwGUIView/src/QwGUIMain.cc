@@ -23,7 +23,7 @@
 /*------------------------------------------------------------------------*//*!
 
  \file QwGUIMain.cc
- \author Michael Gericke 
+ \author Michael Gericke
 
  \brief main(...) function and MainFrame class for the QwGUI executable
 
@@ -31,7 +31,6 @@
 *//*-------------------------------------------------------------------------*/
 
 #include <QwGUIMain.h>
-#include <sys/statfs.h>
 
 QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   : TGMainFrame(p, w, h)
@@ -41,10 +40,9 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dClArgs = clargs;
   std::set_new_handler(0);
 
-  MainDetSubSystem   = NULL;  
+  MainDetSubSystem   = NULL;
   LumiDetSubSystem   = NULL;
-
-  TrackingSystem     = NULL;
+  InjectorSubSystem  = NULL;
 
   dMWWidth           = w;
   dMWHeight          = h;
@@ -55,7 +53,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dUtilityFrame      = NULL;
   dUtilityLayout     = NULL;
   dHorizontal3DLine  = NULL;
-      
+
   dTabLayout         = NULL;
 
   dMainCanvas        = NULL;
@@ -66,12 +64,12 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
   dLogTabLayout      = NULL;
   dLogTabFrame       = NULL;
-  dLogEditLayout     = NULL; 
+  dLogEditLayout     = NULL;
   dLogText           = NULL;
   dLogEdit           = NULL;
 
   dMenuBar           = NULL;
-  dMenuBarLayout     = NULL; 
+  dMenuBarLayout     = NULL;
   dMenuBarItemLayout = NULL;
   dMenuBarHelpLayout = NULL;
   dMenuFile          = NULL;
@@ -86,7 +84,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
   MakeMenuLayout();
   MakeUtilityLayout();
-  MakeMainTab(); 
+  MakeMainTab();
   MakeLogTab();
 
   SetWindowName("Qweak Data Analysis GUI");
@@ -103,16 +101,13 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   if(!GetSubSystemPtr("Lumi Detectors"))
     LumiDetSubSystem = new QwGUILumiDetector(fClient->GetRoot(), this, dTab,"Lumi Detectors",
 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
+  if(!GetSubSystemPtr("Injector"))
+    InjectorSubSystem = new QwGUIInjector(fClient->GetRoot(), this, dTab,"Injector",
+					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
+  if(!GetSubSystemPtr("Event Display"))
+    EventDisplaySubSystem = new QwGUIEventDisplay(fClient->GetRoot(), this, dTab, "Event Display",
+					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
 
-
-  // The below lines are added for only "Tracking System" test purpose, because
-  // the QwGUITrackingSystem class is not inherited from  QwGUISubSystem 
-  // but TGCompositeFrame directly. I miminize the effect on the QwGUIMain 
-  // 
-  TrackingSystem = new QwGUITrackingSystem(this, dTab->AddTab("Tracking System"), dMWWidth-15,dMWHeight-180);
-  MapSubwindows();
-  Layout();
-  //
 }
 
 QwGUIMain::~QwGUIMain()
@@ -123,13 +118,13 @@ QwGUIMain::~QwGUIMain()
   delete dMainCanvas;
 
   delete dMainCnvLayout;
-  delete dMainTabLayout; 
-  delete dTabLayout; 
+  delete dMainTabLayout;
+  delete dTabLayout;
 
   delete dMenuBar;
-  delete dMenuFile, 
+  delete dMenuFile,
   delete dMenuHelp;
-  delete dMenuBarLayout; 
+  delete dMenuBarLayout;
   delete dMenuBarItemLayout;
   delete dMenuBarHelpLayout;
 
@@ -142,8 +137,8 @@ QwGUIMain::~QwGUIMain()
   delete dLogText;
   delete dLogEdit;
   delete dLogTabFrame;
-  delete dLogTabLayout; 
-  delete dLogEditLayout; 
+  delete dLogTabLayout;
+  delete dLogEditLayout;
 
   delete dROOTFile;
 }
@@ -154,7 +149,7 @@ void QwGUIMain::MakeMenuLayout()
 				     0, 0, 1, 1);
   dMenuBarItemLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0);
   dMenuBarHelpLayout = new TGLayoutHints(kLHintsTop | kLHintsRight);
-  
+
   dMenuFile = new TGPopupMenu(fClient->GetRoot());
 //   dMenuFile->AddEntry("&Open (Run file)...", M_FILE_OPEN);
   dMenuFile->AddEntry("O&pen (ROOT file)...", M_ROOT_FILE_OPEN);
@@ -172,18 +167,18 @@ void QwGUIMain::MakeMenuLayout()
 
   dMenuHelp = new TGPopupMenu(fClient->GetRoot());
   dMenuHelp->AddEntry("&User manual", M_HELP_USER);
-  dMenuHelp->AddEntry("&Code manual", M_HELP_CODE);  
+  dMenuHelp->AddEntry("&Code manual", M_HELP_CODE);
   dMenuHelp->AddEntry("View &change history", M_HELP_SEARCH);
   dMenuHelp->AddSeparator();
   dMenuHelp->AddEntry("This is revision " VERS, M_HELP_ABOUT);
-  
+
   dMenuFile->Associate(this);
   dMenuTabs->Associate(this);
   dMenuHelp->Associate(this);
-  
+
   dMenuBar = new TGMenuBar(this, 1, 1, kHorizontalFrame);
   dMenuBar->AddPopup("&File", dMenuFile, dMenuBarItemLayout);
-  dMenuBar->AddPopup("&Tabs", dMenuTabs, dMenuBarItemLayout);  
+  dMenuBar->AddPopup("&Tabs", dMenuTabs, dMenuBarItemLayout);
   dMenuBar->AddPopup("&Help", dMenuHelp, dMenuBarHelpLayout);
 
   AddFrame(dMenuBar, dMenuBarLayout);
@@ -193,59 +188,59 @@ void QwGUIMain::MakeMenuLayout()
 void QwGUIMain::MakeUtilityLayout()
 {
 
-  dUtilityLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop | kLHintsExpandX, 2,2,2,2);
-  dTBinEntryLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
-  dRunEntryLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 2, 2, 2, 2); 
+//   dUtilityLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop | kLHintsExpandX, 2,2,2,2);
+//   dTBinEntryLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
+//   dRunEntryLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 2, 2, 2, 2);
 
-  dHorizontal3DLine = new TGHorizontal3DLine(this);
-  AddFrame(dHorizontal3DLine, new TGLayoutHints(kLHintsTop | kLHintsExpandX));
+//   dHorizontal3DLine = new TGHorizontal3DLine(this);
+//   AddFrame(dHorizontal3DLine, new TGLayoutHints(kLHintsTop | kLHintsExpandX));
 
-  dUtilityFrame = new TGHorizontalFrame(this,60,10);
-  dTBinEntry = new TGComboBox(dUtilityFrame,M_TBIN_SELECT);
-  dTBinEntry->Associate(this);
-  dUtilityFrame->AddFrame(dTBinEntry,dTBinEntryLayout);
-//   for (int i = 0; i < VME2_MP_SIZE; i++){
-//     tof = GetTBinWidth()*(i+0.5)+GetMPOffset();
-//     eng = pow((21030.0/438/tof),2);
-//     sprintf(dTOFBINStrings[i],"Bin %03d: tof %6.2f ms; Eng %9.2f meV", i, tof, eng);
-//     dTBinEntry->AddEntry(dTOFBINStrings[i], i+1);
+//   dUtilityFrame = new TGHorizontalFrame(this,60,10);
+//   dTBinEntry = new TGComboBox(dUtilityFrame,M_TBIN_SELECT);
+//   dTBinEntry->Associate(this);
+//   dUtilityFrame->AddFrame(dTBinEntry,dTBinEntryLayout);
+// //   for (int i = 0; i < VME2_MP_SIZE; i++){
+// //     tof = GetTBinWidth()*(i+0.5)+GetMPOffset();
+// //     eng = pow((21030.0/438/tof),2);
+// //     sprintf(dTOFBINStrings[i],"Bin %03d: tof %6.2f ms; Eng %9.2f meV", i, tof, eng);
+// //     dTBinEntry->AddEntry(dTOFBINStrings[i], i+1);
+// //   }
+//   dTBinEntry->Resize(280, 20);
+
+//   if(!dClArgs.realtime){
+//     dRunEntry = new TGNumberEntry(dUtilityFrame,GetCurrentRunNumber(),6,M_RUN_SELECT,
+// 				  TGNumberFormat::kNESInteger,
+// 				  TGNumberFormat::kNEANonNegative,
+// 				  TGNumberFormat::kNELLimitMinMax,1,999999);
+//     if(dRunEntry){
+//       dRunEntryLabel = new TGLabel(dUtilityFrame,"Run Number:");
+//       if(dRunEntryLabel){
+// 	dUtilityFrame->AddFrame(dRunEntryLabel,dRunEntryLayout);
+//       }
+//       dRunEntry->Associate(this);
+//       dUtilityFrame->AddFrame(dRunEntry,dRunEntryLayout);
+//     }
 //   }
-  dTBinEntry->Resize(280, 20);
 
-  if(!dClArgs.realtime){
-    dRunEntry = new TGNumberEntry(dUtilityFrame,GetCurrentRunNumber(),6,M_RUN_SELECT,
-				  TGNumberFormat::kNESInteger,
-				  TGNumberFormat::kNEANonNegative,
-				  TGNumberFormat::kNELLimitMinMax,1,999999); 
-    if(dRunEntry){
-      dRunEntryLabel = new TGLabel(dUtilityFrame,"Run Number:"); 
-      if(dRunEntryLabel){
-	dUtilityFrame->AddFrame(dRunEntryLabel,dRunEntryLayout);
-      }
-      dRunEntry->Associate(this);
-      dUtilityFrame->AddFrame(dRunEntry,dRunEntryLayout);
-    }
-  }
+//   if(dClArgs.realtime){
+//     const TGPicture *ipic =(TGPicture *)gClient->GetPicture("realtime.xpm");
+//     TGIcon *icon = new TGIcon(dUtilityFrame,ipic,500,40);
+//     dUtilityFrame->AddFrame(icon,new TGLayoutHints(kLHintsLeft | kLHintsBottom,1,15,1,1));
+//   }
 
-  if(dClArgs.realtime){
-    const TGPicture *ipic =(TGPicture *)gClient->GetPicture("realtime.xpm"); 
-    TGIcon *icon = new TGIcon(dUtilityFrame,ipic,500,40); 
-    dUtilityFrame->AddFrame(icon,new TGLayoutHints(kLHintsLeft | kLHintsBottom,1,15,1,1));
-  }
-
-  AddFrame(dUtilityFrame,dUtilityLayout);
+//   AddFrame(dUtilityFrame,dUtilityLayout);
 }
 
 void QwGUIMain::MakeMainTab()
 {
 
-  dTabLayout = new TGLayoutHints(kLHintsBottom | kLHintsExpandX | kLHintsExpandY, 
+  dTabLayout = new TGLayoutHints(kLHintsBottom | kLHintsExpandX | kLHintsExpandY,
 				 2, 2, 5, 1);
   dTab = new TGTab(this,dMWWidth-15,dMWHeight-80);
 
   if(TabActive("Main")) return;
-  
-  dMainTabLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop | 
+
+  dMainTabLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop |
 				     kLHintsExpandX | kLHintsExpandY);
   dMainCnvLayout = new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY,
 				     0, 0, 1, 2);
@@ -253,7 +248,7 @@ void QwGUIMain::MakeMainTab()
   TGCompositeFrame *tf = dTab->AddTab("Main");
 
   dMainTabFrame = new TGHorizontalFrame(tf,10,10);
-  dMainCanvas   = new TRootEmbeddedCanvas("pC", dMainTabFrame,10, 10);     
+  dMainCanvas   = new TRootEmbeddedCanvas("pC", dMainTabFrame,10, 10);
   dMainTabFrame->AddFrame(dMainCanvas,dMainCnvLayout);
   dMainTabFrame->Resize(dMWWidth-15,dMWHeight-110);
   tf->AddFrame(dMainTabFrame,dMainTabLayout);
@@ -271,8 +266,8 @@ void QwGUIMain::MakeLogTab()
 {
 
   TGCompositeFrame *tf = dTab->AddTab("Log Book");
- 
-  dLogTabLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop | 
+
+  dLogTabLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop |
 				    kLHintsExpandX | kLHintsExpandY);
   dLogEditLayout = new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY,
 				     0, 0, 1, 2);
@@ -282,7 +277,7 @@ void QwGUIMain::MakeLogTab()
   dLogTabFrame->AddFrame(dLogEdit,dLogEditLayout);
   dLogTabFrame->Resize(dMWWidth-15,dMWHeight-80);
   tf->AddFrame(dLogTabFrame,dLogTabLayout);
-  
+
   dTab->MapSubwindows();
   dTab->Layout();
 
@@ -297,7 +292,7 @@ void QwGUIMain::MakeLogTab()
   }
   else{
     sprintf(dMiscbuffer,"Revision " VERS "\n"
-	    "New Session Started: %s at %s",GetDate(),GetTime());  
+	    "New Session Started: %s at %s",GetDate(),GetTime());
     Append(dMiscbuffer);
   }
   dMenuTabs->CheckEntry(M_VIEW_LOG);
@@ -328,14 +323,14 @@ void QwGUIMain::AddATab(QwGUISubSystem* sbSystem)
 
   //Sequence naming of menu items not currently implemented/useful
   //
-  //int seq = 1; 
+  //int seq = 1;
   //char sequence[100];
   //   while(!flag){
   //     flag = 1;
   //     while(obj = next()){
   //       TGMenuEntry *entry = (TGMenuEntry*)obj;
   //       if(s == entry->GetLabel()->GetString()){
-  // 	if(seq >= 2) s.Resize(s.Length()-3); 
+  // 	if(seq >= 2) s.Resize(s.Length()-3);
   // 	sprintf(sequence," % 2d",seq); seq++;
   // 	s += sequence;
   // 	flag = 0;
@@ -359,7 +354,7 @@ void QwGUIMain::AddATab(QwGUISubSystem* sbSystem)
   }
 
   if(!flag){
-    Long_t mID = GetNewTabMenuID(); 
+    Long_t mID = GetNewTabMenuID();
     dMenuTabs->AddEntry(s,mID);
     sbSystem->SetTabMenuID(mID);
     SubSystemArray.Add(sbSystem);
@@ -369,8 +364,8 @@ void QwGUIMain::AddATab(QwGUISubSystem* sbSystem)
   if(TabActive(s.Data())) return;
 
   dTab->AddTab(s.Data(),sbSystem);
-  dMenuTabs->CheckEntry(GetTabMenuID(s.Data())); 
-  sbSystem->TabMenuEntryChecked(kTrue); 
+  dMenuTabs->CheckEntry(GetTabMenuID(s.Data()));
+  sbSystem->TabMenuEntryChecked(kTrue);
   MapLayout();
 }
 
@@ -390,7 +385,7 @@ Int_t QwGUIMain::GetTabMenuID(const char* TabName)
     obj = next();
   }
 
-  return 0;  
+  return 0;
 }
 
 const char* QwGUIMain::GetTabMenuLabel(Long_t mID)
@@ -412,7 +407,7 @@ const char* QwGUIMain::GetTabMenuLabel(Long_t mID)
     obj = next();
   }
 
-  return 0;  
+  return 0;
 }
 
 
@@ -422,7 +417,7 @@ Bool_t QwGUIMain::TabActive(const char *str)
   for (int i = 0 ; i < nt; i++) {
     TString s = dTab->GetTabTab(i)->GetString();
     if (s == str) {return kTrue;}
-  }  
+  }
   return kFalse;
 }
 
@@ -453,6 +448,8 @@ Char_t *QwGUIMain::GetTime()
     sprintf(dTime,"0%d:%d:%d",ltime->tm_hour,ltime->tm_min,ltime->tm_sec);
   else
     sprintf(dTime,"%d:%d:%d",ltime->tm_hour,ltime->tm_min,ltime->tm_sec);
+
+  delete cutime; cutime = NULL;
   return dTime;
 }
 
@@ -501,7 +498,7 @@ TCanvas *QwGUIMain::SplitCanvas(TRootEmbeddedCanvas *cnv, int r,int c, const cha
 	sprintf(dMiscbuffer,"%s %02d",ttip,i);
 	gPad->SetToolTipText(dMiscbuffer,250);
       }
-    } 
+    }
   }
   return mc;
 }
@@ -547,12 +544,12 @@ void QwGUIMain::MainTabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 
 
 // Wait, but continue to process events.
-void QwGUIMain::SleepWithEvents(int seconds) 
+void QwGUIMain::SleepWithEvents(int seconds)
 {
   time_t start, now;
-  time(&start); 
+  time(&start);
   do {
-    time(&now); 
+    time(&now);
     gSystem->ProcessEvents();
   } while (difftime(now,start) < seconds) ;
 }
@@ -597,16 +594,16 @@ void QwGUIMain::OnObjClose(const char *objname)
 #endif
   }
 
-  TObject *obj;
-  TIter next(SubSystemArray.MakeIterator());
-  obj = next();
-  while(obj){
-    QwGUISubSystem *entry = (QwGUISubSystem*)obj;
-    if(!strcmp(objname,entry->GetName())){
-      SubSystemArray.Remove(entry);
-    }
-    obj = next();
-  }
+//   TObject *obj;
+//   TIter next(SubSystemArray.MakeIterator());
+//   obj = next();
+//   while(obj){
+//     QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+//     if(!strcmp(objname,entry->GetName())){
+//       SubSystemArray.Remove(entry);
+//     }
+//     obj = next();
+//   }
 }
 
 void QwGUIMain::OnReceiveMessage(const char *obj)
@@ -616,10 +613,17 @@ void QwGUIMain::OnReceiveMessage(const char *obj)
 
   QwGUISubSystem* sbSystem = GetSubSystemPtr(obj);
   if(sbSystem){
-    
+
     ptr = sbSystem->GetMessage();
     if(ptr)
       Append(ptr,sbSystem->IfTimeStamp());
+  }
+  if(name.Contains("dROOTFile")){
+
+    ptr = dROOTFile->GetMessage();
+    if(ptr)
+      Append(ptr,kTrue);
+
   }
 }
 
@@ -638,14 +642,14 @@ void QwGUIMain::OnReceiveMessage(const char *obj)
 // }
 
 
-Int_t QwGUIMain::GetFilenameFromDialog(char *file, const char *ext, 
+Int_t QwGUIMain::GetFilenameFromDialog(char *file, const char *ext,
 				      ERFileStatus status, Bool_t kNotify,
 				      const char *notifytext)
 {
   int retval = 0;
 
   if(kNotify && notifytext){
-    
+
     new TGMsgBox(fClient->GetRoot(), this,"File Open Operation",
 		 notifytext,kMBIconQuestion, kMBOk | kMBCancel, &retval);
     if(retval == kMBCancel) return PROCESS_FAILED;
@@ -686,12 +690,12 @@ Int_t QwGUIMain::GetFilenameFromDialog(char *file, const char *ext,
   sprintf(dMiscbuffer2,"/home/%s/scratch",gSystem->Getenv("USER"));
   static TString dir(dMiscbuffer2);
   TGFileInfo fi;
- 
+
   if(status == FS_OLD){
     fi.fFileTypes = (const char **)filetypes;
     fi.fIniDir    = StrDup(dir);
     new TGFileDialog(fClient->GetRoot(), this, kFDOpen, &fi);
-    dir = fi.fIniDir;    
+    dir = fi.fIniDir;
     if(!fi.fFilename) {return PROCESS_FAILED;};
   }
 
@@ -700,7 +704,7 @@ Int_t QwGUIMain::GetFilenameFromDialog(char *file, const char *ext,
     fi.fIniDir    = StrDup(dir);
     new TGFileDialog(fClient->GetRoot(), this, kFDSave, &fi);
     dir = fi.fIniDir;
-    
+
     if(!fi.fFilename) {return PROCESS_FAILED;};
   }
   strcpy(file,fi.fFilename);
@@ -712,19 +716,19 @@ Int_t QwGUIMain::SaveLogFile(ERFileStatus status, const char* file)
   if(!IsLogFileOpen()) return PROCESS_FAILED;
   char filename[NAME_STR_MAX];
   if(!file){
-    if(GetFilenameFromDialog(filename,"log",status) == PROCESS_FAILED) 
+    if(GetFilenameFromDialog(filename,"log",status) == PROCESS_FAILED)
       return PROCESS_FAILED;
   }
   else
     strcpy(filename,file);
 
-  if(strcmp(".log",strrchr(filename,'.'))) return PROCESS_FAILED;      	
-  
+  if(strcmp(".log",strrchr(filename,'.'))) return PROCESS_FAILED;
+
   if(!dLogEdit) return PROCESS_FAILED;
   if(!dLogEdit->SaveFile(filename))
     return PROCESS_FAILED;
 
-  return PROCESS_OK;  
+  return PROCESS_OK;
 }
 
 Int_t QwGUIMain::OpenLogFile(ERFileStatus status, const char* file)
@@ -732,24 +736,24 @@ Int_t QwGUIMain::OpenLogFile(ERFileStatus status, const char* file)
   if(IsLogFileOpen()) CloseLogFile();
   char filename[NAME_STR_MAX];
   if(!file){
-    if(GetFilenameFromDialog(filename,"log",status) == PROCESS_FAILED) 
+    if(GetFilenameFromDialog(filename,"log",status) == PROCESS_FAILED)
       return PROCESS_FAILED;
   }
   else
     strcpy(filename,file);
 
-  if(strcmp(".log",strrchr(filename,'.'))) return PROCESS_FAILED;      	
-  
+  if(strcmp(".log",strrchr(filename,'.'))) return PROCESS_FAILED;
+
   if(!TabActive("Log Book") || !dLogEdit) MakeLogTab();
   if(!dLogEdit) return PROCESS_FAILED;
-  if(!dLogEdit->LoadFile(filename)) 
+  if(!dLogEdit->LoadFile(filename))
     if(!dLogEdit->SaveFile(filename))
       return PROCESS_FAILED;
 
-  dLogEdit->SaveFile(filename); 
+  dLogEdit->SaveFile(filename);
   SetLogFileOpen(kTrue);
   SetLogFileName(filename);
-  return PROCESS_OK;  
+  return PROCESS_OK;
 }
 
 Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
@@ -758,7 +762,7 @@ Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
   if(IsRootFileOpen()) CloseRootFile();
   char filename[NAME_STR_MAX];
   if(!file){
-    if(GetFilenameFromDialog(filename,"root",status) == PROCESS_FAILED) 
+    if(GetFilenameFromDialog(filename,"root",status) == PROCESS_FAILED)
       return PROCESS_FAILED;
   }
   else
@@ -769,13 +773,13 @@ Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
   dROOTFile = new RDataContainer(fClient->GetRoot(), this,
 				 "dROOTFile","QwGUIMain",
 				 "ROOT",FM_UPDATE,FT_ROOT);
-    
+
   if(!dROOTFile){SetRootFileOpen(kFalse); return PROCESS_FAILED;}
 
   if(dROOTFile->OpenFile(filename) != FILE_PROCESS_OK) {
     SetRootFileOpen(kFalse);
     dROOTFile->Close();
-    dROOTFile = NULL;    
+    dROOTFile = NULL;
     return PROCESS_FAILED;
   }
 
@@ -788,12 +792,7 @@ Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
     entry->SetDataContainer(dROOTFile);
     obj = next();
   }
-  
 
-//   if(IsArrayAllocated()){
-//     for(int i = 0; i < 48; i++)
-//       dDetector[i]->SetDataContainer(dROOTFile);
-//   }
   SetRootFileOpen(kTrue);
   SetRootFileName(filename);
   return PROCESS_OK;
@@ -812,19 +811,19 @@ Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
 // }
 
 void QwGUIMain::CloseRootFile()
-{  
+{
 
   if(dROOTFile != NULL){
-    dROOTFile->Close();
+    dROOTFile->Close(kFalse);
     dROOTFile = NULL;
   }
   SetRootFileOpen(kFalse);
-  dMenuFile->EnableEntry(M_ROOT_FILE_OPEN);    
+  dMenuFile->EnableEntry(M_ROOT_FILE_OPEN);
 
 }
 
 void QwGUIMain::CloseLogFile()
-{ 
+{
   if(TabActive("Log Book") && dLogEdit){
 //     SendMessage(dLogEdit,MK_MSG(kC_COMMAND,kCM_MENU),TGTextEdit::kM_FILE_CLOSE,0);
     dLogEdit->Clear();
@@ -849,7 +848,7 @@ Int_t QwGUIMain::Append(const char *buffer,Bool_t T_Stamp)
   TGText * cText = NULL;
 
   if(!tmpbuffer){
-    return LOG_PROCESS_ERROR;    
+    return LOG_PROCESS_ERROR;
   }
   memset(tmpbuffer,'\0',size);
 
@@ -863,9 +862,9 @@ Int_t QwGUIMain::Append(const char *buffer,Bool_t T_Stamp)
     dLogText = new TGText();
     cText = dLogText;
   }
-   
+
   if(!cText) return LOG_PROCESS_ERROR;
-  
+
   ptr = buffer;  index = 0;
   lnum = 0;
   for(int i = 0; i <= (int)strlen(buffer); i ++)
@@ -905,7 +904,7 @@ Int_t QwGUIMain::Append(const char *buffer,Bool_t T_Stamp)
 
 	}
     }
-  
+
   pos.fY = cText->RowCount();
   cText->InsText(pos, "");
 
@@ -914,14 +913,14 @@ Int_t QwGUIMain::Append(const char *buffer,Bool_t T_Stamp)
     dLogEdit->Goto(cText->RowCount(),
 		   cText->GetLineLength((Long_t)(cText->RowCount()-1)));
   }
-
+  delete [] tmpbuffer;
   return LOG_PROCESS_OK;
 }
 
 Int_t QwGUIMain::WriteLogData(const char *filename)
 {
-  if(!IsLogFileOpen()){if(OpenLogFile(FS_NEW,filename) != PROCESS_OK) 
-    return PROCESS_FAILED;}  
+  if(!IsLogFileOpen()){if(OpenLogFile(FS_NEW,filename) != PROCESS_OK)
+    return PROCESS_FAILED;}
   if(!TabActive("Log Book")) return PROCESS_FAILED;
   if(!dLogEdit) return PROCESS_FAILED;
   if(!dLogEdit->SaveFile(filename))
@@ -935,7 +934,7 @@ Int_t QwGUIMain::WriteRootData()
 //   Int_t retval = 0;
 
 //   if(!IsRootFileOpen()){if(OpenRootFile(FS_NEW) != PROCESS_OK) return PROCESS_FAILED;}
-  
+
 // //   if(dMsgBox7 != NULL) {dMsgBox7->CloseWindow(); dMsgBox7 = NULL;}
 
 //   if(IsRootFileOpen()){
@@ -945,7 +944,7 @@ Int_t QwGUIMain::WriteRootData()
 // 	      "Can't write objects to file %s\nWrite Process Stopped!"
 // 	      ,dROOTFile->GetFileName());
 // //       dMsgBox7 = new RMsgBox(fClient->GetRoot(), this, "dMsgBox7", "QwGUIMain",
-// // 			     "File Write Error",dMiscbuffer2,kMBIconExclamation, 
+// // 			     "File Write Error",dMiscbuffer2,kMBIconExclamation,
 // // 			     kMBOk);
 //       return PROCESS_FAILED;
 //     }
@@ -957,11 +956,11 @@ Int_t QwGUIMain::WriteRootData()
 //     strcpy(dMiscbuffer2,"Can't Store Analysis Results On File!");
 
 // //     dMsgBox7 = new RMsgBox(fClient->GetRoot(), this, "dMsgBox7", "QwGUIMain",
-// // 			   "File Write Error",dMiscbuffer2,kMBIconExclamation, 
+// // 			   "File Write Error",dMiscbuffer2,kMBIconExclamation,
 // // 			   kMBOk);
 //     return PROCESS_FAILED;
-//   } 
-  return PROCESS_OK;    
+//   }
+  return PROCESS_OK;
 }
 
 
@@ -996,7 +995,7 @@ Int_t QwGUIMain::WriteRootData()
 // 		    M_PR_RUN,*run);
 // 	gSystem->ProcessEvents();
 // 	*run = 0;
-//       }    
+//       }
 //     }
 //     if(mp){
 //       if(*mp >= mpinc){
@@ -1020,7 +1019,7 @@ Int_t QwGUIMain::WriteRootData()
 //     }
 //   }
 // }
-    
+
 void QwGUIMain::CloseWindow()
 {
   // Got close message for this MainFrame. Terminate the application
@@ -1031,25 +1030,25 @@ void QwGUIMain::CloseWindow()
 //   if(FILE *fp=fopen("QwGUID_PID.DAT","r")) {
 //     int pid=int(getpid()), infile=0;
 //     fscanf(fp,"%d", &infile);   // don't care if we're successful or not
-//     fclose(fp); 
+//     fclose(fp);
 //     if (pid==infile) {
 //       sprintf(dMiscbuffer,"rm %s","QwGUID_PID.DAT");
 //       system(dMiscbuffer);
-//     } else 
-//       printf("%s:%d: Not removing %d's PID file.\n",__FILE__,__LINE__,infile); 
-//   } else 
-//     printf ("%s:%d: No PID file to remove.\n",__FILE__,__LINE__); 
+//     } else
+//       printf("%s:%d: Not removing %d's PID file.\n",__FILE__,__LINE__,infile);
+//   } else
+//     printf ("%s:%d: No PID file to remove.\n",__FILE__,__LINE__);
 
 //   CloseRun();
   gApplication->Terminate(0);
-  
+
 }
 
 Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
   // Handle messages send to the MainFrame object. E.g. all menu button
   // messages.
-  
+
   Long_t mTabID = 0;
 
   switch (GET_MSG(msg)){
@@ -1072,7 +1071,7 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
   case kC_COMMAND:
     switch (GET_SUBMSG(msg)) {
-      
+
     case kCM_COMBOBOX:
       {
 	switch (parm1) {
@@ -1084,18 +1083,18 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
     case kCM_MENUSELECT:
       break;
-      
+
     case kCM_MENU:
 
       for(int n = M_TABS; n <= M_TABS+MCnt; n++ ){
 	mTabID = n;
 	if(parm1 == mTabID){
-	  
+
 	  if(dMenuTabs->IsEntryChecked(mTabID)){
 	    RemoveTab((QwGUISubSystem*)dTab->GetTabContainer(GetTabIndex(GetTabMenuLabel(mTabID))));
 	  }
 	  else{
-	   
+
 	    TObject *obj;
 	    TIter next(SubSystemArray.MakeIterator());
 	    obj = next();
@@ -1112,31 +1111,31 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       }
 
       switch (parm1) {
-      
+
       case M_ROOT_FILE_OPEN:
 	OpenRootFile();
 	break;
-	
+
       case M_FILE_OPEN:
 // 	OpenRun();
 	break;
 
       case M_OPEN_DATAWINDOW:
 	break;
-	
+
       case M_FILE_EXIT:
 	CloseWindow();   // this also terminates theApp
 	break;
-	
+
       case M_ROOT_FILE_CLOSE:
-	CloseRootFile();
+	if(IsRootFileOpen()) CloseRootFile();
 	break;
-	
+
       case M_FILE_CLOSE:
 // 	CloseRun();
 // 	SplitCanvas(dMainCanvas,0,0,NULL);
 	break;
-	
+
       case M_VIEW_LOG:
 	if(dMenuTabs->IsEntryChecked(M_VIEW_LOG)){
 	  RemoveLogTab();
@@ -1145,56 +1144,52 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  MakeLogTab();
 	}
 	break;
-	
+
       case M_VIEW_BROWSER:
 // 	OpenRootBrowser();
 	break;
 
       case M_HELP_USER:
 	// Open the online help manual in a web browser.
-        { 
-		pid_t child = fork(); 
-		if (-1 == child) perror("couldn't fork to open web browser"); 
-		if (0 == child) {
-			execl("/bin/sh", "/bin/sh", "-c", 
-			      "firefox "
-			      "http://www.physics.umanitoba.ca/qweak/analysis/docs/user/QWeakAnalysisGUIManual.html",
-			      (char*)0); 
-			perror("couldn't exec shell for web browser"); 
-			exit(1); 
-		}
+        {
+	  dHelpBrowser = new QwGUIHelpBrowser(this,fClient->GetRoot(),"dHelpBrowser","QwGUIMain",
+					      "file:///home/mgericke/user/QWeakAnalysisGUIManual.html");
 	}
 	break;
 
       case M_HELP_CODE:
-        { 
-		pid_t child = fork(); 
-		if (-1 == child) perror("couldn't fork to open web browser"); 
-		if (0 == child) {
-			execl("/bin/sh", "/bin/sh", "-c", 
-			      "firefox "
-			      "http://www.physics.umanitoba.ca/qweak/analysis/docs/code/index.html",
-			      (char*)0); 
-			perror("couldn't exec shell for web browser"); 
-			exit(1); 
-		}
+        {
+	  sprintf(dMiscbuffer,"file://%s/Doxygen/html/index.html",getenv("QWANALYSIS"));
+	  dHelpBrowser = new QwGUIHelpBrowser(this,fClient->GetRoot(),"dHelpBrowser","QwGUIMain",
+					      dMiscbuffer);
+// 		pid_t child = fork();
+// 		if (-1 == child) perror("couldn't fork to open web browser");
+// 		if (0 == child) {
+// 			execl("/bin/sh", "/bin/sh", "-c",
+// 			      "firefox "
+// 			      "http://www.physics.umanitoba.ca/qweak/analysis/docs/code/index.html",
+// 			      (char*)0);
+// 			perror("couldn't exec shell for web browser");
+// 			exit(1);
+// 		}
+		
 	}
 	break;
 
       case M_HELP_SEARCH:
 	 {
 #		define URL "http://sns.phys.utk.edu/svn/npdg/trunk/analysis/online"
-		pid_t child = fork(); 
-		if (-1 == child) perror("couldn't fork to show change history"); 
+		pid_t child = fork();
+		if (-1 == child) perror("couldn't fork to show change history");
 		if (0 == child) {
-			execl("/bin/sh", "/bin/sh", "-c", 
+			execl("/bin/sh", "/bin/sh", "-c",
 			      "xterm -title 'Online Analysis Change History' "
 			      " -e \" "
 			      "(echo changes to " URL " && svn log " URL " ) | less"
 			      " \" "
-			      , (char*)0); 
-			perror("couldn't exec shell for web browser"); 
-			exit(1); 
+			      , (char*)0);
+			perror("couldn't exec shell for web browser");
+			exit(1);
 		}
 	 }
 	 break;
@@ -1206,15 +1201,15 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       default:
 	break;
       }
-      
+
     default:
       break;
     }
-    
+
   default:
     break;
   }
-  
+
   return kTRUE;
 }
 
@@ -1239,7 +1234,7 @@ int main(int argc, char **argv)
   dClArgs.checkmode = kFalse;
 //   int ax,ay;
 //   unsigned int aw, ah;
-    
+
   if(argv[1]){
     for( int i=1; i < argc; i++){
       if(strcmp(argv[i],"-r")==0){
@@ -1252,14 +1247,14 @@ int main(int argc, char **argv)
 
       if(strcmp(argv[i],"-b")==0){
 // 	dClArgs.bin = kTrue;
-// 	dClArgs.txt = kFalse;	
+// 	dClArgs.txt = kFalse;
       }
 
       if(strcmp(argv[i],"-t")==0){
 // 	dClArgs.bin = kFalse;
-// 	dClArgs.txt = kTrue;	
+// 	dClArgs.txt = kTrue;
       }
-      
+
       if(strcmp(argv[i],"-help")==0){
 	help = 1;
       }
@@ -1271,25 +1266,25 @@ int main(int argc, char **argv)
 	}
 // 	strcpy(dClArgs.file,argv[i+1]);
       }
-      
+
       if(strcmp(argv[i],"-c")==0){
 	if(!argv[i+1] || argv[i+1][0] == '-'){
 	  printf("\nMissing value for option -c\n\n");
 	  return 0;
-	}		
+	}
 // 	dClArgs.clmns = atoi(argv[i+1]);
 // 	printf("Selected Columns = %d\n",dClArgs.clmns);
       }
-    } 
+    }
   }
   else
     printf("\nRun ""QwGUIData -help"" for command line help\n\n");
-  
+
   if(help){
     strcpy(expl,"\n\nThis program takes the following commandline arguments:\n\n");
     strcat(expl,"1) -b        Read binary format file.\n\n");
     strcat(expl,"2) -t        Read ascii text file in row and column format.\n\n");
-    strcat(expl,"3) -f        Starting filename:\n\n"); 
+    strcat(expl,"3) -f        Starting filename:\n\n");
     strcat(expl,"             Here one of two file types must be used, based on\n");
     strcat(expl,"             the -b or -t parameters passed .\n");
     strcat(expl,"             For case -b, the program expects a\n");
@@ -1302,13 +1297,14 @@ int main(int argc, char **argv)
     strcat(expl,"4) -c        Columns. Ex: (-c 23) selects columns 2 and 3.\n\n");
     strcat(expl,"9) -help     Prints this help \n\n");
 
-    printf(expl);
+    printf("%s",expl);
   }
   else{
+
     TApplication theApp("QwGUIData", &argc, argv);
 
     gROOT->SetStyle("Plain");
-    
+
     if (gROOT->IsBatch()) {
       fprintf(stderr, "%s: cannot run in batch mode\n", argv[0]);
       return 1;
@@ -1316,18 +1312,17 @@ int main(int argc, char **argv)
 
     QwGUIMain mainWindow(gClient->GetRoot(), dClArgs, 800,600);
 
-
     gViewMain = &mainWindow;
 
-    theApp.Run();    
+    theApp.Run();
   }
 
   return 0;
 }
-    
+
 void QwGUIMain::WritePid()
 {
-  printf("%s:%d\n",__FILE__, __LINE__ );  
+  printf("%s:%d\n",__FILE__, __LINE__ );
 
   // First, make sure the PID file doesn't exist.  If it does, die
   // noisily rather than hijack another realtime process.
@@ -1335,8 +1330,8 @@ void QwGUIMain::WritePid()
 
   fp=fopen("QwGUID_PID.DAT","r");
   if(fp) {
-    fclose(fp); 
-    printf("Dying noisily, please run QwGUIProcWarn\n"); 
+    fclose(fp);
+    printf("Dying noisily, please run QwGUIProcWarn\n");
     system("xterm -title 'a noisy death' -e 'echo Another process has abandoned a PID file.  Run QwGUIProcWarn. | less' &");
     exit(1);
   }

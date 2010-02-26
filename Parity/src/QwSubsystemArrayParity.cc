@@ -235,7 +235,7 @@ Bool_t QwSubsystemArrayParity::ApplySingleEventCuts(){
       {
 	CountFalse++;
 	//update the sFailedSubsystem vector
-	std::cout<<" ** Failed ** "<<" Subsystem name "<<((subsys)->get())->GetSubsystemName()<<std::endl;
+	//std::cout<<" ** Failed ** "<<" Subsystem name "<<((subsys)->get())->GetSubsystemName()<<std::endl;
 	sFailedSubsystems.push_back(((subsys)->get())->GetSubsystemName());
       }
     }

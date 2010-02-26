@@ -78,6 +78,19 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+// temporary class for store partial track parameter
+class QwPartialTrackParameter {
+
+public:
+    float fPositionR;
+    float fPositionPhi;
+    float fDirectionTheta;
+    float fDirectionPhi;
+
+};
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
 class QwTrajMatrix: public VQwBridgingMethod {
 
   public:
@@ -88,6 +101,7 @@ class QwTrajMatrix: public VQwBridgingMethod {
     virtual ~QwTrajMatrix();
 
     void GenerateTrajMatrix();
+    int ReadTrajMatrixFile( std::vector <QwPartialTrackParameter> *backtrackparametertable );
 
   private:
 

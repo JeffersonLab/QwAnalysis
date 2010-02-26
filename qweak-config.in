@@ -6,9 +6,9 @@ function usage () {
 }
 
 # If no arguments
-if [ $# -eq 0 ] ; do
+if [ $# -eq 0 ] ; then
 	usage
-done
+fi
 
 # Loop over the arguments
 while [ $# -ne 0 ] ; do
@@ -22,7 +22,9 @@ while [ $# -ne 0 ] ; do
 		(--libs)	echo -n %LIBS% ;;
 		(--ldflags)	echo -n %LDFLAGS% ;;
 		(--cppflags)	echo -n %CPPFLAGS% ;;
-		(*)		usage() ;;
+		(--help)	usage ;;
+		(-h)		usage ;;
+		(*)		usage ;;
 	esac
 
 	# End with a space

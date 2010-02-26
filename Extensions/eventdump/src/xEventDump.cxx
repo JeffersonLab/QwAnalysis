@@ -106,6 +106,7 @@ main(int argc, char* argv[])
   
   if (file_flag)
     {
+
       unsigned int total_event_number         = 0;
       unsigned int total_physics_event_number = 0;
       
@@ -122,12 +123,7 @@ main(int argc, char* argv[])
 	  evnum_range[1] = total_event_number;
 	}
       
-      if( !summary_flag )
-	{
-	  printf("Total event number range ");
-	  printf("[%d,%d) ", evnum_range[0], evnum_range[1]);
-	  printf("Note that event number is not the physics event number\n\n");
-	}
+
       
       if( physics_evnum > total_physics_event_number )
 	{

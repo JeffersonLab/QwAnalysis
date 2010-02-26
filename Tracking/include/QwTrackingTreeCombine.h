@@ -20,6 +20,7 @@ using std::cout; using std::cerr; using std::endl;
 #define MAGNET_CENTER 275.0 //PLACEHOLDER VALUE
 
 #ifndef DLAYERS
+#warning Defining DLAYERS outside of the globals.h header file!
 #define DLAYERS 10
 #endif
 
@@ -144,6 +145,9 @@ class QwTrackingTreeCombine {
 
     double fMaxRoad;
     double fMaxXRoad;
+
+    /// Maximum number of missed planes in region 2
+    int fMaxMissedPlanes;
 
     // The following is largely useless (or at least the use is not understood).
     // Only chi_hashinsert is ever called, but never anything is searched in the

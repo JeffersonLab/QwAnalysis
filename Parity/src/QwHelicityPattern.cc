@@ -13,17 +13,25 @@
 
 #include <stdexcept>
 
+#include "QwLog.h"
 
 
 /*****************************************************************/
-QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event, Int_t pattern_size)
+QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
 {
+  QwHelicity* input=((QwHelicity*)event.GetSubsystem("Helicity info"));
+  fPatternSize=input->GetMaxPatternPhase();
+
+  bPATTERNPHASEOFFSET=kFALSE;
+  fPATTERNPHASEOFFSET=1;//Phase number offset is set to 1 by default and will be set to 0 if phase number starts from 0
+
+  std::cout<<"QwHelicity::MaxPatternPhase = "<<fPatternSize<<std::endl;
   try
     {
-      if(pattern_size%2 == 0)
+      if(fPatternSize%2 == 0)
 	{
-	  fEvents.resize(pattern_size);
-	  for(int i=0;i<pattern_size;i++)
+	  fEvents.resize(fPatternSize);
+	  for(int i=0;i<fPatternSize;i++)
 	    {
 	      fHelicity.push_back(-9999);
 	      fEventLoaded.push_back(kFALSE);
@@ -37,16 +45,14 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event, Int_t patter
 	  pos_sum.Copy(&event);
 	  neg_sum.Copy(&event);
 	  difference.Copy(&event);
-
 	  fCurrentPatternNumber=-1;
-	  fPatternSize=pattern_size;
 	  ClearEventData();
 	}
       else
 	{
 	  TString loc=
 	    "Standard exception from QwHelicityPattern : the pattern size has to be even;  rigth now pattern_size=";
-	  loc+=Form("%d",pattern_size);
+	  loc+=Form("%d",fPatternSize);
 	  throw std::invalid_argument(loc.Data());
 	}
     }
@@ -79,10 +85,10 @@ void QwHelicityPattern::ClearEventData()
 
 void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
 {
-  
+
   Bool_t localdebug=kFALSE;
   QwHelicity* input=((QwHelicity*)event.GetSubsystem("Helicity info"));
-  IsGood=kFALSE; 
+  IsGood=kFALSE;
   Long_t localPatternNumber=input->GetPatternNumber();
   Int_t localPhaseNumber=input->GetPhaseNumber();
   Int_t localHelicityActual=input->GetHelicityActual();
@@ -117,10 +123,16 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
     }
   else
     {
-      Int_t locali=localPhaseNumber-1;
+      if (!bPATTERNPHASEOFFSET && localPhaseNumber==0){//identify Phase Number starts with either 1 or 0 and set the offset
+	fPATTERNPHASEOFFSET=0;
+	bPATTERNPHASEOFFSET=kTRUE;
+      }
+	
+      Int_t locali=localPhaseNumber-fPATTERNPHASEOFFSET;
+      
       if(localdebug) std::cout<<"QwHelicityPattern::LoadEventData local i="<<locali<<"\n";
-      if (locali == -1) {
-        std::cerr << "Negative array index set to zero!  Check code!" << std::endl;
+      if (locali < 0) {
+        QwError << "Negative array index set to zero!  Check code!" << QwLog::endl;
         locali = 0;
       }
       fEvents[locali] = event;
@@ -153,8 +165,8 @@ Bool_t  QwHelicityPattern::IsCompletePattern()
 	filled=kFALSE;
       i--;
     }
- 
-    
+
+
 
   return filled;
 }
@@ -239,8 +251,8 @@ void  QwHelicityPattern::CalculateAsymmetry()
       IsGood=kTRUE;
       fQuartetNumber++;//Then increment the quartet number
       //std::cout<<" quartet count ="<<fQuartetNumber<<"\n";
-	
-      
+
+
       fYield.Sum(pos_sum,neg_sum);
       fYield.Do_RunningSum();
       difference.Difference(pos_sum,neg_sum);
@@ -278,16 +290,17 @@ void  QwHelicityPattern::ConstructHistograms(TDirectory *folder)
 
 void  QwHelicityPattern::FillHistograms()
 {
-  //  std::cout<<"QwHelicityPattern::FillHistograms \n";
+  //std::cout<<"QwHelicityPattern::FillHistograms ";
   if(IsGood)
     {
-      //  std::cout<<"************ YIELD ************\n";
+      //std::cout<<"************ YIELD ************\n";
       fYield.FillHistograms();
       //  std::cout<<"************ ASYMMETRY ************\n";
       fAsymmetry.FillHistograms();
       //pos_sum.FillHistograms();
       //neg_sum.FillHistograms();
     }
+  //std::cout<<"\n";
   return;
 }
 
