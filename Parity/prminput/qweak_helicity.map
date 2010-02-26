@@ -5,6 +5,13 @@
 !!                       : for now it can be  InputRegisterMode, UserbitMode
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+!Need to set PATTERNPHASEOFFSET = 1 (when pattern hardware counter starts with 1) or 0 (when pattern number starts with 0)
+!default value for PATTERNPHASEOFFSET = 1 is set within the code itself which works fine with regular injector/beamlin\
+e/parity mock data
+!uncomment below line only if phase number start from 0
+PATTERNPHASEOFFSET=0
+randseedbits=30
+
 HelicityDecodingMode=InputRegisterMode
 PatternPhase=4
 
@@ -48,8 +55,13 @@ WORD, 0,  0, helicitydata,  ha_ioctime
 WORD, 0,  0, helicitydata,  ha_ncnt
 
 
+!seed size is either 24 bit or 30 bit. default is 24 bit
+!RandSeedBits=24
+!RandSeedBits=30
+
 ROC=31
 Bank=0x3103
+
 !
 ! module.type, module.num  chan.num, det.type, det.name
 !
@@ -77,6 +89,9 @@ SKIP 1
 
 !HelicityDecodingMode= UserbitMode    
 !PatternPhase=4
+!seed size is either 24 bit or 30 bit. default is 24 bit
+!RandSeedBits=24
+!RandSeedBits=30
 !ROC=31
 !Bank=0x3101
 !

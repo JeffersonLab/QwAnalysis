@@ -155,16 +155,18 @@ class QwBeamDetectorID
                       //(eg VQWK channel report 6 words for each event, scalers oly report one word per event)
   // The first word of the subbank gets fWordInSubbank=0
   
-  int fTypeID;     // type of detector eg: lumi or stripline, etc..
-  int  kUnknownDeviceType;
-  int fIndex;      // index of this detector in the vector containing all the detector of same type
-  UInt_t fSubelement; // some detectors have many subelements (eg stripline have 4 antenas) some have only one sub element(eg lumis have one channel)
   
   TString fmoduletype; // eg: VQWK, SCALER
   TString fdetectorname;
   TString fdetectortype; // stripline, bcm, ... this string is encoded by fTypeID
+  int  kUnknownDeviceType;
+
   
+  int fTypeID;     // type of detector eg: lumi or stripline, etc..
   
+  int fIndex;      // index of this detector in the vector containing all the detector of same type
+  UInt_t fSubelement; // some detectors have many subelements (eg stripline have 4 antenas) some have only one sub element(eg lumis have one channel)
+
   void Print();
 
 };

@@ -65,7 +65,8 @@ class QwHelicity : public VQwSubsystemParity{
   /////
  public:
 
-  QwHelicity(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
+ QwHelicity(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),
+    fMinPatternPhase(1)
     {
       fEventNumberOld=-1; fEventNumber=-1;
       fPatternPhaseNumberOld=-1; fPatternPhaseNumber=-1;
@@ -226,6 +227,7 @@ class QwHelicity : public VQwSubsystemParity{
   Int_t fHelicityDelay;
   //number of events the helicity is delayed by before being reported
   //static const Int_t MaxPatternPhase =4;
+  Int_t fMinPatternPhase;
   Int_t fMaxPatternPhase;
   Bool_t IsGoodPatternNumber();
   Bool_t IsGoodEventNumber();
@@ -246,8 +248,11 @@ class QwHelicity : public VQwSubsystemParity{
 
   Bool_t Compare(VQwSubsystem *source);
 
-  static const Bool_t BIT24=kFALSE;
-  static const Bool_t BIT30=(!BIT24);
+  Bool_t BIT24;//sets the random seed size 24bit/30bits
+  Bool_t BIT30;
+
+  Int_t fPATTERNPHASEOFFSET;
+  Bool_t bPATTERNPHASEOFFSET;
 };
 
 
