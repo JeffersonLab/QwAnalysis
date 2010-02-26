@@ -66,9 +66,9 @@ Int_t main(Int_t argc, Char_t* argv[])
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.SetConfigFile("qwtracking.conf");
   // Define the command line options
-  gQwOptions.DefineOptions();
+  DefineOptionsTracking(gQwOptions);
 
-  // Message logging facilities 
+  // Message logging facilities
   gQwLog.InitLogFile("QwTracking.log");
   gQwLog.SetScreenThreshold(QwLog::kMessage);
   gQwLog.SetFileThreshold(QwLog::kMessage);
@@ -93,14 +93,14 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   // Handle for the list of VQwSubsystemTracking objects
   QwSubsystemArrayTracking detectors;
-  
+
   // Region 1 GEM
   detectors.push_back(new QwGasElectronMultiplier("R1"));
   detectors.GetSubsystem("R1")->LoadChannelMap("qweak_R1.map");
   detectors.GetSubsystem("R1")->LoadQweakGeometry("qweak_new.geo");
 
-  
-  
+
+
 
   // Region 2 HDC
   detectors.push_back(new QwDriftChamberHDC("R2"));
@@ -161,7 +161,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     if (kDebug) trackingworker->SetDebugLevel(1);
   }
 
-  
+
 
   // Create a timer
   TStopwatch timer;
@@ -241,7 +241,7 @@ Int_t main(Int_t argc, Char_t* argv[])
         timer.Stop();
         continue;
       }
-    } 
+    }
 
     eventbuffer.ResetControlParameters();
 
@@ -269,7 +269,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     //detectors.ConstructHistograms(rootfile->mkdir("histos"));
 
     // Open file
-    
+
     TTree* tree = 0;
     QwEvent* event = 0;
     QwHitRootContainer* rootlist = 0;
@@ -289,8 +289,8 @@ Int_t main(Int_t argc, Char_t* argv[])
     }
     QwHitContainer* hitlist = 0;
     Int_t nevents           = 0;
-    Int_t eventnumber       = -1;
 
+    Int_t eventnumber = -1;
     Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
     Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
     while (eventbuffer.GetEvent() == CODA_OK) {
@@ -320,7 +320,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       // Fill the histograms for the subsystem objects.
       if(kHisto) detectors.FillHistograms();
 
-      
+
 
       // Create the event header with the run and event number
       QwEventHeader* header = new QwEventHeader(run, eventnumber);
@@ -401,7 +401,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     // Close ROOT file
     rootfile->Close();
     // Note: Closing rootfile too early causes segfaults when deleting histos
-    
+
     // Delete objects (this is confusing: the if only applies to the delete)
     if (rootfile)       delete rootfile; rootfile = 0;
     if (trackingworker) delete trackingworker; trackingworker = 0;

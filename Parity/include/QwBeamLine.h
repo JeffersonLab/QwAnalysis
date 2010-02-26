@@ -16,10 +16,12 @@
 #include "QwBPMStripline.h"
 #include "QwBCM.h"
 #include "QwCombinedBCM.h"
+#include "QwCombinedBPM.h"
 
 enum EBeamInstrumentType{kBPMStripline = 0,
 			 kBCM,
-			 kCombinedBCM
+			 kCombinedBCM,
+			 kCombinedBPM
 };
 
 // this emun vector needs to be coherent with the DetectorTypes declaration in the QwBeamLine constructor
@@ -30,8 +32,6 @@ class QwBeamDetectorID;
 *  Class:
 ******************************************************************/
 class QwBeamLine : public VQwSubsystemParity{
-  /////
-  // friend class QwBeamDetectorID;
 
  public:
 
@@ -41,6 +41,7 @@ class QwBeamLine : public VQwSubsystemParity{
       fgDetectorTypeNames.push_back("bpmstripline");
       fgDetectorTypeNames.push_back("bcm");
       fgDetectorTypeNames.push_back("combinedbcm");
+      fgDetectorTypeNames.push_back("combinedbpm");
       for(size_t i=0;i<fgDetectorTypeNames.size();i++)
         fgDetectorTypeNames[i].ToLower();
     };
@@ -112,6 +113,7 @@ class QwBeamLine : public VQwSubsystemParity{
  std::vector <QwBPMStripline> fStripline;
  std::vector <QwBCM> fBCM;
  std::vector <QwCombinedBCM> fBCMCombo;
+ std::vector <QwCombinedBPM> fBPMCombo;
  std::vector <QwBeamDetectorID> fBeamDetectorID;
 
 
@@ -146,15 +148,17 @@ class QwBeamDetectorID
                       //(eg VQWK channel report 6 words for each event, scalers oly report one word per event)
   // The first word of the subbank gets fWordInSubbank=0
 
-  int fTypeID;     // type of detector eg: lumi or stripline, etc..
-  int  kUnknownDeviceType;
-  int fIndex;      // index of this detector in the vector containing all the detector of same type
-  UInt_t fSubelement; // some detectors have many subelements (eg stripline have 4 antenas) some have only one sub element(eg lumis have one channel)
 
   TString fmoduletype; // eg: VQWK, SCALER
   TString fdetectorname;
   TString fdetectortype; // stripline, bcm, ... this string is encoded by fTypeID
+  int  kUnknownDeviceType;
 
+  
+  int fTypeID;     // type of detector eg: lumi or stripline, etc..
+  
+  int fIndex;      // index of this detector in the vector containing all the detector of same type
+  UInt_t fSubelement; // some detectors have many subelements (eg stripline have 4 antenas) some have only one sub element(eg lumis have one channel)
 
   void Print();
 

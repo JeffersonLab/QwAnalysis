@@ -135,7 +135,8 @@ name = qwk_target_charge
 !name		wieght
  QWK_BCM0L02,  1.0
  empty1,  0.8
-endCOMBO=bcm
+ QWK_Batery7, 0.9
+endCOMBO=combinedbcm
 
 beginCOMBO=combinedbcm
 name = qwk_average_charge
@@ -143,6 +144,13 @@ name = qwk_average_charge
 
  QWK_Batery6, 0.1
  QWK_Batery7, 0.9
-endCOMBO=bcm
+endCOMBO=combinedbcm
+
+beginCOMBO=combinedbpm
+name = qwk_target_position
+!name		wieght
+ QWK_QPD, 0.1
+ QWK_1I02, 0.9
+endCOMBO=combinedbpm
 
 !END

@@ -60,7 +60,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	}
       else if (varname=="begincombo")
 	{
-	  std::cout<<"QwBeamline :: Decoding BCM combo!\n";
+	  //std::cout<<"QwBeamline :: Decoding BCM combo!\n";
 	  combolistdecoded = kFALSE;
 	  combotype = varvalue;
 	  while(mapstr.ReadNextLine()&&!combolistdecoded){
@@ -89,12 +89,10 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		fDeviceWeight.push_back( atof(mapstr.GetNextToken(", ").c_str()));
 	      }
 	  }
+	  
+	  QwBeamDetectorID localComboID(-1, -1, comboname, combotype, "none", this);	  
 
-	  QwBeamDetectorID localBCMComboID(-1, -1, comboname, combotype, "none", this);
-
-
-
-	  if(localBCMComboID.fTypeID==-1)
+	  if(localComboID.fTypeID==-1)
 	    {
 	      std::cerr << "QwBeamLine::LoadChannelMap:  Unknown detector type: "
 			<< combotype <<", the detector "<<comboname<<" will not be decoded "
@@ -103,21 +101,22 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	      continue;
 	    }
 
-	  if(fgDetectorTypeNames[localBCMComboID.fTypeID]=="combinedbcm")
-	    localBCMComboID.fdetectorname=comboname(0,comboname.Sizeof()-1);
-
-	  localBCMComboID.fIndex=
-	    GetDetectorIndex(localBCMComboID.fTypeID,
-			     localBCMComboID.fdetectorname);
+	  if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbcm")
+	    localComboID.fdetectorname=comboname(0,comboname.Sizeof()-1);
 
 
+	  localComboID.fIndex=
+	    GetDetectorIndex(localComboID.fTypeID,
+			     localComboID.fdetectorname);
 
-	  if(localBCMComboID.fIndex==-1)
+
+
+	  if(localComboID.fIndex==-1)
 	    {
-	      if(fgDetectorTypeNames[localBCMComboID.fTypeID]=="combinedbcm")/////
+	      if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbcm")/////
 		{
-		  QwCombinedBCM localcombo(localBCMComboID.fdetectorname); //create a new combo with combo name
-		  fBCMCombo.push_back(localcombo); //add to the array of combos
+		  QwCombinedBCM localbcmcombo(localComboID.fdetectorname); //create a new combo with combo name
+		  fBCMCombo.push_back(localbcmcombo); //add to the array of combos
 		  for(size_t i=0;i<fDeviceName.size();i++)
 		    {
 		      index=GetDetectorIndex(GetDetectorTypeID("bcm"),fDeviceName[i]);
@@ -126,11 +125,30 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		    }
 		  fDeviceName.clear();   //reset the device vector for the next combo
 		  fDeviceWeight.clear(); //reset the device weights for the next combo
+		  localComboID.fIndex=fBCMCombo.size()-1;
+
+		}
+	      if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbpm")/////
+		{
+		  Bool_t unrotated(keyword=="unrotated");
+		  QwCombinedBPM localbpmcombo(localComboID.fdetectorname,!unrotated); 
+		  fBPMCombo.push_back(localbpmcombo);
+
+		  for(size_t i=0;i<fDeviceName.size();i++)
+		    {
+		      index=GetDetectorIndex(GetDetectorTypeID("bpmstripline"),fDeviceName[i]);
+		      fBPMCombo[fBPMCombo.size()-1].Add(&fStripline[index],fDeviceWeight[i]);
+		      
+		    }
+		  fDeviceName.clear();  
+		  fDeviceWeight.clear(); 
+		  localComboID.fIndex=fBPMCombo.size()-1;
+
 		}
 	    }
 
 	  if(combolistdecoded)
-	    fBeamDetectorID.push_back(localBCMComboID);
+	    fBeamDetectorID.push_back(localComboID);
 	}
     }
     else
@@ -180,6 +198,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	if(fgDetectorTypeNames[localBeamDetectorID.fTypeID]=="bpmstripline")
 	  localBeamDetectorID.fdetectorname=namech(0,namech.Sizeof()-3);
 
+	
 	localBeamDetectorID.fIndex=
 	  GetDetectorIndex(localBeamDetectorID.fTypeID,
 			   localBeamDetectorID.fdetectorname);
@@ -261,7 +280,7 @@ QwBeamDetectorID::QwBeamDetectorID(Int_t subbankid, Int_t wordssofar,
 				   TString name, TString dettype,
 				   TString modtype, QwBeamLine * obj):
   fSubbankIndex(subbankid),fWordInSubbank(wordssofar),
-  fmoduletype(modtype),fdetectorname(name),kUnknownDeviceType(-1),fdetectortype(dettype)
+  fmoduletype(modtype),fdetectorname(name),fdetectortype(dettype),kUnknownDeviceType(-1)
 {
   fTypeID = kUnknownDeviceType;
   for(size_t i=0;i<obj->fgDetectorTypeNames.size();i++){
@@ -629,11 +648,12 @@ void  QwBeamLine::ProcessEvent()
   for(size_t i=0;i<fBCM.size();i++)
     fBCM[i].ProcessEvent();
 
-  for(size_t i=0;i<fBCMCombo.size();i++){
-    // std::cout<<"new combo :"<<fBCMCombo[i].GetElementName()<<"\n";
+  for(size_t i=0;i<fBCMCombo.size();i++)
     fBCMCombo[i].ProcessEvent();
-  }
 
+  for(size_t i=0;i<fBPMCombo.size();i++)
+    fBPMCombo[i].ProcessEvent();
+  
   return;
 };
 
@@ -687,6 +707,8 @@ void QwBeamLine::ClearEventData()
     fBCM[i].ClearEventData();
   for(size_t i=0;i<fBCMCombo.size();i++)
     fBCMCombo[i].ClearEventData();
+  for(size_t i=0;i<fBPMCombo.size();i++)
+    fBPMCombo[i].ClearEventData();
   return;
 };
 //*****************************************************************
@@ -774,6 +796,8 @@ VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
 	this->fBCM[i]=input->fBCM[i];
       for(size_t i=0;i<input->fBCMCombo.size();i++)
 	this->fBCMCombo[i]=input->fBCMCombo[i];
+      for(size_t i=0;i<input->fBPMCombo.size();i++)
+	this->fBPMCombo[i]=input->fBPMCombo[i];
     }
   return *this;
 };
@@ -790,6 +814,8 @@ VQwSubsystem&  QwBeamLine::operator+=  (VQwSubsystem *value)
 	this->fBCM[i]+=input->fBCM[i];
       for(size_t i=0;i<input->fBCMCombo.size();i++)
 	this->fBCMCombo[i]+=input->fBCMCombo[i];
+      for(size_t i=0;i<input->fBPMCombo.size();i++)
+	this->fBPMCombo[i]+=input->fBPMCombo[i];
     }
   return *this;
 };
@@ -807,6 +833,8 @@ VQwSubsystem&  QwBeamLine::operator-=  (VQwSubsystem *value)
 	this->fBCM[i]-=input->fBCM[i];
       for(size_t i=0;i<input->fBCMCombo.size();i++)
 	this->fBCMCombo[i]-=input->fBCMCombo[i];
+      for(size_t i=0;i<input->fBPMCombo.size();i++)
+	this->fBPMCombo[i]-=input->fBPMCombo[i];
     }
   return *this;
 };
@@ -843,6 +871,8 @@ void QwBeamLine::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 	this->fBCM[i].Ratio(innumer->fBCM[i],indenom->fBCM[i]);
       for(size_t i=0;i<innumer->fBCMCombo.size();i++)
 	this->fBCMCombo[i].Ratio(innumer->fBCMCombo[i],indenom->fBCMCombo[i]);
+      for(size_t i=0;i<innumer->fBPMCombo.size();i++)
+	this->fBPMCombo[i].Ratio(innumer->fBPMCombo[i],indenom->fBPMCombo[i]);
 
       // For the combined bcm, maybe we might want to think about getting
       // the asymmetry using the asymmetries of the individual bcms with a
@@ -861,7 +891,8 @@ void QwBeamLine::Scale(Double_t factor)
     fBCM[i].Scale(factor);
   for(size_t i=0;i<fBCMCombo.size();i++)
     fBCMCombo[i].Scale(factor);
-
+  for(size_t i=0;i<fBPMCombo.size();i++)
+    fBPMCombo[i].Scale(factor);
   return;
 };
 
@@ -874,6 +905,8 @@ void QwBeamLine::Calculate_Running_Average(){
     fBCM[i].Calculate_Running_Average();
   for(size_t i=0;i<fBCMCombo.size();i++)
     fBCMCombo[i].Calculate_Running_Average();
+  for(size_t i=0;i<fBPMCombo.size();i++)
+    fBPMCombo[i].Calculate_Running_Average();
   std::cout<<"---------------------------------------------------"<<std::endl;
   std::cout<<std::endl;
 };
@@ -885,6 +918,8 @@ void QwBeamLine::Do_RunningSum(){
     fBCM[i].Do_RunningSum();
   for(size_t i=0;i<fBCMCombo.size();i++)
     fBCMCombo[i].Do_RunningSum();
+  for(size_t i=0;i<fBPMCombo.size();i++)
+    fBPMCombo[i].Do_RunningSum();
 };
 
 
@@ -933,6 +968,9 @@ void  QwBeamLine::ConstructHistograms(TDirectory *folder, TString &prefix)
 
   for(size_t i=0;i<fBCMCombo.size();i++)
       fBCMCombo[i].ConstructHistograms(folder,prefix);
+
+  for(size_t i=0;i<fBPMCombo.size();i++)
+      fBPMCombo[i].ConstructHistograms(folder,prefix);
   return;
 };
 
@@ -947,6 +985,9 @@ void  QwBeamLine::DeleteHistograms()
   for(size_t i=0;i<fBCMCombo.size();i++)
     fBCMCombo[i].DeleteHistograms();
 
+  for(size_t i=0;i<fBPMCombo.size();i++)
+    fBPMCombo[i].DeleteHistograms();
+
   return;
 };
 
@@ -958,6 +999,9 @@ void  QwBeamLine::FillHistograms()
     fBCM[i].FillHistograms();
   for(size_t i=0;i<fBCMCombo.size();i++)
     fBCMCombo[i].FillHistograms();
+  for(size_t i=0;i<fBPMCombo.size();i++)
+    fBPMCombo[i].FillHistograms();
+
   return;
 };
 
@@ -971,6 +1015,9 @@ void QwBeamLine::ConstructBranchAndVector(TTree *tree, TString & prefix, std::ve
     fBCM[i].ConstructBranchAndVector(tree, prefix, values);
   for(size_t i=0;i<fBCMCombo.size();i++)
     fBCMCombo[i].ConstructBranchAndVector(tree, prefix, values);
+  for(size_t i=0;i<fBPMCombo.size();i++)
+    fBPMCombo[i].ConstructBranchAndVector(tree, prefix, values);
+
   return;
 };
 
@@ -982,6 +1029,8 @@ void QwBeamLine::FillTreeVector(std::vector<Double_t> &values)
     fBCM[i].FillTreeVector(values);
   for(size_t i = 0; i < fBCMCombo.size(); i++)
     fBCMCombo[i].FillTreeVector(values);
+  for(size_t i = 0; i < fBPMCombo.size(); i++)
+    fBPMCombo[i].FillTreeVector(values);
   return;
 };
 
@@ -992,8 +1041,8 @@ void  QwBeamLine::Print()
   std::cout<<"Name of the subsystem ="<<fSystemName<<"\n";
   std::cout<<"there are "<<fStripline.size()<<" striplines \n";
   std::cout<<"there are "<<fBCM.size()<<" bcm \n";
-  std::cout<<"there are "<<fBCMCombo.size()<<" bcm combos \n";
-
+  std::cout<<"there are "<<fBCMCombo.size()<<" combined bcms \n";
+  std::cout<<"there are "<<fBPMCombo.size()<<" combined bpms \n";
   std::cout<<" Printing Running AVG and other channel info for BCMs"<<std::endl;
   for(size_t i=0;i<fBCM.size();i++)
     fBCM[i].Print();
@@ -1060,6 +1109,11 @@ void  QwBeamLine::Copy(VQwSubsystem *source)
 	  this->fBCMCombo.resize(input->fBCMCombo.size());
 	  for(size_t i=0;i<this->fBCMCombo.size();i++){
 	    this->fBCMCombo[i].Copy(&(input->fBCMCombo[i]));
+	  }
+
+	  this->fBPMCombo.resize(input->fBPMCombo.size());
+	  for(size_t i=0;i<this->fBPMCombo.size();i++){
+	    this->fBPMCombo[i].Copy(&(input->fBPMCombo[i]));
 	  }
 	}
      else

@@ -265,7 +265,7 @@ int QwTrajectory::SearchTable() {
 
 #if defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
 
-#if ROOT_VERSION_CODE >= ROOT_VERSION(5,22,0)
+#if ROOT_VERSION_CODE >= ROOT_VERSION(5,20,0)
     // Newer version of the MathMore plugin use kPOLYNOMIAL
     ROOT::Math::Interpolator inter(size, ROOT::Math::Interpolation::kPOLYNOMIAL);
 #else

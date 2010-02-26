@@ -55,7 +55,7 @@ int main (int argc, char* argv[])
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.SetConfigFile("qwsimtracking.conf");
   // Define the command line options
-  gQwOptions.DefineOptions();
+  DefineOptionsTracking(gQwOptions);
 
   /// Now we setup the message logging facilities with the requested loglevels.
   if (gQwOptions.HasValue("QwLog.logfile"))

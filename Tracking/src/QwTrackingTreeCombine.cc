@@ -1131,7 +1131,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
       TlMatchHits (
         x1, x2, z1, z2,
         treeline, hitlist,
-        TLAYERS);
+        MAX_LAYERS);
     }
 
 

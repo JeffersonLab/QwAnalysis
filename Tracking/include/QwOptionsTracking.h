@@ -20,8 +20,13 @@
 // Qweak tracking subsystems that provide options
 #include "QwTrackingWorker.h"
 
-void QwOptions::DefineOptions() {
-  QwTrackingWorker::DefineOptions();
+void DefineOptionsTracking(QwOptions& options)
+{
+  /* Define general options */
+  QwOptions::DefineOptions(options);
+
+  /* Define tracking options */
+  QwTrackingWorker::DefineOptions(options);
 }
 
 #endif // QWOPTIONSTRACKING_H

@@ -277,7 +277,7 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
     // A
     if( fw & 1 ) {//Set i1 equal to the index of the next hit used in line1
       i1++;
-      for( ; i1 < TLAYERS && hits1[i1]; i1++)
+      for( ; i1 < MAX_LAYERS && hits1[i1]; i1++)
 	if( hits1[i1]->used ) {
 	  total1++;
 	  break;
@@ -286,15 +286,15 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
     // B
     if( fw & 2 ) {//Set i2 equal to the index of the next hit used in line2
       i2++;
-      for( ; i2 < TLAYERS && hits2[i2]; i2++)
+      for( ; i2 < MAX_LAYERS && hits2[i2]; i2++)
 	if( hits2[i2]->used ) {
 	  total2++;
 	  break;
 	}
     }
     // ---
-    if( i1 == TLAYERS || ! hits1[i1] ||
-	i2 == TLAYERS || ! hits2[i2] )
+    if( i1 == MAX_LAYERS || ! hits1[i1] ||
+	i2 == MAX_LAYERS || ! hits2[i2] )
       break;//break if we reach the end of the hits in either line
     //-----------------------------------------------------------
     //The following lines separate hits in different detectors

@@ -15,15 +15,17 @@
 #include <string>
 using std::string;
 
+// Qweak headers
+#include "QwTypes.h"
+
 /*!
  * \note Because QwOptions depends on QwLog, and QwLog depends also on QwOptions,
  * we cannot include QwOptions in the QwLog header file here.  QwLog is treated
  * as more basic than QwOptions.
  */
 
-// Qweak headers
-#include "QwTypes.h"
-
+// Forward declarations
+class QwOptions;
 
 /*! \def QwOut
  *  \brief Predefined log drain for explicit output
@@ -75,6 +77,9 @@ class QwLog : public std::ostream {
 
   public:
 
+    /// \brief Define available class options for QwOptions
+    static void DefineOptions(QwOptions* options);
+
     //! Loglevels
     /*! enum of possible log levels */
     enum QwLogLevel {
@@ -101,6 +106,10 @@ class QwLog : public std::ostream {
     /*! \brief Initialize the log file with name 'name'
      */
     void                        InitLogFile(const std::string name, const std::ios_base::openmode mode = kAppend);
+
+    /*! \brief Set the screen color mode
+     */
+    void                        SetScreenColor(bool flag);
 
     /*! \brief Set the screen log level
      */
@@ -156,6 +165,9 @@ class QwLog : public std::ostream {
     std::ostream               *fFile;
     //! Log level of this stream
     QwLogLevel                  fLogLevel;
+
+    //! Flag to disable color (static)
+    static bool                 fUseColor;
 
 };
 

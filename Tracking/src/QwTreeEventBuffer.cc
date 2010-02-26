@@ -40,7 +40,13 @@ QwTreeEventBuffer::QwTreeEventBuffer (
 
   // Open ROOT file
   fFile = new TFile (filename);
+  if (! fFile)
+    QwError << "Could not open file " << filename << " for reading!" << QwLog::endl;
+
+  // Get the ROOT tree
   fTree = (TTree*) fFile->Get("QweakSimG4_Tree");
+  if (! fTree)
+    QwError << "Could not find Geant4 Monte Carlo tree in file " << filename << QwLog::endl;
   fTree->SetMakeClass(1);
 
   // Set the detector info

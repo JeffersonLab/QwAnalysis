@@ -58,6 +58,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <TGTab.h>
 
@@ -85,7 +86,7 @@
 #include "QwGUILumiDetector.h"
 #include "QwGUIInjector.h"
 #include "QwGUIEventDisplay.h"
-
+#include "QwGUIHelpBrowser.h"
 
 class QwGUIMain : public TGMainFrame {
 
@@ -102,6 +103,7 @@ class QwGUIMain : public TGMainFrame {
   QwGUIInjector          *InjectorSubSystem;
   QwGUIEventDisplay      *EventDisplaySubSystem;
 
+  QwGUIHelpBrowser          *dHelpBrowser;
 
   //!Initial width of the application window set in main()
   Int_t                   dMWWidth;

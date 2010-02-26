@@ -22,7 +22,7 @@ class QwHelicityPattern{
    *
    ******************************************************************/
  public:
-  QwHelicityPattern(QwSubsystemArrayParity &event, Int_t pattern_size);
+  QwHelicityPattern(QwSubsystemArrayParity &event);
   ~QwHelicityPattern() {
     std::cerr << "Starting ~QwHelicityPattern()" << std::endl;
     std::cerr << "fEvents.size()=="<<fEvents.size()
@@ -68,6 +68,10 @@ class QwHelicityPattern{
   
   Bool_t IsGood; 
   
+
+  Int_t fPATTERNPHASEOFFSET;
+  Bool_t bPATTERNPHASEOFFSET;
+
 };
 
 

@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.SetConfigFile("qwcompton.conf");
   // Define the command line options
-  gQwOptions.DefineOptions();
+  DefineOptionsParity(gQwOptions);
 
   // Message logging facilities
   gQwLog.InitLogFile("QwCompton.log", QwLog::kTruncate);
@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
     detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
   }
   // Helicity pattern
-  QwHelicityPattern helicitypattern(detectors, kMultiplet);
+  QwHelicityPattern helicitypattern(detectors);
 
   // Get the SIS3320 channel for debugging
   MQwSIS3320_Channel* sampling = 0;
@@ -340,6 +340,5 @@ int main(int argc, char* argv[])
     eventbuffer.ReportRunSummary();
 
   } // end of loop over runs
-
 
 }

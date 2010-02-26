@@ -776,7 +776,7 @@ Bool_t QwVQWK_Channel::MatchNumberOfSamples(size_t numsamp)
 
 Bool_t QwVQWK_Channel::ApplySingleEventCuts(Double_t LL=0,Double_t UL=0){
   Bool_t status;
-  if (bEVENTCUTMODE==2){//Global switch to ON/OFF event cuts set at the event cut file
+  if (bEVENTCUTMODE>=2){//Global switch to ON/OFF event cuts set at the event cut file
 
     if (LL==0 && UL==0){
       status=kTRUE;
@@ -793,7 +793,11 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts(Double_t LL=0,Double_t UL=0){
 	fDeviceErrorCode|=kErrorFlag_EventCut_L;
       status=kFALSE;
     }
-
+    if (bEVENTCUTMODE==3){
+      if (!status) 
+	UpdateEventCutErrorCount();//update the event cut  error count
+      status=kTRUE; //Update the event cut fail flag but pass the event.
+    }
 
 
   }

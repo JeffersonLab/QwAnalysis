@@ -150,6 +150,9 @@ class QwHelicity : public VQwSubsystemParity{
   void Print();
 
   Bool_t IsGoodHelicity();
+  Int_t GetMaxPatternPhase(){
+    return fMaxPatternPhase;
+  };
 
 /////
  protected:
@@ -231,13 +234,23 @@ class QwHelicity : public VQwSubsystemParity{
   Bool_t IsContinuous();
 
   UInt_t GetRandbit(UInt_t& ranseed);
+  UInt_t GetRandbit24(UInt_t& ranseed);//for 24bit pattern
+  UInt_t GetRandbit30(UInt_t& ranseed);//for 30bit pattern
   UInt_t GetRandomSeed(UShort_t* first24randbits);
-  void   CollectRandBits();
-  //void   RunPredictor(); // changed to public function for mock data generation
+  Bool_t CollectRandBits();
+  Bool_t CollectRandBits24();//for 24bit pattern
+  Bool_t CollectRandBits30();//for 30bit pattern
+
+  
   void   ResetPredictor();
 
   Bool_t Compare(VQwSubsystem *source);
 
+  Bool_t BIT24;//sets the random seed size 24bit/30bits
+  Bool_t BIT30;
+
+  Int_t fPATTERNPHASEOFFSET;
+  Bool_t bPATTERNPHASEOFFSET;
 };
 
 
