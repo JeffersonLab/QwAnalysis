@@ -16,7 +16,7 @@ int main (int argc, char* argv[]) {
     gQwOptions.SetCommandLine(argc, argv);
     gQwOptions.SetConfigFile("qwsimtracking.conf");
     // Define the command line options
-    gQwOptions.DefineOptions();
+    DefineOptionsTracking(gQwOptions);
 
     QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
     QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput");
@@ -24,7 +24,7 @@ int main (int argc, char* argv[]) {
     QwRayTracer* raytracer = new QwRayTracer();
 
     QwRayTracer::LoadMagneticFieldMap();
-    raytracer->LoadMomentumMatrix();
+    raytracer->LoadTrajMatrix();
 
     for (UInt_t runnumber =  (UInt_t) gQwOptions.GetIntValuePairFirst("run");
             runnumber <= (UInt_t) gQwOptions.GetIntValuePairLast("run");

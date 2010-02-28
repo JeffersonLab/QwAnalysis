@@ -12,6 +12,7 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+#include <cstdlib>
 #include <iostream>
 #include <vector>
 
