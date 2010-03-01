@@ -28,7 +28,10 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
  
   std::vector<TString> fDeviceName;
-  std::vector<Double_t> fDeviceWeight;
+  std::vector<Double_t> fChargeWeight;
+  std::vector<Double_t> fXWeight;
+  std::vector<Double_t> fYWeight;
+
  
   QwParameterFile mapstr(mapfile.Data());  //Open the file
 
@@ -84,13 +87,17 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		dev_name=mapstr.GetNextToken(", ").c_str();
 		dev_name.ToLower();
 		fDeviceName.push_back(dev_name);
-		fDeviceWeight.push_back( atof(mapstr.GetNextToken(", ").c_str()));				
+		fChargeWeight.push_back( atof(mapstr.GetNextToken(", ").c_str())); //read in the weights for the charge
+
+		if(combotype == "combinedbpm") //for combined BPMs,in addition,
+		  {
+		    fXWeight.push_back( atof(mapstr.GetNextToken(", ").c_str())); //read in the weights for the X position
+		    fYWeight.push_back( atof(mapstr.GetNextToken(", ").c_str())); //read in the weights for the Y position
+		  }		
 	      }
 	  }
 	  
 	  QwBeamDetectorID localComboID(-1, -1, comboname, combotype, "none", this);	  
-
-
 
 	  if(localComboID.fTypeID==-1)
 	    {
@@ -113,22 +120,23 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	  
 	  if(localComboID.fIndex==-1)
 	    {
-	      if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbcm")/////
+	      if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbcm")
 		{
 		  QwCombinedBCM localbcmcombo(localComboID.fdetectorname); //create a new combo with combo name
 		  fBCMCombo.push_back(localbcmcombo); //add to the array of combos
 		  for(size_t i=0;i<fDeviceName.size();i++)
 		    {
 		      index=GetDetectorIndex(GetDetectorTypeID("bcm"),fDeviceName[i]);
-		      fBCMCombo[fBCMCombo.size()-1].Add(&fBCM[index],fDeviceWeight[i]);
+		      fBCMCombo[fBCMCombo.size()-1].Add(&fBCM[index],fChargeWeight[i]);
 		      
 		    }
 		  fDeviceName.clear();   //reset the device vector for the next combo
-		  fDeviceWeight.clear(); //reset the device weights for the next combo
+		  fChargeWeight.clear(); //reset the device weights for the next combo
+
 		  localComboID.fIndex=fBCMCombo.size()-1;
 
 		}
-	      if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbpm")/////
+	      if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbpm")
 		{
 		  Bool_t unrotated(keyword=="unrotated");
 		  QwCombinedBPM localbpmcombo(localComboID.fdetectorname,!unrotated); 
@@ -137,11 +145,13 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		  for(size_t i=0;i<fDeviceName.size();i++)
 		    {
 		      index=GetDetectorIndex(GetDetectorTypeID("bpmstripline"),fDeviceName[i]);
-		      fBPMCombo[fBPMCombo.size()-1].Add(&fStripline[index],fDeviceWeight[i]);
+		      fBPMCombo[fBPMCombo.size()-1].Add(&fStripline[index],fChargeWeight[i],fXWeight[i],fYWeight[i]);
 		      
 		    }
 		  fDeviceName.clear();  
-		  fDeviceWeight.clear(); 
+		  fChargeWeight.clear(); 
+		  fXWeight.clear(); 
+		  fYWeight.clear(); 
 		  localComboID.fIndex=fBPMCombo.size()-1;
 
 		}
