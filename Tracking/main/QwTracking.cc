@@ -293,13 +293,20 @@ Int_t main(Int_t argc, Char_t* argv[])
     Int_t eventnumber = -1;
     Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
     Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
+
     while (eventbuffer.GetEvent() == CODA_OK) {
       //  Loop over events in this CODA file
       //  First, do processing of non-physics events...
-
+      if (eventbuffer.IsROCConfigurationEvent()){
+	//  Send ROC configuration event data to the subsystem objects.
+	eventbuffer.FillSubsystemConfigurationData(detectors);
+      }
       //  Now, if this is not a physics event, go back and get
       //  a new event.
-      if (! eventbuffer.IsPhysicsEvent() ) continue;
+      if (! eventbuffer.IsPhysicsEvent() ) {
+	
+	continue;
+      }
 
       //  Check to see if we want to process this event.
       eventnumber = eventbuffer.GetEventNumber();

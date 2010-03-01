@@ -30,7 +30,7 @@ class QwWord
 	  fWordName(""),fWordType(""),fValue(-1){};
 
   Int_t fSubbankIndex;
-  Int_t fWordInSubbank;
+  UInt_t fWordInSubbank;
   TString fModuleType;
   TString fWordName;
   TString fWordType;

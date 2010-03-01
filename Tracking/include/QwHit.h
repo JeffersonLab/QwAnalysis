@@ -53,7 +53,7 @@ class QwHit : public TObject {
   QwHit(const QwHit* hit);
   QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
 	EQwRegionID region, EQwDetectorPackage package, Int_t plane,
-	EQwDirectionID direction, Int_t wire, UInt_t data);
+	EQwDirectionID direction, Int_t wire, Double_t data);
   // @}
 
   //! \brief Destructor

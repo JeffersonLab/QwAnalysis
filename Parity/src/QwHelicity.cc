@@ -629,29 +629,35 @@ Int_t QwHelicity::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer,
   if (index>=0 && num_words>0){
     //  We want to process this ROC.  Begin loopilooping through the data.
     if (lkDEBUG)
-      std::cout << "QwHelicity::ProcessEvBuffer:  "
-		<< "Begin processing ROC" << roc_id
-		<< " and subbank "<<bank_id
-		<< " number of words="<<num_words<<std::endl;
-    
-    for(size_t i=fWordsPerSubbank[index].first; i<fWordsPerSubbank[index].second; i++)
-      if(fWord[i].fWordInSubbank+1<num_words)
-	fWord[i].fValue=buffer[fWord[i].fWordInSubbank];
-      else
-	{	
-	  std::cout<<"There is not enough word in the buffer to read data for "
-		   <<fWord[i].fWordName<<"\n";
-	  std::cout<<"words in this buffer:"<<num_words<<" tyring to read woord number ="
-		   <<fWord[i].fWordInSubbank<<"\n";
-	}
-  if(lkDEBUG)
-    {
-      std::cout<<"Done with Processing this event \n";
-      for(size_t i=0;i<fWord.size();i++){
-	std::cout<<" word number = "<<i<<" ";
-	fWord[i].Print();
+      {
+	std::cout << "QwHelicity::ProcessEvBuffer:  "
+		  << "Begin processing ROC" << roc_id
+		  << " and subbank "<<bank_id
+		  << " number of words="<<num_words<<std::endl;
       }
-    }
+    
+    for(Int_t i=fWordsPerSubbank[index].first; i<fWordsPerSubbank[index].second; i++)
+      {
+	if(fWord[i].fWordInSubbank+1<num_words)
+	  {
+	    fWord[i].fValue=buffer[fWord[i].fWordInSubbank];
+	  }
+	else
+	  {	
+	    std::cout<<"There is not enough word in the buffer to read data for "
+		     <<fWord[i].fWordName<<"\n";
+	    std::cout<<"words in this buffer:"<<num_words<<" tyring to read woord number ="
+		     <<fWord[i].fWordInSubbank<<"\n";
+	  }
+      }
+    if(lkDEBUG)
+      {
+	std::cout<<"Done with Processing this event \n";
+	for(size_t i=0;i<fWord.size();i++) {
+	  std::cout<<" word number = "<<i<<" ";
+	  fWord[i].Print();
+	}
+      }
   }
   lkDEBUG=kFALSE;
   return 0;
@@ -958,7 +964,8 @@ void QwHelicity::SetFirst24Bits(UInt_t seed)
 }
 /////////////////////////////////////////////////////////////////
 UInt_t QwHelicity::GetRandbit(UInt_t& ranseed){
-  Bool_t status;
+  Bool_t status = false;
+  
   if (BIT24)
     status=GetRandbit24(ranseed);
   if (BIT30)
@@ -1152,7 +1159,8 @@ void QwHelicity::RunPredictor()
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 Bool_t QwHelicity::CollectRandBits()
 {
-  Bool_t status;
+  Bool_t status = false;
+
   if (BIT24)
     status=CollectRandBits24();
   if (BIT30)

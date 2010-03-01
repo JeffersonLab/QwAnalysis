@@ -608,7 +608,7 @@ void QwDriftChamberVDC::ProcessEvent() {
             }
         }
     }
-}
+};
 
 
 void QwDriftChamberVDC::ClearEventData() {
@@ -635,4 +635,109 @@ void QwDriftChamberVDC::ClearEventData() {
     for ( size_t i=0;i<fReferenceData.size(); i++ ) {
         fReferenceData.at ( i ).clear();
     }
+}
+
+
+
+
+
+Int_t QwDriftChamberVDC:: ProcessConfigurationBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
+{
+  
+
+  printf("ProcessConfigurationBuffer\n");
+  Int_t index = 0;
+
+  index = GetSubbankIndex(roc_id,bank_id);
+  
+  if (index>=0 && num_words>0)
+    {
+      SetDataLoaded(kTRUE);
+      if (fDEBUG) std::cout << "QwDriftChamberVDC::ProcessConfigurationBuffer:  "
+			    << "Begin processing ROC" << roc_id << std::endl;
+
+      PrintConfigrationBuffer(buffer, num_words);
+
+      //    for(size_t i=0; i<num_words ; i++)
+      //	{
+      //      //  Decode this word as a F1TDC word.
+      //       DecodeTDCWord(buffer[i]);
+      
+      //       if (GetTDCSlotNumber() == 31){
+      // 	//  This is a custom word which is not defined in 
+      // 	//  the F1TDC, so we can use it as a marker for
+      // 	//  other data; it may be useful for something.
+      
+      //       }
+      //       if (! IsSlotRegistered(index, GetTDCSlotNumber())) continue;
+      
+      //       if (IsValidDataword()){
+      // 	// This is a F1 TDC header/trailer word
+      // 	//  This might be a problem, but often is not...
+      // 	//  Do we need to do something?
+      
+      //       } else {
+      // 	// This is a F1 TDC data word
+      // 	try {
+      // 	  //std::cout<<"At QwDriftChamber::ProcessEvBuffer"<<std::endl;
+      // 	  FillRawTDCWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),
+      // 			 GetTDCData());
+      // 	}
+      // 	catch (std::exception& e) {
+      // 	  std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: " 
+      // 		    << e.what() << std::endl;
+      // 	  Int_t chan = GetTDCChannelNumber();
+      // 	  std::cerr << "   Parameters:  index=="<<index
+      // 		    << "; GetF1SlotNumber()=="<<GetTDCSlotNumber()
+      // 		    << "; GetF1ChannelNumber()=="<<chan
+      // 		    << "; GetF1Data()=="<<GetTDCData()
+      // 		    << std::endl;
+      // 	  Int_t tdcindex = GetTDCIndex(index, GetTDCSlotNumber());
+      // 	  std::cerr << "   GetTDCIndex()=="<<tdcindex
+      // 		    << "; fTDCPtrs.at(tdcindex).size()=="
+      // 		    << fTDCPtrs.at(tdcindex).size()
+      // 		    << "; fTDCPtrs.at(tdcindex).at(chan).fPlane=="
+      // 		    << fTDCPtrs.at(tdcindex).at(chan).fPlane
+      // 		    << "; fTDCPtrs.at(tdcindex).at(chan).fElement=="
+      // 		    << fTDCPtrs.at(tdcindex).at(chan).fElement
+      // 		    << std::endl;
+      // 	}
+      //       }
+      //	}
+    }
+  
+  return OK;
+};
+
+
+
+// Test function 
+void  QwDriftChamberVDC::PrintConfigrationBuffer(UInt_t *buffer, UInt_t num_words)
+{
+  UInt_t ipt = 0;
+  UInt_t j = 0;
+  UInt_t k = 0;
+
+  for (j = 0; j < (num_words/5); j++) 
+    {
+      printf("buffer[%5d] = 0x:", ipt);
+      for (k=j; k<j+5; k++) 
+	{
+	  printf("%12x", buffer[ipt++]);
+	}
+      printf("\n");
+    }
+  
+  if (ipt < num_words) 
+    {
+      printf("buffer[%5d] = 0x:", ipt);
+      for (k=ipt; k<num_words; k++) 
+	{
+	  printf("%12x", buffer[ipt++]);
+	}
+      printf("\n");
+    }
+  printf("\n");
+    
+  return;
 }
