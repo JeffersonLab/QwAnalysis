@@ -295,16 +295,11 @@ Int_t main(Int_t argc, Char_t* argv[])
     Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
     while (eventbuffer.GetEvent() == CODA_OK) {
       //  Loop over events in this CODA file
-      if (! eventbuffer.IsPhysicsEvent() ){
-	//  First, do processing of non-physics events...
-	//  Such as configuration events.
-	eventbuffer.FillSubsystemConfigurationData(detectors);
+      //  First, do processing of non-physics events...
 
-
-	//  Then since this is not a physics event, go back and get
-	//  a new event.
-	continue;
-      }
+      //  Now, if this is not a physics event, go back and get
+      //  a new event.
+      if (! eventbuffer.IsPhysicsEvent() ) continue;
 
       //  Check to see if we want to process this event.
       eventnumber = eventbuffer.GetEventNumber();
