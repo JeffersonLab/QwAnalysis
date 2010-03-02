@@ -85,7 +85,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwDetectors.push_back(new QwBeamLine("Injector BeamLine"));
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");  
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadEventCuts("beamline_eventcuts.in");//Pass the correct cuts file. 
+  QwDetectors.GetSubsystem("Injector BeamLine")->LoadEventCuts("qweak_beamline_eventcuts.in");//Pass the correct cuts file. 
   QwDetectors.push_back(new QwHelicity("Helicity info"));
   QwDetectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_helicity.map");
   QwDetectors.GetSubsystem("Helicity info")->LoadInputParameters("");	
@@ -105,7 +105,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   if (gQwOptions.HasValue("ring.size"))
     r_size=gQwOptions.GetValue<int>("ring.size");
   if (gQwOptions.HasValue("ring.bt"))
-    r_BT=gQwOptions.GetValue<int>("ring.bt");
+    r_BT=gQwOptions.GetValue<int>("ring.bt"); 
   if (gQwOptions.HasValue("ring.hld"))
     r_HLD=gQwOptions.GetValue<int>("ring.hld");
 
