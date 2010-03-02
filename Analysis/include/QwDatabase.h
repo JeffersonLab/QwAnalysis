@@ -55,8 +55,9 @@ class QwDatabase: private mysqlpp::Connection {
     mysqlpp::Query Query(const char *qstr=0) {return query(qstr);} //<! Generate a query to the database.
     mysqlpp::Query Query(const std::string &qstr) {return query(qstr);} //<! Generate a query to the database.
     const UInt_t GetRunNumber() {return fRunNumber;} //<! Run number getter
-    const UInt_t GetRunID() {return fRunID;} //<! Run ID getter
+//    const UInt_t GetRunID() {return fRunID;} //<! Run ID getter
     const UInt_t GetRunID(QwEventBuffer& qwevt); //<! Get run ID using data from CODA event buffer
+    const UInt_t GetAnalysisID(QwEventBuffer& qwevt); //<! Get analysis ID using data from CODA event buffer
     bool SetRunNumber(const UInt_t runnum); //<! Run number setter
 
     void PrintServerInfo();
@@ -65,6 +66,7 @@ class QwDatabase: private mysqlpp::Connection {
 
     bool ValidateConnection(); //!< Checks that given connection parameters result in a valid connection
     const UInt_t SetRunID(QwEventBuffer& qwevt); //<! Set fRunID using data from CODA event buffer
+    const UInt_t SetAnalysisID(QwEventBuffer& qwevt); //<! Set fAnalysisID using data from CODA event buffer
 
     string fDatabase; //!< Name of database to connect to
     string fDBServer; //!< Name of server carrying DB to connect to
@@ -75,6 +77,7 @@ class QwDatabase: private mysqlpp::Connection {
 
     UInt_t fRunNumber; //!< Run number of current run
     UInt_t fRunID; //!< run_id of current run
+    UInt_t fAnalysisID; //!< analysis_id of current analysis pass
 
 };
 

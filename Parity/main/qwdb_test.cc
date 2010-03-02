@@ -44,6 +44,7 @@ int main(int argc,char* argv[]) {
     return(-1);
   }
 
+  /*
   QwDebug << "fRunNumber = " << gQwDatabase.GetRunNumber() << QwLog::endl;
   QwDebug << "fRunID = " << gQwDatabase.GetRunID() << QwLog::endl;
 
@@ -52,5 +53,6 @@ int main(int argc,char* argv[]) {
 
   QwDebug << "fRunNumber = " << gQwDatabase.GetRunNumber() << QwLog::endl;
   QwDebug << "fRunID = " << gQwDatabase.GetRunID() << QwLog::endl;
+  */
 
 }

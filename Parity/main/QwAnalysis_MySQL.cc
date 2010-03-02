@@ -41,8 +41,8 @@ main(Int_t argc, Char_t* argv[])
 
   // Set up command line and file options processing
   gQwOptions.SetCommandLine(argc, argv);
-//  gQwOptions.SetConfigFile("Parity/prminput/qweak_mysql.conf");
-  gQwOptions.SetConfigFile("qweak_mysql.conf");
+  gQwOptions.SetConfigFile("Parity/prminput/qweak_mysql.conf");
+//  gQwOptions.SetConfigFile("qweak_mysql.conf");
   DefineOptionsParity(gQwOptions);
 
   // Start testing
@@ -285,6 +285,7 @@ main(Int_t argc, Char_t* argv[])
       // Start test TSQLServer based on ROOT system
 
       QwMessage << "Run ID for this run is " << gQwDatabase.GetRunID(QwEvt) << QwLog::endl;
+      QwMessage << "Analysis ID for analysis pass is " << gQwDatabase.GetAnalysisID(QwEvt) << QwLog::endl;
 
       /*
       cnt++;

@@ -124,11 +124,11 @@
 			, mysqlpp::sql_float , offset
 		) 
   
-//    sql_create_3(seed, 1, 2 
-//			, mysqlpp::sql_int_unsigned , seed_id
-//			, mysqlpp::Null<mysqlpp::sql_text> , seed
-//			, mysqlpp::Null<mysqlpp::sql_text> , comment
-//		) 
+    sql_create_3(seeds, 1, 2 
+			, mysqlpp::sql_int_unsigned , seed_id
+			, mysqlpp::Null<mysqlpp::sql_text> , seed
+			, mysqlpp::Null<mysqlpp::sql_text> , comment
+		) 
   
     sql_create_4(bf_test, 1, 2 
 			, mysqlpp::sql_int_unsigned , bf_test_id

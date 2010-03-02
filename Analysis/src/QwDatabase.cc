@@ -341,7 +341,7 @@ const UInt_t QwDatabase::SetRunID(QwEventBuffer& qwevt)
 
 /*!
  * This is a getter for run_id in the run table.  Should be used in subsequent queries to retain key relationships between tables.
- * */
+ */
 const UInt_t QwDatabase::GetRunID(QwEventBuffer& qwevt)
 {
   // If the stored run number does not agree with the CODA run number or if fRunID is not set, then retrieve data from database and update if necessary.
@@ -351,6 +351,64 @@ const UInt_t QwDatabase::GetRunID(QwEventBuffer& qwevt)
   }
 
   return fRunID;
+
+}
+
+/*!
+ * This is a getter for analysis_id in the analysis table.  Required by all queries on cerenkov, beam, etc. tables.  Will return 0 if fRunID has not been successfully set.  If fAnalysisID is not set, then calls code to insert into analysis table and retrieve analysis_id.
+ */
+const UInt_t QwDatabase::GetAnalysisID(QwEventBuffer& qwevt)
+{
+  // Sanity check to make sure not calling this before run_id has been retrieved.
+  if (fRunID == 0) {
+    QwDebug << "QwDatabase::GetAnalysisID() : fRunID must be set before proceeding.  Check to make sure run exists in database." << QwLog::endl;
+    return 0;
+  }
+
+  if (fAnalysisID == 0 ) {
+    QwDebug << "QwDatabase::GetAnalysisID() set fAnalysisID to " << SetAnalysisID(qwevt) << QwLog::endl;
+    if (fAnalysisID==0) {
+      QwError << "QwDatabase::SetAnalysisID() unable to set valid fAnalysisID for this run.  Exiting." <<QwLog::endl;
+      exit(1);
+    }
+  }
+
+  return fAnalysisID;
+}
+
+/*!
+ * This is used to set the appropriate analysis_id for this run.  Must be a valid run_id in the run table before proceeding.  Will insert an entry into the analysis table if necessary.
+ */
+const UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
+{
+  try {
+    gQwDatabase.Connect();
+
+    analysis row(0, GetRunID(qwevt));
+//    row.n_mps=10; // This works
+//    row.start_time = mysqlpp::null; // This works
+//    row.start_time = qwevt.GetStartSQLTime().Data(); // This does not work
+
+    mysqlpp::Query query=gQwDatabase.Query();
+    query.insert(row);
+
+    QwDebug<< "QwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << QwLog::endl;
+
+    query.execute();
+
+    if (query.insert_id()!=0) {
+      fAnalysisID=query.insert_id();
+    }
+
+    gQwDatabase.Disconnect();
+
+    return fAnalysisID;
+  }
+  catch (const mysqlpp::Exception& er) {
+    QwError << er.what() << QwLog::endl;
+    gQwDatabase.Disconnect();
+    return 0;
+  }
 
 }
 
