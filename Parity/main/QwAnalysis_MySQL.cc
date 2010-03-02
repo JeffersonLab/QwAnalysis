@@ -2,6 +2,11 @@
 #include "TApplication.h"
 #include "boost/shared_ptr.hpp"
 
+#include "QwLog.h"
+#include "QwOptions.h"
+#include "QwOptionsParity.h"
+#include "QwDatabase.h"
+
 #include "QwAnalysis_MySQL.h"
 
 Bool_t kInQwBatchMode = kFALSE;
@@ -28,6 +33,26 @@ main(Int_t argc, Char_t* argv[])
 
   QwCommandLine cmdline;
   cmdline.Parse(argc, argv);
+
+  // Setup screen and file logging
+  gQwLog.InitLogFile("qwanalysis_mysql.log");
+  gQwLog.SetFileThreshold(QwLog::kDebug);
+  gQwLog.SetScreenThreshold(QwLog::kDebug);
+
+  // Set up command line and file options processing
+  gQwOptions.SetCommandLine(argc, argv);
+//  gQwOptions.SetConfigFile("Parity/prminput/qweak_mysql.conf");
+  gQwOptions.SetConfigFile("qweak_mysql.conf");
+  DefineOptionsParity(gQwOptions);
+
+  // Start testing
+  QwDebug << "qwdb_test:  Hello there!" << QwLog::endl;
+
+  gQwDatabase.Connect();
+  QwMessage << "Database server version is " << gQwDatabase.GetServerVersion() << QwLog::endl;
+
+  gQwDatabase.PrintServerInfo();
+
 
   QwEventBuffer QwEvt;
 
@@ -57,6 +82,7 @@ main(Int_t argc, Char_t* argv[])
 
   UInt_t cnt = 0;
 
+  /*
   TSQLServer *serv = TSQLServer::Connect("mysql://localhost/qw_test", "qwreplay", "replay");
   //TSQLServer *serv = TSQLServer::Connect("mysql://localhost/qw_test", "qwadmin", "S1n2+h3taW");
   
@@ -71,6 +97,7 @@ main(Int_t argc, Char_t* argv[])
       printf("no connection\n");
     }
 
+    */
   for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++)
     {
       
@@ -257,6 +284,9 @@ main(Int_t argc, Char_t* argv[])
 
       // Start test TSQLServer based on ROOT system
 
+      QwMessage << "Run ID for this run is " << gQwDatabase.GetRunID(QwEvt) << QwLog::endl;
+
+      /*
       cnt++;
       TSQLResult *res = NULL;
       char buff[1024];
@@ -274,11 +304,12 @@ main(Int_t argc, Char_t* argv[])
       printf("%s%s%s\n", BOLD, buff, NORMAL);
       delete res; res = NULL;
       QwDetectors.FillMySQLServer(serv, run);
+      */
 
 
     } //end of run loop
   
-  delete serv;serv = NULL;
+//  delete serv;serv = NULL;
   
 //     for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++)
 //     {     

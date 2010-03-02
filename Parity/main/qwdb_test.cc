@@ -14,7 +14,8 @@ int main(int argc,char* argv[]) {
 
   // Set up command line and file options processing
   gQwOptions.SetCommandLine(argc, argv);
-  gQwOptions.SetConfigFile("Parity/prminput/qweak_mysql.conf");
+//  gQwOptions.SetConfigFile("Parity/prminput/qweak_mysql.conf");
+  gQwOptions.SetConfigFile("qweak_mysql.conf");
   DefineOptionsParity(gQwOptions);
 
   // Start testing

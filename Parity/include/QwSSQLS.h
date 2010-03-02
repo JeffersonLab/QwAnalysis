@@ -11,7 +11,7 @@
 #define MYSQLPP_SSQLS_NO_STATICS
 #endif
 
-    sql_create_7(run, 1, 2 
+    sql_create_7(run, 1, 7 
 			, mysqlpp::sql_int_unsigned , run_id
 			, mysqlpp::sql_int_unsigned , run_number 	
 			, mysqlpp::Null<mysqlpp::sql_enum> , run_type

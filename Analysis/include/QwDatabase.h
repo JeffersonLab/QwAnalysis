@@ -26,6 +26,7 @@ using std::string;
 #include "QwLog.h"
 #include "QwColor.h"
 #include "QwOptions.h"
+#include "QwEventBuffer.h"
 //#include "QwSSQLS.h"
 
 /**
@@ -55,6 +56,7 @@ class QwDatabase: private mysqlpp::Connection {
     mysqlpp::Query Query(const std::string &qstr) {return query(qstr);} //<! Generate a query to the database.
     const UInt_t GetRunNumber() {return fRunNumber;} //<! Run number getter
     const UInt_t GetRunID() {return fRunID;} //<! Run ID getter
+    const UInt_t GetRunID(QwEventBuffer& qwevt); //<! Get run ID using data from CODA event buffer
     bool SetRunNumber(const UInt_t runnum); //<! Run number setter
 
     void PrintServerInfo();
@@ -62,6 +64,7 @@ class QwDatabase: private mysqlpp::Connection {
   private:
 
     bool ValidateConnection(); //!< Checks that given connection parameters result in a valid connection
+    const UInt_t SetRunID(QwEventBuffer& qwevt); //<! Set fRunID using data from CODA event buffer
 
     string fDatabase; //!< Name of database to connect to
     string fDBServer; //!< Name of server carrying DB to connect to
