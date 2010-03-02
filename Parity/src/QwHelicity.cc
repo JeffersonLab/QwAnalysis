@@ -219,14 +219,13 @@ void QwHelicity::ProcessEventUserbitMode()
       if (lastuserbits==0xFF)
 	{
 	  fPatternPhaseNumber    = 1;//(0+fPATTERNPHASEOFFSET);
-	  fPatternPhaseNumberOld = 1;
+	  
 	}
       else
 	{
 	  if ((lastuserbits & 0x8) == 0x8) //  Quartet bit is set.
 	    {
-	      fPatternPhaseNumber    = 1;//(0+fPATTERNPHASEOFFSET);  // Reset the QRT phase
-	      fPatternPhaseNumberOld = 1;
+	      fPatternPhaseNumber    = 1;//(0+fPATTERNPHASEOFFSET);  // Reset the QRT phase	      
 	      fPatternNumber=fPatternNumberOld+1;     // Increment the QRT counter
 	    }
 	  else
@@ -366,12 +365,7 @@ void  QwHelicity::ProcessEvent()
 
  
   ///////////////
-  
-  if (!bPATTERNPHASEOFFSET && GetPhaseNumber()==0){//identify Phase Number starts with either 1 or 0 and set the offset
-    fPATTERNPHASEOFFSET=0;
-    bPATTERNPHASEOFFSET=kTRUE;
-  }
-  
+   
 
   if(fHelicityBitPlus==fHelicityBitMinus)
     fHelicityReported=-1;
@@ -473,10 +467,7 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
   Int_t currentbankread=0;
   Int_t wordsofar=0;
   Int_t currentsubbankindex=-1;
-  bPATTERNPHASEOFFSET=kFALSE;
-  fPATTERNPHASEOFFSET=0;//Phase number offset is set to 1 by default and will be set to 0 if phase number starts from 0
-
-  bPATTERNPHASEOFFSET=kFALSE;
+  
   fPATTERNPHASEOFFSET=1;//Phase number offset is set to 1 by default and will be set to 0 if phase number starts from 0
 
   

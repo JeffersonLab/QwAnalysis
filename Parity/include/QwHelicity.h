@@ -251,7 +251,7 @@ class QwHelicity : public VQwSubsystemParity{
   Bool_t BIT30;
 
   Int_t fPATTERNPHASEOFFSET;
-  Bool_t bPATTERNPHASEOFFSET;
+  
 };
 
 
