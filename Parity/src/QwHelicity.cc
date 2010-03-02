@@ -218,13 +218,15 @@ void QwHelicity::ProcessEventUserbitMode()
       
       if (lastuserbits==0xFF)
 	{
-	  fPatternPhaseNumber    = 1;
+	  fPatternPhaseNumber    = 1;//(0+fPATTERNPHASEOFFSET);
+	  fPatternPhaseNumberOld = 1;
 	}
       else
 	{
 	  if ((lastuserbits & 0x8) == 0x8) //  Quartet bit is set.
 	    {
-	      fPatternPhaseNumber    = 1;  // Reset the QRT phase
+	      fPatternPhaseNumber    = 1;//(0+fPATTERNPHASEOFFSET);  // Reset the QRT phase
+	      fPatternPhaseNumberOld = 1;
 	      fPatternNumber=fPatternNumberOld+1;     // Increment the QRT counter
 	    }
 	  else
@@ -364,6 +366,12 @@ void  QwHelicity::ProcessEvent()
 
  
   ///////////////
+  
+  if (!bPATTERNPHASEOFFSET && GetPhaseNumber()==0){//identify Phase Number starts with either 1 or 0 and set the offset
+    fPATTERNPHASEOFFSET=0;
+    bPATTERNPHASEOFFSET=kTRUE;
+  }
+  
 
   if(fHelicityBitPlus==fHelicityBitMinus)
     fHelicityReported=-1;
@@ -457,7 +465,7 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 
   Bool_t ldebug=kFALSE;
 
-
+ 
   TString varname, varvalue;
   TString modtype, dettype, namech, keyword;
   Int_t modnum, channum;
@@ -465,6 +473,8 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
   Int_t currentbankread=0;
   Int_t wordsofar=0;
   Int_t currentsubbankindex=-1;
+  bPATTERNPHASEOFFSET=kFALSE;
+  fPATTERNPHASEOFFSET=0;//Phase number offset is set to 1 by default and will be set to 0 if phase number starts from 0
 
   bPATTERNPHASEOFFSET=kFALSE;
   fPATTERNPHASEOFFSET=1;//Phase number offset is set to 1 by default and will be set to 0 if phase number starts from 0
@@ -609,6 +619,30 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 
     }
   ldebug=kFALSE;
+
+  //Read the cmd options and override channel map settings
+  if (gQwOptions.HasValue("helicity.patternoffset"))
+    if (gQwOptions.GetValue<int>("helicity.patternoffset")==1 || gQwOptions.GetValue<int>("helicity.patternoffset")==0)  
+      fPATTERNPHASEOFFSET=gQwOptions.GetValue<int>("helicity.patternoffset");
+
+  if (gQwOptions.HasValue("helicity.patternphase"))
+    if (gQwOptions.GetValue<int>("helicity.patternphase")==4 || gQwOptions.GetValue<int>("helicity.patternphase")==8)  
+      fMaxPatternPhase=gQwOptions.GetValue<int>("helicity.patternphase");
+
+  if (gQwOptions.HasValue("helicity.30bitseed")){
+    BIT30=gQwOptions.GetValue<bool>("helicity.30bitseed");
+    BIT24=kFALSE;
+  }else if (gQwOptions.HasValue("helicity.24bitseed")){
+    BIT24=gQwOptions.GetValue<bool>("helicity.24bitseed");
+    BIT30=kFALSE;
+  }
+  /*//with these options we need to change roc/bank ids as well
+   if (gQwOptions.HasValue("helicity.user"))
+    fHelicityDecodingMode=kHelUserbitMode;
+   else if (gQwOptions.HasValue("helicity.input"))
+    fHelicityDecodingMode=kHelInputRegisterMode;
+    
+  */   
 
   return 0;
 };
@@ -1174,6 +1208,10 @@ Bool_t QwHelicity::CollectRandBits()
 Bool_t QwHelicity::CollectRandBits24()
 {
     //routine to collect 24 random bits before getting the randseed for prediction
+    Bool_t  ldebug = kFALSE;
+
+  if(ldebug) std::cout<<"QwHelicity::Entering CollectRandBits24...."<<"\n";
+
 
   if (n_ranbits==24)    return kTRUE;
 
@@ -1183,9 +1221,6 @@ Bool_t QwHelicity::CollectRandBits24()
       std::cerr<<"(need 24 bit, so far got "<<n_ranbits<<" bits )\n";
     }
 
-  Bool_t  ldebug = kFALSE;
-
-  if(ldebug) std::cout<<"QwHelicity::Entering CollectRandBits24...."<<"\n";
 
   static UShort_t first24bits[25]; //array to store the first 24 bits
 
@@ -1317,7 +1352,7 @@ void QwHelicity::PredictHelicity()
     if(!IsGoodHelicity())
       ResetPredictor();
   }
-
+ 
   if(ldebug)  std::cout<<"n_ranbit exiting the function = "<<n_ranbits<<"\n";
 
   return;

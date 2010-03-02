@@ -10,7 +10,7 @@
 
     Put something here
 
-    \subsection MS2 More Substuff
+    \subsection MS2 More Substuff 
 
     Put some more stuff here
 
@@ -85,7 +85,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwDetectors.push_back(new QwBeamLine("Injector BeamLine"));
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");  
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadEventCuts("qweak_beamline_eventcuts.in");//Pass the correct cuts file. 
+  QwDetectors.GetSubsystem("Injector BeamLine")->LoadEventCuts("beamline_eventcuts.in");//Pass the correct cuts file. 
   QwDetectors.push_back(new QwHelicity("Helicity info"));
   QwDetectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_helicity.map");
   QwDetectors.GetSubsystem("Helicity info")->LoadInputParameters("");	
@@ -99,9 +99,18 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
   QwHelicityPattern QwHelPat(QwDetectors);//multiplet size is set within the QwHelicityPattern class
-  //QwEventRing fEventRing(QwDetectors,120,60,8);//Event ring of 120; 60 hold off events, 8 minimum failed events is a beam trip
-  //QwEventRing fEventRing(QwDetectors,32,8,16); //Event ring of 32; 8 hold off events, 16  minimum failed events is a beam trip
-  QwEventRing fEventRing(QwDetectors,32,16,4);
+
+  //Reads Event Ring parameters from cmd
+  Int_t r_size=32,r_BT=4,r_HLD=16;
+  if (gQwOptions.HasValue("ring.size"))
+    r_size=gQwOptions.GetValue<int>("ring.size");
+  if (gQwOptions.HasValue("ring.bt"))
+    r_BT=gQwOptions.GetValue<int>("ring.bt");
+  if (gQwOptions.HasValue("ring.hld"))
+    r_HLD=gQwOptions.GetValue<int>("ring.hld");
+
+  std::cout<<" Ring "<<r_size<<" , "<<r_BT<<" , "<<r_HLD<<std::endl;
+  QwEventRing fEventRing(QwDetectors,r_size,r_HLD,r_BT);
   Double_t evnum=0.0;
 
 
@@ -161,9 +170,10 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  // results are going to get very very crazy.
 	  mpstree->Branch("evnum",&evnum,"evnum/D");
 	  TString dummystr="";
-	  ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
-	  ((QwBeamLine*)QwDetectors.GetSubsystem("Helicity info"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
-	  ((QwBeamLine*)QwDetectors.GetSubsystem("Luminosity Monitors"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
+	  //((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
+	  //((QwBeamLine*)QwDetectors.GetSubsystem("Helicity info"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
+	  //((QwBeamLine*)QwDetectors.GetSubsystem("Luminosity Monitors"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
+	  QwDetectors.ConstructBranchAndVector(mpstree, dummystr, mpsvector);
 	  // QwDetectors.ConstructBranchAndVector(mpstree, dummystr, mpsvector);
 	  // at some point we want to have some thing like that but it need to be implement in QwSubsystemArray
 	  rootfile.cd();
@@ -246,13 +256,14 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  if(bTree){
 	    evnum=QwEvt.GetEventNumber();
 	    //std::cout<<" event "<<evnum<<std::endl;
-	    ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->FillTreeVector(mpsvector);
-	    ((QwHelicity*)QwDetectors.GetSubsystem("Helicity info"))->FillTreeVector(mpsvector);
-	    ((QwLumi*)QwDetectors.GetSubsystem("Luminosity Monitors"))->FillTreeVector(mpsvector);
+	    //((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->FillTreeVector(mpsvector);
+	    //((QwHelicity*)QwDetectors.GetSubsystem("Helicity info"))->FillTreeVector(mpsvector);
+	    //((QwLumi*)QwDetectors.GetSubsystem("Luminosity Monitors"))->FillTreeVector(mpsvector);
+	    QwDetectors.FillTreeVector(mpsvector);
 	    mpstree->Fill();
 	  }
 
-	  if(bHelicity && QwHelPat.IsCompletePattern() && bRING_READY){
+	  if(bHelicity && QwHelPat.IsCompletePattern() && bRING_READY){ 
 	    //QwHelicity * tmp=(QwHelicity *)QwDetectors.GetSubsystem("Helicity info");
 	    //std::cout<<" Complete quartet  Good Helicity "<<std::endl;
 	    QwHelPat.CalculateAsymmetry();

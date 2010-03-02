@@ -12,6 +12,7 @@
 #include "TTree.h"
 
 #include "VQwSubsystemParity.h"
+#include "QwOptions.h"
 
 enum HelicityRootSavingType{kHelSaveMPS = 0,
 			    kHelSavePattern,
@@ -153,13 +154,13 @@ class QwHelicity : public VQwSubsystemParity{
   Int_t GetMaxPatternPhase(){
     return fMaxPatternPhase;
   };
-
+  
 /////
  protected:
    enum HelicityRootSavingType{kHelSaveMPS = 0,
 			      kHelSavePattern,
 			      kHelNoSave};
-  
+   
   enum HelicityEncodingType{kHelUserbitMode=0,
 			    kHelInputRegisterMode,
 			    kHelLocalyMadeUp};
