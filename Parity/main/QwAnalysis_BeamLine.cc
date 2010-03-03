@@ -93,9 +93,8 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap("qweak_beamline.map");//current map file is for the beamline.
   QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file. 
   
-
-
-
+  ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
+	  
 
 
   QwHelicityPattern QwHelPat(QwDetectors);//multiplet size is set within the QwHelicityPattern class

@@ -402,6 +402,68 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
   return 0;
 };
 
+Int_t QwBeamLine::LoadGeometry(TString mapfile)
+{
+  Bool_t ldebug=kFALSE;
+
+  Int_t lineread=1;
+  Int_t index;
+  TString  devname;
+  Double_t devOffsetX,devOffsetY, devOffsetZ;
+  TString localname;
+
+
+  if(ldebug)std::cout<<"QwBeamLine::LoadGeometry("<< mapfile<<")\n";
+
+  QwParameterFile mapstr(mapfile.Data());  //Open the file
+
+  while (mapstr.ReadNextLine()){
+      lineread+=1;
+      if(ldebug)std::cout<<" line read so far ="<<lineread<<"\n";
+      mapstr.TrimComment('!');   
+      mapstr.TrimWhitespace();   
+      if (mapstr.LineIsEmpty())  continue;
+      else
+	{
+	  devname = mapstr.GetNextToken(", \t").c_str();
+	  devname.ToLower();
+	  devname.Remove(TString::kBoth,' ');	  
+	  devOffsetX = (atof(mapstr.GetNextToken(", \t").c_str())); // X offset
+	  devOffsetY = (atof(mapstr.GetNextToken(", \t").c_str())); // Y offset
+	  devOffsetZ = (atof(mapstr.GetNextToken(", \t").c_str())); // Z offset
+
+	  if(ldebug) std::cout<<"inputs for channel "<<devname
+			      <<": X offset ="<< devOffsetX
+			      <<": Y offset ="<< devOffsetY
+			      <<": Z offset ="<<devOffsetZ<<"\n";
+
+	  Bool_t notfound=kTRUE;
+
+	  if(notfound)
+	    {
+	      index=GetDetectorIndex(GetDetectorTypeID("bpmstripline"),devname);
+	      localname=fStripline[index].GetElementName();
+	      localname.ToLower();
+	      if(ldebug)  std::cout<<"element name =="<<localname
+				   <<"== to be compared to =="<<devname<<"== \n";
+
+	      if(localname==devname)
+		{
+		  if(ldebug) std::cout<<" I found it !\n";
+		  fStripline[index].SetOffset(devOffsetX,devOffsetY,devOffsetZ);
+		  notfound=kFALSE;
+		}
+	    }
+	}
+  }
+  if(ldebug) std::cout<<" line read in the geometry file ="<<lineread<<" \n";
+
+  ldebug=kFALSE;
+  return 0;
+
+}
+
+
 //*****************************************************************
 Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 {
