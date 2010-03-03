@@ -215,7 +215,7 @@ void  QwCombinedBPM::ProcessEvent()
     
     //  fCombinedWSum.Scale(1.0/totalq_weights);
     Q = QADC/totalq_weights;
-    fCombinedWSum.SetHardwareSum(q);
+    fCombinedWSum.SetHardwareSum(Q);
 
     for(size_t n=0;n<2;n++){
       //absolute positions at the target;
