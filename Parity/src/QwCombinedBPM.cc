@@ -130,6 +130,8 @@ void  QwCombinedBPM::ProcessEvent()
   static QwVQWK_Channel numer("numerator"), denom("denominator");
   static QwVQWK_Channel  tmpQADC, tmpADC;
   Double_t chi_square[2];
+  Double_t QADC = 0; 
+  Double_t Q = 0; 
   std::vector <Double_t> XADC; 
   std::vector <Double_t> YADC; 
   std::vector <Double_t> ZADC;
@@ -166,13 +168,14 @@ void  QwCombinedBPM::ProcessEvent()
 	}
 	
 	//to get the weighted charge(4-wire) sum;
-	tmpQADC.Copy(&(fElement[i]->fWSum));
-	tmpQADC=fElement[i]->fWSum;
-	tmpQADC.Scale(fQWeights[i]);
-	fCombinedWSum+=tmpQADC;
+// 	tmpQADC.Copy(&(fElement[i]->fWSum));
+// 	tmpQADC=fElement[i]->fWSum;
+// 	tmpQADC.Scale(fQWeights[i]);
+// 	fCombinedWSum+=tmpQADC;
 	totalq_weights +=fQWeights[i];
+	QADC+=((fElement[i]->fWSum).GetHardwareSum())/fQWeights[i];
 	
-	if(ldebug) std::cout<<"got 4-wire.hw_sum = "<<tmpQADC.GetHardwareSum()<<" vs     actual "<<(fElement[i]-> fWSum).GetHardwareSum()<<std::endl;
+	if(ldebug) std::cout<<"got 4-wire.hw_sum = "<<QADC<<" vs     actual "<<(fElement[i]-> fWSum).GetHardwareSum()<<std::endl;
 	
 	XADC.push_back((fElement[i]-> fAbsPos[0]).GetHardwareSum());
 	YADC.push_back((fElement[i]-> fAbsPos[1]).GetHardwareSum());
@@ -210,7 +213,9 @@ void  QwCombinedBPM::ProcessEvent()
 		    SumOver(fYWeights,y2));
      
     
-    fCombinedWSum.Scale(1.0/totalq_weights);
+    //  fCombinedWSum.Scale(1.0/totalq_weights);
+    Q = QADC/totalq_weights;
+    fCombinedWSum.SetHardwareSum(q);
 
     for(size_t n=0;n<2;n++){
       //absolute positions at the target;
@@ -395,6 +400,7 @@ void QwCombinedBPM::Ratio(QwCombinedBPM &numer, QwCombinedBPM &denom)
 
 void QwCombinedBPM::Scale(Double_t factor)
 {
+  fCombinedWSum.Scale(factor);
   for(int i=0;i<2;i++)
       fCombinedAngle[i].Scale(factor);
   for(int i=0;i<3;i++)
@@ -406,7 +412,6 @@ void QwCombinedBPM::Calculate_Running_Average(){
       fCombinedAngle[i].Calculate_Running_Average();
   for(int i=0;i<2;i++)
     fCombinedAbsPos[i].Calculate_Running_Average();
-
   fCombinedWSum.Calculate_Running_Average();
 };
 
