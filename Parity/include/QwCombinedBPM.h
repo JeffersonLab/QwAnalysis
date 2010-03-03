@@ -33,7 +33,7 @@ class QwCombinedBPM : public VQwDataElement{
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
 
   void  InitializeChannel(TString name, Bool_t ROTATED);
-  void Add(QwBPMStripline* bpm, Double_t weight  ); //bbbbb
+  void  Add(QwBPMStripline* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight); //bbbbb
 
   void  ClearEventData();
   void  SetRandomEventAsymmetry(Double_t asymmetry);
@@ -43,6 +43,7 @@ class QwCombinedBPM : public VQwDataElement{
   void  EncodeEventData(std::vector<UInt_t> &buffer);
 
   void  ProcessEvent();
+  
   void Print();
 
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
@@ -57,7 +58,9 @@ class QwCombinedBPM : public VQwDataElement{
   void SetEventCutMode(Int_t bcuts);
   
 
-  void Copy(VQwDataElement *source);
+  void Copy( VQwDataElement *source);
+  Double_t SumOver( std::vector <Double_t> weight , std::vector <Double_t> val); //bbbbbbbb
+  void LeastSquareFit( Int_t pos, Double_t A, Double_t B, Double_t C, Double_t D, Double_t E, Double_t F ); //bbbbb
 
 
   QwCombinedBPM& operator=  (const QwCombinedBPM &value);
@@ -75,10 +78,10 @@ class QwCombinedBPM : public VQwDataElement{
   void SetCalibrationFactor(Double_t calib);
 
   void SetOffset(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset);
-  UInt_t GetSubElementIndex(TString subname);
-  TString GetSubElementName(Int_t subindex);
-  void SetSubElementPedestal(Int_t j, Double_t value);
-  void SetSubElementCalibrationFactor(Int_t j, Double_t value);
+ /*  UInt_t GetSubElementIndex(TString subname); */
+/*   TString GetSubElementName(Int_t subindex); */
+/*   void SetSubElementPedestal(Int_t j, Double_t value); */
+/*   void SetSubElementCalibrationFactor(Int_t j, Double_t value); */
 
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
@@ -98,33 +101,35 @@ class QwCombinedBPM : public VQwDataElement{
   static const Double_t kRotationCorrection;
 
   std::vector <QwBPMStripline*> fElement; //bbbbb
-  std::vector <Double_t> fWeights; //bbbbb
+  std::vector <Double_t> fQWeights; //bbbbb
+  std::vector <Double_t> fXWeights; //bbbbb
+  std::vector <Double_t> fYWeights; //bbbbb
+
  
 
  protected:
-  static const TString subelement[4];
+  //static const TString subelement[4];
   static const TString axis[3];
 
-  Double_t fOffset[3];
+  Double_t fComboOffset[3];
   Bool_t bRotated;
   Bool_t bFullSave; // used to restrict the amount of data histogramed
 
   Bool_t fGoodEvent; 
 
-
+  Double_t a[2],b[2],erra[2],errb[2],covab[2];
 
   Double_t fULimitX, fLLimitX, fULimitY, fLLimitY;//this sets the upper and lower limits on the X & Y of the BPM stripline
  
 
 
-  QwVQWK_Channel fCombinedWire[4]; //bbbb
-  QwVQWK_Channel fCombinedWSum; //bbbb
-  QwVQWK_Channel fCombinedRelPos[2]; //bbbb
+  // QwVQWK_Channel fCombinedWire[4]; //bbbb individual wires at the target
+  QwVQWK_Channel fCombinedWSum; //bbbb  charge at the target
 
 
   
   /* These channels contain the beam position within the frame of the BPM*/
-  QwVQWK_Channel fCombinedAbsPos[3]; //bbbbb
+  QwVQWK_Channel fCombinedRelPos[2]; //bbbbb absolute position at the target
   
     
   

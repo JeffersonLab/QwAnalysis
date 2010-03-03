@@ -94,7 +94,7 @@ QwHit::QwHit(Int_t bank_index,
 	     Int_t plane,
 	     EQwDirectionID direction,
 	     Int_t wire,
-	     UInt_t data)
+	     Double_t data)
 {
   fCrate             = bank_index;
   fModule            = slot_num;

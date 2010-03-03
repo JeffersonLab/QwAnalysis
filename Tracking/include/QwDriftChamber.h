@@ -60,7 +60,7 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   virtual Int_t LoadInputParameters(TString mapfile){return 0;};
   void  ClearEventData();
 
-  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words){return 0;};
+  Int_t ProcessConfigurationBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words){return 0;};
 
   Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 

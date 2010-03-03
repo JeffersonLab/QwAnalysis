@@ -45,8 +45,12 @@ class QwPartialTrack: public VQwTrackingElement {
 
   public: // methods
 
+    /// \brief Default constructor
     QwPartialTrack();
-    ~QwPartialTrack();
+    /// \brief Constructor with track position and direction
+    QwPartialTrack(const TVector3 position, const TVector3 momentum);
+    /// Destructor
+    virtual ~QwPartialTrack() { };
 
     // Valid and used flags
     const bool IsVoid() const { return fIsVoid; };
@@ -61,6 +65,7 @@ class QwPartialTrack: public VQwTrackingElement {
     void Reset(Option_t *option = "");
 
     // Creating and adding tree lines
+    void InitializeTreeLines();
     QwTrackingTreeLine* CreateNewTreeLine();
     void AddTreeLine(QwTrackingTreeLine* treeline);
     void ClearTreeLines(Option_t *option = "");
@@ -80,14 +85,14 @@ class QwPartialTrack: public VQwTrackingElement {
     /// \brief Return the vertex at position z
     TVector3 GetPosition(double z);
     /// \brief Return the direction at position z
-    TVector3 GetDirection(double z = 0.0);
+    TVector3 GetMomentumDirection(double z = 0.0);
     /// \brief Return the phi angle at position z
-    Double_t GetDirectionPhi(double z = 0.0) {
-      return GetDirection(z).Phi();
+    Double_t GetMomentumDirectionPhi(double z = 0.0) {
+      return GetMomentumDirection(z).Phi();
     };
     /// \brief Return the theta angle at position z
-    Double_t GetDirectionTheta(double z = 0.0) {
-      return GetDirection(z).Theta();
+    Double_t GetMomentumDirectionTheta(double z = 0.0) {
+      return GetMomentumDirection(z).Theta();
     };
 
     /// \brief Determine vertex in the target
@@ -96,8 +101,8 @@ class QwPartialTrack: public VQwTrackingElement {
     int DeterminePositionInTriggerScintillators (EQwDetectorPackage package);
     /// \brief Determine intersection with cerenkov bars
     int DeterminePositionInCerenkovBars (EQwDetectorPackage package);
-
-    int DetermineHitInHDC (EQwDetectorPackage package);
+    /// \brief Determine position in first horizontal drift chamber
+    int DeterminePositionInHDC (EQwDetectorPackage package);
 
     // Average residuals
     const double GetAverageResidual() const { return fAverageResidual; };
@@ -118,8 +123,11 @@ class QwPartialTrack: public VQwTrackingElement {
     Double_t fOffsetY;		///< y coordinate (at MAGNET_CENTER)
     Double_t fSlopeX;		///< x slope
     Double_t fSlopeY;		///< y slope
+
+    // Results of the fit to the hits
     Double_t fChi;		///< combined chi square
     double fCov[4][4];		///< covariance matrix
+
     QwTrackingTreeLine *tline[kNumDirections];	//!	///< tree line in u v and x
     double  clProb;		///< prob. that this cluster belongs to track
     double  pathlenoff;		///< pathlength offset

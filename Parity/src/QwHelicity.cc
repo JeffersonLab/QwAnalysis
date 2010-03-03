@@ -218,13 +218,14 @@ void QwHelicity::ProcessEventUserbitMode()
       
       if (lastuserbits==0xFF)
 	{
-	  fPatternPhaseNumber    = 1;
+	  fPatternPhaseNumber    = 1;//(0+fPATTERNPHASEOFFSET);
+	  
 	}
       else
 	{
 	  if ((lastuserbits & 0x8) == 0x8) //  Quartet bit is set.
 	    {
-	      fPatternPhaseNumber    = 1;  // Reset the QRT phase
+	      fPatternPhaseNumber    = 1;//(0+fPATTERNPHASEOFFSET);  // Reset the QRT phase	      
 	      fPatternNumber=fPatternNumberOld+1;     // Increment the QRT counter
 	    }
 	  else
@@ -364,6 +365,7 @@ void  QwHelicity::ProcessEvent()
 
  
   ///////////////
+   
 
   if(fHelicityBitPlus==fHelicityBitMinus)
     fHelicityReported=-1;
@@ -457,7 +459,7 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 
   Bool_t ldebug=kFALSE;
 
-
+ 
   TString varname, varvalue;
   TString modtype, dettype, namech, keyword;
   Int_t modnum, channum;
@@ -465,8 +467,7 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
   Int_t currentbankread=0;
   Int_t wordsofar=0;
   Int_t currentsubbankindex=-1;
-
-  bPATTERNPHASEOFFSET=kFALSE;
+  
   fPATTERNPHASEOFFSET=1;//Phase number offset is set to 1 by default and will be set to 0 if phase number starts from 0
 
   
@@ -610,6 +611,30 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
     }
   ldebug=kFALSE;
 
+  //Read the cmd options and override channel map settings
+  if (gQwOptions.HasValue("helicity.patternoffset"))
+    if (gQwOptions.GetValue<int>("helicity.patternoffset")==1 || gQwOptions.GetValue<int>("helicity.patternoffset")==0)  
+      fPATTERNPHASEOFFSET=gQwOptions.GetValue<int>("helicity.patternoffset");
+
+  if (gQwOptions.HasValue("helicity.patternphase"))
+    if (gQwOptions.GetValue<int>("helicity.patternphase")==4 || gQwOptions.GetValue<int>("helicity.patternphase")==8)  
+      fMaxPatternPhase=gQwOptions.GetValue<int>("helicity.patternphase");
+
+  if (gQwOptions.HasValue("helicity.30bitseed")){
+    BIT30=gQwOptions.GetValue<bool>("helicity.30bitseed");
+    BIT24=kFALSE;
+  }else if (gQwOptions.HasValue("helicity.24bitseed")){
+    BIT24=gQwOptions.GetValue<bool>("helicity.24bitseed");
+    BIT30=kFALSE;
+  }
+  /*//with these options we need to change roc/bank ids as well
+   if (gQwOptions.HasValue("helicity.user"))
+    fHelicityDecodingMode=kHelUserbitMode;
+   else if (gQwOptions.HasValue("helicity.input"))
+    fHelicityDecodingMode=kHelInputRegisterMode;
+    
+  */   
+
   return 0;
 };
 //////////////////////////////////////////////////////
@@ -629,29 +654,35 @@ Int_t QwHelicity::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer,
   if (index>=0 && num_words>0){
     //  We want to process this ROC.  Begin loopilooping through the data.
     if (lkDEBUG)
-      std::cout << "QwHelicity::ProcessEvBuffer:  "
-		<< "Begin processing ROC" << roc_id
-		<< " and subbank "<<bank_id
-		<< " number of words="<<num_words<<std::endl;
-    
-    for(size_t i=fWordsPerSubbank[index].first; i<fWordsPerSubbank[index].second; i++)
-      if(fWord[i].fWordInSubbank+1<num_words)
-	fWord[i].fValue=buffer[fWord[i].fWordInSubbank];
-      else
-	{	
-	  std::cout<<"There is not enough word in the buffer to read data for "
-		   <<fWord[i].fWordName<<"\n";
-	  std::cout<<"words in this buffer:"<<num_words<<" tyring to read woord number ="
-		   <<fWord[i].fWordInSubbank<<"\n";
-	}
-  if(lkDEBUG)
-    {
-      std::cout<<"Done with Processing this event \n";
-      for(size_t i=0;i<fWord.size();i++){
-	std::cout<<" word number = "<<i<<" ";
-	fWord[i].Print();
+      {
+	std::cout << "QwHelicity::ProcessEvBuffer:  "
+		  << "Begin processing ROC" << roc_id
+		  << " and subbank "<<bank_id
+		  << " number of words="<<num_words<<std::endl;
       }
-    }
+    
+    for(Int_t i=fWordsPerSubbank[index].first; i<fWordsPerSubbank[index].second; i++)
+      {
+	if(fWord[i].fWordInSubbank+1<num_words)
+	  {
+	    fWord[i].fValue=buffer[fWord[i].fWordInSubbank];
+	  }
+	else
+	  {	
+	    std::cout<<"There is not enough word in the buffer to read data for "
+		     <<fWord[i].fWordName<<"\n";
+	    std::cout<<"words in this buffer:"<<num_words<<" tyring to read woord number ="
+		     <<fWord[i].fWordInSubbank<<"\n";
+	  }
+      }
+    if(lkDEBUG)
+      {
+	std::cout<<"Done with Processing this event \n";
+	for(size_t i=0;i<fWord.size();i++) {
+	  std::cout<<" word number = "<<i<<" ";
+	  fWord[i].Print();
+	}
+      }
   }
   lkDEBUG=kFALSE;
   return 0;
@@ -958,7 +989,8 @@ void QwHelicity::SetFirst24Bits(UInt_t seed)
 }
 /////////////////////////////////////////////////////////////////
 UInt_t QwHelicity::GetRandbit(UInt_t& ranseed){
-  Bool_t status;
+  Bool_t status = false;
+  
   if (BIT24)
     status=GetRandbit24(ranseed);
   if (BIT30)
@@ -1152,7 +1184,8 @@ void QwHelicity::RunPredictor()
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 Bool_t QwHelicity::CollectRandBits()
 {
-  Bool_t status;
+  Bool_t status = false;
+
   if (BIT24)
     status=CollectRandBits24();
   if (BIT30)
@@ -1166,6 +1199,10 @@ Bool_t QwHelicity::CollectRandBits()
 Bool_t QwHelicity::CollectRandBits24()
 {
     //routine to collect 24 random bits before getting the randseed for prediction
+    Bool_t  ldebug = kFALSE;
+
+  if(ldebug) std::cout<<"QwHelicity::Entering CollectRandBits24...."<<"\n";
+
 
   if (n_ranbits==24)    return kTRUE;
 
@@ -1175,9 +1212,6 @@ Bool_t QwHelicity::CollectRandBits24()
       std::cerr<<"(need 24 bit, so far got "<<n_ranbits<<" bits )\n";
     }
 
-  Bool_t  ldebug = kFALSE;
-
-  if(ldebug) std::cout<<"QwHelicity::Entering CollectRandBits24...."<<"\n";
 
   static UShort_t first24bits[25]; //array to store the first 24 bits
 
@@ -1309,7 +1343,7 @@ void QwHelicity::PredictHelicity()
     if(!IsGoodHelicity())
       ResetPredictor();
   }
-
+ 
   if(ldebug)  std::cout<<"n_ranbit exiting the function = "<<n_ranbits<<"\n";
 
   return;
