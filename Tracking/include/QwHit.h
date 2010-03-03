@@ -116,7 +116,7 @@ class QwHit : public TObject {
   void SetPlane(const Int_t plane)                  { fPlane = plane; };
   void SetElement(const Int_t element)              { fElement = element; };
 
-  void SetDetectorInfo(QwDetectorInfo *detectorinfo){ pDetectorInfo = detectorinfo; };
+  void SetDetectorInfo(const QwDetectorInfo *detectorinfo) { pDetectorInfo = const_cast<QwDetectorInfo*>(detectorinfo); };
   void SetAmbiguousElement(const Bool_t amelement)  { fAmbiguousElement = amelement; };
   void SetLRAmbiguity(const Bool_t amlr)            { fLRAmbiguity = amlr; };
 

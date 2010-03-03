@@ -91,6 +91,7 @@ QwOptions::~QwOptions()
  */
 void QwOptions::SetCommandLine(int argc, char* argv[])
 {
+  // Copy command line options
   fArgc = argc;
   if (fArgv) delete[] fArgv;
   fArgv = new char*[fArgc];
@@ -216,6 +217,7 @@ void QwOptions::ParseConfigFile()
  */
 void QwOptions::Usage()
 {
+  QwMessage << QwLog::endl;
   QwMessage << "Welcome to the Qweak analyzer code." << QwLog::endl;
   QwMessage << QwLog::endl;
   QwMessage << fDefaultOptions << QwLog::endl;
