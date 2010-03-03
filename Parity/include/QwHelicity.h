@@ -154,6 +154,9 @@ class QwHelicity : public VQwSubsystemParity{
   Int_t GetMaxPatternPhase(){
     return fMaxPatternPhase;
   };
+  Int_t GetPatternPhaseOffset(){
+    return fPATTERNPHASEOFFSET;
+  };
   
 /////
  protected:
