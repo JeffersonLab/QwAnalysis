@@ -169,79 +169,14 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   // Create the event buffer
   QwEventBuffer eventbuffer;
+  eventbuffer.ProcessOptions(gQwOptions);
 
-
-
-
-  char *hostname, *session;
-  const char *tmp;
 
   // Loop over all runs
-  UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
-  UInt_t runnumber_max = (UInt_t) gQwOptions.GetIntValuePairLast("run");
-  for (UInt_t run  = runnumber_min;
-              run <= runnumber_max;
-              run++) {
-
+  while (eventbuffer.OpenNextStream() == CODA_OK){
     //  Begin processing for the first run.
     //  Start the timer.
     timer.Start();
-
-    /* Does OnlineAnaysis need several runs? by jhlee */
-    if (gQwOptions.GetValue<bool>("online")) {
-
-      // Check whether CODA ET streams are compiled in
-      #ifndef __CODA_ET
-        std::cerr << "\nERROR:  Online mode will not work without the CODA libraries!"
-                  << std::endl;
-        break;
-      #endif
-
-      /* Modify the call below for your ET system, if needed.
-         OpenETStream( ET host name , $SESSION , mode)
-         mode=0: wait forever
-         mode=1: timeout quickly
-      */
-
-      hostname = getenv("HOSTNAME");
-      session  = getenv("SESSION");
-      /* std::cout << "hostname is "<< hostname <<" and session is "<< session << ". " << std::endl; */
-      if (hostname == NULL || session == NULL) {
-        timer.Stop(); /*  don't need the timer, thus Stop; */
-
-        if      (hostname == NULL && session != NULL) tmp = " \"HOSTNAME\" ";
-        else if (hostname != NULL && session == NULL) tmp = " ET \"SESSION\" ";
-        else                                          tmp = " \"HOSTNAME\" and ET \"SESSION\" ";
-
-        QwError << "ERROR:  the" << tmp
-                << "variable(s) is(are) not defined in your environment.\n"
-                << "        This is needed to run the online analysis."
-                << QwLog::endl;
-        exit(EXIT_FAILURE);
-      }
-      else {
-        QwMessage << "Try to open the ET station. " << QwLog::endl;
-        if (eventbuffer.OpenETStream(hostname, session, 0) == CODA_ERROR ) {
-          QwError << "ERROR:  Unable to open the ET station "
-                  << run << ".  Moving to the next run.\n"
-                  << QwLog::endl;
-          timer.Stop();
-          continue;
-        }
-      }
-    }
-    else {
-      //  Try to open the data file.
-      if (eventbuffer.OpenDataFile(run) == CODA_ERROR){
-        //  The data file can't be opened.
-        //  Get ready to process the next run.
-        QwError << "ERROR:  Unable to find data files for run "
-                << run << ".  Moving to the next run.\n"
-                << QwLog::endl;
-        timer.Stop();
-        continue;
-      }
-    }
 
     eventbuffer.ResetControlParameters();
 
@@ -251,7 +186,8 @@ Int_t main(Int_t argc, Char_t* argv[])
       delete rootfile; rootfile=0;
     }
 
-    rootfile = new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
+    rootfile = new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%s.root",
+			      eventbuffer.GetRunLabel().Data()),
 			 "RECREATE",
 			 "QWeak ROOT file with real events");
     //    std::auto_ptr<TFile> rootfile (new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
@@ -290,32 +226,24 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwHitContainer* hitlist = 0;
     Int_t nevents           = 0;
 
-    Int_t eventnumber = -1;
-    Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
-    Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
-
-    while (eventbuffer.GetEvent() == CODA_OK) {
+    while (eventbuffer.GetNextEvent() == CODA_OK) {
       //  Loop over events in this CODA file
       //  First, do processing of non-physics events...
       if (eventbuffer.IsROCConfigurationEvent()){
 	//  Send ROC configuration event data to the subsystem objects.
 	eventbuffer.FillSubsystemConfigurationData(detectors);
       }
+
       //  Now, if this is not a physics event, go back and get
       //  a new event.
       if (! eventbuffer.IsPhysicsEvent() ) {
-	
 	continue;
       }
 
-      //  Check to see if we want to process this event.
-      eventnumber = eventbuffer.GetEventNumber();
-      if      (eventnumber < eventnumber_min) continue;
-      else if (eventnumber > eventnumber_max) break;
 
-      if (eventnumber % 1000 == 0) {
+      if (eventbuffer.GetEventNumber() % 1000 == 0) {
 	QwMessage << "Number of events processed so far: "
-		  << eventnumber << QwLog::endl;
+		  << eventbuffer.GetEventNumber() << QwLog::endl;
       }
 
       // Fill the subsystem objects with their respective data for this event.
@@ -330,7 +258,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
       // Create the event header with the run and event number
-      QwEventHeader* header = new QwEventHeader(run, eventnumber);
+      QwEventHeader* header = new QwEventHeader(eventbuffer.GetRunNumber(), eventbuffer.GetEventNumber());
 
       // Create and fill hit list
       hitlist = new QwHitContainer();
@@ -343,7 +271,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       // Print hit list
       if (kDebug) {
-        std::cout << "Event " << eventnumber << std::endl;
+        std::cout << "Event " << eventbuffer.GetEventNumber() << std::endl;
         hitlist->Print();
       }
 
@@ -399,7 +327,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile->Write(0, TObject::kOverwrite);
 
     // Close CODA file
-    eventbuffer.CloseDataFile();
+    eventbuffer.CloseStream();
     eventbuffer.ReportRunSummary();
 
     // Delete histograms in the subsystems
@@ -417,7 +345,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     if (rootlist)       delete rootlist; rootlist = 0;
 
     // Print run summary information
-    QwMessage << "Analysis of run " << run << QwLog::endl
+    QwMessage << "Analysis of run " << eventbuffer.GetRunNumber() << QwLog::endl
               << "CPU time used:  " << timer.CpuTime() << " s "
               << "(" << timer.CpuTime() / nevents << " s per event)" << QwLog::endl
               << "Real time used: " << timer.RealTime() << " s "

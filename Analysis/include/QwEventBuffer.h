@@ -19,6 +19,8 @@
 #include "QwSubsystemArray.h"
 #include "VQwSubsystem.h"
 
+class QwOptions;
+
 //////////////////////////////////////////////////////////////////////
 
 
@@ -26,6 +28,9 @@
 ///
 /// \ingroup QwAnalysis
 class QwEventBuffer: public MQwCodaControlEvent{
+ public:
+  static void DefineOptions(QwOptions &options);
+
  public:
   static const Int_t kRunNotSegmented;
   static const Int_t kNoNextDataFile;
@@ -42,8 +47,16 @@ class QwEventBuffer: public MQwCodaControlEvent{
     }
   };
 
+  /// \brief Sets internal flags based on the QwOptions
+  void ProcessOptions(QwOptions &options);
 
+  /// \brief Returns a string like <run#> or <run#>.<file#>
+  TString GetRunLabel() const;
 
+  /// \brief Opens the event stream (file or ET) based on the internal flags
+  Int_t OpenNextStream();
+  /// \brief Closes a currently open event stream.
+  Int_t CloseStream();
 
   void    SetDataDirectory(const TString datadir){fDataDirectory = datadir;}
 
@@ -64,6 +77,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
   };
   Int_t GetEventNumber(){return fEvtNumber;};
 
+  Int_t GetNextEvent();
 
   Int_t  GetEvent();
   Int_t  WriteEvent(int* buffer);
@@ -92,9 +106,16 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Bool_t FillSubsystemData(std::vector<VQwSubsystem*> &subsystems);
 
 
+ protected:
+  ///
+  Bool_t fOnline;
+  TString fETHostname;
+  TString fETSession;
+  std::pair<Int_t, Int_t> fRunRange;
+  Bool_t fChainDataFiles;
+  std::pair<Int_t, Int_t> fEventRange;
 
  protected:
-  const Bool_t fDEBUG;
   const TString fDataFileStem;
   const TString fDataFileExtension;
 
@@ -113,7 +134,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   Bool_t DataFileIsSegmented();
 
-  void CloseThisSegment();
+  Int_t CloseThisSegment();
   Int_t OpenNextSegment();
 
   void DecodeEventIDBank(UInt_t *buffer);
@@ -128,7 +149,10 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
 
  protected:
+  enum CodaStreamMode{fEvStreamNull, fEvStreamFile, fEvStreamET} fEvStreamMode;
+  THaCodaData *fEvStream; //  Pointer to a THaCodaFile or THaEtClient
 
+  Int_t fCurrentRun;
 
   Bool_t fRunIsSegmented;
 
@@ -136,8 +160,6 @@ class QwEventBuffer: public MQwCodaControlEvent{
   std::vector<Int_t>           fRunSegments;
   std::vector<Int_t>::iterator this_runsegment;
 
-  enum CodaStreamMode{fEvStreamNull, fEvStreamFile, fEvStreamET} fEvStreamMode;
-  THaCodaData *fEvStream; //  Pointer to a THaCodaFile or THaEtClient
 
  protected:
   Bool_t fPhysicsEventFlag;
@@ -161,6 +183,8 @@ class QwEventBuffer: public MQwCodaControlEvent{
   UInt_t fSubbankNum;
   UInt_t fROC;
 
+ protected:
+  UInt_t     fNumPhysicsEvents;
 
 };
 
