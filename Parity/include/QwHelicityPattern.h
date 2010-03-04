@@ -7,10 +7,11 @@
 #ifndef __QwHelicityPattern__
 #define __QwHelicityPattern__
 
-#include <vector>
-#include <TTree.h>
+
+#include "TTree.h"
 #include "QwSubsystemArrayParity.h"
 
+#include <vector>
 ///
 /// \ingroup QwAnalysis_ADC
 ///
@@ -36,7 +37,7 @@ class QwHelicityPattern{
   void  DeleteHistograms();
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
-
+  void  FillDB(QwDatabase *db);
   Bool_t IsGoodAsymmetry(){ return IsGood;};
 
   void  ClearEventData();
@@ -56,6 +57,7 @@ class QwHelicityPattern{
   QwSubsystemArrayParity  fAsymmetry;
   QwSubsystemArrayParity fAverage;
   QwSubsystemArrayParity fRunningSum;
+
  private:
   QwSubsystemArrayParity pos_sum;
   QwSubsystemArrayParity neg_sum;

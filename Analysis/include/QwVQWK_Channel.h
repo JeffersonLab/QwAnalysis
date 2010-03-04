@@ -124,6 +124,9 @@ class QwVQWK_Channel: public VQwDataElement {
 
   void Print() const;
 
+  Double_t GetAverage() {return fAverage_n;};
+  Double_t GetAverageError() {return fAverage_error;};
+
  protected:
 
 
@@ -214,7 +217,7 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t fRunning_sum_square;//Running sum square for the device
   Double_t fAverage_n;/* Running average for the device !*/
   Double_t fAverage_n_square;/* Running average square for the device !*/
-
+  Double_t fAverage_error;
   Int_t fGoodEventCount;//counts the HW and event check passed events
 
   Int_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF

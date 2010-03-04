@@ -11,11 +11,12 @@
 // System headers
 
 // Qweak headers
-#define EXPAND_MY_SSQLS_STATICS
+//#define EXPAND_MY_SSQLS_STATICS
+#define MYSQLPP_SSQLS_NO_STATICS
 #include "QwSSQLS.h"
 
 // Create the static logger object (with streams to screen and file)
-QwDatabase gQwDatabase;
+//QwDatabase gQwDatabase;
 
 /*! The simple constructor initializes member fields.  This class is not
  * used to establish the database connection.  It sets up a
@@ -228,10 +229,39 @@ bool QwDatabase::SetRunNumber(const UInt_t runnum)
 
   QwDebug << "Made it into QwDatabase::SetRunNumber()" << QwLog::endl;
 
-  try {
-    gQwDatabase.Connect();
+//   try {
+//     gQwDatabase.Connect();
 
-    mysqlpp::Query query=gQwDatabase.Query();
+//     mysqlpp::Query query=gQwDatabase.Query();
+//     query << "SELECT * FROM run WHERE run_number = " << runnum;
+//     vector<run> res;
+//     query.storein(res);
+
+//     QwDebug << "Number of rows returned:  " << res.size() << QwLog::endl;
+
+//     if (res.size()!=1) {
+//       QwError << "Unable to find unique run number " << runnum << " in database." << QwLog::endl;
+//       QwError << "Run number query returned " << res.size() << "rows." << QwLog::endl;
+//       QwError << "Please make sure that the database contains one unique entry for this run." << QwLog::endl;
+//       return false;
+//     }
+
+//     QwDebug << "Run ID = " << res.at(0).run_id << QwLog::endl;
+
+//     fRunNumber = runnum;
+//     fRunID = res.at(0).run_id;
+
+//     gQwDatabase.Disconnect();
+//   }
+//   catch (const mysqlpp::Exception& er) {
+//     QwError << er.what() << QwLog::endl;
+//     return false;
+//   }
+  try {
+
+    this->Connect();
+
+    mysqlpp::Query query= this->Query();
     query << "SELECT * FROM run WHERE run_number = " << runnum;
     vector<run> res;
     query.storein(res);
@@ -250,7 +280,7 @@ bool QwDatabase::SetRunNumber(const UInt_t runnum)
     fRunNumber = runnum;
     fRunID = res.at(0).run_id;
 
-    gQwDatabase.Disconnect();
+    this->Disconnect();
   }
   catch (const mysqlpp::Exception& er) {
     QwError << er.what() << QwLog::endl;
@@ -267,76 +297,146 @@ bool QwDatabase::SetRunNumber(const UInt_t runnum)
 const UInt_t QwDatabase::SetRunID(QwEventBuffer& qwevt)
 {
 
+//   // Check to see if run is already in database.  If so retrieve run ID and exit.  
+//   try {
+//     gQwDatabase.Connect();
+
+//     mysqlpp::Query query=gQwDatabase.Query();
+//     query << "SELECT * FROM run WHERE run_number = " << qwevt.GetRunNumber();
+//     vector<run> res;
+//     query.storein(res);
+
+//     QwDebug << "QwDatabase::SetRunID => Number of rows returned:  " << res.size() << QwLog::endl;
+
+//     // If there is more than one run in the DB with the same run number, then there will be trouble later on.  Catch and bomb out.
+//     if (res.size()>1) {
+//       QwError << "Unable to find unique run number " << qwevt.GetRunNumber() << " in database." << QwLog::endl;
+//       QwError << "Run number query returned " << res.size() << "rows." << QwLog::endl;
+//       QwError << "Please make sure that the database contains one unique entry for this run." << QwLog::endl;
+//       gQwDatabase.Disconnect();
+//       return 0;
+//     }
+
+//     // Run already exists in database.  Pull run_id and move along.
+//     if (res.size()==1) {
+//     QwDebug << "QwDatabase::SetRunID => Run ID = " << res.at(0).run_id << QwLog::endl;
+
+//     fRunNumber = qwevt.GetRunNumber();
+//     fRunID = res.at(0).run_id;
+
+//     gQwDatabase.Disconnect();
+
+//     return fRunID;
+//     }
+//   }
+//   catch (const mysqlpp::Exception& er) {
+//     QwError << er.what() << QwLog::endl;
+//     gQwDatabase.Disconnect();
+//     return 0;
+//   }
+
+//   // Run is not in database so insert pertinent data and retrieve run ID
+//   // Right now this does not insert start/stop times or info on number of events.
+//   try {
+//     gQwDatabase.Connect();
+
+//     run row(0, qwevt.GetRunNumber(),mysqlpp::null, mysqlpp::null, mysqlpp::null, 0,0);
+// //    row.n_mps=10; // This works
+// //    row.start_time = mysqlpp::null; // This works
+// //    row.start_time = qwevt.GetStartSQLTime().Data(); // This does not work
+
+//     mysqlpp::Query query=gQwDatabase.Query();
+//     query.insert(row);
+
+//     QwDebug<< "QwDatabase::SetRunID() => Run Insert Query = " << query.str() << QwLog::endl;
+
+//     query.execute();
+
+//     if (query.insert_id()!=0) {
+//       fRunNumber=qwevt.GetRunNumber();
+//       fRunID=query.insert_id();
+//     }
+
+//     gQwDatabase.Disconnect();
+
+//     return fRunID;
+//   }
+//   catch (const mysqlpp::Exception& er) {
+//     QwError << er.what() << QwLog::endl;
+//     gQwDatabase.Disconnect();
+//     return 0;
+//   }
   // Check to see if run is already in database.  If so retrieve run ID and exit.  
-  try {
-    gQwDatabase.Connect();
+  try 
+    {
+      this->Connect();
+      mysqlpp::Query query = this->Query();
 
-    mysqlpp::Query query=gQwDatabase.Query();
-    query << "SELECT * FROM run WHERE run_number = " << qwevt.GetRunNumber();
-    vector<run> res;
-    query.storein(res);
+      query << "SELECT * FROM run WHERE run_number = " << qwevt.GetRunNumber();
+      vector<run> res;
+      query.storein(res);
+      QwDebug << "QwDatabase::SetRunID => Number of rows returned:  " << res.size() << QwLog::endl;
 
-    QwDebug << "QwDatabase::SetRunID => Number of rows returned:  " << res.size() << QwLog::endl;
-
-    // If there is more than one run in the DB with the same run number, then there will be trouble later on.  Catch and bomb out.
-    if (res.size()>1) {
-      QwError << "Unable to find unique run number " << qwevt.GetRunNumber() << " in database." << QwLog::endl;
-      QwError << "Run number query returned " << res.size() << "rows." << QwLog::endl;
-      QwError << "Please make sure that the database contains one unique entry for this run." << QwLog::endl;
-      gQwDatabase.Disconnect();
+      // If there is more than one run in the DB with the same run number, then there will be trouble later on.  Catch and bomb out.
+      if (res.size()>1) 
+	{
+	  QwError << "Unable to find unique run number " << qwevt.GetRunNumber() << " in database." << QwLog::endl;
+	  QwError << "Run number query returned " << res.size() << "rows." << QwLog::endl;
+	  QwError << "Please make sure that the database contains one unique entry for this run." << QwLog::endl;
+	  this->Disconnect();
+	  return 0;
+	}
+      
+      // Run already exists in database.  Pull run_id and move along.
+      if (res.size()==1) 
+	{
+	  QwDebug << "QwDatabase::SetRunID => Run ID = " << res.at(0).run_id << QwLog::endl;
+	  
+	  fRunNumber = qwevt.GetRunNumber();
+	  fRunID     = res.at(0).run_id;
+	  this->Disconnect();
+	  return fRunID;
+	}
+    }
+  catch (const mysqlpp::Exception& er) 
+    {
+      QwError << er.what() << QwLog::endl;
+      this->Disconnect();
       return 0;
     }
 
-    // Run already exists in database.  Pull run_id and move along.
-    if (res.size()==1) {
-    QwDebug << "QwDatabase::SetRunID => Run ID = " << res.at(0).run_id << QwLog::endl;
-
-    fRunNumber = qwevt.GetRunNumber();
-    fRunID = res.at(0).run_id;
-
-    gQwDatabase.Disconnect();
-
-    return fRunID;
-    }
-  }
-  catch (const mysqlpp::Exception& er) {
-    QwError << er.what() << QwLog::endl;
-    gQwDatabase.Disconnect();
-    return 0;
-  }
-
   // Run is not in database so insert pertinent data and retrieve run ID
   // Right now this does not insert start/stop times or info on number of events.
-  try {
-    gQwDatabase.Connect();
+  try 
+    {
+      this->Connect();
+      run row(0, qwevt.GetRunNumber(),mysqlpp::null, mysqlpp::null, mysqlpp::null, 0,0);
+      //    row.n_mps=10; // This works
+      //    row.start_time = mysqlpp::null; // This works
+      //    row.start_time = qwevt.GetStartSQLTime().Data(); // This does not work
+      
+      mysqlpp::Query query=this->Query();
+      query.insert(row);
+      
+      QwDebug<< "QwDatabase::SetRunID() => Run Insert Query = " << query.str() << QwLog::endl;
+      
+      query.execute();
 
-    run row(0, qwevt.GetRunNumber(),mysqlpp::null, mysqlpp::null, mysqlpp::null, 0,0);
-//    row.n_mps=10; // This works
-//    row.start_time = mysqlpp::null; // This works
-//    row.start_time = qwevt.GetStartSQLTime().Data(); // This does not work
-
-    mysqlpp::Query query=gQwDatabase.Query();
-    query.insert(row);
-
-    QwDebug<< "QwDatabase::SetRunID() => Run Insert Query = " << query.str() << QwLog::endl;
-
-    query.execute();
-
-    if (query.insert_id()!=0) {
-      fRunNumber=qwevt.GetRunNumber();
-      fRunID=query.insert_id();
+      if (query.insert_id()!=0) 
+	{
+	  fRunNumber = qwevt.GetRunNumber();
+	  fRunID     = query.insert_id();
+	}
+      this->Disconnect();
+      return fRunID;
     }
-
-    gQwDatabase.Disconnect();
-
-    return fRunID;
-  }
-  catch (const mysqlpp::Exception& er) {
-    QwError << er.what() << QwLog::endl;
-    gQwDatabase.Disconnect();
-    return 0;
-  }
-
+  catch (const mysqlpp::Exception& er) 
+    {
+      QwError << er.what() << QwLog::endl;
+      this->Disconnect();
+      return 0;
+    }
+  
 }
 
 /*!
@@ -344,13 +444,114 @@ const UInt_t QwDatabase::SetRunID(QwEventBuffer& qwevt)
  */
 const UInt_t QwDatabase::GetRunID(QwEventBuffer& qwevt)
 {
-  // If the stored run number does not agree with the CODA run number or if fRunID is not set, then retrieve data from database and update if necessary.
+  // If the stored run number does not agree with the CODA run number 
+  // or if fRunID is not set, then retrieve data from database and update if necessary.
   
   if (fRunID == 0 || fRunNumber != qwevt.GetRunNumber() ) {
     QwDebug << "QwDatabase::GetRunID() set fRunID to " << SetRunID(qwevt) << QwLog::endl;
   }
 
   return fRunID;
+
+}
+
+/*!
+ * This is used to set the appropriate analysis_id for this run.  Must be a valid run_id in the run table before proceeding.  Will insert an entry into the analysis table if necessary.
+ */
+const UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
+{
+//   try {
+//     gQwDatabase.Connect();
+
+//     analysis row(0, GetRunID(qwevt));
+// //    row.n_mps=10; // This works
+// //    row.start_time = mysqlpp::null; // This works
+// //    row.start_time = qwevt.GetStartSQLTime().Data(); // This does not work
+
+//     mysqlpp::Query query=gQwDatabase.Query();
+//     query.insert(row);
+
+//     QwDebug<< "QwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << QwLog::endl;
+
+//     query.execute();
+
+//     if (query.insert_id()!=0) {
+//       fAnalysisID=query.insert_id();
+//     }
+
+//     gQwDatabase.Disconnect();
+
+//     return fAnalysisID;
+//   }
+//   catch (const mysqlpp::Exception& er) {
+//     QwError << er.what() << QwLog::endl;
+//     gQwDatabase.Disconnect();
+//     return 0;
+//   }
+  try {
+
+    this->Connect();
+
+    analysis analysis_row;
+
+    analysis_row.run_id  = GetRunID(qwevt);
+
+    // seed_id, monitor_calibration_id, cut_id are necessary to "create" one analysis ID
+    // thus, I selected one id (1), already be in,  from their tables and I inserted
+    // one id into monitor_calibration table and used it in order to remove the 
+    // several ERROR messages.
+
+    analysis_row.seed_id = 1;
+
+    
+    //    row.n_mps=10; // This works
+    //    row.start_time = mysqlpp::null; // This works
+    //    row.start_time = qwevt.GetStartSQLTime().Data(); // This does not work
+
+    // ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`qw_test/analysis`, CONSTRAINT `fk_analysis_seed_id` FOREIGN KEY (`seed_id`) REFERENCES `seed` (`seed_id`))
+    // How do I know the seed id
+
+    analysis_row.monitor_calibration_id = 1;
+    //Error: Cannot add or update a child row: a foreign key constraint fails (`qw_test/analysis`, CONSTRAINT `fk_analysis_monitor_calibration_id` FOREIGN KEY (`monitor_calibration_id`) REFERENCES `monitor_calibration` (`monitor_calibration_id`))
+    //Error: QwDatabase::SetAnalysisID() unable to set valid fAnalysisID for this run.  Exiting.
+    //  mysql> select * from monitor_calibration;
+    //  Empty set (0.00 sec)
+
+    //  mysql> insert into monitor_calibration (comment) values ('test');
+
+    analysis_row.cut_id = 1;
+    //Error: Cannot add or update a child row: a foreign key constraint fails (`qw_test/analysis`, CONSTRAINT `fk_analysis_cut_id` FOREIGN KEY (`cut_id`) REFERENCES `cut` (`cut_id`))
+    //Error: QwDatabase::SetAnalysisID() unable to set valid fAnalysisID for this run.  Exiting.
+
+
+    //
+    // 
+    //  analysis_row.time = mysqlpp::null; 
+    //    analysis_row.bf_checksum = "";
+    //    analysis_row.beam_mode = "nbm";
+
+    mysqlpp::Query query= this->Query();
+    query.insert(analysis_row);
+    // I don't know why QwLog doesn't print properly, for I switched to cout
+    std::cout << "QwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << std::endl;
+
+
+    query.execute();
+    
+    if (query.insert_id()!=0) 
+      {
+	fAnalysisID = query.insert_id();
+      }
+    
+    this->Disconnect();
+    return fAnalysisID;
+  }
+  catch (const mysqlpp::Exception& er) {
+    QwError << er.what() << QwLog::endl;
+    this->Disconnect();
+    return 0;
+  }
+
 
 }
 
@@ -376,41 +577,6 @@ const UInt_t QwDatabase::GetAnalysisID(QwEventBuffer& qwevt)
   return fAnalysisID;
 }
 
-/*!
- * This is used to set the appropriate analysis_id for this run.  Must be a valid run_id in the run table before proceeding.  Will insert an entry into the analysis table if necessary.
- */
-const UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
-{
-  try {
-    gQwDatabase.Connect();
-
-    analysis row(0, GetRunID(qwevt));
-//    row.n_mps=10; // This works
-//    row.start_time = mysqlpp::null; // This works
-//    row.start_time = qwevt.GetStartSQLTime().Data(); // This does not work
-
-    mysqlpp::Query query=gQwDatabase.Query();
-    query.insert(row);
-
-    QwDebug<< "QwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << QwLog::endl;
-
-    query.execute();
-
-    if (query.insert_id()!=0) {
-      fAnalysisID=query.insert_id();
-    }
-
-    gQwDatabase.Disconnect();
-
-    return fAnalysisID;
-  }
-  catch (const mysqlpp::Exception& er) {
-    QwError << er.what() << QwLog::endl;
-    gQwDatabase.Disconnect();
-    return 0;
-  }
-
-}
 
 /*!
  * This function prints the server information.
@@ -438,3 +604,11 @@ void QwDatabase::PrintServerInfo()
 
   return;
 }
+
+
+void QwDatabase::show_mysql_version()
+{
+  printf("MySQL Version: %s\n", this->client_version().c_str());
+}
+
+

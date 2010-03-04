@@ -61,6 +61,15 @@ class QwDatabase: private mysqlpp::Connection {
     bool SetRunNumber(const UInt_t runnum); //<! Run number setter
 
     void PrintServerInfo();
+    void show_mysql_version();
+
+    //
+    // The following functions simply return their corresponding IDs
+    // without using QwEventBuffer
+    //
+    UInt_t get_run_id() {return fRunID;};
+    UInt_t get_analysis_id() {return fAnalysisID;};
+    UInt_t get_run_number() {return fRunNumber;};
 
   private:
 
@@ -81,6 +90,6 @@ class QwDatabase: private mysqlpp::Connection {
 
 };
 
-extern QwDatabase gQwDatabase;
+//extern QwDatabase gQwDatabase;
 
 #endif

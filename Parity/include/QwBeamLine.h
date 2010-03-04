@@ -37,6 +37,7 @@ class QwBeamLine : public VQwSubsystemParity{
 
   QwBeamLine(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
     {
+      
       // these declaration need to be coherent with the enum vector EBeamInstrumentType
       fgDetectorTypeNames.push_back("bpmstripline");
       fgDetectorTypeNames.push_back("bcm");
@@ -83,13 +84,13 @@ class QwBeamLine : public VQwSubsystemParity{
   void Calculate_Running_Average();
   void Do_RunningSum(); 
 
-  void  ConstructHistograms(TDirectory *folder, TString &prefix);
-  void  FillHistograms();
-  void  DeleteHistograms();
+  void ConstructHistograms(TDirectory *folder, TString &prefix);
+  void FillHistograms();
+  void DeleteHistograms();
 
-  void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-  void  FillTreeVector(std::vector<Double_t> &values);
-  void  FillMySQLServer(TSQLServer *server, UInt_t run_id_cnt);
+  void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+  void FillTreeVector(std::vector<Double_t> &values);
+  void FillDB(QwDatabase *db);
 
   void Copy(VQwSubsystem *source);
   VQwSubsystem*  Copy();
@@ -102,7 +103,7 @@ class QwBeamLine : public VQwSubsystemParity{
   
   std::vector<TString> fgDetectorTypeNames; 
 
-
+ 
 /////
  protected:
  Int_t GetDetectorTypeID(TString name);

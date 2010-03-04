@@ -47,8 +47,6 @@
 #include "Det.h"
 #include "Qset.h"
 
-
-
 // Debug level
 static const bool kDebug = kFALSE;
 // Tracking

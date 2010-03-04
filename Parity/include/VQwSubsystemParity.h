@@ -15,10 +15,7 @@
 #include "TTree.h"
 
 
-#include "TMySQLServer.h"
-#include "TMySQLResult.h"
-#include "TSQLTableInfo.h"
-#include "TSQLRow.h"
+#include "QwDatabase.h"
 
 ///
 /// \ingroup QwAnalysis_ADC
@@ -46,8 +43,7 @@ class VQwSubsystemParity : virtual public VQwSubsystem {
     };
   
   virtual void FillTreeVector(std::vector<Double_t> &values)=0;
-  /// \brief Fill MySQL server for this subsystem 
-  virtual void FillMySQLServer(TSQLServer *server, UInt_t run_id_cnt)=0;
+  virtual void FillDB(QwDatabase *db)=0;
    
   virtual VQwSubsystem&  operator= (VQwSubsystem *value)=0;//VQwSubsystem routine is overridden. Call it at the beginning by VQwSubsystem::operator=(value)
   virtual VQwSubsystem&  operator+= (VQwSubsystem *value)=0;

@@ -12,6 +12,9 @@
 Bool_t kInQwBatchMode = kFALSE;
 //Bool_t bRING_READY;
 
+// Qweak headers
+//#define EXPAND_MY_SSQLS_STATICS
+#include "QwSSQLS.h"
 
 Int_t
 main(Int_t argc, Char_t* argv[])
@@ -35,9 +38,9 @@ main(Int_t argc, Char_t* argv[])
   cmdline.Parse(argc, argv);
 
   // Setup screen and file logging
-  gQwLog.InitLogFile("qwanalysis_mysql.log");
-  gQwLog.SetFileThreshold(QwLog::kDebug);
-  gQwLog.SetScreenThreshold(QwLog::kDebug);
+//   gQwLog.InitLogFile("qwanalysis_mysql.log");
+//   gQwLog.SetFileThreshold(QwLog::kDebug);
+//   gQwLog.SetScreenThreshold(QwLog::kDebug);
 
   // Set up command line and file options processing
   gQwOptions.SetCommandLine(argc, argv);
@@ -48,10 +51,10 @@ main(Int_t argc, Char_t* argv[])
   // Start testing
   QwDebug << "qwdb_test:  Hello there!" << QwLog::endl;
 
-  gQwDatabase.Connect();
-  QwMessage << "Database server version is " << gQwDatabase.GetServerVersion() << QwLog::endl;
+  //  gQwDatabase.Connect();
+  //  QwMessage << "Database server version is " << gQwDatabase.GetServerVersion() << QwLog::endl;
 
-  gQwDatabase.PrintServerInfo();
+  //  gQwDatabase.PrintServerInfo();
 
 
   QwEventBuffer QwEvt;
@@ -80,24 +83,19 @@ main(Int_t argc, Char_t* argv[])
 
   Double_t evnum=0.0;
 
-  UInt_t cnt = 0;
+
 
   /*
   TSQLServer *serv = TSQLServer::Connect("mysql://localhost/qw_test", "qwreplay", "replay");
   //TSQLServer *serv = TSQLServer::Connect("mysql://localhost/qw_test", "qwadmin", "S1n2+h3taW");
   
-  if( serv->IsConnected() )
-    {
-      printf("--------------------------------------------------------\n");
-      printf(" Connected DB Server info: %s %s %s \n", BOLD, serv->ServerInfo(), NORMAL);
-      printf("--------------------------------------------------------\n");
-    }
-  else
-    {
-      printf("no connection\n");
-    }
+  QwDatabase *serv = new QwDatabase();
+  serv -> SetConnect("qw_test", "localhost","qwreplay", "replay");
+  serv -> PrintServerInfo();
 
     */
+  QwDatabase *sqlserv = NULL; //new QwDatabase();
+
   for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++)
     {
       
@@ -157,10 +155,10 @@ main(Int_t argc, Char_t* argv[])
 
 	  TString dummystr="";
 
-	  ( (QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine")   )->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
-	  ( (QwBeamLine*)QwDetectors.GetSubsystem("Helicity info")       )->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
-	  ( (QwBeamLine*)QwDetectors.GetSubsystem("Luminosity Monitors") )->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
-	  // QwDetectors.ConstructBranchAndVector(mpstree, dummystr, mpsvector);
+	  //	  ( (QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine")   )->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
+	  //	  ( (QwBeamLine*)QwDetectors.GetSubsystem("Helicity info")       )->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
+	  //	  ( (QwBeamLine*)QwDetectors.GetSubsystem("Luminosity Monitors") )->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
+	  QwDetectors.ConstructBranchAndVector(mpstree, dummystr, mpsvector);
 	  // at some point we want to have some thing like that but it need to be implement in QwSubsystemArray
 
 	  //        rootfile.cd();
@@ -255,7 +253,7 @@ main(Int_t argc, Char_t* argv[])
 
 
       //This will print running averages
-      //      QwHelPat.CalculateRunningAverage();//this will calculate running averages for Asymmetries and Yields per quartet
+      QwHelPat.CalculateRunningAverage();//this will calculate running averages for Asymmetries and Yields per quartet
       timer.Stop();
 
       /*  Write to the root file, being sure to delete the old cycles  *
@@ -279,14 +277,20 @@ main(Int_t argc, Char_t* argv[])
       QwEvt.ReportRunSummary();
       printf("*** END   ::: ReportRunSummary()\n\n");
 
+      
 
+      sqlserv = new QwDatabase();
+      sqlserv -> Connect();
+      sqlserv->show_mysql_version();
+      UInt_t run_id = 0;sqlserv->GetRunID(QwEvt);
+      UInt_t analysis_id = 0;
+      run_id = sqlserv->GetRunID(QwEvt);
+      analysis_id = sqlserv -> GetAnalysisID(QwEvt);
+      printf("main:: run %d Run ID %d and Analysis ID %d\n", run, run_id, analysis_id);
 
+      //      std::cout << "main::Analysis ID for analysis pass is " << serv->GetAnalysisID(QwEvt) << std::endl;
 
-      // Start test TSQLServer based on ROOT system
-
-      QwMessage << "Run ID for this run is " << gQwDatabase.GetRunID(QwEvt) << QwLog::endl;
-      QwMessage << "Analysis ID for analysis pass is " << gQwDatabase.GetAnalysisID(QwEvt) << QwLog::endl;
-
+      QwHelPat.FillDB(sqlserv);
       /*
       cnt++;
       TSQLResult *res = NULL;
@@ -295,22 +299,25 @@ main(Int_t argc, Char_t* argv[])
  	      run, run_type[QwEvt.GetRunType()], QwEvt.GetStartSQLTime().Data(), QwEvt.GetEndSQLTime().Data());
       res = serv->Query(buff);
       
-      if(res == NULL) 
- 	{
- 	  sprintf(buff, "UPDATE run SET run_number=%d, run_type='%s', start_time='%s', end_time='%s' where run_id=%d",
- 		  run, run_type[QwEvt.GetRunType()], QwEvt.GetStartSQLTime().Data(), QwEvt.GetEndSQLTime().Data(), cnt);
- 	  res = serv->Query(buff);
- 	}
+      //       if(res == NULL) 
+      //  	{
+      //  	  sprintf(buff, "UPDATE run SET run_number=%d, run_type='%s', start_time='%s', end_time='%s' where run_id=%d",
+      //  		  run, run_type[QwEvt.GetRunType()], QwEvt.GetStartSQLTime().Data(), QwEvt.GetEndSQLTime().Data(), cnt);
+      //  	  res = serv->Query(buff);
+      //  	}
+      
+      //       printf("%s%s%s\n", BOLD, buff, NORMAL);
+      //       delete res; res = NULL;
+      //       QwDetectors.FillMySQLServer(serv, run);
+      
 
-      printf("%s%s%s\n", BOLD, buff, NORMAL);
-      delete res; res = NULL;
-      QwDetectors.FillMySQLServer(serv, run);
+      QwDetectors.FillMySQLServer(serv);
+      
       */
-
-
+      delete sqlserv;sqlserv = NULL;
     } //end of run loop
   
-//  delete serv;serv = NULL;
+
   
 //     for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++)
 //     {     

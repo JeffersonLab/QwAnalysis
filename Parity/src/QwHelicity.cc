@@ -1466,27 +1466,3 @@ Bool_t QwHelicity::Compare(VQwSubsystem *value)
 }
 
 
-
-
-/////////////////////////////////////////////////////////////////
-void  QwHelicity::FillMySQLServer(TSQLServer *server, UInt_t run_id_cnt)
-{
-  // Fill n_mps into "run" table of "qw_test" database
-  //      n_qrt into "run" table of "qw_test" database
-  //
-  // Is there a method to add more entries into a table, which is alread filled before, in a database
-  // without facing Error in <TMySQLServer::Query>: Code: 1062  Msg: Duplicate entry 'blabla' for key 1
-  
-  // The following method is only valid, if the INSERT query is executed before FillMySQLServer();
-
-  TSQLResult *res = NULL;
-  char buff[1024];
-  
-  sprintf(buff, "UPDATE run SET n_mps=%d, n_qrt=%d WHERE run_number=%d;", 
-	  kmpscounter, kpatterncounter, run_id_cnt);
-  res = server->Query(buff);
-  printf("%s%s%s\n", BOLD, buff, NORMAL);
-  delete res; res = NULL;
-  
-  return;
-}

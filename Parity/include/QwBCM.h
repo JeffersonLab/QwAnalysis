@@ -74,7 +74,7 @@ class QwBCM : public VQwDataElement{
   void Scale(Double_t factor);
   void Calculate_Running_Average();
   void Do_RunningSum();
-
+  
   void SetPedestal(Double_t ped);
   void SetCalibrationFactor(Double_t calib);
 
@@ -85,6 +85,10 @@ class QwBCM : public VQwDataElement{
   void  FillTreeVector(std::vector<Double_t> &values);
  
   void  DeleteHistograms();
+
+  Double_t GetAverage() { return fTriumf_ADC.GetAverage();};
+  Double_t GetAverageError() {return fTriumf_ADC.GetAverageError();};
+
 
   void Copy(VQwDataElement *source);
 

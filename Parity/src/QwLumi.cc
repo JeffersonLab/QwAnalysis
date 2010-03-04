@@ -750,9 +750,3 @@ void QwLumi::Do_RunningSum(){
 };
 
 
-
-void QwLumi::FillMySQLServer(TSQLServer *server, UInt_t run_id_cnt)
-{
-  printf("QwLumi FillMySQLServer\n");
-  return;
-}

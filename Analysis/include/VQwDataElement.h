@@ -51,7 +51,7 @@ class VQwDataElement {
   /*! \brief Set the name of this element */
   void SetElementName(const TString &name) { fElementName = name; };
   /*! \brief Get the name of this element */
-  TString GetElementName() const { return fElementName; };
+  virtual TString GetElementName() const { return fElementName; };
 
   /*! \brief Clear the event data in this element */
   virtual void  ClearEventData() = 0;

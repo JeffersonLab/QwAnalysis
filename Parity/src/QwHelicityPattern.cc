@@ -18,6 +18,7 @@
 /*****************************************************************/
 QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
 {
+
   QwHelicity* input=((QwHelicity*)event.GetSubsystem("Helicity info"));
   fPatternSize=input->GetMaxPatternPhase();
   std::cout<<"QwHelicity::MaxPatternPhase = "<<fPatternSize<<std::endl;
@@ -41,6 +42,7 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
 	  neg_sum.Copy(&event);
 	  difference.Copy(&event);
 	  fCurrentPatternNumber=-1;
+
 	  ClearEventData();
 	}
       else
@@ -345,6 +347,16 @@ void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values)
   return;
 };
 
+
+void QwHelicityPattern::FillDB(QwDatabase *db)
+{
+  //  fYield.SetName("yield");
+  //fAsymmetry.SetName("asymmetry");
+  fYield.FillDB(db);
+  fAsymmetry.FillDB(db);
+
+  return;
+}
 //*****************************************************************
 
 void QwHelicityPattern::Print()

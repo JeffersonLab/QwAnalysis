@@ -728,7 +728,8 @@ void QwVQWK_Channel::Calculate_Running_Average(){
   }else{
     fAverage_n=fRunning_sum/fGoodEventCount;
     fAverage_n_square=fRunning_sum_square/fGoodEventCount;
-    std::cout<<GetElementName()<<" \t "<<this->fAverage_n <<" \t "<<sqrt(((fAverage_n_square-fAverage_n*fAverage_n)/fGoodEventCount)) <<" \t "<<fGoodEventCount <<std::endl;
+    fAverage_error= sqrt(((fAverage_n_square-fAverage_n*fAverage_n)/fGoodEventCount));
+    std::cout<<GetElementName()<<" \t "<<this->fAverage_n <<" \t "<< fAverage_error <<" \t "<<fGoodEventCount <<std::endl;
 
   }
 

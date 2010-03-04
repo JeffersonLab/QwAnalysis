@@ -7,6 +7,10 @@
 
 #include "QwBeamLine.h"
 #include "QwHistogramHelper.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwSSQLS.h"
+
+#include <iostream>
 #include <stdexcept>
 
 //*****************************************************************
@@ -1099,9 +1103,73 @@ VQwSubsystem*  QwBeamLine::Copy()
 }
 
 
-
-void  QwBeamLine::FillMySQLServer(TSQLServer *server, UInt_t run_id_cnt)
+void QwBeamLine::FillDB(QwDatabase *db)
 {
-  printf("QwBeamLine FillMySQLServer\n");
+
+  // test...
+  // to access "analysis" table in the QwBeamLine class
+  db->Connect();
+  mysqlpp::Query query= db->Query("SELECT * from analysis");
+
+  vector<analysis> res;
+  query.storein(res);
+
+   std::cout << "We have:" << std::endl;
+  vector<analysis>::iterator it;
+  for (it = res.begin(); it != res.end(); ++it) {
+    std::cout << '\t' << it->analysis_id;
+    std::cout << '\t' << it->run_id;
+    std::cout << '\t' << it->seed_id;
+    std::cout << std::endl;
+  }
+  db->Disconnect();
+
+  // Get run and analysis id from db, which is sent by "main"
+
+  UInt_t run_id      = db->get_run_id();
+  UInt_t analysis_id = db->get_analysis_id();
+
+  printf("hhh Fill DB is now inside beam line class\n");
+  printf("run id %d, analysis id %d\n", run_id, analysis_id);
+
+  //   for(size_t i=0;i<fStripline.size();i++)
+  //     fStripline[i].Calculate_Running_Average();
+  //   for(size_t i=0;i<fBCM.size();i++)
+  //     fBCM[i].Calculate_Running_Average();
+  //   for(size_t i=0;i<fBCMCombo.size();i++)
+  //     fBCMCombo[i].Calculate_Running_Average();
+  //   for(size_t i=0;i<fBPMCombo.size();i++)
+  //     fBPMCombo[i].Calculate_Running_Average();
+  
+  //   vector<beam> entrylist;
+  
+  //   for(size_t i=0;i<fStripline.size();i++)
+  //     {
+  //       printf("BPM[%d], [%8.4lf %8.4lf]\n", i, fStripline.GetAverage(), fStripline.GetAverageError());
+  //     }
+  
+  //   std::cout <<" test " << this->GetName() << std::endl;
+  
+  // try to access BCM mean and its error
+  // there are 2 different types BCM data we have at the moment
+  // Yield and Asymmetry
+
+  TString name;
+  Double_t avg = 0.0;
+  Double_t err = 0.0;
+  for(size_t i=0; i< fBCM.size(); i++)
+    {
+       name = fBCM[i].GetElementName();
+      if(name.Contains("bcm"))
+	{
+	  avg = fBCM[i].GetAverage();
+	  err = fBCM[i].GetAverageError();
+	  
+	  printf("%18s  BCM[%d], [%18.2lf %8.2lf]\n", name.Data(), i, avg, err);
+	}
+    }
+       
+  //      entrylist.pushback(fBCM[i].fTriumf_ADC);
+ 
   return;
 }
