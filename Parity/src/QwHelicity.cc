@@ -663,7 +663,7 @@ Int_t QwHelicity::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer,
     
     for(Int_t i=fWordsPerSubbank[index].first; i<fWordsPerSubbank[index].second; i++)
       {
-	if(fWord[i].fWordInSubbank+1<num_words)
+	if(fWord[i].fWordInSubbank+1<=num_words)
 	  {
 	    fWord[i].fValue=buffer[fWord[i].fWordInSubbank];
 	  }
