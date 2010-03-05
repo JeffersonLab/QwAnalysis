@@ -26,6 +26,7 @@ po::options_description QwOptions::fConfigFileOptions("Config file options");
 QwOptions gQwOptions;
 
 // Qweak headers
+#include "QwEventBuffer.h"
 #include "QwLog.h"
 //#include "QwDatabase.h"
 
@@ -49,13 +50,6 @@ QwOptions::QwOptions()
   AddDefaultOptions()("help,h", "print this help message");
   AddDefaultOptions()("config,c", po::value<string>(), "configuration file to read");
 
-  // Define the execution options
-  AddDefaultOptions()("online", po::value<bool>()->default_value(false)->zero_tokens(),
-                      "use online data stream");
-  AddDefaultOptions()("run,r", po::value<string>()->default_value("0:0"),
-                      "run range in format #[:#]");
-  AddDefaultOptions()("event,e", po::value<string>()->default_value("0:"),
-                      "event range in format #[:#]");
 }
 
 /**
@@ -64,6 +58,8 @@ QwOptions::QwOptions()
  */
 void QwOptions::DefineOptions(QwOptions& options)
 {
+  // Define execution options
+  QwEventBuffer::DefineOptions(options);
   // Define logging options
   QwLog::DefineOptions(&options);
 
@@ -91,6 +87,7 @@ QwOptions::~QwOptions()
  */
 void QwOptions::SetCommandLine(int argc, char* argv[])
 {
+  // Copy command line options
   fArgc = argc;
   if (fArgv) delete[] fArgv;
   fArgv = new char*[fArgc];
@@ -216,6 +213,7 @@ void QwOptions::ParseConfigFile()
  */
 void QwOptions::Usage()
 {
+  QwMessage << QwLog::endl;
   QwMessage << "Welcome to the Qweak analyzer code." << QwLog::endl;
   QwMessage << QwLog::endl;
   QwMessage << fDefaultOptions << QwLog::endl;

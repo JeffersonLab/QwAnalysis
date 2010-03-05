@@ -2156,6 +2156,11 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
         QwPartialTrack *pt = TcTreeLineCombine2 (wu, wv, tlayer);
 
         if (pt) {
+
+            // Set geometry identification
+            pt->SetRegion(region);
+            pt->SetPackage(package);
+
             pt->next   = pt_next;
             pt->bridge = 0;
             pt->pathlenoff = 0;
@@ -2296,22 +2301,26 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
         if (minimum < fMaxXRoad && best_wx && in_acceptance) {
 	  if (pt) {
 
-	    nPartialTracks++;
+            // Set geometry identification
+            pt->SetRegion(region);
+            pt->SetPackage(package);
 
-	    best_wx->SetUsed();
-	    wv->SetUsed();
-	    wu->SetUsed();
+            nPartialTracks++;
+
+            best_wx->SetUsed();
+            wv->SetUsed();
+            wu->SetUsed();
 
             pt->next = pt_next;
-	    pt->bridge = 0;
-	    pt->pathlenoff = 0;
-	    pt->pathlenslo = 0;
-	    pt_next = pt;
+            pt->bridge = 0;
+            pt->pathlenoff = 0;
+            pt->pathlenslo = 0;
+            pt_next = pt;
 
-	    parttracklist.push_back(pt);
+            parttracklist.push_back(pt);
 
             pt->DeterminePositionInTarget();
-            pt->DetermineHitInHDC(package);
+            pt->DeterminePositionInHDC(package);
 	  }
 	} else {
           delete pt;

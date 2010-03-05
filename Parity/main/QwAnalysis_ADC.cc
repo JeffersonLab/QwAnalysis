@@ -85,6 +85,7 @@ int main(Int_t argc,Char_t* argv[])
     ///
     /// Instantiate event buffer
     QwEventBuffer eventbuffer;
+    eventbuffer.ProcessOptions(gQwOptions);
 
     ///
     /// Instantiate one subsytem for all eight main detectors Bar1-Bar8, plus one fully assembled
@@ -123,31 +124,16 @@ int main(Int_t argc,Char_t* argv[])
     Double_t evnum=0.0;
 
     // Loop over all runs
-    UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
-    UInt_t runnumber_max = (UInt_t) gQwOptions.GetIntValuePairLast("run");
-    for (UInt_t run  = runnumber_min;
-                run <= runnumber_max;
-                run++) {
-
+    while (eventbuffer.OpenNextStream() == CODA_OK){
         //  Begin processing for the first run.
         //  Start the timer.
         timer.Start();
 
-        //  Try to open the data file.
-        if (eventbuffer.OpenDataFile(run) != CODA_OK) {
-            //  The data file can't be opened.
-            //  Get ready to process the next run.
-            std::cerr << "ERROR:  Unable to find data files for run "
-            << run << ".  Moving to the next run.\n"
-            << std::endl;
-            timer.Stop();
-            continue;
-        }
         eventbuffer.ResetControlParameters();
         //  Open the data files and root file
         //    OpenAllFiles(io, run);
 
-        TString rootfilename=std::string(getenv("QW_ROOTFILES_DIR"))+Form("/Qweak_ADC_%d.root",run);
+        TString rootfilename=std::string(getenv("QW_ROOTFILES_DIR")) + Form("/Qweak_ADC_%s.root",eventbuffer.GetRunLabel().Data());
         std::cout<<" rootfilename="<<rootfilename<<"\n";
         TFile rootfile(rootfilename,"RECREATE","QWeak ROOT file");
 
@@ -208,22 +194,15 @@ int main(Int_t argc,Char_t* argv[])
 //     asym.ConstructBranchAndVector(qrttree, "asym", qrttreevector);
 
 
-        Int_t eventnumber = -1;
-        Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
-        Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
-        while (eventbuffer.GetEvent() == CODA_OK) {
-
+        while (eventbuffer.GetNextEvent() == CODA_OK) {
+	  //  Loop over events in this CODA file
+	  //  First, do processing of non-physics events...
             if (eventbuffer.IsROCConfigurationEvent()) {
                 eventbuffer.FillSubsystemConfigurationData(detectors);
             }
 
             // Now, if this is not a physics event, go back and get a new event.
             if (! eventbuffer.IsPhysicsEvent()) continue;
-
-            // Check to see if we want to process this event.
-            eventnumber = eventbuffer.GetEventNumber();
-            if      (eventnumber < eventnumber_min) continue;
-            else if (eventnumber > eventnumber_max) break;
 
             eventbuffer.FillSubsystemData(detectors);
             detectors.ProcessEvent();
@@ -327,7 +306,7 @@ int main(Int_t argc,Char_t* argv[])
 	helicitypattern.DeleteHistograms();
 
 
-        eventbuffer.CloseDataFile();
+        eventbuffer.CloseStream();
         eventbuffer.ReportRunSummary();
 
 
@@ -344,7 +323,7 @@ int main(Int_t argc,Char_t* argv[])
 //       QwEpics->WriteDatabase(sql);
 //     }
 
-        PrintInfo(timer, run);
+        PrintInfo(timer, eventbuffer.GetRunNumber());
 
     } //end of run loop
 

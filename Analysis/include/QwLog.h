@@ -79,6 +79,10 @@ class QwLog : public std::ostream {
 
     /// \brief Define available class options for QwOptions
     static void DefineOptions(QwOptions* options);
+    // Note: this uses a pointer as opposed to a reference, because as indicated
+    // above the QwLog class cannot depend on the QwOptions class.  When using a
+    // pointer we only need a forward declaration and we do not need to include
+    // the header file QwOptions.h.
 
     //! Loglevels
     /*! enum of possible log levels */

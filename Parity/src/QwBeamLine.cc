@@ -30,7 +30,10 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
 
   std::vector<TString> fDeviceName;
-  std::vector<Double_t> fDeviceWeight;
+  std::vector<Double_t> fChargeWeight;
+  std::vector<Double_t> fXWeight;
+  std::vector<Double_t> fYWeight;
+
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
 
@@ -86,7 +89,13 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		dev_name=mapstr.GetNextToken(", ").c_str();
 		dev_name.ToLower();
 		fDeviceName.push_back(dev_name);
-		fDeviceWeight.push_back( atof(mapstr.GetNextToken(", ").c_str()));
+		fChargeWeight.push_back( atof(mapstr.GetNextToken(", ").c_str())); //read in the weights for the charge
+
+		if(combotype == "combinedbpm") //for combined BPMs,in addition,
+		  {
+		    fXWeight.push_back( atof(mapstr.GetNextToken(", ").c_str())); //read in the weights for the X position
+		    fYWeight.push_back( atof(mapstr.GetNextToken(", ").c_str())); //read in the weights for the Y position
+		  }		
 	      }
 	  }
 	  
@@ -113,22 +122,23 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
 	  if(localComboID.fIndex==-1)
 	    {
-	      if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbcm")/////
+	      if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbcm")
 		{
 		  QwCombinedBCM localbcmcombo(localComboID.fdetectorname); //create a new combo with combo name
 		  fBCMCombo.push_back(localbcmcombo); //add to the array of combos
 		  for(size_t i=0;i<fDeviceName.size();i++)
 		    {
 		      index=GetDetectorIndex(GetDetectorTypeID("bcm"),fDeviceName[i]);
-		      fBCMCombo[fBCMCombo.size()-1].Add(&fBCM[index],fDeviceWeight[i]);
+		      fBCMCombo[fBCMCombo.size()-1].Add(&fBCM[index],fChargeWeight[i]);
 
 		    }
 		  fDeviceName.clear();   //reset the device vector for the next combo
-		  fDeviceWeight.clear(); //reset the device weights for the next combo
+		  fChargeWeight.clear(); //reset the device weights for the next combo
+
 		  localComboID.fIndex=fBCMCombo.size()-1;
 
 		}
-	      if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbpm")/////
+	      if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbpm")
 		{
 		  Bool_t unrotated(keyword=="unrotated");
 		  QwCombinedBPM localbpmcombo(localComboID.fdetectorname,!unrotated); 
@@ -137,11 +147,13 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		  for(size_t i=0;i<fDeviceName.size();i++)
 		    {
 		      index=GetDetectorIndex(GetDetectorTypeID("bpmstripline"),fDeviceName[i]);
-		      fBPMCombo[fBPMCombo.size()-1].Add(&fStripline[index],fDeviceWeight[i]);
+		      fBPMCombo[fBPMCombo.size()-1].Add(&fStripline[index],fChargeWeight[i],fXWeight[i],fYWeight[i]);
 		      
 		    }
 		  fDeviceName.clear();  
-		  fDeviceWeight.clear(); 
+		  fChargeWeight.clear(); 
+		  fXWeight.clear(); 
+		  fYWeight.clear(); 
 		  localComboID.fIndex=fBPMCombo.size()-1;
 
 		}
@@ -391,6 +403,68 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 
   return 0;
 };
+
+Int_t QwBeamLine::LoadGeometry(TString mapfile)
+{
+  Bool_t ldebug=kFALSE;
+
+  Int_t lineread=1;
+  Int_t index;
+  TString  devname;
+  Double_t devOffsetX,devOffsetY, devOffsetZ;
+  TString localname;
+
+
+  if(ldebug)std::cout<<"QwBeamLine::LoadGeometry("<< mapfile<<")\n";
+
+  QwParameterFile mapstr(mapfile.Data());  //Open the file
+
+  while (mapstr.ReadNextLine()){
+      lineread+=1;
+      if(ldebug)std::cout<<" line read so far ="<<lineread<<"\n";
+      mapstr.TrimComment('!');   
+      mapstr.TrimWhitespace();   
+      if (mapstr.LineIsEmpty())  continue;
+      else
+	{
+	  devname = mapstr.GetNextToken(", \t").c_str();
+	  devname.ToLower();
+	  devname.Remove(TString::kBoth,' ');	  
+	  devOffsetX = (atof(mapstr.GetNextToken(", \t").c_str())); // X offset
+	  devOffsetY = (atof(mapstr.GetNextToken(", \t").c_str())); // Y offset
+	  devOffsetZ = (atof(mapstr.GetNextToken(", \t").c_str())); // Z offset
+
+	  if(ldebug) std::cout<<"inputs for channel "<<devname
+			      <<": X offset ="<< devOffsetX
+			      <<": Y offset ="<< devOffsetY
+			      <<": Z offset ="<<devOffsetZ<<"\n";
+
+	  Bool_t notfound=kTRUE;
+
+	  if(notfound)
+	    {
+	      index=GetDetectorIndex(GetDetectorTypeID("bpmstripline"),devname);
+	      localname=fStripline[index].GetElementName();
+	      localname.ToLower();
+	      if(ldebug)  std::cout<<"element name =="<<localname
+				   <<"== to be compared to =="<<devname<<"== \n";
+
+	      if(localname==devname)
+		{
+		  if(ldebug) std::cout<<" I found it !\n";
+		  fStripline[index].SetOffset(devOffsetX,devOffsetY,devOffsetZ);
+		  notfound=kFALSE;
+		}
+	    }
+	}
+  }
+  if(ldebug) std::cout<<" line read in the geometry file ="<<lineread<<" \n";
+
+  ldebug=kFALSE;
+  return 0;
+
+}
+
 
 //*****************************************************************
 Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)

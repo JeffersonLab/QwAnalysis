@@ -3,7 +3,7 @@
 * File: QwHelicityPattern.cc                              *
 *                                                         *
 * Author:                                                 *
-* Time-stamp:                                             *
+* Time-stamp:                                              *
 \**********************************************************/
 
 #include "QwHelicityPattern.h"
@@ -21,9 +21,9 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
 {
   QwHelicity* input=((QwHelicity*)event.GetSubsystem("Helicity info"));
   fPatternSize=input->GetMaxPatternPhase();
-
+  fPATTERNPHASEOFFSET=input->GetPatternPhaseOffset();
   bPATTERNPHASEOFFSET=kFALSE;
-  fPATTERNPHASEOFFSET=1;//Phase number offset is set to 1 by default and will be set to 0 if phase number starts from 0
+  //fPATTERNPHASEOFFSET=1;//Phase number offset is set to 1 by default and will be set to 0 if phase number starts from 0
 
   std::cout<<"QwHelicity::MaxPatternPhase = "<<fPatternSize<<std::endl;
   try
@@ -123,11 +123,6 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
     }
   else
     {
-      if (!bPATTERNPHASEOFFSET && localPhaseNumber==0){//identify Phase Number starts with either 1 or 0 and set the offset
-	fPATTERNPHASEOFFSET=0;
-	bPATTERNPHASEOFFSET=kTRUE;
-      }
-	
       Int_t locali=localPhaseNumber-fPATTERNPHASEOFFSET;
       
       if(localdebug) std::cout<<"QwHelicityPattern::LoadEventData local i="<<locali<<"\n";

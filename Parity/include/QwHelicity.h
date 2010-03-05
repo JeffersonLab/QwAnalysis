@@ -12,6 +12,7 @@
 #include "TTree.h"
 
 #include "VQwSubsystemParity.h"
+#include "QwOptions.h"
 
 enum HelicityRootSavingType{kHelSaveMPS = 0,
 			    kHelSavePattern,
@@ -30,7 +31,7 @@ class QwWord
 	  fWordName(""),fWordType(""),fValue(-1){};
 
   Int_t fSubbankIndex;
-  Int_t fWordInSubbank;
+  UInt_t fWordInSubbank;
   TString fModuleType;
   TString fWordName;
   TString fWordType;
@@ -153,13 +154,16 @@ class QwHelicity : public VQwSubsystemParity{
   Int_t GetMaxPatternPhase(){
     return fMaxPatternPhase;
   };
-
+  Int_t GetPatternPhaseOffset(){
+    return fPATTERNPHASEOFFSET;
+  };
+  
 /////
  protected:
    enum HelicityRootSavingType{kHelSaveMPS = 0,
 			      kHelSavePattern,
 			      kHelNoSave};
-  
+   
   enum HelicityEncodingType{kHelUserbitMode=0,
 			    kHelInputRegisterMode,
 			    kHelLocalyMadeUp};
@@ -250,7 +254,7 @@ class QwHelicity : public VQwSubsystemParity{
   Bool_t BIT30;
 
   Int_t fPATTERNPHASEOFFSET;
-  Bool_t bPATTERNPHASEOFFSET;
+  
 };
 
 

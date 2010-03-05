@@ -43,7 +43,6 @@ void  QwBPMStripline::InitializeChannel(TString name, Bool_t ROTATED)
     fRelPos[i].InitializeChannel(name+"Rel"+axis[i],"derived");	
   
 
-
   for(int i=0;i<3;i++)
     fAbsPos[i].InitializeChannel(name+axis[i],"derived");
  
@@ -80,10 +79,7 @@ Int_t QwBPMStripline::GetEventcutErrorCounters(){
   for(int i=0;i<4;i++)
     fWire[i].GetEventcutErrorCounters();
 
-     
-  //std::cout<<"RelX ";
   fRelPos[0].GetEventcutErrorCounters();
-  //std::cout<<"RelY ";
   fRelPos[1].GetEventcutErrorCounters();
 
   return 1;
@@ -262,10 +258,10 @@ void  QwBPMStripline::ProcessEvent()
       fRelPos[0].Scale(kRotationCorrection);
       fRelPos[1].Scale(kRotationCorrection);
     }
-  for(int i=0;i<3;i++)
-    fAbsPos[i].Offset(fOffset[i]);      
+  for(int i=0;i<2;i++)
+    fAbsPos[i].SetHardwareSum(fRelPos[i].GetHardwareSum()-fOffset[i]);
+  fAbsPos[2].SetHardwareSum(fOffset[2]);
   
-
   return;
 };
 /********************************************************/
@@ -275,6 +271,8 @@ void QwBPMStripline::Print()
     fWire[i].Print();
   for(int i=0;i<2;i++)
     fRelPos[i].Print();
+  for(int i=0;i<3;i++)
+    fAbsPos[i].Print();
   fWSum.Print();
 
   return;
@@ -316,7 +314,7 @@ void QwBPMStripline::SetOffset(Double_t Xoffset, Double_t Yoffset, Double_t Zoff
   fOffset[0]=Xoffset;
   fOffset[1]=Yoffset;
   fOffset[2]=Zoffset;
-
+  //  std::cout<<" offsets X "<<fOffset[0]<<" Y="<<fOffset[1]<<" Z ="<<fOffset[2]<<std::endl;
   return;
 };
 
@@ -443,26 +441,29 @@ void QwBPMStripline::Ratio(QwBPMStripline &numer, QwBPMStripline &denom)
 void QwBPMStripline::Scale(Double_t factor)
 {
   for(int i=0;i<2;i++)
-    {
-      fRelPos[i].Scale(factor);
+    fRelPos[i].Scale(factor);
+  for(int i=0;i<3;i++)
       fAbsPos[i].Scale(factor);
-    }
+    
 }
 
 void QwBPMStripline::Calculate_Running_Average(){
   for(int i=0;i<2;i++)
     fRelPos[i].Calculate_Running_Average();      
 
-  for(int i=0;i<3;i++)
+  for(int i=0;i<2;i++)
     fAbsPos[i].Calculate_Running_Average();
+  //No data for z position
 };
 
 void QwBPMStripline::Do_RunningSum(){
   for(int i=0;i<2;i++)
     fRelPos[i].Do_RunningSum();
-      
-  for(int i=0;i<3;i++)
+  
+  for(int i=0;i<2;i++)
     fAbsPos[i].Do_RunningSum();
+  //No data for z position
+
 };
 
 
@@ -497,8 +498,9 @@ void  QwBPMStripline::ConstructHistograms(TDirectory *folder, TString &prefix)
 	  fWire[i].ConstructHistograms(folder, thisprefix);
       for(int i=0;i<2;i++)
  	fRelPos[i].ConstructHistograms(folder, thisprefix);
-      // for(int i=0;i<3;i++)
-      //  fAbsPos[i].ConstructHistograms(folder, prefix);
+      for(int i=0;i<2;i++)
+        fAbsPos[i].ConstructHistograms(folder, prefix);
+      //No data for z position
     }
   return;
 };
@@ -517,8 +519,9 @@ void  QwBPMStripline::FillHistograms()
 	  fWire[i].FillHistograms();
       for(int i=0;i<2;i++)
 	fRelPos[i].FillHistograms();
-      // for(int i=0;i<3;i++)
-      //  fAbsPos[i].FillHistograms();
+      for(int i=0;i<2;i++)
+	fAbsPos[i].FillHistograms();
+      //No data for z position
     }
   return;
 };
@@ -536,6 +539,8 @@ void  QwBPMStripline::DeleteHistograms()
 	  fWire[i].DeleteHistograms();
       for(int i=0;i<2;i++)
 	fRelPos[i].DeleteHistograms();
+      for(int i=0;i<2;i++)
+	fAbsPos[i].DeleteHistograms();
     }
   return;
 };
@@ -560,6 +565,8 @@ void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std
 	  fWire[i].ConstructBranchAndVector(tree,thisprefix,values);
       for(int i=0;i<2;i++)
 	fRelPos[i].ConstructBranchAndVector(tree,thisprefix,values);
+      for(int i=0;i<2;i++)
+	fAbsPos[i].ConstructBranchAndVector(tree,thisprefix,values);
     }
   return;
 };
@@ -576,6 +583,8 @@ void  QwBPMStripline::FillTreeVector(std::vector<Double_t> &values)
 	  fWire[i].FillTreeVector(values);
       for(int i=0;i<2;i++)
 	fRelPos[i].FillTreeVector(values);
+      for(int i=0;i<2;i++)
+	fAbsPos[i].FillTreeVector(values);
 
     }
   return;
@@ -621,7 +630,6 @@ void QwBPMStripline::Copy(VQwDataElement *source)
 
 void QwBPMStripline::SetEventCutMode(Int_t bcuts){
   bEVENTCUTMODE=bcuts;
-  //std::cout<<GetElementName()<<" Event Cut Mode "<<bcuts<<std::endl;
   for (Int_t i=0;i<4;i++)
     fWire[i].SetEventCutMode(bcuts);
   for (Int_t i=0;i<2;i++)
