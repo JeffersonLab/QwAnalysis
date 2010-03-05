@@ -23,6 +23,7 @@ Bool_t QwHelicity::IsContinuous()
 }
 
 
+
 Bool_t QwHelicity::IsGoodPatternNumber()
 {
   Bool_t results;
@@ -80,7 +81,12 @@ Bool_t QwHelicity::IsGoodPhaseNumber()
 
  if(!results)
     {
-      QwWarning << "QwHelicity::IsGoodPhaseNumber:  not a good phase number"
+      QwWarning << "QwHelicity::IsGoodPhaseNumber:  not a good phase number \t"
+		<< "Phase: " << fPatternPhaseNumber << " out of " 
+		<<fMaxPatternPhase
+		<< "(was " <<fPatternPhaseNumberOld<<")"
+		<< "\tPattern #" << fPatternNumber << "(was " 
+		<< fPatternNumberOld <<")"
 		<< QwLog::endl;
       Print();
     }
@@ -170,7 +176,6 @@ Int_t QwHelicity::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t b
 
 Int_t QwHelicity::LoadInputParameters(TString pedestalfile)
 {
-  SetHelicityDelay(2); // that is the number of pattern delayed
   return 0;
 }
 //*****************************************************************
@@ -492,6 +497,10 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	  RegisterSubbank(value);
 	  fWordsPerSubbank.push_back( std::pair<Int_t, Int_t>(fWord.size(),fWord.size()));
 	}
+      else if (varname=="numberpatternsdelayed")
+	{
+	  SetHelicityDelay(value);  
+	}
       else if (varname=="patternphase")
 	{
 	  fMaxPatternPhase=value;
@@ -633,7 +642,7 @@ Int_t QwHelicity::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer,
 		<< " number of words="<<num_words<<std::endl;
     
     for(size_t i=fWordsPerSubbank[index].first; i<fWordsPerSubbank[index].second; i++)
-      if(fWord[i].fWordInSubbank+1<num_words)
+      if(fWord[i].fWordInSubbank+1<=num_words)
 	fWord[i].fValue=buffer[fWord[i].fWordInSubbank];
       else
 	{	
@@ -961,7 +970,6 @@ UInt_t QwHelicity::GetRandbit(UInt_t& ranseed){
     status=GetRandbit24(ranseed);
   if (BIT30)
     status=GetRandbit30(ranseed);
-
   return status;
 }
 
@@ -1071,7 +1079,9 @@ void QwHelicity::RunPredictor()
 {
   Int_t ldebug = 0;
 
-  if(ldebug)  std::cerr<<"Entering QwHelicity::RunPredictor \n";
+  if(ldebug)  std::cerr<<"Entering QwHelicity::RunPredictor for fEventNumber, "<<fEventNumber
+		       <<", fPatternNumber, "<<fPatternNumber
+		       << ", and fPatternPhaseNumber, "<<fPatternPhaseNumber<<std::endl;
 
   //Update the random seed if the new event is from a different pattern.
   //Have to write the for loop!
@@ -1084,6 +1094,11 @@ void QwHelicity::RunPredictor()
     }
 
   //Predict the helicity according to pattern
+  //  Defined patterns:
+  //    Pair:    +-       or -+
+  //    Quartet: +--+     or -++-
+  //    Octet:   +--+-++- or -++-+--+
+  //    Symmetric octet:  +-+--+-+ or -+-++-+-
   Int_t localphase = fPatternPhaseNumber-fMinPatternPhase;
   
   if ((fMaxPatternPhase<=4) || (1==1)){
@@ -1092,16 +1107,16 @@ void QwHelicity::RunPredictor()
     case 3:
     case 5:
     case 6:
-      fHelicityActual  = fActualPatternPolarity;  //DON'T flip helicity
+      fHelicityActual  = fActualPatternPolarity;  //DON'T flip helicity 
       fHelicityDelayed = fDelayedPatternPolarity; //DON'T flip helicity
       break;
     case 1:
     case 2: //phase 2 helicity  = phase 1 helicity
     case 4: //phase 4 helicity  = phase 1 helicity
     case 7: //phase 7 helicity  = phase 4 helicity
-      fHelicityActual  = fActualPatternPolarity  ^ 0x1; //flip helicity
+      fHelicityActual  = fActualPatternPolarity  ^ 0x1; //flip helicity 
       fHelicityDelayed = fDelayedPatternPolarity ^ 0x1; //flip helicity
-      break;
+      break; 
       
     default: //for values other than 1,2,3,4. //This would be discovered in error checking.
       ResetPredictor();
@@ -1118,10 +1133,10 @@ void QwHelicity::RunPredictor()
       fHelicityDelayed = fDelayedPatternPolarity; //DON'T flip helicity
       break;
     case 1:
-    case 3:
-    case 4:
-    case 6:
-      fHelicityActual  = fActualPatternPolarity  ^ 0x1;  //flip helicity
+    case 3: 
+    case 4: 
+    case 6: 
+      fHelicityActual  = fActualPatternPolarity  ^ 0x1; //flip helicity
       fHelicityDelayed = fDelayedPatternPolarity ^ 0x1; //flip helicity
       break;
     default: //for values other than 1,2,3,4. //This would be discovered in error checking.
@@ -1135,10 +1150,10 @@ void QwHelicity::RunPredictor()
       std::cout<<"Predicted Polarity ::: Delayed ="
 	       <<fDelayedPatternPolarity<<" Actual ="
 	       <<fActualPatternPolarity<<"\n";
-      std::cout<<"Predicted Helicity ::: Delayed Helicity="<<fHelicityDelayed
-	       <<" Actual Helicity="<<fHelicityActual<<" Reported Helicity="<<fHelicityReported<<"\n";
-      std::cerr<<"Exiting QwHelicity::RunPredictor \n"; 
-
+      std::cout<<"Reported Helicity  ::: fHelicityReported = " << fHelicityReported<<"\n"
+	       <<"Predicted Helicity ::: Delayed Helicity="<<fHelicityDelayed 
+	       <<" Actual Helicity="<<fHelicityActual<<"\n"; 
+      std::cerr<<"Exiting QwHelicity::RunPredictor \n";
     }
 
   return;
@@ -1153,18 +1168,17 @@ Bool_t QwHelicity::CollectRandBits()
   if (BIT30)
     status=CollectRandBits30();
   return status;
-}
-
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-
 Bool_t QwHelicity::CollectRandBits24()
 {
-    //routine to collect 24 random bits before getting the randseed for prediction
+  //routine to collect 24 random bits before getting the randseed for prediction
 
-  if (n_ranbits==24)    return kTRUE;
+  const UInt_t ranbit_goal = 24;
+  if (n_ranbits==ranbit_goal)    return kTRUE;
 
-  if(n_ranbits<24&&fPatternPhaseNumber==fMinPatternPhase)
+  if(n_ranbits<ranbit_goal&&fPatternPhaseNumber==fMinPatternPhase)
     {
       std::cerr<<"Collecting information from event #"<<fEventNumber<<" to generate helicity seed ";
       std::cerr<<"(need 24 bit, so far got "<<n_ranbits<<" bits )\n";
@@ -1187,7 +1201,7 @@ Bool_t QwHelicity::CollectRandBits24()
 	  if(ldebug)std::cout<<" event number"<<fEventNumber<<", fPatternNumber"
 			    <<fPatternNumber<<", n_ranbit"<<n_ranbits<<", fHelicityReported"<<fHelicityReported<<"\n";
 
-	  if(n_ranbits == 24) //If its the 24th consecative random bit,
+	  if(n_ranbits == ranbit_goal) //If its the 24th consecative random bit,
 	    {
 	       if(ldebug)std::cout<<"Collected 24 random bits. Get the random seed for the predictor."<<"\n";
 	       if(ldebug)
@@ -1198,7 +1212,7 @@ Bool_t QwHelicity::CollectRandBits24()
 	      // run GetRandBit 24 times to get the delayed helicity for this event
 	       if(ldebug)std::cout<<"The reported seed 24 patterns ago = "<<iseed_Delayed<<"\n";
 
-	      for(size_t i=0;i<24;i++) fDelayedPatternPolarity =GetRandbit(iseed_Delayed);
+	      for(size_t i=0;i<ranbit_goal;i++) fDelayedPatternPolarity =GetRandbit(iseed_Delayed);
 	      fHelicityDelayed = fDelayedPatternPolarity;
 	      //The helicity of the first phase in a pattern is
 	      //equal to the polarity of the pattern
@@ -1232,23 +1246,27 @@ Bool_t QwHelicity::CollectRandBits24()
     }
 
       //else n randbits have been set to zero in the error checking routine
-      //start over from the next pattern
+      //start over from the next pattern     
   if(ldebug) std::cout<<"QwHelicity::CollectRandBits24 => Done collecting ...\n";
 
   return kFALSE;
 
 };
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 Bool_t QwHelicity::CollectRandBits30()
 {
-    Bool_t  ldebug = kFALSE;
+  Bool_t  ldebug = kFALSE;
 
   const UInt_t ranbit_goal = 30;
   if (n_ranbits==ranbit_goal)    return kTRUE;
 
-  if(n_ranbits<ranbit_goal&&fPatternPhaseNumber==fMinPatternPhase) {  
-    std::cerr<<"Collecting information from event #"<<fEventNumber<<" to generate helicity seed ";
+  if(n_ranbits<ranbit_goal&&fPatternPhaseNumber==fMinPatternPhase) {
+    std::cerr<<"Collecting information (";
+    if (fHelicityReported==1) std::cerr<<"+";
+    else                      std::cerr<<"-";
+    std::cerr<<") from event #"<<fEventNumber<<" to generate helicity seed ";
     std::cerr<<"(need " << ranbit_goal << " bit, so far got "<<n_ranbits<<" bits )\n";
   }
 
@@ -1256,14 +1274,14 @@ Bool_t QwHelicity::CollectRandBits30()
 
   if(IsContinuous()) {
     if((fPatternPhaseNumber==fMinPatternPhase)&& (fPatternNumber>=0)) {
-      iseed_Delayed = ((iseed_Delayed<<1)&0x3FFFFFFF)|fHelicityReported;
+
       if(ldebug) std::cout<<"QwHelicity:: CollectRandBits30, Collecting randbit "<<n_ranbits<<"..\n";
+      iseed_Delayed = ((iseed_Delayed<<1)&0x3FFFFFFF)|fHelicityReported;
       n_ranbits++;
     
       if(n_ranbits == ranbit_goal){
 	if(ldebug) std::cout<<"QwHelicity:: CollectRandBits30, done Collecting 30 randbits\n";
 	fDelayedPatternPolarity = fHelicityReported;
-	if(ldebug) std::cout<<"QwHelicity:: CollectRandBits30, delayedpatternpolarity ="<<fDelayedPatternPolarity<<"\n";
 	fHelicityDelayed = fDelayedPatternPolarity;
 	if(fHelicityDelay >=0){
 	  iseed_Actual = iseed_Delayed;	 
@@ -1295,13 +1313,14 @@ void QwHelicity::PredictHelicity()
   if(ldebug)  std::cout<<"Entering QwHelicity::PredictHelicity \n";
   //Routine to predict the true helicity from the delayed helicity.
   //Helicities are delayed by 8 events or 2 quartets
+ 
   if(CollectRandBits()) {
     //After accumulating 24/30 helicity bits, iseed id up-to-date
     //If nothing goes wrong, n-ranbits will stay as 24/30
     //Reset it to zero if something goes wrong
     if(ldebug)  std::cout<<"QwHelicity::PredictHelicity=>Predicting the  helicity \n";
     RunPredictor();
-    if(!IsGoodHelicity())
+    if(!IsGoodHelicity())	
       ResetPredictor();
   }
 

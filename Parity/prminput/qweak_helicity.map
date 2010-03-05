@@ -14,6 +14,46 @@ randseedbits=30
 
 HelicityDecodingMode=InputRegisterMode
 PatternPhase=4
+!!!NumberPatternsDelayed=4
+
+ROC=23
+!
+! Header=0xffb0b444
+SKIP 1
+! Header=0xffdaf000
+SKIP 1
+WORD, 0,  0, helicitydata,  ha_23input_register
+! Header=0xfffca001
+!  First HAPPEX scaler; 32 words, but no data we care about
+SKIP 33
+! Header=0xfadc1802
+SKIP 51
+! Header=0xffadc008
+SKIP 49
+! Header=0xfffbd000
+!  HAPPEX timing board
+SKIP 1
+WORD, 0,  0, helicitydata,  ha_23tb_data
+WORD, 0,  0, helicitydata,  ha_23tb_rampdelay
+WORD, 0,  0, helicitydata,  ha_23tb_integratetime
+WORD, 0,  0, helicitydata,  ha_23tb_oversample
+WORD, 0,  0, helicitydata,  ha_23tb_dac16
+WORD, 0,  0, helicitydata,  ha_23tb_dac12
+! Header=0xfdacf000
+!  HAPPEX BMW words
+SKIP 1
+WORD, 0,  0, helicitydata,  ha_23bmw_pulseclean
+WORD, 0,  0, helicitydata,  ha_23bmw_obj_id
+WORD, 0,  0, helicitydata,  ha_23bmw_value
+WORD, 0,  0, helicitydata,  ha_23bmw_cycle
+!
+WORD, 0,  0, helicitydata,  ha_23cleandata
+WORD, 0,  0, helicitydata,  ha_23scandata1
+WORD, 0,  0, helicitydata,  ha_23scandata2
+!
+WORD, 0,  0, helicitydata,  ha_23ioctime
+WORD, 0,  0, helicitydata,  ha_23ncnt
+
 
 ROC=24
 !

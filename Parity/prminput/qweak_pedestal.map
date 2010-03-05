@@ -1,3 +1,43 @@
+! Pedestal file of run  1671
+! adc sample size 468 
+! curent range in calibration  50 to 550
+! fit is linear 
+! date of analysis =Thu Mar  4 17:24:38 2010
+
+qwk_0i01XP , -3420.84 , 1.0
+qwk_0i01XM , -3517.64 , 1.0
+qwk_0i01YP , -1705.23 , 1.0
+qwk_0i01YM , -1438.52 , 1.0
+qwk_0i01aXP , 3407.52 , 1.0
+qwk_0i01aXM , 3499.82 , 1.0
+qwk_0i01aYP , 2785.26 , 1.0
+qwk_0i01aYM , 3559.37 , 1.0
+qwk_1i02XP , 3191.03 , 1.0
+qwk_1i02XM , 3197.92 , 1.0
+qwk_1i02YP , 2040.69 , 1.0
+qwk_1i02YM , 3218.29 , 1.0
+qwk_1i04XP , 3810.04 , 1.0
+qwk_1i04XM , 3123.51 , 1.0
+qwk_1i04YP , 3808.48 , 1.0
+qwk_1i04YM , 3057.48 , 1.0
+qwk_1i06XP , 3938.38 , 1.0
+qwk_1i06XM , 5196.61 , 1.0
+qwk_1i06YP , 2888.14 , 1.0
+qwk_1i06YM , 3529.29 , 1.0
+qwk_0i02XP , 2851.64 , 1.0
+qwk_0i02XM , 3499.88 , 1.0
+qwk_0i02YP , 4178.97 , 1.0
+qwk_0i02YM , 4735.29 , 1.0
+qwk_0i02aXP , 4531.22 , 1.0
+qwk_0i02aXM , 3143.55 , 1.0
+qwk_0i02aYP , 3059.9 , 1.0
+qwk_0i02aYM , 4124.34 , 1.0
+qwk_0i05XP , 7600.18 , 1.0
+qwk_0i05XM , 5442.44 , 1.0
+qwk_0i05YP , 5515.54 , 1.0
+qwk_0i05YM , 6469.28 , 1.0
+
+
 ! Pedestal file of run  20194
 ! adc sample size 468 
 ! curent range in calibration  50 to 500
@@ -5,34 +45,6 @@
 ! date of analysis =Thu Aug 13 20:45:05 2009
 
 qwk_bcm0l02 , -410.638 , 0.0200098
-qwk_1i02XP , 1914.33 , 1.0
-qwk_1i02XM , 2695.95 , 1.0
-qwk_1i02YP , 1976.4 , 1.0
-qwk_1i02YM , 2583.7 , 1.0
-qwk_1i04XP , 2356 , 1.0
-qwk_1i04XM , 3045.96 , 1.0
-qwk_1i04YP , 2507.27 , 1.0
-qwk_1i04YM , 3042.42 , 1.0
-qwk_0l01XP , 3014.02 , 1.0
-qwk_0l01XM , 3560.72 , 1.0
-qwk_0l01YP , 3331.48 , 1.0
-qwk_0l01YM , 3621.96 , 1.0
-qwk_1i06XP , 2442.35 , 1.0
-qwk_1i06XM , 3046.15 , 1.0
-qwk_1i06YP , 2040.57 , 1.0
-qwk_1i06YM , 2368.88 , 1.0
-qwk_0i02XP , 2290.55 , 1.0
-qwk_0i02XM , 2802.85 , 1.0
-qwk_0i02YP , 3503.74 , 1.0
-qwk_0i02YM , 3946.48 , 1.0
-qwk_0i02aXP , 3260.55 , 1.0
-qwk_0i02aXM , 3729.57 , 1.0
-qwk_0i02aYP , 3543.8 , 1.0
-qwk_0i02aYM , 3541.72 , 1.0
-qwk_0i05XP , 4304.1 , 1.0
-qwk_0i05XM , 4445.76 , 1.0
-qwk_0i05YP , 2847.64 , 1.0
-qwk_0i05YM , 3689.85 , 1.0
 qwk_0i07XP , 3677.39 , 1.0
 qwk_0i07XM , 4628.06 , 1.0
 qwk_0i07YP , 2752.93 , 1.0

@@ -18,7 +18,7 @@ const Int_t QwEventBuffer::kFileHandleNotConfigured  = -40;
 /// DAQ to indicate a known empty buffer.
 const UInt_t QwEventBuffer::kNullDataWord = 0x4e554c4c;
 
-QwEventBuffer::QwEventBuffer():fDEBUG(kFALSE),fDataFileStem("parity09_"),
+QwEventBuffer::QwEventBuffer():fDEBUG(kFALSE),fDataFileStem("parity10_"),
 			       fDataFileExtension("dat"),
 			       fRunIsSegmented(kFALSE),
 			       fEvStreamMode(fEvStreamNull),

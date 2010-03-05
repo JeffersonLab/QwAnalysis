@@ -68,6 +68,9 @@ class QwHelicity : public VQwSubsystemParity{
  QwHelicity(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),
     fMinPatternPhase(1)
     {
+      //  Default the helicity delay to two patterns.
+      fHelicityDelay = 2;
+      //
       fEventNumberOld=-1; fEventNumber=-1;
       fPatternPhaseNumberOld=-1; fPatternPhaseNumber=-1;
       fPatternNumberOld=-1;  fPatternNumber=-1;

@@ -12,14 +12,14 @@ sample_size=3824
 
 
 !ADC0
-  VQWK, 0, 0,  bpmstripline,  QWK_QPDXP
-  VQWK, 0, 1,  bpmstripline,  QWK_QPDYP
-  VQWK, 0, 2,  bpmstripline,  QWK_QPDYM
-  VQWK, 0, 3,  bpmstripline,  QWK_QPDXM
-  VQWK, 0, 4,  bcm,  empty1
-  VQWK, 0, 5,  bcm,  empty2
-  VQWK, 0, 6,  bcm,  QWK_Batext1
-  VQWK, 0, 7,  bcm,  QWK_Batext2
+  VQWK, 0, 0,  bpmstripline,  QWK_0I01XP,   UNROTATED
+  VQWK, 0, 1,  bpmstripline,  QWK_0I01XM,   UNROTATED
+  VQWK, 0, 2,  bpmstripline,  QWK_0I01YP,   UNROTATED
+  VQWK, 0, 3,  bpmstripline,  QWK_0I01YM,   UNROTATED
+  VQWK, 0, 4,  bpmstripline,  QWK_0I01AXP,  UNROTATED
+  VQWK, 0, 5,  bpmstripline,  QWK_0I01AXM,  UNROTATED
+  VQWK, 0, 6,  bpmstripline,  QWK_0I01AYP,  UNROTATED
+  VQWK, 0, 7,  bpmstripline,  QWK_0I01AYM,  UNROTATED
 
 !ADC1
   VQWK, 1, 0,  bpmstripline,  QWK_1I02XP,   UNROTATED
@@ -137,14 +137,12 @@ beginCOMBO=combinedbcm
 name = qwk_target_charge
 !name		wieght
  QWK_BCM0L02,  1.0
- empty1,  0.8
  QWK_Batery7, 0.9
 endCOMBO=combinedbcm
 
 beginCOMBO=combinedbcm
 name = qwk_average_charge
 !name		wieght
-
  QWK_Batery6, 0.1
  QWK_Batery7, 0.9
 endCOMBO=combinedbcm
@@ -152,7 +150,6 @@ endCOMBO=combinedbcm
 beginCOMBO=combinedbpm
 name = qwk_target_position
 !name		wieght
- QWK_QPD, 0.1
  QWK_1I02, 0.9
 endCOMBO=combinedbpm
 
