@@ -20,8 +20,12 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+// System headers
 #include <cstdlib>
 
+// Qweak headers
+#include "QwLog.h"
+#include "QwUnits.h"
 #include "QwMagneticField.h"
 #include "QwBridge.h"
 #include "QwRayTracer.h"
@@ -86,26 +90,22 @@ QwRayTracer::~QwRayTracer() {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-QwMagneticField* QwRayTracer::fBfield;// = new QwMagneticField();
+QwMagneticField* QwRayTracer::fBfield = 0;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 // Need a static member function to initialize the static *fBfield.
-void QwRayTracer::LoadMagneticFieldMap() {
+bool QwRayTracer::LoadMagneticFieldMap(const std::string filename)
+{
+    // If the field has already been loaded, return successfully
+    if (fBfield) return true;
 
-    QwRayTracer::fBfield = new QwMagneticField();
-    QwRayTracer::fBfield->ReadFieldMapFile(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/MainMagnet_FieldMap.dat");
-
+    // Otherwise reload the field map
+    fBfield = new QwMagneticField();
+    return fBfield->ReadFieldMapFile(filename);
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-void QwRayTracer::LoadTrajMatrix() {
-
-    QwTrajMatrix* trajmatrix = new QwTrajMatrix();
-    trajmatrix->ReadTrajMatrixFile(&fBackTrackParameterTable);
-    delete trajmatrix;
-};
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -141,11 +141,28 @@ int QwRayTracer::BridgeFrontBackPartialTrack() {
     int status;
 
     fMatchFlag = -2;
+
     status = Filter();
     if (status == -1)  return -1;
 
-    status = SearchTable();
-    if (status == -1)  status = Shooting();
+    status = Shooting();
+
+    // if (status == -1)  status = DoForcedBridging();
+
+    return status;
+};
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+bool QwRayTracer::Bridge(QwPartialTrack* front, QwPartialTrack* back)
+{
+    int status;
+
+    fMatchFlag = -2;
+    status = Filter();
+    if (status == -1)  return -1;
+
+    status = Shooting();
 
     // status = Shooting();
 
@@ -157,10 +174,11 @@ int QwRayTracer::BridgeFrontBackPartialTrack() {
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 // The angle limits will be determined from MC simulation results
-int QwRayTracer::Filter() {
+int QwRayTracer::Filter()
+{
 
     // swimming direction limit
-    if (fStartPosition.Z()>=fEndPosition.Z()) {
+    if (fStartPosition.Z() >= fEndPosition.Z()) {
         std::cerr<<"Filter: start point location is at downstream of end point location"<<std::endl;
         fMatchFlag = -1;
         return -1;
@@ -215,177 +233,28 @@ int QwRayTracer::Filter() {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwRayTracer::SearchTable() {
-
-    // front track position and angles at z= -250 cm plane
-    double r = fabs(fStartPosition.Z()-(-250.0))/fStartDirection.Z();
-    double x = fStartPosition.X() + r*fStartDirection.X();
-    double y = fStartPosition.Y() + r*fStartDirection.Y();
-
-    double position_r = sqrt(x*x+y*y);
-    double position_phi = fStartPositionPhi;
-    double direction_theta = fStartDirectionTheta;
-
-    double vertex_z = -250.0 - position_r/tan(acos(fStartDirection.Z()));
-
-    // expected hit position and angles at z= +570 cm plane
-    r = fabs(fEndPosition.Z()-570.0)/fEndDirection.Z();
-    x = fEndPosition.X() + r*fEndDirection.X();
-    y = fEndPosition.Y() + r*fEndDirection.Y();
-
-    double expectedhitposition_r = sqrt(x*x+y*y);
-    double expectedhitposition_phi = atan2(y,x)*DEGREE;
-    if (expectedhitposition_phi<0.0)
-        expectedhitposition_phi = expectedhitposition_phi + 360.0;
-
-    bool isintable =   ((int)position_r >= R_MIN) && ((int)position_r < R_MAX) &&
-                       ((int)position_phi >= PHI_MIN) && ((int)position_phi <PHI_MAX) &&
-                       ((int)vertex_z > VERTEXZ_MIN) && ((int)vertex_z < VERTEXZ_MAX);
-
-    // search the table
-    if ( ! isintable ) {
-        std::cout<<"vertex_z="<<vertex_z<<std::endl;
-        std::cout<<"position_r="<<position_r<<std::endl;
-        std::cout<<"position_phi="<<position_phi<<std::endl;
-        std::cout<<"direction_theta="<<direction_theta<<std::endl;
-        std::cout<<"This potential track is not listed in the table."<<std::endl;
+int QwRayTracer::Filter(QwPartialTrack* front, QwPartialTrack* back)
+{
+    // Scattering angle limit
+    if ((front->GetMomentumDirectionTheta() < 4.0 / DEGREE)
+     || (front->GetMomentumDirectionTheta() > 13.0 / DEGREE)) {
+        QwError << "Filter: scattering angle (" << front->GetMomentumDirectionTheta() * DEGREE
+                << " degree) is out of range" << QwLog::endl;
+        fMatchFlag = -1;
         return -1;
     }
 
-    // find the index of the neighbour tracks
-    int index_pos_r = ((int)(position_r+0.5)-R_MIN)/DR;
-    int index_pos_phi = ((int)(position_phi+0.5)-PHI_MIN)/DPHI;
-    int index_vertex_z = ((int)(vertex_z+0.5)-VERTEXZ_MIN)/DZ;
-
-    // build two subsets of the table
-    std::vector <QwPartialTrackParameter> backtrackparametersublist;
-    QwPartialTrackParameter backtrackparameter;
-    double *iP = new double[P_MAX-P_MIN+1];  //hold momentum for inteprolation
-    double *iR = new double[P_MAX-P_MIN+1];  //hold radial position for inteprolation
-
-    // NOTE jpan: ROOT::Math::GSLInterpolator::Eval(double) requires that
-    // x values must be monotonically increasing.
-
-    for (int p = P_MIN; p<=P_MAX; p+=DP) {
-        // build index
-        int index_momentum = ((int)p-P_MIN)/DP;
-
-        unsigned int index = index_momentum*R_GRIDSIZE*PHI_GRIDSIZE*Z_GRIDSIZE
-                             + index_pos_r*PHI_GRIDSIZE*Z_GRIDSIZE
-                             + index_pos_phi*Z_GRIDSIZE
-                             + index_vertex_z ;
-
-        // keep iR monotonically increasing with the index
-        int ind = (P_MAX-P_MIN)/DP-index_momentum;
-
-        backtrackparameter = fBackTrackParameterTable.at(index);
-
-        iP[ind] = ((double)p)/1000.0;
-        iR[ind] = backtrackparameter.fPositionR;
-        backtrackparametersublist.push_back( backtrackparameter );
-        //std::cout<<"ind, iP, iR:   "<<ind<<", "<<iP[ind]<<", "<<iR[ind]<<std::endl;
-    }
-
-    //NOTE The dr/dp on focal plane is about 1 cm per 10 MeV
-
-    if ( (backtrackparametersublist.front().fPositionR  < expectedhitposition_r) &&
-            (backtrackparametersublist.back().fPositionR   > expectedhitposition_r) ) {
-        std::cout<<"No match in look-up table!"<<std::endl;
+    // Bending angle limit in B field
+    double dtheta = (back->GetMomentumDirectionTheta() - front->GetMomentumDirectionTheta());
+    double dphi   = (back->GetMomentumDirectionPhi()   - front->GetMomentumDirectionPhi());
+    if (dtheta < 5.0 / DEGREE || dtheta>25.0 || fabs(dphi)>10.0) {
+        std::cerr<<"Filter: bending angles (dtheta="<<dtheta<<" degree, dphi="<<dphi
+        <<" degree) in B field are out of range"<<std::endl;
+        fMatchFlag = -1;
         return -1;
     }
 
-    // the hit is within the momentum limits, do interpolation for momentum
-
-    // We can choose among the following methods:
-    // CSPLINE, LINEAR, POLYNOMIAL,
-    // CSPLINE_PERIODIC, AKIMA, AKIMA_PERIODIC
-    UInt_t size = backtrackparametersublist.size();
-
-#if defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
-
-#if ROOT_VERSION_CODE >= ROOT_VERSION(5,22,0)
-    // Newer version of the MathMore plugin use kPOLYNOMIAL
-    ROOT::Math::Interpolator inter(size, ROOT::Math::Interpolation::kPOLYNOMIAL);
-#else
-    // Older version of the MathMore plugin use POLYNOMIAL
-    ROOT::Math::Interpolator inter(size, ROOT::Math::Interpolation::POLYNOMIAL);
-#endif
-
-    inter.SetData(size, iR, iP);
-    fMomentum = inter.Eval(expectedhitposition_r);  // + 0.0016;  // [GeV]
-
-    delete iP;
-    delete iR;
-
-    // take the track parameter from the nearest track
-    if (fMomentum<0.98 || fMomentum>1.165) {
-        std::cerr<<"Out of momentum range: determined momentum by looking up table: "
-        << fMomentum<<" GeV"<<std::endl;
-        return -1;
-    }
-
-    backtrackparameter = backtrackparametersublist.at(((int)(fMomentum*1000.0+0.5)-P_MIN)/DP);
-
-    // set matching info
-    double sin_theta = sin(backtrackparameter.fDirectionTheta/DEGREE);
-    double cos_theta = cos(backtrackparameter.fDirectionTheta/DEGREE);
-    double sin_phi = sin(backtrackparameter.fDirectionPhi/DEGREE);
-    double cos_phi = cos(backtrackparameter.fDirectionPhi/DEGREE);
-    double sin_PHI = sin(backtrackparameter.fPositionPhi/DEGREE);
-    double cos_PHI = cos(backtrackparameter.fPositionPhi/DEGREE);
-
-    fHitLocation = TVector3(backtrackparameter.fPositionR*cos_PHI,
-                            backtrackparameter.fPositionR*sin_PHI,
-                            570.0);
-
-    fHitDirection = TVector3(sin_theta*cos_phi,sin_theta*sin_phi,cos_theta);
-
-    // extend to z = fEndPosition.Z() plane
-    r = fabs(fEndPosition.Z()-570.0)/fHitDirection.Z();
-    x = fHitLocation.X() - r*fHitDirection.X();
-    y = fHitLocation.Y() - r*fHitDirection.Y();
-    fHitLocationR = sqrt(x*x+y*y);
-    fHitLocationPhi = atan2(y,x)*DEGREE;
-    if (fHitLocationPhi<0.0)  fHitLocationPhi += 360.0;
-    fHitLocation = TVector3(x,y,fEndPosition.Z());
-
-    fHitDirectionTheta = acos(fHitDirection.Z())*DEGREE;
-    fHitDirectionPhi = atan2(fHitDirection.Y(),fHitDirection.X())*DEGREE;
-    if (fHitDirectionPhi<0.0) fHitDirectionPhi+=360.0;
-
-    // errors
-    fPositionROff = fHitLocationR - fEndPositionR;
-    fPositionPhiOff = fHitLocationPhi - fEndPositionPhi;
-    fDirectionThetaOff = fHitDirectionTheta - fEndDirectionTheta;
-    fDirectionPhiOff = fHitDirectionPhi - fEndDirectionPhi;
-
-    fPositionXOff = fHitLocation.X() - fEndPosition.X();
-    fPositionYOff = fHitLocation.Y() - fEndPosition.Y();
-
-    fDirectionXOff = fHitDirection.X() - fEndDirection.X();
-    fDirectionYOff = fHitDirection.Y() - fEndDirection.Y();
-    fDirectionZOff = fHitDirection.Z() - fEndDirection.Z();
-
-    if ( fabs(fPositionROff)<2.0 && fabs(fPositionPhiOff)<4.0 &&
-            fabs(fDirectionThetaOff)<1.0 && fabs(fDirectionPhiOff)<4.0 ) {
-
-        //std::cout<<"======>>>>> Found a good match in the look-up table"<<std::endl;
-        fMatchFlag = 0;
-        return 0;
-    } else {
-        std::cout<<"Didn't find a good match in the look-up table"<<std::endl;
-        return -1;
-    }
-
-#else // defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
-
-    // No support for ROOT MathMore: warn user and return failure
-    std::cout << "No support for QwRayTracer interpolation." << std::endl;
-    std::cout << "Please install the ROOT MathMore plugin and recompile." << std::endl;
-    return -1;
-
-#endif // defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
-
+    return 0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -753,231 +622,88 @@ void QwRayTracer::PrintInfo() {
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-// ReadSimPartialTrack access the disk and read a single event from the geant4 simulated
-// root file for each call, and set the start/end positions and directions. There is no
-// buffer for the event. The effiency is low in this way, but ok for test purpose.
-
-int QwRayTracer::ReadSimPartialTrack(const TString filename, int evtnum,
-                                      std::vector<TVector3> *startposition,
-                                      std::vector<TVector3> *startdirection,
-                                      std::vector<TVector3> *endposition,
-                                      std::vector<TVector3> *enddirection) {
-
-    if (fSimFlag == 0) {
-        //initialize tree
-
-        fSimFlag = 1;
-    }
-
-    // Get an entry from the tree
-    // Allocate memory and initialize them
-    // Reserve Space
-
-    // Region2 WirePlane1
-    fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumX.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumY.reserve(VSIZE);
-    fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumZ.reserve(VSIZE);
-
-    // Region3 WirePlaneU
-    fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.reserve(VSIZE);
-    fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.reserve(VSIZE);
-    fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.reserve(VSIZE);
-    fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.reserve(VSIZE);
-    fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.reserve(VSIZE);
-    fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ.reserve(VSIZE);
-
-    //Clear
-
-    // Region2 WirePlane1
-    fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit = 0;
-    fRegion2_ChamberFront_WirePlane1_NbOfHits = 0;
-    fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX.clear();
-    fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY.clear();
-    fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ.clear();
-    fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumX.clear();
-    fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumY.clear();
-
-    // Region3 WirePlaneU
-    fRegion3_ChamberFront_WirePlaneU_HasBeenHit = 0;
-    fRegion3_ChamberFront_WirePlaneU_NbOfHits = 0;
-    fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.clear();
-    fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.clear();
-    fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.clear();
-    fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.clear();
-    fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.clear();
-
-    fPrimary_OriginVertexKineticEnergy = 0.0;
-    fPrimary_CrossSectionWeight = 0.0;
-    //fMomentumOff = 0.0;
-
-    // Open ROOT file
-    TFile *simrootfile = new TFile (filename);
-    TTree *g4simtree = (TTree*) simrootfile->Get("QweakSimG4_Tree");
-    g4simtree->SetMakeClass(1);
-
-    int totalentries = g4simtree->GetEntries();
-    if (evtnum>=totalentries) {
-        delete g4simtree;
-        delete simrootfile;
-        std::cerr<<"Out of range: Event number "<<evtnum<<" >= Total events "<<totalentries<<std::endl;
-        return -1;
-    }
-
-    // Attach to region 1 branches
-    // WirePlane1
-    g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneHasBeenHit",
-                                &fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit);
-    g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.NbOfHits",
-                                &fRegion2_ChamberFront_WirePlane1_NbOfHits);
-    //g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.ParticleType",
-    //                            &fRegion2_ChamberFront_WirePlane1_ParticleType);
-    g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneGlobalPositionX",
-                                &fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX);
-    g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneGlobalPositionY",
-                                &fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY);
-    g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneGlobalPositionZ",
-                                &fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ);
-    g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneGlobalMomentumX",
-                                &fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumX);
-    g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneGlobalMomentumY",
-                                &fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumY);
-    g4simtree->SetBranchAddress("Region2.ChamberFront.WirePlane1.PlaneGlobalMomentumZ",
-                                &fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumZ);
-
-    // Attach to region 3 branches
-    g4simtree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.HasBeenHit",
-                                &fRegion3_ChamberFront_WirePlaneU_HasBeenHit);
-    g4simtree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.NbOfHits",
-                                &fRegion3_ChamberFront_WirePlaneU_NbOfHits);
-    g4simtree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.ParticleType",
-                                &fRegion3_ChamberFront_WirePlaneU_ParticleType);
-    g4simtree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.GlobalPositionX",
-                                &fRegion3_ChamberFront_WirePlaneU_GlobalPositionX);
-    g4simtree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.GlobalPositionY",
-                                &fRegion3_ChamberFront_WirePlaneU_GlobalPositionY);
-    g4simtree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.GlobalPositionZ",
-                                &fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ);
-    g4simtree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.GlobalMomentumX",
-                                &fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX);
-    g4simtree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.GlobalMomentumY",
-                                &fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY);
-    g4simtree->SetBranchAddress("Region3.ChamberFront.WirePlaneU.GlobalMomentumZ",
-                                &fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ);
-
-    g4simtree->SetBranchAddress("Primary.OriginVertexKineticEnergy",
-                                &fPrimary_OriginVertexKineticEnergy);
-    g4simtree->SetBranchAddress("Primary.PrimaryQ2",
-                                &fPrimary_PrimaryQ2);
-    g4simtree->SetBranchAddress("Primary.CrossSectionWeight",
-                                &fPrimary_CrossSectionWeight);
-
-
-    g4simtree->GetBranch("Region2.ChamberFront.WirePlane1.PlaneHasBeenHit")->GetEntry(evtnum);
-    g4simtree->GetBranch("Region3.ChamberFront.WirePlaneU.HasBeenHit")->GetEntry(evtnum);
-
-    if (fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit == 5 &&
-            fRegion3_ChamberFront_WirePlaneU_HasBeenHit == 5) {
-        g4simtree->GetEntry(evtnum);
-    } else {
-        std::cerr << "Reading G4Sim Event: skip an empty event - event#" << evtnum << std::endl;
-    }
-
-    // In case of taking the first hit/track only, let
-    //fRegion2_ChamberFront_WirePlane1_NbOfHits = 1;
-    //fRegion3_ChamberFront_WirePlaneU_NbOfHits = 1;
-
-    //Set start and end point and direction
-    for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane1_NbOfHits && i1 < VSIZE; i1++) {
-        //we don't care about gamma particles now
-        // TODO assign particle type for R2 hits in geant4
-        //if (fRegion2_ChamberFront_WirePlane1_ParticleType.at(i1) != 2)
-        {
-            // Get the position and direction
-            double x = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX.at(i1);
-            double y = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY.at(i1);
-            double z = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ.at(i1);
-            double xMomentum = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumX.at(i1);
-            double yMomentum = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumY.at(i1);
-            double zMomentum = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumZ.at(i1);
-
-            // smear off the positions to ~500 um
-            double sigma = 0.05;  // 0.05 [cm]
-            x = gRandom->Gaus(x,sigma);
-            y = gRandom->Gaus(y,sigma);
-            startposition->push_back( TVector3(x,y,z));
-
-            // smear off direction to ~0.1 degree
-            double momentum = sqrt(xMomentum*xMomentum+yMomentum*yMomentum+zMomentum*zMomentum);
-            double ux = xMomentum/momentum;
-            double uy = yMomentum/momentum;
-            double uz = zMomentum/momentum;
-            double directionTheta = acos(uz)*DEGREE;
-            double directionPhi = atan2(uy,ux)*DEGREE;
-            double sigma_theta = 0.1;
-            double sigma_phi = 0.1;
-            directionTheta = gRandom->Gaus(directionTheta, sigma_theta);
-            directionPhi = gRandom->Gaus(directionPhi, sigma_phi);
-            if (directionPhi<0) directionPhi = directionPhi+360.0;
-
-            ux = sin(directionTheta/DEGREE)*cos(directionPhi/DEGREE);
-            uy = sin(directionTheta/DEGREE)*sin(directionPhi/DEGREE);
-            uz = cos(directionTheta/DEGREE);
-            startdirection->push_back( TVector3(ux,uy,uz));
-        }
-    }
-
-    for (int i1 = 0; i1 < fRegion3_ChamberFront_WirePlaneU_NbOfHits && i1 < VSIZE; i1++) {
-        if (fRegion3_ChamberFront_WirePlaneU_ParticleType.at(i1) != 2) { //we don't care about gamma particles now
-
-            // Get the position and direction
-            double x = fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.at(i1);
-            double y = fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.at(i1);
-            double z = fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.at(i1);
-            //fEndPosition = TVector3(x,y,z);
-
-            double xMomentum = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.at(i1);
-            double yMomentum = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.at(i1);
-            double zMomentum = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ.at(i1);
-
-            // smear off the positions to ~500 um
-            double sigma = 0.05;  // 0.05 [cm]
-            x = gRandom->Gaus(x,sigma);
-            y = gRandom->Gaus(y,sigma);
-            endposition->push_back( TVector3(x,y,z));
-
-            // smear off direction to ~0.1 degree
-            double momentum = sqrt(xMomentum*xMomentum+yMomentum*yMomentum+zMomentum*zMomentum);
-            double ux = xMomentum/momentum;
-            double uy = yMomentum/momentum;
-            double uz = zMomentum/momentum;
-            double directionTheta = acos(uz)*DEGREE;
-            double directionPhi = atan2(uy,ux)*DEGREE;
-            double sigma_theta = 0.1;
-            double sigma_phi = 0.1;
-            directionTheta = gRandom->Gaus(directionTheta, sigma_theta);
-            directionPhi = gRandom->Gaus(directionPhi, sigma_phi);
-            if (directionPhi<0) directionPhi = directionPhi+360.0;
-
-            ux = sin(directionTheta/DEGREE)*cos(directionPhi/DEGREE);
-            uy = sin(directionTheta/DEGREE)*sin(directionPhi/DEGREE);
-            uz = cos(directionTheta/DEGREE);
-            enddirection->push_back( TVector3(ux,uy,uz));
-        }
-    }
-    fPrimary_OriginVertexKineticEnergy = fPrimary_OriginVertexKineticEnergy*0.001;
-    //std::cout<<"origin vertex momentum: "<<fPrimary_OriginVertexKineticEnergy<<std::endl;
-
-    delete g4simtree;
-    delete simrootfile;
-    return 0;
-};
+//
+// NOTE Below the relevant part of the function that originally read the tracks
+// from the Geant4 MC.  It contains a.o. the smearing parameters.
+//
+//     //Set start and end point and direction
+//     for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane1_NbOfHits && i1 < VSIZE; i1++) {
+//         //we don't care about gamma particles now
+//         // TODO assign particle type for R2 hits in geant4
+//         //if (fRegion2_ChamberFront_WirePlane1_ParticleType.at(i1) != 2)
+//         {
+//             // Get the position and direction
+//             double x = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX.at(i1);
+//             double y = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY.at(i1);
+//             double z = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ.at(i1);
+//             double xMomentum = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumX.at(i1);
+//             double yMomentum = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumY.at(i1);
+//             double zMomentum = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumZ.at(i1);
+//
+//             // smear off the positions to ~500 um
+//             double sigma = 0.00;  // 0.05 [cm]
+//             x = gRandom->Gaus(x,sigma);
+//             y = gRandom->Gaus(y,sigma);
+//             startposition->push_back( TVector3(x,y,z));
+//
+//             // smear off direction to ~0.1 degree
+//             double momentum = sqrt(xMomentum*xMomentum+yMomentum*yMomentum+zMomentum*zMomentum);
+//             double ux = xMomentum/momentum;
+//             double uy = yMomentum/momentum;
+//             double uz = zMomentum/momentum;
+//             double directionTheta = acos(uz)*DEGREE;
+//             double directionPhi = atan2(uy,ux)*DEGREE;
+//             double sigma_theta = 0.0;
+//             double sigma_phi = 0.0;
+//             directionTheta = gRandom->Gaus(directionTheta, sigma_theta);
+//             directionPhi = gRandom->Gaus(directionPhi, sigma_phi);
+//             if (directionPhi<0) directionPhi = directionPhi+360.0;
+//
+//             ux = sin(directionTheta/DEGREE)*cos(directionPhi/DEGREE);
+//             uy = sin(directionTheta/DEGREE)*sin(directionPhi/DEGREE);
+//             uz = cos(directionTheta/DEGREE);
+//             startdirection->push_back( TVector3(ux,uy,uz));
+//         }
+//     }
+//
+//     for (int i1 = 0; i1 < fRegion3_ChamberFront_WirePlaneU_NbOfHits && i1 < VSIZE; i1++) {
+//         if (fRegion3_ChamberFront_WirePlaneU_ParticleType.at(i1) != 2) { //we don't care about gamma particles now
+//
+//             // Get the position and direction
+//             double x = fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.at(i1);
+//             double y = fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.at(i1);
+//             double z = fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.at(i1);
+//             //fEndPosition = TVector3(x,y,z);
+//
+//             double xMomentum = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.at(i1);
+//             double yMomentum = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.at(i1);
+//             double zMomentum = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ.at(i1);
+//
+//             // smear off the positions to ~500 um
+//             double sigma = 0.00;  // 0.05 [cm]
+//             x = gRandom->Gaus(x,sigma);
+//             y = gRandom->Gaus(y,sigma);
+//             endposition->push_back( TVector3(x,y,z));
+//
+//             // smear off direction to ~0.1 degree
+//             double momentum = sqrt(xMomentum*xMomentum+yMomentum*yMomentum+zMomentum*zMomentum);
+//             double ux = xMomentum/momentum;
+//             double uy = yMomentum/momentum;
+//             double uz = zMomentum/momentum;
+//             double directionTheta = acos(uz)*DEGREE;
+//             double directionPhi = atan2(uy,ux)*DEGREE;
+//             double sigma_theta = 0.0;
+//             double sigma_phi = 0.0;
+//             directionTheta = gRandom->Gaus(directionTheta, sigma_theta);
+//             directionPhi = gRandom->Gaus(directionPhi, sigma_phi);
+//             if (directionPhi<0) directionPhi = directionPhi+360.0;
+//
+//             ux = sin(directionTheta/DEGREE)*cos(directionPhi/DEGREE);
+//             uy = sin(directionTheta/DEGREE)*sin(directionPhi/DEGREE);
+//             uz = cos(directionTheta/DEGREE);
+//             enddirection->push_back( TVector3(ux,uy,uz));
+//         }
+//     }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -1039,14 +765,16 @@ void QwRayTracer::GetBridgingResult(Double_t *buffer) {
     buffer[35] = P0;
     buffer[36] = Q2;
 
-    buffer[37] = fPrimary_OriginVertexKineticEnergy;
-    buffer[38] = fPrimary_PrimaryQ2;
+// NOTE Had to comment the fPrimary variables as they are not read by anymore
+//     buffer[37] = fPrimary_OriginVertexKineticEnergy;
+//     buffer[38] = fPrimary_PrimaryQ2;
 
-    double MomentumOff = PP-fPrimary_OriginVertexKineticEnergy;
-    double Q2_Off = Q2-fPrimary_PrimaryQ2;
-    buffer[39] = MomentumOff;
-    buffer[40] = Q2_Off;
-    buffer[41] = fPrimary_CrossSectionWeight;
+//     double MomentumOff = PP-fPrimary_OriginVertexKineticEnergy;
+//     double Q2_Off = Q2-fPrimary_PrimaryQ2;
+//     buffer[39] = MomentumOff;
+//     buffer[40] = Q2_Off;
+//     buffer[41] = fPrimary_CrossSectionWeight;
+
     buffer[42] = fMatchFlag;
 };
 

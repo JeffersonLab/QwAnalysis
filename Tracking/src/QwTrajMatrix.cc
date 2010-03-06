@@ -11,13 +11,17 @@
 
 #include "QwTrajMatrix.h"
 
+// Qweak headers
+#include "QwLog.h"
+#include "QwUnits.h"
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-    QwTrajMatrix::QwTrajMatrix(){};
+QwTrajMatrix::QwTrajMatrix(){};
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-    QwTrajMatrix::~QwTrajMatrix(){};
+QwTrajMatrix::~QwTrajMatrix(){};
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -30,8 +34,8 @@
 ///  Z0: start plane = -250 cm, Z1: endplane = +250 cm, Z2: focalplane = +570 cm
 ///  B field values are available from z=-250 cm to z=250 cm
 
-void QwTrajMatrix::GenerateTrajMatrix() {
-
+const bool QwTrajMatrix::WriteTrajMatrix(const std::string filename)
+{
     // local variables
     UInt_t    gridnum;
     UInt_t    index;
@@ -42,7 +46,6 @@ void QwTrajMatrix::GenerateTrajMatrix() {
     Int_t  phi;
     Int_t  vertex_z;
 
-    Double_t  theta;
     Double_t  x[3],y[3],z[3],ux[3],uy[3],uz[3];
 
     Double_t  position_r,position_phi;   //z=570 cm plane
@@ -61,7 +64,7 @@ void QwTrajMatrix::GenerateTrajMatrix() {
     //raytracer->LoadMagneticFieldMap();
 
     //open file and set up output tree
-    TString rootfilename=std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QwTrajMatrix.root";
+    TString rootfilename = TString(filename);
     TFile* rootfile = new TFile(rootfilename,"RECREATE","Qweak momentum matrix");
     rootfile->cd();
 
@@ -70,7 +73,7 @@ void QwTrajMatrix::GenerateTrajMatrix() {
     // This table is linearly indexed with 1D index
     momentum_tree->Branch("index",&index,"index/I");
 
-// position and direction at focal plane
+    // position and direction at focal plane
     momentum_tree->Branch("position_r", &position_r, "position_r/D");
     momentum_tree->Branch("position_phi", &position_phi, "position_phi/D");
     momentum_tree->Branch("direction_theta",&direction_theta,"direction_theta/D");
@@ -97,17 +100,14 @@ void QwTrajMatrix::GenerateTrajMatrix() {
                     ind_r = (r-R_MIN)/DR;
                     ind_phi = (phi-PHI_MIN)/DPHI;
                     ind_z = (vertex_z-VERTEXZ_MIN)/DZ;
-                    index = ind_p*R_GRIDSIZE*PHI_GRIDSIZE*Z_GRIDSIZE +
-                            ind_r*PHI_GRIDSIZE*Z_GRIDSIZE +
-                            ind_phi*Z_GRIDSIZE +
-                            ind_z;
+                    index = Index(ind_p, ind_r, ind_phi, ind_z);
 
-                    //intersection position and direction with the z=-250 cm plane
-                    theta = atan2(r,(-250.0-vertex_z))*DEGREE;
+                    // Intersection position and direction with the z=-250 cm plane
+                    Double_t theta = atan2(r,(-250.0-vertex_z));
 
-                    ux[0] = sin(theta/DEGREE)*cos((double)phi/DEGREE);
-                    uy[0] = sin(theta/DEGREE)*sin((double)phi/DEGREE);
-                    uz[0] = cos(theta/DEGREE);
+                    ux[0] = sin(theta) * cos((double)phi/DEGREE);
+                    uy[0] = sin(theta) * sin((double)phi/DEGREE);
+                    uz[0] = cos(theta);
                     startdirection = TVector3(ux[0],uy[0],uz[0]);
 
                     x[0] = (double)r*cos((double)phi/DEGREE);
@@ -120,7 +120,7 @@ void QwTrajMatrix::GenerateTrajMatrix() {
                     raytracer->SetStartAndEndPoints(startpoint, startdirection,
                                          endpoint, enddirection);
 
-                    //raytrace from startplane (z=-250 cm) to endplane (z=+250 cm)
+                    // Raytrace from startplane (z=-250 cm) to endplane (z=+250 cm)
                     // p in [GeV] for the integration
                     raytracer->Integrate((double)p*0.001, step_size);
                     x[1] =  raytracer->GetHitLocationX();
@@ -176,12 +176,14 @@ void QwTrajMatrix::GenerateTrajMatrix() {
 
     delete rootfile;
     delete raytracer;
+
+    return true;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwTrajMatrix::ReadTrajMatrixFile( std::vector <QwPartialTrackParameter> *backtrackparametertable ) {
-
+const bool QwTrajMatrix::ReadTrajMatrixFile(const std::string filename)
+{
     Int_t   index;
     Double_t position_r,position_phi;
     Double_t direction_theta,direction_phi;
@@ -189,7 +191,7 @@ int QwTrajMatrix::ReadTrajMatrixFile( std::vector <QwPartialTrackParameter> *bac
     TVector3 startpoint,startdirection,endpoint,enddirection;
 
     //open file
-    TString rootfilename=std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QwTrajMatrix.root";
+    TString rootfilename = TString(filename);
 
     if (gSystem->AccessPathName(rootfilename)) {
        std::cout <<std::endl<< "Cannot find the momentum look-up table!"<<std::endl;
@@ -200,7 +202,7 @@ int QwTrajMatrix::ReadTrajMatrixFile( std::vector <QwPartialTrackParameter> *bac
        std::cin >> choice;
        if (choice == 'y' || choice == 'Y'){
           std::cout <<std::endl<<std::endl;
-          GenerateTrajMatrix();
+          WriteTrajMatrix(filename);
        }
        else {
           std::cout <<std::endl<<std::endl<< "Program termined."<<std::endl<<std::endl;
@@ -209,12 +211,19 @@ int QwTrajMatrix::ReadTrajMatrixFile( std::vector <QwPartialTrackParameter> *bac
     }
 
     TFile* rootfile = new TFile(rootfilename,"read");
-    if (! rootfile) return 0;
+    if (! rootfile) {
+      QwError << "ROOT file " << rootfilename << " could not be opened!" << QwLog::endl;
+      return false;
+    }
     rootfile->cd();
 
     TTree *momentum_tree = (TTree *)rootfile->Get("Momentum_Tree");
+    if (! momentum_tree) {
+      QwError << "ROOT file has no tree Momentum_Tree!" << QwLog::endl;
+      return false;
+    }
 
-    std::cout<<"Read data from look-up table"<<std::endl;
+    QwDebug << "Read data from look-up table" << QwLog::endl;
 
     momentum_tree->SetBranchAddress("index",&index);
     momentum_tree->SetBranchAddress("position_r", &position_r);
@@ -225,11 +234,12 @@ int QwTrajMatrix::ReadTrajMatrixFile( std::vector <QwPartialTrackParameter> *bac
     Int_t numberOfEntries = momentum_tree->GetEntries();
 
     QwPartialTrackParameter backtrackparameter;
-    backtrackparametertable->reserve(numberOfEntries);
+    fBackTrackParameterTable.reserve(numberOfEntries);
 
-    std::cout<<"total grid points : "<<numberOfEntries<<std::endl;
 
-    for ( Int_t i=0; i<numberOfEntries; i++) {
+    QwDebug << "total grid points : " << numberOfEntries << QwLog::endl;
+
+    for (Int_t i = 0; i < numberOfEntries; i++) {
         momentum_tree->GetEntry(i);
 
         // only z=+570 cm plane data
@@ -238,13 +248,16 @@ int QwTrajMatrix::ReadTrajMatrixFile( std::vector <QwPartialTrackParameter> *bac
         backtrackparameter.fDirectionTheta = (float)direction_theta;
         backtrackparameter.fDirectionPhi = (float)direction_phi;
 
-        backtrackparametertable->push_back(backtrackparameter);
+        fBackTrackParameterTable.push_back(backtrackparameter);
     }
+    QwDebug << "... done." << QwLog::endl;
 
-    std::cout<<"...done."<<std::endl;
+    // Close file
     rootfile->Close();
     delete rootfile;
-    return 0;
+
+    // Return successfully
+    return true;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

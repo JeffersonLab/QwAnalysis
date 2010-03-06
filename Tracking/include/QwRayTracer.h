@@ -20,6 +20,7 @@
 #ifndef __QWRAYTRACER_H__
 #define __QWRAYTRACER_H__
 
+// System headers
 #include <iostream>
 #include <vector>
 
@@ -31,15 +32,13 @@
 #include <TRandom3.h>
 #include <TStopwatch.h>
 
-//  KLUDGE:  Add this header file to force the compiler to build
-//  the correct dependency structure.  The proper thing would
-//  be to have the Makefile recurse through all classes that
-//  any included class depends on; I have a partial solution
-//  but it isn't ready to commit tonight (2009dec15; pking).
 // Qweak headers
+#include "VQwBridgingMethod.h"
 #include "QwMagneticField.h"
 #include "QwTrajMatrix.h"
+#include "QwPartialTrack.h"
 
+// ROOT Math Interpolator headers
 #if defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
 # include <Math/Interpolator.h>
 #else
@@ -87,14 +86,13 @@ class QwBridge;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-class QwRayTracer {
+class QwRayTracer: public VQwBridgingMethod {
 
 public:
     QwRayTracer();
     ~QwRayTracer();
 
-    static void LoadMagneticFieldMap();
-    void LoadTrajMatrix();
+    static bool LoadMagneticFieldMap(const std::string filename);
 
     void GenerateLookUpTable();
 
@@ -102,6 +100,7 @@ public:
                               TVector3 endposition, TVector3 enddirection);
 
     int BridgeFrontBackPartialTrack();
+    bool Bridge(QwPartialTrack* front, QwPartialTrack* back);
 
     int DoForcedBridging() {
         return -1;
@@ -156,22 +155,21 @@ public:
 
     void PrintInfo();
 
-    int ReadSimPartialTrack(const TString filename, int evtnum,
-                            std::vector<TVector3> *startposition,
-                            std::vector<TVector3> *startdirection,
-                            std::vector<TVector3> *endposition,
-                            std::vector<TVector3> *enddirection);
     void GetBridgingResult(Double_t *buffer);
+
+public:
+
+    int Filter();
+    int Filter(QwPartialTrack* front, QwPartialTrack* back);
 
 private:
 
-    int Filter();
-    int SearchTable();
     int Shooting();
     double EstimateInitialMomentum(TVector3 direction);
 
 private:
 
+    /// Magnetic field (static)
     static QwMagneticField *fBfield;
 
     double fBdlx; /// x component of the field integral
@@ -207,32 +205,6 @@ private:
     double fDirectionZOff;
 
     int fSimFlag;
-
-    // Region2 WirePlane1
-    Int_t fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit;
-    Int_t fRegion2_ChamberFront_WirePlane1_NbOfHits;
-    //std::vector <Int_t> fRegion2_ChamberFront_WirePlane1_ParticleType;
-    std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX;
-    std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY;
-    std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ;
-    std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumX;
-    std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumY;
-    std::vector <Float_t> fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumZ;
-
-    // Region3 WirePlaneU
-    Int_t fRegion3_ChamberFront_WirePlaneU_HasBeenHit;
-    Int_t fRegion3_ChamberFront_WirePlaneU_NbOfHits;
-    std::vector <Int_t> fRegion3_ChamberFront_WirePlaneU_ParticleType;
-    std::vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalPositionX;
-    std::vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalPositionY;
-    std::vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ;
-    std::vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX;
-    std::vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY;
-    std::vector <Float_t> fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ;
-
-    Float_t fPrimary_OriginVertexKineticEnergy;
-    Float_t fPrimary_PrimaryQ2;
-    Float_t fPrimary_CrossSectionWeight;
 
     Int_t fMatchFlag; // MatchFlag = -2 : cannot match
                       // MatchFlag = -1 : potential track cannot pass through the filter

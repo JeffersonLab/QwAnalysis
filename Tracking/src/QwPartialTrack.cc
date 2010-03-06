@@ -3,6 +3,7 @@ ClassImp(QwPartialTrack);
 
 // ROOT headers
 #include "TMath.h"
+#include "TRandom.h"
 
 // Qweak headers
 #include "QwLog.h"
@@ -211,7 +212,7 @@ TVector3 QwPartialTrack::GetPosition(double z)
 /**
  * Determines the direction of the track at the given z position
  */
-TVector3 QwPartialTrack::GetMomentumDirection(double z)
+TVector3 QwPartialTrack::GetMomentumDirection()
 {
   TVector3 direction;
   double kz = sqrt(fSlopeX * fSlopeX + fSlopeY * fSlopeY + 1);
@@ -219,6 +220,46 @@ TVector3 QwPartialTrack::GetMomentumDirection(double z)
   direction.SetY(fSlopeY / kz);
   direction.SetZ(1 / kz);
   return direction;
+}
+
+/**
+ * Smear the position of the partial track
+ * @param sigma_x Standard deviation in x
+ * @param sigma_y Standard deviation in y
+ */
+QwPartialTrack& QwPartialTrack::SmearPosition(double sigma_x, double sigma_y)
+{
+  fOffsetX = gRandom->Gaus(fOffsetX, sigma_x);
+  fOffsetY = gRandom->Gaus(fOffsetY, sigma_y);
+  return *this;
+}
+
+/**
+ * Smear the theta angle of the partial track
+ * @param sigma Standard deviation in theta
+ */
+QwPartialTrack& QwPartialTrack::SmearAngleTheta(double sigma)
+{
+  double theta = GetMomentumDirectionTheta();
+  double phi = GetMomentumDirectionPhi();
+  theta = gRandom->Gaus(theta, sigma);
+  fSlopeX = sin(theta) * cos(phi);
+  fSlopeY = sin(theta) * sin(phi);
+  return *this;
+}
+
+/**
+ * Smear the phi angle of the partial track
+ * @param sigma Standard deviation in phi
+ */
+QwPartialTrack& QwPartialTrack::SmearAnglePhi(double sigma)
+{
+  double theta = GetMomentumDirectionTheta();
+  double phi = GetMomentumDirectionPhi();
+  phi = gRandom->Gaus(phi, sigma);
+  fSlopeX = sin(theta) * cos(phi);
+  fSlopeY = sin(theta) * sin(phi);
+  return *this;
 }
 
 /**

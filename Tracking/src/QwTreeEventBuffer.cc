@@ -184,53 +184,70 @@ void QwTreeEventBuffer::GetEntry(const unsigned int entry)
 }
 
 
-QwPartialTrack* QwTreeEventBuffer::GetPartialTrack(EQwRegionID region) const
+/**
+ * Get the partial tracks
+ * @param region Region of the partial track
+ * @return Vector of partial tracks
+ */
+std::vector<QwPartialTrack*> QwTreeEventBuffer::GetPartialTracks(EQwRegionID region) const
 {
-  TVector3 position, momentum;
+  // List of position and momentum, and of partial tracks
+  std::vector<TVector3> position, momentum;
+  std::vector<QwPartialTrack*> partialtracklist;
+
+  // Depending on the region, get the position and momentum at the reference
+  // detector defined in the header file.
   switch (region) {
-    case kRegionID1: {
-      if (! fRegion1_HasBeenHit) return 0;
-      Double_t rx = fRegion1_ChamberFront_WirePlane_PlaneGlobalPositionX.at(0);
-      Double_t ry = fRegion1_ChamberFront_WirePlane_PlaneGlobalPositionY.at(0);
-      Double_t rz = fRegion1_ChamberFront_WirePlane_PlaneGlobalPositionZ.at(0);
-      position = TVector3(rx,ry,rz);
-      Double_t px = fRegion1_ChamberFront_WirePlane_PlaneGlobalMomentumX.at(0);
-      Double_t py = fRegion1_ChamberFront_WirePlane_PlaneGlobalMomentumY.at(0);
-      Double_t pz = fRegion1_ChamberFront_WirePlane_PlaneGlobalMomentumZ.at(0);
-      momentum = TVector3(px,py,pz);
+    case kRegionID1:
+      for (int hit = 0; hit < REGION1_DETECTOR(NbOfHits); hit++) {
+        Double_t rx = REGION1_DETECTOR(PlaneGlobalPositionX).at(hit);
+        Double_t ry = REGION1_DETECTOR(PlaneGlobalPositionY).at(hit);
+        Double_t rz = REGION1_DETECTOR(PlaneGlobalPositionZ).at(hit);
+        position.push_back(TVector3(rx,ry,rz));
+        Double_t px = REGION1_DETECTOR(PlaneGlobalMomentumX).at(hit);
+        Double_t py = REGION1_DETECTOR(PlaneGlobalMomentumY).at(hit);
+        Double_t pz = REGION1_DETECTOR(PlaneGlobalMomentumZ).at(hit);
+        momentum.push_back(TVector3(px,py,pz));
+      }
       break;
-    }
-    case kRegionID2: {
-      if (! fRegion2_HasBeenHit) return 0;
-      Double_t rx = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionX.at(0);
-      Double_t ry = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionY.at(0);
-      Double_t rz = fRegion2_ChamberFront_WirePlane1_PlaneGlobalPositionZ.at(0);
-      position = TVector3(rx,ry,rz);
-      Double_t px = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumX.at(0);
-      Double_t py = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumY.at(0);
-      Double_t pz = fRegion2_ChamberFront_WirePlane1_PlaneGlobalMomentumZ.at(0);
-      momentum = TVector3(px,py,pz);
+    case kRegionID2:
+      for (int hit = 0; hit < REGION2_DETECTOR(NbOfHits); hit++) {
+        Double_t rx = REGION2_DETECTOR(PlaneGlobalPositionX).at(hit);
+        Double_t ry = REGION2_DETECTOR(PlaneGlobalPositionY).at(hit);
+        Double_t rz = REGION2_DETECTOR(PlaneGlobalPositionZ).at(hit);
+        position.push_back(TVector3(rx,ry,rz));
+        Double_t px = REGION2_DETECTOR(PlaneGlobalMomentumX).at(hit);
+        Double_t py = REGION2_DETECTOR(PlaneGlobalMomentumY).at(hit);
+        Double_t pz = REGION2_DETECTOR(PlaneGlobalMomentumZ).at(hit);
+        momentum.push_back(TVector3(px,py,pz));
+      }
       break;
-    }
-    case kRegionID3: {
-      if (! fRegion3_HasBeenHit) return 0;
-      Double_t rx = fRegion3_ChamberFront_WirePlaneU_GlobalPositionX.at(0);
-      Double_t ry = fRegion3_ChamberFront_WirePlaneU_GlobalPositionY.at(0);
-      Double_t rz = fRegion3_ChamberFront_WirePlaneU_GlobalPositionZ.at(0);
-      position = TVector3(rx,ry,rz);
-      Double_t px = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumX.at(0);
-      Double_t py = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumY.at(0);
-      Double_t pz = fRegion3_ChamberFront_WirePlaneU_GlobalMomentumZ.at(0);
-      momentum = TVector3(px,py,pz);
+    case kRegionID3:
+      for (int hit = 0; hit < REGION3_DETECTOR(NbOfHits); hit++) {
+        Double_t rx = REGION3_DETECTOR(GlobalPositionX).at(hit);
+        Double_t ry = REGION3_DETECTOR(GlobalPositionY).at(hit);
+        Double_t rz = REGION3_DETECTOR(GlobalPositionZ).at(hit);
+        position.push_back(TVector3(rx,ry,rz));
+        Double_t px = REGION3_DETECTOR(GlobalMomentumX).at(hit);
+        Double_t py = REGION3_DETECTOR(GlobalMomentumY).at(hit);
+        Double_t pz = REGION3_DETECTOR(GlobalMomentumZ).at(hit);
+        momentum.push_back(TVector3(px,py,pz));
+      }
       break;
-    }
     default:
       QwError << "Region not supported!" << QwLog::endl;
       break;
   }
-  QwPartialTrack* partialtrack = new QwPartialTrack(position, momentum);
-  partialtrack->SetRegion(region);
-  return partialtrack;
+
+  // Add the hits to the list of partial tracks
+  for (size_t hit = 0; hit < position.size(); hit++) {
+    QwPartialTrack* partialtrack = new QwPartialTrack(position.at(hit), momentum.at(hit));
+    partialtrack->SetRegion(region);
+    partialtracklist.push_back(partialtrack);
+  }
+
+  // Return the list of partial tracks
+  return partialtracklist;
 }
 
 

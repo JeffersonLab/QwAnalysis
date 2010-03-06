@@ -25,6 +25,11 @@ using std::vector;
 // Qweak headers
 #include "QwTypes.h"
 
+// Definition of the reference detectors (## is concatenation)
+#define REGION1_DETECTOR(var) fRegion1_ChamberFront_WirePlane_ ## var
+#define REGION2_DETECTOR(var) fRegion2_ChamberFront_WirePlane1_ ## var
+#define REGION3_DETECTOR(var) fRegion3_ChamberFront_WirePlaneU_ ## var
+
 // Forward declarations
 class QwDetectorInfo;
 class QwHit;
@@ -63,8 +68,8 @@ class QwTreeEventBuffer
     /// \brief Get the hit list
     QwHitContainer* GetHitList() const;
 
-    /// \brief Get the partial track
-    QwPartialTrack* GetPartialTrack(EQwRegionID region) const;
+    /// \brief Get the partial tracks
+    std::vector<QwPartialTrack*> GetPartialTracks(EQwRegionID region) const;
 
     /// Enable resolution effects (smearing of drift distances)
     void EnableResolutionEffects() { fDoResolutionEffects = true; };

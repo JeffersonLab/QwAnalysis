@@ -12,6 +12,12 @@
 // System headers
 #include <iostream>
 
+// Qweak headers
+
+// Forward declarations
+class QwTrack;
+class QwPartialTrack;
+
 /**
  *  \class VQwBridgingMethod
  *  \ingroup QwTracking
@@ -26,8 +32,18 @@ class VQwBridgingMethod {
     /// Destructor
     virtual ~VQwBridgingMethod() { };
 
+    /// \brief Bridge from the front to back partial track (pure virtual)
+    virtual bool Bridge(QwPartialTrack* front, QwPartialTrack* back) = 0;
+
+    /// Clear the list of tracks
+    virtual void ClearListOfTracks() { fListOfTracks.clear(); };
+    /// Get the list of tracks that was found
+    virtual std::vector<QwTrack*> GetListOfTracks() const { return fListOfTracks; };
+
   private:
 
+    /// List of tracks that were found in this bridging attempt
+    std::vector<QwTrack*> fListOfTracks;
 
 }; // class VQwBridgingMethod
 

@@ -1,13 +1,35 @@
 // This is an example for testing the bridging code
 
-// Qweak Tracking headers
+// Qweak tracking headers
 #include "QwOptionsTracking.h"
 #include "QwParameterFile.h"
-#include "Det.h"
 #include "QwRayTracer.h"
+#include "QwMatrixLookup.h"
 
-int main (int argc, char* argv[]) {
+#include "QwTreeEventBuffer.h"
+#include "QwSubsystemArrayTracking.h"
+#include "QwGasElectronMultiplier.h"
+#include "QwDriftChamberHDC.h"
+#include "QwDriftChamberVDC.h"
 
+// Deprecated
+#include "Det.h"
+
+
+/**
+ * Method to print vectors conveniently
+ * @param stream Output stream
+ * @param v Vector
+ * @return Output stream
+ */
+inline ostream& operator<< (ostream& stream, const TVector3& v)
+{
+  stream << "(" << v.X() << "," << v.Y() << "," << v.Z() << ")";
+  return stream;
+}
+
+int main (int argc, char* argv[])
+{
     bool debug = false;
 
     // Create a timer
@@ -21,19 +43,56 @@ int main (int argc, char* argv[]) {
     QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
     QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput");
 
+    /// For the tracking analysis we create the QwSubsystemArrayTracking list
+    /// which contains the VQwSubsystemTracking objects.
+    QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking();
+
+    // Region 1 GEM
+    detectors->push_back(new QwGasElectronMultiplier("R1"));
+    //detectors->GetSubsystem("R1")->LoadChannelMap("qweak_cosmics_hits.map");
+    ((VQwSubsystemTracking*) detectors->GetSubsystem("R1"))->LoadQweakGeometry("qweak_new.geo");
+
+    // Region 2 HDC
+    detectors->push_back(new QwDriftChamberHDC("R2"));
+    detectors->GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");
+    ((VQwSubsystemTracking*) detectors->GetSubsystem("R2"))->LoadQweakGeometry("qweak_new.geo");
+
+    // Region 3 VDC
+    detectors->push_back(new QwDriftChamberVDC("R3"));
+    detectors->GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
+    ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
+
+    // Get vector with detector info (by region, plane number)
+    std::vector< std::vector< QwDetectorInfo > > detector_info;
+    ((VQwSubsystemTracking*) detectors->GetSubsystem("R2"))->GetDetectorInfo(detector_info);
+    ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->GetDetectorInfo(detector_info);
+    ((VQwSubsystemTracking*) detectors->GetSubsystem("R1"))->GetDetectorInfo(detector_info);
+
+
+    /// Create a lookup table bridging method
+    std::string trajmatrix = std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QwTrajMatrix.root";
+    QwMatrixLookup* matrixlookup = new QwMatrixLookup();
+    if (! QwMatrixLookup::LoadTrajMatrix(trajmatrix)) {
+      QwError << "Could not load trajectory lookup table!" << QwLog::endl;
+      return false;
+    }
+
+    /// Create a ray tracer bridging method
+    std::string fieldmap = std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/MainMagnet_FieldMap.dat";
     QwRayTracer* raytracer = new QwRayTracer();
+    if (! QwRayTracer::LoadMagneticFieldMap(fieldmap)) {
+      QwError << "Could not load magnetic field map!" << QwLog::endl;
+      return false;
+    }
 
-    QwRayTracer::LoadMagneticFieldMap();
-    raytracer->LoadTrajMatrix();
 
+    // Loop over the runs
     for (UInt_t runnumber =  (UInt_t) gQwOptions.GetIntValuePairFirst("run");
-            runnumber <= (UInt_t) gQwOptions.GetIntValuePairLast("run");
-            runnumber++) {
+                runnumber <= (UInt_t) gQwOptions.GetIntValuePairLast("run");
+                runnumber++) {
 
-        // Load the simulated event file
-        TString inputfilename = Form(TString(getenv("QWSCRATCH")) + "/data/QwSim_%d.root", runnumber);
+        // Setup the output file
         TString outputfilename = Form(TString(getenv("QWSCRATCH")) + "/rootfiles/QwSimBridge_%d.root", runnumber);
-
         TFile *outfile = new TFile(outputfilename, "RECREATE", "Bridging result");
         outfile->cd();
         TTree *tree = new TTree("tree", "Bridging");
@@ -96,39 +155,84 @@ int main (int argc, char* argv[]) {
         tree->Branch("CpuTime",&CpuTime,"CpuTime/D");
         tree->Branch("RealTime",&RealTime,"RealTime/D");
 
-        Int_t evtnum=0;
-        TrackID = 0;
-        for ( eventnumber  = gQwOptions.GetIntValuePairFirst("event");
-                eventnumber <= gQwOptions.GetIntValuePairLast("event"); eventnumber++) {
 
-            // vector to hold multi-hit
-            std::vector<TVector3> startpoint;
-            std::vector<TVector3> startpointdirection;
-            std::vector<TVector3> endpoint;
-            std::vector<TVector3> endpointdirection;
+        /// Load the simulated event file
+        TString input = Form(TString(getenv("QWSCRATCH")) + "/data/QwSim_%d.root", runnumber);
+        QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (input, detector_info);
+        treebuffer->EnableResolutionEffects();
 
-            // This is slow due to accessing the disk every time
-            int status = raytracer->ReadSimPartialTrack(inputfilename, eventnumber,
-                         &startpoint, &startpointdirection,
-                         &endpoint, &endpointdirection);
-            if (status == -1) {
-                break;
-            }
 
-            evtnum++;
+        /// We loop over all requested events.
+        Int_t entries = treebuffer->GetEntries();
+        Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
+        Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
+        for (eventnumber  = eventnumber_min;
+             eventnumber <= eventnumber_max &&
+             eventnumber  < entries; eventnumber++) {
+
+            /// Print event number
+            QwMessage << "Event " << eventnumber << QwLog::endl;
+
+            /// Read the event from the tree
+            treebuffer->GetEntry(eventnumber);
+
+            /// Get the partial tracks in the front and back region
+            std::vector<QwPartialTrack*> tracks_r2 = treebuffer->GetPartialTracks(kRegionID2);
+            std::vector<QwPartialTrack*> tracks_r3 = treebuffer->GetPartialTracks(kRegionID3);
+
+            // Reset the track id
+            TrackID = 0;
+
 
             // TODO process multi-hit
             // Take only one hit in each region for now by setting i<1 && j<1
-            for (size_t i=0; i<startpoint.size() && i<1; i++) {
-                for (size_t j=0; j<endpoint.size() && j<1; j++) {
-                    raytracer->SetStartAndEndPoints(startpoint[i], startpointdirection[i],
-                                                     endpoint[j], endpointdirection[j]);
-                    timer.Start();
-                    status = raytracer->BridgeFrontBackPartialTrack();
-                    timer.Stop();
-                    CpuTime = timer.CpuTime();
-                    RealTime = timer.RealTime();
-                    timer.Reset();
+            for (size_t i = 0; i < tracks_r2.size() && i < 1; i++) {
+                for (size_t j = 0; j < tracks_r3.size() && j < 1; j++) {
+
+                    // Determine the start and end points and directions
+                    // TODO Parametrize to use a detector, not hardcoded (wrong!) position
+                    TVector3 _startpoint = tracks_r2.at(i)->GetPosition(-330.685);
+                    TVector3 _startpointdirection = tracks_r2.at(i)->GetMomentumDirection();
+                    TVector3 _endpoint = tracks_r3.at(j)->GetPosition(439.625);
+                    TVector3 _endpointdirection = tracks_r3.at(j)->GetMomentumDirection();
+
+                    // Set the start and end points and directions
+                    matrixlookup->SetStartAndEndPoints(_startpoint, _startpointdirection,
+                                                     _endpoint, _endpointdirection);
+                    raytracer->SetStartAndEndPoints(_startpoint, _startpointdirection,
+                                                     _endpoint, _endpointdirection);
+
+                    // Filter tracks based on parameters (TODO still in QwRayTracer)
+                    int status = raytracer->Filter();
+                    if (status == -1) {
+                        QwMessage << "Track did not pass filter" << QwLog::endl;
+                        continue;
+                    }
+                    status = -1;
+
+                    // Bridge using the lookup table
+                    if (status == -1) {
+                        timer.Start();
+                        status = matrixlookup->BridgeFrontBackPartialTrack();
+                        timer.Stop();
+                        CpuTime = timer.CpuTime();
+                        RealTime = timer.RealTime();
+                        timer.Reset();
+                        if (status == 0) matrixlookup->GetBridgingResult(bridgingresult);
+                        else QwMessage << "Matrix lookup: " << status << QwLog::endl;
+                    }
+
+                    // Bridge using the ray tracer
+                    if (status == -1) {
+                        timer.Start();
+                        status = raytracer->BridgeFrontBackPartialTrack();
+                        timer.Stop();
+                        CpuTime = timer.CpuTime();
+                        RealTime = timer.RealTime();
+                        timer.Reset();
+                        if (status == 0) raytracer->GetBridgingResult(bridgingresult);
+                        else QwMessage << "Ray tracer: " << status << QwLog::endl;
+                    }
 
                     if (status == 0) {
                         if (debug) {
@@ -136,7 +240,6 @@ int main (int argc, char* argv[]) {
                             raytracer->PrintInfo();
                         }
                         TrackID++;
-                        raytracer->GetBridgingResult(bridgingresult);
                         tree->Fill();
                     } else
                         if (debug) std::cout<<"======>>>> No luck on bridging this track."<<std::endl;
@@ -146,19 +249,24 @@ int main (int argc, char* argv[]) {
             } // end of i-loop
 
 
-            if (evtnum%100==0) {
+            if (eventnumber > 0 && eventnumber % 100 == 0) {
                 tree->AutoSave();
                 gDirectory->Purge();
-                std::cout<<"Processed "<<evtnum<<" events"<<std::endl;
+                QwMessage << "Processed " << eventnumber << " events" << QwLog::endl;
             }
-        }
 
+        } // end of the loop over events
+
+        // Write output root file
         outfile->Write(0, TObject::kOverwrite);
         outfile->Close();
         delete outfile;
-    }
 
+    } // end of the loop over runs
+
+    // Delete objects
     delete raytracer;
+    delete matrixlookup;
 
     return 0;
 

@@ -7,6 +7,7 @@
 
 #include "QwMagneticField.h"
 
+// Boost headers
 #ifdef __USE_BOOST_IOSTREAMS
 // Boost IOstreams headers
 // There is support for gzipped iostreams as magnetic field maps.  Compile with
@@ -18,15 +19,20 @@
 #include <boost/iostreams/device/file.hpp>
 #endif
 
+// ROOT headers
 #include "TMath.h"
 
-QwMagneticField::QwMagneticField()
-  :invertX(false),invertY(false),invertZ(false)
-{
-  std::cout << std::endl << "###### Calling QwMagneticField::QwMagneticField " << std::endl << std::endl;
+// Qweak headers
+#include "QwLog.h"
+#include "QwUnits.h"
 
-  // needed later for field rotation
-  BField_ANSYS = new TVector3();
+/**
+ * Default constructor with optional field map
+ */
+QwMagneticField::QwMagneticField(const std::string filename)
+  :fInvertX(false),fInvertY(false),fInvertZ(false)
+{
+  QwDebug << "###### Calling QwMagneticField::QwMagneticField " << QwLog::endl;
 
   // initialize field map parameters
   // here: from the QTOR field map file
@@ -45,8 +51,8 @@ QwMagneticField::QwMagneticField()
   gridstepsize_phi = 1.0;
   gridstepsize_z   = 2.0;
 
-  fUnitBfield = 0.1;    //kilogauss;    // units of new field map ???? yes, tested it (1kG = 0.1T)
-                                         // used field unit tesla withs results in a too strong field
+  fUnitBfield = Qw::kG; // units of new field map, tested it (1kG = 0.1T)
+                        // used field unit tesla withs results in a too strong field
 
   // initialize variables
   //Initialize();
@@ -59,12 +65,19 @@ QwMagneticField::QwMagneticField()
   // Initialize the grid
   InitializeGrid();
 
-  std::cout << std::endl << "###### Leaving QwMagneticField::QwMagneticField " << std::endl << std::endl;
+  // Load field map if requested
+  if (filename.length() > 0) ReadFieldMapFile(filename);
+
+  QwDebug << "###### Leaving QwMagneticField::QwMagneticField " << QwLog::endl;
 }
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+
+/**
+ * Initialize the grid size and boundaries
+ */
 void QwMagneticField::InitializeGrid()
 {
-  std::cout << std::endl << "###### Calling QwMagneticField::Initialize " << std::endl << std::endl;
+  QwDebug << "###### Calling QwMagneticField::Initialize " << QwLog::endl;
 
   gridstepsize_r   *= fDataReductionFactor;
   gridstepsize_phi *= fDataReductionFactor;
@@ -97,27 +110,28 @@ void QwMagneticField::InitializeGrid()
     BFieldGridData_Phi[i] = 0.0;
   }
 
-  std::cout << std::endl << "###### Leaving QwMagneticField::Initialize " << std::endl << std::endl;
+  QwDebug << "###### Leaving QwMagneticField::Initialize " << QwLog::endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-void QwMagneticField::ReadFieldMapFile(std::string filename)
+const bool QwMagneticField::ReadFieldMapFile(const std::string filename)
 {
   // Open the field map file
   std::ifstream inputfile;
   inputfile.open(filename.c_str(), std::ios_base::in);
   // Check for success
   if (!inputfile.good()) {
-    std::cerr << "Error: Could not open field map file!" << std::endl;
-    std::cerr << "File name: " << filename << std::endl;
+    QwError << "Could not open field map file!" << QwLog::endl;
+    QwError << "File name: " << filename << QwLog::endl;
+    return false;
   }
 
   // Read the input field map stream
-  ReadFieldMap(inputfile);
+  return ReadFieldMap(inputfile);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-void QwMagneticField::ReadFieldMapZip(std::string filename)
+const bool QwMagneticField::ReadFieldMapZip(const std::string filename)
 {
 #ifdef __USE_BOOST_IOSTREAMS
   // Create a gzip filter for the field map file
@@ -126,16 +140,17 @@ void QwMagneticField::ReadFieldMapZip(std::string filename)
   inputfile.push(boost::iostreams::file_source(filename));
 
   // Read the input field map stream
-  ReadFieldMap(inputfile);
+  return ReadFieldMap(inputfile);
 #else
-  std::cout << "Compressed input files not supported!" << std::endl;
+  QwWarning << "Compressed input files not supported!" << QwLog::endl;
+  return false;
 #endif
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-void QwMagneticField::ReadFieldMap(std::istream& input)
+const bool QwMagneticField::ReadFieldMap(std::istream& input)
 {
-  std::cout << std::endl << "###### Calling QwMagneticField::ReadFieldMap " << std::endl << std::endl;
+  QwDebug << "###### Calling QwMagneticField::ReadFieldMap " << QwLog::endl;
 
   int r_index;
   int phi_index;
@@ -153,13 +168,14 @@ void QwMagneticField::ReadFieldMap(std::istream& input)
 
   // Check for stream
   if (!input.good()) {
-    std::cerr << "Error: Could not open field map stream!" << std::endl;
+    QwError << "Error: Could not open field map stream!" << QwLog::endl;
+    return false;
   }
 
 
-  std::cout << "------------------------------" << std::endl;
-  std::cout << " Magnetic field interpolation " << std::endl;
-  std::cout << "------------------------------" << std::endl;
+  QwMessage << "------------------------------" << QwLog::endl;
+  QwMessage << " Magnetic field interpolation " << QwLog::endl;
+  QwMessage << "------------------------------" << QwLog::endl;
 
   unsigned int entries = 0;
   while (input.good()) {
@@ -194,10 +210,10 @@ void QwMagneticField::ReadFieldMap(std::istream& input)
       unsigned int oldsize = 0;
       oldsize = fGridSize;
       unsigned int newsize = (int)(1.10 * fGridSize) + 1;
-      //std::cout << "[QwMagneticField] Warning: Need to resize the field map"
+      //QwDebug << "[QwMagneticField] Warning: Need to resize the field map"
       //                      << " from " << oldsize
       //                      << " to "   << newsize
-      //                      << " at index " << ind << std::endl;
+      //                      << " at index " << ind << QwLog::endl;
       fGridSize = newsize;
       BFieldGridData_X.resize(newsize);
       BFieldGridData_Y.resize(newsize);
@@ -217,28 +233,30 @@ void QwMagneticField::ReadFieldMap(std::istream& input)
     BFieldGridData_R[ind]   = br   * fUnitBfield * fFieldScalingFactor;
     BFieldGridData_Phi[ind] = bphi * fUnitBfield * fFieldScalingFactor;
 
-    //std::cout<<"bx by bz :"<<bx<<", "<<by<<", "<<bz<<std::endl;
+    //QwDebug << "bx by bz :" << bx << ", " << by << ", " << bz << QwLog::endl;
 
-    // Progress bar (TODO This doesn't work if you guess the grid size wrong
+    // Progress bar (TODO This doesn't work if you guess the grid size wrong)
     if (entries % (fGridSize / 10) == 0)
-      std::cout << 100 * entries / fGridSize << "%" << std::flush;
+      QwMessage << 100 * entries / fGridSize << "%" << std::flush;
     if (entries % (fGridSize / 10) != 0 && entries % (fGridSize / 40) == 0)
-      std::cout << "." << std::flush;
+      QwMessage << "." << std::flush;
 
     entries++;
   };
+  QwMessage << QwLog::endl;
 
-  std::cout << std::endl;
-  std::cout << "Read from stream " << entries << " entries" << std::endl;
-  std::cout << "The grid size is " << fGridSize << std::endl;
+  QwMessage << "Read from stream " << entries << " entries" << QwLog::endl;
+  QwMessage << "The grid size is " << fGridSize << QwLog::endl;
 
-  std::cout << std::endl << "###### Leaving QwMagneticField::ReadFieldMap " << std::endl << std::endl;
+  QwDebug << "###### Leaving QwMagneticField::ReadFieldMap " << QwLog::endl;
+
+  return true;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 QwMagneticField::~QwMagneticField()
 {
-  delete BField_ANSYS ;
+  // stub
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

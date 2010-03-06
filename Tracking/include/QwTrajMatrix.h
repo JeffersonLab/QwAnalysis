@@ -12,6 +12,7 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
+// System headers
 #include <cstdlib>
 #include <iostream>
 #include <vector>
@@ -24,14 +25,10 @@
 #include <TRandom3.h>
 #include <TStopwatch.h>
 
-//  KLUDGE:  Add this header file to force the compiler to build
-//  the correct dependency structure.  The proper thing would
-//  be to have the Makefile recurse through all classes that
-//  any included class depends on; I have a partial solution
-//  but it isn't ready to commit tonight (2009dec15; pking).
 // Qweak headers
 #include "QwMagneticField.h"
 
+// ROOT Math Interpolator headers
 #if defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
 # include <Math/Interpolator.h>
 #else
@@ -44,6 +41,7 @@
 
 // Qweak headers
 #include "VQwBridgingMethod.h"
+#include "QwUnits.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -82,7 +80,7 @@
 // temporary class for store partial track parameter
 class QwPartialTrackParameter {
 
-public:
+  public:
     float fPositionR;
     float fPositionPhi;
     float fDirectionTheta;
@@ -92,7 +90,7 @@ public:
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-class QwTrajMatrix: public VQwBridgingMethod {
+class QwTrajMatrix {
 
   public:
 
@@ -101,11 +99,42 @@ class QwTrajMatrix: public VQwBridgingMethod {
     /// \brief Destructor
     virtual ~QwTrajMatrix();
 
-    void GenerateTrajMatrix();
-    int ReadTrajMatrixFile( std::vector <QwPartialTrackParameter> *backtrackparametertable );
+    const bool WriteTrajMatrix(const std::string filename);
+    const bool ReadTrajMatrixFile(const std::string filename);
+
+    const QwPartialTrackParameter& at(const unsigned int index) const {
+      return fBackTrackParameterTable.at(index);
+    };
 
   private:
 
+    /// \brief Index based on cylindrical coordinates
+    const unsigned int Index(const unsigned int index_p, const unsigned int ind_r, const unsigned int ind_phi, const unsigned int ind_z) const;
+
+    /// Table with the track parameters
+    std::vector<QwPartialTrackParameter> fBackTrackParameterTable;
+
 }; // class QwTrajMatrix
+
+
+/**
+ * Calculate the index based on the cylindrical world coordinates
+ * @param index_p Index in momentum
+ * @param index_r Index in radial position
+ * @param index_phi Index in azimuthal angle
+ * @param index_z Index in longitudinal position
+ * @return Index in the vector
+ */
+inline const unsigned int QwTrajMatrix::Index(
+	const unsigned int index_p,
+	const unsigned int index_r,
+	const unsigned int index_phi,
+	const unsigned int index_z) const
+{
+  return index_z
+         + Z_GRIDSIZE * index_phi
+         + Z_GRIDSIZE * PHI_GRIDSIZE * index_r
+         + Z_GRIDSIZE * PHI_GRIDSIZE * R_GRIDSIZE * index_p;
+}
 
 #endif // QWTRAJMATRIX_H

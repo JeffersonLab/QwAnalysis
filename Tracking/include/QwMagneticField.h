@@ -33,10 +33,8 @@ class QwMagneticField {
 
   public:
 
-    /// \brief Default constructor
-    QwMagneticField();
-    /// \brief Constructor with field map
-    QwMagneticField(std::string filename) { ReadFieldMapFile(filename); };
+    /// \brief Default constructor with optional field map
+    QwMagneticField(const std::string filename = "");
     /// \brief Virtual destructor
     virtual ~QwMagneticField();
 
@@ -75,14 +73,15 @@ class QwMagneticField {
 				    const  int GridPoint_Z,
 				    double *BFieldGridValue ) const;
 
+    /// \brief Initialize the grid size and boundaries
     void InitializeGrid();
 
     /// \brief Read a field map input file
-    void ReadFieldMapFile(std::string filename);
+    const bool ReadFieldMapFile(const std::string filename);
     /// \brief Read a field map input gzip file
-    void ReadFieldMapZip(std::string filename);
+    const bool ReadFieldMapZip(const std::string filename);
     /// \brief Read the field map input stream
-    void ReadFieldMap(std::istream& input);
+    const bool ReadFieldMap(std::istream& input);
 
     void SetFieldMap_RMin      ( double Rmin      ) { rMinFromMap    = Rmin;      }
     void SetFieldMap_RMax      ( double Rmax      ) { rMaxFromMap    = Rmax;      }
@@ -141,9 +140,6 @@ private:
 
     /// \name Storage space for the table of field values
     // @{
-    //std::vector< std::vector< std::vector< double > > > BFieldGridData_X;
-    //std::vector< std::vector< std::vector< double > > > BFieldGridData_Y;
-    //std::vector< std::vector< std::vector< double > > > BFieldGridData_Z;
     std::vector< field_t > BFieldGridData_X; ///< field values in X
     std::vector< field_t > BFieldGridData_Y; ///< field values in X
     std::vector< field_t > BFieldGridData_Z; ///< field values in Z
@@ -151,9 +147,7 @@ private:
     std::vector< field_t > BFieldGridData_Phi; ///< field values in Phi
     // @}
 
-    bool   invertX, invertY, invertZ;
-
-    TVector3* BField_ANSYS;
+    bool   fInvertX, fInvertY, fInvertZ;
 
     double fFieldScalingFactor;
     double fZoffset;
