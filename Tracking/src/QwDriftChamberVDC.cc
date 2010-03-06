@@ -25,13 +25,13 @@ const UInt_t QwDriftChamberVDC::kBackPlaneNum=4;
 const UInt_t QwDriftChamberVDC::kLineNum=8;
 
 QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ): VQwSubsystem ( region_tmp ),
-							     QwDriftChamber ( region_tmp,fWireHitsVDC ) {
-  SetReferenceParameters(-30000., 30000., 64495., 8929., kTRUE);
-  std::vector<QwDelayLine> temp;
-  temp.resize ( kLineNum );
-  fDelayLineArray.resize ( kBackPlaneNum,temp );
-  fDelayLinePtrs.resize ( 21 );
-  OK=0;
+        QwDriftChamber ( region_tmp,fWireHitsVDC ) {
+    SetReferenceParameters(-30000., 30000., 64495., 8929., kTRUE);
+    std::vector<QwDelayLine> temp;
+    temp.resize ( kLineNum );
+    fDelayLineArray.resize ( kBackPlaneNum,temp );
+    fDelayLinePtrs.resize ( 21 );
+    OK=0;
 };
 
 Int_t QwDriftChamberVDC::LoadQweakGeometry ( TString mapfile ) {
@@ -221,8 +221,8 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetect
         x = (drifttime-p[7])/p[8];
     else if (drifttime>=t[3])
         x=(drifttime-p[9])/p[10];
-	//if(drifttime>=4 && drifttime < 4.1)
-	//std::cout << "drifttime: " << drifttime << " " << "x: " << x << std::endl;
+    //if(drifttime>=4 && drifttime < 4.1)
+    //std::cout << "drifttime: " << drifttime << " " << "x: " << x << std::endl;
     return x;
 };
 
@@ -319,62 +319,61 @@ Int_t QwDriftChamberVDC::AddChannelDefinition ( const UInt_t plane, const UInt_t
 }
 
 
-void  QwDriftChamberVDC::FillHistograms()
-{
-  
-  if (! HasDataLoaded()) return;
+void  QwDriftChamberVDC::FillHistograms() {
 
-  
-  QwDetectorID   this_detid;
-  QwDetectorInfo *this_det;
-  
-  //  Fill all of the histograms.
-  
+    if (! HasDataLoaded()) return;
 
-  std::vector<Int_t> wireshitperplane(fWiresPerPlane.size(),0);
 
-  
-  //for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
-	for(std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
-	
-    this_detid = hit1->GetDetectorID();
-    //std::cout << "fElement during FillHistogram: " << this_detid.fElement << std::endl;
-    if (this_detid.fPlane<=0 || this_detid.fElement<=0){
-      if(fDEBUG) {
-	std::cout << "QwDriftChamber::FillHistograms:  Bad plane or element index:  fPlane=="
-		  << this_detid.fPlane << ", fElement==" << this_detid.fElement << std::endl;
-      }
-      continue;
-    }
-    
- 
-    this_det   = &(fWireData.at(this_detid.fPlane).at(this_detid.fElement));
+    QwDetectorID   this_detid;
+    QwDetectorInfo *this_det;
+
+    //  Fill all of the histograms.
+
+
+    std::vector<Int_t> wireshitperplane(fWiresPerPlane.size(),0);
+
+
+    //for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
+    for (std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
+
+        this_detid = hit1->GetDetectorID();
+        //std::cout << "fElement during FillHistogram: " << this_detid.fElement << std::endl;
+        if (this_detid.fPlane<=0 || this_detid.fElement<=0) {
+            if (fDEBUG) {
+                std::cout << "QwDriftChamber::FillHistograms:  Bad plane or element index:  fPlane=="
+                << this_detid.fPlane << ", fElement==" << this_detid.fElement << std::endl;
+            }
+            continue;
+        }
+
+
+        this_det   = &(fWireData.at(this_detid.fPlane).at(this_detid.fElement));
 //std::cout << "getnumberhits: " << this_det->GetNumHits() << std::endl;
-    if (hit1->IsFirstDetectorHit()){
-      //  If this is the first hit for this detector, then let's plot the
-      //  total number of hits this wire had. 
-	HitsWire[this_detid.fPlane]->Fill(this_detid.fElement,this_det->GetNumHits());
-     
-      //  Also increment the total number of events in whichthis wire was hit.
-      TotHits[this_detid.fPlane]->Fill(this_detid.fElement,1);
-      //  Increment the number of wires hit in this plane
-      wireshitperplane.at(this_detid.fPlane) += 1;
+        if (hit1->IsFirstDetectorHit()) {
+            //  If this is the first hit for this detector, then let's plot the
+            //  total number of hits this wire had.
+            HitsWire[this_detid.fPlane]->Fill(this_detid.fElement,this_det->GetNumHits());
+
+            //  Also increment the total number of events in whichthis wire was hit.
+            TotHits[this_detid.fPlane]->Fill(this_detid.fElement,1);
+            //  Increment the number of wires hit in this plane
+            wireshitperplane.at(this_detid.fPlane) += 1;
+        }
+
+        //  Fill ToF histograms
+        TOFP_raw[this_detid.fPlane]->Fill(hit1->GetRawTime());
+        TOFW_raw[this_detid.fPlane]->Fill(this_detid.fElement,hit1->GetRawTime());
+        TOFP[this_detid.fPlane]->Fill(hit1->GetTime());
+        TOFW[this_detid.fPlane]->Fill(this_detid.fElement,hit1->GetTime());
+
+
+
     }
 
-    //  Fill ToF histograms
-    TOFP_raw[this_detid.fPlane]->Fill(hit1->GetRawTime());
-    TOFW_raw[this_detid.fPlane]->Fill(this_detid.fElement,hit1->GetRawTime());
-    TOFP[this_detid.fPlane]->Fill(hit1->GetTime());
-    TOFW[this_detid.fPlane]->Fill(this_detid.fElement,hit1->GetTime());
-    
-    
+    for (size_t iplane=1; iplane<fWiresPerPlane.size(); iplane++) {
+        WiresHit[iplane]->Fill(wireshitperplane[iplane]);
 
-  }
-
-  for (size_t iplane=1; iplane<fWiresPerPlane.size(); iplane++) {
-      WiresHit[iplane]->Fill(wireshitperplane[iplane]);
-
-     }
+    }
 };
 
 
@@ -442,10 +441,10 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile ) {
         dir= mapstr.GetNextToken ( ", \t()" ).c_str();
         firstwire= ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
 
-	if( pknum== "u")
-        BuildWireDataStructure(channum,kPackageUp,plnum,firstwire);
-	else if(pknum== "d")
-	BuildWireDataStructure(channum,kPackageDown,plnum,firstwire);
+        if ( pknum== "u")
+            BuildWireDataStructure(channum,kPackageUp,plnum,firstwire);
+        else if (pknum== "d")
+            BuildWireDataStructure(channum,kPackageDown,plnum,firstwire);
         if ( fDelayLineArray.at ( bpnum ).at ( lnnum ).Fill == false ) { //if this delay line has not been Filled in the data
             std::string a = mapstr.GetNextToken ( ", \t()" ) ;
             while ( a.size() !=0 ) {
@@ -515,6 +514,7 @@ void QwDriftChamberVDC::ProcessEvent() {
     if ( ! HasDataLoaded() ) return;
     //  Do the reference time subtration and subtration of time offsets.
     SubtractReferenceTimes();
+    LoadTimeWireOffset("t0.txt");
 
     Double_t real_time=0,drift_distance=0;
     Double_t tmpTime=0,left_time=0,right_time=0;
@@ -575,22 +575,26 @@ void QwDriftChamberVDC::ProcessEvent() {
                 left_time=fDelayLineArray.at ( tmpbp ).at ( tmpln ).LeftHits.at ( order_L );
                 right_time=fDelayLineArray.at ( tmpbp ).at ( tmpln ).RightHits.at ( order_R );
 
-                real_time= ( left_time+right_time ) /2;
-                real_time=1430-0.1132*real_time;
+                //real_time= ( left_time+right_time ) /2;
+                //real_time=1430-0.1132*real_time;
 
                 for ( Int_t j=0;j<Ambiguitycount;j++ ) {
+                    real_time= ( left_time+right_time ) /2;
                     wire_hit=fDelayLineArray.at ( tmpbp ).at ( tmpln ).Wire.at ( i ).at ( j );
                     wire_array.push_back ( wire_hit );
                     mycount=count ( wire_array.begin(),wire_array.end(),wire_hit )-1;
 
 
-                    QwHit NewQwHit ( tmpCrate, tmpModule, tmpChan, mycount, kRegionID3,
-                                     package, plane,
-                                     direction,fDelayLineArray.at ( tmpbp ).at ( tmpln ).Wire.at ( i ).at ( j ),
-                                     left_time );
+                    // QwHit NewQwHit ( tmpCrate, tmpModule, tmpChan, mycount, kRegionID3,package, plane,direction,fDelayLineArray.at ( tmpbp ).at ( tmpln ).Wire.at ( i ).at ( j ),left_time );
+                    QwHit NewQwHit ( tmpCrate, tmpModule, tmpChan, mycount, kRegionID3,package, plane,direction,wire_hit,left_time );
 
-                    AddChannelDefinition(fDelayLineArray.at (tmpbp).at(tmpln).fPlane,fDelayLineArray.at(tmpbp).at(tmpln).Wire.at(i).at(j) );
+                    //AddChannelDefinition(fDelayLineArray.at (tmpbp).at(tmpln).fPlane,fDelayLineArray.at(tmpbp).at(tmpln).Wire.at(i).at(j) );
+                    AddChannelDefinition(fDelayLineArray.at (tmpbp).at(tmpln).fPlane,wire_hit );
                     NewQwHit.SetHitNumberR ( order_R );
+                    Int_t t0=fTimeWireOffsets[package][plane][wire_hit-1];
+                    if(t0==0&&t0>1500) t0=1430;
+                    real_time=t0-0.1132*real_time;
+
                     if ( real_time<0 ) continue;
                     NewQwHit.SetTime ( real_time );
 
@@ -609,6 +613,9 @@ void QwDriftChamberVDC::ProcessEvent() {
         }
     }
 }
+
+
+
 
 
 void QwDriftChamberVDC::ClearEventData() {

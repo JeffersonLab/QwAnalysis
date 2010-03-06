@@ -61,6 +61,8 @@ class QwDriftChamberVDC: public QwDriftChamber {
 
  void ClearEventData();
 
+ 
+
  //void GetHitList(QwHitContainer & grandHitContainer){
  //  grandHitContainer.Append(fWireHits);
  //};
