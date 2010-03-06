@@ -252,7 +252,7 @@ main(Int_t argc, Char_t* argv[])
 
 
 
-      //This will print running averages
+  
       QwHelPat.CalculateRunningAverage();//this will calculate running averages for Asymmetries and Yields per quartet
       timer.Stop();
 
@@ -314,6 +314,7 @@ main(Int_t argc, Char_t* argv[])
       QwDetectors.FillMySQLServer(serv);
       
       */
+      //    sqlserv->Disconnect();
       delete sqlserv;sqlserv = NULL;
     } //end of run loop
   

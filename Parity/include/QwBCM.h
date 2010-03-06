@@ -86,8 +86,8 @@ class QwBCM : public VQwDataElement{
  
   void  DeleteHistograms();
 
-  Double_t GetAverage() { return fTriumf_ADC.GetAverage();};
-  Double_t GetAverageError() {return fTriumf_ADC.GetAverageError();};
+  Double_t GetAverage(TString type) { return fTriumf_ADC.GetAverage();};
+  Double_t GetAverageError(TString type) {return fTriumf_ADC.GetAverageError();};
 
 
   void Copy(VQwDataElement *source);

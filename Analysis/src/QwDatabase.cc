@@ -492,7 +492,7 @@ const UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
 
     this->Connect();
 
-    analysis analysis_row;
+    analysis analysis_row(0);
 
     analysis_row.run_id  = GetRunID(qwevt);
 

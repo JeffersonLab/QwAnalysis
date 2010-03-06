@@ -145,7 +145,6 @@ class VQwSubsystem {
   virtual void  DeleteTree() { return; };
   // @}
 
-
   /// \brief Print some information about the subsystem
   virtual void  Print();
 

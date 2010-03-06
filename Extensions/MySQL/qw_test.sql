@@ -640,7 +640,7 @@ CREATE TABLE `monitor_calibration` (
   `time` datetime default NULL COMMENT 'time this calibration set was put into the database',
   `comment` text COMMENT 'user comment',
   PRIMARY KEY  (`monitor_calibration_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -649,6 +649,7 @@ SET character_set_client = @saved_cs_client;
 
 LOCK TABLES `monitor_calibration` WRITE;
 /*!40000 ALTER TABLE `monitor_calibration` DISABLE KEYS */;
+INSERT INTO `monitor_calibration` VALUES (1,0,0,NULL,'test');
 /*!40000 ALTER TABLE `monitor_calibration` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -934,7 +935,7 @@ CREATE TABLE `run` (
   `n_mps` int(10) unsigned NOT NULL default '0' COMMENT 'number of MPSs in run',
   `n_qrt` int(10) unsigned NOT NULL default '0' COMMENT 'number of quartets in run',
   PRIMARY KEY  (`run_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -943,6 +944,7 @@ SET character_set_client = @saved_cs_client;
 
 LOCK TABLES `run` WRITE;
 /*!40000 ALTER TABLE `run` DISABLE KEYS */;
+INSERT INTO `run` VALUES (1,753,NULL,NULL,NULL,0,0);
 /*!40000 ALTER TABLE `run` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1102,6 +1104,7 @@ SET character_set_client = @saved_cs_client;
 
 LOCK TABLES `summary_ba` WRITE;
 /*!40000 ALTER TABLE `summary_ba` DISABLE KEYS */;
+INSERT INTO `summary_ba` VALUES (753,'in',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `summary_ba` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1137,6 +1140,7 @@ SET character_set_client = @saved_cs_client;
 
 LOCK TABLES `summary_by` WRITE;
 /*!40000 ALTER TABLE `summary_by` DISABLE KEYS */;
+INSERT INTO `summary_by` VALUES (753,'in',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `summary_by` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1155,7 +1159,7 @@ CREATE TABLE `summary_da_calc` (
   `value` float default NULL COMMENT 'detector value',
   `error` float default NULL COMMENT 'detector error',
   PRIMARY KEY  (`summary_da_calc_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -1164,6 +1168,7 @@ SET character_set_client = @saved_cs_client;
 
 LOCK TABLES `summary_da_calc` WRITE;
 /*!40000 ALTER TABLE `summary_da_calc` DISABLE KEYS */;
+INSERT INTO `summary_da_calc` VALUES (1,753,NULL,1,NULL,NULL),(2,753,NULL,2,NULL,NULL),(3,753,NULL,3,NULL,NULL),(4,753,NULL,4,NULL,NULL),(5,753,NULL,5,NULL,NULL),(6,753,NULL,6,NULL,NULL),(7,753,NULL,7,NULL,NULL),(8,753,NULL,8,NULL,NULL);
 /*!40000 ALTER TABLE `summary_da_calc` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1182,7 +1187,7 @@ CREATE TABLE `summary_da_correct` (
   `value` float default NULL COMMENT 'detector value',
   `error` float default NULL COMMENT 'detector error',
   PRIMARY KEY  (`summary_da_correct_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -1191,6 +1196,7 @@ SET character_set_client = @saved_cs_client;
 
 LOCK TABLES `summary_da_correct` WRITE;
 /*!40000 ALTER TABLE `summary_da_correct` DISABLE KEYS */;
+INSERT INTO `summary_da_correct` VALUES (1,753,NULL,1,NULL,NULL),(2,753,NULL,2,NULL,NULL),(3,753,NULL,3,NULL,NULL),(4,753,NULL,4,NULL,NULL),(5,753,NULL,5,NULL,NULL),(6,753,NULL,6,NULL,NULL),(7,753,NULL,7,NULL,NULL),(8,753,NULL,8,NULL,NULL);
 /*!40000 ALTER TABLE `summary_da_correct` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1209,7 +1215,7 @@ CREATE TABLE `summary_dy_calc` (
   `value` float default NULL COMMENT 'detector value',
   `error` float default NULL COMMENT 'detector error',
   PRIMARY KEY  (`summary_dy_calc_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -1218,6 +1224,7 @@ SET character_set_client = @saved_cs_client;
 
 LOCK TABLES `summary_dy_calc` WRITE;
 /*!40000 ALTER TABLE `summary_dy_calc` DISABLE KEYS */;
+INSERT INTO `summary_dy_calc` VALUES (1,753,NULL,1,NULL,NULL),(2,753,NULL,2,NULL,NULL),(3,753,NULL,3,NULL,NULL),(4,753,NULL,4,NULL,NULL),(5,753,NULL,5,NULL,NULL),(6,753,NULL,6,NULL,NULL),(7,753,NULL,7,NULL,NULL),(8,753,NULL,8,NULL,NULL);
 /*!40000 ALTER TABLE `summary_dy_calc` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1236,7 +1243,7 @@ CREATE TABLE `summary_dy_correct` (
   `value` float default NULL COMMENT 'detector value',
   `error` float default NULL COMMENT 'detector error',
   PRIMARY KEY  (`summary_dy_correct_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -1245,6 +1252,7 @@ SET character_set_client = @saved_cs_client;
 
 LOCK TABLES `summary_dy_correct` WRITE;
 /*!40000 ALTER TABLE `summary_dy_correct` DISABLE KEYS */;
+INSERT INTO `summary_dy_correct` VALUES (1,753,NULL,1,NULL,NULL),(2,753,NULL,2,NULL,NULL),(3,753,NULL,3,NULL,NULL),(4,753,NULL,4,NULL,NULL),(5,753,NULL,5,NULL,NULL),(6,753,NULL,6,NULL,NULL),(7,753,NULL,7,NULL,NULL),(8,753,NULL,8,NULL,NULL);
 /*!40000 ALTER TABLE `summary_dy_correct` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1342,4 +1350,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2010-02-17 18:48:06
+-- Dump completed on 2010-03-05 21:10:08

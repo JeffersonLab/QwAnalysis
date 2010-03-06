@@ -33,7 +33,7 @@ class QwSubsystemArrayParity:  public QwSubsystemArray {
     ConstructBranchAndVector(tree,tmpstr,values);
   };
   void FillTreeVector(std::vector<Double_t> &values);
-  void FillDB(QwDatabase *db);
+  void FillDB(QwDatabase *db, TString type);
 
   void Copy(QwSubsystemArrayParity *source);
 
@@ -52,10 +52,6 @@ class QwSubsystemArrayParity:  public QwSubsystemArray {
  public:
   std::vector<TString> sFailedSubsystems;
 
-
-  TString sArrayParityName;
-  virtual TString GetArrayParityName(){return sArrayParityName;}
-  virtual void    SetArrayParityName(TString name) {sArrayParityName = name;};
 
   //Int_t fSubsystem_Error_Flag;
   //static const Int_t kErrorFlag_Helicity=0x2;   // in Decimal 2. Helicity bit faliure

@@ -80,6 +80,7 @@ class QwVQWK_Channel: public VQwDataElement {
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
   void Calculate_Running_Average();//pass the current event count in the run to calculate running average
+  void Print_Running_Average();
   void Do_RunningSum();
 
   Bool_t MatchSequenceNumber(size_t seqnum);

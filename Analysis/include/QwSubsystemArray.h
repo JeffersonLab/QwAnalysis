@@ -34,7 +34,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
 
  public:
   QwSubsystemArray() {};
-  virtual ~QwSubsystemArray(){
+  ~QwSubsystemArray(){
   };
 
   /// \brief Add the subsystem to this array
@@ -103,9 +103,6 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   /// \brief Print some information about the subsystem
   void Print();
 
-  TString sArrayName;
-  virtual TString GetArrayName(){return sArrayName;}
-  virtual void    SetArrayName(TString name) {sArrayName = name;};
 
  protected:
 

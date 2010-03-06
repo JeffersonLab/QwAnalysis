@@ -632,3 +632,53 @@ void QwBPMStripline::SetEventCutMode(Int_t bcuts){
 }
 
 
+
+
+Double_t QwBPMStripline::GetAverage(TString type)
+{
+  Double_t tmp = -9999;
+
+  if( type.Contains("relpos", TString::kIgnoreCase) )
+    {
+      if      ( type.Contains("x", TString::kIgnoreCase) ) tmp = fRelPos[0].GetAverage();
+      else if ( type.Contains("y", TString::kIgnoreCase) ) tmp = fRelPos[1].GetAverage();
+      else                                  ;
+    }
+  else if( type.Contains("abspos", TString::kIgnoreCase) )
+    {
+      if      ( type.Contains("x", TString::kIgnoreCase) ) tmp = fAbsPos[0].GetAverage();
+      else if ( type.Contains("y", TString::kIgnoreCase) ) tmp = fAbsPos[1].GetAverage();
+      else if ( type.Contains("z", TString::kIgnoreCase) ) tmp = fAbsPos[2].GetAverage();
+      else                                  ;
+    }
+
+  if(tmp == -9999) printf("Please, check what you ask for, it is out of range.\n");
+
+  return tmp;
+}
+
+
+
+
+Double_t QwBPMStripline::GetAverageError(TString type)
+{
+  Double_t tmp = -9999;
+
+  if( type.Contains("relpos", TString::kIgnoreCase) )
+    {
+      if      ( type.Contains("x", TString::kIgnoreCase) ) tmp = fRelPos[0].GetAverageError();
+      else if ( type.Contains("y", TString::kIgnoreCase) ) tmp = fRelPos[1].GetAverageError();
+      else                                  ;
+    }
+  else if( type.Contains("abspos", TString::kIgnoreCase) )
+    {
+      if      ( type.Contains("x", TString::kIgnoreCase) ) tmp = fAbsPos[0].GetAverageError();
+      else if ( type.Contains("y", TString::kIgnoreCase) ) tmp = fAbsPos[1].GetAverageError();
+      else if ( type.Contains("z", TString::kIgnoreCase) ) tmp = fAbsPos[2].GetAverageError();
+      else                                  ;
+    }
+
+  if(tmp == -9999) printf("Please, check what you ask for, it is out of range.\n");
+
+  return tmp;
+}

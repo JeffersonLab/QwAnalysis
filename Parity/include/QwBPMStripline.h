@@ -82,9 +82,22 @@ class QwBPMStripline : public VQwDataElement{
   void  FillHistograms();
   void  DeleteHistograms();
 
+  Double_t GetAverage(TString type);
+  Double_t GetAverageError(TString type);
+
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
   void  SetRootSaveStatus(TString &prefix);
+
+  QwVQWK_Channel fWire[4];
+  QwVQWK_Channel fWSum;
+  QwVQWK_Channel fRelPos[2];
+  
+  
+  /* These channels contain the beam position within the frame of the BPM*/
+  QwVQWK_Channel fAbsPos[3];
+  
+    
 
   /////
  private:
@@ -108,15 +121,7 @@ class QwBPMStripline : public VQwDataElement{
 
   Double_t fULimitX, fLLimitX, fULimitY, fLLimitY;//this sets the upper and lower limits on the X & Y of the BPM stripline
  
-  QwVQWK_Channel fWire[4];
-  QwVQWK_Channel fWSum;
-  QwVQWK_Channel fRelPos[2];
-  
-  
-  /* These channels contain the beam position within the frame of the BPM*/
-  QwVQWK_Channel fAbsPos[3];
-  
-    
+ 
   
 
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode

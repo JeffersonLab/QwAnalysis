@@ -860,8 +860,10 @@ void QwBeamLine::Scale(Double_t factor)
 void QwBeamLine::Calculate_Running_Average(){
   std::cout<<"*********QwBeamLine device Averages****************"<<std::endl;
   std::cout<<"Device \t    ||  Average\t || error\t || events"<<std::endl;
+  printf("BPM\n");
   for(size_t i=0;i<fStripline.size();i++)
     fStripline[i].Calculate_Running_Average();
+  printf("BCM\n");
   for(size_t i=0;i<fBCM.size();i++)
     fBCM[i].Calculate_Running_Average();
   for(size_t i=0;i<fBCMCombo.size();i++)
@@ -1103,53 +1105,34 @@ VQwSubsystem*  QwBeamLine::Copy()
 }
 
 
-void QwBeamLine::FillDB(QwDatabase *db)
+void QwBeamLine::FillDB(QwDatabase *db, TString type)
 {
 
   // test...
   // to access "analysis" table in the QwBeamLine class
-  db->Connect();
-  mysqlpp::Query query= db->Query("SELECT * from analysis");
+//   db->Connect();
+//   mysqlpp::Query query= db->Query("SELECT * from analysis");
 
-  vector<analysis> res;
-  query.storein(res);
+//   vector<analysis> res;
+//   query.storein(res);
 
-   std::cout << "We have:" << std::endl;
-  vector<analysis>::iterator it;
-  for (it = res.begin(); it != res.end(); ++it) {
-    std::cout << '\t' << it->analysis_id;
-    std::cout << '\t' << it->run_id;
-    std::cout << '\t' << it->seed_id;
-    std::cout << std::endl;
-  }
-  db->Disconnect();
+//    std::cout << "We have:" << std::endl;
+//   vector<analysis>::iterator it;
+//   for (it = res.begin(); it != res.end(); ++it) {
+//     std::cout << '\t' << it->analysis_id;
+//     std::cout << '\t' << it->run_id;
+//     std::cout << '\t' << it->seed_id;
+//     std::cout << std::endl;
+//   }
+//   db->Disconnect();
 
-  // Get run and analysis id from db, which is sent by "main"
+//   // Get run and analysis id from db, which is sent by "main"
 
   UInt_t run_id      = db->get_run_id();
   UInt_t analysis_id = db->get_analysis_id();
 
-  printf("hhh Fill DB is now inside beam line class\n");
-  printf("run id %d, analysis id %d\n", run_id, analysis_id);
+ 
 
-  //   for(size_t i=0;i<fStripline.size();i++)
-  //     fStripline[i].Calculate_Running_Average();
-  //   for(size_t i=0;i<fBCM.size();i++)
-  //     fBCM[i].Calculate_Running_Average();
-  //   for(size_t i=0;i<fBCMCombo.size();i++)
-  //     fBCMCombo[i].Calculate_Running_Average();
-  //   for(size_t i=0;i<fBPMCombo.size();i++)
-  //     fBPMCombo[i].Calculate_Running_Average();
-  
-  //   vector<beam> entrylist;
-  
-  //   for(size_t i=0;i<fStripline.size();i++)
-  //     {
-  //       printf("BPM[%d], [%8.4lf %8.4lf]\n", i, fStripline.GetAverage(), fStripline.GetAverageError());
-  //     }
-  
-  //   std::cout <<" test " << this->GetName() << std::endl;
-  
   // try to access BCM mean and its error
   // there are 2 different types BCM data we have at the moment
   // Yield and Asymmetry
@@ -1157,19 +1140,178 @@ void QwBeamLine::FillDB(QwDatabase *db)
   TString name;
   Double_t avg = 0.0;
   Double_t err = 0.0;
-  for(size_t i=0; i< fBCM.size(); i++)
+  char measurement_type[4]; // the same size of "measurement_type_id" in the measurement_type table
+
+
+
+  bool test = true;
+
+  if(test)
     {
-       name = fBCM[i].GetElementName();
-      if(name.Contains("bcm"))
+      db->Connect();
+
+      beam row(0);
+
+      if(type.Contains("yield"))
 	{
-	  avg = fBCM[i].GetAverage();
-	  err = fBCM[i].GetAverageError();
-	  
-	  printf("%18s  BCM[%d], [%18.2lf %8.2lf]\n", name.Data(), i, avg, err);
+	  mysqlpp::Query query= db->Query();
+	  printf("Yields \n");
+	  for(size_t i=0; i< fBCM.size(); i++)
+	    {
+
+	      name = fBCM[i].GetElementName();
+// 	      if(name.Contains("bcm"))
+		{
+		  avg = fBCM[i].GetAverage("");
+		  err = fBCM[i].GetAverageError("");
+		  sprintf(measurement_type, "yq");
+		  row.analysis_id = analysis_id;
+		  row.monitor_id  = 1;
+		  row.measurement_type_id = measurement_type;
+		  row.value = avg;
+		  row.error = err;
+		  query.insert(row);
+		  query.execute();
+		  query.reset();
+		  printf("RunID %d AnalysisID %d %4s %18s BCM[%d], [%18.2lf, %8.2lf] \n", 
+			 run_id, analysis_id, measurement_type,  name.Data(), i, avg, err);
+		}
+	    }
+
+	  // 	  for(size_t i=0; i< fStripline.size(); i++)
+	  // 	    {
+     
+	  // 	      name = fStripline[i].fRelPos[0].GetElementName();
+	  // 	      printf("%s\n", name.Data());
+	  // 	    }
 	}
+  
+      if(type.Contains("asymmetry"))
+	{
+	  mysqlpp::Query query= db->Query();
+	  printf("Asymmetries\n");
+	  for(size_t i=0; i< fBCM.size(); i++)
+	    {
+	      name = fBCM[i].GetElementName();
+// 	      if(name.Contains("bcm"))
+		{
+		  avg = fBCM[i].GetAverage("");
+		  err = fBCM[i].GetAverageError("");
+		  sprintf(measurement_type, "aq");
+		  row.analysis_id = analysis_id;
+		  row.monitor_id  = 1;
+		  row.measurement_type_id = measurement_type;
+		  row.value = avg;
+		  row.error = err;
+		  query.insert(row);
+		  query.execute();
+		  query.reset();	      
+		  printf("RunID %d AnalysisID %d %4s %18s BCM[%d], [%18.2e, %8.2e] \n", 
+			 run_id, analysis_id, measurement_type,  name.Data(), i, avg, err);
+	      
+		}
+	    }
+
+	}
+      db->Disconnect();
+  
     }
-       
-  //      entrylist.pushback(fBCM[i].fTriumf_ADC);
- 
+  else
+    {
+      vector<beam> entrylist;
+      beam row(0);
+      if(type.Contains("yield"))
+	{
+	  printf("Yields \n");
+	  for(size_t i=0; i< fBCM.size(); i++)
+	    {
+	      
+	      name = fBCM[i].GetElementName();
+	      //	      if(name.Contains("bcm"))
+		{
+		  //	  beam row(0);
+		  avg = fBCM[i].GetAverage("");
+		  err = fBCM[i].GetAverageError("");
+		  sprintf(measurement_type, "yq");
+		  row.analysis_id = analysis_id;
+		  row.monitor_id  = 1;
+		  row.measurement_type_id = measurement_type;
+		  row.value = avg;
+		  row.error = err;
+		  entrylist.push_back(row);
+		  printf("RunID %d AnalysisID %d %4s %18s BCM[%d], [%18.2lf, %8.2lf] \n", 
+			 run_id, analysis_id, measurement_type,  name.Data(), i, avg, err);
+		}
+	    }
+
+// 	  for(size_t i=0; i< fStripline.size(); i++)
+// 	    {
+// 	      name = fStripline[i].GetElementName();
+// 	      printf("%s\n", name.Data());
+// 	    }
+	}
+   
+      if(type.Contains("asymmetry"))
+	{
+	  printf("Asymmetries\n");
+	  for(size_t i=0; i< fBCM.size(); i++)
+	    {
+	      name = fBCM[i].GetElementName();
+// 	      if(name.Contains("bcm"))
+		{
+		  //	  beam row(0);
+		  avg = fBCM[i].GetAverage("");
+		  err = fBCM[i].GetAverageError("");
+		  sprintf(measurement_type, "aq");
+		  row.analysis_id = analysis_id;
+		  row.monitor_id  = 1;
+		  row.measurement_type_id = measurement_type;
+		  row.value = avg;
+		  row.error = err;
+		  entrylist.push_back(row);
+		  printf("RunID %d AnalysisID %d %4s %18s BCM[%d], [%18.2lf, %8.2lf] \n", 
+			 run_id, analysis_id, measurement_type,  name.Data(), i, avg, err);
+	      
+		}
+	    }
+	}
+      
+      db->Connect();
+      mysqlpp::Query query= db->Query();
+      
+      query.insert(entrylist.begin(), entrylist.end() );
+      query.execute();
+      query.reset();
+      db->Disconnect();
+      
+      //terminate called after throwing an instance of 'mysqlpp::BadQuery'
+      //what():  Query was empty
+      //Abort
+
+
+
+    //   query.insert(entrylist.begin(), entrylist.end() -1);
+//       query.execute();
+//       query.reset();
+//       db->Disconnect();
+      
+//       //*** Break *** segmentation violation
+//       //Segmentation fault
+
+    }
+//   db->Connect();
+
+
+//   I cannot insert vector of beam into database at the moment
+//   mysqlpp::Query query= db->Query();
+//   query.insert(entrylist.begin(), entrylist.end());
+//   query.execute();
+//   //terminate called after throwing an instance of 'mysqlpp::BadQuery'
+//   // what():  Duplicate entry '1' for key 1
+//   // Abort
+
+
+
+
   return;
 }

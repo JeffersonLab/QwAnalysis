@@ -723,18 +723,44 @@ void QwVQWK_Channel::Scale(Double_t scale)
 
 void QwVQWK_Channel::Calculate_Running_Average(){
 
-  if (!fGoodEventCount){
-    std::cout<<GetElementName()<<"\t0\t 0\t 0"<<std::endl;
-  }else{
-    fAverage_n=fRunning_sum/fGoodEventCount;
-    fAverage_n_square=fRunning_sum_square/fGoodEventCount;
-    fAverage_error= sqrt(((fAverage_n_square-fAverage_n*fAverage_n)/fGoodEventCount));
-    std::cout<<GetElementName()<<" \t "<<this->fAverage_n <<" \t "<< fAverage_error <<" \t "<<fGoodEventCount <<std::endl;
+//   if (!fGoodEventCount){
+//     std::cout<<GetElementName()<<"\t0\t 0\t 0"<<std::endl;
+//   }else{
+//     fAverage_n=fRunning_sum/fGoodEventCount;
+//     fAverage_n_square=fRunning_sum_square/fGoodEventCount;
+//     fAverage_error= sqrt(((fAverage_n_square-fAverage_n*fAverage_n)/fGoodEventCount));
+//     //    std::cout<<GetElementName()<<" \t "<<this->fAverage_n <<" \t "<< fAverage_error <<" \t "<<fGoodEventCount <<std::endl;
 
-  }
+//   }
 
+
+  if (fGoodEventCount)
+    {
+      fAverage_n=fRunning_sum/fGoodEventCount;
+      fAverage_n_square=fRunning_sum_square/fGoodEventCount;
+      fAverage_error= sqrt(((fAverage_n_square-fAverage_n*fAverage_n)/fGoodEventCount));
+    }
+  else
+    {
+      fAverage_n        = 0.0;
+      fAverage_n_square = 0.0;
+      fAverage_error    = 0.0;
+    }
+  
+  this -> Print_Running_Average();
+    //    std::cout<<GetElementName()<<" \t "<<this->fAverage_n <<" \t "<< fAverage_error <<" \t "<<fGoodEventCount <<std::endl;
 
 };
+
+void QwVQWK_Channel::Print_Running_Average()
+{
+  std::cout
+    << this->GetElementName()<<" \t "
+    << this->fAverage_n      <<" \t "
+    << this->fAverage_error  <<" \t "
+    << fGoodEventCount 
+    <<std::endl;
+}
 
 void QwVQWK_Channel::Do_RunningSum(){
   if (fDeviceErrorCode == 0){//if the device HW is good
