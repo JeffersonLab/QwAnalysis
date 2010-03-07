@@ -43,9 +43,14 @@
 #include "QwTrack.h"
 #include "QwEvent.h"
 
+//#include "QwDatabase.h"
+#include "QwSSQLS.h"
+
 // Qweak headers (deprecated)
 #include "Det.h"
 #include "Qset.h"
+
+
 
 // Debug level
 static const bool kDebug = kFALSE;

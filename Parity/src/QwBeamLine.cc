@@ -1156,7 +1156,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString type)
 	{
 	  mysqlpp::Query query= db->Query();
 	  printf("Yields \n");
-	  for(size_t i=0; i< fBCM.size(); i++)
+	  for(UInt_t i=0; i<  fBCM.size(); i++)
 	    {
 
 	      name = fBCM[i].GetElementName();
@@ -1190,7 +1190,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString type)
 	{
 	  mysqlpp::Query query= db->Query();
 	  printf("Asymmetries\n");
-	  for(size_t i=0; i< fBCM.size(); i++)
+	  for(UInt_t i=0; i< fBCM.size(); i++)
 	    {
 	      name = fBCM[i].GetElementName();
 // 	      if(name.Contains("bcm"))
@@ -1206,7 +1206,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString type)
 		  query.insert(row);
 		  query.execute();
 		  query.reset();	      
-		  printf("RunID %d AnalysisID %d %4s %18s BCM[%d], [%18.2e, %8.2e] \n", 
+		  printf("RunID %d AnalysisID %d %4s %18s BCM[%d], [%18.2e, %10.2e] \n", 
 			 run_id, analysis_id, measurement_type,  name.Data(), i, avg, err);
 	      
 		}
@@ -1223,7 +1223,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString type)
       if(type.Contains("yield"))
 	{
 	  printf("Yields \n");
-	  for(size_t i=0; i< fBCM.size(); i++)
+	  for(UInt_t i=0; i< fBCM.size(); i++)
 	    {
 	      
 	      name = fBCM[i].GetElementName();
@@ -1239,7 +1239,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString type)
 		  row.value = avg;
 		  row.error = err;
 		  entrylist.push_back(row);
-		  printf("RunID %d AnalysisID %d %4s %18s BCM[%d], [%18.2lf, %8.2lf] \n", 
+		  printf("RunID %d AnalysisID %d %4s %18s BCM[%d], [%18.2lf, %10.2lf] \n", 
 			 run_id, analysis_id, measurement_type,  name.Data(), i, avg, err);
 		}
 	    }
@@ -1254,7 +1254,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString type)
       if(type.Contains("asymmetry"))
 	{
 	  printf("Asymmetries\n");
-	  for(size_t i=0; i< fBCM.size(); i++)
+	  for(UInt_t i=0; i< fBCM.size(); i++)
 	    {
 	      name = fBCM[i].GetElementName();
 // 	      if(name.Contains("bcm"))
@@ -1269,7 +1269,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString type)
 		  row.value = avg;
 		  row.error = err;
 		  entrylist.push_back(row);
-		  printf("RunID %d AnalysisID %d %4s %18s BCM[%d], [%18.2lf, %8.2lf] \n", 
+		  printf("RunID %d AnalysisID %d %4s %18s BCM[%d], [%18.2e, %10.2e] \n", 
 			 run_id, analysis_id, measurement_type,  name.Data(), i, avg, err);
 	      
 		}

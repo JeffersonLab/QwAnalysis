@@ -121,10 +121,10 @@ ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
  ifneq ($(CODA),)
   #  The realtime executables should be added in this section.
 #  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwdb_test qwanalysis_mysql
-   EXES := qwanalysis_mysql
+   EXES := qwanalysis_mysql qwanalysis_adc  qwanalysis_beamline
  else
 #  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwdb_test qwanalysis_mysql
-   EXES := qwanalysis_mysql
+   EXES := qwanalysis_mysql qwanalysis_adc  qwanalysis_beamline
  endif
 else
  EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
@@ -133,10 +133,10 @@ ifeq ($(filter config,$(MAKECMDGOALS)),config)
  ifneq ($(CODA),)
   #  The realtime executables should be added in this section.
 #  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwdb_test qwanalysis_mysql
-   EXES := qwanalysis_mysql
+   EXES :=  qwanalysis_mysql qwanalysis_adc  qwanalysis_beamline qwtracking
  else
 #  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwdb_test qwanalysis_mysql
-   EXES := qwanalysis_mysql
+   EXES := qwanalysis_mysql qwanalysis_adc  qwanalysis_beamline qwtracking
  endif
 endif
 # overridden by "make 'EXES=exe1 exe2 ...'"

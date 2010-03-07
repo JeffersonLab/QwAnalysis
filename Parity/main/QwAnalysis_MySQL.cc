@@ -281,7 +281,7 @@ main(Int_t argc, Char_t* argv[])
 
       sqlserv = new QwDatabase();
       sqlserv -> Connect();
-      sqlserv->show_mysql_version();
+      sqlserv -> show_mysql_version();
       UInt_t run_id = 0;sqlserv->GetRunID(QwEvt);
       UInt_t analysis_id = 0;
       run_id = sqlserv->GetRunID(QwEvt);
