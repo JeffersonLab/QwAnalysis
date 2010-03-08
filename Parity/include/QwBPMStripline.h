@@ -85,6 +85,8 @@ class QwBPMStripline : public VQwDataElement{
   Double_t GetAverage(TString type);
   Double_t GetAverageError(TString type);
 
+  TString  GetSubElementName(TString type);
+
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
   void  SetRootSaveStatus(TString &prefix);
@@ -97,8 +99,6 @@ class QwBPMStripline : public VQwDataElement{
   /* These channels contain the beam position within the frame of the BPM*/
   QwVQWK_Channel fAbsPos[3];
   
-    
-
   /////
  private:
   static const Bool_t kDEBUG;

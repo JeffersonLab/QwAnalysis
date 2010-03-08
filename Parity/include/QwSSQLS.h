@@ -12,6 +12,8 @@
 // This didn't work properly, sometime I can compile without any link problems,
 // but most cases, I cannot. 
 
+namespace QwParityDB{
+
     sql_create_7(run, 1, 7 
 			, mysqlpp::sql_int_unsigned , run_id
 			, mysqlpp::sql_int_unsigned , run_number 	
@@ -254,5 +256,5 @@
 			, mysqlpp::sql_float , value
 			, mysqlpp::sql_float , error
 		) 
-  
+      }  
 #endif

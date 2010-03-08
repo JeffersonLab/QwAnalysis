@@ -15,6 +15,8 @@
 #define MYSQLPP_SSQLS_NO_STATICS
 #include "QwSSQLS.h"
 
+
+using namespace QwParityDB;
 // Create the static logger object (with streams to screen and file)
 //QwDatabase gQwDatabase;
 

@@ -634,6 +634,34 @@ void QwBPMStripline::SetEventCutMode(Int_t bcuts){
 
 
 
+TString QwBPMStripline::GetSubElementName(TString type)
+{
+  TString tmp;
+
+  tmp = "dummy";
+
+  if( type.Contains("relpos", TString::kIgnoreCase) )
+    {
+      if      ( type.Contains("x", TString::kIgnoreCase) ) tmp = fRelPos[0].GetElementName();
+      else if ( type.Contains("y", TString::kIgnoreCase) ) tmp = fRelPos[1].GetElementName();
+      else   ; // tmp = "dummy";
+    }
+  else if( type.Contains("abspos", TString::kIgnoreCase) )
+    {
+      if      ( type.Contains("x", TString::kIgnoreCase) ) tmp = fAbsPos[0].GetElementName();
+      else if ( type.Contains("y", TString::kIgnoreCase) ) tmp = fAbsPos[1].GetElementName();
+      else if ( type.Contains("z", TString::kIgnoreCase) ) tmp = fAbsPos[2].GetElementName();
+      else   ; // tmp = "dummy";
+    }
+
+  if(tmp == "dummy") printf("Please, check what you ask for, it is out of range.\n");
+
+  return tmp;
+}
+
+
+
+
 Double_t QwBPMStripline::GetAverage(TString type)
 {
   Double_t tmp = -9999;

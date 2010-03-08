@@ -352,8 +352,8 @@ void QwHelicityPattern::FillDB(QwDatabase *db)
 {
   fYield.FillDB(db, "yield");
   fAsymmetry.FillDB(db, "asymmetry");
-  fAverage.FillDB(db, "");
-  fRunningSum.FillDB(db, "");
+  fAverage.FillDB(db, "average");
+  fRunningSum.FillDB(db, "runningsum");
   return;
 }
 //*****************************************************************
