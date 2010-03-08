@@ -214,10 +214,11 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC
     std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
 
     std::vector< std::vector< UInt_t > > fDirectionData; //Indexed by pckg and plane each element represent the wire direction ( a value from 0 to 6)- Rakitha(10/23/2008)
+    std::vector< std::vector< std::vector <Double_t> > > fTimeWireOffsets;
 
 
   protected:
-    Double_t fTimeWireOffsets[kNumPackages][2][279]; //Indexed by pckg and plane number and wire number(only used on R3 right now)
+    //Double_t fTimeWireOffsets[kNumPackages][2][279]; //Indexed by pckg and plane number and wire number(only used on R3 right now)
 
     Int_t LoadTimeWireOffset(TString t0_map);
 

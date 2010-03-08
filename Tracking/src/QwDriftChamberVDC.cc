@@ -201,7 +201,34 @@ void  QwDriftChamberVDC::SubtractReferenceTimes() {
 
 
 Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector, Double_t angle) {
-    Double_t p[11]={-0.742002,9.99584	,-3.48159,	16.5797	,-0.144378,	13.3434,	0.785242,	-20.939,	21.6484,	-25.1623,	22.377};
+    //Double_t p[11]={-0.742002,9.99584	,-3.48159,	16.5797	,-0.144378,	13.3434,	0.785242,	-20.939,	21.6484,	-25.1623,	22.377};
+    Double_t p[11]={0};
+    //for arg-65-ethane-35
+    /*p[0]=-1.683+0.02112*angle;
+    p[1]=23.32-0.298*angle;
+    p[2]=-4.313+0.01863*angle;
+    p[3]=31.32-0.3284*angle;
+    p[4]=7.728-0.1812*angle;
+    p[5]=19.29-0.1266*angle;
+    p[6]=2.876-0.04789*angle;
+    p[7]=0.8265-0.4889*angle;
+    p[8]=33.25-0.2585*angle;
+    p[9]=62.38-1.955*angle;
+    p[10]=22.61-0.005106*angle;*/
+
+    //for arg-50-ethane-50
+    p[0]=-1.749+0.02167*angle;
+    p[1]=24.1-0.3051*angle;
+    p[2]=-3.133+0.009078*angle;
+    p[3]=28.51-0.2951*angle;
+    p[4]=7.869-0.1635*angle;
+    p[5]=17.69-0.1208*angle;
+    p[6]=2.495-0.04104*angle;
+    p[7]=3.359-0.478*angle;
+    p[8]=29.35-0.2195*angle;
+    p[9]=55.68-1.73*angle;
+    p[10]=20.38-0.004761*angle;
+
     Double_t x=0;
     Double_t cut[4]={0.5,1.5,4,6};
     Double_t t[4]={0};
@@ -388,7 +415,7 @@ void  QwDriftChamberVDC::FillHistograms() {
 
 Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile ) {
     //some type(like string,Int_t)need to be changed to root type
-
+    LoadTimeWireOffset("t0.txt");
     TString varname,varvalue;
     UInt_t value = 0;
     UInt_t channum;            //store temporary channel number
@@ -514,7 +541,7 @@ void QwDriftChamberVDC::ProcessEvent() {
     if ( ! HasDataLoaded() ) return;
     //  Do the reference time subtration and subtration of time offsets.
     SubtractReferenceTimes();
-    LoadTimeWireOffset("t0.txt");
+    //LoadTimeWireOffset("t0.txt");
 
     Double_t real_time=0,drift_distance=0;
     Double_t tmpTime=0,left_time=0,right_time=0;
@@ -591,8 +618,8 @@ void QwDriftChamberVDC::ProcessEvent() {
                     //AddChannelDefinition(fDelayLineArray.at (tmpbp).at(tmpln).fPlane,fDelayLineArray.at(tmpbp).at(tmpln).Wire.at(i).at(j) );
                     AddChannelDefinition(fDelayLineArray.at (tmpbp).at(tmpln).fPlane,wire_hit );
                     NewQwHit.SetHitNumberR ( order_R );
-                    Int_t t0=fTimeWireOffsets[package][plane][wire_hit-1];
-                    if(t0==0&&t0>1500) t0=1430;
+                    Int_t t0=fTimeWireOffsets.at(package-1).at(plane-1).at(wire_hit-1);
+                    if (t0==0&&t0>1500) t0=1430;
                     real_time=t0-0.1132*real_time;
 
                     if ( real_time<0 ) continue;
