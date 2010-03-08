@@ -1285,7 +1285,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString type)
       // must overwrite "measurement_typ" according to BPM
       // No way to distingush whether BPM or BCM inside QwBeamLine class ????
 
-
+ 
       if(type.Contains("yield"))
 	{
 	  sprintf(tmeasurement_type, "yp");
@@ -1347,9 +1347,9 @@ void QwBeamLine::FillDB(QwDatabase *db, TString type)
 		     trun_id, tanalysis_id, tmeasurement_type, tmonitor_id, name.Data(), i, avg, err);
 
 
-	  name = fStripline[i].GetSubElementName("relposx");
-	  avg  = fStripline[i].GetAverage("relposx");
-	  err  = fStripline[i].GetAverageError("relposx");
+	  name = fStripline[i].GetSubElementName("relposy");
+	  avg  = fStripline[i].GetAverage("relposy");
+	  err  = fStripline[i].GetAverageError("relposy");
 
 	  
 	  if      ( name.Contains("qpdRelY")   ) tmonitor_id = QWK_YQPD;
