@@ -28,7 +28,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
  
   std::vector<TString> fDeviceName;
-  std::vector<Double_t> fChargeWeight;
+  std::vector<Double_t> fQWeight;
   std::vector<Double_t> fXWeight;
   std::vector<Double_t> fYWeight;
 
@@ -73,6 +73,9 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	    if (mapstr.HasVariablePair("=",varname,varvalue)) {
 	      if (varname=="endCOMBO")
 		{
+		  //At the end of the combined device calculate the total weights of the charge
+		  for(size_t i=0;i<fDeviceName.size();i++)
+		    fSumQweights+=fQWeight[i];
 		  combolistdecoded = kTRUE;
 		  //std::cout<<"End decoding combo list:"<<comboname<<"\n";	      
 		}
@@ -87,7 +90,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		dev_name=mapstr.GetNextToken(", ").c_str();
 		dev_name.ToLower();
 		fDeviceName.push_back(dev_name);
-		fChargeWeight.push_back( atof(mapstr.GetNextToken(", ").c_str())); //read in the weights for the charge
+		fQWeight.push_back( atof(mapstr.GetNextToken(", ").c_str())); //read in the weights for the charge
 
 		if(combotype == "combinedbpm") //for combined BPMs,in addition,
 		  {
@@ -127,11 +130,11 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		  for(size_t i=0;i<fDeviceName.size();i++)
 		    {
 		      index=GetDetectorIndex(GetDetectorTypeID("bcm"),fDeviceName[i]);
-		      fBCMCombo[fBCMCombo.size()-1].Add(&fBCM[index],fChargeWeight[i]);
+		      fBCMCombo[fBCMCombo.size()-1].Set(&fBCM[index],fQWeight[i],fSumQweights );
 		      
 		    }
 		  fDeviceName.clear();   //reset the device vector for the next combo
-		  fChargeWeight.clear(); //reset the device weights for the next combo
+		  fQWeight.clear(); //reset the device weights for the next combo
 
 		  localComboID.fIndex=fBCMCombo.size()-1;
 
@@ -145,11 +148,11 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		  for(size_t i=0;i<fDeviceName.size();i++)
 		    {
 		      index=GetDetectorIndex(GetDetectorTypeID("bpmstripline"),fDeviceName[i]);
-		      fBPMCombo[fBPMCombo.size()-1].Add(&fStripline[index],fChargeWeight[i],fXWeight[i],fYWeight[i]);
+		      fBPMCombo[fBPMCombo.size()-1].Set(&fStripline[index],fQWeight[i],fXWeight[i],fYWeight[i],fSumQweights);
 		      
 		    }
 		  fDeviceName.clear();  
-		  fChargeWeight.clear(); 
+		  fQWeight.clear(); 
 		  fXWeight.clear(); 
 		  fYWeight.clear(); 
 		  localComboID.fIndex=fBPMCombo.size()-1;
@@ -408,7 +411,7 @@ Int_t QwBeamLine::LoadGeometry(TString mapfile)
 
   Int_t lineread=1;
   Int_t index;
-  TString  devname;
+  TString  devname,devtype;
   Double_t devOffsetX,devOffsetY, devOffsetZ;
   TString localname;
 
@@ -425,6 +428,9 @@ Int_t QwBeamLine::LoadGeometry(TString mapfile)
       if (mapstr.LineIsEmpty())  continue;
       else
 	{
+	  devtype = mapstr.GetNextToken(", \t").c_str();
+	  devtype.ToLower();
+	  devtype.Remove(TString::kBoth,' ');
 	  devname = mapstr.GetNextToken(", \t").c_str();
 	  devname.ToLower();
 	  devname.Remove(TString::kBoth,' ');	  
@@ -432,7 +438,7 @@ Int_t QwBeamLine::LoadGeometry(TString mapfile)
 	  devOffsetY = (atof(mapstr.GetNextToken(", \t").c_str())); // Y offset
 	  devOffsetZ = (atof(mapstr.GetNextToken(", \t").c_str())); // Z offset
 
-	  if(ldebug) std::cout<<"inputs for channel "<<devname
+	  if(ldebug)  std::cout<<"Offsets for device "<<devname<<" of type "<<devtype<<" are "
 			      <<": X offset ="<< devOffsetX
 			      <<": Y offset ="<< devOffsetY
 			      <<": Z offset ="<<devOffsetZ<<"\n";
@@ -441,18 +447,39 @@ Int_t QwBeamLine::LoadGeometry(TString mapfile)
 
 	  if(notfound)
 	    {
-	      index=GetDetectorIndex(GetDetectorTypeID("bpmstripline"),devname);
-	      localname=fStripline[index].GetElementName();
-	      localname.ToLower();
-	      if(ldebug)  std::cout<<"element name =="<<localname
-				   <<"== to be compared to =="<<devname<<"== \n";
-
-	      if(localname==devname)
+	      if(devtype=="bpmstripline")
 		{
-		  if(ldebug) std::cout<<" I found it !\n";
-		  fStripline[index].SetOffset(devOffsetX,devOffsetY,devOffsetZ);
-		  notfound=kFALSE;
+		  //Load bpm offsets
+		  index=GetDetectorIndex(GetDetectorTypeID("bpmstripline"),devname);
+		  localname=fStripline[index].GetElementName();
+		  localname.ToLower();
+		  if(ldebug)  std::cout<<"element name =="<<localname
+				       <<"== to be compared to =="<<devname<<"== \n";
+
+		  if(localname==devname)
+		    {
+		      if(ldebug) std::cout<<" I found the bpm !\n";
+		      fStripline[index].SetOffset(devOffsetX,devOffsetY,devOffsetZ);
+		      notfound=kFALSE;
+		    }
 		}
+	      else if (devtype=="combinedbpm")
+		{
+		  //Load combined bpm offsets which are, ofcourse, target position in the beamline
+		  index=GetDetectorIndex(GetDetectorTypeID("combinedbpm"),devname);
+		  localname=fBPMCombo[index].GetElementName();
+		  localname.ToLower();
+		  if(ldebug)  
+		    std::cout<<"element name =="<<localname<<"== to be compared to =="<<devname<<"== \n";
+
+		  if(localname==devname)
+		    {
+		      if(ldebug) std::cout<<" I found the combinedbpm !\n";
+		      fBPMCombo[index].SetOffset(devOffsetX,devOffsetY,devOffsetZ);
+		      notfound=kFALSE;
+		    }
+		}
+	      else std::cout<<" Unknown device type :"<<devtype<<". The geometry will not be assigned to this device."<<std::endl;
 	    }
 	}
   }

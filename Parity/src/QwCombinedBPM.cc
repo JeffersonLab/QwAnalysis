@@ -16,6 +16,7 @@ const Bool_t QwCombinedBPM::kDEBUG = kFALSE;
 const TString QwCombinedBPM::axis[3]={"X","Y","Z"};
 /* With X being vertical up and Z being the beam direction toward the beamdump */
 
+
 /********************************************************/
 void  QwCombinedBPM::InitializeChannel(TString name, Bool_t ROTATED)
 {
@@ -26,21 +27,34 @@ void  QwCombinedBPM::InitializeChannel(TString name, Bool_t ROTATED)
     fCombinedAbsPos[i].InitializeChannel(name+axis[i],"derived");
 
   for(int i=0;i<2;i++)
-    fCombinedAngle[i].InitializeChannel(name+axis[i]+"Angle","derived");
-  
-  SetElementName(name);
+    fCombinedSlope[i].InitializeChannel(name+axis[i]+"Slope","derived");
+
+  SetElementName(name); 
+
   bFullSave=kTRUE;
 
   return;
 };
+
+void QwCombinedBPM::SetOffset(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset)
+{
+  fComboOffset[0]=Xoffset;
+  fComboOffset[1]=Yoffset;
+  fComboOffset[2]=Zoffset;
+  return;
+};
 /********************************************************/
 
-void QwCombinedBPM::Add(QwBPMStripline* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight){
-
+void QwCombinedBPM::Set(QwBPMStripline* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,
+			Double_t sumqw) 
+{
   fElement.push_back(bpm);
+
   fQWeights.push_back(charge_weight);
   fXWeights.push_back(x_weight);
   fYWeights.push_back(y_weight);
+  fSumQweights=sumqw;
+
 
   }
 
@@ -51,10 +65,8 @@ void QwCombinedBPM::ClearEventData()
   
   for(int i=0;i<3;i++)
     fCombinedAbsPos[i].ClearEventData();
-
   for(int i=0;i<2;i++)
-    fCombinedAngle[i].ClearEventData();
- 
+    fCombinedSlope[i].ClearEventData();
   fCombinedWSum.ClearEventData();
 
   return;
@@ -127,36 +139,30 @@ Int_t QwCombinedBPM::SetSingleEventCuts(std::vector<Double_t> & dEventCuts){
 void  QwCombinedBPM::ProcessEvent() 
 {
   Bool_t ldebug = kFALSE;
-  static QwVQWK_Channel numer("numerator"), denom("denominator");
-  static QwVQWK_Channel  tmpQADC, tmpADC;
-  Double_t chi_square[2];
-  Double_t QADC = 0; 
-  Double_t Q = 0; 
-  std::vector <Double_t> XADC; 
-  std::vector <Double_t> YADC; 
-  std::vector <Double_t> ZADC;
-  std::vector <Double_t> zpos2; 
-  std::vector <Double_t> x2;
-  std::vector <Double_t> zx;
-  std::vector <Double_t> y2;
-  std::vector <Double_t> zy;
-  std::vector <Double_t> unit;
-  std::vector <Double_t> sx;
-  std::vector <Double_t> sy;
+  Bool_t display_min_chi = kFALSE;
+  static QwVQWK_Channel  tmpQADC("tmpQADC"), tmpADC("tmpADC");
 
-  Double_t  totalq_weights=0; 
 
-  for(size_t i=0;i<fElement.size();i++) 
-    unit.push_back(1);
- 
-  // check to see if there are correct number of elements to perform least squares fit on. 
-  // For a linear fit the number of points should be greater than 2.
+    // check to see if there are correct number of elements to perform least squares fit on. 
+    // For a linear fit the number of points should be greater than 2.
+    // If not stop the process.
+    
+    if(fElement.size()<3)
+      {
+	std::cout<<"QwCombinedBPM:: Process event can't carry out the linear least square fit with only 2 points!"
+		 <<" Abborting process.."<<std::endl;
+	return;
+      }
+     
+    //check to see if the fixed parameters are calculated 
+    if(!fixedParamCalculated) 
+      {
+	if(ldebug) std::cout<<"Calculating fixed parameters..\n"; 
+	CalculateFixedParameter(fXWeights,0); //for X
+	CalculateFixedParameter(fYWeights,1); //for Y
+	fixedParamCalculated = kTRUE;
+      }
 
-  if(fElement.size()<3)
-    std::cout<<"QwCombinedBPM:: Process event can't carry out the lines least square fit with only 2 points!"
-	     <<" Abborting process.."<<std::endl;
-
-  else{
     for(size_t i=0;i<fElement.size();i++)
       {  
 	if(ldebug){
@@ -167,131 +173,155 @@ void  QwCombinedBPM::ProcessEvent()
 	  
 	}
 	
-	//to get the weighted charge(4-wire) sum;
-// 	tmpQADC.Copy(&(fElement[i]->fWSum));
-// 	tmpQADC=fElement[i]->fWSum;
-// 	tmpQADC.Scale(fQWeights[i]);
-// 	fCombinedWSum+=tmpQADC;
-	totalq_weights +=fQWeights[i];
-	QADC+=((fElement[i]->fWSum).GetHardwareSum())/fQWeights[i];
+	tmpQADC=fElement[i]->fWSum;
+	tmpQADC.Scale(fQWeights[i]);
+	fCombinedWSum+=tmpQADC;
 	
-	if(ldebug) std::cout<<"got 4-wire.hw_sum = "<<QADC<<" vs     actual "<<(fElement[i]-> fWSum).GetHardwareSum()<<std::endl;
 	
-	XADC.push_back((fElement[i]-> fAbsPos[0]).GetHardwareSum());
-	YADC.push_back((fElement[i]-> fAbsPos[1]).GetHardwareSum());
-	ZADC.push_back((fElement[i]-> fAbsPos[2]).GetHardwareSum());
-
 	if(ldebug) {
-	  std::cout<<"got absolute X position hw_sum = "<<XADC[i]<<" vs     actual "<<(fElement[i]-> fAbsPos[0]).GetHardwareSum()<<std::endl;
-	  std::cout<<"got absolute Y position hw_sum = "<<YADC[i]<<" vs     actual "<<(fElement[i]-> fAbsPos[1]).GetHardwareSum()<<std::endl;
-	  std::cout<<"got absolute Z position hw_sum = "<<ZADC[i]<<" vs     actual "<<(fElement[i]-> fAbsPos[2]).GetHardwareSum()<<std::endl;
+	  std::cout<<"got 4-wire.hw_sum = "<<fCombinedWSum.GetHardwareSum()<<" vs     actual "<<(fElement[i]-> fWSum).GetHardwareSum()<<std::endl;
+	  std::cout<<"copied absolute X position hw_sum from device "<<(fElement[i]-> fAbsPos[0]).GetHardwareSum()<<std::endl;
+	  std::cout<<"copied absolute Y position hw_sum from device "<<(fElement[i]-> fAbsPos[1]).GetHardwareSum()<<std::endl;
 	}
-	
-	zpos2.push_back(ZADC[i]*ZADC[i]);
-	x2.push_back(XADC[i]*XADC[i]);
-	zx.push_back(XADC[i]*ZADC[i]);
-	y2.push_back(YADC[i]*YADC[i]);
-	zy.push_back(YADC[i]*ZADC[i]);
+
       }
     
- 
-    
+    fCombinedWSum.Scale(1.0/fSumQweights);
+
+    //absolute beam position in  z == absolute target position in Z 
+    fCombinedAbsPos[2].SetHardwareSum(fComboOffset[2]); 
+
     //Least square fit for X
-    LeastSquareFit( 0, SumOver(fXWeights,ZADC),
-		    SumOver(fXWeights,unit),
-		    SumOver(fXWeights,XADC),
-		    SumOver(fXWeights,zpos2),
-		    SumOver(fXWeights,zx),
-		    SumOver(fXWeights,x2));
+    LeastSquareFit(0, fXWeights );
     
     //Least square fit for Y
-    LeastSquareFit( 1, SumOver(fYWeights,ZADC),
-		    SumOver(fYWeights,unit),
-		    SumOver(fYWeights,YADC),
-		    SumOver(fYWeights,zpos2),
-		    SumOver(fYWeights,zy),
-		    SumOver(fYWeights,y2));
-     
+    LeastSquareFit(1, fYWeights );    
     
-    //  fCombinedWSum.Scale(1.0/totalq_weights);
-    Q = QADC/totalq_weights;
-    fCombinedWSum.SetHardwareSum(Q);
-
-    for(size_t n=0;n<2;n++){
-      //absolute positions at the target;
-      fCombinedAbsPos[n].SetHardwareSum(ZADC[n]*a[n] + b[n]);
-      //angle at the target;
-      fCombinedAngle[n].SetHardwareSum(atan(b[n])* 180 / M_PI);
-    }
-    fCombinedAbsPos[2].SetHardwareSum(ZADC[2]);
-
-
+    
     if(ldebug) std::cout<<"QwCombinedBPM:: Projected target X position = "<<fCombinedAbsPos[0].GetHardwareSum()
-			<<" and target X angle = "<<fCombinedAngle[0].GetHardwareSum()
+			<<" and target X slope = "<<fCombinedSlope[0].GetHardwareSum()
 			<<"\nProjected target Y position = "<<fCombinedAbsPos[1].GetHardwareSum()
-			<<" and target Y angle = "<<fCombinedAngle[1].GetHardwareSum()<<std::endl;
-      
-
-    //to perform the minimul chi-square test
-    for(size_t i=0;i<fElement.size();i++){
-      Double_t tmp=0;
-      tmp = XADC[i] - ZADC[0]*a[0] - b[0];
-      sx.push_back(tmp*tmp);
-      tmp = YADC[i] - ZADC[1]*a[1] - b[1];
-      sy.push_back(tmp*tmp);
-    }
-    
-    chi_square[0]=(SumOver(fXWeights,sx))/(fElement.size()-2); //mimul ch-square for fit on x
-    chi_square[1]=(SumOver(fYWeights,sy))/(fElement.size()-2); //mimul ch-square for fit on y
-
-    if(ldebug) {
+			<<" and target Y slope = "<<fCombinedSlope[1].GetHardwareSum()<<std::endl;  
+   
+    if(display_min_chi) {
       std::cout<<"QwCombinedBPM:: The minimul chi-square for the fit on X is  "<<chi_square[0]
 	       <<" and for Y = "<<chi_square[1]<<std::endl;
       std::cout<<"For a good fit minimul-chisquare should be close to 1!"<<std::endl;
     }
-  }
     
-    
-  if (ldebug) {
-    fCombinedWSum.Print(); 
-    for(size_t n=0;n<3;n++)
-      fCombinedAbsPos[n].Print();
-  }
 
-  return;
+ 
+    if (ldebug) {
+      fCombinedWSum.Print(); 
+      for(size_t n=0;n<3;n++)
+	fCombinedAbsPos[n].Print();
+      for(size_t n=0;n<2;n++)
+	fCombinedSlope[n].Print();
+      
+    }
+    
+    return;
+ 
 };
 
 
-Double_t QwCombinedBPM::SumOver(std::vector<Double_t> weight,std::vector <Double_t> val)
+void QwCombinedBPM::CalculateFixedParameter(std::vector<Double_t> fWeights, Int_t pos)
+{
+
+  Bool_t ldebug = kFALSE;
+  static QwVQWK_Channel tmp("tmp");
+
+ 
+  for(size_t i=0;i<fElement.size();i++) 
+    {
+      tmp = fElement[i]->fAbsPos[2];
+      tmp.Scale(fWeights[i]);
+      A[pos] += tmp.GetHardwareSum(); 
+      B[pos] += fWeights[i];
+      tmp.Product(tmp, fElement[i]->fAbsPos[2]); 
+      D[pos] += tmp.GetHardwareSum();
+    }
+  
+  m[pos] = D[pos]*B[pos]-A[pos]*A[pos];
+  erra[pos]=B[pos]/m[pos];
+  errb[pos]=D[pos]/m[pos];
+  covab[pos] = -A[pos]/m[pos];
+  
+  
+  if(ldebug){
+    std::cout<<" A = "<<A[pos]<<", B = "<<B[pos]<<", D = "<<D[pos]<<", m = "<<m[pos]<<std::endl;
+    std::cout<<"From least square fit error are  "<<erra[pos]
+	     <<"\ncovariance  = "<<covab[pos]<<"\n\n";
+  }
+
+  return;
+}
+
+Double_t QwCombinedBPM::SumOver(std::vector<Double_t> weight,std::vector <QwVQWK_Channel> val)
 {
   Double_t sum = 0;
   if(weight.size()!=fElement.size()) std::cout<<"QwCombinedBPM:: Number of devices doesnt match the number of weights."
 					      <<" Exiting calculating parameters for the least squares fit"<<std::endl;
   else{
     for(size_t i=0;i<weight.size();i++){
-      sum+=(val[i]*weight[i]);
+      val[i].Scale(weight[i]);
+      sum+=val[i].GetHardwareSum();
     }
   }
   return sum;
 }
 
-void QwCombinedBPM::LeastSquareFit(Int_t pos, Double_t A,Double_t B,Double_t C,Double_t D,Double_t E,Double_t F )
+void QwCombinedBPM::LeastSquareFit(Int_t n, std::vector<Double_t> fWeights) 
 {
   Bool_t ldebug = kFALSE;
+  static QwVQWK_Channel tmp1("tmp1");
+  static QwVQWK_Channel tmp2("tmp2");
 
-  if(ldebug) std::cout<<"A ="<<A<<" -- B ="<<B<<" --C ="<<C<<" --D ="<<D<<" --E ="<<E<<" --F ="<<F<<"\n";
+  C[n]=0; E[n]=0; F[n]=0;
 
-  Double_t m = D*B-A*A;
-  a[pos]=(E*B-C*A)/m;
-  b[pos]= (D*C-E*A)/m;
-  erra[pos]= B/m;
-  errb[pos]=D/m;
-  covab[pos]= -A/m;
+  for(size_t i=0;i<fElement.size();i++)
+    {
+      tmp2.ClearEventData(); 
+      tmp1 = fElement[i]->fAbsPos[n];
+      tmp1.Scale(fWeights[i]);//xw
+      C[n]+= tmp1.GetHardwareSum(); 
+      tmp2.Product(tmp1,(fElement[i]-> fAbsPos[2])); //xzw
+      E[n]+= tmp2.GetHardwareSum();
+      tmp1.Product(tmp1,(fElement[i]-> fAbsPos[n])); //xxw
+      F[n]+= tmp1.GetHardwareSum();
 
-  if(ldebug)    std::cout<<"Least Squares Fit Parameters for "<<pos<<" are: \na = "<<a[pos]<<"+-"<<erra[pos]
-			 <<"\nb = "<<b[pos]<<"+-"<<errb[pos]
-			 <<"\ncovariance of a and b = "<<covab[pos]<<"\n";
- 
+    }
+  
+  if(ldebug) std::cout<<"\nA ="<<A[n]<<" -- B ="<<B[n]<<" --C ="<<C[n]<<" --D ="<<D[n]<<" --E ="<<E[n]<<" --F ="<<F[n]<<"\n";  
+
+  fCombinedSlope[n].SetHardwareSum(E[n]*B[n]-C[n]*A[n]);
+  fCombinedSlope[n].Scale(1.0/m[n]);
+  fIntersept[n]= (D[n]*C[n]-E[n]*A[n])/m[n];
+  
+  if(ldebug)    std::cout<<"Least Squares Fit Parameters for "<<n<<" are: \n slope = "<<fCombinedSlope[n].GetHardwareSum()
+			 <<"\n intercept = "<<fIntersept[n]<<"\n\n";
+  
+  
+  //absolute positions at target  using X = Za + b
+  tmp1.ClearEventData();
+  fCombinedAbsPos[n].SetHardwareSum(fIntersept[n]); // X =  b
+  tmp1.Product(fCombinedAbsPos[2],fCombinedSlope[n]); //X = Za + b
+  fCombinedAbsPos[n]+=tmp1;
+
+  //to perform the minimul chi-square test
+  tmp2.ClearEventData(); 
+  chi_square[n]=0;
+  for(size_t i=0;i<fElement.size();i++){
+    tmp1.ClearEventData(); 
+    tmp1.Difference(fElement[i]->fAbsPos[n],fCombinedAbsPos[n]); // = X-Za-b 
+    tmp1.Product(tmp1,tmp1); // = (X-Za-b)^2
+    tmp1.Scale(fWeights[i]); // = [(X-Za-b)^2]W
+    tmp2+=tmp1; //sum over
+  } 
+
+  chi_square[n]=tmp2.GetHardwareSum()/(fElement.size()-2); //mimul ch-square 
+
+
   return;
 }
 
@@ -303,7 +333,7 @@ void QwCombinedBPM::Print()
   for(int i=0;i<3;i++)
     fCombinedAbsPos[i].Print();
   for(int i=0;i<2;i++)
-    fCombinedAngle[i].Print();
+    fCombinedSlope[i].Print();
   fCombinedWSum.Print();
 
   return;
@@ -332,7 +362,7 @@ QwCombinedBPM& QwCombinedBPM::operator= (const QwCombinedBPM &value)
     this->bRotated=value.bRotated;
     this->fCombinedWSum=value.fCombinedWSum;
     for(int i=0;i<2;i++)
-      this->fCombinedAngle[i]=value.fCombinedAngle[i];
+      this->fCombinedSlope[i]=value.fCombinedSlope[i];
     for(int i=0;i<3;i++)
       {
 	this->fCombinedAbsPos[i]=value.fCombinedAbsPos[i];
@@ -348,7 +378,7 @@ QwCombinedBPM& QwCombinedBPM::operator+= (const QwCombinedBPM &value)
     {
       this->fCombinedWSum+=value.fCombinedWSum;
       for(int i=0;i<2;i++)
-	this->fCombinedAngle[i]+=value.fCombinedAngle[i];
+	this->fCombinedSlope[i]+=value.fCombinedSlope[i];
       for(int i=0;i<3;i++)
  	this->fCombinedAbsPos[i]+=value.fCombinedAbsPos[i];
     }
@@ -361,7 +391,7 @@ QwCombinedBPM& QwCombinedBPM::operator-= (const QwCombinedBPM &value)
     {
       this->fCombinedWSum-=value.fCombinedWSum;
       for(int i=0;i<2;i++)
-	this->fCombinedAngle[i]-=value.fCombinedAngle[i];
+	this->fCombinedSlope[i]-=value.fCombinedSlope[i];
       for(int i=0;i<3;i++)
 	this->fCombinedAbsPos[i]-=value.fCombinedAbsPos[i];
     }
@@ -389,7 +419,7 @@ void QwCombinedBPM::Ratio(QwCombinedBPM &numer, QwCombinedBPM &denom)
   if (GetElementName()!="")
     {
       for(int i=0;i<2;i++)
- 	this->fCombinedAngle[i].Ratio(numer.fCombinedAngle[i], denom.fCombinedAngle[i]);
+ 	this->fCombinedSlope[i].Ratio(numer.fCombinedSlope[i], denom.fCombinedSlope[i]);
       for(int i=0;i<3;i++)
 	this->fCombinedAbsPos[i].Ratio(numer.fCombinedAbsPos[i], denom.fCombinedAbsPos[i]);
     }
@@ -402,25 +432,26 @@ void QwCombinedBPM::Scale(Double_t factor)
 {
   fCombinedWSum.Scale(factor);
   for(int i=0;i<2;i++)
-      fCombinedAngle[i].Scale(factor);
+      fCombinedSlope[i].Scale(factor);
   for(int i=0;i<3;i++)
       fCombinedAbsPos[i].Scale(factor);
 }
 
 void QwCombinedBPM::Calculate_Running_Average(){
   for(int i=0;i<2;i++)
-      fCombinedAngle[i].Calculate_Running_Average();
+      fCombinedSlope[i].Calculate_Running_Average();
   for(int i=0;i<2;i++)
     fCombinedAbsPos[i].Calculate_Running_Average();
   fCombinedWSum.Calculate_Running_Average();
 };
 
 void QwCombinedBPM::Do_RunningSum(){
+  fCombinedWSum.Do_RunningSum();
   for(int i=0;i<2;i++)
-      fCombinedAngle[i].Do_RunningSum();
+      fCombinedSlope[i].Do_RunningSum();
   for(int i=0;i<3;i++)
     fCombinedAbsPos[i].Do_RunningSum();
-  fCombinedWSum.Do_RunningSum();
+
 };
 
 
@@ -451,7 +482,7 @@ void  QwCombinedBPM::ConstructHistograms(TDirectory *folder, TString &prefix)
       SetRootSaveStatus(prefix);
      
       for(int i=0;i<2;i++)
-	  fCombinedAngle[i].ConstructHistograms(folder, thisprefix);
+	  fCombinedSlope[i].ConstructHistograms(folder, thisprefix);
 	for(int i=0;i<3;i++)
 	fCombinedAbsPos[i].ConstructHistograms(folder, prefix);
     }
@@ -468,7 +499,7 @@ void  QwCombinedBPM::FillHistograms()
     {
       fCombinedWSum.FillHistograms();
       for(int i=0;i<2;i++)
-	  fCombinedAngle[i].FillHistograms();
+	  fCombinedSlope[i].FillHistograms();
       for(int i=0;i<3;i++)
 	fCombinedAbsPos[i].FillHistograms();
     }
@@ -484,7 +515,7 @@ void  QwCombinedBPM::DeleteHistograms()
     {
       fCombinedWSum.DeleteHistograms();
       for(int i=0;i<2;i++)
-	fCombinedAngle[i].DeleteHistograms();
+	fCombinedSlope[i].DeleteHistograms();
       for(int i=0;i<3;i++)
 	fCombinedAbsPos[i].DeleteHistograms();
 
@@ -508,7 +539,7 @@ void  QwCombinedBPM::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
       fCombinedWSum.ConstructBranchAndVector(tree,prefix,values);
 
       for(int i=0;i<2;i++)
-	  fCombinedAngle[i].ConstructBranchAndVector(tree,thisprefix,values);
+	  fCombinedSlope[i].ConstructBranchAndVector(tree,thisprefix,values);
  	for(int i=0;i<3;i++)
  	  fCombinedAbsPos[i].ConstructBranchAndVector(tree,thisprefix,values);
 	
@@ -525,7 +556,7 @@ void  QwCombinedBPM::FillTreeVector(std::vector<Double_t> &values)
       fCombinedWSum.FillTreeVector(values);
 	 
       for(int i=0;i<2;i++)
-	fCombinedAngle[i].FillTreeVector(values);
+	fCombinedSlope[i].FillTreeVector(values);
 
       for(int i=0;i<3;i++)
 	fCombinedAbsPos[i].FillTreeVector(values);
@@ -549,7 +580,7 @@ void QwCombinedBPM::Copy(VQwDataElement *source)
  	 for(int i = 0; i < 3; i++)
  	   this->fComboOffset[i] = input->fComboOffset[i];
  	 for(int i = 0; i < 2; i++)
- 	   this->fCombinedAngle[i].Copy(&(input->fCombinedAngle[i]));
+ 	   this->fCombinedSlope[i].Copy(&(input->fCombinedSlope[i]));
 	 for(int i = 0; i < 3; i++)
 	   this->fCombinedAbsPos[i].Copy(&(input->fCombinedAbsPos[i]));
        }
@@ -574,7 +605,7 @@ void QwCombinedBPM::SetEventCutMode(Int_t bcuts){
 
   bEVENTCUTMODE=bcuts;
   for (Int_t i=0;i<2;i++)
-    fCombinedAngle[i].SetEventCutMode(bcuts);
+    fCombinedSlope[i].SetEventCutMode(bcuts);
   for (Int_t i=0;i<3;i++)
     fCombinedAbsPos[i].SetEventCutMode(bcuts);
   fCombinedWSum.SetEventCutMode(bcuts);

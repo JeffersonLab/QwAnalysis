@@ -37,11 +37,11 @@ void QwCombinedBCM::SetCalibrationFactor(Double_t calib)
 	return;
 };
 
-void QwCombinedBCM::Add(QwBCM* bcm, Double_t weight  ){
+void QwCombinedBCM::Set(QwBCM* bcm, Double_t weight, Double_t sumqw ){
 
   fElement.push_back(bcm);
   fWeights.push_back(weight);
-
+  fSumQweights=sumqw;
   //std::cout<<"QwCombinedBCM: Got "<<bcm->GetElementName()<<"  and weight ="<<weight<<"\n";
   }
   
@@ -110,28 +110,18 @@ void  QwCombinedBCM::ProcessEvent()
 {
  
   Bool_t ldebug = kFALSE;
-  //static QwVQWK_Channel  tmpADC; 
-  Double_t tmpQ, tmp;
-  Double_t  total_weights=0;
+  static QwVQWK_Channel  tmpADC("tmpADC"); 
 
-  fCombined_bcm.ClearEventData();
-  tmpQ=0;
-  tmp=0;
   for(size_t i=0;i<fElement.size();i++)
   {  
-    tmpQ+=((fElement[i]->fTriumf_ADC).GetHardwareSum())/fWeights[i];
-//     tmpADC.Copy(&(fElement[i]->fTriumf_ADC));
-//     tmpADC=fElement[i]->fTriumf_ADC;
-
-//     tmpADC.Scale(fWeights[i]);
-//     fCombined_bcm+=tmpADC;
-    total_weights +=fWeights[i];
+    tmpADC=fElement[i]->fTriumf_ADC;
+    tmpADC.Scale(fWeights[i]);
+    fCombined_bcm+=tmpADC;
   }
   
   //std::cout<<"total weights = "<<total_weights<<"\n";
-  // fCombined_bcm.Scale(1.0/total_weights);
-  tmp=tmpQ/total_weights;
-  fCombined_bcm.SetHardwareSum(tmp);
+  fCombined_bcm.Scale(1.0/fSumQweights);
+
 
   if(ldebug){
     std::cout<<"***************** \n";
