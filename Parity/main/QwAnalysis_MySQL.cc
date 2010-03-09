@@ -271,6 +271,8 @@ main(Int_t argc, Char_t* argv[])
 
       printf("main:: Run # %d Run ID %d and Analysis ID %d\n", run, run_id, analysis_id);
 
+      
+      // Each sussystem has its own Connect() and Disconnect() functions.
       QwHelPat.FillDB(qw_test_DB);
     
       delete qw_test_DB; qw_test_DB = NULL;

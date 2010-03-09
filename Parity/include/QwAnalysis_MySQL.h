@@ -34,12 +34,6 @@
 #include "QwOptionsParity.h"
 #include "QwDatabase.h"
 
-//#include "TMySQLServer.h"
-//#include "TMySQLResult.h"
-//#include "TSQLTableInfo.h"
-//#include "TSQLRow.h"
-//#include "TSQLStatement.h"
-
 #include <cstdio>
 #include <cstdlib>
 #include <cassert>

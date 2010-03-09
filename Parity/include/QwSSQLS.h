@@ -10,8 +10,6 @@
 #   define MYSQLPP_SSQLS_NO_STATICS
 #endif
 
-// This didn't work properly, sometime I can compile without any link problems,
-// but most cases, I cannot. 
 
 namespace QwParityDB{
 
