@@ -120,23 +120,19 @@ EXCLUDEDIRS = coda Extensions
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
  ifneq ($(CODA),)
   #  The realtime executables should be added in this section.
-#  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwdb_test qwanalysis_mysql
-   EXES := qwanalysis_mysql qwanalysis_adc  qwanalysis_beamline
+   EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwanalysis_mysql qwdb_test
  else
-#  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwdb_test qwanalysis_mysql
-   EXES := qwanalysis_mysql qwanalysis_adc  qwanalysis_beamline
- endif
+   EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwanalysis_mysql qwdb_test
+  endif
 else
  EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
 endif
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
  ifneq ($(CODA),)
   #  The realtime executables should be added in this section.
-#  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwdb_test qwanalysis_mysql
-   EXES :=  qwanalysis_mysql qwanalysis_adc  qwanalysis_beamline qwtracking
+   EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwanalysis_mysql qwdb_test
  else
-#  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwdb_test qwanalysis_mysql
-   EXES := qwanalysis_mysql qwanalysis_adc  qwanalysis_beamline qwtracking
+   EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwanalysis_mysql qwdb_test
  endif
 endif
 # overridden by "make 'EXES=exe1 exe2 ...'"

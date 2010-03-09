@@ -6,9 +6,10 @@
 
 // Need to include define EXPAND_MY_SSQLS_STATICS in owner module
 //
-//#if !defined(EXPAND_MY_SSQLS_STATICS)
-//#define MYSQLPP_SSQLS_NO_STATICS
-//#endif
+#if !defined(EXPAND_MY_SSQLS_STATICS)
+#   define MYSQLPP_SSQLS_NO_STATICS
+#endif
+
 // This didn't work properly, sometime I can compile without any link problems,
 // but most cases, I cannot. 
 

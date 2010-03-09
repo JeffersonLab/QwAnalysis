@@ -7,6 +7,7 @@
 
 #include "QwBeamLine.h"
 #include "QwHistogramHelper.h"
+
 #define MYSQLPP_SSQLS_NO_STATICS
 #include "QwSSQLS.h"
 
@@ -1108,319 +1109,220 @@ VQwSubsystem*  QwBeamLine::Copy()
 void QwBeamLine::FillDB(QwDatabase *db, TString type)
 {
 
-  // test...
-  // to access "analysis" table in the QwBeamLine class
-//   db->Connect();
-//   mysqlpp::Query query= db->Query("SELECT * from analysis");
-
-//   vector<analysis> res;
-//   query.storein(res);
-
-//    std::cout << "We have:" << std::endl;
-//   vector<analysis>::iterator it;
-//   for (it = res.begin(); it != res.end(); ++it) {
-//     std::cout << '\t' << it->analysis_id;
-//     std::cout << '\t' << it->run_id;
-//     std::cout << '\t' << it->seed_id;
-//     std::cout << std::endl;
-//   }
-//   db->Disconnect();
-
-//   // Get run and analysis id from db, which is sent by "main"
-
-  UInt_t trun_id      = db->get_run_id();
-  UInt_t tanalysis_id = db->get_analysis_id(); 
-  UInt_t tmonitor_id  = 0;     // monitor_id | int(10) unsigned | NO   | PRI | NULL    |
-  Char_t tmeasurement_type[4]; // the same size of "measurement_type_id" in the measurement_type table
-
+  // Get run and analysis id from db, which is sent by "main"
+  
+  UInt_t run_id      = db->GetRunID();
+  UInt_t analysis_id = db->GetAnalysisID(); 
+  UInt_t monitor_id  = 0;     // monitor_id | int(10) unsigned | NO   | PRI | NULL    |
+  Char_t measurement_type[4]; // the same size of "measurement_type_id" in the measurement_type table
 
   // try to access BCM mean and its error
   // there are 2 different types BCM data we have at the moment
   // Yield and Asymmetry
 
-  TString name;
+  TString  name;
   Double_t avg = 0.0;
   Double_t err = 0.0;
- 
- //  Bool_t test = kFALSE;
 
-//   if(test)
-//     {
-//       db->Connect();
-
-//       QwParityDB::beam row(0);
-
-//       if(type.Contains("yield"))
-// 	{
-// 	  mysqlpp::Query query= db->Query();
-// 	  printf("Yields \n");
-// 	  for(UInt_t i=0; i<  fBCM.size(); i++)
-// 	    {
-
-// 	      name = fBCM[i].GetElementName();
-// // 	      if(name.Contains("bcm"))
-// 		{
-// 		  avg = fBCM[i].GetAverage("");
-// 		  err = fBCM[i].GetAverageError("");
-// 		  sprintf(measurement_type, "yq");
-// 		  row.analysis_id = analysis_id;
-// 		  row.monitor_id  = 1;
-// 		  row.measurement_type_id = measurement_type;
-// 		  row.value = avg;
-// 		  row.error = err;
-// 		  query.insert(row);
-// 		  query.execute();
-// 		  query.reset();
-// 		  printf("RunID %d AnalysisID %d %4s %18s BCM[%d], [%18.2lf, %12.2lf] \n", 
-// 			 run_id, analysis_id, measurement_type,  name.Data(), i, avg, err);
-// 		}
-// 	    }
-
-// 	  for(size_t i=0; i< fStripline.size(); i++)
-// 	    {
-     
-// 	      name = fStripline[i].fRelPos[0].GetElementName();
-// 	      printf("%s\n", name.Data());
-// 	      name = fStripline[i].fRelPos[1].GetElementName();
-// 	      printf("%s\n", name.Data());
-// 	    }
-// 	}
+  vector<QwParityDB::beam> entrylist;
   
-//       if(type.Contains("asymmetry"))
-// 	{
-// 	  mysqlpp::Query query= db->Query();
-// 	  printf("Asymmetries\n");
-// 	  for(UInt_t i=0; i< fBCM.size(); i++)
-// 	    {
-// 	      name = fBCM[i].GetElementName();
-// // 	      if(name.Contains("bcm"))
-// 		{
-// 		  avg = fBCM[i].GetAverage("");
-// 		  err = fBCM[i].GetAverageError("");
-// 		  sprintf(measurement_type, "aq");
-// 		  row.analysis_id = analysis_id;
-// 		  row.monitor_id  = 1;
-// 		  row.measurement_type_id = measurement_type;
-// 		  row.value = avg;
-// 		  row.error = err;
-// 		  query.insert(row);
-// 		  query.execute();
-// 		  query.reset();	      
-// 		  printf("RunID %d AnalysisID %d %4s %18s BCM[%d], [%18.2e, %12.2e] \n", 
-// 			 run_id, analysis_id, measurement_type,  name.Data(), i, avg, err);
-	      
-// 		}
-// 	    }
-
-// 	}
-//       db->Disconnect();
+  //      QwParityDB::beam row;
+  // Without (0), I see the following error message:
+  //terminate called after throwing an instance of 'mysqlpp::BadQuery'
+  //  what():  Duplicate entry '11399104' for key 1
+  //Abort
+  // 
   
-//     }
-//   else
-//     {
+  QwParityDB::beam row(0);
+  
+  printf("\n");
+  
+  if(type.Contains("yield"))
+    {
+      sprintf(measurement_type, "yq");
+      printf("*** Yields     ");
+    }
+  else if(type.Contains("asymmetry"))
+    {
+      sprintf(measurement_type, "aq");
+      printf("*** Asymmetry  ");
+    }
+  else
+    {
+      return;// temporary solution if there is another type ....
+    }
+  printf("  ************** BCM **************\n");
 
-      vector<QwParityDB::beam> entrylist;
+  for(UInt_t i=0; i< fBCM.size(); i++)
+    {
+      name = fBCM[i].GetElementName();
 
-      //      QwParityDB::beam row;
-      // Without (0), I see the following error message:
-      //terminate called after throwing an instance of 'mysqlpp::BadQuery'
-      //  what():  Duplicate entry '11399104' for key 1
-      //Abort
-      // 
-
-      QwParityDB::beam row(0);
-
-      printf("\n");
-
-      if(type.Contains("yield"))
+      if(!name.Contains("empty"))
 	{
-	  sprintf(tmeasurement_type, "yq");
-	  printf("*** Yields     ");
-	}
-      else if(type.Contains("asymmetry"))
-	{
-	  sprintf(tmeasurement_type, "aq");
-	  printf("*** Asymmetry  ");
-	}
-      else
-	{
-	  return;// temporary solution if there is another type ....
-	}
-      printf("  ************** BCM **************\n");
-
-      for(UInt_t i=0; i< fBCM.size(); i++)
-	{
-	  
-
-	  name = fBCM[i].GetElementName();
-	  if(!name.Contains("empty"))
-	    {
-	      avg = fBCM[i].GetAverage("");
-	      err = fBCM[i].GetAverageError("");
+	  avg = fBCM[i].GetAverage("");
+	  err = fBCM[i].GetAverageError("");
 	      
-	
+	  if      ( name.Contains("bcm0l02") ) monitor_id = QWK_BCM0102;
+	  else if ( name.Contains("batext1") ) monitor_id = QWK_BATTERY;
+	  else if ( name.Contains("batext2") ) monitor_id = QWK_BATTERY;
+	  else if ( name.Contains("batery6") ) monitor_id = QWK_BATTERY;
+	  else if ( name.Contains("batery7") ) monitor_id = QWK_BATTERY;
+	  else                                 monitor_id = QWK_UNDEFINED;
 	      
-	      if      ( name.Contains("bcm0l02") ) tmonitor_id = QWK_BCM0102;
-	      else if ( name.Contains("batext1") ) tmonitor_id = QWK_BATTERY;
-	      else if ( name.Contains("batext2") ) tmonitor_id = QWK_BATTERY;
-	      else if ( name.Contains("batery6") ) tmonitor_id = QWK_BATTERY;
-	      else if ( name.Contains("batery7") ) tmonitor_id = QWK_BATTERY;
-	      else                                 tmonitor_id = QWK_UNDEFINED;
-	      
-	      row.monitor_id          = tmonitor_id;
-	      row.analysis_id         = tanalysis_id;
-	      row.measurement_type_id = tmeasurement_type;
-	      row.value               = avg;
-	      row.error               = err;
+	  row.monitor_id          = monitor_id;
+	  row.analysis_id         = analysis_id;
+	  row.measurement_type_id = measurement_type;
+	  row.value               = avg;
+	  row.error               = err;
 
-	      entrylist.push_back(row);
-	      printf("RunID %d AnalysisID %d %4s MonitorID %4d %18s BCM[%d], [%18.2e, %12.2e] \n", 
-		     trun_id, tanalysis_id, tmeasurement_type, tmonitor_id, name.Data(), i, avg, err);
-	    }
+	  // put a row into an entrylist;
+	  entrylist.push_back(row);
+	  printf("RunID %d AnalysisID %d %4s MonitorID %4d %18s BCM[%d], [%18.2e, %12.2e] \n", 
+		 run_id, analysis_id, measurement_type, monitor_id, name.Data(), i, avg, err);
 	}
+    }
       
-      printf("\n");
+  printf("\n");
 
-      // it is not a fancy way to do this.... anyway
-      // must overwrite "measurement_typ" according to BPM
-      // No way to distingush whether BPM or BCM inside QwBeamLine class ????
+  // it is not a fancy way to do this.... anyway
+  // must overwrite "measurement_typ" according to BPM
+  // No way to distingush whether BPM or BCM inside QwBeamLine class ????
 
  
-      if(type.Contains("yield"))
-	{
-	  sprintf(tmeasurement_type, "yp");
-	  printf("*** Yields     ");
-	}
-      else if(type.Contains("asymmetry"))
-	{
-	  sprintf(tmeasurement_type, "dp");
-	  printf("*** Asymmetry  ");
-	}
-      else
-	{
-	  return;// temporary solution if there is another type ....
-	}
+  if(type.Contains("yield"))
+    {
+      sprintf(measurement_type, "yp");
+      printf("*** Yields     ");
+    }
+  else if(type.Contains("asymmetry"))
+    {
+      sprintf(measurement_type, "dp");
+      printf("*** Asymmetry  ");
+    }
+  else
+    {
+      return;// temporary solution if there is another type ....
+    }
 
-      printf(" ************** BPM **************\n");
-      for(size_t i=0; i< fStripline.size(); i++)
-	{
+  printf(" ************** BPM **************\n");
 
+  for(UInt_t i=0; i< fStripline.size(); i++)
+    {
 
-	  name = fStripline[i].GetSubElementName("relposx");
-	  avg  = fStripline[i].GetAverage("relposx");
-	  err  = fStripline[i].GetAverageError("relposx");
+      // access SubElement X
 
-	  
-	  if      ( name.Contains("qpdRelX")   ) tmonitor_id = QWK_XQPD;
-	  else if ( name.Contains("1i02RelX")  ) tmonitor_id = QWK_1I02X;
-	  else if ( name.Contains("1i04RelX")  ) tmonitor_id = QWK_1I04X;
-	  else if ( name.Contains("1i06RelX")  ) tmonitor_id = QWK_1I06X;
-	  else if ( name.Contains("0i02RelX")  ) tmonitor_id = QWK_0I02X;
-	  else if ( name.Contains("0i02aRelX") ) tmonitor_id = QWK_0I02AX;
-	  else if ( name.Contains("0i05RelX")  ) tmonitor_id = QWK_0i05X;
-	  else if ( name.Contains("0i07RelX")  ) tmonitor_id = QWK_0i07X;
-	  else if ( name.Contains("0l01RelX")  ) tmonitor_id = QWK_0L01X;
-	  else if ( name.Contains("0l02RelX")  ) tmonitor_id = QWK_0L02X;
-	  else if ( name.Contains("0l03RelX")  ) tmonitor_id = QWK_0L03X;
-	  else if ( name.Contains("0l04RelX")  ) tmonitor_id = QWK_0L04X;
-	  else if ( name.Contains("0l05RelX")  ) tmonitor_id = QWK_0L05X;
-	  else if ( name.Contains("0l06RelX")  ) tmonitor_id = QWK_0L06X;
-	  else if ( name.Contains("0l07RelX")  ) tmonitor_id = QWK_0L07X;
-	  else if ( name.Contains("0l08RelX")  ) tmonitor_id = QWK_0L08X;
-	  else if ( name.Contains("0l09RelX")  ) tmonitor_id = QWK_0L09X;
-	  else if ( name.Contains("0l10RelX")  ) tmonitor_id = QWK_0L10X;
-	  else if ( name.Contains("0r01RelX")  ) tmonitor_id = QWK_0R01X;
-	  else if ( name.Contains("0r02RelX")  ) tmonitor_id = QWK_0R02X;
-	  else if ( name.Contains("0r05RelX")  ) tmonitor_id = QWK_0R05X;
-	  else if ( name.Contains("0r06RelX")  ) tmonitor_id = QWK_0R06X;
-	  else                                   tmonitor_id = QWK_UNDEFINED;
-
-	  row.analysis_id         = tanalysis_id;
-	  row.monitor_id          = tmonitor_id;
-	  row.measurement_type_id = tmeasurement_type;
-	  row.value               = avg;
-	  row.error               = err;
-
-	  entrylist.push_back(row);
-	  
-	  printf("RunID %d AnalysisID %d %4s MonitorID %4d %18s BPM[%2d], [%18.6f, %12.6f] \n", 
-		     trun_id, tanalysis_id, tmeasurement_type, tmonitor_id, name.Data(), i, avg, err);
-
-
-	  name = fStripline[i].GetSubElementName("relposy");
-	  avg  = fStripline[i].GetAverage("relposy");
-	  err  = fStripline[i].GetAverageError("relposy");
+      name = fStripline[i].GetSubElementName("relposx");
+      avg  = fStripline[i].GetAverage("relposx");
+      err  = fStripline[i].GetAverageError("relposx");
 
 	  
-	  if      ( name.Contains("qpdRelY")   ) tmonitor_id = QWK_YQPD;
-	  else if ( name.Contains("1i02RelY")  ) tmonitor_id = QWK_1I02Y;
-	  else if ( name.Contains("1i04RelY")  ) tmonitor_id = QWK_1I04Y;
-	  else if ( name.Contains("1i06RelY")  ) tmonitor_id = QWK_1I06Y;
-	  else if ( name.Contains("0i02RelY")  ) tmonitor_id = QWK_0I02Y;
-	  else if ( name.Contains("0i02aRelY") ) tmonitor_id = QWK_0I02AY;
-	  else if ( name.Contains("0i05RelY")  ) tmonitor_id = QWK_0i05Y;
-	  else if ( name.Contains("0i07RelY")  ) tmonitor_id = QWK_0i07Y;
-	  else if ( name.Contains("0l01RelY")  ) tmonitor_id = QWK_0L01Y;
-	  else if ( name.Contains("0l02RelY")  ) tmonitor_id = QWK_0L02Y;
-	  else if ( name.Contains("0l03RelY")  ) tmonitor_id = QWK_0L03Y;
-	  else if ( name.Contains("0l04RelY")  ) tmonitor_id = QWK_0L04Y;
-	  else if ( name.Contains("0l05RelY")  ) tmonitor_id = QWK_0L05Y;
-	  else if ( name.Contains("0l06RelY")  ) tmonitor_id = QWK_0L06Y;
-	  else if ( name.Contains("0l07RelY")  ) tmonitor_id = QWK_0L07Y;
-	  else if ( name.Contains("0l08RelY")  ) tmonitor_id = QWK_0L08Y;
-	  else if ( name.Contains("0l09RelY")  ) tmonitor_id = QWK_0L09Y;
-	  else if ( name.Contains("0l10RelY")  ) tmonitor_id = QWK_0L10Y;
-	  else if ( name.Contains("0r01RelY")  ) tmonitor_id = QWK_0R01Y;
-	  else if ( name.Contains("0r02RelY")  ) tmonitor_id = QWK_0R02Y;
-	  else if ( name.Contains("0r05RelY")  ) tmonitor_id = QWK_0R05Y;
-	  else if ( name.Contains("0r06RelY")  ) tmonitor_id = QWK_0R06Y;
-	  else                                   tmonitor_id = QWK_UNDEFINED;
+      if      ( name.Contains("qpdRelX")   ) monitor_id = QWK_XQPD;
+      else if ( name.Contains("1i02RelX")  ) monitor_id = QWK_1I02X;
+      else if ( name.Contains("1i04RelX")  ) monitor_id = QWK_1I04X;
+      else if ( name.Contains("1i06RelX")  ) monitor_id = QWK_1I06X;
+      else if ( name.Contains("0i02RelX")  ) monitor_id = QWK_0I02X;
+      else if ( name.Contains("0i02aRelX") ) monitor_id = QWK_0I02AX;
+      else if ( name.Contains("0i05RelX")  ) monitor_id = QWK_0i05X;
+      else if ( name.Contains("0i07RelX")  ) monitor_id = QWK_0i07X;
+      else if ( name.Contains("0l01RelX")  ) monitor_id = QWK_0L01X;
+      else if ( name.Contains("0l02RelX")  ) monitor_id = QWK_0L02X;
+      else if ( name.Contains("0l03RelX")  ) monitor_id = QWK_0L03X;
+      else if ( name.Contains("0l04RelX")  ) monitor_id = QWK_0L04X;
+      else if ( name.Contains("0l05RelX")  ) monitor_id = QWK_0L05X;
+      else if ( name.Contains("0l06RelX")  ) monitor_id = QWK_0L06X;
+      else if ( name.Contains("0l07RelX")  ) monitor_id = QWK_0L07X;
+      else if ( name.Contains("0l08RelX")  ) monitor_id = QWK_0L08X;
+      else if ( name.Contains("0l09RelX")  ) monitor_id = QWK_0L09X;
+      else if ( name.Contains("0l10RelX")  ) monitor_id = QWK_0L10X;
+      else if ( name.Contains("0r01RelX")  ) monitor_id = QWK_0R01X;
+      else if ( name.Contains("0r02RelX")  ) monitor_id = QWK_0R02X;
+      else if ( name.Contains("0r05RelX")  ) monitor_id = QWK_0R05X;
+      else if ( name.Contains("0r06RelX")  ) monitor_id = QWK_0R06X;
+      else                                   monitor_id = QWK_UNDEFINED;
 
-	  row.analysis_id         = tanalysis_id;
-	  row.monitor_id          = tmonitor_id;
-	  row.measurement_type_id = tmeasurement_type;
-	  row.value               = avg;
-	  row.error               = err;
+      row.analysis_id         = analysis_id;
+      row.monitor_id          = monitor_id;
+      row.measurement_type_id = measurement_type;
+      row.value               = avg;
+      row.error               = err;
 
-	  entrylist.push_back(row);
+
+      // put a row into an entrylist;
+      entrylist.push_back(row);
 	  
-	  printf("RunID %d AnalysisID %d %4s MonitorID %4d %18s BPM[%2d], [%18.6f, %12.6f] \n", 
-		     trun_id, tanalysis_id, tmeasurement_type, tmonitor_id, name.Data(), i, avg, err);
+      printf("RunID %d AnalysisID %d %4s MonitorID %4d %18s BPM[%2d], [%18.6f, %12.6f] \n", 
+	     run_id, analysis_id, measurement_type, monitor_id, name.Data(), i, avg, err);
 
-	}
+
+      // access SubElement Y
+
+      name = fStripline[i].GetSubElementName("relposy");
+      avg  = fStripline[i].GetAverage("relposy");
+      err  = fStripline[i].GetAverageError("relposy");
+
+	  
+      if      ( name.Contains("qpdRelY")   ) monitor_id = QWK_YQPD;
+      else if ( name.Contains("1i02RelY")  ) monitor_id = QWK_1I02Y;
+      else if ( name.Contains("1i04RelY")  ) monitor_id = QWK_1I04Y;
+      else if ( name.Contains("1i06RelY")  ) monitor_id = QWK_1I06Y;
+      else if ( name.Contains("0i02RelY")  ) monitor_id = QWK_0I02Y;
+      else if ( name.Contains("0i02aRelY") ) monitor_id = QWK_0I02AY;
+      else if ( name.Contains("0i05RelY")  ) monitor_id = QWK_0i05Y;
+      else if ( name.Contains("0i07RelY")  ) monitor_id = QWK_0i07Y;
+      else if ( name.Contains("0l01RelY")  ) monitor_id = QWK_0L01Y;
+      else if ( name.Contains("0l02RelY")  ) monitor_id = QWK_0L02Y;
+      else if ( name.Contains("0l03RelY")  ) monitor_id = QWK_0L03Y;
+      else if ( name.Contains("0l04RelY")  ) monitor_id = QWK_0L04Y;
+      else if ( name.Contains("0l05RelY")  ) monitor_id = QWK_0L05Y;
+      else if ( name.Contains("0l06RelY")  ) monitor_id = QWK_0L06Y;
+      else if ( name.Contains("0l07RelY")  ) monitor_id = QWK_0L07Y;
+      else if ( name.Contains("0l08RelY")  ) monitor_id = QWK_0L08Y;
+      else if ( name.Contains("0l09RelY")  ) monitor_id = QWK_0L09Y;
+      else if ( name.Contains("0l10RelY")  ) monitor_id = QWK_0L10Y;
+      else if ( name.Contains("0r01RelY")  ) monitor_id = QWK_0R01Y;
+      else if ( name.Contains("0r02RelY")  ) monitor_id = QWK_0R02Y;
+      else if ( name.Contains("0r05RelY")  ) monitor_id = QWK_0R05Y;
+      else if ( name.Contains("0r06RelY")  ) monitor_id = QWK_0R06Y;
+      else                                   monitor_id = QWK_UNDEFINED;
+
+      row.analysis_id         = analysis_id;
+      row.monitor_id          = monitor_id;
+      row.measurement_type_id = measurement_type;
+      row.value               = avg;
+      row.error               = err;
+      
+      // put a row into an entrylist;
+      entrylist.push_back(row);
+	  
+      printf("RunID %d AnalysisID %d %4s MonitorID %4d %18s BPM[%2d], [%18.6f, %12.6f] \n", 
+	     run_id, analysis_id, measurement_type, monitor_id, name.Data(), i, avg, err);
+
+    }
       
        
-      db->Connect();
-      // Check the entrylist size, if it isn't zero, start to query..
-      if( entrylist.size() )
+  db->Connect();
+  // Check the entrylist size, if it isn't zero, start to query..
+  if( entrylist.size() )
+    {
+      mysqlpp::Query query= db->Query();
+      if(query)
 	{
-	  mysqlpp::Query query= db->Query();
-	  if(query)
-	    {
-	      printf("Entrylist Vector Size %d\n", (Int_t) entrylist.size());
-	      query.insert(entrylist.begin(), entrylist.end());
-	      query.execute();
-	      //	      query.reset();
-	    }
-	  else
-	    {
-	    }
+	  printf("Entrylist Vector Size %d\n", (Int_t) entrylist.size());
+	  query.insert(entrylist.begin(), entrylist.end());
+	  query.execute();
+	  //	      query.reset(); // do we need?
 	}
       else
 	{
-	  printf("%s has no entries which we want to put into a database\n", type.Data());
+	  // ??
 	}
-      db->Disconnect();
-      
-      
+    }
+  else
+    {
+      printf("%s has no entries which we want to put into a database\n", type.Data());
+    }
   
-      //   I cannot insert vector of beam into database at the moment
-      //   mysqlpp::Query query= db->Query();
-      //   query.insert(entrylist.begin(), entrylist.end());
-      //   query.execute();
-      //   //terminate called after throwing an instance of 'mysqlpp::BadQuery'
-      //   // what():  Duplicate entry '1' for key 1
-      //   // Abort
+  db->Disconnect();
       
-      return;
+  return;
 };

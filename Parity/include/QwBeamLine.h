@@ -8,7 +8,7 @@
 #ifndef __QwBEAMLINE__
 #define __QwBEAMLINE__
 
-#include <vector>
+
 #include "TTree.h"
 
 #include "VQwSubsystemParity.h"
@@ -17,6 +17,8 @@
 #include "QwBCM.h"
 #include "QwCombinedBCM.h"
 #include "QwCombinedBPM.h"
+
+#include <vector>
 
 enum EBeamInstrumentType{kBPMStripline = 0,
 			 kBCM,

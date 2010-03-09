@@ -44,7 +44,6 @@
 #include "QwEvent.h"
 
 //#include "QwDatabase.h"
-#include "QwSSQLS.h"
 
 // Qweak headers (deprecated)
 #include "Det.h"

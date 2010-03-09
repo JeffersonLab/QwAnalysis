@@ -5,16 +5,12 @@
 #include "QwLog.h"
 #include "QwOptions.h"
 #include "QwOptionsParity.h"
-#include "QwDatabase.h"
 
 #include "QwAnalysis_MySQL.h"
 
 Bool_t kInQwBatchMode = kFALSE;
 //Bool_t bRING_READY;
 
-// Qweak headers
-//#define EXPAND_MY_SSQLS_STATICS
-#include "QwSSQLS.h"
 
 Int_t
 main(Int_t argc, Char_t* argv[])
@@ -83,18 +79,9 @@ main(Int_t argc, Char_t* argv[])
 
   Double_t evnum=0.0;
 
-
-
-  /*
-  TSQLServer *serv = TSQLServer::Connect("mysql://localhost/qw_test", "qwreplay", "replay");
-  //TSQLServer *serv = TSQLServer::Connect("mysql://localhost/qw_test", "qwadmin", "S1n2+h3taW");
-  
-  QwDatabase *serv = new QwDatabase();
-  serv -> SetConnect("qw_test", "localhost","qwreplay", "replay");
-  serv -> PrintServerInfo();
-
-    */
-  QwDatabase *sqlserv = NULL; //new QwDatabase();
+  QwDatabase *qw_test_DB = NULL; 
+  UInt_t run_id      = 0;
+  UInt_t analysis_id = 0;
 
   for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++)
     {
@@ -269,164 +256,27 @@ main(Int_t argc, Char_t* argv[])
       if(bHisto)
 	{
 	  printf("QwDetectors.DeleteHistograms\n"); QwDetectors.DeleteHistograms();
-	  printf("QwHelPat.DeleteHistograms\n\n");    QwHelPat.DeleteHistograms();
+	  printf("QwHelPat.DeleteHistograms\n\n");  QwHelPat.DeleteHistograms();
 	}
-
+      
       QwEvt.CloseDataFile();
-      printf("*** Begin ::: ReportRunSummary()\n");
       QwEvt.ReportRunSummary();
-      printf("*** END   ::: ReportRunSummary()\n\n");
-
       
 
-      sqlserv = new QwDatabase();
-      sqlserv -> Connect();
-      sqlserv -> show_mysql_version();
-      UInt_t run_id = 0;sqlserv->GetRunID(QwEvt);
-      UInt_t analysis_id = 0;
-      run_id = sqlserv->GetRunID(QwEvt);
-      analysis_id = sqlserv -> GetAnalysisID(QwEvt);
-      printf("main:: run %d Run ID %d and Analysis ID %d\n", run, run_id, analysis_id);
+     
+      qw_test_DB  = new QwDatabase();
+      // GetRunID() and GetAnalysisID have their own Connect() and Disconnect() functions.
+      run_id      = qw_test_DB->GetRunID(QwEvt);
+      analysis_id = qw_test_DB->GetAnalysisID(QwEvt);
 
-      //      std::cout << "main::Analysis ID for analysis pass is " << serv->GetAnalysisID(QwEvt) << std::endl;
+      printf("main:: Run # %d Run ID %d and Analysis ID %d\n", run, run_id, analysis_id);
 
-      QwHelPat.FillDB(sqlserv);
-      /*
-      cnt++;
-      TSQLResult *res = NULL;
-      char buff[1024];
-      sprintf(buff, "INSERT INTO run (run_number, run_type, start_time, end_time) VALUES (%d, '%s', '%s', '%s');", 
- 	      run, run_type[QwEvt.GetRunType()], QwEvt.GetStartSQLTime().Data(), QwEvt.GetEndSQLTime().Data());
-      res = serv->Query(buff);
-      
-      //       if(res == NULL) 
-      //  	{
-      //  	  sprintf(buff, "UPDATE run SET run_number=%d, run_type='%s', start_time='%s', end_time='%s' where run_id=%d",
-      //  		  run, run_type[QwEvt.GetRunType()], QwEvt.GetStartSQLTime().Data(), QwEvt.GetEndSQLTime().Data(), cnt);
-      //  	  res = serv->Query(buff);
-      //  	}
-      
-      //       printf("%s%s%s\n", BOLD, buff, NORMAL);
-      //       delete res; res = NULL;
-      //       QwDetectors.FillMySQLServer(serv, run);
-      
-
-      QwDetectors.FillMySQLServer(serv);
-      
-      */
-      //    sqlserv->Disconnect();
-      delete sqlserv;sqlserv = NULL;
+      QwHelPat.FillDB(qw_test_DB);
+    
+      delete qw_test_DB; qw_test_DB = NULL;
     } //end of run loop
   
 
-  
-//     for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++)
-//     {     
-//       TSQLServer *serv = TSQLServer::Connect("mysql://localhost/qw_test", "qwreplay", "replay");
-
-//       // Get all tables from the database qw_test and print them into terminal
-      
-//       TList* lst = serv->GetTablesList();
-//       TIter next(lst);
-//       TObject* obj;
-//       while ( (obj = next()) )
-// 	{
-// 	  printf("    Table: %s %s %s \n",  GREEN, obj->GetName(), NORMAL);
-// 	}
-//       delete lst;
-      
-//       //       // Get the run table from the qw_test;
-      
-//       //       TSQLTableInfo *run_info = serv->GetTableInfo("run");
-//       //       printf("\n--- run table info in qw_test ---------\n");
-//       //       run_info->Print();
-//       //       printf("---------------------------------------\n");
-
-          
-//       TSQLRow *row;
-//       TSQLResult *res;
-      
-//       //       printf("\nList all tables in database \"qw_test\" on server %s\n",
-//       // 	     serv->GetHost());
-//       //       res = serv->GetTables("qw_test");
-//       //       while ((row = res->Next())) {
-//       // 	printf("%s\n", row->GetField(0));
-//       // 	delete row;
-//       //       }
-//       //       delete res;
-//       // list columns in table "runcatalog" in database "mysql"
-
-
-//     }
-
-  //  gQwOptions.DefineOptions();
-
-  //   //--- gQwOptions is defined in Analysis/include/QwOptions.h
-  //   //--- as extern QwOptions gQwOptions;
-  //   //--- without SetCommandLine(), there is an error (stop!)
-  //   //--- with this, the following warning message
-  //   //--- Warning: unknown option -r while parsing command line arguments
-  // gQwOptions.SetCommandLine(argc, argv);
-  //   //--- with the directory structure, there is a warning as
-  //   //--- Warning: unknown option QwDatabase.dbserver while parsing configuration file
-  //   //---          /home/jhlee/QwAnalysis/branches/spayde/Parity/prminput/qweak_mysql.conf
-  //   //--- Warning: the entire configuration file was ignored!
-
-  // gQwOptions.SetConfigFile( Form("%s/Parity/prminput/qweak_mysql.conf", getenv("QWANALYSIS")) );
-
-  //   //--- the following configuration is OK
-  //   //--- I couldn't see the Waring messages.
-
-  //  gQwOptions.SetConfigFile("./qweak_mysql.conf");
-  //   //--- empty funciton, do I need to run?
-  //  gQwOptions.DefineOptions();
-  //   // gQwOptions.ListConfigFiles();
-
-  //   // gQwDatabase is defined in Analysis/include/QwDatabase.h
-  //   // extern QwDatabase gQwDatabase;
-  //   // DefineOptions() calls AddOptions in gQwOptions
-
-
-  //   //--- I couldn't find any routine to read information inside the configuration file.
-  //   //--- Thus, I add this, but it returns some errors
-  //   //--- Error: QwDatabase::ValidateConnection() : No database supplied.  Unable to connect.
-  //   //--- Error: QwDatabase::Connect() : Must establish valid connection to database.
-  //  gQwOptions.Parse();
-  //  std::cout << gQwOptions.GetValue<unsigned int>("dbport") << std::endl;
-
-  // until no errors.
-  //  gQwDatabase.Connect();
-
-
-//       //QwHelPat.Print();
-
-//       //QwDetectors.Calculate_Running_Average();//this will calculate running averages for Yields per event basis
-//       QwDetectors.GetEventcutErrorCounters();//print the event cut error summery for each sub system
-//       std::cout<<"QwAnalysis_Beamline Total events falied "<<falied_events_counts<< std::endl;
-
-//       PrintInfo(timer);
-
-//       gQwDatabase.SetConnect("qw_test", "localhost","qwreplay", "replay");
-//       if( run == cmdline.GetFirstRun() ) gQwDatabase.PrintServerInfo();
-//       //INSERT INTO tbl_name (a,b,c) VALUES(1,2,3),(4,5,6),(7,8,9);
-      
-//       mysqlpp::Query query = gQwDatabase.Query();
-
-//       try 
-// 	{
-	  
-// 	  mysqlpp::Query query = gQwDatabase.Query(Form("INSERT INTO run (run_number) VALUES (%d);", run));
-// 	  std::cout << query << std::endl;
-// 	  query.execute();
-// 	  gQwDatabase.Disconnect();
-// 	}
-//       catch (const mysqlpp::Exception& er) 
-// 	{
-// 	  QwError << er.what() << QwLog::endl;
-// 	  return(-1);
-// 	}
-      
-	
   return 0;
 }
 

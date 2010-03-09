@@ -35,7 +35,6 @@
 #include "QwHelicity.h"
 #include "TApplication.h"
 #include <boost/shared_ptr.hpp>
-#include "QwSSQLS.h"
 
 Bool_t kInQwBatchMode = kFALSE;
 
