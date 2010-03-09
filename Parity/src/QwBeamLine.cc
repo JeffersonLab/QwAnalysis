@@ -404,7 +404,6 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 
   return 0;
 };
-
 Int_t QwBeamLine::LoadGeometry(TString mapfile)
 {
   Bool_t ldebug=kFALSE;
@@ -433,62 +432,84 @@ Int_t QwBeamLine::LoadGeometry(TString mapfile)
 	  devtype.Remove(TString::kBoth,' ');
 	  devname = mapstr.GetNextToken(", \t").c_str();
 	  devname.ToLower();
-	  devname.Remove(TString::kBoth,' ');	  
+	  devname.Remove(TString::kBoth,' ');
+	  
 	  devOffsetX = (atof(mapstr.GetNextToken(", \t").c_str())); // X offset
 	  devOffsetY = (atof(mapstr.GetNextToken(", \t").c_str())); // Y offset
 	  devOffsetZ = (atof(mapstr.GetNextToken(", \t").c_str())); // Z offset
 
-	  if(ldebug)  std::cout<<"Offsets for device "<<devname<<" of type "<<devtype<<" are "
-			      <<": X offset ="<< devOffsetX
-			      <<": Y offset ="<< devOffsetY
-			      <<": Z offset ="<<devOffsetZ<<"\n";
-
 	  Bool_t notfound=kTRUE;
 
-	  if(notfound)
-	    {
-	      if(devtype=="bpmstripline")
-		{
-		  //Load bpm offsets
-		  index=GetDetectorIndex(GetDetectorTypeID("bpmstripline"),devname);
-		  localname=fStripline[index].GetElementName();
-		  localname.ToLower();
-		  if(ldebug)  std::cout<<"element name =="<<localname
-				       <<"== to be compared to =="<<devname<<"== \n";
 
-		  if(localname==devname)
-		    {
-		      if(ldebug) std::cout<<" I found the bpm !\n";
-		      fStripline[index].SetOffset(devOffsetX,devOffsetY,devOffsetZ);
-		      notfound=kFALSE;
-		    }
-		}
-	      else if (devtype=="combinedbpm")
-		{
-		  //Load combined bpm offsets which are, ofcourse, target position in the beamline
-		  index=GetDetectorIndex(GetDetectorTypeID("combinedbpm"),devname);
-		  localname=fBPMCombo[index].GetElementName();
-		  localname.ToLower();
-		  if(ldebug)  
-		    std::cout<<"element name =="<<localname<<"== to be compared to =="<<devname<<"== \n";
+	  while(notfound){
+	    if(devtype=="bpmstripline")
+	      {
+		//Load bpm offsets
+		index=GetDetectorIndex(GetDetectorTypeID("bpmstripline"),devname);
+		if(index == -1)
+		  {
+		    std::cerr << "\nQwBeamLine::LoadGeometry:  Unknown bpm : "
+			      <<devname<<" will not be asigned with geometry parameters. \n"
+			      << std::endl;	  
+		    notfound=kFALSE;
+		    continue;
+		  }
+		localname=fStripline[index].GetElementName();
+		localname.ToLower();
+		if(ldebug)  std::cout<<"element name =="<<localname
+				     <<"== to be compared to =="<<devname<<"== \n";
+		
+		if(localname==devname)
+		  {
+		    if(ldebug) std::cout<<" I found the bpm !\n";
+		    fStripline[index].SetOffset(devOffsetX,devOffsetY,devOffsetZ);
+		    notfound=kFALSE;
+		  }
+	      }
+	    else if (devtype=="combinedbpm")
+	      {
+		//Load combined bpm offsets which are, ofcourse, target position in the beamline
+		index=GetDetectorIndex(GetDetectorTypeID("combinedbpm"),devname);
+		if(index == -1)
+		  {
+		    std::cerr << "\nQwBeamLine::LoadGeometry:  Unknown combinedbpm : "
+			      <<devname<<" will not be asigned with geometry parameters.\n "
+			      << std::endl;
+		    notfound=kFALSE;
+		    continue;
+		  }
 
-		  if(localname==devname)
-		    {
-		      if(ldebug) std::cout<<" I found the combinedbpm !\n";
-		      fBPMCombo[index].SetOffset(devOffsetX,devOffsetY,devOffsetZ);
-		      notfound=kFALSE;
-		    }
-		}
-	      else std::cout<<" Unknown device type :"<<devtype<<". The geometry will not be assigned to this device."<<std::endl;
-	    }
+		localname=fBPMCombo[index].GetElementName();
+		localname.ToLower();
+		if(ldebug)  
+		  std::cout<<"element name =="<<localname<<"== to be compared to =="<<devname<<"== \n";
+		
+		if(localname==devname)
+		  {
+		    if(ldebug) std::cout<<" I found the combinedbpm !\n";
+		    fBPMCombo[index].SetOffset(devOffsetX,devOffsetY,devOffsetZ);
+		    notfound=kFALSE;
+		  }
+	      }
+	    else std::cout<<" Unknown device type :"<<devtype<<". The geometry will not be assigned to this device."<<std::endl;
+	   
+	    if(ldebug)  std::cout<<"QwBeamLine::LoadGeometry:Offsets for device "<<devname<<" of type "<<devtype<<" are "
+				 <<": X offset ="<< devOffsetX
+				 <<": Y offset ="<< devOffsetY
+				 <<": Z offset ="<<devOffsetZ<<"\n";
+	  }
+
 	}
   }
-  if(ldebug) std::cout<<" line read in the geometry file ="<<lineread<<" \n";
 
+  if(ldebug) std::cout<<" line read in the geometry file ="<<lineread<<" \n";
+  
   ldebug=kFALSE;
   return 0;
-
+  
 }
+
+
 
 
 //*****************************************************************
