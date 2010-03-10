@@ -334,14 +334,6 @@ void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values)
   if (IsGood) {
     fYield.FillTreeVector(values);
     fAsymmetry.FillTreeVector(values);
-
-//      ((QwBeamLine*)fYield.GetSubsystem("Injector Beamline Copy"))->FillTreeVector(values);
-//      ((QwHelicity*)fYield.GetSubsystem("Helicity Copy"))->FillTreeVector(values);
-//      ((QwMainCerenkovDetector*)fYield.GetSubsystem("Quartz bar Copy"))->FillTreeVector(values);
-//
-//      ((QwBeamLine*)fAsymmetry.GetSubsystem("Injector Beamline Copy"))->FillTreeVector(values);
-//      ((QwHelicity*)fAsymmetry.GetSubsystem("Helicity Copy"))->FillTreeVector(values);
-//      ((QwMainCerenkovDetector*)fAsymmetry.GetSubsystem("Quartz bar Copy"))->FillTreeVector(values);
   }
 
   return;
@@ -352,8 +344,9 @@ void QwHelicityPattern::FillDB(QwDatabase *db)
 {
   fYield.FillDB(db, "yield");
   fAsymmetry.FillDB(db, "asymmetry");
-  fAverage.FillDB(db, "average");
-  fRunningSum.FillDB(db, "runningsum");
+  //  fAverage.FillDB(db, "average");
+  //  fRunningSum.FillDB(db, "runningsum");
+
   return;
 }
 //*****************************************************************

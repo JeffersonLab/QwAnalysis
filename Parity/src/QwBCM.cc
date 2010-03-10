@@ -346,3 +346,64 @@ void  QwBCM::Copy(VQwDataElement *source)
 }
 
 
+
+
+QwParityDB::beam QwBCM::GetDBEntry(QwDatabase *db, TString mtype, TString subname)
+{
+  QwParityDB::beam row(0);
+  
+  
+  UInt_t run_id      = db ->GetRunID();
+  UInt_t analysis_id = db ->GetAnalysisID(); 
+  UInt_t monitor_id  = 0;     // monitor_id | int(10) unsigned | NO   | PRI | NULL    |
+  Char_t measurement_type[4];
+
+  TString name;
+  Double_t avg = 0.0;
+  Double_t err = 0.0;
+
+  name = this->GetElementName();
+  
+  
+  if(mtype.Contains("yield"))
+    {
+      sprintf(measurement_type, "yq");
+    }
+  else if(mtype.Contains("asymmetry"))
+    {
+      sprintf(measurement_type, "aq");
+    }
+  else if(mtype.Contains("average") )
+    {
+      sprintf(measurement_type, "yq");
+    }
+  else if(mtype.Contains("runningsum"))
+    {
+      sprintf(measurement_type, "yq");
+    }
+  else
+    {
+      sprintf(measurement_type, "null");
+    }
+
+  avg = this -> GetAverage("");
+  err = this -> GetAverageError("");
+  
+  if      ( name.Contains("bcm0l02") ) monitor_id = QWK_BCM0102;
+  else if ( name.Contains("batext1") ) monitor_id = QWK_BATTERY;
+  else if ( name.Contains("batext2") ) monitor_id = QWK_BATTERY;
+  else if ( name.Contains("batery6") ) monitor_id = QWK_BATTERY;
+  else if ( name.Contains("batery7") ) monitor_id = QWK_BATTERY;
+  else                                 monitor_id = QWK_UNDEFINED;
+  
+  row.monitor_id          = monitor_id;
+  row.analysis_id         = analysis_id;
+  row.measurement_type_id = measurement_type;
+  row.value               = avg;
+  row.error               = err;
+  printf("%8s::RunID %d AnalysisID %d %4s MonitorID %4d %18s , [%18.2e, %12.2e] \n", 
+	 mtype.Data(), run_id, analysis_id, measurement_type, monitor_id, name.Data(),  avg, err);
+  
+  return row;
+  
+};

@@ -27,6 +27,7 @@ QwOptions gQwOptions;
 
 // Qweak headers
 #include "QwLog.h"
+
 #include "QwDatabase.h"
 
 // Initialize the static command line arguments to zero

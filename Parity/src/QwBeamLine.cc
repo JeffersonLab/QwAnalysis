@@ -1106,24 +1106,9 @@ VQwSubsystem*  QwBeamLine::Copy()
 }
 
 
-void QwBeamLine::FillDB(QwDatabase *db, TString type)
+void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
 {
-
-  // Get run and analysis id from db, which is sent by "main"
   
-  UInt_t run_id      = db->GetRunID();
-  UInt_t analysis_id = db->GetAnalysisID(); 
-  UInt_t monitor_id  = 0;     // monitor_id | int(10) unsigned | NO   | PRI | NULL    |
-  Char_t measurement_type[4]; // the same size of "measurement_type_id" in the measurement_type table
-
-  // try to access BCM mean and its error
-  // there are 2 different types BCM data we have at the moment
-  // Yield and Asymmetry
-
-  TString  name;
-  Double_t avg = 0.0;
-  Double_t err = 0.0;
-
   vector<QwParityDB::beam> entrylist;
   
   //      QwParityDB::beam row;
@@ -1135,171 +1120,26 @@ void QwBeamLine::FillDB(QwDatabase *db, TString type)
   
   QwParityDB::beam row(0);
   
-  printf("\n");
-  
-  if(type.Contains("yield"))
-    {
-      sprintf(measurement_type, "yq");
-      printf("*** Yields     ");
-    }
-  else if(type.Contains("asymmetry"))
-    {
-      sprintf(measurement_type, "aq");
-      printf("*** Asymmetry  ");
-    }
-  else
-    {
-      return;// temporary solution if there is another type ....
-    }
-  printf("  ************** BCM **************\n");
-
+  // try to access BCM mean and its error
+  // there are 2 different types BCM data we have at the moment
+  // Yield and Asymmetry
+  printf("%s  ************** BCM **************\n", datatype.Data());
   for(UInt_t i=0; i< fBCM.size(); i++)
     {
-      name = fBCM[i].GetElementName();
-
-      if(!name.Contains("empty"))
-	{
-	  avg = fBCM[i].GetAverage("");
-	  err = fBCM[i].GetAverageError("");
-	      
-	  if      ( name.Contains("bcm0l02") ) monitor_id = QWK_BCM0102;
-	  else if ( name.Contains("batext1") ) monitor_id = QWK_BATTERY;
-	  else if ( name.Contains("batext2") ) monitor_id = QWK_BATTERY;
-	  else if ( name.Contains("batery6") ) monitor_id = QWK_BATTERY;
-	  else if ( name.Contains("batery7") ) monitor_id = QWK_BATTERY;
-	  else                                 monitor_id = QWK_UNDEFINED;
-	      
-	  row.monitor_id          = monitor_id;
-	  row.analysis_id         = analysis_id;
-	  row.measurement_type_id = measurement_type;
-	  row.value               = avg;
-	  row.error               = err;
-
-	  // put a row into an entrylist;
-	  entrylist.push_back(row);
-	  printf("RunID %d AnalysisID %d %4s MonitorID %4d %18s BCM[%d], [%18.2e, %12.2e] \n", 
-		 run_id, analysis_id, measurement_type, monitor_id, name.Data(), i, avg, err);
-	}
-    }
-      
-  printf("\n");
-
-  // it is not a fancy way to do this.... anyway
-  // must overwrite "measurement_typ" according to BPM
-  // No way to distingush whether BPM or BCM inside QwBeamLine class ????
-
- 
-  if(type.Contains("yield"))
-    {
-      sprintf(measurement_type, "yp");
-      printf("*** Yields     ");
-    }
-  else if(type.Contains("asymmetry"))
-    {
-      sprintf(measurement_type, "dp");
-      printf("*** Asymmetry  ");
-    }
-  else
-    {
-      return;// temporary solution if there is another type ....
+      entrylist.push_back(fBCM[i].GetDBEntry(db, datatype, "" )) ;
     }
 
-  printf(" ************** BPM **************\n");
-
+  ///   try to access BPM mean and its error
+  printf("%s  ************** BPM **************\n", datatype.Data());
   for(UInt_t i=0; i< fStripline.size(); i++)
     {
-
-      // access SubElement X
-
-      name = fStripline[i].GetSubElementName("relposx");
-      avg  = fStripline[i].GetAverage("relposx");
-      err  = fStripline[i].GetAverageError("relposx");
-
-	  
-      if      ( name.Contains("qpdRelX")   ) monitor_id = QWK_XQPD;
-      else if ( name.Contains("1i02RelX")  ) monitor_id = QWK_1I02X;
-      else if ( name.Contains("1i04RelX")  ) monitor_id = QWK_1I04X;
-      else if ( name.Contains("1i06RelX")  ) monitor_id = QWK_1I06X;
-      else if ( name.Contains("0i02RelX")  ) monitor_id = QWK_0I02X;
-      else if ( name.Contains("0i02aRelX") ) monitor_id = QWK_0I02AX;
-      else if ( name.Contains("0i05RelX")  ) monitor_id = QWK_0i05X;
-      else if ( name.Contains("0i07RelX")  ) monitor_id = QWK_0i07X;
-      else if ( name.Contains("0l01RelX")  ) monitor_id = QWK_0L01X;
-      else if ( name.Contains("0l02RelX")  ) monitor_id = QWK_0L02X;
-      else if ( name.Contains("0l03RelX")  ) monitor_id = QWK_0L03X;
-      else if ( name.Contains("0l04RelX")  ) monitor_id = QWK_0L04X;
-      else if ( name.Contains("0l05RelX")  ) monitor_id = QWK_0L05X;
-      else if ( name.Contains("0l06RelX")  ) monitor_id = QWK_0L06X;
-      else if ( name.Contains("0l07RelX")  ) monitor_id = QWK_0L07X;
-      else if ( name.Contains("0l08RelX")  ) monitor_id = QWK_0L08X;
-      else if ( name.Contains("0l09RelX")  ) monitor_id = QWK_0L09X;
-      else if ( name.Contains("0l10RelX")  ) monitor_id = QWK_0L10X;
-      else if ( name.Contains("0r01RelX")  ) monitor_id = QWK_0R01X;
-      else if ( name.Contains("0r02RelX")  ) monitor_id = QWK_0R02X;
-      else if ( name.Contains("0r05RelX")  ) monitor_id = QWK_0R05X;
-      else if ( name.Contains("0r06RelX")  ) monitor_id = QWK_0R06X;
-      else                                   monitor_id = QWK_UNDEFINED;
-
-      row.analysis_id         = analysis_id;
-      row.monitor_id          = monitor_id;
-      row.measurement_type_id = measurement_type;
-      row.value               = avg;
-      row.error               = err;
-
-
-      // put a row into an entrylist;
-      entrylist.push_back(row);
-	  
-      printf("RunID %d AnalysisID %d %4s MonitorID %4d %18s BPM[%2d], [%18.6f, %12.6f] \n", 
-	     run_id, analysis_id, measurement_type, monitor_id, name.Data(), i, avg, err);
-
-
-      // access SubElement Y
-
-      name = fStripline[i].GetSubElementName("relposy");
-      avg  = fStripline[i].GetAverage("relposy");
-      err  = fStripline[i].GetAverageError("relposy");
-
-	  
-      if      ( name.Contains("qpdRelY")   ) monitor_id = QWK_YQPD;
-      else if ( name.Contains("1i02RelY")  ) monitor_id = QWK_1I02Y;
-      else if ( name.Contains("1i04RelY")  ) monitor_id = QWK_1I04Y;
-      else if ( name.Contains("1i06RelY")  ) monitor_id = QWK_1I06Y;
-      else if ( name.Contains("0i02RelY")  ) monitor_id = QWK_0I02Y;
-      else if ( name.Contains("0i02aRelY") ) monitor_id = QWK_0I02AY;
-      else if ( name.Contains("0i05RelY")  ) monitor_id = QWK_0i05Y;
-      else if ( name.Contains("0i07RelY")  ) monitor_id = QWK_0i07Y;
-      else if ( name.Contains("0l01RelY")  ) monitor_id = QWK_0L01Y;
-      else if ( name.Contains("0l02RelY")  ) monitor_id = QWK_0L02Y;
-      else if ( name.Contains("0l03RelY")  ) monitor_id = QWK_0L03Y;
-      else if ( name.Contains("0l04RelY")  ) monitor_id = QWK_0L04Y;
-      else if ( name.Contains("0l05RelY")  ) monitor_id = QWK_0L05Y;
-      else if ( name.Contains("0l06RelY")  ) monitor_id = QWK_0L06Y;
-      else if ( name.Contains("0l07RelY")  ) monitor_id = QWK_0L07Y;
-      else if ( name.Contains("0l08RelY")  ) monitor_id = QWK_0L08Y;
-      else if ( name.Contains("0l09RelY")  ) monitor_id = QWK_0L09Y;
-      else if ( name.Contains("0l10RelY")  ) monitor_id = QWK_0L10Y;
-      else if ( name.Contains("0r01RelY")  ) monitor_id = QWK_0R01Y;
-      else if ( name.Contains("0r02RelY")  ) monitor_id = QWK_0R02Y;
-      else if ( name.Contains("0r05RelY")  ) monitor_id = QWK_0R05Y;
-      else if ( name.Contains("0r06RelY")  ) monitor_id = QWK_0R06Y;
-      else                                   monitor_id = QWK_UNDEFINED;
-
-      row.analysis_id         = analysis_id;
-      row.monitor_id          = monitor_id;
-      row.measurement_type_id = measurement_type;
-      row.value               = avg;
-      row.error               = err;
-      
-      // put a row into an entrylist;
-      entrylist.push_back(row);
-	  
-      printf("RunID %d AnalysisID %d %4s MonitorID %4d %18s BPM[%2d], [%18.6f, %12.6f] \n", 
-	     run_id, analysis_id, measurement_type, monitor_id, name.Data(), i, avg, err);
+      entrylist.push_back(fStripline[i].GetDBEntry(db, datatype, "RelX"));
+      entrylist.push_back(fStripline[i].GetDBEntry(db, datatype, "RelY"));
 
     }
-      
-       
+
+  printf("Entrylist Vector Size %d\n", (Int_t) entrylist.size());
+
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query..
   if( entrylist.size() )
@@ -1307,10 +1147,10 @@ void QwBeamLine::FillDB(QwDatabase *db, TString type)
       mysqlpp::Query query= db->Query();
       if(query)
 	{
-	  printf("Entrylist Vector Size %d\n", (Int_t) entrylist.size());
+
 	  query.insert(entrylist.begin(), entrylist.end());
 	  query.execute();
-	  //	      query.reset(); // do we need?
+	  //	  query.reset(); // do we need?
 	}
       else
 	{
@@ -1319,7 +1159,9 @@ void QwBeamLine::FillDB(QwDatabase *db, TString type)
     }
   else
     {
-      printf("%s has no entries which we want to put into a database\n", type.Data());
+      printf("This is the case when the entrlylist contains notheing\n");
+      printf(" %s something else ??? \n", datatype.Data());
+      printf(" I have no idea why we see no entry list here\n");
     }
   
   db->Disconnect();

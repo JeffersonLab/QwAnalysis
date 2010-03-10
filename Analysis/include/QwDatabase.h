@@ -12,8 +12,7 @@
 // System headers
 //#include <iostream>
 //#include <iomanip>
-#include <string>
-using std::string;
+
 
 // Third Party Headers
 #include <mysql++.h>
@@ -27,9 +26,14 @@ using std::string;
 #include "QwColor.h"
 #include "QwOptions.h"
 #include "QwEventBuffer.h"
-//#include "QwSSQLS.h"
 
-
+#include <vector>
+using std::vector;
+#include <string>
+using std::string;
+#include <map>
+using std::map;
+#include <algorithm>
 
 // Should the following defines be placed in
 // other header file?
@@ -127,12 +131,19 @@ class QwDatabase: private mysqlpp::Connection {
     Bool_t       SetRunNumber(const UInt_t runnum);    //<! Run number setter
 
     void         PrintServerInfo();//<! Print Server Information
+    
+    const Int_t  LookupMonitorID(TString element_name);
+
+    Bool_t       GetStaticTypes();
  
   private:
 
     Bool_t       ValidateConnection(); //!< Checks that given connection parameters result in a valid connection
     const UInt_t SetRunID(QwEventBuffer& qwevt); //<! Set fRunID using data from CODA event buffer
     const UInt_t SetAnalysisID(QwEventBuffer& qwevt); //<! Set fAnalysisID using data from CODA event buffer
+
+    vector <TString> fMonitorTable;
+/*     vector <TString> fMeasurementTypeTable; */
 
     string fDatabase;        //!< Name of database to connect to
     string fDBServer;        //!< Name of server carrying DB to connect to
@@ -144,6 +155,8 @@ class QwDatabase: private mysqlpp::Connection {
     UInt_t fRunNumber;       //!< Run number of current run
     UInt_t fRunID;           //!< run_id of current run
     UInt_t fAnalysisID;      //!< analysis_id of current analysis pass
+
+    Bool_t fReadyStaticTypes; 
 
 };
 

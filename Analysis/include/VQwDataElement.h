@@ -94,6 +94,8 @@ class VQwDataElement {
   size_t GetNumberOfDataWords() {return fNumberOfDataWords;};
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
 
+
+
  protected:
   /*! \brief Set the number of data words in this data element */
   void SetNumberOfDataWords(const UInt_t &numwords) {fNumberOfDataWords = numwords;};

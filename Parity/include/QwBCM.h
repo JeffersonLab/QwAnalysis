@@ -12,7 +12,11 @@
 #include <TTree.h>
 
 #include "QwVQWK_Channel.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwSSQLS.h"
 
+
+#include "QwDatabase.h"
 
 /*****************************************************************
 *  Class:
@@ -89,6 +93,7 @@ class QwBCM : public VQwDataElement{
   Double_t GetAverage(TString type) { return fTriumf_ADC.GetAverage();};
   Double_t GetAverageError(TString type) {return fTriumf_ADC.GetAverageError();};
 
+  QwParityDB::beam GetDBEntry(QwDatabase* db, TString mtype, TString subname);
 
   void Copy(VQwDataElement *source);
 

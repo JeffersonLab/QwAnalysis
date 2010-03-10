@@ -263,8 +263,9 @@ main(Int_t argc, Char_t* argv[])
       QwEvt.ReportRunSummary();
       
 
-     
       qw_test_DB  = new QwDatabase();
+      qw_test_DB -> GetStaticTypes();
+ //      qw_test_DB -> LookupMonitorID("0i02a");
       // GetRunID() and GetAnalysisID have their own Connect() and Disconnect() functions.
       run_id      = qw_test_DB->GetRunID(QwEvt);
       analysis_id = qw_test_DB->GetAnalysisID(QwEvt);

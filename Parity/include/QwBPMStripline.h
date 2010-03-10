@@ -11,8 +11,11 @@
 #include <vector>
 #include <TTree.h>
 
-#include "QwVQWK_Channel.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwSSQLS.h"
 
+#include "QwVQWK_Channel.h"
+#include "QwDatabase.h"
 
 /*****************************************************************
 *  Class:
@@ -99,6 +102,9 @@ class QwBPMStripline : public VQwDataElement{
   /* These channels contain the beam position within the frame of the BPM*/
   QwVQWK_Channel fAbsPos[3];
   
+
+  QwParityDB::beam GetDBEntry(QwDatabase* db, TString mtype, TString subname);
+
   /////
  private:
   static const Bool_t kDEBUG;
