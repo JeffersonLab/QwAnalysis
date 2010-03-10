@@ -36,6 +36,8 @@
 #include "TApplication.h"
 #include <boost/shared_ptr.hpp>
 
+#include "QwBeamLine.h"
+
 Bool_t kInQwBatchMode = kFALSE;
 
 // Multiplet structure
@@ -102,6 +104,10 @@ int main(Int_t argc,Char_t* argv[])
         detectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
         detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
     }
+    detectors.push_back(new QwBeamLine("Injector BeamLine"));
+    detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
+    detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");
+
     QwHelicityPattern helicitypattern(detectors);//multiplet size is set within the QwHelicityPattern class
 
     // Get the helicity

@@ -9,6 +9,8 @@
 #include "QwHistogramHelper.h"
 #include <stdexcept>
 
+#include "QwLog.h"
+
 //*****************************************************************
 Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 {
@@ -783,7 +785,40 @@ Int_t QwBeamLine::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t b
   return 0;
 };
 
+const Bool_t QwBeamLine::PublishInternalValues() const
+{
+  // Publish variables
+  Bool_t status = kTRUE;
+  status = status && PublishInternalValue("q_targ", "Calculated charge on target");
+  return status;
+};
 
+
+/**
+ * Return the value of variable name
+ * @param name Name of the desired variable
+ * @param value Pointer to the value to be filled by the call
+ * @return True if the variable was found, false if not found
+ */
+const Bool_t QwBeamLine::ReturnInternalValue(TString name,
+				       VQwDataElement* value) const
+{
+  std::cout << "QwBeamLine::ReturnInternalValue called for value name, "
+	    << name.Data() << std::endl;
+  Bool_t foundit = kFALSE;
+  QwVQWK_Channel* tmp = dynamic_cast<QwVQWK_Channel*>(value);
+  if (tmp==NULL){
+    QwWarning << "QwBeamLine::ReturnInternalValue requires that "
+	      << "'value' be a pointer to QwVQWK_Channel"
+	      << QwLog::endl;
+  } else {
+    if (name=="q_targ"){
+      foundit = kTRUE;
+      (*tmp) = GetBCM("qwk_bcm0l02")->GetCharge();
+    }
+  }
+  return foundit;
+};
 
 //*****************************************************************
 void QwBeamLine::ClearEventData()
@@ -858,6 +893,16 @@ QwBCM* QwBeamLine::GetBCM(const TString name)
   }
   return 0;
 };
+
+const QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name) const
+{
+  return const_cast<QwBeamLine*>(this)->GetBPMStripline(name);
+}
+const QwBCM* QwBeamLine::GetBCM(const TString name) const
+{
+  return const_cast<QwBeamLine*>(this)->GetBCM(name);
+}
+
 //*****************************************************************
 VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
 {
