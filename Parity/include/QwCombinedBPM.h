@@ -33,7 +33,11 @@ class QwCombinedBPM : public VQwDataElement{
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
 
   void  InitializeChannel(TString name, Bool_t ROTATED);
-  void  Add(QwBPMStripline* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight); //bbbbb
+  void SetOffset(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset);
+
+
+
+  void  Set(QwBPMStripline* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,Double_t sumqw); 
 
   void  ClearEventData();
   void  EncodeEventData(std::vector<UInt_t> &buffer);
@@ -67,8 +71,11 @@ class QwCombinedBPM : public VQwDataElement{
   void Calculate_Running_Average();
   void Do_RunningSum(); 
 
-  void LeastSquareFit( Int_t pos, Double_t A, Double_t B, Double_t C, Double_t D, Double_t E, Double_t F ); //bbbbb
-  Double_t SumOver( std::vector <Double_t> weight , std::vector <Double_t> val); 
+  /* Functions for least squared fir */
+  void CalculateFixedParameter(std::vector<Double_t> fWeights, Int_t pos);
+  Double_t SumOver( std::vector <Double_t> weight , std::vector <QwVQWK_Channel> val); 
+  void LeastSquareFit( Int_t pos, std::vector<Double_t> fWeights) ; //bbbbb
+
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
@@ -90,8 +97,9 @@ class QwCombinedBPM : public VQwDataElement{
   std::vector <Double_t> fQWeights; 
   std::vector <Double_t> fXWeights; 
   std::vector <Double_t> fYWeights; 
-
  
+  Double_t fSumQweights; //sum of all the weights for charge
+
 
  protected:
   static const TString axis[3];
@@ -101,8 +109,14 @@ class QwCombinedBPM : public VQwDataElement{
   Bool_t bFullSave; // used to restrict the amount of data histogramed
 
   Bool_t fGoodEvent; 
+  Bool_t fixedParamCalculated;
 
-  Double_t a[2],b[2],erra[2],errb[2],covab[2];//used for least squares fit
+  //used for least squares fit
+  Double_t fIntersept[2];
+  Double_t erra[2],errb[2],covab[2];
+  Double_t A[2], B[2], C[2], D[2], E[2], F[2], m[2];
+  Double_t chi_square[2];
+
 
   Double_t fULimitX, fLLimitX, fULimitY, fLLimitY;//this sets the upper and lower limits on the X & Y of the BPM stripline
  
@@ -114,8 +128,8 @@ class QwCombinedBPM : public VQwDataElement{
   /* These channels contain the beam position at the target within the frame of the BPM*/
   QwVQWK_Channel fCombinedAbsPos[3]; //absolute position 
 
-  /* This channel contains the beam angles w.r.t the X & Y axis at the target */ 
-  QwVQWK_Channel fCombinedAngle[2];  
+  /* This channel contains the beam slope w.r.t the X & Y axis at the target */ 
+  QwVQWK_Channel fCombinedSlope[2];  
 
     
   

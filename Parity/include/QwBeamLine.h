@@ -32,6 +32,9 @@ class QwBeamDetectorID;
 *  Class:
 ******************************************************************/
 class QwBeamLine : public VQwSubsystemParity{
+  friend class QwCombinedBPM; 
+  friend class QwCombinedBCM;  
+ 
 
  public:
 
@@ -125,6 +128,9 @@ class QwBeamLine : public VQwSubsystemParity{
  private:
  // std::vector<TString> DetectorTypes;// for example could be BCM, LUMI,BPMSTRIPLINE, etc..
  Int_t fQwBeamLineErrorCount;
+ Double_t fSumXweights;
+ Double_t fSumYweights;
+ Double_t fSumQweights;
 
 
  static const Bool_t bDEBUG=kFALSE;

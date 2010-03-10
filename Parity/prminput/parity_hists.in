@@ -82,6 +82,10 @@ qwk_........._block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
 qwk_........._block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 qwk_........._.w_raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
 qwk_........._.w		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+qwk_.........._block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+qwk_.........._.w		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+qwk_............_block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+qwk_............_.w		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 qwk_......_......_block.	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 qwk_......_......_hw		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 qwk_......._......_block.	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
@@ -131,6 +135,11 @@ yield_qwk_........._block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
 yield_qwk_........._block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_qwk_........._.w_raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
 yield_qwk_........._.w		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_qwk_.........._block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_qwk_.........._.w		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_qwk_............_block.   TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_qwk_............_.w	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+
 yield_qwk_......_......_block.	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_qwk_......_......_.w	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_qwk_......._......_block.	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
