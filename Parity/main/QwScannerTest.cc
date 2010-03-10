@@ -41,6 +41,10 @@
 
 Bool_t kInQwBatchMode = kFALSE;
 
+// Branch for Scanner subsystem
+static const bool kScannerBranch = kTRUE;
+static const bool kScannerRaw = kFALSE;
+
 int main(Int_t argc,Char_t* argv[])
 {
   // Debug level
@@ -191,9 +195,18 @@ int main(Int_t argc,Char_t* argv[])
 
     if (kDebug) std::cout<<" ====>>>> Creating histograms:"<<std::endl;
     rootfile.cd();
-    TString prefix = TString("scanner_");
-    scanner->ConstructHistograms(rootfile.mkdir("scanner_histo"),prefix);
-    scanner->ConstructTrees(&rootfile);
+
+    std::vector<Double_t> scannervect;
+    TString scanner_prefix = "scanner_";
+    scanner->ConstructHistograms(rootfile.mkdir("scanner_histo"),scanner_prefix);
+
+    rootfile.cd();
+    TTree* tree = new TTree("tree", "Scanner tree");
+            if (kScannerBranch) {
+                scanner->StoreRawData(kScannerRaw);
+                scanner->ConstructBranchAndVector(tree, scanner_prefix, scannervect);
+            }
+
 
     int EvtCounter = 0;
     Int_t eventnumber = -1;
@@ -234,9 +247,11 @@ int main(Int_t argc,Char_t* argv[])
       // Process this events
       QwDetectors.ProcessEvent();
 
+      if (kScannerBranch)     scanner->FillTreeVector(scannervect);
+
       QwDetectors.FillHistograms();
 
-      scanner->FillTrees();
+      tree->Fill();
 
     }
     std::cout << "Number of events processed: "
@@ -250,7 +265,6 @@ int main(Int_t argc,Char_t* argv[])
     QwEvt.CloseDataFile();
     QwEvt.ReportRunSummary();
     PrintInfo(timer, run);
-
 
   } //end of run loop
 

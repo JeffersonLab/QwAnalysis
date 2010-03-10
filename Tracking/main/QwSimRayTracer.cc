@@ -13,13 +13,23 @@ int main (int argc, char* argv[]) {
     // Create a timer
     TStopwatch timer;
 
-    gQwOptions.SetCommandLine(argc, argv);
-    gQwOptions.SetConfigFile("qwsimtracking.conf");
-    // Define the command line options
-    gQwOptions.DefineOptions();
+  gQwOptions.SetCommandLine(argc, argv);
+  gQwOptions.SetConfigFile("qwsimtracking.conf");
+  // Define the command line options
+  DefineOptionsTracking(gQwOptions);
 
-    QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
-    QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput");
+  /// Now we setup the message logging facilities with the requested loglevels.
+  if (gQwOptions.HasValue("QwLog.logfile"))
+    gQwLog.InitLogFile(gQwOptions.GetValue<string>("QwLog.logfile"));
+  gQwLog.SetFileThreshold(QwLog::QwLogLevel(gQwOptions.GetValue<int>("QwLog.loglevel-file")));
+  gQwLog.SetScreenThreshold(QwLog::QwLogLevel(gQwOptions.GetValue<int>("QwLog.loglevel-screen")));
+
+  /// We fill the search paths for the parameter files.
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput");
+
+
+
 
     QwTrajectory* trajectory = new QwTrajectory();
 

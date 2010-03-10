@@ -23,6 +23,7 @@
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
 #include "QwMainCerenkovDetector.h"
+#include "QwScanner.h"
 #include "QwSubsystemArrayParity.h"
 #include "QwVQWK_Channel.h"
 
@@ -39,6 +40,8 @@ static const bool kBeamTrips = true;
 
 // Debug
 static const bool kDebug = false;
+
+static const bool kScanner = true;
 
 int main(int argc, char* argv[])
 {
@@ -64,7 +67,14 @@ int main(int argc, char* argv[])
   detectors.push_back(new QwMainCerenkovDetector("Main detector"));
   detectors.GetSubsystem("Main detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
   detectors.GetSubsystem("Main detector")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
-  QwHelicityPattern QwHelPat(detectors);
+
+  if (kScanner){
+  detectors.push_back ( new QwScanner( "FPS" ) );
+  detectors.GetSubsystem("FPS")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput/scanner_channel.map" );
+  detectors.GetSubsystem("FPS")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput/scanner_pedestal.map");
+  }
+
+  QwHelicityPattern* QwHelPat = new QwHelicityPattern(detectors);
 
   // Get the helicity
   QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystem("Helicity info");
@@ -318,7 +328,6 @@ int main(int argc, char* argv[])
 
       // Write this event to file
       eventbuffer.EncodeSubsystemData(detectors);
-
 
       // Periodically print event number
       if ((kDebug && event % 1000 == 0)

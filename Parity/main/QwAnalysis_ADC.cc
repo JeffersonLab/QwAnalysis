@@ -48,12 +48,16 @@ static const int kMultiplet = 4;
 
 // Activate components
 static bool bTree = true;
-static bool bHelicity=true;
+static bool bHisto = true;
+static bool bHelicity= true;
+
+// Branch for Scanner subsystem
+static const bool kScannerBranch = kTRUE;
+static const bool kScannerRaw = kTRUE;
 
 ///
 /// \ingroup QwAnalysis_ADC
-int main(Int_t argc,Char_t* argv[])
-{
+int main(Int_t argc,Char_t* argv[]) {
     /// First, we set the command line arguments and the configuration filename,
     /// and we define the options that can be used in them (using QwOptions).
     gQwOptions.SetCommandLine(argc, argv);
@@ -73,6 +77,7 @@ int main(Int_t argc,Char_t* argv[])
     ///  The "scratch" directory should be first.
     QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
     QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
+    QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Analysis/prminput");
 
     ///
     ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
@@ -95,20 +100,31 @@ int main(Int_t argc,Char_t* argv[])
     detectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
     detectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
     //detectors.GetSubsystem("Main detector")->             LoadInputParameters("qweak_pedestal.map");
-    ///
-    ///Specifies the same helicity pattern used by all subsystems
-    ///to calculate asymmetries. The pattern is defined in the
-    ///QwHelicityPattern class.
-    if (bHelicity) {
-        detectors.push_back(new QwHelicity("Helicity info"));
-        detectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
-        detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
-    }
+
     detectors.push_back(new QwBeamLine("Injector BeamLine"));
     detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
     detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");
 
-    QwHelicityPattern helicitypattern(detectors);//multiplet size is set within the QwHelicityPattern class
+    ///
+    /// Instantiate scanner subsystem
+    detectors.push_back(new QwScanner("FPS"));
+    ((VQwSubsystemParity*) detectors.GetSubsystem("FPS"))->LoadChannelMap("scanner_channel.map" );
+    ((VQwSubsystemParity*) detectors.GetSubsystem("FPS"))->LoadInputParameters("scanner_pedestal.map");
+    QwScanner* scanner = dynamic_cast<QwScanner*> (detectors.GetSubsystem("FPS")); // Get scanner subsystem
+
+    ///
+    ///Specifies the same helicity pattern used by all subsystems
+    ///to calculate asymmetries. The pattern is defined in the
+    ///QwHelicityPattern class.
+
+    if (bHelicity) {
+        detectors.push_back(new QwHelicity("Helicity info"));
+        detectors.GetSubsystem("Helicity info")->LoadChannelMap("mock_qweak_helicity.map");
+        detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
+    }
+
+    //QwHelicityPattern helicitypattern(detectors);//multiplet size is set within the QwHelicityPattern class
+    QwHelicityPattern* helicitypattern = new QwHelicityPattern(detectors);
 
     // Get the helicity
     QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystem("Helicity info");
@@ -124,7 +140,7 @@ int main(Int_t argc,Char_t* argv[])
     Double_t evnum=0.0;
 
     // Loop over all runs
-    while (eventbuffer.OpenNextStream() == CODA_OK){
+    while (eventbuffer.OpenNextStream() == CODA_OK) {
         //  Begin processing for the first run.
         //  Start the timer.
         timer.Start();
@@ -140,19 +156,22 @@ int main(Int_t argc,Char_t* argv[])
 
         //  To pass a subdirectory named "subdir", we would do:
         //    detectors.at(1)->ConstructHistograms(rootfile.mkdir("subdir"));
+        if (bHisto) {
             rootfile.cd();
             detectors.ConstructHistograms(rootfile.mkdir("mps_histo"));
             if (bHelicity) {
                 rootfile.cd();
-                helicitypattern.ConstructHistograms(rootfile.mkdir("hel_histo"));
+                helicitypattern->ConstructHistograms(rootfile.mkdir("hel_histo"));
             }
-
+        }
 
         TTree *mpstree;
         TTree *heltree;
 
         std::vector <Double_t> mpsvector;
         std::vector <Double_t> helvector;
+
+        //TString scanner_prefix = "scanner_";
 
         if (bTree) {
             rootfile.cd();
@@ -161,15 +180,15 @@ int main(Int_t argc,Char_t* argv[])
             mpstree->Branch("evnum",&evnum,"evnum/D");
             TString dummystr="";
 
-            ((QwMainCerenkovDetector*)detectors.GetSubsystem("MainDetectors"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
-	  ((QwHelicity*)detectors.GetSubsystem("Helicity info"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
-            rootfile.cd();
+            scanner->StoreRawData(kScannerRaw);
+            detectors.ConstructBranchAndVector(mpstree, dummystr, mpsvector);
+
             if (bHelicity) {
                 rootfile.cd();
                 heltree = new TTree("HEL_Tree","Helicity event data tree");
                 helvector.reserve(6000);
                 TString dummystr="";
-                helicitypattern.ConstructBranchAndVector(heltree, dummystr, helvector);
+                helicitypattern->ConstructBranchAndVector(heltree, dummystr, helvector);
             }
         }
 
@@ -193,10 +212,9 @@ int main(Int_t argc,Char_t* argv[])
 //     sum.ConstructBranchAndVector(qrttree, "yield", qrttreevector);
 //     asym.ConstructBranchAndVector(qrttree, "asym", qrttreevector);
 
-
         while (eventbuffer.GetNextEvent() == CODA_OK) {
-	  //  Loop over events in this CODA file
-	  //  First, do processing of non-physics events...
+            //  Loop over events in this CODA file
+            //  First, do processing of non-physics events...
             if (eventbuffer.IsROCConfigurationEvent()) {
                 eventbuffer.FillSubsystemConfigurationData(detectors);
             }
@@ -209,13 +227,13 @@ int main(Int_t argc,Char_t* argv[])
 
             // Helicity pattern
             if (bHelicity)
-                helicitypattern.LoadEventData(detectors);
+                helicitypattern->LoadEventData(detectors);
 
             // Check for helicity validity (TODO I'd prefer to use kUndefinedHelicity)
             if (bHelicity && helicity->GetHelicityDelayed() == -9999) continue;
 
             // Fill the histograms
-            detectors.FillHistograms();
+            if (bHisto) detectors.FillHistograms();
 
             // Fill the detector trees
             if (bTree) {
@@ -224,14 +242,14 @@ int main(Int_t argc,Char_t* argv[])
                 mpstree->Fill();
             }
             // Fill the helicity tree
-            if (bHelicity && helicitypattern.IsCompletePattern()) {
-                helicitypattern.CalculateAsymmetry();
-                helicitypattern.FillHistograms();
+            if (bHelicity && helicitypattern->IsCompletePattern()) {
+                helicitypattern->CalculateAsymmetry();
+      //          if (bHisto) helicitypattern->FillHistograms();
                 if (bTree) {
-                    helicitypattern.FillTreeVector(helvector);
+                    helicitypattern->FillTreeVector(helvector);
                     heltree->Fill();
                 }
-                helicitypattern.ClearEventData();
+                helicitypattern->ClearEventData();
             }
 
 
@@ -283,9 +301,6 @@ int main(Int_t argc,Char_t* argv[])
 // 	};
 //    }
 
-
-
-
         }
         std::cout << "Number of events processed so far: "
         << eventbuffer.GetEventNumber() << std::endl;
@@ -302,8 +317,10 @@ int main(Int_t argc,Char_t* argv[])
         //     Hists->ClearHists();//destroy the histogram objects
         //     NTs->ClearNTs(io); //destroy nts according to the i/o flags
         //     CloseAllFiles(io); //close all the output files
-        detectors.DeleteHistograms();
-	helicitypattern.DeleteHistograms();
+        if (bHisto) {
+            detectors.DeleteHistograms();
+            if (bHelicity) helicitypattern->DeleteHistograms();
+        }
 
 
         eventbuffer.CloseStream();

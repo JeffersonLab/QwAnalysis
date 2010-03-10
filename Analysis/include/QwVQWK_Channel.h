@@ -40,7 +40,9 @@ class QwVQWK_Channel: public VQwDataElement {
   QwVQWK_Channel(TString name, TString datatosave="raw"){
     InitializeChannel(name, datatosave);
   };
-  ~QwVQWK_Channel() {DeleteHistograms();};
+  ~QwVQWK_Channel() {
+  //DeleteHistograms();
+  };
 
   void  InitializeChannel(TString name, TString datatosave);
 
