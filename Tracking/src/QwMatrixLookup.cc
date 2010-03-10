@@ -2,12 +2,6 @@
 
 QwTrajMatrix* QwMatrixLookup::fMatrix = 0;
 
-bool QwMatrixLookup::Bridge(QwPartialTrack* front, QwPartialTrack* back)
-{
-  // stub
-  return true;
-}
-
 void QwMatrixLookup::SetStartAndEndPoints(TVector3 startposition, TVector3 startdirection,
                                         TVector3 endposition, TVector3 enddirection) {
 
@@ -33,12 +27,11 @@ void QwMatrixLookup::SetStartAndEndPoints(TVector3 startposition, TVector3 start
     if (fEndDirectionPhi<0) fEndDirectionPhi = fEndDirectionPhi+360.0;
 };
 
-int QwMatrixLookup::BridgeFrontBackPartialTrack()
+int QwMatrixLookup::Bridge(QwPartialTrack* front, QwPartialTrack* back)
 {
     // front track position and angles at z= -250 cm plane
-    double r = fabs(fStartPosition.Z()-(-250.0))/fStartDirection.Z();
-    double x = fStartPosition.X() + r*fStartDirection.X();
-    double y = fStartPosition.Y() + r*fStartDirection.Y();
+    double x = front->GetPosition(-250.0).X();
+    double y = front->GetPosition(-250.0).Y();
 
     double position_r = sqrt(x*x+y*y);
     double position_phi = fStartPositionPhi;
@@ -47,9 +40,8 @@ int QwMatrixLookup::BridgeFrontBackPartialTrack()
     double vertex_z = -250.0 - position_r/tan(acos(fStartDirection.Z()));
 
     // expected hit position and angles at z= +570 cm plane
-    r = fabs(fEndPosition.Z()-570.0)/fEndDirection.Z();
-    x = fEndPosition.X() + r*fEndDirection.X();
-    y = fEndPosition.Y() + r*fEndDirection.Y();
+    x = back->GetPosition(570.0).X();
+    y = back->GetPosition(570.0).Y();
 
     double expectedhitposition_r = sqrt(x*x+y*y);
     double expectedhitposition_phi = atan2(y,x)*DEGREE;
@@ -159,7 +151,7 @@ int QwMatrixLookup::BridgeFrontBackPartialTrack()
     fHitDirection = TVector3(sin_theta*cos_phi,sin_theta*sin_phi,cos_theta);
 
     // extend to z = fEndPosition.Z() plane
-    r = fabs(fEndPosition.Z()-570.0)/fHitDirection.Z();
+    double r = fabs(fEndPosition.Z()-570.0)/fHitDirection.Z();
     x = fHitLocation.X() - r*fHitDirection.X();
     y = fHitLocation.Y() - r*fHitDirection.Y();
     fHitLocationR = sqrt(x*x+y*y);

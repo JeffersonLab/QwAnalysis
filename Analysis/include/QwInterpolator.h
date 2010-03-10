@@ -72,8 +72,14 @@ class QwInterpolator {
       for (unsigned int index = 0; index < fValues.size(); index++)
         if (fValues[index])
           delete[] fValues[index];
-        else
-          QwDebug << "Empty index: " << index << QwLog::endl;
+        else {
+          QwMessage << "Empty index: " << index << " at ";
+          coord_t coord[fNDim];
+          Coord(index,coord);
+          for (unsigned int dim = 0; dim < fNDim; dim++)
+            QwMessage << coord[dim] << " ";
+          QwMessage << QwLog::endl;
+        }
     };
 
   private: // private member fields
@@ -298,6 +304,11 @@ class QwInterpolator {
     /// \brief Return the cell index based on the linearized index (unchecked)
     void Cell(unsigned int linear_index, unsigned int* cell_index) const;
 
+    /// \brief Return the coordinates based on the cell index (unchecked)
+    void Coord(const unsigned int* cell_index, coord_t* coord) const;
+    /// \brief Return the coordinates based on the linearized index (unchecked)
+    void Coord(const unsigned int linear_index, coord_t* coord) const;
+
     /// Return the cell index closest to the coordinate (could be above) (unchecked)
     void Nearest(const coord_t* coord, unsigned int* cell_index) const {
       double cell_local[fNDim];
@@ -364,12 +375,13 @@ inline const bool QwInterpolator<value_t,value_n>::Linear(
     // ... with appropriate weighting factors (1 - cell_local or cell_local)
     double fac = 1.0;
     for (unsigned int dim = 0; dim < fNDim; dim++)
-      fac *= ((offset >> dim) & 0x1)? cell_local[dim] : 1 - cell_local[dim];
+      fac *= ((offset >> dim) & 0x1)? cell_local[dim] : (1 - cell_local[dim]);
     // ... for all vector components
-    for (unsigned int i = 0; i < value_n; i++) {
+    for (unsigned int i = 0; i < value_n; i++)
       value[i] += fac * neighbor[i];
-    }
+QwMessage << Index(cell_index,offset) << ": " << neighbor[2] << QwLog::endl;
   }
+QwMessage << cell_local[0] << "," << cell_local[1] << "," << cell_local[2] << QwLog::endl;
   return true;
 }
 
@@ -485,13 +497,13 @@ inline void QwInterpolator<value_t,value_n>::Cell(
 	double &cell_local,
 	const unsigned int dim) const
 {
-  // Normalize coordinate
+  // Normalize coordinate (positive, with integers on grid points)
   double norm_coord = (coord - fMin[dim]) / fStep[dim];
   // Split in fractional and integer part
   double frac_part, int_part;
   frac_part = modf(norm_coord, &int_part);
   cell_local = frac_part;
-  cell_index = int(int_part); // cast
+  cell_index = int(int_part); // cast to integer
 }
 
 /**
@@ -529,17 +541,47 @@ inline void QwInterpolator<value_t,value_n>::Cell(
 /**
  * Return the cell index based on the linearized index (unchecked)
  * @param linear_index Linearized index
- * @param cell_index Cell index  (reference)
+ * @param cell_index Cell index (reference)
  */
 template <class value_t, unsigned int value_n>
 inline void QwInterpolator<value_t,value_n>::Cell(
 	unsigned int linear_index,
 	unsigned int* cell_index) const
 {
-  for (unsigned int dim = fNDim - 1; dim > 0; dim--) {
+  // This does not work with unsigned int, because that is always >= 0 and wraps
+  for (int dim = fNDim-1; dim >= 0; dim--) {
     cell_index[dim] = linear_index / fExtent[dim];
     linear_index -= cell_index[dim] * fExtent[dim];
   }
+}
+
+/**
+ * Return the coordinates based on the cell index (unchecked)
+ * @param cell_index Cell index
+ * @param coord Point coordinates (reference)
+ */
+template <class value_t, unsigned int value_n>
+inline void QwInterpolator<value_t,value_n>::Coord(
+	const unsigned int* cell_index,
+	coord_t* coord) const
+{
+  for (unsigned int dim = 0; dim < fNDim; dim++)
+    coord[dim] = fMin[dim] + cell_index[dim] * fStep[dim];
+}
+
+/**
+ * Return the coordinates based on the linearized index (unchecked)
+ * @param linear_index Linearized index
+ * @param coord Point coordinates (reference)
+ */
+template <class value_t, unsigned int value_n>
+inline void QwInterpolator<value_t,value_n>::Coord(
+	const unsigned int linear_index,
+	coord_t* coord) const
+{
+  unsigned int cell_index[fNDim];
+  Cell(linear_index,cell_index);
+  Coord(cell_index,coord);
 }
 
 /**

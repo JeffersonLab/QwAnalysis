@@ -33,7 +33,7 @@ class VQwBridgingMethod {
     virtual ~VQwBridgingMethod() { };
 
     /// \brief Bridge from the front to back partial track (pure virtual)
-    virtual bool Bridge(QwPartialTrack* front, QwPartialTrack* back) = 0;
+    virtual int Bridge(QwPartialTrack* front, QwPartialTrack* back) = 0;
 
     /// Clear the list of tracks
     virtual void ClearListOfTracks() { fListOfTracks.clear(); };

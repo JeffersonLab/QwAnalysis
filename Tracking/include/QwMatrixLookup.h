@@ -34,7 +34,7 @@ class QwMatrixLookup: public VQwBridgingMethod {
     static bool LoadTrajMatrix(const std::string filename);
 
     /// \brief Bridge from the front to back partial track
-    bool Bridge(QwPartialTrack* front, QwPartialTrack* back);
+    int Bridge(QwPartialTrack* front, QwPartialTrack* back);
 
     // TEMP
     void SetStartAndEndPoints(TVector3 startposition, TVector3 startdirection,
@@ -48,9 +48,6 @@ class QwMatrixLookup: public VQwBridgingMethod {
     TVector3 fEndPosition, fEndDirection;
     double fEndPositionR, fEndPositionPhi;
     double fEndDirectionTheta, fEndDirectionPhi;
-
-    // TEMP
-    int BridgeFrontBackPartialTrack();
 
     // TEMP
     void GetBridgingResult(Double_t *buffer);

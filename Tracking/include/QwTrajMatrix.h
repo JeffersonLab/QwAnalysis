@@ -108,8 +108,10 @@ class QwTrajMatrix {
 
   private:
 
-    /// \brief Index based on cylindrical coordinates
-    const unsigned int Index(const unsigned int index_p, const unsigned int ind_r, const unsigned int ind_phi, const unsigned int ind_z) const;
+    /// \brief Index based on cylindrical coordinates (integer arguments)
+    const unsigned int Index(const unsigned int index_p, const unsigned int ind_r, const unsigned int ind_phi, const unsigned int ind_z, const bool range_check = false) const;
+    /// \brief Index based on cylindrical coordinates (double arguments)
+    const unsigned int Index(const double p, const double r, const double phi, const double z) const;
 
     /// Table with the track parameters
     std::vector<QwPartialTrackParameter> fBackTrackParameterTable;
@@ -123,18 +125,35 @@ class QwTrajMatrix {
  * @param index_r Index in radial position
  * @param index_phi Index in azimuthal angle
  * @param index_z Index in longitudinal position
+ * @param range_check Flag to check the ranges
  * @return Index in the vector
  */
 inline const unsigned int QwTrajMatrix::Index(
 	const unsigned int index_p,
 	const unsigned int index_r,
 	const unsigned int index_phi,
-	const unsigned int index_z) const
+	const unsigned int index_z,
+	const bool range_check) const
 {
   return index_z
          + Z_GRIDSIZE * index_phi
          + Z_GRIDSIZE * PHI_GRIDSIZE * index_r
          + Z_GRIDSIZE * PHI_GRIDSIZE * R_GRIDSIZE * index_p;
 }
+
+inline const unsigned int QwTrajMatrix::Index(
+	const double p,
+	const double r,
+	const double phi,
+	const double z) const
+{
+  int index_p = ((int) (p + 0.5) - P_MIN) / DP;
+  int index_r = ((int) (r + 0.5) - R_MIN) / DR;
+  int index_phi = ((int) (phi + 0.5) - PHI_MIN) / DPHI;
+  int index_z = ((int) (z + 0.5) - VERTEXZ_MIN) / DZ;
+  return Index(index_p, index_r, index_phi, index_z, true);
+}
+
+
 
 #endif // QWTRAJMATRIX_H

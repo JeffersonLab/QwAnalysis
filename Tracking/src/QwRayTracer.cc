@@ -102,10 +102,9 @@ bool QwRayTracer::LoadMagneticFieldMap(const std::string filename)
 
     // Otherwise reload the field map
     fBfield = new QwMagneticField();
+    fBfield->SetFieldScalingFactor(BSCALE);
     return fBfield->ReadFieldMapFile(filename);
 };
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -136,31 +135,11 @@ void QwRayTracer::SetStartAndEndPoints(TVector3 startposition, TVector3 startdir
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-int QwRayTracer::BridgeFrontBackPartialTrack() {
-
-    int status;
-
-    fMatchFlag = -2;
-
-    status = Filter();
-    if (status == -1)  return -1;
-
-    status = Shooting();
-
-    // if (status == -1)  status = DoForcedBridging();
-
-    return status;
-};
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-bool QwRayTracer::Bridge(QwPartialTrack* front, QwPartialTrack* back)
+int QwRayTracer::Bridge(QwPartialTrack* front, QwPartialTrack* back)
 {
     int status;
 
     fMatchFlag = -2;
-    status = Filter();
-    if (status == -1)  return -1;
 
     status = Shooting();
 
@@ -430,7 +409,7 @@ int QwRayTracer::Integrate(double e0, double step) {
         point[0]=x1*100.0;
         point[1]=y1*100.0;
         point[2]=z1*100.0;
-        QwRayTracer::fBfield->GetFieldValue(point, bfield, BSCALE);
+        QwRayTracer::fBfield->GetCartesianFieldValue(point, bfield);
         bx = bfield[0];
         by = bfield[1];
         bz = bfield[2];
@@ -453,7 +432,7 @@ int QwRayTracer::Integrate(double e0, double step) {
         point[0]=x*100.0;
         point[1]=y*100.0;
         point[2]=z*100.0;
-        QwRayTracer::fBfield->GetFieldValue(point, bfield, BSCALE);
+        QwRayTracer::fBfield->GetCartesianFieldValue(point, bfield);
         bx = bfield[0];
         by = bfield[1];
         bz = bfield[2];
@@ -476,7 +455,7 @@ int QwRayTracer::Integrate(double e0, double step) {
         point[0]=x*100.0;
         point[1]=y*100.0;
         point[2]=z*100.0;
-        QwRayTracer::fBfield->GetFieldValue(point, bfield, BSCALE);
+        QwRayTracer::fBfield->GetCartesianFieldValue(point, bfield);
         bx = bfield[0];
         by = bfield[1];
         bz = bfield[2];
@@ -499,7 +478,7 @@ int QwRayTracer::Integrate(double e0, double step) {
         point[0]=x*100.0;
         point[1]=y*100.0;
         point[2]=z*100.0;
-        QwRayTracer::fBfield->GetFieldValue(point, bfield, BSCALE);
+        QwRayTracer::fBfield->GetCartesianFieldValue(point, bfield);
         bx = bfield[0];
         by = bfield[1];
         bz = bfield[2];

@@ -99,8 +99,7 @@ public:
     void SetStartAndEndPoints(TVector3 startposition, TVector3 startdirection,
                               TVector3 endposition, TVector3 enddirection);
 
-    int BridgeFrontBackPartialTrack();
-    bool Bridge(QwPartialTrack* front, QwPartialTrack* back);
+    int Bridge(QwPartialTrack* front, QwPartialTrack* back);
 
     int DoForcedBridging() {
         return -1;

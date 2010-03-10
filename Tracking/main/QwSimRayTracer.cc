@@ -28,13 +28,20 @@ inline ostream& operator<< (ostream& stream, const TVector3& v)
   return stream;
 }
 
+/**
+ * Main function
+ * @param argc Number of arguments
+ * @param argv[] List of arguments
+ * @return Return code
+ */
 int main (int argc, char* argv[])
 {
-    bool debug = false;
+    bool debug = true;
 
     // Create a timer
     TStopwatch timer;
 
+    /// Command line options
     gQwOptions.SetCommandLine(argc, argv);
     gQwOptions.SetConfigFile("qwsimtracking.conf");
     // Define the command line options
@@ -213,7 +220,7 @@ int main (int argc, char* argv[])
                     // Bridge using the lookup table
                     if (status == -1) {
                         timer.Start();
-                        status = matrixlookup->BridgeFrontBackPartialTrack();
+                        status = matrixlookup->Bridge(tracks_r2.at(i), tracks_r3.at(j));
                         timer.Stop();
                         CpuTime = timer.CpuTime();
                         RealTime = timer.RealTime();
@@ -225,7 +232,7 @@ int main (int argc, char* argv[])
                     // Bridge using the ray tracer
                     if (status == -1) {
                         timer.Start();
-                        status = raytracer->BridgeFrontBackPartialTrack();
+                        status = raytracer->Bridge(tracks_r2.at(i), tracks_r3.at(j));
                         timer.Stop();
                         CpuTime = timer.CpuTime();
                         RealTime = timer.RealTime();
