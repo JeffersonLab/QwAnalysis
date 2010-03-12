@@ -31,7 +31,7 @@ class QwWord
 	  fWordName(""),fWordType(""),fValue(-1){};
 
   Int_t fSubbankIndex;
-  Int_t fWordInSubbank;
+  UInt_t fWordInSubbank;
   TString fModuleType;
   TString fWordName;
   TString fWordType;
@@ -155,13 +155,16 @@ class QwHelicity : public VQwSubsystemParity{
   Int_t GetMaxPatternPhase(){
     return fMaxPatternPhase;
   };
-
+  Int_t GetPatternPhaseOffset(){
+    return fPATTERNPHASEOFFSET;
+  };
+  
 /////
  protected:
    enum HelicityRootSavingType{kHelSaveMPS = 0,
 			      kHelSavePattern,
 			      kHelNoSave};
-  
+   
   enum HelicityEncodingType{kHelUserbitMode=0,
 			    kHelInputRegisterMode,
 			    kHelLocalyMadeUp};
@@ -248,8 +251,11 @@ class QwHelicity : public VQwSubsystemParity{
 
   Bool_t Compare(VQwSubsystem *source);
 
-  static const Bool_t BIT24=kTRUE;
-  static const Bool_t BIT30=(!BIT24);
+  Bool_t BIT24;//sets the random seed size 24bit/30bits
+  Bool_t BIT30;
+
+  Int_t fPATTERNPHASEOFFSET;
+  
 };
 
 

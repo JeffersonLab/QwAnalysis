@@ -79,6 +79,10 @@ class QwLog : public std::ostream {
 
     /// \brief Define available class options for QwOptions
     static void DefineOptions(QwOptions* options);
+    // Note: this uses a pointer as opposed to a reference, because as indicated
+    // above the QwLog class cannot depend on the QwOptions class.  When using a
+    // pointer we only need a forward declaration and we do not need to include
+    // the header file QwOptions.h.
 
     //! Loglevels
     /*! enum of possible log levels */
@@ -106,6 +110,10 @@ class QwLog : public std::ostream {
     /*! \brief Initialize the log file with name 'name'
      */
     void                        InitLogFile(const std::string name, const std::ios_base::openmode mode = kAppend);
+
+    /*! \brief Set the screen color mode
+     */
+    void                        SetScreenColor(bool flag);
 
     /*! \brief Set the screen log level
      */
@@ -161,6 +169,9 @@ class QwLog : public std::ostream {
     std::ostream               *fFile;
     //! Log level of this stream
     QwLogLevel                  fLogLevel;
+
+    //! Flag to disable color (static)
+    static bool                 fUseColor;
 
 };
 

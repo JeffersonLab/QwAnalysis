@@ -57,8 +57,8 @@ class QwTrackingTree: public VQwTrackingElement {
 
   public:
 
-    /// \brief Default constructor (TODO should take some option info)
-    QwTrackingTree();
+    /// \brief Default constructor
+    QwTrackingTree(unsigned int numlayers = MAX_LAYERS);
     /// \brief Destructor
     ~QwTrackingTree();
 
@@ -83,6 +83,8 @@ class QwTrackingTree: public VQwTrackingElement {
 	EQwDirectionID dir);
     treenode* existent (treenode *tst, int hash);
     treenode* nodeexists (nodenode *nd, treenode *tr);
+
+    /// \brief Recursively generate the treesearch pattern database
     void marklin (
 	treenode *node,
 	int level,
@@ -132,8 +134,10 @@ class QwTrackingTree: public VQwTrackingElement {
     double fMaxSlope;	///< Maximum allowed slope for tracks in this detector
     int fNumPatterns;	///< Number of valid patterns in the tree
 
-    int xref;
-    int maxref;
+    /// Reference
+    int fRef;
+    /// Maximum number of references in the cached tree file
+    int fMaxRef;
 
     int fMaxLevel;	/*!< maximum level of the bin division within
 			     the treesearch database,

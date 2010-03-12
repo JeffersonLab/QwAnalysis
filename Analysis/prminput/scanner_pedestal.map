@@ -3,15 +3,8 @@
 ! name of chanel, pedestal, gain
 ! if this is a Triumf ADC enter the hardware sum pedestal
 ! the pedestal will be subtracted to the data
-SCAN_POW     ,   0 ,  1
-SCAN_POSX    ,   0 ,  1
-SCAN_POSY    ,   0 ,  1
-SPARE        ,   0 ,  1
-SPARE        ,   0 ,  1
-SPARE        ,   0 ,  1
-SPARE        ,   0 ,  1
-SPARE        ,   0 ,  1
-SPARE        ,   0 ,  1
-SPARE        ,   0 ,  1
+vqwk_power    ,   0 ,  1
+vqwk_pos_x    ,   0 ,  1
+vqwk_pos_y    ,   0 ,  1
 !END
  

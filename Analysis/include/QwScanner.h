@@ -11,6 +11,7 @@
 #define __QWSCANNER__
 
 #include <vector>
+
 #include "TTree.h"
 #include "TFile.h"
 #include "TRandom3.h"
@@ -27,9 +28,6 @@
 #include "QwSIS3801_Channel.h"
 #include "QwPMT_Channel.h"
 
-class QwVQWK_Channel;
-class MQwSIS3801_Channel;
-
 class QwScanner: public VQwSubsystemTracking,
                  public VQwSubsystemParity
 {
@@ -37,7 +35,6 @@ class QwScanner: public VQwSubsystemTracking,
  public:
 
    QwScanner(TString region_tmp);
-
    virtual ~QwScanner();
 
   // VQwSubsystem methods
@@ -48,20 +45,17 @@ class QwScanner: public VQwSubsystemTracking,
     void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2) { return; };
     void Ratio(VQwSubsystem *numer, VQwSubsystem *denom) { return; };
     void Scale(Double_t factor) { return; };
-
     void Calculate_Running_Average(){return;};
     void Do_RunningSum(){return;};//update the running sums for devices
 
-  //
     Int_t LoadEventCuts(TString filename) { return 0; };
     Bool_t ApplySingleEventCuts() { return kTRUE; };
     Int_t GetEventcutErrorCounters() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
-  //
+
     void Copy(VQwSubsystem *source) { VQwSubsystem::Copy(source); return; };
     VQwSubsystem*  Copy() { return this; };
     Bool_t Compare(VQwSubsystem *source) { return kTRUE; };
-
 
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
@@ -83,11 +77,11 @@ class QwScanner: public VQwSubsystemTracking,
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();
-  void  ConstructTrees(TFile* rootfile);
-  void  FillTrees();
+
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-  void  FillTreeVector(std::vector<Double_t> &values) { };
-  void  FillTreeVector(std::vector<Double_t> &values, TString &prefix);
+
+  void  FillTreeVector(std::vector<Double_t> &values);
+
   void  FillDB(QwDatabase *db, TString type) {return;};
 
   void  GetHitList(QwHitContainer & grandHitContainer){};
@@ -108,6 +102,8 @@ class QwScanner: public VQwSubsystemTracking,
     return status;
   };
 
+  void StoreRawData(Bool_t rawdata) { bRawData = rawdata; };
+
   void Print();
 
  protected:
@@ -127,6 +123,13 @@ class QwScanner: public VQwSubsystemTracking,
 
   // Tells this object that it will decode data from the current bank
   Int_t RegisterSlotNumber(const UInt_t slot_id);
+  void DecodeTDCWord(UInt_t &word);
+  UInt_t GetTDCSlotNumber(){return fV775SlotNumber;};
+  Bool_t IsValidDataword(){return fV775ValidFlag;};
+  UInt_t GetTDCChannelNumber(){return fV775ChannelNumber;};
+  UInt_t GetTDCData(){return fV775Dataword;};
+
+
   const QwScanner::EModuleType RegisterModuleType(TString moduletype);
   Int_t GetModuleIndex(size_t bank_index, size_t slot_num) const;
   Bool_t IsSlotRegistered(Int_t bank_index, Int_t slot_num) const {
@@ -145,7 +148,7 @@ class QwScanner: public VQwSubsystemTracking,
   Int_t fNumberOfModules;
   std::vector< std::vector<Int_t> > fModuleIndex;  //  Module index, indexed by bank_index and slot_number
   std::vector< enum EModuleType > fModuleTypes;
-  std::vector< std::vector< std::pair<Int_t, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel; gives the plane and wire assignment.
+  std::vector< std::vector< std::pair<Int_t, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel
 
   Int_t GetEventcutErrorFlag() { return 0; };//return the error flag to the main routine
 
@@ -154,6 +157,26 @@ class QwScanner: public VQwSubsystemTracking,
   std::vector<TH2*> fHistograms2D;
 
  private:
+
+  static const UInt_t kV775Mask_SlotNumber;
+  static const UInt_t kV775Mask_WordType;
+  static const UInt_t kV775Mask_ChannelNumber;
+  static const UInt_t kV775Mask_Dataword;
+  static const UInt_t kV775WordType_Datum;
+
+  Bool_t fV775ValidFlag;
+  UInt_t fV775SlotNumber;
+  UInt_t fV775ChannelNumber;
+  UInt_t fV775Dataword;
+
+  Double_t get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalidity);
+
+  Int_t myTimer;
+  Bool_t bRawData;
+  Int_t fTreeArrayNumEntries;
+  Int_t fTreeArrayIndex;
+
+  std::vector <Double_t> fScannerVector;
 
   Double_t fCurrentPotentialX;
   Double_t fCurrentPotentialY;
@@ -182,8 +205,6 @@ class QwScanner: public VQwSubsystemTracking,
   Double_t Cal_FactorX;
   Double_t Cal_FactorY;
 
-  Int_t myTimer;
-
   Int_t FrontScaData;
   Int_t BackScaData;
   Int_t CoincidenceScaData;
@@ -191,6 +212,8 @@ class QwScanner: public VQwSubsystemTracking,
   Int_t eventnumber;
   Int_t trigevtnum;
   Int_t sumevtnum;
+  Int_t SumFlag;
+  Int_t TrigFlag;
   Double_t fFrontSCA;
   Double_t fBackSCA;
   Double_t fCoincidenceSCA;
@@ -198,23 +221,8 @@ class QwScanner: public VQwSubsystemTracking,
   Double_t fFrontTDC;
   Double_t fBackADC;
   Double_t fBackTDC;
-
-
-  TString prefix_trig;
-  TString prefix_sum;
-
-  std::vector <Double_t> ScannerTrigVector;
-  std::vector <Double_t> ScannerSumVector;
-
-  TTree *ScannerTrigTree;
-  TTree *ScannerSumTree;
-  TTree *ScannerEvtTree;
-
-  Int_t SumFlag;
-  Int_t TrigFlag;
-
-  Double_t get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalidity);
 };
+
 
 #endif
 

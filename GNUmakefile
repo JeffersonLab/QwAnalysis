@@ -671,7 +671,7 @@ coda_lib:
 	| $(ADD_ANTISLASH) \
 	| $(FILTER_OUT_FOREIGN_DEPS) \
 	>> .tmp; \
-	if [ ! -e .tmperror ];\
+	if [ -s .tmperror ];\
 	then \
 	$(ECHO) "Aborting:  Unable to locate a file in the include paths:"; \
 	$(CAT) .tmperror; \
@@ -705,7 +705,7 @@ coda_lib:
 	| $(GREP) -v "\/$$(stem $$file)\." \
 	| $(SED) "s/\/include\//\/src\//g;s/\$(IncSuf)/\$(SrcSuf)/g;s/\\\//g" \
 	>> .aux; \
-	if [ ! -e .tmperror ];\
+	if [ -s .tmperror ];\
 	then \
 	$(ECHO) "Aborting:  Unable to locate a file in the include paths:"; \
 	$(CAT) .tmperror; \

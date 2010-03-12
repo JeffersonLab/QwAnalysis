@@ -44,7 +44,6 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
   fEventCounter++;
   fTripCounter++;
   */
-
   if (bEVENTCUTMODE>0){//Global switch to ON/OFF event cuts set at the event cut file
 
     if (bDEBUG)
@@ -129,7 +128,6 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
       fHardwareBlockSum=fHardwareBlockSum*exp(-1*(800-fTripCounter)/75);
   }
   */
-
 
   return fDeviceErrorCode;
 };
@@ -649,7 +647,11 @@ QwVQWK_Channel& QwVQWK_Channel::operator+= (const QwVQWK_Channel &value){
     this->fNumberOfSamples  += value.fNumberOfSamples;
     this->fSequenceNumber   = 0;
     this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
+
+    //   std::cout<<this->GetElementName()<<std::endl;
+    //std::cout<<this->fDeviceErrorCode<<"from oring with"<<value.fDeviceErrorCode <<"\n";;
   }
+
   return *this;
 };
 
@@ -699,6 +701,22 @@ void QwVQWK_Channel::Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom){
     this->fDeviceErrorCode = (numer.fDeviceErrorCode|denom.fDeviceErrorCode);//error code is ORed.
   }
 };
+
+void QwVQWK_Channel::Product(QwVQWK_Channel &value1, QwVQWK_Channel &value2)
+{
+  if (!IsNameEmpty()){
+    for (size_t i=0; i<4; i++){
+	this->fBlock[i] = (value1.fBlock[i]) * (value2.fBlock[i]);
+	this->fBlock_raw[i]=0;
+    }
+    this->fSoftwareBlockSum_raw = 0;
+    this->fHardwareBlockSum_raw = value1.fHardwareBlockSum_raw*value2.fHardwareBlockSum_raw;
+    this->fHardwareBlockSum =  value1.fHardwareBlockSum*value2.fHardwareBlockSum;
+    this->fNumberOfSamples = value1.fNumberOfSamples;
+    this->fSequenceNumber  = 0;
+    this->fDeviceErrorCode = (value1.fDeviceErrorCode|value2.fDeviceErrorCode);//error code is ORed.
+  }
+}
 
 void QwVQWK_Channel::Offset(Double_t offset)
 {
@@ -763,8 +781,7 @@ void QwVQWK_Channel::Print_Running_Average()
 }
 
 void QwVQWK_Channel::Do_RunningSum(){
-  if (fDeviceErrorCode == 0){//if the device HW is good
-
+  if (fDeviceErrorCode == 0){//if the device HW is good  
     fRunning_sum+=fHardwareBlockSum;//increase the sum. sum square and event counter
     fRunning_sum_square+=fHardwareBlockSum*fHardwareBlockSum;
     fGoodEventCount++;
@@ -785,12 +802,12 @@ Bool_t QwVQWK_Channel::MatchSequenceNumber(size_t seqnum)
 
 Bool_t QwVQWK_Channel::MatchNumberOfSamples(size_t numsamp)
 {
-  //std::cout<<" QwQWVK_Channel "<<GetElementName()<<"  "<<fNumberOfSamples_map<<" "<<numsamp<<" "<<fNumberOfSamples<<std::endl;
   Bool_t status = kTRUE;
   if (!IsNameEmpty()){
     status = (fNumberOfSamples==numsamp);
     if (! status){
-      if (bDEBUG) std::cerr << "QwVQWK_Channel::MatchNumberOfSamples:  Channel "
+      if (bDEBUG) 
+	std::cerr << "QwVQWK_Channel::MatchNumberOfSamples:  Channel "
 		<< GetElementName()
 		<< " had fNumberOfSamples==" << fNumberOfSamples
 		<< " and was supposed to have " << numsamp

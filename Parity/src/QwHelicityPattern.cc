@@ -3,7 +3,7 @@
 * File: QwHelicityPattern.cc                              *
 *                                                         *
 * Author:                                                 *
-* Time-stamp:                                             *
+* Time-stamp:                                              *
 \**********************************************************/
 
 #include "QwHelicityPattern.h"
@@ -13,6 +13,7 @@
 
 #include <stdexcept>
 
+#include "QwLog.h"
 
 
 /*****************************************************************/
@@ -21,6 +22,10 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
 
   QwHelicity* input=((QwHelicity*)event.GetSubsystem("Helicity info"));
   fPatternSize=input->GetMaxPatternPhase();
+  fPATTERNPHASEOFFSET=input->GetPatternPhaseOffset();
+  bPATTERNPHASEOFFSET=kFALSE;
+  //fPATTERNPHASEOFFSET=1;//Phase number offset is set to 1 by default and will be set to 0 if phase number starts from 0
+
   std::cout<<"QwHelicity::MaxPatternPhase = "<<fPatternSize<<std::endl;
   try
     {
@@ -48,7 +53,7 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
       else
 	{
 	  TString loc=
-	    "Standard exception from QwHelicityPattern : the pattern size has to be even;  rigth now pattern_size=";
+	    "Standard exception from QwHelicityPattern : the pattern size has to be even;  right now pattern_size=";
 	  loc+=Form("%d",fPatternSize);
 	  throw std::invalid_argument(loc.Data());
 	}
@@ -120,10 +125,11 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
     }
   else
     {
-      Int_t locali=localPhaseNumber-1;
+      Int_t locali=localPhaseNumber-fPATTERNPHASEOFFSET;
+      
       if(localdebug) std::cout<<"QwHelicityPattern::LoadEventData local i="<<locali<<"\n";
       if (locali < 0) {
-        std::cerr << "Negative array index set to zero!  Check code!" << std::endl;
+        QwError << "Negative array index set to zero!  Check code!" << QwLog::endl;
         locali = 0;
       }
       fEvents[locali] = event;

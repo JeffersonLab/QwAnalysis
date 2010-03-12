@@ -22,6 +22,9 @@ QwLog gQwLog;
 static Bool_t QwLogScreenAtNewLine = kTRUE;
 static Bool_t QwLogFileAtNewLine = kTRUE;
 
+// Reset the color flag
+bool QwLog::fUseColor = true;
+
 // Log file open modes
 const std::ios_base::openmode QwLog::kTruncate = std::ios::trunc;
 const std::ios_base::openmode QwLog::kAppend = std::ios::app;
@@ -59,11 +62,18 @@ QwLog::~QwLog()
  * Defines configuration options for QwDatabase class using QwOptions
  * functionality.
  *
+ * Note: this uses a pointer as opposed to a reference, because as indicated
+ * above the QwLog class cannot depend on the QwOptions class.  When using a
+ * pointer we only need a forward declaration and we do not need to include
+ * the header file QwOptions.h.
+ *
  * @param options Options object
  */
 void QwLog::DefineOptions(QwOptions* options)
 {
   // Define the logging options
+  options->AddOptions()("QwLog.color", po::value<bool>()->default_value(true),
+                "colored screen output");
   options->AddOptions()("QwLog.logfile", po::value<string>(), "log file");
   options->AddOptions()("QwLog.loglevel-file", po::value<int>()->default_value(4),
                 "log level for file output");
@@ -84,6 +94,13 @@ void QwLog::InitLogFile(const string name, const std::ios_base::openmode mode)
   std::ios_base::openmode flags = std::ios::out | mode;
   fFile = new std::ofstream(name.c_str(), flags);
   fFileThreshold = kMessage;
+}
+
+/*! Set the screen color mode
+ */
+void QwLog::SetScreenColor(bool flag)
+{
+  fUseColor = flag;
 }
 
 /*! Set the screen log level
@@ -109,9 +126,18 @@ QwLog& QwLog::operator()(QwLogLevel level)
   if (fScreen && fLogLevel <= fScreenThreshold) {
     if (QwLogScreenAtNewLine) {
       switch (level) {
-      case kError:   *(fScreen) << QwColor(Qw::kRed) << "Error: "; break;
-      case kWarning: *(fScreen) << QwColor(Qw::kRed) << "Warning: "
-                                << QwColor(Qw::kWhite); break;
+      case kError:
+        if (fUseColor)
+          *(fScreen) << QwColor(Qw::kRed) << "Error: ";
+        else
+          *(fScreen) << "Error: ";
+        break;
+      case kWarning:
+        if (fUseColor)
+          *(fScreen) << QwColor(Qw::kRed) << "Warning: " << QwColor(Qw::kNormal);
+        else
+          *(fScreen) << "Warning: ";
+        break;
       default: break;
       }
       QwLogScreenAtNewLine = kFALSE;
@@ -182,7 +208,10 @@ QwLog& QwLog::operator<<(std::ostream& (*manip) (std::ostream&))
 std::ostream& QwLog::endl(std::ostream& strm)
 {
   if (gQwLog.fScreen && gQwLog.fLogLevel <= gQwLog.fScreenThreshold) {
-    *(gQwLog.fScreen) << QwColor(Qw::kWhite) << std::endl;
+    if (fUseColor)
+      *(gQwLog.fScreen) << QwColor(Qw::kNormal) << std::endl;
+    else
+      *(gQwLog.fScreen) << std::endl;
     QwLogScreenAtNewLine = kTRUE;
   }
   if (gQwLog.fFile && gQwLog.fLogLevel <= gQwLog.fFileThreshold) {

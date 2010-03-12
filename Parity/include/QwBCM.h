@@ -66,7 +66,7 @@ class QwBCM : public VQwDataElement{
 
   void Print() const;
 
-
+  const QwVQWK_Channel& GetCharge() const {return fTriumf_ADC;};
 
 
   QwBCM& operator=  (const QwBCM &value);

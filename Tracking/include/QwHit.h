@@ -53,7 +53,7 @@ class QwHit : public TObject {
   QwHit(const QwHit* hit);
   QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
 	EQwRegionID region, EQwDetectorPackage package, Int_t plane,
-	EQwDirectionID direction, Int_t wire, UInt_t data);
+	EQwDirectionID direction, Int_t wire, Double_t data);
   // @}
 
   //! \brief Destructor
@@ -116,7 +116,7 @@ class QwHit : public TObject {
   void SetPlane(const Int_t plane)                  { fPlane = plane; };
   void SetElement(const Int_t element)              { fElement = element; };
 
-  void SetDetectorInfo(QwDetectorInfo *detectorinfo){ pDetectorInfo = detectorinfo; };
+  void SetDetectorInfo(const QwDetectorInfo *detectorinfo) { pDetectorInfo = const_cast<QwDetectorInfo*>(detectorinfo); };
   void SetAmbiguousElement(const Bool_t amelement)  { fAmbiguousElement = amelement; };
   void SetLRAmbiguity(const Bool_t amlr)            { fLRAmbiguity = amlr; };
 

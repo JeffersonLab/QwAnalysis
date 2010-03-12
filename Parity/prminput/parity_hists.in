@@ -82,6 +82,10 @@ qwk_........._block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
 qwk_........._block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 qwk_........._.w_raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
 qwk_........._.w		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+qwk_.........._block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+qwk_.........._.w		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+qwk_............_block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+qwk_............_.w		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 qwk_......_......_block.	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 qwk_......_......_hw		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 qwk_......._......_block.	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
@@ -131,6 +135,11 @@ yield_qwk_........._block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
 yield_qwk_........._block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_qwk_........._.w_raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
 yield_qwk_........._.w		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_qwk_.........._block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_qwk_.........._.w		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_qwk_............_block.   TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_qwk_............_.w	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+
 yield_qwk_......_......_block.	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_qwk_......_......_.w	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_qwk_......._......_block.	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
@@ -382,3 +391,50 @@ asymBar.Right_.w_volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
 asymBar.Right_seqnum		TH1F	301	-0.5		300.5			SequenceNumber	Events
 asymBar.Right_numsamples	TH1F	1001	-2.5		5002.5			NumberOfSamples	Events
 
+
+###  Scanner histograms
+
+scanner_quartz_front_adc		TH1F	4096	0.5		4096.5			QuartzFrontADC	Events
+scanner_quartz_back_adc			TH1F	4096	0.5		4096.5			QuartzBackADC	Events
+scanner_quartz_front_tdc		TH1F	4096	0.5		4096.5			QuartzFrontTDC	Events
+scanner_quartz_back_tdc			TH1F	4096	0.5		4096.5			QuartzBackTDC	Events
+
+scanner_position_x			TH1F	2000	305.0		355.0			X[cm]		Events
+scanner_position_y			TH1F	2000	-110.0		110.0			Y[cm]		Events
+
+scanner_vqwk_power     			TH1F	10000	0.0		5.0e9			vqwk_pow	Events
+scanner_vqwk_pos_x     			TH1F	10000	0.0		5.0e9			vqwk_posx	Events
+scanner_vqwk_pos_y     			TH1F	10000	0.0		5.0e9			vqwk_posy	Events
+
+scanner_qdc_power			TH1F	4096	0.5		4096.5			qdc_pow		Events
+scanner_qdc_pos_x			TH1F	4096	0.5		4096.5			qdc_posx	Events
+scanner_qdc_pos_y			TH1F	4096	0.5		4096.5			qdc_posy	Events
+
+scanner_spare.				TH1F	10001	-5.0e9		5.0e9			spare0		Events
+scanner_empty				TH1F	10001	-5.0e9		5.0e9			spare4		Events
+
+scanner_front_sca			TH1F	1500	0.5		1500.5			rate[kps]	Events
+scanner_back_sca			TH1F	1500	0.5		1500.5			rate[kps]	Events
+scanner_coincidence_sca			TH1F	1500	0.5		1500.5			rate[kps]	Events
+
+scanner_rate_map 	TH2F 	210 	-105.0 	105.0 	400 	310.0 	350.0 	X[cm] 	Y[cm]
+
+........delta_event_number            	TH1F	12      -1.5	10.5				EventNumber(actual-previous) Events
+........delta_pattern_number   		TH1F	12	-1.5 	10.5 				PatternNumber(actual-previous) Counts
+........pattern_phase   		TH1F	11	-1.5 	9.5 				PatternPhase Counts
+........pat_phase   			TH1F	11	-1.5 	9.5 				PatternPhase Counts
+........hel_pat_phase   		TH1F	11	-1.5 	9.5 				PatternPhase Counts
+........helicity			TH1F	5 	-2.5	2.5 				Helicity	Counts
+........pattern_polarity		TH1F	5 	-2.5	2.5 				Pattern_polarity Counts
+........cleandata			TH1F	5 	-2.5	2.5 				Cleandata	Counts
+........scandata1			TH1F	101 	-0.5	100.5 				Scandata1 	Counts
+........scandata2			TH1F	101 	-0.5	100.5 				Scandata2	Counts
+........scalerheader			TH1F	5 	-2.5	2.5 				ScalerHeader	Counts
+........scalercounter			TH1F	189 	-2.5	186.5 				ScalerCounter	Counts
+........mps_counter			TH1F	189 	-2.5	186.5 				ScalerCounter	Counts
+........hel_mps_counter			TH1F	189 	-2.5	186.5 				ScalerCounter	Counts
+........pat_counter			TH1F	189 	-2.5	186.5 				ScalerCounter	Counts
+........hel_pat_counter			TH1F	189 	-2.5	186.5 				ScalerCounter	Counts
+........userbit				TH1F	5 	-2.5	2.5 				Userbit 	Counts
+........input_register			TH1F  12      -1.5	10.5				inputregister Events
+........output_register			TH1F  12      -1.5	10.5				outputregister Events	

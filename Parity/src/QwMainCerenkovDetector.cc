@@ -9,6 +9,10 @@
 
 #include <sstream>
 
+#include "QwSubsystemArray.h"
+#include "QwLog.h"
+
+
 Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 {
   Bool_t ldebug=kFALSE;
@@ -595,6 +599,38 @@ void  QwMainCerenkovDetector::ProcessEvent()
 
   return;
 };
+
+/**
+ * Exchange data between subsystems
+ */
+void  QwMainCerenkovDetector::ExchangeProcessedData()
+{
+  // Create a list of all variables that we need
+  // TODO This could be a static list to avoid repeated vector initializiations
+  std::vector<VQwDataElement*> variable_list;
+  variable_list.push_back(&fTargetCharge);
+  variable_list.push_back(&fTargetX);
+  variable_list.push_back(&fTargetY);
+
+  // Loop over all variables in the list
+  std::vector<VQwDataElement*>::iterator variable_iter;
+  for (variable_iter  = variable_list.begin();
+       variable_iter != variable_list.end(); variable_iter++) {
+    VQwDataElement* variable = *variable_iter;
+    if (RequestExternalValue(variable->GetElementName(), variable)) {
+      //variable->Print();
+    } else {
+      QwError << GetSubsystemName() << " could not get external value for "
+              << variable->GetElementName() << QwLog::endl;
+    }
+  } // end of loop over variables
+};
+
+void  QwMainCerenkovDetector::ProcessEvent_2()
+{
+};
+
+
 
 
 void  QwMainCerenkovDetector::ConstructHistograms(TDirectory *folder, TString &prefix)
