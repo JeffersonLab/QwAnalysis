@@ -718,103 +718,57 @@ Double_t QwBPMStripline::GetAverageError(TString type)
 QwParityDB::beam QwBPMStripline::GetDBEntry(QwDatabase *db, TString mtype, TString subname)
 {
   QwParityDB::beam row(0);
-  
-  
-  // Get run and analysis id from db, which is sent by "main"
-  
-  UInt_t run_id      = db ->GetRunID();
-  UInt_t analysis_id = db ->GetAnalysisID(); 
-  UInt_t monitor_id  = 0;     // monitor_id | int(10) unsigned | NO   | PRI | NULL    |
-  Char_t measurement_type[4];
+      
+  UInt_t beam_run_id      = 0;
+  UInt_t beam_analysis_id = 0;
+  UInt_t beam_monitor_id  = 0;
+  Char_t beam_measurement_type[4];
 
   TString name;
   Double_t avg = 0.0;
   Double_t err = 0.0;
-
-  name = this->GetSubElementName(subname);
-  
  
   if(mtype.Contains("yield"))
     {
-      sprintf(measurement_type, "yq");
+      sprintf(beam_measurement_type, "yp");
     }
   else if(mtype.Contains("asymmetry"))
     {
-      sprintf(measurement_type, "aq");
+      sprintf(beam_measurement_type, "dp");
     }
   else if(mtype.Contains("average") )
     {
-      sprintf(measurement_type, "yq");
+      sprintf(beam_measurement_type, "yp");
     }
   else if(mtype.Contains("runningsum"))
     {
-      sprintf(measurement_type, "yq");
+      sprintf(beam_measurement_type, "yp");
     }
   else
     {
-      sprintf(measurement_type, "null");
+      sprintf(beam_measurement_type, "null");
     }
+  
   
   name = this -> GetSubElementName(subname);
   avg  = this -> GetAverage(subname);
   err  = this -> GetAverageError(subname);
-     
 	  
-  if      ( name.Contains("qpdRelX")   ) monitor_id = QWK_XQPD;
-  else if ( name.Contains("1i02RelX")  ) monitor_id = QWK_1I02X;
-  else if ( name.Contains("1i04RelX")  ) monitor_id = QWK_1I04X;
-  else if ( name.Contains("1i06RelX")  ) monitor_id = QWK_1I06X;
-  else if ( name.Contains("0i02RelX")  ) monitor_id = QWK_0I02X;
-  else if ( name.Contains("0i02aRelX") ) monitor_id = QWK_0I02AX;
-  else if ( name.Contains("0i05RelX")  ) monitor_id = QWK_0i05X;
-  else if ( name.Contains("0i07RelX")  ) monitor_id = QWK_0i07X;
-  else if ( name.Contains("0l01RelX")  ) monitor_id = QWK_0L01X;
-  else if ( name.Contains("0l02RelX")  ) monitor_id = QWK_0L02X;
-  else if ( name.Contains("0l03RelX")  ) monitor_id = QWK_0L03X;
-  else if ( name.Contains("0l04RelX")  ) monitor_id = QWK_0L04X;
-  else if ( name.Contains("0l05RelX")  ) monitor_id = QWK_0L05X;
-  else if ( name.Contains("0l06RelX")  ) monitor_id = QWK_0L06X;
-  else if ( name.Contains("0l07RelX")  ) monitor_id = QWK_0L07X;
-  else if ( name.Contains("0l08RelX")  ) monitor_id = QWK_0L08X;
-  else if ( name.Contains("0l09RelX")  ) monitor_id = QWK_0L09X;
-  else if ( name.Contains("0l10RelX")  ) monitor_id = QWK_0L10X;
-  else if ( name.Contains("0r01RelX")  ) monitor_id = QWK_0R01X;
-  else if ( name.Contains("0r02RelX")  ) monitor_id = QWK_0R02X;
-  else if ( name.Contains("0r05RelX")  ) monitor_id = QWK_0R05X;
-  else if ( name.Contains("0r06RelX")  ) monitor_id = QWK_0R06X;
+  beam_run_id      = db->GetRunID();
+  beam_analysis_id = db->GetAnalysisID();
+  beam_monitor_id  = db->GetMonitorID(name.Data());
 
-  else if ( name.Contains("qpdRelY")   ) monitor_id = QWK_YQPD;
-  else if ( name.Contains("1i02RelY")  ) monitor_id = QWK_1I02Y;
-  else if ( name.Contains("1i04RelY")  ) monitor_id = QWK_1I04Y;
-  else if ( name.Contains("1i06RelY")  ) monitor_id = QWK_1I06Y;
-  else if ( name.Contains("0i02RelY")  ) monitor_id = QWK_0I02Y;
-  else if ( name.Contains("0i02aRelY") ) monitor_id = QWK_0I02AY;
-  else if ( name.Contains("0i05RelY")  ) monitor_id = QWK_0i05Y;
-  else if ( name.Contains("0i07RelY")  ) monitor_id = QWK_0i07Y;
-  else if ( name.Contains("0l01RelY")  ) monitor_id = QWK_0L01Y;
-  else if ( name.Contains("0l02RelY")  ) monitor_id = QWK_0L02Y;
-  else if ( name.Contains("0l03RelY")  ) monitor_id = QWK_0L03Y;
-  else if ( name.Contains("0l04RelY")  ) monitor_id = QWK_0L04Y;
-  else if ( name.Contains("0l05RelY")  ) monitor_id = QWK_0L05Y;
-  else if ( name.Contains("0l06RelY")  ) monitor_id = QWK_0L06Y;
-  else if ( name.Contains("0l07RelY")  ) monitor_id = QWK_0L07Y;
-  else if ( name.Contains("0l08RelY")  ) monitor_id = QWK_0L08Y;
-  else if ( name.Contains("0l09RelY")  ) monitor_id = QWK_0L09Y;
-  else if ( name.Contains("0l10RelY")  ) monitor_id = QWK_0L10Y;
-  else if ( name.Contains("0r01RelY")  ) monitor_id = QWK_0R01Y;
-  else if ( name.Contains("0r02RelY")  ) monitor_id = QWK_0R02Y;
-  else if ( name.Contains("0r05RelY")  ) monitor_id = QWK_0R05Y;
-  else if ( name.Contains("0r06RelY")  ) monitor_id = QWK_0R06Y;
-  else                                   monitor_id = QWK_UNDEFINED;
-      
-  row.monitor_id          = monitor_id;
-  row.analysis_id         = analysis_id;
-  row.measurement_type_id = measurement_type;
+
+  row.analysis_id         = beam_analysis_id;
+  row.measurement_type_id = beam_measurement_type;
+  row.monitor_id          = beam_monitor_id;
   row.value               = avg;
   row.error               = err;
-  printf("%s::RunID %d AnalysisID %d %4s MonitorID %4d %18s , [%18.2e, %12.2e] \n", 
-	 mtype.Data(), run_id, analysis_id, measurement_type, monitor_id, name.Data(),  avg, err);
 
- return row;
+
+  printf("%12s::RunID %d AnalysisID %d %4s MonitorID %4d %18s , [%18.2e, %12.2e] \n", 
+	 mtype.Data(), beam_run_id, beam_analysis_id, beam_measurement_type, beam_monitor_id, name.Data(),  avg, err);
+  
+  return row;
   
 };

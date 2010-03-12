@@ -77,8 +77,8 @@ CREATE TABLE `beam` (
   KEY `fk_beam_analysis_id` (`analysis_id`),
   KEY `fk_beam_monitor_id` (`monitor_id`),
   KEY `fk_beam_measurement_type_id` (`measurement_type_id`),
-  CONSTRAINT `fk_beam_measurement_type_id` FOREIGN KEY (`measurement_type_id`) REFERENCES `measurement_type` (`measurement_type_id`),
   CONSTRAINT `fk_beam_analysis_id` FOREIGN KEY (`analysis_id`) REFERENCES `analysis` (`analysis_id`),
+  CONSTRAINT `fk_beam_measurement_type_id` FOREIGN KEY (`measurement_type_id`) REFERENCES `measurement_type` (`measurement_type_id`),
   CONSTRAINT `fk_beam_monitor_id` FOREIGN KEY (`monitor_id`) REFERENCES `monitor` (`monitor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
@@ -281,8 +281,8 @@ CREATE TABLE `cerenkov` (
   PRIMARY KEY  (`cerenkov_id`),
   KEY `fk_cerenkov_analysis_id` (`analysis_id`),
   KEY `fk_cerenkov_measurement_type_id` (`measurement_type_id`),
-  CONSTRAINT `fk_cerenkov_measurement_type_id` FOREIGN KEY (`measurement_type_id`) REFERENCES `measurement_type` (`measurement_type_id`),
-  CONSTRAINT `fk_cerenkov_analysis_id` FOREIGN KEY (`analysis_id`) REFERENCES `analysis` (`analysis_id`)
+  CONSTRAINT `fk_cerenkov_analysis_id` FOREIGN KEY (`analysis_id`) REFERENCES `analysis` (`analysis_id`),
+  CONSTRAINT `fk_cerenkov_measurement_type_id` FOREIGN KEY (`measurement_type_id`) REFERENCES `measurement_type` (`measurement_type_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 
@@ -366,8 +366,8 @@ CREATE TABLE `compton_data` (
   PRIMARY KEY  (`compton_data_id`),
   KEY `fk_compton_data_compton_run_id` (`compton_run_id`),
   KEY `fk_compton_data_measurment_type_id` (`measurement_type_id`),
-  CONSTRAINT `fk_compton_data_measurment_type_id` FOREIGN KEY (`measurement_type_id`) REFERENCES `measurement_type` (`measurement_type_id`),
-  CONSTRAINT `fk_compton_data_compton_run_id` FOREIGN KEY (`compton_run_id`) REFERENCES `compton_run` (`compton_run_id`)
+  CONSTRAINT `fk_compton_data_compton_run_id` FOREIGN KEY (`compton_run_id`) REFERENCES `compton_run` (`compton_run_id`),
+  CONSTRAINT `fk_compton_data_measurment_type_id` FOREIGN KEY (`measurement_type_id`) REFERENCES `measurement_type` (`measurement_type_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 
@@ -450,8 +450,8 @@ CREATE TABLE `cut_data` (
   PRIMARY KEY  (`cut_data_id`),
   KEY `fk_cut_data_cut_id` (`cut_id`),
   KEY `fk_cut_data_monitor_id` (`monitor_id`),
-  CONSTRAINT `fk_cut_data_monitor_id` FOREIGN KEY (`monitor_id`) REFERENCES `monitor` (`monitor_id`),
-  CONSTRAINT `fk_cut_data_cut_id` FOREIGN KEY (`cut_id`) REFERENCES `cut` (`cut_id`)
+  CONSTRAINT `fk_cut_data_cut_id` FOREIGN KEY (`cut_id`) REFERENCES `cut` (`cut_id`),
+  CONSTRAINT `fk_cut_data_monitor_id` FOREIGN KEY (`monitor_id`) REFERENCES `monitor` (`monitor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 
@@ -532,8 +532,8 @@ CREATE TABLE `high_voltage_reading` (
   PRIMARY KEY  (`high_voltage_reading_id`),
   KEY `fk_high_voltage_reading_high_voltage_id` (`high_voltage_id`),
   KEY `fk_high_voltage_reading_pmt_id` (`pmt_id`),
-  CONSTRAINT `fk_high_voltage_reading_pmt_id` FOREIGN KEY (`pmt_id`) REFERENCES `pmt` (`pmt_id`),
-  CONSTRAINT `fk_high_voltage_reading_high_voltage_id` FOREIGN KEY (`high_voltage_id`) REFERENCES `high_voltage` (`high_voltage_id`)
+  CONSTRAINT `fk_high_voltage_reading_high_voltage_id` FOREIGN KEY (`high_voltage_id`) REFERENCES `high_voltage` (`high_voltage_id`),
+  CONSTRAINT `fk_high_voltage_reading_pmt_id` FOREIGN KEY (`pmt_id`) REFERENCES `pmt` (`pmt_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 
@@ -562,8 +562,8 @@ CREATE TABLE `high_voltage_setting` (
   PRIMARY KEY  (`high_voltage_setting_id`),
   KEY `fk_high_voltage_setting_high_voltage_file_id` (`high_voltage_file_id`),
   KEY `fk_high_voltage_setting_pmt_id` (`pmt_id`),
-  CONSTRAINT `fk_high_voltage_setting_pmt_id` FOREIGN KEY (`pmt_id`) REFERENCES `pmt` (`pmt_id`),
-  CONSTRAINT `fk_high_voltage_setting_high_voltage_file_id` FOREIGN KEY (`high_voltage_file_id`) REFERENCES `high_voltage_file` (`high_voltage_file_id`)
+  CONSTRAINT `fk_high_voltage_setting_high_voltage_file_id` FOREIGN KEY (`high_voltage_file_id`) REFERENCES `high_voltage_file` (`high_voltage_file_id`),
+  CONSTRAINT `fk_high_voltage_setting_pmt_id` FOREIGN KEY (`pmt_id`) REFERENCES `pmt` (`pmt_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 
@@ -613,7 +613,7 @@ CREATE TABLE `monitor` (
   `quantity` text NOT NULL COMMENT 'name of beam property',
   `title` text NOT NULL COMMENT 'axis title',
   PRIMARY KEY  (`monitor_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=224 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=126 DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -622,7 +622,7 @@ SET character_set_client = @saved_cs_client;
 
 LOCK TABLES `monitor` WRITE;
 /*!40000 ALTER TABLE `monitor` DISABLE KEYS */;
-INSERT INTO `monitor` VALUES (1,'bcm1','BCM1'),(2,'bcm2','BCM2'),(3,'bcm3','UNSER'),(4,'bpm1','G0XP'),(5,'bpm10','H00CXM'),(6,'bpm11','H00CYP'),(7,'bpm12','H00CYM'),(8,'bpm13','H00BXP'),(9,'bpm14','H00BXM'),(10,'bpm15','H00BYP'),(11,'bpm16','H00BYM'),(12,'bpm17','H00AXP'),(13,'bpm18','H00AXM'),(14,'bpm19','H00AYP'),(15,'bpm2','G0XM'),(16,'bpm20','H00AYM'),(17,'bpm21','H00XP'),(18,'bpm22','H00XM'),(19,'bpm23','H00YP'),(20,'bpm24','H00YM'),(21,'bpm25','C20AXP'),(22,'bpm26','C20AXM'),(23,'bpm27','C20AYP'),(24,'bpm28','C20AYM'),(25,'bpm29','C20XP'),(26,'bpm3','G0YP'),(27,'bpm30','C20XM'),(28,'bpm31','C20YP'),(29,'bpm32','C20YM'),(30,'bpm33','C17XP'),(31,'bpm34','C17XM'),(32,'bpm35','C17YP'),(33,'bpm36','C17YM'),(34,'bpm37','C16XP'),(35,'bpm38','C16XM'),(36,'bpm39','C16YP'),(37,'bpm4','G0YM'),(38,'bpm40','C16YM'),(39,'bpm41','C12XP'),(40,'bpm42','C12XM'),(41,'bpm43','C12YP'),(42,'bpm44','C12YM'),(43,'bpm45','C08XP'),(44,'bpm46','C08XM'),(45,'bpm47','C08YP'),(46,'bpm48','C08YM'),(47,'bpm49','C07AXP'),(48,'bpm5','G0BXP'),(49,'bpm50','C07AXM'),(50,'bpm51','C07AYP'),(51,'bpm52','C07AYM'),(52,'bpm6','G0BXM'),(53,'bpm7','G0BYP'),(54,'bpm8','G0BYM'),(55,'bpm9','H00CXP'),(56,'cavity1','CAV1X1'),(57,'cavity10','CAV2X1'),(58,'cavity11','CAV2X2'),(59,'cavity12','CAV2X3'),(60,'cavity13','CAV2Y1'),(61,'cavity14','CAV2Y2'),(62,'cavity15','CAV2Y3'),(63,'cavity16','CAV2C1'),(64,'cavity17','CAV2C2'),(65,'cavity18','CAV2C3'),(66,'cavity2','CAV1X2'),(67,'cavity3','CAV1X3'),(68,'cavity4','CAV1Y1'),(69,'cavity5','CAV1Y2'),(70,'cavity6','CAV1Y3'),(71,'cavity7','CAV1C1'),(72,'cavity8','CAV1C2'),(73,'cavity9','CAV1C3'),(74,'clk','4MHz clock'),(75,'halo1','G0HALO1'),(76,'halo2','G0HALO2'),(77,'halo3','G0HALO3'),(78,'halo4','G0HALO4'),(79,'halo5','G0HALO5'),(80,'halo6','G0HALO6'),(81,'halo7','G0HALO7'),(82,'halo8','G0HALO8'),(83,'lumi1','LUMI1'),(84,'lumi2','LUMI2'),(85,'lumi3','LUMI3'),(86,'lumi4','LUMI4'),(87,'lumi5','LUMI5'),(88,'lumi6','LUMI6'),(89,'lumi7','LUMI7'),(90,'lumi8','LUMI8'),(91,'q_bcm1','charge of BCM1'),(92,'q_bcm2','charge of BCM2'),(93,'q_unser','charge of UNSER'),(94,'theta_x','Angle in X'),(95,'x_targ','X'),(96,'x_c07a','x of C07A'),(97,'x_c08','x of C08'),(98,'x_c12','x of C12'),(99,'x_c16','x of C16'),(100,'x_c17','x of C17'),(101,'x_c20','x of C20'),(102,'x_c20a','x of C20A'),(103,'x_g0','x of G0'),(104,'x_g0b','x of G0B'),(105,'x_h00','x of H00'),(106,'x_h00a','x of H00A'),(107,'x_h00b','x of H00B'),(108,'x_h00c','x of H00C'),(109,'theta_y','Angle in Y'),(110,'y_targ','Y'),(111,'y_c07a','y of C07A'),(112,'y_c08','y of C08'),(113,'y_c12','y of C12'),(114,'y_c16','y of C16'),(115,'y_c17','y of C17'),(116,'y_c20','y of C20'),(117,'y_c20a','y of C20A'),(118,'y_g0','y of G0'),(119,'y_g0b','y of G0B'),(120,'y_h00','y of H00'),(121,'y_h00a','y of H00A'),(122,'y_h00b','y of H00B'),(123,'y_h00c','y of H00C'),(124,'q_targ','Charge on target'),(125,'energy','Beam energy'),(126,'bpm53','IPM1I02XP'),(127,'bpm54','IPM1I02XM'),(128,'bpm55','IPM1I02YP'),(129,'bpm56','IPM1I02YM'),(130,'bpm57','IPM1I06XP'),(131,'bpm58','IPM1I06XM'),(132,'bpm59','IPM1I06YP'),(133,'bpm60','IPM1I06YM'),(134,'bpm61','IPM0L02XP'),(135,'bpm62','IPM0L02XM'),(136,'bpm63','IPM0L02YP'),(137,'bpm64','IPM0L02YM'),(138,'bpm65','IPM0L05XP'),(139,'bpm66','IPM0L05XM'),(140,'clock1','v2f_clk1'),(141,'bpm67','IPM0L01XP'),(142,'bpm68','IPM0L01XM'),(143,'bpm69','IPM0L01YP'),(144,'bpm70','IPM0L01YM'),(145,'bpm71','IPM0I02XP'),(146,'bpm72','IPM0I02XM'),(147,'bpm73','IPM0I02YP'),(148,'bpm74','IPM0I02YM'),(149,'bpm75','IPM0I05XP'),(150,'bpm76','IPM0I05XM'),(151,'bpm77','IPM0I05YP'),(152,'bpm78','IPM0I05YM'),(153,'bpm79','IPM0L05YP'),(154,'bpm80','IPM0L05YM'),(155,'clock2','v2f_clk3'),(156,'bpm81','IPM0I02AXP'),(157,'bpm82','IPM0I02AXM'),(158,'bpm83','IPM0I02AYP'),(159,'bpm84','IPM0I02AYM'),(160,'bpm85','IPM1I04XP'),(161,'bpm86','IPM1I04XM'),(162,'bpm87','IPM1I04YP'),(163,'bpm88','IPM1I04YM'),(164,'bpm89','IPM0R05XP'),(165,'bpm90','IPM0R05XM'),(166,'bpm91','IPM0R05YP'),(167,'bpm92','IPM0R05YM'),(168,'bpm93','IPM0L03XP'),(169,'bpm94','IPM0L03XM'),(170,'bpm95','IPM0L03YP'),(171,'bpm96','IPM0L03YM'),(172,'bpm97','IPM0L04XP'),(173,'bpm98','IPM0L04XM'),(174,'bpm99','IPM0L04YP'),(175,'bpm100','IPM0L04YM'),(176,'bpm101','IPM0L06XP'),(177,'bpm102','IPM0L06XM'),(178,'bpm103','IPM0L06YP'),(179,'bpm104','IPM0L06YM'),(180,'bpm105','IPM0I07XP'),(181,'bpm106','IPM0I07XM'),(182,'bpm107','IPM0I07YP'),(183,'bpm108','IPM0I07YM'),(184,'battery1','G0 Battery 1'),(185,'bcm4','BCM0L02'),(186,'q_bcm0l02','charge of BCM0L02'),(187,'clock3','CLOCK'),(188,'x_ipm1i02','x of IPM1I02'),(189,'x_ipm1i04','x of IPM1I04'),(190,'x_ipm1i06','x of IPM1I06'),(191,'x_ipm0i02','x of IPM0I02'),(192,'x_ipm0i02a','x of IPM0I02A'),(193,'x_ipm0i05','x of IPM0I05'),(194,'x_ipm0i07','x of IPM0I07'),(195,'x_ipm0l01','x of IPM0L01'),(196,'x_ipm0l02','x of IPM0L02'),(197,'x_ipm0l03','x of IPM0L03'),(198,'x_ipm0l04','x of IPM0L04'),(199,'x_ipm0l05','x of IPM0L05'),(200,'x_ipm0l06','x of IPM0L06'),(201,'x_ipm0r05','x of IPM0R05'),(202,'y_ipm1i02','y of IPM1I02'),(203,'y_ipm1i04','y of IPM1I04'),(204,'y_ipm1i06','y of IPM1I06'),(205,'y_ipm0i02','y of IPM0I02'),(206,'y_ipm0i02a','y of IPM0I02A'),(207,'y_ipm0i05','y of IPM0I05'),(208,'y_ipm0i07','y of IPM0I07'),(209,'y_ipm0l01','y of IPM0L01'),(210,'y_ipm0l02','y of IPM0L02'),(211,'y_ipm0l03','y of IPM0L03'),(212,'y_ipm0l04','y of IPM0L04'),(213,'y_ipm0l05','y of IPM0L05'),(214,'y_ipm0l06','y of IPM0L06'),(215,'y_ipm0r05','y of IPM0R05'),(216,'qpd1','QPD_XP'),(217,'qpd2','QPD_XM'),(218,'qpd3','QPD_YP'),(219,'qpd3','QPD_YM'),(220,'x_qpd','x of QPD'),(221,'y_qpd','y of QPD'),(222,'bcm5','HALLA_BCM'),(223,'q_halla_bcm','charge of HALLA_BCM');
+INSERT INTO `monitor` VALUES (1,'qwk_qpdRelX','BPM QWK_QPD Relative X'),(2,'qwk_qpdRelY','BPM QWK_QPD Relative Y'),(3,'qwk_qpdX','BPM QWK_QPD Absolute X'),(4,'qwk_qpdY','BPM QWK_QPD Absolute Y'),(5,'qwk_qpdZ','BPM QWK_QPD Wire Sum'),(6,'empty1','BCM empty1'),(7,'empty2','BCM empty2'),(8,'qwk_batext1','BCM QWK_Batext1'),(9,'qwk_batext2','BCM QWK_Batext2'),(10,'qwk_1i02RelX','BPM QWK_1I02 Relative X'),(11,'qwk_1i02RelY','BPM QWK_1I02 Relative Y'),(12,'qwk_1i02X','BPM QWK_1I02 Absolute X'),(13,'qwk_1i02Y','BPM QWK_1I02 Absolute Y'),(14,'qwk_1i02Z','BPM QWK_1I02 Wire Sum'),(15,'qwk_1i04RelX','BPM QWK_1I04 Relative X'),(16,'qwk_1i04RelY','BPM QWK_1I04 Relative Y'),(17,'qwk_1i04X','BPM QWK_1I04 Absolute X'),(18,'qwk_1i04Y','BPM QWK_1I04 Absolute Y'),(19,'qwk_1i04Z','BPM QWK_1I04 Wire Sum'),(20,'qwk_1i06RelX','BPM QWK_1I06 Relative X'),(21,'qwk_1i06RelY','BPM QWK_1I06 Relative Y'),(22,'qwk_1i06X','BPM QWK_1I06 Absolute X'),(23,'qwk_1i06Y','BPM QWK_1I06 Absolute Y'),(24,'qwk_1i06Z','BPM QWK_1I06 Wire Sum'),(25,'qwk_0i02RelX','BPM QWK_0I02 Relative X'),(26,'qwk_0i02RelY','BPM QWK_0I02 Relative Y'),(27,'qwk_0i02X','BPM QWK_0I02 Absolute X'),(28,'qwk_0i02Y','BPM QWK_0I02 Absolute Y'),(29,'qwk_0i02Z','BPM QWK_0I02 Wire Sum'),(30,'qwk_0i02aRelX','BPM QWK_0I02A Relative X'),(31,'qwk_0i02aRelY','BPM QWK_0I02A Relative Y'),(32,'qwk_0i02aX','BPM QWK_0I02A Absolute X'),(33,'qwk_0i02aY','BPM QWK_0I02A Absolute Y'),(34,'qwk_0i02aZ','BPM QWK_0I02A Wire Sum'),(35,'qwk_0i05RelX','BPM QWK_0I05 Relative X'),(36,'qwk_0i05RelY','BPM QWK_0I05 Relative Y'),(37,'qwk_0i05X','BPM QWK_0I05 Absolute X'),(38,'qwk_0i05Y','BPM QWK_0I05 Absolute Y'),(39,'qwk_0i05Z','BPM QWK_0I05 Wire Sum'),(40,'qwk_0i07RelX','BPM QWK_0I07 Relative X'),(41,'qwk_0i07RelY','BPM QWK_0I07 Relative Y'),(42,'qwk_0i07X','BPM QWK_0I07 Absolute X'),(43,'qwk_0i07Y','BPM QWK_0I07 Absolute Y'),(44,'qwk_0i07Z','BPM QWK_0I07 Wire Sum'),(45,'qwk_0l01RelX','BPM QWK_0L01 Relative X'),(46,'qwk_0l01RelY','BPM QWK_0L01 Relative Y'),(47,'qwk_0l01X','BPM QWK_0L01 Absolute X'),(48,'qwk_0l01Y','BPM QWK_0L01 Absolute Y'),(49,'qwk_0l01Z','BPM QWK_0L01 Wire Sum'),(50,'qwk_0l02RelX','BPM QWK_0L02 Relative X'),(51,'qwk_0l02RelY','BPM QWK_0L02 Relative Y'),(52,'qwk_0l02X','BPM QWK_0L02 Absolute X'),(53,'qwk_0l02Y','BPM QWK_0L02 Absolute Y'),(54,'qwk_0l02Z','BPM QWK_0L02 Wire Sum'),(55,'qwk_0l03RelX','BPM QWK_0L03 Relative X'),(56,'qwk_0l03RelY','BPM QWK_0L03 Relative Y'),(57,'qwk_0l03X','BPM QWK_0L03 Absolute X'),(58,'qwk_0l03Y','BPM QWK_0L03 Absolute Y'),(59,'qwk_0l03Z','BPM QWK_0L03 Wire Sum'),(60,'qwk_0l04RelX','BPM QWK_0L04 Relative X'),(61,'qwk_0l04RelY','BPM QWK_0L04 Relative Y'),(62,'qwk_0l04X','BPM QWK_0L04 Absolute X'),(63,'qwk_0l04Y','BPM QWK_0L04 Absolute Y'),(64,'qwk_0l04Z','BPM QWK_0L04 Wire Sum'),(65,'qwk_0l05RelX','BPM QWK_0L05 Relative X'),(66,'qwk_0l05RelY','BPM QWK_0L05 Relative Y'),(67,'qwk_0l05X','BPM QWK_0L05 Absolute X'),(68,'qwk_0l05Y','BPM QWK_0L05 Absolute Y'),(69,'qwk_0l05Z','BPM QWK_0L05 Wire Sum'),(70,'qwk_0l06RelX','BPM QWK_0L06 Relative X'),(71,'qwk_0l06RelY','BPM QWK_0L06 Relative Y'),(72,'qwk_0l06X','BPM QWK_0L06 Absolute X'),(73,'qwk_0l06Y','BPM QWK_0L06 Absolute Y'),(74,'qwk_0l06Z','BPM QWK_0L06 Wire Sum'),(75,'qwk_0l07RelX','BPM QWK_0L07 Relative X'),(76,'qwk_0l07RelY','BPM QWK_0L07 Relative Y'),(77,'qwk_0l07X','BPM QWK_0L07 Absolute X'),(78,'qwk_0l07Y','BPM QWK_0L07 Absolute Y'),(79,'qwk_0l07Z','BPM QWK_0L07 Wire Sum'),(80,'qwk_0l08RelX','BPM QWK_0L08 Relative X'),(81,'qwk_0l08RelY','BPM QWK_0L08 Relative Y'),(82,'qwk_0l08X','BPM QWK_0L08 Absolute X'),(83,'qwk_0l08Y','BPM QWK_0L08 Absolute Y'),(84,'qwk_0l08Z','BPM QWK_0L08 Wire Sum'),(85,'qwk_0l09RelX','BPM QWK_0L09 Relative X'),(86,'qwk_0l09RelY','BPM QWK_0L09 Relative Y'),(87,'qwk_0l09X','BPM QWK_0L09 Absolute X'),(88,'qwk_0l09Y','BPM QWK_0L09 Absolute Y'),(89,'qwk_0l09Z','BPM QWK_0L09 Wire Sum'),(90,'qwk_0l10RelX','BPM QWK_0L10 Relative X'),(91,'qwk_0l10RelY','BPM QWK_0L10 Relative Y'),(92,'qwk_0l10X','BPM QWK_0L10 Absolute X'),(93,'qwk_0l10Y','BPM QWK_0L10 Absolute Y'),(94,'qwk_0l10Z','BPM QWK_0L10 Wire Sum'),(95,'qwk_0r01RelX','BPM QWK_0R01 Relative X'),(96,'qwk_0r01RelY','BPM QWK_0R01 Relative Y'),(97,'qwk_0r01X','BPM QWK_0R01 Absolute X'),(98,'qwk_0r01Y','BPM QWK_0R01 Absolute Y'),(99,'qwk_0r01Z','BPM QWK_0R01 Wire Sum'),(100,'qwk_0r02RelX','BPM QWK_0R02 Relative X'),(101,'qwk_0r02RelY','BPM QWK_0R02 Relative Y'),(102,'qwk_0r02X','BPM QWK_0R02 Absolute X'),(103,'qwk_0r02Y','BPM QWK_0R02 Absolute Y'),(104,'qwk_0r02Z','BPM QWK_0R02 Wire Sum'),(105,'qwk_0r05RelX','BPM QWK_0R05 Relative X'),(106,'qwk_0r05RelY','BPM QWK_0R05 Relative Y'),(107,'qwk_0r05X','BPM QWK_0R05 Absolute X'),(108,'qwk_0r05Y','BPM QWK_0R05 Absolute Y'),(109,'qwk_0r05Z','BPM QWK_0R05 Wire Sum'),(110,'qwk_0r06RelX','BPM QWK_0R06 Relative X'),(111,'qwk_0r06RelY','BPM QWK_0R06 Relative Y'),(112,'qwk_0r06X','BPM QWK_0R06 Absolute X'),(113,'qwk_0r06Y','BPM QWK_0R06 Absolute Y'),(114,'qwk_0r06Z','BPM QWK_0R06 Wire Sum'),(115,'qwk_bcm0l02','BCM QWK_BCM0L02'),(116,'qwk_batery6','BCM QWK_Batery6'),(117,'qwk_batery7','BCM QWK_Batery7'),(118,'phasemonitor','BCM PhaseMonitor'),(119,'qwk_target_charge','Combined BCM qwk_target_charge'),(120,'qwk_average_charge','Combined BCM qwk_average_charge'),(121,'qwk_target_positionRelX','Combined BPM qwk_target_position Relative X'),(122,'qwk_target_positionRelY','Combined BPM qwk_target_position Relative Y'),(123,'qwk_target_positionX','Combined BPM qwk_target_position Absolute X'),(124,'qwk_target_positionY','Combined BPM qwk_target_position Absolute Y'),(125,'qwk_target_positionZ','Combined BPM qwk_target_position Wire Sum');
 /*!40000 ALTER TABLE `monitor` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -669,8 +669,8 @@ CREATE TABLE `monitor_calibration_data` (
   PRIMARY KEY  (`monitor_calibration_data_id`),
   KEY `fk_mcd_monitor_calibration_id` (`monitor_calibration_id`),
   KEY `fk_mcd_monitor_id` (`monitor_id`),
-  CONSTRAINT `fk_mcd_monitor_id` FOREIGN KEY (`monitor_id`) REFERENCES `monitor` (`monitor_id`),
-  CONSTRAINT `fk_mcd_monitor_calibration_id` FOREIGN KEY (`monitor_calibration_id`) REFERENCES `monitor_calibration` (`monitor_calibration_id`)
+  CONSTRAINT `fk_mcd_monitor_calibration_id` FOREIGN KEY (`monitor_calibration_id`) REFERENCES `monitor_calibration` (`monitor_calibration_id`),
+  CONSTRAINT `fk_mcd_monitor_id` FOREIGN KEY (`monitor_id`) REFERENCES `monitor` (`monitor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 
@@ -795,8 +795,8 @@ CREATE TABLE `polarized_source_measurement` (
   PRIMARY KEY  (`polarized_source_measurement_id`),
   KEY `fk_polarized_source_measurement_polarized_source_id` (`polarized_source_id`),
   KEY `fk_polarized_source_measurement_polarized_source_monitor_id` (`polarized_source_monitor_id`),
-  CONSTRAINT `fk_polarized_source_measurement_polarized_source_monitor_id` FOREIGN KEY (`polarized_source_monitor_id`) REFERENCES `polarized_source_monitor` (`polarized_source_monitor_id`),
-  CONSTRAINT `fk_polarized_source_measurement_polarized_source_id` FOREIGN KEY (`polarized_source_id`) REFERENCES `polarized_source` (`polarized_source_id`)
+  CONSTRAINT `fk_polarized_source_measurement_polarized_source_id` FOREIGN KEY (`polarized_source_id`) REFERENCES `polarized_source` (`polarized_source_id`),
+  CONSTRAINT `fk_polarized_source_measurement_polarized_source_monitor_id` FOREIGN KEY (`polarized_source_monitor_id`) REFERENCES `polarized_source_monitor` (`polarized_source_monitor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 
@@ -878,8 +878,8 @@ CREATE TABLE `qtor_measurement` (
   PRIMARY KEY  (`qtor_measurement_id`),
   KEY `fk_qtor_measurement_qtor_id` (`qtor_id`),
   KEY `fk_qtor_measurement_qtor_monitor_id` (`qtor_monitor_id`),
-  CONSTRAINT `fk_qtor_measurement_qtor_monitor_id` FOREIGN KEY (`qtor_monitor_id`) REFERENCES `qtor_monitor` (`qtor_monitor_id`),
-  CONSTRAINT `fk_qtor_measurement_qtor_id` FOREIGN KEY (`qtor_id`) REFERENCES `qtor` (`qtor_id`)
+  CONSTRAINT `fk_qtor_measurement_qtor_id` FOREIGN KEY (`qtor_id`) REFERENCES `qtor` (`qtor_id`),
+  CONSTRAINT `fk_qtor_measurement_qtor_monitor_id` FOREIGN KEY (`qtor_monitor_id`) REFERENCES `qtor_monitor` (`qtor_monitor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 
@@ -1032,8 +1032,8 @@ CREATE TABLE `slope` (
   PRIMARY KEY  (`slope_id`),
   KEY `fk_slope_analysis_id` (`analysis_id`),
   KEY `fk_slope_slope_type_id` (`slope_type_id`),
-  CONSTRAINT `fk_slope_slope_type_id` FOREIGN KEY (`slope_type_id`) REFERENCES `slope_type` (`slope_type_id`),
-  CONSTRAINT `fk_slope_analysis_id` FOREIGN KEY (`analysis_id`) REFERENCES `analysis` (`analysis_id`)
+  CONSTRAINT `fk_slope_analysis_id` FOREIGN KEY (`analysis_id`) REFERENCES `analysis` (`analysis_id`),
+  CONSTRAINT `fk_slope_slope_type_id` FOREIGN KEY (`slope_type_id`) REFERENCES `slope_type` (`slope_type_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 
@@ -1300,8 +1300,8 @@ CREATE TABLE `target_measurement` (
   PRIMARY KEY  (`target_measurements_id`),
   KEY `fk_target_measurement_target_id` (`target_id`),
   KEY `fk_target_measurement_target_monitor_id` (`target_monitor_id`),
-  CONSTRAINT `fk_target_measurement_target_monitor_id` FOREIGN KEY (`target_monitor_id`) REFERENCES `target_monitor` (`target_monitor_id`),
-  CONSTRAINT `fk_target_measurement_target_id` FOREIGN KEY (`target_id`) REFERENCES `target` (`target_id`)
+  CONSTRAINT `fk_target_measurement_target_id` FOREIGN KEY (`target_id`) REFERENCES `target` (`target_id`),
+  CONSTRAINT `fk_target_measurement_target_monitor_id` FOREIGN KEY (`target_monitor_id`) REFERENCES `target_monitor` (`target_monitor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 SET character_set_client = @saved_cs_client;
 
@@ -1350,4 +1350,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2010-03-05 21:10:08
+-- Dump completed on 2010-03-11 20:24:57

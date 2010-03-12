@@ -264,11 +264,9 @@ main(Int_t argc, Char_t* argv[])
 
       qw_test_DB  = new QwDatabase();
       QwMessage << "GetMonitorID(qwk_batext2) = " << qw_test_DB->GetMonitorID("qwk_batext2") << QwLog::endl;
-  QwMessage << "GetMonitorID(phasemonitor) = " << qw_test_DB->GetMonitorID("phasemonitor") << QwLog::endl;
-  QwMessage << "GetMonitorID(qwk_junk) = " << qw_test_DB->GetMonitorID("qwk_junk") << QwLog::endl;
+      QwMessage << "GetMonitorID(phasemonitor) = " << qw_test_DB->GetMonitorID("phasemonitor") << QwLog::endl;
+      QwMessage << "GetMonitorID(qwk_junk) = " << qw_test_DB->GetMonitorID("qwk_junk") << QwLog::endl;
 
-      qw_test_DB -> GetStaticTypes();
- //      qw_test_DB -> LookupMonitorID("0i02a");
       // GetRunID() and GetAnalysisID have their own Connect() and Disconnect() functions.
       run_id      = qw_test_DB->GetRunID(QwEvt);
       analysis_id = qw_test_DB->GetAnalysisID(QwEvt);

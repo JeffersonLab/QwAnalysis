@@ -34,7 +34,6 @@ QwDatabase::QwDatabase() : Connection()
   fRunNumber         = 0;
   fRunID             = 0;
   fAnalysisID        = 0;
-  fReadyStaticTypes  = false;
 
 }
 
@@ -468,84 +467,3 @@ void QwDatabase::StoreMonitorIDs()
   }
 
 }
-
-// 
-Bool_t QwDatabase::GetStaticTypes()
-{
-  
-  if(!fReadyStaticTypes)
-    {
-      try
-	{
-	  this->Connect();
-	  
-	  mysqlpp::Query query = this->Query("select monitor_id, quantity from monitor");
-	  vector<monitor> monitor_table;
-	  
-	  query.storein(monitor_table);
-	  	  
-	  vector<monitor>::iterator it;
-	  for(it=monitor_table.begin(); it != monitor_table.end(); ++it)
-	    {
-	      // 	      std::cout << "monitor id   " << it->monitor_id 
-	      // 			<< "   quantity  " << it->quantity
-	      // 			<< std::endl;
-
-	      fMonitorTable.push_back(it->quantity);
-	    }
-	  
-// 	  mysqlpp::Query query2 = this -> Query("select measurement_type_id, units from measurement_type");
-// 	  vector<measurement_type> measurement_type_table;
-// 	  query2.storein( measurement_type_table);
-
-// 	  vector< measurement_type>::iterator itm;
-// 	  for(itm=measurement_type_table.begin(); itm != measurement_type_table.end(); ++itm)
-// 	    {
-// // 	      std::cout << "measurement_type id   " << itm-> measurement_type_id
-// // 			<< "   unit  " << itm->units
-// // 			<< std::endl;
-
-// 	      fMonitorTable.push_back(itm->measurement_type_id);
-// 	    }
-	  
-
-	  this->Disconnect();
-
-	  fReadyStaticTypes = true;
-	  
-	}
-      catch (const mysqlpp::Exception& er) 
-	{
-	  QwError << er.what() << QwLog::endl;
-	  fReadyStaticTypes = false;
-	}
-    }
-  
-  return fReadyStaticTypes;
-}
-
-// /*!
-//  * This function returns the monitor id for QwDatabase
-//  */
- const Int_t QwDatabase::LookupMonitorID(TString element_name)
- {
-
-   UInt_t size = fMonitorTable.size();
-
-   for (UInt_t i=0; i< size; i++ )
-     {
-
-       if ( fMonitorTable[i].Contains(element_name) ) 
-	 {
-	   printf("If we have the same name  in QwBeamLine and QwDatabase,\n");
-	   printf("we can simply use QwDatabase::LookupMonitorID() function.\n");
-	   printf("ID %d QwBeamLine Name %s Database Name %s \n\n", i, element_name.Data(), ((TString) fMonitorTable[i]).Data());
-	   
-	 };
-
-     }
-
-   // return must be fixed later when the monitor table is done.
-   return 0;
-  }
-
