@@ -1,15 +1,14 @@
 #ifndef QWSSQLS_HH
 #define QWSSQLS_HH
 
-#include "mysql++.h"
-#include "ssqls.h"
-
 // Need to include define EXPAND_MY_SSQLS_STATICS in owner module
 //
-#if !defined(EXPAND_MY_SSQLS_STATICS)
-#   define MYSQLPP_SSQLS_NO_STATICS
+#ifndef EXPAND_MY_SSQLS_STATICS
+#define MYSQLPP_SSQLS_NO_STATICS
 #endif
 
+#include <mysql++.h>
+#include <ssqls.h>
 
 namespace QwParityDB{
 

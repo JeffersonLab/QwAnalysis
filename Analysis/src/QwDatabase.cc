@@ -6,6 +6,7 @@
  * \date   2010-01-07
  */
 
+#define EXPAND_MY_SSQLS_STATICS
 #include "QwDatabase.h"
 
 // System headers
@@ -15,6 +16,8 @@
 using namespace QwParityDB;
 // Is there any method put QwSSQLS.h in QwDatabase.h? (jhlee)
 
+// Definition of static class members in QwDatabase
+std::map<string, unsigned int> QwDatabase::fMonitorIDs;
 
 /*! The simple constructor initializes member fields.  This class is not
  * used to establish the database connection.  It sets up a
@@ -425,7 +428,46 @@ void QwDatabase::PrintServerInfo()
   return;
 }
 
+/*
+ * This function retrieves the monitor table key 'monitor_id' for a given beam monitor.
+ */
+const UInt_t QwDatabase::GetMonitorID(const string& monitor)
+{
+  if (fMonitorIDs.size() == 0) {
+    StoreMonitorIDs();
+  }
 
+  UInt_t monitor_id = fMonitorIDs[monitor];
+
+  if (monitor_id==0) {
+    QwError << "QwDatabase::GetMonitorID() => Unable to determine valid ID for beam monitor " << monitor << QwLog::endl;
+  }
+
+  return monitor_id;
+
+}
+
+void QwDatabase::StoreMonitorIDs()
+{
+
+  try {
+    Connect();
+
+    mysqlpp::Query query=this->Query();
+    query.for_each(monitor(), StoreMonitorID());
+
+//    QwDebug<< "QwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << QwLog::endl;
+
+    Disconnect();
+
+  }
+  catch (const mysqlpp::Exception& er) {
+    QwError << er.what() << QwLog::endl;
+    Disconnect();
+    exit(1);
+  }
+
+}
 
 // 
 Bool_t QwDatabase::GetStaticTypes()

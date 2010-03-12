@@ -34,10 +34,10 @@ main(Int_t argc, Char_t* argv[])
   cmdline.Parse(argc, argv);
 
   // Setup screen and file logging
-//   gQwLog.InitLogFile("qwanalysis_mysql.log");
-//   gQwLog.SetFileThreshold(QwLog::kDebug);
-//   gQwLog.SetScreenThreshold(QwLog::kDebug);
-
+  gQwLog.InitLogFile("qwanalysis_mysql.log");
+  gQwLog.SetFileThreshold(QwLog::kDebug);
+  gQwLog.SetScreenThreshold(QwLog::kMessage);
+  
   // Set up command line and file options processing
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.SetConfigFile("Parity/prminput/qweak_mysql.conf");
@@ -51,7 +51,6 @@ main(Int_t argc, Char_t* argv[])
   //  QwMessage << "Database server version is " << gQwDatabase.GetServerVersion() << QwLog::endl;
 
   //  gQwDatabase.PrintServerInfo();
-
 
   QwEventBuffer QwEvt;
 
@@ -264,6 +263,10 @@ main(Int_t argc, Char_t* argv[])
       
 
       qw_test_DB  = new QwDatabase();
+      QwMessage << "GetMonitorID(qwk_batext2) = " << qw_test_DB->GetMonitorID("qwk_batext2") << QwLog::endl;
+  QwMessage << "GetMonitorID(phasemonitor) = " << qw_test_DB->GetMonitorID("phasemonitor") << QwLog::endl;
+  QwMessage << "GetMonitorID(qwk_junk) = " << qw_test_DB->GetMonitorID("qwk_junk") << QwLog::endl;
+
       qw_test_DB -> GetStaticTypes();
  //      qw_test_DB -> LookupMonitorID("0i02a");
       // GetRunID() and GetAnalysisID have their own Connect() and Disconnect() functions.

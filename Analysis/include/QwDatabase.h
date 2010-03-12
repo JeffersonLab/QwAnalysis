@@ -12,6 +12,7 @@
 // System headers
 //#include <iostream>
 //#include <iomanip>
+#include <map>
 
 
 // Third Party Headers
@@ -26,14 +27,7 @@
 #include "QwColor.h"
 #include "QwOptions.h"
 #include "QwEventBuffer.h"
-
-#include <vector>
-using std::vector;
-#include <string>
-using std::string;
-#include <map>
-using std::map;
-#include <algorithm>
+#include "QwSSQLS.h"
 
 // Should the following defines be placed in
 // other header file?
@@ -121,6 +115,7 @@ class QwDatabase: private mysqlpp::Connection {
 
     mysqlpp::Query Query(const char *qstr=0     ) {return query(qstr);} //<! Generate a query to the database.
     mysqlpp::Query Query(const std::string &qstr) {return query(qstr);} //<! Generate a query to the database.
+    const UInt_t GetMonitorID(const string& monitor); //<! Get monitor_id for beam monitor
 
     const UInt_t GetRunNumber() {return fRunNumber;}   //<! Run number getter
     const UInt_t GetRunID()     {return fRunID;}       //<! Run ID getter
@@ -141,6 +136,7 @@ class QwDatabase: private mysqlpp::Connection {
     Bool_t       ValidateConnection(); //!< Checks that given connection parameters result in a valid connection
     const UInt_t SetRunID(QwEventBuffer& qwevt); //<! Set fRunID using data from CODA event buffer
     const UInt_t SetAnalysisID(QwEventBuffer& qwevt); //<! Set fAnalysisID using data from CODA event buffer
+    void StoreMonitorIDs(); //<! Retrieve monitor IDs from database and populate fMonitorIDs
 
     vector <TString> fMonitorTable;
 /*     vector <TString> fMeasurementTypeTable; */
@@ -158,6 +154,18 @@ class QwDatabase: private mysqlpp::Connection {
 
     Bool_t fReadyStaticTypes; 
 
+    static std::map<string, unsigned int> fMonitorIDs;
+
+    friend class StoreMonitorID;
 };
+
+class StoreMonitorID {
+  public:
+    void operator() (QwParityDB::monitor elem) {
+      QwDebug << "StoreMonitorID:  monitor_id = " << elem.monitor_id << " quantity = " << elem.quantity << QwLog::endl;
+      QwDatabase::fMonitorIDs.insert(std::make_pair(elem.quantity, elem.monitor_id));
+    }
+};
+
 
 #endif
