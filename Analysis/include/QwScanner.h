@@ -28,13 +28,8 @@
 #include "QwSIS3801_Channel.h"
 #include "QwPMT_Channel.h"
 
-
-class QwVQWK_Channel;
-class MQwSIS3801_Channel;
-
 class QwScanner: public VQwSubsystemTracking,
-                 public VQwSubsystemParity,
-                 public MQwV775TDC
+                 public VQwSubsystemParity
 {
 
  public:
@@ -126,6 +121,13 @@ class QwScanner: public VQwSubsystemTracking,
 
   // Tells this object that it will decode data from the current bank
   Int_t RegisterSlotNumber(const UInt_t slot_id);
+  void DecodeTDCWord(UInt_t &word);
+  UInt_t GetTDCSlotNumber(){return fV775SlotNumber;};
+  Bool_t IsValidDataword(){return fV775ValidFlag;};
+  UInt_t GetTDCChannelNumber(){return fV775ChannelNumber;};
+  UInt_t GetTDCData(){return fV775Dataword;};
+
+
   const QwScanner::EModuleType RegisterModuleType(TString moduletype);
   Int_t GetModuleIndex(size_t bank_index, size_t slot_num) const;
   Bool_t IsSlotRegistered(Int_t bank_index, Int_t slot_num) const {
@@ -144,7 +146,7 @@ class QwScanner: public VQwSubsystemTracking,
   Int_t fNumberOfModules;
   std::vector< std::vector<Int_t> > fModuleIndex;  //  Module index, indexed by bank_index and slot_number
   std::vector< enum EModuleType > fModuleTypes;
-  std::vector< std::vector< std::pair<Int_t, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel; gives the plane and wire assignment.
+  std::vector< std::vector< std::pair<Int_t, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel
 
   Int_t GetEventcutErrorFlag() { return 0; };//return the error flag to the main routine
 
@@ -154,6 +156,17 @@ class QwScanner: public VQwSubsystemTracking,
 
  private:
 
+  static const UInt_t kV775Mask_SlotNumber;
+  static const UInt_t kV775Mask_WordType;
+  static const UInt_t kV775Mask_ChannelNumber;
+  static const UInt_t kV775Mask_Dataword;
+  static const UInt_t kV775WordType_Datum;
+
+  Bool_t fV775ValidFlag;
+  UInt_t fV775SlotNumber;
+  UInt_t fV775ChannelNumber;
+  UInt_t fV775Dataword;
+
   Double_t get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalidity);
 
   Int_t myTimer;
@@ -161,9 +174,7 @@ class QwScanner: public VQwSubsystemTracking,
   Int_t fTreeArrayNumEntries;
   Int_t fTreeArrayIndex;
 
-  std::vector <Double_t> fScannerTrigVector;
-  std::vector <Double_t> fScannerSumVector;
-  std::vector <Double_t> fScannerScaVector;
+  std::vector <Double_t> fScannerVector;
 
   Double_t fCurrentPotentialX;
   Double_t fCurrentPotentialY;

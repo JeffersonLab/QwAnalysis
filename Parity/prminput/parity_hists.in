@@ -410,7 +410,7 @@ scanner_qdc_power			TH1F	4096	0.5		4096.5			qdc_pow		Events
 scanner_qdc_pos_x			TH1F	4096	0.5		4096.5			qdc_posx	Events
 scanner_qdc_pos_y			TH1F	4096	0.5		4096.5			qdc_posy	Events
 
-scanner_SPARE.				TH1F	10001	-5.0e9		5.0e9			spare0		Events
+scanner_spare.				TH1F	10001	-5.0e9		5.0e9			spare0		Events
 scanner_empty				TH1F	10001	-5.0e9		5.0e9			spare4		Events
 
 scanner_front_sca			TH1F	1500	0.5		1500.5			rate[kps]	Events
