@@ -116,6 +116,7 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile) {
 void  QwDriftChamber::CalculateDriftDistance() { //Currently This routine is not in use the drift distance calculation is done at ProcessEvent() on each sub-class
     for (std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
 
+        if (hit1->GetTime()<0) continue;
         hit1->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));
 
     }
@@ -439,7 +440,7 @@ Int_t QwDriftChamber::LinkReferenceChannel ( const UInt_t chan, const UInt_t pla
 
 Int_t QwDriftChamber::LoadTimeWireOffset(TString t0_map) {
     //std::cout << "beginning to load t0 file... " << std::endl;
-
+//
     QwParameterFile mapstr ( t0_map.Data() );
 
     TString varname,varvalue;
@@ -466,15 +467,38 @@ Int_t QwDriftChamber::LoadTimeWireOffset(TString t0_map) {
             continue;
         }
 
-        
+
         wire = ( atoi ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
         t0 = ( atoi ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-	
-        if (++wire > fTimeWireOffsets.at(package-1).at(plane-1).size())
-        fTimeWireOffsets.at(package-1).at(plane-1).resize(wire);
+
+        if (wire > fTimeWireOffsets.at(package-1).at(plane-1).size())
+            fTimeWireOffsets.at(package-1).at(plane-1).resize(wire);
         fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1)=t0;
 
     }
     //
     return OK;
+}
+
+
+void QwDriftChamber::SubtractWireTimeOffset() {
+    Int_t package=0,plane=0,wire=0;
+    Double_t t0=0;
+    for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ ) {
+        package=iter->GetPackage();
+        plane=iter->GetPlane();
+        wire=iter->GetElement();
+        t0=fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1);
+        if (t0<=0&&t0>1500) {
+            if (plane==1) t0=1424.55;
+            else if (plane==2) t0=1439.24;
+        }
+        iter->SetTime(iter->GetTime()-t0);
+    }
+}
+
+
+void QwDriftChamber::ApplyTimeCalibration() {
+    for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ )
+        iter->SetTime(0.1132*iter->GetTime());
 }

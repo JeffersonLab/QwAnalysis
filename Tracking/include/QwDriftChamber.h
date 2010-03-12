@@ -96,14 +96,6 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC
     virtual Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)=0;
 
 
-    // Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector,Double_t angle=45){
-
-    //  Double_t d=DoCalculate(drifttime,detector,angle);
-    //    return d;
-    // }
-
-
-
     void GetTDCHitList(QwHitContainer & grandHitContainer)
     {
       grandHitContainer.Append(fTDCHits);
@@ -221,6 +213,10 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC
     //Double_t fTimeWireOffsets[kNumPackages][2][279]; //Indexed by pckg and plane number and wire number(only used on R3 right now)
 
     Int_t LoadTimeWireOffset(TString t0_map);
+
+    void SubtractWireTimeOffset();
+
+    void ApplyTimeCalibration();
 
   };
 
