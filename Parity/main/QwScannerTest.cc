@@ -97,7 +97,7 @@ int main(Int_t argc,Char_t* argv[])
   if (kDebug) std::cout<<"Instantiate the scanner subsystem:"<<std::endl;
   QwDetectors.push_back (new QwScanner( "FPS" ));
   QwDetectors.GetSubsystem("FPS")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput/scanner_channel.map" );
-  QwDetectors.GetSubsystem("FPS")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput/scanner_pedestal.map");
+  QwDetectors.GetSubsystem("FPS")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput/scanner_parameter.map");
 
 
   ///

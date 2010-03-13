@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
   if (kScanner){
   detectors.push_back ( new QwScanner( "FPS" ) );
   detectors.GetSubsystem("FPS")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput/scanner_channel.map" );
-  detectors.GetSubsystem("FPS")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput/scanner_pedestal.map");
+  detectors.GetSubsystem("FPS")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput/scanner_parameter.map");
   }
 
   QwHelicityPattern* QwHelPat = new QwHelicityPattern(detectors);

@@ -109,7 +109,7 @@ int main(Int_t argc,Char_t* argv[]) {
     /// Instantiate scanner subsystem
     detectors.push_back(new QwScanner("FPS"));
     ((VQwSubsystemParity*) detectors.GetSubsystem("FPS"))->LoadChannelMap("scanner_channel.map" );
-    ((VQwSubsystemParity*) detectors.GetSubsystem("FPS"))->LoadInputParameters("scanner_pedestal.map");
+    ((VQwSubsystemParity*) detectors.GetSubsystem("FPS"))->LoadInputParameters("scanner_parameter.map");
     QwScanner* scanner = dynamic_cast<QwScanner*> (detectors.GetSubsystem("FPS")); // Get scanner subsystem
 
     ///

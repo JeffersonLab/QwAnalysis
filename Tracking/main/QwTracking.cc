@@ -122,7 +122,7 @@ Int_t main(Int_t argc, Char_t* argv[]) {
     //detectors.GetSubsystem("MD")->LoadChannelMap("maindet_cosmics.map");
     detectors.push_back(new QwScanner("FPS"));
     ((VQwSubsystemTracking*) detectors.GetSubsystem("FPS"))->LoadChannelMap("scanner_channel.map" );
-    ((VQwSubsystemTracking*) detectors.GetSubsystem("FPS"))->LoadInputParameters("scanner_pedestal.map");
+    ((VQwSubsystemTracking*) detectors.GetSubsystem("FPS"))->LoadInputParameters("scanner_parameter.map");
     QwScanner* scanner = dynamic_cast<QwScanner*> (detectors.GetSubsystem("FPS")); // Get scanner subsystem
 
 

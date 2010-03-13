@@ -24,22 +24,23 @@ QwScanner::QwScanner(TString region_tmp)
         : VQwSubsystem(region_tmp),
         VQwSubsystemTracking(region_tmp),
         VQwSubsystemParity(region_tmp) {
-    MainDetCenterX = 330.0; //units: cm
-    MainDetCenterY = 0.0;
+    //MainDetCenterX = 330.0; //units: cm
+    //MainDetCenterY = 0.0;
 
-    HomePositionOffsetX = -20.0;
-    HomePositionOffsetY = -100.0;
+    //HomePositionOffsetX = -20.0;
+    //HomePositionOffsetY = -100.0;
 
-    Cal_FactorX = 5.333; //units: cm/V, assume linear, 40cm/8V
-    Cal_FactorY = 26.667; //units: cm/V, assume linear, 200cm/8V
+    //Cal_FactorX = 5.333; //units: cm/V, assume linear, 40cm/8V
+    //Cal_FactorY = 26.667; //units: cm/V, assume linear, 200cm/8V
+
+    //fVoltageOffsetX = 2.0; //units: Volts
+    //fVoltageOffsetY = 2.0;
 
     fCurrentPotentialX = 2.0; //units: Volts
     fCurrentPotentialY = 2.0;
-    fVoltageOffsetX = 2.0; //units: Volts
-    fVoltageOffsetY = 2.0;
 
-    fDirectionX = PreDirectionX = 1.0;
-    fDirectionY = PreDirectionY = 1.0;
+    fDirectionX = fPreDirectionX = 1.0;
+    fDirectionY = fPreDirectionY = 1.0;
 
     bRawData = kFALSE;
 
@@ -48,9 +49,9 @@ QwScanner::QwScanner(TString region_tmp)
     BackScaData = 0;
     CoincidenceScaData = 0;
 
-    eventnumber = 0;
-    trigevtnum = 0;
-    sumevtnum = 0;
+    fEvtCounter = 0;
+    fTrigEvtCounter = 0;
+    fSumEvtCounter = 0;
     fFrontSCA = 0.0;
     fBackSCA = 0.0;
     fCoincidenceSCA = 0.0;
@@ -150,23 +151,47 @@ Int_t QwScanner::LoadChannelMap(TString mapfile) {
     return 0;
 };
 
-
-
-Int_t QwScanner::LoadInputParameters(TString pedestalfile) {
+Int_t QwScanner::LoadInputParameters(TString parameterfile) {
     Bool_t ldebug=kTRUE;
-    TString varname;
+    TString varname, varvalue;
     Double_t varped;
     Double_t varcal;
     TString localname;
 
     Int_t lineread=0;
 
-    QwParameterFile mapstr(pedestalfile.Data());  //Open the file
+    QwParameterFile mapstr(parameterfile.Data());  //Open the file
+    if (ldebug) std::cout<<"\nReading scanner parameter file: "<<parameterfile<<"\n";
+
     while (mapstr.ReadNextLine()) {
         lineread+=1;
         mapstr.TrimComment('!');   // Remove everything after a '!' character.
         mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
         if (mapstr.LineIsEmpty())  continue;
+
+        if (mapstr.HasVariablePair("=",varname,varvalue)) {
+            varname.ToLower();
+            Double_t value = atof(varvalue.Data());
+            if (varname=="maindetcenterx") {
+                fMainDetCenterX=value;
+            } else if (varname=="maindetcentery") {
+                fMainDetCenterY=value;
+            } else if (varname=="homepositionoffsetx") {
+                fHomePositionOffsetX = value;
+            } else if (varname=="homepositionoffsety") {
+                fHomePositionOffsetY = value;
+            } else if (varname=="cal_factorx") {
+                fCal_FactorX = value;
+            } else if (varname=="cal_factory") {
+                fCal_FactorY = value;
+            } else if (varname=="voltageoffsetx") {
+                fVoltageOffsetX = value;
+            } else if (varname=="voltageoffsety") {
+                fVoltageOffsetY = value;
+            }
+            if (ldebug) std::cout<<"inputs for "<<varname<<": "<<value<<"\n";
+        }
+
         else {
             varname = mapstr.GetNextToken(", \t").c_str();	//name of the channel
             varname.ToLower();
@@ -174,11 +199,11 @@ Int_t QwScanner::LoadInputParameters(TString pedestalfile) {
             varped= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
             varcal= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
             if (ldebug) std::cout<<"inputs for channel "<<varname
-                <<": ped="<<varped<<": cal="<<varcal<<"\n";
+                <<": ped="<<varped<<", cal="<<varcal<<"\n";
             // Bool_t notfound=kTRUE;
         }
     }
-    if (ldebug) std::cout<<" line read in the pedestal + cal file ="<<lineread<<" \n";
+    if (ldebug) std::cout<<" line read in the parameter file ="<<lineread<<" \n";
 
     ldebug=kFALSE;
     return 0;
@@ -248,21 +273,22 @@ Int_t QwScanner::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t ba
 Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words) {
     Int_t index = GetSubbankIndex(roc_id,bank_id);
 
-    SetDataLoaded(kTRUE);
     fDEBUG = 0;
+    SetDataLoaded(kTRUE);
+    fEvtCounter++;
     if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer:  "
         << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
         <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
         << ", num_words "<<num_words<<", index "<<index<<std::endl;
 
-    SumFlag = 0;
-    TrigFlag = 0;
+    fSumFlag = 0;
+    fTrigFlag = 0;
 
     //  This is a VQWK bank if bank_id=2103
     if (bank_id==0x0503) {
 
-        sumevtnum++;
-        SumFlag = 5;
+        fSumEvtCounter++;
+        fSumFlag = 5;
 
         if (index>=0 && num_words>0) {
 
@@ -332,8 +358,8 @@ Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, 
     //  This is a QADC/TDC bank (bank_id=2101)
     if (bank_id==0x0501) {
 
-        trigevtnum++;
-        TrigFlag = 5;
+        fTrigEvtCounter++;
+        fTrigFlag = 5;
 
         if (index>=0 && num_words>0) {
             //  We want to process this ROC.  Begin looping through the data.
@@ -427,10 +453,10 @@ void  QwScanner::ProcessEvent() {
             fPowSupply = fADC_Data.at(i)->GetChannel(TString("vqwk_power"))->GetAverageVolts();
 
             fPositionX = fADC_Data.at(i)->GetChannel(TString("vqwk_pos_x"))->GetAverageVolts();
-            fPositionX = (fPositionX-fVoltageOffsetX)*Cal_FactorX + MainDetCenterX + HomePositionOffsetX;
+            fPositionX = (fPositionX-fVoltageOffsetX)*fCal_FactorX + fMainDetCenterX + fHomePositionOffsetX;
 
             fPositionY = fADC_Data.at(i)->GetChannel(TString("vqwk_pos_y"))->GetAverageVolts();
-            fPositionY = (fPositionY-fVoltageOffsetY)*Cal_FactorY + MainDetCenterY + HomePositionOffsetY;
+            fPositionY = (fPositionY-fVoltageOffsetY)*fCal_FactorY + fMainDetCenterY + fHomePositionOffsetY;
         }
     }
 
@@ -555,11 +581,11 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vec
     fScannerVector.reserve(6000);
 
     fScannerVector.push_back(0.0);
-    TString list = "EventNumber/D";
+    TString list = "EvtCounter/D";
     fScannerVector.push_back(0.0);
-    list += ":TrigEvtNum/D";
+    list += ":TrigEvtCounter/D";
     fScannerVector.push_back(0.0);
-    list += ":SumEvtNum/D";
+    list += ":SumEvtCounter/D";
     fScannerVector.push_back(0.0);
     list += ":SumFlag/D";
     fScannerVector.push_back(0.0);
@@ -642,11 +668,11 @@ void  QwScanner::FillTreeVector(std::vector<Double_t> &values) {
 
     Int_t index = 0;
 
-    fScannerVector[index++] = eventnumber;
-    fScannerVector[index++] = trigevtnum;
-    fScannerVector[index++] = sumevtnum;
-    fScannerVector[index++] = SumFlag;
-    fScannerVector[index++] = TrigFlag;
+    fScannerVector[index++] = fEvtCounter;
+    fScannerVector[index++] = fTrigEvtCounter;
+    fScannerVector[index++] = fSumEvtCounter;
+    fScannerVector[index++] = fSumFlag;
+    fScannerVector[index++] = fTrigFlag;
     fScannerVector[index++] = fPowSupply;
     fScannerVector[index++] = fPositionX;
     fScannerVector[index++] = fPositionY;
@@ -1222,8 +1248,8 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer) {
         if (fCurrentPotentialY<2.0) fDirectionY = 1.0;
 
         localbuf[4] = 0;
-        if (PreDirectionX != fDirectionX) {
-            PreDirectionX = fDirectionX;
+        if (fPreDirectionX != fDirectionX) {
+            fPreDirectionX = fDirectionX;
             for (size_t i = 0; i < 4; i++) {
                 pValue = 0.25*gRandom->Gaus(mean,sigma);
                 fCurrentPotentialY+=pValue*fDirectionY;
