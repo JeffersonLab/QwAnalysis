@@ -1300,7 +1300,6 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
     {
       entrylist.push_back(fStripline[i].GetDBEntry(db, datatype, "RelX"));
       entrylist.push_back(fStripline[i].GetDBEntry(db, datatype, "RelY"));
-
     }
 
   printf("Entrylist Vector Size %d\n", (Int_t) entrylist.size());
@@ -1319,14 +1318,12 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
 	}
       else
 	{
-	  // ??
+	  printf("Query is empty\n");
 	}
     }
   else
     {
-      printf("This is the case when the entrlylist contains notheing\n");
-      printf(" %s something else ??? \n", datatype.Data());
-      printf(" I have no idea why we see no entry list here\n");
+      printf("This is the case when the entrlylist contains nothing in %s \n", datatype.Data());
     }
   
   db->Disconnect();

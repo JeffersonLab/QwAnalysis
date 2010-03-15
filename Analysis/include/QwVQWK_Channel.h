@@ -37,6 +37,7 @@ class QwVQWK_Channel: public VQwDataElement {
  ******************************************************************/
  public:
   QwVQWK_Channel() { };
+
   QwVQWK_Channel(TString name, TString datatosave="raw"){
     InitializeChannel(name, datatosave);
   };
@@ -172,10 +173,12 @@ class QwVQWK_Channel: public VQwDataElement {
   /* the following values potentially have pedestal removed  and calibration applied */
   Double_t fBlock[4];         /*! Array of the sub-block data             */
   Double_t fHardwareBlockSum; /*! Module-based sum of the four sub-blocks */
+
   size_t fSequenceNumber;     /*! Event sequence number for this channel  */
   size_t fPreviousSequenceNumber; /*! Previous event sequence number for this channel  */
   size_t fNumberOfSamples;    /*! Number of samples  read through the module        */
   size_t fNumberOfSamples_map;    /*! Number of samples in the expected to  read through the module. This value is set in the QwBeamline map file     */
+
   size_t fEventNumber;
 
   /// \name Parity mock data distributions

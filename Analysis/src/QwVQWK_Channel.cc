@@ -139,10 +139,26 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
 {
   SetElementName(name);
   SetNumberOfDataWords(6);
-  fSamplesPerBlock = 16680; //jpan: total samples = fSamplesPerBlock x fBlocksPerEvent
-  fBlocksPerEvent = 4;
-  fPedestal=0.0;
-  fCalibrationFactor=1.;
+
+  if   (datatosave=="raw")     fDataToSave=kRaw;
+  else
+    if (datatosave=="derived") fDataToSave=kDerived;
+
+  fPedestal            = 0.0;
+  fCalibrationFactor   = 1.0;
+
+  fSamplesPerBlock     = 16680; //jpan: total samples = fSamplesPerBlock x fBlocksPerEvent
+  fBlocksPerEvent      = 4;
+
+  fTreeArrayIndex      = 0;
+  fTreeArrayNumEntries = 0;
+
+  ClearEventData();
+
+  fPreviousSequenceNumber = 0;
+  fNumberOfSamples_map    = 0;
+  fEventNumber            = 0;
+
 
   // Mock drifts
   fMockDriftAmplitude.clear();
@@ -150,38 +166,43 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
   fMockDriftPhase.clear();
 
   // Mock asymmetries
-  fMockAsymmetry = 0.0;
-  fMockGaussianMean = 0.0;
+  fMockAsymmetry     = 0.0;
+  fMockGaussianMean  = 0.0;
   fMockGaussianSigma = 0.0;
 
-  fEventNumber = 0;
-
   // Event cuts
-  fNumEvtsWithEventCutsRejected=0;//init error counters
-  fADC_Same_NumEvt=0;//init HW_Check counters
-  fPrev_HardwareBlockSum=0;//init HW_Check counters
-  fSequenceNo_Counter=0;//init HW_Check counters
+  fNumEvtsWithEventCutsRejected = 0;
 
-  if (datatosave=="raw") fDataToSave=kRaw;
-  else
-    if (datatosave=="derived") fDataToSave=kDerived;
-
-  fGoodEventCount=0;//initialize the event counter
-  fRunning_sum=0;
-  fRunning_sum_square=0;
   //init error counters//
-  fErrorCount_sample=0;//for sample size check
-  fErrorCount_SW_HW=0;//HW_sum==SW_sum check
-  fErrorCount_Sequence=0;//sequence number check
-  fErrorCount_SameHW=0;//check to see ADC returning same HW value
-  fErrorCount_ZeroHW=0;
+  fErrorCount_sample     = 0; 
+  fErrorCount_SW_HW      = 0; 
+  fErrorCount_Sequence   = 0; 
+  fErrorCount_SameHW     = 0; 
+  fErrorCount_ZeroHW     = 0;
+
+  fDeviceErrorCode       = 0;
+
+  fADC_Same_NumEvt       = 0;
+  fSequenceNo_Prev       = 0;
+  fSequenceNo_Counter    = 0;
+  fPrev_HardwareBlockSum = 0.0;
+
+  fRunning_sum           = 0.0;
+  fRunning_sum_square    = 0.0;
+  fAverage_n             = 0.0;
+  fAverage_n_square      = 0.0;
+  fAverage_error         = 0.0;
+  fGoodEventCount        = 0;
+
+  bEVENTCUTMODE          = 0;
+
   /*
   //debug- Ring analysis
   fEventCounter=1;
   fTripCounter=0;
   bTrip=kFALSE;
   */
-  fDeviceErrorCode=0;
+
   return;
 }
 
@@ -619,6 +640,9 @@ void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values)
 
 
 QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value){
+
+  if(this ==&value) return *this;
+
   if (!IsNameEmpty())
     {
       for (size_t i=0; i<4; i++){
@@ -864,17 +888,18 @@ void QwVQWK_Channel::Copy(VQwDataElement *source)
      if(typeid(*source)==typeid(*this))
        {
 	 QwVQWK_Channel* input=((QwVQWK_Channel*)source);
-	 this->fElementName=input->fElementName;
-	 this->fPedestal=input->GetPedestal();
-	 this->fCalibrationFactor=input->GetCalibrationFactor();
-	 this->fDataToSave=kDerived;
-	 this->fDeviceErrorCode=input->fDeviceErrorCode;
+	 this->fElementName       = input->fElementName;
+	 this->fPedestal          = input->GetPedestal();
+	 this->fCalibrationFactor = input->GetCalibrationFactor();
+	 this->fDataToSave        = kDerived;
+	 this->fDeviceErrorCode   = input->fDeviceErrorCode;
 
-	 this->fRunning_sum=input->fRunning_sum;
-	 this->fRunning_sum_square=input->fRunning_sum_square;
-	 this->fAverage_n= input->fAverage_n;
-	 this->fAverage_n_square=input->fAverage_n_square;
-	 this->fGoodEventCount=input->fGoodEventCount;
+	 this->fRunning_sum        = input->fRunning_sum;
+	 this->fRunning_sum_square = input->fRunning_sum_square;
+	 this->fAverage_n          = input->fAverage_n;
+	 this->fAverage_n_square   = input->fAverage_n_square;
+	 this->fAverage_error      = input->fAverage_error;
+	 this->fGoodEventCount     = input->fGoodEventCount;
        }
      else
        {
