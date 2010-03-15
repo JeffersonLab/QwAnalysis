@@ -99,11 +99,14 @@ int main(Int_t argc,Char_t* argv[]) {
     QwSubsystemArrayParity detectors;
     detectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
     detectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
-    //detectors.GetSubsystem("Main detector")->             LoadInputParameters("qweak_pedestal.map");
+    //detectors.GetSubsystem("Main detector")->LoadInputParameters("qweak_pedestal.map");
 
     detectors.push_back(new QwBeamLine("Injector BeamLine"));
-    detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
+    //use mock_qweak_beamline.map for testing with mockdatagenerator
+//    detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
+    detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
     detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");
+
 
     ///
     /// Instantiate scanner subsystem
@@ -119,6 +122,8 @@ int main(Int_t argc,Char_t* argv[]) {
 
     if (bHelicity) {
         detectors.push_back(new QwHelicity("Helicity info"));
+        //use mock_qweak_helicity.map for testing with mockdatagenerator
+        //detectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
         detectors.GetSubsystem("Helicity info")->LoadChannelMap("mock_qweak_helicity.map");
         detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
     }

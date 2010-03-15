@@ -605,12 +605,17 @@ void  QwMainCerenkovDetector::ProcessEvent()
  */
 void  QwMainCerenkovDetector::ExchangeProcessedData()
 {
+  bIsExchangedDataValid = kTRUE;
+
   // Create a list of all variables that we need
   // TODO This could be a static list to avoid repeated vector initializiations
   std::vector<VQwDataElement*> variable_list;
   variable_list.push_back(&fTargetCharge);
   variable_list.push_back(&fTargetX);
   variable_list.push_back(&fTargetY);
+  variable_list.push_back(&fTargetXprime);
+  variable_list.push_back(&fTargetYprime);
+  variable_list.push_back(&fTargetEnergy);
 
   // Loop over all variables in the list
   std::vector<VQwDataElement*>::iterator variable_iter;
@@ -620,6 +625,7 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
     if (RequestExternalValue(variable->GetElementName(), variable)) {
       //variable->Print();
     } else {
+      bIsExchangedDataValid = kFALSE;
       QwError << GetSubsystemName() << " could not get external value for "
               << variable->GetElementName() << QwLog::endl;
     }
@@ -628,6 +634,15 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
 
 void  QwMainCerenkovDetector::ProcessEvent_2()
 {
+  if(bIsExchangedDataValid){
+    //data is valid, process it
+    if(bDEBUG) std::cout<<"QwMainCerenkovDetector::ProcessEvent_2(): processing with exchanged data"<<std::endl;
+
+  }
+  else {
+    QwError<<"QwMainCerenkovDetector::ProcessEvent_2(): could not get all external values."<<QwLog::endl;
+  }
+
 };
 
 
