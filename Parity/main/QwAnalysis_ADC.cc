@@ -93,8 +93,8 @@ int main(Int_t argc,Char_t* argv[]) {
     eventbuffer.ProcessOptions(gQwOptions);
 
     ///
-    /// Instantiate one subsytem for all eight main detectors Bar1-Bar8, plus one fully assembled
-    /// background detector Bar0 (there are two channels for each fully assembled detector)
+    /// Instantiate one subsytem for all eight main detectors MD1-MD8, plus one fully assembled
+    /// background detector MD0 (there are two channels for each fully assembled detector)
     /// plus 3 additional diagnostic detector channels AnciD1-AnciD3 for noise setup.
     QwSubsystemArrayParity detectors;
     detectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
