@@ -73,12 +73,12 @@ class QwInterpolator {
         if (fValues[index])
           delete[] fValues[index];
         else {
-          QwMessage << "Empty index: " << index << " at ";
+          QwDebug << "Empty index: " << index << " at ";
           coord_t coord[fNDim];
           Coord(index,coord);
           for (unsigned int dim = 0; dim < fNDim; dim++)
-            QwMessage << coord[dim] << " ";
-          QwMessage << QwLog::endl;
+            QwDebug << coord[dim] << " ";
+          QwDebug << QwLog::endl;
         }
     };
 
@@ -134,7 +134,9 @@ class QwInterpolator {
         fMin = min; fMax = max; fStep = step;
         fExtent[0] = 1;
         for (size_t i = 0; i < fMin.size(); i++) {
-          fSize[i] = static_cast<unsigned int>((fMax[i] - fMin[i]) / fStep[i] + 1);
+          coord_t int_part; // safer to use modf than a direct static cast
+          coord_t frac_part = modf((fMax[i] - fMin[i]) / fStep[i] + 1.0, &int_part);
+          fSize[i] = static_cast<unsigned int>(int_part) + (frac_part > 0.5 ? 1 : 0);
           fExtent[i+1] = fExtent[i] * fSize[i];
         }
         // Try resizing to allocate memory (and initialize with null pointers)
@@ -160,13 +162,27 @@ class QwInterpolator {
       { return fInterpolationMethod; };
 
 
-    /// Get the linearized index based on the cell indices (zero if out of bounds)
-    const unsigned int GetIndex(const unsigned int* cell_index) const {
-      if (! Check(cell_index)) return 0;
-      return Index(cell_index);
+    /// Return true if the coordinate is in bounds
+    const bool InBounds(const coord_t* coord) const {
+      return Check(coord);
     };
 
 
+    /// Set a series of single values on a on-dimensional grid
+    const bool Set(const unsigned int n, const value_t* r, const value_t* p) {
+      if (value_n != 1) return false; // only for one-dimensional values
+      if (fNDim != 1)   return false; // only for one-dimensional grids
+      for (unsigned int i = 0; i < n; i++)
+        if (! Set(r[i],p[i])) return false;
+      return true;
+    }
+
+    /// Set a single value at a coordinate (false if not possible)
+    const bool Set(const coord_t& coord, const value_t& value) {
+      if (value_n != 1) return false; // only for one-dimensional values
+      if (fNDim != 1) return false; // only for one-dimensional grids
+      return Set(&coord, &value);
+    };
     /// Set a single value at a coordinate (false if not possible)
     const bool Set(const coord_t* coord, const value_t& value) {
       if (value_n != 1) return false; // only for one-dimensional values
@@ -174,7 +190,6 @@ class QwInterpolator {
     };
     /// Set a set of values at a coordinate (false if not possible)
     const bool Set(const coord_t* coord, const value_t* value) {
-      if (! Check(coord)) return false; // out of bounds
       unsigned int cell_index[fNDim];
       Nearest(coord, cell_index); // nearest cell
       if (! Check(cell_index)) return false; // out of bounds
@@ -218,6 +233,14 @@ class QwInterpolator {
 
 
     /// Get the interpolated value at coordinate (zero if out of bounds)
+    const value_t GetValue(const coord_t& coord) const {
+      if (value_n != 1) return false; // only for one-dimensional values
+      if (fNDim != 1)   return false; // only for one-dimensional grids
+      value_t value;
+      if (GetValue(&coord, &value)) return value;
+      else return 0; // interpolation failed
+    };
+    /// Get the interpolated value at coordinate (zero if out of bounds)
     const value_t GetValue(const coord_t* coord) const {
       if (value_n != 1) return 0; // only for one-dimensional values
       value_t value;
@@ -231,6 +254,7 @@ class QwInterpolator {
     };
     /// Get the interpolated value at coordinate (zero if out of bounds)
     const bool GetValue(const coord_t* coord, double* value) const {
+      for (unsigned int i = 0; i < value_n; i++) value[i] = 0.0; // zero
       if (! Check(coord)) return false; // out of bounds
       value_t result[value_n]; // we need a local copy of type value_t
       switch (fInterpolationMethod) {
@@ -318,9 +342,9 @@ class QwInterpolator {
         if (cell_local[dim] > 0.5) cell_index[dim]++;
     };
 
-    /// \brief Linear interpolation
+    /// \brief Linear interpolation (unchecked)
     const bool Linear(const coord_t* coord, value_t* value) const;
-    /// \brief Nearest-neighbor
+    /// \brief Nearest-neighbor (unchecked)
     const bool NearestNeighbor(const coord_t* coord, value_t* value) const;
 
     /// \brief Check for boundaries with coordinate argument
@@ -353,7 +377,7 @@ class QwInterpolator {
 
 
 /**
- * Perform the multi-dimensional linear interpolation
+ * Perform the multi-dimensional linear interpolation (unchecked)
  * @param coord Point coordinates
  * @param value Interpolated value (reference)
  */
@@ -366,9 +390,10 @@ inline const bool QwInterpolator<value_t,value_n>::Linear(
   unsigned int cell_index[fNDim];
   double cell_local[fNDim];
   Cell(coord, cell_index, cell_local);
+  // Initialize to zero
+  for (unsigned int i = 0; i < value_n; i++) value[i] = 0.0;
   // Calculate the interpolated value
   // by summing the 2^fNDim = 1 << fNDim neighbor points (1U is unsigned one)
-  for (unsigned int i = 0; i < value_n; i++) value[i] = 0;
   for (unsigned int offset = 0; offset < (1U << fNDim); offset++) {
     value_t neighbor[value_n];
     if (! Get(Index(cell_index,offset), neighbor)) return false;
@@ -379,14 +404,12 @@ inline const bool QwInterpolator<value_t,value_n>::Linear(
     // ... for all vector components
     for (unsigned int i = 0; i < value_n; i++)
       value[i] += fac * neighbor[i];
-QwMessage << Index(cell_index,offset) << ": " << neighbor[2] << QwLog::endl;
   }
-QwMessage << cell_local[0] << "," << cell_local[1] << "," << cell_local[2] << QwLog::endl;
   return true;
 }
 
 /**
- * Perform the nearest-neighbor interpolation
+ * Perform the nearest-neighbor interpolation (unchecked)
  * @param coord Point coordinates
  * @param value Interpolated value (reference)
  */
@@ -503,7 +526,7 @@ inline void QwInterpolator<value_t,value_n>::Cell(
   double frac_part, int_part;
   frac_part = modf(norm_coord, &int_part);
   cell_local = frac_part;
-  cell_index = int(int_part); // cast to integer
+  cell_index = static_cast<int>(int_part); // cast to integer
 }
 
 /**
@@ -635,7 +658,14 @@ inline const bool QwInterpolator<value_t,value_n>::ReadText(std::istream& stream
     if (! fValues[index]) fValues[index] = new value_t[value_n];
     for (unsigned int i = 0; i < value_n; i++)
       stream >> fValues[index][i];
+    // Progress bar
+    fEntries++;
+    if (fEntries % (fMaximumEntries / 10) == 0)
+      QwMessage << 100 * fEntries / fMaximumEntries << "%" << std::flush;
+    if (fEntries % (fMaximumEntries / 10) != 0
+     && fEntries % (fMaximumEntries / 40) == 0) QwMessage << "." << std::flush;
   }
+  QwMessage << QwLog::endl;
   // Check for end of file
   std::string end;
   stream >> end;
@@ -725,8 +755,14 @@ inline const bool QwInterpolator<value_t,value_n>::ReadBinaryFile(std::string fi
     if (! fValues[index]) fValues[index] = new value_t[value_n];
     for (unsigned int i = 0; i < value_n; i++)
       file.read(reinterpret_cast<char*>(&fValues[index][i]),sizeof(fValues[index][i]));
+    // Progress bar
     fEntries++;
+    if (fEntries % (fMaximumEntries / 10) == 0)
+      QwMessage << 100 * fEntries / fMaximumEntries << "%" << std::flush;
+    if (fEntries % (fMaximumEntries / 10) != 0
+     && fEntries % (fMaximumEntries / 40) == 0) QwMessage << "." << std::flush;
   }
+  QwMessage << QwLog::endl;
   file.close();
   return true;
 };
