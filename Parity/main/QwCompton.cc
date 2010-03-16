@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
   ///  Fill the search paths for the parameter files; this sets a static
   ///  variable within the QwParameterFile class which will be used by
   ///  all instances.  The "scratch" directory should be first.
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QW_PRMINPUT")));
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
 
   // Load histogram definitions
@@ -197,8 +197,8 @@ int main(int argc, char* argv[])
 
 
     // ROOT file output (histograms)
-    TString rootfilename = TString(getenv("QWSCRATCH")) + TString("/rootfiles/")
-                         + TString("Compton_") + Form("%ld.root",run);
+    TString rootfilename = TString(getenv("QW_ROOTFILES"))
+                         + TString("/Compton_") + Form("%ld.root",run);
     TFile rootfile(rootfilename, "RECREATE", "QWeak ROOT file");
     if (bHisto) {
       rootfile.cd();

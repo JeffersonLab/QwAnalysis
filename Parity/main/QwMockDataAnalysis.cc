@@ -59,28 +59,35 @@ int main(int argc, char* argv[])
   // Define the command line options
   DefineOptionsParity(gQwOptions);
 
+  ///  Fill the search paths for the parameter files; this sets a static
+  ///  variable within the QwParameterFile class which will be used by
+  ///  all instances.
+  ///  The "scratch" directory should be first.
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QW_PRMINPUT")));
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Analysis/prminput");
 
   // Load histogram definitions
-  gQwHists.LoadHistParamsFromFile(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/parity_hists.in");
+  gQwHists.LoadHistParamsFromFile("parity_hists.in");
 
   // Detector array
   QwSubsystemArrayParity detectors;
   if (bBeamLine) {
     detectors.push_back(new QwBeamLine("Injector BeamLine"));
-    detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_beamline.map");
-    detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
+    detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
+    detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("mock_qweak_pedestal.map");
   }
   if (bQuartz) {
     detectors.push_back(new QwMainCerenkovDetector("Main detector"));
-    //detectors.GetSubsystem("Main detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_adc.map");
+    //detectors.GetSubsystem("Main detector")->LoadChannelMap("mock_qweak_adc.map");
 
-    detectors.GetSubsystem("Main detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
+    detectors.GetSubsystem("Main detector")->LoadChannelMap("qweak_adc.map");
 
-    detectors.GetSubsystem("Main detector")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
+    detectors.GetSubsystem("Main detector")->LoadInputParameters("mock_qweak_pedestal.map");
   }
   if (bHelicity) {
     detectors.push_back(new QwHelicity("Helicity info"));
-    detectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_helicity.map");
+    detectors.GetSubsystem("Helicity info")->LoadChannelMap("mock_qweak_helicity.map");
     detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
   }
   QwHelicityPattern helicitypattern(detectors);
@@ -109,7 +116,7 @@ int main(int argc, char* argv[])
 
 
     // ROOT file output (histograms)
-    TString rootfilename = TString(getenv("QWSCRATCH")) + TString("/rootfiles/QwMock_") + Form("%ld.root",run);
+    TString rootfilename = TString(getenv("QW_ROOTFILES")) + TString("/QwMock_") + Form("%ld.root",run);
     TFile rootfile(rootfilename, "RECREATE", "QWeak ROOT file");
     if (bHisto) {
       rootfile.cd();

@@ -101,6 +101,13 @@ endif
 ARCH  := $(shell uname)
       # Operating system
 
+#  If an OS and hardware specific subdirectory is present,
+#  we will use the "bin" and "lib" directories in it,
+#  instead of the base "bin" and "lib" directories.
+OS_HW_NAME  := $(uname -s -m | sed 's/ /_/g')
+INSTALL_DIR := $(strip $(shell $(ECHO) $(QWANALYSIS)$$( (if [ -d $(OS_HW_NAME)]; then $(ECHO) "/"$(OS_HW_NAME); fi))))
+
+
 
 
 ############################
@@ -111,7 +118,7 @@ ARCH  := $(shell uname)
 #   of the QwAnalysis standard package, and which should not be built
 #   by this Makefile.  If they should be built automatically, a call
 #   to their own Makefile will be made from a specfic target.
-#   See the "coda_lib" target, as an example.
+#   See the "myevio_lib" target, as an example.
 #
 ############################
 ############################
@@ -191,8 +198,8 @@ endif
 # QWANALYSIS := /home/lenoble/QwAnalysis
 # Not the actual value, but $(MAKE) is run from
 # this directory
-# QWBIN      := $(QWANALYSIS)/bin
-# QWLIB      := $(QWANALYSIS)/lib
+# QW_BIN      := $(QWANALYSIS)/bin
+# QW_LIB      := $(QWANALYSIS)/lib
 ############################
 ############################
 #  These next lines check the paths and exit if there is a problem.
@@ -210,29 +217,24 @@ ifneq ($(shell test $(QWANALYSIS) -ef $(shell pwd) || echo false),)
   $(error Aborting : QWANALYSIS variable disagrees with the working directory.  Source the SetupFiles/.Qwcshrc script first)
 endif
 
-ifndef QWBIN
-  $(warning Warning : QWBIN variable is not defined.  Setting to QWANALSYIS/bin.)
-  QWBIN := $(QWANALYSIS)/bin
+ifndef QW_BIN
+  $(warning Warning : QW_BIN variable is not defined.  Setting to QWANALSYIS/bin.)
+  QW_BIN := $(QWANALYSIS)/bin
 endif
-ifneq ($(strip $(QWBIN)),$(strip $(shell $(FIND) $(QWANALYSIS) -name bin)))
-  $(error Aborting : QWBIN variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
-endif
-
-ifndef QWLIB
-  $(warning Warning : QWLIB variable is not defined.  Setting to QWANALSYIS/lib.)
-  QWLIB := $(QWANALYSIS)/lib
-endif
-ifneq ($(strip $(QWLIB)),$(strip $(shell $(FIND) $(QWANALYSIS) -name lib)))
-  $(error Aborting : QWLIB variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
+ifneq ($(shell test $(QW_BIN) -ef $(INSTALL_DIR)/bin || echo false),)
+  $(error Aborting : QW_BIN variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
 endif
 
-ifndef QWEVIO
-  $(warning Warning : QWEVIO variable is not defined.  Setting to QWANALSYIS/coda.)
-  QWEVIO := $(QWANALYSIS)/coda
+ifndef QW_LIB
+  $(warning Warning : QW_LIB variable is not defined.  Setting to QWANALSYIS/lib.)
+  QW_LIB := $(QWANALYSIS)/lib
 endif
-ifneq ($(strip $(QWEVIO)),$(strip $(shell $(FIND) $(QWANALYSIS) -name coda)))
-  $(error Aborting : QWEVIO variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
+ifneq ($(shell test $(QW_LIB) -ef $(INSTALL_DIR)/lib || echo false),)
+  $(error Aborting : QW_LIB variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
 endif
+
+
+EVIO := $(QWANALYSIS)/coda
 
 
 
@@ -246,11 +248,11 @@ ifdef CODA
 CODACFLAGS   := -I$(CODA)/common/include -D__CODA_ET
 CODALIBS     := -L$(CODA_LIB) -let
 endif
-CODACFLAGS   += -I$(QWANALYSIS)/coda/include
-CODALIBS     += -L$(QWANALYSIS)/lib -lcoda
+CODACFLAGS   += -I$(EVIO)/include
+CODALIBS     += -L$(QW_LIB) -lmyevio
       # -lmyevio : now integrated in our distribution (April 19 2001) ;
       # Regenerated if necessary ; I had to rewrite CODA
-      # group's Makefile in $(QWEVIO)
+      # group's Makefile in $(EVIO)
 
 
 
@@ -288,11 +290,9 @@ endif
 
 #  List the Boost libraries to be linked to the analyzer.
 ifeq ($(strip $(shell $(FIND) $(BOOST_LIB_DIR) -maxdepth 1 -name libboost_filesystem-mt.so)),$(BOOST_LIB_DIR)/libboost_filesystem-mt.so)
-#  BOOST_LIBS += -lboost_filesystem-mt -lboost_system-mt -lboost_program_options-mt
- BOOST_LIBS += -lboost_filesystem-mt -lboost_program_options-mt
+  BOOST_LIBS += -lboost_filesystem-mt -lboost_program_options-mt
 else
-#  BOOST_LIBS += -lboost_filesystem -lboost_system -lboost_program_options
- BOOST_LIBS += -lboost_filesystem -lboost_program_options
+  BOOST_LIBS += -lboost_filesystem -lboost_program_options
 endif
 
 BOOST_LIBS += -ldl
@@ -312,7 +312,7 @@ CXX            := gcc
 CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
 LD             = gcc
-LDFLAGS	       = -Wl,-rpath,$(QWLIB)
+LDFLAGS	       = -Wl,-rpath,$(QW_LIB)
 LDLIBS         =
 SOFLAGS        = -shared
 
@@ -416,7 +416,7 @@ ifneq ($(CXX),CC)
   LDLIBS      += -lstdc++
   LDLIBS      += -lz
 endif
-LIBS =  -L$(QWLIB) -lQw
+LIBS =  -L$(QW_LIB) -lQw
 LIBS +=  $(ROOTLIBS) $(ROOTGLIBS) $(CODALIBS)
 LIBS +=  $(BOOST_LIBS) $(LDLIBS)
 
@@ -454,7 +454,7 @@ INTO_RELATIVE_PATH  = $(SED) 's/\//xxqqqqqxx/g' | $(SED) 's/$(subst /,xxqqqqqxx,
 # This pipe is a trick to encapsulate the conversion from $(QWANALYSIS) to .
 
 
-APPEND_BIN_PATH  = $(SED) 's/\//xxqqqqqxx/g' | $(SED) 's/\([a-z0-9_]* \)/$(subst /,xxqqqqqxx,$(QWBIN))xxqqqqqxx\1/g' | $(SED) 's/xxqqqqqxx/\//g'
+APPEND_BIN_PATH  = $(SED) 's/\//xxqqqqqxx/g' | $(SED) 's/\([a-z0-9_]* \)/$(subst /,xxqqqqqxx,$(QW_BIN))xxqqqqqxx\1/g' | $(SED) 's/xxqqqqqxx/\//g'
 # To be piped in, all letters to lower already...
 # The special meaning of '/' in regular expressions is painful...
 
@@ -524,13 +524,13 @@ ifneq ($(strip $(EXES)),)
 	$(ECHO) ; \
 	for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .EXES),$(EXES)) $(filter-out $(EXES),$(shell $(CAT) .EXES)) | $(REMOVE_-D))); \
 	do \
-	$(RM) `$(CAT) .auxDepends | $(SED) "/$$wd/!d;s/.*$$wd: \([A-Za-z0-9\/\._]*\$(ObjSuf)\) .*/\1/"` $(QWLIB)/libQw$(DllSuf); \
+	$(RM) `$(CAT) .auxDepends | $(SED) "/$$wd/!d;s/.*$$wd: \([A-Za-z0-9\/\._]*\$(ObjSuf)\) .*/\1/"` $(QW_LIB)/libQw$(DllSuf); \
 	done; \
 	exit 1; \
 	fi
 endif
-####	@$(MAKE) -f $(QWEVIO)/Makefile libcoda.so
-	@$(MAKE) coda_lib
+####	@$(MAKE) -f $(EVIO)/Makefile libmyevio.so
+	@$(MAKE) myevio_lib
 #ifneq ($(CODA),)
 #ifneq ($(ARCH),SunOS)
 #	@cd $(VISU);$(MAKE) -f GNUmakefile
@@ -546,32 +546,32 @@ config: .ADD .EXES clean.auxfiles .auxDepends
 	done
 	@for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .EXES),$(EXES)) $(filter-out $(EXES),$(shell $(CAT) .EXES)) | $(REMOVE_-D))); \
 	do \
-	cd $(QWBIN);$(RM) `$(LS) $(QWBIN) | $(SED) 's/CVS//g' | $(SED) 's/SunWS_cache//g'` $(QWLIB)/libQw$(DllSuf); \
+	cd $(QW_BIN);$(RM) `$(LS) $(QW_BIN) | $(SED) 's/CVS//g' | $(SED) 's/SunWS_cache//g'` $(QW_LIB)/libQw$(DllSuf); \
 	done
 	@$(ECHO) $(ADD)  | $(TO_LINE) > .ADD
 	@$(ECHO) $(EXES)  | $(TO_LINE) > .EXES
 
-coda_lib:
-	cd $(QWEVIO); $(MAKE) libcoda$(DllSuf)
-	$(CP) $(QWEVIO)/libcoda$(DllSuf) $(QWLIB)/libcoda$(DllSuf)
+myevio_lib:
+	cd $(EVIO); $(MAKE) libmyevio$(DllSuf)
+	$(CP) $(EVIO)/libmyevio$(DllSuf) $(QW_LIB)/libmyevio$(DllSuf)
 
 .auxDepends: .auxLibFiles
 	@$(ECHO) Generating .auxLibFiles
 	@$(RM) .auxLibFiles
-	@$(ECHO) $(QWLIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) > .auxLibFiles
-	@$(ECHO) $(QWLIB)/libQw$(DllSuf): `$(CAT) .auxSrcFiles` `$(CAT) .auxDictFiles` \
+	@$(ECHO) $(QW_LIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) > .auxLibFiles
+	@$(ECHO) $(QW_LIB)/libQw$(DllSuf): `$(CAT) .auxSrcFiles` `$(CAT) .auxDictFiles` \
 		| $(TO_LINE) \
 		| $(INTO_RELATIVE_PATH) \
 		| $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/g' \
 		| $(ADD_ANTISLASH) \
 		| $(FILTER_OUT_FOREIGN_DEPS) >> .auxDepends
 	@$(ECHO) >> .auxDepends
-	@$(ECHO) $(TAB)$(LIBTOOL) $(SOFLAGS) $(LDFLAGS) '$$^' -o $(QWLIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) >> .auxDepends
+	@$(ECHO) $(TAB)$(LIBTOOL) $(SOFLAGS) $(LDFLAGS) '$$^' -o $(QW_LIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) >> .auxDepends
 	@$(ECHO) $(TAB)@$(ECHO) >> .auxDepends
 	@$(ECHO) >> .auxDepends
 	@for file in `$(CAT) 2>&1 .auxMainFiles`; \
 	do \
-	$(ECHO) $(QWBIN)/`$(ECHO) $$file | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`: `$(ECHO) $$file | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/'` `$(CAT) .auxLibFiles`  | $(INTO_RELATIVE_PATH) >> .auxDepends; \
+	$(ECHO) $(QW_BIN)/`$(ECHO) $$file | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`: `$(ECHO) $$file | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/'` `$(CAT) .auxLibFiles`  | $(INTO_RELATIVE_PATH) >> .auxDepends; \
 	$(ECHO) $(TAB)$(LD) $(CXXFLAGS) '$$<' $(LIBS) $(LDFLAGS) -o '$$@' | $(INTO_RELATIVE_PATH) >> .auxDepends; \
 	$(ECHO) $(TAB)@$(ECHO) >> .auxDepends; \
 	$(ECHO) >> .auxDepends; \
@@ -760,7 +760,7 @@ coda_lib:
 
 qweak-config: qweak-config.in
 	@$(CAT) $< | $(SED) 's!%QWANALYSIS%!$(QWANALYSIS)!' | $(SED) 's!%LIBS%!$(LIBS)!'   \
-	           | $(SED) 's!%QWLIB%!$(QWLIB)!' | $(SED) 's!%QWBIN%!$(QWBIN)!'           \
+	           | $(SED) 's!%QW_LIB%!$(QW_LIB)!' | $(SED) 's!%QW_BIN%!$(QW_BIN)!'           \
 	           | $(SED) 's!%LDFLAGS%!$(LDFLAGS)!' | $(SED) 's!%CPPFLAGS%!$(CPPFLAGS)!' \
 	           > bin/$@
 	@$(CHMOD) a+x bin/$@
@@ -787,10 +787,10 @@ clean.dictfiles:
 clean.libs:
 # Removes libraries
 	@$(ECHO) Removing '*$(DllSuf)' files
-	@$(RM) $(QWLIB)/lib*$(DllSuf)
+	@$(RM) $(QW_LIB)/lib*$(DllSuf)
 
 
-clean: clean.coda
+clean: clean.evio
 # Removes all object files, '*~', '#*#' and '.#*' files
 	@$(ECHO) Removing '*$(ObjSuf)' files
 	@$(RM) `$(FIND) $(QWANALYSIS) | $(GREP) '\$(ObjSuf)' | $(SED) '/\$(ObjSuf)./d'`
@@ -801,7 +801,7 @@ clean: clean.coda
 clean.exes:
 # Removes executables
 	@$(ECHO) Removing executables
-	@$(RM) `$(ECHO) $(QWBIN)/* | $(SED) 's/[A-Za-z0-9\/_]*CVS//'`
+	@$(RM) `$(ECHO) $(QW_BIN)/* | $(SED) 's/[A-Za-z0-9\/_]*CVS//'`
 
 clean.olddotfiles:
 	@$(RM) .dirs .libdepend .libdepend2 .exedepend .exedepend2 .mains .dictdepend .exes .objdepend .dicts .incdirs .srcdirs $(SETUP)/.MapFileBaseAddress
@@ -812,10 +812,10 @@ cleanSunWS_cache :
 	@$(RM) -r $(filter %SunWS_cache/,$(sort $(dir $(shell $(FIND) $(QWANALYSIS)))))
 	@$(RM) -r $(filter %SunWS_cache,$(sort $(shell $(FIND) $(QWANALYSIS))))
 
-clean.coda:
-	cd $(QWEVIO); $(MAKE) realclean
+clean.evio:
+	cd $(EVIO); $(MAKE) realclean
 
-distclean: cleanSunWS_cache clean.dictfiles clean clean.libs clean.exes clean.auxfiles clean.olddotfiles clean.coda
+distclean: cleanSunWS_cache clean.dictfiles clean clean.libs clean.exes clean.auxfiles clean.olddotfiles clean.evio
 # Removes all files that can be regenerated
 	@$(RM) .ADD .EXES
 
