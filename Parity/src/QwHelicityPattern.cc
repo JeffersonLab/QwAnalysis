@@ -23,6 +23,11 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
   fPatternSize=input->GetMaxPatternPhase();
 
   std::cout<<"QwHelicity::MaxPatternPhase = "<<fPatternSize<<std::endl;
+
+  if (fPatternSize!=4)//currently the alternate asym works with quartets only
+    bAlternateAsym=kFALSE;
+
+
   try
     {
       if(fPatternSize%2 == 0)
