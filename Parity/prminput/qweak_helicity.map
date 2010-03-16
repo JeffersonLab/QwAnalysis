@@ -30,6 +30,7 @@
 
 HelicityDecodingMode=InputRegisterMode
 PatternPhase=4
+!NumberPatternsDelayed=2
 
 !seed size is either 24 bit or 30 bit. default is 24 bit
 !RandSeedBits=24

@@ -95,6 +95,15 @@ qwk_......_......_.w		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 qwk_......._......_block.	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 qwk_......._......_.w		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 
+qwk_targetWSum_block.		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+qwk_targetWSum_hw		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+qwk_targetXAngle_block. 	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+qwk_targetXAngle_hw 		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+qwk_targetYAngle_block		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+qwk_targetYAngle_hw		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+
+
+
 yield_empty._block.             TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_empty._.w                 TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_phasemonitor_block.       TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
@@ -159,17 +168,25 @@ yield_........_.w		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 
 yield_........._block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
 yield_........._block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
-yield_........._.w_raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
+yield_........._.w_raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
 yield_........._.w		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 
 yield_................._block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
 yield_................._block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
-yield_................._.w_raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
+yield_................._.w_raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
 yield_................._.w		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_..................._block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
 yield_..................._block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_..................._.w_raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
 yield_..................._.w		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+
+yield_qwk_targetWSum_block.		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_qwk_targetWSum_hw			TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_qwk_targetXAngle_block. 		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_qwk_targetXAngle_hw 		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_qwk_targetYAngle_block		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_qwk_targetYAngle_hw		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+
 
 asym_empty._block.              TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
 asym_empty._hw                  TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
@@ -198,6 +215,13 @@ asym_..................._block.    	TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
 asym_..................._hw		TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
 asym_qwk_......_............_block.	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 asym_qwk_......_............_.w	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+
+asym._qwk_0r06WSum_block.		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+asym._qwk_targetWSum_hw			TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+asym._qwk_targetXAngle_block. 		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+asym._qwk_targetXAngle_hw 		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+asym._qwk_targetYAngle_block		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+asym._qwk_targetYAngle_hw		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 
 
 
