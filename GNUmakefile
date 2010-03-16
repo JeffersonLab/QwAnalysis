@@ -123,7 +123,7 @@ INSTALL_DIR := $(strip $(shell $(ECHO) $(QWANALYSIS)$$( (if [ -d $(OS_HW_NAME)];
 ############################
 ############################
 
-EXCLUDEDIRS = coda Extensions
+EXCLUDEDIRS = evio Extensions
 
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
  ifneq ($(CODA),)
@@ -234,7 +234,7 @@ ifneq ($(shell test $(QW_LIB) -ef $(INSTALL_DIR)/lib || echo false),)
 endif
 
 
-EVIO := $(QWANALYSIS)/coda
+EVIO := $(QWANALYSIS)/evio
 
 
 
