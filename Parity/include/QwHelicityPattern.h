@@ -54,7 +54,7 @@ class QwHelicityPattern{
 
   QwSubsystemArrayParity  fYield;
   QwSubsystemArrayParity  fAsymmetry;
-  static const Bool_t bAlternateAsym=kFALSE; 
+  Bool_t bAlternateAsym; 
   QwSubsystemArrayParity  fAsymmetry1;
   QwSubsystemArrayParity  fAsymmetry2;
   
