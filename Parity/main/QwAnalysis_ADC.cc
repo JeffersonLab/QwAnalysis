@@ -51,9 +51,6 @@ static bool bTree = true;
 static bool bHisto = true;
 static bool bHelicity= true;
 
-// Branch for Scanner subsystem
-static const bool kScannerBranch = kTRUE;
-static const bool kScannerRaw = kTRUE;
 
 ///
 /// \ingroup QwAnalysis_ADC
@@ -176,8 +173,6 @@ int main(Int_t argc,Char_t* argv[]) {
         std::vector <Double_t> mpsvector;
         std::vector <Double_t> helvector;
 
-        //TString scanner_prefix = "scanner_";
-
         if (bTree) {
             rootfile.cd();
             mpstree=new TTree("MPS_Tree","MPS event data tree");
@@ -185,7 +180,6 @@ int main(Int_t argc,Char_t* argv[]) {
             mpstree->Branch("evnum",&evnum,"evnum/D");
             TString dummystr="";
 
-            scanner->StoreRawData(kScannerRaw);
             detectors.ConstructBranchAndVector(mpstree, dummystr, mpsvector);
 
             if (bHelicity) {

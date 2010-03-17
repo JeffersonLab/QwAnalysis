@@ -131,8 +131,8 @@ void  QwSIS3801_Module::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
   //  If we have defined a subdirectory in the ROOT file, then change into it.
   if (folder != NULL) folder->cd();
-  std::cerr << " QwSIS3801_Module::ConstructHistograms:  prefix==" << prefix
-	    << std::endl;
+  //std::cerr << " QwSIS3801_Module::ConstructHistograms:  prefix==" << prefix<< std::endl;
+
   for (size_t i=0; i<fChannels.size(); i++){
     if (fChannels.at(i).GetElementName()=="") {}
     else  fChannels.at(i).ConstructHistograms(folder, prefix);

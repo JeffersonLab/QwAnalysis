@@ -43,7 +43,6 @@ Bool_t kInQwBatchMode = kFALSE;
 
 // Branch for Scanner subsystem
 static const bool kScannerBranch = kTRUE;
-static const bool kScannerRaw = kFALSE;
 
 int main(Int_t argc,Char_t* argv[])
 {
@@ -202,10 +201,7 @@ int main(Int_t argc,Char_t* argv[])
 
     rootfile.cd();
     TTree* tree = new TTree("tree", "Scanner tree");
-            if (kScannerBranch) {
-                scanner->StoreRawData(kScannerRaw);
-                scanner->ConstructBranchAndVector(tree, scanner_prefix, scannervect);
-            }
+    if (kScannerBranch) scanner->ConstructBranchAndVector(tree, scanner_prefix, scannervect);
 
 
     int EvtCounter = 0;
