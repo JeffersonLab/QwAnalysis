@@ -28,49 +28,28 @@
 #include "QwInterpolator.h"
 
 /**
+ * Method to print arrays conveniently
+ * @param stream Output stream
+ * @param v Array of 3 doubles
+ * @return Output stream
+ */
+inline ostream& operator<< (ostream& stream, const double v[3])
+{
+  return stream << "(" << v[0] << "," << v[1] << "," << v[2] << ")";
+}
+
+/**
  * Default constructor with optional field map
  */
 QwMagneticField::QwMagneticField()
 {
-  QwDebug << "###### Calling QwMagneticField::QwMagneticField " << QwLog::endl;
+  // Initialize pointers
+  fField = 0;
 
-  // Initialize field map parameters
-  // Here: from the QTOR field map file
-
-  double rMinFromMap =     2.0;
-  double rMaxFromMap =   300.0;
-
-  double phiMinFromMap =    0.5; // grrrrr: due to the rotation...
-  double phiMaxFromMap =  359.5;
-
-  double zMinFromMap = -250.0;
-  double zMaxFromMap =  250.0;
-
-  double gridstepsize_r   = 2.0;
-  double gridstepsize_phi = 1.0;
-  double gridstepsize_z   = 2.0;
-
-  fUnitBfield = Qw::kG; // units of new field map, tested it (1kG = 0.1T)
-                        // used field unit tesla withs results in a too strong field
-
-  // Field map grid parameters
-  std::vector<double> min, max, step;
-  min.push_back(zMinFromMap);   max.push_back(zMaxFromMap);   step.push_back(gridstepsize_z);
-  min.push_back(rMinFromMap);   max.push_back(rMaxFromMap);   step.push_back(gridstepsize_r);
-  min.push_back(phiMinFromMap); max.push_back(phiMaxFromMap); step.push_back(gridstepsize_phi);
-
-  // Create the field map interpolator
-  fField = new QwInterpolator<float,5>(min,max,step);
-  fField->SetInterpolationMethod(kMultiLinear);
-
-  // Scale factor
-  SetFieldScalingFactor(1.04); // BFIL
-  // Translation
-  SetTranslation(0.0 * Qw::cm);
-  // Rotation in degrees, half an octant offset
-  SetRotation((-90.0 + 22.5) * Qw::deg);
-
-  QwDebug << "###### Leaving QwMagneticField::QwMagneticField " << QwLog::endl;
+  // Initialize parameters
+  SetFieldScalingFactor(1.0);
+  SetRotation(0.0);
+  SetTranslation(0.0);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -127,12 +106,51 @@ const bool QwMagneticField::ReadFieldMap(std::istream& input)
 {
   QwDebug << "###### Calling QwMagneticField::ReadFieldMap " << QwLog::endl;
 
+  // Field map parameters from the QTOR field map file
+  // These parameters are hard-coded because the field map itself does not
+  // contain this information explicitly.
+
+  double zMinFromMap = -250.0 * Qw::cm;
+  double zMaxFromMap =  250.0 * Qw::cm;
+
+  double rMinFromMap =     2.0 * Qw::cm;
+  double rMaxFromMap =   300.0 * Qw::cm;
+
+  double phiMinFromMap =    0.5 * Qw::deg; // grrrrr: due to the rotation...
+  double phiMaxFromMap =  359.5 * Qw::deg;
+
+  double gridstepsize_z   = 2.0 * Qw::cm;
+  double gridstepsize_r   = 2.0 * Qw::cm;
+  double gridstepsize_phi = 1.0 * Qw::deg;
+
+  // Field map grid parameters
+  // The ordering here is somewhat important!  Since tracks are in fairly
+  // constant phi planes, it makes sense to keep phi as the most significant
+  // index.  The largest changes happen in z, so that should be the least
+  // significant index.  This will allow us to use caching more efficiently.
+  std::vector<double> min, max, step;
+  min.push_back(zMinFromMap);   max.push_back(zMaxFromMap);   step.push_back(gridstepsize_z);
+  min.push_back(rMinFromMap);   max.push_back(rMaxFromMap);   step.push_back(gridstepsize_r);
+  min.push_back(phiMinFromMap); max.push_back(phiMaxFromMap); step.push_back(gridstepsize_phi);
+
+  // Create the field map interpolator
+  fField = new QwInterpolator<float,N_FIELD_COMPONENTS>(min,max,step);
+  fField->SetInterpolationMethod(kMultiLinear);
+
+  // Scale factor
+  SetFieldScalingFactor(1.04); // BFIL
+  // Translation
+  SetTranslation(0.0 * Qw::cm);
+  // Rotation in degrees, half an octant offset
+  SetRotation((-90.0 + 22.5) * Qw::deg);
+
+
   QwMessage << "------------------------------" << QwLog::endl;
-  QwMessage << " Magnetic field interpolation " << QwLog::endl;
+  QwMessage << "  Reading magnetic field map  " << QwLog::endl;
   QwMessage << "------------------------------" << QwLog::endl;
 
   // Declare variables
-  double r, z, phi, phi_rad;
+  double r, z, phi;
   field_t bx, by, bz, br, bphi, bx_new, by_new;
 
   // Check for stream
@@ -140,35 +158,47 @@ const bool QwMagneticField::ReadFieldMap(std::istream& input)
     QwError << "Error: Could not open field map stream!" << QwLog::endl;
     return false;
   }
-  field_t field[5];
-  while (input.good()) {
+
+  // Loop over stream until end-of-file
+  // Note: input.good() only says whether next operation *might* succeed
+  field_t field[N_FIELD_COMPONENTS];
+  while (! input.fail()) {
 
     // Read a line with three position coordinates and three field components
     input >> r >> z >> phi >> bx >> by >> bz;
+    if (! input.good()) continue;
+    // Fix the units
+    r *= Qw::cm; z *= Qw::cm; phi *= Qw::deg;
+    bx *= Qw::kG; by *= Qw::kG; bz *= Qw::kG;
 
     // Correct for translation along z
     z -= fTranslation;
 
     // Correct for rotation around z
-    phi -= fRotationDeg; if (phi < 0) phi += 360; if (phi > 360) phi -= 360;
+    phi -= fRotation;
+    if (phi < 0) phi += 2.0*Qw::pi;
+    if (phi > 2.0*Qw::pi) phi -= 2.0*Qw::pi;
     bx_new =  bx * fRotationCos + by * fRotationSin;
     by_new = -bx * fRotationSin + by * fRotationCos;
     bx = bx_new; by = by_new;
 
-    // Calculate the radial field components
-    phi_rad = phi * Qw::deg2rad;
-    br =    bx * cos(phi_rad) + by * sin(phi_rad);
-    bphi = -bx * sin(phi_rad) + by * cos(phi_rad);
-
     // Construct the coordinate
     double coord[3] = {z, r, phi};
 
-    // Construct the field
-    field[0] = bx * fUnitBfield * fFieldScalingFactor;
-    field[1] = by * fUnitBfield * fFieldScalingFactor;
-    field[2] = bz * fUnitBfield * fFieldScalingFactor;
-    field[3] = br * fUnitBfield * fFieldScalingFactor;
-    field[4] = bphi * fUnitBfield * fFieldScalingFactor;
+    // Construct the field vector
+    field[0] = bx * fFieldScalingFactor;
+    field[1] = by * fFieldScalingFactor;
+    field[2] = bz * fFieldScalingFactor;
+
+    if (N_FIELD_COMPONENTS == 5) {
+      // Calculate the radial and azimuthal field components
+      br =    bx * cos(phi) + by * sin(phi);
+      bphi = -bx * sin(phi) + by * cos(phi);
+
+      // Construct the field vector
+      field[3] = br * fFieldScalingFactor;
+      field[4] = bphi * fFieldScalingFactor;
+    }
 
     bool status = fField->Set(coord, field);
     if (! status) {
@@ -178,11 +208,11 @@ const bool QwMagneticField::ReadFieldMap(std::istream& input)
 
     // Progress bar
     if (fField->GetCurrentEntries() % (fField->GetMaximumEntries() / 10) == 0)
-      QwMessage << 100 * fField->GetCurrentEntries() / fField->GetMaximumEntries() << "%" << std::flush;
+      QwMessage << fField->GetCurrentEntries() / (fField->GetMaximumEntries() / 100) << "%" << std::flush;
     if (fField->GetCurrentEntries() % (fField->GetMaximumEntries() / 10) != 0
      && fField->GetCurrentEntries() % (fField->GetMaximumEntries() / 40) == 0)
       QwMessage << "." << std::flush;
-  };
+  }
   QwMessage << QwLog::endl;
 
   QwMessage << "Read from stream " << fField->GetCurrentEntries() << " entries" << QwLog::endl;
@@ -205,18 +235,46 @@ QwMagneticField::~QwMagneticField()
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 /**
  * Get a field value
- * @param point[] Point coordinates (x,y,z)
+ * @param coord_xyzz[] Cartesian coordinates (x,y,z)
  * @param field[] Field components (x,y,z,r,phi) (return)
  */
-void QwMagneticField::GetFieldValue(const double point[3], double field[5]) const
+void QwMagneticField::GetFieldValue(
+	const double coord_xyz[3],
+	double field[N_FIELD_COMPONENTS]) const
 {
-  double r = sqrt(point[0] * point[0] + point[1] * point[1]);
-  double phi = atan2(point[1], point[0]) * Qw::rad2deg;
-  if (phi < 0) phi += 360; if (phi > 360) phi -= 360;
-  double z = point[2];
+  // Convert from cartesian to cylindrical coordinates
+  double z   = coord_xyz[2];
+  double r   = sqrt(coord_xyz[0] * coord_xyz[0] + coord_xyz[1] * coord_xyz[1]);
+  double phi = atan2(coord_xyz[1], coord_xyz[0]); if (phi < 0) phi += 2.0*Qw::pi;
 
-  double coord[3] = {z, r, phi}; // ordering important!
+  // The ordering is important!  It has to agree with how the ordering is
+  // defined on initialization of the field map.  Since tracks are in fairly
+  // constant phi planes, it makes sense to keep phi as the most significant
+  // index.  The largest changes happen in z, so that should be the least
+  // significant index.  This will allow us to use caching more efficiently.
+  double coord_zrf[3] = {z, r, phi};
 
-  if (! fField->GetValue(coord,field))
-    QwError << "Could not get field value!" << QwLog::endl;
+  // The magnetic field object was not defined, return zero field and complain
+  if (!this) {
+    QwWarning << "No field map defined: assuming zero field!" << QwLog::endl;
+    for (unsigned int i = 0; i < N_FIELD_COMPONENTS; i++) field[i] = 0.0;
+    return;
+  }
+
+  // The interpolator was not defined, return zero field and complain
+  if (! fField) {
+    QwWarning << "No field map loaded: assuming zero field!" << QwLog::endl;
+    for (unsigned int i = 0; i < N_FIELD_COMPONENTS; i++) field[i] = 0.0;
+    return;
+  }
+
+  // Retrieve field value
+  bool status = fField->GetValue(coord_zrf,field);
+
+  // Warn if the coordinate was inside the field boundaries,
+  // but we still encountered a problem.
+  if (status == false && fField->InBounds(coord_zrf)) {
+    QwWarning << "Could not get field value at (z,r,phi) = " << coord_zrf << QwLog::endl;
+    QwWarning << "Will use field value (x,y,z) = " << field << QwLog::endl;
+  }
 }

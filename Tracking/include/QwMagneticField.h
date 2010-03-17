@@ -25,6 +25,10 @@
 // Forward declarations
 template <class value_t, unsigned int value_n> class QwInterpolator;
 
+// Definitions
+// - number of field component in the map (x,y,z,r,phi)
+#define N_FIELD_COMPONENTS 3
+
 // Field map storage data type
 typedef float field_t;
 
@@ -65,10 +69,12 @@ class QwMagneticField {
 
     /// Set the field rotation around z (with QwUnits)
     void SetRotation(const double rotation) {
-      fRotationDeg = rotation / Qw::deg; // unit conversion
-      fRotationRad = rotation / Qw::rad;
+      fRotation = rotation;
       fRotationCos = cos(rotation);
       fRotationSin = sin(rotation);
+       // Unit conversions
+      fRotationDeg = rotation / Qw::deg;
+      fRotationRad = rotation / Qw::rad;
     };
     /// Get the field rotation around z (with QwUnits)
     const double GetRotation() const
@@ -82,20 +88,32 @@ class QwMagneticField {
       { return fTranslation; };
 
     /// Get the cartesian components of the field value
-    void GetCartesianFieldValue(const double point[3], double field[3]) const {
-      double field_xyzrf[5];
-      GetFieldValue(point, field_xyzrf);
-      field[0] = field_xyzrf[0]; // x
-      field[1] = field_xyzrf[1]; // y
-      field[2] = field_xyzrf[2]; // z
+    void GetCartesianFieldValue(const double point_xyz[3], double field_xyz[3]) const {
+      double field[N_FIELD_COMPONENTS];
+      GetFieldValue(point_xyz, field);
+      if (N_FIELD_COMPONENTS == 3) {
+        field_xyz[0] = field[0]; // x
+        field_xyz[1] = field[1]; // y
+        field_xyz[2] = field[2]; // z
+      }
     };
     /// Get the cylindrical components of the field value
-    void GetCylindricalFieldValue(const double point[3], double field[3]) const {
-      double field_xyzrf[5];
-      GetFieldValue(point, field_xyzrf);
-      field[0] = field_xyzrf[3]; // r
-      field[1] = field_xyzrf[4]; // phi
-      field[2] = field_xyzrf[2]; // z
+    void GetCylindricalFieldValue(const double point_xyz[3], double field_rfz[3]) const {
+      double field[N_FIELD_COMPONENTS];
+      GetFieldValue(point_xyz, field);
+      if (N_FIELD_COMPONENTS == 3) {
+        double r = sqrt(field[0] * field[0] + field[1] * field[1]) ;
+        double phi = atan2(field[1],field[0]);
+        if (phi < 0) phi += 2.0 * Qw::pi;
+        field_rfz[0] = r; // r
+        field_rfz[1] = phi; // phi
+        field_rfz[2] = field[2]; // z
+      }
+      if (N_FIELD_COMPONENTS == 5) {
+        field_rfz[0] = field[3]; // r
+        field_rfz[1] = field[4]; // phi
+        field_rfz[2] = field[2]; // z
+      }
     };
 
     /// \brief Read a field map input file
@@ -108,14 +126,11 @@ class QwMagneticField {
   private:
 
     /// \brief Get the field value
-    void GetFieldValue(const double point[3], double field[5]) const;
+    void GetFieldValue(const double point[3], double field[N_FIELD_COMPONENTS]) const;
 
 
     /// Field interpolator object
-    QwInterpolator<field_t,5> *fField;
-
-    /// Units of field map
-    double fUnitBfield;
+    QwInterpolator<field_t,N_FIELD_COMPONENTS> *fField;
 
     /// Field scaling factor (BFIL)
     double fFieldScalingFactor;
@@ -125,7 +140,7 @@ class QwMagneticField {
     // system: rotation of +22.5 deg means that x in the map x is at +22.5 deg,
     // likewise a translation of +5 cm means that the zero in the map is at +5 cm
     // in the standard coordinate system.
-    double fRotationDeg, fRotationRad, fRotationCos, fRotationSin;
+    double fRotation, fRotationDeg, fRotationRad, fRotationCos, fRotationSin;
     double fTranslation;
 
 }; // class QwMagneticField
