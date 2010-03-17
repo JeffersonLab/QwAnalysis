@@ -67,20 +67,7 @@ class QwInterpolator {
       ReadBinaryFile(filename);
     };
     /// Destructor
-    virtual ~QwInterpolator() {
-      // Delete all non-null pointers
-      for (unsigned int index = 0; index < fValues.size(); index++)
-        if (fValues[index])
-          delete[] fValues[index];
-        else {
-          QwDebug << "Empty index: " << index << " at ";
-          coord_t coord[fNDim];
-          Coord(index,coord);
-          for (unsigned int dim = 0; dim < fNDim; dim++)
-            QwDebug << coord[dim] << " ";
-          QwDebug << QwLog::endl;
-        }
-    };
+    virtual ~QwInterpolator() { };
 
   private: // private member fields
 
@@ -101,7 +88,7 @@ class QwInterpolator {
     std::vector<size_t> fExtent;
 
     /// Table with pointers to arrays of values
-    std::vector<value_t*> fValues;
+    std::vector<value_t> fValues[value_n];
 
     /// Number of values read in
     unsigned int fEntries;
@@ -129,26 +116,35 @@ class QwInterpolator {
     };
     /// Set minimum, maximum, and step size to different values
     void SetMinimumMaximumStep(const std::vector<coord_t> min, const std::vector<coord_t> max, const std::vector<coord_t> step) {
+      // Set the dimensionality
       if (min.size() != fNDim) SetDimensions(min.size());
-      if (min.size() == fNDim && min.size() == fNDim && step.size() == fNDim) {
-        fMin = min; fMax = max; fStep = step;
-        fExtent[0] = 1;
-        for (size_t i = 0; i < fMin.size(); i++) {
-          coord_t int_part; // safer to use modf than a direct static cast
-          coord_t frac_part = modf((fMax[i] - fMin[i]) / fStep[i] + 1.0, &int_part);
-          fSize[i] = static_cast<unsigned int>(int_part) + (frac_part > 0.5 ? 1 : 0);
-          fExtent[i+1] = fExtent[i] * fSize[i];
-        }
-        // Try resizing to allocate memory (and initialize with null pointers)
-        fMaximumEntries = fExtent[fNDim]; fEntries = 0; // no entries read yet
+      // Check the dimensionality and assign boundaries and step size vectors
+      if (min.size() != fNDim || min.size() != fNDim || step.size() != fNDim) return;
+      fMin = min; fMax = max; fStep = step;
+      fExtent[0] = 1;
+      for (size_t i = 0; i < fMin.size(); i++) {
+        coord_t int_part; // safer to use modf than a direct static cast
+        coord_t frac_part = modf((fMax[i] - fMin[i]) / fStep[i] + 1.0, &int_part);
+        fSize[i] = static_cast<unsigned int>(int_part) + (frac_part > 0.5 ? 1 : 0);
+        fExtent[i+1] = fExtent[i] * fSize[i];
+      }
+      // Try resizing to allocate memory and initialize with zeroes
+      fMaximumEntries = fExtent[fNDim]; fEntries = 0; // no entries read yet
+      for (unsigned int i = 0; i < value_n; i++) {
         try {
-          fValues.resize(fMaximumEntries,0);
+          fValues[i].resize(fMaximumEntries,0);
         } catch (std::bad_alloc) {
-          QwError << "Could not allocate memory for object!" << QwLog::endl;
+          QwError << "QwInterpolator could not allocate memory for values!" << QwLog::endl;
         }
       }
     };
-    /// Get the maximum number of entries (reserved)
+    /// Get minimum in dimension
+    const coord_t GetMinimum(const unsigned int dim) const { return fMin.at(dim); };
+    /// Get maximum in dimension
+    const coord_t GetMaximum(const unsigned int dim) const { return fMax.at(dim); };
+    /// Get minimum in dimension
+    const coord_t GetStepSize(const unsigned int dim) const { return fStep.at(dim); };
+    /// Get the maximum number of entries
     const unsigned int GetMaximumEntries() const { return fMaximumEntries; };
     /// Get the current number of entries
     const unsigned int GetCurrentEntries() const { return fEntries; };
@@ -168,8 +164,10 @@ class QwInterpolator {
     };
 
 
+    /// \name Functions to write grid values
+    // @{
     /// Set a series of single values on a on-dimensional grid
-    const bool Set(const unsigned int n, const value_t* r, const value_t* p) {
+    const bool Set(const unsigned int n, const coord_t* r, const value_t* p) {
       if (value_n != 1) return false; // only for one-dimensional values
       if (fNDim != 1)   return false; // only for one-dimensional grids
       for (unsigned int i = 0; i < n; i++)
@@ -195,9 +193,8 @@ class QwInterpolator {
       if (! Check(cell_index)) return false; // out of bounds
       unsigned int linear_index = Index(cell_index);
       if (! Check(linear_index)) return false; // out of bounds
-      value_t* value_copy = new value_t[value_n];
-      for (unsigned int i = 0; i < value_n; i++) value_copy[i] = value[i];
-      fValues[linear_index] = value_copy;
+      for (unsigned int i = 0; i < value_n; i++)
+        fValues[i][linear_index] = value[i];
       fEntries++;
       return true;
     };
@@ -210,9 +207,8 @@ class QwInterpolator {
     /// Set a set of values at a linearized index (false if not possible)
     const bool Set(const unsigned int linear_index, const value_t* value) {
       if (! Check(linear_index)) return false; // out of bounds
-      value_t* value_copy = new value_t[value_n];
-      for (unsigned int i = 0; i < value_n; i++) value_copy[i] = value[i];
-      fValues[linear_index] = value_copy;
+      for (unsigned int i = 0; i < value_n; i++)
+        fValues[i][linear_index] = value[i];
       fEntries++;
       return true;
     };
@@ -225,13 +221,15 @@ class QwInterpolator {
     /// Set a set of values at a grid point (false if out of bounds)
     const bool Set(const unsigned int* cell_index, const value_t* value) {
       if (! Check(cell_index)) return false; // out of bounds
-      value_t* value_copy = new value_t[value_n];
-      for (unsigned int i = 0; i < value_n; i++) value_copy[i] = value[i];
-      fValues[Index(cell_index)] = value_copy;
+      for (unsigned int i = 0; i < value_n; i++)
+        fValues[i][Index(cell_index)] = value[i];
       return true;
     };
+    // @}
 
 
+    /// \name Functions to retrieve interpolated values
+    // @{
     /// Get the interpolated value at coordinate (zero if out of bounds)
     const value_t GetValue(const coord_t& coord) const {
       if (value_n != 1) return false; // only for one-dimensional values
@@ -270,8 +268,11 @@ class QwInterpolator {
       for (unsigned int i = 0; i < value_n; i++) value[i] = result[i]; // cast
       return true;
     };
+    // @}
 
 
+    /// \name File reading and writing
+    // @{
     /// \brief Write the grid as text
     const bool WriteText(std::ostream& stream) const;
     /// Write the grid to text file
@@ -287,7 +288,6 @@ class QwInterpolator {
       WriteText(std::cout);
       return true;
     };
-
     /// \brief Read the grid from text
     const bool ReadText(std::istream& stream);
     /// Read the grid from text file
@@ -298,15 +298,15 @@ class QwInterpolator {
       file.close();
       return true;
     };
-
     /// \brief Write the grid values to binary file
     const bool WriteBinaryFile(std::string filename) const;
     /// \brief Read the grid values from binary file
     const bool ReadBinaryFile(std::string filename);
+    // @}
 
 
-  private: // private methods
-
+    /// \name Indexing functions (publicly available and unchecked)
+    // @{
     /// Return the linearized index based on the point coordinates (unchecked)
     const unsigned int Index(const coord_t* coord) const {
       unsigned int cell_index[fNDim];
@@ -332,6 +332,9 @@ class QwInterpolator {
     void Coord(const unsigned int* cell_index, coord_t* coord) const;
     /// \brief Return the coordinates based on the linearized index (unchecked)
     void Coord(const unsigned int linear_index, coord_t* coord) const;
+    // @}
+
+  private: // private methods
 
     /// Return the cell index closest to the coordinate (could be above) (unchecked)
     void Nearest(const coord_t* coord, unsigned int* cell_index) const {
@@ -357,18 +360,17 @@ class QwInterpolator {
     /// Get a single value by cell index (unchecked)
     const value_t Get(const unsigned int* cell_index) const {
       if (value_n != 1) return 0; // only for one-dimensional values
-      return fValues[Index(cell_index)][0];
+      return fValues[0][Index(cell_index)];
     };
 
     /// Get a single value by linearized index (unchecked)
     const value_t Get(const unsigned int index) const {
-      return fValues[index][0];
+      return fValues[0][index];
     };
     /// Get a vector value by linearized index (unchecked)
     const bool Get(const unsigned int index, value_t* value) const {
-      if (! fValues[index]) return false; // null pointer!
       for (unsigned int i = 0; i < value_n; i++)
-        value[i] = fValues[index][i];
+        value[i] = fValues[i][index];
       return true;
     };
 
@@ -620,14 +622,10 @@ inline const bool QwInterpolator<value_t,value_n>::WriteText(std::ostream& strea
   for (unsigned int dim = 0; dim < fNDim; dim++)
     stream << dim << "\t" << fMin[dim] << "\t" << fMax[dim] << "\t" << fStep[dim] << std::endl;
   // Write the values
-  stream << fValues.size() << std::endl;
-  for (unsigned int index = 0; index < fValues.size(); index++) {
-    if (fValues[index] == 0)
-      for (unsigned int i = 0; i < value_n; i++)
-        stream << 0 << "\t"; // null pointers
-    else
-      for (unsigned int i = 0; i < value_n; i++)
-        stream << fValues[index][i] << "\t";
+  stream << fValues[0].size() << std::endl;
+  for (unsigned int index = 0; index < fValues[0].size(); index++) {
+    for (unsigned int i = 0; i < value_n; i++)
+      stream << fValues[i][index] << "\t";
     stream << std::endl;
   }
   stream << "end" << std::endl;
@@ -655,9 +653,8 @@ inline const bool QwInterpolator<value_t,value_n>::ReadText(std::istream& stream
   unsigned int entries;
   stream >> entries;
   for (unsigned int index = 0; index < entries; index++) {
-    if (! fValues[index]) fValues[index] = new value_t[value_n];
     for (unsigned int i = 0; i < value_n; i++)
-      stream >> fValues[index][i];
+      stream >> fValues[i][index];
     // Progress bar
     fEntries++;
     if (fEntries % (fMaximumEntries / 10) == 0)
@@ -702,16 +699,13 @@ inline const bool QwInterpolator<value_t,value_n>::WriteBinaryFile(std::string f
     file.write(reinterpret_cast<const char*>(&fMax[dim]),sizeof(fMax[dim]));
     file.write(reinterpret_cast<const char*>(&fStep[dim]),sizeof(fStep[dim]));
   }
-  uint32_t entries = fValues.size();
+  uint32_t entries = fValues[0].size();
   file.write(reinterpret_cast<const char*>(&entries),sizeof(entries));
-  for (unsigned int index = 0; index < fValues.size(); index++) {
-    value_t* value = fValues[index]; value_t zero = 0;
-    if (value) // Write values for valid pointers
-      for (unsigned int i = 0; i < value_n; i++)
-        file.write(reinterpret_cast<const char*>(&value[i]),sizeof(value[i]));
-    else // ... and write zero for undefined pointers
-      for (unsigned int i = 0; i < value_n; i++)
-        file.write(reinterpret_cast<const char*>(&zero),sizeof(zero));
+  for (unsigned int index = 0; index < fValues[0].size(); index++) {
+    for (unsigned int i = 0; i < value_n; i++) {
+      value_t value = fValues[i][index];
+      file.write(reinterpret_cast<const char*>(&value),sizeof(value));
+    }
   }
   file.close();
   return true;
@@ -751,10 +745,9 @@ inline const bool QwInterpolator<value_t,value_n>::ReadBinaryFile(std::string fi
   uint32_t maximum_entries;
   file.read(reinterpret_cast<char*>(&maximum_entries),sizeof(maximum_entries));
   if (maximum_entries != fMaximumEntries) return false; // not expected number of entries
-  for (unsigned int index = 0; index < fValues.size(); index++) {
-    if (! fValues[index]) fValues[index] = new value_t[value_n];
+  for (unsigned int index = 0; index < fValues[0].size(); index++) {
     for (unsigned int i = 0; i < value_n; i++)
-      file.read(reinterpret_cast<char*>(&fValues[index][i]),sizeof(fValues[index][i]));
+      file.read(reinterpret_cast<char*>(&fValues[i][index]),sizeof(fValues[i][index]));
     // Progress bar
     fEntries++;
     if (fEntries % (fMaximumEntries / 10) == 0)
