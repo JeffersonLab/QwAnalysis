@@ -66,17 +66,10 @@ class QwTreeEventBuffer
     QwEvent* GetEvent() const;
 
     /// \brief Get the hit list
-    QwHitContainer* GetHitList() const;
+    QwHitContainer* GetHitList(const bool resolution_effects = true) const;
 
     /// \brief Get the partial tracks
     std::vector<QwPartialTrack*> GetPartialTracks(EQwRegionID region) const;
-
-    /// Enable resolution effects (smearing of drift distances)
-    void EnableResolutionEffects() { fDoResolutionEffects = true; };
-    /// Disable resolution effects (smearing of drift distances)
-    void DisableResolutionEffects() { fDoResolutionEffects = false; };
-    /// Get the status of resolution effects simulation
-    const bool GetResolutionEffects() const { return fDoResolutionEffects; };
 
     /// Get the number of entries in the loaded run
     const int GetEntries() const { return fEntries; };
@@ -88,8 +81,6 @@ class QwTreeEventBuffer
 
   private:
 
-    /// Resolution effects flag
-    bool fDoResolutionEffects;
     // Randomness provider and distribution for resolution effects
     boost::mt19937 fRandomnessGenerator; // Mersenne twister
     boost::normal_distribution<double> fNormalDistribution;
@@ -113,11 +104,11 @@ class QwTreeEventBuffer
     /// \name Create hit at from the track position (x,y) and track momentum (mx,my)
     // @{
     /// \brief Create a set of hits for one track in region 1
-    std::vector<QwHit> CreateHitRegion1(const QwDetectorInfo* detectorinfo, const double x, const double y) const;
+    std::vector<QwHit> CreateHitRegion1(const QwDetectorInfo* detectorinfo, const double x, const double y, const bool resolution_effects) const;
     /// \brief Create a hit for one track in region 2
-    QwHit* CreateHitRegion2(const QwDetectorInfo* detectorinfo, const double x, const double y) const;
+    QwHit* CreateHitRegion2(const QwDetectorInfo* detectorinfo, const double x, const double y, const bool resolution_effects) const;
     /// \brief Create a set of hits for one track in region 3
-    std::vector<QwHit> CreateHitRegion3(const QwDetectorInfo* detectorinfo, const double x, const double y, const double mx, const double my) const;
+    std::vector<QwHit> CreateHitRegion3(const QwDetectorInfo* detectorinfo, const double x, const double y, const double mx, const double my, const bool resolution_effects) const;
     // @}
 
 

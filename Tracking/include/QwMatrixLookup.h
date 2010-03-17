@@ -14,7 +14,9 @@
 
 // Qweak headers
 #include "VQwBridgingMethod.h"
-#include "QwTrajMatrix.h"
+
+// Forward declarations
+template <class value_t, unsigned int value_n> class QwInterpolator;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -26,61 +28,30 @@ class QwMatrixLookup: public VQwBridgingMethod {
   public:
 
     /// \brief Default constructor
-    QwMatrixLookup() { };
+    QwMatrixLookup();
     /// \brief Destructor
-    virtual ~QwMatrixLookup() { };
+    virtual ~QwMatrixLookup();
 
-    /// \brief Load the matrix lookup table from disk
-    static bool LoadTrajMatrix(const std::string filename);
+    /// \brief Load the trajectory matrix from disk
+    const bool LoadTrajMatrix(const std::string filename);
+    /// \brief Write the trajectory matrix to disk
+    const bool WriteTrajMatrix(const std::string filename);
 
     /// \brief Bridge from the front to back partial track
-    int Bridge(QwPartialTrack* front, QwPartialTrack* back);
-
-    // TEMP
-    void SetStartAndEndPoints(TVector3 startposition, TVector3 startdirection,
-                              TVector3 endposition, TVector3 enddirection);
-
-    // TEMP
-    TVector3 fStartPosition, fStartDirection;
-    double fStartPositionR, fStartPositionPhi;
-    double fStartDirectionTheta, fStartDirectionPhi;
-    //
-    TVector3 fEndPosition, fEndDirection;
-    double fEndPositionR, fEndPositionPhi;
-    double fEndDirectionTheta, fEndDirectionPhi;
-
-    // TEMP
-    void GetBridgingResult(Double_t *buffer);
+    const int Bridge(const QwPartialTrack* front, const QwPartialTrack* back);
 
   private:
 
-    /// Lookup table (static)
-    static QwTrajMatrix* fMatrix;
+    /// Front and back reference planes
+    double fFrontRefPlane;
+    double fBackRefPlane;
 
-    double fMomentum;  /// electron momentum
-
-    TVector3 fHitLocation, fHitDirection;
-    double fHitLocationR, fHitLocationPhi;
-    double fHitDirectionTheta, fHitDirectionPhi;
-
-    double fPositionROff;
-    double fPositionPhiOff;
-    double fDirectionThetaOff;
-    double fDirectionPhiOff;
-
-    double fPositionXOff;
-    double fPositionYOff;
-
-    double fDirectionXOff;
-    double fDirectionYOff;
-    double fDirectionZOff;
-
-    Int_t fMatchFlag; // MatchFlag = -2 : cannot match
-                      // MatchFlag = -1 : potential track cannot pass through the filter
-                      // MatchFlag = 0; : matched with look-up table
-                      // MatchFlag = 1; : matched by using shooting method
-                      // MatchFlag = 2; : potential track is forced to match
-
+    /// Look-up table minimum, maximum and step size
+    std::vector<double> fMin;
+    std::vector<double> fMax;
+    std::vector<double> fStep;
+    /// Look-up table
+    QwInterpolator<float,4> *fMatrix;
 
 }; // class QwMatrixLookup
 

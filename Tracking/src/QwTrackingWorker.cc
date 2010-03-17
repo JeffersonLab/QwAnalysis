@@ -909,7 +909,6 @@ QwEvent* QwTrackingWorker::ProcessHits (
                                      event->parttrack[package][kRegionID3][kTypeDriftVDC]->uvR3hit[1],
                                      event->parttrack[package][kRegionID3][kTypeDriftVDC]->uvR3hit[2]);
 
-                raytracer->SetStartAndEndPoints(R2hit, R2direction, R3hit, R3direction);
                 int status = raytracer->Bridge(event->parttrack[package][kRegionID2][kTypeDriftHDC], event->parttrack[package][kRegionID3][kTypeDriftVDC]);
 
                 if (status == 0){

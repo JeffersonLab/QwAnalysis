@@ -35,47 +35,12 @@
 // Qweak headers
 #include "VQwBridgingMethod.h"
 #include "QwMagneticField.h"
-#include "QwTrajMatrix.h"
 #include "QwPartialTrack.h"
-
-// ROOT Math Interpolator headers
-#if defined __ROOT_HAS_MATHMORE && ROOT_VERSION_CODE >= ROOT_VERSION(5,18,0)
-# include <Math/Interpolator.h>
-#else
-# warning "The QwRayTracer look-up table momentum determination will not be built!"
-#endif
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-// degree = 180.0/3.1415926535897932
-#define DEGREE 57.295779513
-
 // scale factor of the magnetic field
 #define BSCALE 1.04
-
-// maximum iteration of shooting method
-#define MAX_ITERATION 10
-
-// lool-up table parameters, p in [MeV], r and z in [cm], theta and phi in [degree]
-#define P_MAX          1180
-#define P_MIN          980
-#define DP             10
-#define P_GRIDSIZE     ((P_MAX-P_MIN)/DP+1)
-
-#define R_MAX          100
-#define R_MIN          30
-#define DR             1
-#define R_GRIDSIZE     ((R_MAX-R_MIN)/DR+1)
-
-#define PHI_MAX        360
-#define PHI_MIN        0
-#define DPHI           1
-#define PHI_GRIDSIZE   ((PHI_MAX-PHI_MIN)/DPHI+1)
-
-#define VERTEXZ_MAX    -630
-#define VERTEXZ_MIN    -670
-#define DZ             2
-#define Z_GRIDSIZE     ((VERTEXZ_MAX-VERTEXZ_MIN)/DZ+1)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -88,24 +53,25 @@ class QwBridge;
 
 class QwRayTracer: public VQwBridgingMethod {
 
-public:
-    QwRayTracer();
-    ~QwRayTracer();
+  public:
 
-    static bool LoadMagneticFieldMap(const std::string filename);
+    /// Default constructor
+    QwRayTracer();
+    /// Destructor
+    virtual ~QwRayTracer();
+
+    static const bool LoadMagneticFieldMap(const std::string filename);
 
     void GenerateLookUpTable();
 
-    void SetStartAndEndPoints(TVector3 startposition, TVector3 startdirection,
-                              TVector3 endposition, TVector3 enddirection);
-
-    int Bridge(QwPartialTrack* front, QwPartialTrack* back);
+    const int Bridge(const QwPartialTrack* front, const QwPartialTrack* back);
 
     int DoForcedBridging() {
         return -1;
     };
 
-    int Integrate(double e0, double step);
+    /// \brief Integrate using the Runge-Kutta 4th order algorithm
+    const bool IntegrateRK4(TVector3& r0, TVector3& v0, const double p0, double z_end, const double step);
 
     QwBridge* GetBridgingInfo();
 
@@ -113,30 +79,11 @@ public:
         return fMomentum;
     };
 
-    TVector3 GetHitLocation() {
-        return fHitDirection;
+    TVector3 GetHitPosition() {
+        return fHitPosition;
     };
-    double GetHitLocationX() {
-        return fHitLocation.X();
-    };
-    double GetHitLocationY() {
-        return fHitLocation.Y();
-    };
-    double GetHitLocationZ() {
-        return fHitLocation.Z();
-    };
-
     TVector3 GetHitDirection() {
         return fHitDirection;
-    };
-    double GetHitDirectionX() {
-        return fHitDirection.X();
-    };
-    double GetHitDirectionY() {
-        return fHitDirection.Y();
-    };
-    double GetHitDirectionZ() {
-        return fHitDirection.Z();
     };
 
     TVector3 GetFieldIntegral() {
@@ -158,13 +105,7 @@ public:
 
 public:
 
-    int Filter();
-    int Filter(QwPartialTrack* front, QwPartialTrack* back);
-
-private:
-
-    int Shooting();
-    double EstimateInitialMomentum(TVector3 direction);
+    const int Filter(QwPartialTrack* front, QwPartialTrack* back);
 
 private:
 
@@ -177,19 +118,7 @@ private:
 
     double fMomentum;  /// electron momentum
 
-    std::vector <QwPartialTrackParameter> fBackTrackParameterTable;  /// look-up table
-
-    TVector3 fStartPosition, fStartDirection;
-    double fStartPositionR, fStartPositionPhi;
-    double fStartDirectionTheta, fStartDirectionPhi;
-
-    TVector3 fEndPosition, fEndDirection;
-    double fEndPositionR, fEndPositionPhi;
-    double fEndDirectionTheta, fEndDirectionPhi;
-
-    TVector3 fHitLocation, fHitDirection;
-    double fHitLocationR, fHitLocationPhi;
-    double fHitDirectionTheta, fHitDirectionPhi;
+    TVector3 fHitPosition, fHitDirection;
 
     double fPositionROff;
     double fPositionPhiOff;
