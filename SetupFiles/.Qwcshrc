@@ -50,10 +50,21 @@ if (-f /bin/bash) then
 else if (-f /bin/ksh) then
   setenv QWSHELL ksh
 else
-  echo \*\*\* WARNING : couldn\'t find either bash or ksh on system
+  echo \*\*\* WARNING : could not find either bash or ksh on system
   echo '    ' --'>' NO MODULARITY : use \'gmake -f Makefile\' instead
 endif
 endif
 
-
 rehash
+
+#  Set aliases for the standard analyzers if they are are
+#  not execuatable after the rehash.
+#  Basically we're just creating an alias if the file isn't
+#  compiled yet, so that the user doesn't need to rehash
+#  after compiling.
+foreach exefile (qwanalysis_adc qwanalysis_beamline qwsimtracking  qwtracking)
+    unalias $exefile
+    if (! -x ${QW_BIN}/$exefile) then
+	alias $exefile ${QW_BIN}/$exefile
+    endif
+end
