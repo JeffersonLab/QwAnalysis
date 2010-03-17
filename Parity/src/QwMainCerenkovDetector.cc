@@ -623,7 +623,8 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
        variable_iter != variable_list.end(); variable_iter++) {
     VQwDataElement* variable = *variable_iter;
     if (RequestExternalValue(variable->GetElementName(), variable)) {
-      //variable->Print();
+      if(bDEBUG)
+         dynamic_cast<QwVQWK_Channel*>(variable)->Print();
     } else {
       bIsExchangedDataValid = kFALSE;
       QwError << GetSubsystemName() << " could not get external value for "
@@ -635,8 +636,22 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
 void  QwMainCerenkovDetector::ProcessEvent_2()
 {
   if(bIsExchangedDataValid){
+  // pqwang: Paul's suggestions about the exchanged beamline data
+  // "For that purpose, you should expect the value passed to you for
+  // 'q_targ' to be the properly calibrated beam current on target.
+  // And as we start to look at implementing regression on the positions,
+  // etc, you should expect the other variables passed to the main detector
+  // to be properly calibrated as well.
+  // Clearly there will be some lag between when new calibrations are
+  // determined and when they are applied, but the proper place to handle
+  // beam parameter calibrations is internal to the beam line data
+  // elements."
+
     //data is valid, process it
     if(bDEBUG) std::cout<<"QwMainCerenkovDetector::ProcessEvent_2(): processing with exchanged data"<<std::endl;
+    Double_t volts = fTargetCharge.GetAverageVolts();
+    if(bDEBUG)
+       std::cout<<"average volts = "<<volts<<std::endl;
 
   }
   else {

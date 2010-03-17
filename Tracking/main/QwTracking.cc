@@ -57,9 +57,11 @@ static const bool kTracking = kTRUE;
 static const bool kTree = kTRUE;
 static const bool kHisto = kTRUE;
 
+static const bool kMainDetBranch = kTRUE;
+
 // Branch for Scanner subsystem
 static const bool kScannerBranch = kTRUE;
-static const bool kScannerRaw = kFALSE;
+static const bool kScannerRaw = kTRUE;
 
 // Main function
 Int_t main(Int_t argc, Char_t* argv[]) {
@@ -118,8 +120,10 @@ Int_t main(Int_t argc, Char_t* argv[]) {
     detectors.push_back(new QwTriggerScintillator("TS"));
     ((VQwSubsystemTracking*) detectors.GetSubsystem("TS"))->LoadChannelMap("trigscint_cosmics.map");
     // Main detector
-    //detectors.push_back(new QwMainDetector("MD"));
-    //detectors.GetSubsystem("MD")->LoadChannelMap("maindet_cosmics.map");
+    detectors.push_back(new QwMainDetector("MD"));
+    detectors.GetSubsystem("MD")->LoadChannelMap("maindet_cosmics.map");
+    QwMainDetector* maindetector = dynamic_cast<QwMainDetector*> (detectors.GetSubsystem("MD"));
+    // Scanner
     detectors.push_back(new QwScanner("FPS"));
     ((VQwSubsystemTracking*) detectors.GetSubsystem("FPS"))->LoadChannelMap("scanner_channel.map" );
     ((VQwSubsystemTracking*) detectors.GetSubsystem("FPS"))->LoadInputParameters("scanner_parameter.map");
@@ -191,9 +195,8 @@ Int_t main(Int_t argc, Char_t* argv[]) {
         }
 
         rootfile = new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%s.root",
-                                  eventbuffer.GetRunLabel().Data()),
-                             "RECREATE",
-                             "QWeak ROOT file with real events");
+                                  eventbuffer.GetRunLabel().Data()), "RECREATE",
+                                  "QWeak ROOT file with real events");
         //    std::auto_ptr<TFile> rootfile (new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
         //   					"RECREATE",
         //   					"QWeak ROOT file with real events"));
@@ -214,7 +217,8 @@ Int_t main(Int_t argc, Char_t* argv[]) {
         QwEvent* event = 0;
         QwHitRootContainer* rootlist = 0;
         std::vector<Double_t> scannervect;
-        TString scanner_prefix = "scanner_";
+
+        TString prefix = "";
 
         if (kTree) {
             rootfile->cd(); // back to the top directory
@@ -222,10 +226,15 @@ Int_t main(Int_t argc, Char_t* argv[]) {
             rootlist = new QwHitRootContainer();
             tree->Branch("hits", "QwHitRootContainer", &rootlist);
             tree->Branch("events", "QwEvent", &event);
+
+            if (kMainDetBranch)
+               maindetector->ConstructBranchAndVector(tree, prefix);
+
             if (kScannerBranch) {
                 scanner->StoreRawData(kScannerRaw);
-                scanner->ConstructBranchAndVector(tree, scanner_prefix, scannervect);
+                scanner->ConstructBranchAndVector(tree, prefix, scannervect);
             }
+
         }
 
         if (kHisto) {
@@ -262,6 +271,10 @@ Int_t main(Int_t argc, Char_t* argv[]) {
             // Process the event
             detectors.ProcessEvent();
 
+            if (kMainDetBranch) {
+                maindetector->FillTreeVector();
+            }
+
             if (kScannerBranch) {
                 scanner->FillTreeVector(scannervect);
             }
@@ -281,7 +294,7 @@ Int_t main(Int_t argc, Char_t* argv[]) {
             hitlist->sort();
 
 
-            if (hitlist->size() == 0 && kScannerBranch)   tree->Fill();
+            if (hitlist->size() == 0 && (kScannerBranch || kMainDetBranch))   tree->Fill();
 
             // Skip empty events
             if (hitlist->size() == 0) continue;
