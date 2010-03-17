@@ -134,7 +134,8 @@ void  QwSIS3801_Module::ConstructHistograms(TDirectory *folder, TString &prefix)
   std::cerr << " QwSIS3801_Module::ConstructHistograms:  prefix==" << prefix
 	    << std::endl;
   for (size_t i=0; i<fChannels.size(); i++){
-    fChannels.at(i).ConstructHistograms(folder, prefix);
+    if (fChannels.at(i).GetElementName()=="") {}
+    else  fChannels.at(i).ConstructHistograms(folder, prefix);
   }
 };
 

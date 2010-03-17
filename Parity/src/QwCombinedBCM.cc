@@ -37,11 +37,11 @@ void QwCombinedBCM::SetCalibrationFactor(Double_t calib)
 	return;
 };
 
-void QwCombinedBCM::Add(QwBCM* bcm, Double_t weight  ){
+void QwCombinedBCM::Set(QwBCM* bcm, Double_t weight, Double_t sumqw ){
 
   fElement.push_back(bcm);
   fWeights.push_back(weight);
-
+  fSumQweights=sumqw;
   //std::cout<<"QwCombinedBCM: Got "<<bcm->GetElementName()<<"  and weight ="<<weight<<"\n";
   }
   
@@ -110,30 +110,18 @@ void  QwCombinedBCM::ProcessEvent()
 {
  
   Bool_t ldebug = kFALSE;
-  static QwVQWK_Channel  tmpADC; 
-  Double_t  total_weights=0;
+  static QwVQWK_Channel  tmpADC("tmpADC"); 
 
-  fCombined_bcm.ClearEventData();
- 
   for(size_t i=0;i<fElement.size();i++)
   {  
-   
-    //std::cout<<"*******************************\n";
-    //std::cout<<"Reading bcm : "<<fElement[i]->GetElementName()<<" and its weight = "<<fWeights[i]<<"\n";
-    
-    tmpADC.Copy(&(fElement[i]->fTriumf_ADC));
     tmpADC=fElement[i]->fTriumf_ADC;
-    //std::cout<<"get  hw_sum = "<<tmpADC.GetHardwareSum()<<" vs     actual "<<(fElement[i]-> fTriumf_ADC).GetHardwareSum()<<std::endl;
-
     tmpADC.Scale(fWeights[i]);
-    //std::cout<<"scaled  hw_sum = "<<tmpADC.GetHardwareSum()<<std::endl;
     fCombined_bcm+=tmpADC;
-    //std::cout<<"fcombined bcm  hw_sum = "<<fCombined_bcm.GetHardwareSum()<<std::endl;
-    total_weights +=fWeights[i];
   }
   
   //std::cout<<"total weights = "<<total_weights<<"\n";
-  fCombined_bcm.Scale(1.0/total_weights);
+  fCombined_bcm.Scale(1.0/fSumQweights);
+
 
   if(ldebug){
     std::cout<<"***************** \n";
@@ -243,6 +231,24 @@ void QwCombinedBCM::Print() const
 }
 
 /********************************************************/
+Bool_t QwCombinedBCM::ApplyHWChecks()
+{
+  Bool_t fEventIsGood=kTRUE;
+   
+//   fDeviceErrorCode=0;
+//   for(int i=0;i<4;i++) 
+//     {
+//       fDeviceErrorCode|= fCombinedWire[i].ApplyHWChecks();  //OR the error code from each wire
+//       fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 since zero means HW is good.	
+      
+//       if (bDEBUG) std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;  
+//       if (bDEBUG) std::cout<<" wire[ "<<i<<" ] sequence num "<<fCombinedWire[i].GetSequenceNumber()<<" sample size "<<fWire[i].GetNumberOfSamples()<<std::endl;
+//     }
+
+  return fEventIsGood;
+};
+
+/********************************************************/
 void  QwCombinedBCM::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
   if (GetElementName()=="")
@@ -315,7 +321,6 @@ void  QwCombinedBCM::Copy(VQwDataElement *source)
 	{
 	  QwCombinedBCM* input=((QwCombinedBCM*)source);
 	  this->fElementName=input->fElementName;
-	  //std::cout<<this->fElementName<<"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n";
 	  this->fCombined_bcm.Copy(&(input->fCombined_bcm));	  
 	}
       else

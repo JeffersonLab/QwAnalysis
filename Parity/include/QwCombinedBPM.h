@@ -33,13 +33,13 @@ class QwCombinedBPM : public VQwDataElement{
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
 
   void  InitializeChannel(TString name, Bool_t ROTATED);
-  void  Add(QwBPMStripline* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight); //bbbbb
+  void SetOffset(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset);
+
+
+
+  void  Set(QwBPMStripline* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,Double_t sumqw); 
 
   void  ClearEventData();
-  void  SetRandomEventAsymmetry(Double_t asymmetry);
-  void  SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t meanY, Double_t sigmaY);
-  void  RandomizeEventData(int helicity);
-  void  SetEventData(Double_t* block, UInt_t sequencenumber);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
 
   void  ProcessEvent();
@@ -49,7 +49,6 @@ class QwCombinedBPM : public VQwDataElement{
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t SetSingleEventCuts(std::vector<Double_t> &);
-  void SetDefaultSampleSize(Int_t sample_size);
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Int_t GetEventcutErrorFlag(){//return the error flag 
     return fDeviceErrorCode;
@@ -59,8 +58,6 @@ class QwCombinedBPM : public VQwDataElement{
   
 
   void Copy( VQwDataElement *source);
-  Double_t SumOver( std::vector <Double_t> weight , std::vector <Double_t> val); //bbbbbbbb
-  void LeastSquareFit( Int_t pos, Double_t A, Double_t B, Double_t C, Double_t D, Double_t E, Double_t F ); //bbbbb
 
 
   QwCombinedBPM& operator=  (const QwCombinedBPM &value);
@@ -74,14 +71,10 @@ class QwCombinedBPM : public VQwDataElement{
   void Calculate_Running_Average();
   void Do_RunningSum(); 
 
-  void SetPedestal(Double_t ped);
-  void SetCalibrationFactor(Double_t calib);
-
-  void SetOffset(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset);
- /*  UInt_t GetSubElementIndex(TString subname); */
-/*   TString GetSubElementName(Int_t subindex); */
-/*   void SetSubElementPedestal(Int_t j, Double_t value); */
-/*   void SetSubElementCalibrationFactor(Int_t j, Double_t value); */
+  /* Functions for least squared fir */
+  void CalculateFixedParameter(std::vector<Double_t> fWeights, Int_t pos);
+  Double_t SumOver( std::vector <Double_t> weight , std::vector <QwVQWK_Channel> val); 
+  void LeastSquareFit( Int_t pos, std::vector<Double_t> fWeights) ; //bbbbb
 
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
@@ -100,15 +93,15 @@ class QwCombinedBPM : public VQwDataElement{
   /* Rotation factor for the BPM which antenna are at 45 deg */
   static const Double_t kRotationCorrection;
 
-  std::vector <QwBPMStripline*> fElement; //bbbbb
-  std::vector <Double_t> fQWeights; //bbbbb
-  std::vector <Double_t> fXWeights; //bbbbb
-  std::vector <Double_t> fYWeights; //bbbbb
-
+  std::vector <QwBPMStripline*> fElement; 
+  std::vector <Double_t> fQWeights; 
+  std::vector <Double_t> fXWeights; 
+  std::vector <Double_t> fYWeights; 
  
+  Double_t fSumQweights; //sum of all the weights for charge
+
 
  protected:
-  //static const TString subelement[4];
   static const TString axis[3];
 
   Double_t fComboOffset[3];
@@ -116,21 +109,28 @@ class QwCombinedBPM : public VQwDataElement{
   Bool_t bFullSave; // used to restrict the amount of data histogramed
 
   Bool_t fGoodEvent; 
+  Bool_t fixedParamCalculated;
 
-  Double_t a[2],b[2],erra[2],errb[2],covab[2];
+  //used for least squares fit
+  Double_t fIntersept[2];
+  Double_t erra[2],errb[2],covab[2];
+  Double_t A[2], B[2], C[2], D[2], E[2], F[2], m[2];
+  Double_t chi_square[2];
+
 
   Double_t fULimitX, fLLimitX, fULimitY, fLLimitY;//this sets the upper and lower limits on the X & Y of the BPM stripline
  
 
 
-  // QwVQWK_Channel fCombinedWire[4]; //bbbb individual wires at the target
-  QwVQWK_Channel fCombinedWSum; //bbbb  charge at the target
+  /*This channel contains the 4-wire sum of the combined bpm at the target;equivalant to a charge*/
+  QwVQWK_Channel fCombinedWSum; 
 
+  /* These channels contain the beam position at the target within the frame of the BPM*/
+  QwVQWK_Channel fCombinedAbsPos[3]; //absolute position 
 
-  
-  /* These channels contain the beam position within the frame of the BPM*/
-  QwVQWK_Channel fCombinedRelPos[2]; //bbbbb absolute position at the target
-  
+  /* This channel contains the beam slope w.r.t the X & Y axis at the target */ 
+  QwVQWK_Channel fCombinedSlope[2];  
+
     
   
 

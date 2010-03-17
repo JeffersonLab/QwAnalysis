@@ -11,7 +11,8 @@ QwEventRing::QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size, Int_t e
   fEvent_Ring.resize(fRING_SIZE);
 
   bRING_READY=kFALSE;
-
+  bGoodEvent=kTRUE;
+  bEVENT_READY=kTRUE;
   fNextToBeFilled=0;
   fNextToBeRead=0;
   fEventsSinceLastTrip=1;

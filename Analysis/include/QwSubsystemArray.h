@@ -9,6 +9,7 @@
 #define __QWSUBSYSTEMARRAY__
 
 #include <vector>
+#include <map>
 #include <Rtypes.h>
 #include <TString.h>
 #include <TDirectory.h>
@@ -17,7 +18,9 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/mem_fn.hpp>
 
+// Qweak headers
 #include "VQwSubsystem.h"
+#include "QwLog.h"
 
 ///
 /// \ingroup QwAnalysis
@@ -33,9 +36,10 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   using SubsysPtrs::empty;
 
  public:
+  /// \brief Default constructor
   QwSubsystemArray() {};
-  ~QwSubsystemArray(){
-  };
+  /// \brief Virtual destructor
+  virtual ~QwSubsystemArray() {};
 
   /// \brief Add the subsystem to this array
   void push_back(VQwSubsystem* subsys);
@@ -47,16 +51,86 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
 
   void  ClearEventData();
 
+  /// \brief Process the event buffer for configuration events
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
                                    buffer, UInt_t num_words);
 
+  /// \brief Process the event buffer for events
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
                         buffer, UInt_t num_words);
 
+  /// \brief Randomize the data in this event
   void  RandomizeEventData(int helicity = 0);
+
+  /// \brief Encode the data in this event
   void  EncodeEventData(std::vector<UInt_t> &buffer);
 
+  /// \brief Process the decoded data in this event
   void  ProcessEvent();
+
+  /**
+   * Retrieve the variable name from other subsystem arrays
+   * @param name Variable name to be retrieved
+   * @param value (return) Data element with the variable name
+   * @return True if the variable is found, false if not found
+   */
+  const Bool_t RequestExternalValue(TString name, VQwDataElement* value) const {
+    //  If this has a parent, we should escalate the call to that object,
+    //  but so far we don't have that capability.
+    return ReturnInternalValue(name, value);
+  };
+
+  /**
+   * Retrieve the variable name from subsystems in this subsystem array
+   * @param name Variable name to be retrieved
+   * @param value (return) Data element with the variable name
+   * @return True if the variable was found, false if not found
+   */
+  const Bool_t ReturnInternalValue(TString name, VQwDataElement* value) const {
+    Bool_t foundit = kFALSE;
+    //  First try to find the value in the list of published values.
+    //  So far this list is not filled though.
+    std::map<TString, VQwSubsystem*>::const_iterator iter = fPublishedValuesSubsystem.find(name);
+    if (iter != fPublishedValuesSubsystem.end()) {
+      foundit = (iter->second)->ReturnInternalValue(name, value);
+    }
+    //  If the value is not yet published, try asking the subsystems for it.
+    for (const_iterator subsys = begin(); (!foundit)&&(subsys != end()); ++subsys){
+      foundit = (*subsys)->ReturnInternalValue(name, value);
+    }
+    return foundit;
+  };
+
+  /**
+   * Publish the value name with description from a subsystem in this array
+   * @param name Name of the variable
+   * @param desc Description of the variable
+   * @param subsys Subsystem that contains the variable
+   * @return True if the variable could be published, false if not published
+   */
+  const Bool_t PublishInternalValue(const TString name, const TString desc, const VQwSubsystem* subsys) {
+    if (fPublishedValuesSubsystem.count(name) > 0) {
+      QwError << "Attempting to publish existing variable key!" << QwLog::endl;
+      ListPublishedValues();
+      return kFALSE;
+    }
+    fPublishedValuesSubsystem[name] = const_cast<VQwSubsystem*>(subsys);
+    fPublishedValuesDescription[name] = desc;
+    return kTRUE;
+  };
+
+  /**
+   * List the published values and description in this subsystem array
+   */
+  void ListPublishedValues() const {
+    QwOut << "List of published values:" << QwLog::endl;
+    std::map<TString,TString>::const_iterator iter;
+    for (iter  = fPublishedValuesDescription.begin();
+         iter != fPublishedValuesDescription.end(); iter++) {
+      QwOut << iter->first << ": " << iter->second << QwLog::endl;
+    }
+  };
+
 
   /// \name Histogram construction and maintenance
   // @{
@@ -105,6 +179,8 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
 
  protected:
 
+  std::map<TString, VQwSubsystem*> fPublishedValuesSubsystem;
+  std::map<TString, TString>       fPublishedValuesDescription;
 
 
 };

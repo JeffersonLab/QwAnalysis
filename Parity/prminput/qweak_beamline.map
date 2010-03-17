@@ -131,7 +131,7 @@ sample_size=400
   VQWK, 11, 7,   bcm,  PhaseMonitor
 
 beginCOMBO=combinedbcm
-name = qwk_target_charge
+name = qwk_average_charge
 !name		wieght
  QWK_BCM0L02,  1.0
  empty1,  0.8
@@ -139,7 +139,7 @@ name = qwk_target_charge
 endCOMBO=combinedbcm
 
 beginCOMBO=combinedbcm
-name = qwk_average_charge
+name = qwk_region1_charge
 !name		wieght
 
  QWK_Batery6, 0.1
@@ -147,10 +147,13 @@ name = qwk_average_charge
 endCOMBO=combinedbcm
 
 beginCOMBO=combinedbpm
-name = qwk_target_bpm
+name = qwk_target
 !name	    q      x     y    
- QWK_QPD,   0.1,  0.2,  0.8
  QWK_1I02,  0.9,  0.5,  0.1
+ QWK_1I04,  1.0,  0.1,  0.5
+ QWK_0I02,  1.0,  0.1,  0.5
+ !QWK_0I02,  1.0,  0.1,  0.5
+ !QWK_0I05,  1.0,  0.1,  0.5
 endCOMBO=combinedbpm
 
 !END

@@ -65,7 +65,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  variable within the QwParameterFile class which will be used by
   ///  all instances.
   ///  The "scratch" directory should be first.
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QW_PRMINPUT")));
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
 
   ///
@@ -77,6 +77,8 @@ Int_t main(Int_t argc, Char_t* argv[])
   TStopwatch timer;
 
   QwEventBuffer QwEvt;
+  QwEvt.ProcessOptions(gQwOptions);
+
 
   QwSubsystemArrayParity QwDetectors;
   VQwSubsystemParity * subsystem_tmp;//VQwSubsystemParity is the top most parent class for Parity subsystems.
@@ -93,9 +95,8 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap("qweak_beamline.map");//current map file is for the beamline.
   QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file. 
   
-
-
-
+  ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
+	  
 
 
   QwHelicityPattern QwHelPat(QwDetectors);//multiplet size is set within the QwHelicityPattern class
@@ -115,31 +116,17 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
   // Loop over all runs
-  UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
-  UInt_t runnumber_max = (UInt_t) gQwOptions.GetIntValuePairLast("run");
-  for (UInt_t run  = runnumber_min;
-              run <= runnumber_max;
-              run++) {
-
+  while (QwEvt.OpenNextStream() == CODA_OK){
       //  Begin processing for the first run.
       //  Start the timer.
       timer.Start();
 
-      //  Try to open the data file.
-      if (QwEvt.OpenDataFile(run) != CODA_OK){
-	//  The data file can't be opened.
-	//  Get ready to process the next run.
-	std::cerr << "ERROR:  Unable to find data files for run "
-		  << run << ".  Moving to the next run.\n"
-		  << std::endl;
-	timer.Stop();
-	continue;
-      }
       QwEvt.ResetControlParameters();
       //  Open the data files and root file
       //    OpenAllFiles(io, run);
 
-      TString rootfilename=std::string(getenv("QW_ROOTFILES_DIR"))+Form("/Qweak_BeamLine_%d.root",run);
+      TString rootfilename=std::string(getenv("QW_ROOTFILES"))+Form("/Qweak_BeamLine_%s.root",
+									QwEvt.GetRunLabel().Data());
       std::cout<<" rootfilename="<<rootfilename<<"\n";
       TFile rootfile(rootfilename,
 		     "RECREATE","QWeak ROOT file");
@@ -193,11 +180,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
       // Loop over events in this CODA file
-      Int_t eventnumber = -1;
-      Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
-      Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
-      while (QwEvt.GetEvent() == CODA_OK) {
-
+      while (QwEvt.GetNextEvent() == CODA_OK) {
 	//  First, do processing of non-physics events...
 	if (QwEvt.IsROCConfigurationEvent()){
 	  //  Send ROC configuration event data to the subsystem objects.
@@ -206,11 +189,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 	//  Now, if this is not a physics event, go back and get a new event.
 	if (! QwEvt.IsPhysicsEvent()) continue;
-
-        // Check to see if we want to process this event.
-        eventnumber = QwEvt.GetEventNumber();
-        if      (eventnumber < eventnumber_min) continue;
-        else if (eventnumber > eventnumber_max) break;
 
 	if(bDebug){
 	  std::cout<<"==================================================== \n";
@@ -319,7 +297,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 	QwHelPat.DeleteHistograms();
       }
 
-      QwEvt.CloseDataFile();
+      QwEvt.CloseStream();
       QwEvt.ReportRunSummary();
 
 

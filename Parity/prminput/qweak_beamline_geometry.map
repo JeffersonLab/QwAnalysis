@@ -1,0 +1,31 @@
+!---------------------------------------------------------!
+! Geometry information of the BPMS in the Hall C beamline.!
+!---------------------------------------------------------!
+!
+! device type	device_name   Xoffset	Yoffset	Zoffset
+!
+ bpmstripline,  QWK_QPD, 1, 1, 0,
+ bpmstripline,  QWK_1I02, 1, 1, 1    
+ bpmstripline,  QWK_1I04, 1, 1, 2    
+ bpmstripline,  QWK_1I06, 1, 1, 3 
+ bpmstripline,  QWK_0I02, 1, 1, 4  
+ bpmstripline,  QWK_0I02A, 1, 1, 5  
+ bpmstripline,  QWK_0I05, 1, 1, 6
+ bpmstripline,  QWK_0I07, 1, 1, 7
+ bpmstripline,  QWK_0L01, 1, 1, 8
+ bpmstripline,  QWK_0L02, 1, 1, 9
+ bpmstripline,  QWK_0L03, 1, 1, 10
+ bpmstripline,  QWK_0L04, 1, 1, 11
+ bpmstripline,  QWK_0L05, 1, 1, 12
+ bpmstripline,  QWK_0L06, 1, 1, 13
+ bpmstripline,  QWK_0L07, 1, 1, 14
+ bpmstripline,  QWK_0L08, 1, 1, 15
+ bpmstripline,  QWK_0L09, 1, 1, 16
+ bpmstripline,  QWK_0L10, 1, 1, 17
+ bpmstripline,  QWK_0R01, 1, 1, 18
+ bpmstripline,  QWK_0R02, 1, 1, 19
+ bpmstripline,  QWK_0R05, 1, 1, 20
+ bpmstripline,  QWK_0R06, 1, 1, 21
+ combinedbpm,  qwk_target 0, 0, 5	
+
+!END

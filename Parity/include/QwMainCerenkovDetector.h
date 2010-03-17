@@ -20,6 +20,8 @@
 #include "QwIntegrationPMT.h"
 #include "QwCombinedPMT.h"
 
+#include "QwTypes.h"
+
 class QwMainCerenkovDetectorID;
 
 enum EMainDetInstrumentType{kIntegrationPMT, kCombinedPMT};
@@ -37,6 +39,12 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
       DetectorTypes.push_back("CombinationPMT");
       for(size_t i=0;i<DetectorTypes.size();i++)
         DetectorTypes[i].ToLower();
+      fTargetCharge.InitializeChannel("q_targ","derived");
+      fTargetX.InitializeChannel("x_targ","derived");
+      fTargetY.InitializeChannel("y_targ","derived");
+      fTargetXprime.InitializeChannel("xp_targ","derived");
+      fTargetYprime.InitializeChannel("yp_targ","derived");
+      fTargetEnergy.InitializeChannel("e_targ","derived");
  };
 
   ~QwMainCerenkovDetector() {
@@ -58,6 +66,9 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   Bool_t IsGoodEvent();
 
   void  ProcessEvent();
+  void  ExchangeProcessedData();
+  void  ProcessEvent_2();
+
 
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
@@ -125,7 +136,17 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   std::vector <QwCombinedPMT> fCombinedPMT;
   std::vector <QwMainCerenkovDetectorID> fMainDetID;
 
-  private:
+ protected:
+  QwBeamCharge   fTargetCharge;
+  QwBeamPosition fTargetX;
+  QwBeamPosition fTargetY;
+  QwBeamAngle    fTargetXprime;
+  QwBeamAngle    fTargetYprime;
+  QwBeamEnergy   fTargetEnergy;
+
+  Bool_t bIsExchangedDataValid;
+
+ private:
 
   static const Bool_t bDEBUG=kFALSE; 
   std::vector<TString> DetectorTypes;// for example could be IntegrationPMT, LUMI,BPMSTRIPLINE, etc..
