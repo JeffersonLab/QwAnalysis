@@ -200,7 +200,7 @@ ostream& operator<< (ostream& stream, const QwPartialTrack& pt)
 /**
  * Determines the position of the track at the given z position
  */
-TVector3 QwPartialTrack::GetPosition(double z)
+const TVector3 QwPartialTrack::GetPosition(const double z) const
 {
   TVector3 position;
   position.SetX(fOffsetX + fSlopeX * z);
@@ -212,7 +212,7 @@ TVector3 QwPartialTrack::GetPosition(double z)
 /**
  * Determines the direction of the track at the given z position
  */
-TVector3 QwPartialTrack::GetMomentumDirection()
+const TVector3 QwPartialTrack::GetMomentumDirection() const
 {
   TVector3 direction;
   double kz = sqrt(fSlopeX * fSlopeX + fSlopeY * fSlopeY + 1);
