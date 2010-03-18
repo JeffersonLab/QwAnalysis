@@ -79,8 +79,9 @@ class QwScanner: public VQwSubsystemTracking,
   void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-
+  void  ConstructBranchAndVector(TTree *tree, TString &prefix);
   void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector();
 
   void  FillDB(QwDatabase *db, TString type) {return;};
 
@@ -101,8 +102,6 @@ class QwScanner: public VQwSubsystemTracking,
     }
     return status;
   };
-
-  void StoreRawData(Bool_t rawdata) { bRawData = rawdata; };
 
   void Print();
 
@@ -146,7 +145,7 @@ class QwScanner: public VQwSubsystemTracking,
   static const UInt_t kMaxNumberOfModulesPerROC;
   static const UInt_t kMaxNumberOfChannelsPerModule;
   Int_t fNumberOfModules;
-  std::vector< std::vector<Int_t> > fModuleIndex;  //  Module index, indexed by bank_index and slot_number
+  std::vector< std::vector<Int_t> > fModuleIndex;  /// Module index, indexed by bank_index and slot_number
   std::vector< enum EModuleType > fModuleTypes;
   std::vector< std::vector< std::pair<Int_t, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel
 
@@ -160,6 +159,8 @@ class QwScanner: public VQwSubsystemTracking,
   Double_t get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalidity);
 
  private:
+
+  static const Bool_t bStoreRawData;
 
   static const UInt_t kV775Mask_SlotNumber;
   static const UInt_t kV775Mask_WordType;
@@ -184,7 +185,6 @@ class QwScanner: public VQwSubsystemTracking,
   Double_t fCalibration;
 
   Int_t myTimer;
-  Bool_t bRawData;
   Int_t fTreeArrayNumEntries;
   Int_t fTreeArrayIndex;
 

@@ -59,11 +59,9 @@ static const bool kTracking = kTRUE;
 static const bool kTree = kTRUE;
 static const bool kHisto = kTRUE;
 
+// Branching flags for subsystems
 static const bool kMainDetBranch = kTRUE;
-
-// Branch for Scanner subsystem
 static const bool kScannerBranch = kTRUE;
-static const bool kScannerRaw = kTRUE;
 
 // Main function
 Int_t main(Int_t argc, Char_t* argv[]) {
@@ -218,7 +216,6 @@ Int_t main(Int_t argc, Char_t* argv[]) {
         TTree* tree = 0;
         QwEvent* event = 0;
         QwHitRootContainer* rootlist = 0;
-        std::vector<Double_t> scannervect;
 
         TString prefix = "";
 
@@ -233,8 +230,8 @@ Int_t main(Int_t argc, Char_t* argv[]) {
                maindetector->ConstructBranchAndVector(tree, prefix);
 
             if (kScannerBranch) {
-                scanner->StoreRawData(kScannerRaw);
-                scanner->ConstructBranchAndVector(tree, prefix, scannervect);
+//                scanner->StoreRawData(kScannerRaw);
+                scanner->ConstructBranchAndVector(tree, prefix);
             }
 
         }
@@ -273,13 +270,9 @@ Int_t main(Int_t argc, Char_t* argv[]) {
             // Process the event
             detectors.ProcessEvent();
 
-            if (kMainDetBranch) {
-                maindetector->FillTreeVector();
-            }
+            if (kMainDetBranch) maindetector->FillTreeVector();
+            if (kScannerBranch) scanner->FillTreeVector();
 
-            if (kScannerBranch) {
-                scanner->FillTreeVector(scannervect);
-            }
 
             // Fill the histograms for the subsystem objects.
             if (kHisto) detectors.FillHistograms();

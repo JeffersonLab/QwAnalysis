@@ -10,7 +10,7 @@
 #include "QwScanner.h"
 
 extern QwHistogramHelper gQwHists;
-
+const Bool_t QwScanner::bStoreRawData = kFALSE;
 const UInt_t QwScanner::kMaxNumberOfModulesPerROC     = 21;
 const UInt_t QwScanner::kMaxNumberOfChannelsPerModule = 32;
 
@@ -24,25 +24,12 @@ QwScanner::QwScanner(TString region_tmp)
         : VQwSubsystem(region_tmp),
         VQwSubsystemTracking(region_tmp),
         VQwSubsystemParity(region_tmp) {
-    //MainDetCenterX = 330.0; //units: cm
-    //MainDetCenterY = 0.0;
-
-    //HomePositionOffsetX = -20.0;
-    //HomePositionOffsetY = -100.0;
-
-    //Cal_FactorX = 5.333; //units: cm/V, assume linear, 40cm/8V
-    //Cal_FactorY = 26.667; //units: cm/V, assume linear, 200cm/8V
-
-    //fVoltageOffsetX = 2.0; //units: Volts
-    //fVoltageOffsetY = 2.0;
 
     fCurrentPotentialX = 2.0; //units: Volts
     fCurrentPotentialY = 2.0;
 
     fDirectionX = fPreDirectionX = 1.0;
     fDirectionY = fPreDirectionY = 1.0;
-
-    bRawData = kFALSE;
 
     myTimer = abs((Int_t) gRandom->Gaus(15,3));
     FrontScaData = 0;
@@ -232,25 +219,25 @@ void  QwScanner::ClearEventData() {
 
 };
 
-void QwScanner::DecodeTDCWord(UInt_t &word){
-  
-  fV775SlotNumber = (word & kV775Mask_SlotNumber)>>27;
-  UInt_t wordtype = (word & kV775Mask_WordType)>>24;
-  if (wordtype == kV775WordType_Datum){
-    fV775ValidFlag     = kTRUE;
-    fV775ChannelNumber = (word & kV775Mask_ChannelNumber)>>16;
-    /*     datavalid      = ((word & kV775Mask_DataValidBit)!=0); */
-    /*     underthreshold = ((word & kV775Mask_UnderthresholdBit)!=0); */
-    /*     overflow       = ((word & kV775Mask_OverflowBit)!=0); */
-    fV775Dataword      = (word & kV775Mask_Dataword);
-  } else {
-    //  For now, don't distinguish between the header, tail word,
-    //  or invalid data.
-    //  Treat them all as invalid data.
-    fV775ValidFlag     = kFALSE;
-    fV775ChannelNumber = 0;
-    fV775Dataword      = 0;
-  }
+void QwScanner::DecodeTDCWord(UInt_t &word) {
+
+    fV775SlotNumber = (word & kV775Mask_SlotNumber)>>27;
+    UInt_t wordtype = (word & kV775Mask_WordType)>>24;
+    if (wordtype == kV775WordType_Datum) {
+        fV775ValidFlag     = kTRUE;
+        fV775ChannelNumber = (word & kV775Mask_ChannelNumber)>>16;
+        /*     datavalid      = ((word & kV775Mask_DataValidBit)!=0); */
+        /*     underthreshold = ((word & kV775Mask_UnderthresholdBit)!=0); */
+        /*     overflow       = ((word & kV775Mask_OverflowBit)!=0); */
+        fV775Dataword      = (word & kV775Mask_Dataword);
+    } else {
+        //  For now, don't distinguish between the header, tail word,
+        //  or invalid data.
+        //  Treat them all as invalid data.
+        fV775ValidFlag     = kFALSE;
+        fV775ChannelNumber = 0;
+        fV775Dataword      = 0;
+    }
 };
 
 
@@ -476,43 +463,53 @@ void  QwScanner::ProcessEvent() {
 
 void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix) {
 
-//if ((prefix=="asym_") || (prefix=="yield_")) return;
+    TString pat1 = "asym_";
+    TString pat2 = "yield_";
+    TString basename;
 
-    if (prefix = "")
-        prefix = TString("scanner_");
+    if (prefix.BeginsWith(pat1)) {   }    //construct histograms in hel_histo folder if need
+    else if (prefix.BeginsWith(pat2)) {    }
 
-   // if (bRawData)
+    else {
+        if (prefix = "")  basename = "scanner_";
+        else  basename = prefix;
+
+  if (folder != NULL) folder->cd();
+  TDirectory* scannerfolder = folder->mkdir("scanner");
+
+    // if (bRawData)
     {
         for (size_t i=0; i<fPMTs.size(); i++) {
             for (size_t j=0; j<fPMTs.at(i).size(); j++)
-                fPMTs.at(i).at(j).ConstructHistograms(folder, prefix);
+                fPMTs.at(i).at(j).ConstructHistograms(scannerfolder, basename);
         }
 
         for (size_t i=0; i<fSCAs.size(); i++) {
             if (fSCAs.at(i) != NULL) {
-                fSCAs.at(i)->ConstructHistograms(folder, prefix);
+                fSCAs.at(i)->ConstructHistograms(scannerfolder, basename);
             }
         }
 
         for (size_t i=0; i<fADC_Data.size(); i++) {
             if (fADC_Data.at(i) != NULL)
-                fADC_Data.at(i)->ConstructHistograms(folder, prefix);
+                fADC_Data.at(i)->ConstructHistograms(scannerfolder, basename);
         }
     }
 
+    scannerfolder->cd();
     //fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));
 
     fHistograms2D.push_back( gQwHists.Construct2DHist(TString("scanner_rate_map")));
-
+   }
 };
 
 void  QwScanner::FillHistograms() {
     //std::cout<<"QwScanner::FillHistograms():"<<std::endl;
     if (! HasDataLoaded()) return;
 
-   // if (bRawData)
+    // if (bRawData)
     {
         //Fill trigger data
         for (size_t i=0; i<fPMTs.size(); i++) {
@@ -573,97 +570,118 @@ void  QwScanner::FillHistograms() {
 
 void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values) {
 
-   // if ((prefix=="asym_") || (prefix=="yield_")) return;
+    ConstructBranchAndVector(tree, prefix);
+};
 
-    if (prefix=="") prefix = "scanner_";
-    TString basename = prefix+"event";
+void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix) {
 
-    fScannerVector.reserve(6000);
+    TString pat1 = "asym_";
+    TString pat2 = "yield_";
+    TString basename;
 
-    fScannerVector.push_back(0.0);
-    TString list = "EvtCounter/D";
-    fScannerVector.push_back(0.0);
-    list += ":TrigEvtCounter/D";
-    fScannerVector.push_back(0.0);
-    list += ":SumEvtCounter/D";
-    fScannerVector.push_back(0.0);
-    list += ":SumFlag/D";
-    fScannerVector.push_back(0.0);
-    list += ":TrigFlag/D";
-    fScannerVector.push_back(0.0);
-    list += ":PowSupply/D";
-    fScannerVector.push_back(0.0);
-    list += ":PositionX/D";
-    fScannerVector.push_back(0.0);
-    list += ":PositionY/D";
-    fScannerVector.push_back(0.0);
-    list += ":FrontSCA/D";
-    fScannerVector.push_back(0.0);
-    list += ":BackSCA/D";
-    fScannerVector.push_back(0.0);
-    list += ":CoincidenceSCA/D";
-    fScannerVector.push_back(0.0);
-    list += ":FrontADC/D";
-    fScannerVector.push_back(0.0);
-    list += ":BackADC/D";
-    fScannerVector.push_back(0.0);
-    list += ":FrontTDC/D";
-    fScannerVector.push_back(0.0);
-    list += ":BackTDC/D";
+    if (prefix.BeginsWith(pat1)) {}
 
-    if (bRawData) {
-
-        for (size_t i=0; i<fPMTs.size(); i++) {
-            for (size_t j=0; j<fPMTs.at(i).size(); j++) {
-                //fPMTs.at(i).at(j).ConstructBranchAndVector(tree, prefix, fScannerVector);
-                if (fPMTs.at(i).at(j).GetElementName()=="") {
-                    //  This channel is not used, so skip setting up the tree.
-                } else {
-                    fScannerVector.push_back(0.0);
-                    list += ":"+fPMTs.at(i).at(j).GetElementName()+"_raw/D";
-                }
-            }
-        }
-
-        for (size_t i=0; i<fSCAs.size(); i++) {
-            if (fSCAs.at(i) != NULL) {
-
-                for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++) {
-                    if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {} else {
-                        fScannerVector.push_back(0.0);
-                        list += ":"+fSCAs.at(i)->fChannels.at(j).GetElementName()+"_raw/D";
-                    }
-                }
-            }
-        }
-
-
-        for (size_t i=0; i<fADC_Data.size(); i++) {
-            if (fADC_Data.at(i) != NULL) {
-
-                for (size_t j=0; j<fADC_Data.at(i)->fChannels.size(); j++) {
-                    TString channelname = fADC_Data.at(i)->fChannels.at(j).GetElementName();
-                    channelname.ToLower();
-                    if ( (channelname =="") || (channelname =="empty") || (channelname =="spare")) {} else {
-                        fScannerVector.push_back(0.0);
-                        list += ":"+fADC_Data.at(i)->fChannels.at(j).GetElementName()+"_raw/D";
-                    }
-                }
-
-            }
-        }
-
+    else if (prefix.BeginsWith(pat2)) {
+        tree->Branch("scanner_posx",&fPositionX,"scanner_posx/D");
+        tree->Branch("scanner_posy",&fPositionY,"scanner_posy/D");
+        tree->Branch("scanner_rate",&fCoincidenceSCA,"scanner_rate/D");
     }
 
-    //fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
-    tree->Branch(basename, &fScannerVector[0], list);
+    else {
 
+        if (prefix=="") basename = "scanner";
+        else basename = prefix;
+
+        fScannerVector.reserve(6000);
+
+        fScannerVector.push_back(0.0);
+        TString list = "EvtCounter/D";
+        fScannerVector.push_back(0.0);
+        list += ":TrigEvtCounter/D";
+        fScannerVector.push_back(0.0);
+        list += ":SumEvtCounter/D";
+        fScannerVector.push_back(0.0);
+        list += ":SumFlag/D";
+        fScannerVector.push_back(0.0);
+        list += ":TrigFlag/D";
+        fScannerVector.push_back(0.0);
+        list += ":PowSupply/D";
+        fScannerVector.push_back(0.0);
+        list += ":PositionX/D";
+        fScannerVector.push_back(0.0);
+        list += ":PositionY/D";
+        fScannerVector.push_back(0.0);
+        list += ":FrontSCA/D";
+        fScannerVector.push_back(0.0);
+        list += ":BackSCA/D";
+        fScannerVector.push_back(0.0);
+        list += ":CoincidenceSCA/D";
+        fScannerVector.push_back(0.0);
+        list += ":FrontADC/D";
+        fScannerVector.push_back(0.0);
+        list += ":BackADC/D";
+        fScannerVector.push_back(0.0);
+        list += ":FrontTDC/D";
+        fScannerVector.push_back(0.0);
+        list += ":BackTDC/D";
+
+        if (bStoreRawData) {
+
+            for (size_t i=0; i<fPMTs.size(); i++) {
+                for (size_t j=0; j<fPMTs.at(i).size(); j++) {
+                    //fPMTs.at(i).at(j).ConstructBranchAndVector(tree, prefix, fScannerVector);
+                    if (fPMTs.at(i).at(j).GetElementName()=="") {
+                        //  This channel is not used, so skip setting up the tree.
+                    } else {
+                        fScannerVector.push_back(0.0);
+                        list += ":"+fPMTs.at(i).at(j).GetElementName()+"_raw/D";
+                    }
+                }
+            }
+
+            for (size_t i=0; i<fSCAs.size(); i++) {
+                if (fSCAs.at(i) != NULL) {
+
+                    for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++) {
+                        if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {} else {
+                            fScannerVector.push_back(0.0);
+                            list += ":"+fSCAs.at(i)->fChannels.at(j).GetElementName()+"_raw/D";
+                        }
+                    }
+                }
+            }
+
+
+            for (size_t i=0; i<fADC_Data.size(); i++) {
+                if (fADC_Data.at(i) != NULL) {
+
+                    for (size_t j=0; j<fADC_Data.at(i)->fChannels.size(); j++) {
+                        TString channelname = fADC_Data.at(i)->fChannels.at(j).GetElementName();
+                        channelname.ToLower();
+                        if ( (channelname =="") || (channelname =="empty") || (channelname =="spare")) {} else {
+                            fScannerVector.push_back(0.0);
+                            list += ":"+fADC_Data.at(i)->fChannels.at(j).GetElementName()+"_raw/D";
+                        }
+                    }
+
+                }
+            }
+
+        }
+
+        //fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
+        tree->Branch(basename, &fScannerVector[0], list);
+
+    }
     return;
 };
 
 
-
 void  QwScanner::FillTreeVector(std::vector<Double_t> &values) {
+    FillTreeVector();
+};
+
+void  QwScanner::FillTreeVector() {
     if (! HasDataLoaded()) return;
 
     Int_t index = 0;
@@ -684,7 +702,7 @@ void  QwScanner::FillTreeVector(std::vector<Double_t> &values) {
     fScannerVector[index++] = fFrontTDC;
     fScannerVector[index++] = fBackTDC;
 
-    if (bRawData) {
+    if (bStoreRawData) {
 
         //fill trigvalues
         for (size_t i=0; i<fPMTs.size(); i++) {
@@ -733,7 +751,7 @@ void  QwScanner::FillTreeVector(std::vector<Double_t> &values) {
 
 void  QwScanner::DeleteHistograms() {
 
-    //if (bRawData) 
+    //if (bRawData)
     {
         for (size_t i=0; i<fPMTs.size(); i++) {
             for (size_t j=0; j<fPMTs.at(i).size(); j++) {

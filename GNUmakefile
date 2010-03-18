@@ -266,21 +266,33 @@ ifndef BOOST_INC_DIR
   ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name boost)),/usr/include/boost)
     $(warning Install the Boost library on your system, or set the environment)
     $(warning variables BOOST_INC_DIR and BOOST_LIB_DIR to the directory with)
-    $(warning the Boost headers and libraries, respectively.)
+    $(warning the Boost headers and libraries, respectively. The headers should)
+    $(warning be in BOOST_INC_DIR/boost, and the library files in BOOST_LIB_DIR.)
     $(warning See the Qweak Wiki for installation and compilation instructions.)
     $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
     $(warning )
     $(error   Error: Could not find the Boost library)
   endif
-  BOOST_INC_DIR = /usr/include/boost
+  BOOST_INC_DIR = /usr/include
   BOOST_LIB_DIR = /usr/lib
-  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" $(BOOST_INC_DIR)/version.hpp)
+  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" $(BOOST_INC_DIR)/boost/version.hpp)
   BOOST_INC  =
   BOOST_LIBS =
 else
-  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" ${BOOST_INC_DIR}/version.hpp)
-  BOOST_INC  = -I${BOOST_INC_DIR}
-  BOOST_LIBS = -L${BOOST_LIB_DIR}
+  ifneq ($(strip $(shell $(FIND) $(BOOST_INC_DIR)/boost -maxdepth 1 -name version.hpp)),$(BOOST_INC_DIR)/boost/version.hpp)
+    $(warning Set the environment variables BOOST_INC_DIR and BOOST_LIB_DIR to)
+    $(warning the directory with the Boost headers and libraries, respectively.)
+    $(warning The Boost header files should be in BOOST_INC_DIR/boost, and the)
+    $(warning library files in BOOST_LIB_DIR.)
+    $(warning See the Qweak Wiki for installation and compilation instructions.)
+    $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
+    $(warning )
+    $(error   Error: Could not find the Boost library)
+  else
+    BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" ${BOOST_INC_DIR}/boost/version.hpp)
+    BOOST_INC  = -I${BOOST_INC_DIR}
+    BOOST_LIBS = -L${BOOST_LIB_DIR}
+  endif
 endif
 
 #  We should also put a test on the boost version number here.
