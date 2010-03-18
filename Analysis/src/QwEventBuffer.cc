@@ -52,7 +52,7 @@ QwEventBuffer::QwEventBuffer():fDataFileStem("QwRun_"),
 			       fEvtNumber(0),
 			       fNumPhysicsEvents(0)
 {
-  fDataDirectory = getenv("DATADIR");
+  fDataDirectory = getenv("QW_DATA");
   if (fDataDirectory.Length() == 0){
     std::cerr << "ERROR:  Can't get the data directory in the QwEventBuffer creator."
 	      << std::endl;

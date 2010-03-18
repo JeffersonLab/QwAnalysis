@@ -64,7 +64,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  variable within the QwParameterFile class which will be used by
   ///  all instances.
   ///  The "scratch" directory should be first.
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QW_PRMINPUT")));
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
 
   ///
@@ -124,7 +124,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       //  Open the data files and root file
       //    OpenAllFiles(io, run);
 
-      TString rootfilename=std::string(getenv("QW_ROOTFILES_DIR"))+Form("/Qweak_BeamLine_%s.root",
+      TString rootfilename=std::string(getenv("QW_ROOTFILES"))+Form("/Qweak_BeamLine_%s.root",
 									QwEvt.GetRunLabel().Data());
       std::cout<<" rootfilename="<<rootfilename<<"\n";
       TFile rootfile(rootfilename,

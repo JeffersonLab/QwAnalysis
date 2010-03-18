@@ -55,6 +55,10 @@ class QwHelicityPattern{
 
   QwSubsystemArrayParity  fYield;
   QwSubsystemArrayParity  fAsymmetry;
+  Bool_t bAlternateAsym; 
+  QwSubsystemArrayParity  fAsymmetry1;
+  QwSubsystemArrayParity  fAsymmetry2;
+  
   QwSubsystemArrayParity fAverage;
   QwSubsystemArrayParity fRunningSum;
 
@@ -67,8 +71,6 @@ class QwHelicityPattern{
   Bool_t IsGood; 
   
 
-  Int_t fPATTERNPHASEOFFSET;
-  Bool_t bPATTERNPHASEOFFSET;
 
 };
 

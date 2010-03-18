@@ -147,6 +147,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   QwBeamAngle    fTargetYprime;
   QwBeamEnergy   fTargetEnergy;
 
+  Bool_t bIsExchangedDataValid;
 
  private:
 

@@ -354,7 +354,7 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
 //                  <<"  avg_voltage="<< kVQWK_VoltsPerBit*average<<std::endl;
       }
 
-      if (kDEBUG && GetElementName()=="Bar1Right")
+      if (kDEBUG && GetElementName()=="MD1Pos")
 	{
 	  //    if (num_words_left == 6){
 	  std::cout << std::hex
@@ -581,7 +581,7 @@ void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std
 
     fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
     tree->Branch(basename, &(values[fTreeArrayIndex]), list);
-    if (kDEBUG && GetElementName()=="Bar1Right"){
+    if (kDEBUG && GetElementName()=="MD1Pos"){
       std::cerr << "QwVQWK_Channel::ConstructBranchAndVector: fTreeArrayIndex==" << fTreeArrayIndex
 		<< "; fTreeArrayNumEntries==" << fTreeArrayNumEntries
 		<< "; values.size()==" << values.size()

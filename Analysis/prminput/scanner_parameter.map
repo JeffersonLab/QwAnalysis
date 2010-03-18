@@ -1,0 +1,28 @@
+! this file contains the pedestals for the ADCS
+! respect the format of the file
+
+! units: cm
+MainDetCenterX = 330.0;
+MainDetCenterY = 0.0;
+
+HomePositionOffsetX = -20.0;
+HomePositionOffsetY = -100.0;
+
+! units: cm/V, assume linear, 40cm/8V
+Cal_FactorX = 5.333
+
+! units: cm/V, assume linear, 200cm/8V
+Cal_FactorY = 26.667;
+
+! units: Volts
+VoltageOffsetX = 2.0;
+VoltageOffsetY = 2.0;
+
+! name of chanel, pedestal, gain
+! if this is a Triumf ADC enter the hardware sum pedestal
+! the pedestal will be subtracted to the data
+vqwk_power    ,   0 ,  1
+vqwk_pos_x    ,   0 ,  1
+vqwk_pos_y    ,   0 ,  1
+!END
+ 

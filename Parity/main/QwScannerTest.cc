@@ -57,7 +57,6 @@ int main(Int_t argc,Char_t* argv[])
   // Define the command line options
   DefineOptionsParity(gQwOptions);
 
-
   //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
   if (getenv("DISPLAY")==NULL
       ||getenv("JOB_ID")!=NULL) kInQwBatchMode = kTRUE;
@@ -68,6 +67,7 @@ int main(Int_t argc,Char_t* argv[])
   ///  all instances.
   ///  The "scratch" directory should be first.
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput");
 
   ///
@@ -96,8 +96,8 @@ int main(Int_t argc,Char_t* argv[])
   // Test code for the focal plane scanner
   if (kDebug) std::cout<<"Instantiate the scanner subsystem:"<<std::endl;
   QwDetectors.push_back (new QwScanner( "FPS" ));
-  QwDetectors.GetSubsystem("FPS")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput/scanner_channel.map" );
-  QwDetectors.GetSubsystem("FPS")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput/scanner_pedestal.map");
+  QwDetectors.GetSubsystem("FPS")->LoadChannelMap("scanner_channel.map" );
+  QwDetectors.GetSubsystem("FPS")->LoadInputParameters("scanner_parameter.map");
 
 
   ///
@@ -122,7 +122,7 @@ int main(Int_t argc,Char_t* argv[])
               run <= runnumber_max;
               run++) {
 
-    TString filename = std::string(getenv("QWSCRATCH"))+"/data" +
+    TString filename = std::string(getenv("QW_DATA"))+
                        TString("/QwRun_") + Form("%ld.",run) + TString("log");
 
     if (kDebug) std::cout<<"Generating mock data for the scanner: "<<filename<<std::endl;
@@ -189,7 +189,7 @@ int main(Int_t argc,Char_t* argv[])
       //  Open the data files and root file
       //    OpenAllFiles(io, run);
 
-      TString rootfilename=std::string(getenv("QW_ROOTFILES_DIR"))+Form("/Qweak_Scanner_%d.root",run);
+      TString rootfilename=std::string(getenv("QW_ROOTFILES"))+Form("/Qweak_Scanner_%d.root",run);
       std::cout<<" rootfilename="<<rootfilename<<"\n";
       TFile rootfile(rootfilename,"RECREATE","QWeak ROOT file");
 

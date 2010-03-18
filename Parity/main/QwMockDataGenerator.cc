@@ -52,26 +52,33 @@ int main(int argc, char* argv[])
   // Define the command line options
   DefineOptionsParity(gQwOptions);
 
-
+  ///  Fill the search paths for the parameter files; this sets a static
+  ///  variable within the QwParameterFile class which will be used by
+  ///  all instances.
+  ///  The "scratch" directory should be first.
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QW_PRMINPUT")));
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Analysis/prminput");
+  
   // Event buffer
   QwEventBuffer eventbuffer;
 
   // Detector array
   QwSubsystemArrayParity detectors;
   detectors.push_back(new QwBeamLine("Injector BeamLine"));
-  detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_beamline.map");
-  detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
+  detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
+  detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("mock_qweak_pedestal.map");
   detectors.push_back(new QwHelicity("Helicity info"));
-  detectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_helicity.map");
+  detectors.GetSubsystem("Helicity info")->LoadChannelMap("mock_qweak_helicity.map");
   detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
   detectors.push_back(new QwMainCerenkovDetector("Main detector"));
-  detectors.GetSubsystem("Main detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
-  detectors.GetSubsystem("Main detector")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
+  detectors.GetSubsystem("Main detector")->LoadChannelMap("qweak_adc.map");
+  detectors.GetSubsystem("Main detector")->LoadInputParameters("mock_qweak_pedestal.map");
 
   if (kScanner){
   detectors.push_back ( new QwScanner( "FPS" ) );
-  detectors.GetSubsystem("FPS")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput/scanner_channel.map" );
-  detectors.GetSubsystem("FPS")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput/scanner_pedestal.map");
+  detectors.GetSubsystem("FPS")->LoadChannelMap("scanner_channel.map" );
+  detectors.GetSubsystem("FPS")->LoadInputParameters("scanner_parameter.map");
   }
 
   QwHelicityPattern* QwHelPat = new QwHelicityPattern(detectors);
@@ -141,29 +148,29 @@ int main(int argc, char* argv[])
   maindetector->SetRandomEventParameters(bar_mean, bar_sigma);
   maindetector->SetRandomEventAsymmetry(bar_asym);
   // Specific values
-  maindetector->GetChannel("Bar2Left")->SetRandomEventAsymmetry(2.0e-2);
-  maindetector->GetChannel("Bar2Right")->SetRandomEventAsymmetry(2.0e-2);
-  maindetector->GetChannel("Bar3Left")->SetRandomEventAsymmetry(3.0e-3);
-  maindetector->GetChannel("Bar3Right")->SetRandomEventAsymmetry(3.0e-3);
-  maindetector->GetChannel("Bar4Left")->SetRandomEventAsymmetry(4.0e-4);
-  maindetector->GetChannel("Bar4Right")->SetRandomEventAsymmetry(4.0e-4);
-  maindetector->GetChannel("Bar5Left")->SetRandomEventAsymmetry(5.0e-5);
-  maindetector->GetChannel("Bar5Right")->SetRandomEventAsymmetry(5.0e-5);
-  maindetector->GetChannel("Bar6Left")->SetRandomEventAsymmetry(6.0e-6);
-  maindetector->GetChannel("Bar6Right")->SetRandomEventAsymmetry(6.0e-6);
-  maindetector->GetChannel("Bar7Left")->SetRandomEventAsymmetry(7.0e-7);
-  maindetector->GetChannel("Bar7Right")->SetRandomEventAsymmetry(7.0e-7);
-  maindetector->GetChannel("Bar8Left")->SetRandomEventAsymmetry(8.0e-8);
-  maindetector->GetChannel("Bar8Right")->SetRandomEventAsymmetry(8.0e-8);
+  maindetector->GetChannel("MD2Neg")->SetRandomEventAsymmetry(2.0e-2);
+  maindetector->GetChannel("MD2Pos")->SetRandomEventAsymmetry(2.0e-2);
+  maindetector->GetChannel("MD3Neg")->SetRandomEventAsymmetry(3.0e-3);
+  maindetector->GetChannel("MD3Pos")->SetRandomEventAsymmetry(3.0e-3);
+  maindetector->GetChannel("MD4Neg")->SetRandomEventAsymmetry(4.0e-4);
+  maindetector->GetChannel("MD4Pos")->SetRandomEventAsymmetry(4.0e-4);
+  maindetector->GetChannel("MD5Neg")->SetRandomEventAsymmetry(5.0e-5);
+  maindetector->GetChannel("MD5Pos")->SetRandomEventAsymmetry(5.0e-5);
+  maindetector->GetChannel("MD6Neg")->SetRandomEventAsymmetry(6.0e-6);
+  maindetector->GetChannel("MD6Pos")->SetRandomEventAsymmetry(6.0e-6);
+  maindetector->GetChannel("MD7Neg")->SetRandomEventAsymmetry(7.0e-7);
+  maindetector->GetChannel("MD7Pos")->SetRandomEventAsymmetry(7.0e-7);
+  maindetector->GetChannel("MD8Neg")->SetRandomEventAsymmetry(8.0e-8);
+  maindetector->GetChannel("MD8Pos")->SetRandomEventAsymmetry(8.0e-8);
 
   // Set a asymmetric helicity asymmetry on one of the bars
-  maindetector->GetChannel("Bar1Left")->SetRandomEventAsymmetry(5.0e-5);
-  maindetector->GetChannel("Bar1Right")->SetRandomEventAsymmetry(-5.0e-5);
+  maindetector->GetChannel("MD1Neg")->SetRandomEventAsymmetry(5.0e-5);
+  maindetector->GetChannel("MD1Pos")->SetRandomEventAsymmetry(-5.0e-5);
 
   // Set a drift component (amplitude, phase, frequency)
-  maindetector->GetChannel("Bar3Left")->AddRandomEventDriftParameters(3.0e6, 0, 60*Qw::Hz);
-  maindetector->GetChannel("Bar3Left")->AddRandomEventDriftParameters(6.0e5, 0, 120*Qw::Hz);
-  maindetector->GetChannel("Bar3Left")->AddRandomEventDriftParameters(4.5e5, 0, 240*Qw::Hz);
+  maindetector->GetChannel("MD3Neg")->AddRandomEventDriftParameters(3.0e6, 0, 60*Qw::Hz);
+  maindetector->GetChannel("MD3Neg")->AddRandomEventDriftParameters(6.0e5, 0, 120*Qw::Hz);
+  maindetector->GetChannel("MD3Neg")->AddRandomEventDriftParameters(4.5e5, 0, 240*Qw::Hz);
 
   // Initialize randomness provider and distribution
   boost::mt19937 randomnessGenerator(999); // Mersenne twister with seed (see below)
@@ -283,7 +290,7 @@ int main(int argc, char* argv[])
 
       // Pass the event number as a time unit
       beamline->GetBCM("qwk_bcm0l03")->SetEventNumber(event);
-      maindetector->GetChannel("Bar3Left")->SetEventNumber(event);
+      maindetector->GetChannel("MD3Neg")->SetEventNumber(event);
 
       detectors.RandomizeEventData(myhelicity);
 

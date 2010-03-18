@@ -808,8 +808,9 @@ const Bool_t QwBeamLine::PublishInternalValues() const
 const Bool_t QwBeamLine::ReturnInternalValue(TString name,
 				       VQwDataElement* value) const
 {
-  std::cout << "QwBeamLine::ReturnInternalValue called for value name, "
-	    << name.Data() << std::endl;
+  Bool_t ldebug=kFALSE;
+  if (ldebug) std::cout << "QwBeamLine::ReturnInternalValue called for value name, "
+	    << name.Data() <<std::endl;
   Bool_t foundit = kFALSE;
   QwVQWK_Channel* tmp = dynamic_cast<QwVQWK_Channel*>(value);
   if (tmp==NULL){
@@ -820,6 +821,34 @@ const Bool_t QwBeamLine::ReturnInternalValue(TString name,
     if (name=="q_targ"){
       foundit = kTRUE;
       (*tmp) = GetBCM("qwk_bcm0l02")->GetCharge();
+        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element qwk_bcm0l02"<<std::endl;
+    }
+
+    //test for x_targ, y_targ, ...
+    else if (name=="x_targ"){
+      foundit = kTRUE;
+      //(*tmp) = GetBPMStripline("ch_name")->GetSomething();
+        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element for x_targ"<<std::endl;
+    }
+    else if (name=="y_targ"){
+      foundit = kTRUE;
+      //(*tmp) = GetBPMStripline("ch_name")->GetSomething();
+        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element for y_targ"<<std::endl;
+    }
+    else if (name=="xp_targ"){
+      foundit = kTRUE;
+      //(*tmp) = GetBPMStripline("ch_name")->GetSomething();
+        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element for xp_targ"<<std::endl;
+    }
+    else if (name=="yp_targ"){
+      foundit = kTRUE;
+      //(*tmp) = GetBPMStripline("ch_name")->GetSomething();
+        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element for yp_targ"<<std::endl;
+    }
+    else if (name=="e_targ"){
+      foundit = kTRUE;
+      //(*tmp) = GetBCM("ch_name")->GetCharge();
+        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element for e_targ"<<std::endl;
     }
   }
   return foundit;

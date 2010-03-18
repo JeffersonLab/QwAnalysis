@@ -75,7 +75,7 @@ int main(Int_t argc,Char_t* argv[]) {
     ///  variable within the QwParameterFile class which will be used by
     ///  all instances.
     ///  The "scratch" directory should be first.
-    QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
+    QwParameterFile::AppendToSearchPath(std::string(getenv("QW_PRMINPUT")));
     QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
     QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Analysis/prminput");
 
@@ -93,23 +93,26 @@ int main(Int_t argc,Char_t* argv[]) {
     eventbuffer.ProcessOptions(gQwOptions);
 
     ///
-    /// Instantiate one subsytem for all eight main detectors Bar1-Bar8, plus one fully assembled
-    /// background detector Bar0 (there are two channels for each fully assembled detector)
+    /// Instantiate one subsytem for all eight main detectors MD1-MD8, plus one fully assembled
+    /// background detector MD0 (there are two channels for each fully assembled detector)
     /// plus 3 additional diagnostic detector channels AnciD1-AnciD3 for noise setup.
     QwSubsystemArrayParity detectors;
     detectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
     detectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
-    //detectors.GetSubsystem("Main detector")->             LoadInputParameters("qweak_pedestal.map");
+    //detectors.GetSubsystem("Main detector")->LoadInputParameters("qweak_pedestal.map");
 
     detectors.push_back(new QwBeamLine("Injector BeamLine"));
-    detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
+    //use mock_qweak_beamline.map for testing with mockdatagenerator
+//    detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
+    detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
     detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");
+
 
     ///
     /// Instantiate scanner subsystem
     detectors.push_back(new QwScanner("FPS"));
     ((VQwSubsystemParity*) detectors.GetSubsystem("FPS"))->LoadChannelMap("scanner_channel.map" );
-    ((VQwSubsystemParity*) detectors.GetSubsystem("FPS"))->LoadInputParameters("scanner_pedestal.map");
+    ((VQwSubsystemParity*) detectors.GetSubsystem("FPS"))->LoadInputParameters("scanner_parameter.map");
     QwScanner* scanner = dynamic_cast<QwScanner*> (detectors.GetSubsystem("FPS")); // Get scanner subsystem
 
     ///
@@ -119,6 +122,8 @@ int main(Int_t argc,Char_t* argv[]) {
 
     if (bHelicity) {
         detectors.push_back(new QwHelicity("Helicity info"));
+        //use mock_qweak_helicity.map for testing with mockdatagenerator
+        //detectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
         detectors.GetSubsystem("Helicity info")->LoadChannelMap("mock_qweak_helicity.map");
         detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
     }
@@ -149,7 +154,7 @@ int main(Int_t argc,Char_t* argv[]) {
         //  Open the data files and root file
         //    OpenAllFiles(io, run);
 
-        TString rootfilename=std::string(getenv("QW_ROOTFILES_DIR")) + Form("/Qweak_ADC_%s.root",eventbuffer.GetRunLabel().Data());
+        TString rootfilename=std::string(getenv("QW_ROOTFILES")) + Form("/Qweak_ADC_%s.root",eventbuffer.GetRunLabel().Data());
         std::cout<<" rootfilename="<<rootfilename<<"\n";
         TFile rootfile(rootfilename,"RECREATE","QWeak ROOT file");
 

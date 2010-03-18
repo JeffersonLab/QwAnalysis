@@ -61,7 +61,7 @@ class QwScanner: public VQwSubsystemTracking,
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadQweakGeometry(TString mapfile){return 0;};
   Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info){return 0;};
-  Int_t LoadInputParameters(TString mapfile);
+  Int_t LoadInputParameters(TString parameterfile);
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   void  InitializeChannel(TString name, TString datatosave);
   void  ClearEventData();
@@ -157,6 +157,9 @@ class QwScanner: public VQwSubsystemTracking,
   std::vector<TH2*> fHistograms2D;
 
  private:
+  Double_t get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalidity);
+
+ private:
 
   static const UInt_t kV775Mask_SlotNumber;
   static const UInt_t kV775Mask_WordType;
@@ -169,7 +172,16 @@ class QwScanner: public VQwSubsystemTracking,
   UInt_t fV775ChannelNumber;
   UInt_t fV775Dataword;
 
-  Double_t get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalidity);
+  Double_t fMainDetCenterX;
+  Double_t fMainDetCenterY;
+  Double_t fHomePositionOffsetX;
+  Double_t fHomePositionOffsetY;
+  Double_t fVoltageOffsetX;
+  Double_t fVoltageOffsetY;
+  Double_t fCal_FactorX;
+  Double_t fCal_FactorY;
+  Double_t fPedestal;
+  Double_t fCalibration;
 
   Int_t myTimer;
   Bool_t bRawData;
@@ -182,38 +194,23 @@ class QwScanner: public VQwSubsystemTracking,
   Double_t fCurrentPotentialY;
   Double_t fDirectionX;
   Double_t fDirectionY;
-  Double_t PreDirectionX;
-  Double_t PreDirectionY;
-
-  Double_t fPedestal;
-  Double_t fCalibration;
+  Double_t fPreDirectionX;
+  Double_t fPreDirectionY;
 
   Double_t fPowSupply;
   Double_t fPositionX;
   Double_t fPositionY;
   Double_t fRate;
 
-  Double_t MainDetCenterX;
-  Double_t MainDetCenterY;
-
-  Double_t HomePositionOffsetX;
-  Double_t HomePositionOffsetY;
-
-  Double_t fVoltageOffsetX;
-  Double_t fVoltageOffsetY;
-
-  Double_t Cal_FactorX;
-  Double_t Cal_FactorY;
-
   Int_t FrontScaData;
   Int_t BackScaData;
   Int_t CoincidenceScaData;
 
-  Int_t eventnumber;
-  Int_t trigevtnum;
-  Int_t sumevtnum;
-  Int_t SumFlag;
-  Int_t TrigFlag;
+  Int_t fEvtCounter;
+  Int_t fTrigEvtCounter;
+  Int_t fSumEvtCounter;
+  Int_t fSumFlag;
+  Int_t fTrigFlag;
   Double_t fFrontSCA;
   Double_t fBackSCA;
   Double_t fCoincidenceSCA;
