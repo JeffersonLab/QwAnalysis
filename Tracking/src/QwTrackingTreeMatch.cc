@@ -292,8 +292,8 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
         treeline->SetPackage(frontline->GetPackage());
         treeline->SetDirection(frontline->GetDirection());
 
-        QwHit *DetecHits[2*TLAYERS];
-        for (int i = 0; i < 2*TLAYERS; i++) DetecHits[i] = 0;
+        QwHit *DetecHits[2*MAX_LAYERS];
+        for (int i = 0; i < 2*MAX_LAYERS; i++) DetecHits[i] = 0;
 
         // Set the hits for front VDC
         int fronthits = frontline->fNumHits;
@@ -320,7 +320,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
         // Fit a line to the hits
         double slope, offset, chi, cov[3];
-        TreeCombine->weight_lsq_r3 (&slope, &offset, cov, &chi, DetecHits, nhits, 0, -1, 2*TLAYERS);
+        TreeCombine->weight_lsq_r3 (&slope, &offset, cov, &chi, DetecHits, nhits, 0, -1, 2*MAX_LAYERS);
 
         // Store the determined offset, slope, and chi^2 into the tree line
         treeline->SetOffset(offset);
@@ -328,7 +328,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
         treeline->SetChi(chi);
 
         treeline->fNumHits = nhits;
-        treeline->fNumMiss = 2 * TLAYERS - nhits;
+        treeline->fNumMiss = 2 * MAX_LAYERS - nhits;
 
         // Set the tree line valid
         treeline->SetValid();

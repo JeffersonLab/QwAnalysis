@@ -17,9 +17,31 @@
 // Qweak options header (should be first)
 #include "QwOptions.h"
 
-// Qweak parity subsystems that provide options
+void DefineOptionsParity(QwOptions& options)
+{
+  /* Define general options */
+  //QwEventRing options
+  options.AddOptions()("ring.size", po::value<int>()->default_value(32),"QwEventRing: ring/buffer size");
+  options.AddOptions()("ring.bt", po::value<int>()->default_value(4),
+                "QwEventRing: minimum beam trip count");
+  options.AddOptions()("ring.hld", po::value<int>()->default_value(16),
+                "QwEventRing: ring hold off");
+  //end of QwEventRing options
 
-void QwOptions::DefineOptions() {
+  //QwHelicity options
+  //gQwOptions.AddOptions()("helicity.30bitseed", po::value<bool>()->zero_tokens(), "QwHelicty: 30bit random seed");
+  //gQwOptions.AddOptions()("helicity.24bitseed", po::value<bool>()->zero_tokens(), "QwHelicty: 24bit random seed");
+  options.AddOptions()("helicity.30bitseed", po::value<bool>()->zero_tokens(), "QwHelicty: 30bit random seed");
+  options.AddOptions()("helicity.24bitseed", po::value<bool>()->zero_tokens(), "QwHelicty: 24bit random seed");
+
+  options.AddOptions()("helicity.patternoffset", po::value<int>(),"QwHelicity: pattern offset. Set 1 when pattern starts with 1 or 0 when starts with 0");
+  options.AddOptions()("helicity.patternphase", po::value<int>(),"QwHelicity: pattern phase. Can be set to 4 or 8");
+
+  options.AddOptions()("helicity.delay", po::value<int>(),"QwHelicity: pattern delay. Default delay is 2 patterns, set at the helicity map file.");
+  //End of QwHelicity options
+  QwOptions::DefineOptions(options);
+
+  /* Define parity options */
   /* No options defined */
 }
 

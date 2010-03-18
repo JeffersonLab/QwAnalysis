@@ -41,11 +41,20 @@
 
 Bool_t kInQwBatchMode = kFALSE;
 
+// Branch for Scanner subsystem
+static const bool kScannerBranch = kTRUE;
+
 int main(Int_t argc,Char_t* argv[])
 {
+  // Debug level
+  static int kDebug = 1;
 
-// Debug level
-static int kDebug = 1;
+  /// First, we set the command line arguments and the configuration filename,
+  /// and we define the options that can be used in them (using QwOptions).
+  gQwOptions.SetCommandLine(argc, argv);
+  gQwOptions.SetConfigFile("qwanalysis_beamline.conf");
+  // Define the command line options
+  DefineOptionsParity(gQwOptions);
 
   //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
   if (getenv("DISPLAY")==NULL
@@ -57,6 +66,7 @@ static int kDebug = 1;
   ///  all instances.
   ///  The "scratch" directory should be first.
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput");
 
   ///
@@ -67,9 +77,6 @@ static int kDebug = 1;
   gQwHists.LoadHistParamsFromFile("scanner_hists.in");
 
   TStopwatch timer;
-
-  QwCommandLine cmdline;
-  cmdline.Parse(argc, argv);
 
   ///
   /// Instantiate event buffer
@@ -85,18 +92,18 @@ static int kDebug = 1;
 //  QwDetectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
 //  QwDetectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
 
-  // Test code for the focal plane scanner 
+  // Test code for the focal plane scanner
   if (kDebug) std::cout<<"Instantiate the scanner subsystem:"<<std::endl;
   QwDetectors.push_back (new QwScanner( "FPS" ));
-  QwDetectors.GetSubsystem("FPS")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput/scanner_channel.map" );
-  QwDetectors.GetSubsystem("FPS")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput/scanner_pedestal.map");
+  QwDetectors.GetSubsystem("FPS")->LoadChannelMap("scanner_channel.map" );
+  QwDetectors.GetSubsystem("FPS")->LoadInputParameters("scanner_parameter.map");
 
 
   ///
   ///Specifies the same helicity pattern used by all subsystems
-  ///to calculate asymmetries. The pattern is defined in the 
+  ///to calculate asymmetries. The pattern is defined in the
   ///QwHelicityPattern class.
-  //QwHelicityPattern QwHelPat(QwDetectors,4);
+  //QwHelicityPattern QwHelPat(QwDetectors);
 
 
   //////////////////////////////////////////////////////////
@@ -107,13 +114,17 @@ static int kDebug = 1;
   // Get subsystem
   QwScanner* scanner = dynamic_cast<QwScanner*> (QwDetectors.GetSubsystem("FPS"));
 
-  // Run generation loop
-  for (int run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++) {
+  // Loop over all runs
+  UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
+  UInt_t runnumber_max = (UInt_t) gQwOptions.GetIntValuePairLast("run");
+  for (UInt_t run  = runnumber_min;
+              run <= runnumber_max;
+              run++) {
 
-    TString filename = std::string(getenv("QWSCRATCH"))+"/data" + 
+    TString filename = std::string(getenv("QW_DATA"))+
                        TString("/QwRun_") + Form("%ld.",run) + TString("log");
 
-  if (kDebug) std::cout<<"Generating mock data for the scanner: "<<filename<<std::endl;
+    if (kDebug) std::cout<<"Generating mock data for the scanner: "<<filename<<std::endl;
 
     if (QwEvt.OpenDataFile(filename,"W") != CODA_OK) {
       std::cout << "Error: could not open file!" << std::endl;
@@ -124,8 +135,9 @@ static int kDebug = 1;
     QwEvt.EncodeGoEvent();
 
     // Event generation loop
-    for (Int_t event = cmdline.GetFirstEvent();
-               event <= cmdline.GetLastEvent(); event++) {
+    Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
+    Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
+    for (Int_t event = eventnumber_min; event <= eventnumber_max; event++) {
 
       QwDetectors.ClearEventData();
       QwDetectors.RandomizeEventData();
@@ -143,17 +155,20 @@ static int kDebug = 1;
     QwEvt.CloseDataFile();
     QwEvt.ReportRunSummary();
 
-} //end of run loop
+  } //end of run loop
 
 
 
-//////////////////////////////////////////////////////
-//  processing scanner mock data
-//////////////////////////////////////////////////////
-
+  //////////////////////////////////////////////////////
+  //  Processing scanner mock data
+  //////////////////////////////////////////////////////
   if (kDebug)  std::cout<<"\nProcessing mock data:\n\n";
-  for(Int_t run = cmdline.GetFirstRun(); run <= cmdline.GetLastRun(); run++)
-    {
+
+  // Loop over all runs
+  for (UInt_t run  = runnumber_min;
+              run <= runnumber_max;
+              run++) {
+
       //  Begin processing for the first run.
       //  Start the timer.
       timer.Start();
@@ -173,18 +188,28 @@ static int kDebug = 1;
       //  Open the data files and root file
       //    OpenAllFiles(io, run);
 
-      TString rootfilename=std::string(getenv("QW_ROOTFILES_DIR"))+Form("/Qweak_Scanner_%d.root",run);
+      TString rootfilename=std::string(getenv("QW_ROOTFILES"))+Form("/Qweak_Scanner_%d.root",run);
       std::cout<<" rootfilename="<<rootfilename<<"\n";
       TFile rootfile(rootfilename,"RECREATE","QWeak ROOT file");
 
     if (kDebug) std::cout<<" ====>>>> Creating histograms:"<<std::endl;
     rootfile.cd();
-    TString prefix = TString("scanner_");
-    scanner->ConstructHistograms(rootfile.mkdir("scanner_histo"),prefix);
-    scanner->ConstructTrees(&rootfile);
+
+    std::vector<Double_t> scannervect;
+    TString scanner_prefix = "scanner_";
+    scanner->ConstructHistograms(rootfile.mkdir("scanner_histo"),scanner_prefix);
+
+    rootfile.cd();
+    TTree* tree = new TTree("tree", "Scanner tree");
+    if (kScannerBranch) scanner->ConstructBranchAndVector(tree, scanner_prefix, scannervect);
+
 
     int EvtCounter = 0;
+    Int_t eventnumber = -1;
+    Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
+    Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
     while (QwEvt.GetEvent() == CODA_OK){
+
        EvtCounter++;
       //  Loop over events in this CODA file
       //  First, do processing of non-physics events...
@@ -202,12 +227,14 @@ static int kDebug = 1;
           }
 
       //  Check to see if we want to process this event.
-      if (QwEvt.GetEventNumber() < cmdline.GetFirstEvent()) continue;
-      else if (QwEvt.GetEventNumber() > cmdline.GetLastEvent()) break;
+      eventnumber = QwEvt.GetEventNumber();
+      if      (eventnumber < eventnumber_min) continue;
+      else if (eventnumber > eventnumber_max) break;
 
-      if(QwEvt.GetEventNumber()%100==0 | (QwEvt.GetEventNumber()<=10) ) {
-	std::cout << "Number of events processed so far: "
-		  << QwEvt.GetEventNumber() << "\n";
+
+      if (QwEvt.GetEventNumber()%100==0 | (QwEvt.GetEventNumber()<=10) ) {
+        std::cout << "Number of events processed so far: "
+                  << QwEvt.GetEventNumber() << "\n";
       }
 
       //  Fill the subsystem objects with their respective data for this event.
@@ -216,9 +243,11 @@ static int kDebug = 1;
       // Process this events
       QwDetectors.ProcessEvent();
 
+      if (kScannerBranch)     scanner->FillTreeVector(scannervect);
+
       QwDetectors.FillHistograms();
 
-      scanner->FillTrees();
+      tree->Fill();
 
     }
     std::cout << "Number of events processed: "
@@ -232,7 +261,6 @@ static int kDebug = 1;
     QwEvt.CloseDataFile();
     QwEvt.ReportRunSummary();
     PrintInfo(timer, run);
-
 
   } //end of run loop
 

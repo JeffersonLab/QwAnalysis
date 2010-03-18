@@ -13,6 +13,7 @@
 
 // Qweak headers
 #include "QwTypes.h"
+#include "QwOptions.h"
 #include "QwRayTracer.h"
 
 // Forward declarations
@@ -52,7 +53,7 @@ class QwTrackingWorker {
     ~QwTrackingWorker();
 
     /// \brief Define command line and config file options
-    static void DefineOptions();
+    static void DefineOptions(QwOptions& options);
 
     /// \brief Get the debug level
     int GetDebugLevel () { return fDebug; };

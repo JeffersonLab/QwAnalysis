@@ -19,6 +19,9 @@
 // System headers
 #include <iostream>
 
+// Qweak headers
+#include "QwLog.h"
+
 namespace QwTracking {
 
 // Forward declaration due to cyclic dependency
@@ -40,15 +43,14 @@ class shortnode {
     /// \brief Destructor
     ~shortnode();
 
-  public:
+  private:
 
     /// Link to the next node
-    shortnode* next;
+    shortnode* fNext;
+
     /// Pointer to the tree with the information, this can be either a single
     /// tree object or an entire array of trees
-    shorttree* tree;
-
-  private:
+    shorttree* fTree;
 
     /// Number of trees pointed at by the pointer above
     int fNTrees;
@@ -56,15 +58,33 @@ class shortnode {
   public:
 
     /// Set the next node
-    void SetNext(shortnode* _next) { next = _next; };
+    void SetNext(shortnode* next) {
+      if (next == this) {
+        QwError << "Trying to link next to self" << QwLog::endl; return;
+      }
+      fNext = next;
+    };
+    /// Get the next node
+    shortnode* GetNext() const { return fNext; };
+    /// Get the next node (non-standard notation)
+    shortnode* next() const { return fNext; };
+
     /// Set the tree
-    void SetTree(shorttree* _tree, int ntrees = 1) { tree = _tree; fNTrees = ntrees; };
-    /// Get the (or a) tree
-    shorttree* GetTree(int i = 0) const { return (fNTrees > 1 ? tree : tree); };
+    void SetTree(shorttree* tree, int ntrees = 1) { fTree = tree; fNTrees = ntrees; };
+    /// \brief Get the tree
+    shorttree* GetTree(int i = 0) const;
+
     /// Set the number of trees (if allocated as an array)
     void SetNumberOfTrees(int ntrees) { fNTrees = ntrees; };
     /// Get the number of trees
     const int GetNumberOfTrees() const { return fNTrees; };
+
+  private:
+
+    static int fCount; ///< Object counter
+    static int fDebug; ///< Debug level
+
+  public:
 
     /// \brief Print some debugging information
     void Print(int indent = 0);
@@ -73,11 +93,6 @@ class shortnode {
 
     /// Get number of objects
     static const int GetCount() { return fCount; };
-
-  private:
-
-    static int fCount; /// Object counter
-    static int fDebug; ///< Debug level
 
 }; // class shortnode
 

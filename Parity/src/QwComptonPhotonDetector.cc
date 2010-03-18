@@ -15,11 +15,20 @@
  */
 
 #include "QwComptonPhotonDetector.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
 
+// Qweak headers
+#include "QwLog.h"
+#include "QwHistogramHelper.h"
 
-//*****************************************************************
+
+/**
+ * Load the channel map
+ * @param mapfile Map file
+ * @return Zero if successful
+ */
 Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 {
   TString varname, varvalue;
@@ -67,13 +76,21 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
   return 0;
 };
 
-//*****************************************************************
+/**
+ * Load the event cuts
+ * @param filename Event cuts file
+ * @return Zero if successful
+ */
 Int_t QwComptonPhotonDetector::LoadEventCuts(TString & filename)
 {
   return 0;
 };
 
-//*****************************************************************
+/**
+ * Load the input parameters
+ * @param pedestalfile Input parameters file
+ * @return Zero if successful
+ */
 Int_t QwComptonPhotonDetector::LoadInputParameters(TString pedestalfile)
 {
   TString varname;
@@ -111,7 +128,11 @@ Int_t QwComptonPhotonDetector::LoadInputParameters(TString pedestalfile)
   return 0;
 }
 
-//*****************************************************************
+
+/**
+ * Randomize this event with the given helicity
+ * @param helicity Helicity of this event (default is zero)
+ */
 void QwComptonPhotonDetector::RandomizeEventData(int helicity)
 {
   // Randomize all MQwSIS3320 buffers
@@ -127,7 +148,11 @@ void QwComptonPhotonDetector::RandomizeEventData(int helicity)
     fIntegratingADC[i].RandomizeEventData(helicity);
 }
 
-//*****************************************************************
+
+/**
+ * Encode this event into a CODA buffer
+ * @param buffer Buffer to append data to
+ */
 void QwComptonPhotonDetector::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   std::vector<UInt_t> elements;
@@ -161,7 +186,15 @@ void QwComptonPhotonDetector::EncodeEventData(std::vector<UInt_t> &buffer)
   }
 }
 
-//*****************************************************************
+
+/**
+ * Process the event buffer for this subsystem
+ * @param roc_id ROC ID
+ * @param bank_id Subbank ID
+ * @param buffer Buffer to read from
+ * @param num_words Number of words left in buffer
+ * @return Number of words read
+ */
 Int_t QwComptonPhotonDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   UInt_t words_read = 0;
@@ -181,24 +214,31 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UI
       //words_read += fIntegratingADC[i].ProcessEvBuffer(&(buffer[words_read]), num_words-words_read);
     }
     if (num_words != words_read) {
-      std::cerr << "QwComptonPhotonDetector::ProcessEvBuffer:  There were "
-		<< num_words-words_read
-		<< " leftover words after decoding everything we recognize."
-		<< std::endl;
+      QwError << "QwComptonPhotonDetector: There were "
+              << num_words - words_read
+              << " leftover words after decoding everything we recognize."
+              << QwLog::endl;
     }
   }
 
   return words_read;
 };
 
-//*****************************************************************
+
+/**
+ * Process the single event cuts
+ * @return
+ */
 Bool_t QwComptonPhotonDetector::SingleEventCuts()
 {
-  std::cout << "QwComptonPhotonDetector::SingleEventCuts()" << std::endl;
+  QwDebug << "QwComptonPhotonDetector::SingleEventCuts()" << QwLog::endl;
   return IsGoodEvent();
 };
 
-//*****************************************************************
+
+/**
+ * Process this event
+ */
 void  QwComptonPhotonDetector::ProcessEvent()
 {
   for(size_t i = 0; i < fSamplingADC.size(); i++)
@@ -211,13 +251,25 @@ void  QwComptonPhotonDetector::ProcessEvent()
   return;
 };
 
-//*****************************************************************
+
+/**
+ * Process the configuration buffer for this subsystem
+ * @param roc_id ROC ID
+ * @param bank_id Subbank ID
+ * @param buffer Buffer to read from
+ * @param num_words Number of words left in buffer
+ * @return Number of words read
+ */
 Int_t QwComptonPhotonDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   return 0;
 };
 
-//*****************************************************************
+
+/**
+ * Check whether this is a good event
+ * @return True if the event is good
+ */
 Bool_t QwComptonPhotonDetector::IsGoodEvent()
 {
   Bool_t test = kTRUE;
@@ -233,7 +285,10 @@ Bool_t QwComptonPhotonDetector::IsGoodEvent()
   return test;
 }
 
-//*****************************************************************
+
+/**
+ * Clear the event data in this subsystem
+ */
 void QwComptonPhotonDetector::ClearEventData()
 {
   for(size_t i=0;i<fSamplingADC.size();i++)
@@ -246,12 +301,16 @@ void QwComptonPhotonDetector::ClearEventData()
   return;
 };
 
-//*****************************************************************
+
+/**
+ * Assignment operator
+ * @param value Right-hand side
+ * @return Left-hand side
+ */
 VQwSubsystem&  QwComptonPhotonDetector::operator=  (VQwSubsystem *value)
 {
   if (Compare(value)) {
-    VQwSubsystem::operator=(value);
-    QwComptonPhotonDetector* input = (QwComptonPhotonDetector*) value;
+    QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*>(value);
     for (size_t i = 0; i < input->fSamplingADC.size(); i++)
       this->fSamplingADC[i] = input->fSamplingADC[i];
     for (size_t i = 0; i < input->fIntegratingTDC.size();i++)
@@ -262,10 +321,15 @@ VQwSubsystem&  QwComptonPhotonDetector::operator=  (VQwSubsystem *value)
   return *this;
 };
 
+/**
+ * Addition-assignment operator
+ * @param value Right-hand side
+ * @return Left-hand side
+ */
 VQwSubsystem&  QwComptonPhotonDetector::operator+=  (VQwSubsystem *value)
 {
   if (Compare(value)) {
-    QwComptonPhotonDetector* input = (QwComptonPhotonDetector*) value;
+    QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*>(value);
     for (size_t i = 0; i < input->fSamplingADC.size(); i++)
       this->fSamplingADC[i] += input->fSamplingADC[i];
     for (size_t i = 0; i < input->fIntegratingTDC.size(); i++)
@@ -276,11 +340,15 @@ VQwSubsystem&  QwComptonPhotonDetector::operator+=  (VQwSubsystem *value)
   return *this;
 };
 
+/**
+ * Subtraction-assignment operator
+ * @param value Right-hand side
+ * @return Left-hand side
+ */
 VQwSubsystem&  QwComptonPhotonDetector::operator-=  (VQwSubsystem *value)
 {
-
   if (Compare(value)) {
-    QwComptonPhotonDetector* input= (QwComptonPhotonDetector*) value;
+    QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*> (value);
     for (size_t i = 0; i < input->fSamplingADC.size(); i++)
       this->fSamplingADC[i] -= input->fSamplingADC[i];
     for (size_t i = 0; i < input->fIntegratingTDC.size(); i++)
@@ -291,32 +359,42 @@ VQwSubsystem&  QwComptonPhotonDetector::operator-=  (VQwSubsystem *value)
   return *this;
 };
 
+/**
+ * Summation
+ * @param value1 First value
+ * @param value2 Second value
+ */
 void  QwComptonPhotonDetector::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
 {
   if (Compare(value1) && Compare(value2)) {
-    *this =  value1;
+    *this  = value1;
     *this += value2;
   }
 };
 
+/**
+ * Difference
+ * @param value1 First value
+ * @param value2 Second value
+ */
 void  QwComptonPhotonDetector::Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)
 {
   if (Compare(value1) && Compare(value2)) {
-    *this =  value1;
+    *this  = value1;
     *this -= value2;
   }
 };
 
 /**
  * Determine the ratio of two photon detectors
- * @param numer
- * @param denom
+ * @param numer Numerator
+ * @param denom Denominator
  */
-void QwComptonPhotonDetector::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
+void QwComptonPhotonDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
 {
   if (Compare(numer) && Compare(denom)) {
-    QwComptonPhotonDetector* innumer = (QwComptonPhotonDetector*) numer;
-    QwComptonPhotonDetector* indenom = (QwComptonPhotonDetector*) denom;
+    QwComptonPhotonDetector* innumer = dynamic_cast<QwComptonPhotonDetector*> (numer);
+    QwComptonPhotonDetector* indenom = dynamic_cast<QwComptonPhotonDetector*> (denom);
     for (size_t i = 0; i < innumer->fSamplingADC.size(); i++)
       this->fSamplingADC[i].Ratio(innumer->fSamplingADC[i], indenom->fSamplingADC[i]);
     for (size_t i = 0; i < innumer->fIntegratingTDC.size(); i++)
@@ -329,7 +407,7 @@ void QwComptonPhotonDetector::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 
 /**
  * Scale the photon detector
- * @param factor
+ * @param factor Scale factor
  */
 void QwComptonPhotonDetector::Scale(Double_t factor)
 {
@@ -350,12 +428,16 @@ void QwComptonPhotonDetector::Scale(Double_t factor)
  */
 Bool_t QwComptonPhotonDetector::Compare(VQwSubsystem *value)
 {
+  // Immediately fail on null objects
+  if (value == 0) return kFALSE;
+
+  // Continue testing on actual object
   Bool_t result = kTRUE;
   if (typeid(*value) != typeid(*this)) {
     result = kFALSE;
 
   } else {
-    QwComptonPhotonDetector* input = (QwComptonPhotonDetector*) value;
+    QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*> (value);
     if (input->fSamplingADC.size() != fSamplingADC.size()) {
       result = kFALSE;
     } else {
@@ -399,6 +481,41 @@ void  QwComptonPhotonDetector::DeleteHistograms()
       fIntegratingTDC[i].DeleteHistograms();
   for(size_t i = 0; i < fIntegratingADC.size(); i++)
       fIntegratingADC[i].DeleteHistograms();
+
+  return;
+};
+
+/**
+ * Construct the tree
+ * @param folder Folder in which the tree will be created
+ * @param prefix Prefix with information about the type of histogram
+ */
+void  QwComptonPhotonDetector::ConstructTree(TDirectory *folder, TString &prefix)
+{
+  folder->cd();
+  fTree = new TTree("ComptonPhoton", "Compton Photon Detector");
+  fTree->Branch("nevents",&fTree_fNEvents,"nevents/I");
+  return;
+};
+
+/**
+ * Delete the tree
+ */
+void  QwComptonPhotonDetector::DeleteTree()
+{
+  delete fTree;
+  return;
+};
+
+/**
+ * Fill the tree with data
+ */
+void  QwComptonPhotonDetector::FillTree()
+{
+  for(size_t i = 0; i < fSamplingADC.size(); i++) {
+    fTree_fNEvents = fSamplingADC[i].GetNumberOfEvents();
+    fTree->Fill();
+  }
 
   return;
 };
@@ -459,9 +576,22 @@ void  QwComptonPhotonDetector::Print()
 {
   VQwSubsystemParity::Print();
 
-  std::cout << "there are " << fSamplingADC.size() << " sampling ADCs" << std::endl;
-  std::cout << "there are " << fIntegratingTDC.size() << " integrating TDCs" << std::endl;
-  std::cout << "there are " << fIntegratingADC.size() << " integrating ADCs" << std::endl;
+  QwOut << " there are " << fSamplingADC.size() << " sampling ADCs" << QwLog::endl;
+  QwOut << " there are " << fIntegratingTDC.size() << " integrating TDCs" << QwLog::endl;
+  QwOut << " there are " << fIntegratingADC.size() << " integrating ADCs" << QwLog::endl;
+
+  for (size_t i = 0; i < fSamplingADC.size(); i++) {
+    QwOut << " sampling ADC " << i << ":";
+    fSamplingADC[i].Print();
+  }
+  for (size_t i = 0; i < fIntegratingTDC.size(); i++) {
+    QwOut << " integrating TDC " << i << ":";
+    fIntegratingTDC[i].Print();
+  }
+  for (size_t i = 0; i < fIntegratingADC.size(); i++) {
+    QwOut << " integrating ADC " << i << ":";
+    fIntegratingADC[i].Print();
+  }
 
   return;
 }
@@ -475,7 +605,7 @@ void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
   try {
     if (typeid(*source) == typeid(*this)) {
       VQwSubsystem::Copy(source);
-      QwComptonPhotonDetector* input = ((QwComptonPhotonDetector*) source);
+      QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*> (source);
       this->fSamplingADC.resize(input->fSamplingADC.size());
       for (size_t i = 0; i < this->fSamplingADC.size(); i++)
         this->fSamplingADC[i].Copy(&(input->fSamplingADC[i]));
@@ -494,7 +624,7 @@ void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
     }
 
   } catch (std::exception& e) {
-    std::cerr << e.what() << std::endl;
+    QwError << e.what() << QwLog::endl;
   }
 
   return;
@@ -507,11 +637,16 @@ void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
  */
 VQwSubsystem*  QwComptonPhotonDetector::Copy()
 {
-  QwComptonPhotonDetector* TheCopy = new QwComptonPhotonDetector(this->GetSubsystemName() + " Copy");
-  TheCopy->Copy(this);
-  return TheCopy;
+  QwComptonPhotonDetector* copy = new QwComptonPhotonDetector(this->GetSubsystemName() + " Copy");
+  copy->Copy(this);
+  return copy;
 }
 
+/**
+ * Get the SIS3320 channel for this photon detector
+ * @param name Name of the SIS3320 channel
+ * @return Pointer to the SIS3320 channel
+ */
 MQwSIS3320_Channel* QwComptonPhotonDetector::GetSIS3320Channel(const TString name)
 {
   if (! fSamplingADC.empty()) {

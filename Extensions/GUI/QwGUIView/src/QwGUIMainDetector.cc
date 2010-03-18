@@ -362,6 +362,9 @@ void QwGUIMainDetector::CalculateDFT()
       nc = 0;
 
       for(int k = 0; k < N; k++){
+      #if ROOT_VERSION_CODE >= ROOT_VERSION(5,22,0)
+        // Only starting with ROOT version 5.22 does GetPoint return an Int_t
+	// Ref: http://root.cern.ch/root/html522/TGraph.html#TGraph:GetPoint
 	if(grp->GetPoint(k,tValx,tValy) > 0){
 	  fValyR += tValy*TMath::Cos(2*TMath::Pi()*j*k/N);
 	  fValyI += tValy*TMath::Sin(2*TMath::Pi()*j*k/N);
@@ -370,6 +373,15 @@ void QwGUIMainDetector::CalculateDFT()
 	  fValyI += 0;
 	  fValyR += 0;
 	}
+      #else
+	// Before ROOT version 5.22 GetPoint returns void,
+	// but tValx and tValy are unchanged in case of problems
+	// Ref: http://root.cern.ch/root/html520/TGraph.html#TGraph:GetPoint
+	tValx = 0; tValy = 0;
+        grp->GetPoint(k,tValx,tValy);
+	fValyR += tValy*TMath::Cos(2*TMath::Pi()*j*k/N);
+	fValyI += tValy*TMath::Sin(2*TMath::Pi()*j*k/N);
+      #endif
       } 
       hst->SetBinContent(j+1,sqrt(fValyR*fValyR+fValyI*fValyI));
 

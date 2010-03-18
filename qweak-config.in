@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function usage () {
-	echo "qweak-config [--prefix] [--bin] [--lib] [--libs]"
+	echo "qweak-config [--prefix] [--qwanalysis] [--bin] [--lib] [--libs] [--ldflags] [--cppflags]"
 	exit 1
 }
 
@@ -17,8 +17,8 @@ while [ $# -ne 0 ] ; do
 	case $1 in
 		(--prefix)	echo -n %QWANALYSIS% ;;
 		(--qwanalysis)	echo -n %QWANALYSIS% ;;
-		(--bin)		echo -n %QWBIN% ;;
-		(--lib)		echo -n %QWLIB% ;;
+		(--bin)		echo -n %QW_BIN% ;;
+		(--lib)		echo -n %QW_LIB% ;;
 		(--libs)	echo -n %LIBS% ;;
 		(--ldflags)	echo -n %LDFLAGS% ;;
 		(--cppflags)	echo -n %CPPFLAGS% ;;

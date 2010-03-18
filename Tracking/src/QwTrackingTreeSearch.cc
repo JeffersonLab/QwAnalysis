@@ -143,7 +143,7 @@ QwTrackingTreeSearch::QwTrackingTreeSearch ()
 {
   fDebug = 1; // Reset debug level
 
-  fNumLayers = TLAYERS;
+  fNumLayers = MAX_LAYERS;
 
   fMaxMissedPlanes = gQwOptions.GetValue<int>("QwTracking.R2.MaxMissedPlanes");
   fMaxMissedWires  = gQwOptions.GetValue<int>("QwTracking.R3.MaxMissedWires");
@@ -890,7 +890,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
   /**
    * Reminder about the bit pattern:
    * - there are n levels of bin division, so 8,4,2,1 bins for 4 levels,
-   * - there are rows corresponding with the HDC planes or VDC wires:
+   * - there are rows corresponding with the HDC planes or VDC wires.
    *
    * HDC planes (spaces between the 5 levels of bin division)
    * for 16 bins in wire coordinate (e.g. 16 wires)
@@ -938,7 +938,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
    *  many wires in a region 3 group have been hit.  If there are fewer than a
    *  preset number of wire hits, then the search is not even started.
    */
-  static int has_hits[TLAYERS];
+  static int has_hits[MAX_LAYERS];
   unsigned int missed_rows = 0;
   if (level == 0) {
     for (unsigned int row = 0; row < fNumPlanes; row++) {
@@ -964,14 +964,14 @@ void QwTrackingTreeSearch::_SearchTreeLines (
       /* Look at the trees attached to each nodenode on the
        * specified nodenode linked list
        */
-      shorttree* tree = node->tree;
+      shorttree* tree = node->GetTree();
 
       /* Is the hit pattern in this treenode valid for this level
        * of the treesearch? (i.e. check for level boundaries)
        */
       if (tree->fMinLevel > level + 1) { /* check for level boundaries */
         QwError << "Tree invalid for this treesearch!" << QwLog::endl;
-        node = node->next; /* no, so look at the next nodenode */
+        node = node->GetNext(); /* no, so look at the next nodenode */
         continue;
       }
 
@@ -980,7 +980,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
        * specified in the treenode are on.
        */
       unsigned long pattern_offset = pattern_start + offset;
-      int* tree_pattern = tree->bit;
+      int* tree_pattern = tree->fBit;
 
       unsigned int matched_wires = 0;
 
@@ -1044,29 +1044,29 @@ void QwTrackingTreeSearch::_SearchTreeLines (
           /// If so, then we have found a valid treeline.
 
           // Calculate the bin in the last layer
-          int backbin = reverse ? offset - tree->bit[fNumPlanes-1]
-                                : offset + tree->bit[fNumPlanes-1];
+          int backbin = reverse ? offset - tree->fBit[fNumPlanes-1]
+                                : offset + tree->fBit[fNumPlanes-1];
           if (reverse) {
             backbin = 0;
             for (unsigned int wire = 0; wire < fNumWires; wire++) {
-              if (offset - tree->bit[wire] > backbin)
-                backbin = offset - tree->bit[wire];
+              if (offset - tree->fBit[wire] > backbin)
+                backbin = offset - tree->fBit[wire];
             }
           } else {
             backbin = 0;
             for (unsigned int wire = 0; wire < fNumWires; wire++) {
-              if (offset + tree->bit[wire] > backbin)
-                backbin = offset + tree->bit[wire];
+              if (offset + tree->fBit[wire] > backbin)
+                backbin = offset + tree->fBit[wire];
             }
           }
 
           // Calculate the bin in the first layer
           int hashpat[fNumWires];
-          int frontbin = reverse ? offset - tree->bit[0]
-                                 : offset + tree->bit[0];
+          int frontbin = reverse ? offset - tree->fBit[0]
+                                 : offset + tree->fBit[0];
           for (unsigned int wire = 0; wire < fNumWires; wire++) {
-            int bin = reverse ? offset - tree->bit[wire]
-                              : offset + tree->bit[wire];
+            int bin = reverse ? offset - tree->fBit[wire]
+                              : offset + tree->fBit[wire];
             // And set the hash for this pattern
             hashpat[wire] = static_hash[wire][bin];
           }
@@ -1133,7 +1133,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
       }
 
       // There was no match, so go onto the next nodenode
-      node = node->next;
+      node = node->GetNext();
 
     } // end of loop over nodes
 
@@ -1142,14 +1142,14 @@ void QwTrackingTreeSearch::_SearchTreeLines (
 
     while (node) { /* search in all nodes */
 
-      shorttree* tree = node->tree;
+      shorttree* tree = node->GetTree();
 
 
       /* ---- Is the hit pattern in this treenode valid for this level
               of the treesearch?                                         ---- */
 
       if (tree->fMinLevel >= level) { /* check for level boundaries */
-        node = node->next; /* no, so look at the next nodenode */
+        node = node->GetNext(); /* no, so look at the next nodenode */
         continue;
       }
 
@@ -1159,7 +1159,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
               specified in the treenode are on                           ---- */
 
       unsigned long pattern_offset = pattern_start + offset;
-      int* tree_pattern = tree->bit;
+      int* tree_pattern = tree->fBit;
       unsigned int matched_planes = 0;
       if (reverse) {
         /* loop over tree-planes */
@@ -1191,13 +1191,13 @@ void QwTrackingTreeSearch::_SearchTreeLines (
 
           /* all levels done -> now insert treeline */
           int hashpat[fNumPlanes];
-          int frontbin = reverse ? offset - tree->bit[0]
-                                 : offset + tree->bit[0];
-          int backbin  = reverse ? offset - tree->bit[fNumPlanes-1]
-                                 : offset + tree->bit[fNumPlanes-1];
+          int frontbin = reverse ? offset - tree->fBit[0]
+                                 : offset + tree->fBit[0];
+          int backbin  = reverse ? offset - tree->fBit[fNumPlanes-1]
+                                 : offset + tree->fBit[fNumPlanes-1];
           for (unsigned int plane = 0; plane < fNumPlanes; plane++) {
-            int bin = reverse ? offset - tree->bit[plane]
-                              : offset + tree->bit[plane];
+            int bin = reverse ? offset - tree->fBit[plane]
+                              : offset + tree->fBit[plane];
             hashpat[plane] = static_hash[plane][bin];
           }
 
@@ -1249,8 +1249,8 @@ void QwTrackingTreeSearch::_SearchTreeLines (
           } /* highly optimized - time critical */
         }
       }
-      node = node->next; /* ok, there wasn't a match, so go onto the
-                              next nodenode                         */
+      node = node->GetNext(); /* ok, there wasn't a match, so go onto the
+                                 next nodenode                         */
 
     } // end of loop over nodes
 
@@ -1320,11 +1320,11 @@ QwTrackingTreeLine* QwTrackingTreeSearch::SearchTreeLines (
     std::vector<int> wiregroups; // list of wire groups to consider
     int last_wire_with_hit = -1; // last wire with a hit
     for (int wire = 0; wire < numwires; wire++) {
-      // If this wire was hit
+      // If this wire was hit (check in the single bin at the end of the pattern)
       if (pattern[wire][(1UL << maxlevel) - 2] == 1) {
         // Set all previous numlayers-1 groups active (including this wire)
         for (int wiregroup = std::max(wire - numlayers + 1, last_wire_with_hit);
-             wiregroup <= wire; wiregroup++) {
+                 wiregroup < std::min(numwires - numlayers + 1, wire); wiregroup++) {
           if (wiregroup < 0) continue; // ignore negative wires
           wiregroups.push_back(wiregroup);
         }

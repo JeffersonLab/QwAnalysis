@@ -16,7 +16,8 @@
 
 #include "MQwSIS3320_Samples.h"
 
-
+// Qweak headers
+#include "QwLog.h"
 
 Int_t MQwSIS3320_Samples::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement)
 {
@@ -35,7 +36,7 @@ Int_t MQwSIS3320_Samples::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
           fSamples[index++] = (buffer[i] >> 16) & 0xFFFF; // highest 16 bits
           break;
         default:
-          std::cerr << "MQwSIS3320_Samples: Illegal number of samples per word!" << std::endl;
+          QwError << "MQwSIS3320_Samples: Illegal number of samples per word!" << QwLog::endl;
           words_read = 0;
           return words_read;
       }
@@ -43,19 +44,19 @@ Int_t MQwSIS3320_Samples::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
     words_read = fNumberOfDataWords;
 
   } else {
-    std::cerr << "MQwSIS3320_Samples::ProcessEvBuffer: Not enough words!" << std::endl;
+    QwError << "MQwSIS3320_Samples: Not enough words while processing buffer!" << QwLog::endl;
   }
 
   return words_read;
 };
 
 
-const Int_t MQwSIS3320_Samples::GetSum() const
+const MQwSIS3320_Type MQwSIS3320_Samples::GetSum() const
 {
   return std::accumulate(fSamples.begin(), fSamples.end(), 0);
 };
 
-const Int_t MQwSIS3320_Samples::GetSum(UInt_t start, UInt_t stop) const
+const MQwSIS3320_Type MQwSIS3320_Samples::GetSumInTimeWindow(const UInt_t start, const UInt_t stop) const
 {
   if (start >= fSamples.size() || stop >= fSamples.size()) return 0;
   return std::accumulate(&fSamples.at(start), &fSamples.at(stop), 0);
@@ -242,18 +243,18 @@ void  MQwSIS3320_Samples::ConstructBranchAndVector(TTree *tree, TString &prefix,
 void MQwSIS3320_Samples::FillTreeVector(std::vector<Double_t> &values)
 {
   if (fTreeArrayNumEntries <= 0) {
-    std::cerr << "MQwSIS3320_Samples::FillTreeVector:  fTreeArrayNumEntries == "
-              << fTreeArrayNumEntries << std::endl;
+    QwWarning << "MQwSIS3320_Samples::FillTreeVector: fTreeArrayNumEntries == "
+              << fTreeArrayNumEntries << QwLog::endl;
   } else if (values.size() < fTreeArrayIndex + fTreeArrayNumEntries) {
-    std::cerr << "MQwSIS3320_Samples::FillTreeVector:  values.size() == "
+    QwWarning << "MQwSIS3320_Samples::FillTreeVector:  values.size() == "
               << values.size()
               << "; fTreeArrayIndex + fTreeArrayNumEntries == "
               << fTreeArrayIndex + fTreeArrayNumEntries
-              << std::endl;
+              << QwLog::endl;
   } else {
     size_t index = fTreeArrayIndex;
     values[index++] = GetSample(0);
-    values[index++] = GetSum(0, 15) / 15;
+    values[index++] = GetSumInTimeWindow(0, 15) / 15;
     values[index++] = GetSum();
   }
 };

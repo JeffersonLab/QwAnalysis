@@ -10,6 +10,7 @@
 #include <TTree.h>
 
 // Qweak headers
+#include "VQwTrackingElement.h"
 #include "QwHit.h"
 #include "QwHitContainer.h"
 
@@ -23,12 +24,16 @@ class QwMagneticField;
 /// \ingroup QwTracking
 
 
-class QwBridge {
+class QwBridge: public VQwTrackingElement {
 
   public:
 
     QwBridge();
-    ~QwBridge();
+    virtual ~QwBridge();
+
+    TVector3 fStartPosition, fStartDirection;
+    TVector3 fEndPositionGoal, fEndDirectionGoal;
+    TVector3 fEndPositionActual, fEndDirectionActual;
 
     double xOff, yOff, ySOff;	/// Offset expected from lookup
     double ySlopeMatch;		/// Bending: slope match in Y
@@ -39,9 +44,14 @@ class QwBridge {
     QwHit *hits;  		/// matching hits
     QwHitContainer qwhits;	/// matching hits
 
+    /// \brief Output stream operator
+    friend ostream& operator<< (ostream& stream, const QwBridge& b);
+
   private:
 
-};
+  ClassDef(QwBridge,1);
+
+}; // class QwBridge
 
 
 #endif // QWBRIDGE_H

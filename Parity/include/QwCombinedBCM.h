@@ -30,7 +30,7 @@ class QwCombinedBCM : public VQwDataElement{
 
 
 
-  void Add(QwBCM* bcm, Double_t weight  ); ///added by me
+  void Set(QwBCM* bcm, Double_t weight, Double_t sumqw ); ///added by me
   
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
   void  ClearEventData();
@@ -39,7 +39,6 @@ class QwCombinedBCM : public VQwDataElement{
   
   void ReportErrorCounters();
 
-  void CalculateAverage();
 
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
@@ -101,6 +100,7 @@ class QwCombinedBCM : public VQwDataElement{
 
   std::vector <QwBCM*> fElement;
   std::vector <Double_t> fWeights;
+  Double_t fSumQweights;
 
 
   Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check  */

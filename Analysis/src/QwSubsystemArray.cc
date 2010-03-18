@@ -6,9 +6,13 @@
 \**********************************************************/
 
 #include "QwSubsystemArray.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
 
+// Qweak headers
+#include "QwLog.h"
+#include "QwHistogramHelper.h"
 
 
 //*****************************************************************
@@ -30,10 +34,15 @@ void QwSubsystemArray::push_back(VQwSubsystem* subsys)
     std::cerr << "QwSubsystemArray::push_back():  subsys" << subsys->GetSubsystemName()
               << " already exists" << std::endl;
   } else {
-    boost::shared_ptr<VQwSubsystem> tmpptr(subsys);
-    SubsysPtrs::push_back(tmpptr);
+    boost::shared_ptr<VQwSubsystem> subsys_tmp(subsys);
+    SubsysPtrs::push_back(subsys_tmp);
     // Set the parent of the subsystem to this array
-    tmpptr->SetParent(this);
+    subsys_tmp->SetParent(this);
+    // Instruct the subsystem to publish variables
+    if (subsys_tmp->PublishInternalValues() == kFALSE) {
+      QwError << "Not all variables for " << subsys_tmp->GetSubsystemName()
+              << " could be published!" << QwLog::endl;
+    }
   }
 };
 
@@ -141,6 +150,40 @@ void  QwSubsystemArray::DeleteHistograms()
 {
   if (!empty())
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::DeleteHistograms));
+};
+
+//*****************************************************************
+
+/**
+ * Construct the tree for this subsystem
+ * @param folder Directory where to construct the tree
+ * @param prefix Prefix for the name of the tree
+ */
+void  QwSubsystemArray::ConstructTree(TDirectory *folder, TString &prefix)
+{
+  if (!empty()) {
+    for (iterator subsys = begin(); subsys != end(); ++subsys){
+      (*subsys)->ConstructTree(folder, prefix);
+    }
+  }
+};
+
+/**
+ * Fill the tree for this subsystem
+ */
+void  QwSubsystemArray::FillTree()
+{
+  if (!empty())
+    std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::FillTree));
+};
+
+/**
+ * Delete the tree for this subsystem
+ */
+void  QwSubsystemArray::DeleteTree()
+{
+  if (!empty())
+    std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::DeleteTree));
 };
 
 //*****************************************************************

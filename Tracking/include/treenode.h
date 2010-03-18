@@ -46,17 +46,26 @@ class nodenode;
  *
  * \brief A treenode contains the bits that make up a tree pattern.
  *
+ * This is the basic element of the tree search database when it is
+ * constructed.  Each valid track has a corresponding tree node.  The
+ * minimum and maximum levels of bin division are stored in the treenode.
+ *
+ * The array fBit contains the rank of the bit that is active for this track.
+ * For example, a track that goes through (simplified) element 2 in layer 1,
+ * element 4 in layer 2, element 5 in layer 3, and element 7 in layer 4 will
+ * have the following fBit array: [2,4,6,7].  This example track will have a
+ * width of 7 - 2 + 1 = 6 (such that the track [2,2,2,2] has a width of 1).
+ *
  * The treenode also has a pointer to its father and a pointer to its
  * son nodenodes.  Each following generation of a treenode will have
  * a higher bit resolution.
- *
  */
 class treenode {
 
   public:
 
     /// \brief Default constructor
-    treenode();
+    treenode(unsigned int size = MAX_LAYERS);
     /// \brief Copy-constructor from object
     treenode(treenode& node);
     /// \brief Copy-constructor from pointer
@@ -64,13 +73,33 @@ class treenode {
     /// \brief Destructor
     ~treenode();
 
-    int fMaxLevel, fMinLevel;
-    int bits;
-    int bit[TLAYERS];
-    int xref;
-    int pattern_offset;
+  public:
 
-    unsigned int fSize;
+    /// Minimum level at which this node is valid
+    int fMinLevel;
+    /// Maximum level at which this node is valid
+    int fMaxLevel;
+
+    /// Hit pattern, one bin specified per detector layer
+    int* fBit;
+
+    /// Width in bins of the hit pattern
+    int fWidth;
+
+    /// Reference of this node when writing to file
+    int fRef;
+
+  public: // TODO Too many low-level calls to hide this behind a getter
+
+    /// Each tree has four son nodes
+    nodenode* fSon[4];
+
+  private:
+
+    /// Link to the next tree node
+    treenode* fNext;
+
+  public:
 
     /// Set the next node
     void SetNext(treenode* next) {
@@ -84,8 +113,21 @@ class treenode {
     /// Get the next node (non-standard notation)
     treenode* next() const { return fNext; };
 
+  private:
+
+    unsigned int fSize;
+
+  public:
+
     /// Get size of the bit array
     const unsigned int size() const { return fSize; };
+
+  private:
+
+    static int fCount; ///< Object counter
+    static int fDebug; ///M Debug level
+
+  public:
 
     /// \brief Print some debugging information
     void Print(int indent = 0);
@@ -94,19 +136,6 @@ class treenode {
 
     /// Get number of objects
     static const int GetCount() { return fCount; };
-
-  public:
-
-    ///< Each tree has four son nodes
-    nodenode* fSon[4];
-
-  private:
-
-    ///< Link to the next tree node
-    treenode* fNext;
-
-    static int fCount; /// Object counter
-    static int fDebug; /// Debug level
 
 }; // class treenode
 

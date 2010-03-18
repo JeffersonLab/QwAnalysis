@@ -15,15 +15,17 @@
 #include <string>
 using std::string;
 
+// Qweak headers
+#include "QwTypes.h"
+
 /*!
  * \note Because QwOptions depends on QwLog, and QwLog depends also on QwOptions,
  * we cannot include QwOptions in the QwLog header file here.  QwLog is treated
  * as more basic than QwOptions.
  */
 
-// Qweak headers
-#include "QwTypes.h"
-
+// Forward declarations
+class QwOptions;
 
 /*! \def QwOut
  *  \brief Predefined log drain for explicit output
@@ -75,6 +77,13 @@ class QwLog : public std::ostream {
 
   public:
 
+    /// \brief Define available class options for QwOptions
+    static void DefineOptions(QwOptions* options);
+    // Note: this uses a pointer as opposed to a reference, because as indicated
+    // above the QwLog class cannot depend on the QwOptions class.  When using a
+    // pointer we only need a forward declaration and we do not need to include
+    // the header file QwOptions.h.
+
     //! Loglevels
     /*! enum of possible log levels */
     enum QwLogLevel {
@@ -86,6 +95,10 @@ class QwLog : public std::ostream {
       kDebug     =  4  /*!< Debug loglevel   */
     };
 
+    //! Log file open modes
+    static const std::ios_base::openmode kTruncate;
+    static const std::ios_base::openmode kAppend;
+
     /*! \brief The constructor
      */
     QwLog();
@@ -96,7 +109,11 @@ class QwLog : public std::ostream {
 
     /*! \brief Initialize the log file with name 'name'
      */
-    void                        InitLogFile(const std::string name);
+    void                        InitLogFile(const std::string name, const std::ios_base::openmode mode = kAppend);
+
+    /*! \brief Set the screen color mode
+     */
+    void                        SetScreenColor(bool flag);
 
     /*! \brief Set the screen log level
      */
@@ -152,6 +169,9 @@ class QwLog : public std::ostream {
     std::ostream               *fFile;
     //! Log level of this stream
     QwLogLevel                  fLogLevel;
+
+    //! Flag to disable color (static)
+    static bool                 fUseColor;
 
 };
 

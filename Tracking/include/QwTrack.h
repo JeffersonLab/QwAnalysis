@@ -36,7 +36,7 @@ class QwTrack: public VQwTrackingElement {
   public:
 
     QwTrack();
-    ~QwTrack();
+    virtual ~QwTrack();
 
     bool IsUsed() { return isused; };
 
@@ -49,6 +49,8 @@ class QwTrack: public VQwTrackingElement {
 
     void SortBridgedTracks() { };
 
+    friend ostream& operator<< (ostream& stream, const QwTrack& t);
+
   public:
 
     double ZVx, TVx;		/// Vertex posistion in Z and transverse
@@ -60,8 +62,6 @@ class QwTrack: public VQwTrackingElement {
     double fMomentum;		/// spectrometer and calorimeter Energy
 
     double fXBj, fY, fQ2, fW2, fNu;	/// kinematics
-
-    int    RecoEvent;		/// track from mcHits instead of digits
 
     QwBridge *bridge;		/// magnet matching information
     int    iMagnetMatched;	/// number of magnet hits along track

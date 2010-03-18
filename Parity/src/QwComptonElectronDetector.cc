@@ -15,8 +15,13 @@
  */
 
 #include "QwComptonElectronDetector.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
+
+// Qweak headers
+#include "QwLog.h"
+#include "QwHistogramHelper.h"
 
 //*****************************************************************
 Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
@@ -80,7 +85,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 //*****************************************************************
 Bool_t QwComptonElectronDetector::SingleEventCuts()
 {
-  std::cout << "QwComptonElectronDetector::SingleEventCuts()" << std::endl;
+  QwOut << "QwComptonElectronDetector::SingleEventCuts()" << QwLog::endl;
   return IsGoodEvent();
 };
 
@@ -115,8 +120,8 @@ void QwComptonElectronDetector::ClearEventData()
 VQwSubsystem&  QwComptonElectronDetector::operator=  (VQwSubsystem *value)
 {
   if (Compare(value)) {
-    VQwSubsystem::operator=(value);
-    QwComptonElectronDetector* input = (QwComptonElectronDetector*) value;
+    QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
+    // TODO: low-level assignment operations
   }
   return *this;
 };
@@ -124,16 +129,17 @@ VQwSubsystem&  QwComptonElectronDetector::operator=  (VQwSubsystem *value)
 VQwSubsystem&  QwComptonElectronDetector::operator+=  (VQwSubsystem *value)
 {
   if (Compare(value)) {
-    QwComptonElectronDetector* input = (QwComptonElectronDetector*) value;
+    QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
+    // TODO: low-level addition-assignment operations
   }
   return *this;
 };
 
 VQwSubsystem&  QwComptonElectronDetector::operator-=  (VQwSubsystem *value)
 {
-
   if (Compare(value)) {
-    QwComptonElectronDetector* input= (QwComptonElectronDetector*) value;
+    QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
+    // TODO: low-level subtraction-assignment operations
   }
   return *this;
 };
@@ -141,7 +147,7 @@ VQwSubsystem&  QwComptonElectronDetector::operator-=  (VQwSubsystem *value)
 void  QwComptonElectronDetector::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
 {
   if (Compare(value1) && Compare(value2)) {
-    *this =  value1;
+    *this  = value1;
     *this += value2;
   }
 };
@@ -149,32 +155,39 @@ void  QwComptonElectronDetector::Sum(VQwSubsystem  *value1, VQwSubsystem  *value
 void  QwComptonElectronDetector::Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)
 {
   if (Compare(value1) && Compare(value2)) {
-    *this =  value1;
+    *this  = value1;
     *this -= value2;
   }
 };
 
-void QwComptonElectronDetector::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
+void QwComptonElectronDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
 {
   if (Compare(numer) && Compare(denom)) {
-    QwComptonElectronDetector* innumer = (QwComptonElectronDetector*) numer;
-    QwComptonElectronDetector* indenom = (QwComptonElectronDetector*) denom;
+    QwComptonElectronDetector* innumer = dynamic_cast<QwComptonElectronDetector*> (numer);
+    QwComptonElectronDetector* indenom = dynamic_cast<QwComptonElectronDetector*> (denom);
+    // TODO: low-level ratio operations
   }
   return;
 };
 
 void QwComptonElectronDetector::Scale(Double_t factor)
 {
+  // TODO: low-level scaling operations
   return;
 };
 
 Bool_t QwComptonElectronDetector::Compare(VQwSubsystem *value)
 {
+  // Immediately fail on null objects
+  if (value == 0) return kFALSE;
+
+  // Continue testing on actual object
   Bool_t result = kTRUE;
   if (typeid(*value) != typeid(*this)) {
     result = kFALSE;
-
   } else {
+
+    // TODO: low-level comparison operations
 
   }
   return result;
@@ -212,7 +225,7 @@ void QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values)
 //*****************************************************************
 void  QwComptonElectronDetector::Print()
 {
-  std::cout << "Name of this subsystem: " <<fSystemName << std::endl;
+  VQwSubsystemParity::Print();
 
   return;
 }
@@ -223,7 +236,9 @@ void  QwComptonElectronDetector::Copy(VQwSubsystem *source)
   try {
     if (typeid(*source) == typeid(*this)) {
       VQwSubsystem::Copy(source);
-      QwComptonElectronDetector* input = ((QwComptonElectronDetector*) source);
+      QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (source);
+
+      // TODO: low-level copy operations
 
     } else {
       TString loc = "Standard exception from QwComptonElectronDetector::Copy = "

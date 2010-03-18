@@ -182,10 +182,10 @@ class QwTrackingTreeLine: public VQwTrackingElement {
     int   fNumHits;			///< number of hits on this treeline
     int   fNumMiss;			///< number of planes without hits
 
-    QwHit* hits[2*TLAYERS];	//!	///< all hits that satisfy road requirement
-    QwHit* usedhits[TLAYERS];	//!	///< hits that correspond to optimal chi^2
+    QwHit* hits[2*MAX_LAYERS];	//!	///< all hits that satisfy road requirement
+    QwHit* usedhits[MAX_LAYERS];//!	///< hits that correspond to optimal chi^2
 
-    int   hasharray[2*TLAYERS];	//!
+    int   hasharray[2*MAX_LAYERS];	//!
     int   ID;				///< adamo ID
 
     int fR3Offset;			///< offset of demultiplexed group of 8

@@ -28,9 +28,16 @@ int shorttree::fDebug = 0;
 
 /**
  * Default constructor, initializes the son pointer to null
+ * @param size Size of the bit pattern (default value is MAX_LAYERS)
  */
-shorttree::shorttree()
+shorttree::shorttree(unsigned int size)
 {
+  // Set the size
+  fSize = size;
+  fBit = new int[fSize];
+  for (unsigned int i = 0; i < fSize; i++) fBit[i] = 0;
+
+  // Initialize pointers
   for (int i = 0; i < 4; i++)
     son[i] = 0;
 
@@ -43,6 +50,9 @@ shorttree::shorttree()
  */
 shorttree::~shorttree()
 {
+  // Delete the bit pattern
+  delete[] fBit;
+
   // Count objects
   fCount--;
 }
@@ -76,10 +86,9 @@ void shorttree::Print(int indent)
 std::ostream& operator<< (std::ostream& stream, const shorttree& st)
 {
   stream << "(" << st.fMinLevel << "," << "*" << ") ";
-  stream << "bits = " << st.bits << ": ";
-  for (int i = 0; i < TLAYERS; i++)
-    stream << st.bit[i] << "," ;
-  stream << "xref = " << st.xref;
+  for (unsigned int i = 0; i < st.fSize; i++)
+    stream << st.fBit[i] << ",";
+  stream << " width = " << st.fWidth;
   return stream;
 }
 

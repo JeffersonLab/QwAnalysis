@@ -1152,31 +1152,27 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       case M_HELP_USER:
 	// Open the online help manual in a web browser.
         {
-		pid_t child = fork();
-		if (-1 == child) perror("couldn't fork to open web browser");
-		if (0 == child) {
-			execl("/bin/sh", "/bin/sh", "-c",
-			      "firefox "
-			      "http://www.physics.umanitoba.ca/qweak/analysis/docs/user/QWeakAnalysisGUIManual.html",
-			      (char*)0);
-			perror("couldn't exec shell for web browser");
-			exit(1);
-		}
+	  dHelpBrowser = new QwGUIHelpBrowser(this,fClient->GetRoot(),"dHelpBrowser","QwGUIMain",
+					      "file:///home/mgericke/user/QWeakAnalysisGUIManual.html");
 	}
 	break;
 
       case M_HELP_CODE:
         {
-		pid_t child = fork();
-		if (-1 == child) perror("couldn't fork to open web browser");
-		if (0 == child) {
-			execl("/bin/sh", "/bin/sh", "-c",
-			      "firefox "
-			      "http://www.physics.umanitoba.ca/qweak/analysis/docs/code/index.html",
-			      (char*)0);
-			perror("couldn't exec shell for web browser");
-			exit(1);
-		}
+	  sprintf(dMiscbuffer,"file://%s/Doxygen/html/index.html",getenv("QWANALYSIS"));
+	  dHelpBrowser = new QwGUIHelpBrowser(this,fClient->GetRoot(),"dHelpBrowser","QwGUIMain",
+					      dMiscbuffer);
+// 		pid_t child = fork();
+// 		if (-1 == child) perror("couldn't fork to open web browser");
+// 		if (0 == child) {
+// 			execl("/bin/sh", "/bin/sh", "-c",
+// 			      "firefox "
+// 			      "http://www.physics.umanitoba.ca/qweak/analysis/docs/code/index.html",
+// 			      (char*)0);
+// 			perror("couldn't exec shell for web browser");
+// 			exit(1);
+// 		}
+		
 	}
 	break;
 

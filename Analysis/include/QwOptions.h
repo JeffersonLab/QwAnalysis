@@ -127,7 +127,7 @@ class QwOptions {
     /// \brief Add an option
     po::options_description_easy_init AddOptions() {
       fParsed = false;
-      return fOptions.add_options();
+      return fSpecialOptions.add_options();
     };
 
 
@@ -135,7 +135,7 @@ class QwOptions {
     void Usage();
 
     /// \brief Define the options
-    void DefineOptions();
+    static void DefineOptions(QwOptions& options);
 
     /// \brief Set the command line arguments
     void SetCommandLine(int argc, char* argv[]);
@@ -169,6 +169,7 @@ class QwOptions {
 
     /// \brief Parse all sources of options
     void Parse() {
+      CombineOptions();
       ParseCommandLine();
       ParseEnvironment();
       ParseConfigFile();
@@ -191,7 +192,7 @@ class QwOptions {
                   << fVariablesMap[key].as<T>() << QwLog::endl;
         return fVariablesMap[key].as<T>();
       } else {
-        QwWarning << "Variable " << key << " unknown" << QwLog::endl;
+        QwError << "Variable " << key << " unknown" << QwLog::endl;
         return 0;
       }
     }
@@ -211,6 +212,9 @@ class QwOptions {
 
   private:
 
+    /// \brief Combine the various option description in one
+    void CombineOptions();
+
     /// \brief Parse the command line arguments
     void ParseCommandLine();
 
@@ -222,7 +226,6 @@ class QwOptions {
 
     /// \brief Parse a range of integers as #:# where either can be missing
     std::pair<int, int> ParseIntRange(string range);
-
 
     /// \brief Configuration file
     vector<string> fConfigFiles;
@@ -236,8 +239,15 @@ class QwOptions {
     static int fArgc;
     static char** fArgv;
 
+    // Vector with option blocks
+    vector<po::options_description> fOptions;
+    // Options descriptions grouped by function
     static po::options_description fDefaultOptions;
-    static po::options_description fOptions;
+    static po::options_description fSpecialOptions;
+    // Options descriptions grouped by parser
+    static po::options_description fCommandLineOptions;
+    static po::options_description fEnvironmentOptions;
+    static po::options_description fConfigFileOptions;
     po::variables_map fVariablesMap;
 
     bool fParsed;

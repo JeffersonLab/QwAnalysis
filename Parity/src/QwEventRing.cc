@@ -11,7 +11,8 @@ QwEventRing::QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size, Int_t e
   fEvent_Ring.resize(fRING_SIZE);
 
   bRING_READY=kFALSE;
-
+  bGoodEvent=kTRUE;
+  bEVENT_READY=kTRUE;
   fNextToBeFilled=0;
   fNextToBeRead=0;
   fEventsSinceLastTrip=1;
@@ -75,8 +76,12 @@ void QwEventRing::FailedEvent(Int_t error_flag){
     
     if (bGoodEvent){//a first faliure after set of good event bGoodEvent is TRUE. This is TRUE untill there is a beam trip
       if (fFailedEventCount >= fMIN_BT_COUNT){//if events failed equal to minimum beam trip count
+	if (bGoodEvent) std::cout<<" Beam Trip "<<std::endl;
 	bGoodEvent=kFALSE;// a beam trip occured, set this to false
-	if (bDEBUG) std::cout<<" Beam Trip "<<fFailedEventCount;
+
+	if (bDEBUG)
+	  std::cout<<" Beam Trip "<<fFailedEventCount;
+	
 	if (bDEBUG_Write) fprintf(out_file," Beam Trip %d \n ",fFailedEventCount);
 	fNextToBeFilled=0;//fill at the top ring is useless after the beam trip
 	fNextToBeRead=0;//first element in the ring	

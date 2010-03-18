@@ -20,6 +20,7 @@ using std::cout; using std::cerr; using std::endl;
 #define MAGNET_CENTER 275.0 //PLACEHOLDER VALUE
 
 #ifndef DLAYERS
+#warning Defining DLAYERS outside of the globals.h header file!
 #define DLAYERS 10
 #endif
 

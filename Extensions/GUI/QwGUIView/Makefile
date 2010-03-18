@@ -14,6 +14,7 @@ PRG_SOURCE    = ./src
 # Here we list the object files that require a CINT dictionary.
 OBJECTS	      =
 OBJECTS       += QwGUIMain.o
+OBJECTS       += QwGUIHelpBrowser.o
 OBJECTS       += QwGUIProgressDialog.o
 OBJECTS       += QwGUIPlotOptionsDialog.o
 OBJECTS       += QwGUIDataWindow.o
@@ -68,6 +69,7 @@ LDFLAGS       = #-O2
 SOFLAGS       = -shared
 SYSLIBS       =
 GEOMLIB       = -lGeom
+GUILIB        = -lGuiHtml
 
 ROOTCFLAGS   := $(shell root-config --cflags)
 ROOTLIBS     := $(shell root-config --libs)
@@ -90,7 +92,7 @@ ENSCRIPT      = @enscript -2Gjr -o
 all: $(APPLIC)
 $(QWOBJECT)
 $(APPLIC): $(OBJECTS) $(NODICTOBJECTS) $(DICTS) $(QWDICTOBJECTS) $(RDATALIB)
-	$(CXX) -o $@ $(LDFLAGS) $(GLIBS) $(GEOMLIB) $^
+	$(CXX) -o $@ $(LDFLAGS) $(GLIBS) $(GEOMLIB) $(GUILIB) $^
 	ln -sf QwGUIView/$@ ../QwGUI
 	@echo "$@ done"
 
