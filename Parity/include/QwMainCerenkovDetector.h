@@ -107,6 +107,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
 
   QwIntegrationPMT* GetIntegrationPMT(const TString name);
 
+  void DoNormalization(Double_t factor=1.0);
 
   Bool_t ApplyHWChecks(){//Check for harware errors in the devices
     Bool_t status = kTRUE;
@@ -149,6 +150,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
  private:
 
   static const Bool_t bDEBUG=kFALSE; 
+  static const Bool_t bNormalization=kFALSE; 
   std::vector<TString> DetectorTypes;// for example could be IntegrationPMT, LUMI,BPMSTRIPLINE, etc..
   Int_t fMainDetErrorCount;
 

@@ -620,43 +620,53 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
   // Loop over all variables in the list
   std::vector<VQwDataElement*>::iterator variable_iter;
   for (variable_iter  = variable_list.begin();
-       variable_iter != variable_list.end(); variable_iter++) {
-    VQwDataElement* variable = *variable_iter;
-    if (RequestExternalValue(variable->GetElementName(), variable)) {
-      if(bDEBUG)
-         dynamic_cast<QwVQWK_Channel*>(variable)->Print();
-    } else {
-      bIsExchangedDataValid = kFALSE;
-      QwError << GetSubsystemName() << " could not get external value for "
-              << variable->GetElementName() << QwLog::endl;
-    }
-  } // end of loop over variables
+       variable_iter != variable_list.end(); variable_iter++)
+    {
+      VQwDataElement* variable = *variable_iter;
+      if (RequestExternalValue(variable->GetElementName(), variable))
+        {
+          if (bDEBUG)
+            dynamic_cast<QwVQWK_Channel*>(variable)->Print();
+        }
+      else
+        {
+          bIsExchangedDataValid = kFALSE;
+          QwError << GetSubsystemName() << " could not get external value for "
+          << variable->GetElementName() << QwLog::endl;
+        }
+    } // end of loop over variables
 };
+
 
 void  QwMainCerenkovDetector::ProcessEvent_2()
 {
-  if(bIsExchangedDataValid){
-  // pqwang: Paul's suggestions about the exchanged beamline data
-  // "For that purpose, you should expect the value passed to you for
-  // 'q_targ' to be the properly calibrated beam current on target.
-  // And as we start to look at implementing regression on the positions,
-  // etc, you should expect the other variables passed to the main detector
-  // to be properly calibrated as well.
-  // Clearly there will be some lag between when new calibrations are
-  // determined and when they are applied, but the proper place to handle
-  // beam parameter calibrations is internal to the beam line data
-  // elements."
+  if (bIsExchangedDataValid)
+    {
+      //data is valid, process it
+      if (bDEBUG)
+        {
+          Double_t  pedestal = fTargetCharge.GetPedestal();
+          Double_t  calfactor = fTargetCharge.GetCalibrationFactor();
+          Double_t  volts = fTargetCharge.GetAverageVolts();
+          std::cout<<"QwMainCerenkovDetector::ProcessEvent_2(): processing with exchanged data"<<std::endl;
+          std::cout<<"pedestal, calfactor, average volts = "<<pedestal<<", "<<calfactor<<", "<<volts<<std::endl;
+        }
 
-    //data is valid, process it
-    if(bDEBUG) std::cout<<"QwMainCerenkovDetector::ProcessEvent_2(): processing with exchanged data"<<std::endl;
-    Double_t volts = fTargetCharge.GetAverageVolts();
-    if(bDEBUG)
-       std::cout<<"average volts = "<<volts<<std::endl;
-
-  }
-  else {
-    QwError<<"QwMainCerenkovDetector::ProcessEvent_2(): could not get all external values."<<QwLog::endl;
-  }
+      // assume fTargetCharge.fHardwareSum is a calibrated value,
+      // detector signals will be normalized to it
+      try
+        {
+          if (bNormalization) DoNormalization();
+        }
+      catch (std::exception& e)
+        {
+          std::cerr << e.what() << std::endl;
+        }
+    }
+  else
+    {
+      QwError<<"QwMainCerenkovDetector::ProcessEvent_2(): could not get all external values."<<QwLog::endl;
+    }
 
 };
 
@@ -1019,6 +1029,30 @@ QwIntegrationPMT* QwMainCerenkovDetector::GetIntegrationPMT(const TString name)
   std::cout<<"QwMainCerenkovDetector::GetIntegrationPMT: cannot find channel "<<tmpname<<std::endl;
   return NULL;
 };
+
+void QwMainCerenkovDetector::DoNormalization(Double_t factor)
+{
+
+  if (bIsExchangedDataValid)
+    {
+      Double_t  norm = 1.0/fTargetCharge.GetHardwareSum()*factor;
+      for (size_t i=0; i<fMainDetID.size();i++)
+        {
+          if (fMainDetID[i].fdetectortype =="integrationpmt")
+            {
+              Int_t ind1 = GetDetectorIndex(GetDetectorTypeID("integrationpmt"),fMainDetID[i].fdetectorname);
+              if (ind1>=0)  fIntegrationPMT[ind1].Scale(norm);
+            }
+
+          if (fMainDetID[i].fdetectortype =="combinationpmt")
+            {
+              Int_t ind2 = GetDetectorIndex(GetDetectorTypeID("combinationpmt"),fMainDetID[i].fdetectorname);
+              if (ind2>=0)  fCombinedPMT[ind2].Scale(norm);
+            }
+        }
+
+    }
+}
 
 void  QwMainCerenkovDetector::Print()
 {

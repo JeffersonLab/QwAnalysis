@@ -397,8 +397,8 @@ void QwVQWK_Channel::ProcessEvent()
 };
 
 Double_t QwVQWK_Channel::GetAverageVolts(){
-  Double_t avgVolts = 0.0;
-  avgVolts = (fBlock[0]+fBlock[1]+fBlock[2]+fBlock[3])*kVQWK_VoltsPerBit/fNumberOfSamples;
+  //Double_t avgVolts = (fBlock[0]+fBlock[1]+fBlock[2]+fBlock[3])*kVQWK_VoltsPerBit/fNumberOfSamples;
+  Double_t avgVolts = fHardwareBlockSum*kVQWK_VoltsPerBit/fNumberOfSamples;
   //std::cout<<"QwVQWK_Channel::GetAverageVolts() = "<<avgVolts<<std::endl;
   return avgVolts;
 
