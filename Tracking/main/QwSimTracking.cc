@@ -124,7 +124,6 @@ int main (int argc, char* argv[])
     // Load the simulated event file
     TString filename = Form(TString(getenv("QWSCRATCH")) + "/data/QwSim_%d.root", runnumber);
     QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (filename, detector_info);
-    treebuffer->EnableResolutionEffects();
 
     // Open ROOT file
     TFile* file = 0;

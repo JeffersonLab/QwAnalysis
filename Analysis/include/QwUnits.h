@@ -89,6 +89,11 @@ namespace Qw {
   static const double rad = 1.0;
   static const double deg = deg2rad;
 
+  /// Magnetic field: base unit is T
+  static const double T = 1.0;
+  static const double G = 0.0001;
+  static const double kG = 1.0e3 * G;
+
 }; // namespace Qw
 
 #endif // QWUNITS_H
