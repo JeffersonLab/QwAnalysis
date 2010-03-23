@@ -89,20 +89,22 @@ int main(Int_t argc,Char_t* argv[]) {
     QwEventBuffer eventbuffer;
     eventbuffer.ProcessOptions(gQwOptions);
 
+    QwSubsystemArrayParity detectors;
+
     ///
     /// Instantiate one subsytem for all eight main detectors MD1-MD8, plus one fully assembled
     /// background detector MD0 (there are two channels for each fully assembled detector)
     /// plus 3 additional diagnostic detector channels AnciD1-AnciD3 for noise setup.
-    QwSubsystemArrayParity detectors;
     detectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
     detectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
     //detectors.GetSubsystem("Main detector")->LoadInputParameters("qweak_pedestal.map");
 
     detectors.push_back(new QwBeamLine("Injector BeamLine"));
-    //use mock_qweak_beamline.map for testing with mockdatagenerator
 //    detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
+//    detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");
+    //use mock_qweak_beamline.map for testing with mockdatagenerator
     detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
-    detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");
+    detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("mock_qweak_pedestal.map");
 
 
     ///
@@ -117,19 +119,21 @@ int main(Int_t argc,Char_t* argv[]) {
     ///to calculate asymmetries. The pattern is defined in the
     ///QwHelicityPattern class.
 
+    QwHelicity* helicity;
     if (bHelicity) {
         detectors.push_back(new QwHelicity("Helicity info"));
         //use mock_qweak_helicity.map for testing with mockdatagenerator
         //detectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
         detectors.GetSubsystem("Helicity info")->LoadChannelMap("mock_qweak_helicity.map");
         detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
+        helicity = dynamic_cast<QwHelicity*> (detectors.GetSubsystem("Helicity info")); // Get the helicity
     }
 
     //QwHelicityPattern helicitypattern(detectors);//multiplet size is set within the QwHelicityPattern class
     QwHelicityPattern* helicitypattern = new QwHelicityPattern(detectors);
 
     // Get the helicity
-    QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystem("Helicity info");
+    //QwHelicity* helicity = dynamic_cast<QwHelicity*> (detectors.GetSubsystem("Helicity info"));
 
 //   QwMainCerenkovDetector sum_outer(""), sum_inner(""), diff(""), sum(""), asym("");
 
