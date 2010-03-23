@@ -1,18 +1,21 @@
+#include "VQwSystem.h"
+ClassImp(VQwSystem);
 #include "QwControl.h"
+ClassImp(QwControl);
 
 // Standard C and C++ headers
 #include <iostream>
 #include <cstdlib>
-using std::cout; using std::endl;
 
 // ROOT headers
 #include <TROOT.h>
+#include <TBenchmark.h>
 
 // Qweak headers
-#include "QwRoot.h"
+#include "QwLog.h"
 #include "QwOptions.h"
-#include "QwHistogramHelper.h"
 #include "QwParameterFile.h"
+#include "QwHistogramHelper.h"
 
 // Qweak analyzer
 #include "VQwAnalyzer.h"
@@ -20,21 +23,65 @@ using std::cout; using std::endl;
 // Qweak dataserver
 #include "VQwDataserver.h"
 
-
 // Global pointers
-QwRoot* gQwRoot = NULL;
 QwControl* gQwControl = NULL;
 VQwAnalyzer* gQwAnalyzer = NULL;
 VQwDataserver* gQwDataserver = NULL;
 
-QwControl* QwControl::fExists = NULL;  // Pointer to this interface
 
-
-//--------------------------------------------------------------------------
-QwControl::QwControl (const char* appClassName, int* argc, char** argv,
-		      void* options, int numOptions, bool noLogo) :
-  TRint (appClassName, argc, argv, options, numOptions, noLogo )
+//---------------------------------------------------------------------------
+/**
+ * Start a QwControl thread
+ * @param arg QwControl object pointer
+ * @return Null
+ */
+void* QwControlThread (void* arg)
 {
+  // Threaded running of the command prompt
+  // so that other tasks may be performed
+  TThread::Printf("New QwControl thread\n");
+  if (! ((TObject*) arg)->InheritsFrom("QwControl")) {
+    TThread::Printf(" Error... QwControl base class not supplied\n");
+    return NULL;
+  }
+  QwControl* qr = (QwControl*) arg;
+  qr->Run();
+  return NULL;
+}
+
+//---------------------------------------------------------------------------
+/**
+ * Start a VQwAnalyzer thread
+ * @param arg QwControl object pointer
+ * @return Null
+ */
+void* QwAnalyzerThread (void* arg)
+{
+  // Threaded running of the analyzer
+  // so that other tasks may be performed
+  TThread::Printf("New VQwAnalyzer thread\n");
+  if (! ((TObject*) arg)->InheritsFrom("VQwAnalyzer")) {
+    TThread::Printf(" Error... VQwAnalyzer base class not supplied\n");
+    return NULL;
+  }
+  VQwAnalyzer* ana = (VQwAnalyzer*) arg;
+  ana->ProcessEvent();
+  TThread::Printf("VQwAnalyzer thread done\n");
+  return NULL;
+}
+
+//-----------------------------------------------------------------------------
+/**
+ * Constructor
+ * @param name Name of this system
+ */
+QwControl::QwControl (const char* name, int* argc, char** argv): VQwSystem(name)
+{
+  // Store global pointer
+  if (gQwControl) {
+    QwError << "Only one QwControl object can be started!" << QwLog::endl;
+    exit(0);
+  }
   gQwControl = this;
 
   /// Set the command line arguments and the configuration filename
@@ -53,7 +100,6 @@ QwControl::QwControl (const char* appClassName, int* argc, char** argv,
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH")) + "/setupfiles");
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Tracking/prminput");
 
-
   // Default options
   fIsBatch = false;	// Start Qw-Root interface
   fIsOnline = true;	// Use online decoded data stream
@@ -68,62 +114,179 @@ QwControl::QwControl (const char* appClassName, int* argc, char** argv,
     std::cout << "Warning: online analysis not yet implemented." << std::endl;
     fIsOnline = false;
   }
+};
 
-  // Qw-Root command prompt
-  SetPrompt("Qw-Root:%d> ");
-
-  // Qw-Root interface
-  gQwRoot = new QwRoot("QwRoot");
-  gQwRoot->SetIsOnline(fIsOnline);
-
-  // Prepare data sources
-  if (fIsOnline) {
-    // Set up online data stream
-    // (start server thread?)
-  } else {
-    // Set up offline data stream
-    // (read file list, open ROOT tree?)
-  }
-
-  // Pointer to self
-  fExists = this;
+//-----------------------------------------------------------------------------
+/**
+ * Destructor to delete the dataserver and analyzers
+ */
+QwControl::~QwControl () {
+  if (fDataserver) delete fDataserver;
+  if (fAnalyzers) delete[] fAnalyzers;
 }
 
 //---------------------------------------------------------------------------
-QwControl::~QwControl()
+void QwControl::StartControl()
 {
-  // Delete global objects
-  if (fExists == this) {
-    fExists = NULL;
-    if (gQwRoot) delete gQwRoot;
+  // Start the control thread
+  if (fControlThread) {
+    QwWarning << "Existing control thread was deleted." << QwLog::endl;
+    fControlThread->Delete();
   }
+  QwMessage << "Starting new control thread." << QwLog::endl;
+  fControlThread = new TThread("QwControlThread", (void(*)(void*))&(QwControlThread), (void*)this);
+  fControlThread->Run();
+  return;
 }
 
+//---------------------------------------------------------------------------
+void QwControl::Run()
+{
+  // Run online or offline analysis
+
+  gBenchmark = new TBenchmark();
+  gBenchmark->Start("QwControlRunThread");
+
+  // Set up analysis parameters from config file
+  //fAnalysis->FileConfig (fAnalysisSetup);
+
+  if (fIsOnline) {
+  // Online
+
+    // Connect to CODA data stream
+    //fDataserver->Connect();
+
+    // Loop while data
+    OnlineLoop();
+
+  } else {
+  // Offline
+
+    // Loop while data
+    OfflineLoop();
+  }
+
+  gBenchmark->Show("QwControlRunThread");
+  fIsFinished = true;
+}
+
+//-----------------------------------------------------------------------------
+void QwControl::OnlineLoop()
+{
+  // Loop while there is online data
+  while (fDataserver->GetEvent() == 0) { // TODO: CODA_OK
+
+    // Fill subsystem data
+    fDataserver->FillSubsystemData(fAnalyzers[0]->GetSubsystemArray());
+
+    // Process this event by analyzer
+    fAnalyzers[0]->ProcessEvent();
+
+  } // end of loop over events
+}
+
+//-----------------------------------------------------------------------------
+void QwControl::OfflineLoop()
+{
+  // Loop over all requested runs
+  Int_t runnumber_min = gQwOptions.GetIntValuePairFirst("run");
+  Int_t runnumber_max = gQwOptions.GetIntValuePairLast("run");
+  for (Int_t run  = runnumber_min;
+             run <= runnumber_max;
+             run++) {
+
+    // Print run number
+    QwMessage << "Processing run " << run << QwLog::endl;
+
+    // Try to open the data file
+    fDataserver->GetRun(run);
+    // TODO Check return value
+
+    // Open output for this run
+    fAnalyzers[0]->OpenRootFile(run);
+
+    Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
+    Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
+    while (fDataserver->GetEvent() == 0) { // TODO: CODA_OK
+
+      //  Check to see if we want to process this event.
+      Int_t eventnumber = fDataserver->GetEventNumber();
+      if      (eventnumber < eventnumber_min) continue;
+      else if (eventnumber > eventnumber_max) break;
+
+      // Find idle analyzer object or wait
+
+      // Fill subsystem data
+      fDataserver->FillSubsystemData(fAnalyzers[0]->GetSubsystemArray());
+
+      // Spin analyzer thread
+//       fAnalyzerThreads = new TThread("QwAnalyzerThread",
+// 				(void(*) (void*))&(QwAnalyzerThread),
+// 				(void*) fAnalyzers[0]);
+//       fAnalyzerThreads->Run();
+
+      //TThread::Ps();
+      //TThread::Sleep(1);
+      //fAnalyzerThreads->Join();
+      //TThread::Ps();
+
+      // Process this event by analyzer
+      fAnalyzers[0]->ProcessEvent();
+
+      if (eventnumber % 1000 == 0) {
+        QwMessage << "Number of events processed so far: "
+                  << eventnumber << QwLog::endl;
+      }
+
+    } // end of loop over events
+
+    // Close output for this run
+    fAnalyzers[0]->CloseRootFile();
+
+    // Close event buffer
+    fDataserver->CloseDataFile();
+
+  } // end of loop over runs
+}
+
+//-----------------------------------------------------------------------------
+void QwControl::SetAnalyzer (VQwAnalyzer* analyzer)
+{
+  if (! analyzer->InheritsFrom("VQwAnalyzer")) {
+    QwError << "QwControl analysis has to inherit from VQwAnalyzer!" << QwLog::endl;
+    return;
+  }
+  fAnalyzers[0] = analyzer;
+  return;
+}
+
+//-----------------------------------------------------------------------------
+void QwControl::SetDataserver (VQwDataserver* dataserver)
+{
+  if (! dataserver->InheritsFrom("VQwDataserver")) {
+    QwError << "QwControl dataserver has to inherit from VQwDataserver!" << QwLog::endl;
+    return;
+  }
+  fDataserver = dataserver;
+  return;
+}
+
+//-----------------------------------------------------------------------------
 void QwControl::StartDataserver(VQwDataserver* dataserver)
 {
   // Create the dataserver
   gQwDataserver = dataserver;
   if (! gQwDataserver)
     return;
-  gQwRoot->SetDataserver(gQwDataserver);
+  gQwControl->SetDataserver(gQwDataserver);
 }
 
+//-----------------------------------------------------------------------------
 void QwControl::StartAnalyzer(VQwAnalyzer* analyzer)
 {
   // Create the analyzer
   gQwAnalyzer = analyzer;
   if (! gQwAnalyzer)
     return;
-  gQwRoot->SetAnalyzer(gQwAnalyzer);
-
-  // Start the analyzer
-  gQwRoot->Start();
-
-  // When the analyzer has finished
-  if (fIsBatch) {
-    while (! gQwRoot->IsFinished()) sleep(1);
-    exit(0);
-  } else {
-    Run();
-  }
+  gQwControl->SetAnalyzer(gQwAnalyzer);
 }

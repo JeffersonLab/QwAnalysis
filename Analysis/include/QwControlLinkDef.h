@@ -5,6 +5,6 @@
 #pragma link off all functions;
 
 #pragma link C++ class VQwSystem+;
-#pragma link C++ class QwRoot+;
+#pragma link C++ class QwControl+;
 
 #endif

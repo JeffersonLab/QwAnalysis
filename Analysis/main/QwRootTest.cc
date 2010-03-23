@@ -9,12 +9,12 @@
 *//*-------------------------------------------------------------------------*/
 
 // Qweak headers
-#include "QwControl.h"
+#include "QwRoot.h"
 
 int main(int argc, char* argv[])
 {
   // Start Qw-Root command prompt
-  QwControl* qwctrl = new QwControl("Qweak-Root Analyzer", &argc, argv);
-  qwctrl->Run();
-  delete qwctrl;
+  QwRoot* qwroot = new QwRoot("Qweak-Root Analyzer", &argc, argv);
+  qwroot->Run();
+  delete qwroot;
 }

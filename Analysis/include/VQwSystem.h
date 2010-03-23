@@ -122,7 +122,7 @@ class VQwSystem : public TNamed {
     virtual ~VQwSystem() { };
 
   ClassDef(VQwSystem,1);
-  // Note: corresponding ClassImp in QwRoot.h
+  // Note: corresponding ClassImp in QwControl.h
 
 }; // class VQwSystem
 

@@ -6,6 +6,7 @@
  */
 
 // Qweak headers
+#include "QwRoot.h"
 #include "QwControl.h"
 #include "QwOptionsTracking.h"
 #include "QwTrackingDataserver.h"
@@ -15,13 +16,21 @@ int main (int argc, char** argv)
 {
   /// Define the command line options
   gQwOptions.DefineOptions();
-  /// Start "Qw-Root>" command prompt
-  QwControl* qwctrl = new QwControl ("Qweak-Root Analyzer", &argc, argv);
+
+  /// Start "Qw-Root []" command prompt
+  QwRoot* qwroot = new QwRoot("Qweak-Root Analyzer", &argc, argv);
+
+  /// Start control in different thread
+  QwControl* qwcontrol = new QwControl("Qweak Control", &argc, argv);
   /// Start dataserver
-  qwctrl->StartDataserver(new QwTrackingDataserver("dataserver"));
-  /// Start analyzer
-  qwctrl->StartAnalyzer(new QwTrackingAnalyzer("analyzer"));
-  /// Run the analysis
-  qwctrl->Run();
-  delete qwctrl;
+  qwcontrol->StartDataserver(new QwTrackingDataserver("dataserver"));
+  /// Start single analyzer
+  qwcontrol->StartAnalyzer(new QwTrackingAnalyzer("analyzer"));
+  /// Start control (in a different thread)
+  qwcontrol->StartControl();
+
+  if (gQwOptions.GetValue<bool>("batch") == false) qwroot->Run();
+
+  // Delete prompt
+  delete qwroot;
 }
