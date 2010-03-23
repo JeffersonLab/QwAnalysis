@@ -84,6 +84,7 @@ class QwVQWK_Channel: public VQwDataElement {
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
   void Calculate_Running_Average();//pass the current event count in the run to calculate running average
+  void Print_Running_Average();
   void Do_RunningSum();
 
   Bool_t MatchSequenceNumber(size_t seqnum);
@@ -127,6 +128,8 @@ class QwVQWK_Channel: public VQwDataElement {
   void Copy(VQwDataElement *source);
 
   void Print() const;
+  Double_t GetAverage() {return fAverage_n;};
+  Double_t GetAverageError() {return fAverage_error;};
 
  protected:
 
@@ -218,7 +221,7 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t fRunning_sum_square;//Running sum square for the device
   Double_t fAverage_n;/* Running average for the device !*/
   Double_t fAverage_n_square;/* Running average square for the device !*/
-
+  Double_t fAverage_error;
   Int_t fGoodEventCount;//counts the HW and event check passed events
 
   Int_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
