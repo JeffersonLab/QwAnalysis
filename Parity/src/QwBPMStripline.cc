@@ -148,7 +148,6 @@ void QwBPMStripline::EncodeEventData(std::vector<UInt_t> &buffer)
 Bool_t QwBPMStripline::ApplySingleEventCuts(){
   Bool_t status=kTRUE;
   
-  ApplyHWChecks();//first apply HW checks and update HW  error flags.
 
     if (fRelPos[0].ApplySingleEventCuts(fLLimitX,fULimitX)){ //for RelX  
       status=kTRUE;
@@ -216,6 +215,7 @@ void  QwBPMStripline::ProcessEvent()
   static QwVQWK_Channel numer("numerator"), denom("denominator");
   
   
+  ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine here and not in ApplySingleEventCuts  makes a difference for a BPMs because they have derrived devices.
 
 
   fWSum.ClearEventData();

@@ -202,6 +202,7 @@ void QwVQWK_Channel::ClearEventData()
   fHardwareBlockSum = 0;
   fSequenceNumber   = 0;
   fNumberOfSamples  = 0;
+  fDeviceErrorCode=0;// set to zero. Important for derrived devices.
 };
 
 void QwVQWK_Channel::RandomizeEventData(int helicity)
