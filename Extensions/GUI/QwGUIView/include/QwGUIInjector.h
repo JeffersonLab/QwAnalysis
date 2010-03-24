@@ -72,7 +72,7 @@ class QwGUIInjector : public QwGUISubSystem {
 
   
   TGHorizontalFrame   *dTabFrame;
-   TGVerticalFrame    *dControlsFrame;
+  TGVerticalFrame     *dControlsFrame;
   TRootEmbeddedCanvas *dCanvas;  
   TGLayoutHints       *dTabLayout; 
   TGLayoutHints       *dCnvLayout; 
@@ -87,6 +87,11 @@ class QwGUIInjector : public QwGUISubSystem {
   
   //!An object array to store data window pointers -- good for use in cleanup.
   TObjArray            DataWindowArray;
+
+
+  TH1D *PosVariation[2] ;
+/*   TGraphErrors *gx; */
+/*   TGraphErrors *gy; */
 
   //!This function just plots some histograms in the main canvas, just for illustrative purposes
   //!for now.

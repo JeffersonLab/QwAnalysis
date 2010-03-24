@@ -1,5 +1,6 @@
 #include "QwGUIInjector.h"
 #include <TG3DLine.h>
+#include "TGaxis.h"
 ClassImp(QwGUIInjector);
 
 enum QwGUIInjectorIndentificator {
@@ -27,22 +28,41 @@ QwGUIInjector::QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTa
 			       const char *objName, const char *mainname, UInt_t w, UInt_t h)
   : QwGUISubSystem(p,main,tab,objName,mainname,w,h)
 { 
-  dTabFrame = NULL;
-  dControlsFrame = NULL;
-  dCanvas = NULL;  
-  dBtnLayout = NULL;
-  dButtonPos = NULL;
-  dButtonCharge = NULL;
+  dTabFrame           = NULL;
+  dControlsFrame      = NULL;
+  dCanvas             = NULL;  
+  dTabLayout          = NULL;
+  dCnvLayout          = NULL;
+  dSubLayout          = NULL;
+  dBtnLayout          = NULL;
+  dButtonPos          = NULL;
+  dButtonCharge       = NULL;
+  dButtonPosVariation = NULL;
+
+  PosVariation[0] = NULL;
+  PosVariation[1] = NULL;
+ 
+  HistArray.Clear();
+  DataWindowArray.Clear();
+
   AddThisTab(this);
 
 }
 
 QwGUIInjector::~QwGUIInjector()
 {
-  if(dTabFrame)       delete dTabFrame;
-  if(dControlsFrame)  delete dControlsFrame;
-  if(dCanvas)         delete dCanvas;  
-  if(dBtnLayout)      delete dBtnLayout;
+  if(dTabFrame)           delete dTabFrame;
+  if(dControlsFrame)      delete dControlsFrame;
+  if(dCanvas)             delete dCanvas;  
+  if(dTabLayout)          delete dTabLayout;
+  if(dCnvLayout)          delete dCnvLayout;
+  if(dSubLayout)          delete dSubLayout;
+  if(dBtnLayout)          delete dBtnLayout;
+  if(dButtonPos)          delete dButtonPos;
+  if(dButtonCharge)       delete dButtonCharge;
+  if(dButtonPosVariation) delete dButtonPosVariation;
+
+  delete [] PosVariation;
 
   RemoveThisTab(this);
   IsClosing(GetName());
@@ -53,7 +73,7 @@ void QwGUIInjector::MakeLayout()
 
   SetCleanup(kDeepCleanup);
 
-  dTabFrame= new  TGHorizontalFrame(this);  
+  dTabFrame= new TGHorizontalFrame(this);  
   AddFrame(dTabFrame, new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY, 5, 5));
 
 
@@ -123,13 +143,13 @@ void QwGUIInjector::OnObjClose(char *obj)
 void QwGUIInjector::OnNewDataContainer()
 {
 
-  TObject *obj;
-  TObject *copy;
+  TObject *obj = NULL;
+  TObject *copy = NULL;
  
   ClearData();
 
   if(dROOTCont){
-    for(int p = 0; p < INJECTOR_DET_TRE_NUM; p++) {
+    for(Short_t p = 0; p < INJECTOR_DET_TRE_NUM; p++) {
       obj = dROOTCont->ReadTree(InjectorTrees[p]);
       if(obj)
 	{
@@ -159,13 +179,13 @@ void QwGUIInjector::ClearData()
 }
 
 
-void QwGUIInjector::PlotPosData(){
+void QwGUIInjector::PlotPosData()
+{
 
-  TObject *obj;
-
-
-
-  TCanvas *mc = dCanvas->GetCanvas();
+  TObject *obj = NULL;
+  
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
   mc->Clear();
 
   obj = HistArray.At(1);  // Get MPS tree
@@ -173,7 +193,7 @@ void QwGUIInjector::PlotPosData(){
   // prevent crash when executing this function
   // if a ROOT file doesn't contain MPS tree
 
-  bool ldebug = true;
+  Bool_t ldebug = true;
  
   Int_t cnt = 0;     
   mc->Divide(7,7);
@@ -225,19 +245,20 @@ void QwGUIInjector::PlotPosData(){
 
 
 
-void QwGUIInjector::PlotChargeData(){
-
-  TObject *objc;
+void QwGUIInjector::PlotChargeData()
+{
+  
+  TObject *objc = NULL;
   objc = HistArray.At(0);  // Get HEL tree
   if(! objc) return; 
   
   // prevent crash when executing this function
   // if a ROOT file doesn't contain HEL tree
 
-
-  bool ldebug = false;
+  Bool_t ldebug = false;
  
-  TCanvas *mc = dCanvas->GetCanvas();
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
   mc->Clear();
   mc->Divide(4,6);
 
@@ -269,28 +290,23 @@ void QwGUIInjector::PlotChargeData(){
 }
 
 
-void QwGUIInjector::PositionDifferences(){
-
-  bool ldebug = false;
+void QwGUIInjector::PositionDifferences()
+{
+  for(Short_t i=0;i<2;i++) 
+    {
+      if(PosVariation[i]) delete PosVariation[i];  PosVariation[i] = NULL;
+    }
+  Bool_t ldebug = false;
   
-  TCanvas *mc = dCanvas->GetCanvas();
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
 
   mc->Clear();
   mc->Divide(1,2);
 
-  Double_t relx[INJECTOR_DEV_NUM], rely[INJECTOR_DEV_NUM];
-  Double_t erx [INJECTOR_DEV_NUM], ery[INJECTOR_DEV_NUM];
-  Double_t err [INJECTOR_DEV_NUM], name[INJECTOR_DEV_NUM+1];
-
-  //  Char_t* post[2]={"RelX","RelY"};
-
-  TObject *obj;
-  if(! obj) return; 
-
-  TH1D* histx[INJECTOR_DEV_NUM] = {NULL};
-  TH1D* histy[INJECTOR_DEV_NUM] = {NULL};
-
+  TObject *obj = NULL;
   obj = HistArray.At(1);  // Get MPS tree
+  if( !obj ) return; 
 
   if(ldebug) {
     printf("PositionDiffercences -------------------------------\n");
@@ -299,7 +315,20 @@ void QwGUIInjector::PositionDifferences(){
 
   char histo[128];
   
-  Int_t cnt = 0;
+  Int_t xcount = 0;
+  Int_t ycount = 0;
+  
+  Double_t offset = 0.5;
+  Double_t min_range = - offset;
+  Double_t max_range = INJECTOR_DEV_NUM - offset ; 
+
+  PosVariation[0] = new TH1D("dxvar", "#Delta X Variation", INJECTOR_DEV_NUM, min_range, max_range);
+  PosVariation[1] = new TH1D("dyvar", "#Delta Y variation", INJECTOR_DEV_NUM, min_range, max_range);
+
+  TH1D *dummyhist = NULL;
+
+  TString dummyname;
+ 
 
   for(Short_t p = 0; p <INJECTOR_DEV_NUM ; p++) 
     {
@@ -311,77 +340,193 @@ void QwGUIInjector::PositionDifferences(){
 	  sprintf (histo, "%sRelX.hw_sum", InjectorDevices[p]);
 	  if( ((TTree*) obj)->FindLeaf(histo) )
 	    {
-	      cnt++;
-	      if(ldebug) printf("Found %2d : a histogram name %22s\n", cnt, histo);
+	      xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	      if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
 	      obj -> Draw(histo);
-	      histx[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
-	      histx[p] -> SetName(histo);
-	      relx[cnt] = histx[p]->GetMean();
-	      erx[cnt]  = histx[p]->GetRMS()/sqrt(histx[p]->GetEntries());
-	      SummaryHist(histx[p]);
-	      //std::cout<<relx[cnt]<<"       "<<erx[cnt]<<"\n"; 
+	      dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
+	      dummyhist -> SetName(histo);
+	      dummyname = dummyhist -> GetName();
+	      dummyname.Replace(0,4," ");
+	      dummyname.ReplaceAll("RelX.hw_sum", "X");
+	      PosVariation[0] -> SetBinContent(xcount, dummyhist->GetMean());
+	      PosVariation[0] -> SetBinError  (xcount, dummyhist->GetMeanError());
+	      PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
+	      SummaryHist(dummyhist);
+	      delete dummyhist; dummyhist= NULL;
+	      
 	    }
-
-	  sprintf (histo, "%sRelY.hw_sum", InjectorDevices[p]);	  
+	  sprintf (histo, "%sRelY.hw_sum", InjectorDevices[p]);
 	  if( ((TTree*) obj)->FindLeaf(histo) )
 	    {
-	      if(ldebug) printf("\nFound %2d : a histogram name %22s\n", cnt, histo);
+	      ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	      if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
 	      obj -> Draw(histo);
-	      histy[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
-	      histy[p] -> SetName(histo);
-	      rely[cnt] = histy[p]->GetMean();
-	      ery[cnt]  = histy[p]->GetRMS()/sqrt(histy[p]->GetEntries());
-	      name[cnt]=cnt+1;
-	      err[cnt]=0.0; 
-	      SummaryHist(histy[p]);
+	      dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
+	      dummyhist -> SetName(histo);
+	      dummyname = dummyhist -> GetName();
+	      dummyname.Replace(0,4," ");
+	      dummyname.ReplaceAll("RelY.hw_sum", "Y");
+	      PosVariation[1] -> SetBinContent(ycount, dummyhist->GetMean());
+	      PosVariation[1] -> SetBinError  (ycount, dummyhist->GetMeanError());
+	      PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
+	      SummaryHist(dummyhist);
+	      delete dummyhist; dummyhist= NULL;
+
+ 
 	    }
 	}
-    }  
+    }
+
   
+
   mc->Clear();
   mc->Divide(1,2);
   
-  TGraphErrors* gx  = new TGraphErrors(cnt,name,relx,err,erx);
-  gx->SetTitle("#Delta x Variation");
-  gx->GetYaxis()->SetTitle("#Delta x (nm)");
-  gx->SetMarkerStyle(8);
-  gx->SetMarkerSize(0.8);
-  
-  
-  TGraphErrors* gy  = new TGraphErrors(cnt,name,rely,err,ery);
-  gy->SetTitle("#Delta y Variation");
-  gy->GetYaxis()->SetTitle("#Delta y(nm)");
-  gy->SetMarkerStyle(8);
-  gy->SetMarkerSize(0.8);
-  
-  Int_t k=0;
-  for (Int_t j=1;j<=cnt;j++)     
-    {
-      if(!strcmp(InjectorDevices[j],"qwk_bcm0l02"))
-	{
-	  //skip
-	}
-      else{
-	k++;
-	gx->GetXaxis()->SetBinLabel((Int_t) 4.5*k,InjectorDevices[j-1]);
-	gy->GetXaxis()->SetBinLabel((Int_t) 4.5*k,InjectorDevices[j-1]);
-      } 
-    } 
-  
   mc->cd(1);
-  gx->Draw("ap");
+  SummaryHist(PosVariation[0]);
+  PosVariation[0] -> SetMarkerStyle(20);
+  PosVariation[0] -> SetTitle("#Delta X Variation");
+  PosVariation[0] -> GetYaxis() -> SetTitle("#Delta X (nm)");
+  PosVariation[0] -> GetXaxis() -> SetTitle("BPM X");
+  PosVariation[0] -> Draw("E1");
   gPad->Update();
 
+
   mc->cd(2);
-  gy->Draw("ap");
+  SummaryHist(PosVariation[1]);
+  PosVariation[1] -> SetMarkerStyle(20);
+  PosVariation[1] -> SetTitle("#Delta Y Variation");
+  PosVariation[1] -> GetYaxis()-> SetTitle ("#Delta Y (nm)");
+  PosVariation[1] -> GetXaxis() -> SetTitle("BPM Y");
+  PosVariation[1] -> Draw("E1");
   gPad->Update();
+  
 
   if(ldebug) printf("----------------------------------------------------\n");
   mc->Modified();
   mc->Update();
   
+
+  if(dummyhist) delete dummyhist;
   return;
 }
+
+
+
+// void QwGUIInjector::PositionDifferences(){
+
+//   bool ldebug = false;
+  
+//   TCanvas *mc = dCanvas->GetCanvas();
+
+//   mc->Clear();
+//   mc->Divide(1,2);
+
+//   Double_t relx[INJECTOR_DEV_NUM], rely[INJECTOR_DEV_NUM];
+//   Double_t erx [INJECTOR_DEV_NUM], ery[INJECTOR_DEV_NUM];
+//   Double_t err [INJECTOR_DEV_NUM], name[INJECTOR_DEV_NUM+1];
+
+//   //  Char_t* post[2]={"RelX","RelY"};
+
+//   TObject *obj;
+//   if(! obj) return; 
+
+//   TH1D* histx[INJECTOR_DEV_NUM] = {NULL};
+//   TH1D* histy[INJECTOR_DEV_NUM] = {NULL};
+
+//   obj = HistArray.At(1);  // Get MPS tree
+
+//   if(ldebug) {
+//     printf("PositionDiffercences -------------------------------\n");
+//     printf("Found a tree name is %s \n", obj->GetName());
+//   }
+
+//   char histo[128];
+  
+//   Int_t cnt = 0;
+
+//   for(Short_t p = 0; p <INJECTOR_DEV_NUM ; p++) 
+//     {
+//       if(!strcmp(InjectorDevices[p],"qwk_bcm0l02"))
+// 	{
+// 	}
+//       else
+// 	{
+// 	  sprintf (histo, "%sRelX.hw_sum", InjectorDevices[p]);
+// 	  if( ((TTree*) obj)->FindLeaf(histo) )
+// 	    {
+// 	      cnt++;
+// 	      if(ldebug) printf("Found %2d : a histogram name %22s\n", cnt, histo);
+// 	      obj -> Draw(histo);
+// 	      histx[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
+// 	      histx[p] -> SetName(histo);
+// 	      relx[cnt] = histx[p]->GetMean();
+// 	      erx[cnt]  = histx[p]->GetRMS()/sqrt(histx[p]->GetEntries());
+// 	      SummaryHist(histx[p]);
+// 	      //std::cout<<relx[cnt]<<"       "<<erx[cnt]<<"\n"; 
+// 	    }
+
+// 	  sprintf (histo, "%sRelY.hw_sum", InjectorDevices[p]);	  
+// 	  if( ((TTree*) obj)->FindLeaf(histo) )
+// 	    {
+// 	      if(ldebug) printf("\nFound %2d : a histogram name %22s\n", cnt, histo);
+// 	      obj -> Draw(histo);
+// 	      histy[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
+// 	      histy[p] -> SetName(histo);
+// 	      rely[cnt] = histy[p]->GetMean();
+// 	      ery[cnt]  = histy[p]->GetRMS()/sqrt(histy[p]->GetEntries());
+// 	      name[cnt]=cnt+1;
+// 	      err[cnt]=0.0; 
+// 	      SummaryHist(histy[p]);
+// 	    }
+// 	}
+//     }  
+  
+//   mc->Clear();
+//   mc->Divide(1,2);
+  
+//   TGraphErrors* gx  = new TGraphErrors(cnt,name,relx,err,erx);
+//   gx->SetTitle("#Delta x Variation");
+//   gx->GetYaxis()->SetTitle("#Delta x (nm)");
+//   gx->SetMarkerStyle(8);
+//   gx->SetMarkerSize(0.8);
+  
+  
+//   TGraphErrors* gy  = new TGraphErrors(cnt,name,rely,err,ery);
+//   gy->SetTitle("#Delta y Variation");
+//   gy->GetYaxis()->SetTitle("#Delta y(nm)");
+//   gy->SetMarkerStyle(8);
+//   gy->SetMarkerSize(0.8);
+  
+//   Int_t k=0;
+//   for (Int_t j=1;j<=cnt;j++)     
+//     {
+//       if(!strcmp(InjectorDevices[j],"qwk_bcm0l02"))
+// 	{
+// 	  //skip
+// 	}
+//       else{
+// 	k++;
+// 	gx->GetXaxis()->SetBinLabel((Int_t) 4.5*k,InjectorDevices[j-1]);
+// 	gy->GetXaxis()->SetBinLabel((Int_t) 4.5*k,InjectorDevices[j-1]);
+//       } 
+//     } 
+  
+//   mc->cd(1);
+//   gx->Draw("ap");
+//   gPad->Update();
+
+//   mc->cd(2);
+//   gy->Draw("ap");
+//   gPad->Update();
+
+//   if(ldebug) printf("----------------------------------------------------\n");
+//   mc->Modified();
+//   mc->Update();
+  
+//   return;
+// }
+
 
 
 
@@ -518,4 +663,4 @@ QwGUIInjector::SummaryHist(TH1 *in)
   printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
   printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
   return;
-}
+};
