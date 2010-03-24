@@ -68,7 +68,7 @@ CHMOD    := chmod
 DIRNAME  := dirname
 ECHO     := echo
 FIND     := find
-GCC      := gcc
+GCC      := g++
       # This must be the GNU compiler collection : explicit use of
       # flag '-M' for automatic search for dependencies
       # It is not correlated to $(CXX) and $(LD) which depend on $(ARCH)
@@ -320,10 +320,10 @@ LIBTOOL = $(LD)
 
 ifeq ($(ARCH),Linux)
 
-CXX            := gcc
+CXX            := g++
 CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
-LD             = gcc
+LD             = g++
 LDFLAGS	       = -Wl,-rpath,$(QW_LIB)
 LDLIBS         =
 SOFLAGS        = -shared
@@ -355,10 +355,10 @@ endif
 
 ifeq ($(ARCH),Darwin)
 
-CXX            := gcc
+CXX            := g++
 CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
-LD             = gcc
+LD             = g++
 LIBTOOL 	   = libtool
 LDFLAGS        = 
 LDLIBS         = -lSystemStubs
