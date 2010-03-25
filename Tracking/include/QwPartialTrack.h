@@ -83,17 +83,24 @@ class QwPartialTrack: public VQwTrackingElement {
     friend ostream& operator<< (ostream& stream, const QwPartialTrack& pt);
 
     /// \brief Return the vertex at position z
-    TVector3 GetPosition(double z);
-    /// \brief Return the direction at position z
-    TVector3 GetMomentumDirection(double z = 0.0);
-    /// \brief Return the phi angle at position z
-    Double_t GetMomentumDirectionPhi(double z = 0.0) {
-      return GetMomentumDirection(z).Phi();
+    const TVector3 GetPosition(const double z) const;
+    /// \brief Return the direction
+    const TVector3 GetMomentumDirection() const;
+    /// \brief Return the phi angle
+    const Double_t GetMomentumDirectionPhi() const {
+      return GetMomentumDirection().Phi();
     };
-    /// \brief Return the theta angle at position z
-    Double_t GetMomentumDirectionTheta(double z = 0.0) {
-      return GetMomentumDirection(z).Theta();
+    /// \brief Return the theta angle
+    const Double_t GetMomentumDirectionTheta() const {
+      return GetMomentumDirection().Theta();
     };
+
+    /// \brief Smear the position
+    QwPartialTrack& SmearPosition(const double sigma_x, const double sigma_y);
+    /// \brief Smear the theta angle
+    QwPartialTrack& SmearAngleTheta(const double sigma);
+    /// \brief Smear the phi angle
+    QwPartialTrack& SmearAnglePhi(const double sigma);
 
     /// \brief Determine vertex in the target
     int DeterminePositionInTarget ();

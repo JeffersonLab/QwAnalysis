@@ -102,6 +102,7 @@ void QwBCM::EncodeEventData(std::vector<UInt_t> &buffer)
 /********************************************************/
 void  QwBCM::ProcessEvent()
 {
+  ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine either in ApplySingleEventCuts or here do not make any difference for a BCM but do for a BPMs because they have derrived devices.
   fTriumf_ADC.ProcessEvent();
   return;
 };
@@ -133,7 +134,6 @@ void QwBCM::SetDefaultSampleSize(Int_t sample_size){
 Bool_t QwBCM::ApplySingleEventCuts(){
   //std::cout<<" QwBCM::SingleEventCuts() "<<std::endl;
   Bool_t status=kTRUE;
-  ApplyHWChecks();//first apply HW checks and update HW  error flags.
 
 
   if (fTriumf_ADC.ApplySingleEventCuts(fLLimit,fULimit)){

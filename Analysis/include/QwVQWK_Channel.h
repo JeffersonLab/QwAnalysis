@@ -129,7 +129,6 @@ class QwVQWK_Channel: public VQwDataElement {
   void Copy(VQwDataElement *source);
 
   void Print() const;
-
   Double_t GetAverage() {return fAverage_n;};
   Double_t GetAverageError() {return fAverage_error;};
 

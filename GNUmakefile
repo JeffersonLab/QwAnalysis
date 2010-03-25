@@ -68,7 +68,7 @@ CHMOD    := chmod
 DIRNAME  := dirname
 ECHO     := echo
 FIND     := find
-GCC      := gcc
+GCC      := g++
       # This must be the GNU compiler collection : explicit use of
       # flag '-M' for automatic search for dependencies
       # It is not correlated to $(CXX) and $(LD) which depend on $(ARCH)
@@ -128,9 +128,9 @@ EXCLUDEDIRS = evio Extensions
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
   ifneq ($(CODA),)
     #  The realtime executables should be added in this section.
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwanalysis_mysql qwdb_test
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test
   else
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator qwanalysis_mysql qwdb_test
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test
   endif
 else
   EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
@@ -138,9 +138,9 @@ endif
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
   ifneq ($(CODA),)
     #  The realtime executables should be added in this section.
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwanalysis_mysql qwdb_test
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test
   else
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator qwanalysis_mysql qwdb_test
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test
   endif
 endif
 # overridden by "make 'EXES=exe1 exe2 ...'"
@@ -320,10 +320,10 @@ LIBTOOL = $(LD)
 
 ifeq ($(ARCH),Linux)
 
-CXX            := gcc
+CXX            := g++
 CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
-LD             = gcc
+LD             = g++
 LDFLAGS	       = -Wl,-rpath,$(QW_LIB)
 LDLIBS         =
 SOFLAGS        = -shared
@@ -355,10 +355,10 @@ endif
 
 ifeq ($(ARCH),Darwin)
 
-CXX            := gcc
+CXX            := g++
 CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
-LD             = gcc
+LD             = g++
 LIBTOOL 	   = libtool
 LDFLAGS        = 
 LDLIBS         = -lSystemStubs

@@ -31,6 +31,8 @@ class QwIntegrationPMT : public VQwDataElement{
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
 
   void  InitializeChannel(TString name, TString datatosave);
+  void SetElementName(const TString &name) { fElementName = name; fTriumf_ADC.SetElementName(name);};
+
   void  ClearEventData();
   void ReportErrorCounters();
 /********************************************************/

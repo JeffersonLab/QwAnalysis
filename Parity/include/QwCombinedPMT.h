@@ -11,10 +11,12 @@
 class QwCombinedPMT : public VQwDataElement{
 /////
  public:
-  QwCombinedPMT(){ };
+  QwCombinedPMT(){
+    QwCombinedPMT("");
+  };
 
   QwCombinedPMT(TString name){
-    //InitializeChannel(name, "derived");
+    InitializeChannel(name, "derived");
   };
 
   ~QwCombinedPMT() {DeleteHistograms();};
@@ -29,7 +31,7 @@ class QwCombinedPMT : public VQwDataElement{
 
   void ReportErrorCounters();
 
-  void CalculateAverage();
+  void CalculateSumAndAverage();
 
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
@@ -75,29 +77,33 @@ class QwCombinedPMT : public VQwDataElement{
 
  protected:
 
-  QwIntegrationPMT fIntegrationPMT;
-
  private:
-  
+
+  Int_t fDataToSave;
   Double_t fCalibration; 
   Double_t fULimit, fLLimit;
   Double_t fSequenceNo_Prev;
 
-  Bool_t fGoodEvent;//used to validate sequence number in the IsGoodEvent() */
+  Bool_t fGoodEvent; /// used to validate sequence number in the IsGoodEvent()
 
   std::vector <QwIntegrationPMT*> fElement;
   std::vector <Double_t> fWeights;
 
-  //Double_t *fDataBlock;
+  QwIntegrationPMT  fSumADC;
+  QwIntegrationPMT  fAvgADC;
 
-  QwIntegrationPMT* fSumADC;
-  QwIntegrationPMT* fAvgADC;
+  Int_t fDevice_flag; /// sets the event cut level for the device 
+                      /// fDevice_flag=1 Event cuts & HW check,
+                      /// fDevice_flag=0 HW check, fDevice_flag=-1 no check
 
-  Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check  */
-  Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
+  Int_t fDeviceErrorCode; /// keep the device HW status using a unique code
+                          /// from the QwVQWK_Channel::fDeviceErrorCode
 
-  const static  Bool_t bDEBUG=kFALSE;//debugging display purposes */
-  Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
+  Bool_t bEVENTCUTMODE; /// If this set to kFALSE then Event cuts do not depend
+                        /// on HW ckecks. This is set externally through the 
+                        /// qweak_beamline_eventcuts.map
+
+  const static  Bool_t bDEBUG=kFALSE; /// debugging display purposes
 
 };
 
