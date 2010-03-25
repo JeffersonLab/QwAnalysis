@@ -71,7 +71,10 @@ void QwGUIMainDetector::MakeLayout()
   dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
 				"QwGUIMainDetector",
 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
-  TCanvas *mc = dCanvas->GetCanvas();
+  Int_t wid = dCanvas->GetCanvasWindowId();
+  QwGUISuperCanvas *mc = new QwGUISuperCanvas("", 10,10, wid);
+  dCanvas->AdoptCanvas(mc);
+//   TCanvas *mc = dCanvas->GetCanvas();
   mc->Divide(4,4);
 
 }

@@ -40,43 +40,56 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dClArgs = clargs;
   std::set_new_handler(0);
 
-  MainDetSubSystem   = NULL;
-  LumiDetSubSystem   = NULL;
-  InjectorSubSystem  = NULL;
+  MainDetSubSystem      = NULL;
+  LumiDetSubSystem      = NULL;
+  InjectorSubSystem     = NULL;
+  EventDisplaySubSystem = NULL;
 
-  dMWWidth           = w;
-  dMWHeight          = h;
-  dCurRun            = 0;
+  dMWWidth              = w;
+  dMWHeight             = h;
+  dCurRun               = 0;
 
-  dTBinEntryLayout   = NULL;
-  dTBinEntry         = NULL;
-  dUtilityFrame      = NULL;
-  dUtilityLayout     = NULL;
-  dHorizontal3DLine  = NULL;
+  dROOTFile             = NULL;
 
-  dTabLayout         = NULL;
+  dTBinEntry            = NULL;
+  dTBinEntryLayout      = NULL;
+  dRunEntry             = NULL;
+  dRunEntryLayout       = NULL;
+  dHorizontal3DLine     = NULL;
+  dUtilityFrame         = NULL;
+  dUtilityLayout        = NULL;
 
-  dMainCanvas        = NULL;
-  dMainTabFrame      = NULL;
-  dMainCnvFrame      = NULL;
-  dMainCnvLayout     = NULL;
-  dMainTabLayout     = NULL;
+  dTab                  = NULL;
+  dTabLayout            = NULL;
 
-  dLogTabLayout      = NULL;
-  dLogTabFrame       = NULL;
-  dLogEditLayout     = NULL;
-  dLogText           = NULL;
-  dLogEdit           = NULL;
+  dMainCanvas           = NULL;
+  dMainCnvFrame         = NULL;
+  dMainTabFrame         = NULL;
+  dMainTabLayout        = NULL;
+  dMainCnvLayout        = NULL;
 
-  dMenuBar           = NULL;
-  dMenuBarLayout     = NULL;
-  dMenuBarItemLayout = NULL;
-  dMenuBarHelpLayout = NULL;
-  dMenuFile          = NULL;
-  dMenuHelp          = NULL;
+  dLogText              = NULL;
+  dLogEdit              = NULL;
+  dLogTabFrame          = NULL;
+  dLogTabLayout         = NULL;
+  dLogEditLayout        = NULL;
 
+
+  dMenuBar              = NULL;
+  dMenuFile             = NULL;
+  dMenuTabs             = NULL;
+  dMenuHelp             = NULL;
+  dMenuBarLayout        = NULL;
+  dMenuBarItemLayout    = NULL;
+  dMenuBarHelpLayout    = NULL;
 
   memset(dLogfilename,'\0',sizeof(dLogfilename));
+  memset(dRootfilename,'\0',sizeof(dRootfilename));
+  memset(dMiscbuffer, '\0', sizeof(dMiscbuffer));
+  memset(dMiscbuffer2, '\0', sizeof(dMiscbuffer2));
+  memset(dTime, '\0', sizeof(dTime));
+  memset(dDate, '\0', sizeof(dDate));
+
 
   SetRootFileOpen(kFalse);
   SetLogFileOpen(kFalse);
@@ -112,35 +125,45 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
 QwGUIMain::~QwGUIMain()
 {
-  delete dTab;
-  delete dMainTabFrame;
-  delete dMainCnvFrame;
-  delete dMainCanvas;
+  delete MainDetSubSystem      ;
+  delete LumiDetSubSystem      ;
+  delete InjectorSubSystem     ;
+  delete EventDisplaySubSystem ;
 
-  delete dMainCnvLayout;
-  delete dMainTabLayout;
-  delete dTabLayout;
+  delete dROOTFile             ;
 
-  delete dMenuBar;
-  delete dMenuFile,
-  delete dMenuHelp;
-  delete dMenuBarLayout;
-  delete dMenuBarItemLayout;
-  delete dMenuBarHelpLayout;
+  delete dTBinEntry            ;
+  delete dTBinEntryLayout      ;
+  delete dRunEntry             ;
+  delete dRunEntryLayout       ;
+  delete dHorizontal3DLine     ;
+  delete dUtilityFrame         ;
+  delete dUtilityLayout        ;
 
-  delete dTBinEntryLayout;
-  delete dTBinEntry;
-  delete dUtilityFrame;
-  delete dUtilityLayout;
-  delete dHorizontal3DLine;
+  delete dTab                  ;
+  delete dTabLayout            ;
 
-  delete dLogText;
-  delete dLogEdit;
-  delete dLogTabFrame;
-  delete dLogTabLayout;
-  delete dLogEditLayout;
+  delete dMainCanvas           ;
+  delete dMainCnvFrame         ;
+  delete dMainTabFrame         ;
+  delete dMainTabLayout        ;
+  delete dMainCnvLayout        ;
 
-  delete dROOTFile;
+  delete dLogText              ;
+  delete dLogEdit              ;
+  delete dLogTabFrame          ;
+  delete dLogTabLayout         ;
+  delete dLogEditLayout        ;
+
+
+  delete dMenuBar              ;
+  delete dMenuFile             ;
+  delete dMenuTabs             ;
+  delete dMenuHelp             ;
+  delete dMenuBarLayout        ;
+  delete dMenuBarItemLayout    ;
+  delete dMenuBarHelpLayout    ;
+
 }
 
 void QwGUIMain::MakeMenuLayout()
@@ -1215,6 +1238,7 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
 
 QwGUIMain *gViewMain;
+
 // void RunSignal(int sig)
 // {
 //   gViewMain->OnNewRunSignal(sig);
@@ -1225,18 +1249,18 @@ QwGUIMain *gViewMain;
 //   gViewMain->OnRunWarningSignal(sig);
 // }
 
-int main(int argc, char **argv)
+Int_t main(Int_t argc, Char_t **argv)
 {
-  char expl[5000];
+  Char_t expl[5000];
   ClineArgs dClArgs;
-  int help = 0;
+  Int_t help = 0;
   dClArgs.realtime = kFalse;
   dClArgs.checkmode = kFalse;
 //   int ax,ay;
 //   unsigned int aw, ah;
 
   if(argv[1]){
-    for( int i=1; i < argc; i++){
+    for(Int_t i=1; i < argc; i++){
       if(strcmp(argv[i],"-r")==0){
 	dClArgs.realtime = kTrue;
       }
@@ -1319,6 +1343,7 @@ int main(int argc, char **argv)
 
   return 0;
 }
+
 
 void QwGUIMain::WritePid()
 {

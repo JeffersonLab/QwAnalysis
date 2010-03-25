@@ -1,6 +1,8 @@
 #include "QwGUIInjector.h"
+
 #include <TG3DLine.h>
 #include "TGaxis.h"
+
 ClassImp(QwGUIInjector);
 
 enum QwGUIInjectorIndentificator {
@@ -117,9 +119,10 @@ void QwGUIInjector::MakeLayout()
 //   mc->Divide( 2, 4);
 
   Int_t wid = dCanvas->GetCanvasWindowId();
-  TCanvas *super_canvas = new TCanvas("", 10, 10, wid);
-  dCanvas->AdoptCanvas(super_canvas);
-  super_canvas -> Divide(2,4);
+  //  TCanvas *super_canvas = new TCanvas("", 10, 10, wid);
+  QwGUISuperCanvas *mc = new QwGUISuperCanvas("", 10,10, wid);
+  dCanvas->AdoptCanvas(mc);
+  //  super_canvas -> Divide(2,4);
 
 }
 

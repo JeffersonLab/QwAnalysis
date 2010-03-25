@@ -48,7 +48,6 @@
 #include "QwGUISubSystem.h"
 #include "RSDataWindow.h"
 
-
 class QwGUILumiDetector : public QwGUISubSystem {
 
   

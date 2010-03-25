@@ -47,6 +47,11 @@
 #include "QwGUIMainDef.h"
 #include "QwGUIProgressDialog.h"
 
+#include "QwGUISuperCanvas.h"
+
+// QwAnalysis / Analysis/ include 
+#include "QwColor.h"
+
 class QwGUISubSystem : public TGCompositeFrame {
 
  private:
