@@ -171,10 +171,11 @@ class QwScanner: public VQwSubsystemTracking,
   UInt_t fV775ChannelNumber;
   UInt_t fV775Dataword;
 
+  /// variables for calibrating and calculating scanner positions
   Double_t fMainDetCenterX;
   Double_t fMainDetCenterY;
-  Double_t fHomePositionOffsetX;
-  Double_t fHomePositionOffsetY;
+  Double_t fHomePositionX;
+  Double_t fHomePositionY;
   Double_t fVoltageOffsetX;
   Double_t fVoltageOffsetY;
   Double_t fCal_FactorX;
@@ -182,33 +183,18 @@ class QwScanner: public VQwSubsystemTracking,
   Double_t fPedestal;
   Double_t fCalibration;
 
-  Int_t myTimer;
   Int_t fTreeArrayNumEntries;
   Int_t fTreeArrayIndex;
-
   std::vector <Double_t> fScannerVector;
 
-  Double_t fCurrentPotentialX;
-  Double_t fCurrentPotentialY;
-  Double_t fDirectionX;
-  Double_t fDirectionY;
-  Double_t fPreDirectionX;
-  Double_t fPreDirectionY;
-
-  Double_t fPowSupply;
-  Double_t fPositionX;
-  Double_t fPositionY;
-  Double_t fRate;
-
-  Int_t FrontScaData;
-  Int_t BackScaData;
-  Int_t CoincidenceScaData;
-
-  Int_t fEvtCounter;
-  Int_t fTrigEvtCounter;
-  Int_t fSumEvtCounter;
-  Int_t fSumFlag;
-  Int_t fTrigFlag;
+  Int_t    fEvtCounter;
+  Int_t    fTrigEvtCounter;
+  Int_t    fSumEvtCounter;
+  Int_t    fSumFlag;
+  Int_t    fTrigFlag;
+  Double_t fPowSupply_VQWK;
+  Double_t fPositionX_VQWK;
+  Double_t fPositionY_VQWK;
   Double_t fFrontSCA;
   Double_t fBackSCA;
   Double_t fCoincidenceSCA;
@@ -216,6 +202,21 @@ class QwScanner: public VQwSubsystemTracking,
   Double_t fFrontTDC;
   Double_t fBackADC;
   Double_t fBackTDC;
+  Double_t fPowSupply_ADC;
+  Double_t fPositionX_ADC;
+  Double_t fPositionY_ADC;
+
+  /// variables for generating scanner mock data
+  Int_t    myTimer;
+  Double_t fCurrentPotentialX;
+  Double_t fCurrentPotentialY;
+  Double_t fDirectionX;
+  Double_t fDirectionY;
+  Double_t fPreDirectionX;
+  Double_t fPreDirectionY;
+  Int_t    fMockFrontScaData;
+  Int_t    fMockBackScaData;
+  Int_t    fMockCoincidenceScaData;
 };
 
 

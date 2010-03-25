@@ -13,7 +13,6 @@ extern QwHistogramHelper gQwHists;
 const Bool_t QwScanner::bStoreRawData = kFALSE;
 const UInt_t QwScanner::kMaxNumberOfModulesPerROC     = 21;
 const UInt_t QwScanner::kMaxNumberOfChannelsPerModule = 32;
-
 const UInt_t QwScanner::kV775Mask_SlotNumber        = 0xf8000000;  // 27-31
 const UInt_t QwScanner::kV775Mask_WordType          = 0x07000000;  // 24-26
 const UInt_t QwScanner::kV775Mask_ChannelNumber     = 0x001f0000;  // 16-20
@@ -21,37 +20,25 @@ const UInt_t QwScanner::kV775Mask_Dataword          = 0x00000fff;  // 0-11
 const UInt_t QwScanner::kV775WordType_Datum    = 0;
 
 QwScanner::QwScanner(TString region_tmp)
-        : VQwSubsystem(region_tmp),
+        :VQwSubsystem(region_tmp),
         VQwSubsystemTracking(region_tmp),
         VQwSubsystemParity(region_tmp) {
 
-    fCurrentPotentialX = 2.0; //units: Volts
-    fCurrentPotentialY = 2.0;
-
+    myTimer = abs((Int_t) gRandom->Gaus(15,3));
     fDirectionX = fPreDirectionX = 1.0;
     fDirectionY = fPreDirectionY = 1.0;
-
-    myTimer = abs((Int_t) gRandom->Gaus(15,3));
-    FrontScaData = 0;
-    BackScaData = 0;
-    CoincidenceScaData = 0;
+    fMockFrontScaData = 0;
+    fMockBackScaData = 0;
+    fMockCoincidenceScaData = 0;
 
     fEvtCounter = 0;
     fTrigEvtCounter = 0;
     fSumEvtCounter = 0;
-    fFrontSCA = 0.0;
-    fBackSCA = 0.0;
-    fCoincidenceSCA = 0.0;
-    fFrontADC = 0.0;
-    fFrontTDC = 0.0;
-    fBackADC = 0.0;
-    fBackTDC = 0.0;
-
 };
 
 
 QwScanner::~QwScanner() {
-    //DeleteHistograms();
+
     fPMTs.clear();
     fSCAs.clear();
 
@@ -62,7 +49,7 @@ QwScanner::~QwScanner() {
         }
     }
     fADC_Data.clear();
-
+    //DeleteHistograms();
 };
 
 
@@ -159,22 +146,20 @@ Int_t QwScanner::LoadInputParameters(TString parameterfile) {
         if (mapstr.HasVariablePair("=",varname,varvalue)) {
             varname.ToLower();
             Double_t value = atof(varvalue.Data());
-            if (varname=="maindetcenterx") {
-                fMainDetCenterX=value;
-            } else if (varname=="maindetcentery") {
-                fMainDetCenterY=value;
-            } else if (varname=="homepositionoffsetx") {
-                fHomePositionOffsetX = value;
-            } else if (varname=="homepositionoffsety") {
-                fHomePositionOffsetY = value;
+            if (varname=="homepositionx") {
+                fHomePositionX = value;
+            } else if (varname=="homepositiony") {
+                fHomePositionY = value;
             } else if (varname=="cal_factorx") {
                 fCal_FactorX = value;
             } else if (varname=="cal_factory") {
                 fCal_FactorY = value;
             } else if (varname=="voltageoffsetx") {
                 fVoltageOffsetX = value;
+                fCurrentPotentialX = fVoltageOffsetX; // fCurrentPotentialX is uded for generating mock data
             } else if (varname=="voltageoffsety") {
                 fVoltageOffsetY = value;
+                fCurrentPotentialY = fVoltageOffsetY; // fCurrentPotentialY is uded for generating mock data
             }
             if (ldebug) std::cout<<"inputs for "<<varname<<": "<<value<<"\n";
         }
@@ -422,14 +407,24 @@ void  QwScanner::ProcessEvent() {
     //Fill trigger data
     for (size_t i=0; i<fPMTs.size(); i++) {
         for (size_t j=0; j<fPMTs.at(i).size(); j++) {
-            if (fPMTs.at(i).at(j).GetElementName()==TString("quartz_front_adc"))
+            if (fPMTs.at(i).at(j).GetElementName()==TString("front_adc"))
                 fFrontADC = fPMTs.at(i).at(j).GetValue();
-            if (fPMTs.at(i).at(j).GetElementName()==TString("quartz_back_adc"))
+            if (fPMTs.at(i).at(j).GetElementName()==TString("back__adc"))
                 fBackADC = fPMTs.at(i).at(j).GetValue();
-            if (fPMTs.at(i).at(j).GetElementName()==TString("quartz_front_tdc"))
+            if (fPMTs.at(i).at(j).GetElementName()==TString("front_tdc"))
                 fFrontTDC = fPMTs.at(i).at(j).GetValue();
-            if (fPMTs.at(i).at(j).GetElementName()==TString("quartz_back_tdc"))
+            if (fPMTs.at(i).at(j).GetElementName()==TString("back__tdc"))
                 fBackTDC = fPMTs.at(i).at(j).GetValue();
+
+            // TODO replace the position determination with interplation table
+            if (fPMTs.at(i).at(j).GetElementName()==TString("power_adc"))
+                fPowSupply_ADC = fPMTs.at(i).at(j).GetValue();
+            if (fPMTs.at(i).at(j).GetElementName()==TString("pos_x_adc"))
+                fPositionX_ADC = fPMTs.at(i).at(j).GetValue();
+            fPositionX_ADC = (fPositionX_ADC-fVoltageOffsetX)*fCal_FactorX + fHomePositionX;
+            if (fPMTs.at(i).at(j).GetElementName()==TString("pos_y_adc"))
+                fPositionY_ADC = fPMTs.at(i).at(j).GetValue();
+            fPositionY_ADC = (fPositionY_ADC-fVoltageOffsetY)*fCal_FactorY + fHomePositionY;
         }
     }
 
@@ -437,24 +432,23 @@ void  QwScanner::ProcessEvent() {
     for (size_t i=0; i<fADC_Data.size(); i++) {
         if (fADC_Data.at(i) != NULL) {
 
-            fPowSupply = fADC_Data.at(i)->GetChannel(TString("vqwk_power"))->GetAverageVolts();
+            // TODO replace the position determination with interplation table
+            fPowSupply_VQWK = fADC_Data.at(i)->GetChannel(TString("power_vqwk"))->GetAverageVolts();
 
-            fPositionX = fADC_Data.at(i)->GetChannel(TString("vqwk_pos_x"))->GetAverageVolts();
-            fPositionX = (fPositionX-fVoltageOffsetX)*fCal_FactorX + fMainDetCenterX + fHomePositionOffsetX;
+            fPositionX_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_x_vqwk"))->GetAverageVolts();
+            fPositionX_VQWK = (fPositionX_VQWK-fVoltageOffsetX)*fCal_FactorX + fHomePositionX;
 
-            fPositionY = fADC_Data.at(i)->GetChannel(TString("vqwk_pos_y"))->GetAverageVolts();
-            fPositionY = (fPositionY-fVoltageOffsetY)*fCal_FactorY + fMainDetCenterY + fHomePositionOffsetY;
+            fPositionY_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_y_vqwk"))->GetAverageVolts();
+            fPositionY_VQWK = (fPositionY_VQWK-fVoltageOffsetY)*fCal_FactorY + fHomePositionY;
         }
     }
 
     //Fill scaler data
     for (size_t i=0; i<fSCAs.size(); i++) {
         if (fSCAs.at(i) != NULL) {
-
-            fRate = fSCAs.at(i)->GetChannel(TString("coincidence_sca"))->GetValue();
-            fCoincidenceSCA = fRate;
+            fCoincidenceSCA = fSCAs.at(i)->GetChannel(TString("coinc_sca"))->GetValue();
             fFrontSCA = fSCAs.at(i)->GetChannel(TString("front_sca"))->GetValue();
-            fBackSCA = fSCAs.at(i)->GetChannel(TString("back_sca"))->GetValue();
+            fBackSCA = fSCAs.at(i)->GetChannel(TString("back__sca"))->GetValue();
         }
     }
 
@@ -463,8 +457,8 @@ void  QwScanner::ProcessEvent() {
 
 void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix) {
 
-    TString pat1 = "asym_";
-    TString pat2 = "yield_";
+    TString pat1 = "asym";
+    TString pat2 = "yield";
     TString basename;
 
     if (prefix.BeginsWith(pat1)) {   }    //construct histograms in hel_histo folder if need
@@ -474,35 +468,37 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix) {
         if (prefix = "")  basename = "scanner_";
         else  basename = prefix;
 
-  if (folder != NULL) folder->cd();
-  TDirectory* scannerfolder = folder->mkdir("scanner");
+        if (folder != NULL) folder->cd();
+        TDirectory* scannerfolder = folder->mkdir("scanner");
 
-    // if (bRawData)
-    {
-        for (size_t i=0; i<fPMTs.size(); i++) {
-            for (size_t j=0; j<fPMTs.at(i).size(); j++)
-                fPMTs.at(i).at(j).ConstructHistograms(scannerfolder, basename);
-        }
+        // if (bRawData)
+        {
+            for (size_t i=0; i<fPMTs.size(); i++) {
+                for (size_t j=0; j<fPMTs.at(i).size(); j++)
+                    fPMTs.at(i).at(j).ConstructHistograms(scannerfolder, basename);
+            }
 
-        for (size_t i=0; i<fSCAs.size(); i++) {
-            if (fSCAs.at(i) != NULL) {
-                fSCAs.at(i)->ConstructHistograms(scannerfolder, basename);
+            for (size_t i=0; i<fSCAs.size(); i++) {
+                if (fSCAs.at(i) != NULL) {
+                    fSCAs.at(i)->ConstructHistograms(scannerfolder, basename);
+                }
+            }
+
+            for (size_t i=0; i<fADC_Data.size(); i++) {
+                if (fADC_Data.at(i) != NULL)
+                    fADC_Data.at(i)->ConstructHistograms(scannerfolder, basename);
             }
         }
 
-        for (size_t i=0; i<fADC_Data.size(); i++) {
-            if (fADC_Data.at(i) != NULL)
-                fADC_Data.at(i)->ConstructHistograms(scannerfolder, basename);
-        }
+        scannerfolder->cd();
+        //fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
+        fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
+        fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));
+        fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_x")));
+        fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_y")));
+
+        fHistograms2D.push_back( gQwHists.Construct2DHist(TString("scanner_rate_map")));
     }
-
-    scannerfolder->cd();
-    //fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
-    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
-    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));
-
-    fHistograms2D.push_back( gQwHists.Construct2DHist(TString("scanner_rate_map")));
-   }
 };
 
 void  QwScanner::FillHistograms() {
@@ -535,32 +531,38 @@ void  QwScanner::FillHistograms() {
     }
 
     for (size_t j=0; j<fHistograms1D.size();j++) {
-//         if (fHistograms1D.at(j)->GetTitle()==TString("scanner_vqwk_power")) {
-//             fHistograms1D.at(j)->Fill(fPowSupply);
-//         }
 
         if (fHistograms1D.at(j)->GetTitle()==TString("scanner_position_x")) {
-            fHistograms1D.at(j)->Fill(fPositionX);
+            fHistograms1D.at(j)->Fill(fPositionX_VQWK);
         }
 
         if (fHistograms1D.at(j)->GetTitle()==TString("scanner_position_y")) {
-            fHistograms1D.at(j)->Fill(fPositionY);
+            fHistograms1D.at(j)->Fill(fPositionY_VQWK);
+        }
+
+        if (fHistograms1D.at(j)->GetTitle()==TString("scanner_ref_posi_x")) {
+            fHistograms1D.at(j)->Fill(fPositionX_ADC);
+        }
+
+        if (fHistograms1D.at(j)->GetTitle()==TString("scanner_ref_posi_y")) {
+            fHistograms1D.at(j)->Fill(fPositionY_ADC);
         }
     }
 
     //Fill rate map
+    Double_t rate = fCoincidenceSCA;
     for (size_t j=0; j<fHistograms2D.size();j++) {
         if (fHistograms2D.at(j)->GetTitle()==TString("scanner_rate_map")) {
             Int_t checkvalidity = 1;
-            Double_t PreValue = get_value( fHistograms2D.at(j), fPositionY, fPositionX, checkvalidity);
+            Double_t prevalue = get_value( fHistograms2D.at(j), fPositionX_VQWK, fPositionY_VQWK, checkvalidity);
             if (checkvalidity!=0) {
-                if (PreValue>0) {
-                    fRate = (PreValue + fRate)*0.5;  //average value for this bin
+                if (prevalue>0) {
+                    rate = (prevalue + rate)*0.5;  //average value for this bin
                 }
-                fHistograms2D.at(j)->SetBinContent(fPositionY,fPositionX,fRate);
-                Int_t xbin = fHistograms2D.at(j)->GetXaxis()->FindBin( fPositionY );
-                Int_t ybin = fHistograms2D.at(j)->GetYaxis()->FindBin( fPositionX );
-                fHistograms2D.at(j)->SetBinContent( fHistograms2D.at(j)->GetBin( xbin, ybin ), fRate);
+                fHistograms2D.at(j)->SetBinContent(fPositionX_VQWK,fPositionY_VQWK,rate);
+                Int_t xbin = fHistograms2D.at(j)->GetXaxis()->FindBin( fPositionX_VQWK );
+                Int_t ybin = fHistograms2D.at(j)->GetYaxis()->FindBin( fPositionY_VQWK );
+                fHistograms2D.at(j)->SetBinContent( fHistograms2D.at(j)->GetBin( xbin, ybin ), rate);
             }
         }
     }
@@ -575,15 +577,15 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vec
 
 void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix) {
 
-    TString pat1 = "asym_";
-    TString pat2 = "yield_";
+    TString pat1 = "asym";
+    TString pat2 = "yield";
     TString basename;
 
     if (prefix.BeginsWith(pat1)) {}
 
     else if (prefix.BeginsWith(pat2)) {
-        tree->Branch("scanner_posx",&fPositionX,"scanner_posx/D");
-        tree->Branch("scanner_posy",&fPositionY,"scanner_posy/D");
+        tree->Branch("scanner_posx",&fPositionX_VQWK,"scanner_posx/D");
+        tree->Branch("scanner_posy",&fPositionY_VQWK,"scanner_posy/D");
         tree->Branch("scanner_rate",&fCoincidenceSCA,"scanner_rate/D");
     }
 
@@ -605,11 +607,11 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix) {
         fScannerVector.push_back(0.0);
         list += ":TrigFlag/D";
         fScannerVector.push_back(0.0);
-        list += ":PowSupply/D";
+        list += ":PowSupply_VQWK/D";
         fScannerVector.push_back(0.0);
-        list += ":PositionX/D";
+        list += ":PositionX_VQWK/D";
         fScannerVector.push_back(0.0);
-        list += ":PositionY/D";
+        list += ":PositionY_VQWK/D";
         fScannerVector.push_back(0.0);
         list += ":FrontSCA/D";
         fScannerVector.push_back(0.0);
@@ -624,6 +626,12 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix) {
         list += ":FrontTDC/D";
         fScannerVector.push_back(0.0);
         list += ":BackTDC/D";
+        fScannerVector.push_back(0.0);
+        list += ":PowSupply_ADC/D";
+        fScannerVector.push_back(0.0);
+        list += ":PositionX_ADC/D";
+        fScannerVector.push_back(0.0);
+        list += ":PositionY_ADC/D";
 
         if (bStoreRawData) {
 
@@ -685,15 +693,14 @@ void  QwScanner::FillTreeVector() {
     if (! HasDataLoaded()) return;
 
     Int_t index = 0;
-
     fScannerVector[index++] = fEvtCounter;
     fScannerVector[index++] = fTrigEvtCounter;
     fScannerVector[index++] = fSumEvtCounter;
     fScannerVector[index++] = fSumFlag;
     fScannerVector[index++] = fTrigFlag;
-    fScannerVector[index++] = fPowSupply;
-    fScannerVector[index++] = fPositionX;
-    fScannerVector[index++] = fPositionY;
+    fScannerVector[index++] = fPowSupply_VQWK;
+    fScannerVector[index++] = fPositionX_VQWK;
+    fScannerVector[index++] = fPositionY_VQWK;
     fScannerVector[index++] = fFrontSCA;
     fScannerVector[index++] = fBackSCA;
     fScannerVector[index++] = fCoincidenceSCA;
@@ -701,6 +708,9 @@ void  QwScanner::FillTreeVector() {
     fScannerVector[index++] = fBackADC;
     fScannerVector[index++] = fFrontTDC;
     fScannerVector[index++] = fBackTDC;
+    fScannerVector[index++] = fPowSupply_ADC;
+    fScannerVector[index++] = fPositionX_ADC;
+    fScannerVector[index++] = fPositionY_ADC;
 
     if (bStoreRawData) {
 
@@ -732,7 +742,11 @@ void  QwScanner::FillTreeVector() {
                 for (size_t j=0; j<fADC_Data.at(i)->fChannels.size(); j++) {
                     TString channelname = fADC_Data.at(i)->fChannels.at(j).GetElementName();
                     channelname.ToLower();
-                    if ( (channelname =="") || (channelname =="empty") || (channelname =="spare")) {} else {
+                    if ( (channelname =="")
+                            || (channelname.BeginsWith("empty"))
+                            || (channelname.BeginsWith("spare")) ) {
+
+                    } else {
                         //fScannerVector[index++] = fADC_Data.at(i)->fChannels.at(j).GetHardwareSum();
                         fScannerVector[index++] = fADC_Data.at(i)->fChannels.at(j).GetAverageVolts();
                     }
@@ -1164,24 +1178,24 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer) {
                 Double_t front_adc_value = 0.0;
                 Double_t back_adc_value = 0.0;
 
-                if (fPMTs.at(i).at(j).GetElementName()==TString("quartz_front_adc")) {
+                if (fPMTs.at(i).at(j).GetElementName()==TString("front_adc")) {
                     front_adc_value = UInt_t(fPMTs.at(i).at(j).GetValue())&0xFFF;
                     if (front_adc_value>front_adc_trimmer) {
-                        FrontScaData ++;
+                        fMockFrontScaData ++;
                         //std::cout<<"     front_adc_value, FrontScaData  "<<front_adc_value<<"   "<<FrontScaData<<std::endl;
                     }
                 }
 
-                if (fPMTs.at(i).at(j).GetElementName()==TString("quartz_back_adc")) {
+                if (fPMTs.at(i).at(j).GetElementName()==TString("back__adc")) {
                     back_adc_value = UInt_t(fPMTs.at(i).at(j).GetValue())&0xFFF;
                     if (back_adc_value>back_adc_trimmer) {
-                        BackScaData ++;
+                        fMockBackScaData ++;
                         //std::cout<<"     back_adc_value, BackScaData  "<<back_adc_value<<"   "<<BackScaData<<std::endl;
                     }
                 }
 
                 if (  (back_adc_value>back_adc_trimmer) && (back_adc_value>back_adc_trimmer) ) {
-                    CoincidenceScaData ++;
+                    fMockCoincidenceScaData ++;
                 }
             }
         }
@@ -1193,16 +1207,16 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer) {
 //replace mock data for ch0, ch1, ch2
         for (size_t i=0; i<fSCAs.size(); i++) {
             if (fSCAs.at(i) != NULL) {
-                fSCAs.at(i)->GetChannel(TString("front_sca"))->SetEventData(FrontScaData);
-                fSCAs.at(i)->GetChannel(TString("back_sca"))->SetEventData(BackScaData);
-                fSCAs.at(i)->GetChannel(TString("coincidence_sca"))->SetEventData(CoincidenceScaData);
+                fSCAs.at(i)->GetChannel(TString("front_sca"))->SetEventData(fMockFrontScaData);
+                fSCAs.at(i)->GetChannel(TString("back__sca"))->SetEventData(fMockBackScaData);
+                fSCAs.at(i)->GetChannel(TString("coinc_sca"))->SetEventData(fMockCoincidenceScaData);
                 fSCAs.at(i)->EncodeEventData(LocalScaBuffer);
             }
         }
 
-        FrontScaData = 0;
-        BackScaData = 0;
-        CoincidenceScaData = 0;
+        fMockFrontScaData = 0;
+        fMockBackScaData = 0;
+        fMockCoincidenceScaData = 0;
 
 //mock data for position events
         for (size_t i=0; i<fADC_Data.size(); i++) {
@@ -1416,8 +1430,14 @@ Double_t QwScanner::get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalid
         bool y_ok = ( h->GetYaxis()->GetXmin() < y && y < h->GetYaxis()->GetXmax() );
 
         if (! ( x_ok && y_ok)) {
-            //if (!x_ok) std::cerr << "x value " << x << " out of range ["<< h->GetXaxis()->GetXmin() <<","<< h->GetXaxis()->GetXmax() << "]" << std::endl;
-            //if (!y_ok) std::cerr << "y value " << y << " out of range ["<< h->GetYaxis()->GetXmin() <<","<< h->GetYaxis()->GetXmax() << "]" << std::endl;
+//             if (!x_ok){
+//                 std::cerr << "x value " << x << " out of range ["<< h->GetXaxis()->GetXmin()
+//                           <<","<< h->GetXaxis()->GetXmax() << "]" << std::endl;
+//             }
+//             if (!y_ok){
+//                 std::cerr << "y value " << y << " out of range ["<< h->GetYaxis()->GetXmin()
+//                           <<","<< h->GetYaxis()->GetXmax() << "]" << std::endl;
+//             }
             checkvalidity=0;
             return -1e20;
         }
