@@ -18,44 +18,6 @@ cd `dirname $fullname`
 set local_path = `pwd`
 cd -
 
-##  Backup the old versions of SET_ME_UP
-foreach setupfile (`find $local_path -name SET_ME_UP\* -print | sort -r`)
-    mv $setupfile ${setupfile}_
-end
-
-##  Set the QWANALYSIS variable, and create the SET_ME_UP scripts.
-setenv QWANALYSIS `echo $local_path | sed 's/\/SetupFiles//'`
-
-cat >! $local_path/SET_ME_UP.csh << END
-#!/bin/csh
-#
-set analyzer_version = $QWANALYSIS
-
-###
-###  DO NOT CHANGE THE COMMANDS BELOW!!!
-###
-	setenv QWANALYSIS \$analyzer_version
-
-	source \${QWANALYSIS}/SetupFiles/.QwSetup.csh
-
-unset analyzer_version
-
-END
-
-cat >! $local_path/SET_ME_UP.bash << END
-#!/bin/bash
-#
-analyzerversion=$QWANALYSIS
-
-###
-###  DO NOT CHANGE THE COMMANDS BELOW!!!
-###
-
-export QWANALYSIS=\$analyzerversion
-
-. \$QWANALYSIS/SetupFiles/.QwSetup.bash
-
-unset analyzerversion
-
-END
+#  Execute the bash make_SET_ME_UP
+${local_path}/make_SET_ME_UP.bash
 
