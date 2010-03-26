@@ -26,7 +26,7 @@ class QwBPMStripline : public VQwDataElement{
   friend class QwCombinedBPM;  ///bbb
 
  public:
-  QwBPMStripline();
+  QwBPMStripline() { };
   QwBPMStripline(TString name, Bool_t ROTATED){
     InitializeChannel(name, ROTATED);
   };
