@@ -54,6 +54,7 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
 	  neg_sum.Copy(&event);
 	  difference.Copy(&event);
 	  fCurrentPatternNumber=-1;
+
 	  ClearEventData();
 	}
       else
@@ -422,23 +423,25 @@ void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values)
   if (IsGood) {
     fYield.FillTreeVector(values);
     fAsymmetry.FillTreeVector(values);
+
     if (bAlternateAsym){
       fAsymmetry1.FillTreeVector(values);
       fAsymmetry2.FillTreeVector(values);
     }
-
-//      ((QwBeamLine*)fYield.GetSubsystem("Injector Beamline Copy"))->FillTreeVector(values);
-//      ((QwHelicity*)fYield.GetSubsystem("Helicity Copy"))->FillTreeVector(values);
-//      ((QwMainCerenkovDetector*)fYield.GetSubsystem("Quartz bar Copy"))->FillTreeVector(values);
-//
-//      ((QwBeamLine*)fAsymmetry.GetSubsystem("Injector Beamline Copy"))->FillTreeVector(values);
-//      ((QwHelicity*)fAsymmetry.GetSubsystem("Helicity Copy"))->FillTreeVector(values);
-//      ((QwMainCerenkovDetector*)fAsymmetry.GetSubsystem("Quartz bar Copy"))->FillTreeVector(values);
   }
-
   return;
 };
 
+
+void QwHelicityPattern::FillDB(QwDatabase *db)
+{
+  fYield.FillDB(db, "yield");
+  fAsymmetry.FillDB(db, "asymmetry");
+  //  fAverage.FillDB(db, "average");
+  //  fRunningSum.FillDB(db, "runningsum");
+
+  return;
+}
 //*****************************************************************
 
 void QwHelicityPattern::Print()

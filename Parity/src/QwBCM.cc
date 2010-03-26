@@ -346,3 +346,59 @@ void  QwBCM::Copy(VQwDataElement *source)
 }
 
 
+
+
+QwParityDB::beam QwBCM::GetDBEntry(QwDatabase *db, TString mtype, TString subname)
+{
+  QwParityDB::beam row(0);
+  
+  UInt_t beam_run_id      = 0;
+  UInt_t beam_analysis_id = 0;
+  UInt_t beam_monitor_id  = 0;
+  Char_t beam_measurement_type[4];
+
+  TString name;
+  Double_t avg = 0.0;
+  Double_t err = 0.0;
+
+  if(mtype.Contains("yield"))
+    {
+      sprintf(beam_measurement_type, "yq");
+    }
+  else if(mtype.Contains("asymmetry"))
+    {
+      sprintf(beam_measurement_type, "aq");
+    }
+  else if(mtype.Contains("average") )
+    {
+      sprintf(beam_measurement_type, "yq");
+    }
+  else if(mtype.Contains("runningsum"))
+    {
+      sprintf(beam_measurement_type, "yq");
+    }
+  else
+    {
+      sprintf(beam_measurement_type, "null");
+    }
+  
+  name = this->GetElementName();
+  avg  = this->GetAverage("");
+  err  = this->GetAverageError("");
+
+  beam_run_id      = db->GetRunID();
+  beam_analysis_id = db->GetAnalysisID();
+  beam_monitor_id  = db->GetMonitorID(name.Data());
+
+  row.analysis_id         = beam_analysis_id;
+  row.measurement_type_id = beam_measurement_type;
+  row.monitor_id          = beam_monitor_id;
+  row.value               = avg;
+  row.error               = err;
+
+  printf("%12s::RunID %d AnalysisID %d %4s MonitorID %4d %18s , [%18.2e, %12.2e] \n", 
+	 mtype.Data(), beam_run_id, beam_analysis_id, beam_measurement_type, beam_monitor_id, name.Data(),  avg, err);
+  
+  return row;
+  
+};

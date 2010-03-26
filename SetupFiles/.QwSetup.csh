@@ -17,25 +17,25 @@ echo Initializing QWEAK analysis
 #echo "SHELL: " $SHELL
 echo "OSNAME: " $OSNAME
 
-if ($?RCPATH) then
-  unsetenv PATH
-  echo Recovering initial value of PATH : $RCPATH
-  setenv PATH $RCPATH
-endif
-if (! $?RCPATH && $?PATH) then
-  echo Backing variable PATH into RCPATH for future references
-  setenv RCPATH $PATH
-endif
-
-if ($?RCLD_LIBRARY_PATH) then
-  unsetenv LD_LIBRARY_PATH
-  echo Recovering initial value of LD_LIBRARY_PATH : $RCLD_LIBRARY_PATH
-  setenv LD_LIBRARY_PATH $RCLD_LIBRARY_PATH
-endif
-if (! $?RCLD_LIBRARY_PATH && $?LD_LIBRARY_PATH) then
-  echo Backing variable LD_LIBRARY_PATH into RCLD_LIBRARY_PATH for future references
-  setenv RCLD_LIBRARY_PATH $LD_LIBRARY_PATH
-endif
+##if ($?RCPATH) then
+##  unsetenv PATH
+##  echo Recovering initial value of PATH : $RCPATH
+##  setenv PATH $RCPATH
+##endif
+##if (! $?RCPATH && $?PATH) then
+##  echo Backing variable PATH into RCPATH for future references
+##  setenv RCPATH $PATH
+##endif
+##
+##if ($?RCLD_LIBRARY_PATH) then
+##  unsetenv LD_LIBRARY_PATH
+##  echo Recovering initial value of LD_LIBRARY_PATH : $RCLD_LIBRARY_PATH
+##  setenv LD_LIBRARY_PATH $RCLD_LIBRARY_PATH
+##endif
+##if (! $?RCLD_LIBRARY_PATH && $?LD_LIBRARY_PATH) then
+##  echo Backing variable LD_LIBRARY_PATH into RCLD_LIBRARY_PATH for future references
+##  setenv RCLD_LIBRARY_PATH $LD_LIBRARY_PATH
+##endif
 
 
 if ($?QWANALYSIS && ! $?QWVERSION) then

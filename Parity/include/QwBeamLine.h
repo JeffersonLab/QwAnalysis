@@ -8,7 +8,7 @@
 #ifndef __QwBEAMLINE__
 #define __QwBEAMLINE__
 
-#include <vector>
+
 #include "TTree.h"
 
 #include "VQwSubsystemParity.h"
@@ -17,6 +17,8 @@
 #include "QwBCM.h"
 #include "QwCombinedBCM.h"
 #include "QwCombinedBPM.h"
+
+#include <vector>
 
 enum EBeamInstrumentType{kBPMStripline = 0,
 			 kBCM,
@@ -40,6 +42,7 @@ class QwBeamLine : public VQwSubsystemParity{
 
   QwBeamLine(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
     {
+      
       // these declaration need to be coherent with the enum vector EBeamInstrumentType
       fgDetectorTypeNames.push_back("bpmstripline");
       fgDetectorTypeNames.push_back("bcm");
@@ -90,17 +93,19 @@ class QwBeamLine : public VQwSubsystemParity{
   void Calculate_Running_Average();
   void Do_RunningSum();
 
-  void  ConstructHistograms(TDirectory *folder, TString &prefix);
-  void  FillHistograms();
-  void  DeleteHistograms();
+  void ConstructHistograms(TDirectory *folder, TString &prefix);
+  void FillHistograms();
+  void DeleteHistograms();
 
-  void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+  void FillTreeVector(std::vector<Double_t> &values);
+  void FillDB(QwDatabase *db, TString datatype);
 
   void Copy(VQwSubsystem *source);
   VQwSubsystem*  Copy();
   Bool_t Compare(VQwSubsystem *source);
   void Print();
+
 
   QwBPMStripline* GetBPMStripline(const TString name);
   QwBCM* GetBCM(const TString name);
@@ -151,23 +156,23 @@ class QwBeamDetectorID
 /*     fSubelement(999999),fmoduletype(""),fdetectorname("") */
 /*     {}; */
 
-  int fSubbankIndex;
-  int fWordInSubbank; //first word reported for this channel in the subbank
-                      //(eg VQWK channel report 6 words for each event, scalers oly report one word per event)
+  Int_t fSubbankIndex;
+  Int_t fWordInSubbank; 
+  //first word reported for this channel in the subbank
+  //(eg VQWK channel report 6 words for each event, scalers oly report one word per event)
+
   // The first word of the subbank gets fWordInSubbank=0
-
-
+  
   TString fmoduletype; // eg: VQWK, SCALER
   TString fdetectorname;
   TString fdetectortype; // stripline, bcm, ... this string is encoded by fTypeID
-  int  kUnknownDeviceType;
 
+  Int_t  kUnknownDeviceType;
+  Int_t  fTypeID;           // type of detector eg: lumi or stripline, etc..
+  Int_t  fIndex;            // index of this detector in the vector containing all the detector of same type
+  UInt_t fSubelement;       // some detectors have many subelements (eg stripline have 4 antenas) some have only one sub element(eg lumis have one channel)
   
-  int fTypeID;     // type of detector eg: lumi or stripline, etc..
   
-  int fIndex;      // index of this detector in the vector containing all the detector of same type
-  UInt_t fSubelement; // some detectors have many subelements (eg stripline have 4 antenas) some have only one sub element(eg lumis have one channel)
-
   void Print();
 
 };

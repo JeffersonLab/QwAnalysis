@@ -639,4 +639,73 @@ void QwBPMStripline::SetEventCutMode(Int_t bcuts){
   fWSum.SetEventCutMode(bcuts);
 }
 
+QwParityDB::beam QwBPMStripline::GetDBEntry(QwDatabase *db, TString mtype, TString subname)
+{
+  QwParityDB::beam row(0);
+      
+  UInt_t beam_run_id      = 0;
+  UInt_t beam_analysis_id = 0;
+  UInt_t beam_monitor_id  = 0;
+  Char_t beam_measurement_type[4];
+
+  QwVQWK_Channel bpm_sub_element;
+
+  TString name;
+  Double_t avg = 0.0;
+  Double_t err = 0.0;
+ 
+  if(mtype.Contains("yield"))
+    {
+      sprintf(beam_measurement_type, "yp");
+    }
+  else if(mtype.Contains("asymmetry"))
+    {
+      sprintf(beam_measurement_type, "dp");
+    }
+  else if(mtype.Contains("average") )
+    {
+      sprintf(beam_measurement_type, "yp");
+    }
+  else if(mtype.Contains("runningsum"))
+    {
+      sprintf(beam_measurement_type, "yp");
+    }
+  else
+    {
+      sprintf(beam_measurement_type, "null");
+    }
+  
+
+  if      ( subname.Contains("RelX",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fRelPos[0]); bpm_sub_element = fRelPos[0];}
+  else if ( subname.Contains("RelY",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fRelPos[1]); bpm_sub_element = fRelPos[1];}
+  else if ( subname.Contains("AbsX",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fAbsPos[0]); bpm_sub_element = fAbsPos[0];}
+  else if ( subname.Contains("AbsY",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fAbsPos[1]); bpm_sub_element = fAbsPos[1];}
+  else if ( subname.Contains("AbsZ",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fAbsPos[2]); bpm_sub_element = fAbsPos[2];}
+  else if ( subname.Contains("WSum",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fWSum);      bpm_sub_element = fWSum;}
+  else if ( subname.Contains("WireXP", TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fWire[0]);   bpm_sub_element = fWire[0];}
+  else if ( subname.Contains("WireXM", TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fWire[1]);   bpm_sub_element = fWire[1];}
+  else if ( subname.Contains("WireYP", TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fWire[2]);   bpm_sub_element = fWire[2];}
+  else if ( subname.Contains("WireYM", TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fWire[3]);   bpm_sub_element = fWire[3];}
+  else  printf("QwBPMStripline.cc. Your selection is not acceptable and the return QwVQWKChannel contains junk data\n");
+
+  name = bpm_sub_element.GetElementName();
+  avg  = bpm_sub_element.GetAverage();
+  err  = bpm_sub_element.GetAverageError();
+	  
+  beam_run_id      = db->GetRunID();
+  beam_analysis_id = db->GetAnalysisID();
+  beam_monitor_id  = db->GetMonitorID(name.Data());
+
+  row.analysis_id         = beam_analysis_id;
+  row.measurement_type_id = beam_measurement_type;
+  row.monitor_id          = beam_monitor_id;
+  row.value               = avg;
+  row.error               = err;
+
+  printf("%12s::RunID %d AnalysisID %d %4s MonitorID %4d %18s , [%18.2e, %12.2e] \n", 
+	 mtype.Data(), beam_run_id, beam_analysis_id, beam_measurement_type, beam_monitor_id, name.Data(),  avg, err);
+  
+  return row;
+  
+};
 

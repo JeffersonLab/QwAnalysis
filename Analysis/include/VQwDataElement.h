@@ -51,7 +51,7 @@ class VQwDataElement {
   /*! \brief Set the name of this element */
   void SetElementName(const TString &name) { fElementName = name; };
   /*! \brief Get the name of this element */
-  TString GetElementName() const { return fElementName; };
+  virtual TString GetElementName() const { return fElementName; };
 
   /*! \brief Clear the event data in this element */
   virtual void  ClearEventData() = 0;
@@ -93,6 +93,8 @@ class VQwDataElement {
   /*! \brief Get the number of data words in this data element */
   size_t GetNumberOfDataWords() {return fNumberOfDataWords;};
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+
+
 
  protected:
   /*! \brief Set the number of data words in this data element */

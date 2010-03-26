@@ -126,22 +126,22 @@ INSTALL_DIR := $(strip $(shell $(ECHO) $(QWANALYSIS)$$( (if [ -d $(OS_HW_NAME)];
 EXCLUDEDIRS = evio Extensions
 
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
- ifneq ($(CODA),)
-  #  The realtime executables should be added in this section.
-  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer
- else
-  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer
- endif
+  ifneq ($(CODA),)
+    #  The realtime executables should be added in this section.
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test
+  else
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test
+  endif
 else
- EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
+  EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
 endif
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
- ifneq ($(CODA),)
-  #  The realtime executables should be added in this section.
-  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer
- else
-  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer
- endif
+  ifneq ($(CODA),)
+    #  The realtime executables should be added in this section.
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test
+  else
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test
+  endif
 endif
 # overridden by "make 'EXES=exe1 exe2 ...'"
 
@@ -384,6 +384,61 @@ endif
 
 ############################
 ############################
+# Some set-up for the MySQL library
+############################
+############################
+ifndef MYSQL_INC_DIR
+  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name mysql)),/usr/include/mysql)
+    $(warning Install the MySQL client library on your system, or set the environment)
+    $(warning variables MYSQL_INC_DIR and MYSQL_LIB_DIR to the directory with)
+    $(warning the MySQL headers and libraries, respectively.)
+    $(warning See the Qweak Wiki for installation and compilation instructions.)
+    $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
+    $(warning )
+    $(error   Error: Could not find the MySQL library)
+  else
+    $(warning Setting MYSQL_INC_DIR to /usr/include/mysql)
+    MYSQL_INC_DIR = /usr/include/mysql
+    MYSQL_LIB_DIR = /usr/lib/mysql
+  endif
+endif
+
+MYSQL_INC  = -I${MYSQL_INC_DIR}
+MYSQL_LIBS = -L${MYSQL_LIB_DIR} -lmysqlclient
+
+############################
+############################
+# Some set-up for the MySQL++ library
+############################
+############################
+ifndef MYSQLPP_INC_DIR
+  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name mysql++)),/usr/include/mysql++)
+    ifneq ($(strip $(shell $(FIND) /usr/local/include -maxdepth 1 -name mysql++)),/usr/local/include/mysql++)
+      $(warning Install the MySQL++ library on your system, or set the environment)
+      $(warning variables MYSQLPP_INC_DIR and MYSQLPP_LIB_DIR to the directory with)
+      $(warning the MySQL++ headers and libraries, respectively.)
+      $(warning See the Qweak Wiki for installation and compilation instructions.)
+      $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
+      $(warning )
+      $(error   Error: Could not find the MySQL++ library)
+    else
+      $(warning Setting MYSQLPP_INC_DIR to /usr/local/include/mysql++)
+      MYSQLPP_INC_DIR = /usr/local/include/mysql++
+      MYSQLPP_LIB_DIR = /usr/local/lib
+    endif
+  else
+    $(warning Setting MYSQLPP_INC_DIR to /usr/include/mysql++)
+    MYSQLPP_INC_DIR = /usr/include/mysql++
+    MYSQLPP_LIB_DIR = /usr/lib
+  endif
+endif
+
+MYSQLPP_INC  = -I${MYSQLPP_INC_DIR}
+MYSQLPP_LIBS = -L${MYSQLPP_LIB_DIR} -lmysqlpp
+
+
+############################
+############################
 # A few fixes :
 ############################
 ############################
@@ -413,7 +468,7 @@ endif
 INCFLAGS =  $(patsubst %,-I%,$(sort $(dir $(shell $(FIND) $(QWANALYSIS) | $(GREP) '\$(IncSuf)' | $(SED) '/\$(IncSuf)./d' | $(FILTER_OUT_TRASH) | $(INTO_RELATIVE_PATH) |  $(FILTER_OUT_LIBRARYDIR_DEPS)))))
 # Qw include paths : /SomePath/QwAnalysis/Analysis/include/Foo.h -> -I./Analysis/include/
 
-
+INCFLAGS += $(MYSQL_INC) $(MYSQLPP_INC)
 INCFLAGS += $(BOOST_INC) -I./
 # Necessary for dictionary files where include files are quoted with relative
 # path appended (default behaviour for root-cint)
@@ -430,6 +485,7 @@ ifneq ($(CXX),CC)
 endif
 LIBS =  -L$(QW_LIB) -lQw
 LIBS +=  $(ROOTLIBS) $(ROOTGLIBS) $(CODALIBS)
+LIBS +=  $(MYSQL_LIBS) $(MYSQLPP_LIBS)
 LIBS +=  $(BOOST_LIBS) $(LDLIBS)
 
 
@@ -541,13 +597,7 @@ ifneq ($(strip $(EXES)),)
 	exit 1; \
 	fi
 endif
-####	@$(MAKE) -f $(EVIO)/Makefile libmyevio.so
 	@$(MAKE) myevio_lib
-#ifneq ($(CODA),)
-#ifneq ($(ARCH),SunOS)
-#	@cd $(VISU);$(MAKE) -f GNUmakefile
-#endif
-#endif
 	@$(MAKE) -f .auxDepends `$(CAT) .auxExeFiles | $(SED) 's/$$/ /g' | $(APPEND_BIN_PATH) | $(INTO_RELATIVE_PATH)`
 
 

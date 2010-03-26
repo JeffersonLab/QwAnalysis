@@ -83,8 +83,10 @@ class QwScanner: public VQwSubsystemTracking,
   void  FillTreeVector(std::vector<Double_t> &values);
   void  FillTreeVector();
 
-  void GetHitList(QwHitContainer & grandHitContainer){};
-  void ReportConfiguration();
+  void  FillDB(QwDatabase *db, TString type) {return;};
+
+  void  GetHitList(QwHitContainer & grandHitContainer){};
+  void  ReportConfiguration();
 
   Bool_t Compare(QwScanner &value);
   QwScanner& operator=  (QwScanner &value);

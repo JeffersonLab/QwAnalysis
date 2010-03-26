@@ -39,6 +39,16 @@ void  QwSubsystemArrayParity::FillTreeVector(std::vector<Double_t> &values)
 };
 
 
+
+void  QwSubsystemArrayParity::FillDB(QwDatabase *db, TString type)
+{
+  for (iterator subsys = begin(); subsys != end(); ++subsys) {
+    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
+    subsys_parity->FillDB(db, type);
+  }
+};
+
+
 //*****************************************************************
 
 void  QwSubsystemArrayParity::Copy(QwSubsystemArrayParity *source)

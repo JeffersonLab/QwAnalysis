@@ -74,6 +74,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
 
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  FillTreeVector(std::vector<Double_t> &values);
+    void  FillDB(QwDatabase *db, TString type) {return;};
 
     void Copy(VQwSubsystem *source);
     VQwSubsystem*  Copy();

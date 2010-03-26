@@ -655,6 +655,9 @@ void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values)
 
 QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
 {
+
+  if(this ==&value) return *this;
+
   if (!IsNameEmpty())
     {
       for (Short_t i=0; i<4; i++){
@@ -798,7 +801,6 @@ void QwVQWK_Channel::Scale(Double_t scale)
 
 //   return;
 
-
 // };
 
 
@@ -821,6 +823,7 @@ void QwVQWK_Channel::Calculate_Running_Average()
   this -> Print_Running_Average();
 
 };
+
 
 void QwVQWK_Channel::Print_Running_Average()
 {
@@ -920,17 +923,18 @@ void QwVQWK_Channel::Copy(VQwDataElement *source)
      if(typeid(*source)==typeid(*this))
        {
 	 QwVQWK_Channel* input=((QwVQWK_Channel*)source);
-	 this->fElementName=input->fElementName;
-	 this->fPedestal=input->GetPedestal();
-	 this->fCalibrationFactor=input->GetCalibrationFactor();
-	 this->fDataToSave=kDerived;
-	 this->fDeviceErrorCode=input->fDeviceErrorCode;
+	 this->fElementName       = input->fElementName;
+	 this->fPedestal          = input->GetPedestal();
+	 this->fCalibrationFactor = input->GetCalibrationFactor();
+	 this->fDataToSave        = kDerived;
+	 this->fDeviceErrorCode   = input->fDeviceErrorCode;
 
-	 this->fRunning_sum=input->fRunning_sum;
-	 this->fRunning_sum_square=input->fRunning_sum_square;
-	 this->fAverage_n= input->fAverage_n;
-	 this->fAverage_n_square=input->fAverage_n_square;
-	 this->fGoodEventCount=input->fGoodEventCount;
+	 this->fRunning_sum        = input->fRunning_sum;
+	 this->fRunning_sum_square = input->fRunning_sum_square;
+	 this->fAverage_n          = input->fAverage_n;
+	 this->fAverage_n_square   = input->fAverage_n_square;
+	 this->fAverage_error      = input->fAverage_error;
+	 this->fGoodEventCount     = input->fGoodEventCount;
        }
      else
        {

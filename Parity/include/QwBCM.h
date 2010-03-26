@@ -12,7 +12,11 @@
 #include <TTree.h>
 
 #include "QwVQWK_Channel.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwSSQLS.h"
 
+
+#include "QwDatabase.h"
 
 /*****************************************************************
 *  Class:
@@ -74,7 +78,7 @@ class QwBCM : public VQwDataElement{
   void Scale(Double_t factor);
   void Calculate_Running_Average();
   void Do_RunningSum();
-
+  
   void SetPedestal(Double_t ped);
   void SetCalibrationFactor(Double_t calib);
 
@@ -83,7 +87,13 @@ class QwBCM : public VQwDataElement{
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
+ 
   void  DeleteHistograms();
+
+  Double_t GetAverage(TString type) { return fTriumf_ADC.GetAverage();};
+  Double_t GetAverageError(TString type) {return fTriumf_ADC.GetAverageError();};
+
+  QwParityDB::beam GetDBEntry(QwDatabase* db, TString mtype, TString subname);
 
   void Copy(VQwDataElement *source);
 
