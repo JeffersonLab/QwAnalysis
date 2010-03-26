@@ -1338,17 +1338,17 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
   if( entrylist.size() )
     {
       mysqlpp::Query query= db->Query();
-      if(query)
-	{
+      //    if(query)
+      //	{
 
 	  query.insert(entrylist.begin(), entrylist.end());
 	  query.execute();
 	  //	  query.reset(); // do we need?
-	}
-      else
-	{
-	  printf("Query is empty\n");
-	}
+	  //	}
+	  //      else
+	  //	{
+	  //	  printf("Query is empty\n");
+	  //	}
     }
   else
     {

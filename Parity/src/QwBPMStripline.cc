@@ -21,6 +21,34 @@ const TString QwBPMStripline::subelement[4]={"XP","XM","YP","YM"};
 const TString QwBPMStripline::axis[3]={"X","Y","Z"};
 /* With X being vertical up and Z being the beam direction toward the beamdump */
 
+
+QwBPMStripline::QwBPMStripline()
+{
+  for(Short_t i=0;i<3;i++) fOffset[i] = 0.0;
+  bRotated = false;
+  bFullSave = false;
+  fGoodEvent = false;
+  fULimitX = 0.0;
+  fLLimitX = 0.0;
+  fULimitY = 0.0;
+  fLLimitY = 0.0;
+
+  for(Short_t i=0;i<4;i++)
+    {
+      fWire[0].InitializeChannel("", "");
+    }
+
+
+  for(int i=0;i<2;i++)
+    fRelPos[i].InitializeChannel("","");	
+  
+
+  for(int i=0;i<3;i++)
+    fAbsPos[i].InitializeChannel("","");
+
+  fDeviceErrorCode = 0;
+  bEVENTCUTMODE = false;
+};
 /********************************************************/
 void  QwBPMStripline::InitializeChannel(TString name, Bool_t ROTATED)
 {

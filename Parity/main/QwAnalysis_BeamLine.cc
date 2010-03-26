@@ -181,6 +181,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       // Loop over events in this CODA file
       while (QwEvt.GetNextEvent() == CODA_OK) {
+	
 	//  First, do processing of non-physics events...
 	if (QwEvt.IsROCConfigurationEvent()){
 	  //  Send ROC configuration event data to the subsystem objects.

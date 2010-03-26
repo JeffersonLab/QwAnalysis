@@ -110,6 +110,13 @@ class VQwDataElement {
 }; // class VQwDataElement
 
 
+/* inline VQwDataElement::VQwDataElement() */
+/* { */
+/*   fElementName = ""; */
+/*   fNumberOfDataWords = 0; */
+/*   fHistograms.clear(); */
+/* } */
+
 inline VQwDataElement::~VQwDataElement(){
 };
 
