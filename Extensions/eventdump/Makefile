@@ -24,7 +24,7 @@ EXPLLINKLIBS  = $(ROOTLIBS) $(ROOTGLIBS)
 
 CXX       	= g++
 CXXFLAGS  	= -O2 -Wall  -fPIC -g
-INCLUDE 	=  -I$(QWANALYSIS)/coda/include
+INCLUDE 	=  -I$(QWANALYSIS)/evio/include
 
 
 CXXFLAGS 	+= $(ROOTCFLAGS)  
@@ -34,7 +34,7 @@ LDFLAGS   	= -O
 SOFLAGS 	= -shared
 
 GLIBS		= $(EXPLLINKLIBS)
-CODA_LIB	= $(QWLIB)/libcoda.so
+CODA_LIB	= $(QW_LIB)/libmyevio.so
 ALL_LIBS	= $(GLIBS)
 
 

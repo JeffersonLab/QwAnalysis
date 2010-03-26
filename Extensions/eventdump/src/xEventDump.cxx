@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "TROOT.h"
+//#include "TROOT.h"
 
 #include "THaCodaFile.h"
 #include "CodaAnalysis.hh"
@@ -16,10 +16,10 @@ void
 print_usage (FILE* stream, int exit_code)
 {
   fprintf (stream, "This program is used to look at HEX numbers in the CODA file.\n");
-  fprintf (stream, "Usage: %s -i {coda file}  -r {a:b} -p {n} -s \n", program_name);
+  fprintf (stream, "Usage: %s -r {coda file}  -e {a:b} -p {n} -s \n", program_name);
   fprintf (stream, 
-	   " -i input CODA file.\n"
-	   " -r event range [a,b) with a < b\n"
+	   " -r input CODA file.\n"
+	   " -e event range [a,b) with a < b\n"
 	   " -s print summary of CODA file\n"
 	   " -p specified physics event number\n"
 	   );
@@ -44,10 +44,10 @@ main(int argc, char* argv[])
 
   int cc = 0; 
 
-  while ( (cc= getopt(argc, argv, "i:r:p:s")) != -1)
+  while ( (cc= getopt(argc, argv, "r:e:p:s")) != -1)
     switch (cc)
       {
-      case 'i':
+      case 'r':
 	{
 	  file_flag = true;
 	  filename  = optarg;
@@ -64,7 +64,7 @@ main(int argc, char* argv[])
 	  summary_flag = true;
 	}
 	break;
-     case 'r':
+     case 'e':
 	{
 	  range_flag = true;
 	  char *c;
@@ -89,9 +89,9 @@ main(int argc, char* argv[])
 	break;
       case '?':
 	{
-	  if (optopt == 'r')
+	  if (optopt == 'e')
 	    fprintf (stderr, "Option -%c requires an argument.\n", optopt);
-	  else if (optopt == 'i')
+	  else if (optopt == 'r')
 	    fprintf (stderr, "Option -%c requires an argument.\n", optopt);
 	  else if (isprint (optopt))
 	    fprintf (stderr, "Unknown option `-%c'.\n", optopt);

@@ -3,7 +3,7 @@
 
 CodaAnalysis::CodaAnalysis(const char *s)
 {
-
+  coda_file                  = NULL;
   coda_file_status           = -1;
   coda_read_status           = -1;
   physics_exist_status       = false;
@@ -33,12 +33,13 @@ CodaAnalysis::~CodaAnalysis()
 };
 
 
-const char *const CodaAnalysis::char_event_type[21] = 
+const char *const CodaAnalysis::char_event_type[22] = 
   {
     "", "Physics","",
     "","","","","","",
     "","","","","","","",
-    "Sync", "PreStart", "Go", "Pause", "End"
+    "Sync", "PreStart", "Go", "Pause", "End", 
+    "User"
   };
 
 
@@ -97,15 +98,18 @@ CodaAnalysis::CheckCodaBuffer(int physics_event_number)
 	}
     }
   int *buffer = ReadCodaBuffer();
-  int evtype = buffer[1]>>16;
-  int evnum = 0;
+  int evtype  = buffer[1]>>16;
+  int evnum   = 0;
   
   if (evtype ==  PhysicsEvent) 
     {
       evnum = buffer[4];
       if(evnum == physics_event_number) PrintBuffer(buffer);
     }
-  
+  else
+    {
+       PrintBuffer(buffer);
+    }
 };
 
 
@@ -170,7 +174,7 @@ CodaAnalysis::CheckCodaFile(bool summary_status)
       for (short kk=0; kk<MAXEVTYPE; kk++) evtype_sum[kk] = 0;
       
       unsigned int total_nevent = 0;
-      short        event_type = 0;
+      short        event_type   = 0;
       int          *dbuffer     = NULL;
       
       while ( (coda_file->codaRead()) == S_SUCCESS ) 
