@@ -100,6 +100,11 @@ setenv QWANALYSIS \$analyzer_version
 
 setenv MYSQLPP_INC_DIR $MYSQLPP_INC_DIR
 setenv MYSQLPP_LIB_DIR $MYSQLPP_LIB_DIR
+if (\$?LD_LIBRARY_PATH) then
+  setenv LD_LIBRARY_PATH \${MYSQLPP_LIB_DIR}:\${LD_LIBRARY_PATH}
+else
+  setenv LD_LIBRARY_PATH \${MYSQLPP_LIB_DIR}
+endif
 
 source \${QWANALYSIS}/SetupFiles/.QwSetup.csh
 
@@ -120,6 +125,11 @@ export QWANALYSIS=\$analyzerversion
 
 export MYSQLPP_INC_DIR=$MYSQLPP_INC_DIR
 export MYSQLPP_LIB_DIR=$MYSQLPP_LIB_DIR
+if [[ -n \$LD_LIBRARY_PATH ]]; then
+  export LD_LIBRARY_PATH=\${MYSQLPP_LIB_DIR}:\${LD_LIBRARY_PATH}
+else
+  export LD_LIBRARY_PATH=\${MYSQLPP_LIB_DIR}
+fi
 
 . \$QWANALYSIS/SetupFiles/.QwSetup.bash
 
