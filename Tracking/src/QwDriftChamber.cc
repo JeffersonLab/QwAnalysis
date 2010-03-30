@@ -462,7 +462,7 @@ Int_t QwDriftChamber::LoadTimeWireOffset(TString t0_map) {
                 plane=atoi(varvalue.Data());
                 if (plane>fTimeWireOffsets.at(package-1).size())
                     fTimeWireOffsets.at(package-1).resize(plane);
-                std::cout << "plane: "  <<  fTimeWireOffsets.at(package-1).size()<< std::endl;
+                //std::cout << "plane: "  <<  fTimeWireOffsets.at(package-1).size()<< std::endl;
             }
             continue;
         }
@@ -489,9 +489,9 @@ void QwDriftChamber::SubtractWireTimeOffset() {
         plane=iter->GetPlane();
         wire=iter->GetElement();
         t0=fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1);
-        if (t0<=0&&t0>1500) {
-            if (plane==1) t0=1424.55;
-            else if (plane==2) t0=1439.24;
+        if (t0>-1300 && t0<-1500) {
+            if (plane==1) t0=-1423.75;
+            else if (plane==2) t0=-1438.28;
         }
         iter->SetTime(iter->GetTime()-t0);
     }
