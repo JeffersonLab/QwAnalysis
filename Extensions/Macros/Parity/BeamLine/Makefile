@@ -36,9 +36,11 @@ MYOS := $(subst -,,$(shell uname))
 #endif
 
 
-pedestal_extractor : bpm_bcm_calibration.o 
+pedestal_extractor : r_bpm_bcm_calibration.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
+position_differnces : PositionDifferences.o 
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 %.o: %.C
 	$(CXX) -c  $(CXXFLAGS)   -o $@ $<
