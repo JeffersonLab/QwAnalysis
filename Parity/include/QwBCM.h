@@ -11,21 +11,25 @@
 #include <vector>
 #include <TTree.h>
 
-#include "QwVQWK_Channel.h"
 #define MYSQLPP_SSQLS_NO_STATICS
 #include "QwSSQLS.h"
 
 
 #include "QwDatabase.h"
 
+#include "VQwDataElement.h"
+
+template<typename T> class QwCombinedBCM;
+
 /*****************************************************************
 *  Class:
 ******************************************************************/
 ///
 /// \ingroup QwAnalysis_BL
+template<typename T>
 class QwBCM : public VQwDataElement{
 /////
-  friend class QwCombinedBCM;
+  friend class QwCombinedBCM<T>;
  public:
   QwBCM() { };
   QwBCM(TString name){
@@ -61,12 +65,12 @@ class QwBCM : public VQwDataElement{
   void SetDefaultSampleSize(Int_t sample_size);
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;
-    fTriumf_ADC.SetEventCutMode(bcuts);
+    fBeamCurrent.SetEventCutMode(bcuts);
   }
 
   void Print() const;
 
-  const QwVQWK_Channel& GetCharge() const {return fTriumf_ADC;};
+  const T& GetCharge() const {return fBeamCurrent;};
 
 
   QwBCM& operator=  (const QwBCM &value);
@@ -90,8 +94,8 @@ class QwBCM : public VQwDataElement{
  
   void  DeleteHistograms();
 
-  Double_t GetAverage(TString type) { return fTriumf_ADC.GetAverage();};
-  Double_t GetAverageError(TString type) {return fTriumf_ADC.GetAverageError();};
+  Double_t GetAverage(TString type) { return fBeamCurrent.GetAverage();};
+  Double_t GetAverageError(TString type) {return fBeamCurrent.GetAverageError();};
 
   QwParityDB::beam GetDBEntry(QwDatabase* db, TString mtype, TString subname);
 
@@ -111,7 +115,7 @@ class QwBCM : public VQwDataElement{
 
 
 
-  QwVQWK_Channel fTriumf_ADC;
+  T fBeamCurrent;
 
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
 

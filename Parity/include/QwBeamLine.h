@@ -30,12 +30,13 @@ enum EBeamInstrumentType{kBPMStripline = 0,
 
 class QwBeamDetectorID;
 
+
 /*****************************************************************
 *  Class:
 ******************************************************************/
 class QwBeamLine : public VQwSubsystemParity{
-  friend class QwCombinedBPM; 
-  friend class QwCombinedBCM;  
+  //  friend class QwCombinedBPM; 
+  //  friend class QwCombinedBCM<QwVQWK_Channel>;  
  
 
  public:
@@ -108,9 +109,9 @@ class QwBeamLine : public VQwSubsystemParity{
 
 
   QwBPMStripline* GetBPMStripline(const TString name);
-  QwBCM* GetBCM(const TString name);
+  QwBCM<QwVQWK_Channel>* GetBCM(const TString name);
   const QwBPMStripline* GetBPMStripline(const TString name) const;
-  const QwBCM* GetBCM(const TString name) const;
+  const QwBCM<QwVQWK_Channel>* GetBCM(const TString name) const;
 
   std::vector<TString> fgDetectorTypeNames;
 
@@ -121,8 +122,8 @@ class QwBeamLine : public VQwSubsystemParity{
  Int_t GetDetectorIndex(Int_t TypeID, TString name);//when the type and the name is passed the detector index from appropriate vector will be returned
  //for example if TypeID is bcm  then the index of the detector from fBCM vector for given name will be returnd.
  std::vector <QwBPMStripline> fStripline;
- std::vector <QwBCM> fBCM;
- std::vector <QwCombinedBCM> fBCMCombo;
+ std::vector <QwBCM<QwVQWK_Channel> > fBCM;
+ std::vector <QwCombinedBCM<QwVQWK_Channel> > fBCMCombo;
  std::vector <QwCombinedBPM> fBPMCombo;
  std::vector <QwBeamDetectorID> fBeamDetectorID;
 

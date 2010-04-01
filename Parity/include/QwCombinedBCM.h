@@ -11,13 +11,15 @@
 #include <vector>
 #include <TTree.h>
 
-#include "QwVQWK_Channel.h"
 #include "QwBCM.h"
+
+#include "VQwDataElement.h"
 
 /*****************************************************************
 *  Class:
 ******************************************************************/
 
+template<typename T>
 class QwCombinedBCM : public VQwDataElement{
 /////
  public:
@@ -30,7 +32,7 @@ class QwCombinedBCM : public VQwDataElement{
 
 
 
-  void Set(QwBCM* bcm, Double_t weight, Double_t sumqw ); ///added by me
+  void Set(QwBCM<T>* bcm, Double_t weight, Double_t sumqw ); ///added by me
   
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
   void  ClearEventData();
@@ -88,7 +90,7 @@ class QwCombinedBCM : public VQwDataElement{
 /////
  protected:
   
-  QwVQWK_Channel fCombined_bcm;
+  T fCombined_bcm;
 /////
  private:
   
@@ -98,7 +100,7 @@ class QwCombinedBCM : public VQwDataElement{
 
   Bool_t fGoodEvent;//used to validate sequence number in the IsGoodEvent() */
 
-  std::vector <QwBCM*> fElement;
+  std::vector <QwBCM<T>*> fElement;
   std::vector <Double_t> fWeights;
   Double_t fSumQweights;
 

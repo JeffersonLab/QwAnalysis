@@ -10,108 +10,126 @@
 #include <stdexcept>
 
 
+#include "QwVQWK_Channel.h"
+#include "QwSIS3801_Channel.h"
+
 
 
 /********************************************************/
-void QwBCM::SetPedestal(Double_t pedestal)
+template<typename T>
+void QwBCM<T>::SetPedestal(Double_t pedestal)
 {
 	fPedestal=pedestal;
-	fTriumf_ADC.SetPedestal(fPedestal);
+	fBeamCurrent.SetPedestal(fPedestal);
 	return;
 };
 
-void QwBCM::SetCalibrationFactor(Double_t calib)
+template<typename T>
+void QwBCM<T>::SetCalibrationFactor(Double_t calib)
 {
 	fCalibration=calib;
-	fTriumf_ADC.SetCalibrationFactor(fCalibration);
+	fBeamCurrent.SetCalibrationFactor(fCalibration);
 	return;
 };
 /********************************************************/
-void  QwBCM::InitializeChannel(TString name, TString datatosave)
+template<typename T>
+void QwBCM<T>::InitializeChannel(TString name, TString datatosave)
 {
   SetPedestal(0.);
   SetCalibrationFactor(1.);
-  fTriumf_ADC.InitializeChannel(name,datatosave);
-  SetElementName(name);
+  fBeamCurrent.InitializeChannel(name,datatosave);
+  this->SetElementName(name);
   //set default limits to event cuts
   fLLimit=0;//init two timits
   fULimit=0;//init two timits
   return;
 };
 /********************************************************/
-void QwBCM::ClearEventData()
+template<typename T>
+void QwBCM<T>::ClearEventData()
 {
-  fTriumf_ADC.ClearEventData();
+  fBeamCurrent.ClearEventData();
   return;
 };
 
 
 /********************************************************/
-void QwBCM::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
+template<typename T>
+void QwBCM<T>::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
 {
-  fTriumf_ADC.SetRandomEventDriftParameters(amplitude, phase, frequency);
+  fBeamCurrent.SetRandomEventDriftParameters(amplitude, phase, frequency);
   return;
 };
 /********************************************************/
-void QwBCM::AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
+template<typename T>
+void QwBCM<T>::AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
 {
-  fTriumf_ADC.AddRandomEventDriftParameters(amplitude, phase, frequency);
+  fBeamCurrent.AddRandomEventDriftParameters(amplitude, phase, frequency);
   return;
 };
 /********************************************************/
-void QwBCM::SetRandomEventParameters(Double_t mean, Double_t sigma)
+template<typename T>
+void QwBCM<T>::SetRandomEventParameters(Double_t mean, Double_t sigma)
 {
-  fTriumf_ADC.SetRandomEventParameters(mean, sigma);
+  fBeamCurrent.SetRandomEventParameters(mean, sigma);
   return;
 };
 /********************************************************/
-void QwBCM::SetRandomEventAsymmetry(Double_t asymmetry)
+template<typename T>
+void QwBCM<T>::SetRandomEventAsymmetry(Double_t asymmetry)
 {
-  fTriumf_ADC.SetRandomEventAsymmetry(asymmetry);
+  fBeamCurrent.SetRandomEventAsymmetry(asymmetry);
   return;
 };
 /********************************************************/
-void QwBCM::RandomizeEventData(int helicity)
+template<typename T>
+void QwBCM<T>::RandomizeEventData(int helicity)
 {
-  fTriumf_ADC.RandomizeEventData(helicity);
+  fBeamCurrent.RandomizeEventData(helicity);
   return;
 };
 /********************************************************/
-void QwBCM::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
+template<typename T>
+void QwBCM<T>::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
 {
-  fTriumf_ADC.SetHardwareSum(hwsum, sequencenumber);
+  fBeamCurrent.SetHardwareSum(hwsum, sequencenumber);
   return;
 };
 /********************************************************/
-void QwBCM::SetEventData(Double_t* block, UInt_t sequencenumber)
+template<typename T>
+void QwBCM<T>::SetEventData(Double_t* block, UInt_t sequencenumber)
 {
-  fTriumf_ADC.SetEventData(block, sequencenumber);
+  fBeamCurrent.SetEventData(block, sequencenumber);
   return;
 };
 /********************************************************/
-void QwBCM::SetEventNumber(int event)
+template<typename T>
+void QwBCM<T>::SetEventNumber(int event)
 {
-  fTriumf_ADC.SetEventNumber(event);
+  fBeamCurrent.SetEventNumber(event);
   return;
 };
 /********************************************************/
-void QwBCM::EncodeEventData(std::vector<UInt_t> &buffer)
+template<typename T>
+void QwBCM<T>::EncodeEventData(std::vector<UInt_t> &buffer)
 {
-  fTriumf_ADC.EncodeEventData(buffer);
+  fBeamCurrent.EncodeEventData(buffer);
 };
 /********************************************************/
-void  QwBCM::ProcessEvent()
+template<typename T>
+void QwBCM<T>::ProcessEvent()
 {
-  ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine either in ApplySingleEventCuts or here do not make any difference for a BCM but do for a BPMs because they have derrived devices.
-  fTriumf_ADC.ProcessEvent();
+  this->ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine either in ApplySingleEventCuts or here do not make any difference for a BCM but do for a BPMs because they have derrived devices.
+  fBeamCurrent.ProcessEvent();
   return;
 };
 /********************************************************/
-Bool_t QwBCM::ApplyHWChecks()
+template<typename T>
+Bool_t QwBCM<T>::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
 
-  fDeviceErrorCode=fTriumf_ADC.ApplyHWChecks();//will check for HW consistancy and return the error code (=0 is HW good)
+  fDeviceErrorCode=fBeamCurrent.ApplyHWChecks();//will check for HW consistancy and return the error code (=0 is HW good)
   fEventIsGood=(fDeviceErrorCode & 0x0);//if no HW error return true
 
 
@@ -119,32 +137,35 @@ Bool_t QwBCM::ApplyHWChecks()
 };
 /********************************************************/
 
-Int_t QwBCM::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){//std::vector<Double_t> & dEventCuts){//two limts and sample size
+template<typename T>
+Int_t QwBCM<T>::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){//std::vector<Double_t> & dEventCuts){//two limts and sample size
   fLLimit=LL;
   fULimit=UL;
   return 1;
 };
 
-void QwBCM::SetDefaultSampleSize(Int_t sample_size){
-  fTriumf_ADC.SetDefaultSampleSize((size_t)sample_size);
+template<typename T>
+void QwBCM<T>::SetDefaultSampleSize(Int_t sample_size){
+  fBeamCurrent.SetDefaultSampleSize((size_t)sample_size);
 }
 
 
 /********************************************************/
-Bool_t QwBCM::ApplySingleEventCuts(){
+template<typename T>
+Bool_t QwBCM<T>::ApplySingleEventCuts(){
   //std::cout<<" QwBCM::SingleEventCuts() "<<std::endl;
   Bool_t status=kTRUE;
 
 
-  if (fTriumf_ADC.ApplySingleEventCuts(fLLimit,fULimit)){
+  if (fBeamCurrent.ApplySingleEventCuts(fLLimit,fULimit)){
     status=kTRUE;
   }
   else{
-    fTriumf_ADC.UpdateEventCutErrorCount();//update event cut falied counts
-    if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fTriumf_ADC.GetHardwareSum();
+    fBeamCurrent.UpdateEventCutErrorCount();//update event cut falied counts
+    if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fBeamCurrent.GetHardwareSum();
     status&=kFALSE;
   }
-  fDeviceErrorCode|=fTriumf_ADC.GetEventcutErrorFlag();//retrun the error flag for event cuts
+  fDeviceErrorCode|=fBeamCurrent.GetEventcutErrorFlag();//retrun the error flag for event cuts
 
 
   return status;
@@ -153,26 +174,29 @@ Bool_t QwBCM::ApplySingleEventCuts(){
 
 /********************************************************/
 
-Int_t QwBCM::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
-  fTriumf_ADC.GetEventcutErrorCounters();
+template<typename T>
+Int_t QwBCM<T>::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+  fBeamCurrent.GetEventcutErrorCounters();
   return 1;
 }
 
 
 
-Int_t QwBCM::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement)
+template<typename T>
+Int_t QwBCM<T>::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement)
 {
-  fTriumf_ADC.ProcessEvBuffer(buffer,word_position_in_buffer);
+  fBeamCurrent.ProcessEvBuffer(buffer,word_position_in_buffer);
 
   return word_position_in_buffer;
 };
 /********************************************************/
-QwBCM& QwBCM::operator= (const QwBCM &value)
+template<typename T>
+QwBCM<T>& QwBCM<T>::operator= (const QwBCM<T> &value)
 {
 //   std::cout<<" Here in QwBCM::operator= \n";
-  if (GetElementName()!="")
+  if (this->GetElementName()!="")
     {
-      this->fTriumf_ADC=value.fTriumf_ADC;
+      this->fBeamCurrent=value.fBeamCurrent;
       this->fPedestal=value.fPedestal;
       this->fCalibration=value.fCalibration;
     }
@@ -184,22 +208,24 @@ QwBCM& QwBCM::operator= (const QwBCM &value)
   return *this;
 };
 
-QwBCM& QwBCM::operator+= (const QwBCM &value)
+template<typename T>
+QwBCM<T>& QwBCM<T>::operator+= (const QwBCM<T> &value)
 {
-  if (GetElementName()!="")
+  if (this->GetElementName()!="")
     {
-      this->fTriumf_ADC+=value.fTriumf_ADC;
+      this->fBeamCurrent+=value.fBeamCurrent;
       this->fPedestal+=value.fPedestal;
       this->fCalibration=0;
     }
   return *this;
 };
 
-QwBCM& QwBCM::operator-= (const QwBCM &value)
+template<typename T>
+QwBCM<T>& QwBCM<T>::operator-= (const QwBCM<T> &value)
 {
-  if (GetElementName()!="")
+  if (this->GetElementName()!="")
     {
-      this->fTriumf_ADC-=value.fTriumf_ADC;
+      this->fBeamCurrent-=value.fBeamCurrent;
       this->fPedestal-=value.fPedestal;
       this->fCalibration=0;
     }
@@ -207,117 +233,130 @@ QwBCM& QwBCM::operator-= (const QwBCM &value)
 };
 
 
-void QwBCM::Sum(QwBCM &value1, QwBCM &value2){
+template<typename T>
+void QwBCM<T>::Sum(QwBCM<T> &value1, QwBCM<T> &value2){
   *this =  value1;
   *this += value2;
 };
 
-void QwBCM::Difference(QwBCM &value1, QwBCM &value2){
+template<typename T>
+void QwBCM<T>::Difference(QwBCM<T> &value1, QwBCM<T> &value2){
   *this =  value1;
   *this -= value2;
 };
 
-void QwBCM::Ratio(QwBCM &numer, QwBCM &denom)
+template<typename T>
+void QwBCM<T>::Ratio(QwBCM<T> &numer, QwBCM<T> &denom)
 {
   //  std::cout<<"QwBCM::Ratio element name ="<<GetElementName()<<" \n";
-  if (GetElementName()!="")
+  if (this->GetElementName()!="")
     {
       //  std::cout<<"here in \n";
-      this->fTriumf_ADC.Ratio(numer.fTriumf_ADC,denom.fTriumf_ADC);
+      this->fBeamCurrent.Ratio(numer.fBeamCurrent,denom.fBeamCurrent);
       this->fPedestal=0;
       this->fCalibration=0;
     }
   return;
 };
 
-void QwBCM::Scale(Double_t factor)
+template<typename T>
+void QwBCM<T>::Scale(Double_t factor)
 {
-  fTriumf_ADC.Scale(factor);
+  fBeamCurrent.Scale(factor);
   return;
 }
 
-void QwBCM::Calculate_Running_Average(){
-  fTriumf_ADC.Calculate_Running_Average();
+template<typename T>
+void QwBCM<T>::Calculate_Running_Average(){
+  fBeamCurrent.Calculate_Running_Average();
 };
 
-void QwBCM::Do_RunningSum(){
-  fTriumf_ADC.Do_RunningSum();
+template<typename T>
+void QwBCM<T>::Do_RunningSum(){
+  fBeamCurrent.Do_RunningSum();
 };
 
-void QwBCM::Print() const
+template<typename T>
+void QwBCM<T>::Print() const
 {
-  //std::cout<<"QwVQWK_Channel Info " <<std::endl;
+  //std::cout<<"Channel Info " <<std::endl;
   //std::cout<<" Running AVG "<<GetElementName()<<" current running AVG "<<BCM_Running_AVG<<std::endl;
-  std::cout<<"QwVQWK_Channel Info " <<std::endl;
-  fTriumf_ADC.Print();
+  std::cout<<"Channel Info " <<std::endl;
+  fBeamCurrent.Print();
   return;
 }
 
 /********************************************************/
-void  QwBCM::ConstructHistograms(TDirectory *folder, TString &prefix)
+template<typename T>
+void QwBCM<T>::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
-  if (GetElementName()=="")
+  if (this->GetElementName()=="")
     {
       //  This channel is not used, so skip filling the histograms.
     }
   else
     {
-      fTriumf_ADC.ConstructHistograms(folder, prefix);
+      fBeamCurrent.ConstructHistograms(folder, prefix);
     }
   return;
 };
 
-void  QwBCM::FillHistograms()
+template<typename T>
+void QwBCM<T>::FillHistograms()
 {
-  if (GetElementName()=="")
+  if (this->GetElementName()=="")
     {
       //  This channel is not used, so skip filling the histograms.
     }
   else
     {
-      fTriumf_ADC.FillHistograms();
+      fBeamCurrent.FillHistograms();
     }
 
 
   return;
 };
 
-void  QwBCM::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
+template<typename T>
+void QwBCM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
-  if (GetElementName()==""){
+  if (this->GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
   } else
     {
-      fTriumf_ADC.ConstructBranchAndVector(tree, prefix,values);
+      fBeamCurrent.ConstructBranchAndVector(tree, prefix,values);
       // this functions doesn't do anything yet
     }
   return;
 };
 
-void  QwBCM::FillTreeVector(std::vector<Double_t> &values)
+template<typename T>
+void QwBCM<T>::FillTreeVector(std::vector<Double_t> &values)
 {
-  if (GetElementName()==""){
+  if (this->GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
   } else
     {
-      fTriumf_ADC.FillTreeVector(values);
+      fBeamCurrent.FillTreeVector(values);
       // this functions doesn't do anything yet
     }
   return;
 };
 
-void  QwBCM::DeleteHistograms()
+template<typename T>
+void QwBCM<T>::DeleteHistograms()
 {
-  if (GetElementName()==""){
+  if (this->GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
   } else
     {
-      fTriumf_ADC.DeleteHistograms();
+      fBeamCurrent.DeleteHistograms();
     }
   return;
 };
 /********************************************************/
-void  QwBCM::Copy(VQwDataElement *source)
+template<typename T>
+void QwBCM<T>::Copy(VQwDataElement *source)
 {
   try
     {
@@ -327,7 +366,7 @@ void  QwBCM::Copy(VQwDataElement *source)
 	  this->fElementName=input->fElementName;
 	  this->fPedestal=input->fPedestal;
 	  this->fCalibration=input->fCalibration;
-	  this->fTriumf_ADC.Copy(&(input->fTriumf_ADC));
+	  this->fBeamCurrent.Copy(&(input->fBeamCurrent));
 	}
       else
 	{
@@ -347,8 +386,8 @@ void  QwBCM::Copy(VQwDataElement *source)
 
 
 
-
-QwParityDB::beam QwBCM::GetDBEntry(QwDatabase *db, TString mtype, TString subname)
+template<typename T>
+QwParityDB::beam QwBCM<T>::GetDBEntry(QwDatabase *db, TString mtype, TString subname)
 {
   QwParityDB::beam row(0);
   
@@ -402,3 +441,7 @@ QwParityDB::beam QwBCM::GetDBEntry(QwDatabase *db, TString mtype, TString subnam
   return row;
   
 };
+
+
+template class QwBCM<QwVQWK_Channel>; 
+//template class QwBCM<QwSIS3801_Channel>; 

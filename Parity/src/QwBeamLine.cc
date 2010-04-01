@@ -132,7 +132,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	    {
 	      if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbcm")
 		{
-		  QwCombinedBCM localbcmcombo(localComboID.fdetectorname); //create a new combo with combo name
+		  QwCombinedBCM<QwVQWK_Channel> localbcmcombo(localComboID.fdetectorname); //create a new combo with combo name
 		  fBCMCombo.push_back(localbcmcombo); //add to the array of combos
 		  for(size_t i=0;i<fDeviceName.size();i++)
 		    {
@@ -236,7 +236,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	      }
 	    if(fgDetectorTypeNames[localBeamDetectorID.fTypeID]=="bcm")
 	      {
-		QwBCM localbcm(localBeamDetectorID.fdetectorname);
+		QwBCM<QwVQWK_Channel> localbcm(localBeamDetectorID.fdetectorname);
 		fBCM.push_back(localbcm);
 		fBCM[fBCM.size()-1].SetDefaultSampleSize(fSample_size);
 		localBeamDetectorID.fIndex=fBCM.size()-1;
@@ -916,10 +916,10 @@ QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name)
   return 0;
 };
 
-QwBCM* QwBeamLine::GetBCM(const TString name)
+QwBCM<QwVQWK_Channel>* QwBeamLine::GetBCM(const TString name)
 {
   if (! fBCM.empty()) {
-    for (std::vector<QwBCM>::iterator bcm = fBCM.begin(); bcm != fBCM.end(); ++bcm) {
+    for (std::vector<QwBCM<QwVQWK_Channel> >::iterator bcm = fBCM.begin(); bcm != fBCM.end(); ++bcm) {
       if (bcm->GetElementName() == name) {
 	return &(*bcm);
       }
@@ -932,7 +932,7 @@ const QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name) const
 {
   return const_cast<QwBeamLine*>(this)->GetBPMStripline(name);
 }
-const QwBCM* QwBeamLine::GetBCM(const TString name) const
+const QwBCM<QwVQWK_Channel>* QwBeamLine::GetBCM(const TString name) const
 {
   return const_cast<QwBeamLine*>(this)->GetBCM(name);
 }
