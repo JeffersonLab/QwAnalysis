@@ -260,8 +260,15 @@ const UInt_t QwDatabase::SetRunID(QwEventBuffer& qwevt)
   try 
     {
       this->Connect();
-      run row(0, qwevt.GetRunNumber(),mysqlpp::null, mysqlpp::null, mysqlpp::null, 0,0);
-      //    row.n_mps=10; // This works
+      run row(0, qwevt.GetRunNumber());
+//      run row(0, qwevt.GetRunNumber(),mysqlpp::null, mysqlpp::null, mysqlpp::null, 0,0);
+      row.run_type = mysqlpp::null;
+      row.helicity_length = 0;
+			row.start_time = mysqlpp::null;
+			row.end_time = mysqlpp::null;
+			row.n_mps = 0;
+			row.n_qrt	= 0;
+//    row.n_mps=10; // This works
       //    row.start_time = mysqlpp::null; // This works
       //    row.start_time = qwevt.GetStartSQLTime().Data(); // This does not work
       

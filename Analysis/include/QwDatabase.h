@@ -33,7 +33,7 @@
 /**
  *  \class QwDatabase
  *  \ingroup QwAnalysis
- *  \brief A logfile class
+ *  \brief A database interface class
  *
  * This class provides the connection to the Qweak database to other objects
  * in the Qweak analyzer.  A static global object gQwDatabase is used to
