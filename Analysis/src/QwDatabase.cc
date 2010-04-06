@@ -18,6 +18,8 @@ using namespace QwParityDB;
 
 // Definition of static class members in QwDatabase
 std::map<string, unsigned int> QwDatabase::fMonitorIDs;
+std::map<string, unsigned int> QwDatabase::fMainDetectorIDs;
+std::map<string, unsigned int> QwDatabase::fLumiDetectorIDs;
 
 /*! The simple constructor initializes member fields.  This class is not
  * used to establish the database connection.  It sets up a
@@ -437,22 +439,25 @@ void QwDatabase::PrintServerInfo()
 /*
  * This function retrieves the monitor table key 'monitor_id' for a given beam monitor.
  */
-const UInt_t QwDatabase::GetMonitorID(const string& monitor)
+const UInt_t QwDatabase::GetMonitorID(const string& name)
 {
   if (fMonitorIDs.size() == 0) {
     StoreMonitorIDs();
   }
 
-  UInt_t monitor_id = fMonitorIDs[monitor];
+  UInt_t monitor_id = fMonitorIDs[name];
 
   if (monitor_id==0) {
-    QwError << "QwDatabase::GetMonitorID() => Unable to determine valid ID for beam monitor " << monitor << QwLog::endl;
+    QwError << "QwDatabase::GetMonitorID() => Unable to determine valid ID for beam monitor " << name << QwLog::endl;
   }
 
   return monitor_id;
 
 }
 
+/*
+ * Stores monitor table keys in an associative array indexed by monitor name.
+ */
 void QwDatabase::StoreMonitorIDs()
 {
 
@@ -472,5 +477,90 @@ void QwDatabase::StoreMonitorIDs()
     Disconnect();
     exit(1);
   }
+}
 
+/*
+ * This function retrieves the main_detector table key 'main_detector_id' for a given beam main_detector.
+ */
+const UInt_t QwDatabase::GetMainDetectorID(const string& name)
+{
+  if (fMainDetectorIDs.size() == 0) {
+    StoreMainDetectorIDs();
+  }
+
+  UInt_t main_detector_id = fMainDetectorIDs[name];
+
+  if (main_detector_id==0) {
+    QwError << "QwDatabase::GetMainDetectorID() => Unable to determine valid ID for beam main_detector " << name << QwLog::endl;
+  }
+
+  return main_detector_id;
+
+}
+
+/*
+ * Stores main_detector table keys in an associative array indexed by main_detector name.
+ */
+void QwDatabase::StoreMainDetectorIDs()
+{
+
+  try {
+    Connect();
+
+    mysqlpp::Query query=this->Query();
+    query.for_each(main_detector(), StoreMainDetectorID());
+
+//    QwDebug<< "QwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << QwLog::endl;
+
+    Disconnect();
+
+  }
+  catch (const mysqlpp::Exception& er) {
+    QwError << er.what() << QwLog::endl;
+    Disconnect();
+    exit(1);
+  }
+}
+
+/*
+ * This function retrieves the lumi_detector table key 'lumi_detector_id' for a given beam lumi_detector.
+ */
+const UInt_t QwDatabase::GetLumiDetectorID(const string& name)
+{
+  if (fLumiDetectorIDs.size() == 0) {
+    StoreLumiDetectorIDs();
+  }
+
+  UInt_t lumi_detector_id = fLumiDetectorIDs[name];
+
+  if (lumi_detector_id==0) {
+    QwError << "QwDatabase::GetLumiDetectorID() => Unable to determine valid ID for beam lumi_detector " << name << QwLog::endl;
+  }
+
+  return lumi_detector_id;
+
+}
+
+/*
+ * Stores lumi_detector table keys in an associative array indexed by lumi_detector name.
+ */
+void QwDatabase::StoreLumiDetectorIDs()
+{
+
+  try {
+    Connect();
+
+    mysqlpp::Query query=this->Query();
+    query.for_each(lumi_detector(), StoreLumiDetectorID());
+
+//    QwDebug<< "QwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << QwLog::endl;
+
+    Disconnect();
+
+  }
+  catch (const mysqlpp::Exception& er) {
+    QwError << er.what() << QwLog::endl;
+    Disconnect();
+    exit(1);
+  }
 }
