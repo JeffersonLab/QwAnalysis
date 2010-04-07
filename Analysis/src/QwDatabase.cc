@@ -30,6 +30,7 @@ QwDatabase::QwDatabase() : Connection()
 {
   // Initialize member fields
   fDatabase=fDBServer=fDBUsername=fDBPassword="";
+  fVersionMajor=fVersionMinor=fVersionPoint="";
 
   fDBPortNumber      = 0;
   fValidConnection   = false;
@@ -105,21 +106,24 @@ bool QwDatabase::ValidateConnection() {
     QwError << "Exiting." << QwLog::endl;
     exit(1);
   }
+  
+  // Get database schema version information
+  if (StoreDBVersion()) {
+    fValidConnection=true;
+    // Success!
+    QwMessage << "QwDatabase::ValidateConnection() : Successfully connected to requested database." << QwLog::endl;
 
-  // Success!
-  QwMessage << "QwDatabase::ValidateConnection() : Successfully connected to requested database." << QwLog::endl;
-
-  // Connection was good so update member variables and disconnect from
-  // database
-  fDatabase=dbname;
-  fDBServer=server;
-  fDBUsername=username;
-  fDBPassword=password;
-  fDBPortNumber=port;
-  fValidConnection=true;
+    // Connection was good so update member variables and disconnect from
+    // database
+    fDatabase=dbname;
+    fDBServer=server;
+    fDBUsername=username;
+    fDBPassword=password;
+    fDBPortNumber=port;
+  }
   disconnect();
 
-  return true;
+  return fValidConnection;
 
 }
 
@@ -563,4 +567,55 @@ void QwDatabase::StoreLumiDetectorIDs()
     Disconnect();
     exit(1);
   }
+}
+
+const string QwDatabase::GetVersion(){
+  string version = fVersionMajor + "." + fVersionMinor + "." + fVersionPoint;
+  return version;
+}
+
+/*
+ * Retrieves database schema version information from database.
+ * Returns true if successful, false otherwise.
+ */
+const bool QwDatabase::StoreDBVersion(){
+  try 
+    {
+      mysqlpp::Query query = this->Query();
+
+      query << "SELECT * FROM db_schema";
+      vector<db_schema> res;
+      query.storein(res);
+      QwDebug << "QwDatabase::StoreDBVersion => Number of rows returned:  " << res.size() << QwLog::endl;
+
+      // If there is more than one run in the DB with the same run number, then there will be trouble later on.  Catch and bomb out.
+      if (res.size()>1) 
+	{
+	  QwError << "Unable to find unique schema version in database." << QwLog::endl;
+	  QwError << "Schema query returned " << res.size() << "rows." << QwLog::endl;
+	  QwError << "Please make sure that db_schema contains one unique." << QwLog::endl;
+	  disconnect();
+    return false;
+	}
+      
+      // Run already exists in database.  Pull run_id and move along.
+      if (res.size()==1) 
+	{
+	  QwDebug << "QwDatabase::StoreDBVersion => db_schema_id = " << res.at(0).db_schema_id << QwLog::endl;
+	  
+	  fVersionMajor=res.at(0).major_release_number;
+	  fVersionMinor=res.at(0).minor_release_number;
+	  fVersionPoint=res.at(0).point_release_number;
+	  this->Disconnect();
+	}
+    }
+  catch (const mysqlpp::Exception& er) 
+    {
+      QwError << er.what() << QwLog::endl;
+      disconnect();
+      return false;
+    }
+
+  return true;
+
 }

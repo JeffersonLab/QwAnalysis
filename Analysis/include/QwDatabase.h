@@ -67,6 +67,10 @@ class QwDatabase: private mysqlpp::Connection {
     const UInt_t GetRunID(QwEventBuffer& qwevt);        //<! Get run ID using data from CODA event buffer
     const UInt_t GetAnalysisID(QwEventBuffer& qwevt);   //<! Get analysis ID using data from CODA event buffer
     Bool_t       SetRunNumber(const UInt_t runnum);     //<! Run number setter
+    const string GetVersion(); //! Return a full version string for the DB schema
+    const string GetVersionMajor() {return fVersionMajor;} //<! fVersionMajor getter
+    const string GetVersionMinor() {return fVersionMinor;} //<! fVersionMinor getter
+    const string GetVersionPoint() {return fVersionPoint;} //<! fVersionPoint getter
 
     void         PrintServerInfo();                     //<! Print Server Information
     
@@ -78,6 +82,7 @@ class QwDatabase: private mysqlpp::Connection {
     void StoreMonitorIDs();                             //<! Retrieve monitor IDs from database and populate fMonitorIDs
     void StoreMainDetectorIDs();                             //<! Retrieve main detector IDs from database and populate fMainDetectorIDs
     void StoreLumiDetectorIDs();                             //<! Retrieve LUMI monitor IDs from database and populate fLumiDetectorIDs
+    const bool StoreDBVersion();  //!< Retrieve database schema version information from database
 
     string fDatabase;        //!< Name of database to connect to
     string fDBServer;        //!< Name of server carrying DB to connect to
@@ -89,6 +94,9 @@ class QwDatabase: private mysqlpp::Connection {
     UInt_t fRunNumber;       //!< Run number of current run
     UInt_t fRunID;           //!< run_id of current run
     UInt_t fAnalysisID;      //!< analysis_id of current analysis pass
+    string fVersionMajor;    //!< Major version number of current DB schema
+    string fVersionMinor;    //!< Minor version number of current DB schema
+    string fVersionPoint;    //!< Point version number of current DB schema
 
     static std::map<string, unsigned int> fMonitorIDs; //!< Associative array of beam monitor IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
     static std::map<string, unsigned int> fMainDetectorIDs; //!< Associative array of main detector IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
