@@ -7,7 +7,14 @@
 
 #include "QwBeamLine.h"
 #include "QwHistogramHelper.h"
+
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwSSQLS.h"
+
+#include <iostream>
 #include <stdexcept>
+
+#include "QwLog.h"
 
 //*****************************************************************
 Int_t QwBeamLine::LoadChannelMap(TString mapfile)
@@ -28,7 +35,10 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
  
   std::vector<TString> fDeviceName;
-  std::vector<Double_t> fDeviceWeight;
+  std::vector<Double_t> fQWeight;
+  std::vector<Double_t> fXWeight;
+  std::vector<Double_t> fYWeight;
+
  
   QwParameterFile mapstr(mapfile.Data());  //Open the file
 
@@ -70,6 +80,9 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	    if (mapstr.HasVariablePair("=",varname,varvalue)) {
 	      if (varname=="endCOMBO")
 		{
+		  //At the end of the combined device calculate the total weights of the charge
+		  for(size_t i=0;i<fDeviceName.size();i++)
+		    fSumQweights+=fQWeight[i];
 		  combolistdecoded = kTRUE;
 		  //std::cout<<"End decoding combo list:"<<comboname<<"\n";	      
 		}
@@ -84,13 +97,17 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		dev_name=mapstr.GetNextToken(", ").c_str();
 		dev_name.ToLower();
 		fDeviceName.push_back(dev_name);
-		fDeviceWeight.push_back( atof(mapstr.GetNextToken(", ").c_str()));				
+		fQWeight.push_back( atof(mapstr.GetNextToken(", ").c_str())); //read in the weights for the charge
+
+		if(combotype == "combinedbpm") //for combined BPMs,in addition,
+		  {
+		    fXWeight.push_back( atof(mapstr.GetNextToken(", ").c_str())); //read in the weights for the X position
+		    fYWeight.push_back( atof(mapstr.GetNextToken(", ").c_str())); //read in the weights for the Y position
+		  }		
 	      }
 	  }
 	  
 	  QwBeamDetectorID localComboID(-1, -1, comboname, combotype, "none", this);	  
-
-
 
 	  if(localComboID.fTypeID==-1)
 	    {
@@ -113,22 +130,23 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	  
 	  if(localComboID.fIndex==-1)
 	    {
-	      if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbcm")/////
+	      if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbcm")
 		{
 		  QwCombinedBCM localbcmcombo(localComboID.fdetectorname); //create a new combo with combo name
 		  fBCMCombo.push_back(localbcmcombo); //add to the array of combos
 		  for(size_t i=0;i<fDeviceName.size();i++)
 		    {
 		      index=GetDetectorIndex(GetDetectorTypeID("bcm"),fDeviceName[i]);
-		      fBCMCombo[fBCMCombo.size()-1].Add(&fBCM[index],fDeviceWeight[i]);
+		      fBCMCombo[fBCMCombo.size()-1].Set(&fBCM[index],fQWeight[i],fSumQweights );
 		      
 		    }
 		  fDeviceName.clear();   //reset the device vector for the next combo
-		  fDeviceWeight.clear(); //reset the device weights for the next combo
+		  fQWeight.clear(); //reset the device weights for the next combo
+
 		  localComboID.fIndex=fBCMCombo.size()-1;
 
 		}
-	      if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbpm")/////
+	      if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbpm")
 		{
 		  Bool_t unrotated(keyword=="unrotated");
 		  QwCombinedBPM localbpmcombo(localComboID.fdetectorname,!unrotated); 
@@ -137,11 +155,13 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		  for(size_t i=0;i<fDeviceName.size();i++)
 		    {
 		      index=GetDetectorIndex(GetDetectorTypeID("bpmstripline"),fDeviceName[i]);
-		      fBPMCombo[fBPMCombo.size()-1].Add(&fStripline[index],fDeviceWeight[i]);
+		      fBPMCombo[fBPMCombo.size()-1].Set(&fStripline[index],fQWeight[i],fXWeight[i],fYWeight[i],fSumQweights);
 		      
 		    }
 		  fDeviceName.clear();  
-		  fDeviceWeight.clear(); 
+		  fQWeight.clear(); 
+		  fXWeight.clear(); 
+		  fYWeight.clear(); 
 		  localComboID.fIndex=fBPMCombo.size()-1;
 
 		}
@@ -391,6 +411,113 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 
   return 0;
 };
+Int_t QwBeamLine::LoadGeometry(TString mapfile)
+{
+  Bool_t ldebug=kFALSE;
+
+  Int_t lineread=1;
+  Int_t index;
+  TString  devname,devtype;
+  Double_t devOffsetX,devOffsetY, devOffsetZ;
+  TString localname;
+
+
+  if(ldebug)std::cout<<"QwBeamLine::LoadGeometry("<< mapfile<<")\n";
+
+  QwParameterFile mapstr(mapfile.Data());  //Open the file
+
+  while (mapstr.ReadNextLine()){
+      lineread+=1;
+      if(ldebug)std::cout<<" line read so far ="<<lineread<<"\n";
+      mapstr.TrimComment('!');   
+      mapstr.TrimWhitespace();   
+      if (mapstr.LineIsEmpty())  continue;
+      else
+	{
+	  devtype = mapstr.GetNextToken(", \t").c_str();
+	  devtype.ToLower();
+	  devtype.Remove(TString::kBoth,' ');
+	  devname = mapstr.GetNextToken(", \t").c_str();
+	  devname.ToLower();
+	  devname.Remove(TString::kBoth,' ');
+	  
+	  devOffsetX = (atof(mapstr.GetNextToken(", \t").c_str())); // X offset
+	  devOffsetY = (atof(mapstr.GetNextToken(", \t").c_str())); // Y offset
+	  devOffsetZ = (atof(mapstr.GetNextToken(", \t").c_str())); // Z offset
+
+	  Bool_t notfound=kTRUE;
+
+
+	  while(notfound){
+	    if(devtype=="bpmstripline")
+	      {
+		//Load bpm offsets
+		index=GetDetectorIndex(GetDetectorTypeID("bpmstripline"),devname);
+		if(index == -1)
+		  {
+		    std::cerr << "\nQwBeamLine::LoadGeometry:  Unknown bpm : "
+			      <<devname<<" will not be asigned with geometry parameters. \n"
+			      << std::endl;	  
+		    notfound=kFALSE;
+		    continue;
+		  }
+		localname=fStripline[index].GetElementName();
+		localname.ToLower();
+		if(ldebug)  std::cout<<"element name =="<<localname
+				     <<"== to be compared to =="<<devname<<"== \n";
+		
+		if(localname==devname)
+		  {
+		    if(ldebug) std::cout<<" I found the bpm !\n";
+		    fStripline[index].SetOffset(devOffsetX,devOffsetY,devOffsetZ);
+		    notfound=kFALSE;
+		  }
+	      }
+	    else if (devtype=="combinedbpm")
+	      {
+		//Load combined bpm offsets which are, ofcourse, target position in the beamline
+		index=GetDetectorIndex(GetDetectorTypeID("combinedbpm"),devname);
+		if(index == -1)
+		  {
+		    std::cerr << "\nQwBeamLine::LoadGeometry:  Unknown combinedbpm : "
+			      <<devname<<" will not be asigned with geometry parameters.\n "
+			      << std::endl;
+		    notfound=kFALSE;
+		    continue;
+		  }
+
+		localname=fBPMCombo[index].GetElementName();
+		localname.ToLower();
+		if(ldebug)  
+		  std::cout<<"element name =="<<localname<<"== to be compared to =="<<devname<<"== \n";
+		
+		if(localname==devname)
+		  {
+		    if(ldebug) std::cout<<" I found the combinedbpm !\n";
+		    fBPMCombo[index].SetOffset(devOffsetX,devOffsetY,devOffsetZ);
+		    notfound=kFALSE;
+		  }
+	      }
+	    else std::cout<<" Unknown device type :"<<devtype<<". The geometry will not be assigned to this device."<<std::endl;
+	   
+	    if(ldebug)  std::cout<<"QwBeamLine::LoadGeometry:Offsets for device "<<devname<<" of type "<<devtype<<" are "
+				 <<": X offset ="<< devOffsetX
+				 <<": Y offset ="<< devOffsetY
+				 <<": Z offset ="<<devOffsetZ<<"\n";
+	  }
+
+	}
+  }
+
+  if(ldebug) std::cout<<" line read in the geometry file ="<<lineread<<" \n";
+  
+  ldebug=kFALSE;
+  return 0;
+  
+}
+
+
+
 
 //*****************************************************************
 Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
@@ -663,7 +790,69 @@ Int_t QwBeamLine::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t b
   return 0;
 };
 
+const Bool_t QwBeamLine::PublishInternalValues() const
+{
+  // Publish variables
+  Bool_t status = kTRUE;
+  status = status && PublishInternalValue("q_targ", "Calculated charge on target");
+  return status;
+};
 
+
+/**
+ * Return the value of variable name
+ * @param name Name of the desired variable
+ * @param value Pointer to the value to be filled by the call
+ * @return True if the variable was found, false if not found
+ */
+const Bool_t QwBeamLine::ReturnInternalValue(TString name,
+				       VQwDataElement* value) const
+{
+  Bool_t ldebug=kFALSE;
+  if (ldebug) std::cout << "QwBeamLine::ReturnInternalValue called for value name, "
+	    << name.Data() <<std::endl;
+  Bool_t foundit = kFALSE;
+  QwVQWK_Channel* tmp = dynamic_cast<QwVQWK_Channel*>(value);
+  if (tmp==NULL){
+    QwWarning << "QwBeamLine::ReturnInternalValue requires that "
+	      << "'value' be a pointer to QwVQWK_Channel"
+	      << QwLog::endl;
+  } else {
+    if (name=="q_targ"){
+      foundit = kTRUE;
+      (*tmp) = GetBCM("qwk_bcm0l02")->GetCharge();
+        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element qwk_bcm0l02"<<std::endl;
+    }
+
+    //test for x_targ, y_targ, ...
+    else if (name=="x_targ"){
+      foundit = kTRUE;
+      //(*tmp) = GetBPMStripline("ch_name")->GetSomething();
+        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element for x_targ"<<std::endl;
+    }
+    else if (name=="y_targ"){
+      foundit = kTRUE;
+      //(*tmp) = GetBPMStripline("ch_name")->GetSomething();
+        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element for y_targ"<<std::endl;
+    }
+    else if (name=="xp_targ"){
+      foundit = kTRUE;
+      //(*tmp) = GetBPMStripline("ch_name")->GetSomething();
+        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element for xp_targ"<<std::endl;
+    }
+    else if (name=="yp_targ"){
+      foundit = kTRUE;
+      //(*tmp) = GetBPMStripline("ch_name")->GetSomething();
+        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element for yp_targ"<<std::endl;
+    }
+    else if (name=="e_targ"){
+      foundit = kTRUE;
+      //(*tmp) = GetBCM("ch_name")->GetCharge();
+        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element for e_targ"<<std::endl;
+    }
+  }
+  return foundit;
+};
 
 //*****************************************************************
 void QwBeamLine::ClearEventData()
@@ -738,6 +927,16 @@ QwBCM* QwBeamLine::GetBCM(const TString name)
   }
   return 0;
 };
+
+const QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name) const
+{
+  return const_cast<QwBeamLine*>(this)->GetBPMStripline(name);
+}
+const QwBCM* QwBeamLine::GetBCM(const TString name) const
+{
+  return const_cast<QwBeamLine*>(this)->GetBCM(name);
+}
+
 //*****************************************************************
 VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
 {
@@ -856,8 +1055,10 @@ void QwBeamLine::Scale(Double_t factor)
 void QwBeamLine::Calculate_Running_Average(){
   std::cout<<"*********QwBeamLine device Averages****************"<<std::endl;
   std::cout<<"Device \t    ||  Average\t || error\t || events"<<std::endl;
+  printf("BPM\n");
   for(size_t i=0;i<fStripline.size();i++)
     fStripline[i].Calculate_Running_Average();
+  printf("BCM\n");
   for(size_t i=0;i<fBCM.size();i++)
     fBCM[i].Calculate_Running_Average();
   for(size_t i=0;i<fBCMCombo.size();i++)
@@ -1097,3 +1298,64 @@ VQwSubsystem*  QwBeamLine::Copy()
   TheCopy->Copy(this);
   return TheCopy;
 }
+
+
+void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
+{
+  
+  vector<QwParityDB::beam> entrylist;
+  
+  //      QwParityDB::beam row;
+  // Without (0), I see the following error message:
+  //terminate called after throwing an instance of 'mysqlpp::BadQuery'
+  //  what():  Duplicate entry '11399104' for key 1
+  //Abort
+  // 
+  
+  QwParityDB::beam row(0);
+  
+  // try to access BCM mean and its error
+  // there are 2 different types BCM data we have at the moment
+  // Yield and Asymmetry
+  printf("%s  ************** BCM **************\n", datatype.Data());
+  for(UInt_t i=0; i< fBCM.size(); i++)
+    {
+      entrylist.push_back(fBCM[i].GetDBEntry(db, datatype, "" )) ;
+    }
+
+  ///   try to access BPM mean and its error
+  printf("%s  ************** BPM **************\n", datatype.Data());
+  for(UInt_t i=0; i< fStripline.size(); i++)
+    {
+      entrylist.push_back(fStripline[i].GetDBEntry(db, datatype, "RelX"));
+      entrylist.push_back(fStripline[i].GetDBEntry(db, datatype, "RelY"));
+    }
+
+  printf("Entrylist Vector Size %d\n", (Int_t) entrylist.size());
+
+  db->Connect();
+  // Check the entrylist size, if it isn't zero, start to query..
+  if( entrylist.size() )
+    {
+      mysqlpp::Query query= db->Query();
+      //    if(query)
+      //	{
+
+	  query.insert(entrylist.begin(), entrylist.end());
+	  query.execute();
+	  //	  query.reset(); // do we need?
+	  //	}
+	  //      else
+	  //	{
+	  //	  printf("Query is empty\n");
+	  //	}
+    }
+  else
+    {
+      printf("This is the case when the entrlylist contains nothing in %s \n", datatype.Data());
+    }
+  
+  db->Disconnect();
+      
+  return;
+};

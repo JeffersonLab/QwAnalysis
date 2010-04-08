@@ -81,6 +81,8 @@ class QwVQWK_Module {
   void Print() const;
   QwVQWK_Channel* GetChannel(const TString name);
 
+//  If we change the number of channels in the module this needs to change.
+  boost::array<QwVQWK_Channel, 8> fChannels;
 
 
  protected:
@@ -92,8 +94,6 @@ class QwVQWK_Module {
 
   size_t  fSequenceNumber;
   Bool_t  fEventIsGood;
-
-  boost::array<QwVQWK_Channel, 8> fChannels;  //  If we change the number of channels in the module this needs to change.
 
 };
 

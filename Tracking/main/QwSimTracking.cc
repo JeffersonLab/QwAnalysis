@@ -32,6 +32,7 @@
 #include "QwTreeEventBuffer.h"
 #include "QwHitRootContainer.h"
 #include "QwTrackingWorker.h"
+#include "QwPartialTrack.h"
 #include "QwEvent.h"
 
 // Qweak tracking subsystem headers
@@ -62,6 +63,7 @@ int main (int argc, char* argv[])
     gQwLog.InitLogFile(gQwOptions.GetValue<string>("QwLog.logfile"));
   gQwLog.SetFileThreshold(QwLog::QwLogLevel(gQwOptions.GetValue<int>("QwLog.loglevel-file")));
   gQwLog.SetScreenThreshold(QwLog::QwLogLevel(gQwOptions.GetValue<int>("QwLog.loglevel-screen")));
+  gQwLog.SetScreenColor(gQwOptions.GetValue<bool>("QwLog.color"));
 
   /// We fill the search paths for the parameter files.
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
@@ -122,8 +124,6 @@ int main (int argc, char* argv[])
     // Load the simulated event file
     TString filename = Form(TString(getenv("QWSCRATCH")) + "/data/QwSim_%d.root", runnumber);
     QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (filename, detector_info);
-    treebuffer->EnableResolutionEffects();
-    treebuffer->SetDebugLevel(1);
 
     // Open ROOT file
     TFile* file = 0;
@@ -152,8 +152,11 @@ int main (int argc, char* argv[])
              eventnumber <= eventnumber_max &&
              eventnumber < fEntries; eventnumber++) {
 
+      /// Read the event from the tree
+      treebuffer->GetEntry(eventnumber);
+
       /// We get the hit list from the event buffer.
-      QwHitContainer* hitlist = treebuffer->GetHitList(eventnumber);
+      QwHitContainer* hitlist = treebuffer->GetHitList();
       roothitlist->Convert(hitlist);
 
       // Print hit list
@@ -170,7 +173,7 @@ int main (int argc, char* argv[])
       // Do something with this event
       event->GetEventHeader()->SetRunNumber(runnumber);
       event->GetEventHeader()->SetEventNumber(eventnumber);
-      event->Print();
+      if (kDebug) event->Print();
 
 
       // Fill the tree

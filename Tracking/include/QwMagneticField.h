@@ -8,166 +8,141 @@
 #ifndef _QwMagneticField_h_
 #define _QwMagneticField_h_
 
+// System headers
 #include <iostream>
 #include <cmath>
 #include <string>
 #include <vector>
 #include <fstream>
 
+// ROOT headers
 #include <TVector3.h>
 #include <TRotation.h>
 
+// Qweak headers
+#include "QwUnits.h"
 
-/// Allowed interpolation methods
-enum EQwInterpolationMethod {
-  kTrilinearInterpolation,
-  kDoubleBilinearInterpolation,
-  kNearestNeighborInterpolation
-};
+// Forward declarations
+template <class value_t, unsigned int value_n> class QwInterpolator;
 
+// Definitions
+// - number of field component in the map (x,y,z,r,phi)
+#define N_FIELD_COMPONENTS 3
 
-/// Field map storage data type
+// Field map storage data type
 typedef float field_t;
 
+/**
+ *  \class QwMagneticField
+ *  \ingroup QwTracking
+ *  \brief Magnetic field map object
+ *
+ * This class implements a magnetic field object using the QwInterpolator class.
+ *
+ * Five magnetic field components are stored (larger memory usage, computationally
+ * more intensive on creation, but faster access by avoiding trigoniometric
+ * operations).
+ *
+ * Access to the field components is possible using two functions:
+ * \code
+ * field->GetCartesianFieldValue(double point_xyz[3], double field_xyz[3]);
+ * field->GetCylindricalFieldValue(doubl point_xyz[3], double field_rfz[3]);
+ * \endcode
+ *
+ * Currently no function exists that takes cylindrical coordinates.
+ */
 class QwMagneticField {
 
   public:
 
     /// \brief Default constructor
     QwMagneticField();
-    /// \brief Constructor with field map
-    QwMagneticField(std::string filename) { ReadFieldMapFile(filename); };
     /// \brief Virtual destructor
     virtual ~QwMagneticField();
 
-    /// \brief Set the interpolation method
-    void SetInterpolationMethod(const EQwInterpolationMethod method)
-      { fInterpolationMethod = method; };
-    /// \brief Get the interpolation method
-    const EQwInterpolationMethod GetInterpolationMethod() const
-      { return fInterpolationMethod; };
-
-    /// \brief Set the data reduction factor
-    void SetDataReductionFactor(const Int_t datareductionfactor)
-      { fDataReductionFactor = datareductionfactor; InitializeGrid(); };
-    /// \brief Get the data reduction factor
-    const Int_t GetDataReductionFactor() const
-      { return fDataReductionFactor; };
-
-    /// \brief Set the field scaling factor
-    void SetFieldScalingFactor(const Double_t fieldscalingfactor)
+    /// Set the field scaling factor
+    void SetFieldScalingFactor(const double fieldscalingfactor)
       { fFieldScalingFactor = fieldscalingfactor; };
-    /// \brief Get the field scaling factor
-    const Double_t GetFieldScalingFactor() const
+    /// Get the field scaling factor
+    const double GetFieldScalingFactor() const
       { return fFieldScalingFactor; };
 
-    /// \brief Get the field value
-    void GetFieldValue(const double point[3], double *field, double scalefactor) const {
-      GetCartesianFieldValue(point, field, scalefactor);
+    /// Set the field rotation around z (with QwUnits)
+    void SetRotation(const double rotation) {
+      fRotation = rotation;
+      fRotationCos = cos(rotation);
+      fRotationSin = sin(rotation);
+       // Unit conversions
+      fRotationDeg = rotation / Qw::deg;
+      fRotationRad = rotation / Qw::rad;
     };
-    /// \brief Get the cartesian components of the field value
-    void GetCartesianFieldValue(const double point[3], double *field, double scalefactor) const;
-    /// \brief Get the cylindrical components of the field value
-    void GetCylindricalFieldValue(const double point[3], double *field, double scalefactor) const;
+    /// Get the field rotation around z (with QwUnits)
+    const double GetRotation() const
+      { return fRotationRad * Qw::rad; };
 
-    void GetFieldValueFromGridCell( const  int GridPoint_R,
-				    const  int GridPoint_Phi,
-				    const  int GridPoint_Z,
-				    double *BFieldGridValue ) const;
+    /// Set the field translation along z
+    void SetTranslation(const double translation)
+      { fTranslation = translation; };
+    /// Get the field translation along z
+    const double GetTranslation() const
+      { return fTranslation; };
 
-    void InitializeGrid();
+    /// Get the cartesian components of the field value
+    void GetCartesianFieldValue(const double point_xyz[3], double field_xyz[3]) const {
+      double field[N_FIELD_COMPONENTS];
+      GetFieldValue(point_xyz, field);
+      if (N_FIELD_COMPONENTS == 3) {
+        field_xyz[0] = field[0]; // x
+        field_xyz[1] = field[1]; // y
+        field_xyz[2] = field[2]; // z
+      }
+    };
+    /// Get the cylindrical components of the field value
+    void GetCylindricalFieldValue(const double point_xyz[3], double field_rfz[3]) const {
+      double field[N_FIELD_COMPONENTS];
+      GetFieldValue(point_xyz, field);
+      if (N_FIELD_COMPONENTS == 3) {
+        double r = sqrt(field[0] * field[0] + field[1] * field[1]) ;
+        double phi = atan2(field[1],field[0]);
+        if (phi < 0) phi += 2.0 * Qw::pi;
+        field_rfz[0] = r; // r
+        field_rfz[1] = phi; // phi
+        field_rfz[2] = field[2]; // z
+      }
+      if (N_FIELD_COMPONENTS == 5) {
+        field_rfz[0] = field[3]; // r
+        field_rfz[1] = field[4]; // phi
+        field_rfz[2] = field[2]; // z
+      }
+    };
 
     /// \brief Read a field map input file
-    void ReadFieldMapFile(std::string filename);
+    const bool ReadFieldMapFile(const std::string filename);
     /// \brief Read a field map input gzip file
-    void ReadFieldMapZip(std::string filename);
+    const bool ReadFieldMapZip(const std::string filename);
     /// \brief Read the field map input stream
-    void ReadFieldMap(std::istream& input);
+    const bool ReadFieldMap(std::istream& input);
 
-    void SetFieldMap_RMin      ( double Rmin      ) { rMinFromMap    = Rmin;      }
-    void SetFieldMap_RMax      ( double Rmax      ) { rMaxFromMap    = Rmax;      }
-    void SetFieldMap_RStepsize ( double Rstepsize ) { gridstepsize_r = Rstepsize; }
+  private:
 
-    void SetFieldMap_ZMin      ( double Zmin      ) { zMinFromMap    = Zmin;      }
-    void SetFieldMap_ZMax      ( double Zmax      ) { zMaxFromMap    = Zmax;      }
-    void SetFieldMap_ZStepsize ( double Zstepsize ) { gridstepsize_z = Zstepsize; }
+    /// \brief Get the field value
+    void GetFieldValue(const double point[3], double field[N_FIELD_COMPONENTS]) const;
 
-    void SetFieldMap_PhiMin      ( double Phimin      ) { phiMinFromMap    = Phimin;      }
-    void SetFieldMap_PhiMax      ( double Phimax      ) { phiMaxFromMap    = Phimax;      }
-    void SetFieldMap_PhiStepsize ( double Phistepsize ) { gridstepsize_phi = Phistepsize; }
 
-private:
+    /// Field interpolator object
+    QwInterpolator<field_t,N_FIELD_COMPONENTS> *fField;
 
-    /// \name Calculate the interpolated field values using various methods
-    // @{
-    /// \brief Flag to select the interpolation method
-    EQwInterpolationMethod fInterpolationMethod;
-    /// \brief Trilinear interpolation
-    void CalculateTrilinear(const double point[3], double *field) const;
-    /// \brief Double bilinear interpolation
-    void CalculateDoubleBilinear(const double point[3], double *field) const;
-    /// \brief Nearest-neighbor interpolation
-    void CalculateNearestNeighbor(const double point[3], double *field) const;
-    // @}
-
-    /// \brief Data reduction factor: value of 2 will take only every second grid entry
-    Int_t fDataReductionFactor;
-
-    /// \name Internal indexing of the field map to a linear array
-    // @{
-    unsigned int nGridPointsInR;
-    unsigned int nGridPointsInPhi;
-    unsigned int nGridPointsInZ;
-    /// \brief Index based on cylindrical coordinates
-    const unsigned int Index(const unsigned int ind_r, const unsigned int ind_phi, const unsigned int ind_z) const;
-    // @}
-
-    double rMinFromMap;
-    double rMaxFromMap;
-
-    double phiMinFromMap;
-    double phiMaxFromMap;
-
-    double zMinFromMap;
-    double zMaxFromMap;
-
-    double gridstepsize_r;
-    double gridstepsize_phi;
-    double gridstepsize_z;
-
-    double fUnitBfield; // units of field map
-
-    int fGridSize;
-
-    /// \name Storage space for the table of field values
-    // @{
-    //std::vector< std::vector< std::vector< double > > > BFieldGridData_X;
-    //std::vector< std::vector< std::vector< double > > > BFieldGridData_Y;
-    //std::vector< std::vector< std::vector< double > > > BFieldGridData_Z;
-    std::vector< field_t > BFieldGridData_X; ///< field values in X
-    std::vector< field_t > BFieldGridData_Y; ///< field values in X
-    std::vector< field_t > BFieldGridData_Z; ///< field values in Z
-    std::vector< field_t > BFieldGridData_R; ///< field values in R
-    std::vector< field_t > BFieldGridData_Phi; ///< field values in Phi
-    // @}
-
-    bool   invertX, invertY, invertZ;
-
-    TVector3* BField_ANSYS;
-
+    /// Field scaling factor (BFIL)
     double fFieldScalingFactor;
-    double fZoffset;
+
+    /// Field rotation and translation with respect to the z axis
+    // Defined as rotation/translation of the map in the standard coordinate
+    // system: rotation of +22.5 deg means that x in the map x is at +22.5 deg,
+    // likewise a translation of +5 cm means that the zero in the map is at +5 cm
+    // in the standard coordinate system.
+    double fRotation, fRotationDeg, fRotationRad, fRotationCos, fRotationSin;
+    double fTranslation;
 
 }; // class QwMagneticField
-
-inline const unsigned int QwMagneticField::Index(
-	const unsigned int index_r,
-	const unsigned int index_phi,
-	const unsigned int index_z) const
-{
-  return index_z
-         + nGridPointsInZ * index_r
-         + nGridPointsInZ * nGridPointsInR * index_phi;
-}
 
 #endif // _QwMagneticField_h_

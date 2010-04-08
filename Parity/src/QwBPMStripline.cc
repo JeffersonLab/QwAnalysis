@@ -43,7 +43,6 @@ void  QwBPMStripline::InitializeChannel(TString name, Bool_t ROTATED)
     fRelPos[i].InitializeChannel(name+"Rel"+axis[i],"derived");	
   
 
-
   for(int i=0;i<3;i++)
     fAbsPos[i].InitializeChannel(name+axis[i],"derived");
  
@@ -80,10 +79,7 @@ Int_t QwBPMStripline::GetEventcutErrorCounters(){
   for(int i=0;i<4;i++)
     fWire[i].GetEventcutErrorCounters();
 
-     
-  //std::cout<<"RelX ";
   fRelPos[0].GetEventcutErrorCounters();
-  //std::cout<<"RelY ";
   fRelPos[1].GetEventcutErrorCounters();
 
   return 1;
@@ -152,7 +148,6 @@ void QwBPMStripline::EncodeEventData(std::vector<UInt_t> &buffer)
 Bool_t QwBPMStripline::ApplySingleEventCuts(){
   Bool_t status=kTRUE;
   
-  ApplyHWChecks();//first apply HW checks and update HW  error flags.
 
     if (fRelPos[0].ApplySingleEventCuts(fLLimitX,fULimitX)){ //for RelX  
       status=kTRUE;
@@ -220,6 +215,7 @@ void  QwBPMStripline::ProcessEvent()
   static QwVQWK_Channel numer("numerator"), denom("denominator");
   
   
+  ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine here and not in ApplySingleEventCuts  makes a difference for a BPMs because they have derrived devices.
 
 
   fWSum.ClearEventData();
@@ -262,10 +258,10 @@ void  QwBPMStripline::ProcessEvent()
       fRelPos[0].Scale(kRotationCorrection);
       fRelPos[1].Scale(kRotationCorrection);
     }
-  for(int i=0;i<3;i++)
-    fAbsPos[i].Offset(fOffset[i]);      
+  for(int i=0;i<2;i++)
+    fAbsPos[i].SetHardwareSum(fRelPos[i].GetHardwareSum()-fOffset[i]);
+  fAbsPos[2].SetHardwareSum(fOffset[2]);
   
-
   return;
 };
 /********************************************************/
@@ -275,6 +271,8 @@ void QwBPMStripline::Print()
     fWire[i].Print();
   for(int i=0;i<2;i++)
     fRelPos[i].Print();
+  for(int i=0;i<3;i++)
+    fAbsPos[i].Print();
   fWSum.Print();
 
   return;
@@ -316,7 +314,7 @@ void QwBPMStripline::SetOffset(Double_t Xoffset, Double_t Yoffset, Double_t Zoff
   fOffset[0]=Xoffset;
   fOffset[1]=Yoffset;
   fOffset[2]=Zoffset;
-
+  //  std::cout<<" offsets X "<<fOffset[0]<<" Y="<<fOffset[1]<<" Z ="<<fOffset[2]<<std::endl;
   return;
 };
 
@@ -443,26 +441,29 @@ void QwBPMStripline::Ratio(QwBPMStripline &numer, QwBPMStripline &denom)
 void QwBPMStripline::Scale(Double_t factor)
 {
   for(int i=0;i<2;i++)
-    {
-      fRelPos[i].Scale(factor);
+    fRelPos[i].Scale(factor);
+  for(int i=0;i<3;i++)
       fAbsPos[i].Scale(factor);
-    }
+    
 }
 
 void QwBPMStripline::Calculate_Running_Average(){
   for(int i=0;i<2;i++)
     fRelPos[i].Calculate_Running_Average();      
 
-  for(int i=0;i<3;i++)
+  for(int i=0;i<2;i++)
     fAbsPos[i].Calculate_Running_Average();
+  //No data for z position
 };
 
 void QwBPMStripline::Do_RunningSum(){
   for(int i=0;i<2;i++)
     fRelPos[i].Do_RunningSum();
-      
-  for(int i=0;i<3;i++)
+  
+  for(int i=0;i<2;i++)
     fAbsPos[i].Do_RunningSum();
+  //No data for z position
+
 };
 
 
@@ -497,8 +498,9 @@ void  QwBPMStripline::ConstructHistograms(TDirectory *folder, TString &prefix)
 	  fWire[i].ConstructHistograms(folder, thisprefix);
       for(int i=0;i<2;i++)
  	fRelPos[i].ConstructHistograms(folder, thisprefix);
-      // for(int i=0;i<3;i++)
-      //  fAbsPos[i].ConstructHistograms(folder, prefix);
+      for(int i=0;i<2;i++)
+        fAbsPos[i].ConstructHistograms(folder, prefix);
+      //No data for z position
     }
   return;
 };
@@ -517,8 +519,9 @@ void  QwBPMStripline::FillHistograms()
 	  fWire[i].FillHistograms();
       for(int i=0;i<2;i++)
 	fRelPos[i].FillHistograms();
-      // for(int i=0;i<3;i++)
-      //  fAbsPos[i].FillHistograms();
+      for(int i=0;i<2;i++)
+	fAbsPos[i].FillHistograms();
+      //No data for z position
     }
   return;
 };
@@ -536,6 +539,8 @@ void  QwBPMStripline::DeleteHistograms()
 	  fWire[i].DeleteHistograms();
       for(int i=0;i<2;i++)
 	fRelPos[i].DeleteHistograms();
+      for(int i=0;i<2;i++)
+	fAbsPos[i].DeleteHistograms();
     }
   return;
 };
@@ -560,6 +565,8 @@ void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std
 	  fWire[i].ConstructBranchAndVector(tree,thisprefix,values);
       for(int i=0;i<2;i++)
 	fRelPos[i].ConstructBranchAndVector(tree,thisprefix,values);
+      for(int i=0;i<2;i++)
+	fAbsPos[i].ConstructBranchAndVector(tree,thisprefix,values);
     }
   return;
 };
@@ -576,6 +583,8 @@ void  QwBPMStripline::FillTreeVector(std::vector<Double_t> &values)
 	  fWire[i].FillTreeVector(values);
       for(int i=0;i<2;i++)
 	fRelPos[i].FillTreeVector(values);
+      for(int i=0;i<2;i++)
+	fAbsPos[i].FillTreeVector(values);
 
     }
   return;
@@ -621,7 +630,6 @@ void QwBPMStripline::Copy(VQwDataElement *source)
 
 void QwBPMStripline::SetEventCutMode(Int_t bcuts){
   bEVENTCUTMODE=bcuts;
-  //std::cout<<GetElementName()<<" Event Cut Mode "<<bcuts<<std::endl;
   for (Int_t i=0;i<4;i++)
     fWire[i].SetEventCutMode(bcuts);
   for (Int_t i=0;i<2;i++)
@@ -631,4 +639,73 @@ void QwBPMStripline::SetEventCutMode(Int_t bcuts){
   fWSum.SetEventCutMode(bcuts);
 }
 
+QwParityDB::beam QwBPMStripline::GetDBEntry(QwDatabase *db, TString mtype, TString subname)
+{
+  QwParityDB::beam row(0);
+      
+  UInt_t beam_run_id      = 0;
+  UInt_t beam_analysis_id = 0;
+  UInt_t beam_monitor_id  = 0;
+  Char_t beam_measurement_type[4];
+
+  QwVQWK_Channel bpm_sub_element;
+
+  TString name;
+  Double_t avg = 0.0;
+  Double_t err = 0.0;
+ 
+  if(mtype.Contains("yield"))
+    {
+      sprintf(beam_measurement_type, "yp");
+    }
+  else if(mtype.Contains("asymmetry"))
+    {
+      sprintf(beam_measurement_type, "dp");
+    }
+  else if(mtype.Contains("average") )
+    {
+      sprintf(beam_measurement_type, "yp");
+    }
+  else if(mtype.Contains("runningsum"))
+    {
+      sprintf(beam_measurement_type, "yp");
+    }
+  else
+    {
+      sprintf(beam_measurement_type, "null");
+    }
+  
+
+  if      ( subname.Contains("RelX",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fRelPos[0]); bpm_sub_element = fRelPos[0];}
+  else if ( subname.Contains("RelY",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fRelPos[1]); bpm_sub_element = fRelPos[1];}
+  else if ( subname.Contains("AbsX",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fAbsPos[0]); bpm_sub_element = fAbsPos[0];}
+  else if ( subname.Contains("AbsY",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fAbsPos[1]); bpm_sub_element = fAbsPos[1];}
+  else if ( subname.Contains("AbsZ",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fAbsPos[2]); bpm_sub_element = fAbsPos[2];}
+  else if ( subname.Contains("WSum",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fWSum);      bpm_sub_element = fWSum;}
+  else if ( subname.Contains("WireXP", TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fWire[0]);   bpm_sub_element = fWire[0];}
+  else if ( subname.Contains("WireXM", TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fWire[1]);   bpm_sub_element = fWire[1];}
+  else if ( subname.Contains("WireYP", TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fWire[2]);   bpm_sub_element = fWire[2];}
+  else if ( subname.Contains("WireYM", TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fWire[3]);   bpm_sub_element = fWire[3];}
+  else  printf("QwBPMStripline.cc. Your selection is not acceptable and the return QwVQWKChannel contains junk data\n");
+
+  name = bpm_sub_element.GetElementName();
+  avg  = bpm_sub_element.GetAverage();
+  err  = bpm_sub_element.GetAverageError();
+	  
+  beam_run_id      = db->GetRunID();
+  beam_analysis_id = db->GetAnalysisID();
+  beam_monitor_id  = db->GetMonitorID(name.Data());
+
+  row.analysis_id         = beam_analysis_id;
+  row.measurement_type_id = beam_measurement_type;
+  row.monitor_id          = beam_monitor_id;
+  row.value               = avg;
+  row.error               = err;
+
+  printf("%12s::RunID %d AnalysisID %d %4s MonitorID %4d %18s , [%18.2e, %12.2e] \n", 
+	 mtype.Data(), beam_run_id, beam_analysis_id, beam_measurement_type, beam_monitor_id, name.Data(),  avg, err);
+  
+  return row;
+  
+};
 

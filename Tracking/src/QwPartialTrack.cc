@@ -3,23 +3,24 @@ ClassImp(QwPartialTrack);
 
 // ROOT headers
 #include "TMath.h"
+#include "TRandom.h"
 
 // Qweak headers
 #include "QwLog.h"
+#include "QwUnits.h"
+
+// Qweak headers (deprecated)
 #include "Det.h"
 
 // Initialize the static lists
 TClonesArray* QwPartialTrack::gQwTreeLines = 0;
 
+/**
+ * Default constructor
+ */
 QwPartialTrack::QwPartialTrack()
 {
-  // Create the static TClonesArray for the tree lines if not existing yet
-  if (! gQwTreeLines)
-    gQwTreeLines = new TClonesArray("QwTrackingTreeLine", QWPARTIALTRACK_MAX_NUM_TREELINES);
-  // Set local TClonesArray to static TClonesArray and zero hits
-  fQwTreeLines = gQwTreeLines;
-  fNQwTreeLines = 0;
-
+  InitializeTreeLines();
 
   fOffsetX = 0.0; fOffsetY = 0.0;
   fSlopeX = 0.0;  fSlopeY = 0.0;
@@ -29,7 +30,24 @@ QwPartialTrack::QwPartialTrack()
     tline[i] = 0;
 }
 
-QwPartialTrack::~QwPartialTrack() { }
+/**
+ * Constructor with position and direction vectors
+ * @param position Position of the partial track
+ * @param direction Direction of the partial track
+ */
+QwPartialTrack::QwPartialTrack(const TVector3 position, const TVector3 direction)
+{
+  InitializeTreeLines();
+
+  // Calculate slopes
+  fSlopeX = direction.X() / direction.Z();
+  fSlopeY = direction.Y() / direction.Z();
+
+  // Calculate offset
+  fOffsetX = position.X() - fSlopeX * position.Z();
+  fOffsetY = position.Y() - fSlopeY * position.Z();
+}
+
 
 /**
  * Determine the chi^2 for a partial track, weighted by the number of hits
@@ -86,7 +104,22 @@ void QwPartialTrack::Reset(Option_t *option)
   ResetTreeLines();
 };
 
-// Create a new QwTreeLine
+/**
+ * Initialize the list of tree lines
+ */
+void QwPartialTrack::InitializeTreeLines()
+{
+  // Create the static TClonesArray for the tree lines if not existing yet
+  if (! gQwTreeLines)
+    gQwTreeLines = new TClonesArray("QwTrackingTreeLine", QWPARTIALTRACK_MAX_NUM_TREELINES);
+  // Set local TClonesArray to static TClonesArray and zero hits
+  fQwTreeLines = gQwTreeLines;
+  fNQwTreeLines = 0;
+}
+
+/**
+ * Create a new QwTreeLine
+ */
 QwTrackingTreeLine* QwPartialTrack::CreateNewTreeLine()
 {
   TClonesArray &treelines = *fQwTreeLines;
@@ -149,8 +182,11 @@ void QwPartialTrack::PrintValid()
 /**
  * Output stream operator overloading
  */
-ostream& operator<< (ostream& stream, const QwPartialTrack& pt) {
+ostream& operator<< (ostream& stream, const QwPartialTrack& pt)
+{
   stream << "pt: ";
+  if (pt.GetRegion() != kRegionIDNull)
+    stream << "(" << pt.GetRegion() << "/" << "?UD"[pt.GetPackage()] << ") ";
   stream << "(x,y) = (" << pt.fOffsetX << ", " << pt.fOffsetY << "), ";
   stream << "d/dz(x,y) = (" << pt.fSlopeX << ", " << pt.fSlopeY << ")";
   if (pt.fChi > 0.0) { // parttrack has been fitted
@@ -164,7 +200,7 @@ ostream& operator<< (ostream& stream, const QwPartialTrack& pt) {
 /**
  * Determines the position of the track at the given z position
  */
-TVector3 QwPartialTrack::GetPosition(double z)
+const TVector3 QwPartialTrack::GetPosition(const double z) const
 {
   TVector3 position;
   position.SetX(fOffsetX + fSlopeX * z);
@@ -176,7 +212,7 @@ TVector3 QwPartialTrack::GetPosition(double z)
 /**
  * Determines the direction of the track at the given z position
  */
-TVector3 QwPartialTrack::GetDirection(double z)
+const TVector3 QwPartialTrack::GetMomentumDirection() const
 {
   TVector3 direction;
   double kz = sqrt(fSlopeX * fSlopeX + fSlopeY * fSlopeY + 1);
@@ -184,6 +220,46 @@ TVector3 QwPartialTrack::GetDirection(double z)
   direction.SetY(fSlopeY / kz);
   direction.SetZ(1 / kz);
   return direction;
+}
+
+/**
+ * Smear the position of the partial track
+ * @param sigma_x Standard deviation in x
+ * @param sigma_y Standard deviation in y
+ */
+QwPartialTrack& QwPartialTrack::SmearPosition(double sigma_x, double sigma_y)
+{
+  fOffsetX = gRandom->Gaus(fOffsetX, sigma_x);
+  fOffsetY = gRandom->Gaus(fOffsetY, sigma_y);
+  return *this;
+}
+
+/**
+ * Smear the theta angle of the partial track
+ * @param sigma Standard deviation in theta
+ */
+QwPartialTrack& QwPartialTrack::SmearAngleTheta(double sigma)
+{
+  double theta = GetMomentumDirectionTheta();
+  double phi = GetMomentumDirectionPhi();
+  theta = gRandom->Gaus(theta, sigma);
+  fSlopeX = sin(theta) * cos(phi);
+  fSlopeY = sin(theta) * sin(phi);
+  return *this;
+}
+
+/**
+ * Smear the phi angle of the partial track
+ * @param sigma Standard deviation in phi
+ */
+QwPartialTrack& QwPartialTrack::SmearAnglePhi(double sigma)
+{
+  double theta = GetMomentumDirectionTheta();
+  double phi = GetMomentumDirectionPhi();
+  phi = gRandom->Gaus(phi, sigma);
+  fSlopeX = sin(theta) * cos(phi);
+  fSlopeY = sin(theta) * sin(phi);
+  return *this;
 }
 
 /**
@@ -308,7 +384,7 @@ int QwPartialTrack::DeterminePositionInCerenkovBars (EQwDetectorPackage package)
   return cerenkovhit;
 }
 
-int QwPartialTrack::DetermineHitInHDC (EQwDetectorPackage package)
+int QwPartialTrack::DeterminePositionInHDC (EQwDetectorPackage package)
 {
   double lim_hdc[2][2];
 
@@ -350,13 +426,13 @@ int QwPartialTrack::DetermineHitInHDC (EQwDetectorPackage package)
     QwVerbose << "HDC back  hit at : ("
               << hdc_back.X() << "," << hdc_back.Y() << "," << hdc_back.Z() << ")" << QwLog::endl;
 
-    TVector3 partial_track = GetDirection();
+    TVector3 partial_track = GetMomentumDirection();
     QwVerbose << "Partial track direction vector: ("
               << partial_track.X() << "," << partial_track.Y() << "," << partial_track.Z() << ")" << QwLog::endl;
 
     QwVerbose << "Partial track direction angle: "
-              << "theta = " << TMath::RadToDeg() * GetDirectionTheta() << " deg,"
-              << "phi = " << TMath::RadToDeg() * GetDirectionPhi() << " deg" << QwLog::endl;
+              << "theta = " << GetMomentumDirectionTheta() * Qw::deg << " deg,"
+              << "phi = " << GetMomentumDirectionPhi() * Qw::deg << " deg" << QwLog::endl;
 
 
   } else {

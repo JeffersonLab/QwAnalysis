@@ -1,0 +1,188 @@
+*** xterm ***
+
+[] mysql -u root -p qw_test < Extensions/MySQL/qw_test.sql
+[] mysql -u root -p qw_test
+
+*** MySQL ***
+
+mysql> select * from run; 
++--------+------------+----------+------------+----------+-------+-------+
+| run_id | run_number | run_type | start_time | end_time | n_mps | n_qrt |
++--------+------------+----------+------------+----------+-------+-------+
+|      1 |        753 | NULL     | NULL       | NULL     |     0 |     0 | 
++--------+------------+----------+------------+----------+-------+-------+
+1 row in set (0.00 sec)
+
+mysql> select * from analysis;
+Empty set (0.00 sec)
+
+mysql> select * from beam;
+Empty set (0.00 sec)
+
+
+
+**** xterm ***
+[] qwanalysis_mysql -r 753 -e 0:1000
+
+QwDatabase::ValidateConnection() : Successfully connected to requested database.
+MySQL Version: 5.0.77
+QwDatabase::SetAnalysisID() => Analysis Insert Query = INSERT INTO analysis (analysis_id,run_id,seed_id,monitor_calibration_id,cut_id,time,bf_checksum,beam_mode,n_mps,n_qrt,first_event,last_event,segment,slope_calculation,slope_correction) VALUES (0,1,1,1,1,NOW(),'','',0,28,2192380,152579024,-1208642704,'','')
+main:: run 753 Run ID 1 and Analysis ID 1
+Yields 
+RunID 1 AnalysisID 1   yq             empty1 BCM[0], [        -236977.88,    40.38] 
+RunID 1 AnalysisID 1   yq             empty2 BCM[1], [       -8951447.60,   102.37] 
+RunID 1 AnalysisID 1   yq        qwk_batext1 BCM[2], [    12421117299.88,    54.46] 
+RunID 1 AnalysisID 1   yq        qwk_batext2 BCM[3], [     6013174121.32,    56.78] 
+RunID 1 AnalysisID 1   yq        qwk_bcm0l02 BCM[4], [        6393927.54,  7962.81] 
+RunID 1 AnalysisID 1   yq        qwk_batery6 BCM[5], [     4011336274.52,    39.39] 
+RunID 1 AnalysisID 1   yq        qwk_batery7 BCM[6], [     9215995495.77,    42.07] 
+RunID 1 AnalysisID 1   yq       phasemonitor BCM[7], [        -979789.17, 1776310.02] 
+Asymmetries
+RunID 1 AnalysisID 1   aq             empty1 BCM[0], [          8.67e-06, 5.98e-05] 
+RunID 1 AnalysisID 1   aq             empty2 BCM[1], [          1.68e-02, 6.27e-02] 
+RunID 1 AnalysisID 1   aq        qwk_batext1 BCM[2], [         -5.75e-11, 2.04e-09] 
+RunID 1 AnalysisID 1   aq        qwk_batext2 BCM[3], [          2.61e-09, 4.39e-09] 
+RunID 1 AnalysisID 1   aq        qwk_bcm0l02 BCM[4], [          3.95e-05, 2.85e-04] 
+RunID 1 AnalysisID 1   aq        qwk_batery6 BCM[5], [         -1.09e-08, 4.30e-09] 
+RunID 1 AnalysisID 1   aq        qwk_batery7 BCM[6], [          1.77e-09, 1.69e-09] 
+RunID 1 AnalysisID 1   aq       phasemonitor BCM[7], [         -2.11e-03, 5.96e-03] 
+
+
+
+*** MySQL ***
+mysql> select * from run;
++--------+------------+----------+------------+----------+-------+-------+
+| run_id | run_number | run_type | start_time | end_time | n_mps | n_qrt |
++--------+------------+----------+------------+----------+-------+-------+
+|      1 |        753 | NULL     | NULL       | NULL     |     0 |     0 | 
++--------+------------+----------+------------+----------+-------+-------+
+1 row in set (0.01 sec)
+
+mysql> select * from analysis;
++-------------+--------+---------+------------------------+--------+---------------------+-------------+-----------+-------+-------+-------------+------------+-------------+-------------------+------------------+
+| analysis_id | run_id | seed_id | monitor_calibration_id | cut_id | time                | bf_checksum | beam_mode | n_mps | n_qrt | first_event | last_event | segment     | slope_calculation | slope_correction |
++-------------+--------+---------+------------------------+--------+---------------------+-------------+-----------+-------+-------+-------------+------------+-------------+-------------------+------------------+
+|           1 |      1 |       1 |                      1 |      1 | 2010-03-06 00:16:57 |             |           |     0 |    28 |     2192380 |  152579024 | -1208642704 |                   |                  | 
++-------------+--------+---------+------------------------+--------+---------------------+-------------+-----------+-------+-------+-------------+------------+-------------+-------------------+------------------+
+1 row in set (0.00 sec)
+
+mysql> select * from beam;
++---------+-------------+------------+---------------------+--------------+-------------+
+| beam_id | analysis_id | monitor_id | measurement_type_id | value        | error       |
++---------+-------------+------------+---------------------+--------------+-------------+
+|       1 |           1 |          1 | yq                  |      -236978 |     40.3791 | 
+|       2 |           1 |          1 | yq                  | -8.95145e+06 |      102.37 | 
+|       3 |           1 |          1 | yq                  |  1.24211e+10 |     54.4597 | 
+|       4 |           1 |          1 | yq                  |  6.01317e+09 |     56.7833 | 
+|       5 |           1 |          1 | yq                  |  6.39393e+06 |     7962.81 | 
+|       6 |           1 |          1 | yq                  |  4.01134e+09 |     39.3925 | 
+|       7 |           1 |          1 | yq                  |    9.216e+09 |     42.0699 | 
+|       8 |           1 |          1 | yq                  |      -979789 | 1.77631e+06 | 
+|       9 |           1 |          1 | aq                  |  8.66871e-06 | 5.97576e-05 | 
+|      10 |           1 |          1 | aq                  |    0.0167637 |   0.0627137 | 
+|      11 |           1 |          1 | aq                  | -5.75055e-11 | 2.04219e-09 | 
+|      12 |           1 |          1 | aq                  |  2.60988e-09 | 4.38914e-09 | 
+|      13 |           1 |          1 | aq                  |  3.94976e-05 | 0.000285365 | 
+|      14 |           1 |          1 | aq                  | -1.08982e-08 | 4.30211e-09 | 
+|      15 |           1 |          1 | aq                  |  1.77228e-09 | 1.68621e-09 | 
+|      16 |           1 |          1 | aq                  |  -0.00210699 |  0.00596084 | 
++---------+-------------+------------+---------------------+--------------+-------------+
+16 rows in set (0.00 sec)
+
+
+
+*** Xterm ***
+[] qwanalysis_mysql -r 753 -e 0:1000
+......
+[] qwanalysis_mysql -r 753 -e 0:10000
+
+QwDatabase::ValidateConnection() : Successfully connected to requested database.
+MySQL Version: 5.0.77
+QwDatabase::SetAnalysisID() => Analysis Insert Query = INSERT INTO analysis (analysis_id,run_id,seed_id,monitor_calibration_id,cut_id,time,bf_checksum,beam_mode,n_mps,n_qrt,first_event,last_event,segment,slope_calculation,slope_correction) VALUES (0,1,1,1,1,NOW(),'','',0,28,1451004,177544768,-1208425616,'','')
+main:: run 753 Run ID 1 and Analysis ID 3
+Yields 
+RunID 1 AnalysisID 3   yq             empty1 BCM[0], [        -235627.69,    18.61] 
+RunID 1 AnalysisID 3   yq             empty2 BCM[1], [       -8952023.01,    34.51] 
+RunID 1 AnalysisID 3   yq        qwk_batext1 BCM[2], [    12421117615.70,    25.13] 
+RunID 1 AnalysisID 3   yq        qwk_batext2 BCM[3], [     6013173770.75,    17.98] 
+RunID 1 AnalysisID 3   yq        qwk_bcm0l02 BCM[4], [        6368733.74,  2439.32] 
+RunID 1 AnalysisID 3   yq        qwk_batery6 BCM[5], [     4011335302.96,    16.44] 
+RunID 1 AnalysisID 3   yq        qwk_batery7 BCM[6], [     9215996163.76,    15.82] 
+RunID 1 AnalysisID 3   yq       phasemonitor BCM[7], [        -978703.16, 531581.01] 
+Asymmetries
+RunID 1 AnalysisID 3   aq             empty1 BCM[0], [         -2.66e-05, 1.99e-05] 
+RunID 1 AnalysisID 3   aq             empty2 BCM[1], [         -9.50e-03, 1.89e-02] 
+RunID 1 AnalysisID 3   aq        qwk_batext1 BCM[2], [         -1.43e-10, 5.89e-10] 
+RunID 1 AnalysisID 3   aq        qwk_batext2 BCM[3], [         -6.00e-10, 1.31e-09] 
+RunID 1 AnalysisID 3   aq        qwk_bcm0l02 BCM[4], [          1.07e-04, 8.59e-05] 
+RunID 1 AnalysisID 3   aq        qwk_batery6 BCM[5], [          9.48e-10, 1.26e-09] 
+RunID 1 AnalysisID 3   aq        qwk_batery7 BCM[6], [         -1.53e-10, 4.91e-10] 
+RunID 1 AnalysisID 3   aq       phasemonitor BCM[7], [          2.65e-02, 2.96e-02] 
+
+
+*** MySQL ***
+mysql> select * from analysis;
++-------------+--------+---------+------------------------+--------+---------------------+-------------+-----------+-------+-------+-------------+------------+-------------+-------------------+------------------+
+| analysis_id | run_id | seed_id | monitor_calibration_id | cut_id | time                | bf_checksum | beam_mode | n_mps | n_qrt | first_event | last_event | segment     | slope_calculation | slope_correction |
++-------------+--------+---------+------------------------+--------+---------------------+-------------+-----------+-------+-------+-------------+------------+-------------+-------------------+------------------+
+|           1 |      1 |       1 |                      1 |      1 | 2010-03-06 00:16:57 |             |           |     0 |    28 |     2192380 |  152579024 | -1208642704 |                   |                  | 
+|           2 |      1 |       1 |                      1 |      1 | 2010-03-06 00:18:15 |             |           |     0 |    28 |    14599164 |  166861776 | -1208409232 |                   |                  | 
+|           3 |      1 |       1 |                      1 |      1 | 2010-03-06 00:19:06 |             |           |     0 |    28 |     1451004 |  177544768 | -1208425616 |                   |                  | 
++-------------+--------+---------+------------------------+--------+---------------------+-------------+-----------+-------+-------+-------------+------------+-------------+-------------------+------------------+
+3 rows in set (0.00 sec)
+
+mysql> select * from beam;
++---------+-------------+------------+---------------------+--------------+-------------+
+| beam_id | analysis_id | monitor_id | measurement_type_id | value        | error       |
++---------+-------------+------------+---------------------+--------------+-------------+
+|       1 |           1 |          1 | yq                  |      -236978 |     40.3791 | 
+|       2 |           1 |          1 | yq                  | -8.95145e+06 |      102.37 | 
+|       3 |           1 |          1 | yq                  |  1.24211e+10 |     54.4597 | 
+|       4 |           1 |          1 | yq                  |  6.01317e+09 |     56.7833 | 
+|       5 |           1 |          1 | yq                  |  6.39393e+06 |     7962.81 | 
+|       6 |           1 |          1 | yq                  |  4.01134e+09 |     39.3925 | 
+|       7 |           1 |          1 | yq                  |    9.216e+09 |     42.0699 | 
+|       8 |           1 |          1 | yq                  |      -979789 | 1.77631e+06 | 
+|       9 |           1 |          1 | aq                  |  8.66871e-06 | 5.97576e-05 | 
+|      10 |           1 |          1 | aq                  |    0.0167637 |   0.0627137 | 
+|      11 |           1 |          1 | aq                  | -5.75055e-11 | 2.04219e-09 | 
+|      12 |           1 |          1 | aq                  |  2.60988e-09 | 4.38914e-09 | 
+|      13 |           1 |          1 | aq                  |  3.94976e-05 | 0.000285365 | 
+|      14 |           1 |          1 | aq                  | -1.08982e-08 | 4.30211e-09 | 
+|      15 |           1 |          1 | aq                  |  1.77228e-09 | 1.68621e-09 | 
+|      16 |           1 |          1 | aq                  |  -0.00210699 |  0.00596084 | 
+|      17 |           2 |          1 | yq                  |      -236978 |     40.3791 | 
+|      18 |           2 |          1 | yq                  | -8.95145e+06 |      102.37 | 
+|      19 |           2 |          1 | yq                  |  1.24211e+10 |     54.4597 | 
+|      20 |           2 |          1 | yq                  |  6.01317e+09 |     56.7833 | 
+|      21 |           2 |          1 | yq                  |  6.39393e+06 |     7962.81 | 
+|      22 |           2 |          1 | yq                  |  4.01134e+09 |     39.3925 | 
+|      23 |           2 |          1 | yq                  |    9.216e+09 |     42.0699 | 
+|      24 |           2 |          1 | yq                  |      -979789 | 1.77631e+06 | 
+|      25 |           2 |          1 | aq                  |  8.66871e-06 | 5.97576e-05 | 
+|      26 |           2 |          1 | aq                  |    0.0167637 |   0.0627137 | 
+|      27 |           2 |          1 | aq                  | -5.75055e-11 | 2.04219e-09 | 
+|      28 |           2 |          1 | aq                  |  2.60988e-09 | 4.38914e-09 | 
+|      29 |           2 |          1 | aq                  |  3.94976e-05 | 0.000285365 | 
+|      30 |           2 |          1 | aq                  | -1.08982e-08 | 4.30211e-09 | 
+|      31 |           2 |          1 | aq                  |  1.77228e-09 | 1.68621e-09 | 
+|      32 |           2 |          1 | aq                  |  -0.00210699 |  0.00596084 | 
+|      33 |           3 |          1 | yq                  |      -235628 |     18.6081 | 
+|      34 |           3 |          1 | yq                  | -8.95202e+06 |     34.5086 | 
+|      35 |           3 |          1 | yq                  |  1.24211e+10 |     25.1271 | 
+|      36 |           3 |          1 | yq                  |  6.01317e+09 |     17.9759 | 
+|      37 |           3 |          1 | yq                  |  6.36873e+06 |     2439.32 | 
+|      38 |           3 |          1 | yq                  |  4.01134e+09 |     16.4415 | 
+|      39 |           3 |          1 | yq                  |    9.216e+09 |     15.8209 | 
+|      40 |           3 |          1 | yq                  |      -978703 |      531581 | 
+|      41 |           3 |          1 | aq                  | -2.65964e-05 | 1.99203e-05 | 
+|      42 |           3 |          1 | aq                  |  -0.00949516 |    0.018883 | 
+|      43 |           3 |          1 | aq                  | -1.43006e-10 | 5.88916e-10 | 
+|      44 |           3 |          1 | aq                  | -6.00135e-10 | 1.31326e-09 | 
+|      45 |           3 |          1 | aq                  |  0.000106825 | 8.58886e-05 | 
+|      46 |           3 |          1 | aq                  |  9.47539e-10 | 1.25905e-09 | 
+|      47 |           3 |          1 | aq                  | -1.53319e-10 | 4.90603e-10 | 
+|      48 |           3 |          1 | aq                  |    0.0264995 |   0.0295602 | 
++---------+-------------+------------+---------------------+--------------+-------------+
+48 rows in set (0.00 sec)
+

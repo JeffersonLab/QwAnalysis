@@ -37,10 +37,13 @@ class QwVQWK_Channel: public VQwDataElement {
  ******************************************************************/
  public:
   QwVQWK_Channel() { };
+
   QwVQWK_Channel(TString name, TString datatosave="raw"){
     InitializeChannel(name, datatosave);
   };
-  ~QwVQWK_Channel() {DeleteHistograms();};
+  ~QwVQWK_Channel() {
+  //DeleteHistograms();
+  };
 
   void  InitializeChannel(TString name, TString datatosave);
 
@@ -77,9 +80,12 @@ class QwVQWK_Channel: public VQwDataElement {
   void Sum(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
   void Difference(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
   void Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom);
+  void Product(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
+
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
   void Calculate_Running_Average();//pass the current event count in the run to calculate running average
+  void Print_Running_Average();
   void Do_RunningSum();
 
   Bool_t MatchSequenceNumber(size_t seqnum);
@@ -123,6 +129,8 @@ class QwVQWK_Channel: public VQwDataElement {
   void Copy(VQwDataElement *source);
 
   void Print() const;
+  Double_t GetAverage() {return fAverage_n;};
+  Double_t GetAverageError() {return fAverage_error;};
 
  protected:
 
@@ -164,10 +172,12 @@ class QwVQWK_Channel: public VQwDataElement {
   /* the following values potentially have pedestal removed  and calibration applied */
   Double_t fBlock[4];         /*! Array of the sub-block data             */
   Double_t fHardwareBlockSum; /*! Module-based sum of the four sub-blocks */
+
   size_t fSequenceNumber;     /*! Event sequence number for this channel  */
   size_t fPreviousSequenceNumber; /*! Previous event sequence number for this channel  */
   size_t fNumberOfSamples;    /*! Number of samples  read through the module        */
   size_t fNumberOfSamples_map;    /*! Number of samples in the expected to  read through the module. This value is set in the QwBeamline map file     */
+
   size_t fEventNumber;
 
   /// \name Parity mock data distributions
@@ -214,7 +224,7 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t fRunning_sum_square;//Running sum square for the device
   Double_t fAverage_n;/* Running average for the device !*/
   Double_t fAverage_n_square;/* Running average square for the device !*/
-
+  Double_t fAverage_error;
   Int_t fGoodEventCount;//counts the HW and event check passed events
 
   Int_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF

@@ -13,28 +13,28 @@ sample_size=400
 ! physical module/channel
 !
 ! ModuleType, Module#, Chan#, DetType, DetName
-  VQWK, 0, 0,  IntegrationPMT,  Bar1Left
-  VQWK, 0, 1,  IntegrationPMT,  Bar2Left
-  VQWK, 0, 2,  IntegrationPMT,  Bar3Left
-  VQWK, 0, 3,  IntegrationPMT,  Bar4Left
-  VQWK, 0, 4,  IntegrationPMT,  Bar5Left
-  VQWK, 0, 5,  IntegrationPMT,  Bar6Left
-  VQWK, 0, 6,  IntegrationPMT,  Bar7Left
-  VQWK, 0, 7,  IntegrationPMT,  Bar8Left
+  VQWK, 0, 0,  IntegrationPMT,  MD1Neg
+  VQWK, 0, 1,  IntegrationPMT,  MD2Neg
+  VQWK, 0, 2,  IntegrationPMT,  MD3Neg
+  VQWK, 0, 3,  IntegrationPMT,  MD4Neg
+  VQWK, 0, 4,  IntegrationPMT,  MD5Neg
+  VQWK, 0, 5,  IntegrationPMT,  MD6Neg
+  VQWK, 0, 6,  IntegrationPMT,  MD7Neg
+  VQWK, 0, 7,  IntegrationPMT,  MD8Neg
 !
 ! ModuleType, Module#, Chan#, DetType, DetName
-  VQWK, 1, 0,  IntegrationPMT,  Bar1Right
-  VQWK, 1, 1,  IntegrationPMT,  Bar2Right
-  VQWK, 1, 2,  IntegrationPMT,  Bar3Right
-  VQWK, 1, 3,  IntegrationPMT,  Bar4Right
-  VQWK, 1, 4,  IntegrationPMT,  Bar5Right
-  VQWK, 1, 5,  IntegrationPMT,  Bar6Right
-  VQWK, 1, 6,  IntegrationPMT,  Bar7Right
-  VQWK, 1, 7,  IntegrationPMT,  Bar8Right
+  VQWK, 1, 0,  IntegrationPMT,  MD1Pos
+  VQWK, 1, 1,  IntegrationPMT,  MD2Pos
+  VQWK, 1, 2,  IntegrationPMT,  MD3Pos
+  VQWK, 1, 3,  IntegrationPMT,  MD4Pos
+  VQWK, 1, 4,  IntegrationPMT,  MD5Pos
+  VQWK, 1, 5,  IntegrationPMT,  MD6Pos
+  VQWK, 1, 6,  IntegrationPMT,  MD7Pos
+  VQWK, 1, 7,  IntegrationPMT,  MD8Pos
 !
 ! ModuleType, Module#, Chan#, DetType, DetName
-  VQWK, 2, 0,  IntegrationPMT,  Bar0Left
-  VQWK, 2, 1,  IntegrationPMT,  Bar0Right
+  VQWK, 2, 0,  IntegrationPMT,  MD0Neg
+  VQWK, 2, 1,  IntegrationPMT,  MD0Pos
   VQWK, 2, 2,  IntegrationPMT,  Spare1
   VQWK, 2, 3,  IntegrationPMT,  AnciD1
   VQWK, 2, 4,  IntegrationPMT,  AnciD2
@@ -47,15 +47,15 @@ sample_size=400
 ! when naming the DetName, do not use arithmetic and logic operators, such as +,-, &, and so on
 !
 ! ModuleType, Chan#, NumberOfCombinedChan's, DetType, DetName, PhysicalChanNames, WeightNumbers,
-  VPMT, 0, 2,  CombinationPMT,  Bar1Left_Bar5Left,     Bar1Left,   Bar5Left,  1.0,  1.0
-  VPMT, 1, 2,  CombinationPMT,  Bar2Left_Bar6Left,     Bar2Left,   Bar6Left,  1.0,  1.0
-  VPMT, 2, 2,  CombinationPMT,  Bar3Left_Bar7Left,     Bar3Left,   Bar7Left,  1.0,  1.0
-  VPMT, 3, 2,  CombinationPMT,  Bar4Left_Bar8Left,     Bar4Left,   Bar8Left,  1.0,  1.0
-  VPMT, 4, 2,  CombinationPMT,  Bar1Right_Bar5Right,   Bar1Right,  Bar5Right, 1.0,  1.0
-  VPMT, 5, 2,  CombinationPMT,  Bar2Right_Bar6Right,   Bar2Right,  Bar6Right, 1.0,  1.0
-  VPMT, 6, 2,  CombinationPMT,  Bar3Right_Bar7Right,   Bar3Right,  Bar7Right, 1.0,  1.0
-  VPMT, 7, 2,  CombinationPMT,  Bar4Right_Bar8Right,   Bar4Right,  Bar8Right, 1.0,  1.0
-  VPMT, 8, 16, CombinationPMT,  CombinationAllBar,     Bar1Left,   Bar1Right,  Bar2Left,   Bar2Right,  Bar3Left,   Bar3Right,  Bar4Left,   Bar4Right,  Bar5Left,  Bar5Right,  Bar6Left,   Bar6Right,  Bar7Left,   Bar7Right,  Bar8Left,   Bar8Right, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
+  VPMT, 0, 2,  CombinationPMT,  MD1Neg_MD5Neg,  MD1Neg,  MD5Neg, 1.0,  1.0
+  VPMT, 1, 2,  CombinationPMT,  MD2Neg_MD6Neg,  MD2Neg,  MD6Neg, 1.0,  1.0
+  VPMT, 2, 2,  CombinationPMT,  MD3Neg_MD7Neg,  MD3Neg,  MD7Neg, 1.0,  1.0
+  VPMT, 3, 2,  CombinationPMT,  MD4Neg_MD8Neg,  MD4Neg,  MD8Neg, 1.0,  1.0
+  VPMT, 4, 2,  CombinationPMT,  MD1Pos_MD5Pos,  MD1Pos,  MD5Pos, 1.0,  1.0
+  VPMT, 5, 2,  CombinationPMT,  MD2Pos_MD6Pos,  MD2Pos,  MD6Pos, 1.0,  1.0
+  VPMT, 6, 2,  CombinationPMT,  MD3Pos_MD7Pos,  MD3Pos,  MD7Pos, 1.0,  1.0
+  VPMT, 7, 2,  CombinationPMT,  MD4Pos_MD8Pos,  MD4Pos,  MD8Pos, 1.0,  1.0
+  VPMT, 8, 16, CombinationPMT,  CombinationAllMD, MD1Neg, MD1Pos, MD2Neg, MD2Pos, MD3Neg, MD3Pos, MD4Neg, MD4Pos, MD5Neg, MD5Pos, MD6Neg, MD6Pos, MD7Neg, MD7Pos, MD8Neg, MD8Pos, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
 !
 !
 !
@@ -99,23 +99,23 @@ sample_size=400
 !!!!
 !!!!
 !!!! module.type, module.chan, det.type, det.name
-!!!  VQWK, 0, 0,  IntegrationPMT,  Bar1Left
-!!!  VQWK, 0, 1,  IntegrationPMT,  Bar2Left
-!!!  VQWK, 0, 2,  IntegrationPMT,  Bar3Left
-!!!  VQWK, 0, 3,  IntegrationPMT,  Bar4Left
-!!!  VQWK, 0, 4,  IntegrationPMT,  Bar1Right
-!!!  VQWK, 0, 5,  IntegrationPMT,  Bar2Right
-!!!  VQWK, 0, 6,  IntegrationPMT,  Bar3Right
-!!!  VQWK, 0, 7,  IntegrationPMT,  Bar4Right
+!!!  VQWK, 0, 0,  IntegrationPMT,  MD1Neg
+!!!  VQWK, 0, 1,  IntegrationPMT,  MD2Neg
+!!!  VQWK, 0, 2,  IntegrationPMT,  MD3Neg
+!!!  VQWK, 0, 3,  IntegrationPMT,  MD4Neg
+!!!  VQWK, 0, 4,  IntegrationPMT,  MD1Pos
+!!!  VQWK, 0, 5,  IntegrationPMT,  MD2Pos
+!!!  VQWK, 0, 6,  IntegrationPMT,  MD3Pos
+!!!  VQWK, 0, 7,  IntegrationPMT,  MD4Pos
 !!!! module.type, module.chan, det.type, det.name
-!!!  VQWK, 1, 0,  IntegrationPMT,  Bar5Left
-!!!  VQWK, 1, 1,  IntegrationPMT,  Bar6Left
-!!!  VQWK, 1, 2,  IntegrationPMT,  Bar7Left
-!!!  VQWK, 1, 3,  IntegrationPMT,  Bar8Left
-!!!  VQWK, 1, 4,  IntegrationPMT,  Bar5Right
-!!!  VQWK, 1, 5,  IntegrationPMT,  Bar6Right
-!!!  VQWK, 1, 6,  IntegrationPMT,  Bar7Right
-!!!  VQWK, 1, 7,  IntegrationPMT,  Bar8Right
+!!!  VQWK, 1, 0,  IntegrationPMT,  MD5Neg
+!!!  VQWK, 1, 1,  IntegrationPMT,  MD6Neg
+!!!  VQWK, 1, 2,  IntegrationPMT,  MD7Neg
+!!!  VQWK, 1, 3,  IntegrationPMT,  MD8Neg
+!!!  VQWK, 1, 4,  IntegrationPMT,  MD5Pos
+!!!  VQWK, 1, 5,  IntegrationPMT,  MD6Pos
+!!!  VQWK, 1, 6,  IntegrationPMT,  MD7Pos
+!!!  VQWK, 1, 7,  IntegrationPMT,  MD8Pos
 !!!! module.type, module.chan, det.type, det.name
 !!!  VQWK, 2, 0,  IntegrationPMT,  C20AXM
 !!!  VQWK, 2, 1,  IntegrationPMT,  Spare1

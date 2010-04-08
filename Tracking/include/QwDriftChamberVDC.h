@@ -60,9 +60,11 @@ class QwDriftChamberVDC: public QwDriftChamber {
 
 
  void  ProcessEvent();
-
+ Int_t ProcessConfigurationBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+ void  PrintConfigrationBuffer(UInt_t *buffer, UInt_t num_words);
+ 
  void ClearEventData();
-
+   
  
 
  //void GetHitList(QwHitContainer & grandHitContainer){

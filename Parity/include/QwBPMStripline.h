@@ -11,8 +11,11 @@
 #include <vector>
 #include <TTree.h>
 
-#include "QwVQWK_Channel.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwSSQLS.h"
 
+#include "QwVQWK_Channel.h"
+#include "QwDatabase.h"
 
 /*****************************************************************
 *  Class:
@@ -86,6 +89,8 @@ class QwBPMStripline : public VQwDataElement{
   void  FillTreeVector(std::vector<Double_t> &values);
   void  SetRootSaveStatus(TString &prefix);
 
+  QwParityDB::beam GetDBEntry(QwDatabase* db, TString mtype, TString subname);
+
   /////
  private:
   static const Bool_t kDEBUG;
@@ -111,12 +116,8 @@ class QwBPMStripline : public VQwDataElement{
   QwVQWK_Channel fWire[4];
   QwVQWK_Channel fWSum;
   QwVQWK_Channel fRelPos[2];
-  
-  
   /* These channels contain the beam position within the frame of the BPM*/
   QwVQWK_Channel fAbsPos[3];
-  
-    
   
 
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode

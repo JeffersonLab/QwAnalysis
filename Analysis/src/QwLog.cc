@@ -62,6 +62,11 @@ QwLog::~QwLog()
  * Defines configuration options for QwDatabase class using QwOptions
  * functionality.
  *
+ * Note: this uses a pointer as opposed to a reference, because as indicated
+ * above the QwLog class cannot depend on the QwOptions class.  When using a
+ * pointer we only need a forward declaration and we do not need to include
+ * the header file QwOptions.h.
+ *
  * @param options Options object
  */
 void QwLog::DefineOptions(QwOptions* options)
@@ -120,22 +125,24 @@ QwLog& QwLog::operator()(QwLogLevel level)
 
   if (fScreen && fLogLevel <= fScreenThreshold) {
     if (QwLogScreenAtNewLine) {
-      switch (level) {
-      case kError:
-        if (fUseColor)
-          *(fScreen) << QwColor(Qw::kRed) << "Error: ";
-        else
-          *(fScreen) << "Error: ";
-        break;
-      case kWarning:
-        if (fUseColor)
-          *(fScreen) << QwColor(Qw::kRed) << "Warning: " << QwColor(Qw::kNormal);
-        else
-          *(fScreen) << "Warning: ";
-        break;
-      default: break;
-      }
+      // Put something at the beginning of a new line
       QwLogScreenAtNewLine = kFALSE;
+    }
+    switch (level) {
+    case kError:
+      if (fUseColor)
+        *(fScreen) << QwColor(Qw::kRed) << "Error: ";
+      else
+        *(fScreen) << "Error: ";
+      break;
+    case kWarning:
+      if (fUseColor)
+        *(fScreen) << QwColor(Qw::kRed) << "Warning: " << QwColor(Qw::kNormal);
+      else
+        *(fScreen) << "Warning: ";
+      break;
+    default:
+      break;
     }
   }
 

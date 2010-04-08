@@ -164,10 +164,10 @@ CXXFLAGS += $(MYINCLUDES)
 
 ifdef CODA
 SRC = THaEtClient.C THaCodaFile.C THaCodaData.C
-ALL = etclient etHeartbeat tstio tstcoda libevio.a libcoda.a libcoda.so
+ALL = etclient etHeartbeat tstio tstcoda libevio.a libmyevio.a libmyevio.so
 else
 SRC = THaCodaFile.C THaCodaData.C 
-ALL = tstio libevio.a libcoda.a libcoda.so
+ALL = tstio libevio.a libmyevio.a libmyevio.so
 endif
 HEAD = $(SRC:.C=.h)
 DEPS = $(SRC:.C=.d)
@@ -197,12 +197,12 @@ tstcoda: tstcoda_main.o THaCodaFile.o THaCodaData.o THaEtClient.o $(MYINCDIR)/TH
 
 
 # Here we build a library with all this stuff
-libcoda.a: $(DECODE_OBJS) clean_evio evio.o swap_util.o 
+libmyevio.a: $(DECODE_OBJS) clean_evio evio.o swap_util.o 
 	rm -f $@
 	ar cr $@ $(DECODE_OBJS) evio.o swap_util.o 
 
 # Here we build a library with all this stuff
-libcoda.so: $(DECODE_OBJS) evio.o swap_util.o 
+libmyevio.so: $(DECODE_OBJS) evio.o swap_util.o 
 	rm -f $@
 	$(LD) $(ROOTLIBS) $(SOFLAGS) -o $@ $(DECODE_OBJS) evio.o swap_util.o 
 

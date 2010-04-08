@@ -6,9 +6,13 @@
 \**********************************************************/
 
 #include "QwSubsystemArray.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
 
+// Qweak headers
+#include "QwLog.h"
+#include "QwHistogramHelper.h"
 
 
 //*****************************************************************
@@ -30,10 +34,15 @@ void QwSubsystemArray::push_back(VQwSubsystem* subsys)
     std::cerr << "QwSubsystemArray::push_back():  subsys" << subsys->GetSubsystemName()
               << " already exists" << std::endl;
   } else {
-    boost::shared_ptr<VQwSubsystem> tmpptr(subsys);
-    SubsysPtrs::push_back(tmpptr);
+    boost::shared_ptr<VQwSubsystem> subsys_tmp(subsys);
+    SubsysPtrs::push_back(subsys_tmp);
     // Set the parent of the subsystem to this array
-    tmpptr->SetParent(this);
+    subsys_tmp->SetParent(this);
+    // Instruct the subsystem to publish variables
+    if (subsys_tmp->PublishInternalValues() == kFALSE) {
+      QwError << "Not all variables for " << subsys_tmp->GetSubsystemName()
+              << " could be published!" << QwLog::endl;
+    }
   }
 };
 

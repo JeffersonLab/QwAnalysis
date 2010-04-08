@@ -30,6 +30,7 @@
 
 HelicityDecodingMode=InputRegisterMode
 PatternPhase=4
+!NumberPatternsDelayed=2
 
 !seed size is either 24 bit or 30 bit. default is 24 bit
 !RandSeedBits=24
@@ -50,7 +51,7 @@ WORD, 0,  0, helicitydata,  cleandata
 WORD, 0,  0, helicitydata,  scandata1
 WORD, 0,  0, helicitydata,  scandata2
 !END
-!
+! 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -66,7 +67,7 @@ WORD, 0,  0, helicitydata,  scandata2
 !Bank=0x3101
 !
 ! module.type, module.num  chan.num, det.type, det.name
-!
+! 
 !WORD, 0,  0, helicitydata,  cleandata
 !WORD, 0,  0, helicitydata,  scandata1
 !WORD, 0,  0, helicitydata,  scandata2
@@ -74,4 +75,4 @@ WORD, 0,  0, helicitydata,  scandata2
 !WORD, 0,  0, helicitydata,  scalercounter
 !WORD, 0,  0, helicitydata,  userbit 
 !END
- 
+  

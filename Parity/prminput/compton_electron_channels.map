@@ -1,0 +1,875 @@
+ROC=0
+Bank=0x0207
+! Master V1495 board
+
+
+ROC=1
+Bank=0x0201
+!V1495 slave 1, electron single event mode
+! module.type, module.num  chan.num, det.type, det.name
+! Key: espl1st1= compton electron single event plane 1 strip 1
+! A port
+V1495,	       	0,	0,	esingle,	espl1st1 
+V1495,	       	0,	1,	esingle,	espl1st2 
+V1495,	       	0,	2,	esingle,	espl1st3 
+V1495,	       	0,	3,	esingle,	espl1st4 
+V1495,	       	0,	4,	esingle,	espl1st5 
+V1495,	       	0,	5,	esingle,	espl1st6 
+V1495,	       	0,	6,	esingle,	espl1st7 
+V1495,	       	0,	7,	esingle,	espl1st8 
+V1495,	       	0,	8,	esingle,	espl1st9 
+V1495,	       	0,	9,	esingle,	espl1st10
+V1495,	       	0,	10,	esingle,	espl1st11
+V1495,	       	0,	11,	esingle,	espl1st12
+V1495,	       	0,	12,	esingle,	espl1st13
+V1495,	       	0,	13,	esingle,	espl1st14
+V1495,	       	0,	14,	esingle,	espl1st15
+V1495,	       	0,	15,	esingle,	espl1st16
+V1495,	       	0,	16,	esingle,	espl1st17
+V1495,	       	0,	17,	esingle,	espl1st18
+V1495,	       	0,	18,	esingle,	espl1st19
+V1495,	       	0,	19,	esingle,	espl1st20
+V1495,	       	0,	20,	esingle,	espl1st21
+V1495,	       	0,	21,	esingle,	espl1st22
+V1495,	       	0,	22,	esingle,	espl1st23
+V1495,	       	0,	23,	esingle,	espl1st24
+V1495,	       	0,	24,	esingle,	espl1st25
+V1495,	       	0,	25,	esingle,	espl1st26
+V1495,	       	0,	26,	esingle,	espl1st27
+V1495,	       	0,	27,	esingle,	espl1st28
+V1495,	       	0,	28,	esingle,	espl1st29
+V1495,	       	0,	29,	esingle,	espl1st30
+V1495,	       	0,	30,	esingle,	espl1st31
+V1495,	       	0,	31,	esingle,	espl1st32
+! B port
+V1495,	       	0,	32,	esingle,	espl2st1 
+V1495,	       	0,	33,	esingle,	espl2st2 
+V1495,	       	0,	34,	esingle,	espl2st3 
+V1495,	       	0,	35,	esingle,	espl2st4 
+V1495,	       	0,	36,	esingle,	espl2st5 
+V1495,	       	0,	37,	esingle,	espl2st6 
+V1495,	       	0,	38,	esingle,	espl2st7 
+V1495,	       	0,	39,	esingle,	espl2st8 
+V1495,	       	0,	40,	esingle,	espl2st9 
+V1495,	       	0,	41,	esingle,	espl2st10
+V1495,	       	0,	42,	esingle,	espl2st11
+V1495,	       	0,	43,	esingle,	espl2st12
+V1495,	       	0,	44,	esingle,	espl2st13
+V1495,	       	0,	45,	esingle,	espl2st14
+V1495,	       	0,	46,	esingle,	espl2st15
+V1495,	       	0,	47,	esingle,	espl2st16
+V1495,	       	0,	48,	esingle,	espl2st17
+V1495,	       	0,	49,	esingle,	espl2st18
+V1495,	       	0,	50,	esingle,	espl2st19
+V1495,	       	0,	51,	esingle,	espl2st20
+V1495,	       	0,	52,	esingle,	espl2st21
+V1495,	       	0,	53,	esingle,	espl2st22
+V1495,	       	0,	54,	esingle,	espl2st23
+V1495,	       	0,	55,	esingle,	espl2st24
+V1495,	       	0,	56,	esingle,	espl2st25
+V1495,	       	0,	57,	esingle,	espl2st26
+V1495,	       	0,	58,	esingle,	espl2st27
+V1495,	       	0,	59,	esingle,	espl2st28
+V1495,	       	0,	60,	esingle,	espl2st29
+V1495,	       	0,	61,	esingle,	espl2st30
+V1495,	       	0,	62,	esingle,	espl2st31
+V1495,	       	0,	63,	esingle,	espl2st32
+! C port
+! Is C port stuff in the subbank? If yes put them here and increment 
+! the D, E, F and G port channels by 31.
+! D port
+V1495,	       	0,	64,	esingle,	espl3st1 
+V1495,	       	0,	65,	esingle,	espl3st2 
+V1495,	       	0,	66,	esingle,	espl3st3 
+V1495,	       	0,	67,	esingle,	espl3st4 
+V1495,	       	0,	68,	esingle,	espl3st5 
+V1495,	       	0,	69,	esingle, 	espl3st6 
+V1495,	       	0,	70,	esingle,	espl3st7 
+V1495,	       	0,	71,	esingle,	espl3st8 
+V1495,	       	0,	72,	esingle,	espl3st9 
+V1495,	       	0,	73,	esingle,	espl3st10
+V1495,	       	0,	74,	esingle,	espl3st11
+V1495,	       	0,	75,	esingle,	espl3st12
+V1495,	       	0,	76,	esingle,	espl3st13
+V1495,	       	0,	77,	esingle,	espl3st14
+V1495,	       	0,	78,	esingle,	espl3st15
+V1495,	       	0,	79,	esingle,	espl3st16
+V1495,	       	0,	80,	esingle,	espl3st17
+V1495,	       	0,	81,	esingle,	espl3st18
+V1495,	       	0,	82,	esingle,	espl3st19
+V1495,	       	0,	83,	esingle,	espl3st20
+V1495,	       	0,	84,	esingle,	espl3st21
+V1495,	       	0,	85,	esingle,	espl3st22
+V1495,	       	0,	86,	esingle,	espl3st23
+V1495,	       	0,	87,	esingle,	espl3st24
+V1495,	       	0,	88,	esingle,	espl3st25
+V1495,	       	0,	89,	esingle,	espl3st26
+V1495,	       	0,	90,	esingle,	espl3st27
+V1495,	       	0,	91,	esingle,	espl3st28
+V1495,	       	0,	92,	esingle,	espl3st29
+V1495,	       	0,	93,	esingle,	espl3st30
+V1495,	       	0,	94,	esingle,	espl3st31
+V1495,	       	0,	95,	esingle,	espl3st32
+! E port
+V1495,	       	0,	96,	esingle,	espl4st1 
+V1495,	       	0,	97,	esingle,	espl4st2 
+V1495,	       	0,	98,	esingle,	espl4st3 
+V1495,	       	0,	99,	esingle,	espl4st4 
+V1495,	       	0,	100,	esingle,	espl4st5 
+V1495,	       	0,	101,	esingle,	espl4st6 
+V1495,	       	0,	102,	esingle,	espl4st7 
+V1495,	       	0,	103,	esingle,	espl4st8 
+V1495,	       	0,	104,	esingle,	espl4st9 
+V1495,	       	0,	105,	esingle,	espl4st10
+V1495,	       	0,	106,	esingle,	espl4st11
+V1495,	       	0,	107,	esingle,	espl4st12
+V1495,	       	0,	108,	esingle,	espl4st13
+V1495,	       	0,	109,	esingle,	espl4st14
+V1495,	       	0,	110,	esingle,	espl4st15
+V1495,	       	0,	111,	esingle,	espl4st16
+V1495,	       	0,	112,	esingle,	espl4st17
+V1495,	       	0,	113,	esingle,	espl4st18
+V1495,	       	0,	114,	esingle,	espl4st19
+V1495,	       	0,	115,	esingle,	espl4st20
+V1495,	       	0,	116,	esingle,	espl4st21
+V1495,	       	0,	117,	esingle,	espl4st22
+V1495,	       	0,	118,	esingle,	espl4st23
+V1495,	       	0,	119,	esingle,	espl4st24
+V1495,	       	0,	120,	esingle,	espl4st25
+V1495,	       	0,	121,	esingle,	espl4st26
+V1495,	       	0,	122,	esingle,	espl4st27
+V1495,	       	0,	123,	esingle,	espl4st28
+V1495,	       	0,	124,	esingle,	espl4st29
+V1495,	       	0,	125,	esingle,	espl4st30
+V1495,	       	0,	126,	esingle,	espl4st31
+V1495,	       	0,	127,	esingle,	espl4st32
+!F port
+! are these in the subbank? if yes put here
+!G port
+! are these in the subbank? if yes put here
+
+Bank=0x0204
+! V1495 Slave 1, electron accumulation mode
+! module.type, module.num  chan.num, det.type, det.name
+! Key: eapl1st1= electron accum plane 1 strip 1
+! A port
+V1495,	       	0,	0,	eaccum,		eapl1st1 
+V1495,	       	0,	1,	eaccum,		eapl1st2 
+V1495,	       	0,	2,	eaccum,		eapl1st3 
+V1495,	       	0,	3,	eaccum,		eapl1st4 
+V1495,	       	0,	4,	eaccum,		eapl1st5 
+V1495,	       	0,	5,	eaccum,		eapl1st6 
+V1495,	       	0,	6,	eaccum,		eapl1st7 
+V1495,	       	0,	7,	eaccum,		eapl1st8 
+V1495,	       	0,	8,	eaccum,		eapl1st9 
+V1495,	       	0,	9,	eaccum,		eapl1st10
+V1495,	       	0,	10,	eaccum,		eapl1st11
+V1495,	       	0,	11,	eaccum,		eapl1st12
+V1495,	       	0,	12,	eaccum,		eapl1st13
+V1495,	       	0,	13,	eaccum,		eapl1st14
+V1495,	       	0,	14,	eaccum,		eapl1st15
+V1495,	       	0,	15,	eaccum,		eapl1st16
+V1495,	       	0,	16,	eaccum,		eapl1st17
+V1495,	       	0,	17,	eaccum,		eapl1st18
+V1495,	       	0,	18,	eaccum,		eapl1st19
+V1495,	       	0,	19,	eaccum,		eapl1st20
+V1495,	       	0,	20,	eaccum,		eapl1st21
+V1495,	       	0,	21,	eaccum,		eapl1st22
+V1495,	       	0,	22,	eaccum,		eapl1st23
+V1495,	       	0,	23,	eaccum,		eapl1st24
+V1495,	       	0,	24,	eaccum,		eapl1st25
+V1495,	       	0,	25,	eaccum,		eapl1st26
+V1495,	       	0,	26,	eaccum,		eapl1st27
+V1495,	       	0,	27,	eaccum,		eapl1st28
+V1495,	       	0,	28,	eaccum,		eapl1st29
+V1495,	       	0,	29,	eaccum,		eapl1st30
+V1495,	       	0,	30,	eaccum,		eapl1st31
+V1495,	       	0,	31,	eaccum,		eapl1st32
+! B port
+V1495,	       	0,	32,	eaccum,	eapl2st1 
+V1495,	       	0,	33,	eaccum,	eapl2st2 
+V1495,	       	0,	34,	eaccum,		eapl2st3 
+V1495,	       	0,	35,	eaccum,		eapl2st4 
+V1495,	       	0,	36,	eaccum,		eapl2st5 
+V1495,	       	0,	37,	eaccum,		eapl2st6 
+V1495,	       	0,	38,	eaccum,		eapl2st7 
+V1495,	       	0,	39,	eaccum,		eapl2st8 
+V1495,	       	0,	40,	eaccum,		eapl2st9 
+V1495,	       	0,	41,	eaccum,		eapl2st10
+V1495,	       	0,	42,	eaccum,		eapl2st11
+V1495,	       	0,	43,	eaccum,		eapl2st12
+V1495,	       	0,	44,	eaccum,		eapl2st13
+V1495,	       	0,	45,	eaccum,		eapl2st14
+V1495,	       	0,	46,	eaccum,		eapl2st15
+V1495,	       	0,	47,	eaccum,		eapl2st16
+V1495,	       	0,	48,	eaccum,		eapl2st17
+V1495,	       	0,	49,	eaccum,		eapl2st18
+V1495,	       	0,	50,	eaccum,		eapl2st19
+V1495,	       	0,	51,	eaccum,		eapl2st20
+V1495,	       	0,	52,	eaccum,		eapl2st21
+V1495,	       	0,	53,	eaccum,		eapl2st22
+V1495,	       	0,	54,	eaccum,		eapl2st23
+V1495,	       	0,	55,	eaccum,		eapl2st24
+V1495,	       	0,	56,	eaccum,		eapl2st25
+V1495,	       	0,	57,	eaccum,		eapl2st26
+V1495,	       	0,	58,	eaccum,		eapl2st27
+V1495,	       	0,	59,	eaccum,		eapl2st28
+V1495,	       	0,	60,	eaccum,		eapl2st29
+V1495,	       	0,	61,	eaccum,		eapl2st30
+V1495,	       	0,	62,	eaccum,		eapl2st31
+V1495,	       	0,	63,	eaccum,		eapl2st32
+! C port
+! Is C port stuff in the subbank? If yes put them here and increment 
+! the D, E, F and G port channels by 31.
+! D port
+V1495,	       	0,	64,	eaccum,		eapl3st1 
+V1495,	       	0,	65,	eaccum,		eapl3st2 
+V1495,	       	0,	66,	eaccum,		eapl3st3 
+V1495,	       	0,	67,	eaccum,		eapl3st4 
+V1495,	       	0,	68,	eaccum,		eapl3st5 
+V1495,	       	0,	69,	eaccum,		eapl3st6 
+V1495,	       	0,	70,	eaccum,		eapl3st7 
+V1495,	       	0,	71,	eaccum,		eapl3st8 
+V1495,	       	0,	72,	eaccum,		eapl3st9 
+V1495,	       	0,	73,	eaccum,		eapl3st10
+V1495,	       	0,	74,	eaccum,		eapl3st11
+V1495,	       	0,	75,	eaccum,		eapl3st12
+V1495,	       	0,	76,	eaccum,		eapl3st13
+V1495,	       	0,	77,	eaccum,		eapl3st14
+V1495,	       	0,	78,	eaccum,		eapl3st15
+V1495,	       	0,	79,	eaccum,		eapl3st16
+V1495,	       	0,	80,	eaccum,		eapl3st17
+V1495,	       	0,	81,	eaccum,		eapl3st18
+V1495,	       	0,	82,	eaccum,		eapl3st19
+V1495,	       	0,	83,	eaccum,		eapl3st20
+V1495,	       	0,	84,	eaccum,		eapl3st21
+V1495,	       	0,	85,	eaccum,		eapl3st22
+V1495,	       	0,	86,	eaccum,		eapl3st23
+V1495,	       	0,	87,	eaccum,		eapl3st24
+V1495,	       	0,	88,	eaccum,		eapl3st25
+V1495,	       	0,	89,	eaccum,		eapl3st26
+V1495,	       	0,	90,	eaccum,		eapl3st27
+V1495,	       	0,	91,	eaccum,		eapl3st28
+V1495,	       	0,	92,	eaccum,		eapl3st29
+V1495,	       	0,	93,	eaccum,		eapl3st30
+V1495,	       	0,	94,	eaccum,		eapl3st31
+V1495,	       	0,	95,	eaccum,		eapl3st32
+! E port
+V1495,	       	0,	96,	eaccum,		eapl4st1 
+V1495,	       	0,	97,	eaccum,		eapl4st2 
+V1495,	       	0,	98,	eaccum,		eapl4st3 
+V1495,	       	0,	99,	eaccum,		eapl4st4 
+V1495,	       	0,	100,	eaccum,		eapl4st5 
+V1495,	       	0,	101,	eaccum,		eapl4st6 
+V1495,	       	0,	102,	eaccum,		eapl4st7 
+V1495,	       	0,	103,	eaccum,		eapl4st8 
+V1495,	       	0,	104,	eaccum,		eapl4st9 
+V1495,	       	0,	105,	eaccum,		eapl4st10
+V1495,	       	0,	106,	eaccum,		eapl4st11
+V1495,	       	0,	107,	eaccum,		eapl4st12
+V1495,	       	0,	108,	eaccum,		eapl4st13
+V1495,	       	0,	109,	eaccum,		eapl4st14
+V1495,	       	0,	110,	eaccum,		eapl4st15
+V1495,	       	0,	111,	eaccum,		eapl4st16
+V1495,	       	0,	112,	eaccum,		eapl4st17
+V1495,	       	0,	113,	eaccum,		eapl4st18
+V1495,	       	0,	114,	eaccum,		eapl4st19
+V1495,	       	0,	115,	eaccum,		eapl4st20
+V1495,	       	0,	116,	eaccum,		eapl4st21
+V1495,	       	0,	117,	eaccum,		eapl4st22
+V1495,	       	0,	118,	eaccum,		eapl4st23
+V1495,	       	0,	119,	eaccum,		eapl4st24
+V1495,	       	0,	120,	eaccum,		eapl4st25
+V1495,	       	0,	121,	eaccum,		eapl4st26
+V1495,	       	0,	122,	eaccum,		eapl4st27
+V1495,	       	0,	123,	eaccum,		eapl4st28
+V1495,	       	0,	124,	eaccum,		eapl4st29
+V1495,	       	0,	125,	eaccum,		eapl4st30
+V1495,	       	0,	126,	eaccum,		eapl4st31
+V1495,	       	0,	127,	eaccum,		eapl4st32
+!F port
+! are these in the subbank? if yes put here
+!G port
+! are these in the subbank? if yes put here
+
+!   End of ROC 1  map
+
+ROC=2
+Bank=0x0202
+!V1495 slave 2, electron single event mode
+! module.type, module.num  chan.num, det.type, det.name
+! Key: espl1st33= electron single event plane 1 strip 33
+! A port
+V1495,	       	0,	0,	esingle,	espl1st33
+V1495,	       	0,	1,	esingle,	espl1st34
+V1495,	       	0,	2,	esingle,	espl1st35
+V1495,	       	0,	3,	esingle,	espl1st36
+V1495,	       	0,	4,	esingle,	espl1st37
+V1495,	       	0,	5,	esingle,	espl1st38
+V1495,	       	0,	6,	esingle,	espl1st39
+V1495,	       	0,	7,	esingle,	espl1st40
+V1495,	       	0,	8,	esingle,	espl1st41
+V1495,	       	0,	9,	esingle,	espl1st42
+V1495,	       	0,	10,	esingle,	espl1st43
+V1495,	       	0,	11,	esingle,	espl1st44
+V1495,	       	0,	12,	esingle,	espl1st45
+V1495,	       	0,	13,	esingle,	espl1st46
+V1495,	       	0,	14,	esingle,	espl1st47
+V1495,	       	0,	15,	esingle,	espl1st48
+V1495,	       	0,	16,	esingle,	espl1st49
+V1495,	       	0,	17,	esingle,	espl1st50
+V1495,	       	0,	18,	esingle,	espl1st51
+V1495,	       	0,	19,	esingle,	espl1st52
+V1495,	       	0,	20,	esingle,	espl1st53
+V1495,	       	0,	21,	esingle,	espl1st54
+V1495,	       	0,	22,	esingle,	espl1st55
+V1495,	       	0,	23,	esingle,	espl1st56
+V1495,	       	0,	24,	esingle,	espl1st57
+V1495,	       	0,	25,	esingle,	espl1st58
+V1495,	       	0,	26,	esingle,	espl1st59
+V1495,	       	0,	27,	esingle,	espl1st60
+V1495,	       	0,	28,	esingle,	espl1st61
+V1495,	       	0,	29,	esingle,	espl1st62
+V1495,	       	0,	30,	esingle,	espl1st63
+V1495,	       	0,	31,	esingle,	espl1st64
+! B port
+V1495,	       	0,	32,	esingle,	espl2st33
+V1495,	       	0,	33,	esingle,	espl2st34
+V1495,	       	0,	34,	esingle,	espl2st35
+V1495,	       	0,	35,	esingle,	espl2st36
+V1495,	       	0,	36,	esingle,	espl2st37
+V1495,	       	0,	37,	esingle,	espl2st38
+V1495,	       	0,	38,	esingle,	espl2st39
+V1495,	       	0,	39,	esingle,	espl2st40
+V1495,	       	0,	40,	esingle,	espl2st41
+V1495,	       	0,	41,	esingle,	espl2st42
+V1495,	       	0,	42,	esingle,	espl2st43
+V1495,	       	0,	43,	esingle,	espl2st44
+V1495,	       	0,	44,	esingle,	espl2st45
+V1495,	       	0,	45,	esingle,	espl2st46
+V1495,	       	0,	46,	esingle,	espl2st47
+V1495,	       	0,	47,	esingle,	espl2st48
+V1495,	       	0,	48,	esingle,	espl2st49
+V1495,	       	0,	49,	esingle,	espl2st50
+V1495,	       	0,	50,	esingle,	espl2st51
+V1495,	       	0,	51,	esingle,	espl2st52
+V1495,	       	0,	52,	esingle,	espl2st53
+V1495,	       	0,	53,	esingle,	espl2st54
+V1495,	       	0,	54,	esingle,	espl2st55
+V1495,	       	0,	55,	esingle,	espl2st56
+V1495,	       	0,	56,	esingle,	espl2st57
+V1495,	       	0,	57,	esingle,	espl2st58
+V1495,	       	0,	58,	esingle,	espl2st59
+V1495,	       	0,	59,	esingle,	espl2st60
+V1495,	       	0,	60,	esingle,	espl2st61
+V1495,	       	0,	61,	esingle,	espl2st62
+V1495,	       	0,	62,	esingle,	espl2st63
+V1495,	       	0,	63,	esingle,	espl2st64
+! C port
+! Is C port stuff in the subbank? If yes put them here and increment 
+! the D, E, F and G port channels by 31.
+! D port
+V1495,	       	0,	64,	esingle,	espl3st33
+V1495,	       	0,	65,	esingle,	espl3st34
+V1495,	       	0,	66,	esingle,	espl3st35
+V1495,	       	0,	67,	esingle,	espl3st36
+V1495,	       	0,	68,	esingle,	espl3st37
+V1495,	       	0,	69,	esingle,	espl3st38
+V1495,	       	0,	70,	esingle,	espl3st39
+V1495,	       	0,	71,	esingle,	espl3st40
+V1495,	       	0,	72,	esingle,	espl3st41
+V1495,	       	0,	73,	esingle,	espl3st42
+V1495,	       	0,	74,	esingle,	espl3st43
+V1495,	       	0,	75,	esingle,	espl3st44
+V1495,	       	0,	76,	esingle,	espl3st45
+V1495,	       	0,	77,	esingle,	espl3st46
+V1495,	       	0,	78,	esingle,	espl3st47
+V1495,	       	0,	79,	esingle,	espl3st48
+V1495,	       	0,	80,	esingle,	espl3st49
+V1495,	       	0,	81,	esingle,	espl3st50
+V1495,	       	0,	82,	esingle,	espl3st51
+V1495,	       	0,	83,	esingle,	espl3st52
+V1495,	       	0,	84,	esingle,	espl3st53
+V1495,	       	0,	85,	esingle,	espl3st54
+V1495,	       	0,	86,	esingle,	espl3st55
+V1495,	       	0,	87,	esingle,	espl3st56
+V1495,	       	0,	88,	esingle,	espl3st57
+V1495,	       	0,	89,	esingle,	espl3st58
+V1495,	       	0,	90,	esingle,	espl3st59
+V1495,	       	0,	91,	esingle,	espl3st60
+V1495,	       	0,	92,	esingle,	espl3st61
+V1495,	       	0,	93,	esingle,	espl3st62
+V1495,	       	0,	94,	esingle,	espl3st63
+V1495,	       	0,	95,	esingle,	espl3st64
+! E port
+V1495,	       	0,	96,	esingle,	espl4st33
+V1495,	       	0,	97,	esingle,	espl4st34
+V1495,	       	0,	98,	esingle,	espl4st35
+V1495,	       	0,	99,	esingle,	espl4st36
+V1495,	       	0,	100,	esingle,	espl4st37
+V1495,	       	0,	101,	esingle,	espl4st38
+V1495,	       	0,	102,	esingle,	espl4st39
+V1495,	       	0,	103,	esingle,	espl4st40
+V1495,	       	0,	104,	esingle,	espl4st41
+V1495,	       	0,	105,	esingle,	espl4st42
+V1495,	       	0,	106,	esingle,	espl4st43
+V1495,	       	0,	107,	esingle,	espl4st44
+V1495,	       	0,	108,	esingle,	espl4st45
+V1495,	       	0,	109,	esingle,	espl4st46
+V1495,	       	0,	110,	esingle,	espl4st47
+V1495,	       	0,	111,	esingle,	espl4st48
+V1495,	       	0,	112,	esingle,	espl4st49
+V1495,	       	0,	113,	esingle,	espl4st50
+V1495,	       	0,	114,	esingle,	espl4st51
+V1495,	       	0,	115,	esingle,	espl4st52
+V1495,	       	0,	116,	esingle,	espl4st53
+V1495,	       	0,	117,	esingle,	espl4st54
+V1495,	       	0,	118,	esingle,	espl4st55
+V1495,	       	0,	119,	esingle,	espl4st56
+V1495,	       	0,	120,	esingle,	espl4st57
+V1495,	       	0,	121,	esingle,	espl4st58
+V1495,	       	0,	122,	esingle,	espl4st59
+V1495,	       	0,	123,	esingle,	espl4st60
+V1495,	       	0,	124,	esingle,	espl4st61
+V1495,	       	0,	125,	esingle,	espl4st62
+V1495,	       	0,	126,	esingle,	espl4st63
+V1495,	       	0,	127,	esingle,	espl4st64
+!F port
+! are these in the subbank? if yes put here
+!G port
+! are these in the subbank? if yes put here
+
+
+Bank=0x0203
+!V1495 slave 3, electron single event mode
+! module.type, module.num  chan.num, det.type, det.name
+! Key: espl1st65= electron single event plane 1 strip 65
+! A port
+V1495,	       	1,	0,	esingle,	espl1st65
+V1495,	       	1,	1,	esingle,	espl1st66
+V1495,	       	1,	2,	esingle,	espl1st67
+V1495,	       	1,	3,	esingle,	espl1st68
+V1495,	       	1,	4,	esingle,	espl1st69
+V1495,	       	1,	5,	esingle,	espl1st70
+V1495,	       	1,	6,	esingle,	espl1st71
+V1495,	       	1,	7,	esingle,	espl1st72
+V1495,	       	1,	8,	esingle,	espl1st73
+V1495,	       	1,	9,	esingle,	espl1st74
+V1495,	       	1,	10,	esingle,	espl1st75
+V1495,	       	1,	11,	esingle,	espl1st76
+V1495,	       	1,	12,	esingle,	espl1st77
+V1495,	       	1,	13,	esingle,	espl1st78
+V1495,	       	1,	14,	esingle,	espl1st79
+V1495,	       	1,	15,	esingle,	espl1st80
+V1495,	       	1,	16,	esingle,	espl1st81
+V1495,	       	1,	17,	esingle,	espl1st82
+V1495,	       	1,	18,	esingle,	espl1st83
+V1495,	       	1,	19,	esingle,	espl1st84
+V1495,	       	1,	20,	esingle,	espl1st85
+V1495,	       	1,	21,	esingle,	espl1st86
+V1495,	       	1,	22,	esingle,	espl1st87
+V1495,	       	1,	23,	esingle,	espl1st88
+V1495,	       	1,	24,	esingle,	espl1st89
+V1495,	       	1,	25,	esingle,	espl1st90
+V1495,	       	1,	26,	esingle,	espl1st91
+V1495,	       	1,	27,	esingle,	espl1st92
+V1495,	       	1,	28,	esingle,	espl1st93
+V1495,	       	1,	29,	esingle,	espl1st94
+V1495,	       	1,	30,	esingle,	espl1st95
+V1495,	       	1,	31,	esingle,	espl1st96
+! B port
+V1495,	       	1,	32,	esingle,	espl2st65
+V1495,	       	1,	33,	esingle,	espl2st66
+V1495,	       	1,	34,	esingle,	espl2st67
+V1495,	       	1,	35,	esingle,	espl2st68
+V1495,	       	1,	36,	esingle,	espl2st69
+V1495,	       	1,	37,	esingle,	espl2st70
+V1495,	       	1,	38,	esingle,	espl2st71
+V1495,	       	1,	39,	esingle,	espl2st72
+V1495,	       	1,	40,	esingle,	espl2st73
+V1495,	       	1,	41,	esingle,	espl2st74
+V1495,	       	1,	42,	esingle,	espl2st75
+V1495,	       	1,	43,	esingle,	espl2st76
+V1495,	       	1,	44,	esingle,	espl2st77
+V1495,	       	1,	45,	esingle,	espl2st78
+V1495,	       	1,	46,	esingle,	espl2st79
+V1495,	       	1,	47,	esingle,	espl2st80
+V1495,	       	1,	48,	esingle,	espl2st81
+V1495,	       	1,	49,	esingle,	espl2st82
+V1495,	       	1,	50,	esingle,	espl2st83
+V1495,	       	1,	51,	esingle,	espl2st84
+V1495,	       	1,	52,	esingle,	espl2st85
+V1495,	       	1,	53,	esingle,	espl2st86
+V1495,	       	1,	54,	esingle,	espl2st87
+V1495,	       	1,	55,	esingle,	espl2st88
+V1495,	       	1,	56,	esingle,	espl2st89
+V1495,	       	1,	57,	esingle,	espl2st90
+V1495,	       	1,	58,	esingle,	espl2st91
+V1495,	       	1,	59,	esingle,	espl2st92
+V1495,	       	1,	60,	esingle,	espl2st93
+V1495,	       	1,	61,	esingle,	espl2st94
+V1495,	       	1,	62,	esingle,	espl2st95
+V1495,	       	1,	63,	esingle,	espl2st96
+! C port
+! Is C port stuff in the subbank? If yes put them here and increment 
+! the D, E, F and G port channels by 31.
+! D port
+V1495,	       	1,	64,	esingle,	espl3st65
+V1495,	       	1,	65,	esingle,	espl3st66
+V1495,	       	1,	66,	esingle,	espl3st67
+V1495,	       	1,	67,	esingle,	espl3st68
+V1495,	       	1,	68,	esingle,	espl3st69
+V1495,	       	1,	69,	esingle,	espl3st70
+V1495,	       	1,	70,	esingle,	espl3st71
+V1495,	       	1,	71,	esingle,	espl3st72
+V1495,	       	1,	72,	esingle,	espl3st73
+V1495,	       	1,	73,	esingle,	espl3st74
+V1495,	       	1,	74,	esingle,	espl3st75
+V1495,	       	1,	75,	esingle,	espl3st76
+V1495,	       	1,	76,	esingle,	espl3st77
+V1495,	       	1,	77,	esingle,	espl3st78
+V1495,	       	1,	78,	esingle,	espl3st79
+V1495,	       	1,	79,	esingle,	espl3st80
+V1495,	       	1,	80,	esingle,	espl3st81
+V1495,	       	1,	81,	esingle,	espl3st82
+V1495,	       	1,	82,	esingle,	espl3st83
+V1495,	       	1,	83,	esingle,	espl3st84
+V1495,	       	1,	84,	esingle,	espl3st85
+V1495,	       	1,	85,	esingle,	espl3st86
+V1495,	       	1,	86,	esingle,	espl3st87
+V1495,	       	1,	87,	esingle,	espl3st88
+V1495,	       	1,	88,	esingle,	espl3st89
+V1495,	       	1,	89,	esingle,	espl3st90
+V1495,	       	1,	90,	esingle,	espl3st91
+V1495,	       	1,	91,	esingle,	espl3st92
+V1495,	       	1,	92,	esingle,	espl3st93
+V1495,	       	1,	93,	esingle,	espl3st94
+V1495,	       	1,	94,	esingle,	espl3st95
+V1495,	       	1,	95,	esingle,	espl3st96
+! E port
+V1495,	       	1,	96,	esingle,	espl4st65
+V1495,	       	1,	97,	esingle,	espl4st66
+V1495,	       	1,	98,	esingle,	espl4st67
+V1495,	       	1,	99,	esingle,	espl4st68
+V1495,	       	1,	100,	esingle,	espl4st69
+V1495,	       	1,	101,	esingle,	espl4st70
+V1495,	       	1,	102,	esingle,	espl4st71
+V1495,	       	1,	103,	esingle,	espl4st72
+V1495,	       	1,	104,	esingle,	espl4st73
+V1495,	       	1,	105,	esingle,	espl4st74
+V1495,	       	1,	106,	esingle,	espl4st75
+V1495,	       	1,	107,	esingle,	espl4st76
+V1495,	       	1,	108,	esingle,	espl4st77
+V1495,	       	1,	109,	esingle,	espl4st78
+V1495,	       	1,	110,	esingle,	espl4st79
+V1495,	       	1,	111,	esingle,	espl4st80
+V1495,	       	1,	112,	esingle,	espl4st81
+V1495,	       	1,	113,	esingle,	espl4st82
+V1495,	       	1,	114,	esingle,	espl4st83
+V1495,	       	1,	115,	esingle,	espl4st84
+V1495,	       	1,	116,	esingle,	espl4st85
+V1495,	       	1,	117,	esingle,	espl4st86
+V1495,	       	1,	118,	esingle,	espl4st87
+V1495,	       	1,	119,	esingle,	espl4st88
+V1495,	       	1,	120,	esingle,	espl4st89
+V1495,	       	1,	121,	esingle,	espl4st90
+V1495,	       	1,	122,	esingle,	espl4st91
+V1495,	       	1,	123,	esingle,	espl4st92
+V1495,	       	1,	124,	esingle,	espl4st93
+V1495,	       	1,	125,	esingle,	espl4st94
+V1495,	       	1,	126,	esingle,	espl4st94
+V1495,	       	1,	127,	esingle,	espl4st96
+!F port
+! are these in the subbank? if yes put here
+!G port
+! are these in the subbank? if yes put here
+
+Bank=0x0205
+! V1495 Slave 2, electron accumulation mode
+! module.type, module.num  chan.num, det.type, det.name
+! Key: eapl1st33= electron accum plane 1 strip 33
+! A port
+V1495,	       	0,	0,	eaccum,	eapl1st33
+V1495,	       	0,	1,	eaccum,	eapl1st34
+V1495,	       	0,	2,	eaccum,	eapl1st35
+V1495,	       	0,	3,	eaccum,	eapl1st36
+V1495,	       	0,	4,	eaccum,	eapl1st37
+V1495,	       	0,	5,	eaccum,	eapl1st38
+V1495,	       	0,	6,	eaccum,	eapl1st39
+V1495,	       	0,	7,	eaccum,	eapl1st40
+V1495,	       	0,	8,	eaccum,	eapl1st41
+V1495,	       	0,	9,	eaccum,	eapl1st42
+V1495,	       	0,	10,	eaccum,	eapl1st43
+V1495,	       	0,	11,	eaccum,	eapl1st44
+V1495,	       	0,	12,	eaccum,	eapl1st45
+V1495,	       	0,	13,	eaccum,	eapl1st46
+V1495,	       	0,	14,	eaccum,	eapl1st47
+V1495,	       	0,	15,	eaccum,	eapl1st48
+V1495,	       	0,	16,	eaccum,	eapl1st49
+V1495,	       	0,	17,	eaccum,	eapl1st50
+V1495,	       	0,	18,	eaccum,	eapl1st51
+V1495,	       	0,	19,	eaccum,	eapl1st52
+V1495,	       	0,	20,	eaccum,	eapl1st53
+V1495,	       	0,	21,	eaccum,	eapl1st54
+V1495,	       	0,	22,	eaccum,	eapl1st55
+V1495,	       	0,	23,	eaccum,	eapl1st56
+V1495,	       	0,	24,	eaccum,	eapl1st57
+V1495,	       	0,	25,	eaccum,	eapl1st58
+V1495,	       	0,	26,	eaccum,	eapl1st59
+V1495,	       	0,	27,	eaccum,	eapl1st60
+V1495,	       	0,	28,	eaccum,	eapl1st61
+V1495,	       	0,	29,	eaccum,	eapl1st62
+V1495,	       	0,	30,	eaccum,	eapl1st63
+V1495,	       	0,	31,	eaccum,	eapl1st64
+! B port
+V1495,	       	0,	32,	eaccum,	eapl2st33
+V1495,	       	0,	33,	eaccum,	eapl2st34
+V1495,	       	0,	34,	eaccum,	eapl2st35
+V1495,	       	0,	35,	eaccum,	eapl2st36
+V1495,	       	0,	36,	eaccum,	eapl2st37
+V1495,	       	0,	37,	eaccum,	eapl2st38
+V1495,	       	0,	38,	eaccum,	eapl2st39
+V1495,	       	0,	39,	eaccum,	eapl2st40
+V1495,	       	0,	40,	eaccum,	eapl2st41
+V1495,	       	0,	41,	eaccum,	eapl2st42
+V1495,	       	0,	42,	eaccum,	eapl2st43
+V1495,	       	0,	43,	eaccum,	eapl2st44
+V1495,	       	0,	44,	eaccum,	eapl2st45
+V1495,	       	0,	45,	eaccum,	eapl2st46
+V1495,	       	0,	46,	eaccum,	eapl2st47
+V1495,	       	0,	47,	eaccum,	eapl2st48
+V1495,	       	0,	48,	eaccum,	eapl2st49
+V1495,	       	0,	49,	eaccum,	eapl2st50
+V1495,	       	0,	50,	eaccum,	eapl2st51
+V1495,	       	0,	51,	eaccum,	eapl2st52
+V1495,	       	0,	52,	eaccum,	eapl2st53
+V1495,	       	0,	53,	eaccum,	eapl2st54
+V1495,	       	0,	54,	eaccum,	eapl2st55
+V1495,	       	0,	55,	eaccum,	eapl2st56
+V1495,	       	0,	56,	eaccum,	eapl2st57
+V1495,	       	0,	57,	eaccum,	eapl2st58
+V1495,	       	0,	58,	eaccum,	eapl2st59
+V1495,	       	0,	59,	eaccum,	eapl2st60
+V1495,	       	0,	60,	eaccum,	eapl2st61
+V1495,	       	0,	61,	eaccum,	eapl2st62
+V1495,	       	0,	62,	eaccum,	eapl2st63
+V1495,	       	0,	63,	eaccum,	eapl2st64
+! C port
+! Is C port stuff in the subbank? If yes put them here and increment 
+! the D, E, F and G port channels by 31.
+! D port
+V1495,	       	0,	64,	eaccum,	eapl3st33
+V1495,	       	0,	65,	eaccum,	eapl3st34
+V1495,	       	0,	66,	eaccum,	eapl3st35
+V1495,	       	0,	67,	eaccum,	eapl3st36
+V1495,	       	0,	68,	eaccum,	eapl3st37
+V1495,	       	0,	69,	eaccum,	eapl3st38
+V1495,	       	0,	70,	eaccum,	eapl3st39
+V1495,	       	0,	71,	eaccum,	eapl3st40
+V1495,	       	0,	72,	eaccum,	eapl3st41
+V1495,	       	0,	73,	eaccum,	eapl3st42
+V1495,	       	0,	74,	eaccum,	eapl3st43
+V1495,	       	0,	75,	eaccum,	eapl3st44
+V1495,	       	0,	76,	eaccum,	eapl3st45
+V1495,	       	0,	77,	eaccum,	eapl3st46
+V1495,	       	0,	78,	eaccum,	eapl3st47
+V1495,	       	0,	79,	eaccum,	eapl3st48
+V1495,	       	0,	80,	eaccum,	eapl3st49
+V1495,	       	0,	81,	eaccum,	eapl3st50
+V1495,	       	0,	82,	eaccum,	eapl3st51
+V1495,	       	0,	83,	eaccum,	eapl3st52
+V1495,	       	0,	84,	eaccum,	eapl3st53
+V1495,	       	0,	85,	eaccum,	eapl3st54
+V1495,	       	0,	86,	eaccum,	eapl3st55
+V1495,	       	0,	87,	eaccum,	eapl3st56
+V1495,	       	0,	88,	eaccum,	eapl3st57
+V1495,	       	0,	89,	eaccum,	eapl3st58
+V1495,	       	0,	90,	eaccum,	eapl3st59
+V1495,	       	0,	91,	eaccum,	eapl3st60
+V1495,	       	0,	92,	eaccum,	eapl3st61
+V1495,	       	0,	93,	eaccum,	eapl3st62
+V1495,	       	0,	94,	eaccum,	eapl3st63
+V1495,	       	0,	95,	eaccum,	eapl3st64
+! E port
+V1495,	       	0,	96,	eaccum,	eapl4st33
+V1495,	       	0,	97,	eaccum,	eapl4st34
+V1495,	       	0,	98,	eaccum,	eapl4st35
+V1495,	       	0,	99,	eaccum,	eapl4st36
+V1495,	       	0,	100,	eaccum,	eapl4st37
+V1495,	       	0,	101,	eaccum,	eapl4st38
+V1495,	       	0,	102,	eaccum,	eapl4st39
+V1495,	       	0,	103,	eaccum,	eapl4st40
+V1495,	       	0,	104,	eaccum,	eapl4st41
+V1495,	       	0,	105,	eaccum,	eapl4st42
+V1495,	       	0,	106,	eaccum,	eapl4st43
+V1495,	       	0,	107,	eaccum,	eapl4st44
+V1495,	       	0,	108,	eaccum,	eapl4st45
+V1495,	       	0,	109,	eaccum,	eapl4st46
+V1495,	       	0,	110,	eaccum,	eapl4st47
+V1495,	       	0,	111,	eaccum,	eapl4st48
+V1495,	       	0,	112,	eaccum,	eapl4st49
+V1495,	       	0,	113,	eaccum,	eapl4st50
+V1495,	       	0,	114,	eaccum,	eapl4st51
+V1495,	       	0,	115,	eaccum,	eapl4st52
+V1495,	       	0,	116,	eaccum,	eapl4st53
+V1495,	       	0,	117,	eaccum,	eapl4st54
+V1495,	       	0,	118,	eaccum,	eapl4st55
+V1495,	       	0,	119,	eaccum,	eapl4st56
+V1495,	       	0,	120,	eaccum,	eapl4st57
+V1495,	       	0,	121,	eaccum,	eapl4st58
+V1495,	       	0,	122,	eaccum,	eapl4st59
+V1495,	       	0,	123,	eaccum,	eapl4st60
+V1495,	       	0,	124,	eaccum,	eapl4st61
+V1495,	       	0,	125,	eaccum,	eapl4st62
+V1495,	       	0,	126,	eaccum,	eapl4st63
+V1495,	       	0,	127,	eaccum,	eapl4st64
+!F port
+! are these in the subbank? if yes put here
+!G port
+! are these in the subbank? if yes put here
+
+Bank=0x0206
+!V1495 slave 3, electron accumulation mode
+! module.type, module.num  chan.num, det.type, det.name
+! Key: eapl1st65= electron accum event plane 1 strip 65
+! A port
+V1495,	       	1,	0,	eaccum,	eapl1st65
+V1495,	       	1,	1,	eaccum,	eapl1st66
+V1495,	       	1,	2,	eaccum,	eapl1st67
+V1495,	       	1,	3,	eaccum,	eapl1st68
+V1495,	       	1,	4,	eaccum,	eapl1st69
+V1495,	       	1,	5,	eaccum,	eapl1st70
+V1495,	       	1,	6,	eaccum,	eapl1st71
+V1495,	       	1,	7,	eaccum,	eapl1st72
+V1495,	       	1,	8,	eaccum,	eapl1st73
+V1495,	       	1,	9,	eaccum,	eapl1st74
+V1495,	       	1,	10,	eaccum,	eapl1st75
+V1495,	       	1,	11,	eaccum,	eapl1st76
+V1495,	       	1,	12,	eaccum,	eapl1st77
+V1495,	       	1,	13,	eaccum,	eapl1st78
+V1495,	       	1,	14,	eaccum,	eapl1st79
+V1495,	       	1,	15,	eaccum,	eapl1st80
+V1495,	       	1,	16,	eaccum,	eapl1st81
+V1495,	       	1,	17,	eaccum,	eapl1st82
+V1495,	       	1,	18,	eaccum,	eapl1st83
+V1495,	       	1,	19,	eaccum,	eapl1st84
+V1495,	       	1,	20,	eaccum,	eapl1st85
+V1495,	       	1,	21,	eaccum,	eapl1st86
+V1495,	       	1,	22,	eaccum,	eapl1st87
+V1495,	       	1,	23,	eaccum,	eapl1st88
+V1495,	       	1,	24,	eaccum,	eapl1st89
+V1495,	       	1,	25,	eaccum,	eapl1st90
+V1495,	       	1,	26,	eaccum,	eapl1st91
+V1495,	       	1,	27,	eaccum,	eapl1st92
+V1495,	       	1,	28,	eaccum,	eapl1st93
+V1495,	       	1,	29,	eaccum,	eapl1st94
+V1495,	       	1,	30,	eaccum,	eapl1st95
+V1495,	       	1,	31,	eaccum,	eapl1st96
+! B port
+V1495,	       	1,	32,	eaccum,	eapl2st65
+V1495,	       	1,	33,	eaccum,	eapl2st66
+V1495,	       	1,	34,	eaccum,	eapl2st67
+V1495,	       	1,	35,	eaccum,	eapl2st68
+V1495,	       	1,	36,	eaccum,	eapl2st69
+V1495,	       	1,	37,	eaccum,	eapl2st70
+V1495,	       	1,	38,	eaccum,	eapl2st71
+V1495,	       	1,	39,	eaccum,	eapl2st72
+V1495,	       	1,	40,	eaccum,	eapl2st73
+V1495,	       	1,	41,	eaccum,	eapl2st74
+V1495,	       	1,	42,	eaccum,	eapl2st75
+V1495,	       	1,	43,	eaccum,	eapl2st76
+V1495,	       	1,	44,	eaccum,	eapl2st77
+V1495,	       	1,	45,	eaccum,	eapl2st78
+V1495,	       	1,	46,	eaccum,	eapl2st79
+V1495,	       	1,	47,	eaccum,	eapl2st80
+V1495,	       	1,	48,	eaccum,	eapl2st81
+V1495,	       	1,	49,	eaccum,	eapl2st82
+V1495,	       	1,	50,	eaccum,	eapl2st83
+V1495,	       	1,	51,	eaccum,	eapl2st84
+V1495,	       	1,	52,	eaccum,	eapl2st85
+V1495,	       	1,	53,	eaccum,	eapl2st86
+V1495,	       	1,	54,	eaccum,	eapl2st87
+V1495,	       	1,	55,	eaccum,	eapl2st88
+V1495,	       	1,	56,	eaccum,	eapl2st89
+V1495,	       	1,	57,	eaccum,	eapl2st90
+V1495,	       	1,	58,	eaccum,	eapl2st91
+V1495,	       	1,	59,	eaccum,	eapl2st92
+V1495,	       	1,	60,	eaccum,	eapl2st93
+V1495,	       	1,	61,	eaccum,	eapl2st94
+V1495,	       	1,	62,	eaccum,	eapl2st95
+V1495,	       	1,	63,	eaccum,	eapl2st96
+! C port
+! Is C port stuff in the subbank? If yes put them here and increment 
+! the D, E, F and G port channels by 31.
+! D port
+V1495,	       	1,	64,	eaccum,	eapl3st65
+V1495,	       	1,	65,	eaccum,	eapl3st66
+V1495,	       	1,	66,	eaccum,	eapl3st67
+V1495,	       	1,	67,	eaccum,	eapl3st68
+V1495,	       	1,	68,	eaccum,	eapl3st69
+V1495,	       	1,	69,	eaccum,	eapl3st70
+V1495,	       	1,	70,	eaccum,	eapl3st71
+V1495,	       	1,	71,	eaccum,	eapl3st72
+V1495,	       	1,	72,	eaccum,	eapl3st73
+V1495,	       	1,	73,	eaccum,	eapl3st74
+V1495,	       	1,	74,	eaccum,	eapl3st75
+V1495,	       	1,	75,	eaccum,	eapl3st76
+V1495,	       	1,	76,	eaccum,	eapl3st77
+V1495,	       	1,	77,	eaccum,	eapl3st78
+V1495,	       	1,	78,	eaccum,	eapl3st79
+V1495,	       	1,	79,	eaccum,	eapl3st80
+V1495,	       	1,	80,	eaccum,	eapl3st81
+V1495,	       	1,	81,	eaccum,	eapl3st82
+V1495,	       	1,	82,	eaccum,	eapl3st83
+V1495,	       	1,	83,	eaccum,	eapl3st84
+V1495,	       	1,	84,	eaccum,	eapl3st85
+V1495,	       	1,	85,	eaccum,	eapl3st86
+V1495,	       	1,	86,	eaccum,	eapl3st87
+V1495,	       	1,	87,	eaccum,	eapl3st88
+V1495,	       	1,	88,	eaccum,	eapl3st89
+V1495,	       	1,	89,	eaccum,	eapl3st90
+V1495,	       	1,	90,	eaccum,	eapl3st91
+V1495,	       	1,	91,	eaccum,	eapl3st92
+V1495,	       	1,	92,	eaccum,	eapl3st93
+V1495,	       	1,	93,	eaccum,	eapl3st94
+V1495,	       	1,	94,	eaccum,	eapl3st95
+V1495,	       	1,	95,	eaccum,	eapl3st96
+! E port
+V1495,	       	1,	96,	eaccum,	eapl4st65
+V1495,	       	1,	97,	eaccum,	eapl4st66
+V1495,	       	1,	98,	eaccum,	eapl4st67
+V1495,	       	1,	99,	eaccum,	eapl4st68
+V1495,	       	1,	100,	eaccum,	eapl4st69
+V1495,	       	1,	101,	eaccum,	eapl4st70
+V1495,	       	1,	102,	eaccum,	eapl4st71
+V1495,	       	1,	103,	eaccum,	eapl4st72
+V1495,	       	1,	104,	eaccum,	eapl4st73
+V1495,	       	1,	105,	eaccum,	eapl4st74
+V1495,	       	1,	106,	eaccum,	eapl4st75
+V1495,	       	1,	107,	eaccum,	eapl4st76
+V1495,	       	1,	108,	eaccum,	eapl4st77
+V1495,	       	1,	109,	eaccum,	eapl4st78
+V1495,	       	1,	110,	eaccum,	eapl4st79
+V1495,	       	1,	111,	eaccum,	eapl4st80
+V1495,	       	1,	112,	eaccum,	eapl4st81
+V1495,	       	1,	113,	eaccum,	eapl4st82
+V1495,	       	1,	114,	eaccum,	eapl4st83
+V1495,	       	1,	115,	eaccum,	eapl4st84
+V1495,	       	1,	116,	eaccum,	eapl4st85
+V1495,	       	1,	117,	eaccum,	eapl4st86
+V1495,	       	1,	118,	eaccum,	eapl4st87
+V1495,	       	1,	119,	eaccum,	eapl4st88
+V1495,	       	1,	120,	eaccum,	eapl4st89
+V1495,	       	1,	121,	eaccum,	eapl4st90
+V1495,	       	1,	122,	eaccum,	eapl4st91
+V1495,	       	1,	123,	eaccum,	eapl4st92
+V1495,	       	1,	124,	eaccum,	eapl4st93
+V1495,	       	1,	125,	eaccum,	eapl4st94
+V1495,	       	1,	126,	eaccum,	eapl4st94
+V1495,	       	1,	127,	eaccum,	eapl4st96
+!F port
+! are these in the subbank? if yes put here
+!G port
+! are these in the subbank? if yes put here
+
+! End of ROC2 map

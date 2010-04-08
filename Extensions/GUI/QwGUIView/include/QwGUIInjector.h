@@ -53,26 +53,15 @@ Added by Buddhini to display the injector beamline data.
 #include "TRootCanvas.h"
 #include "TVirtualPad.h"
 #include "QwGUISubSystem.h"
-#include "RSDataWindow.h"
 
-#define RED       "\E[31m"
-#define GREEN     "\E[32m"
-#define BLUE      "\E[34m"
-#define BOLD      "\033[1m"
-#define BOLDRED   "\E[31m\033[1m"
-#define BOLDGREEN "\E[32m\033[1m"
-#define BOLDBLUE  "\E[34m\033[1m"
-#define BACKRED   "\E[31m\033[7m"
-#define BACKGREEN "\E[32m\033[7m"
-#define BACKBLUE  "\E[34m\033[7m"
-#define NORMAL    "\033[0m"
+#include "RSDataWindow.h"
 
 
 class QwGUIInjector : public QwGUISubSystem {
 
   
   TGHorizontalFrame   *dTabFrame;
-   TGVerticalFrame    *dControlsFrame;
+  TGVerticalFrame     *dControlsFrame;
   TRootEmbeddedCanvas *dCanvas;  
   TGLayoutHints       *dTabLayout; 
   TGLayoutHints       *dCnvLayout; 
@@ -87,6 +76,11 @@ class QwGUIInjector : public QwGUISubSystem {
   
   //!An object array to store data window pointers -- good for use in cleanup.
   TObjArray            DataWindowArray;
+
+
+  TH1D *PosVariation[2] ;
+/*   TGraphErrors *gx; */
+/*   TGraphErrors *gy; */
 
   //!This function just plots some histograms in the main canvas, just for illustrative purposes
   //!for now.

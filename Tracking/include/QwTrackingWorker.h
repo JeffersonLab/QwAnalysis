@@ -14,6 +14,7 @@
 // Qweak headers
 #include "QwTypes.h"
 #include "QwOptions.h"
+#include "QwRayTracer.h"
 
 // Forward declarations
 class QwSubsystemArrayTracking;
@@ -24,7 +25,6 @@ class QwPartialTrack;
 class QwTrack;
 class QwEvent;
 class QwBridge;
-class QwTrajectory;
 
 /**
  *  \class QwTrackingWorker
@@ -87,7 +87,7 @@ class QwTrackingWorker {
     bool fShowEventPattern;
     bool fShowMatchingPattern;
 
-    QwTrajectory *trajectory;
+    QwRayTracer *raytracer;
 
 }; // class QwTrackingWorker
 

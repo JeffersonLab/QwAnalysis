@@ -30,7 +30,7 @@ class QwWord
 	  fWordName(""),fWordType(""),fValue(-1){};
 
   Int_t fSubbankIndex;
-  Int_t fWordInSubbank;
+  UInt_t fWordInSubbank;
   TString fModuleType;
   TString fWordName;
   TString fWordType;
@@ -65,8 +65,10 @@ class QwHelicity : public VQwSubsystemParity{
   /////
  public:
 
-  QwHelicity(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
+  QwHelicity(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),fMinPatternPhase(1)
     {
+      //  Default helicity delay to two patterns.
+      fHelicityDelay = 2;
       fEventNumberOld=-1; fEventNumber=-1;
       fPatternPhaseNumberOld=-1; fPatternPhaseNumber=-1;
       fPatternNumberOld=-1;  fPatternNumber=-1;
@@ -146,6 +148,7 @@ class QwHelicity : public VQwSubsystemParity{
   void  DeleteHistograms();
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillDB(QwDatabase *db, TString type) {return;};
 
   void Print();
 
@@ -153,13 +156,13 @@ class QwHelicity : public VQwSubsystemParity{
   Int_t GetMaxPatternPhase(){
     return fMaxPatternPhase;
   };
-
+  
 /////
  protected:
    enum HelicityRootSavingType{kHelSaveMPS = 0,
 			      kHelSavePattern,
 			      kHelNoSave};
-  
+   
   enum HelicityEncodingType{kHelUserbitMode=0,
 			    kHelInputRegisterMode,
 			    kHelLocalyMadeUp};
@@ -227,6 +230,7 @@ class QwHelicity : public VQwSubsystemParity{
   //number of events the helicity is delayed by before being reported
   //static const Int_t MaxPatternPhase =4;
   Int_t fMaxPatternPhase;
+  Int_t fMinPatternPhase;
   Bool_t IsGoodPatternNumber();
   Bool_t IsGoodEventNumber();
   Bool_t MatchActualHelicity(Int_t actual);
@@ -250,7 +254,7 @@ class QwHelicity : public VQwSubsystemParity{
   Bool_t BIT30;
 
   Int_t fPATTERNPHASEOFFSET;
-  Bool_t bPATTERNPHASEOFFSET;
+  
 };
 
 

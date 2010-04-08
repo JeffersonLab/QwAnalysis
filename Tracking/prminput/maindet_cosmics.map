@@ -1,4 +1,4 @@
-!
+! main detector channel map
 !
 !
 ROC=1
@@ -7,16 +7,69 @@ ROC=1
 slot=1
 module=V792
 ! channel, signalname
-0,	quartz_adc
-1,	trigg1_adc
-2,	md_amp_adc
-5,	trigg2_adc
+0,	MD1Neg_adc
+1,	MD1Pos_adc
+2,	MD2Neg_adc
+3,	MD2Pos_adc
+4,	MD3Neg_adc
+5,	MD3Pos_adc
+6,	MD4Neg_adc
+7,	MD4Pos_adc
+8,	MD5Neg_adc
+9,	MD5Pos_adc
+10,	MD6Neg_adc
+11,	MD6Pos_adc
+12,	MD7Neg_adc
+13,	MD7Pos_adc
+14,	MD8Neg_adc
+15,	MD8Pos_adc
+16,	MD0Neg_adc
+17,	MD0Pos_adc
 !
 !
 slot=2
 module=V775
 ! channel, signalname
-0,	triggertdc
-3,	clock__tdc
-16,	quartz_tdc
+0,	MD1Neg_tdc
+1,	MD1Pos_tdc
+2,	MD2Neg_tdc
+3,	MD2Pos_tdc
+4,	MD3Neg_tdc
+5,	MD3Pos_tdc
+6,	MD4Neg_tdc
+7,	MD4Pos_tdc
+8,	MD5Neg_tdc
+9,	MD5Pos_tdc
+10,	MD6Neg_tdc
+11,	MD6Pos_tdc
+12,	MD7Neg_tdc
+13,	MD7Pos_tdc
+14,	MD8Neg_tdc
+15,	MD8Pos_tdc
+16,	MD0Neg_tdc
+17,	MD0Pos_tdc
+18,	clock__tdc
+!END
+
+! Original map
+!
+!
+!ROC=1
+!
+!
+!slot=1
+!module=V792
+! channel, signalname
+!0,	quartz_adc
+!1,	trigg1_adc
+!2,	md_amp_adc
+!5,	trigg2_adc
+!
+!
+!slot=2
+!module=V775
+! channel, signalname
+!0,	triggertdc
+!3,	clock__tdc
+!16,	quartz_tdc
 !END
