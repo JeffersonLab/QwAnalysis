@@ -74,9 +74,7 @@ V1495,	       	0,	60,	esingle,	espl2st29
 V1495,	       	0,	61,	esingle,	espl2st30
 V1495,	       	0,	62,	esingle,	espl2st31
 V1495,	       	0,	63,	esingle,	espl2st32
-! C port
-! Is C port stuff in the subbank? If yes put them here and increment 
-! the D, E, F and G port channels by 31.
+! C port in v1495 sends nothing to the subbank
 ! D port
 V1495,	       	0,	64,	esingle,	espl3st1 
 V1495,	       	0,	65,	esingle,	espl3st2 
@@ -143,10 +141,8 @@ V1495,	       	0,	124,	esingle,	espl4st29
 V1495,	       	0,	125,	esingle,	espl4st30
 V1495,	       	0,	126,	esingle,	espl4st31
 V1495,	       	0,	127,	esingle,	espl4st32
-!F port
-! are these in the subbank? if yes put here
-!G port
-! are these in the subbank? if yes put here
+! F port doesn't send anything to the database.
+! G port doesn't send anything to the database
 
 Bank=0x0204
 ! V1495 Slave 1, electron accumulation mode
@@ -186,8 +182,8 @@ V1495,	       	0,	29,	eaccum,		eapl1st30
 V1495,	       	0,	30,	eaccum,		eapl1st31
 V1495,	       	0,	31,	eaccum,		eapl1st32
 ! B port
-V1495,	       	0,	32,	eaccum,	eapl2st1 
-V1495,	       	0,	33,	eaccum,	eapl2st2 
+V1495,	       	0,	32,	eaccum,		eapl2st1 
+V1495,	       	0,	33,	eaccum,		eapl2st2 
 V1495,	       	0,	34,	eaccum,		eapl2st3 
 V1495,	       	0,	35,	eaccum,		eapl2st4 
 V1495,	       	0,	36,	eaccum,		eapl2st5 
@@ -218,9 +214,7 @@ V1495,	       	0,	60,	eaccum,		eapl2st29
 V1495,	       	0,	61,	eaccum,		eapl2st30
 V1495,	       	0,	62,	eaccum,		eapl2st31
 V1495,	       	0,	63,	eaccum,		eapl2st32
-! C port
-! Is C port stuff in the subbank? If yes put them here and increment 
-! the D, E, F and G port channels by 31.
+! C port doesn't send anything to the database.
 ! D port
 V1495,	       	0,	64,	eaccum,		eapl3st1 
 V1495,	       	0,	65,	eaccum,		eapl3st2 
@@ -287,10 +281,8 @@ V1495,	       	0,	124,	eaccum,		eapl4st29
 V1495,	       	0,	125,	eaccum,		eapl4st30
 V1495,	       	0,	126,	eaccum,		eapl4st31
 V1495,	       	0,	127,	eaccum,		eapl4st32
-!F port
-! are these in the subbank? if yes put here
-!G port
-! are these in the subbank? if yes put here
+!F port doesn't send anything to the database.
+!G port doesn't send anything to the database.
 
 !   End of ROC 1  map
 
@@ -365,9 +357,7 @@ V1495,	       	0,	60,	esingle,	espl2st61
 V1495,	       	0,	61,	esingle,	espl2st62
 V1495,	       	0,	62,	esingle,	espl2st63
 V1495,	       	0,	63,	esingle,	espl2st64
-! C port
-! Is C port stuff in the subbank? If yes put them here and increment 
-! the D, E, F and G port channels by 31.
+! C port doesn't send anything to the database.
 ! D port
 V1495,	       	0,	64,	esingle,	espl3st33
 V1495,	       	0,	65,	esingle,	espl3st34
@@ -434,11 +424,8 @@ V1495,	       	0,	124,	esingle,	espl4st61
 V1495,	       	0,	125,	esingle,	espl4st62
 V1495,	       	0,	126,	esingle,	espl4st63
 V1495,	       	0,	127,	esingle,	espl4st64
-!F port
-! are these in the subbank? if yes put here
-!G port
-! are these in the subbank? if yes put here
-
+!F port doesn't send data to database
+!G port doesn't send data to database
 
 Bank=0x0203
 !V1495 slave 3, electron single event mode
@@ -510,9 +497,7 @@ V1495,	       	1,	60,	esingle,	espl2st93
 V1495,	       	1,	61,	esingle,	espl2st94
 V1495,	       	1,	62,	esingle,	espl2st95
 V1495,	       	1,	63,	esingle,	espl2st96
-! C port
-! Is C port stuff in the subbank? If yes put them here and increment 
-! the D, E, F and G port channels by 31.
+! C port doesn't send data to database
 ! D port
 V1495,	       	1,	64,	esingle,	espl3st65
 V1495,	       	1,	65,	esingle,	espl3st66
@@ -579,10 +564,8 @@ V1495,	       	1,	124,	esingle,	espl4st93
 V1495,	       	1,	125,	esingle,	espl4st94
 V1495,	       	1,	126,	esingle,	espl4st94
 V1495,	       	1,	127,	esingle,	espl4st96
-!F port
-! are these in the subbank? if yes put here
-!G port
-! are these in the subbank? if yes put here
+!F port doesn't send data to database
+!G port doesn't send data to database
 
 Bank=0x0205
 ! V1495 Slave 2, electron accumulation mode
@@ -654,9 +637,7 @@ V1495,	       	0,	60,	eaccum,	eapl2st61
 V1495,	       	0,	61,	eaccum,	eapl2st62
 V1495,	       	0,	62,	eaccum,	eapl2st63
 V1495,	       	0,	63,	eaccum,	eapl2st64
-! C port
-! Is C port stuff in the subbank? If yes put them here and increment 
-! the D, E, F and G port channels by 31.
+! C port doesn't send anything to the database.
 ! D port
 V1495,	       	0,	64,	eaccum,	eapl3st33
 V1495,	       	0,	65,	eaccum,	eapl3st34
@@ -723,10 +704,8 @@ V1495,	       	0,	124,	eaccum,	eapl4st61
 V1495,	       	0,	125,	eaccum,	eapl4st62
 V1495,	       	0,	126,	eaccum,	eapl4st63
 V1495,	       	0,	127,	eaccum,	eapl4st64
-!F port
-! are these in the subbank? if yes put here
-!G port
-! are these in the subbank? if yes put here
+!F port doesn't send anything to the database.
+!G port doesn't send anything to the database.
 
 Bank=0x0206
 !V1495 slave 3, electron accumulation mode
@@ -798,9 +777,7 @@ V1495,	       	1,	60,	eaccum,	eapl2st93
 V1495,	       	1,	61,	eaccum,	eapl2st94
 V1495,	       	1,	62,	eaccum,	eapl2st95
 V1495,	       	1,	63,	eaccum,	eapl2st96
-! C port
-! Is C port stuff in the subbank? If yes put them here and increment 
-! the D, E, F and G port channels by 31.
+! C port doesn't send anything to database
 ! D port
 V1495,	       	1,	64,	eaccum,	eapl3st65
 V1495,	       	1,	65,	eaccum,	eapl3st66
@@ -867,9 +844,7 @@ V1495,	       	1,	124,	eaccum,	eapl4st93
 V1495,	       	1,	125,	eaccum,	eapl4st94
 V1495,	       	1,	126,	eaccum,	eapl4st94
 V1495,	       	1,	127,	eaccum,	eapl4st96
-!F port
-! are these in the subbank? if yes put here
-!G port
-! are these in the subbank? if yes put here
+!F port doesn't send anything to the database
+!G port doesn't send anything to the database
 
 ! End of ROC2 map
