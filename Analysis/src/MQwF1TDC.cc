@@ -1,42 +1,73 @@
 /**********************************************************\
 * File: MQwF1TDC.C                                         *
 *                                                          *
-* Author: P. M. King, Rakitha Beminiwattha                 *
-* Time-stamp: <2008-07-08 15:40>                           *
+* Author: P. M. King, Rakitha Beminiwattha,                *
+*         J. H. Lee                                        *
+* Time-stamp: <2010-04-12 12:12>                           *
 \**********************************************************/
 
 #include "MQwF1TDC.h"
 
 
+const UInt_t MQwF1TDC::kF1Mask_SlotNumber          = 0xf8000000;
+const UInt_t MQwF1TDC::kF1Mask_HeaderFlag          = 0x00800000;
+const UInt_t MQwF1TDC::kF1Mask_ResolutionLockFlag  = 0x04000000;
+const UInt_t MQwF1TDC::kF1Mask_OutputFIFOFlag      = 0x02000000;
+const UInt_t MQwF1TDC::kF1Mask_HitFIFOFlag         = 0x01000000;
+const UInt_t MQwF1TDC::kF1Mask_ChannelNumber       = 0x003f0000;
+const UInt_t MQwF1TDC::kF1Mask_Dataword            = 0x0000ffff;
+
+const UInt_t MQwF1TDC::kF1Mask_EventNumber         = 0x003f0000;
+const UInt_t MQwF1TDC::kF1Mask_TriggerTime         = 0x0000ff80;
+const UInt_t MQwF1TDC::kF1Mask_HeaderChannelNumber = 0x0000003f;
+
+
+
 MQwF1TDC::MQwF1TDC(): fMinDiff(-1.0*kMaxInt), fMaxDiff(1.0*kMaxInt), 
 		      fOffset(0.0), fTimeShift(0.0)
-{ };
+{ 
+  fF1HeaderFlag         = kFALSE;
+  fF1HitFIFOFlag        = kFALSE;
+  fF1OutputFIFOFlag     = kFALSE;
+  fF1ResolutionLockFlag = kFALSE;
+
+  fF1SlotNumber         = 0;
+  fF1ChannelNumber      = 0;
+  fF1Dataword           = 0;
+  fF1EventNumber        = 0;
+  fF1TriggerTime        = 0;
+
+};
 
 MQwF1TDC::~MQwF1TDC() { };
 
-const UInt_t MQwF1TDC::kF1Mask_SlotNumber     = 0xf8000000;
-const UInt_t MQwF1TDC::kF1Mask_HeaderFlag     = 0x00800000;
-const UInt_t MQwF1TDC::kF1Mask_ResolutionFlag = 0x04000000;
-const UInt_t MQwF1TDC::kF1Mask_OutputFIFOFlag = 0x02000000;
-const UInt_t MQwF1TDC::kF1Mask_HitFIFOFlag    = 0x01000000;
-const UInt_t MQwF1TDC::kF1Mask_ChannelNumber  = 0x003f0000;
-const UInt_t MQwF1TDC::kF1Mask_Dataword       = 0x0000ffff;
 
-void MQwF1TDC::DecodeTDCWord(UInt_t &word){
-  fF1SlotNumber      = (word & kF1Mask_SlotNumber)>>27;
-  fF1HeaderFlag      = ((word & kF1Mask_HeaderFlag)==0);
+void MQwF1TDC::DecodeTDCWord(UInt_t &word)
+{
+  fF1SlotNumber         = (word & kF1Mask_SlotNumber)>>27;
+  fF1HeaderFlag         = ((word & kF1Mask_HeaderFlag)==0); // TRUE if the mask bit IS NOT set
+
+  // These three flags should be TRUE if their mask bit IS set
+  fF1HitFIFOFlag        = ((word & kF1Mask_HitFIFOFlag)!=0);
+  fF1OutputFIFOFlag     = ((word & kF1Mask_OutputFIFOFlag)!=0); 
+  fF1ResolutionLockFlag = ((word & kF1Mask_ResolutionLockFlag)!=0);
+  
   if (fF1HeaderFlag){
-    //  THis is a header word.
-    fF1ChannelNumber = 0;
+    //  This is a header word.
+    fF1ChannelNumber = (word & kF1Mask_HeaderChannelNumber);
     fF1Dataword      = 0;
-  } else {
-/* 	resolution = ((buffer[i] & kF1Mask_ResolutionFlag)!=0); */
-/* 	out_fifo   = ((buffer[i] & kF1Mask_OutputFIFOFlag)!=0); */
-/* 	hit_fifo   = ((buffer[i] & kF1Mask_HitFIFOFlag)!=0); */
+    fF1EventNumber   = (word & kF1Mask_EventNumber)>>16;
+    fF1TriggerTime   = (word & kF1Mask_TriggerTime)>>7;
+  } 
+  else {
     fF1ChannelNumber = (word & kF1Mask_ChannelNumber)>>16;
     fF1Dataword      = (word & kF1Mask_Dataword);
+    fF1EventNumber   = 0;
+    fF1TriggerTime   = 0;
     //std::cout << "channel: " << fF1ChannelNumber << " raw time: " << fF1Dataword << std::endl;
   }
+
+  return;
 };
 
 
