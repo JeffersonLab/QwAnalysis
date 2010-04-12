@@ -24,8 +24,9 @@ This generates identical set of hits to region 2 for region 3.
 const UInt_t QwDriftChamberVDC::kBackPlaneNum=4;
 const UInt_t QwDriftChamberVDC::kLineNum=8;
 
-QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ): VQwSubsystem ( region_tmp ),
-        QwDriftChamber ( region_tmp,fWireHitsVDC ) {
+QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ): 
+  VQwSubsystem ( region_tmp ), QwDriftChamber ( region_tmp,fWireHitsVDC )
+{
     SetReferenceParameters(-30000., 30000., 64495.,-8929., kFALSE);
     std::vector<QwDelayLine> temp;
     temp.resize ( kLineNum );
@@ -606,7 +607,7 @@ void QwDriftChamberVDC::ProcessEvent() {
                     mycount=count ( wire_array.begin(),wire_array.end(),wire_hit )-1;
 
 
-                    QwHit NewQwHit ( tmpCrate, tmpModule, tmpChan, mycount, kRegionID3,package, plane,direction,wire_hit,left_time );
+                    QwHit NewQwHit ( tmpCrate, tmpModule, tmpChan, mycount, kRegionID3,package, plane,direction,wire_hit );
 
                     AddChannelDefinition(fDelayLineArray.at (tmpbp).at(tmpln).fPlane,wire_hit );
                     NewQwHit.SetHitNumberR ( order_R );
