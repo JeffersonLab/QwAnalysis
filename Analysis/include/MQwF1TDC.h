@@ -42,10 +42,18 @@ class MQwF1TDC{
   */
   void DecodeTDCWord(UInt_t &word);
 
-  Bool_t IsValidDataword(){return fF1HeaderFlag;};
-  UInt_t GetTDCSlotNumber(){return fF1SlotNumber;};
+  Bool_t IsValidDataword()    {return !fF1HeaderFlag;}; // There are two data types (data word and header)
+
+  Bool_t IsHitFIFO()          {return fF1HitFIFOFlag;};
+  Bool_t IsOutputFIFO()       {return fF1OutputFIFOFlag;};
+  Bool_t IsResolutionLock()   {return fF1ResolutionLockFlag;};
+
+  UInt_t GetTDCSlotNumber()   {return fF1SlotNumber;};
   UInt_t GetTDCChannelNumber(){return fF1ChannelNumber;};
-  UInt_t GetTDCData(){return fF1Dataword;};
+  UInt_t GetTDCData()         {return fF1Dataword;};
+
+  UInt_t GetTDCEventNumber()  {return fF1EventNumber;};
+  UInt_t GetTDCTriggerTime()  {return fF1TriggerTime;};
 
   void SetReferenceParameters(Double_t mindiff, Double_t maxdiff,
 			      Double_t offset, Double_t shift, Bool_t signflip){
@@ -61,19 +69,36 @@ class MQwF1TDC{
 
 
  private:
+
   static const UInt_t kF1Mask_SlotNumber;
   static const UInt_t kF1Mask_HeaderFlag;
-  static const UInt_t kF1Mask_ResolutionFlag;
+  static const UInt_t kF1Mask_ResolutionLockFlag;
   static const UInt_t kF1Mask_OutputFIFOFlag;
   static const UInt_t kF1Mask_HitFIFOFlag;
   static const UInt_t kF1Mask_ChannelNumber;
   static const UInt_t kF1Mask_Dataword;
+
+  static const UInt_t kF1Mask_EventNumber;
+  static const UInt_t kF1Mask_TriggerTime;
+  static const UInt_t kF1Mask_HeaderChannelNumber;
+  
   //  static const UInt_t offset;
 
-  Bool_t fF1HeaderFlag;
+  Bool_t fF1HeaderFlag;              // true(1) if word is 0 (header) and false(0) if word is 1 (data)
+  Bool_t fF1HitFIFOFlag;             // true(1) if word is 1 
+  Bool_t fF1OutputFIFOFlag;          // true(1) if word is 1
+  Bool_t fF1ResolutionLockFlag;      // true(1) if word is 1
+
   UInt_t fF1SlotNumber;
   UInt_t fF1ChannelNumber;
   UInt_t fF1Dataword;
+
+  UInt_t fF1EventNumber;
+  UInt_t fF1TriggerTime;
+
+ 
+ 
+
 
   //  These variables are used in the SubtractReference routine.
   Double_t fMinDiff;     ///< Low edge of acceptable range of F1TDC channel time/reference time difference
@@ -90,6 +115,7 @@ class MQwF1TDC{
                          ///  NOTE:  This is required by R3, as the time-to-distance calculation is based on
                          ///  (reference - raw + fTimeShift)
                          ///  TODO:  This should be REMOVED, and R3 time-to-distance fixed to expect (raw - reference)
+
 };
 
 

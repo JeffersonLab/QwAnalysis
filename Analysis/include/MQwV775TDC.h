@@ -2,7 +2,8 @@
 * File: MQwV775TDC.h                                       *
 *                                                          *
 * Author: P. M. King                                       *
-* Time-stamp: <2007-05-08 15:40>                           *
+*         J. H. Lee                                        *
+* Time-stamp: <2010-04-12 12:12>                           *
 \**********************************************************/
 
 
@@ -28,12 +29,13 @@ class MQwV775TDC{
    *         for both the ADC and TDC.
    ******************************************************************/
  public:
-  MQwV775TDC() { };
+  MQwV775TDC();
   ~MQwV775TDC() { };
 
  protected:
   //void DecodeV775Word(UInt_t &word);
   void DecodeTDCWord(UInt_t &word);
+
   /*
   Bool_t IsV775ValidData(){return fV775ValidFlag;};
 
@@ -41,11 +43,21 @@ class MQwV775TDC{
   UInt_t GetV775ChannelNumber(){return fV775ChannelNumber;};
   UInt_t GetV775Data(){return fV775Dataword;};
   */
-  Bool_t IsValidDataword(){return fV775ValidFlag;};
+
   //Bool_t IsATDCHeaderword(){return kFALSE;};
-  UInt_t GetTDCSlotNumber(){return fV775SlotNumber;};
+
+  Bool_t IsValidDataword()    {return fV775ValidFlag;};
+
+  Bool_t IsHitFIFO()          {return fV775DummyFlag;}; // Do nothing
+  Bool_t IsOutputFIFO()       {return fV775DummyFlag;}; // Do nothing
+  Bool_t IsResolutionLock()   {return fV775DummyFlag;}; // Do nothing
+
+  UInt_t GetTDCSlotNumber()   {return fV775SlotNumber;};
   UInt_t GetTDCChannelNumber(){return fV775ChannelNumber;};
-  UInt_t GetTDCData(){return fV775Dataword;};
+  UInt_t GetTDCData()         {return fV775Dataword;};
+
+  UInt_t GetTDCEventNumber()  {return fV775EventNumber;};
+  UInt_t GetTDCTriggerTime()  {return 0;}; // Do nothing
 
   void SetReferenceParameters(Double_t mindiff, Double_t maxdiff,
 			      Double_t offset, Double_t shift){
@@ -77,9 +89,14 @@ class MQwV775TDC{
   static const UInt_t kV775WordType_Datum;
 
   Bool_t fV775ValidFlag;
+  Bool_t fV775HeaderFlag;
+  Bool_t fV775DummyFlag; // do nothing 
+
   UInt_t fV775SlotNumber;
   UInt_t fV775ChannelNumber;
   UInt_t fV775Dataword;
+
+  UInt_t fV775EventNumber;
 
 };
 

@@ -2,7 +2,8 @@
 * File: QwDriftChamber.C                                   *
 *                                                          *
 * Author: P. M. King, Rakitha Beminiwattha                 *
-* Time-stamp: <2008-07-08 15:40>                           *
+*         J. H. Lee                                        *
+* Time-stamp: <2010-04-12 12:12>                           *
 \**********************************************************/
 
 #include "QwDriftChamber.h"
@@ -164,38 +165,43 @@ Int_t QwDriftChamber::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buf
       }
       if (! IsSlotRegistered(index, GetTDCSlotNumber())) continue;
 
-      if (IsValidDataword()){
-	// This is a F1 TDC header/trailer word
-	//  This might be a problem, but often is not...
-	//  Do we need to do something?
+      if (IsValidDataword())
+	{
+	  // This is a F1 TDC data word
+	  
+	  try {
+	    //std::cout<<"At QwDriftChamber::ProcessEvBuffer"<<std::endl;
+	    FillRawTDCWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),
+			   GetTDCData());
+	  }
+	  catch (std::exception& e) {
+	    std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: " 
+		      << e.what() << std::endl;
+	    Int_t chan = GetTDCChannelNumber();
+	    std::cerr << "   Parameters:  index=="<<index
+		      << "; GetF1SlotNumber()=="<<GetTDCSlotNumber()
+		      << "; GetF1ChannelNumber()=="<<chan
+		      << "; GetF1Data()=="<<GetTDCData()
+		      << std::endl;
+	    Int_t tdcindex = GetTDCIndex(index, GetTDCSlotNumber());
+	    std::cerr << "   GetTDCIndex()=="<<tdcindex
+		      << "; fTDCPtrs.at(tdcindex).size()=="
+		      << fTDCPtrs.at(tdcindex).size()
+		      << "; fTDCPtrs.at(tdcindex).at(chan).fPlane=="
+		      << fTDCPtrs.at(tdcindex).at(chan).fPlane
+		      << "; fTDCPtrs.at(tdcindex).at(chan).fElement=="
+		      << fTDCPtrs.at(tdcindex).at(chan).fElement
+		      << std::endl;
+	  }
 
-      } else {
-	// This is a F1 TDC data word
-	try {
-	  //std::cout<<"At QwDriftChamber::ProcessEvBuffer"<<std::endl;
-	  FillRawTDCWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),
-			 GetTDCData());
+	} 
+      else 
+	{	
+	  // This is a F1 TDC header/trailer word
+	  // This might be a problem, but often is not...
+	  // Do we need to do something?
+	  
 	}
-	catch (std::exception& e) {
-	  std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: " 
-		    << e.what() << std::endl;
-	  Int_t chan = GetTDCChannelNumber();
-	  std::cerr << "   Parameters:  index=="<<index
-		    << "; GetF1SlotNumber()=="<<GetTDCSlotNumber()
-		    << "; GetF1ChannelNumber()=="<<chan
-		    << "; GetF1Data()=="<<GetTDCData()
-		    << std::endl;
-	  Int_t tdcindex = GetTDCIndex(index, GetTDCSlotNumber());
-	  std::cerr << "   GetTDCIndex()=="<<tdcindex
-		    << "; fTDCPtrs.at(tdcindex).size()=="
-		    << fTDCPtrs.at(tdcindex).size()
-		    << "; fTDCPtrs.at(tdcindex).at(chan).fPlane=="
-		    << fTDCPtrs.at(tdcindex).at(chan).fPlane
-		    << "; fTDCPtrs.at(tdcindex).at(chan).fElement=="
-		    << fTDCPtrs.at(tdcindex).at(chan).fElement
-		    << std::endl;
-	}
-      }
     }
   }
   return OK;
