@@ -286,14 +286,12 @@ Int_t main(Int_t argc, Char_t* argv[]) {
             // Sorting the grand hit list
             hitlist->sort();
 
-
-            if (hitlist->size() == 0 && (kScannerBranch || kMainDetBranch))   tree->Fill();
-
-            // Skip empty events
-            if (hitlist->size() == 0) continue;
+            // Skip empty events, if we're not creating the other branches
+            if (hitlist->size() == 0 && !(kScannerBranch || kMainDetBranch))
+	      continue;
 
             // Print hit list
-            if (kDebug) {
+            if (hitlist->size()>0 && kDebug) {
                 std::cout << "Event " << eventbuffer.GetEventNumber() << std::endl;
                 hitlist->Print();
             }
@@ -303,7 +301,7 @@ Int_t main(Int_t argc, Char_t* argv[]) {
             if (kTree) rootlist->Build(*hitlist);
 
             // Track reconstruction
-            if (kTracking) {
+            if (hitlist->size()>0 && kTracking) {
                 // Process the hits
                 event = trackingworker->ProcessHits(&detectors, hitlist);
 
