@@ -9,7 +9,7 @@
 
 
 MQwF1TDC::MQwF1TDC(): fMinDiff(-1.0*kMaxInt), fMaxDiff(1.0*kMaxInt), 
-		      fOffset(0.0), fTimeShift(0.0), fSignFlip(kFALSE)
+		      fOffset(0.0), fTimeShift(0.0)
 { };
 
 MQwF1TDC::~MQwF1TDC() { };
@@ -21,7 +21,6 @@ const UInt_t MQwF1TDC::kF1Mask_OutputFIFOFlag = 0x02000000;
 const UInt_t MQwF1TDC::kF1Mask_HitFIFOFlag    = 0x01000000;
 const UInt_t MQwF1TDC::kF1Mask_ChannelNumber  = 0x003f0000;
 const UInt_t MQwF1TDC::kF1Mask_Dataword       = 0x0000ffff;
-//const UInt_t MQwF1TDC::offset                 = 64495;
 
 void MQwF1TDC::DecodeTDCWord(UInt_t &word){
   fF1SlotNumber      = (word & kF1Mask_SlotNumber)>>27;
@@ -83,10 +82,7 @@ Double_t MQwF1TDC::SubtractReference(Double_t rawtime, Double_t reftime)
   else if( real_time > fMaxDiff) {
     real_time -= fOffset;
   }
-  if (fSignFlip)
-    real_time = -1.0*real_time + fTimeShift;
-  else
-    real_time = real_time + fTimeShift;
+  real_time = real_time + fTimeShift;
   return real_time;
 }
 

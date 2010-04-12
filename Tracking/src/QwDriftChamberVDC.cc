@@ -27,7 +27,7 @@ const UInt_t QwDriftChamberVDC::kLineNum=8;
 QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ): 
   VQwSubsystem ( region_tmp ), QwDriftChamber ( region_tmp,fWireHitsVDC )
 {
-    SetReferenceParameters(-30000., 30000., 64495.,-8929., kFALSE);
+    SetReferenceParameters(-30000., 30000., 64495.,-8929.);
     std::vector<QwDelayLine> temp;
     temp.resize ( kLineNum );
     fDelayLineArray.resize ( kBackPlaneNum,temp );
