@@ -5,7 +5,7 @@ Bank=0x3102
 !  HAPPEX 30 Hz:  16480
 !  HAPPEX 120 Hz:  3824
 !  HAPPEX 240 Hz:  1916
-sample_size=3824
+sample_size=1916
 !
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED

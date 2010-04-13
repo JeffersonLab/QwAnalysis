@@ -13,7 +13,7 @@ PATTERNPHASEOFFSET=0
 randseedbits=30
 
 HelicityDecodingMode=InputRegisterMode
-PatternPhase=4
+PatternPhase=8
 !!!NumberPatternsDelayed=4
 
 ROC=23
@@ -100,6 +100,27 @@ WORD, 0,  0, helicitydata,  ha_ncnt
 !RandSeedBits=30
 
 ROC=31
+Bank=0x3101
+SKIP 4
+WORD, 0,  0, helicitydata,  scal_cnt
+WORD, 0,  0, helicitydata,  scal_00
+WORD, 0,  0, helicitydata,  scal_01
+WORD, 0,  0, helicitydata,  scal_02
+WORD, 0,  0, helicitydata,  scal_03
+WORD, 0,  0, helicitydata,  scal_04
+SKIP 10
+WORD, 0,  0, helicitydata,  scal_15
+WORD, 0,  0, helicitydata,  scal_16
+WORD, 0,  0, helicitydata,  scal_17
+WORD, 0,  0, helicitydata,  scal_18
+SKIP 12
+WORD, 0,  0, helicitydata,  scal_30
+WORD, 0,  0, helicitydata,  scal_31
+
+
+
+
+
 Bank=0x3103
 
 !
