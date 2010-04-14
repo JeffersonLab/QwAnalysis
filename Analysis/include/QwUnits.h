@@ -94,6 +94,6 @@ namespace Qw {
   static const double G = 0.0001;
   static const double kG = 1.0e3 * G;
 
-}; // namespace Qw
+} // namespace Qw
 
 #endif // QWUNITS_H
