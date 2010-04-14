@@ -55,19 +55,19 @@ public:
 
   void Set_HallAIA(Double_t &value){
     int status;
-    status = ca_put(DBR_DOUBLE, fIDHall_A_IA, &value);
+    //    status = ca_put(DBR_DOUBLE, fIDHall_A_IA, &value);
     status = ca_pend_io(10);
     std::cout << "Hall A IA value: " << value << std::endl;
   };
   void Set_Pockels_Cell_plus(Double_t &value){
     int status;
-    status = ca_put(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
+    //    status = ca_put(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
     status = ca_pend_io(10);
     std::cout << "Pockels Cell plus HV value: " << value << std::endl;
   };
   void Set_Pockels_Cell_minus(Double_t &value){
     int status;
-    status = ca_put(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
+    //    status = ca_put(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
     status = ca_pend_io(10);
     std::cout << "Pockels Cell minus HV value: " << value << std::endl;
   };
