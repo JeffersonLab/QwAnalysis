@@ -41,8 +41,8 @@ class QwBridge: public VQwTrackingElement {
     double ySMatch;		/// matching in Yslope
     double xMatch;		/// match in x
     double fMomentum;		/// momentum
-    QwHit *hits;  		/// matching hits
-    QwHitContainer qwhits;	/// matching hits
+    //QwHit *fHits;  	//!	/// matching hits
+    //QwHitContainer qwhits;	/// matching hits
 
     /// \brief Output stream operator
     friend ostream& operator<< (ostream& stream, const QwBridge& b);

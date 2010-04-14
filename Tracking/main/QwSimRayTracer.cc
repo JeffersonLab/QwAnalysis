@@ -80,20 +80,28 @@ int main (int argc, char* argv[])
 
 
   /// Create a lookup table bridging method
-  std::string trajmatrix = std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QwTrajMatrix.root";
   QwMatrixLookup* matrixlookup = new QwMatrixLookup();
-  if (! matrixlookup->LoadTrajMatrix(trajmatrix)) {
+  // Determine lookup table file from environment variables
+  std::string trajmatrix = "";
+  if (getenv("QW_LOOKUP_DIR") && getenv("QW_LOOKUP_FILE"))
+    trajmatrix = std::string(getenv("QW_LOOKUP_DIR")) + "/" + std::string(getenv("QW_LOOKUP_FILE"));
+  else
+    QwWarning << "Environment variable QW_LOOKUP_DIR and/or QW_LOOKUP_FILE not defined." << QwLog::endl;
+  // Load lookup table
+  if (! matrixlookup->LoadTrajMatrix(trajmatrix))
     QwError << "Could not load trajectory lookup table!" << QwLog::endl;
-    return false;
-  }
 
   /// Create a ray tracer bridging method
-  std::string fieldmap = std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/MainMagnet_FieldMap.dat";
   QwRayTracer* raytracer = new QwRayTracer();
-  if (! QwRayTracer::LoadMagneticFieldMap(fieldmap)) {
+  // Determine magnetic field file from environment variables
+  std::string fieldmap = "";
+  if (getenv("QW_FIELDMAP_DIR") && getenv("QW_FIELDMAP_FILE"))
+    fieldmap = std::string(getenv("QW_FIELDMAP_DIR")) + "/" + std::string(getenv("QW_FIELDMAP_FILE"));
+  else
+    QwWarning << "Environment variable QW_FIELDMAP_DIR and/or QW_FIELDMAP_FILE not defined." << QwLog::endl;
+  // Load magnetic field map
+  if (! QwRayTracer::LoadMagneticFieldMap(fieldmap))
     QwError << "Could not load magnetic field map!" << QwLog::endl;
-    return false;
-  }
 
 
   // Loop over the runs
@@ -111,7 +119,6 @@ int main (int argc, char* argv[])
 
     QwEvent* event = 0;
     tree->Branch("events", "QwEvent", &event);
-
 
     /// Load the simulated event file
     TString input = Form(TString(getenv("QWSCRATCH")) + "/data/QwSim_%d.root", runnumber);
@@ -195,7 +202,7 @@ int main (int argc, char* argv[])
       if (debug) event->Print();
 
       // Write event to tree
-      //tree->Fill();
+      tree->Fill();
 
 
       // Progress message

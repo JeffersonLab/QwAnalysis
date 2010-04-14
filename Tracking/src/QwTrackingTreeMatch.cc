@@ -452,7 +452,7 @@ QwTrack* QwTrackingTreeMatch::TgPartMatch (
 	v1 = v2 = 1e12;
 
 
-      newtrack->bridge = bridge;
+      newtrack->fBridge = bridge;
       //newtrack->method = method;
       newtrack->front  = front;
       newtrack->back = back;

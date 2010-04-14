@@ -64,7 +64,7 @@ class QwMagneticField {
     void SetFieldScalingFactor(const double fieldscalingfactor)
       { fFieldScalingFactor = fieldscalingfactor; };
     /// Get the field scaling factor
-    const double GetFieldScalingFactor() const
+    double GetFieldScalingFactor() const
       { return fFieldScalingFactor; };
 
     /// Set the field rotation around z (with QwUnits)
@@ -77,14 +77,14 @@ class QwMagneticField {
       fRotationRad = rotation / Qw::rad;
     };
     /// Get the field rotation around z (with QwUnits)
-    const double GetRotation() const
+    double GetRotation() const
       { return fRotationRad * Qw::rad; };
 
     /// Set the field translation along z
     void SetTranslation(const double translation)
       { fTranslation = translation; };
     /// Get the field translation along z
-    const double GetTranslation() const
+    double GetTranslation() const
       { return fTranslation; };
 
     /// Get the cartesian components of the field value
@@ -117,11 +117,11 @@ class QwMagneticField {
     };
 
     /// \brief Read a field map input file
-    const bool ReadFieldMapFile(const std::string filename);
+    bool ReadFieldMapFile(const std::string filename);
     /// \brief Read a field map input gzip file
-    const bool ReadFieldMapZip(const std::string filename);
+    bool ReadFieldMapZip(const std::string filename);
     /// \brief Read the field map input stream
-    const bool ReadFieldMap(std::istream& input);
+    bool ReadFieldMap(std::istream& input);
 
   private:
 

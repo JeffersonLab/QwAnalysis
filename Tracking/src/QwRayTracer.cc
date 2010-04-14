@@ -270,7 +270,7 @@ const int QwRayTracer::Bridge(
         track->back = const_cast<QwPartialTrack*>(back);
 
         QwBridge* bridge = new QwBridge();
-        track->bridge = bridge;
+        track->fBridge = bridge;
 
         bridge->fStartPosition = start_position;
         bridge->fStartDirection = start_direction;

@@ -58,7 +58,7 @@ QwMagneticField::QwMagneticField()
  * @param filename ANSYS map file name
  * @return True if read successfully
  */
-const bool QwMagneticField::ReadFieldMapFile(const std::string filename)
+bool QwMagneticField::ReadFieldMapFile(const std::string filename)
 {
   // Open the field map file
   std::ifstream inputfile;
@@ -80,7 +80,7 @@ const bool QwMagneticField::ReadFieldMapFile(const std::string filename)
  * @param filename ANSYS map file name
  * @return True if read successfully
  */
-const bool QwMagneticField::ReadFieldMapZip(const std::string filename)
+bool QwMagneticField::ReadFieldMapZip(const std::string filename)
 {
 #ifdef __USE_BOOST_IOSTREAMS
   // Create a gzip filter for the field map file
@@ -102,7 +102,7 @@ const bool QwMagneticField::ReadFieldMapZip(const std::string filename)
  * @param input Input stream
  * @return True if read successfully
  */
-const bool QwMagneticField::ReadFieldMap(std::istream& input)
+bool QwMagneticField::ReadFieldMap(std::istream& input)
 {
   QwDebug << "###### Calling QwMagneticField::ReadFieldMap " << QwLog::endl;
 

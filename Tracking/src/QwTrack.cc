@@ -1,9 +1,22 @@
 #include "QwTrack.h"
 ClassImp(QwTrack);
 
-QwTrack::QwTrack() { }
+QwTrack::QwTrack()
+{
+  // Initialize all pointers
+  fBridge = 0;
+  next = 0;
+  ynext = 0;
+  usednext = 0;
+  front = 0;
+  back = 0;
+  beamvertex = 0;
+}
 
-QwTrack::~QwTrack() { }
+QwTrack::~QwTrack()
+{
+  // Nothing
+}
 
 /**
  * Output stream operator overloading
