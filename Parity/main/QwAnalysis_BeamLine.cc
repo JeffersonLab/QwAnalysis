@@ -38,6 +38,10 @@
 
 Bool_t kInQwBatchMode = kFALSE;
 Bool_t bRING_READY;
+Bool_t bSkip= kFALSE;;
+Bool_t bSave= kTRUE;
+Int_t fEVENTS2SKIP, fEVENTS2SAVE;
+
 
 ///
 /// \ingroup QwAnalysis_BL
@@ -113,6 +117,13 @@ Int_t main(Int_t argc, Char_t* argv[])
     r_BT=gQwOptions.GetValue<int>("ring.bt"); 
   if (gQwOptions.HasValue("ring.hld"))
     r_HLD=gQwOptions.GetValue<int>("ring.hld");
+
+  //Tree events scaling parameters
+   if (gQwOptions.HasValue("skip"))
+    fEVENTS2SKIP=gQwOptions.GetValue<int>("skip");
+   if (gQwOptions.HasValue("take"))
+    fEVENTS2SAVE=gQwOptions.GetValue<int>("take");
+   ///
 
   std::cout<<" Ring "<<r_size<<" , "<<r_BT<<" , "<<r_HLD<<std::endl;
   QwEventRing fEventRing(QwDetectors,r_size,r_HLD,r_BT);
@@ -243,8 +254,32 @@ Int_t main(Int_t argc, Char_t* argv[])
 	    //((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->FillTreeVector(mpsvector);
 	    //((QwHelicity*)QwDetectors.GetSubsystem("Helicity info"))->FillTreeVector(mpsvector);
 	    //((QwLumi*)QwDetectors.GetSubsystem("Luminosity Monitors"))->FillTreeVector(mpsvector);
-	    QwDetectors.FillTreeVector(mpsvector);
-	    mpstree->Fill();
+
+	    //Tree events scaling is set here
+	    if (fEVENTS2SKIP==0){
+	      bSave=kTRUE;
+	      bSkip=kFALSE;
+	    }
+	    else if (fEVENTS2SAVE==0){
+	      bSkip=kTRUE;//ready to skip events
+	      bSave=kFALSE;
+	    }
+	    else if (QwEvt.GetEventNumber()%fEVENTS2SAVE==0 && bSave){
+	      bSkip=kTRUE;//ready to skip events
+	      bSave=kFALSE;
+	      //std::cout<<evnum<<" Ready to skip"<<std::endl;
+	    }
+	    else if (QwEvt.GetEventNumber()%fEVENTS2SKIP==0 && bSkip){
+	      bSave=kTRUE;//read to save data
+	      bSkip=kFALSE;
+	      //std::cout<<evnum<<"Ready to save"<<std::endl;
+	    }
+	    //
+
+	    if(bSave){
+	      QwDetectors.FillTreeVector(mpsvector);
+	      mpstree->Fill();
+	    }
 	  }
 
 	  if(bHelicity && QwHelPat.IsCompletePattern() && bRING_READY){ 
@@ -255,7 +290,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 	    if (QwHelPat.IsGoodAsymmetry()){
 	      if(bHisto) QwHelPat.FillHistograms();
 
-	      if(bTree){
+	      if(bTree && bSave){
 		QwHelPat.FillTreeVector(helvector);
 		heltree->Fill();
 	      }
