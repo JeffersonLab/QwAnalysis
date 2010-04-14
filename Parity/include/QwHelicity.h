@@ -30,7 +30,7 @@ class QwWord
 	  fWordName(""),fWordType(""),fValue(-1){};
 
   Int_t fSubbankIndex;
-  UInt_t fWordInSubbank;
+  Int_t fWordInSubbank;
   TString fModuleType;
   TString fWordName;
   TString fWordType;
@@ -61,7 +61,7 @@ class QwWord
 /// \ingroup QwAnalysis_ADC
 ///
 /// \ingroup QwAnalysis_BL
-class QwHelicity : public VQwSubsystemParity{
+class QwHelicity: public VQwSubsystemParity{
   /////
  public:
 
@@ -129,7 +129,7 @@ class QwHelicity : public VQwSubsystemParity{
   Int_t GetPhaseNumber();
 
   void Copy(VQwSubsystem *source);
-  VQwSubsystemParity*  Copy();
+  VQwSubsystem*  Copy();
   VQwSubsystem&  operator=  (VQwSubsystem *value);
   VQwSubsystem&  operator+=  (VQwSubsystem *value);
   void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);

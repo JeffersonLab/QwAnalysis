@@ -25,7 +25,7 @@
 
 #include "QwHistogramHelper.h"
 
-#include "QwSubsystemArray.h"
+#include "QwSubsystemArrayParity.h"
 #include "QwMainCerenkovDetector.h"
 
 // Test code for the focal plane scanner

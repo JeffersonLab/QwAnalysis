@@ -50,6 +50,10 @@ Int_t main(Int_t argc, Char_t* argv[])
   // Define the command line options
   DefineOptionsParity(gQwOptions);
 
+  // modified value for maximum size of tree
+  Long64_t kMAXTREESIZE = 10000000000LL;
+  // standard value for maximum size of tree in root source
+  //  Long64_t kMAXTREESIZE = 1900000000LL;
 
   Bool_t bDebug=kFALSE;
   Bool_t bHelicity=kTRUE;
@@ -152,7 +156,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 	{
 	  rootfile.cd();
 	  mpstree=new TTree("MPS_Tree","MPS event data tree");
-	  mpsvector.reserve(6000);
+	  mpstree->SetMaxTreeSize(kMAXTREESIZE);
+	  mpsvector.reserve(6000); 
 	  // if one defines more than 600 words in the full ntuple
 	  // results are going to get very very crazy.
 	  mpstree->Branch("evnum",&evnum,"evnum/D");
@@ -168,7 +173,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 	    {
 	      rootfile.cd();
 	      heltree = new TTree("HEL_Tree","Helicity event data tree");
-	      helvector.reserve(6000);
+	      heltree->SetMaxTreeSize(kMAXTREESIZE);
+	      helvector.reserve(6000); 
 	      TString dummystr="";
 	      QwHelPat.ConstructBranchAndVector(heltree, dummystr, helvector);
 	    }
