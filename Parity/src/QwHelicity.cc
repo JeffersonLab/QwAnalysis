@@ -193,7 +193,6 @@ void QwHelicity::ProcessEventUserbitMode()
 {
   //std::cout<<"In  QwHelicity::ProcessEventUserbitMode() \n";
 
-
   // In this version of the code, the helicty is extracted for a userbit configuration.
   // This is not what we plan to have for Qweak but what we used for the winter 2008-09
   // injector tests
@@ -568,7 +567,11 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	    wordsofar=0;
 	  }
 
-	if(modtype!="WORD"|| dettype!="helicitydata")
+	if(modtype=="SKIP"){
+	  if (modnum<=0) wordsofar+=1;
+	  else           wordsofar+=modnum; 
+	} 
+	else if(modtype!="WORD"|| dettype!="helicitydata")
 	  {
 	    std::cerr << "QwHelicity::LoadChannelMap:  Unknown detector type: "
 		      << dettype <<", the detector "<<namech<<" will not be decoded "
@@ -674,7 +677,7 @@ Int_t QwHelicity::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer,
 	    fWord[i].fValue=buffer[fWord[i].fWordInSubbank];
 	  }
 	else
-	  {	
+	  {
 	    std::cout<<"There is not enough word in the buffer to read data for "
 		     <<fWord[i].fWordName<<"\n";
 	    std::cout<<"words in this buffer:"<<num_words<<" tyring to read woord number ="
@@ -1433,7 +1436,7 @@ void QwHelicity::Copy(VQwSubsystem *source)
   return;
 }
 
-VQwSubsystemParity*  QwHelicity::Copy()
+VQwSubsystem*  QwHelicity::Copy()
 {
 
   QwHelicity* TheCopy=new QwHelicity("Helicity Copy");

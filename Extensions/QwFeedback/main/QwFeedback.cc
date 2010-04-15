@@ -34,14 +34,12 @@
 #include "TApplication.h"
 #include <boost/shared_ptr.hpp>
 
+#include "QwEPICSControl.h"
+#include "GreenMonster.h"
 
 
 Bool_t kInQwBatchMode = kFALSE;
 Bool_t bRING_READY;
-Bool_t bSkip= kFALSE;;
-Bool_t bSave= kTRUE;
-Int_t fEVENTS2SKIP, fEVENTS2SAVE;
-
 
 ///
 /// \ingroup QwAnalysis_BL
@@ -84,6 +82,17 @@ Int_t main(Int_t argc, Char_t* argv[])
   
   TStopwatch timer;
 
+  QwEPICSControl fEPICSCtrl;
+  GreenMonster   fScanCtrl;
+  //  Let's clear the values for the scan data & set "not clean".
+  fScanCtrl.Open();
+  fScanCtrl.SCNSetStatus(SCN_INT_NOT);
+  fScanCtrl.SCNSetValue(1,0);
+  fScanCtrl.SCNSetValue(2,0);
+  fScanCtrl.CheckScan();
+  fScanCtrl.PrintScanInfo();
+  fScanCtrl.Close();
+
   QwEventBuffer QwEvt;
   QwEvt.ProcessOptions(gQwOptions);
 
@@ -99,10 +108,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwDetectors.push_back(new QwHelicity("Helicity info"));
   QwDetectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_helicity.map");
   QwDetectors.GetSubsystem("Helicity info")->LoadInputParameters("");	
-  QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
-  QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap("qweak_beamline.map");//current map file is for the beamline.
-  QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file. 
-  
+
   ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
 	  
 
@@ -118,17 +124,11 @@ Int_t main(Int_t argc, Char_t* argv[])
   if (gQwOptions.HasValue("ring.hld"))
     r_HLD=gQwOptions.GetValue<int>("ring.hld");
 
-  //Tree events scaling parameters
-   if (gQwOptions.HasValue("skip"))
-    fEVENTS2SKIP=gQwOptions.GetValue<int>("skip");
-   if (gQwOptions.HasValue("take"))
-    fEVENTS2SAVE=gQwOptions.GetValue<int>("take");
-   ///
-
   std::cout<<" Ring "<<r_size<<" , "<<r_BT<<" , "<<r_HLD<<std::endl;
   QwEventRing fEventRing(QwDetectors,r_size,r_HLD,r_BT);
   Double_t evnum=0.0;
 
+  fEPICSCtrl.Print_Qasym_Ctrls();
 
   // Loop over all runs
   while (QwEvt.OpenNextStream() == CODA_OK){
@@ -140,7 +140,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       //  Open the data files and root file
       //    OpenAllFiles(io, run);
 
-      TString rootfilename=std::string(getenv("QW_ROOTFILES"))+Form("/Qweak_BeamLine_%s.root",
+      TString rootfilename=std::string(getenv("QW_ROOTFILES"))+Form("/Qweak_Feedback_%s.root",
 									QwEvt.GetRunLabel().Data());
       std::cout<<" rootfilename="<<rootfilename<<"\n";
       TFile rootfile(rootfilename,
@@ -173,12 +173,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  // results are going to get very very crazy.
 	  mpstree->Branch("evnum",&evnum,"evnum/D");
 	  TString dummystr="";
-	  //((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
-	  //((QwBeamLine*)QwDetectors.GetSubsystem("Helicity info"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
-	  //((QwBeamLine*)QwDetectors.GetSubsystem("Luminosity Monitors"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
 	  QwDetectors.ConstructBranchAndVector(mpstree, dummystr, mpsvector);
-	  // QwDetectors.ConstructBranchAndVector(mpstree, dummystr, mpsvector);
-	  // at some point we want to have some thing like that but it need to be implement in QwSubsystemArray
+
 	  rootfile.cd();
 	  if(bHelicity)
 	    {
@@ -193,6 +189,48 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 	}
 
+
+      int numevents = 1000*3;
+      int stepnum = 0;
+      int setval;
+      std::vector<Double_t> values;
+//       values.push_back(5.0);
+//       values.push_back(3.0);
+//       values.push_back(1.0);
+//       values.push_back(3.0);
+//       values.push_back(5.0);
+//       values.push_back(7.0);
+//       values.push_back(9.0);
+//       values.push_back(7.0);
+      
+//      Double_t pc_plus  = 7.420;
+//      Double_t pc_minus = 7.310;
+      Double_t pc_plus  = 5.0;
+      Double_t pc_minus = 5.0;
+      Double_t tmpval;
+
+      values.push_back(0.0);
+      //      values.push_back(1.0);
+      values.push_back(4.0);
+      //      values.push_back(1.0);
+      //      values.push_back(-1.0);
+      values.push_back(-4.0);
+      //      values.push_back(-1.0);
+
+
+      setval = TMath::Nint(values[stepnum]*1000);
+      fScanCtrl.SCNSetValue(1,0);
+      fScanCtrl.SCNSetValue(2,setval);
+
+      //      fEPICSCtrl.Set_HallAIA(values[stepnum]);
+
+      tmpval = pc_plus + values[stepnum];
+      fEPICSCtrl.Set_Pockels_Cell_plus(tmpval);
+      tmpval = pc_minus - values[stepnum];
+      fEPICSCtrl.Set_Pockels_Cell_minus(tmpval);
+      fEPICSCtrl.Print_Qasym_Ctrls();
+
+
       Int_t falied_events_counts=0;//count falied total events
 
 
@@ -204,8 +242,46 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  QwEvt.FillSubsystemConfigurationData(QwDetectors);
 	}
 
+	//  Dump out of the loop when we see the end event.
+	if (QwEvt.GetEndEventCount()>0) break;
+      
 	//  Now, if this is not a physics event, go back and get a new event.
 	if (! QwEvt.IsPhysicsEvent()) continue;
+
+
+	//  Some reslly simple tests of the scan control and EPICS
+	//  control systems as used for June 2009 tests.
+	if(QwEvt.GetEventNumber()%(numevents*5)==0) {
+	  fScanCtrl.Open();
+	  fScanCtrl.SCNSetStatus(SCN_INT_NOT);
+	  fScanCtrl.SCNSetValue(1,QwEvt.GetEventNumber());
+	  
+	  stepnum++;
+	  if (stepnum>=values.size()) 
+	    stepnum=0;
+	  //	    fEPICSCtrl.Set_HallAIA(values[stepnum]);
+	  tmpval = pc_plus + values[stepnum];
+	  fEPICSCtrl.Set_Pockels_Cell_plus(tmpval);
+	  tmpval = pc_minus - values[stepnum];
+	  fEPICSCtrl.Set_Pockels_Cell_minus(tmpval);
+	  fEPICSCtrl.Print_Qasym_Ctrls();
+	  
+	  setval = TMath::Nint(values[stepnum]*1000);
+	  fScanCtrl.SCNSetValue(2,setval);
+
+	  fScanCtrl.SCNSetStatus(SCN_INT_CLN);
+	  fScanCtrl.Close();
+	  
+	} else if(QwEvt.GetEventNumber()%(numevents)==0) {
+	  fScanCtrl.Open();
+	  fScanCtrl.SCNSetStatus(SCN_INT_NOT);
+	  fScanCtrl.SCNSetValue(1,QwEvt.GetEventNumber());
+	  fScanCtrl.SCNSetValue(2,setval);
+	  fScanCtrl.SCNSetStatus(SCN_INT_CLN);
+	  fScanCtrl.Close();      
+	}
+
+
 
 	if(bDebug){
 	  std::cout<<"==================================================== \n";
@@ -250,47 +326,18 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 	  if(bTree){
 	    evnum=QwEvt.GetEventNumber();
-	    //std::cout<<" event "<<evnum<<std::endl;
-	    //((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->FillTreeVector(mpsvector);
-	    //((QwHelicity*)QwDetectors.GetSubsystem("Helicity info"))->FillTreeVector(mpsvector);
-	    //((QwLumi*)QwDetectors.GetSubsystem("Luminosity Monitors"))->FillTreeVector(mpsvector);
-
-	    //Tree events scaling is set here
-	    if (fEVENTS2SKIP==0){
-	      bSave=kTRUE;
-	      bSkip=kFALSE;
-	    }
-	    else if (fEVENTS2SAVE==0){
-	      bSkip=kTRUE;//ready to skip events
-	      bSave=kFALSE;
-	    }
-	    else if (QwEvt.GetEventNumber()%fEVENTS2SAVE==0 && bSave){
-	      bSkip=kTRUE;//ready to skip events
-	      bSave=kFALSE;
-	      //std::cout<<evnum<<" Ready to skip"<<std::endl;
-	    }
-	    else if (QwEvt.GetEventNumber()%fEVENTS2SKIP==0 && bSkip){
-	      bSave=kTRUE;//read to save data
-	      bSkip=kFALSE;
-	      //std::cout<<evnum<<"Ready to save"<<std::endl;
-	    }
-	    //
-
-	    if(bSave){
-	      QwDetectors.FillTreeVector(mpsvector);
-	      mpstree->Fill();
-	    }
+	    QwDetectors.FillTreeVector(mpsvector);
+	    mpstree->Fill();
 	  }
 
 	  if(bHelicity && QwHelPat.IsCompletePattern() && bRING_READY){ 
-	    //QwHelicity * tmp=(QwHelicity *)QwDetectors.GetSubsystem("Helicity info");
 	    //std::cout<<" Complete quartet  Good Helicity "<<std::endl;
 	    QwHelPat.CalculateAsymmetry();
 	    //QwHelPat.Print();
 	    if (QwHelPat.IsGoodAsymmetry()){
 	      if(bHisto) QwHelPat.FillHistograms();
 
-	      if(bTree && bSave){
+	      if(bTree){
 		QwHelPat.FillTreeVector(helvector);
 		heltree->Fill();
 	      }

@@ -114,6 +114,7 @@ using std::endl;
 #include "QwBridge.h"
 #include "QwDetectorInfo.h"
 #include "QwRayTracer.h"
+#include "QwMatrixLookup.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -138,11 +139,29 @@ QwTrackingWorker::QwTrackingWorker (const char* name)
   // Initialize the pattern database
   InitTree();
 
-  raytracer = new QwRayTracer();
+  // Initialize a lookup table bridging method
+  fMatrixLookup = new QwMatrixLookup();
+  // Determine lookup table file from environment variables
+  std::string trajmatrix = "";
+  if (getenv("QW_LOOKUP_DIR") && getenv("QW_LOOKUP_FILE"))
+    trajmatrix = std::string(getenv("QW_LOOKUP_DIR")) + "/" + std::string(getenv("QW_LOOKUP_FILE"));
+  else
+    QwWarning << "Environment variable QW_LOOKUP_DIR and/or QW_LOOKUP_FILE not defined." << QwLog::endl;
+  // Load lookup table
+  if (! fMatrixLookup->LoadTrajMatrix(trajmatrix))
+    QwError << "Could not load trajectory lookup table!" << QwLog::endl;
 
+  // Initialize a ray tracer bridging method
+  fRayTracer = new QwRayTracer();
+  // Determine magnetic field file from environment variables
+  std::string fieldmap = "";
+  if (getenv("QW_FIELDMAP_DIR") && getenv("QW_FIELDMAP_FILE"))
+    fieldmap = std::string(getenv("QW_FIELDMAP_DIR")) + "/" + std::string(getenv("QW_FIELDMAP_FILE"));
+  else
+    QwWarning << "Environment variable QW_FIELDMAP_DIR and/or QW_FIELDMAP_FILE not defined." << QwLog::endl;
   // Load magnetic field map
-  //raytracer::LoadMagneticFieldMap();
-  //raytracer->LoadMomentumMatrix();
+  if (! fRayTracer->LoadMagneticFieldMap(fieldmap))
+    QwError << "Could not load magnetic field map!" << QwLog::endl;
 
   /* Reset counters of number of good and bad events */
   ngood = 0;
@@ -165,7 +184,8 @@ QwTrackingWorker::~QwTrackingWorker ()
   for (int i = 0; i < kNumPackages * kNumRegions * kNumTypes * kNumDirections; i++)
     if (fSearchTree[i]) delete fSearchTree[i];
 
-  delete raytracer;
+  delete fMatrixLookup;
+  delete fRayTracer;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -886,38 +906,55 @@ QwEvent* QwTrackingWorker::ProcessHits (
         * mation
         * ============================== */
 
-        //jpan: The following code is for testing the raytrace class
-
+        // If there were partial tracks in the HDC and VDC regions
         if (false && event->parttrack[package][kRegionID2][kTypeDriftHDC]
-                  && event->parttrack[package][kRegionID3][kTypeDriftVDC]) {
+         && event->parttrack[package][kRegionID3][kTypeDriftVDC]) {
 
-            if (fDebug) std::cout<<"Bridging front and back partialtrack:"<<std::endl;
-            if (event->parttrack[package][kRegionID2][kTypeDriftHDC]->IsGood()
-                    && event->parttrack[package][kRegionID3][kTypeDriftVDC]->IsGood()
-                    && event->parttrack[package][kRegionID3][kTypeDriftVDC]->cerenkovhit==1 ) {
+            QwDebug << "Bridging front and back partial tracks..." << QwLog::endl;
 
-                TVector3 R2hit(event->parttrack[package][kRegionID2][kTypeDriftHDC]->pR2hit[0],
-                               event->parttrack[package][kRegionID2][kTypeDriftHDC]->pR2hit[1],
-                               event->parttrack[package][kRegionID2][kTypeDriftHDC]->pR2hit[2]);
-                TVector3 R2direction(event->parttrack[package][kRegionID2][kTypeDriftHDC]->uvR2hit[0],
-                                     event->parttrack[package][kRegionID2][kTypeDriftHDC]->uvR2hit[1],
-                                     event->parttrack[package][kRegionID2][kTypeDriftHDC]->uvR2hit[2]);
-                TVector3 R3hit(event->parttrack[package][kRegionID3][kTypeDriftVDC]->pR3hit[0],
-                               event->parttrack[package][kRegionID3][kTypeDriftVDC]->pR3hit[1],
-                               event->parttrack[package][kRegionID3][kTypeDriftVDC]->pR3hit[2]);
-                TVector3 R3direction(event->parttrack[package][kRegionID3][kTypeDriftVDC]->uvR3hit[0],
-                                     event->parttrack[package][kRegionID3][kTypeDriftVDC]->uvR3hit[1],
-                                     event->parttrack[package][kRegionID3][kTypeDriftVDC]->uvR3hit[2]);
+            // Local copies of front and back track
+            QwPartialTrack* front = event->parttrack[package][kRegionID2][kTypeDriftHDC];
+            QwPartialTrack* back  = event->parttrack[package][kRegionID2][kTypeDriftHDC];
 
-                int status = raytracer->Bridge(event->parttrack[package][kRegionID2][kTypeDriftHDC], event->parttrack[package][kRegionID3][kTypeDriftVDC]);
+            // Loop over all good front and back partial tracks
+            while (front && front->IsGood()) {
+              while (back && back->IsGood()) {
 
-                if (status == 0){
-                  std::cout<<"======>>>> Bridged a track"<<std::endl;
-                  raytracer->PrintInfo();
+                int status = 0;
+
+                // Filter reasonable pairs
+                status = raytracer->Filter(front, back);
+                QwMessage << "Filter: " << status << QwLog::endl;
+                if (status == -1) {
+                  QwMessage << "Tracks did not pass filter." << QwLog::endl;
+                  continue;
                 }
-                else std::cout<<"======>>>> No luck on bridging this track."<<std::endl;
-            }
-        }
+
+                // Attempt to bridge tracks using lookup table
+                status = fMatrixLookup->Bridge(front, back);
+                QwMessage << "Matrix lookup: " << status << QwLog::endl;
+                if (status == 0) {
+                  event->AddTrackList(fMatrixLookup->GetListOfTracks());
+                  continue;
+                }
+
+                // Attmept to bridge tracks using ray-tracing
+                status = fRayTracer->Bridge(front, back);
+                QwMessage << "Ray tracer: " << status << QwLog::endl;
+                if (status == 0) {
+                  event->AddTrackList(fRayTracer->GetListOfTracks());
+                  continue;
+                }
+
+                // Next back track
+                back = back->next;
+              } // end of loop over back tracks
+
+              // Next front track
+              front = front->next;
+            } // end of loop over front tracks
+
+        } /* end of */
 
     } /* end of loop over the detector packages */
 

@@ -479,7 +479,7 @@ const int QwMatrixLookup::Bridge(
     track->back = const_cast<QwPartialTrack*>(back);
 
     QwBridge* bridge = new QwBridge();
-    track->bridge = bridge;
+    track->fBridge = bridge;
 
     bridge->fStartPosition = front_position;
     bridge->fStartDirection = front_direction;

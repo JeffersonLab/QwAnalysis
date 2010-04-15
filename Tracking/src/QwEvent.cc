@@ -400,6 +400,6 @@ void QwEvent::PrintTracks()
   QwTrack* track = 0;
   while ((track = (QwTrack*) iterator->Next())) {
     std::cout << *track << std::endl;
-    std::cout << *(track->bridge) << std::endl;
+    std::cout << *(track->fBridge) << std::endl;
   }
 }

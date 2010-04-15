@@ -12,9 +12,16 @@
 #include "QwBridge.h"
 ClassImp(QwBridge);
 
-QwBridge::QwBridge() { };
+QwBridge::QwBridge()
+{
+  // Initialize all pointers
+  //fHits = 0;
+};
 
-QwBridge::~QwBridge() { };
+QwBridge::~QwBridge()
+{
+  // Nothing
+};
 
 /**
  * Method to print vectors conveniently

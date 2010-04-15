@@ -76,7 +76,7 @@ int main (int argc, char* argv[])
 
   // Region 1 GEM
   detectors->push_back(new QwGasElectronMultiplier("R1"));
-  //detectors->GetSubsystem("R1")->LoadChannelMap("qweak_cosmics_hits.map");
+  detectors->GetSubsystem("R1")->LoadChannelMap("qweak_cosmics_hits.map");
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R1"))->LoadQweakGeometry("qweak_new.geo");
 
   // Region 2 HDC
@@ -145,12 +145,12 @@ int main (int argc, char* argv[])
 
     /// We loop over all requested events.
     Int_t events = 0;
-    Int_t fEntries = treebuffer->GetEntries();
+    Int_t entries = treebuffer->GetEntries();
     Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
     Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
     for (int eventnumber  = eventnumber_min;
              eventnumber <= eventnumber_max &&
-             eventnumber < fEntries; eventnumber++) {
+             eventnumber  < entries; eventnumber++) {
 
       /// Read the event from the tree
       treebuffer->GetEntry(eventnumber);
@@ -161,7 +161,7 @@ int main (int argc, char* argv[])
 
       // Print hit list
       if (kDebug) {
-        std::cout << "Printing hitlist ..." << std::endl;
+        std::cout << "Printing hitlist..." << std::endl;
         hitlist->Print();
       }
 

@@ -277,7 +277,9 @@ QwEvent* QwTreeEventBuffer::GetEvent() const
     fPrimary_OriginVertexMomentumDirectionZ);
 
   // Add the hit list
-  event->AddHitContainer(GetHitList());
+  QwHitContainer* hitlist = GetHitList();
+  event->AddHitContainer(hitlist);
+  delete hitlist;
 
   // Add the tree lines
 

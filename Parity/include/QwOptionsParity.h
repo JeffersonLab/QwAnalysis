@@ -22,6 +22,11 @@ void DefineOptionsParity(QwOptions& options)
   /* Define general options */
   QwOptions::DefineOptions(options);
 
+  //QwAnalysis_BeamLine Options
+  options.AddOptions()("skip", po::value<int>()->default_value(0),"No. of events to skip");
+  options.AddOptions()("take", po::value<int>()->default_value(1000),"No. of events to save into tree = (take - skip)");
+  
+
   //QwEventRing options
   options.AddOptions()("ring.size", po::value<int>()->default_value(32),"QwEventRing: ring/buffer size");
   options.AddOptions()("ring.bt", po::value<int>()->default_value(4),
