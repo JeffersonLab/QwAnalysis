@@ -416,7 +416,7 @@ void  QwDriftChamberVDC::FillHistograms() {
 
 Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile ) {
     //some type(like string,Int_t)need to be changed to root type
-    LoadTimeWireOffset("t0.txt");
+    LoadTimeWireOffset("R3_timeoffset.txt");
     TString varname,varvalue;
     UInt_t value = 0;
     UInt_t channum;            //store temporary channel number
@@ -542,7 +542,7 @@ void QwDriftChamberVDC::ProcessEvent() {
     if ( ! HasDataLoaded() ) return;
     //  Do the reference time subtration and subtration of time offsets.
     SubtractReferenceTimes();
-    //LoadTimeWireOffset("t0.txt");
+    //LoadTimeWireOffset("R3_timeoffset.txt");
 
     Double_t real_time=0;
     Double_t tmpTime=0,left_time=0,right_time=0;
