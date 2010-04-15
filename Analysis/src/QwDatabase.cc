@@ -18,6 +18,8 @@ using namespace QwParityDB;
 
 // Definition of static class members in QwDatabase
 std::map<string, unsigned int> QwDatabase::fMonitorIDs;
+std::map<string, unsigned int> QwDatabase::fMainDetectorIDs;
+std::map<string, unsigned int> QwDatabase::fLumiDetectorIDs;
 
 /*! The simple constructor initializes member fields.  This class is not
  * used to establish the database connection.  It sets up a
@@ -28,6 +30,7 @@ QwDatabase::QwDatabase() : Connection()
 {
   // Initialize member fields
   fDatabase=fDBServer=fDBUsername=fDBPassword="";
+  fVersionMajor=fVersionMinor=fVersionPoint="";
 
   fDBPortNumber      = 0;
   fValidConnection   = false;
@@ -103,21 +106,24 @@ bool QwDatabase::ValidateConnection() {
     QwError << "Exiting." << QwLog::endl;
     exit(1);
   }
+  
+  // Get database schema version information
+  if (StoreDBVersion()) {
+    fValidConnection=true;
+    // Success!
+    QwMessage << "QwDatabase::ValidateConnection() : Successfully connected to requested database." << QwLog::endl;
 
-  // Success!
-  QwMessage << "QwDatabase::ValidateConnection() : Successfully connected to requested database." << QwLog::endl;
-
-  // Connection was good so update member variables and disconnect from
-  // database
-  fDatabase=dbname;
-  fDBServer=server;
-  fDBUsername=username;
-  fDBPassword=password;
-  fDBPortNumber=port;
-  fValidConnection=true;
+    // Connection was good so update member variables and disconnect from
+    // database
+    fDatabase=dbname;
+    fDBServer=server;
+    fDBUsername=username;
+    fDBPassword=password;
+    fDBPortNumber=port;
+  }
   disconnect();
 
-  return true;
+  return fValidConnection;
 
 }
 
@@ -260,8 +266,15 @@ const UInt_t QwDatabase::SetRunID(QwEventBuffer& qwevt)
   try 
     {
       this->Connect();
-      run row(0, qwevt.GetRunNumber(),mysqlpp::null, mysqlpp::null, mysqlpp::null, 0,0);
-      //    row.n_mps=10; // This works
+      run row(0, qwevt.GetRunNumber());
+//      run row(0, qwevt.GetRunNumber(),mysqlpp::null, mysqlpp::null, mysqlpp::null, 0,0);
+      row.run_type = mysqlpp::null;
+      row.helicity_length = 0;
+			row.start_time = mysqlpp::null;
+			row.end_time = mysqlpp::null;
+			row.n_mps = 0;
+			row.n_qrt	= 0;
+//    row.n_mps=10; // This works
       //    row.start_time = mysqlpp::null; // This works
       //    row.start_time = qwevt.GetStartSQLTime().Data(); // This does not work
       
@@ -430,22 +443,25 @@ void QwDatabase::PrintServerInfo()
 /*
  * This function retrieves the monitor table key 'monitor_id' for a given beam monitor.
  */
-const UInt_t QwDatabase::GetMonitorID(const string& monitor)
+const UInt_t QwDatabase::GetMonitorID(const string& name)
 {
   if (fMonitorIDs.size() == 0) {
     StoreMonitorIDs();
   }
 
-  UInt_t monitor_id = fMonitorIDs[monitor];
+  UInt_t monitor_id = fMonitorIDs[name];
 
   if (monitor_id==0) {
-    QwError << "QwDatabase::GetMonitorID() => Unable to determine valid ID for beam monitor " << monitor << QwLog::endl;
+    QwError << "QwDatabase::GetMonitorID() => Unable to determine valid ID for beam monitor " << name << QwLog::endl;
   }
 
   return monitor_id;
 
 }
 
+/*
+ * Stores monitor table keys in an associative array indexed by monitor name.
+ */
 void QwDatabase::StoreMonitorIDs()
 {
 
@@ -465,5 +481,141 @@ void QwDatabase::StoreMonitorIDs()
     Disconnect();
     exit(1);
   }
+}
+
+/*
+ * This function retrieves the main_detector table key 'main_detector_id' for a given beam main_detector.
+ */
+const UInt_t QwDatabase::GetMainDetectorID(const string& name)
+{
+  if (fMainDetectorIDs.size() == 0) {
+    StoreMainDetectorIDs();
+  }
+
+  UInt_t main_detector_id = fMainDetectorIDs[name];
+
+  if (main_detector_id==0) {
+    QwError << "QwDatabase::GetMainDetectorID() => Unable to determine valid ID for beam main_detector " << name << QwLog::endl;
+  }
+
+  return main_detector_id;
+
+}
+
+/*
+ * Stores main_detector table keys in an associative array indexed by main_detector name.
+ */
+void QwDatabase::StoreMainDetectorIDs()
+{
+
+  try {
+    Connect();
+
+    mysqlpp::Query query=this->Query();
+    query.for_each(main_detector(), StoreMainDetectorID());
+
+//    QwDebug<< "QwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << QwLog::endl;
+
+    Disconnect();
+
+  }
+  catch (const mysqlpp::Exception& er) {
+    QwError << er.what() << QwLog::endl;
+    Disconnect();
+    exit(1);
+  }
+}
+
+/*
+ * This function retrieves the lumi_detector table key 'lumi_detector_id' for a given beam lumi_detector.
+ */
+const UInt_t QwDatabase::GetLumiDetectorID(const string& name)
+{
+  if (fLumiDetectorIDs.size() == 0) {
+    StoreLumiDetectorIDs();
+  }
+
+  UInt_t lumi_detector_id = fLumiDetectorIDs[name];
+
+  if (lumi_detector_id==0) {
+    QwError << "QwDatabase::GetLumiDetectorID() => Unable to determine valid ID for beam lumi_detector " << name << QwLog::endl;
+  }
+
+  return lumi_detector_id;
+
+}
+
+/*
+ * Stores lumi_detector table keys in an associative array indexed by lumi_detector name.
+ */
+void QwDatabase::StoreLumiDetectorIDs()
+{
+
+  try {
+    Connect();
+
+    mysqlpp::Query query=this->Query();
+    query.for_each(lumi_detector(), StoreLumiDetectorID());
+
+//    QwDebug<< "QwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << QwLog::endl;
+
+    Disconnect();
+
+  }
+  catch (const mysqlpp::Exception& er) {
+    QwError << er.what() << QwLog::endl;
+    Disconnect();
+    exit(1);
+  }
+}
+
+const string QwDatabase::GetVersion(){
+  string version = fVersionMajor + "." + fVersionMinor + "." + fVersionPoint;
+  return version;
+}
+
+/*
+ * Retrieves database schema version information from database.
+ * Returns true if successful, false otherwise.
+ */
+const bool QwDatabase::StoreDBVersion(){
+  try 
+    {
+      mysqlpp::Query query = this->Query();
+
+      query << "SELECT * FROM db_schema";
+      vector<db_schema> res;
+      query.storein(res);
+      QwDebug << "QwDatabase::StoreDBVersion => Number of rows returned:  " << res.size() << QwLog::endl;
+
+      // If there is more than one run in the DB with the same run number, then there will be trouble later on.  Catch and bomb out.
+      if (res.size()>1) 
+	{
+	  QwError << "Unable to find unique schema version in database." << QwLog::endl;
+	  QwError << "Schema query returned " << res.size() << "rows." << QwLog::endl;
+	  QwError << "Please make sure that db_schema contains one unique." << QwLog::endl;
+	  disconnect();
+    return false;
+	}
+      
+      // Run already exists in database.  Pull run_id and move along.
+      if (res.size()==1) 
+	{
+	  QwDebug << "QwDatabase::StoreDBVersion => db_schema_id = " << res.at(0).db_schema_id << QwLog::endl;
+	  
+	  fVersionMajor=res.at(0).major_release_number;
+	  fVersionMinor=res.at(0).minor_release_number;
+	  fVersionPoint=res.at(0).point_release_number;
+	  this->Disconnect();
+	}
+    }
+  catch (const mysqlpp::Exception& er) 
+    {
+      QwError << er.what() << QwLog::endl;
+      disconnect();
+      return false;
+    }
+
+  return true;
 
 }

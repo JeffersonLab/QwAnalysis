@@ -266,6 +266,12 @@ main(Int_t argc, Char_t* argv[])
       QwMessage << "GetMonitorID(qwk_batext2) = " << qw_test_DB->GetMonitorID("qwk_batext2") << QwLog::endl;
       QwMessage << "GetMonitorID(phasemonitor) = " << qw_test_DB->GetMonitorID("phasemonitor") << QwLog::endl;
       QwMessage << "GetMonitorID(qwk_junk) = " << qw_test_DB->GetMonitorID("qwk_junk") << QwLog::endl;
+      QwMessage << "GetMainDetectorID(md1neg) = " << qw_test_DB->GetMainDetectorID("md1neg") << QwLog::endl;
+      QwMessage << "GetMainDetectorID(spare3) = " << qw_test_DB->GetMainDetectorID("spare3") << QwLog::endl;
+      QwMessage << "GetMainDetectorID(blech) = " << qw_test_DB->GetMainDetectorID("blech") << QwLog::endl;
+      QwMessage << "GetLumiDetectorID(lumi4) = " << qw_test_DB->GetLumiDetectorID("lumi4") << QwLog::endl;
+      QwMessage << "GetLumiDetectorID(lumi9) = " << qw_test_DB->GetLumiDetectorID("lumi9") << QwLog::endl;
+      QwMessage << "GetVersion() = " << qw_test_DB->GetVersion() << QwLog::endl;
 
       // GetRunID() and GetAnalysisID have their own Connect() and Disconnect() functions.
       run_id      = qw_test_DB->GetRunID(QwEvt);

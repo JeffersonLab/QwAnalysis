@@ -1,9 +1,10 @@
+
 #ifndef QWSSQLS_HH
 #define QWSSQLS_HH
 
 // Need to include define EXPAND_MY_SSQLS_STATICS in owner module
 //
-#ifndef EXPAND_MY_SSQLS_STATICS
+#if !defined(EXPAND_MY_SSQLS_STATICS)
 #define MYSQLPP_SSQLS_NO_STATICS
 #endif
 
@@ -12,10 +13,21 @@
 
 namespace QwParityDB{
 
-    sql_create_7(run, 1, 7 
+
+    sql_create_6(db_schema, 1, 2 
+      , mysqlpp::sql_int_unsigned , db_schema_id
+      , mysqlpp::sql_char , major_release_number
+      , mysqlpp::sql_char , minor_release_number
+      , mysqlpp::sql_char , point_release_number
+      , mysqlpp::sql_timestamp , time
+      , mysqlpp::Null<mysqlpp::sql_text> , script_name
+    ) 
+  
+    sql_create_8(run, 1, 2 
 			, mysqlpp::sql_int_unsigned , run_id
 			, mysqlpp::sql_int_unsigned , run_number 	
 			, mysqlpp::Null<mysqlpp::sql_enum> , run_type
+      , mysqlpp::sql_int_unsigned , helicity_length
 			, mysqlpp::Null<mysqlpp::sql_datetime> , start_time
 			, mysqlpp::Null<mysqlpp::sql_datetime> , end_time
 			, mysqlpp::sql_int_unsigned , n_mps
@@ -49,11 +61,13 @@ namespace QwParityDB{
 			, mysqlpp::sql_float , error
 		) 
   
-    sql_create_6(beam, 1, 2 
+    sql_create_8(beam, 1, 2 
 			, mysqlpp::sql_int_unsigned , beam_id
 			, mysqlpp::sql_int_unsigned , analysis_id	
 			, mysqlpp::sql_int_unsigned , monitor_id
 			, mysqlpp::sql_char , measurement_type_id
+      , mysqlpp::sql_tinyint_unsigned , subblock
+			, mysqlpp::sql_int_unsigned , n
 			, mysqlpp::sql_float , value
 			, mysqlpp::sql_float , error	
 		) 
@@ -93,14 +107,38 @@ namespace QwParityDB{
 			, mysqlpp::sql_text , title
 		) 
   
-    sql_create_7(cerenkov, 1, 2 
-			, mysqlpp::sql_int_unsigned , cerenkov_id
+    sql_create_3(main_detector, 1, 2 
+      , mysqlpp::sql_int_unsigned , main_detector_id
+      , mysqlpp::sql_text , quantity
+      , mysqlpp::sql_text , title
+    ) 
+  
+    sql_create_8(md_data, 1, 2 
+			, mysqlpp::sql_int_unsigned , md_data_id
 			, mysqlpp::sql_int_unsigned , analysis_id
+			, mysqlpp::Null<mysqlpp::sql_int_unsigned> , main_detector_id
 			, mysqlpp::sql_char , measurement_type_id
-			, mysqlpp::Null<mysqlpp::sql_int_unsigned> , detector_id
+      , mysqlpp::sql_tinyint_unsigned , subblock
+			, mysqlpp::sql_int_unsigned , n
 			, mysqlpp::sql_float , value
 			, mysqlpp::sql_float , error
-			, mysqlpp::sql_float , n_qrt
+		) 
+  
+    sql_create_3(lumi_detector, 1, 2 
+      , mysqlpp::sql_int_unsigned , lumi_detector_id
+      , mysqlpp::sql_text , quantity
+      , mysqlpp::sql_text , title
+    ) 
+  
+    sql_create_8(lumi_data, 1, 2 
+			, mysqlpp::sql_int_unsigned , lumi_data_id
+			, mysqlpp::sql_int_unsigned , analysis_id
+			, mysqlpp::Null<mysqlpp::sql_int_unsigned> , lumi_detector_id
+			, mysqlpp::sql_char , measurement_type_id
+      , mysqlpp::sql_tinyint_unsigned , subblock
+			, mysqlpp::sql_int_unsigned , n
+			, mysqlpp::sql_float , value
+			, mysqlpp::sql_float , error
 		) 
   
     sql_create_3(pmt, 1, 2 
@@ -254,5 +292,6 @@ namespace QwParityDB{
 			, mysqlpp::sql_float , value
 			, mysqlpp::sql_float , error
 		) 
-      }  
+  
+    }
 #endif
