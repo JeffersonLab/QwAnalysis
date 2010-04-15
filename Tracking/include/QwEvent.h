@@ -147,7 +147,7 @@ class QwEvent: public TObject {
     /// When drawing leafs from the second branch, the first branch is drawn.
 
     Int_t fNQwHits; ///< Number of QwHits in the array
-    #define QWHITS_IN_STATIC_TCLONESARRAY
+    #define QWHITS_IN_STL_VECTOR
 
     #ifdef QWHITS_IN_STATIC_TCLONESARRAY
       // Static TClonesArray approach to QwHit storage

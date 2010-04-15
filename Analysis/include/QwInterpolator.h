@@ -139,27 +139,27 @@ class QwInterpolator {
       }
     };
     /// Get minimum in dimension
-    const coord_t GetMinimum(const unsigned int dim) const { return fMin.at(dim); };
+    coord_t GetMinimum(const unsigned int dim) const { return fMin.at(dim); };
     /// Get maximum in dimension
-    const coord_t GetMaximum(const unsigned int dim) const { return fMax.at(dim); };
+    coord_t GetMaximum(const unsigned int dim) const { return fMax.at(dim); };
     /// Get minimum in dimension
-    const coord_t GetStepSize(const unsigned int dim) const { return fStep.at(dim); };
+    coord_t GetStepSize(const unsigned int dim) const { return fStep.at(dim); };
     /// Get the maximum number of entries
-    const unsigned int GetMaximumEntries() const { return fMaximumEntries; };
+    unsigned int GetMaximumEntries() const { return fMaximumEntries; };
     /// Get the current number of entries
-    const unsigned int GetCurrentEntries() const { return fEntries; };
+    unsigned int GetCurrentEntries() const { return fEntries; };
 
 
     /// Set the interpolation method
     void SetInterpolationMethod(const EQwInterpolationMethod method)
       { fInterpolationMethod = method; };
     /// Get the interpolation method
-    const EQwInterpolationMethod GetInterpolationMethod() const
+    EQwInterpolationMethod GetInterpolationMethod() const
       { return fInterpolationMethod; };
 
 
     /// Return true if the coordinate is in bounds
-    const bool InBounds(const coord_t* coord) const {
+    bool InBounds(const coord_t* coord) const {
       return Check(coord);
     };
 
@@ -167,7 +167,7 @@ class QwInterpolator {
     /// \name Functions to write grid values
     // @{
     /// Set a series of single values on a on-dimensional grid
-    const bool Set(const unsigned int n, const coord_t* r, const value_t* p) {
+    bool Set(const unsigned int n, const coord_t* r, const value_t* p) {
       if (value_n != 1) return false; // only for one-dimensional values
       if (fNDim != 1)   return false; // only for one-dimensional grids
       for (unsigned int i = 0; i < n; i++)
@@ -176,18 +176,18 @@ class QwInterpolator {
     }
 
     /// Set a single value at a coordinate (false if not possible)
-    const bool Set(const coord_t& coord, const value_t& value) {
+    bool Set(const coord_t& coord, const value_t& value) {
       if (value_n != 1) return false; // only for one-dimensional values
       if (fNDim != 1) return false; // only for one-dimensional grids
       return Set(&coord, &value);
     };
     /// Set a single value at a coordinate (false if not possible)
-    const bool Set(const coord_t* coord, const value_t& value) {
+    bool Set(const coord_t* coord, const value_t& value) {
       if (value_n != 1) return false; // only for one-dimensional values
       return Set(coord, &value);
     };
     /// Set a set of values at a coordinate (false if not possible)
-    const bool Set(const coord_t* coord, const value_t* value) {
+    bool Set(const coord_t* coord, const value_t* value) {
       unsigned int cell_index[fNDim];
       Nearest(coord, cell_index); // nearest cell
       if (! Check(cell_index)) return false; // out of bounds
@@ -200,12 +200,12 @@ class QwInterpolator {
     };
 
     /// Set a single value at a linearized index (false if not possible)
-    const bool Set(const unsigned int linear_index, const value_t& value) {
+    bool Set(const unsigned int linear_index, const value_t& value) {
       if (value_n != 1) return false; // only for one-dimensional values
       return Set(linear_index, &value);
     };
     /// Set a set of values at a linearized index (false if not possible)
-    const bool Set(const unsigned int linear_index, const value_t* value) {
+    bool Set(const unsigned int linear_index, const value_t* value) {
       if (! Check(linear_index)) return false; // out of bounds
       for (unsigned int i = 0; i < value_n; i++)
         fValues[i][linear_index] = value[i];
@@ -214,12 +214,12 @@ class QwInterpolator {
     };
 
     /// Set a single value at a grid point (false if out of bounds)
-    const bool Set(const unsigned int* cell_index, const value_t& value) {
+    bool Set(const unsigned int* cell_index, const value_t& value) {
       if (value_n != 1) return false; // only for one-dimensional values
       return Set(cell_index, &value);
     };
     /// Set a set of values at a grid point (false if out of bounds)
-    const bool Set(const unsigned int* cell_index, const value_t* value) {
+    bool Set(const unsigned int* cell_index, const value_t* value) {
       if (! Check(cell_index)) return false; // out of bounds
       for (unsigned int i = 0; i < value_n; i++)
         fValues[i][Index(cell_index)] = value[i];
@@ -231,7 +231,7 @@ class QwInterpolator {
     /// \name Functions to retrieve interpolated values
     // @{
     /// Get the interpolated value at coordinate (zero if out of bounds)
-    const value_t GetValue(const coord_t& coord) const {
+    value_t GetValue(const coord_t& coord) const {
       if (value_n != 1) return false; // only for one-dimensional values
       if (fNDim != 1)   return false; // only for one-dimensional grids
       value_t value;
@@ -239,19 +239,19 @@ class QwInterpolator {
       else return 0; // interpolation failed
     };
     /// Get the interpolated value at coordinate (zero if out of bounds)
-    const value_t GetValue(const coord_t* coord) const {
+    value_t GetValue(const coord_t* coord) const {
       if (value_n != 1) return 0; // only for one-dimensional values
       value_t value;
       if (GetValue(coord, &value)) return value;
       else return 0; // interpolation failed
     };
     /// Get the interpolated value at coordinate (zero if out of bounds)
-    const bool GetValue(const coord_t* coord, double& value) const {
+    bool GetValue(const coord_t* coord, double& value) const {
       if (value_n != 1) return false; // only for one-dimensional values
       return GetValue(coord, &value);
     };
     /// Get the interpolated value at coordinate (zero if out of bounds)
-    const bool GetValue(const coord_t* coord, double* value) const {
+    bool GetValue(const coord_t* coord, double* value) const {
       for (unsigned int i = 0; i < value_n; i++) value[i] = 0.0; // zero
       if (! Check(coord)) return false; // out of bounds
       value_t result[value_n]; // we need a local copy of type value_t
@@ -274,50 +274,50 @@ class QwInterpolator {
     /// \name File reading and writing
     // @{
     /// \brief Write the grid as text
-    const bool WriteText(std::ostream& stream) const;
+    bool WriteText(std::ostream& stream) const;
     /// Write the grid to text file
-    const bool WriteTextFile(std::string filename) const {
-      ofstream file(filename.c_str());
+    bool WriteTextFile(std::string filename) const {
+      std::ofstream file(filename.c_str());
       if (! file.is_open()) return false;
       WriteText(file);
       file.close();
       return true;
     };
     /// Write the grid to screen
-    const bool WriteTextScreen() const {
+    bool WriteTextScreen() const {
       WriteText(std::cout);
       return true;
     };
     /// \brief Read the grid from text
-    const bool ReadText(std::istream& stream);
+    bool ReadText(std::istream& stream);
     /// Read the grid from text file
-    const bool ReadTextFile(std::string filename) {
-      ifstream file(filename.c_str());
+    bool ReadTextFile(std::string filename) {
+      std::ifstream file(filename.c_str());
       if (! file.is_open()) return false;
       if (! ReadText(file)) return false;
       file.close();
       return true;
     };
     /// \brief Write the grid values to binary file
-    const bool WriteBinaryFile(std::string filename) const;
+    bool WriteBinaryFile(std::string filename) const;
     /// \brief Read the grid values from binary file
-    const bool ReadBinaryFile(std::string filename);
+    bool ReadBinaryFile(std::string filename);
     // @}
 
 
     /// \name Indexing functions (publicly available and unchecked)
     // @{
     /// Return the linearized index based on the point coordinates (unchecked)
-    const unsigned int Index(const coord_t* coord) const {
+    unsigned int Index(const coord_t* coord) const {
       unsigned int cell_index[fNDim];
       Cell(coord, cell_index);
       return Index(cell_index);
     };
 
     /// \brief Return the linearized index based on the cell indices (unchecked)
-    const unsigned int Index(const unsigned int* cell_index) const;
+    unsigned int Index(const unsigned int* cell_index) const;
     /// \brief Return the linearized index based on the cell indices and offset (unchecked)
-    const unsigned int Index(const unsigned int* cell_index, const unsigned int offset) const;
+    unsigned int Index(const unsigned int* cell_index, const unsigned int offset) const;
 
     /// \brief Return the cell index and local coordinates in one dimension (unchecked)
     void Cell(const coord_t coord, unsigned int& cell_index, double& cell_local, const unsigned int dim) const;
@@ -346,29 +346,29 @@ class QwInterpolator {
     };
 
     /// \brief Linear interpolation (unchecked)
-    const bool Linear(const coord_t* coord, value_t* value) const;
+    bool Linear(const coord_t* coord, value_t* value) const;
     /// \brief Nearest-neighbor (unchecked)
-    const bool NearestNeighbor(const coord_t* coord, value_t* value) const;
+    bool NearestNeighbor(const coord_t* coord, value_t* value) const;
 
     /// \brief Check for boundaries with coordinate argument
-    const bool Check(const coord_t* coord) const;
+    bool Check(const coord_t* coord) const;
     /// \brief Check for boundaries with cell index argument
-    const bool Check(const unsigned int* cell_index) const;
+    bool Check(const unsigned int* cell_index) const;
     /// \brief Check for boundaries with linearized index argument
-    const bool Check(const unsigned int linear_index) const;
+    bool Check(const unsigned int linear_index) const;
 
     /// Get a single value by cell index (unchecked)
-    const value_t Get(const unsigned int* cell_index) const {
+    value_t Get(const unsigned int* cell_index) const {
       if (value_n != 1) return 0; // only for one-dimensional values
       return fValues[0][Index(cell_index)];
     };
 
     /// Get a single value by linearized index (unchecked)
-    const value_t Get(const unsigned int index) const {
+    value_t Get(const unsigned int index) const {
       return fValues[0][index];
     };
     /// Get a vector value by linearized index (unchecked)
-    const bool Get(const unsigned int index, value_t* value) const {
+    bool Get(const unsigned int index, value_t* value) const {
       for (unsigned int i = 0; i < value_n; i++)
         value[i] = fValues[i][index];
       return true;
@@ -384,7 +384,7 @@ class QwInterpolator {
  * @param value Interpolated value (reference)
  */
 template <class value_t, unsigned int value_n>
-inline const bool QwInterpolator<value_t,value_n>::Linear(
+inline bool QwInterpolator<value_t,value_n>::Linear(
 	const coord_t* coord,
 	value_t* value) const
 {
@@ -416,7 +416,7 @@ inline const bool QwInterpolator<value_t,value_n>::Linear(
  * @param value Interpolated value (reference)
  */
 template <class value_t, unsigned int value_n>
-inline const bool QwInterpolator<value_t,value_n>::NearestNeighbor(
+inline bool QwInterpolator<value_t,value_n>::NearestNeighbor(
 	const coord_t* coord,
 	value_t* value) const
 {
@@ -432,7 +432,7 @@ inline const bool QwInterpolator<value_t,value_n>::NearestNeighbor(
  * @return True if the coordinates are in the valid region
  */
 template <class value_t, unsigned int value_n>
-inline const bool QwInterpolator<value_t,value_n>::Check(const coord_t* coord) const
+inline bool QwInterpolator<value_t,value_n>::Check(const coord_t* coord) const
 {
   for (unsigned int dim = 0; dim < fNDim; dim++)
     if (coord[dim] < fMin[dim] || coord[dim] > fMax[dim])
@@ -447,10 +447,10 @@ inline const bool QwInterpolator<value_t,value_n>::Check(const coord_t* coord) c
  * @return True if the cell index is in the valid region
  */
 template <class value_t, unsigned int value_n>
-inline const bool QwInterpolator<value_t,value_n>::Check(const unsigned int* cell_index) const
+inline bool QwInterpolator<value_t,value_n>::Check(const unsigned int* cell_index) const
 {
   for (unsigned int dim = 0; dim < fNDim; dim++)
-    if (cell_index[dim] < 0 || cell_index[dim] >= fSize[dim])
+    if (cell_index[dim] >= fSize[dim])
       return false;
   // Otherwise
   return true;
@@ -462,9 +462,9 @@ inline const bool QwInterpolator<value_t,value_n>::Check(const unsigned int* cel
  * @return True if the cell index is in the valid region
  */
 template <class value_t, unsigned int value_n>
-inline const bool QwInterpolator<value_t,value_n>::Check(const unsigned int linear_index) const
+inline bool QwInterpolator<value_t,value_n>::Check(const unsigned int linear_index) const
 {
-  if (linear_index < 0 || linear_index >= fMaximumEntries)
+  if (linear_index >= fMaximumEntries)
     return false;
   // Otherwise
   return true;
@@ -476,7 +476,7 @@ inline const bool QwInterpolator<value_t,value_n>::Check(const unsigned int line
  * @return Linearized index
  */
 template <class value_t, unsigned int value_n>
-inline const unsigned int QwInterpolator<value_t,value_n>::Index(
+inline unsigned int QwInterpolator<value_t,value_n>::Index(
 	const unsigned int* cell_index) const
 {
   unsigned int linear_index = 0;
@@ -494,7 +494,7 @@ inline const unsigned int QwInterpolator<value_t,value_n>::Index(
  * @return Linearized index
  */
 template <class value_t, unsigned int value_n>
-inline const unsigned int QwInterpolator<value_t,value_n>::Index(
+inline unsigned int QwInterpolator<value_t,value_n>::Index(
 	const unsigned int* cell_index,
 	const unsigned int pattern) const
 {
@@ -614,7 +614,7 @@ inline void QwInterpolator<value_t,value_n>::Coord(
  * @param stream Output stream
  */
 template <class value_t, unsigned int value_n>
-inline const bool QwInterpolator<value_t,value_n>::WriteText(std::ostream& stream) const
+inline bool QwInterpolator<value_t,value_n>::WriteText(std::ostream& stream) const
 {
   // Write the dimensions
   stream << fNDim << "\t" << value_n << std::endl;
@@ -630,7 +630,7 @@ inline const bool QwInterpolator<value_t,value_n>::WriteText(std::ostream& strea
   }
   stream << "end" << std::endl;
   return true;
-};
+}
 
 /**
  * Read the grid values from a text stream
@@ -638,7 +638,7 @@ inline const bool QwInterpolator<value_t,value_n>::WriteText(std::ostream& strea
  * @return True if successfully read all values
  */
 template <class value_t, unsigned int value_n>
-inline const bool QwInterpolator<value_t,value_n>::ReadText(std::istream& stream)
+inline bool QwInterpolator<value_t,value_n>::ReadText(std::istream& stream)
 {
   // Read the dimensions
   unsigned int n;
@@ -668,7 +668,7 @@ inline const bool QwInterpolator<value_t,value_n>::ReadText(std::istream& stream
   stream >> end;
   if (end == "end") return true;
   else return false;
-};
+}
 
 /**
  * Write the grid values to binary file (should be 64-bit safe, untested)
@@ -682,9 +682,9 @@ inline const bool QwInterpolator<value_t,value_n>::ReadText(std::istream& stream
  * @return True if written successfully
  */
 template <class value_t, unsigned int value_n>
-inline const bool QwInterpolator<value_t,value_n>::WriteBinaryFile(std::string filename) const
+inline bool QwInterpolator<value_t,value_n>::WriteBinaryFile(std::string filename) const
 {
-  ofstream file(filename.c_str(), std::ios::binary);
+  std::ofstream file(filename.c_str(), std::ios::binary);
   if (! file.is_open()) return false;
   // Write template parameters
   uint32_t n = value_n; // uint32_t has length of 32 bits on any system
@@ -709,7 +709,7 @@ inline const bool QwInterpolator<value_t,value_n>::WriteBinaryFile(std::string f
   }
   file.close();
   return true;
-};
+}
 
 /**
  * Read the grid values from binary file (should be 64-bit safe, untested)
@@ -717,9 +717,9 @@ inline const bool QwInterpolator<value_t,value_n>::WriteBinaryFile(std::string f
  * @return True if read successfully
  */
 template <class value_t, unsigned int value_n>
-inline const bool QwInterpolator<value_t,value_n>::ReadBinaryFile(std::string filename)
+inline bool QwInterpolator<value_t,value_n>::ReadBinaryFile(std::string filename)
 {
-  ifstream file(filename.c_str(), std::ios::binary);
+  std::ifstream file(filename.c_str(), std::ios::binary);
   if (! file.is_open()) return false;
   // Go to end and store length (could also use std::ios::ate)
   file.seekg(0, std::ios::end); unsigned int length = file.tellg();
@@ -758,7 +758,7 @@ inline const bool QwInterpolator<value_t,value_n>::ReadBinaryFile(std::string fi
   QwMessage << QwLog::endl;
   file.close();
   return true;
-};
+}
 
 
 #endif // _QWINTERPOLATOR_H_
