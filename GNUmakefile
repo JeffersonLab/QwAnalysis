@@ -438,26 +438,6 @@ MYSQLPP_LIBS = -L${MYSQLPP_LIB_DIR} -lmysqlpp
 
 ############################
 ############################
-# Some set-up for the OpenSSL library use
-############################
-############################
-ifndef OPENSSL_DIR
-  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name openssl)),/usr/include/openssl)
-$(error Aborting : Cannot find the /usr/include/openssl.  Set OPENSSL_DIR to the location of the openssl installation.)
-endif
-#  We should also put a test on the openssl version number here.  
-#
-  OPENSSL_INC  = 
-  OPENSSL_LIBS = -l crypto
-else
-#  We should also put a test on the openssl version number here. 
-# 
-  OPENSSL_INC  = -I${OPENSSL_DIR}/include
-  OPENSSL_LIBS = -L${OPENSSL_DIR}/lib -l crypto
-endif
-
-############################
-############################
 # A few fixes :
 ############################
 ############################
@@ -489,7 +469,7 @@ INCFLAGS =  $(patsubst %,-I%,$(sort $(dir $(shell $(FIND) $(QWANALYSIS) | $(GREP
 
 INCFLAGS += $(MYSQL_INC) $(MYSQLPP_INC)
 INCFLAGS += $(BOOST_INC) -I./
-INCFLAGS += $(OPENSSL_INC)
+
 # Necessary for dictionary files where include files are quoted with relative
 # path appended (default behaviour for root-cint)
 
@@ -507,7 +487,6 @@ LIBS =  -L$(QW_LIB) -lQw
 LIBS +=  $(ROOTLIBS) $(ROOTGLIBS) $(CODALIBS)
 LIBS +=  $(MYSQL_LIBS) $(MYSQLPP_LIBS)
 LIBS +=  $(BOOST_LIBS) $(LDLIBS)
-LIBS +=  $(OPENSSL_LIBS)
 
 ############################
 ############################

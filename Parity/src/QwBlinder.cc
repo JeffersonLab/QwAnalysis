@@ -77,8 +77,8 @@ void QwBlinder::InitBlinders()
   } else {
     fSeed   = "";
     fSeedID = 0;
-    fBlindFactor = 1.0;
-    std::cout << "QwBlinder::InitBlinders():  Blinding factor has been forced to 1.000."<< std::endl;
+    fBlindFactor = 0.0;
+    std::cout << "QwBlinder::InitBlinders():  Blinding factor has been forced to 0."<< std::endl;
   }
 
   TString hex_string = Form("%.16llx",(*(ULong64_t*)(&fBlindFactor)));
@@ -401,27 +401,23 @@ Bool_t QwBlinder::CheckTestValues()
 
 vector<UChar_t> QwBlinder::GenerateDigest(const char* input, TString digest_name)
 {
-  EVP_MD_CTX mdctx;
-  const EVP_MD *md;
-  unsigned char md_value[EVP_MAX_MD_SIZE];
-  unsigned int md_len, i;
+  TMD5 md5;
+  UChar_t* md5_value;
+  const UInt_t md5_len = 64;
 
   vector<UChar_t> output;
 
-  OpenSSL_add_all_digests();
-  md = EVP_get_digestbyname(digest_name.Data());
-  if (!md) {
+  if (digest_name.Data()!="md5") {
     TString errmessage = TString("Unknown message digest ")+digest_name;
     std::cerr<<"QwBlinder::GenerateDigest(): "<<errmessage.Data()<<std::endl;
   }
-  EVP_MD_CTX_init(&mdctx);
-  EVP_DigestInit_ex(&mdctx, md, NULL);
-  EVP_DigestUpdate(&mdctx, input, strlen(input));
-  EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
-  EVP_MD_CTX_cleanup(&mdctx);
- 
-  for (i = 0; i < md_len; i++){
-    output.push_back(md_value[i]);
+
+  md5.Update((UChar_t*) input, strlen(input));
+  md5.Final(md5_value);
+  md5.Print();
+
+  for (UInt_t i = 0; i < md5_len; i++){
+    output.push_back(md5_value[i]);
   }
   return output;
 };
