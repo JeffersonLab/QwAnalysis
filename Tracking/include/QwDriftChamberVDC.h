@@ -45,6 +45,8 @@ class QwDriftChamberVDC: public QwDriftChamber {
 
  public:
 
+ using QwDriftChamber::CalculateDriftDistance;
+
  void  ReportConfiguration();
 
  void  SubtractReferenceTimes();
@@ -63,6 +65,8 @@ class QwDriftChamberVDC: public QwDriftChamber {
  
  void ClearEventData();
    
+ 
+
  //void GetHitList(QwHitContainer & grandHitContainer){
  //  grandHitContainer.Append(fWireHits);
  //};
@@ -70,8 +74,8 @@ class QwDriftChamberVDC: public QwDriftChamber {
   Int_t LoadQweakGeometry(TString mapfile );
 
   Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector){
-    double angle=60,d=0;
-    d=CalculateDriftDistance(drifttime,detector,angle);
+    double angle=45,d=0;
+    d=0.1*CalculateDriftDistance(drifttime,detector,angle);  //transfer from mm to cm
     return d;
  }
 

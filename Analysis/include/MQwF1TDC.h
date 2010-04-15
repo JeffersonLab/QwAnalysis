@@ -56,12 +56,11 @@ class MQwF1TDC{
   UInt_t GetTDCTriggerTime()  {return fF1TriggerTime;};
 
   void SetReferenceParameters(Double_t mindiff, Double_t maxdiff,
-			      Double_t offset, Double_t shift, Bool_t signflip){
+			      Double_t offset, Double_t shift){
     fMinDiff   = mindiff;
     fMaxDiff   = maxdiff;
     fOffset    = offset;
     fTimeShift = shift;
-    fSignFlip  = signflip;
   };
 
   //  UInt_t SubtractReference(UInt_t rawtime, UInt_t a);
@@ -111,10 +110,6 @@ class MQwF1TDC{
                          ///  NOTE:  this would preferrably be done by a different function than 
                          ///  MQwF1TDC::SubtractReference, but R3 has this correction designed in for now.
 
-  Bool_t   fSignFlip;    ///< Flips the reported time to be (reference - raw) instead of (raw - reference)
-                         ///  NOTE:  This is required by R3, as the time-to-distance calculation is based on
-                         ///  (reference - raw + fTimeShift)
-                         ///  TODO:  This should be REMOVED, and R3 time-to-distance fixed to expect (raw - reference)
 
 };
 

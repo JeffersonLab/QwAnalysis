@@ -21,10 +21,10 @@ const UInt_t MQwF1TDC::kF1Mask_EventNumber         = 0x003f0000;
 const UInt_t MQwF1TDC::kF1Mask_TriggerTime         = 0x0000ff80;
 const UInt_t MQwF1TDC::kF1Mask_HeaderChannelNumber = 0x0000003f;
 
-//const UInt_t MQwF1TDC::offset                 = 64495;
 
 
-MQwF1TDC::MQwF1TDC()
+MQwF1TDC::MQwF1TDC(): fMinDiff(-1.0*kMaxInt), fMaxDiff(1.0*kMaxInt), 
+		      fOffset(0.0), fTimeShift(0.0)
 { 
   fF1HeaderFlag         = kFALSE;
   fF1HitFIFOFlag        = kFALSE;
@@ -37,12 +37,6 @@ MQwF1TDC::MQwF1TDC()
   fF1EventNumber        = 0;
   fF1TriggerTime        = 0;
 
-  fMinDiff              = -1.0*kMaxInt;
-  fMaxDiff              = +1.0*kMaxInt;
-  fOffset               = 0.0;
-  fTimeShift            = 0.0;
-  fSignFlip             = kFALSE;
-
 };
 
 MQwF1TDC::~MQwF1TDC() { };
@@ -50,16 +44,16 @@ MQwF1TDC::~MQwF1TDC() { };
 
 void MQwF1TDC::DecodeTDCWord(UInt_t &word)
 {
- 
   fF1SlotNumber         = (word & kF1Mask_SlotNumber)>>27;
+  fF1HeaderFlag         = ((word & kF1Mask_HeaderFlag)==0); // TRUE if the mask bit IS NOT set
 
-  fF1HeaderFlag         =  !( (word & kF1Mask_HeaderFlag)>>23 );     // >>23  // 0 is header and trailer, 1 is dataword
-  fF1HitFIFOFlag        = !!( (word & kF1Mask_HitFIFOFlag)>>24 );    // >>24 
-  fF1OutputFIFOFlag     = !!( (word & kF1Mask_OutputFIFOFlag)>>25 ); // >>25
-  fF1ResolutionLockFlag = !!( (word & kF1Mask_ResolutionLockFlag)>>26 ); // >>26
+  // These three flags should be TRUE if their mask bit IS set
+  fF1HitFIFOFlag        = ((word & kF1Mask_HitFIFOFlag)!=0);
+  fF1OutputFIFOFlag     = ((word & kF1Mask_OutputFIFOFlag)!=0); 
+  fF1ResolutionLockFlag = ((word & kF1Mask_ResolutionLockFlag)!=0);
   
   if (fF1HeaderFlag){
-    //  THis is a header word.
+    //  This is a header word.
     fF1ChannelNumber = (word & kF1Mask_HeaderChannelNumber);
     fF1Dataword      = 0;
     fF1EventNumber   = (word & kF1Mask_EventNumber)>>16;
@@ -119,11 +113,7 @@ Double_t MQwF1TDC::SubtractReference(Double_t rawtime, Double_t reftime)
   else if( real_time > fMaxDiff) {
     real_time -= fOffset;
   }
-
-
-  if (fSignFlip)  real_time = -1.0*real_time + fTimeShift;
-  else            real_time = +1.0*real_time + fTimeShift;
-
+  real_time = real_time + fTimeShift;
   return real_time;
 }
 
