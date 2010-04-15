@@ -195,7 +195,7 @@ void QwComptonPhotonDetector::EncodeEventData(std::vector<UInt_t> &buffer)
  * @param num_words Number of words left in buffer
  * @return Number of words read
  */
-Int_t QwComptonPhotonDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
+Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   UInt_t words_read = 0;
 

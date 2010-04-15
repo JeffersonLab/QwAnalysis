@@ -161,7 +161,7 @@
   
   };
 
-Int_t QwGasElectronMultiplier::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words){
+Int_t QwGasElectronMultiplier::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words){
   Int_t VFAT_index=0;
 
   fCurrentROC_ID=roc_id;

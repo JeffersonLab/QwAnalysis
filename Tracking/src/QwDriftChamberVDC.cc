@@ -662,7 +662,7 @@ void QwDriftChamberVDC::ClearEventData() {
 
 
 
-Int_t QwDriftChamberVDC:: ProcessConfigurationBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
+Int_t QwDriftChamberVDC:: ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   
 

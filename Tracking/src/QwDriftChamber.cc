@@ -150,7 +150,7 @@ void  QwDriftChamber::ClearEventData() {
 
 
 
-Int_t QwDriftChamber::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words) {
+Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) {
   Int_t index = GetSubbankIndex(roc_id,bank_id);
 
   if (index>=0 && num_words>0) {

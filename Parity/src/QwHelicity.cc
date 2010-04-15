@@ -654,7 +654,7 @@ Int_t QwHelicity::LoadEventCuts(TString filename){
 
 
 //////////////////////////////////////////////////////
-Int_t QwHelicity::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
+Int_t QwHelicity::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   Bool_t lkDEBUG=kFALSE ;
 

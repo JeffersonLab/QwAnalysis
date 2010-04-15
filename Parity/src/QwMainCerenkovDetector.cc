@@ -496,7 +496,7 @@ Int_t QwMainCerenkovDetector::ProcessConfigurationBuffer(const UInt_t roc_id, co
 };
 
 
-Int_t QwMainCerenkovDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
+Int_t QwMainCerenkovDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   Bool_t lkDEBUG=kFALSE;
 
