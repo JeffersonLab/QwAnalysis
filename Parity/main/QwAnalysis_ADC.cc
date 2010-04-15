@@ -38,6 +38,8 @@
 
 #include "QwBeamLine.h"
 
+#include "QwBlinder.h"
+
 Bool_t kInQwBatchMode = kFALSE;
 
 // Multiplet structure
@@ -51,7 +53,7 @@ static bool bTree = true;
 static bool bHisto = true;
 static bool bHelicity= true;
 
-
+Bool_t bEnableBlinding = kFALSE;
 ///
 /// \ingroup QwAnalysis_ADC
 int main(Int_t argc,Char_t* argv[]) {
@@ -142,6 +144,14 @@ int main(Int_t argc,Char_t* argv[]) {
 //   sum.LoadChannelMap("qweak_adc.map");
 //   diff.LoadChannelMap("qweak_adc.map");
 //   asym.LoadChannelMap("qweak_adc.map");
+
+    // test for working with the data blinder
+    QwDatabase *qwdatabase = NULL;
+    if (bEnableBlinding){
+      qwdatabase = new QwDatabase();
+      UInt_t seed_id = 0;
+      QwBlinder blinders(qwdatabase, seed_id, bEnableBlinding);
+    }
 
     Double_t evnum=0.0;
 
@@ -342,6 +352,8 @@ int main(Int_t argc,Char_t* argv[]) {
 
 //       QwEpics->WriteDatabase(sql);
 //     }
+
+        if (bEnableBlinding){delete qwdatabase; qwdatabase = NULL;};
 
         PrintInfo(timer, eventbuffer.GetRunNumber());
 
