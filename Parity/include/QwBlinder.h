@@ -18,6 +18,16 @@
 #include "QwHelicity.h"
 #include "QwDatabase.h"
 
+//  Backup type definition for ULong64_t; needed with some older ROOT versions.
+#if !defined(ULong64_t)
+#if defined(R__WIN32) && !defined(__CINT__)
+typedef unsigned __int64   ULong64_t; //Portable unsigned long integer 8 bytes
+#else
+typedef unsigned long long ULong64_t; //Portable unsigned long integer 8 bytes
+#endif
+#endif
+
+
 class QwBlinder{
  public:
   QwBlinder(QwDatabase* sql, UInt_t seed_id, Bool_t enable_blinding = kTRUE);
@@ -45,26 +55,29 @@ class QwBlinder{
   UInt_t fSeedID;      /// Database ID of seed used to generate this blinding factor (seeds.seed_id)
   TString fSeed;       /// RNG seed string
 
-  vector<UChar_t>  fDigest;     /// Checksum in raw hex
-  string           fBFChecksum; /// Checksum in ASCII Hex
+  vector<UChar_t>  fDigest;         /// Checksum in raw hex
+  string           fBFChecksum;     /// Checksum in ASCII Hex
 
-  UInt_t   fMaxTests;     /// Maximum number of test values to store
+  UInt_t   fMaxTests;               /// Maximum number of test values to store
   vector<UInt_t>   fTestNumber;     /// Vector of test numbers (IDs)
   vector<Double_t> fTestValue;      /// Vector of test values
   vector<Double_t> fBlindTestValue; /// Vector of test values, after blinding
 
   void InitBlinders();                        /// Initializes fBlindFactor from fSeed.
-  void SetTestValues(TString &barestring);    /// Initializes the test values, fTestNumber, fTestValue, fBlindTestValue, if fBlindFactor is set.
+  void SetTestValues(TString &barestring);    /// Initializes the test values, fTestNumber, fTestValue,
+                                              /// fBlindTestValue, if fBlindFactor is set.
   Int_t UseMD5(TString &barestring);          /// Returns an integer from a string using MD5
-  Int_t UseStringManip(TString &barestring);  /// Returns an integer from a string using a character manipulation algorithm
-  Int_t UsePseudorandom(TString &barestring); /// Returns an integer from a string using a version of the helicity bit pseudorandom algorithm.
+  Int_t UseStringManip(TString &barestring);  /// Returns an integer from a string using
+                                              /// a character manipulation algorithm
+  Int_t UsePseudorandom(TString &barestring); /// Returns an integer from a string using
+                                              /// a version of the helicity bit pseudorandom algorithm.
 
   Int_t ReadSeed();          ///  Reads fSeed from the fSQL object based on fSeedID
   void WriteChecksum();     ///  Writes fSeedID and fBFChecksum to fSQL for this analysis ID
   void WriteTestValues();   ///  Writes fTestNumber and fBlindTestValue to fSQL for this analysis ID
-
   Bool_t CheckTestValues(); ///  Recomputes fBlindTestValue to check for memory errors 
-  vector<UChar_t> GenerateDigest(const char* input, TString digest_name = "md5");
+
+  vector<UChar_t> GenerateDigest(const char* input);
 };
 
 #endif

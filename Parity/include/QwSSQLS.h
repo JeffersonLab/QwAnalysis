@@ -165,7 +165,7 @@ namespace QwParityDB{
   
     sql_create_3(seeds, 1, 2 
 			, mysqlpp::sql_int_unsigned , seed_id
-			, mysqlpp::Null<mysqlpp::sql_text> , seed
+			, mysqlpp::sql_text , seed
 			, mysqlpp::Null<mysqlpp::sql_text> , comment
 		) 
   

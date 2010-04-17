@@ -145,14 +145,6 @@ int main(Int_t argc,Char_t* argv[]) {
 //   diff.LoadChannelMap("qweak_adc.map");
 //   asym.LoadChannelMap("qweak_adc.map");
 
-    // test for working with the data blinder
-    QwDatabase *qwdatabase = NULL;
-    if (bEnableBlinding){
-      qwdatabase = new QwDatabase();
-      UInt_t seed_id = 0;
-      QwBlinder blinders(qwdatabase, seed_id, bEnableBlinding);
-    }
-
     Double_t evnum=0.0;
 
     // Loop over all runs
@@ -353,7 +345,26 @@ int main(Int_t argc,Char_t* argv[]) {
 //       QwEpics->WriteDatabase(sql);
 //     }
 
-        if (bEnableBlinding){delete qwdatabase; qwdatabase = NULL;};
+    // test for the data blinder
+        QwDatabase *qwdatabase = NULL;
+        QwBlinder *blinders = NULL;
+       if (bEnableBlinding){
+          qwdatabase = new QwDatabase();
+          UInt_t run_id      = qwdatabase->GetRunID(eventbuffer);
+          UInt_t analysis_id = qwdatabase->GetAnalysisID(eventbuffer);
+          printf("main:: Run # %d Run ID %d and Analysis ID %d\n",
+                  eventbuffer.GetRunNumber(), run_id, analysis_id);
+
+           if (bHelicity) helicity->FillDB(qwdatabase,"");
+          //helicitypattern->FillDB(qwdatabase);
+          UInt_t seed_id = qwdatabase->GetAnalysisID();
+          blinders = new QwBlinder(qwdatabase, seed_id, bEnableBlinding);
+          blinders->WriteFinalValuesToDB();
+          blinders->PrintFinalValues();
+
+          delete qwdatabase; qwdatabase = NULL;
+          delete blinders; blinders = NULL;
+        };
 
         PrintInfo(timer, eventbuffer.GetRunNumber());
 
