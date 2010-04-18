@@ -145,6 +145,20 @@ int main(Int_t argc,Char_t* argv[]) {
 //   diff.LoadChannelMap("qweak_adc.map");
 //   asym.LoadChannelMap("qweak_adc.map");
 
+    // test for the data blinder
+        QwDatabase *qwdatabase = NULL;
+        QwBlinder *blinders = NULL;
+       if (bEnableBlinding){
+          qwdatabase = new QwDatabase();
+          UInt_t run_id      = qwdatabase->GetRunID(eventbuffer);
+          UInt_t analysis_id = qwdatabase->GetAnalysisID(eventbuffer);
+          printf("main:: Run # %d Run ID %d and Analysis ID %d\n",
+                  eventbuffer.GetRunNumber(), run_id, analysis_id);
+
+          UInt_t seed_id = qwdatabase->GetAnalysisID();
+          blinders = new QwBlinder(qwdatabase, seed_id, bEnableBlinding);
+        }
+
     Double_t evnum=0.0;
 
     // Loop over all runs
@@ -257,7 +271,6 @@ int main(Int_t argc,Char_t* argv[]) {
                 helicitypattern->ClearEventData();
             }
 
-
             if (eventbuffer.GetEventNumber()%1000==0) {
                 std::cerr << "Number of events processed so far: "
                 << eventbuffer.GetEventNumber() << "\r";
@@ -345,23 +358,13 @@ int main(Int_t argc,Char_t* argv[]) {
 //       QwEpics->WriteDatabase(sql);
 //     }
 
-    // test for the data blinder
-        QwDatabase *qwdatabase = NULL;
-        QwBlinder *blinders = NULL;
-       if (bEnableBlinding){
-          qwdatabase = new QwDatabase();
-          UInt_t run_id      = qwdatabase->GetRunID(eventbuffer);
-          UInt_t analysis_id = qwdatabase->GetAnalysisID(eventbuffer);
-          printf("main:: Run # %d Run ID %d and Analysis ID %d\n",
-                  eventbuffer.GetRunNumber(), run_id, analysis_id);
+       if (bHelicity && bEnableBlinding) {
 
-           if (bHelicity) helicity->FillDB(qwdatabase,"");
-          //helicitypattern->FillDB(qwdatabase);
-          UInt_t seed_id = qwdatabase->GetAnalysisID();
-          blinders = new QwBlinder(qwdatabase, seed_id, bEnableBlinding);
+           helicity->FillDB(qwdatabase,"");
+           helicitypattern->FillDB(qwdatabase);
+
           blinders->WriteFinalValuesToDB();
           blinders->PrintFinalValues();
-
           delete qwdatabase; qwdatabase = NULL;
           delete blinders; blinders = NULL;
         };

@@ -8,6 +8,10 @@
 #include "QwVQWK_Channel.h"
 #include "QwIntegrationPMT.h"
 
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwSSQLS.h"
+#include "QwDatabase.h"
+
 class QwCombinedPMT : public VQwDataElement{
 /////
  public:
@@ -72,8 +76,12 @@ class QwCombinedPMT : public VQwDataElement{
   void  FillTreeVector(std::vector<Double_t> &values);
   void  DeleteHistograms();
 
+  Double_t GetAverage(TString type) { return fSumADC.GetAverage(type);};
+  Double_t GetAverageError(TString type) {return fSumADC.GetAverageError(type);};
+
   void Copy(VQwDataElement *source);
 
+  QwParityDB::md_data GetDBEntry(QwDatabase *db, TString mtype, TString subname);
 
  protected:
 

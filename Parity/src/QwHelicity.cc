@@ -985,14 +985,15 @@ void  QwHelicity::FillTreeVector(std::vector<Double_t> &values)
 
 void  QwHelicity::FillDB(QwDatabase *db, TString type)
 {
+  if (type=="yield" || type=="asymmetry")
+    return;
+
   db->Connect();
   mysqlpp::Query query = db->Query();
 
   Char_t s_number[20];
-  string s_sql = "INSERT INTO seeds (seed_id, seed, comment) VALUES (";
-  sprintf(s_number, "%d,", db->GetAnalysisID());
-  s_sql += string(s_number);
-  sprintf(s_number, " %d,", this->GetRandomSeedActual());
+  string s_sql = "INSERT INTO seeds (seed, comment) VALUES (";
+  sprintf(s_number, "%d,", this->GetRandomSeedActual());
   s_sql += string(s_number);
   s_sql += " \'actual random seed\')";
   //std::cout<<s_sql<<std::endl;

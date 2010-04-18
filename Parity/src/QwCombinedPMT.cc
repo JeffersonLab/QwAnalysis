@@ -373,4 +373,59 @@ void  QwCombinedPMT::Copy(VQwDataElement *source)
   return;
 }
 
+QwParityDB::md_data QwCombinedPMT::GetDBEntry(QwDatabase *db, TString mtype, TString subname)
+{
+  QwParityDB::md_data row(0);
+  
+  UInt_t run_id      = 0;
+  UInt_t md_data_id  = 0;
+  UInt_t analysis_id = 0;
+  UInt_t main_detector_id  = 0;
+  Char_t measurement_type[4];
+
+  TString name;
+  Double_t avg = 0.0;
+  Double_t err = 0.0;
+
+  if(mtype.Contains("yield"))
+    {
+      sprintf(measurement_type, "yq");
+    }
+  else if(mtype.Contains("asymmetry"))
+    {
+      sprintf(measurement_type, "aq");
+    }
+  else if(mtype.Contains("average") )
+    {
+      sprintf(measurement_type, "yq");
+    }
+  else if(mtype.Contains("runningsum"))
+    {
+      sprintf(measurement_type, "yq");
+    }
+  else
+    {
+      sprintf(measurement_type, "null");
+    }
+  
+  name = this->GetElementName();
+  avg  = this->GetAverage("");
+  err  = this->GetAverageError("");
+
+  run_id      = db->GetRunID();
+  analysis_id = db->GetAnalysisID();
+  main_detector_id  = db->GetMainDetectorID(name.Data());
+
+  row.analysis_id         = analysis_id;
+  row.measurement_type_id = measurement_type;
+  row.main_detector_id    = main_detector_id;
+  row.value               = avg;
+  row.error               = err;
+
+  printf("%12s::RunID %d AnalysisID %d %4s MainDetectorID %4d %18s , [%18.2e, %12.2e] \n", 
+	 mtype.Data(), run_id, analysis_id, measurement_type, main_detector_id, name.Data(),  avg, err);
+  
+  return row;
+  
+};
 

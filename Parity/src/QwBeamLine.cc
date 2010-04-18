@@ -1338,7 +1338,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
       entrylist.push_back(fStripline[i].GetDBEntry(db, datatype, "RelY"));
     }
 
-  printf("Entrylist Vector Size %d\n", (Int_t) entrylist.size());
+  printf("BeamLine Entrylist Vector Size %d\n", (Int_t) entrylist.size());
 
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query..
@@ -1347,7 +1347,6 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
       mysqlpp::Query query= db->Query();
       //    if(query)
       //	{
-
 	  query.insert(entrylist.begin(), entrylist.end());
 	  query.execute();
 	  //	  query.reset(); // do we need?
@@ -1361,8 +1360,8 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
     {
       printf("This is the case when the entrlylist contains nothing in %s \n", datatype.Data());
     }
-  
+
   db->Disconnect();
-      
+
   return;
 };

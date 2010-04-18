@@ -22,6 +22,9 @@
 
 #include "QwTypes.h"
 
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwSSQLS.h"
+
 class QwMainCerenkovDetectorID;
 
 enum EMainDetInstrumentType{kIntegrationPMT, kCombinedPMT};
@@ -86,7 +89,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
-  void  FillDB(QwDatabase *db, TString type) {return;};
+  void  FillDB(QwDatabase *db, TString datatype);
 
   QwIntegrationPMT* GetChannel(const TString name);
 

@@ -13,6 +13,9 @@
 
 #include "QwVQWK_Channel.h"
 
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwSSQLS.h"
+#include "QwDatabase.h"
 
 /*****************************************************************
 *  Class:
@@ -91,12 +94,16 @@ class QwIntegrationPMT : public VQwDataElement{
   void  FillTreeVector(std::vector<Double_t> &values);
   void  DeleteHistograms();
 
+  Double_t GetAverage(TString type) { return fTriumf_ADC.GetAverage();};
+  Double_t GetAverageError(TString type) {return fTriumf_ADC.GetAverageError();};
+
   void Copy(VQwDataElement *source);
 
-/////
+  QwParityDB::md_data GetDBEntry(QwDatabase *db, TString mtype, TString subname);
+
  protected:
 
-/////
+
  private:
 
   Double_t fPedestal;

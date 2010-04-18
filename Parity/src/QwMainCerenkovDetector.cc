@@ -1086,6 +1086,51 @@ void QwMainCerenkovDetector::DoNormalization(Double_t factor)
     }
 }
 
+void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
+{
+  vector<QwParityDB::md_data> entrylist;
+
+  QwParityDB::md_data row(0);
+  printf("%s  ************** IntegrationPMT **************\n", datatype.Data());
+  for(UInt_t i=0; i< fIntegrationPMT.size(); i++)
+    {
+      entrylist.push_back(fIntegrationPMT[i].GetDBEntry(db, datatype, "" )) ;
+    }
+
+  printf("%s  ************** fCombinedPMT **************\n", datatype.Data());
+  for(UInt_t i=0; i< fCombinedPMT.size(); i++)
+    {
+      entrylist.push_back(fCombinedPMT[i].GetDBEntry(db, datatype, "sum"));
+      entrylist.push_back(fCombinedPMT[i].GetDBEntry(db, datatype, "avg"));
+    }
+
+  printf("Main Detector Entrylist Vector Size %d\n", (Int_t) entrylist.size());
+
+  db->Connect();
+  // Check the entrylist size, if it isn't zero, start to query..
+  if( entrylist.size() )
+    {
+      mysqlpp::Query query= db->Query();
+      //    if(query)
+      //	{
+	  query.insert(entrylist.begin(), entrylist.end());
+	  query.execute();
+	  //	  query.reset(); // do we need?
+	  //	}
+	  //      else
+	  //	{
+	  //	  printf("Query is empty\n");
+	  //	}
+    }
+  else
+    {
+      printf("This is the case when the entrlylist contains nothing in %s \n", datatype.Data());
+    }
+
+  db->Disconnect();
+  return;
+};
+
 void  QwMainCerenkovDetector::Print()
 {
   std::cout<<"Name of the subsystem ="<<fSystemName<<"\n";

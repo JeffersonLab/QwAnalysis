@@ -62,10 +62,6 @@ Int_t QwBlinder::ReadSeed()
           s_sql += "ORDER BY seed_id DESC LIMIT 1";
         }
 
-      //----------------------------------------------------------
-      // Execute SQL and Store Result in fSeed
-      //----------------------------------------------------------
-
       mysqlpp::Query query = fSQL->Query();
       query<<s_sql;
       vector<QwParityDB::seeds> res;
