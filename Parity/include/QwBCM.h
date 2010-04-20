@@ -11,6 +11,7 @@
 #include <vector>
 #include <TTree.h>
 
+#include "QwBlinder.h"
 #include "QwVQWK_Channel.h"
 #define MYSQLPP_SSQLS_NO_STATICS
 #include "QwSSQLS.h"
@@ -78,7 +79,8 @@ class QwBCM : public VQwDataElement{
   void Scale(Double_t factor);
   void Calculate_Running_Average();
   void Do_RunningSum();
-  
+  void BlindMe(QwBlinder *blinder){return;};
+
   void SetPedestal(Double_t ped);
   void SetCalibrationFactor(Double_t calib);
 

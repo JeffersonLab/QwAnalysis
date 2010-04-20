@@ -807,7 +807,8 @@ void QwVQWK_Channel::Scale(Double_t scale)
 void QwVQWK_Channel::Calculate_Running_Average()
 {
   
-  if (!fGoodEventCount)
+//  if (!fGoodEventCount)
+  if (fGoodEventCount<=0)
     {
       fAverage_n        = 0.0;
       fAverage_n_square = 0.0;
@@ -817,7 +818,7 @@ void QwVQWK_Channel::Calculate_Running_Average()
     {
       fAverage_n        = fRunning_sum/fGoodEventCount;
       fAverage_n_square = fRunning_sum_square/fGoodEventCount;
-      fAverage_error    = sqrt( (  (fAverage_n_square-fAverage_n*fAverage_n) / fGoodEventCount  ) );
+      fAverage_error    = sqrt(fabs(fAverage_n_square-fAverage_n*fAverage_n)/ fGoodEventCount);
     }
   
   this -> Print_Running_Average();
@@ -847,6 +848,15 @@ void QwVQWK_Channel::Do_RunningSum()
   return;
 };
 
+void QwVQWK_Channel::BlindMe(QwBlinder *blinder)
+{
+  if (!IsNameEmpty())
+    {
+      for (Short_t i=0; i<4; i++) blinder->BlindMe(fBlock[i],"block");
+      blinder->BlindMe(fHardwareBlockSum,"blocksum");
+    }
+  return;
+};
 
 Bool_t QwVQWK_Channel::MatchSequenceNumber(size_t seqnum)
 {

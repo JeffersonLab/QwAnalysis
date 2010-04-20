@@ -16,7 +16,7 @@
 
 // Qweak headers
 #include "VQwDataElement.h"
-
+#include "QwBlinder.h"
 
 enum EDataToSave{kRaw=0, kDerived};
 // this data is used to decided which data need to be histogrammed or ttree-ed
@@ -131,6 +131,7 @@ class QwVQWK_Channel: public VQwDataElement {
   void Print() const;
   Double_t GetAverage() {return fAverage_n;};
   Double_t GetAverageError() {return fAverage_error;};
+  void BlindMe(QwBlinder *blinder);
 
  protected:
 

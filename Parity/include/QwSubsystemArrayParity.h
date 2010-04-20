@@ -14,6 +14,7 @@
 #include "QwSubsystemArray.h"
 #include "VQwSubsystemParity.h"
 
+class QwBlinder;
 ///
 /// \ingroup QwAnalysis_ADC
 ///
@@ -43,8 +44,10 @@ class QwSubsystemArrayParity:  public QwSubsystemArray {
   void Sum(QwSubsystemArrayParity &value1, QwSubsystemArrayParity &value2);
   void Difference(QwSubsystemArrayParity &value1, QwSubsystemArrayParity &value2);
   void Ratio(QwSubsystemArrayParity &numer, QwSubsystemArrayParity &denom);
+  void Scale(Double_t factor);
   void Calculate_Running_Average();
   void Do_RunningSum();//calculate the running sum at event level
+  void BlindMe(QwBlinder *blinder);
   Bool_t ApplySingleEventCuts();
   Int_t GetEventcutErrorCounters();
   Int_t GetEventcutErrorFlag();//return the error flag 

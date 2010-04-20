@@ -368,6 +368,10 @@ void QwIntegrationPMT::Do_RunningSum(){
   fTriumf_ADC.Do_RunningSum();
 };
 
+void QwIntegrationPMT::BlindMe(QwBlinder *blinder){
+  fTriumf_ADC.BlindMe(blinder);
+};
+
 QwParityDB::md_data QwIntegrationPMT::GetDBEntry(QwDatabase *db, TString mtype, TString subname)
 {
   QwParityDB::md_data row(0);

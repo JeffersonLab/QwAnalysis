@@ -988,14 +988,36 @@ void QwMainCerenkovDetector::Scale(Double_t factor)
 
 void QwMainCerenkovDetector::Calculate_Running_Average()
 {
+  for (size_t i=0;i<fIntegrationPMT.size();i++)
+    fIntegrationPMT[i].Calculate_Running_Average();
 
+  for (size_t i=0;i<fCombinedPMT.size();i++)
+    fCombinedPMT[i].Calculate_Running_Average();
+
+  return;
 };
 
 void QwMainCerenkovDetector::Do_RunningSum()
 {
+  for (size_t i=0;i<fIntegrationPMT.size();i++)
+    fIntegrationPMT[i].Do_RunningSum();
 
+  for (size_t i=0;i<fCombinedPMT.size();i++)
+    fCombinedPMT[i].Do_RunningSum();
+
+  return;
 };
 
+void QwMainCerenkovDetector::BlindMe(QwBlinder *blinder)
+{
+  for (size_t i=0;i<fIntegrationPMT.size();i++)
+    fIntegrationPMT[i].BlindMe(blinder);
+
+  for (size_t i=0;i<fCombinedPMT.size();i++)
+    fCombinedPMT[i].BlindMe(blinder);
+
+  return;
+};
 
 Int_t QwMainCerenkovDetector::GetDetectorTypeID(TString name)
 {
@@ -1094,14 +1116,14 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
   printf("%s  ************** IntegrationPMT **************\n", datatype.Data());
   for(UInt_t i=0; i< fIntegrationPMT.size(); i++)
     {
-      entrylist.push_back(fIntegrationPMT[i].GetDBEntry(db, datatype, "" )) ;
+      entrylist.push_back(fIntegrationPMT[i].GetDBEntry(db, datatype, "asymmetry" )) ;
     }
 
   printf("%s  ************** fCombinedPMT **************\n", datatype.Data());
   for(UInt_t i=0; i< fCombinedPMT.size(); i++)
     {
-      entrylist.push_back(fCombinedPMT[i].GetDBEntry(db, datatype, "sum"));
-      entrylist.push_back(fCombinedPMT[i].GetDBEntry(db, datatype, "avg"));
+      entrylist.push_back(fCombinedPMT[i].GetDBEntry(db, datatype, "asymmetry"));
+      //entrylist.push_back(fCombinedPMT[i].GetDBEntry(db, datatype, "yield"));
     }
 
   printf("Main Detector Entrylist Vector Size %d\n", (Int_t) entrylist.size());

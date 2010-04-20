@@ -17,6 +17,7 @@
 #include "QwBCM.h"
 #include "QwCombinedBCM.h"
 #include "QwCombinedBPM.h"
+#include "QwBlinder.h"
 
 #include <vector>
 
@@ -92,6 +93,7 @@ class QwBeamLine : public VQwSubsystemParity{
 
   void Calculate_Running_Average();
   void Do_RunningSum();
+  void BlindMe(QwBlinder *blinder){return;};
 
   void ConstructHistograms(TDirectory *folder, TString &prefix);
   void FillHistograms();

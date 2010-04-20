@@ -17,6 +17,7 @@
 
 #include "QwHelicity.h"
 #include "QwDatabase.h"
+#include "QwSubsystemArrayParity.h"
 
 //  Backup type definition for ULong64_t; needed with some older ROOT versions.
 #if !defined(ULong64_t)
@@ -36,11 +37,22 @@ class QwBlinder{
   void  WriteFinalValuesToDB();
   void  PrintFinalValues();
 
- protected:
   // scheme:
   // Acode = Aactual  +  F x sgn(lambda/2), F is an encrypted factor  with |F|< 0.06ppm
-  void  BlindMe(Double_t &value){if(fBlindingEnabled){value += fBlindFactor;}};
-  void  UnBlindMe(Double_t &value){if(fBlindingEnabled){value -= fBlindFactor;}};
+  void  BlindMe(Double_t &value, TString type){
+           if(fBlindingEnabled){
+              if (type=="block")     value += fBlindFactor*0.25;
+              if (type=="blocksum" || type=="plain")  value += fBlindFactor;
+           }
+        };
+
+  void  UnBlindMe(Double_t &value, TString type){
+           if(fBlindingEnabled){
+              if (type=="block")     value -= fBlindFactor*0.25;
+              if (type=="blocksum" || type=="plain")  value -= fBlindFactor;
+           }
+        };
+
 
  private:
   QwBlinder() {};                                                    // No deafult constructor.

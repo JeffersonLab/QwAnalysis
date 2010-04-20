@@ -18,6 +18,7 @@
 
 #include "VQwSubsystemTracking.h"
 #include "VQwSubsystemParity.h"
+#include "QwBlinder.h"
 
 #include "MQwV775TDC.h"
 #include "QwVQWK_Module.h"
@@ -47,6 +48,7 @@ class QwScanner: public VQwSubsystemTracking,
     void Scale(Double_t factor) { return; };
     void Calculate_Running_Average(){return;};
     void Do_RunningSum(){return;};//update the running sums for devices
+    void BlindMe(QwBlinder *blinder){return;};
 
     Int_t LoadEventCuts(TString filename) { return 0; };
     Bool_t ApplySingleEventCuts() { return kTRUE; };

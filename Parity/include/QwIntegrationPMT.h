@@ -12,6 +12,7 @@
 #include <TTree.h>
 
 #include "QwVQWK_Channel.h"
+#include "QwBlinder.h"
 
 #define MYSQLPP_SSQLS_NO_STATICS
 #include "QwSSQLS.h"
@@ -69,6 +70,8 @@ class QwIntegrationPMT : public VQwDataElement{
 
   void Calculate_Running_Average();
   void Do_RunningSum();
+  void BlindMe(QwBlinder *blinder);
+
   void Print() const;
 
   Double_t GetRawBlockValue(size_t blocknum)

@@ -38,7 +38,7 @@
 
 #include "QwBeamLine.h"
 
-#include "QwBlinder.h"
+//#include "QwBlinder.h"
 
 Bool_t kInQwBatchMode = kFALSE;
 
@@ -53,7 +53,7 @@ static bool bTree = true;
 static bool bHisto = true;
 static bool bHelicity= true;
 
-Bool_t bEnableBlinding = kFALSE;
+Bool_t bEnableBlinding = kTRUE;
 ///
 /// \ingroup QwAnalysis_ADC
 int main(Int_t argc,Char_t* argv[]) {
@@ -262,8 +262,13 @@ int main(Int_t argc,Char_t* argv[]) {
             }
             // Fill the helicity tree
             if (bHelicity && helicitypattern->IsCompletePattern()) {
-                helicitypattern->CalculateAsymmetry();
+                if (!bEnableBlinding)
+                    helicitypattern->CalculateAsymmetry();
+                else
+                    helicitypattern->CalculateAsymmetry(blinders);
+
       //          if (bHisto) helicitypattern->FillHistograms();
+
                 if (bTree) {
                     helicitypattern->FillTreeVector(helvector);
                     heltree->Fill();
@@ -320,6 +325,10 @@ int main(Int_t argc,Char_t* argv[]) {
 //    }
 
         }
+
+      //Calculate running averages for Asymmetries and Yields per quartet
+      helicitypattern->CalculateRunningAverage();
+
         std::cout << "Number of events processed so far: "
         << eventbuffer.GetEventNumber() << std::endl;
         timer.Stop();

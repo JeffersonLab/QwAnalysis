@@ -7,6 +7,7 @@
 
 #include "QwVQWK_Channel.h"
 #include "QwIntegrationPMT.h"
+#include "QwBlinder.h"
 
 #define MYSQLPP_SSQLS_NO_STATICS
 #include "QwSSQLS.h"
@@ -65,6 +66,7 @@ class QwCombinedPMT : public VQwDataElement{
   void Scale(Double_t factor);
   void Calculate_Running_Average();
   void Do_RunningSum(); 
+  void BlindMe(QwBlinder *blinder);
 
   void SetPedestal(Double_t ped);
   void SetCalibrationFactor(Double_t calib);
@@ -98,7 +100,7 @@ class QwCombinedPMT : public VQwDataElement{
   std::vector <Double_t> fWeights;
 
   QwIntegrationPMT  fSumADC;
-  QwIntegrationPMT  fAvgADC;
+  //QwIntegrationPMT  fAvgADC;
 
   Int_t fDevice_flag; /// sets the event cut level for the device 
                       /// fDevice_flag=1 Event cuts & HW check,

@@ -25,6 +25,8 @@
 #define MYSQLPP_SSQLS_NO_STATICS
 #include "QwSSQLS.h"
 
+#include "QwBlinder.h"
+
 class QwMainCerenkovDetectorID;
 
 enum EMainDetInstrumentType{kIntegrationPMT, kCombinedPMT};
@@ -97,6 +99,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   VQwSubsystem*  Copy();
   Bool_t Compare(VQwSubsystem *source);
   void Scale(Double_t factor);
+  void BlindMe(QwBlinder *blinder);
 
   VQwSubsystem&  operator=  ( VQwSubsystem *value);
   VQwSubsystem&  operator+= ( VQwSubsystem *value);

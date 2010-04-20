@@ -9,12 +9,11 @@
 #ifndef __VQWSUBSYSTEMPARITY__
 #define __VQWSUBSYSTEMPARITY__
 
-
 #include "VQwSubsystem.h"
-
 #include "TTree.h"
 
 #include "QwDatabase.h"
+class QwBlinder;
 ///
 /// \ingroup QwAnalysis_ADC
 ///
@@ -59,6 +58,8 @@ class VQwSubsystemParity : virtual public VQwSubsystem {
   virtual Int_t GetEventcutErrorFlag()=0;//return the error flag to the main routine
 
   virtual VQwSubsystem* Copy()=0;
+  virtual void Scale(Double_t factor) = 0;
+  virtual void BlindMe(QwBlinder *blinder) = 0;
 
   private:
   VQwSubsystemParity(){};  //  Private constructor.

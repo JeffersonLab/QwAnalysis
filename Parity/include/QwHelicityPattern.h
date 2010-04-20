@@ -10,6 +10,7 @@
 
 #include "TTree.h"
 #include "QwSubsystemArrayParity.h"
+#include "QwBlinder.h"
 
 #include <vector>
 ///
@@ -29,7 +30,8 @@ class QwHelicityPattern{
   void  LoadEventData(QwSubsystemArrayParity &event);
   Bool_t IsCompletePattern();
   void  CalculateAsymmetry();
-  void CalculateRunningAverage();
+  void  CalculateAsymmetry(QwBlinder *blinder);
+  void  CalculateRunningAverage();
 
   void  ConstructHistograms(){ConstructHistograms((TDirectory*)NULL);};
   void  ConstructHistograms(TDirectory *folder);

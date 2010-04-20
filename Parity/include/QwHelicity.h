@@ -141,6 +141,7 @@ class QwHelicity: public VQwSubsystemParity{
   void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
   void Calculate_Running_Average();
   void Do_RunningSum();
+  void BlindMe(QwBlinder *blinder){ return; };
   // end of "empty" functions
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);

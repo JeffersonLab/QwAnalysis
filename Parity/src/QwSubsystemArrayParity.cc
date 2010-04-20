@@ -179,6 +179,13 @@ void QwSubsystemArrayParity::Difference(QwSubsystemArrayParity &value1, QwSubsys
   }
 };
 
+void QwSubsystemArrayParity::Scale(Double_t factor){
+   for (iterator subsys = begin(); subsys != end(); ++subsys) {
+    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
+    subsys_parity->Scale(factor);
+  }
+};
+
 void QwSubsystemArrayParity::Calculate_Running_Average(){
    for (iterator subsys = begin(); subsys != end(); ++subsys) {
     VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
@@ -193,6 +200,12 @@ void QwSubsystemArrayParity::Do_RunningSum(){
   }
 };
 
+void QwSubsystemArrayParity::BlindMe(QwBlinder *blinder){
+   for (iterator subsys = begin(); subsys != end(); ++subsys) {
+    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
+    subsys_parity->BlindMe(blinder);
+  }
+};
 
 void QwSubsystemArrayParity::Ratio(QwSubsystemArrayParity &numer, QwSubsystemArrayParity &denom )
 {
