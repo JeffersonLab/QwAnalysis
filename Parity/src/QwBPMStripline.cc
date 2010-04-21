@@ -672,7 +672,7 @@ QwParityDB::beam QwBPMStripline::GetDBEntry(QwDatabase *db, TString mtype, TStri
     }
   else
     {
-      sprintf(beam_measurement_type, "null");
+      sprintf(beam_measurement_type, "nul");
     }
   
 

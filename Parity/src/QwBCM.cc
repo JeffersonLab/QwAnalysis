@@ -379,7 +379,7 @@ QwParityDB::beam QwBCM::GetDBEntry(QwDatabase *db, TString mtype, TString subnam
     }
   else
     {
-      sprintf(beam_measurement_type, "null");
+      sprintf(beam_measurement_type, "nul");
     }
   
   name = this->GetElementName();

@@ -404,7 +404,7 @@ QwParityDB::md_data QwIntegrationPMT::GetDBEntry(QwDatabase *db, TString mtype, 
     }
   else
     {
-      sprintf(measurement_type, "null");
+      sprintf(measurement_type, "nul");
     }
   
   name = this->GetElementName();

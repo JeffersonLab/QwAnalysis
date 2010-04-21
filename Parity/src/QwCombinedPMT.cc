@@ -421,7 +421,7 @@ QwParityDB::md_data QwCombinedPMT::GetDBEntry(QwDatabase *db, TString mtype, TSt
     }
   else
     {
-      sprintf(measurement_type, "null");
+      sprintf(measurement_type, "nul");
     }
   
   name = this->GetElementName();

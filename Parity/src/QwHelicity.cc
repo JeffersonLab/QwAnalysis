@@ -672,7 +672,7 @@ Int_t QwHelicity::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UIn
     
     for(Int_t i=fWordsPerSubbank[index].first; i<fWordsPerSubbank[index].second; i++)
       {
-	if(fWord[i].fWordInSubbank+1<=num_words)
+	if(fWord[i].fWordInSubbank+1<= (Int_t) num_words)
 	  {
 	    fWord[i].fValue=buffer[fWord[i].fWordInSubbank];
 	  }
@@ -1254,21 +1254,26 @@ Bool_t QwHelicity::CollectRandBits24()
 	{
 	  first24bits[n_ranbits+1] = fHelicityReported;
 	  n_ranbits ++;
-	  if(ldebug)std::cout<<" event number"<<fEventNumber<<", fPatternNumber"
-			    <<fPatternNumber<<", n_ranbit"<<n_ranbits<<", fHelicityReported"<<fHelicityReported<<"\n";
-
-	  if(n_ranbits ==ranbit_goal ) //If its the 24th consecative random bit,
+	  if(ldebug)
 	    {
-	       if(ldebug)std::cout<<"Collected 24 random bits. Get the random seed for the predictor."<<"\n";
+	      std::cout<<" event number"<<fEventNumber<<", fPatternNumber"
+		       <<fPatternNumber<<", n_ranbit"<<n_ranbits
+		       <<", fHelicityReported"<<fHelicityReported<<"\n";
+	    }
+
+	  if(n_ranbits == ranbit_goal ) //If its the 24th consecative random bit,
+	    {
 	       if(ldebug)
-		 for(int i=0;i<ranbit_goal;i++)
-		   std::cout<<" i:bit ="<<i<<":"<<first24bits[i]<<"\n";
+		 {
+		   std::cout<<"Collected 24 random bits. Get the random seed for the predictor."<<"\n";
+		   for(UInt_t i=0;i<ranbit_goal;i++) std::cout<<" i:bit ="<<i<<":"<<first24bits[i]<<"\n";
+		 }
 	      iseed_Delayed = GetRandomSeed(first24bits);
 	      //This random seed will predict the helicity of the event (24+fHelicityDelay) patterns  before;
 	      // run GetRandBit 24 times to get the delayed helicity for this event
 	       if(ldebug)std::cout<<"The reported seed 24 patterns ago = "<<iseed_Delayed<<"\n";
 
-	      for(size_t i=0;i<ranbit_goal;i++) fDelayedPatternPolarity =GetRandbit(iseed_Delayed);
+	      for(UInt_t i=0;i<ranbit_goal;i++) fDelayedPatternPolarity =GetRandbit(iseed_Delayed);
 	      fHelicityDelayed = fDelayedPatternPolarity;
 	      //The helicity of the first phase in a pattern is
 	      //equal to the polarity of the pattern

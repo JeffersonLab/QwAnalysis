@@ -102,6 +102,7 @@ Int_t QwBlinder::ReadSeed()
       std::cerr << "QwBlinder::ReadSeed():  " << fSeed << std::endl;
     }
 
+  return fSeedID;
 } // End QwBlinder::ReadSeed
 
 
@@ -146,7 +147,8 @@ void QwBlinder::InitBlinders()
       std::cout << "QwBlinder::InitBlinders():  Blinding factor has been forced to 0."<< std::endl;
     }
 
-  TString hex_string = Form("%.16llx",(*(ULong64_t*)(&fBlindFactor)));
+  TString hex_string;
+  hex_string.Form("%.16llx",(*(ULong64_t*)(&fBlindFactor)));
   fDigest = GenerateDigest(hex_string.Data());
   fBFChecksum = "";
   for (size_t i=0; i<fDigest.size(); i++)
@@ -481,7 +483,8 @@ Bool_t QwBlinder::CheckTestValues()
 vector<UChar_t> QwBlinder::GenerateDigest(const char* input)
 {
   TMD5 md5;
-  UChar_t* md5_value;
+  UChar_t* md5_value = NULL;
+  
   const UInt_t md5_len = 64;
   vector<UChar_t> output;
 

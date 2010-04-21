@@ -113,7 +113,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
   TString fETSession;
   std::pair<Int_t, Int_t> fRunRange;
   Bool_t fChainDataFiles;
-  std::pair<Int_t, Int_t> fEventRange;
+  std::pair<UInt_t, UInt_t> fEventRange;
 
  protected:
   const TString fDataFileStem;
