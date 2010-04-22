@@ -295,6 +295,12 @@ else
   endif
 endif
 
+#  Check to see if BOOST_INC_DIR is equal to /usr/include; 
+#  if so, clear the BOOST_INC flag, but leave BOOST_LIBS unchanged
+ifeq ($(shell test $(BOOST_INC_DIR) -ef /usr/include || echo false),)
+  BOOST_INC  =
+endif
+
 #  We should also put a test on the boost version number here.
 ifeq ($(BOOST_VERSION),)
   $(error   Error: Could not determine Boost version)
