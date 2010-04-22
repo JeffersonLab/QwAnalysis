@@ -91,8 +91,8 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile) {
             BuildWireDataStructure(chan, package, plane, wire);
         } else if (DIRMODE==1) {
             //this will decode the wire plane directions - Rakitha
-            plane   = (atol(mapstr.GetNextToken(", ").c_str()));
-            direction    = (atol(mapstr.GetNextToken(", ").c_str()));
+            plane     = (atol(mapstr.GetNextToken(", ").c_str()));
+            direction = (atol(mapstr.GetNextToken(", ").c_str()));
             fDirectionData.at(package-1).at(plane-1)=direction;
         }
 
@@ -114,31 +114,34 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile) {
 };
 
 
-void  QwDriftChamber::CalculateDriftDistance() { //Currently This routine is not in use the drift distance calculation is done at ProcessEvent() on each sub-class
-    for (std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
-
-        if (hit1->GetTime()<0) continue;
-        hit1->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));
-
-    }
-
+void  QwDriftChamber::CalculateDriftDistance() 
+{ //Currently This routine is not in use the drift distance calculation is done at ProcessEvent() on each sub-class
+  for (std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
+    
+    if (hit1->GetTime()<0) continue;
+    hit1->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));
+    
+  }
+  return;
 };
 
 
 
 
-void  QwDriftChamber::ClearEventData() {
-    SetDataLoaded(kFALSE);
-    QwDetectorID this_det;
-    //  Loop through fTDCHits, to decide which detector elements need to be cleared.
-    for (std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
-        this_det = hit1->GetDetectorID();
-        fWireData.at(this_det.fPlane).at(this_det.fElement).ClearHits();
-    }
-    fTDCHits.clear();
-    for (size_t i=0; i<fReferenceData.size(); i++) {
-        fReferenceData.at(i).clear();
-    }
+void  QwDriftChamber::ClearEventData() 
+{
+  SetDataLoaded(kFALSE);
+  QwDetectorID this_det;
+  //  Loop through fTDCHits, to decide which detector elements need to be cleared.
+  for (std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
+    this_det = hit1->GetDetectorID();
+    fWireData.at(this_det.fPlane).at(this_det.fElement).ClearHits();
+  }
+  fTDCHits.clear();
+  for (size_t i=0; i<fReferenceData.size(); i++) {
+    fReferenceData.at(i).clear();
+  }
+  return;
 };
 
 
@@ -150,59 +153,161 @@ void  QwDriftChamber::ClearEventData() {
 
 
 
-Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) {
-  Int_t index = GetSubbankIndex(roc_id,bank_id);
+Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) 
+{
+  Int_t  index = GetSubbankIndex(roc_id,bank_id);
 
+
+  UInt_t  header_old_event_number = 0;
+  UInt_t  header_new_event_number = 0;
+  UInt_t  header_old_trigger_time = 0;
+  UInt_t  header_new_trigger_time = 0;
+  UInt_t  header_trigger_time_offset = 0;
+  UInt_t  valid_trigger_time_offset = 1;
+  Short_t tdc_slot_number = 0;
+  Bool_t  print_tdc_data_flag = false;
+
+  if(print_tdc_data_flag) printf("\n");
   if (index>=0 && num_words>0) {
     //  We want to process this ROC.  Begin looping through the data.
-    
     SetDataLoaded(kTRUE);
+    
     if (fDEBUG) std::cout << "QwDriftChamber::ProcessEvBuffer:  "
 			  << "Begin processing ROC" << roc_id << std::endl;
-    for (size_t i=0; i<num_words ; i++) {
+    
+
+
+    for (UInt_t i=0; i<num_words ; i++) {
       //  Decode this word as a F1TDC word.
-      DecodeTDCWord(buffer[i]);
+      DecodeTDCWord(buffer[i]); // MQwF1TDC or MQwV775TDC
       
-      if (GetTDCSlotNumber() == 31) {
+      tdc_slot_number = GetTDCSlotNumber();
+
+      if ( tdc_slot_number == 31) {
 	//  This is a custom word which is not defined in
 	//  the F1TDC, so we can use it as a marker for
 	//  other data; it may be useful for something.
       }
-      if (! IsSlotRegistered(index, GetTDCSlotNumber())) continue;
-      
-      if (IsValidDataword()) {
-	// This is a F1 TDC data word
-	try {
-	  //std::cout<<"At QwDriftChamber::ProcessEvBuffer"<<std::endl;
-	  FillRawTDCWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),
-			 GetTDCData());
-	}
-	catch (std::exception& e) {
-	  std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: " 
-		    << e.what() << std::endl;
-	  Int_t chan = GetTDCChannelNumber();
-	  std::cerr << "   Parameters:  index=="<<index
-		    << "; GetF1SlotNumber()=="<<GetTDCSlotNumber()
-		    << "; GetF1ChannelNumber()=="<<chan
-		    << "; GetF1Data()=="<<GetTDCData()
-		    << std::endl;
-	  Int_t tdcindex = GetTDCIndex(index, GetTDCSlotNumber());
-	  std::cerr << "   GetTDCIndex()=="<<tdcindex
-		    << "; fTDCPtrs.at(tdcindex).size()=="
-		    << fTDCPtrs.at(tdcindex).size()
-		    << "; fTDCPtrs.at(tdcindex).at(chan).fPlane=="
-		    << fTDCPtrs.at(tdcindex).at(chan).fPlane
-		    << "; fTDCPtrs.at(tdcindex).at(chan).fElement=="
-		    << fTDCPtrs.at(tdcindex).at(chan).fElement
-		    << std::endl;
-	}
-      } else {
-	// This is a F1 TDC header/trailer word
-	//  This might be a problem, but often is not...
-	//  Do we need to do something?   
-      } 
-    }
+
+      if(! IsValidDataSlot() ) continue;
+
+      // To Paul, I selected a valid slot number as 1-21 according to F1TDC manual
+      //          that means IsValidDataSlot checks only whether slot_number is
+      //          within the range. If not, data and header word are invalid. 
+      //          It didn't check whether the slot actually is occupied by
+      //          a F1TDC module. 
+      //          I look at IsSlotRegistered, then it use slot_id as
+      //          "I call" index in a vector. I think, our slot_id 
+      //          is not 1,2,3,4 etc, but 1,3,5,7 etc. If so, doesIsSlotRegistered
+      //          work correctly?
+      //          Thu Apr 22 11:41:16 EDT 2010 (jhlee)
+
+  
+      if(! IsSlotRegistered(index, tdc_slot_number) ) continue;
+    
+
+      // check the resolution lock, if not, our data isn't reliable because
+      // we have a different TDC resolution. 
+
+      if( IsResolutionLock() )  
+	{//;
+	  // check whether "Header" or "Data"
+	  if ( IsValidDataword() ) 
+	    {//;;
+	    // This is a F1 TDC data word
+	      try {
+		//std::cout<<"At QwDriftChamber::ProcessEvBuffer"<<std::endl;
+		FillRawTDCWord(index, tdc_slot_number, GetTDCChannelNumber(), 
+			       GetTDCData());
+		PrintTDCData(print_tdc_data_flag);
+	      }
+	      catch (std::exception& e) {
+		std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: " 
+			  << e.what() << std::endl;
+		Int_t chan = GetTDCChannelNumber();
+		std::cerr << "   Parameters:  index=="<<index
+			  << "; GetF1SlotNumber()=="<< tdc_slot_number
+			  << "; GetF1ChannelNumber()=="<<chan
+			  << "; GetF1Data()=="<<GetTDCData()
+			  << std::endl;
+		Int_t tdcindex = GetTDCIndex(index, GetTDCSlotNumber());
+		std::cerr << "   GetTDCIndex()=="<<tdcindex
+			  << "; fTDCPtrs.at(tdcindex).size()=="
+			  << fTDCPtrs.at(tdcindex).size()
+			  << "; fTDCPtrs.at(tdcindex).at(chan).fPlane=="
+			  << fTDCPtrs.at(tdcindex).at(chan).fPlane
+			  << "; fTDCPtrs.at(tdcindex).at(chan).fElement=="
+			  << fTDCPtrs.at(tdcindex).at(chan).fElement
+			  << std::endl;
+	      }
+	    }//;;
+	  else 
+	    {//;;
+	      // TDC HEADER World
+	      // get Event Number and Trigger Time
+	      header_new_event_number = GetTDCHeaderEventNumber();
+	      header_new_trigger_time = GetTDCHeaderTriggerTime();
+
+	      // skip the first event.
+	      if(i!=0) 
+		{
+		  if( header_new_event_number != header_old_event_number )
+		    {
+		      
+		      // Any difference in the Event Number among the chips indicates a serious error
+		      // that requires a reset of the board.
+
+		      // Immediately, cancel QwAnalysis because we have no reason to do so.
+
+		      printf("%s !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n%s", BOLDRED, NORMAL);
+		      printf("%s          REQUIRE a reset of the F1TDC board at ROC %2d Slot %2d%s\n", BOLDRED, roc_id, tdc_slot_number, NORMAL);
+		      printf("%s          Please contact an Qweak DAQ expert immediately%s\n", BOLDRED, NORMAL);        
+		      printf("%s !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n%s", BOLDRED, NORMAL);
+		      printf(" QwAnalysis is terminated and there is no ROOT output at the moment.\n");
+		      exit(1);
+
+		    }
+		  header_trigger_time_offset = abs(header_new_trigger_time - header_old_trigger_time);
+		  // printf("offset %d new, old (%d,%d)\n", header_trigger_time_offset, header_new_trigger_time, header_old_trigger_time);
+		  if( header_trigger_time_offset > valid_trigger_time_offset )
+		    {
+
+		      // Trigger Time difference of up to 1 count among the chips is acceptable
+		      // For the Trigger Time, this assumes that an external SYNC_RESET signal has
+		      // been successfully applied at the start of the run
+		      // Should we stop QwAnalysis or mark this buffer as bad?
+
+		      //		      printf("%s ------------------------------------------------------------------------\n%s", GREEN, NORMAL);
+		      printf("%s      There are SYNC_RESET issue on the F1TDC board at ROC %2d Slot %2d %s\n", GREEN, roc_id, tdc_slot_number, NORMAL);
+		      printf("%s      Please contact an Qweak DAQ expert immediately%s\n", GREEN, NORMAL);        
+		      //		      printf("%s ------------------------------------------------------------------------\n%s", GREEN, NORMAL);
+		      //		printf(" QwAnalysis is terminated and there is no ROOT output at the moment.\n");
+		      //		exit(1);
+		      //                return -1;
+		    }
+		}
+	      // save a Event Number and a Trigger Time
+	      // so as to compare with next ones.
+	      header_old_event_number = header_new_event_number;
+	      header_old_trigger_time = header_new_trigger_time;
+
+	      PrintTDCHeader(print_tdc_data_flag);
+	    }//;;
+	}//;
+      else
+	{//;
+	  // Should we stop QwAnalysis or mark this buffer as bad?
+	  //		      printf("%s ------------------------------------------------------------------------\n%s", RED, NORMAL);
+	  printf("%s          F1TDC board RESOULTION LOCK FAIL at ROC %2d Slot %2d%s\n", RED, roc_id, tdc_slot_number, NORMAL);
+	  printf("%s          Please contact an Qweak DAQ expert immediately%s\n", RED, NORMAL);        
+	  //		      printf("%s ------------------------------------------------------------------------\n%s", RED, NORMAL);
+	  //      printf(" QwAnalysis is terminated and there is no ROOT output at the moment.\n");
+	  //	  exit(1);
+	}//;
+    } // for (UInt_t i=0; i<num_words ; i++) {
+
   }
+
   return OK;
 };
 
@@ -319,58 +424,61 @@ void  QwDriftChamber::FillHistograms() {
         //  Fill ToF histograms
         TOFP_raw[this_detid.fPlane]->Fill(hit1->GetRawTime());
         TOFW_raw[this_detid.fPlane]->Fill(this_detid.fElement,hit1->GetRawTime());
-        TOFP[this_detid.fPlane]->Fill(hit1->GetTime());
-        TOFW[this_detid.fPlane]->Fill(this_detid.fElement,hit1->GetTime());
+        TOFP    [this_detid.fPlane]->Fill(hit1->GetTime());
+        TOFW    [this_detid.fPlane]->Fill(this_detid.fElement,hit1->GetTime());
 
 
 
     }
 
     for (size_t iplane=1; iplane<fWiresPerPlane.size(); iplane++) {
-        WiresHit[iplane]->Fill(wireshitperplane[iplane]);
+      WiresHit[iplane]->Fill(wireshitperplane[iplane]);
 
     }
 };
 
 
-void  QwDriftChamber::DeleteHistograms() {
-    //  Run the destructors for all of the histogram object pointers.
-    //for (size_t i=1;i<fWiresPerPlane.size();i++) {
-    for (size_t i=1;i<fWiresPerPlane.size();i++) {
-        ///////////First set of histos//////////////////////////
-        if (TotHits[i]!= NULL) {
-            TotHits[i]->Delete();
-            TotHits[i] = NULL;
-        }
-        /////////Second set of histos///////////////////////////
-        if (WiresHit[i]!= NULL) {
-            WiresHit[i]->Delete();
-            WiresHit[i] = NULL;
-        }
-        ////////Third set of histos/////////////////////////////
-        if (HitsWire[i]!= NULL) {
-            HitsWire[i]->Delete();
-            HitsWire[i] = NULL;
-        }
-        ////////Fourth set of histos////////////////////////////
-        if (TOFP[i]!= NULL) {
-            TOFP[i]->Delete();
-            TOFP[i] = NULL;
-        }
-        if (TOFP_raw[i]!= NULL) {
-            TOFP_raw[i]->Delete();
-            TOFP_raw[i] = NULL;
-        }
-        //////////Fifth set of histos///////////////////////////
-        if (TOFW[i]!= NULL) {
-            TOFW[i]->Delete();
-            TOFW[i] = NULL;
-        }
-        if (TOFW_raw[i]!= NULL) {
-            TOFW_raw[i]->Delete();
-            TOFW_raw[i] = NULL;
-        }
+void  QwDriftChamber::DeleteHistograms() 
+{
+  //  Run the destructors for all of the histogram object pointers.
+  //for (size_t i=1;i<fWiresPerPlane.size();i++) {
+  for (UInt_t i=1;i<fWiresPerPlane.size();i++) {
+    ///////////First set of histos//////////////////////////
+    if (TotHits[i]!= NULL) {
+      delete TotHits[i];
+      TotHits[i] = NULL;
     }
+    /////////Second set of histos///////////////////////////
+    if (WiresHit[i]!= NULL) {
+      delete WiresHit[i];
+      WiresHit[i] = NULL;
+    }
+    ////////Third set of histos/////////////////////////////
+    if (HitsWire[i]!= NULL) {
+      delete HitsWire[i];
+      HitsWire[i] = NULL;
+    }
+    ////////Fourth set of histos////////////////////////////
+    if (TOFP[i]!= NULL) {
+      delete TOFP[i];
+      TOFP[i] = NULL;
+    }
+    if (TOFP_raw[i]!= NULL) {
+      delete TOFP_raw[i];
+      TOFP_raw[i] = NULL;
+    }
+    //////////Fifth set of histos///////////////////////////
+    if (TOFW[i]!= NULL) {
+      delete TOFW[i];
+      TOFW[i] = NULL;
+    }
+    if (TOFW_raw[i]!= NULL) {
+      delete TOFW_raw[i];
+      TOFW_raw[i] = NULL;
+    }
+  }
+  return;
+  
 };
 
 
@@ -445,35 +553,38 @@ Int_t QwDriftChamber::LoadTimeWireOffset(TString t0_map) {
 
     TString varname,varvalue;
     Int_t package=0,plane=0,wire=0;
-    Double_t t0=0;
-    while ( mapstr.ReadNextLine() ) {
+    Double_t t0 = 0.0;
+
+    while ( mapstr.ReadNextLine() ) 
+      {
         mapstr.TrimComment ( '!' );
         mapstr.TrimWhitespace();
         if ( mapstr.LineIsEmpty() ) continue;
         if ( mapstr.HasVariablePair ( "=",varname,varvalue ) ) {
-            varname.ToLower();
-            if (varname=="package") {
-                package = atoi ( varvalue.Data() );
+	  varname.ToLower();
+	  if (varname=="package") {
+	    package = atoi ( varvalue.Data() );
+	    if (package> (Int_t) fTimeWireOffsets.size()) fTimeWireOffsets.resize(package);
+	  } else if (varname=="plane") {
+	    //std::cout << "package: "  <<  fTimeWireOffsets.at(package-1).size()<< std::endl;
+	    plane = atoi(varvalue.Data());
+	    if (plane> (Int_t) fTimeWireOffsets.at(package-1).size()) fTimeWireOffsets.at(package-1).resize(plane);
+	    //std::cout << "plane: "  <<  fTimeWireOffsets.at(package-1).size()<< std::endl;
 
-                if (package>fTimeWireOffsets.size())
-                    fTimeWireOffsets.resize(package);
-            } else if (varname=="plane") {
-                //std::cout << "package: "  <<  fTimeWireOffsets.at(package-1).size()<< std::endl;
-                plane=atoi(varvalue.Data());
-                if (plane>fTimeWireOffsets.at(package-1).size())
-                    fTimeWireOffsets.at(package-1).resize(plane);
-                //std::cout << "plane: "  <<  fTimeWireOffsets.at(package-1).size()<< std::endl;
-            }
-            continue;
+	    // To Siyuan, * : can package be obtained before plane in while loop? if plane is before package
+	    //                we have at(-1), thus, if condition is always "false", I guess.
+	    //            * : if, else if then can we expect something more?
+	    // from Han
+	  }
+	  continue;
         }
-
-
+	
         wire = ( atoi ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-        t0 = ( atoi ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+        t0   = ( atoi ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
 
-        if (wire > fTimeWireOffsets.at(package-1).at(plane-1).size())
-            fTimeWireOffsets.at(package-1).at(plane-1).resize(wire);
-        fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1)=t0;
+        if (wire > (Int_t)fTimeWireOffsets.at(package-1).at(plane-1).size()) fTimeWireOffsets.at(package-1).at(plane-1).resize(wire);
+        
+	fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1) = t0;
 
     }
     //
@@ -481,24 +592,36 @@ Int_t QwDriftChamber::LoadTimeWireOffset(TString t0_map) {
 }
 
 
-void QwDriftChamber::SubtractWireTimeOffset() {
-    Int_t package=0,plane=0,wire=0;
-    Double_t t0=0;
-    for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ ) {
-        package=iter->GetPackage();
-        plane=iter->GetPlane();
-        wire=iter->GetElement();
-        t0=fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1);
-        if (t0>-1300 && t0<-1500) {
-            if (plane==1) t0=-1423.75;
-            else if (plane==2) t0=-1438.28;
-        }
-        iter->SetTime(iter->GetTime()-t0);
+void QwDriftChamber::SubtractWireTimeOffset() 
+{
+  Int_t package=0,plane=0,wire=0;
+  Double_t t0 = 0.0;
+
+  for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ ) {
+    package = iter->GetPackage();
+    plane   = iter->GetPlane();
+    wire    = iter->GetElement();
+
+    t0      = fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1);
+
+    // They are too many magic numbers.
+
+    if (t0>-1300 && t0<-1500) {
+      if      (plane == 1) t0 = -1423.75;
+      else if (plane == 2) t0 = -1438.28;
+      
     }
-}
+    iter->SetTime(iter->GetTime()-t0);
+  }
+  return;
+};
 
 
-void QwDriftChamber::ApplyTimeCalibration() {
-    for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ )
-        iter->SetTime(0.1132*iter->GetTime());
-}
+void QwDriftChamber::ApplyTimeCalibration() 
+{
+
+  for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ )
+    iter->SetTime(0.1132*iter->GetTime());
+  // 0.1132 is a magic number. We should define it with a definition.
+  return;
+};

@@ -17,8 +17,11 @@ const UInt_t MQwF1TDC::kF1Mask_HitFIFOFlag         = 0x01000000;
 const UInt_t MQwF1TDC::kF1Mask_ChannelNumber       = 0x003f0000;
 const UInt_t MQwF1TDC::kF1Mask_Dataword            = 0x0000ffff;
 
-const UInt_t MQwF1TDC::kF1Mask_EventNumber         = 0x003f0000;
-const UInt_t MQwF1TDC::kF1Mask_TriggerTime         = 0x0000ff80;
+
+const UInt_t MQwF1TDC::kF1Mask_HeaderTrigFIFOFlag  = 0x00400000;
+const UInt_t MQwF1TDC::kF1Mask_HeaderEventNumber   = 0x003f0000;
+const UInt_t MQwF1TDC::kF1Mask_HeaderTriggerTime   = 0x0000ff80;
+const UInt_t MQwF1TDC::kF1Mask_HeaderXorSetupFlag  = 0x00000040;
 const UInt_t MQwF1TDC::kF1Mask_HeaderChannelNumber = 0x0000003f;
 
 
@@ -34,8 +37,13 @@ MQwF1TDC::MQwF1TDC(): fMinDiff(-1.0*kMaxInt), fMaxDiff(1.0*kMaxInt),
   fF1SlotNumber         = 0;
   fF1ChannelNumber      = 0;
   fF1Dataword           = 0;
-  fF1EventNumber        = 0;
-  fF1TriggerTime        = 0;
+
+  fF1HeaderTrigFIFOFlag = kFALSE;
+  fF1HeaderEventNumber  = 0;
+  fF1HeaderTriggerTime  = 0;
+  fF1HeaderXorSetupFlag = kFALSE;
+
+  fF1ValidDataSlotFlag  = kFALSE;
 
 };
 
@@ -45,28 +53,71 @@ MQwF1TDC::~MQwF1TDC() { };
 void MQwF1TDC::DecodeTDCWord(UInt_t &word)
 {
   fF1SlotNumber         = (word & kF1Mask_SlotNumber)>>27;
+
+  if( fF1SlotNumber>=1 && fF1SlotNumber<=21 ) fF1ValidDataSlotFlag = kTRUE;
+  else                                        fF1ValidDataSlotFlag = kFALSE;
+
+  // Should we need to decode "word" even if the data is invaid?
+  // Thu Apr 22 11:41:16 EDT 2010 (jhlee)
+  //  if(fF1ValidDataSlotFlag) {
+
   fF1HeaderFlag         = ((word & kF1Mask_HeaderFlag)==0); // TRUE if the mask bit IS NOT set
 
   // These three flags should be TRUE if their mask bit IS set
-  fF1HitFIFOFlag        = ((word & kF1Mask_HitFIFOFlag)!=0);
-  fF1OutputFIFOFlag     = ((word & kF1Mask_OutputFIFOFlag)!=0); 
+  fF1HitFIFOFlag        = ((word & kF1Mask_HitFIFOFlag       )!=0);
+  fF1OutputFIFOFlag     = ((word & kF1Mask_OutputFIFOFlag    )!=0); 
   fF1ResolutionLockFlag = ((word & kF1Mask_ResolutionLockFlag)!=0);
   
   if (fF1HeaderFlag){
     //  This is a header word.
-    fF1ChannelNumber = (word & kF1Mask_HeaderChannelNumber);
-    fF1Dataword      = 0;
-    fF1EventNumber   = (word & kF1Mask_EventNumber)>>16;
-    fF1TriggerTime   = (word & kF1Mask_TriggerTime)>>7;
+    fF1Dataword           = 0;
+    fF1HeaderTrigFIFOFlag = ((word & kF1Mask_HeaderTrigFIFOFlag)!=0);
+    fF1HeaderEventNumber  = ( word & kF1Mask_HeaderEventNumber )>>16;
+    fF1HeaderTriggerTime  = ( word & kF1Mask_HeaderTriggerTime )>>7;
+    fF1HeaderXorSetupFlag = ((word & kF1Mask_HeaderXorSetupFlag)!=0);
+    fF1ChannelNumber      = ( word & kF1Mask_HeaderChannelNumber );
   } 
   else {
+    // This is a data word.
     fF1ChannelNumber = (word & kF1Mask_ChannelNumber)>>16;
     fF1Dataword      = (word & kF1Mask_Dataword);
-    fF1EventNumber   = 0;
-    fF1TriggerTime   = 0;
+    fF1HeaderEventNumber   = 0;
+    fF1HeaderTriggerTime   = 0;
     //std::cout << "channel: " << fF1ChannelNumber << " raw time: " << fF1Dataword << std::endl;
   }
 
+  //}
+
+  return;
+};
+
+
+void MQwF1TDC::PrintTDCHeader(Bool_t flag)
+{
+  if(flag)
+    {
+      printf(">>>>>>>>> H/T  : Ch %2d, Xor %1d, trOvF %1d, Chip(hitOvF,outOvF,resLock)(%1d%1d%1d) SlotID %2d Event # %d Trig Time %d\n",
+	     fF1ChannelNumber, fF1HeaderXorSetupFlag, fF1HeaderTrigFIFOFlag, fF1HitFIFOFlag, fF1OutputFIFOFlag,  fF1ResolutionLockFlag,
+	     fF1SlotNumber, fF1HeaderEventNumber, fF1HeaderTriggerTime
+	     );
+    }
+  return;
+};
+
+
+void MQwF1TDC::PrintTDCData(Bool_t flag)
+{
+  if(flag)
+    {
+      printf(">>>>>>>>> DATA : Ch ");
+      printf("%2d", fF1ChannelNumber);
+      printf("%18s", "");
+      printf("Chip(hitOvF,outOvF,resLock)(%1d%1d%1d) SlotID %2d",
+	     fF1HitFIFOFlag, fF1OutputFIFOFlag,  fF1ResolutionLockFlag,
+	     fF1SlotNumber);
+      printf(", Raw time");
+      printf("%12d\n", fF1Dataword);
+    }
   return;
 };
 

@@ -11,9 +11,10 @@
 
 #include "QwParameterFile.h"
 
-#include<TH1F.h>
-#include<TH2F.h>
-#include<TTree.h>
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TTree.h"
+#include "QwColor.h"
 
 #include "QwHit.h"
 #include "QwHitContainer.h"
@@ -22,9 +23,9 @@
 #include "QwDetectorInfo.h"
 
 #include <exception>
-#include<iostream>
-#include<fstream>
-#include<string>
+#include <iostream>
+#include <fstream>
+#include <string>
 
 #include "VQwSubsystemTracking.h"
 #include "MQwF1TDC.h"
