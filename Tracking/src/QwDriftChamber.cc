@@ -312,74 +312,80 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 };
 
 
-void  QwDriftChamber::ConstructHistograms(TDirectory *folder, TString& prefix) {
-    //  If we have defined a subdirectory in the ROOT file, then change into it.
-    if (folder != NULL) folder->cd();
+void  QwDriftChamber::ConstructHistograms(TDirectory *folder, TString& prefix) 
+{
+  //  If we have defined a subdirectory in the ROOT file, then change into it.
+  if (folder != NULL) folder->cd();
+  //  Now create the histograms...
+  TString region = GetSubsystemName();
+  //  Loop over the number of planes.
+
+  const Short_t BUFFERSIZE  = 2000;   
+  Float_t bin_offset = -0.5;
+  
+  for (UInt_t i=1;i<fWiresPerPlane.size();i++) 
+    {
+      ///////////////First set of histos////////////////////////////////
+      TotHits[i] = new TH1F(Form("%s%sHitsOnEachWirePlane%d", prefix.Data() ,region.Data(),i),
+			    Form("Total hits on all wires in plane %d",i),
+			    fWiresPerPlane[i], bin_offset, fWiresPerPlane[i]+bin_offset);
+      
+      TotHits[i]->GetXaxis()->SetTitle("Wire #");
+      TotHits[i]->GetYaxis()->SetTitle("Events");
 
 
-    //  Now create the histograms...
-
-    TString region = GetSubsystemName();
-
-
-    //  Loop over the number of planes.
-
-    for (size_t i=1;i<fWiresPerPlane.size();i++) {
-        ///////////////First set of histos////////////////////////////////
-        TotHits[i] = new TH1F(Form("%s%sHitsOnEachWirePlane%d", prefix.Data() ,region.Data(),i),
-                              Form("Total hits on all wires in plane %d",i),
-                              fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5);
-
-        TotHits[i]->GetXaxis()->SetTitle("Wire #");
-        TotHits[i]->GetYaxis()->SetTitle("Events");
-
-
-        ///////////////Second set of histos////////////////////////////////
-        WiresHit[i] = new TH1F(Form("%s%sWiresHitPlane%d", prefix.Data() ,region.Data(),i),
-                               Form("Number of Wires Hit in plane %d",i),
-                               20,-0.5,20.5);
-        WiresHit[i]->GetXaxis()->SetTitle("Wires Hit per Event");
-        WiresHit[i]->GetYaxis()->SetTitle("Events");
-
-        //////////////Third set of histos/////////////////////////////////
-        HitsWire[i] = new TH2F(Form("%s%sHitsOnEachWirePerEventPlane%d", prefix.Data() ,region.Data(),i),
-                               Form("hits on all wires per event in plane %d",i),
-                               fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5,
-                               7,0.5,7.5);
-
-        HitsWire[i]->GetXaxis()->SetTitle("Wire Number");
-        HitsWire[i]->GetYaxis()->SetTitle("Hits");
-
-        /////////////Fourth set of histos//////////////////////////////////////
-        TOFP[i] = new TH1F(Form("%s%sTimeofFlightPlane%d", prefix.Data() ,region.Data(),i),
-                           Form("Subtracted time of flight for events in plane %d",i),
-                           400,-65000,65000);
-        TOFP[i]->GetXaxis()->SetTitle("Time of Flight");
-        TOFP[i]->GetYaxis()->SetTitle("Hits");
+      ///////////////Second set of histos////////////////////////////////
+      WiresHit[i] = new TH1F(Form("%s%sWiresHitPlane%d", prefix.Data() ,region.Data(),i),
+			     Form("Number of Wires Hit in plane %d",i),
+			     20, bin_offset, 20+bin_offset);
+      WiresHit[i]->GetXaxis()->SetTitle("Wires Hit per Event");
+      WiresHit[i]->GetYaxis()->SetTitle("Events");
+      
+      //////////////Third set of histos/////////////////////////////////
+      HitsWire[i] = new TH2F(Form("%s%sHitsOnEachWirePerEventPlane%d", prefix.Data() ,region.Data(),i),
+			     Form("hits on all wires per event in plane %d",i),
+			     fWiresPerPlane[i],bin_offset,fWiresPerPlane[i]+bin_offset,
+			     7, -bin_offset, 7-bin_offset);
+      
+      HitsWire[i]->GetXaxis()->SetTitle("Wire Number");
+      HitsWire[i]->GetYaxis()->SetTitle("Hits");
+      
+      /////////////Fourth set of histos//////////////////////////////////////
+      TOFP[i] = new TH1F(Form("%s%sTimeofFlightPlane%d", prefix.Data() ,region.Data(),i),
+			 Form("Subtracted time of flight for events in plane %d",i),
+			 400,0,0);
+      TOFP[i] -> SetDefaultBufferSize(buffer_size);
+      TOFP[i] -> GetXaxis()->SetTitle("Time of Flight");
+      TOFP[i] -> GetYaxis()->SetTitle("Hits");
 
 
-        TOFP_raw[i] = new TH1F(Form("%s%sRawTimeofFlightPlane%d", prefix.Data() ,region.Data(),i),
-                               Form("Raw time of flight for events in plane %d",i),
-                               400,-65000,65000);
-        TOFP_raw[i]->GetXaxis()->SetTitle("Time of Flight");
-        TOFP_raw[i]->GetYaxis()->SetTitle("Hits");
-
-        //////////////Fifth set of histos/////////////////////////////////////
-
-        TOFW[i] = new TH2F(Form("%s%sTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),i),
-                           Form("Subtracted time of flight for each wire in plane %d",i),
-                           fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5,
-                           100,-40000,65000);
-        TOFW[i]->GetXaxis()->SetTitle("Wire Number");
-        TOFW[i]->GetYaxis()->SetTitle("Time of Flight");
-
-        TOFW_raw[i] = new TH2F(Form("%s%sRawTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),i),
-                               Form("Raw time of flight for each wire in plane %d",i),
-                               fWiresPerPlane[i]+1,-0.5,fWiresPerPlane[i]+0.5,
-                               100,-40000,65000);
-        TOFW_raw[i]->GetXaxis()->SetTitle("Wire Number");
-        TOFW_raw[i]->GetYaxis()->SetTitle("Time of Flight");
+      TOFP_raw[i] = new TH1F(Form("%s%sRawTimeofFlightPlane%d", prefix.Data() ,region.Data(),i),
+			     Form("Raw time of flight for events in plane %d",i),
+			     //			     400,-65000,65000);
+			     400, 0,0);
+      TOFP_raw[i] -> SetDefaultBufferSize(buffer_size);
+      TOFP_raw[i]->GetXaxis()->SetTitle("Time of Flight");
+      TOFP_raw[i]->GetYaxis()->SetTitle("Hits");
+      
+      //////////////Fifth set of histos/////////////////////////////////////
+      
+      TOFW[i] = new TH2F(Form("%s%sTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),i),
+			 Form("Subtracted time of flight for each wire in plane %d",i),
+			 fWiresPerPlane[i], bin_offset, fWiresPerPlane[i]+bin_offset,
+			 100,-40000,65000);
+      // why this range is not -65000 ??
+      TOFW[i]->GetXaxis()->SetTitle("Wire Number");
+      TOFW[i]->GetYaxis()->SetTitle("Time of Flight");
+      
+      TOFW_raw[i] = new TH2F(Form("%s%sRawTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),i),
+			     Form("Raw time of flight for each wire in plane %d",i),
+			     fWiresPerPlane[i], bin_offset, fWiresPerPlane[i]+bin_offset,
+			     100,-40000,65000);
+      // why this range is not -65000 ??
+      TOFW_raw[i]->GetXaxis()->SetTitle("Wire Number");
+      TOFW_raw[i]->GetYaxis()->SetTitle("Time of Flight");
     }
+  return;
 };
 
 
@@ -431,10 +437,11 @@ void  QwDriftChamber::FillHistograms() {
 
     }
 
-    for (size_t iplane=1; iplane<fWiresPerPlane.size(); iplane++) {
-      WiresHit[iplane]->Fill(wireshitperplane[iplane]);
-
-    }
+    for (UInt_t iplane=1; iplane<fWiresPerPlane.size(); iplane++) 
+      {
+	WiresHit[iplane]->Fill(wireshitperplane[iplane]);
+      }
+    return;
 };
 
 
@@ -546,49 +553,50 @@ Int_t QwDriftChamber::LinkReferenceChannel ( const UInt_t chan, const UInt_t pla
     return OK;
 };
 
-Int_t QwDriftChamber::LoadTimeWireOffset(TString t0_map) {
-    //std::cout << "beginning to load t0 file... " << std::endl;
-//
-    QwParameterFile mapstr ( t0_map.Data() );
-
-    TString varname,varvalue;
-    Int_t package=0,plane=0,wire=0;
-    Double_t t0 = 0.0;
-
-    while ( mapstr.ReadNextLine() ) 
-      {
-        mapstr.TrimComment ( '!' );
-        mapstr.TrimWhitespace();
-        if ( mapstr.LineIsEmpty() ) continue;
-        if ( mapstr.HasVariablePair ( "=",varname,varvalue ) ) {
-	  varname.ToLower();
-	  if (varname=="package") {
-	    package = atoi ( varvalue.Data() );
-	    if (package> (Int_t) fTimeWireOffsets.size()) fTimeWireOffsets.resize(package);
-	  } else if (varname=="plane") {
-	    //std::cout << "package: "  <<  fTimeWireOffsets.at(package-1).size()<< std::endl;
-	    plane = atoi(varvalue.Data());
-	    if (plane> (Int_t) fTimeWireOffsets.at(package-1).size()) fTimeWireOffsets.at(package-1).resize(plane);
-	    //std::cout << "plane: "  <<  fTimeWireOffsets.at(package-1).size()<< std::endl;
-
-	    // To Siyuan, * : can package be obtained before plane in while loop? if plane is before package
-	    //                we have at(-1), thus, if condition is always "false", I guess.
-	    //            * : if, else if then can we expect something more?
-	    // from Han
-	  }
-	  continue;
-        }
-	
-        wire = ( atoi ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-        t0   = ( atoi ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-
-        if (wire > (Int_t)fTimeWireOffsets.at(package-1).at(plane-1).size()) fTimeWireOffsets.at(package-1).at(plane-1).resize(wire);
-        
-	fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1) = t0;
-
+Int_t QwDriftChamber::LoadTimeWireOffset(TString t0_map) 
+{
+  //std::cout << "beginning to load t0 file... " << std::endl;
+  //
+  QwParameterFile mapstr ( t0_map.Data() );
+  
+  TString varname,varvalue;
+  Int_t package=0,plane=0,wire=0;
+  Double_t t0 = 0.0;
+  
+  while ( mapstr.ReadNextLine() ) 
+    {
+      mapstr.TrimComment ( '!' );
+      mapstr.TrimWhitespace();
+      if ( mapstr.LineIsEmpty() ) continue;
+      if ( mapstr.HasVariablePair ( "=",varname,varvalue ) ) {
+	varname.ToLower();
+	if (varname=="package") {
+	  package = atoi ( varvalue.Data() );
+	  if (package> (Int_t) fTimeWireOffsets.size()) fTimeWireOffsets.resize(package);
+	} else if (varname=="plane") {
+	  //std::cout << "package: "  <<  fTimeWireOffsets.at(package-1).size()<< std::endl;
+	  plane = atoi(varvalue.Data());
+	  if (plane> (Int_t) fTimeWireOffsets.at(package-1).size()) fTimeWireOffsets.at(package-1).resize(plane);
+	  //std::cout << "plane: "  <<  fTimeWireOffsets.at(package-1).size()<< std::endl;
+	  
+	  // To Siyuan, * : can package be obtained before plane in while loop? if plane is before package
+	  //                we have at(-1), thus, if condition is always "false", I guess.
+	  //            * : if, else if then can we expect something more?
+	  // from Han
+	}
+	continue;
+      }
+      
+      wire = ( atoi ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      t0   = ( atoi ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      
+      if (wire > (Int_t)fTimeWireOffsets.at(package-1).at(plane-1).size()) fTimeWireOffsets.at(package-1).at(plane-1).resize(wire);
+      
+      fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1) = t0;
+      
     }
-    //
-    return OK;
+  //
+  return OK;
 }
 
 
@@ -598,10 +606,10 @@ void QwDriftChamber::SubtractWireTimeOffset()
   Double_t t0 = 0.0;
 
   for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ ) {
+    
     package = iter->GetPackage();
     plane   = iter->GetPlane();
     wire    = iter->GetElement();
-
     t0      = fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1);
 
     // They are too many magic numbers.
@@ -609,8 +617,9 @@ void QwDriftChamber::SubtractWireTimeOffset()
     if (t0>-1300 && t0<-1500) {
       if      (plane == 1) t0 = -1423.75;
       else if (plane == 2) t0 = -1438.28;
-      
+      // else ??
     }
+    
     iter->SetTime(iter->GetTime()-t0);
   }
   return;
@@ -620,8 +629,18 @@ void QwDriftChamber::SubtractWireTimeOffset()
 void QwDriftChamber::ApplyTimeCalibration() 
 {
 
+  Double_t region3_f1tdc_resolution = 0.113186191284663271; 
+
+  // 0.1132 ns is for the first CODA setup,  it was replaced as 0.1163ns after March 13 2010
+  // need to check them with Siyuan (jhlee)
+  // 
+  // 0.1163 ns is the magic number we want to setup during the Qweak experiment
+  // because of DAQ team at JLab suggestion. (That guarantees the best performance of F1TDC) 
+
   for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ )
-    iter->SetTime(0.1132*iter->GetTime());
-  // 0.1132 is a magic number. We should define it with a definition.
+    {
+      iter->SetTime(region3_f1tdc_resolution*iter->GetTime());
+    }
+
   return;
 };
