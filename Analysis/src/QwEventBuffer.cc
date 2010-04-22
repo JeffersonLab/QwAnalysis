@@ -196,6 +196,9 @@ Int_t QwEventBuffer::GetEvent()
   } else if (fEvStreamMode==fEvStreamET){
     status = GetEtEvent();
   }
+  if (status == CODA_OK){
+    DecodeEventIDBank((UInt_t*)(fEvStream->getEvBuffer()));
+  }
   return status;
 }
 
@@ -214,9 +217,6 @@ Int_t QwEventBuffer::GetFileEvent(){
       if (OpenNextSegment()!=CODA_OK) break;
     }
   } while (fChainDataFiles && status == EOF);
-  if (status == CODA_OK){
-    DecodeEventIDBank((UInt_t*)(fEvStream->getEvBuffer()));
-  }
   return status;
 };
 
@@ -225,9 +225,6 @@ Int_t QwEventBuffer::GetEtEvent(){
   //  Do we want to have any loop here to wait for a bad
   //  read to be cleared?
   status = fEvStream->codaRead();
-  if (status == CODA_OK){
-    DecodeEventIDBank((UInt_t*)(fEvStream->getEvBuffer()));
-  }
   return status;
 };
 

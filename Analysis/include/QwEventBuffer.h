@@ -89,6 +89,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Bool_t FillSubsystemConfigurationData(QwSubsystemArray &subsystems);
   Bool_t FillSubsystemData(QwSubsystemArray &subsystems);
 
+  template < class T > Bool_t FillObjectWithEventData(T &t);
 
   Int_t EncodeSubsystemData(QwSubsystemArray &subsystems);
   Int_t EncodePrestartEvent(int runnumber, int runtype = 0);
@@ -187,5 +188,54 @@ class QwEventBuffer: public MQwCodaControlEvent{
   UInt_t     fNumPhysicsEvents;
 
 };
+
+template < class T > Bool_t QwEventBuffer::FillObjectWithEventData(T &object){
+  ///  Template to fill any object with data from a CODA event.
+  /// 
+  ///  The classes for which this template can be specialized
+  ///  must have the following three methods defined:
+  /// 
+  ///  Bool_t <class T>::CanUseThisEventType(const UInt_t event_type);
+  ///  Bool_t <class T>::ClearEventData(const UInt_t event_type);
+  ///  Int_t  <class T>::ProcessBuffer(const UInt_t event_type,
+  ///       const UInt_t roc_id, const UInt_t bank_id,
+  ///       UInt_t* buffer, UInt_t num_words);
+  ///
+  Bool_t okay = kFALSE;
+  UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
+
+  if (fFragLength==1 && localbuff[fWordsSoFar]==kNullDataWord){
+    fWordsSoFar += fFragLength;
+  } else if (object.CanUseThisEventType(fEvtType)){
+    //  Clear the old event information from the object
+    object.ClearEventData(fEvtType);
+    //  Loop through the data buffer in this event.
+    if (fBankDataType == 0x10){
+      //  This bank is subbanked; loop through subbanks
+      while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
+	//  If this bank has further subbanks, restart the loop.
+	if (fSubbankType == 0x10) continue;
+	//  If this bank only contains the word 'NULL' then skip
+	//  this bank.
+	if (fFragLength==1 && localbuff[fWordsSoFar]==kNullDataWord){
+	  fWordsSoFar += fFragLength;
+	  continue;
+	}
+	object.ProcessBuffer(fEvtType, fSubbankTag, fSubbankType,
+			     &localbuff[fWordsSoFar],
+			     fFragLength);
+	fWordsSoFar += fFragLength;
+      }
+    } else {
+      //  This is a single bank of some type
+      object.ProcessBuffer(fEvtType, 0, fBankDataType,
+			   &localbuff[fWordsSoFar],
+			   fEvtLength);
+    }
+  }
+  return okay;
+};
+
+
 
 #endif
