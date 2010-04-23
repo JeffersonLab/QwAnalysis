@@ -320,7 +320,7 @@ void  QwDriftChamber::ConstructHistograms(TDirectory *folder, TString& prefix)
   TString region = GetSubsystemName();
   //  Loop over the number of planes.
 
-  const Short_t BUFFERSIZE  = 2000;   
+  const Short_t buffer_size  = 2000;   
   Float_t bin_offset = -0.5;
   
   for (UInt_t i=1;i<fWiresPerPlane.size();i++) 
