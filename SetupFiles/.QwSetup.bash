@@ -93,7 +93,7 @@ if [[ -z ${ROOTSYS} ]]; then
 fi
 ${QWANALYSIS}/SetupFiles/checkrootversion
 
-${QWANALYSIS}/SetupFiles/make_scratch_dir
+#${QWANALYSIS}/SetupFiles/make_scratch_dir
 
 ###  Set up the analyzer and scratch environments.
 . ${QWANALYSIS}/SetupFiles/.Qwbashrc
