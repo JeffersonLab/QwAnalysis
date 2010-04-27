@@ -270,10 +270,10 @@ const UInt_t QwDatabase::SetRunID(QwEventBuffer& qwevt)
 //      run row(0, qwevt.GetRunNumber(),mysqlpp::null, mysqlpp::null, mysqlpp::null, 0,0);
       row.run_type = mysqlpp::null;
       row.helicity_length = 0;
-			row.start_time = mysqlpp::null;
-			row.end_time = mysqlpp::null;
-			row.n_mps = 0;
-			row.n_qrt	= 0;
+      row.start_time = mysqlpp::null;
+      row.end_time = mysqlpp::null;
+      row.n_mps = 0;
+      row.n_qrt	= 0;
 //    row.n_mps=10; // This works
       //    row.start_time = mysqlpp::null; // This works
       //    row.start_time = qwevt.GetStartSQLTime().Data(); // This does not work
@@ -325,7 +325,7 @@ const UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
 {
   try {
 
-    this->Connect();
+ 
 
     analysis analysis_row(0);
 
@@ -365,11 +365,26 @@ const UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
     //    analysis_row.bf_checksum = "";
     //    analysis_row.beam_mode = "nbm";
 
+    std::pair<UInt_t, UInt_t> event_range;
+    event_range = qwevt.GetEventRange();
+
+    analysis_row.time        = mysqlpp::DateTime::now(); 
+    analysis_row.bf_checksum = "empty"; // we will match this as a real one later
+    analysis_row.beam_mode   = "nbm";   // we will match this as a real one later
+    analysis_row.n_mps       = 0;       // we will match this as a real one later
+    analysis_row.n_qrt       = 4;       // we will match this as a real one later
+    analysis_row.first_event = event_range.first;
+    analysis_row.last_event  = event_range.second;
+    analysis_row.segment     = 0;       // we will match this as a real one later
+    analysis_row.slope_calculation = "off";  // we will match this as a real one later
+    analysis_row.slope_correction  = "off"; // we will match this as a real one later
+ 
+
+    this->Connect();
     mysqlpp::Query query= this->Query();
     query.insert(analysis_row);
     // I don't know why QwLog doesn't print properly, for I switched to cout
     std::cout << "QwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << std::endl;
-
 
     query.execute();
     

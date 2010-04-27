@@ -52,6 +52,9 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   /// \brief Returns a string like <run#> or <run#>.<file#>
   TString GetRunLabel() const;
+  std::pair<UInt_t, UInt_t> GetEventRange() const {
+    return fEventRange;
+  };
 
   /// \brief Opens the event stream (file or ET) based on the internal flags
   Int_t OpenNextStream();

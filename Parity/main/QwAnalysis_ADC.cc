@@ -61,6 +61,7 @@ int main(Int_t argc,Char_t* argv[]) {
     /// and we define the options that can be used in them (using QwOptions).
     gQwOptions.SetCommandLine(argc, argv);
     gQwOptions.SetConfigFile("qwanalysis_adc.conf");
+    gQwOptions.SetConfigFile("Parity/prminput/qweak_mysql.conf");
     // Define the command line options
     DefineOptionsParity(gQwOptions);
 
