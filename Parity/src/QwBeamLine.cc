@@ -1059,32 +1059,30 @@ void QwBeamLine::Scale(Double_t factor)
   return;
 };
 
-void QwBeamLine::Calculate_Running_Average(){
+void QwBeamLine::Calculate_Running_Average()
+{
+  UInt_t i = 0;
   std::cout<<"*********QwBeamLine device Averages****************"<<std::endl;
   std::cout<<"Device \t    ||  Average\t || error\t || events"<<std::endl;
   printf("BPM\n");
-  for(size_t i=0;i<fStripline.size();i++)
-    fStripline[i].Calculate_Running_Average();
+  for(i=0; i<fStripline.size(); i++) fStripline[i].Calculate_Running_Average();
   printf("BCM\n");
-  for(size_t i=0;i<fBCM.size();i++)
-    fBCM[i].Calculate_Running_Average();
-  for(size_t i=0;i<fBCMCombo.size();i++)
-    fBCMCombo[i].Calculate_Running_Average();
-  for(size_t i=0;i<fBPMCombo.size();i++)
-    fBPMCombo[i].Calculate_Running_Average();
+  for(i=0; i<fBCM.size();       i++) fBCM[i].Calculate_Running_Average();
+  for(i=0; i<fBCMCombo.size();  i++) fBCMCombo[i].Calculate_Running_Average();
+  for(i=0; i<fBPMCombo.size();  i++) fBPMCombo[i].Calculate_Running_Average();
   std::cout<<"---------------------------------------------------"<<std::endl;
   std::cout<<std::endl;
+  return;
 };
 
-void QwBeamLine::Do_RunningSum(){
-  for(size_t i=0;i<fStripline.size();i++)
-    fStripline[i].Do_RunningSum();
-  for(size_t i=0;i<fBCM.size();i++)
-    fBCM[i].Do_RunningSum();
-  for(size_t i=0;i<fBCMCombo.size();i++)
-    fBCMCombo[i].Do_RunningSum();
-  for(size_t i=0;i<fBPMCombo.size();i++)
-    fBPMCombo[i].Do_RunningSum();
+void QwBeamLine::Do_RunningSum()
+{
+  UInt_t i = 0;
+  for(i=0; i<fStripline.size(); i++) fStripline[i].Do_RunningSum();
+  for(i=0; i<fBCM.size();       i++) fBCM[i].Do_RunningSum();
+  for(i=0; i<fBCMCombo.size();  i++) fBCMCombo[i].Do_RunningSum();
+  for(i=0; i<fBPMCombo.size();  i++) fBPMCombo[i].Do_RunningSum();
+  return;
 };
  
 

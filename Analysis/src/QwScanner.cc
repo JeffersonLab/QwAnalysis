@@ -559,7 +559,7 @@ void  QwScanner::FillHistograms() {
                 if (prevalue>0) {
                     rate = (prevalue + rate)*0.5;  //average value for this bin
                 }
-                fHistograms2D.at(j)->SetBinContent(fPositionX_VQWK,fPositionY_VQWK,rate);
+                fHistograms2D.at(j)->SetBinContent((Int_t) fPositionX_VQWK, (Int_t)fPositionY_VQWK,rate);
                 Int_t xbin = fHistograms2D.at(j)->GetXaxis()->FindBin( fPositionX_VQWK );
                 Int_t ybin = fHistograms2D.at(j)->GetYaxis()->FindBin( fPositionY_VQWK );
                 fHistograms2D.at(j)->SetBinContent( fHistograms2D.at(j)->GetBin( xbin, ybin ), rate);
@@ -787,17 +787,17 @@ void  QwScanner::DeleteHistograms() {
     }
 
     for (size_t i=0; i<fHistograms1D.size(); i++) {
-        if (fHistograms1D.at(i) != NULL) {
-            fHistograms1D.at(i)->Delete();
-            fHistograms1D.at(i) =  NULL;
-        }
+      if (fHistograms1D.at(i) != NULL) {
+	delete fHistograms1D.at(i);
+	fHistograms1D.at(i) =  NULL;
+      }
     }
 
     for (size_t i=0; i<fHistograms2D.size(); i++) {
-        if (fHistograms2D.at(i) != NULL) {
-            fHistograms2D.at(i)->Delete();
-            fHistograms2D.at(i) =  NULL;
-        }
+      if (fHistograms2D.at(i) != NULL) {
+	delete fHistograms2D.at(i);
+	fHistograms2D.at(i) =  NULL;
+      }
     }
 
 };

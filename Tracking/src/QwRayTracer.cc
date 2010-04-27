@@ -152,8 +152,10 @@ const int QwRayTracer::Filter(QwPartialTrack* front, QwPartialTrack* back)
     double y = start_position.Y() + r * start_direction.Y();
 
     double position_r = sqrt(x*x + y*y);
-    double position_phi = start_position.Phi();
-    double direction_theta = front->GetMomentumDirectionTheta();
+    double position_phi = 0.0;
+    position_phi = start_position.Phi();
+    double direction_theta = 0.0;
+    direction_theta = front->GetMomentumDirectionTheta();
 
     double vertex_z = -250.0 * Qw::cm - position_r / tan(acos(start_direction.Z()));
 

@@ -66,7 +66,7 @@ namespace QwParityDB{
 			, mysqlpp::sql_int_unsigned , analysis_id	
 			, mysqlpp::sql_int_unsigned , monitor_id
 			, mysqlpp::sql_char , measurement_type_id
-      , mysqlpp::sql_tinyint_unsigned , subblock
+		        , mysqlpp::sql_tinyint_unsigned , subblock
 			, mysqlpp::sql_int_unsigned , n
 			, mysqlpp::sql_float , value
 			, mysqlpp::sql_float , error	
@@ -108,34 +108,35 @@ namespace QwParityDB{
 		) 
   
     sql_create_3(main_detector, 1, 2 
-      , mysqlpp::sql_int_unsigned , main_detector_id
-      , mysqlpp::sql_text , quantity
-      , mysqlpp::sql_text , title
-    ) 
+		        , mysqlpp::sql_int_unsigned , main_detector_id
+		        , mysqlpp::sql_text , quantity
+		        , mysqlpp::sql_text , title
+		 ) 
   
     sql_create_8(md_data, 1, 2 
 			, mysqlpp::sql_int_unsigned , md_data_id
 			, mysqlpp::sql_int_unsigned , analysis_id
 			, mysqlpp::Null<mysqlpp::sql_int_unsigned> , main_detector_id
 			, mysqlpp::sql_char , measurement_type_id
-      , mysqlpp::sql_tinyint_unsigned , subblock
+		        , mysqlpp::sql_tinyint_unsigned , subblock
 			, mysqlpp::sql_int_unsigned , n
 			, mysqlpp::sql_float , value
 			, mysqlpp::sql_float , error
 		) 
   
     sql_create_3(lumi_detector, 1, 2 
-      , mysqlpp::sql_int_unsigned , lumi_detector_id
-      , mysqlpp::sql_text , quantity
-      , mysqlpp::sql_text , title
-    ) 
+		        , mysqlpp::sql_int_unsigned , lumi_detector_id
+		        , mysqlpp::sql_text , quantity
+		        , mysqlpp::sql_text , title
+		 ) 
   
+
     sql_create_8(lumi_data, 1, 2 
 			, mysqlpp::sql_int_unsigned , lumi_data_id
 			, mysqlpp::sql_int_unsigned , analysis_id
 			, mysqlpp::Null<mysqlpp::sql_int_unsigned> , lumi_detector_id
 			, mysqlpp::sql_char , measurement_type_id
-      , mysqlpp::sql_tinyint_unsigned , subblock
+		        , mysqlpp::sql_tinyint_unsigned , subblock
 			, mysqlpp::sql_int_unsigned , n
 			, mysqlpp::sql_float , value
 			, mysqlpp::sql_float , error

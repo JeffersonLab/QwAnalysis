@@ -389,15 +389,16 @@ void  QwCombinedPMT::Copy(VQwDataElement *source)
   return;
 }
 
-QwParityDB::md_data QwCombinedPMT::GetDBEntry(QwDatabase *db, TString mtype, TString subname)
+QwParityDB::md_data QwCombinedPMT::GetMainDetectorDBEntry(QwDatabase *db, TString mtype, TString subname)
 {
   QwParityDB::md_data row(0);
-  
-  UInt_t run_id      = 0;
-  UInt_t md_data_id  = 0;
-  UInt_t analysis_id = 0;
-  UInt_t main_detector_id  = 0;
-  Char_t measurement_type[4];
+
+  UInt_t md_run_id        = 0;
+  UInt_t md_analysis_id   = 0;
+  UInt_t main_detector_id = 0;
+  Char_t md_measurement_type[4];
+  UInt_t md_subblock      = 0;
+  UInt_t md_n             = 0;
 
   TString name;
   Double_t avg = 0.0;
@@ -405,43 +406,50 @@ QwParityDB::md_data QwCombinedPMT::GetDBEntry(QwDatabase *db, TString mtype, TSt
 
   if(mtype.Contains("yield"))
     {
-      sprintf(measurement_type, "yq");
+      sprintf(md_measurement_type, "yq");
     }
   else if(mtype.Contains("asymmetry"))
     {
-      sprintf(measurement_type, "aq");
+      sprintf(md_measurement_type, "aq");
     }
   else if(mtype.Contains("average") )
     {
-      sprintf(measurement_type, "yq");
+      sprintf(md_measurement_type, "yq");
     }
   else if(mtype.Contains("runningsum"))
     {
-      sprintf(measurement_type, "yq");
+      sprintf(md_measurement_type, "yq");
     }
   else
     {
-      sprintf(measurement_type, "nul");
+      sprintf(md_measurement_type," ");
     }
   
   name = this->GetElementName();
   avg  = this->GetAverage("");
   err  = this->GetAverageError("");
+  md_subblock   = 0;
+  md_n          = 0;
 
-  run_id      = db->GetRunID();
-  analysis_id = db->GetAnalysisID();
-  main_detector_id  = db->GetMainDetectorID(name.Data());
+  md_run_id        = db->GetRunID();
+  md_analysis_id   = db->GetAnalysisID();
+  main_detector_id = db->GetMainDetectorID(name.Data());
 
-  row.analysis_id         = analysis_id;
-  row.measurement_type_id = measurement_type;
+
+  row.analysis_id         = md_analysis_id;
+  row.measurement_type_id = md_measurement_type;
   row.main_detector_id    = main_detector_id;
+  row.subblock            = md_subblock;  // this will be used later. At the moment, 0
+  row.n                   = md_n;         // this will be used later. At the moment, 0
   row.value               = avg;
   row.error               = err;
 
-  printf("%12s::RunID %d AnalysisID %d %4s MainDetectorID %4d %18s , [%18.2e, %12.2e] \n", 
-	 mtype.Data(), run_id, analysis_id, measurement_type, main_detector_id, name.Data(),  avg, err);
+  printf("%12s::RunID %d AnalysisID %d %4s MainDetectorID %4d %18s , Subblock %d, n %d [%18.2e, %12.2e] \n", 
+	 mtype.Data(), md_run_id, md_analysis_id, md_measurement_type, main_detector_id, name.Data(),  
+	 md_subblock, md_n, avg, err);
   
   return row;
   
 };
+
 

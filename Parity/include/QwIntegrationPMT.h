@@ -97,12 +97,13 @@ class QwIntegrationPMT : public VQwDataElement{
   void  FillTreeVector(std::vector<Double_t> &values);
   void  DeleteHistograms();
 
-  Double_t GetAverage(TString type) { return fTriumf_ADC.GetAverage();};
+  Double_t GetAverage(TString type)      {return fTriumf_ADC.GetAverage();};
   Double_t GetAverageError(TString type) {return fTriumf_ADC.GetAverageError();};
 
   void Copy(VQwDataElement *source);
 
-  QwParityDB::md_data GetDBEntry(QwDatabase *db, TString mtype, TString subname);
+  QwParityDB::md_data   GetMainDetectorDBEntry(QwDatabase *db, TString mtype, TString subname);
+  QwParityDB::lumi_data GetLumiDetectorDBEntry(QwDatabase *db, TString mtype, TString subname);
 
  protected:
 

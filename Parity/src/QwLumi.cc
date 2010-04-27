@@ -742,9 +742,65 @@ VQwSubsystem*  QwLumi::Copy()
   return TheCopy;
 }
 
-void QwLumi::Calculate_Running_Average(){
-
+void QwLumi::Calculate_Running_Average()
+{
+  UInt_t i = 0;
+  std::cout<<"*********QwLumiDetector   Averages****************"<<std::endl;
+  std::cout<<"Device \t    ||  Average\t || error\t || events"<<std::endl;
+  for(i=0; i<fIntegrationPMT.size(); i++) fIntegrationPMT[i].Calculate_Running_Average();
+  std::cout<<"---------------------------------------------------"<<std::endl;
+  std::cout<<std::endl;
+  return;
 };
-void QwLumi::Do_RunningSum(){
+void QwLumi::Do_RunningSum()
+{
+  UInt_t i = 0;
+  for(i=0; i<fIntegrationPMT.size(); i++) fIntegrationPMT[i].Do_RunningSum();
+  return;
+};
 
+
+
+
+void QwLumi::FillDB(QwDatabase *db, TString datatype)
+{
+  
+  vector<QwParityDB::lumi_data> entrylist;
+
+  QwParityDB::lumi_data row(0);
+
+  printf("%s  ************** LUMI **************\n", datatype.Data());
+
+
+  for(UInt_t i=0; i< fIntegrationPMT.size(); i++)
+    {
+      entrylist.push_back(fIntegrationPMT[i].GetLumiDetectorDBEntry(db, datatype, "" )) ;
+    }
+
+  printf("Lumi Entrylist Vector Size %d\n", (Int_t) entrylist.size());
+
+  db->Connect();
+  // Check the entrylist size, if it isn't zero, start to query..
+  if( entrylist.size() )
+    {
+      mysqlpp::Query query= db->Query();
+      //    if(query)
+      //	{
+      query.insert(entrylist.begin(), entrylist.end());
+      query.execute();
+      //	  query.reset(); // do we need?
+      //	}
+      //      else
+      //	{
+      //	  printf("Query is empty\n");
+      //	}
+    }
+  else
+    {
+      printf("QwLumi::FillDB :: This is the case when the entrlylist contains nothing in %s \n", datatype.Data());
+    }
+  
+  db->Disconnect();
+  
+  return;
 };

@@ -356,6 +356,8 @@ QwParityDB::beam QwBCM::GetDBEntry(QwDatabase *db, TString mtype, TString subnam
   UInt_t beam_analysis_id = 0;
   UInt_t beam_monitor_id  = 0;
   Char_t beam_measurement_type[4];
+  UInt_t beam_subblock    = 0;
+  UInt_t beam_n           = 0;
 
   TString name;
   Double_t avg = 0.0;
@@ -379,25 +381,33 @@ QwParityDB::beam QwBCM::GetDBEntry(QwDatabase *db, TString mtype, TString subnam
     }
   else
     {
-      sprintf(beam_measurement_type, "nul");
+      sprintf(beam_measurement_type, " ");
     }
   
   name = this->GetElementName();
   avg  = this->GetAverage("");
   err  = this->GetAverageError("");
+  beam_subblock    = 0;
+  beam_n           = 0;
+
 
   beam_run_id      = db->GetRunID();
   beam_analysis_id = db->GetAnalysisID();
   beam_monitor_id  = db->GetMonitorID(name.Data());
 
+
+
   row.analysis_id         = beam_analysis_id;
   row.measurement_type_id = beam_measurement_type;
   row.monitor_id          = beam_monitor_id;
+  row.subblock            = beam_subblock;  // this will be used later. At the moment, 0
+  row.n                   = beam_n;         // this will be used later. At the moment, 0
   row.value               = avg;
   row.error               = err;
 
-  printf("%12s::RunID %d AnalysisID %d %4s MonitorID %4d %18s , [%18.2e, %12.2e] \n", 
-	 mtype.Data(), beam_run_id, beam_analysis_id, beam_measurement_type, beam_monitor_id, name.Data(),  avg, err);
+  printf("%12s::RunID %d AnalysisID %d %4s MonitorID %4d %18s , Subblock %d, n %d [%18.2e, %12.2e] \n", 
+	 mtype.Data(), beam_run_id, beam_analysis_id, beam_measurement_type, beam_monitor_id, name.Data(),  
+	 beam_subblock, beam_n, avg, err);
   
   return row;
   

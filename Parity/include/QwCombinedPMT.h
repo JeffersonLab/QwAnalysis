@@ -83,7 +83,7 @@ class QwCombinedPMT : public VQwDataElement{
 
   void Copy(VQwDataElement *source);
 
-  QwParityDB::md_data GetDBEntry(QwDatabase *db, TString mtype, TString subname);
+  QwParityDB::md_data   GetMainDetectorDBEntry(QwDatabase *db, TString mtype, TString subname);
 
  protected:
 

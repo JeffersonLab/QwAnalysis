@@ -48,7 +48,7 @@ class QwBCM : public VQwDataElement{
   void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
   void  SetEventData(Double_t* block, UInt_t sequencenumber);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
-  void SetEventNumber(int event);
+  void  SetEventNumber(int event);
 
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
@@ -92,12 +92,13 @@ class QwBCM : public VQwDataElement{
  
   void  DeleteHistograms();
 
-  Double_t GetAverage(TString type) { return fTriumf_ADC.GetAverage();};
+  Double_t GetAverage(TString type)      {return fTriumf_ADC.GetAverage();};
   Double_t GetAverageError(TString type) {return fTriumf_ADC.GetAverageError();};
 
-  QwParityDB::beam GetDBEntry(QwDatabase* db, TString mtype, TString subname);
-
   void Copy(VQwDataElement *source);
+
+  QwParityDB::beam GetDBEntry(QwDatabase *db, TString mtype, TString subname);
+ 
 
 /////
  protected:

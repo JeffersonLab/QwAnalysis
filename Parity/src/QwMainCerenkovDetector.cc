@@ -1116,13 +1116,13 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
   printf("%s  ************** IntegrationPMT **************\n", datatype.Data());
   for(UInt_t i=0; i< fIntegrationPMT.size(); i++)
     {
-      entrylist.push_back(fIntegrationPMT[i].GetDBEntry(db, datatype, "asymmetry" )) ;
+      entrylist.push_back(fIntegrationPMT[i].GetMainDetectorDBEntry(db, datatype, "asymmetry" )) ;
     }
 
   printf("%s  ************** fCombinedPMT **************\n", datatype.Data());
   for(UInt_t i=0; i< fCombinedPMT.size(); i++)
     {
-      entrylist.push_back(fCombinedPMT[i].GetDBEntry(db, datatype, "asymmetry"));
+      entrylist.push_back(fCombinedPMT[i].GetMainDetectorDBEntry(db, datatype, "asymmetry"));
       //entrylist.push_back(fCombinedPMT[i].GetDBEntry(db, datatype, "yield"));
     }
 
