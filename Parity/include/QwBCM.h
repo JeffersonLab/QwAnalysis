@@ -79,7 +79,6 @@ class QwBCM : public VQwDataElement{
   void Scale(Double_t factor);
   void Calculate_Running_Average();
   void Do_RunningSum();
-  void BlindMe(QwBlinder *blinder){return;};
 
   void SetPedestal(Double_t ped);
   void SetCalibrationFactor(Double_t calib);

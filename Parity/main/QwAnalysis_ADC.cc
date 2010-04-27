@@ -146,19 +146,14 @@ int main(Int_t argc,Char_t* argv[]) {
 //   diff.LoadChannelMap("qweak_adc.map");
 //   asym.LoadChannelMap("qweak_adc.map");
 
-    // test for the data blinder
-        QwDatabase *qwdatabase = NULL;
-        QwBlinder *blinders = NULL;
-       if (bEnableBlinding){
-          qwdatabase = new QwDatabase();
-          UInt_t run_id      = qwdatabase->GetRunID(eventbuffer);
-          UInt_t analysis_id = qwdatabase->GetAnalysisID(eventbuffer);
-          printf("main:: Run # %d Run ID %d and Analysis ID %d\n",
+    QwDatabase *qwdatabase = new QwDatabase();
+    UInt_t run_id      = qwdatabase->GetRunID(eventbuffer);
+    UInt_t analysis_id = qwdatabase->GetAnalysisID(eventbuffer);
+    printf("main:: Run # %d Run ID %d and Analysis ID %d\n",
                   eventbuffer.GetRunNumber(), run_id, analysis_id);
 
-          UInt_t seed_id = qwdatabase->GetAnalysisID();
-          blinders = new QwBlinder(qwdatabase, seed_id, bEnableBlinding);
-        }
+    UInt_t seed_id = qwdatabase->GetAnalysisID();
+    QwBlinder *blinders = new QwBlinder(qwdatabase, seed_id, bEnableBlinding);
 
     Double_t evnum=0.0;
 
@@ -263,9 +258,6 @@ int main(Int_t argc,Char_t* argv[]) {
             }
             // Fill the helicity tree
             if (bHelicity && helicitypattern->IsCompletePattern()) {
-                if (!bEnableBlinding)
-                    helicitypattern->CalculateAsymmetry();
-                else
                     helicitypattern->CalculateAsymmetry(blinders);
 
       //          if (bHisto) helicitypattern->FillHistograms();
@@ -368,18 +360,19 @@ int main(Int_t argc,Char_t* argv[]) {
 //       QwEpics->WriteDatabase(sql);
 //     }
 
-       if (bHelicity && bEnableBlinding) {
+       if (bHelicity) {
 
            helicity->FillDB(qwdatabase,"");
            helicitypattern->FillDB(qwdatabase);
 
           blinders->WriteFinalValuesToDB();
           blinders->PrintFinalValues();
-          delete qwdatabase; qwdatabase = NULL;
-          delete blinders; blinders = NULL;
-        };
+       };
 
-        PrintInfo(timer, eventbuffer.GetRunNumber());
+       delete qwdatabase; qwdatabase = NULL;
+       delete blinders; blinders = NULL;
+
+       PrintInfo(timer, eventbuffer.GetRunNumber());
 
     } //end of run loop
 

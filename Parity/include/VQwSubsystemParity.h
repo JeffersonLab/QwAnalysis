@@ -59,7 +59,7 @@ class VQwSubsystemParity : virtual public VQwSubsystem {
 
   virtual VQwSubsystem* Copy()=0;
   virtual void Scale(Double_t factor) = 0;
-  virtual void BlindMe(QwBlinder *blinder) = 0;
+  void BlindMe(QwBlinder *blinder) { return; };
 
   private:
   VQwSubsystemParity(){};  //  Private constructor.

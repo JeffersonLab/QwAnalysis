@@ -852,8 +852,8 @@ void QwVQWK_Channel::BlindMe(QwBlinder *blinder)
 {
   if (!IsNameEmpty())
     {
-      for (Short_t i=0; i<4; i++) blinder->BlindMe(fBlock[i],"block");
-      blinder->BlindMe(fHardwareBlockSum,"blocksum");
+      for (Short_t i=0; i<4; i++) blinder->BlindMe(fBlock[i]);
+      blinder->BlindMe(fHardwareBlockSum);
     }
   return;
 };

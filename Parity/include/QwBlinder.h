@@ -38,20 +38,16 @@ class QwBlinder{
   void  PrintFinalValues();
 
   // scheme:
-  // Acode = Aactual  +  F x sgn(lambda/2), F is an encrypted factor  with |F|< 0.06ppm
-  void  BlindMe(Double_t &value, TString type){
-           if(fBlindingEnabled){
-              if (type=="block")     value += fBlindFactor*0.25;
-              if (type=="blocksum" || type=="plain")  value += fBlindFactor;
-           }
-        };
+  // Acode = Aactual  + fBlindFactor
+  // where fBlindFactor = F x sgn(lambda/2), F is an encrypted factor  with |F|< 0.06ppm
+  // this offset fBlindFactor will be applied on the block and blocksum of the asymmetry
+  //
+  // For blinding the helicity correlated differences of the detectors, we'd have to do:
+  // D_blinded = (A_raw + fBlindFactor) * Y_raw
+  // where A_raw = D_raw/Y_raw is the unblinded asymmetry 
 
-  void  UnBlindMe(Double_t &value, TString type){
-           if(fBlindingEnabled){
-              if (type=="block")     value -= fBlindFactor*0.25;
-              if (type=="blocksum" || type=="plain")  value -= fBlindFactor;
-           }
-        };
+  void  BlindMe(Double_t &value){  if(fBlindingEnabled) value += fBlindFactor; };
+  void  UnBlindMe(Double_t &value, TString type){  if(fBlindingEnabled) value -= fBlindFactor; };
 
 
  private:

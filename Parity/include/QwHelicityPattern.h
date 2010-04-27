@@ -68,10 +68,10 @@ class QwHelicityPattern{
   QwSubsystemArrayParity pos_sum;
   QwSubsystemArrayParity neg_sum;
   QwSubsystemArrayParity difference;
-  
-  
-  Bool_t IsGood; 
-  
+
+
+  Bool_t IsGood;
+
 
 
 };

@@ -209,7 +209,7 @@ void QwBlinder::SetTestValues(TString &barestring)
           counter++;
           fTestNumber.push_back(counter);
           fTestValue.push_back(tempval);
-          this->BlindMe(tempval,"plain");
+          this->BlindMe(tempval);
           fBlindTestValue.push_back(tempval);
         }
       std::cout << "QwBlinder::SetTestValues():  A total of " << std::dec << counter
@@ -453,7 +453,7 @@ Bool_t QwBlinder::CheckTestValues()
   for (UInt_t i=0; i<fMaxTests; i++)
     {
       checkval = fTestValue[i];
-      this->BlindMe(checkval,"plain");
+      this->BlindMe(checkval);
 
       test1 = fBlindTestValue[i]*2.0;      //  Shift by one factor of 2.
       test2 = test1 + fBlindTestValue[i];  //  Round to 3*fBlindTestValue[i].
@@ -483,9 +483,8 @@ Bool_t QwBlinder::CheckTestValues()
 vector<UChar_t> QwBlinder::GenerateDigest(const char* input)
 {
   TMD5 md5;
-  UChar_t* md5_value = NULL;
-  
   const UInt_t md5_len = 64;
+  UChar_t md5_value[md5_len];
   vector<UChar_t> output;
 
   md5.Update((UChar_t*) input, strlen(input));
