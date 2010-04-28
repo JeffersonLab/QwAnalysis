@@ -270,8 +270,14 @@ void  QwHelicityPattern::CalculateAsymmetry()
 
       fYield.Sum(pos_sum,neg_sum);
       fYield.Do_RunningSum();
-      difference.Difference(pos_sum,neg_sum);
-      fAsymmetry.Ratio(difference,fYield);
+      //  If we are in burst mode, just set fAsymmetry = difference.
+      if (! fBurstModeFlag){
+	difference.Difference(pos_sum,neg_sum);
+	fAsymmetry.Ratio(difference,fYield);
+      } else {
+	fAsymmetry.Difference(pos_sum,neg_sum);
+      }
+
 
       /*
 	With additional two asymmetry calculations
@@ -291,8 +297,12 @@ void  QwHelicityPattern::CalculateAsymmetry()
 	pos_sum+=fEvents.at(1);
 	neg_sum=fEvents.at(2);
 	neg_sum+=fEvents.at(3);
-	difference.Difference(pos_sum,neg_sum);
-	fAsymmetry1.Ratio(difference,fYield);
+	if (! fBurstModeFlag){
+	  difference.Difference(pos_sum,neg_sum);
+	  fAsymmetry1.Ratio(difference,fYield);
+	} else {
+	  fAsymmetry1.Difference(pos_sum,neg_sum);
+	}
 
 	pos_sum.ClearEventData();
 	neg_sum.ClearEventData();
@@ -300,8 +310,13 @@ void  QwHelicityPattern::CalculateAsymmetry()
 	pos_sum+=fEvents.at(2);
 	neg_sum=fEvents.at(1);
 	neg_sum+=fEvents.at(3);
-	difference.Difference(pos_sum,neg_sum);
-	fAsymmetry2.Ratio(difference,fYield);
+	if (! fBurstModeFlag){
+	  difference.Difference(pos_sum,neg_sum);
+	  fAsymmetry2.Ratio(difference,fYield);
+	} else {
+	  fAsymmetry2.Difference(pos_sum,neg_sum);
+	}
+
 	fAsymmetry1.Do_RunningSum();
 	fAsymmetry2.Do_RunningSum();      
       }

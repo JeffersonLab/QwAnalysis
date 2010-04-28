@@ -116,6 +116,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwHelicityPattern QwHelPat(QwDetectors);//multiplet size is set within the QwHelicityPattern class
   QwHelPat.ProcessOptions(gQwOptions);
 
+
   //Tree events scaling parameters
    if (gQwOptions.HasValue("skip"))
     fEVENTS2SKIP=gQwOptions.GetValue<int>("skip");
@@ -192,6 +193,19 @@ Int_t main(Int_t argc, Char_t* argv[])
 	}
 
       Int_t falied_events_counts=0;//count falied total events
+      
+      //  Clear the single-event running sum at the beginning of the
+      //  runlet.
+      QwDetectors.ClearRunningSum();
+      QwHelPat.ClearRunningSum();
+  
+
+      //  Clear the running sum of the burst values at the beginning of the
+      //  runlet.
+      {
+	fBurstAsym.ClearRunningSum();
+	fBurstYield.ClearRunningSum();
+      }
 
 
       // Loop over events in this CODA file
@@ -280,6 +294,11 @@ Int_t main(Int_t argc, Char_t* argv[])
 		QwHelPat.FillTreeVector(helvector);
 		heltree->Fill();
 	      }
+
+	      //  Do we do the burst analysis here, where we know we
+	      //  have a complete pattern, or do we do it below, but
+	      //  need to test for a complete pattern being done?
+
 	      QwHelPat.ClearEventData();
 	    }
 	  }
@@ -292,7 +311,35 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  std::cerr << "Number of events processed so far: "
 		    << QwEvt.GetEventNumber() << "\r";
 	}
-      }
+	if (QwEvt.AtEndOfBurst()){
+	  //  Should this be encapsulated in QwHelicityPattern or
+	  //  in a burst handler class, or be left out in the wind?
+	  {
+	    //  Calculate the mean diff & yield.
+	    QwHelPat.CalculateEventRunningAverage();
+	    
+	    //  Let's build the final burst asymmetry & yield
+	    //  Recall that the "Asym" produced in burst mode is
+	    //  actually just the mean difference.
+	    fBurstAsym.Ratio(GetHelPatMeanAsym, GetHelPatMeanYield);
+	    fBurstYield = GetHelPatMeanYield;
+	    
+	    //  Do we want to do something like apply cuts?  No.
+	    
+	    //  Do we want to put stuff in a tree?  Probably.
+	    
+	    //  Do we want to accumulate another running average?  Yes.
+	    fBurstAsym.Do_RunningSum();
+	    fBurstYield.Do_RunningSum();
+
+	    //  Now we should clear the QwHelicityPattern's "normal"
+	    //  running sums.
+	    QwHelPat.ClearRunningSum();
+	  }
+	}
+
+      }  // Ends "while (QwEvt.GetNextEvent() == CODA_OK)" loop
+
 
 
 
@@ -300,10 +347,15 @@ Int_t main(Int_t argc, Char_t* argv[])
 		<< QwEvt.GetEventNumber() << std::endl;
 
       //This will print running averages
+      //  In burst mode, the following should return the multi-burst
+      //  averaged running averages, and in normal mode the "regular"
+      //  running averages.
       QwHelPat.CalculateRunningAverage();//this will calculate running averages for Asymmetries and Yields per quartet
+
       std::cout<<"Event Based Running average"<<std::endl;
       std::cout<<"==========================="<<std::endl;
       QwDetectors.Calculate_Running_Average();//this will calculate running averages for Yields per event basis
+
       timer.Stop();
 
       /*  Write to the root file, being sure to delete the old cycles  *
