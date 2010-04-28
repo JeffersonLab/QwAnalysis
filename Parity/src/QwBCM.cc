@@ -120,8 +120,7 @@ Bool_t QwBCM::ApplyHWChecks()
 /********************************************************/
 
 Int_t QwBCM::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){//std::vector<Double_t> & dEventCuts){//two limts and sample size
-  fLLimit=LL;
-  fULimit=UL;
+  fTriumf_ADC.SetSingleEventCuts(LL,UL);
   return 1;
 };
 
@@ -136,7 +135,7 @@ Bool_t QwBCM::ApplySingleEventCuts(){
   Bool_t status=kTRUE;
 
 
-  if (fTriumf_ADC.ApplySingleEventCuts(fLLimit,fULimit)){
+  if (fTriumf_ADC.ApplySingleEventCuts()){
     status=kTRUE;
   }
   else{

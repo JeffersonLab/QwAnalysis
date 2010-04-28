@@ -12,8 +12,33 @@
 #include "QwLog.h"
 
 extern QwHistogramHelper gQwHists;
+//**************************************************//
+
 
 //**************************************************//
+void QwHelicity::ProcessOptions(QwOptions &options){
+  //Read the cmd options and override channel map settings
+  QwMessage<<"QwHelicity::ProcessOptions"<<QwLog::endl;
+  if (gQwOptions.HasValue("helicity.patternoffset"))
+    if (gQwOptions.GetValue<int>("helicity.patternoffset")==1 || gQwOptions.GetValue<int>("helicity.patternoffset")==0)  
+      fPATTERNPHASEOFFSET=gQwOptions.GetValue<int>("helicity.patternoffset");
+
+  if (gQwOptions.HasValue("helicity.patternphase"))
+    if (gQwOptions.GetValue<int>("helicity.patternphase")==4 || gQwOptions.GetValue<int>("helicity.patternphase")==8)  
+      fMaxPatternPhase=gQwOptions.GetValue<int>("helicity.patternphase");
+
+  if (gQwOptions.HasValue("helicity.30bitseed")){
+    BIT30=gQwOptions.GetValue<bool>("helicity.30bitseed");
+    BIT24=kFALSE;
+  }else if (gQwOptions.HasValue("helicity.24bitseed")){
+    BIT24=gQwOptions.GetValue<bool>("helicity.24bitseed");
+    BIT30=kFALSE;
+  }
+  if (gQwOptions.HasValue("helicity.delay")){
+    std::cout<<" Helicity Delay ="<<gQwOptions.GetValue<int>("helicity.delay")<<"\n";
+    SetHelicityDelay(gQwOptions.GetValue<int>("helicity.delay"));
+  }
+};
 Bool_t QwHelicity::IsContinuous()
 { 
   Bool_t results=kFALSE;

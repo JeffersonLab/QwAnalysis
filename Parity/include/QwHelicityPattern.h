@@ -27,6 +27,7 @@ class QwHelicityPattern{
   QwHelicityPattern(QwSubsystemArrayParity &event);
   ~QwHelicityPattern(){};
 
+  void ProcessOptions(QwOptions &options); //Handle command line options
   void  LoadEventData(QwSubsystemArrayParity &event);
   Bool_t IsCompletePattern();
   void  CalculateAsymmetry();

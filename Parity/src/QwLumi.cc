@@ -10,6 +10,10 @@
 #include <stdexcept>
 
 //*****************************************************************
+void QwLumi::ProcessOptions(QwOptions &options){
+      //Handle command line options
+};
+//*****************************************************************
 Int_t QwLumi::LoadChannelMap(TString mapfile)
 {
   Bool_t ldebug=kFALSE;
@@ -23,11 +27,7 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
   Int_t currentsubbankindex=-1;
   Int_t fSample_size=0;
 
-  std::vector<Double_t> fIntegrationPMTEventCuts;//for initializing event cuts  
-  fIntegrationPMTEventCuts.push_back(0);
-  fIntegrationPMTEventCuts.push_back(0);
-  fIntegrationPMTEventCuts.push_back(0);//device_flag is set to 0 
-   QwParameterFile mapstr(mapfile.Data());  //Open the file
+  QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
@@ -115,7 +115,6 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 		QwIntegrationPMT localIntegrationPMT(localLumiDetectorID.fdetectorname);
 		fIntegrationPMT.push_back(localIntegrationPMT);
 		fIntegrationPMT[fIntegrationPMT.size()-1].SetDefaultSampleSize(fSample_size);
-		fIntegrationPMT[fIntegrationPMT.size()-1].SetSingleEventCuts(fIntegrationPMTEventCuts);//initialize the event cuts to zero
 		localLumiDetectorID.fIndex=fIntegrationPMT.size()-1;
 	      }
 	  }
@@ -152,8 +151,7 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
   Int_t samplesize;
   Int_t check_flag;
   Int_t eventcut_flag;
-  std::vector<Double_t> fIntegrationPMTEventCuts;
-
+ 
   TString varname, varvalue, vartypeID;
   TString device_type,device_name;
   std::cout<<" QwLumi::LoadEventCuts  "<<filename<<std::endl; 
@@ -197,14 +195,8 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
 	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
 	//std::cout<<"*****************************"<<std::endl;
 	//std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
-	//update the Double vector
-	fIntegrationPMTEventCuts.clear();
-	fIntegrationPMTEventCuts.push_back(LLX);
-	fIntegrationPMTEventCuts.push_back(ULX);
-	fIntegrationPMTEventCuts.push_back(1);
-      
-	//fIntegrationPMT[det_index].Print();
-	fIntegrationPMT[det_index].SetSingleEventCuts(fIntegrationPMTEventCuts);
+	
+	fIntegrationPMT[det_index].SetSingleEventCuts(LLX,ULX);
 	//std::cout<<"*****************************"<<std::endl;
 	
       }

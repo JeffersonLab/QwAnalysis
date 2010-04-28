@@ -27,7 +27,7 @@ class QwSubsystemArrayParity:  public QwSubsystemArray {
   };
 
   VQwSubsystemParity* GetSubsystem(const TString name);
-
+  void ProcessOptions(QwOptions &options);//Handle command line options
   void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values);
   void ConstructBranchAndVector(TTree *tree, std::vector <Double_t> &values) {
     TString tmpstr("");

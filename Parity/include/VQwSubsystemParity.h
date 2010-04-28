@@ -10,6 +10,7 @@
 #define __VQWSUBSYSTEMPARITY__
 
 #include "VQwSubsystem.h"
+//#include "QwOptionsParity.h"
 #include "TTree.h"
 
 #include "QwDatabase.h"
@@ -31,7 +32,10 @@ class VQwSubsystemParity : virtual public VQwSubsystem {
   VQwSubsystemParity(TString region_tmp):VQwSubsystem(region_tmp){ };
 
   virtual ~VQwSubsystemParity(){};
+
   
+  virtual void ProcessOptions(QwOptions &options){
+  };
   virtual void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)=0;
   virtual void ConstructBranchAndVector(TTree *tree, std::vector <Double_t> &values)
     {

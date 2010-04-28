@@ -90,15 +90,29 @@ class QwVQWK_Channel: public VQwDataElement {
 
   Bool_t MatchSequenceNumber(size_t seqnum);
   Bool_t MatchNumberOfSamples(size_t numsamp);
+
+  /*Event cut related routines*/
   Bool_t ApplySingleEventCuts(Double_t LL,Double_t UL);//check values read from modules are at desired level
+  Bool_t ApplySingleEventCuts();//check values read from modules are at desired level by comparing upper and lower limits (fULimit and fLLimit) set on this channel 
+  void SetSingleEventCuts(Double_t min, Double_t max);//set the upper and lower limits (fULimit and fLLimit) set on this channel 
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Int_t GetEventcutErrorFlag(){//return the error flag
     return fDeviceErrorCode;
   };
+  Double_t GetEventCutUpperLimit(){
+    return fULimit;
+  }
+  Double_t GetEventCutLowerLimit(){
+    return fLLimit;
+  }
 
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;
   }
+
+  Int_t ApplyHWChecks(); //Check for harware errors in the devices. This will return the device error code.
+
+  /*End*/
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
@@ -123,9 +137,7 @@ class QwVQWK_Channel: public VQwDataElement {
   void SetCalibrationFactor(Double_t factor){fCalibrationFactor=factor; return;};
   Double_t GetCalibrationFactor(){return fCalibrationFactor;};
 
-  // formarly known as IsGoodEvent()
-  Int_t ApplyHWChecks(); //Check for harware errors in the devices and this is replaced for IsGoodEvent() routine. This will return the device error code.
-
+  
   void Copy(VQwDataElement *source);
 
   void Print() const;
@@ -229,6 +241,7 @@ class QwVQWK_Channel: public VQwDataElement {
   Int_t fGoodEventCount;//counts the HW and event check passed events
 
   Int_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
+  Double_t fULimit, fLLimit;//this sets the upper and lower limits on the VQWK_Channel::fHardwareBlockSum
 
   /*
   //debug- Ring analysis

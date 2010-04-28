@@ -13,9 +13,13 @@
 
 #include <stdexcept>
 
-#include "QwLog.h"
+#include "QwLog.h" 
 
 
+/*****************************************************************/
+void QwHelicityPattern::ProcessOptions(QwOptions &options){
+//Handle command line options
+};
 /*****************************************************************/
 QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
 {

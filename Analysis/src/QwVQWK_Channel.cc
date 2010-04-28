@@ -171,6 +171,8 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
   fMockGaussianSigma = 0.0;
 
   // Event cuts
+  fULimit=0;
+  fLLimit=0;
   fNumEvtsWithEventCutsRejected = 0;
 
   //init error counters//
@@ -610,10 +612,10 @@ void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values)
   if (IsNameEmpty()){
     //  This channel is not used, so skip filling the tree vector.
   } else if (fTreeArrayNumEntries<=0){
-    std::cerr << "QwVQWK_Channel::FillTreeVector:  fTreeArrayNumEntries=="
+    if (bDEBUG) std::cerr << "QwVQWK_Channel::FillTreeVector:  fTreeArrayNumEntries=="
 	      << fTreeArrayNumEntries << std::endl;
   } else if (values.size() < fTreeArrayIndex+fTreeArrayNumEntries){
-    std::cerr << "QwVQWK_Channel::FillTreeVector:  values.size()=="
+    if (bDEBUG) std::cerr << "QwVQWK_Channel::FillTreeVector:  values.size()=="
 	      << values.size()
 	      << "; fTreeArrayIndex+fTreeArrayNumEntries=="
 	      << fTreeArrayIndex+fTreeArrayNumEntries
@@ -886,21 +888,42 @@ Bool_t QwVQWK_Channel::MatchNumberOfSamples(size_t numsamp)
   return status;
 };
 
-Bool_t QwVQWK_Channel::ApplySingleEventCuts(Double_t LL=0,Double_t UL=0)
+Bool_t QwVQWK_Channel::ApplySingleEventCuts(Double_t LL=0,Double_t UL=0)//only check to see HW_Sum is within these given limits
+{
+  Bool_t status;
+
+  if (LL==0 && UL==0){
+    status=kTRUE;
+  } else  if (GetHardwareSum()<=UL && GetHardwareSum()>=LL){
+    if (!fDeviceErrorCode)
+      status=kTRUE;
+    else
+      status=kFALSE;//If the device HW is falied
+  }
+
+  return status;
+};
+
+void QwVQWK_Channel::SetSingleEventCuts(Double_t min, Double_t max){
+  fULimit=max;
+  fLLimit=min;
+};
+
+Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and update event_flags and error counters
 {
   Bool_t status;
   if (bEVENTCUTMODE>=2){//Global switch to ON/OFF event cuts set at the event cut file
 
-    if (LL==0 && UL==0){
+    if (fULimit==0 && fLLimit==0){
       status=kTRUE;
-    } else  if (GetHardwareSum()<=UL && GetHardwareSum()>=LL){
+    } else  if (GetHardwareSum()<=fULimit && GetHardwareSum()>=fLLimit){
       if (!fDeviceErrorCode)
 	status=kTRUE;
       else
 	status=kFALSE;//If the device HW is falied
     }
     else{
-      if (GetHardwareSum()> UL)
+      if (GetHardwareSum()> fULimit)
 	fDeviceErrorCode|=kErrorFlag_EventCut_U;
       else
 	fDeviceErrorCode|=kErrorFlag_EventCut_L;
@@ -920,7 +943,6 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts(Double_t LL=0,Double_t UL=0)
 
     return status;
 };
-
 
 
 

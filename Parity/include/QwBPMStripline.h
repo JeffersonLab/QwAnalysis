@@ -50,7 +50,7 @@ class QwBPMStripline : public VQwDataElement{
 
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  Int_t SetSingleEventCuts(Double_t minX, Double_t maxX, Double_t minY, Double_t maxY );
+  void SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
   void SetDefaultSampleSize(Int_t sample_size);
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Int_t GetEventcutErrorFlag(){//return the error flag 
@@ -111,7 +111,7 @@ class QwBPMStripline : public VQwDataElement{
 
 
 
-  Double_t fULimitX, fLLimitX, fULimitY, fLLimitY;//this sets the upper and lower limits on the X & Y of the BPM stripline
+  //Double_t fULimitX, fLLimitX, fULimitY, fLLimitY;//this sets the upper and lower limits on the X & Y of the BPM stripline
  
   QwVQWK_Channel fWire[4];
   QwVQWK_Channel fWSum;

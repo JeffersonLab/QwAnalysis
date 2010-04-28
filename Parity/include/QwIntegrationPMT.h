@@ -58,7 +58,7 @@ class QwIntegrationPMT : public VQwDataElement{
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-  Int_t SetSingleEventCuts(std::vector<Double_t> &);//two limts and sample size
+  Int_t SetSingleEventCuts(Double_t, Double_t);//set two limts
   void SetDefaultSampleSize(Int_t sample_size);
   void SetEventNumber(int event);
 
@@ -112,12 +112,10 @@ class QwIntegrationPMT : public VQwDataElement{
 
   Double_t fPedestal;
   Double_t fCalibration;
-  Double_t fULimit, fLLimit;
   Bool_t fGoodEvent;//used to validate sequence number in the IsGoodEvent()
 
   QwVQWK_Channel fTriumf_ADC;
 
-  Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
 
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes

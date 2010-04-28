@@ -24,6 +24,9 @@
 #include "QwHistogramHelper.h"
 
 //*****************************************************************
+void QwComptonElectronDetector::ProcessOptions(QwOptions &options){
+}; //Handle command line options
+
 Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
 {
   return 0;

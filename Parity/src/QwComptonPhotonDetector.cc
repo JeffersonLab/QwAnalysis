@@ -29,6 +29,10 @@
  * @param mapfile Map file
  * @return Zero if successful
  */
+
+void QwComptonPhotonDetector::ProcessOptions(QwOptions &options){
+}; //Handle command line options
+
 Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 {
   TString varname, varvalue;

@@ -47,13 +47,14 @@ Int_t fEVENTS2SKIP, fEVENTS2SAVE;
 /// \ingroup QwAnalysis_BL
 Int_t main(Int_t argc, Char_t* argv[])
 {
+  
   // First, we set the command line arguments and the configuration filename,
   // and we define the options that can be used in them (using QwOptions).
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.SetConfigFile("qwanalysis_beamline.conf");
   // Define the command line options
   DefineOptionsParity(gQwOptions);
-
+  
   // modified value for maximum size of tree
   Long64_t kMAXTREESIZE = 10000000000LL;
   // standard value for maximum size of tree in root source
@@ -62,12 +63,15 @@ Int_t main(Int_t argc, Char_t* argv[])
   Bool_t bDebug=kFALSE;
   Bool_t bHelicity=kTRUE;
   Bool_t bTree=kTRUE;
-  Bool_t bHisto=kFALSE;//kTRUE;
-
-  //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
-  if (getenv("DISPLAY")==NULL
-      ||getenv("JOB_ID")!=NULL) kInQwBatchMode = kTRUE;
+  Bool_t bHisto=kTRUE;
+  
+  
+//either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
+  if (getenv("DISPLAY")==NULL||getenv("JOB_ID")!=NULL) 
+    kInQwBatchMode = kTRUE;
   gROOT->SetBatch(kTRUE);
+
+  
 
   ///  Fill the search paths for the parameter files; this sets a static
   ///  variable within the QwParameterFile class which will be used by
@@ -75,7 +79,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  The "scratch" directory should be first.
   QwParameterFile::AppendToSearchPath(std::string(getenv("QW_PRMINPUT")));
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
-
+  
   ///
   ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
   ///  histogram helper: QwHistogramHelper
@@ -86,8 +90,9 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   QwEventBuffer QwEvt;
   QwEvt.ProcessOptions(gQwOptions);
-
-
+  QwEventRing fEventRing;
+  fEventRing.ProcessOptions(gQwOptions);//load ring parameters from the CMD or config file
+  
   QwSubsystemArrayParity QwDetectors;
   VQwSubsystemParity * subsystem_tmp;//VQwSubsystemParity is the top most parent class for Parity subsystems.
   subsystem_tmp = 0;
@@ -105,18 +110,11 @@ Int_t main(Int_t argc, Char_t* argv[])
   
   ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
 	  
-
+  
+  QwDetectors.ProcessOptions(gQwOptions);//Recommonded to call this routine after LoadChannelMap(..) routines. Some times the cmd options override the map file settings.
 
   QwHelicityPattern QwHelPat(QwDetectors);//multiplet size is set within the QwHelicityPattern class
-
-  //Reads Event Ring parameters from cmd
-  Int_t r_size=32,r_BT=4,r_HLD=16;
-  if (gQwOptions.HasValue("ring.size"))
-    r_size=gQwOptions.GetValue<int>("ring.size");
-  if (gQwOptions.HasValue("ring.bt"))
-    r_BT=gQwOptions.GetValue<int>("ring.bt"); 
-  if (gQwOptions.HasValue("ring.hld"))
-    r_HLD=gQwOptions.GetValue<int>("ring.hld");
+  QwHelPat.ProcessOptions(gQwOptions);
 
   //Tree events scaling parameters
    if (gQwOptions.HasValue("skip"))
@@ -125,9 +123,9 @@ Int_t main(Int_t argc, Char_t* argv[])
     fEVENTS2SAVE=gQwOptions.GetValue<int>("take");
    ///
 
-  std::cout<<" Ring "<<r_size<<" , "<<r_BT<<" , "<<r_HLD<<std::endl;
-  QwEventRing fEventRing(QwDetectors,r_size,r_HLD,r_BT);
-  Double_t evnum=0.0;
+   fEventRing.SetupRing(QwDetectors);//set up the ring with QwDetector array array with CMD ring parameters
+ 
+   Double_t evnum=0.0;
 
 
   // Loop over all runs
@@ -220,9 +218,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 	QwDetectors.ProcessEvent();
 
 
-
-
-	//currently QwHelicity::ApplySingleEventCuts() will check for actual helicity bit for 1 or 0 and falied the test if it is different
+	
 	if (QwDetectors.ApplySingleEventCuts()){//The event pass the event cut constraints
 
 
@@ -230,15 +226,11 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  if(bHelicity){
 
 	    fEventRing.push(QwDetectors);//add event to the ring
-	    //std::cerr << "After QwEventRing::push()" <<std::endl;
 	    bRING_READY=fEventRing.IsReady();
 
 	    if (bRING_READY){//check to see ring is ready
-	      //fEventRing.pop();
 	      QwHelPat.LoadEventData(fEventRing.pop());
 	    }
-
-	    //QwHelPat.LoadEventData(QwDetectors);
 	  }
 
 
@@ -250,10 +242,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 	  if(bTree){
 	    evnum=QwEvt.GetEventNumber();
-	    //std::cout<<" event "<<evnum<<std::endl;
-	    //((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->FillTreeVector(mpsvector);
-	    //((QwHelicity*)QwDetectors.GetSubsystem("Helicity info"))->FillTreeVector(mpsvector);
-	    //((QwLumi*)QwDetectors.GetSubsystem("Luminosity Monitors"))->FillTreeVector(mpsvector);
 
 	    //Tree events scaling is set here
 	    if (fEVENTS2SKIP==0){
@@ -283,8 +271,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  }
 
 	  if(bHelicity && QwHelPat.IsCompletePattern() && bRING_READY){ 
-	    //QwHelicity * tmp=(QwHelicity *)QwDetectors.GetSubsystem("Helicity info");
-	    //std::cout<<" Complete quartet  Good Helicity "<<std::endl;
 	    QwHelPat.CalculateAsymmetry();
 	    //QwHelPat.Print();
 	    if (QwHelPat.IsGoodAsymmetry()){
@@ -298,7 +284,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 	    }
 	  }
 	}else{
-	  //std::cout<<" Failed event "<<QwEvt.GetEventNumber()<<std::endl;
 	  fEventRing.FailedEvent(QwDetectors.GetEventcutErrorFlag()); //event cut failed update the ring status
 	  falied_events_counts++;
 	}

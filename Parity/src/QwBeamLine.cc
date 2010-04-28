@@ -17,6 +17,9 @@
 #include "QwLog.h"
 
 //*****************************************************************
+void QwBeamLine::ProcessOptions(QwOptions &options){
+      //Handle command line options
+};
 Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 {
   Bool_t ldebug=kFALSE;
@@ -325,7 +328,7 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
   Int_t check_flag;
   Int_t eventcut_flag;
   TString varname, varvalue, vartypeID,varname2, varvalue2;
-  TString device_type,device_name;
+  TString device_type,device_name,channel_name;
   std::cout<<" QwBeamLine::LoadEventCuts  "<<filename<<std::endl; 
   QwParameterFile mapstr(filename.Data());  //Open the file
 
@@ -380,17 +383,21 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 	
       }
       else if (device_type == "bpmstripline"){
+	channel_name= mapstr.GetNextToken(", ").c_str();
+	channel_name.ToLower();
+	
       
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline X
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline X
-	LLY = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline Y
-	ULY = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline Y
+	//LLY = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline Y
+	//ULY = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline Y
 
 	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);	
 	
 	//std::cout<<"*****************************"<<std::endl;
 	//std::cout<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<eventcut_flag<<std::endl;
-	fStripline[det_index].SetSingleEventCuts(LLX, ULX, LLY,ULY  );	
+	//fStripline[det_index].SetSingleEventCuts(LLX, ULX, LLY,ULY);	
+	fStripline[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
 	//fStripline[det_index].Print();
 	//std::cout<<"*****************************"<<std::endl;
       }
@@ -744,15 +751,12 @@ Int_t QwBeamLine::GetEventcutErrorCounters(){//inherited from the VQwSubsystemPa
   std::cout<<"*********QwBeamLine Error Summary****************"<<std::endl;
   std::cout<<"Device name ||  Sample || SW_HW || Sequence || SameHW || ZeroHW || EventCut\n";
   for(size_t i=0;i<fBCM.size();i++){
-    //std::cout<<"*"<<std::endl;
     fBCM[i].GetEventcutErrorCounters();    
   } 
 
    for(size_t i=0;i<fStripline.size();i++){
      fStripline[i].GetEventcutErrorCounters();
    }
-   //std::cout<<"Total failed events "<<  fQwBeamLineErrorCount<<std::endl;
-   //std::cout<<"*****End of error QwBeamLine reporting - Total failed events "<<fQwBeamLineErrorCount<<"*****"<<std::endl;
    std::cout<<"---------------------------------------------------"<<std::endl;
    std::cout<<std::endl;
   return 1;

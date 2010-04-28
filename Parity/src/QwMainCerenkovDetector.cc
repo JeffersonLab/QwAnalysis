@@ -12,6 +12,9 @@
 #include "QwSubsystemArray.h"
 #include "QwLog.h"
 
+void QwMainCerenkovDetector::ProcessOptions(QwOptions &options){
+      //Handle command line options
+};
 
 Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 {
@@ -28,15 +31,6 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
   Int_t currentsubbankindex=-1;
   Int_t fSample_size=0;
 
-  std::vector<Double_t> integrationPMTEventCuts;//for initializing event cuts
-  integrationPMTEventCuts.push_back(0);
-  integrationPMTEventCuts.push_back(0);
-  integrationPMTEventCuts.push_back(0);//device_flag is set to 0
-
-  std::vector<Double_t> combinedPMTEventCuts;//for initializing event cuts
-  combinedPMTEventCuts.push_back(0);
-  combinedPMTEventCuts.push_back(0);
-  combinedPMTEventCuts.push_back(0);//device_flag is set to 0
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine())
@@ -154,9 +148,7 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
                   localIntegrationPMT.InitializeChannel(localMainDetID.fdetectorname, "raw");
                   fIntegrationPMT.push_back(localIntegrationPMT);
                   fIntegrationPMT[fIntegrationPMT.size()-1].SetDefaultSampleSize(fSample_size);
-                  //initialize the event cuts to zero
-                  fIntegrationPMT[fIntegrationPMT.size()-1].SetSingleEventCuts(integrationPMTEventCuts);
-                  localMainDetID.fIndex=fIntegrationPMT.size()-1;
+		  localMainDetID.fIndex=fIntegrationPMT.size()-1;
                 }
 
               else if (DetectorTypes[localMainDetID.fTypeID]=="combinationpmt")
@@ -165,7 +157,6 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
                   QwCombinedPMT localcombinedPMT(TString(""));
                   fCombinedPMT.push_back(localcombinedPMT);
                   fCombinedPMT[fCombinedPMT.size()-1].SetDefaultSampleSize(fSample_size);
-                  fCombinedPMT[fCombinedPMT.size()-1].SetSingleEventCuts(combinedPMTEventCuts);
                   localMainDetID.fIndex=fCombinedPMT.size()-1;
                 }
             }
@@ -311,14 +302,8 @@ Int_t QwMainCerenkovDetector::LoadEventCuts(TString  filename)
               Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
               //std::cout<<"*****************************"<<std::endl;
               //std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
-              //update the Double vector
-              integrationPMTEventCuts.clear();
-              integrationPMTEventCuts.push_back(LLX);
-              integrationPMTEventCuts.push_back(ULX);
-              integrationPMTEventCuts.push_back(1);
-
               //fIntegrationPMT[det_index].Print();
-              fIntegrationPMT[det_index].SetSingleEventCuts(integrationPMTEventCuts);
+              fIntegrationPMT[det_index].SetSingleEventCuts(LLX,ULX);
               //std::cout<<"*****************************"<<std::endl;
 
             }

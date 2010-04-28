@@ -89,7 +89,9 @@ class QwHelicity: public VQwSubsystemParity{
     {
 //      DeleteHistograms();
     };
+  
    /* derived from VQwSubsystem */
+  void ProcessOptions(QwOptions &options);
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString  filename);//Loads event cuts applicabale to QwHelicity class, derived from VQwSubsystemParity

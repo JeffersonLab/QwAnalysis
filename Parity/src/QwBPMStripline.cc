@@ -45,12 +45,6 @@ void  QwBPMStripline::InitializeChannel(TString name, Bool_t ROTATED)
   SetElementName(name);
   bFullSave=kTRUE;
 
-  //set default limits to event cuts 
-  fULimitX=0;
-  fLLimitX=0;
-  fULimitY=0;
-  fLLimitY=0;
-
   return;
 };
 /********************************************************/
@@ -70,8 +64,15 @@ void QwBPMStripline::ClearEventData()
 Int_t QwBPMStripline::GetEventcutErrorCounters()
 {
   Short_t i = 0;
-  for(i=0;i<4;i++) fWire[i].GetEventcutErrorCounters();
-  for(i=0;i<2;i++) fRelPos[i].GetEventcutErrorCounters();
+  for(i=0;i<4;i++) 
+    fWire[i].GetEventcutErrorCounters();
+  for(i=0;i<2;i++) 
+    fRelPos[i].GetEventcutErrorCounters();
+  
+  for(i=0;i<3;i++)
+    fAbsPos[i].GetEventcutErrorCounters(); 
+
+  fWSum.GetEventcutErrorCounters(); 
 
   return 1;
 };
@@ -139,30 +140,56 @@ void QwBPMStripline::EncodeEventData(std::vector<UInt_t> &buffer)
 Bool_t QwBPMStripline::ApplySingleEventCuts()
 {
   Bool_t status=kTRUE;
-  
-
-    if (fRelPos[0].ApplySingleEventCuts(fLLimitX,fULimitX)){ //for RelX  
-      status=kTRUE;
+  Int_t i=0;
+  //Event cuts for Relative X & Y
+  for(i=0;i<2;i++){
+    if (fRelPos[i].ApplySingleEventCuts()){ //for RelX    
+      status&=kTRUE;
     }
     else{
-      fRelPos[0].UpdateEventCutErrorCount();
-      status=kFALSE;
+      fRelPos[i].UpdateEventCutErrorCount();
+      status&=kFALSE;
       if (bDEBUG) std::cout<<" Rel X event cut failed ";
     }
-    fDeviceErrorCode|=fRelPos[0].GetEventcutErrorFlag();//Get the Event cut error flag for RelX
-    //if (fRelPos[1].GetHardwareSum()<=fULimitY && fRelPos[1].GetHardwareSum()>=fLLimitY){//for RelY
-    if (fRelPos[1].ApplySingleEventCuts(fLLimitY,fULimitY)){
+    fDeviceErrorCode|=fRelPos[i].GetEventcutErrorFlag();//Get the Event cut error flag for RelX/Y  
+  }
+  //Event cuts for Absolute X & Y
+  for(i=0;i<3;i++){
+    if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX    
       status&=kTRUE;
-      //std::cout<<" ";
     }
     else{
-      fRelPos[1].UpdateEventCutErrorCount();
+      fAbsPos[i].UpdateEventCutErrorCount();
       status&=kFALSE;
-      if (bDEBUG) std::cout<<" Rel Y event cut failed ";
+      if (bDEBUG) std::cout<<" Abs X event cut failed ";
     }
-    fDeviceErrorCode|=fRelPos[1].GetEventcutErrorFlag();//Get the Event cut error flag for RelY
-	
-      
+    fDeviceErrorCode|=fAbsPos[i].GetEventcutErrorFlag();//Get the Event cut error flag for AbsX/Y    
+  }
+
+  //Event cuts for four wire sum (WSum)
+  
+  if (fWSum.ApplySingleEventCuts()){ //for WSum  
+      status&=kTRUE;
+  }
+  else{
+    fWSum.UpdateEventCutErrorCount();
+    status&=kFALSE;
+    if (bDEBUG) std::cout<<" WSum event cut failed ";
+  }
+
+  //Event cuts for four wires
+  for(i=0;i<4;i++){
+    if (fWire[i].ApplySingleEventCuts()){ //for RelX    
+      status&=kTRUE;
+    }
+    else{
+      fWire[i].UpdateEventCutErrorCount();
+      status&=kFALSE;
+      if (bDEBUG) std::cout<<" Abs X event cut failed ";
+    }
+    fDeviceErrorCode|=fWire[i].GetEventcutErrorFlag();//Get the Event cut error flag for wires    
+  }
+  
   return status;
 };
 
@@ -170,21 +197,41 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
 /********************************************************/
 
 
-
-
-Int_t QwBPMStripline::SetSingleEventCuts(Double_t minX, Double_t maxX, Double_t minY, Double_t maxY )
-{
-
-  fLLimitX=minX;
-  fULimitX=maxX;
-  fLLimitY=minY;
-  fULimitY=maxY;
-  
-  return 0; 
+void QwBPMStripline::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX){
+  //QwMessage<<" QwBPMStripline Event Cuts "<<<<QwLog::endl;
+  QwMessage<<" Event Cut Device "<<fElementName;
+  if (ch_name=="relx"){//cuts for the relative x and y
+    QwMessage<<"RelX LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fRelPos[0].SetSingleEventCuts(minX,maxX);
+  }else if (ch_name=="rely"){//cuts for the relative x and y
+    QwMessage<<"RelY LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fRelPos[1].SetSingleEventCuts(minX,maxX);
+  }else if (ch_name=="absx"){//cuts for the relative x and y
+    QwMessage<<"AbsX LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fAbsPos[0].SetSingleEventCuts(minX,maxX);
+  }else if (ch_name=="absy"){//cuts for the relative x and y
+    QwMessage<<"AbsY LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fAbsPos[1].SetSingleEventCuts(minX,maxX);
+  }else if (ch_name=="absz"){//cuts for the relative x and y
+    QwMessage<<"AbsY LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fAbsPos[2].SetSingleEventCuts(minX,maxX);
+  }else if (ch_name=="wsum"){//cuts for the relative x and y
+    QwMessage<<"WSum LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fWSum.SetSingleEventCuts(minX,maxX);
+  }else if (ch_name=="xp"){//cuts for the relative x and y
+    QwMessage<<"XP LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fWire[0].SetSingleEventCuts(minX,maxX);
+  }else if (ch_name=="xm"){//cuts for the relative x and y
+    QwMessage<<"XM LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fWire[1].SetSingleEventCuts(minX,maxX);
+  }else if (ch_name=="yp"){//cuts for the relative x and y
+    QwMessage<<"YP LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fWire[2].SetSingleEventCuts(minX,maxX);
+  }else if (ch_name=="ym"){//cuts for the relative x and y
+    QwMessage<<"YM LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fWire[3].SetSingleEventCuts(minX,maxX);
+  }
 };
-
-
-
 
 /********************************************************/
 
@@ -549,6 +596,7 @@ void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std
 	fRelPos[i].ConstructBranchAndVector(tree,thisprefix,values);
       for(i=0;i<2;i++)
 	fAbsPos[i].ConstructBranchAndVector(tree,thisprefix,values);
+      
     }
   return;
 };
@@ -567,8 +615,10 @@ void  QwBPMStripline::FillTreeVector(std::vector<Double_t> &values)
 	{
 	  for(i=0;i<4;i++) fWire[i].FillTreeVector(values);
 	}
-      for(i=0;i<2;i++) fRelPos[i].FillTreeVector(values);
-      for(i=0;i<2;i++) fAbsPos[i].FillTreeVector(values);
+      for(i=0;i<2;i++) 
+	fRelPos[i].FillTreeVector(values);
+      for(i=0;i<3;i++) 
+	fAbsPos[i].FillTreeVector(values);
     }
   return;
 };
@@ -614,7 +664,7 @@ void QwBPMStripline::SetEventCutMode(Int_t bcuts)
   bEVENTCUTMODE=bcuts;
   for (i=0;i<4;i++) fWire[i].SetEventCutMode(bcuts);
   for (i=0;i<2;i++) fRelPos[i].SetEventCutMode(bcuts);
-  for (i=0;i<2;i++) fAbsPos[i].SetEventCutMode(bcuts);
+  for (i=0;i<3;i++) fAbsPos[i].SetEventCutMode(bcuts);
   fWSum.SetEventCutMode(bcuts);
 }
 

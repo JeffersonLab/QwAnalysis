@@ -53,7 +53,9 @@ QwScanner::~QwScanner() {
 };
 
 
-
+void QwScanner::ProcessOptions(QwOptions &options){
+      //Handle command line options
+};
 Int_t QwScanner::LoadChannelMap(TString mapfile) {
     TString varname, varvalue;
     TString modtype, dettype, name;

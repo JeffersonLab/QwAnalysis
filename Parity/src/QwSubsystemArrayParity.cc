@@ -14,6 +14,14 @@
 
 //*****************************************************************
 
+void QwSubsystemArrayParity::ProcessOptions(QwOptions &options){
+  for (iterator subsys = begin(); subsys != end(); ++subsys) {
+    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
+    subsys_parity->ProcessOptions(options);
+  }
+}; //Handle command line options
+
+
 VQwSubsystemParity* QwSubsystemArrayParity::GetSubsystem(const TString name)
 {
   VQwSubsystemParity* tmp = NULL;

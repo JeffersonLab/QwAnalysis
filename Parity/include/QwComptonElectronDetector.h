@@ -36,6 +36,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
 
 
     /* derived from VQwSubsystem */
+    void ProcessOptions(QwOptions &options); //Handle command line options
     Int_t LoadChannelMap(TString mapfile);
     Int_t LoadInputParameters(TString pedestalfile);
     Int_t LoadEventCuts(TString & filename);

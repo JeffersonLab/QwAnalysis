@@ -57,6 +57,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   };
 
   /*  Member functions derived from VQwSubsystemParity. */
+  void ProcessOptions(QwOptions &options);//Handle command line options
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString  filename);

@@ -109,7 +109,7 @@ void QwIntegrationPMT::EncodeEventData(std::vector<UInt_t> &buffer)
 /********************************************************/
 void  QwIntegrationPMT::ProcessEvent()
 {
-
+  ApplyHWChecks();//first apply HW checks and update HW  error flags.
   fTriumf_ADC.ProcessEvent();
 
 
@@ -128,12 +128,8 @@ Bool_t QwIntegrationPMT::ApplyHWChecks()
 };
 /********************************************************/
 
-Int_t QwIntegrationPMT::SetSingleEventCuts(std::vector<Double_t> & dEventCuts){//two limts and sample size
-  fLLimit=dEventCuts.at(0);
-  fULimit=dEventCuts.at(1);
-  fDevice_flag=(Int_t)dEventCuts.at(2);
-  //std::cout<<GetElementName()<<" IntegrationPMT fDevice_flag "<<fDevice_flag<<std::endl;
-
+Int_t QwIntegrationPMT::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){//std::vector<Double_t> & dEventCuts){//two limts and sample size
+  fTriumf_ADC.SetSingleEventCuts(LL,UL);
   return 1;
 };
 
@@ -150,23 +146,15 @@ Bool_t QwIntegrationPMT::ApplySingleEventCuts(){
 
 //std::cout<<" QwBCM::SingleEventCuts() "<<std::endl;
   Bool_t status=kTRUE;
-  ApplyHWChecks();//first apply HW checks and update HW  error flags.
 
-  if (fDevice_flag==1){// if fDevice_flag==1 then perform the event cut limit test
-
-    //if (fTriumf_ADC.GetHardwareSum()<=fULimit && fTriumf_ADC.GetHardwareSum()>=fLLimit){ // Check event cuts + HW check status
-    if (fTriumf_ADC.ApplySingleEventCuts(fLLimit,fULimit)){
-      status=kTRUE;
-      //std::cout<<" BCM Sample size "<<fTriumf_ADC.GetNumberOfSamples()<<std::endl;
-    }
-    else{
-      fTriumf_ADC.UpdateEventCutErrorCount();//update event cut falied counts
-      if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fTriumf_ADC.GetHardwareSum();
-      status&=kFALSE;//kTRUE;//kFALSE;
-    }
-  }else
-    status =kTRUE;
-
+  if (fTriumf_ADC.ApplySingleEventCuts()){
+    status=kTRUE;
+    //std::cout<<" BCM Sample size "<<fTriumf_ADC.GetNumberOfSamples()<<std::endl;
+  }
+  else{
+    fTriumf_ADC.UpdateEventCutErrorCount();//update event cut falied counts
+    status&=kFALSE;//kTRUE;//kFALSE;
+  }
 
   return status;
 
@@ -188,7 +176,8 @@ Int_t QwIntegrationPMT::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_
   fTriumf_ADC.ProcessEvBuffer(buffer,word_position_in_buffer);
 
   return word_position_in_buffer;
-};
+};  Double_t fULimit, fLLimit;
+
 /********************************************************/
 QwIntegrationPMT& QwIntegrationPMT::operator= (const QwIntegrationPMT &value)
 {
