@@ -404,21 +404,24 @@ QwParityDB::md_data QwCombinedPMT::GetMainDetectorDBEntry(QwDatabase *db, TStrin
   Double_t avg = 0.0;
   Double_t err = 0.0;
 
+  TString beam_charge_type(db->GetMeasurementID(13)); // yq
+  TString beam_asymmetry_type(db->GetMeasurementID(0));//a
+ 
   if(mtype.Contains("yield"))
     {
-      sprintf(md_measurement_type, "yq");
+      sprintf(md_measurement_type, beam_charge_type.Data());
     }
   else if(mtype.Contains("asymmetry"))
     {
-      sprintf(md_measurement_type, "aq");
+      sprintf(md_measurement_type,  beam_asymmetry_type.Data());
     }
   else if(mtype.Contains("average") )
     {
-      sprintf(md_measurement_type, "yq");
+      sprintf(md_measurement_type, beam_charge_type.Data());
     }
   else if(mtype.Contains("runningsum"))
     {
-      sprintf(md_measurement_type, "yq");
+      sprintf(md_measurement_type, beam_charge_type.Data());
     }
   else
     {

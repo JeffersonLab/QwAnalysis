@@ -28,8 +28,8 @@ void  QwBPMStripline::InitializeChannel(TString name, Bool_t ROTATED)
 
   SetOffset(0,0,0);  
   
-  
-  for(Short_t i=0;i<4;i++)
+  Short_t i = 0;
+  for(i=0;i<4;i++)
     {
       fWire[i].InitializeChannel(name+subelement[i],"raw");
       if(kDEBUG)
@@ -39,12 +39,8 @@ void  QwBPMStripline::InitializeChannel(TString name, Bool_t ROTATED)
   fWSum.InitializeChannel(name+"WSum","derived");
 
 
-  for(Short_t i=0;i<2;i++)
-    fRelPos[i].InitializeChannel(name+"Rel"+axis[i],"derived");	
-  
-
-  for(Short_t i=0;i<3;i++)
-    fAbsPos[i].InitializeChannel(name+axis[i],"derived");
+  for(i=0;i<2;i++) fRelPos[i].InitializeChannel(name+"Rel"+axis[i],"derived");	
+  for(i=0;i<3;i++) fAbsPos[i].InitializeChannel(name+axis[i],"derived");
  
   SetElementName(name);
   bFullSave=kTRUE;
@@ -60,14 +56,10 @@ void  QwBPMStripline::InitializeChannel(TString name, Bool_t ROTATED)
 /********************************************************/
 void QwBPMStripline::ClearEventData()
 {
-  for(Short_t i=0;i<4;i++)
-	fWire[i].ClearEventData();
-
-  for(Short_t i=0;i<2;i++)
-	fRelPos[i].ClearEventData();
-
-  for(Short_t i=0;i<3;i++)
-	fAbsPos[i].ClearEventData();
+  Short_t i = 0;
+  for(i=0;i<4;i++) fWire[i].ClearEventData();
+  for(i=0;i<2;i++) fRelPos[i].ClearEventData();
+  for(i=0;i<3;i++) fAbsPos[i].ClearEventData();
 
   fWSum.ClearEventData();
 
@@ -75,12 +67,11 @@ void QwBPMStripline::ClearEventData()
 };
 /********************************************************/
 
-Int_t QwBPMStripline::GetEventcutErrorCounters(){
-  for(Short_t i=0;i<4;i++)
-    fWire[i].GetEventcutErrorCounters();
-
-  fRelPos[0].GetEventcutErrorCounters();
-  fRelPos[1].GetEventcutErrorCounters();
+Int_t QwBPMStripline::GetEventcutErrorCounters()
+{
+  Short_t i = 0;
+  for(i=0;i<4;i++) fWire[i].GetEventcutErrorCounters();
+  for(i=0;i<2;i++) fRelPos[i].GetEventcutErrorCounters();
 
   return 1;
 };
@@ -122,8 +113,7 @@ void QwBPMStripline::SetRandomEventParameters(Double_t meanX, Double_t sigmaX, D
 /********************************************************/
 void QwBPMStripline::RandomizeEventData(int helicity)
 {
-  for (Short_t i = 0; i < 4; i++)
-    fWire[i].RandomizeEventData(helicity);
+  for (Short_t i=0; i<4; i++) fWire[i].RandomizeEventData(helicity);
 
   return;
 };
@@ -131,21 +121,23 @@ void QwBPMStripline::RandomizeEventData(int helicity)
 void QwBPMStripline::SetEventData(Double_t* relpos, UInt_t sequencenumber)
 {
   // This needs to be modified to allow setting the position
-  for (int i = 0; i < 2; i++) {
-    fRelPos[i].SetHardwareSum(relpos[i], sequencenumber);
-  }
+  for (Short_t i=0; i<2; i++) 
+    {
+      fRelPos[i].SetHardwareSum(relpos[i], sequencenumber);
+    }
 
   return;
 };
 /********************************************************/
 void QwBPMStripline::EncodeEventData(std::vector<UInt_t> &buffer)
 {
-  for (int i = 0; i < 4; i++)
-    fWire[i].EncodeEventData(buffer);
+  
+  for (Short_t i=0; i<4; i++) fWire[i].EncodeEventData(buffer);
 };
 /********************************************************/
  
-Bool_t QwBPMStripline::ApplySingleEventCuts(){
+Bool_t QwBPMStripline::ApplySingleEventCuts()
+{
   Bool_t status=kTRUE;
   
 
@@ -170,11 +162,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts(){
     }
     fDeviceErrorCode|=fRelPos[1].GetEventcutErrorFlag();//Get the Event cut error flag for RelY
 	
-    
-
-  
-  
-  
+      
   return status;
 };
 
@@ -184,7 +172,8 @@ Bool_t QwBPMStripline::ApplySingleEventCuts(){
 
 
 
-Int_t QwBPMStripline::SetSingleEventCuts(Double_t minX, Double_t maxX, Double_t minY, Double_t maxY ){
+Int_t QwBPMStripline::SetSingleEventCuts(Double_t minX, Double_t maxX, Double_t minY, Double_t maxY )
+{
 
   fLLimitX=minX;
   fULimitX=maxX;
@@ -199,12 +188,10 @@ Int_t QwBPMStripline::SetSingleEventCuts(Double_t minX, Double_t maxX, Double_t 
 
 /********************************************************/
 
-void QwBPMStripline::SetDefaultSampleSize(Int_t sample_size){
-
-  for(Short_t i=0;i<4;i++)
-    fWire[i].SetDefaultSampleSize((size_t)sample_size);
-  
-  
+void QwBPMStripline::SetDefaultSampleSize(Int_t sample_size)
+{
+  for(Short_t i=0;i<4;i++) fWire[i].SetDefaultSampleSize((size_t)sample_size);
+  return;
 };
 
 /********************************************************/
@@ -219,17 +206,18 @@ void  QwBPMStripline::ProcessEvent()
 
 
   fWSum.ClearEventData();
-      
-  for(Short_t i=0;i<4;i++){
-    fWire[i].ProcessEvent();
-    fWSum+=fWire[i];
-  }
+  Short_t i = 0;
+  for(i=0;i<4;i++)
+    {
+      fWire[i].ProcessEvent();
+      fWSum+=fWire[i];
+    }
 
   if (localdebug) fWSum.Print();
 
      
   
-  for(Short_t i=0;i<2;i++)
+  for(i=0;i<2;i++)
     {
       numer.Difference(fWire[i*2],fWire[i*2+1]);
       denom.Sum(fWire[i*2],fWire[i*2+1]);
@@ -258,8 +246,7 @@ void  QwBPMStripline::ProcessEvent()
       fRelPos[0].Scale(kRotationCorrection);
       fRelPos[1].Scale(kRotationCorrection);
     }
-  for(Short_t i=0;i<2;i++)
-    fAbsPos[i].SetHardwareSum(fRelPos[i].GetHardwareSum()-fOffset[i]);
+  for(i=0;i<2;i++) fAbsPos[i].SetHardwareSum(fRelPos[i].GetHardwareSum()-fOffset[i]);
   fAbsPos[2].SetHardwareSum(fOffset[2]);
   
   return;
@@ -267,12 +254,10 @@ void  QwBPMStripline::ProcessEvent()
 /********************************************************/
 void QwBPMStripline::Print()
 {
-  for(Short_t i=0;i<4;i++)
-    fWire[i].Print();
-  for(Short_t i=0;i<2;i++)
-    fRelPos[i].Print();
-  for(Short_t i=0;i<3;i++)
-    fAbsPos[i].Print();
+  Short_t i = 0;
+  for(i=0;i<4;i++) fWire[i].Print();
+  for(i=0;i<2;i++) fRelPos[i].Print();
+  for(i=0;i<3;i++) fAbsPos[i].Print();
   fWSum.Print();
 
   return;
@@ -301,11 +286,14 @@ Bool_t QwBPMStripline::ApplyHWChecks()
 Int_t QwBPMStripline::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer,UInt_t index)
 {
   if(index<4)
-    fWire[index].ProcessEvBuffer(buffer,word_position_in_buffer);
+    {
+      fWire[index].ProcessEvBuffer(buffer,word_position_in_buffer);
+    }
   else
+    {
     std::cerr <<
       "QwBPMStripline::ProcessEvBuffer(): attemp to fill in raw date for a wire that doesn't exist \n";
-
+    }
   return word_position_in_buffer;
 };
 /********************************************************/
@@ -346,8 +334,7 @@ UInt_t QwBPMStripline::GetSubElementIndex(TString subname)
 {
   subname.ToUpper();
   UInt_t localindex=999999;
-  for(Short_t i=0;i<4;i++)
-    if(subname==subelement[i])localindex=i;
+  for(Short_t i=0;i<4;i++) if(subname==subelement[i])localindex=i;
 
   if(localindex>3)
     std::cerr << "QwBPMStripline::GetSubElementIndex is unable to associate the string -"
@@ -362,17 +349,15 @@ QwBPMStripline& QwBPMStripline::operator= (const QwBPMStripline &value)
   {
     this->bRotated=value.bRotated;
     this->fWSum=value.fWSum;
-
-	for(Short_t i=0;i<4;i++)
-		this->fWire[i]=value.fWire[i];
-	for(Short_t i=0;i<2;i++)
-		this->fRelPos[i]=value.fRelPos[i];
-	for(Short_t i=0;i<3;i++)
-		{
-		this->fAbsPos[i]=value.fAbsPos[i];
-		this->fOffset[i]=value.fOffset[i];
-		}
-	}
+    Short_t i = 0;
+    for(i=0;i<4;i++) this->fWire[i]=value.fWire[i];
+    for(i=0;i<2;i++) this->fRelPos[i]=value.fRelPos[i];
+    for(i=0;i<3;i++) 
+      {
+	this->fAbsPos[i]=value.fAbsPos[i];
+	this->fOffset[i]=value.fOffset[i];
+      }
+  }
   return *this;
 };
 
@@ -380,13 +365,11 @@ QwBPMStripline& QwBPMStripline::operator+= (const QwBPMStripline &value)
 {
   if (GetElementName()!="")
     {
+      Short_t i = 0;
       this->fWSum+=value.fWSum;
-      for(Short_t i=0;i<4;i++)
-	this->fWire[i]+=value.fWire[i];
-      for(Short_t i=0;i<2;i++)
-	this->fRelPos[i]+=value.fRelPos[i];
-      for(Short_t i=0;i<3;i++)
-	this->fAbsPos[i]+=value.fAbsPos[i];
+      for(i=0;i<4;i++) this->fWire[i]+=value.fWire[i];
+      for(i=0;i<2;i++) this->fRelPos[i]+=value.fRelPos[i];
+      for(i=0;i<3;i++) this->fAbsPos[i]+=value.fAbsPos[i];
     }
   return *this;
 };
@@ -395,24 +378,24 @@ QwBPMStripline& QwBPMStripline::operator-= (const QwBPMStripline &value)
 {
   if (GetElementName()!="")
     {
+      Short_t i = 0;
       this->fWSum-=value.fWSum;
-      for(Short_t i=0;i<4;i++)
-	this->fWire[i]-=value.fWire[i];
-      for(Short_t i=0;i<2;i++)
-	this->fRelPos[i]-=value.fRelPos[i];
-      for(Short_t i=0;i<3;i++)
-	this->fAbsPos[i]-=value.fAbsPos[i];
+      for(i=0;i<4;i++) this->fWire[i]-=value.fWire[i];
+      for(i=0;i<2;i++) this->fRelPos[i]-=value.fRelPos[i];
+      for(i=0;i<3;i++) this->fAbsPos[i]-=value.fAbsPos[i];
     }
   return *this;
 };
 
 
-void QwBPMStripline::Sum(QwBPMStripline &value1, QwBPMStripline &value2){
+void QwBPMStripline::Sum(QwBPMStripline &value1, QwBPMStripline &value2)
+{
   *this =  value1;
   *this += value2;
 };
 
-void QwBPMStripline::Difference(QwBPMStripline &value1, QwBPMStripline &value2){
+void QwBPMStripline::Difference(QwBPMStripline &value1, QwBPMStripline &value2)
+{
   *this =  value1;
   *this -= value2;
 };
@@ -440,30 +423,28 @@ void QwBPMStripline::Ratio(QwBPMStripline &numer, QwBPMStripline &denom)
 
 void QwBPMStripline::Scale(Double_t factor)
 {
-  for(Short_t i=0;i<2;i++)
-    fRelPos[i].Scale(factor);
-  for(Short_t i=0;i<3;i++)
-      fAbsPos[i].Scale(factor);
-    
-}
-
-void QwBPMStripline::Calculate_Running_Average(){
-  for(Short_t i=0;i<2;i++)
-    fRelPos[i].Calculate_Running_Average();      
-
-  for(Short_t i=0;i<2;i++)
-    fAbsPos[i].Calculate_Running_Average();
-  //No data for z position
+  Short_t i = 0;
+  for(i=0;i<2;i++) fRelPos[i].Scale(factor);
+  for(i=0;i<3;i++) fAbsPos[i].Scale(factor);
+  return;
 };
 
-void QwBPMStripline::Do_RunningSum(){
-  for(Short_t i=0;i<2;i++)
-    fRelPos[i].Do_RunningSum();
-  
-  for(Short_t i=0;i<2;i++)
-    fAbsPos[i].Do_RunningSum();
+void QwBPMStripline::Calculate_Running_Average()
+{
+  Short_t i = 0;
+  for(i=0;i<2;i++) fRelPos[i].Calculate_Running_Average();      
+  for(i=0;i<2;i++) fAbsPos[i].Calculate_Running_Average();
   //No data for z position
+  return;
+};
 
+void QwBPMStripline::Do_RunningSum()
+{
+  Short_t i = 0;
+  for(i=0;i<2;i++) fRelPos[i].Do_RunningSum();
+  for(i=0;i<2;i++) fAbsPos[i].Do_RunningSum();
+  //No data for z position
+  return;
 };
 
 
@@ -492,14 +473,13 @@ void  QwBPMStripline::ConstructHistograms(TDirectory *folder, TString &prefix)
       if(prefix=="asym_")
 	thisprefix="diff_";
       SetRootSaveStatus(prefix);
-
+      Short_t i = 0;
       if(bFullSave)
-	for(Short_t i=0;i<4;i++)
-	  fWire[i].ConstructHistograms(folder, thisprefix);
-      for(Short_t i=0;i<2;i++)
- 	fRelPos[i].ConstructHistograms(folder, thisprefix);
-      for(Short_t i=0;i<2;i++)
-        fAbsPos[i].ConstructHistograms(folder, prefix);
+	{
+	  for(i=0;i<4;i++) fWire[i].ConstructHistograms(folder, thisprefix);
+	}
+      for(i=0;i<2;i++) fRelPos[i].ConstructHistograms(folder, thisprefix);
+      for(i=0;i<2;i++) fAbsPos[i].ConstructHistograms(folder, prefix);
       //No data for z position
     }
   return;
@@ -514,13 +494,13 @@ void  QwBPMStripline::FillHistograms()
   else
     {
       fWSum.FillHistograms();
+      Short_t i = 0;
       if(bFullSave)
-	for(Short_t i=0;i<4;i++)
-	  fWire[i].FillHistograms();
-      for(Short_t i=0;i<2;i++)
-	fRelPos[i].FillHistograms();
-      for(Short_t i=0;i<2;i++)
-	fAbsPos[i].FillHistograms();
+	{
+	  for(i=0;i<4;i++) fWire[i].FillHistograms();
+	}
+      for(i=0;i<2;i++) fRelPos[i].FillHistograms();
+      for(i=0;i<2;i++) fAbsPos[i].FillHistograms();
       //No data for z position
     }
   return;
@@ -534,13 +514,13 @@ void  QwBPMStripline::DeleteHistograms()
   else
     {
       fWSum.DeleteHistograms();
+      Short_t i = 0;
       if(bFullSave)
-	for(Short_t i=0;i<4;i++)
-	  fWire[i].DeleteHistograms();
-      for(Short_t i=0;i<2;i++)
-	fRelPos[i].DeleteHistograms();
-      for(Short_t i=0;i<2;i++)
-	fAbsPos[i].DeleteHistograms();
+	{
+	  for(i=0;i<4;i++) fWire[i].DeleteHistograms();
+	}
+      for(i=0;i<2;i++) fRelPos[i].DeleteHistograms();
+      for(i=0;i<2;i++) fAbsPos[i].DeleteHistograms();
     }
   return;
 };
@@ -559,13 +539,15 @@ void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std
       SetRootSaveStatus(prefix);
 
       fWSum.ConstructBranchAndVector(tree,prefix,values);
-
+      Short_t i = 0;
       if(bFullSave)
-	for(Short_t i=0;i<4;i++)
-	  fWire[i].ConstructBranchAndVector(tree,thisprefix,values);
-      for(Short_t i=0;i<2;i++)
+	{
+	  for(i=0;i<4;i++)
+	    fWire[i].ConstructBranchAndVector(tree,thisprefix,values);
+	}
+      for(i=0;i<2;i++)
 	fRelPos[i].ConstructBranchAndVector(tree,thisprefix,values);
-      for(Short_t i=0;i<2;i++)
+      for(i=0;i<2;i++)
 	fAbsPos[i].ConstructBranchAndVector(tree,thisprefix,values);
     }
   return;
@@ -573,19 +555,20 @@ void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std
 
 void  QwBPMStripline::FillTreeVector(std::vector<Double_t> &values)
 {
-  if (GetElementName()==""){
-    //  This channel is not used, so skip filling the tree.
-  } else
+  if (GetElementName()=="")
+    {
+      //  This channel is not used, so skip filling the tree.
+    } 
+  else
     {
       fWSum.FillTreeVector(values);
+      Short_t i = 0;
       if(bFullSave)
-	for(Short_t i=0;i<4;i++)
-	  fWire[i].FillTreeVector(values);
-      for(Short_t i=0;i<2;i++)
-	fRelPos[i].FillTreeVector(values);
-      for(Short_t i=0;i<2;i++)
-	fAbsPos[i].FillTreeVector(values);
-
+	{
+	  for(i=0;i<4;i++) fWire[i].FillTreeVector(values);
+	}
+      for(i=0;i<2;i++) fRelPos[i].FillTreeVector(values);
+      for(i=0;i<2;i++) fAbsPos[i].FillTreeVector(values);
     }
   return;
 };
@@ -595,21 +578,18 @@ void QwBPMStripline::Copy(VQwDataElement *source)
 {
   try
     {
-     if(typeid(*source)==typeid(*this))
+     if( typeid(*source)==typeid(*this) )
        {
 	 QwBPMStripline* input = ((QwBPMStripline*)source);
 	 this->fElementName = input->fElementName;
 	 this->fWSum.Copy(&(input->fWSum));
 	 this->bRotated = input->bRotated;
 	 this->bFullSave = input->bFullSave;
-	 for(Short_t i = 0; i < 3; i++)
-	   this->fOffset[i] = input->fOffset[i];
-	 for(Short_t i = 0; i < 4; i++)
-	   this->fWire[i].Copy(&(input->fWire[i]));
-	 for(Short_t i = 0; i < 2; i++)
-	   this->fRelPos[i].Copy(&(input->fRelPos[i]));
-	 for(Short_t i = 0; i < 3; i++)
-	   this->fAbsPos[i].Copy(&(input->fAbsPos[i]));
+	 Short_t i = 0;
+	 for(i = 0; i<3; i++) this->fOffset[i] = input->fOffset[i];
+	 for(i = 0; i<4; i++) this->fWire[i].Copy(&(input->fWire[i]));
+	 for(i = 0; i<2; i++) this->fRelPos[i].Copy(&(input->fRelPos[i]));
+	 for(i = 0; i<3; i++) this->fAbsPos[i].Copy(&(input->fAbsPos[i]));
        }
      else
 	{
@@ -628,14 +608,13 @@ void QwBPMStripline::Copy(VQwDataElement *source)
   return;
 }
 
-void QwBPMStripline::SetEventCutMode(Int_t bcuts){
+void QwBPMStripline::SetEventCutMode(Int_t bcuts)
+{
+  Short_t i = 0;
   bEVENTCUTMODE=bcuts;
-  for (Int_t i=0;i<4;i++)
-    fWire[i].SetEventCutMode(bcuts);
-  for (Int_t i=0;i<2;i++)
-    fRelPos[i].SetEventCutMode(bcuts);
-  for (Int_t i=0;i<2;i++)
-    fAbsPos[i].SetEventCutMode(bcuts);
+  for (i=0;i<4;i++) fWire[i].SetEventCutMode(bcuts);
+  for (i=0;i<2;i++) fRelPos[i].SetEventCutMode(bcuts);
+  for (i=0;i<2;i++) fAbsPos[i].SetEventCutMode(bcuts);
   fWSum.SetEventCutMode(bcuts);
 }
 
@@ -655,22 +634,26 @@ QwParityDB::beam QwBPMStripline::GetDBEntry(QwDatabase *db, TString mtype, TStri
   TString name;
   Double_t avg = 0.0;
   Double_t err = 0.0;
+
+  TString beam_position_type(db->GetMeasurementID(12)); // yp
+  TString beam_asymmetry_type(db->GetMeasurementID(0));//a
+ 
  
   if(mtype.Contains("yield"))
     {
-      sprintf(beam_measurement_type, "yp");
+      sprintf(beam_measurement_type, beam_position_type.Data());
     }
   else if(mtype.Contains("asymmetry"))
     {
-      sprintf(beam_measurement_type, "dp");
+      sprintf(beam_measurement_type, beam_asymmetry_type);
     }
   else if(mtype.Contains("average") )
     {
-      sprintf(beam_measurement_type, "yp");
+      sprintf(beam_measurement_type, beam_position_type.Data());
     }
   else if(mtype.Contains("runningsum"))
     {
-      sprintf(beam_measurement_type, "yp");
+      sprintf(beam_measurement_type, beam_position_type.Data());
     }
   else
     {

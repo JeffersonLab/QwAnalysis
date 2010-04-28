@@ -4,8 +4,9 @@
 #include <vector>
 #include <iostream>
 #include <Rtypes.h>
-#include <TDatime.h>
-#include <TString.h>
+#include <ctime>
+#include "TDatime.h"
+#include "TString.h"
 
 ///
 /// \ingroup QwAnalysis
@@ -19,6 +20,7 @@ class MQwCodaControlEvent
   void ProcessControlEvent(UInt_t evtype, UInt_t* buffer);
   void ReportRunSummary();
 
+  UInt_t GetStartTime() {return fStartTime;};
   UInt_t GetPrestartTime() {return fPrestartTime;};
   UInt_t GetRunNumber() {return fRunNumber;};
   UInt_t GetRunType() {return fRunType;};
@@ -35,6 +37,9 @@ class MQwCodaControlEvent
   TString GetStartSQLTime();
   TString GetEndSQLTime();
 
+  time_t  GetStartUnixTime();
+  time_t  GetEndUnixTime();
+    
 
  protected:
   void ProcessSync(UInt_t local_time, UInt_t statuscode);

@@ -127,7 +127,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   TString fDataFile;
 
-  UInt_t fRunNumber;
+  // UInt_t fRunNumber;
 
 
  protected:

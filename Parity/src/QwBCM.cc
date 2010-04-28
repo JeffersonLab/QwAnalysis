@@ -363,21 +363,24 @@ QwParityDB::beam QwBCM::GetDBEntry(QwDatabase *db, TString mtype, TString subnam
   Double_t avg = 0.0;
   Double_t err = 0.0;
 
+  TString beam_charge_type(db->GetMeasurementID(13)); // yq
+  TString beam_asymmetry_type(db->GetMeasurementID(0));//a
+ 
   if(mtype.Contains("yield"))
     {
-      sprintf(beam_measurement_type, "yq");
+      sprintf(beam_measurement_type, beam_charge_type.Data());
     }
   else if(mtype.Contains("asymmetry"))
     {
-      sprintf(beam_measurement_type, "aq");
+      sprintf(beam_measurement_type, beam_asymmetry_type.Data()); // 1 is a 
     }
   else if(mtype.Contains("average") )
     {
-      sprintf(beam_measurement_type, "yq");
+      sprintf(beam_measurement_type, beam_charge_type.Data());
     }
   else if(mtype.Contains("runningsum"))
     {
-      sprintf(beam_measurement_type, "yq");
+      sprintf(beam_measurement_type, beam_charge_type.Data());
     }
   else
     {

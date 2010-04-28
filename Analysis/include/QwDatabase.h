@@ -13,7 +13,8 @@
 //#include <iostream>
 //#include <iomanip>
 #include <map>
-
+#include <vector>
+#include <string>
 
 // Third Party Headers
 #include <mysql++.h>
@@ -56,23 +57,25 @@ class QwDatabase: private mysqlpp::Connection {
     mysqlpp::Query Query(const char *qstr=0     ) {return query(qstr);} //<! Generate a query to the database.
     mysqlpp::Query Query(const std::string &qstr) {return query(qstr);} //<! Generate a query to the database.
 
-    const UInt_t GetMonitorID(const string& name);   //<! Get monitor_id for beam monitor name
-    const UInt_t GetMainDetectorID(const string& name);   //<! Get main_detector_id for main detector name
-    const UInt_t GetLumiDetectorID(const string& name);   //<! Get lumi_detector_id for lumi detector name
+    const UInt_t GetMonitorID(const string& name);         //<! Get monitor_id for beam monitor name
+    const UInt_t GetMainDetectorID(const string& name);    //<! Get main_detector_id for main detector name
+    const UInt_t GetLumiDetectorID(const string& name);    //<! Get lumi_detector_id for lumi detector name
+    const string GetMeasurementID(const Int_t index);
+    
+    const UInt_t GetRunNumber() {return fRunNumber;}       //<! Run number getter
+    const UInt_t GetRunID()     {return fRunID;}           //<! Run ID getter
+    const UInt_t GetAnalysisID() {return fAnalysisID;};    //<! Get analysis ID
 
-    const UInt_t GetRunNumber() {return fRunNumber;}    //<! Run number getter
-    const UInt_t GetRunID()     {return fRunID;}        //<! Run ID getter
-    const UInt_t GetAnalysisID() {return fAnalysisID;}; //<! Get analysis ID
- 
-    const UInt_t GetRunID(QwEventBuffer& qwevt);        //<! Get run ID using data from CODA event buffer
-    const UInt_t GetAnalysisID(QwEventBuffer& qwevt);   //<! Get analysis ID using data from CODA event buffer
-    Bool_t       SetRunNumber(const UInt_t runnum);     //<! Run number setter
-    const string GetVersion(); //! Return a full version string for the DB schema
+
+    const UInt_t GetRunID(QwEventBuffer& qwevt);           //<! Get run ID using data from CODA event buffer
+    const UInt_t GetAnalysisID(QwEventBuffer& qwevt);      //<! Get analysis ID using data from CODA event buffer
+    Bool_t       SetRunNumber(const UInt_t runnum);        //<! Run number setter
+    const string GetVersion();                             //! Return a full version string for the DB schema
     const string GetVersionMajor() {return fVersionMajor;} //<! fVersionMajor getter
     const string GetVersionMinor() {return fVersionMinor;} //<! fVersionMinor getter
     const string GetVersionPoint() {return fVersionPoint;} //<! fVersionPoint getter
 
-    void         PrintServerInfo();                     //<! Print Server Information
+    void         PrintServerInfo();                        //<! Print Server Information
     
  private:
 
@@ -80,8 +83,9 @@ class QwDatabase: private mysqlpp::Connection {
     const UInt_t SetRunID(QwEventBuffer& qwevt);        //<! Set fRunID using data from CODA event buffer
     const UInt_t SetAnalysisID(QwEventBuffer& qwevt);   //<! Set fAnalysisID using data from CODA event buffer
     void StoreMonitorIDs();                             //<! Retrieve monitor IDs from database and populate fMonitorIDs
-    void StoreMainDetectorIDs();                             //<! Retrieve main detector IDs from database and populate fMainDetectorIDs
-    void StoreLumiDetectorIDs();                             //<! Retrieve LUMI monitor IDs from database and populate fLumiDetectorIDs
+    void StoreMainDetectorIDs();                        //<! Retrieve main detector IDs from database and populate fMainDetectorIDs
+    void StoreLumiDetectorIDs();                        //<! Retrieve LUMI monitor IDs from database and populate fLumiDetectorIDs
+    void StoreMeasurementIDs();
     const bool StoreDBVersion();  //!< Retrieve database schema version information from database
 
     string fDatabase;        //!< Name of database to connect to
@@ -101,10 +105,12 @@ class QwDatabase: private mysqlpp::Connection {
     static std::map<string, unsigned int> fMonitorIDs; //!< Associative array of beam monitor IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
     static std::map<string, unsigned int> fMainDetectorIDs; //!< Associative array of main detector IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
     static std::map<string, unsigned int> fLumiDetectorIDs; //!< Associative array of LUMI detector IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
+    static std::vector<string>            fMeasurementIDs; 
 
     friend class StoreMonitorID;
     friend class StoreMainDetectorID;
     friend class StoreLumiDetectorID;
+    friend class StoreMeasurementID;
 };
 
 class StoreMonitorID {
@@ -130,5 +136,14 @@ class StoreLumiDetectorID {
       QwDatabase::fLumiDetectorIDs.insert(std::make_pair(elem.quantity, elem.lumi_detector_id));
     }
 };
+
+class StoreMeasurementID {
+ public:
+  void operator() (QwParityDB::measurement_type elem) {
+      QwDebug << "StoreMeasurementID:  measurement_type = " << elem.measurement_type_id << QwLog::endl;
+      QwDatabase::fMeasurementIDs.push_back( (std::string) elem.measurement_type_id );
+    }
+};
+
 
 #endif
