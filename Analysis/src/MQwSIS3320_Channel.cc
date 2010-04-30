@@ -32,7 +32,7 @@ const unsigned int MQwSIS3320_Channel::FORMAT_MULTI_EVENT = 0x3;
 const unsigned int MQwSIS3320_Channel::FORMAT_SINGLE_EVENT = 0x4;
 
 // Compile-time debug level
-const Bool_t MQwSIS3320_Channel::kDEBUG = kFALSE;
+const Bool_t MQwSIS3320_Channel::kDEBUG = kTRUE;
 
 
 /**
