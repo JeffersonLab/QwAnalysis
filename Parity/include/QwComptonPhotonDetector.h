@@ -88,6 +88,7 @@ class QwComptonPhotonDetector: public VQwSubsystemParity {
 
     void Copy(VQwSubsystem *source);
     VQwSubsystem*  Copy();
+
     Bool_t Compare(VQwSubsystem *source);
     void Print();
 

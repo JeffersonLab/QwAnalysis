@@ -8,7 +8,7 @@
  * \ingroup	QwCompton
  *
  * The QwComptonElectronDetector class is defined as a parity subsystem that
- * contains all data modules of the electron detector (V1495, ...).
+ * contains all data modules of the electron detector (V1495).
  * It reads in a channel map and pedestal file, and defines the histograms
  * and output trees.
  *
@@ -20,8 +20,15 @@
 // System headers
 #include <vector>
 
+// ROOT headers
+#include <TTree.h>
+#include<TH1D.h>
+
 // Qweak headers
 #include "VQwSubsystemParity.h"
+#include "QwCPV1495_Channel.h"
+#include "QwVQWK_Channel.h"
+
 
 class QwComptonElectronDetector: public VQwSubsystemParity {
 
@@ -36,13 +43,12 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
 
 
     /* derived from VQwSubsystem */
-    void ProcessOptions(QwOptions &options); //Handle command line options
     Int_t LoadChannelMap(TString mapfile);
     Int_t LoadInputParameters(TString pedestalfile);
     Int_t LoadEventCuts(TString & filename);
     Bool_t SingleEventCuts();
     Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-    Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+    Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
     void  PrintDetectorID();
 
     void  ClearEventData();
@@ -73,16 +79,48 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     void  FillHistograms();
     void  DeleteHistograms();
 
+    void  ConstructTree(TDirectory *folder, TString &prefix);
+    void  FillTree();
+    void  DeleteTree();
+
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  FillTreeVector(std::vector<Double_t> &values);
-    void  FillDB(QwDatabase *db, TString type) {return;};
 
     void Copy(VQwSubsystem *source);
     VQwSubsystem*  Copy();
     Bool_t Compare(VQwSubsystem *source);
     void Print();
 
+    QwCPV1495_Channel* GetCPV1495Channel(const TString name);
+
+    
+
   protected:
+    /// Expert tree
+    TTree* fTree;
+    /// Expert tree fields
+    Int_t fTree_fNEvents;
+
+    static const Int_t NPlanes = 4;
+    static const Int_t NPorts = 12;
+    static const Int_t WordsPerPlane = 8;
+    static const Int_t ChannelsPerWord = 4;
+    static const Int_t ChannelsPerPort = 32;
+    static const Int_t ChannelsPerModule = 128;
+
+
+    /// List of V1495 accumulation mode channels
+    std::vector <QwCPV1495_Channel> fFPGAChannel_ac;
+    std::vector <Double_t> fFPGAChannelVector;
+
+ /*=====
+   *  Histograms should be listed below here.
+   *  They should be pointers to histograms which will be created
+   *  inside the ConstructHistograms() 
+   */
+
+
+  TH1D *V1495[NPorts];
 
   private:
 
