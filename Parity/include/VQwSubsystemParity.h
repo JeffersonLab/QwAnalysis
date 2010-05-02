@@ -45,8 +45,7 @@ class VQwSubsystemParity : virtual public VQwSubsystem {
   
   virtual void FillTreeVector(std::vector<Double_t> &values)=0;
 
-  virtual void FillDB(QwDatabase *db, TString type)=0;
-   
+  virtual void FillDB(QwDatabase *db, TString type) {};  
   virtual VQwSubsystem&  operator= (VQwSubsystem *value)=0;//VQwSubsystem routine is overridden. Call it at the beginning by VQwSubsystem::operator=(value)
   virtual VQwSubsystem&  operator+= (VQwSubsystem *value)=0;
   virtual VQwSubsystem&  operator-= (VQwSubsystem *value)=0;
