@@ -61,13 +61,17 @@ class QwCPV1495_Channel: public VQwDataElement {
 
     const QwCPV1495_Channel operator+ (const Double_t &value) const;
     const QwCPV1495_Channel operator- (const Double_t &value) const;
+    const QwCPV1495_Channel operator* (const Double_t &value) const;
     const QwCPV1495_Channel operator+ (const QwCPV1495_Channel &value) const;
     const QwCPV1495_Channel operator- (const QwCPV1495_Channel &value) const;
+    const QwCPV1495_Channel operator* (const QwCPV1495_Channel &value) const;
     QwCPV1495_Channel& operator=  (const QwCPV1495_Channel &value);
     QwCPV1495_Channel& operator+= (const Double_t &value);
     QwCPV1495_Channel& operator-= (const Double_t &value);
+    QwCPV1495_Channel& operator*= (const Double_t &value);
     QwCPV1495_Channel& operator+= (const QwCPV1495_Channel &value);
     QwCPV1495_Channel& operator-= (const QwCPV1495_Channel &value);
+    QwCPV1495_Channel& operator*= (const QwCPV1495_Channel &value);
     void Sum(QwCPV1495_Channel &value1, QwCPV1495_Channel &value2);
     void Difference(QwCPV1495_Channel &value1, QwCPV1495_Channel &value2);
     void Ratio(QwCPV1495_Channel &numer, QwCPV1495_Channel &denom) { };
@@ -95,7 +99,9 @@ class QwCPV1495_Channel: public VQwDataElement {
 
  protected:
     static const Int_t NPlanes = 4;
+    static const Int_t NBoards = 3;
     static const Int_t StripsPerPlane = 96;
+    static const Int_t StripsPerBoard = 32;    
 
  private:
 
@@ -116,7 +122,7 @@ class QwCPV1495_Channel: public VQwDataElement {
     /* FPGA Calibration */
     static const Double_t MeVperStrip;
     Double_t fCalibrationFactor;
-
+    Double_t fOffset;
     /* In sampling mode we have multiple events in a single data block */
     Int_t fCurrentEvent; //! Current triggered event (allow for negative sentinel)
     UInt_t fNumberOfEvents; //! Number of triggered events

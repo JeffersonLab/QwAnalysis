@@ -56,7 +56,7 @@ void  QwCPV1495_Channel::InitializeChannel(UInt_t channel, TString name, UInt_t 
 
   // calibration (mm to GeV), to be added
   fCalibrationFactor = 1.0;
-
+  fOffset = 0.0;
 
   return;
 };
@@ -93,14 +93,16 @@ Int_t QwCPV1495_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, 
  */
 void QwCPV1495_Channel::ProcessEvent()
 {
-  for (Int_t i = 0; i < NPlanes; i++){
-   for (Int_t j = 0; j < StripsPerPlane; j++){
-     Int_t k = StripsPerPlane*i + j;
-     fStripsRaw[i][j] = fFPGAChannel_ac[k];
-     fStrips[i][j] = fFPGAChannel_ac[k];
-     //     fStrips[i][j] *=  fCalibrationFactor;
+  for (Int_t l = 0; l < NBoards; l++){
+   for (Int_t j = 0; j < StripsPerBoard; j++){
+    for (Int_t i = 0; i < NPlanes; i++){
+     Int_t k = StripsPerBoard*NPlanes*l + NPlanes*j + i;
+     Int_t ij =StripsPerBoard*l + j ; 
+     fStripsRaw[i][ij] = fFPGAChannel_ac[k];
+     fStrips[i][ij] = (fFPGAChannel_ac[k] - fOffset)*fCalibrationFactor;
     }
    }
+  }
   return;
 };
 
@@ -128,6 +130,14 @@ const QwCPV1495_Channel QwCPV1495_Channel::operator- (const Double_t &value) con
   return result;
 };
 
+const QwCPV1495_Channel QwCPV1495_Channel::operator* (const Double_t &value) const
+{
+  QwCPV1495_Channel result = *this;
+  result *= value;
+  return result;
+};
+
+
 /**
  * Addition
  * @param value Right-hand side
@@ -151,6 +161,14 @@ const QwCPV1495_Channel QwCPV1495_Channel::operator- (const QwCPV1495_Channel &v
   result -= value;
   return result;
 };
+
+const QwCPV1495_Channel QwCPV1495_Channel::operator* (const QwCPV1495_Channel &value) const
+{
+  QwCPV1495_Channel result = *this;
+  result *= value;
+  return result;
+};
+
 
 /**
  * Assignment
@@ -203,6 +221,18 @@ QwCPV1495_Channel& QwCPV1495_Channel::operator-= (const Double_t &value)
   return *this;
 };
 
+QwCPV1495_Channel& QwCPV1495_Channel::operator*= (const Double_t &value)
+{
+  if (!IsNameEmpty()) {
+   for (Int_t i = 0; i < NPlanes; i++){
+    for (Int_t j = 0; j < StripsPerPlane; j++){
+      this->fStrips[i][j] *= value;
+    }
+   }
+  }
+  return *this;
+};
+
 /**
  * Addition assignment
  * @param value Right-hand side
@@ -231,6 +261,18 @@ QwCPV1495_Channel& QwCPV1495_Channel::operator-= (const QwCPV1495_Channel &value
    for (Int_t i = 0; i < NPlanes; i++){
     for (Int_t j = 0; j < StripsPerPlane; j++){
       this->fStrips[i][j] -= value.fStrips[i][j];
+    }
+   }
+  }
+  return *this;
+};
+
+QwCPV1495_Channel& QwCPV1495_Channel::operator*= (const QwCPV1495_Channel &value)
+{
+  if (!IsNameEmpty()) {
+   for (Int_t i = 0; i < NPlanes; i++){
+    for (Int_t j = 0; j < StripsPerPlane; j++){
+      this->fStrips[i][j] *= value.fStrips[i][j];
     }
    }
   }
@@ -283,7 +325,7 @@ void QwCPV1495_Channel::Scale(Double_t scale)
   if (!IsNameEmpty()) {
    for (Int_t i = 0; i < NPlanes; i++){
     for (Int_t j = 0; j < StripsPerPlane; j++){
-      //      this->fStrips[i][j] *= scale;
+            this->fStrips[i][j] *= scale;
     }
    }
   }
