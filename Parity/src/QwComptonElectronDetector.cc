@@ -85,7 +85,8 @@ Int_t QwComptonElectronDetector::LoadInputParameters(TString pedestalfile)
 {
   TString varname;
   Double_t varcal;
-  Bool_t notfound = kTRUE;
+  Bool_t notfound;
+  notfound = kTRUE;
 
   // Open the file
   QwParameterFile mapstr(pedestalfile.Data());
@@ -128,7 +129,8 @@ void QwComptonElectronDetector::EncodeEventData(std::vector<UInt_t> &buffer)
 Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   UInt_t words_read = 0;
-  Int_t ports_read = 0;
+  Int_t ports_read;
+  ports_read = 0;
 
   // Get the subbank index (or -1 when no match)
   Int_t index = GetSubbankIndex(roc_id, bank_id);
@@ -387,15 +389,18 @@ void  QwComptonElectronDetector::DeleteHistograms()
 
 void  QwComptonElectronDetector::FillHistograms()
 {
-  for (Int_t i=0; i<NPorts; i++) {
-    for (Int_t j=0; j<ChannelsPerPort; j++) {
-      Int_t k = ChannelsPerPort*i + j;
+  Int_t i, j, k;
+  i = j = k = 0;
+  for (i=0; i<NPorts; i++) {
+    for (j=0; j<ChannelsPerPort; j++) {
+      k = ChannelsPerPort*i + j;
       //  if (V1495[i] != NULL)
-	//       V1495[i]->Fill(this->fFPGAChannel_ac[k]);
-	// to be fixed
+      //       V1495[i]->Fill(this->fFPGAChannel_ac[k]);
+      // to be fixed
     }
   }
-  Int_t i = 0; 
+  
+  i = 0; 
   fFPGAChannel_ac[i].FillHistograms();
   return;
 };
@@ -492,6 +497,7 @@ VQwSubsystem*  QwComptonElectronDetector::Copy()
   //  QwComptonElectronDetector* TheCopy = new QwComptonElectronDetector(this->GetSubsystemName() + " Copy");
   // copy->Copy(this);
   // return copy;
+  return NULL;
 }
 /**
  * Get the V1495 Channels for this electron detector

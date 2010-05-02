@@ -80,10 +80,12 @@ void QwCPV1495_Channel::ClearEventData()
 
 void QwCPV1495_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
 {
+  return;
 };
 
 Int_t QwCPV1495_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index)
 {
+  return 0;
 };
 
 /**

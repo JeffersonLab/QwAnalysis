@@ -318,7 +318,7 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
 
 void MQwSIS3320_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
 {
-  Long_t sample;
+  //  Long_t sample;
   std::vector<UInt_t> header;
   std::vector<UInt_t> samples;
 
