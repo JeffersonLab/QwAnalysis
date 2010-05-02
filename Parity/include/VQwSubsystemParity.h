@@ -31,7 +31,7 @@ class VQwSubsystemParity : virtual public VQwSubsystem {
  public:
   VQwSubsystemParity(TString region_tmp):VQwSubsystem(region_tmp){ };
 
-  virtual ~VQwSubsystemParity(){};
+  virtual ~VQwSubsystemParity(){ };
 
   
   virtual void ProcessOptions(QwOptions &options){
@@ -49,6 +49,7 @@ class VQwSubsystemParity : virtual public VQwSubsystem {
   virtual VQwSubsystem&  operator= (VQwSubsystem *value)=0;//VQwSubsystem routine is overridden. Call it at the beginning by VQwSubsystem::operator=(value)
   virtual VQwSubsystem&  operator+= (VQwSubsystem *value)=0;
   virtual VQwSubsystem&  operator-= (VQwSubsystem *value)=0;
+
   virtual void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)=0;
   virtual void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)=0;
   virtual void Ratio(VQwSubsystem *numer, VQwSubsystem *denom)=0;

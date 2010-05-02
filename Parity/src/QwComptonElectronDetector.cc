@@ -64,6 +64,7 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
 	if (dettype == "eaccum") {
 	  if (channum >= (Int_t) fFPGAChannel_ac.size())
            fFPGAChannel_ac.push_back(QwCPV1495_Channel());
+
            TString chname = modtype + Form("_plane%ld",plane) + Form("_strip%ld",stripnum);
 	   fFPGAChannel_ac[channum].SetElementName(chname + "Ch");
 	   fFPGAChannel_ac.at(channum).InitializeChannel(channum, name, plane, stripnum);
@@ -134,7 +135,6 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 
   // Get the subbank index (or -1 when no match)
   Int_t index = GetSubbankIndex(roc_id, bank_id);
-
 
    
    if (bank_id==0x0204) {   
@@ -265,6 +265,7 @@ void QwComptonElectronDetector::ClearEventData()
 {
   for (size_t i =0; i < fFPGAChannel_ac.size();i++)
     fFPGAChannel_ac[i] = 0;
+
   Int_t i=0;
   fFPGAChannel_ac[i].ClearEventData();
   return;
@@ -301,6 +302,17 @@ VQwSubsystem&  QwComptonElectronDetector::operator-=  (VQwSubsystem *value)
   return *this;
 };
 
+VQwSubsystem&  QwComptonElectronDetector::operator*=  (VQwSubsystem *value)
+{
+  if (Compare(value)) {
+    QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
+    for (size_t i = 0; i < input->fFPGAChannel_ac.size(); i++)
+      this->fFPGAChannel_ac[i] *= input->fFPGAChannel_ac[i];
+  }
+  return *this;
+};
+
+
 void  QwComptonElectronDetector::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
 {
   if (Compare(value1) && Compare(value2)) {
@@ -330,9 +342,8 @@ void QwComptonElectronDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
 
 void QwComptonElectronDetector::Scale(Double_t factor)
 { 
-  //  for (size_t i = 0; i < fFPGAChannel_ac.size(); i++)
-  //  this->fFPGAChannel_ac[i] = (UInt_t)(this->(factor*fFPGAChannel_ac[i]));
-  //TO be done
+    for (size_t i = 0; i < fFPGAChannel_ac.size(); i++)
+     this->fFPGAChannel_ac[i] *= factor;
 };
 
 Bool_t QwComptonElectronDetector::Compare(VQwSubsystem *value)
@@ -394,9 +405,8 @@ void  QwComptonElectronDetector::FillHistograms()
   for (i=0; i<NPorts; i++) {
     for (j=0; j<ChannelsPerPort; j++) {
       k = ChannelsPerPort*i + j;
-      //  if (V1495[i] != NULL)
-      //       V1495[i]->Fill(this->fFPGAChannel_ac[k]);
-      // to be fixed
+        if (V1495[i] != NULL)
+	  V1495[i]->Fill(this->V1495ChannelValue[k]);
     }
   }
   
@@ -514,4 +524,5 @@ QwCPV1495_Channel* QwComptonElectronDetector::GetCPV1495Channel(const TString na
     }
   }
   return 0;
+
 };

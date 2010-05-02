@@ -61,6 +61,8 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     VQwSubsystem& operator=  (VQwSubsystem *value);
     VQwSubsystem& operator+= (VQwSubsystem *value);
     VQwSubsystem& operator-= (VQwSubsystem *value);
+    VQwSubsystem& operator*= (VQwSubsystem *value);
+
     void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
     void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
     void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
@@ -91,6 +93,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     VQwSubsystem*  Copy();
     Bool_t Compare(VQwSubsystem *source);
     void Print();
+
 
     QwCPV1495_Channel* GetCPV1495Channel(const TString name);
 
@@ -126,6 +129,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
   private:
 
     static const Bool_t kDebug = kTRUE;
+    Double_t V1495ChannelValue[384];
 
 };
 
