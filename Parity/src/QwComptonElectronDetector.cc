@@ -143,15 +143,12 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
     if (index >= 0 && num_words > 0) {
 
     //  We want to process this ROC.  Begin looping through the data.
-     for (Int_t i = 0; i < NPlanes; i++) { // loop over planes
-      for (Int_t j =0; j < WordsPerPlane; j++) {// loop over words per plane 
-       Int_t k = ChannelsPerPort*i+ChannelsPerWord*j;
-       fFPGAChannel_ac[k+0] = (buffer[(WordsPerPlane*i+j)] &0xff000000)>>24;
-       fFPGAChannel_ac[k+1] = (buffer[(WordsPerPlane*i+j)] &0x00ff0000)>>16;
-       fFPGAChannel_ac[k+2] = (buffer[(WordsPerPlane*i+j)] &0x0000ff00)>>8;
-       fFPGAChannel_ac[k+3] = (buffer[(WordsPerPlane*i+j)] &0x000000ff);
+     for (Int_t i = 0; i < WordsPerModule; i++) { // loop all words in bank
+       fFPGAChannel_ac[i+0] = (buffer[(i)] &0xff000000)>>24;
+       fFPGAChannel_ac[i+32] = (buffer[(i)] &0x00ff0000)>>16;
+       fFPGAChannel_ac[i+64] = (buffer[(i)] &0x0000ff00)>>8;
+       fFPGAChannel_ac[i+96] = (buffer[(i)] &0x000000ff);
       }
-     }
     }
     if (num_words != words_read) {
       QwError << "QwComptonElectronDetector: There were "
@@ -164,14 +161,12 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
    if (bank_id==0x0205) {
 // sub-bank 0x0205, accum mode data from strips 32-63 of planes 1 thru 4
     if (index >= 0 && num_words > 0) {
-     for (Int_t i = 0; i < NPlanes; i++) { // loop over planes
-      for (Int_t j =0; j < WordsPerPlane; j++) {// loop over words per plane 
-       Int_t k = ChannelsPerModule+ChannelsPerPort*i+ChannelsPerWord*j;
-       fFPGAChannel_ac[k+0] = (buffer[(WordsPerPlane*i+j)] &0xff000000)>>24;
-       fFPGAChannel_ac[k+1] = (buffer[(WordsPerPlane*i+j)] &0x00ff0000)>>16;
-       fFPGAChannel_ac[k+2] = (buffer[(WordsPerPlane*i+j)] &0x0000ff00)>>8;
-       fFPGAChannel_ac[k+3] = (buffer[(WordsPerPlane*i+j)] &0x000000ff);
-      }
+     for (Int_t i = 0; i < WordsPerModule; i++) { // loop over all words
+       Int_t j = ChannelsPerModule+i;
+       fFPGAChannel_ac[j+0] = (buffer[(i)] &0xff000000)>>24;
+       fFPGAChannel_ac[j+32] = (buffer[(i)] &0x00ff0000)>>16;
+       fFPGAChannel_ac[j+64] = (buffer[(i)] &0x0000ff00)>>8;
+       fFPGAChannel_ac[j+96] = (buffer[(i)] &0x000000ff);
      }
     }
     if (num_words != words_read) {
@@ -186,14 +181,12 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
    if (bank_id==0x0206) {
 // sub-bank 0x0206, accum mode data from strips 64-95 of planes 1 thru 4
     if (index >= 0 && num_words > 0) {
-     for (Int_t i = 0; i < NPlanes; i++) { // loop over planes
-      for (Int_t j =0; j < WordsPerPlane; j++) {// loop over words per plane 
-       Int_t k = 2*ChannelsPerModule+ChannelsPerPort*i+ChannelsPerWord*j;
-       fFPGAChannel_ac[k+0] = (buffer[(WordsPerPlane*i+j)] &0xff000000)>>24;
-       fFPGAChannel_ac[k+1] = (buffer[(WordsPerPlane*i+j)] &0x00ff0000)>>16;
-       fFPGAChannel_ac[k+2] = (buffer[(WordsPerPlane*i+j)] &0x0000ff00)>>8;
-       fFPGAChannel_ac[k+3] = (buffer[(WordsPerPlane*i+j)] &0x000000ff);
-      }
+     for (Int_t i = 0; i < WordsPerModule; i++) { // loop over planes
+       Int_t j = 2*ChannelsPerModule+i;
+       fFPGAChannel_ac[j+0] = (buffer[(i)] &0xff000000)>>24;
+       fFPGAChannel_ac[j+32] = (buffer[(i)] &0x00ff0000)>>16;
+       fFPGAChannel_ac[j+64] = (buffer[(i)] &0x0000ff00)>>8;
+       fFPGAChannel_ac[j+96] = (buffer[(i)] &0x000000ff);
      }
     }
     if (num_words != words_read) {

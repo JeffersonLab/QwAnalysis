@@ -107,8 +107,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
 
     static const Int_t NPlanes = 4;
     static const Int_t NPorts = 12;
-    static const Int_t WordsPerPlane = 8;
-    static const Int_t ChannelsPerWord = 4;
+    static const Int_t WordsPerModule = 32;
     static const Int_t ChannelsPerPort = 32;
     static const Int_t ChannelsPerModule = 128;
 
