@@ -173,7 +173,6 @@ void QwDatabase::DefineOptions(QwOptions& options)
   options.AddOptions()("QwDatabase.dbusername", po::value<string>(), "database username");
   options.AddOptions()("QwDatabase.dbpassword", po::value<string>(), "database password");
   options.AddOptions()("QwDatabase.dbport", po::value<int>()->default_value(0), "database server port number (defaults to standard mysql port)");
-
 }
 
 /*!

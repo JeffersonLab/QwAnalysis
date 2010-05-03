@@ -195,7 +195,7 @@ void QwOptions::ParseConfigFile()
 #else
       // Boost versions before 1.35 cannot handle files with unregistered options.
       po::store(po::parse_config_file(configstream, fConfigFileOptions), fVariablesMap);
-#endif
+#endif;2
     } catch (std::exception const& e) {
       QwWarning << e.what() << " while parsing configuration file "
                 << fConfigFiles.at(i) << QwLog::endl;

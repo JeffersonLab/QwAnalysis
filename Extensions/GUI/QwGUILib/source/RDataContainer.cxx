@@ -1337,6 +1337,42 @@ int RDataContainer::ReadData(Double_t *x, Double_t *y,
 
 }
 
+// int RDataContainer::GetSectionPointer(char before, char after, int *start, int occurence)
+// {
+//   char l;
+//   int flag1 = 0;
+//   int flag2 = 0;
+//   int occ = 0;
+//   int pos = 0;
+
+//   if(dFp)
+//     {
+//       pos = ftell(dFp);
+//       fseek(dFp,0,SEEK_SET);
+//       while (1) {
+// 	flag = fscanf(dFp,"%c",&l);
+// 	if (flag < 0) break;
+	
+// 	if(l == before) {occ++;}
+// 	if(occ == occurence) {
+// 	  start = ftell(dFp);
+// 	  flag1 = 1;  break;
+// 	}
+//       }     
+      
+
+//       fseek(dFp,pos,SEEK_SET);
+//       return dRows;
+//     }
+//   else
+//     return -1;
+
+
+//   fread((char*)buffer,sizeof(char),size-1,dFp)
+
+    
+// }
+
 int RDataContainer::ReadData(const char *buffer, int size)
 {
   if(!fread((char*)buffer,size,1,dFp)) {

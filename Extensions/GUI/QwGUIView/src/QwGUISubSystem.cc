@@ -24,6 +24,7 @@ QwGUISubSystem::QwGUISubSystem(const TGWindow *p, const TGWindow *main,
   Connect("IsClosing(const char*)",dMainName,(void*)main,"OnObjClose(const char*)");    
   Connect("SendMessageSignal(const char*)",dMainName,(void*)main,"OnReceiveMessage(const char*)");
 
+
 }
 
 QwGUISubSystem::~QwGUISubSystem()
@@ -100,6 +101,13 @@ void QwGUISubSystem::SetDataContainer(RDataContainer *cont)
       Connect(dROOTCont,"IsClosing(char*)","QwGUISubSystem",(void*)this,
 	      "OnObjClose(char*)");
     }
+    if(!strcmp(cont->GetDataName(),"DBASE")){
+      dDatabaseCont = (QwGUIDatabaseContainer*)cont;
+      Connect(dDatabaseCont,"SendMessageSignal(char*)","QwGUISubSystem",(void*)this,
+	      "OnReceiveMessage(char*)");      	  
+      Connect(dDatabaseCont,"IsClosing(char*)","QwGUISubSystem",(void*)this,
+	      "OnObjClose(char*)");
+    }
   }
   else
     dROOTCont = NULL;
@@ -109,6 +117,7 @@ void QwGUISubSystem::SetDataContainer(RDataContainer *cont)
 
   OnNewDataContainer();
 }
+
 
 void QwGUISubSystem::SetLogMessage(const char *buffer, Bool_t tStamp)
 {

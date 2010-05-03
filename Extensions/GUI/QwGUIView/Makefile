@@ -24,12 +24,15 @@ OBJECTS       += QwGUILumiDetector.o
 OBJECTS       += QwGUIInjector.o
 OBJECTS       += QwGUIEventDisplay.o
 OBJECTS       += QwGUISuperCanvas.o
+OBJECTS       += QwGUIDatabaseContainer.o
+OBJECTS       += QwGUIDatabaseSelectionDialog.o
 
 # Now append the object files that Don't require a CINT dictionary.
 #NODICTOBJECTS   = QwHit.o
 #NODICTOBJECTS  += QwHitRootContainer.o
 #NODICTOBJECTS  += QwHitContainer.o
 #NODICTOBJECTS  += QwParameterFile.o
+#NODICTOBJECTS  += $(QWANALYSIS)/Analysis/src/QwDatabase.o
 
 #QWDICTOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwHitDict.o
 #QWDICTOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwHitContainerDict.o
@@ -66,24 +69,31 @@ DEBUGFLAGS    = #-DQWGUI_DEBUG
 CXX           = g++
 CXXFLAGS      = -Wall -fPIC -DVERS="\"$(VERS)\"" -g #-O2
 LD            = g++
-LDFLAGS       = #-O2
+LDFLAGS       = #-O
 SOFLAGS       = -shared
 SYSLIBS       =
 GEOMLIB       = -lGeom
 GUILIB        = -lGuiHtml
 
-ROOTCFLAGS   := $(shell root-config --cflags)
-ROOTLIBS     := $(shell root-config --libs)
 ROOTGLIBS    := $(shell root-config --glibs)
+QWEAKLIBS     := $(shell ${QWANALYSIS}/bin/qweak-config --libs)
+QWEAKLDFLAGS  := $(shell ${QWANALYSIS}/bin/qweak-config --ldflags)
+#  When we get the QwAnalysis include paths, turn paths like "./*" into "${QWANALYSIS}/*".
+REGEXP_QWANA  := $(shell echo ${QWANALYSIS} | sed 's/\//\\\//g')
+QWEAKCPPFLAGS := $(shell ${QWANALYSIS}/bin/qweak-config --cppflags | sed 's/I\./I${REGEXP_QWANA}/g' )
 
-QWTRINCLUDE    = -I$(QWANALYSIS)/Tracking/include
-QWANINCLUDE    = -I$(QWANALYSIS)/Analysis/include
-QWPRINCLUDE    = -I$(QWANALYSIS)/Parity/include
+QWTRINCLUDE     = -I$(QWANALYSIS)/Tracking/include
+QWANINCLUDE     = -I$(QWANALYSIS)/Analysis/include
+QWPRINCLUDE     = -I$(QWANALYSIS)/Parity/include
 
-QwLIBS =
+#QWEVINCLUDE     = -I$(QWANALYSIS)/evio/include
+#QWMSQLPPINCLUDE = -I/usr/include/mysql++
+#QWMSQLINCLUDE   = -I/usr/include/mysql
 
-CXXFLAGS     += $(DEBUGFLAGS) $(ROOTCFLAGS) -Wno-deprecated
-LIBS          = $(ROOTLIBS) $(SYSLIBS) $(QWLIBS)
+#QwLIBS = -l
+
+CXXFLAGS     += $(DEBUGFLAGS) $(QWEAKCPPFLAGS) -Wno-deprecated
+LIBS          = $(QWEAKLIBS) $(SYSLIBS) $(QWLIBS)
 GLIBS         = $(ROOTGLIBS) $(SYSLIBS) $(QWLIBS)
 
 ENSCRIPT      = @enscript -2Gjr -o
@@ -93,12 +103,12 @@ ENSCRIPT      = @enscript -2Gjr -o
 all: $(APPLIC)
 $(QWOBJECT)
 $(APPLIC): $(OBJECTS) $(NODICTOBJECTS) $(DICTS) $(QWDICTOBJECTS) $(RDATALIB)
-	$(CXX) -o $@ $(LDFLAGS) $(GLIBS) $(GEOMLIB) $(GUILIB) $^
+	$(CXX) -o $@ $(LDFLAGS) $(QWEAKLDFLAGS) $(LIBS) $(GLIBS) $(GEOMLIB) $(GUILIB) $^
 	ln -sf QwGUIView/$@ ../QwGUI
 	@echo "$@ done"
 
 %.o : $(PRG_SOURCE)/%.cc
-	$(CXX) -c $(CXXFLAGS) $< -I$(PRG_INCLUDE) -I$(LIBINCLUDE)   $(QWTRINCLUDE) $(QWANINCLUDE) $(QWPRINCLUDE)
+	$(CXX) -c $(CXXFLAGS) $< -I$(PRG_INCLUDE) -I$(LIBINCLUDE)
 
 %.o : $(QWTRSOURCE)/%.cc
 	$(CXX) -c $(CXXFLAGS) $<  $(QWTRINCLUDE) $(QWPRINCLUDE) $(QWANINCLUDE) -I$(PRG_INCLUDE) -I$(LIBINCLUDE)
@@ -108,7 +118,7 @@ $(APPLIC): $(OBJECTS) $(NODICTOBJECTS) $(DICTS) $(QWDICTOBJECTS) $(RDATALIB)
 
 %Dict.cc : $(PRG_INCLUDE)/%.h
 	@echo "Generating dictionary $@..."
-	rootcint -f $@ -c -I$(LIBINCLUDE) $(QWTRINCLUDE) $(QWPRINCLUDE) $(QWANINCLUDE) $^
+	rootcint -f $@ -c -DROOTCINTMODE -I$(LIBINCLUDE) $(QWTRINCLUDE) $(QWANINCLUDE) $(QWPRINCLUDE) $^
 
 clean:
 	rm -f ./*.o ./core ./*~ ./*Dict.cc ./*Dict.h ./~* ./G__*.* source/*~ \
