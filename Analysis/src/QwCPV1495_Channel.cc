@@ -94,12 +94,12 @@ Int_t QwCPV1495_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, 
 void QwCPV1495_Channel::ProcessEvent()
 {
   for (Int_t l = 0; l < NBoards; l++){
-   for (Int_t j = 0; j < StripsPerBoard; j++){
-    for (Int_t i = 0; i < NPlanes; i++){
-     Int_t k = StripsPerBoard*NPlanes*l + NPlanes*j + i;
-     Int_t ij =StripsPerBoard*l + j ; 
-     fStripsRaw[i][ij] = fFPGAChannel_ac[k];
-     fStrips[i][ij] = (fFPGAChannel_ac[k] - fOffset)*fCalibrationFactor;
+   for (Int_t i = 0; i < NPlanes; i++){
+    for (Int_t j = 0; j < StripsPerBoard; j++){
+     Int_t k = StripsPerBoard*NPlanes*l + StripsPerBoard*i + j;
+     Int_t m =  StripsPerBoard*l + j;
+     fStripsRaw[i][m] = fFPGAChannel_ac[k];
+     fStrips[i][m] = (fFPGAChannel_ac[k] - fOffset)*fCalibrationFactor;
     }
    }
   }
