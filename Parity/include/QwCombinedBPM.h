@@ -22,7 +22,7 @@
 class QwCombinedBPM : public VQwDataElement{
 /////
  public:
-  QwCombinedBPM();
+  QwCombinedBPM(){};
   QwCombinedBPM(TString name, Bool_t ROTATED){
     InitializeChannel(name, ROTATED);
   };
