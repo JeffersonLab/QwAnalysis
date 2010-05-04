@@ -29,8 +29,6 @@
 
 class QwMainCerenkovDetectorID;
 
-enum EMainDetInstrumentType{IntegrationPMT, CombinedPMT};
-
 class QwMainCerenkovDetector: public VQwSubsystemParity {
   /******************************************************************
    *  Class: QwMainCerenkovDetector
@@ -61,10 +59,10 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString  filename);
-  Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings 
+  Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-  Int_t GetEventcutErrorFlag();//return the error flag 
-  
+  Int_t GetEventcutErrorFlag();//return the error flag
+
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
@@ -157,7 +155,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
 
  private:
 
-  static const Bool_t bDEBUG=kFALSE; 
+  static const Bool_t bDEBUG=kFALSE;
   static const Bool_t bNormalization=kTRUE;
   std::vector<TString> DetectorTypes;// for example could be IntegrationPMT, LUMI,BPMSTRIPLINE, etc..
   Int_t fMainDetErrorCount;

@@ -49,6 +49,13 @@ enum EQwDetectorType {
   kTypeScanner		// Focal plane scanner
 };
 
+// Enumerator type for the instrument type, used in subsystems that have to
+// distinguish between various detector types.
+enum EQwInstrumentType {
+  kQwIntegrationPMT,	// Integration PMT
+  kQwCombinedPMT	// Combined PMT
+};
+
 
 //=======
 // Enumerator increments

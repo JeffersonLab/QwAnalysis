@@ -397,7 +397,7 @@ void QwMainCerenkovDetector::SetRandomEventParameters(Double_t mean, Double_t si
   for (size_t i = 0; i < fMainDetID.size(); i++)
     {
       // This is a QwIntegrationPMT
-      if (fMainDetID.at(i).fTypeID == IntegrationPMT)
+      if (fMainDetID.at(i).fTypeID == kQwIntegrationPMT)
         fIntegrationPMT[fMainDetID.at(i).fIndex].SetRandomEventParameters(mean, sigma);
     }
 
@@ -408,7 +408,7 @@ void QwMainCerenkovDetector::SetRandomEventAsymmetry(Double_t asymmetry)
   for (size_t i = 0; i < fMainDetID.size(); i++)
     {
       // This is a QwIntegrationPMT
-      if (fMainDetID.at(i).fTypeID == IntegrationPMT)
+      if (fMainDetID.at(i).fTypeID == kQwIntegrationPMT)
         fIntegrationPMT[fMainDetID.at(i).fIndex].SetRandomEventAsymmetry(asymmetry);
     }
 
@@ -419,7 +419,7 @@ void QwMainCerenkovDetector::RandomizeEventData(int helicity)
   for (size_t i = 0; i < fMainDetID.size(); i++)
     {
       // This is a QwIntegrationPMT
-      if (fMainDetID.at(i).fTypeID == IntegrationPMT)
+      if (fMainDetID.at(i).fTypeID == kQwIntegrationPMT)
         fIntegrationPMT[fMainDetID.at(i).fIndex].RandomizeEventData(helicity);
     }
 
@@ -434,7 +434,7 @@ void QwMainCerenkovDetector::EncodeEventData(std::vector<UInt_t> &buffer)
   for (size_t i = 0; i < fMainDetID.size(); i++)
     {
       // This is a QwIntegrationPMT
-      if (fMainDetID.at(i).fTypeID == IntegrationPMT)
+      if (fMainDetID.at(i).fTypeID == kQwIntegrationPMT)
         fIntegrationPMT[fMainDetID.at(i).fIndex].EncodeEventData(elements);
     }
 
@@ -501,7 +501,7 @@ Int_t QwMainCerenkovDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t 
           if (fMainDetID[i].fSubbankIndex==index)
             {
 
-              if (fMainDetID[i].fTypeID==IntegrationPMT)
+              if (fMainDetID[i].fTypeID == kQwIntegrationPMT)
                 {
                   if (lkDEBUG)
                     {
@@ -666,7 +666,7 @@ void  QwMainCerenkovDetector::ConstructHistograms(TDirectory *folder, TString &p
 //           Int_t ind1 = GetDetectorIndex(GetDetectorTypeID("integrationpmt"),fMainDetID[i].fdetectorname);
 //           if (ind1>=0)  fIntegrationPMT[ind1].ConstructHistograms(folder,prefix);
 //         }
-// 
+//
 //       if (fMainDetID[i].fdetectortype =="combinationpmt")
 //         {
 //           Int_t ind2 = GetDetectorIndex(GetDetectorTypeID("combinationpmt"),fMainDetID[i].fdetectorname);
@@ -692,7 +692,7 @@ void  QwMainCerenkovDetector::FillHistograms()
 //           Int_t ind1 = GetDetectorIndex(GetDetectorTypeID("integrationpmt"),fMainDetID[i].fdetectorname);
 //           if (ind1>=0)  fIntegrationPMT[ind1].FillHistograms();
 //         }
-// 
+//
 //       if (fMainDetID[i].fdetectortype =="combinationpmt")
 //         {
 //           Int_t ind2 = GetDetectorIndex(GetDetectorTypeID("combinationpmt"),fMainDetID[i].fdetectorname);
@@ -720,7 +720,7 @@ void  QwMainCerenkovDetector::DeleteHistograms()
 //           Int_t ind1 = GetDetectorIndex(GetDetectorTypeID("integrationpmt"),fMainDetID[i].fdetectorname);
 //           if (ind1>=0)  fIntegrationPMT[ind1].DeleteHistograms();
 //         }
-// 
+//
 //       if (fMainDetID[i].fdetectortype =="combinationpmt")
 //         {
 //           Int_t ind2 = GetDetectorIndex(GetDetectorTypeID("combinationpmt"),fMainDetID[i].fdetectorname);
@@ -747,7 +747,7 @@ void QwMainCerenkovDetector::ConstructBranchAndVector(TTree *tree, TString & pre
 //           Int_t ind1 = GetDetectorIndex(GetDetectorTypeID("integrationpmt"),fMainDetID[i].fdetectorname);
 //           if (ind1>=0)  fIntegrationPMT[ind1].ConstructBranchAndVector(tree, prefix, values);
 //         }
-// 
+//
 //       if (fMainDetID[i].fdetectortype =="combinationpmt")
 //         {
 //           Int_t ind2 = GetDetectorIndex(GetDetectorTypeID("combinationpmt"),fMainDetID[i].fdetectorname);
@@ -775,7 +775,7 @@ void QwMainCerenkovDetector::FillTreeVector(std::vector<Double_t> &values)
 //           Int_t ind1 = GetDetectorIndex(GetDetectorTypeID("integrationpmt"),fMainDetID[i].fdetectorname);
 //           if (ind1>=0)  fIntegrationPMT[ind1].FillTreeVector(values);
 //         }
-// 
+//
 //       if (fMainDetID[i].fdetectortype =="combinationpmt")
 //         {
 //           Int_t ind2 = GetDetectorIndex(GetDetectorTypeID("combinationpmt"),fMainDetID[i].fdetectorname);

@@ -17,9 +17,6 @@
 #include "QwIntegrationPMT.h"
 
 
-enum ELumiInstrumentType{kIntegrationPMT};
-// this emun vector needs to be coherent with the DetectorTypes declaration in the QwLumi constructor
-
 
 ///
 /// \ingroup QwAnalysis_BL
@@ -43,7 +40,7 @@ class QwLumiDetectorID
   TString fdetectorname;
   TString fdetectortype; // stripline, IntegrationPMT, ... this string is encoded by fTypeID
 
-  
+
 
   void Print();
 
@@ -77,10 +74,10 @@ class QwLumi : public VQwSubsystemParity{
   Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
-  Int_t GetEventcutErrorFlag();//return the error flag 
-  
+  Int_t GetEventcutErrorFlag();//return the error flag
+
   void Calculate_Running_Average();
-  void Do_RunningSum(); 
+  void Do_RunningSum();
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -126,7 +123,7 @@ class QwLumi : public VQwSubsystemParity{
  std::vector <QwLumiDetectorID> fLumiDetectorID;
 
 
- 
+
 
 
 /////
@@ -134,8 +131,8 @@ class QwLumi : public VQwSubsystemParity{
  std::vector<TString> DetectorTypes;// for example could be IntegrationPMT, LUMI,BPMSTRIPLINE, etc..
  Int_t fQwLumiErrorCount;
 
-  
- static const Bool_t bDEBUG=kFALSE; 
+
+ static const Bool_t bDEBUG=kFALSE;
 
 };
 
