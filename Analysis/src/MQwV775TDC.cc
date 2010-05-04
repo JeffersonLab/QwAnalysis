@@ -38,7 +38,6 @@ MQwV775TDC::MQwV775TDC()
 
   fV775ValidFlag     = kFALSE;
   fV775HeaderFlag    = kFALSE;
-  fV775DummyFlag     = kFALSE;
 
   fV775SlotNumber    = 0;
   fV775ChannelNumber = 0;
@@ -49,7 +48,7 @@ MQwV775TDC::MQwV775TDC()
 
 
 
-void MQwV775TDC::DecodeTDCWord(UInt_t &word)
+void MQwV775TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
 {
   
   fV775SlotNumber = (word & kV775Mask_SlotNumber)>>27;
@@ -92,4 +91,17 @@ Double_t MQwV775TDC::SubtractReference(Double_t rawtime, Double_t reftime)
 {
   Double_t real_time = rawtime - reftime;  
   return real_time;
+}
+
+
+UInt_t  MQwV775TDC::GetTDCTriggerTime()
+{
+  UInt_t trigger_time = 512; 
+  // V775TDC has no trigger time information into its data stream.
+  // To keep the same function name between V775TDC and F1TDC,
+  // I use this function in order to return "trigger_time" as 512.
+  // The valid trigger time of F1TDC is in the range of 0 - 511,
+  // thus we can distinguish whether F1TDC or V775TDC.
+
+  return trigger_time;
 }

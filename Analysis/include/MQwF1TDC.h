@@ -40,28 +40,18 @@ class MQwF1TDC{
   UInt_t GetF1ChannelNumber(){return fF1ChannelNumber;};
   UInt_t GetF1Data(){return fF1Dataword;};
   */
-  void DecodeTDCWord(UInt_t &word);
+  void DecodeTDCWord(UInt_t &word, const UInt_t roc_id);
 
-  Bool_t IsValidDataword()         {return !fF1HeaderFlag;}; // There are two data types (data word and header)
-
+  Bool_t IsValidDataword();
  
-  Bool_t IsHitFIFO()               {return fF1HitFIFOFlag;};
-  Bool_t IsOutputFIFO()            {return fF1OutputFIFOFlag;};
-  Bool_t IsResolutionLock()        {return fF1ResolutionLockFlag;};
-
   UInt_t GetTDCSlotNumber()        {return fF1SlotNumber;};
   UInt_t GetTDCChannelNumber()     {return fF1ChannelNumber;};
   UInt_t GetTDCData()              {return fF1Dataword;};
-
-
-  Bool_t IsHeaderTrigFIFO()        {return fF1HeaderTrigFIFOFlag;};
-  UInt_t GetTDCHeaderEventNumber() {return fF1HeaderEventNumber;};
-  UInt_t GetTDCHeaderTriggerTime() {return fF1HeaderTriggerTime;};
-  Bool_t IsHeaderXorSetup()        {return fF1HeaderXorSetupFlag;};
-
-  Bool_t IsValidDataSlot()         {return fF1ValidDataSlotFlag;};
+  
  
-
+  UInt_t GetTDCEventNumber()       {return GetTDCHeaderEventNumber();};
+  UInt_t GetTDCTriggerTime()       {return GetTDCHeaderTriggerTime();};
+  
   void SetReferenceParameters(Double_t mindiff, Double_t maxdiff,
 			      Double_t offset, Double_t shift){
     fMinDiff   = mindiff;
@@ -69,13 +59,14 @@ class MQwF1TDC{
     fOffset    = offset;
     fTimeShift = shift;
   };
-
-  //  UInt_t SubtractReference(UInt_t rawtime, UInt_t a);
+  
   Double_t SubtractReference(Double_t rawtime, Double_t reftime);
 
-  // The two below functions are needed to debug
-  void PrintTDCHeader(Bool_t flag);
-  void PrintTDCData(Bool_t flag);
+  
+  // Two print functions are used for a debugging purpose temporarily 
+  void   PrintTDCHeader(Bool_t flag);
+  void   PrintTDCData(Bool_t flag);
+  
 
  private:
 
@@ -116,7 +107,11 @@ class MQwF1TDC{
   //         inserted to make the block of data output from the module consist of
   //         an "even" number of words.
   // Slot 30 : the module will return 30 when the data is not valid
-  //           Thu Apr 22 12:17:25 EDT 2010 (jhlee)
+  // 
+  //           Tempoararily comment out, because I have no idea how
+  //           to check this inside MQwF1TDC so we don't interrupt 
+  //           MQwV775TDC. I think "IsSlotRegistered()" can do instead of this
+  //                   
   
   //  These variables are used in the SubtractReference routine.
   Double_t fMinDiff;     ///< Low edge of acceptable range of F1TDC channel time/reference time difference
@@ -129,6 +124,27 @@ class MQwF1TDC{
                          ///  NOTE:  this would preferrably be done by a different function than 
                          ///  MQwF1TDC::SubtractReference, but R3 has this correction designed in for now.
 
+  Bool_t fF1FirstWordFlag;
+/*   UInt_t fheader_old_event_number; */
+/*   UInt_t fheader_old_trigger_time; */
+
+
+ 
+  void   PrintHitFIFOStatus(const UInt_t roc_id);
+  void   PrintOutputFIFOStatus(const UInt_t roc_id);
+  void   PrintResolutionLockStatus(const UInt_t roc_id);
+
+ 
+
+  UInt_t GetTDCHeaderEventNumber() {return fF1HeaderEventNumber;};
+  UInt_t GetTDCHeaderTriggerTime() {return fF1HeaderTriggerTime;};
+
+
+  //Bool_t IsValidDataSlot()         {return fF1ValidDataSlotFlag;};
+  // at the moment we don't use the following functions to check
+  // Xor setup and TrigFIFO status (Mon May  3 15:27:21 EDT 2010, jhlee)
+  Bool_t IsHeaderXorSetup()        {return fF1HeaderXorSetupFlag;};
+  Bool_t IsHeaderTrigFIFO()        {return fF1HeaderTrigFIFOFlag;};
 
 };
 

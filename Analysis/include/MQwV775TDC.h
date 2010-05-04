@@ -34,7 +34,7 @@ class MQwV775TDC{
 
  protected:
   //void DecodeV775Word(UInt_t &word);
-  void DecodeTDCWord(UInt_t &word);
+  void DecodeTDCWord(UInt_t &word, const UInt_t roc_id=0);
 
   /*
   Bool_t IsV775ValidData(){return fV775ValidFlag;};
@@ -48,16 +48,12 @@ class MQwV775TDC{
 
   Bool_t IsValidDataword()    {return fV775ValidFlag;};
 
-  Bool_t IsHitFIFO()          {return fV775DummyFlag;}; // Do nothing
-  Bool_t IsOutputFIFO()       {return fV775DummyFlag;}; // Do nothing
-  Bool_t IsResolutionLock()   {return fV775DummyFlag;}; // Do nothing
-
   UInt_t GetTDCSlotNumber()   {return fV775SlotNumber;};
   UInt_t GetTDCChannelNumber(){return fV775ChannelNumber;};
   UInt_t GetTDCData()         {return fV775Dataword;};
 
   UInt_t GetTDCEventNumber()  {return fV775EventNumber;};
-  UInt_t GetTDCTriggerTime()  {return 0;}; // Do nothing
+  UInt_t GetTDCTriggerTime();
 
   void SetReferenceParameters(Double_t mindiff, Double_t maxdiff,
 			      Double_t offset, Double_t shift){
@@ -90,7 +86,6 @@ class MQwV775TDC{
 
   Bool_t fV775ValidFlag;
   Bool_t fV775HeaderFlag;
-  Bool_t fV775DummyFlag; // do nothing 
 
   UInt_t fV775SlotNumber;
   UInt_t fV775ChannelNumber;
