@@ -9,21 +9,21 @@ sample_size=400
 
 
 !ADC0
-  VQWK, 0, 0,  integrationpmt,  dslumi1
-  VQWK, 0, 1,  integrationpmt,  dslumi2
-  VQWK, 0, 2,  integrationpmt,  dslumi3
-  VQWK, 0, 3,  integrationpmt,  dslumi4
-  VQWK, 0, 4,  integrationpmt,  dslumi5
-  VQWK, 0, 5,  integrationpmt,  dslumi6
-  VQWK, 0, 6,  integrationpmt,  dslumi7
-  VQWK, 0, 7,  integrationpmt,  dslumi8
+  VQWK, 0, 0,  integrationpmt,  qwk_dslumi1
+  VQWK, 0, 1,  integrationpmt,  qwk_dslumi2
+  VQWK, 0, 2,  integrationpmt,  qwk_dslumi3
+  VQWK, 0, 3,  integrationpmt,  qwk_dslumi4
+  VQWK, 0, 4,  integrationpmt,  qwk_dslumi5
+  VQWK, 0, 5,  integrationpmt,  qwk_dslumi6
+  VQWK, 0, 6,  integrationpmt,  qwk_dslumi7
+  VQWK, 0, 7,  integrationpmt,  qwk_dslumi8
 
 !ADC1
-  VQWK, 1, 0,  integrationpmt,  uslumi1neg
-  VQWK, 1, 1,  integrationpmt,  uslumi1pos
-  VQWK, 1, 2,  integrationpmt,  uslumi3neg
-  VQWK, 1, 3,  integrationpmt,  uslumi3pos
-  VQWK, 1, 4,  integrationpmt,  uslumi5neg
-  VQWK, 1, 5,  integrationpmt,  uslumi5pos
-  VQWK, 1, 6,  integrationpmt,  uslumi7neg
-  VQWK, 1, 7,  integrationpmt,  uslumi7pos
+  VQWK, 1, 0,  integrationpmt,  qwk_uslumi1neg
+  VQWK, 1, 1,  integrationpmt,  qwk_uslumi1pos
+  VQWK, 1, 2,  integrationpmt,  qwk_uslumi3neg
+  VQWK, 1, 3,  integrationpmt,  qwk_uslumi3pos
+  VQWK, 1, 4,  integrationpmt,  qwk_uslumi5neg
+  VQWK, 1, 5,  integrationpmt,  qwk_uslumi5pos
+  VQWK, 1, 6,  integrationpmt,  qwk_uslumi7neg
+  VQWK, 1, 7,  integrationpmt,  qwk_uslumi7pos
