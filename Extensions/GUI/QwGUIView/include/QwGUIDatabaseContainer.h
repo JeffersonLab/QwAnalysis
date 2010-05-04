@@ -4,6 +4,7 @@
 #include "RDataContainer.h"
 #include "QwGUIDatabaseSelectionDialog.h"
 
+
 #ifndef ROOTCINTMODE
 #include "QwDatabase.h"
 #include "QwOptions.h"
@@ -18,6 +19,7 @@ class QwGUIDatabaseContainer : public RDataContainer {
   const TGWindow *dParent;
   const TGWindow *dMain;
   QwDatabase *dDatabase;
+  
 
   Char_t dMiscbuffer[MSG_SIZE_MAX];
   Char_t dMiscbuffer2[MSG_SIZE_MAX];
@@ -33,6 +35,11 @@ public:
 
   int OpenDatabase();
   void CloseDatabase();
+  Bool_t Connect(){if(dDatabase) return dDatabase->Connect(); return kFalse;};
+#ifndef ROOTCINTMODE
+  mysqlpp::Query Query(){ if(dDatabase) return dDatabase->Query();};
+#endif
+  void Disconnect() {if(dDatabase) dDatabase->Disconnect();};
   
   ClassDef(QwGUIDatabaseContainer,0);
 };
