@@ -397,7 +397,7 @@ void QwMainCerenkovDetector::SetRandomEventParameters(Double_t mean, Double_t si
   for (size_t i = 0; i < fMainDetID.size(); i++)
     {
       // This is a QwIntegrationPMT
-      if (fMainDetID.at(i).fTypeID == kIntegrationPMT)
+      if (fMainDetID.at(i).fTypeID == IntegrationPMT)
         fIntegrationPMT[fMainDetID.at(i).fIndex].SetRandomEventParameters(mean, sigma);
     }
 
@@ -408,7 +408,7 @@ void QwMainCerenkovDetector::SetRandomEventAsymmetry(Double_t asymmetry)
   for (size_t i = 0; i < fMainDetID.size(); i++)
     {
       // This is a QwIntegrationPMT
-      if (fMainDetID.at(i).fTypeID == kIntegrationPMT)
+      if (fMainDetID.at(i).fTypeID == IntegrationPMT)
         fIntegrationPMT[fMainDetID.at(i).fIndex].SetRandomEventAsymmetry(asymmetry);
     }
 
@@ -419,7 +419,7 @@ void QwMainCerenkovDetector::RandomizeEventData(int helicity)
   for (size_t i = 0; i < fMainDetID.size(); i++)
     {
       // This is a QwIntegrationPMT
-      if (fMainDetID.at(i).fTypeID == kIntegrationPMT)
+      if (fMainDetID.at(i).fTypeID == IntegrationPMT)
         fIntegrationPMT[fMainDetID.at(i).fIndex].RandomizeEventData(helicity);
     }
 
@@ -434,7 +434,7 @@ void QwMainCerenkovDetector::EncodeEventData(std::vector<UInt_t> &buffer)
   for (size_t i = 0; i < fMainDetID.size(); i++)
     {
       // This is a QwIntegrationPMT
-      if (fMainDetID.at(i).fTypeID == kIntegrationPMT)
+      if (fMainDetID.at(i).fTypeID == IntegrationPMT)
         fIntegrationPMT[fMainDetID.at(i).fIndex].EncodeEventData(elements);
     }
 
@@ -501,7 +501,7 @@ Int_t QwMainCerenkovDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t 
           if (fMainDetID[i].fSubbankIndex==index)
             {
 
-              if (fMainDetID[i].fTypeID==kIntegrationPMT)
+              if (fMainDetID[i].fTypeID==IntegrationPMT)
                 {
                   if (lkDEBUG)
                     {

@@ -100,19 +100,25 @@ void QwGUISubSystem::SetDataContainer(RDataContainer *cont)
 	      "OnReceiveMessage(char*)");      	  
       Connect(dROOTCont,"IsClosing(char*)","QwGUISubSystem",(void*)this,
 	      "OnObjClose(char*)");
+      sprintf(dMiscbuffer2,"Sub system %s message: Received new ROOT data\n",GetName());
+
     }
+    else
+      dROOTCont = NULL;
+
     if(!strcmp(cont->GetDataName(),"DBASE")){
       dDatabaseCont = (QwGUIDatabaseContainer*)cont;
       Connect(dDatabaseCont,"SendMessageSignal(char*)","QwGUISubSystem",(void*)this,
 	      "OnReceiveMessage(char*)");      	  
       Connect(dDatabaseCont,"IsClosing(char*)","QwGUISubSystem",(void*)this,
 	      "OnObjClose(char*)");
-    }
-  }
-  else
-    dROOTCont = NULL;
 
-  sprintf(dMiscbuffer2,"Sub system %s message: Received new data\n",GetName());
+      sprintf(dMiscbuffer2,"Sub system %s message: Received new database data\n",GetName());
+    }
+    else
+      dDatabaseCont = NULL;
+  }
+
   SetLogMessage(dMiscbuffer2, kTrue);
 
   OnNewDataContainer();

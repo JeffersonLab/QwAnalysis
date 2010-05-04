@@ -71,6 +71,8 @@ main(Int_t argc, Char_t* argv[])
   subsystem_tmp = NULL;
 
 
+  QwDetectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
+  QwDetectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
   QwDetectors.push_back(new QwBeamLine("Injector BeamLine"));
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");  
@@ -125,11 +127,11 @@ main(Int_t argc, Char_t* argv[])
       //      TString rootfilename = Form("%s/Qweak_BeamLine_%d.root", getenv("QW_ROOTFILES_DIR"), run);
 
   
-      TString rootfilename=std::string(getenv("QW_ROOTFILES"))+Form("/Qweak_BeamLine_%s.root",  QwEvt.GetRunLabel().Data());
+//       TString rootfilename=std::string(getenv("QW_ROOTFILES"))+Form("/Qweak_BeamLine_%s.root",  QwEvt.GetRunLabel().Data());
+      TString rootfilename=std::string(getenv("QW_ROOTFILES"))+Form("/Qweak_%s.root",  QwEvt.GetRunLabel().Data());
 					
       std::cout<<" rootfilename="<<rootfilename<<"\n";
-      TFile rootfile(rootfilename,
-		     "RECREATE","QWeak ROOT file");
+      TFile rootfile(rootfilename,"RECREATE","QWeak ROOT file");
 
       if(bHisto)
 	{

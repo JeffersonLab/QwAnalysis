@@ -29,7 +29,7 @@
 
 class QwMainCerenkovDetectorID;
 
-enum EMainDetInstrumentType{kIntegrationPMT, kCombinedPMT};
+enum EMainDetInstrumentType{IntegrationPMT, CombinedPMT};
 
 class QwMainCerenkovDetector: public VQwSubsystemParity {
   /******************************************************************
