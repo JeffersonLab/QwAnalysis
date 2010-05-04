@@ -97,7 +97,7 @@
 #include "QwComptonElectronDetector.h"
 //
 #include "MQwSIS3320_Channel.h"
-#include "QwCPV1495_Channel.h"
+//#include "QwCPV1495_Channel.h"
 
 // Multiplet structure
 static const int kMultiplet = 4;
