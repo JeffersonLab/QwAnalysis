@@ -28,49 +28,56 @@ export QWANALYSIS=`echo $local_path | sed 's/\/SetupFiles//'`
 
 
 
-###  Try to find MYSQLPP_INC_DIR
-###  Try the following order if not set:  
+###  Try to find MYSQLPP_INC_DIR,
+###  in the following order if not set:
 ###      /usr/include/mysql++,
 ###      /usr/local/include/mysql++,
 ###      /group/qweak/spayde/local/include/mysql++
+
+#  Verify the existence of the MYSQLPP_INC_DIR directory
 if [[ -n ${MYSQLPP_INC_DIR} ]]; then
   if [[ ! -d ${MYSQLPP_INC_DIR} ]]; then
-    echo "Directory ${MYSQLPP_INC_DIR} does not exist; unset variable MYSQLPP_INC_DIR"
+    echo "Directory ${MYSQLPP_INC_DIR} does not exist."
+    echo "Unsetting variable MYSQLPP_INC_DIR."
     unset MYSQLPP_INC_DIR
   fi
 fi
+#  Try /usr/include/mysql++,
 if [[ -z ${MYSQLPP_INC_DIR} ]]; then
-  nextserchpath=/usr/include/mysql++
-  echo "MYSQLPP_INC_DIR not defined; trying ${nextserchpath}."
-  if [[ -d ${nextserchpath} ]]; then
-    export MYSQLPP_INC_DIR=${nextserchpath}
+  nextsearchpath=/usr/include/mysql++
+  echo "MYSQLPP_INC_DIR not defined; trying ${nextsearchpath}."
+  if [[ -d ${nextsearchpath} ]]; then
+    export MYSQLPP_INC_DIR=${nextsearchpath}
     echo "Setting MYSQLPP_INC_DIR to ${MYSQLPP_INC_DIR}."
     export MYSQLPP_LIB_DIR=/usr/lib
   fi
 fi
+#  Try /usr/local/include/mysql++
 if [[ -z ${MYSQLPP_INC_DIR} ]]; then
-  nextserchpath=/usr/local/include/mysql++
-  echo "MYSQLPP_INC_DIR not defined; trying ${nextserchpath}."
-  if [[ -d ${nextserchpath} ]]; then
-    export MYSQLPP_INC_DIR=${nextserchpath}
+  nextsearchpath=/usr/local/include/mysql++
+  echo "MYSQLPP_INC_DIR not defined; trying ${nextsearchpath}."
+  if [[ -d ${nextsearchpath} ]]; then
+    export MYSQLPP_INC_DIR=${nextsearchpath}
     echo "Setting MYSQLPP_INC_DIR to ${MYSQLPP_INC_DIR}."
     export MYSQLPP_LIB_DIR=/usr/local/lib
   fi
 fi
+#  Try /group/qweak/spayde/local/include/mysql++
 if [[ -z ${MYSQLPP_INC_DIR} ]]; then
-  nextserchpath=/group/qweak/spayde/local/include/mysql++
-  echo "MYSQLPP_INC_DIR not defined; trying ${nextserchpath}."
-  if [[ -d ${nextserchpath} ]]; then
-    export MYSQLPP_INC_DIR=${nextserchpath}
+  nextsearchpath=/group/qweak/spayde/local/include/mysql++
+  echo "MYSQLPP_INC_DIR not defined; trying ${nextsearchpath}."
+  if [[ -d ${nextsearchpath} ]]; then
+    export MYSQLPP_INC_DIR=${nextsearchpath}
     echo "Setting MYSQLPP_INC_DIR to ${MYSQLPP_INC_DIR}."
     export MYSQLPP_LIB_DIR=/group/qweak/spayde/local/lib
   fi
 fi
 
-#  Verify the exisitence of the MYSQLPP_LIB_DIR directory
+#  Verify the existence of the MYSQLPP_LIB_DIR directory
 if [[ -n ${MYSQLPP_LIB_DIR} ]]; then
   if [[ ! -d ${MYSQLPP_LIB_DIR} ]]; then
-    echo "Directory ${MYSQLPP_LIB_DIR} does not exist; unset variable MYSQLPP_LIB_DIR"
+    echo "Directory ${MYSQLPP_LIB_DIR} does not exist."
+    echo "Unsetting variable MYSQLPP_LIB_DIR."
     unset MYSQLPP_LIB_DIR
   fi
 fi
@@ -85,6 +92,65 @@ if [[ -z ${MYSQLPP_LIB_DIR} || -z ${MYSQLPP_INC_DIR} ]]; then
 fi
 
 
+
+###  Set up ROOT if it isn't done yet.
+###  Expect to use /apps/root/PRO
+
+#  Verify the existence of the ROOTSYS directory
+if [[ -n ${ROOTSYS} ]]; then
+  echo "ROOTSYS already defined: ${ROOTSYS}"
+  if [[ ! -d ${ROOTSYS} ]]; then
+    echo "Directory ${ROOTSYS} does not exist."
+    echo "Unsetting variable ROOTSYS."
+    unset ROOTSYS
+  fi
+fi
+#  Try root-config assuming user has setup PATH correctly
+if [[ -z ${ROOTSYS} ]]; then
+  echo "ROOTSYS not defined; trying root-config..."
+  if [[ `which root-config` ]]; then
+    export ROOTSYS="`root-config --prefix`"
+    echo "Setting ROOTSYS to ${ROOTSYS} using root-config"
+  fi
+fi
+#  Try /apps/root/5.26-00
+if [[ -z ${ROOTSYS} ]]; then
+  nextsearchpath=/apps/root/5.26-00/root
+  echo "ROOTSYS not defined; trying ${nextsearchpath}."
+  if [[ -d ${nextsearchpath} ]]; then
+    export ROOTSYS=${nextsearchpath}
+    echo "Setting ROOTSYS to ${ROOTSYS}."
+  fi
+fi
+#  Try /apps/root/PRO
+if [[ -z ${ROOTSYS} ]]; then
+  nextsearchpath=/apps/root/PRO/root
+  echo "ROOTSYS not defined; trying ${nextsearchpath}."
+  if [[ -d ${nextsearchpath} ]]; then
+    export ROOTSYS=${nextsearchpath}
+    echo "Setting ROOTSYS to ${ROOTSYS}."
+  fi
+fi
+#  Try 'use root' (last resort)
+if [[ -z ${ROOTSYS} ]]; then
+  echo "ROOTSYS not defined; trying 'use root'..."
+  use root
+fi
+
+#  Check and report failure to find ROOT installation
+if [[ -z ${ROOTSYS} ]]; then
+  echo "ERROR:  The ROOT environment variables could not be set."
+  echo "        Please ensure ROOT is installed on the system,"
+  echo "        set the ROOTSYS environment variables,"
+  echo "        and re-run this program."
+  exit 1
+fi
+
+# Check ROOT version
+${QWANALYSIS}/SetupFiles/checkrootversion
+
+
+
 ###  Create the setup scripts.
 
 cat > $local_path/SET_ME_UP.csh << END
@@ -95,17 +161,19 @@ set analyzer_version = $QWANALYSIS
 ###
 ###  DO NOT CHANGE THE COMMANDS BELOW!!!
 ###
+###  This script is automatically generated, all changes will be overwritten!
+###
 
 setenv QWANALYSIS \$analyzer_version
 
+### Set MYSQLPP_INC_DIR and MYSQLPP_LIB_DIR
 setenv MYSQLPP_INC_DIR $MYSQLPP_INC_DIR
 setenv MYSQLPP_LIB_DIR $MYSQLPP_LIB_DIR
-if (\$?LD_LIBRARY_PATH) then
-  setenv LD_LIBRARY_PATH \${MYSQLPP_LIB_DIR}:\${LD_LIBRARY_PATH}
-else
-  setenv LD_LIBRARY_PATH \${MYSQLPP_LIB_DIR}
-endif
 
+### Set ROOTSYS
+setenv ROOTSYS $ROOTSYS
+
+### Source the setup script
 source \${QWANALYSIS}/SetupFiles/.QwSetup.csh
 
 unset analyzer_version
@@ -120,17 +188,19 @@ analyzerversion=$QWANALYSIS
 ###
 ###  DO NOT CHANGE THE COMMANDS BELOW!!!
 ###
+###  This script is automatically generated, all changes will be overwritten!
+###
 
 export QWANALYSIS=\$analyzerversion
 
+### Set MYSQLPP_INC_DIR and MYSQLPP_LIB_DIR
 export MYSQLPP_INC_DIR=$MYSQLPP_INC_DIR
 export MYSQLPP_LIB_DIR=$MYSQLPP_LIB_DIR
-if [[ -n \$LD_LIBRARY_PATH ]]; then
-  export LD_LIBRARY_PATH=\${MYSQLPP_LIB_DIR}:\${LD_LIBRARY_PATH}
-else
-  export LD_LIBRARY_PATH=\${MYSQLPP_LIB_DIR}
-fi
 
+### Set ROOTSYS
+export ROOTSYS=$ROOTSYS
+
+### Source the setup script
 . \$QWANALYSIS/SetupFiles/.QwSetup.bash
 
 unset analyzerversion
