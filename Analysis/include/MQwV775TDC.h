@@ -35,7 +35,6 @@ class MQwV775TDC{
  protected:
   //void DecodeV775Word(UInt_t &word);
   void DecodeTDCWord(UInt_t &word, const UInt_t roc_id=0);
-
   /*
   Bool_t IsV775ValidData(){return fV775ValidFlag;};
 
@@ -90,6 +89,7 @@ class MQwV775TDC{
   UInt_t fV775SlotNumber;
   UInt_t fV775ChannelNumber;
   UInt_t fV775Dataword;
+  UInt_t fV775EventNumber;
 
   UInt_t fV775EventNumber;
 

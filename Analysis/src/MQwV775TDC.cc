@@ -32,22 +32,6 @@ const UInt_t MQwV775TDC::kV775WordType_Datum         = 0x000;//0;
 
 // See page 43 at https://qweak.jlab.org/wiki/images/V775.pdf
 
-
-MQwV775TDC::MQwV775TDC()
-{ 
-
-  fV775ValidFlag     = kFALSE;
-  fV775HeaderFlag    = kFALSE;
-
-  fV775SlotNumber    = 0;
-  fV775ChannelNumber = 0;
-  fV775Dataword      = 0;
-  fV775EventNumber   = 0;
-
-};
-
-
-
 void MQwV775TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
 {
   
@@ -67,11 +51,16 @@ void MQwV775TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
     /*     datavalid      = ((word & kV775Mask_DataValidBit)!=0); */
     /*     underthreshold = ((word & kV775Mask_UnderthresholdBit)!=0); */
     /*     overflow       = ((word & kV775Mask_OverflowBit)!=0); */
-  } 
-  else if (!fV775HeaderFlag) {
+    fV775Dataword      = (word & kV775Mask_Dataword);
+    fV775EventNumber   = 0;
+  } else {
+    //  For now, don't distinguish between the header, tail word,
+    //  or invalid data.
+    //  Treat them all as invalid data.
+    fV775ValidFlag     = kFALSE;
     fV775ChannelNumber = 0;
     fV775Dataword      = 0;
-    fV775EventNumber   = (word & kV775Mask_EventCounter);
+    fV775EventNumber   = 0;
   }
   else {
     fV775ChannelNumber = 0;
@@ -92,6 +81,7 @@ Double_t MQwV775TDC::SubtractReference(Double_t rawtime, Double_t reftime)
   Double_t real_time = rawtime - reftime;  
   return real_time;
 }
+
 
 
 UInt_t  MQwV775TDC::GetTDCTriggerTime()
