@@ -24,6 +24,10 @@
 #include <TTree.h>
 #include<TH1D.h>
 
+// Boost math library for random number generation
+#include <boost/multi_array.hpp>
+
+
 // Qweak headers
 #include "VQwSubsystemParity.h"
 #include "QwCPV1495_Channel.h"
@@ -94,10 +98,10 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     Bool_t Compare(VQwSubsystem *source);
     void Print();
 
+    void SetCalibrationFactor(const Double_t factor) { fCalibrationFactor = factor; };
+    const Double_t GetCalibrationFactor() const { return fCalibrationFactor; };
 
-    QwCPV1495_Channel* GetCPV1495Channel(const TString name);
 
-    
 
   protected:
     /// Expert tree
@@ -106,14 +110,17 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     Int_t fTree_fNEvents;
 
     static const Int_t NPlanes = 4;
-    static const Int_t NPorts = 12;
-    static const Int_t WordsPerModule = 32;
-    static const Int_t ChannelsPerPort = 32;
-    static const Int_t ChannelsPerModule = 128;
+    static const Int_t StripsPerModule = 32;
+    static const Int_t StripsPerPlane = 96;
+ 
 
+    /// List of V1495 accumulation mode strips
+    std::vector< std::vector <Double_t> > fStrips;
+    std::vector< std::vector <Double_t> > fStripsRaw;
 
-    /// List of V1495 accumulation mode channels
-    std::vector <QwCPV1495_Channel> fFPGAChannel_ac;
+    //    boost::multi_array<Double_t, 2> array_type;
+    //    array_type fStrips(boost::extents[NPlanes][StripsPerPlane]);
+    //   array_type fStripsRaw(boost::extents[NPlanes][StripsPerPlane]);
     std::vector <Double_t> fFPGAChannelVector;
 
  /*=====
@@ -123,12 +130,16 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
    */
 
 
-  TH1D *V1495[NPorts];
+  TH1D *eDet[NPlanes];
+  TH1D *eDetRaw[NPlanes];
+
 
   private:
 
     static const Bool_t kDebug = kTRUE;
-    Double_t V1495ChannelValue[384];
+    Double_t fCalibrationFactor;
+    Double_t fOffset;
+
 
 };
 

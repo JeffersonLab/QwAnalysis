@@ -61,13 +61,19 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
       stripnum  = (atol(mapstr.GetNextToken(", \t").c_str()));
       //  Push a new record into the element array
       if (modtype == "V1495") {
-	if (dettype == "eaccum") {
-	  if (channum >= (Int_t) fFPGAChannel_ac.size())
-           fFPGAChannel_ac.push_back(QwCPV1495_Channel());
+	if (dettype == "eacuum") {
+	  if (plane >= (Int_t) fStripsRaw.size())
+	    fStripsRaw.push_back(std::vector <Double_t>());
+	    if (stripnum >= (Int_t) fStripsRaw[plane-1].size())
+             fStripsRaw[plane-1].push_back(0.0);
+             // plane goes from 1 - 4 instead of 0 - 3, 
 
-           TString chname = modtype + Form("_plane%ld",plane) + Form("_strip%ld",stripnum);
-	   fFPGAChannel_ac[channum].SetElementName(chname + "Ch");
-	   fFPGAChannel_ac.at(channum).InitializeChannel(channum, name, plane, stripnum);
+	  if (plane >= (Int_t) fStrips.size())
+	   fStrips.push_back(std::vector <Double_t>());
+           if (stripnum >= (Int_t) fStrips[plane-1].size())
+            fStrips[plane-1].push_back(0.0);
+             // plane goes from 1 - 4 instead of 0 - 3, 
+
 	} // end of switch (dettype)
       } // end of switch (modtype)
     } // end of if for token line
@@ -143,11 +149,12 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
     if (index >= 0 && num_words > 0) {
 
     //  We want to process this ROC.  Begin looping through the data.
-     for (Int_t i = 0; i < WordsPerModule; i++) { // loop all words in bank
-       fFPGAChannel_ac[i+0] = (buffer[(i)] &0xff000000)>>24;
-       fFPGAChannel_ac[i+32] = (buffer[(i)] &0x00ff0000)>>16;
-       fFPGAChannel_ac[i+64] = (buffer[(i)] &0x0000ff00)>>8;
-       fFPGAChannel_ac[i+96] = (buffer[(i)] &0x000000ff);
+     for (Int_t i = 0; i < StripsPerModule; i++) { // loop all words in bank
+       fStripsRaw[0][i] = (buffer[(i)] &0xff000000)>>24;
+       fStripsRaw[1][i] = (buffer[(i)] &0x00ff0000)>>16;
+       fStripsRaw[2][i] = (buffer[(i)] &0x0000ff00)>>8;
+       fStripsRaw[3][i] = (buffer[(i)] &0x000000ff);
+       words_read++;
       }
     }
     if (num_words != words_read) {
@@ -161,12 +168,13 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
    if (bank_id==0x0205) {
 // sub-bank 0x0205, accum mode data from strips 32-63 of planes 1 thru 4
     if (index >= 0 && num_words > 0) {
-     for (Int_t i = 0; i < WordsPerModule; i++) { // loop over all words
-       Int_t j = ChannelsPerModule+i;
-       fFPGAChannel_ac[j+0] = (buffer[(i)] &0xff000000)>>24;
-       fFPGAChannel_ac[j+32] = (buffer[(i)] &0x00ff0000)>>16;
-       fFPGAChannel_ac[j+64] = (buffer[(i)] &0x0000ff00)>>8;
-       fFPGAChannel_ac[j+96] = (buffer[(i)] &0x000000ff);
+     for (Int_t i = 0; i < StripsPerModule; i++) { // loop over all words
+       Int_t j = StripsPerModule+i;
+       fStripsRaw[0][j] = (buffer[(i)] &0xff000000)>>24;
+       fStripsRaw[1][j] = (buffer[(i)] &0x00ff0000)>>16;
+       fStripsRaw[2][j] = (buffer[(i)] &0x0000ff00)>>8;
+       fStripsRaw[3][j] = (buffer[(i)] &0x000000ff);
+       words_read++;
      }
     }
     if (num_words != words_read) {
@@ -181,12 +189,13 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
    if (bank_id==0x0206) {
 // sub-bank 0x0206, accum mode data from strips 64-95 of planes 1 thru 4
     if (index >= 0 && num_words > 0) {
-     for (Int_t i = 0; i < WordsPerModule; i++) { // loop over planes
-       Int_t j = 2*ChannelsPerModule+i;
-       fFPGAChannel_ac[j+0] = (buffer[(i)] &0xff000000)>>24;
-       fFPGAChannel_ac[j+32] = (buffer[(i)] &0x00ff0000)>>16;
-       fFPGAChannel_ac[j+64] = (buffer[(i)] &0x0000ff00)>>8;
-       fFPGAChannel_ac[j+96] = (buffer[(i)] &0x000000ff);
+     for (Int_t i = 0; i < StripsPerModule; i++) { // loop over all words
+       Int_t j = 2*StripsPerModule+i;
+       fStripsRaw[0][j] = (buffer[(i)] &0xff000000)>>24;
+       fStripsRaw[1][j] = (buffer[(i)] &0x00ff0000)>>16;
+       fStripsRaw[2][j] = (buffer[(i)] &0x0000ff00)>>8;
+       fStripsRaw[3][j] = (buffer[(i)] &0x000000ff);
+       words_read++;
      }
     }
     if (num_words != words_read) {
@@ -216,9 +225,14 @@ Bool_t QwComptonElectronDetector::SingleEventCuts()
 //*****************************************************************
 void  QwComptonElectronDetector::ProcessEvent()
 {   
-    Int_t i = 0;
-    fFPGAChannel_ac[i].ProcessEvent();
-   
+  fCalibrationFactor = 1.0;
+  fOffset = 0.0;
+
+   for (Int_t i = 0; i < NPlanes; i++){
+    for (Int_t j = 0; j < StripsPerPlane; j++){
+     fStrips[i][j] = (fStripsRaw[i][j] - fOffset)*fCalibrationFactor;
+    }
+   }
    return;
 };
 
@@ -244,7 +258,10 @@ Int_t QwComptonElectronDetector::ProcessConfigurationBuffer(const UInt_t roc_id,
 Bool_t QwComptonElectronDetector::IsGoodEvent()
 {
   Bool_t fEventIsGood = kTRUE;
-  fEventIsGood &= (fFPGAChannel_ac.size() == 384);
+  Int_t nchan=0;
+  for (Int_t i=0; i<NPlanes; i++)
+    nchan += fStripsRaw[i].size();
+  fEventIsGood &= (nchan == 384);
   return fEventIsGood;
 };
 
@@ -256,11 +273,12 @@ Bool_t QwComptonElectronDetector::IsGoodEvent()
 //*****************************************************************
 void QwComptonElectronDetector::ClearEventData()
 {
-  for (size_t i =0; i < fFPGAChannel_ac.size();i++)
-    fFPGAChannel_ac[i] = 0;
-
-  Int_t i=0;
-  fFPGAChannel_ac[i].ClearEventData();
+   for (Int_t i = 0; i < NPlanes; i++){
+    for (Int_t j = 0; j < StripsPerPlane; j++){
+     fStripsRaw[i][j] = 0;
+     fStrips[i][j] = 0;
+    }
+   }
   return;
 };
 
@@ -269,8 +287,11 @@ VQwSubsystem&  QwComptonElectronDetector::operator=  (VQwSubsystem *value)
 {
   if (Compare(value)) {
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
-    for (size_t i = 0; i < input->fFPGAChannel_ac.size(); i++)
-      this->fFPGAChannel_ac[i] = input->fFPGAChannel_ac[i];
+   for (Int_t i = 0; i < NPlanes; i++){
+    for (Int_t j = 0; j < StripsPerPlane; j++){
+      this->fStripsRaw[i][j] = input->fStripsRaw[i][j];
+    }
+   }
   }
   return *this;
 };
@@ -279,8 +300,11 @@ VQwSubsystem&  QwComptonElectronDetector::operator+=  (VQwSubsystem *value)
 {
   if (Compare(value)) {
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
-    for (size_t i = 0; i < input->fFPGAChannel_ac.size(); i++)
-      this->fFPGAChannel_ac[i] += input->fFPGAChannel_ac[i];
+   for (Int_t i = 0; i < NPlanes; i++){
+    for (Int_t j = 0; j < StripsPerPlane; j++){
+      this->fStripsRaw[i][j] += input->fStripsRaw[i][j];
+    }
+   }
   }
   return *this;
 };
@@ -289,8 +313,11 @@ VQwSubsystem&  QwComptonElectronDetector::operator-=  (VQwSubsystem *value)
 {
   if (Compare(value)) {
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
-    for (size_t i = 0; i < input->fFPGAChannel_ac.size(); i++)
-      this->fFPGAChannel_ac[i] -= input->fFPGAChannel_ac[i];
+   for (Int_t i = 0; i < NPlanes; i++){
+    for (Int_t j = 0; j < StripsPerPlane; j++){
+      this->fStripsRaw[i][j] -= input->fStripsRaw[i][j];
+    }
+   }
   }
   return *this;
 };
@@ -299,8 +326,11 @@ VQwSubsystem&  QwComptonElectronDetector::operator*=  (VQwSubsystem *value)
 {
   if (Compare(value)) {
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
-    for (size_t i = 0; i < input->fFPGAChannel_ac.size(); i++)
-      this->fFPGAChannel_ac[i] *= input->fFPGAChannel_ac[i];
+   for (Int_t i = 0; i < NPlanes; i++){
+    for (Int_t j = 0; j < StripsPerPlane; j++){
+      this->fStripsRaw[i][j] *= input->fStripsRaw[i][j];
+    }
+   }
   }
   return *this;
 };
@@ -322,21 +352,32 @@ void  QwComptonElectronDetector::Difference(VQwSubsystem  *value1, VQwSubsystem 
   }
 };
 
+
 void QwComptonElectronDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
 {
+  
   if (Compare(numer) && Compare(denom)) {
     QwComptonElectronDetector* innumer = dynamic_cast<QwComptonElectronDetector*> (numer);
     QwComptonElectronDetector* indenom = dynamic_cast<QwComptonElectronDetector*> (denom);
-    for (size_t i = 0; i < innumer->fFPGAChannel_ac.size(); i++)
-      this->fFPGAChannel_ac[i].Ratio(innumer->fFPGAChannel_ac[i], indenom->fFPGAChannel_ac[i]);
+    
+   for (Int_t i = 0; i < NPlanes; i++){
+    for (Int_t j = 0; j < StripsPerPlane; j++){
+      //      this->fStripsRaw.Ratio(innumer->fStripsRaw[i][j], indenom->fStripsRaw[i][j]);
+    }
+   }
   }
+  
   return; 
 };
 
 void QwComptonElectronDetector::Scale(Double_t factor)
 { 
-    for (size_t i = 0; i < fFPGAChannel_ac.size(); i++)
-     this->fFPGAChannel_ac[i] *= factor;
+
+   for (Int_t i = 0; i < NPlanes; i++){
+    for (Int_t j = 0; j < StripsPerPlane; j++){
+     this->fStripsRaw[i][j] *= factor;
+    }
+   }
 };
 
 Bool_t QwComptonElectronDetector::Compare(VQwSubsystem *value)
@@ -350,7 +391,7 @@ Bool_t QwComptonElectronDetector::Compare(VQwSubsystem *value)
     result = kFALSE;
   } else {
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
-    if (input->fFPGAChannel_ac.size() != fFPGAChannel_ac.size()) {
+    if (input->fStripsRaw.size() != fStripsRaw.size()) {
       result = kFALSE;
     }
   }
@@ -370,41 +411,42 @@ void  QwComptonElectronDetector::ConstructHistograms(TDirectory *folder, TString
   TString basename = GetSubsystemName();
   //  basename = prefix + GetSubsystemName();
 
-  for (Int_t i=0; i<NPorts; i++){
-    V1495[i] = new TH1D(Form("%s_V1495%d",basename.Data(),i),Form("%s_V1495%d",basename.Data(),i),ChannelsPerPort,0,ChannelsPerPort-1);
+  for (Int_t i=0; i<NPlanes; i++){
+    eDetRaw[i] = new TH1D(Form("%s_Raw%d",basename.Data(),i),Form("%s_Raw%d",basename.Data(),i),StripsPerPlane,0,StripsPerPlane-1);
+    eDet[i] = new TH1D(Form("%s_%d",basename.Data(),i),Form("%s_%d",basename.Data(),i),StripsPerPlane,0,StripsPerPlane-1);
   }
-  Int_t i = 0; 
-  fFPGAChannel_ac[i].ConstructHistograms(folder, prefix);
+
   return;
 };
 
 void  QwComptonElectronDetector::DeleteHistograms()
 {
-  for (Int_t i=0; i<NPorts; i++){
-    if(V1495[i]!=NULL){
-      V1495[i]->Delete();
-      V1495[i] = NULL;
+  for (Int_t i=0; i<NPlanes; i++){
+    if(eDetRaw[i]!=NULL){
+      eDetRaw[i]->Delete();
+      eDetRaw[i] = NULL;
+    }
+    if(eDet[i]!=NULL){
+      eDet[i]->Delete();
+      eDet[i] = NULL;
     }
    }
-  size_t i = 0;
-  fFPGAChannel_ac[i].DeleteHistograms();
   return;
 };
 
 void  QwComptonElectronDetector::FillHistograms()
 {
   Int_t i, j, k;
-  i = j = k = 0;
-  for (i=0; i<NPorts; i++) {
-    for (j=0; j<ChannelsPerPort; j++) {
-      k = ChannelsPerPort*i + j;
-        if (V1495[i] != NULL)
-	  V1495[i]->Fill(this->V1495ChannelValue[k]);
+  for (i=0; i<NPlanes; i++) {
+    for (j=0; j<StripsPerPlane; j++) {
+     if (eDetRaw[i] != NULL)
+      for (k=0; k<fStripsRaw[i][j]; k++)
+       eDetRaw[i]->Fill(j);
+     if (eDet[i] != NULL)
+      for (k=0; k<fStrips[i][j]; k++)
+       eDet[i]->Fill(j);
     }
   }
-  
-  i = 0; 
-  fFPGAChannel_ac[i].FillHistograms();
   return;
 };
 
@@ -435,9 +477,10 @@ void  QwComptonElectronDetector::DeleteTree()
  */
 void  QwComptonElectronDetector::FillTree()
 {
-  for(size_t i = 0; i < fFPGAChannel_ac.size(); i++) {
-    //  fTree_fNEvents = fFPGAChannel_ac[i].GetNumberOfEvents();
-    // fTree->Fill();  To be fixed
+  for (Int_t i=0; i<NPlanes; i++) {
+    for (Int_t j=0; j<StripsPerPlane; j++) {
+
+    }
   }
 
   return;
@@ -446,34 +489,12 @@ void  QwComptonElectronDetector::FillTree()
 
 void QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
-    if (prefix=="") prefix = "V1495_";
-    TString basename = prefix + "event";
-    fFPGAChannelVector.reserve(6000);    
-
-    fFPGAChannelVector.push_back(0.0);
-    TString list = "EvtCounter/D";
-    fFPGAChannelVector.push_back(0.0);    
-    list += ":TrigEvtCounter/D";
-    fFPGAChannelVector.push_back(0.0);
-    list += ":SumEvtCounter/D";
-
-
-    tree->Branch(basename, &fFPGAChannelVector[0], list);
-
-    Int_t i = 0;
-    fFPGAChannel_ac[i].ConstructBranchAndVector(tree, prefix, values);
   return;
 };
 
 void QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values)
 {
-     Int_t index = 0;
-
-     fFPGAChannelVector[index++] = 0; // to be done 
-    fFPGAChannelVector[index++] = 0;
-    fFPGAChannelVector[index++] = 0;
-  Int_t i = 0; 
-  fFPGAChannel_ac[i].FillTreeVector(values);
+  
   return;
 };
 
@@ -481,9 +502,17 @@ void QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values)
 //*****************************************************************
 void  QwComptonElectronDetector::Print()
 {
-  VQwSubsystemParity::Print();
-  QwOut << " there are " << fFPGAChannel_ac.size() << " V1495 modules" << QwLog::endl;
+  //  VQwSubsystemParity::Print();
+  Int_t nchan =0;
+  for (Int_t i=0; i<NPlanes; i++)
+    nchan += fStripsRaw[i].size();
+  QwOut << " there were " << nchan << " strips registered" << QwLog::endl;
+  for (Int_t i=0; i<NPlanes; i++) {
+   for (Int_t j=0; j<StripsPerPlane; j++) {
 
+     QwOut << " plane #," << i << "strip #, " << j << "has " << fStrips[i][j] << QwLog::endl;
+   }
+  }
   return;
 }
 
@@ -502,20 +531,6 @@ VQwSubsystem*  QwComptonElectronDetector::Copy()
   // return copy;
   return NULL;
 }
-/**
- * Get the V1495 Channels for this electron detector
- * @param name Name of the V1495 Channels
- * @return Pointer to the V1495 Channels
- */
-QwCPV1495_Channel* QwComptonElectronDetector::GetCPV1495Channel(const TString name)
-{
-  if (! fFPGAChannel_ac.empty()) {
-    for (std::vector<QwCPV1495_Channel>::iterator accum = fFPGAChannel_ac.begin(); accum != fFPGAChannel_ac.end(); ++accum) {
-      if (accum->GetElementName() == name) {
-        return &(*accum);
-      }
-    }
-  }
-  return 0;
 
-};
+
+      
