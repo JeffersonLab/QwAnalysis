@@ -29,7 +29,7 @@ class MQwV775TDC{
    *         for both the ADC and TDC.
    ******************************************************************/
  public:
-  MQwV775TDC();
+  MQwV775TDC() {};
   ~MQwV775TDC() { };
 
  protected:
@@ -89,8 +89,6 @@ class MQwV775TDC{
   UInt_t fV775SlotNumber;
   UInt_t fV775ChannelNumber;
   UInt_t fV775Dataword;
-  UInt_t fV775EventNumber;
-
   UInt_t fV775EventNumber;
 
 };

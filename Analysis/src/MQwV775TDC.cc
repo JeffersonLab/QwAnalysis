@@ -24,10 +24,10 @@ const UInt_t MQwV775TDC::kV775Mask_UnderthresholdBit = 0x00002000;  // 13
 const UInt_t MQwV775TDC::kV775Mask_OverflowBit       = 0x00001000;  // 12
 const UInt_t MQwV775TDC::kV775Mask_Dataword          = 0x00000fff;  // 0-11
 
-const UInt_t MQwV775TDC::kV775WordType_NotValid      = 0x110;//6
-const UInt_t MQwV775TDC::kV775WordType_Header        = 0x010;//2
-const UInt_t MQwV775TDC::kV775WordType_Tail          = 0x100;//4;
-const UInt_t MQwV775TDC::kV775WordType_Datum         = 0x000;//0;
+const UInt_t MQwV775TDC::kV775WordType_NotValid = 6;
+const UInt_t MQwV775TDC::kV775WordType_Header   = 2;
+const UInt_t MQwV775TDC::kV775WordType_Tail     = 4;
+const UInt_t MQwV775TDC::kV775WordType_Datum    = 0;
 
 
 // See page 43 at https://qweak.jlab.org/wiki/images/V775.pdf
@@ -35,19 +35,12 @@ const UInt_t MQwV775TDC::kV775WordType_Datum         = 0x000;//0;
 void MQwV775TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
 {
   
+  
   fV775SlotNumber = (word & kV775Mask_SlotNumber)>>27;
   UInt_t wordtype = (word & kV775Mask_WordType)>>24;
-  
-  if      ( wordtype == kV775WordType_Datum    ) fV775ValidFlag  = kTRUE;
-  else if ( wordtype == kV775WordType_Header   ) fV775HeaderFlag = kTRUE;
-  else if ( wordtype == kV775WordType_Tail     ) fV775HeaderFlag = kFALSE;
-  else if ( wordtype == kV775WordType_NotValid ) fV775ValidFlag  = kFALSE;
-  else    // reserved (not used)
-
-  if (fV775ValidFlag) {
+  if (wordtype == kV775WordType_Datum){
+    fV775ValidFlag     = kTRUE;
     fV775ChannelNumber = (word & kV775Mask_ChannelNumber)>>16;
-    fV775Dataword      = (word & kV775Mask_Dataword);
-    fV775EventNumber   = 0;
     /*     datavalid      = ((word & kV775Mask_DataValidBit)!=0); */
     /*     underthreshold = ((word & kV775Mask_UnderthresholdBit)!=0); */
     /*     overflow       = ((word & kV775Mask_OverflowBit)!=0); */
@@ -62,12 +55,8 @@ void MQwV775TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
     fV775Dataword      = 0;
     fV775EventNumber   = 0;
   }
-  else {
-    fV775ChannelNumber = 0;
-    fV775Dataword      = 0;
-    fV775EventNumber   = 0;
-  }
-  
+
+ 
   return;
 };
 
