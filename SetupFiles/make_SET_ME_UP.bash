@@ -28,11 +28,100 @@ export QWANALYSIS=`echo $local_path | sed 's/\/SetupFiles//'`
 
 
 
-###  Try to find MYSQLPP_INC_DIR,
+###  Determine machine type (64-bit)
+###
+###
+if [[ "`uname -m`" == "x86_64" ]]; then
+  lib=lib64
+else
+  lib=lib
+fi
+echo "Libraries will be searched for in ${lib}."
+
+
+
+###  Try to find MYSQL_INC_DIR,
+###  in the following order if not set:
+###      /usr/include/mysql,
+###      /usr/local/include/mysql
+
+#  Verify the existence of the MYSQL_INC_DIR directory
+if [[ -n ${MYSQL_INC_DIR} ]]; then
+  if [[ ! -d ${MYSQL_INC_DIR} ]]; then
+    echo "Directory ${MYSQL_INC_DIR} does not exist."
+    echo "Unsetting variable MYSQL_INC_DIR."
+    unset MYSQL_INC_DIR
+  fi
+fi
+#  Try /usr/include/mysql,
+if [[ -z ${MYSQL_INC_DIR} ]]; then
+  nextsearchpath=/usr/include/mysql
+  echo "MYSQL_INC_DIR not defined; trying ${nextsearchpath}."
+  if [[ -d ${nextsearchpath} ]]; then
+    export MYSQL_INC_DIR=${nextsearchpath}
+    echo "Setting MYSQL_INC_DIR to ${MYSQL_INC_DIR}."
+  fi
+fi
+#  Try /usr/local/include/mysql,
+if [[ -z ${MYSQL_INC_DIR} ]]; then
+  nextsearchpath=/usr/local/include/mysql
+  echo "MYSQL_INC_DIR not defined; trying ${nextsearchpath}."
+  if [[ -d ${nextsearchpath} ]]; then
+    export MYSQL_INC_DIR=${nextsearchpath}
+    echo "Setting MYSQL_INC_DIR to ${MYSQL_INC_DIR}."
+  fi
+fi
+
+#  Verify the existence of the MYSQL_LIB_DIR directory
+if [[ -n ${MYSQL_LIB_DIR} ]]; then
+  if [[ ! -d ${MYSQL_LIB_DIR} ]]; then
+    echo "Directory ${MYSQL_LIB_DIR} does not exist."
+    echo "Unsetting variable MYSQL_LIB_DIR."
+    unset MYSQL_LIB_DIR
+  fi
+fi
+#  Try /usr/lib/mysql,
+if [[ -z ${MYSQL_LIB_DIR} ]]; then
+  nextsearchpath=/usr/${lib}/mysql
+  echo "MYSQL_LIB_DIR not defined; trying ${nextsearchpath}."
+  if [[ -d ${nextsearchpath} ]]; then
+    export MYSQL_LIB_DIR=${nextsearchpath}
+    echo "Setting MYSQL_LIB_DIR to ${MYSQL_LIB_DIR}."
+  fi
+fi
+#  Try /usr/local/lib/mysql,
+if [[ -z ${MYSQL_LIB_DIR} ]]; then
+  nextsearchpath=/usr/local/${lib}/mysql
+  echo "MYSQL_LIB_DIR not defined; trying ${nextsearchpath}."
+  if [[ -d ${nextsearchpath} ]]; then
+    export MYSQL_LIB_DIR=${nextsearchpath}
+    echo "Setting MYSQL_LIB_DIR to ${MYSQL_LIB_DIR}."
+  fi
+fi
+
+#  Check and report failure to find either MySQL directory.
+if [[ -z ${MYSQL_LIB_DIR} || -z ${MYSQL_INC_DIR} ]]; then
+  echo "ERROR:  The MySQL environment variables could not be set."
+  echo "        Please ensure MySQL is installed on the system,"
+  echo "        set the MYSQL_LIB_DIR and MYSQL_INC_DIR "
+  echo "        environment variables, and re-run this program."
+  exit 1
+fi
+
+
+
+
+###  Try to find MYSQLPP_INC_DIR and MYSQLPP_LIB_DIR,
 ###  in the following order if not set:
 ###      /usr/include/mysql++,
 ###      /usr/local/include/mysql++,
 ###      /group/qweak/spayde/local/include/mysql++
+###  and
+###      /usr/lib
+###      /usr/lib/mysql++,
+###      /usr/local/include,
+###      /usr/local/include/mysql++,
+###      /group/qweak/spayde/local/lib
 
 #  Verify the existence of the MYSQLPP_INC_DIR directory
 if [[ -n ${MYSQLPP_INC_DIR} ]]; then
@@ -49,7 +138,6 @@ if [[ -z ${MYSQLPP_INC_DIR} ]]; then
   if [[ -d ${nextsearchpath} ]]; then
     export MYSQLPP_INC_DIR=${nextsearchpath}
     echo "Setting MYSQLPP_INC_DIR to ${MYSQLPP_INC_DIR}."
-    export MYSQLPP_LIB_DIR=/usr/lib
   fi
 fi
 #  Try /usr/local/include/mysql++
@@ -59,7 +147,6 @@ if [[ -z ${MYSQLPP_INC_DIR} ]]; then
   if [[ -d ${nextsearchpath} ]]; then
     export MYSQLPP_INC_DIR=${nextsearchpath}
     echo "Setting MYSQLPP_INC_DIR to ${MYSQLPP_INC_DIR}."
-    export MYSQLPP_LIB_DIR=/usr/local/lib
   fi
 fi
 #  Try /group/qweak/spayde/local/include/mysql++
@@ -69,7 +156,6 @@ if [[ -z ${MYSQLPP_INC_DIR} ]]; then
   if [[ -d ${nextsearchpath} ]]; then
     export MYSQLPP_INC_DIR=${nextsearchpath}
     echo "Setting MYSQLPP_INC_DIR to ${MYSQLPP_INC_DIR}."
-    export MYSQLPP_LIB_DIR=/group/qweak/spayde/local/lib
   fi
 fi
 
@@ -79,6 +165,52 @@ if [[ -n ${MYSQLPP_LIB_DIR} ]]; then
     echo "Directory ${MYSQLPP_LIB_DIR} does not exist."
     echo "Unsetting variable MYSQLPP_LIB_DIR."
     unset MYSQLPP_LIB_DIR
+  fi
+fi
+libname=libmysqlpp.so
+#  Try /usr/lib,
+if [[ -z ${MYSQLPP_LIB_DIR} ]]; then
+  nextsearchpath=/usr/${lib}
+  echo "MYSQLPP_LIB_DIR not defined; trying ${nextsearchpath}."
+  if [[ -d ${nextsearchpath} && -e ${nextsearchpath}/${libname} ]]; then
+    export MYSQLPP_LIB_DIR=${nextsearchpath}
+    echo "Setting MYSQLPP_LIB_DIR to ${MYSQLPP_LIB_DIR}."
+  fi
+fi
+#  Try /usr/lib/mysql++,
+if [[ -z ${MYSQLPP_LIB_DIR} ]]; then
+  nextsearchpath=/usr/${lib}/mysql++
+  echo "MYSQLPP_LIB_DIR not defined; trying ${nextsearchpath}."
+  if [[ -d ${nextsearchpath} && -e ${nextsearchpath}/${libname} ]]; then
+    export MYSQLPP_LIB_DIR=${nextsearchpath}
+    echo "Setting MYSQLPP_LIB_DIR to ${MYSQLPP_LIB_DIR}."
+  fi
+fi
+#  Try /usr/local/lib
+if [[ -z ${MYSQLPP_LIB_DIR} ]]; then
+  nextsearchpath=/usr/local/${lib}
+  echo "MYSQLPP_LIB_DIR not defined; trying ${nextsearchpath}."
+  if [[ -d ${nextsearchpath} && -e ${nextsearchpath}/${libname} ]]; then
+    export MYSQLPP_LIB_DIR=${nextsearchpath}
+    echo "Setting MYSQLPP_LIB_DIR to ${MYSQLPP_LIB_DIR}."
+  fi
+fi
+#  Try /usr/local/lib/mysql++
+if [[ -z ${MYSQLPP_LIB_DIR} ]]; then
+  nextsearchpath=/usr/local/${lib}/mysql++
+  echo "MYSQLPP_LIB_DIR not defined; trying ${nextsearchpath}."
+  if [[ -d ${nextsearchpath} && -e ${nextsearchpath}/${libname} ]]; then
+    export MYSQLPP_LIB_DIR=${nextsearchpath}
+    echo "Setting MYSQLPP_LIB_DIR to ${MYSQLPP_LIB_DIR}."
+  fi
+fi
+#  Try /group/qweak/spayde/local/lib
+if [[ -z ${MYSQLPP_LIB_DIR} ]]; then
+  nextsearchpath=/group/qweak/spayde/local/${lib}
+  echo "MYSQLPP_LIB_DIR not defined; trying ${nextsearchpath}."
+  if [[ -d ${nextsearchpath} && -e ${nextsearchpath}/${libname} ]]; then
+    export MYSQLPP_LIB_DIR=${nextsearchpath}
+    echo "Setting MYSQLPP_LIB_DIR to ${MYSQLPP_LIB_DIR}."
   fi
 fi
 
@@ -166,6 +298,10 @@ set analyzer_version = $QWANALYSIS
 
 setenv QWANALYSIS \$analyzer_version
 
+### Set MYSQL_INC_DIR and MYSQL_LIB_DIR
+setenv MYSQL_INC_DIR $MYSQL_INC_DIR
+setenv MYSQL_LIB_DIR $MYSQL_LIB_DIR
+
 ### Set MYSQLPP_INC_DIR and MYSQLPP_LIB_DIR
 setenv MYSQLPP_INC_DIR $MYSQLPP_INC_DIR
 setenv MYSQLPP_LIB_DIR $MYSQLPP_LIB_DIR
@@ -192,6 +328,10 @@ analyzerversion=$QWANALYSIS
 ###
 
 export QWANALYSIS=\$analyzerversion
+
+### Set MYSQL_INC_DIR and MYSQL_LIB_DIR
+export MYSQL_INC_DIR=$MYSQL_INC_DIR
+export MYSQL_LIB_DIR=$MYSQL_LIB_DIR
 
 ### Set MYSQLPP_INC_DIR and MYSQLPP_LIB_DIR
 export MYSQLPP_INC_DIR=$MYSQLPP_INC_DIR
