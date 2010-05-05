@@ -48,7 +48,7 @@ class QwCombinedBPM : public VQwDataElement{
 
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  Int_t SetSingleEventCuts(std::vector<Double_t> &);
+  Int_t SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Int_t GetEventcutErrorFlag(){//return the error flag 
     return fDeviceErrorCode;
