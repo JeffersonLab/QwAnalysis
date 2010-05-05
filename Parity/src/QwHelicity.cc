@@ -224,11 +224,11 @@ void QwHelicity::ProcessEventUserbitMode()
   Bool_t ldebug=kFALSE;
   UInt_t userbits;
   static UInt_t lastuserbits  = 0xFF;
-  UInt_t scaleroffset=fWord[kscalercounter].fValue/32;
+  UInt_t scaleroffset=fWord[kScalerCounter].fValue/32;
 
   if(scaleroffset==1)
     {
-      userbits = (fWord[kuserbit].fValue & 0xE0000000)>>28;
+      userbits = (fWord[kUserbit].fValue & 0xE0000000)>>28;
 
       //  Now fake the input register, MPS coutner, QRT counter, and QRT phase.
       fEventNumber=fEventNumberOld+1;
@@ -310,9 +310,9 @@ void QwHelicity::ProcessEventInputRegisterMode()
   static Bool_t firstpattern = kTRUE;
   Bool_t fake_the_counters=kFALSE;
 
-  UInt_t thisinputregister=fWord[kinputregister].fValue;
+  UInt_t thisinputregister=fWord[kInputRegister].fValue;
 
-   fEventNumber=fWord[kmpscounter].fValue;
+   fEventNumber=fWord[kMpsCounter].fValue;
    if (firstpattern && (thisinputregister & 0x4) == 0x4){
      firstpattern   = kFALSE;
    }
@@ -321,20 +321,21 @@ void QwHelicity::ProcessEventInputRegisterMode()
      fPatternNumber      = 0;
      fPatternPhaseNumber = 0;
    } else {
-     fPatternNumber      = fWord[kpatterncounter].fValue;
-     fPatternPhaseNumber = fWord[kpatternphase].fValue - fPATTERNPHASEOFFSET + fMinPatternPhase;
+     fPatternNumber      = fWord[kPatternCounter].fValue;
+     fPatternPhaseNumber = fWord[kPatternPhase].fValue - fPATTERNPHASEOFFSET + fMinPatternPhase;
    }
-      if (fake_the_counters){
-    //  Now fake the event counter, pattern counter, and phase counter.
-    fEventNumber = fEventNumberOld+1;
-    if ((thisinputregister & 0x4) == 0x4) {
-      fPatternPhaseNumber = fMinPatternPhase;
-      fPatternNumber      = fPatternNumberOld + 1;
-    } else  {
-      fPatternPhaseNumber = fPatternPhaseNumberOld + 1;
-      fPatternNumber      = fPatternNumberOld;
-    }
-  }
+
+   if (fake_the_counters){
+     //  Now fake the event counter, pattern counter, and phase counter.
+     fEventNumber = fEventNumberOld+1;
+     if ((thisinputregister & 0x4) == 0x4) {
+       fPatternPhaseNumber = fMinPatternPhase;
+       fPatternNumber      = fPatternNumberOld + 1;
+     } else  {
+       fPatternPhaseNumber = fPatternPhaseNumberOld + 1;
+       fPatternNumber      = fPatternNumberOld;
+     }
+   }
    /*
    // folowing, a bunch of self consistancy checks
    if(fEventNumber!=fEventNumberOld+1)
@@ -409,18 +410,43 @@ void QwHelicity::EncodeEventData(std::vector<UInt_t> &buffer)
   std::vector<UInt_t> localbuffer;
   localbuffer.clear();
 
-  UInt_t userbit = 0x0;
-  if (fPatternPhaseNumber == fMinPatternPhase) userbit |= 0x80000000;
-  if (fHelicityDelayed == 1)    userbit |= 0x40000000;
+  // Userbit mode
+  switch (fHelicityDecodingMode) {
+  case kHelUserbitMode: {
+    UInt_t userbit = 0x0;
+    if (fPatternPhaseNumber == fMinPatternPhase) userbit |= 0x80000000;
+    if (fHelicityDelayed == 1)    userbit |= 0x40000000;
 
-  // Write the words to the buffer
-  localbuffer.push_back(0x1); // cleandata
-  localbuffer.push_back(0xa); // scandata1
-  localbuffer.push_back(0xa); // scandata2
-  localbuffer.push_back(0x0); // scalerheader
-  localbuffer.push_back(0x20); // scalercounter (32)
-  localbuffer.push_back(userbit); // userbit
-  for (int i = 0; i < 64; i++) localbuffer.push_back(0x0); // (not used)
+    // Write the words to the buffer
+    localbuffer.push_back(0x1); // cleandata
+    localbuffer.push_back(0xa); // scandata1
+    localbuffer.push_back(0xa); // scandata2
+    localbuffer.push_back(0x0); // scalerheader
+    localbuffer.push_back(0x20); // scalercounter (32)
+    localbuffer.push_back(userbit); // userbit
+
+    for (int i = 0; i < 64; i++) localbuffer.push_back(0x0); // (not used)
+    break;
+  }
+  case kHelInputRegisterMode: {
+    UInt_t input_register = 0x0;
+    if (fHelicityDelayed == 1) input_register |= 0x1;
+    if (fHelicityDelayed == 0) input_register |= 0x2; // even the mock data has balanced inputs!
+    if (fPatternPhaseNumber == fMinPatternPhase) input_register |= 0x4;
+
+    // Write the words to the buffer
+    localbuffer.push_back(input_register); // input_register
+    localbuffer.push_back(0x0); // output_register
+    localbuffer.push_back(fEventNumber); // mps_counter
+    localbuffer.push_back(fPatternNumber); // pat_counter
+    localbuffer.push_back(fPatternPhaseNumber - fMinPatternPhase + fPATTERNPHASEOFFSET); // pat_phase
+
+    for (int i = 0; i < 17; i++) localbuffer.push_back(0x0); // (not used)
+    break;
+  }
+  default:
+    QwWarning << "QwHelicity::EncodeEventData: Unsupported helicity encoding!" << QwLog::endl;
+  }
 
   // If there is element data, generate the subbank header
   std::vector<UInt_t> subbankheader;
@@ -624,14 +650,14 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	    switch (fHelicityDecodingMode)
 	      {
 	      case kHelUserbitMode :
-		if(namech.Contains("userbit")) kuserbit=fWord.size()-1;
-		if(namech.Contains("scalercounter")) kscalercounter=fWord.size()-1;
+		if(namech.Contains("userbit")) kUserbit=fWord.size()-1;
+		if(namech.Contains("scalercounter")) kScalerCounter=fWord.size()-1;
 		break;
 	      case kHelInputRegisterMode :
-		if(namech.Contains("input_register")) kinputregister= fWord.size()-1;
-		if(namech.Contains("mps_counter")) kmpscounter= fWord.size()-1;
-		if(namech.Contains("pat_counter")) kpatterncounter= fWord.size()-1;
-		if(namech.Contains("pat_phase")) kpatternphase= fWord.size()-1;
+		if(namech.Contains("input_register")) kInputRegister= fWord.size()-1;
+		if(namech.Contains("mps_counter")) kMpsCounter= fWord.size()-1;
+		if(namech.Contains("pat_counter")) kPatternCounter= fWord.size()-1;
+		if(namech.Contains("pat_phase")) kPatternPhase= fWord.size()-1;
 		break;
 	      }
 	  }
@@ -643,7 +669,7 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
       std::cout<<"Done with Load map channel \n";
       for(size_t i=0;i<fWord.size();i++)
 	fWord[i].PrintID();
-      std::cout<<" kuserbit="<<kuserbit<<"\n";
+      std::cout<<" kUserbit="<<kUserbit<<"\n";
 
     }
   ldebug=kFALSE;
@@ -1493,7 +1519,7 @@ void QwHelicity::Copy(VQwSubsystem *source)
 	      this->fWord[i].fModuleType=input->fWord[i].fModuleType;
 	      this->fWord[i].fWordType=input->fWord[i].fWordType;
 	    }
-	  this->kuserbit=input->kuserbit;
+	  this->kUserbit = input->kUserbit;
 	}
       else
 	{

@@ -40,7 +40,7 @@ static const int kMultiplet = 4;
 static const bool kBeamTrips = true;
 
 // Debug
-static const bool kDebug = true;
+static const bool kDebug = false;
 
 // Stringify
 inline std::string stringify(int i) {
@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
   detectors.push_back(new QwBeamLine("Injector BeamLine"));
   detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
   detectors.push_back(new QwHelicity("Helicity info"));
-  detectors.GetSubsystem("Helicity info")->LoadChannelMap("mock_qweak_helicity.map");
+  detectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
   detectors.push_back(new QwMainCerenkovDetector("Main detector"));
   detectors.GetSubsystem("Main detector")->LoadChannelMap("qweak_adc.map");
   detectors.push_back(new QwLumi("Lumi detector"));
@@ -351,9 +351,9 @@ int main(int argc, char* argv[])
         for (int j = 0; j < NVARS; j++)
           x[i] += C[j][i] * z[j];
 
-      // Assign to BCMs
+      // Assign to data elements
       maindetector->GetChannel("MD2Neg")->SetExternalRandomVariable(x[0]);
-      beamline->GetBCM("qwk_bcm0l06")->SetExternalRandomVariable(x[1]);
+      lumidetector->GetChannel("qwk_dslumi1")->SetExternalRandomVariable(x[1]);
       beamline->GetBCM("qwk_bcm0l07")->SetExternalRandomVariable(x[2]);
 
 

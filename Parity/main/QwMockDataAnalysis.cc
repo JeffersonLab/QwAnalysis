@@ -79,8 +79,7 @@ int main(int argc, char* argv[])
   detectors.GetSubsystem("Lumi detector")->LoadChannelMap("qweak_lumi.map");
   if (bHelicity) {
     detectors.push_back(new QwHelicity("Helicity info"));
-    detectors.GetSubsystem("Helicity info")->LoadChannelMap("mock_qweak_helicity.map");
-    detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
+    detectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
   }
   QwHelicityPattern helicitypattern(detectors);
 
