@@ -26,8 +26,8 @@ void  QwBPMStripline::InitializeChannel(TString name, Bool_t ROTATED)
 {
   bRotated=ROTATED;
 
-  SetOffset(0,0,0);  
-  
+  SetOffset(0,0,0);
+
   Short_t i = 0;
   for(i=0;i<4;i++)
     {
@@ -39,9 +39,9 @@ void  QwBPMStripline::InitializeChannel(TString name, Bool_t ROTATED)
   fWSum.InitializeChannel(name+"WSum","derived");
 
 
-  for(i=0;i<2;i++) fRelPos[i].InitializeChannel(name+"Rel"+axis[i],"derived");	
+  for(i=0;i<2;i++) fRelPos[i].InitializeChannel(name+"Rel"+axis[i],"derived");
   for(i=0;i<3;i++) fAbsPos[i].InitializeChannel(name+axis[i],"derived");
- 
+
   SetElementName(name);
   bFullSave=kTRUE;
 
@@ -64,15 +64,15 @@ void QwBPMStripline::ClearEventData()
 Int_t QwBPMStripline::GetEventcutErrorCounters()
 {
   Short_t i = 0;
-  for(i=0;i<4;i++) 
+  for(i=0;i<4;i++)
     fWire[i].GetEventcutErrorCounters();
-  for(i=0;i<2;i++) 
+  for(i=0;i<2;i++)
     fRelPos[i].GetEventcutErrorCounters();
-  
-  for(i=0;i<3;i++)
-    fAbsPos[i].GetEventcutErrorCounters(); 
 
-  fWSum.GetEventcutErrorCounters(); 
+  for(i=0;i<3;i++)
+    fAbsPos[i].GetEventcutErrorCounters();
+
+  fWSum.GetEventcutErrorCounters();
 
   return 1;
 };
@@ -112,9 +112,9 @@ void QwBPMStripline::SetRandomEventParameters(Double_t meanX, Double_t sigmaX, D
   fWire[3].SetRandomEventParameters(meanYM, sigmaYM);
 };
 /********************************************************/
-void QwBPMStripline::RandomizeEventData(int helicity)
+void QwBPMStripline::RandomizeEventData(int helicity, double time)
 {
-  for (Short_t i=0; i<4; i++) fWire[i].RandomizeEventData(helicity);
+  for (Short_t i=0; i<4; i++) fWire[i].RandomizeEventData(helicity, time);
 
   return;
 };
@@ -122,7 +122,7 @@ void QwBPMStripline::RandomizeEventData(int helicity)
 void QwBPMStripline::SetEventData(Double_t* relpos, UInt_t sequencenumber)
 {
   // This needs to be modified to allow setting the position
-  for (Short_t i=0; i<2; i++) 
+  for (Short_t i=0; i<2; i++)
     {
       fRelPos[i].SetHardwareSum(relpos[i], sequencenumber);
     }
@@ -132,18 +132,18 @@ void QwBPMStripline::SetEventData(Double_t* relpos, UInt_t sequencenumber)
 /********************************************************/
 void QwBPMStripline::EncodeEventData(std::vector<UInt_t> &buffer)
 {
-  
+
   for (Short_t i=0; i<4; i++) fWire[i].EncodeEventData(buffer);
 };
 /********************************************************/
- 
+
 Bool_t QwBPMStripline::ApplySingleEventCuts()
 {
   Bool_t status=kTRUE;
   Int_t i=0;
   //Event cuts for Relative X & Y
   for(i=0;i<2;i++){
-    if (fRelPos[i].ApplySingleEventCuts()){ //for RelX    
+    if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
     else{
@@ -151,11 +151,11 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Rel X event cut failed ";
     }
-    fDeviceErrorCode|=fRelPos[i].GetEventcutErrorFlag();//Get the Event cut error flag for RelX/Y  
+    fDeviceErrorCode|=fRelPos[i].GetEventcutErrorFlag();//Get the Event cut error flag for RelX/Y
   }
   //Event cuts for Absolute X & Y
   for(i=0;i<3;i++){
-    if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX    
+    if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
     else{
@@ -163,12 +163,12 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Abs X event cut failed ";
     }
-    fDeviceErrorCode|=fAbsPos[i].GetEventcutErrorFlag();//Get the Event cut error flag for AbsX/Y    
+    fDeviceErrorCode|=fAbsPos[i].GetEventcutErrorFlag();//Get the Event cut error flag for AbsX/Y
   }
 
   //Event cuts for four wire sum (WSum)
-  
-  if (fWSum.ApplySingleEventCuts()){ //for WSum  
+
+  if (fWSum.ApplySingleEventCuts()){ //for WSum
       status&=kTRUE;
   }
   else{
@@ -179,7 +179,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
 
   //Event cuts for four wires
   for(i=0;i<4;i++){
-    if (fWire[i].ApplySingleEventCuts()){ //for RelX    
+    if (fWire[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
     else{
@@ -187,9 +187,9 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Abs X event cut failed ";
     }
-    fDeviceErrorCode|=fWire[i].GetEventcutErrorFlag();//Get the Event cut error flag for wires    
+    fDeviceErrorCode|=fWire[i].GetEventcutErrorFlag();//Get the Event cut error flag for wires
   }
-  
+
   return status;
 };
 
@@ -247,8 +247,8 @@ void  QwBPMStripline::ProcessEvent()
 {
   Bool_t localdebug = kFALSE;
   static QwVQWK_Channel numer("numerator"), denom("denominator");
-  
-  
+
+
   ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine here and not in ApplySingleEventCuts  makes a difference for a BPMs because they have derrived devices.
 
 
@@ -262,8 +262,8 @@ void  QwBPMStripline::ProcessEvent()
 
   if (localdebug) fWSum.Print();
 
-     
-  
+
+
   for(i=0;i<2;i++)
     {
       numer.Difference(fWire[i*2],fWire[i*2+1]);
@@ -295,7 +295,7 @@ void  QwBPMStripline::ProcessEvent()
     }
   for(i=0;i<2;i++) fAbsPos[i].SetHardwareSum(fRelPos[i].GetHardwareSum()-fOffset[i]);
   fAbsPos[2].SetHardwareSum(fOffset[2]);
-  
+
   return;
 };
 /********************************************************/
@@ -314,18 +314,18 @@ void QwBPMStripline::Print()
 Bool_t QwBPMStripline::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
-   
+
   fDeviceErrorCode=0;
-  for(Short_t i=0;i<4;i++) 
+  for(Short_t i=0;i<4;i++)
     {
       fDeviceErrorCode|= fWire[i].ApplyHWChecks();  //OR the error code from each wire
-      fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 since zero means HW is good.	
-      
-      if (bDEBUG) std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;  
+      fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 since zero means HW is good.
+
+      if (bDEBUG) std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;
       if (bDEBUG) std::cout<<" wire[ "<<i<<" ] sequence num "<<fWire[i].GetSequenceNumber()<<" sample size "<<fWire[i].GetNumberOfSamples()<<std::endl;
     }
- 
-  
+
+
 
   return fEventIsGood;
 };
@@ -399,7 +399,7 @@ QwBPMStripline& QwBPMStripline::operator= (const QwBPMStripline &value)
     Short_t i = 0;
     for(i=0;i<4;i++) this->fWire[i]=value.fWire[i];
     for(i=0;i<2;i++) this->fRelPos[i]=value.fRelPos[i];
-    for(i=0;i<3;i++) 
+    for(i=0;i<3;i++)
       {
 	this->fAbsPos[i]=value.fAbsPos[i];
 	this->fOffset[i]=value.fOffset[i];
@@ -451,7 +451,7 @@ void QwBPMStripline::Ratio(QwBPMStripline &numer, QwBPMStripline &denom)
 {
   // this function is called when forming asymmetries. In this case waht we actually want for the
   // stripline is the difference only not the asymmetries
- 
+
   *this=numer;
   this->fWSum.Ratio(numer.fWSum,denom.fWSum);
 //   if (GetElementName()!="")
@@ -479,7 +479,7 @@ void QwBPMStripline::Scale(Double_t factor)
 void QwBPMStripline::Calculate_Running_Average()
 {
   Short_t i = 0;
-  for(i=0;i<2;i++) fRelPos[i].Calculate_Running_Average();      
+  for(i=0;i<2;i++) fRelPos[i].Calculate_Running_Average();
   for(i=0;i<2;i++) fAbsPos[i].Calculate_Running_Average();
   //No data for z position
   return;
@@ -515,7 +515,7 @@ void  QwBPMStripline::ConstructHistograms(TDirectory *folder, TString &prefix)
   else
     {
       //we calculate the asym_ for the fWSum becasue its an asymmetry and not a difference.
-      fWSum.ConstructHistograms(folder, prefix);    
+      fWSum.ConstructHistograms(folder, prefix);
       TString thisprefix=prefix;
       if(prefix=="asym_")
 	thisprefix="diff_";
@@ -596,7 +596,7 @@ void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std
 	fRelPos[i].ConstructBranchAndVector(tree,thisprefix,values);
       for(i=0;i<2;i++)
 	fAbsPos[i].ConstructBranchAndVector(tree,thisprefix,values);
-      
+
     }
   return;
 };
@@ -606,7 +606,7 @@ void  QwBPMStripline::FillTreeVector(std::vector<Double_t> &values)
   if (GetElementName()=="")
     {
       //  This channel is not used, so skip filling the tree.
-    } 
+    }
   else
     {
       fWSum.FillTreeVector(values);
@@ -615,9 +615,9 @@ void  QwBPMStripline::FillTreeVector(std::vector<Double_t> &values)
 	{
 	  for(i=0;i<4;i++) fWire[i].FillTreeVector(values);
 	}
-      for(i=0;i<2;i++) 
+      for(i=0;i<2;i++)
 	fRelPos[i].FillTreeVector(values);
-      for(i=0;i<3;i++) 
+      for(i=0;i<3;i++)
 	fAbsPos[i].FillTreeVector(values);
     }
   return;
@@ -671,7 +671,7 @@ void QwBPMStripline::SetEventCutMode(Int_t bcuts)
 QwParityDB::beam QwBPMStripline::GetDBEntry(QwDatabase *db, TString mtype, TString subname)
 {
   QwParityDB::beam row(0);
-      
+
   UInt_t beam_run_id      = 0;
   UInt_t beam_analysis_id = 0;
   UInt_t beam_monitor_id  = 0;
@@ -687,8 +687,8 @@ QwParityDB::beam QwBPMStripline::GetDBEntry(QwDatabase *db, TString mtype, TStri
 
   TString beam_position_type(db->GetMeasurementID(12)); // yp
   TString beam_asymmetry_type(db->GetMeasurementID(0));//a
- 
- 
+
+
   if(mtype.Contains("yield"))
     {
       sprintf(beam_measurement_type, beam_position_type.Data());
@@ -709,7 +709,7 @@ QwParityDB::beam QwBPMStripline::GetDBEntry(QwDatabase *db, TString mtype, TStri
     {
       sprintf(beam_measurement_type, " ");
     }
-  
+
 
   if      ( subname.Contains("RelX",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fRelPos[0]); bpm_sub_element = fRelPos[0];}
   else if ( subname.Contains("RelY",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fRelPos[1]); bpm_sub_element = fRelPos[1];}
@@ -728,7 +728,7 @@ QwParityDB::beam QwBPMStripline::GetDBEntry(QwDatabase *db, TString mtype, TStri
   err             = bpm_sub_element.GetAverageError();
   beam_subblock   = 0;
   beam_n          = 0;
-	  
+
   beam_run_id      = db->GetRunID();
   beam_analysis_id = db->GetAnalysisID();
   beam_monitor_id  = db->GetMonitorID(name.Data());
@@ -742,11 +742,11 @@ QwParityDB::beam QwBPMStripline::GetDBEntry(QwDatabase *db, TString mtype, TStri
   row.error               = err;
 
 
-  printf("%12s::RunID %d AnalysisID %d %4s MonitorID %4d %18s , Subblock %d, n %d [%18.2e, %12.2e] \n", 
-	 mtype.Data(), beam_run_id, beam_analysis_id, beam_measurement_type, beam_monitor_id, name.Data(),  
+  printf("%12s::RunID %d AnalysisID %d %4s MonitorID %4d %18s , Subblock %d, n %d [%18.2e, %12.2e] \n",
+	 mtype.Data(), beam_run_id, beam_analysis_id, beam_measurement_type, beam_monitor_id, name.Data(),
 	 beam_subblock, beam_n, avg, err);
-  
+
   return row;
-  
+
 };
 

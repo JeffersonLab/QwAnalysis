@@ -43,6 +43,18 @@ void QwIntegrationPMT::ReportErrorCounters(){
   fTriumf_ADC.ReportErrorCounters();
 };
 /********************************************************/
+void QwIntegrationPMT::UseExternalRandomVariable()
+{
+  fTriumf_ADC.UseExternalRandomVariable();
+  return;
+};
+/********************************************************/
+void QwIntegrationPMT::SetExternalRandomVariable(double random_variable)
+{
+  fTriumf_ADC.SetExternalRandomVariable(random_variable);
+  return;
+};
+/********************************************************/
 void QwIntegrationPMT::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
 {
   fTriumf_ADC.SetRandomEventDriftParameters(amplitude, phase, frequency);
@@ -67,9 +79,9 @@ void QwIntegrationPMT::SetRandomEventAsymmetry(Double_t asymmetry)
   return;
 };
 /********************************************************/
-void QwIntegrationPMT::RandomizeEventData(int helicity)
+void QwIntegrationPMT::RandomizeEventData(int helicity, double time)
 {
-  fTriumf_ADC.RandomizeEventData(helicity);
+  fTriumf_ADC.RandomizeEventData(helicity, time);
   return;
 };
 /********************************************************/
@@ -93,12 +105,6 @@ Double_t QwIntegrationPMT::GetBlockValue(Int_t blocknum)
 void QwIntegrationPMT::SetEventData(Double_t* block, UInt_t sequencenumber)
 {
   fTriumf_ADC.SetEventData(block, sequencenumber);
-  return;
-};
-/********************************************************/
-void QwIntegrationPMT::SetEventNumber(int event)
-{
-  fTriumf_ADC.SetEventNumber(event);
   return;
 };
 /********************************************************/
@@ -372,7 +378,7 @@ QwDBIntegratedPMT QwIntegrationPMT::GetDBEntry(QwDatabase *db, TString mtype, TS
 
    TString beam_charge_type(db->GetMeasurementID(13)); // yq
    TString beam_asymmetry_type(db->GetMeasurementID(0));//a
-  
+
   if(mtype.Contains("yield"))
     {
       sprintf(PMT_measurement_type, beam_charge_type.Data());
@@ -393,9 +399,9 @@ QwDBIntegratedPMT QwIntegrationPMT::GetDBEntry(QwDatabase *db, TString mtype, TS
     {
       sprintf(PMT_measurement_type, " ");
     }
-  
+
   name = this->GetElementName();
-  
+
   row.SetAnalysisID( db->GetAnalysisID() );
   row.SetDetectorID( db->GetDetectorID(name.Data()) );
   row.SetMeasurementTypeID( PMT_measurement_type );
@@ -405,7 +411,7 @@ QwDBIntegratedPMT QwIntegrationPMT::GetDBEntry(QwDatabase *db, TString mtype, TS
   row.SetError(this->GetAverageError(""));
 
   QwMessage << std::setw(12)
-	    << mtype.Data() 
+	    << mtype.Data()
 	    << "::RunID "<<  db->GetRunID()
 	    << " AnalysisID " << std::setw(4) << db->GetAnalysisID()
 	    << " DetectorID " << std::setw(4) << db->GetDetectorID(name.Data())
@@ -414,9 +420,9 @@ QwDBIntegratedPMT QwIntegrationPMT::GetDBEntry(QwDatabase *db, TString mtype, TS
 	    << "[ " << this->GetAverage("")
 	    << ", " << this->GetAverageError("")
 	    << " ]" << QwLog::endl;
-  
+
   return row;
-  
+
 };
 
 

@@ -157,7 +157,6 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
 
   fPreviousSequenceNumber = 0;
   fNumberOfSamples_map    = 0;
-  fEventNumber            = 0;
 
 
   // Mock drifts
@@ -176,10 +175,10 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
   fNumEvtsWithEventCutsRejected = 0;
 
   //init error counters//
-  fErrorCount_sample     = 0; 
-  fErrorCount_SW_HW      = 0; 
-  fErrorCount_Sequence   = 0; 
-  fErrorCount_SameHW     = 0; 
+  fErrorCount_sample     = 0;
+  fErrorCount_SW_HW      = 0;
+  fErrorCount_Sequence   = 0;
+  fErrorCount_SameHW     = 0;
   fErrorCount_ZeroHW     = 0;
 
   fDeviceErrorCode       = 0;
@@ -230,24 +229,31 @@ void QwVQWK_Channel::ClearEventData()
   return;
 };
 
-void QwVQWK_Channel::RandomizeEventData(int helicity)
+void QwVQWK_Channel::RandomizeEventData(int helicity, double time)
 {
   // The blocks are assumed to be independent measurements
   Double_t block[fBlocksPerEvent];
   Double_t sqrt_fBlocksPerEvent = 0.0;
   sqrt_fBlocksPerEvent = sqrt(fBlocksPerEvent);
 
-  // Calculate drift
-  Double_t time = fEventNumber * Qw::ms; // WARNING: Hard-coded helicity window!!!
+  // Calculate drift (if time is not specified, it stays constant at zero)
   Double_t drift = 0.0;
   for (size_t i = 0; i < fMockDriftFrequency.size(); i++) {
     drift += fMockDriftAmplitude[i] * sin(2.0 * Qw::pi * fMockDriftFrequency[i] * time + fMockDriftPhase[i]);
   }
 
+  // External or internal randomness?
+  double random_variable;
+  if (fUseExternalRandomVariable)
+    random_variable = fExternalRandomVariable; // external normal random variable
+  else
+    random_variable = fNormalRandomVariable(); // internal normal random variable
+
   // Calculate signal
   for (size_t i = 0; i < fBlocksPerEvent; i++)
-    block[i] = fMockGaussianMean * (1 + helicity * fMockAsymmetry) / fBlocksPerEvent
-      + fMockGaussianSigma / sqrt_fBlocksPerEvent * fNormalRandomVariable()
+    block[i] =
+        fMockGaussianMean * (1 + helicity * fMockAsymmetry) / fBlocksPerEvent
+      + fMockGaussianSigma / sqrt_fBlocksPerEvent * random_variable
       + drift / fBlocksPerEvent;
 
   SetEventData(block);
@@ -305,7 +311,7 @@ void QwVQWK_Channel::SetEventData(Double_t* block, UInt_t sequencenumber)
     fHardwareBlockSum += block[i];
   }
   fSequenceNumber = sequencenumber;
-  fNumberOfSamples = 16680; 
+  fNumberOfSamples = 16680;
 
   Double_t thispedestal = 0.0;
   thispedestal = fPedestal * fNumberOfSamples;
@@ -437,7 +443,7 @@ Double_t QwVQWK_Channel::GetAverageVolts()
   Double_t avgVolts = fHardwareBlockSum*kVQWK_VoltsPerBit/fNumberOfSamples;
   //std::cout<<"QwVQWK_Channel::GetAverageVolts() = "<<avgVolts<<std::endl;
   return avgVolts;
-  
+
 };
 
 void QwVQWK_Channel::Print() const
@@ -808,7 +814,7 @@ void QwVQWK_Channel::Scale(Double_t scale)
 
 void QwVQWK_Channel::Calculate_Running_Average()
 {
-  
+
 //  if (!fGoodEventCount)
   if (fGoodEventCount<=0)
     {
@@ -822,7 +828,7 @@ void QwVQWK_Channel::Calculate_Running_Average()
       fAverage_n_square = fRunning_sum_square/fGoodEventCount;
       fAverage_error    = sqrt(fabs(fAverage_n_square-fAverage_n*fAverage_n)/ fGoodEventCount);
     }
-  
+
   this -> Print_Running_Average();
 
 };
@@ -834,14 +840,14 @@ void QwVQWK_Channel::Print_Running_Average()
     << this->GetElementName()<<" \t "
     << this->fAverage_n      <<" \t "
     << this->fAverage_error  <<" \t "
-    << fGoodEventCount 
+    << fGoodEventCount
     <<std::endl;
 }
 
 
 void QwVQWK_Channel::Do_RunningSum()
 {
-  if (fDeviceErrorCode == 0){//if the device HW is good  
+  if (fDeviceErrorCode == 0){//if the device HW is good
     fRunning_sum+=fHardwareBlockSum;//increase the sum. sum square and event counter
     fRunning_sum_square+=fHardwareBlockSum*fHardwareBlockSum;
     fGoodEventCount++;
@@ -876,7 +882,7 @@ Bool_t QwVQWK_Channel::MatchNumberOfSamples(size_t numsamp)
   if (!IsNameEmpty()){
     status = (fNumberOfSamples==numsamp);
     if (! status){
-      if (bDEBUG) 
+      if (bDEBUG)
 	std::cerr << "QwVQWK_Channel::MatchNumberOfSamples:  Channel "
 		<< GetElementName()
 		<< " had fNumberOfSamples==" << fNumberOfSamples
@@ -930,7 +936,7 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and up
       status=kFALSE;
     }
     if (bEVENTCUTMODE==3){
-      if (!status) 
+      if (!status)
 	UpdateEventCutErrorCount();//update the event cut  error count
       status=kTRUE; //Update the event cut fail flag but pass the event.
     }

@@ -1,6 +1,6 @@
 HelicityDecodingMode=UserbitMode
 PatternPhase=4
-RandSeedBits=24
+RandSeedBits=30
 
 ROC=31
 Bank=0x3101

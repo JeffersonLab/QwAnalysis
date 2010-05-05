@@ -47,6 +47,18 @@ void QwBCM::ClearEventData()
 
 
 /********************************************************/
+void QwBCM::UseExternalRandomVariable()
+{
+  fTriumf_ADC.UseExternalRandomVariable();
+  return;
+};
+/********************************************************/
+void QwBCM::SetExternalRandomVariable(double random_variable)
+{
+  fTriumf_ADC.SetExternalRandomVariable(random_variable);
+  return;
+};
+/********************************************************/
 void QwBCM::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
 {
   fTriumf_ADC.SetRandomEventDriftParameters(amplitude, phase, frequency);
@@ -71,9 +83,9 @@ void QwBCM::SetRandomEventAsymmetry(Double_t asymmetry)
   return;
 };
 /********************************************************/
-void QwBCM::RandomizeEventData(int helicity)
+void QwBCM::RandomizeEventData(int helicity, double time)
 {
-  fTriumf_ADC.RandomizeEventData(helicity);
+  fTriumf_ADC.RandomizeEventData(helicity, time);
   return;
 };
 /********************************************************/
@@ -86,12 +98,6 @@ void QwBCM::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
 void QwBCM::SetEventData(Double_t* block, UInt_t sequencenumber)
 {
   fTriumf_ADC.SetEventData(block, sequencenumber);
-  return;
-};
-/********************************************************/
-void QwBCM::SetEventNumber(int event)
-{
-  fTriumf_ADC.SetEventNumber(event);
   return;
 };
 /********************************************************/
@@ -350,7 +356,7 @@ void  QwBCM::Copy(VQwDataElement *source)
 QwParityDB::beam QwBCM::GetDBEntry(QwDatabase *db, TString mtype, TString subname)
 {
   QwParityDB::beam row(0);
-  
+
   UInt_t beam_run_id      = 0;
   UInt_t beam_analysis_id = 0;
   UInt_t beam_monitor_id  = 0;
@@ -364,14 +370,14 @@ QwParityDB::beam QwBCM::GetDBEntry(QwDatabase *db, TString mtype, TString subnam
 
   TString beam_charge_type(db->GetMeasurementID(13)); // yq
   TString beam_asymmetry_type(db->GetMeasurementID(0));//a
- 
+
   if(mtype.Contains("yield"))
     {
       sprintf(beam_measurement_type, beam_charge_type.Data());
     }
   else if(mtype.Contains("asymmetry"))
     {
-      sprintf(beam_measurement_type, beam_asymmetry_type.Data()); // 1 is a 
+      sprintf(beam_measurement_type, beam_asymmetry_type.Data()); // 1 is a
     }
   else if(mtype.Contains("average") )
     {
@@ -385,7 +391,7 @@ QwParityDB::beam QwBCM::GetDBEntry(QwDatabase *db, TString mtype, TString subnam
     {
       sprintf(beam_measurement_type, " ");
     }
-  
+
   name = this->GetElementName();
   avg  = this->GetAverage("");
   err  = this->GetAverageError("");
@@ -407,10 +413,10 @@ QwParityDB::beam QwBCM::GetDBEntry(QwDatabase *db, TString mtype, TString subnam
   row.value               = avg;
   row.error               = err;
 
-  printf("%12s::RunID %d AnalysisID %d %4s MonitorID %4d %18s , Subblock %d, n %d [%18.2e, %12.2e] \n", 
-	 mtype.Data(), beam_run_id, beam_analysis_id, beam_measurement_type, beam_monitor_id, name.Data(),  
+  printf("%12s::RunID %d AnalysisID %d %4s MonitorID %4d %18s , Subblock %d, n %d [%18.2e, %12.2e] \n",
+	 mtype.Data(), beam_run_id, beam_analysis_id, beam_measurement_type, beam_monitor_id, name.Data(),
 	 beam_subblock, beam_n, avg, err);
-  
+
   return row;
-  
+
 };

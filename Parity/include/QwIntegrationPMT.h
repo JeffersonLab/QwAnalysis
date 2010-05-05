@@ -118,7 +118,10 @@ class QwIntegrationPMT : public VQwDataElement{
   void  AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
-  void  RandomizeEventData(int helicity);
+  void  RandomizeEventData(int helicity = 0, double time = 0.0);
+
+  void  UseExternalRandomVariable();
+  void  SetExternalRandomVariable(Double_t random_variable);
 
   void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
   Double_t GetHardwareSum();
@@ -133,7 +136,6 @@ class QwIntegrationPMT : public VQwDataElement{
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Int_t SetSingleEventCuts(Double_t, Double_t);//set two limts
   void SetDefaultSampleSize(Int_t sample_size);
-  void SetEventNumber(int event);
 
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;

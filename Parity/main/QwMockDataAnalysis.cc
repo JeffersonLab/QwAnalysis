@@ -28,6 +28,7 @@
 #include "QwHelicityPattern.h"
 #include "QwHistogramHelper.h"
 #include "QwMainCerenkovDetector.h"
+#include "QwLumi.h"
 #include "QwSubsystemArrayParity.h"
 
 
@@ -46,9 +47,7 @@ static bool bDebug = false;
 // Activate components
 static bool bHisto = true;
 static bool bTree = true;
-static bool bBeamLine = true;
 static bool bHelicity = true;
-static bool bQuartz = true;
 
 int main(int argc, char* argv[])
 {
@@ -72,19 +71,12 @@ int main(int argc, char* argv[])
 
   // Detector array
   QwSubsystemArrayParity detectors;
-  if (bBeamLine) {
-    detectors.push_back(new QwBeamLine("Injector BeamLine"));
-    detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
-    detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("mock_qweak_pedestal.map");
-  }
-  if (bQuartz) {
-    detectors.push_back(new QwMainCerenkovDetector("Main detector"));
-    //detectors.GetSubsystem("Main detector")->LoadChannelMap("mock_qweak_adc.map");
-
-    detectors.GetSubsystem("Main detector")->LoadChannelMap("qweak_adc.map");
-
-    detectors.GetSubsystem("Main detector")->LoadInputParameters("mock_qweak_pedestal.map");
-  }
+  detectors.push_back(new QwBeamLine("Injector BeamLine"));
+  detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
+  detectors.push_back(new QwMainCerenkovDetector("Main detector"));
+  detectors.GetSubsystem("Main detector")->LoadChannelMap("qweak_adc.map");
+  detectors.push_back(new QwLumi("Lumi detector"));
+  detectors.GetSubsystem("Lumi detector")->LoadChannelMap("qweak_lumi.map");
   if (bHelicity) {
     detectors.push_back(new QwHelicity("Helicity info"));
     detectors.GetSubsystem("Helicity info")->LoadChannelMap("mock_qweak_helicity.map");

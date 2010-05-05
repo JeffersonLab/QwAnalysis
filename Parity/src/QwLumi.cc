@@ -264,11 +264,25 @@ Int_t QwLumi::LoadInputParameters(TString pedestalfile)
 }
 
 //*****************************************************************
-void QwLumi::RandomizeEventData(int helicity)
+void QwLumi::SetRandomEventParameters(Double_t mean, Double_t sigma)
+{
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].SetRandomEventParameters(mean, sigma);
+};
+
+//*****************************************************************
+void QwLumi::SetRandomEventAsymmetry(Double_t asymmetry)
+{
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].SetRandomEventAsymmetry(asymmetry);
+};
+
+//*****************************************************************
+void QwLumi::RandomizeEventData(int helicity, double time)
 {
   // Randomize all QwIntegrationPMT buffers
   for (size_t i = 0; i < fIntegrationPMT.size(); i++)
-    fIntegrationPMT[i].RandomizeEventData(helicity);
+    fIntegrationPMT[i].RandomizeEventData(helicity, time);
 }
 //*****************************************************************
 void QwLumi::EncodeEventData(std::vector<UInt_t> &buffer)
@@ -472,18 +486,26 @@ Int_t QwLumi::GetDetectorIndex(Int_t type_id, TString name)
 
   return result;
 };
+
+//*****************************************************************
+QwIntegrationPMT* QwLumi::GetChannel(const TString name)
+{
+  return GetIntegrationPMT(name);
+};
+
 //*****************************************************************
 QwIntegrationPMT* QwLumi::GetIntegrationPMT(const TString name)
 {
   if (! fIntegrationPMT.empty()) {
     for (std::vector<QwIntegrationPMT>::iterator IntegrationPMT = fIntegrationPMT.begin(); IntegrationPMT != fIntegrationPMT.end(); ++IntegrationPMT) {
       if (IntegrationPMT->GetElementName() == name) {
-	return &(*IntegrationPMT);
+        return &(*IntegrationPMT);
       }
     }
   }
   return 0;
 };
+
 //*****************************************************************
 VQwSubsystem&  QwLumi::operator=  (VQwSubsystem *value)
 {

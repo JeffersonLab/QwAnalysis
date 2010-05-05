@@ -30,18 +30,18 @@ class QwBPMStripline : public VQwDataElement{
   QwBPMStripline(TString name, Bool_t ROTATED){
     InitializeChannel(name, ROTATED);
   };
-  
+
   ~QwBPMStripline() {DeleteHistograms();};
 
-  Int_t ProcessEvBuffer(UInt_t* buffer, 
+  Int_t ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
 
   void  InitializeChannel(TString name, Bool_t ROTATED);
   void  ClearEventData();
-  
+
 
   void  SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t meanY, Double_t sigmaY);
-  void  RandomizeEventData(int helicity);
+  void  RandomizeEventData(int helicity = 0, double time = 0.0);
   void  SetEventData(Double_t* block, UInt_t sequencenumber);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
 
@@ -53,12 +53,12 @@ class QwBPMStripline : public VQwDataElement{
   void SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
   void SetDefaultSampleSize(Int_t sample_size);
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-  Int_t GetEventcutErrorFlag(){//return the error flag 
+  Int_t GetEventcutErrorFlag(){//return the error flag
     return fDeviceErrorCode;
   };
 
   void SetEventCutMode(Int_t bcuts);
-  
+
 
   void Copy(VQwDataElement *source);
 
@@ -70,9 +70,9 @@ class QwBPMStripline : public VQwDataElement{
   void Difference(QwBPMStripline &value1, QwBPMStripline &value2);
   void Ratio(QwBPMStripline &numer, QwBPMStripline &denom);
   void Scale(Double_t factor);
- 
+
   void Calculate_Running_Average();
-  void Do_RunningSum(); 
+  void Do_RunningSum();
 
   void SetOffset(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset);
   UInt_t GetSubElementIndex(TString subname);
@@ -107,18 +107,18 @@ class QwBPMStripline : public VQwDataElement{
   Bool_t bRotated;
   Bool_t bFullSave; // used to restrict the amount of data histogramed
 
-  Bool_t fGoodEvent; 
+  Bool_t fGoodEvent;
 
 
 
   //Double_t fULimitX, fLLimitX, fULimitY, fLLimitY;//this sets the upper and lower limits on the X & Y of the BPM stripline
- 
+
   QwVQWK_Channel fWire[4];
   QwVQWK_Channel fWSum;
   QwVQWK_Channel fRelPos[2];
   /* These channels contain the beam position within the frame of the BPM*/
   QwVQWK_Channel fAbsPos[3];
-  
+
 
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
 
@@ -129,7 +129,7 @@ class QwBPMStripline : public VQwDataElement{
   /* contains the beam position in the absolute frame defined as found reference...*/
 
 };
- 
+
 /********************************************************/
 
 

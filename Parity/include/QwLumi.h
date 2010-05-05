@@ -87,7 +87,9 @@ class QwLumi : public VQwSubsystemParity{
   void  ProcessEvent();
   Bool_t IsGoodEvent();
 
-  void RandomizeEventData(int helicity = 0);
+  void  SetRandomEventParameters(Double_t mean, Double_t sigma);
+  void  SetRandomEventAsymmetry(Double_t asymmetry);
+  void RandomizeEventData(int helicity = 0, double time = 0.0);
   void EncodeEventData(std::vector<UInt_t> &buffer);
 
   VQwSubsystem&  operator=  (VQwSubsystem *value);
@@ -107,12 +109,13 @@ class QwLumi : public VQwSubsystemParity{
   void  FillTreeVector(std::vector<Double_t> &values);
   void  FillDB(QwDatabase *db, TString datatype);
 
+  QwIntegrationPMT* GetChannel(const TString name);
+  QwIntegrationPMT* GetIntegrationPMT(const TString name);
+
   void Copy(VQwSubsystem *source);
   VQwSubsystem*  Copy();
   Bool_t Compare(VQwSubsystem *source);
   void Print();
-
-  QwIntegrationPMT* GetIntegrationPMT(const TString name);
 
 /////
  protected:

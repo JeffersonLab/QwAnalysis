@@ -76,7 +76,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
 
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
-  void  RandomizeEventData(int helicity = 0);
+  void  RandomizeEventData(int helicity = 0, Double_t time = 0.0);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
 
   void  ConstructHistograms(TDirectory *folder){

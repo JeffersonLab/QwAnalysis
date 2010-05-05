@@ -65,11 +65,17 @@ class QwVQWK_Channel: public VQwDataElement {
   void  AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
-  void  RandomizeEventData(int helicity);
-  void  SetEventNumber(int event) {fEventNumber = event;};
+  void  RandomizeEventData(int helicity, double time = 0.0);
   void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
   void  SetEventData(Double_t* block, UInt_t sequencenumber = 0);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
+
+  void  UseExternalRandomVariable() { fUseExternalRandomVariable = true; };
+  void  SetExternalRandomVariable(Double_t random_variable) {
+    fUseExternalRandomVariable = true;
+    fExternalRandomVariable = random_variable;
+  };
+
 
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_t index=0);
   void  ProcessEvent();
@@ -93,8 +99,8 @@ class QwVQWK_Channel: public VQwDataElement {
 
   /*Event cut related routines*/
   Bool_t ApplySingleEventCuts(Double_t LL,Double_t UL);//check values read from modules are at desired level
-  Bool_t ApplySingleEventCuts();//check values read from modules are at desired level by comparing upper and lower limits (fULimit and fLLimit) set on this channel 
-  void SetSingleEventCuts(Double_t min, Double_t max);//set the upper and lower limits (fULimit and fLLimit) set on this channel 
+  Bool_t ApplySingleEventCuts();//check values read from modules are at desired level by comparing upper and lower limits (fULimit and fLLimit) set on this channel
+  void SetSingleEventCuts(Double_t min, Double_t max);//set the upper and lower limits (fULimit and fLLimit) set on this channel
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Int_t GetEventcutErrorFlag(){//return the error flag
     return fDeviceErrorCode;
@@ -137,7 +143,7 @@ class QwVQWK_Channel: public VQwDataElement {
   void SetCalibrationFactor(Double_t factor){fCalibrationFactor=factor; return;};
   Double_t GetCalibrationFactor(){return fCalibrationFactor;};
 
-  
+
   void Copy(VQwDataElement *source);
 
   void Print() const;
@@ -151,11 +157,14 @@ class QwVQWK_Channel: public VQwDataElement {
  private:
   static const Bool_t kDEBUG;
 
-  // Randomness generator
+  // Internal randomness generator
   static boost::mt19937 fRandomnessGenerator;
   static boost::normal_distribution<double> fNormalDistribution;
   static boost::variate_generator
     < boost::mt19937, boost::normal_distribution<double> > fNormalRandomVariable;
+  // External normal random variable
+  bool fUseExternalRandomVariable;	///< Flag to use externally provided normal random variable
+  double  fExternalRandomVariable;	///< Externally provided normal random variable
 
   Int_t fDataToSave;
 
@@ -190,8 +199,6 @@ class QwVQWK_Channel: public VQwDataElement {
   size_t fPreviousSequenceNumber; /*! Previous event sequence number for this channel  */
   size_t fNumberOfSamples;    /*! Number of samples  read through the module        */
   size_t fNumberOfSamples_map;    /*! Number of samples in the expected to  read through the module. This value is set in the QwBeamline map file     */
-
-  size_t fEventNumber;
 
   /// \name Parity mock data distributions
   // @{

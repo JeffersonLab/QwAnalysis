@@ -108,7 +108,7 @@ class VQwSubsystem {
 
 
   // Not all derived classes will have the following functions
-  virtual void  RandomizeEventData(int helicity) { };
+  virtual void  RandomizeEventData(int helicity = 0, double time = 0.0) { };
   virtual void  EncodeEventData(std::vector<UInt_t> &buffer) { };
 
   /// \name Histogram construction and maintenance

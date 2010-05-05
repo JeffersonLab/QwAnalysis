@@ -60,7 +60,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
                         buffer, UInt_t num_words);
 
   /// \brief Randomize the data in this event
-  void  RandomizeEventData(int helicity = 0);
+  void  RandomizeEventData(int helicity = 0, double time = 0.0);
 
   /// \brief Encode the data in this event
   void  EncodeEventData(std::vector<UInt_t> &buffer);

@@ -110,13 +110,16 @@ void  QwSubsystemArray::ProcessEvent()
 };
 
 
-void  QwSubsystemArray::RandomizeEventData(int helicity)
+//*****************************************************************
+void  QwSubsystemArray::RandomizeEventData(int helicity, double time)
 {
   if (!empty())
     for (iterator subsys = begin(); subsys != end(); ++subsys) {
-      (*subsys)->RandomizeEventData(helicity);
+      (*subsys)->RandomizeEventData(helicity, time);
     }
 };
+
+//*****************************************************************
 void  QwSubsystemArray::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   if (!empty())
@@ -127,7 +130,6 @@ void  QwSubsystemArray::EncodeEventData(std::vector<UInt_t> &buffer)
 
 
 //*****************************************************************
-
 void  QwSubsystemArray::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
   //std::cout<<" here in QwSubsystemArray::ConstructHistograms with prefix ="<<prefix<<"\n";

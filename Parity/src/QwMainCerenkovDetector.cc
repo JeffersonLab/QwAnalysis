@@ -414,13 +414,13 @@ void QwMainCerenkovDetector::SetRandomEventAsymmetry(Double_t asymmetry)
 
 };
 
-void QwMainCerenkovDetector::RandomizeEventData(int helicity)
+void QwMainCerenkovDetector::RandomizeEventData(int helicity, double time)
 {
   for (size_t i = 0; i < fMainDetID.size(); i++)
     {
       // This is a QwIntegrationPMT
       if (fMainDetID.at(i).fTypeID == kQwIntegrationPMT)
-        fIntegrationPMT[fMainDetID.at(i).fIndex].RandomizeEventData(helicity);
+        fIntegrationPMT[fMainDetID.at(i).fIndex].RandomizeEventData(helicity, time);
     }
 
 }
