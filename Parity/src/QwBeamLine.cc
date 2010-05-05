@@ -71,7 +71,6 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	}
       else if (varname=="begincombo")
 	{
-	  //std::cout<<"QwBeamline :: Decoding BCM combo!\n";
 	  combolistdecoded = kFALSE;
 	  combotype = varvalue;
 	  while(mapstr.ReadNextLine()&&!combolistdecoded){
@@ -312,12 +311,7 @@ QwBeamDetectorID::QwBeamDetectorID(Int_t subbankid, Int_t wordssofar,
       break;
     }
   }
-//   if (fTypeID == kUnknownDeviceType) {
-//     std::cerr << "QwBeamDetectorID::QwBeamDetectorID:  Unknown detector type: "
-//   	      << dettype <<", the detector "<<name<<" will not be decoded "
-//   	      << std::endl;
-//   }
-};
+}
 
 
 //*****************************************************************
@@ -338,16 +332,13 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
   eventcut_flag=1;
 
   while (mapstr.ReadNextLine()){
-    //std::cout<<"********* In the loop  *************"<<std::endl;
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
 
     if (mapstr.HasVariablePair("=",varname2,varvalue2)){
       if (varname2=="EVENTCUTS"){
-	//varname="";
 	eventcut_flag= QwParameterFile::GetUInt(varvalue2);
-	//std::cout<<"EVENT CUT FLAG "<<eventcut_flag<<std::endl;
       }
     }
     else{
@@ -363,47 +354,49 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
       ULY=0;
       LLY=0;
 
-      if (device_type == "bcm"){
-
-	//std::cout<<" device name "<<device_name<<" device flag "<<check_flag<<std::endl;
+      if (device_type == "bcm"){     
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BCM value
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BCM value
-
-	//samplesize = (atoi(mapstr.GetNextToken(", ").c_str()));	//sample size
-	//	std::cout<<" sample size "<<samplesize<<std::endl;
-	//retrieve the detector from the vector.
-	//device_name="empty2";
 	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
-	//std::cout<<"*****************************"<<std::endl;
-	//std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<eventcut_flag<<std::endl;
-
-	//fBCM[det_index].Print();
 	fBCM[det_index].SetSingleEventCuts(LLX,ULX);//(fBCMEventCuts);
-	//std::cout<<"*****************************"<<std::endl;
-
       }
       else if (device_type == "bpmstripline"){
 	channel_name= mapstr.GetNextToken(", ").c_str();
 	channel_name.ToLower();
-
-
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline X
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline X
-	//LLY = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline Y
-	//ULY = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline Y
+
+	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);	
+	
+	fStripline[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
+      }
+      else if (device_type == "combinedbcm"){
+
+	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BCM value
+	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BCM value
 
 	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
+	fBCMCombo[det_index].Print();
+	fBCMCombo[det_index].SetSingleEventCuts(LLX,ULX);//(fBCMComboEventCuts);
 
-	//std::cout<<"*****************************"<<std::endl;
-	//std::cout<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<eventcut_flag<<std::endl;
-	//fStripline[det_index].SetSingleEventCuts(LLX, ULX, LLY,ULY);
-	fStripline[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
-	//fStripline[det_index].Print();
-	//std::cout<<"*****************************"<<std::endl;
       }
+      else if (device_type == "combinedbpm"){
+	channel_name= mapstr.GetNextToken(", ").c_str();
+	channel_name.ToLower();
+    
+	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline X
+	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline X
+
+	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
+	fBPMCombo[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
+	fBPMCombo[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
+      }
+
     }
 
   }
+
+
   //update the event cut ON/OFF for all the devices
   //std::cout<<"EVENT CUT FLAG"<<eventcut_flag<<std::endl;
   for (size_t i=0;i<fStripline.size();i++){
@@ -414,10 +407,18 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
     fBCM[i].SetEventCutMode(eventcut_flag);
 
 
+  for (size_t i=0;i<fBCMCombo.size();i++)
+    fBCMCombo[i].SetEventCutMode(eventcut_flag);
+
+  for (size_t i=0;i<fBPMCombo.size();i++)
+    fBPMCombo[i].SetEventCutMode(eventcut_flag);
+
   fQwBeamLineErrorCount=0; //set the error counter to zero
 
   return 0;
 };
+
+
 Int_t QwBeamLine::LoadGeometry(TString mapfile)
 {
   Bool_t ldebug=kFALSE;
@@ -711,38 +712,42 @@ Int_t QwBeamLine::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UIn
 };
 
 Bool_t QwBeamLine::ApplySingleEventCuts(){
-  //currently this will check the IsGoodEvent() only!
-  //std::cout<<" QwBeamLine::SingleEventCuts() ";
 
-  Bool_t test_BCM=kTRUE;
-  Bool_t test_BCM1=kTRUE;
-
+  Bool_t status=kTRUE;
 
   for(size_t i=0;i<fBCM.size();i++){
-    //std::cout<<"  BCM ["<<i<<"] "<<std::endl;
-    test_BCM1=fBCM[i].ApplySingleEventCuts();
-    test_BCM&=test_BCM1;
-    if(!test_BCM1 && bDEBUG) std::cout<<"******* QwBeamLine::SingleEventCuts()->BCM[ "<<i<<" , "<<fBCM[i].GetElementName()<<" ] ******\n";
-  }
-  //if (!test_BCM)
-  //fNumError_Evt_BCM++;//BCM falied  event counter for QwBeamLine
+    status = fBCM[i].ApplySingleEventCuts();
+    if(!status && bDEBUG) std::cout<<"******* QwBeamLine::SingleEventCuts()->BCM[ "<<i
+				   <<" , "<<fBCM[i].GetElementName()<<" ] ******\n";
 
+  }
 
   for(size_t i=0;i<fStripline.size();i++){
-    //std::cout<<"  BPM ["<<i<<"] "<<std::endl;
-    test_BCM1=fStripline[i].ApplySingleEventCuts();
-    test_BCM&=test_BCM1;
-    if(!test_BCM1 && bDEBUG) std::cout<<"******** QwBeamLine::SingleEventCuts()->BPMStripline[ "<<i<<" , "<<fStripline[i].GetElementName()<<" ] *****\n";
+    status&=fStripline[i].ApplySingleEventCuts();
+    if(!status && bDEBUG) std::cout<<"******** QwBeamLine::SingleEventCuts()->BPMStripline[ "<<i
+				   <<" , "<<fStripline[i].GetElementName()<<" ] *****\n";
+
     }
-  if (!test_BCM1 || !test_BCM)
-   fQwBeamLineErrorCount++;//BPM falied  event counter for QwBeamLine
+
+  for(size_t i=0;i<fBCMCombo.size();i++){
+    status&=fBCMCombo[i].ApplySingleEventCuts();
+    if(!status && bDEBUG) std::cout<<"******* QwBeamLine::SingleEventCuts()->CombinedBCM[ "<<i
+				   <<" , "<<fBCMCombo[i].GetElementName()<<" ] ******\n";
+  }
+  
+  for(size_t i=0;i<fBPMCombo.size();i++){
+    status&=fBPMCombo[i].ApplySingleEventCuts();
+    if(!status && bDEBUG) std::cout<<"******* QwBeamLine::SingleEventCuts()->CombinedBPM[ "<<i
+				   <<" , "<<fBPMCombo[i].GetElementName()<<" ] ******\n";
+    
+  }
+
+  //If at least one of the devices falied  event cuts, increment error counter for QwBeamLine
+  if (!status)
+    fQwBeamLineErrorCount++;
 
 
-
-
-
-
-  return test_BCM;
+  return status;
 
 };
 
@@ -754,9 +759,18 @@ Int_t QwBeamLine::GetEventcutErrorCounters(){//inherited from the VQwSubsystemPa
     fBCM[i].GetEventcutErrorCounters();
   }
 
-   for(size_t i=0;i<fStripline.size();i++){
-     fStripline[i].GetEventcutErrorCounters();
-   }
+  for(size_t i=0;i<fStripline.size();i++){
+    fStripline[i].GetEventcutErrorCounters();
+  }
+
+  for(size_t i=0;i<fBCMCombo.size();i++){
+    fBCMCombo[i].GetEventcutErrorCounters();    
+  } 
+
+  for(size_t i=0;i<fBPMCombo.size();i++){
+    fBPMCombo[i].GetEventcutErrorCounters();
+  }
+
    std::cout<<"---------------------------------------------------"<<std::endl;
    std::cout<<std::endl;
   return 1;

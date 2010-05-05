@@ -88,7 +88,6 @@ void QwCombinedBPM::Set(QwBPMStripline* bpm, Double_t charge_weight,  Double_t x
 			Double_t sumqw) 
 {
   fElement.push_back(bpm);
-
   fQWeights.push_back(charge_weight);
   fXWeights.push_back(x_weight);
   fYWeights.push_back(y_weight);
@@ -112,44 +111,52 @@ void QwCombinedBPM::ClearEventData()
 /********************************************************/
 
 Int_t QwCombinedBPM::GetEventcutErrorCounters(){
-     
-  fCombinedAbsPos[0].GetEventcutErrorCounters();
-  fCombinedAbsPos[1].GetEventcutErrorCounters();
+for(Int_t i=0;i<2;i++){     
+  fCombinedAbsPos[i].GetEventcutErrorCounters();
+  fCombinedSlope[i].GetEventcutErrorCounters();
+ }
+  fCombinedWSum.GetEventcutErrorCounters();
 
   return 1;
 };
 
 Bool_t QwCombinedBPM::ApplySingleEventCuts(){
   Bool_t status=kTRUE;
-  
-  ApplyHWChecks();//first apply HW checks and update HW  error flags.
+  Int_t i=0;
 
-  if (fDevice_flag==1){//if fDevice_flag==1 then perform the event cut limit test
-
-    //we only need to check two final values 
-    if (fCombinedAbsPos[0].ApplySingleEventCuts(fLLimitX,fULimitX)){ //for RelX  
-      status=kTRUE;
-    }
-    else{
-      fCombinedAbsPos[0].UpdateEventCutErrorCount();
-      status=kFALSE;
-      if (bDEBUG) std::cout<<" Rel X event cut failed ";
-    }
-    fDeviceErrorCode|=fCombinedAbsPos[0].GetEventcutErrorFlag();//Get the Event cut error flag for RelX
-    if (fCombinedAbsPos[1].ApplySingleEventCuts(fLLimitY,fULimitY)){
+  for(i=0;i<2;i++){
+    if (fCombinedAbsPos[i].ApplySingleEventCuts()){ //for absolute X    
       status&=kTRUE;
     }
     else{
-      fCombinedAbsPos[1].UpdateEventCutErrorCount();
+      fCombinedAbsPos[i].UpdateEventCutErrorCount();
       status&=kFALSE;
-      if (bDEBUG) std::cout<<" Rel Y event cut failed ";
+      if (bDEBUG) std::cout<<" X event cut failed ";
     }
-    fDeviceErrorCode|=fCombinedAbsPos[1].GetEventcutErrorFlag();//Get the Event cut error flag for RelY
-	
+    fDeviceErrorCode|=fCombinedAbsPos[i].GetEventcutErrorFlag();//Get the Event cut error flag for X/Y  
   }
-  else             
-    status=kTRUE;
-    
+  //Event cuts for  X & Y slopes
+  for(i=0;i<2;i++){
+    if (fCombinedSlope[i].ApplySingleEventCuts()){ //for X slope   
+      status&=kTRUE;
+    }
+    else{
+      fCombinedSlope[i].UpdateEventCutErrorCount();
+      status&=kFALSE;
+      if (bDEBUG) std::cout<<" X Slope event cut failed ";
+    }
+    fDeviceErrorCode|=fCombinedSlope[i].GetEventcutErrorFlag();//Get the Event cut error flag for SlopeX/Y    
+  }
+  
+  //Event cuts for four wire sum (WSum)
+  if (fCombinedWSum.ApplySingleEventCuts()){ //for WSum  
+      status&=kTRUE;
+  }
+  else{
+    fCombinedWSum.UpdateEventCutErrorCount();
+    status&=kFALSE;
+    if (bDEBUG) std::cout<<" WSum event cut failed ";
+  }
   
   return status;
 };
@@ -157,15 +164,24 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts(){
 
 /********************************************************/
 
-Int_t QwCombinedBPM::SetSingleEventCuts(std::vector<Double_t> & dEventCuts){
-  
-  fLLimitX=dEventCuts.at(0);
-  fULimitX=dEventCuts.at(1);
-  fLLimitY=dEventCuts.at(2);
-  fULimitY=dEventCuts.at(3);
-  fDevice_flag=(Int_t)dEventCuts.at(4);
-  
-  return 0; 
+Int_t QwCombinedBPM::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX){
+  QwMessage<<" Event Cut Device "<<fElementName;
+  if (ch_name=="x"){//cuts for absolute x
+    QwMessage<<"X LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fCombinedAbsPos[0].SetSingleEventCuts(minX,maxX);
+  }else if (ch_name=="y"){//cuts for absolute y
+    QwMessage<<"Y LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fCombinedAbsPos[1].SetSingleEventCuts(minX,maxX);
+  }else if (ch_name=="xslope"){//cuts for the x slope
+    QwMessage<<"XSlope LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fCombinedSlope[0].SetSingleEventCuts(minX,maxX);
+  }else if (ch_name=="yslope"){//cuts for the y slope
+    QwMessage<<"YSlope LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fCombinedSlope[1].SetSingleEventCuts(minX,maxX);
+  }else if (ch_name=="wsum"){//cuts for the 4 wire sum
+    QwMessage<<"WSum LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fCombinedWSum.SetSingleEventCuts(minX,maxX);
+  }
 };
 
 
