@@ -716,27 +716,26 @@ Bool_t QwBeamLine::ApplySingleEventCuts(){
   Bool_t status=kTRUE;
 
   for(size_t i=0;i<fBCM.size();i++){
-    status = fBCM[i].ApplySingleEventCuts();
+    status &= fBCM[i].ApplySingleEventCuts();
     if(!status && bDEBUG) std::cout<<"******* QwBeamLine::SingleEventCuts()->BCM[ "<<i
 				   <<" , "<<fBCM[i].GetElementName()<<" ] ******\n";
-
   }
 
   for(size_t i=0;i<fStripline.size();i++){
-    status&=fStripline[i].ApplySingleEventCuts();
+    status &= fStripline[i].ApplySingleEventCuts();
     if(!status && bDEBUG) std::cout<<"******** QwBeamLine::SingleEventCuts()->BPMStripline[ "<<i
 				   <<" , "<<fStripline[i].GetElementName()<<" ] *****\n";
 
     }
 
   for(size_t i=0;i<fBCMCombo.size();i++){
-    status&=fBCMCombo[i].ApplySingleEventCuts();
+    status &= fBCMCombo[i].ApplySingleEventCuts();
     if(!status && bDEBUG) std::cout<<"******* QwBeamLine::SingleEventCuts()->CombinedBCM[ "<<i
 				   <<" , "<<fBCMCombo[i].GetElementName()<<" ] ******\n";
   }
   
   for(size_t i=0;i<fBPMCombo.size();i++){
-    status&=fBPMCombo[i].ApplySingleEventCuts();
+    status &= fBPMCombo[i].ApplySingleEventCuts();
     if(!status && bDEBUG) std::cout<<"******* QwBeamLine::SingleEventCuts()->CombinedBPM[ "<<i
 				   <<" , "<<fBPMCombo[i].GetElementName()<<" ] ******\n";
     
@@ -786,6 +785,13 @@ Int_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
   for(size_t i=0;i<fStripline.size();i++){
     ErrorFlag |= fStripline[i].GetEventcutErrorFlag();
   }
+  for(size_t i=0;i<fBCMCombo.size();i++){
+    ErrorFlag |= fBCMCombo[i].GetEventcutErrorFlag();
+  }
+  for(size_t i=0;i<fBPMCombo.size();i++){
+    ErrorFlag |= fBPMCombo[i].GetEventcutErrorFlag();
+  }
+
   return ErrorFlag;
 
 }

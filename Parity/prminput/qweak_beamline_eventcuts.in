@@ -18,20 +18,20 @@ EVENTCUTS = 0
  
 
 !bcm, empty1,	 	-2.420e+6,	-2.390e+6
-bcm, empty1, 		0, 	0
+!bcm, empty1, 		0, 	0
 !bcm, empty2, 		0, 	0
  
 !bcm, qwk_batext1, 	0, 	0
 
 !bcm, qwk_batext2,  	0, 	0
 !for 752 & 755 
-bcm, qwk_bcm0l02, 	6.80e+05, 	7.20e+05 
+!bcm, qwk_bcm0l02, 	6.80e+05, 	7.20e+05 
 !for parity mock data run 1000 9.98608e+06
 !bcm, qwk_bcm0l03, 	8.00e+06, 	1.20e+07 
 
  
 !bcm, qwk_batery6,  	0,	0 
-bcm, qwk_batery7, 	95.57778e+9,	95.5788e+9 
+!bcm, qwk_batery7, 	95.57778e+9,	95.5788e+9 
 !bcm, phasemonitor, 	0,	0
 
 		
