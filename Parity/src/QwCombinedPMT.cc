@@ -389,70 +389,62 @@ void  QwCombinedPMT::Copy(VQwDataElement *source)
   return;
 }
 
-QwParityDB::md_data QwCombinedPMT::GetMainDetectorDBEntry(QwDatabase *db, TString mtype, TString subname)
+
+
+QwDBIntegratedPMT QwCombinedPMT::GetDBEntry(QwDatabase *db, TString mtype, TString subname)
 {
-  QwParityDB::md_data row(0);
+   QwDBIntegratedPMT row;
 
-  UInt_t md_run_id        = 0;
-  UInt_t md_analysis_id   = 0;
-  UInt_t main_detector_id = 0;
-  Char_t md_measurement_type[4];
-  UInt_t md_subblock      = 0;
-  UInt_t md_n             = 0;
+   Char_t PMT_measurement_type[4];
 
-  TString name;
-  Double_t avg = 0.0;
-  Double_t err = 0.0;
+   TString name;
 
-  TString beam_charge_type(db->GetMeasurementID(13)); // yq
-  TString beam_asymmetry_type(db->GetMeasurementID(0));//a
- 
+   TString beam_charge_type(db->GetMeasurementID(13)); // yq
+   TString beam_asymmetry_type(db->GetMeasurementID(0));//a
+  
   if(mtype.Contains("yield"))
     {
-      sprintf(md_measurement_type, beam_charge_type.Data());
+      sprintf(PMT_measurement_type, beam_charge_type.Data());
     }
   else if(mtype.Contains("asymmetry"))
     {
-      sprintf(md_measurement_type,  beam_asymmetry_type.Data());
+      sprintf(PMT_measurement_type, beam_asymmetry_type.Data());
     }
   else if(mtype.Contains("average") )
     {
-      sprintf(md_measurement_type, beam_charge_type.Data());
+      sprintf(PMT_measurement_type, beam_charge_type.Data());
     }
   else if(mtype.Contains("runningsum"))
     {
-      sprintf(md_measurement_type, beam_charge_type.Data());
+      sprintf(PMT_measurement_type, beam_charge_type.Data());
     }
   else
     {
-      sprintf(md_measurement_type," ");
+      sprintf(PMT_measurement_type, " ");
     }
   
   name = this->GetElementName();
-  avg  = this->GetAverage("");
-  err  = this->GetAverageError("");
-  md_subblock   = 0;
-  md_n          = 0;
+  
+  row.SetAnalysisID( db->GetAnalysisID() );
+  row.SetDetectorID( db->GetDetectorID(name.Data()) );
+  row.SetMeasurementTypeID( PMT_measurement_type );
+  row.SetSubblock(0);
+  row.SetN(0);
+  row.SetValue(this->GetAverage(""));
+  row.SetError(this->GetAverageError(""));
 
-  md_run_id        = db->GetRunID();
-  md_analysis_id   = db->GetAnalysisID();
-  main_detector_id = db->GetMainDetectorID(name.Data());
-
-
-  row.analysis_id         = md_analysis_id;
-  row.measurement_type_id = md_measurement_type;
-  row.main_detector_id    = main_detector_id;
-  row.subblock            = md_subblock;  // this will be used later. At the moment, 0
-  row.n                   = md_n;         // this will be used later. At the moment, 0
-  row.value               = avg;
-  row.error               = err;
-
-  printf("%12s::RunID %d AnalysisID %d %4s MainDetectorID %4d %18s , Subblock %d, n %d [%18.2e, %12.2e] \n", 
-	 mtype.Data(), md_run_id, md_analysis_id, md_measurement_type, main_detector_id, name.Data(),  
-	 md_subblock, md_n, avg, err);
+  QwMessage << std::setw(12)
+	    << mtype.Data() 
+	    << "::RunID "<<  db->GetRunID()
+	    << " AnalysisID " << db->GetAnalysisID()
+	    << " DetectorID " << db->GetDetectorID(name.Data())
+	    << " Subblock "   << 0
+	    << " n "          << 0
+	    << "[ " << std::setprecision(4) << this->GetAverage("")
+	    << ", ]" << std::setprecision(4) << this->GetAverageError("")
+	    << QwLog::endl;
   
   return row;
   
 };
-
 

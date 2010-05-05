@@ -18,6 +18,79 @@
 #include "QwSSQLS.h"
 #include "QwDatabase.h"
 
+
+
+// The class QwDBIntegratedPMT is used in QwIntegratePMT class
+// QwDBIntegratedPMT   GetDBEntry(QwDatabase *db, TString mtype, TString subname);
+// so that we can use the same name GetDBEntry as the other subsystem  and 
+// we don't use any specific-detector-related function inside the QwIntegratePMT 
+// class. Thus, we use the same function name in all subsystem and 
+// the function outside the QwIntegratePMT class.
+// Tue May  4 19:42:01 EDT 2010 (jhlee)
+
+class QwDBIntegratedPMT
+{
+  
+ private:
+  
+  UInt_t fAnalysisId;
+  UInt_t fDetectorId;
+  UInt_t fSubblock;
+  UInt_t fN;
+  Double_t fValue;
+  Double_t fError;
+  Char_t fMeasurementTypeId[4];
+
+ public:
+
+  QwDBIntegratedPMT():fAnalysisId(0),fDetectorId(0),fSubblock(0),fN(0),fValue(0.0),fError(0.0)
+    {std::strcpy(fMeasurementTypeId, "");} ;
+    ~QwDBIntegratedPMT(){};
+
+    void SetAnalysisID(UInt_t id) {fAnalysisId = id;};
+    void SetDetectorID(UInt_t id) {fDetectorId = id;};
+    void SetMeasurementTypeID(const char* in) {std::strncpy(fMeasurementTypeId, in, 3);};
+    void SetSubblock(UInt_t in) {fSubblock = in;};
+    void SetN(UInt_t in)        {fN = in;};
+    void SetValue(Double_t in)  {fValue = in;};
+    void SetError(Double_t in)  {fError = in;};
+    
+    /* 	UInt_t GetAnalysisID() {return fAnalysisId;}; */
+    /* 	UInt_t GetDetectorID() {return fDetectorId;}; */
+    /* 	Char_t* GetMeasurementTypeID() {return fMeasurementTypeId;}; */
+    /* 	UInt_t GetSubblock() {return fSubblock;}; */
+    /* 	UInt_t GetN() {return fN;}; */
+    /* 	Double_t GetValue() {return fValue;}; */
+    /* 	Double_t GetError() {return fError;}; */
+    
+    QwParityDB::md_data MDDataDBClone() {
+      QwParityDB::md_data row(0);
+      row.analysis_id         = fAnalysisId;
+      row.main_detector_id    = fDetectorId;
+      row.measurement_type_id = fMeasurementTypeId;
+      row.subblock            = fSubblock;
+      row.n                   = fN;
+      row.value               = fValue;
+      row.error               = fError;
+      return row;
+    };
+    
+    QwParityDB::lumi_data LDDataDBClone() {
+      QwParityDB::lumi_data row(0);
+      row.analysis_id         = fAnalysisId;
+      row.lumi_detector_id    = fDetectorId;
+      row.measurement_type_id = fMeasurementTypeId;
+      row.subblock            = fSubblock;
+      row.n                   = fN;
+      row.value               = fValue;
+      row.error               = fError;
+      return row;
+    };
+
+};
+
+
+
 /*****************************************************************
 *  Class:
 ******************************************************************/
@@ -102,8 +175,8 @@ class QwIntegrationPMT : public VQwDataElement{
 
   void Copy(VQwDataElement *source);
 
-  QwParityDB::md_data   GetMainDetectorDBEntry(QwDatabase *db, TString mtype, TString subname);
-  QwParityDB::lumi_data GetLumiDetectorDBEntry(QwDatabase *db, TString mtype, TString subname);
+  QwDBIntegratedPMT   GetDBEntry(QwDatabase *db, TString mtype, TString subname); 
+
 
  protected:
 
@@ -121,5 +194,7 @@ class QwIntegrationPMT : public VQwDataElement{
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
   Bool_t bEVENTCUTMODE; //global switch to turn event cuts ON/OFF
 };
+
+
 
 #endif

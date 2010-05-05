@@ -757,19 +757,22 @@ void QwLumi::Do_RunningSum()
 void QwLumi::FillDB(QwDatabase *db, TString datatype)
 {
 
+  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  QwMessage << "                         QwLumi::FillDB                          " << QwLog::endl;
+  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+
   vector<QwParityDB::lumi_data> entrylist;
 
-  QwParityDB::lumi_data row(0);
-
-  printf("%s  ************** LUMI **************\n", datatype.Data());
-
-
+  QwDBIntegratedPMT db_interface_pmt;
+  QwMessage << datatype.Data() << "************** LUMI **************" <<QwLog::endl;
+  
   for(UInt_t i=0; i< fIntegrationPMT.size(); i++)
     {
-      entrylist.push_back(fIntegrationPMT[i].GetLumiDetectorDBEntry(db, datatype, "" )) ;
+      db_interface_pmt = fIntegrationPMT[i].GetDBEntry(db, datatype, "" );
+      entrylist.push_back( db_interface_pmt.LDDataDBClone() ) ;
     }
 
-  printf("Lumi Entrylist Vector Size %d\n", (Int_t) entrylist.size());
+  QwMessage << "Lumi Detector Entrylist Vector Size " << entrylist.size() << QwLog::endl;
 
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query..
@@ -789,7 +792,7 @@ void QwLumi::FillDB(QwDatabase *db, TString datatype)
     }
   else
     {
-      printf("QwLumi::FillDB :: This is the case when the entrlylist contains nothing in %s \n", datatype.Data());
+      QwMessage << "QwLumi::FillDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
     }
 
   db->Disconnect();

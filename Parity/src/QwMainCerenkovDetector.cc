@@ -1095,23 +1095,32 @@ void QwMainCerenkovDetector::DoNormalization(Double_t factor)
 
 void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
 {
-  vector<QwParityDB::md_data> entrylist;
 
-  QwParityDB::md_data row(0);
-  printf("%s  ************** IntegrationPMT **************\n", datatype.Data());
+
+  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  QwMessage << "            QwMainCerenkovDetector::FillDB                       " << QwLog::endl;
+  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+
+  vector<QwParityDB::md_data> entrylist;
+  
+  QwDBIntegratedPMT db_interface_pmt;
+  
+  QwMessage << datatype.Data() << " ************** IntegrationPMT **************" <<QwLog::endl;
+  
   for(UInt_t i=0; i< fIntegrationPMT.size(); i++)
     {
-      entrylist.push_back(fIntegrationPMT[i].GetMainDetectorDBEntry(db, datatype, "asymmetry" )) ;
+      db_interface_pmt = fIntegrationPMT[i].GetDBEntry(db, datatype, "asymmetry" );
+      entrylist.push_back( db_interface_pmt.MDDataDBClone() ) ;
     }
 
-  printf("%s  ************** fCombinedPMT **************\n", datatype.Data());
+  QwMessage << datatype.Data() << " ************** fCombinedPMT  **************" <<QwLog::endl;
   for(UInt_t i=0; i< fCombinedPMT.size(); i++)
     {
-      entrylist.push_back(fCombinedPMT[i].GetMainDetectorDBEntry(db, datatype, "asymmetry"));
-      //entrylist.push_back(fCombinedPMT[i].GetDBEntry(db, datatype, "yield"));
+      db_interface_pmt = fCombinedPMT[i].GetDBEntry(db, datatype, "yield") ;
+      entrylist.push_back( db_interface_pmt.MDDataDBClone() );
     }
 
-  printf("Main Detector Entrylist Vector Size %d\n", (Int_t) entrylist.size());
+  QwMessage << "Main Detector Entrylist Vector Size " << entrylist.size() << QwLog::endl;
 
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query..
@@ -1131,7 +1140,7 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
     }
   else
     {
-      printf("This is the case when the entrlylist contains nothing in %s \n", datatype.Data());
+      QwMessage << "QwMainCerenkovDetector::FillDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
     }
 
   db->Disconnect();

@@ -60,6 +60,7 @@ class QwDatabase: private mysqlpp::Connection {
     const UInt_t GetMonitorID(const string& name);         //<! Get monitor_id for beam monitor name
     const UInt_t GetMainDetectorID(const string& name);    //<! Get main_detector_id for main detector name
     const UInt_t GetLumiDetectorID(const string& name);    //<! Get lumi_detector_id for lumi detector name
+    const UInt_t GetDetectorID(const string& name);
     const string GetMeasurementID(const Int_t index);
     
     const UInt_t GetRunNumber() {return fRunNumber;}       //<! Run number getter

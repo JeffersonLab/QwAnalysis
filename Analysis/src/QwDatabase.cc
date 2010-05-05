@@ -48,7 +48,7 @@ QwDatabase::QwDatabase() : Connection()
  */
 QwDatabase::~QwDatabase()
 {
-  Disconnect();
+  if( connected() ) Disconnect();
   QwDebug << "QwDatabase::~QwDatabase() : Good-bye World from QwDatabase destructor!" << QwLog::endl;
 }
 
@@ -548,6 +548,38 @@ void QwDatabase::StoreLumiDetectorIDs()
     exit(1);
   }
   return;
+};
+
+
+
+const UInt_t QwDatabase::GetDetectorID(const string& name)
+{
+  if (fLumiDetectorIDs.size() == 0) {
+    StoreLumiDetectorIDs();
+  }
+
+  if (fMainDetectorIDs.size() == 0) {
+    StoreMainDetectorIDs();
+  }
+
+  UInt_t lumi_detector_id = fLumiDetectorIDs[name];
+  UInt_t main_detector_id = fMainDetectorIDs[name];
+
+  if (main_detector_id==0 && lumi_detector_id == 0) {
+    QwError << "QwDatabase::GetDetectorID() => Unable to determine valid ID for beam main_detector and beam lumi_detector" << name << QwLog::endl;
+  }
+  else if (main_detector_id==0 && lumi_detector_id != 0) {
+    return lumi_detector_id;
+  }
+  else if (main_detector_id!=0 && lumi_detector_id == 0) {
+    return main_detector_id;
+  }
+  else {
+    QwError << "QwDatabase::GetDetectorID() => Unable to determine valid ID for beam main_detector and beam lumi_detector" << name << QwLog::endl;
+  }
+
+  return 0;
+
 };
 
 
