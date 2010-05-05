@@ -78,12 +78,12 @@ class QwCombinedPMT : public VQwDataElement{
   void  FillTreeVector(std::vector<Double_t> &values);
   void  DeleteHistograms();
 
-  Double_t GetAverage(TString type) { return fSumADC.GetAverage(type);};
-  Double_t GetAverageError(TString type) {return fSumADC.GetAverageError(type);};
+  Double_t GetAverage(TString type="")      {return fSumADC.GetAverage();};
+  Double_t GetAverageError(TString type="") {return fSumADC.GetAverageError();};
 
   void Copy(VQwDataElement *source);
 
-  QwDBIntegratedPMT   GetDBEntry(QwDatabase *db, TString mtype, TString subname);
+  QwDBInterface  GetDBEntry(TString subname);
 
  protected:
 

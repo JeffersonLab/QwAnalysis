@@ -1332,37 +1332,73 @@ VQwSubsystem*  QwBeamLine::Copy()
 void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
 {
 
+  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  QwMessage << "                         QwBeamLine::FillDB                      " << QwLog::endl;
+  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+
+  Bool_t local_print_flag = true;
+  QwDBInterface interface;
   vector<QwParityDB::beam> entrylist;
 
-  //      QwParityDB::beam row;
-  // Without (0), I see the following error message:
-  //terminate called after throwing an instance of 'mysqlpp::BadQuery'
-  //  what():  Duplicate entry '11399104' for key 1
-  //Abort
-  //
+  UInt_t analysis_id = db->GetAnalysisID();
 
-  QwParityDB::beam row(0);
+  TString yield_type(db->GetMeasurementID(12)); // yp
+  TString asymm_type(db->GetMeasurementID(0));//a
+
+  Char_t measurement_type[4];
+
+  if(datatype.Contains("yield")) {
+    sprintf(measurement_type, yield_type.Data());
+  }
+  else if (datatype.Contains("asymmetry")) {
+    sprintf(measurement_type, asymm_type.Data());
+  }
+  else {
+    sprintf(measurement_type, " ");
+  }
+
+
 
   // try to access BCM mean and its error
   // there are 2 different types BCM data we have at the moment
   // Yield and Asymmetry
-  printf("%s  ************** BCM **************\n", datatype.Data());
+  QwMessage <<  QwColor(Qw::kGreen) << "Beam Current Monitors" <<QwLog::endl;
   for(UInt_t i=0; i< fBCM.size(); i++)
     {
-      entrylist.push_back(fBCM[i].GetDBEntry(db, datatype, "" )) ;
+      interface.Reset();
+      interface = fBCM[i].GetDBEntry(""); // BCM has only one element, thus noname "" on it.
+      interface.SetAnalysisID( analysis_id );
+      interface.SetDeviceID( db->GetMonitorID(interface.GetDeviceName().Data()) );
+      interface.SetMeasurementTypeID(measurement_type);
+      entrylist.push_back(interface.BeamMonitorDBClone()) ;
+      interface.PrintStatus(local_print_flag);
     }
 
   ///   try to access BPM mean and its error
-  printf("%s  ************** BPM **************\n", datatype.Data());
+  QwMessage <<  QwColor(Qw::kGreen) << "Beam Current Monitors" <<QwLog::endl;
   for(UInt_t i=0; i< fStripline.size(); i++)
     {
-      entrylist.push_back(fStripline[i].GetDBEntry(db, datatype, "RelX"));
-      entrylist.push_back(fStripline[i].GetDBEntry(db, datatype, "RelY"));
+      interface.Reset();
+      interface = fStripline[i].GetDBEntry("RelX");
+      interface.SetAnalysisID( analysis_id ) ;
+      interface.SetDeviceID( db->GetMonitorID(interface.GetDeviceName().Data()) );
+      interface.SetMeasurementTypeID(measurement_type);
+      entrylist.push_back(interface.BeamMonitorDBClone());
+      interface.PrintStatus(local_print_flag);
+      interface.Reset();
+      interface = fStripline[i].GetDBEntry("RelY");
+      interface.SetAnalysisID( analysis_id ) ;
+      interface.SetDeviceID( db->GetMonitorID(interface.GetDeviceName().Data()) );
+      interface.SetMeasurementTypeID(measurement_type);
+      entrylist.push_back(interface.BeamMonitorDBClone());
+      interface.PrintStatus(local_print_flag);
     }
-
-  printf("BeamLine Entrylist Vector Size %d\n", (Int_t) entrylist.size());
+  
+  QwMessage << QwColor(Qw::kGreen)   << "Entrylist Size : " 
+ 	    << QwColor(Qw::kBoldRed) << entrylist.size() << QwLog::endl;
 
   db->Connect();
+
   // Check the entrylist size, if it isn't zero, start to query..
   if( entrylist.size() )
     {
@@ -1380,7 +1416,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
     }
   else
     {
-      printf("This is the case when the entrlylist contains nothing in %s \n", datatype.Data());
+      QwMessage << "QwBeamLine::FillDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
     }
 
   db->Disconnect();

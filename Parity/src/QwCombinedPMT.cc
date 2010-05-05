@@ -391,59 +391,27 @@ void  QwCombinedPMT::Copy(VQwDataElement *source)
 
 
 
-QwDBIntegratedPMT QwCombinedPMT::GetDBEntry(QwDatabase *db, TString mtype, TString subname)
+QwDBInterface QwCombinedPMT::GetDBEntry(TString subname)
 {
-   QwDBIntegratedPMT row;
-
-   Char_t PMT_measurement_type[4];
-
-   TString name;
-
-   TString beam_charge_type(db->GetMeasurementID(13)); // yq
-   TString beam_asymmetry_type(db->GetMeasurementID(0));//a
-  
-  if(mtype.Contains("yield"))
-    {
-      sprintf(PMT_measurement_type, beam_charge_type.Data());
-    }
-  else if(mtype.Contains("asymmetry"))
-    {
-      sprintf(PMT_measurement_type, beam_asymmetry_type.Data());
-    }
-  else if(mtype.Contains("average") )
-    {
-      sprintf(PMT_measurement_type, beam_charge_type.Data());
-    }
-  else if(mtype.Contains("runningsum"))
-    {
-      sprintf(PMT_measurement_type, beam_charge_type.Data());
-    }
-  else
-    {
-      sprintf(PMT_measurement_type, " ");
-    }
+  QwDBInterface  row;
+  TString name;
+  Double_t avg         = 0.0;
+  Double_t err         = 0.0;
+  UInt_t beam_subblock = 0;
+  UInt_t beam_n        = 0;
   
   name = this->GetElementName();
-  
-  row.SetAnalysisID( db->GetAnalysisID() );
-  row.SetDetectorID( db->GetDetectorID(name.Data()) );
-  row.SetMeasurementTypeID( PMT_measurement_type );
-  row.SetSubblock(0);
-  row.SetN(0);
-  row.SetValue(this->GetAverage(""));
-  row.SetError(this->GetAverageError(""));
+  avg  = this->GetAverage(subname);
+  err  = this->GetAverageError(subname);
+  beam_subblock    = 66;// no meaning, later will be replaced with a real one
+  beam_n           = 66;// no meaning, later will be replaced with a real one
 
-  QwMessage << std::setw(12)
-	    << mtype.Data() 
-	    << "::RunID "<<  db->GetRunID()
-	    << " AnalysisID " << db->GetAnalysisID()
-	    << " DetectorID " << db->GetDetectorID(name.Data())
-	    << " Subblock "   << 0
-	    << " n "          << 0
-	    << "[ " << std::setprecision(4) << this->GetAverage("")
-	    << ", ]" << std::setprecision(4) << this->GetAverageError("")
-	    << QwLog::endl;
-  
+  row.SetDetectorName(name);
+  row.SetSubblock(beam_subblock);
+  row.SetN(beam_n);
+  row.SetValue(avg);
+  row.SetError(err);
+
   return row;
   
 };

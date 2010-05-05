@@ -573,10 +573,18 @@ void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values)
 
 void QwHelicityPattern::FillDB(QwDatabase *db)
 {
-  fYield.FillDB(db, "yield");
-  fAsymmetry.FillDB(db, "asymmetry");
-  //  fAverage.FillDB(db, "average");
-  //  fRunningSum.FillDB(db, "runningsum");
+  //  if (IsGood) {
+    fYield.FillDB(db, "yield");
+    fAsymmetry.FillDB(db, "asymmetry");
+
+    if (bAlternateAsym){
+      // not yet determine to use
+      //      fAsymmetry1.FillDB(db, "asymmetry1");
+      //      fAsymmetry2.FillDB(db, "asymmetry2").;
+
+    }
+    
+    //  }
 
   return;
 }

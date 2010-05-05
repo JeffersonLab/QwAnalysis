@@ -347,13 +347,19 @@ main(Int_t argc, Char_t* argv[])
       run_id      = qw_test_DB->GetRunID(QwEvt);
       analysis_id = qw_test_DB->GetAnalysisID(QwEvt);
 
-      printf("main:: Run # %s Run ID %d and Analysis ID %d\n", QwEvt.GetRunLabel().Data(), run_id, analysis_id);
+
+      QwMessage << "QwAnalysis_MySQL.cc::" 
+		<< " Run Number "  << QwColor(Qw::kBoldMagenta) << QwEvt.GetRunNumber() << QwColor(Qw::kNormal)
+		<< " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id<< QwColor(Qw::kNormal)
+		<< " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id
+		<< QwLog::endl;
 
       
       // Each sussystem has its own Connect() and Disconnect() functions.
       QwHelPat.FillDB(qw_test_DB);
     
       delete qw_test_DB; qw_test_DB = NULL;
+
       PrintInfo(timer);
     } //end of run loop
   

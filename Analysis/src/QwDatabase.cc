@@ -435,6 +435,7 @@ const UInt_t QwDatabase::GetMonitorID(const string& name)
   UInt_t monitor_id = fMonitorIDs[name];
 
   if (monitor_id==0) {
+    //    monitor_id = 6; // only for QwMockDataAnalysis
     QwError << "QwDatabase::GetMonitorID() => Unable to determine valid ID for beam monitor " << name << QwLog::endl;
   }
 
@@ -477,6 +478,7 @@ const UInt_t QwDatabase::GetMainDetectorID(const string& name)
   UInt_t main_detector_id = fMainDetectorIDs[name];
 
   if (main_detector_id==0) {
+    //    main_detector_id = 19; // only for QwMockDataAnalysis
     QwError << "QwDatabase::GetMainDetectorID() => Unable to determine valid ID for beam main_detector " << name << QwLog::endl;
   }
 
@@ -519,7 +521,7 @@ const UInt_t QwDatabase::GetLumiDetectorID(const string& name)
   UInt_t lumi_detector_id = fLumiDetectorIDs[name];
 
   if (lumi_detector_id==0) {
-    QwError << "QwDatabase::GetLumiDetectorID() => Unable to determine valid ID for beam lumi_detector " << name << QwLog::endl;
+     QwError << "QwDatabase::GetLumiDetectorID() => Unable to determine valid ID for beam lumi_detector " << name << QwLog::endl;
   }
 
   return lumi_detector_id;
@@ -550,37 +552,6 @@ void QwDatabase::StoreLumiDetectorIDs()
   return;
 };
 
-
-
-const UInt_t QwDatabase::GetDetectorID(const string& name)
-{
-  if (fLumiDetectorIDs.size() == 0) {
-    StoreLumiDetectorIDs();
-  }
-
-  if (fMainDetectorIDs.size() == 0) {
-    StoreMainDetectorIDs();
-  }
-
-  UInt_t lumi_detector_id = fLumiDetectorIDs[name];
-  UInt_t main_detector_id = fMainDetectorIDs[name];
-
-  if (main_detector_id==0 && lumi_detector_id == 0) {
-    QwError << "QwDatabase::GetDetectorID() => Unable to determine valid ID for beam main_detector and beam lumi_detector" << name << QwLog::endl;
-  }
-  else if (main_detector_id==0 && lumi_detector_id != 0) {
-    return lumi_detector_id;
-  }
-  else if (main_detector_id!=0 && lumi_detector_id == 0) {
-    return main_detector_id;
-  }
-  else {
-    QwError << "QwDatabase::GetDetectorID() => Unable to determine valid ID for beam main_detector and beam lumi_detector" << name << QwLog::endl;
-  }
-
-  return 0;
-
-};
 
 
 

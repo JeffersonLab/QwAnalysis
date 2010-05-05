@@ -783,18 +783,43 @@ void QwLumi::FillDB(QwDatabase *db, TString datatype)
   QwMessage << "                         QwLumi::FillDB                          " << QwLog::endl;
   QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
 
+  Bool_t local_print_flag = true;
+  QwDBInterface interface;
   vector<QwParityDB::lumi_data> entrylist;
 
-  QwDBIntegratedPMT db_interface_pmt;
-  QwMessage << datatype.Data() << "************** LUMI **************" <<QwLog::endl;
-  
+  UInt_t analysis_id = db->GetAnalysisID();
+
+  TString yield_type(db->GetMeasurementID(12)); // yp
+  TString asymm_type(db->GetMeasurementID(0));//a
+
+  Char_t measurement_type[4];
+
+  if(datatype.Contains("yield")) {
+    sprintf(measurement_type, yield_type.Data());
+  }
+  else if (datatype.Contains("asymmetry")) {
+    sprintf(measurement_type, asymm_type.Data());
+  }
+  else {
+    sprintf(measurement_type, " ");
+  }
+
+  QwMessage <<  QwColor(Qw::kGreen) << "IntegrationPMT" <<QwLog::endl;
+
   for(UInt_t i=0; i< fIntegrationPMT.size(); i++)
     {
-      db_interface_pmt = fIntegrationPMT[i].GetDBEntry(db, datatype, "" );
-      entrylist.push_back( db_interface_pmt.LDDataDBClone() ) ;
+      interface.Reset();
+      interface = fIntegrationPMT[i].GetDBEntry(""); 
+      // QwIntegrationPMT has only one element, thus noname "" on it.
+      interface.SetAnalysisID( analysis_id );
+      interface.SetDeviceID( db->GetLumiDetectorID(interface.GetDeviceName().Data()) );
+      interface.SetMeasurementTypeID(measurement_type);
+      entrylist.push_back(interface.LumiDetectorDBClone()) ;
+      interface.PrintStatus(local_print_flag);
     }
 
-  QwMessage << "Lumi Detector Entrylist Vector Size " << entrylist.size() << QwLog::endl;
+  QwMessage << QwColor(Qw::kGreen) << "Entrylist Size : " 
+	    << QwColor(Qw::kBoldRed) << entrylist.size() << QwLog::endl;
 
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query..

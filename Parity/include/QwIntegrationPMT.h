@@ -20,76 +20,6 @@
 
 
 
-// The class QwDBIntegratedPMT is used in QwIntegratePMT class
-// QwDBIntegratedPMT   GetDBEntry(QwDatabase *db, TString mtype, TString subname);
-// so that we can use the same name GetDBEntry as the other subsystem  and 
-// we don't use any specific-detector-related function inside the QwIntegratePMT 
-// class. Thus, we use the same function name in all subsystem and 
-// the function outside the QwIntegratePMT class.
-// Tue May  4 19:42:01 EDT 2010 (jhlee)
-
-class QwDBIntegratedPMT
-{
-  
- private:
-  
-  UInt_t fAnalysisId;
-  UInt_t fDetectorId;
-  UInt_t fSubblock;
-  UInt_t fN;
-  Double_t fValue;
-  Double_t fError;
-  Char_t fMeasurementTypeId[4];
-
- public:
-
-  QwDBIntegratedPMT():fAnalysisId(0),fDetectorId(0),fSubblock(0),fN(0),fValue(0.0),fError(0.0)
-    {std::strcpy(fMeasurementTypeId, "");} ;
-    ~QwDBIntegratedPMT(){};
-
-    void SetAnalysisID(UInt_t id) {fAnalysisId = id;};
-    void SetDetectorID(UInt_t id) {fDetectorId = id;};
-    void SetMeasurementTypeID(const char* in) {std::strncpy(fMeasurementTypeId, in, 3);};
-    void SetSubblock(UInt_t in) {fSubblock = in;};
-    void SetN(UInt_t in)        {fN = in;};
-    void SetValue(Double_t in)  {fValue = in;};
-    void SetError(Double_t in)  {fError = in;};
-    
-    /* 	UInt_t GetAnalysisID() {return fAnalysisId;}; */
-    /* 	UInt_t GetDetectorID() {return fDetectorId;}; */
-    /* 	Char_t* GetMeasurementTypeID() {return fMeasurementTypeId;}; */
-    /* 	UInt_t GetSubblock() {return fSubblock;}; */
-    /* 	UInt_t GetN() {return fN;}; */
-    /* 	Double_t GetValue() {return fValue;}; */
-    /* 	Double_t GetError() {return fError;}; */
-    
-    QwParityDB::md_data MDDataDBClone() {
-      QwParityDB::md_data row(0);
-      row.analysis_id         = fAnalysisId;
-      row.main_detector_id    = fDetectorId;
-      row.measurement_type_id = fMeasurementTypeId;
-      row.subblock            = fSubblock;
-      row.n                   = fN;
-      row.value               = fValue;
-      row.error               = fError;
-      return row;
-    };
-    
-    QwParityDB::lumi_data LDDataDBClone() {
-      QwParityDB::lumi_data row(0);
-      row.analysis_id         = fAnalysisId;
-      row.lumi_detector_id    = fDetectorId;
-      row.measurement_type_id = fMeasurementTypeId;
-      row.subblock            = fSubblock;
-      row.n                   = fN;
-      row.value               = fValue;
-      row.error               = fError;
-      return row;
-    };
-
-};
-
-
 
 /*****************************************************************
 *  Class:
@@ -119,16 +49,15 @@ class QwIntegrationPMT : public VQwDataElement{
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
   void  RandomizeEventData(int helicity = 0, double time = 0.0);
-
+  void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
+  void  SetEventData(Double_t* block, UInt_t sequencenumber);
+  void  EncodeEventData(std::vector<UInt_t> &buffer);
+  
   void  UseExternalRandomVariable();
   void  SetExternalRandomVariable(Double_t random_variable);
 
-  void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
   Double_t GetHardwareSum();
   Double_t GetBlockValue(Int_t blocknum);
-
-  void  SetEventData(Double_t* block, UInt_t sequencenumber);
-  void  EncodeEventData(std::vector<UInt_t> &buffer);
 
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
@@ -143,8 +72,7 @@ class QwIntegrationPMT : public VQwDataElement{
   }
 
 
-  void Calculate_Running_Average();
-  void Do_RunningSum();
+
   void BlindMe(QwBlinder *blinder);
 
   void Print() const;
@@ -161,6 +89,8 @@ class QwIntegrationPMT : public VQwDataElement{
   void Difference(QwIntegrationPMT &value1, QwIntegrationPMT &value2);
   void Ratio(QwIntegrationPMT &numer, QwIntegrationPMT &denom);
   void Scale(Double_t factor);
+  void Calculate_Running_Average();
+  void Do_RunningSum();
 
   void SetPedestal(Double_t ped);
   void SetCalibrationFactor(Double_t calib);
@@ -172,12 +102,12 @@ class QwIntegrationPMT : public VQwDataElement{
   void  FillTreeVector(std::vector<Double_t> &values);
   void  DeleteHistograms();
 
-  Double_t GetAverage(TString type)      {return fTriumf_ADC.GetAverage();};
-  Double_t GetAverageError(TString type) {return fTriumf_ADC.GetAverageError();};
+  Double_t GetAverage(TString type="")      {return fTriumf_ADC.GetAverage();};
+  Double_t GetAverageError(TString type="") {return fTriumf_ADC.GetAverageError();};
 
   void Copy(VQwDataElement *source);
 
-  QwDBIntegratedPMT   GetDBEntry(QwDatabase *db, TString mtype, TString subname); 
+  QwDBInterface GetDBEntry(TString subname); 
 
 
  protected:
