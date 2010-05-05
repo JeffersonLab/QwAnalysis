@@ -158,6 +158,8 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
   fPreviousSequenceNumber = 0;
   fNumberOfSamples_map    = 0;
 
+  // Use internal random variable by default
+  fUseExternalRandomVariable = false;
 
   // Mock drifts
   fMockDriftAmplitude.clear();
