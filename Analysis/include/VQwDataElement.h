@@ -91,7 +91,7 @@ class VQwDataElement {
   virtual void Print() { std::cout << fElementName << std::endl; };
 
   /*! \brief Get the number of data words in this data element */
-  UInt_t GetNumberOfDataWords() {return fNumberOfDataWords;};
+  size_t GetNumberOfDataWords() {return fNumberOfDataWords;};
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
 
 
@@ -136,5 +136,7 @@ inline void VQwDataElement::DeleteHistograms()
   }
   fHistograms.clear();
 };
+
+
 
 #endif // __VQWDATAELEMENT__
