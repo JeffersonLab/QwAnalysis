@@ -80,14 +80,16 @@
 #include <TGFileDialog.h>
 #include <RQ_OBJECT.h>
 #include <TMath.h>
-#include <TGIcon.h>
+#include <TPave.h>
 
 #include "QwGUIMainDetector.h"
 #include "QwGUILumiDetector.h"
 #include "QwGUIInjector.h"
+#include "QwGUIHallCBeamline.h"
 #include "QwGUIEventDisplay.h"
 #include "QwGUIHelpBrowser.h"
 #include "QwGUIDatabaseContainer.h"
+
 
 class QwGUIMain : public TGMainFrame {
 
@@ -105,6 +107,7 @@ class QwGUIMain : public TGMainFrame {
   QwGUIMainDetector      *MainDetSubSystem;
   QwGUILumiDetector      *LumiDetSubSystem;
   QwGUIInjector          *InjectorSubSystem;
+  QwGUIHallCBeamline     *HallCBeamlineSubSystem;
   QwGUIEventDisplay      *EventDisplaySubSystem;
 
   QwGUIHelpBrowser          *dHelpBrowser;

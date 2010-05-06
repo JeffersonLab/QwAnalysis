@@ -22,6 +22,7 @@ OBJECTS       += QwGUISubSystem.o
 OBJECTS       += QwGUIMainDetector.o
 OBJECTS       += QwGUILumiDetector.o
 OBJECTS       += QwGUIInjector.o
+OBJECTS	      += QwGUIHallCBeamline.o
 OBJECTS       += QwGUIEventDisplay.o
 OBJECTS       += QwGUISuperCanvas.o
 OBJECTS       += QwGUIDatabaseContainer.o
