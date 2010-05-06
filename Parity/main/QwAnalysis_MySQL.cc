@@ -114,6 +114,7 @@ main(Int_t argc, Char_t* argv[])
   QwDatabase *qw_test_DB = NULL; 
   
   UInt_t run_id      = 0;
+  UInt_t runlet_id      = 0;
   UInt_t analysis_id = 0;
 
  // Loop over all runs
@@ -345,6 +346,7 @@ main(Int_t argc, Char_t* argv[])
 
       // GetRunID() and GetAnalysisID have their own Connect() and Disconnect() functions.
       run_id      = qw_test_DB->GetRunID(QwEvt);
+      runlet_id      = qw_test_DB->GetRunletID(QwEvt);
       analysis_id = qw_test_DB->GetAnalysisID(QwEvt);
 
       printf("main:: Run # %s Run ID %d and Analysis ID %d\n", QwEvt.GetRunLabel().Data(), run_id, analysis_id);

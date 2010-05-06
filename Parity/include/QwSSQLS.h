@@ -15,28 +15,39 @@ namespace QwParityDB{
 
 
     sql_create_6(db_schema, 1, 2 
-		 , mysqlpp::sql_int_unsigned , db_schema_id
-		 , mysqlpp::sql_char , major_release_number
-		 , mysqlpp::sql_char , minor_release_number
-		 , mysqlpp::sql_char , point_release_number
-		 , mysqlpp::sql_timestamp , time
-		 , mysqlpp::Null<mysqlpp::sql_text> , script_name
-		 ) 
-      
-    sql_create_8(run, 1, 2 
+      , mysqlpp::sql_int_unsigned , db_schema_id
+      , mysqlpp::sql_char , major_release_number
+      , mysqlpp::sql_char , minor_release_number
+      , mysqlpp::sql_char , point_release_number
+      , mysqlpp::sql_timestamp , time
+      , mysqlpp::Null<mysqlpp::sql_text> , script_name
+    ) 
+  
+    sql_create_7(run, 1, 2 
 			, mysqlpp::sql_int_unsigned , run_id
 			, mysqlpp::sql_int_unsigned , run_number 	
 			, mysqlpp::Null<mysqlpp::sql_enum> , run_type
-		        , mysqlpp::sql_int_unsigned , helicity_length
 			, mysqlpp::Null<mysqlpp::sql_datetime> , start_time
 			, mysqlpp::Null<mysqlpp::sql_datetime> , end_time
 			, mysqlpp::sql_int_unsigned , n_mps
 			, mysqlpp::sql_int_unsigned , n_qrt	
 		) 
   
+    sql_create_9(runlet, 1, 2 
+      , mysqlpp::sql_int_unsigned , runlet_id
+      , mysqlpp::sql_int_unsigned , run_id
+      , mysqlpp::sql_int_unsigned , run_number
+      , mysqlpp::Null<mysqlpp::sql_int_unsigned> , segment_number
+      , mysqlpp::sql_enum , full_run
+			, mysqlpp::Null<mysqlpp::sql_datetime> , start_time
+			, mysqlpp::Null<mysqlpp::sql_datetime> , end_time
+      , mysqlpp::sql_int_unsigned , first_mps
+      , mysqlpp::sql_int_unsigned , last_mps
+  ) 
+  
     sql_create_15(analysis, 1, 2 
 			, mysqlpp::sql_int_unsigned , analysis_id
-			, mysqlpp::sql_int_unsigned , run_id
+			, mysqlpp::sql_int_unsigned , runlet_id
 			, mysqlpp::sql_int_unsigned , seed_id
 			, mysqlpp::sql_int_unsigned , monitor_calibration_id
 			, mysqlpp::sql_int_unsigned , cut_id
@@ -66,7 +77,7 @@ namespace QwParityDB{
 			, mysqlpp::sql_int_unsigned , analysis_id	
 			, mysqlpp::sql_int_unsigned , monitor_id
 			, mysqlpp::sql_char , measurement_type_id
-		        , mysqlpp::sql_tinyint_unsigned , subblock
+      , mysqlpp::sql_tinyint_unsigned , subblock
 			, mysqlpp::sql_int_unsigned , n
 			, mysqlpp::sql_float , value
 			, mysqlpp::sql_float , error	
@@ -108,39 +119,67 @@ namespace QwParityDB{
 		) 
   
     sql_create_3(main_detector, 1, 2 
-		        , mysqlpp::sql_int_unsigned , main_detector_id
-		        , mysqlpp::sql_text , quantity
-		        , mysqlpp::sql_text , title
-		 ) 
+      , mysqlpp::sql_int_unsigned , main_detector_id
+      , mysqlpp::sql_text , quantity
+      , mysqlpp::sql_text , title
+    ) 
   
     sql_create_8(md_data, 1, 2 
 			, mysqlpp::sql_int_unsigned , md_data_id
 			, mysqlpp::sql_int_unsigned , analysis_id
 			, mysqlpp::Null<mysqlpp::sql_int_unsigned> , main_detector_id
 			, mysqlpp::sql_char , measurement_type_id
-		        , mysqlpp::sql_tinyint_unsigned , subblock
+      , mysqlpp::sql_tinyint_unsigned , subblock
 			, mysqlpp::sql_int_unsigned , n
 			, mysqlpp::sql_float , value
 			, mysqlpp::sql_float , error
 		) 
   
     sql_create_3(lumi_detector, 1, 2 
-		        , mysqlpp::sql_int_unsigned , lumi_detector_id
-		        , mysqlpp::sql_text , quantity
-		        , mysqlpp::sql_text , title
-		 ) 
+      , mysqlpp::sql_int_unsigned , lumi_detector_id
+      , mysqlpp::sql_text , quantity
+      , mysqlpp::sql_text , title
+    ) 
   
-
     sql_create_8(lumi_data, 1, 2 
 			, mysqlpp::sql_int_unsigned , lumi_data_id
 			, mysqlpp::sql_int_unsigned , analysis_id
 			, mysqlpp::Null<mysqlpp::sql_int_unsigned> , lumi_detector_id
 			, mysqlpp::sql_char , measurement_type_id
-		        , mysqlpp::sql_tinyint_unsigned , subblock
+      , mysqlpp::sql_tinyint_unsigned , subblock
 			, mysqlpp::sql_int_unsigned , n
 			, mysqlpp::sql_float , value
 			, mysqlpp::sql_float , error
 		) 
+  
+    sql_create_9(slow_controls_settings, 1, 2 
+			, mysqlpp::sql_int_unsigned , slow_controls_settings_id
+			, mysqlpp::sql_int_unsigned , runlet_id
+      , mysqlpp::Null<mysqlpp::sql_enum> , slow_helicity_plate
+      , mysqlpp::Null<mysqlpp::sql_enum> , wien_reversal
+      , mysqlpp::Null<mysqlpp::sql_int_unsigned> , helicity_length
+      , mysqlpp::Null<mysqlpp::sql_enum> , charge_feedback
+      , mysqlpp::Null<mysqlpp::sql_enum> , position_feedback
+      , mysqlpp::Null<mysqlpp::sql_float> , qtor_current
+      , mysqlpp::Null<mysqlpp::sql_int_unsigned> , target_position
+    ) 
+  
+    sql_create_4(sc_detector, 1, 2 
+			, mysqlpp::sql_int_unsigned , sc_detector_id
+      , mysqlpp::sql_text , name
+      , mysqlpp::sql_text , units
+      , mysqlpp::sql_text , comment
+    ) 
+  
+    sql_create_7(slow_controls_data, 1, 2 
+			, mysqlpp::sql_int_unsigned , slow_controls_data_id
+			, mysqlpp::sql_int_unsigned , runlet_id
+      , mysqlpp::sql_int_unsigned , sc_detector_id
+      , mysqlpp::sql_float , value
+      , mysqlpp::sql_float , error
+      , mysqlpp::sql_float , min_value
+      , mysqlpp::sql_float , max_value
+    ) 
   
     sql_create_3(pmt, 1, 2 
 			, mysqlpp::sql_int_unsigned , pmt_id
@@ -177,55 +216,6 @@ namespace QwParityDB{
 			, mysqlpp::Null<mysqlpp::sql_float> , test_value
 		) 
   
-    sql_create_5(polarized_source, 1, 2 
-			, mysqlpp::sql_int_unsigned , polarized_source_id
-			, mysqlpp::sql_int_unsigned , run_id
-			, mysqlpp::Null<mysqlpp::sql_enum> , slow_helicity_plate
-			, mysqlpp::Null<mysqlpp::sql_enum> , charge_feedback
-			, mysqlpp::sql_int , sign_in_neg
-		) 
-  
-    sql_create_7(polarized_source_measurement, 1, 2 
-			, mysqlpp::sql_int_unsigned , polarized_source_measurement_id
-			, mysqlpp::sql_int_unsigned , polarized_source_id
-			, mysqlpp::sql_int_unsigned , polarized_source_monitor_id
-			, mysqlpp::sql_float , average_value
-			, mysqlpp::sql_float , error
-			, mysqlpp::sql_float , min_value
-			, mysqlpp::sql_float , max_value
-		) 
-  
-    sql_create_4(polarized_source_monitor, 1, 2 
-			, mysqlpp::sql_int_unsigned , polarized_source_monitor_id
-			, mysqlpp::Null<mysqlpp::sql_text> , quantity
-			, mysqlpp::Null<mysqlpp::sql_text> , units
-			, mysqlpp::Null<mysqlpp::sql_text> , title
-		) 
-  
-    sql_create_3(target, 1, 2 
-			, mysqlpp::sql_int_unsigned , target_id
-			, mysqlpp::sql_int_unsigned , run_id
-			, mysqlpp::Null<mysqlpp::sql_enum> , type
-		) 
-  
-    sql_create_7(target_measurement, 1, 2 
-			, mysqlpp::sql_int_unsigned , target_measurements_id
-			, mysqlpp::sql_int_unsigned , target_id
-			, mysqlpp::sql_int_unsigned , target_monitor_id
-			, mysqlpp::sql_float , average_value
-			, mysqlpp::sql_float , error
-			, mysqlpp::sql_float , min_value
-			, mysqlpp::sql_float , max_value
-		) 
-  
-    sql_create_5(target_monitor, 1, 2 
-			, mysqlpp::sql_int_unsigned , target_monitor_id
-			, mysqlpp::Null<mysqlpp::sql_enum> , type
-			, mysqlpp::Null<mysqlpp::sql_text> , quantity
-			, mysqlpp::Null<mysqlpp::sql_text> , units
-			, mysqlpp::Null<mysqlpp::sql_text> , title
-		) 
-  
     sql_create_2(high_voltage_file, 1, 2 
 			, mysqlpp::sql_int_unsigned , high_voltage_file_id
 			, mysqlpp::Null<mysqlpp::sql_text> , name
@@ -241,7 +231,7 @@ namespace QwParityDB{
   
     sql_create_3(high_voltage, 1, 2 
 			, mysqlpp::sql_int_unsigned , high_voltage_id
-			, mysqlpp::sql_int_unsigned , run_id
+			, mysqlpp::sql_int_unsigned , runlet_id
 			, mysqlpp::sql_int_unsigned , high_voltage_file_id
 		) 
   
@@ -251,29 +241,6 @@ namespace QwParityDB{
 			, mysqlpp::sql_int_unsigned , pmt_id
 			, mysqlpp::sql_float , value
 			, mysqlpp::sql_float , error
-		) 
-  
-    sql_create_2(qtor, 1, 2 
-			, mysqlpp::sql_int_unsigned , qtor_id
-			, mysqlpp::sql_int_unsigned , run_id
-		) 
-  
-    sql_create_7(qtor_measurement, 1, 2 
-			, mysqlpp::sql_int_unsigned , qtor_measurement_id
-			, mysqlpp::sql_int_unsigned , qtor_id
-			, mysqlpp::sql_int_unsigned , qtor_monitor_id
-			, mysqlpp::sql_float , average_value
-			, mysqlpp::sql_float , error
-			, mysqlpp::sql_float , min_value
-			, mysqlpp::sql_float , max_value
-		) 
-  
-    sql_create_5(qtor_monitor, 1, 2 
-			, mysqlpp::sql_int_unsigned , qtor_monitor_id
-			, mysqlpp::Null<mysqlpp::sql_enum> , type
-			, mysqlpp::Null<mysqlpp::sql_text> , quantity
-			, mysqlpp::Null<mysqlpp::sql_text> , title
-			, mysqlpp::Null<mysqlpp::sql_text> , units		
 		) 
   
     sql_create_6(compton_run, 1, 2 
@@ -294,8 +261,5 @@ namespace QwParityDB{
 			, mysqlpp::sql_float , error
 		) 
   
-
-
-
     }
 #endif

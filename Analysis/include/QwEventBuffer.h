@@ -52,6 +52,12 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   /// \brief Returns a string like <run#> or <run#>.<file#>
   TString GetRunLabel() const;
+  /// \brief Return true if file segments are being chained together for
+  //analysis
+  Bool_t ChainDataFiles() const {return fChainDataFiles;};
+  /// \brief Return CODA file segment number
+  Int_t GetSegmentNumber() const {return *this_runsegment;};
+
   std::pair<UInt_t, UInt_t> GetEventRange() const {
     return fEventRange;
   };
