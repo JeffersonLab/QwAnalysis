@@ -569,7 +569,7 @@ FILTER_OUT_LIBRARYDIR_DEPS = $(SED) '$(patsubst %,/^.\/%/d;,$(EXCLUDEDIRS))'
 
 export
 
-all: .ADD .EXES .auxDepends
+all: .ADD .EXES .auxDepends qweak-config
 ifneq ($(strip $(ADD)),)
 	@if [ "$(strip $(sort $(shell $(CAT) .ADD)))" != "$(strip $(sort $(ADD)))" ]; \
 	then \
