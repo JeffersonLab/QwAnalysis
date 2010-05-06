@@ -110,7 +110,7 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 
 	if(localLumiDetectorID.fIndex==-1)
 	  {
-	    if(DetectorTypes[localLumiDetectorID.fTypeID]=="integrationpmt")
+	    if(localLumiDetectorID.fTypeID==kQwIntegrationPMT)
 	      {
 		QwIntegrationPMT localIntegrationPMT(localLumiDetectorID.fdetectorname);
 		fIntegrationPMT.push_back(localIntegrationPMT);
@@ -451,17 +451,13 @@ void QwLumi::ClearEventData()
   return;
 };
 //*****************************************************************
-Int_t QwLumi::GetDetectorTypeID(TString name)
+EQwPMTInstrumentType QwLumi::GetDetectorTypeID(TString name)
 {
-  Int_t result=-1;
-  for(size_t i=0;i<DetectorTypes.size();i++)
-    if(name==DetectorTypes[i])
-      {result=i;i=DetectorTypes.size()+1;}
-  return result;
+  return GetQwPMTInstrumentType(name);
 };
 
 //*****************************************************************
-Int_t QwLumi::GetDetectorIndex(Int_t type_id, TString name)
+Int_t QwLumi::GetDetectorIndex(EQwPMTInstrumentType type_id, TString name)
 {
   Bool_t ldebug=kFALSE;
   if(ldebug)

@@ -6,6 +6,7 @@
 
 // ROOT basic types
 #include <Rtypes.h>
+class TString;
 
 // Qweak headers
 #include "QwUnits.h"
@@ -51,10 +52,13 @@ enum EQwDetectorType {
 
 // Enumerator type for the instrument type, used in subsystems that have to
 // distinguish between various detector types.
-enum EQwInstrumentType {
+enum EQwPMTInstrumentType {
+  kQwUnknownPMT,	// Unknown PMT type
   kQwIntegrationPMT,	// Integration PMT
   kQwCombinedPMT	// Combined PMT
 };
+EQwPMTInstrumentType GetQwPMTInstrumentType(TString name);
+TString GetQwPMTInstrumentTypeName(EQwPMTInstrumentType type);
 
 
 //=======

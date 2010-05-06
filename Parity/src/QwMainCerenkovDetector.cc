@@ -142,7 +142,7 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 
           if (localMainDetID.fIndex==-1)
             {
-              if (DetectorTypes[localMainDetID.fTypeID]=="integrationpmt")
+              if (localMainDetID.fTypeID==kQwIntegrationPMT)
                 {
                   QwIntegrationPMT localIntegrationPMT(localMainDetID.fdetectorname);
                   localIntegrationPMT.InitializeChannel(localMainDetID.fdetectorname, "raw");
@@ -151,7 +151,7 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 		  localMainDetID.fIndex=fIntegrationPMT.size()-1;
                 }
 
-              else if (DetectorTypes[localMainDetID.fTypeID]=="combinationpmt")
+              else if (localMainDetID.fTypeID==kQwCombinedPMT)
                 {
                   //QwCombinedPMT localcombinedPMT(localMainDetID.fdetectorname);
                   QwCombinedPMT localcombinedPMT(TString(""));
@@ -1004,19 +1004,13 @@ void QwMainCerenkovDetector::BlindMe(QwBlinder *blinder)
   return;
 };
 
-Int_t QwMainCerenkovDetector::GetDetectorTypeID(TString name)
+EQwPMTInstrumentType QwMainCerenkovDetector::GetDetectorTypeID(TString name)
 {
-  Int_t result=-1;
-  for (size_t i=0;i<DetectorTypes.size();i++)
-    if (name==DetectorTypes[i])
-      {
-        result=i;
-      }
-  return result;
+  return GetQwPMTInstrumentType(name);
 };
 
 //*****************************************************************
-Int_t QwMainCerenkovDetector::GetDetectorIndex(Int_t type_id, TString name)
+Int_t QwMainCerenkovDetector::GetDetectorIndex(EQwPMTInstrumentType type_id, TString name)
 {
   Bool_t ldebug=kFALSE;
   if (ldebug)
