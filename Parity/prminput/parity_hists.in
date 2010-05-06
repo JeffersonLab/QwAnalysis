@@ -473,4 +473,12 @@ scanner_ref_posi_y		TH1F	2000	-355.0		-305.0			Y[cm]		Events
 
 scanner_rate_map 		TH2F 	210 	-105.0 	105.0 	400	-350.0	-310.0	X[cm] 	Y[cm]
 
-
+###########################################
+#  Adding some fully wildcarded histogram names.
+#  Do not add any other specific names below these.
+###########################################
+.*_block._raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
+.*_block.    		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+.*_.w_raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
+.*_.w			TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+.*_sw-hw_raw		TH1F	1000	-5.0e2	5.0e2				Counts Events
