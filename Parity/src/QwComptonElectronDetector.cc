@@ -154,7 +154,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
   ports_read = 0;
   // Get the subbank index (or -1 when no match)
   Int_t index = GetSubbankIndex(roc_id, bank_id);
-  //  QwOut << "bankindex for"<<bank_id << "is =" << index <<QwLog::endl;
+  //    QwOut << "bankindex for"<<bank_id << "is =" << index <<QwLog::endl;
  
   if (index==3) {
     if (num_words > 0) {
@@ -164,10 +164,10 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
        for (Int_t j = 0; j < StripsPerModule; j++) {
         bitwise_mask = (UInt_t) pow(2,j);
         fStripsRawEv[i][j] = (buffer[(i)] & bitwise_mask)>>j;
-        words_read++;
        }
+       words_read++;
       }
-     Int_t ExtraWord = buffer[NPlanes];
+     Int_t ExtraWord = buffer[NPlanes];//diagnostic word for later use, ignore warning
        words_read++;
     }
     if (num_words != words_read) {
@@ -189,10 +189,10 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 	Int_t k = StripsPerModule + j;
         bitwise_mask = (UInt_t) pow(2,j);
         fStripsRawEv[i][k] = (buffer[(i)] & bitwise_mask)>>j;
-        words_read++;
        }
+       words_read++;      
       }
-     Int_t ExtraWord = buffer[NPlanes];
+     Int_t ExtraWord = buffer[NPlanes];  // diagnostic word to be used later
        words_read++;
     }
     if (num_words != words_read) {
@@ -214,8 +214,8 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 	Int_t k = 2*StripsPerModule + j;
         bitwise_mask = (UInt_t) pow(2,j);
         fStripsRawEv[i][k] = (buffer[(i)] & bitwise_mask)>>j;
-        words_read++;
        }
+       words_read++;
       }
      Int_t ExtraWord = buffer[NPlanes];
        words_read++;
@@ -446,16 +446,16 @@ void  QwComptonElectronDetector::Difference(VQwSubsystem  *value1, VQwSubsystem 
 void QwComptonElectronDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
 {
   
-  if (Compare(numer) && Compare(denom)) {
-    QwComptonElectronDetector* innumer = dynamic_cast<QwComptonElectronDetector*> (numer);
-    QwComptonElectronDetector* indenom = dynamic_cast<QwComptonElectronDetector*> (denom);
+  //  if (Compare(numer) && Compare(denom)) {
+  //  QwComptonElectronDetector* innumer = dynamic_cast<QwComptonElectronDetector*> (numer);
+  //  QwComptonElectronDetector* indenom = dynamic_cast<QwComptonElectronDetector*> (denom);
     
-   for (Int_t i = 0; i < NPlanes; i++){
-    for (Int_t j = 0; j < StripsPerPlane; j++){
+  // for (Int_t i = 0; i < NPlanes; i++){
+  //  for (Int_t j = 0; j < StripsPerPlane; j++){
       //      this->fStripsRaw.Ratio(innumer->fStripsRaw[i][j], indenom->fStripsRaw[i][j]);
-    }
-   }
-  }
+  //  }
+  // }
+  // }
   
   return; 
 };
@@ -613,12 +613,12 @@ void  QwComptonElectronDetector::Print()
   for (Int_t i=0; i<NPlanes; i++)
     nchan += fStripsRaw[i].size();
   QwOut << " there were " << nchan << " strips registered" << QwLog::endl;
-  for (Int_t i=0; i<NPlanes; i++) {
-   for (Int_t j=0; j<StripsPerPlane; j++) {
+  //  for (Int_t i=0; i<NPlanes; i++) {
+  // for (Int_t j=0; j<StripsPerPlane; j++) {
 
-     QwOut << " plane #," << i << "strip #, " << j << "has " << fStrips[i][j] << QwLog::endl;
-   }
-  }
+  //   QwOut << " plane #," << i << "strip #, " << j << "has " << fStrips[i][j] << QwLog::endl;
+  // }
+  //}
   return;
 }
 
