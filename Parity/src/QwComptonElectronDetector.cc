@@ -162,7 +162,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
     //  We want to process this ROC.  Begin looping through the data.
      for (Int_t i = 0; i < NPlanes; i++) { // loop all words in bank
        for (Int_t j = 0; j < StripsPerModule; j++) {
-        bitwise_mask = (UInt_t) pow(2,j);
+        bitwise_mask = (UInt_t) pow(2.0,j);
         fStripsRawEv[i][j] = (buffer[(i)] & bitwise_mask)>>j;
        }
        words_read++;
@@ -187,7 +187,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
      for (Int_t i = 0; i < NPlanes; i++) { // loop all words in bank
        for (Int_t j = 0; j < StripsPerModule; j++) {
 	Int_t k = StripsPerModule + j;
-        bitwise_mask = (UInt_t) pow(2,j);
+        bitwise_mask = (UInt_t) pow(2.0,j);
         fStripsRawEv[i][k] = (buffer[(i)] & bitwise_mask)>>j;
        }
        words_read++;      
@@ -212,7 +212,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
      for (Int_t i = 0; i < NPlanes; i++) { // loop all words in bank
        for (Int_t j = 0; j < StripsPerModule; j++) {
 	Int_t k = 2*StripsPerModule + j;
-        bitwise_mask = (UInt_t) pow(2,j);
+        bitwise_mask = (UInt_t) pow(2.0,j);
         fStripsRawEv[i][k] = (buffer[(i)] & bitwise_mask)>>j;
        }
        words_read++;
