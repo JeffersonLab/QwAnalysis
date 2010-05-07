@@ -149,7 +149,7 @@ Added by Buddhini to display the hall c Beamline data.
   //! - none
   //!
   //!Return value: none 
-  virtual void        OnNewDataContainer();
+  virtual void        OnNewDataContainer(RDataContainer *cont);
   virtual void        OnObjClose(char *);
   virtual void        OnReceiveMessage(char*);
   virtual void        OnRemoveThisTab();

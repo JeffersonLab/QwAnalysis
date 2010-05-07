@@ -157,7 +157,7 @@ void QwGUIHallCBeamline::OnObjClose(char *obj)
 }
 
 
-void QwGUIHallCBeamline::OnNewDataContainer()
+void QwGUIHallCBeamline::OnNewDataContainer(RDataContainer *cont)
 {
 
   TObject *obj = NULL;

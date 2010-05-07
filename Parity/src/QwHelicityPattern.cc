@@ -60,6 +60,8 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
 	  fCurrentPatternNumber=-1;
 
 	  ClearEventData();
+
+
 	}
       else
 	{
@@ -73,6 +75,7 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
     {
       std::cerr << e.what() << std::endl;
     }
+
 };
 
 

@@ -145,7 +145,7 @@ class QwGUIInjector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  virtual void        OnNewDataContainer();
+  virtual void        OnNewDataContainer(RDataContainer *cont);
   virtual void        OnObjClose(char *);
   virtual void        OnReceiveMessage(char*);
   virtual void        OnRemoveThisTab();

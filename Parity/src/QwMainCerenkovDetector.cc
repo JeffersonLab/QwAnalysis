@@ -18,7 +18,7 @@ void QwMainCerenkovDetector::ProcessOptions(QwOptions &options){
 
 Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 {
-  Bool_t ldebug=kFALSE;
+  Bool_t ldebug=kTRUE;
 
   TString varname, varvalue;
   TString modtype, dettype, namech, nameofcombinedchan;
@@ -380,10 +380,9 @@ Bool_t QwMainCerenkovDetector::IsGoodEvent()
 
 void QwMainCerenkovDetector::ClearEventData()
 {
-
-  for (size_t i=0;i<fIntegrationPMT.size();i++)
+  for (size_t i=0;i<fIntegrationPMT.size();i++){    
     fIntegrationPMT[i].ClearEventData();
-
+  }
   for (size_t i=0;i<fCombinedPMT.size();i++)
     fCombinedPMT[i].ClearEventData();
 
@@ -1153,8 +1152,10 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
       mysqlpp::Query query= db->Query();
       //    if(query)
       //	{
-	  query.insert(entrylist.begin(), entrylist.end());
-	  query.execute();
+      query.insert(entrylist.begin(), entrylist.end());
+//       QwError<< "QwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << QwLog::endl;
+
+      query.execute();
 	  //	  query.reset(); // do we need?
 	  //	}
 	  //      else

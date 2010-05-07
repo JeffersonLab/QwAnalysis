@@ -124,15 +124,25 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!Return value: none
   void                 PlotDFT();
 
-  //!This function clear the histograms/plots in the plot container. This is done everytime a new 
-  //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
-  //!on the plots are lost.
+  //!This function clears the histograms/plots in the plot container (for root files). This is done  
+  //!everytime a new file is opened. If the displayed plots are not saved prior to opening a new file
+  //!any changes on the plots are lost.
   //!
   //!Parameters:
   //! - none
   //!
   //!Return value: none  
-  void                 ClearData();
+  void                 ClearRootData();
+
+  //!This function clears the histograms/plots in the plot container (for database files). This is done  
+  //!everytime a new database is opened. If the displayed plots are not saved prior to opening a new file
+  //!any changes on the plots are lost.
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none  
+  void                 ClearDBData();
 
   Int_t                GetCurrentDataLength(Int_t det) {return det >= 0 && det < MAIN_DET_INDEX ? dCurrentData[det].size() : -1;};
 
@@ -181,7 +191,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  virtual void        OnNewDataContainer();
+  virtual void        OnNewDataContainer(RDataContainer *cont);
   virtual void        OnObjClose(char *);
   virtual void        OnReceiveMessage(char*);
   virtual void        OnRemoveThisTab();

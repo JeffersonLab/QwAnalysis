@@ -602,6 +602,14 @@ void QwGUIMain::OnObjClose(const char *objname)
 #endif
   }
 
+  if(name.Contains("dDatabase")){
+    dDatabase = NULL;
+#ifdef QWGUI_DEBUG
+    printf("Received dDatabase IsClosing signal\n");
+#endif
+  }
+
+
 //   TObject *obj;
 //   TIter next(SubSystemArray.MakeIterator());
 //   obj = next();
