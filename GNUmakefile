@@ -128,9 +128,9 @@ EXCLUDEDIRS = evio Extensions
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
   ifneq ($(CODA),)
     #  The realtime executables should be added in this section.
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online
   else
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online
   endif
 else
   EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
@@ -138,9 +138,9 @@ endif
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
   ifneq ($(CODA),)
     #  The realtime executables should be added in this section.
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online
   else
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online
   endif  
 endif
 # overridden by "make 'EXES=exe1 exe2 ...'"
@@ -175,7 +175,7 @@ endif
 ROOTCONFIG   := $(ROOTSYS)/bin/root-config
 ## ROOTDEFINE   := $(shell $(ROOTCONFIG) --features | $(SED) 's/\(\s*\)\([a-zA-Z0-9_]*\)/\1-D__ROOT_HAS_\2/g;y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
 ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags)
-ROOTLIBS     := $(shell $(ROOTCONFIG) --new --libs) -lTreePlayer #-lGX11
+ROOTLIBS     := $(shell $(ROOTCONFIG) --new --libs) -lTreePlayer  #-lGX11
         # -lNew : for map file capability
         # -lTreePlayer -lProof : for user loops calling tree
         #                        variables under conditions
