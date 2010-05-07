@@ -3,14 +3,14 @@
 # It is derived form the file in $ROOTSYS/test/Makefile, which
 # was written by the "root" people....
 
--include ../VERSION 
+-include ../VERSION
 
 LIBDIR        = ../QwGUILib
-LIBINCLUDE    = $(LIBDIR)/include 
+LIBINCLUDE    = $(LIBDIR)/include
 RDATALIB      = $(LIBDIR)/QwGUIRootLib-$(VERS).a
 PRG_INCLUDE   = ./include
 PRG_SOURCE    = ./src
-
+ 
 # Here we list the object files that require a CINT dictionary.
 OBJECTS	      =
 OBJECTS       += QwGUIMain.o
@@ -22,18 +22,14 @@ OBJECTS       += QwGUISubSystem.o
 OBJECTS       += QwGUIMainDetector.o
 OBJECTS       += QwGUILumiDetector.o
 OBJECTS       += QwGUIInjector.o
-OBJECTS	      += QwGUIHallCBeamline.o
 OBJECTS       += QwGUIEventDisplay.o
 OBJECTS       += QwGUISuperCanvas.o
-OBJECTS       += QwGUIDatabaseContainer.o
-OBJECTS       += QwGUIDatabaseSelectionDialog.o
 
 # Now append the object files that Don't require a CINT dictionary.
 #NODICTOBJECTS   = QwHit.o
 #NODICTOBJECTS  += QwHitRootContainer.o
 #NODICTOBJECTS  += QwHitContainer.o
 #NODICTOBJECTS  += QwParameterFile.o
-#NODICTOBJECTS  += $(QWANALYSIS)/Analysis/src/QwDatabase.o
 
 #QWDICTOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwHitDict.o
 #QWDICTOBJECTS    += $(QWANALYSIS)/Tracking/dictionary/QwHitContainerDict.o
@@ -60,7 +56,7 @@ QWANSOURCE = $(QWANALYSIS)/Analysis/src
 # will be made automatically.
 DICTS		= $(OBJECTS:.o=Dict.o)
 
-APPLIC        = QwGUI-$(VERS)
+APPLIC        = QwRealTimeGUI-$(VERS)
 MFILE         = Makefile
 
 # For Linux with egcs, gcc 2.9x, gcc 3.x (>= RedHat 5.2)
@@ -70,31 +66,24 @@ DEBUGFLAGS    = #-DQWGUI_DEBUG
 CXX           = g++
 CXXFLAGS      = -Wall -fPIC -DVERS="\"$(VERS)\"" -g #-O2
 LD            = g++
-LDFLAGS       = #-O
+LDFLAGS       = #-O2
 SOFLAGS       = -shared
 SYSLIBS       =
 GEOMLIB       = -lGeom
 GUILIB        = -lGuiHtml
 
+ROOTCFLAGS   := $(shell root-config --cflags)
+ROOTLIBS     := $(shell root-config --libs)
 ROOTGLIBS    := $(shell root-config --glibs)
-QWEAKLIBS     := $(shell ${QWANALYSIS}/bin/qweak-config --libs)
-QWEAKLDFLAGS  := $(shell ${QWANALYSIS}/bin/qweak-config --ldflags)
-#  When we get the QwAnalysis include paths, turn paths like "./*" into "${QWANALYSIS}/*".
-REGEXP_QWANA  := $(shell echo ${QWANALYSIS} | sed 's/\//\\\//g')
-QWEAKCPPFLAGS := $(shell ${QWANALYSIS}/bin/qweak-config --cppflags | sed 's/I\./I${REGEXP_QWANA}/g' )
 
-QWTRINCLUDE     = -I$(QWANALYSIS)/Tracking/include
-QWANINCLUDE     = -I$(QWANALYSIS)/Analysis/include
-QWPRINCLUDE     = -I$(QWANALYSIS)/Parity/include
+QWTRINCLUDE    = -I$(QWANALYSIS)/Tracking/include
+QWANINCLUDE    = -I$(QWANALYSIS)/Analysis/include
+QWPRINCLUDE    = -I$(QWANALYSIS)/Parity/include
 
-#QWEVINCLUDE     = -I$(QWANALYSIS)/evio/include
-#QWMSQLPPINCLUDE = -I/usr/include/mysql++
-#QWMSQLINCLUDE   = -I/usr/include/mysql
+QwLIBS =
 
-#QwLIBS = -l
-
-CXXFLAGS     += $(DEBUGFLAGS) $(QWEAKCPPFLAGS) -Wno-deprecated
-LIBS          = $(QWEAKLIBS) $(SYSLIBS) $(QWLIBS) -lNew
+CXXFLAGS     += $(DEBUGFLAGS) $(ROOTCFLAGS) -Wno-deprecated
+LIBS          = $(ROOTLIBS) $(SYSLIBS) $(QWLIBS) -lNew
 GLIBS         = $(ROOTGLIBS) $(SYSLIBS) $(QWLIBS) -lNew
 
 ENSCRIPT      = @enscript -2Gjr -o
@@ -104,12 +93,12 @@ ENSCRIPT      = @enscript -2Gjr -o
 all: $(APPLIC)
 $(QWOBJECT)
 $(APPLIC): $(OBJECTS) $(NODICTOBJECTS) $(DICTS) $(QWDICTOBJECTS) $(RDATALIB)
-	$(CXX) -o $@ $(LDFLAGS) $(QWEAKLDFLAGS) $(LIBS) $(GLIBS) $(GEOMLIB) $(GUILIB) $^
-	ln -sf QwGUIView/$@ ../QwGUI
+	$(CXX) -o $@ $(LDFLAGS) $(GLIBS) $(GEOMLIB) $(GUILIB) $^
+	ln -sf QwRealTimeGUIView/$@ ../QwRealTimeGUI
 	@echo "$@ done"
 
 %.o : $(PRG_SOURCE)/%.cc
-	$(CXX) -c $(CXXFLAGS) $< -I$(PRG_INCLUDE) -I$(LIBINCLUDE)
+	$(CXX) -c $(CXXFLAGS) $< -I$(PRG_INCLUDE) -I$(LIBINCLUDE)   $(QWTRINCLUDE) $(QWANINCLUDE) $(QWPRINCLUDE)
 
 %.o : $(QWTRSOURCE)/%.cc
 	$(CXX) -c $(CXXFLAGS) $<  $(QWTRINCLUDE) $(QWPRINCLUDE) $(QWANINCLUDE) -I$(PRG_INCLUDE) -I$(LIBINCLUDE)
@@ -119,7 +108,7 @@ $(APPLIC): $(OBJECTS) $(NODICTOBJECTS) $(DICTS) $(QWDICTOBJECTS) $(RDATALIB)
 
 %Dict.cc : $(PRG_INCLUDE)/%.h
 	@echo "Generating dictionary $@..."
-	rootcint -f $@ -c -DROOTCINTMODE -I$(LIBINCLUDE) $(QWTRINCLUDE) $(QWANINCLUDE) $(QWPRINCLUDE) $^
+	rootcint -f $@ -c -I$(LIBINCLUDE) $(QWTRINCLUDE) $(QWPRINCLUDE) $(QWANINCLUDE) $^
 
 clean:
 	rm -f ./*.o ./core ./*~ ./*Dict.cc ./*Dict.h ./~* ./G__*.* source/*~ \
