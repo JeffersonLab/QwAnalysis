@@ -30,7 +30,6 @@
 
 // Qweak headers
 #include "VQwSubsystemParity.h"
-//#include "QwCPV1495_Channel.h"
 #include "QwVQWK_Channel.h"
 
 
@@ -112,11 +111,15 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     static const Int_t NPlanes = 4;
     static const Int_t StripsPerModule = 32;
     static const Int_t StripsPerPlane = 96;
+
  
 
     /// List of V1495 accumulation mode strips
     std::vector< std::vector <Double_t> > fStrips;
     std::vector< std::vector <Double_t> > fStripsRaw;
+    /// List of V1495 single event mode strips
+    std::vector< std::vector <Double_t> > fStripsEv;
+    std::vector< std::vector <Double_t> > fStripsRawEv;
 
     //    boost::multi_array<Double_t, 2> array_type;
     //    array_type fStrips(boost::extents[NPlanes][StripsPerPlane]);
@@ -132,6 +135,8 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
 
   TH1D *eDet[NPlanes];
   TH1D *eDetRaw[NPlanes];
+  TH1D *eDetEv[NPlanes];
+  TH1D *eDetRawEv[NPlanes];
 
 
   private:

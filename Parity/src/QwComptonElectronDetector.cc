@@ -73,7 +73,19 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
            if (stripnum >= (Int_t) fStrips[plane-1].size())
             fStrips[plane-1].push_back(0.0);
              // plane goes from 1 - 4 instead of 0 - 3, 
+        }
+	else if (dettype == "esingle") {
+	  if (plane >= (Int_t) fStripsRawEv.size())
+	    fStripsRawEv.push_back(std::vector <Double_t>());
+	    if (stripnum >= (Int_t) fStripsRawEv[plane-1].size())
+             fStripsRawEv[plane-1].push_back(0.0);
+             // plane goes from 1 - 4 instead of 0 - 3, 
 
+	  if (plane >= (Int_t) fStripsEv.size())
+	   fStripsEv.push_back(std::vector <Double_t>());
+           if (stripnum >= (Int_t) fStripsEv[plane-1].size())
+            fStripsEv[plane-1].push_back(0.0);
+             // plane goes from 1 - 4 instead of 0 - 3,    
 	} // end of switch (dettype)
       } // end of switch (modtype)
     } // end of if for token line
@@ -137,16 +149,91 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 {
   UInt_t words_read = 0;
   Int_t ports_read;
-  ports_read = 0;
+  UInt_t bitwise_mask = 0;
 
+  ports_read = 0;
   // Get the subbank index (or -1 when no match)
   Int_t index = GetSubbankIndex(roc_id, bank_id);
+  //  QwOut << "bankindex for"<<bank_id << "is =" << index <<QwLog::endl;
+ 
+  if (index==3) {
+    if (num_words > 0) {
+    
+    //  We want to process this ROC.  Begin looping through the data.
+     for (Int_t i = 0; i < NPlanes; i++) { // loop all words in bank
+       for (Int_t j = 0; j < StripsPerModule; j++) {
+        bitwise_mask = (UInt_t) pow(2,j);
+        fStripsRawEv[i][j] = (buffer[(i)] & bitwise_mask)>>j;
+        words_read++;
+       }
+      }
+     Int_t ExtraWord = buffer[NPlanes];
+       words_read++;
+    }
+    if (num_words != words_read) {
+      QwError << "QwComptonElectronDetector: There were "
+              << num_words - words_read
+              << " leftover words after decoding everything we recognize."
+              << QwLog::endl;
+    }
+   
+  }  
+
+ 
+  if (index==4) {
+    if (num_words > 0) {
+    
+    //  We want to process this ROC.  Begin looping through the data.
+     for (Int_t i = 0; i < NPlanes; i++) { // loop all words in bank
+       for (Int_t j = 0; j < StripsPerModule; j++) {
+	Int_t k = StripsPerModule + j;
+        bitwise_mask = (UInt_t) pow(2,j);
+        fStripsRawEv[i][k] = (buffer[(i)] & bitwise_mask)>>j;
+        words_read++;
+       }
+      }
+     Int_t ExtraWord = buffer[NPlanes];
+       words_read++;
+    }
+    if (num_words != words_read) {
+      QwError << "QwComptonElectronDetector: There were "
+              << num_words - words_read
+              << " leftover words after decoding everything we recognize."
+              << QwLog::endl;
+    }
+   
+  }  
+
+ 
+  if (index==5) {
+    if (num_words > 0) {
+    
+    //  We want to process this ROC.  Begin looping through the data.
+     for (Int_t i = 0; i < NPlanes; i++) { // loop all words in bank
+       for (Int_t j = 0; j < StripsPerModule; j++) {
+	Int_t k = 2*StripsPerModule + j;
+        bitwise_mask = (UInt_t) pow(2,j);
+        fStripsRawEv[i][k] = (buffer[(i)] & bitwise_mask)>>j;
+        words_read++;
+       }
+      }
+     Int_t ExtraWord = buffer[NPlanes];
+       words_read++;
+    }
+    if (num_words != words_read) {
+      QwError << "QwComptonElectronDetector: There were "
+              << num_words - words_read
+              << " leftover words after decoding everything we recognize."
+              << QwLog::endl;
+    }
+   
+  }  
 
    
-   if (bank_id==0x0204) {   
+   if (index==6) {   
 // sub-bank 0x0204, accum mode data from strips 0-31 of planes 1 thru 4
 
-    if (index >= 0 && num_words > 0) {
+    if (num_words > 0) {
 
     //  We want to process this ROC.  Begin looping through the data.
      for (Int_t i = 0; i < StripsPerModule; i++) { // loop all words in bank
@@ -165,9 +252,9 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
     }
    
    }  
-   if (bank_id==0x0205) {
+   if (index==7) {
 // sub-bank 0x0205, accum mode data from strips 32-63 of planes 1 thru 4
-    if (index >= 0 && num_words > 0) {
+    if (num_words > 0) {
      for (Int_t i = 0; i < StripsPerModule; i++) { // loop over all words
        Int_t j = StripsPerModule+i;
        fStripsRaw[0][j] = (buffer[(i)] &0xff000000)>>24;
@@ -186,9 +273,9 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 
 
    }
-   if (bank_id==0x0206) {
+   if (index==8) {
 // sub-bank 0x0206, accum mode data from strips 64-95 of planes 1 thru 4
-    if (index >= 0 && num_words > 0) {
+    if (num_words > 0) {
      for (Int_t i = 0; i < StripsPerModule; i++) { // loop over all words
        Int_t j = 2*StripsPerModule+i;
        fStripsRaw[0][j] = (buffer[(i)] &0xff000000)>>24;
@@ -231,6 +318,7 @@ void  QwComptonElectronDetector::ProcessEvent()
    for (Int_t i = 0; i < NPlanes; i++){
     for (Int_t j = 0; j < StripsPerPlane; j++){
      fStrips[i][j] = (fStripsRaw[i][j] - fOffset)*fCalibrationFactor;
+     fStripsEv[i][j] = (fStripsRawEv[i][j] - fOffset)*fCalibrationFactor;
     }
    }
    return;
@@ -277,6 +365,8 @@ void QwComptonElectronDetector::ClearEventData()
     for (Int_t j = 0; j < StripsPerPlane; j++){
      fStripsRaw[i][j] = 0;
      fStrips[i][j] = 0;
+     fStripsRawEv[i][j] = 0;
+     fStripsEv[i][j] = 0;
     }
    }
   return;
@@ -412,8 +502,10 @@ void  QwComptonElectronDetector::ConstructHistograms(TDirectory *folder, TString
   //  basename = prefix + GetSubsystemName();
 
   for (Int_t i=0; i<NPlanes; i++){
-    eDetRaw[i] = new TH1D(Form("%s_Raw%d",basename.Data(),i),Form("%s_Raw%d",basename.Data(),i),StripsPerPlane,0,StripsPerPlane-1);
-    eDet[i] = new TH1D(Form("%s_%d",basename.Data(),i),Form("%s_%d",basename.Data(),i),StripsPerPlane,0,StripsPerPlane-1);
+    eDetRaw[i] = new TH1D(Form("%s_Accum_Raw_Pl%d",basename.Data(),i),Form("%s_Accum_Raw_Pl%d",basename.Data(),i),StripsPerPlane,0,StripsPerPlane-1);
+    eDet[i] = new TH1D(Form("%s_Accum_Pl%d",basename.Data(),i),Form("%s_Accum_Pl%d",basename.Data(),i),StripsPerPlane,0,StripsPerPlane-1);
+    eDetRawEv[i] = new TH1D(Form("%s_Evt_Raw_Pl%d",basename.Data(),i),Form("%s_Evt_Raw_Pl%d",basename.Data(),i),StripsPerPlane,0,StripsPerPlane-1);
+    eDetEv[i] = new TH1D(Form("%s_Evt_Pl%d",basename.Data(),i),Form("%s_Evt_Pl%d",basename.Data(),i),StripsPerPlane,0,StripsPerPlane-1);
   }
 
   return;
@@ -430,6 +522,14 @@ void  QwComptonElectronDetector::DeleteHistograms()
       eDet[i]->Delete();
       eDet[i] = NULL;
     }
+    if(eDetRawEv[i]!=NULL){
+      eDetRawEv[i]->Delete();
+      eDetRawEv[i] = NULL;
+    }
+    if(eDetEv[i]!=NULL){
+      eDetEv[i]->Delete();
+      eDetEv[i] = NULL;
+    }
    }
   return;
 };
@@ -445,6 +545,12 @@ void  QwComptonElectronDetector::FillHistograms()
      if (eDet[i] != NULL)
       for (k=0; k<fStrips[i][j]; k++)
        eDet[i]->Fill(j);
+     if (eDetRawEv[i] != NULL)
+      for (k=0; k<fStripsRawEv[i][j]; k++)
+       eDetRawEv[i]->Fill(j);
+     if (eDetEv[i] != NULL)
+      for (k=0; k<fStripsEv[i][j]; k++)
+       eDetEv[i]->Fill(j);
     }
   }
   return;
