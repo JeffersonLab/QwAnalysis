@@ -762,6 +762,7 @@ void QwLumi::Calculate_Running_Average()
   std::cout<<std::endl;
   return;
 };
+
 void QwLumi::Do_RunningSum()
 {
   UInt_t i = 0;

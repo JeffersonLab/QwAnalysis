@@ -182,6 +182,7 @@ Int_t QwCombinedBPM::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t
     QwMessage<<"WSum LL " <<  minX <<" UL " << maxX <<QwLog::endl;
     fCombinedWSum.SetSingleEventCuts(minX,maxX);
   }
+  
 };
 
 

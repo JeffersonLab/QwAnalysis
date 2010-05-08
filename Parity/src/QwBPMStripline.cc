@@ -674,10 +674,10 @@ QwDBInterface QwBPMStripline::GetDBEntry(TString subname)
   QwVQWK_Channel bpm_sub_element;
 
   TString name;
-  Double_t avg = 0.0;
-  Double_t err = 0.0;
-  UInt_t beam_subblock    = 0;
-  UInt_t beam_n           = 0;
+  Double_t avg         = 0.0;
+  Double_t err         = 0.0;
+  UInt_t beam_subblock = 0;
+  UInt_t beam_n        = 0;
    
   if      ( subname.Contains("RelX",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fRelPos[0]); bpm_sub_element = fRelPos[0];}
   else if ( subname.Contains("RelY",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fRelPos[1]); bpm_sub_element = fRelPos[1];}
@@ -694,8 +694,8 @@ QwDBInterface QwBPMStripline::GetDBEntry(TString subname)
   name          = bpm_sub_element.GetElementName();
   avg           = bpm_sub_element.GetAverage();
   err           = bpm_sub_element.GetAverageError();
-  beam_subblock = 8; // no meaning, later will be replaced with a real one
-  beam_n        = 88;// no meaning, later will be replaced with a real one
+  beam_subblock = 8;                                // no meaning, later will be replaced with a real one
+  beam_n        = bpm_sub_element.GetGoodEventCount();
    
    
   row.SetDetectorName(name);

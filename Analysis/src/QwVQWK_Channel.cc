@@ -839,12 +839,18 @@ void QwVQWK_Channel::Calculate_Running_Average()
 
 void QwVQWK_Channel::Print_Running_Average()
 {
-  std::cout
-    << this->GetElementName()<<" \t "
-    << this->fAverage_n      <<" \t "
-    << this->fAverage_error  <<" \t "
-    << fGoodEventCount
-    <<std::endl;
+  
+  QwMessage << this->GetElementName()
+	    << "\t"
+	    << this->GetAverage()
+	    << "\t"
+	    << this->GetAverageError() 
+	    << "\t"
+	    << this->GetGoodEventCount()
+	    << QwLog::endl;
+
+  return;
+
 }
 
 

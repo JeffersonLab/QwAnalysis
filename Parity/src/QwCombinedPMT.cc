@@ -400,11 +400,11 @@ QwDBInterface QwCombinedPMT::GetDBEntry(TString subname)
   UInt_t beam_subblock = 0;
   UInt_t beam_n        = 0;
   
-  name = this->GetElementName();
-  avg  = this->GetAverage(subname);
-  err  = this->GetAverageError(subname);
-  beam_subblock    = 66;// no meaning, later will be replaced with a real one
-  beam_n           = 66;// no meaning, later will be replaced with a real one
+  name          = this->GetElementName();
+  avg           = this->GetAverage();
+  err           = this->GetAverageError();
+  beam_subblock = 66;// no meaning, later will be replaced with a real one
+  beam_n        = this->GetGoodEventCount();
 
   row.SetDetectorName(name);
   row.SetSubblock(beam_subblock);
