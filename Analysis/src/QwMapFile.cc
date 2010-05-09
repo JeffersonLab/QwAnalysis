@@ -4,6 +4,8 @@
 
 ClassImp(QwMapFile)
 
+const Int_t QwMapFile::kMapFileSize = 1000000000;
+
 QwMapFile::QwMapFile() {
 
   fMapFile = NULL;
@@ -19,7 +21,7 @@ QwMapFile::QwMapFile(const TString name, const TString  title, Option_t *option)
   //std::cout<<" ROOT map file name "<<name<<std::endl;
   theMemMapFile = getenv("QW_ROOTFILES");
   theMemMapFile += "/dummy.map";
-  
+
   TMapFile *mapfile = TMapFile::Create(theMemMapFile,"RECREATE",kMapFileSize,"Dummy File");
   UInt_t add,iadd, oadd = Int_t(mapfile->GetBaseAddr());
   std::cout<<"QwMapFile:: dummy file is created\n";
@@ -54,12 +56,12 @@ QwMapFile::QwMapFile(const TString name, const TString  title, Option_t *option)
 
   }
 
-  
+
   std::cout<<"QwMapFile:: dummy file is closed \n";
   TMapFile::SetMapAddress(add);
   */
   fMapFile = TMapFile::Create(name,"RECREATE",kMapFileSize,title);
-  
+
   std::cout<<"End of QwMapFile constructor\n";
   //exit(1);
 }

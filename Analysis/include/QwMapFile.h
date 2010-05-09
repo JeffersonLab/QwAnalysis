@@ -17,7 +17,7 @@ class QwMapFile {
   void Update() { if(fMapFile) fMapFile->Update(); }
   void ls() { if(fMapFile) fMapFile->ls(); }
 
-  static const Int_t kMapFileSize = 1000000000;//making it larger crashed the qwanalysis_online
+  static const Int_t kMapFileSize;//making it larger crashed the qwanalysis_online
 
  protected:
   TMapFile *fMapFile;
