@@ -238,7 +238,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
 	  // Accumulate the running sum to calculate the event based running average
-	  //runningsum.AccumulateRunningSum(QwDetectors);
+	  runningsum.AccumulateRunningSum(QwDetectors);
 
 
 	  if(bHisto) QwDetectors.FillHistograms();
@@ -308,7 +308,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       std::cout<<"Event Based Running average"<<std::endl;
       std::cout<<"==========================="<<std::endl;
       // This will calculate running averages for Yields per event basis
-      //runningsum.CalculateRunningAverage();
+      runningsum.CalculateRunningAverage();
       timer.Stop();
 
       /*  Write to the root file, being sure to delete the old cycles  *
