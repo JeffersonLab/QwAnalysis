@@ -380,7 +380,7 @@ Bool_t QwMainCerenkovDetector::IsGoodEvent()
 
 void QwMainCerenkovDetector::ClearEventData()
 {
-  for (size_t i=0;i<fIntegrationPMT.size();i++){    
+  for (size_t i=0;i<fIntegrationPMT.size();i++){
     fIntegrationPMT[i].ClearEventData();
   }
   for (size_t i=0;i<fCombinedPMT.size();i++)
@@ -970,26 +970,27 @@ void QwMainCerenkovDetector::Scale(Double_t factor)
 };
 
 
-void QwMainCerenkovDetector::Calculate_Running_Average()
+void QwMainCerenkovDetector::CalculateRunningAverage()
 {
   for (size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].Calculate_Running_Average();
+    fIntegrationPMT[i].CalculateRunningAverage();
 
   for (size_t i=0;i<fCombinedPMT.size();i++)
-    fCombinedPMT[i].Calculate_Running_Average();
+    fCombinedPMT[i].CalculateRunningAverage();
 
   return;
 };
 
-void QwMainCerenkovDetector::Do_RunningSum()
+void QwMainCerenkovDetector::AccumulateRunningSum(VQwSubsystem* value1)
 {
-  for (size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].Do_RunningSum();
+  if (Compare(value1)) {
+    QwMainCerenkovDetector* value = dynamic_cast<QwMainCerenkovDetector*>(value1);
 
-  for (size_t i=0;i<fCombinedPMT.size();i++)
-    fCombinedPMT[i].Do_RunningSum();
-
-  return;
+    for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+      fIntegrationPMT[i].AccumulateRunningSum(value->fIntegrationPMT[i]);
+    for (size_t i = 0; i < fCombinedPMT.size(); i++)
+      fCombinedPMT[i].AccumulateRunningSum(value->fCombinedPMT[i]);
+  }
 };
 
 void QwMainCerenkovDetector::BlindMe(QwBlinder *blinder)
@@ -1132,7 +1133,7 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
   for(UInt_t i=0; i< fCombinedPMT.size(); i++)
     {
       interface.Reset();
-      interface = fCombinedPMT[i].GetDBEntry(""); 
+      interface = fCombinedPMT[i].GetDBEntry("");
       // QwCombinedPMT has only one element, thus noname "" on it.
       // fSumADC
       interface.SetAnalysisID( analysis_id );
@@ -1142,7 +1143,7 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
       interface.PrintStatus(local_print_flag);
     }
 
-   QwMessage << QwColor(Qw::kGreen) << "Entrylist Size : " 
+   QwMessage << QwColor(Qw::kGreen) << "Entrylist Size : "
 	     << QwColor(Qw::kBoldRed) << entrylist.size() << QwLog::endl;
 
   db->Connect();

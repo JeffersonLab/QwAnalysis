@@ -122,7 +122,7 @@ Int_t QwCombinedPMT::SetSingleEventCuts(std::vector<Double_t> & dEventCuts)
 void  QwCombinedPMT::ProcessEvent()
 {
 //Calculate the weigted averages of the hardware sum and each of the four blocks.
-  CalculateSumAndAverage(); 
+  CalculateSumAndAverage();
 
   return;
 };
@@ -222,10 +222,10 @@ void QwCombinedPMT::Sum(QwCombinedPMT &value1, QwCombinedPMT &value2)
 //  this->fAvgADC += value2.fAvgADC;
 };
 
-void QwCombinedPMT::Do_RunningSum()
+void QwCombinedPMT::AccumulateRunningSum(const QwCombinedPMT& value)
 {
-  fSumADC.Do_RunningSum();
-//  fAvgADC.Do_RunningSum();
+  fSumADC.AccumulateRunningSum(value.fSumADC);
+//  fAvgADC.AccumulateRunningSum(value.fAvgADC);
 };
 
 void QwCombinedPMT::Difference(QwCombinedPMT &value1, QwCombinedPMT &value2)
@@ -252,10 +252,10 @@ void QwCombinedPMT::Scale(Double_t factor)
   return;
 }
 
-void QwCombinedPMT::Calculate_Running_Average()
+void QwCombinedPMT::CalculateRunningAverage()
 {
-  fSumADC.Calculate_Running_Average();
-//  fAvgADC.Calculate_Running_Average();
+  fSumADC.CalculateRunningAverage();
+//  fAvgADC.CalculateRunningAverage();
 };
 
 void QwCombinedPMT::BlindMe(QwBlinder *blinder)
@@ -399,7 +399,7 @@ QwDBInterface QwCombinedPMT::GetDBEntry(TString subname)
   Double_t err         = 0.0;
   UInt_t beam_subblock = 0;
   UInt_t beam_n        = 0;
-  
+
   name          = this->GetElementName();
   avg           = this->GetAverage();
   err           = this->GetAverageError();
@@ -413,6 +413,6 @@ QwDBInterface QwCombinedPMT::GetDBEntry(TString subname)
   row.SetError(err);
 
   return row;
-  
+
 };
 

@@ -52,7 +52,7 @@ class QwIntegrationPMT : public VQwDataElement{
   void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
   void  SetEventData(Double_t* block, UInt_t sequencenumber);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
-  
+
   void  UseExternalRandomVariable();
   void  SetExternalRandomVariable(Double_t random_variable);
 
@@ -89,8 +89,9 @@ class QwIntegrationPMT : public VQwDataElement{
   void Difference(QwIntegrationPMT &value1, QwIntegrationPMT &value2);
   void Ratio(QwIntegrationPMT &numer, QwIntegrationPMT &denom);
   void Scale(Double_t factor);
-  void Calculate_Running_Average();
-  void Do_RunningSum();
+
+  void AccumulateRunningSum(const QwIntegrationPMT& value);
+  void CalculateRunningAverage();
 
   void SetPedestal(Double_t ped);
   void SetCalibrationFactor(Double_t calib);
@@ -108,7 +109,7 @@ class QwIntegrationPMT : public VQwDataElement{
 
   void Copy(VQwDataElement *source);
 
-  QwDBInterface GetDBEntry(TString subname=""); 
+  QwDBInterface GetDBEntry(TString subname="");
 
 
  protected:

@@ -241,12 +241,12 @@ void QwBCM::Scale(Double_t factor)
   return;
 }
 
-void QwBCM::Calculate_Running_Average(){
-  fTriumf_ADC.Calculate_Running_Average();
+void QwBCM::CalculateRunningAverage() {
+  fTriumf_ADC.CalculateRunningAverage();
 };
 
-void QwBCM::Do_RunningSum(){
-  fTriumf_ADC.Do_RunningSum();
+void QwBCM::AccumulateRunningSum(const QwBCM& value) {
+  fTriumf_ADC.AccumulateRunningSum(value.fTriumf_ADC);
 };
 
 void QwBCM::Print() const

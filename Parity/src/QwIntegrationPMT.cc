@@ -355,15 +355,15 @@ void  QwIntegrationPMT::Copy(VQwDataElement *source)
 }
 
 
-void QwIntegrationPMT::Calculate_Running_Average(){
-  fTriumf_ADC.Calculate_Running_Average();
+void QwIntegrationPMT::CalculateRunningAverage() {
+  fTriumf_ADC.CalculateRunningAverage();
 };
 
-void QwIntegrationPMT::Do_RunningSum(){
-  fTriumf_ADC.Do_RunningSum();
+void QwIntegrationPMT::AccumulateRunningSum(const QwIntegrationPMT& value) {
+  fTriumf_ADC.AccumulateRunningSum(value.fTriumf_ADC);
 };
 
-void QwIntegrationPMT::BlindMe(QwBlinder *blinder){
+void QwIntegrationPMT::BlindMe(QwBlinder *blinder) {
   fTriumf_ADC.BlindMe(blinder);
 };
 

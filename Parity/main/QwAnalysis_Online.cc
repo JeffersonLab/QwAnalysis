@@ -108,6 +108,9 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap("qweak_lumi.map");//current map file is for the beamline.
   QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file.
 
+  QwSubsystemArrayParity runningsum;
+  runningsum.Copy(&QwDetectors);
+
   ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
 
 
@@ -116,7 +119,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwHelicityPattern QwHelPat(QwDetectors);//multiplet size is set within the QwHelicityPattern class
   QwHelPat.ProcessOptions(gQwOptions);
 
-  
+
   fEventRing.SetupRing(QwDetectors);//set up the ring with QwDetector array array with CMD ring parameters
 
    Double_t evnum=0.0;
@@ -147,8 +150,8 @@ Int_t main(Int_t argc, Char_t* argv[])
       rootfile->Print();
       if(!rootfile)
 	std::cerr<<"ROOT file could not be created. Exiting!!!"<<std::endl;
-      
- 
+
+
       if(bHisto){
 	QwDetectors.ConstructHistograms();
 	if(bHelicity)
@@ -204,10 +207,11 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  }
 
 
-	  QwDetectors.Do_RunningSum();//accimulate the running sum to calculate the event base running AVG
+	  // Accumulate the running sum to calculate the event based running average
+	  runningsum.AccumulateRunningSum(QwDetectors);
 
 
-	 
+
 
 
 	  if(bHelicity && QwHelPat.IsCompletePattern() && bRING_READY){
@@ -244,7 +248,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       QwHelPat.CalculateRunningAverage();//this will calculate running averages for Asymmetries and Yields per quartet
       std::cout<<"Event Based Running average"<<std::endl;
       std::cout<<"==========================="<<std::endl;
-      QwDetectors.Calculate_Running_Average();//this will calculate running averages for Yields per event basis
+      QwDetectors.CalculateRunningAverage();//this will calculate running averages for Yields per event basis
       timer.Stop();
 
       /*  We need to delete the histograms here.                       *

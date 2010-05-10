@@ -57,7 +57,7 @@ class QwLumi : public VQwSubsystemParity{
  public:
   QwLumi(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
     {
-      
+
 
     };
 
@@ -75,8 +75,8 @@ class QwLumi : public VQwSubsystemParity{
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
   Int_t GetEventcutErrorFlag();//return the error flag
 
-  void Calculate_Running_Average();
-  void Do_RunningSum();
+  void AccumulateRunningSum(VQwSubsystem* value);
+  void CalculateRunningAverage();
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);

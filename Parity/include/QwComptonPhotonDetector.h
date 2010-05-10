@@ -71,8 +71,8 @@ class QwComptonPhotonDetector: public VQwSubsystemParity {
     Int_t GetEventcutErrorFlag() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
-    void Calculate_Running_Average() { };
-    void Do_RunningSum() { };
+    void AccumulateRunningSum(VQwSubsystem* value) { };
+    void CalculateRunningAverage() { };
 
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();

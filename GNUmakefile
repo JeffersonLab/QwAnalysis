@@ -14,7 +14,7 @@
 ############################
 ############################
 
-DEBUG := -g
+DEBUG := -g -O0
 # Add -g if you need to debug (but you'd better
 # first type 'make distclean' to enable full
 # recompilation with this flag).
@@ -141,7 +141,7 @@ ifeq ($(filter config,$(MAKECMDGOALS)),config)
     EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online
   else
     EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online
-  endif  
+  endif
 endif
 # overridden by "make 'EXES=exe1 exe2 ...'"
 
@@ -295,7 +295,7 @@ else
   endif
 endif
 
-#  Check to see if BOOST_INC_DIR is equal to /usr/include; 
+#  Check to see if BOOST_INC_DIR is equal to /usr/include;
 #  if so, clear the BOOST_INC flag, but leave BOOST_LIBS unchanged
 ifeq ($(shell test $(BOOST_INC_DIR) -ef /usr/include || echo false),)
   BOOST_INC  =
@@ -366,7 +366,7 @@ CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
 LD             = g++
 LIBTOOL 	   = libtool
-LDFLAGS        = 
+LDFLAGS        =
 LDLIBS         = -lSystemStubs
 SOFLAGS        =
 DllSuf        := .dylib

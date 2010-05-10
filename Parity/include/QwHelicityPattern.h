@@ -55,19 +55,23 @@ class QwHelicityPattern{
   Int_t fPatternSize;
   Int_t fQuartetNumber;
 
+  // Yield and asymmetry of a single helicity pattern
   QwSubsystemArrayParity  fYield;
   QwSubsystemArrayParity  fAsymmetry;
+  // Alternate asymmetry calculations
   Bool_t bAlternateAsym;
   QwSubsystemArrayParity  fAsymmetry1;
   QwSubsystemArrayParity  fAsymmetry2;
 
-  QwSubsystemArrayParity fAverage;
-  QwSubsystemArrayParity fRunningSum;
+  // Running sum/average of the yield and asymmetry
+  QwSubsystemArrayParity fRunningSumYield;
+  QwSubsystemArrayParity fRunningSumAsymmetry;
 
  private:
-  QwSubsystemArrayParity pos_sum;
-  QwSubsystemArrayParity neg_sum;
-  QwSubsystemArrayParity difference;
+
+  QwSubsystemArrayParity fDiff;
+  QwSubsystemArrayParity fPositiveHelicitySum;
+  QwSubsystemArrayParity fNegativeHelicitySum;
 
 
   Bool_t IsGood;

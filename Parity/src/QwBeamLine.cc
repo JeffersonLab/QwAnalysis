@@ -354,7 +354,7 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
       ULY=0;
       LLY=0;
 
-      if (device_type == "bcm"){     
+      if (device_type == "bcm"){
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BCM value
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BCM value
 	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
@@ -366,8 +366,8 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline X
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline X
 
-	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);	
-	
+	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
+
 	fStripline[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
       }
       else if (device_type == "combinedbcm"){
@@ -383,7 +383,7 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
       else if (device_type == "combinedbpm"){
 	channel_name= mapstr.GetNextToken(", ").c_str();
 	channel_name.ToLower();
-    
+
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline X
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline X
 
@@ -733,12 +733,12 @@ Bool_t QwBeamLine::ApplySingleEventCuts(){
     if(!status && bDEBUG) std::cout<<"******* QwBeamLine::SingleEventCuts()->CombinedBCM[ "<<i
 				   <<" , "<<fBCMCombo[i].GetElementName()<<" ] ******\n";
   }
-  
+
   for(size_t i=0;i<fBPMCombo.size();i++){
     status &= fBPMCombo[i].ApplySingleEventCuts();
     if(!status && bDEBUG) std::cout<<"******* QwBeamLine::SingleEventCuts()->CombinedBPM[ "<<i
 				   <<" , "<<fBPMCombo[i].GetElementName()<<" ] ******\n";
-    
+
   }
 
   //If at least one of the devices falied  event cuts, increment error counter for QwBeamLine
@@ -763,8 +763,8 @@ Int_t QwBeamLine::GetEventcutErrorCounters(){//inherited from the VQwSubsystemPa
   }
 
   for(size_t i=0;i<fBCMCombo.size();i++){
-    fBCMCombo[i].GetEventcutErrorCounters();    
-  } 
+    fBCMCombo[i].GetEventcutErrorCounters();
+  }
 
   for(size_t i=0;i<fBPMCombo.size();i++){
     fBPMCombo[i].GetEventcutErrorCounters();
@@ -1083,30 +1083,36 @@ void QwBeamLine::Scale(Double_t factor)
   return;
 };
 
-void QwBeamLine::Calculate_Running_Average()
+void QwBeamLine::CalculateRunningAverage()
 {
   UInt_t i = 0;
   std::cout<<"*********QwBeamLine device Averages****************"<<std::endl;
   std::cout<<"Device \t    ||  Average\t || error\t || events"<<std::endl;
   printf("BPM\n");
-  for(i=0; i<fStripline.size(); i++) fStripline[i].Calculate_Running_Average();
+  for(i=0; i<fStripline.size(); i++) fStripline[i].CalculateRunningAverage();
   printf("BCM\n");
-  for(i=0; i<fBCM.size();       i++) fBCM[i].Calculate_Running_Average();
-  for(i=0; i<fBCMCombo.size();  i++) fBCMCombo[i].Calculate_Running_Average();
-  for(i=0; i<fBPMCombo.size();  i++) fBPMCombo[i].Calculate_Running_Average();
+  for(i=0; i<fBCM.size();       i++) fBCM[i].CalculateRunningAverage();
+  for(i=0; i<fBCMCombo.size();  i++) fBCMCombo[i].CalculateRunningAverage();
+  for(i=0; i<fBPMCombo.size();  i++) fBPMCombo[i].CalculateRunningAverage();
   std::cout<<"---------------------------------------------------"<<std::endl;
   std::cout<<std::endl;
   return;
 };
 
-void QwBeamLine::Do_RunningSum()
+void QwBeamLine::AccumulateRunningSum(VQwSubsystem* value1)
 {
-  UInt_t i = 0;
-  for(i=0; i<fStripline.size(); i++) fStripline[i].Do_RunningSum();
-  for(i=0; i<fBCM.size();       i++) fBCM[i].Do_RunningSum();
-  for(i=0; i<fBCMCombo.size();  i++) fBCMCombo[i].Do_RunningSum();
-  for(i=0; i<fBPMCombo.size();  i++) fBPMCombo[i].Do_RunningSum();
-  return;
+  if (Compare(value1)) {
+    QwBeamLine* value = dynamic_cast<QwBeamLine*>(value1);
+
+    for (size_t i = 0; i < fStripline.size(); i++)
+      fStripline[i].AccumulateRunningSum(value->fStripline[i]);
+    for (size_t i = 0; i < fBCM.size();       i++)
+      fBCM[i].AccumulateRunningSum(value->fBCM[i]);
+    for (size_t i = 0; i < fBCMCombo.size();  i++)
+      fBCMCombo[i].AccumulateRunningSum(value->fBCMCombo[i]);
+    for (size_t i = 0; i < fBPMCombo.size();  i++)
+      fBPMCombo[i].AccumulateRunningSum(value->fBPMCombo[i]);
+  }
 };
 
 
@@ -1393,8 +1399,8 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
       entrylist.push_back(interface.BeamMonitorDBClone());
       interface.PrintStatus(local_print_flag);
     }
-  
-  QwMessage << QwColor(Qw::kGreen)   << "Entrylist Size : " 
+
+  QwMessage << QwColor(Qw::kGreen)   << "Entrylist Size : "
  	    << QwColor(Qw::kBoldRed) << entrylist.size() << QwLog::endl;
 
   db->Connect();

@@ -8,7 +8,10 @@
 #ifndef __QwVQWK_CHANNEL__
 #define __QwVQWK_CHANNEL__
 
+// System headers
 #include <vector>
+
+// ROOT headers
 #include "TTree.h"
 
 // Boost math library for random number generation
@@ -16,10 +19,13 @@
 
 // Qweak headers
 #include "VQwDataElement.h"
-#include "QwBlinder.h"
 
-enum EDataToSave{kRaw=0, kDerived};
-// this data is used to decided which data need to be histogrammed or ttree-ed
+// Forward declarations
+class QwBlinder;
+
+/// Flag to be used to decide which data needs to be histogrammed and
+/// entered in the tree
+enum EDataToSave {kRaw = 0, kDerived};
 
 
 ///
@@ -38,17 +44,20 @@ class QwVQWK_Channel: public VQwDataElement {
  public:
   QwVQWK_Channel() { };
 
-  QwVQWK_Channel(TString name, TString datatosave="raw"){
+  QwVQWK_Channel(TString name, TString datatosave = "raw") {
     InitializeChannel(name, datatosave);
   };
   ~QwVQWK_Channel() {
-  //DeleteHistograms();
+    //DeleteHistograms();
   };
 
+  /// \brief Initialize the fields in this object
   void  InitializeChannel(TString name, TString datatosave);
 
-  void SetDefaultSampleSize(size_t NumberOfSamples_map){ //Will update the default sample size for the module.
-    fNumberOfSamples_map=NumberOfSamples_map;//this will be checked against the no.of samples read by the module
+  // Will update the default sample size for the module.
+  void SetDefaultSampleSize(size_t NumberOfSamples_map) {
+    // This will be checked against the no.of samples read by the module
+    fNumberOfSamples_map = NumberOfSamples_map;
   };
 
 
@@ -90,9 +99,10 @@ class QwVQWK_Channel: public VQwDataElement {
 
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
-  void Calculate_Running_Average();//pass the current event count in the run to calculate running average
-  void Print_Running_Average();
-  void Do_RunningSum();
+
+  void AccumulateRunningSum(const QwVQWK_Channel& value);
+  void CalculateRunningAverage();
+  void PrintRunningAverage();
 
   Bool_t MatchSequenceNumber(size_t seqnum);
   Bool_t MatchNumberOfSamples(size_t numsamp);
@@ -126,8 +136,10 @@ class QwVQWK_Channel: public VQwDataElement {
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
 
-  Double_t GetBlockValue(size_t blocknum){return fBlock[blocknum];};
-  Double_t GetHardwareSum(){return fHardwareBlockSum;};
+  Double_t GetBlockValue(size_t blocknum){ return fBlock[blocknum]; };
+  Double_t GetHardwareSum()        { return fHardwareBlockSum; };
+  Double_t GetHardwareSumSquared() { return fHardwareBlockSquaredSum; };
+  Double_t GetHardwareSumError()   { return fHardwareBlockSumError; };
   Double_t GetAverageVolts();
   //  Double_t GetSoftwareSum(){return fSoftwareBlockSum;};
 
@@ -147,9 +159,10 @@ class QwVQWK_Channel: public VQwDataElement {
   void Copy(VQwDataElement *source);
 
   void Print() const;
-  Double_t GetAverage()      {return fAverage_n;};
-  Double_t GetAverageError() {return fAverage_error;};
-  UInt_t GetGoodEventCount () {return fGoodEventCount;};
+
+  Double_t GetAverage()      { return fHardwareBlockSum; };
+  Double_t GetAverageError() { return fHardwareBlockSumError; };
+  UInt_t GetGoodEventCount() { return fGoodEventCount; };
 
   void BlindMe(QwBlinder *blinder);
 
@@ -194,8 +207,12 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t fHardwareBlockSum_raw; /*! Module-based sum of the four sub-blocks as read from the module  */
   Double_t fSoftwareBlockSum_raw; /*! Sum of the data in the four sub-blocks raw */
   /* the following values potentially have pedestal removed  and calibration applied */
-  Double_t fBlock[4];         /*! Array of the sub-block data             */
-  Double_t fHardwareBlockSum; /*! Module-based sum of the four sub-blocks */
+  Double_t fBlock[4];         /*! Array of the sub-block data         */
+  Double_t fBlockSquared[4];  /*! Array of the squared sub-block data */
+  Double_t fBlockError[4];    /*! Uncertainty of the sub-block data   */
+  Double_t fHardwareBlockSum;        /*! Module-based sum of the four sub-blocks */
+  Double_t fHardwareBlockSquaredSum; /*! Squared sum of the four sub-blocks      */
+  Double_t fHardwareBlockSumError;   /*! Uncertainty on sum of the four sub-blocks */
 
   size_t fSequenceNumber;     /*! Event sequence number for this channel  */
   size_t fPreviousSequenceNumber; /*! Previous event sequence number for this channel  */
@@ -242,11 +259,6 @@ class QwVQWK_Channel: public VQwDataElement {
   Int_t fSequenceNo_Counter;/* ! Internal counter to keep track of the sequence number */
   Double_t fPrev_HardwareBlockSum;/*! Previos Module-based sum of the four sub-blocks */
 
-  Double_t fRunning_sum;//Running sum for the device
-  Double_t fRunning_sum_square;//Running sum square for the device
-  Double_t fAverage_n;/* Running average for the device !*/
-  Double_t fAverage_n_square;/* Running average square for the device !*/
-  Double_t fAverage_error;
   UInt_t fGoodEventCount;//counts the HW and event check passed events
 
   Int_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF

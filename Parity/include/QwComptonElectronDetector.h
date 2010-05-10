@@ -77,8 +77,8 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     Int_t GetEventcutErrorFlag() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
-    void Calculate_Running_Average() { };
-    void Do_RunningSum() { };
+    void AccumulateRunningSum(VQwSubsystem* value) { };
+    void CalculateRunningAverage() { };
 
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
@@ -112,7 +112,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     static const Int_t StripsPerModule = 32;
     static const Int_t StripsPerPlane = 96;
 
- 
+
 
     /// List of V1495 accumulation mode strips
     std::vector< std::vector <Double_t> > fStrips;
@@ -129,7 +129,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
  /*=====
    *  Histograms should be listed below here.
    *  They should be pointers to histograms which will be created
-   *  inside the ConstructHistograms() 
+   *  inside the ConstructHistograms()
    */
 
 

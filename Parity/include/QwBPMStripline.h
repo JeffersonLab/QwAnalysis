@@ -71,8 +71,8 @@ class QwBPMStripline : public VQwDataElement{
   void Ratio(QwBPMStripline &numer, QwBPMStripline &denom);
   void Scale(Double_t factor);
 
-  void Calculate_Running_Average();
-  void Do_RunningSum();
+  void AccumulateRunningSum(const QwBPMStripline& value);
+  void CalculateRunningAverage();
 
   void SetOffset(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset);
   UInt_t GetSubElementIndex(TString subname);
