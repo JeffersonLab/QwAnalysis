@@ -1370,8 +1370,9 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
       interface.SetAnalysisID( analysis_id );
       interface.SetDeviceID( db->GetMonitorID(interface.GetDeviceName().Data()) );
       interface.SetMeasurementTypeID(measurement_type);
-      entrylist.push_back(interface.BeamMonitorDBClone()) ;
       interface.PrintStatus(local_print_flag);
+
+      interface.AddThisEntryToList(entrylist);
     }
 
   ///   try to access BPM mean and its error
@@ -1383,15 +1384,16 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
       interface.SetAnalysisID( analysis_id ) ;
       interface.SetDeviceID( db->GetMonitorID(interface.GetDeviceName().Data()) );
       interface.SetMeasurementTypeID(measurement_type);
-      entrylist.push_back(interface.BeamMonitorDBClone());
       interface.PrintStatus(local_print_flag);
+      interface.AddThisEntryToList(entrylist);
+
       interface.Reset();
       interface = fStripline[i].GetDBEntry("RelY");
       interface.SetAnalysisID( analysis_id ) ;
       interface.SetDeviceID( db->GetMonitorID(interface.GetDeviceName().Data()) );
       interface.SetMeasurementTypeID(measurement_type);
-      entrylist.push_back(interface.BeamMonitorDBClone());
       interface.PrintStatus(local_print_flag);
+      interface.AddThisEntryToList(entrylist);
     }
   
   QwMessage << QwColor(Qw::kGreen)   << "Entrylist Size : " 

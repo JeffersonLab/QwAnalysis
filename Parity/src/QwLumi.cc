@@ -811,8 +811,9 @@ void QwLumi::FillDB(QwDatabase *db, TString datatype)
       interface.SetAnalysisID( analysis_id );
       interface.SetDeviceID( db->GetLumiDetectorID(interface.GetDeviceName().Data()) );
       interface.SetMeasurementTypeID(measurement_type);
-      entrylist.push_back(interface.LumiDetectorDBClone()) ;
       interface.PrintStatus(local_print_flag);
+
+      interface.AddThisEntryToList(entrylist);
     }
 
   QwMessage << QwColor(Qw::kGreen) << "Entrylist Size : " 

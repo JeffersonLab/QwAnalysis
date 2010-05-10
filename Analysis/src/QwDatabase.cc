@@ -18,6 +18,45 @@ using namespace QwParityDB;
 // Is there any method put QwSSQLS.h in QwDatabase.h? (jhlee)
 
 
+//
+//  Template definitions for the QwDBInterface class.
+//
+//
+
+template <class T>
+void QwDBInterface::AddThisEntryToList(std::vector<T> &list){
+  Bool_t okay = kTRUE;
+  if (fAnalysisId == 0){
+    QwError << "AddDBEntryToList:  Analysis ID invalid; entry dropped"
+	    << QwLog::endl;
+    okay = kFALSE;
+  }
+  if (fDeviceId == 0){
+    QwError << "AddDBEntryToList:  Device ID invalid; entry dropped"
+	    << QwLog::endl;
+    okay = kFALSE;
+  }
+  if (okay){
+    T row = TypedDBClone<T>();
+    if (row.analysis_id == 0){
+      QwError << "AddDBEntryToList:  Unknown list type; entry dropped"
+	      << QwLog::endl;
+      okay = kFALSE;
+    } else {
+      list.push_back(row);
+    }
+  }
+  if (okay == kFALSE){
+    PrintStatus(kTRUE);
+  };
+};
+
+template void QwDBInterface::AddThisEntryToList<QwParityDB::md_data>(std::vector<QwParityDB::md_data> &list);
+template void QwDBInterface::AddThisEntryToList<QwParityDB::lumi_data>(std::vector<QwParityDB::lumi_data> &list);
+template void QwDBInterface::AddThisEntryToList<QwParityDB::beam>(std::vector<QwParityDB::beam> &list);
+
+
+
 
 // Definition of static class members in QwDatabase
 std::map<string, unsigned int> QwDatabase::fMonitorIDs;
