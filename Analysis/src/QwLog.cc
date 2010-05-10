@@ -32,10 +32,10 @@ const std::ios_base::openmode QwLog::kAppend = std::ios::app;
 /*! The constructor initializes the screen stream and resets the file stream
  */
 QwLog::QwLog()
-: std::ostream(std::cerr.rdbuf())
+: std::ostream(std::cout.rdbuf())
 {
   fScreenThreshold = kMessage;
-  fScreen = &std::cerr;
+  fScreen = &std::cout;
 
   fFileThreshold = kMessage;
   fFile = 0;
