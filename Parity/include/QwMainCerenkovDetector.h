@@ -30,6 +30,8 @@
 class QwMainCerenkovDetectorID;
 
 class QwMainCerenkovDetector: public VQwSubsystemParity {
+
+  friend class QwCombinedPMT;
   /******************************************************************
    *  Class: QwMainCerenkovDetector
    *
@@ -37,11 +39,6 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
    ******************************************************************/
  public:
   QwMainCerenkovDetector(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp) {
-      // these declaration need to be coherent with the enum vector ELumiInstrumentType
-      DetectorTypes.push_back("IntegrationPMT");
-      DetectorTypes.push_back("CombinationPMT");
-      for(size_t i=0;i<DetectorTypes.size();i++)
-        DetectorTypes[i].ToLower();
       fTargetCharge.InitializeChannel("q_targ","derived");
       fTargetX.InitializeChannel("x_targ","derived");
       fTargetY.InitializeChannel("y_targ","derived");
@@ -130,12 +127,12 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
  protected:
   Bool_t fDEBUG;
 
- Int_t GetDetectorTypeID(TString name);
+ EQwPMTInstrumentType GetDetectorTypeID(TString name);
 
  // when the type and the name is passed the detector index from appropriate vector
  // will be returned. For example if TypeID is IntegrationPMT  then the index of
  // the detector from fIntegrationPMT vector for given name will be returnd.
- Int_t GetDetectorIndex(Int_t TypeID, TString name);
+ Int_t GetDetectorIndex(EQwPMTInstrumentType TypeID, TString name);
 
   //std::vector<QwVQWK_Module> fADC_Data;
 
@@ -157,7 +154,6 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
 
   static const Bool_t bDEBUG=kFALSE;
   static const Bool_t bNormalization=kTRUE;
-  std::vector<TString> DetectorTypes;// for example could be IntegrationPMT, LUMI,BPMSTRIPLINE, etc..
   Int_t fMainDetErrorCount;
 
 };
@@ -166,7 +162,8 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
 class QwMainCerenkovDetectorID
 {
  public:
-  QwMainCerenkovDetectorID():fSubbankIndex(-1),fWordInSubbank(-1),fTypeID(-1),fIndex(-1),
+  QwMainCerenkovDetectorID():fSubbankIndex(-1),fWordInSubbank(-1),
+    fTypeID(kQwUnknownPMT),fIndex(-1),
     fSubelement(999999),fmoduletype(""),fdetectorname("")
     {};
 
@@ -175,7 +172,7 @@ class QwMainCerenkovDetectorID
                       //(eg VQWK channel report 6 words for each event, scalers oly report one word per event)
   // The first word of the subbank gets fWordInSubbank=0
 
-  int fTypeID;     // type of detector
+  EQwPMTInstrumentType fTypeID;     // type of detector
   int fIndex;      // index of this detector in the vector containing all the detector of same type
   UInt_t fSubelement; // some detectors have many subelements (eg stripline have 4 antenas)
                       // some have only one sub element(eg lumis have one channel)

@@ -89,7 +89,7 @@ class QwBPMStripline : public VQwDataElement{
   void  FillTreeVector(std::vector<Double_t> &values);
   void  SetRootSaveStatus(TString &prefix);
 
-  QwParityDB::beam GetDBEntry(QwDatabase* db, TString mtype, TString subname);
+  QwDBInterface GetDBEntry(TString subname);
 
   /////
  private:

@@ -16,6 +16,7 @@
 
 #include "QwIntegrationPMT.h"
 
+#include "QwTypes.h"
 
 
 ///
@@ -23,7 +24,8 @@
 class QwLumiDetectorID
 {
  public:
-  QwLumiDetectorID():fSubbankIndex(-1),fWordInSubbank(-1),fTypeID(-1),fIndex(-1),
+  QwLumiDetectorID():fSubbankIndex(-1),fWordInSubbank(-1),
+    fTypeID(kQwUnknownPMT),fIndex(-1),
     fSubelement(999999),fmoduletype(""),fdetectorname("")
     {};
 
@@ -32,7 +34,7 @@ class QwLumiDetectorID
                       //(eg VQWK channel report 6 words for each event, scalers oly report one word per event)
   // The first word of the subbank gets fWordInSubbank=0
 
-  int fTypeID;     // type of detector eg: lumi or stripline, etc..
+  EQwPMTInstrumentType fTypeID;     // type of detector eg: lumi or stripline, etc..
   int fIndex;      // index of this detector in the vector containing all the detector of same type
   UInt_t fSubelement; // some detectors have many subelements (eg stripline have 4 antenas) some have only one sub element(eg lumis have one channel)
 
@@ -55,10 +57,7 @@ class QwLumi : public VQwSubsystemParity{
  public:
   QwLumi(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
     {
-      // these declaration need to be coherent with the enum vector ELumiInstrumentType
-      DetectorTypes.push_back("IntegrationPMT");
-      for(size_t i=0;i<DetectorTypes.size();i++)
-	DetectorTypes[i].ToLower();
+      
 
     };
 
@@ -119,8 +118,8 @@ class QwLumi : public VQwSubsystemParity{
 
 /////
  protected:
- Int_t GetDetectorTypeID(TString name);
- Int_t GetDetectorIndex(Int_t TypeID, TString name);//when the type and the name is passed the detector index from appropriate vector will be returned
+ EQwPMTInstrumentType GetDetectorTypeID(TString name);
+ Int_t GetDetectorIndex(EQwPMTInstrumentType TypeID, TString name);//when the type and the name is passed the detector index from appropriate vector will be returned
  //for example if TypeID is IntegrationPMT  then the index of the detector from fIntegrationPMT vector for given name will be returnd.
  std::vector <QwIntegrationPMT> fIntegrationPMT;
  std::vector <QwLumiDetectorID> fLumiDetectorID;
@@ -131,7 +130,6 @@ class QwLumi : public VQwSubsystemParity{
 
 /////
  private:
- std::vector<TString> DetectorTypes;// for example could be IntegrationPMT, LUMI,BPMSTRIPLINE, etc..
  Int_t fQwLumiErrorCount;
 
 

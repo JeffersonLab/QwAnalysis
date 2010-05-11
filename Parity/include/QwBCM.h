@@ -90,15 +90,15 @@ class QwBCM : public VQwDataElement{
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
-
   void  DeleteHistograms();
 
-  Double_t GetAverage(TString type)      {return fTriumf_ADC.GetAverage();};
-  Double_t GetAverageError(TString type) {return fTriumf_ADC.GetAverageError();};
+  Double_t GetAverage()        {return fTriumf_ADC.GetAverage();};
+  Double_t GetAverageError()   {return fTriumf_ADC.GetAverageError();};
+  UInt_t   GetGoodEventCount() {return fTriumf_ADC.GetGoodEventCount();};
 
   void Copy(VQwDataElement *source);
 
-  QwParityDB::beam GetDBEntry(QwDatabase *db, TString mtype, TString subname);
+  QwDBInterface GetDBEntry(TString subname="");
 
 
 /////

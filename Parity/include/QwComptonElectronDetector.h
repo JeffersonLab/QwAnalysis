@@ -22,6 +22,7 @@
 
 // ROOT headers
 #include <TTree.h>
+#include "TFile.h"
 #include<TH1D.h>
 
 // Boost math library for random number generation
@@ -30,7 +31,6 @@
 
 // Qweak headers
 #include "VQwSubsystemParity.h"
-//#include "QwCPV1495_Channel.h"
 #include "QwVQWK_Channel.h"
 
 
@@ -109,19 +109,26 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     /// Expert tree fields
     Int_t fTree_fNEvents;
 
+    static const Int_t NModules = 3;
     static const Int_t NPlanes = 4;
     static const Int_t StripsPerModule = 32;
     static const Int_t StripsPerPlane = 96;
- 
+
+    std::vector< std::vector <Int_t> > fSubbankIndex; 
 
     /// List of V1495 accumulation mode strips
     std::vector< std::vector <Double_t> > fStrips;
     std::vector< std::vector <Double_t> > fStripsRaw;
+    /// List of V1495 single event mode strips
+    std::vector< std::vector <Double_t> > fStripsEv;
+    std::vector< std::vector <Double_t> > fStripsRawEv;
 
     //    boost::multi_array<Double_t, 2> array_type;
     //    array_type fStrips(boost::extents[NPlanes][StripsPerPlane]);
     //   array_type fStripsRaw(boost::extents[NPlanes][StripsPerPlane]);
-    std::vector <Double_t> fFPGAChannelVector;
+    Int_t fTreeArrayNumEntries;
+    Int_t fTreeArrayIndex;
+    std::vector <Double_t> fComptonElectronVector;
 
  /*=====
    *  Histograms should be listed below here.
@@ -129,9 +136,8 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
    *  inside the ConstructHistograms() 
    */
 
+  std::vector<TH1*> fHistograms1D;
 
-  TH1D *eDet[NPlanes];
-  TH1D *eDetRaw[NPlanes];
 
 
   private:

@@ -97,7 +97,7 @@ void QwGUILumiDetector::OnObjClose(char *obj)
   }
 }
 
-void QwGUILumiDetector::OnNewDataContainer()
+void QwGUILumiDetector::OnNewDataContainer(RDataContainer *cont)
 {
 
   TObject *obj;

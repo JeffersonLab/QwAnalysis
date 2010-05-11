@@ -40,10 +40,11 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dClArgs = clargs;
   std::set_new_handler(0);
 
-  MainDetSubSystem      = NULL;
-  LumiDetSubSystem      = NULL;
-  InjectorSubSystem     = NULL;
-  EventDisplaySubSystem = NULL;
+  MainDetSubSystem       = NULL;
+  LumiDetSubSystem       = NULL;
+  InjectorSubSystem      = NULL;
+  HallCBeamlineSubSystem = NULL;
+  EventDisplaySubSystem  = NULL;
 
   dMWWidth              = w;
   dMWHeight             = h;
@@ -116,6 +117,11 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   if(!GetSubSystemPtr("Injector"))
     InjectorSubSystem = new QwGUIInjector(fClient->GetRoot(), this, dTab,"Injector",
 					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
+
+  if(!GetSubSystemPtr("HallC Beamline"))
+    HallCBeamlineSubSystem = new QwGUIHallCBeamline(fClient->GetRoot(), this, dTab,"HallC Beamline",
+						    "QwGUIMain", dMWWidth-15,dMWHeight-180);
+    
   if(!GetSubSystemPtr("Event Display"))
     EventDisplaySubSystem = new QwGUIEventDisplay(fClient->GetRoot(), this, dTab, "Event Display",
 					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
@@ -124,10 +130,11 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
 QwGUIMain::~QwGUIMain()
 {
-  delete MainDetSubSystem      ;
-  delete LumiDetSubSystem      ;
-  delete InjectorSubSystem     ;
-  delete EventDisplaySubSystem ;
+  delete MainDetSubSystem       ;
+  delete LumiDetSubSystem       ;
+  delete InjectorSubSystem      ;
+  delete HallCBeamlineSubSystem ;
+  delete EventDisplaySubSystem  ;
 
   delete dROOTFile             ;
 
@@ -594,6 +601,14 @@ void QwGUIMain::OnObjClose(const char *objname)
     printf("Received dROOTFile IsClosing signal\n");
 #endif
   }
+
+  if(name.Contains("dDatabase")){
+    dDatabase = NULL;
+#ifdef QWGUI_DEBUG
+    printf("Received dDatabase IsClosing signal\n");
+#endif
+  }
+
 
 //   TObject *obj;
 //   TIter next(SubSystemArray.MakeIterator());
@@ -1396,6 +1411,7 @@ void QwGUIMain::WritePid()
     perror("couldn't write QwGUID_PID.DAT");
   }
 }
+
 
 
 

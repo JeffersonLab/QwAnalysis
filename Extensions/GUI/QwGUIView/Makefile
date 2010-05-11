@@ -3,10 +3,10 @@
 # It is derived form the file in $ROOTSYS/test/Makefile, which
 # was written by the "root" people....
 
--include ../VERSION
+-include ../VERSION 
 
 LIBDIR        = ../QwGUILib
-LIBINCLUDE    = $(LIBDIR)/include
+LIBINCLUDE    = $(LIBDIR)/include 
 RDATALIB      = $(LIBDIR)/QwGUIRootLib-$(VERS).a
 PRG_INCLUDE   = ./include
 PRG_SOURCE    = ./src
@@ -22,6 +22,7 @@ OBJECTS       += QwGUISubSystem.o
 OBJECTS       += QwGUIMainDetector.o
 OBJECTS       += QwGUILumiDetector.o
 OBJECTS       += QwGUIInjector.o
+OBJECTS	      += QwGUIHallCBeamline.o
 OBJECTS       += QwGUIEventDisplay.o
 OBJECTS       += QwGUISuperCanvas.o
 OBJECTS       += QwGUIDatabaseContainer.o
@@ -93,8 +94,8 @@ QWPRINCLUDE     = -I$(QWANALYSIS)/Parity/include
 #QwLIBS = -l
 
 CXXFLAGS     += $(DEBUGFLAGS) $(QWEAKCPPFLAGS) -Wno-deprecated
-LIBS          = $(QWEAKLIBS) $(SYSLIBS) $(QWLIBS)
-GLIBS         = $(ROOTGLIBS) $(SYSLIBS) $(QWLIBS)
+LIBS          = $(QWEAKLIBS) $(SYSLIBS) $(QWLIBS) -lNew
+GLIBS         = $(ROOTGLIBS) $(SYSLIBS) $(QWLIBS) -lNew
 
 ENSCRIPT      = @enscript -2Gjr -o
 #------------------------------------------------------------------------------------

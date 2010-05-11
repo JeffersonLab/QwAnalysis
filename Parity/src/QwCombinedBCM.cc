@@ -15,14 +15,7 @@
 /********************************************************/
 
 //this is a combined BCM made out of BCMs that are already callibrated and have pedstals removed.
-//This will be used for linear regression and for projection of charge at the target
-
-// void QwBCM::SetPedestal(Double_t pedestal)
-// {
-// 	fPedestal=pedestal;
-// 	fTriumf_ADC.SetPedestal(0);
-// 	return;
-// };
+//This will be used for projection of charge at the target
 
 
 void QwCombinedBCM::SetPedestal(Double_t pedestal)
@@ -141,10 +134,28 @@ void QwCombinedBCM::SetDefaultSampleSize(Int_t sample_size){
   fCombined_bcm.SetDefaultSampleSize((size_t)sample_size);
 }
   
+/********************************************************/
+Bool_t QwCombinedBCM::ApplySingleEventCuts(){
+  Bool_t status=kTRUE;
+  
+  if (fCombined_bcm.ApplySingleEventCuts()){
+    status=kTRUE;
+  }
+  else{
+    fCombined_bcm.UpdateEventCutErrorCount();//update event cut falied counts
+    if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fCombined_bcm.GetHardwareSum();
+    status&=kFALSE;
+  }
+  fDeviceErrorCode|=fCombined_bcm.GetEventcutErrorFlag();//retrun the error flag for event cuts
+
+  return status;
+
+};
 
 /********************************************************/
 
 Int_t QwCombinedBCM::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+  fCombined_bcm.GetEventcutErrorCounters();
 
   return 1;
 }
@@ -246,6 +257,11 @@ Bool_t QwCombinedBCM::ApplyHWChecks()
 //     }
 
   return fEventIsGood;
+};
+
+Int_t QwCombinedBCM::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){
+  fCombined_bcm.SetSingleEventCuts(LL,UL);
+  return 1;
 };
 
 /********************************************************/

@@ -30,8 +30,7 @@ class QwHelicityPattern{
   void ProcessOptions(QwOptions &options); //Handle command line options
   void  LoadEventData(QwSubsystemArrayParity &event);
   Bool_t IsCompletePattern();
-  void  CalculateAsymmetry();
-  void  CalculateAsymmetry(QwBlinder *blinder);
+  void  CalculateAsymmetry(QwBlinder *blinder = 0);
   void  CalculateRunningAverage();
 
   void  ConstructHistograms(){ConstructHistograms((TDirectory*)NULL);};
@@ -58,10 +57,10 @@ class QwHelicityPattern{
 
   QwSubsystemArrayParity  fYield;
   QwSubsystemArrayParity  fAsymmetry;
-  Bool_t bAlternateAsym; 
+  Bool_t bAlternateAsym;
   QwSubsystemArrayParity  fAsymmetry1;
   QwSubsystemArrayParity  fAsymmetry2;
-  
+
   QwSubsystemArrayParity fAverage;
   QwSubsystemArrayParity fRunningSum;
 

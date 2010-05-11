@@ -359,6 +359,14 @@ void RDataContainer::OnBrowserObject(TObject *obj)
   Emit("OnBrowserObject(TObject*)", (Long_t)obj);
 }
 
+TObject* RDataContainer::GetObjFromMapFile(const Char_t* name){
+  //Get a TObject from the map file
+  TObject* obj = 0;
+  obj = fMapFile->Get(name,obj);
+  return obj; 
+};
+
+
 int RDataContainer::OpenFile(const char *filename)
 {
   if(!dOpen){
@@ -616,7 +624,7 @@ int RDataContainer::OpenFile(const char *filename)
 		      GetFileSize());
 	      SetMessage(dMiscbuffer2,"",(int)dType,M_CONT_LOGTXTTS);
 	      dOpen = kTrue;
-	      return FILE_PROCESS_OK;
+	      return FILE_PROCESS_OK; 
 	    }
 	  else
 	    {
@@ -631,7 +639,7 @@ int RDataContainer::OpenFile(const char *filename)
       }
   }
   else{
-    FlushMessages();
+    FlushMessages(); 
     SetMessage(FILE_CONT_OCCUPIED,"OpenFile",(int)dType,M_CONT_ERROR_MSG);
     return FILE_OPEN_ERROR;
   }
@@ -641,6 +649,22 @@ int RDataContainer::OpenFile(const char *filename)
   return FILE_OPEN_ERROR;
 }
 
+
+Int_t RDataContainer::OpenMapFile(const char* file){
+
+  try {
+    //TMapFile::SetMapAddress(0x7c59f000);
+    fMapFile = TMapFile::Create(file);
+    fMapFile->Print();
+  }
+  catch( char * str ) {
+    //cout << "Exception raised: " << str << '\n';
+  }
+
+  //fMapFile = TMapFile::Create("/home/rakithab/scratch/rootfiles/QwMemMapFile.map");
+
+  return 1;
+};
 
 int RDataContainer::GetNumOfRootObjects()
 {
@@ -1336,6 +1360,7 @@ int RDataContainer::ReadData(Double_t *x, Double_t *y,
   return FILE_READ_ERROR;
 
 }
+
 
 // int RDataContainer::GetSectionPointer(char before, char after, int *start, int occurence)
 // {

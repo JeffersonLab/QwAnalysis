@@ -47,7 +47,8 @@ int QwGUIDatabaseContainer::OpenDatabase()
   if (gQwOptions.HasValue("QwDatabase.dbpassword")) {opts.psswd = gQwOptions.GetValue<string>("QwDatabase.dbpassword");}
   if (gQwOptions.HasValue("QwDatabase.dbport")) {opts.dbport = gQwOptions.GetValue<int>("QwDatabase.dbport");}
 
-  QwGUIDatabaseSelectionDialog *sdlg = new QwGUIDatabaseSelectionDialog(dParent, dMain, "sdlg","QwGUIMain",&opts);
+  //QwGUIDatabaseSelectionDialog *sdlg =
+  new QwGUIDatabaseSelectionDialog(dParent, dMain, "sdlg","QwGUIMain",&opts);
 
   if(opts.cancelFlag) return PROCESS_FAILED;
   if(opts.changeFlag){
@@ -71,7 +72,8 @@ int QwGUIDatabaseContainer::OpenDatabase()
     }
   }
 
-  return PROCESS_FAILED;
+
+  return FILE_PROCESS_OK;
 
 }
 

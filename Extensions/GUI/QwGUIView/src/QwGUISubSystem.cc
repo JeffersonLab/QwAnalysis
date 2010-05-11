@@ -14,6 +14,8 @@ QwGUISubSystem::QwGUISubSystem(const TGWindow *p, const TGWindow *main,
   dWinCnt            = 0;
   strcpy(dMainName,mainname);
   strcpy(dThisName,objName);
+  dROOTCont = NULL;
+  dDatabaseCont = NULL;
 
   TabMenuEntryChecked(kFalse);
 
@@ -101,10 +103,7 @@ void QwGUISubSystem::SetDataContainer(RDataContainer *cont)
       Connect(dROOTCont,"IsClosing(char*)","QwGUISubSystem",(void*)this,
 	      "OnObjClose(char*)");
       sprintf(dMiscbuffer2,"Sub system %s message: Received new ROOT data\n",GetName());
-
     }
-    else
-      dROOTCont = NULL;
 
     if(!strcmp(cont->GetDataName(),"DBASE")){
       dDatabaseCont = (QwGUIDatabaseContainer*)cont;
@@ -115,13 +114,10 @@ void QwGUISubSystem::SetDataContainer(RDataContainer *cont)
 
       sprintf(dMiscbuffer2,"Sub system %s message: Received new database data\n",GetName());
     }
-    else
-      dDatabaseCont = NULL;
   }
 
   SetLogMessage(dMiscbuffer2, kTrue);
-
-  OnNewDataContainer();
+  OnNewDataContainer(cont);
 }
 
 
@@ -138,7 +134,13 @@ void QwGUISubSystem::SetLogMessage(const char *buffer, Bool_t tStamp)
 
 void QwGUISubSystem::OnObjClose(char *obj)
 {
+  if(!strcmp(obj,"dROOTFile")){
+    dROOTCont = NULL;
+  }
 
+  if(!strcmp(obj,"dDatabase")){
+    dDatabaseCont = NULL;
+  }
 };
 
 

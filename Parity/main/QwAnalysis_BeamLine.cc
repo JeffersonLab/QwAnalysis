@@ -192,7 +192,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 	}
 
-      Int_t falied_events_counts=0;//count falied total events
+      Int_t failed_events_counts=0;//count failed total events
 
 
       // Loop over events in this CODA file
@@ -221,7 +221,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
 	if (QwDetectors.ApplySingleEventCuts()){//The event pass the event cut constraints
-
 
 
 	  if(bHelicity){
@@ -286,12 +285,12 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  }
 	}else{
 	  fEventRing.FailedEvent(QwDetectors.GetEventcutErrorFlag()); //event cut failed update the ring status
-	  falied_events_counts++;
+	  failed_events_counts++;
 	}
 
 	if(QwEvt.GetEventNumber()%1000==0){
 	  QwMessage << "Number of events processed so far: "
-		    << QwEvt.GetEventNumber() << QwLog::endl;
+		    << QwEvt.GetEventNumber() <<"\r"<< QwLog::endl;
 	}
       }
 
@@ -335,7 +334,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
       QwDetectors.GetEventcutErrorCounters();//print the event cut error summery for each sub system
-      std::cout<<"QwAnalysis_Beamline Total events falied "<<falied_events_counts<< std::endl;
+      std::cout<<"QwAnalysis_Beamline Total events failed "<<failed_events_counts<< std::endl;
 
       PrintInfo(timer);
 

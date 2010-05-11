@@ -155,7 +155,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   //! - none
   //!
   //!Return value: none
-  virtual void     OnNewDataContainer(){};
+  virtual void     OnNewDataContainer(RDataContainer *cont){};
 
   //!This function can be used to pass messages to the log book. The message content is 
   //!reformated slightly and copied to the dMiscbuffer member, to be picked up by the

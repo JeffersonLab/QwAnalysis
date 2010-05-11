@@ -73,15 +73,18 @@ main(Int_t argc, Char_t* argv[])
 
   QwDetectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
   QwDetectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
+
   QwDetectors.push_back(new QwBeamLine("Injector BeamLine"));
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");  
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadEventCuts("qweak_beamline_eventcuts.in");//Pass the correct cuts file. 
+
   QwDetectors.push_back(new QwHelicity("Helicity info"));
   QwDetectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
   QwDetectors.GetSubsystem("Helicity info")->LoadInputParameters("");	
+
   QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
-  QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap("qweak_beamline.map");//current map file is for the beamline.
+  QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap("qweak_lumi.map");
   QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file. 
   
   ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
@@ -349,13 +352,19 @@ main(Int_t argc, Char_t* argv[])
       runlet_id      = qw_test_DB->GetRunletID(QwEvt);
       analysis_id = qw_test_DB->GetAnalysisID(QwEvt);
 
-      printf("main:: Run # %s Run ID %d and Analysis ID %d\n", QwEvt.GetRunLabel().Data(), run_id, analysis_id);
+
+      QwMessage << "QwAnalysis_MySQL.cc::" 
+		<< " Run Number "  << QwColor(Qw::kBoldMagenta) << QwEvt.GetRunNumber() << QwColor(Qw::kNormal)
+		<< " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id<< QwColor(Qw::kNormal)
+		<< " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id
+		<< QwLog::endl;
 
       
       // Each sussystem has its own Connect() and Disconnect() functions.
       QwHelPat.FillDB(qw_test_DB);
     
       delete qw_test_DB; qw_test_DB = NULL;
+
       PrintInfo(timer);
     } //end of run loop
   
