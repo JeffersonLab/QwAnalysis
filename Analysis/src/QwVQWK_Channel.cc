@@ -817,7 +817,7 @@ void QwVQWK_Channel::Offset(Double_t offset)
 {
   if (!IsNameEmpty())
     {
-      for (Short_t i=0; i<4; i++) fBlock[i] += offset;
+      for (Short_t i = 0; i < 4; i++) fBlock[i] += offset;
       fHardwareBlockSum += 4.0 * offset;
       // TODO (wdc) This could be done differently too (technically),
       // but I don't know yet what makes most sense...
@@ -831,8 +831,8 @@ void QwVQWK_Channel::Scale(Double_t scale)
 {
   if (!IsNameEmpty())
     {
-      for (Short_t i=0; i<4; i++) fBlock[i]=fBlock[i]*scale;
-      fHardwareBlockSum = fHardwareBlockSum*scale;
+      for (Short_t i = 0; i < 4; i++) fBlock[i] = fBlock[i] * scale;
+      fHardwareBlockSum = fHardwareBlockSum * scale;
     }
   return;
 };
@@ -849,22 +849,6 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
 
   return;
 };
-
-// void QwVQWK_Channel::CalculateRunningAverage()
-// {
-
-//   if (!fGoodEventCount){
-//     std::cout<<GetElementName()<<"\t0\t 0\t 0"<<std::endl;
-//   }else{
-//     fAverage_n=fRunning_sum/fGoodEventCount;
-//     fAverage_n_square=fRunning_sum_square/fGoodEventCount;
-//     std::cout<<GetElementName()<<" \t "<<this->fAverage_n <<" \t "<<sqrt(((fAverage_n_square-fAverage_n*fAverage_n)/fGoodEventCount)) <<" \t "<<fGoodEventCount <<std::endl;
-
-//   }
-
-//   return;
-
-// };
 
 
 void QwVQWK_Channel::CalculateRunningAverage()
@@ -891,7 +875,7 @@ void QwVQWK_Channel::CalculateRunningAverage()
         // The error calculation uses the average values of the sum and sum of
         // squares, so it should come *after* their calculation
         fBlockError[i] =
-          sqrt(fabs(fBlockSquared[i] - fBlock[i] * fBlock[i]) / fGoodEventCount);
+          sqrt(fabs(fBlockSquared[i] - fBlock[i] * fBlock[i]));
       }
       // Average HW sum values
       fHardwareBlockSum        /= fGoodEventCount;
@@ -900,7 +884,7 @@ void QwVQWK_Channel::CalculateRunningAverage()
       // squares, so it should come *after* their calculation
       fHardwareBlockSumError =
         sqrt(fabs(fHardwareBlockSquaredSum
-                - fHardwareBlockSum * fHardwareBlockSum) / fGoodEventCount);
+                - fHardwareBlockSum * fHardwareBlockSum));
     }
 
   this->PrintRunningAverage();
