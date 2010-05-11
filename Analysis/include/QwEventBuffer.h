@@ -19,10 +19,12 @@
 #include "QwSubsystemArray.h"
 #include "VQwSubsystem.h"
 
+#include "QwEPICSEvent.h"
+
 class QwOptions;
+class QwEPICSEvent;//--Ramesh: to avoid error: 'QwEPICSEvent' has not been declared
 
 //////////////////////////////////////////////////////////////////////
-
 
 
 ///
@@ -95,10 +97,21 @@ class QwEventBuffer: public MQwCodaControlEvent{
     return (fEvtType>=0x90 && fEvtType<=0xaf);
   };
 
+
+
+  Bool_t IsEPICSEvent(){
+    //  What are the correct codes for our EPICS events?
+    return (fEvtType>=160 && fEvtType<=170);// epics event type is only with tag="160"
+  };
+
+
   Bool_t FillSubsystemConfigurationData(QwSubsystemArray &subsystems);
   Bool_t FillSubsystemData(QwSubsystemArray &subsystems);
 
+  Bool_t FillEPICSData(QwEPICSEvent &epics);
+
   template < class T > Bool_t FillObjectWithEventData(T &t);
+
 
   Int_t EncodeSubsystemData(QwSubsystemArray &subsystems);
   Int_t EncodePrestartEvent(int runnumber, int runtype = 0);

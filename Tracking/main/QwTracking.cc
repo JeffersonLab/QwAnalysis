@@ -43,6 +43,9 @@
 #include "QwTrack.h"
 #include "QwEvent.h"
 
+
+#include "QwEPICSEvent.h"
+
 // Qweak headers (deprecated)
 #include "Det.h"
 #include "Qset.h"
@@ -172,6 +175,9 @@ Int_t main(Int_t argc, Char_t* argv[]) {
     TStopwatch timer;
 
 
+    QwEPICSEvent epics; 
+    //QwDatabase *qw_epics_DB = new QwDatabase();
+
     // Create the event buffer
     QwEventBuffer eventbuffer;
     eventbuffer.ProcessOptions(gQwOptions);
@@ -245,6 +251,16 @@ Int_t main(Int_t argc, Char_t* argv[]) {
         while (eventbuffer.GetNextEvent() == CODA_OK) {
             //  Loop over events in this CODA file
             //  First, do processing of non-physics events...
+
+
+	    if (eventbuffer.IsEPICSEvent()) {
+	      eventbuffer.FillEPICSData(epics);
+	      epics.CalculateRunningValues();
+	      
+	    }
+
+
+
             if (eventbuffer.IsROCConfigurationEvent()) {
                 //  Send ROC configuration event data to the subsystem objects.
                 eventbuffer.FillSubsystemConfigurationData(detectors);
@@ -342,6 +358,13 @@ Int_t main(Int_t argc, Char_t* argv[]) {
 
         // Write and close file (after last access to ROOT tree)
         rootfile->Write(0, TObject::kOverwrite);
+
+
+	epics.ReportEPICSData();
+	epics.PrintVariableList();
+	epics.PrintAverages();
+	//epics.FillDB(qw_epics_DB);
+
 
         // Close CODA file
         eventbuffer.CloseStream();

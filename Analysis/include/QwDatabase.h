@@ -42,6 +42,8 @@
  * provide these services.
  *
  */
+
+class QwEventBuffer;//--Ramesh: to avoid compiling error:'QwEventBuffer' has not been declared
 class QwDatabase: private mysqlpp::Connection {
 
   public:
