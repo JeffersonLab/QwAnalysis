@@ -190,8 +190,8 @@ int main(int argc, char* argv[])
   lumidetector->SetRandomEventParameters(lumi_mean, lumi_sigma);
   lumidetector->SetRandomEventAsymmetry(lumi_asym);
   // Specific values
-  lumidetector->GetChannel("qwk_dslumi1")->SetRandomEventAsymmetry(1.0e-2);
-  lumidetector->GetChannel("qwk_dslumi2")->SetRandomEventAsymmetry(1.0e-3);
+  lumidetector->GetChannel("dlumi1")->SetRandomEventAsymmetry(1.0e-2);
+  lumidetector->GetChannel("dlumi2")->SetRandomEventAsymmetry(1.0e-3);
 
 
 
@@ -353,7 +353,7 @@ int main(int argc, char* argv[])
 
       // Assign to data elements
       maindetector->GetChannel("MD2Neg")->SetExternalRandomVariable(x[0]);
-      lumidetector->GetChannel("qwk_dslumi1")->SetExternalRandomVariable(x[1]);
+      lumidetector->GetChannel("dlumi1")->SetExternalRandomVariable(x[1]);
       beamline->GetBCM("qwk_bcm0l07")->SetExternalRandomVariable(x[2]);
 
 
