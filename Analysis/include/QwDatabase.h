@@ -174,6 +174,10 @@ class QwDBInterface
 
   TString fDeviceName;
 
+ private:
+  template <class T> inline T TypedDBClone();
+
+
  public:
 
   QwDBInterface():fAnalysisId(0),fDeviceId(0),fSubblock(0),fN(0),fValue(0.0),fError(0.0)
@@ -190,7 +194,7 @@ class QwDBInterface
     void SetError(Double_t in)  {fError = in;};
     
     TString GetDeviceName() {return fDeviceName;};
-    
+
     void Reset() {
       fAnalysisId = 0;
       fDeviceId = 0;
@@ -202,50 +206,9 @@ class QwDBInterface
       fDeviceName = "";
     };
   
-    QwParityDB::md_data MainDetectorDBClone() {
+    template <class T> void AddThisEntryToList(std::vector<T> &list);
 
-      QwParityDB::md_data row(0);
       
-      row.analysis_id         = fAnalysisId;
-      row.main_detector_id    = fDeviceId;
-      row.measurement_type_id = fMeasurementTypeId;
-      row.subblock            = fSubblock;
-      row.n                   = fN;
-      row.value               = fValue;
-      row.error               = fError;
-
-      return row;
-    };
-    
-    QwParityDB::lumi_data LumiDetectorDBClone() {
-      QwParityDB::lumi_data row(0);
-
-      row.analysis_id         = fAnalysisId;
-      row.lumi_detector_id    = fDeviceId;
-      row.measurement_type_id = fMeasurementTypeId;
-      row.subblock            = fSubblock;
-      row.n                   = fN;
-      row.value               = fValue;
-      row.error               = fError;
-      return row;
-    };
-
-    QwParityDB::beam BeamMonitorDBClone() {
-
-      QwParityDB::beam row(0);
-      
-      row.analysis_id         = fAnalysisId;
-      row.monitor_id          = fDeviceId;
-      row.measurement_type_id = fMeasurementTypeId;
-      row.subblock            = fSubblock;
-      row.n                   = fN;
-      row.value               = fValue;
-      row.error               = fError;
-   
-
-      return row;
-    };
-
     void PrintStatus(Bool_t print_flag) {
       if(print_flag) {
 	QwMessage << std::setw(12)
@@ -262,11 +225,49 @@ class QwDBInterface
 		  << QwLog::endl;
       }
       return;
-      
     };
-
-
 };
 
+
+template <class T> inline T QwDBInterface::TypedDBClone(){
+  T row(0);
+  return row;
+};
+template<> inline QwParityDB::md_data 
+QwDBInterface::TypedDBClone<QwParityDB::md_data>() {
+  QwParityDB::md_data row(0);
+  row.analysis_id         = fAnalysisId;
+  row.main_detector_id    = fDeviceId;
+  row.measurement_type_id = fMeasurementTypeId;
+  row.subblock            = fSubblock;
+  row.n                   = fN;
+  row.value               = fValue;
+  row.error               = fError;
+  return row;
+};
+template<> inline QwParityDB::lumi_data
+QwDBInterface::TypedDBClone<QwParityDB::lumi_data>() {
+  QwParityDB::lumi_data row(0);
+  row.analysis_id         = fAnalysisId;
+  row.lumi_detector_id    = fDeviceId;
+  row.measurement_type_id = fMeasurementTypeId;
+  row.subblock            = fSubblock;
+  row.n                   = fN;
+  row.value               = fValue;
+  row.error               = fError;
+  return row;
+};
+template<> inline QwParityDB::beam
+QwDBInterface::TypedDBClone<QwParityDB::beam>() {
+  QwParityDB::beam row(0);
+  row.analysis_id         = fAnalysisId;
+  row.monitor_id          = fDeviceId;
+  row.measurement_type_id = fMeasurementTypeId;
+  row.subblock            = fSubblock;
+  row.n                   = fN;
+  row.value               = fValue;
+  row.error               = fError;
+  return row;
+};
 
 #endif

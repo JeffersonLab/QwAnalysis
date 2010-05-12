@@ -22,6 +22,7 @@
 
 // ROOT headers
 #include <TTree.h>
+#include "TFile.h"
 #include<TH1D.h>
 
 // Boost math library for random number generation
@@ -92,6 +93,10 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     void  FillTreeVector(std::vector<Double_t> &values);
     void  FillDB(QwDatabase *db, TString datatype){};
 
+    const size_t GetNumberOfEvents() const { return (fNumberOfEvents); };
+    void SetNumberOfEvents(UInt_t nevents) {
+     fNumberOfEvents = nevents;
+    };
     void Copy(VQwSubsystem *source);
     VQwSubsystem*  Copy();
     Bool_t Compare(VQwSubsystem *source);
@@ -108,10 +113,12 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     /// Expert tree fields
     Int_t fTree_fNEvents;
 
+    static const Int_t NModules = 3;
     static const Int_t NPlanes = 4;
     static const Int_t StripsPerModule = 32;
     static const Int_t StripsPerPlane = 96;
 
+    std::vector< std::vector <Int_t> > fSubbankIndex; 
 
 
     /// List of V1495 accumulation mode strips
@@ -124,7 +131,6 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     //    boost::multi_array<Double_t, 2> array_type;
     //    array_type fStrips(boost::extents[NPlanes][StripsPerPlane]);
     //   array_type fStripsRaw(boost::extents[NPlanes][StripsPerPlane]);
-    std::vector <Double_t> fFPGAChannelVector;
 
  /*=====
    *  Histograms should be listed below here.
@@ -132,11 +138,8 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
    *  inside the ConstructHistograms()
    */
 
-
-  TH1D *eDet[NPlanes];
-  TH1D *eDetRaw[NPlanes];
-  TH1D *eDetEv[NPlanes];
-  TH1D *eDetRawEv[NPlanes];
+  std::vector<TH1*> fHistograms1D;
+  std::vector<Int_t> fComptonElectronVector;
 
 
   private:
@@ -144,6 +147,10 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     static const Bool_t kDebug = kTRUE;
     Double_t fCalibrationFactor;
     Double_t fOffset;
+    Int_t fTreeArrayNumEntries;
+    Int_t fTreeArrayIndex;
+    UInt_t fNumberOfEvents; //! Number of triggered events
+
 
 
 };
