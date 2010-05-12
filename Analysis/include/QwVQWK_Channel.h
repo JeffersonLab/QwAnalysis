@@ -70,24 +70,39 @@ class QwVQWK_Channel: public VQwDataElement {
     fNumEvtsWithEventCutsRejected++;
   }
 
+  /// \name Parity mock data generation
+  // @{
+  /// Set a single set of harmonic drift parameters
   void  SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
+  /// Add drift parameters to the internal set
   void  AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
+  /// Set the normal random event parameters
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
+  /// Set the helicity asymmetry
   void  SetRandomEventAsymmetry(Double_t asymmetry);
-  void  RandomizeEventData(int helicity, double time = 0.0);
-  void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
-  void  SetEventData(Double_t* block, UInt_t sequencenumber = 0);
-  void  EncodeEventData(std::vector<UInt_t> &buffer);
-
+  /// Internally generate random event data
+  void  RandomizeEventData(int helicity = 0.0, double time = 0.0);
+  /// Set the flag to use an externally provided random variable
   void  UseExternalRandomVariable() { fUseExternalRandomVariable = true; };
+  /// Set the externally provided random variable
   void  SetExternalRandomVariable(Double_t random_variable) {
     fUseExternalRandomVariable = true;
     fExternalRandomVariable = random_variable;
   };
+  // @}
+
+  void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
+  void  SetEventData(Double_t* block, UInt_t sequencenumber = 0);
 
 
-  Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_t index=0);
+
+  /// Encode the event data into a CODA buffer
+  void  EncodeEventData(std::vector<UInt_t> &buffer);
+  /// Decode the event data from a CODA buffer
+  Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index = 0);
+  /// Process the event data according to pedestal and calibration factor
   void  ProcessEvent();
+
 
   QwVQWK_Channel& operator=  (const QwVQWK_Channel &value);
   QwVQWK_Channel& operator+= (const QwVQWK_Channel &value);
@@ -111,7 +126,7 @@ class QwVQWK_Channel: public VQwDataElement {
   Bool_t ApplySingleEventCuts(Double_t LL,Double_t UL);//check values read from modules are at desired level
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level by comparing upper and lower limits (fULimit and fLLimit) set on this channel
   void SetSingleEventCuts(Double_t min, Double_t max);//set the upper and lower limits (fULimit and fLLimit) set on this channel
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
   Int_t GetEventcutErrorFlag(){//return the error flag
     return fDeviceErrorCode;
   };
@@ -138,7 +153,7 @@ class QwVQWK_Channel: public VQwDataElement {
 
   Double_t GetBlockValue(size_t blocknum){ return fBlock[blocknum]; };
   Double_t GetHardwareSum()        { return fHardwareBlockSum; };
-  Double_t GetHardwareSumSquared() { return fHardwareBlockSquaredSum; };
+  Double_t GetHardwareSumM2()      { return fHardwareBlockSumM2; };
   Double_t GetHardwareSumError()   { return fHardwareBlockSumError; };
   Double_t GetAverageVolts();
   //  Double_t GetSoftwareSum(){return fSoftwareBlockSum;};
@@ -172,92 +187,111 @@ class QwVQWK_Channel: public VQwDataElement {
  private:
   static const Bool_t kDEBUG;
 
-  // Internal randomness generator
-  static boost::mt19937 fRandomnessGenerator;
-  static boost::normal_distribution<double> fNormalDistribution;
-  static boost::variate_generator
-    < boost::mt19937, boost::normal_distribution<double> > fNormalRandomVariable;
-  // External normal random variable
-  bool fUseExternalRandomVariable;	///< Flag to use externally provided normal random variable
-  double  fExternalRandomVariable;	///< Externally provided normal random variable
 
   Int_t fDataToSave;
 
-  /*  ADC Calibration                     */
+  /*! \name ADC Calibration                    */
+  // @{
   static const Double_t kVQWK_VoltsPerBit;
-  Double_t fPedestal;         /*! pedestal of the hardware sum signal,
-			     we assume the pedestal level is constant over time
-			     and can be divided by four for use with each block,
-			     units: [counts/number of Sample] */
+  Double_t fPedestal; /*!< Pedestal of the hardware sum signal,
+			   we assume the pedestal level is constant over time
+			   and can be divided by four for use with each block,
+			   units: [counts / number of samples] */
   Double_t fCalibrationFactor;
+  //@}
 
-  /*  Channel information data members    */
 
+  /*! \name Channel information data members   */
 
-  /*  Channel configuration data members */
+  /*! \name Channel configuration data members */
+  // @{
   UInt_t  fSamplesPerBlock;
   UInt_t  fBlocksPerEvent;
+  // @}
 
   /*  Ntuple array indices */
   size_t fTreeArrayIndex;
   size_t fTreeArrayNumEntries;
 
-  /*  Event data members */
-  Double_t fBlock_raw[4];     /*! Array of the sub-block data as read from the module */
-  Double_t fHardwareBlockSum_raw; /*! Module-based sum of the four sub-blocks as read from the module  */
-  Double_t fSoftwareBlockSum_raw; /*! Sum of the data in the four sub-blocks raw */
-  /* the following values potentially have pedestal removed  and calibration applied */
-  Double_t fBlock[4];         /*! Array of the sub-block data         */
-  Double_t fBlockSquared[4];  /*! Array of the squared sub-block data */
-  Double_t fBlockError[4];    /*! Uncertainty of the sub-block data   */
-  Double_t fHardwareBlockSum;        /*! Module-based sum of the four sub-blocks */
-  Double_t fHardwareBlockSquaredSum; /*! Squared sum of the four sub-blocks      */
-  Double_t fHardwareBlockSumError;   /*! Uncertainty on sum of the four sub-blocks */
-
-  size_t fSequenceNumber;     /*! Event sequence number for this channel  */
-  size_t fPreviousSequenceNumber; /*! Previous event sequence number for this channel  */
-  size_t fNumberOfSamples;    /*! Number of samples  read through the module        */
-  size_t fNumberOfSamples_map;    /*! Number of samples in the expected to  read through the module. This value is set in the QwBeamline map file     */
-
-  /// \name Parity mock data distributions
+  /*! \name Event data members */
   // @{
-  Double_t fMockAsymmetry;	///< Helicity asymmetry
-  Double_t fMockGaussianMean;	///< Mean of gaussian distribution
-  Double_t fMockGaussianSigma;	///< Sigma of gaussian distribution
-  std::vector<Double_t> fMockDriftAmplitude;	///< Drift amplitude
-  std::vector<Double_t> fMockDriftFrequency;	///< Drift frequency
-  std::vector<Double_t> fMockDriftPhase;	///< Drift phase
+  Double_t fBlock_raw[4];      ///< Array of the sub-block data as read from the module
+  Double_t fHardwareBlockSum_raw; ///< Module-based sum of the four sub-blocks as read from the module
+  Double_t fSoftwareBlockSum_raw; ///< Sum of the data in the four sub-blocks raw
+  // The following values potentially have pedestal removed  and calibration applied
+  Double_t fBlock[4];          ///< Array of the sub-block data
+  Double_t fHardwareBlockSum;  ///< Module-based sum of the four sub-blocks
+  // @}
+
+
+  /// \name Calculation of the statistical moments
+  // @{
+  // Moments of the separate blocks
+  Double_t fBlockM2[4];        ///< Second moment of the sub-block
+  Double_t fBlockError[4];     ///< Uncertainty on the sub-block
+  // Moments of the hardware sum
+  Double_t fHardwareBlockSumM2;    ///< Second moment of the hardware sum
+  Double_t fHardwareBlockSumError; ///< Uncertainty on the hardware sum
+  // @}
+
+
+  size_t fSequenceNumber;      ///< Event sequence number for this channel
+  size_t fPreviousSequenceNumber; ///< Previous event sequence number for this channel
+  size_t fNumberOfSamples;     ///< Number of samples  read through the module
+  size_t fNumberOfSamples_map; ///< Number of samples in the expected to  read through the module. This value is set in the QwBeamline map file
+
+
+  /// \name Parity mock data generation
+  // @{
+  /// Internal randomness generator
+  static boost::mt19937 fRandomnessGenerator;
+  /// Internal normal probability distribution
+  static boost::normal_distribution<double> fNormalDistribution;
+  /// Internal normal random variable
+  static boost::variate_generator
+    < boost::mt19937, boost::normal_distribution<double> > fNormalRandomVariable;
+  /// Flag to use an externally provided normal random variable
+  bool fUseExternalRandomVariable;
+  /// Externally provided normal random variable
+  double  fExternalRandomVariable;
+
+  // Parameters of the mock data
+  Double_t fMockAsymmetry;     ///< Helicity asymmetry
+  Double_t fMockGaussianMean;  ///< Mean of normal distribution
+  Double_t fMockGaussianSigma; ///< Sigma of normal distribution
+  std::vector<Double_t> fMockDriftAmplitude; ///< Harmonic drift amplitude
+  std::vector<Double_t> fMockDriftFrequency; ///< Harmonic drift frequency
+  std::vector<Double_t> fMockDriftPhase;     ///< Harmonic drift phase
   // @}
 
 
   Int_t fNumEvtsWithEventCutsRejected;/*! Counts the Event cut rejected events */
 
-  //set of error counters for each HW test.
-
-  Int_t fErrorCount_sample;//for sample size check
-  Int_t fErrorCount_SW_HW;//HW_sum==SW_sum check
-  Int_t fErrorCount_Sequence;//sequence number check
-  Int_t fErrorCount_SameHW;//check to see ADC returning same HW value
-  Int_t fErrorCount_ZeroHW;//check to see ADC returning zero
-
-
-  static const Int_t kErrorFlag_sample=0x2;   // in Decimal 2.  for sample size check
-  static const Int_t kErrorFlag_SW_HW=0x4;    // in Decimal 4.  HW_sum==SW_sum check
-  static const Int_t kErrorFlag_Sequence=0x8; // in Decimal 8.  sequence number check
-  static const Int_t kErrorFlag_SameHW=0x10;   //in Decimal 16.  check to see ADC returning same HW value
-  static const Int_t kErrorFlag_ZeroHW=0x20;   //in Decimal 32.  check to see ADC returning zero
-  static const Int_t kErrorFlag_EventCut_L=0x40;   //in Decimal 64  check to see ADC falied upper limit of the event cut
-  static const Int_t kErrorFlag_EventCut_U=0x80;   //in Decimal 128  check to see ADC falied upper limit of the event cut
+  // Set of error counters for each HW test.
+  Int_t fErrorCount_sample;   // for sample size check
+  Int_t fErrorCount_SW_HW;    // HW_sum==SW_sum check
+  Int_t fErrorCount_Sequence; // sequence number check
+  Int_t fErrorCount_SameHW;   // check to see ADC returning same HW value
+  Int_t fErrorCount_ZeroHW;   // check to see ADC returning zero
 
 
+  static const Int_t kErrorFlag_sample     = 0x2;  // in Decimal 2   for sample size check
+  static const Int_t kErrorFlag_SW_HW      = 0x4;  // in Decimal 4   HW_sum==SW_sum check
+  static const Int_t kErrorFlag_Sequence   = 0x8;  // in Decimal 8   sequence number check
+  static const Int_t kErrorFlag_SameHW     = 0x10; // in Decimal 16  check to see ADC returning same HW value
+  static const Int_t kErrorFlag_ZeroHW     = 0x20; // in Decimal 32  check to see ADC returning zero
+  static const Int_t kErrorFlag_EventCut_L = 0x40; // in Decimal 64  check to see ADC failed upper limit of the event cut
+  static const Int_t kErrorFlag_EventCut_U = 0x80; // in Decimal 128 check to see ADC failed upper limit of the event cut
 
-  Int_t fDeviceErrorCode;/*! Unique error code for HW failed beam line devices */
 
 
-  Int_t fADC_Same_NumEvt;/*! Keep track of how many events with same ADC value returned.*/
-  Int_t fSequenceNo_Prev;/* ! Keep the sequence number of the last event */
-  Int_t fSequenceNo_Counter;/* ! Internal counter to keep track of the sequence number */
-  Double_t fPrev_HardwareBlockSum;/*! Previos Module-based sum of the four sub-blocks */
+  Int_t fDeviceErrorCode; ///< Unique error code for HW failed beam line devices
+
+
+  Int_t fADC_Same_NumEvt; ///< Keep track of how many events with same ADC value returned
+  Int_t fSequenceNo_Prev; ///< Keep the sequence number of the last event
+  Int_t fSequenceNo_Counter; ///< Internal counter to keep track of the sequence number
+  Double_t fPrev_HardwareBlockSum; ///< Previous Module-based sum of the four sub-blocks
 
   UInt_t fGoodEventCount;//counts the HW and event check passed events
 

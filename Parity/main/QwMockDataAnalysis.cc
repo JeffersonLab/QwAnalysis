@@ -229,6 +229,7 @@ int main(int argc, char* argv[])
     } // end of loop over events
 
     // Calculate the running averages
+    helicitypattern.CalculateRunningAverage();
     runningsum.CalculateRunningAverage();
 
     // Close ROOT file
