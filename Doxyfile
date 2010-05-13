@@ -149,8 +149,12 @@ EXCLUDE                =
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = */.svn/* \
 			 */dictionary/* \
-			 */tree/* \
-			 */Doxygen/*
+			 */evio/* \
+			 */Extensions/* \
+			 */Doxygen/* \
+			 */*.map \
+			 */*.in \
+			 */*.d
 EXCLUDE_SYMBOLS        =
 EXAMPLE_PATH           =
 EXAMPLE_PATTERNS       = *
