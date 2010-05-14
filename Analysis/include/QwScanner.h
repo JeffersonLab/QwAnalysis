@@ -47,8 +47,9 @@ class QwScanner: public VQwSubsystemTracking,
     void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2) { return; };
     void Ratio(VQwSubsystem *numer, VQwSubsystem *denom) { return; };
     void Scale(Double_t factor) { return; };
-    void Calculate_Running_Average(){return;};
-    void Do_RunningSum(){return;};//update the running sums for devices
+
+    void AccumulateRunningSum(VQwSubsystem* value) {return;};
+    void CalculateRunningAverage() {return;};
 
     Int_t LoadEventCuts(TString filename) { return 0; };
     Bool_t ApplySingleEventCuts() { return kTRUE; };

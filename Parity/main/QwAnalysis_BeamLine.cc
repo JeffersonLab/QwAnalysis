@@ -105,9 +105,12 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwDetectors.push_back(new QwHelicity("Helicity info"));
   QwDetectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
   QwDetectors.GetSubsystem("Helicity info")->LoadInputParameters("");
-  QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
-  QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap("qweak_lumi.map");//current map file is for the beamline.
-  QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file.
+  //QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
+  //QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap("qweak_lumi.map");//current map file is for the beamline.
+  //QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file.
+
+  QwSubsystemArrayParity runningsum;
+  runningsum.Copy(&QwDetectors);
 
   ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
 
@@ -234,7 +237,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  }
 
 
-	  QwDetectors.Do_RunningSum();//accimulate the running sum to calculate the event base running AVG
+	  // Accumulate the running sum to calculate the event based running average
+	  runningsum.AccumulateRunningSum(QwDetectors);
 
 
 	  if(bHisto) QwDetectors.FillHistograms();
@@ -303,7 +307,8 @@ Int_t main(Int_t argc, Char_t* argv[])
       QwHelPat.CalculateRunningAverage();//this will calculate running averages for Asymmetries and Yields per quartet
       std::cout<<"Event Based Running average"<<std::endl;
       std::cout<<"==========================="<<std::endl;
-      QwDetectors.Calculate_Running_Average();//this will calculate running averages for Yields per event basis
+      // This will calculate running averages for Yields per event basis
+      runningsum.CalculateRunningAverage();
       timer.Stop();
 
       /*  Write to the root file, being sure to delete the old cycles  *

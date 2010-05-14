@@ -1636,13 +1636,6 @@ void QwHelicity::Ratio(VQwSubsystem  *value1, VQwSubsystem  *value2)
       *this =  value1;
 };
 
-void QwHelicity::Calculate_Running_Average(){
-};
-
-void QwHelicity::Do_RunningSum(){
-
-};
-
 
 Bool_t QwHelicity::Compare(VQwSubsystem *value)
 {

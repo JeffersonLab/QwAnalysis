@@ -137,13 +137,14 @@ class QwHelicity: public VQwSubsystemParity{
   void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
 
   //the following functions do nothing really : adding and sutracting helicity doesn't mean anything
-  VQwSubsystem&  operator-=  (VQwSubsystem *value){return *this;};
-  void Scale(Double_t factor){return;};
+  VQwSubsystem& operator-= (VQwSubsystem *value) {return *this;};
+  void Scale(Double_t factor) {return;};
   void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
   void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
-  void Calculate_Running_Average();
-  void Do_RunningSum();
   // end of "empty" functions
+
+  void AccumulateRunningSum(VQwSubsystem* value) { };
+  void CalculateRunningAverage() { };
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();

@@ -92,8 +92,8 @@ class QwBeamLine : public VQwSubsystemParity{
 
   void Scale(Double_t factor);
 
-  void Calculate_Running_Average();
-  void Do_RunningSum();
+  void AccumulateRunningSum(VQwSubsystem* value);
+  void CalculateRunningAverage();
 
   void ConstructHistograms(TDirectory *folder, TString &prefix);
   void FillHistograms();

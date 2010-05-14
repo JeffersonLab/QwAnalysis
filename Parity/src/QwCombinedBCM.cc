@@ -26,7 +26,7 @@ void QwCombinedBCM::SetPedestal(Double_t pedestal)
 
 void QwCombinedBCM::SetCalibrationFactor(Double_t calib)
 {
-	fCombined_bcm.SetCalibrationFactor(1); 
+	fCombined_bcm.SetCalibrationFactor(1);
 	return;
 };
 
@@ -37,19 +37,19 @@ void QwCombinedBCM::Set(QwBCM* bcm, Double_t weight, Double_t sumqw ){
   fSumQweights=sumqw;
   //std::cout<<"QwCombinedBCM: Got "<<bcm->GetElementName()<<"  and weight ="<<weight<<"\n";
   }
-  
+
 void  QwCombinedBCM::InitializeChannel(TString name, TString datatosave)
 {
-  SetElementName(name); 
-  fCombined_bcm.InitializeChannel(name,"derived"); 
+  SetElementName(name);
+  fCombined_bcm.InitializeChannel(name,"derived");
 
   return;
 };
 
 void QwCombinedBCM::ClearEventData()
 {
-  fCombined_bcm.ClearEventData();  
-  return; 
+  fCombined_bcm.ClearEventData();
+  return;
 }
 
 
@@ -101,31 +101,31 @@ void QwCombinedBCM::EncodeEventData(std::vector<UInt_t> &buffer)
 /********************************************************/
 void  QwCombinedBCM::ProcessEvent()
 {
- 
+
   Bool_t ldebug = kFALSE;
-  static QwVQWK_Channel  tmpADC("tmpADC"); 
+  static QwVQWK_Channel  tmpADC("tmpADC");
 
   for(size_t i=0;i<fElement.size();i++)
-  {  
+  {
     tmpADC=fElement[i]->fTriumf_ADC;
     tmpADC.Scale(fWeights[i]);
     fCombined_bcm+=tmpADC;
   }
-  
+
   //std::cout<<"total weights = "<<total_weights<<"\n";
   fCombined_bcm.Scale(1.0/fSumQweights);
 
 
   if(ldebug){
     std::cout<<"***************** \n";
-    std::cout<<"QwCombinedBCM: "<<GetElementName() 
+    std::cout<<"QwCombinedBCM: "<<GetElementName()
 	     <<"\nweighted average of hardware sums = "<<fCombined_bcm.GetHardwareSum()<<"\n";
     for(size_t i=0;i<4;i++){
       std::cout<<"weighted average of block["<<i<<"] = "<<fCombined_bcm.GetBlockValue(i)<<"\n";
-    } 
+    }
     std::cout<<"***************** \n";
   }
-  
+
   return;
 };
 
@@ -133,11 +133,11 @@ void  QwCombinedBCM::ProcessEvent()
 void QwCombinedBCM::SetDefaultSampleSize(Int_t sample_size){
   fCombined_bcm.SetDefaultSampleSize((size_t)sample_size);
 }
-  
+
 /********************************************************/
 Bool_t QwCombinedBCM::ApplySingleEventCuts(){
   Bool_t status=kTRUE;
-  
+
   if (fCombined_bcm.ApplySingleEventCuts()){
     status=kTRUE;
   }
@@ -162,14 +162,14 @@ Int_t QwCombinedBCM::GetEventcutErrorCounters(){// report number of events falie
 
 /********************************************************/
 
-void QwCombinedBCM::Calculate_Running_Average(){
-  fCombined_bcm.Calculate_Running_Average();
+void QwCombinedBCM::CalculateRunningAverage(){
+  fCombined_bcm.CalculateRunningAverage();
 };
 
 /********************************************************/
 
-void QwCombinedBCM::Do_RunningSum(){
-  fCombined_bcm.Do_RunningSum();
+void QwCombinedBCM::AccumulateRunningSum(const QwCombinedBCM& value){
+  fCombined_bcm.AccumulateRunningSum(value.fCombined_bcm);
 };
 
 /********************************************************/
@@ -185,7 +185,7 @@ Int_t QwCombinedBCM::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buf
 /********************************************************/
 QwCombinedBCM& QwCombinedBCM::operator= (const QwCombinedBCM &value)
 {
-  if (GetElementName()!="") 
+  if (GetElementName()!="")
     this->fCombined_bcm=value.fCombined_bcm;
 
   return *this;
@@ -218,7 +218,7 @@ void QwCombinedBCM::Difference(QwCombinedBCM &value1, QwCombinedBCM &value2){
 };
 
 void QwCombinedBCM::Ratio(QwCombinedBCM &numer, QwCombinedBCM &denom)
-{  
+{
   if (GetElementName()!="")
     this->fCombined_bcm.Ratio(numer.fCombined_bcm,denom.fCombined_bcm);
 
@@ -245,14 +245,14 @@ void QwCombinedBCM::Print() const
 Bool_t QwCombinedBCM::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
-   
+
 //   fDeviceErrorCode=0;
-//   for(int i=0;i<4;i++) 
+//   for(int i=0;i<4;i++)
 //     {
 //       fDeviceErrorCode|= fCombinedWire[i].ApplyHWChecks();  //OR the error code from each wire
-//       fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 since zero means HW is good.	
-      
-//       if (bDEBUG) std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;  
+//       fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 since zero means HW is good.
+
+//       if (bDEBUG) std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;
 //       if (bDEBUG) std::cout<<" wire[ "<<i<<" ] sequence num "<<fCombinedWire[i].GetSequenceNumber()<<" sample size "<<fWire[i].GetNumberOfSamples()<<std::endl;
 //     }
 
@@ -337,7 +337,7 @@ void  QwCombinedBCM::Copy(VQwDataElement *source)
 	{
 	  QwCombinedBCM* input=((QwCombinedBCM*)source);
 	  this->fElementName=input->fElementName;
-	  this->fCombined_bcm.Copy(&(input->fCombined_bcm));	  
+	  this->fCombined_bcm.Copy(&(input->fCombined_bcm));
 	}
       else
 	{

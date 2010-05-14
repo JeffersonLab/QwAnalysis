@@ -293,6 +293,8 @@ void  QwBPMStripline::ProcessEvent()
       fRelPos[0].Scale(kRotationCorrection);
       fRelPos[1].Scale(kRotationCorrection);
     }
+
+  // TODO (wdc) Shouldn't this be fAbsPos.Copy(fRelPos); fAbsPos.Offset(fOffset); ?
   for(i=0;i<2;i++) fAbsPos[i].SetHardwareSum(fRelPos[i].GetHardwareSum()-fOffset[i]);
   fAbsPos[2].SetHardwareSum(fOffset[2]);
 
@@ -476,21 +478,24 @@ void QwBPMStripline::Scale(Double_t factor)
   return;
 };
 
-void QwBPMStripline::Calculate_Running_Average()
+void QwBPMStripline::CalculateRunningAverage()
 {
-  Short_t i = 0;
-  for(i=0;i<2;i++) fRelPos[i].Calculate_Running_Average();
-  for(i=0;i<2;i++) fAbsPos[i].Calculate_Running_Average();
-  //No data for z position
+  for (Short_t i = 0; i < 2; i++)
+    fRelPos[i].CalculateRunningAverage();
+  for (Short_t i = 0; i < 2; i++)
+    fAbsPos[i].CalculateRunningAverage();
+  // No data for z position
   return;
 };
 
-void QwBPMStripline::Do_RunningSum()
+void QwBPMStripline::AccumulateRunningSum(const QwBPMStripline& value)
 {
-  Short_t i = 0;
-  for(i=0;i<2;i++) fRelPos[i].Do_RunningSum();
-  for(i=0;i<2;i++) fAbsPos[i].Do_RunningSum();
-  //No data for z position
+  // TODO This is unsafe, see QwBeamline::AccumulateRunningSum
+  for (Short_t i = 0; i < 2; i++)
+    fRelPos[i].AccumulateRunningSum(value.fRelPos[i]);
+  for (Short_t i = 0; i < 2; i++)
+    fAbsPos[i].AccumulateRunningSum(value.fAbsPos[i]);
+  // No data for z position
   return;
 };
 
@@ -678,7 +683,7 @@ QwDBInterface QwBPMStripline::GetDBEntry(TString subname)
   Double_t err         = 0.0;
   UInt_t beam_subblock = 0;
   UInt_t beam_n        = 0;
-   
+
   if      ( subname.Contains("RelX",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fRelPos[0]); bpm_sub_element = fRelPos[0];}
   else if ( subname.Contains("RelY",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fRelPos[1]); bpm_sub_element = fRelPos[1];}
   else if ( subname.Contains("AbsX",   TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fAbsPos[0]); bpm_sub_element = fAbsPos[0];}
@@ -690,21 +695,21 @@ QwDBInterface QwBPMStripline::GetDBEntry(TString subname)
   else if ( subname.Contains("WireYP", TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fWire[2]);   bpm_sub_element = fWire[2];}
   else if ( subname.Contains("WireYM", TString::kIgnoreCase) ) { bpm_sub_element.Copy(&fWire[3]);   bpm_sub_element = fWire[3];}
   else  printf("QwBPMStripline.cc. Your selection is not acceptable and the return QwVQWKChannel contains junk data\n");
-   
+
   name          = bpm_sub_element.GetElementName();
   avg           = bpm_sub_element.GetAverage();
   err           = bpm_sub_element.GetAverageError();
   beam_subblock = 8;                                // no meaning, later will be replaced with a real one
   beam_n        = bpm_sub_element.GetGoodEventCount();
-   
-   
+
+
   row.SetDetectorName(name);
   row.SetSubblock(beam_subblock);
   row.SetN(beam_n);
   row.SetValue(avg);
   row.SetError(err);
-   
-   
+
+
   return row;
 
 
