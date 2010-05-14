@@ -45,9 +45,10 @@ static const int kMultiplet = 4;
 static bool bDebug = false;
 
 // Activate components
-static bool bHisto = true;
 static bool bTree = true;
+static bool bHisto = true;
 static bool bHelicity = true;
+static bool bDatabase = false;
 
 int main(int argc, char* argv[])
 {
@@ -85,16 +86,16 @@ int main(int argc, char* argv[])
   }
   QwHelicityPattern helicitypattern(detectors);
 
+  // Running sum
+  QwSubsystemArrayParity runningsum;
+  runningsum.Copy(&detectors);
+
   // Get the helicity
   QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystem("Helicity info");
 
   // Event buffer
   QwEventBuffer eventbuffer;
 
-  
-  QwDatabase *qweak_database = NULL; 
-  UInt_t run_id      = 0;
-  UInt_t analysis_id = 0;
 
   // Loop over all runs
   UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
@@ -199,6 +200,9 @@ int main(int argc, char* argv[])
       // Fill the histograms
       if (bHisto) detectors.FillHistograms();
 
+      // Accumulate the running sum to calculate the event based running average
+      runningsum.AccumulateRunningSum(detectors);
+
       // Fill the MPS tree
       if (bTree) {
         eventnumber = eventbuffer.GetEventNumber();
@@ -224,6 +228,10 @@ int main(int argc, char* argv[])
 
     } // end of loop over events
 
+    // Calculate the running averages
+    helicitypattern.CalculateRunningAverage();
+    runningsum.CalculateRunningAverage();
+
     // Close ROOT file
     rootfile.Write(0,TObject::kOverwrite);
     // Delete histograms
@@ -236,31 +244,35 @@ int main(int argc, char* argv[])
     eventbuffer.CloseDataFile();
     eventbuffer.ReportRunSummary();
 
-    qweak_database  = new QwDatabase();
-    QwMessage << "GetMonitorID(qwk_batext2) = " << qweak_database->GetMonitorID("qwk_batext2") << QwLog::endl;
-    QwMessage << "GetMonitorID(phasemonitor) = " << qweak_database->GetMonitorID("phasemonitor") << QwLog::endl;
-    QwMessage << "GetMonitorID(qwk_junk) = " << qweak_database->GetMonitorID("qwk_junk") << QwLog::endl;
-    QwMessage << "GetMainDetectorID(md1neg) = " << qweak_database->GetMainDetectorID("md1neg") << QwLog::endl;
-    QwMessage << "GetMainDetectorID(spare3) = " << qweak_database->GetMainDetectorID("spare3") << QwLog::endl;
-    QwMessage << "GetMainDetectorID(combinationallmd) = " << qweak_database->GetMainDetectorID("combinationallmd") << QwLog::endl;
-    QwMessage << "GetLumiDetectorID(dlumi8) = " << qweak_database->GetLumiDetectorID("dlumi8") << QwLog::endl;
-    QwMessage << "GetVersion() = " << qweak_database->GetVersion() << QwLog::endl;
-    // GetRunID() and GetAnalysisID have their own Connect() and Disconnect() functions.
-    run_id      = qweak_database->GetRunID(eventbuffer);
-    analysis_id = qweak_database->GetAnalysisID(eventbuffer);
-    
-    QwMessage << "QwMockDataAnalysis.cc::" 
-	      << " Run Number "  << QwColor(Qw::kBoldMagenta) << eventbuffer.GetRunNumber() << QwColor(Qw::kNormal)
-	      << " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id<< QwColor(Qw::kNormal)
-	      << " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id
-	      << QwLog::endl;
+    // Write to database
+    if (bDatabase) {
+      QwDatabase* qweak_database  = new QwDatabase();
+      QwMessage << "GetMonitorID(qwk_batext2) = " << qweak_database->GetMonitorID("qwk_batext2") << QwLog::endl;
+      QwMessage << "GetMonitorID(phasemonitor) = " << qweak_database->GetMonitorID("phasemonitor") << QwLog::endl;
+      QwMessage << "GetMonitorID(qwk_junk) = " << qweak_database->GetMonitorID("qwk_junk") << QwLog::endl;
+      QwMessage << "GetMainDetectorID(md1neg) = " << qweak_database->GetMainDetectorID("md1neg") << QwLog::endl;
+      QwMessage << "GetMainDetectorID(spare3) = " << qweak_database->GetMainDetectorID("spare3") << QwLog::endl;
+      QwMessage << "GetMainDetectorID(combinationallmd) = " << qweak_database->GetMainDetectorID("combinationallmd") << QwLog::endl;
+      QwMessage << "GetLumiDetectorID(dlumi8) = " << qweak_database->GetLumiDetectorID("dlumi8") << QwLog::endl;
+      QwMessage << "GetVersion() = " << qweak_database->GetVersion() << QwLog::endl;
+      // GetRunID() and GetAnalysisID have their own Connect() and Disconnect() functions.
+      UInt_t run_id      = qweak_database->GetRunID(eventbuffer);
+      UInt_t analysis_id = qweak_database->GetAnalysisID(eventbuffer);
 
-    
-    // Each sussystem has its own Connect() and Disconnect() functions.
-    helicitypattern.FillDB(qweak_database);
-    
-    delete qweak_database; qweak_database = NULL;
-    
+      QwMessage << "QwMockDataAnalysis.cc::"
+                << " Run Number "  << QwColor(Qw::kBoldMagenta) << eventbuffer.GetRunNumber() << QwColor(Qw::kNormal)
+                << " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id<< QwColor(Qw::kNormal)
+                << " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id
+                << QwLog::endl;
+
+      // Each sussystem has its own Connect() and Disconnect() functions.
+      helicitypattern.FillDB(qweak_database);
+
+      delete qweak_database; qweak_database = NULL;
+
+    } // end of database write
+
+
   } // end of loop over runs
 
 

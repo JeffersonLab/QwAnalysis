@@ -318,7 +318,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  }
 
 
-	  QwDetectors.Do_RunningSum();//accimulate the running sum to calculate the event base running AVG
+	  QwDetectors.AccumulateRunningSum();//accimulate the running sum to calculate the event base running AVG
 
 
 	  if(bHisto) QwDetectors.FillHistograms();
@@ -365,7 +365,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       QwHelPat.CalculateRunningAverage();//this will calculate running averages for Asymmetries and Yields per quartet
       std::cout<<"Event Based Running average"<<std::endl;
       std::cout<<"==========================="<<std::endl;
-      QwDetectors.Calculate_Running_Average();//this will calculate running averages for Yields per event basis
+      QwDetectors.CalculateRunningAverage();//this will calculate running averages for Yields per event basis
       timer.Stop();
 
       /*  Write to the root file, being sure to delete the old cycles  *

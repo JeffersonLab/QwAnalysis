@@ -78,8 +78,8 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     Int_t GetEventcutErrorFlag() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
-    void Calculate_Running_Average() { };
-    void Do_RunningSum() { };
+    void AccumulateRunningSum(VQwSubsystem* value) { };
+    void CalculateRunningAverage() { };
 
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
@@ -93,6 +93,10 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     void  FillTreeVector(std::vector<Double_t> &values);
     void  FillDB(QwDatabase *db, TString datatype){};
 
+    const size_t GetNumberOfEvents() const { return (fNumberOfEvents); };
+    void SetNumberOfEvents(UInt_t nevents) {
+     fNumberOfEvents = nevents;
+    };
     void Copy(VQwSubsystem *source);
     VQwSubsystem*  Copy();
     Bool_t Compare(VQwSubsystem *source);
@@ -116,6 +120,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
 
     std::vector< std::vector <Int_t> > fSubbankIndex; 
 
+
     /// List of V1495 accumulation mode strips
     std::vector< std::vector <Double_t> > fStrips;
     std::vector< std::vector <Double_t> > fStripsRaw;
@@ -126,18 +131,15 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     //    boost::multi_array<Double_t, 2> array_type;
     //    array_type fStrips(boost::extents[NPlanes][StripsPerPlane]);
     //   array_type fStripsRaw(boost::extents[NPlanes][StripsPerPlane]);
-    Int_t fTreeArrayNumEntries;
-    Int_t fTreeArrayIndex;
-    std::vector <Double_t> fComptonElectronVector;
 
  /*=====
    *  Histograms should be listed below here.
    *  They should be pointers to histograms which will be created
-   *  inside the ConstructHistograms() 
+   *  inside the ConstructHistograms()
    */
 
   std::vector<TH1*> fHistograms1D;
-
+  std::vector<Int_t> fComptonElectronVector;
 
 
   private:
@@ -145,6 +147,10 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     static const Bool_t kDebug = kTRUE;
     Double_t fCalibrationFactor;
     Double_t fOffset;
+    Int_t fTreeArrayNumEntries;
+    Int_t fTreeArrayIndex;
+    UInt_t fNumberOfEvents; //! Number of triggered events
+
 
 
 };

@@ -752,22 +752,25 @@ VQwSubsystem*  QwLumi::Copy()
   return TheCopy;
 }
 
-void QwLumi::Calculate_Running_Average()
+void QwLumi::CalculateRunningAverage()
 {
   UInt_t i = 0;
   std::cout<<"*********QwLumiDetector   Averages****************"<<std::endl;
   std::cout<<"Device \t    ||  Average\t || error\t || events"<<std::endl;
-  for(i=0; i<fIntegrationPMT.size(); i++) fIntegrationPMT[i].Calculate_Running_Average();
+  for(i=0; i<fIntegrationPMT.size(); i++) fIntegrationPMT[i].CalculateRunningAverage();
   std::cout<<"---------------------------------------------------"<<std::endl;
   std::cout<<std::endl;
   return;
 };
 
-void QwLumi::Do_RunningSum()
+void QwLumi::AccumulateRunningSum(VQwSubsystem* value1)
 {
-  UInt_t i = 0;
-  for(i=0; i<fIntegrationPMT.size(); i++) fIntegrationPMT[i].Do_RunningSum();
-  return;
+  if (Compare(value1)) {
+    QwLumi* value = dynamic_cast<QwLumi*>(value1);
+
+    for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+      fIntegrationPMT[i].AccumulateRunningSum(value->fIntegrationPMT[i]);
+  }
 };
 
 
@@ -806,7 +809,7 @@ void QwLumi::FillDB(QwDatabase *db, TString datatype)
   for(UInt_t i=0; i< fIntegrationPMT.size(); i++)
     {
       interface.Reset();
-      interface = fIntegrationPMT[i].GetDBEntry(""); 
+      interface = fIntegrationPMT[i].GetDBEntry("");
       // QwIntegrationPMT has only one element, thus noname "" on it.
       interface.SetAnalysisID( analysis_id );
       interface.SetDeviceID( db->GetLumiDetectorID(interface.GetDeviceName().Data()) );
@@ -816,7 +819,7 @@ void QwLumi::FillDB(QwDatabase *db, TString datatype)
       interface.AddThisEntryToList(entrylist);
     }
 
-  QwMessage << QwColor(Qw::kGreen) << "Entrylist Size : " 
+  QwMessage << QwColor(Qw::kGreen) << "Entrylist Size : "
 	    << QwColor(Qw::kBoldRed) << entrylist.size() << QwLog::endl;
 
   db->Connect();

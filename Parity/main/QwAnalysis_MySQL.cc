@@ -53,7 +53,7 @@ main(Int_t argc, Char_t* argv[])
   ///
   ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
   ///  histogram helper: QwHistogramHelper
-  ///  
+  ///
   gQwHists.LoadHistParamsFromFile("parity_hists.in");
   // Setup screen and file logging
   gQwLog.InitLogFile("qwanalysis_mysql.log");
@@ -76,19 +76,22 @@ main(Int_t argc, Char_t* argv[])
 
   QwDetectors.push_back(new QwBeamLine("Injector BeamLine"));
   QwDetectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");  
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadEventCuts("qweak_beamline_eventcuts.in");//Pass the correct cuts file. 
+  QwDetectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");
+  QwDetectors.GetSubsystem("Injector BeamLine")->LoadEventCuts("qweak_beamline_eventcuts.in");//Pass the correct cuts file.
 
   QwDetectors.push_back(new QwHelicity("Helicity info"));
   QwDetectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
-  QwDetectors.GetSubsystem("Helicity info")->LoadInputParameters("");	
+  QwDetectors.GetSubsystem("Helicity info")->LoadInputParameters("");
 
   QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
   QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap("qweak_lumi.map");
-  QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file. 
-  
+  QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file.
+
+  QwSubsystemArrayParity runningsum;
+  runningsum.Copy(&QwDetectors);
+
   ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
-	  
+
 
 
   QwHelicityPattern QwHelPat(QwDetectors);//multiplet size is set within the QwHelicityPattern class
@@ -98,7 +101,7 @@ main(Int_t argc, Char_t* argv[])
   if (gQwOptions.HasValue("ring.size"))
     r_size=gQwOptions.GetValue<int>("ring.size");
   if (gQwOptions.HasValue("ring.bt"))
-    r_BT=gQwOptions.GetValue<int>("ring.bt"); 
+    r_BT=gQwOptions.GetValue<int>("ring.bt");
   if (gQwOptions.HasValue("ring.hld"))
     r_HLD=gQwOptions.GetValue<int>("ring.hld");
 
@@ -114,8 +117,8 @@ main(Int_t argc, Char_t* argv[])
   Double_t evnum=0.0;
 
 
-  QwDatabase *qw_test_DB = NULL; 
-  
+  QwDatabase *qw_test_DB = NULL;
+
   UInt_t run_id      = 0;
   UInt_t runlet_id      = 0;
   UInt_t analysis_id = 0;
@@ -130,10 +133,10 @@ main(Int_t argc, Char_t* argv[])
       //    OpenAllFiles(io, run);
       //      TString rootfilename = Form("%s/Qweak_BeamLine_%d.root", getenv("QW_ROOTFILES_DIR"), run);
 
-  
+
 //       TString rootfilename=std::string(getenv("QW_ROOTFILES"))+Form("/Qweak_BeamLine_%s.root",  QwEvt.GetRunLabel().Data());
       TString rootfilename=std::string(getenv("QW_ROOTFILES"))+Form("/Qweak_%s.root",  QwEvt.GetRunLabel().Data());
-					
+
       std::cout<<" rootfilename="<<rootfilename<<"\n";
       TFile rootfile(rootfilename,"RECREATE","QWeak ROOT file");
 
@@ -176,7 +179,7 @@ main(Int_t argc, Char_t* argv[])
 	      rootfile.cd();
 	      heltree = new TTree("HEL_Tree","Helicity event data tree");
 	      heltree->SetMaxTreeSize(kMAXTREESIZE);
-	      helvector.reserve(6000); 
+	      helvector.reserve(6000);
 	      //	      TString dummystr="";
 	      QwHelPat.ConstructBranchAndVector(heltree, dummystr, helvector);
 	    }
@@ -232,7 +235,8 @@ main(Int_t argc, Char_t* argv[])
 	  }
 
 
-	  QwDetectors.Do_RunningSum();//accimulate the running sum to calculate the event base running AVG
+	  // Accumulate the running sum to calculate the event based running average
+	  runningsum.AccumulateRunningSum(QwDetectors);
 
 
 	  if(bHisto) QwDetectors.FillHistograms();
@@ -272,7 +276,7 @@ main(Int_t argc, Char_t* argv[])
 	    }
 	  }
 
-	  if(bHelicity && QwHelPat.IsCompletePattern() && bRING_READY){ 
+	  if(bHelicity && QwHelPat.IsCompletePattern() && bRING_READY){
 	    //QwHelicity * tmp=(QwHelicity *)QwDetectors.GetSubsystem("Helicity info");
 	    //std::cout<<" Complete quartet  Good Helicity "<<std::endl;
 	    QwHelPat.CalculateAsymmetry();
@@ -305,11 +309,11 @@ main(Int_t argc, Char_t* argv[])
 		<< QwEvt.GetEventNumber() << std::endl;
 
 
-  
+
       QwHelPat.CalculateRunningAverage();//this will calculate running averages for Asymmetries and Yields per quartet
       std::cout<<"Event Based Running average"<<std::endl;
       std::cout<<"==========================="<<std::endl;
-      QwDetectors.Calculate_Running_Average();//this will calculate running averages for Yields per event basis
+      QwDetectors.CalculateRunningAverage();//this will calculate running averages for Yields per event basis
       timer.Stop();
 
       /*  Write to the root file, being sure to delete the old cycles  *
@@ -327,10 +331,10 @@ main(Int_t argc, Char_t* argv[])
 	  printf("QwDetectors.DeleteHistograms\n"); QwDetectors.DeleteHistograms();
 	  printf("QwHelPat.DeleteHistograms\n\n");  QwHelPat.DeleteHistograms();
 	}
-      
+
       QwEvt.CloseDataFile();
       QwEvt.ReportRunSummary();
-      
+
 
       QwDetectors.GetEventcutErrorCounters();//print the event cut error summery for each sub system
       std::cout<<"QwAnalysis_Beamline Total events falied "<<falied_events_counts<< std::endl;
@@ -353,21 +357,21 @@ main(Int_t argc, Char_t* argv[])
       analysis_id = qw_test_DB->GetAnalysisID(QwEvt);
 
 
-      QwMessage << "QwAnalysis_MySQL.cc::" 
+      QwMessage << "QwAnalysis_MySQL.cc::"
 		<< " Run Number "  << QwColor(Qw::kBoldMagenta) << QwEvt.GetRunNumber() << QwColor(Qw::kNormal)
 		<< " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id<< QwColor(Qw::kNormal)
 		<< " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id
 		<< QwLog::endl;
 
-      
+
       // Each sussystem has its own Connect() and Disconnect() functions.
       QwHelPat.FillDB(qw_test_DB);
-    
+
       delete qw_test_DB; qw_test_DB = NULL;
 
       PrintInfo(timer);
     } //end of run loop
-  
+
 
   return 0;
 }

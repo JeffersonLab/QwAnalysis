@@ -105,8 +105,9 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   void Sum(VQwSubsystem *value1, VQwSubsystem *value2);
   void Difference(VQwSubsystem *value1,VQwSubsystem *value2);
   void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
-  void Calculate_Running_Average();
-  void Do_RunningSum();
+
+  void AccumulateRunningSum(VQwSubsystem* value);
+  void CalculateRunningAverage();
 
   QwIntegrationPMT* GetIntegrationPMT(const TString name);
 

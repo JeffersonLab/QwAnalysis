@@ -499,9 +499,18 @@ void  QwComptonElectronDetector::FillHistograms()
  */
 void  QwComptonElectronDetector::ConstructTree(TDirectory *folder, TString &prefix)
 {
+  TString basename = GetSubsystemName();
+  TString vnameh;
+  TString vnamet;
   folder->cd();
   fTree = new TTree("ComptonElectron", "Compton Electron Detector");
   fTree->Branch("nevents",&fTree_fNEvents,"nevents/I");
+  for (Int_t i=0; i< NPlanes; i++){
+   vnameh = Form("Plane%d_Evt",i);
+   vnamet = Form("Plane%d_Evt/I",i);
+   fComptonElectronVector.push_back(0);
+   fTree->Branch(vnameh,&(fComptonElectronVector[i]),vnamet);
+  }
   return;
 };
 
@@ -519,40 +528,29 @@ void  QwComptonElectronDetector::DeleteTree()
  */
 void  QwComptonElectronDetector::FillTree()
 {
+  for (Int_t i=0; i< NPlanes; i++)
+    fComptonElectronVector[i] = 0;
+
+  fTree_fNEvents = GetNumberOfEvents();
+  for (Int_t i=0; i< NPlanes; i++){
+   for (Int_t j=0; j<StripsPerPlane; j++){
+     if (fStripsEv[i][j] != 0) 
+       fComptonElectronVector[i] += 1;
+   }
+  }
+  fTree->Fill();
+
   return;
 };
 
 
 void QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
-  TString basename = GetSubsystemName();
-  fComptonElectronVector.reserve(6000);
-
-  fComptonElectronVector.push_back(0.0);
-  TString list = "EvtCounter/D";
-  for (Int_t i=0; i< NPlanes; i++){
-   for (Int_t j=0; j<StripsPerPlane; j++){
-     fComptonElectronVector.push_back(0.0);
-     list  += Form(":Plane%d_Strip%d_Accum/D",i,j);
-     fComptonElectronVector.push_back(0.0);
-     list  += Form(":Plane%d_Strip%d_Evt/D",i,j);
-   }
-  }
-  fTreeArrayNumEntries = fComptonElectronVector.size();
-  tree->Branch(basename, &fComptonElectronVector[0], list);
   return;
 };
 
 void QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values)
 {
-   Int_t index=0;
-   fComptonElectronVector[index++] = 0; // to be filled later
-   for (Int_t i=0; i< NPlanes; i++){
-    for (Int_t j=0; j<StripsPerPlane; j++){
-      fComptonElectronVector[index++] += fStrips[i][j];
-      fComptonElectronVector[index++] += fStripsEv[i][j];
-    }
-   } 
   return;
 };
 
