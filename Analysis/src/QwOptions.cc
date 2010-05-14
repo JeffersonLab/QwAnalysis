@@ -152,7 +152,7 @@ void QwOptions::ParseCommandLine()
   // If no arguments or option help/usage, print help text.
   if (fArgc == 1 || fVariablesMap.count("help") || fVariablesMap.count("usage")) {
     Usage();
-    exit(1);
+    exit(0);
   }
 
   // If a configuration file is specified, load it.
@@ -191,10 +191,13 @@ void QwOptions::ParseConfigFile()
 #if BOOST_VERSION >= 103500
       // Boost version after 1.35 have bool allow_unregistered = false in
       // their signature.  This allows for unknown options in the config file.
-      po::store(po::parse_config_file(configstream, fConfigFileOptions, true), fVariablesMap);
+      po::store(po::parse_config_file(configstream, fConfigFileOptions, true),
+		fVariablesMap);
 #else
-      // Boost versions before 1.35 cannot handle files with unregistered options.
-      po::store(po::parse_config_file(configstream, fConfigFileOptions), fVariablesMap);
+      // Boost versions before 1.35 cannot handle files with unregistered
+      // options.
+      po::store(po::parse_config_file(configstream, fConfigFileOptions),
+		fVariablesMap);
 #endif
     } catch (std::exception const& e) {
       QwWarning << e.what() << " while parsing configuration file "

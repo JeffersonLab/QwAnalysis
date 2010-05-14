@@ -98,6 +98,8 @@
 //
 #include "MQwSIS3320_Channel.h"
 
+
+
 // Multiplet structure
 static const int kMultiplet = 4;
 
@@ -172,6 +174,8 @@ int main(int argc, char* argv[])
   if (bComptonPhoton) {
     sampling = photon->GetSIS3320Channel("compton");
   }
+
+
 
   // Get the helicity
   QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystem("Helicity info");
@@ -301,6 +305,7 @@ int main(int argc, char* argv[])
       // Print some debugging info
       if (bComptonPhoton && bDebug)
         sampling->Print();
+
 
       // Fill the histograms
       if (bHisto) detectors.FillHistograms();

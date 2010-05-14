@@ -43,6 +43,18 @@ void QwIntegrationPMT::ReportErrorCounters(){
   fTriumf_ADC.ReportErrorCounters();
 };
 /********************************************************/
+void QwIntegrationPMT::UseExternalRandomVariable()
+{
+  fTriumf_ADC.UseExternalRandomVariable();
+  return;
+};
+/********************************************************/
+void QwIntegrationPMT::SetExternalRandomVariable(double random_variable)
+{
+  fTriumf_ADC.SetExternalRandomVariable(random_variable);
+  return;
+};
+/********************************************************/
 void QwIntegrationPMT::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
 {
   fTriumf_ADC.SetRandomEventDriftParameters(amplitude, phase, frequency);
@@ -67,9 +79,9 @@ void QwIntegrationPMT::SetRandomEventAsymmetry(Double_t asymmetry)
   return;
 };
 /********************************************************/
-void QwIntegrationPMT::RandomizeEventData(int helicity)
+void QwIntegrationPMT::RandomizeEventData(int helicity, double time)
 {
-  fTriumf_ADC.RandomizeEventData(helicity);
+  fTriumf_ADC.RandomizeEventData(helicity, time);
   return;
 };
 /********************************************************/
@@ -93,12 +105,6 @@ Double_t QwIntegrationPMT::GetBlockValue(Int_t blocknum)
 void QwIntegrationPMT::SetEventData(Double_t* block, UInt_t sequencenumber)
 {
   fTriumf_ADC.SetEventData(block, sequencenumber);
-  return;
-};
-/********************************************************/
-void QwIntegrationPMT::SetEventNumber(int event)
-{
-  fTriumf_ADC.SetEventNumber(event);
   return;
 };
 /********************************************************/
@@ -349,140 +355,44 @@ void  QwIntegrationPMT::Copy(VQwDataElement *source)
 }
 
 
-void QwIntegrationPMT::Calculate_Running_Average(){
-  fTriumf_ADC.Calculate_Running_Average();
+void QwIntegrationPMT::CalculateRunningAverage() {
+  fTriumf_ADC.CalculateRunningAverage();
 };
 
-void QwIntegrationPMT::Do_RunningSum(){
-  fTriumf_ADC.Do_RunningSum();
+void QwIntegrationPMT::AccumulateRunningSum(const QwIntegrationPMT& value) {
+  fTriumf_ADC.AccumulateRunningSum(value.fTriumf_ADC);
 };
 
-void QwIntegrationPMT::BlindMe(QwBlinder *blinder){
+void QwIntegrationPMT::BlindMe(QwBlinder *blinder) {
   fTriumf_ADC.BlindMe(blinder);
 };
 
-QwParityDB::md_data QwIntegrationPMT::GetMainDetectorDBEntry(QwDatabase *db, TString mtype, TString subname)
+
+QwDBInterface QwIntegrationPMT::GetDBEntry(TString subname)
 {
-  QwParityDB::md_data row(0);
-  
-  UInt_t md_run_id        = 0;
-  UInt_t md_analysis_id   = 0;
-  UInt_t main_detector_id = 0;
-  Char_t md_measurement_type[4];
-  UInt_t md_subblock      = 0;
-  UInt_t md_n             = 0;
+  QwDBInterface row;
 
   TString name;
-  Double_t avg = 0.0;
-  Double_t err = 0.0;
+  Double_t avg         = 0.0;
+  Double_t err         = 0.0;
+  UInt_t beam_subblock = 0;
+  UInt_t beam_n        = 0;
 
-  TString beam_charge_type(db->GetMeasurementID(13)); // yq
-  TString beam_asymmetry_type(db->GetMeasurementID(0));//a
-  
-  if(mtype.Contains("yield"))
-    {
-      sprintf(md_measurement_type, beam_charge_type.Data());
-    }
-  else if(mtype.Contains("asymmetry"))
-    {
-      sprintf(md_measurement_type, beam_asymmetry_type.Data());
-    }
-  else if(mtype.Contains("average") )
-    {
-      sprintf(md_measurement_type, beam_charge_type.Data());
-    }
-  else if(mtype.Contains("runningsum"))
-    {
-      sprintf(md_measurement_type, beam_charge_type.Data());
-    }
-  else
-    {
-      sprintf(md_measurement_type, " ");
-    }
-  
-  name = this->GetElementName();
-  avg  = this->GetAverage("");
-  err  = this->GetAverageError("");
-  md_subblock   = 0;
-  md_n          = 0;
+  name          = this->GetElementName();
+  avg           = this->GetAverage();
+  err           = this->GetAverageError();
+  beam_subblock = 7;// no meaning, later will be replaced with a real one
+  beam_n        = this->GetGoodEventCount();
 
-  md_run_id        = db->GetRunID();
-  md_analysis_id   = db->GetAnalysisID();
-  main_detector_id = db->GetMainDetectorID(name.Data());
 
-  row.analysis_id         = md_analysis_id;
-  row.measurement_type_id = md_measurement_type;
-  row.main_detector_id    = main_detector_id;
-  row.subblock            = md_subblock;  // this will be used later. At the moment, 0
-  row.n                   = md_n;         // this will be used later. At the moment, 0
-  row.value               = avg;
-  row.error               = err;
+  row.SetDetectorName(name);
+  row.SetSubblock(beam_subblock);
+  row.SetN(beam_n);
+  row.SetValue(avg);
+  row.SetError(err);
 
-  printf("%12s::RunID %d AnalysisID %d %4s MainDetectorID %4d %18s , Subblock %d, n %d [%18.2e, %12.2e] \n", 
-	 mtype.Data(), md_run_id, md_analysis_id, md_measurement_type, main_detector_id, name.Data(),  
-	 md_subblock, md_n, avg, err);
-  
   return row;
-  
+
 };
 
 
-
-QwParityDB::lumi_data QwIntegrationPMT::GetLumiDetectorDBEntry(QwDatabase *db, TString mtype, TString subname)
-{
-  
-  QwParityDB::lumi_data row(0);
-  
-  UInt_t lumi_analysis_id = 0;
-  UInt_t lumi_detector_id = 0;
-  Char_t lumi_measurement_type[4];
-  UInt_t lumi_subblock    = 0;
-  UInt_t lumi_n           = 0;
-
-  TString name;
-  Double_t avg = 0.0;
-  Double_t err = 0.0;
-
-  if(mtype.Contains("yield"))
-    {
-      sprintf(lumi_measurement_type, "yq");
-    }
-  else if(mtype.Contains("asymmetry"))
-    {
-      sprintf(lumi_measurement_type, "aq");
-    }
-  else if(mtype.Contains("average") )
-    {
-      sprintf(lumi_measurement_type, "yq");
-    }
-  else if(mtype.Contains("runningsum"))
-    {
-      sprintf(lumi_measurement_type, "yq");
-    }
-  else
-    {
-      sprintf(lumi_measurement_type, " ");
-    }
-  
-  name = this->GetElementName();
-  avg  = this->GetAverage("");
-  err  = this->GetAverageError("");
-
-  lumi_analysis_id = db->GetAnalysisID();
-  lumi_detector_id = db->GetLumiDetectorID(name.Data());
-
-  lumi_subblock    = 0;
-  lumi_n           = 0;
-
-  row.analysis_id         = lumi_analysis_id;
-  row.measurement_type_id = lumi_measurement_type;
-  row.lumi_detector_id    = lumi_detector_id;
-  row.subblock            = lumi_subblock;  // this will be used later. At the moment, 0
-  row.n                   = lumi_n;         // this will be used later. At the moment, 0
-  row.value               = avg;
-  row.error               = err;
-
-  
-  return row;
-  
-};

@@ -14,7 +14,7 @@
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TTree.h"
-#include "QwColor.h"
+
 
 #include "QwHit.h"
 #include "QwHitContainer.h"

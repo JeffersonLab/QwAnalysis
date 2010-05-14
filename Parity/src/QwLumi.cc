@@ -102,7 +102,7 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	    continue;
 	  }
 
-	
+
 
 	localLumiDetectorID.fIndex=
 	  GetDetectorIndex(localLumiDetectorID.fTypeID,
@@ -110,7 +110,7 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 
 	if(localLumiDetectorID.fIndex==-1)
 	  {
-	    if(DetectorTypes[localLumiDetectorID.fTypeID]=="integrationpmt")
+	    if(localLumiDetectorID.fTypeID==kQwIntegrationPMT)
 	      {
 		QwIntegrationPMT localIntegrationPMT(localLumiDetectorID.fdetectorname);
 		fIntegrationPMT.push_back(localIntegrationPMT);
@@ -151,26 +151,26 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
   Int_t samplesize;
   Int_t check_flag;
   Int_t eventcut_flag;
- 
+
   TString varname, varvalue, vartypeID;
   TString device_type,device_name;
-  std::cout<<" QwLumi::LoadEventCuts  "<<filename<<std::endl; 
+  std::cout<<" QwLumi::LoadEventCuts  "<<filename<<std::endl;
   QwParameterFile mapstr(filename.Data());  //Open the file
 
   samplesize = 0;
   check_flag = 0;
-  eventcut_flag=1; 
-  
+  eventcut_flag=1;
+
   while (mapstr.ReadNextLine()){
     //std::cout<<"********* In the loop  *************"<<std::endl;
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
-    if (mapstr.LineIsEmpty())  continue;   
+    if (mapstr.LineIsEmpty())  continue;
     if (mapstr.HasVariablePair("=",varname,varvalue)){
       if (varname=="EVENTCUTS"){
 	//varname="";
 	eventcut_flag= QwParameterFile::GetUInt(varvalue);
-	//std::cout<<"EVENT CUT FLAG "<<eventcut_flag<<std::endl;	
+	//std::cout<<"EVENT CUT FLAG "<<eventcut_flag<<std::endl;
       }
     }
     else{
@@ -178,7 +178,7 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
       device_type.ToLower();
       device_name= mapstr.GetNextToken(", ").c_str();
       device_name.ToLower();
-      
+
       //set limits to zero
       ULX=0;
       LLX=0;
@@ -186,26 +186,26 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
       LLY=0;
 
       if (device_type == "IntegrationPMT"){
-      
+
 	//std::cout<<" device name "<<device_name<<" device flag "<<check_flag<<std::endl;
-	
+
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for IntegrationPMT value
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for IntegrationPMT value
 
 	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
 	//std::cout<<"*****************************"<<std::endl;
 	//std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
-	
+
 	fIntegrationPMT[det_index].SetSingleEventCuts(LLX,ULX);
 	//std::cout<<"*****************************"<<std::endl;
-	
+
       }
-    
+
     }
-    
+
   }
   for (size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].SetEventCutMode(eventcut_flag);  
+    fIntegrationPMT[i].SetEventCutMode(eventcut_flag);
 
   fQwLumiErrorCount=0; //set the error counter to zero
 
@@ -243,7 +243,7 @@ Int_t QwLumi::LoadInputParameters(TString pedestalfile)
 	  if(ldebug) std::cout<<"inputs for channel "<<varname
 			      <<": ped="<<varped<<": cal="<<varcal<<"\n";
 	  Bool_t notfound=kTRUE;
-	 
+
 	  if(notfound)
 	    for(size_t i=0;i<fIntegrationPMT.size();i++)
 	      if(fIntegrationPMT[i].GetElementName()==varname)
@@ -264,11 +264,25 @@ Int_t QwLumi::LoadInputParameters(TString pedestalfile)
 }
 
 //*****************************************************************
-void QwLumi::RandomizeEventData(int helicity)
+void QwLumi::SetRandomEventParameters(Double_t mean, Double_t sigma)
+{
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].SetRandomEventParameters(mean, sigma);
+};
+
+//*****************************************************************
+void QwLumi::SetRandomEventAsymmetry(Double_t asymmetry)
+{
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].SetRandomEventAsymmetry(asymmetry);
+};
+
+//*****************************************************************
+void QwLumi::RandomizeEventData(int helicity, double time)
 {
   // Randomize all QwIntegrationPMT buffers
   for (size_t i = 0; i < fIntegrationPMT.size(); i++)
-    fIntegrationPMT[i].RandomizeEventData(helicity);
+    fIntegrationPMT[i].RandomizeEventData(helicity, time);
 }
 //*****************************************************************
 void QwLumi::EncodeEventData(std::vector<UInt_t> &buffer)
@@ -279,7 +293,7 @@ void QwLumi::EncodeEventData(std::vector<UInt_t> &buffer)
   // Get all buffers in the order they are defined in the map file
   for (size_t i = 0; i < fLumiDetectorID.size(); i++) {
     // This is a QwIntegrationPMT
-    if (fLumiDetectorID.at(i).fTypeID == kIntegrationPMT)
+    if (fLumiDetectorID.at(i).fTypeID == kQwIntegrationPMT)
       fIntegrationPMT[fLumiDetectorID.at(i).fIndex].EncodeEventData(elements);
   }
 
@@ -327,7 +341,7 @@ Int_t QwLumi::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
 	if(fLumiDetectorID[i].fSubbankIndex==index)
 	  {
 
-	    if(fLumiDetectorID[i].fTypeID==kIntegrationPMT)
+	    if(fLumiDetectorID[i].fTypeID == kQwIntegrationPMT)
 	      {
 		if (lkDEBUG)
 		  {
@@ -352,30 +366,30 @@ Bool_t QwLumi::ApplySingleEventCuts(){
   Bool_t test_IntegrationPMT=kTRUE;
   Bool_t test_IntegrationPMT1=kTRUE;
 
-  
-  
+
+
 
 
   for(size_t i=0;i<fIntegrationPMT.size();i++){
     //std::cout<<"  IntegrationPMT ["<<i<<"] "<<std::endl;
-    test_IntegrationPMT1=fIntegrationPMT[i].ApplySingleEventCuts(); 
+    test_IntegrationPMT1=fIntegrationPMT[i].ApplySingleEventCuts();
     test_IntegrationPMT&=test_IntegrationPMT1;
     if(!test_IntegrationPMT1 && bDEBUG) std::cout<<"******* QwLumi::SingleEventCuts()->IntegrationPMT[ "<<i<<" , "<<fIntegrationPMT[i].GetElementName()<<" ] ******\n";
   }
   //if (!test_IntegrationPMT)
   //fNumError_Evt_IntegrationPMT++;//IntegrationPMT falied  event counter for QwLumi
-    
-  
+
+
   if (!test_IntegrationPMT1 || !test_IntegrationPMT)
    fQwLumiErrorCount++;//BPM falied  event counter for QwLumi
-    
 
-  
-    
-  
+
+
+
+
 
   return test_IntegrationPMT;
-   
+
 };
 
 Int_t QwLumi::GetEventcutErrorCounters(){//inherited from the VQwSubsystemParity; this will display the error summary
@@ -384,8 +398,8 @@ Int_t QwLumi::GetEventcutErrorCounters(){//inherited from the VQwSubsystemParity
   std::cout<<"Device name ||  Sample || SW_HW || Sequence || SameHW || EventCut\n";
   for(size_t i=0;i<fIntegrationPMT.size();i++){
     //std::cout<<"  IntegrationPMT ["<<i<<"] "<<std::endl;
-    fIntegrationPMT[i].ReportErrorCounters();    
-  } 
+    fIntegrationPMT[i].ReportErrorCounters();
+  }
 
   //std::cout<<"Total failed events "<<  fQwLumiErrorCount<<std::endl;
   //std::cout<<"*********End of error QwLumi reporting****************"<<std::endl;
@@ -393,7 +407,7 @@ Int_t QwLumi::GetEventcutErrorCounters(){//inherited from the VQwSubsystemParity
   return 1;
 }
 
-Int_t QwLumi::GetEventcutErrorFlag(){//return the error flag 
+Int_t QwLumi::GetEventcutErrorFlag(){//return the error flag
 
   return 0;
 
@@ -422,7 +436,7 @@ Int_t QwLumi::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_
 Bool_t QwLumi::IsGoodEvent()
 {
   Bool_t test=kTRUE;
-  
+
 
   return test;
 }
@@ -437,17 +451,13 @@ void QwLumi::ClearEventData()
   return;
 };
 //*****************************************************************
-Int_t QwLumi::GetDetectorTypeID(TString name)
+EQwPMTInstrumentType QwLumi::GetDetectorTypeID(TString name)
 {
-  Int_t result=-1;
-  for(size_t i=0;i<DetectorTypes.size();i++)
-    if(name==DetectorTypes[i])
-      {result=i;i=DetectorTypes.size()+1;}
-  return result;
+  return GetQwPMTInstrumentType(name);
 };
 
 //*****************************************************************
-Int_t QwLumi::GetDetectorIndex(Int_t type_id, TString name)
+Int_t QwLumi::GetDetectorIndex(EQwPMTInstrumentType type_id, TString name)
 {
   Bool_t ldebug=kFALSE;
   if(ldebug)
@@ -472,18 +482,26 @@ Int_t QwLumi::GetDetectorIndex(Int_t type_id, TString name)
 
   return result;
 };
+
+//*****************************************************************
+QwIntegrationPMT* QwLumi::GetChannel(const TString name)
+{
+  return GetIntegrationPMT(name);
+};
+
 //*****************************************************************
 QwIntegrationPMT* QwLumi::GetIntegrationPMT(const TString name)
 {
   if (! fIntegrationPMT.empty()) {
     for (std::vector<QwIntegrationPMT>::iterator IntegrationPMT = fIntegrationPMT.begin(); IntegrationPMT != fIntegrationPMT.end(); ++IntegrationPMT) {
       if (IntegrationPMT->GetElementName() == name) {
-	return &(*IntegrationPMT);
+        return &(*IntegrationPMT);
       }
     }
   }
   return 0;
 };
+
 //*****************************************************************
 VQwSubsystem&  QwLumi::operator=  (VQwSubsystem *value)
 {
@@ -492,7 +510,7 @@ VQwSubsystem&  QwLumi::operator=  (VQwSubsystem *value)
     {
       VQwSubsystem::operator=(value);
       QwLumi* input = dynamic_cast<QwLumi*> (value);
-     
+
       for(size_t i=0;i<input->fIntegrationPMT.size();i++)
 	this->fIntegrationPMT[i]=input->fIntegrationPMT[i];
     }
@@ -504,7 +522,7 @@ VQwSubsystem&  QwLumi::operator+=  (VQwSubsystem *value)
   if(Compare(value))
     {
       QwLumi* input= dynamic_cast<QwLumi*>(value) ;
-      
+
       for(size_t i=0;i<input->fIntegrationPMT.size();i++)
 	this->fIntegrationPMT[i]+=input->fIntegrationPMT[i];
     }
@@ -517,7 +535,7 @@ VQwSubsystem&  QwLumi::operator-=  (VQwSubsystem *value)
   if(Compare(value))
     {
       QwLumi* input= dynamic_cast<QwLumi*>(value);
-     
+
       for(size_t i=0;i<input->fIntegrationPMT.size();i++)
 	this->fIntegrationPMT[i]-=input->fIntegrationPMT[i];
     }
@@ -527,7 +545,7 @@ VQwSubsystem&  QwLumi::operator-=  (VQwSubsystem *value)
 void  QwLumi::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
 {
   if(Compare(value1)&&Compare(value2))
-    {      
+    {
 
 
       *this =  value1;
@@ -551,7 +569,7 @@ void QwLumi::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
     {
       QwLumi* innumer= dynamic_cast<QwLumi*>(numer) ;
       QwLumi* indenom= dynamic_cast<QwLumi*>(denom) ;
-      
+
       for(size_t i=0;i<innumer->fIntegrationPMT.size();i++)
 	this->fIntegrationPMT[i].Ratio(innumer->fIntegrationPMT[i],indenom->fIntegrationPMT[i]);
     }
@@ -682,13 +700,13 @@ void  QwLumiDetectorID::Print()
     fIndex<<std::endl;
   std::cout<<"Subelement index= "<<
     fSubelement<<std::endl;
-  
-  
-  
+
+
+
 
   std::cout<<"==========================================\n";
 
-  
+
 
   return;
 }
@@ -703,7 +721,7 @@ void  QwLumi::Copy(VQwSubsystem *source)
 	{
 	  VQwSubsystem::Copy(source);
 	  QwLumi* input= dynamic_cast<QwLumi*>(source);
-	 
+
 	  this->fIntegrationPMT.resize(input->fIntegrationPMT.size());
 	  for(size_t i=0;i<this->fIntegrationPMT.size();i++)
 	    this->fIntegrationPMT[i].Copy(&(input->fIntegrationPMT[i]));
@@ -734,21 +752,25 @@ VQwSubsystem*  QwLumi::Copy()
   return TheCopy;
 }
 
-void QwLumi::Calculate_Running_Average()
+void QwLumi::CalculateRunningAverage()
 {
   UInt_t i = 0;
   std::cout<<"*********QwLumiDetector   Averages****************"<<std::endl;
   std::cout<<"Device \t    ||  Average\t || error\t || events"<<std::endl;
-  for(i=0; i<fIntegrationPMT.size(); i++) fIntegrationPMT[i].Calculate_Running_Average();
+  for(i=0; i<fIntegrationPMT.size(); i++) fIntegrationPMT[i].CalculateRunningAverage();
   std::cout<<"---------------------------------------------------"<<std::endl;
   std::cout<<std::endl;
   return;
 };
-void QwLumi::Do_RunningSum()
+
+void QwLumi::AccumulateRunningSum(VQwSubsystem* value1)
 {
-  UInt_t i = 0;
-  for(i=0; i<fIntegrationPMT.size(); i++) fIntegrationPMT[i].Do_RunningSum();
-  return;
+  if (Compare(value1)) {
+    QwLumi* value = dynamic_cast<QwLumi*>(value1);
+
+    for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+      fIntegrationPMT[i].AccumulateRunningSum(value->fIntegrationPMT[i]);
+  }
 };
 
 
@@ -756,20 +778,49 @@ void QwLumi::Do_RunningSum()
 
 void QwLumi::FillDB(QwDatabase *db, TString datatype)
 {
-  
+
+  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  QwMessage << "                         QwLumi::FillDB                          " << QwLog::endl;
+  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+
+  Bool_t local_print_flag = true;
+  QwDBInterface interface;
   vector<QwParityDB::lumi_data> entrylist;
 
-  QwParityDB::lumi_data row(0);
+  UInt_t analysis_id = db->GetAnalysisID();
 
-  printf("%s  ************** LUMI **************\n", datatype.Data());
+  TString yield_type(db->GetMeasurementID(12)); // yp
+  TString asymm_type(db->GetMeasurementID(0));//a
 
+  Char_t measurement_type[4];
+
+  if(datatype.Contains("yield")) {
+    sprintf(measurement_type, yield_type.Data());
+  }
+  else if (datatype.Contains("asymmetry")) {
+    sprintf(measurement_type, asymm_type.Data());
+  }
+  else {
+    sprintf(measurement_type, " ");
+  }
+
+  QwMessage <<  QwColor(Qw::kGreen) << "IntegrationPMT" <<QwLog::endl;
 
   for(UInt_t i=0; i< fIntegrationPMT.size(); i++)
     {
-      entrylist.push_back(fIntegrationPMT[i].GetLumiDetectorDBEntry(db, datatype, "" )) ;
+      interface.Reset();
+      interface = fIntegrationPMT[i].GetDBEntry("");
+      // QwIntegrationPMT has only one element, thus noname "" on it.
+      interface.SetAnalysisID( analysis_id );
+      interface.SetDeviceID( db->GetLumiDetectorID(interface.GetDeviceName().Data()) );
+      interface.SetMeasurementTypeID(measurement_type);
+      interface.PrintStatus(local_print_flag);
+
+      interface.AddThisEntryToList(entrylist);
     }
 
-  printf("Lumi Entrylist Vector Size %d\n", (Int_t) entrylist.size());
+  QwMessage << QwColor(Qw::kGreen) << "Entrylist Size : "
+	    << QwColor(Qw::kBoldRed) << entrylist.size() << QwLog::endl;
 
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query..
@@ -789,10 +840,10 @@ void QwLumi::FillDB(QwDatabase *db, TString datatype)
     }
   else
     {
-      printf("QwLumi::FillDB :: This is the case when the entrlylist contains nothing in %s \n", datatype.Data());
+      QwMessage << "QwLumi::FillDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
     }
-  
+
   db->Disconnect();
-  
+
   return;
 };

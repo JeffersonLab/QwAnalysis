@@ -60,13 +60,18 @@ QwParameterFile::QwParameterFile(const char *filename){
     for (size_t i=0; i<fSearchPaths.size(); i++){
       tmppath = fSearchPaths.at(i).string() +"/"+ filename;
       if( bfs::exists(tmppath) && ! bfs::is_directory(tmppath)) {
-	std::cout << "Found parameter file: " 
-		  << tmppath.string()<<"\n";
 	break;
       }
     }
   }
-  fInputFile.open(tmppath.string().c_str());
+  if (bfs::exists(tmppath)){
+    std::cout << "Opening parameter file: " 
+	      << tmppath.string()<<"\n";
+    fInputFile.open(tmppath.string().c_str());
+  } else {
+    std::cerr << "ERROR:  Unable to open parameter file: " 
+	      << tmppath.string()<<"\n";
+  }
 };
 
 void QwParameterFile::TrimWhitespace(TString::EStripType head_tail){

@@ -143,7 +143,7 @@ void QwGUIInjector::OnObjClose(char *obj)
 }
 
 
-void QwGUIInjector::OnNewDataContainer()
+void QwGUIInjector::OnNewDataContainer(RDataContainer *cont)
 {
 
   TObject *obj = NULL;

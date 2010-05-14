@@ -45,13 +45,17 @@ class QwSubsystemArrayParity:  public QwSubsystemArray {
   void Difference(QwSubsystemArrayParity &value1, QwSubsystemArrayParity &value2);
   void Ratio(QwSubsystemArrayParity &numer, QwSubsystemArrayParity &denom);
   void Scale(Double_t factor);
-  void Calculate_Running_Average();
-  void Do_RunningSum();//calculate the running sum at event level
+
+  // Update the running sums for devices
+  void AccumulateRunningSum(const QwSubsystemArrayParity& value);
+  // Calculate the average for all good events
+  void CalculateRunningAverage();
+
   void BlindMe(QwBlinder *blinder);
   Bool_t ApplySingleEventCuts();
   Int_t GetEventcutErrorCounters();
-  Int_t GetEventcutErrorFlag();//return the error flag 
- 
+  Int_t GetEventcutErrorFlag();//return the error flag
+
  public:
   std::vector<TString> sFailedSubsystems;
 
@@ -59,7 +63,7 @@ class QwSubsystemArrayParity:  public QwSubsystemArray {
   //Int_t fSubsystem_Error_Flag;
   //static const Int_t kErrorFlag_Helicity=0x2;   // in Decimal 2. Helicity bit faliure
   //static const Int_t kErrorFlag_Beamline=0x4;    // in Decimal 4.  Beamline faliure
-  
+
 
 };
 

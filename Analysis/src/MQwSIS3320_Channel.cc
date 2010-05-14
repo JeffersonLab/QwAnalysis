@@ -32,7 +32,7 @@ const unsigned int MQwSIS3320_Channel::FORMAT_MULTI_EVENT = 0x3;
 const unsigned int MQwSIS3320_Channel::FORMAT_SINGLE_EVENT = 0x4;
 
 // Compile-time debug level
-const Bool_t MQwSIS3320_Channel::kDEBUG = kFALSE;
+const Bool_t MQwSIS3320_Channel::kDEBUG = kTRUE;
 
 
 /**
@@ -318,7 +318,7 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
 
 void MQwSIS3320_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
 {
-  Long_t sample;
+  //  Long_t sample;
   std::vector<UInt_t> header;
   std::vector<UInt_t> samples;
 

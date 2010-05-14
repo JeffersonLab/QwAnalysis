@@ -16,9 +16,7 @@
 
 #include "QwIntegrationPMT.h"
 
-
-enum ELumiInstrumentType{kIntegrationPMT};
-// this emun vector needs to be coherent with the DetectorTypes declaration in the QwLumi constructor
+#include "QwTypes.h"
 
 
 ///
@@ -26,7 +24,8 @@ enum ELumiInstrumentType{kIntegrationPMT};
 class QwLumiDetectorID
 {
  public:
-  QwLumiDetectorID():fSubbankIndex(-1),fWordInSubbank(-1),fTypeID(-1),fIndex(-1),
+  QwLumiDetectorID():fSubbankIndex(-1),fWordInSubbank(-1),
+    fTypeID(kQwUnknownPMT),fIndex(-1),
     fSubelement(999999),fmoduletype(""),fdetectorname("")
     {};
 
@@ -35,7 +34,7 @@ class QwLumiDetectorID
                       //(eg VQWK channel report 6 words for each event, scalers oly report one word per event)
   // The first word of the subbank gets fWordInSubbank=0
 
-  int fTypeID;     // type of detector eg: lumi or stripline, etc..
+  EQwPMTInstrumentType fTypeID;     // type of detector eg: lumi or stripline, etc..
   int fIndex;      // index of this detector in the vector containing all the detector of same type
   UInt_t fSubelement; // some detectors have many subelements (eg stripline have 4 antenas) some have only one sub element(eg lumis have one channel)
 
@@ -43,7 +42,7 @@ class QwLumiDetectorID
   TString fdetectorname;
   TString fdetectortype; // stripline, IntegrationPMT, ... this string is encoded by fTypeID
 
-  
+
 
   void Print();
 
@@ -58,10 +57,7 @@ class QwLumi : public VQwSubsystemParity{
  public:
   QwLumi(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
     {
-      // these declaration need to be coherent with the enum vector ELumiInstrumentType
-      DetectorTypes.push_back("IntegrationPMT");
-      for(size_t i=0;i<DetectorTypes.size();i++)
-	DetectorTypes[i].ToLower();
+
 
     };
 
@@ -77,10 +73,10 @@ class QwLumi : public VQwSubsystemParity{
   Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
-  Int_t GetEventcutErrorFlag();//return the error flag 
-  
-  void Calculate_Running_Average();
-  void Do_RunningSum(); 
+  Int_t GetEventcutErrorFlag();//return the error flag
+
+  void AccumulateRunningSum(VQwSubsystem* value);
+  void CalculateRunningAverage();
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -90,7 +86,9 @@ class QwLumi : public VQwSubsystemParity{
   void  ProcessEvent();
   Bool_t IsGoodEvent();
 
-  void RandomizeEventData(int helicity = 0);
+  void  SetRandomEventParameters(Double_t mean, Double_t sigma);
+  void  SetRandomEventAsymmetry(Double_t asymmetry);
+  void RandomizeEventData(int helicity = 0, double time = 0.0);
   void EncodeEventData(std::vector<UInt_t> &buffer);
 
   VQwSubsystem&  operator=  (VQwSubsystem *value);
@@ -110,32 +108,32 @@ class QwLumi : public VQwSubsystemParity{
   void  FillTreeVector(std::vector<Double_t> &values);
   void  FillDB(QwDatabase *db, TString datatype);
 
+  QwIntegrationPMT* GetChannel(const TString name);
+  QwIntegrationPMT* GetIntegrationPMT(const TString name);
+
   void Copy(VQwSubsystem *source);
   VQwSubsystem*  Copy();
   Bool_t Compare(VQwSubsystem *source);
   void Print();
 
-  QwIntegrationPMT* GetIntegrationPMT(const TString name);
-
 /////
  protected:
- Int_t GetDetectorTypeID(TString name);
- Int_t GetDetectorIndex(Int_t TypeID, TString name);//when the type and the name is passed the detector index from appropriate vector will be returned
+ EQwPMTInstrumentType GetDetectorTypeID(TString name);
+ Int_t GetDetectorIndex(EQwPMTInstrumentType TypeID, TString name);//when the type and the name is passed the detector index from appropriate vector will be returned
  //for example if TypeID is IntegrationPMT  then the index of the detector from fIntegrationPMT vector for given name will be returnd.
  std::vector <QwIntegrationPMT> fIntegrationPMT;
  std::vector <QwLumiDetectorID> fLumiDetectorID;
 
 
- 
+
 
 
 /////
  private:
- std::vector<TString> DetectorTypes;// for example could be IntegrationPMT, LUMI,BPMSTRIPLINE, etc..
  Int_t fQwLumiErrorCount;
 
-  
- static const Bool_t bDEBUG=kFALSE; 
+
+ static const Bool_t bDEBUG=kFALSE;
 
 };
 

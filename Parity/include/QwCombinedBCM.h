@@ -31,12 +31,12 @@ class QwCombinedBCM : public VQwDataElement{
 
 
   void Set(QwBCM* bcm, Double_t weight, Double_t sumqw ); ///added by me
-  
+
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
   void  ClearEventData();
 
   void  InitializeChannel(TString name, TString datatosave);
-  
+
   void ReportErrorCounters();
 
 
@@ -49,28 +49,32 @@ class QwCombinedBCM : public VQwDataElement{
 
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
-  Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings 
+  Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-  Int_t SetSingleEventCuts(std::vector<Double_t> &);//two limts and sample size
+  Int_t GetEventcutErrorFlag(){//return the error flag
+    return fDeviceErrorCode;
+  }
+  Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size
   void SetDefaultSampleSize(Int_t sample_size);
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;
     fCombined_bcm.SetEventCutMode(bcuts);
   }
   void Print() const;
-  
 
-  
+
+
 
   QwCombinedBCM& operator=  (const QwCombinedBCM &value);
   QwCombinedBCM& operator+= (const QwCombinedBCM &value);
   QwCombinedBCM& operator-= (const QwCombinedBCM &value);
   void Sum(QwCombinedBCM &value1, QwCombinedBCM &value2);
   void Difference(QwCombinedBCM &value1, QwCombinedBCM &value2);
-  void Ratio(QwCombinedBCM &numer, QwCombinedBCM &denom); 
+  void Ratio(QwCombinedBCM &numer, QwCombinedBCM &denom);
   void Scale(Double_t factor);
-  void Calculate_Running_Average();
-  void Do_RunningSum(); 
+
+  void AccumulateRunningSum(const QwCombinedBCM& value);
+  void CalculateRunningAverage();
 
   void SetPedestal(Double_t ped);
   void SetCalibrationFactor(Double_t calib);
@@ -87,12 +91,12 @@ class QwCombinedBCM : public VQwDataElement{
 
 /////
  protected:
-  
+
   QwVQWK_Channel fCombined_bcm;
 /////
  private:
-  
-  Double_t fCalibration; 
+
+  Double_t fCalibration;
   Double_t fULimit, fLLimit;
   Double_t fSequenceNo_Prev;
 

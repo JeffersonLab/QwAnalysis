@@ -44,11 +44,13 @@ class QwBCM : public VQwDataElement{
   void  AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
-  void  RandomizeEventData(int helicity);
+  void  RandomizeEventData(int helicity = 0, double time = 0);
   void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
   void  SetEventData(Double_t* block, UInt_t sequencenumber);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
-  void  SetEventNumber(int event);
+
+  void  UseExternalRandomVariable();
+  void  SetExternalRandomVariable(Double_t random_variable);
 
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
@@ -77,8 +79,9 @@ class QwBCM : public VQwDataElement{
   void Difference(QwBCM &value1, QwBCM &value2);
   void Ratio(QwBCM &numer, QwBCM &denom);
   void Scale(Double_t factor);
-  void Calculate_Running_Average();
-  void Do_RunningSum();
+
+  void AccumulateRunningSum(const QwBCM& value);
+  void CalculateRunningAverage();
 
   void SetPedestal(Double_t ped);
   void SetCalibrationFactor(Double_t calib);
@@ -88,16 +91,16 @@ class QwBCM : public VQwDataElement{
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
- 
   void  DeleteHistograms();
 
-  Double_t GetAverage(TString type)      {return fTriumf_ADC.GetAverage();};
-  Double_t GetAverageError(TString type) {return fTriumf_ADC.GetAverageError();};
+  Double_t GetAverage()        {return fTriumf_ADC.GetAverage();};
+  Double_t GetAverageError()   {return fTriumf_ADC.GetAverageError();};
+  UInt_t   GetGoodEventCount() {return fTriumf_ADC.GetGoodEventCount();};
 
   void Copy(VQwDataElement *source);
 
-  QwParityDB::beam GetDBEntry(QwDatabase *db, TString mtype, TString subname);
- 
+  QwDBInterface GetDBEntry(TString subname="");
+
 
 /////
  protected:

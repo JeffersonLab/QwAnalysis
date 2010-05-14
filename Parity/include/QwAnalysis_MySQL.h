@@ -25,6 +25,7 @@
 #include "VQwDataElement.h"
 #include "QwHelicity.h"
 #include "QwSubsystemArrayParity.h"
+#include "QwMainCerenkovDetector.h"
 #include "QwHelicityPattern.h"
 #include "QwScanner.h"
 

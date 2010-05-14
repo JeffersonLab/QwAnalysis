@@ -47,6 +47,18 @@ void QwBCM::ClearEventData()
 
 
 /********************************************************/
+void QwBCM::UseExternalRandomVariable()
+{
+  fTriumf_ADC.UseExternalRandomVariable();
+  return;
+};
+/********************************************************/
+void QwBCM::SetExternalRandomVariable(double random_variable)
+{
+  fTriumf_ADC.SetExternalRandomVariable(random_variable);
+  return;
+};
+/********************************************************/
 void QwBCM::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
 {
   fTriumf_ADC.SetRandomEventDriftParameters(amplitude, phase, frequency);
@@ -71,9 +83,9 @@ void QwBCM::SetRandomEventAsymmetry(Double_t asymmetry)
   return;
 };
 /********************************************************/
-void QwBCM::RandomizeEventData(int helicity)
+void QwBCM::RandomizeEventData(int helicity, double time)
 {
-  fTriumf_ADC.RandomizeEventData(helicity);
+  fTriumf_ADC.RandomizeEventData(helicity, time);
   return;
 };
 /********************************************************/
@@ -86,12 +98,6 @@ void QwBCM::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
 void QwBCM::SetEventData(Double_t* block, UInt_t sequencenumber)
 {
   fTriumf_ADC.SetEventData(block, sequencenumber);
-  return;
-};
-/********************************************************/
-void QwBCM::SetEventNumber(int event)
-{
-  fTriumf_ADC.SetEventNumber(event);
   return;
 };
 /********************************************************/
@@ -235,12 +241,12 @@ void QwBCM::Scale(Double_t factor)
   return;
 }
 
-void QwBCM::Calculate_Running_Average(){
-  fTriumf_ADC.Calculate_Running_Average();
+void QwBCM::CalculateRunningAverage() {
+  fTriumf_ADC.CalculateRunningAverage();
 };
 
-void QwBCM::Do_RunningSum(){
-  fTriumf_ADC.Do_RunningSum();
+void QwBCM::AccumulateRunningSum(const QwBCM& value) {
+  fTriumf_ADC.AccumulateRunningSum(value.fTriumf_ADC);
 };
 
 void QwBCM::Print() const
@@ -342,75 +348,35 @@ void  QwBCM::Copy(VQwDataElement *source)
     }
 
   return;
-}
+};
 
 
 
 
-QwParityDB::beam QwBCM::GetDBEntry(QwDatabase *db, TString mtype, TString subname)
+QwDBInterface QwBCM::GetDBEntry(TString subname)
 {
-  QwParityDB::beam row(0);
-  
-  UInt_t beam_run_id      = 0;
-  UInt_t beam_analysis_id = 0;
-  UInt_t beam_monitor_id  = 0;
-  Char_t beam_measurement_type[4];
-  UInt_t beam_subblock    = 0;
-  UInt_t beam_n           = 0;
+  QwDBInterface row;
 
   TString name;
-  Double_t avg = 0.0;
-  Double_t err = 0.0;
+  Double_t avg         = 0.0;
+  Double_t err         = 0.0;
+  UInt_t beam_subblock = 0;
+  UInt_t beam_n        = 0;
 
-  TString beam_charge_type(db->GetMeasurementID(13)); // yq
-  TString beam_asymmetry_type(db->GetMeasurementID(0));//a
- 
-  if(mtype.Contains("yield"))
-    {
-      sprintf(beam_measurement_type, beam_charge_type.Data());
-    }
-  else if(mtype.Contains("asymmetry"))
-    {
-      sprintf(beam_measurement_type, beam_asymmetry_type.Data()); // 1 is a 
-    }
-  else if(mtype.Contains("average") )
-    {
-      sprintf(beam_measurement_type, beam_charge_type.Data());
-    }
-  else if(mtype.Contains("runningsum"))
-    {
-      sprintf(beam_measurement_type, beam_charge_type.Data());
-    }
-  else
-    {
-      sprintf(beam_measurement_type, " ");
-    }
-  
-  name = this->GetElementName();
-  avg  = this->GetAverage("");
-  err  = this->GetAverageError("");
-  beam_subblock    = 0;
-  beam_n           = 0;
+  name          = this->GetElementName();
+  avg           = this->GetAverage();
+  err           = this->GetAverageError();
+  beam_subblock = 9;// no meaning, later will be replaced with a real one
+  beam_n        = this->GetGoodEventCount();
 
 
-  beam_run_id      = db->GetRunID();
-  beam_analysis_id = db->GetAnalysisID();
-  beam_monitor_id  = db->GetMonitorID(name.Data());
+  row.SetDetectorName(name);
+  row.SetSubblock(beam_subblock);
+  row.SetN(beam_n);
+  row.SetValue(avg);
+  row.SetError(err);
 
 
-
-  row.analysis_id         = beam_analysis_id;
-  row.measurement_type_id = beam_measurement_type;
-  row.monitor_id          = beam_monitor_id;
-  row.subblock            = beam_subblock;  // this will be used later. At the moment, 0
-  row.n                   = beam_n;         // this will be used later. At the moment, 0
-  row.value               = avg;
-  row.error               = err;
-
-  printf("%12s::RunID %d AnalysisID %d %4s MonitorID %4d %18s , Subblock %d, n %d [%18.2e, %12.2e] \n", 
-	 mtype.Data(), beam_run_id, beam_analysis_id, beam_measurement_type, beam_monitor_id, name.Data(),  
-	 beam_subblock, beam_n, avg, err);
-  
   return row;
-  
+
 };

@@ -205,6 +205,7 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
 
   // Get the subbank index (or -1 when no match)
   Int_t index = GetSubbankIndex(roc_id, bank_id);
+
   if (index >= 0 && num_words > 0) {
 
     //  We want to process this ROC.  Begin looping through the data.

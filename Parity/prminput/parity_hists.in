@@ -59,7 +59,7 @@ qwk_...Rel._.w			TH1F	2000	-5.0e1	5.0e1				mm	Events
 qwk_......_block._raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
 qwk_......_block.    		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 qwk_......_.w_raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
-qwk_......_.w			TH1F	1000	-5.0e9	5.0e9				CalibratedCounts  Events
+qwk_......_.w			TH1F	1000	-2.0e6	6.0e6				CalibratedCounts  Events
 qwk_......_sw-hw_raw		TH1F	1000	-5.0e2	5.0e2				Counts  Events
 qwk_....Rel._block._raw		TH1F	1000	-5.0e1	5.0e1				mm	Events
 qwk_....Rel._block.  		TH1F	2000	-5.0e1	5.0e1				mm	Events
@@ -68,7 +68,7 @@ qwk_....Rel._.w			TH1F	2000	-5.0e1	5.0e1				mm	Events
 qwk_......._block._raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
 qwk_......._block.    		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 qwk_......._.w_raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
-qwk_......._.w			TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+qwk_......._.w			TH1F	1000	-2.0e6	2.0e6				CalibratedCounts Events
 qwk_......._sw-hw_raw		TH1F	1000	-5.0e2	5.0e2				Counts  Events
 qwk_.....Rel._block._raw	TH1F	1000	-5.0e1	5.0e1				mm	Events
 qwk_.....Rel._block.  		TH1F	2000	-5.0e1	5.0e1				mm	Events
@@ -236,8 +236,8 @@ asym._qwk_targetYAngle_hw		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 
 
 
-diff_qwk_...Rel._block.  	TH1F	2000	-5.0e1	5.0e1				mm	Events
-diff_qwk_...Rel._hw		TH1F	2000	-5.0e1	5.0e1				mm	Events
+diff_qwk_...Rel._block.  	TH1F	2000	-1.0e1	1.0e1				mm	Events
+diff_qwk_...Rel._hw		TH1F	2000	-1.0e-1	1.0e-1				mm	Events
 diff_qwk_....Rel._block.  	TH1F	2000	-5.0e1	5.0e1				mm	Events
 diff_qwk_....Rel._hw		TH1F	2000	-5.0e1	5.0e1				mm	Events
 diff_qwk_.....Rel._block.  	TH1F	2000	-5.0e1	5.0e1				mm	Events
@@ -473,4 +473,32 @@ scanner_ref_posi_y		TH1F	2000	-355.0		-305.0			Y[cm]		Events
 
 scanner_rate_map 		TH2F 	210 	-105.0 	105.0 	400	-350.0	-310.0	X[cm] 	Y[cm]
 
+###  Compton Electron histograms
 
+Compton_eDet_Accum_Raw_Plane0	TH1F	96	0	95	Strips	Hits
+Compton_eDet_Accum_Plane0	TH1F	96	0	95	Strips	Hits
+Compton_eDet_Evt_Raw_Plane0	TH1F	96	0	95	Strips	Hits
+Compton_eDet_Evt_Plane0		TH1F	96	0	95	Strips	Hits
+Compton_eDet_Accum_Raw_Plane1	TH1F	96	0	95	Strips	Hits
+Compton_eDet_Accum_Plane1	TH1F	96	0	95	Strips	Hits
+Compton_eDet_Evt_Raw_Plane1	TH1F	96	0	95	Strips	Hits
+Compton_eDet_Evt_Plane1		TH1F	96	0	95	Strips	Hits
+Compton_eDet_Accum_Raw_Plane2	TH1F	96	0	95	Strips	Hits
+Compton_eDet_Accum_Plane2	TH1F	96	0	95	Strips	Hits
+Compton_eDet_Evt_Raw_Plane2	TH1F	96	0	95	Strips	Hits
+Compton_eDet_Evt_Plane2		TH1F	96	0	95	Strips	Hits
+Compton_eDet_Accum_Raw_Plane3	TH1F	96	0	95	Strips	Hits
+Compton_eDet_Accum_Plane3	TH1F	96	0	95	Strips	Hits
+Compton_eDet_Evt_Raw_Plane3	TH1F	96	0	95	Strips	Hits
+Compton_eDet_Evt_Plane3		TH1F	96	0	95	Strips	Hits
+
+
+###########################################
+#  Adding some fully wildcarded histogram names.
+#  Do not add any other specific names below these.
+###########################################
+.*_block._raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
+.*_block.    		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+.*_.w_raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
+.*_.w			TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+.*_sw-hw_raw		TH1F	1000	-5.0e2	5.0e2				Counts Events

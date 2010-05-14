@@ -40,16 +40,18 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dClArgs = clargs;
   std::set_new_handler(0);
 
-  MainDetSubSystem      = NULL;
-  LumiDetSubSystem      = NULL;
-  InjectorSubSystem     = NULL;
-  EventDisplaySubSystem = NULL;
+  MainDetSubSystem       = NULL;
+  LumiDetSubSystem       = NULL;
+  InjectorSubSystem      = NULL;
+  HallCBeamlineSubSystem = NULL;
+  EventDisplaySubSystem  = NULL;
 
   dMWWidth              = w;
   dMWHeight             = h;
   dCurRun               = 0;
 
   dROOTFile             = NULL;
+  dDatabase             = NULL;
 
   dTBinEntry            = NULL;
   dTBinEntryLayout      = NULL;
@@ -74,7 +76,6 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dLogTabLayout         = NULL;
   dLogEditLayout        = NULL;
 
-
   dMenuBar              = NULL;
   dMenuFile             = NULL;
   dMenuTabs             = NULL;
@@ -90,8 +91,8 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   memset(dTime, '\0', sizeof(dTime));
   memset(dDate, '\0', sizeof(dDate));
 
-
   SetRootFileOpen(kFalse);
+  SetDatabaseOpen(kFalse);
   SetLogFileOpen(kFalse);
   SetLogFileName("None");
 
@@ -101,7 +102,6 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   MakeLogTab();
 
   SetWindowName("Qweak Data Analysis GUI");
-
 
   MapSubwindows();
   Resize(GetDefaultSize());
@@ -117,6 +117,11 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   if(!GetSubSystemPtr("Injector"))
     InjectorSubSystem = new QwGUIInjector(fClient->GetRoot(), this, dTab,"Injector",
 					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
+
+  if(!GetSubSystemPtr("HallC Beamline"))
+    HallCBeamlineSubSystem = new QwGUIHallCBeamline(fClient->GetRoot(), this, dTab,"HallC Beamline",
+						    "QwGUIMain", dMWWidth-15,dMWHeight-180);
+    
   if(!GetSubSystemPtr("Event Display"))
     EventDisplaySubSystem = new QwGUIEventDisplay(fClient->GetRoot(), this, dTab, "Event Display",
 					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
@@ -125,10 +130,11 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
 QwGUIMain::~QwGUIMain()
 {
-  delete MainDetSubSystem      ;
-  delete LumiDetSubSystem      ;
-  delete InjectorSubSystem     ;
-  delete EventDisplaySubSystem ;
+  delete MainDetSubSystem       ;
+  delete LumiDetSubSystem       ;
+  delete InjectorSubSystem      ;
+  delete HallCBeamlineSubSystem ;
+  delete EventDisplaySubSystem  ;
 
   delete dROOTFile             ;
 
@@ -174,15 +180,15 @@ void QwGUIMain::MakeMenuLayout()
   dMenuBarHelpLayout = new TGLayoutHints(kLHintsTop | kLHintsRight);
 
   dMenuFile = new TGPopupMenu(fClient->GetRoot());
-//   dMenuFile->AddEntry("&Open (Run file)...", M_FILE_OPEN);
   dMenuFile->AddEntry("O&pen (ROOT file)...", M_ROOT_FILE_OPEN);
-//   dMenuFile->AddEntry("&Close (Run file)", M_FILE_CLOSE);
   dMenuFile->AddEntry("C&lose (ROOT file)", M_ROOT_FILE_CLOSE);
   dMenuFile->AddSeparator();
-
-  dMenuFile->AddEntry("Root File Browser", M_VIEW_BROWSER);
+  dMenuFile->AddEntry("Open (Database)...", M_DBASE_OPEN);
+  dMenuFile->AddEntry("Close (Database)", M_DBASE_CLOSE);
   dMenuFile->AddSeparator();
-  dMenuFile->AddSeparator();
+  //dMenuFile->AddEntry("Root File Browser", M_VIEW_BROWSER);
+  //dMenuFile->AddSeparator();
+  //dMenuFile->AddSeparator();
   dMenuFile->AddEntry("E&xit", M_FILE_EXIT);
 
   dMenuTabs = new TGPopupMenu(fClient->GetRoot());
@@ -344,31 +350,10 @@ void QwGUIMain::AddATab(QwGUISubSystem* sbSystem)
   TObject *obj;
   TIter next(dMenuTabs->GetListOfEntries());
 
-  //Sequence naming of menu items not currently implemented/useful
-  //
-  //int seq = 1;
-  //char sequence[100];
-  //   while(!flag){
-  //     flag = 1;
-  //     while(obj = next()){
-  //       TGMenuEntry *entry = (TGMenuEntry*)obj;
-  //       if(s == entry->GetLabel()->GetString()){
-  // 	if(seq >= 2) s.Resize(s.Length()-3);
-  // 	sprintf(sequence," % 2d",seq); seq++;
-  // 	s += sequence;
-  // 	flag = 0;
-  // 	break;
-  //       }
-  //     }
-  //     next.Reset();
-  //   }
-  //   MCnt++;
-  //   dMenuTabs->AddEntry(s, M_TABS+MCnt);
-
   obj = next();
   while(obj){
     TGMenuEntry *entry = (TGMenuEntry*)obj;
-    //       printf("%s %d\n",entry->GetLabel()->GetString(),entry->GetEntryId());
+    //printf("%s %d\n",entry->GetLabel()->GetString(),entry->GetEntryId());
     if(s == entry->GetLabel()->GetString()){
       flag = 1;
       break;
@@ -617,6 +602,14 @@ void QwGUIMain::OnObjClose(const char *objname)
 #endif
   }
 
+  if(name.Contains("dDatabase")){
+    dDatabase = NULL;
+#ifdef QWGUI_DEBUG
+    printf("Received dDatabase IsClosing signal\n");
+#endif
+  }
+
+
 //   TObject *obj;
 //   TIter next(SubSystemArray.MakeIterator());
 //   obj = next();
@@ -778,6 +771,52 @@ Int_t QwGUIMain::OpenLogFile(ERFileStatus status, const char* file)
   SetLogFileName(filename);
   return PROCESS_OK;
 }
+
+Int_t QwGUIMain::OpenDatabase()
+{
+  if(IsDatabaseOpen()) CloseDatabase();  
+
+  dDatabase = new QwGUIDatabaseContainer(fClient->GetRoot(), this,
+					 "dDatabase","QwGUIMain",
+					 "DBASE",FM_READ,FT_DBASE);
+
+  if(!dDatabase){SetDatabaseOpen(kFalse); return PROCESS_FAILED;}
+
+  if(dDatabase->OpenDatabase() != FILE_PROCESS_OK) {
+    SetDatabaseOpen(kFalse);
+    dDatabase->CloseDatabase();
+    dDatabase = NULL;
+    return PROCESS_FAILED;
+  }
+
+  dMenuFile->DisableEntry(M_DBASE_OPEN);
+  TObject *obj;
+  TIter next(SubSystemArray.MakeIterator());
+  obj = next();
+  while(obj){
+    QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+    entry->SetDataContainer((RDataContainer*)dDatabase);
+    obj = next();
+  }
+
+  SetDatabaseOpen(kTrue);
+//   SetRootFileName(filename);
+  return PROCESS_OK;
+}
+
+void QwGUIMain::CloseDatabase()
+{
+
+  if(dDatabase != NULL){
+
+    // Properly disconnect from and close the database here......
+
+    dDatabase = NULL;
+  }
+  SetDatabaseOpen(kFalse);
+  dMenuFile->EnableEntry(M_DBASE_OPEN);  
+}
+
 
 Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
 {
@@ -1072,7 +1111,8 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
   // Handle messages send to the MainFrame object. E.g. all menu button
   // messages.
 
-  Long_t mTabID = 0;
+  TObject *obj;
+  TIter next(SubSystemArray.MakeIterator());
 
   switch (GET_MSG(msg)){
 
@@ -1109,34 +1149,29 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
     case kCM_MENU:
 
-      for(int n = M_TABS; n <= M_TABS+MCnt; n++ ){
-	mTabID = n;
-	if(parm1 == mTabID){
-
-	  if(dMenuTabs->IsEntryChecked(mTabID)){
-	    RemoveTab((QwGUISubSystem*)dTab->GetTabContainer(GetTabIndex(GetTabMenuLabel(mTabID))));
-	  }
-	  else{
-
-	    TObject *obj;
-	    TIter next(SubSystemArray.MakeIterator());
-	    obj = next();
-	    while(obj){
-	      QwGUISubSystem *entry = (QwGUISubSystem*)obj;
-	      if(!strcmp(GetTabMenuLabel(mTabID),entry->GetName()))
-		AddATab(entry);
-	      obj = next();
-	    }
-	  }
-
+      obj = next();
+      while(obj){
+	QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+	if(entry->GetTabMenuID() == parm1){
+	  if(dMenuTabs->IsEntryChecked(entry->GetTabMenuID())) 
+	    RemoveTab(entry);
+	  else
+	    AddATab(entry);
+	  
 	  break;
 	}
+	obj = next();
       }
-
+      
+      
       switch (parm1) {
-
+	
       case M_ROOT_FILE_OPEN:
 	OpenRootFile();
+	break;
+
+      case M_DBASE_OPEN:
+	OpenDatabase();
 	break;
 
       case M_FILE_OPEN:
@@ -1152,6 +1187,10 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
       case M_ROOT_FILE_CLOSE:
 	if(IsRootFileOpen()) CloseRootFile();
+	break;
+
+      case M_DBASE_CLOSE:
+	if(IsDatabaseOpen()) CloseDatabase();
 	break;
 
       case M_FILE_CLOSE:
@@ -1372,6 +1411,7 @@ void QwGUIMain::WritePid()
     perror("couldn't write QwGUID_PID.DAT");
   }
 }
+
 
 
 

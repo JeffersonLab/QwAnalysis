@@ -195,7 +195,7 @@ void QwGUIEventDisplay::OnObjClose(char *obj)
   }
 }
 
-void QwGUIEventDisplay::OnNewDataContainer()
+void QwGUIEventDisplay::OnNewDataContainer(RDataContainer *cont)
 {
   ClearData();
 

@@ -18,6 +18,9 @@
 #include "QwSSQLS.h"
 #include "QwDatabase.h"
 
+
+
+
 /*****************************************************************
 *  Class:
 ******************************************************************/
@@ -45,14 +48,16 @@ class QwIntegrationPMT : public VQwDataElement{
   void  AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
-  void  RandomizeEventData(int helicity);
-
+  void  RandomizeEventData(int helicity = 0, double time = 0.0);
   void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
-  Double_t GetHardwareSum();
-  Double_t GetBlockValue(Int_t blocknum);
-
   void  SetEventData(Double_t* block, UInt_t sequencenumber);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
+
+  void  UseExternalRandomVariable();
+  void  SetExternalRandomVariable(Double_t random_variable);
+
+  Double_t GetHardwareSum();
+  Double_t GetBlockValue(Int_t blocknum);
 
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
@@ -60,7 +65,6 @@ class QwIntegrationPMT : public VQwDataElement{
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Int_t SetSingleEventCuts(Double_t, Double_t);//set two limts
   void SetDefaultSampleSize(Int_t sample_size);
-  void SetEventNumber(int event);
 
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;
@@ -68,8 +72,7 @@ class QwIntegrationPMT : public VQwDataElement{
   }
 
 
-  void Calculate_Running_Average();
-  void Do_RunningSum();
+
   void BlindMe(QwBlinder *blinder);
 
   void Print() const;
@@ -87,6 +90,9 @@ class QwIntegrationPMT : public VQwDataElement{
   void Ratio(QwIntegrationPMT &numer, QwIntegrationPMT &denom);
   void Scale(Double_t factor);
 
+  void AccumulateRunningSum(const QwIntegrationPMT& value);
+  void CalculateRunningAverage();
+
   void SetPedestal(Double_t ped);
   void SetCalibrationFactor(Double_t calib);
 
@@ -97,13 +103,14 @@ class QwIntegrationPMT : public VQwDataElement{
   void  FillTreeVector(std::vector<Double_t> &values);
   void  DeleteHistograms();
 
-  Double_t GetAverage(TString type)      {return fTriumf_ADC.GetAverage();};
-  Double_t GetAverageError(TString type) {return fTriumf_ADC.GetAverageError();};
+  Double_t GetAverage()        {return fTriumf_ADC.GetAverage();};
+  Double_t GetAverageError()   {return fTriumf_ADC.GetAverageError();};
+  UInt_t   GetGoodEventCount() {return fTriumf_ADC.GetGoodEventCount();};
 
   void Copy(VQwDataElement *source);
 
-  QwParityDB::md_data   GetMainDetectorDBEntry(QwDatabase *db, TString mtype, TString subname);
-  QwParityDB::lumi_data GetLumiDetectorDBEntry(QwDatabase *db, TString mtype, TString subname);
+  QwDBInterface GetDBEntry(TString subname="");
+
 
  protected:
 
@@ -121,5 +128,7 @@ class QwIntegrationPMT : public VQwDataElement{
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
   Bool_t bEVENTCUTMODE; //global switch to turn event cuts ON/OFF
 };
+
+
 
 #endif

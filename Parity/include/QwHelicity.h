@@ -72,7 +72,7 @@ class QwHelicity: public VQwSubsystemParity{
       fEventNumberOld=-1; fEventNumber=-1;
       fPatternPhaseNumberOld=-1; fPatternPhaseNumber=-1;
       fPatternNumberOld=-1;  fPatternNumber=-1;
-      kuserbit=-1;
+      kUserbit=-1;
       fActualPatternPolarity=kUndefinedHelicity;
       fDelayedPatternPolarity=kUndefinedHelicity;
       fHelicityReported=kUndefinedHelicity;
@@ -89,7 +89,7 @@ class QwHelicity: public VQwSubsystemParity{
     {
 //      DeleteHistograms();
     };
-  
+
    /* derived from VQwSubsystem */
   void ProcessOptions(QwOptions &options);
   Int_t LoadChannelMap(TString mapfile);
@@ -97,7 +97,7 @@ class QwHelicity: public VQwSubsystemParity{
   Int_t LoadEventCuts(TString  filename);//Loads event cuts applicabale to QwHelicity class, derived from VQwSubsystemParity
   Bool_t ApplySingleEventCuts();//Apply event cuts in the QwHelicity class, derived from VQwSubsystemParity
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure, derived from VQwSubsystemParity
-  Int_t GetEventcutErrorFlag();//return the error flag 
+  Int_t GetEventcutErrorFlag();//return the error flag
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id,
 				   UInt_t* buffer, UInt_t num_words);
@@ -137,13 +137,14 @@ class QwHelicity: public VQwSubsystemParity{
   void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
 
   //the following functions do nothing really : adding and sutracting helicity doesn't mean anything
-  VQwSubsystem&  operator-=  (VQwSubsystem *value){return *this;};
-  void Scale(Double_t factor){return;};
+  VQwSubsystem& operator-= (VQwSubsystem *value) {return *this;};
+  void Scale(Double_t factor) {return;};
   void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
   void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
-  void Calculate_Running_Average();
-  void Do_RunningSum();
   // end of "empty" functions
+
+  void AccumulateRunningSum(VQwSubsystem* value) { };
+  void CalculateRunningAverage() { };
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
@@ -158,37 +159,37 @@ class QwHelicity: public VQwSubsystemParity{
   Int_t GetMaxPatternPhase(){
     return fMaxPatternPhase;
   };
-  
+
 /////
  protected:
    enum HelicityRootSavingType{kHelSaveMPS = 0,
 			      kHelSavePattern,
 			      kHelNoSave};
-   
+
   enum HelicityEncodingType{kHelUserbitMode=0,
 			    kHelInputRegisterMode,
 			    kHelLocalyMadeUp};
-  // this values allow to switch the code between different helicity encoding mode. 
-  
+  // this values allow to switch the code between different helicity encoding mode.
+
   std::vector <QwWord> fWord;
   std::vector < std::pair<Int_t, Int_t> > fWordsPerSubbank;  // The indices of the first & last word in each subbank
 
-  Int_t fHelicityDecodingMode; 
+  Int_t fHelicityDecodingMode;
   // this variable is set at initialization in function QwHelicity::LoadChannelMap
   // it allows one to customize the helicity decoding mode
   // the helicity decoding mode will take one of the value of enum  HelicityEncodingType
 
-  
 
-  Int_t kuserbit;
+
+  Int_t kUserbit;
   // this is used to tagged the userbit info among all the fWords
   // if we run the local helicity mode, the userbit contains the info
   // about helicity, event number, pattern number etc.
-  Int_t kscalercounter;
+  Int_t kScalerCounter;
   // again this is used in the case we are running the local helicity mode
   // the scalercounter counts how many events happened since the last reading
   // should be one all the time if not the event is suspicious and not used for analysis
-  Int_t kinputregister, kpatterncounter, kmpscounter, kpatternphase;
+  Int_t kInputRegister, kPatternCounter, kMpsCounter, kPatternPhase;
   Int_t fEventNumberOld, fEventNumber;
   Int_t fPatternPhaseNumberOld, fPatternPhaseNumber;
   Int_t fPatternNumberOld,  fPatternNumber;
@@ -247,7 +248,7 @@ class QwHelicity: public VQwSubsystemParity{
   Bool_t CollectRandBits24();//for 24bit pattern
   Bool_t CollectRandBits30();//for 30bit pattern
 
-  
+
   void   ResetPredictor();
 
   Bool_t Compare(VQwSubsystem *source);
@@ -256,7 +257,7 @@ class QwHelicity: public VQwSubsystemParity{
   Bool_t BIT30;
 
   Int_t fPATTERNPHASEOFFSET;
-  
+
 };
 
 

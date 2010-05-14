@@ -71,8 +71,8 @@ class QwComptonPhotonDetector: public VQwSubsystemParity {
     Int_t GetEventcutErrorFlag() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
-    void Calculate_Running_Average() { };
-    void Do_RunningSum() { };
+    void AccumulateRunningSum(VQwSubsystem* value) { };
+    void CalculateRunningAverage() { };
 
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
@@ -84,10 +84,11 @@ class QwComptonPhotonDetector: public VQwSubsystemParity {
 
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  FillTreeVector(std::vector<Double_t> &values);
-    void  FillDB(QwDatabase *db){};
+    void  FillDB(QwDatabase *db, TString datatype){};
 
     void Copy(VQwSubsystem *source);
     VQwSubsystem*  Copy();
+
     Bool_t Compare(VQwSubsystem *source);
     void Print();
 

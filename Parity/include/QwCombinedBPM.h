@@ -22,14 +22,14 @@
 class QwCombinedBPM : public VQwDataElement{
 /////
  public:
-  QwCombinedBPM();
+  QwCombinedBPM(){};
   QwCombinedBPM(TString name, Bool_t ROTATED){
     InitializeChannel(name, ROTATED);
   };
-  
+
   ~QwCombinedBPM() {DeleteHistograms();};
 
-  Int_t ProcessEvBuffer(UInt_t* buffer, 
+  Int_t ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
 
   void  InitializeChannel(TString name, Bool_t ROTATED);
@@ -37,25 +37,25 @@ class QwCombinedBPM : public VQwDataElement{
 
 
 
-  void  Set(QwBPMStripline* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,Double_t sumqw); 
+  void  Set(QwBPMStripline* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,Double_t sumqw);
 
   void  ClearEventData();
   void  EncodeEventData(std::vector<UInt_t> &buffer);
 
   void  ProcessEvent();
-  
+
   void Print();
 
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  Int_t SetSingleEventCuts(std::vector<Double_t> &);
+  Int_t SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-  Int_t GetEventcutErrorFlag(){//return the error flag 
+  Int_t GetEventcutErrorFlag(){//return the error flag
     return fDeviceErrorCode;
   };
 
   void SetEventCutMode(Int_t bcuts);
-  
+
 
   void Copy( VQwDataElement *source);
 
@@ -67,13 +67,13 @@ class QwCombinedBPM : public VQwDataElement{
   void Difference(QwCombinedBPM &value1, QwCombinedBPM &value2);
   void Ratio(QwCombinedBPM &numer, QwCombinedBPM &denom);
   void Scale(Double_t factor);
- 
-  void Calculate_Running_Average();
-  void Do_RunningSum(); 
+
+  void AccumulateRunningSum(const QwCombinedBPM& value);
+  void CalculateRunningAverage();
 
   /* Functions for least squared fir */
   void CalculateFixedParameter(std::vector<Double_t> fWeights, Int_t pos);
-  Double_t SumOver( std::vector <Double_t> weight , std::vector <QwVQWK_Channel> val); 
+  Double_t SumOver( std::vector <Double_t> weight , std::vector <QwVQWK_Channel> val);
   void LeastSquareFit( Int_t pos, std::vector<Double_t> fWeights) ; //bbbbb
 
 
@@ -93,11 +93,11 @@ class QwCombinedBPM : public VQwDataElement{
   /* Rotation factor for the BPM which antenna are at 45 deg */
   static const Double_t kRotationCorrection;
 
-  std::vector <QwBPMStripline*> fElement; 
-  std::vector <Double_t> fQWeights; 
-  std::vector <Double_t> fXWeights; 
-  std::vector <Double_t> fYWeights; 
- 
+  std::vector <QwBPMStripline*> fElement;
+  std::vector <Double_t> fQWeights;
+  std::vector <Double_t> fXWeights;
+  std::vector <Double_t> fYWeights;
+
   Double_t fSumQweights; //sum of all the weights for charge
 
 
@@ -108,7 +108,7 @@ class QwCombinedBPM : public VQwDataElement{
   Bool_t bRotated;
   Bool_t bFullSave; // used to restrict the amount of data histogramed
 
-  Bool_t fGoodEvent; 
+  Bool_t fGoodEvent;
   Bool_t fixedParamCalculated;
 
   //used for least squares fit
@@ -119,22 +119,22 @@ class QwCombinedBPM : public VQwDataElement{
 
 
   Double_t fULimitX, fLLimitX, fULimitY, fLLimitY;//this sets the upper and lower limits on the X & Y of the BPM stripline
- 
+
 
 
   /*This channel contains the 4-wire sum of the combined bpm at the target;equivalant to a charge*/
-  QwVQWK_Channel fCombinedWSum; 
+  QwVQWK_Channel fCombinedWSum;
 
   /* These channels contain the beam position at the target within the frame of the BPM*/
-  QwVQWK_Channel fCombinedAbsPos[3]; //absolute position 
+  QwVQWK_Channel fCombinedAbsPos[3]; //absolute position
 
-  /* This channel contains the beam slope w.r.t the X & Y axis at the target */ 
-  QwVQWK_Channel fCombinedSlope[2];  
+  /* This channel contains the beam slope w.r.t the X & Y axis at the target */
+  QwVQWK_Channel fCombinedSlope[2];
 
-    
-  
 
-  Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check 
+
+
+  Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
 
   const static Bool_t bDEBUG=kFALSE;//debugging display purposes
@@ -144,7 +144,7 @@ class QwCombinedBPM : public VQwDataElement{
   /* contains the beam position in the absolute frame defined as found reference...*/
 
 };
- 
+
 /********************************************************/
 
 

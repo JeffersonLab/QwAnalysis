@@ -175,6 +175,7 @@ enum CommandIdentifiers {
 
   M_FILE_OPEN,
   M_ROOT_FILE_OPEN,
+  M_DBASE_OPEN,
   M_FILE_SAVE,
   M_FILE_SAVEAS,
   M_FILE_PRINT,
@@ -182,6 +183,7 @@ enum CommandIdentifiers {
   M_FILE_EXIT,
   M_FILE_CLOSE,
   M_ROOT_FILE_CLOSE,
+  M_DBASE_CLOSE,
   M_FILE_ANALYZE,
   M_FILE_NOISESTAT,
   M_FILE_ASYMSTAT,
