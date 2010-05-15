@@ -143,10 +143,14 @@ QwTrackingWorker::QwTrackingWorker (const char* name)
   fMatrixLookup = new QwMatrixLookup();
   // Determine lookup table file from environment variables
   std::string trajmatrix = "";
-  if (getenv("QW_LOOKUP_DIR") && getenv("QW_LOOKUP_FILE"))
-    trajmatrix = std::string(getenv("QW_LOOKUP_DIR")) + "/" + std::string(getenv("QW_LOOKUP_FILE"));
-  else
-    QwWarning << "Environment variable QW_LOOKUP_DIR and/or QW_LOOKUP_FILE not defined." << QwLog::endl;
+  std::string trajmatrix_filename = "QwTrajMatrix.root";
+  if (getenv("QW_LOOKUP"))
+    trajmatrix = std::string(getenv("QW_LOOKUP")) + "/" + trajmatrix_filename;
+  else {
+    QwWarning << "Environment variable QW_LOOKUP not defined." << QwLog::endl;
+    QwWarning << "It should point to the directory with the file"
+              << trajmatrix_filename << QwLog::endl;
+  }
   // Load lookup table
   if (! fMatrixLookup->LoadTrajMatrix(trajmatrix))
     QwError << "Could not load trajectory lookup table!" << QwLog::endl;
@@ -155,10 +159,14 @@ QwTrackingWorker::QwTrackingWorker (const char* name)
   fRayTracer = new QwRayTracer();
   // Determine magnetic field file from environment variables
   std::string fieldmap = "";
-  if (getenv("QW_FIELDMAP_DIR") && getenv("QW_FIELDMAP_FILE"))
-    fieldmap = std::string(getenv("QW_FIELDMAP_DIR")) + "/" + std::string(getenv("QW_FIELDMAP_FILE"));
-  else
-    QwWarning << "Environment variable QW_FIELDMAP_DIR and/or QW_FIELDMAP_FILE not defined." << QwLog::endl;
+  std::string fieldmap_filename = "peiqing_2007.dat";
+  if (getenv("QW_FIELDMAP"))
+    fieldmap = std::string(getenv("QW_FIELDMAP")) + "/" + fieldmap_filename;
+  else {
+    QwWarning << "Environment variable QW_FIELDMAP not defined." << QwLog::endl;
+    QwWarning << "It should point to the directory with the file"
+              << fieldmap_filename << QwLog::endl;
+  }
   // Load magnetic field map
   if (! fRayTracer->LoadMagneticFieldMap(fieldmap))
     QwError << "Could not load magnetic field map!" << QwLog::endl;
@@ -907,26 +915,27 @@ QwEvent* QwTrackingWorker::ProcessHits (
         * ============================== */
 
         // If there were partial tracks in the HDC and VDC regions
-        if (false && event->parttrack[package][kRegionID2][kTypeDriftHDC]
+        if (event->parttrack[package][kRegionID2][kTypeDriftHDC]
          && event->parttrack[package][kRegionID3][kTypeDriftVDC]) {
 
             QwDebug << "Bridging front and back partial tracks..." << QwLog::endl;
 
             // Local copies of front and back track
             QwPartialTrack* front = event->parttrack[package][kRegionID2][kTypeDriftHDC];
-            QwPartialTrack* back  = event->parttrack[package][kRegionID2][kTypeDriftHDC];
+            QwPartialTrack* back  = event->parttrack[package][kRegionID3][kTypeDriftVDC];
 
             // Loop over all good front and back partial tracks
-            while (front && front->IsGood()) {
-              while (back && back->IsGood()) {
+            while (front) {
+              while (back) {
 
                 int status = 0;
 
                 // Filter reasonable pairs
-                status = raytracer->Filter(front, back);
+                status = fRayTracer->Filter(front, back);
                 QwMessage << "Filter: " << status << QwLog::endl;
                 if (status == -1) {
                   QwMessage << "Tracks did not pass filter." << QwLog::endl;
+                  back = back->next;
                   continue;
                 }
 
@@ -935,6 +944,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                 QwMessage << "Matrix lookup: " << status << QwLog::endl;
                 if (status == 0) {
                   event->AddTrackList(fMatrixLookup->GetListOfTracks());
+                  back = back->next;
                   continue;
                 }
 
@@ -943,15 +953,18 @@ QwEvent* QwTrackingWorker::ProcessHits (
                 QwMessage << "Ray tracer: " << status << QwLog::endl;
                 if (status == 0) {
                   event->AddTrackList(fRayTracer->GetListOfTracks());
+                  back = back->next;
                   continue;
                 }
 
                 // Next back track
                 back = back->next;
+
               } // end of loop over back tracks
 
               // Next front track
               front = front->next;
+
             } // end of loop over front tracks
 
         } /* end of */

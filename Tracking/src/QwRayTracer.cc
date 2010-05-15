@@ -125,23 +125,30 @@ const int QwRayTracer::Filter(QwPartialTrack* front, QwPartialTrack* back)
     // NOTE The angle limits will be determined from MC simulation results
 
     // Scattering angle limit
-    if ((front->GetMomentumDirectionTheta() < 4.0 * Qw::deg)
+    if ((front->GetMomentumDirectionTheta() < 1.0 * Qw::deg)
      || (front->GetMomentumDirectionTheta() > 13.0 * Qw::deg)) {
-        QwMessage << "Filter: scattering angle (" << front->GetMomentumDirectionTheta() * Qw::rad2deg
-                  << " degree) is out of range" << QwLog::endl;
+        QwMessage << "Filter: scattering angle theta = " << front->GetMomentumDirectionTheta()/Qw::deg << " deg "
+                  << "outside of acceptable range [1, 13] deg." << QwLog::endl;
         fMatchFlag = -1;
         return -1;
     }
 
-    // Bending angle limit in B field
+    // Bending angle limits in B field
     double dtheta = (back->GetMomentumDirectionTheta() - front->GetMomentumDirectionTheta());
     double dphi   = (back->GetMomentumDirectionPhi()   - front->GetMomentumDirectionPhi());
-    if (dtheta < 5.0 * Qw::deg || dtheta > 25.0 * Qw::deg || fabs(dphi) > 10.0 * Qw::deg) {
-        QwMessage << "Filter: bending angles (dtheta = " << dtheta << " degree, dphi = " << dphi
-                  << " degree) in B field are out of range" << QwLog::endl;
+    if (dtheta < 5.0*Qw::deg || dtheta > 45.0*Qw::deg) {
+        QwMessage << "Filter: bending angle difference dtheta = " << dtheta/Qw::deg << " deg "
+                  << "outside of acceptable range [5, 45] deg." << QwLog::endl;
         fMatchFlag = -1;
         return -1;
     }
+    if (fabs(dphi) > 20.0*Qw::deg) {
+        QwMessage << "Filter: bending angle difference dphi = " << dphi/Qw::deg << " deg "
+                  << "outside of acceptable range [-20, 20] deg." << QwLog::endl;
+        fMatchFlag = -1;
+        return -1;
+    }
+
 
     // Scattering vertex limits and position phi limits (QTOR keep-out zone)
     TVector3 start_position = front->GetPosition(-330.685 * Qw::cm);
@@ -270,6 +277,7 @@ const int QwRayTracer::Bridge(
         QwTrack* track = new QwTrack();
         track->front = const_cast<QwPartialTrack*>(front);
         track->back = const_cast<QwPartialTrack*>(back);
+        track->fMomentum = fMomentum;
 
         QwBridge* bridge = new QwBridge();
         track->fBridge = bridge;

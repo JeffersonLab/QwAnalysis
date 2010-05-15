@@ -96,8 +96,6 @@ class QwTrackingWorker {
     bool fShowEventPattern;
     bool fShowMatchingPattern;
 
-    QwRayTracer *raytracer;
-
 }; // class QwTrackingWorker
 
 #endif // QWTRACKINGWORKER_H

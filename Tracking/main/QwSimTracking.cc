@@ -40,11 +40,12 @@
 #include "QwGasElectronMultiplier.h"
 #include "QwDriftChamberHDC.h"
 #include "QwDriftChamberVDC.h"
+#include "QwMainDetector.h"
 
 
 
 // Debug level
-static const bool kDebug = false;
+static const bool kDebug = true;
 // ROOT file output
 static const bool kTree = true;
 static const bool kHisto = true;
@@ -89,12 +90,17 @@ int main (int argc, char* argv[])
   detectors->GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
 
+  // Region 3 MD
+  detectors->push_back(new QwMainDetector("MD"));
+  ((VQwSubsystemTracking*) detectors->GetSubsystem("MD"))->LoadQweakGeometry("qweak_new.geo");
+
 
   // Get vector with detector info (by region, plane number)
   std::vector< std::vector< QwDetectorInfo > > detector_info;
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R2"))->GetDetectorInfo(detector_info);
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->GetDetectorInfo(detector_info);
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R1"))->GetDetectorInfo(detector_info);
+  ((VQwSubsystemTracking*) detectors->GetSubsystem("MD"))->GetDetectorInfo(detector_info);
   // TODO This is handled incorrectly, it just adds the three package after the
   // existing three packages from region 2...  GetDetectorInfo should descend
   // into the packages and add only the detectors in those packages.
@@ -200,7 +206,7 @@ int main (int argc, char* argv[])
               << trackingworker->R3Good << std::endl;
 
     // Print results
-    if (kDebug) tree->Print();
+    //if (kDebug) tree->Print();
 
     // Write and close file
     if (kTree || kHisto) {
