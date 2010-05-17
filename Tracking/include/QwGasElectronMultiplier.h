@@ -5,12 +5,11 @@
 * Time-stamp: <2008-07-08 15:40>                           *
 \**********************************************************/
 
-
 #ifndef __QWGASELECTRONMULTIPLIER__
 #define __QWGASELECTRONMULTIPLIER__
 
-#include<TH1D.h>
-#include<TH2D.h>
+#include "TH1D.h"
+#include "TH2D.h"
 
 #include "QwParameterFile.h"
 #include "QwDetectorInfo.h"
@@ -21,9 +20,9 @@
 #include "QwTypes.h"
 
 #include <exception>
-#include<iostream>
-#include<fstream>
-#include<string>
+#include <iostream>
+#include <fstream>
+#include <string>
 
 #include "VQwSubsystemTracking.h"
 
@@ -58,7 +57,7 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking{
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
-  Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
   void  ProcessEvent();
 
@@ -83,7 +82,7 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking{
   void AddHit(Int_t,Int_t);
   
  protected:
-  Bool_t fDEBUG;
+  // Bool_t fDEBUG;
   TString fRegion;  ///  Name of this subsystem (the region).
   static const Int_t N_GEM = 2;
   static const Int_t GEM_RADIALSTRIPS=512;//No. of radial locations
@@ -99,11 +98,9 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking{
   static const Bool_t bDEBUG_Hitlist=kFALSE;//kTRUE;//print the hit list
 
 
- protected:
   size_t fCurrentBankIndex;
   Int_t  fCurrentSlot;
 
- protected:
   std::vector< QwHit > fHits;
 
   std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
@@ -118,13 +115,11 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking{
 
   std::vector< QwHit > fGEMHits;
 
-
- /*=====
+  /*=====
    *  Histograms should be listed below here.
    *  They should be pointers to histograms which will be created
    *  inside the ConstructHistograms() 
    */
-
 
   TH1D *VFAT[N_VFAT];
   TH1D *VFAT_BC[N_VFAT];

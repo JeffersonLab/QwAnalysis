@@ -19,6 +19,8 @@
 #include "QwSubsystemArray.h"
 #include "VQwSubsystem.h"
 
+class QwOptions;
+
 //////////////////////////////////////////////////////////////////////
 
 
@@ -26,6 +28,9 @@
 ///
 /// \ingroup QwAnalysis
 class QwEventBuffer: public MQwCodaControlEvent{
+ public:
+  static void DefineOptions(QwOptions &options);
+
  public:
   static const Int_t kRunNotSegmented;
   static const Int_t kNoNextDataFile;
@@ -42,8 +47,19 @@ class QwEventBuffer: public MQwCodaControlEvent{
     }
   };
 
+  /// \brief Sets internal flags based on the QwOptions
+  void ProcessOptions(QwOptions &options);
 
+  /// \brief Returns a string like <run#> or <run#>.<file#>
+  TString GetRunLabel() const;
+  std::pair<UInt_t, UInt_t> GetEventRange() const {
+    return fEventRange;
+  };
 
+  /// \brief Opens the event stream (file or ET) based on the internal flags
+  Int_t OpenNextStream();
+  /// \brief Closes a currently open event stream.
+  Int_t CloseStream();
 
   void    SetDataDirectory(const TString datadir){fDataDirectory = datadir;}
 
@@ -64,6 +80,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
   };
   Int_t GetEventNumber(){return fEvtNumber;};
 
+  Int_t GetNextEvent();
 
   Int_t  GetEvent();
   Int_t  WriteEvent(int* buffer);
@@ -75,6 +92,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Bool_t FillSubsystemConfigurationData(QwSubsystemArray &subsystems);
   Bool_t FillSubsystemData(QwSubsystemArray &subsystems);
 
+  template < class T > Bool_t FillObjectWithEventData(T &t);
 
   Int_t EncodeSubsystemData(QwSubsystemArray &subsystems);
   Int_t EncodePrestartEvent(int runnumber, int runtype = 0);
@@ -92,9 +110,16 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Bool_t FillSubsystemData(std::vector<VQwSubsystem*> &subsystems);
 
 
+ protected:
+  ///
+  Bool_t fOnline;
+  TString fETHostname;
+  TString fETSession;
+  std::pair<Int_t, Int_t> fRunRange;
+  Bool_t fChainDataFiles;
+  std::pair<UInt_t, UInt_t> fEventRange;
 
  protected:
-  const Bool_t fDEBUG;
   const TString fDataFileStem;
   const TString fDataFileExtension;
 
@@ -102,7 +127,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   TString fDataFile;
 
-  UInt_t fRunNumber;
+  // UInt_t fRunNumber;
 
 
  protected:
@@ -113,7 +138,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   Bool_t DataFileIsSegmented();
 
-  void CloseThisSegment();
+  Int_t CloseThisSegment();
   Int_t OpenNextSegment();
 
   void DecodeEventIDBank(UInt_t *buffer);
@@ -128,7 +153,10 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
 
  protected:
+  enum CodaStreamMode{fEvStreamNull, fEvStreamFile, fEvStreamET} fEvStreamMode;
+  THaCodaData *fEvStream; //  Pointer to a THaCodaFile or THaEtClient
 
+  Int_t fCurrentRun;
 
   Bool_t fRunIsSegmented;
 
@@ -136,8 +164,6 @@ class QwEventBuffer: public MQwCodaControlEvent{
   std::vector<Int_t>           fRunSegments;
   std::vector<Int_t>::iterator this_runsegment;
 
-  enum CodaStreamMode{fEvStreamNull, fEvStreamFile, fEvStreamET} fEvStreamMode;
-  THaCodaData *fEvStream; //  Pointer to a THaCodaFile or THaEtClient
 
  protected:
   Bool_t fPhysicsEventFlag;
@@ -161,7 +187,58 @@ class QwEventBuffer: public MQwCodaControlEvent{
   UInt_t fSubbankNum;
   UInt_t fROC;
 
+ protected:
+  UInt_t     fNumPhysicsEvents;
 
 };
+
+template < class T > Bool_t QwEventBuffer::FillObjectWithEventData(T &object){
+  ///  Template to fill any object with data from a CODA event.
+  /// 
+  ///  The classes for which this template can be specialized
+  ///  must have the following three methods defined:
+  /// 
+  ///  Bool_t <class T>::CanUseThisEventType(const UInt_t event_type);
+  ///  Bool_t <class T>::ClearEventData(const UInt_t event_type);
+  ///  Int_t  <class T>::ProcessBuffer(const UInt_t event_type,
+  ///       const UInt_t roc_id, const UInt_t bank_id,
+  ///       UInt_t* buffer, UInt_t num_words);
+  ///
+  Bool_t okay = kFALSE;
+  UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
+
+  if (fFragLength==1 && localbuff[fWordsSoFar]==kNullDataWord){
+    fWordsSoFar += fFragLength;
+  } else if (object.CanUseThisEventType(fEvtType)){
+    //  Clear the old event information from the object
+    object.ClearEventData(fEvtType);
+    //  Loop through the data buffer in this event.
+    if (fBankDataType == 0x10){
+      //  This bank is subbanked; loop through subbanks
+      while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
+	//  If this bank has further subbanks, restart the loop.
+	if (fSubbankType == 0x10) continue;
+	//  If this bank only contains the word 'NULL' then skip
+	//  this bank.
+	if (fFragLength==1 && localbuff[fWordsSoFar]==kNullDataWord){
+	  fWordsSoFar += fFragLength;
+	  continue;
+	}
+	object.ProcessBuffer(fEvtType, fSubbankTag, fSubbankType,
+			     &localbuff[fWordsSoFar],
+			     fFragLength);
+	fWordsSoFar += fFragLength;
+      }
+    } else {
+      //  This is a single bank of some type
+      object.ProcessBuffer(fEvtType, 0, fBankDataType,
+			   &localbuff[fWordsSoFar],
+			   fEvtLength);
+    }
+  }
+  return okay;
+};
+
+
 
 #endif

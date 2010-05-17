@@ -7,10 +7,12 @@
 #ifndef __QwHelicityPattern__
 #define __QwHelicityPattern__
 
-#include <vector>
-#include <TTree.h>
-#include "QwSubsystemArrayParity.h"
 
+#include "TTree.h"
+#include "QwSubsystemArrayParity.h"
+#include "QwBlinder.h"
+
+#include <vector>
 ///
 /// \ingroup QwAnalysis_ADC
 ///
@@ -22,13 +24,14 @@ class QwHelicityPattern{
    *
    ******************************************************************/
  public:
-  QwHelicityPattern(QwSubsystemArrayParity &event, Int_t pattern_size);
+  QwHelicityPattern(QwSubsystemArrayParity &event);
   ~QwHelicityPattern(){};
 
+  void ProcessOptions(QwOptions &options); //Handle command line options
   void  LoadEventData(QwSubsystemArrayParity &event);
   Bool_t IsCompletePattern();
-  void  CalculateAsymmetry();
-  void CalculateRunningAverage();
+  void  CalculateAsymmetry(QwBlinder *blinder = 0);
+  void  CalculateRunningAverage();
 
   void  ConstructHistograms(){ConstructHistograms((TDirectory*)NULL);};
   void  ConstructHistograms(TDirectory *folder);
@@ -36,7 +39,7 @@ class QwHelicityPattern{
   void  DeleteHistograms();
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
-
+  void  FillDB(QwDatabase *db);
   Bool_t IsGoodAsymmetry(){ return IsGood;};
 
   void  ClearEventData();
@@ -52,18 +55,29 @@ class QwHelicityPattern{
   Int_t fPatternSize;
   Int_t fQuartetNumber;
 
+  // Yield and asymmetry of a single helicity pattern
   QwSubsystemArrayParity  fYield;
   QwSubsystemArrayParity  fAsymmetry;
-  QwSubsystemArrayParity fAverage;
-  QwSubsystemArrayParity fRunningSum;
+  // Alternate asymmetry calculations
+  Bool_t bAlternateAsym;
+  QwSubsystemArrayParity  fAsymmetry1;
+  QwSubsystemArrayParity  fAsymmetry2;
+
+  // Running sum/average of the yield and asymmetry
+  QwSubsystemArrayParity fRunningSumYield;
+  QwSubsystemArrayParity fRunningSumAsymmetry;
+
  private:
-  QwSubsystemArrayParity pos_sum;
-  QwSubsystemArrayParity neg_sum;
-  QwSubsystemArrayParity difference;
-  
-  
-  Bool_t IsGood; 
-  
+
+  QwSubsystemArrayParity fDiff;
+  QwSubsystemArrayParity fPositiveHelicitySum;
+  QwSubsystemArrayParity fNegativeHelicitySum;
+
+
+  Bool_t IsGood;
+
+
+
 };
 
 

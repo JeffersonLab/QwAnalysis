@@ -13,7 +13,7 @@
 
 // Qweak headers
 #include "QwTypes.h"
-#include "globals.h"
+#include "QwOptions.h"
 
 // Forward declarations
 class QwSubsystemArrayTracking;
@@ -24,7 +24,8 @@ class QwPartialTrack;
 class QwTrack;
 class QwEvent;
 class QwBridge;
-class QwTrajectory;
+class QwMatrixLookup;
+class QwRayTracer;
 
 /**
  *  \class QwTrackingWorker
@@ -53,7 +54,7 @@ class QwTrackingWorker {
     ~QwTrackingWorker();
 
     /// \brief Define command line and config file options
-    static void DefineOptions();
+    static void DefineOptions(QwOptions& options);
 
     /// \brief Get the debug level
     int GetDebugLevel () { return fDebug; };
@@ -83,11 +84,17 @@ class QwTrackingWorker {
     /// \brief Initialize the pattern search tree
     void InitTree();
 
+    /// \name Momentum determination bridging methods
+    //@{
+    /// Lookup table bridging method
+    QwMatrixLookup* fMatrixLookup;
+    /// Ray tracing bridging method
+    QwRayTracer* fRayTracer;
+    //@}
+
     // Local flags
     bool fShowEventPattern;
     bool fShowMatchingPattern;
-
-    QwTrajectory *trajectory;
 
 }; // class QwTrackingWorker
 

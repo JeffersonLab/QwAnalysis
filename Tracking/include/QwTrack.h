@@ -36,7 +36,7 @@ class QwTrack: public VQwTrackingElement {
   public:
 
     QwTrack();
-    ~QwTrack();
+    virtual ~QwTrack();
 
     bool IsUsed() { return isused; };
 
@@ -49,9 +49,11 @@ class QwTrack: public VQwTrackingElement {
 
     void SortBridgedTracks() { };
 
+    friend ostream& operator<< (ostream& stream, const QwTrack& t);
+
   public:
 
-    double ZVx, TVx;		/// Vertex posistion in Z and transverse
+    double ZVx, TVx;		/// Vertex position in Z and transverse
     double The, Phi;		/// theta and phi of track
     int    AngleCorr;		/// are theta and phi are corrected for the holding field
     double rDXSl;		/// bending in the magnet (x direction)
@@ -61,9 +63,7 @@ class QwTrack: public VQwTrackingElement {
 
     double fXBj, fY, fQ2, fW2, fNu;	/// kinematics
 
-    int    RecoEvent;		/// track from mcHits instead of digits
-
-    QwBridge *bridge;		/// magnet matching information
+    QwBridge *fBridge;	//!	/// magnet matching information
     int    iMagnetMatched;	/// number of magnet hits along track
     int    yTracks;		/// number of y tracks
 

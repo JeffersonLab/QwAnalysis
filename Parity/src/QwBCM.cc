@@ -23,16 +23,19 @@ void QwBCM::SetPedestal(Double_t pedestal)
 void QwBCM::SetCalibrationFactor(Double_t calib)
 {
 	fCalibration=calib;
-	fTriumf_ADC.SetCalibrationFactor(fCalibration); 
+	fTriumf_ADC.SetCalibrationFactor(fCalibration);
 	return;
 };
-/********************************************************/ 
+/********************************************************/
 void  QwBCM::InitializeChannel(TString name, TString datatosave)
 {
   SetPedestal(0.);
   SetCalibrationFactor(1.);
-  fTriumf_ADC.InitializeChannel(name,datatosave);  
+  fTriumf_ADC.InitializeChannel(name,datatosave);
   SetElementName(name);
+  //set default limits to event cuts
+  fLLimit=0;//init two timits
+  fULimit=0;//init two timits
   return;
 };
 /********************************************************/
@@ -43,6 +46,30 @@ void QwBCM::ClearEventData()
 };
 
 
+/********************************************************/
+void QwBCM::UseExternalRandomVariable()
+{
+  fTriumf_ADC.UseExternalRandomVariable();
+  return;
+};
+/********************************************************/
+void QwBCM::SetExternalRandomVariable(double random_variable)
+{
+  fTriumf_ADC.SetExternalRandomVariable(random_variable);
+  return;
+};
+/********************************************************/
+void QwBCM::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
+{
+  fTriumf_ADC.SetRandomEventDriftParameters(amplitude, phase, frequency);
+  return;
+};
+/********************************************************/
+void QwBCM::AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
+{
+  fTriumf_ADC.AddRandomEventDriftParameters(amplitude, phase, frequency);
+  return;
+};
 /********************************************************/
 void QwBCM::SetRandomEventParameters(Double_t mean, Double_t sigma)
 {
@@ -56,9 +83,9 @@ void QwBCM::SetRandomEventAsymmetry(Double_t asymmetry)
   return;
 };
 /********************************************************/
-void QwBCM::RandomizeEventData(int helicity)
+void QwBCM::RandomizeEventData(int helicity, double time)
 {
-  fTriumf_ADC.RandomizeEventData(helicity);
+  fTriumf_ADC.RandomizeEventData(helicity, time);
   return;
 };
 /********************************************************/
@@ -80,56 +107,50 @@ void QwBCM::EncodeEventData(std::vector<UInt_t> &buffer)
 };
 /********************************************************/
 void  QwBCM::ProcessEvent()
-{  
+{
+  ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine either in ApplySingleEventCuts or here do not make any difference for a BCM but do for a BPMs because they have derrived devices.
   fTriumf_ADC.ProcessEvent();
   return;
 };
 /********************************************************/
 Bool_t QwBCM::ApplyHWChecks()
 {
-  Bool_t fEventIsGood=kTRUE;	
+  Bool_t fEventIsGood=kTRUE;
 
   fDeviceErrorCode=fTriumf_ADC.ApplyHWChecks();//will check for HW consistancy and return the error code (=0 is HW good)
   fEventIsGood=(fDeviceErrorCode & 0x0);//if no HW error return true
- 
-  
-  return fEventIsGood;  
+
+
+  return fEventIsGood;
 };
 /********************************************************/
 
-Int_t QwBCM::SetSingleEventCuts(std::vector<Double_t> & dEventCuts){//two limts and sample size
-  fLLimit=dEventCuts.at(0);
-  fULimit=dEventCuts.at(1);
-  fDevice_flag=(Int_t) dEventCuts.at(2);  
+Int_t QwBCM::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){//std::vector<Double_t> & dEventCuts){//two limts and sample size
+  fTriumf_ADC.SetSingleEventCuts(LL,UL);
   return 1;
 };
 
 void QwBCM::SetDefaultSampleSize(Int_t sample_size){
   fTriumf_ADC.SetDefaultSampleSize((size_t)sample_size);
 }
-  
+
 
 /********************************************************/
 Bool_t QwBCM::ApplySingleEventCuts(){
   //std::cout<<" QwBCM::SingleEventCuts() "<<std::endl;
-  Bool_t status=kTRUE;   
-  ApplyHWChecks();//first apply HW checks and update HW  error flags.
-  
-  if (fDevice_flag==1){// if fDevice_flag==1 then perform the event cut limit test	  
-    
-    //if (fTriumf_ADC.GetHardwareSum()<=fULimit && fTriumf_ADC.GetHardwareSum()>=fLLimit){ // Check event cuts + HW check status
-    if (fTriumf_ADC.ApplySingleEventCuts(fLLimit,fULimit)){    
-      status=kTRUE;
-      //std::cout<<" BCM Sample size "<<fTriumf_ADC.GetNumberOfSamples()<<std::endl;
-    }
-    else{
-      fTriumf_ADC.UpdateEventCutErrorCount();//update event cut falied counts
-      if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fTriumf_ADC.GetHardwareSum();
-      status&=kFALSE;//kTRUE;//kFALSE;
-    }
-    fDeviceErrorCode|=fTriumf_ADC.GetEventcutErrorFlag();//retrun the error flag for event cuts
-  }else
-    status =kTRUE;     
+  Bool_t status=kTRUE;
+
+
+  if (fTriumf_ADC.ApplySingleEventCuts()){
+    status=kTRUE;
+  }
+  else{
+    fTriumf_ADC.UpdateEventCutErrorCount();//update event cut falied counts
+    if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fTriumf_ADC.GetHardwareSum();
+    status&=kFALSE;
+  }
+  fDeviceErrorCode|=fTriumf_ADC.GetEventcutErrorFlag();//retrun the error flag for event cuts
+
 
   return status;
 
@@ -220,12 +241,12 @@ void QwBCM::Scale(Double_t factor)
   return;
 }
 
-void QwBCM::Calculate_Running_Average(){
-  fTriumf_ADC.Calculate_Running_Average();
+void QwBCM::CalculateRunningAverage() {
+  fTriumf_ADC.CalculateRunningAverage();
 };
 
-void QwBCM::Do_RunningSum(){
-  fTriumf_ADC.Do_RunningSum();
+void QwBCM::AccumulateRunningSum(const QwBCM& value) {
+  fTriumf_ADC.AccumulateRunningSum(value.fTriumf_ADC);
 };
 
 void QwBCM::Print() const
@@ -327,6 +348,35 @@ void  QwBCM::Copy(VQwDataElement *source)
     }
 
   return;
-}
+};
 
 
+
+
+QwDBInterface QwBCM::GetDBEntry(TString subname)
+{
+  QwDBInterface row;
+
+  TString name;
+  Double_t avg         = 0.0;
+  Double_t err         = 0.0;
+  UInt_t beam_subblock = 0;
+  UInt_t beam_n        = 0;
+
+  name          = this->GetElementName();
+  avg           = this->GetAverage();
+  err           = this->GetAverageError();
+  beam_subblock = 9;// no meaning, later will be replaced with a real one
+  beam_n        = this->GetGoodEventCount();
+
+
+  row.SetDetectorName(name);
+  row.SetSubblock(beam_subblock);
+  row.SetN(beam_n);
+  row.SetValue(avg);
+  row.SetError(err);
+
+
+  return row;
+
+};

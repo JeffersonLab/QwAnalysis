@@ -98,6 +98,8 @@
 //
 #include "MQwSIS3320_Channel.h"
 
+
+
 // Multiplet structure
 static const int kMultiplet = 4;
 
@@ -107,25 +109,32 @@ static bool bDebug = false;
 // Activate components
 static bool bTree = true;
 static bool bHisto = true;
-static bool bHelicity = false;
+static bool bHelicity = true;
 static bool bComptonPhoton = true;
 static bool bComptonElectron = true;
 
 int main(int argc, char* argv[])
 {
-  //Set the command line arguments and the configuration filename
+  /// Set the command line arguments and the configuration filename
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.SetConfigFile("qwcompton.conf");
-  // Define the command line options
-  gQwOptions.DefineOptions();
+  /// Define the command line options
+  DefineOptionsParity(gQwOptions);
+  gQwOptions.Parse();
 
-  // Message logging facilities
+  /// Message logging facilities
   gQwLog.InitLogFile("QwCompton.log", QwLog::kTruncate);
   gQwLog.SetScreenThreshold(QwLog::kMessage);
   gQwLog.SetFileThreshold(QwLog::kDebug);
 
+  ///  Fill the search paths for the parameter files; this sets a static
+  ///  variable within the QwParameterFile class which will be used by
+  ///  all instances.  The "scratch" directory should be first.
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QW_PRMINPUT")));
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
+
   // Load histogram definitions
-  gQwHists.LoadHistParamsFromFile(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/parity_hists.in");
+  gQwHists.LoadHistParamsFromFile("parity_hists.in");
 
   // Detector array
   QwSubsystemArrayParity detectors;
@@ -135,8 +144,8 @@ int main(int argc, char* argv[])
     detectors.push_back(new QwComptonPhotonDetector("Compton Photon Detector"));
     photon = dynamic_cast<QwComptonPhotonDetector*> (detectors.GetSubsystem("Compton Photon Detector"));
     if (photon) {
-      photon->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/compton_photon_channels.map");
-      photon->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/compton_photon_pedestal.map");
+      photon->LoadChannelMap("compton_photon_channels.map");
+      photon->LoadInputParameters("compton_photon_pedestal.map");
       photon->Print();
     } else QwError << "Could not initialize photon detector!" << QwLog::endl;
   }
@@ -146,25 +155,27 @@ int main(int argc, char* argv[])
     detectors.push_back(new QwComptonElectronDetector("Compton Electron Detector"));
     electron = dynamic_cast<QwComptonElectronDetector*> (detectors.GetSubsystem("Compton Electron Detector"));
     if (electron) {
-      electron->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/compton_electron_channels.map");
-      electron->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/compton_electron_pedestal.map");
+      electron->LoadChannelMap("compton_electron_channels.map");
+      electron->LoadInputParameters("compton_electron_pedestal.map");
       electron->Print();
     } else QwError << "Could not initialize electron detector!" << QwLog::endl;
   }
   // Helicity subsystem
   if (bHelicity) {
     detectors.push_back(new QwHelicity("Helicity info"));
-    detectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_helicity.map");
+    detectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
     detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
   }
   // Helicity pattern
-  QwHelicityPattern helicitypattern(detectors, kMultiplet);
+  QwHelicityPattern helicitypattern(detectors);
 
   // Get the SIS3320 channel for debugging
   MQwSIS3320_Channel* sampling = 0;
   if (bComptonPhoton) {
     sampling = photon->GetSIS3320Channel("compton");
   }
+
+
 
   // Get the helicity
   QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystem("Helicity info");
@@ -190,8 +201,8 @@ int main(int argc, char* argv[])
 
 
     // ROOT file output (histograms)
-    TString rootfilename = TString(getenv("QWSCRATCH")) + TString("/rootfiles/")
-                         + TString("Compton_") + Form("%ld.root",run);
+    TString rootfilename = TString(getenv("QW_ROOTFILES"))
+                         + TString("/Compton_") + Form("%ld.root",run);
     TFile rootfile(rootfilename, "RECREATE", "QWeak ROOT file");
     if (bHisto) {
       rootfile.cd();
@@ -295,6 +306,7 @@ int main(int argc, char* argv[])
       if (bComptonPhoton && bDebug)
         sampling->Print();
 
+
       // Fill the histograms
       if (bHisto) detectors.FillHistograms();
 
@@ -340,6 +352,5 @@ int main(int argc, char* argv[])
     eventbuffer.ReportRunSummary();
 
   } // end of loop over runs
-
 
 }

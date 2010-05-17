@@ -46,6 +46,12 @@
 #include "RDataContainer.h"
 #include "QwGUIMainDef.h"
 #include "QwGUIProgressDialog.h"
+#include "QwGUIDatabaseContainer.h"
+
+#include "QwGUISuperCanvas.h"
+
+// QwAnalysis / Analysis/ include 
+#include "QwColor.h"
 
 class QwGUISubSystem : public TGCompositeFrame {
 
@@ -93,6 +99,17 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!direct instance of this container kept within the class. 
   RDataContainer  *dROOTCont;
 
+  //!This is a database container reference, it contains the QwDatabase object and provides a series of 
+  //!access functions to read from the database. The pointer is set by the QwGUIMain class, when a new ROOT 
+  //!file is opened, by calling the member function SetDataContainer(RDataContainer *cont) in this class.   
+  //!There is no direct instance of this container kept within the class. 
+  QwGUIDatabaseContainer *dDatabaseCont;
+
+  //!This is a database interface reference, it provides all necessary access to the qweak database.
+  //!The pointer is set by the QwGUIMain class, when the database is opened via the GUI menu. The pointer is
+  //!set by calling the member function SetDataContainer(QwDatabase *dbase) in this class.  There is no 
+  //!direct instance of this container kept within the class. 
+
   //!This function must be defined by the derived class, to implement the overal layout of the subsystem class.
   //!For example, this is where the derived class would implement the display of graphs (see QwGUIMainDetector 
   //!class as an example). The function is called when the function SubSystemLayout() is called by the QwGUIMain 
@@ -130,7 +147,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   virtual void     OnAddThisTab(){};
 
   
-  //!This function can be overwritten by the derived class, to perform additional tasks, when the use has  
+  //!This function can be overwritten by the derived class, to perform additional tasks, when the user has  
   //!opened a new data file (any file). It is the responsibility of the derived class implmentation to 
   //!identify what type of file was opened.
   //!
@@ -138,7 +155,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   //! - none
   //!
   //!Return value: none
-  virtual void     OnNewDataContainer(){};
+  virtual void     OnNewDataContainer(RDataContainer *cont){};
 
   //!This function can be used to pass messages to the log book. The message content is 
   //!reformated slightly and copied to the dMiscbuffer member, to be picked up by the
@@ -347,8 +364,8 @@ class QwGUISubSystem : public TGCompositeFrame {
   void             SubSystemLayout(){this->MakeLayout();};
 
 
-  //!This function is called by the QwGUIMain::AddATab function when the user has  
-  //!opened a new data file (any file). The actual ownership of the file container is kept in the QwGUIMain class.
+  //!This function is called when the user has opened a new data file (any file).  
+  //!The actual ownership of the file container is kept in the QwGUIMain class.
   //!
   //!Parameters:
   //! - 1) A pointer to the data container, containing the newly opened file.

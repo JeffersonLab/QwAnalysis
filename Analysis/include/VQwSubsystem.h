@@ -20,6 +20,7 @@
 
 // Forward declarations
 class QwSubsystemArray;
+class VQwDataElement;
 
 /**
  *  \class   VQwSubsystem
@@ -67,6 +68,24 @@ class VQwSubsystem {
   /// \brief Get the sibling with specified name
   VQwSubsystem* GetSibling(const TString& name) const;
 
+  /// \brief Publish a variable name to the parent subsystem array
+  const Bool_t PublishInternalValue(const TString name, const TString desc) const;
+  /// \brief Publish all variables of the subsystem
+  virtual const Bool_t PublishInternalValues() const {
+    return kTRUE; // when not implemented, this returns success
+  };
+
+  /// \brief Request a named value which is owned by an external subsystem;
+  ///        the request will be handled by the parent subsystem array
+  const Bool_t RequestExternalValue(TString name, VQwDataElement* value) const;
+
+  /// \brief Return a named value to the parent subsystem array to be
+  ///        delivered to a different subsystem.
+  virtual const Bool_t ReturnInternalValue(TString name,
+				      VQwDataElement* value) const {
+    return kFALSE;
+  };
+
   virtual Int_t LoadChannelMap(TString mapfile) = 0;
   virtual Int_t LoadInputParameters(TString mapfile) = 0;
   virtual void  ClearEventData() = 0;
@@ -89,7 +108,7 @@ class VQwSubsystem {
 
 
   // Not all derived classes will have the following functions
-  virtual void  RandomizeEventData(int helicity) { };
+  virtual void  RandomizeEventData(int helicity = 0, double time = 0.0) { };
   virtual void  EncodeEventData(std::vector<UInt_t> &buffer) { };
 
   /// \name Histogram construction and maintenance

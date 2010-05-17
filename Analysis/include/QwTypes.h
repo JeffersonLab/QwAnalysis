@@ -6,7 +6,10 @@
 
 // ROOT basic types
 #include <Rtypes.h>
+class TString;
 
+// Qweak headers
+#include "QwUnits.h"
 
 // Enumerator types for regions and directions
 static const Int_t kNumRegions = 7;
@@ -46,6 +49,16 @@ enum EQwDetectorType {
   kTypeCerenkov,	// Cerenkov detector
   kTypeScanner		// Focal plane scanner
 };
+
+// Enumerator type for the instrument type, used in subsystems that have to
+// distinguish between various detector types.
+enum EQwPMTInstrumentType {
+  kQwUnknownPMT,	// Unknown PMT type
+  kQwIntegrationPMT,	// Integration PMT
+  kQwCombinedPMT	// Combined PMT
+};
+EQwPMTInstrumentType GetQwPMTInstrumentType(TString name);
+TString GetQwPMTInstrumentTypeName(EQwPMTInstrumentType type);
 
 
 //=======
@@ -128,5 +141,13 @@ class QwDelayLineID{
  Int_t fLineNumber;
  Int_t fSide;
 };
+
+///  Definitions for beam parameter quantities; use these types rather than
+///  the raw "QwVQWK_Channel" to allow for future specification.
+class QwVQWK_Channel;
+typedef class QwVQWK_Channel QwBeamCharge;
+typedef class QwVQWK_Channel QwBeamPosition;
+typedef class QwVQWK_Channel QwBeamAngle;
+typedef class QwVQWK_Channel QwBeamEnergy;
 
 #endif

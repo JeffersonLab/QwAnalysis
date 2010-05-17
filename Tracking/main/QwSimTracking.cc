@@ -32,6 +32,7 @@
 #include "QwTreeEventBuffer.h"
 #include "QwHitRootContainer.h"
 #include "QwTrackingWorker.h"
+#include "QwPartialTrack.h"
 #include "QwEvent.h"
 
 // Qweak tracking subsystem headers
@@ -39,11 +40,12 @@
 #include "QwGasElectronMultiplier.h"
 #include "QwDriftChamberHDC.h"
 #include "QwDriftChamberVDC.h"
+#include "QwMainDetector.h"
 
 
 
 // Debug level
-static const bool kDebug = false;
+static const bool kDebug = true;
 // ROOT file output
 static const bool kTree = true;
 static const bool kHisto = true;
@@ -55,13 +57,14 @@ int main (int argc, char* argv[])
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.SetConfigFile("qwsimtracking.conf");
   // Define the command line options
-  gQwOptions.DefineOptions();
+  DefineOptionsTracking(gQwOptions);
 
   /// Now we setup the message logging facilities with the requested loglevels.
   if (gQwOptions.HasValue("QwLog.logfile"))
     gQwLog.InitLogFile(gQwOptions.GetValue<string>("QwLog.logfile"));
   gQwLog.SetFileThreshold(QwLog::QwLogLevel(gQwOptions.GetValue<int>("QwLog.loglevel-file")));
   gQwLog.SetScreenThreshold(QwLog::QwLogLevel(gQwOptions.GetValue<int>("QwLog.loglevel-screen")));
+  gQwLog.SetScreenColor(gQwOptions.GetValue<bool>("QwLog.color"));
 
   /// We fill the search paths for the parameter files.
   QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
@@ -74,7 +77,7 @@ int main (int argc, char* argv[])
 
   // Region 1 GEM
   detectors->push_back(new QwGasElectronMultiplier("R1"));
-  //detectors->GetSubsystem("R1")->LoadChannelMap("qweak_cosmics_hits.map");
+  detectors->GetSubsystem("R1")->LoadChannelMap("qweak_cosmics_hits.map");
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R1"))->LoadQweakGeometry("qweak_new.geo");
 
   // Region 2 HDC
@@ -87,12 +90,17 @@ int main (int argc, char* argv[])
   detectors->GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
 
+  // Region 3 MD
+  detectors->push_back(new QwMainDetector("MD"));
+  ((VQwSubsystemTracking*) detectors->GetSubsystem("MD"))->LoadQweakGeometry("qweak_new.geo");
+
 
   // Get vector with detector info (by region, plane number)
   std::vector< std::vector< QwDetectorInfo > > detector_info;
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R2"))->GetDetectorInfo(detector_info);
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->GetDetectorInfo(detector_info);
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R1"))->GetDetectorInfo(detector_info);
+  ((VQwSubsystemTracking*) detectors->GetSubsystem("MD"))->GetDetectorInfo(detector_info);
   // TODO This is handled incorrectly, it just adds the three package after the
   // existing three packages from region 2...  GetDetectorInfo should descend
   // into the packages and add only the detectors in those packages.
@@ -122,8 +130,6 @@ int main (int argc, char* argv[])
     // Load the simulated event file
     TString filename = Form(TString(getenv("QWSCRATCH")) + "/data/QwSim_%d.root", runnumber);
     QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (filename, detector_info);
-    treebuffer->EnableResolutionEffects();
-    treebuffer->SetDebugLevel(1);
 
     // Open ROOT file
     TFile* file = 0;
@@ -145,20 +151,23 @@ int main (int argc, char* argv[])
 
     /// We loop over all requested events.
     Int_t events = 0;
-    Int_t fEntries = treebuffer->GetEntries();
+    Int_t entries = treebuffer->GetEntries();
     Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
     Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
     for (int eventnumber  = eventnumber_min;
              eventnumber <= eventnumber_max &&
-             eventnumber < fEntries; eventnumber++) {
+             eventnumber  < entries; eventnumber++) {
+
+      /// Read the event from the tree
+      treebuffer->GetEntry(eventnumber);
 
       /// We get the hit list from the event buffer.
-      QwHitContainer* hitlist = treebuffer->GetHitList(eventnumber);
+      QwHitContainer* hitlist = treebuffer->GetHitList();
       roothitlist->Convert(hitlist);
 
       // Print hit list
       if (kDebug) {
-        std::cout << "Printing hitlist ..." << std::endl;
+        std::cout << "Printing hitlist..." << std::endl;
         hitlist->Print();
       }
 
@@ -170,7 +179,7 @@ int main (int argc, char* argv[])
       // Do something with this event
       event->GetEventHeader()->SetRunNumber(runnumber);
       event->GetEventHeader()->SetEventNumber(eventnumber);
-      event->Print();
+      if (kDebug) event->Print();
 
 
       // Fill the tree
@@ -197,7 +206,7 @@ int main (int argc, char* argv[])
               << trackingworker->R3Good << std::endl;
 
     // Print results
-    if (kDebug) tree->Print();
+    //if (kDebug) tree->Print();
 
     // Write and close file
     if (kTree || kHisto) {

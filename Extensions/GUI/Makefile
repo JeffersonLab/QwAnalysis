@@ -1,4 +1,4 @@
-SUBDIRS = QwGUILib QwGUIView
+SUBDIRS = QwGUILib QwGUIView QwRealTimeGUIView
 DATA_SUBDIRS = 
 CONFFILES = 
 
@@ -8,8 +8,9 @@ all: QwGUIData $(DATA_SUBDIRS) $(CONFFILES)
 
 QwGUILib  : VERSION
 QwGUIView : VERSION QwGUILib
-QwGUIData : QwGUIView 
-
+QwRealTimeGUIView : VERSION QwGUILib
+QwGUIData : QwGUIView QwRealTimeGUIView
+#QwGUIData : QwGUIView
 $(SUBDIRS) : 
 	$(MAKE) -C $@
 

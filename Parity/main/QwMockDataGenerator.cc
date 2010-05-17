@@ -18,11 +18,13 @@
 // Qweak headers
 #include "QwLog.h"
 #include "QwBeamLine.h"
-#include "QwCommandLine.h"
+#include "QwOptionsParity.h"
 #include "QwEventBuffer.h"
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
 #include "QwMainCerenkovDetector.h"
+#include "QwLumi.h"
+#include "QwScanner.h"
 #include "QwSubsystemArrayParity.h"
 #include "QwVQWK_Channel.h"
 
@@ -35,16 +37,34 @@
 static const int kMultiplet = 4;
 
 // Beam trips on qwk_bcm0l03
-static const bool kBeamTrips = false;
+static const bool kBeamTrips = true;
 
 // Debug
 static const bool kDebug = false;
 
+// Stringify
+inline std::string stringify(int i) {
+  std::ostringstream stream;
+  stream << i;
+  return stream.str();
+}
+
 int main(int argc, char* argv[])
 {
-  // Parse command line arguments
-  QwCommandLine commandline;
-  commandline.Parse(argc, argv);
+  // First, we set the command line arguments and the configuration filename,
+  // and we define the options that can be used in them (using QwOptions).
+  gQwOptions.SetCommandLine(argc, argv);
+  gQwOptions.SetConfigFile("qwmockdataanalysis.conf");
+  // Define the command line options
+  DefineOptionsParity(gQwOptions);
+
+  // Fill the search paths for the parameter files; this sets a static
+  // variable within the QwParameterFile class which will be used by
+  // all instances.
+  // The "scratch" directory should be first.
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QW_PRMINPUT")));
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Analysis/prminput");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Parity/prminput");
 
   // Event buffer
   QwEventBuffer eventbuffer;
@@ -52,22 +72,20 @@ int main(int argc, char* argv[])
   // Detector array
   QwSubsystemArrayParity detectors;
   detectors.push_back(new QwBeamLine("Injector BeamLine"));
-  detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_beamline.map");
-  detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
+  detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
   detectors.push_back(new QwHelicity("Helicity info"));
-  detectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_helicity.map");
-  detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
+  detectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
   detectors.push_back(new QwMainCerenkovDetector("Main detector"));
-  //detectors.GetSubsystem("Main detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_adc.map");
-//   detectors.GetSubsystem("Main detector")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
-//   QwHelicityPattern QwHelPat(detectors, kMultiplet);
-
-  detectors.GetSubsystem("Main detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
-  detectors.GetSubsystem("Main detector")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
-  QwHelicityPattern QwHelPat(detectors, kMultiplet);
+  detectors.GetSubsystem("Main detector")->LoadChannelMap("qweak_adc.map");
+  detectors.push_back(new QwLumi("Lumi detector"));
+  detectors.GetSubsystem("Lumi detector")->LoadChannelMap("qweak_lumi.map");
+  detectors.push_back(new QwScanner("FPS"));
+  detectors.GetSubsystem("FPS")->LoadChannelMap("scanner_channel.map" );
+  detectors.GetSubsystem("FPS")->LoadInputParameters("scanner_parameter.map");
 
   // Get the helicity
-  QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystem("Helicity info");
+  QwHelicity* helicity = dynamic_cast<QwHelicity*>(detectors.GetSubsystem("Helicity info"));
+  if (! helicity) QwWarning << "No helicity subsystem defined!" << QwLog::endl;
 
   // Possible scenarios:
   // - everything is random, no correlations at all, no asymmetries at all
@@ -78,72 +96,104 @@ int main(int argc, char* argv[])
   //   is random and independently distributed
   // - two parameters have independent helicity-correlated asymmetries
   // - two parameters have correlated helicity-correlated asymmetries
-
+  // - beam modulation
 
   // Get the beamline channels we want to correlate
-  QwBeamLine* beamline = (QwBeamLine*) detectors.GetSubsystem("Injector BeamLine");
+  QwBeamLine* beamline = dynamic_cast<QwBeamLine*>(detectors.GetSubsystem("Injector BeamLine"));
+  if (! beamline) QwWarning << "No beamline subsystem defined!" << QwLog::endl;
 
-  // Get some BCMs
-  QwBCM* bcm[8];
-  bcm[0] = beamline->GetBCM("qwk_bcm0l00");
-  bcm[1] = beamline->GetBCM("qwk_bcm0l01");
-  bcm[2] = beamline->GetBCM("qwk_bcm0l02");
-  bcm[3] = beamline->GetBCM("qwk_bcm0l03");
-  bcm[4] = beamline->GetBCM("qwk_bcm0l04");
-  bcm[5] = beamline->GetBCM("qwk_bcm0l05");
-  bcm[6] = beamline->GetBCM("qwk_bcm0l06");
-  bcm[7] = beamline->GetBCM("qwk_bcm0l07");
-  Double_t bcm_mean = 1.0e7;
-  Double_t bcm_sigma = 1.0e4;
-  for (int i = 0; i < 8; i++)
-    bcm[i]->SetRandomEventParameters(bcm_mean, bcm_sigma);
-  // Set helicity asymmetry for the BCMs (0,1,2 are correlated)
-  bcm[3]->SetRandomEventAsymmetry(1.0e-3);
-  bcm[4]->SetRandomEventAsymmetry(1.0e-4);
-  bcm[5]->SetRandomEventAsymmetry(1.0e-5);
-  bcm[6]->SetRandomEventAsymmetry(1.0e-6);
-  bcm[7]->SetRandomEventAsymmetry(1.0e-7);
+  // Set the BCM mean, sigma, and asymmetries
+  std::vector<std::string> bcm_name;
+  std::vector<double> bcm_asym;
+  double bcm_mean, bcm_sigma;
+  bcm_mean = 2.5e7; bcm_sigma = 2.5e6;
+  bcm_name.push_back("qwk_bcm0l00"); bcm_asym.push_back(0.0e-0);
+  bcm_name.push_back("qwk_bcm0l01"); bcm_asym.push_back(1.0e-1);
+  bcm_name.push_back("qwk_bcm0l02"); bcm_asym.push_back(2.0e-2);
+  bcm_name.push_back("qwk_bcm0l03"); bcm_asym.push_back(3.0e-3);
+  bcm_name.push_back("qwk_bcm0l04"); bcm_asym.push_back(4.0e-4);
+  bcm_name.push_back("qwk_bcm0l05"); bcm_asym.push_back(5.0e-5);
+  bcm_name.push_back("qwk_bcm0l06"); bcm_asym.push_back(6.0e-6);
+  bcm_name.push_back("qwk_bcm0l07"); bcm_asym.push_back(7.0e-7);
+  for (unsigned int i = 0; i < bcm_name.size(); i++) {
+    QwBCM* bcm = beamline->GetBCM(bcm_name[i]);
+    if (! bcm) continue;
+    // Set the mean, sigma, and asymmetry
+    bcm->SetRandomEventParameters(bcm_mean, bcm_sigma);
+    bcm->SetRandomEventAsymmetry(bcm_asym[i]);
+    // Set a current noise component (amplitudeto, phase, frequency)
+    bcm->AddRandomEventDriftParameters(0.10*bcm_mean, 0,  60*Qw::Hz);
+    bcm->AddRandomEventDriftParameters(0.06*bcm_mean, 0, 120*Qw::Hz);
+    bcm->AddRandomEventDriftParameters(0.03*bcm_mean, 0, 180*Qw::Hz);
+    bcm->AddRandomEventDriftParameters(0.01*bcm_mean, 0, 240*Qw::Hz);
+  }
 
-  // Get some BPMs
-  QwBPMStripline* bpm[2];
-  bpm[0] = beamline->GetBPMStripline("qwk_0r06");
-  bpm[1] = beamline->GetBPMStripline("qwk_0l06");
-  Double_t bpm_meanX = 5.0;
-  Double_t bpm_sigmaX = 4.0e-6;
-  Double_t bpm_meanY = -2.5;
-  Double_t bpm_sigmaY = 2.0e-6;
-  for (int i = 0; i < 2; i++)
-    bpm[i]->SetRandomEventParameters(bpm_meanX, bpm_sigmaX, bpm_meanY, bpm_sigmaY);
 
+  // Set the BPM mean and sigma
+  std::vector<std::string> bpm_name;
+  std::vector<double> bpm_asym, bpm_meanX, bpm_sigmaX, bpm_meanY, bpm_sigmaY;
+  bpm_name.push_back("qwk_0r06"); bpm_asym.push_back(1.0e-3);
+  bpm_name.push_back("qwk_0l06"); bpm_asym.push_back(1.0e-3);
+  bpm_meanX.push_back(6.0); bpm_sigmaX.push_back(3.0e-3);
+  bpm_meanX.push_back(6.0); bpm_sigmaX.push_back(3.0e-3);
+  bpm_meanY.push_back(-1.5); bpm_sigmaY.push_back(4.0e-3);
+  bpm_meanY.push_back(-1.5); bpm_sigmaY.push_back(4.0e-3);
+  for (unsigned int i = 0; i < 2; i++) {
+    QwBPMStripline* bpm = beamline->GetBPMStripline(bpm_name[i]);;
+    if (! bpm) continue;
+    // Set the mean and sigma
+    bpm->SetRandomEventParameters(bpm_meanX[i], bpm_sigmaX[i], bpm_meanY[i], bpm_sigmaY[i]);
+  }
 
   // Get the main detector channels we want to correlate
-  QwMainCerenkovDetector* maindetector = (QwMainCerenkovDetector*) detectors.GetSubsystem("Main detector");
-  Double_t bar_mean = 1.0e7;
-  Double_t bar_sigma = 1.0e4;
-  Double_t bar_asym = 1.0e-4;
+  QwMainCerenkovDetector* maindetector =
+    dynamic_cast<QwMainCerenkovDetector*>(detectors.GetSubsystem("Main detector"));
+  if (! maindetector) QwWarning << "No main detector subsystem defined!" << QwLog::endl;
+  Double_t bar_mean = 2.0e7;
+  Double_t bar_sigma = 3.0e4;
+  Double_t bar_asym = 4.0e-4;
   maindetector->SetRandomEventParameters(bar_mean, bar_sigma);
   maindetector->SetRandomEventAsymmetry(bar_asym);
   // Specific values
-  maindetector->GetChannel("Bar2Left")->SetRandomEventAsymmetry(1.0e-2);
-  maindetector->GetChannel("Bar2Right")->SetRandomEventAsymmetry(1.0e-2);
-  maindetector->GetChannel("Bar3Left")->SetRandomEventAsymmetry(1.0e-3);
-  maindetector->GetChannel("Bar3Right")->SetRandomEventAsymmetry(1.0e-3);
-  maindetector->GetChannel("Bar4Left")->SetRandomEventAsymmetry(1.0e-4);
-  maindetector->GetChannel("Bar4Right")->SetRandomEventAsymmetry(1.0e-4);
-  maindetector->GetChannel("Bar5Left")->SetRandomEventAsymmetry(1.0e-5);
-  maindetector->GetChannel("Bar5Right")->SetRandomEventAsymmetry(1.0e-5);
-  maindetector->GetChannel("Bar6Left")->SetRandomEventAsymmetry(1.0e-6);
-  maindetector->GetChannel("Bar6Right")->SetRandomEventAsymmetry(1.0e-6);
-  maindetector->GetChannel("Bar7Left")->SetRandomEventAsymmetry(1.0e-7);
-  maindetector->GetChannel("Bar7Right")->SetRandomEventAsymmetry(1.0e-7);
-  maindetector->GetChannel("Bar8Left")->SetRandomEventAsymmetry(1.0e-8);
-  maindetector->GetChannel("Bar8Right")->SetRandomEventAsymmetry(1.0e-8);
+  maindetector->GetChannel("MD2Neg")->SetRandomEventAsymmetry(2.0e-2);
+  maindetector->GetChannel("MD2Pos")->SetRandomEventAsymmetry(2.0e-2);
+  maindetector->GetChannel("MD3Neg")->SetRandomEventAsymmetry(3.0e-3);
+  maindetector->GetChannel("MD3Pos")->SetRandomEventAsymmetry(3.0e-3);
+  maindetector->GetChannel("MD4Neg")->SetRandomEventAsymmetry(4.0e-4);
+  maindetector->GetChannel("MD4Pos")->SetRandomEventAsymmetry(4.0e-4);
+  maindetector->GetChannel("MD5Neg")->SetRandomEventAsymmetry(5.0e-5);
+  maindetector->GetChannel("MD5Pos")->SetRandomEventAsymmetry(5.0e-5);
+  maindetector->GetChannel("MD6Neg")->SetRandomEventAsymmetry(6.0e-6);
+  maindetector->GetChannel("MD6Pos")->SetRandomEventAsymmetry(6.0e-6);
+  maindetector->GetChannel("MD7Neg")->SetRandomEventAsymmetry(7.0e-7);
+  maindetector->GetChannel("MD7Pos")->SetRandomEventAsymmetry(7.0e-7);
+  maindetector->GetChannel("MD8Neg")->SetRandomEventAsymmetry(8.0e-8);
+  maindetector->GetChannel("MD8Pos")->SetRandomEventAsymmetry(8.0e-8);
 
   // Set a asymmetric helicity asymmetry on one of the bars
-  maindetector->GetChannel("Bar1Left")->SetRandomEventAsymmetry(1.0e-5);
-  maindetector->GetChannel("Bar1Right")->SetRandomEventAsymmetry(-1.0e-5);
+  maindetector->GetChannel("MD1Neg")->SetRandomEventAsymmetry(5.0e-5);
+  maindetector->GetChannel("MD1Pos")->SetRandomEventAsymmetry(-5.0e-5);
 
-  maindetector->GetChannel("Bar3Left")->SetRandomEventDriftParameters(1.0e6,0,60);
+  // Set a drift component (amplitude, phase, frequency)
+  maindetector->GetChannel("MD3Neg")->AddRandomEventDriftParameters(3.0e6, 0, 60*Qw::Hz);
+  maindetector->GetChannel("MD3Neg")->AddRandomEventDriftParameters(6.0e5, 0, 120*Qw::Hz);
+  maindetector->GetChannel("MD3Neg")->AddRandomEventDriftParameters(4.5e5, 0, 240*Qw::Hz);
+
+
+
+  // Get the lumi detector channels we want to correlate
+  QwLumi* lumidetector = dynamic_cast<QwLumi*>(detectors.GetSubsystem("Lumi detector"));
+  if (! lumidetector) QwWarning << "No lumi detector subsystem defined!" << QwLog::endl;
+  Double_t lumi_mean = 2.0e7;
+  Double_t lumi_sigma = 3.0e4;
+  Double_t lumi_asym = 4.0e-4;
+  lumidetector->SetRandomEventParameters(lumi_mean, lumi_sigma);
+  lumidetector->SetRandomEventAsymmetry(lumi_asym);
+  // Specific values
+  lumidetector->GetChannel("dlumi1")->SetRandomEventAsymmetry(1.0e-2);
+  lumidetector->GetChannel("dlumi2")->SetRandomEventAsymmetry(1.0e-3);
+
+
 
   // Initialize randomness provider and distribution
   boost::mt19937 randomnessGenerator(999); // Mersenne twister with seed (see below)
@@ -158,8 +208,12 @@ int main(int argc, char* argv[])
 
 
 
-  // Run generation loop
-  for (int run = commandline.GetFirstRun(); run <= commandline.GetLastRun(); run++) {
+  // Loop over all runs
+  UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
+  UInt_t runnumber_max = (UInt_t) gQwOptions.GetIntValuePairLast("run");
+  for (UInt_t run  = runnumber_min;
+              run <= runnumber_max;
+              run++) {
 
     // Open new output file
     // (giving run number as argument to OpenDataFile confuses the segment search)
@@ -182,10 +236,18 @@ int main(int argc, char* argv[])
     helicity->SetFirst24Bits(seed & 0xFFFFFF);
 
 
-    // Event generation loop
+    // Retrieve the requested range of event numbers
     if (kDebug) std::cout << "Starting event loop..." << std::endl;
-    for (Int_t event = commandline.GetFirstEvent();
-               event <= commandline.GetLastEvent(); event++) {
+    Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
+    Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
+
+    // Warn when only few events are requested, probably a problem in the input
+    if (abs(eventnumber_max - eventnumber_min) < 10)
+      QwWarning << "Only " << abs(eventnumber_max - eventnumber_min)
+                << " events will be generated." << QwLog::endl;
+
+    // Event generation loop
+    for (Int_t event = eventnumber_min; event <= eventnumber_max; event++) {
 
       // First clear the event
       detectors.ClearEventData();
@@ -214,6 +276,10 @@ int main(int argc, char* argv[])
         }
       }
 
+      // Calculate the time assuming one ms for every helicity window
+      double helicity_window = Qw::ms;
+      double time = event * helicity_window;
+
 
       // Cause a beam trip :-)
       //
@@ -222,28 +288,32 @@ int main(int argc, char* argv[])
       // still randomized, but the mean is adjusted by a linear ramp down.  It
       // then jumps up immediately again.
       if (kBeamTrips) {
-        int second = 1000; // number of helicity events in a second
-        int minute = 60 * second;
-        int hour = 60 * minute;
-        int period = hour / 10; // time between trips
-        int length = 1 * second; // length of a beam trip (ramp down)
+
+        // Period = time between trips
+        // Length = length of a trip
+        double period = Qw::hour / 17.0;
+        double length = 1.0 * Qw::sec;
 
         // Periodicity
-        if (event % period == period - length)
-          std::cout << "Beam trips again! Call MCC!" << std::endl;
-        if (event % period >= period - length) {
+        if (fmod(time, period) >= period - length) {
           // Do the ramp down
-          QwBCM* bcm = beamline->GetBCM("qwk_bcm0l03");
-          double scale = double(period - (event % period)) / double(length);
+          QwBCM* bcm = beamline->GetBCM(bcm_name[2]);
+          double scale = double(period - fmod(time, period)) / double(length);
           bcm->SetRandomEventParameters(bcm_mean * scale, bcm_sigma);
+        }
+
+        // Set the scale back to what it was after a trip
+        if (fmod(time, period) < helicity_window) {
+          QwBCM* bcm = beamline->GetBCM(bcm_name[2]);
+          bcm->SetRandomEventParameters(bcm_mean, bcm_sigma);
         }
       } // end of beam trips
 
 
       // Fill the detectors with randomized data
       int myhelicity = helicity->GetHelicityActual() ? +1 : -1;
-      maindetector->GetChannel("Bar3Left")->SetEventNumber(event);
-      detectors.RandomizeEventData(myhelicity);
+
+
 
       // Secondly introduce correlations between variables
       //
@@ -255,22 +325,25 @@ int main(int argc, char* argv[])
       //   C the Cholesky decomposition of the positive-definite covariance matrix
       //     (C should probably be calculated offline)
       //
-      double z[NVARS], x[NVARS];
-      double C[NVARS][NVARS];
-      for (int var = 0; var < NVARS; var++) {
-        x[var] = 0.0;
-        z[var] = bcm_mean + bcm_sigma * normal();
-        C[var][var] = 1.0;
-      }
       /* Sigma =
            1.00000   0.50000   0.50000
            0.50000   2.00000   0.30000
            0.50000   0.30000   1.50000
+
          C =
            1.00000   0.50000   0.50000
            0.00000   1.32288   0.03780
            0.00000   0.00000   1.11739
+
+         Sigma = C' * C
        */
+      double z[NVARS], x[NVARS];
+      double C[NVARS][NVARS];
+      for (int var = 0; var < NVARS; var++) {
+        x[var] = 0.0;
+        z[var] = normal();
+        C[var][var] = 1.0;
+      }
       C[0][0] = 1.0; C[0][1] = 0.5;     C[0][2] = 0.5;
       C[1][0] = 0.0; C[1][1] = 1.32288; C[1][2] = 0.03780;
       C[2][0] = 0.0; C[2][1] = 0.0;     C[2][2] = 1.11739;
@@ -278,15 +351,19 @@ int main(int argc, char* argv[])
         for (int j = 0; j < NVARS; j++)
           x[i] += C[j][i] * z[j];
 
-      // Assign to BCMs
-      bcm[0]->SetHardwareSum(x[0]);
-      bcm[1]->SetHardwareSum(x[1]);
-      bcm[2]->SetHardwareSum(x[2]);
+      // Assign to data elements
+      maindetector->GetChannel("MD2Neg")->SetExternalRandomVariable(x[0]);
+      lumidetector->GetChannel("dlumi1")->SetExternalRandomVariable(x[1]);
+      beamline->GetBCM("qwk_bcm0l07")->SetExternalRandomVariable(x[2]);
 
+
+
+
+      // Randomize data for this event
+      detectors.RandomizeEventData(myhelicity, time);
 
       // Write this event to file
       eventbuffer.EncodeSubsystemData(detectors);
-
 
       // Periodically print event number
       if ((kDebug && event % 1000 == 0)

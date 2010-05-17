@@ -72,7 +72,11 @@ void QwGUILumiDetector::MakeLayout()
   dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
 				"QwGUILumiDetector",
 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
-  TCanvas *mc = dCanvas->GetCanvas();
+
+  Int_t wid = dCanvas->GetCanvasWindowId();
+  QwGUISuperCanvas *mc = new QwGUISuperCanvas("", 10,10, wid);
+  dCanvas->AdoptCanvas(mc);
+
   mc->Divide( LUMI_DET_HST_NUM/2, LUMI_DET_HST_NUM/2);
 
 }
@@ -93,7 +97,7 @@ void QwGUILumiDetector::OnObjClose(char *obj)
   }
 }
 
-void QwGUILumiDetector::OnNewDataContainer()
+void QwGUILumiDetector::OnNewDataContainer(RDataContainer *cont)
 {
 
   TObject *obj;

@@ -58,6 +58,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <TGTab.h>
 
@@ -79,20 +80,25 @@
 #include <TGFileDialog.h>
 #include <RQ_OBJECT.h>
 #include <TMath.h>
-#include <TGIcon.h>
+#include <TPave.h>
 
 #include "QwGUIMainDetector.h"
 #include "QwGUILumiDetector.h"
 #include "QwGUIInjector.h"
+#include "QwGUIHallCBeamline.h"
 #include "QwGUIEventDisplay.h"
+#include "QwGUIHelpBrowser.h"
+#include "QwGUIDatabaseContainer.h"
 
-#include "QwGUITrackingSystem.h"
 
 class QwGUIMain : public TGMainFrame {
 
   RQ_OBJECT("QwGUIMain");
 
  private:
+
+  //!Database object (there should be only one for all subsystems)
+  QwGUIDatabaseContainer *dDatabase;
 
   //!Every instantiated subsystem gets added to this object array, as a cleanup mechanism.
   TObjArray               SubSystemArray;
@@ -101,9 +107,10 @@ class QwGUIMain : public TGMainFrame {
   QwGUIMainDetector      *MainDetSubSystem;
   QwGUILumiDetector      *LumiDetSubSystem;
   QwGUIInjector          *InjectorSubSystem;
+  QwGUIHallCBeamline     *HallCBeamlineSubSystem;
   QwGUIEventDisplay      *EventDisplaySubSystem;
 
-  QwGUITrackingSystem    *TrackingSystem;
+  QwGUIHelpBrowser          *dHelpBrowser;
 
   //!Initial width of the application window set in main()
   Int_t                   dMWWidth;
@@ -123,6 +130,7 @@ class QwGUIMain : public TGMainFrame {
 
   //!File/Run open flags
   Bool_t                  dRootFileOpen;
+  Bool_t                  dDatabaseOpen;
   Bool_t                  dLogFileOpen;
   Bool_t                  dRunOpen;
 
@@ -196,6 +204,8 @@ class QwGUIMain : public TGMainFrame {
   void                    CloseLogFile();
   //!This function is used via the program menu and should not be called directly.
   void                    CloseRootFile();
+  //!This function is used via the program menu and should not be called directly.
+  void                    CloseDatabase();
 
   //!This function is related to the SubSystemArray storage array and should be called
   //!before a new subsystem is instantiated. This mechanism prevents multiple instantiations of
@@ -279,6 +289,14 @@ class QwGUIMain : public TGMainFrame {
   //!Return value: Error value;
   Int_t                   OpenRootFile(ERFileStatus status = FS_OLD, const char* file = NULL);
 
+  //!This function establishes a single connection to the database.
+  //!
+  //!
+  //!Parameters: None
+  //!
+  //!Return value: Error value;
+  Int_t OpenDatabase();
+
   //!This function removes the log book tab, when the correpsonding menu item is selected. The
   //!data in the current log book is not lost or closed when the tab is removed.
   //!
@@ -333,6 +351,14 @@ class QwGUIMain : public TGMainFrame {
   //!
   //!Return value: none
   void                    SetRootFileOpen(Bool_t open = kFalse){dRootFileOpen = open;};
+
+  //!This function sets the database open or closed flag.
+  //!
+  //!Parameters:
+  //! - 1) Boolean Open/Close Flag
+  //!
+  //!Return value: none
+  void                    SetDatabaseOpen(Bool_t open = kFalse){dDatabaseOpen = open;};
 
   void                    SleepWithEvents(int seconds);
   TCanvas                *SplitCanvas(TRootEmbeddedCanvas *,int,int,const char*);
@@ -450,6 +476,9 @@ class QwGUIMain : public TGMainFrame {
   //!This function returns a true/false flag to indicate whether a root file is
   //!currently open.
   Bool_t                 IsRootFileOpen(){return dRootFileOpen;};
+  //!This function returns a true/false flag to indicate whether a root file is
+  //!currently open.
+  Bool_t                 IsDatabaseOpen(){return dDatabaseOpen;};
 
   //!Signal receiver function, called when the log file is closed via the context menu provided
   //!by the TGTextEdit object.

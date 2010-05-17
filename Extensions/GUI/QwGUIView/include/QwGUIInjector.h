@@ -53,14 +53,15 @@ Added by Buddhini to display the injector beamline data.
 #include "TRootCanvas.h"
 #include "TVirtualPad.h"
 #include "QwGUISubSystem.h"
+
 #include "RSDataWindow.h"
-#include "TSuperCanvas.h"
+
 
 class QwGUIInjector : public QwGUISubSystem {
 
   
   TGHorizontalFrame   *dTabFrame;
-   TGVerticalFrame    *dControlsFrame;
+  TGVerticalFrame     *dControlsFrame;
   TRootEmbeddedCanvas *dCanvas;  
   TGLayoutHints       *dTabLayout; 
   TGLayoutHints       *dCnvLayout; 
@@ -75,6 +76,11 @@ class QwGUIInjector : public QwGUISubSystem {
   
   //!An object array to store data window pointers -- good for use in cleanup.
   TObjArray            DataWindowArray;
+
+
+  TH1D *PosVariation[2] ;
+/*   TGraphErrors *gx; */
+/*   TGraphErrors *gy; */
 
   //!This function just plots some histograms in the main canvas, just for illustrative purposes
   //!for now.
@@ -139,7 +145,7 @@ class QwGUIInjector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  virtual void        OnNewDataContainer();
+  virtual void        OnNewDataContainer(RDataContainer *cont);
   virtual void        OnObjClose(char *);
   virtual void        OnReceiveMessage(char*);
   virtual void        OnRemoveThisTab();

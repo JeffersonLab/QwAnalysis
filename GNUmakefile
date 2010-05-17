@@ -68,7 +68,7 @@ CHMOD    := chmod
 DIRNAME  := dirname
 ECHO     := echo
 FIND     := find
-GCC      := gcc
+GCC      := g++
       # This must be the GNU compiler collection : explicit use of
       # flag '-M' for automatic search for dependencies
       # It is not correlated to $(CXX) and $(LD) which depend on $(ARCH)
@@ -101,6 +101,13 @@ endif
 ARCH  := $(shell uname)
       # Operating system
 
+#  If an OS and hardware specific subdirectory is present,
+#  we will use the "bin" and "lib" directories in it,
+#  instead of the base "bin" and "lib" directories.
+OS_HW_NAME  := $(uname -s -m | sed 's/ /_/g')
+INSTALL_DIR := $(strip $(shell $(ECHO) $(QWANALYSIS)$$( (if [ -d $(OS_HW_NAME)]; then $(ECHO) "/"$(OS_HW_NAME); fi))))
+
+
 
 
 ############################
@@ -111,30 +118,30 @@ ARCH  := $(shell uname)
 #   of the QwAnalysis standard package, and which should not be built
 #   by this Makefile.  If they should be built automatically, a call
 #   to their own Makefile will be made from a specfic target.
-#   See the "coda_lib" target, as an example.
+#   See the "myevio_lib" target, as an example.
 #
 ############################
 ############################
 
-EXCLUDEDIRS = coda Extensions
+EXCLUDEDIRS = evio Extensions
 
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
- ifneq ($(CODA),)
-  #  The realtime executables should be added in this section.
-  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator qwtrackingcontrol
- else
-  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator qwtrackingcontrol
- endif
+  ifneq ($(CODA),)
+    #  The realtime executables should be added in this section.
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator qwtrackingcontrol qwroottest
+  else
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator qwtrackingcontrol qwroottest
+  endif
 else
- EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
+  EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
 endif
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
- ifneq ($(CODA),)
-  #  The realtime executables should be added in this section.
-  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator qwtrackingcontrol
- else
-  EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator qwtrackingcontrol
- endif
+  ifneq ($(CODA),)
+    #  The realtime executables should be added in this section.
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator qwtrackingcontrol qwroottest
+  else
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator qwtrackingcontrol qwroottest
+  endif
 endif
 # overridden by "make 'EXES=exe1 exe2 ...'"
 
@@ -168,11 +175,11 @@ endif
 ROOTCONFIG   := $(ROOTSYS)/bin/root-config
 ## ROOTDEFINE   := $(shell $(ROOTCONFIG) --features | $(SED) 's/\(\s*\)\([a-zA-Z0-9_]*\)/\1-D__ROOT_HAS_\2/g;y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
 ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags)
-ROOTLIBS     := $(shell $(ROOTCONFIG) --new --libs) -lTreePlayer -lGX11
+ROOTLIBS     := $(shell $(ROOTCONFIG) --new --libs) -lTreePlayer  #-lGX11
         # -lNew : for map file capability
         # -lTreePlayer -lProof : for user loops calling tree
         #                        variables under conditions
-ROOTGLIBS    := $(shell $(ROOTCONFIG) --glibs)
+#ROOTGLIBS    := $(shell $(ROOTCONFIG) --glibs)
 
 # -lMathMore : for using ROOT advanced math library
 ifeq ($(shell $(ROOTCONFIG) --has-mathmore),yes)
@@ -191,8 +198,8 @@ endif
 # QWANALYSIS := /home/lenoble/QwAnalysis
 # Not the actual value, but $(MAKE) is run from
 # this directory
-# QWBIN      := $(QWANALYSIS)/bin
-# QWLIB      := $(QWANALYSIS)/lib
+# QW_BIN      := $(QWANALYSIS)/bin
+# QW_LIB      := $(QWANALYSIS)/lib
 ############################
 ############################
 #  These next lines check the paths and exit if there is a problem.
@@ -206,33 +213,28 @@ endif
 ifeq ($(strip $(QWANALYSIS)),)
   $(error Aborting : QWANALYSIS variable is not set.  Source the SetupFiles/.Qwcshrc script first)
 endif
-ifneq ($(strip $(QWANALYSIS)),$(strip $(shell pwd)))
+ifneq ($(shell test $(QWANALYSIS) -ef $(shell pwd) || echo false),)
   $(error Aborting : QWANALYSIS variable disagrees with the working directory.  Source the SetupFiles/.Qwcshrc script first)
 endif
 
-ifndef QWBIN
-  $(warning Warning : QWBIN variable is not defined.  Setting to QWANALSYIS/bin.)
-  QWBIN := $(QWANALYSIS)/bin
+ifndef QW_BIN
+  $(warning Warning : QW_BIN variable is not defined.  Setting to QWANALSYIS/bin.)
+  QW_BIN := $(QWANALYSIS)/bin
 endif
-ifneq ($(strip $(QWBIN)),$(strip $(shell $(FIND) $(QWANALYSIS) -name bin)))
-  $(error Aborting : QWBIN variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
-endif
-
-ifndef QWLIB
-  $(warning Warning : QWLIB variable is not defined.  Setting to QWANALSYIS/lib.)
-  QWLIB := $(QWANALYSIS)/lib
-endif
-ifneq ($(strip $(QWLIB)),$(strip $(shell $(FIND) $(QWANALYSIS) -name lib)))
-  $(error Aborting : QWLIB variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
+ifneq ($(shell test $(QW_BIN) -ef $(INSTALL_DIR)/bin || echo false),)
+  $(error Aborting : QW_BIN variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
 endif
 
-ifndef QWEVIO
-  $(warning Warning : QWEVIO variable is not defined.  Setting to QWANALSYIS/coda.)
-  QWEVIO := $(QWANALYSIS)/coda
+ifndef QW_LIB
+  $(warning Warning : QW_LIB variable is not defined.  Setting to QWANALSYIS/lib.)
+  QW_LIB := $(QWANALYSIS)/lib
 endif
-ifneq ($(strip $(QWEVIO)),$(strip $(shell $(FIND) $(QWANALYSIS) -name coda)))
-  $(error Aborting : QWEVIO variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
+ifneq ($(shell test $(QW_LIB) -ef $(INSTALL_DIR)/lib || echo false),)
+  $(error Aborting : QW_LIB variable is not set properly  Source the SetupFiles/.Qwcshrc script first)
 endif
+
+
+EVIO := $(QWANALYSIS)/evio
 
 
 
@@ -246,11 +248,11 @@ ifdef CODA
 CODACFLAGS   := -I$(CODA)/common/include -D__CODA_ET
 CODALIBS     := -L$(CODA_LIB) -let
 endif
-CODACFLAGS   += -I$(QWANALYSIS)/coda/include
-CODALIBS     += -L$(QWANALYSIS)/lib -lcoda
+CODACFLAGS   += -I$(EVIO)/include
+CODALIBS     += -L$(QW_LIB) -lmyevio
       # -lmyevio : now integrated in our distribution (April 19 2001) ;
       # Regenerated if necessary ; I had to rewrite CODA
-      # group's Makefile in $(QWEVIO)
+      # group's Makefile in $(EVIO)
 
 
 
@@ -264,21 +266,39 @@ ifndef BOOST_INC_DIR
   ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name boost)),/usr/include/boost)
     $(warning Install the Boost library on your system, or set the environment)
     $(warning variables BOOST_INC_DIR and BOOST_LIB_DIR to the directory with)
-    $(warning the Boost headers and libraries, respectively.)
+    $(warning the Boost headers and libraries, respectively. The headers should)
+    $(warning be in BOOST_INC_DIR/boost, and the library files in BOOST_LIB_DIR.)
     $(warning See the Qweak Wiki for installation and compilation instructions.)
     $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
     $(warning )
     $(error   Error: Could not find the Boost library)
   endif
-  BOOST_INC_DIR = /usr/include/boost
+  BOOST_INC_DIR = /usr/include
   BOOST_LIB_DIR = /usr/lib
-  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" $(BOOST_INC_DIR)/version.hpp)
+  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" $(BOOST_INC_DIR)/boost/version.hpp)
   BOOST_INC  =
   BOOST_LIBS =
 else
-  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" ${BOOST_INC_DIR}/version.hpp)
-  BOOST_INC  = -I${BOOST_INC_DIR}
-  BOOST_LIBS = -L${BOOST_LIB_DIR}
+  ifneq ($(strip $(shell $(FIND) $(BOOST_INC_DIR)/boost -maxdepth 1 -name version.hpp)),$(BOOST_INC_DIR)/boost/version.hpp)
+    $(warning Set the environment variables BOOST_INC_DIR and BOOST_LIB_DIR to)
+    $(warning the directory with the Boost headers and libraries, respectively.)
+    $(warning The Boost header files should be in BOOST_INC_DIR/boost, and the)
+    $(warning library files in BOOST_LIB_DIR.)
+    $(warning See the Qweak Wiki for installation and compilation instructions.)
+    $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
+    $(warning )
+    $(error   Error: Could not find the Boost library)
+  else
+    BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" ${BOOST_INC_DIR}/boost/version.hpp)
+    BOOST_INC  = -I${BOOST_INC_DIR}
+    BOOST_LIBS = -L${BOOST_LIB_DIR}
+  endif
+endif
+
+#  Check to see if BOOST_INC_DIR is equal to /usr/include; 
+#  if so, clear the BOOST_INC flag, but leave BOOST_LIBS unchanged
+ifeq ($(shell test $(BOOST_INC_DIR) -ef /usr/include || echo false),)
+  BOOST_INC  =
 endif
 
 #  We should also put a test on the boost version number here.
@@ -288,11 +308,9 @@ endif
 
 #  List the Boost libraries to be linked to the analyzer.
 ifeq ($(strip $(shell $(FIND) $(BOOST_LIB_DIR) -maxdepth 1 -name libboost_filesystem-mt.so)),$(BOOST_LIB_DIR)/libboost_filesystem-mt.so)
-#  BOOST_LIBS += -lboost_filesystem-mt -lboost_system-mt -lboost_program_options-mt
- BOOST_LIBS += -lboost_filesystem-mt -lboost_program_options-mt
+  BOOST_LIBS += -lboost_filesystem-mt -lboost_program_options-mt
 else
-#  BOOST_LIBS += -lboost_filesystem -lboost_system -lboost_program_options
- BOOST_LIBS += -lboost_filesystem -lboost_program_options
+  BOOST_LIBS += -lboost_filesystem -lboost_program_options
 endif
 
 BOOST_LIBS += -ldl
@@ -308,11 +326,11 @@ LIBTOOL = $(LD)
 
 ifeq ($(ARCH),Linux)
 
-CXX            := gcc
+CXX            := g++
 CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
-LD             = gcc
-LDFLAGS	       = -Wl,-rpath,$(QWLIB)
+LD             = g++
+LDFLAGS	       = -Wl,-rpath,$(QW_LIB)
 LDLIBS         =
 SOFLAGS        = -shared
 
@@ -343,10 +361,10 @@ endif
 
 ifeq ($(ARCH),Darwin)
 
-CXX            := gcc
+CXX            := g++
 CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
-LD             = gcc
+LD             = g++
 LIBTOOL 	   = libtool
 LDFLAGS        = 
 LDLIBS         = -lSystemStubs
@@ -369,6 +387,60 @@ endif
 
 endif
 
+
+############################
+############################
+# Some set-up for the MySQL library
+############################
+############################
+ifndef MYSQL_INC_DIR
+  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name mysql)),/usr/include/mysql)
+    $(warning Install the MySQL client library on your system, or set the environment)
+    $(warning variables MYSQL_INC_DIR and MYSQL_LIB_DIR to the directory with)
+    $(warning the MySQL headers and libraries, respectively.)
+    $(warning See the Qweak Wiki for installation and compilation instructions.)
+    $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
+    $(warning )
+    $(error   Error: Could not find the MySQL library)
+  else
+    $(warning Setting MYSQL_INC_DIR to /usr/include/mysql)
+    MYSQL_INC_DIR = /usr/include/mysql
+    MYSQL_LIB_DIR = /usr/lib/mysql
+  endif
+endif
+
+MYSQL_INC  = -I${MYSQL_INC_DIR}
+MYSQL_LIBS = -L${MYSQL_LIB_DIR} -lmysqlclient
+
+############################
+############################
+# Some set-up for the MySQL++ library
+############################
+############################
+ifndef MYSQLPP_INC_DIR
+  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name mysql++)),/usr/include/mysql++)
+    ifneq ($(strip $(shell $(FIND) /usr/local/include -maxdepth 1 -name mysql++)),/usr/local/include/mysql++)
+      $(warning Install the MySQL++ library on your system, or set the environment)
+      $(warning variables MYSQLPP_INC_DIR and MYSQLPP_LIB_DIR to the directory with)
+      $(warning the MySQL++ headers and libraries, respectively.)
+      $(warning See the Qweak Wiki for installation and compilation instructions.)
+      $(warning ->   http://qweak.jlab.org/wiki/index.php/Software)
+      $(warning )
+      $(error   Error: Could not find the MySQL++ library)
+    else
+      $(warning Setting MYSQLPP_INC_DIR to /usr/local/include/mysql++)
+      MYSQLPP_INC_DIR = /usr/local/include/mysql++
+      MYSQLPP_LIB_DIR = /usr/local/lib
+    endif
+  else
+    $(warning Setting MYSQLPP_INC_DIR to /usr/include/mysql++)
+    MYSQLPP_INC_DIR = /usr/include/mysql++
+    MYSQLPP_LIB_DIR = /usr/lib
+  endif
+endif
+
+MYSQLPP_INC  = -I${MYSQLPP_INC_DIR}
+MYSQLPP_LIBS = -L${MYSQLPP_LIB_DIR} -lmysqlpp
 
 ############################
 ############################
@@ -401,8 +473,9 @@ endif
 INCFLAGS =  $(patsubst %,-I%,$(sort $(dir $(shell $(FIND) $(QWANALYSIS) | $(GREP) '\$(IncSuf)' | $(SED) '/\$(IncSuf)./d' | $(FILTER_OUT_TRASH) | $(INTO_RELATIVE_PATH) |  $(FILTER_OUT_LIBRARYDIR_DEPS)))))
 # Qw include paths : /SomePath/QwAnalysis/Analysis/include/Foo.h -> -I./Analysis/include/
 
-
+INCFLAGS += $(MYSQL_INC) $(MYSQLPP_INC)
 INCFLAGS += $(BOOST_INC) -I./
+
 # Necessary for dictionary files where include files are quoted with relative
 # path appended (default behaviour for root-cint)
 
@@ -416,10 +489,10 @@ ifneq ($(CXX),CC)
   LDLIBS      += -lstdc++
   LDLIBS      += -lz
 endif
-LIBS =  -L$(QWLIB) -lQw
+LIBS =  -L$(QW_LIB) -lQw
 LIBS +=  $(ROOTLIBS) $(ROOTGLIBS) $(CODALIBS)
+LIBS +=  $(MYSQL_LIBS) $(MYSQLPP_LIBS)
 LIBS +=  $(BOOST_LIBS) $(LDLIBS)
-
 
 ############################
 ############################
@@ -454,7 +527,7 @@ INTO_RELATIVE_PATH  = $(SED) 's/\//xxqqqqqxx/g' | $(SED) 's/$(subst /,xxqqqqqxx,
 # This pipe is a trick to encapsulate the conversion from $(QWANALYSIS) to .
 
 
-APPEND_BIN_PATH  = $(SED) 's/\//xxqqqqqxx/g' | $(SED) 's/\([a-z0-9_]* \)/$(subst /,xxqqqqqxx,$(QWBIN))xxqqqqqxx\1/g' | $(SED) 's/xxqqqqqxx/\//g'
+APPEND_BIN_PATH  = $(SED) 's/\//xxqqqqqxx/g' | $(SED) 's/\([a-z0-9_]* \)/$(subst /,xxqqqqqxx,$(QW_BIN))xxqqqqqxx\1/g' | $(SED) 's/xxqqqqqxx/\//g'
 # To be piped in, all letters to lower already...
 # The special meaning of '/' in regular expressions is painful...
 
@@ -496,7 +569,7 @@ FILTER_OUT_LIBRARYDIR_DEPS = $(SED) '$(patsubst %,/^.\/%/d;,$(EXCLUDEDIRS))'
 
 export
 
-all: .ADD .EXES .auxDepends
+all: .ADD .EXES .auxDepends qweak-config
 ifneq ($(strip $(ADD)),)
 	@if [ "$(strip $(sort $(shell $(CAT) .ADD)))" != "$(strip $(sort $(ADD)))" ]; \
 	then \
@@ -524,18 +597,12 @@ ifneq ($(strip $(EXES)),)
 	$(ECHO) ; \
 	for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .EXES),$(EXES)) $(filter-out $(EXES),$(shell $(CAT) .EXES)) | $(REMOVE_-D))); \
 	do \
-	$(RM) `$(CAT) .auxDepends | $(SED) "/$$wd/!d;s/.*$$wd: \([A-Za-z0-9\/\._]*\$(ObjSuf)\) .*/\1/"` $(QWLIB)/libQw$(DllSuf); \
+	$(RM) `$(CAT) .auxDepends | $(SED) "/$$wd/!d;s/.*$$wd: \([A-Za-z0-9\/\._]*\$(ObjSuf)\) .*/\1/"` $(QW_LIB)/libQw$(DllSuf); \
 	done; \
 	exit 1; \
 	fi
 endif
-####	@$(MAKE) -f $(QWEVIO)/Makefile libcoda.so
-	@$(MAKE) coda_lib
-#ifneq ($(CODA),)
-#ifneq ($(ARCH),SunOS)
-#	@cd $(VISU);$(MAKE) -f GNUmakefile
-#endif
-#endif
+	@$(MAKE) myevio_lib
 	@$(MAKE) -f .auxDepends `$(CAT) .auxExeFiles | $(SED) 's/$$/ /g' | $(APPEND_BIN_PATH) | $(INTO_RELATIVE_PATH)`
 
 
@@ -546,32 +613,32 @@ config: .ADD .EXES clean.auxfiles .auxDepends
 	done
 	@for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .EXES),$(EXES)) $(filter-out $(EXES),$(shell $(CAT) .EXES)) | $(REMOVE_-D))); \
 	do \
-	cd $(QWBIN);$(RM) `$(LS) $(QWBIN) | $(SED) 's/CVS//g' | $(SED) 's/SunWS_cache//g'` $(QWLIB)/libQw$(DllSuf); \
+	cd $(QW_BIN);$(RM) `$(LS) $(QW_BIN) | $(SED) 's/CVS//g' | $(SED) 's/SunWS_cache//g'` $(QW_LIB)/libQw$(DllSuf); \
 	done
 	@$(ECHO) $(ADD)  | $(TO_LINE) > .ADD
 	@$(ECHO) $(EXES)  | $(TO_LINE) > .EXES
 
-coda_lib:
-	cd $(QWEVIO); $(MAKE) libcoda$(DllSuf)
-	$(CP) $(QWEVIO)/libcoda$(DllSuf) $(QWLIB)/libcoda$(DllSuf)
+myevio_lib:
+	cd $(EVIO); $(MAKE) libmyevio$(DllSuf)
+	$(CP) $(EVIO)/libmyevio$(DllSuf) $(QW_LIB)/libmyevio$(DllSuf)
 
 .auxDepends: .auxLibFiles
 	@$(ECHO) Generating .auxLibFiles
 	@$(RM) .auxLibFiles
-	@$(ECHO) $(QWLIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) > .auxLibFiles
-	@$(ECHO) $(QWLIB)/libQw$(DllSuf): `$(CAT) .auxSrcFiles` `$(CAT) .auxDictFiles` \
+	@$(ECHO) $(QW_LIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) > .auxLibFiles
+	@$(ECHO) $(QW_LIB)/libQw$(DllSuf): `$(CAT) .auxSrcFiles` `$(CAT) .auxDictFiles` \
 		| $(TO_LINE) \
 		| $(INTO_RELATIVE_PATH) \
 		| $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/g' \
 		| $(ADD_ANTISLASH) \
 		| $(FILTER_OUT_FOREIGN_DEPS) >> .auxDepends
 	@$(ECHO) >> .auxDepends
-	@$(ECHO) $(TAB)$(LIBTOOL) $(SOFLAGS) $(LDFLAGS) '$$^' -o $(QWLIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) >> .auxDepends
+	@$(ECHO) $(TAB)$(LIBTOOL) $(SOFLAGS) $(LDFLAGS) '$$^' -o $(QW_LIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) >> .auxDepends
 	@$(ECHO) $(TAB)@$(ECHO) >> .auxDepends
 	@$(ECHO) >> .auxDepends
 	@for file in `$(CAT) 2>&1 .auxMainFiles`; \
 	do \
-	$(ECHO) $(QWBIN)/`$(ECHO) $$file | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`: `$(ECHO) $$file | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/'` `$(CAT) .auxLibFiles`  | $(INTO_RELATIVE_PATH) >> .auxDepends; \
+	$(ECHO) $(QW_BIN)/`$(ECHO) $$file | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`: `$(ECHO) $$file | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/'` `$(CAT) .auxLibFiles`  | $(INTO_RELATIVE_PATH) >> .auxDepends; \
 	$(ECHO) $(TAB)$(LD) $(CXXFLAGS) '$$<' $(LIBS) $(LDFLAGS) -o '$$@' | $(INTO_RELATIVE_PATH) >> .auxDepends; \
 	$(ECHO) $(TAB)@$(ECHO) >> .auxDepends; \
 	$(ECHO) >> .auxDepends; \
@@ -631,7 +698,7 @@ coda_lib:
 	| $(ADD_ANTISLASH) \
 	| $(FILTER_OUT_FOREIGN_DEPS) \
 	>> .tmp; \
-	if [ ! -e .tmperror ];\
+	if [ -s .tmperror ];\
 	then \
 	$(ECHO) "Aborting:  Unable to locate a file in the include paths:"; \
 	$(CAT) .tmperror; \
@@ -665,7 +732,7 @@ coda_lib:
 	| $(GREP) -v "\/$$(stem $$file)\." \
 	| $(SED) "s/\/include\//\/src\//g;s/\$(IncSuf)/\$(SrcSuf)/g;s/\\\//g" \
 	>> .aux; \
-	if [ ! -e .tmperror ];\
+	if [ -s .tmperror ];\
 	then \
 	$(ECHO) "Aborting:  Unable to locate a file in the include paths:"; \
 	$(CAT) .tmperror; \
@@ -760,7 +827,7 @@ coda_lib:
 
 qweak-config: qweak-config.in
 	@$(CAT) $< | $(SED) 's!%QWANALYSIS%!$(QWANALYSIS)!' | $(SED) 's!%LIBS%!$(LIBS)!'   \
-	           | $(SED) 's!%QWLIB%!$(QWLIB)!' | $(SED) 's!%QWBIN%!$(QWBIN)!'           \
+	           | $(SED) 's!%QW_LIB%!$(QW_LIB)!' | $(SED) 's!%QW_BIN%!$(QW_BIN)!'           \
 	           | $(SED) 's!%LDFLAGS%!$(LDFLAGS)!' | $(SED) 's!%CPPFLAGS%!$(CPPFLAGS)!' \
 	           > bin/$@
 	@$(CHMOD) a+x bin/$@
@@ -787,10 +854,10 @@ clean.dictfiles:
 clean.libs:
 # Removes libraries
 	@$(ECHO) Removing '*$(DllSuf)' files
-	@$(RM) $(QWLIB)/lib*$(DllSuf)
+	@$(RM) $(QW_LIB)/lib*$(DllSuf)
 
 
-clean: clean.coda
+clean: clean.evio
 # Removes all object files, '*~', '#*#' and '.#*' files
 	@$(ECHO) Removing '*$(ObjSuf)' files
 	@$(RM) `$(FIND) $(QWANALYSIS) | $(GREP) '\$(ObjSuf)' | $(SED) '/\$(ObjSuf)./d'`
@@ -801,7 +868,7 @@ clean: clean.coda
 clean.exes:
 # Removes executables
 	@$(ECHO) Removing executables
-	@$(RM) `$(ECHO) $(QWBIN)/* | $(SED) 's/[A-Za-z0-9\/_]*CVS//'`
+	@$(RM) `$(ECHO) $(QW_BIN)/* | $(SED) 's/[A-Za-z0-9\/_]*CVS//'`
 
 clean.olddotfiles:
 	@$(RM) .dirs .libdepend .libdepend2 .exedepend .exedepend2 .mains .dictdepend .exes .objdepend .dicts .incdirs .srcdirs $(SETUP)/.MapFileBaseAddress
@@ -812,10 +879,10 @@ cleanSunWS_cache :
 	@$(RM) -r $(filter %SunWS_cache/,$(sort $(dir $(shell $(FIND) $(QWANALYSIS)))))
 	@$(RM) -r $(filter %SunWS_cache,$(sort $(shell $(FIND) $(QWANALYSIS))))
 
-clean.coda:
-	cd $(QWEVIO); $(MAKE) realclean
+clean.evio:
+	cd $(EVIO); $(MAKE) realclean
 
-distclean: cleanSunWS_cache clean.dictfiles clean clean.libs clean.exes clean.auxfiles clean.olddotfiles clean.coda
+distclean: cleanSunWS_cache clean.dictfiles clean clean.libs clean.exes clean.auxfiles clean.olddotfiles clean.evio
 # Removes all files that can be regenerated
 	@$(RM) .ADD .EXES
 

@@ -6,6 +6,8 @@
 
 #pragma link C++ class QwEventHeader+;
 #pragma link C++ class QwEvent+;
+#pragma link C++ class vector<Int_t>+;
+#pragma link C++ class vector<Float_t>+;
 
 #endif
 

@@ -11,7 +11,8 @@ QwEventRing::QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size, Int_t e
   fEvent_Ring.resize(fRING_SIZE);
 
   bRING_READY=kFALSE;
-
+  bGoodEvent=kTRUE;
+  bEVENT_READY=kTRUE;
   fNextToBeFilled=0;
   fNextToBeRead=0;
   fEventsSinceLastTrip=1;
@@ -25,8 +26,50 @@ QwEventRing::QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size, Int_t e
     out_file = fopen("Ring_log.txt", "wt");
   
 };
+void QwEventRing::SetupRing(QwSubsystemArrayParity &event){
+  /*
+  fRING_SIZE=ring_size;
+  fEVENT_HOLDOFF=event_holdoff;
+  fMIN_BT_COUNT=min_BT_count;
+  */
+  std::cout<<" Ring "<<fRING_SIZE<<" , "<<fMIN_BT_COUNT<<" , "<<fEVENT_HOLDOFF<<std::endl;
+  fEvent_Ring.resize(fRING_SIZE);
 
+  bRING_READY=kFALSE;
+  bGoodEvent=kTRUE;
+  bEVENT_READY=kTRUE;
+  fNextToBeFilled=0;
+  fNextToBeRead=0;
+  fEventsSinceLastTrip=1;
+  fFailedEventCount=0;
+  for(int i=0;i<fRING_SIZE;i++){
+    fEvent_Ring[i].Copy(&event); //populate the event ring
+  }
 
+  //open the log file
+  if (bDEBUG_Write)
+    out_file = fopen("Ring_log.txt", "wt");
+  
+}
+
+void QwEventRing::DefineOptions(QwOptions &options){
+  /*
+    //QwEventRing options
+  options.AddOptions()("ring.size", po::value<int>()->default_value(32),"QwEventRing: ring/buffer size");
+  options.AddOptions()("ring.bt", po::value<int>()->default_value(4),"QwEventRing: minimum beam trip count");
+  options.AddOptions()("ring.hld", po::value<int>()->default_value(16),"QwEventRing: ring hold off");
+  //end of QwEventRing options
+  */
+};
+void QwEventRing::ProcessOptions(QwOptions &options){
+  //Reads Event Ring parameters from cmd  
+  if (gQwOptions.HasValue("ring.size"))
+    fRING_SIZE=gQwOptions.GetValue<int>("ring.size");
+  if (gQwOptions.HasValue("ring.bt"))
+    fMIN_BT_COUNT=gQwOptions.GetValue<int>("ring.bt"); 
+  if (gQwOptions.HasValue("ring.hld"))
+    fEVENT_HOLDOFF=gQwOptions.GetValue<int>("ring.hld");
+};
 void QwEventRing::push(QwSubsystemArrayParity &event){
   if (bDEBUG) std::cerr << "QwEventRing::push:  BEGIN" <<std::endl;
 
@@ -75,10 +118,12 @@ void QwEventRing::FailedEvent(Int_t error_flag){
     
     if (bGoodEvent){//a first faliure after set of good event bGoodEvent is TRUE. This is TRUE untill there is a beam trip
       if (fFailedEventCount >= fMIN_BT_COUNT){//if events failed equal to minimum beam trip count
+	if (bGoodEvent) std::cout<<" Beam Trip "<<std::endl;
 	bGoodEvent=kFALSE;// a beam trip occured, set this to false
+
 	if (bDEBUG)
-	std::cout<<" Beam Trip "<<fFailedEventCount;
-	std::cout<<" Beam Trip "<<std::endl;
+	  std::cout<<" Beam Trip "<<fFailedEventCount;
+	
 	if (bDEBUG_Write) fprintf(out_file," Beam Trip %d \n ",fFailedEventCount);
 	fNextToBeFilled=0;//fill at the top ring is useless after the beam trip
 	fNextToBeRead=0;//first element in the ring	

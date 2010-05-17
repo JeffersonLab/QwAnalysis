@@ -53,7 +53,7 @@ class QwHit : public TObject {
   QwHit(const QwHit* hit);
   QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
 	EQwRegionID region, EQwDetectorPackage package, Int_t plane,
-	EQwDirectionID direction, Int_t wire, UInt_t data);
+	EQwDirectionID direction, Int_t wire, UInt_t rawdata = 0);
   // @}
 
   //! \brief Destructor
@@ -87,7 +87,7 @@ class QwHit : public TObject {
   const Bool_t          AmbiguousElement()const { return fAmbiguousElement; };
   const Bool_t          LRAmbiguity()     const { return fLRAmbiguity; };
 
-  const Double_t&       GetRawTime()      const { return fRawTime; };
+  const UInt_t&         GetRawTime()      const { return fRawTime; };
   const Double_t&       GetTime()         const { return fTime; };
   const Double_t        GetTimeRes()      const { return fTimeRes; };
   const Double_t&       GetDriftDistance()const { return fDistance; };
@@ -116,13 +116,13 @@ class QwHit : public TObject {
   void SetPlane(const Int_t plane)                  { fPlane = plane; };
   void SetElement(const Int_t element)              { fElement = element; };
 
-  void SetDetectorInfo(QwDetectorInfo *detectorinfo){ pDetectorInfo = detectorinfo; };
+  void SetDetectorInfo(const QwDetectorInfo *detectorinfo) { pDetectorInfo = const_cast<QwDetectorInfo*>(detectorinfo); };
   void SetAmbiguousElement(const Bool_t amelement)  { fAmbiguousElement = amelement; };
   void SetLRAmbiguity(const Bool_t amlr)            { fLRAmbiguity = amlr; };
 
   void SetAmbiguityID(const Bool_t amelement, const Bool_t amlr);  // QwHit.cc
 
-  void SetRawTime(const Double_t rawtime)           { fRawTime = rawtime; };
+  void SetRawTime(const UInt_t rawtime)             { fRawTime = rawtime; };
   void SetTime(const Double_t time)                 { fTime = time; };
   void SetTimeRes(const Double_t timeres)           { fTimeRes = timeres; };
   void SetDriftDistance(const Double_t distance)    { fDistance = distance; };
@@ -170,7 +170,7 @@ class QwHit : public TObject {
 
 
   //  Data specific to the hit
-  Double_t fRawTime;                 ///< Time as reported by TDC; it is UNSUBTRACTED
+  UInt_t   fRawTime;                 ///< Time as reported by TDC; it is a raw data word, and is UNSUBTRACTED
   Double_t fTime;                    ///< Start corrected time, may also be further modified
   Double_t fTimeRes;                 ///< Resolution of time (if appropriate)
   Double_t fDistance;                ///< Perpendicular distance from the wire to the track,

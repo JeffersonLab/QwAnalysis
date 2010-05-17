@@ -10,6 +10,7 @@
 #include "TClonesArray.h"
 #include "TRefArray.h"
 #include "TObjArray.h"
+#include "TVector3.h"
 
 // Qweak headers
 #include "QwTypes.h"
@@ -138,6 +139,8 @@ class QwEvent: public TObject {
     ///         - easier integration with non-ROOT QwAnalysis structures
     ///   Cons: - preallocation not included, O(n^2) cost due to new/delete,
     ///           but not copying full object, only pointers
+    ///         - need to store the actual objects somewhere else, these are
+    ///           just references
     ///
     /// In all cases there still seems to be a problem with the ROOT TBrowser
     /// when two identical branches with TClonesArrays are in the same tree.
@@ -178,6 +181,13 @@ class QwEvent: public TObject {
     Int_t fNQwPartialTracks; ///< Number of QwPartialTracks in the array
     TClonesArray        *fQwPartialTracks; ///< Array of QwPartialTracks
     static TClonesArray *gQwPartialTracks; ///< Static array of QwPartialTracks
+
+
+    // Tracks
+    #define QWEVENT_MAX_NUM_TRACKS 1000
+    Int_t fNQwTracks; ///< Number of QwTracks in the array
+    TClonesArray        *fQwTracks; ///< Array of QwTracks
+    static TClonesArray *gQwTracks; ///< Static array of QwTracks
 
 
   public:
@@ -240,6 +250,8 @@ class QwEvent: public TObject {
     void AddPartialTrack(QwPartialTrack* partialtrack);
     //! \brief Add a list of existing partial tracks as a copy
     void AddPartialTrackList(QwPartialTrack* partialtracklist);
+    //! \brief Add a list of existing partial tracks as a copy
+    void AddPartialTrackList(const std::vector<QwPartialTrack*>& partialtracklist);
     //! \brief Clear the list of partial tracks
     void ClearPartialTracks(Option_t *option = "");
     //! \brief Reset the list of partial tracks
@@ -250,10 +262,40 @@ class QwEvent: public TObject {
     void PrintPartialTracks();
     // @}
 
+    //! \name Track list maintenance for output to ROOT files
+    // @{
+    //! \brief Create a new track
+    QwTrack* CreateNewTrack();
+    //! \brief Add an existing track as a copy
+    void AddTrack(QwTrack* partialtrack);
+    //! \brief Add a list of existing tracks as a copy
+    void AddTrackList(QwTrack* partialtracklist);
+    //! \brief Add a list of existing partial tracks as a copy
+    void AddTrackList(const std::vector<QwTrack*>& tracklist);
+    //! \brief Clear the list of tracks
+    void ClearTracks(Option_t *option = "");
+    //! \brief Reset the list of tracks
+    void ResetTracks(Option_t *option = "");
+    //! \brief Get the number of tracks
+    Int_t GetNumberOfTracks() const { return fNQwTracks; };
+    //! \brief Print the list of tracks
+    void PrintTracks();
+    // @}
+
     //! \brief Print the event
     void Print();
 
   public:
+
+    /// \name Kinematic observables
+    // @{
+    double fPrimaryQ2;		///< Momentum transfer Q^2
+    double fCrossSectionWeight;
+    double fTotalEnergy;
+    double fKineticEnergy;
+    TVector3 fVertexPosition;
+    TVector3 fVertexMomentum;
+    // @}
 
     /*! List of QwGEMCluster objects */
     std::vector<QwGEMCluster*> fGEMClusters;

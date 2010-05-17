@@ -178,4 +178,23 @@ void MQwCodaControlEvent::ReportRunSummary()
 }
 
 
+time_t MQwCodaControlEvent::GetStartUnixTime()
+{
+  return (time_t) GetStartTime();
+}
 
+
+time_t MQwCodaControlEvent::GetEndUnixTime()
+{
+  // if GetEndTime is equal to 0
+  // we wiil see the end time as 
+  //
+  UInt_t end_time       = GetEndTime();
+  UInt_t qweak_end_time = 1338523199;
+  // 2012-05-31 23:59:59 in the MySQL database
+  // $date -d@1338523199 
+  // Thu May 31 23:59:59 EDT 2012 in a xterm (Linux)
+
+  if(end_time) return (time_t) end_time;
+  else         return (time_t) qweak_end_time;
+}

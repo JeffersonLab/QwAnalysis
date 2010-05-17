@@ -22,12 +22,13 @@
 
 // Qweak headers
 #include "QwBeamLine.h"
-#include "QwCommandLine.h"
+#include "QwOptionsParity.h"
 #include "QwEventBuffer.h"
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
 #include "QwHistogramHelper.h"
 #include "QwMainCerenkovDetector.h"
+#include "QwLumi.h"
 #include "QwSubsystemArrayParity.h"
 
 
@@ -44,38 +45,50 @@ static const int kMultiplet = 4;
 static bool bDebug = false;
 
 // Activate components
-static bool bHisto = true;
 static bool bTree = true;
-static bool bBeamLine = true;
+static bool bHisto = true;
 static bool bHelicity = true;
-static bool bQuartz = true;
+static bool bDatabase = false;
 
 int main(int argc, char* argv[])
 {
+  // First, we set the command line arguments and the configuration filename,
+  // and we define the options that can be used in them (using QwOptions).
+  gQwOptions.SetCommandLine(argc, argv);
+  //  gQwOptions.SetConfigFile("qwmockdataanalysis.conf");
+  gQwOptions.SetConfigFile("Parity/prminput/qwanalysis_beamline.conf");
+  gQwOptions.SetConfigFile("Parity/prminput/qweak_mysql.conf");
+  // Define the command line options
+  DefineOptionsParity(gQwOptions);
+
+  ///  Fill the search paths for the parameter files; this sets a static
+  ///  variable within the QwParameterFile class which will be used by
+  ///  all instances.
+  ///  The "scratch" directory should be first.
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QW_PRMINPUT")));
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
+  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Analysis/prminput");
+
   // Load histogram definitions
-  gQwHists.LoadHistParamsFromFile(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/parity_hists.in");
+  gQwHists.LoadHistParamsFromFile("parity_hists.in");
 
   // Detector array
   QwSubsystemArrayParity detectors;
-  if (bBeamLine) {
-    detectors.push_back(new QwBeamLine("Injector BeamLine"));
-    detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_beamline.map");
-    detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
-  }
-  if (bQuartz) {
-    detectors.push_back(new QwMainCerenkovDetector("Main detector"));
-    //detectors.GetSubsystem("Main detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_adc.map");
-
-    detectors.GetSubsystem("Main detector")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_adc.map");
-
-    detectors.GetSubsystem("Main detector")->LoadInputParameters(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_pedestal.map");
-  }
+  detectors.push_back(new QwBeamLine("Injector BeamLine"));
+  detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
+  detectors.push_back(new QwMainCerenkovDetector("Main detector"));
+  detectors.GetSubsystem("Main detector")->LoadChannelMap("qweak_adc.map");
+  detectors.push_back(new QwLumi("Lumi detector"));
+  detectors.GetSubsystem("Lumi detector")->LoadChannelMap("qweak_lumi.map");
   if (bHelicity) {
     detectors.push_back(new QwHelicity("Helicity info"));
-    detectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/mock_qweak_helicity.map");
-    detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
+    detectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
   }
-  QwHelicityPattern helicitypattern(detectors,kMultiplet);
+  QwHelicityPattern helicitypattern(detectors);
+
+  // Running sum
+  QwSubsystemArrayParity runningsum;
+  runningsum.Copy(&detectors);
 
   // Get the helicity
   QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystem("Helicity info");
@@ -84,12 +97,12 @@ int main(int argc, char* argv[])
   QwEventBuffer eventbuffer;
 
 
-  // Parse command line arguments
-  QwCommandLine commandline;
-  commandline.Parse(argc, argv);
-
-  // Loop over the requested runs
-  for (int run = commandline.GetFirstRun(); run <= commandline.GetLastRun(); run++) {
+  // Loop over all runs
+  UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
+  UInt_t runnumber_max = (UInt_t) gQwOptions.GetIntValuePairLast("run");
+  for (UInt_t run  = runnumber_min;
+              run <= runnumber_max;
+              run++) {
 
     // Data file (input)
     TString datafilename = TString("QwMock_") + Form("%ld.log",run);
@@ -101,7 +114,7 @@ int main(int argc, char* argv[])
 
 
     // ROOT file output (histograms)
-    TString rootfilename = TString("QwMock_") + Form("%ld.root",run);
+    TString rootfilename = TString(getenv("QW_ROOTFILES")) + TString("/QwMock_") + Form("%ld.root",run);
     TFile rootfile(rootfilename, "RECREATE", "QWeak ROOT file");
     if (bHisto) {
       rootfile.cd();
@@ -137,6 +150,8 @@ int main(int argc, char* argv[])
 
 
     // Loop over events in this CODA file
+    Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
+    Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
     while (eventbuffer.GetEvent() == CODA_OK) {
 
       // First, do processing of non-physics events...
@@ -149,8 +164,9 @@ int main(int argc, char* argv[])
       if (! eventbuffer.IsPhysicsEvent()) continue;
 
       //  Check to see if we want to process this event.
-      if (eventbuffer.GetEventNumber() < commandline.GetFirstEvent()) continue;
-      else if (eventbuffer.GetEventNumber() > commandline.GetLastEvent()) break;
+      eventnumber = eventbuffer.GetEventNumber();
+      if      (eventnumber < eventnumber_min) continue;
+      else if (eventnumber > eventnumber_max) break;
 
       // Fill the subsystem objects with their respective data for this event.
       eventbuffer.FillSubsystemData(detectors);
@@ -184,6 +200,9 @@ int main(int argc, char* argv[])
       // Fill the histograms
       if (bHisto) detectors.FillHistograms();
 
+      // Accumulate the running sum to calculate the event based running average
+      runningsum.AccumulateRunningSum(detectors);
+
       // Fill the MPS tree
       if (bTree) {
         eventnumber = eventbuffer.GetEventNumber();
@@ -209,6 +228,10 @@ int main(int argc, char* argv[])
 
     } // end of loop over events
 
+    // Calculate the running averages
+    helicitypattern.CalculateRunningAverage();
+    runningsum.CalculateRunningAverage();
+
     // Close ROOT file
     rootfile.Write(0,TObject::kOverwrite);
     // Delete histograms
@@ -220,6 +243,35 @@ int main(int argc, char* argv[])
     // Close data file and print run summary
     eventbuffer.CloseDataFile();
     eventbuffer.ReportRunSummary();
+
+    // Write to database
+    if (bDatabase) {
+      QwDatabase* qweak_database  = new QwDatabase();
+      QwMessage << "GetMonitorID(qwk_batext2) = " << qweak_database->GetMonitorID("qwk_batext2") << QwLog::endl;
+      QwMessage << "GetMonitorID(phasemonitor) = " << qweak_database->GetMonitorID("phasemonitor") << QwLog::endl;
+      QwMessage << "GetMonitorID(qwk_junk) = " << qweak_database->GetMonitorID("qwk_junk") << QwLog::endl;
+      QwMessage << "GetMainDetectorID(md1neg) = " << qweak_database->GetMainDetectorID("md1neg") << QwLog::endl;
+      QwMessage << "GetMainDetectorID(spare3) = " << qweak_database->GetMainDetectorID("spare3") << QwLog::endl;
+      QwMessage << "GetMainDetectorID(combinationallmd) = " << qweak_database->GetMainDetectorID("combinationallmd") << QwLog::endl;
+      QwMessage << "GetLumiDetectorID(dlumi8) = " << qweak_database->GetLumiDetectorID("dlumi8") << QwLog::endl;
+      QwMessage << "GetVersion() = " << qweak_database->GetVersion() << QwLog::endl;
+      // GetRunID() and GetAnalysisID have their own Connect() and Disconnect() functions.
+      UInt_t run_id      = qweak_database->GetRunID(eventbuffer);
+      UInt_t analysis_id = qweak_database->GetAnalysisID(eventbuffer);
+
+      QwMessage << "QwMockDataAnalysis.cc::"
+                << " Run Number "  << QwColor(Qw::kBoldMagenta) << eventbuffer.GetRunNumber() << QwColor(Qw::kNormal)
+                << " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id<< QwColor(Qw::kNormal)
+                << " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id
+                << QwLog::endl;
+
+      // Each sussystem has its own Connect() and Disconnect() functions.
+      helicitypattern.FillDB(qweak_database);
+
+      delete qweak_database; qweak_database = NULL;
+
+    } // end of database write
+
 
   } // end of loop over runs
 

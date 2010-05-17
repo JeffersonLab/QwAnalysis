@@ -21,11 +21,11 @@ enum EventType {
   PreStartEvent = 17,
   GoEvent       = 18, 
   PauseEvent    = 19, 
-  EndEvent      = 20
+  EndEvent      = 20,
+  UserEvent   
 };
 
 
-class THaCodaFile;
 class CodaAnalysis 
 {
 
@@ -46,11 +46,11 @@ private :
   bool          pause_exist_status;
   bool          end_exist_status;
 
-  static const char *const  char_event_type[21];
+  static const char *const  char_event_type[22];
 
 public:
+  CodaAnalysis(){};
   CodaAnalysis(const char *s);
-  CodaAnalysis();
   ~CodaAnalysis();
 
  

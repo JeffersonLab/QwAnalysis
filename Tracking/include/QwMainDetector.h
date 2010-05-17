@@ -39,7 +39,7 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
   void  ClearEventData();
-  Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
   void  ProcessEvent();
 
@@ -48,8 +48,9 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
   void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Double_t> &values);
+  void  ConstructBranchAndVector(TTree *tree, TString prefix);
   void  FillTreeVector(std::vector<Double_t> &values);
-  
+  void  FillTreeVector();
 
   QwMainDetector& operator=  (const QwMainDetector &value);
 
@@ -111,7 +112,7 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
   //    We need a mapping of module,channel into PMT index, ADC/TDC
   std::vector< std::vector<QwPMT_Channel> > fPMTs;
 
-
+  std::vector <Double_t> fMainDetVector;
 
 };
 

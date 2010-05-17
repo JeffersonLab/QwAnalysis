@@ -32,7 +32,7 @@ QwHit::QwHit()
   fAmbiguousElement  = false;
   fLRAmbiguity       = false;
 
-  fRawTime           = 0.0;
+  fRawTime           = 0;
   fTime              = 0.0;
   fTimeRes           = 0.0;
   fDistance          = 0.0;
@@ -94,7 +94,7 @@ QwHit::QwHit(Int_t bank_index,
 	     Int_t plane,
 	     EQwDirectionID direction,
 	     Int_t wire,
-	     UInt_t data)
+	     UInt_t rawdata)
 {
   fCrate             = bank_index;
   fModule            = slot_num;
@@ -112,7 +112,7 @@ QwHit::QwHit(Int_t bank_index,
   fAmbiguousElement  = false;
   fLRAmbiguity       = false;
 
-  fRawTime           = data;
+  fRawTime           = rawdata;
   fTime              = 0.0;	/// Start corrected time, may also be further modified
   fTimeRes           = 0.0;	/// Resolution of time (if appropriate)
   fDistance          = 0.0;	/// Perpendicular distance from the wire to the track

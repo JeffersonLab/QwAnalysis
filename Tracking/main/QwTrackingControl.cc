@@ -15,7 +15,7 @@
 int main (int argc, char** argv)
 {
   /// Define the command line options
-  gQwOptions.DefineOptions();
+  DefineOptionsTracking(gQwOptions);
 
   /// Start "Qw-Root []" command prompt
   QwRoot* qwroot = new QwRoot("Qweak-Root Analyzer", &argc, argv);

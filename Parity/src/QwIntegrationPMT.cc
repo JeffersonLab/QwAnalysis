@@ -9,9 +9,6 @@
 #include "QwHistogramHelper.h"
 #include <stdexcept>
 
-
-
-
 /********************************************************/
 void QwIntegrationPMT::SetPedestal(Double_t pedestal)
 {
@@ -23,10 +20,10 @@ void QwIntegrationPMT::SetPedestal(Double_t pedestal)
 void QwIntegrationPMT::SetCalibrationFactor(Double_t calib)
 {
 	fCalibration=calib;
-	fTriumf_ADC.SetCalibrationFactor(fCalibration); 
+	fTriumf_ADC.SetCalibrationFactor(fCalibration);
 	return;
 };
-/********************************************************/ 
+/********************************************************/
 void  QwIntegrationPMT::InitializeChannel(TString name, TString datatosave)
 {
   SetPedestal(0.);
@@ -46,9 +43,27 @@ void QwIntegrationPMT::ReportErrorCounters(){
   fTriumf_ADC.ReportErrorCounters();
 };
 /********************************************************/
-void QwIntegrationPMT::SetRandomEventDriftParameters(Double_t Amplitude, Double_t Phase, Double_t Frequency)
+void QwIntegrationPMT::UseExternalRandomVariable()
 {
-  fTriumf_ADC.SetRandomEventDriftParameters(Amplitude, Phase, Frequency);
+  fTriumf_ADC.UseExternalRandomVariable();
+  return;
+};
+/********************************************************/
+void QwIntegrationPMT::SetExternalRandomVariable(double random_variable)
+{
+  fTriumf_ADC.SetExternalRandomVariable(random_variable);
+  return;
+};
+/********************************************************/
+void QwIntegrationPMT::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
+{
+  fTriumf_ADC.SetRandomEventDriftParameters(amplitude, phase, frequency);
+  return;
+};
+/********************************************************/
+void QwIntegrationPMT::AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
+{
+  fTriumf_ADC.AddRandomEventDriftParameters(amplitude, phase, frequency);
   return;
 };
 /********************************************************/
@@ -64,9 +79,9 @@ void QwIntegrationPMT::SetRandomEventAsymmetry(Double_t asymmetry)
   return;
 };
 /********************************************************/
-void QwIntegrationPMT::RandomizeEventData(int helicity)
+void QwIntegrationPMT::RandomizeEventData(int helicity, double time)
 {
-  fTriumf_ADC.RandomizeEventData(helicity);
+  fTriumf_ADC.RandomizeEventData(helicity, time);
   return;
 };
 /********************************************************/
@@ -93,12 +108,6 @@ void QwIntegrationPMT::SetEventData(Double_t* block, UInt_t sequencenumber)
   return;
 };
 /********************************************************/
-void QwIntegrationPMT::SetEventNumber(int event)
-{
-  fTriumf_ADC.SetEventNumber(event);
-  return;
-};
-/********************************************************/
 void QwIntegrationPMT::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   fTriumf_ADC.EncodeEventData(buffer);
@@ -106,64 +115,52 @@ void QwIntegrationPMT::EncodeEventData(std::vector<UInt_t> &buffer)
 /********************************************************/
 void  QwIntegrationPMT::ProcessEvent()
 {
-  
+  ApplyHWChecks();//first apply HW checks and update HW  error flags.
   fTriumf_ADC.ProcessEvent();
-  
- 
+
+
   return;
 };
 /********************************************************/
 Bool_t QwIntegrationPMT::ApplyHWChecks()
 {
-  Bool_t fEventIsGood=kTRUE;	
+  Bool_t fEventIsGood=kTRUE;
 
     fDeviceErrorCode=fTriumf_ADC.ApplyHWChecks();//will check for consistancy between HWSUM and SWSUM also check for sample size
-    fEventIsGood=(fDeviceErrorCode & 0x0);//if no HW error return true 
- 
-  
-  return fEventIsGood;  
+    fEventIsGood=(fDeviceErrorCode & 0x0);//if no HW error return true
+
+
+  return fEventIsGood;
 };
 /********************************************************/
 
-Int_t QwIntegrationPMT::SetSingleEventCuts(std::vector<Double_t> & dEventCuts){//two limts and sample size
-  fLLimit=dEventCuts.at(0);
-  fULimit=dEventCuts.at(1);
-  fDevice_flag=(Int_t)dEventCuts.at(2);
-  //std::cout<<GetElementName()<<" IntegrationPMT fDevice_flag "<<fDevice_flag<<std::endl;
-  
+Int_t QwIntegrationPMT::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){//std::vector<Double_t> & dEventCuts){//two limts and sample size
+  fTriumf_ADC.SetSingleEventCuts(LL,UL);
   return 1;
 };
 
 
-///* will not compile with Buddhini's code 12nov09 
+///* will not compile with Buddhini's code 12nov09
 void QwIntegrationPMT::SetDefaultSampleSize(Int_t sample_size){
  fTriumf_ADC.SetDefaultSampleSize((size_t)sample_size);
 }
-//*/  
+//*/
 
 /********************************************************/
-Bool_t QwIntegrationPMT::ApplySingleEventCuts(){ 
+Bool_t QwIntegrationPMT::ApplySingleEventCuts(){
 
-  
+
 //std::cout<<" QwBCM::SingleEventCuts() "<<std::endl;
-  Bool_t status=kTRUE;   
-  ApplyHWChecks();//first apply HW checks and update HW  error flags.
-  
-  if (fDevice_flag==1){// if fDevice_flag==1 then perform the event cut limit test	  
-    
-    //if (fTriumf_ADC.GetHardwareSum()<=fULimit && fTriumf_ADC.GetHardwareSum()>=fLLimit){ // Check event cuts + HW check status
-    if (fTriumf_ADC.ApplySingleEventCuts(fLLimit,fULimit)){    
-      status=kTRUE;
-      //std::cout<<" BCM Sample size "<<fTriumf_ADC.GetNumberOfSamples()<<std::endl;
-    }
-    else{
-      fTriumf_ADC.UpdateEventCutErrorCount();//update event cut falied counts
-      if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fTriumf_ADC.GetHardwareSum();
-      status&=kFALSE;//kTRUE;//kFALSE;
-    }
-  }else
-    status =kTRUE;     
+  Bool_t status=kTRUE;
 
+  if (fTriumf_ADC.ApplySingleEventCuts()){
+    status=kTRUE;
+    //std::cout<<" BCM Sample size "<<fTriumf_ADC.GetNumberOfSamples()<<std::endl;
+  }
+  else{
+    fTriumf_ADC.UpdateEventCutErrorCount();//update event cut falied counts
+    status&=kFALSE;//kTRUE;//kFALSE;
+  }
 
   return status;
 
@@ -185,7 +182,8 @@ Int_t QwIntegrationPMT::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_
   fTriumf_ADC.ProcessEvBuffer(buffer,word_position_in_buffer);
 
   return word_position_in_buffer;
-};
+};  Double_t fULimit, fLLimit;
+
 /********************************************************/
 QwIntegrationPMT& QwIntegrationPMT::operator= (const QwIntegrationPMT &value)
 {
@@ -357,10 +355,44 @@ void  QwIntegrationPMT::Copy(VQwDataElement *source)
 }
 
 
-void QwIntegrationPMT::Calculate_Running_Average(){
-  fTriumf_ADC.Calculate_Running_Average();
+void QwIntegrationPMT::CalculateRunningAverage() {
+  fTriumf_ADC.CalculateRunningAverage();
 };
 
-void QwIntegrationPMT::Do_RunningSum(){
-  fTriumf_ADC.Do_RunningSum();
+void QwIntegrationPMT::AccumulateRunningSum(const QwIntegrationPMT& value) {
+  fTriumf_ADC.AccumulateRunningSum(value.fTriumf_ADC);
 };
+
+void QwIntegrationPMT::BlindMe(QwBlinder *blinder) {
+  fTriumf_ADC.BlindMe(blinder);
+};
+
+
+QwDBInterface QwIntegrationPMT::GetDBEntry(TString subname)
+{
+  QwDBInterface row;
+
+  TString name;
+  Double_t avg         = 0.0;
+  Double_t err         = 0.0;
+  UInt_t beam_subblock = 0;
+  UInt_t beam_n        = 0;
+
+  name          = this->GetElementName();
+  avg           = this->GetAverage();
+  err           = this->GetAverageError();
+  beam_subblock = 7;// no meaning, later will be replaced with a real one
+  beam_n        = this->GetGoodEventCount();
+
+
+  row.SetDetectorName(name);
+  row.SetSubblock(beam_subblock);
+  row.SetN(beam_n);
+  row.SetValue(avg);
+  row.SetError(err);
+
+  return row;
+
+};
+
+

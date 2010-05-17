@@ -3,8 +3,8 @@
 ClassImp(QwGUIMainDetector);
 
 const char *QwGUIMainDetector::MainDetectorDataNames[MAIN_DET_INDEX] = 
-  {"bar1left","bar2left","bar3left","bar4left","bar5left","bar6left","bar7left","bar8left",
-   "bar1right","bar2right","bar3right","bar4right","bar5right","bar6right","bar7right","bar8right"};
+  {"md1neg","md2neg","md3neg","md4neg","md5neg","md6neg","md7neg","md8neg",
+   "md1pos","md2pos","md3pos","md4pos","md5pos","md6pos","md7pos","md8pos"};
 
 QwGUIMainDetector::QwGUIMainDetector(const TGWindow *p, const TGWindow *main, const TGTab *tab,
 			       const char *objName, const char *mainname, UInt_t w, UInt_t h)
@@ -20,7 +20,8 @@ QwGUIMainDetector::QwGUIMainDetector(const TGWindow *p, const TGWindow *main, co
 
   SetDFTCalculated(kFalse);
 
-  ClearData();
+  ClearRootData();
+  ClearDBData();
 
 }
 
@@ -33,7 +34,8 @@ QwGUIMainDetector::~QwGUIMainDetector()
 
   RemoveThisTab(this);
   IsClosing(GetName());
-  ClearData();
+  ClearRootData();
+  ClearDBData();
 }
 
 void QwGUIMainDetector::MakeLayout()
@@ -67,10 +69,15 @@ void QwGUIMainDetector::MakeLayout()
   dTabFrame->Resize(GetWidth(),GetHeight());
   AddFrame(dTabFrame,dTabLayout);
 
+//   Int_t wid = dCanvas->GetCanvasWindowId();
+//   QwGUISuperCanvas *mc = new QwGUISuperCanvas("", 10,10, wid);
+//   dCanvas->AdoptCanvas(mc);
+
   dCanvas->GetCanvas()->SetBorderMode(0);
   dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
-				"QwGUIMainDetector",
-				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
+  				"QwGUIMainDetector",
+  				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
+
   TCanvas *mc = dCanvas->GetCanvas();
   mc->Divide(4,4);
 
@@ -93,10 +100,6 @@ void QwGUIMainDetector::OnObjClose(char *obj)
     if(window) delete window;
   }
 
-  if(!strcmp(obj,"dROOTFile")){
-    dROOTCont = NULL;
-  }
-
   if(!strcmp(obj,"dNumberEntryDlg")){
     delete dNumberEntryDlg;
     dNumberEntryDlg = NULL;
@@ -110,17 +113,19 @@ void QwGUIMainDetector::OnObjClose(char *obj)
   QwGUISubSystem::OnObjClose(obj);
 }
 
-void QwGUIMainDetector::OnNewDataContainer()
+void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
 {
+
+  if(!cont) return;
 
   TObject *obj;
   TTree *tree;
-  ClearData();
   TH1D *hst;
   TGraph *grp;
 
-  if(dROOTCont){
-    
+  if(!strcmp(cont->GetDataName(),"ROOT") && dROOTCont){
+
+    ClearRootData();  
     obj = dROOTCont->ReadData("MPS_Tree");
     if(obj){
        if(obj->InheritsFrom("TTree")){
@@ -129,7 +134,6 @@ void QwGUIMainDetector::OnNewDataContainer()
 	for(int i = 0; i < MAIN_DET_INDEX; i++){
 	  if ( tree -> FindLeaf(Form("%s.hw_sum_raw",MainDetectorDataNames[i])) ) 
 	  {
-
 	    tree->Draw(Form("%s.hw_sum_raw",MainDetectorDataNames[i]),"","goff",tree->GetEntries(),0);
 	    hst = new TH1D(Form("hst%02d",i),Form("%s.hw_sum_raw",MainDetectorDataNames[i]),1000,9,11);
 	    grp = new TGraph();
@@ -147,24 +151,39 @@ void QwGUIMainDetector::OnNewDataContainer()
 	  }
 	}	
       }
-    }  
+    }
+    PlotHistograms();
   }
 
-  PlotHistograms();
+  if(!strcmp(cont->GetDataName(),"DBASE") && dDatabaseCont){
 
-//     for(int p = 0; p < MAIN_DET_INDEX; p++){
-	
-//       obj = dROOTCont->ReadData(MainDetectorDataNames[p]);
-//       if(obj){
+    ClearDBData();      
 
-// 	if(obj->InheritsFrom("TH1")){
-// 	  copy = obj->Clone();
-// 	  ((TH1*)copy)->SetName(Form("%s_cp",((TH1*)obj)->GetName()));
-// 	  ((TH1*)copy)->SetDirectory(0);
-// 	  HistArray.Add(copy);
-// 	}
-//       }
-//     }
+    dDatabaseCont->Connect();
+
+    mysqlpp::Query query= dDatabaseCont->Query("select * from md_data where main_detector_id = '1' and measurement_type_id = 'yq'");
+
+//     QwDBInterface interface;
+//     vector<QwParityDB::md_data> entrylist;
+//     QwParityDB::md_data row = interface.MainDetectorDBClone();
+    Double_t value = 0;
+
+    if (mysqlpp::StoreQueryResult res = query.store()) {
+
+//       grp = new TGraph();
+//       grp->SetTitle(Form("%s.hw_sum_raw",MainDetectorDataNames[i]));
+//       grp->SetName(Form("grp%02d",i));
+      
+
+      for (size_t i = 0; i < res.num_rows(); ++i) {	
+	value = res[i]["value"];
+	printf("%f\n",value);
+      }
+    }
+    
+    dDatabaseCont->Disconnect(); 
+  }
+
 
 }
 
@@ -182,8 +201,12 @@ void QwGUIMainDetector::OnUpdatePlot(char *obj)
   printf("Received Messager From: %s\n",obj);
 }
 
+void QwGUIMainDetector::ClearDBData()
+{
+ 
+}
 
-void QwGUIMainDetector::ClearData()
+void QwGUIMainDetector::ClearRootData()
 {
 
   TObject *obj;
@@ -362,6 +385,9 @@ void QwGUIMainDetector::CalculateDFT()
       nc = 0;
 
       for(int k = 0; k < N; k++){
+      #if ROOT_VERSION_CODE >= ROOT_VERSION(5,22,0)
+        // Only starting with ROOT version 5.22 does GetPoint return an Int_t
+	// Ref: http://root.cern.ch/root/html522/TGraph.html#TGraph:GetPoint
 	if(grp->GetPoint(k,tValx,tValy) > 0){
 	  fValyR += tValy*TMath::Cos(2*TMath::Pi()*j*k/N);
 	  fValyI += tValy*TMath::Sin(2*TMath::Pi()*j*k/N);
@@ -370,6 +396,15 @@ void QwGUIMainDetector::CalculateDFT()
 	  fValyI += 0;
 	  fValyR += 0;
 	}
+      #else
+	// Before ROOT version 5.22 GetPoint returns void,
+	// but tValx and tValy are unchanged in case of problems
+	// Ref: http://root.cern.ch/root/html520/TGraph.html#TGraph:GetPoint
+	tValx = 0; tValy = 0;
+        grp->GetPoint(k,tValx,tValy);
+	fValyR += tValy*TMath::Cos(2*TMath::Pi()*j*k/N);
+	fValyI += tValy*TMath::Sin(2*TMath::Pi()*j*k/N);
+      #endif
       } 
       hst->SetBinContent(j+1,sqrt(fValyR*fValyR+fValyI*fValyI));
 

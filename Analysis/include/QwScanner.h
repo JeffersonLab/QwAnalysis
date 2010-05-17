@@ -11,12 +11,14 @@
 #define __QWSCANNER__
 
 #include <vector>
+
 #include "TTree.h"
 #include "TFile.h"
 #include "TRandom3.h"
 
 #include "VQwSubsystemTracking.h"
 #include "VQwSubsystemParity.h"
+#include "QwBlinder.h"
 
 #include "MQwV775TDC.h"
 #include "QwVQWK_Module.h"
@@ -27,9 +29,6 @@
 #include "QwSIS3801_Channel.h"
 #include "QwPMT_Channel.h"
 
-class QwVQWK_Channel;
-class MQwSIS3801_Channel;
-
 class QwScanner: public VQwSubsystemTracking,
                  public VQwSubsystemParity
 {
@@ -37,37 +36,35 @@ class QwScanner: public VQwSubsystemTracking,
  public:
 
    QwScanner(TString region_tmp);
-
    virtual ~QwScanner();
 
   // VQwSubsystem methods
     VQwSubsystem& operator=  (VQwSubsystem *value) { return *this; };
     VQwSubsystem& operator+= (VQwSubsystem *value) { return *this; };
     VQwSubsystem& operator-= (VQwSubsystem *value) { return *this; };
+    void ProcessOptions(QwOptions &options); //Handle command line options
     void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2) { return; };
     void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2) { return; };
     void Ratio(VQwSubsystem *numer, VQwSubsystem *denom) { return; };
     void Scale(Double_t factor) { return; };
 
-    void Calculate_Running_Average(){return;};
-    void Do_RunningSum(){return;};//update the running sums for devices
+    void AccumulateRunningSum(VQwSubsystem* value) {return;};
+    void CalculateRunningAverage() {return;};
 
-  //
     Int_t LoadEventCuts(TString filename) { return 0; };
     Bool_t ApplySingleEventCuts() { return kTRUE; };
     Int_t GetEventcutErrorCounters() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
-  //
+
     void Copy(VQwSubsystem *source) { VQwSubsystem::Copy(source); return; };
     VQwSubsystem*  Copy() { return this; };
     Bool_t Compare(VQwSubsystem *source) { return kTRUE; };
-
 
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadQweakGeometry(TString mapfile){return 0;};
   Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info){return 0;};
-  Int_t LoadInputParameters(TString mapfile);
+  Int_t LoadInputParameters(TString parameterfile);
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   void  InitializeChannel(TString name, TString datatosave);
   void  ClearEventData();
@@ -78,18 +75,21 @@ class QwScanner: public VQwSubsystemTracking,
   void  SetCalibrationFactor(Double_t calib);
   void  RandomizeEventData(int helicity);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
-  Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   void  ProcessEvent();
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();
-  void  ConstructTrees(TFile* rootfile);
-  void  FillTrees();
+
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-  void  FillTreeVector(std::vector<Double_t> &values) { };
-  void  FillTreeVector(std::vector<Double_t> &values, TString &prefix);
-  void GetHitList(QwHitContainer & grandHitContainer){};
-  void ReportConfiguration();
+  void  ConstructBranchAndVector(TTree *tree, TString &prefix);
+  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector();
+
+  void  FillDB(QwDatabase *db, TString type) {return;};
+
+  void  GetHitList(QwHitContainer & grandHitContainer){};
+  void  ReportConfiguration();
 
   Bool_t Compare(QwScanner &value);
   QwScanner& operator=  (QwScanner &value);
@@ -125,6 +125,13 @@ class QwScanner: public VQwSubsystemTracking,
 
   // Tells this object that it will decode data from the current bank
   Int_t RegisterSlotNumber(const UInt_t slot_id);
+  void DecodeTDCWord(UInt_t &word);
+  UInt_t GetTDCSlotNumber(){return fV775SlotNumber;};
+  Bool_t IsValidDataword(){return fV775ValidFlag;};
+  UInt_t GetTDCChannelNumber(){return fV775ChannelNumber;};
+  UInt_t GetTDCData(){return fV775Dataword;};
+
+
   const QwScanner::EModuleType RegisterModuleType(TString moduletype);
   Int_t GetModuleIndex(size_t bank_index, size_t slot_num) const;
   Bool_t IsSlotRegistered(Int_t bank_index, Int_t slot_num) const {
@@ -141,9 +148,9 @@ class QwScanner: public VQwSubsystemTracking,
   static const UInt_t kMaxNumberOfModulesPerROC;
   static const UInt_t kMaxNumberOfChannelsPerModule;
   Int_t fNumberOfModules;
-  std::vector< std::vector<Int_t> > fModuleIndex;  //  Module index, indexed by bank_index and slot_number
+  std::vector< std::vector<Int_t> > fModuleIndex;  /// Module index, indexed by bank_index and slot_number
   std::vector< enum EModuleType > fModuleTypes;
-  std::vector< std::vector< std::pair<Int_t, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel; gives the plane and wire assignment.
+  std::vector< std::vector< std::pair<Int_t, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel
 
   Int_t GetEventcutErrorFlag() { return 0; };//return the error flag to the main routine
 
@@ -152,43 +159,47 @@ class QwScanner: public VQwSubsystemTracking,
   std::vector<TH2*> fHistograms2D;
 
  private:
+  Double_t get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalidity);
 
-  Double_t fCurrentPotentialX;
-  Double_t fCurrentPotentialY;
-  Double_t fDirectionX;
-  Double_t fDirectionY;
-  Double_t PreDirectionX;
-  Double_t PreDirectionY;
+ private:
 
+  static const Bool_t bStoreRawData;
+
+  static const UInt_t kV775Mask_SlotNumber;
+  static const UInt_t kV775Mask_WordType;
+  static const UInt_t kV775Mask_ChannelNumber;
+  static const UInt_t kV775Mask_Dataword;
+  static const UInt_t kV775WordType_Datum;
+
+  Bool_t fV775ValidFlag;
+  UInt_t fV775SlotNumber;
+  UInt_t fV775ChannelNumber;
+  UInt_t fV775Dataword;
+
+  /// variables for calibrating and calculating scanner positions
+  Double_t fMainDetCenterX;
+  Double_t fMainDetCenterY;
+  Double_t fHomePositionX;
+  Double_t fHomePositionY;
+  Double_t fVoltageOffsetX;
+  Double_t fVoltageOffsetY;
+  Double_t fCal_FactorX;
+  Double_t fCal_FactorY;
   Double_t fPedestal;
   Double_t fCalibration;
 
-  Double_t fPowSupply;
-  Double_t fPositionX;
-  Double_t fPositionY;
-  Double_t fRate;
+  Int_t fTreeArrayNumEntries;
+  Int_t fTreeArrayIndex;
+  std::vector <Double_t> fScannerVector;
 
-  Double_t MainDetCenterX;
-  Double_t MainDetCenterY;
-
-  Double_t HomePositionOffsetX;
-  Double_t HomePositionOffsetY;
-
-  Double_t fVoltageOffsetX;
-  Double_t fVoltageOffsetY;
-
-  Double_t Cal_FactorX;
-  Double_t Cal_FactorY;
-
-  Int_t myTimer;
-
-  Int_t FrontScaData;
-  Int_t BackScaData;
-  Int_t CoincidenceScaData;
-
-  Int_t eventnumber;
-  Int_t trigevtnum;
-  Int_t sumevtnum;
+  Int_t    fEvtCounter;
+  Int_t    fTrigEvtCounter;
+  Int_t    fSumEvtCounter;
+  Int_t    fSumFlag;
+  Int_t    fTrigFlag;
+  Double_t fPowSupply_VQWK;
+  Double_t fPositionX_VQWK;
+  Double_t fPositionY_VQWK;
   Double_t fFrontSCA;
   Double_t fBackSCA;
   Double_t fCoincidenceSCA;
@@ -196,23 +207,23 @@ class QwScanner: public VQwSubsystemTracking,
   Double_t fFrontTDC;
   Double_t fBackADC;
   Double_t fBackTDC;
+  Double_t fPowSupply_ADC;
+  Double_t fPositionX_ADC;
+  Double_t fPositionY_ADC;
 
-
-  TString prefix_trig;
-  TString prefix_sum;
-
-  std::vector <Double_t> ScannerTrigVector;
-  std::vector <Double_t> ScannerSumVector;
-
-  TTree *ScannerTrigTree;
-  TTree *ScannerSumTree;
-  TTree *ScannerEvtTree;
-
-  Int_t SumFlag;
-  Int_t TrigFlag;
-
-  Double_t get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalidity);
+  /// variables for generating scanner mock data
+  Int_t    myTimer;
+  Double_t fCurrentPotentialX;
+  Double_t fCurrentPotentialY;
+  Double_t fDirectionX;
+  Double_t fDirectionY;
+  Double_t fPreDirectionX;
+  Double_t fPreDirectionY;
+  Int_t    fMockFrontScaData;
+  Int_t    fMockBackScaData;
+  Int_t    fMockCoincidenceScaData;
 };
+
 
 #endif
 
