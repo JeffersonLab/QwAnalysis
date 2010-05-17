@@ -16,7 +16,7 @@ void VQwAnalyzer::OpenRootFile(Int_t run)
 {
   // NOTE It seems that histogram and tree filling is thread safe, but we cannot
   // hve a single ROOT file for every analyzer object.  Probably we can open the
-  // ROOT file a level up in QwRoot, pass the pointer, and cd() into it in here
+  // ROOT file a level up in QwControl, pass the pointer, and cd() into it in here
   // before we construct the histograms
 
   // If no ROOT file has been opened yet

@@ -65,7 +65,7 @@
  *
  * \section QwThreadSafe_ExecutionStructure Execution structure
  *
- * There are two classes that implement the structure of the analysis: QwRoot
+ * There are two classes that implement the structure of the analysis: QwRint
  * and QwControl.  The main routine creates a QwControl object (which is just
  * an interactive ROOT prompt with added functionality), and then instructs the
  * QwControl object to start an analyzer and dataserver.  After this, it hands
@@ -73,14 +73,14 @@
  *
  * The QwControl object interprets an initial set of command line options and
  * sets some other general settings (search paths, etc).  Then it spins of the
- * main thread QwRoot, while QwControl stays active in the background for ROOT
+ * main thread QwRint, while QwControl stays active in the background for ROOT
  * commands.
  *
- * The QwRoot object implements the event loops.  There are two available loops:
- * QwRoot::OfflineLoop() and QwRoot::OnlineLoop().  Depending on the settings
+ * The QwRint object implements the event loops.  There are two available loops:
+ * QwRint::OfflineLoop() and QwRint::OnlineLoop().  Depending on the settings
  * parsed in QwControl, one of these loops is activated.
  *
- * In the inner part of the event loop, QwRoot requests a new event from the
+ * In the inner part of the event loop, QwRint requests a new event from the
  * dataserver, tells the dataserver to write the CODA stream to the analyzer,
  * and then instructs the analyzer to analyze this data in a new thread which
  * calls ProcessEvent().  While the analysis of this event is ongoing, the loop

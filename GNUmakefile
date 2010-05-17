@@ -128,9 +128,9 @@ EXCLUDEDIRS = evio Extensions
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
   ifneq ($(CODA),)
     #  The realtime executables should be added in this section.
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator qwtrackingcontrol qwroottest
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator qwtrackingcontrol qwroot
   else
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator qwtrackingcontrol qwroottest
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator qwtrackingcontrol qwroot
   endif
 else
   EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
@@ -138,9 +138,9 @@ endif
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
   ifneq ($(CODA),)
     #  The realtime executables should be added in this section.
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator qwtrackingcontrol qwroottest
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator qwtrackingcontrol qwroot
   else
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator qwtrackingcontrol qwroottest
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwmockdatagenerator qwtrackingcontrol qwroot
   endif
 endif
 # overridden by "make 'EXES=exe1 exe2 ...'"

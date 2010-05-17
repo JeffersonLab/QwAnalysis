@@ -1,4 +1,4 @@
-#include "QwRoot.h"
+#include "QwRint.h"
 
 // Standard C and C++ headers
 #include <iostream>
@@ -7,23 +7,19 @@
 // ROOT headers
 #include <TROOT.h>
 
-// Qweak headers
-#include "QwLog.h"
-#include "QwOptions.h"
-
 // Global pointers
-QwRoot* gQwRoot = NULL;
+QwRint* gQwRint = NULL;
 
 // Pointer to self
-QwRoot* QwRoot::fExists = NULL;
+QwRint* QwRint::fExists = NULL;
 
 
 //--------------------------------------------------------------------------
-QwRoot::QwRoot (const char* appClassName, int* argc, char** argv,
+QwRint::QwRint (const char* appClassName, int* argc, char** argv,
 		      void* options, int numOptions, bool noLogo)
 : TRint (appClassName, argc, argv, options, numOptions, noLogo)
 {
-  gQwRoot = this;
+  gQwRint = this;
 
   // Qw-Root command prompt
   SetPrompt("Qw-Root [%d] ");
@@ -33,7 +29,7 @@ QwRoot::QwRoot (const char* appClassName, int* argc, char** argv,
 }
 
 //---------------------------------------------------------------------------
-QwRoot::~QwRoot()
+QwRint::~QwRint()
 {
   // Reset point to self
   if (fExists == this)
