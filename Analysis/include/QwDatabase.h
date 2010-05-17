@@ -43,17 +43,23 @@
  *
  */
 class QwDatabase: private mysqlpp::Connection {
-
   public:
 
     QwDatabase(); //!< Simple constructor
+    QwDatabase(QwOptions &options); //!< Constructor with QwOptions object
 
     ~QwDatabase(); //!< Destructor
+
+    void         SetAccessLevel(string accesslevel);  //!< Sets the access level flag based on string labels:  "off", "ro", "rw".
+
+    Bool_t       AllowsReadAccess(){return (fAccessLevel==kQwDatabaseReadOnly || fAccessLevel==kQwDatabaseReadWrite);};
+    Bool_t       AllowsWriteAccess(){return (fAccessLevel==kQwDatabaseReadWrite);};
 
     Bool_t       Connect();                    //!< Open a connection to the database using the predefined parameters.
     void         Disconnect() {disconnect();}; //<! Close an open database connection
     const string GetServerVersion() {return server_version();}; //<! Get database server version
     static void  DefineOptions(QwOptions& options); //!< Defines available class options for QwOptions
+    Bool_t ProcessOptions(QwOptions &options); //!< Processes the options contained in the QwOptions object.
 
     mysqlpp::Query Query(const char *qstr=0     ) {return query(qstr);} //<! Generate a query to the database.
     mysqlpp::Query Query(const std::string &qstr) {return query(qstr);} //<! Generate a query to the database.
@@ -79,6 +85,8 @@ class QwDatabase: private mysqlpp::Connection {
     void         PrintServerInfo();                        //<! Print Server Information
     
  private:
+    enum EQwDBAccessLevel{kQwDatabaseOff, kQwDatabaseReadOnly, kQwDatabaseReadWrite};
+ private:
 
     Bool_t       ValidateConnection();                  //!< Checks that given connection parameters result in a valid connection
     const UInt_t SetRunID(QwEventBuffer& qwevt);        //<! Set fRunID using data from CODA event buffer
@@ -88,6 +96,8 @@ class QwDatabase: private mysqlpp::Connection {
     void StoreLumiDetectorIDs();                        //<! Retrieve LUMI monitor IDs from database and populate fLumiDetectorIDs
     void StoreMeasurementIDs();
     const bool StoreDBVersion();  //!< Retrieve database schema version information from database
+
+    EQwDBAccessLevel fAccessLevel;  //!< Access level of the database instance
 
     string fDatabase;        //!< Name of database to connect to
     string fDBServer;        //!< Name of server carrying DB to connect to
