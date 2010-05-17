@@ -42,7 +42,9 @@ class QwVQWK_Channel: public VQwDataElement {
  *         through member functions.
  ******************************************************************/
  public:
-  QwVQWK_Channel() { };
+  QwVQWK_Channel() { 
+    InitializeChannel("","");
+  };
 
   QwVQWK_Channel(TString name, TString datatosave = "raw") {
     InitializeChannel(name, datatosave);
@@ -186,7 +188,7 @@ class QwVQWK_Channel: public VQwDataElement {
 
  private:
   static const Bool_t kDEBUG;
-
+  static const Int_t fWordsPerChannel = 6;//no.of words per channel in the CODA buffer
 
   Int_t fDataToSave;
 
@@ -206,7 +208,8 @@ class QwVQWK_Channel: public VQwDataElement {
   /*! \name Channel configuration data members */
   // @{
   UInt_t  fSamplesPerBlock;
-  UInt_t  fBlocksPerEvent;
+  //UInt_t  fBlocksPerEvent;
+  Short_t fBlocksPerEvent;
   // @}
 
   /*  Ntuple array indices */
