@@ -11,7 +11,7 @@ const UInt_t QwMainDetector::kMaxNumberOfModulesPerROC     = 21;
 const UInt_t QwMainDetector::kMaxNumberOfChannelsPerModule = 32;
 
 
-QwSubsystemFactoryConcrete<QwMainDetector> theFactory("QwMainDetector");
+QwSubsystemFactory<QwMainDetector> theFactory("QwMainDetector");
 
 QwMainDetector::QwMainDetector(TString region_tmp):VQwSubsystem(region_tmp),
     VQwSubsystemTracking(region_tmp)
