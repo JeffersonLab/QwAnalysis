@@ -40,8 +40,9 @@
 #include "QwGasElectronMultiplier.h"
 #include "QwDriftChamberHDC.h"
 #include "QwDriftChamberVDC.h"
-#include "QwMainDetector.h"
 
+// Qweak subsystem factory
+#include "QwSubsystemFactory.h"
 
 
 // Debug level
@@ -91,7 +92,7 @@ int main (int argc, char* argv[])
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
 
   // Region 3 MD
-  detectors->push_back(new QwMainDetector("MD"));
+  detectors->push_back(GetRegisteredSubsystems()["QwMainDetector"]->Create("MD"));
   ((VQwSubsystemTracking*) detectors->GetSubsystem("MD"))->LoadQweakGeometry("qweak_new.geo");
 
 
