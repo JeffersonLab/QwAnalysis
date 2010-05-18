@@ -23,6 +23,16 @@ namespace po = boost::program_options;
 // Qweak headers
 #include "QwLog.h"
 
+// Helper function for safe environment variable parsing
+inline const std::string getenv_safe (const char* name) {
+ if (getenv(name))
+   return std::string(getenv(name));
+ else {
+   QwWarning << "Environment variable " << name << " undefined!" << QwLog::endl;
+   return std::string(".");
+ }
+}
+
 /**
  *  \class QwOptions
  *  \ingroup QwAnalysis

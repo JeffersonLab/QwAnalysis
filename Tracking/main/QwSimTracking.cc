@@ -40,8 +40,9 @@
 #include "QwGasElectronMultiplier.h"
 #include "QwDriftChamberHDC.h"
 #include "QwDriftChamberVDC.h"
-#include "QwMainDetector.h"
 
+// Qweak subsystem factory
+#include "QwSubsystemFactory.h"
 
 
 // Debug level
@@ -78,21 +79,21 @@ int main (int argc, char* argv[])
   // Region 1 GEM
   detectors->push_back(new QwGasElectronMultiplier("R1"));
   detectors->GetSubsystem("R1")->LoadChannelMap("qweak_cosmics_hits.map");
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("R1"))->LoadQweakGeometry("qweak_new.geo");
+  detectors->GetSubsystem("R1")->LoadQweakGeometry("qweak_new.geo");
 
   // Region 2 HDC
   detectors->push_back(new QwDriftChamberHDC("R2"));
   detectors->GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("R2"))->LoadQweakGeometry("qweak_new.geo");
+  detectors->GetSubsystem("R2")->LoadQweakGeometry("qweak_new.geo");
 
   // Region 3 VDC
   detectors->push_back(new QwDriftChamberVDC("R3"));
   detectors->GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
+  detectors->GetSubsystem("R3")->LoadQweakGeometry("qweak_new.geo");
 
   // Region 3 MD
-  detectors->push_back(new QwMainDetector("MD"));
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("MD"))->LoadQweakGeometry("qweak_new.geo");
+  detectors->push_back(GetSubsystemFactory("QwMainDetector")->Create("MD"));
+  detectors->GetSubsystem("MD")->LoadQweakGeometry("qweak_new.geo");
 
 
   // Get vector with detector info (by region, plane number)
