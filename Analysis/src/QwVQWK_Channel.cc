@@ -40,11 +40,7 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
   Bool_t fEventIsGood=kTRUE;
   Bool_t bStatus;
   fDeviceErrorCode=0;//Initialize the error flag
-  /*
-  //debug- Ring analysis
-  fEventCounter++;
-  fTripCounter++;
-  */
+
   if (bEVENTCUTMODE>0){//Global switch to ON/OFF event cuts set at the event cut file
 
     if (bDEBUG)
@@ -56,14 +52,12 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
 
     if (!bStatus){
       fDeviceErrorCode|=kErrorFlag_sample;
-      fErrorCount_sample++; //increment the error counter
     }
     //check SW and HW return the same sum
     bStatus= (GetRawHardwareSum()==GetRawSoftwareSum());
     //fEventIsGood =bStatus;
     if (!bStatus){
       fDeviceErrorCode|=kErrorFlag_SW_HW;
-      fErrorCount_SW_HW++;
     }
 
 
@@ -77,7 +71,6 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
     if (!MatchSequenceNumber(fSequenceNo_Prev)){//we have a sequence number error
       fEventIsGood=kFALSE;
       fDeviceErrorCode|=kErrorFlag_Sequence;
-      fErrorCount_Sequence++;
       if (bDEBUG)       std::cout<<" QwQWVK_Channel "<<GetElementName()<<" Sequence number  previous value = "<<fSequenceNo_Prev<<" Current value= "<< GetSequenceNumber()<<std::endl;
     }
 
@@ -95,13 +88,11 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
     if (fADC_Same_NumEvt>0){//we have ADC stuck with same value
       if (bDEBUG) std::cout<<" BCM hardware sum is same for more than  "<<fADC_Same_NumEvt<<" time consecutively  "<<std::endl;
       fDeviceErrorCode|=kErrorFlag_SameHW;
-      fErrorCount_SameHW++;
     }
 
     //check for the hw_sum is zero
     if (GetRawHardwareSum()==0){
       fDeviceErrorCode|=kErrorFlag_ZeroHW;
-      fErrorCount_ZeroHW++;
     }
     if (!fEventIsGood)
       fSequenceNo_Counter=0;//resetting the counter after ApplyHWChecks() a failure
@@ -112,12 +103,26 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
     fDeviceErrorCode = 0;
   }
 
+  //UpdateHWErrorCounters(fDeviceErrorCode);//update the error counters based on the fDeviceErrorCode 
 
-  return fDeviceErrorCode;
+
+ return fDeviceErrorCode;
 };
 
 /********************************************************/
-
+void QwVQWK_Channel::UpdateHWErrorCounters(Int_t error_flag){
+  if ( (kErrorFlag_sample &  error_flag)==kErrorFlag_sample)
+    fErrorCount_sample++; //increment the hw error counter
+  if ( (kErrorFlag_SW_HW &  error_flag)==kErrorFlag_SW_HW)
+    fErrorCount_SW_HW++; //increment the hw error counter
+  if ( (kErrorFlag_Sequence &  error_flag)==kErrorFlag_Sequence)
+    fErrorCount_Sequence++; //increment the hw error counter
+  if ( (kErrorFlag_SameHW &  error_flag)==kErrorFlag_SameHW)
+    fErrorCount_SameHW++; //increment the hw error counter
+  if ( (kErrorFlag_ZeroHW &  error_flag)==kErrorFlag_ZeroHW)
+    fErrorCount_ZeroHW++; //increment the hw error counter
+}; 
+/********************************************************/
 
 void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
 {

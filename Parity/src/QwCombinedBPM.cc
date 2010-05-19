@@ -111,10 +111,13 @@ void QwCombinedBPM::ClearEventData()
 /********************************************************/
 
 Int_t QwCombinedBPM::GetEventcutErrorCounters(){
-for(Int_t i=0;i<2;i++){
+for(Int_t i=0;i<3;i++)
   fCombinedAbsPos[i].GetEventcutErrorCounters();
+
+for(Int_t i=0;i<2;i++)
   fCombinedSlope[i].GetEventcutErrorCounters();
- }
+ 
+
   fCombinedWSum.GetEventcutErrorCounters();
 
   return 1;
@@ -134,6 +137,8 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts(){
       if (bDEBUG) std::cout<<" X event cut failed ";
     }
     fDeviceErrorCode|=fCombinedAbsPos[i].GetEventcutErrorFlag();//Get the Event cut error flag for X/Y
+    //Update the error counters
+    fCombinedAbsPos[i].UpdateHWErrorCounters();
   }
   //Event cuts for  X & Y slopes
   for(i=0;i<2;i++){
@@ -146,6 +151,8 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts(){
       if (bDEBUG) std::cout<<" X Slope event cut failed ";
     }
     fDeviceErrorCode|=fCombinedSlope[i].GetEventcutErrorFlag();//Get the Event cut error flag for SlopeX/Y
+    //Update the error counters
+    fCombinedSlope[i].UpdateHWErrorCounters();
   }
 
   //Event cuts for four wire sum (WSum)
@@ -157,6 +164,9 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts(){
     status&=kFALSE;
     if (bDEBUG) std::cout<<" WSum event cut failed ";
   }
+  fDeviceErrorCode|=fCombinedWSum.GetEventcutErrorFlag();//Get the Event cut error flag for SlopeX/Y
+   //Update the error counters
+  fCombinedWSum.UpdateHWErrorCounters();
 
   return status;
 };

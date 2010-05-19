@@ -145,6 +145,10 @@ class QwVQWK_Channel: public VQwDataElement {
 
   Int_t ApplyHWChecks(); //Check for harware errors in the devices. This will return the device error code.
 
+  void UpdateHWErrorCounters(Int_t error_flag);//update counters based on the flag passed to it
+  void UpdateHWErrorCounters(){//update the counters based on the this->fDeviceErrorCode
+    UpdateHWErrorCounters(fDeviceErrorCode);
+  };
   /*End*/
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);

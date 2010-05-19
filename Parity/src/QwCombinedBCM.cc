@@ -148,6 +148,9 @@ Bool_t QwCombinedBCM::ApplySingleEventCuts(){
   }
   fDeviceErrorCode|=fCombined_bcm.GetEventcutErrorFlag();//retrun the error flag for event cuts
 
+  //Update the error counters
+  fCombined_bcm.UpdateHWErrorCounters();
+
   return status;
 
 };
