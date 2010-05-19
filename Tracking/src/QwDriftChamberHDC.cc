@@ -14,6 +14,9 @@
 
 
 
+// Register this subsystem with the factory
+QwSubsystemFactory<QwDriftChamberHDC> theDriftChamberHDCFactory("QwDriftChamberHDC");
+
 
 QwDriftChamberHDC::QwDriftChamberHDC(TString region_tmp):VQwSubsystem(region_tmp),
                                                          QwDriftChamber(region_tmp,fTDCHits)
