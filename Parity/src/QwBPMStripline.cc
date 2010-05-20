@@ -307,9 +307,11 @@ void  QwBPMStripline::ProcessEvent()
       fRelPos[1].Scale(kRotationCorrection);
     }
 
-  // TODO (wdc) Shouldn't this be fAbsPos.Copy(fRelPos); fAbsPos.Offset(fOffset); ?
-  for(i=0;i<2;i++) fAbsPos[i].SetHardwareSum(fRelPos[i].GetHardwareSum()-fOffset[i]);
-  fAbsPos[2].SetHardwareSum(fOffset[2]);
+  for(i=0;i<2;i++) {
+    fAbsPos[i]= fRelPos[i];
+    fAbsPos[i].Offset(fOffset[i]);
+  }
+  fAbsPos[2].Offset(fOffset[2]);
 
   return;
 };

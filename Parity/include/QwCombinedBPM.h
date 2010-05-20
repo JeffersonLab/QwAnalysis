@@ -12,7 +12,7 @@
 #include <TTree.h>
 
 #include "QwVQWK_Channel.h"
-#include "QwBPMStripline.h" //bbbbb
+#include "QwBPMStripline.h" 
 
 /*****************************************************************
 *  Class:
@@ -48,7 +48,7 @@ class QwCombinedBPM : public VQwDataElement{
 
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  Int_t SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
+  void SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Int_t GetEventcutErrorFlag(){//return the error flag
     return fDeviceErrorCode;
@@ -75,7 +75,7 @@ class QwCombinedBPM : public VQwDataElement{
   void CalculateFixedParameter(std::vector<Double_t> fWeights, Int_t pos);
   Double_t SumOver( std::vector <Double_t> weight , std::vector <QwVQWK_Channel> val);
   void LeastSquareFit( Int_t pos, std::vector<Double_t> fWeights) ; //bbbbb
-
+  void CalculateEnergyChange();
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
@@ -88,10 +88,13 @@ class QwCombinedBPM : public VQwDataElement{
   /////
  private:
   static const Bool_t kDEBUG;
+  Bool_t kFOUND;
+
   /*  Position calibration factor, transform ADC counts in mm */
   static const Double_t kQwStriplineCalibration;
   /* Rotation factor for the BPM which antenna are at 45 deg */
   static const Double_t kRotationCorrection;
+
 
   std::vector <QwBPMStripline*> fElement;
   std::vector <Double_t> fQWeights;
@@ -112,14 +115,12 @@ class QwCombinedBPM : public VQwDataElement{
   Bool_t fixedParamCalculated;
 
   //used for least squares fit
-  Double_t fIntersept[2];
   Double_t erra[2],errb[2],covab[2];
-  Double_t A[2], B[2], C[2], D[2], E[2], F[2], m[2];
+  Double_t A[2], B[2], D[2], m[2];
   Double_t chi_square[2];
 
 
   Double_t fULimitX, fLLimitX, fULimitY, fLLimitY;//this sets the upper and lower limits on the X & Y of the BPM stripline
-
 
 
   /*This channel contains the 4-wire sum of the combined bpm at the target;equivalant to a charge*/
@@ -131,8 +132,8 @@ class QwCombinedBPM : public VQwDataElement{
   /* This channel contains the beam slope w.r.t the X & Y axis at the target */
   QwVQWK_Channel fCombinedSlope[2];
 
-
-
+  /* This channel contains the beam intercept w.r.t the X & Y axis at the target */
+  QwVQWK_Channel fCombinedIntercept[2];
 
   Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
