@@ -13,18 +13,10 @@ Adopted from G0EPICSEvent class.
 #include <iostream>
 #include <iomanip>
 #include <stdlib.h>
-#include "StringManip.h" // need to commit this and it's source file too.
+#include "StringManip.h" 
 #include "TRegexp.h"
 
-#include "QwDatabase.h"
-#include "TSQLRow.h"
-#include "TSQLResult.h"
-
-
-//#include "G0SQL.h"
-
-
-
+//#include "QwDatabase.h"
 
 #include "TString.h" 
 #include "TMath.h" 
@@ -35,6 +27,7 @@ using namespace std;
 
 
 class QwDatabase;
+
 class QwEPICSEvent
 {
  public:
@@ -75,17 +68,15 @@ class QwEPICSEvent
   void  DefineEPICSVariables();
   void  ReportEPICSData();
 
-
   vector<TString>  GetDefaultAutogainList();
   void  SetDefaultAutogainList(vector<TString> input_list);
 
   void  ResetCounters(); 
 
-/*   void FillDB(QwDatabase *db); */
-/*   Int_t WriteBaseTable(QwDatabase *db, TString table); */
-/*   void WriteMeasurementsTable(QwDatabase *db, TString table, Int_t table_id); */
-/*   void FillTargetTables(QwDatabase *db); */
-/*   void  WriteDatabase(QwDatabase *db); */
+  void FillDB(QwDatabase *db);
+  void FillSlowControlsData(QwDatabase *db);
+  Int_t   fNumberEPICSVariables;       // Number of defined EPICS variables.
+  vector<TString> fEPICSVariableList;  // List of defined EPICS variables.
 
  private:
   static const int kDebug;
@@ -122,8 +113,8 @@ class QwEPICSEvent
 
 
   Int_t    fNumberEPICSEvents;     //  The total number of EPICS events in the run.
-  Int_t   fNumberEPICSVariables;       // Number of defined EPICS variables.
-  vector<TString> fEPICSVariableList;  // List of defined EPICS variables.
+  //Int_t   fNumberEPICSVariables;       // Number of defined EPICS variables.
+  //vector<TString> fEPICSVariableList;  // List of defined EPICS variables.
   vector<QwEPICSDataType> fEPICSVariableType;
   vector<TString> fEPICSTableList;     // List of DB tables to write
 

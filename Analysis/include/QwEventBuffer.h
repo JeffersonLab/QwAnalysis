@@ -22,7 +22,6 @@
 #include "QwEPICSEvent.h"
 
 class QwOptions;
-class QwEPICSEvent;//--Ramesh: to avoid error: 'QwEPICSEvent' has not been declared
 
 //////////////////////////////////////////////////////////////////////
 

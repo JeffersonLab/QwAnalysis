@@ -176,7 +176,6 @@ Int_t main(Int_t argc, Char_t* argv[]) {
 
 
     QwEPICSEvent epics; 
-    //QwDatabase *qw_epics_DB = new QwDatabase();
 
     // Create the event buffer
     QwEventBuffer eventbuffer;
@@ -358,12 +357,13 @@ Int_t main(Int_t argc, Char_t* argv[]) {
 
         // Write and close file (after last access to ROOT tree)
         rootfile->Write(0, TObject::kOverwrite);
-
+	QwDatabase *db = new QwDatabase(); 
 
 	epics.ReportEPICSData();
 	epics.PrintVariableList();
 	epics.PrintAverages();
-	//epics.FillDB(qw_epics_DB);
+	//TString tag; epics.GetDataValue(tag);
+	epics.FillSlowControlsData(db);
 
 
         // Close CODA file
@@ -383,7 +383,7 @@ Int_t main(Int_t argc, Char_t* argv[]) {
         if (hitlist)        delete hitlist;         hitlist = 0;
         if (event)          delete event;           event = 0;
         if (rootlist)       delete rootlist;        rootlist = 0;
-
+	delete db; db=0;
         // Print run summary information
         QwMessage << "Analysis of run " << eventbuffer.GetRunNumber() << QwLog::endl
         << "CPU time used:  " << timer.CpuTime() << " s "

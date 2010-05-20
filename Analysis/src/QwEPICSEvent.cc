@@ -1,5 +1,10 @@
 #include "QwEPICSEvent.h"
 
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwSSQLS.h"
+#include "QwDatabase.h"
+
+
 #include <TStyle.h>
 #include <TFile.h>
 #include <cstring>
@@ -8,7 +13,7 @@
 #include <stdlib.h>
 
 #include <iostream>
-using namespace std;
+// using namespace std;
 
 
 
@@ -68,8 +73,8 @@ void QwEPICSEvent::CalculateRunningValues()
   Int_t tagindex;
   Bool_t anyFilled;
 
-  if (kDebug==1) cout <<"\n\nHere we are in 'CalculateRunningValues'!!\n"<<endl;
-  
+  if (kDebug==1) std::cout <<"\n\nHere we are in 'CalculateRunningValues'!!\n"<<std::endl;
+
   anyFilled = kFALSE;
   for (tagindex=0; tagindex<fNumberEPICSVariables; tagindex++) {
     anyFilled  |=  fEPICSDataEvent[tagindex].Filled;
@@ -106,15 +111,15 @@ void QwEPICSEvent::CalculateRunningValues()
 	    fEPICSCumulativeData[tagindex].Minimum       =  
 	      fEPICSDataEvent[tagindex].Value;
 	  }
-	  if (kDebug==1) cout << "This event has "<<fEPICSVariableList[tagindex]
+	  if (kDebug==1) std::cout << "This event has "<<fEPICSVariableList[tagindex]
 			     << " equal to "<< fEPICSDataEvent[tagindex].Value
 			     << " giving a running average of "
 			     << fEPICSCumulativeData[tagindex].Sum/
 			  fEPICSCumulativeData[tagindex].NumberRecords
-			     <<endl;
+			     <<std::endl;
 	} else {
-	  if (kDebug==1) cout <<fEPICSVariableList[tagindex]
-			     <<" seems to be not filled."<<endl;
+	  if (kDebug==1) std::cout <<fEPICSVariableList[tagindex]
+			     <<" seems to be not filled."<<std::endl;
 	}
       } else {
 	//  This is a string value.
@@ -135,7 +140,7 @@ void QwEPICSEvent::CalculateRunningValues()
     }
     fNumberEPICSEvents++;
   }
-  cout<<"\n\nfNumberEPICSEvents = "<<fNumberEPICSEvents<<endl<<endl;
+  std::cout<<"\n\nfNumberEPICSEvents = "<<fNumberEPICSEvents<<std::endl<<std::endl;
 };
 
 void QwEPICSEvent::DefineEPICSVariables()
@@ -145,210 +150,233 @@ void QwEPICSEvent::DefineEPICSVariables()
   fEPICSVariableType.clear();
 
 
-  AddEPICSTag("ibcm1");
-  AddEPICSTag("ibcm2");
-  AddEPICSTag("g0tpos_switch", "target", EPICSString);
+  /*
+   In the following the symbol //-- means the following line: 
+   Error: QwDatabase::GetSlowControlDetectorID() => Unable to determine valid ID for the epics variable
+
+
+
+
+The following epics variable that are currently in the database are not in the QwEPICSEvent.cc:
+
+sc_detector_id                Variable                       comment
+
+  6              |            R00PGSET           |           | Prebuncher Setting 
+
+
+
+  */
+  
+  AddEPICSTag("ibcm1","slow_controls_data"); //--
+  AddEPICSTag("ibcm2","slow_controls_data");//--
   //  Add the G0 electronics cage tmeperatures to the readout
-  AddEPICSTag("g0cagetemp1","target_measurements");
-  AddEPICSTag("g0cagetemp2","target_measurements");
-  AddEPICSTag("g0cagetemp3","target_measurements");
-  AddEPICSTag("g0tach","target_measurements"); //g0target pumpspeed
-  AddEPICSTag("gt3", "target_measurements");
-  AddEPICSTag("gpt3", "target_measurements");
-  AddEPICSTag("gflyswatter","target_measurements");//flyswatter in/out
-  AddEPICSTag("IHM3H01E","target_measurements"); // Halo target position
-  AddEPICSTag("g0smsvac", "sms_measurements");
-  AddEPICSTag("G0:PSCurrent", "sms_measurements");
-  AddEPICSTag("G0:ROXCoilA", "sms_measurements");
-  AddEPICSTag("G0:LHeLevel", "sms_measurements");
-  AddEPICSTag("G0:LN2Level", "sms_measurements");
-  AddEPICSTag("G0:TCCryoBox", "sms_measurements");
-  AddEPICSTag("HC:Q_ONOFF", "polarized_source", EPICSString); // Charge Feedback on/off
-  AddEPICSTag("HC:Q_ASY", "polarized_source_measurements"); // Charge asymmetry
-  AddEPICSTag("HC:DQ_ASY", "polarized_source_measurements"); // Charge asymmetry uncertainty
-  AddEPICSTag("HC:bcm_threshold", "polarized_source"); // BCM threshold cut for charge feedback
-  AddEPICSTag("HC:bcm_select", "polarized_source"); // BCM selection for charge feedback
-  AddEPICSTag("psub_pl_pos", "polarized_source_measurements"); // RHWP angle
-  AddEPICSTag("IGL1I00DI24_24M", "polarized_source", EPICSString); // IHWP
-  AddEPICSTag("WienAngle", "polarized_source_measurements"); // Wien filter setting
-  AddEPICSTag("g0_pivot_halo","target");
-  AddEPICSTag("IGL1I00AI24", "polarized_source_measurements"); //IA voltage
-  AddEPICSTag("HC:P_ONOFF", "polarized_source");
-  AddEPICSTag("HC:X_DIF", "polarized_source_measurements"); 
-  AddEPICSTag("HC:DX_DIF", "polarized_source_measurements");
-  AddEPICSTag("HC:Y_DIF", "polarized_source_measurements");
-  AddEPICSTag("HC:DY_DIF", "polarized_source_measurements");
-  AddEPICSTag("HC:bpm_select", "polarized_source");
-  AddEPICSTag("IGLdac3:ao_0", "polarized_source_measurements"); // X pzt voltage
-  AddEPICSTag("IGLdac3:ao_1", "polarized_source_measurements"); // Y pzt voltage
-  AddEPICSTag("IGL1I00AI22", "polarized_source_measurements");  // X G0 pzt voltage
-  AddEPICSTag("IGL1I00AI23", "polarized_source_measurements");   // Y G0 pzt voltage
-  AddEPICSTag("IGL1I00AI7","polarized_source_measurements");// Gun2 Pita Positive
-  AddEPICSTag("IGL1I00AI8","polarized_source_measurements");// Gun2 Pita Negative
-  AddEPICSTag("IGL1I00AI27","polarized_source_measurements");// HallA IA voltage
-  AddEPICSTag("IGL1I00AI25","polarized_source_measurements");// HallA PZT X voltage
-  AddEPICSTag("IGL1I00AI26","polarized_source_measurements");// HallA PZT Y voltage
-  AddEPICSTag("IGLdac2:scale_6.A","polarized_source_measurements");//HallB TACO  
+  //AddEPICSTag("g0tpos_switch", "target", EPICSString);//--
+  AddEPICSTag("g0tpos_switch", "slow_controls_data");//-- 
+  AddEPICSTag("g0cagetemp1","slow_controls_data");//--
+  AddEPICSTag("g0cagetemp2","slow_controls_data");//--
+  AddEPICSTag("g0cagetemp3","slow_controls_data");//--
+  AddEPICSTag("g0tach","slow_controls_data"); //g0target pumpspeed //--
+  AddEPICSTag("gt3", "slow_controls_data");//--
+  AddEPICSTag("gpt3", "slow_controls_data");//--
+  AddEPICSTag("gflyswatter","slow_controls_data");//flyswatter in/out //--
+  AddEPICSTag("IHM3H01E","slow_controls_data"); // Halo target position //--
+  AddEPICSTag("g0smsvac", "slow_controls_data");//--
+  AddEPICSTag("G0:PSCurrent", "slow_controls_data");//--
+  AddEPICSTag("G0:ROXCoilA", "slow_controls_data");//--
+  AddEPICSTag("G0:LHeLevel", "slow_controls_data");//--
+  AddEPICSTag("G0:LN2Level", "slow_controls_data");//--
+  AddEPICSTag("G0:TCCryoBox", "slow_controls_data");//--
+
+  //AddEPICSTag("HC:Q_ONOFF", "slow_controls_data", EPICSString); // Charge Feedback on/off //--
+  AddEPICSTag("HC:Q_ONOFF", "slow_controls_data"); // Charge Feedback on/off //--
+
+  AddEPICSTag("HC:Q_ASY", "slow_controls_data"); // Charge asymmetry
+  AddEPICSTag("HC:DQ_ASY", "slow_controls_data"); // Charge asymmetry uncertainty
+  AddEPICSTag("HC:bcm_threshold", "slow_controls_data"); // BCM threshold cut for charge feedback
+  AddEPICSTag("HC:bcm_select", "slow_controls_data"); // BCM selection for charge feedback //--
+
+  AddEPICSTag("psub_pl_pos", "slow_controls_data"); // RHWP angle
+
+  AddEPICSTag("IGL1I00DI24_24M", "slow_controls_data"); // IHWP //--
+  AddEPICSTag("WienAngle", "slow_controls_data"); // Wien filter setting
+  AddEPICSTag("g0_pivot_halo","slow_controls_data"); //--
+  AddEPICSTag("IGL1I00AI24", "slow_controls_data"); //IA voltage
+  AddEPICSTag("HC:P_ONOFF", "slow_controls_data"); //--
+  AddEPICSTag("HC:X_DIF", "slow_controls_data"); 
+  AddEPICSTag("HC:DX_DIF", "slow_controls_data");
+  AddEPICSTag("HC:Y_DIF", "slow_controls_data");
+  AddEPICSTag("HC:DY_DIF", "slow_controls_data");
+  AddEPICSTag("HC:bpm_select", "slow_controls_data"); //--
+  AddEPICSTag("IGLdac3:ao_0", "slow_controls_data"); // X pzt voltage
+  AddEPICSTag("IGLdac3:ao_1", "slow_controls_data"); // Y pzt voltage
+  AddEPICSTag("IGL1I00AI22", "slow_controls_data");  // X G0 pzt voltage
+  AddEPICSTag("IGL1I00AI23", "slow_controls_data");   // Y G0 pzt voltage
+  AddEPICSTag("IGL1I00AI7","slow_controls_data");// Gun2 Pita Positive
+  AddEPICSTag("IGL1I00AI8","slow_controls_data");// Gun2 Pita Negative
+  AddEPICSTag("IGL1I00AI27","slow_controls_data");// HallA IA voltage //sc_detector_id = 8
+  AddEPICSTag("IGL1I00AI25","slow_controls_data");// HallA PZT X voltage
+  AddEPICSTag("IGL1I00AI26","slow_controls_data");// HallA PZT Y voltage
+  AddEPICSTag("IGLdac2:scale_6.A","slow_controls_data");//HallB TACO   //sc_detector_id = 7
 
 
-  AddEPICSTag("hel_mag_status.D","polarized_source_measurements"); //Integrated helicity bit difference
-  AddEPICSTag("IGL1I00AI17","polarized_source_measurements"); // dummy helicity Pockels' cell voltage
+  AddEPICSTag("hel_mag_status.D","slow_controls_data"); //Integrated helicity bit difference
+  AddEPICSTag("IGL1I00AI17","slow_controls_data"); // dummy helicity Pockels' cell voltage
 
 
-  AddEPICSTag("HC:qint_period", "polarized_source_measurements"); // charge asymmetry sampling period
-  AddEPICSTag("HC:pint_period", "polarized_source_measurements"); // position difference sampling period
+  AddEPICSTag("HC:qint_period", "slow_controls_data"); // charge asymmetry sampling period //sc_detector_id = 1
+  AddEPICSTag("HC:pint_period", "slow_controls_data"); // position difference sampling period
   
 
   
   /* add injector BPM values in here jyun July 17th, 2003  */
  
-  AddEPICSTag("HC:QPD_WSUM", "polarized_source_measurements");
-  AddEPICSTag("HC:QPD_DWSUM", "polarized_source_measurements");
-  AddEPICSTag("HC:QPD_XDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:QPD_DXDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:QPD_YDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:QPD_DYDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:1I02_WSUM", "polarized_source_measurements");
-  AddEPICSTag("HC:1I02_DWSUM", "polarized_source_measurements");
-  AddEPICSTag("HC:1I02_XDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:1I02_DXDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:1I02_YDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:1I02_DYDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:1I04_WSUM", "polarized_source_measurements");
-  AddEPICSTag("HC:1I04_DWSUM", "polarized_source_measurements");
-  AddEPICSTag("HC:1I04_XDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:1I04_DXDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:1I04_YDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:1I04_DYDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:1I06_WSUM", "polarized_source_measurements");
-  AddEPICSTag("HC:1I06_DWSUM", "polarized_source_measurements");
-  AddEPICSTag("HC:1I06_XDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:1I06_DXDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:1I06_YDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:1I06_DYDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:0L02_WSUM", "polarized_source_measurements");
-  AddEPICSTag("HC:0L02_DWSUM", "polarized_source_measurements");
-  AddEPICSTag("HC:0L02_XDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:0L02_DXDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:0L02_YDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:0L02_DYDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:0L03_WSUM", "polarized_source_measurements");
-  AddEPICSTag("HC:0L03_DWSUM", "polarized_source_measurements");
-  AddEPICSTag("HC:0L03_XDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:0L03_DXDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:0L03_YDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:0L03_DYDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:0I05_WSUM", "polarized_source_measurements");
-  AddEPICSTag("HC:0I05_DWSUM", "polarized_source_measurements");
-  AddEPICSTag("HC:0I05_XDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:0I05_DXDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:0I05_YDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:0I05_DYDIF", "polarized_source_measurements");
-  AddEPICSTag("HC:IBCM_QASY", "polarized_source_measurements");
-  AddEPICSTag("HC:IBCM_DQASY", "polarized_source_measurements");
+  AddEPICSTag("HC:QPD_WSUM", "slow_controls_data");
+  AddEPICSTag("HC:QPD_DWSUM", "slow_controls_data");
+  AddEPICSTag("HC:QPD_XDIF", "slow_controls_data");
+  AddEPICSTag("HC:QPD_DXDIF", "slow_controls_data");
+  AddEPICSTag("HC:QPD_YDIF", "slow_controls_data");
+  AddEPICSTag("HC:QPD_DYDIF", "slow_controls_data");
+  AddEPICSTag("HC:1I02_WSUM", "slow_controls_data");
+  AddEPICSTag("HC:1I02_DWSUM", "slow_controls_data");
+  AddEPICSTag("HC:1I02_XDIF", "slow_controls_data");
+  AddEPICSTag("HC:1I02_DXDIF", "slow_controls_data");
+  AddEPICSTag("HC:1I02_YDIF", "slow_controls_data");
+  AddEPICSTag("HC:1I02_DYDIF", "slow_controls_data");
+  AddEPICSTag("HC:1I04_WSUM", "slow_controls_data");
+  AddEPICSTag("HC:1I04_DWSUM", "slow_controls_data");
+  AddEPICSTag("HC:1I04_XDIF", "slow_controls_data");
+  AddEPICSTag("HC:1I04_DXDIF", "slow_controls_data");
+  AddEPICSTag("HC:1I04_YDIF", "slow_controls_data");
+  AddEPICSTag("HC:1I04_DYDIF", "slow_controls_data");
+  AddEPICSTag("HC:1I06_WSUM", "slow_controls_data");
+  AddEPICSTag("HC:1I06_DWSUM", "slow_controls_data");
+  AddEPICSTag("HC:1I06_XDIF", "slow_controls_data");
+  AddEPICSTag("HC:1I06_DXDIF", "slow_controls_data");
+  AddEPICSTag("HC:1I06_YDIF", "slow_controls_data");
+  AddEPICSTag("HC:1I06_DYDIF", "slow_controls_data");
+  AddEPICSTag("HC:0L02_WSUM", "slow_controls_data");
+  AddEPICSTag("HC:0L02_DWSUM", "slow_controls_data");
+  AddEPICSTag("HC:0L02_XDIF", "slow_controls_data");
+  AddEPICSTag("HC:0L02_DXDIF", "slow_controls_data");
+  AddEPICSTag("HC:0L02_YDIF", "slow_controls_data");
+  AddEPICSTag("HC:0L02_DYDIF", "slow_controls_data");
+  AddEPICSTag("HC:0L03_WSUM", "slow_controls_data"); //sc_detector_id = 3
+  AddEPICSTag("HC:0L03_DWSUM", "slow_controls_data");
+  AddEPICSTag("HC:0L03_XDIF", "slow_controls_data");
+  AddEPICSTag("HC:0L03_DXDIF", "slow_controls_data");
+  AddEPICSTag("HC:0L03_YDIF", "slow_controls_data");
+  AddEPICSTag("HC:0L03_DYDIF", "slow_controls_data");
+  AddEPICSTag("HC:0I05_WSUM", "slow_controls_data");
+  AddEPICSTag("HC:0I05_DWSUM", "slow_controls_data");
+  AddEPICSTag("HC:0I05_XDIF", "slow_controls_data"); //--
+  AddEPICSTag("HC:0I05_DXDIF", "slow_controls_data");
+  AddEPICSTag("HC:0I05_YDIF", "slow_controls_data");
+  AddEPICSTag("HC:0I05_DYDIF", "slow_controls_data");
+  AddEPICSTag("HC:IBCM_QASY", "slow_controls_data");
+  AddEPICSTag("HC:IBCM_DQASY", "slow_controls_data");
   
 
   
    
   /*  Add the BPM auto-gain variables to the EPICS decoding list.  */
-  AddEPICSTag("IPM3C01.XIFG");
-  AddEPICSTag("IPM3C01.YIFG");
-  AddEPICSTag("IPM3C02.XIFG");
-  AddEPICSTag("IPM3C02.YIFG");
-  AddEPICSTag("IPM3C03.XIFG");
-  AddEPICSTag("IPM3C03.YIFG");
-  AddEPICSTag("IPM3C07A.XIFG");
-  AddEPICSTag("IPM3C07A.YIFG");
-  AddEPICSTag("IPM3C07.XIFG");
-  AddEPICSTag("IPM3C07.YIFG");
-  AddEPICSTag("IPM3C08.XIFG");
-  AddEPICSTag("IPM3C08.YIFG");
-  AddEPICSTag("IPM3C12.XIFG");
-  AddEPICSTag("IPM3C12.YIFG");
-  AddEPICSTag("IPM3C17.XIFG");
-  AddEPICSTag("IPM3C17.YIFG");
-  AddEPICSTag("IPM3C16.XIFG");
-  AddEPICSTag("IPM3C16.YIFG");
-  AddEPICSTag("IPM3C17A.XIFG");
-  AddEPICSTag("IPM3C17A.YIFG");
-  AddEPICSTag("IPM3C20.XIFG");
-  AddEPICSTag("IPM3C20.YIFG");
-  AddEPICSTag("IPM3C20A.XIFG");
-  AddEPICSTag("IPM3C20A.YIFG");
-  AddEPICSTag("IPM3H00.XIFG");
-  AddEPICSTag("IPM3H00.YIFG");
-  AddEPICSTag("IPM3H00A.XIFG");
-  AddEPICSTag("IPM3H00A.YIFG");
-  AddEPICSTag("IPM3H00B.XIFG");
-  AddEPICSTag("IPM3H00B.YIFG");
-  AddEPICSTag("IPM3H00C.XIFG");
-  AddEPICSTag("IPM3H00C.YIFG");
-  AddEPICSTag("IPM3HG0.XIFG");
-  AddEPICSTag("IPM3HG0.YIFG");
-  AddEPICSTag("IPM3HG0B.XIFG");
-  AddEPICSTag("IPM3HG0B.YIFG");
+  AddEPICSTag("IPM3C01.XIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C01.YIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C02.XIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C02.YIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C03.XIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C03.YIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C07A.XIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C07A.YIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C07.XIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C07.YIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C08.XIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C08.YIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C12.XIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C12.YIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C17.XIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C17.YIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C16.XIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C16.YIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C17A.XIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C17A.YIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C20.XIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C20.YIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C20A.XIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3C20A.YIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3H00.XIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3H00.YIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3H00A.XIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3H00A.YIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3H00B.XIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3H00B.YIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3H00C.XIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3H00C.YIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3HG0.XIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3HG0.YIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3HG0B.XIFG", "slow_controls_data"); //--
+  AddEPICSTag("IPM3HG0B.YIFG", "slow_controls_data"); //--
 
   // Add Accelerator variables to EPICS decoding list 
   // HallA stuff
-  AddEPICSTag("SMRPOSA", "polarized_source_measurements");// Hall A Chopper Slit Position
-  AddEPICSTag("psub_aa_pos", "polarized_source_measurements"); //Hall A Laser Attenuator
-  AddEPICSTag("IBCxxxxCRCUR2","polarized_source_measurements"); // HallA MPS BCM beam current
-  AddEPICSTag("hac_bcm_average","polarized_source_measurements"); // HallA BCM beam current
-  AddEPICSTag("halla_transmission","polarized_source_measurements"); // HallA independent transmission (%)
-  AddEPICSTag("qe_halla","polarized_source_measurements"); // HallA QE (%)
-  AddEPICSTag("halla_photocurrent","polarized_source_measurements"); // HallA photocurrent (uA)
-  AddEPICSTag("laser_a_wavelength","polarized_source_measurements"); // HallA laser wavelength (nm)
-  AddEPICSTag("osc_jitter","polarized_source_measurements");//Laser phase jitter HallA
+  AddEPICSTag("SMRPOSA", "slow_controls_data");// Hall A Chopper Slit Position
+  AddEPICSTag("psub_aa_pos", "slow_controls_data"); //Hall A Laser Attenuator
+  AddEPICSTag("IBCxxxxCRCUR2","slow_controls_data"); // HallA MPS BCM beam current
+  AddEPICSTag("hac_bcm_average","slow_controls_data"); // HallA BCM beam current
+  AddEPICSTag("halla_transmission","slow_controls_data"); // HallA independent transmission (%)
+  AddEPICSTag("qe_halla","slow_controls_data"); // HallA QE (%)
+  AddEPICSTag("halla_photocurrent","slow_controls_data"); // HallA photocurrent (uA)
+  AddEPICSTag("laser_a_wavelength","slow_controls_data"); // HallA laser wavelength (nm) //sc_detector_id = 2
+  AddEPICSTag("osc_jitter","slow_controls_data");//Laser phase jitter HallA
   // End HallA stuff
 
 
   //HallB stuff
-  AddEPICSTag("SMRPOSB", "polarized_source_measurements");// Hall B Chopper Slit Position
-  AddEPICSTag("psub_ab_pos", "polarized_source_measurements"); //Hall B Laser Attenuator
-  AddEPICSTag("IPM2C24A.IENG","polarized_source_measurements"); // HallB 2C24A beam current
-  AddEPICSTag("scaler_calc1","polarized_source_measurements"); // HallB fcup nA beam current
-  AddEPICSTag("hallb_transmission","polarized_source_measurements"); // HallB independent transmission (%)
-  AddEPICSTag("qe_hallb","polarized_source_measurements"); // HallB QE (%)
-  AddEPICSTag("hallb_photocurrent","polarized_source_measurements"); // HallB photocurrent (uA)
-  AddEPICSTag("laser_b_wavelength","polarized_source_measurements"); // HallB laser wavelength (nm)
-  AddEPICSTag("IGL1I00DAC2","polarized_source_measurements"); // HallB control level
-  AddEPICSTag("IGL1I00DAC3","polarized_source_measurements"); // HallB seed level
+  AddEPICSTag("SMRPOSB", "slow_controls_data");// Hall B Chopper Slit Position //sc_detector_id = 5
+  AddEPICSTag("psub_ab_pos", "slow_controls_data"); //Hall B Laser Attenuator
+  AddEPICSTag("IPM2C24A.IENG","slow_controls_data"); // HallB 2C24A beam current
+  AddEPICSTag("scaler_calc1","slow_controls_data"); // HallB fcup nA beam current
+  AddEPICSTag("hallb_transmission","slow_controls_data"); // HallB independent transmission (%)
+  AddEPICSTag("qe_hallb","slow_controls_data"); // HallB QE (%)
+  AddEPICSTag("hallb_photocurrent","slow_controls_data"); // HallB photocurrent (uA)
+  AddEPICSTag("laser_b_wavelength","slow_controls_data"); // HallB laser wavelength (nm)
+  AddEPICSTag("IGL1I00DAC2","slow_controls_data"); // HallB control level
+  AddEPICSTag("IGL1I00DAC3","slow_controls_data"); // HallB seed level
   // End HallB stuff
 
 
   //HallC stuff
-  AddEPICSTag("SMRPOSC", "polarized_source_measurements");// Hall C Chopper Slit Position
-  AddEPICSTag("psub_ac_pos", "polarized_source_measurements"); //Hall C Laser Attenuator
-  AddEPICSTag("IBCxxxxCRCUR4","polarized_source_measurements"); // HallC MPS BCM beam current
-  AddEPICSTag("hallc_transmission","polarized_source_measurements"); // HallC independent transmission (%)
-  AddEPICSTag("qe_hallc","polarized_source_measurements"); // HallC QE (%)
-  AddEPICSTag("hallc_photocurrent","polarized_source_measurements"); // HallC photocurrent (uA)
-  AddEPICSTag("laser_c_wavelength","polarized_source_measurements"); // HallC laser wavelength (nm)
-  AddEPICSTag("osc2_jitter","polarized_source_measurements");//Laser phase jitter HallC
+  AddEPICSTag("SMRPOSC", "slow_controls_data");// Hall C Chopper Slit Position
+  AddEPICSTag("psub_ac_pos", "slow_controls_data"); //Hall C Laser Attenuator
+  AddEPICSTag("IBCxxxxCRCUR4","slow_controls_data"); // HallC MPS BCM beam current
+  AddEPICSTag("hallc_transmission","slow_controls_data"); // HallC independent transmission (%)
+  AddEPICSTag("qe_hallc","slow_controls_data"); // HallC QE (%)
+  AddEPICSTag("hallc_photocurrent","slow_controls_data"); // HallC photocurrent (uA)
+  AddEPICSTag("laser_c_wavelength","slow_controls_data"); // HallC laser wavelength (nm) //sc_detector_id = 9
+  AddEPICSTag("osc2_jitter","slow_controls_data");//Laser phase jitter HallC
   //End HallC stuff
 
 
-  AddEPICSTag("ISL0I04DT", "polarized_source_measurements");// Master Slit position
-  AddEPICSTag("R00LSUMRY.B2", "polarized_source"); //Prebuncher on/off
-  AddEPICSTag("R00PGSET", "polarized_source_measurements"); //Prebuncher setting (dB)
-  AddEPICSTag("R00PGMEST", "polarized_source_measurements"); //Prebuncher setting (dB)
-  AddEPICSTag("IBCxxxxCLOSS", "polarized_source_measurements"); //Machine Energy loss
-  AddEPICSTag("psub_cx_pos", "polarized_source_measurements"); //X laser position on cathode
-  AddEPICSTag("psub_cy_pos", "polarized_source_measurements"); //Y laser position on cathode
+  AddEPICSTag("ISL0I04DT", "slow_controls_data");// Master Slit position
+  AddEPICSTag("R00LSUMRY.B2", "slow_controls_data"); //Prebuncher on/off //--
+  AddEPICSTag("R00PGSET", "slow_controls_data"); //Prebuncher setting (dB)
+  AddEPICSTag("R00PGMEST", "slow_controls_data"); //Prebuncher setting (dB)
+  AddEPICSTag("IBCxxxxCLOSS", "slow_controls_data"); //Machine Energy loss
+  AddEPICSTag("psub_cx_pos", "slow_controls_data"); //X laser position on cathode //sc_detector_id = 4
+  AddEPICSTag("psub_cy_pos", "slow_controls_data"); //Y laser position on cathode
 
-  AddEPICSTag("EHCFR_LIXWidth", "target_measurements"); // raster x dimension
-  AddEPICSTag("EHCFR_LIYWidth", "target_measurements");// raster y dimension
-  AddEPICSTag("itov1out", "polarized_source_measurements"); // A1 Slit Position
-  AddEPICSTag("itov2out", "polarized_source_measurements"); // A2 Slit Position
-  AddEPICSTag("itov5out", "polarized_source_measurements"); // A3 Slit Position
-  AddEPICSTag("itov7out", "polarized_source_measurements"); // A4 Slit Position
-  AddEPICSTag("IGL1I00PStrans", "polarized_source_measurements"); // Injector
+  AddEPICSTag("EHCFR_LIXWidth", "slow_controls_data"); // raster x dimension //--
+  AddEPICSTag("EHCFR_LIYWidth", "slow_controls_data");// raster y dimension //--
+  AddEPICSTag("itov1out", "slow_controls_data"); // A1 Slit Position
+  AddEPICSTag("itov2out", "slow_controls_data"); // A2 Slit Position
+  AddEPICSTag("itov5out", "slow_controls_data"); // A3 Slit Position
+  AddEPICSTag("itov7out", "slow_controls_data"); // A4 Slit Position
+  AddEPICSTag("IGL1I00PStrans", "slow_controls_data"); // Injector
 						     // transmission
 
-  AddEPICSTag("EHCFR_LIPRC","polarized_source_measurements");//Raster focus location: 1 = G0, 0 = Pivot
+  AddEPICSTag("EHCFR_LIPRC","slow_controls_data");//Raster focus location: 1 = G0, 0 = Pivot
 
-  AddEPICSTag("EHCFR_ENERGY");
-  // cout<<"\n\nmyTest for DefineEPICSVariables()\n";
+  AddEPICSTag("EHCFR_ENERGY","slow_controls_data");  //--
+  // std::cout<<"\n\nmyTest for DefineEPICSVariables()\n";
 };
 
 void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
@@ -366,7 +394,7 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
 
   tmpvalue = -999999.;
 
-  if(kDebug==1) cout <<"Here we are, entering 'ExtractEPICSValues'!!"<<endl;
+  if(kDebug==1) std::cout <<"Here we are, entering 'ExtractEPICSValues'!!"<<std::endl;
 
   for (tagindex=0;tagindex<fNumberEPICSVariables; tagindex++) {
     fEPICSDataEvent[tagindex].Filled = kFALSE;
@@ -387,9 +415,9 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
 	pos = line.find_first_of(" \t\n",pos);  //get to the end of the label
 	//now use get_next_seg() from StringManip.C
 	stmpvalue = get_next_seg(line, pos);
-	if(kDebug==1) cout<<line<<" ==> "
+	if(kDebug==1) std::cout<<line<<" ==> "
 			  <<fEPICSVariableList[tagindex]
-			  <<"\t"<<stmpvalue<<endl;
+			  <<"\t"<<stmpvalue<<std::endl;
 
 	SetDataValue(fEPICSVariableList[tagindex], TString(stmpvalue.c_str()), event);
 
@@ -418,6 +446,7 @@ Int_t QwEPICSEvent::FindIndex(TString tag)
 
 Double_t QwEPICSEvent::GetDataValue (TString tag)
 {
+ 
   Double_t data_value = 0.0;
   Int_t    tagindex   = 0;
 
@@ -530,6 +559,7 @@ int QwEPICSEvent::SetDataValue(TString tag, TString value, int event)
 	tmpint = atol(value.Data());
         tmpvalue = (double) tmpint;
       }
+           
       return SetDataValue(tagindex, tmpvalue, event);
       break;
   }
@@ -544,14 +574,13 @@ void QwEPICSEvent::PrintAverages()
   Double_t variance = 0.0;
   Double_t sigma    = 0.0;
   
-
-  cout <<"#####  EPICS Event Summary  #####\n"
+  std::cout <<"#####  EPICS Event Summary from PrintAverages() #####\n"
        <<"Total number of EPICS events in this run == "
        <<fNumberEPICSEvents <<".\n\n"
        << setw(20) << setiosflags(ios::left) <<"Name" 
        <<"\tMean        Sigma       "
-       <<"Minimum     Maximum"<<endl;
-  cout << "Non-string EPICS Variables" << endl;
+       <<"Minimum     Maximum"<<std::endl;
+  std::cout << "Non-string EPICS Variables" << std::endl;
   for (tagindex=0; tagindex<fNumberEPICSVariables; tagindex++) {
     if (fEPICSVariableType[tagindex] != EPICSString) { 
       mean     = 0.0;
@@ -569,41 +598,41 @@ void QwEPICSEvent::PrintAverages()
 	  sigma    = sqrt(variance);
 	}
       
-	cout << setw(20) << setiosflags(ios::left)
+	std::cout << setw(20) << setiosflags(ios::left)
 	     <<fEPICSVariableList[tagindex]<<"\t"
 	     << setprecision(5) << setw(10)
 	     <<mean<<"  " << setw(10)<<sigma<<"  " << setw(10)
 	     <<fEPICSCumulativeData[tagindex].Minimum<<"  " << setw(10)
-	     <<fEPICSCumulativeData[tagindex].Maximum<<endl;
+	     <<fEPICSCumulativeData[tagindex].Maximum<<std::endl;
       } else {
-	cout << setw(20) << setiosflags(ios::left)
+	std::cout << setw(20) << setiosflags(ios::left)
 	     <<fEPICSVariableList[tagindex]<<"\t"
 	     << setprecision(5) << setw(10)
 	     << "No data..."
-	     << endl;
+	     << std::endl;
       }
     }
   }
-  cout << "String EPICS Variables" << endl;
+  std::cout << "String EPICS Variables" << std::endl;
   for (tagindex=0; tagindex<fNumberEPICSVariables; tagindex++) {
     if (fEPICSVariableType[tagindex] == EPICSString) {
       if (fEPICSDataEvent[tagindex].Filled) {
-	cout << setw(20) << setiosflags(ios::left)
+	std::cout << setw(20) << setiosflags(ios::left)
 	     <<fEPICSVariableList[tagindex]<<"\t"
 	     <<fEPICSDataEvent[tagindex].StringValue;
 
 	if (fEPICSCumulativeData[tagindex].NumberRecords 
 	    != fNumberEPICSEvents){
-	  cout << "\t*****\tThis variable changed during the run.  Only "
+	  std::cout << "\t*****\tThis variable changed during the run.  Only "
 	       << (Double_t(fEPICSCumulativeData[tagindex].NumberRecords)
 		   *100.0 / Double_t(fNumberEPICSEvents))
 	       << "% of the events has this value.";
 	}
-	cout <<endl;
+	std::cout <<std::endl;
       } else {
-	cout << setw(20) << setiosflags(ios::left)
+	std::cout << setw(20) << setiosflags(ios::left)
 	     <<fEPICSVariableList[tagindex]<<"\t"
-	     <<"No data..."<<endl;
+	     <<"No data..."<<std::endl;
       }
     }
   }
@@ -619,8 +648,8 @@ void QwEPICSEvent::PrintVariableList()
   Int_t tagindex;
 
   for (tagindex=0; tagindex<fNumberEPICSVariables; tagindex++) {
-    cout << "fEPICSVariableList[" << tagindex << "] == "
-	 << fEPICSVariableList[tagindex] <<endl;
+    std::cout << "fEPICSVariableList[" << tagindex << "] == "
+	 << fEPICSVariableList[tagindex] <<std::endl;
   }
 };
 
@@ -652,6 +681,7 @@ vector<Double_t> QwEPICSEvent::ReportAutogains(vector<TString> tag_list)
 };
 
 
+
 void QwEPICSEvent::ReportEPICSData()
 {
   Int_t tagindex;
@@ -660,12 +690,11 @@ void QwEPICSEvent::ReportEPICSData()
   Double_t variance = 0.0;
   Double_t sigma    = 0.0;
 
+
   ofstream output;
-
-
   TString theEPICSDataFile;
   theEPICSDataFile =  getenv("QW_TMP");
-  theEPICSDataFile += "/QwEPICSData.txt";// puts QwEPICSData.txt in /u/group/qweak/rsubedi/QwAnalysis/scratch/tmp/ diretory.
+  theEPICSDataFile += "/QwEPICSData.txt";// puts QwEPICSData.txt in  QwAnalysis_DB_01.00.0000/scratch/tmp/ diretory.
   output.open(theEPICSDataFile,ofstream::out);
 
   if (output.is_open()) { 
@@ -676,7 +705,7 @@ void QwEPICSEvent::ReportEPICSData()
 	 <<fNumberEPICSEvents <<".\n\n"
 	 << setw(20) << setiosflags(ios::left) <<"Name"
 	 <<"\tMean        Sigma       "
-	 <<"Minimum     Maximum"<<endl;
+	 <<"Minimum     Maximum"<<std::endl;
   for (tagindex=0; tagindex<fNumberEPICSVariables; tagindex++) {
     if (fEPICSVariableType[tagindex] == EPICSFloat
 	|| fEPICSVariableType[tagindex] == EPICSInt) {
@@ -700,13 +729,13 @@ void QwEPICSEvent::ReportEPICSData()
 	       << setprecision(5) << setw(10)
 	       <<mean<<"  " << setw(10)<<sigma<<"  " << setw(10)
 	       <<fEPICSCumulativeData[tagindex].Minimum<<"  " << setw(10)
-	       <<fEPICSCumulativeData[tagindex].Maximum<<endl;
+	       <<fEPICSCumulativeData[tagindex].Maximum<<std::endl;
       } else {
 	output << setw(20) << setiosflags(ios::left)
 	       <<fEPICSVariableList[tagindex]<<"\t"
 	       << setprecision(5) << setw(10)
 	       << "No data..."
-	       << endl;
+	       << std::endl;
       }
     }
   }
@@ -715,11 +744,11 @@ void QwEPICSEvent::ReportEPICSData()
       if (fEPICSDataEvent[tagindex].Filled) {
 	output << setw(20) << setiosflags(ios::left)
 	       <<fEPICSVariableList[tagindex]<<"\t"
-	       <<fEPICSDataEvent[tagindex].StringValue<<endl;
+	       <<fEPICSDataEvent[tagindex].StringValue<<std::endl;
       } else {
 	output << setw(20) << setiosflags(ios::left)
 	       <<fEPICSVariableList[tagindex]<<"\t"
-	       <<"No data..."<<endl;
+	       <<"No data..."<<std::endl;
       }
     }
   }
@@ -742,8 +771,8 @@ void  QwEPICSEvent::ResetCounters()
   typelength = fEPICSVariableType.size();
   if (listlength != typelength || typelength != fNumberEPICSVariables
       || listlength != fNumberEPICSVariables){
-    cerr << "The EPICS variable label and type arrays are not the same size!\n"
-	 << "EPICS readback may be corrupted!"<<endl;
+    std::cerr << "The EPICS variable label and type arrays are not the same size!\n"
+	 << "EPICS readback may be corrupted!"<<std::endl;
   }
 
 
@@ -775,87 +804,102 @@ void QwEPICSEvent::SetDefaultAutogainList(vector<TString> input_list)
 
 
 
-// void QwEPICSEvent::FillDB(QwDatabase *db)
-// {
-//   TString datatype; 
-//   vector<QwParityDB::target> entrylist;
- 
-//   //this->FillTargetTables(QwDatabase *db);
-//   // and so on...
-
-//   db->Connect();
-//   // Check the entrylist size, if it isn't zero, start to query..
-//   if( entrylist.size() )
-//     {
-//       mysqlpp::Query query= db->Query();
-// 	  query.insert(entrylist.begin(), entrylist.end());
-// 	  query.execute();
-//     }
-//   else
-//     {
-//       printf("This is the case when the entrlylist contains nothing in %s \n", datatype.Data());
-//     }
-
-//   db->Disconnect();
-
-//   return;
-
-// };
+ void QwEPICSEvent::FillDB(QwDatabase *db)
+ {
+   FillSlowControlsData(db);
+   
+ };
 
 
-// void QwEPICSEvent::FillTargetTables(QwDatabase *db)
-// {
-//   QwParityDB::target row(0);
-// //   //  Figure out if the target table has this run_id in it already,
-// //   //  if not, create a new entry with the current run_id.
-  
-// //   //  Now get the current target_id for this run_id.
-  
-  
-//   vector<QwParityDB::target_measurement> entrylist;
-  
-//   TString table_name = "target_measurement";
-  
-//   // Loop over EPICS variables
-//   for (Int_t tagindex = 0; tagindex < fNumberEPICSVariables; tagindex++) {
+void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
+{
+
+  QwMessage << " -------------------------------------------------------------------------- " << QwLog::endl;
+  QwMessage << "                         QwEPICSEvent::FillSlowControlsData(QwDatabase *db) " << QwLog::endl;
+  QwMessage << " -------------------------------------------------------------------------- " << QwLog::endl;
+
+  Double_t mean, average_of_squares, variance, sigma;
+
+ //  Figure out if the target table has this runlet_id in it already,
+ //  if not, create a new entry with the current runlet_id.
+
+  UInt_t runlet_id = db->GetRunletID();
+
+  std::vector<QwParityDB::slow_controls_data> entrylist;
+
+  UInt_t sc_detector_id;
+
+  TString table = "slow_controls_data";
+
+  // Loop over EPICS variables
+  for (Int_t tagindex = 0; tagindex < fNumberEPICSVariables; tagindex++) {
+    // Look for variables to write into this table
+    if (fEPICSTableList[tagindex] == table) {
     
-//     // Look for variables to write into this table
-//     if (fEPICSTableList[tagindex] == table_name) {
-//       QwParityDB::target_measurement tmp_row(0);
+      QwParityDB::slow_controls_data tmp_row(0);
+
+//  Now get the current sc_detector_id for the above runlet_id.   
+ 
+      sc_detector_id = db->GetSlowControlDetectorID(fEPICSVariableList[tagindex].Data());
       
-//       tmp_row.target_id = thetargetidthatwefoundabove;
-//       tmp_row.target_monitor_id = somefuntiontolookupthetargetmonitorid;
+      tmp_row.runlet_id      = runlet_id;
+      tmp_row.sc_detector_id = sc_detector_id;
+
+      if (!sc_detector_id) continue;
       
-//       if (! wefoundatargetmonitorid) continue;
+
+
+      // Calculate average and error
+      if (fEPICSVariableType[tagindex] == EPICSFloat
+          || fEPICSVariableType[tagindex] == EPICSInt) {
+        mean     = 0.0;
+        variance = 0.0;
+        sigma    = 0.0;
+        if (fEPICSCumulativeData[tagindex].NumberRecords > 0){
+
+          mean     = (fEPICSCumulativeData[tagindex].Sum)/
+            ((Double_t) fEPICSCumulativeData[tagindex].NumberRecords);
+          average_of_squares = (fEPICSCumulativeData[tagindex].SquaredSum)/
+            ((Double_t) fEPICSCumulativeData[tagindex].NumberRecords);
+          variance = average_of_squares - (mean * mean);
+          if (variance < 0.0){
+            sigma    = sqrt(-1.0 * variance);
+          } else {
+            sigma    = sqrt(variance);
+          }
+        }
+      }
+      tmp_row.value         = mean;
+      tmp_row.error         = sigma;
+      tmp_row.min_value     = fEPICSCumulativeData[tagindex].Minimum;
+      tmp_row.max_value     = fEPICSCumulativeData[tagindex].Maximum;
       
-//       // Calculate average and error
-//       if (fEPICSVariableType[tagindex] == EPICSFloat
-//           || fEPICSVariableType[tagindex] == EPICSInt) {
-//         mean     = 0.0;
-//         variance = 0.0;
-//         sigma    = 0.0;
-//         if (fEPICSCumulativeData[tagindex].NumberRecords > 0){
-//           mean     = (fEPICSCumulativeData[tagindex].Sum)/
-//             ((Double_t) fEPICSCumulativeData[tagindex].NumberRecords);
-//           average_of_squares = (fEPICSCumulativeData[tagindex].SquaredSum)/
-//             ((Double_t) fEPICSCumulativeData[tagindex].NumberRecords);
-//           variance = average_of_squares - (mean * mean);
-//           if (variance < 0.0){
-//             sigma    = sqrt(-1.0 * variance);
-//           } else {
-//             sigma    = sqrt(variance);
-//           }
-//         }
-//       }
-//       tmp_row.average_value = mean;
-//       tmp_row.error         = sigma;
-//       tmp_row.min_value     = fEPICSCumulativeData[tagindex].Minimum;
-//       tmp_row.max_value     = fEPICSCumulativeData[tagindex].Maximum;
-      
-//       entrylist.push_back(tmp_row);
-//     }
-//   }  
-//  };
+      entrylist.push_back(tmp_row);
+
+    }
+}
+
+  db->Connect();
+  // Check the entrylist size, if it isn't zero, start to query..
+  if( entrylist.size() ) {
+    mysqlpp::Query query= db->Query();
+    //    if(query)
+    //	{
+    query.insert(entrylist.begin(), entrylist.end());
+    query.execute();
+    //	  query.reset(); // do we need?
+    //	}
+    //      else
+    //	{
+    //	  printf("Query is empty\n");
+    //	}
+  } else {
+    QwMessage << "QwEPICSEvent::FillSlowControlsData :: This is the case when the entrylist contains nothing " << QwLog::endl;
+  }
+  db->Disconnect();
+
+
+};
 
 
 

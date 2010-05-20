@@ -63,6 +63,7 @@ std::map<string, unsigned int> QwDatabase::fMonitorIDs;
 std::map<string, unsigned int> QwDatabase::fMainDetectorIDs;
 std::map<string, unsigned int> QwDatabase::fLumiDetectorIDs;
 std::vector<string>            QwDatabase::fMeasurementIDs; 
+std::map<string, unsigned int> QwDatabase::fSlowControlDetectorIDs;
 
 /*! The simple constructor initializes member fields.  This class is not
  * used to establish the database connection.  It sets up a
@@ -654,6 +655,7 @@ const UInt_t QwDatabase::GetMainDetectorID(const string& name)
 
 };
 
+
 /*
  * Stores main_detector table keys in an associative array indexed by main_detector name.
  */
@@ -664,6 +666,49 @@ void QwDatabase::StoreMainDetectorIDs()
     this->Connect();
     mysqlpp::Query query=this->Query();
     query.for_each(main_detector(), StoreMainDetectorID());
+
+//    QwDebug<< "QwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << QwLog::endl;
+
+    this->Disconnect();
+  }
+  catch (const mysqlpp::Exception& er) {
+    QwError << er.what() << QwLog::endl;
+    Disconnect();
+    exit(1);
+  }
+  return;
+};
+
+
+/*
+ * This function retrieves the slow control detector table key 'sc_detector_id' for a given epics variable.
+ */
+const UInt_t QwDatabase::GetSlowControlDetectorID(const string& name)
+{
+  if (fSlowControlDetectorIDs.size() == 0) {
+    StoreSlowControlDetectorIDs();
+  }
+
+  UInt_t sc_detector_id = fSlowControlDetectorIDs[name];
+
+  if (sc_detector_id==0) {
+    QwError << "QwDatabase::GetSlowControlDetectorID() => Unable to determine valid ID for the epics variable " << name << QwLog::endl;
+  }
+
+  return sc_detector_id;
+
+};
+
+/*
+ * Stores slow control detector table keys in an associative array indexed by slow_controls_data name.
+ */
+void QwDatabase::StoreSlowControlDetectorIDs()
+{
+
+  try {
+    this->Connect();
+    mysqlpp::Query query=this->Query();
+    query.for_each(sc_detector(), StoreSlowControlDetectorID());
 
 //    QwDebug<< "QwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << QwLog::endl;
 

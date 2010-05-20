@@ -8,6 +8,9 @@
 
 #include "QwAnalysis_MySQL.h"
 
+#include "QwEPICSEvent.h"
+#include "QwEventBuffer.h"
+
 Bool_t kInQwBatchMode = kFALSE;
 Bool_t bRING_READY;
 Bool_t bSkip= kFALSE;;
@@ -64,6 +67,8 @@ main(Int_t argc, Char_t* argv[])
 
   QwEventBuffer QwEvt;
   QwEvt.ProcessOptions(gQwOptions);
+
+  QwEPICSEvent epics_data;
 
   QwSubsystemArrayParity QwDetectors;
   VQwSubsystemParity * subsystem_tmp;//VQwSubsystemParity is the top most parent class for Parity subsystems.
@@ -128,6 +133,8 @@ main(Int_t argc, Char_t* argv[])
       //  Begin processing for the first run.
       //  Start the timer.
       timer.Start();
+
+
       QwEvt.ResetControlParameters();
       //  Open the data files and root file
       //    OpenAllFiles(io, run);
@@ -192,10 +199,19 @@ main(Int_t argc, Char_t* argv[])
       // Loop over events in this CODA file
       while (QwEvt.GetNextEvent() == CODA_OK) {
 	//  First, do processing of non-physics events...
+
+	    if (QwEvt.IsEPICSEvent()) {
+	      QwEvt.FillEPICSData(epics_data);
+	      epics_data.CalculateRunningValues();
+	      epics_data.PrintAverages();	      
+	    }
+
+
 	if (QwEvt.IsROCConfigurationEvent()){
 	  //  Send ROC configuration event data to the subsystem objects.
 	  QwEvt.FillSubsystemConfigurationData(QwDetectors);
 	}
+
 
 	//  Now, if this is not a physics event, go back and get a new event.
 	if (! QwEvt.IsPhysicsEvent()) continue;
@@ -356,7 +372,6 @@ main(Int_t argc, Char_t* argv[])
       runlet_id      = qw_test_DB->GetRunletID(QwEvt);
       analysis_id = qw_test_DB->GetAnalysisID(QwEvt);
 
-
       QwMessage << "QwAnalysis_MySQL.cc::"
 		<< " Run Number "  << QwColor(Qw::kBoldMagenta) << QwEvt.GetRunNumber() << QwColor(Qw::kNormal)
 		<< " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id<< QwColor(Qw::kNormal)
@@ -366,7 +381,8 @@ main(Int_t argc, Char_t* argv[])
 
       // Each sussystem has its own Connect() and Disconnect() functions.
       QwHelPat.FillDB(qw_test_DB);
-
+      epics_data.FillDB(qw_test_DB);
+      //epics_data.FillSlowControlsData(qw_test_DB);
       delete qw_test_DB; qw_test_DB = NULL;
 
       PrintInfo(timer);

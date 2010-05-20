@@ -43,7 +43,6 @@
  *
  */
 
-class QwEventBuffer;//--Ramesh: to avoid compiling error:'QwEventBuffer' has not been declared
 class QwDatabase: private mysqlpp::Connection {
 
   public:
@@ -64,6 +63,7 @@ class QwDatabase: private mysqlpp::Connection {
     const UInt_t GetMainDetectorID(const string& name);    //<! Get main_detector_id for main detector name
     const UInt_t GetLumiDetectorID(const string& name);    //<! Get lumi_detector_id for lumi detector name
     const string GetMeasurementID(const Int_t index);
+    const UInt_t GetSlowControlDetectorID(const string& name);         //<! Get slow_controls_data_id for epics name
     
     const UInt_t GetRunNumber() {return fRunNumber;}       //<! Run number getter
     const UInt_t GetSegmentNumber() {return fSegmentNumber;}       //<! CODA File segment number getter
@@ -95,6 +95,7 @@ class QwDatabase: private mysqlpp::Connection {
     void StoreMainDetectorIDs();                        //<! Retrieve main detector IDs from database and populate fMainDetectorIDs
     void StoreLumiDetectorIDs();                        //<! Retrieve LUMI monitor IDs from database and populate fLumiDetectorIDs
     void StoreMeasurementIDs();
+    void StoreSlowControlDetectorIDs();                  //<! Retrieve slow controls data IDs from database and populate fSlow_Controls_DataIDs
     const bool StoreDBVersion();  //!< Retrieve database schema version information from database
 
     string fDatabase;        //!< Name of database to connect to
@@ -119,12 +120,14 @@ class QwDatabase: private mysqlpp::Connection {
     static std::map<string, unsigned int> fMonitorIDs; //!< Associative array of beam monitor IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
     static std::map<string, unsigned int> fMainDetectorIDs; //!< Associative array of main detector IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
     static std::map<string, unsigned int> fLumiDetectorIDs; //!< Associative array of LUMI detector IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
+    static std::map<string, unsigned int> fSlowControlDetectorIDs; //!< Associative array of slow controls data IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
     static std::vector<string>            fMeasurementIDs; 
 
     friend class StoreMonitorID;
     friend class StoreMainDetectorID;
     friend class StoreLumiDetectorID;
     friend class StoreMeasurementID;
+    friend class StoreSlowControlDetectorID;
 };
 
 class StoreMonitorID {
@@ -159,6 +162,14 @@ class StoreMeasurementID {
     }
 };
 
+
+class StoreSlowControlDetectorID {
+  public:
+    void operator() (QwParityDB::sc_detector elem) {
+      QwDebug << "StoreSlowControlDetectorID: sc_detector_id = " << elem.sc_detector_id << " name = " << elem.name << QwLog::endl;
+      QwDatabase::fSlowControlDetectorIDs.insert(std::make_pair(elem.name, elem.sc_detector_id));
+    }
+};
 
 
 
