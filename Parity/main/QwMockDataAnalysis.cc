@@ -226,6 +226,39 @@ int main(int argc, char* argv[])
         std::cout << "Number of events processed so far: "
                   << eventbuffer.GetEventNumber() << std::endl;
 
+      // TODO (wdc) QwEventBuffer should have Bool_t AtEndOfBurst()
+      //if (QwEvt.AtEndOfBurst()){
+      if (eventbuffer.GetEventNumber() % 1000 == 0) {
+        //  Should this be encapsulated in QwHelicityPattern or
+        //  in a burst handler class, or be left out in the wind?
+        {
+//          //  Calculate the mean diff & yield.
+//          helicitypattern.CalculateEventRunningAverage();
+
+//          //  Let's build the final burst asymmetry & yield
+//          //  Recall that the "Asym" produced in burst mode is
+//          //  actually just the mean difference.
+//          fBurstAsym.Ratio(GetHelPatMeanAsym, GetHelPatMeanYield);
+//          fBurstYield = GetHelPatMeanYield;
+
+//          //  Do we want to do something like apply cuts?  No.
+
+//          //  Do we want to put stuff in a tree?  Probably.
+
+//          //  Do we want to accumulate another running average?  Yes.
+//          fBurstAsym.Do_RunningSum();
+//          fBurstYield.Do_RunningSum();
+
+//          //  Now we should clear the QwHelicityPattern's "normal"
+//          //  running sums.
+//          helicitypattern.ClearRunningSum();
+
+        helicitypattern.CalculateBurstAverage();
+        helicitypattern.ClearBurstSum();
+
+        }
+      }
+
     } // end of loop over events
 
     // Calculate the running averages
