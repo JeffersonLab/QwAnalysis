@@ -31,7 +31,13 @@ class QwHelicityPattern{
   void  LoadEventData(QwSubsystemArrayParity &event);
   Bool_t IsCompletePattern();
   void  CalculateAsymmetry(QwBlinder *blinder = 0);
+
+  void  AccumulateBurstSum();
+  void  AccumulateRunningBurstSum();
+  void  AccumulateRunningSum();
+
   void  CalculateBurstAverage();
+  void  CalculateRunningBurstAverage();
   void  CalculateRunningAverage();
 
   void  ConstructHistograms(){ConstructHistograms((TDirectory*)NULL);};
@@ -69,13 +75,18 @@ class QwHelicityPattern{
 
   // Burst sum/difference of the yield and asymmetry
   Bool_t fEnableBurstSum;
-  QwSubsystemArrayParity fBurstSumYield;
-  QwSubsystemArrayParity fBurstSumDifference;
+  QwSubsystemArrayParity fBurstYield;
+  QwSubsystemArrayParity fBurstDifference;
+  QwSubsystemArrayParity fBurstAsymmetry;
+  QwSubsystemArrayParity fRunningBurstYield;
+  QwSubsystemArrayParity fRunningBurstDifference;
+  QwSubsystemArrayParity fRunningBurstAsymmetry;
 
   // Running sum/average of the yield and asymmetry
   Bool_t fEnableRunningSum;
-  QwSubsystemArrayParity fRunningSumYield;
-  QwSubsystemArrayParity fRunningSumAsymmetry;
+  QwSubsystemArrayParity fRunningYield;
+  QwSubsystemArrayParity fRunningDifference;
+  QwSubsystemArrayParity fRunningAsymmetry;
 
  private:
 

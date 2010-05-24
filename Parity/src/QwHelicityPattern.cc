@@ -64,11 +64,17 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
             fAsymmetry2.Copy(&event);
           }
 
-          fBurstSumYield.Copy(&event);
-          fBurstSumDifference.Copy(&event);
+          fBurstYield.Copy(&event);
+          fBurstDifference.Copy(&event);
+          fBurstAsymmetry.Copy(&event);
 
-          fRunningSumYield.Copy(&event);
-          fRunningSumAsymmetry.Copy(&event);
+          fRunningYield.Copy(&event);
+          fRunningDifference.Copy(&event);
+          fRunningAsymmetry.Copy(&event);
+
+          fRunningBurstYield.Copy(&event);
+          fRunningBurstDifference.Copy(&event);
+          fRunningBurstAsymmetry.Copy(&event);
 
           ClearEventData();
           ClearBurstSum();
@@ -112,18 +118,6 @@ void QwHelicityPattern::ClearEventData()
   IsGood=kFALSE;
   return;
 };
-
-void QwHelicityPattern::ClearRunningSum()
-{
-  fRunningSumYield.ClearEventData();
-  fRunningSumAsymmetry.ClearEventData();
-}
-
-void QwHelicityPattern::ClearBurstSum()
-{
-  fBurstSumYield.ClearEventData();
-  fBurstSumDifference.ClearEventData();
-}
 
 /////////////////////////////////////////////////////////////////////
 
@@ -297,15 +291,9 @@ void  QwHelicityPattern::CalculateAsymmetry(QwBlinder *blinder)
       fDifference.Difference(fPositiveHelicitySum,fNegativeHelicitySum);
       fAsymmetry.Ratio(fDifference,fYield);
 
-      if (fEnableBurstSum) {
-        fBurstSumYield.AccumulateRunningSum(fYield);
-        fBurstSumDifference.AccumulateRunningSum(fDifference);
-      }
-
-      if (fEnableRunningSum) {
-        fRunningSumYield.AccumulateRunningSum(fYield);
-        fRunningSumAsymmetry.AccumulateRunningSum(fAsymmetry);
-      }
+      // Accumulate the burst and running sums
+      if (fEnableBurstSum) AccumulateBurstSum();
+      if (fEnableRunningSum) AccumulateRunningSum();
 
       /*
         With additional two asymmetry calculations
@@ -315,7 +303,6 @@ void  QwHelicityPattern::CalculateAsymmetry(QwBlinder *blinder)
                         fAsymmetry  = (1+4)-(2+3)/(1+2+3+4)
                         fAsymmetry1 = (1+2)-(3+4)/(1+2+3+4)
                         fAsymmetry2 = (1+3)-(2+4)/(1+2+3+4)
-
       */
 
       if (fEnableAlternateAsym){
@@ -341,7 +328,6 @@ void  QwHelicityPattern::CalculateAsymmetry(QwBlinder *blinder)
           fAsymmetry1.BlindMe(blinder);
           fAsymmetry2.BlindMe(blinder);
         }
-
       }
 
       if (blinder) {
@@ -355,27 +341,134 @@ void  QwHelicityPattern::CalculateAsymmetry(QwBlinder *blinder)
 };
 
 //*****************************************************************
+/**
+ * Clear the running sums of yield, difference and asymmetry.
+ * Also clear the running burst sums if enabled.
+ */
+void  QwHelicityPattern::ClearRunningSum()
+{
+  if (fEnableRunningSum) {
+    fRunningYield.ClearEventData();
+    fRunningDifference.ClearEventData();
+    fRunningAsymmetry.ClearEventData();
+  }
+  if (fEnableBurstSum) {
+    fRunningBurstYield.ClearEventData();
+    fRunningBurstDifference.ClearEventData();
+    fRunningBurstAsymmetry.ClearEventData();
+  }
+}
+
+//*****************************************************************
+/**
+ * Clear the burst sums of yield and difference.  No asymmetry
+ * burst sum is used.
+ */
+void  QwHelicityPattern::ClearBurstSum()
+{
+  if (fEnableBurstSum) {
+    fBurstYield.ClearEventData();
+    fBurstDifference.ClearEventData();
+  }
+}
+
+//*****************************************************************
+/**
+ * Accumulate the burst sum by adding this helicity pattern to the
+ * burst sums of yield and difference.  There is no burst sum of
+ * asymmetry, because that can only be calculated with meaningful
+ * moments at the end of a burst.
+ */
+void  QwHelicityPattern::AccumulateBurstSum()
+{
+  fBurstYield.AccumulateRunningSum(fYield);
+  fBurstDifference.AccumulateRunningSum(fDifference);
+  // The asymmetry is only calculated at the end of a burst
+};
+
+//*****************************************************************
+/**
+ * Accumulate the running sum by adding this helicity pattern to the
+ * running sums of yield, difference and asymmetry.
+ */
+void  QwHelicityPattern::AccumulateRunningSum()
+{
+  fRunningYield.AccumulateRunningSum(fYield);
+  fRunningDifference.AccumulateRunningSum(fDifference);
+  fRunningAsymmetry.AccumulateRunningSum(fAsymmetry);
+};
+
+//*****************************************************************
+/**
+ * Accumulate the running burst sum by adding the current burst sum
+ * to the running sums of burst yield, difference and asymmetry.
+ */
+void  QwHelicityPattern::AccumulateRunningBurstSum()
+{
+  // Accumulate the burst yield and difference
+  fRunningBurstYield.AccumulateRunningSum(fBurstYield);
+  fRunningBurstDifference.AccumulateRunningSum(fBurstDifference);
+
+  // Calculate asymmetry over this entire burst
+  fBurstAsymmetry.Ratio(fBurstDifference, fBurstYield);
+  // Accumulate this burst asymmetry
+  fRunningBurstAsymmetry.AccumulateRunningSum(fBurstAsymmetry);
+
+  // Be sure to clear the burst sums after this function!
+};
+
+//*****************************************************************
+/**
+ * Calculate the average burst yield, difference and asymmetry.
+ */
 void  QwHelicityPattern::CalculateBurstAverage()
 {
+  QwMessage << " Burst average of asymmetry    " << QwLog::endl;
+  QwMessage << " ==============================" << QwLog::endl;
+  fBurstAsymmetry.CalculateRunningAverage();
+
   QwMessage << " Burst average of difference   " << QwLog::endl;
   QwMessage << " ==============================" << QwLog::endl;
-  fBurstSumDifference.CalculateRunningAverage();
+  fBurstDifference.CalculateRunningAverage();
 
   QwMessage << " Burst average of yields       " << QwLog::endl;
   QwMessage << " ==============================" << QwLog::endl;
-  fBurstSumYield.CalculateRunningAverage();
+  fBurstYield.CalculateRunningAverage();
+};
+
+//*****************************************************************
+/**
+ * Calculate the average running burst yield, difference and asymmetry.
+ */
+void  QwHelicityPattern::CalculateRunningBurstAverage()
+{
+  QwMessage << " Running burst average of asymmetry" << QwLog::endl;
+  QwMessage << " ==============================" << QwLog::endl;
+  fRunningBurstAsymmetry.CalculateRunningAverage();
+
+  QwMessage << " Running burst average of difference" << QwLog::endl;
+  QwMessage << " ==============================" << QwLog::endl;
+  fRunningBurstDifference.CalculateRunningAverage();
+
+  QwMessage << " Running burst average of yields" << QwLog::endl;
+  QwMessage << " ==============================" << QwLog::endl;
+  fRunningBurstYield.CalculateRunningAverage();
 };
 
 //*****************************************************************
 void  QwHelicityPattern::CalculateRunningAverage()
 {
-  std::cout<<" Burst average of asymmetry "<<std::endl;
-  std::cout<<" =============================="<<std::endl;
-  fRunningSumAsymmetry.CalculateRunningAverage();
+  QwMessage << " Running average of asymmetry  " << QwLog::endl;
+  QwMessage << " ==============================" << QwLog::endl;
+  fRunningAsymmetry.CalculateRunningAverage();
 
-  std::cout<<" Running average of Yields "<<std::endl;
-  std::cout<<" =============================="<<std::endl;
-  fRunningSumYield.CalculateRunningAverage();
+  QwMessage << " Running average of difference " << QwLog::endl;
+  QwMessage << " ==============================" << QwLog::endl;
+  fRunningDifference.CalculateRunningAverage();
+
+  QwMessage << " Running average of yields     " << QwLog::endl;
+  QwMessage << " ==============================" << QwLog::endl;
+  fRunningYield.CalculateRunningAverage();
 };
 
 //*****************************************************************
@@ -446,23 +539,6 @@ void QwHelicityPattern::ConstructBranchAndVector(TTree *tree, TString & prefix, 
     asymprefix = "asym2_" + prefix;
     fAsymmetry2.ConstructBranchAndVector(tree, asymprefix, values);
   }
-
-//   //  std::cout<<"QwHelicityPattern::ConstructBranchAndVector\n";
-//   ((QwBeamLine*)fYield.GetSubsystem("Injector Beamline Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
-//   ((QwHelicity*)fYield.GetSubsystem("Helicity Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
-//   thisprefix="yield";
-//   ((QwMainCerenkovDetector*)fYield.GetSubsystem("Quartz bar Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
-//
-//   thisprefix="asym_";
-//   ((QwBeamLine*)fAsymmetry.GetSubsystem("Injector Beamline Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
-//   ((QwHelicity*)fAsymmetry.GetSubsystem("Helicity Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
-//   thisprefix="asym";
-//   ((QwMainCerenkovDetector*)fAsymmetry.GetSubsystem("Quartz bar Copy"))->ConstructBranchAndVector(tree,thisprefix,values);
-
-  //  the following lines are the syntax we want at the end :
-  //  fYield.ConstructBranchAndVector(tree, prefix,values);
-  //  fAsymmetry.ConstructBranchAndVector(tree, prefix,values);
-
   return;
 }
 

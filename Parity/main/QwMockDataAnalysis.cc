@@ -74,10 +74,10 @@ int main(int argc, char* argv[])
 
   // Detector array
   QwSubsystemArrayParity detectors;
-  detectors.push_back(new QwBeamLine("Injector BeamLine"));
-  detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
-  detectors.push_back(new QwMainCerenkovDetector("Main detector"));
-  detectors.GetSubsystem("Main detector")->LoadChannelMap("qweak_adc.map");
+//  detectors.push_back(new QwBeamLine("Injector BeamLine"));
+//  detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
+//  detectors.push_back(new QwMainCerenkovDetector("Main detector"));
+//  detectors.GetSubsystem("Main detector")->LoadChannelMap("qweak_adc.map");
   detectors.push_back(new QwLumi("Lumi detector"));
   detectors.GetSubsystem("Lumi detector")->LoadChannelMap("qweak_lumi.map");
   if (bHelicity) {
@@ -228,34 +228,11 @@ int main(int argc, char* argv[])
 
       // TODO (wdc) QwEventBuffer should have Bool_t AtEndOfBurst()
       //if (QwEvt.AtEndOfBurst()){
-      if (eventbuffer.GetEventNumber() % 1000 == 0) {
-        //  Should this be encapsulated in QwHelicityPattern or
-        //  in a burst handler class, or be left out in the wind?
+      if (eventbuffer.GetEventNumber() % 100 == 0) {
         {
-//          //  Calculate the mean diff & yield.
-//          helicitypattern.CalculateEventRunningAverage();
-
-//          //  Let's build the final burst asymmetry & yield
-//          //  Recall that the "Asym" produced in burst mode is
-//          //  actually just the mean difference.
-//          fBurstAsym.Ratio(GetHelPatMeanAsym, GetHelPatMeanYield);
-//          fBurstYield = GetHelPatMeanYield;
-
-//          //  Do we want to do something like apply cuts?  No.
-
-//          //  Do we want to put stuff in a tree?  Probably.
-
-//          //  Do we want to accumulate another running average?  Yes.
-//          fBurstAsym.Do_RunningSum();
-//          fBurstYield.Do_RunningSum();
-
-//          //  Now we should clear the QwHelicityPattern's "normal"
-//          //  running sums.
-//          helicitypattern.ClearRunningSum();
-
-        helicitypattern.CalculateBurstAverage();
-        helicitypattern.ClearBurstSum();
-
+          helicitypattern.AccumulateRunningBurstSum();
+          helicitypattern.CalculateBurstAverage();
+          helicitypattern.ClearBurstSum();
         }
       }
 
@@ -263,6 +240,7 @@ int main(int argc, char* argv[])
 
     // Calculate the running averages
     helicitypattern.CalculateRunningAverage();
+    helicitypattern.CalculateRunningBurstAverage();
     runningsum.CalculateRunningAverage();
 
     // Close ROOT file

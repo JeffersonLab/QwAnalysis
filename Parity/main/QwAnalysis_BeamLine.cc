@@ -109,11 +109,12 @@ Int_t main(Int_t argc, Char_t* argv[])
   //QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap("qweak_lumi.map");//current map file is for the beamline.
   //QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file.
 
+  // Running sum
   QwSubsystemArrayParity runningsum;
   runningsum.Copy(&QwDetectors);
 
-  ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
 
+  ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
 
   QwDetectors.ProcessOptions(gQwOptions);//Recommonded to call this routine after LoadChannelMap(..) routines. Some times the cmd options override the map file settings.
 
@@ -197,20 +198,16 @@ Int_t main(Int_t argc, Char_t* argv[])
 	}
 
       Int_t failed_events_counts=0;//count failed total events
-      
+
       //  Clear the single-event running sum at the beginning of the
       //  runlet.
-      QwDetectors.ClearRunningSum();
+      runningsum.ClearEventData();
       QwHelPat.ClearRunningSum();
-  
+
 
       //  Clear the running sum of the burst values at the beginning of the
       //  runlet.
-      {
-	fBurstAsym.ClearRunningSum();
-	fBurstYield.ClearRunningSum();
-      }
-
+      QwHelPat.ClearBurstSum();
 
       // Loop over events in this CODA file
       while (QwEvt.GetNextEvent() == CODA_OK) {
@@ -311,34 +308,19 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  failed_events_counts++;
 	}
 
-	if(QwEvt.GetEventNumber()%1000==0){
+	if (QwEvt.GetEventNumber() % 1000 == 0) {
 	  QwMessage << "Number of events processed so far: "
 		    << QwEvt.GetEventNumber() <<"\r"<< QwLog::endl;
 	}
-	if (QwEvt.AtEndOfBurst()){
-	  //  Should this be encapsulated in QwHelicityPattern or
-	  //  in a burst handler class, or be left out in the wind?
-	  {
-	    //  Calculate the mean diff & yield.
-	    QwHelPat.CalculateEventRunningAverage();
-	    
-	    //  Let's build the final burst asymmetry & yield
-	    //  Recall that the "Asym" produced in burst mode is
-	    //  actually just the mean difference.
-	    fBurstAsym.Ratio(GetHelPatMeanAsym, GetHelPatMeanYield);
-	    fBurstYield = GetHelPatMeanYield;
-	    
-	    //  Do we want to do something like apply cuts?  No.
-	    
-	    //  Do we want to put stuff in a tree?  Probably.
-	    
-	    //  Do we want to accumulate another running average?  Yes.
-	    fBurstAsym.Do_RunningSum();
-	    fBurstYield.Do_RunningSum();
 
-	    //  Now we should clear the QwHelicityPattern's "normal"
-	    //  running sums.
-	    QwHelPat.ClearRunningSum();
+	// TODO (wdc) QwEventBuffer should have Bool_t AtEndOfBurst()
+	//if (QwEvt.AtEndOfBurst()){
+	if (QwEvt.GetEventNumber() % 100 == 0) {
+	  {
+	    QwHelPat.AccumulateRunningBurstSum();
+	    QwHelPat.CalculateBurstAverage();
+	    QwHelPat.ClearBurstSum();
+
 	  }
 	}
 
@@ -355,6 +337,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       //  averaged running averages, and in normal mode the "regular"
       //  running averages.
       QwHelPat.CalculateRunningAverage();//this will calculate running averages for Asymmetries and Yields per quartet
+      QwHelPat.CalculateRunningBurstAverage();
 
       std::cout<<"Event Based Running average"<<std::endl;
       std::cout<<"==========================="<<std::endl;
