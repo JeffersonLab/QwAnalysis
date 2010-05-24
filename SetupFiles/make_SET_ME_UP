@@ -14,7 +14,7 @@ else
     search_dir="`pwd`"
 fi
 #  Find the full path which contains the make_SET_ME_UP.bash file
-fullname="`find $search_dir -name make_SET_ME_UP.bash`"
+fullname="`find $search_dir -name make_SET_ME_UP`"
 cd `dirname $fullname`
 local_path="`pwd`"
 cd $OLDPWD

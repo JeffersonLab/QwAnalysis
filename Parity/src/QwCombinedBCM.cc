@@ -103,16 +103,18 @@ void  QwCombinedBCM::ProcessEvent()
 {
 
   Bool_t ldebug = kFALSE;
-  static QwVQWK_Channel  tmpADC("tmpADC");
+  static QwVQWK_Channel  tmpADC; 
+  tmpADC.InitializeChannel("tmpADC","derived");
+
 
   for(size_t i=0;i<fElement.size();i++)
   {
     tmpADC=fElement[i]->fTriumf_ADC;
     tmpADC.Scale(fWeights[i]);
     fCombined_bcm+=tmpADC;
+
   }
 
-  //std::cout<<"total weights = "<<total_weights<<"\n";
   fCombined_bcm.Scale(1.0/fSumQweights);
 
 
@@ -147,6 +149,9 @@ Bool_t QwCombinedBCM::ApplySingleEventCuts(){
     status&=kFALSE;
   }
   fDeviceErrorCode|=fCombined_bcm.GetEventcutErrorFlag();//retrun the error flag for event cuts
+  //std::cout<<"combined bcm "<<GetElementName()<<" error flag "<<fCombined_bcm.GetEventcutErrorFlag()<<std::endl;
+  //Update the error counters
+  fCombined_bcm.UpdateHWErrorCounters();
 
   return status;
 
@@ -156,7 +161,7 @@ Bool_t QwCombinedBCM::ApplySingleEventCuts(){
 
 Int_t QwCombinedBCM::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
   fCombined_bcm.GetEventcutErrorCounters();
-
+ 
   return 1;
 }
 
@@ -244,6 +249,10 @@ void QwCombinedBCM::Print() const
 /********************************************************/
 Bool_t QwCombinedBCM::ApplyHWChecks()
 {
+  // For the combined devices there are no physical channels that we can relate to because they  are being
+  // derived from combinations of physical channels. Therefore, this is not exactly a "HW Check"
+  // but just a check of the HW checks of the combined channels.
+
   Bool_t fEventIsGood=kTRUE;
 
 //   fDeviceErrorCode=0;

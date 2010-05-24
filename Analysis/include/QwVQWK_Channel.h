@@ -42,7 +42,9 @@ class QwVQWK_Channel: public VQwDataElement {
  *         through member functions.
  ******************************************************************/
  public:
-  QwVQWK_Channel() { };
+  QwVQWK_Channel() { 
+    InitializeChannel("","");
+  };
 
   QwVQWK_Channel(TString name, TString datatosave = "raw") {
     InitializeChannel(name, datatosave);
@@ -143,6 +145,10 @@ class QwVQWK_Channel: public VQwDataElement {
 
   Int_t ApplyHWChecks(); //Check for harware errors in the devices. This will return the device error code.
 
+  void UpdateHWErrorCounters(Int_t error_flag);//update counters based on the flag passed to it
+  void UpdateHWErrorCounters(){//update the counters based on the this->fDeviceErrorCode
+    UpdateHWErrorCounters(fDeviceErrorCode);
+  };
   /*End*/
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
@@ -186,7 +192,7 @@ class QwVQWK_Channel: public VQwDataElement {
 
  private:
   static const Bool_t kDEBUG;
-
+  static const Int_t fWordsPerChannel = 6;//no.of words per channel in the CODA buffer
 
   Int_t fDataToSave;
 
@@ -206,7 +212,8 @@ class QwVQWK_Channel: public VQwDataElement {
   /*! \name Channel configuration data members */
   // @{
   UInt_t  fSamplesPerBlock;
-  UInt_t  fBlocksPerEvent;
+  //UInt_t  fBlocksPerEvent;
+  Short_t fBlocksPerEvent;
   // @}
 
   /*  Ntuple array indices */

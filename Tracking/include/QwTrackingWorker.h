@@ -24,6 +24,7 @@ class QwPartialTrack;
 class QwTrack;
 class QwEvent;
 class QwBridge;
+class QwBridgingTrackFilter;
 class QwMatrixLookup;
 class QwRayTracer;
 
@@ -50,11 +51,15 @@ class QwTrackingWorker {
     int R3Good;
     int R3Bad;
 
+    /// \brief Default constructor with name
     QwTrackingWorker(const char* name);
+    /// \brief Destructor
     ~QwTrackingWorker();
 
     /// \brief Define command line and config file options
     static void DefineOptions(QwOptions& options);
+    /// \brief Process command line and config file options
+    void ProcessOptions(QwOptions& options);
 
     /// \brief Get the debug level
     int GetDebugLevel () { return fDebug; };
@@ -76,16 +81,17 @@ class QwTrackingWorker {
     int fDebug;
 
     /// \brief Region 2 levels
-    int  levelsr2;
-
+    int fLevelsR2;
     /// \brief Region 3 levels
-    int  levelsr3;
+    int fLevelsR3;
 
     /// \brief Initialize the pattern search tree
     void InitTree();
 
     /// \name Momentum determination bridging methods
     //@{
+    /// Track filter
+    QwBridgingTrackFilter* fBridgingTrackFilter;
     /// Lookup table bridging method
     QwMatrixLookup* fMatrixLookup;
     /// Ray tracing bridging method
@@ -95,8 +101,8 @@ class QwTrackingWorker {
     // Local flags
     bool fShowEventPattern;
     bool fShowMatchingPattern;
-
-    QwRayTracer *raytracer;
+    bool fUseMatrixLookup;
+    bool fUseRayTracer;
 
 }; // class QwTrackingWorker
 

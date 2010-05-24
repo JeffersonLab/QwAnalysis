@@ -110,6 +110,8 @@ void  QwBCM::ProcessEvent()
 {
   ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine either in ApplySingleEventCuts or here do not make any difference for a BCM but do for a BPMs because they have derrived devices.
   fTriumf_ADC.ProcessEvent();
+  //update the event cut counters
+  fTriumf_ADC.UpdateHWErrorCounters();
   return;
 };
 /********************************************************/

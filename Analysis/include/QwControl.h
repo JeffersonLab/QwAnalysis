@@ -1,34 +1,49 @@
 #ifndef __QwControl_h__
 #define __QwControl_h__
 
-// Inherits from
-#include "TRint.h"
+#include "TThread.h"
 
-// Global pointers recognised by CINT
-R__EXTERN class QwControl* gQwControl;
-R__EXTERN class QwRoot*    gQwRoot;
+#include "VQwSystem.h"
+#include "VQwAnalyzer.h"
+#include "VQwDataserver.h"
 
+void* QwRunThread (void*);
 
-class QwControl : public TRint {
+class QwControl : public VQwSystem {
 
-  protected:
+  private:
+    TThread* fRunThread;	// thread with analyzer
 
-    static QwControl* fExists;	// Check whether interface already existing
+    VQwAnalyzer* fAnalyzer;	// analyzer
+    VQwDataserver* fDataserver;	// dataserver
 
-    bool fIsBatch;		// Are we running in batch mode, or interactive mode
-    bool fIsOnline;		// Are we running online (CODA stream) or offline (ascii)
-				// (duplication of fIsOnline with QwRoot.h)
+    bool fIsOnline;	// Are we running online (CODA stream) or offline (ASCII)
+    bool fIsFinished;	// Are we at the end of the data stream yet
 
   public:
-    QwControl (const char* appClassName, int* argc, char** argv,
-		void* options = NULL, int numOptions = -1, bool noLogo = 0);
-    virtual ~QwControl();
-    virtual void StartAnalyzer();
-    virtual void StartDataserver();
+    QwControl (const char* name, bool = false): VQwSystem(name) { };
+    ~QwControl() { };
 
+    void Run();
+    void Start();
+    void OnlineLoop();
+    void OfflineLoop();
+
+    // analyzer creation and starting
+    VQwAnalyzer* CreateAnalyzer (const char* name);
+    void SetAnalyzer (VQwAnalyzer* analyzer);
+
+    // dataserver creation and starting
+    VQwDataserver* CreateDataserver (const char* name);
+    void SetDataserver (VQwDataserver* dataserver);
+
+
+    void SetIsOnline (bool online) { fIsOnline = online; };
+    bool IsOnline () { return fIsOnline; };
+    void SetIsFinished (bool finished) { fIsFinished = finished; };
+    bool IsFinished () { return fIsFinished; };
 
   ClassDef(QwControl,1)
-
 };
 
-#endif
+#endif // __QwControl_h__

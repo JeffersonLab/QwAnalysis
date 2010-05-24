@@ -143,6 +143,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
   Int_t i=0;
   //Event cuts for Relative X & Y
   for(i=0;i<2;i++){
+    
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -151,6 +152,10 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Rel X event cut failed ";
     }
+
+    //update the event cut counters
+    fRelPos[i].UpdateHWErrorCounters();
+
     fDeviceErrorCode|=fRelPos[i].GetEventcutErrorFlag();//Get the Event cut error flag for RelX/Y
   }
   //Event cuts for Absolute X & Y
@@ -163,6 +168,9 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Abs X event cut failed ";
     }
+    //update the event cut counters
+    fAbsPos[i].UpdateHWErrorCounters();
+ 
     fDeviceErrorCode|=fAbsPos[i].GetEventcutErrorFlag();//Get the Event cut error flag for AbsX/Y
   }
 
@@ -176,6 +184,8 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
     status&=kFALSE;
     if (bDEBUG) std::cout<<" WSum event cut failed ";
   }
+  //update the event cut counters
+  fWSum.UpdateHWErrorCounters();
 
   //Event cuts for four wires
   for(i=0;i<4;i++){
@@ -187,6 +197,9 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Abs X event cut failed ";
     }
+    //update the event cut counters
+    fWire[i].UpdateHWErrorCounters();
+
     fDeviceErrorCode|=fWire[i].GetEventcutErrorFlag();//Get the Event cut error flag for wires
   }
 
@@ -294,9 +307,11 @@ void  QwBPMStripline::ProcessEvent()
       fRelPos[1].Scale(kRotationCorrection);
     }
 
-  // TODO (wdc) Shouldn't this be fAbsPos.Copy(fRelPos); fAbsPos.Offset(fOffset); ?
-  for(i=0;i<2;i++) fAbsPos[i].SetHardwareSum(fRelPos[i].GetHardwareSum()-fOffset[i]);
-  fAbsPos[2].SetHardwareSum(fOffset[2]);
+  for(i=0;i<2;i++) {
+    fAbsPos[i]= fRelPos[i];
+    fAbsPos[i].Offset(fOffset[i]);
+  }
+  fAbsPos[2].Offset(fOffset[2]);
 
   return;
 };

@@ -477,6 +477,7 @@ const int QwMatrixLookup::Bridge(
     QwTrack* track = new QwTrack();
     track->front = const_cast<QwPartialTrack*>(front);
     track->back = const_cast<QwPartialTrack*>(back);
+    track->fMomentum = momentum;
 
     QwBridge* bridge = new QwBridge();
     track->fBridge = bridge;

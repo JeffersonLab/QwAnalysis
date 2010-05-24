@@ -76,6 +76,8 @@ QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersion
   fDatabase=fDBServer=fDBUsername=fDBPassword="";
   fVersionMajor=fVersionMinor=fVersionPoint="";
 
+  fAccessLevel = kQwDatabaseOff;
+ 
   fDBPortNumber      = 0;
   fValidConnection   = false;
   fRunNumber         = 0;
@@ -83,7 +85,27 @@ QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersion
   fRunletID          = 0;
   fAnalysisID        = 0;
   fSegmentNumber     = 0;
+}
 
+/*! The constructor initializes member fields using the values in
+ *  the QwOptions object.
+ * @param options  The QwOptions object.
+ */
+QwDatabase::QwDatabase(QwOptions &options) : Connection(), kValidVersionMajor("01"), kValidVersionMinor("00"), kValidVersionPoint("0000")
+{
+  // Initialize member fields
+  fDatabase=fDBServer=fDBUsername=fDBPassword="";
+  fVersionMajor=fVersionMinor=fVersionPoint="";
+
+  fAccessLevel = kQwDatabaseOff;
+ 
+  fDBPortNumber      = 0;
+  fValidConnection   = false;
+  fRunNumber         = 0;
+  fRunID             = 0;
+  fAnalysisID        = 0;
+
+  ProcessOptions(options);
 }
 
 /*! The destructor says "Good-bye World!"
@@ -101,78 +123,71 @@ QwDatabase::~QwDatabase()
  * It is called the first time Connect() is called.
  */
 bool QwDatabase::ValidateConnection() {
-
+  Bool_t status;
   //
-  // Retrieve options
+  // Retrieve options if they haven't already been filled.
   //
-  string dbname, server, username, password;
-  Int_t port = gQwOptions.GetValue<int>("QwDatabase.dbport");
-
-  if (gQwOptions.HasValue("QwDatabase.dbname")) {
-    dbname = gQwOptions.GetValue<string>("QwDatabase.dbname");
-  } else {
-    QwError << "QwDatabase::ValidateConnection() : No database supplied.  Unable to connect." << QwLog::endl;
-    return false;
+  if (fDatabase.empty()){
+    status = ProcessOptions(gQwOptions);
+    if (!status) return status;
   }
-
-  if (gQwOptions.HasValue("QwDatabase.dbusername")) {
-    username = gQwOptions.GetValue<string>("QwDatabase.dbusername");
-  } else {
-    QwError << "QwDatabase::ValidateConnection() : No database username supplied.  Unable to connect." << QwLog::endl;
-    return false;
-  }
-
-  if (gQwOptions.HasValue("QwDatabase.dbpassword")) {
-    password = gQwOptions.GetValue<string>("QwDatabase.dbpassword");
-  } else {
-    QwError << "QwDatabase::ValidateConnection() : No database password supplied.  Unable to connect." << QwLog::endl;
-    return false;
-  }
-
-  if (gQwOptions.HasValue("QwDatabase.dbserver")) {
-    server = gQwOptions.GetValue<string>("QwDatabase.dbserver");
-  } else {
-    QwMessage << "QwDatabase::ValidateConnection() : No database server supplied.  Attempting localhost." << QwLog::endl;
-    server = "localhost";
-  }
-
-  //
-  // Try to connect with given information
-  //
-  try {
-    connect(dbname.c_str(), server.c_str(), username.c_str(), password.c_str(), (unsigned int) port);
-    //    connect(dbname.Data(), server.Data(), username.Data(), password.Data(), (unsigned int) port);
-  } catch (std::exception const& e) {
-    QwError << "QwDatabase::ValidateConnection() : " << QwLog::endl;
-    QwError << e.what() << " while validating connection" << QwLog::endl;
-    QwError << "Database name = " << dbname <<QwLog::endl;
-    QwError << "Database server = " << server <<QwLog::endl;
-    QwError << "Database username = " << username <<QwLog::endl;
-    QwError << "Database port = " << port <<QwLog::endl;
-    QwError << "Exiting." << QwLog::endl;
-    exit(1);
-  }
+  //  Check values.
+  if (fAccessLevel!=kQwDatabaseOff){
+    if (fDatabase.empty()){
+      QwError << "QwDatabase::ValidateConnection() : No database supplied.  Unable to connect." << QwLog::endl;
+      return false;
+    }
+    if (fDBUsername.empty()){
+      QwError << "QwDatabase::ValidateConnection() : No database username supplied.  Unable to connect." << QwLog::endl;
+      return false;
+    }
+    if (fDBPassword.empty()){
+      QwError << "QwDatabase::ValidateConnection() : No database password supplied.  Unable to connect." << QwLog::endl;
+      return false;
+    }
+    if (fDBServer.empty()){
+      QwMessage << "QwDatabase::ValidateConnection() : No database server supplied.  Attempting localhost." << QwLog::endl;
+      fDBServer = "localhost";
+    }
+    //
+    // Try to connect with given information
+    //
+    try {
+      connect(fDatabase.c_str(), fDBServer.c_str(), fDBUsername.c_str(),
+	      fDBPassword.c_str(), (unsigned int) fDBPortNumber);
+      //    connect(dbname.Data(), server.Data(), username.Data(), password.Data(), (unsigned int) port);
+    } catch (std::exception const& e) {
+      QwError << "QwDatabase::ValidateConnection() : " << QwLog::endl;
+      QwError << e.what() << " while validating connection" << QwLog::endl;
+      QwError << "Database name = " << fDatabase <<QwLog::endl;
+      QwError << "Database server = " << fDBServer <<QwLog::endl;
+      QwError << "Database username = " << fDBUsername <<QwLog::endl;
+      QwError << "Database port = " << fDBPortNumber <<QwLog::endl;
+      QwError << "Exiting." << QwLog::endl;
+      exit(1);
+    }
   
-  // Get database schema version information
-  if (StoreDBVersion()) {
-    fValidConnection=true;
-    // Success!
-    QwMessage << "QwDatabase::ValidateConnection() : Successfully connected to requested database." << QwLog::endl;
-
-    // Connection was good so update member variables and disconnect from
-    // database
-    fDatabase=dbname;
-    fDBServer=server;
-    fDBUsername=username;
-    fDBPassword=password;
-    fDBPortNumber=port;
+    // Get database schema version information
+    if (StoreDBVersion()) {
+      fValidConnection=true;
+      // Success!
+      QwMessage << "QwDatabase::ValidateConnection() : Successfully connected to requested database." << QwLog::endl;
+    } else {
+      QwError << "QwDatabase::ValidateConnection() : Unsuccessfully connected to requested database." << QwLog::endl;
+      // Connection was bad so clear the member variables
+      fValidConnection=false;
+      fDatabase.clear();
+      fDBServer.clear();
+      fDBUsername.clear();
+      fDBPassword.clear();
+      fDBPortNumber=0;
+    }
+    disconnect();
   }
-  disconnect();
-
   // Check to make sure database and QwDatabase schema versions match up.
   if (fVersionMajor != kValidVersionMajor ||
       fVersionMinor != kValidVersionMinor ||
-      fVersionPoint != kValidVersionPoint) {
+      fVersionPoint < kValidVersionPoint) {
     fValidConnection = false;
     QwError << "QwDatabase::ValidConnection() : Connected database schema inconsistent with current version of analyzer." << QwLog::endl;
     QwError << "  Database version is " << this->GetVersion() << QwLog::endl;
@@ -182,7 +197,6 @@ bool QwDatabase::ValidateConnection() {
   }
 
   return fValidConnection;
-
 }
 
 
@@ -193,6 +207,9 @@ bool QwDatabase::Connect()
   /* Open a connection to the database using the predefined parameters.
    * Must call QwDatabase::ConnectionInfo() first.
    */
+
+  //  Return flase, if we're not using the DB.
+  if (fAccessLevel==kQwDatabaseOff) return false;
 
   // Make sure not already connected
   if (connected()) return true;
@@ -222,12 +239,60 @@ bool QwDatabase::Connect()
 void QwDatabase::DefineOptions(QwOptions& options)
 {
   // Specify command line options for use by QwDatabase
+  options.AddOptions()("QwDatabase.accesslevel", po::value<string>(), "database access level (OFF,RW)");
   options.AddOptions()("QwDatabase.dbname", po::value<string>(), "database name");
   options.AddOptions()("QwDatabase.dbserver", po::value<string>(), "database server name");
   options.AddOptions()("QwDatabase.dbusername", po::value<string>(), "database username");
   options.AddOptions()("QwDatabase.dbpassword", po::value<string>(), "database password");
   options.AddOptions()("QwDatabase.dbport", po::value<int>()->default_value(0), "database server port number (defaults to standard mysql port)");
 }
+
+/*!
+ * Loads the configuration options for QwDatabase class into this instance of
+ * QwDatabase from the QwOptions object.
+ * @param options Options object
+ */
+Bool_t QwDatabase::ProcessOptions(QwOptions &options)
+{
+  if (options.HasValue("QwDatabase.accesslevel")) {
+    string access = options.GetValue<string>("QwDatabase.accesslevel");
+    SetAccessLevel(access);
+  } else {
+    QwWarning << "QwDatabase::ProcessOptions : No access level specified; database access is OFF" << QwLog::endl;
+    fAccessLevel = kQwDatabaseOff;
+  }
+  if (options.HasValue("QwDatabase.dbport")) {
+    fDBPortNumber = options.GetValue<int>("QwDatabase.dbport");
+  }
+  if (options.HasValue("QwDatabase.dbname")) {
+    fDatabase = options.GetValue<string>("QwDatabase.dbname");
+  }
+  if (options.HasValue("QwDatabase.dbusername")) {
+    fDBUsername = options.GetValue<string>("QwDatabase.dbusername");
+  }
+  if (options.HasValue("QwDatabase.dbpassword")) {
+    fDBPassword = options.GetValue<string>("QwDatabase.dbpassword");
+  }
+  if (options.HasValue("QwDatabase.dbserver")) {
+    fDBServer = options.GetValue<string>("QwDatabase.dbserver");
+  }
+};
+
+void QwDatabase::SetAccessLevel(string accesslevel)
+{
+  TString level = accesslevel.c_str();
+  level.ToLower();
+  if (level=="off")     fAccessLevel = kQwDatabaseOff;
+  else if (level=="ro") fAccessLevel = kQwDatabaseReadOnly;
+  else if (level=="rw") fAccessLevel = kQwDatabaseReadOnly;
+  else{
+    QwWarning << "QwDatabase::SetAccessLevel  : Unrecognized access level \""
+	      << accesslevel << "\"; setting database access OFF" 
+	      << QwLog::endl;
+    fAccessLevel = kQwDatabaseOff;
+  }
+};
+
 
 /*!
  * Sets run number for subsequent database interactions.  Makes sure correct

@@ -16,6 +16,7 @@
 #include <TDirectory.h>
 
 // Qweak headers
+#include "QwSubsystemFactory.h"
 #include "QwParameterFile.h"
 
 // Forward declarations

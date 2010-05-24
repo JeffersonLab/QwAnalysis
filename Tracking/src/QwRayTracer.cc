@@ -115,65 +115,6 @@ const bool QwRayTracer::LoadMagneticFieldMap(const std::string filename)
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /**
- * Filter combinations of front and back partial tracks before bridging
- * @param front Front partial track
- * @param back Back partial track
- * @return Error code (zero when accepted)
- */
-const int QwRayTracer::Filter(QwPartialTrack* front, QwPartialTrack* back)
-{
-    // NOTE The angle limits will be determined from MC simulation results
-
-    // Scattering angle limit
-    if ((front->GetMomentumDirectionTheta() < 4.0 * Qw::deg)
-     || (front->GetMomentumDirectionTheta() > 13.0 * Qw::deg)) {
-        QwMessage << "Filter: scattering angle (" << front->GetMomentumDirectionTheta() * Qw::rad2deg
-                  << " degree) is out of range" << QwLog::endl;
-        fMatchFlag = -1;
-        return -1;
-    }
-
-    // Bending angle limit in B field
-    double dtheta = (back->GetMomentumDirectionTheta() - front->GetMomentumDirectionTheta());
-    double dphi   = (back->GetMomentumDirectionPhi()   - front->GetMomentumDirectionPhi());
-    if (dtheta < 5.0 * Qw::deg || dtheta > 25.0 * Qw::deg || fabs(dphi) > 10.0 * Qw::deg) {
-        QwMessage << "Filter: bending angles (dtheta = " << dtheta << " degree, dphi = " << dphi
-                  << " degree) in B field are out of range" << QwLog::endl;
-        fMatchFlag = -1;
-        return -1;
-    }
-
-    // Scattering vertex limits and position phi limits (QTOR keep-out zone)
-    TVector3 start_position = front->GetPosition(-330.685 * Qw::cm);
-    TVector3 start_direction = front->GetMomentumDirection();
-    // front track position and angles at z = -250 cm plane
-    double r = fabs(start_position.Z() - (-250.0 * Qw::cm)) / start_direction.Z();
-    double x = start_position.X() + r * start_direction.X();
-    double y = start_position.Y() + r * start_direction.Y();
-
-    double position_r = sqrt(x*x + y*y);
-    double position_phi = 0.0;
-    position_phi = start_position.Phi();
-    double direction_theta = 0.0;
-    direction_theta = front->GetMomentumDirectionTheta();
-
-    double vertex_z = -250.0 * Qw::cm - position_r / tan(acos(start_direction.Z()));
-
-    if (vertex_z < (-672.0 * Qw::cm) || vertex_z > (-628.0 * Qw::cm)) {
-        QwMessage << "Filter: scattering vertex z = " << vertex_z / Qw::cm
-                  << " cm is out of range" << QwLog::endl;
-        fMatchFlag = -1;
-        return -1;
-    }
-
-    // TODO: add in QTOR keep-out zones
-
-    return 0;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-/**
  * Bridge the front and back partial tracks using the ray-tracing technique
  * @param front Front partial track
  * @param back Back partial track
@@ -270,6 +211,7 @@ const int QwRayTracer::Bridge(
         QwTrack* track = new QwTrack();
         track->front = const_cast<QwPartialTrack*>(front);
         track->back = const_cast<QwPartialTrack*>(back);
+        track->fMomentum = fMomentum;
 
         QwBridge* bridge = new QwBridge();
         track->fBridge = bridge;

@@ -13,6 +13,7 @@
 #include <math.h>
 
 
+
 RDataContainer::RDataContainer(const TGWindow *p, const TGWindow *main, 
 			       const char *objName, const char *mainname, const char *dataname, 
 			       ERFileModes mode, ERFileTypes type, 
@@ -653,16 +654,12 @@ int RDataContainer::OpenFile(const char *filename)
 Int_t RDataContainer::OpenMapFile(const char* file){
 
   try {
-    //TMapFile::SetMapAddress(0x7c59f000);
     fMapFile = TMapFile::Create(file);
     fMapFile->Print();
   }
   catch( char * str ) {
     //cout << "Exception raised: " << str << '\n';
   }
-
-  //fMapFile = TMapFile::Create("/home/rakithab/scratch/rootfiles/QwMemMapFile.map");
-
   return 1;
 };
 

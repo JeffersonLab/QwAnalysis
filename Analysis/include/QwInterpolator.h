@@ -652,16 +652,9 @@ inline bool QwInterpolator<value_t,value_n>::ReadText(std::istream& stream)
   // Read the grid values
   unsigned int entries;
   stream >> entries;
-  for (unsigned int index = 0; index < entries; index++) {
+  for (unsigned int index = 0; index < entries; index++)
     for (unsigned int i = 0; i < value_n; i++)
       stream >> fValues[i][index];
-    // Progress bar
-    fEntries++;
-    if (fEntries % (fMaximumEntries / 10) == 0)
-      QwMessage << 100 * fEntries / fMaximumEntries << "%" << std::flush;
-    if (fEntries % (fMaximumEntries / 10) != 0
-     && fEntries % (fMaximumEntries / 40) == 0) QwMessage << "." << std::flush;
-  }
   QwMessage << QwLog::endl;
   // Check for end of file
   std::string end;
@@ -745,16 +738,10 @@ inline bool QwInterpolator<value_t,value_n>::ReadBinaryFile(std::string filename
   uint32_t maximum_entries;
   file.read(reinterpret_cast<char*>(&maximum_entries),sizeof(maximum_entries));
   if (maximum_entries != fMaximumEntries) return false; // not expected number of entries
-  for (unsigned int index = 0; index < fValues[0].size(); index++) {
+  int value_size = sizeof(value_t);
+  for (unsigned int index = 0; index < fValues[0].size(); index++)
     for (unsigned int i = 0; i < value_n; i++)
-      file.read(reinterpret_cast<char*>(&fValues[i][index]),sizeof(fValues[i][index]));
-    // Progress bar
-    fEntries++;
-    if (fEntries % (fMaximumEntries / 10) == 0)
-      QwMessage << 100 * fEntries / fMaximumEntries << "%" << std::flush;
-    if (fEntries % (fMaximumEntries / 10) != 0
-     && fEntries % (fMaximumEntries / 40) == 0) QwMessage << "." << std::flush;
-  }
+      file.read((char*)(&fValues[i][index]),value_size);
   QwMessage << QwLog::endl;
   file.close();
   return true;
