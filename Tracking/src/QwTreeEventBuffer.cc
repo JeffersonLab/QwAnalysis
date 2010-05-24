@@ -147,6 +147,14 @@ void QwTreeEventBuffer::GetEntry(const unsigned int entry)
                         fRegion3_ChamberBack_WirePlaneU_HasBeenHit  == 5 &&
                         fRegion3_ChamberBack_WirePlaneV_HasBeenHit  == 5;
 
+  // Trigger Scintillator
+  fTree->GetBranch("TriggerScintillator.Detector.HasBeenHit")->GetEntry(entry);
+  fTriggerScintillator_HasBeenHit = (fTriggerScintillator_Detector_HasBeenHit == 5);
+
+  // Cerenkov
+  fTree->GetBranch("Cerenkov.Detector.HasBeenHit")->GetEntry(entry);
+  fCerenkov_HasBeenHit = (fCerenkov_Detector_HasBeenHit == 5);
+
   // jpan: coincidence for avoiding match empty nodes
   if (fRegion1_HasBeenHit && fRegion2_HasBeenHit && fRegion3_HasBeenHit) {
     fTree->GetEntry(fEventNumber);
@@ -178,6 +186,12 @@ void QwTreeEventBuffer::GetEntry(const unsigned int entry)
           << fRegion3_ChamberFront_WirePlaneV_NbOfHits << ","
           << fRegion3_ChamberBack_WirePlaneU_NbOfHits << ","
           << fRegion3_ChamberBack_WirePlaneV_NbOfHits << " hit(s)." << QwLog::endl;
+
+  QwMessage << "Trigger Scintillator: "
+          << fTriggerScintillator_Detector_NbOfHits << " hit(s)." << QwLog::endl;
+
+  QwMessage << "Cerenkov: "
+          << fCerenkov_Detector_NbOfHits << " hit(s)." << QwLog::endl;
 }
 
 
@@ -718,6 +732,48 @@ QwHitContainer* QwTreeEventBuffer::GetHitList(const bool resolution_effects) con
   }
 
 
+  QwDebug << "Processing Trigger Scintillator: "
+          << fTriggerScintillator_Detector_NbOfHits << " hit(s)." << QwLog::endl;
+  detectorinfo = & fDetectorInfo.at(10).at(0);
+  for (int i = 0; i < fTriggerScintillator_Detector_NbOfHits && i < 1; i++) {
+    QwDebug << "hit in " << *detectorinfo << QwLog::endl;
+
+    // Get the position
+    double x = fTriggerScintillator_Detector_HitLocalExitPositionX.at(i);
+    double y = fTriggerScintillator_Detector_HitLocalExitPositionY.at(i);
+
+    // Fill a vector with the hits for this track
+    std::vector<QwHit> hits = CreateHitCerenkov(detectorinfo,x,y);
+
+    // Set the hit numbers
+    for (size_t i = 0; i < hits.size(); i++) hits[i].SetHitNumber(hitcounter++);
+
+    // Append this vector of hits to the QwHitContainer.
+    hitlist->Append(hits);
+  }
+
+
+  QwDebug << "Processing Cerenkov: "
+          << fCerenkov_Detector_NbOfHits << " hit(s)." << QwLog::endl;
+  detectorinfo = & fDetectorInfo.at(13).at(0);
+  for (int i = 0; i < fCerenkov_Detector_NbOfHits && i < 1; i++) {
+    QwDebug << "hit in " << *detectorinfo << QwLog::endl;
+
+    // Get the position
+    double x = fCerenkov_Detector_HitLocalExitPositionX;
+    double y = fCerenkov_Detector_HitLocalExitPositionY;
+
+    // Fill a vector with the hits for this track
+    std::vector<QwHit> hits = CreateHitCerenkov(detectorinfo,x,y);
+
+    // Set the hit numbers
+    for (size_t i = 0; i < hits.size(); i++) hits[i].SetHitNumber(hitcounter++);
+
+    // Append this vector of hits to the QwHitContainer.
+    hitlist->Append(hits);
+  }
+
+
   // Now return the final hitlist
   QwDebug << "Leaving QwTreeEventBuffer::GetHitList ()" << QwLog::endl;
   return hitlist;
@@ -1015,6 +1071,75 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitRegion3 (
   return hits;
 }
 
+
+/*! Cerenkov and trigger scintillator hit position determination
+
+ @param detectorinfo Detector information
+ @param x X coordinate of the track in the wire plane
+ @param y Y coordinate of the track in the wire plane
+ @return Pointer to the created hit object (needs to be deleted by caller)
+
+*/
+std::vector<QwHit> QwTreeEventBuffer::CreateHitCerenkov (
+	const QwDetectorInfo* detectorinfo,
+	const double x_local, const double y_local) const
+{
+  // Detector identification
+  EQwRegionID region = detectorinfo->fRegion;
+  EQwDetectorPackage package = detectorinfo->fPackage;
+  EQwDirectionID direction = detectorinfo->fDirection;
+  int plane = detectorinfo->fPlane;
+
+  // Detector geometry
+  double x_detector = detectorinfo->GetXPosition();
+  double x_min = - detectorinfo->GetActiveWidthX() / 2.0;
+  double x_max =   detectorinfo->GetActiveWidthX() / 2.0;
+
+  // Minimum and maximum yield (for hit closest and furthest away)
+  UInt_t yield; // stored as raw data
+  double y_min = 10.0;
+  double y_max = 100.0;
+
+  // Global x coordinates
+  double x = x_local + x_detector;
+
+  // Create a list for the hits (will be returned)
+  std::vector<QwHit> hits;
+
+  // Add the left and right hits to the hit list
+  QwHit* hit = 0;
+
+  // Calculate light yield of left hit (element 1)
+  yield = (y_max - y_min) * (x - x_min) / (x_max - x_min) * (x - x_min) / (x_max - x_min) + y_min;
+
+  // Create a new hit
+  hit = new QwHit(0,0,0,0, region, package, plane, direction, 1, 0);
+  hit->SetDetectorInfo(detectorinfo);
+  hit->SetRawTime(yield);
+
+  // Add hit to the list for this detector plane and delete local instance
+  hits.push_back(*hit);
+  delete hit;
+
+
+  // Calculate light yield of right hit (element 2)
+  yield = (-x - x_min) / (x_max - x_min);
+  yield *= (y_max - y_min) * yield; // squared and scaled
+  yield += y_min; // offset
+
+  // Create a new hit
+  hit = new QwHit(0,0,0,0, region, package, plane, direction, 2, 0);
+  hit->SetDetectorInfo(detectorinfo);
+  hit->SetRawTime(yield);
+
+  // Add hit to the list for this detector plane and delete local instance
+  hits.push_back(*hit);
+  delete hit;
+
+
+  return hits;
+}
+
 /**
  * Reserve space for the vectors of tree variables
  */
@@ -1261,6 +1386,27 @@ void QwTreeEventBuffer::ReserveVectors()
   fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX.reserve(VECTOR_SIZE);
   fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY.reserve(VECTOR_SIZE);
   fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ.reserve(VECTOR_SIZE);
+
+  fTriggerScintillator_Detector_HitLocalPositionX.reserve(VECTOR_SIZE);
+  fTriggerScintillator_Detector_HitLocalPositionY.reserve(VECTOR_SIZE);
+  fTriggerScintillator_Detector_HitLocalPositionX.reserve(VECTOR_SIZE);
+  fTriggerScintillator_Detector_HitLocalExitPositionY.reserve(VECTOR_SIZE);
+  fTriggerScintillator_Detector_HitLocalExitPositionZ.reserve(VECTOR_SIZE);
+  fTriggerScintillator_Detector_HitLocalExitPositionZ.reserve(VECTOR_SIZE);
+  fTriggerScintillator_Detector_HitGlobalPositionX.reserve(VECTOR_SIZE);
+  fTriggerScintillator_Detector_HitGlobalPositionY.reserve(VECTOR_SIZE);
+  fTriggerScintillator_Detector_HitGlobalPositionZ.reserve(VECTOR_SIZE);
+
+//   fCerenkov_Detector_HitLocalPositionX.reserve(VECTOR_SIZE);
+//   fCerenkov_Detector_HitLocalPositionY.reserve(VECTOR_SIZE);
+//   fCerenkov_Detector_HitLocalPositionZ.reserve(VECTOR_SIZE);
+//   fCerenkov_Detector_HitLocalExitPositionX.reserve(VECTOR_SIZE);
+//   fCerenkov_Detector_HitLocalExitPositionY.reserve(VECTOR_SIZE);
+//   fCerenkov_Detector_HitLocalExitPositionZ.reserve(VECTOR_SIZE);
+//   fCerenkov_Detector_HitGlobalPositionX.reserve(VECTOR_SIZE);
+//   fCerenkov_Detector_HitGlobalPositionY.reserve(VECTOR_SIZE);
+//   fCerenkov_Detector_HitGlobalPositionZ.reserve(VECTOR_SIZE);
+
 }
 
 /**
@@ -1545,6 +1691,40 @@ void QwTreeEventBuffer::ClearVectors()
   fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX.clear();
   fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY.clear();
   fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ.clear();
+
+  fTriggerScintillator_Detector_HasBeenHit = 0;
+  fTriggerScintillator_Detector_NbOfHits = 0;
+  fTriggerScintillator_Detector_HitLocalPositionX.clear();
+  fTriggerScintillator_Detector_HitLocalPositionY.clear();
+  fTriggerScintillator_Detector_HitLocalPositionZ.clear();
+  fTriggerScintillator_Detector_HitLocalExitPositionX.clear();
+  fTriggerScintillator_Detector_HitLocalExitPositionY.clear();
+  fTriggerScintillator_Detector_HitLocalExitPositionZ.clear();
+  fTriggerScintillator_Detector_HitGlobalPositionX.clear();
+  fTriggerScintillator_Detector_HitGlobalPositionY.clear();
+  fTriggerScintillator_Detector_HitGlobalPositionZ.clear();
+
+  fCerenkov_Detector_HasBeenHit = 0;
+  fCerenkov_Detector_NbOfHits = 0;
+  fCerenkov_Detector_HitLocalPositionX = 0.0;
+  fCerenkov_Detector_HitLocalPositionY = 0.0;
+  fCerenkov_Detector_HitLocalPositionZ = 0.0;
+  fCerenkov_Detector_HitLocalExitPositionX = 0.0;
+  fCerenkov_Detector_HitLocalExitPositionY = 0.0;
+  fCerenkov_Detector_HitLocalExitPositionZ = 0.0;
+  fCerenkov_Detector_HitGlobalPositionX = 0.0;
+  fCerenkov_Detector_HitGlobalPositionY = 0.0;
+  fCerenkov_Detector_HitGlobalPositionZ = 0.0;
+//   fCerenkov_Detector_HitLocalPositionX.clear();
+//   fCerenkov_Detector_HitLocalPositionY.clear();
+//   fCerenkov_Detector_HitLocalPositionZ.clear();
+//   fCerenkov_Detector_HitLocalExitPositionX.clear();
+//   fCerenkov_Detector_HitLocalExitPositionY.clear();
+//   fCerenkov_Detector_HitLocalExitPositionZ.clear();
+//   fCerenkov_Detector_HitGlobalPositionX.clear();
+//   fCerenkov_Detector_HitGlobalPositionY.clear();
+//   fCerenkov_Detector_HitGlobalPositionZ.clear();
+
 }
 
 /**
@@ -2115,4 +2295,54 @@ void QwTreeEventBuffer::AttachBranches()
 		&fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY);
   fTree->SetBranchAddress("Region3.ChamberBack.WirePlaneV.GlobalMomentumZ",
 		&fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ);
+
+
+  /// Attach to the trigger scintillator branches
+  fTree->SetBranchAddress("TriggerScintillator.Detector.HasBeenHit",
+		&fTriggerScintillator_Detector_HasBeenHit);
+  fTree->SetBranchAddress("TriggerScintillator.Detector.NbOfHits",
+		&fTriggerScintillator_Detector_NbOfHits);
+  fTree->SetBranchAddress("TriggerScintillator.Detector.HitLocalPositionX",
+		&fTriggerScintillator_Detector_HitLocalPositionX);
+  fTree->SetBranchAddress("TriggerScintillator.Detector.HitLocalPositionY",
+		&fTriggerScintillator_Detector_HitLocalPositionY);
+  fTree->SetBranchAddress("TriggerScintillator.Detector.HitLocalPositionZ",
+		&fTriggerScintillator_Detector_HitLocalPositionZ);
+  fTree->SetBranchAddress("TriggerScintillator.Detector.HitLocalExitPositionX",
+		&fTriggerScintillator_Detector_HitLocalExitPositionX);
+  fTree->SetBranchAddress("TriggerScintillator.Detector.HitLocalExitPositionY",
+		&fTriggerScintillator_Detector_HitLocalExitPositionY);
+  fTree->SetBranchAddress("TriggerScintillator.Detector.HitLocalExitPositionZ",
+		&fTriggerScintillator_Detector_HitLocalExitPositionZ);
+  fTree->SetBranchAddress("TriggerScintillator.Detector.HitGlobalPositionX",
+		&fTriggerScintillator_Detector_HitGlobalPositionX);
+  fTree->SetBranchAddress("TriggerScintillator.Detector.HitGlobalPositionY",
+		&fTriggerScintillator_Detector_HitGlobalPositionY);
+  fTree->SetBranchAddress("TriggerScintillator.Detector.HitGlobalPositionZ",
+		&fTriggerScintillator_Detector_HitGlobalPositionZ);
+
+
+  /// Attach to the cerenkov branches
+  fTree->SetBranchAddress("Cerenkov.Detector.HasBeenHit",
+		&fCerenkov_Detector_HasBeenHit);
+  fTree->SetBranchAddress("Cerenkov.Detector.NbOfHits",
+		&fCerenkov_Detector_NbOfHits);
+  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionX",
+		&fCerenkov_Detector_HitLocalPositionX);
+  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionY",
+		&fCerenkov_Detector_HitLocalPositionY);
+  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalPositionZ",
+		&fCerenkov_Detector_HitLocalPositionZ);
+  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalExitPositionX",
+		&fCerenkov_Detector_HitLocalExitPositionX);
+  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalExitPositionY",
+		&fCerenkov_Detector_HitLocalExitPositionY);
+  fTree->SetBranchAddress("Cerenkov.Detector.HitLocalExitPositionZ",
+		&fCerenkov_Detector_HitLocalExitPositionZ);
+  fTree->SetBranchAddress("Cerenkov.Detector.HitGlobalPositionX",
+		&fCerenkov_Detector_HitGlobalPositionX);
+  fTree->SetBranchAddress("Cerenkov.Detector.HitGlobalPositionY",
+		&fCerenkov_Detector_HitGlobalPositionY);
+  fTree->SetBranchAddress("Cerenkov.Detector.HitGlobalPositionZ",
+		&fCerenkov_Detector_HitGlobalPositionZ);
 }
