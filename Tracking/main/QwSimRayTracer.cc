@@ -3,6 +3,7 @@
 // Qweak tracking headers
 #include "QwOptionsTracking.h"
 #include "QwParameterFile.h"
+#include "QwBridgingTrackFilter.h"
 #include "QwRayTracer.h"
 #include "QwMatrixLookup.h"
 
@@ -78,6 +79,8 @@ int main (int argc, char* argv[])
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->GetDetectorInfo(detector_info);
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R1"))->GetDetectorInfo(detector_info);
 
+  /// Create a track filter
+  QwBridgingTrackFilter* trackfilter = new QwBridgingTrackFilter();
 
   /// Create a lookup table bridging method
   QwMatrixLookup* matrixlookup = new QwMatrixLookup();
@@ -155,44 +158,35 @@ int main (int argc, char* argv[])
         for (size_t j = 0; j < tracks_r3.size(); j++) {
 
           // Filter tracks based on parameters (TODO filter should go somewhere else)
-          int status = raytracer->Filter(tracks_r2.at(i), tracks_r3.at(j));
-          if (status == -1) {
+          int status = trackfilter->Filter(tracks_r2.at(i), tracks_r3.at(j));
+          if (status != 0) {
             QwMessage << "Track did not pass filter." << QwLog::endl;
             continue;
           }
-          status = -1;
-
-          std::vector<QwTrack*> tracklist;
 
           // Bridge using the lookup table
-          if (status == -1) {
-            timer.Start();
-            status = matrixlookup->Bridge(tracks_r2.at(i), tracks_r3.at(j));
-            timer.Stop();
-            CpuTime = timer.CpuTime();
-            RealTime = timer.RealTime();
-            timer.Reset();
-            if (status == 0)
-              tracklist = matrixlookup->GetListOfTracks();
-            else QwMessage << "Matrix lookup: " << status << QwLog::endl;
-          }
+          timer.Start();
+          status = matrixlookup->Bridge(tracks_r2.at(i), tracks_r3.at(j));
+          timer.Stop();
+          CpuTime = timer.CpuTime();
+          RealTime = timer.RealTime();
+          timer.Reset();
+          if (status == 0) {
+            event->AddTrackList(matrixlookup->GetListOfTracks());
+            continue;
+          } else QwMessage << "Matrix lookup: " << status << QwLog::endl;
 
           // Bridge using the ray tracer
-          if (status == -1) {
-            timer.Start();
-            status = raytracer->Bridge(tracks_r2.at(i), tracks_r3.at(j));
-            timer.Stop();
-            CpuTime = timer.CpuTime();
-            RealTime = timer.RealTime();
-            timer.Reset();
-            if (status == 0)
-              tracklist = raytracer->GetListOfTracks();
-            else QwMessage << "Ray tracer: " << status << QwLog::endl;
-          }
-
+          timer.Start();
+          status = raytracer->Bridge(tracks_r2.at(i), tracks_r3.at(j));
+          timer.Stop();
+          CpuTime = timer.CpuTime();
+          RealTime = timer.RealTime();
+          timer.Reset();
           if (status == 0) {
-            event->AddTrackList(tracklist);
-          }
+            event->AddTrackList(raytracer->GetListOfTracks());
+            continue;
+          } else QwMessage << "Ray tracer: " << status << QwLog::endl;
 
         } // end of back track loop
       } // end of front track loop
