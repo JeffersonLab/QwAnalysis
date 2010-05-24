@@ -195,7 +195,7 @@ class QwOptions {
 
     /// \brief Get a templated value
     template < class T >
-    T GetValue(string key) {
+    T GetValue(const string key) {
       if (fParsed == false) Parse();
       if (fVariablesMap.count(key)) {
         QwVerbose << "Option " << key << ": "

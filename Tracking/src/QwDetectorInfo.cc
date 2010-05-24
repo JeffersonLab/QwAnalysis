@@ -81,6 +81,10 @@ void QwDetectorInfo::SetDetectorInfo (
     fRegion = kRegionID2;
   else if (region == 3)
     fRegion = kRegionID3;
+  else if (region == 4)
+    fRegion = kRegionIDTrig;
+  else if (region == 5)
+    fRegion = kRegionIDCer;
 
   // Direction
   if (planeDir == "x")

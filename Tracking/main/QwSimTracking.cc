@@ -93,11 +93,11 @@ int main (int argc, char* argv[])
   detectors->GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
   detectors->GetSubsystem("R3")->LoadQweakGeometry("qweak_new.geo");
 
-  // Region 3 TS
+  // Region 4 TS
   detectors->push_back(GetSubsystemFactory("QwTriggerScintillator")->Create("TS"));
   detectors->GetSubsystem("TS")->LoadQweakGeometry("qweak_new.geo");
 
-  // Region 3 MD
+  // Region 5 MD
   detectors->push_back(GetSubsystemFactory("QwMainDetector")->Create("MD"));
   detectors->GetSubsystem("MD")->LoadQweakGeometry("qweak_new.geo");
 
