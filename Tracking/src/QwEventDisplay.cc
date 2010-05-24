@@ -1,6 +1,6 @@
 #include "QwEventDisplay.h"
 
-ClassImp(QwEventDisplay)
+ClassImp(QwEventDisplay);
 
 // Qweak header files
 #include "QwTreeEventBuffer.h"
@@ -9,14 +9,16 @@ ClassImp(QwEventDisplay)
 #include "QwHitContainer.h"
 
 
-QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h) {
-Int_t j,k,s;
+QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
+{
+  fSubsystemArray = 0;
+  fEventBuffer = 0;
+  fHitList = 0;
 
   const char *R2planes[] = {"x","u","v","xp","up","vp"};
   const char *R3planes[] = {"u","v","u_prime","v_prime"};
 
-
-//  assign values of listboxes to addresses of Region boxes and the Hit Number
+  // Assign values of listboxes to addresses of Region boxes and the Hit Number
   listboxes[0] =  &Region1Box;
   listboxes[1] =  &Region2Box;
   listboxes[2] =  &Region3Box;
@@ -30,11 +32,11 @@ Int_t j,k,s;
   // create a horizontal frames (hframe) to contain the listboxes
   TGHorizontalFrame *listboxhframe = new TGHorizontalFrame(fMain);
   // create list boxes for each wire plane
-  for(j=0;j<4;j++){
+  for (int j = 0; j < 4; j++) {
     (*listboxes[j]) = new TGListBox(listboxhframe);
   } // end for
   // initialize the event counter
-  entry = -1;
+  fEntry = -1;
    // tab widget
    TGTab *fTab = new TGTab(fMain);
 
@@ -42,13 +44,6 @@ Int_t j,k,s;
 // need to learn how many planes of wires there will be in the detectors for Region 1
 
 
-  // Region 2 lines
-  R2lx = new TLine();
-  R2lu = new TLine();
-  R2lv = new TLine();
-  R2lxPrime = new TLine();
-  R2luPrime = new TLine();
-  R2lvPrime = new TLine();
   // Region 2 fit lines
   R2xzfit = new TLine();
   R2yzfit = new TLine();
@@ -107,7 +102,7 @@ Int_t j,k,s;
   listboxhframe->AddFrame(  Region2Box , new TGLayoutHints(kLHintsExpandX|kLHintsExpandY|kLHintsNormal,5,5,5,5));
   listboxhframe->AddFrame(  Region3Box , new TGLayoutHints(kLHintsExpandX|kLHintsExpandY|kLHintsNormal,5,5,5,5));
   fMain->AddFrame(listboxhframe, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY|kLHintsNormal)); // add the listbixhframe to the Main Frame
-  for(j=0;j<3;j++){
+  for (int j = 0; j < 3; j++) {
     (*listboxes[j])->Resize(200,212); // controls size of the listboxes--FOR REAL!
     (*listboxes[3])->Resize(110,25); // controlled th size of the listbox for the event number until the kLHintsExpandX etc. was added
   } // end for
@@ -181,43 +176,43 @@ Int_t j,k,s;
     TGTextButton *exit = new TGTextButton(hframe,"&Exit","gApplication->Terminate(0)");
     hframe->AddFrame(exit, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
 
-    // number entry box
+    // number fEntry box
     TGNumberEntry *fNumberEntry = new TGNumberEntry(fMain, (Double_t) 0,13,-1,(TGNumberFormat::EStyle) 5);
-    fNumberEntry->Connect("Clicked()","QwEventDisplay",this,"DoAdvance()"); // code to connect the "Advance" button to the number entry widget
+    fNumberEntry->Connect("Clicked()","QwEventDisplay",this,"DoAdvance()"); // code to connect the "Advance" button to the number fEntry widget
     hframe->AddFrame(fNumberEntry, new TGLayoutHints(kLHintsExpandX|kLHintsExpandY|kLHintsNormal,5,5,5,5));
 
-    // add all buttons and number entry box to main frame fMain
+    // add all buttons and number fEntry box to main frame fMain
     fMain->AddFrame(hframe, new TGLayoutHints(kLHintsCenterX,2,2,2,2));
 
 
-  // open the input file and load the Tree "h10" into memory (for Region 2 only)
-  f = new TFile("proc_drift.root");
-  t1 = (TTree*)f->Get("h10");
+  // Open the input file and load the Tree "h10" into memory (for Region 2 only)
+  //f = new TFile("proc_drift.root");
+  //t1 = (TTree*)f->Get("h10");
 
-// open the input file and load the Tree "QweakG4_Tree" into memory
-// containing data for all three regions
-// f = new TFile("QweakSim.root"); // new data file used to test sev.C
-// t1 = (TTree*)f->Get("QweakG4_Tree");
+  // Open the input file and load the Tree "QweakG4_Tree" into memory
+  // containing data for all three regions
+  //f = new TFile("QweakSim.root"); // new data file used to test sev.C
+  //t1 = (TTree*)f->Get("QweakG4_Tree");
 
-  // setup members of h10 to be read into as
-  char tmp[10]; // character array used to display wire number
-  for(j=0;j<6;j++) {
-    sprintf(tmp,"w_%s",R2planes[j]);
-    t1->GetBranch(tmp)->SetAddress(&wire[j]);
-    sprintf(tmp,"%s_dd",R2planes[j]);
-    t1->GetBranch(tmp)->SetAddress(&R2driftdist[j]);
-    sprintf(tmp,"s_%s",R2planes[j]);
-    t1->GetBranch(tmp)->SetAddress(&driftsign[j]);
-    sprintf(tmp,"%s_px",R2planes[j]);
-    t1->GetBranch(tmp)->SetAddress(&fitpx[j]);
-    sprintf(tmp,"%s_py",R2planes[j]);
-    t1->GetBranch(tmp)->SetAddress(&fitpy[j]);
-  } // end for
+  // Setup members of h10 to be read into as
+  //char tmp[10]; // character array used to display wire number
+  //for (int j = 0; j < 6; j++) {
+  //  sprintf(tmp,"w_%s",R2planes[j]);
+  //  t1->GetBranch(tmp)->SetAddress(&wire[j]);
+  //  sprintf(tmp,"%s_dd",R2planes[j]);
+  //  t1->GetBranch(tmp)->SetAddress(&R2driftdist[j]);
+  //  sprintf(tmp,"s_%s",R2planes[j]);
+  //  t1->GetBranch(tmp)->SetAddress(&driftsign[j]);
+  //  sprintf(tmp,"%s_px",R2planes[j]);
+  //  t1->GetBranch(tmp)->SetAddress(&fitpx[j]);
+  //  sprintf(tmp,"%s_py",R2planes[j]);
+  //  t1->GetBranch(tmp)->SetAddress(&fitpy[j]);
+  //} // end for
 
 /*
 // setup members of QweakG4_Tree to be read into array
   char WireHit[10];
-  for(j=0,j<6;j++) {
+  for (int j = 0; j < 6; j++) {
   sprintf(WireHit,"",R2planes[j]);
   t1->GetBranch(WireHit)->SetAddress(&wire[j]);
   sprintf(
@@ -236,59 +231,72 @@ Int_t j,k,s;
 
 
 // When the "Advance" button is clicked, this function executes
-void QwEventDisplay::DoAdvance() {
-  //Load event data into memory
-  entry++;
-
-  QwHitContainer* hitlist = fEventBuffer->GetHitList(entry);
-  //QwHitContainer* hitlist = fSubsystemArray->GetHitList();
-  hitlist->Print();
+void QwEventDisplay::DoAdvance()
+{
+  // Load event data into memory
+  fEntry++;
 
   DrawEvent();
 } // end DoAdvance
 
 // When the "Previous" button is clicked, this function executes
-void QwEventDisplay::DoPrevious() {
-//  Unload event data from memory
-  entry--;
+void QwEventDisplay::DoPrevious()
+{
+  // Load event data into memory
+  fEntry--;
+
   DrawEvent();
 } // end DoPrevious
 
 // When the "Remove All" button is clicked, this function executes
-void QwEventDisplay::DoRemoveAll() {
+void QwEventDisplay::DoRemoveAll()
+{
   // Remove all wire hits from listbox
-  Int_t j;
-  for(j=0;j<3;j++) {
-  (*listboxes[j])->RemoveAll();
-  (EventBox)->RemoveAll();
+  for (int j = 0; j < 3; j++) {
+    (*listboxes[j])->RemoveAll();
+    (EventBox)->RemoveAll();
   } // end for
 } // end DoRemoveAll()
 
-void QwEventDisplay::DrawEvent() {
-  // get entry from tree
-  t1->GetEntry(entry);
+void QwEventDisplay::DrawEvent()
+{
+  fEventBuffer->GetEntry(fEntry);
+  fHitList = fEventBuffer->GetHitList();
 
-  //Begin Printing events for all planes
+  // fHitList = fSubsystemArray->GetHitList();
+  fHitList->Print();
+
+  // Begin Printing events for all planes
   char tmp[25]; //  char event[25];
 
-  // incrementing variables for Eventbox & Region 1, 2, and 3 listboxes
-  Int_t j,i,s;
-
-  for(j=0;j<7;j++) {
-    if(wire[j]>0) {
-      sprintf(tmp,"Wire %i",wire[j]);
-      (*listboxes[1])->AddEntry(tmp,entry);
+  // Incrementing variables for Eventbox & Region 1, 2, and 3 listboxes
+  for (QwHitContainer::iterator hit  = fHitList->begin();
+                                hit != fHitList->end(); hit++) {
+    if (hit->GetElement() > 0) {
+      sprintf(tmp,"Wire %i", hit->GetElement());
+      (*listboxes[1])->AddEntry(tmp,fEntry);
       (*listboxes[1])->MapSubwindows();
       (*listboxes[1])->Layout();
     } // end if
   } // end for
 
-  (*listboxes[1])->AddEntry(Form(""),entry); // create new line using the "Form" function to display text
+  // Get region 1 hits
+  QwHitContainer* hits_r1r = fHitList->GetSubList_Dir(kRegionID1, kPackageUp, kDirectionR);
+  QwHitContainer* hits_r1y = fHitList->GetSubList_Dir(kRegionID1, kPackageUp, kDirectionY);
+  // Get region 2 hits
+  QwHitContainer* hits_r2x = fHitList->GetSubList_Dir(kRegionID2, kPackageUp, kDirectionX);
+  QwHitContainer* hits_r2u = fHitList->GetSubList_Dir(kRegionID2, kPackageUp, kDirectionU);
+  QwHitContainer* hits_r2v = fHitList->GetSubList_Dir(kRegionID2, kPackageUp, kDirectionV);
+  // Get region 3 hits
+  QwHitContainer* hits_r3u = fHitList->GetSubList_Dir(kRegionID3, kPackageUp, kDirectionU);
+  QwHitContainer* hits_r3v = fHitList->GetSubList_Dir(kRegionID3, kPackageUp, kDirectionV);
+
+  (*listboxes[1])->AddEntry(Form(""),fEntry); // create new line using the "Form" function to display text
 
   // print the event numnber
-//  sprintf(tmp,"Hit %i",entry+1);
+  //sprintf(tmp,"Hit %i",fEntry+1);
   (EventBox)->RemoveAll();
-  (EventBox)->AddEntry(Form("Hit %i",entry+1),entry);
+  (EventBox)->AddEntry(Form("Hit %i",fEntry+1),fEntry);
   (EventBox)->MapSubwindows();
   (EventBox)->Layout();
 
@@ -296,6 +304,7 @@ void QwEventDisplay::DrawEvent() {
   c2->GetCanvas()->cd(1)->Clear();
   R2label1->Draw();
 
+  // R2 frame
   R2b1->SetX1(.2);
   R2b1->SetY1(.1);
   R2b1->SetX2(.8);
@@ -304,13 +313,68 @@ void QwEventDisplay::DrawEvent() {
   R2b1->SetFillStyle(0);
   R2b1->Draw();
 
+  // R2 x wires
+  R2lx.clear();
+  for (QwHitContainer::iterator hit  = hits_r2x->begin();
+                                hit != hits_r2x->end(); hit++) {
+    int wire = hit->GetElement();
+    int plane = hit->GetPlane();
+    TLine line;
+    line.SetX1(.2);
+    line.SetY1(.1+0.02353*(wire + 0.1*plane) + R2driftdist[0]*driftsign[0]*2.099737533e-3);
+    line.SetX2(.8);
+    line.SetY2(.1+0.02353*(wire + 0.1*plane) + R2driftdist[0]*driftsign[0]*2.099737533e-3);
+    line.SetLineColor(kRed);
+    R2lx.push_back(line);
+    R2lx.back().Draw();
+  }
 
-  R2lx->SetX1(.2);
-  R2lx->SetY1(.1+0.02353*wire[0]+R2driftdist[0]*driftsign[0]*2.099737533e-3);
-  R2lx->SetX2(.8);
-  R2lx->SetY2(.1+0.02353*wire[0]+R2driftdist[0]*driftsign[0]*2.099737533e-3);
-  R2lx->SetLineColor(kRed);
-  R2lx->Draw();
+  // R2 u wires
+  for (QwHitContainer::iterator hit  = hits_r2u->begin();
+                                hit != hits_r2u->end(); hit++) {
+    int wire = hit->GetElement();
+    int plane = hit->GetPlane();
+    TLine line;
+    if (wire < 17) {
+      line.SetX1(.6755974-(wire-1 + 0.1*plane)*0.0306667 - R2driftdist[1]*driftsign[1]*1.25*2.099737533e-3);
+      line.SetY1(.1);
+      line.SetX2(.8);
+      line.SetY2(.2658285+(wire-1 + 0.1*plane)*0.04087874 + R2driftdist[1]*driftsign[1]*1.667*2.099737533e-3);
+      line.SetLineColor(kGreen);
+    } else {
+      line.SetX1(.2);
+      line.SetY1(.120061+(wire-17 + 0.1*plane)*0.0408534 + R2driftdist[1]*driftsign[1]*1.667*2.099737533e-3);
+      line.SetX2(.785100-(wire-17 + 0.1*plane)*0.0306477 - R2driftdist[1]*driftsign[1]*1.25*2.099737533e-3);
+      line.SetY2(.9);
+      line.SetLineColor(kGreen);
+    }
+    R2lu.push_back(line);
+    R2lu.back().Draw();
+  }
+
+  // R2 v wires
+  for (QwHitContainer::iterator hit  = hits_r2v->begin();
+                                hit != hits_r2v->end(); hit++) {
+    int wire = hit->GetElement();
+    int plane = hit->GetPlane();
+    TLine line;
+    if (wire < 17) {
+      line.SetX1(.2);
+      line.SetY1(.26523+(wire-1 + 0.1*plane)*0.040853);
+      line.SetX2(.323957+(wire-1 + 0.1*plane)*0.0306477);
+      line.SetY2(.1);
+      line.SetLineColor(kBlue);
+    } else {
+      line.SetX1(0.214179+(wire-17 + 0.1*plane)*0.0306667);
+      line.SetY1(.9);
+      line.SetX2(.8);
+      line.SetY2(.1191+(wire-17 + 0.1*plane)*0.0408787);
+      line.SetLineColor(kBlue);
+    }
+    R2lv.push_back(line);
+    R2lv.back().Draw();
+  }
+
 
 /*    // draw the wire hits in the Region 3 canvas called "c3"
   c3->GetCanvas()->cd(1)->Clear();
@@ -334,85 +398,6 @@ void QwEventDisplay::DrawEvent() {
   R3lu->Draw();
 */
 
-
-   if(wire[1]<17) {
-     R2lu->SetX1(.6755974-(wire[1]-1)*0.0306667-R2driftdist[1]*driftsign[1]*1.25*2.099737533e-3);
-     R2lu->SetY1(.1);
-     R2lu->SetX2(.8);
-     R2lu->SetY2(.2658285+(wire[1]-1)*0.04087874+R2driftdist[1]*driftsign[1]*1.667*2.099737533e-3);
-     R2lu->SetLineColor(kGreen);
-     R2lu->Draw();
-
-   } // end if
-   else {
-     R2lu->SetX1(.2);
-     R2lu->SetY1(.120061+(wire[1]-17)*0.0408534+R2driftdist[1]*driftsign[1]*1.667*2.099737533e-3);
-     R2lu->SetX2(.785100-(wire[1]-17)*0.0306477-R2driftdist[1]*driftsign[1]*1.25*2.099737533e-3);
-     R2lu->SetY2(.9);
-     R2lu->SetLineColor(kGreen);
-     R2lu->Draw();
-
-   }  // end else
-   if(wire[2]<17) {
-     R2lv->SetX1(.2);
-     R2lv->SetY1(.26523+(wire[2]-1)*0.040853);
-     R2lv->SetX2(.323957+(wire[2]-1)*0.0306477);
-     R2lv->SetY2(.1);
-     R2lv->SetLineColor(kBlue);
-     R2lv->Draw();
-   } // end if
-   else {
-   // user-friendly variable name used with code above
-     R2lv->SetX1(0.214179+(wire[2]-17)*0.0306667);
-     R2lv->SetY1(.9);
-     R2lv->SetX2(.8);
-     R2lv->SetY2(.1191+(wire[2]-17)*0.0408787);
-     R2lv->SetLineColor(kBlue);
-     R2lv->Draw();
-
-   } // end else
-
-     // wft should this be within an if or else statement?
-     R2lxPrime->SetX1(.2);
-     R2lxPrime->SetY1(.1+0.02353*wire[3]+R2driftdist[3]*driftsign[3]*2.099737533e-3);
-     R2lxPrime->SetX2(.8);
-     R2lxPrime->SetY2(.1+0.02353*wire[3]+R2driftdist[3]*driftsign[3]*2.099737533e-3);
-     R2lxPrime->SetLineColor(kRed+3);
-     R2lxPrime->Draw();
-
-
-   if(wire[4]<17) {
-     R2luPrime->SetX1(.6755974-(wire[4]-1)*0.0306667-R2driftdist[4]*driftsign[4]*1.25*2.099737533e-3);
-     R2luPrime->SetY1(.1);
-     R2luPrime->SetX2(.8);
-     R2luPrime->SetY2(.2658285+(wire[4]-1)*0.04087874+R2driftdist[4]*driftsign[4]*1.667*2.099737533e-3);
-     R2luPrime->SetLineColor(kGreen+3);
-     R2luPrime->Draw();
-   } // end if
-   else {
-     R2luPrime->SetX1(.2);
-     R2luPrime->SetY1(.120061+(wire[4]-17)*0.0408534+R2driftdist[4]*driftsign[4]*1.667*2.099737533e-3);
-     R2luPrime->SetX2(.785100-(wire[4]-17)*0.0306477-R2driftdist[4]*driftsign[4]*1.25*2.099737533e-3);
-     R2luPrime->SetY2(.9);
-     R2luPrime->SetLineColor(kGreen+3);
-     R2luPrime->Draw();
-   } // end else
-   if(wire[5]<17) {
-     R2lvPrime->SetX1(.2);
-     R2lvPrime->SetY1(0.26523+(wire[5]-1)*0.040853);
-     R2lvPrime->SetX2(0.323957+(wire[5]-1)*0.0306477);
-     R2lvPrime->SetY2(.1);
-     R2lvPrime->SetLineColor(kBlue+3);
-     R2lvPrime->Draw();
-   } // end if
-   else {
-     R2lvPrime->SetX1(0.214179+(wire[5]-17)*0.0306667);
-     R2lvPrime->SetY1(.9);
-     R2lvPrime->SetX2(.8);
-     R2lvPrime->SetY2(.1191+(wire[5]-17)*0.0408787);
-     R2lvPrime->SetLineColor(kBlue+3);
-     R2lvPrime->Draw();
-   } // end else
 
 //  R1text->Draw();
 
@@ -504,6 +489,17 @@ void QwEventDisplay::DrawEvent() {
 
   c3->GetCanvas()->Update();
 */
+
+
+  delete hits_r1r;
+  delete hits_r1y;
+
+  delete hits_r2x;
+  delete hits_r2u;
+  delete hits_r2v;
+
+  delete hits_r3u;
+  delete hits_r3v;
 } // end function DrawEvent()
 
 QwEventDisplay::~QwEventDisplay() {

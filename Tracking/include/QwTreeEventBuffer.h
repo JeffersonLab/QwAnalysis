@@ -430,15 +430,15 @@ class QwTreeEventBuffer
     Bool_t fTriggerScintillator_HasBeenHit;
     Int_t fTriggerScintillator_Detector_HasBeenHit;
     Int_t fTriggerScintillator_Detector_NbOfHits;
-    vector <Float_t> fTriggerScintillator_Detector_HitLocalPositionX;
-    vector <Float_t> fTriggerScintillator_Detector_HitLocalPositionY;
-    vector <Float_t> fTriggerScintillator_Detector_HitLocalPositionZ;
-    vector <Float_t> fTriggerScintillator_Detector_HitLocalExitPositionX;
-    vector <Float_t> fTriggerScintillator_Detector_HitLocalExitPositionY;
-    vector <Float_t> fTriggerScintillator_Detector_HitLocalExitPositionZ;
-    vector <Float_t> fTriggerScintillator_Detector_HitGlobalPositionX;
-    vector <Float_t> fTriggerScintillator_Detector_HitGlobalPositionY;
-    vector <Float_t> fTriggerScintillator_Detector_HitGlobalPositionZ;
+    Float_t fTriggerScintillator_Detector_HitLocalPositionX;
+    Float_t fTriggerScintillator_Detector_HitLocalPositionY;
+    Float_t fTriggerScintillator_Detector_HitLocalPositionZ;
+    Float_t fTriggerScintillator_Detector_HitLocalExitPositionX;
+    Float_t fTriggerScintillator_Detector_HitLocalExitPositionY;
+    Float_t fTriggerScintillator_Detector_HitLocalExitPositionZ;
+    Float_t fTriggerScintillator_Detector_HitGlobalPositionX;
+    Float_t fTriggerScintillator_Detector_HitGlobalPositionY;
+    Float_t fTriggerScintillator_Detector_HitGlobalPositionZ;
 
 
     // Cerenkov

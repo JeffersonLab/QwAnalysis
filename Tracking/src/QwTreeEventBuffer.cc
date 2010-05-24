@@ -739,8 +739,8 @@ QwHitContainer* QwTreeEventBuffer::GetHitList(const bool resolution_effects) con
     QwDebug << "hit in " << *detectorinfo << QwLog::endl;
 
     // Get the position
-    double x = fTriggerScintillator_Detector_HitLocalExitPositionX.at(i);
-    double y = fTriggerScintillator_Detector_HitLocalExitPositionY.at(i);
+    double x = fTriggerScintillator_Detector_HitLocalExitPositionX;
+    double y = fTriggerScintillator_Detector_HitLocalExitPositionY;
 
     // Fill a vector with the hits for this track
     std::vector<QwHit> hits = CreateHitCerenkov(detectorinfo,x,y);
@@ -1387,15 +1387,15 @@ void QwTreeEventBuffer::ReserveVectors()
   fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY.reserve(VECTOR_SIZE);
   fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ.reserve(VECTOR_SIZE);
 
-  fTriggerScintillator_Detector_HitLocalPositionX.reserve(VECTOR_SIZE);
-  fTriggerScintillator_Detector_HitLocalPositionY.reserve(VECTOR_SIZE);
-  fTriggerScintillator_Detector_HitLocalPositionX.reserve(VECTOR_SIZE);
-  fTriggerScintillator_Detector_HitLocalExitPositionY.reserve(VECTOR_SIZE);
-  fTriggerScintillator_Detector_HitLocalExitPositionZ.reserve(VECTOR_SIZE);
-  fTriggerScintillator_Detector_HitLocalExitPositionZ.reserve(VECTOR_SIZE);
-  fTriggerScintillator_Detector_HitGlobalPositionX.reserve(VECTOR_SIZE);
-  fTriggerScintillator_Detector_HitGlobalPositionY.reserve(VECTOR_SIZE);
-  fTriggerScintillator_Detector_HitGlobalPositionZ.reserve(VECTOR_SIZE);
+//   fTriggerScintillator_Detector_HitLocalPositionX.reserve(VECTOR_SIZE);
+//   fTriggerScintillator_Detector_HitLocalPositionY.reserve(VECTOR_SIZE);
+//   fTriggerScintillator_Detector_HitLocalPositionX.reserve(VECTOR_SIZE);
+//   fTriggerScintillator_Detector_HitLocalExitPositionY.reserve(VECTOR_SIZE);
+//   fTriggerScintillator_Detector_HitLocalExitPositionZ.reserve(VECTOR_SIZE);
+//   fTriggerScintillator_Detector_HitLocalExitPositionZ.reserve(VECTOR_SIZE);
+//   fTriggerScintillator_Detector_HitGlobalPositionX.reserve(VECTOR_SIZE);
+//   fTriggerScintillator_Detector_HitGlobalPositionY.reserve(VECTOR_SIZE);
+//   fTriggerScintillator_Detector_HitGlobalPositionZ.reserve(VECTOR_SIZE);
 
 //   fCerenkov_Detector_HitLocalPositionX.reserve(VECTOR_SIZE);
 //   fCerenkov_Detector_HitLocalPositionY.reserve(VECTOR_SIZE);
@@ -1694,15 +1694,25 @@ void QwTreeEventBuffer::ClearVectors()
 
   fTriggerScintillator_Detector_HasBeenHit = 0;
   fTriggerScintillator_Detector_NbOfHits = 0;
-  fTriggerScintillator_Detector_HitLocalPositionX.clear();
-  fTriggerScintillator_Detector_HitLocalPositionY.clear();
-  fTriggerScintillator_Detector_HitLocalPositionZ.clear();
-  fTriggerScintillator_Detector_HitLocalExitPositionX.clear();
-  fTriggerScintillator_Detector_HitLocalExitPositionY.clear();
-  fTriggerScintillator_Detector_HitLocalExitPositionZ.clear();
-  fTriggerScintillator_Detector_HitGlobalPositionX.clear();
-  fTriggerScintillator_Detector_HitGlobalPositionY.clear();
-  fTriggerScintillator_Detector_HitGlobalPositionZ.clear();
+  fTriggerScintillator_Detector_HitLocalPositionX = 0.0;
+  fTriggerScintillator_Detector_HitLocalPositionY = 0.0;
+  fTriggerScintillator_Detector_HitLocalPositionZ = 0.0;
+  fTriggerScintillator_Detector_HitLocalExitPositionX = 0.0;
+  fTriggerScintillator_Detector_HitLocalExitPositionY = 0.0;
+  fTriggerScintillator_Detector_HitLocalExitPositionZ = 0.0;
+  fTriggerScintillator_Detector_HitGlobalPositionX = 0.0;
+  fTriggerScintillator_Detector_HitGlobalPositionY = 0.0;
+  fTriggerScintillator_Detector_HitGlobalPositionZ = 0.0;
+
+//   fTriggerScintillator_Detector_HitLocalPositionX.clear();
+//   fTriggerScintillator_Detector_HitLocalPositionY.clear();
+//   fTriggerScintillator_Detector_HitLocalPositionZ.clear();
+//   fTriggerScintillator_Detector_HitLocalExitPositionX.clear();
+//   fTriggerScintillator_Detector_HitLocalExitPositionY.clear();
+//   fTriggerScintillator_Detector_HitLocalExitPositionZ.clear();
+//   fTriggerScintillator_Detector_HitGlobalPositionX.clear();
+//   fTriggerScintillator_Detector_HitGlobalPositionY.clear();
+//   fTriggerScintillator_Detector_HitGlobalPositionZ.clear();
 
   fCerenkov_Detector_HasBeenHit = 0;
   fCerenkov_Detector_NbOfHits = 0;

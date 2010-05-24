@@ -15,7 +15,6 @@
 #include <TRootEmbeddedCanvas.h>
 #include <RQ_OBJECT.h>
 
-// wdc: added the following headers
 #include <TFile.h>
 #include <TTree.h>
 #include <TLine.h>
@@ -23,123 +22,44 @@
 #include <TPaveText.h>
 #include <TPolyMarker.h>
 
-#ifndef ROOT_TGDockableFrame
 #include "TGDockableFrame.h"
-#endif
-#ifndef ROOT_TGMenu
 #include "TGMenu.h"
-#endif
-#ifndef ROOT_TGMdiDecorFrame
 #include "TGMdiDecorFrame.h"
-#endif
-#ifndef ROOT_TG3DLine
 #include "TG3DLine.h"
-#endif
-#ifndef ROOT_TGMdiFrame
 #include "TGMdiFrame.h"
-#endif
-#ifndef ROOT_TGMdiMainFrame
 #include "TGMdiMainFrame.h"
-#endif
-#ifndef ROOT_TGuiBldHintsButton
 #include "TGuiBldHintsButton.h"
-#endif
-#ifndef ROOT_TRootBrowserLite
 #include "TRootBrowserLite.h"
-#endif
-#ifndef ROOT_TGMdiMenu
 #include "TGMdiMenu.h"
-#endif
-#ifndef ROOT_TGListBox
 #include "TGListBox.h"
-#endif
-#ifndef ROOT_TGNumberEntry
 #include "TGNumberEntry.h"
-#endif
-#ifndef ROOT_TGScrollBar
 #include "TGScrollBar.h"
-#endif
-#ifndef ROOT_TGComboBox
 #include "TGComboBox.h"
-#endif
-#ifndef ROOT_TGuiBldHintsEditor
 #include "TGuiBldHintsEditor.h"
-#endif
-#ifndef ROOT_TGFrame
 #include "TGFrame.h"
-#endif
-#ifndef ROOT_TGFileDialog
 #include "TGFileDialog.h"
-#endif
-#ifndef ROOT_TGShutter
 #include "TGShutter.h"
-#endif
-#ifndef ROOT_TGButtonGroup
 #include "TGButtonGroup.h"
-#endif
-#ifndef ROOT_TGCanvas
 #include "TGCanvas.h"
-#endif
-#ifndef ROOT_TGFSContainer
 #include "TGFSContainer.h"
-#endif
-#ifndef ROOT_TGButton
 #include "TGButton.h"
-#endif
-#ifndef ROOT_TGuiBldEditor
 #include "TGuiBldEditor.h"
-#endif
-#ifndef ROOT_TGTextEdit
 #include "TGTextEdit.h"
-#endif
-#ifndef ROOT_TGFSComboBox
 #include "TGFSComboBox.h"
-#endif
-#ifndef ROOT_TGLabel
 #include "TGLabel.h"
-#endif
-#ifndef ROOT_TGView
 #include "TGView.h"
-#endif
-#ifndef ROOT_TGMsgBox
 #include "TGMsgBox.h"
-#endif
-#ifndef ROOT_TRootGuiBuilder
 #include "TRootGuiBuilder.h"
-#endif
-#ifndef ROOT_TGTab
 #include "TGTab.h"
-#endif
-#ifndef ROOT_TGListView
 #include "TGListView.h"
-#endif
-#ifndef ROOT_TGSplitter
 #include "TGSplitter.h"
-#endif
-#ifndef ROOT_TGStatusBar
 #include "TGStatusBar.h"
-#endif
-#ifndef ROOT_TGListTree
 #include "TGListTree.h"
-#endif
-#ifndef ROOT_TGToolTip
 #include "TGToolTip.h"
-#endif
-#ifndef ROOT_TGToolBar
 #include "TGToolBar.h"
-#endif
-#ifndef ROOT_TRootEmbeddedCanvas
 #include "TRootEmbeddedCanvas.h"
-#endif
-#ifndef ROOT_TCanvas
 #include "TCanvas.h"
-#endif
-#ifndef ROOT_TGuiBldDragManager
 #include "TGuiBldDragManager.h"
-#endif
-/* #ifndef ROOT_TGLayoutHints
-#include "TGLayoutHints.h"
-#endif */
 
 
 // Forward declarations to prevent ROOT-Cint from getting confused
@@ -166,7 +86,7 @@ class QwEventDisplay: public TGMainFrame {
   TRootEmbeddedCanvas *c1; // Region 1 canvas with hit paths
   TRootEmbeddedCanvas *c2; // Region 2 canvas with hit paths
   TRootEmbeddedCanvas *c3; // Region 3 canvas with hit paths
-  Int_t entry;
+  Int_t fEntry;
   TFile *f;
   TTree *t1;
   // need to find out how many wire planes will be in Region 1 (R1) for the Region 1 wire array
@@ -195,12 +115,9 @@ class QwEventDisplay: public TGMainFrame {
   TPolyMarker *points;
   TPolyMarker *R3points;
 
-  TLine* R2lx;
-  TLine* R2lu;
-  TLine* R2lv;
-  TLine* R2lxPrime;
-  TLine* R2luPrime;
-  TLine* R2lvPrime;
+  std::vector<TLine> R2lx;
+  std::vector<TLine> R2lu;
+  std::vector<TLine> R2lv;
   // Region 2 fit lines
   TLine* R2xzfit;
   TLine* R2yzfit;
@@ -219,8 +136,11 @@ class QwEventDisplay: public TGMainFrame {
   TLine* R3lvPrime;
 
   // Event buffer (excluded from dictionary by the comment tag)
-  QwTreeEventBuffer *fEventBuffer;		//!
-  QwSubsystemArrayTracking *fSubsystemArray;	//!
+  QwTreeEventBuffer* fEventBuffer;		//!
+  QwSubsystemArrayTracking* fSubsystemArray;	//!
+
+  // Hit list
+  QwHitContainer* fHitList;			//!
 
  public:
 
@@ -236,7 +156,7 @@ class QwEventDisplay: public TGMainFrame {
   void DoRemoveAll();
 
 
-  ClassDef(QwEventDisplay,1)
+  ClassDef(QwEventDisplay,1);
 
 }; // end object QwEventDisplay
 
