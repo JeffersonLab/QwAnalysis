@@ -4,7 +4,7 @@
 
 ClassImp(QwMapFile)
 
-const Int_t QwMapFile::kMapFileSize = 1000000000;
+const size_t QwMapFile::kMapFileSize = 1000000000;
 
 QwMapFile::QwMapFile() {
 
@@ -23,7 +23,7 @@ QwMapFile::QwMapFile(const TString name, const TString  title, Option_t *option)
   theMemMapFile += "/dummy.map";
 
   TMapFile *mapfile = TMapFile::Create(theMemMapFile,"RECREATE",kMapFileSize,"Dummy File");
-  Int_t add,iadd, oadd = Int_t(mapfile->GetBaseAddr());
+  ptrdiff_t add,iadd, oadd = size_t(mapfile->GetBaseAddr());
   std::cout<<"QwMapFile:: dummy file is created\n";
   mapfile->Print();
   mapfile->Close(); // Don't delete afterwards
