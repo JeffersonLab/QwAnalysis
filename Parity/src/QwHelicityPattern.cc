@@ -291,10 +291,6 @@ void  QwHelicityPattern::CalculateAsymmetry(QwBlinder *blinder)
       fDifference.Difference(fPositiveHelicitySum,fNegativeHelicitySum);
       fAsymmetry.Ratio(fDifference,fYield);
 
-      // Accumulate the burst and running sums
-      if (fEnableBurstSum) AccumulateBurstSum();
-      if (fEnableRunningSum) AccumulateRunningSum();
-
       /*
         With additional two asymmetry calculations
 
@@ -324,15 +320,22 @@ void  QwHelicityPattern::CalculateAsymmetry(QwBlinder *blinder)
         fDifference.Difference(fPositiveHelicitySum,fNegativeHelicitySum);
         fAsymmetry2.Ratio(fDifference,fYield);
 
+        // Blind the alternate asymmetries
         if (blinder) {
           fAsymmetry1.BlindMe(blinder);
           fAsymmetry2.BlindMe(blinder);
         }
       }
 
+      // Blind the asymmetry
       if (blinder) {
         fAsymmetry.BlindMe(blinder);
       }
+
+      // Accumulate the burst and running sums
+      if (fEnableBurstSum) AccumulateBurstSum();
+      if (fEnableRunningSum) AccumulateRunningSum();
+
 
       if (localdebug) std::cout<<" pattern number ="<<fQuartetNumber<<"\n";
     }
