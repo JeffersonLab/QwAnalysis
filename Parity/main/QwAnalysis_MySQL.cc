@@ -123,6 +123,8 @@ main(Int_t argc, Char_t* argv[])
 
 
   QwDatabase qw_test_DB(gQwOptions);
+//   QwDatabase *qw_test_DB;
+  
 
   UInt_t run_id      = 0;
   UInt_t runlet_id      = 0;
@@ -355,7 +357,8 @@ main(Int_t argc, Char_t* argv[])
       QwDetectors.GetEventcutErrorCounters();//print the event cut error summery for each sub system
       std::cout<<"QwAnalysis_Beamline Total events falied "<<falied_events_counts<< std::endl;
 
-
+   //    qw_test_DB = new QwDatabase(gQwOptions);
+      qw_test_DB.SetAccessLevel("rw");
       if (qw_test_DB.AllowsReadAccess()){
 	QwMessage << "GetMonitorID(qwk_batext2) = " << qw_test_DB.GetMonitorID("qwk_batext2") << QwLog::endl;
 	QwMessage << "GetMonitorID(phasemonitor) = " << qw_test_DB.GetMonitorID("phasemonitor") << QwLog::endl;
@@ -369,7 +372,7 @@ main(Int_t argc, Char_t* argv[])
 	
 	// GetRunID(), GetRunletID(), and GetAnalysisID have their own Connect() and Disconnect() functions.
 	run_id      = qw_test_DB.GetRunID(QwEvt);
-  runlet_id   = qw_test_DB.GetRunletID(QwEvt);
+	runlet_id   = qw_test_DB.GetRunletID(QwEvt);
 	analysis_id = qw_test_DB.GetAnalysisID(QwEvt);
 
 	QwMessage << "QwAnalysis_MySQL.cc::"
@@ -381,12 +384,12 @@ main(Int_t argc, Char_t* argv[])
       }
 
       // Each sussystem has its own Connect() and Disconnect() functions.
-      if (qw_test_DB.AllowsWriteAccess()){
+	if (qw_test_DB.AllowsWriteAccess()){
 	QwHelPat.FillDB(&qw_test_DB);
-      }
-      epics_data.FillDB(&qw_test_DB);
+	}
+	epics_data.FillDB(&qw_test_DB);
       //epics_data.FillSlowControlsData(qw_test_DB);
-
+// 	delete qw_test_DB; qw_test_DB = NULL;
       PrintInfo(timer);
     } //end of run loop
 
