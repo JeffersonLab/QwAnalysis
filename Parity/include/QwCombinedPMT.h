@@ -86,8 +86,8 @@ class QwCombinedPMT : public VQwDataElement{
 
 
   void Copy(VQwDataElement *source);
-
-  QwDBInterface  GetDBEntry(TString subname=""); //
+  
+  std::vector<QwDBInterface>  GetDBEntry() {return fSumADC.GetDBEntry();};
 
  protected:
 

@@ -348,10 +348,6 @@ main(Int_t argc, Char_t* argv[])
 	  printf("QwHelPat.DeleteHistograms\n\n");  QwHelPat.DeleteHistograms();
 	}
 
-      QwEvt.CloseDataFile();
-      QwEvt.ReportRunSummary();
-
-
       QwDetectors.GetEventcutErrorCounters();//print the event cut error summery for each sub system
       std::cout<<"QwAnalysis_Beamline Total events falied "<<falied_events_counts<< std::endl;
 
@@ -384,7 +380,9 @@ main(Int_t argc, Char_t* argv[])
 	QwHelPat.FillDB(&qw_test_DB);
 	epics_data.FillDB(&qw_test_DB);
       }
-      
+
+      QwEvt.CloseDataFile();
+      QwEvt.ReportRunSummary();
       //epics_data.FillSlowControlsData(qw_test_DB);
       PrintInfo(timer);
     } //end of run loop
