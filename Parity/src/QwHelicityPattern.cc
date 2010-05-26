@@ -283,8 +283,7 @@ void  QwHelicityPattern::CalculateAsymmetry(QwBlinder *blinder)
       fDiff.Difference(fPositiveHelicitySum,fNegativeHelicitySum);
       fAsymmetry.Ratio(fDiff,fYield);
 
-      fRunningSumYield.AccumulateRunningSum(fYield);
-      fRunningSumAsymmetry.AccumulateRunningSum(fAsymmetry);
+
 
       /*
         With additional two asymmetry calculations
@@ -326,6 +325,9 @@ void  QwHelicityPattern::CalculateAsymmetry(QwBlinder *blinder)
       if (blinder) {
         fAsymmetry.BlindMe(blinder);
       }
+
+      fRunningSumYield.AccumulateRunningSum(fYield);
+      fRunningSumAsymmetry.AccumulateRunningSum(fAsymmetry);
 
       if (localdebug) std::cout<<" pattern number ="<<fQuartetNumber<<"\n";
     }
@@ -463,12 +465,14 @@ void QwHelicityPattern::FillDB(QwDatabase *db)
   //  if (IsGood) {
  //    fYield.FillDB(db, "yield");
 //     fAsymmetry.FillDB(db, "asymmetry");
-  fRunningSumYield.FillDB(db, "yield");
-  fRunningSumAsymmetry.FillDB(db, "asymmetry");
-
-  if (bAlternateAsym) {
-    fAsymmetry1.FillDB(db, "asymmetry1");
-    fAsymmetry2.FillDB(db, "asymmetry2");
+  if (IsGood) {
+    fRunningSumYield.FillDB(db, "yield");
+    fRunningSumAsymmetry.FillDB(db, "asymmetry");
+    
+    if (bAlternateAsym) {
+      fAsymmetry1.FillDB(db, "asymmetry1");
+      fAsymmetry2.FillDB(db, "asymmetry2");
+    }
   }
   return;
   

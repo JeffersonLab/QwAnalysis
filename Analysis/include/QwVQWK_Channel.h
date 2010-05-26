@@ -158,6 +158,7 @@ class QwVQWK_Channel: public VQwDataElement {
   void  FillTreeVector(std::vector<Double_t> &values);
 
   Double_t GetBlockValue(size_t blocknum){ return fBlock[blocknum]; };
+  Double_t GetBlockErrorValue(size_t blocknum) { return fBlockError[blocknum]; };
   Double_t GetHardwareSum()        { return fHardwareBlockSum; };
   Double_t GetHardwareSumM2()      { return fHardwareBlockSumM2; };
   Double_t GetHardwareSumError()   { return fHardwareBlockSumError; };

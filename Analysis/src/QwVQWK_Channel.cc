@@ -941,15 +941,19 @@ void QwVQWK_Channel::CalculateRunningAverage()
 
 void QwVQWK_Channel::PrintRunningAverage()
 {
-  QwMessage << std::setprecision(5)
-	    << std::setw(15) << std::left << this->GetElementName() << " "
-	    << std::setw(14) << std::left << this->GetHardwareSum() << " "
-	    << std::setw(14) << std::left << this->GetHardwareSumError() << " "
-	    << std::setw(14) << std::left << this->GetGoodEventCount() << " "
-	    << std::setw(14) << std::left << this->GetBlockValue(0) << " "
-	    << std::setw(14) << std::left << this->GetBlockValue(1) << " "
-	    << std::setw(14) << std::left << this->GetBlockValue(2) << " "
-	    << std::setw(14) << std::left << this->GetBlockValue(3) << " "
+  QwMessage << std::setprecision(4)
+	    << std::setw(18) << std::left << this->GetElementName()      << "["
+	    << std::setw(15) << std::left << this->GetHardwareSum()      << ","
+	    << std::setw(15) << std::left << this->GetHardwareSumError() << "] "
+ 	    << std::setw(10) << std::left << this->GetGoodEventCount()   << "["
+ 	    << std::setw(15) << std::left << this->GetBlockValue(0)      << ","
+ 	    << std::setw(15) << std::left << this->GetBlockErrorValue(0) << "]["
+ 	    << std::setw(15) << std::left << this->GetBlockValue(1)      << ","
+ 	    << std::setw(15) << std::left << this->GetBlockErrorValue(1) << "]["
+ 	    << std::setw(15) << std::left << this->GetBlockValue(2)      << ","
+ 	    << std::setw(15) << std::left << this->GetBlockErrorValue(2) << "]["
+ 	    << std::setw(15) << std::left << this->GetBlockValue(3)      << ","
+ 	    << std::setw(15) << std::left << this->GetBlockErrorValue(3) << "]"
 	    << QwLog::endl;
 }
 
@@ -1060,12 +1064,21 @@ void QwVQWK_Channel::Copy(VQwDataElement *source)
      if(typeid(*source)==typeid(*this))
        {
 	 QwVQWK_Channel* input=((QwVQWK_Channel*)source);
-	 this->fElementName       = input->fElementName;
-	 this->fPedestal          = input->GetPedestal();
-	 this->fCalibrationFactor = input->GetCalibrationFactor();
-	 this->fDataToSave        = kDerived;
-	 this->fDeviceErrorCode   = input->fDeviceErrorCode;
-	 this->fGoodEventCount     = input->fGoodEventCount;
+	 this->fElementName           = input->fElementName;
+	 this->fPedestal              = input->GetPedestal();
+	 this->fCalibrationFactor     = input->GetCalibrationFactor();
+	 this->fDataToSave            = kDerived;
+	 this->fDeviceErrorCode       = input->fDeviceErrorCode;
+	 this->fGoodEventCount        = input->fGoodEventCount;
+
+	 this->fHardwareBlockSum      = input->fHardwareBlockSum;
+	 this->fHardwareBlockSumError = input->fHardwareBlockSumError;
+
+	 for(UShort_t i=0; i<4; i++ ) {
+	   this->fBlock[i] = input->fBlock[i];
+	   this->fBlockError[i] = input->fBlockError[i];
+	 }
+
        }
      else
        {
