@@ -22,9 +22,9 @@ class QwBlinder;
 class QwSubsystemArrayParity:  public QwSubsystemArray {
 
  public:
-  QwSubsystemArrayParity() {};
-  virtual ~QwSubsystemArrayParity(){
-  };
+  QwSubsystemArrayParity(): QwSubsystemArray() { };
+  QwSubsystemArrayParity(const char* filename): QwSubsystemArray(filename) { };
+  virtual ~QwSubsystemArrayParity() { };
 
   VQwSubsystemParity* GetSubsystem(const TString name);
   void ProcessOptions(QwOptions &options);//Handle command line options

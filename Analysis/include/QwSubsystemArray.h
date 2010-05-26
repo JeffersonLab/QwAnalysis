@@ -38,6 +38,8 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
  public:
   /// \brief Default constructor
   QwSubsystemArray() {};
+  /// \brief Constructor with filename
+  QwSubsystemArray(const char* filename);
   /// \brief Virtual destructor
   virtual ~QwSubsystemArray() {};
 

@@ -59,7 +59,7 @@ Int_t QwGasElectronMultiplier::LoadInputParameters(TString mapfile)
   return 0;
 };
 
-Int_t QwGasElectronMultiplier::LoadQweakGeometry(TString mapfile)
+Int_t QwGasElectronMultiplier::LoadGeometryDefinition(TString mapfile)
 {
 
   std::cout<<"Region 1 Qweak Geometry Loading..... "<<std::endl;

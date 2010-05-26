@@ -71,7 +71,7 @@ class QwDriftChamberVDC: public QwDriftChamber {
  //  grandHitContainer.Append(fWireHits);
  //};
 
-  Int_t LoadQweakGeometry(TString mapfile );
+  Int_t LoadGeometryDefinition(TString mapfile );
 
   Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector){
     double angle=45,d=0;

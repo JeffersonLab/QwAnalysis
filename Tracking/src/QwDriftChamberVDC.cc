@@ -38,7 +38,7 @@ QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ):
     OK=0;
 };
 
-Int_t QwDriftChamberVDC::LoadQweakGeometry ( TString mapfile )
+Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 {
   std::cout<<"Region 3 Qweak Geometry Loading..... "<<std::endl;
 

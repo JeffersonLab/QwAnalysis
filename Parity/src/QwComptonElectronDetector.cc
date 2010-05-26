@@ -24,6 +24,11 @@
 #include "QwHistogramHelper.h"
 
 
+// Register this subsystem with the factory
+QwSubsystemFactory<QwComptonElectronDetector>
+  theComptonElectronDetectorFactory("QwComptonElectronDetector");
+
+
 //*****************************************************************
 /**
  * Load the channel map
@@ -38,7 +43,7 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
   Int_t currentrocread=0;
   Int_t currentbankread=0;
   Int_t currentsubbankindex=-1;
-  
+
 
   QwParameterFile mapstr(mapfile.Data());  // Open the file
   while (mapstr.ReadNextLine()) {
@@ -82,13 +87,13 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
 	    fStripsRaw.push_back(std::vector <Double_t>());
 	    if (stripnum >= (Int_t) fStripsRaw[plane-1].size())
              fStripsRaw[plane-1].push_back(0.0);
-             // plane goes from 1 - 4 instead of 0 - 3, 
+             // plane goes from 1 - 4 instead of 0 - 3,
 
 	  if (plane >= (Int_t) fStrips.size())
 	   fStrips.push_back(std::vector <Double_t>());
            if (stripnum >= (Int_t) fStrips[plane-1].size())
             fStrips[plane-1].push_back(0.0);
-             // plane goes from 1 - 4 instead of 0 - 3, 
+             // plane goes from 1 - 4 instead of 0 - 3,
         }
 	else if (dettype == "esingle") {
           fdettype = 0;
@@ -102,13 +107,13 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
 	    fStripsRawEv.push_back(std::vector <Double_t>());
 	    if (stripnum >= (Int_t) fStripsRawEv[plane-1].size())
              fStripsRawEv[plane-1].push_back(0.0);
-             // plane goes from 1 - 4 instead of 0 - 3, 
+             // plane goes from 1 - 4 instead of 0 - 3,
 
 	  if (plane >= (Int_t) fStripsEv.size())
 	   fStripsEv.push_back(std::vector <Double_t>());
            if (stripnum >= (Int_t) fStripsEv[plane-1].size())
             fStripsEv[plane-1].push_back(0.0);
-             // plane goes from 1 - 4 instead of 0 - 3,    
+             // plane goes from 1 - 4 instead of 0 - 3,
 	} // end of switch (dettype)
       } // end of switch (modtype)
     } // end of if for token line
@@ -143,7 +148,7 @@ Int_t QwComptonElectronDetector::LoadInputParameters(TString pedestalfile)
       varcal = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
     }
 
-    
+
   } // end of loop reading all lines of the pedestal file
 
   return 0;
@@ -179,10 +184,10 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
   Int_t index = GetSubbankIndex(roc_id, bank_id);
   //    QwOut << "bankindex for"<<bank_id << "is =" << index <<QwLog::endl;
 
-  for (Int_t jj = 0; jj < NModules; jj++) { 
+  for (Int_t jj = 0; jj < NModules; jj++) {
    if (fSubbankIndex[0][jj]==index) {
     if (num_words > 0) {
-    
+
     //  We want to process this ROC.  Begin looping through the data.
      for (Int_t i = 0; i < NPlanes; i++) { // loop all words in bank
        for (Int_t j = 0; j < StripsPerModule; j++) {
@@ -201,12 +206,12 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
               << " leftover words after decoding everything we recognize."
               << QwLog::endl;
     }
-   
-   }  
+
+   }
   }
- 
-  for (Int_t k = 0; k < NModules; k++) { 
-   if (fSubbankIndex[1][k]==index) {   
+
+  for (Int_t k = 0; k < NModules; k++) {
+   if (fSubbankIndex[1][k]==index) {
 // sub-bank 0x0204, accum mode data from strips 0-31 of planes 1 thru 4
 
     if (num_words > 0) {
@@ -228,7 +233,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
               << QwLog::endl;
     }
    }
-  }  
+  }
   return words_read;
 };
 
@@ -248,7 +253,7 @@ Bool_t QwComptonElectronDetector::SingleEventCuts()
  */
 //*****************************************************************
 void  QwComptonElectronDetector::ProcessEvent()
-{   
+{
   fCalibrationFactor = 1.0;
   fOffset = 0.0;
 
@@ -382,23 +387,23 @@ void  QwComptonElectronDetector::Difference(VQwSubsystem  *value1, VQwSubsystem 
 
 void QwComptonElectronDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
 {
-  
+
   //  if (Compare(numer) && Compare(denom)) {
   //  QwComptonElectronDetector* innumer = dynamic_cast<QwComptonElectronDetector*> (numer);
   //  QwComptonElectronDetector* indenom = dynamic_cast<QwComptonElectronDetector*> (denom);
-    
+
   // for (Int_t i = 0; i < NPlanes; i++){
   //  for (Int_t j = 0; j < StripsPerPlane; j++){
       //      this->fStripsRaw.Ratio(innumer->fStripsRaw[i][j], indenom->fStripsRaw[i][j]);
   //  }
   // }
   // }
-  
-  return; 
+
+  return;
 };
 
 void QwComptonElectronDetector::Scale(Double_t factor)
-{ 
+{
 
    for (Int_t i = 0; i < NPlanes; i++){
     for (Int_t j = 0; j < StripsPerPlane; j++){
@@ -470,7 +475,7 @@ void  QwComptonElectronDetector::FillHistograms()
   Int_t i, j, k;
 
   for (i=0; i<NPlanes; i++) {
-    for (j=0; j<StripsPerPlane; j++) {          
+    for (j=0; j<StripsPerPlane; j++) {
      if (fHistograms1D[4*i] != NULL)
       for (k=0; k<fStripsRaw[i][j]; k++)
        fHistograms1D[4*i]->Fill(j);
@@ -534,7 +539,7 @@ void  QwComptonElectronDetector::FillTree()
   fTree_fNEvents = GetNumberOfEvents();
   for (Int_t i=0; i< NPlanes; i++){
    for (Int_t j=0; j<StripsPerPlane; j++){
-     if (fStripsEv[i][j] != 0) 
+     if (fStripsEv[i][j] != 0)
        fComptonElectronVector[i] += 1;
    }
   }
@@ -589,4 +594,4 @@ VQwSubsystem*  QwComptonElectronDetector::Copy()
 }
 
 
-      
+

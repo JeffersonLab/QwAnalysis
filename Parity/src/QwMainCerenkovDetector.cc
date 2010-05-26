@@ -12,13 +12,17 @@
 #include "QwSubsystemArray.h"
 #include "QwLog.h"
 
+// Register this subsystem with the factory
+QwSubsystemFactory<QwMainCerenkovDetector>
+  theMainCerenkovDetectorFactory("QwMainCerenkovDetector");
+
 void QwMainCerenkovDetector::ProcessOptions(QwOptions &options){
       //Handle command line options
 };
 
 Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 {
-  Bool_t ldebug=kTRUE;
+  Bool_t ldebug=kFALSE;
 
   TString varname, varvalue;
   TString modtype, dettype, namech, nameofcombinedchan;

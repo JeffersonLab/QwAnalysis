@@ -9,6 +9,9 @@
 #include "QwHistogramHelper.h"
 #include <stdexcept>
 
+// Register this subsystem with the factory
+QwSubsystemFactory<QwLumi> theLumiFactory("QwLumi");
+
 //*****************************************************************
 void QwLumi::ProcessOptions(QwOptions &options){
       //Handle command line options
