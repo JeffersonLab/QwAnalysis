@@ -264,18 +264,18 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetect
 
 
 void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data ) {
-    //Int_t tdcindex = GetTDCIndex(bank_index,slot_num);
-    Int_t tdcindex=1;
+    Int_t tdcindex = GetTDCIndex(bank_index,slot_num);
+    //Int_t tdcindex=1;
     if ( tdcindex != -1 ) {
         Int_t hitCount = 1;
         EQwDetectorPackage package  = kPackageUp;
-        //Int_t plane    = fTDCPtrs.at(tdcindex).at(chan).fPlane;
-        //Int_t wire     = fTDCPtrs.at(tdcindex).at(chan).fElement;
+        Int_t plane    = fTDCPtrs.at(tdcindex).at(chan).fPlane;
+        Int_t wire     = fTDCPtrs.at(tdcindex).at(chan).fElement;
 
-        Int_t plane=-2;
-        if ( slot_num==3 )
-            plane=fDelayLinePtrs.at ( slot_num ).at ( chan ).fBackPlane;
-        Int_t wire=0;
+      //  Int_t plane=-2;
+      //  if ( slot_num==3 )
+      //      plane=fDelayLinePtrs.at ( slot_num ).at ( chan ).fBackPlane;
+      //  Int_t wire=0;
         EQwDirectionID direction=kDirectionNull;
 
 
@@ -284,14 +284,14 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
             //  Do nothing.
             //  } else if (plane == (Int_t) kReferenceChannelPlaneNumber){
             //fReferenceData.at(wire).push_back(data);
-        } else if ( slot_num==4 ) {
+//        } else if ( slot_num==4 ) {
+	} else if (plane == (Int_t) kReferenceChannelPlaneNumber){
             fReferenceData.at ( wire ).push_back ( data );
         } else {
+	     plane=fDelayLinePtrs.at ( slot_num ).at ( chan ).fBackPlane;
             //std::cout<<"At QwDriftChamberVDC::FillRawTDCWord_1"<<endl;
             //direction =fDirectionData.at(package-1).at(plane-1); //wire direction is accessed from the vector and updates the QwHit with it. Rakitha(10/23/2008)
 
-            // hitCount=std::count_if(fTDCHits.begin(),fTDCHits.end(),boost::bind(&QwHit::WireMatches,_1,2,boost::ref(package),boost::ref(plane),boost::ref(wire)) );
-            //std::cout<<"At QwDriftChamberVDC::FillRawTDCWord_2"<<endl;
             hitCount=std::count_if(fTDCHits.begin(),fTDCHits.end(),boost::bind(&QwHit::WireMatches,_1,3,boost::ref(package),boost::ref(plane),boost::ref(wire)) );
             fTDCHits.push_back ( QwHit ( bank_index, slot_num, chan, hitCount, kRegionID3, package, plane,direction, wire, data ) );//in order-> bank index, slot num, chan, hitcount, region=3, package, plane,,direction, wire,wire hit time
 
@@ -311,14 +311,12 @@ Int_t QwDriftChamberVDC::BuildWireDataStructure ( const UInt_t chan, const UInt_
     if ( plane == kReferenceChannelPlaneNumber ) {
         LinkReferenceChannel ( chan, plane, wire );
     } else {
-        //std::cout << "fCurrent: " << fTDCPtrs.size() << std::endl;
-        //std::cout << "chan: " << chan << " " << plane << std::endl;
+
         fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPackage = package;
         fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPlane   = plane;
         fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fElement = wire;
         if ( plane>=fWiresPerPlane.size() ) {
             fWiresPerPlane.resize ( plane+1 );
-            //fWiresPerPlane.resize(plane);
         }
         //if (wire>=fWiresPerPlane.at(plane)){
         //    fWiresPerPlane.at(plane) =  wire+1;
