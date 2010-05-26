@@ -560,6 +560,20 @@ void  QwVQWK_Channel::FillHistograms()
       }
 };
 
+void  QwVQWK_Channel::DeleteHistograms()
+{
+  //std::cout<<"Device Name "<<GetElementName()<<" fHistograms.size() "<<fHistograms.size()<<std::endl;
+  if ((fDataToSave==kRaw) || (fDataToSave==kDerived)){
+  for (UInt_t i=0; i<fHistograms.size(); i++){
+    if (fHistograms[i] != NULL)
+      fHistograms[i]->Delete();
+    fHistograms[i] = NULL;
+  }
+  }
+  fHistograms.clear();
+  
+}
+
 void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (IsNameEmpty()){
@@ -693,7 +707,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator+= (const QwVQWK_Channel &value)
     this->fSoftwareBlockSum_raw = value.fSoftwareBlockSum_raw;
     this->fHardwareBlockSum += value.fHardwareBlockSum;
     this->fHardwareBlockSumM2 = 0.0;
-    this->fNumberOfSamples  = value.fNumberOfSamples;
+    this->fNumberOfSamples  += value.fNumberOfSamples;
     this->fSequenceNumber   = 0;
     this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
   }
@@ -710,10 +724,10 @@ QwVQWK_Channel& QwVQWK_Channel::operator-= (const QwVQWK_Channel &value)
       this->fBlockM2[i] = 0.0;
     }
     this->fHardwareBlockSum_raw = 0;
-    this->fSoftwareBlockSum_raw = 0;
+    this->fSoftwareBlockSum_raw = 0; 
     this->fHardwareBlockSum -= value.fHardwareBlockSum;
     this->fHardwareBlockSumM2 = 0.0;
-    this->fNumberOfSamples = value.fNumberOfSamples;
+    this->fNumberOfSamples += value.fNumberOfSamples;
     this->fSequenceNumber   = 0;
     this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
 }
