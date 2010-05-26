@@ -122,28 +122,30 @@ QwDatabase::~QwDatabase()
  *
  * It is called the first time Connect() is called.
  */
-bool QwDatabase::ValidateConnection() {
-  Bool_t status;
+Bool_t QwDatabase::ValidateConnection() 
+{
+  // Bool_t status;
   //
   // Retrieve options if they haven't already been filled.
   //
-  if (fDatabase.empty()){
-    status = ProcessOptions(gQwOptions);
-    if (!status) return status;
-  }
+  //   if (fDatabase.empty()){
+  //     status = ProcessOptions(gQwOptions);
+  //     if (!status) return status;
+  //   }
+  
   //  Check values.
   if (fAccessLevel!=kQwDatabaseOff){
     if (fDatabase.empty()){
       QwError << "QwDatabase::ValidateConnection() : No database supplied.  Unable to connect." << QwLog::endl;
-      return false;
+      fValidConnection=false;    
     }
     if (fDBUsername.empty()){
       QwError << "QwDatabase::ValidateConnection() : No database username supplied.  Unable to connect." << QwLog::endl;
-      return false;
+      fValidConnection=false;    
     }
     if (fDBPassword.empty()){
       QwError << "QwDatabase::ValidateConnection() : No database password supplied.  Unable to connect." << QwLog::endl;
-      return false;
+      fValidConnection=false;
     }
     if (fDBServer.empty()){
       QwMessage << "QwDatabase::ValidateConnection() : No database server supplied.  Attempting localhost." << QwLog::endl;
@@ -184,6 +186,7 @@ bool QwDatabase::ValidateConnection() {
     }
     disconnect();
   }
+
   // Check to make sure database and QwDatabase schema versions match up.
   if (fVersionMajor != kValidVersionMajor ||
       fVersionMinor != kValidVersionMinor ||
@@ -252,12 +255,13 @@ void QwDatabase::DefineOptions(QwOptions& options)
  * QwDatabase from the QwOptions object.
  * @param options Options object
  */
-Bool_t QwDatabase::ProcessOptions(QwOptions &options)
+void QwDatabase::ProcessOptions(QwOptions &options)
 {
   if (options.HasValue("QwDatabase.accesslevel")) {
     string access = options.GetValue<string>("QwDatabase.accesslevel");
     SetAccessLevel(access);
-  } else {
+  } 
+  else {
     QwWarning << "QwDatabase::ProcessOptions : No access level specified; database access is OFF" << QwLog::endl;
     fAccessLevel = kQwDatabaseOff;
   }
@@ -276,6 +280,8 @@ Bool_t QwDatabase::ProcessOptions(QwOptions &options)
   if (options.HasValue("QwDatabase.dbserver")) {
     fDBServer = options.GetValue<string>("QwDatabase.dbserver");
   }
+  
+  return;
 };
 
 void QwDatabase::SetAccessLevel(string accesslevel)
@@ -284,13 +290,14 @@ void QwDatabase::SetAccessLevel(string accesslevel)
   level.ToLower();
   if (level=="off")     fAccessLevel = kQwDatabaseOff;
   else if (level=="ro") fAccessLevel = kQwDatabaseReadOnly;
-  else if (level=="rw") fAccessLevel = kQwDatabaseReadOnly;
+  else if (level=="rw") fAccessLevel = kQwDatabaseReadWrite;
   else{
     QwWarning << "QwDatabase::SetAccessLevel  : Unrecognized access level \""
 	      << accesslevel << "\"; setting database access OFF" 
 	      << QwLog::endl;
     fAccessLevel = kQwDatabaseOff;
   }
+  return;
 };
 
 

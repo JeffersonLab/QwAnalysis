@@ -35,8 +35,8 @@ main(Int_t argc, Char_t* argv[])
 
   Bool_t bDebug    = kFALSE;
   Bool_t bHelicity = kTRUE;
-  Bool_t bTree     = kTRUE;
-  Bool_t bHisto    = kTRUE;
+  Bool_t bTree     = kFALSE;
+  Bool_t bHisto    = kFALSE;
 
   //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
   if ( getenv("DISPLAY")==NULL || getenv("JOB_ID")!=NULL ) kInQwBatchMode = kTRUE;
@@ -123,11 +123,9 @@ main(Int_t argc, Char_t* argv[])
 
 
   QwDatabase qw_test_DB(gQwOptions);
-//   QwDatabase *qw_test_DB;
   
-
   UInt_t run_id      = 0;
-  UInt_t runlet_id      = 0;
+  UInt_t runlet_id   = 0;
   UInt_t analysis_id = 0;
 
  // Loop over all runs
@@ -357,8 +355,6 @@ main(Int_t argc, Char_t* argv[])
       QwDetectors.GetEventcutErrorCounters();//print the event cut error summery for each sub system
       std::cout<<"QwAnalysis_Beamline Total events falied "<<falied_events_counts<< std::endl;
 
-   //    qw_test_DB = new QwDatabase(gQwOptions);
-      qw_test_DB.SetAccessLevel("rw");
       if (qw_test_DB.AllowsReadAccess()){
 	QwMessage << "GetMonitorID(qwk_batext2) = " << qw_test_DB.GetMonitorID("qwk_batext2") << QwLog::endl;
 	QwMessage << "GetMonitorID(phasemonitor) = " << qw_test_DB.GetMonitorID("phasemonitor") << QwLog::endl;
@@ -374,22 +370,22 @@ main(Int_t argc, Char_t* argv[])
 	run_id      = qw_test_DB.GetRunID(QwEvt);
 	runlet_id   = qw_test_DB.GetRunletID(QwEvt);
 	analysis_id = qw_test_DB.GetAnalysisID(QwEvt);
-
+	
 	QwMessage << "QwAnalysis_MySQL.cc::"
 		  << " Run Number "  << QwColor(Qw::kBoldMagenta) << QwEvt.GetRunNumber() << QwColor(Qw::kNormal)
 		  << " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id<< QwColor(Qw::kNormal)
-		  << " Runlet ID "      << QwColor(Qw::kBoldMagenta) << runlet_id<< QwColor(Qw::kNormal)
+		  << " Runlet ID "   << QwColor(Qw::kBoldMagenta) << runlet_id<< QwColor(Qw::kNormal)
 		  << " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id
 		  << QwLog::endl;
       }
-
+      
       // Each sussystem has its own Connect() and Disconnect() functions.
-	if (qw_test_DB.AllowsWriteAccess()){
+      if (qw_test_DB.AllowsWriteAccess()){
 	QwHelPat.FillDB(&qw_test_DB);
-	}
 	epics_data.FillDB(&qw_test_DB);
+      }
+      
       //epics_data.FillSlowControlsData(qw_test_DB);
-// 	delete qw_test_DB; qw_test_DB = NULL;
       PrintInfo(timer);
     } //end of run loop
 

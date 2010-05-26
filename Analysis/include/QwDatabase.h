@@ -60,7 +60,7 @@ class QwDatabase: private mysqlpp::Connection {
     void         Disconnect() {disconnect();}; //<! Close an open database connection
     const string GetServerVersion() {return server_version();}; //<! Get database server version
     static void  DefineOptions(QwOptions& options); //!< Defines available class options for QwOptions
-    Bool_t ProcessOptions(QwOptions &options); //!< Processes the options contained in the QwOptions object.
+    void ProcessOptions(QwOptions &options); //!< Processes the options contained in the QwOptions object.
 
     mysqlpp::Query Query(const char *qstr=0     ) {return query(qstr);} //<! Generate a query to the database.
     mysqlpp::Query Query(const std::string &qstr) {return query(qstr);} //<! Generate a query to the database.
