@@ -25,7 +25,7 @@ void QwHelicityPattern::ProcessOptions(QwOptions &options)
 };
 /*****************************************************************/
 QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
-: fBlinder(TString("No seed string defined!"),kTRUE)
+: fBlinder(TString("No seed string defined!"),QwBlinder::kAdditive)
 {
   bAlternateAsym = kFALSE;
   QwHelicity* input = ((QwHelicity*)event.GetSubsystem("Helicity info"));

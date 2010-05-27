@@ -40,16 +40,16 @@ typedef unsigned long long ULong64_t; // Portable unsigned long integer 8 bytes
  *
  * 1. Asymmetry blinding scheme:
  * \f[
- *   Asym_{blinded} = (Asym_{actual} + fBlindingAsymmetry) * fBlindingFactor
+ *   Asym_{blinded} = (Asym_{actual} + fBlindingOffset) * fBlindingFactor
  * \f]
- * where \f$ fBlindingAsymmetry = F \times sign(\lambda/2) \f$, F is an encrypted factor
+ * where \f$ fBlindingOffset = F \times sign(\lambda/2) \f$, F is an encrypted factor
  * with |F| < 0.06 ppm.
- * This offset fBlindingAsymmetry will be applied on the block and blocksum of the asymmetry.
+ * This offset fBlindingOffset will be applied on the block and blocksum of the asymmetry.
  *
  * 2. Difference blinding scheme:
  * For blinding the helicity correlated differences of the detectors, we'd have to do:
  * \f[
- *   Diff_{blinded} = (Diff_{raw} + Yield_{raw} * fBlindingAsymmetry) * fBlindingFactor)
+ *   Diff_{blinded} = (Diff_{raw} + Yield_{raw} * fBlindingOffset) * fBlindingFactor)
  * \f]
  * where \f$ Asym_{raw} = Diff_{raw} / Yield_{raw} \f$ is the unblinded asymmetry,
  * and \f$ Asym_{blinded} = Diff_{blinded} / Yield_{blinded} \f$ the blinded asymmetry.
@@ -61,34 +61,73 @@ class QwBlinder {
 
   public:
 
-    /// \brief Constructor with default seed string
-    QwBlinder(const TString& seed, const Bool_t enable_blinding = kTRUE);
+    /// Available blinding strategies
+    enum EQwBlindingStrategy {
+      kDisabled,
+      kAdditive,
+      kMultiplicative,
+      kAdditiveMultiplicative
+    };
+
+    /// \brief Constructor with default seed string and without database
+    QwBlinder(const TString& seed, const EQwBlindingStrategy blinding_strategy = kAdditive);
     /// \brief Constructor with database
-    QwBlinder(QwDatabase* sql, UInt_t seed_id, Bool_t enable_blinding = kTRUE);
+    QwBlinder(QwDatabase* sql, const UInt_t seed_id, const EQwBlindingStrategy blinding_strategy = kAdditive);
     /// \brief Default destructor
     virtual ~QwBlinder();
 
     void  WriteFinalValuesToDB();
     void  PrintFinalValues();
+    void FillDB(QwDatabase *db, TString datatype);
 
     /// Asymmetry blinding
     void  BlindValue(Double_t& value) const {
-      if (fBlindingEnabled) value = (value + fBlindingAsymmetry) * fBlindingFactor;
+      switch (fBlindingStrategy) {
+        case kAdditive:
+          value += fBlindingOffset; break;
+        case kMultiplicative:
+          value *= fBlindingFactor; break;
+        case kAdditiveMultiplicative:
+          value = (value + fBlindingOffset) * fBlindingFactor; break;
+        default: break;
+      }
     };
     /// Asymmetry unblinding
-    void  UnBlindValue(Double_t& value, const TString type) const {
-      if (fBlindingEnabled) value = value / fBlindingFactor - fBlindingAsymmetry;
+    void  UnBlindValue(Double_t& value) const {
+      switch (fBlindingStrategy) {
+        case kAdditive:
+          value -= fBlindingOffset; break;
+        case kMultiplicative:
+          value /= fBlindingFactor; break;
+        case kAdditiveMultiplicative:
+          value = value / fBlindingFactor - fBlindingOffset; break;
+        default: break;
+      }
     };
 
     /// Difference blinding
     void  BlindValue(Double_t& value, const Double_t& yield) const {
-      if (fBlindingEnabled)
-        value = (value + fBlindingAsymmetry * yield) * fBlindingFactor;
+      switch (fBlindingStrategy) {
+        case kAdditive:
+          value += yield * fBlindingOffset; break;
+        case kMultiplicative:
+          value *= fBlindingFactor; break;
+        case kAdditiveMultiplicative:
+          value = (value + fBlindingOffset * yield) * fBlindingFactor; break;
+        default: break;
+      }
     };
     /// Difference unblinding
-    void  UnBlindValue(Double_t& value, const Double_t& yield, const TString type) const {
-      if (fBlindingEnabled)
-        value = value / fBlindingFactor - fBlindingAsymmetry * yield;
+    void  UnBlindValue(Double_t& value, const Double_t& yield) const {
+      switch (fBlindingStrategy) {
+        case kAdditive:
+          value -= yield * fBlindingOffset; break;
+        case kMultiplicative:
+          value /= fBlindingFactor; break;
+        case kAdditiveMultiplicative:
+          value = value / fBlindingFactor - yield * fBlindingOffset; break;
+        default: break;
+      }
     };
 
     /// Blind the asymmetry of an array of subsystems
@@ -118,9 +157,9 @@ class QwBlinder {
     const QwBlinder& operator= (const QwBlinder& tb) { return *this; };
 
     //  Variables and functions used in blinding the detector asymmetries
-    Bool_t   fBlindingEnabled;   /// Boolean to enable or disable blinding calculations
-    Double_t fBlindingAsymmetry; /// The term to be added to detector asymmetries
-    Double_t fBlindingFactor;    /// The factor to be mutliplied to detector asymmetries
+    EQwBlindingStrategy fBlindingStrategy; /// Blinding strategy
+    Double_t fBlindingOffset; /// The term to be added to detector asymmetries
+    Double_t fBlindingFactor; /// The factor to be mutliplied to detector asymmetries
 
     static const Double_t kMaximumBlindingAsymmetry; /// Maximum blinding asymmetry (in ppm)
     static const Double_t kMaximumBlindingFactor;    /// Maximum blinding factor (in % from identity)

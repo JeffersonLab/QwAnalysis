@@ -23,9 +23,9 @@ const Double_t QwBlinder::kMaximumBlindingFactor = 0.1; // [fraction]
  * @param seed Explicitly specified seed string
  * @param enable_blinding Flag to enable blinding
  */
-QwBlinder::QwBlinder(const TString& seed, const Bool_t enable_blinding)
-: fBlindingEnabled(enable_blinding),
-  fBlindingAsymmetry(0.0),
+QwBlinder::QwBlinder(const TString& seed, const EQwBlindingStrategy blinding_strategy)
+: fBlindingStrategy(blinding_strategy),
+  fBlindingOffset(0.0),
   fBlindingFactor(1.0),
   fSeedID(0),
   fMaxTests(10)
@@ -45,9 +45,9 @@ QwBlinder::QwBlinder(const TString& seed, const Bool_t enable_blinding)
  * @param seed_id ID of the seed table
  * @param enable_blinding Flag to enable blinding
  */
-QwBlinder::QwBlinder(QwDatabase* sql, UInt_t seed_id, Bool_t enable_blinding)
-: fBlindingEnabled(enable_blinding),
-  fBlindingAsymmetry(0.0),
+QwBlinder::QwBlinder(QwDatabase* sql, const UInt_t seed_id, const EQwBlindingStrategy blinding_strategy)
+: fBlindingStrategy(blinding_strategy),
+  fBlindingOffset(0.0),
   fBlindingFactor(1.0),
   fSeedID(seed_id),
   fMaxTests(10)
@@ -163,7 +163,7 @@ Int_t QwBlinder::ReadSeed()
  */
 void QwBlinder::InitBlinders()
 {
-  if (fBlindingEnabled) {
+  if (fBlindingStrategy != kDisabled) {
 
       Int_t finalseed = UseMD5(fSeed);
 
@@ -182,18 +182,18 @@ void QwBlinder::InitBlinders()
       /// is squared to get a number between +/- 0.06 ppm.
       static Double_t maximum_asymmetry_sqrt = sqrt(kMaximumBlindingAsymmetry);
       Double_t tmp1 = maximum_asymmetry_sqrt * (newtempout / Int_t(0x7FFFFFFF));
-      fBlindingAsymmetry = tmp1 * fabs(tmp1) * 0.000001;
+      fBlindingOffset = tmp1 * fabs(tmp1) * 0.000001;
 
       //  Do another little calulation to round off the blinding asymmetry
       Double_t tmp2;
-      tmp1 = fBlindingAsymmetry * 4;    // Exactly shifts by two binary places
-      tmp2 = tmp1 + fBlindingAsymmetry; // Rounds 5*fBlindingAsymmetry
-      fBlindingAsymmetry = tmp2 - tmp1; // fBlindingAsymmetry has been rounded.
+      tmp1 = fBlindingOffset * 4;    // Exactly shifts by two binary places
+      tmp2 = tmp1 + fBlindingOffset; // Rounds 5*fBlindingOffset
+      fBlindingOffset = tmp2 - tmp1; // fBlindingOffset has been rounded.
 
       /// Secondly, the multiplicative blinding factor is determined.  This
       /// number is generated between 0.9 and 1.1 from the blinding asymmetry
       /// by an oscillating (but uniformly distributed) function.
-      Double_t tmp3 = 1000000.0 * fBlindingAsymmetry / kMaximumBlindingAsymmetry;
+      Double_t tmp3 = 1000000.0 * fBlindingOffset / kMaximumBlindingAsymmetry;
       fBlindingFactor = 1.0 + fmod(30.0 * tmp3, kMaximumBlindingFactor);
 
       QwMessage << "QwBlinder::InitBlinders(): Blinding parameters have been calculated."<< QwLog::endl;
@@ -203,14 +203,14 @@ void QwBlinder::InitBlinders()
       fSeed   = "";
       fSeedID = 0;
       fBlindingFactor = 1.0;
-      fBlindingAsymmetry = 0.0;
-      fBlindingEnabled = kFALSE;
+      fBlindingOffset = 0.0;
+      fBlindingStrategy = kDisabled;
       QwWarning << "QwBlinder::InitBlinders(): Blinding parameters have been disabled!"<< QwLog::endl;
   }
 
   // Generate checksum
   TString hex_string;
-  hex_string.Form("%.16llx%.16llx", *(ULong64_t*)(&fBlindingFactor), *(ULong64_t*)(&fBlindingAsymmetry));
+  hex_string.Form("%.16llx%.16llx", *(ULong64_t*)(&fBlindingFactor), *(ULong64_t*)(&fBlindingOffset));
   fDigest = GenerateDigest(hex_string.Data());
   fChecksum = "";
   for (size_t i = 0; i < fDigest.size(); i++) {
@@ -243,7 +243,7 @@ void QwBlinder::SetTestValues(const TString& barestring)
   Int_t finalseed = UsePseudorandom(barestring);
 
   // If the blinding factor is one and blinding asymmetry zero, warn the user
-  if (fBlindingFactor == 1.0 && fBlindingAsymmetry == 0.0) {
+  if (fBlindingFactor == 1.0 && fBlindingOffset == 0.0) {
 
       QwWarning << "QwBlinder::SetTestValues(): The blinding parameters have "
                 << "not been calculated correctly!" << QwLog::endl;
@@ -272,7 +272,7 @@ void QwBlinder::SetTestValues(const TString& barestring)
           fTestValue.push_back(tempval);
           this->BlindValue(tempval);
           fBlindTestValue.push_back(tempval);
-          this->UnBlindValue(tempval, TString("string???"));
+          this->UnBlindValue(tempval);
           fUnBlindTestValue.push_back(tempval);
         }
 
