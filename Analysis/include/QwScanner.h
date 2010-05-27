@@ -18,7 +18,6 @@
 
 #include "VQwSubsystemTracking.h"
 #include "VQwSubsystemParity.h"
-#include "QwBlinder.h"
 
 #include "MQwV775TDC.h"
 #include "QwVQWK_Module.h"

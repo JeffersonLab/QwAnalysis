@@ -860,7 +860,7 @@ Bool_t QwMainCerenkovDetector::Compare(VQwSubsystem *value)
     }
   else
     {
-      QwMainCerenkovDetector* input= dynamic_cast<QwMainCerenkovDetector*>(value);
+      QwMainCerenkovDetector* input = dynamic_cast<QwMainCerenkovDetector*>(value);
       if (input->fIntegrationPMT.size()!=fIntegrationPMT.size() ||
           input->fCombinedPMT.size()!=fCombinedPMT.size() )
         {
@@ -997,16 +997,40 @@ void QwMainCerenkovDetector::AccumulateRunningSum(VQwSubsystem* value1)
   }
 };
 
-void QwMainCerenkovDetector::BlindMe(QwBlinder *blinder)
+
+/**
+ * Blind the asymmetry
+ * @param blinder Blinder
+ */
+void QwMainCerenkovDetector::Blind(const QwBlinder *blinder)
 {
-  for (size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].BlindMe(blinder);
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].Blind(blinder);
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
+    fCombinedPMT[i].Blind(blinder);
+}
 
-  for (size_t i=0;i<fCombinedPMT.size();i++)
-    fCombinedPMT[i].BlindMe(blinder);
+/**
+ * Blind the difference using the yield
+ * @param blinder Blinder
+ * @param yield Corresponding yield
+ */
+void QwMainCerenkovDetector::Blind(const QwBlinder *blinder, const VQwSubsystemParity* subsys)
+{
+  /// \todo TODO (wdc) At some point we should introduce const-correctness in
+  /// the Compare() routine to ensure nothing funny happens.  This const_casting
+  /// is just an ugly stop-gap measure.
+  if (Compare(const_cast<VQwSubsystemParity*>(subsys))) {
 
-  return;
-};
+    const QwMainCerenkovDetector* yield = dynamic_cast<const QwMainCerenkovDetector*>(subsys);
+    if (yield == 0) return;
+
+    for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+      fIntegrationPMT[i].Blind(blinder, yield->fIntegrationPMT[i]);
+    for (size_t i = 0; i < fCombinedPMT.size(); i++)
+      fCombinedPMT[i].Blind(blinder, yield->fCombinedPMT[i]);
+  }
+}
 
 EQwPMTInstrumentType QwMainCerenkovDetector::GetDetectorTypeID(TString name)
 {

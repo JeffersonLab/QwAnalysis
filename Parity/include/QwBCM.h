@@ -8,15 +8,18 @@
 #ifndef __QwVQWK_BCM__
 #define __QwVQWK_BCM__
 
+// System headers
 #include <vector>
+
+// ROOT headers
 #include <TTree.h>
 
-#include "QwBlinder.h"
+// Qweak headers
 #include "QwVQWK_Channel.h"
+
+// Qweak database headers
 #define MYSQLPP_SSQLS_NO_STATICS
 #include "QwSSQLS.h"
-
-
 #include "QwDatabase.h"
 
 /*****************************************************************

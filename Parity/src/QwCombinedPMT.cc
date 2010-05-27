@@ -258,10 +258,16 @@ void QwCombinedPMT::CalculateRunningAverage()
 //  fAvgADC.CalculateRunningAverage();
 };
 
-void QwCombinedPMT::BlindMe(QwBlinder *blinder)
+void QwCombinedPMT::Blind(const QwBlinder *blinder)
 {
-  fSumADC.BlindMe(blinder);
-//  fAvgADC.BlindMe(blinder);
+  fSumADC.Blind(blinder);
+//  fAvgADC.Blind(blinder);
+};
+
+void QwCombinedPMT::Blind(const QwBlinder *blinder, const QwCombinedPMT& yield)
+{
+  fSumADC.Blind(blinder, yield.fSumADC);
+//  fAvgADC.Blind(blinder, yield.fAvgADC);
 };
 
 void QwCombinedPMT::Print() const

@@ -103,7 +103,7 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
     fDeviceErrorCode = 0;
   }
 
-  //UpdateHWErrorCounters(fDeviceErrorCode);//update the error counters based on the fDeviceErrorCode 
+  //UpdateHWErrorCounters(fDeviceErrorCode);//update the error counters based on the fDeviceErrorCode
 
 
  return fDeviceErrorCode;
@@ -121,7 +121,7 @@ void QwVQWK_Channel::UpdateHWErrorCounters(Int_t error_flag){
     fErrorCount_SameHW++; //increment the hw error counter
   if ( (kErrorFlag_ZeroHW &  error_flag)==kErrorFlag_ZeroHW)
     fErrorCount_ZeroHW++; //increment the hw error counter
-}; 
+};
 /********************************************************/
 
 void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
@@ -129,11 +129,11 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
   SetElementName(name);
   SetNumberOfDataWords(6);
 
-  if      (datatosave == "raw")     
+  if      (datatosave == "raw")
     fDataToSave = kRaw;
-  else if (datatosave == "derived") 
+  else if (datatosave == "derived")
     fDataToSave = kDerived;
-  else 
+  else
     fDataToSave = kRaw; // wdc, added default fall-through
 
   fPedestal            = 0.0;
@@ -968,14 +968,32 @@ void QwVQWK_Channel::PrintRunningAverage()
 }
 
 
-void QwVQWK_Channel::BlindMe(QwBlinder *blinder)
+/**
+ * Blind this channel as an asymmetry
+ * @param blinder Blinder
+ */
+void QwVQWK_Channel::Blind(const QwBlinder *blinder)
 {
-  if (!IsNameEmpty())
-    {
-      for (Short_t i=0; i<fBlocksPerEvent; i++) 
-	blinder->BlindMe(fBlock[i]);
-      blinder->BlindMe(fHardwareBlockSum);
-    }
+  if (!IsNameEmpty()) {
+    for (Short_t i = 0; i < fBlocksPerEvent; i++)
+      blinder->BlindValue(fBlock[i]);
+    blinder->BlindValue(fHardwareBlockSum);
+  }
+  return;
+};
+
+/**
+ * Blind this channel as a difference with specified yield
+ * @param blinder Blinder
+ * @param yield Corresponding yield
+ */
+void QwVQWK_Channel::Blind(const QwBlinder *blinder, const QwVQWK_Channel& yield)
+{
+  if (!IsNameEmpty()) {
+    for (Short_t i = 0; i < fBlocksPerEvent; i++)
+      blinder->BlindValue(fBlock[i], yield.fBlock[i]);
+    blinder->BlindValue(fHardwareBlockSum, yield.fHardwareBlockSum);
+  }
   return;
 };
 

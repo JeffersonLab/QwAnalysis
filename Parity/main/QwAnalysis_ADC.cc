@@ -38,8 +38,6 @@
 
 #include "QwBeamLine.h"
 
-//#include "QwBlinder.h"
-
 Bool_t kInQwBatchMode = kFALSE;
 
 // Multiplet structure
@@ -258,7 +256,7 @@ int main(Int_t argc,Char_t* argv[]) {
             }
             // Fill the helicity tree
             if (bHelicity && helicitypattern->IsCompletePattern()) {
-                    helicitypattern->CalculateAsymmetry(blinders);
+                    helicitypattern->CalculateAsymmetry();
 
       //          if (bHisto) helicitypattern->FillHistograms();
 
