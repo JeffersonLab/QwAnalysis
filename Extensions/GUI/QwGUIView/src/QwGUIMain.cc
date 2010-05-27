@@ -1290,79 +1290,57 @@ QwGUIMain *gViewMain;
 
 Int_t main(Int_t argc, Char_t **argv)
 {
-  Char_t expl[5000];
+//  Char_t expl[5000];
   ClineArgs dClArgs;
-  Int_t help = 0;
+//  Int_t help = 0;
   dClArgs.realtime = kFalse;
   dClArgs.checkmode = kFalse;
+
 //   int ax,ay;
 //   unsigned int aw, ah;
 
-  if(argv[1]){
-    for(Int_t i=1; i < argc; i++){
-      if(strcmp(argv[i],"-r")==0){
-	dClArgs.realtime = kTrue;
-      }
 
-      if(strcmp(argv[i],"-cm")==0){
-	dClArgs.checkmode = kTrue;
-      }
+  // Use QwOptions class to parse command line
+  //
+  // Set up default QwAnalysis and database options
+  gQwOptions.SetCommandLine(argc, argv);
+  gQwOptions.SetConfigFile(Form("%s/Parity/prminput/qweak_mysql.conf",gSystem->Getenv("QWANALYSIS")));
+  QwOptions::DefineOptions(gQwOptions);
 
-      if(strcmp(argv[i],"-b")==0){
-// 	dClArgs.bin = kTrue;
-// 	dClArgs.txt = kFalse;
-      }
+  // Add QwGUI specific options
+  gQwOptions.AddOptions()("realtime", po::value<bool>()->zero_tokens(), "enable realtime mode (currently non-functional)");
+  gQwOptions.AddOptions()("checkmode", po::value<bool>()->zero_tokens(), "enable check mode (currently non-functional)");
+  gQwOptions.AddOptions()("binary,b", po::value<bool>()->zero_tokens(), "read binary format file (not currently supported)");
+  gQwOptions.AddOptions()("text,t", po::value<bool>()->zero_tokens(), "read ASCII text file (row and column format)");
+  gQwOptions.AddOptions()("filename,f", po::value<string>(), "filename (currently non-functional)");
+  gQwOptions.AddOptions()("columns,c", po::value<string>(), "range of columns from file (first:last) (currently non-functional");
 
-      if(strcmp(argv[i],"-t")==0){
-// 	dClArgs.bin = kFalse;
-// 	dClArgs.txt = kTrue;
-      }
-
-      if(strcmp(argv[i],"-help")==0){
-	help = 1;
-      }
-
-      if(strcmp(argv[i],"-f")==0){
-	if(!argv[i+1] || argv[i+1][0] == '-'){
-	  printf("\nMissing value for option -f\n\n");
-	  return 0;
-	}
-// 	strcpy(dClArgs.file,argv[i+1]);
-      }
-
-      if(strcmp(argv[i],"-c")==0){
-	if(!argv[i+1] || argv[i+1][0] == '-'){
-	  printf("\nMissing value for option -c\n\n");
-	  return 0;
-	}
-// 	dClArgs.clmns = atoi(argv[i+1]);
-// 	printf("Selected Columns = %d\n",dClArgs.clmns);
-      }
+  // Parse QwGUI options
+  if (gQwOptions.HasValue("realtime")) 
+    if (gQwOptions.GetValue<bool>("realtime") == true) 
+      dClArgs.realtime = kTrue;
+  if (gQwOptions.HasValue("checkmode")) 
+    if (gQwOptions.GetValue<bool>("checkmode") == true) 
+      dClArgs.checkmode = kTrue;
+  if (gQwOptions.HasValue("binary")) 
+    if (gQwOptions.GetValue<bool>("binary") == true) {
+//      dClArgs.bin = kTrue;
+//      dClArgs.txt = kFalse;
     }
+  if (gQwOptions.HasValue("text")) 
+    if (gQwOptions.GetValue<bool>("binary") == true) {
+//      dClArgs.bin = kFalse;
+//      dClArgs.txt = kTrue;
+    }
+  if (gQwOptions.HasValue("filename")) {
+    // Do something with file name if it is present
+    // strcpy(dClArgs.file,argv[i+1]);
+    // dClArgs.file = gQwOptions.GetValue<string>("filename").c_str();
   }
-  else
-    printf("\nRun ""QwGUIData -help"" for command line help\n\n");
-
-  if(help){
-    strcpy(expl,"\n\nThis program takes the following commandline arguments:\n\n");
-    strcat(expl,"1) -b        Read binary format file.\n\n");
-    strcat(expl,"2) -t        Read ascii text file in row and column format.\n\n");
-    strcat(expl,"3) -f        Starting filename:\n\n");
-    strcat(expl,"             Here one of two file types must be used, based on\n");
-    strcat(expl,"             the -b or -t parameters passed .\n");
-    strcat(expl,"             For case -b, the program expects a\n");
-    strcat(expl,"             a binary file with format to be specified\n");
-    strcat(expl,"             For case -t, it expects an ascii file \n");
-    strcat(expl,"             arranged in rows and columns of data.\n");
-    strcat(expl,"             For the second case, the columns of interest must\n");
-    strcat(expl,"             be specified with the -c switch (see below).\n");
-    strcat(expl,"             Always use the full path for the input files.\n\n");
-    strcat(expl,"4) -c        Columns. Ex: (-c 23) selects columns 2 and 3.\n\n");
-    strcat(expl,"9) -help     Prints this help \n\n");
-
-    printf("%s",expl);
+  if (gQwOptions.HasValue("columns")) {
+    // Do something with column values if present
+    // std::pair<int,int> my_column_pair = gQwOptions.GetIntValuePair("columns");
   }
-  else{
 
     TApplication theApp("QwGUIData", &argc, argv);
 
@@ -1378,7 +1356,6 @@ Int_t main(Int_t argc, Char_t **argv)
     gViewMain = &mainWindow;
 
     theApp.Run();
-  }
 
   return 0;
 }

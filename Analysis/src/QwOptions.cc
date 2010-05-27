@@ -150,8 +150,8 @@ void QwOptions::ParseCommandLine()
   // Notify of new options
   po::notify(fVariablesMap);
 
-  // If no arguments or option help/usage, print help text.
-  if (fArgc == 1 || fVariablesMap.count("help") || fVariablesMap.count("usage")) {
+  // If option help/usage, print help text.
+  if (fVariablesMap.count("help") || fVariablesMap.count("usage")) {
     Usage();
     exit(0);
   }
