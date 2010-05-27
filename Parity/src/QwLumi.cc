@@ -816,7 +816,7 @@ void QwLumi::FillDB(QwDatabase *db, TString datatype)
     interface = fIntegrationPMT[i].GetDBEntry();
     for(j=0; j<interface.size(); j++){
       interface.at(j).SetAnalysisID( analysis_id );
-      interface.at(j).SetDeviceID( db->GetLumiDetectorID(interface.at(j).GetDeviceName().Data()) );
+      interface.at(j).SetLumiDetectorID( db );
       interface.at(j).SetMeasurementTypeID( measurement_type );
       interface.at(j).PrintStatus( local_print_flag );
       interface.at(j).AddThisEntryToList( entrylist );

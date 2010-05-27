@@ -1125,7 +1125,7 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
     interface = fIntegrationPMT[i].GetDBEntry(); 
     for(j=0; j<interface.size(); j++) {
       interface.at(j).SetAnalysisID( analysis_id );
-      interface.at(j).SetDeviceID( db->GetMainDetectorID(interface.at(j).GetDeviceName().Data()) );
+      interface.at(j).SetMainDetectorID( db );
       interface.at(j).SetMeasurementTypeID( measurement_type );
       interface.at(j).PrintStatus( local_print_flag );
       interface.at(j).AddThisEntryToList( entrylist );
@@ -1140,7 +1140,7 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
       interface = fCombinedPMT[i].GetDBEntry();
       for(j=0; j<interface.size(); j++) {
 	interface.at(j).SetAnalysisID( analysis_id );
-	interface.at(j).SetDeviceID( db->GetMainDetectorID(interface.at(j).GetDeviceName().Data()) );
+	interface.at(j).SetMainDetectorID( db );
 	interface.at(j).SetMeasurementTypeID( measurement_type );
 	interface.at(j).PrintStatus( local_print_flag );
 	interface.at(j).AddThisEntryToList( entrylist );
@@ -1162,7 +1162,6 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
     QwMessage << "QwMainCerenkovDetector::FillDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
   }
   db->Disconnect();
-
   return;
 };
 

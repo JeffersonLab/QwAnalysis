@@ -221,6 +221,18 @@ class QwDBInterface
     void SetAnalysisID(UInt_t id) {fAnalysisId = id;};
     void SetDetectorName(TString &in) {fDeviceName = in;};
     void SetDeviceID(UInt_t id) {fDeviceId = id;};
+    void SetMonitorID(QwDatabase *db) {
+      fDeviceId = db->GetMonitorID(fDeviceName.Data());
+      return;
+    }
+    void SetMainDetectorID(QwDatabase *db) {
+      fDeviceId = db->GetMainDetectorID(fDeviceName.Data());
+      return;
+    }
+    void SetLumiDetectorID(QwDatabase *db) {
+      fDeviceId = db->GetLumiDetectorID(fDeviceName.Data());
+      return;
+    }
     void SetMeasurementTypeID(const char* in) {std::strncpy(fMeasurementTypeId, in, 3);};
     void SetSubblock(UInt_t in) {fSubblock = in;};
     void SetN(UInt_t in)        {fN = in;};

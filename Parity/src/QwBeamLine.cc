@@ -1381,7 +1381,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
     interface = fBCM[i].GetDBEntry(); 
     for (j=0; j<interface.size(); j++){
       interface.at(j).SetAnalysisID( analysis_id );
-      interface.at(j).SetDeviceID( db->GetMonitorID(interface.at(j).GetDeviceName().Data()) );
+      interface.at(j).SetMonitorID( db );
       interface.at(j).SetMeasurementTypeID( measurement_type );
       interface.at(j).PrintStatus( local_print_flag );
       interface.at(j).AddThisEntryToList( entrylist );
@@ -1396,7 +1396,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
     interface = fStripline[i].GetDBEntry();
     for (j=0; j<interface.size(); j++){
       interface.at(j).SetAnalysisID( analysis_id ) ;
-      interface.at(j).SetDeviceID( db->GetMonitorID(interface.at(j).GetDeviceName().Data()) );
+      interface.at(j).SetMonitorID( db );
       interface.at(j).SetMeasurementTypeID( measurement_type );
       interface.at(j).PrintStatus( local_print_flag);
       interface.at(j).AddThisEntryToList( entrylist );
