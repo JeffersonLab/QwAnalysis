@@ -7,6 +7,7 @@
  */
 
 #include "QwOptions.h"
+#include "QwParameterFile.h"
 
 // System headers
 #include <iostream>
@@ -183,7 +184,7 @@ void QwOptions::ParseEnvironment()
 void QwOptions::ParseConfigFile()
 {
   for (size_t i = 0; i < fConfigFiles.size(); i++) {
-    std::ifstream configfile(fConfigFiles.at(i).c_str());
+    QwParameterFile configfile(fConfigFiles.at(i).c_str());
     std::stringstream configstream;
     configstream << configfile.rdbuf();
 
