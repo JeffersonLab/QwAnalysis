@@ -94,7 +94,7 @@ int main (int argc, char* argv[])
   // select the right subvectors of detectors.
 
   // Load the simulated event file
-  std::string filename = getenv_safe_string("QWANALYSIS)+"/Tracking/prminput/QweakSim.root";
+  std::string filename = getenv_safe_string("QWANALYSIS")+"/Tracking/prminput/QweakSim.root";
   QwTreeEventBuffer *treebuffer = new QwTreeEventBuffer (filename, detector_info);
   treebuffer->SetDetectorInfo(detector_info);
 
@@ -108,7 +108,7 @@ int main (int argc, char* argv[])
 
   // Load the geometry
   Qset qset;
-  qset.FillDetectors((getenv_safe_string("QWANALYSIS)+"/Tracking/prminput/qweak.geo").c_str());
+  qset.FillDetectors((getenv_safe_string("QWANALYSIS")+"/Tracking/prminput/qweak.geo").c_str());
   qset.LinkDetectors();
   qset.DeterminePlanes();
   std::cout << "[QwTracking::main] Geometry loaded" << std::endl; // R3,R2
