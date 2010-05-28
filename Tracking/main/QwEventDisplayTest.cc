@@ -59,25 +59,25 @@ int main (int argc, char* argv[])
   // Region 1 GEM
   detectors->push_back(GetSubsystemFactory("QwGasElectronMultiplier")->Create("R1"));
   detectors->GetSubsystem("R1")->LoadChannelMap("qweak_cosmics_hits.map");
-  detectors->GetSubsystem("R1")->LoadQweakGeometry("qweak_new.geo");
+  detectors->GetSubsystem("R1")->LoadGeometryDefinition("qweak_new.geo");
 
   // Region 2 HDC
   detectors->push_back(GetSubsystemFactory("QwDriftChamberHDC")->Create("R2"));
   detectors->GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");
-  detectors->GetSubsystem("R2")->LoadQweakGeometry("qweak_new.geo");
+  detectors->GetSubsystem("R2")->LoadGeometryDefinition("qweak_new.geo");
 
   // Region 3 VDC
   detectors->push_back(GetSubsystemFactory("QwDriftChamberVDC")->Create("R3"));
   detectors->GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
-  detectors->GetSubsystem("R3")->LoadQweakGeometry("qweak_new.geo");
+  detectors->GetSubsystem("R3")->LoadGeometryDefinition("qweak_new.geo");
 
   // Region 4 TS
   detectors->push_back(GetSubsystemFactory("QwTriggerScintillator")->Create("TS"));
-  detectors->GetSubsystem("TS")->LoadQweakGeometry("qweak_new.geo");
+  detectors->GetSubsystem("TS")->LoadGeometryDefinition("qweak_new.geo");
 
   // Region 5 MD
   detectors->push_back(GetSubsystemFactory("QwMainDetector")->Create("MD"));
-  detectors->GetSubsystem("MD")->LoadQweakGeometry("qweak_new.geo");
+  detectors->GetSubsystem("MD")->LoadGeometryDefinition("qweak_new.geo");
 
   // Get vector with detector info (by region, plane number)
   std::vector< std::vector< QwDetectorInfo > > detector_info;

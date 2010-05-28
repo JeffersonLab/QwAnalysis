@@ -12,6 +12,7 @@
 #include "TTree.h"
 
 #include "VQwSubsystemTracking.h"
+#include "QwDetectorInfo.h"
 
 #include "MQwV775TDC.h"
 
@@ -87,13 +88,13 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
   Int_t FindSignalIndex(const QwMainDetector::EModuleType modtype, const TString &name) const;
 
   void GetHitList(QwHitContainer & grandHitContainer){
-    
+
   }; //empty function
 
 
  protected:
 
-  
+
   TString fRegion;  ///  Name of this subsystem (the region).
 
 
@@ -107,7 +108,7 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
   static const UInt_t kMaxNumberOfChannelsPerModule;
 
   Int_t fNumberOfModules;
-  
+
   std::vector< std::vector<Int_t> > fModuleIndex;  //  Module index, indexed by bank_index and slot_number
 
   std::vector< enum EModuleType > fModuleTypes;
