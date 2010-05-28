@@ -56,7 +56,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   // Define the command line options
   DefineOptionsParity(gQwOptions);
 
-  
+
 
   Bool_t bDebug=kFALSE;
   Bool_t bHelicity=kTRUE;
@@ -74,8 +74,8 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  variable within the QwParameterFile class which will be used by
   ///  all instances.
   ///  The "scratch" directory should be first.
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QW_PRMINPUT")));
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS")+"/Parity/prminput");
 
   ///
   ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
@@ -128,14 +128,14 @@ Int_t main(Int_t argc, Char_t* argv[])
       QwEvt.ResetControlParameters();
 
 
-      //Map file access setup 
+      //Map file access setup
       if (rootfile){
 	std::cout<<"after rootfile!=NULL \n";
 	rootfile->Close();
 	rootfile=NULL;
       }
       TString theMemMapFile;
-      theMemMapFile = std::string(getenv("QW_ROOTFILES"));
+      theMemMapFile = getenv_safe_TString("QW_ROOTFILES");
       theMemMapFile += "/QwMemMapFile.map";
       //theMemMapFile = "QwMemMapFile.map";
       std::cout<<" ROOT map file name "<<theMemMapFile<<std::endl;
@@ -143,8 +143,8 @@ Int_t main(Int_t argc, Char_t* argv[])
       rootfile->Print();
       if(!rootfile)
 	std::cerr<<"ROOT file could not be created. Exiting!!!"<<std::endl;
-      //end of Map file access  setup  
- 
+      //end of Map file access  setup
+
 
       if(bHisto){
 	QwDetectors.ConstructHistograms();
@@ -154,7 +154,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  }
       }
 
-      
+
       std::cout<<"Map File Created\n";
       rootfile->Update();
       rootfile->Print();
@@ -200,7 +200,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 	      QwHelPat.LoadEventData(fEventRing.pop());
 	    }
 	  }
-	  
+
 
 	  // Accumulate the running sum to calculate the event based running average
 	  runningsum.AccumulateRunningSum(QwDetectors);
@@ -212,7 +212,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  if(bHelicity && QwHelPat.IsCompletePattern() && bRING_READY){
 	    QwHelPat.CalculateAsymmetry();
 	    if (QwHelPat.IsGoodAsymmetry()){
-	      if(bHisto) 
+	      if(bHisto)
 		QwHelPat.FillHistograms();
 	      QwHelPat.ClearEventData();
 	    }
@@ -258,7 +258,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       }
 
       if(bHisto){
-	
+
 	rootfile->Close();
       }
       QwEvt.CloseStream();
@@ -274,7 +274,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       PrintInfo(timer);
 
     } //end of run loop
-  
+
 
   std::cerr << "I have done everything I can do..." << std::endl;
 

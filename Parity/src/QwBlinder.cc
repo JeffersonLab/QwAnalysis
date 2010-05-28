@@ -114,7 +114,7 @@ Int_t QwBlinder::ReadSeed(QwDatabase* db, const UInt_t seed_id)
 
       mysqlpp::Query query = db->Query();
       query<<s_sql;
-      vector<QwParityDB::seeds> res;
+      std::vector<QwParityDB::seeds> res;
       query.storein(res);
 
 // Store seed_id and seed value in fSeedID and fSeed (want to store actual seed_id in those
@@ -400,7 +400,7 @@ Int_t QwBlinder::UseMD5(const TString& barestring)
   Int_t temp = 0;
   Int_t tempout = 0;
 
-  vector<UChar_t> digest = this->GenerateDigest(barestring.Data());
+  std::vector<UChar_t> digest = this->GenerateDigest(barestring.Data());
   for (size_t i = 0; i < digest.size(); i++)
     {
       Int_t j = i%4;
@@ -580,7 +580,7 @@ Bool_t QwBlinder::CheckTestValues()
  * @param input
  * @return
  */
-vector<UChar_t> QwBlinder::GenerateDigest(const char* input)
+std::vector<UChar_t> QwBlinder::GenerateDigest(const char* input)
 {
   const UInt_t md5_len = 64;
   UChar_t md5_value[md5_len];
@@ -590,7 +590,7 @@ vector<UChar_t> QwBlinder::GenerateDigest(const char* input)
   md5.Final(md5_value);
   //md5.Print();
 
-  vector<UChar_t> output;
+  std::vector<UChar_t> output;
   for (UInt_t i = 0; i < md5_len; i++)
       output.push_back(md5_value[i]);
 
@@ -649,7 +649,7 @@ void QwBlinder::FillDB(QwDatabase *db, TString datatype)
 
   // Fill the rows of the QwParityDB::bf_test table
   QwParityDB::bf_test bf_test_row(0);
-  vector<QwParityDB::bf_test> bf_test_list;
+  std::vector<QwParityDB::bf_test> bf_test_list;
   for (UInt_t i = 0; i < fMaxTests; i++) {
     bf_test_row.bf_test_id = 0;
     bf_test_row.analysis_id = analysis_id;

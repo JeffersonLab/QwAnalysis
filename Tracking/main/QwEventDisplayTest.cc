@@ -50,8 +50,8 @@ int main (int argc, char* argv[])
   gQwLog.SetScreenColor(gQwOptions.GetValue<bool>("QwLog.color"));
 
   /// Fill the search paths for the parameter files
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH)+"/setupfiles");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS)+"/Tracking/prminput");
 
   // Handle for the list of VQwSubsystemTracking objects
   QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking();
@@ -94,7 +94,7 @@ int main (int argc, char* argv[])
   // select the right subvectors of detectors.
 
   // Load the simulated event file
-  std::string filename = std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/QweakSim.root";
+  std::string filename = getenv_safe_string("QWANALYSIS)+"/Tracking/prminput/QweakSim.root";
   QwTreeEventBuffer *treebuffer = new QwTreeEventBuffer (filename, detector_info);
   treebuffer->SetDetectorInfo(detector_info);
 
@@ -108,7 +108,7 @@ int main (int argc, char* argv[])
 
   // Load the geometry
   Qset qset;
-  qset.FillDetectors((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.geo").c_str());
+  qset.FillDetectors((getenv_safe_string("QWANALYSIS)+"/Tracking/prminput/qweak.geo").c_str());
   qset.LinkDetectors();
   qset.DeterminePlanes();
   std::cout << "[QwTracking::main] Geometry loaded" << std::endl; // R3,R2

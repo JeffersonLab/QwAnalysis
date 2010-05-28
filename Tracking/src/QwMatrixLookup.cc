@@ -18,6 +18,7 @@
 // Qweak headers
 #include "QwLog.h"
 #include "QwUnits.h"
+#include "QwOptions.h"
 #include "QwRayTracer.h"
 #include "QwInterpolator.h"
 #include "QwTrack.h"
@@ -214,7 +215,7 @@ const bool QwMatrixLookup::WriteTrajMatrix(const std::string filename)
   Double_t  direction_theta,direction_phi;
 
   // Load the magnetic field
-  std::string fieldmap = std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/MainMagnet_FieldMap.dat";
+  std::string fieldmap = getenv_safe_string("QWANALYSIS") + "/Tracking/prminput/MainMagnet_FieldMap.dat";
   QwRayTracer* raytracer = new QwRayTracer();
   if (! QwRayTracer::LoadMagneticFieldMap(fieldmap)) {
     QwError << "Could not load magnetic field map!" << QwLog::endl;

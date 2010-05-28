@@ -1124,7 +1124,7 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
 
   Bool_t local_print_flag = true;
   QwDBInterface interface;
-  vector<QwParityDB::md_data> entrylist;
+  std::vector<QwParityDB::md_data> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();
 

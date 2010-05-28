@@ -788,7 +788,7 @@ void QwLumi::FillDB(QwDatabase *db, TString datatype)
 
   Bool_t local_print_flag = true;
   QwDBInterface interface;
-  vector<QwParityDB::lumi_data> entrylist;
+  std::vector<QwParityDB::lumi_data> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();
 

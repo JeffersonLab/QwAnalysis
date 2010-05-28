@@ -169,14 +169,14 @@ class QwBlinder {
     UInt_t fSeedID;      /// Database ID of seed used to generate this blinding factor (seeds.seed_id)
     TString fSeed;       /// RNG seed string (seeds.seed)
 
-    vector<UChar_t>  fDigest;         /// Checksum in raw hex
-    string           fChecksum;       /// Checksum in ASCII hex
+    std::vector<UChar_t> fDigest;         /// Checksum in raw hex
+    std::string          fChecksum;       /// Checksum in ASCII hex
 
     UInt_t fMaxTests;                   /// Maximum number of test values
-    vector<UInt_t>   fTestNumber;       /// Vector of test numbers (IDs)
-    vector<Double_t> fTestValue;        /// Vector of test values, original
-    vector<Double_t> fBlindTestValue;   /// Vector of test values, after blinding
-    vector<Double_t> fUnBlindTestValue; /// Vector of test values, after unblinding
+    std::vector<UInt_t>   fTestNumber;       /// Vector of test numbers (IDs)
+    std::vector<Double_t> fTestValue;        /// Vector of test values, original
+    std::vector<Double_t> fBlindTestValue;   /// Vector of test values, after blinding
+    std::vector<Double_t> fUnBlindTestValue; /// Vector of test values, after unblinding
 
     void InitBlinders();                              /// Initializes fBlindingFactor from fSeed.
     void SetTestValues(const TString &barestring);    /// Initializes the test values: fTestNumber, fTestValue,
@@ -195,7 +195,7 @@ class QwBlinder {
     void WriteTestValues(QwDatabase* db);   ///  Writes fTestNumber and fBlindTestValue to DB for this analysis ID
     Bool_t CheckTestValues();               ///  Recomputes fBlindTestValue to check for memory errors
 
-    vector<UChar_t> GenerateDigest(const char* input);
+    std::vector<UChar_t> GenerateDigest(const char* input);
 
 };
 

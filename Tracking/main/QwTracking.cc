@@ -84,12 +84,12 @@ Int_t main(Int_t argc, Char_t* argv[]) {
         gROOT->SetBatch(kTRUE);
     }
 
-    //gQwHists.LoadHistParamsFromFile(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/cosmics_hists.in");
+    //gQwHists.LoadHistParamsFromFile(getenv_safe_string("QWANALYSIS)+"/Tracking/prminput/cosmics_hists.in");
 
     // Fill the search paths for the parameter files
-    QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH")) + "/setupfiles");
-    QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Tracking/prminput");
-    QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Analysis/prminput");
+    QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH") + "/setupfiles");
+    QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Tracking/prminput");
+    QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
     //  Load the histogram parameter definitions
     gQwHists.LoadHistParamsFromFile("cosmics_hists.in");
@@ -143,7 +143,7 @@ Int_t main(Int_t argc, Char_t* argv[]) {
 
     // Create and fill old detector structures (deprecated)
     Qset qset;
-    qset.FillDetectors((std::string(getenv("QWANALYSIS")) + "/Tracking/prminput/qweak.geo").c_str());
+    qset.FillDetectors((getenv_safe_string("QWANALYSIS") + "/Tracking/prminput/qweak.geo").c_str());
     qset.LinkDetectors();
     qset.DeterminePlanes();
 
@@ -192,10 +192,10 @@ Int_t main(Int_t argc, Char_t* argv[]) {
             rootfile=0;
         }
 
-        rootfile = new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%s.root",
+        rootfile = new TFile(Form(getenv_safe_TString("QWSCRATCH") + "/rootfiles/Qweak_%s.root",
                                   eventbuffer.GetRunLabel().Data()), "RECREATE",
                                   "QWeak ROOT file with real events");
-        //    std::auto_ptr<TFile> rootfile (new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
+        //    std::auto_ptr<TFile> rootfile (new TFile(Form(getenv_safe_TString("QWSCRATCH") + "/rootfiles/Qweak_%d.root", run),
         //   					"RECREATE",
         //   					"QWeak ROOT file with real events"));
 
