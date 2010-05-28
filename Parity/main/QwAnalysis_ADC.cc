@@ -363,7 +363,7 @@ int main(Int_t argc,Char_t* argv[]) {
            helicity->FillDB(qwdatabase,"");
            helicitypattern->FillDB(qwdatabase);
 
-          blinders->WriteFinalValuesToDB();
+          blinders->WriteFinalValuesToDB(qwdatabase);
           blinders->PrintFinalValues();
        };
 
