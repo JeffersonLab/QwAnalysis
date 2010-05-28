@@ -27,7 +27,7 @@ QwMainDetector::~QwMainDetector()
 };
 
 
-Int_t QwMainDetector::LoadQweakGeometry ( TString mapfile )
+Int_t QwMainDetector::LoadGeometryDefinition ( TString mapfile )
 {
   std::cout<<"Main Detector Qweak Geometry Loading..... "<<std::endl;
 

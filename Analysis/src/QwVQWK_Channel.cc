@@ -103,7 +103,7 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
     fDeviceErrorCode = 0;
   }
 
-  //UpdateHWErrorCounters(fDeviceErrorCode);//update the error counters based on the fDeviceErrorCode 
+  //UpdateHWErrorCounters(fDeviceErrorCode);//update the error counters based on the fDeviceErrorCode
 
 
  return fDeviceErrorCode;
@@ -121,7 +121,7 @@ void QwVQWK_Channel::UpdateHWErrorCounters(Int_t error_flag){
     fErrorCount_SameHW++; //increment the hw error counter
   if ( (kErrorFlag_ZeroHW &  error_flag)==kErrorFlag_ZeroHW)
     fErrorCount_ZeroHW++; //increment the hw error counter
-}; 
+};
 /********************************************************/
 
 void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
@@ -129,11 +129,11 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
   SetElementName(name);
   SetNumberOfDataWords(6);
 
-  if      (datatosave == "raw")     
+  if      (datatosave == "raw")
     fDataToSave = kRaw;
-  else if (datatosave == "derived") 
+  else if (datatosave == "derived")
     fDataToSave = kDerived;
-  else 
+  else
     fDataToSave = kRaw; // wdc, added default fall-through
 
   fPedestal            = 0.0;
@@ -560,6 +560,20 @@ void  QwVQWK_Channel::FillHistograms()
       }
 };
 
+void  QwVQWK_Channel::DeleteHistograms()
+{
+  //std::cout<<"Device Name "<<GetElementName()<<" fHistograms.size() "<<fHistograms.size()<<std::endl;
+  if ((fDataToSave==kRaw) || (fDataToSave==kDerived)){
+  for (UInt_t i=0; i<fHistograms.size(); i++){
+    if (fHistograms[i] != NULL)
+      fHistograms[i]->Delete();
+    fHistograms[i] = NULL;
+  }
+  }
+  fHistograms.clear();
+  
+}
+
 void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (IsNameEmpty()){
@@ -693,7 +707,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator+= (const QwVQWK_Channel &value)
     this->fSoftwareBlockSum_raw = value.fSoftwareBlockSum_raw;
     this->fHardwareBlockSum += value.fHardwareBlockSum;
     this->fHardwareBlockSumM2 = 0.0;
-    this->fNumberOfSamples  = value.fNumberOfSamples;
+    this->fNumberOfSamples  += value.fNumberOfSamples;
     this->fSequenceNumber   = 0;
     this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
   }
@@ -710,10 +724,10 @@ QwVQWK_Channel& QwVQWK_Channel::operator-= (const QwVQWK_Channel &value)
       this->fBlockM2[i] = 0.0;
     }
     this->fHardwareBlockSum_raw = 0;
-    this->fSoftwareBlockSum_raw = 0;
+    this->fSoftwareBlockSum_raw = 0; 
     this->fHardwareBlockSum -= value.fHardwareBlockSum;
     this->fHardwareBlockSumM2 = 0.0;
-    this->fNumberOfSamples = value.fNumberOfSamples;
+    this->fNumberOfSamples += value.fNumberOfSamples;
     this->fSequenceNumber   = 0;
     this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
 }
@@ -958,14 +972,32 @@ void QwVQWK_Channel::PrintRunningAverage()
 }
 
 
-void QwVQWK_Channel::BlindMe(QwBlinder *blinder)
+/**
+ * Blind this channel as an asymmetry
+ * @param blinder Blinder
+ */
+void QwVQWK_Channel::Blind(const QwBlinder *blinder)
 {
-  if (!IsNameEmpty())
-    {
-      for (Short_t i=0; i<fBlocksPerEvent; i++) 
-	blinder->BlindMe(fBlock[i]);
-      blinder->BlindMe(fHardwareBlockSum);
-    }
+  if (!IsNameEmpty()) {
+    for (Short_t i = 0; i < fBlocksPerEvent; i++)
+      blinder->BlindValue(fBlock[i]);
+    blinder->BlindValue(fHardwareBlockSum);
+  }
+  return;
+};
+
+/**
+ * Blind this channel as a difference with specified yield
+ * @param blinder Blinder
+ * @param yield Corresponding yield
+ */
+void QwVQWK_Channel::Blind(const QwBlinder *blinder, const QwVQWK_Channel& yield)
+{
+  if (!IsNameEmpty()) {
+    for (Short_t i = 0; i < fBlocksPerEvent; i++)
+      blinder->BlindValue(fBlock[i], yield.fBlock[i]);
+    blinder->BlindValue(fHardwareBlockSum, yield.fHardwareBlockSum);
+  }
   return;
 };
 

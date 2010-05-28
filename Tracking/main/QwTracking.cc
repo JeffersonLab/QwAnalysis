@@ -103,7 +103,7 @@ Int_t main(Int_t argc, Char_t* argv[]) {
     // Region 1 GEM
     detectors.push_back(new QwGasElectronMultiplier("R1"));
     detectors.GetSubsystem("R1")->LoadChannelMap("qweak_R1.map");
-    detectors.GetSubsystem("R1")->LoadQweakGeometry("qweak_new.geo");
+    detectors.GetSubsystem("R1")->LoadGeometryDefinition("qweak_new.geo");
 
 
 
@@ -111,12 +111,12 @@ Int_t main(Int_t argc, Char_t* argv[]) {
     // Region 2 HDC
     detectors.push_back(new QwDriftChamberHDC("R2"));
     detectors.GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");
-    ((VQwSubsystemTracking*) detectors.GetSubsystem("R2"))->LoadQweakGeometry("qweak_new.geo");
+    ((VQwSubsystemTracking*) detectors.GetSubsystem("R2"))->LoadGeometryDefinition("qweak_new.geo");
     // Region 3 VDC
     detectors.push_back(new QwDriftChamberVDC("R3"));
     //detectors.GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
     detectors.GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
-    ((VQwSubsystemTracking*) detectors.GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
+    ((VQwSubsystemTracking*) detectors.GetSubsystem("R3"))->LoadGeometryDefinition("qweak_new.geo");
     // Trigger scintillators
     detectors.push_back(new QwTriggerScintillator("TS"));
     ((VQwSubsystemTracking*) detectors.GetSubsystem("TS"))->LoadChannelMap("trigscint_cosmics.map");

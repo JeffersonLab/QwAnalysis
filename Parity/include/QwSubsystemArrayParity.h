@@ -14,57 +14,92 @@
 #include "QwSubsystemArray.h"
 #include "VQwSubsystemParity.h"
 
+// Forward declarations
 class QwBlinder;
-///
-/// \ingroup QwAnalysis_ADC
-///
-/// \ingroup QwAnalysis_BL
-class QwSubsystemArrayParity:  public QwSubsystemArray {
+
+/**
+ * \class QwSubsystemArrayParity
+ * \ingroup QwAnalysis
+ *
+ * \brief Virtual base class for the parity subsystems
+ *
+ *   Virtual base class for the classes containing the
+ *   event-based information from each parity subsystem.
+ *   This will define the interfaces used in communicating
+ *   with the CODA routines.
+ *
+ */
+class QwSubsystemArrayParity: public QwSubsystemArray {
 
  public:
-  QwSubsystemArrayParity() {};
-  virtual ~QwSubsystemArrayParity(){
-  };
 
-  VQwSubsystemParity* GetSubsystem(const TString name);
-  void ProcessOptions(QwOptions &options);//Handle command line options
-  void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values);
-  void ConstructBranchAndVector(TTree *tree, std::vector <Double_t> &values) {
-    TString tmpstr("");
-    ConstructBranchAndVector(tree,tmpstr,values);
-  };
-  void FillTreeVector(std::vector<Double_t> &values);
-  void FillDB(QwDatabase *db, TString type);
+    /// Default constructor
+    QwSubsystemArrayParity(): QwSubsystemArray() { };
+    /// Constructor with map file
+    QwSubsystemArrayParity(const char* filename): QwSubsystemArray(filename) { };
+    /// Default destructor
+    virtual ~QwSubsystemArrayParity() { };
 
-  void Copy(QwSubsystemArrayParity *source);
+    VQwSubsystemParity* GetSubsystem(const TString name);
 
-  QwSubsystemArrayParity& operator=  (const QwSubsystemArrayParity &value);
-  QwSubsystemArrayParity& operator+= (const QwSubsystemArrayParity &value);
-  QwSubsystemArrayParity& operator-= (const QwSubsystemArrayParity &value);
-  void Sum(QwSubsystemArrayParity &value1, QwSubsystemArrayParity &value2);
-  void Difference(QwSubsystemArrayParity &value1, QwSubsystemArrayParity &value2);
-  void Ratio(QwSubsystemArrayParity &numer, QwSubsystemArrayParity &denom);
-  void Scale(Double_t factor);
+    /// Process the command line options
+    void ProcessOptions(QwOptions &options);
 
-  // Update the running sums for devices
-  void AccumulateRunningSum(const QwSubsystemArrayParity& value);
-  // Calculate the average for all good events
-  void CalculateRunningAverage();
+    /// \brief Construct the branch and tree vector
+    void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values);
+    /// \brief Construct the branch and tree vector
+    void ConstructBranchAndVector(TTree *tree, std::vector <Double_t> &values) {
+      TString tmpstr("");
+      ConstructBranchAndVector(tree,tmpstr,values);
+    };
+    /// \brief Fill the tree vector
+    void FillTreeVector(std::vector<Double_t> &values);
 
-  void BlindMe(QwBlinder *blinder);
-  Bool_t ApplySingleEventCuts();
-  Int_t GetEventcutErrorCounters();
-  Int_t GetEventcutErrorFlag();//return the error flag
+    /// \brief Fill the database
+    void FillDB(QwDatabase *db, TString type);
 
- public:
-  std::vector<TString> sFailedSubsystems;
+    QwSubsystemArrayParity& operator=  (const QwSubsystemArrayParity &value);
+    QwSubsystemArrayParity& operator+= (const QwSubsystemArrayParity &value);
+    QwSubsystemArrayParity& operator-= (const QwSubsystemArrayParity &value);
+    void Copy(QwSubsystemArrayParity *source);
+    void Sum(QwSubsystemArrayParity &value1, QwSubsystemArrayParity &value2);
+    void Difference(QwSubsystemArrayParity &value1, QwSubsystemArrayParity &value2);
+    void Ratio(QwSubsystemArrayParity &numer, QwSubsystemArrayParity &denom);
+    void Scale(Double_t factor);
+
+    /// \brief Update the running sums for devices
+    void AccumulateRunningSum(const QwSubsystemArrayParity& value);
+    /// \brief Calculate the average for all good events
+    void CalculateRunningAverage();
+
+    /// \brief Blind the asymmetry of this subsystem
+    void Blind(const QwBlinder* blinder);
+    /// \brief Unblind the asymmetry of this subsystem
+    void UnBlind(const QwBlinder* blinder)
+      { /* Not yet implemented */ };
+    /// \brief Blind the difference of this subsystem
+    void Blind(const QwBlinder* blinder, const QwSubsystemArrayParity& yield);
+    /// \brief Unblind the difference of this subsystem
+    void UnBlind(const QwBlinder* blinder, const QwSubsystemArrayParity& yield)
+      { /* Not yet implemented */ };
 
 
-  //Int_t fSubsystem_Error_Flag;
-  //static const Int_t kErrorFlag_Helicity=0x2;   // in Decimal 2. Helicity bit faliure
-  //static const Int_t kErrorFlag_Beamline=0x4;    // in Decimal 4.  Beamline faliure
+    /// \brief Apply the single event cuts
+    Bool_t ApplySingleEventCuts();
+    /// \brief Report the number of events failed due to HW and event cut failures
+    Int_t GetEventcutErrorCounters();
+    /// \brief Return the error flag to the main routine
+    Int_t GetEventcutErrorFlag();
+
+  public:
+
+    std::vector<TString> sFailedSubsystems;
+
+    //Int_t fSubsystem_Error_Flag;
+    //static const Int_t kErrorFlag_Helicity=0x2;   // in Decimal 2. Helicity bit faliure
+    //static const Int_t kErrorFlag_Beamline=0x4;    // in Decimal 4.  Beamline faliure
 
 
-};
+}; // class QwSubsystemArrayParity
 
-#endif
+#endif // __QWSUBSYSTEMARRAYPARITY__

@@ -16,6 +16,9 @@
 
 #include "QwLog.h"
 
+// Register this subsystem with the factory
+QwSubsystemFactory<QwBeamLine> theBeamLineFactory("QwBeamLine");
+
 //*****************************************************************
 void QwBeamLine::ProcessOptions(QwOptions &options){
       //Handle command line options

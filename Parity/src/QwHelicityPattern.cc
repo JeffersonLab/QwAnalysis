@@ -7,31 +7,34 @@
 \**********************************************************/
 
 #include "QwHelicityPattern.h"
+
+// System headers
+#include <stdexcept>
+
+// Qweak headers
+#include "QwLog.h"
 #include "QwHistogramHelper.h"
 #include "QwHelicity.h"
 #include "QwBlinder.h"
 
-#include <stdexcept>
-
-#include "QwLog.h"
-
 
 /*****************************************************************/
-void QwHelicityPattern::ProcessOptions(QwOptions &options){
-//Handle command line options
+void QwHelicityPattern::ProcessOptions(QwOptions &options)
+{
+  // Handle command line options
 };
 /*****************************************************************/
 QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
+: fBlinder(TString("No seed string defined!"),QwBlinder::kAdditive)
 {
-  bAlternateAsym=kFALSE;
-  QwHelicity* input=((QwHelicity*)event.GetSubsystem("Helicity info"));
-  fPatternSize=input->GetMaxPatternPhase();
+  bAlternateAsym = kFALSE;
+  QwHelicity* input = ((QwHelicity*)event.GetSubsystem("Helicity info"));
+  fPatternSize = input->GetMaxPatternPhase();
 
   std::cout<<"QwHelicity::MaxPatternPhase = "<<fPatternSize<<std::endl;
 
-  if (fPatternSize!=4)//currently the alternate asym works with quartets only
-    bAlternateAsym=kFALSE;
-
+  if (fPatternSize != 4)//currently the alternate asym works with quartets only
+    bAlternateAsym = kFALSE;
 
   try
     {
@@ -197,7 +200,7 @@ Bool_t  QwHelicityPattern::IsCompletePattern()
 }
 
 /////////////////////////////////////////////////////////////////////
-void  QwHelicityPattern::CalculateAsymmetry(QwBlinder *blinder)
+void  QwHelicityPattern::CalculateAsymmetry()
 {
 
   Bool_t localdebug=kFALSE;
@@ -281,6 +284,7 @@ void  QwHelicityPattern::CalculateAsymmetry(QwBlinder *blinder)
 
       fYield.Sum(fPositiveHelicitySum,fNegativeHelicitySum);
       fDiff.Difference(fPositiveHelicitySum,fNegativeHelicitySum);
+      fBlinder.Blind(fDiff,fYield);
       fAsymmetry.Ratio(fDiff,fYield);
 
 
@@ -304,6 +308,7 @@ void  QwHelicityPattern::CalculateAsymmetry(QwBlinder *blinder)
         fNegativeHelicitySum  = fEvents.at(2);
         fNegativeHelicitySum += fEvents.at(3);
         fDiff.Difference(fPositiveHelicitySum,fNegativeHelicitySum);
+        fBlinder.Blind(fDiff,fYield);
         fAsymmetry1.Ratio(fDiff,fYield);
 
         fPositiveHelicitySum.ClearEventData();
@@ -313,21 +318,15 @@ void  QwHelicityPattern::CalculateAsymmetry(QwBlinder *blinder)
         fNegativeHelicitySum  = fEvents.at(1);
         fNegativeHelicitySum += fEvents.at(3);
         fDiff.Difference(fPositiveHelicitySum,fNegativeHelicitySum);
+        fBlinder.Blind(fDiff,fYield);
         fAsymmetry2.Ratio(fDiff,fYield);
 
-        if (blinder) {
-          fAsymmetry1.BlindMe(blinder);
-          fAsymmetry2.BlindMe(blinder);
-        }
-
-      }
-
-      if (blinder) {
-        fAsymmetry.BlindMe(blinder);
       }
 
       fRunningSumYield.AccumulateRunningSum(fYield);
       fRunningSumAsymmetry.AccumulateRunningSum(fAsymmetry);
+      //      fRunningSumAsymmetry1.AccumulateRunningSum(fAsymmetry1);
+      //      fRunningSumAsymmetry2.AccumulateRunningSum(fAsymmetry2);
 
       if (localdebug) std::cout<<" pattern number ="<<fQuartetNumber<<"\n";
     }
@@ -355,6 +354,10 @@ void  QwHelicityPattern::CalculateRunningAverage()
   std::cout<<" Running average of Yields "<<std::endl;
   std::cout<<" =============================="<<std::endl;
   fRunningSumYield.CalculateRunningAverage();
+
+  std::cout<<" Blinder info "<<std::endl;
+  std::cout<<" ============ "<<std::endl;
+  fBlinder.PrintFinalValues();
 };
 
 //*****************************************************************

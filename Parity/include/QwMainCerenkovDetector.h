@@ -25,8 +25,8 @@
 #define MYSQLPP_SSQLS_NO_STATICS
 #include "QwSSQLS.h"
 
-#include "QwBlinder.h"
-
+// Forward declarations
+class QwBlinder;
 class QwMainCerenkovDetectorID;
 
 class QwMainCerenkovDetector: public VQwSubsystemParity {
@@ -93,18 +93,24 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
 
   void Copy(VQwSubsystem *source);
   VQwSubsystem*  Copy();
-  Bool_t Compare(VQwSubsystem *source);
-  void Scale(Double_t factor);
-  void BlindMe(QwBlinder *blinder);
+  Bool_t Compare(VQwSubsystem* source);
+
+
+  /// \brief Blind the asymmetry
+  void Blind(const QwBlinder *blinder);
+  /// \brief Blind the difference using the yield
+  void Blind(const QwBlinder *blinder, const VQwSubsystemParity* subsys);
+
 
   VQwSubsystem&  operator=  ( VQwSubsystem *value);
   VQwSubsystem&  operator+= ( VQwSubsystem *value);
   VQwSubsystem&  operator-= ( VQwSubsystem *value);
 
 
-  void Sum(VQwSubsystem *value1, VQwSubsystem *value2);
-  void Difference(VQwSubsystem *value1,VQwSubsystem *value2);
-  void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
+  void Sum(VQwSubsystem* value1, VQwSubsystem* value2);
+  void Difference(VQwSubsystem* value1, VQwSubsystem* value2);
+  void Ratio(VQwSubsystem* numer, VQwSubsystem* denom);
+  void Scale(Double_t factor);
 
   void AccumulateRunningSum(VQwSubsystem* value);
   void CalculateRunningAverage();

@@ -18,6 +18,62 @@
 //*****************************************************************
 
 /**
+ * Create a subsystem array based on the content of a map file.
+ * @param filename Map file
+ */
+QwSubsystemArray::QwSubsystemArray(const char* filename)
+{
+  QwMessage << "Loading subsystems from " << filename << QwLog::endl;
+  QwParameterFile detectors(filename);
+
+  VQwSubsystem* subsys = 0;
+  while (detectors.ReadNextLine()) {
+    // Trim comments and whitespace
+    detectors.TrimComment('!');
+    detectors.TrimComment('#');
+    detectors.TrimWhitespace();
+
+    // Subsystem block start
+    std::string subsystype, subsysname;
+    if (detectors.HasVariablePair(":", subsystype, subsysname)) {
+      QwMessage << "Adding subsystem of type " << subsystype
+                << " with name " << subsysname << QwLog::endl;
+      subsys = GetSubsystemFactory(subsystype)->Create(subsysname);
+      this->push_back(subsys);
+    }
+
+    std::string key, value;
+
+    // Map file definition
+    if (detectors.HasVariablePair("=", key, value)) {
+      if (key == "map" && value.size() > 0) {
+        if (subsys) subsys->LoadChannelMap(value);
+        else QwError << "Map defined without subsystem!" << QwLog::endl;
+      }
+    }
+
+    // Geometry file definition
+    if (detectors.HasVariablePair("=", key, value)) {
+      if (key == "geom" && value.size() > 0) {
+        if (subsys) subsys->LoadGeometryDefinition(value);
+        else QwError << "Geometry defined without subsystem!" << QwLog::endl;
+      }
+    }
+
+    // Parameter file definition
+    if (detectors.HasVariablePair("=", key, value)) {
+      if (key == "param" && value.size() > 0) {
+        if (subsys) subsys->LoadInputParameters(value);
+        else QwError << "Parameters defined without subsystem!" << QwLog::endl;
+      }
+    }
+  }
+}
+
+
+//*****************************************************************
+
+/**
  * Add the subsystem to this array.  Do nothing if the subsystem is null or if
  * there is already a subsystem with that name in the array.
  * @param subsys Subsystem to add to the array

@@ -28,7 +28,7 @@ QwTriggerScintillator::~QwTriggerScintillator(){
 };
 
 
-Int_t QwTriggerScintillator::LoadQweakGeometry ( TString mapfile )
+Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
 {
   std::cout<<"Trigger Scintillator Qweak Geometry Loading..... "<<std::endl;
 

@@ -8,19 +8,21 @@
 #ifndef __QwBEAMLINE__
 #define __QwBEAMLINE__
 
+// System headers
+#include <vector>
 
+// ROOT headers
 #include "TTree.h"
 
+// Qweak headers
 #include "VQwSubsystemParity.h"
-
 #include "QwBPMStripline.h"
 #include "QwBCM.h"
 #include "QwCombinedBCM.h"
 #include "QwCombinedBPM.h"
-#include "QwBlinder.h"
 
-#include <vector>
 
+/// \todo TODO (wdc) EBeamInstrumentType is global in QwBeamLine.cc but could be class local
 enum EBeamInstrumentType{kBPMStripline = 0,
 			 kBCM,
 			 kCombinedBCM,

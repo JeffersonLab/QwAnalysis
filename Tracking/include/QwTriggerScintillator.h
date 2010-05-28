@@ -33,7 +33,7 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
 
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
-  Int_t LoadQweakGeometry(TString mapfile);
+  Int_t LoadGeometryDefinition(TString mapfile);
   Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info) {
     detector_info.insert(detector_info.end(),fDetectorInfo.begin(),fDetectorInfo.end()) ;
     return 1;

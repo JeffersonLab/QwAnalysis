@@ -26,10 +26,10 @@ QwDriftChamberHDC::QwDriftChamberHDC(TString region_tmp):VQwSubsystem(region_tmp
 
 
 
-//LoadQweakGeometry will load QwDetectorInfo vector from a map file
+//LoadGeometryDefinition will load QwDetectorInfo vector from a map file
 //Currently this method is specific to each region
 
-Int_t QwDriftChamberHDC::LoadQweakGeometry(TString mapfile)
+Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
 {
 
   QwMessage << "Region 2 Qweak Geometry Loading..... " << QwLog::endl;

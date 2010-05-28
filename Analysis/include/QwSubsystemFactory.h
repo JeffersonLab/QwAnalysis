@@ -7,7 +7,16 @@
 // Forward declarations
 class VQwSubsystem;
 
-/// Pure virtual subsystem factory
+/**
+ *  \class VQwSubsystemFactory
+ *  \ingroup QwAnalysis
+ *  \brief Pure virtual subsystem factory
+ *
+ * In order to enable the instantiation of subsystems based on run-time
+ * information, we generate a map of subsystem factories by type name.
+ * This map is filled automatically when the executable is loaded, and
+ * contains concrete factories derived from this pure virtual base class.
+ */
 class VQwSubsystemFactory {
   public:
     /// Default virtual destructor
@@ -38,11 +47,23 @@ inline VQwSubsystemFactory* GetSubsystemFactory(const std::string& type) {
     QwError << "Subsystem " << type << " is not registered!" << QwLog::endl;
     QwMessage << "Available subsystems:" << QwLog::endl;
     ListSubsystemFactories();
+    QwMessage << "To register this subsystem, add the following line to the top "
+              << "of the source file:" << QwLog::endl;
+    QwMessage << "  QwSubsystemFactory<" << type << "> the" << type
+              << "Factory(\"" << type << "\");" << QwLog::endl;
     return 0; // this will most likely crash
   }
 };
 
-/// Concrete templated subsystem factory
+/**
+ *  \class QwSubsystemFactory
+ *  \ingroup QwAnalysis
+ *  \brief Concrete templated subsystem factory
+ *
+ * This class represents concrete instances of the virtual VQwSubsystemFactory
+ * from which it inherits.  Each concrete factory can create subsystems with
+ * a given name.
+ */
 template<class subsystem>
 class QwSubsystemFactory: public VQwSubsystemFactory {
   public:

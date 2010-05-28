@@ -42,7 +42,7 @@ class QwVQWK_Channel: public VQwDataElement {
  *         through member functions.
  ******************************************************************/
  public:
-  QwVQWK_Channel() { 
+  QwVQWK_Channel() {
     InitializeChannel("","");
   };
 
@@ -153,6 +153,7 @@ class QwVQWK_Channel: public VQwDataElement {
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
+  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
@@ -186,7 +187,10 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t GetAverageError() { return fHardwareBlockSumError; };
   UInt_t GetGoodEventCount() { return fGoodEventCount; };
 
-  void BlindMe(QwBlinder *blinder);
+  /// \brief Blind this channel as an asymmetry
+  void Blind(const QwBlinder *blinder);
+  /// \brief Blind this channel as a difference
+  void Blind(const QwBlinder *blinder, const QwVQWK_Channel& yield);
 
  protected:
 

@@ -355,18 +355,25 @@ void  QwIntegrationPMT::Copy(VQwDataElement *source)
 }
 
 
-void QwIntegrationPMT::CalculateRunningAverage() {
+void QwIntegrationPMT::CalculateRunningAverage()
+{
   fTriumf_ADC.CalculateRunningAverage();
 };
 
-void QwIntegrationPMT::AccumulateRunningSum(const QwIntegrationPMT& value) {
+void QwIntegrationPMT::AccumulateRunningSum(const QwIntegrationPMT& value)
+{
   fTriumf_ADC.AccumulateRunningSum(value.fTriumf_ADC);
 };
 
-void QwIntegrationPMT::BlindMe(QwBlinder *blinder) {
-  fTriumf_ADC.BlindMe(blinder);
+void QwIntegrationPMT::Blind(const QwBlinder *blinder)
+{
+  fTriumf_ADC.Blind(blinder);
 };
 
+void QwIntegrationPMT::Blind(const QwBlinder *blinder, const QwIntegrationPMT& yield)
+{
+  fTriumf_ADC.Blind(blinder, yield.fTriumf_ADC);
+};
 
 
 std::vector<QwDBInterface> QwIntegrationPMT::GetDBEntry()

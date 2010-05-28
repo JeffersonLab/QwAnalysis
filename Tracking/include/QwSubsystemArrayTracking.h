@@ -17,17 +17,17 @@
 ///
 /// \ingroup QwTracking
 class QwSubsystemArrayTracking:  public QwSubsystemArray {
+  public:
 
- public:
-  QwSubsystemArrayTracking() {};
-  ~QwSubsystemArrayTracking(){};
+    QwSubsystemArrayTracking(): QwSubsystemArray() { };
+    QwSubsystemArrayTracking(const char* filename): QwSubsystemArray(filename) { };
+    virtual ~QwSubsystemArrayTracking() { };
 
-  // This will update the hit list from each subsystem
-  void GetHitList(QwHitContainer & grandHitList);
-  void GetHitList(QwHitContainer * grandHitList);
+    // This will update the hit list from each subsystem
+    void GetHitList(QwHitContainer & grandHitList);
+    void GetHitList(QwHitContainer * grandHitList);
 
-  VQwSubsystemTracking* GetSubsystem(const TString name);
-
+    VQwSubsystemTracking* GetSubsystem(const TString name);
 };
 
 
