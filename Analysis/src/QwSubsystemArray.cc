@@ -12,8 +12,7 @@
 
 // Qweak headers
 #include "QwLog.h"
-#include "QwHistogramHelper.h"
-
+#include "QwParameterFile.h"
 
 //*****************************************************************
 

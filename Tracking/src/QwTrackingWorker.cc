@@ -343,12 +343,13 @@ void QwTrackingWorker::InitTree()
           /// Set up the filename with the following format
           ///   tree[numlayers]-[levels]-[u|l]-[1|2|3]-[d|g|t|c]-[n|u|v|x|y].tre
           std::stringstream filename;
-          filename << "tree" << numlayers
-                      << "-" << levels
-                      << "-" << "0ud"[package]
-                      << "-" << "0123TCS"[region]
-                      << "-" << "0hvgtc"[type]
-                      << "-" << "0xyuvrq"[direction] << ".tre";
+          filename << getenv_safe_string("QW_SEARCHTREE")
+                   << "/tree" << numlayers
+                       << "-" << levels
+                       << "-" << "0ud"[package]
+                       << "-" << "0123TCS"[region]
+                       << "-" << "0hvgtc"[type]
+                       << "-" << "0xyuvrq"[direction] << ".tre";
           QwDebug << "Tree filename: " << filename.str() << QwLog::endl;
 
           /// Each element of fSearchTree will point to a pattern database

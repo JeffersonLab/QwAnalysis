@@ -50,7 +50,7 @@ QwOptions::QwOptions()
   // Declare the default options
   AddDefaultOptions()("usage",  "print this help message");
   AddDefaultOptions()("help,h", "print this help message");
-  AddDefaultOptions()("config,c", po::value<string>(), "configuration file to read");
+  AddDefaultOptions()("config,c", po::value<std::string>(), "configuration file to read");
 
 }
 
@@ -159,8 +159,8 @@ void QwOptions::ParseCommandLine()
   // If a configuration file is specified, load it.
   if (fVariablesMap.count("config") > 0) {
     QwWarning << "Using configuration file "
-              << fVariablesMap["config"].as<string>() << QwLog::endl;
-    SetConfigFile(fVariablesMap["config"].as<string>());
+              << fVariablesMap["config"].as<std::string>() << QwLog::endl;
+    SetConfigFile(fVariablesMap["config"].as<std::string>());
   }
 }
 
@@ -231,7 +231,7 @@ void QwOptions::Usage()
  * @param key Option key
  * @return Pair of integers
  */
-std::pair<int,int> QwOptions::GetIntValuePair(string key)
+std::pair<int,int> QwOptions::GetIntValuePair(std::string key)
 {
   std::pair<int, int> mypair;
   mypair.first = 0;
@@ -239,14 +239,14 @@ std::pair<int,int> QwOptions::GetIntValuePair(string key)
 
   if (fParsed == false) Parse();
   if (fVariablesMap.count(key)) {
-    string range = fVariablesMap[key].as<string>();
+    std::string range = fVariablesMap[key].as<std::string>();
     mypair = ParseIntRange(range);
   }
 
   return mypair;
 }
 
-std::pair<int, int> QwOptions::ParseIntRange(string range)
+std::pair<int, int> QwOptions::ParseIntRange(std::string range)
 {
   /** @brief Separates a colon separated range of integers into a pair of values
    *

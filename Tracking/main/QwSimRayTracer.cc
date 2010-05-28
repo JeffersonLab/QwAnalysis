@@ -51,8 +51,8 @@ int main (int argc, char* argv[])
   // Define the command line options
   DefineOptionsTracking(gQwOptions);
 
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH") + "/setupfiles");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Tracking/prminput");
 
   /// For the tracking analysis we create the QwSubsystemArrayTracking list
   /// which contains the VQwSubsystemTracking objects.
@@ -86,10 +86,10 @@ int main (int argc, char* argv[])
   QwMatrixLookup* matrixlookup = new QwMatrixLookup();
   // Determine lookup table file from environment variables
   std::string trajmatrix = "";
-  if (getenv("QW_LOOKUP_DIR") && getenv("QW_LOOKUP_FILE"))
-    trajmatrix = std::string(getenv("QW_LOOKUP_DIR")) + "/" + std::string(getenv("QW_LOOKUP_FILE"));
+  if (getenv("QW_LOOKUP"))
+    trajmatrix = std::string(getenv("QW_LOOKUP")) + "/QwTrajMatrix.root";
   else
-    QwWarning << "Environment variable QW_LOOKUP_DIR and/or QW_LOOKUP_FILE not defined." << QwLog::endl;
+    QwWarning << "Environment variable QW_LOOKUP not defined." << QwLog::endl;
   // Load lookup table
   if (! matrixlookup->LoadTrajMatrix(trajmatrix))
     QwError << "Could not load trajectory lookup table!" << QwLog::endl;
@@ -98,10 +98,10 @@ int main (int argc, char* argv[])
   QwRayTracer* raytracer = new QwRayTracer();
   // Determine magnetic field file from environment variables
   std::string fieldmap = "";
-  if (getenv("QW_FIELDMAP_DIR") && getenv("QW_FIELDMAP_FILE"))
-    fieldmap = std::string(getenv("QW_FIELDMAP_DIR")) + "/" + std::string(getenv("QW_FIELDMAP_FILE"));
+  if (getenv("QW_FIELDMAP"))
+    fieldmap = std::string(getenv("QW_FIELDMAP")) + "/peiqing_2007.dat";
   else
-    QwWarning << "Environment variable QW_FIELDMAP_DIR and/or QW_FIELDMAP_FILE not defined." << QwLog::endl;
+    QwWarning << "Environment variable QW_FIELDMAP not defined." << QwLog::endl;
   // Load magnetic field map
   if (! QwRayTracer::LoadMagneticFieldMap(fieldmap))
     QwError << "Could not load magnetic field map!" << QwLog::endl;
@@ -113,7 +113,7 @@ int main (int argc, char* argv[])
               runnumber++) {
 
     // Setup the output file for bridgingresults
-    TString outputfilename = Form(TString(getenv("QWSCRATCH")) + "/rootfiles/QwSimBridge_%d.root", runnumber);
+    TString outputfilename = Form(getenv_safe_TString("QWSCRATCH") + "/rootfiles/QwSimBridge_%d.root", runnumber);
     TFile *file = new TFile(outputfilename, "RECREATE", "Bridging result");
     file->cd();
     TTree *tree = new TTree("tree", "Bridging");
@@ -124,7 +124,7 @@ int main (int argc, char* argv[])
     tree->Branch("events", "QwEvent", &event);
 
     /// Load the simulated event file
-    TString input = Form(TString(getenv("QWSCRATCH")) + "/data/QwSim_%d.root", runnumber);
+    TString input = Form(getenv_safe_TString("QWSCRATCH") + "/data/QwSim_%d.root", runnumber);
     QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (input, detector_info);
 
 

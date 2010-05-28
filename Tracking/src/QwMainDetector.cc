@@ -7,6 +7,10 @@
 
 #include "QwMainDetector.h"
 
+// Qweak headers
+#include "QwParameterFile.h"
+
+
 const UInt_t QwMainDetector::kMaxNumberOfModulesPerROC     = 21;
 const UInt_t QwMainDetector::kMaxNumberOfChannelsPerModule = 32;
 

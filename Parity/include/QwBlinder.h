@@ -72,12 +72,14 @@ class QwBlinder {
     /// \brief Constructor with default seed string and without database
     QwBlinder(const TString& seed, const EQwBlindingStrategy blinding_strategy = kAdditive);
     /// \brief Constructor with database
-    QwBlinder(QwDatabase* sql, const UInt_t seed_id, const EQwBlindingStrategy blinding_strategy = kAdditive);
+    QwBlinder(QwDatabase* db, const UInt_t seed_id, const EQwBlindingStrategy blinding_strategy = kAdditive);
     /// \brief Default destructor
     virtual ~QwBlinder();
 
-    void  WriteFinalValuesToDB();
+    void  WriteFinalValuesToDB(QwDatabase* db);
     void  PrintFinalValues();
+
+    /// Write to the database
     void FillDB(QwDatabase *db, TString datatype);
 
     /// Asymmetry blinding
@@ -164,34 +166,37 @@ class QwBlinder {
     static const Double_t kMaximumBlindingAsymmetry; /// Maximum blinding asymmetry (in ppm)
     static const Double_t kMaximumBlindingFactor;    /// Maximum blinding factor (in % from identity)
 
-    QwDatabase* fSQL;    /// Store pointer to SQL object
     UInt_t fSeedID;      /// Database ID of seed used to generate this blinding factor (seeds.seed_id)
-    TString fSeed;       /// RNG seed string
+    TString fSeed;       /// RNG seed string (seeds.seed)
 
-    vector<UChar_t>  fDigest;         /// Checksum in raw hex
-    string           fChecksum;       /// Checksum in ASCII hex
+    std::vector<UChar_t> fDigest;         /// Checksum in raw hex
+    std::string          fChecksum;       /// Checksum in ASCII hex
 
     UInt_t fMaxTests;                   /// Maximum number of test values
-    vector<UInt_t>   fTestNumber;       /// Vector of test numbers (IDs)
-    vector<Double_t> fTestValue;        /// Vector of test values, original
-    vector<Double_t> fBlindTestValue;   /// Vector of test values, after blinding
-    vector<Double_t> fUnBlindTestValue; /// Vector of test values, after unblinding
+    std::vector<UInt_t>   fTestNumber;       /// Vector of test numbers (IDs)
+    std::vector<Double_t> fTestValue;        /// Vector of test values, original
+    std::vector<Double_t> fBlindTestValue;   /// Vector of test values, after blinding
+    std::vector<Double_t> fUnBlindTestValue; /// Vector of test values, after unblinding
 
     void InitBlinders();                              /// Initializes fBlindingFactor from fSeed.
-    void SetTestValues(const TString &barestring);    /// Initializes the test values, fTestNumber, fTestValue,
+    void SetTestValues(const TString &barestring);    /// Initializes the test values: fTestNumber, fTestValue,
                                                       /// fBlindTestValue, if fBlindingFactor is set.
+
     Int_t UseMD5(const TString &barestring);          /// Returns an integer from a string using MD5
     Int_t UseStringManip(const TString &barestring);  /// Returns an integer from a string using
                                                       /// a character manipulation algorithm
     Int_t UsePseudorandom(const TString &barestring); /// Returns an integer from a string using
                                                       /// a version of the helicity bit pseudorandom algorithm.
 
-    Int_t ReadSeed();         ///  Reads fSeed from the fSQL object based on fSeedID
-    void WriteChecksum();     ///  Writes fSeedID and fBFChecksum to fSQL for this analysis ID
-    void WriteTestValues();   ///  Writes fTestNumber and fBlindTestValue to fSQL for this analysis ID
-    Bool_t CheckTestValues(); ///  Recomputes fBlindTestValue to check for memory errors
+    ///  Reads fSeed from the fSQL object based on fSeedID
+    Int_t ReadSeed(QwDatabase* db, const UInt_t seed_id);
 
-    vector<UChar_t> GenerateDigest(const char* input);
+    void WriteChecksum(QwDatabase* db);     ///  Writes fSeedID and fBFChecksum to DB for this analysis ID
+    void WriteTestValues(QwDatabase* db);   ///  Writes fTestNumber and fBlindTestValue to DB for this analysis ID
+    Bool_t CheckTestValues();               ///  Recomputes fBlindTestValue to check for memory errors
+
+    std::vector<UChar_t> GenerateDigest(const char* input);
+
 };
 
 #endif

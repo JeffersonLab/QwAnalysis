@@ -49,8 +49,8 @@ main(Int_t argc, Char_t* argv[])
   ///  variable within the QwParameterFile class which will be used by
   ///  all instances.
   ///  The "scratch" directory should be first.
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QW_PRMINPUT")));
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS")+"/Parity/prminput");
 
 
   ///
@@ -138,11 +138,11 @@ main(Int_t argc, Char_t* argv[])
       QwEvt.ResetControlParameters();
       //  Open the data files and root file
       //    OpenAllFiles(io, run);
-      //      TString rootfilename = Form("%s/Qweak_BeamLine_%d.root", getenv("QW_ROOTFILES_DIR"), run);
+      //      TString rootfilename = Form("%s/Qweak_BeamLine_%d.root", getenv_safe("QW_ROOTFILES"), run);
 
 
-//       TString rootfilename=std::string(getenv("QW_ROOTFILES"))+Form("/Qweak_BeamLine_%s.root",  QwEvt.GetRunLabel().Data());
-      TString rootfilename=std::string(getenv("QW_ROOTFILES"))+Form("/Qweak_%s.root",  QwEvt.GetRunLabel().Data());
+//       TString rootfilename= getenv_safe_TString("QW_ROOTFILES") + Form("/Qweak_BeamLine_%s.root",  QwEvt.GetRunLabel().Data());
+      TString rootfilename = getenv_safe_TString("QW_ROOTFILES") + Form("/Qweak_%s.root",  QwEvt.GetRunLabel().Data());
 
       std::cout<<" rootfilename="<<rootfilename<<"\n";
       TFile rootfile(rootfilename,"RECREATE","QWeak ROOT file");
@@ -361,7 +361,7 @@ main(Int_t argc, Char_t* argv[])
 	QwMessage << "GetLumiDetectorID(dlumi8) = " << qw_test_DB.GetLumiDetectorID("dlumi8") << QwLog::endl;
 	QwMessage << "GetLumiDetectorID(ulumi8) = " << qw_test_DB.GetLumiDetectorID("ulumi8") << QwLog::endl;
 	QwMessage << "GetVersion() = " << qw_test_DB.GetVersion() << QwLog::endl;
-	
+
 	// GetRunID(), GetRunletID(), and GetAnalysisID have their own Connect() and Disconnect() functions.
 	run_id      = qw_test_DB.GetRunID(QwEvt);
 	runlet_id   = qw_test_DB.GetRunletID(QwEvt);

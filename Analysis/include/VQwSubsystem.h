@@ -16,8 +16,9 @@
 #include <TDirectory.h>
 
 // Qweak headers
+// Note: the subsystem factory header is included here because every subsystem
+// has to register itself with a subsystem factory.
 #include "QwSubsystemFactory.h"
-#include "QwParameterFile.h"
 
 // Forward declarations
 class QwSubsystemArray;

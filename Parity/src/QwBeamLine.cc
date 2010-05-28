@@ -1352,7 +1352,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
   }
 
   vector<QwDBInterface> interface;
-  vector<QwParityDB::beam> entrylist;
+  std::vector<QwParityDB::beam> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();
 
@@ -1362,13 +1362,13 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
   Char_t measurement_type[4];
 
   if(datatype.Contains("yield")) {
-    sprintf(measurement_type, yield_type.Data());
+    sprintf(measurement_type, "%s", yield_type.Data());
   }
   else if (datatype.Contains("asymmetry")) {
-    sprintf(measurement_type, asymm_type.Data());
+    sprintf(measurement_type, "%s", asymm_type.Data());
   }
   else {
-    sprintf(measurement_type, " ");
+    sprintf(measurement_type, "%s", " ");
   }
 
 

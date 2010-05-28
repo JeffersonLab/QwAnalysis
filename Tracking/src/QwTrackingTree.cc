@@ -1014,20 +1014,13 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
   Double_t width = 0.0;
   int32_t  num   =   0;
 
-  // Check whether the tree directory exists
-  bfs::path scratchdir(std::string(getenv("QWSCRATCH")));
-  bfs::path treepath(scratchdir / bfs::path(fgTreeDir));
-  bfs::path fullfilename;
-
-  if (! bfs::exists(treepath) || ! bfs::is_directory(treepath)) {
-    QwWarning << "Could not find tree directory." << QwLog::endl
-              << "tree directory = " << treepath.string() << QwLog::endl;
-    treepath = bfs::path(".");
-    QwMessage << "Falling back to local directory for tree files..." << QwLog::endl
-              << "tree directory = " << treepath.string() << QwLog::endl;
+  // Construct full path to tree file
+  bfs::path fullfilename = bfs::path(filename);
+  if (! bfs::exists(fullfilename)) {
+    QwWarning << "Could not find tree file." << QwLog::endl
+              << "full file name = " << fullfilename.string() << QwLog::endl;
+    return 0;
   }
-  // Construct full path and file name
-  fullfilename = treepath / bfs::path(filename);
 
 
   fRef = 0;
@@ -1039,7 +1032,7 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
   file = fopen(fullfilename.string().c_str(), "rb");
   if (! file) {
     QwWarning << "Tree file not found.  Rebuilding..." << QwLog::endl
-              << "tree file = " << fullfilename.string() << QwLog::endl;
+              << "full file name = " << fullfilename.string() << QwLog::endl;
     return 0;
   }
 
@@ -1047,7 +1040,7 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
   if (fread(&num,   sizeof(num),   1L, file) < 1 ||
       fread(&width, sizeof(width), 1L, file) < 1 ) {
     QwWarning << "Tree file appears invalid.  Rebuilding..." << QwLog::endl
-              << "tree file = " << fullfilename.string() << QwLog::endl;
+              << "full file name = " << fullfilename.string() << QwLog::endl;
     fclose(file);
     return 0;
   }
@@ -1064,7 +1057,7 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
     delete [] stb; stb = 0;
     delete trr; trr = 0;
     QwWarning << "Tree file appears invalid.  Rebuilding..." << QwLog::endl
-              << "tree file = " << fullfilename.string() << QwLog::endl;
+              << "full file name = " << fullfilename.string() << QwLog::endl;
     fclose(file);
     return 0;
   }
@@ -1244,35 +1237,15 @@ long QwTrackingTree::writetree (
 	int tlayers,
 	double width)
 {
-  // Ensure that the tree directory is created correctly
-  bfs::path scratchdir(std::string(getenv("QWSCRATCH")));
-  if (! bfs::exists(scratchdir)) {
-    QwError << "QWSCRATCH directory does not exist!" << QwLog::endl
-            << "QWSCRATCH = " << scratchdir.string() << QwLog::endl;
-    exit(1);
-  }
-  bfs::path treepath(scratchdir / bfs::path(fgTreeDir));
-  if (! bfs::exists(treepath)) {
-    bfs::create_directory(treepath);
-    QwDebug << "Created tree directory." << QwLog::endl;
-    QwDebug << "tree directory = " << treepath.string() << QwLog::endl;
-  }
-  if (! bfs::exists(treepath) || ! bfs::is_directory(treepath)) {
-    QwWarning << "Could not create tree directory!" << QwLog::endl
-              << "tree directory = " << treepath.string() << QwLog::endl;
-    treepath = bfs::path(".");
-    QwWarning << "Falling back to local directory for tree files..." << QwLog::endl
-              << "tree directory = " << treepath.string() << QwLog::endl;
-  }
-  // Construct full path and file name
-  bfs::path fullfilename = treepath / bfs::path(filename);
+  // Construct full file name
+  bfs::path fullfilename = bfs::path(filename);
 
   // Open the output stream
   FILE *file = fopen(fullfilename.string().c_str(), "wb");
   fRef = 0;
   if (!file) {
     QwWarning << "Could not open tree file.  Rebuilding..." << QwLog::endl
-              << "tree file = " << filename << QwLog::endl;
+              << "full file name = " << fullfilename.string() << QwLog::endl;
     return 0;
   }
 

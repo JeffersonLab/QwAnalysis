@@ -70,8 +70,8 @@ int main (int argc, char* argv[])
   gQwLog.SetScreenColor(gQwOptions.GetValue<bool>("QwLog.color"));
 
   /// We fill the search paths for the parameter files.
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH")+"/setupfiles");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS")+"/Tracking/prminput");
 
 
   /// For the tracking analysis we create the QwSubsystemArrayTracking list
@@ -94,7 +94,7 @@ int main (int argc, char* argv[])
 
   // Load the geometry
   Qset qset;
-  qset.FillDetectors((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.geo").c_str());
+  qset.FillDetectors((getenv_safe_string("QWANALYSIS")+"/Tracking/prminput/qweak.geo").c_str());
   qset.LinkDetectors();
   qset.DeterminePlanes();
   std::cout << "[QwTracking::main] Geometry loaded" << std::endl; // R3,R2
@@ -112,7 +112,7 @@ int main (int argc, char* argv[])
               runnumber++) {
 
     // Load the simulated event file
-    TString filename = Form(TString(getenv("QWSCRATCH")) + "/data/QwSim_%d.root", runnumber);
+    TString filename = Form(getenv_safe_TString("QWSCRATCH") + "/data/QwSim_%d.root", runnumber);
     QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (filename, detector_info);
 
     // Open ROOT file
@@ -121,7 +121,7 @@ int main (int argc, char* argv[])
     QwEvent* event = new QwEvent();
     QwHitRootContainer* roothitlist = new QwHitRootContainer();
     if (kHisto || kTree) {
-      file = new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/QwSim_%d.root", runnumber),
+      file = new TFile(Form(getenv_safe_TString("QWSCRATCH") + "/rootfiles/QwSim_%d.root", runnumber),
                        "RECREATE",
                        "QWeak ROOT file with simulated event");
       file->cd();

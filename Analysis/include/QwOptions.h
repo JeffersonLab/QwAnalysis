@@ -12,25 +12,33 @@
 // System headers
 #include <iostream>
 #include <string>
-using std::string;
 #include <vector>
-using std::vector;
 
 // Boost headers
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
+// ROOT headers
+#include <TString.h>
+
 // Qweak headers
 #include "QwLog.h"
 
-// Helper function for safe environment variable parsing
-inline const std::string getenv_safe (const char* name) {
+// Helper functions for safe environment variable parsing
+inline const char* getenv_safe (const char* name) {
  if (getenv(name))
-   return std::string(getenv(name));
+   return getenv(name);
  else {
-   QwWarning << "Environment variable " << name << " undefined!" << QwLog::endl;
-   return std::string(".");
+   QwError << "Environment variable " << name << " undefined!" << QwLog::endl;
+   QwWarning << "Using current directory instead." << QwLog::endl;
+   return ".";
  }
+}
+inline const std::string getenv_safe_string (const char* name) {
+ return std::string(getenv(name));
+}
+inline const TString getenv_safe_TString (const char* name) {
+ return TString(getenv(name));
 }
 
 /**
@@ -116,11 +124,11 @@ class QwOptions {
       SetCommandLine(argc, argv);
     };
     /// \brief Constructor with configuration file
-    QwOptions(string configfile) {
+    QwOptions(std::string configfile) {
       SetConfigFile(configfile);
     };
     /// \brief Constructor with command line arguments and configuration file
-    QwOptions(int argc, char* argv[], string configfile) {
+    QwOptions(int argc, char* argv[], std::string configfile) {
       SetCommandLine(argc, argv);
       SetConfigFile(configfile);
     };
@@ -151,20 +159,20 @@ class QwOptions {
     void SetCommandLine(int argc, char* argv[]);
 
     /// \brief Set a configuration file
-    void SetConfigFile(string configfile) {
+    void SetConfigFile(std::string configfile) {
       fConfigFiles.clear();
       fConfigFiles.push_back(configfile);
       fParsed = false;
     };
 
     /// \brief Add a configuration file
-    void AddConfigFile(string configfile) {
+    void AddConfigFile(std::string configfile) {
       fConfigFiles.push_back(configfile);
       fParsed = false;
     };
 
     /// \brief Add some configuration files
-    void AddConfigFile(vector<string> configfiles) {
+    void AddConfigFile(std::vector<std::string> configfiles) {
       for (size_t i = 0; i < configfiles.size(); i++)
         fConfigFiles.push_back(configfiles.at(i));
       fParsed = false;
@@ -188,14 +196,14 @@ class QwOptions {
 
 
     /// \brief Has this key been defined
-    bool HasValue(string key) {
+    bool HasValue(std::string key) {
       if (fParsed == false) Parse();
       return (fVariablesMap.count(key) > 0);
     };
 
     /// \brief Get a templated value
     template < class T >
-    T GetValue(const string key) {
+    T GetValue(const std::string key) {
       if (fParsed == false) Parse();
       if (fVariablesMap.count(key)) {
         QwVerbose << "Option " << key << ": "
@@ -238,7 +246,7 @@ class QwOptions {
     std::pair<int, int> ParseIntRange(string range);
 
     /// \brief Configuration file
-    vector<string> fConfigFiles;
+    std::vector<std::string> fConfigFiles;
 
     /** \brief Command line arguments
      *
@@ -250,7 +258,7 @@ class QwOptions {
     static char** fArgv;
 
     // Vector with option blocks
-    vector<po::options_description> fOptions;
+    std::vector<po::options_description> fOptions;
     // Options descriptions grouped by function
     static po::options_description fDefaultOptions;
     static po::options_description fSpecialOptions;

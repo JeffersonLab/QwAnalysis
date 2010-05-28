@@ -7,6 +7,9 @@
 
 #include "QwTriggerScintillator.h"
 
+// Qweak headers
+#include "QwParameterFile.h"
+
 const UInt_t QwTriggerScintillator::kMaxNumberOfModulesPerROC     = 21;
 const UInt_t QwTriggerScintillator::kMaxNumberOfChannelsPerModule = 32;
 

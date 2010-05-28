@@ -16,7 +16,6 @@
 #include "TRandom3.h"
 
 #include "VQwDataElement.h"
-#include "QwHistogramHelper.h"
 
 
 

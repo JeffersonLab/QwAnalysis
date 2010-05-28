@@ -16,10 +16,10 @@
 QwTrackingAnalyzer::QwTrackingAnalyzer (const char* name) : VQwAnalyzer (name)
 {
   // Read geometry
-  fGeometry.FillDetec((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.geo").c_str());
+  fGeometry.FillDetec((getenv_safe_string("QWANALYSIS") + "/Tracking/prminput/qweak.geo").c_str());
 
   // Read options
-  fOptions.Get((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.options").c_str());
+  fOptions.Get((getenv_safe_string("QWANALYSIS") + "/Tracking/prminput/qweak.options").c_str());
 
   // Create the tracking worker
   fTrackingWorker = new QwTrackingWorker("trackingworker");

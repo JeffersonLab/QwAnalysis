@@ -62,7 +62,7 @@ template void QwDBInterface::AddThisEntryToList<QwParityDB::beam>(std::vector<Qw
 std::map<string, unsigned int> QwDatabase::fMonitorIDs;
 std::map<string, unsigned int> QwDatabase::fMainDetectorIDs;
 std::map<string, unsigned int> QwDatabase::fLumiDetectorIDs;
-std::vector<string>            QwDatabase::fMeasurementIDs; 
+std::vector<string>            QwDatabase::fMeasurementIDs;
 std::map<string, unsigned int> QwDatabase::fSlowControlDetectorIDs;
 
 /*! The simple constructor initializes member fields.  This class is not
@@ -77,7 +77,7 @@ QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersion
   fVersionMajor=fVersionMinor=fVersionPoint="";
 
   fAccessLevel = kQwDatabaseOff;
- 
+
   fDBPortNumber      = 0;
   fValidConnection   = false;
   fRunNumber         = 0;
@@ -98,7 +98,7 @@ QwDatabase::QwDatabase(QwOptions &options) : Connection(), kValidVersionMajor("0
   fVersionMajor=fVersionMinor=fVersionPoint="";
 
   fAccessLevel = kQwDatabaseOff;
- 
+
   fDBPortNumber      = 0;
   fValidConnection   = false;
   fRunNumber         = 0;
@@ -168,7 +168,7 @@ Bool_t QwDatabase::ValidateConnection()
       QwError << "Exiting." << QwLog::endl;
       exit(1);
     }
-  
+
     // Get database schema version information
     if (StoreDBVersion()) {
       fValidConnection=true;
@@ -293,7 +293,7 @@ void QwDatabase::SetAccessLevel(string accesslevel)
   else if (level=="rw") fAccessLevel = kQwDatabaseReadWrite;
   else{
     QwWarning << "QwDatabase::SetAccessLevel  : Unrecognized access level \""
-	      << accesslevel << "\"; setting database access OFF" 
+	      << accesslevel << "\"; setting database access OFF"
 	      << QwLog::endl;
     fAccessLevel = kQwDatabaseOff;
   }
@@ -316,7 +316,7 @@ bool QwDatabase::SetRunNumber(const UInt_t runnum)
 
     mysqlpp::Query query= this->Query();
     query << "SELECT * FROM run WHERE run_number = " << runnum;
-    vector<run> res;
+    std::vector<run> res;
     query.storein(res);
 
     QwDebug << "Number of rows returned:  " << res.size() << QwLog::endl;
@@ -349,20 +349,20 @@ bool QwDatabase::SetRunNumber(const UInt_t runnum)
  */
 const UInt_t QwDatabase::SetRunID(QwEventBuffer& qwevt)
 {
- 
-  // Check to see if run is already in database.  If so retrieve run ID and exit.  
-  try 
+
+  // Check to see if run is already in database.  If so retrieve run ID and exit.
+  try
     {
       this->Connect();
       mysqlpp::Query query = this->Query();
 
       query << "SELECT * FROM run WHERE run_number = " << qwevt.GetRunNumber();
-      vector<run> res;
+      std::vector<run> res;
       query.storein(res);
       QwDebug << "QwDatabase::SetRunID => Number of rows returned:  " << res.size() << QwLog::endl;
 
       // If there is more than one run in the DB with the same run number, then there will be trouble later on.  Catch and bomb out.
-      if (res.size()>1) 
+      if (res.size()>1)
 	{
 	  QwError << "Unable to find unique run number " << qwevt.GetRunNumber() << " in database." << QwLog::endl;
 	  QwError << "Run number query returned " << res.size() << "rows." << QwLog::endl;
@@ -370,12 +370,12 @@ const UInt_t QwDatabase::SetRunID(QwEventBuffer& qwevt)
 	  this->Disconnect();
 	  return 0;
 	}
-      
+
       // Run already exists in database.  Pull run_id and move along.
-      if (res.size()==1) 
+      if (res.size()==1)
 	{
 	  QwDebug << "QwDatabase::SetRunID => Run ID = " << res.at(0).run_id << QwLog::endl;
-	  
+
 	  fRunNumber = qwevt.GetRunNumber();
 	  fRunID     = res.at(0).run_id;
 	  this->Disconnect();
@@ -383,9 +383,9 @@ const UInt_t QwDatabase::SetRunID(QwEventBuffer& qwevt)
 	}
       this->Disconnect();
     }
-  catch (const mysqlpp::Exception& er) 
+  catch (const mysqlpp::Exception& er)
     {
-   
+
       QwError << er.what() << QwLog::endl;
       this->Disconnect();
       return 0;
@@ -393,9 +393,9 @@ const UInt_t QwDatabase::SetRunID(QwEventBuffer& qwevt)
 
   // Run is not in database so insert pertinent data and retrieve run ID
   // Right now this does not insert start/stop times or info on number of events.
-  try 
+  try
     {
-      
+
       this->Connect();
       run row(0);
       row.run_number      = qwevt.GetRunNumber();
@@ -410,10 +410,10 @@ const UInt_t QwDatabase::SetRunID(QwEventBuffer& qwevt)
         mysqlpp::Query query=this->Query();
         query.insert(row);
        QwDebug<< "QwDatabase::SetRunID() => Run Insert Query = " << query.str() << QwLog::endl;
-      
+
       query.execute();
 
-      if (query.insert_id()!=0) 
+      if (query.insert_id()!=0)
 	{
 	  fRunNumber = qwevt.GetRunNumber();
 	  fRunID     = query.insert_id();
@@ -421,13 +421,13 @@ const UInt_t QwDatabase::SetRunID(QwEventBuffer& qwevt)
       this->Disconnect();
       return fRunID;
     }
-  catch (const mysqlpp::Exception& er) 
+  catch (const mysqlpp::Exception& er)
     {
       QwError << er.what() << QwLog::endl;
       this->Disconnect();
       return 0;
     }
-  
+
 }
 
 /*!
@@ -435,9 +435,9 @@ const UInt_t QwDatabase::SetRunID(QwEventBuffer& qwevt)
  */
 const UInt_t QwDatabase::GetRunID(QwEventBuffer& qwevt)
 {
-  // If the stored run number does not agree with the CODA run number 
+  // If the stored run number does not agree with the CODA run number
   // or if fRunID is not set, then retrieve data from database and update if necessary.
-  
+
   if (fRunID == 0 || fRunNumber != qwevt.GetRunNumber() ) {
      QwDebug << "QwDatabase::GetRunID() set fRunID to " << SetRunID(qwevt) << QwLog::endl;
   }
@@ -569,7 +569,7 @@ const UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
 {
   try {
 
- 
+
 
     analysis analysis_row(0);
 
@@ -581,7 +581,7 @@ const UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
     std::pair<UInt_t, UInt_t> event_range;
     event_range = qwevt.GetEventRange();
 
-    analysis_row.time        = mysqlpp::DateTime::now(); 
+    analysis_row.time        = mysqlpp::DateTime::now();
     analysis_row.bf_checksum = "empty"; // we will match this as a real one later
     analysis_row.beam_mode   = "nbm";   // we will match this as a real one later
     analysis_row.n_mps       = 0;       // we will match this as a real one later
@@ -591,7 +591,7 @@ const UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
     analysis_row.segment     = 0;       // we will match this as a real one later
     analysis_row.slope_calculation = "off";  // we will match this as a real one later
     analysis_row.slope_correction  = "off"; // we will match this as a real one later
- 
+
 
     this->Connect();
     mysqlpp::Query query= this->Query();
@@ -600,12 +600,12 @@ const UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
     std::cout << "QwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << std::endl;
 
     query.execute();
-    
-    if (query.insert_id()!=0) 
+
+    if (query.insert_id()!=0)
       {
 	fAnalysisID = query.insert_id();
       }
-    
+
     this->Disconnect();
     return fAnalysisID;
   }
@@ -820,7 +820,7 @@ void QwDatabase::StoreLumiDetectorIDs()
 
   try {
     this->Connect();
-    
+
     mysqlpp::Query query=this->Query();
     query.for_each(lumi_detector(), StoreLumiDetectorID());
 
@@ -860,7 +860,7 @@ void QwDatabase::StoreMeasurementIDs()
 
   try {
     this->Connect();
-    
+
     mysqlpp::Query query=this->Query();
     query.for_each(measurement_type(), StoreMeasurementID());
 
@@ -893,17 +893,17 @@ const string QwDatabase::GetValidVersion(){
  */
 const bool QwDatabase::StoreDBVersion()
 {
-  try 
+  try
     {
       mysqlpp::Query query = this->Query();
-      
+
       query << "SELECT * FROM db_schema";
-      vector<db_schema> res;
+      std::vector<db_schema> res;
       query.storein(res);
       QwDebug << "QwDatabase::StoreDBVersion => Number of rows returned:  " << res.size() << QwLog::endl;
-      
+
       // If there is more than one run in the DB with the same run number, then there will be trouble later on.  Catch and bomb out.
-      if (res.size()>1) 
+      if (res.size()>1)
 	{
 	  QwError << "Unable to find unique schema version in database." << QwLog::endl;
 	  QwError << "Schema query returned " << res.size() << "rows." << QwLog::endl;
@@ -911,19 +911,19 @@ const bool QwDatabase::StoreDBVersion()
 	  this->Disconnect();
 	  return false;
 	}
-      
+
       // Run already exists in database.  Pull run_id and move along.
-      if (res.size()==1) 
+      if (res.size()==1)
 	{
 	  QwDebug << "QwDatabase::StoreDBVersion => db_schema_id = " << res.at(0).db_schema_id << QwLog::endl;
-	  
+
 	  fVersionMajor=res.at(0).major_release_number;
 	  fVersionMinor=res.at(0).minor_release_number;
 	  fVersionPoint=res.at(0).point_release_number;
 	  this->Disconnect();
 	}
     }
-  catch (const mysqlpp::Exception& er) 
+  catch (const mysqlpp::Exception& er)
     {
       QwError << er.what() << QwLog::endl;
       disconnect();

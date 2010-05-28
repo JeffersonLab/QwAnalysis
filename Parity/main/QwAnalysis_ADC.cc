@@ -73,9 +73,9 @@ int main(Int_t argc,Char_t* argv[]) {
     ///  variable within the QwParameterFile class which will be used by
     ///  all instances.
     ///  The "scratch" directory should be first.
-    QwParameterFile::AppendToSearchPath(std::string(getenv("QW_PRMINPUT")));
-    QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
-    QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Analysis/prminput");
+    QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+    QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS")+"/Parity/prminput");
+    QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
     ///
     ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
@@ -165,7 +165,7 @@ int main(Int_t argc,Char_t* argv[]) {
         //  Open the data files and root file
         //    OpenAllFiles(io, run);
 
-        TString rootfilename=std::string(getenv("QW_ROOTFILES")) + Form("/Qweak_ADC_%s.root",eventbuffer.GetRunLabel().Data());
+        TString rootfilename = getenv_safe_TString("QW_ROOTFILES") + Form("/Qweak_ADC_%s.root",eventbuffer.GetRunLabel().Data());
         std::cout<<" rootfilename="<<rootfilename<<"\n";
         TFile rootfile(rootfilename,"RECREATE","QWeak ROOT file");
 
@@ -363,7 +363,7 @@ int main(Int_t argc,Char_t* argv[]) {
            helicity->FillDB(qwdatabase,"");
            helicitypattern->FillDB(qwdatabase);
 
-          blinders->WriteFinalValuesToDB();
+          blinders->WriteFinalValuesToDB(qwdatabase);
           blinders->PrintFinalValues();
        };
 
