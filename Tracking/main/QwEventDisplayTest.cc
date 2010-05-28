@@ -50,8 +50,8 @@ int main (int argc, char* argv[])
   gQwLog.SetScreenColor(gQwOptions.GetValue<bool>("QwLog.color"));
 
   /// Fill the search paths for the parameter files
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH)+"/setupfiles");
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS)+"/Tracking/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH")+"/setupfiles");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS")+"/Tracking/prminput");
 
   // Handle for the list of VQwSubsystemTracking objects
   QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking();
