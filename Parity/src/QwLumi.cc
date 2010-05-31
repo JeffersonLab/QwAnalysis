@@ -789,7 +789,7 @@ void QwLumi::FillDB(QwDatabase *db, TString datatype)
     QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
   }
 
-  vector<QwDBInterface> interface;
+  std::vector<QwDBInterface> interface;
   std::vector<QwParityDB::lumi_data> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();

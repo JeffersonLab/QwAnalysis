@@ -7,14 +7,11 @@
 
 #include <TStyle.h>
 #include <TFile.h>
-#include <cstring>
-#include <fstream>
-#include <sstream>
-#include <stdlib.h>
 
 #include <iostream>
-// using namespace std;
+#include <fstream>
 
+#include "StringManip.h" 
 
 
 /*************************************
@@ -402,7 +399,7 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
 
   //convert the input stream into a stringstream so we can 
   //do manipulation on it just like reading a file
-  stringstream ss(data, stringstream::in | stringstream::out);
+  std::stringstream ss(data, std::stringstream::in | std::stringstream::out);
   while(!ss.eof()){  
     getline(ss,line);
 
@@ -461,7 +458,7 @@ Double_t QwEPICSEvent::GetDataValue (TString tag)
 };
 
 
-vector<TString> QwEPICSEvent::GetDefaultAutogainList()
+std::vector<TString> QwEPICSEvent::GetDefaultAutogainList()
 {
   return fDefaultAutogainList;
 };
@@ -577,7 +574,7 @@ void QwEPICSEvent::PrintAverages()
   std::cout <<"#####  EPICS Event Summary from PrintAverages() #####\n"
        <<"Total number of EPICS events in this run == "
        <<fNumberEPICSEvents <<".\n\n"
-       << setw(20) << setiosflags(ios::left) <<"Name" 
+       << std::setw(20) << std::setiosflags(std::ios::left) <<"Name" 
        <<"\tMean        Sigma       "
        <<"Minimum     Maximum"<<std::endl;
   std::cout << "Non-string EPICS Variables" << std::endl;
@@ -598,16 +595,16 @@ void QwEPICSEvent::PrintAverages()
 	  sigma    = sqrt(variance);
 	}
       
-	std::cout << setw(20) << setiosflags(ios::left)
+	std::cout << std::setw(20) << std::setiosflags(std::ios::left)
 	     <<fEPICSVariableList[tagindex]<<"\t"
-	     << setprecision(5) << setw(10)
-	     <<mean<<"  " << setw(10)<<sigma<<"  " << setw(10)
-	     <<fEPICSCumulativeData[tagindex].Minimum<<"  " << setw(10)
+	     << std::setprecision(5) << std::setw(10)
+	     <<mean<<"  " << std::setw(10)<<sigma<<"  " << std::setw(10)
+	     <<fEPICSCumulativeData[tagindex].Minimum<<"  " << std::setw(10)
 	     <<fEPICSCumulativeData[tagindex].Maximum<<std::endl;
       } else {
-	std::cout << setw(20) << setiosflags(ios::left)
+	std::cout << std::setw(20) << std::setiosflags(std::ios::left)
 	     <<fEPICSVariableList[tagindex]<<"\t"
-	     << setprecision(5) << setw(10)
+	     << std::setprecision(5) << std::setw(10)
 	     << "No data..."
 	     << std::endl;
       }
@@ -617,7 +614,7 @@ void QwEPICSEvent::PrintAverages()
   for (tagindex=0; tagindex<fNumberEPICSVariables; tagindex++) {
     if (fEPICSVariableType[tagindex] == EPICSString) {
       if (fEPICSDataEvent[tagindex].Filled) {
-	std::cout << setw(20) << setiosflags(ios::left)
+	std::cout << std::setw(20) << std::setiosflags(std::ios::left)
 	     <<fEPICSVariableList[tagindex]<<"\t"
 	     <<fEPICSDataEvent[tagindex].StringValue;
 
@@ -630,7 +627,7 @@ void QwEPICSEvent::PrintAverages()
 	}
 	std::cout <<std::endl;
       } else {
-	std::cout << setw(20) << setiosflags(ios::left)
+	std::cout << std::setw(20) << std::setiosflags(std::ios::left)
 	     <<fEPICSVariableList[tagindex]<<"\t"
 	     <<"No data..."<<std::endl;
       }
@@ -654,17 +651,17 @@ void QwEPICSEvent::PrintVariableList()
 };
 
 
-vector<Double_t> QwEPICSEvent::ReportAutogains()
+std::vector<Double_t> QwEPICSEvent::ReportAutogains()
 {
   return ReportAutogains(fDefaultAutogainList);
 };
 
 
 
-vector<Double_t> QwEPICSEvent::ReportAutogains(vector<TString> tag_list)
+std::vector<Double_t> QwEPICSEvent::ReportAutogains(std::vector<TString> tag_list)
 {
-  vector<Double_t> autogain_values;
-  vector<TString>::iterator ptr_tag;
+  std::vector<Double_t> autogain_values;
+  std::vector<TString>::iterator ptr_tag;
 
   autogain_values.clear(); //clear the vector first
 
@@ -703,7 +700,7 @@ void QwEPICSEvent::ReportEPICSData()
   output <<"#####  EPICS Event Summary  #####\n"
 	 <<"Total number of EPICS events in this run == "
 	 <<fNumberEPICSEvents <<".\n\n"
-	 << setw(20) << setiosflags(ios::left) <<"Name"
+	 << std::setw(20) << std::setiosflags(std::ios::left) <<"Name"
 	 <<"\tMean        Sigma       "
 	 <<"Minimum     Maximum"<<std::endl;
   for (tagindex=0; tagindex<fNumberEPICSVariables; tagindex++) {
@@ -724,16 +721,16 @@ void QwEPICSEvent::ReportEPICSData()
 	  sigma    = sqrt(variance);
 	}
       
-	output << setw(20) << setiosflags(ios::left)
+	output << std::setw(20) << std::setiosflags(std::ios::left)
 	       <<fEPICSVariableList[tagindex]<<"\t"
-	       << setprecision(5) << setw(10)
-	       <<mean<<"  " << setw(10)<<sigma<<"  " << setw(10)
-	       <<fEPICSCumulativeData[tagindex].Minimum<<"  " << setw(10)
+	       << std::setprecision(5) << std::setw(10)
+	       <<mean<<"  " << std::setw(10)<<sigma<<"  " << std::setw(10)
+	       <<fEPICSCumulativeData[tagindex].Minimum<<"  " << std::setw(10)
 	       <<fEPICSCumulativeData[tagindex].Maximum<<std::endl;
       } else {
-	output << setw(20) << setiosflags(ios::left)
+	output << std::setw(20) << std::setiosflags(std::ios::left)
 	       <<fEPICSVariableList[tagindex]<<"\t"
-	       << setprecision(5) << setw(10)
+	       << std::setprecision(5) << std::setw(10)
 	       << "No data..."
 	       << std::endl;
       }
@@ -742,11 +739,11 @@ void QwEPICSEvent::ReportEPICSData()
   for (tagindex=0; tagindex<fNumberEPICSVariables; tagindex++) {
     if (fEPICSVariableType[tagindex] == EPICSString) {
       if (fEPICSDataEvent[tagindex].Filled) {
-	output << setw(20) << setiosflags(ios::left)
+	output << std::setw(20) << std::setiosflags(std::ios::left)
 	       <<fEPICSVariableList[tagindex]<<"\t"
 	       <<fEPICSDataEvent[tagindex].StringValue<<std::endl;
       } else {
-	output << setw(20) << setiosflags(ios::left)
+	output << std::setw(20) << std::setiosflags(std::ios::left)
 	       <<fEPICSVariableList[tagindex]<<"\t"
 	       <<"No data..."<<std::endl;
       }
@@ -795,7 +792,7 @@ void  QwEPICSEvent::ResetCounters()
   fNumberEPICSEvents = 0;
 }
 
-void QwEPICSEvent::SetDefaultAutogainList(vector<TString> input_list)
+void QwEPICSEvent::SetDefaultAutogainList(std::vector<TString> input_list)
 {
   fDefaultAutogainList.clear();  //clear the vector first
   fDefaultAutogainList = input_list;

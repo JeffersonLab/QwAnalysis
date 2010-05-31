@@ -1351,7 +1351,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
     QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
   }
 
-  vector<QwDBInterface> interface;
+  std::vector<QwDBInterface> interface;
   std::vector<QwParityDB::beam> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();

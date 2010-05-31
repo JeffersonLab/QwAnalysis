@@ -14,14 +14,13 @@
 #include "TString.h"
 
 #include "THaCodaData.h"
+
 #include "MQwCodaControlEvent.h"
 
-#include "QwSubsystemArray.h"
-#include "VQwSubsystem.h"
-
-#include "QwEPICSEvent.h"
-
 class QwOptions;
+class QwEPICSEvent;
+class VQwSubsystem;
+class QwSubsystemArray;
 
 //////////////////////////////////////////////////////////////////////
 

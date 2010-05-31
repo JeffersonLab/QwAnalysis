@@ -12,8 +12,6 @@
 // Boost math library for random number generation
 #include <boost/random.hpp>
 
-// CODA headers (for CODA status)
-#include "THaCodaFile.h"
 
 // Qweak headers
 #include "QwLog.h"

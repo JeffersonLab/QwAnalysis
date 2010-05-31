@@ -2,20 +2,22 @@
 // the input ascii files. jianglai 6/21/2002
 #include "StringManip.h"
   
+using std::string;
+
 string get_line_seg(const string& stmp, const string& delim1, const string& delim2){
   unsigned int pos_begin_seg=0;
   unsigned int pos_end_seg=0;
   string stmp_seg;
   unsigned int total_len = stmp.size();
   pos_begin_seg = stmp.find(delim1);
-  //cerr<<pos_begin_seg<<endl;
+  //std::cerr<<pos_begin_seg<<std::endl;
   if(pos_begin_seg!=(string::npos)){//found the 1st delimiter  
     if(delim2!="\n") pos_end_seg = stmp.find(delim2,pos_begin_seg+delim1.size());
     else pos_end_seg = total_len;
-    //cerr<<pos_end_seg<<endl;
+    //std::cerr<<pos_end_seg<<std::endl;
     if(pos_end_seg==(string::npos)){//2nd delimiter not found
-      cerr<<"Could not find the 2nd delimiter "<<delim2<<endl;
-      cerr<<"Take the end of the string as the 2nd delimiter"<<endl;
+      std::cerr<<"Could not find the 2nd delimiter "<<delim2<<std::endl;
+      std::cerr<<"Take the end of the string as the 2nd delimiter"<<std::endl;
       pos_end_seg = total_len;//the default the total length
     }
     stmp_seg = stmp.substr(pos_begin_seg+delim1.size(),
@@ -23,7 +25,7 @@ string get_line_seg(const string& stmp, const string& delim1, const string& deli
     return stmp_seg;
   }
   else{//1st delimiter was not found. If this is the case, exit.
-    cerr<<"Could not find the 1st delimiter "<<delim1<<endl;
+    std::cerr<<"Could not find the 1st delimiter "<<delim1<<std::endl;
     exit(1);
   }
 };
@@ -40,7 +42,7 @@ string get_line_seg(const string& stmp, const string& delim)
     return stmp_seg;
   }
   else{
-    cerr<<"Could not find the delimiter "<<delim<<endl;
+    std::cerr<<"Could not find the delimiter "<<delim<<std::endl;
     //return the whole string
     return stmp;
   }
@@ -55,7 +57,7 @@ string get_next_seg(const string& inputstring, unsigned int& pos)
   unsigned int next_pos = 0;
   first_pos = inputstring.find_first_not_of(" \t\n",pos);
   if(first_pos==string::npos){//not found a real character, end of line already
-    cerr<<"end of line has reached!"<<endl;
+    std::cerr<<"end of line has reached!"<<std::endl;
     exit(1);
   }
   else{//found the beginning of a valid string, try to find the end of it
@@ -70,14 +72,14 @@ string get_next_seg(const string& inputstring, unsigned int& pos)
       seg = inputstring.substr(first_pos, next_pos-first_pos);
       pos = next_pos;
     }
-    //    cerr << seg << endl;
+    //    std::cerr << seg << std::endl;
     return seg;
   }
 };
 
 //function to split the string by the delimiter and put the segment into 
 //a vector. Before passing the vector into this function, do clear first!
-void split_string(const string& inputstring, const string& delim, vector<string>& varlist)
+void split_string(const string& inputstring, const string& delim, std::vector<string>& varlist)
 {
   string seg;
   unsigned int first_pos = 0;
@@ -103,7 +105,7 @@ void split_string(const string& inputstring, const string& delim, vector<string>
 
 
 //get the numbers (separated by a space) in a string and put them into a vector
-void get_numbers(const string& stmp, vector<UInt_t>& v){
+void get_numbers(const string& stmp, std::vector<UInt_t>& v){
   UInt_t pos_begin_num = 0;
   UInt_t pos_end_num = 0;
   string stmp_num;
@@ -114,12 +116,12 @@ void get_numbers(const string& stmp, vector<UInt_t>& v){
     pos_end_num=stmp.find_first_not_of("1234567890.",pos_begin_num);
     if(pos_begin_num!=(string::npos)){
       stmp_num=stmp.substr(pos_begin_num,(pos_end_num-pos_begin_num));
-      //cerr<<stmp_num<<endl;
+      //std::cerr<<stmp_num<<std::endl;
       tmp_num=atoi(stmp_num.c_str());
       v.push_back(tmp_num);
     }
     else{
-      //cerr<<"Could not find any more numbers"<<endl;
+      //std::cerr<<"Could not find any more numbers"<<std::endl;
       break;}
   }
 }
@@ -148,7 +150,7 @@ void get_number(const string& stmp, UInt_t& n){
       n=tmp_num;
     }
   } else {
-    cerr<<"Did not find any number in this line"<<endl;
+    std::cerr<<"Did not find any number in this line"<<std::endl;
   }
 }
 
@@ -178,7 +180,7 @@ string get_lastwd(const string& tmpline, const Char_t* delim){
   if(pos1==string::npos) return "\0"; //empty string
   else{ 
     stmp = tmpline.substr(0,pos1+1);//trimmed string
-    cout<<"trimmed string \""<<stmp<<"\""<<endl;
+    std::cout<<"trimmed string \""<<stmp<<"\""<<std::endl;
     pos2 = stmp.length();//set the end iterator
     if(pos2==0) return "\0"; //empty string
     //now try to find the last white space
@@ -186,7 +188,7 @@ string get_lastwd(const string& tmpline, const Char_t* delim){
     else pos1 = stmp.find_last_of(delim);
     if(pos1!=string::npos){//did find a white space
       stmp = stmp.substr(pos1+1,pos2-(pos1+1));
-      cout<<"final string \""<<stmp<<"\""<<endl;
+      std::cout<<"final string \""<<stmp<<"\""<<std::endl;
       return stmp;
     }
     else{//did not find a white space, take this whole string and return

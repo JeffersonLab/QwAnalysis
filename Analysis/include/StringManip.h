@@ -1,31 +1,30 @@
 #ifndef __STRINGMANIP__
 #define __STRINGMANIP__
 
-using namespace std;
 
 #include <vector>
 #include <string>
 #include <iostream>
-#include <stdlib.h>
-#include <stdio.h>
 #include "Rtypes.h"
 
-void get_numbers(const string&, vector<UInt_t>&);
 
-void get_number(const string&, UInt_t&);
 
-string get_firstwd(const string&);
+void get_numbers(const std::string& stmp, std::vector<UInt_t>& v);
 
-string get_line_seg(const string& stmp, const string& delim1, const string& delim2);
+void get_number(const std::string& stmp, UInt_t& n);
 
-string get_line_seg(const string& stmp, const string& delim);
+std::string get_firstwd(const std::string& tmpline);
 
-string get_next_seg(const string& inputstring, unsigned int& pos);
+std::string get_line_seg(const std::string& stmp, const std::string& delim1, const std::string& delim2);
 
-void split_string(const string& inputstring, const string& delim, vector<string>& varlist);
+std::string get_line_seg(const std::string& stmp, const std::string& delim);
 
-Bool_t IsNumber(const string& word);
+std::string get_next_seg(const std::string& inputstring, unsigned int& pos);
 
-string get_lastwd(const string& tmpline, const Char_t* delim = 0);
+void split_string(const std::string& inputstring, const std::string& delim, std::vector<std::string>& varlist);
+
+Bool_t IsNumber(const std::string& word);
+
+std::string get_lastwd(const std::string& tmpline, const Char_t* delim = 0);
 
 #endif  

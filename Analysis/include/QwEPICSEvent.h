@@ -7,24 +7,8 @@ Adopted from G0EPICSEvent class.
 #include <vector>
 #include <string>
 #include <Rtypes.h>
-//c++ stream classes
-#include <sstream>
-#include <fstream>
-#include <iostream>
-#include <iomanip>
-#include <stdlib.h>
-#include "StringManip.h" 
-#include "TRegexp.h"
-
-//#include "QwDatabase.h"
 
 #include "TString.h" 
-#include "TMath.h" 
-#include <cstring> 
-#include <iostream>
-using namespace std;
-
-
 
 class QwDatabase;
 
@@ -43,10 +27,10 @@ class QwEPICSEvent
 
 
 
-  vector<Double_t> ReportAutogains();
-  vector<Double_t> ReportAutogains(vector<TString> tag_list);
+  std::vector<Double_t> ReportAutogains();
+  std::vector<Double_t> ReportAutogains(std::vector<TString> tag_list);
 
-  void ExtractEPICSValues(const string& data, int event);
+  void ExtractEPICSValues(const std::string& data, int event);
 
   Int_t FindIndex(TString tag);        // return index to variable or EPI_ERR
 
@@ -68,15 +52,15 @@ class QwEPICSEvent
   void  DefineEPICSVariables();
   void  ReportEPICSData();
 
-  vector<TString>  GetDefaultAutogainList();
-  void  SetDefaultAutogainList(vector<TString> input_list);
+  std::vector<TString>  GetDefaultAutogainList();
+  void  SetDefaultAutogainList(std::vector<TString> input_list);
 
   void  ResetCounters(); 
 
   void FillDB(QwDatabase *db);
   void FillSlowControlsData(QwDatabase *db);
   Int_t   fNumberEPICSVariables;       // Number of defined EPICS variables.
-  vector<TString> fEPICSVariableList;  // List of defined EPICS variables.
+  std::vector<TString> fEPICSVariableList;  // List of defined EPICS variables.
 
  private:
   static const int kDebug;
@@ -85,7 +69,7 @@ class QwEPICSEvent
   static const Double_t kInvalidEPICSData;
   // Int_t maxsize = 300;
 
-  vector<TString> fDefaultAutogainList;
+  std::vector<TString> fDefaultAutogainList;
   void  InitDefaultAutogainList();
 
 
@@ -95,7 +79,7 @@ class QwEPICSEvent
     Double_t  Value;
     TString   StringValue;
   };
-  vector<EPICSVariableRecord> fEPICSDataEvent;
+  std::vector<EPICSVariableRecord> fEPICSDataEvent;
 
 
   /*  The next two variables will contain the running sum and sum  *
@@ -109,14 +93,14 @@ class QwEPICSEvent
     Double_t Maximum;
     TString  SavedString; 
   };
-  vector<EPICSCumulativeRecord> fEPICSCumulativeData;
+  std::vector<EPICSCumulativeRecord> fEPICSCumulativeData;
 
 
   Int_t    fNumberEPICSEvents;     //  The total number of EPICS events in the run.
   //Int_t   fNumberEPICSVariables;       // Number of defined EPICS variables.
-  //vector<TString> fEPICSVariableList;  // List of defined EPICS variables.
-  vector<QwEPICSDataType> fEPICSVariableType;
-  vector<TString> fEPICSTableList;     // List of DB tables to write
+  //std::vector<TString> fEPICSVariableList;  // List of defined EPICS variables.
+  std::vector<QwEPICSDataType> fEPICSVariableType;
+  std::vector<TString> fEPICSTableList;     // List of DB tables to write
 
 };
 

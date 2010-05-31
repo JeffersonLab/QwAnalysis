@@ -13,6 +13,7 @@
 // System headers
 
 // Qweak headers
+#include "QwEventBuffer.h"
 #include "QwSSQLS.h"
 using namespace QwParityDB;
 // Is there any method put QwSSQLS.h in QwDatabase.h? (jhlee)
@@ -470,7 +471,7 @@ const UInt_t QwDatabase::SetRunletID(QwEventBuffer& qwevt)
         query << "SELECT * FROM runlet WHERE run_id = " << fRunID << " AND full_run = 'false' AND segment_number = " << qwevt.GetSegmentNumber();
       }
 
-      vector<runlet> res;
+      std::vector<runlet> res;
       query.storein(res);
       QwDebug << "QwDatabase::SetRunletID => Number of rows returned:  " << res.size() << QwLog::endl;
 

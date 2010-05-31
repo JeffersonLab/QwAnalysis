@@ -27,10 +27,10 @@
 #include "QwLog.h"
 #include "QwColor.h"
 #include "QwOptions.h"
-#include "QwEventBuffer.h"
 #include "QwSSQLS.h"
 
 
+class QwEventBuffer;
 
 /**
  *  \class QwDatabase

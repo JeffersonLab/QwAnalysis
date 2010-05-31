@@ -80,8 +80,6 @@
 #include <TFile.h>
 #include <TTree.h>
 
-// CODA headers (for CODA status)
-#include "THaCodaFile.h"
 
 // Qweak headers
 #include "QwLog.h"

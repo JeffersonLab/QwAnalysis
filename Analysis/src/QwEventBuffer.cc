@@ -1,12 +1,15 @@
 #include "QwEventBuffer.h"
+
 #include "QwOptions.h"
+#include "QwEPICSEvent.h"
+#include "VQwSubsystem.h"
+#include "QwSubsystemArray.h"
 
 #include <vector>
 #include <glob.h>
 #include <TMath.h>
 
 #include "THaCodaFile.h"
-
 #ifdef __CODA_ET
 #include "THaEtClient.h"
 #endif
@@ -557,7 +560,7 @@ Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
       char* tmpchar = (Char_t*)&localbuff[fWordsSoFar];
 
       epics.ExtractEPICSValues(string(tmpchar), GetEventNumber());
-      cout<<"\ntest for GetEventNumber ="<<GetEventNumber()<<endl;// always zero, wrong.
+      std::cout<<"\ntest for GetEventNumber ="<<GetEventNumber()<<std::endl;// always zero, wrong.
 
     }
 
@@ -586,7 +589,7 @@ Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
 
   }
 
-  //cout<<"\nEpics data coming!! "<<fWordsSoFar<<endl;
+  //std::cout<<"\nEpics data coming!! "<<fWordsSoFar<<std::endl;
 
   return okay;
 };
