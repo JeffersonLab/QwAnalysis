@@ -8,6 +8,9 @@
 
 #include "QwAnalysis_MySQL.h"
 
+#include "QwEPICSEvent.h"
+#include "QwEventBuffer.h"
+
 Bool_t kInQwBatchMode = kFALSE;
 Bool_t bRING_READY;
 Bool_t bSkip= kFALSE;;
@@ -21,8 +24,8 @@ main(Int_t argc, Char_t* argv[])
  // First, we set the command line arguments and the configuration filename,
   // and we define the options that can be used in them (using QwOptions).
   gQwOptions.SetCommandLine(argc, argv);
-  gQwOptions.SetConfigFile("Parity/prminput/qwanalysis_beamline.conf");
-  gQwOptions.SetConfigFile("Parity/prminput/qweak_mysql.conf");
+  gQwOptions.SetConfigFile("qwanalysis_beamline.conf");
+  gQwOptions.SetConfigFile("qweak_mysql.conf");
   DefineOptionsParity(gQwOptions);
 
   // modified value for maximum size of tree
@@ -32,8 +35,8 @@ main(Int_t argc, Char_t* argv[])
 
   Bool_t bDebug    = kFALSE;
   Bool_t bHelicity = kTRUE;
-  Bool_t bTree     = kTRUE;
-  Bool_t bHisto    = kTRUE;
+  Bool_t bTree     = kFALSE;
+  Bool_t bHisto    = kFALSE;
 
   //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
   if ( getenv("DISPLAY")==NULL || getenv("JOB_ID")!=NULL ) kInQwBatchMode = kTRUE;
@@ -64,6 +67,8 @@ main(Int_t argc, Char_t* argv[])
 
   QwEventBuffer QwEvt;
   QwEvt.ProcessOptions(gQwOptions);
+
+  QwEPICSEvent epics_data;
 
   QwSubsystemArrayParity QwDetectors;
   VQwSubsystemParity * subsystem_tmp;//VQwSubsystemParity is the top most parent class for Parity subsystems.
@@ -118,8 +123,9 @@ main(Int_t argc, Char_t* argv[])
 
 
   QwDatabase qw_test_DB(gQwOptions);
-
+  
   UInt_t run_id      = 0;
+  UInt_t runlet_id   = 0;
   UInt_t analysis_id = 0;
 
  // Loop over all runs
@@ -127,6 +133,8 @@ main(Int_t argc, Char_t* argv[])
       //  Begin processing for the first run.
       //  Start the timer.
       timer.Start();
+
+
       QwEvt.ResetControlParameters();
       //  Open the data files and root file
       //    OpenAllFiles(io, run);
@@ -191,10 +199,19 @@ main(Int_t argc, Char_t* argv[])
       // Loop over events in this CODA file
       while (QwEvt.GetNextEvent() == CODA_OK) {
 	//  First, do processing of non-physics events...
+
+	    if (QwEvt.IsEPICSEvent()) {
+	      QwEvt.FillEPICSData(epics_data);
+	      epics_data.CalculateRunningValues();
+	      epics_data.PrintAverages();	      
+	    }
+
+
 	if (QwEvt.IsROCConfigurationEvent()){
 	  //  Send ROC configuration event data to the subsystem objects.
 	  QwEvt.FillSubsystemConfigurationData(QwDetectors);
 	}
+
 
 	//  Now, if this is not a physics event, go back and get a new event.
 	if (! QwEvt.IsPhysicsEvent()) continue;
@@ -331,13 +348,8 @@ main(Int_t argc, Char_t* argv[])
 	  printf("QwHelPat.DeleteHistograms\n\n");  QwHelPat.DeleteHistograms();
 	}
 
-      QwEvt.CloseDataFile();
-      QwEvt.ReportRunSummary();
-
-
       QwDetectors.GetEventcutErrorCounters();//print the event cut error summery for each sub system
       std::cout<<"QwAnalysis_Beamline Total events falied "<<falied_events_counts<< std::endl;
-
 
       if (qw_test_DB.AllowsReadAccess()){
 	QwMessage << "GetMonitorID(qwk_batext2) = " << qw_test_DB.GetMonitorID("qwk_batext2") << QwLog::endl;
@@ -350,23 +362,28 @@ main(Int_t argc, Char_t* argv[])
 	QwMessage << "GetLumiDetectorID(ulumi8) = " << qw_test_DB.GetLumiDetectorID("ulumi8") << QwLog::endl;
 	QwMessage << "GetVersion() = " << qw_test_DB.GetVersion() << QwLog::endl;
 
-	// GetRunID() and GetAnalysisID have their own Connect() and Disconnect() functions.
+	// GetRunID(), GetRunletID(), and GetAnalysisID have their own Connect() and Disconnect() functions.
 	run_id      = qw_test_DB.GetRunID(QwEvt);
+	runlet_id   = qw_test_DB.GetRunletID(QwEvt);
 	analysis_id = qw_test_DB.GetAnalysisID(QwEvt);
-
+	
 	QwMessage << "QwAnalysis_MySQL.cc::"
 		  << " Run Number "  << QwColor(Qw::kBoldMagenta) << QwEvt.GetRunNumber() << QwColor(Qw::kNormal)
 		  << " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id<< QwColor(Qw::kNormal)
+		  << " Runlet ID "   << QwColor(Qw::kBoldMagenta) << runlet_id<< QwColor(Qw::kNormal)
 		  << " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id
 		  << QwLog::endl;
       }
-
+      
       // Each sussystem has its own Connect() and Disconnect() functions.
       if (qw_test_DB.AllowsWriteAccess()){
 	QwHelPat.FillDB(&qw_test_DB);
+	epics_data.FillDB(&qw_test_DB);
       }
 
-
+      QwEvt.CloseDataFile();
+      QwEvt.ReportRunSummary();
+      //epics_data.FillSlowControlsData(qw_test_DB);
       PrintInfo(timer);
     } //end of run loop
 

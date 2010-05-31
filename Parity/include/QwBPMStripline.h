@@ -89,7 +89,8 @@ class QwBPMStripline : public VQwDataElement{
   void  FillTreeVector(std::vector<Double_t> &values);
   void  SetRootSaveStatus(TString &prefix);
 
-  QwDBInterface GetDBEntry(TString subname);
+  std::vector<QwDBInterface> GetDBEntry();
+  void MakeBPMList();
 
   /////
  private:
@@ -118,7 +119,7 @@ class QwBPMStripline : public VQwDataElement{
   QwVQWK_Channel fRelPos[2];
   /* These channels contain the beam position within the frame of the BPM*/
   QwVQWK_Channel fAbsPos[3];
-
+  std::vector<QwVQWK_Channel> fBPMElementList;
 
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
 

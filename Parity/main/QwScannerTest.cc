@@ -27,8 +27,6 @@
 // Boost math library for random number generation
 #include <boost/random.hpp>
 
-// Coda headers
-#include "THaCodaFile.h"
 
 // Qweak headers
 #include "QwVQWK_Channel.h"

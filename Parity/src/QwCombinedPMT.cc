@@ -396,29 +396,3 @@ void  QwCombinedPMT::Copy(VQwDataElement *source)
 }
 
 
-
-QwDBInterface QwCombinedPMT::GetDBEntry(TString subname)
-{
-  QwDBInterface  row;
-  TString name;
-  Double_t avg         = 0.0;
-  Double_t err         = 0.0;
-  UInt_t beam_subblock = 0;
-  UInt_t beam_n        = 0;
-
-  name          = this->GetElementName();
-  avg           = this->GetAverage();
-  err           = this->GetAverageError();
-  beam_subblock = 66;// no meaning, later will be replaced with a real one
-  beam_n        = this->GetGoodEventCount();
-
-  row.SetDetectorName(name);
-  row.SetSubblock(beam_subblock);
-  row.SetN(beam_n);
-  row.SetValue(avg);
-  row.SetError(err);
-
-  return row;
-
-};
-

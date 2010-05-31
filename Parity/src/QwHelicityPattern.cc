@@ -288,6 +288,7 @@ void  QwHelicityPattern::CalculateAsymmetry()
       fAsymmetry.Ratio(fDiff,fYield);
 
 
+
       /*
         With additional two asymmetry calculations
 
@@ -326,7 +327,6 @@ void  QwHelicityPattern::CalculateAsymmetry()
       fRunningSumAsymmetry.AccumulateRunningSum(fAsymmetry);
       //      fRunningSumAsymmetry1.AccumulateRunningSum(fAsymmetry1);
       //      fRunningSumAsymmetry2.AccumulateRunningSum(fAsymmetry2);
-
 
       if (localdebug) std::cout<<" pattern number ="<<fQuartetNumber<<"\n";
     }
@@ -465,21 +465,27 @@ void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values)
 
 void QwHelicityPattern::FillDB(QwDatabase *db)
 {
+  
   //  if (IsGood) {
-    fYield.FillDB(db, "yield");
-    fAsymmetry.FillDB(db, "asymmetry");
-
-    if (bAlternateAsym){
-      // not yet determine to use
-      //      fAsymmetry1.FillDB(db, "asymmetry1");
-      //      fAsymmetry2.FillDB(db, "asymmetry2").;
-
-    }
-
+  //    fYield.FillDB(db, "yield");
+  //     fAsymmetry.FillDB(db, "asymmetry");
+  fRunningSumYield.FillDB(db, "yield");
+  fRunningSumAsymmetry.FillDB(db, "asymmetry");
+  
+  if (bAlternateAsym) {
+    fAsymmetry1.FillDB(db, "asymmetry1");
+    fAsymmetry2.FillDB(db, "asymmetry2");
     //  }
+    //  else { 
+    //    printf("\n\n\n\n\n\n\n\n\n");
+    //    printf("ISnotGOOD\n");
+    //    printf("\n\n\n\n\n\n\n\n\n");
 
+  }
+  //}
   return;
-}
+  
+};
 //*****************************************************************
 
 void QwHelicityPattern::Print()

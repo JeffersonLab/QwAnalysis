@@ -782,12 +782,14 @@ void QwLumi::AccumulateRunningSum(VQwSubsystem* value1)
 void QwLumi::FillDB(QwDatabase *db, TString datatype)
 {
 
-  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
-  QwMessage << "                         QwLumi::FillDB                          " << QwLog::endl;
-  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
-
   Bool_t local_print_flag = true;
-  QwDBInterface interface;
+  if(local_print_flag){
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+    QwMessage << "                         QwLumi::FillDB                          " << QwLog::endl;
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  }
+
+  std::vector<QwDBInterface> interface;
   std::vector<QwParityDB::lumi_data> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();
@@ -807,45 +809,38 @@ void QwLumi::FillDB(QwDatabase *db, TString datatype)
     sprintf(measurement_type, "%s", " ");
   }
 
-  QwMessage <<  QwColor(Qw::kGreen) << "IntegrationPMT" <<QwLog::endl;
 
-  for(UInt_t i=0; i< fIntegrationPMT.size(); i++)
-    {
-      interface.Reset();
-      interface = fIntegrationPMT[i].GetDBEntry("");
-      // QwIntegrationPMT has only one element, thus noname "" on it.
-      interface.SetAnalysisID( analysis_id );
-      interface.SetDeviceID( db->GetLumiDetectorID(interface.GetDeviceName().Data()) );
-      interface.SetMeasurementTypeID(measurement_type);
-      interface.PrintStatus(local_print_flag);
+  UInt_t i,j;
+  i = j = 0;
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "IntegrationPMT" <<QwLog::endl;
 
-      interface.AddThisEntryToList(entrylist);
+  for(i=0; i< fIntegrationPMT.size(); i++) {
+    interface.clear();
+    interface = fIntegrationPMT[i].GetDBEntry();
+    for(j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id );
+      interface.at(j).SetLumiDetectorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
     }
-
-  QwMessage << QwColor(Qw::kGreen) << "Entrylist Size : "
-	    << QwColor(Qw::kBoldRed) << entrylist.size() << QwLog::endl;
+  }
+  if(local_print_flag) {
+    QwMessage << QwColor(Qw::kGreen) << "Entrylist Size : "
+	      << QwColor(Qw::kBoldRed) << entrylist.size() << QwLog::endl;
+  }
 
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query..
-  if( entrylist.size() )
-    {
-      mysqlpp::Query query= db->Query();
-      //    if(query)
-      //	{
-      query.insert(entrylist.begin(), entrylist.end());
-      query.execute();
-      //	  query.reset(); // do we need?
-      //	}
-      //      else
-      //	{
-      //	  printf("Query is empty\n");
-      //	}
-    }
-  else
-    {
-      QwMessage << "QwLumi::FillDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
-    }
-
+  if( entrylist.size() ) {
+    mysqlpp::Query query= db->Query();
+    query.insert(entrylist.begin(), entrylist.end());
+    query.execute();
+  }
+  else {
+    QwMessage << "QwLumi::FillDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
+  }
+  
   db->Disconnect();
 
   return;
