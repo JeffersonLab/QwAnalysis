@@ -1,7 +1,8 @@
 // just a bunch of string manipulation functions that needed to decode 
 // the input ascii files. jianglai 6/21/2002
 #include "StringManip.h"
-  
+
+#include <cstdlib>
 using std::string;
 
 string get_line_seg(const string& stmp, const string& delim1, const string& delim2){
