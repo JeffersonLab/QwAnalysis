@@ -2,18 +2,25 @@
 #ifndef __QwVQWK_COMBINEDPMT__
 #define __QwVQWK_COMBINEDPMT__
 
+// System headers
 #include <vector>
+
+// ROOT headers
 #include <TTree.h>
 
+// Qweak headers
 #include "QwVQWK_Channel.h"
 #include "QwIntegrationPMT.h"
-#include "QwBlinder.h"
 
+// Qweak database headers
 #define MYSQLPP_SSQLS_NO_STATICS
 #include "QwSSQLS.h"
 #include "QwDatabase.h"
 
-class QwCombinedPMT : public VQwDataElement{
+// Forward declarations
+class QwBlinder;
+
+class QwCombinedPMT : public VQwDataElement {
 /////
  public:
   QwCombinedPMT(){
@@ -68,7 +75,10 @@ class QwCombinedPMT : public VQwDataElement{
   void AccumulateRunningSum(const QwCombinedPMT& value);
   void CalculateRunningAverage();
 
-  void BlindMe(QwBlinder *blinder);
+  /// \brief Blind the asymmetry
+  void Blind(const QwBlinder *blinder);
+  /// \brief Blind the difference using the yield
+  void Blind(const QwBlinder *blinder, const QwCombinedPMT& yield);
 
   void SetPedestal(Double_t ped);
   void SetCalibrationFactor(Double_t calib);
@@ -86,8 +96,8 @@ class QwCombinedPMT : public VQwDataElement{
 
 
   void Copy(VQwDataElement *source);
-
-  QwDBInterface  GetDBEntry(TString subname=""); //
+  
+  std::vector<QwDBInterface>  GetDBEntry() {return fSumADC.GetDBEntry();};
 
  protected:
 

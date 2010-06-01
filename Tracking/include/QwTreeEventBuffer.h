@@ -109,6 +109,8 @@ class QwTreeEventBuffer
     QwHit* CreateHitRegion2(const QwDetectorInfo* detectorinfo, const double x, const double y, const bool resolution_effects) const;
     /// \brief Create a set of hits for one track in region 3
     std::vector<QwHit> CreateHitRegion3(const QwDetectorInfo* detectorinfo, const double x, const double y, const double mx, const double my, const bool resolution_effects) const;
+    /// \brief Create a pair of hits for one track in the cerenkov or trigger scintillator
+    std::vector<QwHit> CreateHitCerenkov(const QwDetectorInfo* detectorinfo, const double x, const double y) const;
     // @}
 
 
@@ -422,6 +424,36 @@ class QwTreeEventBuffer
     vector <Float_t> fRegion3_ChamberBack_WirePlaneV_GlobalMomentumX;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneV_GlobalMomentumY;
     vector <Float_t> fRegion3_ChamberBack_WirePlaneV_GlobalMomentumZ;
+
+
+    // Trigger Scintillator
+    Bool_t fTriggerScintillator_HasBeenHit;
+    Int_t fTriggerScintillator_Detector_HasBeenHit;
+    Int_t fTriggerScintillator_Detector_NbOfHits;
+    Float_t fTriggerScintillator_Detector_HitLocalPositionX;
+    Float_t fTriggerScintillator_Detector_HitLocalPositionY;
+    Float_t fTriggerScintillator_Detector_HitLocalPositionZ;
+    Float_t fTriggerScintillator_Detector_HitLocalExitPositionX;
+    Float_t fTriggerScintillator_Detector_HitLocalExitPositionY;
+    Float_t fTriggerScintillator_Detector_HitLocalExitPositionZ;
+    Float_t fTriggerScintillator_Detector_HitGlobalPositionX;
+    Float_t fTriggerScintillator_Detector_HitGlobalPositionY;
+    Float_t fTriggerScintillator_Detector_HitGlobalPositionZ;
+
+
+    // Cerenkov
+    Bool_t fCerenkov_HasBeenHit;
+    Int_t fCerenkov_Detector_HasBeenHit;
+    Int_t fCerenkov_Detector_NbOfHits;
+    Float_t fCerenkov_Detector_HitLocalPositionX;
+    Float_t fCerenkov_Detector_HitLocalPositionY;
+    Float_t fCerenkov_Detector_HitLocalPositionZ;
+    Float_t fCerenkov_Detector_HitLocalExitPositionX;
+    Float_t fCerenkov_Detector_HitLocalExitPositionY;
+    Float_t fCerenkov_Detector_HitLocalExitPositionZ;
+    Float_t fCerenkov_Detector_HitGlobalPositionX;
+    Float_t fCerenkov_Detector_HitGlobalPositionY;
+    Float_t fCerenkov_Detector_HitGlobalPositionZ;
 
     // @}
     // end of the branch vectors

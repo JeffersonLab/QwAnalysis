@@ -12,8 +12,6 @@
 // Boost math library for random number generation
 #include <boost/random.hpp>
 
-// CODA headers (for CODA status)
-#include "THaCodaFile.h"
 
 // Qweak headers
 #include "QwLog.h"
@@ -62,29 +60,18 @@ int main(int argc, char* argv[])
   // variable within the QwParameterFile class which will be used by
   // all instances.
   // The "scratch" directory should be first.
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QW_PRMINPUT")));
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Analysis/prminput");
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Parity/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
 
   // Event buffer
   QwEventBuffer eventbuffer;
 
   // Detector array
-  QwSubsystemArrayParity detectors;
-  detectors.push_back(new QwBeamLine("Injector BeamLine"));
-  detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
-  detectors.push_back(new QwHelicity("Helicity info"));
-  detectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
-  detectors.push_back(new QwMainCerenkovDetector("Main detector"));
-  detectors.GetSubsystem("Main detector")->LoadChannelMap("qweak_adc.map");
-  detectors.push_back(new QwLumi("Lumi detector"));
-  detectors.GetSubsystem("Lumi detector")->LoadChannelMap("qweak_lumi.map");
-  detectors.push_back(new QwScanner("FPS"));
-  detectors.GetSubsystem("FPS")->LoadChannelMap("scanner_channel.map" );
-  detectors.GetSubsystem("FPS")->LoadInputParameters("scanner_parameter.map");
+  QwSubsystemArrayParity detectors("detectors.map");
 
   // Get the helicity
-  QwHelicity* helicity = dynamic_cast<QwHelicity*>(detectors.GetSubsystem("Helicity info"));
+  QwHelicity* helicity = dynamic_cast<QwHelicity*>(detectors.GetSubsystem("Helicity Info"));
   if (! helicity) QwWarning << "No helicity subsystem defined!" << QwLog::endl;
 
   // Possible scenarios:
@@ -147,7 +134,7 @@ int main(int argc, char* argv[])
 
   // Get the main detector channels we want to correlate
   QwMainCerenkovDetector* maindetector =
-    dynamic_cast<QwMainCerenkovDetector*>(detectors.GetSubsystem("Main detector"));
+    dynamic_cast<QwMainCerenkovDetector*>(detectors.GetSubsystem("Main Detector"));
   if (! maindetector) QwWarning << "No main detector subsystem defined!" << QwLog::endl;
   Double_t bar_mean = 2.0e7;
   Double_t bar_sigma = 3.0e4;
@@ -182,7 +169,7 @@ int main(int argc, char* argv[])
 
 
   // Get the lumi detector channels we want to correlate
-  QwLumi* lumidetector = dynamic_cast<QwLumi*>(detectors.GetSubsystem("Lumi detector"));
+  QwLumi* lumidetector = dynamic_cast<QwLumi*>(detectors.GetSubsystem("Lumi Detector"));
   if (! lumidetector) QwWarning << "No lumi detector subsystem defined!" << QwLog::endl;
   Double_t lumi_mean = 2.5e7;
   Double_t lumi_sigma = 2.5e6;

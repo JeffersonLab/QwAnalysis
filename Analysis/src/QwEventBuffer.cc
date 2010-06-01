@@ -1,12 +1,15 @@
 #include "QwEventBuffer.h"
+
 #include "QwOptions.h"
+#include "QwEPICSEvent.h"
+#include "VQwSubsystem.h"
+#include "QwSubsystemArray.h"
 
 #include <vector>
 #include <glob.h>
 #include <TMath.h>
 
 #include "THaCodaFile.h"
-
 #ifdef __CODA_ET
 #include "THaEtClient.h"
 #endif
@@ -513,6 +516,81 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
 	    << "Ending loop: fWordsSoFar=="<<fWordsSoFar
 	    <<QwLog::endl;
   }
+  return okay;
+};
+
+
+// added all this method for QwEPICSEvent class
+Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
+{
+  QwMessage << "QwEventBuffer::FillEPICSData:  "
+	    << Form("Length: %d; Tag: 0x%x; Bank ID num: 0x%x; ",
+		  fEvtLength, fEvtTag, fIDBankNum)
+	  << Form("Evt type: 0x%x; Evt number %d; Evt Class 0x%.8x; ",
+		  fEvtType, fEvtNumber, fEvtClass)
+	  << Form("Status Summary: 0x%.8x; Words so far %d",
+		  fStatSum, fWordsSoFar)
+	  << QwLog::endl;
+
+
+  ///  
+  Bool_t okay = kTRUE;
+  if (! IsEPICSEvent()){
+    okay = kFALSE;
+    return okay;
+  }
+  std::cerr << "QwEventBuffer::FillEPICSData:  "
+	    << std::endl;
+  //  Loop through the data buffer in this event.
+  UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
+  if (fBankDataType==0x10){
+    while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
+    //  If this bank has further subbanks, restart the loop.
+    if (fSubbankType == 0x10) continue;
+    //  If this bank only contains the word 'NULL' then skip
+    //  this bank.
+    if (fFragLength==1 && localbuff[fWordsSoFar]==kNullDataWord){
+      fWordsSoFar += fFragLength;
+      continue;
+    }
+
+    if (fSubbankType == 0x3){
+      //  This is an ASCII string bank.  Try to decode it and
+      //  pass it to the EPICS class.
+      char* tmpchar = (Char_t*)&localbuff[fWordsSoFar];
+
+      epics.ExtractEPICSValues(string(tmpchar), GetEventNumber());
+      std::cout<<"\ntest for GetEventNumber ="<<GetEventNumber()<<std::endl;// always zero, wrong.
+
+    }
+
+     
+    fWordsSoFar += fFragLength;
+
+    QwDebug << "QwEventBuffer::FillEPICSData:  "
+	    << "Ending loop: fWordsSoFar=="<<fWordsSoFar
+	    <<QwLog::endl;
+    QwMessage<<"\nQwEventBuffer::FillEPICSData: fWordsSoFar = "<<fWordsSoFar<<QwLog::endl;
+
+
+  }
+  } else {
+    // Single bank in the event, use event headers.
+    if (fBankDataType == 0x3){
+      //  This is an ASCII string bank.  Try to decode it and
+      //  pass it to the EPICS class.
+      Char_t* tmpchar = (Char_t*)&localbuff[fWordsSoFar];
+
+      QwError << tmpchar << QwLog::endl;
+
+      epics.ExtractEPICSValues(string(tmpchar), GetEventNumber());
+
+    }
+
+  }
+
+  //std::cout<<"\nEpics data coming!! "<<fWordsSoFar<<std::endl;
+
   return okay;
 };
 

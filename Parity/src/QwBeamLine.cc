@@ -16,6 +16,9 @@
 
 #include "QwLog.h"
 
+// Register this subsystem with the factory
+QwSubsystemFactory<QwBeamLine> theBeamLineFactory("QwBeamLine");
+
 //*****************************************************************
 void QwBeamLine::ProcessOptions(QwOptions &options){
       //Handle command line options
@@ -1335,16 +1338,21 @@ VQwSubsystem*  QwBeamLine::Copy()
 }
 
 
+
+
 void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
 {
 
-  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
-  QwMessage << "                         QwBeamLine::FillDB                      " << QwLog::endl;
-  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
-
   Bool_t local_print_flag = true;
-  QwDBInterface interface;
-  vector<QwParityDB::beam> entrylist;
+
+  if(local_print_flag) {
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+    QwMessage << "                         QwBeamLine::FillDB                      " << QwLog::endl;
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  }
+
+  std::vector<QwDBInterface> interface;
+  std::vector<QwParityDB::beam> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();
 
@@ -1354,79 +1362,64 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
   Char_t measurement_type[4];
 
   if(datatype.Contains("yield")) {
-    sprintf(measurement_type, yield_type.Data());
+    sprintf(measurement_type, "%s", yield_type.Data());
   }
   else if (datatype.Contains("asymmetry")) {
-    sprintf(measurement_type, asymm_type.Data());
+    sprintf(measurement_type, "%s", asymm_type.Data());
   }
   else {
-    sprintf(measurement_type, " ");
+    sprintf(measurement_type, "%s", " ");
   }
 
 
-
+  UInt_t i,j;
+  i = j = 0;
   // try to access BCM mean and its error
   // there are 2 different types BCM data we have at the moment
   // Yield and Asymmetry
-  QwMessage <<  QwColor(Qw::kGreen) << "Beam Current Monitors" <<QwLog::endl;
-  for(UInt_t i=0; i< fBCM.size(); i++)
-    {
-      interface.Reset();
-      interface = fBCM[i].GetDBEntry(""); // BCM has only one element, thus noname "" on it.
-      interface.SetAnalysisID( analysis_id );
-      interface.SetDeviceID( db->GetMonitorID(interface.GetDeviceName().Data()) );
-      interface.SetMeasurementTypeID(measurement_type);
-      interface.PrintStatus(local_print_flag);
+  if(local_print_flag)  QwMessage <<  QwColor(Qw::kGreen) << "Beam Current Monitors" <<QwLog::endl;
 
-      interface.AddThisEntryToList(entrylist);
+  for(i=0; i< fBCM.size(); i++) {
+    interface.clear();
+    interface = fBCM[i].GetDBEntry(); 
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id );
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
     }
-
+  }
+  
   ///   try to access BPM mean and its error
-  QwMessage <<  QwColor(Qw::kGreen) << "Beam Current Monitors" <<QwLog::endl;
-  for(UInt_t i=0; i< fStripline.size(); i++)
-    {
-      interface.Reset();
-      interface = fStripline[i].GetDBEntry("RelX");
-      interface.SetAnalysisID( analysis_id ) ;
-      interface.SetDeviceID( db->GetMonitorID(interface.GetDeviceName().Data()) );
-      interface.SetMeasurementTypeID(measurement_type);
-      interface.PrintStatus(local_print_flag);
-      interface.AddThisEntryToList(entrylist);
-
-      interface.Reset();
-      interface = fStripline[i].GetDBEntry("RelY");
-      interface.SetAnalysisID( analysis_id ) ;
-      interface.SetDeviceID( db->GetMonitorID(interface.GetDeviceName().Data()) );
-      interface.SetMeasurementTypeID(measurement_type);
-      interface.PrintStatus(local_print_flag);
-      interface.AddThisEntryToList(entrylist);
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Beam Position Monitors" <<QwLog::endl;
+  for(i=0; i< fStripline.size(); i++) {
+    fStripline[i].MakeBPMList();
+    interface.clear();
+    interface = fStripline[i].GetDBEntry();
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type );
+      interface.at(j).PrintStatus( local_print_flag);
+      interface.at(j).AddThisEntryToList( entrylist );
     }
-
-  QwMessage << QwColor(Qw::kGreen)   << "Entrylist Size : "
- 	    << QwColor(Qw::kBoldRed) << entrylist.size() << QwLog::endl;
+  }
+  if(local_print_flag){
+    QwMessage << QwColor(Qw::kGreen)   << "Entrylist Size : "
+	      << QwColor(Qw::kBoldRed) << entrylist.size() << QwLog::endl;
+  }
 
   db->Connect();
-
   // Check the entrylist size, if it isn't zero, start to query..
-  if( entrylist.size() )
-    {
-      mysqlpp::Query query= db->Query();
-      //    if(query)
-      //	{
-	  query.insert(entrylist.begin(), entrylist.end());
-	  query.execute();
-	  //	  query.reset(); // do we need?
-	  //	}
-	  //      else
-	  //	{
-	  //	  printf("Query is empty\n");
-	  //	}
-    }
-  else
-    {
-      QwMessage << "QwBeamLine::FillDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
-    }
-
+  if( entrylist.size() ) {
+    mysqlpp::Query query= db->Query();
+    query.insert(entrylist.begin(), entrylist.end());
+    query.execute();
+  }
+  else {
+    QwMessage << "QwBeamLine::FillDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
+  }
   db->Disconnect();
 
   return;

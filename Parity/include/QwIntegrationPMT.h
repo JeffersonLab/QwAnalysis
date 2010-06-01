@@ -8,17 +8,22 @@
 #ifndef __QwVQWK_IntegrationPMT__
 #define __QwVQWK_IntegrationPMT__
 
+// System headers
 #include <vector>
+
+// ROOT headers
 #include <TTree.h>
 
+// Qweak headers
 #include "QwVQWK_Channel.h"
-#include "QwBlinder.h"
 
+// Qweak database headers
 #define MYSQLPP_SSQLS_NO_STATICS
 #include "QwSSQLS.h"
 #include "QwDatabase.h"
 
-
+// Forward declarations
+class QwBlinder;
 
 
 /*****************************************************************
@@ -71,9 +76,10 @@ class QwIntegrationPMT : public VQwDataElement{
     fTriumf_ADC.SetEventCutMode(bcuts);
   }
 
-
-
-  void BlindMe(QwBlinder *blinder);
+  /// \brief Blind the asymmetry
+  void Blind(const QwBlinder *blinder);
+  /// \brief Blind the difference using the yield
+  void Blind(const QwBlinder *blinder, const QwIntegrationPMT& yield);
 
   void Print() const;
 
@@ -109,8 +115,7 @@ class QwIntegrationPMT : public VQwDataElement{
 
   void Copy(VQwDataElement *source);
 
-  QwDBInterface GetDBEntry(TString subname="");
-
+  std::vector<QwDBInterface> GetDBEntry();
 
  protected:
 

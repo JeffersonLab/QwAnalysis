@@ -40,11 +40,15 @@
 #include "QwGasElectronMultiplier.h"
 #include "QwDriftChamberHDC.h"
 #include "QwDriftChamberVDC.h"
+#include "QwTriggerScintillator.h"
+#include "QwMainDetector.h"
 
+// Qweak subsystem factory
+#include "QwSubsystemFactory.h"
 
 
 // Debug level
-static const bool kDebug = false;
+static const bool kDebug = true;
 // ROOT file output
 static const bool kTree = true;
 static const bool kHisto = true;
@@ -66,35 +70,21 @@ int main (int argc, char* argv[])
   gQwLog.SetScreenColor(gQwOptions.GetValue<bool>("QwLog.color"));
 
   /// We fill the search paths for the parameter files.
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH")+"/setupfiles");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS")+"/Tracking/prminput");
 
 
   /// For the tracking analysis we create the QwSubsystemArrayTracking list
   /// which contains the VQwSubsystemTracking objects.
-  QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking();
-
-  // Region 1 GEM
-  detectors->push_back(new QwGasElectronMultiplier("R1"));
-  detectors->GetSubsystem("R1")->LoadChannelMap("qweak_cosmics_hits.map");
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("R1"))->LoadQweakGeometry("qweak_new.geo");
-
-  // Region 2 HDC
-  detectors->push_back(new QwDriftChamberHDC("R2"));
-  detectors->GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("R2"))->LoadQweakGeometry("qweak_new.geo");
-
-  // Region 3 VDC
-  detectors->push_back(new QwDriftChamberVDC("R3"));
-  detectors->GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
-
+  QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking("detectors.map");
 
   // Get vector with detector info (by region, plane number)
   std::vector< std::vector< QwDetectorInfo > > detector_info;
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("R2"))->GetDetectorInfo(detector_info);
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->GetDetectorInfo(detector_info);
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("R1"))->GetDetectorInfo(detector_info);
+  detectors->GetSubsystem("R1 GEM")->GetDetectorInfo(detector_info);
+  detectors->GetSubsystem("R2 HDC")->GetDetectorInfo(detector_info);
+  detectors->GetSubsystem("R3 VDC")->GetDetectorInfo(detector_info);
+  detectors->GetSubsystem("TS")->GetDetectorInfo(detector_info);
+  detectors->GetSubsystem("MD")->GetDetectorInfo(detector_info);
   // TODO This is handled incorrectly, it just adds the three package after the
   // existing three packages from region 2...  GetDetectorInfo should descend
   // into the packages and add only the detectors in those packages.
@@ -104,7 +94,7 @@ int main (int argc, char* argv[])
 
   // Load the geometry
   Qset qset;
-  qset.FillDetectors((std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/qweak.geo").c_str());
+  qset.FillDetectors((getenv_safe_string("QWANALYSIS")+"/Tracking/prminput/qweak.geo").c_str());
   qset.LinkDetectors();
   qset.DeterminePlanes();
   std::cout << "[QwTracking::main] Geometry loaded" << std::endl; // R3,R2
@@ -122,7 +112,7 @@ int main (int argc, char* argv[])
               runnumber++) {
 
     // Load the simulated event file
-    TString filename = Form(TString(getenv("QWSCRATCH")) + "/data/QwSim_%d.root", runnumber);
+    TString filename = Form(getenv_safe_TString("QWSCRATCH") + "/data/QwSim_%d.root", runnumber);
     QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (filename, detector_info);
 
     // Open ROOT file
@@ -131,7 +121,7 @@ int main (int argc, char* argv[])
     QwEvent* event = new QwEvent();
     QwHitRootContainer* roothitlist = new QwHitRootContainer();
     if (kHisto || kTree) {
-      file = new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/QwSim_%d.root", runnumber),
+      file = new TFile(Form(getenv_safe_TString("QWSCRATCH") + "/rootfiles/QwSim_%d.root", runnumber),
                        "RECREATE",
                        "QWeak ROOT file with simulated event");
       file->cd();
@@ -200,7 +190,7 @@ int main (int argc, char* argv[])
               << trackingworker->R3Good << std::endl;
 
     // Print results
-    if (kDebug) tree->Print();
+    //if (kDebug) tree->Print();
 
     // Write and close file
     if (kTree || kHisto) {

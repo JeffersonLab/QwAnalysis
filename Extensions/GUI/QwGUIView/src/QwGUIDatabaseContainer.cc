@@ -37,9 +37,11 @@ int QwGUIDatabaseContainer::OpenDatabase()
   opts.psswd    = "";
   opts.dbport   = 0;
   
+//  printf("QWANALYSIS = %s\n", gSystem->Getenv("QWANALYSIS"));
 
-  gQwOptions.SetConfigFile(Form("%s/Parity/prminput/qweak_mysql.conf",gSystem->Getenv("QWANALYSIS")));
-  QwOptions::DefineOptions(gQwOptions);
+//  gQwOptions.Usage();
+
+//  printf("HasValue(QwDatabase.dbserver) = %i\n", gQwOptions.HasValue("QwDatabase.dbserver"));
 
   if (gQwOptions.HasValue("QwDatabase.dbserver")) {opts.dbserver = gQwOptions.GetValue<string>("QwDatabase.dbserver");}
   if (gQwOptions.HasValue("QwDatabase.dbname")) {opts.dbname = gQwOptions.GetValue<string>("QwDatabase.dbname");}
@@ -53,7 +55,7 @@ int QwGUIDatabaseContainer::OpenDatabase()
   if(opts.cancelFlag) return PROCESS_FAILED;
   if(opts.changeFlag){
 
-//     printf("server = %s\n",opts.dbserver.Data());
+     printf("server = %s\n",opts.dbserver.Data());
 //     printf("name = %s\n",opts.dbname.Data());
 //     printf("uname = %s\n",opts.uname.Data());
 //     printf("psswd = %s\n",opts.psswd.Data());

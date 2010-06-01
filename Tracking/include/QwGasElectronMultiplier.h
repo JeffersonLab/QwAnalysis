@@ -45,7 +45,7 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking{
   /*  Member functions derived from VQwSubsystemTracking. */
   Int_t LoadChannelMap(TString mapfile );
   Int_t LoadInputParameters(TString mapfile);
-  Int_t LoadQweakGeometry(TString mapfile);
+  Int_t LoadGeometryDefinition(TString mapfile);
 
   Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info)
   {//will update the detector_info from the fDetectorInfo data.

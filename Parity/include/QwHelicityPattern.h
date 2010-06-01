@@ -30,7 +30,7 @@ class QwHelicityPattern{
   void ProcessOptions(QwOptions &options); //Handle command line options
   void  LoadEventData(QwSubsystemArrayParity &event);
   Bool_t IsCompletePattern();
-  void  CalculateAsymmetry(QwBlinder *blinder = 0);
+  void  CalculateAsymmetry();
 
   void  AccumulateBurstSum();
   void  AccumulateRunningBurstSum();
@@ -65,6 +65,9 @@ class QwHelicityPattern{
   Int_t fPatternSize;
   Int_t fQuartetNumber;
 
+  // Blinding strategy
+  QwBlinder fBlinder;
+
   // Yield and asymmetry of a single helicity pattern
   QwSubsystemArrayParity fYield;
   QwSubsystemArrayParity fAsymmetry;
@@ -87,6 +90,8 @@ class QwHelicityPattern{
   QwSubsystemArrayParity fRunningYield;
   QwSubsystemArrayParity fRunningDifference;
   QwSubsystemArrayParity fRunningAsymmetry;
+  QwSubsystemArrayParity fRunningAsymmetry1;
+  QwSubsystemArrayParity fRunningAsymmetry2;
 
  private:
 

@@ -11,6 +11,10 @@
 
 #include "QwLog.h"
 
+// Register this subsystem with the factory
+QwSubsystemFactory<QwHelicity> theHelicityFactory("QwHelicity");
+
+
 extern QwHistogramHelper gQwHists;
 //**************************************************//
 

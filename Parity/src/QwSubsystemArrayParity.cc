@@ -229,10 +229,49 @@ void QwSubsystemArrayParity::AccumulateRunningSum(const QwSubsystemArrayParity& 
   }
 };
 
-void QwSubsystemArrayParity::BlindMe(QwBlinder *blinder) {
-   for (iterator subsys = begin(); subsys != end(); ++subsys) {
-    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
-    subsys_parity->BlindMe(blinder);
+void QwSubsystemArrayParity::Blind(const QwBlinder *blinder)
+{
+  // Loop over subsystem array
+  for (size_t i = 0; i < this->size(); i++) {
+    // Cast into parity subsystems
+    VQwSubsystemParity* subsys = dynamic_cast<VQwSubsystemParity*>(this->at(i).get());
+
+    // Check for null pointers
+    if (this->at(i) == 0) {
+      QwError << "QwSubsystemArrayParity::Blind: "
+              << "parity subsystem null pointer!" << QwLog::endl;
+      return;
+    }
+
+    // Apply blinding
+    subsys->Blind(blinder);
+  }
+};
+
+void QwSubsystemArrayParity::Blind(const QwBlinder *blinder, const QwSubsystemArrayParity& yield)
+{
+  // Check for array size
+  if (this->size() != yield.size()) {
+    QwError << "QwSubsystemArrayParity::Blind: "
+            << "diff and yield array dimension mismatch!" << QwLog::endl;
+    return;
+  }
+
+  // Loop over subsystem array
+  for (size_t i = 0; i < this->size(); i++) {
+    // Cast into parity subsystems
+    VQwSubsystemParity* subsys_diff  = dynamic_cast<VQwSubsystemParity*>(this->at(i).get());
+    VQwSubsystemParity* subsys_yield = dynamic_cast<VQwSubsystemParity*>(yield.at(i).get());
+
+    // Check for null pointers
+    if (subsys_diff == 0 || subsys_yield == 0) {
+      QwError << "QwSubsystemArrayParity::Blind: "
+              << "diff or yield parity subsystem null pointer!" << QwLog::endl;
+      return;
+    }
+
+    // Apply blinding
+    subsys_diff->Blind(blinder, subsys_yield);
   }
 };
 

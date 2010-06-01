@@ -24,6 +24,11 @@
 #include "QwHistogramHelper.h"
 
 
+// Register this subsystem with the factory
+QwSubsystemFactory<QwComptonPhotonDetector>
+  theComptonPhotonDetectorFactory("QwComptonPhotonDetector");
+
+
 /**
  * Load the channel map
  * @param mapfile Map file

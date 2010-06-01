@@ -56,10 +56,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   // Define the command line options
   DefineOptionsParity(gQwOptions);
 
-  // modified value for maximum size of tree
-  Long64_t kMAXTREESIZE = 10000000000LL;
-  // standard value for maximum size of tree in root source
-  //  Long64_t kMAXTREESIZE = 1900000000LL;
+
 
   Bool_t bDebug=kFALSE;
   Bool_t bHelicity=kTRUE;
@@ -77,8 +74,8 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  variable within the QwParameterFile class which will be used by
   ///  all instances.
   ///  The "scratch" directory should be first.
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QW_PRMINPUT")));
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS")+"/Parity/prminput");
 
   ///
   ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
@@ -122,9 +119,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   fEventRing.SetupRing(QwDetectors);//set up the ring with QwDetector array array with CMD ring parameters
 
-   Double_t evnum=0.0;
-
-
   // Loop over all runs
   while (QwEvt.OpenNextStream() == CODA_OK){
       //  Begin processing for the first run.
@@ -132,24 +126,24 @@ Int_t main(Int_t argc, Char_t* argv[])
       timer.Start();
 
       QwEvt.ResetControlParameters();
-      //  Open the data files and root file
-      //    OpenAllFiles(io, run);
 
+
+      //Map file access setup
       if (rootfile){
 	std::cout<<"after rootfile!=NULL \n";
 	rootfile->Close();
 	rootfile=NULL;
       }
       TString theMemMapFile;
-      theMemMapFile = std::string(getenv("QW_ROOTFILES"));
+      theMemMapFile = getenv_safe_TString("QW_ROOTFILES");
       theMemMapFile += "/QwMemMapFile.map";
+      //theMemMapFile = "QwMemMapFile.map";
       std::cout<<" ROOT map file name "<<theMemMapFile<<std::endl;
       rootfile = new QwMapFile(theMemMapFile,"Memory Mapped File","RECREATE");
-      //rootfile = TMapFile::Create(theMemMapFile,"RECREATE",100000000,"Memory Mapped File");
-      //rootfile->Update();
       rootfile->Print();
       if(!rootfile)
 	std::cerr<<"ROOT file could not be created. Exiting!!!"<<std::endl;
+      //end of Map file access  setup
 
 
       if(bHisto){
@@ -160,7 +154,9 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  }
       }
 
+
       std::cout<<"Map File Created\n";
+      rootfile->Update();
       rootfile->Print();
 
 
@@ -183,7 +179,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  std::cout<<" new event:: number ="<<QwEvt.GetEventNumber()<<"\n";
 	  std::cout<<"==================================================== \n";
 	}
-	//std::cout<<"*********** event num "<<QwEvt.GetEventNumber()<<"*************************"<<std::endl;
 	//  Fill the subsystem objects with their respective data for this event.
 	QwEvt.FillSubsystemData(QwDetectors);
 
@@ -216,10 +211,9 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 	  if(bHelicity && QwHelPat.IsCompletePattern() && bRING_READY){
 	    QwHelPat.CalculateAsymmetry();
-	    //QwHelPat.Print();
 	    if (QwHelPat.IsGoodAsymmetry()){
-	      if(bHisto) QwHelPat.FillHistograms();
-
+	      if(bHisto)
+		QwHelPat.FillHistograms();
 	      QwHelPat.ClearEventData();
 	    }
 	  }
@@ -236,7 +230,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 	}
 
 	if(QwEvt.GetEventNumber()%1000==0){
-	  QwMessage << "Number of events processed so far: "<< QwEvt.GetEventNumber() << "\r";
+	  //std::cout << "Number of events processed so far: "<< QwEvt.GetEventNumber()<<"\r";
+	  QwMessage << "Number of events processed so far: "<< QwEvt.GetEventNumber() <<QwLog::endl;
 	}
       }
 
@@ -256,21 +251,21 @@ Int_t main(Int_t argc, Char_t* argv[])
        *  segfault; but in additiona to that we should delete them     *
        *  here, in case we run over multiple runs at a time.           */
       if(bHisto){
-	std::cout<<"QwDetectors.DeleteHistograms\n";
+	//std::cout<<"QwDetectors.DeleteHistograms\n";
 	QwDetectors.DeleteHistograms();
-	std::cout<<"QwHelPat.DeleteHistograms\n";
+	//std::cout<<"QwHelPat.DeleteHistograms\n";
 	QwHelPat.DeleteHistograms();
-	rootfile->Close();
       }
 
+      if(bHisto){
+
+	rootfile->Close();
+      }
       QwEvt.CloseStream();
       QwEvt.ReportRunSummary();
 
 
 
-
-
-      //QwHelPat.Print();
 
 
       QwDetectors.GetEventcutErrorCounters();//print the event cut error summery for each sub system
@@ -279,6 +274,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       PrintInfo(timer);
 
     } //end of run loop
+
 
   std::cerr << "I have done everything I can do..." << std::endl;
 

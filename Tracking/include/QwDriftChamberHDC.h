@@ -48,7 +48,7 @@ class QwDriftChamberHDC: public QwDriftChamber {
 
  
 
- Int_t LoadQweakGeometry(TString mapfile );
+ Int_t LoadGeometryDefinition(TString mapfile );
  void  ProcessEvent();
 
 

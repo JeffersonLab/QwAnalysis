@@ -24,7 +24,10 @@ This generates identical set of hits to region 2 for region 3.
 const UInt_t QwDriftChamberVDC::kBackPlaneNum=4;
 const UInt_t QwDriftChamberVDC::kLineNum=8;
 
-QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ): 
+// Register this subsystem with the factory
+QwSubsystemFactory<QwDriftChamberVDC> theDriftChamberVDCFactory("QwDriftChamberVDC");
+
+QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ):
   VQwSubsystem ( region_tmp ), QwDriftChamber ( region_tmp,fWireHitsVDC )
 {
     SetReferenceParameters(-30000., 30000., 64495.,-8929.);
@@ -35,32 +38,32 @@ QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ):
     OK=0;
 };
 
-Int_t QwDriftChamberVDC::LoadQweakGeometry ( TString mapfile ) 
+Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 {
   std::cout<<"Region 3 Qweak Geometry Loading..... "<<std::endl;
-  
+
   TString varname, varvalue,package, direction, dType;
   //  Int_t  chan;
   Int_t  plane, TotalWires, detectorId, region, DIRMODE;
   Double_t Zpos,rot,sp_res, track_res,slope_match,Det_originX,Det_originY,ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin;
-  
+
   //std::vector< QwDetectorInfo >  fDetectorGeom;
-  
+
   QwDetectorInfo temp_Detector;
-  
+
   fDetectorInfo.clear();
   fDetectorInfo.resize ( kNumPackages );
   //  Int_t pkg,pln;
-  
+
   DIRMODE=0;
-  
+
   QwParameterFile mapstr ( mapfile.Data() );  //Open the file
-  
+
   while ( mapstr.ReadNextLine() ) {
     mapstr.TrimComment ( '!' );   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if ( mapstr.LineIsEmpty() )  continue;
-    
+
     if ( mapstr.HasVariablePair ( "=",varname,varvalue ) ) {
       //  This is a declaration line.  Decode it.
       varname.ToLower();
@@ -68,7 +71,7 @@ Int_t QwDriftChamberVDC::LoadQweakGeometry ( TString mapfile )
       if ( varname=="name" ) { //Beginning of detector information
 	DIRMODE=1;
       }
-    } 
+    }
     else if ( DIRMODE==1 ) {
       //  Break this line Int_to tokens to process it.
       varvalue = ( mapstr.GetNextToken ( ", " ).c_str() );//this is the sType
@@ -93,11 +96,11 @@ Int_t QwDriftChamberVDC::LoadQweakGeometry ( TString mapfile )
       TotalWires = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
       detectorId = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
       //std::cout<<"Detector ID "<<detectorId<<" "<<varvalue<<" Package "<<package<<" Plane "<<Zpos<<" Region "<<region<<std::endl;
-      
+
       if ( region==3 ) {
 	temp_Detector.SetDetectorInfo ( dType, Zpos, rot, sp_res, track_res, slope_match, package, region, direction, Det_originX, Det_originY, ActiveWidthX, ActiveWidthY, ActiveWidthZ, WireSpace, FirstWire, W_rcos, W_rsin, TotalWires, detectorId );
-	
-	
+
+
 	if ( package == "u" )
 	  fDetectorInfo.at ( kPackageUp ).push_back ( temp_Detector );
 	else if ( package == "d" )
@@ -105,9 +108,9 @@ Int_t QwDriftChamberVDC::LoadQweakGeometry ( TString mapfile )
       }
     }
   }
-  
+
   std::cout<<"Loaded Qweak Geometry"<<" Total Detectors in pkg_d 1 "<<fDetectorInfo.at ( kPackageUp ).size() << " pkg_d 2 "<<fDetectorInfo.at ( kPackageDown ).size() <<std::endl;
-  
+
   std::cout << "Sorting detector info..." << std::endl;
   plane = 1;
   std::sort ( fDetectorInfo.at ( kPackageUp ).begin(),
@@ -118,7 +121,7 @@ Int_t QwDriftChamberVDC::LoadQweakGeometry ( TString mapfile )
     fDetectorInfo.at ( kPackageUp ).at ( i ).fPlane = plane++;
     std::cout<<" Region "<<fDetectorInfo.at ( kPackageUp ).at ( i ).fRegion<<" Detector ID "<<fDetectorInfo.at ( kPackageUp ).at ( i ).fDetectorID << std::endl;
   }
-  
+
   plane = 1;
   std::sort ( fDetectorInfo.at ( kPackageDown ).begin(),
 	      fDetectorInfo.at ( kPackageDown ).end() );
@@ -126,9 +129,9 @@ Int_t QwDriftChamberVDC::LoadQweakGeometry ( TString mapfile )
     fDetectorInfo.at ( kPackageDown ).at ( i ).fPlane = plane++;
     std::cout<<" Region "<<fDetectorInfo.at ( kPackageDown ).at ( i ).fRegion<<" Detector ID " << fDetectorInfo.at ( kPackageDown ).at ( i ).fDetectorID << std::endl;
   }
-  
+
   std::cout<<"Qweak Geometry Loaded "<<std::endl;
-  
+
   return OK;
 }
 
@@ -137,7 +140,7 @@ Int_t QwDriftChamberVDC::LoadQweakGeometry ( TString mapfile )
 
 
 
-void  QwDriftChamberVDC::ReportConfiguration() 
+void  QwDriftChamberVDC::ReportConfiguration()
 {
   UInt_t i,j,k;
   i=j=k=0;
@@ -166,18 +169,18 @@ void  QwDriftChamberVDC::ReportConfiguration()
 	      << " wires"
 	      <<std::endl;
   }
-  
+
   return;
 };
 
 
 
-void  QwDriftChamberVDC::SubtractReferenceTimes() 
+void  QwDriftChamberVDC::SubtractReferenceTimes()
 {
-  
+
   Bool_t refs_okay = kTRUE;
   std::vector<Double_t> reftimes;
-  
+
   reftimes.resize ( fReferenceData.size() );
   for ( UInt_t i=0; i<fReferenceData.size(); i++ ) {
     if ( fReferenceData.at ( i ).size() ==0 ) {
@@ -185,7 +188,7 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
       std::cerr << "QwDriftChamber::SubtractReferenceTimes:  Subbank ID "
 		<< i << " is missing a reference time." << std::endl;
       refs_okay = kFALSE;
-    } 
+    }
     else {
       reftimes.at ( i ) = fReferenceData.at ( i ).at ( 0 );
     }
@@ -261,18 +264,18 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetect
 
 
 void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data ) {
-    //Int_t tdcindex = GetTDCIndex(bank_index,slot_num);
-    Int_t tdcindex=1;
+    Int_t tdcindex = GetTDCIndex(bank_index,slot_num);
+    //Int_t tdcindex=1;
     if ( tdcindex != -1 ) {
         Int_t hitCount = 1;
         EQwDetectorPackage package  = kPackageUp;
-        //Int_t plane    = fTDCPtrs.at(tdcindex).at(chan).fPlane;
-        //Int_t wire     = fTDCPtrs.at(tdcindex).at(chan).fElement;
+        Int_t plane    = fTDCPtrs.at(tdcindex).at(chan).fPlane;
+        Int_t wire     = fTDCPtrs.at(tdcindex).at(chan).fElement;
 
-        Int_t plane=-2;
-        if ( slot_num==3 )
-            plane=fDelayLinePtrs.at ( slot_num ).at ( chan ).fBackPlane;
-        Int_t wire=0;
+      //  Int_t plane=-2;
+      //  if ( slot_num==3 )
+      //      plane=fDelayLinePtrs.at ( slot_num ).at ( chan ).fBackPlane;
+      //  Int_t wire=0;
         EQwDirectionID direction=kDirectionNull;
 
 
@@ -281,14 +284,14 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
             //  Do nothing.
             //  } else if (plane == (Int_t) kReferenceChannelPlaneNumber){
             //fReferenceData.at(wire).push_back(data);
-        } else if ( slot_num==4 ) {
+//        } else if ( slot_num==4 ) {
+	} else if (plane == (Int_t) kReferenceChannelPlaneNumber){
             fReferenceData.at ( wire ).push_back ( data );
         } else {
+	     plane=fDelayLinePtrs.at ( slot_num ).at ( chan ).fBackPlane;
             //std::cout<<"At QwDriftChamberVDC::FillRawTDCWord_1"<<endl;
             //direction =fDirectionData.at(package-1).at(plane-1); //wire direction is accessed from the vector and updates the QwHit with it. Rakitha(10/23/2008)
 
-            // hitCount=std::count_if(fTDCHits.begin(),fTDCHits.end(),boost::bind(&QwHit::WireMatches,_1,2,boost::ref(package),boost::ref(plane),boost::ref(wire)) );
-            //std::cout<<"At QwDriftChamberVDC::FillRawTDCWord_2"<<endl;
             hitCount=std::count_if(fTDCHits.begin(),fTDCHits.end(),boost::bind(&QwHit::WireMatches,_1,3,boost::ref(package),boost::ref(plane),boost::ref(wire)) );
             fTDCHits.push_back ( QwHit ( bank_index, slot_num, chan, hitCount, kRegionID3, package, plane,direction, wire, data ) );//in order-> bank index, slot num, chan, hitcount, region=3, package, plane,,direction, wire,wire hit time
 
@@ -308,14 +311,12 @@ Int_t QwDriftChamberVDC::BuildWireDataStructure ( const UInt_t chan, const UInt_
     if ( plane == kReferenceChannelPlaneNumber ) {
         LinkReferenceChannel ( chan, plane, wire );
     } else {
-        //std::cout << "fCurrent: " << fTDCPtrs.size() << std::endl;
-        //std::cout << "chan: " << chan << " " << plane << std::endl;
+
         fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPackage = package;
         fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPlane   = plane;
         fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fElement = wire;
         if ( plane>=fWiresPerPlane.size() ) {
             fWiresPerPlane.resize ( plane+1 );
-            //fWiresPerPlane.resize(plane);
         }
         //if (wire>=fWiresPerPlane.at(plane)){
         //    fWiresPerPlane.at(plane) =  wire+1;
@@ -616,7 +617,7 @@ void QwDriftChamberVDC::ProcessEvent() {
 
                     AddChannelDefinition(fDelayLineArray.at (tmpbp).at(tmpln).fPlane,wire_hit );
                     NewQwHit.SetHitNumberR ( order_R );
-                    
+
                     NewQwHit.SetTime ( real_time );
 
                     QwDetectorInfo* local_info = & fDetectorInfo.at ( package ).at ( plane );
@@ -669,13 +670,13 @@ void QwDriftChamberVDC::ClearEventData() {
 
 Int_t QwDriftChamberVDC:: ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
-  
+
 
   printf("ProcessConfigurationBuffer\n");
   Int_t index = 0;
 
   index = GetSubbankIndex(roc_id,bank_id);
-  
+
   if (index>=0 && num_words>0)
     {
       SetDataLoaded(kTRUE);
@@ -688,20 +689,20 @@ Int_t QwDriftChamberVDC:: ProcessConfigurationBuffer(const UInt_t roc_id, const 
       //	{
       //      //  Decode this word as a F1TDC word.
       //       DecodeTDCWord(buffer[i]);
-      
+
       //       if (GetTDCSlotNumber() == 31){
-      // 	//  This is a custom word which is not defined in 
+      // 	//  This is a custom word which is not defined in
       // 	//  the F1TDC, so we can use it as a marker for
       // 	//  other data; it may be useful for something.
-      
+
       //       }
       //       if (! IsSlotRegistered(index, GetTDCSlotNumber())) continue;
-      
+
       //       if (IsValidDataword()){
       // 	// This is a F1 TDC header/trailer word
       // 	//  This might be a problem, but often is not...
       // 	//  Do we need to do something?
-      
+
       //       } else {
       // 	// This is a F1 TDC data word
       // 	try {
@@ -710,7 +711,7 @@ Int_t QwDriftChamberVDC:: ProcessConfigurationBuffer(const UInt_t roc_id, const 
       // 			 GetTDCData());
       // 	}
       // 	catch (std::exception& e) {
-      // 	  std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: " 
+      // 	  std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
       // 		    << e.what() << std::endl;
       // 	  Int_t chan = GetTDCChannelNumber();
       // 	  std::cerr << "   Parameters:  index=="<<index
@@ -731,39 +732,39 @@ Int_t QwDriftChamberVDC:: ProcessConfigurationBuffer(const UInt_t roc_id, const 
       //       }
       //	}
     }
-  
+
   return OK;
 };
 
 
 
-// Test function 
+// Test function
 void  QwDriftChamberVDC::PrintConfigrationBuffer(UInt_t *buffer, UInt_t num_words)
 {
   UInt_t ipt = 0;
   UInt_t j = 0;
   UInt_t k = 0;
 
-  for (j = 0; j < (num_words/5); j++) 
+  for (j = 0; j < (num_words/5); j++)
     {
       printf("buffer[%5d] = 0x:", ipt);
-      for (k=j; k<j+5; k++) 
+      for (k=j; k<j+5; k++)
 	{
 	  printf("%12x", buffer[ipt++]);
 	}
       printf("\n");
     }
-  
-  if (ipt < num_words) 
+
+  if (ipt < num_words)
     {
       printf("buffer[%5d] = 0x:", ipt);
-      for (k=ipt; k<num_words; k++) 
+      for (k=ipt; k<num_words; k++)
 	{
 	  printf("%12x", buffer[ipt++]);
 	}
       printf("\n");
     }
   printf("\n");
-    
+
   return;
 }

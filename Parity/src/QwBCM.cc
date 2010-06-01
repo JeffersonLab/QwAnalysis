@@ -110,6 +110,8 @@ void  QwBCM::ProcessEvent()
 {
   ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine either in ApplySingleEventCuts or here do not make any difference for a BCM but do for a BPMs because they have derrived devices.
   fTriumf_ADC.ProcessEvent();
+  //update the event cut counters
+  fTriumf_ADC.UpdateHWErrorCounters();
   return;
 };
 /********************************************************/
@@ -352,9 +354,11 @@ void  QwBCM::Copy(VQwDataElement *source)
 
 
 
-
-QwDBInterface QwBCM::GetDBEntry(TString subname)
+std::vector<QwDBInterface> QwBCM::GetDBEntry()
 {
+  UShort_t i = 0;
+
+  std::vector <QwDBInterface> row_list;
   QwDBInterface row;
 
   TString name;
@@ -363,12 +367,19 @@ QwDBInterface QwBCM::GetDBEntry(TString subname)
   UInt_t beam_subblock = 0;
   UInt_t beam_n        = 0;
 
-  name          = this->GetElementName();
-  avg           = this->GetAverage();
-  err           = this->GetAverageError();
-  beam_subblock = 9;// no meaning, later will be replaced with a real one
-  beam_n        = this->GetGoodEventCount();
+  row.Reset();
 
+  // the element name and the n (number of measurements in average)
+  // is the same in each block and hardwaresum. 
+
+  name          = fTriumf_ADC.GetElementName();
+  beam_n        = fTriumf_ADC.GetGoodEventCount();
+
+  // Get HardwareSum average and its error
+  avg           = fTriumf_ADC.GetHardwareSum();
+  err           = fTriumf_ADC.GetHardwareSumError();
+  // ADC subblock sum : 0 in MySQL database
+  beam_subblock = 0;
 
   row.SetDetectorName(name);
   row.SetSubblock(beam_subblock);
@@ -376,7 +387,31 @@ QwDBInterface QwBCM::GetDBEntry(TString subname)
   row.SetValue(avg);
   row.SetError(err);
 
+  row_list.push_back(row);
 
-  return row;
+
+  // Get four Block averages and thier errors
+
+  for(i=0; i<4; i++) {
+    row.Reset();
+    avg           = fTriumf_ADC.GetBlockValue(i);
+    err           = fTriumf_ADC.GetBlockErrorValue(i);
+    beam_subblock = (UInt_t) (i+1);
+    // QwVQWK_Channel  | MySQL 
+    // fBlock[0]       | subblock 1
+    // fBlock[1]       | subblock 2
+    // fBlock[2]       | subblock 3
+    // fBlock[3]       | subblock 4
+    row.SetDetectorName(name);
+    row.SetSubblock(beam_subblock);
+    row.SetN(beam_n);
+    row.SetValue(avg);
+    row.SetError(err);
+
+    row_list.push_back(row);
+  }
+
+  return row_list;
 
 };
+

@@ -122,6 +122,8 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
     EventDisplaySubSystem = new QwGUIEventDisplay(fClient->GetRoot(), this, dTab, "Event Display",
 					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
 
+  OpenMapFile();
+
 }
 
 QwGUIMain::~QwGUIMain()
@@ -838,30 +840,16 @@ Int_t QwGUIMain::OpenMapFile()
     printf("QwGUIMain::OpenMapFile - Memory map error\n");
   }
   char filename[NAME_STR_MAX];
-  /* 
-  //To set up so that a file dialog is opened if file=NULL
-  if(!file){
-    if(GetFilenameFromDialog(filename,"root",status) == PROCESS_FAILED)
-      return PROCESS_FAILED;
-  }
-  else
-    strcpy(filename,file);
-  */
   
-  //printf("Before RDataContainer opened\n");
-  dROOTFile = new RDataContainer(fClient->GetRoot(), this,"dROOTFile","QwGUIMain","ROOT",FM_UPDATE,FT_ROOT);
-  //printf("Before RDataContainer opened \n");
-  //printf("Before Map file opened \n");
-  gSystem->Sleep(100);
+   dROOTFile = new RDataContainer(fClient->GetRoot(), this,"dROOTFile","QwGUIMain","ROOT",FM_UPDATE,FT_ROOT);
   try { 
-     dROOTFile->OpenMapFile(dMiscbuffer2);//open the map file
+    dROOTFile->OpenMapFile(dMiscbuffer2);//open the map file
+     
   }
   catch( char * str ) {
     printf("QwGUIMain::OpenMapFile - Memory map error\n");
   }
 
-  gSystem->Sleep(100);
-  //printf("After Map file opened\n");
   TObject *obj;
   TIter next(SubSystemArray.MakeIterator());
   obj = next();

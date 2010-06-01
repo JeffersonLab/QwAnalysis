@@ -3,6 +3,7 @@
 // Qweak tracking headers
 #include "QwOptionsTracking.h"
 #include "QwParameterFile.h"
+#include "QwBridgingTrackFilter.h"
 #include "QwRayTracer.h"
 #include "QwMatrixLookup.h"
 
@@ -50,8 +51,8 @@ int main (int argc, char* argv[])
   // Define the command line options
   DefineOptionsTracking(gQwOptions);
 
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
-  QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH") + "/setupfiles");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Tracking/prminput");
 
   /// For the tracking analysis we create the QwSubsystemArrayTracking list
   /// which contains the VQwSubsystemTracking objects.
@@ -60,17 +61,17 @@ int main (int argc, char* argv[])
   // Region 1 GEM
   detectors->push_back(new QwGasElectronMultiplier("R1"));
   detectors->GetSubsystem("R1")->LoadChannelMap("qweak_cosmics_hits.map");
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("R1"))->LoadQweakGeometry("qweak_new.geo");
+  ((VQwSubsystemTracking*) detectors->GetSubsystem("R1"))->LoadGeometryDefinition("qweak_new.geo");
 
   // Region 2 HDC
   detectors->push_back(new QwDriftChamberHDC("R2"));
   detectors->GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("R2"))->LoadQweakGeometry("qweak_new.geo");
+  ((VQwSubsystemTracking*) detectors->GetSubsystem("R2"))->LoadGeometryDefinition("qweak_new.geo");
 
   // Region 3 VDC
   detectors->push_back(new QwDriftChamberVDC("R3"));
   detectors->GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
+  ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->LoadGeometryDefinition("qweak_new.geo");
 
   // Get vector with detector info (by region, plane number)
   std::vector< std::vector< QwDetectorInfo > > detector_info;
@@ -78,15 +79,17 @@ int main (int argc, char* argv[])
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->GetDetectorInfo(detector_info);
   ((VQwSubsystemTracking*) detectors->GetSubsystem("R1"))->GetDetectorInfo(detector_info);
 
+  /// Create a track filter
+  QwBridgingTrackFilter* trackfilter = new QwBridgingTrackFilter();
 
   /// Create a lookup table bridging method
   QwMatrixLookup* matrixlookup = new QwMatrixLookup();
   // Determine lookup table file from environment variables
   std::string trajmatrix = "";
-  if (getenv("QW_LOOKUP_DIR") && getenv("QW_LOOKUP_FILE"))
-    trajmatrix = std::string(getenv("QW_LOOKUP_DIR")) + "/" + std::string(getenv("QW_LOOKUP_FILE"));
+  if (getenv("QW_LOOKUP"))
+    trajmatrix = std::string(getenv("QW_LOOKUP")) + "/QwTrajMatrix.root";
   else
-    QwWarning << "Environment variable QW_LOOKUP_DIR and/or QW_LOOKUP_FILE not defined." << QwLog::endl;
+    QwWarning << "Environment variable QW_LOOKUP not defined." << QwLog::endl;
   // Load lookup table
   if (! matrixlookup->LoadTrajMatrix(trajmatrix))
     QwError << "Could not load trajectory lookup table!" << QwLog::endl;
@@ -95,10 +98,10 @@ int main (int argc, char* argv[])
   QwRayTracer* raytracer = new QwRayTracer();
   // Determine magnetic field file from environment variables
   std::string fieldmap = "";
-  if (getenv("QW_FIELDMAP_DIR") && getenv("QW_FIELDMAP_FILE"))
-    fieldmap = std::string(getenv("QW_FIELDMAP_DIR")) + "/" + std::string(getenv("QW_FIELDMAP_FILE"));
+  if (getenv("QW_FIELDMAP"))
+    fieldmap = std::string(getenv("QW_FIELDMAP")) + "/peiqing_2007.dat";
   else
-    QwWarning << "Environment variable QW_FIELDMAP_DIR and/or QW_FIELDMAP_FILE not defined." << QwLog::endl;
+    QwWarning << "Environment variable QW_FIELDMAP not defined." << QwLog::endl;
   // Load magnetic field map
   if (! QwRayTracer::LoadMagneticFieldMap(fieldmap))
     QwError << "Could not load magnetic field map!" << QwLog::endl;
@@ -110,7 +113,7 @@ int main (int argc, char* argv[])
               runnumber++) {
 
     // Setup the output file for bridgingresults
-    TString outputfilename = Form(TString(getenv("QWSCRATCH")) + "/rootfiles/QwSimBridge_%d.root", runnumber);
+    TString outputfilename = Form(getenv_safe_TString("QWSCRATCH") + "/rootfiles/QwSimBridge_%d.root", runnumber);
     TFile *file = new TFile(outputfilename, "RECREATE", "Bridging result");
     file->cd();
     TTree *tree = new TTree("tree", "Bridging");
@@ -121,7 +124,7 @@ int main (int argc, char* argv[])
     tree->Branch("events", "QwEvent", &event);
 
     /// Load the simulated event file
-    TString input = Form(TString(getenv("QWSCRATCH")) + "/data/QwSim_%d.root", runnumber);
+    TString input = Form(getenv_safe_TString("QWSCRATCH") + "/data/QwSim_%d.root", runnumber);
     QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (input, detector_info);
 
 
@@ -155,44 +158,35 @@ int main (int argc, char* argv[])
         for (size_t j = 0; j < tracks_r3.size(); j++) {
 
           // Filter tracks based on parameters (TODO filter should go somewhere else)
-          int status = raytracer->Filter(tracks_r2.at(i), tracks_r3.at(j));
-          if (status == -1) {
+          int status = trackfilter->Filter(tracks_r2.at(i), tracks_r3.at(j));
+          if (status != 0) {
             QwMessage << "Track did not pass filter." << QwLog::endl;
             continue;
           }
-          status = -1;
-
-          std::vector<QwTrack*> tracklist;
 
           // Bridge using the lookup table
-          if (status == -1) {
-            timer.Start();
-            status = matrixlookup->Bridge(tracks_r2.at(i), tracks_r3.at(j));
-            timer.Stop();
-            CpuTime = timer.CpuTime();
-            RealTime = timer.RealTime();
-            timer.Reset();
-            if (status == 0)
-              tracklist = matrixlookup->GetListOfTracks();
-            else QwMessage << "Matrix lookup: " << status << QwLog::endl;
-          }
+          timer.Start();
+          status = matrixlookup->Bridge(tracks_r2.at(i), tracks_r3.at(j));
+          timer.Stop();
+          CpuTime = timer.CpuTime();
+          RealTime = timer.RealTime();
+          timer.Reset();
+          if (status == 0) {
+            event->AddTrackList(matrixlookup->GetListOfTracks());
+            continue;
+          } else QwMessage << "Matrix lookup: " << status << QwLog::endl;
 
           // Bridge using the ray tracer
-          if (status == -1) {
-            timer.Start();
-            status = raytracer->Bridge(tracks_r2.at(i), tracks_r3.at(j));
-            timer.Stop();
-            CpuTime = timer.CpuTime();
-            RealTime = timer.RealTime();
-            timer.Reset();
-            if (status == 0)
-              tracklist = raytracer->GetListOfTracks();
-            else QwMessage << "Ray tracer: " << status << QwLog::endl;
-          }
-
+          timer.Start();
+          status = raytracer->Bridge(tracks_r2.at(i), tracks_r3.at(j));
+          timer.Stop();
+          CpuTime = timer.CpuTime();
+          RealTime = timer.RealTime();
+          timer.Reset();
           if (status == 0) {
-            event->AddTrackList(tracklist);
-          }
+            event->AddTrackList(raytracer->GetListOfTracks());
+            continue;
+          } else QwMessage << "Ray tracer: " << status << QwLog::endl;
 
         } // end of back track loop
       } // end of front track loop

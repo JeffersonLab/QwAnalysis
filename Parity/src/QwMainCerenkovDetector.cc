@@ -12,13 +12,17 @@
 #include "QwSubsystemArray.h"
 #include "QwLog.h"
 
+// Register this subsystem with the factory
+QwSubsystemFactory<QwMainCerenkovDetector>
+  theMainCerenkovDetectorFactory("QwMainCerenkovDetector");
+
 void QwMainCerenkovDetector::ProcessOptions(QwOptions &options){
       //Handle command line options
 };
 
 Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 {
-  Bool_t ldebug=kTRUE;
+  Bool_t ldebug=kFALSE;
 
   TString varname, varvalue;
   TString modtype, dettype, namech, nameofcombinedchan;
@@ -856,7 +860,7 @@ Bool_t QwMainCerenkovDetector::Compare(VQwSubsystem *value)
     }
   else
     {
-      QwMainCerenkovDetector* input= dynamic_cast<QwMainCerenkovDetector*>(value);
+      QwMainCerenkovDetector* input = dynamic_cast<QwMainCerenkovDetector*>(value);
       if (input->fIntegrationPMT.size()!=fIntegrationPMT.size() ||
           input->fCombinedPMT.size()!=fCombinedPMT.size() )
         {
@@ -993,16 +997,40 @@ void QwMainCerenkovDetector::AccumulateRunningSum(VQwSubsystem* value1)
   }
 };
 
-void QwMainCerenkovDetector::BlindMe(QwBlinder *blinder)
+
+/**
+ * Blind the asymmetry
+ * @param blinder Blinder
+ */
+void QwMainCerenkovDetector::Blind(const QwBlinder *blinder)
 {
-  for (size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].BlindMe(blinder);
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].Blind(blinder);
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
+    fCombinedPMT[i].Blind(blinder);
+}
 
-  for (size_t i=0;i<fCombinedPMT.size();i++)
-    fCombinedPMT[i].BlindMe(blinder);
+/**
+ * Blind the difference using the yield
+ * @param blinder Blinder
+ * @param yield Corresponding yield
+ */
+void QwMainCerenkovDetector::Blind(const QwBlinder *blinder, const VQwSubsystemParity* subsys)
+{
+  /// \todo TODO (wdc) At some point we should introduce const-correctness in
+  /// the Compare() routine to ensure nothing funny happens.  This const_casting
+  /// is just an ugly stop-gap measure.
+  if (Compare(const_cast<VQwSubsystemParity*>(subsys))) {
 
-  return;
-};
+    const QwMainCerenkovDetector* yield = dynamic_cast<const QwMainCerenkovDetector*>(subsys);
+    if (yield == 0) return;
+
+    for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+      fIntegrationPMT[i].Blind(blinder, yield->fIntegrationPMT[i]);
+    for (size_t i = 0; i < fCombinedPMT.size(); i++)
+      fCombinedPMT[i].Blind(blinder, yield->fCombinedPMT[i]);
+  }
+}
 
 EQwPMTInstrumentType QwMainCerenkovDetector::GetDetectorTypeID(TString name)
 {
@@ -1089,14 +1117,15 @@ void QwMainCerenkovDetector::DoNormalization(Double_t factor)
 
 void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
 {
-
-  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
-  QwMessage << "            QwMainCerenkovDetector::FillDB                       " << QwLog::endl;
-  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
-
   Bool_t local_print_flag = true;
-  QwDBInterface interface;
-  vector<QwParityDB::md_data> entrylist;
+  if(local_print_flag) {
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+    QwMessage << "            QwMainCerenkovDetector::FillDB                       " << QwLog::endl;
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  }
+ 
+  std::vector<QwDBInterface> interface;
+  std::vector<QwParityDB::md_data> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();
 
@@ -1106,71 +1135,60 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
   Char_t measurement_type[4];
 
   if(datatype.Contains("yield")) {
-    sprintf(measurement_type, yield_type.Data());
+    sprintf(measurement_type, "%s", yield_type.Data());
   }
   else if (datatype.Contains("asymmetry")) {
-    sprintf(measurement_type, asymm_type.Data());
+    sprintf(measurement_type, "%s", asymm_type.Data());
   }
   else {
-    sprintf(measurement_type, " ");
+    sprintf(measurement_type, "%s", " ");
   }
 
-  QwMessage <<  QwColor(Qw::kGreen) << "IntegrationPMT" <<QwLog::endl;
+  UInt_t i,j;
+  i = j = 0;
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "IntegrationPMT" <<QwLog::endl;
 
-  for(UInt_t i=0; i< fIntegrationPMT.size(); i++)
-    {
-      interface.Reset();
-      interface = fIntegrationPMT[i].GetDBEntry(""); // QwIntegrationPMT has only one element, thus noname "" on it.
-      interface.SetAnalysisID( analysis_id );
-      interface.SetDeviceID( db->GetMainDetectorID(interface.GetDeviceName().Data()) );
-      interface.SetMeasurementTypeID(measurement_type);
-      interface.PrintStatus(local_print_flag);
-
-      interface.AddThisEntryToList(entrylist);
+  for(i=0; i<fIntegrationPMT.size(); i++) {
+    interface.clear();
+    interface = fIntegrationPMT[i].GetDBEntry(); 
+    for(j=0; j<interface.size(); j++) {
+      interface.at(j).SetAnalysisID( analysis_id );
+      interface.at(j).SetMainDetectorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
     }
+  }
 
-  QwMessage <<  QwColor(Qw::kGreen) << "Combined PMT" <<QwLog::endl;
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Combined PMT" <<QwLog::endl;
 
-  for(UInt_t i=0; i< fCombinedPMT.size(); i++)
+  for(i=0; i< fCombinedPMT.size(); i++)
     {
-      interface.Reset();
-      interface = fCombinedPMT[i].GetDBEntry("");
-      // QwCombinedPMT has only one element, thus noname "" on it.
-      // fSumADC
-      interface.SetAnalysisID( analysis_id );
-      interface.SetDeviceID( db->GetMainDetectorID(interface.GetDeviceName().Data()) );
-      interface.SetMeasurementTypeID(measurement_type);
-      interface.PrintStatus(local_print_flag);
-
-      interface.AddThisEntryToList(entrylist);
+      interface.clear();
+      interface = fCombinedPMT[i].GetDBEntry();
+      for(j=0; j<interface.size(); j++) {
+	interface.at(j).SetAnalysisID( analysis_id );
+	interface.at(j).SetMainDetectorID( db );
+	interface.at(j).SetMeasurementTypeID( measurement_type );
+	interface.at(j).PrintStatus( local_print_flag );
+	interface.at(j).AddThisEntryToList( entrylist );
+      }
     }
-
-   QwMessage << QwColor(Qw::kGreen) << "Entrylist Size : "
-	     << QwColor(Qw::kBoldRed) << entrylist.size() << QwLog::endl;
+  if(local_print_flag) {
+    QwMessage << QwColor(Qw::kGreen) << "Entrylist Size : "
+	      << QwColor(Qw::kBoldRed) << entrylist.size() << QwLog::endl;
+  }
 
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query..
-  if( entrylist.size() )
-    {
-      mysqlpp::Query query= db->Query();
-      //    if(query)
-      //	{
-      query.insert(entrylist.begin(), entrylist.end());
-//       QwError<< "QwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << QwLog::endl;
-
-      query.execute();
-	  //	  query.reset(); // do we need?
-	  //	}
-	  //      else
-	  //	{
-	  //	  printf("Query is empty\n");
-	  //	}
-    }
-  else
-    {
-      QwMessage << "QwMainCerenkovDetector::FillDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
-    }
-
+  if( entrylist.size() ) {
+    mysqlpp::Query query= db->Query();
+    query.insert(entrylist.begin(), entrylist.end());
+    query.execute();
+  }
+  else {
+    QwMessage << "QwMainCerenkovDetector::FillDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
+  }
   db->Disconnect();
   return;
 };

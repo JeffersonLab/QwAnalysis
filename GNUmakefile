@@ -14,7 +14,7 @@
 ############################
 ############################
 
-DEBUG := -g
+DEBUG := -g -O0
 # Add -g if you need to debug (but you'd better
 # first type 'make distclean' to enable full
 # recompilation with this flag).
@@ -128,9 +128,9 @@ EXCLUDEDIRS = evio Extensions
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
   ifneq ($(CODA),)
     #  The realtime executables should be added in this section.
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online qwroot qwmockdatagenerator qwmockdataanalysis
   else
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online qwroot qwmockdatagenerator qwmockdataanalysis
   endif
 else
   EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
@@ -138,9 +138,9 @@ endif
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
   ifneq ($(CODA),)
     #  The realtime executables should be added in this section.
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online qwroot qwmockdatagenerator qwmockdataanalysis
   else
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online qwroot qwmockdatagenerator qwmockdataanalysis
   endif  
 endif
 # overridden by "make 'EXES=exe1 exe2 ...'"
@@ -606,14 +606,14 @@ endif
 	@$(MAKE) -f .auxDepends `$(CAT) .auxExeFiles | $(SED) 's/$$/ /g' | $(APPEND_BIN_PATH) | $(INTO_RELATIVE_PATH)`
 
 
-config: .ADD .EXES clean.auxfiles .auxDepends
+config: .ADD .EXES clean.auxfiles .auxDepends qweak-config
 	@for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .ADD),$(ADD)) $(filter-out $(ADD),$(shell $(CAT) .ADD)) | $(REMOVE_-D))); \
 	do \
 	$(RM) `$(GREP) $$wd */*/*$(IncSuf) */*/*$(SrcSuf) | $(SED) 's/^\([A-Za-z0-9\/\._]*\):.*/\1/g;s/\$(IncSuf)/\$(ObjSuf)/g;s/\$(SrcSuf)/\$(ObjSuf)/g'`; \
 	done
 	@for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .EXES),$(EXES)) $(filter-out $(EXES),$(shell $(CAT) .EXES)) | $(REMOVE_-D))); \
 	do \
-	cd $(QW_BIN);$(RM) `$(LS) $(QW_BIN) | $(SED) 's/CVS//g' | $(SED) 's/SunWS_cache//g'` $(QW_LIB)/libQw$(DllSuf); \
+	cd $(QW_BIN);$(RM) `$(LS) $(QW_BIN) | $(GREP) -v 'qweak-config' | $(SED) 's/CVS//g' | $(SED) 's/SunWS_cache//g'` $(QW_LIB)/libQw$(DllSuf); \
 	done
 	@$(ECHO) $(ADD)  | $(TO_LINE) > .ADD
 	@$(ECHO) $(EXES)  | $(TO_LINE) > .EXES

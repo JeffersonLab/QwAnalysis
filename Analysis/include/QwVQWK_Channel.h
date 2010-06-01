@@ -42,7 +42,9 @@ class QwVQWK_Channel: public VQwDataElement {
  *         through member functions.
  ******************************************************************/
  public:
-  QwVQWK_Channel() { };
+  QwVQWK_Channel() {
+    InitializeChannel("","");
+  };
 
   QwVQWK_Channel(TString name, TString datatosave = "raw") {
     InitializeChannel(name, datatosave);
@@ -143,15 +145,21 @@ class QwVQWK_Channel: public VQwDataElement {
 
   Int_t ApplyHWChecks(); //Check for harware errors in the devices. This will return the device error code.
 
+  void UpdateHWErrorCounters(Int_t error_flag);//update counters based on the flag passed to it
+  void UpdateHWErrorCounters(){//update the counters based on the this->fDeviceErrorCode
+    UpdateHWErrorCounters(fDeviceErrorCode);
+  };
   /*End*/
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
+  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
 
   Double_t GetBlockValue(size_t blocknum){ return fBlock[blocknum]; };
+  Double_t GetBlockErrorValue(size_t blocknum) { return fBlockError[blocknum]; };
   Double_t GetHardwareSum()        { return fHardwareBlockSum; };
   Double_t GetHardwareSumM2()      { return fHardwareBlockSumM2; };
   Double_t GetHardwareSumError()   { return fHardwareBlockSumError; };
@@ -179,14 +187,17 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t GetAverageError() { return fHardwareBlockSumError; };
   UInt_t GetGoodEventCount() { return fGoodEventCount; };
 
-  void BlindMe(QwBlinder *blinder);
+  /// \brief Blind this channel as an asymmetry
+  void Blind(const QwBlinder *blinder);
+  /// \brief Blind this channel as a difference
+  void Blind(const QwBlinder *blinder, const QwVQWK_Channel& yield);
 
  protected:
 
 
  private:
   static const Bool_t kDEBUG;
-
+  static const Int_t fWordsPerChannel = 6;//no.of words per channel in the CODA buffer
 
   Int_t fDataToSave;
 
@@ -206,7 +217,8 @@ class QwVQWK_Channel: public VQwDataElement {
   /*! \name Channel configuration data members */
   // @{
   UInt_t  fSamplesPerBlock;
-  UInt_t  fBlocksPerEvent;
+  //UInt_t  fBlocksPerEvent;
+  Short_t fBlocksPerEvent;
   // @}
 
   /*  Ntuple array indices */

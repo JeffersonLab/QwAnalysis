@@ -9,72 +9,90 @@
 #ifndef __VQWSUBSYSTEMPARITY__
 #define __VQWSUBSYSTEMPARITY__
 
+// ROOT headers
+#include <TTree.h>
+
+// Qweak headers
 #include "VQwSubsystem.h"
-//#include "QwOptionsParity.h"
-#include "TTree.h"
-
 #include "QwDatabase.h"
+
+// Forward declarations
 class QwBlinder;
-///
-/// \ingroup QwAnalysis_ADC
-///
-/// \ingroup QwAnalysis_BL
-class VQwSubsystemParity : virtual public VQwSubsystem {
-  /******************************************************************
-   *  Class: VQwSubsystemBeamLine
-   *         Virtual base class for the classes containing the
-   *         event-based information from each Beamline subsystem.
-   *         This will define the interfaces used in communicating
-   *         with the CODA routines.
-   *
-   ******************************************************************/
- public:
-  VQwSubsystemParity(TString region_tmp):VQwSubsystem(region_tmp){ };
-
-  virtual ~VQwSubsystemParity(){ };
 
 
-  virtual void ProcessOptions(QwOptions &options){
-  };
-  virtual void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)=0;
-  virtual void ConstructBranchAndVector(TTree *tree, std::vector <Double_t> &values)
-    {
+/**
+ * \class VQwSubsystemParity
+ * \ingroup QwAnalysis
+ *
+ * \brief Virtual base class for the parity subsystems
+ *
+ *   Virtual base class for the classes containing the
+ *   event-based information from each parity subsystem.
+ *   This will define the interfaces used in communicating
+ *   with the CODA routines.
+ *
+ */
+class VQwSubsystemParity: virtual public VQwSubsystem {
+
+  public:
+
+    /// Constructor with name
+    VQwSubsystemParity(TString name): VQwSubsystem(name) { };
+    /// Default destructor
+    virtual ~VQwSubsystemParity() { };
+
+    /// Process the command line options
+    virtual void ProcessOptions(QwOptions &options) { };
+
+    /// \brief Construct the branch and tree vector
+    virtual void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values) = 0;
+    /// \brief Construct the branch and tree vector
+    virtual void ConstructBranchAndVector(TTree *tree, std::vector <Double_t> &values) {
       TString tmpstr("");
       ConstructBranchAndVector(tree,tmpstr,values);
     };
+    /// \brief Fill the tree vector
+    virtual void FillTreeVector(std::vector<Double_t> &values) = 0;
 
-  virtual void FillTreeVector(std::vector<Double_t> &values)=0;
+    /// \brief Fill the database
+    virtual void FillDB(QwDatabase *db, TString type) { };
 
-  virtual void FillDB(QwDatabase *db, TString type) {};
-  virtual VQwSubsystem&  operator= (VQwSubsystem *value)=0;//VQwSubsystem routine is overridden. Call it at the beginning by VQwSubsystem::operator=(value)
-  virtual VQwSubsystem&  operator+= (VQwSubsystem *value)=0;
-  virtual VQwSubsystem&  operator-= (VQwSubsystem *value)=0;
 
-  virtual void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)=0;
-  virtual void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)=0;
-  virtual void Ratio(VQwSubsystem *numer, VQwSubsystem *denom)=0;
+    // VQwSubsystem routine is overridden. Call it at the beginning by VQwSubsystem::operator=(value)
+    virtual VQwSubsystem& operator=  (VQwSubsystem *value) = 0;
+    virtual VQwSubsystem& operator+= (VQwSubsystem *value) = 0;
+    virtual VQwSubsystem& operator-= (VQwSubsystem *value) = 0;
+    virtual VQwSubsystem* Copy() = 0;
+    virtual void Sum(VQwSubsystem *value1, VQwSubsystem *value2) = 0;
+    virtual void Difference(VQwSubsystem *value1, VQwSubsystem *value2) = 0;
+    virtual void Ratio(VQwSubsystem *numer, VQwSubsystem *denom) = 0;
+    virtual void Scale(Double_t factor) = 0;
 
-  // Update the running sums for devices
-  virtual void AccumulateRunningSum(VQwSubsystem* value) = 0;
-  // Calculate the average for all good events
-  virtual void CalculateRunningAverage() = 0;
 
-  virtual Int_t LoadEventCuts(TString filename)=0;//Will load the event cut file.
-  virtual Bool_t ApplySingleEventCuts()=0;//impose single event cuts
-  virtual Int_t GetEventcutErrorCounters()=0;// report number of events falied due to HW and event cut faliure
-  virtual Int_t GetEventcutErrorFlag()=0;//return the error flag to the main routine
+    /// \brief Update the running sums for devices
+    virtual void AccumulateRunningSum(VQwSubsystem* value) = 0;
+    /// \brief Calculate the average for all good events
+    virtual void CalculateRunningAverage() = 0;
 
-  virtual VQwSubsystem* Copy()=0;
-  virtual void Scale(Double_t factor) = 0;
-  void BlindMe(QwBlinder *blinder) { return; };
+    /// \brief Load the event cuts file
+    virtual Int_t LoadEventCuts(TString filename) = 0;
+    /// \brief Apply the single event cuts
+    virtual Bool_t ApplySingleEventCuts() = 0;
+    /// \brief Report the number of events failed due to HW and event cut failures
+    virtual Int_t GetEventcutErrorCounters() = 0;
+    /// \brief Return the error flag to the main routine
+    virtual Int_t GetEventcutErrorFlag() = 0;
+
+    /// \brief Blind the asymmetry of this subsystem
+    virtual void Blind(const QwBlinder *blinder) { return; };
+    /// \brief Blind the difference of this subsystem
+    virtual void Blind(const QwBlinder *blinder, const VQwSubsystemParity* subsys) { return; };
 
   private:
-  VQwSubsystemParity(){};  //  Private constructor.
-};
 
+    /// Private default constructor
+    VQwSubsystemParity() { };
 
-/*
- *  Define the functions.
- */
+}; // class VQwSubsystemParity
 
-#endif
+#endif // __VQWSUBSYSTEMPARITY__

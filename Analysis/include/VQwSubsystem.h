@@ -16,7 +16,9 @@
 #include <TDirectory.h>
 
 // Qweak headers
-#include "QwParameterFile.h"
+// Note: the subsystem factory header is included here because every subsystem
+// has to register itself with a subsystem factory.
+#include "QwSubsystemFactory.h"
 
 // Forward declarations
 class QwSubsystemArray;
@@ -86,8 +88,12 @@ class VQwSubsystem {
     return kFALSE;
   };
 
+  // Mandatory map and parameter files
   virtual Int_t LoadChannelMap(TString mapfile) = 0;
   virtual Int_t LoadInputParameters(TString mapfile) = 0;
+  // Optional geometry definition
+  virtual Int_t LoadGeometryDefinition(TString mapfile) { return 0; };
+
   virtual void  ClearEventData() = 0;
 
   virtual Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) = 0;

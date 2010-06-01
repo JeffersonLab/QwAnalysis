@@ -14,15 +14,15 @@
 #include "TString.h"
 
 #include "THaCodaData.h"
+
 #include "MQwCodaControlEvent.h"
 
-#include "QwSubsystemArray.h"
-#include "VQwSubsystem.h"
-
 class QwOptions;
+class QwEPICSEvent;
+class VQwSubsystem;
+class QwSubsystemArray;
 
 //////////////////////////////////////////////////////////////////////
-
 
 
 ///
@@ -52,6 +52,12 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   /// \brief Returns a string like <run#> or <run#>.<file#>
   TString GetRunLabel() const;
+  /// \brief Return true if file segments are being chained together for
+  //analysis
+  Bool_t ChainDataFiles() const {return fChainDataFiles;};
+  /// \brief Return CODA file segment number
+  Int_t GetSegmentNumber() const {return *this_runsegment;};
+
   std::pair<UInt_t, UInt_t> GetEventRange() const {
     return fEventRange;
   };
@@ -89,10 +95,21 @@ class QwEventBuffer: public MQwCodaControlEvent{
     return (fEvtType>=0x90 && fEvtType<=0xaf);
   };
 
+
+
+  Bool_t IsEPICSEvent(){
+    //  What are the correct codes for our EPICS events?
+    return (fEvtType>=160 && fEvtType<=170);// epics event type is only with tag="160"
+  };
+
+
   Bool_t FillSubsystemConfigurationData(QwSubsystemArray &subsystems);
   Bool_t FillSubsystemData(QwSubsystemArray &subsystems);
 
+  Bool_t FillEPICSData(QwEPICSEvent &epics);
+
   template < class T > Bool_t FillObjectWithEventData(T &t);
+
 
   Int_t EncodeSubsystemData(QwSubsystemArray &subsystems);
   Int_t EncodePrestartEvent(int runnumber, int runtype = 0);

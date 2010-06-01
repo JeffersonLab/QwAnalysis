@@ -32,6 +32,9 @@ class QwParameterFile{
   QwParameterFile(const char *filename);
   ~QwParameterFile(){ };
 
+  /// Access the filebuf pointer in the same way as on a std::ifstream
+  std::filebuf* rdbuf() const  {return fInputFile.rdbuf();};
+
   static void AppendToSearchPath(const TString &searchdir);
 
   Bool_t ReadNextLine(){fCurrentPos=0;  return getline(fInputFile, fLine);};

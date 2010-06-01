@@ -89,6 +89,9 @@
 #include "QwGUIEventDisplay.h"
 #include "QwGUIHelpBrowser.h"
 #include "QwGUIDatabaseContainer.h"
+#ifndef __CINT__
+#include "QwOptions.h"
+#endif /* __CINT__ */
 
 
 class QwGUIMain : public TGMainFrame {

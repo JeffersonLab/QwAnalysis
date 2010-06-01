@@ -20,18 +20,22 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
    *         with the CODA routines.
    *
    ******************************************************************/
- public:
-  VQwSubsystemTracking(TString region_tmp):VQwSubsystem(region_tmp){ };
+  public:
 
-  virtual ~VQwSubsystemTracking(){};
+    VQwSubsystemTracking(TString region_tmp): VQwSubsystem(region_tmp) { };
 
-  virtual void  GetHitList(QwHitContainer & grandHitContainer)=0;
-  virtual Int_t LoadQweakGeometry(TString mapfile)=0;//will load the detector geometry file. This method is called individually from each subsystem
-  virtual Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detect_info)=0;
+    virtual ~VQwSubsystemTracking(){};
 
- private:
-  VQwSubsystemTracking(){};  //  Private constructor.
+    virtual void  GetHitList(QwHitContainer & grandHitContainer)=0;
 
+    // Mandatory geometry definition for tracking subsystems
+    virtual Int_t LoadGeometryDefinition(TString mapfile) = 0;
+
+    virtual Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detect_info)=0;
+
+  private:
+
+    VQwSubsystemTracking() { };  //  Private constructor.
 
 };
 

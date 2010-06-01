@@ -18,7 +18,6 @@
 
 #include "VQwSubsystemTracking.h"
 #include "VQwSubsystemParity.h"
-#include "QwBlinder.h"
 
 #include "MQwV775TDC.h"
 #include "QwVQWK_Module.h"
@@ -62,7 +61,7 @@ class QwScanner: public VQwSubsystemTracking,
 
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
-  Int_t LoadQweakGeometry(TString mapfile){return 0;};
+  Int_t LoadGeometryDefinition(TString mapfile){return 0;};
   Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info){return 0;};
   Int_t LoadInputParameters(TString parameterfile);
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
