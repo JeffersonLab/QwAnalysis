@@ -108,8 +108,8 @@ class QwHelicity: public VQwSubsystemParity{
 
   void  PrintDetectorID();
 
-  void  ClearEventData();
-  void  ProcessEvent();
+  virtual void  ClearEventData();
+  virtual void  ProcessEvent();
   void  EncodeEventData(std::vector<UInt_t> &buffer);
 
   void SetFirst24Bits(UInt_t first24bits);
@@ -155,7 +155,7 @@ class QwHelicity: public VQwSubsystemParity{
 
   void Print();
 
-  Bool_t IsGoodHelicity();
+  virtual Bool_t IsGoodHelicity();
   Int_t GetMaxPatternPhase(){
     return fMaxPatternPhase;
   };
@@ -240,11 +240,11 @@ class QwHelicity: public VQwSubsystemParity{
   Bool_t IsGoodPhaseNumber();
   Bool_t IsContinuous();
 
-  UInt_t GetRandbit(UInt_t& ranseed);
+  virtual UInt_t GetRandbit(UInt_t& ranseed);
   UInt_t GetRandbit24(UInt_t& ranseed);//for 24bit pattern
   UInt_t GetRandbit30(UInt_t& ranseed);//for 30bit pattern
   UInt_t GetRandomSeed(UShort_t* first24randbits);
-  Bool_t CollectRandBits();
+  virtual Bool_t CollectRandBits();
   Bool_t CollectRandBits24();//for 24bit pattern
   Bool_t CollectRandBits30();//for 30bit pattern
 
