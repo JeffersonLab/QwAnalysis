@@ -37,6 +37,8 @@
 #include "QwLog.h"
 
 
+#include "QwFakeHelicity.h"
+
 Bool_t kInQwBatchMode = kFALSE;
 Bool_t bRING_READY;
 Bool_t bSkip= kFALSE;;
@@ -134,8 +136,8 @@ Int_t main(Int_t argc, Char_t* argv[])
    Double_t evnum=0.0;
 
 
-  // Loop over all runs
-  while (QwEvt.OpenNextStream() == CODA_OK){
+   // Loop over all runs
+   while (QwEvt.OpenNextStream() == CODA_OK){
       //  Begin processing for the first run.
       //  Start the timer.
       timer.Start();
@@ -177,11 +179,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  // results are going to get very very crazy.
 	  mpstree->Branch("evnum",&evnum,"evnum/D");
 	  TString dummystr="";
-	  //((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
-	  //((QwBeamLine*)QwDetectors.GetSubsystem("Helicity info"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
-	  //((QwBeamLine*)QwDetectors.GetSubsystem("Luminosity Monitors"))->ConstructBranchAndVector(mpstree, dummystr, mpsvector);
 	  QwDetectors.ConstructBranchAndVector(mpstree, dummystr, mpsvector);
-	  // QwDetectors.ConstructBranchAndVector(mpstree, dummystr, mpsvector);
 	  // at some point we want to have some thing like that but it need to be implement in QwSubsystemArray
 	  rootfile.cd();
 	  if(bHelicity)
@@ -238,7 +236,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
 	  if(bHelicity){
-
+	    
 	    fEventRing.push(QwDetectors);//add event to the ring
 	    bRING_READY=fEventRing.IsReady();
 

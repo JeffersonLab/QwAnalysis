@@ -28,6 +28,8 @@ main(Int_t argc, Char_t* argv[])
   gQwOptions.SetConfigFile("qweak_mysql.conf");
   DefineOptionsParity(gQwOptions);
 
+  QwMainCerenkovDetector::DefineOptions(gQwOptions);
+
   // modified value for maximum size of tree
   Long64_t kMAXTREESIZE = 10000000000LL;
   // standard value for maximum size of tree in root source
@@ -91,6 +93,8 @@ main(Int_t argc, Char_t* argv[])
   QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
   QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap("qweak_lumi.map");
   QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file.
+
+  QwDetectors.ProcessOptions(gQwOptions);
 
   QwSubsystemArrayParity runningsum;
   runningsum.Copy(&QwDetectors);

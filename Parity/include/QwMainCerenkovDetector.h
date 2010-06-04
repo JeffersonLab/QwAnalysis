@@ -38,20 +38,26 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
    *
    ******************************************************************/
  public:
-  QwMainCerenkovDetector(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp) {
-      fTargetCharge.InitializeChannel("q_targ","derived");
-      fTargetX.InitializeChannel("x_targ","derived");
-      fTargetY.InitializeChannel("y_targ","derived");
-      fTargetXprime.InitializeChannel("xp_targ","derived");
-      fTargetYprime.InitializeChannel("yp_targ","derived");
-      fTargetEnergy.InitializeChannel("e_targ","derived");
- };
+ QwMainCerenkovDetector(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),bNormalization(kFALSE)
+  {
+    fTargetCharge.InitializeChannel("q_targ","derived");
+    fTargetX.InitializeChannel("x_targ","derived");
+    fTargetY.InitializeChannel("y_targ","derived");
+    fTargetXprime.InitializeChannel("xp_targ","derived");
+    fTargetYprime.InitializeChannel("yp_targ","derived");
+    fTargetEnergy.InitializeChannel("e_targ","derived");
+  };
 
   ~QwMainCerenkovDetector() {
     DeleteHistograms();
   };
 
   /*  Member functions derived from VQwSubsystemParity. */
+
+  /// \brief Define options function
+  static void DefineOptions(QwOptions &options);
+
+
   void ProcessOptions(QwOptions &options);//Handle command line options
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
@@ -157,10 +163,11 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
 
   Bool_t bIsExchangedDataValid;
 
+  Bool_t bNormalization;
+
  private:
 
   static const Bool_t bDEBUG=kFALSE;
-  static const Bool_t bNormalization=kTRUE;
   Int_t fMainDetErrorCount;
 
 };
