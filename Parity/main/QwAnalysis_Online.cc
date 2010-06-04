@@ -125,7 +125,6 @@ Int_t main(Int_t argc, Char_t* argv[])
       //  Start the timer.
       timer.Start();
 
-      QwEvt.ResetControlParameters();
 
 
       //Map file access setup

@@ -22,7 +22,7 @@ class MQwCodaControlEvent
 
   UInt_t GetStartTime() {return fStartTime;};
   UInt_t GetPrestartTime() {return fPrestartTime;};
-  UInt_t GetRunNumber() {return fRunNumber;};
+  UInt_t GetPrestartRunNumber() {return fPrestartRunNumber;};
   UInt_t GetRunType() {return fRunType;};
 
   UInt_t GetGoTime(int index = 0);
@@ -62,7 +62,7 @@ class MQwCodaControlEvent
   Bool_t fFoundControlEvents;
 
   UInt_t fPrestartTime;
-  UInt_t fRunNumber;
+  UInt_t fPrestartRunNumber;
   UInt_t fRunType;
 
   UInt_t fEndTime;

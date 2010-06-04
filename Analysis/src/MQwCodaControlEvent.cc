@@ -11,7 +11,7 @@ void MQwCodaControlEvent::ResetControlParameters()
 {
   fFoundControlEvents = kFALSE;
   fPrestartTime  = 0;
-  fRunNumber     = 0;
+  fPrestartRunNumber = 0;
   fRunType       = 0;
   fEndTime       = 0;
   fEndEventCount = 0;
@@ -65,8 +65,10 @@ void MQwCodaControlEvent::ProcessPrestart(UInt_t local_time, UInt_t local_runnum
 {
   fFoundControlEvents = kTRUE;
   //
+  ResetControlParameters();
+  //
   fPrestartTime = local_time;
-  fRunNumber    = local_runnumber;
+  fPrestartRunNumber    = local_runnumber;
   fRunType      = local_runtype;
   fPrestartDatime.Set(fPrestartTime);
 };
@@ -145,7 +147,7 @@ void MQwCodaControlEvent::ReportRunSummary()
     //  At least one control event has been found.
     //  Report the control event data we did find.
     Int_t i;
-    std::cout << "Run Number:         " << fRunNumber << std::endl;
+    std::cout << "Run Number:         " << fPrestartRunNumber << std::endl;
     std::cout << "Run Type:           " << fRunType << std::endl;
     std::cout << "PreStart Time:      " << fPrestartTime << std::endl;
     std::cout << "Start Time:         " << fStartTime << std::endl;

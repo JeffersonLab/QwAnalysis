@@ -195,7 +195,6 @@ int main(int argc, char* argv[])
       QwError << "Could not open file!" << QwLog::endl;
       return 0;
     }
-    eventbuffer.ResetControlParameters();
 
 
     // ROOT file output (histograms)

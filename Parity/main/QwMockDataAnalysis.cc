@@ -108,7 +108,6 @@ int main(int argc, char* argv[])
       std::cout << "Error: could not open file!" << std::endl;
       return 0;
     }
-    eventbuffer.ResetControlParameters();
 
 
     // ROOT file output (histograms)

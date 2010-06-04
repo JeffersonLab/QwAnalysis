@@ -38,7 +38,7 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
     ("run,r", po::value<string>()->default_value("0:0"),
      "run range in format #[:#]");
   options.AddDefaultOptions()
-    ("chainfiles", po::value<bool>()->default_value(true)->zero_tokens(),
+    ("chainfiles", po::value<bool>()->default_value(false)->zero_tokens(),
      "chain file segments together, do not analyze them separately");
   options.AddDefaultOptions()
     ("event,e", po::value<string>()->default_value("0:"),
@@ -674,7 +674,7 @@ Bool_t QwEventBuffer::DataFileIsSegmented()
      * Look for file segments.                                  */
     std::cerr << "WARN: File " << fDataFile << " does not exist!\n"
 	      << "      Trying to find run segments for run "
-	      << fRunNumber << "...  ";
+	      << fCurrentRun << "...  ";
 
     searchpath.Append(".[0-9]*");
     glob(searchpath.Data(), GLOB_ERR, NULL, &globbuf);
@@ -755,7 +755,6 @@ Int_t QwEventBuffer::CloseThisSegment()
 Int_t QwEventBuffer::OpenNextSegment()
 {
   Int_t status;
-
   if (! fRunIsSegmented){
     /*  We are processing a non-segmented run.            *
      *  We should not have entered this routine, but      *
@@ -771,7 +770,7 @@ Int_t QwEventBuffer::OpenNextSegment()
   } else if (this_runsegment >= fRunSegments.begin() &&
       this_runsegment <  fRunSegments.end() ) {
     QwMessage << "Trying to open run segment " << *this_runsegment <<std::endl;
-    status = OpenDataFile(DataFile(fRunNumber,*this_runsegment),"R");
+    status = OpenDataFile(DataFile(fCurrentRun,*this_runsegment),"R");
 
   } else if (this_runsegment ==  fRunSegments.end() ) {
     /*  We have reached the last run segment. */
@@ -790,7 +789,7 @@ Int_t QwEventBuffer::OpenNextSegment()
 //call this routine if we've selected the run segment by hand
 Int_t QwEventBuffer::OpenDataFile(UInt_t current_run, Short_t seg)
 {
-  fRunNumber = current_run;
+  fCurrentRun = current_run;
 
   fRunSegments.clear();
   fRunIsSegmented = kTRUE;
@@ -805,12 +804,12 @@ Int_t QwEventBuffer::OpenDataFile(UInt_t current_run, Short_t seg)
 Int_t QwEventBuffer::OpenDataFile(UInt_t current_run, const TString rw)
 {
   Int_t status;
-  fRunNumber = current_run;
-  DataFile(fRunNumber);
+  fCurrentRun = current_run;
+  DataFile(fCurrentRun);
   if (DataFileIsSegmented()){
     status = OpenNextSegment();
   } else {
-    status = OpenDataFile(DataFile(fRunNumber),rw);
+    status = OpenDataFile(DataFile(fCurrentRun),rw);
   }
   return status;
 };

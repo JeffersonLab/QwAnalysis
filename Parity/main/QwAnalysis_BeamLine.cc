@@ -140,7 +140,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       //  Start the timer.
       timer.Start();
 
-      QwEvt.ResetControlParameters();
+
       //  Open the data files and root file
       //    OpenAllFiles(io, run);
 

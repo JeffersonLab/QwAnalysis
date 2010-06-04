@@ -55,6 +55,8 @@ class QwEventBuffer: public MQwCodaControlEvent{
   /// \brief Return true if file segments are being chained together for
   //analysis
   Bool_t ChainDataFiles() const {return fChainDataFiles;};
+  /// \brief Return CODA file run number
+  Int_t GetRunNumber() const {return fCurrentRun;};
   /// \brief Return CODA file segment number
   Int_t GetSegmentNumber() const {return *this_runsegment;};
 
