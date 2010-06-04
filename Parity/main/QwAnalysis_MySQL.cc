@@ -138,8 +138,6 @@ main(Int_t argc, Char_t* argv[])
       //  Start the timer.
       timer.Start();
 
-
-      QwEvt.ResetControlParameters();
       //  Open the data files and root file
       //    OpenAllFiles(io, run);
       //      TString rootfilename = Form("%s/Qweak_BeamLine_%d.root", getenv_safe("QW_ROOTFILES"), run);
@@ -385,7 +383,7 @@ main(Int_t argc, Char_t* argv[])
 	epics_data.FillDB(&qw_test_DB);
       }
 
-      QwEvt.CloseDataFile();
+      QwEvt.CloseStream();
       QwEvt.ReportRunSummary();
       //epics_data.FillSlowControlsData(qw_test_DB);
       PrintInfo(timer);
