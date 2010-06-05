@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
 
       // TODO (wdc) QwEventBuffer should have Bool_t AtEndOfBurst()
       //if (QwEvt.AtEndOfBurst()){
-      if (eventbuffer.GetEventNumber() % 100 == 0) {
+      if (eventbuffer.GetEventNumber() % 1000 == 0) {
         {
           helicitypattern.AccumulateRunningBurstSum();
           helicitypattern.CalculateBurstAverage();

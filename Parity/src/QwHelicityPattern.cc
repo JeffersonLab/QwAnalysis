@@ -331,19 +331,12 @@ void  QwHelicityPattern::CalculateAsymmetry()
         fAsymmetry2.Ratio(fDifference,fYield);
       }
 
-      fRunningYield.AccumulateRunningSum(fYield);
-      fRunningAsymmetry.AccumulateRunningSum(fAsymmetry);
-      if (fEnableAlternateAsym) {
-        fRunningAsymmetry1.AccumulateRunningSum(fAsymmetry1);
-        fRunningAsymmetry2.AccumulateRunningSum(fAsymmetry2);
-      }
-
       // Accumulate the burst and running sums
       if (fEnableBurstSum) AccumulateBurstSum();
       if (fEnableRunningSum) AccumulateRunningSum();
 
 
-      if (localdebug) std::cout<<" pattern number ="<<fQuartetNumber<<"\n";
+      if (localdebug) QwDebug << " pattern number =" << fQuartetNumber << QwLog::endl;
     }
 
   return;
@@ -410,6 +403,10 @@ void  QwHelicityPattern::AccumulateRunningSum()
   fRunningDifference.AccumulateRunningSum(fDifference);
   // The difference is blinded, so the running difference is also blinded.
   fRunningAsymmetry.AccumulateRunningSum(fAsymmetry);
+  if (fEnableAlternateAsym) {
+    fRunningAsymmetry1.AccumulateRunningSum(fAsymmetry1);
+    fRunningAsymmetry2.AccumulateRunningSum(fAsymmetry2);
+  }
 };
 
 //*****************************************************************

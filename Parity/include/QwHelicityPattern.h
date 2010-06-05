@@ -32,6 +32,21 @@ class QwHelicityPattern{
   Bool_t IsCompletePattern();
   void  CalculateAsymmetry();
 
+  /// Enable/disable alternate asymmetry calculation
+  void  EnableAlternateAsymmetry(const Bool_t flag = kTRUE) { fEnableAlternateAsym = flag; };
+  /// Disable alternate asymmetry calculation
+  void  DisableAlternateAsymmetry() { fEnableAlternateAsym = kFALSE; };
+
+  /// Enable/disable burst sum calculation
+  void  EnableBurstSum(const Bool_t flag = kTRUE) { fEnableBurstSum = flag; };
+  /// Disable burst sum calculation
+  void  DisableBurstSum() { fEnableBurstSum = kFALSE; };
+
+  /// Enable/disable running sum calculation
+  void  EnableRunningSum(const Bool_t flag = kTRUE) { fEnableRunningSum = flag; };
+  /// Disable running sum calculation
+  void  DisableRunningSum() { fEnableRunningSum = kFALSE; };
+
   void  AccumulateBurstSum();
   void  AccumulateRunningBurstSum();
   void  AccumulateRunningSum();
