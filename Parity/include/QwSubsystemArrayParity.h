@@ -40,7 +40,7 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     /// Default destructor
     virtual ~QwSubsystemArrayParity() { };
 
-    VQwSubsystemParity* GetSubsystemByName(const TString name);
+    VQwSubsystemParity* GetSubsystemByName(const TString& name);
 
     /// Process the command line options
     void ProcessOptions(QwOptions &options);

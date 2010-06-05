@@ -148,9 +148,7 @@ std::vector<VQwSubsystem*> QwSubsystemArray::GetSubsystemByType(const TString& t
     for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
 
       // Test for equality of types (typeid is pointer to type_info, so dereference)
-      std::cout << typeid((*subsys).get()).name() << std::endl;
-      std::cout << typeid(*subsys_of_requested_type).name() << std::endl;
-      if (typeid((*subsys).get()) == typeid(*subsys_of_requested_type)) {
+      if (typeid(*(*subsys).get()) == typeid(*subsys_of_requested_type)) {
         subsys_list.push_back((*subsys).get());
       }
 
