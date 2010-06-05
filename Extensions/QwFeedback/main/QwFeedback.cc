@@ -10,7 +10,7 @@
 
     Put something here
 
-    \subsection MS2 More Substuff 
+    \subsection MS2 More Substuff
 
     Put some more stuff here
 
@@ -77,9 +77,9 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///
   ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
   ///  histogram helper: QwHistogramHelper
-  ///  
+  ///
   gQwHists.LoadHistParamsFromFile("parity_hists.in");
-  
+
   TStopwatch timer;
 
   QwEPICSControl fEPICSCtrl;
@@ -102,15 +102,15 @@ Int_t main(Int_t argc, Char_t* argv[])
   subsystem_tmp = 0;
 
   QwDetectors.push_back(new QwBeamLine("Injector BeamLine"));
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");  
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadEventCuts("qweak_beamline_eventcuts.in");//Pass the correct cuts file. 
+  QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
+  QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");
+  QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadEventCuts("qweak_beamline_eventcuts.in");//Pass the correct cuts file.
   QwDetectors.push_back(new QwHelicity("Helicity info"));
-  QwDetectors.GetSubsystem("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_helicity.map");
-  QwDetectors.GetSubsystem("Helicity info")->LoadInputParameters("");	
+  QwDetectors.GetSubsystemByName("Helicity info")->LoadChannelMap(std::string(getenv("QWANALYSIS"))+"/Parity/prminput/qweak_helicity.map");
+  QwDetectors.GetSubsystemByName("Helicity info")->LoadInputParameters("");
 
-  ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
-	  
+  ((QwBeamLine*)QwDetectors.GetSubsystemByName("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
+
 
 
   QwHelicityPattern QwHelPat(QwDetectors);//multiplet size is set within the QwHelicityPattern class
@@ -120,7 +120,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   if (gQwOptions.HasValue("ring.size"))
     r_size=gQwOptions.GetValue<int>("ring.size");
   if (gQwOptions.HasValue("ring.bt"))
-    r_BT=gQwOptions.GetValue<int>("ring.bt"); 
+    r_BT=gQwOptions.GetValue<int>("ring.bt");
   if (gQwOptions.HasValue("ring.hld"))
     r_HLD=gQwOptions.GetValue<int>("ring.hld");
 
@@ -168,7 +168,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  rootfile.cd();
 	  mpstree=new TTree("MPS_Tree","MPS event data tree");
 	  mpstree->SetMaxTreeSize(kMAXTREESIZE);
-	  mpsvector.reserve(6000); 
+	  mpsvector.reserve(6000);
 	  // if one defines more than 600 words in the full ntuple
 	  // results are going to get very very crazy.
 	  mpstree->Branch("evnum",&evnum,"evnum/D");
@@ -181,7 +181,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 	      rootfile.cd();
 	      heltree = new TTree("HEL_Tree","Helicity event data tree");
 	      heltree->SetMaxTreeSize(kMAXTREESIZE);
-	      helvector.reserve(6000); 
+	      helvector.reserve(6000);
 	      TString dummystr="";
 	      QwHelPat.ConstructBranchAndVector(heltree, dummystr, helvector);
 	    }
@@ -202,7 +202,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 //       values.push_back(7.0);
 //       values.push_back(9.0);
 //       values.push_back(7.0);
-      
+
 //      Double_t pc_plus  = 7.420;
 //      Double_t pc_minus = 7.310;
       Double_t pc_plus  = 5.0;
@@ -244,7 +244,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 	//  Dump out of the loop when we see the end event.
 	if (QwEvt.GetEndEventCount()>0) break;
-      
+
 	//  Now, if this is not a physics event, go back and get a new event.
 	if (! QwEvt.IsPhysicsEvent()) continue;
 
@@ -255,9 +255,9 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  fScanCtrl.Open();
 	  fScanCtrl.SCNSetStatus(SCN_INT_NOT);
 	  fScanCtrl.SCNSetValue(1,QwEvt.GetEventNumber());
-	  
+
 	  stepnum++;
-	  if (stepnum>=values.size()) 
+	  if (stepnum>=values.size())
 	    stepnum=0;
 	  //	    fEPICSCtrl.Set_HallAIA(values[stepnum]);
 	  tmpval = pc_plus + values[stepnum];
@@ -265,20 +265,20 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  tmpval = pc_minus - values[stepnum];
 	  fEPICSCtrl.Set_Pockels_Cell_minus(tmpval);
 	  fEPICSCtrl.Print_Qasym_Ctrls();
-	  
+
 	  setval = TMath::Nint(values[stepnum]*1000);
 	  fScanCtrl.SCNSetValue(2,setval);
 
 	  fScanCtrl.SCNSetStatus(SCN_INT_CLN);
 	  fScanCtrl.Close();
-	  
+
 	} else if(QwEvt.GetEventNumber()%(numevents)==0) {
 	  fScanCtrl.Open();
 	  fScanCtrl.SCNSetStatus(SCN_INT_NOT);
 	  fScanCtrl.SCNSetValue(1,QwEvt.GetEventNumber());
 	  fScanCtrl.SCNSetValue(2,setval);
 	  fScanCtrl.SCNSetStatus(SCN_INT_CLN);
-	  fScanCtrl.Close();      
+	  fScanCtrl.Close();
 	}
 
 
@@ -330,7 +330,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 	    mpstree->Fill();
 	  }
 
-	  if(bHelicity && QwHelPat.IsCompletePattern() && bRING_READY){ 
+	  if(bHelicity && QwHelPat.IsCompletePattern() && bRING_READY){
 	    //std::cout<<" Complete quartet  Good Helicity "<<std::endl;
 	    QwHelPat.CalculateAsymmetry();
 	    //QwHelPat.Print();
