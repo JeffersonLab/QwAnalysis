@@ -28,6 +28,8 @@ main(Int_t argc, Char_t* argv[])
   gQwOptions.SetConfigFile("qweak_mysql.conf");
   DefineOptionsParity(gQwOptions);
 
+  QwEventRing::DefineOptions(gQwOptions);
+  QwHelicity::DefineOptions(gQwOptions);
   QwMainCerenkovDetector::DefineOptions(gQwOptions);
 
   // modified value for maximum size of tree
@@ -70,6 +72,10 @@ main(Int_t argc, Char_t* argv[])
   QwEventBuffer QwEvt;
   QwEvt.ProcessOptions(gQwOptions);
 
+  QwEventRing fEventRing;
+  fEventRing.ProcessOptions(gQwOptions);//load ring parameters from the CMD or config file
+
+
   QwEPICSEvent epics_data;
 
   QwSubsystemArrayParity QwDetectors;
@@ -105,15 +111,6 @@ main(Int_t argc, Char_t* argv[])
 
   QwHelicityPattern QwHelPat(QwDetectors);//multiplet size is set within the QwHelicityPattern class
 
-  //Reads Event Ring parameters from cmd
-  Int_t r_size=32,r_BT=4,r_HLD=16;
-  if (gQwOptions.HasValue("ring.size"))
-    r_size=gQwOptions.GetValue<int>("ring.size");
-  if (gQwOptions.HasValue("ring.bt"))
-    r_BT=gQwOptions.GetValue<int>("ring.bt");
-  if (gQwOptions.HasValue("ring.hld"))
-    r_HLD=gQwOptions.GetValue<int>("ring.hld");
-
   //Tree events scaling parameters
    if (gQwOptions.HasValue("skip"))
     fEVENTS2SKIP=gQwOptions.GetValue<int>("skip");
@@ -121,8 +118,7 @@ main(Int_t argc, Char_t* argv[])
     fEVENTS2SAVE=gQwOptions.GetValue<int>("take");
    ///
 
-  std::cout<<" Ring "<<r_size<<" , "<<r_BT<<" , "<<r_HLD<<std::endl;
-  QwEventRing fEventRing(QwDetectors,r_size,r_HLD,r_BT);
+  fEventRing.SetupRing(QwDetectors);//set up the ring with QwDetector array array with CMD ring parameters
   Double_t evnum=0.0;
 
 
@@ -241,15 +237,11 @@ main(Int_t argc, Char_t* argv[])
 	  if(bHelicity){
 
 	    fEventRing.push(QwDetectors);//add event to the ring
-	    //std::cerr << "After QwEventRing::push()" <<std::endl;
 	    bRING_READY=fEventRing.IsReady();
 
 	    if (bRING_READY){//check to see ring is ready
-	      //fEventRing.pop();
 	      QwHelPat.LoadEventData(fEventRing.pop());
 	    }
-
-	    //QwHelPat.LoadEventData(QwDetectors);
 	  }
 
 

@@ -26,7 +26,12 @@ class QwEventRing{
  public:
   QwEventRing(){}
   QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size, Int_t event_holdoff, Int_t min_BT_count);//this will create a fixed size vent ring
-  ~QwEventRing(){};
+  ~QwEventRing(){
+
+  };
+
+  /// \brief Define options function
+  static void DefineOptions(QwOptions &options);
 
   void push(QwSubsystemArrayParity &event);//add the subsystem to the ring
   QwSubsystemArrayParity& pop();//return the last subsystem in the ring
@@ -34,7 +39,6 @@ class QwEventRing{
   Bool_t IsReady();//return the read status of the ring
   void FailedEvent(Int_t);//update parameters when an event fails
  
-  void DefineOptions(QwOptions &options);
   void ProcessOptions(QwOptions &options);
   void SetupRing(QwSubsystemArrayParity &event);
 

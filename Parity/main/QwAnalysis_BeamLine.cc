@@ -57,6 +57,8 @@ Int_t main(Int_t argc, Char_t* argv[])
   gQwOptions.SetConfigFile("qwanalysis_beamline.conf");
   // Define the command line options
   DefineOptionsParity(gQwOptions);
+  QwEventRing::DefineOptions(gQwOptions);
+  QwHelicity::DefineOptions(gQwOptions);
 
   // modified value for maximum size of tree
   Long64_t kMAXTREESIZE = 10000000000LL;
@@ -93,7 +95,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   QwEventBuffer QwEvt;
   QwEvt.ProcessOptions(gQwOptions);
-  QwEventRing fEventRing;
+
+  QwEventRing fEventRing;  
   fEventRing.ProcessOptions(gQwOptions);//load ring parameters from the CMD or config file
 
   QwSubsystemArrayParity QwDetectors;

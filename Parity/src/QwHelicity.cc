@@ -18,7 +18,17 @@ QwSubsystemFactory<QwHelicity> theHelicityFactory("QwHelicity");
 extern QwHistogramHelper gQwHists;
 //**************************************************//
 
+//**************************************************//
+void QwHelicity::DefineOptions(QwOptions &options){
+  //QwHelicity options
+  options.AddOptions()("helicity.30bitseed", po::value<bool>()->zero_tokens(), "QwHelicty: 30bit random seed");
+  options.AddOptions()("helicity.24bitseed", po::value<bool>()->zero_tokens(), "QwHelicty: 24bit random seed");
+  options.AddOptions()("helicity.patternoffset", po::value<int>(),"QwHelicity: pattern offset. Set 1 when pattern starts with 1 or 0 when starts with 0");
+  options.AddOptions()("helicity.patternphase", po::value<int>(),"QwHelicity: pattern phase. Can be set to 4 or 8");
+  options.AddOptions()("helicity.delay", po::value<int>(),"QwHelicity: pattern delay. Default delay is 2 patterns, set at the helicity map file.");
+  //End of QwHelicity options
 
+};
 //**************************************************//
 void QwHelicity::ProcessOptions(QwOptions &options){
   //Read the cmd options and override channel map settings
@@ -859,7 +869,7 @@ void  QwHelicity::ConstructHistograms(TDirectory *folder, TString &prefix)
 
 void  QwHelicity::DeleteHistograms()
 {
-    std::cout<<"QwHelicity::DeleteHistograms for system="<<fSystemName<<"; fHistograms.size="<<fHistograms.size()<<"\n";
+  //std::cout<<"QwHelicity::DeleteHistograms for system="<<fSystemName<<"; fHistograms.size="<<fHistograms.size()<<"\n";
   if((fHistoType==kHelSaveMPS)||(fHistoType==kHelSavePattern))
     {
       for (size_t i=0; i<fHistograms.size(); i++){

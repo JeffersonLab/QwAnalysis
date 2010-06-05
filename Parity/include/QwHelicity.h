@@ -87,10 +87,12 @@ class QwHelicity: public VQwSubsystemParity{
 
   ~QwHelicity()
     {
-//      DeleteHistograms();
+      DeleteHistograms();
     };
 
    /* derived from VQwSubsystem */
+   /// \brief Define options function
+  static void DefineOptions(QwOptions &options);
   void ProcessOptions(QwOptions &options);
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
