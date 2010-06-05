@@ -58,34 +58,34 @@ int main (int argc, char* argv[])
 
   // Region 1 GEM
   detectors->push_back(GetSubsystemFactory("QwGasElectronMultiplier")->Create("R1"));
-  detectors->GetSubsystem("R1")->LoadChannelMap("qweak_cosmics_hits.map");
-  detectors->GetSubsystem("R1")->LoadGeometryDefinition("qweak_new.geo");
+  detectors->GetSubsystemByName("R1")->LoadChannelMap("qweak_cosmics_hits.map");
+  detectors->GetSubsystemByName("R1")->LoadGeometryDefinition("qweak_new.geo");
 
   // Region 2 HDC
   detectors->push_back(GetSubsystemFactory("QwDriftChamberHDC")->Create("R2"));
-  detectors->GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");
-  detectors->GetSubsystem("R2")->LoadGeometryDefinition("qweak_new.geo");
+  detectors->GetSubsystemByName("R2")->LoadChannelMap("qweak_cosmics_hits.map");
+  detectors->GetSubsystemByName("R2")->LoadGeometryDefinition("qweak_new.geo");
 
   // Region 3 VDC
   detectors->push_back(GetSubsystemFactory("QwDriftChamberVDC")->Create("R3"));
-  detectors->GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
-  detectors->GetSubsystem("R3")->LoadGeometryDefinition("qweak_new.geo");
+  detectors->GetSubsystemByName("R3")->LoadChannelMap("TDCtoDL.map");
+  detectors->GetSubsystemByName("R3")->LoadGeometryDefinition("qweak_new.geo");
 
   // Region 4 TS
   detectors->push_back(GetSubsystemFactory("QwTriggerScintillator")->Create("TS"));
-  detectors->GetSubsystem("TS")->LoadGeometryDefinition("qweak_new.geo");
+  detectors->GetSubsystemByName("TS")->LoadGeometryDefinition("qweak_new.geo");
 
   // Region 5 MD
   detectors->push_back(GetSubsystemFactory("QwMainDetector")->Create("MD"));
-  detectors->GetSubsystem("MD")->LoadGeometryDefinition("qweak_new.geo");
+  detectors->GetSubsystemByName("MD")->LoadGeometryDefinition("qweak_new.geo");
 
   // Get vector with detector info (by region, plane number)
   std::vector< std::vector< QwDetectorInfo > > detector_info;
-  detectors->GetSubsystem("R1")->GetDetectorInfo(detector_info);
-  detectors->GetSubsystem("R2")->GetDetectorInfo(detector_info);
-  detectors->GetSubsystem("R3")->GetDetectorInfo(detector_info);
-  detectors->GetSubsystem("TS")->GetDetectorInfo(detector_info);
-  detectors->GetSubsystem("MD")->GetDetectorInfo(detector_info);
+  detectors->GetSubsystemByName("R1")->GetDetectorInfo(detector_info);
+  detectors->GetSubsystemByName("R2")->GetDetectorInfo(detector_info);
+  detectors->GetSubsystemByName("R3")->GetDetectorInfo(detector_info);
+  detectors->GetSubsystemByName("TS")->GetDetectorInfo(detector_info);
+  detectors->GetSubsystemByName("MD")->GetDetectorInfo(detector_info);
   // TODO This is handled incorrectly, it just adds the three package after the
   // existing three packages from region 2...  GetDetectorInfo should descend
   // into the packages and add only the detectors in those packages.

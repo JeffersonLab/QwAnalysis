@@ -72,15 +72,15 @@ int main(int argc, char* argv[])
 
   // Detector array
   QwSubsystemArrayParity detectors;
-//  detectors.push_back(new QwBeamLine("Injector BeamLine"));
-//  detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
-//  detectors.push_back(new QwMainCerenkovDetector("Main detector"));
-//  detectors.GetSubsystem("Main detector")->LoadChannelMap("qweak_adc.map");
+  detectors.push_back(new QwBeamLine("Injector BeamLine"));
+  detectors.GetSubsystemByName("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
+  detectors.push_back(new QwMainCerenkovDetector("Main detector"));
+  detectors.GetSubsystemByName("Main detector")->LoadChannelMap("qweak_adc.map");
   detectors.push_back(new QwLumi("Lumi detector"));
-  detectors.GetSubsystem("Lumi detector")->LoadChannelMap("qweak_lumi.map");
+  detectors.GetSubsystemByName("Lumi detector")->LoadChannelMap("qweak_lumi.map");
   if (bHelicity) {
     detectors.push_back(new QwHelicity("Helicity info"));
-    detectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
+    detectors.GetSubsystemByName("Helicity info")->LoadChannelMap("qweak_helicity.map");
   }
   QwHelicityPattern helicitypattern(detectors);
 
@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
   runningsum.Copy(&detectors);
 
   // Get the helicity
-  QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystem("Helicity info");
+  QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystemByName("Helicity info");
 
   // Event buffer
   QwEventBuffer eventbuffer;

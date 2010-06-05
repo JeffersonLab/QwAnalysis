@@ -37,7 +37,7 @@ QwSubsystemArray::QwSubsystemArray(const char* filename)
     if (detectors.HasVariablePair(":", subsystype, subsysname)) {
       QwMessage << "Adding subsystem of type " << subsystype
                 << " with name " << subsysname << QwLog::endl;
-      subsys = GetSubsystemFactory(subsystype)->Create(subsysname);
+      subsys = VQwSubsystemFactory::GetSubsystemFactory(subsystype)->Create(subsysname);
       this->push_back(subsys);
     }
 
@@ -84,7 +84,7 @@ void QwSubsystemArray::push_back(VQwSubsystem* subsys)
               << std::endl;
     //  This is an empty subsystem...
     //  Do nothing for now.
-  } else if (!this->empty() && GetSubsystem(subsys->GetSubsystemName())){
+  } else if (!this->empty() && GetSubsystemByName(subsys->GetSubsystemName())){
     //  There is already a subsystem with this name!
     std::cerr << "QwSubsystemArray::push_back():  subsys" << subsys->GetSubsystemName()
               << " already exists" << std::endl;
@@ -107,23 +107,59 @@ void QwSubsystemArray::push_back(VQwSubsystem* subsys)
  * @param name Name of the subsystem
  * @return Pointer to the subsystem
  */
-VQwSubsystem* QwSubsystemArray::GetSubsystem(const TString& name)
+VQwSubsystem* QwSubsystemArray::GetSubsystemByName(const TString& name)
 {
   VQwSubsystem* tmp = NULL;
   if (!empty()) {
     // Loop over the subsystems
     for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
       // Check the name of this subsystem
-      // std::cout<<"QwSubsystemArray::GetSubsystem available name=="<<(*subsys)->GetSubsystemName()<<"== to be compared to =="<<name<<"==\n";
+      // std::cout<<"QwSubsystemArray::GetSubsystemByName available name=="<<(*subsys)->GetSubsystemName()<<"== to be compared to =="<<name<<"==\n";
       if ((*subsys)->GetSubsystemName() == name) {
-	tmp = (*subsys).get();
-	//std::cout<<"QwSubsystemArray::GetSubsystem found a matching name \n";
+        tmp = (*subsys).get();
+        //std::cout<<"QwSubsystemArray::GetSubsystemByName found a matching name \n";
       } else {
         // nothing
       }
     }
   }
   return tmp;
+};
+
+
+/**
+ * Get the list of subsystems in this array of the spcified type
+ * @param type Type of the subsystem
+ * @return Vector of subsystems
+ */
+std::vector<VQwSubsystem*> QwSubsystemArray::GetSubsystemByType(const TString& type)
+{
+  // Vector of subsystem pointers
+  std::vector<VQwSubsystem*> subsys_list;
+
+  // If this array is not empty
+  if (!empty()) {
+
+    // Create dummy subsystem of requested type
+    VQwSubsystem* subsys_of_requested_type =
+      VQwSubsystemFactory::GetSubsystemFactory(type)->Create("dummy");
+
+    // Loop over the subsystems
+    for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
+
+      // Test for equality of types (typeid is pointer to type_info, so dereference)
+      if (typeid(*(*subsys).get()) == typeid(*subsys_of_requested_type)) {
+        subsys_list.push_back((*subsys).get());
+      }
+
+    } // end of loop over subsystems
+
+    // Delete dummy subsystem again
+    delete subsys_of_requested_type;
+
+  } // end of if !empty()
+
+  return subsys_list;
 };
 
 

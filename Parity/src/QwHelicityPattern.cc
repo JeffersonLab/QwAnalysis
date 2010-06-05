@@ -27,16 +27,26 @@ void QwHelicityPattern::ProcessOptions(QwOptions &options)
 QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
 : fBlinder(TString("No seed string defined!"),QwBlinder::kAdditive)
 {
-  fEnableAlternateAsym = kFALSE;
+  // Retrieve the helicity subsystem to query for
+  std::vector<VQwSubsystem*> subsys_helicity = event.GetSubsystemByType("QwHelicity");
+  if (subsys_helicity.size() > 0) {
+    // Take the first helicity subsystem
+    QwHelicity* helicity = dynamic_cast<QwHelicity*>(subsys_helicity.at(0));
+    // And use the maximum pattern phase (i.e. pattern size)
+    fPatternSize = helicity->GetMaxPatternPhase();
+  } else {
+    QwError << "No helicity subsystem defined!  Brace for impact!" << QwLog::endl;
+    fPatternSize = 4; // default to quartets
+  }
+  QwMessage << "QwHelicity::MaxPatternPhase = " << fPatternSize << QwLog::endl;
+
+  // Enable burst sum and running sum by default
   fEnableBurstSum = kTRUE;
   fEnableRunningSum = kTRUE;
 
-  QwHelicity* input = ((QwHelicity*)event.GetSubsystem("Helicity info"));
-  fPatternSize = input->GetMaxPatternPhase();
-
-  std::cout<<"QwHelicity::MaxPatternPhase = "<<fPatternSize<<std::endl;
-
-  if (fPatternSize != 4)//currently the alternate asym works with quartets only
+  // Currently the alternate asym works with quartets only
+  fEnableAlternateAsym = kFALSE;
+  if (fPatternSize != 4)
     fEnableAlternateAsym = kFALSE;
 
   try
@@ -132,7 +142,7 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
 {
 
   Bool_t localdebug=kFALSE;
-  QwHelicity* input=((QwHelicity*)event.GetSubsystem("Helicity info"));
+  QwHelicity* input=((QwHelicity*)event.GetSubsystemByName("Helicity info"));
   IsGood=kFALSE;
   Long_t localPatternNumber=input->GetPatternNumber();
   Int_t localPhaseNumber=input->GetPhaseNumber();
@@ -492,7 +502,7 @@ void  QwHelicityPattern::ConstructHistograms(TDirectory *folder)
   prefix="asym_";
   fAsymmetry.ConstructHistograms(folder,prefix);
 
-  if (fEnableAlternateAsym){
+  if (fEnableAlternateAsym) {
     prefix="asym1_";
     fAsymmetry1.ConstructHistograms(folder,prefix);
     prefix="asym2_";

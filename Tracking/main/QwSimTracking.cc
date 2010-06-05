@@ -80,11 +80,11 @@ int main (int argc, char* argv[])
 
   // Get vector with detector info (by region, plane number)
   std::vector< std::vector< QwDetectorInfo > > detector_info;
-  detectors->GetSubsystem("R1 GEM")->GetDetectorInfo(detector_info);
-  detectors->GetSubsystem("R2 HDC")->GetDetectorInfo(detector_info);
-  detectors->GetSubsystem("R3 VDC")->GetDetectorInfo(detector_info);
-  detectors->GetSubsystem("TS")->GetDetectorInfo(detector_info);
-  detectors->GetSubsystem("MD")->GetDetectorInfo(detector_info);
+  detectors->GetSubsystemByName("R1 GEM")->GetDetectorInfo(detector_info);
+  detectors->GetSubsystemByName("R2 HDC")->GetDetectorInfo(detector_info);
+  detectors->GetSubsystemByName("R3 VDC")->GetDetectorInfo(detector_info);
+  detectors->GetSubsystemByName("TS")->GetDetectorInfo(detector_info);
+  detectors->GetSubsystemByName("MD")->GetDetectorInfo(detector_info);
   // TODO This is handled incorrectly, it just adds the three package after the
   // existing three packages from region 2...  GetDetectorInfo should descend
   // into the packages and add only the detectors in those packages.

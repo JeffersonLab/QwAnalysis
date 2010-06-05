@@ -84,7 +84,7 @@ VQwSubsystem* VQwSubsystem::GetSibling(const TString& name) const
   QwSubsystemArray* parent = GetParent();
   if (parent != 0)
     // Return the subsystem with name in the parent
-    return parent->GetSubsystem(name);
+    return parent->GetSubsystemByName(name);
   else
     return 0; // GetParent() prints error already
 };

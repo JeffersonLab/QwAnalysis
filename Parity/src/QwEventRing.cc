@@ -26,6 +26,10 @@ QwEventRing::QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size, Int_t e
     out_file = fopen("Ring_log.txt", "wt");
   
 };
+
+
+
+
 void QwEventRing::SetupRing(QwSubsystemArrayParity &event){
   /*
   fRING_SIZE=ring_size;
@@ -53,14 +57,14 @@ void QwEventRing::SetupRing(QwSubsystemArrayParity &event){
 }
 
 void QwEventRing::DefineOptions(QwOptions &options){
-  /*
-    //QwEventRing options
+  // Define the execution options
+  options.AddDefaultOptions();
   options.AddOptions()("ring.size", po::value<int>()->default_value(32),"QwEventRing: ring/buffer size");
   options.AddOptions()("ring.bt", po::value<int>()->default_value(4),"QwEventRing: minimum beam trip count");
   options.AddOptions()("ring.hld", po::value<int>()->default_value(16),"QwEventRing: ring hold off");
-  //end of QwEventRing options
-  */
-};
+
+}
+
 void QwEventRing::ProcessOptions(QwOptions &options){
   //Reads Event Ring parameters from cmd  
   if (gQwOptions.HasValue("ring.size"))

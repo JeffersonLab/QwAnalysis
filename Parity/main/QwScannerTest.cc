@@ -87,13 +87,13 @@ int main(Int_t argc,Char_t* argv[]) {
 //    QwSubsystemArrayParity QwDetectors;
     QwSubsystemArray QwDetectors;
 //  QwDetectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
-//  QwDetectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
+//  QwDetectors.GetSubsystemByName("MainDetectors")->LoadChannelMap("qweak_adc.map");
 
     // Test code for the focal plane scanner
     if (kDebug) std::cout<<"Instantiate the scanner subsystem:"<<std::endl;
     QwDetectors.push_back (new QwScanner( "FPS" ));
-    QwDetectors.GetSubsystem("FPS")->LoadChannelMap("scanner_channel.map" );
-    QwDetectors.GetSubsystem("FPS")->LoadInputParameters("scanner_parameter.map");
+    QwDetectors.GetSubsystemByName("FPS")->LoadChannelMap("scanner_channel.map" );
+    QwDetectors.GetSubsystemByName("FPS")->LoadInputParameters("scanner_parameter.map");
 
 
     ///
@@ -109,7 +109,7 @@ int main(Int_t argc,Char_t* argv[]) {
     if (kDebug) std::cout<<"\nGenerating mock data:\n\n";
 
     // Get subsystem
-    QwScanner* scanner = dynamic_cast<QwScanner*> (QwDetectors.GetSubsystem("FPS"));
+    QwScanner* scanner = dynamic_cast<QwScanner*> (QwDetectors.GetSubsystemByName("FPS"));
 
     // Loop over all runs
     UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");

@@ -60,24 +60,24 @@ int main (int argc, char* argv[])
 
   // Region 1 GEM
   detectors->push_back(new QwGasElectronMultiplier("R1"));
-  detectors->GetSubsystem("R1")->LoadChannelMap("qweak_cosmics_hits.map");
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("R1"))->LoadGeometryDefinition("qweak_new.geo");
+  detectors->GetSubsystemByName("R1")->LoadChannelMap("qweak_cosmics_hits.map");
+  ((VQwSubsystemTracking*) detectors->GetSubsystemByName("R1"))->LoadGeometryDefinition("qweak_new.geo");
 
   // Region 2 HDC
   detectors->push_back(new QwDriftChamberHDC("R2"));
-  detectors->GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("R2"))->LoadGeometryDefinition("qweak_new.geo");
+  detectors->GetSubsystemByName("R2")->LoadChannelMap("qweak_cosmics_hits.map");
+  ((VQwSubsystemTracking*) detectors->GetSubsystemByName("R2"))->LoadGeometryDefinition("qweak_new.geo");
 
   // Region 3 VDC
   detectors->push_back(new QwDriftChamberVDC("R3"));
-  detectors->GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->LoadGeometryDefinition("qweak_new.geo");
+  detectors->GetSubsystemByName("R3")->LoadChannelMap("TDCtoDL.map");
+  ((VQwSubsystemTracking*) detectors->GetSubsystemByName("R3"))->LoadGeometryDefinition("qweak_new.geo");
 
   // Get vector with detector info (by region, plane number)
   std::vector< std::vector< QwDetectorInfo > > detector_info;
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("R2"))->GetDetectorInfo(detector_info);
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("R3"))->GetDetectorInfo(detector_info);
-  ((VQwSubsystemTracking*) detectors->GetSubsystem("R1"))->GetDetectorInfo(detector_info);
+  ((VQwSubsystemTracking*) detectors->GetSubsystemByName("R2"))->GetDetectorInfo(detector_info);
+  ((VQwSubsystemTracking*) detectors->GetSubsystemByName("R3"))->GetDetectorInfo(detector_info);
+  ((VQwSubsystemTracking*) detectors->GetSubsystemByName("R1"))->GetDetectorInfo(detector_info);
 
   /// Create a track filter
   QwBridgingTrackFilter* trackfilter = new QwBridgingTrackFilter();

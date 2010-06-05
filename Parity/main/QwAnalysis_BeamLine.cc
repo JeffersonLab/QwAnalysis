@@ -93,6 +93,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   QwEventBuffer QwEvt;
   QwEvt.ProcessOptions(gQwOptions);
+
   QwEventRing fEventRing;
   fEventRing.ProcessOptions(gQwOptions);//load ring parameters from the CMD or config file
 
@@ -101,22 +102,21 @@ Int_t main(Int_t argc, Char_t* argv[])
   subsystem_tmp = 0;
 
   QwDetectors.push_back(new QwBeamLine("Injector BeamLine"));
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadEventCuts("qweak_beamline_eventcuts.in");//Pass the correct cuts file.
+  QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
+  QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");
+  QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadEventCuts("qweak_beamline_eventcuts.in");//Pass the correct cuts file.
   QwDetectors.push_back(new QwHelicity("Helicity info"));
-  QwDetectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
-  QwDetectors.GetSubsystem("Helicity info")->LoadInputParameters("");
+  QwDetectors.GetSubsystemByName("Helicity info")->LoadChannelMap("qweak_helicity.map");
+  QwDetectors.GetSubsystemByName("Helicity info")->LoadInputParameters("");
   //QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
-  //QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap("qweak_lumi.map");//current map file is for the beamline.
-  //QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file.
+  //QwDetectors.GetSubsystemByName("Luminosity Monitors")->LoadChannelMap("qweak_lumi.map");//current map file is for the beamline.
+  //QwDetectors.GetSubsystemByName("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file.
 
   // Running sum
   QwSubsystemArrayParity runningsum;
   runningsum.Copy(&QwDetectors);
 
-
-  ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
+  ((QwBeamLine*)QwDetectors.GetSubsystemByName("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
 
   QwDetectors.ProcessOptions(gQwOptions);//Recommonded to call this routine after LoadChannelMap(..) routines. Some times the cmd options override the map file settings.
 
@@ -236,7 +236,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
 	  if(bHelicity){
-	    
+
 	    fEventRing.push(QwDetectors);//add event to the ring
 	    bRING_READY=fEventRing.IsReady();
 

@@ -23,30 +23,53 @@ class VQwSubsystemFactory {
     virtual ~VQwSubsystemFactory() { };
     /// Subsystem creation
     virtual VQwSubsystem* Create(const std::string& name) = 0;
+
+    /// Map from string to concrete subsystem factories
+    static std::map<std::string,VQwSubsystemFactory*>& GetRegisteredSubsystems();
+    /// List available subsystem factories
+    static void ListRegisteredSubsystems();
+
+    /// Get a concrete subsystem factory by std::string
+    static VQwSubsystemFactory* GetSubsystemFactory(const std::string& type);
+
+    /// Get a concrete subsystem factory by TString
+    static VQwSubsystemFactory* GetSubsystemFactory(const TString& type) {
+      return GetSubsystemFactory(std::string(type.Data()));
+    };
+    /// Get a concrete subsystem factory by const char* string
+    static VQwSubsystemFactory* GetSubsystemFactory(const char* type) {
+      return GetSubsystemFactory(std::string(type));
+    };
+
 }; // class VQwSubsystemFactory
 
 /// Map from string to concrete subsystem factories
-inline std::map<std::string,VQwSubsystemFactory*>& GetRegisteredSubsystems() {
+inline std::map<std::string,VQwSubsystemFactory*>&
+VQwSubsystemFactory::GetRegisteredSubsystems()
+{
   static std::map<std::string,VQwSubsystemFactory*> theSubsystemMap;
   return theSubsystemMap;
 };
 
 /// List available subsystem factories
-inline void ListSubsystemFactories() {
+inline void VQwSubsystemFactory::ListRegisteredSubsystems()
+{
   std::map<std::string,VQwSubsystemFactory*>::iterator subsys;
   for (subsys = GetRegisteredSubsystems().begin();
        subsys != GetRegisteredSubsystems().end(); subsys++ )
     QwMessage << subsys->first << QwLog::endl;
 };
 
-/// Get a concrete subsystem factory
-inline VQwSubsystemFactory* GetSubsystemFactory(const std::string& type) {
+/// Get a concrete subsystem factory by std::string
+inline VQwSubsystemFactory*
+VQwSubsystemFactory::GetSubsystemFactory(const std::string& type)
+{
   if (GetRegisteredSubsystems().find(type) != GetRegisteredSubsystems().end())
     return GetRegisteredSubsystems()[type];
   else {
     QwError << "Subsystem " << type << " is not registered!" << QwLog::endl;
     QwMessage << "Available subsystems:" << QwLog::endl;
-    ListSubsystemFactories();
+    ListRegisteredSubsystems();
     QwMessage << "To register this subsystem, add the following line to the top "
               << "of the source file:" << QwLog::endl;
     QwMessage << "  QwSubsystemFactory<" << type << "> the" << type
@@ -54,6 +77,7 @@ inline VQwSubsystemFactory* GetSubsystemFactory(const std::string& type) {
     return 0; // this will most likely crash
   }
 };
+
 
 /**
  *  \class QwSubsystemFactory
@@ -70,7 +94,7 @@ class QwSubsystemFactory: public VQwSubsystemFactory {
 
     /// Constructor which stores type name in list of registered subsystems
     QwSubsystemFactory(const std::string& type) {
-      GetRegisteredSubsystems()[type] = this;
+      VQwSubsystemFactory::GetRegisteredSubsystems()[type] = this;
     };
 
     /// Concrete subsystem creation
