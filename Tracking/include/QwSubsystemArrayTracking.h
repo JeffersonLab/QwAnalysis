@@ -33,14 +33,14 @@ class QwSubsystemArrayTracking:  public QwSubsystemArray {
     void GetTDCHitList(QwHitContainer& tdchitlist);
     void GetTDCHitList(QwHitContainer* tdchitlist);
 
-    VQwSubsystemTracking* GetSubsystem(const TString name);
+    VQwSubsystemTracking* GetSubsystemByName(const TString name);
 };
 
 
-VQwSubsystemTracking* QwSubsystemArrayTracking::GetSubsystem(const TString name)
+VQwSubsystemTracking* QwSubsystemArrayTracking::GetSubsystemByName(const TString name)
 {
   VQwSubsystemTracking* tmp = NULL;
-  tmp = dynamic_cast<VQwSubsystemTracking*>(QwSubsystemArray::GetSubsystem(name));
+  tmp = dynamic_cast<VQwSubsystemTracking*>(QwSubsystemArray::GetSubsystemByName(name));
 
   return tmp;
 };

@@ -104,40 +104,40 @@ Int_t main(Int_t argc, Char_t* argv[]) {
 
     // Region 1 GEM
     detectors.push_back(new QwGasElectronMultiplier("R1"));
-    detectors.GetSubsystem("R1")->LoadChannelMap("qweak_R1.map");
-    detectors.GetSubsystem("R1")->LoadGeometryDefinition("qweak_new.geo");
+    detectors.GetSubsystemByName("R1")->LoadChannelMap("qweak_R1.map");
+    detectors.GetSubsystemByName("R1")->LoadGeometryDefinition("qweak_new.geo");
 
 
 
 
     // Region 2 HDC
     detectors.push_back(new QwDriftChamberHDC("R2"));
-    detectors.GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");
-    ((VQwSubsystemTracking*) detectors.GetSubsystem("R2"))->LoadGeometryDefinition("qweak_new.geo");
+    detectors.GetSubsystemByName("R2")->LoadChannelMap("qweak_cosmics_hits.map");
+    ((VQwSubsystemTracking*) detectors.GetSubsystemByName("R2"))->LoadGeometryDefinition("qweak_new.geo");
     // Region 3 VDC
     detectors.push_back(new QwDriftChamberVDC("R3"));
-    //detectors.GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
-    detectors.GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
-    ((VQwSubsystemTracking*) detectors.GetSubsystem("R3"))->LoadGeometryDefinition("qweak_new.geo");
+    //detectors.GetSubsystemByName("R3")->LoadChannelMap("qweak_cosmics_hits.map");
+    detectors.GetSubsystemByName("R3")->LoadChannelMap("TDCtoDL.map");
+    ((VQwSubsystemTracking*) detectors.GetSubsystemByName("R3"))->LoadGeometryDefinition("qweak_new.geo");
     // Trigger scintillators
     detectors.push_back(new QwTriggerScintillator("TS"));
-    ((VQwSubsystemTracking*) detectors.GetSubsystem("TS"))->LoadChannelMap("trigscint_cosmics.map");
+    ((VQwSubsystemTracking*) detectors.GetSubsystemByName("TS"))->LoadChannelMap("trigscint_cosmics.map");
     // Main detector
     detectors.push_back(new QwMainDetector("MD"));
-    detectors.GetSubsystem("MD")->LoadChannelMap("maindet_cosmics.map");
-    QwMainDetector* maindetector = dynamic_cast<QwMainDetector*> (detectors.GetSubsystem("MD"));
+    detectors.GetSubsystemByName("MD")->LoadChannelMap("maindet_cosmics.map");
+    QwMainDetector* maindetector = dynamic_cast<QwMainDetector*> (detectors.GetSubsystemByName("MD"));
     // Scanner
     detectors.push_back(new QwScanner("FPS"));
-    ((VQwSubsystemTracking*) detectors.GetSubsystem("FPS"))->LoadChannelMap("scanner_channel.map" );
-    ((VQwSubsystemTracking*) detectors.GetSubsystem("FPS"))->LoadInputParameters("scanner_parameter.map");
-    QwScanner* scanner = dynamic_cast<QwScanner*> (detectors.GetSubsystem("FPS")); // Get scanner subsystem
+    ((VQwSubsystemTracking*) detectors.GetSubsystemByName("FPS"))->LoadChannelMap("scanner_channel.map" );
+    ((VQwSubsystemTracking*) detectors.GetSubsystemByName("FPS"))->LoadInputParameters("scanner_parameter.map");
+    QwScanner* scanner = dynamic_cast<QwScanner*> (detectors.GetSubsystemByName("FPS")); // Get scanner subsystem
 
 
     // Get vector with detector info (by region, plane number)
     std::vector< std::vector< QwDetectorInfo > > detector_info;
-    detectors.GetSubsystem("R1")->GetDetectorInfo(detector_info);
-    detectors.GetSubsystem("R2")->GetDetectorInfo(detector_info);
-    detectors.GetSubsystem("R3")->GetDetectorInfo(detector_info);
+    detectors.GetSubsystemByName("R1")->GetDetectorInfo(detector_info);
+    detectors.GetSubsystemByName("R2")->GetDetectorInfo(detector_info);
+    detectors.GetSubsystemByName("R3")->GetDetectorInfo(detector_info);
     // TODO This is handled incorrectly, it just adds the three package after the
     // existing three packages from region 2...  GetDetectorInfo should descend
     // into the packages and add only the detectors in those packages.
@@ -209,7 +209,7 @@ Int_t main(Int_t argc, Char_t* argv[]) {
         //  and then pass it into the constructor.
         //
         //  To pass a subdirectory named "subdir", we would do:
-        //    detectors.GetSubsystem("MD")->ConstructHistograms(rootfile->mkdir("subdir"));
+        //    detectors.GetSubsystemByName("MD")->ConstructHistograms(rootfile->mkdir("subdir"));
 
         // Construct histograms
         //detectors.ConstructHistograms(rootfile->mkdir("histos"));

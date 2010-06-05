@@ -28,10 +28,6 @@ main(Int_t argc, Char_t* argv[])
   gQwOptions.SetConfigFile("qweak_mysql.conf");
   DefineOptionsParity(gQwOptions);
 
-  QwEventRing::DefineOptions(gQwOptions);
-  QwHelicity::DefineOptions(gQwOptions);
-  QwMainCerenkovDetector::DefineOptions(gQwOptions);
-
   // modified value for maximum size of tree
   Long64_t kMAXTREESIZE = 10000000000LL;
   // standard value for maximum size of tree in root source
@@ -85,27 +81,27 @@ main(Int_t argc, Char_t* argv[])
 
 
   QwDetectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
-  QwDetectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
+  QwDetectors.GetSubsystemByName("MainDetectors")->LoadChannelMap("qweak_adc.map");
 
   QwDetectors.push_back(new QwBeamLine("Injector BeamLine"));
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");
-  QwDetectors.GetSubsystem("Injector BeamLine")->LoadEventCuts("qweak_beamline_eventcuts.in");//Pass the correct cuts file.
+  QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
+  QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");
+  QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadEventCuts("qweak_beamline_eventcuts.in");//Pass the correct cuts file.
 
   QwDetectors.push_back(new QwHelicity("Helicity info"));
-  QwDetectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
-  QwDetectors.GetSubsystem("Helicity info")->LoadInputParameters("");
+  QwDetectors.GetSubsystemByName("Helicity info")->LoadChannelMap("qweak_helicity.map");
+  QwDetectors.GetSubsystemByName("Helicity info")->LoadInputParameters("");
 
   QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
-  QwDetectors.GetSubsystem("Luminosity Monitors")->LoadChannelMap("qweak_lumi.map");
-  QwDetectors.GetSubsystem("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file.
+  QwDetectors.GetSubsystemByName("Luminosity Monitors")->LoadChannelMap("qweak_lumi.map");
+  QwDetectors.GetSubsystemByName("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file.
 
   QwDetectors.ProcessOptions(gQwOptions);
 
   QwSubsystemArrayParity runningsum;
   runningsum.Copy(&QwDetectors);
 
-  ((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
+  ((QwBeamLine*)QwDetectors.GetSubsystemByName("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
 
 
 
@@ -123,7 +119,7 @@ main(Int_t argc, Char_t* argv[])
 
 
   QwDatabase qw_test_DB(gQwOptions);
-  
+
   UInt_t run_id      = 0;
   UInt_t runlet_id   = 0;
   UInt_t analysis_id = 0;
@@ -201,7 +197,7 @@ main(Int_t argc, Char_t* argv[])
 	    if (QwEvt.IsEPICSEvent()) {
 	      QwEvt.FillEPICSData(epics_data);
 	      epics_data.CalculateRunningValues();
-	      epics_data.PrintAverages();	      
+	      epics_data.PrintAverages();
 	    }
 
 
@@ -255,9 +251,9 @@ main(Int_t argc, Char_t* argv[])
 	  if(bTree){
 	    evnum=QwEvt.GetEventNumber();
 	    //std::cout<<" event "<<evnum<<std::endl;
-	    //((QwBeamLine*)QwDetectors.GetSubsystem("Injector BeamLine"))->FillTreeVector(mpsvector);
-	    //((QwHelicity*)QwDetectors.GetSubsystem("Helicity info"))->FillTreeVector(mpsvector);
-	    //((QwLumi*)QwDetectors.GetSubsystem("Luminosity Monitors"))->FillTreeVector(mpsvector);
+	    //((QwBeamLine*)QwDetectors.GetSubsystemByName("Injector BeamLine"))->FillTreeVector(mpsvector);
+	    //((QwHelicity*)QwDetectors.GetSubsystemByName("Helicity info"))->FillTreeVector(mpsvector);
+	    //((QwLumi*)QwDetectors.GetSubsystemByName("Luminosity Monitors"))->FillTreeVector(mpsvector);
 
 	    //Tree events scaling is set here
 	    if (fEVENTS2SKIP==0){
@@ -287,7 +283,7 @@ main(Int_t argc, Char_t* argv[])
 	  }
 
 	  if(bHelicity && QwHelPat.IsCompletePattern() && bRING_READY){
-	    //QwHelicity * tmp=(QwHelicity *)QwDetectors.GetSubsystem("Helicity info");
+	    //QwHelicity * tmp=(QwHelicity *)QwDetectors.GetSubsystemByName("Helicity info");
 	    //std::cout<<" Complete quartet  Good Helicity "<<std::endl;
 	    QwHelPat.CalculateAsymmetry();
 	    //QwHelPat.Print();
@@ -360,7 +356,7 @@ main(Int_t argc, Char_t* argv[])
 	run_id      = qw_test_DB.GetRunID(QwEvt);
 	runlet_id   = qw_test_DB.GetRunletID(QwEvt);
 	analysis_id = qw_test_DB.GetAnalysisID(QwEvt);
-	
+
 	QwMessage << "QwAnalysis_MySQL.cc::"
 		  << " Run Number "  << QwColor(Qw::kBoldMagenta) << QwEvt.GetRunNumber() << QwColor(Qw::kNormal)
 		  << " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id<< QwColor(Qw::kNormal)
@@ -368,7 +364,7 @@ main(Int_t argc, Char_t* argv[])
 		  << " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id
 		  << QwLog::endl;
       }
-      
+
       // Each sussystem has its own Connect() and Disconnect() functions.
       if (qw_test_DB.AllowsWriteAccess()){
 	QwHelPat.FillDB(&qw_test_DB);

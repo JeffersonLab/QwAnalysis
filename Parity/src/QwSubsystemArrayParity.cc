@@ -22,10 +22,10 @@ void QwSubsystemArrayParity::ProcessOptions(QwOptions &options){
 }; //Handle command line options
 
 
-VQwSubsystemParity* QwSubsystemArrayParity::GetSubsystem(const TString name)
+VQwSubsystemParity* QwSubsystemArrayParity::GetSubsystemByName(const TString name)
 {
   VQwSubsystemParity* tmp = NULL;
-  tmp=dynamic_cast<VQwSubsystemParity*>  (QwSubsystemArray::GetSubsystem(name));
+  tmp=dynamic_cast<VQwSubsystemParity*>  (QwSubsystemArray::GetSubsystemByName(name));
 
   return tmp;
 };

@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
   QwComptonPhotonDetector* photon = 0;
   if (bComptonPhoton) {
     detectors.push_back(new QwComptonPhotonDetector("Compton Photon Detector"));
-    photon = dynamic_cast<QwComptonPhotonDetector*> (detectors.GetSubsystem("Compton Photon Detector"));
+    photon = dynamic_cast<QwComptonPhotonDetector*> (detectors.GetSubsystemByName("Compton Photon Detector"));
     if (photon) {
       photon->LoadChannelMap("compton_photon_channels.map");
       photon->LoadInputParameters("compton_photon_pedestal.map");
@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
   QwComptonElectronDetector* electron = 0;
   if (bComptonElectron) {
     detectors.push_back(new QwComptonElectronDetector("Compton Electron Detector"));
-    electron = dynamic_cast<QwComptonElectronDetector*> (detectors.GetSubsystem("Compton Electron Detector"));
+    electron = dynamic_cast<QwComptonElectronDetector*> (detectors.GetSubsystemByName("Compton Electron Detector"));
     if (electron) {
       electron->LoadChannelMap("compton_electron_channels.map");
       electron->LoadInputParameters("compton_electron_pedestal.map");
@@ -161,8 +161,8 @@ int main(int argc, char* argv[])
   // Helicity subsystem
   if (bHelicity) {
     detectors.push_back(new QwHelicity("Helicity info"));
-    detectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
-    detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
+    detectors.GetSubsystemByName("Helicity info")->LoadChannelMap("qweak_helicity.map");
+    detectors.GetSubsystemByName("Helicity info")->LoadInputParameters("");
   }
   // Helicity pattern
   QwHelicityPattern helicitypattern(detectors);
@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
 
 
   // Get the helicity
-  QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystem("Helicity info");
+  QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystemByName("Helicity info");
 
   // Event buffer
   QwEventBuffer eventbuffer;
