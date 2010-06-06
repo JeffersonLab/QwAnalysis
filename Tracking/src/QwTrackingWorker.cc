@@ -129,6 +129,9 @@ QwTrackingWorker::QwTrackingWorker (const char* name)
   // Process options
   ProcessOptions(gQwOptions);
 
+  // If tracking is disabled, stop here
+  if (fDisableTracking) return;
+
   // Initialize the pattern database
   InitTree();
 
@@ -194,8 +197,8 @@ QwTrackingWorker::~QwTrackingWorker ()
   for (int i = 0; i < kNumPackages * kNumRegions * kNumTypes * kNumDirections; i++)
     if (fSearchTree[i]) delete fSearchTree[i];
 
-  delete fMatrixLookup;
-  delete fRayTracer;
+  if (fMatrixLookup) delete fMatrixLookup;
+  if (fRayTracer)    delete fRayTracer;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -206,6 +209,9 @@ void QwTrackingWorker::DefineOptions(QwOptions& options)
   options.AddConfigFile("Tracking/prminput/qwtracking.conf");
 
   // General options
+  options.AddOptions()("QwTracking.disable",
+                          po::value<bool>()->zero_tokens()->default_value(false),
+                          "disable all tracking analysis");
   options.AddOptions()("QwTracking.showeventpattern",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "show bit pattern for all events");
@@ -250,6 +256,9 @@ void QwTrackingWorker::DefineOptions(QwOptions& options)
 
 void QwTrackingWorker::ProcessOptions(QwOptions& options)
 {
+  // Disable tracking
+  fDisableTracking = options.GetValue<bool>("QwTracking.disable");
+
   // Set the flags for showing the matching event patterns
   fShowEventPattern = options.GetValue<bool>("QwTracking.showeventpattern");
   fShowMatchingPattern = options.GetValue<bool>("QwTracking.showmatchingpattern");
@@ -495,6 +504,9 @@ QwEvent* QwTrackingWorker::ProcessHits (
     QwEvent *event = new QwEvent();
     // and fill it with the hitlist
     event->AddHitContainer(hitlist);
+
+    // If tracking is disabled, stop here
+    if (fDisableTracking) return event;
 
     // Tracking functionality is provided by these four sub-blocks.
     QwTrackingTreeSearch  *TreeSearch  = new QwTrackingTreeSearch();

@@ -12,6 +12,8 @@
 
 #include "QwDelayLine.h"
 
+#include "QwParameterFile.h"
+
 const Double_t QwDelayLine::kTimeStep=2.6;
 const Int_t    QwDelayLine::kWireStep=8;
 

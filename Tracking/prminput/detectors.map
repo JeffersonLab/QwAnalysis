@@ -1,19 +1,25 @@
 # Definition of the tracking detectors
+# this is the preamble
 
-QwGasElectronMultiplier: R1 GEM
+[QwGasElectronMultiplier]
+ name = R1 GEM
  map = qweak_cosmics_hits.map
  geom = qweak_new.geo
 
-QwDriftChamberHDC: R2 HDC
+[QwDriftChamberHDC]
+ name = R2 HDC
  map = qweak_cosmics_hits.map
  geom = qweak_new.geo
 
-QwDriftChamberVDC: R3 VDC
+[QwDriftChamberVDC]
+ name = R3 VDC
  map = TDCtoDL.map
  geom = qweak_new.geo
 
-QwTriggerScintillator: TS
+[QwTriggerScintillator]
+ name = TS
  geom = qweak_new.geo
 
-QwMainDetector: MD
+[QwMainDetector]
+ name = MD
  geom = qweak_new.geo

@@ -99,6 +99,7 @@ class QwTrackingWorker {
     //@}
 
     // Local flags
+    bool fDisableTracking;
     bool fShowEventPattern;
     bool fShowMatchingPattern;
     bool fUseMatrixLookup;

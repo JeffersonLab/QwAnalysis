@@ -11,7 +11,6 @@
 #include "TH1D.h"
 #include "TH2D.h"
 
-#include "QwParameterFile.h"
 #include "QwDetectorInfo.h"
 
 #include "QwHit.h"
@@ -37,7 +36,7 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking{
    *
    *
    ******************************************************************/
- public:  
+ public:
 
   QwGasElectronMultiplier(TString region_tmp);
   ~QwGasElectronMultiplier();
@@ -62,11 +61,11 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking{
   void  ProcessEvent();
 
   void  FillListOfHits(QwHitContainer& hitlist);
-  
+
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();
- 
+
   void GetHitList(QwHitContainer & grandHitContainer){
     grandHitContainer.Append(fGEMHits);
   };
@@ -80,7 +79,7 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking{
   void GetChannelData(Int_t [], Int_t);//return the VFAT Channel Data
 
   void AddHit(Int_t,Int_t);
-  
+
  protected:
   // Bool_t fDEBUG;
   TString fRegion;  ///  Name of this subsystem (the region).
@@ -118,19 +117,19 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking{
   /*=====
    *  Histograms should be listed below here.
    *  They should be pointers to histograms which will be created
-   *  inside the ConstructHistograms() 
+   *  inside the ConstructHistograms()
    */
 
   TH1D *VFAT[N_VFAT];
   TH1D *VFAT_BC[N_VFAT];
   TH1D *VFAT_EC[N_VFAT];
   TH1D *VFAT_Flags[N_VFAT];
-  TH1D *VFAT_ChipId[N_VFAT];  
+  TH1D *VFAT_ChipId[N_VFAT];
   TH1D *VFAT_ChannelData[N_VFAT];
   TH2D *GEM[N_GEM];
-  
-  
-  
+
+
+
 };
 
 #endif

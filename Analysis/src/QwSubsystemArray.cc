@@ -25,50 +25,44 @@ QwSubsystemArray::QwSubsystemArray(const char* filename)
   QwMessage << "Loading subsystems from " << filename << QwLog::endl;
   QwParameterFile detectors(filename);
 
-  VQwSubsystem* subsys = 0;
-  while (detectors.ReadNextLine()) {
-    // Trim comments and whitespace
-    detectors.TrimComment('!');
-    detectors.TrimComment('#');
-    detectors.TrimWhitespace();
+  // This is how this should work
+  QwParameterFile* preamble;
+  preamble = detectors.ReadPreamble();
+  // Process preamble
+  QwVerbose << "Preamble:" << QwLog::endl;
+  QwVerbose << *preamble << QwLog::endl;
 
-    // Subsystem block start
-    std::string subsystype, subsysname;
-    if (detectors.HasVariablePair(":", subsystype, subsysname)) {
-      QwMessage << "Adding subsystem of type " << subsystype
-                << " with name " << subsysname << QwLog::endl;
-      subsys = VQwSubsystemFactory::GetSubsystemFactory(subsystype)->Create(subsysname);
-      this->push_back(subsys);
+  QwParameterFile* section;
+  std::string section_name;
+  while ((section = detectors.ReadNextSection(section_name))) {
+    // Process section
+    QwMessage << "Adding subsystem of type " << section_name << QwLog::endl;
+    QwVerbose << "Section:" << QwLog::endl;
+    QwVerbose << *section << QwLog::endl;
+
+    // Determine type and name of subsystem
+    std::string subsys_type = section_name;
+    std::string subsys_name;
+    if (! section->FileHasVariablePair("=","name",subsys_name)) {
+      QwError << "No name defined in section for subsystem " << subsys_type << QwLog::endl;
+      continue;
     }
-
-    std::string key, value;
-
-    // Map file definition
-    if (detectors.HasVariablePair("=", key, value)) {
-      if (key == "map" && value.size() > 0) {
-        if (subsys) subsys->LoadChannelMap(value);
-        else QwError << "Map defined without subsystem!" << QwLog::endl;
-      }
+    // Create subsystem
+    VQwSubsystem* subsys =
+      VQwSubsystemFactory::GetSubsystemFactory(subsys_type)->Create(subsys_name);
+    if (! subsys) {
+      QwError << "Could not create subsystem " << subsys_type << QwLog::endl;
+      continue;
     }
+    // Pass detector maps
+    subsys->LoadDetectorMaps(*section);
+    // Add to array
+    this->push_back(subsys);
 
-    // Geometry file definition
-    if (detectors.HasVariablePair("=", key, value)) {
-      if (key == "geom" && value.size() > 0) {
-        if (subsys) subsys->LoadGeometryDefinition(value);
-        else QwError << "Geometry defined without subsystem!" << QwLog::endl;
-      }
-    }
-
-    // Parameter file definition
-    if (detectors.HasVariablePair("=", key, value)) {
-      if (key == "param" && value.size() > 0) {
-        if (subsys) subsys->LoadInputParameters(value);
-        else QwError << "Parameters defined without subsystem!" << QwLog::endl;
-      }
-    }
+    // Delete parameter file section
+    delete section; section = 0;
   }
 }
-
 
 //*****************************************************************
 

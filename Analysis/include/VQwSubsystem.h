@@ -9,8 +9,11 @@
 #ifndef __VQWSUBSYSTEM__
 #define __VQWSUBSYSTEM__
 
+// System headers
 #include <iostream>
 #include <vector>
+
+// ROOT headers
 #include <Rtypes.h>
 #include <TString.h>
 #include <TDirectory.h>
@@ -19,6 +22,8 @@
 // Note: the subsystem factory header is included here because every subsystem
 // has to register itself with a subsystem factory.
 #include "QwSubsystemFactory.h"
+// Note: the parameter file is included for
+#include "QwParameterFile.h"
 
 // Forward declarations
 class QwSubsystemArray;
@@ -53,9 +58,11 @@ class VQwSubsystem {
 
  public:
 
-  VQwSubsystem(TString region_tmp):fSystemName(region_tmp),fIsDataLoaded(kFALSE),fCurrentROC_ID(-1),fCurrentBank_ID(-1){};
+  /// Constructor with name
+  VQwSubsystem(const TString& name)
+    : fSystemName(name), fIsDataLoaded(kFALSE), fCurrentROC_ID(-1), fCurrentBank_ID(-1) { };
 
-  virtual ~VQwSubsystem(){};
+  virtual ~VQwSubsystem() { };
 
   /// \brief Define options function (note: no virtual static functions in C++)
   static void DefineOptions() { /* No default options defined */ };
@@ -88,6 +95,8 @@ class VQwSubsystem {
     return kFALSE;
   };
 
+  // Parse parameter file to find the map files
+  virtual Int_t LoadDetectorMaps(QwParameterFile& file);
   // Mandatory map and parameter files
   virtual Int_t LoadChannelMap(TString mapfile) = 0;
   virtual Int_t LoadInputParameters(TString mapfile) = 0;

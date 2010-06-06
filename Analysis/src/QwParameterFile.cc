@@ -23,7 +23,7 @@ UInt_t QwParameterFile::GetUInt(const TString &varvalue){
   UInt_t value = 0;
   if (varvalue.IsDigit()){
     value = varvalue.Atoi();
-  } else if (varvalue.BeginsWith("0x") || varvalue.BeginsWith("0X") 
+  } else if (varvalue.BeginsWith("0x") || varvalue.BeginsWith("0X")
 	     || varvalue.BeginsWith("x") || varvalue.BeginsWith("X")
 	     || varvalue.IsHex()){
     //any whitespace ?
@@ -38,7 +38,7 @@ UInt_t QwParameterFile::GetUInt(const TString &varvalue){
       //loop over all whitespace
       while (end > -1) {
 	tmp += varvalue(start, end-start);
-	start = end+1; 
+	start = end+1;
 	end = varvalue.Index(" ", start);
       }
       //finally add part from last whitespace to end of string
@@ -65,11 +65,12 @@ QwParameterFile::QwParameterFile(const char *filename){
     }
   }
   if (bfs::exists(tmppath)){
-    std::cout << "Opening parameter file: " 
+    std::cout << "Opening parameter file: "
 	      << tmppath.string()<<"\n";
-    fInputFile.open(tmppath.string().c_str());
+    fFile.open(tmppath.string().c_str());
+    fStream << fFile.rdbuf();
   } else {
-    std::cerr << "ERROR:  Unable to open parameter file: " 
+    std::cerr << "ERROR:  Unable to open parameter file: "
 	      << tmppath.string()<<"\n";
   }
 };
@@ -81,7 +82,7 @@ void QwParameterFile::TrimWhitespace(TString::EStripType head_tail){
   TrimWhitespace(fLine, head_tail);
 }
 
-void QwParameterFile::TrimWhitespace(std::string &token, 
+void QwParameterFile::TrimWhitespace(std::string &token,
 				     TString::EStripType head_tail){
   //  If the first bit is set, this routine removes leading spaces from the
   //  line.  If the second bit is set, this routine removes trailing spaces
@@ -110,21 +111,23 @@ void QwParameterFile::TrimComment(char commentchar){
   }
 }
 
-Bool_t QwParameterFile::HasVariablePair(std::string separatorchars, TString &varname, TString &varvalue){
+Bool_t QwParameterFile::HasVariablePair(std::string separatorchars, TString &varname, TString &varvalue)
+{
   std::string tmpvar, tmpval;
   Bool_t status = HasVariablePair(separatorchars, tmpvar, tmpval);
   if (status){
     varname  = tmpvar.c_str();
     varvalue = tmpval.c_str();
   }
-  return status;  
+  return status;
 };
 
-Bool_t QwParameterFile::HasVariablePair(std::string separatorchars, std::string &varname, std::string &varvalue){
+Bool_t QwParameterFile::HasVariablePair(std::string separatorchars, std::string &varname, std::string &varvalue)
+{
   Bool_t status = kFALSE;
   size_t equiv_pos1 = fLine.find_first_of(separatorchars);
   if (equiv_pos1 != std::string::npos){
-    size_t equiv_pos2 = fLine.find_first_not_of(separatorchars,equiv_pos1);  
+    size_t equiv_pos2 = fLine.find_first_not_of(separatorchars,equiv_pos1);
     if (equiv_pos2 != std::string::npos){
       varname  = fLine.substr(0,equiv_pos1);
       varvalue = fLine.substr(equiv_pos2);
@@ -135,9 +138,105 @@ Bool_t QwParameterFile::HasVariablePair(std::string separatorchars, std::string 
   }
   return status;
 };
-  
 
-std::string QwParameterFile::GetNextToken(std::string separatorchars){
+Bool_t QwParameterFile::FileHasVariablePair(
+  std::string separatorchars, const TString& varname, TString& varvalue)
+{
+  std::string tmpval;
+  Bool_t status = FileHasVariablePair(separatorchars, varname.Data(), tmpval);
+  if (status) varvalue = tmpval.c_str();
+  return status;
+};
+
+Bool_t QwParameterFile::FileHasVariablePair(
+  std::string separatorchars, const std::string& varname, std::string& varvalue)
+{
+  RewindToFileStart();
+  while (ReadNextLine()) {
+    std::string this_varname;
+    if (HasVariablePair(separatorchars, this_varname, varvalue)) {
+      if (this_varname == varname) return kTRUE;
+    }
+  }
+  return false;
+};
+
+
+Bool_t QwParameterFile::LineHasSectionHeader(TString& secname)
+{
+  return LineHasSectionHeader(secname);
+};
+
+Bool_t QwParameterFile::LineHasSectionHeader(std::string& secname)
+{
+  Bool_t status = kFALSE;
+  size_t equiv_pos1 = fLine.find_first_of('[');
+  if (equiv_pos1 != std::string::npos) {
+    size_t equiv_pos2 = fLine.find_first_of(']',equiv_pos1);
+    if (equiv_pos2 != std::string::npos && equiv_pos2 - equiv_pos1 > 1) {
+      secname = fLine.substr(equiv_pos1 + 1, equiv_pos2 - equiv_pos1 - 1);
+      TrimWhitespace(secname, TString::kBoth);
+      status = kTRUE;
+    }
+  }
+  return status;
+};
+
+Bool_t QwParameterFile::FileHasSectionHeader(const TString& secname)
+{
+  return FileHasSectionHeader(secname);
+};
+
+Bool_t QwParameterFile::FileHasSectionHeader(const std::string& secname)
+{
+  RewindToFileStart();
+  while (ReadNextLine()) {
+    std::string this_secname;
+    if (LineHasSectionHeader(this_secname)) {
+      if (this_secname == secname) return kTRUE;
+    }
+  }
+  return false;
+};
+
+/**
+ * Read from current position until next section header
+ * @return Pointer to the parameter stream until next section
+ */
+QwParameterFile* QwParameterFile::ReadUntilNextSection()
+{
+  std::string nextheader; // dummy
+  QwParameterFile* section = new QwParameterFile();
+  while (ReadNextLine() && ! LineHasSectionHeader(nextheader)) {
+    section->AddLine(GetLine());
+  }
+  return section;
+}
+
+/**
+ * Read the lines until the first header
+ * @return Pointer to the parameter stream until first section
+ */
+QwParameterFile* QwParameterFile::ReadPreamble()
+{
+  RewindToFileStart();
+  return ReadUntilNextSection();
+}
+
+/**
+ * Read the lines of the next section
+ * @param secname Name of the next section (returns)
+ * @return Pointer to the parameter stream of the next section
+ */
+QwParameterFile* QwParameterFile::ReadNextSection(std::string &secname)
+{
+  if (IsEOF()) return 0;
+  while (! LineHasSectionHeader(secname) && ReadNextLine()); // skip until header
+  return ReadUntilNextSection();
+}
+
+std::string QwParameterFile::GetNextToken(std::string separatorchars)
+{
   std::string tmpstring = "";
   if (fCurrentPos != std::string::npos){
     size_t pos1 = fCurrentPos;
@@ -148,8 +247,15 @@ std::string QwParameterFile::GetNextToken(std::string separatorchars){
     } else {
       fCurrentPos = fLine.find_first_not_of(separatorchars.c_str(), pos2);
       tmpstring   = fLine.substr(pos1,pos2-pos1);
-    } 
+    }
   }
   return tmpstring;
 };
 
+ostream& operator<< (ostream& stream, const QwParameterFile& file)
+{
+  /// \todo TODO (wdc) operator<< on QwParameterFile requires RewindToFileStart
+  std::string line;
+  stream << file.fStream.rdbuf();
+  return stream;
+}

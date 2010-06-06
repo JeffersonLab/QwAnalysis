@@ -9,6 +9,8 @@
 
 #include "QwGasElectronMultiplier.h"
 
+#include "QwParameterFile.h"
+
 // Register this subsystem with the factory
 QwSubsystemFactory<QwGasElectronMultiplier>
   theGasElectronMultiplierFactory("QwGasElectronMultiplier");
