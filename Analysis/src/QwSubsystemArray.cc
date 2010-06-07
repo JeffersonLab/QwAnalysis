@@ -159,9 +159,12 @@ std::vector<VQwSubsystem*> QwSubsystemArray::GetSubsystemByType(const TString& t
 
 void  QwSubsystemArray::ClearEventData()
 {
-  if (!empty())
+  if (!empty()) {
+    fCodaEventNumber = 0;
+    fCodaEventType   = 0;
     std::for_each(begin(), end(),
 		  boost::mem_fn(&VQwSubsystem::ClearEventData));
+  }
 };
 
 Int_t QwSubsystemArray::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*

@@ -478,6 +478,10 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
   Bool_t okay = kTRUE;
   //  Clear the old event information from the subsystems.
   subsystems.ClearEventData();
+  
+  //  Pass CODA event number and type to the subsystem array.
+  subsystems.SetCodaEventNumber(fEvtNumber);
+  subsystems.SetCodaEventType(fEvtType);
 
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());

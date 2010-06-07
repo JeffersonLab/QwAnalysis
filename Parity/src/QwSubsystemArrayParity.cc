@@ -29,6 +29,12 @@ VQwSubsystemParity* QwSubsystemArrayParity::GetSubsystemByName(const TString& na
 
 void  QwSubsystemArrayParity::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
+  fTreeArrayIndex  = values.size();
+  values.push_back(0.0);
+  tree->Branch("CodaEventNumber",&(values[fTreeArrayIndex]),"/D" );
+  values.push_back(0.0);
+  tree->Branch("CodaEventType",&(values[fTreeArrayIndex+1]),"/D" );
+
   for (iterator subsys = begin(); subsys != end(); ++subsys) {
     VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
     subsys_parity->ConstructBranchAndVector(tree, prefix, values);
@@ -37,6 +43,10 @@ void  QwSubsystemArrayParity::ConstructBranchAndVector(TTree *tree, TString & pr
 
 void  QwSubsystemArrayParity::FillTreeVector(std::vector<Double_t> &values)
 {
+  size_t index=fTreeArrayIndex;
+  values[index++] = this->GetCodaEventNumber();
+  values[index++] = this->GetCodaEventType();
+
   for (iterator subsys = begin(); subsys != end(); ++subsys) {
     VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
     subsys_parity->FillTreeVector(values);
