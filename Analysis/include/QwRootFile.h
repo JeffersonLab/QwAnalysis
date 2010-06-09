@@ -121,8 +121,9 @@ class QwRootFile {
     std::vector<Double_t> fHelVector;
 
     /// Prescaling of events written to tree
-    Int_t fNEventsToSkip;
-    Int_t fNEventsToSave;
+    UInt_t fNumEventsCycle;
+    UInt_t fNumEventsToSkip;
+    UInt_t fNumEventsToSave;
 
     /// Maximum tree size
     static const Long64_t kMaxTreeSize;

@@ -80,6 +80,14 @@ void QwRootFile::DefineOptions(QwOptions &options)
   options.AddOptions()
     ("disable-hel", po::value<bool>()->default_value(false)->zero_tokens(),
      "disable helicity pattern output (yield, asymmetry)");
+
+  // Define the tree output prescaling options
+  options.AddOptions()
+    ("num-accepted-events", po::value<int>()->default_value(0),
+     "number of accepted consecutive events");
+  options.AddOptions()
+    ("num-discarded-events", po::value<int>()->default_value(0),
+     "number of discarded consective events");
 }
 
 
@@ -92,15 +100,21 @@ void QwRootFile::ProcessOptions(QwOptions &options)
   // Option 'online' defined in QwEventBuffer, but accessible everywhere
   fOnline = options.GetValue<bool>("online");
 
-  // Option 'disable-trees' and 'disable-histos' for disabling
+  // Options 'disable-trees' and 'disable-histos' for disabling
   // tree and histogram output
   fEnableTree  = ! options.GetValue<bool>("disable-trees");
   fEnableHisto = ! options.GetValue<bool>("disable-histos");
 
-  // Option 'disable-mps' and 'disable-hel' for disabling
+  // Options 'disable-mps' and 'disable-hel' for disabling
   // helicity window and helicity pattern output
   fEnableMps = ! options.GetValue<bool>("disable-mps");
   fEnableHel = ! options.GetValue<bool>("disable-hel");
+
+  // Options 'num-accepted-events' and 'num-discarded-events' for
+  // prescaling of the tree output
+  fNumEventsToSave = options.GetValue<int>("num-accepted-events");
+  fNumEventsToSkip = options.GetValue<int>("num-discarded-events");
+  fNumEventsCycle = fNumEventsToSave + fNumEventsToSkip;
 }
 
 
@@ -112,7 +126,7 @@ void QwRootFile::ConstructHistograms(QwSubsystemArray& detectors)
 {
   // Return if we do not want histo or mps information
   if (! fEnableHisto) return;
-  if (! fEnableHel) return;
+  if (! fEnableMps) return;
 
   // Create the histograms in a directory
   if (fRootFile) {
@@ -172,9 +186,6 @@ void QwRootFile::ConstructTreeBranches(QwSubsystemArrayParity& detectors)
   // results are going to get very very crazy.
   fMpsVector.reserve(6000);
 
-  // TODO (wdc) No event number support ?!?
-  //mpstree->Branch("evnum",&evnum,"evnum/D");
-
   // Associate branches with vector
   TString dummystr = "";
   detectors.ConstructBranchAndVector(fMpsTree, dummystr, fMpsVector);
@@ -215,11 +226,14 @@ void QwRootFile::ConstructTreeBranches(QwHelicityPattern& helicity_pattern)
  */
 void QwRootFile::FillTreeBranches(QwSubsystemArrayParity& detectors)
 {
-  /// \todo TODO (wdc) Output ROOT tree prescaling
-
   // Return if we do not want tree or mps information
   if (! fEnableTree) return;
   if (! fEnableMps) return;
+
+  // Output ROOT tree prescaling
+  // One cycle starts with fNumEventsToTake acc
+  UInt_t current_event = detectors.GetCodaEventNumber() % fNumEventsCycle;
+  if (current_event > fNumEventsToSave) return;
 
   // Fill the vector
   detectors.FillTreeVector(fMpsVector);
