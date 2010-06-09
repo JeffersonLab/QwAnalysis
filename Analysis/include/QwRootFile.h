@@ -101,7 +101,7 @@ class QwRootFile {
 
     QwRootFile() { }; // Private default constructor
 
-    Bool_t fOnline;
+    Bool_t fEnableMapFile;
     Bool_t fEnableTree;
     Bool_t fEnableHisto;
     Bool_t fEnableMps;

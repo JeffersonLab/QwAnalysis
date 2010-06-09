@@ -474,28 +474,33 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix) {
         else  basename = prefix;
 
         if (folder != NULL) folder->cd();
-        TDirectory* scannerfolder = folder->mkdir("scanner");
+
+        // TODO (wdc) disabled due to restriction imposed by memory mapped file
+        // Also changes to ConstructHistograms() calls below.
+        //TDirectory* scannerfolder = folder->mkdir("scanner");
 
         // if (bRawData)
         {
             for (size_t i=0; i<fPMTs.size(); i++) {
                 for (size_t j=0; j<fPMTs.at(i).size(); j++)
-                    fPMTs.at(i).at(j).ConstructHistograms(scannerfolder, basename);
+                    fPMTs.at(i).at(j).ConstructHistograms(folder, basename);
             }
 
             for (size_t i=0; i<fSCAs.size(); i++) {
                 if (fSCAs.at(i) != NULL) {
-                    fSCAs.at(i)->ConstructHistograms(scannerfolder, basename);
+                    fSCAs.at(i)->ConstructHistograms(folder, basename);
                 }
             }
 
             for (size_t i=0; i<fADC_Data.size(); i++) {
                 if (fADC_Data.at(i) != NULL)
-                    fADC_Data.at(i)->ConstructHistograms(scannerfolder, basename);
+                    fADC_Data.at(i)->ConstructHistograms(folder, basename);
             }
         }
 
-        scannerfolder->cd();
+        // TODO (wdc) disabled due to restriction imposed by memory mapped file
+        //scannerfolder->cd();
+
         //fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
         fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
         fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));

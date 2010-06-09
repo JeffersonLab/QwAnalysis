@@ -8,7 +8,7 @@ const Long64_t QwRootFile::kMaxTreeSize = 10000000000LL;
  * Constructor with relative filename
  */
 QwRootFile::QwRootFile(const TString& run_label)
-: fOnline(kFALSE),
+: fEnableMapFile(kFALSE),
   fEnableTree(kTRUE),fEnableHisto(kTRUE),
   fEnableMps(kTRUE),fEnableHel(kTRUE),
   fUpdateInterval(400)
@@ -16,8 +16,8 @@ QwRootFile::QwRootFile(const TString& run_label)
   // Process the configuration options
   ProcessOptions(gQwOptions);
 
-  // Check for the 'online' flag
-  if (fOnline) {
+  // Check for the memory-mapped file flag
+  if (fEnableMapFile) {
 
     // Set up map file
     TString mapfilename = getenv_safe_TString("QW_ROOTFILES");
@@ -26,6 +26,11 @@ QwRootFile::QwRootFile(const TString& run_label)
     if (! fMapFile)
       QwError << "Memory-mapped file " << mapfilename
               << " could not be opened!" << QwLog::endl;
+    else
+      fMapFile->Print();
+
+    // Disable tree in map file mode
+    fEnableTree = false;
 
   // Otherwise we are in offline mode
   } else {
@@ -65,6 +70,11 @@ QwRootFile::~QwRootFile()
  */
 void QwRootFile::DefineOptions(QwOptions &options)
 {
+  // Define the memory map option
+  options.AddOptions()
+    ("enable-mapfile", po::value<bool>()->default_value(false)->zero_tokens(),
+     "enable output to memory-mapped file");
+
   // Define the histogram and tree options
   options.AddOptions()
     ("disable-trees", po::value<bool>()->default_value(false)->zero_tokens(),
@@ -97,8 +107,8 @@ void QwRootFile::DefineOptions(QwOptions &options)
  */
 void QwRootFile::ProcessOptions(QwOptions &options)
 {
-  // Option 'online' defined in QwEventBuffer, but accessible everywhere
-  fOnline = options.GetValue<bool>("online");
+  // Option 'mapfile' to enable memory-mapped ROOT file
+  fEnableMapFile = options.GetValue<bool>("enable-mapfile");
 
   // Options 'disable-trees' and 'disable-histos' for disabling
   // tree and histogram output
@@ -231,9 +241,11 @@ void QwRootFile::FillTreeBranches(QwSubsystemArrayParity& detectors)
   if (! fEnableMps) return;
 
   // Output ROOT tree prescaling
-  // One cycle starts with fNumEventsToTake acc
-  UInt_t current_event = detectors.GetCodaEventNumber() % fNumEventsCycle;
-  if (current_event > fNumEventsToSave) return;
+  // One cycle starts with fNumEventsToTake accepted events
+  if (fNumEventsCycle > 0) {
+    UInt_t current_event = detectors.GetCodaEventNumber() % fNumEventsCycle;
+    if (current_event > fNumEventsToSave) return;
+  }
 
   // Fill the vector
   detectors.FillTreeVector(fMpsVector);
