@@ -826,6 +826,8 @@ Int_t QwBeamLine::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t b
 
 const Bool_t QwBeamLine::PublishInternalValues() const
 {
+  ///  TODO:  The published variable list should be generated from
+  ///         the channel map file.
   // Publish variables
   Bool_t status = kTRUE;
   status = status && PublishInternalValue("q_targ", "Calculated charge on target");
@@ -842,6 +844,8 @@ const Bool_t QwBeamLine::PublishInternalValues() const
 const Bool_t QwBeamLine::ReturnInternalValue(TString name,
 				       VQwDataElement* value) const
 {
+  ///  TODO:  The published variable list should be generated from
+  ///         the channel map file.
   Bool_t ldebug=kFALSE;
   if (ldebug) std::cout << "QwBeamLine::ReturnInternalValue called for value name, "
 	    << name.Data() <<std::endl;
@@ -852,7 +856,7 @@ const Bool_t QwBeamLine::ReturnInternalValue(TString name,
 	      << "'value' be a pointer to QwVQWK_Channel"
 	      << QwLog::endl;
   } else {
-    if (name=="q_targ"){
+    if (name=="q_targ"  && (GetBCM("qwk_bcm0l02"))!=NULL){
       foundit = kTRUE;
       (*tmp) = GetBCM("qwk_bcm0l02")->GetCharge();
         if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element qwk_bcm0l02"<<std::endl;
