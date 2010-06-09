@@ -39,9 +39,6 @@
 
 Bool_t kInQwBatchMode = kFALSE;
 Bool_t bRING_READY;
-Bool_t bSkip= kFALSE;;
-Bool_t bSave= kTRUE;
-Int_t fEVENTS2SKIP, fEVENTS2SAVE;
 
 
 ///

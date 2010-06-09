@@ -24,8 +24,8 @@ QwSubsystemFactory<QwMainCerenkovDetector>
  */
 void QwMainCerenkovDetector::DefineOptions(QwOptions &options){
   // Define the execution options
-  options.AddDefaultOptions()
-    ("QwMainCerenkovDetector.normalize", 
+  options.AddOptions()
+    ("QwMainCerenkovDetector.normalize",
      po::value<bool>()->default_value(false)->zero_tokens(),
      "Normalize the detectors by beam current");
 }
@@ -1061,7 +1061,7 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
     QwMessage << "            QwMainCerenkovDetector::FillDB                       " << QwLog::endl;
     QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
   }
- 
+
   std::vector<QwDBInterface> interface;
   std::vector<QwParityDB::md_data> entrylist;
 
@@ -1088,7 +1088,7 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
 
   for(i=0; i<fIntegrationPMT.size(); i++) {
     interface.clear();
-    interface = fIntegrationPMT[i].GetDBEntry(); 
+    interface = fIntegrationPMT[i].GetDBEntry();
     for(j=0; j<interface.size(); j++) {
       interface.at(j).SetAnalysisID( analysis_id );
       interface.at(j).SetMainDetectorID( db );

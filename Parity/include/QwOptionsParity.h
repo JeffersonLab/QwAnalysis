@@ -21,20 +21,18 @@
 #include "QwMainCerenkovDetector.h"
 #include "QwEventRing.h"
 #include "QwHelicity.h"
+#include "QwRootFile.h"
 
 void DefineOptionsParity(QwOptions& options)
 {
   /* Define general options */
   QwOptions::DefineOptions(options);
 
-  //QwAnalysis_BeamLine Options
-  options.AddOptions()("skip", po::value<int>()->default_value(0),"No. of events to skip");
-  options.AddOptions()("take", po::value<int>()->default_value(1000),"No. of events to save into tree = (take - skip)");
-
   /* Define parity options */
   QwMainCerenkovDetector::DefineOptions(options);
   QwEventRing::DefineOptions(options);
   QwHelicity::DefineOptions(options);
+  QwRootFile::DefineOptions(options);
 }
 
 #endif // QWOPTIONSPARITY_H
