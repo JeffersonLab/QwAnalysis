@@ -37,6 +37,10 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     QwSubsystemArrayParity(): QwSubsystemArray() { };
     /// Constructor with map file
     QwSubsystemArrayParity(const char* filename): QwSubsystemArray(filename) { };
+    /// Copy constructor by pointer
+    QwSubsystemArrayParity(const QwSubsystemArrayParity* source) { this->Copy(source); };
+    /// Copy constructor by reference
+    QwSubsystemArrayParity(const QwSubsystemArrayParity& source) { this->Copy(&source); };
     /// Default destructor
     virtual ~QwSubsystemArrayParity() { };
 
@@ -58,14 +62,24 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     /// \brief Fill the database
     void FillDB(QwDatabase *db, TString type);
 
+
+    /// \brief Assignment operator
     QwSubsystemArrayParity& operator=  (const QwSubsystemArrayParity &value);
+    /// \brief Addition-assignment operator
     QwSubsystemArrayParity& operator+= (const QwSubsystemArrayParity &value);
+    /// \brief Subtraction-assignment operator
     QwSubsystemArrayParity& operator-= (const QwSubsystemArrayParity &value);
-    void Copy(QwSubsystemArrayParity *source);
-    void Sum(QwSubsystemArrayParity &value1, QwSubsystemArrayParity &value2);
-    void Difference(QwSubsystemArrayParity &value1, QwSubsystemArrayParity &value2);
-    void Ratio(QwSubsystemArrayParity &numer, QwSubsystemArrayParity &denom);
+    /// \brief Copy a subsystem array
+    void Copy(const QwSubsystemArrayParity *source);
+    /// \brief Sum of two subsystem arrays
+    void Sum(const QwSubsystemArrayParity &value1, const QwSubsystemArrayParity &value2);
+    /// \brief Difference of two subsystem arrays
+    void Difference(const QwSubsystemArrayParity &value1, const QwSubsystemArrayParity &value2);
+    /// \brief Ratio of two subsystem arrays
+    void Ratio(const QwSubsystemArrayParity &numer, const QwSubsystemArrayParity &denom);
+    /// \brief Scale this subsystem array
     void Scale(Double_t factor);
+
 
     /// \brief Update the running sums for devices
     void AccumulateRunningSum(const QwSubsystemArrayParity& value);

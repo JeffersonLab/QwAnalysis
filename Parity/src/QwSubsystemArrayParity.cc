@@ -66,22 +66,29 @@ void  QwSubsystemArrayParity::FillDB(QwDatabase *db, TString type)
 
 //*****************************************************************
 
-void  QwSubsystemArrayParity::Copy(QwSubsystemArrayParity *source)
+/**
+ * Copy an array of subsystems into this array
+ * @param source Subsystem array
+ */
+void  QwSubsystemArrayParity::Copy(const QwSubsystemArrayParity *source)
 {
-  if (!source->empty()){
-    for (iterator subsys = source->begin(); subsys != source->end(); ++subsys )
-      {
-	VQwSubsystemParity *srcptr =
-	    dynamic_cast<VQwSubsystemParity*>(subsys->get());
-	if (srcptr != NULL){
-	  this->push_back(srcptr->Copy());
-	}
+  if (!source->empty()) {
+    for (const_iterator subsys = source->begin(); subsys != source->end(); ++subsys) {
+      VQwSubsystemParity *srcptr =
+          dynamic_cast<VQwSubsystemParity*>(subsys->get());
+      if (srcptr != NULL) {
+        this->push_back(srcptr->Copy());
       }
+    }
   }
-
 };
 
 
+/**
+ * Assignment operator
+ * @param source Subsystem array to assign to this array
+ * @return This subsystem array after assignment
+ */
 QwSubsystemArrayParity& QwSubsystemArrayParity::operator= (const QwSubsystemArrayParity &source)
 {
   Bool_t localdebug=kFALSE;
@@ -115,6 +122,11 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator= (const QwSubsystemArra
 };
 
 
+/**
+ * Addition-assignment operator
+ * @param value Subsystem array to add to this array
+ * @return This subsystem array after addition
+ */
 QwSubsystemArrayParity& QwSubsystemArrayParity::operator+= (const QwSubsystemArrayParity &value)
 {
   if (!value.empty()){
@@ -145,6 +157,11 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator+= (const QwSubsystemArr
   return *this;
 };
 
+/**
+ * Subtraction-assignment operator
+ * @param value Subsystem array to subtract from this array
+ * @return This array after subtraction
+ */
 QwSubsystemArrayParity& QwSubsystemArrayParity::operator-= (const QwSubsystemArrayParity &value)
 {
   if (!value.empty()){
@@ -172,7 +189,14 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator-= (const QwSubsystemArr
   return *this;
 };
 
-void QwSubsystemArrayParity::Sum(QwSubsystemArrayParity &value1, QwSubsystemArrayParity &value2 )
+/**
+ * Sum of two subsystem arrays
+ * @param value1 First subsystem array
+ * @param value2 Second subsystem array
+ */
+void QwSubsystemArrayParity::Sum(
+  const QwSubsystemArrayParity &value1,
+  const QwSubsystemArrayParity &value2)
 {
 
   if (!value1.empty()&& !value2.empty()){
@@ -183,7 +207,14 @@ void QwSubsystemArrayParity::Sum(QwSubsystemArrayParity &value1, QwSubsystemArra
   }
 };
 
-void QwSubsystemArrayParity::Difference(QwSubsystemArrayParity &value1, QwSubsystemArrayParity &value2 )
+/**
+ * Difference of two subsystem arrays
+ * @param value1 First subsystem array
+ * @param value2 Second subsystem array
+ */
+void QwSubsystemArrayParity::Difference(
+  const QwSubsystemArrayParity &value1,
+  const QwSubsystemArrayParity &value2)
 {
 
   if (!value1.empty()&& !value2.empty()){
@@ -194,12 +225,17 @@ void QwSubsystemArrayParity::Difference(QwSubsystemArrayParity &value1, QwSubsys
   }
 };
 
+/**
+ * Scale this subsystem array
+ * @param factor Scale factor
+ */
 void QwSubsystemArrayParity::Scale(Double_t factor){
    for (iterator subsys = begin(); subsys != end(); ++subsys) {
     VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
     subsys_parity->Scale(factor);
   }
 };
+
 
 void QwSubsystemArrayParity::CalculateRunningAverage() {
    for (iterator subsys = begin(); subsys != end(); ++subsys) {
@@ -282,7 +318,9 @@ void QwSubsystemArrayParity::Blind(const QwBlinder *blinder, const QwSubsystemAr
   }
 };
 
-void QwSubsystemArrayParity::Ratio(QwSubsystemArrayParity &numer, QwSubsystemArrayParity &denom )
+void QwSubsystemArrayParity::Ratio(
+  const QwSubsystemArrayParity &numer,
+  const QwSubsystemArrayParity &denom)
 {
   Bool_t localdebug=kFALSE;
 
