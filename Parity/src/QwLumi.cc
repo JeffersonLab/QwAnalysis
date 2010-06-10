@@ -794,19 +794,16 @@ void QwLumi::FillDB(QwDatabase *db, TString datatype)
 
   UInt_t analysis_id = db->GetAnalysisID();
 
-  TString yield_type(db->GetMeasurementID(12)); // yp
-  TString asymm_type(db->GetMeasurementID(0));//a
-
   Char_t measurement_type[4];
 
   if(datatype.Contains("yield")) {
-    sprintf(measurement_type, "%s", yield_type.Data());
+    sprintf(measurement_type, "y");
   }
   else if (datatype.Contains("asymmetry")) {
-    sprintf(measurement_type, "%s", asymm_type.Data());
+    sprintf(measurement_type, "a");
   }
   else {
-    sprintf(measurement_type, "%s", " ");
+    sprintf(measurement_type, "");
   }
 
 
