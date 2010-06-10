@@ -116,7 +116,7 @@ class QwDatabase: private mysqlpp::Connection {
     Bool_t fValidConnection; //!< True if a valid connection was established using defined connection information
 
     UInt_t fRunNumber;       //!< Run number of current run
-    UInt_t fSegmentNumber;   //!< CODA file segment number of current run
+    Int_t fSegmentNumber;    //!< CODA file segment number of current run
     UInt_t fRunID;           //!< run_id of current run
     UInt_t fRunletID;        //!< runlet_id of current run
     UInt_t fAnalysisID;      //!< analysis_id of current analysis pass
