@@ -12,7 +12,7 @@
 #include "TTree.h"
 #include "boost/array.hpp"
 
-#include "QwSIS3801_Channel.h"
+#include "QwScaler_Channel.h"
 
 #include "QwHistogramHelper.h"
 

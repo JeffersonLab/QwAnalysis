@@ -25,7 +25,7 @@
 
 #include "VQwDataElement.h"
 #include "QwVQWK_Channel.h"
-#include "QwSIS3801_Channel.h"
+#include "QwScaler_Channel.h"
 #include "QwPMT_Channel.h"
 
 class QwScanner: public VQwSubsystemTracking,
