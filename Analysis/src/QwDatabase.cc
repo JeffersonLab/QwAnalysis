@@ -401,8 +401,8 @@ const UInt_t QwDatabase::SetRunID(QwEventBuffer& qwevt)
       run row(0);
       row.run_number      = qwevt.GetRunNumber();
       row.run_type        = "good"; // qwevt.GetRunType(); RunType is the confused name because we have also a CODA run type.
-      row.start_time      = mysqlpp::DateTime::DateTime(qwevt.GetStartUnixTime());
-      row.end_time        = mysqlpp::DateTime::DateTime(qwevt.GetEndUnixTime());
+      row.start_time      = mysqlpp::DateTime(qwevt.GetStartUnixTime());
+      row.end_time        = mysqlpp::DateTime(qwevt.GetEndUnixTime());
       row.n_mps = 0;
       row.n_qrt	= 0;
 //    row.n_mps=10; // This works
