@@ -8,10 +8,22 @@
 #ifndef __QwVQWK_IntegrationPMT__
 #define __QwVQWK_IntegrationPMT__
 
+// System headers
 #include <vector>
+
+// ROOT headers
 #include <TTree.h>
 
+// Qweak headers
 #include "QwVQWK_Channel.h"
+
+// Qweak database headers
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwSSQLS.h"
+#include "QwDatabase.h"
+
+// Forward declarations
+class QwBlinder;
 
 
 /*****************************************************************
@@ -41,31 +53,34 @@ class QwIntegrationPMT : public VQwDataElement{
   void  AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
-  void  RandomizeEventData(int helicity);
-
+  void  RandomizeEventData(int helicity = 0, double time = 0.0);
   void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
-  Double_t GetHardwareSum();
-  Double_t GetBlockValue(Int_t blocknum);
-
   void  SetEventData(Double_t* block, UInt_t sequencenumber);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
+
+  void  UseExternalRandomVariable();
+  void  SetExternalRandomVariable(Double_t random_variable);
+
+  Double_t GetHardwareSum();
+  Double_t GetBlockValue(Int_t blocknum);
 
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-  Int_t SetSingleEventCuts(std::vector<Double_t> &);//two limts and sample size
+  Int_t SetSingleEventCuts(Double_t, Double_t);//set two limts
   void SetDefaultSampleSize(Int_t sample_size);
-  void SetEventNumber(int event);
 
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;
     fTriumf_ADC.SetEventCutMode(bcuts);
   }
 
+  /// \brief Blind the asymmetry
+  void Blind(const QwBlinder *blinder);
+  /// \brief Blind the difference using the yield
+  void Blind(const QwBlinder *blinder, const QwIntegrationPMT& yield);
 
-  void Calculate_Running_Average();
-  void Do_RunningSum();
   void Print() const;
 
   Double_t GetRawBlockValue(size_t blocknum)
@@ -81,6 +96,9 @@ class QwIntegrationPMT : public VQwDataElement{
   void Ratio(QwIntegrationPMT &numer, QwIntegrationPMT &denom);
   void Scale(Double_t factor);
 
+  void AccumulateRunningSum(const QwIntegrationPMT& value);
+  void CalculateRunningAverage();
+
   void SetPedestal(Double_t ped);
   void SetCalibrationFactor(Double_t calib);
 
@@ -91,26 +109,31 @@ class QwIntegrationPMT : public VQwDataElement{
   void  FillTreeVector(std::vector<Double_t> &values);
   void  DeleteHistograms();
 
+  Double_t GetAverage()        {return fTriumf_ADC.GetAverage();};
+  Double_t GetAverageError()   {return fTriumf_ADC.GetAverageError();};
+  UInt_t   GetGoodEventCount() {return fTriumf_ADC.GetGoodEventCount();};
+
   void Copy(VQwDataElement *source);
 
-/////
+  std::vector<QwDBInterface> GetDBEntry();
+
  protected:
 
-/////
+
  private:
 
   Double_t fPedestal;
   Double_t fCalibration;
-  Double_t fULimit, fLLimit;
   Bool_t fGoodEvent;//used to validate sequence number in the IsGoodEvent()
 
   QwVQWK_Channel fTriumf_ADC;
 
-  Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
 
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
   Bool_t bEVENTCUTMODE; //global switch to turn event cuts ON/OFF
 };
+
+
 
 #endif

@@ -11,7 +11,7 @@ void MQwCodaControlEvent::ResetControlParameters()
 {
   fFoundControlEvents = kFALSE;
   fPrestartTime  = 0;
-  fRunNumber     = 0;
+  fPrestartRunNumber = 0;
   fRunType       = 0;
   fEndTime       = 0;
   fEndEventCount = 0;
@@ -65,8 +65,10 @@ void MQwCodaControlEvent::ProcessPrestart(UInt_t local_time, UInt_t local_runnum
 {
   fFoundControlEvents = kTRUE;
   //
+  ResetControlParameters();
+  //
   fPrestartTime = local_time;
-  fRunNumber    = local_runnumber;
+  fPrestartRunNumber    = local_runnumber;
   fRunType      = local_runtype;
   fPrestartDatime.Set(fPrestartTime);
 };
@@ -145,7 +147,7 @@ void MQwCodaControlEvent::ReportRunSummary()
     //  At least one control event has been found.
     //  Report the control event data we did find.
     Int_t i;
-    std::cout << "Run Number:         " << fRunNumber << std::endl;
+    std::cout << "Run Number:         " << fPrestartRunNumber << std::endl;
     std::cout << "Run Type:           " << fRunType << std::endl;
     std::cout << "PreStart Time:      " << fPrestartTime << std::endl;
     std::cout << "Start Time:         " << fStartTime << std::endl;
@@ -178,4 +180,23 @@ void MQwCodaControlEvent::ReportRunSummary()
 }
 
 
+time_t MQwCodaControlEvent::GetStartUnixTime()
+{
+  return (time_t) GetStartTime();
+}
 
+
+time_t MQwCodaControlEvent::GetEndUnixTime()
+{
+  // if GetEndTime is equal to 0
+  // we wiil see the end time as 
+  //
+  UInt_t end_time       = GetEndTime();
+  UInt_t qweak_end_time = 1338523199;
+  // 2012-05-31 23:59:59 in the MySQL database
+  // $date -d@1338523199 
+  // Thu May 31 23:59:59 EDT 2012 in a xterm (Linux)
+
+  if(end_time) return (time_t) end_time;
+  else         return (time_t) qweak_end_time;
+}

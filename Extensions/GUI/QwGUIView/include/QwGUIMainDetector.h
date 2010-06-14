@@ -32,17 +32,26 @@
 /// \ingroup QwGUIMain
 
 #define MAIN_DET_INDEX      16           
+#define SAMPLING_RATE       909
 
 enum ENDataPlotType {
   PLOT_TYPE_HISTO,           
   PLOT_TYPE_GRAPH,           
   PLOT_TYPE_DFT,           
+  PLOT_TYPE_PROFILE,
 };
 
 enum MDMenuIdentifiers {
-  M_DATA_HISTO,
-  M_DATA_GRAPH,
-  M_DFT_HISTO,
+  M_PLOT_HISTO,
+  M_PLOT_GRAPH,
+  M_PLOT_DFT,
+  M_PLOT_DFTPROF,
+  M_DATA_PMT_YIELD,
+  M_DATA_DET_YIELD,
+  M_DATA_ALL_YIELD,
+  M_DATA_PMT_ASYM,
+  M_DATA_DET_ASYM,
+  M_DATA_ALL_ASYM,
 };
 
 #ifndef QWGUIMAINDETECTOR_H
@@ -59,17 +68,20 @@ using std::vector;
 #include <TRootEmbeddedCanvas.h>
 #include <TRootCanvas.h>
 #include <TMath.h>
+#include <TProfile.h>
+#include <TVirtualFFT.h>
 #include "QwGUISubSystem.h"
 #include "QwGUIDataWindow.h"
 #include "RNumberEntryDialog.h"
+#include "QwGUIFFTWindowSelectionDialog.h"
 
 class QwGUIMainDetector : public QwGUISubSystem {
 
   
-  TGVerticalFrame   *dTabFrame;
-  TRootEmbeddedCanvas *dCanvas;  
-  TGLayoutHints       *dTabLayout; 
-  TGLayoutHints       *dCnvLayout; 
+  TGVerticalFrame        *dTabFrame;
+  TRootEmbeddedCanvas    *dCanvas;  
+  TGLayoutHints          *dTabLayout; 
+  TGLayoutHints          *dCnvLayout; 
 
   TGComboBox             *dTBinEntry;
   TGLayoutHints          *dTBinEntryLayout;
@@ -82,6 +94,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
 
   TGMenuBar              *dMenuBar;
   TGPopupMenu            *dMenuData;
+  TGPopupMenu            *dMenuPlot;
   TGLayoutHints          *dMenuBarLayout; 
   TGLayoutHints          *dMenuBarItemLayout;
 
@@ -90,6 +103,9 @@ class QwGUIMainDetector : public QwGUISubSystem {
 
   //!An object array to store graph pointers.
   TObjArray            GraphArray;
+
+  //!An object array to store profile histogram pointers.
+  TObjArray            ProfileArray;
 
   //!An object array to store histogram pointers for the DFT.
   TObjArray            DFTArray;
@@ -116,7 +132,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!Return value: none
   void                 PlotGraphs();
 
-  //!This function plots histograms of the data discrete fourier transform, in the main canvas.
+  //!This function plots histograms of the data discrete fourier transform.
   //!
   //!Parameters:
   //! - none
@@ -124,15 +140,42 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!Return value: none
   void                 PlotDFT();
 
-  //!This function clear the histograms/plots in the plot container. This is done everytime a new 
-  //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
-  //!on the plots are lost.
+  //!This function plots the event window used to calculate the discrete fourier transform.
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none
+  void                 PlotDFTProfile();
+
+  //!This function clears the histograms/plots in the plot container (for root files). This is done  
+  //!everytime a new file is opened. If the displayed plots are not saved prior to opening a new file
+  //!any changes on the plots are lost.
   //!
   //!Parameters:
   //! - none
   //!
   //!Return value: none  
-  void                 ClearData();
+  void                 ClearRootData();
+
+  //!This function clears the histograms in the plot container that are generated in the processes of 
+  //!calculating the discrete fast fourier transform. This is done everytime the FFT is (re)calculated. 
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none  
+  void                 ClearDFTData();
+
+  //!This function clears the histograms/plots in the plot container (for database files). This is done  
+  //!everytime a new database is opened. If the displayed plots are not saved prior to opening a new file
+  //!any changes on the plots are lost.
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none  
+  void                 ClearDBData();
 
   Int_t                GetCurrentDataLength(Int_t det) {return det >= 0 && det < MAIN_DET_INDEX ? dCurrentData[det].size() : -1;};
 
@@ -147,12 +190,18 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!Stores the data items (events) from the tree for all detectors
   vector <Double_t>    dCurrentData[MAIN_DET_INDEX];
   vector <Double_t>    dCurrentDataDFT[MAIN_DET_INDEX];
+  Double_t    dCurrentDataMean[MAIN_DET_INDEX];
+  Double_t    dCurrentDataMin[MAIN_DET_INDEX];
+  Double_t    dCurrentDataMax[MAIN_DET_INDEX];
+  Double_t    dCurrentDataRMS[MAIN_DET_INDEX];
 
   ENDataPlotType       dDataPlotType;
   Bool_t               dDFTCalculated;
   void                 SetDFTCalculated(Bool_t flag) {dDFTCalculated = flag;};
   Bool_t               IsDFTCalculated() {return dDFTCalculated;};
   void                 CalculateDFT();
+
+  FFTOptions           fftopts;
   
  protected:
 
@@ -181,7 +230,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  virtual void        OnNewDataContainer();
+  virtual void        OnNewDataContainer(RDataContainer *cont);
   virtual void        OnObjClose(char *);
   virtual void        OnReceiveMessage(char*);
   virtual void        OnRemoveThisTab();

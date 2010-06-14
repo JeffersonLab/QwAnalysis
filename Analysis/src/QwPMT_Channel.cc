@@ -7,6 +7,9 @@
 
 #include "QwPMT_Channel.h"
 
+// Qweak headers
+#include "QwHistogramHelper.h"
+
 const Bool_t QwPMT_Channel::kDEBUG = kFALSE;
 
 
@@ -71,8 +74,8 @@ void  QwPMT_Channel::ConstructHistograms(TDirectory *folder, TString &prefix){
     basename = prefix + GetElementName();
 
     fHistograms.resize(1, NULL);
-    size_t index=0;
-    fHistograms[index]   = gQwHists.Construct1DHist(basename);
+    size_t index = 0;
+    fHistograms[index] = gQwHists.Construct1DHist(basename);
     index += 1;
   }
 };

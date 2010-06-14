@@ -1,11 +1,11 @@
 #!/bin/csh
 #
-# QWEAK environment variables ((t)csh) 
+# QWEAK environment variables ((t)csh)
 #
 #
 
 unsetenv OSNAME
-setenv OSNAME `uname|sed 's/-/_/'` 
+setenv OSNAME `uname|sed 's/-/_/'`
 
 
 if (${OSNAME} != "Linux" && ${OSNAME} != "SunOS" && ${OSNAME} != "OSF1" && ${OSNAME} != "Darwin") then
@@ -57,34 +57,6 @@ else
   endif
   echo "Setting QWANALYSIS to " ${QWANALYSIS}
 endif
-
-
-###  Set up ROOT if it isn't done yet.
-###  Expect to use /apps/root/PRO
-if ($?ROOTSYS) then
-  if (! -d ${ROOTSYS}) then
-    echo "Directory ${ROOTSYS} does not exist; unset variable ROOTSYS"
-    unsetenv ROOTSYS
-  endif
-endif
-if ($?ROOTSYS) then
-  echo ROOTSYS already defined: ${ROOTSYS}
-else
-  echo "ROOTSYS not defined; try /apps/root/PRO"
-  use root
-  if ($?ROOTSYS) then
-    if ( -x ${ROOTSYS}/bin/root ) then
-      echo "Setting ROOTSYS to ${ROOTSYS}"
-    else
-      echo "#\n# Couldn't find a working ROOT.  maybe use root-config to set ROOTSYS\n#"
-      exit 1;
-    endif
-  else
-    echo "#\n# Couldn't find a working ROOT.  maybe use root-config to set ROOTSYS\n#"
-    exit 1;
-  endif
-endif
-${QWANALYSIS}/SetupFiles/checkrootversion
 
 
 

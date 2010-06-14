@@ -28,6 +28,52 @@ QwEventRing::QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size, Int_t e
 };
 
 
+
+
+void QwEventRing::SetupRing(QwSubsystemArrayParity &event){
+  /*
+  fRING_SIZE=ring_size;
+  fEVENT_HOLDOFF=event_holdoff;
+  fMIN_BT_COUNT=min_BT_count;
+  */
+  std::cout<<" Ring "<<fRING_SIZE<<" , "<<fMIN_BT_COUNT<<" , "<<fEVENT_HOLDOFF<<std::endl;
+  fEvent_Ring.resize(fRING_SIZE);
+
+  bRING_READY=kFALSE;
+  bGoodEvent=kTRUE;
+  bEVENT_READY=kTRUE;
+  fNextToBeFilled=0;
+  fNextToBeRead=0;
+  fEventsSinceLastTrip=1;
+  fFailedEventCount=0;
+  for(int i=0;i<fRING_SIZE;i++){
+    fEvent_Ring[i].Copy(&event); //populate the event ring
+  }
+
+  //open the log file
+  if (bDEBUG_Write)
+    out_file = fopen("Ring_log.txt", "wt");
+  
+}
+
+void QwEventRing::DefineOptions(QwOptions &options){
+  // Define the execution options
+  options.AddDefaultOptions();
+  options.AddOptions()("ring.size", po::value<int>()->default_value(32),"QwEventRing: ring/buffer size");
+  options.AddOptions()("ring.bt", po::value<int>()->default_value(4),"QwEventRing: minimum beam trip count");
+  options.AddOptions()("ring.hld", po::value<int>()->default_value(16),"QwEventRing: ring hold off");
+
+}
+
+void QwEventRing::ProcessOptions(QwOptions &options){
+  //Reads Event Ring parameters from cmd  
+  if (gQwOptions.HasValue("ring.size"))
+    fRING_SIZE=gQwOptions.GetValue<int>("ring.size");
+  if (gQwOptions.HasValue("ring.bt"))
+    fMIN_BT_COUNT=gQwOptions.GetValue<int>("ring.bt"); 
+  if (gQwOptions.HasValue("ring.hld"))
+    fEVENT_HOLDOFF=gQwOptions.GetValue<int>("ring.hld");
+};
 void QwEventRing::push(QwSubsystemArrayParity &event){
   if (bDEBUG) std::cerr << "QwEventRing::push:  BEGIN" <<std::endl;
 

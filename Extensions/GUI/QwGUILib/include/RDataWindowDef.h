@@ -62,7 +62,8 @@ enum ERPlotTypes {
   PT_GRAPH_ASYMER,             //Make a 1D graph with asymetric errorbars 
                                //from the data
   PT_MULTIGRAPH,               //Make a 1D multigraph from the data
-  PT_SCATTER_2D
+  PT_SCATTER_2D,
+  PT_PROFILE,
 };
 
 enum RDWCommandId {

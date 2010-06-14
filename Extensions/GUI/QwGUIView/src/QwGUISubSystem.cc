@@ -14,6 +14,8 @@ QwGUISubSystem::QwGUISubSystem(const TGWindow *p, const TGWindow *main,
   dWinCnt            = 0;
   strcpy(dMainName,mainname);
   strcpy(dThisName,objName);
+  dROOTCont = NULL;
+  dDatabaseCont = NULL;
 
   TabMenuEntryChecked(kFalse);
 
@@ -23,6 +25,7 @@ QwGUISubSystem::QwGUISubSystem(const TGWindow *p, const TGWindow *main,
   Connect("RemoveThisTab(QwGUISubSystem*)",dMainName,(void*)main,"RemoveTab(QwGUISubSystem*)");  
   Connect("IsClosing(const char*)",dMainName,(void*)main,"OnObjClose(const char*)");    
   Connect("SendMessageSignal(const char*)",dMainName,(void*)main,"OnReceiveMessage(const char*)");
+
 
 }
 
@@ -99,16 +102,24 @@ void QwGUISubSystem::SetDataContainer(RDataContainer *cont)
 	      "OnReceiveMessage(char*)");      	  
       Connect(dROOTCont,"IsClosing(char*)","QwGUISubSystem",(void*)this,
 	      "OnObjClose(char*)");
+      sprintf(dMiscbuffer2,"Sub system %s message: Received new ROOT data\n",GetName());
+    }
+
+    if(!strcmp(cont->GetDataName(),"DBASE")){
+      dDatabaseCont = (QwGUIDatabaseContainer*)cont;
+      Connect(dDatabaseCont,"SendMessageSignal(char*)","QwGUISubSystem",(void*)this,
+	      "OnReceiveMessage(char*)");      	  
+      Connect(dDatabaseCont,"IsClosing(char*)","QwGUISubSystem",(void*)this,
+	      "OnObjClose(char*)");
+
+      sprintf(dMiscbuffer2,"Sub system %s message: Received new database data\n",GetName());
     }
   }
-  else
-    dROOTCont = NULL;
 
-  sprintf(dMiscbuffer2,"Sub system %s message: Received new data\n",GetName());
   SetLogMessage(dMiscbuffer2, kTrue);
-
-  OnNewDataContainer();
+  OnNewDataContainer(cont);
 }
+
 
 void QwGUISubSystem::SetLogMessage(const char *buffer, Bool_t tStamp)
 {
@@ -123,7 +134,13 @@ void QwGUISubSystem::SetLogMessage(const char *buffer, Bool_t tStamp)
 
 void QwGUISubSystem::OnObjClose(char *obj)
 {
+  if(!strcmp(obj,"dROOTFile")){
+    dROOTCont = NULL;
+  }
 
+  if(!strcmp(obj,"dDatabase")){
+    dDatabaseCont = NULL;
+  }
 };
 
 

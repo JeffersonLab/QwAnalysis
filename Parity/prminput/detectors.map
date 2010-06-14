@@ -1,0 +1,23 @@
+# This is an example of a detector definition file.
+
+[QwBeamLine]
+ name = Injector BeamLine
+ map = mock_qweak_beamline.map
+ geom = qweak_beamline_geometry.map
+
+[QwMainCerenkovDetector]
+ name = Main Detector
+ map = qweak_adc.map
+
+[QwLumi]
+ name = Lumi Detector
+ map = qweak_lumi.map
+
+[QwHelicity]
+ name = Helicity info
+ map = qweak_helicity.map
+
+[QwScanner]
+ name = Focal Plane Scanner
+ map = scanner_channel.map
+ param = scanner_parameter.map

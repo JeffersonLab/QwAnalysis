@@ -8,18 +8,21 @@
 #ifndef __QwBEAMLINE__
 #define __QwBEAMLINE__
 
+// System headers
+#include <vector>
 
+// ROOT headers
 #include "TTree.h"
 
+// Qweak headers
 #include "VQwSubsystemParity.h"
-
 #include "QwBPMStripline.h"
 #include "QwBCM.h"
 #include "QwCombinedBCM.h"
 #include "QwCombinedBPM.h"
 
-#include <vector>
 
+/// \todo TODO (wdc) EBeamInstrumentType is global in QwBeamLine.cc but could be class local
 enum EBeamInstrumentType{kBPMStripline = 0,
 			 kBCM,
 			 kCombinedBCM,
@@ -37,13 +40,13 @@ class QwBeamDetectorID;
 class QwBeamLine : public VQwSubsystemParity{
   //  friend class QwCombinedBPM; 
   //  friend class QwCombinedBCM<QwVQWK_Channel>;  
- 
+
 
  public:
 
   QwBeamLine(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
     {
-      
+
       // these declaration need to be coherent with the enum vector EBeamInstrumentType
       fgDetectorTypeNames.push_back("bpmstripline");
       fgDetectorTypeNames.push_back("bcm");
@@ -59,6 +62,7 @@ class QwBeamLine : public VQwSubsystemParity{
 
 
   /* derived from VQwSubsystem */
+  void ProcessOptions(QwOptions &options);//Handle command line options
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
@@ -69,7 +73,7 @@ class QwBeamLine : public VQwSubsystemParity{
   Int_t GetEventcutErrorFlag();//return the error flag
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-  Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   void  PrintDetectorID();
 
   void  ClearEventData();
@@ -79,7 +83,7 @@ class QwBeamLine : public VQwSubsystemParity{
   const Bool_t PublishInternalValues() const;
   const Bool_t ReturnInternalValue(TString name, VQwDataElement* value) const;
 
-  void RandomizeEventData(int helicity = 0);
+  void RandomizeEventData(int helicity = 0, double time = 0.0);
   void EncodeEventData(std::vector<UInt_t> &buffer);
 
   VQwSubsystem&  operator=  (VQwSubsystem *value);
@@ -91,8 +95,8 @@ class QwBeamLine : public VQwSubsystemParity{
 
   void Scale(Double_t factor);
 
-  void Calculate_Running_Average();
-  void Do_RunningSum();
+  void AccumulateRunningSum(VQwSubsystem* value);
+  void CalculateRunningAverage();
 
   void ConstructHistograms(TDirectory *folder, TString &prefix);
   void FillHistograms();
@@ -158,12 +162,12 @@ class QwBeamDetectorID
 /*     {}; */
 
   Int_t fSubbankIndex;
-  Int_t fWordInSubbank; 
+  Int_t fWordInSubbank;
   //first word reported for this channel in the subbank
   //(eg VQWK channel report 6 words for each event, scalers oly report one word per event)
 
   // The first word of the subbank gets fWordInSubbank=0
-  
+
   TString fmoduletype; // eg: VQWK, SCALER
   TString fdetectorname;
   TString fdetectortype; // stripline, bcm, ... this string is encoded by fTypeID
@@ -172,8 +176,8 @@ class QwBeamDetectorID
   Int_t  fTypeID;           // type of detector eg: lumi or stripline, etc..
   Int_t  fIndex;            // index of this detector in the vector containing all the detector of same type
   UInt_t fSubelement;       // some detectors have many subelements (eg stripline have 4 antenas) some have only one sub element(eg lumis have one channel)
-  
-  
+
+
   void Print();
 
 };

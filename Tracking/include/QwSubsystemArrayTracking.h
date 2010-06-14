@@ -8,7 +8,7 @@
 #ifndef __QWSUBSYSTEMARRAYTRACKING__
 #define __QWSUBSYSTEMARRAYTRACKING__
 
-
+// Qweak headers
 #include "QwSubsystemArray.h"
 #include "QwHitContainer.h"
 #include "VQwSubsystemTracking.h"
@@ -18,49 +18,28 @@
 /// \ingroup QwTracking
 class QwSubsystemArrayTracking:  public QwSubsystemArray {
 
- public:
-  QwSubsystemArrayTracking() {};
-  ~QwSubsystemArrayTracking(){};
+  public:
 
-  // This will update the hit list from each subsystem
-  void GetHitList(QwHitContainer & grandHitList);
-  void GetHitList(QwHitContainer * grandHitList);
+    /// Default constructor
+    QwSubsystemArrayTracking(): QwSubsystemArray() { };
+    /// Constructor with options
+    QwSubsystemArrayTracking(QwOptions& options): QwSubsystemArray(options) { };
+    /// Constructor with map file
+    QwSubsystemArrayTracking(const char* filename): QwSubsystemArray(filename) { };
+    /// Default destructor
+    virtual ~QwSubsystemArrayTracking() { };
 
-  VQwSubsystemTracking* GetSubsystem(const TString name);
+    /// \brief Get the subsystem with the specified name
+    VQwSubsystemTracking* GetSubsystemByName(const TString& name);
 
-};
+    // Update the wire-based hit list from each subsystem
+    void GetHitList(QwHitContainer& hitlist);
+    void GetHitList(QwHitContainer* hitlist) { GetHitList(*hitlist); };
 
+    // Update the TDC-based hit list from each subsystem
+    void GetTDCHitList(QwHitContainer& tdchitlist);
+    void GetTDCHitList(QwHitContainer* tdchitlist) { GetTDCHitList(*tdchitlist); };
 
-VQwSubsystemTracking* QwSubsystemArrayTracking::GetSubsystem(const TString name)
-{
-  VQwSubsystemTracking* tmp = NULL;
-  tmp = dynamic_cast<VQwSubsystemTracking*>  (QwSubsystemArray::GetSubsystem(name));
+}; // class QwSubsystemArrayTracking
 
-  return tmp;
-};
-
-void QwSubsystemArrayTracking::GetHitList(QwHitContainer & grandHitList)
-{
-  if (!empty()){
-    grandHitList.clear();
-
-    for (iterator subsys = begin(); subsys != end(); ++subsys){
-      VQwSubsystemTracking* tsubsys =
-	dynamic_cast<VQwSubsystemTracking*>((subsys)->get());
-      if (tsubsys != NULL){
-	tsubsys->GetHitList(grandHitList);
-      } else {
-	std::cerr << "QwSubsystemArrayTracking::GetHitList: Subsystem \""
-		  << ((subsys)->get())->GetSubsystemName()
-		  << "\" isn't a tracking subsystem." << std::endl;
-      }
-    }
-  }
-};
-
-void QwSubsystemArrayTracking::GetHitList(QwHitContainer* hitlist)
-{
-  GetHitList(* hitlist);
-};
-
-#endif
+#endif // __QWSUBSYSTEMARRAYTRACKING__

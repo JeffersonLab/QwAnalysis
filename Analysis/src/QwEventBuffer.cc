@@ -1,12 +1,15 @@
 #include "QwEventBuffer.h"
+
 #include "QwOptions.h"
+#include "QwEPICSEvent.h"
+#include "VQwSubsystem.h"
+#include "QwSubsystemArray.h"
 
 #include <vector>
 #include <glob.h>
 #include <TMath.h>
 
 #include "THaCodaFile.h"
-
 #ifdef __CODA_ET
 #include "THaEtClient.h"
 #endif
@@ -35,7 +38,7 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
     ("run,r", po::value<string>()->default_value("0:0"),
      "run range in format #[:#]");
   options.AddDefaultOptions()
-    ("chainfiles", po::value<bool>()->default_value(true)->zero_tokens(),
+    ("chainfiles", po::value<bool>()->default_value(false)->zero_tokens(),
      "chain file segments together, do not analyze them separately");
   options.AddDefaultOptions()
     ("event,e", po::value<string>()->default_value("0:"),
@@ -196,6 +199,9 @@ Int_t QwEventBuffer::GetEvent()
   } else if (fEvStreamMode==fEvStreamET){
     status = GetEtEvent();
   }
+  if (status == CODA_OK){
+    DecodeEventIDBank((UInt_t*)(fEvStream->getEvBuffer()));
+  }
   return status;
 }
 
@@ -214,9 +220,6 @@ Int_t QwEventBuffer::GetFileEvent(){
       if (OpenNextSegment()!=CODA_OK) break;
     }
   } while (fChainDataFiles && status == EOF);
-  if (status == CODA_OK){
-    DecodeEventIDBank((UInt_t*)(fEvStream->getEvBuffer()));
-  }
   return status;
 };
 
@@ -225,9 +228,6 @@ Int_t QwEventBuffer::GetEtEvent(){
   //  Do we want to have any loop here to wait for a bad
   //  read to be cleared?
   status = fEvStream->codaRead();
-  if (status == CODA_OK){
-    DecodeEventIDBank((UInt_t*)(fEvStream->getEvBuffer()));
-  }
   return status;
 };
 
@@ -478,6 +478,10 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
   Bool_t okay = kTRUE;
   //  Clear the old event information from the subsystems.
   subsystems.ClearEventData();
+  
+  //  Pass CODA event number and type to the subsystem array.
+  subsystems.SetCodaEventNumber(fEvtNumber);
+  subsystems.SetCodaEventType(fEvtType);
 
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
@@ -516,6 +520,81 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
 	    << "Ending loop: fWordsSoFar=="<<fWordsSoFar
 	    <<QwLog::endl;
   }
+  return okay;
+};
+
+
+// added all this method for QwEPICSEvent class
+Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
+{
+  QwMessage << "QwEventBuffer::FillEPICSData:  "
+	    << Form("Length: %d; Tag: 0x%x; Bank ID num: 0x%x; ",
+		  fEvtLength, fEvtTag, fIDBankNum)
+	  << Form("Evt type: 0x%x; Evt number %d; Evt Class 0x%.8x; ",
+		  fEvtType, fEvtNumber, fEvtClass)
+	  << Form("Status Summary: 0x%.8x; Words so far %d",
+		  fStatSum, fWordsSoFar)
+	  << QwLog::endl;
+
+
+  ///  
+  Bool_t okay = kTRUE;
+  if (! IsEPICSEvent()){
+    okay = kFALSE;
+    return okay;
+  }
+  std::cerr << "QwEventBuffer::FillEPICSData:  "
+	    << std::endl;
+  //  Loop through the data buffer in this event.
+  UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
+  if (fBankDataType==0x10){
+    while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
+    //  If this bank has further subbanks, restart the loop.
+    if (fSubbankType == 0x10) continue;
+    //  If this bank only contains the word 'NULL' then skip
+    //  this bank.
+    if (fFragLength==1 && localbuff[fWordsSoFar]==kNullDataWord){
+      fWordsSoFar += fFragLength;
+      continue;
+    }
+
+    if (fSubbankType == 0x3){
+      //  This is an ASCII string bank.  Try to decode it and
+      //  pass it to the EPICS class.
+      char* tmpchar = (Char_t*)&localbuff[fWordsSoFar];
+
+      epics.ExtractEPICSValues(string(tmpchar), GetEventNumber());
+      std::cout<<"\ntest for GetEventNumber ="<<GetEventNumber()<<std::endl;// always zero, wrong.
+
+    }
+
+     
+    fWordsSoFar += fFragLength;
+
+    QwDebug << "QwEventBuffer::FillEPICSData:  "
+	    << "Ending loop: fWordsSoFar=="<<fWordsSoFar
+	    <<QwLog::endl;
+    QwMessage<<"\nQwEventBuffer::FillEPICSData: fWordsSoFar = "<<fWordsSoFar<<QwLog::endl;
+
+
+  }
+  } else {
+    // Single bank in the event, use event headers.
+    if (fBankDataType == 0x3){
+      //  This is an ASCII string bank.  Try to decode it and
+      //  pass it to the EPICS class.
+      Char_t* tmpchar = (Char_t*)&localbuff[fWordsSoFar];
+
+      QwError << tmpchar << QwLog::endl;
+
+      epics.ExtractEPICSValues(string(tmpchar), GetEventNumber());
+
+    }
+
+  }
+
+  //std::cout<<"\nEpics data coming!! "<<fWordsSoFar<<std::endl;
+
   return okay;
 };
 
@@ -599,7 +678,7 @@ Bool_t QwEventBuffer::DataFileIsSegmented()
      * Look for file segments.                                  */
     std::cerr << "WARN: File " << fDataFile << " does not exist!\n"
 	      << "      Trying to find run segments for run "
-	      << fRunNumber << "...  ";
+	      << fCurrentRun << "...  ";
 
     searchpath.Append(".[0-9]*");
     glob(searchpath.Data(), GLOB_ERR, NULL, &globbuf);
@@ -680,7 +759,6 @@ Int_t QwEventBuffer::CloseThisSegment()
 Int_t QwEventBuffer::OpenNextSegment()
 {
   Int_t status;
-
   if (! fRunIsSegmented){
     /*  We are processing a non-segmented run.            *
      *  We should not have entered this routine, but      *
@@ -696,7 +774,7 @@ Int_t QwEventBuffer::OpenNextSegment()
   } else if (this_runsegment >= fRunSegments.begin() &&
       this_runsegment <  fRunSegments.end() ) {
     QwMessage << "Trying to open run segment " << *this_runsegment <<std::endl;
-    status = OpenDataFile(DataFile(fRunNumber,*this_runsegment),"R");
+    status = OpenDataFile(DataFile(fCurrentRun,*this_runsegment),"R");
 
   } else if (this_runsegment ==  fRunSegments.end() ) {
     /*  We have reached the last run segment. */
@@ -715,7 +793,7 @@ Int_t QwEventBuffer::OpenNextSegment()
 //call this routine if we've selected the run segment by hand
 Int_t QwEventBuffer::OpenDataFile(UInt_t current_run, Short_t seg)
 {
-  fRunNumber = current_run;
+  fCurrentRun = current_run;
 
   fRunSegments.clear();
   fRunIsSegmented = kTRUE;
@@ -730,12 +808,12 @@ Int_t QwEventBuffer::OpenDataFile(UInt_t current_run, Short_t seg)
 Int_t QwEventBuffer::OpenDataFile(UInt_t current_run, const TString rw)
 {
   Int_t status;
-  fRunNumber = current_run;
-  DataFile(fRunNumber);
+  fCurrentRun = current_run;
+  DataFile(fCurrentRun);
   if (DataFileIsSegmented()){
     status = OpenNextSegment();
   } else {
-    status = OpenDataFile(DataFile(fRunNumber),rw);
+    status = OpenDataFile(DataFile(fCurrentRun),rw);
   }
   return status;
 };

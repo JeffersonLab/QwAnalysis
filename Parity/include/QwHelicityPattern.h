@@ -7,11 +7,16 @@
 #ifndef __QwHelicityPattern__
 #define __QwHelicityPattern__
 
-
-#include "TTree.h"
-#include "QwSubsystemArrayParity.h"
-
+// System headers
 #include <vector>
+
+// ROOT headers
+#include <TTree.h>
+
+// Qweak headers
+#include "QwSubsystemArrayParity.h"
+#include "QwBlinder.h"
+
 ///
 /// \ingroup QwAnalysis_ADC
 ///
@@ -24,12 +29,13 @@ class QwHelicityPattern{
    ******************************************************************/
  public:
   QwHelicityPattern(QwSubsystemArrayParity &event);
-  ~QwHelicityPattern(){};
+  ~QwHelicityPattern() { };
 
+  void ProcessOptions(QwOptions &options); //Handle command line options
   void  LoadEventData(QwSubsystemArrayParity &event);
   Bool_t IsCompletePattern();
   void  CalculateAsymmetry();
-  void CalculateRunningAverage();
+  void  CalculateRunningAverage();
 
   void  ConstructHistograms(){ConstructHistograms((TDirectory*)NULL);};
   void  ConstructHistograms(TDirectory *folder);
@@ -53,23 +59,30 @@ class QwHelicityPattern{
   Int_t fPatternSize;
   Int_t fQuartetNumber;
 
+  // Blinding strategy
+  QwBlinder fBlinder;
+
+  // Yield and asymmetry of a single helicity pattern
   QwSubsystemArrayParity  fYield;
   QwSubsystemArrayParity  fAsymmetry;
-  Bool_t bAlternateAsym; 
+  // Alternate asymmetry calculations
+  Bool_t bAlternateAsym;
   QwSubsystemArrayParity  fAsymmetry1;
   QwSubsystemArrayParity  fAsymmetry2;
-  
-  QwSubsystemArrayParity fAverage;
-  QwSubsystemArrayParity fRunningSum;
+
+  // Running sum/average of the yield and asymmetry
+  QwSubsystemArrayParity fRunningSumYield;
+  QwSubsystemArrayParity fRunningSumAsymmetry;
 
  private:
-  QwSubsystemArrayParity pos_sum;
-  QwSubsystemArrayParity neg_sum;
-  QwSubsystemArrayParity difference;
-  
-  
-  Bool_t IsGood; 
-  
+
+  QwSubsystemArrayParity fDiff;
+  QwSubsystemArrayParity fPositiveHelicitySum;
+  QwSubsystemArrayParity fNegativeHelicitySum;
+
+
+  Bool_t IsGood;
+
 
 
 };

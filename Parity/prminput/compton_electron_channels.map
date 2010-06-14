@@ -3,873 +3,803 @@ Bank=0x0207
 ! Master V1495 board
 
 
-ROC=1
+ROC=2
 Bank=0x0201
 !V1495 slave 1, electron single event mode
-! module.type, module.num  chan.num, det.type, det.name
-! Key: espl1st1= compton electron single event plane 1 strip 1
-! A port
-V1495,	       	0,	0,	esingle,	espl1st1 
-V1495,	       	0,	1,	esingle,	espl1st2 
-V1495,	       	0,	2,	esingle,	espl1st3 
-V1495,	       	0,	3,	esingle,	espl1st4 
-V1495,	       	0,	4,	esingle,	espl1st5 
-V1495,	       	0,	5,	esingle,	espl1st6 
-V1495,	       	0,	6,	esingle,	espl1st7 
-V1495,	       	0,	7,	esingle,	espl1st8 
-V1495,	       	0,	8,	esingle,	espl1st9 
-V1495,	       	0,	9,	esingle,	espl1st10
-V1495,	       	0,	10,	esingle,	espl1st11
-V1495,	       	0,	11,	esingle,	espl1st12
-V1495,	       	0,	12,	esingle,	espl1st13
-V1495,	       	0,	13,	esingle,	espl1st14
-V1495,	       	0,	14,	esingle,	espl1st15
-V1495,	       	0,	15,	esingle,	espl1st16
-V1495,	       	0,	16,	esingle,	espl1st17
-V1495,	       	0,	17,	esingle,	espl1st18
-V1495,	       	0,	18,	esingle,	espl1st19
-V1495,	       	0,	19,	esingle,	espl1st20
-V1495,	       	0,	20,	esingle,	espl1st21
-V1495,	       	0,	21,	esingle,	espl1st22
-V1495,	       	0,	22,	esingle,	espl1st23
-V1495,	       	0,	23,	esingle,	espl1st24
-V1495,	       	0,	24,	esingle,	espl1st25
-V1495,	       	0,	25,	esingle,	espl1st26
-V1495,	       	0,	26,	esingle,	espl1st27
-V1495,	       	0,	27,	esingle,	espl1st28
-V1495,	       	0,	28,	esingle,	espl1st29
-V1495,	       	0,	29,	esingle,	espl1st30
-V1495,	       	0,	30,	esingle,	espl1st31
-V1495,	       	0,	31,	esingle,	espl1st32
-! B port
-V1495,	       	0,	32,	esingle,	espl2st1 
-V1495,	       	0,	33,	esingle,	espl2st2 
-V1495,	       	0,	34,	esingle,	espl2st3 
-V1495,	       	0,	35,	esingle,	espl2st4 
-V1495,	       	0,	36,	esingle,	espl2st5 
-V1495,	       	0,	37,	esingle,	espl2st6 
-V1495,	       	0,	38,	esingle,	espl2st7 
-V1495,	       	0,	39,	esingle,	espl2st8 
-V1495,	       	0,	40,	esingle,	espl2st9 
-V1495,	       	0,	41,	esingle,	espl2st10
-V1495,	       	0,	42,	esingle,	espl2st11
-V1495,	       	0,	43,	esingle,	espl2st12
-V1495,	       	0,	44,	esingle,	espl2st13
-V1495,	       	0,	45,	esingle,	espl2st14
-V1495,	       	0,	46,	esingle,	espl2st15
-V1495,	       	0,	47,	esingle,	espl2st16
-V1495,	       	0,	48,	esingle,	espl2st17
-V1495,	       	0,	49,	esingle,	espl2st18
-V1495,	       	0,	50,	esingle,	espl2st19
-V1495,	       	0,	51,	esingle,	espl2st20
-V1495,	       	0,	52,	esingle,	espl2st21
-V1495,	       	0,	53,	esingle,	espl2st22
-V1495,	       	0,	54,	esingle,	espl2st23
-V1495,	       	0,	55,	esingle,	espl2st24
-V1495,	       	0,	56,	esingle,	espl2st25
-V1495,	       	0,	57,	esingle,	espl2st26
-V1495,	       	0,	58,	esingle,	espl2st27
-V1495,	       	0,	59,	esingle,	espl2st28
-V1495,	       	0,	60,	esingle,	espl2st29
-V1495,	       	0,	61,	esingle,	espl2st30
-V1495,	       	0,	62,	esingle,	espl2st31
-V1495,	       	0,	63,	esingle,	espl2st32
-! C port
-! Is C port stuff in the subbank? If yes put them here and increment 
-! the D, E, F and G port channels by 31.
-! D port
-V1495,	       	0,	64,	esingle,	espl3st1 
-V1495,	       	0,	65,	esingle,	espl3st2 
-V1495,	       	0,	66,	esingle,	espl3st3 
-V1495,	       	0,	67,	esingle,	espl3st4 
-V1495,	       	0,	68,	esingle,	espl3st5 
-V1495,	       	0,	69,	esingle, 	espl3st6 
-V1495,	       	0,	70,	esingle,	espl3st7 
-V1495,	       	0,	71,	esingle,	espl3st8 
-V1495,	       	0,	72,	esingle,	espl3st9 
-V1495,	       	0,	73,	esingle,	espl3st10
-V1495,	       	0,	74,	esingle,	espl3st11
-V1495,	       	0,	75,	esingle,	espl3st12
-V1495,	       	0,	76,	esingle,	espl3st13
-V1495,	       	0,	77,	esingle,	espl3st14
-V1495,	       	0,	78,	esingle,	espl3st15
-V1495,	       	0,	79,	esingle,	espl3st16
-V1495,	       	0,	80,	esingle,	espl3st17
-V1495,	       	0,	81,	esingle,	espl3st18
-V1495,	       	0,	82,	esingle,	espl3st19
-V1495,	       	0,	83,	esingle,	espl3st20
-V1495,	       	0,	84,	esingle,	espl3st21
-V1495,	       	0,	85,	esingle,	espl3st22
-V1495,	       	0,	86,	esingle,	espl3st23
-V1495,	       	0,	87,	esingle,	espl3st24
-V1495,	       	0,	88,	esingle,	espl3st25
-V1495,	       	0,	89,	esingle,	espl3st26
-V1495,	       	0,	90,	esingle,	espl3st27
-V1495,	       	0,	91,	esingle,	espl3st28
-V1495,	       	0,	92,	esingle,	espl3st29
-V1495,	       	0,	93,	esingle,	espl3st30
-V1495,	       	0,	94,	esingle,	espl3st31
-V1495,	       	0,	95,	esingle,	espl3st32
-! E port
-V1495,	       	0,	96,	esingle,	espl4st1 
-V1495,	       	0,	97,	esingle,	espl4st2 
-V1495,	       	0,	98,	esingle,	espl4st3 
-V1495,	       	0,	99,	esingle,	espl4st4 
-V1495,	       	0,	100,	esingle,	espl4st5 
-V1495,	       	0,	101,	esingle,	espl4st6 
-V1495,	       	0,	102,	esingle,	espl4st7 
-V1495,	       	0,	103,	esingle,	espl4st8 
-V1495,	       	0,	104,	esingle,	espl4st9 
-V1495,	       	0,	105,	esingle,	espl4st10
-V1495,	       	0,	106,	esingle,	espl4st11
-V1495,	       	0,	107,	esingle,	espl4st12
-V1495,	       	0,	108,	esingle,	espl4st13
-V1495,	       	0,	109,	esingle,	espl4st14
-V1495,	       	0,	110,	esingle,	espl4st15
-V1495,	       	0,	111,	esingle,	espl4st16
-V1495,	       	0,	112,	esingle,	espl4st17
-V1495,	       	0,	113,	esingle,	espl4st18
-V1495,	       	0,	114,	esingle,	espl4st19
-V1495,	       	0,	115,	esingle,	espl4st20
-V1495,	       	0,	116,	esingle,	espl4st21
-V1495,	       	0,	117,	esingle,	espl4st22
-V1495,	       	0,	118,	esingle,	espl4st23
-V1495,	       	0,	119,	esingle,	espl4st24
-V1495,	       	0,	120,	esingle,	espl4st25
-V1495,	       	0,	121,	esingle,	espl4st26
-V1495,	       	0,	122,	esingle,	espl4st27
-V1495,	       	0,	123,	esingle,	espl4st28
-V1495,	       	0,	124,	esingle,	espl4st29
-V1495,	       	0,	125,	esingle,	espl4st30
-V1495,	       	0,	126,	esingle,	espl4st31
-V1495,	       	0,	127,	esingle,	espl4st32
-!F port
-! are these in the subbank? if yes put here
-!G port
-! are these in the subbank? if yes put here
+! module.type, module.num,  chan.num, det.type, det.name,  plane,  strip.num
+V1495,	       	0,	0,	esingle,	compton_e,   1,    0
+V1495,	       	0,	1,	esingle,	compton_e,   1,    1
+V1495,	       	0,	2,	esingle,	compton_e,   1,    2
+V1495,	       	0,	3,	esingle,	compton_e,   1,    3
+V1495,	       	0,	4,	esingle,	compton_e,   1,    4
+V1495,	       	0,	5,	esingle,	compton_e,   1,    5
+V1495,	       	0,	6,	esingle,	compton_e,   1,    6
+V1495,	       	0,	7,	esingle,	compton_e,   1,    7
+V1495,	       	0,	8,	esingle,	compton_e,   1,    8
+V1495,	       	0,	9,	esingle,	compton_e,   1,    9
+V1495,	       	0,     10,	esingle,	compton_e,   1,   10
+V1495,	       	0,     11,	esingle,	compton_e,   1,   11
+V1495,	       	0,     12,	esingle,	compton_e,   1,   12
+V1495,	       	0,     13,	esingle,	compton_e,   1,   13
+V1495,	       	0,     14,	esingle,	compton_e,   1,   14
+V1495,	       	0,     15,	esingle,	compton_e,   1,   15
+V1495,	       	0,     16,	esingle,	compton_e,   1,   16
+V1495,	       	0,     17,	esingle,	compton_e,   1,   17
+V1495,	       	0,     18,	esingle,	compton_e,   1,   18
+V1495,	       	0,     19,	esingle,	compton_e,   1,   19
+V1495,	       	0,     20,	esingle,	compton_e,   1,   20
+V1495,	       	0,     21,	esingle,	compton_e,   1,   21
+V1495,	       	0,     22,	esingle,	compton_e,   1,   22
+V1495,	       	0,     23,	esingle,	compton_e,   1,   23
+V1495,	       	0,     24,	esingle,	compton_e,   1,   24
+V1495,	       	0,     25,	esingle,	compton_e,   1,   25
+V1495,	       	0,     26,	esingle,	compton_e,   1,   26
+V1495,	       	0,     27,	esingle,	compton_e,   1,   27
+V1495,	       	0,     28,	esingle,	compton_e,   1,   28
+V1495,	       	0,     29,	esingle,	compton_e,   1,   29
+V1495,	       	0,     30,	esingle,	compton_e,   1,   30
+V1495,	       	0,     31,	esingle,	compton_e,   1,   31
+V1495,	       	0,     32,	esingle,	compton_e,   2,    0
+V1495,	       	0,     33,	esingle,	compton_e,   2,    1
+V1495,	       	0,     34,	esingle,	compton_e,   2,    2
+V1495,	       	0,     35,	esingle,	compton_e,   2,    3
+V1495,	       	0,     36,	esingle,	compton_e,   2,    4
+V1495,	       	0,     37,	esingle,	compton_e,   2,    5
+V1495,	       	0,     38,	esingle,	compton_e,   2,    6
+V1495,	       	0,     39,	esingle,	compton_e,   2,    7
+V1495,	       	0,     40,	esingle,	compton_e,   2,    8
+V1495,	       	0,     41,	esingle,	compton_e,   2,    9
+V1495,	       	0,     42,	esingle,	compton_e,   2,   10
+V1495,	       	0,     43,	esingle,	compton_e,   2,   11
+V1495,	       	0,     44,	esingle,	compton_e,   2,   12
+V1495,	       	0,     45,	esingle,	compton_e,   2,   13
+V1495,	       	0,     46,	esingle,	compton_e,   2,   14
+V1495,	       	0,     47,	esingle,	compton_e,   2,   15
+V1495,	       	0,     48,	esingle,	compton_e,   2,   16
+V1495,	       	0,     49,	esingle,	compton_e,   2,   17
+V1495,	       	0,     50,	esingle,	compton_e,   2,   18
+V1495,	       	0,     51,	esingle,	compton_e,   2,   19
+V1495,	       	0,     52,	esingle,	compton_e,   2,   20
+V1495,	       	0,     53,	esingle,	compton_e,   2,   21
+V1495,	       	0,     54,	esingle,	compton_e,   2,   22
+V1495,	       	0,     55,	esingle,	compton_e,   2,   23
+V1495,	       	0,     56,	esingle,	compton_e,   2,   24
+V1495,	       	0,     57,	esingle,	compton_e,   2,   25
+V1495,	       	0,     58,	esingle,	compton_e,   2,   26
+V1495,	       	0,     59,	esingle,	compton_e,   2,   27
+V1495,	       	0,     60,	esingle,	compton_e,   2,   28
+V1495,	       	0,     61,	esingle,	compton_e,   2,   29
+V1495,	       	0,     62,	esingle,	compton_e,   2,   30
+V1495,	       	0,     63,	esingle,	compton_e,   2,   31
+V1495,	       	0,     64,	esingle,	compton_e,   3,    0
+V1495,	       	0,     65,	esingle,	compton_e,   3,    1
+V1495,	       	0,     66,	esingle,	compton_e,   3,    2
+V1495,	       	0,     67,	esingle,	compton_e,   3,    3
+V1495,	       	0,     68,	esingle,	compton_e,   3,    4
+V1495,	       	0,     69,	esingle,	compton_e,   3,    5
+V1495,	       	0,     70,	esingle,	compton_e,   3,    6
+V1495,	       	0,     71,	esingle,	compton_e,   3,    7
+V1495,	       	0,     72,	esingle,	compton_e,   3,    8
+V1495,	       	0,     73,	esingle,	compton_e,   3,    9
+V1495,	       	0,     74,	esingle,	compton_e,   3,   10
+V1495,	       	0,     75,	esingle,	compton_e,   3,   11
+V1495,	       	0,     76,	esingle,	compton_e,   3,   12
+V1495,	       	0,     77,	esingle,	compton_e,   3,   13
+V1495,	       	0,     78,	esingle,	compton_e,   3,   14
+V1495,	       	0,     79,	esingle,	compton_e,   3,   15
+V1495,	       	0,     80,	esingle,	compton_e,   3,   16
+V1495,	       	0,     81,	esingle,	compton_e,   3,   17
+V1495,	       	0,     82,	esingle,	compton_e,   3,   18
+V1495,	       	0,     83,	esingle,	compton_e,   3,   19
+V1495,	       	0,     84,	esingle,	compton_e,   3,   20
+V1495,	       	0,     85,	esingle,	compton_e,   3,   21
+V1495,	       	0,     86,	esingle,	compton_e,   3,   22
+V1495,	       	0,     87,	esingle,	compton_e,   3,   23
+V1495,	       	0,     88,	esingle,	compton_e,   3,   24
+V1495,	       	0,     89,	esingle,	compton_e,   3,   25
+V1495,	       	0,     90,	esingle,	compton_e,   3,   26
+V1495,	       	0,     91,	esingle,	compton_e,   3,   27
+V1495,	       	0,     92,	esingle,	compton_e,   3,   28
+V1495,	       	0,     93,	esingle,	compton_e,   3,   29
+V1495,	       	0,     94,	esingle,	compton_e,   3,   30
+V1495,	       	0,     95,	esingle,	compton_e,   3,   31
+V1495,	       	0,     96,	esingle,	compton_e,   4,    0
+V1495,	       	0,     97,	esingle,	compton_e,   4,    1
+V1495,	       	0,     98,	esingle,	compton_e,   4,    2
+V1495,	       	0,     99,	esingle,	compton_e,   4,    3
+V1495,	       	0,    100,	esingle,	compton_e,   4,    4
+V1495,	       	0,    101,	esingle,	compton_e,   4,    5
+V1495,	       	0,    102,	esingle,	compton_e,   4,    6
+V1495,	       	0,    103,	esingle,	compton_e,   4,    7
+V1495,	       	0,    104,	esingle,	compton_e,   4,    8
+V1495,	       	0,    105,	esingle,	compton_e,   4,    9
+V1495,	       	0,    106,	esingle,	compton_e,   4,   10
+V1495,	       	0,    107,	esingle,	compton_e,   4,   11
+V1495,	       	0,    108,	esingle,	compton_e,   4,   12
+V1495,	       	0,    109,	esingle,	compton_e,   4,   13
+V1495,	       	0,    110,	esingle,	compton_e,   4,   14
+V1495,	       	0,    111,	esingle,	compton_e,   4,   15
+V1495,	       	0,    112,	esingle,	compton_e,   4,   16
+V1495,	       	0,    113,	esingle,	compton_e,   4,   17
+V1495,	       	0,    114,	esingle,	compton_e,   4,   18
+V1495,	       	0,    115,	esingle,	compton_e,   4,   19
+V1495,	       	0,    116,	esingle,	compton_e,   4,   20
+V1495,	       	0,    117,	esingle,	compton_e,   4,   21
+V1495,	       	0,    118,	esingle,	compton_e,   4,   22
+V1495,	       	0,    119,	esingle,	compton_e,   4,   23
+V1495,	       	0,    120,	esingle,	compton_e,   4,   24
+V1495,	       	0,    121,	esingle,	compton_e,   4,   25
+V1495,	       	0,    122,	esingle,	compton_e,   4,   26
+V1495,	       	0,    123,	esingle,	compton_e,   4,   27
+V1495,	       	0,    124,	esingle,	compton_e,   4,   28
+V1495,	       	0,    125,	esingle,	compton_e,   4,   29
+V1495,	       	0,    126,	esingle,	compton_e,   4,   30
+V1495,	       	0,    127,	esingle,	compton_e,   4,   31
 
-Bank=0x0204
-! V1495 Slave 1, electron accumulation mode
-! module.type, module.num  chan.num, det.type, det.name
-! Key: eapl1st1= electron accum plane 1 strip 1
-! A port
-V1495,	       	0,	0,	eaccum,		eapl1st1 
-V1495,	       	0,	1,	eaccum,		eapl1st2 
-V1495,	       	0,	2,	eaccum,		eapl1st3 
-V1495,	       	0,	3,	eaccum,		eapl1st4 
-V1495,	       	0,	4,	eaccum,		eapl1st5 
-V1495,	       	0,	5,	eaccum,		eapl1st6 
-V1495,	       	0,	6,	eaccum,		eapl1st7 
-V1495,	       	0,	7,	eaccum,		eapl1st8 
-V1495,	       	0,	8,	eaccum,		eapl1st9 
-V1495,	       	0,	9,	eaccum,		eapl1st10
-V1495,	       	0,	10,	eaccum,		eapl1st11
-V1495,	       	0,	11,	eaccum,		eapl1st12
-V1495,	       	0,	12,	eaccum,		eapl1st13
-V1495,	       	0,	13,	eaccum,		eapl1st14
-V1495,	       	0,	14,	eaccum,		eapl1st15
-V1495,	       	0,	15,	eaccum,		eapl1st16
-V1495,	       	0,	16,	eaccum,		eapl1st17
-V1495,	       	0,	17,	eaccum,		eapl1st18
-V1495,	       	0,	18,	eaccum,		eapl1st19
-V1495,	       	0,	19,	eaccum,		eapl1st20
-V1495,	       	0,	20,	eaccum,		eapl1st21
-V1495,	       	0,	21,	eaccum,		eapl1st22
-V1495,	       	0,	22,	eaccum,		eapl1st23
-V1495,	       	0,	23,	eaccum,		eapl1st24
-V1495,	       	0,	24,	eaccum,		eapl1st25
-V1495,	       	0,	25,	eaccum,		eapl1st26
-V1495,	       	0,	26,	eaccum,		eapl1st27
-V1495,	       	0,	27,	eaccum,		eapl1st28
-V1495,	       	0,	28,	eaccum,		eapl1st29
-V1495,	       	0,	29,	eaccum,		eapl1st30
-V1495,	       	0,	30,	eaccum,		eapl1st31
-V1495,	       	0,	31,	eaccum,		eapl1st32
-! B port
-V1495,	       	0,	32,	eaccum,	eapl2st1 
-V1495,	       	0,	33,	eaccum,	eapl2st2 
-V1495,	       	0,	34,	eaccum,		eapl2st3 
-V1495,	       	0,	35,	eaccum,		eapl2st4 
-V1495,	       	0,	36,	eaccum,		eapl2st5 
-V1495,	       	0,	37,	eaccum,		eapl2st6 
-V1495,	       	0,	38,	eaccum,		eapl2st7 
-V1495,	       	0,	39,	eaccum,		eapl2st8 
-V1495,	       	0,	40,	eaccum,		eapl2st9 
-V1495,	       	0,	41,	eaccum,		eapl2st10
-V1495,	       	0,	42,	eaccum,		eapl2st11
-V1495,	       	0,	43,	eaccum,		eapl2st12
-V1495,	       	0,	44,	eaccum,		eapl2st13
-V1495,	       	0,	45,	eaccum,		eapl2st14
-V1495,	       	0,	46,	eaccum,		eapl2st15
-V1495,	       	0,	47,	eaccum,		eapl2st16
-V1495,	       	0,	48,	eaccum,		eapl2st17
-V1495,	       	0,	49,	eaccum,		eapl2st18
-V1495,	       	0,	50,	eaccum,		eapl2st19
-V1495,	       	0,	51,	eaccum,		eapl2st20
-V1495,	       	0,	52,	eaccum,		eapl2st21
-V1495,	       	0,	53,	eaccum,		eapl2st22
-V1495,	       	0,	54,	eaccum,		eapl2st23
-V1495,	       	0,	55,	eaccum,		eapl2st24
-V1495,	       	0,	56,	eaccum,		eapl2st25
-V1495,	       	0,	57,	eaccum,		eapl2st26
-V1495,	       	0,	58,	eaccum,		eapl2st27
-V1495,	       	0,	59,	eaccum,		eapl2st28
-V1495,	       	0,	60,	eaccum,		eapl2st29
-V1495,	       	0,	61,	eaccum,		eapl2st30
-V1495,	       	0,	62,	eaccum,		eapl2st31
-V1495,	       	0,	63,	eaccum,		eapl2st32
-! C port
-! Is C port stuff in the subbank? If yes put them here and increment 
-! the D, E, F and G port channels by 31.
-! D port
-V1495,	       	0,	64,	eaccum,		eapl3st1 
-V1495,	       	0,	65,	eaccum,		eapl3st2 
-V1495,	       	0,	66,	eaccum,		eapl3st3 
-V1495,	       	0,	67,	eaccum,		eapl3st4 
-V1495,	       	0,	68,	eaccum,		eapl3st5 
-V1495,	       	0,	69,	eaccum,		eapl3st6 
-V1495,	       	0,	70,	eaccum,		eapl3st7 
-V1495,	       	0,	71,	eaccum,		eapl3st8 
-V1495,	       	0,	72,	eaccum,		eapl3st9 
-V1495,	       	0,	73,	eaccum,		eapl3st10
-V1495,	       	0,	74,	eaccum,		eapl3st11
-V1495,	       	0,	75,	eaccum,		eapl3st12
-V1495,	       	0,	76,	eaccum,		eapl3st13
-V1495,	       	0,	77,	eaccum,		eapl3st14
-V1495,	       	0,	78,	eaccum,		eapl3st15
-V1495,	       	0,	79,	eaccum,		eapl3st16
-V1495,	       	0,	80,	eaccum,		eapl3st17
-V1495,	       	0,	81,	eaccum,		eapl3st18
-V1495,	       	0,	82,	eaccum,		eapl3st19
-V1495,	       	0,	83,	eaccum,		eapl3st20
-V1495,	       	0,	84,	eaccum,		eapl3st21
-V1495,	       	0,	85,	eaccum,		eapl3st22
-V1495,	       	0,	86,	eaccum,		eapl3st23
-V1495,	       	0,	87,	eaccum,		eapl3st24
-V1495,	       	0,	88,	eaccum,		eapl3st25
-V1495,	       	0,	89,	eaccum,		eapl3st26
-V1495,	       	0,	90,	eaccum,		eapl3st27
-V1495,	       	0,	91,	eaccum,		eapl3st28
-V1495,	       	0,	92,	eaccum,		eapl3st29
-V1495,	       	0,	93,	eaccum,		eapl3st30
-V1495,	       	0,	94,	eaccum,		eapl3st31
-V1495,	       	0,	95,	eaccum,		eapl3st32
-! E port
-V1495,	       	0,	96,	eaccum,		eapl4st1 
-V1495,	       	0,	97,	eaccum,		eapl4st2 
-V1495,	       	0,	98,	eaccum,		eapl4st3 
-V1495,	       	0,	99,	eaccum,		eapl4st4 
-V1495,	       	0,	100,	eaccum,		eapl4st5 
-V1495,	       	0,	101,	eaccum,		eapl4st6 
-V1495,	       	0,	102,	eaccum,		eapl4st7 
-V1495,	       	0,	103,	eaccum,		eapl4st8 
-V1495,	       	0,	104,	eaccum,		eapl4st9 
-V1495,	       	0,	105,	eaccum,		eapl4st10
-V1495,	       	0,	106,	eaccum,		eapl4st11
-V1495,	       	0,	107,	eaccum,		eapl4st12
-V1495,	       	0,	108,	eaccum,		eapl4st13
-V1495,	       	0,	109,	eaccum,		eapl4st14
-V1495,	       	0,	110,	eaccum,		eapl4st15
-V1495,	       	0,	111,	eaccum,		eapl4st16
-V1495,	       	0,	112,	eaccum,		eapl4st17
-V1495,	       	0,	113,	eaccum,		eapl4st18
-V1495,	       	0,	114,	eaccum,		eapl4st19
-V1495,	       	0,	115,	eaccum,		eapl4st20
-V1495,	       	0,	116,	eaccum,		eapl4st21
-V1495,	       	0,	117,	eaccum,		eapl4st22
-V1495,	       	0,	118,	eaccum,		eapl4st23
-V1495,	       	0,	119,	eaccum,		eapl4st24
-V1495,	       	0,	120,	eaccum,		eapl4st25
-V1495,	       	0,	121,	eaccum,		eapl4st26
-V1495,	       	0,	122,	eaccum,		eapl4st27
-V1495,	       	0,	123,	eaccum,		eapl4st28
-V1495,	       	0,	124,	eaccum,		eapl4st29
-V1495,	       	0,	125,	eaccum,		eapl4st30
-V1495,	       	0,	126,	eaccum,		eapl4st31
-V1495,	       	0,	127,	eaccum,		eapl4st32
-!F port
-! are these in the subbank? if yes put here
-!G port
-! are these in the subbank? if yes put here
 
-!   End of ROC 1  map
-
-ROC=2
 Bank=0x0202
 !V1495 slave 2, electron single event mode
-! module.type, module.num  chan.num, det.type, det.name
-! Key: espl1st33= electron single event plane 1 strip 33
-! A port
-V1495,	       	0,	0,	esingle,	espl1st33
-V1495,	       	0,	1,	esingle,	espl1st34
-V1495,	       	0,	2,	esingle,	espl1st35
-V1495,	       	0,	3,	esingle,	espl1st36
-V1495,	       	0,	4,	esingle,	espl1st37
-V1495,	       	0,	5,	esingle,	espl1st38
-V1495,	       	0,	6,	esingle,	espl1st39
-V1495,	       	0,	7,	esingle,	espl1st40
-V1495,	       	0,	8,	esingle,	espl1st41
-V1495,	       	0,	9,	esingle,	espl1st42
-V1495,	       	0,	10,	esingle,	espl1st43
-V1495,	       	0,	11,	esingle,	espl1st44
-V1495,	       	0,	12,	esingle,	espl1st45
-V1495,	       	0,	13,	esingle,	espl1st46
-V1495,	       	0,	14,	esingle,	espl1st47
-V1495,	       	0,	15,	esingle,	espl1st48
-V1495,	       	0,	16,	esingle,	espl1st49
-V1495,	       	0,	17,	esingle,	espl1st50
-V1495,	       	0,	18,	esingle,	espl1st51
-V1495,	       	0,	19,	esingle,	espl1st52
-V1495,	       	0,	20,	esingle,	espl1st53
-V1495,	       	0,	21,	esingle,	espl1st54
-V1495,	       	0,	22,	esingle,	espl1st55
-V1495,	       	0,	23,	esingle,	espl1st56
-V1495,	       	0,	24,	esingle,	espl1st57
-V1495,	       	0,	25,	esingle,	espl1st58
-V1495,	       	0,	26,	esingle,	espl1st59
-V1495,	       	0,	27,	esingle,	espl1st60
-V1495,	       	0,	28,	esingle,	espl1st61
-V1495,	       	0,	29,	esingle,	espl1st62
-V1495,	       	0,	30,	esingle,	espl1st63
-V1495,	       	0,	31,	esingle,	espl1st64
-! B port
-V1495,	       	0,	32,	esingle,	espl2st33
-V1495,	       	0,	33,	esingle,	espl2st34
-V1495,	       	0,	34,	esingle,	espl2st35
-V1495,	       	0,	35,	esingle,	espl2st36
-V1495,	       	0,	36,	esingle,	espl2st37
-V1495,	       	0,	37,	esingle,	espl2st38
-V1495,	       	0,	38,	esingle,	espl2st39
-V1495,	       	0,	39,	esingle,	espl2st40
-V1495,	       	0,	40,	esingle,	espl2st41
-V1495,	       	0,	41,	esingle,	espl2st42
-V1495,	       	0,	42,	esingle,	espl2st43
-V1495,	       	0,	43,	esingle,	espl2st44
-V1495,	       	0,	44,	esingle,	espl2st45
-V1495,	       	0,	45,	esingle,	espl2st46
-V1495,	       	0,	46,	esingle,	espl2st47
-V1495,	       	0,	47,	esingle,	espl2st48
-V1495,	       	0,	48,	esingle,	espl2st49
-V1495,	       	0,	49,	esingle,	espl2st50
-V1495,	       	0,	50,	esingle,	espl2st51
-V1495,	       	0,	51,	esingle,	espl2st52
-V1495,	       	0,	52,	esingle,	espl2st53
-V1495,	       	0,	53,	esingle,	espl2st54
-V1495,	       	0,	54,	esingle,	espl2st55
-V1495,	       	0,	55,	esingle,	espl2st56
-V1495,	       	0,	56,	esingle,	espl2st57
-V1495,	       	0,	57,	esingle,	espl2st58
-V1495,	       	0,	58,	esingle,	espl2st59
-V1495,	       	0,	59,	esingle,	espl2st60
-V1495,	       	0,	60,	esingle,	espl2st61
-V1495,	       	0,	61,	esingle,	espl2st62
-V1495,	       	0,	62,	esingle,	espl2st63
-V1495,	       	0,	63,	esingle,	espl2st64
-! C port
-! Is C port stuff in the subbank? If yes put them here and increment 
-! the D, E, F and G port channels by 31.
-! D port
-V1495,	       	0,	64,	esingle,	espl3st33
-V1495,	       	0,	65,	esingle,	espl3st34
-V1495,	       	0,	66,	esingle,	espl3st35
-V1495,	       	0,	67,	esingle,	espl3st36
-V1495,	       	0,	68,	esingle,	espl3st37
-V1495,	       	0,	69,	esingle,	espl3st38
-V1495,	       	0,	70,	esingle,	espl3st39
-V1495,	       	0,	71,	esingle,	espl3st40
-V1495,	       	0,	72,	esingle,	espl3st41
-V1495,	       	0,	73,	esingle,	espl3st42
-V1495,	       	0,	74,	esingle,	espl3st43
-V1495,	       	0,	75,	esingle,	espl3st44
-V1495,	       	0,	76,	esingle,	espl3st45
-V1495,	       	0,	77,	esingle,	espl3st46
-V1495,	       	0,	78,	esingle,	espl3st47
-V1495,	       	0,	79,	esingle,	espl3st48
-V1495,	       	0,	80,	esingle,	espl3st49
-V1495,	       	0,	81,	esingle,	espl3st50
-V1495,	       	0,	82,	esingle,	espl3st51
-V1495,	       	0,	83,	esingle,	espl3st52
-V1495,	       	0,	84,	esingle,	espl3st53
-V1495,	       	0,	85,	esingle,	espl3st54
-V1495,	       	0,	86,	esingle,	espl3st55
-V1495,	       	0,	87,	esingle,	espl3st56
-V1495,	       	0,	88,	esingle,	espl3st57
-V1495,	       	0,	89,	esingle,	espl3st58
-V1495,	       	0,	90,	esingle,	espl3st59
-V1495,	       	0,	91,	esingle,	espl3st60
-V1495,	       	0,	92,	esingle,	espl3st61
-V1495,	       	0,	93,	esingle,	espl3st62
-V1495,	       	0,	94,	esingle,	espl3st63
-V1495,	       	0,	95,	esingle,	espl3st64
-! E port
-V1495,	       	0,	96,	esingle,	espl4st33
-V1495,	       	0,	97,	esingle,	espl4st34
-V1495,	       	0,	98,	esingle,	espl4st35
-V1495,	       	0,	99,	esingle,	espl4st36
-V1495,	       	0,	100,	esingle,	espl4st37
-V1495,	       	0,	101,	esingle,	espl4st38
-V1495,	       	0,	102,	esingle,	espl4st39
-V1495,	       	0,	103,	esingle,	espl4st40
-V1495,	       	0,	104,	esingle,	espl4st41
-V1495,	       	0,	105,	esingle,	espl4st42
-V1495,	       	0,	106,	esingle,	espl4st43
-V1495,	       	0,	107,	esingle,	espl4st44
-V1495,	       	0,	108,	esingle,	espl4st45
-V1495,	       	0,	109,	esingle,	espl4st46
-V1495,	       	0,	110,	esingle,	espl4st47
-V1495,	       	0,	111,	esingle,	espl4st48
-V1495,	       	0,	112,	esingle,	espl4st49
-V1495,	       	0,	113,	esingle,	espl4st50
-V1495,	       	0,	114,	esingle,	espl4st51
-V1495,	       	0,	115,	esingle,	espl4st52
-V1495,	       	0,	116,	esingle,	espl4st53
-V1495,	       	0,	117,	esingle,	espl4st54
-V1495,	       	0,	118,	esingle,	espl4st55
-V1495,	       	0,	119,	esingle,	espl4st56
-V1495,	       	0,	120,	esingle,	espl4st57
-V1495,	       	0,	121,	esingle,	espl4st58
-V1495,	       	0,	122,	esingle,	espl4st59
-V1495,	       	0,	123,	esingle,	espl4st60
-V1495,	       	0,	124,	esingle,	espl4st61
-V1495,	       	0,	125,	esingle,	espl4st62
-V1495,	       	0,	126,	esingle,	espl4st63
-V1495,	       	0,	127,	esingle,	espl4st64
-!F port
-! are these in the subbank? if yes put here
-!G port
-! are these in the subbank? if yes put here
+! module.type, module.num,  chan.num, det.type, det.name,  plane,  strip.num
+V1495,	       	1,    128,	esingle,	compton_e,   1,   32
+V1495,	       	1,    129,	esingle,	compton_e,   1,   33
+V1495,	       	1,    130,	esingle,	compton_e,   1,   34
+V1495,	       	1,    131,	esingle,	compton_e,   1,   35
+V1495,	       	1,    132,	esingle,	compton_e,   1,   36
+V1495,	       	1,    133,	esingle,	compton_e,   1,   37
+V1495,	       	1,    134,	esingle,	compton_e,   1,   38
+V1495,	       	1,    135,	esingle,	compton_e,   1,   39
+V1495,	       	1,    136,	esingle,	compton_e,   1,   40
+V1495,	       	1,    137,	esingle,	compton_e,   1,   41
+V1495,	       	1,    138,	esingle,	compton_e,   1,   42
+V1495,	       	1,    138,	esingle,	compton_e,   1,   43
+V1495,	       	1,    140,	esingle,	compton_e,   1,   44
+V1495,	       	1,    141,	esingle,	compton_e,   1,   45
+V1495,	       	1,    142,	esingle,	compton_e,   1,   46
+V1495,	       	1,    143,	esingle,	compton_e,   1,   47
+V1495,	       	1,    144,	esingle,	compton_e,   1,   48
+V1495,	       	1,    145,	esingle,	compton_e,   1,   49
+V1495,	       	1,    146,	esingle,	compton_e,   1,   50
+V1495,	       	1,    147,	esingle,	compton_e,   1,   51
+V1495,	       	1,    148,	esingle,	compton_e,   1,   52
+V1495,	       	1,    149,	esingle,	compton_e,   1,   53
+V1495,	       	1,    150,	esingle,	compton_e,   1,   54
+V1495,	       	1,    151,	esingle,	compton_e,   1,   55
+V1495,	       	1,    152,	esingle,	compton_e,   1,   56
+V1495,	       	1,    153,	esingle,	compton_e,   1,   57
+V1495,	       	1,    154,	esingle,	compton_e,   1,   58
+V1495,	       	1,    155,	esingle,	compton_e,   1,   59
+V1495,	       	1,    156,	esingle,	compton_e,   1,   60
+V1495,	       	1,    157,	esingle,	compton_e,   1,   61
+V1495,	       	1,    158,	esingle,	compton_e,   1,   62
+V1495,	       	1,    159,	esingle,	compton_e,   1,   63
+V1495,	       	1,    160,	esingle,	compton_e,   2,   32
+V1495,	       	1,    161,	esingle,	compton_e,   2,   33
+V1495,	       	1,    162,	esingle,	compton_e,   2,   34
+V1495,	       	1,    163,	esingle,	compton_e,   2,   35
+V1495,	       	1,    164,	esingle,	compton_e,   2,   36
+V1495,	       	1,    165,	esingle,	compton_e,   2,   37
+V1495,	       	1,    166,	esingle,	compton_e,   2,   38
+V1495,	       	1,    167,	esingle,	compton_e,   2,   39
+V1495,	       	1,    168,	esingle,	compton_e,   2,   40
+V1495,	       	1,    169,	esingle,	compton_e,   2,   41
+V1495,	       	1,    170,	esingle,	compton_e,   2,   42
+V1495,	       	1,    171,	esingle,	compton_e,   2,   43
+V1495,	       	1,    172,	esingle,	compton_e,   2,   44
+V1495,	       	1,    173,	esingle,	compton_e,   2,   45
+V1495,	       	1,    174,	esingle,	compton_e,   2,   46
+V1495,	       	1,    175,	esingle,	compton_e,   2,   47
+V1495,	       	1,    176,	esingle,	compton_e,   2,   48
+V1495,	       	1,    177,	esingle,	compton_e,   2,   49
+V1495,	       	1,    178,	esingle,	compton_e,   2,   50
+V1495,	       	1,    179,	esingle,	compton_e,   2,   51
+V1495,	       	1,    180,	esingle,	compton_e,   2,   52
+V1495,	       	1,    181,	esingle,	compton_e,   2,   53
+V1495,	       	1,    182,	esingle,	compton_e,   2,   54
+V1495,	       	1,    183,	esingle,	compton_e,   2,   55
+V1495,	       	1,    184,	esingle,	compton_e,   2,   56
+V1495,	       	1,    185,	esingle,	compton_e,   2,   57
+V1495,	       	1,    186,	esingle,	compton_e,   2,   58
+V1495,	       	1,    187,	esingle,	compton_e,   2,   59
+V1495,	       	1,    188,	esingle,	compton_e,   2,   60
+V1495,	       	1,    189,	esingle,	compton_e,   2,   61
+V1495,	       	1,    190,	esingle,	compton_e,   2,   62
+V1495,	       	1,    191,	esingle,	compton_e,   2,   63
+V1495,	       	1,    192,	esingle,	compton_e,   3,   32
+V1495,	       	1,    193,	esingle,	compton_e,   3,   33
+V1495,	       	1,    194,	esingle,	compton_e,   3,   34
+V1495,	       	1,    195,	esingle,	compton_e,   3,   35
+V1495,	       	1,    196,	esingle,	compton_e,   3,   36
+V1495,	       	1,    197,	esingle,	compton_e,   3,   37
+V1495,	       	1,    198,	esingle,	compton_e,   3,   38
+V1495,	       	1,    199,	esingle,	compton_e,   3,   39
+V1495,	       	1,    200,	esingle,	compton_e,   3,   40
+V1495,	       	1,    201,	esingle,	compton_e,   3,   41
+V1495,	       	1,    202,	esingle,	compton_e,   3,   42
+V1495,	       	1,    203,	esingle,	compton_e,   3,   43
+V1495,	       	1,    204,	esingle,	compton_e,   3,   44
+V1495,	       	1,    205,	esingle,	compton_e,   3,   45
+V1495,	       	1,    206,	esingle,	compton_e,   3,   46
+V1495,	       	1,    207,	esingle,	compton_e,   3,   47
+V1495,	       	1,    208,	esingle,	compton_e,   3,   48
+V1495,	       	1,    209,	esingle,	compton_e,   3,   49
+V1495,	       	1,    210,	esingle,	compton_e,   3,   50
+V1495,	       	1,    211,	esingle,	compton_e,   3,   51
+V1495,	        1,    212,	esingle,	compton_e,   3,   52
+V1495,	       	1,    213,	esingle,	compton_e,   3,   53
+V1495,	       	1,    214,	esingle,	compton_e,   3,   54
+V1495,	       	1,    215,	esingle,	compton_e,   3,   55
+V1495,	       	1,    216,	esingle,	compton_e,   3,   56
+V1495,	       	1,    217,	esingle,	compton_e,   3,   57
+V1495,	       	1,    218,	esingle,	compton_e,   3,   58
+V1495,	       	1,    219,	esingle,	compton_e,   3,   59
+V1495,	       	1,    220,	esingle,	compton_e,   3,   60
+V1495,	       	1,    221,	esingle,	compton_e,   3,   61
+V1495,	       	1,    222,	esingle,	compton_e,   3,   62
+V1495,	       	1,    223,	esingle,	compton_e,   3,   63
+V1495,	       	1,    224,	esingle,	compton_e,   4,   32
+V1495,	       	1,    225,	esingle,	compton_e,   4,   33
+V1495,	       	1,    226,	esingle,	compton_e,   4,   34
+V1495,	       	1,    227,	esingle,	compton_e,   4,   35
+V1495,	       	1,    228,	esingle,	compton_e,   4,   36
+V1495,	       	1,    229,	esingle,	compton_e,   4,   37
+V1495,	       	1,    230,	esingle,	compton_e,   4,   38
+V1495,	       	1,    231,	esingle,	compton_e,   4,   39
+V1495,	       	1,    232,	esingle,	compton_e,   4,   40
+V1495,	       	1,    233,	esingle,	compton_e,   4,   41
+V1495,	       	1,    234,	esingle,	compton_e,   4,   42
+V1495,	       	1,    235,	esingle,	compton_e,   4,   43
+V1495,	       	1,    236,	esingle,	compton_e,   4,   44
+V1495,	       	1,    237,	esingle,	compton_e,   4,   45
+V1495,	       	1,    238,	esingle,	compton_e,   4,   46
+V1495,	       	1,    239,	esingle,	compton_e,   4,   47
+V1495,	       	1,    240,	esingle,	compton_e,   4,   48
+V1495,	       	1,    241,	esingle,	compton_e,   4,   49
+V1495,	       	1,    242,	esingle,	compton_e,   4,   50
+V1495,	       	1,    243	esingle,	compton_e,   4,   51
+V1495,	       	1,    244,	esingle,	compton_e,   4,   52
+V1495,	       	1,    245,	esingle,	compton_e,   4,   53
+V1495,	       	1,    246,	esingle,	compton_e,   4,   54
+V1495,	       	1,    247,	esingle,	compton_e,   4,   55
+V1495,	       	1,    248,	esingle,	compton_e,   4,   56
+V1495,	       	1,    249,	esingle,	compton_e,   4,   57
+V1495,	       	1,    250,	esingle,	compton_e,   4,   58
+V1495,	       	1,    251,	esingle,	compton_e,   4,   59
+V1495,	       	1,    252,	esingle,	compton_e,   4,   60
+V1495,	       	1,    253,	esingle,	compton_e,   4,   61
+V1495,	       	1,    254,	esingle,	compton_e,   4,   62
+V1495,	       	1,    255,	esingle,	compton_e,   4,   63
 
 
 Bank=0x0203
 !V1495 slave 3, electron single event mode
-! module.type, module.num  chan.num, det.type, det.name
-! Key: espl1st65= electron single event plane 1 strip 65
-! A port
-V1495,	       	1,	0,	esingle,	espl1st65
-V1495,	       	1,	1,	esingle,	espl1st66
-V1495,	       	1,	2,	esingle,	espl1st67
-V1495,	       	1,	3,	esingle,	espl1st68
-V1495,	       	1,	4,	esingle,	espl1st69
-V1495,	       	1,	5,	esingle,	espl1st70
-V1495,	       	1,	6,	esingle,	espl1st71
-V1495,	       	1,	7,	esingle,	espl1st72
-V1495,	       	1,	8,	esingle,	espl1st73
-V1495,	       	1,	9,	esingle,	espl1st74
-V1495,	       	1,	10,	esingle,	espl1st75
-V1495,	       	1,	11,	esingle,	espl1st76
-V1495,	       	1,	12,	esingle,	espl1st77
-V1495,	       	1,	13,	esingle,	espl1st78
-V1495,	       	1,	14,	esingle,	espl1st79
-V1495,	       	1,	15,	esingle,	espl1st80
-V1495,	       	1,	16,	esingle,	espl1st81
-V1495,	       	1,	17,	esingle,	espl1st82
-V1495,	       	1,	18,	esingle,	espl1st83
-V1495,	       	1,	19,	esingle,	espl1st84
-V1495,	       	1,	20,	esingle,	espl1st85
-V1495,	       	1,	21,	esingle,	espl1st86
-V1495,	       	1,	22,	esingle,	espl1st87
-V1495,	       	1,	23,	esingle,	espl1st88
-V1495,	       	1,	24,	esingle,	espl1st89
-V1495,	       	1,	25,	esingle,	espl1st90
-V1495,	       	1,	26,	esingle,	espl1st91
-V1495,	       	1,	27,	esingle,	espl1st92
-V1495,	       	1,	28,	esingle,	espl1st93
-V1495,	       	1,	29,	esingle,	espl1st94
-V1495,	       	1,	30,	esingle,	espl1st95
-V1495,	       	1,	31,	esingle,	espl1st96
-! B port
-V1495,	       	1,	32,	esingle,	espl2st65
-V1495,	       	1,	33,	esingle,	espl2st66
-V1495,	       	1,	34,	esingle,	espl2st67
-V1495,	       	1,	35,	esingle,	espl2st68
-V1495,	       	1,	36,	esingle,	espl2st69
-V1495,	       	1,	37,	esingle,	espl2st70
-V1495,	       	1,	38,	esingle,	espl2st71
-V1495,	       	1,	39,	esingle,	espl2st72
-V1495,	       	1,	40,	esingle,	espl2st73
-V1495,	       	1,	41,	esingle,	espl2st74
-V1495,	       	1,	42,	esingle,	espl2st75
-V1495,	       	1,	43,	esingle,	espl2st76
-V1495,	       	1,	44,	esingle,	espl2st77
-V1495,	       	1,	45,	esingle,	espl2st78
-V1495,	       	1,	46,	esingle,	espl2st79
-V1495,	       	1,	47,	esingle,	espl2st80
-V1495,	       	1,	48,	esingle,	espl2st81
-V1495,	       	1,	49,	esingle,	espl2st82
-V1495,	       	1,	50,	esingle,	espl2st83
-V1495,	       	1,	51,	esingle,	espl2st84
-V1495,	       	1,	52,	esingle,	espl2st85
-V1495,	       	1,	53,	esingle,	espl2st86
-V1495,	       	1,	54,	esingle,	espl2st87
-V1495,	       	1,	55,	esingle,	espl2st88
-V1495,	       	1,	56,	esingle,	espl2st89
-V1495,	       	1,	57,	esingle,	espl2st90
-V1495,	       	1,	58,	esingle,	espl2st91
-V1495,	       	1,	59,	esingle,	espl2st92
-V1495,	       	1,	60,	esingle,	espl2st93
-V1495,	       	1,	61,	esingle,	espl2st94
-V1495,	       	1,	62,	esingle,	espl2st95
-V1495,	       	1,	63,	esingle,	espl2st96
-! C port
-! Is C port stuff in the subbank? If yes put them here and increment 
-! the D, E, F and G port channels by 31.
-! D port
-V1495,	       	1,	64,	esingle,	espl3st65
-V1495,	       	1,	65,	esingle,	espl3st66
-V1495,	       	1,	66,	esingle,	espl3st67
-V1495,	       	1,	67,	esingle,	espl3st68
-V1495,	       	1,	68,	esingle,	espl3st69
-V1495,	       	1,	69,	esingle,	espl3st70
-V1495,	       	1,	70,	esingle,	espl3st71
-V1495,	       	1,	71,	esingle,	espl3st72
-V1495,	       	1,	72,	esingle,	espl3st73
-V1495,	       	1,	73,	esingle,	espl3st74
-V1495,	       	1,	74,	esingle,	espl3st75
-V1495,	       	1,	75,	esingle,	espl3st76
-V1495,	       	1,	76,	esingle,	espl3st77
-V1495,	       	1,	77,	esingle,	espl3st78
-V1495,	       	1,	78,	esingle,	espl3st79
-V1495,	       	1,	79,	esingle,	espl3st80
-V1495,	       	1,	80,	esingle,	espl3st81
-V1495,	       	1,	81,	esingle,	espl3st82
-V1495,	       	1,	82,	esingle,	espl3st83
-V1495,	       	1,	83,	esingle,	espl3st84
-V1495,	       	1,	84,	esingle,	espl3st85
-V1495,	       	1,	85,	esingle,	espl3st86
-V1495,	       	1,	86,	esingle,	espl3st87
-V1495,	       	1,	87,	esingle,	espl3st88
-V1495,	       	1,	88,	esingle,	espl3st89
-V1495,	       	1,	89,	esingle,	espl3st90
-V1495,	       	1,	90,	esingle,	espl3st91
-V1495,	       	1,	91,	esingle,	espl3st92
-V1495,	       	1,	92,	esingle,	espl3st93
-V1495,	       	1,	93,	esingle,	espl3st94
-V1495,	       	1,	94,	esingle,	espl3st95
-V1495,	       	1,	95,	esingle,	espl3st96
-! E port
-V1495,	       	1,	96,	esingle,	espl4st65
-V1495,	       	1,	97,	esingle,	espl4st66
-V1495,	       	1,	98,	esingle,	espl4st67
-V1495,	       	1,	99,	esingle,	espl4st68
-V1495,	       	1,	100,	esingle,	espl4st69
-V1495,	       	1,	101,	esingle,	espl4st70
-V1495,	       	1,	102,	esingle,	espl4st71
-V1495,	       	1,	103,	esingle,	espl4st72
-V1495,	       	1,	104,	esingle,	espl4st73
-V1495,	       	1,	105,	esingle,	espl4st74
-V1495,	       	1,	106,	esingle,	espl4st75
-V1495,	       	1,	107,	esingle,	espl4st76
-V1495,	       	1,	108,	esingle,	espl4st77
-V1495,	       	1,	109,	esingle,	espl4st78
-V1495,	       	1,	110,	esingle,	espl4st79
-V1495,	       	1,	111,	esingle,	espl4st80
-V1495,	       	1,	112,	esingle,	espl4st81
-V1495,	       	1,	113,	esingle,	espl4st82
-V1495,	       	1,	114,	esingle,	espl4st83
-V1495,	       	1,	115,	esingle,	espl4st84
-V1495,	       	1,	116,	esingle,	espl4st85
-V1495,	       	1,	117,	esingle,	espl4st86
-V1495,	       	1,	118,	esingle,	espl4st87
-V1495,	       	1,	119,	esingle,	espl4st88
-V1495,	       	1,	120,	esingle,	espl4st89
-V1495,	       	1,	121,	esingle,	espl4st90
-V1495,	       	1,	122,	esingle,	espl4st91
-V1495,	       	1,	123,	esingle,	espl4st92
-V1495,	       	1,	124,	esingle,	espl4st93
-V1495,	       	1,	125,	esingle,	espl4st94
-V1495,	       	1,	126,	esingle,	espl4st94
-V1495,	       	1,	127,	esingle,	espl4st96
-!F port
-! are these in the subbank? if yes put here
-!G port
-! are these in the subbank? if yes put here
+! module.type, module.num,  chan.num, det.type, det.name,  plane,  strip.num
+V1495,	       	2,    256,	esingle,	compton_e,   1,   64
+V1495,	       	2,    257,	esingle,	compton_e,   1,   65
+V1495,	       	2,    258,	esingle,	compton_e,   1,   66
+V1495,	       	2,    259,	esingle,	compton_e,   1,   67
+V1495,	       	2,    260,	esingle,	compton_e,   1,   68
+V1495,	       	2,    261,	esingle,	compton_e,   1,   69
+V1495,	       	2,    262,	esingle,	compton_e,   1,   70
+V1495,	       	2,    263,	esingle,	compton_e,   1,   71
+V1495,	       	2,    264,	esingle,	compton_e,   1,   72
+V1495,	       	2,    265,	esingle,	compton_e,   1,   73
+V1495,	       	2,    266,	esingle,	compton_e,   1,   74
+V1495,	       	2,    267,	esingle,	compton_e,   1,   75
+V1495,	       	2,    268,	esingle,	compton_e,   1,   76
+V1495,	       	2,    269,	esingle,	compton_e,   1,   77
+V1495,	       	2,    270,	esingle,	compton_e,   1,   78
+V1495,	       	2,    271,	esingle,	compton_e,   1,   79
+V1495,	       	2,    272,	esingle,	compton_e,   1,   80
+V1495,	       	2,    273,	esingle,	compton_e,   1,   81
+V1495,	       	2,    274,	esingle,	compton_e,   1,   82
+V1495,	       	2,    275,	esingle,	compton_e,   1,   83
+V1495,	       	2,    276,	esingle,	compton_e,   1,   84
+V1495,	       	2,    277,	esingle,	compton_e,   1,   85
+V1495,	       	2,    278,	esingle,	compton_e,   1,   86
+V1495,	       	2,    279,	esingle,	compton_e,   1,   87
+V1495,	       	2,    280,	esingle,	compton_e,   1,   88
+V1495,	       	2,    281,	esingle,	compton_e,   1,   89
+V1495,	       	2,    282,	esingle,	compton_e,   1,   90
+V1495,	       	2,    283,	esingle,	compton_e,   1,   91
+V1495,	       	2,    284,	esingle,	compton_e,   1,   92
+V1495,	       	2,    285,	esingle,	compton_e,   1,   93
+V1495,	       	2,    286,	esingle,	compton_e,   1,   94
+V1495,	       	2,    287,	esingle,	compton_e,   1,   95
+V1495,	       	2,    288,	esingle,	compton_e,   2,   64
+V1495,	       	2,    289,	esingle,	compton_e,   2,   65
+V1495,	       	2,    290,	esingle,	compton_e,   2,   66
+V1495,	       	2,    291,	esingle,	compton_e,   2,   67
+V1495,	       	2,    292,	esingle,	compton_e,   2,   68
+V1495,	       	2,    293,	esingle,	compton_e,   2,   69
+V1495,	       	2,    294,	esingle,	compton_e,   2,   70
+V1495,	       	2,    295,	esingle,	compton_e,   2,   71
+V1495,	       	2,    296,	esingle,	compton_e,   2,   72
+V1495,	       	2,    297,	esingle,	compton_e,   2,   73
+V1495,	       	2,    298,	esingle,	compton_e,   2,   74
+V1495,	       	2,    299,	esingle,	compton_e,   2,   75
+V1495,	       	2,    301,	esingle,	compton_e,   2,   76
+V1495,	       	2,    302,	esingle,	compton_e,   2,   77
+V1495,	       	2,    303,	esingle,	compton_e,   2,   78
+V1495,	       	2,    304,	esingle,	compton_e,   2,   79
+V1495,	       	2,    305,	esingle,	compton_e,   2,   80
+V1495,	       	2,    306,	esingle,	compton_e,   2,   81
+V1495,	       	2,    307,	esingle,	compton_e,   2,   82
+V1495,	       	2,    308,	esingle,	compton_e,   2,   83
+V1495,	       	2,    309,	esingle,	compton_e,   2,   84
+V1495,	       	2,    310,	esingle,	compton_e,   2,   85
+V1495,	       	2,    311,	esingle,	compton_e,   2,   86
+V1495,	       	2,    312,	esingle,	compton_e,   2,   87
+V1495,	       	2,    313,	esingle,	compton_e,   2,   88
+V1495,	       	2,    314,	esingle,	compton_e,   2,   89
+V1495,	       	2,    315,	esingle,	compton_e,   2,   90
+V1495,	       	2,    316,	esingle,	compton_e,   2,   91
+V1495,	       	2,    317,	esingle,	compton_e,   2,   92
+V1495,	       	2,    318,	esingle,	compton_e,   2,   93
+V1495,	       	2,    319,	esingle,	compton_e,   2,   94
+V1495,	       	2,    320,	esingle,	compton_e,   2,   95
+V1495,	       	2,    321,	esingle,	compton_e,   3,   64
+V1495,	       	2,    322,	esingle,	compton_e,   3,   65
+V1495,	       	2,    323,	esingle,	compton_e,   3,   66
+V1495,	       	2,    324,	esingle,	compton_e,   3,   67
+V1495,	       	2,    325,	esingle,	compton_e,   3,   68
+V1495,	       	2,    326,	esingle,	compton_e,   3,   69
+V1495,	       	2,    327,	esingle,	compton_e,   3,   70
+V1495,	       	2,    328,	esingle,	compton_e,   3,   71
+V1495,	       	2,    329,	esingle,	compton_e,   3,   72
+V1495,	       	2,    330,	esingle,	compton_e,   3,   73
+V1495,	       	2,    331,	esingle,	compton_e,   3,   74
+V1495,	       	2,    332,	esingle,	compton_e,   3,   75
+V1495,	       	2,    333,	esingle,	compton_e,   3,   76
+V1495,	       	2,    334,	esingle,	compton_e,   3,   77
+V1495,	       	2,    335,	esingle,	compton_e,   3,   78
+V1495,	       	2,    336,	esingle,	compton_e,   3,   79
+V1495,	       	2,    337,	esingle,	compton_e,   3,   80
+V1495,	       	2,    338,	esingle,	compton_e,   3,   81
+V1495,	       	2,    339,	esingle,	compton_e,   3,   82
+V1495,	       	2,    340,	esingle,	compton_e,   3,   83
+V1495,	        2,    341,	esingle,	compton_e,   3,   84
+V1495,	       	2,    342,	esingle,	compton_e,   3,   85
+V1495,	       	2,    343,	esingle,	compton_e,   3,   86
+V1495,	       	2,    344,	esingle,	compton_e,   3,   87
+V1495,	       	2,    345,	esingle,	compton_e,   3,   88
+V1495,	       	2,    346,	esingle,	compton_e,   3,   89
+V1495,	       	2,    347,	esingle,	compton_e,   3,   90
+V1495,	       	2,    348,	esingle,	compton_e,   3,   91
+V1495,	       	2,    349,	esingle,	compton_e,   3,   92
+V1495,	       	2,    350,	esingle,	compton_e,   3,   93
+V1495,	       	2,    351,	esingle,	compton_e,   3,   94
+V1495,	       	2,    352,	esingle,	compton_e,   3,   95
+V1495,	       	2,    353,	esingle,	compton_e,   4,   64
+V1495,	       	2,    354,	esingle,	compton_e,   4,   65
+V1495,	       	2,    355,	esingle,	compton_e,   4,   66
+V1495,	       	2,    356,	esingle,	compton_e,   4,   67
+V1495,	       	2,    357,	esingle,	compton_e,   4,   68
+V1495,	       	2,    358,	esingle,	compton_e,   4,   69
+V1495,	       	2,    359,	esingle,	compton_e,   4,   70
+V1495,	       	2,    360,	esingle,	compton_e,   4,   71
+V1495,	       	2,    361,	esingle,	compton_e,   4,   72
+V1495,	       	2,    362,	esingle,	compton_e,   4,   73
+V1495,	       	2,    363,	esingle,	compton_e,   4,   74
+V1495,	       	2,    364,	esingle,	compton_e,   4,   75
+V1495,	       	2,    365,	esingle,	compton_e,   4,   76
+V1495,	       	2,    366,	esingle,	compton_e,   4,   77
+V1495,	       	2,    367,	esingle,	compton_e,   4,   78
+V1495,	       	2,    368,	esingle,	compton_e,   4,   79
+V1495,	       	2,    369,	esingle,	compton_e,   4,   80
+V1495,	       	2,    370,	esingle,	compton_e,   4,   81
+V1495,	       	2,    371,	esingle,	compton_e,   4,   82
+V1495,	       	2,    372	esingle,	compton_e,   4,   83
+V1495,	       	2,    373,	esingle,	compton_e,   4,   84
+V1495,	       	2,    374,	esingle,	compton_e,   4,   85
+V1495,	       	2,    375,	esingle,	compton_e,   4,   86
+V1495,	       	2,    376,	esingle,	compton_e,   4,   87
+V1495,	       	2,    377,	esingle,	compton_e,   4,   88
+V1495,	       	2,    378,	esingle,	compton_e,   4,   89
+V1495,	       	2,    379,	esingle,	compton_e,   4,   90
+V1495,	       	2,    380	esingle,	compton_e,   4,   91
+V1495,	       	2,    381,	esingle,	compton_e,   4,   92
+V1495,	       	2,    382,	esingle,	compton_e,   4,   93
+V1495,	       	2,    383,	esingle,	compton_e,   4,   94
+V1495,	       	2,    384,	esingle,	compton_e,   4,   95
+
+
+Bank=0x0204
+! V1495 Slave 1, electron accumulation mode
+! module.type, module.num,  chan.num, det.type, det.name,  plane,  strip.num
+V1495,	       	0,	0,	eacuum,		compton_e,   1,    0
+V1495,	       	0,	1,	eacuum,		compton_e,   1,    1
+V1495,	       	0,	2,	eacuum,		compton_e,   1,    2
+V1495,	       	0,	3,	eacuum,		compton_e,   1,    3
+V1495,	       	0,	4,	eacuum,		compton_e,   1,    4
+V1495,	       	0,	5,	eacuum,		compton_e,   1,    5
+V1495,	       	0,	6,	eacuum,		compton_e,   1,    6
+V1495,	       	0,	7,	eacuum,		compton_e,   1,    7
+V1495,	       	0,	8,	eacuum,		compton_e,   1,    8
+V1495,	       	0,	9,	eacuum,		compton_e,   1,    9
+V1495,	       	0,     10,	eacuum,		compton_e,   1,   10
+V1495,	       	0,     11,	eacuum,		compton_e,   1,   11
+V1495,	       	0,     12,	eacuum,		compton_e,   1,   12
+V1495,	       	0,     13,	eacuum,		compton_e,   1,   13
+V1495,	       	0,     14,	eacuum,		compton_e,   1,   14
+V1495,	       	0,     15,	eacuum,		compton_e,   1,   15
+V1495,	       	0,     16,	eacuum,		compton_e,   1,   16
+V1495,	       	0,     17,	eacuum,		compton_e,   1,   17
+V1495,	       	0,     18,	eacuum,		compton_e,   1,   18
+V1495,	       	0,     19,	eacuum,		compton_e,   1,   19
+V1495,	       	0,     20,	eacuum,		compton_e,   1,   20
+V1495,	       	0,     21,	eacuum,		compton_e,   1,   21
+V1495,	       	0,     22,	eacuum,		compton_e,   1,   22
+V1495,	       	0,     23,	eacuum,		compton_e,   1,   23
+V1495,	       	0,     24,	eacuum,		compton_e,   1,   24
+V1495,	       	0,     25,	eacuum,		compton_e,   1,   25
+V1495,	       	0,     26,	eacuum,		compton_e,   1,   26
+V1495,	       	0,     27,	eacuum,		compton_e,   1,   27
+V1495,	       	0,     28,	eacuum,		compton_e,   1,   28
+V1495,	       	0,     29,	eacuum,		compton_e,   1,   29
+V1495,	       	0,     30,	eacuum,		compton_e,   1,   30
+V1495,	       	0,     31,	eacuum,		compton_e,   1,   31
+V1495,	       	0,     32,	eacuum,		compton_e,   2,    0
+V1495,	       	0,     33,	eacuum,		compton_e,   2,    1
+V1495,	       	0,     34,	eacuum,		compton_e,   2,    2
+V1495,	       	0,     35,	eacuum,		compton_e,   2,    3
+V1495,	       	0,     36,	eacuum,		compton_e,   2,    4
+V1495,	       	0,     37,	eacuum,		compton_e,   2,    5
+V1495,	       	0,     38,	eacuum,		compton_e,   2,    6
+V1495,	       	0,     39,	eacuum,		compton_e,   2,    7
+V1495,	       	0,     40,	eacuum,		compton_e,   2,    8
+V1495,	       	0,     41,	eacuum,		compton_e,   2,    9
+V1495,	       	0,     42,	eacuum,		compton_e,   2,   10
+V1495,	       	0,     43,	eacuum,		compton_e,   2,   11
+V1495,	       	0,     44,	eacuum,		compton_e,   2,   12
+V1495,	       	0,     45,	eacuum,		compton_e,   2,   13
+V1495,	       	0,     46,	eacuum,		compton_e,   2,   14
+V1495,	       	0,     47,	eacuum,		compton_e,   2,   15
+V1495,	       	0,     48,	eacuum,		compton_e,   2,   16
+V1495,	       	0,     49,	eacuum,		compton_e,   2,   17
+V1495,	       	0,     50,	eacuum,		compton_e,   2,   18
+V1495,	       	0,     51,	eacuum,		compton_e,   2,   19
+V1495,	       	0,     52,	eacuum,		compton_e,   2,   20
+V1495,	       	0,     53,	eacuum,		compton_e,   2,   21
+V1495,	       	0,     54,	eacuum,		compton_e,   2,   22
+V1495,	       	0,     55,	eacuum,		compton_e,   2,   23
+V1495,	       	0,     56,	eacuum,		compton_e,   2,   24
+V1495,	       	0,     57,	eacuum,		compton_e,   2,   25
+V1495,	       	0,     58,	eacuum,		compton_e,   2,   26
+V1495,	       	0,     59,	eacuum,		compton_e,   2,   27
+V1495,	       	0,     60,	eacuum,		compton_e,   2,   28
+V1495,	       	0,     61,	eacuum,		compton_e,   2,   29
+V1495,	       	0,     62,	eacuum,		compton_e,   2,   30
+V1495,	       	0,     63,	eacuum,		compton_e,   2,   31
+V1495,	       	0,     64,	eacuum,		compton_e,   3,    0
+V1495,	       	0,     65,	eacuum,		compton_e,   3,    1
+V1495,	       	0,     66,	eacuum,		compton_e,   3,    2
+V1495,	       	0,     67,	eacuum,		compton_e,   3,    3
+V1495,	       	0,     68,	eacuum,		compton_e,   3,    4
+V1495,	       	0,     69,	eacuum,		compton_e,   3,    5
+V1495,	       	0,     70,	eacuum,		compton_e,   3,    6
+V1495,	       	0,     71,	eacuum,		compton_e,   3,    7
+V1495,	       	0,     72,	eacuum,		compton_e,   3,    8
+V1495,	       	0,     73,	eacuum,		compton_e,   3,    9
+V1495,	       	0,     74,	eacuum,		compton_e,   3,   10
+V1495,	       	0,     75,	eacuum,		compton_e,   3,   11
+V1495,	       	0,     76,	eacuum,		compton_e,   3,   12
+V1495,	       	0,     77,	eacuum,		compton_e,   3,   13
+V1495,	       	0,     78,	eacuum,		compton_e,   3,   14
+V1495,	       	0,     79,	eacuum,		compton_e,   3,   15
+V1495,	       	0,     80,	eacuum,		compton_e,   3,   16
+V1495,	       	0,     81,	eacuum,		compton_e,   3,   17
+V1495,	       	0,     82,	eacuum,		compton_e,   3,   18
+V1495,	       	0,     83,	eacuum,		compton_e,   3,   19
+V1495,	       	0,     84,	eacuum,		compton_e,   3,   20
+V1495,	       	0,     85,	eacuum,		compton_e,   3,   21
+V1495,	       	0,     86,	eacuum,		compton_e,   3,   22
+V1495,	       	0,     87,	eacuum,		compton_e,   3,   23
+V1495,	       	0,     88,	eacuum,		compton_e,   3,   24
+V1495,	       	0,     89,	eacuum,		compton_e,   3,   25
+V1495,	       	0,     90,	eacuum,		compton_e,   3,   26
+V1495,	       	0,     91,	eacuum,		compton_e,   3,   27
+V1495,	       	0,     92,	eacuum,		compton_e,   3,   28
+V1495,	       	0,     93,	eacuum,		compton_e,   3,   29
+V1495,	       	0,     94,	eacuum,		compton_e,   3,   30
+V1495,	       	0,     95,	eacuum,		compton_e,   3,   31
+V1495,	       	0,     96,	eacuum,		compton_e,   4,    0
+V1495,	       	0,     97,	eacuum,		compton_e,   4,    1
+V1495,	       	0,     98,	eacuum,		compton_e,   4,    2
+V1495,	       	0,     99,	eacuum,		compton_e,   4,    3
+V1495,	       	0,    100,	eacuum,		compton_e,   4,    4
+V1495,	       	0,    101,	eacuum,		compton_e,   4,    5
+V1495,	       	0,    102,	eacuum,		compton_e,   4,    6
+V1495,	       	0,    103,	eacuum,		compton_e,   4,    7
+V1495,	       	0,    104,	eacuum,		compton_e,   4,    8
+V1495,	       	0,    105,	eacuum,		compton_e,   4,    9
+V1495,	       	0,    106,	eacuum,		compton_e,   4,   10
+V1495,	       	0,    107,	eacuum,		compton_e,   4,   11
+V1495,	       	0,    108,	eacuum,		compton_e,   4,   12
+V1495,	       	0,    109,	eacuum,		compton_e,   4,   13
+V1495,	       	0,    110,	eacuum,		compton_e,   4,   14
+V1495,	       	0,    111,	eacuum,		compton_e,   4,   15
+V1495,	       	0,    112,	eacuum,		compton_e,   4,   16
+V1495,	       	0,    113,	eacuum,		compton_e,   4,   17
+V1495,	       	0,    114,	eacuum,		compton_e,   4,   18
+V1495,	       	0,    115,	eacuum,		compton_e,   4,   19
+V1495,	       	0,    116,	eacuum,		compton_e,   4,   20
+V1495,	       	0,    117,	eacuum,		compton_e,   4,   21
+V1495,	       	0,    118,	eacuum,		compton_e,   4,   22
+V1495,	       	0,    119,	eacuum,		compton_e,   4,   23
+V1495,	       	0,    120,	eacuum,		compton_e,   4,   24
+V1495,	       	0,    121,	eacuum,		compton_e,   4,   25
+V1495,	       	0,    122,	eacuum,		compton_e,   4,   26
+V1495,	       	0,    123,	eacuum,		compton_e,   4,   27
+V1495,	       	0,    124,	eacuum,		compton_e,   4,   28
+V1495,	       	0,    125,	eacuum,		compton_e,   4,   29
+V1495,	       	0,    126,	eacuum,		compton_e,   4,   30
+V1495,	       	0,    127,	eacuum,		compton_e,   4,   31
+
+
 
 Bank=0x0205
 ! V1495 Slave 2, electron accumulation mode
-! module.type, module.num  chan.num, det.type, det.name
-! Key: eapl1st33= electron accum plane 1 strip 33
-! A port
-V1495,	       	0,	0,	eaccum,	eapl1st33
-V1495,	       	0,	1,	eaccum,	eapl1st34
-V1495,	       	0,	2,	eaccum,	eapl1st35
-V1495,	       	0,	3,	eaccum,	eapl1st36
-V1495,	       	0,	4,	eaccum,	eapl1st37
-V1495,	       	0,	5,	eaccum,	eapl1st38
-V1495,	       	0,	6,	eaccum,	eapl1st39
-V1495,	       	0,	7,	eaccum,	eapl1st40
-V1495,	       	0,	8,	eaccum,	eapl1st41
-V1495,	       	0,	9,	eaccum,	eapl1st42
-V1495,	       	0,	10,	eaccum,	eapl1st43
-V1495,	       	0,	11,	eaccum,	eapl1st44
-V1495,	       	0,	12,	eaccum,	eapl1st45
-V1495,	       	0,	13,	eaccum,	eapl1st46
-V1495,	       	0,	14,	eaccum,	eapl1st47
-V1495,	       	0,	15,	eaccum,	eapl1st48
-V1495,	       	0,	16,	eaccum,	eapl1st49
-V1495,	       	0,	17,	eaccum,	eapl1st50
-V1495,	       	0,	18,	eaccum,	eapl1st51
-V1495,	       	0,	19,	eaccum,	eapl1st52
-V1495,	       	0,	20,	eaccum,	eapl1st53
-V1495,	       	0,	21,	eaccum,	eapl1st54
-V1495,	       	0,	22,	eaccum,	eapl1st55
-V1495,	       	0,	23,	eaccum,	eapl1st56
-V1495,	       	0,	24,	eaccum,	eapl1st57
-V1495,	       	0,	25,	eaccum,	eapl1st58
-V1495,	       	0,	26,	eaccum,	eapl1st59
-V1495,	       	0,	27,	eaccum,	eapl1st60
-V1495,	       	0,	28,	eaccum,	eapl1st61
-V1495,	       	0,	29,	eaccum,	eapl1st62
-V1495,	       	0,	30,	eaccum,	eapl1st63
-V1495,	       	0,	31,	eaccum,	eapl1st64
-! B port
-V1495,	       	0,	32,	eaccum,	eapl2st33
-V1495,	       	0,	33,	eaccum,	eapl2st34
-V1495,	       	0,	34,	eaccum,	eapl2st35
-V1495,	       	0,	35,	eaccum,	eapl2st36
-V1495,	       	0,	36,	eaccum,	eapl2st37
-V1495,	       	0,	37,	eaccum,	eapl2st38
-V1495,	       	0,	38,	eaccum,	eapl2st39
-V1495,	       	0,	39,	eaccum,	eapl2st40
-V1495,	       	0,	40,	eaccum,	eapl2st41
-V1495,	       	0,	41,	eaccum,	eapl2st42
-V1495,	       	0,	42,	eaccum,	eapl2st43
-V1495,	       	0,	43,	eaccum,	eapl2st44
-V1495,	       	0,	44,	eaccum,	eapl2st45
-V1495,	       	0,	45,	eaccum,	eapl2st46
-V1495,	       	0,	46,	eaccum,	eapl2st47
-V1495,	       	0,	47,	eaccum,	eapl2st48
-V1495,	       	0,	48,	eaccum,	eapl2st49
-V1495,	       	0,	49,	eaccum,	eapl2st50
-V1495,	       	0,	50,	eaccum,	eapl2st51
-V1495,	       	0,	51,	eaccum,	eapl2st52
-V1495,	       	0,	52,	eaccum,	eapl2st53
-V1495,	       	0,	53,	eaccum,	eapl2st54
-V1495,	       	0,	54,	eaccum,	eapl2st55
-V1495,	       	0,	55,	eaccum,	eapl2st56
-V1495,	       	0,	56,	eaccum,	eapl2st57
-V1495,	       	0,	57,	eaccum,	eapl2st58
-V1495,	       	0,	58,	eaccum,	eapl2st59
-V1495,	       	0,	59,	eaccum,	eapl2st60
-V1495,	       	0,	60,	eaccum,	eapl2st61
-V1495,	       	0,	61,	eaccum,	eapl2st62
-V1495,	       	0,	62,	eaccum,	eapl2st63
-V1495,	       	0,	63,	eaccum,	eapl2st64
-! C port
-! Is C port stuff in the subbank? If yes put them here and increment 
-! the D, E, F and G port channels by 31.
-! D port
-V1495,	       	0,	64,	eaccum,	eapl3st33
-V1495,	       	0,	65,	eaccum,	eapl3st34
-V1495,	       	0,	66,	eaccum,	eapl3st35
-V1495,	       	0,	67,	eaccum,	eapl3st36
-V1495,	       	0,	68,	eaccum,	eapl3st37
-V1495,	       	0,	69,	eaccum,	eapl3st38
-V1495,	       	0,	70,	eaccum,	eapl3st39
-V1495,	       	0,	71,	eaccum,	eapl3st40
-V1495,	       	0,	72,	eaccum,	eapl3st41
-V1495,	       	0,	73,	eaccum,	eapl3st42
-V1495,	       	0,	74,	eaccum,	eapl3st43
-V1495,	       	0,	75,	eaccum,	eapl3st44
-V1495,	       	0,	76,	eaccum,	eapl3st45
-V1495,	       	0,	77,	eaccum,	eapl3st46
-V1495,	       	0,	78,	eaccum,	eapl3st47
-V1495,	       	0,	79,	eaccum,	eapl3st48
-V1495,	       	0,	80,	eaccum,	eapl3st49
-V1495,	       	0,	81,	eaccum,	eapl3st50
-V1495,	       	0,	82,	eaccum,	eapl3st51
-V1495,	       	0,	83,	eaccum,	eapl3st52
-V1495,	       	0,	84,	eaccum,	eapl3st53
-V1495,	       	0,	85,	eaccum,	eapl3st54
-V1495,	       	0,	86,	eaccum,	eapl3st55
-V1495,	       	0,	87,	eaccum,	eapl3st56
-V1495,	       	0,	88,	eaccum,	eapl3st57
-V1495,	       	0,	89,	eaccum,	eapl3st58
-V1495,	       	0,	90,	eaccum,	eapl3st59
-V1495,	       	0,	91,	eaccum,	eapl3st60
-V1495,	       	0,	92,	eaccum,	eapl3st61
-V1495,	       	0,	93,	eaccum,	eapl3st62
-V1495,	       	0,	94,	eaccum,	eapl3st63
-V1495,	       	0,	95,	eaccum,	eapl3st64
-! E port
-V1495,	       	0,	96,	eaccum,	eapl4st33
-V1495,	       	0,	97,	eaccum,	eapl4st34
-V1495,	       	0,	98,	eaccum,	eapl4st35
-V1495,	       	0,	99,	eaccum,	eapl4st36
-V1495,	       	0,	100,	eaccum,	eapl4st37
-V1495,	       	0,	101,	eaccum,	eapl4st38
-V1495,	       	0,	102,	eaccum,	eapl4st39
-V1495,	       	0,	103,	eaccum,	eapl4st40
-V1495,	       	0,	104,	eaccum,	eapl4st41
-V1495,	       	0,	105,	eaccum,	eapl4st42
-V1495,	       	0,	106,	eaccum,	eapl4st43
-V1495,	       	0,	107,	eaccum,	eapl4st44
-V1495,	       	0,	108,	eaccum,	eapl4st45
-V1495,	       	0,	109,	eaccum,	eapl4st46
-V1495,	       	0,	110,	eaccum,	eapl4st47
-V1495,	       	0,	111,	eaccum,	eapl4st48
-V1495,	       	0,	112,	eaccum,	eapl4st49
-V1495,	       	0,	113,	eaccum,	eapl4st50
-V1495,	       	0,	114,	eaccum,	eapl4st51
-V1495,	       	0,	115,	eaccum,	eapl4st52
-V1495,	       	0,	116,	eaccum,	eapl4st53
-V1495,	       	0,	117,	eaccum,	eapl4st54
-V1495,	       	0,	118,	eaccum,	eapl4st55
-V1495,	       	0,	119,	eaccum,	eapl4st56
-V1495,	       	0,	120,	eaccum,	eapl4st57
-V1495,	       	0,	121,	eaccum,	eapl4st58
-V1495,	       	0,	122,	eaccum,	eapl4st59
-V1495,	       	0,	123,	eaccum,	eapl4st60
-V1495,	       	0,	124,	eaccum,	eapl4st61
-V1495,	       	0,	125,	eaccum,	eapl4st62
-V1495,	       	0,	126,	eaccum,	eapl4st63
-V1495,	       	0,	127,	eaccum,	eapl4st64
-!F port
-! are these in the subbank? if yes put here
-!G port
-! are these in the subbank? if yes put here
+! module.type, module.num,  chan.num, det.type, det.name,  plane,  strip.num
+V1495,	       	1,    128,	eacuum,	compton_e,   1,   32
+V1495,	       	1,    129,	eacuum,	compton_e,   1,   33
+V1495,	       	1,    130,	eacuum,	compton_e,   1,   34
+V1495,	       	1,    131,	eacuum,	compton_e,   1,   35
+V1495,	       	1,    132,	eacuum,	compton_e,   1,   36
+V1495,	       	1,    133,	eacuum,	compton_e,   1,   37
+V1495,	       	1,    134,	eacuum,	compton_e,   1,   38
+V1495,	       	1,    135,	eacuum,	compton_e,   1,   39
+V1495,	       	1,    136,	eacuum,	compton_e,   1,   40
+V1495,	       	1,    137,	eacuum,	compton_e,   1,   41
+V1495,	       	1,    138,	eacuum,	compton_e,   1,   42
+V1495,	       	1,    138,	eacuum,	compton_e,   1,   43
+V1495,	       	1,    140,	eacuum,	compton_e,   1,   44
+V1495,	       	1,    141,	eacuum,	compton_e,   1,   45
+V1495,	       	1,    142,	eacuum,	compton_e,   1,   46
+V1495,	       	1,    143,	eacuum,	compton_e,   1,   47
+V1495,	       	1,    144,	eacuum,	compton_e,   1,   48
+V1495,	       	1,    145,	eacuum,	compton_e,   1,   49
+V1495,	       	1,    146,	eacuum,	compton_e,   1,   50
+V1495,	       	1,    147,	eacuum,	compton_e,   1,   51
+V1495,	       	1,    148,	eacuum,	compton_e,   1,   52
+V1495,	       	1,    149,	eacuum,	compton_e,   1,   53
+V1495,	       	1,    150,	eacuum,	compton_e,   1,   54
+V1495,	       	1,    151,	eacuum,	compton_e,   1,   55
+V1495,	       	1,    152,	eacuum,	compton_e,   1,   56
+V1495,	       	1,    153,	eacuum,	compton_e,   1,   57
+V1495,	       	1,    154,	eacuum,	compton_e,   1,   58
+V1495,	       	1,    155,	eacuum,	compton_e,   1,   59
+V1495,	       	1,    156,	eacuum,	compton_e,   1,   60
+V1495,	       	1,    157,	eacuum,	compton_e,   1,   61
+V1495,	       	1,    158,	eacuum,	compton_e,   1,   62
+V1495,	       	1,    159,	eacuum,	compton_e,   1,   63
+V1495,	       	1,    160,	eacuum,	compton_e,   2,   32
+V1495,	       	1,    161,	eacuum,	compton_e,   2,   33
+V1495,	       	1,    162,	eacuum,	compton_e,   2,   34
+V1495,	       	1,    163,	eacuum,	compton_e,   2,   35
+V1495,	       	1,    164,	eacuum,	compton_e,   2,   36
+V1495,	       	1,    165,	eacuum,	compton_e,   2,   37
+V1495,	       	1,    166,	eacuum,	compton_e,   2,   38
+V1495,	       	1,    167,	eacuum,	compton_e,   2,   39
+V1495,	       	1,    168,	eacuum,	compton_e,   2,   40
+V1495,	       	1,    169,	eacuum,	compton_e,   2,   41
+V1495,	       	1,    170,	eacuum,	compton_e,   2,   42
+V1495,	       	1,    171,	eacuum,	compton_e,   2,   43
+V1495,	       	1,    172,	eacuum,	compton_e,   2,   44
+V1495,	       	1,    173,	eacuum,	compton_e,   2,   45
+V1495,	       	1,    174,	eacuum,	compton_e,   2,   46
+V1495,	       	1,    175,	eacuum,	compton_e,   2,   47
+V1495,	       	1,    176,	eacuum,	compton_e,   2,   48
+V1495,	       	1,    177,	eacuum,	compton_e,   2,   49
+V1495,	       	1,    178,	eacuum,	compton_e,   2,   50
+V1495,	       	1,    179,	eacuum,	compton_e,   2,   51
+V1495,	       	1,    180,	eacuum,	compton_e,   2,   52
+V1495,	       	1,    181,	eacuum,	compton_e,   2,   53
+V1495,	       	1,    182,	eacuum,	compton_e,   2,   54
+V1495,	       	1,    183,	eacuum,	compton_e,   2,   55
+V1495,	       	1,    184,	eacuum,	compton_e,   2,   56
+V1495,	       	1,    185,	eacuum,	compton_e,   2,   57
+V1495,	       	1,    186,	eacuum,	compton_e,   2,   58
+V1495,	       	1,    187,	eacuum,	compton_e,   2,   59
+V1495,	       	1,    188,	eacuum,	compton_e,   2,   60
+V1495,	       	1,    189,	eacuum,	compton_e,   2,   61
+V1495,	       	1,    190,	eacuum,	compton_e,   2,   62
+V1495,	       	1,    191,	eacuum,	compton_e,   2,   63
+V1495,	       	1,    192,	eacuum,	compton_e,   3,   32
+V1495,	       	1,    193,	eacuum,	compton_e,   3,   33
+V1495,	       	1,    194,	eacuum,	compton_e,   3,   34
+V1495,	       	1,    195,	eacuum,	compton_e,   3,   35
+V1495,	       	1,    196,	eacuum,	compton_e,   3,   36
+V1495,	       	1,    197,	eacuum,	compton_e,   3,   37
+V1495,	       	1,    198,	eacuum,	compton_e,   3,   38
+V1495,	       	1,    199,	eacuum,	compton_e,   3,   39
+V1495,	       	1,    200,	eacuum,	compton_e,   3,   40
+V1495,	       	1,    201,	eacuum,	compton_e,   3,   41
+V1495,	       	1,    202,	eacuum,	compton_e,   3,   42
+V1495,	       	1,    203,	eacuum,	compton_e,   3,   43
+V1495,	       	1,    204,	eacuum,	compton_e,   3,   44
+V1495,	       	1,    205,	eacuum,	compton_e,   3,   45
+V1495,	       	1,    206,	eacuum,	compton_e,   3,   46
+V1495,	       	1,    207,	eacuum,	compton_e,   3,   47
+V1495,	       	1,    208,	eacuum,	compton_e,   3,   48
+V1495,	       	1,    209,	eacuum,	compton_e,   3,   49
+V1495,	       	1,    210,	eacuum,	compton_e,   3,   50
+V1495,	       	1,    211,	eacuum,	compton_e,   3,   51
+V1495,	        1,    212,	eacuum,	compton_e,   3,   52
+V1495,	       	1,    213,	eacuum,	compton_e,   3,   53
+V1495,	       	1,    214,	eacuum,	compton_e,   3,   54
+V1495,	       	1,    215,	eacuum,	compton_e,   3,   55
+V1495,	       	1,    216,	eacuum,	compton_e,   3,   56
+V1495,	       	1,    217,	eacuum,	compton_e,   3,   57
+V1495,	       	1,    218,	eacuum,	compton_e,   3,   58
+V1495,	       	1,    219,	eacuum,	compton_e,   3,   59
+V1495,	       	1,    220,	eacuum,	compton_e,   3,   60
+V1495,	       	1,    221,	eacuum,	compton_e,   3,   61
+V1495,	       	1,    222,	eacuum,	compton_e,   3,   62
+V1495,	       	1,    223,	eacuum,	compton_e,   3,   63
+V1495,	       	1,    224,	eacuum,	compton_e,   4,   32
+V1495,	       	1,    225,	eacuum,	compton_e,   4,   33
+V1495,	       	1,    226,	eacuum,	compton_e,   4,   34
+V1495,	       	1,    227,	eacuum,	compton_e,   4,   35
+V1495,	       	1,    228,	eacuum,	compton_e,   4,   36
+V1495,	       	1,    229,	eacuum,	compton_e,   4,   37
+V1495,	       	1,    230,	eacuum,	compton_e,   4,   38
+V1495,	       	1,    231,	eacuum,	compton_e,   4,   39
+V1495,	       	1,    232,	eacuum,	compton_e,   4,   40
+V1495,	       	1,    233,	eacuum,	compton_e,   4,   41
+V1495,	       	1,    234,	eacuum,	compton_e,   4,   42
+V1495,	       	1,    235,	eacuum,	compton_e,   4,   43
+V1495,	       	1,    236,	eacuum,	compton_e,   4,   44
+V1495,	       	1,    237,	eacuum,	compton_e,   4,   45
+V1495,	       	1,    238,	eacuum,	compton_e,   4,   46
+V1495,	       	1,    239,	eacuum,	compton_e,   4,   47
+V1495,	       	1,    240,	eacuum,	compton_e,   4,   48
+V1495,	       	1,    241,	eacuum,	compton_e,   4,   49
+V1495,	       	1,    242,	eacuum,	compton_e,   4,   50
+V1495,	       	1,    243	eacuum,	compton_e,   4,   51
+V1495,	       	1,    244,	eacuum,	compton_e,   4,   52
+V1495,	       	1,    245,	eacuum,	compton_e,   4,   53
+V1495,	       	1,    246,	eacuum,	compton_e,   4,   54
+V1495,	       	1,    247,	eacuum,	compton_e,   4,   55
+V1495,	       	1,    248,	eacuum,	compton_e,   4,   56
+V1495,	       	1,    249,	eacuum,	compton_e,   4,   57
+V1495,	       	1,    250,	eacuum,	compton_e,   4,   58
+V1495,	       	1,    251,	eacuum,	compton_e,   4,   59
+V1495,	       	1,    252,	eacuum,	compton_e,   4,   60
+V1495,	       	1,    253,	eacuum,	compton_e,   4,   61
+V1495,	       	1,    254,	eacuum,	compton_e,   4,   62
+V1495,	       	1,    255,	eacuum,	compton_e,   4,   63
+
 
 Bank=0x0206
 !V1495 slave 3, electron accumulation mode
-! module.type, module.num  chan.num, det.type, det.name
-! Key: eapl1st65= electron accum event plane 1 strip 65
-! A port
-V1495,	       	1,	0,	eaccum,	eapl1st65
-V1495,	       	1,	1,	eaccum,	eapl1st66
-V1495,	       	1,	2,	eaccum,	eapl1st67
-V1495,	       	1,	3,	eaccum,	eapl1st68
-V1495,	       	1,	4,	eaccum,	eapl1st69
-V1495,	       	1,	5,	eaccum,	eapl1st70
-V1495,	       	1,	6,	eaccum,	eapl1st71
-V1495,	       	1,	7,	eaccum,	eapl1st72
-V1495,	       	1,	8,	eaccum,	eapl1st73
-V1495,	       	1,	9,	eaccum,	eapl1st74
-V1495,	       	1,	10,	eaccum,	eapl1st75
-V1495,	       	1,	11,	eaccum,	eapl1st76
-V1495,	       	1,	12,	eaccum,	eapl1st77
-V1495,	       	1,	13,	eaccum,	eapl1st78
-V1495,	       	1,	14,	eaccum,	eapl1st79
-V1495,	       	1,	15,	eaccum,	eapl1st80
-V1495,	       	1,	16,	eaccum,	eapl1st81
-V1495,	       	1,	17,	eaccum,	eapl1st82
-V1495,	       	1,	18,	eaccum,	eapl1st83
-V1495,	       	1,	19,	eaccum,	eapl1st84
-V1495,	       	1,	20,	eaccum,	eapl1st85
-V1495,	       	1,	21,	eaccum,	eapl1st86
-V1495,	       	1,	22,	eaccum,	eapl1st87
-V1495,	       	1,	23,	eaccum,	eapl1st88
-V1495,	       	1,	24,	eaccum,	eapl1st89
-V1495,	       	1,	25,	eaccum,	eapl1st90
-V1495,	       	1,	26,	eaccum,	eapl1st91
-V1495,	       	1,	27,	eaccum,	eapl1st92
-V1495,	       	1,	28,	eaccum,	eapl1st93
-V1495,	       	1,	29,	eaccum,	eapl1st94
-V1495,	       	1,	30,	eaccum,	eapl1st95
-V1495,	       	1,	31,	eaccum,	eapl1st96
-! B port
-V1495,	       	1,	32,	eaccum,	eapl2st65
-V1495,	       	1,	33,	eaccum,	eapl2st66
-V1495,	       	1,	34,	eaccum,	eapl2st67
-V1495,	       	1,	35,	eaccum,	eapl2st68
-V1495,	       	1,	36,	eaccum,	eapl2st69
-V1495,	       	1,	37,	eaccum,	eapl2st70
-V1495,	       	1,	38,	eaccum,	eapl2st71
-V1495,	       	1,	39,	eaccum,	eapl2st72
-V1495,	       	1,	40,	eaccum,	eapl2st73
-V1495,	       	1,	41,	eaccum,	eapl2st74
-V1495,	       	1,	42,	eaccum,	eapl2st75
-V1495,	       	1,	43,	eaccum,	eapl2st76
-V1495,	       	1,	44,	eaccum,	eapl2st77
-V1495,	       	1,	45,	eaccum,	eapl2st78
-V1495,	       	1,	46,	eaccum,	eapl2st79
-V1495,	       	1,	47,	eaccum,	eapl2st80
-V1495,	       	1,	48,	eaccum,	eapl2st81
-V1495,	       	1,	49,	eaccum,	eapl2st82
-V1495,	       	1,	50,	eaccum,	eapl2st83
-V1495,	       	1,	51,	eaccum,	eapl2st84
-V1495,	       	1,	52,	eaccum,	eapl2st85
-V1495,	       	1,	53,	eaccum,	eapl2st86
-V1495,	       	1,	54,	eaccum,	eapl2st87
-V1495,	       	1,	55,	eaccum,	eapl2st88
-V1495,	       	1,	56,	eaccum,	eapl2st89
-V1495,	       	1,	57,	eaccum,	eapl2st90
-V1495,	       	1,	58,	eaccum,	eapl2st91
-V1495,	       	1,	59,	eaccum,	eapl2st92
-V1495,	       	1,	60,	eaccum,	eapl2st93
-V1495,	       	1,	61,	eaccum,	eapl2st94
-V1495,	       	1,	62,	eaccum,	eapl2st95
-V1495,	       	1,	63,	eaccum,	eapl2st96
-! C port
-! Is C port stuff in the subbank? If yes put them here and increment 
-! the D, E, F and G port channels by 31.
-! D port
-V1495,	       	1,	64,	eaccum,	eapl3st65
-V1495,	       	1,	65,	eaccum,	eapl3st66
-V1495,	       	1,	66,	eaccum,	eapl3st67
-V1495,	       	1,	67,	eaccum,	eapl3st68
-V1495,	       	1,	68,	eaccum,	eapl3st69
-V1495,	       	1,	69,	eaccum,	eapl3st70
-V1495,	       	1,	70,	eaccum,	eapl3st71
-V1495,	       	1,	71,	eaccum,	eapl3st72
-V1495,	       	1,	72,	eaccum,	eapl3st73
-V1495,	       	1,	73,	eaccum,	eapl3st74
-V1495,	       	1,	74,	eaccum,	eapl3st75
-V1495,	       	1,	75,	eaccum,	eapl3st76
-V1495,	       	1,	76,	eaccum,	eapl3st77
-V1495,	       	1,	77,	eaccum,	eapl3st78
-V1495,	       	1,	78,	eaccum,	eapl3st79
-V1495,	       	1,	79,	eaccum,	eapl3st80
-V1495,	       	1,	80,	eaccum,	eapl3st81
-V1495,	       	1,	81,	eaccum,	eapl3st82
-V1495,	       	1,	82,	eaccum,	eapl3st83
-V1495,	       	1,	83,	eaccum,	eapl3st84
-V1495,	       	1,	84,	eaccum,	eapl3st85
-V1495,	       	1,	85,	eaccum,	eapl3st86
-V1495,	       	1,	86,	eaccum,	eapl3st87
-V1495,	       	1,	87,	eaccum,	eapl3st88
-V1495,	       	1,	88,	eaccum,	eapl3st89
-V1495,	       	1,	89,	eaccum,	eapl3st90
-V1495,	       	1,	90,	eaccum,	eapl3st91
-V1495,	       	1,	91,	eaccum,	eapl3st92
-V1495,	       	1,	92,	eaccum,	eapl3st93
-V1495,	       	1,	93,	eaccum,	eapl3st94
-V1495,	       	1,	94,	eaccum,	eapl3st95
-V1495,	       	1,	95,	eaccum,	eapl3st96
-! E port
-V1495,	       	1,	96,	eaccum,	eapl4st65
-V1495,	       	1,	97,	eaccum,	eapl4st66
-V1495,	       	1,	98,	eaccum,	eapl4st67
-V1495,	       	1,	99,	eaccum,	eapl4st68
-V1495,	       	1,	100,	eaccum,	eapl4st69
-V1495,	       	1,	101,	eaccum,	eapl4st70
-V1495,	       	1,	102,	eaccum,	eapl4st71
-V1495,	       	1,	103,	eaccum,	eapl4st72
-V1495,	       	1,	104,	eaccum,	eapl4st73
-V1495,	       	1,	105,	eaccum,	eapl4st74
-V1495,	       	1,	106,	eaccum,	eapl4st75
-V1495,	       	1,	107,	eaccum,	eapl4st76
-V1495,	       	1,	108,	eaccum,	eapl4st77
-V1495,	       	1,	109,	eaccum,	eapl4st78
-V1495,	       	1,	110,	eaccum,	eapl4st79
-V1495,	       	1,	111,	eaccum,	eapl4st80
-V1495,	       	1,	112,	eaccum,	eapl4st81
-V1495,	       	1,	113,	eaccum,	eapl4st82
-V1495,	       	1,	114,	eaccum,	eapl4st83
-V1495,	       	1,	115,	eaccum,	eapl4st84
-V1495,	       	1,	116,	eaccum,	eapl4st85
-V1495,	       	1,	117,	eaccum,	eapl4st86
-V1495,	       	1,	118,	eaccum,	eapl4st87
-V1495,	       	1,	119,	eaccum,	eapl4st88
-V1495,	       	1,	120,	eaccum,	eapl4st89
-V1495,	       	1,	121,	eaccum,	eapl4st90
-V1495,	       	1,	122,	eaccum,	eapl4st91
-V1495,	       	1,	123,	eaccum,	eapl4st92
-V1495,	       	1,	124,	eaccum,	eapl4st93
-V1495,	       	1,	125,	eaccum,	eapl4st94
-V1495,	       	1,	126,	eaccum,	eapl4st94
-V1495,	       	1,	127,	eaccum,	eapl4st96
-!F port
-! are these in the subbank? if yes put here
-!G port
-! are these in the subbank? if yes put here
+! module.type, module.num,  chan.num, det.type, det.name,  plane,  strip.num
+V1495,	       	2,    256,	eacuum,	compton_e,   1,   64
+V1495,	       	2,    257,	eacuum,	compton_e,   1,   65
+V1495,	       	2,    258,	eacuum,	compton_e,   1,   66
+V1495,	       	2,    259,	eacuum,	compton_e,   1,   67
+V1495,	       	2,    260,	eacuum,	compton_e,   1,   68
+V1495,	       	2,    261,	eacuum,	compton_e,   1,   69
+V1495,	       	2,    262,	eacuum,	compton_e,   1,   70
+V1495,	       	2,    263,	eacuum,	compton_e,   1,   71
+V1495,	       	2,    264,	eacuum,	compton_e,   1,   72
+V1495,	       	2,    265,	eacuum,	compton_e,   1,   73
+V1495,	       	2,    266,	eacuum,	compton_e,   1,   74
+V1495,	       	2,    267,	eacuum,	compton_e,   1,   75
+V1495,	       	2,    268,	eacuum,	compton_e,   1,   76
+V1495,	       	2,    269,	eacuum,	compton_e,   1,   77
+V1495,	       	2,    270,	eacuum,	compton_e,   1,   78
+V1495,	       	2,    271,	eacuum,	compton_e,   1,   79
+V1495,	       	2,    272,	eacuum,	compton_e,   1,   80
+V1495,	       	2,    273,	eacuum,	compton_e,   1,   81
+V1495,	       	2,    274,	eacuum,	compton_e,   1,   82
+V1495,	       	2,    275,	eacuum,	compton_e,   1,   83
+V1495,	       	2,    276,	eacuum,	compton_e,   1,   84
+V1495,	       	2,    277,	eacuum,	compton_e,   1,   85
+V1495,	       	2,    278,	eacuum,	compton_e,   1,   86
+V1495,	       	2,    279,	eacuum,	compton_e,   1,   87
+V1495,	       	2,    280,	eacuum,	compton_e,   1,   88
+V1495,	       	2,    281,	eacuum,	compton_e,   1,   89
+V1495,	       	2,    282,	eacuum,	compton_e,   1,   90
+V1495,	       	2,    283,	eacuum,	compton_e,   1,   91
+V1495,	       	2,    284,	eacuum,	compton_e,   1,   92
+V1495,	       	2,    285,	eacuum,	compton_e,   1,   93
+V1495,	       	2,    286,	eacuum,	compton_e,   1,   94
+V1495,	       	2,    287,	eacuum,	compton_e,   1,   95
+V1495,	       	2,    288,	eacuum,	compton_e,   2,   64
+V1495,	       	2,    289,	eacuum,	compton_e,   2,   65
+V1495,	       	2,    290,	eacuum,	compton_e,   2,   66
+V1495,	       	2,    291,	eacuum,	compton_e,   2,   67
+V1495,	       	2,    292,	eacuum,	compton_e,   2,   68
+V1495,	       	2,    293,	eacuum,	compton_e,   2,   69
+V1495,	       	2,    294,	eacuum,	compton_e,   2,   70
+V1495,	       	2,    295,	eacuum,	compton_e,   2,   71
+V1495,	       	2,    296,	eacuum,	compton_e,   2,   72
+V1495,	       	2,    297,	eacuum,	compton_e,   2,   73
+V1495,	       	2,    298,	eacuum,	compton_e,   2,   74
+V1495,	       	2,    299,	eacuum,	compton_e,   2,   75
+V1495,	       	2,    301,	eacuum,	compton_e,   2,   76
+V1495,	       	2,    302,	eacuum,	compton_e,   2,   77
+V1495,	       	2,    303,	eacuum,	compton_e,   2,   78
+V1495,	       	2,    304,	eacuum,	compton_e,   2,   79
+V1495,	       	2,    305,	eacuum,	compton_e,   2,   80
+V1495,	       	2,    306,	eacuum,	compton_e,   2,   81
+V1495,	       	2,    307,	eacuum,	compton_e,   2,   82
+V1495,	       	2,    308,	eacuum,	compton_e,   2,   83
+V1495,	       	2,    309,	eacuum,	compton_e,   2,   84
+V1495,	       	2,    310,	eacuum,	compton_e,   2,   85
+V1495,	       	2,    311,	eacuum,	compton_e,   2,   86
+V1495,	       	2,    312,	eacuum,	compton_e,   2,   87
+V1495,	       	2,    313,	eacuum,	compton_e,   2,   88
+V1495,	       	2,    314,	eacuum,	compton_e,   2,   89
+V1495,	       	2,    315,	eacuum,	compton_e,   2,   90
+V1495,	       	2,    316,	eacuum,	compton_e,   2,   91
+V1495,	       	2,    317,	eacuum,	compton_e,   2,   92
+V1495,	       	2,    318,	eacuum,	compton_e,   2,   93
+V1495,	       	2,    319,	eacuum,	compton_e,   2,   94
+V1495,	       	2,    320,	eacuum,	compton_e,   2,   95
+V1495,	       	2,    321,	eacuum,	compton_e,   3,   64
+V1495,	       	2,    322,	eacuum,	compton_e,   3,   65
+V1495,	       	2,    323,	eacuum,	compton_e,   3,   66
+V1495,	       	2,    324,	eacuum,	compton_e,   3,   67
+V1495,	       	2,    325,	eacuum,	compton_e,   3,   68
+V1495,	       	2,    326,	eacuum,	compton_e,   3,   69
+V1495,	       	2,    327,	eacuum,	compton_e,   3,   70
+V1495,	       	2,    328,	eacuum,	compton_e,   3,   71
+V1495,	       	2,    329,	eacuum,	compton_e,   3,   72
+V1495,	       	2,    330,	eacuum,	compton_e,   3,   73
+V1495,	       	2,    331,	eacuum,	compton_e,   3,   74
+V1495,	       	2,    332,	eacuum,	compton_e,   3,   75
+V1495,	       	2,    333,	eacuum,	compton_e,   3,   76
+V1495,	       	2,    334,	eacuum,	compton_e,   3,   77
+V1495,	       	2,    335,	eacuum,	compton_e,   3,   78
+V1495,	       	2,    336,	eacuum,	compton_e,   3,   79
+V1495,	       	2,    337,	eacuum,	compton_e,   3,   80
+V1495,	       	2,    338,	eacuum,	compton_e,   3,   81
+V1495,	       	2,    339,	eacuum,	compton_e,   3,   82
+V1495,	       	2,    340,	eacuum,	compton_e,   3,   83
+V1495,	        2,    341,	eacuum,	compton_e,   3,   84
+V1495,	       	2,    342,	eacuum,	compton_e,   3,   85
+V1495,	       	2,    343,	eacuum,	compton_e,   3,   86
+V1495,	       	2,    344,	eacuum,	compton_e,   3,   87
+V1495,	       	2,    345,	eacuum,	compton_e,   3,   88
+V1495,	       	2,    346,	eacuum,	compton_e,   3,   89
+V1495,	       	2,    347,	eacuum,	compton_e,   3,   90
+V1495,	       	2,    348,	eacuum,	compton_e,   3,   91
+V1495,	       	2,    349,	eacuum,	compton_e,   3,   92
+V1495,	       	2,    350,	eacuum,	compton_e,   3,   93
+V1495,	       	2,    351,	eacuum,	compton_e,   3,   94
+V1495,	       	2,    352,	eacuum,	compton_e,   3,   95
+V1495,	       	2,    353,	eacuum,	compton_e,   4,   64
+V1495,	       	2,    354,	eacuum,	compton_e,   4,   65
+V1495,	       	2,    355,	eacuum,	compton_e,   4,   66
+V1495,	       	2,    356,	eacuum,	compton_e,   4,   67
+V1495,	       	2,    357,	eacuum,	compton_e,   4,   68
+V1495,	       	2,    358,	eacuum,	compton_e,   4,   69
+V1495,	       	2,    359,	eacuum,	compton_e,   4,   70
+V1495,	       	2,    360,	eacuum,	compton_e,   4,   71
+V1495,	       	2,    361,	eacuum,	compton_e,   4,   72
+V1495,	       	2,    362,	eacuum,	compton_e,   4,   73
+V1495,	       	2,    363,	eacuum,	compton_e,   4,   74
+V1495,	       	2,    364,	eacuum,	compton_e,   4,   75
+V1495,	       	2,    365,	eacuum,	compton_e,   4,   76
+V1495,	       	2,    366,	eacuum,	compton_e,   4,   77
+V1495,	       	2,    367,	eacuum,	compton_e,   4,   78
+V1495,	       	2,    368,	eacuum,	compton_e,   4,   79
+V1495,	       	2,    369,	eacuum,	compton_e,   4,   80
+V1495,	       	2,    370,	eacuum,	compton_e,   4,   81
+V1495,	       	2,    371,	eacuum,	compton_e,   4,   82
+V1495,	       	2,    372	eacuum,	compton_e,   4,   83
+V1495,	       	2,    373,	eacuum,	compton_e,   4,   84
+V1495,	       	2,    374,	eacuum,	compton_e,   4,   85
+V1495,	       	2,    375,	eacuum,	compton_e,   4,   86
+V1495,	       	2,    376,	eacuum,	compton_e,   4,   87
+V1495,	       	2,    377,	eacuum,	compton_e,   4,   88
+V1495,	       	2,    378,	eacuum,	compton_e,   4,   89
+V1495,	       	2,    379,	eacuum,	compton_e,   4,   90
+V1495,	       	2,    380	eacuum,	compton_e,   4,   91
+V1495,	       	2,    381,	eacuum,	compton_e,   4,   92
+V1495,	       	2,    382,	eacuum,	compton_e,   4,   93
+V1495,	       	2,    383,	eacuum,	compton_e,   4,   94
+V1495,	       	2,    384,	eacuum,	compton_e,   4,   95
 
 ! End of ROC2 map

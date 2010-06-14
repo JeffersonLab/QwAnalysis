@@ -9,6 +9,9 @@
 
 #include "QwScanner.h"
 
+// Register this subsystem with the factory
+QwSubsystemFactory<QwScanner> theScannerFactory("QwScanner");
+
 extern QwHistogramHelper gQwHists;
 const Bool_t QwScanner::bStoreRawData = kFALSE;
 const UInt_t QwScanner::kMaxNumberOfModulesPerROC     = 21;
@@ -53,7 +56,9 @@ QwScanner::~QwScanner() {
 };
 
 
-
+void QwScanner::ProcessOptions(QwOptions &options){
+      //Handle command line options
+};
 Int_t QwScanner::LoadChannelMap(TString mapfile) {
     TString varname, varvalue;
     TString modtype, dettype, name;
@@ -88,13 +93,15 @@ Int_t QwScanner::LoadChannelMap(TString mapfile) {
             //  Push a new record into the element array
             if (modtype=="VQWK") {
                 //std::cout<<"modnum="<<modnum<<"    "<<"fADC_Data.size="<<fADC_Data.size()<<std::endl;
-                if (modnum >= (Int_t) fADC_Data.size())  fADC_Data.resize(modnum+1, new QwVQWK_Module());
+                if (modnum >= (Int_t) fADC_Data.size())  fADC_Data.resize(modnum+1);
+                if (! fADC_Data.at(modnum)) fADC_Data.at(modnum) = new QwVQWK_Module();
                 fADC_Data.at(modnum)->SetChannel(channum, name);
             }
 
             else if (modtype=="SIS3801") {
                 //std::cout<<"modnum="<<modnum<<"    "<<"fSCAs.size="<<fSCAs.size()<<std::endl;
-                if (modnum >= (Int_t) fSCAs.size())  fSCAs.resize(modnum+1, new QwSIS3801_Module());
+                if (modnum >= (Int_t) fSCAs.size())  fSCAs.resize(modnum+1);
+                if (! fSCAs.at(modnum)) fSCAs.at(modnum) = new QwSIS3801_Module();
                 fSCAs.at(modnum)->SetChannel(channum, name);
 
             }
@@ -242,7 +249,7 @@ Int_t QwScanner::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t ba
 };
 
 
-Int_t QwScanner::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words) {
+Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) {
     Int_t index = GetSubbankIndex(roc_id,bank_id);
 
     fDEBUG = 0;
@@ -469,28 +476,33 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix) {
         else  basename = prefix;
 
         if (folder != NULL) folder->cd();
-        TDirectory* scannerfolder = folder->mkdir("scanner");
+
+        // TODO (wdc) disabled due to restriction imposed by memory mapped file
+        // Also changes to ConstructHistograms() calls below.
+        //TDirectory* scannerfolder = folder->mkdir("scanner");
 
         // if (bRawData)
         {
             for (size_t i=0; i<fPMTs.size(); i++) {
                 for (size_t j=0; j<fPMTs.at(i).size(); j++)
-                    fPMTs.at(i).at(j).ConstructHistograms(scannerfolder, basename);
+                    fPMTs.at(i).at(j).ConstructHistograms(folder, basename);
             }
 
             for (size_t i=0; i<fSCAs.size(); i++) {
                 if (fSCAs.at(i) != NULL) {
-                    fSCAs.at(i)->ConstructHistograms(scannerfolder, basename);
+                    fSCAs.at(i)->ConstructHistograms(folder, basename);
                 }
             }
 
             for (size_t i=0; i<fADC_Data.size(); i++) {
                 if (fADC_Data.at(i) != NULL)
-                    fADC_Data.at(i)->ConstructHistograms(scannerfolder, basename);
+                    fADC_Data.at(i)->ConstructHistograms(folder, basename);
             }
         }
 
-        scannerfolder->cd();
+        // TODO (wdc) disabled due to restriction imposed by memory mapped file
+        //scannerfolder->cd();
+
         //fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
         fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
         fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));
@@ -559,7 +571,7 @@ void  QwScanner::FillHistograms() {
                 if (prevalue>0) {
                     rate = (prevalue + rate)*0.5;  //average value for this bin
                 }
-                fHistograms2D.at(j)->SetBinContent(fPositionX_VQWK,fPositionY_VQWK,rate);
+                fHistograms2D.at(j)->SetBinContent((Int_t) fPositionX_VQWK, (Int_t)fPositionY_VQWK,rate);
                 Int_t xbin = fHistograms2D.at(j)->GetXaxis()->FindBin( fPositionX_VQWK );
                 Int_t ybin = fHistograms2D.at(j)->GetYaxis()->FindBin( fPositionY_VQWK );
                 fHistograms2D.at(j)->SetBinContent( fHistograms2D.at(j)->GetBin( xbin, ybin ), rate);
@@ -787,17 +799,17 @@ void  QwScanner::DeleteHistograms() {
     }
 
     for (size_t i=0; i<fHistograms1D.size(); i++) {
-        if (fHistograms1D.at(i) != NULL) {
-            fHistograms1D.at(i)->Delete();
-            fHistograms1D.at(i) =  NULL;
-        }
+      if (fHistograms1D.at(i) != NULL) {
+	delete fHistograms1D.at(i);
+	fHistograms1D.at(i) =  NULL;
+      }
     }
 
     for (size_t i=0; i<fHistograms2D.size(); i++) {
-        if (fHistograms2D.at(i) != NULL) {
-            fHistograms2D.at(i)->Delete();
-            fHistograms2D.at(i) =  NULL;
-        }
+      if (fHistograms2D.at(i) != NULL) {
+	delete fHistograms2D.at(i);
+	fHistograms2D.at(i) =  NULL;
+      }
     }
 
 };

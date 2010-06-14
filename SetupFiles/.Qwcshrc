@@ -8,7 +8,7 @@
 # Author :   P. M. King (pking@jlab.org)
 # Date :     07 November 2006
 #
-# 
+#
 #******************************************************************************
 
 # Main QWEAK directories :
@@ -26,16 +26,16 @@ endif
 
 # Searching paths for binaries :
 if ($?PATH) then
-   setenv PATH  ${QW_BIN}:${PATH}
+   setenv PATH  ${QW_BIN}:${ROOTSYS}/bin:${PATH}
 else
-   setenv PATH  ${QW_BIN}
+   setenv PATH  ${QW_BIN}:${ROOTSYS}/bin
 endif
 
 # Searching paths for linker :
 if ($?LD_LIBRARY_PATH) then
-   setenv LD_LIBRARY_PATH  ${QW_LIB}:${LD_LIBRARY_PATH}
+   setenv LD_LIBRARY_PATH  ${QW_LIB}:${ROOTSYS}/lib:${MYSQLPP_LIB_DIR}:${LD_LIBRARY_PATH}
 else
-   setenv LD_LIBRARY_PATH  ${QW_LIB}
+   setenv LD_LIBRARY_PATH  ${QW_LIB}:${ROOTSYS}/lib:${MYSQLPP_LIB_DIR}
 endif
 
 # Create alias for make when gmake is not found; the standard

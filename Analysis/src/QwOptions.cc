@@ -7,6 +7,7 @@
  */
 
 #include "QwOptions.h"
+#include "QwParameterFile.h"
 
 // System headers
 #include <iostream>
@@ -26,9 +27,9 @@ po::options_description QwOptions::fConfigFileOptions("Config file options");
 QwOptions gQwOptions;
 
 // Qweak headers
-#include "QwEventBuffer.h"
 #include "QwLog.h"
-
+#include "QwSubsystemArray.h"
+#include "QwEventBuffer.h"
 #include "QwDatabase.h"
 
 // Initialize the static command line arguments to zero
@@ -49,7 +50,7 @@ QwOptions::QwOptions()
   // Declare the default options
   AddDefaultOptions()("usage",  "print this help message");
   AddDefaultOptions()("help,h", "print this help message");
-  AddDefaultOptions()("config,c", po::value<string>(), "configuration file to read");
+  AddDefaultOptions()("config,c", po::value<std::string>(), "configuration file to read");
 
 }
 
@@ -59,13 +60,15 @@ QwOptions::QwOptions()
  */
 void QwOptions::DefineOptions(QwOptions& options)
 {
-  // Define execution options
-  QwEventBuffer::DefineOptions(options);
-  // Define logging options
+  // Define logging options (Note: only QwLog takes a pointer argument!!!)
   QwLog::DefineOptions(&options);
 
+  // Define execution options
+  QwEventBuffer::DefineOptions(options);
   // Define database options
   QwDatabase::DefineOptions(options);
+  // Define subsystem array options
+  QwSubsystemArray::DefineOptions(options);
 }
 
 /**
@@ -149,17 +152,17 @@ void QwOptions::ParseCommandLine()
   // Notify of new options
   po::notify(fVariablesMap);
 
-  // If no arguments or option help/usage, print help text.
-  if (fArgc == 1 || fVariablesMap.count("help") || fVariablesMap.count("usage")) {
+  // If option help/usage, print help text.
+  if (fVariablesMap.count("help") || fVariablesMap.count("usage")) {
     Usage();
-    exit(1);
+    exit(0);
   }
 
   // If a configuration file is specified, load it.
   if (fVariablesMap.count("config") > 0) {
     QwWarning << "Using configuration file "
-              << fVariablesMap["config"].as<string>() << QwLog::endl;
-    SetConfigFile(fVariablesMap["config"].as<string>());
+              << fVariablesMap["config"].as<std::string>() << QwLog::endl;
+    SetConfigFile(fVariablesMap["config"].as<std::string>());
   }
 }
 
@@ -183,7 +186,7 @@ void QwOptions::ParseEnvironment()
 void QwOptions::ParseConfigFile()
 {
   for (size_t i = 0; i < fConfigFiles.size(); i++) {
-    std::ifstream configfile(fConfigFiles.at(i).c_str());
+    QwParameterFile configfile(fConfigFiles.at(i).c_str());
     std::stringstream configstream;
     configstream << configfile.rdbuf();
 
@@ -191,10 +194,13 @@ void QwOptions::ParseConfigFile()
 #if BOOST_VERSION >= 103500
       // Boost version after 1.35 have bool allow_unregistered = false in
       // their signature.  This allows for unknown options in the config file.
-      po::store(po::parse_config_file(configstream, fConfigFileOptions, true), fVariablesMap);
+      po::store(po::parse_config_file(configstream, fConfigFileOptions, true),
+		fVariablesMap);
 #else
-      // Boost versions before 1.35 cannot handle files with unregistered options.
-      po::store(po::parse_config_file(configstream, fConfigFileOptions), fVariablesMap);
+      // Boost versions before 1.35 cannot handle files with unregistered
+      // options.
+      po::store(po::parse_config_file(configstream, fConfigFileOptions),
+		fVariablesMap);
 #endif
     } catch (std::exception const& e) {
       QwWarning << e.what() << " while parsing configuration file "
@@ -227,7 +233,7 @@ void QwOptions::Usage()
  * @param key Option key
  * @return Pair of integers
  */
-std::pair<int,int> QwOptions::GetIntValuePair(string key)
+std::pair<int,int> QwOptions::GetIntValuePair(std::string key)
 {
   std::pair<int, int> mypair;
   mypair.first = 0;
@@ -235,14 +241,14 @@ std::pair<int,int> QwOptions::GetIntValuePair(string key)
 
   if (fParsed == false) Parse();
   if (fVariablesMap.count(key)) {
-    string range = fVariablesMap[key].as<string>();
+    std::string range = fVariablesMap[key].as<std::string>();
     mypair = ParseIntRange(range);
   }
 
   return mypair;
 }
 
-std::pair<int, int> QwOptions::ParseIntRange(string range)
+std::pair<int, int> QwOptions::ParseIntRange(std::string range)
 {
   /** @brief Separates a colon separated range of integers into a pair of values
    *

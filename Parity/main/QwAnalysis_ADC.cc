@@ -49,9 +49,9 @@ static const int kMultiplet = 4;
 // Activate components
 static bool bTree = true;
 static bool bHisto = true;
-static bool bHelicity= true;
+static bool bHelicity= false;
 
-
+Bool_t bEnableBlinding = kTRUE;
 ///
 /// \ingroup QwAnalysis_ADC
 int main(Int_t argc,Char_t* argv[]) {
@@ -59,6 +59,7 @@ int main(Int_t argc,Char_t* argv[]) {
     /// and we define the options that can be used in them (using QwOptions).
     gQwOptions.SetCommandLine(argc, argv);
     gQwOptions.SetConfigFile("qwanalysis_adc.conf");
+    gQwOptions.SetConfigFile("Parity/prminput/qweak_mysql.conf");
     // Define the command line options
     DefineOptionsParity(gQwOptions);
 
@@ -72,9 +73,9 @@ int main(Int_t argc,Char_t* argv[]) {
     ///  variable within the QwParameterFile class which will be used by
     ///  all instances.
     ///  The "scratch" directory should be first.
-    QwParameterFile::AppendToSearchPath(std::string(getenv("QW_PRMINPUT")));
-    QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
-    QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Analysis/prminput");
+    QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+    QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS")+"/Parity/prminput");
+    QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
     ///
     ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
@@ -96,23 +97,23 @@ int main(Int_t argc,Char_t* argv[]) {
     /// background detector MD0 (there are two channels for each fully assembled detector)
     /// plus 3 additional diagnostic detector channels AnciD1-AnciD3 for noise setup.
     detectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
-    detectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
-    //detectors.GetSubsystem("Main detector")->LoadInputParameters("qweak_pedestal.map");
+    detectors.GetSubsystemByName("MainDetectors")->LoadChannelMap("qweak_adc.map");
+    //detectors.GetSubsystemByName("Main detector")->LoadInputParameters("qweak_pedestal.map");
 
     detectors.push_back(new QwBeamLine("Injector BeamLine"));
-//    detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
-//    detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");
+//    detectors.GetSubsystemByName("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
+//    detectors.GetSubsystemByName("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");
     //use mock_qweak_beamline.map for testing with mockdatagenerator
-    detectors.GetSubsystem("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
-    detectors.GetSubsystem("Injector BeamLine")->LoadInputParameters("mock_qweak_pedestal.map");
+    detectors.GetSubsystemByName("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
+    detectors.GetSubsystemByName("Injector BeamLine")->LoadInputParameters("mock_qweak_pedestal.map");
 
 
     ///
     /// Instantiate scanner subsystem
     detectors.push_back(new QwScanner("FPS"));
-    ((VQwSubsystemParity*) detectors.GetSubsystem("FPS"))->LoadChannelMap("scanner_channel.map" );
-    ((VQwSubsystemParity*) detectors.GetSubsystem("FPS"))->LoadInputParameters("scanner_parameter.map");
-    //QwScanner* scanner = dynamic_cast<QwScanner*> (detectors.GetSubsystem("FPS")); // Get scanner subsystem
+    ((VQwSubsystemParity*) detectors.GetSubsystemByName("FPS"))->LoadChannelMap("scanner_channel.map" );
+    ((VQwSubsystemParity*) detectors.GetSubsystemByName("FPS"))->LoadInputParameters("scanner_parameter.map");
+    //QwScanner* scanner = dynamic_cast<QwScanner*> (detectors.GetSubsystemByName("FPS")); // Get scanner subsystem
 
     ///
     ///Specifies the same helicity pattern used by all subsystems
@@ -123,17 +124,17 @@ int main(Int_t argc,Char_t* argv[]) {
     if (bHelicity) {
         detectors.push_back(new QwHelicity("Helicity info"));
         //use mock_qweak_helicity.map for testing with mockdatagenerator
-        //detectors.GetSubsystem("Helicity info")->LoadChannelMap("qweak_helicity.map");
-        detectors.GetSubsystem("Helicity info")->LoadChannelMap("mock_qweak_helicity.map");
-        detectors.GetSubsystem("Helicity info")->LoadInputParameters("");
-        helicity = dynamic_cast<QwHelicity*> (detectors.GetSubsystem("Helicity info")); // Get the helicity
+        //detectors.GetSubsystemByName("Helicity info")->LoadChannelMap("qweak_helicity.map");
+        detectors.GetSubsystemByName("Helicity info")->LoadChannelMap("mock_qweak_helicity.map");
+        detectors.GetSubsystemByName("Helicity info")->LoadInputParameters("");
+        helicity = dynamic_cast<QwHelicity*> (detectors.GetSubsystemByName("Helicity info")); // Get the helicity
     }
 
     //QwHelicityPattern helicitypattern(detectors);//multiplet size is set within the QwHelicityPattern class
     QwHelicityPattern* helicitypattern = new QwHelicityPattern(detectors);
 
     // Get the helicity
-    //QwHelicity* helicity = dynamic_cast<QwHelicity*> (detectors.GetSubsystem("Helicity info"));
+    //QwHelicity* helicity = dynamic_cast<QwHelicity*> (detectors.GetSubsystemByName("Helicity info"));
 
 //   QwMainCerenkovDetector sum_outer(""), sum_inner(""), diff(""), sum(""), asym("");
 
@@ -143,6 +144,15 @@ int main(Int_t argc,Char_t* argv[]) {
 //   diff.LoadChannelMap("qweak_adc.map");
 //   asym.LoadChannelMap("qweak_adc.map");
 
+    QwDatabase *qwdatabase = new QwDatabase();
+    UInt_t run_id      = qwdatabase->GetRunID(eventbuffer);
+    UInt_t analysis_id = qwdatabase->GetAnalysisID(eventbuffer);
+    printf("main:: Run # %d Run ID %d and Analysis ID %d\n",
+                  eventbuffer.GetRunNumber(), run_id, analysis_id);
+
+    UInt_t seed_id = qwdatabase->GetAnalysisID();
+    QwBlinder *blinders = new QwBlinder(qwdatabase, seed_id, QwBlinder::kAdditive);
+
     Double_t evnum=0.0;
 
     // Loop over all runs
@@ -151,11 +161,10 @@ int main(Int_t argc,Char_t* argv[]) {
         //  Start the timer.
         timer.Start();
 
-        eventbuffer.ResetControlParameters();
         //  Open the data files and root file
         //    OpenAllFiles(io, run);
 
-        TString rootfilename=std::string(getenv("QW_ROOTFILES")) + Form("/Qweak_ADC_%s.root",eventbuffer.GetRunLabel().Data());
+        TString rootfilename = getenv_safe_TString("QW_ROOTFILES") + Form("/Qweak_ADC_%s.root",eventbuffer.GetRunLabel().Data());
         std::cout<<" rootfilename="<<rootfilename<<"\n";
         TFile rootfile(rootfilename,"RECREATE","QWeak ROOT file");
 
@@ -246,15 +255,16 @@ int main(Int_t argc,Char_t* argv[]) {
             }
             // Fill the helicity tree
             if (bHelicity && helicitypattern->IsCompletePattern()) {
-                helicitypattern->CalculateAsymmetry();
+                    helicitypattern->CalculateAsymmetry();
+
       //          if (bHisto) helicitypattern->FillHistograms();
+
                 if (bTree) {
                     helicitypattern->FillTreeVector(helvector);
                     heltree->Fill();
                 }
                 helicitypattern->ClearEventData();
             }
-
 
             if (eventbuffer.GetEventNumber()%1000==0) {
                 std::cerr << "Number of events processed so far: "
@@ -305,6 +315,10 @@ int main(Int_t argc,Char_t* argv[]) {
 //    }
 
         }
+
+      //Calculate running averages for Asymmetries and Yields per quartet
+      helicitypattern->CalculateRunningAverage();
+
         std::cout << "Number of events processed so far: "
         << eventbuffer.GetEventNumber() << std::endl;
         timer.Stop();
@@ -343,7 +357,19 @@ int main(Int_t argc,Char_t* argv[]) {
 //       QwEpics->WriteDatabase(sql);
 //     }
 
-        PrintInfo(timer, eventbuffer.GetRunNumber());
+       if (bHelicity) {
+
+           helicity->FillDB(qwdatabase,"");
+           helicitypattern->FillDB(qwdatabase);
+
+          blinders->WriteFinalValuesToDB(qwdatabase);
+          blinders->PrintFinalValues();
+       };
+
+       delete qwdatabase; qwdatabase = NULL;
+       delete blinders; blinders = NULL;
+
+       PrintInfo(timer, eventbuffer.GetRunNumber());
 
     } //end of run loop
 

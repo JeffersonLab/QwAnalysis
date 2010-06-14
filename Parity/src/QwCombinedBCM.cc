@@ -10,21 +10,14 @@
 #include <stdexcept>
 
 #include "QwVQWK_Channel.h"
-#include "QwSIS3801_Channel.h"
+#include "QwScaler_Channel.h"
 
 
 
 /********************************************************/
 
 //this is a combined BCM made out of BCMs that are already callibrated and have pedstals removed.
-//This will be used for linear regression and for projection of charge at the target
-
-// void QwBCM::SetPedestal(Double_t pedestal)
-// {
-// 	fPedestal=pedestal;
-// 	fBeamCurrent.SetPedestal(0);
-// 	return;
-// };
+//This will be used for projection of charge at the target
 
 
 template<typename T>
@@ -37,7 +30,7 @@ void QwCombinedBCM<T>::SetPedestal(Double_t pedestal)
 template<typename T>
 void QwCombinedBCM<T>::SetCalibrationFactor(Double_t calib)
 {
-	fCombined_bcm.SetCalibrationFactor(1); 
+	fCombined_bcm.SetCalibrationFactor(1);
 	return;
 };
 
@@ -49,12 +42,12 @@ void QwCombinedBCM<T>::Set(QwBCM<T>* bcm, Double_t weight, Double_t sumqw ){
   fSumQweights=sumqw;
   //std::cout<<"QwCombinedBCM: Got "<<bcm->GetElementName()<<"  and weight ="<<weight<<"\n";
   }
-  
+
 template<typename T>
 void  QwCombinedBCM<T>::InitializeChannel(TString name, TString datatosave)
 {
-  SetElementName(name); 
-  fCombined_bcm.InitializeChannel(name,"derived"); 
+  SetElementName(name);
+  fCombined_bcm.InitializeChannel(name,"derived");
 
   return;
 };
@@ -62,8 +55,8 @@ void  QwCombinedBCM<T>::InitializeChannel(TString name, TString datatosave)
 template<typename T>
 void QwCombinedBCM<T>::ClearEventData()
 {
-  fCombined_bcm.ClearEventData();  
-  return; 
+  fCombined_bcm.ClearEventData();
+  return;
 }
 
 
@@ -122,31 +115,33 @@ void QwCombinedBCM<T>::EncodeEventData(std::vector<UInt_t> &buffer)
 template<typename T>
 void  QwCombinedBCM<T>::ProcessEvent()
 {
- 
+
   Bool_t ldebug = kFALSE;
-  static QwVQWK_Channel  tmpADC("tmpADC"); 
+  static QwVQWK_Channel  tmpADC; 
+  tmpADC.InitializeChannel("tmpADC","derived");
+
 
   for(size_t i=0;i<fElement.size();i++)
-  {  
+  {
     tmpADC=fElement[i]->fBeamCurrent;
     tmpADC.Scale(fWeights[i]);
     fCombined_bcm+=tmpADC;
+
   }
-  
-  //std::cout<<"total weights = "<<total_weights<<"\n";
+
   fCombined_bcm.Scale(1.0/fSumQweights);
 
 
   if(ldebug){
     std::cout<<"***************** \n";
-    std::cout<<"QwCombinedBCM: "<<GetElementName() 
+    std::cout<<"QwCombinedBCM: "<<GetElementName()
 	     <<"\nweighted average of hardware sums = "<<fCombined_bcm.GetHardwareSum()<<"\n";
     for(size_t i=0;i<4;i++){
       std::cout<<"weighted average of block["<<i<<"] = "<<fCombined_bcm.GetBlockValue(i)<<"\n";
-    } 
+    }
     std::cout<<"***************** \n";
   }
-  
+
   return;
 };
 
@@ -155,28 +150,48 @@ template<typename T>
 void QwCombinedBCM<T>::SetDefaultSampleSize(Int_t sample_size){
   fCombined_bcm.SetDefaultSampleSize((size_t)sample_size);
 }
-  
+
+/********************************************************/
+template<typename T>
+Bool_t QwCombinedBCM<T>::ApplySingleEventCuts(){
+  Bool_t status=kTRUE;
+  if (fCombined_bcm.ApplySingleEventCuts()){
+    status=kTRUE;
+  }
+  else{
+    fCombined_bcm.UpdateEventCutErrorCount();//update event cut falied counts
+    if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fCombined_bcm.GetHardwareSum();
+    status&=kFALSE;
+  }
+  fDeviceErrorCode|=fCombined_bcm.GetEventcutErrorFlag();//retrun the error flag for event cuts
+  //std::cout<<"combined bcm "<<GetElementName()<<" error flag "<<fCombined_bcm.GetEventcutErrorFlag()<<std::endl;
+  //Update the error counters
+  fCombined_bcm.UpdateHWErrorCounters();
+
+  return status;
+
+};
 
 /********************************************************/
 
 template<typename T>
 Int_t QwCombinedBCM<T>::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
-
+  fCombined_bcm.GetEventcutErrorCounters();
   return 1;
 }
 
 /********************************************************/
 
 template<typename T>
-void QwCombinedBCM<T>::Calculate_Running_Average(){
-  fCombined_bcm.Calculate_Running_Average();
+void QwCombinedBCM<T>::CalculateRunningAverage(){
+  fCombined_bcm.CalculateRunningAverage();
 };
 
 /********************************************************/
 
 template<typename T>
-void QwCombinedBCM<T>::Do_RunningSum(){
-  fCombined_bcm.Do_RunningSum();
+void QwCombinedBCM<T>::AccumulateRunningSum(const QwCombinedBCM<T>& value){
+  fCombined_bcm.AccumulateRunningSum(value.fCombined_bcm);
 };
 
 /********************************************************/
@@ -194,7 +209,7 @@ Int_t QwCombinedBCM<T>::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_
 template<typename T>
 QwCombinedBCM<T>& QwCombinedBCM<T>::operator= (const QwCombinedBCM<T> &value)
 {
-  if (GetElementName()!="") 
+  if (GetElementName()!="")
     this->fCombined_bcm=value.fCombined_bcm;
 
   return *this;
@@ -232,7 +247,7 @@ void QwCombinedBCM<T>::Difference(QwCombinedBCM<T> &value1, QwCombinedBCM<T> &va
 
 template<typename T>
 void QwCombinedBCM<T>::Ratio(QwCombinedBCM<T> &numer, QwCombinedBCM<T> &denom)
-{  
+{
   if (GetElementName()!="")
     this->fCombined_bcm.Ratio(numer.fCombined_bcm,denom.fCombined_bcm);
 
@@ -261,19 +276,29 @@ void QwCombinedBCM<T>::Print() const
 template<typename T>
 Bool_t QwCombinedBCM<T>::ApplyHWChecks()
 {
+  // For the combined devices there are no physical channels that we can relate to because they  are being
+  // derived from combinations of physical channels. Therefore, this is not exactly a "HW Check"
+  // but just a check of the HW checks of the combined channels.
+
   Bool_t fEventIsGood=kTRUE;
-   
+
 //   fDeviceErrorCode=0;
-//   for(int i=0;i<4;i++) 
+//   for(int i=0;i<4;i++)
 //     {
 //       fDeviceErrorCode|= fCombinedWire[i].ApplyHWChecks();  //OR the error code from each wire
-//       fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 since zero means HW is good.	
-      
-//       if (bDEBUG) std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;  
+//       fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 since zero means HW is good.
+
+//       if (bDEBUG) std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;
 //       if (bDEBUG) std::cout<<" wire[ "<<i<<" ] sequence num "<<fCombinedWire[i].GetSequenceNumber()<<" sample size "<<fWire[i].GetNumberOfSamples()<<std::endl;
 //     }
 
   return fEventIsGood;
+};
+
+template<typename T>
+Int_t QwCombinedBCM<T>::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){
+  fCombined_bcm.SetSingleEventCuts(LL,UL);
+  return 1;
 };
 
 /********************************************************/
@@ -355,7 +380,7 @@ void  QwCombinedBCM<T>::Copy(VQwDataElement *source)
 	{
 	  QwCombinedBCM<T>* input=((QwCombinedBCM<T>*)source);
 	  this->fElementName=input->fElementName;
-	  this->fCombined_bcm.Copy(&(input->fCombined_bcm));	  
+	  this->fCombined_bcm.Copy(&(input->fCombined_bcm));
 	}
       else
 	{

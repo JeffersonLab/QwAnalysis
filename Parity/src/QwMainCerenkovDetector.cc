@@ -12,6 +12,39 @@
 #include "QwSubsystemArray.h"
 #include "QwLog.h"
 
+// Register this subsystem with the factory
+QwSubsystemFactory<QwMainCerenkovDetector>
+  theMainCerenkovDetectorFactory("QwMainCerenkovDetector");
+
+/**
+ * Defines configuration options for QwEventBuffer class using QwOptions
+ * functionality.
+ *
+ * @param options Options object
+ */
+void QwMainCerenkovDetector::DefineOptions(QwOptions &options){
+  // Define the execution options
+  options.AddOptions()
+    ("QwMainCerenkovDetector.normalize",
+     po::value<bool>()->default_value(false)->zero_tokens(),
+     "Normalize the detectors by beam current");
+}
+
+
+/*!
+ * Loads the configuration options into this instance of
+ * QwMainCerenkovDetector from the QwOptions object.
+ *
+ * @param options Options object
+ */
+void QwMainCerenkovDetector::ProcessOptions(QwOptions &options){
+  bNormalization = options.GetValue<bool>("QwMainCerenkovDetector.normalize");
+  if (! bNormalization){
+    QwWarning << "QwMainCerenkovDetector::ProcessOptions:  "
+	      << "Detector yields WILL NOT be normalized."
+	      << QwLog::endl;
+  }
+};
 
 Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 {
@@ -28,15 +61,6 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
   Int_t currentsubbankindex=-1;
   Int_t fSample_size=0;
 
-  std::vector<Double_t> integrationPMTEventCuts;//for initializing event cuts
-  integrationPMTEventCuts.push_back(0);
-  integrationPMTEventCuts.push_back(0);
-  integrationPMTEventCuts.push_back(0);//device_flag is set to 0
-
-  std::vector<Double_t> combinedPMTEventCuts;//for initializing event cuts
-  combinedPMTEventCuts.push_back(0);
-  combinedPMTEventCuts.push_back(0);
-  combinedPMTEventCuts.push_back(0);//device_flag is set to 0
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine())
@@ -126,46 +150,42 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
             }
           else
             {
-              std::cerr << "QwMainCerenkovDetector::LoadChannelMap:  Unknown module type: "
-              << modtype <<", the detector "<<namech<<" will not be decoded "
-              << std::endl;
+              QwError << "QwMainCerenkovDetector::LoadChannelMap:  Unknown module type: "
+		      << modtype <<", the detector "<<namech<<" will not be decoded "
+		      << QwLog::endl;
               lineok=kFALSE;
               continue;
             }
 
           localMainDetID.fTypeID=GetDetectorTypeID(dettype);
-          if (localMainDetID.fTypeID==-1)
-            {
-              std::cerr << "QwMainCerenkovDetector::LoadChannelMap:  Unknown detector type: "
-              << dettype <<", the detector "<<namech<<" will not be decoded "
-              << std::endl;
-              lineok=kFALSE;
-              continue;
-            }
+	  if (localMainDetID.fTypeID==kQwUnknownPMT) {
+	    QwError << "QwMainCerenkovDetector::LoadChannelMap:  Unknown detector type: "
+		    << dettype <<", the detector "<<namech<<" will not be decoded "
+		    << QwLog::endl;
+	    lineok=kFALSE;
+	    continue;
+	  }
 
           localMainDetID.fIndex= GetDetectorIndex(localMainDetID.fTypeID,
                                                   localMainDetID.fdetectorname);
 
           if (localMainDetID.fIndex==-1)
             {
-              if (DetectorTypes[localMainDetID.fTypeID]=="integrationpmt")
+              if (localMainDetID.fTypeID==kQwIntegrationPMT)
                 {
                   QwIntegrationPMT localIntegrationPMT(localMainDetID.fdetectorname);
                   localIntegrationPMT.InitializeChannel(localMainDetID.fdetectorname, "raw");
                   fIntegrationPMT.push_back(localIntegrationPMT);
                   fIntegrationPMT[fIntegrationPMT.size()-1].SetDefaultSampleSize(fSample_size);
-                  //initialize the event cuts to zero
-                  fIntegrationPMT[fIntegrationPMT.size()-1].SetSingleEventCuts(integrationPMTEventCuts);
-                  localMainDetID.fIndex=fIntegrationPMT.size()-1;
+		  localMainDetID.fIndex=fIntegrationPMT.size()-1;
                 }
 
-              else if (DetectorTypes[localMainDetID.fTypeID]=="combinationpmt")
+              else if (localMainDetID.fTypeID==kQwCombinedPMT)
                 {
                   //QwCombinedPMT localcombinedPMT(localMainDetID.fdetectorname);
                   QwCombinedPMT localcombinedPMT(TString(""));
                   fCombinedPMT.push_back(localcombinedPMT);
                   fCombinedPMT[fCombinedPMT.size()-1].SetDefaultSampleSize(fSample_size);
-                  fCombinedPMT[fCombinedPMT.size()-1].SetSingleEventCuts(combinedPMTEventCuts);
                   localMainDetID.fIndex=fCombinedPMT.size()-1;
                 }
             }
@@ -189,7 +209,7 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 
   for (size_t i=0; i<fMainDetID.size(); i++)
     {
-      if (fMainDetID[i].fdetectortype == "combinationpmt")
+      if (fMainDetID[i].fTypeID==kQwCombinedPMT)
         {
           Int_t ind = fMainDetID[i].fIndex;
 
@@ -311,14 +331,8 @@ Int_t QwMainCerenkovDetector::LoadEventCuts(TString  filename)
               Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
               //std::cout<<"*****************************"<<std::endl;
               //std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
-              //update the Double vector
-              integrationPMTEventCuts.clear();
-              integrationPMTEventCuts.push_back(LLX);
-              integrationPMTEventCuts.push_back(ULX);
-              integrationPMTEventCuts.push_back(1);
-
               //fIntegrationPMT[det_index].Print();
-              fIntegrationPMT[det_index].SetSingleEventCuts(integrationPMTEventCuts);
+              fIntegrationPMT[det_index].SetSingleEventCuts(LLX,ULX);
               //std::cout<<"*****************************"<<std::endl;
 
             }
@@ -395,10 +409,9 @@ Bool_t QwMainCerenkovDetector::IsGoodEvent()
 
 void QwMainCerenkovDetector::ClearEventData()
 {
-
-  for (size_t i=0;i<fIntegrationPMT.size();i++)
+  for (size_t i=0;i<fIntegrationPMT.size();i++){
     fIntegrationPMT[i].ClearEventData();
-
+  }
   for (size_t i=0;i<fCombinedPMT.size();i++)
     fCombinedPMT[i].ClearEventData();
 
@@ -412,7 +425,7 @@ void QwMainCerenkovDetector::SetRandomEventParameters(Double_t mean, Double_t si
   for (size_t i = 0; i < fMainDetID.size(); i++)
     {
       // This is a QwIntegrationPMT
-      if (fMainDetID.at(i).fTypeID == kIntegrationPMT)
+      if (fMainDetID.at(i).fTypeID == kQwIntegrationPMT)
         fIntegrationPMT[fMainDetID.at(i).fIndex].SetRandomEventParameters(mean, sigma);
     }
 
@@ -423,19 +436,19 @@ void QwMainCerenkovDetector::SetRandomEventAsymmetry(Double_t asymmetry)
   for (size_t i = 0; i < fMainDetID.size(); i++)
     {
       // This is a QwIntegrationPMT
-      if (fMainDetID.at(i).fTypeID == kIntegrationPMT)
+      if (fMainDetID.at(i).fTypeID == kQwIntegrationPMT)
         fIntegrationPMT[fMainDetID.at(i).fIndex].SetRandomEventAsymmetry(asymmetry);
     }
 
 };
 
-void QwMainCerenkovDetector::RandomizeEventData(int helicity)
+void QwMainCerenkovDetector::RandomizeEventData(int helicity, double time)
 {
   for (size_t i = 0; i < fMainDetID.size(); i++)
     {
       // This is a QwIntegrationPMT
-      if (fMainDetID.at(i).fTypeID == kIntegrationPMT)
-        fIntegrationPMT[fMainDetID.at(i).fIndex].RandomizeEventData(helicity);
+      if (fMainDetID.at(i).fTypeID == kQwIntegrationPMT)
+        fIntegrationPMT[fMainDetID.at(i).fIndex].RandomizeEventData(helicity, time);
     }
 
 }
@@ -449,7 +462,7 @@ void QwMainCerenkovDetector::EncodeEventData(std::vector<UInt_t> &buffer)
   for (size_t i = 0; i < fMainDetID.size(); i++)
     {
       // This is a QwIntegrationPMT
-      if (fMainDetID.at(i).fTypeID == kIntegrationPMT)
+      if (fMainDetID.at(i).fTypeID == kQwIntegrationPMT)
         fIntegrationPMT[fMainDetID.at(i).fIndex].EncodeEventData(elements);
     }
 
@@ -496,7 +509,7 @@ Int_t QwMainCerenkovDetector::ProcessConfigurationBuffer(const UInt_t roc_id, co
 };
 
 
-Int_t QwMainCerenkovDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
+Int_t QwMainCerenkovDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   Bool_t lkDEBUG=kFALSE;
 
@@ -516,7 +529,7 @@ Int_t QwMainCerenkovDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UIn
           if (fMainDetID[i].fSubbankIndex==index)
             {
 
-              if (fMainDetID[i].fTypeID==kIntegrationPMT)
+              if (fMainDetID[i].fTypeID == kQwIntegrationPMT)
                 {
                   if (lkDEBUG)
                     {
@@ -592,7 +605,7 @@ void  QwMainCerenkovDetector::ProcessEvent()
 {
   for (size_t i=0;i<fIntegrationPMT.size();i++)
     fIntegrationPMT[i].ProcessEvent();
-  //  fIntegrationPMT[0].Print();
+  //   fIntegrationPMT[0].Print();
 
   for (size_t i=0;i<fCombinedPMT.size();i++)
     {
@@ -664,7 +677,6 @@ void  QwMainCerenkovDetector::ProcessEvent_2()
     {
       QwError<<"QwMainCerenkovDetector::ProcessEvent_2(): could not get all external values."<<QwLog::endl;
     }
-
 };
 
 
@@ -672,23 +684,6 @@ void  QwMainCerenkovDetector::ProcessEvent_2()
 
 void  QwMainCerenkovDetector::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
-
-//  for (size_t i=0; i<fMainDetID.size();i++)
-//    {
-
-//       if (fMainDetID[i].fdetectortype =="integrationpmt")
-//         {
-//           Int_t ind1 = GetDetectorIndex(GetDetectorTypeID("integrationpmt"),fMainDetID[i].fdetectorname);
-//           if (ind1>=0)  fIntegrationPMT[ind1].ConstructHistograms(folder,prefix);
-//         }
-// 
-//       if (fMainDetID[i].fdetectortype =="combinationpmt")
-//         {
-//           Int_t ind2 = GetDetectorIndex(GetDetectorTypeID("combinationpmt"),fMainDetID[i].fdetectorname);
-//           if (ind2>=0)  fCombinedPMT[ind2].ConstructHistograms(folder,prefix);
-//         }
-//    }
-
   for (size_t i=0;i<fIntegrationPMT.size();i++)
     fIntegrationPMT[i].ConstructHistograms(folder,prefix);
 
@@ -700,21 +695,6 @@ void  QwMainCerenkovDetector::ConstructHistograms(TDirectory *folder, TString &p
 
 void  QwMainCerenkovDetector::FillHistograms()
 {
-//   for (size_t i=0; i<fMainDetID.size();i++)
-//     {
-//       if (fMainDetID[i].fdetectortype =="integrationpmt")
-//         {
-//           Int_t ind1 = GetDetectorIndex(GetDetectorTypeID("integrationpmt"),fMainDetID[i].fdetectorname);
-//           if (ind1>=0)  fIntegrationPMT[ind1].FillHistograms();
-//         }
-// 
-//       if (fMainDetID[i].fdetectortype =="combinationpmt")
-//         {
-//           Int_t ind2 = GetDetectorIndex(GetDetectorTypeID("combinationpmt"),fMainDetID[i].fdetectorname);
-//           if (ind2>=0)  fCombinedPMT[ind2].FillHistograms();
-//         }
-//     }
-
   for (size_t i=0;i<fIntegrationPMT.size();i++)
     fIntegrationPMT[i].FillHistograms();
 
@@ -727,22 +707,6 @@ void  QwMainCerenkovDetector::FillHistograms()
 
 void  QwMainCerenkovDetector::DeleteHistograms()
 {
-
-//   for (size_t i=0; i<fMainDetID.size();i++)
-//     {
-//       if (fMainDetID[i].fdetectortype =="integrationpmt")
-//         {
-//           Int_t ind1 = GetDetectorIndex(GetDetectorTypeID("integrationpmt"),fMainDetID[i].fdetectorname);
-//           if (ind1>=0)  fIntegrationPMT[ind1].DeleteHistograms();
-//         }
-// 
-//       if (fMainDetID[i].fdetectortype =="combinationpmt")
-//         {
-//           Int_t ind2 = GetDetectorIndex(GetDetectorTypeID("combinationpmt"),fMainDetID[i].fdetectorname);
-//           if (ind2>=0)  fCombinedPMT[ind2].DeleteHistograms();
-//         }
-//     }
-
   for (size_t i=0;i<fIntegrationPMT.size();i++)
     fIntegrationPMT[i].DeleteHistograms();
 
@@ -755,21 +719,6 @@ void  QwMainCerenkovDetector::DeleteHistograms()
 
 void QwMainCerenkovDetector::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
-//   for (size_t i=0; i<fMainDetID.size();i++)
-//     {
-//       if (fMainDetID[i].fdetectortype =="integrationpmt")
-//         {
-//           Int_t ind1 = GetDetectorIndex(GetDetectorTypeID("integrationpmt"),fMainDetID[i].fdetectorname);
-//           if (ind1>=0)  fIntegrationPMT[ind1].ConstructBranchAndVector(tree, prefix, values);
-//         }
-// 
-//       if (fMainDetID[i].fdetectortype =="combinationpmt")
-//         {
-//           Int_t ind2 = GetDetectorIndex(GetDetectorTypeID("combinationpmt"),fMainDetID[i].fdetectorname);
-//           if (ind2>=0)  fCombinedPMT[ind2].ConstructBranchAndVector(tree, prefix, values);
-//         }
-//     }
-
   for (size_t i=0;i<fIntegrationPMT.size();i++)
     fIntegrationPMT[i].ConstructBranchAndVector(tree, prefix, values);
 
@@ -782,22 +731,6 @@ void QwMainCerenkovDetector::ConstructBranchAndVector(TTree *tree, TString & pre
 
 void QwMainCerenkovDetector::FillTreeVector(std::vector<Double_t> &values)
 {
-
-//   for (size_t i=0; i<fMainDetID.size();i++)
-//     {
-//       if (fMainDetID[i].fdetectortype =="integrationpmt")
-//         {
-//           Int_t ind1 = GetDetectorIndex(GetDetectorTypeID("integrationpmt"),fMainDetID[i].fdetectorname);
-//           if (ind1>=0)  fIntegrationPMT[ind1].FillTreeVector(values);
-//         }
-// 
-//       if (fMainDetID[i].fdetectortype =="combinationpmt")
-//         {
-//           Int_t ind2 = GetDetectorIndex(GetDetectorTypeID("combinationpmt"),fMainDetID[i].fdetectorname);
-//           if (ind2>=0)  fCombinedPMT[ind2].FillTreeVector(values);
-//         }
-//     }
-
   for (size_t i=0;i<fIntegrationPMT.size();i++)
     fIntegrationPMT[i].FillTreeVector(values);
 
@@ -811,7 +744,6 @@ void QwMainCerenkovDetector::FillTreeVector(std::vector<Double_t> &values)
 QwIntegrationPMT* QwMainCerenkovDetector::GetChannel(const TString name)
 {
   return GetIntegrationPMT(name);
-
 };
 
 
@@ -872,7 +804,7 @@ Bool_t QwMainCerenkovDetector::Compare(VQwSubsystem *value)
     }
   else
     {
-      QwMainCerenkovDetector* input= dynamic_cast<QwMainCerenkovDetector*>(value);
+      QwMainCerenkovDetector* input = dynamic_cast<QwMainCerenkovDetector*>(value);
       if (input->fIntegrationPMT.size()!=fIntegrationPMT.size() ||
           input->fCombinedPMT.size()!=fCombinedPMT.size() )
         {
@@ -986,30 +918,71 @@ void QwMainCerenkovDetector::Scale(Double_t factor)
 };
 
 
-void QwMainCerenkovDetector::Calculate_Running_Average()
+void QwMainCerenkovDetector::CalculateRunningAverage()
 {
+  for (size_t i=0;i<fIntegrationPMT.size();i++)
+    fIntegrationPMT[i].CalculateRunningAverage();
 
+  for (size_t i=0;i<fCombinedPMT.size();i++)
+    fCombinedPMT[i].CalculateRunningAverage();
+
+  return;
 };
 
-void QwMainCerenkovDetector::Do_RunningSum()
+void QwMainCerenkovDetector::AccumulateRunningSum(VQwSubsystem* value1)
 {
+  if (Compare(value1)) {
+    QwMainCerenkovDetector* value = dynamic_cast<QwMainCerenkovDetector*>(value1);
 
+    for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+      fIntegrationPMT[i].AccumulateRunningSum(value->fIntegrationPMT[i]);
+    for (size_t i = 0; i < fCombinedPMT.size(); i++)
+      fCombinedPMT[i].AccumulateRunningSum(value->fCombinedPMT[i]);
+  }
 };
 
 
-Int_t QwMainCerenkovDetector::GetDetectorTypeID(TString name)
+/**
+ * Blind the asymmetry
+ * @param blinder Blinder
+ */
+void QwMainCerenkovDetector::Blind(const QwBlinder *blinder)
 {
-  Int_t result=-1;
-  for (size_t i=0;i<DetectorTypes.size();i++)
-    if (name==DetectorTypes[i])
-      {
-        result=i;
-      }
-  return result;
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].Blind(blinder);
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
+    fCombinedPMT[i].Blind(blinder);
+}
+
+/**
+ * Blind the difference using the yield
+ * @param blinder Blinder
+ * @param yield Corresponding yield
+ */
+void QwMainCerenkovDetector::Blind(const QwBlinder *blinder, const VQwSubsystemParity* subsys)
+{
+  /// \todo TODO (wdc) At some point we should introduce const-correctness in
+  /// the Compare() routine to ensure nothing funny happens.  This const_casting
+  /// is just an ugly stop-gap measure.
+  if (Compare(const_cast<VQwSubsystemParity*>(subsys))) {
+
+    const QwMainCerenkovDetector* yield = dynamic_cast<const QwMainCerenkovDetector*>(subsys);
+    if (yield == 0) return;
+
+    for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+      fIntegrationPMT[i].Blind(blinder, yield->fIntegrationPMT[i]);
+    for (size_t i = 0; i < fCombinedPMT.size(); i++)
+      fCombinedPMT[i].Blind(blinder, yield->fCombinedPMT[i]);
+  }
+}
+
+EQwPMTInstrumentType QwMainCerenkovDetector::GetDetectorTypeID(TString name)
+{
+  return GetQwPMTInstrumentType(name);
 };
 
 //*****************************************************************
-Int_t QwMainCerenkovDetector::GetDetectorIndex(Int_t type_id, TString name)
+Int_t QwMainCerenkovDetector::GetDetectorIndex(EQwPMTInstrumentType type_id, TString name)
 {
   Bool_t ldebug=kFALSE;
   if (ldebug)
@@ -1056,28 +1029,22 @@ QwIntegrationPMT* QwMainCerenkovDetector::GetIntegrationPMT(const TString name)
 
 void QwMainCerenkovDetector::DoNormalization(Double_t factor)
 {
+  static Bool_t notwarned = kTRUE;
 
   if (bIsExchangedDataValid)
     {
       try
         {
-          Double_t  norm = 1.0/fTargetCharge.GetHardwareSum()*factor;
-//       for (size_t i=0; i<fMainDetID.size();i++)
-//         {
-//           if (fMainDetID[i].fdetectortype =="integrationpmt")
-//             {
-//               Int_t ind1 = GetDetectorIndex(GetDetectorTypeID("integrationpmt"),fMainDetID[i].fdetectorname);
-//               if (ind1>=0)  fIntegrationPMT[ind1].Scale(norm);
-//             }
-//
-//           if (fMainDetID[i].fdetectortype =="combinationpmt")
-//             {
-//               Int_t ind2 = GetDetectorIndex(GetDetectorTypeID("combinationpmt"),fMainDetID[i].fdetectorname);
-//               if (ind2>=0)  fCombinedPMT[ind2].Scale(norm);
-//             }
-//         }
-
-          this->Scale(norm);
+          Double_t  norm = fTargetCharge.GetHardwareSum()*factor;
+	  if (norm >1e-9){
+	    this->Scale(1.0/norm);
+	    notwarned = kTRUE;
+	  } else if (notwarned) {
+	    notwarned = kFALSE;
+	    QwError << "QwMainCerenkovDetector::DoNormalization:  Charge is too small to do the "
+		    << "normalization (fTargetCharge==" << fTargetCharge.GetHardwareSum()
+		    << ")" << QwLog::endl;
+	  }
         }
       catch (std::exception& e)
         {
@@ -1085,6 +1052,81 @@ void QwMainCerenkovDetector::DoNormalization(Double_t factor)
         }
     }
 }
+
+void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
+{
+  Bool_t local_print_flag = true;
+  if(local_print_flag) {
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+    QwMessage << "            QwMainCerenkovDetector::FillDB                       " << QwLog::endl;
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  }
+
+  std::vector<QwDBInterface> interface;
+  std::vector<QwParityDB::md_data> entrylist;
+
+  UInt_t analysis_id = db->GetAnalysisID();
+
+  Char_t measurement_type[4];
+
+  if(datatype.Contains("yield")) {
+    sprintf(measurement_type, "y");
+  }
+  else if (datatype.Contains("asymmetry")) {
+    sprintf(measurement_type, "a");
+  }
+  else {
+    sprintf(measurement_type, "");
+  }
+
+  UInt_t i,j;
+  i = j = 0;
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "IntegrationPMT" <<QwLog::endl;
+
+  for(i=0; i<fIntegrationPMT.size(); i++) {
+    interface.clear();
+    interface = fIntegrationPMT[i].GetDBEntry();
+    for(j=0; j<interface.size(); j++) {
+      interface.at(j).SetAnalysisID( analysis_id );
+      interface.at(j).SetMainDetectorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+  }
+
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Combined PMT" <<QwLog::endl;
+
+  for(i=0; i< fCombinedPMT.size(); i++)
+    {
+      interface.clear();
+      interface = fCombinedPMT[i].GetDBEntry();
+      for(j=0; j<interface.size(); j++) {
+	interface.at(j).SetAnalysisID( analysis_id );
+	interface.at(j).SetMainDetectorID( db );
+	interface.at(j).SetMeasurementTypeID( measurement_type );
+	interface.at(j).PrintStatus( local_print_flag );
+	interface.at(j).AddThisEntryToList( entrylist );
+      }
+    }
+  if(local_print_flag) {
+    QwMessage << QwColor(Qw::kGreen) << "Entrylist Size : "
+	      << QwColor(Qw::kBoldRed) << entrylist.size() << QwLog::endl;
+  }
+
+  db->Connect();
+  // Check the entrylist size, if it isn't zero, start to query..
+  if( entrylist.size() ) {
+    mysqlpp::Query query= db->Query();
+    query.insert(entrylist.begin(), entrylist.end());
+    query.execute();
+  }
+  else {
+    QwMessage << "QwMainCerenkovDetector::FillDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
+  }
+  db->Disconnect();
+  return;
+};
 
 void  QwMainCerenkovDetector::Print()
 {

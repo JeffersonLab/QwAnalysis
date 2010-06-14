@@ -41,12 +41,13 @@ class QwComptonPhotonDetector: public VQwSubsystemParity {
 
 
     /* derived from VQwSubsystem */
+    void ProcessOptions(QwOptions &options); //Handle command line options
     Int_t LoadChannelMap(TString mapfile);
     Int_t LoadInputParameters(TString pedestalfile);
     Int_t LoadEventCuts(TString & filename);
     Bool_t SingleEventCuts();
     Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-    Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+    Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
     void  PrintDetectorID();
 
     void  ClearEventData();
@@ -70,8 +71,8 @@ class QwComptonPhotonDetector: public VQwSubsystemParity {
     Int_t GetEventcutErrorFlag() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
-    void Calculate_Running_Average() { };
-    void Do_RunningSum() { };
+    void AccumulateRunningSum(VQwSubsystem* value) { };
+    void CalculateRunningAverage() { };
 
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
@@ -83,10 +84,11 @@ class QwComptonPhotonDetector: public VQwSubsystemParity {
 
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  FillTreeVector(std::vector<Double_t> &values);
-    void  FillDB(QwDatabase *db){};
+    void  FillDB(QwDatabase *db, TString datatype){};
 
     void Copy(VQwSubsystem *source);
     VQwSubsystem*  Copy();
+
     Bool_t Compare(VQwSubsystem *source);
     void Print();
 

@@ -32,6 +32,8 @@
 
 #include <QwGUIMain.h>
 
+ClassImp(QwGUIMain)
+
 QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   : TGMainFrame(p, w, h)
 {
@@ -40,16 +42,18 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dClArgs = clargs;
   std::set_new_handler(0);
 
-  MainDetSubSystem      = NULL;
-  LumiDetSubSystem      = NULL;
-  InjectorSubSystem     = NULL;
-  EventDisplaySubSystem = NULL;
+  MainDetSubSystem       = NULL;
+  LumiDetSubSystem       = NULL;
+  InjectorSubSystem      = NULL;
+  HallCBeamlineSubSystem = NULL;
+  EventDisplaySubSystem  = NULL;
 
   dMWWidth              = w;
   dMWHeight             = h;
   dCurRun               = 0;
 
   dROOTFile             = NULL;
+  dDatabase             = NULL;
 
   dTBinEntry            = NULL;
   dTBinEntryLayout      = NULL;
@@ -74,7 +78,6 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dLogTabLayout         = NULL;
   dLogEditLayout        = NULL;
 
-
   dMenuBar              = NULL;
   dMenuFile             = NULL;
   dMenuTabs             = NULL;
@@ -90,8 +93,8 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   memset(dTime, '\0', sizeof(dTime));
   memset(dDate, '\0', sizeof(dDate));
 
-
   SetRootFileOpen(kFalse);
+  SetDatabaseOpen(kFalse);
   SetLogFileOpen(kFalse);
   SetLogFileName("None");
 
@@ -101,7 +104,6 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   MakeLogTab();
 
   SetWindowName("Qweak Data Analysis GUI");
-
 
   MapSubwindows();
   Resize(GetDefaultSize());
@@ -117,6 +119,11 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   if(!GetSubSystemPtr("Injector"))
     InjectorSubSystem = new QwGUIInjector(fClient->GetRoot(), this, dTab,"Injector",
 					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
+
+  if(!GetSubSystemPtr("HallC Beamline"))
+    HallCBeamlineSubSystem = new QwGUIHallCBeamline(fClient->GetRoot(), this, dTab,"HallC Beamline",
+						    "QwGUIMain", dMWWidth-15,dMWHeight-180);
+    
   if(!GetSubSystemPtr("Event Display"))
     EventDisplaySubSystem = new QwGUIEventDisplay(fClient->GetRoot(), this, dTab, "Event Display",
 					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
@@ -125,10 +132,11 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
 QwGUIMain::~QwGUIMain()
 {
-  delete MainDetSubSystem      ;
-  delete LumiDetSubSystem      ;
-  delete InjectorSubSystem     ;
-  delete EventDisplaySubSystem ;
+  delete MainDetSubSystem       ;
+  delete LumiDetSubSystem       ;
+  delete InjectorSubSystem      ;
+  delete HallCBeamlineSubSystem ;
+  delete EventDisplaySubSystem  ;
 
   delete dROOTFile             ;
 
@@ -174,15 +182,15 @@ void QwGUIMain::MakeMenuLayout()
   dMenuBarHelpLayout = new TGLayoutHints(kLHintsTop | kLHintsRight);
 
   dMenuFile = new TGPopupMenu(fClient->GetRoot());
-//   dMenuFile->AddEntry("&Open (Run file)...", M_FILE_OPEN);
   dMenuFile->AddEntry("O&pen (ROOT file)...", M_ROOT_FILE_OPEN);
-//   dMenuFile->AddEntry("&Close (Run file)", M_FILE_CLOSE);
   dMenuFile->AddEntry("C&lose (ROOT file)", M_ROOT_FILE_CLOSE);
   dMenuFile->AddSeparator();
-
-  dMenuFile->AddEntry("Root File Browser", M_VIEW_BROWSER);
+  dMenuFile->AddEntry("Open (Database)...", M_DBASE_OPEN);
+  dMenuFile->AddEntry("Close (Database)", M_DBASE_CLOSE);
   dMenuFile->AddSeparator();
-  dMenuFile->AddSeparator();
+  //dMenuFile->AddEntry("Root File Browser", M_VIEW_BROWSER);
+  //dMenuFile->AddSeparator();
+  //dMenuFile->AddSeparator();
   dMenuFile->AddEntry("E&xit", M_FILE_EXIT);
 
   dMenuTabs = new TGPopupMenu(fClient->GetRoot());
@@ -294,10 +302,39 @@ void QwGUIMain::MakeLogTab()
 				    kLHintsExpandX | kLHintsExpandY);
   dLogEditLayout = new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY,
 				     0, 0, 1, 2);
+  dLogEditFrameLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop |
+				    kLHintsExpandX | kLHintsExpandY);
+  dDBQueryEntryLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 2, 2,  2, 2);
+  dDBQueryLabelLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 2, 2,  2, 2);
+  
+  dDBQueryFrameLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 2, 2,  2, 2);
 
-  dLogTabFrame  = new TGHorizontalFrame(tf,10,10);
-  dLogEdit = new TGTextEdit(dLogTabFrame, 10, 10, kSunkenFrame);
-  dLogTabFrame->AddFrame(dLogEdit,dLogEditLayout);
+
+  dLogTabFrame  = new TGVerticalFrame(tf,10,10);
+  
+  dLogEditFrame  = new TGHorizontalFrame(dLogTabFrame,10,10);
+  dLogEdit = new TGTextEdit(dLogEditFrame, 10, 10, M_LOG_ENTRY, kSunkenFrame);
+  dLogEdit->Associate(this);
+//   BindKey((const TGWindow*)dLogEdit,gVirtualX->KeysymToKeycode(kKey_Enter),kKey_Control);
+//  dLogEdit->AddInput(kKeyPressMask);
+
+//   BindKey((const TGWindow*)dLogEdit,gVirtualX->KeysymToKeycode(kKey_Enter),kKey_Control);
+//   gVirtualX->GrabKey(dLogEdit->GetId(), gVirtualX->KeysymToKeycode(kKey_Enter), kKey_Control, kTRUE);
+//   AddInput(kKeyPressMask);
+
+  dLogEditFrame->AddFrame(dLogEdit,dLogEditLayout);
+  dLogTabFrame->AddFrame(dLogEditFrame, dLogEditFrameLayout);
+
+  dDBQueryFrame = new TGHorizontalFrame(dLogTabFrame,500, 30);
+  dDBQueryLabel = new TGLabel(dDBQueryFrame, "DB Query");
+  dDBQueryFrame->AddFrame(dDBQueryLabel,dDBQueryLabelLayout);
+  dDBQueryEntry = new TGTextEntry(dDBQueryFrame, dDBQueryBuffer = new TGTextBuffer(80),M_DBASE_QUERY);
+  dDBQueryEntry->Associate(this);
+  dDBQueryFrame->AddFrame(dDBQueryEntry,dDBQueryEntryLayout);
+  dDBQueryEntry->SetState(1);
+  dLogTabFrame->AddFrame(dDBQueryFrame, dDBQueryFrameLayout);
+
+  
   dLogTabFrame->Resize(dMWWidth-15,dMWHeight-80);
   tf->AddFrame(dLogTabFrame,dLogTabLayout);
 
@@ -308,6 +345,7 @@ void QwGUIMain::MakeLogTab()
   dLogEdit->Connect("Closed()","QwGUIMain", this, "LogClosed()" );
   dLogEdit->Connect("Saved()","QwGUIMain", this,  "LogSaved()"  );
   dLogEdit->Connect("SavedAs()","QwGUIMain", this,"LogSavedAs()");
+  dLogEdit->Connect("DataChanged()","QwGUIMain", this,"MonitorLogInput()");
 
   if(dLogText) {
     dLogEdit->SetText(dLogText);
@@ -344,31 +382,10 @@ void QwGUIMain::AddATab(QwGUISubSystem* sbSystem)
   TObject *obj;
   TIter next(dMenuTabs->GetListOfEntries());
 
-  //Sequence naming of menu items not currently implemented/useful
-  //
-  //int seq = 1;
-  //char sequence[100];
-  //   while(!flag){
-  //     flag = 1;
-  //     while(obj = next()){
-  //       TGMenuEntry *entry = (TGMenuEntry*)obj;
-  //       if(s == entry->GetLabel()->GetString()){
-  // 	if(seq >= 2) s.Resize(s.Length()-3);
-  // 	sprintf(sequence," % 2d",seq); seq++;
-  // 	s += sequence;
-  // 	flag = 0;
-  // 	break;
-  //       }
-  //     }
-  //     next.Reset();
-  //   }
-  //   MCnt++;
-  //   dMenuTabs->AddEntry(s, M_TABS+MCnt);
-
   obj = next();
   while(obj){
     TGMenuEntry *entry = (TGMenuEntry*)obj;
-    //       printf("%s %d\n",entry->GetLabel()->GetString(),entry->GetEntryId());
+    //printf("%s %d\n",entry->GetLabel()->GetString(),entry->GetEntryId());
     if(s == entry->GetLabel()->GetString()){
       flag = 1;
       break;
@@ -499,9 +516,18 @@ void QwGUIMain::RemoveLogTab()
   else
     dLogText = NULL;
   delete dLogEdit; dLogEdit = NULL;
+  delete dLogEditFrame; dLogEditFrame   = NULL;
   delete dLogTabFrame; dLogTabFrame = NULL;
-  delete dLogTabLayout; dLogTabLayout = NULL;
+  delete dDBQueryFrame; dDBQueryFrame = NULL;
+  delete dDBQueryEntry; dDBQueryEntry = NULL;
+  delete dLogTabLayout; dLogTabLayout   = NULL;
   delete dLogEditLayout; dLogEditLayout = NULL;
+  delete dLogEditFrameLayout; dLogEditFrameLayout = NULL;
+  delete dDBQueryEntryLayout; dDBQueryEntryLayout = NULL;
+  delete dDBQueryFrameLayout; dDBQueryFrameLayout = NULL;
+  delete dDBQueryBuffer; dDBQueryBuffer = NULL;
+  delete dDBQueryLabel; dDBQueryLabel = NULL;
+  delete dDBQueryLabelLayout; dDBQueryLabelLayout = NULL;
 
   dMenuTabs->UnCheckEntry(M_VIEW_LOG);
 }
@@ -544,6 +570,34 @@ void QwGUIMain::LogSaved()
   SetLogFileOpen(kTrue);
   Bool_t untitled = !strlen(dLogEdit->GetText()->GetFileName()) ? kTrue : kFalse;
   if(!untitled) SetLogFileName((char*)dLogEdit->GetText()->GetFileName());
+}
+
+void QwGUIMain::MonitorLogInput()
+{
+//   if(dLogEdit->GetText()->RowCount() < 1) return;
+
+//   Long_t line = 0;
+//   ULong_t length = -1;
+
+//   if(dLogEdit){
+
+//     printf("Line 554\n");
+
+//     dLogEdit->Goto(dLogEdit->ReturnLineCount()-1);
+//       //,dLogEdit->GetText()->GetLineLength((Long_t)(dLogEdit->GetText()->RowCount()-1)));
+
+//     printf("Previous line last: \n char = %c \n end!\n",dLogEdit->GetText()->GetChar(dLogEdit->GetCurrentPos()));
+
+//     line = dLogEdit->ReturnLineCount()-1;
+//     length = dLogEdit->GetText()->GetCurrentLine()->GetLineLength();
+//   }
+
+
+
+//   if(length == 0 && dLogEdit->GetText()->GetCurrentLine()->GetChar(length-1) == -1)
+//     printf("Got a return from line %ld, to %ld\n",line,dLogEdit->ReturnLineCount());
+
+
 }
 
 void QwGUIMain::LogSavedAs()
@@ -616,6 +670,14 @@ void QwGUIMain::OnObjClose(const char *objname)
     printf("Received dROOTFile IsClosing signal\n");
 #endif
   }
+
+  if(name.Contains("dDatabase")){
+    dDatabase = NULL;
+#ifdef QWGUI_DEBUG
+    printf("Received dDatabase IsClosing signal\n");
+#endif
+  }
+
 
 //   TObject *obj;
 //   TIter next(SubSystemArray.MakeIterator());
@@ -778,6 +840,52 @@ Int_t QwGUIMain::OpenLogFile(ERFileStatus status, const char* file)
   SetLogFileName(filename);
   return PROCESS_OK;
 }
+
+Int_t QwGUIMain::OpenDatabase()
+{
+  if(IsDatabaseOpen()) CloseDatabase();  
+
+  dDatabase = new QwGUIDatabaseContainer(fClient->GetRoot(), this,
+					 "dDatabase","QwGUIMain",
+					 "DBASE",FM_READ,FT_DBASE);
+
+  if(!dDatabase){SetDatabaseOpen(kFalse); return PROCESS_FAILED;}
+
+  if(dDatabase->OpenDatabase() != FILE_PROCESS_OK) {
+    SetDatabaseOpen(kFalse);
+    dDatabase->CloseDatabase();
+    dDatabase = NULL;
+    return PROCESS_FAILED;
+  }
+
+  dMenuFile->DisableEntry(M_DBASE_OPEN);
+  TObject *obj;
+  TIter next(SubSystemArray.MakeIterator());
+  obj = next();
+  while(obj){
+    QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+    entry->SetDataContainer((RDataContainer*)dDatabase);
+    obj = next();
+  }
+
+  SetDatabaseOpen(kTrue);
+//   SetRootFileName(filename);
+  return PROCESS_OK;
+}
+
+void QwGUIMain::CloseDatabase()
+{
+
+  if(dDatabase != NULL){
+
+    // Properly disconnect from and close the database here......
+
+    dDatabase = NULL;
+  }
+  SetDatabaseOpen(kFalse);
+  dMenuFile->EnableEntry(M_DBASE_OPEN);  
+}
+
 
 Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
 {
@@ -1067,32 +1175,69 @@ void QwGUIMain::CloseWindow()
 
 }
 
+Bool_t QwGUIMain::HandleKey(Event_t *event)
+{
+  char   input[10];
+  Int_t  n;
+  UInt_t keysym;
+  
+  printf("Line 1116\n");
+  printf("Window id = %d dLogEdit id = %d\n",event->fWindow, dLogEdit->GetId());
+  
+  printf("event type = %d\n",event->fType);
+
+  if (event->fType == kGKeyPress) {
+    gVirtualX->LookupString(event, input, sizeof(input), keysym);
+    n = strlen(input);
+    
+    switch ((EKeySym)keysym) {
+    case kKey_Enter:
+      printf("Pressed Enter\n");
+      break;
+    default:
+      break;
+    }
+  }
+  return TGMainFrame::HandleKey(event);
+}
+
 Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
   // Handle messages send to the MainFrame object. E.g. all menu button
   // messages.
 
-  Long_t mTabID = 0;
+  TObject *obj;
+  TIter next(SubSystemArray.MakeIterator());
 
   switch (GET_MSG(msg)){
 
   case kC_TEXTENTRY:
+
     switch (GET_SUBMSG(msg)) {
+
     case kTE_ENTER:
-      switch (parm1) {
+      {
+	switch (parm1) {
+	
+	case M_DBASE_QUERY:
+	  
+	  printf("Typing %s\n",dDBQueryBuffer->GetString());	  
+ 	  dDBQueryEntry->Clear();
+	  break;
 
-      case M_RUN_SELECT:
-	break;
+	default:
+	  break;
+	}
 
-      default:
 	break;
       }
-
+      
     default:
       break;
     }
 
   case kC_COMMAND:
+
     switch (GET_SUBMSG(msg)) {
 
     case kCM_COMBOBOX:
@@ -1109,34 +1254,29 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
     case kCM_MENU:
 
-      for(int n = M_TABS; n <= M_TABS+MCnt; n++ ){
-	mTabID = n;
-	if(parm1 == mTabID){
-
-	  if(dMenuTabs->IsEntryChecked(mTabID)){
-	    RemoveTab((QwGUISubSystem*)dTab->GetTabContainer(GetTabIndex(GetTabMenuLabel(mTabID))));
-	  }
-	  else{
-
-	    TObject *obj;
-	    TIter next(SubSystemArray.MakeIterator());
-	    obj = next();
-	    while(obj){
-	      QwGUISubSystem *entry = (QwGUISubSystem*)obj;
-	      if(!strcmp(GetTabMenuLabel(mTabID),entry->GetName()))
-		AddATab(entry);
-	      obj = next();
-	    }
-	  }
-
+      obj = next();
+      while(obj){
+	QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+	if(entry->GetTabMenuID() == parm1){
+	  if(dMenuTabs->IsEntryChecked(entry->GetTabMenuID())) 
+	    RemoveTab(entry);
+	  else
+	    AddATab(entry);
+	  
 	  break;
 	}
+	obj = next();
       }
-
+      
+      
       switch (parm1) {
-
+	
       case M_ROOT_FILE_OPEN:
 	OpenRootFile();
+	break;
+
+      case M_DBASE_OPEN:
+	OpenDatabase();
 	break;
 
       case M_FILE_OPEN:
@@ -1152,6 +1292,10 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
       case M_ROOT_FILE_CLOSE:
 	if(IsRootFileOpen()) CloseRootFile();
+	break;
+
+      case M_DBASE_CLOSE:
+	if(IsDatabaseOpen()) CloseDatabase();
 	break;
 
       case M_FILE_CLOSE:
@@ -1251,79 +1395,57 @@ QwGUIMain *gViewMain;
 
 Int_t main(Int_t argc, Char_t **argv)
 {
-  Char_t expl[5000];
+//  Char_t expl[5000];
   ClineArgs dClArgs;
-  Int_t help = 0;
+//  Int_t help = 0;
   dClArgs.realtime = kFalse;
   dClArgs.checkmode = kFalse;
+
 //   int ax,ay;
 //   unsigned int aw, ah;
 
-  if(argv[1]){
-    for(Int_t i=1; i < argc; i++){
-      if(strcmp(argv[i],"-r")==0){
-	dClArgs.realtime = kTrue;
-      }
 
-      if(strcmp(argv[i],"-cm")==0){
-	dClArgs.checkmode = kTrue;
-      }
+  // Use QwOptions class to parse command line
+  //
+  // Set up default QwAnalysis and database options
+  gQwOptions.SetCommandLine(argc, argv);
+  gQwOptions.SetConfigFile(Form("%s/Parity/prminput/qweak_mysql.conf",gSystem->Getenv("QWANALYSIS")));
+  QwOptions::DefineOptions(gQwOptions);
 
-      if(strcmp(argv[i],"-b")==0){
-// 	dClArgs.bin = kTrue;
-// 	dClArgs.txt = kFalse;
-      }
+  // Add QwGUI specific options
+  gQwOptions.AddOptions()("realtime", po::value<bool>()->zero_tokens(), "enable realtime mode (currently non-functional)");
+  gQwOptions.AddOptions()("checkmode", po::value<bool>()->zero_tokens(), "enable check mode (currently non-functional)");
+  gQwOptions.AddOptions()("binary,b", po::value<bool>()->zero_tokens(), "read binary format file (not currently supported)");
+  gQwOptions.AddOptions()("text,t", po::value<bool>()->zero_tokens(), "read ASCII text file (row and column format)");
+  gQwOptions.AddOptions()("filename,f", po::value<string>(), "filename (currently non-functional)");
+  gQwOptions.AddOptions()("columns,c", po::value<string>(), "range of columns from file (first:last) (currently non-functional");
 
-      if(strcmp(argv[i],"-t")==0){
-// 	dClArgs.bin = kFalse;
-// 	dClArgs.txt = kTrue;
-      }
-
-      if(strcmp(argv[i],"-help")==0){
-	help = 1;
-      }
-
-      if(strcmp(argv[i],"-f")==0){
-	if(!argv[i+1] || argv[i+1][0] == '-'){
-	  printf("\nMissing value for option -f\n\n");
-	  return 0;
-	}
-// 	strcpy(dClArgs.file,argv[i+1]);
-      }
-
-      if(strcmp(argv[i],"-c")==0){
-	if(!argv[i+1] || argv[i+1][0] == '-'){
-	  printf("\nMissing value for option -c\n\n");
-	  return 0;
-	}
-// 	dClArgs.clmns = atoi(argv[i+1]);
-// 	printf("Selected Columns = %d\n",dClArgs.clmns);
-      }
+  // Parse QwGUI options
+  if (gQwOptions.HasValue("realtime")) 
+    if (gQwOptions.GetValue<bool>("realtime") == true) 
+      dClArgs.realtime = kTrue;
+  if (gQwOptions.HasValue("checkmode")) 
+    if (gQwOptions.GetValue<bool>("checkmode") == true) 
+      dClArgs.checkmode = kTrue;
+  if (gQwOptions.HasValue("binary")) 
+    if (gQwOptions.GetValue<bool>("binary") == true) {
+//      dClArgs.bin = kTrue;
+//      dClArgs.txt = kFalse;
     }
+  if (gQwOptions.HasValue("text")) 
+    if (gQwOptions.GetValue<bool>("binary") == true) {
+//      dClArgs.bin = kFalse;
+//      dClArgs.txt = kTrue;
+    }
+  if (gQwOptions.HasValue("filename")) {
+    // Do something with file name if it is present
+    // strcpy(dClArgs.file,argv[i+1]);
+    // dClArgs.file = gQwOptions.GetValue<string>("filename").c_str();
   }
-  else
-    printf("\nRun ""QwGUIData -help"" for command line help\n\n");
-
-  if(help){
-    strcpy(expl,"\n\nThis program takes the following commandline arguments:\n\n");
-    strcat(expl,"1) -b        Read binary format file.\n\n");
-    strcat(expl,"2) -t        Read ascii text file in row and column format.\n\n");
-    strcat(expl,"3) -f        Starting filename:\n\n");
-    strcat(expl,"             Here one of two file types must be used, based on\n");
-    strcat(expl,"             the -b or -t parameters passed .\n");
-    strcat(expl,"             For case -b, the program expects a\n");
-    strcat(expl,"             a binary file with format to be specified\n");
-    strcat(expl,"             For case -t, it expects an ascii file \n");
-    strcat(expl,"             arranged in rows and columns of data.\n");
-    strcat(expl,"             For the second case, the columns of interest must\n");
-    strcat(expl,"             be specified with the -c switch (see below).\n");
-    strcat(expl,"             Always use the full path for the input files.\n\n");
-    strcat(expl,"4) -c        Columns. Ex: (-c 23) selects columns 2 and 3.\n\n");
-    strcat(expl,"9) -help     Prints this help \n\n");
-
-    printf("%s",expl);
+  if (gQwOptions.HasValue("columns")) {
+    // Do something with column values if present
+    // std::pair<int,int> my_column_pair = gQwOptions.GetIntValuePair("columns");
   }
-  else{
 
     TApplication theApp("QwGUIData", &argc, argv);
 
@@ -1339,7 +1461,6 @@ Int_t main(Int_t argc, Char_t **argv)
     gViewMain = &mainWindow;
 
     theApp.Run();
-  }
 
   return 0;
 }
@@ -1372,6 +1493,7 @@ void QwGUIMain::WritePid()
     perror("couldn't write QwGUID_PID.DAT");
   }
 }
+
 
 
 

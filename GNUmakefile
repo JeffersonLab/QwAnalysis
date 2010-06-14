@@ -128,9 +128,9 @@ EXCLUDEDIRS = evio Extensions
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
   ifneq ($(CODA),)
     #  The realtime executables should be added in this section.
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online qwroot
   else
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online qwroot
   endif
 else
   EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
@@ -138,10 +138,10 @@ endif
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
   ifneq ($(CODA),)
     #  The realtime executables should be added in this section.
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online qwroot
   else
-    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test
-  endif
+    EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online qwroot
+  endif  
 endif
 # overridden by "make 'EXES=exe1 exe2 ...'"
 
@@ -175,11 +175,11 @@ endif
 ROOTCONFIG   := $(ROOTSYS)/bin/root-config
 ## ROOTDEFINE   := $(shell $(ROOTCONFIG) --features | $(SED) 's/\(\s*\)\([a-zA-Z0-9_]*\)/\1-D__ROOT_HAS_\2/g;y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
 ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags)
-ROOTLIBS     := $(shell $(ROOTCONFIG) --new --libs) -lTreePlayer -lGX11
+ROOTLIBS     := $(shell $(ROOTCONFIG) --new --libs) -lTreePlayer -lGui
         # -lNew : for map file capability
         # -lTreePlayer -lProof : for user loops calling tree
         #                        variables under conditions
-ROOTGLIBS    := $(shell $(ROOTCONFIG) --glibs)
+#ROOTGLIBS    := $(shell $(ROOTCONFIG) --glibs)
 
 # -lMathMore : for using ROOT advanced math library
 ifeq ($(shell $(ROOTCONFIG) --has-mathmore),yes)
@@ -293,6 +293,12 @@ else
     BOOST_INC  = -I${BOOST_INC_DIR}
     BOOST_LIBS = -L${BOOST_LIB_DIR}
   endif
+endif
+
+#  Check to see if BOOST_INC_DIR is equal to /usr/include; 
+#  if so, clear the BOOST_INC flag, but leave BOOST_LIBS unchanged
+ifeq ($(shell test $(BOOST_INC_DIR) -ef /usr/include || echo false),)
+  BOOST_INC  =
 endif
 
 #  We should also put a test on the boost version number here.
@@ -436,7 +442,6 @@ endif
 MYSQLPP_INC  = -I${MYSQLPP_INC_DIR}
 MYSQLPP_LIBS = -L${MYSQLPP_LIB_DIR} -lmysqlpp
 
-
 ############################
 ############################
 # A few fixes :
@@ -470,6 +475,7 @@ INCFLAGS =  $(patsubst %,-I%,$(sort $(dir $(shell $(FIND) $(QWANALYSIS) | $(GREP
 
 INCFLAGS += $(MYSQL_INC) $(MYSQLPP_INC)
 INCFLAGS += $(BOOST_INC) -I./
+
 # Necessary for dictionary files where include files are quoted with relative
 # path appended (default behaviour for root-cint)
 
@@ -487,7 +493,6 @@ LIBS =  -L$(QW_LIB) -lQw
 LIBS +=  $(ROOTLIBS) $(ROOTGLIBS) $(CODALIBS)
 LIBS +=  $(MYSQL_LIBS) $(MYSQLPP_LIBS)
 LIBS +=  $(BOOST_LIBS) $(LDLIBS)
-
 
 ############################
 ############################
@@ -564,7 +569,7 @@ FILTER_OUT_LIBRARYDIR_DEPS = $(SED) '$(patsubst %,/^.\/%/d;,$(EXCLUDEDIRS))'
 
 export
 
-all: .ADD .EXES .auxDepends
+all: .ADD .EXES .auxDepends qweak-config
 ifneq ($(strip $(ADD)),)
 	@if [ "$(strip $(sort $(shell $(CAT) .ADD)))" != "$(strip $(sort $(ADD)))" ]; \
 	then \
@@ -601,14 +606,14 @@ endif
 	@$(MAKE) -f .auxDepends `$(CAT) .auxExeFiles | $(SED) 's/$$/ /g' | $(APPEND_BIN_PATH) | $(INTO_RELATIVE_PATH)`
 
 
-config: .ADD .EXES clean.auxfiles .auxDepends
+config: .ADD .EXES clean.auxfiles .auxDepends qweak-config
 	@for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .ADD),$(ADD)) $(filter-out $(ADD),$(shell $(CAT) .ADD)) | $(REMOVE_-D))); \
 	do \
 	$(RM) `$(GREP) $$wd */*/*$(IncSuf) */*/*$(SrcSuf) | $(SED) 's/^\([A-Za-z0-9\/\._]*\):.*/\1/g;s/\$(IncSuf)/\$(ObjSuf)/g;s/\$(SrcSuf)/\$(ObjSuf)/g'`; \
 	done
 	@for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .EXES),$(EXES)) $(filter-out $(EXES),$(shell $(CAT) .EXES)) | $(REMOVE_-D))); \
 	do \
-	cd $(QW_BIN);$(RM) `$(LS) $(QW_BIN) | $(SED) 's/CVS//g' | $(SED) 's/SunWS_cache//g'` $(QW_LIB)/libQw$(DllSuf); \
+	cd $(QW_BIN);$(RM) `$(LS) $(QW_BIN) | $(GREP) -v 'qweak-config' | $(SED) 's/CVS//g' | $(SED) 's/SunWS_cache//g'` $(QW_LIB)/libQw$(DllSuf); \
 	done
 	@$(ECHO) $(ADD)  | $(TO_LINE) > .ADD
 	@$(ECHO) $(EXES)  | $(TO_LINE) > .EXES

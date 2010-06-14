@@ -12,6 +12,7 @@
 #include "TTree.h"
 
 #include "VQwSubsystemTracking.h"
+#include "QwDetectorInfo.h"
 
 #include "MQwV775TDC.h"
 
@@ -32,14 +33,17 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
 
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
-  Int_t LoadQweakGeometry(TString mapfile){return 0;};
-  Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info){return 0;};
+  Int_t LoadGeometryDefinition(TString mapfile);
+  Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info) {
+    detector_info.insert(detector_info.end(),fDetectorInfo.begin(),fDetectorInfo.end()) ;
+    return 1;
+  };
   Int_t LoadInputParameters(TString mapfile){return 0;};
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
   void  ClearEventData();
-  Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
   void  ProcessEvent();
 
@@ -52,7 +56,7 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
 
 
   void GetHitList(QwHitContainer & grandHitContainer){};
-  
+
 
   QwTriggerScintillator& operator=  (const QwTriggerScintillator &value);
 
@@ -86,7 +90,7 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
 
  protected:
 
-  
+
   TString fRegion;  ///  Name of this subsystem (the region).
 
 
@@ -100,7 +104,7 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
   static const UInt_t kMaxNumberOfChannelsPerModule;
 
   Int_t fNumberOfModules;
-  
+
   std::vector< std::vector<Int_t> > fModuleIndex;  //  Module index, indexed by bank_index and slot_number
 
   std::vector< enum EModuleType > fModuleTypes;
@@ -111,6 +115,7 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
   //    We need a mapping of module,channel into PMT index, ADC/TDC
   std::vector< std::vector<QwPMT_Channel> > fPMTs;
 
+  std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
 
 
 };

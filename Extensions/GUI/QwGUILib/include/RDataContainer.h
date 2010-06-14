@@ -22,6 +22,7 @@
 #include <TQObject.h>
 #include <TGWidget.h>
 #include <TFile.h>
+#include <TMapFile.h>
 #include <TTree.h>
 #include <TKey.h>
 #include <TH1D.h>
@@ -83,7 +84,8 @@ class RDataContainer : public TQObject {
   int                 SetRowColumn(int,int);
 
  public:
-  
+
+  TMapFile           *fMapFile;      //Root Memory mapped object file 
   RDataContainer(const TGWindow *p, const TGWindow *main, 
 		 const char *objName, const char *ownername, const char *dataname, 
 		 ERFileModes mode, ERFileTypes type, 
@@ -94,6 +96,7 @@ class RDataContainer : public TQObject {
   ~RDataContainer();
 
   virtual int   OpenFile(const char *);  
+  Int_t         OpenMapFile(const char* file = NULL);
   TObject      *ReadData(const char *);
   TObject      *ReadTree(const char *);
   int           ReadData(Double_t*,int);
@@ -144,6 +147,7 @@ class RDataContainer : public TQObject {
   Bool_t        cd();
   Bool_t        cd(char *dir);  
   Bool_t        mkdir(char *dir);
+  TObject* GetObjFromMapFile(const Char_t* name);//return an object from the map file
 
   ClassDef(RDataContainer,0);
 };

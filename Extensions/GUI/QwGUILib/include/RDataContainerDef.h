@@ -73,7 +73,8 @@ enum ERFileTypes {
                                            //in rows and columns
   FT_ROOT,                                 //File is a ROOT object file
                                            //(*.root)
-  FT_MATHCAD
+  FT_MATHCAD,
+  FT_DBASE                                 //Arbitrary database file type
 };
 
 enum ERFileModes {

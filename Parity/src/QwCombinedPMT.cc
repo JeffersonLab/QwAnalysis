@@ -20,16 +20,19 @@ void  QwCombinedPMT::InitializeChannel(TString name, TString datatosave)
   else
     if (datatosave=="derived") fDataToSave=kDerived;
 
+  fSumADC.InitializeChannel(name, datatosave);
+
   return;
 };
 
 void  QwCombinedPMT::LinkChannel(TString name)
 {
   SetElementName(name);
-  TString sumstr = name+TString("_sum");
-  TString avgstr = name+TString("_avg");
+//  TString sumstr = name+TString("_sum");
+  TString sumstr = name+TString("");
   fSumADC.SetElementName(sumstr);
-  fAvgADC.SetElementName(avgstr);
+//   TString avgstr = name+TString("_avg");
+//   fAvgADC.SetElementName(avgstr);
 
   std::cout<<"linked combined PMT channel "<< GetElementName()<<std::endl;
 }
@@ -37,7 +40,7 @@ void  QwCombinedPMT::LinkChannel(TString name)
 void QwCombinedPMT::ClearEventData()
 {
   fSumADC.ClearEventData();
-  fAvgADC.ClearEventData();
+//  fAvgADC.ClearEventData();
 }
 
 
@@ -55,7 +58,7 @@ void QwCombinedPMT::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
 void QwCombinedPMT::SetEventData(Double_t* block, UInt_t sequencenumber)
 {
   fSumADC.SetEventData(block, sequencenumber);
-  fAvgADC.SetEventData(block, sequencenumber);
+//  fAvgADC.SetEventData(block, sequencenumber);
 };
 
 void QwCombinedPMT::CalculateSumAndAverage()
@@ -65,7 +68,7 @@ void QwCombinedPMT::CalculateSumAndAverage()
   Double_t  total_weights=0.0;
 
   fSumADC.ClearEventData();
-  fAvgADC.ClearEventData();
+//  fAvgADC.ClearEventData();
   QwIntegrationPMT* tmpADC;
 
   for (size_t i=0;i<fElement.size();i++)
@@ -80,18 +83,25 @@ void QwCombinedPMT::CalculateSumAndAverage()
       total_weights += fWeights[i];
     }
 
-  fAvgADC = fSumADC;
-  if (total_weights!=0.0)
-    fAvgADC.Scale(1/total_weights);
+//   fAvgADC = fSumADC;
+//   if (total_weights!=0.0)
+//     fAvgADC.Scale(1/total_weights);
+
+   if (total_weights!=0.0)
+     fSumADC.Scale(1/total_weights);
+
 
   if (ldebug)
     {
       std::cout<<"QwCombinedPMT::CalculateAverage()"<<std::endl;
-      fAvgADC.Print();
+//      fAvgADC.Print();
       fSumADC.Print();
 
+//      std::cout<<"QwCombinedPMT: "<<GetElementName()
+//      <<"\nweighted average of hardware sums = "<<fAvgADC.GetHardwareSum()<<"\n";
       std::cout<<"QwCombinedPMT: "<<GetElementName()
-      <<"\nweighted average of hardware sums = "<<fAvgADC.GetHardwareSum()<<"\n";
+      <<"\nweighted average of hardware sums = "<<fSumADC.GetHardwareSum()<<"\n";
+
       for (size_t i=0;i<4;i++)
         {
           std::cout<<"weighted average of block["<<i<<"] = "<<fSumADC.GetBlockValue(i)<<"\n";
@@ -111,8 +121,8 @@ Int_t QwCombinedPMT::SetSingleEventCuts(std::vector<Double_t> & dEventCuts)
 
 void  QwCombinedPMT::ProcessEvent()
 {
-
-  CalculateSumAndAverage(); //Calculate the weigted averages of the hardware sum and each of the four blocks.
+//Calculate the weigted averages of the hardware sum and each of the four blocks.
+  CalculateSumAndAverage();
 
   return;
 };
@@ -154,7 +164,7 @@ QwCombinedPMT& QwCombinedPMT::operator= (const QwCombinedPMT &value)
         }
 
       this->fSumADC=value.fSumADC;
-      this->fAvgADC=value.fAvgADC;
+//      this->fAvgADC=value.fAvgADC;
 
       //std::cout<<"value.fSumADC"<<std::endl;
       //value.fSumADC.Print();
@@ -177,7 +187,7 @@ QwCombinedPMT& QwCombinedPMT::operator+= (const QwCombinedPMT &value)
         }
 
       this->fSumADC+=value.fSumADC;
-      this->fAvgADC+=value.fAvgADC;
+//      this->fAvgADC+=value.fAvgADC;
     }
 
   return *this;
@@ -195,7 +205,7 @@ QwCombinedPMT& QwCombinedPMT::operator-= (const QwCombinedPMT &value)
         }
 
       this->fSumADC-=value.fSumADC;
-      this->fAvgADC-=value.fAvgADC;
+//      this->fAvgADC-=value.fAvgADC;
       //value.fSumADC.Print();
       //fSumADC.Print();
     }
@@ -207,45 +217,57 @@ void QwCombinedPMT::Sum(QwCombinedPMT &value1, QwCombinedPMT &value2)
 {
   //std::cout<<"Calling QwCombinedPMT::Sum"<<std::endl;
   this->fSumADC =  value1.fSumADC;
-  this->fAvgADC =  value1.fAvgADC;
+//  this->fAvgADC =  value1.fAvgADC;
   this->fSumADC += value2.fSumADC;
-  this->fAvgADC += value2.fAvgADC;
+//  this->fAvgADC += value2.fAvgADC;
 };
 
-void QwCombinedPMT::Do_RunningSum()
+void QwCombinedPMT::AccumulateRunningSum(const QwCombinedPMT& value)
 {
-  fSumADC.Do_RunningSum();
-  fAvgADC.Do_RunningSum();
+  fSumADC.AccumulateRunningSum(value.fSumADC);
+//  fAvgADC.AccumulateRunningSum(value.fAvgADC);
 };
 
 void QwCombinedPMT::Difference(QwCombinedPMT &value1, QwCombinedPMT &value2)
 {
   //std::cout<<"Calling QwCombinedPMT::Difference="<<std::endl;
   this->fSumADC =  value1.fSumADC;
-  this->fAvgADC =  value1.fAvgADC;
+//  this->fAvgADC =  value1.fAvgADC;
   this->fSumADC -= value2.fSumADC;
-  this->fAvgADC -= value2.fAvgADC;
+//  this->fAvgADC -= value2.fAvgADC;
 };
 
 void QwCombinedPMT::Ratio(QwCombinedPMT &numer, QwCombinedPMT &denom)
 {
   //std::cout<<"Calling QwCombinedPMT::Ratio"<<std::endl;
   fSumADC.Ratio(numer.fSumADC,denom.fSumADC);
-  fAvgADC.Ratio(numer.fAvgADC,denom.fAvgADC);
+//  fAvgADC.Ratio(numer.fAvgADC,denom.fAvgADC);
   return;
 };
 
 void QwCombinedPMT::Scale(Double_t factor)
 {
   fSumADC.Scale(factor);
-  fAvgADC.Scale(factor);
+//  fAvgADC.Scale(factor);
   return;
 }
 
-void QwCombinedPMT::Calculate_Running_Average()
+void QwCombinedPMT::CalculateRunningAverage()
 {
-  fSumADC.Calculate_Running_Average();
-  fAvgADC.Calculate_Running_Average();
+  fSumADC.CalculateRunningAverage();
+//  fAvgADC.CalculateRunningAverage();
+};
+
+void QwCombinedPMT::Blind(const QwBlinder *blinder)
+{
+  fSumADC.Blind(blinder);
+//  fAvgADC.Blind(blinder);
+};
+
+void QwCombinedPMT::Blind(const QwBlinder *blinder, const QwCombinedPMT& yield)
+{
+  fSumADC.Blind(blinder, yield.fSumADC);
+//  fAvgADC.Blind(blinder, yield.fAvgADC);
 };
 
 void QwCombinedPMT::Print() const
@@ -265,8 +287,8 @@ void  QwCombinedPMT::ConstructHistograms(TDirectory *folder, TString &prefix)
     {
       TString sumprefix = prefix+TString("");
       fSumADC.ConstructHistograms(folder, sumprefix);
-      TString avgprefix = prefix+TString("");
-      fAvgADC.ConstructHistograms(folder, avgprefix);
+//      TString avgprefix = prefix+TString("");
+//      fAvgADC.ConstructHistograms(folder, avgprefix);
     }
   return;
 
@@ -281,7 +303,7 @@ void  QwCombinedPMT::FillHistograms()
   else
     {
       fSumADC.FillHistograms();
-      fAvgADC.FillHistograms();
+//      fAvgADC.FillHistograms();
     }
 
 
@@ -298,8 +320,8 @@ void  QwCombinedPMT::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
     {
       TString sumprefix =  prefix+"";
       fSumADC.ConstructBranchAndVector(tree, sumprefix,values);
-      TString avgprefix =  prefix+"";
-      fAvgADC.ConstructBranchAndVector(tree, avgprefix,values);
+//      TString avgprefix =  prefix+"";
+//      fAvgADC.ConstructBranchAndVector(tree, avgprefix,values);
     }
   return;
 };
@@ -313,7 +335,7 @@ void  QwCombinedPMT::FillTreeVector(std::vector<Double_t> &values)
   else
     {
       fSumADC.FillTreeVector(values);
-      fAvgADC.FillTreeVector(values);
+//      fAvgADC.FillTreeVector(values);
     }
   return;
 };
@@ -327,7 +349,7 @@ void  QwCombinedPMT::DeleteHistograms()
   else
     {
       fSumADC.DeleteHistograms();
-      fAvgADC.DeleteHistograms();
+//      fAvgADC.DeleteHistograms();
     }
   return;
 };
@@ -355,7 +377,7 @@ void  QwCombinedPMT::Copy(VQwDataElement *source)
             }
 
           fSumADC.Copy(&(input->fSumADC));
-          fAvgADC.Copy(&(input->fAvgADC));
+//          fAvgADC.Copy(&(input->fAvgADC));
         }
       else
         {

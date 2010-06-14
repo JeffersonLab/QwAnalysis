@@ -32,6 +32,7 @@ class QwQuartzBar: public VQwSubsystemParity {
   };
 
   /*  Member functions derived from VQwSubsystemParity. */
+  void ProcessOptions(QwOptions &options); //Handle command line options
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString  filename);
@@ -42,7 +43,7 @@ class QwQuartzBar: public VQwSubsystemParity {
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
   void  ClearEventData();
-  Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
   void  ProcessEvent();
 

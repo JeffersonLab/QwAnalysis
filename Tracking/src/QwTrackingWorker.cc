@@ -113,7 +113,9 @@ using std::endl;
 #include "QwEvent.h"
 #include "QwBridge.h"
 #include "QwDetectorInfo.h"
+#include "QwBridgingTrackFilter.h"
 #include "QwRayTracer.h"
+#include "QwMatrixLookup.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -121,28 +123,58 @@ QwTrackingWorker::QwTrackingWorker (const char* name)
 {
   QwDebug << "###### Calling QwTrackingWorker::QwTrackingWorker ()" << QwLog::endl;
 
-  // Use the options to set local flags
-  fShowEventPattern = gQwOptions.GetValue<bool>("QwTracking.showeventpattern");
-  fShowMatchingPattern = gQwOptions.GetValue<bool>("QwTracking.showmatchingpattern");
-
   // Debug level
   fDebug = 0;
 
+  // Process options
+  ProcessOptions(gQwOptions);
 
-  // Number of levels (search tree depth) for region 2
-  levelsr2 = gQwOptions.GetValue<int>("QwTracking.R2.levels");
-
-  // Number of levels (search tree depth) for region 3
-  levelsr3 = gQwOptions.GetValue<int>("QwTracking.R3.levels");
+  // If tracking is disabled, stop here
+  if (fDisableTracking) return;
 
   // Initialize the pattern database
   InitTree();
 
-  raytracer = new QwRayTracer();
+  // Initialize a bridging filter
+  fBridgingTrackFilter = new QwBridgingTrackFilter();
 
-  // Load magnetic field map
-  //raytracer::LoadMagneticFieldMap();
-  //raytracer->LoadMomentumMatrix();
+  // Initialize a lookup table bridging method
+  if (fUseMatrixLookup) {
+    fMatrixLookup = new QwMatrixLookup();
+    // Determine lookup table file from environment variables
+    std::string trajmatrix = "";
+    std::string trajmatrix_filename = "QwTrajMatrix.root";
+    if (getenv("QW_LOOKUP"))
+      trajmatrix = std::string(getenv("QW_LOOKUP")) + "/" + trajmatrix_filename;
+    else {
+      QwWarning << "Environment variable QW_LOOKUP not defined." << QwLog::endl;
+      QwWarning << "It should point to the directory with the file"
+                << trajmatrix_filename << QwLog::endl;
+    }
+    // Load lookup table
+    if (! fMatrixLookup->LoadTrajMatrix(trajmatrix))
+      QwError << "Could not load trajectory lookup table!" << QwLog::endl;
+  // or set to null if disabled
+  } else fMatrixLookup = 0;
+
+  // Initialize a ray tracer bridging method
+  if (fUseRayTracer) {
+    fRayTracer = new QwRayTracer();
+    // Determine magnetic field file from environment variables
+    std::string fieldmap = "";
+    std::string fieldmap_filename = "peiqing_2007.dat";
+    if (getenv("QW_FIELDMAP"))
+      fieldmap = std::string(getenv("QW_FIELDMAP")) + "/" + fieldmap_filename;
+    else {
+      QwWarning << "Environment variable QW_FIELDMAP not defined." << QwLog::endl;
+      QwWarning << "It should point to the directory with the file"
+                << fieldmap_filename << QwLog::endl;
+    }
+    // Load magnetic field map
+    if (! fRayTracer->LoadMagneticFieldMap(fieldmap))
+      QwError << "Could not load magnetic field map!" << QwLog::endl;
+  // or set to null if disabled
+  } else fRayTracer = 0;
 
   /* Reset counters of number of good and bad events */
   ngood = 0;
@@ -165,7 +197,8 @@ QwTrackingWorker::~QwTrackingWorker ()
   for (int i = 0; i < kNumPackages * kNumRegions * kNumTypes * kNumDirections; i++)
     if (fSearchTree[i]) delete fSearchTree[i];
 
-  delete raytracer;
+  if (fMatrixLookup) delete fMatrixLookup;
+  if (fRayTracer)    delete fRayTracer;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -176,6 +209,9 @@ void QwTrackingWorker::DefineOptions(QwOptions& options)
   options.AddConfigFile("Tracking/prminput/qwtracking.conf");
 
   // General options
+  options.AddOptions()("QwTracking.disable",
+                          po::value<bool>()->zero_tokens()->default_value(false),
+                          "disable all tracking analysis");
   options.AddOptions()("QwTracking.showeventpattern",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "show bit pattern for all events");
@@ -206,6 +242,35 @@ void QwTrackingWorker::DefineOptions(QwOptions& options)
   options.AddOptions()("QwTracking.R3.MaxMissedWires",
                           po::value<int>()->default_value(4),
                           "maximum number of missed wires");
+
+  // Momentum reconstruction
+  options.AddOptions()("QwTracking.disable-matrixlookup",
+                          po::value<bool>()->zero_tokens()->default_value(false),
+                          "disable the use of the momentum lookup table");
+  options.AddOptions()("QwTracking.disable-raytracer",
+                          po::value<bool>()->zero_tokens()->default_value(false),
+                          "disable the magnetic field map tracking");
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+void QwTrackingWorker::ProcessOptions(QwOptions& options)
+{
+  // Disable tracking
+  fDisableTracking = options.GetValue<bool>("QwTracking.disable");
+
+  // Set the flags for showing the matching event patterns
+  fShowEventPattern = options.GetValue<bool>("QwTracking.showeventpattern");
+  fShowMatchingPattern = options.GetValue<bool>("QwTracking.showmatchingpattern");
+
+  // Enable/disable the lookup table and raytracer momentum reconstruction methods
+  fUseMatrixLookup = ! options.GetValue<bool>("QwTracking.disable-matrixlookup");
+  fUseRayTracer    = ! options.GetValue<bool>("QwTracking.disable-raytracer");
+
+  // Number of levels (search tree depth) for region 2
+  fLevelsR2 = options.GetValue<int>("QwTracking.R2.levels");
+  // Number of levels (search tree depth) for region 3
+  fLevelsR3 = options.GetValue<int>("QwTracking.R3.levels");
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -270,14 +335,14 @@ void QwTrackingWorker::InitTree()
               numlayers = 4; // TODO replace this with info from the geometry file
               width = rcDETRegion[package][region][direction]->WireSpacing *
                       rcDETRegion[package][region][direction]->NumOfWires;
-              levels = levelsr2;
+              levels = fLevelsR2;
           }
 
           /// Region 3 contains 8 layers
           if (region == kRegionID3) {
               numlayers = 8; // TODO replace this with info from the geometry file
               width = rcDETRegion[package][region][direction]->width[2];
-              levels = levelsr3;
+              levels = fLevelsR3;
           }
 
           /// Create a new search tree
@@ -287,12 +352,13 @@ void QwTrackingWorker::InitTree()
           /// Set up the filename with the following format
           ///   tree[numlayers]-[levels]-[u|l]-[1|2|3]-[d|g|t|c]-[n|u|v|x|y].tre
           std::stringstream filename;
-          filename << "tree" << numlayers
-                      << "-" << levels
-                      << "-" << "0ud"[package]
-                      << "-" << "0123TCS"[region]
-                      << "-" << "0hvgtc"[type]
-                      << "-" << "0xyuvrq"[direction] << ".tre";
+          filename << getenv_safe_string("QW_SEARCHTREE")
+                   << "/tree" << numlayers
+                       << "-" << levels
+                       << "-" << "0ud"[package]
+                       << "-" << "0123TCS"[region]
+                       << "-" << "0hvgtc"[type]
+                       << "-" << "0xyuvrq"[direction] << ".tre";
           QwDebug << "Tree filename: " << filename.str() << QwLog::endl;
 
           /// Each element of fSearchTree will point to a pattern database
@@ -438,6 +504,9 @@ QwEvent* QwTrackingWorker::ProcessHits (
     QwEvent *event = new QwEvent();
     // and fill it with the hitlist
     event->AddHitContainer(hitlist);
+
+    // If tracking is disabled, stop here
+    if (fDisableTracking) return event;
 
     // Tracking functionality is provided by these four sub-blocks.
     QwTrackingTreeSearch  *TreeSearch  = new QwTrackingTreeSearch();
@@ -592,7 +661,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             patterns.resize(NUMWIRESR3);
                             if (patterns.at(0).GetNumberOfBins() == 0)
                               for (size_t wire = 0; wire < patterns.size(); wire++)
-                                patterns.at(wire).SetNumberOfLevels(levelsr3);
+                                patterns.at(wire).SetNumberOfLevels(fLevelsR3);
 
 
                             /// Get the subhitlist of hits in this detector
@@ -606,7 +675,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                                     hit != subhitlist->end(); hit++) {
 
                                 // Construct the hit pattern for this set of hits
-                                QwHitPattern hitpattern(levelsr3);
+                                QwHitPattern hitpattern(fLevelsR3);
                                 hitpattern.SetVDCHit(searchtree->GetWidth(), &(*hit));
                                 // Add hit pattern to the vector
                                 int wire = hit->GetElement();
@@ -636,7 +705,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             // NOTE Somewhere around here a memory leak lurks
                             QwDebug << "Searching for matching patterns (direction " << dir << ")" << QwLog::endl;
                             treelinelist = TreeSearch->SearchTreeLines(searchtree,
-                                                 channel, hashchannel, levelsr3,
+                                                 channel, hashchannel, fLevelsR3,
                                                  NUMWIRESR3, MAX_LAYERS);
 
                             // Delete the old array structures
@@ -667,7 +736,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             double width = searchtree->GetWidth();
                             TreeCombine->TlTreeLineSort (treelinelist, subhitlist,
                                                          package, region, dir,
-                                                         1UL << (levelsr3 - 1), 0, dlayer, width);
+                                                         1UL << (fLevelsR3 - 1), 0, dlayer, width);
 
                             QwDebug << "Sort patterns" << QwLog::endl;
                             TreeSort->rcTreeConnSort (treelinelist, region);
@@ -726,7 +795,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                             // If detector is inactive for tracking, skip it
                             if (rd->IsInactive()) {
-                              patterns.push_back(QwHitPattern(levelsr2));
+                              patterns.push_back(QwHitPattern(fLevelsR2));
                               continue;
                             }
 
@@ -735,7 +804,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             if (fDebug) subhitlist->Print();
 
                             // Construct the hit pattern for this set of hits
-                            QwHitPattern hitpattern(levelsr2);
+                            QwHitPattern hitpattern(fLevelsR2);
                             // Set the detector identification
                             hitpattern.SetRegion(region);
                             hitpattern.SetPackage(package);
@@ -806,7 +875,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             double width = searchtree->GetWidth();
                             TreeCombine->TlTreeLineSort (treelinelist, subhitlist,
                                                          package, region, dir,
-                                                         1UL << (levelsr2 - 1),
+                                                         1UL << (fLevelsR2 - 1),
                                                          tlayers, 0, width);
                         }
 
@@ -886,38 +955,64 @@ QwEvent* QwTrackingWorker::ProcessHits (
         * mation
         * ============================== */
 
-        //jpan: The following code is for testing the raytrace class
+        // If there were partial tracks in the HDC and VDC regions
+        if (event->parttrack[package][kRegionID2][kTypeDriftHDC]
+         && event->parttrack[package][kRegionID3][kTypeDriftVDC]) {
 
-        if (false && event->parttrack[package][kRegionID2][kTypeDriftHDC]
-                  && event->parttrack[package][kRegionID3][kTypeDriftVDC]) {
+            QwDebug << "Bridging front and back partial tracks..." << QwLog::endl;
 
-            if (fDebug) std::cout<<"Bridging front and back partialtrack:"<<std::endl;
-            if (event->parttrack[package][kRegionID2][kTypeDriftHDC]->IsGood()
-                    && event->parttrack[package][kRegionID3][kTypeDriftVDC]->IsGood()
-                    && event->parttrack[package][kRegionID3][kTypeDriftVDC]->cerenkovhit==1 ) {
+            // Local copies of front and back track
+            QwPartialTrack* front = event->parttrack[package][kRegionID2][kTypeDriftHDC];
+            QwPartialTrack* back  = event->parttrack[package][kRegionID3][kTypeDriftVDC];
 
-                TVector3 R2hit(event->parttrack[package][kRegionID2][kTypeDriftHDC]->pR2hit[0],
-                               event->parttrack[package][kRegionID2][kTypeDriftHDC]->pR2hit[1],
-                               event->parttrack[package][kRegionID2][kTypeDriftHDC]->pR2hit[2]);
-                TVector3 R2direction(event->parttrack[package][kRegionID2][kTypeDriftHDC]->uvR2hit[0],
-                                     event->parttrack[package][kRegionID2][kTypeDriftHDC]->uvR2hit[1],
-                                     event->parttrack[package][kRegionID2][kTypeDriftHDC]->uvR2hit[2]);
-                TVector3 R3hit(event->parttrack[package][kRegionID3][kTypeDriftVDC]->pR3hit[0],
-                               event->parttrack[package][kRegionID3][kTypeDriftVDC]->pR3hit[1],
-                               event->parttrack[package][kRegionID3][kTypeDriftVDC]->pR3hit[2]);
-                TVector3 R3direction(event->parttrack[package][kRegionID3][kTypeDriftVDC]->uvR3hit[0],
-                                     event->parttrack[package][kRegionID3][kTypeDriftVDC]->uvR3hit[1],
-                                     event->parttrack[package][kRegionID3][kTypeDriftVDC]->uvR3hit[2]);
+            // Loop over all good front and back partial tracks
+            while (front) {
+              while (back) {
 
-                int status = raytracer->Bridge(event->parttrack[package][kRegionID2][kTypeDriftHDC], event->parttrack[package][kRegionID3][kTypeDriftVDC]);
+                int status = 0;
 
-                if (status == 0){
-                  std::cout<<"======>>>> Bridged a track"<<std::endl;
-                  raytracer->PrintInfo();
+                // Filter reasonable pairs
+                status = fBridgingTrackFilter->Filter(front, back);
+                QwMessage << "Filter: " << status << QwLog::endl;
+                if (status != 0) {
+                  QwMessage << "Tracks did not pass filter." << QwLog::endl;
+                  back = back->next;
+                  continue;
                 }
-                else std::cout<<"======>>>> No luck on bridging this track."<<std::endl;
-            }
-        }
+
+                // Attempt to bridge tracks using lookup table
+                if (fUseMatrixLookup) {
+                  status = fMatrixLookup->Bridge(front, back);
+                  QwMessage << "Matrix lookup: " << status << QwLog::endl;
+                  if (status == 0) {
+                    event->AddTrackList(fMatrixLookup->GetListOfTracks());
+                    back = back->next;
+                    continue;
+                  }
+                }
+
+                // Attmept to bridge tracks using ray-tracing
+                if (fUseRayTracer) {
+                  status = fRayTracer->Bridge(front, back);
+                  QwMessage << "Ray tracer: " << status << QwLog::endl;
+                  if (status == 0) {
+                     event->AddTrackList(fRayTracer->GetListOfTracks());
+                    back = back->next;
+                    continue;
+                  }
+                }
+
+                // Next back track
+                back = back->next;
+
+              } // end of loop over back tracks
+
+              // Next front track
+              front = front->next;
+
+            } // end of loop over front tracks
+
+        } /* end of */
 
     } /* end of loop over the detector packages */
 

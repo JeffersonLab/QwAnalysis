@@ -23,8 +23,10 @@
 #include "QwLumi.h"
 
 #include "VQwDataElement.h"
-#include "QwHelicity.h"
+/* #include "QwHelicity.h" */
+#include "QwFakeHelicity.h"
 #include "QwSubsystemArrayParity.h"
+#include "QwMainCerenkovDetector.h"
 #include "QwHelicityPattern.h"
 #include "QwScanner.h"
 
@@ -43,14 +45,6 @@
 #include <fstream>
 #include <vector>
 #include <new>
-
-
-const char *const run_type[4] = 
-  {
-    "good", "bad", "junk", "spiky"
-  };
-
-
 
 void PrintInfo(TStopwatch& timer);
 

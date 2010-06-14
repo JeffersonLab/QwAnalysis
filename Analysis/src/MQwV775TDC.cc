@@ -2,7 +2,8 @@
 * File: MQwV775TDC.cc                                      *
 *                                                          *
 * Author: P. M. King                                       *
-* Time-stamp: <2009-03-07 12:00>                           *
+*         J. H. Lee                                        *
+* Time-stamp: <2010-04-12 16:11>                           *
 \**********************************************************/
 
 #include "MQwV775TDC.h"
@@ -15,7 +16,7 @@ const UInt_t MQwV775TDC::kV775Mask_WordType          = 0x07000000;  // 24-26
 const UInt_t MQwV775TDC::kV775Mask_CrateNumber       = 0x00ff0000;  // 16-23
 const UInt_t MQwV775TDC::kV775Mask_HitChannels       = 0x00003f00;  //  8-13
 
-const UInt_t MQwV775TDC::kV775Mask_EventCounter      = 0x00FFFFFF;  //  0-23
+const UInt_t MQwV775TDC::kV775Mask_EventCounter      = 0x00ffffff;  //  0-23
 
 const UInt_t MQwV775TDC::kV775Mask_ChannelNumber     = 0x001f0000;  // 16-20
 const UInt_t MQwV775TDC::kV775Mask_DataValidBit      = 0x00004000;  // 14
@@ -29,8 +30,11 @@ const UInt_t MQwV775TDC::kV775WordType_Tail     = 4;
 const UInt_t MQwV775TDC::kV775WordType_Datum    = 0;
 
 
+// See page 43 at https://qweak.jlab.org/wiki/images/V775.pdf
 
-void MQwV775TDC::DecodeTDCWord(UInt_t &word){
+void MQwV775TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
+{
+  
   
   fV775SlotNumber = (word & kV775Mask_SlotNumber)>>27;
   UInt_t wordtype = (word & kV775Mask_WordType)>>24;
@@ -41,6 +45,7 @@ void MQwV775TDC::DecodeTDCWord(UInt_t &word){
     /*     underthreshold = ((word & kV775Mask_UnderthresholdBit)!=0); */
     /*     overflow       = ((word & kV775Mask_OverflowBit)!=0); */
     fV775Dataword      = (word & kV775Mask_Dataword);
+    fV775EventNumber   = 0;
   } else {
     //  For now, don't distinguish between the header, tail word,
     //  or invalid data.
@@ -48,14 +53,34 @@ void MQwV775TDC::DecodeTDCWord(UInt_t &word){
     fV775ValidFlag     = kFALSE;
     fV775ChannelNumber = 0;
     fV775Dataword      = 0;
+    fV775EventNumber   = 0;
   }
+
+ 
+  return;
 };
 
 // UInt_t MQwV775TDC::SubtractReference(UInt_t a, UInt_t rawtime){
 //   UInt_t b=rawtime;
 //   return b;
 // }
-Double_t MQwV775TDC::SubtractReference(Double_t rawtime, Double_t reftime){
+
+Double_t MQwV775TDC::SubtractReference(Double_t rawtime, Double_t reftime)
+{
   Double_t real_time = rawtime - reftime;  
   return real_time;
+}
+
+
+
+UInt_t  MQwV775TDC::GetTDCTriggerTime()
+{
+  UInt_t trigger_time = 512; 
+  // V775TDC has no trigger time information into its data stream.
+  // To keep the same function name between V775TDC and F1TDC,
+  // I use this function in order to return "trigger_time" as 512.
+  // The valid trigger time of F1TDC is in the range of 0 - 511,
+  // thus we can distinguish whether F1TDC or V775TDC.
+
+  return trigger_time;
 }

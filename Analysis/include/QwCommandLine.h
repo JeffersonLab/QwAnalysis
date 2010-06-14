@@ -23,7 +23,7 @@ class QwCommandLine{
   QwCommandLine(): fDEBUG(kTRUE),fRunRange(0,0),fEventRange(0,kMaxInt),
     fDoOnline(0)
     {};
-  ~QwCommandLine(){ };
+  virtual ~QwCommandLine(){ };
 
   Int_t Parse(Int_t argc, Char_t* argv[]);
 
@@ -67,7 +67,7 @@ void QwCommandLine::Usage()
 	    << "\t           ending value will be taken to be "
 	    << kMaxInt << ".\n";
     //<<"\t --ring(#,#,#) Following are required to enter \n  \t\t1. Event ring size\n \t\t2. no. of hold off events \n \t\t3.  minimum no. of event required to cancell the ring\n"
-    
+
     //<< std::endl;
   exit(1);
 };

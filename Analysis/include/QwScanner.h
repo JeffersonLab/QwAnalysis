@@ -25,7 +25,7 @@
 
 #include "VQwDataElement.h"
 #include "QwVQWK_Channel.h"
-#include "QwSIS3801_Channel.h"
+#include "QwScaler_Channel.h"
 #include "QwPMT_Channel.h"
 
 class QwScanner: public VQwSubsystemTracking,
@@ -37,16 +37,18 @@ class QwScanner: public VQwSubsystemTracking,
    QwScanner(TString region_tmp);
    virtual ~QwScanner();
 
-  // VQwSubsystem methods
+    // VQwSubsystem methods
     VQwSubsystem& operator=  (VQwSubsystem *value) { return *this; };
     VQwSubsystem& operator+= (VQwSubsystem *value) { return *this; };
     VQwSubsystem& operator-= (VQwSubsystem *value) { return *this; };
+    void ProcessOptions(QwOptions &options); //Handle command line options
     void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2) { return; };
     void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2) { return; };
     void Ratio(VQwSubsystem *numer, VQwSubsystem *denom) { return; };
     void Scale(Double_t factor) { return; };
-    void Calculate_Running_Average(){return;};
-    void Do_RunningSum(){return;};//update the running sums for devices
+
+    void AccumulateRunningSum(VQwSubsystem* value) {return;};
+    void CalculateRunningAverage() {return;};
 
     Int_t LoadEventCuts(TString filename) { return 0; };
     Bool_t ApplySingleEventCuts() { return kTRUE; };
@@ -54,12 +56,12 @@ class QwScanner: public VQwSubsystemTracking,
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
     void Copy(VQwSubsystem *source) { VQwSubsystem::Copy(source); return; };
-    VQwSubsystem*  Copy() { return this; };
+    VQwSubsystem* Copy() { QwScanner* copy = new QwScanner("copy"); copy->Copy(this); return copy; };
     Bool_t Compare(VQwSubsystem *source) { return kTRUE; };
 
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
-  Int_t LoadQweakGeometry(TString mapfile){return 0;};
+  Int_t LoadGeometryDefinition(TString mapfile){return 0;};
   Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info){return 0;};
   Int_t LoadInputParameters(TString parameterfile);
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -72,7 +74,7 @@ class QwScanner: public VQwSubsystemTracking,
   void  SetCalibrationFactor(Double_t calib);
   void  RandomizeEventData(int helicity);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
-  Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   void  ProcessEvent();
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();

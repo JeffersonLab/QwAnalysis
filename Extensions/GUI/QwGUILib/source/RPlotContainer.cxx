@@ -21,6 +21,7 @@ RPlotContainer::RPlotContainer(const TGWindow *p, const TGWindow *main,
   fGraphAsymErList = new TList();
   fMultiGraph = new TMultiGraph();
   fD1HistoList = new TList();
+  fD1ProfileList = new TList();
   fD2HistoList = new TList();
   fD3HistoList = new TList();
   fFuncList    = new TList();
@@ -68,6 +69,8 @@ RPlotContainer::~RPlotContainer()
     delete fMultiGraph;
   if(fD1HistoList)
     delete fD1HistoList;
+  if(fD1ProfileList)
+    delete fD1ProfileList;
   if(fD2HistoList)
     delete fD2HistoList;
   if(fD3HistoList)
@@ -131,6 +134,13 @@ Int_t RPlotContainer::GetFuncCount()
 Int_t RPlotContainer::Get1DHistoCount()
 {
   if(fD1HistoList)return fD1HistoList->GetSize();
+
+  return 0;
+}
+
+Int_t RPlotContainer::Get1DProfileCount()
+{
+  if(fD1ProfileList)return fD1ProfileList->GetSize();
 
   return 0;
 }
@@ -235,6 +245,8 @@ void RPlotContainer::ClearPlots()
     fGraphAsymErList->Clear();
   if(fD1HistoList)
     fD1HistoList->Clear();
+  if(fD1ProfileList)
+    fD1ProfileList->Clear();
   if(fD3HistoList)
     fD3HistoList->Clear();
   if(fFuncList)
@@ -346,6 +358,28 @@ TH1D *RPlotContainer::GetNew1DHistogram(const TH1D& h1d)
     fD1HistoList->Add(hist);
     fPlotList->Add(hist);
     return hist;
+  }
+  return NULL;
+}
+
+TProfile *RPlotContainer::GetNew1DProfile(const TProfile& prf)
+{
+  char temp[NAME_STR_MAX];
+  TProfile *prof = new TProfile(*(TProfile*)prf.Clone());
+  if(prof) {
+    prof->SetBit(TH1::kCanRebin);
+    prof->SetDirectory(0);
+    sprintf(temp,"%s_cp",prof->GetName());
+    prof->SetName(temp);
+    prof->SetLineWidth(dPlotOptions->lineWidth);
+    prof->SetLineStyle(dPlotOptions->lineStyle);
+    prof->SetLineColor(dPlotOptions->lineColor);
+    prof->SetMarkerSize(dPlotOptions->markerSize);
+    prof->SetMarkerStyle(dPlotOptions->markerStyle);
+    prof->SetMarkerColor(dPlotOptions->markerColor);
+    fD1ProfileList->Add(prof);
+    fPlotList->Add(prof);
+    return prof;
   }
   return NULL;
 }
@@ -695,6 +729,36 @@ TObject *RPlotContainer::GetHistogram(Int_t index, Char_t *type,
     if(name){
       for(int i = 0; i < fD1HistoList->GetSize(); i++){
 	obj = fD1HistoList->At(i);
+	if(obj && !strcmp(obj->GetName(),name)) return obj;
+      }
+      return NULL;
+    }
+    return NULL;
+  }
+  return NULL;
+}
+
+TObject *RPlotContainer::GetProfile(Int_t index, Char_t *type, 
+				    Char_t *name)
+{
+  if(!type) return NULL;
+
+  TObject *obj = NULL;
+  if(!strcmp(type,"TProfile")){
+    if(!fD1ProfileList) return NULL;
+    if(fD1ProfileList->GetSize() < 1) return NULL;
+    if(index >= 0 && index < fD1ProfileList->GetSize()){
+      obj = fD1ProfileList->At(index);
+      if(obj){
+	if(!name) return obj;
+	if(name && !strcmp(obj->GetName(),name)) return obj;
+	return NULL;
+      }
+      return NULL;
+    }
+    if(name){
+      for(int i = 0; i < fD1ProfileList->GetSize(); i++){
+	obj = fD1ProfileList->At(i);
 	if(obj && !strcmp(obj->GetName(),name)) return obj;
       }
       return NULL;

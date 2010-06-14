@@ -32,6 +32,38 @@
 Int_t ERROR = -1;
 
 
+Int_t VQwSubsystem::LoadDetectorMaps(QwParameterFile& file)
+{
+  file.RewindToFileStart();
+  while (file.ReadNextLine()) {
+    // Trim comments and whitespace
+    file.TrimComment('!');
+    file.TrimComment('#');
+    file.TrimWhitespace();
+
+    // Find key-value pairs
+    std::string key, value;
+    if (file.HasVariablePair("=", key, value)) {
+
+      // Map file definition
+      if (key == "map" && value.size() > 0)
+        LoadChannelMap(value);
+
+      // Geometry file definition
+      if (key == "geom" && value.size() > 0)
+        LoadGeometryDefinition(value);
+
+      // Parameter file definition
+      if (key == "param" && value.size() > 0)
+        LoadInputParameters(value);
+
+    } // end of HasVariablePair
+
+  } // end of while
+  return 0;
+}
+
+
 /**
  * Set the parent of this subsystem to the specified parent array.  A subsystem
  * can have multiple parents, but that is not recommended.
@@ -84,7 +116,7 @@ VQwSubsystem* VQwSubsystem::GetSibling(const TString& name) const
   QwSubsystemArray* parent = GetParent();
   if (parent != 0)
     // Return the subsystem with name in the parent
-    return parent->GetSubsystem(name);
+    return parent->GetSubsystemByName(name);
   else
     return 0; // GetParent() prints error already
 };

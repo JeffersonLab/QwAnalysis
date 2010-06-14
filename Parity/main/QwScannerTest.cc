@@ -27,12 +27,10 @@
 // Boost math library for random number generation
 #include <boost/random.hpp>
 
-// Coda headers
-#include "THaCodaFile.h"
 
 // Qweak headers
 #include "QwVQWK_Channel.h"
-#include "QwSIS3801_Channel.h"
+#include "QwScaler_Channel.h"
 #include "QwEventBuffer.h"
 #include "QwSubsystemArrayParity.h"
 #include "QwSubsystemArrayTracking.h"
@@ -64,9 +62,9 @@ int main(Int_t argc,Char_t* argv[]) {
     ///  variable within the QwParameterFile class which will be used by
     ///  all instances.
     ///  The "scratch" directory should be first.
-    QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH"))+"/setupfiles");
-    QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Parity/prminput");
-    QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS"))+"/Analysis/prminput");
+    QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH")+"/setupfiles");
+    QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS")+"/Parity/prminput");
+    QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS")+"/Analysis/prminput");
 
     ///
     ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
@@ -89,13 +87,13 @@ int main(Int_t argc,Char_t* argv[]) {
 //    QwSubsystemArrayParity QwDetectors;
     QwSubsystemArray QwDetectors;
 //  QwDetectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
-//  QwDetectors.GetSubsystem("MainDetectors")->LoadChannelMap("qweak_adc.map");
+//  QwDetectors.GetSubsystemByName("MainDetectors")->LoadChannelMap("qweak_adc.map");
 
     // Test code for the focal plane scanner
     if (kDebug) std::cout<<"Instantiate the scanner subsystem:"<<std::endl;
     QwDetectors.push_back (new QwScanner( "FPS" ));
-    QwDetectors.GetSubsystem("FPS")->LoadChannelMap("scanner_channel.map" );
-    QwDetectors.GetSubsystem("FPS")->LoadInputParameters("scanner_parameter.map");
+    QwDetectors.GetSubsystemByName("FPS")->LoadChannelMap("scanner_channel.map" );
+    QwDetectors.GetSubsystemByName("FPS")->LoadInputParameters("scanner_parameter.map");
 
 
     ///
@@ -111,7 +109,7 @@ int main(Int_t argc,Char_t* argv[]) {
     if (kDebug) std::cout<<"\nGenerating mock data:\n\n";
 
     // Get subsystem
-    QwScanner* scanner = dynamic_cast<QwScanner*> (QwDetectors.GetSubsystem("FPS"));
+    QwScanner* scanner = dynamic_cast<QwScanner*> (QwDetectors.GetSubsystemByName("FPS"));
 
     // Loop over all runs
     UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
@@ -120,7 +118,7 @@ int main(Int_t argc,Char_t* argv[]) {
             run <= runnumber_max;
             run++) {
 
-        TString filename = std::string(getenv("QW_DATA"))+
+        TString filename = getenv_safe_string("QW_DATA") +
                            TString("/QwRun_") + Form("%ld.",run) + TString("log");
 
         if (kDebug) std::cout<<"Generating mock data for the scanner: "<<filename<<std::endl;
@@ -186,7 +184,7 @@ int main(Int_t argc,Char_t* argv[]) {
         //  Open the data files and root file
         //    OpenAllFiles(io, run);
 
-        TString rootfilename=std::string(getenv("QW_ROOTFILES"))+Form("/Qweak_Scanner_%d.root",run);
+        TString rootfilename=getenv_safe_string("QW_ROOTFILES") + Form("/Qweak_Scanner_%d.root",run);
         std::cout<<" rootfilename="<<rootfilename<<"\n";
         TFile rootfile(rootfilename,"RECREATE","QWeak ROOT file");
 

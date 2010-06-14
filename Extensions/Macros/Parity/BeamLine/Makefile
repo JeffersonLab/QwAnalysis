@@ -20,6 +20,8 @@ ROOTGLIBS     = $(shell root-config --glibs)
 MYOS := $(subst -,,$(shell uname))
 
 
+EXE := pedestal_extractor position_differnces hallc_beam_motion correlation_plots
+
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
 	CXX           = g++ 
@@ -35,26 +37,31 @@ MYOS := $(subst -,,$(shell uname))
 	GLIBS         = $(ROOTGLIBS)
 #endif
 
+all:  $(EXE)
+	@echo "---------------------> $(EXE) done <---------------------- "
 
-pedestal_extractor : r_bpm_bcm_calibration.o 
+pedestal_extractor : bpm_bcm_calibration.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 position_differnces : PositionDifferences.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
+hallc_beam_motion : hallc_beam_motion.o 
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+
 %.o: %.C
 	$(CXX) -c  $(CXXFLAGS)   -o $@ $<
 
 
-all: depend $(EXE)
 
-	@echo "---------------------> $(EXE) done <---------------------- "
-
-depend .depend : $(SRCS)
-	$(CXX) $(CXXFLAGS) -M $(MAIN)  >./.depend
+#depend .depend : $(SRCS)
+#	$(CXX) $(CXXFLAGS) -M $(MAIN)  >./.depend
 
 clean:
-		@rm -f $(OBJS) *~  core
+	@rm -f $(OBJS) *~  core
 
 cleanall:
-		@rm -f $(OBJS) $(EXE) *~  core
+	@rm -f $(OBJS) $(EXE) *~  core
+
+.PHONY : clean cleanall all

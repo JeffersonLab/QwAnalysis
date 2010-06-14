@@ -2,13 +2,25 @@
 #ifndef __QwVQWK_COMBINEDPMT__
 #define __QwVQWK_COMBINEDPMT__
 
+// System headers
 #include <vector>
+
+// ROOT headers
 #include <TTree.h>
 
+// Qweak headers
 #include "QwVQWK_Channel.h"
 #include "QwIntegrationPMT.h"
 
-class QwCombinedPMT : public VQwDataElement{
+// Qweak database headers
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwSSQLS.h"
+#include "QwDatabase.h"
+
+// Forward declarations
+class QwBlinder;
+
+class QwCombinedPMT : public VQwDataElement {
 /////
  public:
   QwCombinedPMT(){
@@ -42,7 +54,7 @@ class QwCombinedPMT : public VQwDataElement{
 
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
-  Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings 
+  Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Int_t SetSingleEventCuts(std::vector<Double_t> &);//two limts and sample size
   void SetDefaultSampleSize(Int_t sample_size);
@@ -57,10 +69,16 @@ class QwCombinedPMT : public VQwDataElement{
   QwCombinedPMT& operator-= (const QwCombinedPMT &value);
   void Sum(QwCombinedPMT &value1, QwCombinedPMT &value2);
   void Difference(QwCombinedPMT &value1, QwCombinedPMT &value2);
-  void Ratio(QwCombinedPMT &numer, QwCombinedPMT &denom); 
+  void Ratio(QwCombinedPMT &numer, QwCombinedPMT &denom);
   void Scale(Double_t factor);
-  void Calculate_Running_Average();
-  void Do_RunningSum(); 
+
+  void AccumulateRunningSum(const QwCombinedPMT& value);
+  void CalculateRunningAverage();
+
+  /// \brief Blind the asymmetry
+  void Blind(const QwBlinder *blinder);
+  /// \brief Blind the difference using the yield
+  void Blind(const QwBlinder *blinder, const QwCombinedPMT& yield);
 
   void SetPedestal(Double_t ped);
   void SetCalibrationFactor(Double_t calib);
@@ -72,15 +90,21 @@ class QwCombinedPMT : public VQwDataElement{
   void  FillTreeVector(std::vector<Double_t> &values);
   void  DeleteHistograms();
 
-  void Copy(VQwDataElement *source);
+  Double_t GetAverage()        {return fSumADC.GetAverage();};
+  Double_t GetAverageError()   {return fSumADC.GetAverageError();};
+  UInt_t   GetGoodEventCount() {return fSumADC.GetGoodEventCount();};
 
+
+  void Copy(VQwDataElement *source);
+  
+  std::vector<QwDBInterface>  GetDBEntry() {return fSumADC.GetDBEntry();};
 
  protected:
 
  private:
 
   Int_t fDataToSave;
-  Double_t fCalibration; 
+  Double_t fCalibration;
   Double_t fULimit, fLLimit;
   Double_t fSequenceNo_Prev;
 
@@ -90,9 +114,9 @@ class QwCombinedPMT : public VQwDataElement{
   std::vector <Double_t> fWeights;
 
   QwIntegrationPMT  fSumADC;
-  QwIntegrationPMT  fAvgADC;
+  //QwIntegrationPMT  fAvgADC;
 
-  Int_t fDevice_flag; /// sets the event cut level for the device 
+  Int_t fDevice_flag; /// sets the event cut level for the device
                       /// fDevice_flag=1 Event cuts & HW check,
                       /// fDevice_flag=0 HW check, fDevice_flag=-1 no check
 
@@ -100,7 +124,7 @@ class QwCombinedPMT : public VQwDataElement{
                           /// from the QwVQWK_Channel::fDeviceErrorCode
 
   Bool_t bEVENTCUTMODE; /// If this set to kFALSE then Event cuts do not depend
-                        /// on HW ckecks. This is set externally through the 
+                        /// on HW ckecks. This is set externally through the
                         /// qweak_beamline_eventcuts.map
 
   const static  Bool_t bDEBUG=kFALSE; /// debugging display purposes

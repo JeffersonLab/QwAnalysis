@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# QWEAK environment variables [ bash ] 
+# QWEAK environment variables [ bash ]
 #
 #
 
 unset OSNAME
-export OSNAME=`uname|sed 's/-/_/'` 
+export OSNAME=`uname|sed 's/-/_/'`
 
 if [[ "${OSNAME}" != "Linux" && "${OSNAME}" != "SunOS" && "${OSNAME}" != "OSF1" && "${OSNAME}" != "Darwin" ]]; then
     echo "Operating system name '"${OSNAME}"' does not have a version of the QWEAK analyzer."
@@ -60,40 +60,10 @@ else
 fi
 
 
-###  Set up ROOT if it isn't done yet.
-###  Expect to use /apps/root/PRO
-if [[ -n ${ROOTSYS} ]]; then
-  echo "ROOTSYS already defined: ${ROOTSYS}"
-  if [[ ! -d ${ROOTSYS} ]]; then
-    echo "Directory ${ROOTSYS} does not exist; unset variable ROOTSYS"
-    unset ROOTSYS
-  fi
-fi
-if [[ -z ${ROOTSYS} ]]; then
-  echo "ROOTSYS not defined; trying root-config..."
-  if [[ `which root-config` ]]; then
-    export ROOTSYS="`root-config --prefix`"
-    echo "Setting ROOTSYS to ${ROOTSYS} using root-config"
-  fi
-fi
-if [[ -z ${ROOTSYS} ]]; then
-  echo "ROOTSYS not defined; trying /apps/root/PRO..."
-  use root
-  if [[ -n ${ROOTSYS} ]]; then
-    if [[ -x "${ROOTSYS}/bin/root" ]]; then
-      echo "Setting ROOTSYS to ${ROOTSYS} in /apps/root/PRO"
-    else
-      echo -e "#\n# Couldn't find a working ROOT.  Maybe use root-config to set ROOTSYS\n#"
-      return;
-    fi
-  else
-    echo -e "#\n# Couldn't find a working ROOT.  Maybe use root-config to set ROOTSYS\n#"
-    return;
-  fi
-fi
-${QWANALYSIS}/SetupFiles/checkrootversion
 
-${QWANALYSIS}/SetupFiles/make_scratch_dir
+
+
+#${QWANALYSIS}/SetupFiles/make_scratch_dir
 
 ###  Set up the analyzer and scratch environments.
 . ${QWANALYSIS}/SetupFiles/.Qwbashrc

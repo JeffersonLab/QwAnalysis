@@ -9,9 +9,6 @@
 #include "QwHistogramHelper.h"
 #include <stdexcept>
 
-
-
-
 /********************************************************/
 void QwIntegrationPMT::SetPedestal(Double_t pedestal)
 {
@@ -46,6 +43,18 @@ void QwIntegrationPMT::ReportErrorCounters(){
   fTriumf_ADC.ReportErrorCounters();
 };
 /********************************************************/
+void QwIntegrationPMT::UseExternalRandomVariable()
+{
+  fTriumf_ADC.UseExternalRandomVariable();
+  return;
+};
+/********************************************************/
+void QwIntegrationPMT::SetExternalRandomVariable(double random_variable)
+{
+  fTriumf_ADC.SetExternalRandomVariable(random_variable);
+  return;
+};
+/********************************************************/
 void QwIntegrationPMT::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
 {
   fTriumf_ADC.SetRandomEventDriftParameters(amplitude, phase, frequency);
@@ -70,9 +79,9 @@ void QwIntegrationPMT::SetRandomEventAsymmetry(Double_t asymmetry)
   return;
 };
 /********************************************************/
-void QwIntegrationPMT::RandomizeEventData(int helicity)
+void QwIntegrationPMT::RandomizeEventData(int helicity, double time)
 {
-  fTriumf_ADC.RandomizeEventData(helicity);
+  fTriumf_ADC.RandomizeEventData(helicity, time);
   return;
 };
 /********************************************************/
@@ -99,12 +108,6 @@ void QwIntegrationPMT::SetEventData(Double_t* block, UInt_t sequencenumber)
   return;
 };
 /********************************************************/
-void QwIntegrationPMT::SetEventNumber(int event)
-{
-  fTriumf_ADC.SetEventNumber(event);
-  return;
-};
-/********************************************************/
 void QwIntegrationPMT::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   fTriumf_ADC.EncodeEventData(buffer);
@@ -112,7 +115,7 @@ void QwIntegrationPMT::EncodeEventData(std::vector<UInt_t> &buffer)
 /********************************************************/
 void  QwIntegrationPMT::ProcessEvent()
 {
-
+  ApplyHWChecks();//first apply HW checks and update HW  error flags.
   fTriumf_ADC.ProcessEvent();
 
 
@@ -131,12 +134,8 @@ Bool_t QwIntegrationPMT::ApplyHWChecks()
 };
 /********************************************************/
 
-Int_t QwIntegrationPMT::SetSingleEventCuts(std::vector<Double_t> & dEventCuts){//two limts and sample size
-  fLLimit=dEventCuts.at(0);
-  fULimit=dEventCuts.at(1);
-  fDevice_flag=(Int_t)dEventCuts.at(2);
-  //std::cout<<GetElementName()<<" IntegrationPMT fDevice_flag "<<fDevice_flag<<std::endl;
-
+Int_t QwIntegrationPMT::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){//std::vector<Double_t> & dEventCuts){//two limts and sample size
+  fTriumf_ADC.SetSingleEventCuts(LL,UL);
   return 1;
 };
 
@@ -153,23 +152,15 @@ Bool_t QwIntegrationPMT::ApplySingleEventCuts(){
 
 //std::cout<<" QwBCM::SingleEventCuts() "<<std::endl;
   Bool_t status=kTRUE;
-  ApplyHWChecks();//first apply HW checks and update HW  error flags.
 
-  if (fDevice_flag==1){// if fDevice_flag==1 then perform the event cut limit test
-
-    //if (fTriumf_ADC.GetHardwareSum()<=fULimit && fTriumf_ADC.GetHardwareSum()>=fLLimit){ // Check event cuts + HW check status
-    if (fTriumf_ADC.ApplySingleEventCuts(fLLimit,fULimit)){
-      status=kTRUE;
-      //std::cout<<" BCM Sample size "<<fTriumf_ADC.GetNumberOfSamples()<<std::endl;
-    }
-    else{
-      fTriumf_ADC.UpdateEventCutErrorCount();//update event cut falied counts
-      if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fTriumf_ADC.GetHardwareSum();
-      status&=kFALSE;//kTRUE;//kFALSE;
-    }
-  }else
-    status =kTRUE;
-
+  if (fTriumf_ADC.ApplySingleEventCuts()){
+    status=kTRUE;
+    //std::cout<<" BCM Sample size "<<fTriumf_ADC.GetNumberOfSamples()<<std::endl;
+  }
+  else{
+    fTriumf_ADC.UpdateEventCutErrorCount();//update event cut falied counts
+    status&=kFALSE;//kTRUE;//kFALSE;
+  }
 
   return status;
 
@@ -191,7 +182,8 @@ Int_t QwIntegrationPMT::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_
   fTriumf_ADC.ProcessEvBuffer(buffer,word_position_in_buffer);
 
   return word_position_in_buffer;
-};
+};  Double_t fULimit, fLLimit;
+
 /********************************************************/
 QwIntegrationPMT& QwIntegrationPMT::operator= (const QwIntegrationPMT &value)
 {
@@ -363,10 +355,84 @@ void  QwIntegrationPMT::Copy(VQwDataElement *source)
 }
 
 
-void QwIntegrationPMT::Calculate_Running_Average(){
-  fTriumf_ADC.Calculate_Running_Average();
+void QwIntegrationPMT::CalculateRunningAverage()
+{
+  fTriumf_ADC.CalculateRunningAverage();
 };
 
-void QwIntegrationPMT::Do_RunningSum(){
-  fTriumf_ADC.Do_RunningSum();
+void QwIntegrationPMT::AccumulateRunningSum(const QwIntegrationPMT& value)
+{
+  fTriumf_ADC.AccumulateRunningSum(value.fTriumf_ADC);
 };
+
+void QwIntegrationPMT::Blind(const QwBlinder *blinder)
+{
+  fTriumf_ADC.Blind(blinder);
+};
+
+void QwIntegrationPMT::Blind(const QwBlinder *blinder, const QwIntegrationPMT& yield)
+{
+  fTriumf_ADC.Blind(blinder, yield.fTriumf_ADC);
+};
+
+
+std::vector<QwDBInterface> QwIntegrationPMT::GetDBEntry()
+{
+  UShort_t i = 0;
+  std::vector<QwDBInterface> row_list;
+  QwDBInterface row;
+
+  TString name;
+  Double_t avg         = 0.0;
+  Double_t err         = 0.0;
+  UInt_t beam_subblock = 0;
+  UInt_t beam_n        = 0;
+
+  row_list.clear();
+  row.Reset();
+
+  // the element name and the n (number of measurements in average)
+  // is the same in each block and hardwaresum.
+
+  name          = fTriumf_ADC.GetElementName();
+  beam_n        = fTriumf_ADC.GetGoodEventCount();
+
+  // Get HardwareSum average and its error
+  avg           = fTriumf_ADC.GetHardwareSum();
+  err           = fTriumf_ADC.GetHardwareSumError();
+  // ADC subblock sum : 0 in MySQL database
+  beam_subblock = 0; 
+ 
+  row.SetDetectorName(name);
+  row.SetSubblock(beam_subblock);
+  row.SetN(beam_n);
+  row.SetValue(avg);
+  row.SetError(err);
+
+  row_list.push_back(row);
+
+  // Get four Block averages and thier errors
+
+  for(i=0; i<4; i++) {
+    row.Reset();
+    avg           = fTriumf_ADC.GetBlockValue(i);
+    err           = fTriumf_ADC.GetBlockErrorValue(i);
+    beam_subblock = (UInt_t) (i+1); 
+    // QwVQWK_Channel  | MySQL
+    // fBlock[0]       | subblock 1
+    // fBlock[1]       | subblock 2
+    // fBlock[2]       | subblock 3
+    // fBlock[3]       | subblock 4
+    row.SetDetectorName(name);
+    row.SetSubblock(beam_subblock);
+    row.SetN(beam_n);
+    row.SetValue(avg);
+    row.SetError(err);
+
+    row_list.push_back(row);
+  }
+
+  return row_list;
+
+};
+

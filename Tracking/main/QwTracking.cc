@@ -43,6 +43,9 @@
 #include "QwTrack.h"
 #include "QwEvent.h"
 
+
+#include "QwEPICSEvent.h"
+
 // Qweak headers (deprecated)
 #include "Det.h"
 #include "Qset.h"
@@ -52,10 +55,12 @@
 // Debug level
 static const bool kDebug = kFALSE;
 // Tracking
-static const bool kTracking = kTRUE;
+static const bool kTracking = kFALSE;
 // ROOT file output
 static const bool kTree = kTRUE;
 static const bool kHisto = kTRUE;
+
+static const bool kUseTDCHits = kFALSE;
 
 // Branching flags for subsystems
 static const bool kMainDetBranch = kTRUE;
@@ -84,12 +89,12 @@ Int_t main(Int_t argc, Char_t* argv[]) {
         gROOT->SetBatch(kTRUE);
     }
 
-    //gQwHists.LoadHistParamsFromFile(std::string(getenv("QWANALYSIS"))+"/Tracking/prminput/cosmics_hists.in");
+    //gQwHists.LoadHistParamsFromFile(getenv_safe_string("QWANALYSIS)+"/Tracking/prminput/cosmics_hists.in");
 
     // Fill the search paths for the parameter files
-    QwParameterFile::AppendToSearchPath(std::string(getenv("QWSCRATCH")) + "/setupfiles");
-    QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Tracking/prminput");
-    QwParameterFile::AppendToSearchPath(std::string(getenv("QWANALYSIS")) + "/Analysis/prminput");
+    QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH") + "/setupfiles");
+    QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Tracking/prminput");
+    QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
     //  Load the histogram parameter definitions
     gQwHists.LoadHistParamsFromFile("cosmics_hists.in");
@@ -99,40 +104,40 @@ Int_t main(Int_t argc, Char_t* argv[]) {
 
     // Region 1 GEM
     detectors.push_back(new QwGasElectronMultiplier("R1"));
-    detectors.GetSubsystem("R1")->LoadChannelMap("qweak_R1.map");
-    detectors.GetSubsystem("R1")->LoadQweakGeometry("qweak_new.geo");
+    detectors.GetSubsystemByName("R1")->LoadChannelMap("qweak_R1.map");
+    detectors.GetSubsystemByName("R1")->LoadGeometryDefinition("qweak_new.geo");
 
 
 
 
     // Region 2 HDC
     detectors.push_back(new QwDriftChamberHDC("R2"));
-    detectors.GetSubsystem("R2")->LoadChannelMap("qweak_cosmics_hits.map");
-    ((VQwSubsystemTracking*) detectors.GetSubsystem("R2"))->LoadQweakGeometry("qweak_new.geo");
+    detectors.GetSubsystemByName("R2")->LoadChannelMap("qweak_cosmics_hits.map");
+    ((VQwSubsystemTracking*) detectors.GetSubsystemByName("R2"))->LoadGeometryDefinition("qweak_new.geo");
     // Region 3 VDC
     detectors.push_back(new QwDriftChamberVDC("R3"));
-    //detectors.GetSubsystem("R3")->LoadChannelMap("qweak_cosmics_hits.map");
-    detectors.GetSubsystem("R3")->LoadChannelMap("TDCtoDL.map");
-    ((VQwSubsystemTracking*) detectors.GetSubsystem("R3"))->LoadQweakGeometry("qweak_new.geo");
+    //detectors.GetSubsystemByName("R3")->LoadChannelMap("qweak_cosmics_hits.map");
+    detectors.GetSubsystemByName("R3")->LoadChannelMap("TDCtoDL.map");
+    ((VQwSubsystemTracking*) detectors.GetSubsystemByName("R3"))->LoadGeometryDefinition("qweak_new.geo");
     // Trigger scintillators
     detectors.push_back(new QwTriggerScintillator("TS"));
-    ((VQwSubsystemTracking*) detectors.GetSubsystem("TS"))->LoadChannelMap("trigscint_cosmics.map");
+    ((VQwSubsystemTracking*) detectors.GetSubsystemByName("TS"))->LoadChannelMap("trigscint_cosmics.map");
     // Main detector
     detectors.push_back(new QwMainDetector("MD"));
-    detectors.GetSubsystem("MD")->LoadChannelMap("maindet_cosmics.map");
-    QwMainDetector* maindetector = dynamic_cast<QwMainDetector*> (detectors.GetSubsystem("MD"));
+    detectors.GetSubsystemByName("MD")->LoadChannelMap("maindet_cosmics.map");
+    QwMainDetector* maindetector = dynamic_cast<QwMainDetector*> (detectors.GetSubsystemByName("MD"));
     // Scanner
     detectors.push_back(new QwScanner("FPS"));
-    ((VQwSubsystemTracking*) detectors.GetSubsystem("FPS"))->LoadChannelMap("scanner_channel.map" );
-    ((VQwSubsystemTracking*) detectors.GetSubsystem("FPS"))->LoadInputParameters("scanner_parameter.map");
-    QwScanner* scanner = dynamic_cast<QwScanner*> (detectors.GetSubsystem("FPS")); // Get scanner subsystem
+    ((VQwSubsystemTracking*) detectors.GetSubsystemByName("FPS"))->LoadChannelMap("scanner_channel.map" );
+    ((VQwSubsystemTracking*) detectors.GetSubsystemByName("FPS"))->LoadInputParameters("scanner_parameter.map");
+    QwScanner* scanner = dynamic_cast<QwScanner*> (detectors.GetSubsystemByName("FPS")); // Get scanner subsystem
 
 
     // Get vector with detector info (by region, plane number)
     std::vector< std::vector< QwDetectorInfo > > detector_info;
-    detectors.GetSubsystem("R1")->GetDetectorInfo(detector_info);
-    detectors.GetSubsystem("R2")->GetDetectorInfo(detector_info);
-    detectors.GetSubsystem("R3")->GetDetectorInfo(detector_info);
+    detectors.GetSubsystemByName("R1")->GetDetectorInfo(detector_info);
+    detectors.GetSubsystemByName("R2")->GetDetectorInfo(detector_info);
+    detectors.GetSubsystemByName("R3")->GetDetectorInfo(detector_info);
     // TODO This is handled incorrectly, it just adds the three package after the
     // existing three packages from region 2...  GetDetectorInfo should descend
     // into the packages and add only the detectors in those packages.
@@ -143,7 +148,7 @@ Int_t main(Int_t argc, Char_t* argv[]) {
 
     // Create and fill old detector structures (deprecated)
     Qset qset;
-    qset.FillDetectors((std::string(getenv("QWANALYSIS")) + "/Tracking/prminput/qweak.geo").c_str());
+    qset.FillDetectors((getenv_safe_string("QWANALYSIS") + "/Tracking/prminput/qweak.geo").c_str());
     qset.LinkDetectors();
     qset.DeterminePlanes();
 
@@ -172,6 +177,8 @@ Int_t main(Int_t argc, Char_t* argv[]) {
     TStopwatch timer;
 
 
+    QwEPICSEvent epics;
+
     // Create the event buffer
     QwEventBuffer eventbuffer;
     eventbuffer.ProcessOptions(gQwOptions);
@@ -183,8 +190,6 @@ Int_t main(Int_t argc, Char_t* argv[]) {
         //  Start the timer.
         timer.Start();
 
-        eventbuffer.ResetControlParameters();
-
         TFile *rootfile = 0;
         if (rootfile) {
             if (rootfile-> IsOpen()) rootfile->Close();
@@ -192,10 +197,10 @@ Int_t main(Int_t argc, Char_t* argv[]) {
             rootfile=0;
         }
 
-        rootfile = new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%s.root",
+        rootfile = new TFile(Form(getenv_safe_TString("QWSCRATCH") + "/rootfiles/Qweak_%s.root",
                                   eventbuffer.GetRunLabel().Data()), "RECREATE",
                                   "QWeak ROOT file with real events");
-        //    std::auto_ptr<TFile> rootfile (new TFile(Form(TString(getenv("QWSCRATCH")) + "/rootfiles/Qweak_%d.root", run),
+        //    std::auto_ptr<TFile> rootfile (new TFile(Form(getenv_safe_TString("QWSCRATCH") + "/rootfiles/Qweak_%d.root", run),
         //   					"RECREATE",
         //   					"QWeak ROOT file with real events"));
 
@@ -204,7 +209,7 @@ Int_t main(Int_t argc, Char_t* argv[]) {
         //  and then pass it into the constructor.
         //
         //  To pass a subdirectory named "subdir", we would do:
-        //    detectors.GetSubsystem("MD")->ConstructHistograms(rootfile->mkdir("subdir"));
+        //    detectors.GetSubsystemByName("MD")->ConstructHistograms(rootfile->mkdir("subdir"));
 
         // Construct histograms
         //detectors.ConstructHistograms(rootfile->mkdir("histos"));
@@ -213,15 +218,15 @@ Int_t main(Int_t argc, Char_t* argv[]) {
 
         TTree* tree = 0;
         QwEvent* event = 0;
-        QwHitRootContainer* rootlist = 0;
+        QwHitRootContainer* hitlist_root = 0;
 
         TString prefix = "";
 
         if (kTree) {
             rootfile->cd(); // back to the top directory
             tree = new TTree("tree", "Hit list");
-            rootlist = new QwHitRootContainer();
-            tree->Branch("hits", "QwHitRootContainer", &rootlist);
+            hitlist_root = new QwHitRootContainer();
+            tree->Branch("hits", "QwHitRootContainer", &hitlist_root);
             tree->Branch("events", "QwEvent", &event);
 
             if (kMainDetBranch)
@@ -245,6 +250,16 @@ Int_t main(Int_t argc, Char_t* argv[]) {
         while (eventbuffer.GetNextEvent() == CODA_OK) {
             //  Loop over events in this CODA file
             //  First, do processing of non-physics events...
+
+
+	    if (eventbuffer.IsEPICSEvent()) {
+	      eventbuffer.FillEPICSData(epics);
+	      epics.CalculateRunningValues();
+
+	    }
+
+
+
             if (eventbuffer.IsROCConfigurationEvent()) {
                 //  Send ROC configuration event data to the subsystem objects.
                 eventbuffer.FillSubsystemConfigurationData(detectors);
@@ -282,28 +297,29 @@ Int_t main(Int_t argc, Char_t* argv[]) {
 
             // Create and fill hit list
             hitlist = new QwHitContainer();
-            detectors.GetHitList(hitlist);
+            if (kUseTDCHits)
+              detectors.GetTDCHitList(hitlist);
+            else
+              detectors.GetHitList(hitlist);
+
             // Sorting the grand hit list
             hitlist->sort();
 
-
-            if (hitlist->size() == 0 && (kScannerBranch || kMainDetBranch))   tree->Fill();
-
-            // Skip empty events
-            if (hitlist->size() == 0) continue;
+            // Skip empty events, if we're not creating the other branches
+            if (hitlist->size() == 0 && !(kScannerBranch || kMainDetBranch))
+	      continue;
 
             // Print hit list
-            if (kDebug) {
+            if (hitlist->size() > 0 && kDebug) {
                 std::cout << "Event " << eventbuffer.GetEventNumber() << std::endl;
                 hitlist->Print();
             }
 
             // Conver the hit list to ROOT output format
-            //if (kTree) rootlist->Convert(hitlist);
-            if (kTree) rootlist->Build(*hitlist);
+            if (kTree) hitlist_root->Build(*hitlist);
 
             // Track reconstruction
-            if (kTracking) {
+            if (hitlist->size() > 0 && kTracking) {
                 // Process the hits
                 event = trackingworker->ProcessHits(&detectors, hitlist);
 
@@ -318,8 +334,8 @@ Int_t main(Int_t argc, Char_t* argv[]) {
             if (kTree)  tree->Fill();
 
             // Delete objects
-            if (hitlist)    delete hitlist;     hitlist = 0;
-            if (event)      delete event;       event = 0;
+            if (hitlist)    delete hitlist;    hitlist = 0;
+            if (event)      delete event;      event = 0;
 
             nevents++;
 
@@ -344,6 +360,14 @@ Int_t main(Int_t argc, Char_t* argv[]) {
 
         // Write and close file (after last access to ROOT tree)
         rootfile->Write(0, TObject::kOverwrite);
+	QwDatabase *db = new QwDatabase();
+
+	epics.ReportEPICSData();
+	//epics.PrintVariableList();
+	//epics.PrintAverages();
+	//TString tag; epics.GetDataValue(tag);
+	//epics.FillSlowControlsData(db);
+
 
         // Close CODA file
         eventbuffer.CloseStream();
@@ -357,11 +381,13 @@ Int_t main(Int_t argc, Char_t* argv[]) {
         // Note: Closing rootfile too early causes segfaults when deleting histos
 
         // Delete objects (this is confusing: the if only applies to the delete)
-        if (rootfile)       delete rootfile;        rootfile = 0;
-        if (trackingworker) delete trackingworker;  trackingworker = 0;
-        if (hitlist)        delete hitlist;         hitlist = 0;
-        if (event)          delete event;           event = 0;
-        if (rootlist)       delete rootlist;        rootlist = 0;
+        if (rootfile)        delete rootfile;        rootfile = 0;
+        if (trackingworker)  delete trackingworker;  trackingworker = 0;
+        if (hitlist)         delete hitlist;         hitlist = 0;
+        if (event)           delete event;           event = 0;
+        if (hitlist_root)    delete hitlist_root;    hitlist_root = 0;
+
+	delete db; db=0;
 
         // Print run summary information
         QwMessage << "Analysis of run " << eventbuffer.GetRunNumber() << QwLog::endl

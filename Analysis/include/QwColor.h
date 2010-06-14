@@ -59,6 +59,11 @@
  */
 #define NORMAL      "\E[0m"
 
+// How to use the Color Code with printf
+// printf("%sName%s", BOLD, NORMAL);
+// printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
+
+
 // All colors need to go in a namespace because of conflicts with ROOT colors.
 // Really, ROOT should have its colors in a namespace.
 namespace Qw {

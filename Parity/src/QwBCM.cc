@@ -11,7 +11,7 @@
 
 
 #include "QwVQWK_Channel.h"
-#include "QwSIS3801_Channel.h"
+#include "QwScaler_Channel.h"
 
 
 
@@ -55,6 +55,20 @@ void QwBCM<T>::ClearEventData()
 
 /********************************************************/
 template<typename T>
+void QwBCM<T>::UseExternalRandomVariable()
+{
+  fBeamCurrent.UseExternalRandomVariable();
+  return;
+};
+/********************************************************/
+template<typename T>
+void QwBCM<T>::SetExternalRandomVariable(double random_variable)
+{
+  fBeamCurrent.SetExternalRandomVariable(random_variable);
+  return;
+};
+/********************************************************/
+template<typename T>
 void QwBCM<T>::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
 {
   fBeamCurrent.SetRandomEventDriftParameters(amplitude, phase, frequency);
@@ -83,9 +97,9 @@ void QwBCM<T>::SetRandomEventAsymmetry(Double_t asymmetry)
 };
 /********************************************************/
 template<typename T>
-void QwBCM<T>::RandomizeEventData(int helicity)
+void QwBCM<T>::RandomizeEventData(int helicity, double time)
 {
-  fBeamCurrent.RandomizeEventData(helicity);
+  fBeamCurrent.RandomizeEventData(helicity, time);
   return;
 };
 /********************************************************/
@@ -103,12 +117,12 @@ void QwBCM<T>::SetEventData(Double_t* block, UInt_t sequencenumber)
   return;
 };
 /********************************************************/
-template<typename T>
-void QwBCM<T>::SetEventNumber(int event)
-{
-  fBeamCurrent.SetEventNumber(event);
-  return;
-};
+// template<typename T>
+// void QwBCM<T>::SetEventNumber(int event)
+// {
+//   fBeamCurrent.SetEventNumber(event);
+//   return;
+// };
 /********************************************************/
 template<typename T>
 void QwBCM<T>::EncodeEventData(std::vector<UInt_t> &buffer)
@@ -121,6 +135,8 @@ void QwBCM<T>::ProcessEvent()
 {
   this->ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine either in ApplySingleEventCuts or here do not make any difference for a BCM but do for a BPMs because they have derrived devices.
   fBeamCurrent.ProcessEvent();
+  //update the event cut counters
+  fBeamCurrent.UpdateHWErrorCounters();
   return;
 };
 /********************************************************/
@@ -139,8 +155,7 @@ Bool_t QwBCM<T>::ApplyHWChecks()
 
 template<typename T>
 Int_t QwBCM<T>::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){//std::vector<Double_t> & dEventCuts){//two limts and sample size
-  fLLimit=LL;
-  fULimit=UL;
+  fBeamCurrent.SetSingleEventCuts(LL,UL);
   return 1;
 };
 
@@ -156,8 +171,7 @@ Bool_t QwBCM<T>::ApplySingleEventCuts(){
   //std::cout<<" QwBCM::SingleEventCuts() "<<std::endl;
   Bool_t status=kTRUE;
 
-
-  if (fBeamCurrent.ApplySingleEventCuts(fLLimit,fULimit)){
+  if (fBeamCurrent.ApplySingleEventCuts()){
     status=kTRUE;
   }
   else{
@@ -267,13 +281,13 @@ void QwBCM<T>::Scale(Double_t factor)
 }
 
 template<typename T>
-void QwBCM<T>::Calculate_Running_Average(){
-  fBeamCurrent.Calculate_Running_Average();
+void QwBCM<T>::CalculateRunningAverage(){
+  fBeamCurrent.CalculateRunningAverage();
 };
 
 template<typename T>
-void QwBCM<T>::Do_RunningSum(){
-  fBeamCurrent.Do_RunningSum();
+void QwBCM<T>::AccumulateRunningSum(const QwBCM<T>& value) {
+  fBeamCurrent.AccumulateRunningSum(value.fBeamCurrent);
 };
 
 template<typename T>
@@ -382,64 +396,70 @@ void QwBCM<T>::Copy(VQwDataElement *source)
     }
 
   return;
-}
+};
 
 
 
 template<typename T>
-QwParityDB::beam QwBCM<T>::GetDBEntry(QwDatabase *db, TString mtype, TString subname)
+std::vector<QwDBInterface> QwBCM<T>::GetDBEntry()
 {
-  QwParityDB::beam row(0);
-  
-  UInt_t beam_run_id      = 0;
-  UInt_t beam_analysis_id = 0;
-  UInt_t beam_monitor_id  = 0;
-  Char_t beam_measurement_type[4];
+  UShort_t i = 0;
+
+  std::vector <QwDBInterface> row_list;
+  QwDBInterface row;
 
   TString name;
-  Double_t avg = 0.0;
-  Double_t err = 0.0;
+  Double_t avg         = 0.0;
+  Double_t err         = 0.0;
+  UInt_t beam_subblock = 0;
+  UInt_t beam_n        = 0;
 
-  if(mtype.Contains("yield"))
-    {
-      sprintf(beam_measurement_type, "yq");
-    }
-  else if(mtype.Contains("asymmetry"))
-    {
-      sprintf(beam_measurement_type, "aq");
-    }
-  else if(mtype.Contains("average") )
-    {
-      sprintf(beam_measurement_type, "yq");
-    }
-  else if(mtype.Contains("runningsum"))
-    {
-      sprintf(beam_measurement_type, "yq");
-    }
-  else
-    {
-      sprintf(beam_measurement_type, "null");
-    }
-  
-  name = this->GetElementName();
-  avg  = this->GetAverage("");
-  err  = this->GetAverageError("");
+  row.Reset();
 
-  beam_run_id      = db->GetRunID();
-  beam_analysis_id = db->GetAnalysisID();
-  beam_monitor_id  = db->GetMonitorID(name.Data());
+  // the element name and the n (number of measurements in average)
+  // is the same in each block and hardwaresum. 
 
-  row.analysis_id         = beam_analysis_id;
-  row.measurement_type_id = beam_measurement_type;
-  row.monitor_id          = beam_monitor_id;
-  row.value               = avg;
-  row.error               = err;
+  name          = fBeamCurrent.GetElementName();
+  beam_n        = fBeamCurrent.GetGoodEventCount();
 
-  printf("%12s::RunID %d AnalysisID %d %4s MonitorID %4d %18s , [%18.2e, %12.2e] \n", 
-	 mtype.Data(), beam_run_id, beam_analysis_id, beam_measurement_type, beam_monitor_id, name.Data(),  avg, err);
-  
-  return row;
-  
+  // Get HardwareSum average and its error
+  avg           = fBeamCurrent.GetHardwareSum();
+  err           = fBeamCurrent.GetHardwareSumError();
+  // ADC subblock sum : 0 in MySQL database
+  beam_subblock = 0;
+
+  row.SetDetectorName(name);
+  row.SetSubblock(beam_subblock);
+  row.SetN(beam_n);
+  row.SetValue(avg);
+  row.SetError(err);
+
+  row_list.push_back(row);
+
+
+  // Get four Block averages and thier errors
+
+  for(i=0; i<4; i++) {
+    row.Reset();
+    avg           = fBeamCurrent.GetBlockValue(i);
+    err           = fBeamCurrent.GetBlockErrorValue(i);
+    beam_subblock = (UInt_t) (i+1);
+    // QwVQWK_Channel  | MySQL 
+    // fBlock[0]       | subblock 1
+    // fBlock[1]       | subblock 2
+    // fBlock[2]       | subblock 3
+    // fBlock[3]       | subblock 4
+    row.SetDetectorName(name);
+    row.SetSubblock(beam_subblock);
+    row.SetN(beam_n);
+    row.SetValue(avg);
+    row.SetError(err);
+
+    row_list.push_back(row);
+  }
+
+  return row_list;
+
 };
 
 

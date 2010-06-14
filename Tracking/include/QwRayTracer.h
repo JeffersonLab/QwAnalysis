@@ -103,11 +103,7 @@ class QwRayTracer: public VQwBridgingMethod {
 
     void GetBridgingResult(Double_t *buffer);
 
-public:
-
-    const int Filter(QwPartialTrack* front, QwPartialTrack* back);
-
-private:
+  private:
 
     /// Magnetic field (static)
     static QwMagneticField *fBfield;
@@ -144,4 +140,4 @@ private:
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-#endif  // __QWTRAJECTORY_H__
+#endif // __QWRAYTRACER_H__

@@ -13,6 +13,7 @@
 #include <math.h>
 
 
+
 RDataContainer::RDataContainer(const TGWindow *p, const TGWindow *main, 
 			       const char *objName, const char *mainname, const char *dataname, 
 			       ERFileModes mode, ERFileTypes type, 
@@ -359,6 +360,14 @@ void RDataContainer::OnBrowserObject(TObject *obj)
   Emit("OnBrowserObject(TObject*)", (Long_t)obj);
 }
 
+TObject* RDataContainer::GetObjFromMapFile(const Char_t* name){
+  //Get a TObject from the map file
+  TObject* obj = 0;
+  obj = fMapFile->Get(name,obj);
+  return obj; 
+};
+
+
 int RDataContainer::OpenFile(const char *filename)
 {
   if(!dOpen){
@@ -616,7 +625,7 @@ int RDataContainer::OpenFile(const char *filename)
 		      GetFileSize());
 	      SetMessage(dMiscbuffer2,"",(int)dType,M_CONT_LOGTXTTS);
 	      dOpen = kTrue;
-	      return FILE_PROCESS_OK;
+	      return FILE_PROCESS_OK; 
 	    }
 	  else
 	    {
@@ -631,7 +640,7 @@ int RDataContainer::OpenFile(const char *filename)
       }
   }
   else{
-    FlushMessages();
+    FlushMessages(); 
     SetMessage(FILE_CONT_OCCUPIED,"OpenFile",(int)dType,M_CONT_ERROR_MSG);
     return FILE_OPEN_ERROR;
   }
@@ -641,6 +650,18 @@ int RDataContainer::OpenFile(const char *filename)
   return FILE_OPEN_ERROR;
 }
 
+
+Int_t RDataContainer::OpenMapFile(const char* file){
+
+  try {
+    fMapFile = TMapFile::Create(file);
+    fMapFile->Print();
+  }
+  catch( char * str ) {
+    //cout << "Exception raised: " << str << '\n';
+  }
+  return 1;
+};
 
 int RDataContainer::GetNumOfRootObjects()
 {
@@ -1336,6 +1357,43 @@ int RDataContainer::ReadData(Double_t *x, Double_t *y,
   return FILE_READ_ERROR;
 
 }
+
+
+// int RDataContainer::GetSectionPointer(char before, char after, int *start, int occurence)
+// {
+//   char l;
+//   int flag1 = 0;
+//   int flag2 = 0;
+//   int occ = 0;
+//   int pos = 0;
+
+//   if(dFp)
+//     {
+//       pos = ftell(dFp);
+//       fseek(dFp,0,SEEK_SET);
+//       while (1) {
+// 	flag = fscanf(dFp,"%c",&l);
+// 	if (flag < 0) break;
+	
+// 	if(l == before) {occ++;}
+// 	if(occ == occurence) {
+// 	  start = ftell(dFp);
+// 	  flag1 = 1;  break;
+// 	}
+//       }     
+      
+
+//       fseek(dFp,pos,SEEK_SET);
+//       return dRows;
+//     }
+//   else
+//     return -1;
+
+
+//   fread((char*)buffer,sizeof(char),size-1,dFp)
+
+    
+// }
 
 int RDataContainer::ReadData(const char *buffer, int size)
 {

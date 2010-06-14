@@ -20,7 +20,9 @@
 
 // Qweak headers
 #include "VQwSubsystem.h"
+#include "QwParameterFile.h"
 #include "QwLog.h"
+#include "QwOptions.h"
 
 ///
 /// \ingroup QwAnalysis
@@ -37,15 +39,36 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
 
  public:
   /// \brief Default constructor
-  QwSubsystemArray() {};
+  QwSubsystemArray() { };
+  /// \brief Constructor with options
+  QwSubsystemArray(QwOptions& options);
+  /// \brief Constructor with filename
+  QwSubsystemArray(const char* filename);
   /// \brief Virtual destructor
-  virtual ~QwSubsystemArray() {};
+  virtual ~QwSubsystemArray() { };
+
+  /// \brief Set the internal record of the CODA event number
+  void SetCodaEventNumber(UInt_t evtnum){fCodaEventNumber=evtnum;};
+  /// \brief Set the internal record of the CODA event type
+  void SetCodaEventType(UInt_t evttype){fCodaEventType=evttype;};
+  /// \brief Get the internal record of the CODA event number
+  UInt_t GetCodaEventNumber(){return fCodaEventNumber;};
+  /// \brief Get the internal record of the CODA event type
+  UInt_t GetCodaEventType(){return fCodaEventType;};
+
+  /// \brief Define configuration options for global array
+  static void DefineOptions(QwOptions &options);
+  /// \brief Process configuration options for all subsystems
+  void ProcessOptions(QwOptions &options);
 
   /// \brief Add the subsystem to this array
   void push_back(VQwSubsystem* subsys);
 
   /// \brief Get the subsystem with the specified name
-  VQwSubsystem* GetSubsystem(const TString& name);
+  virtual VQwSubsystem* GetSubsystemByName(const TString& name);
+
+  /// \brief Get the list of subsystems of the specified type
+  virtual std::vector<VQwSubsystem*> GetSubsystemByType(const TString& type);
 
   //each of the methods below will call their counterpart method separately.
 
@@ -60,7 +83,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
                         buffer, UInt_t num_words);
 
   /// \brief Randomize the data in this event
-  void  RandomizeEventData(int helicity = 0);
+  void  RandomizeEventData(int helicity = 0, double time = 0.0);
 
   /// \brief Encode the data in this event
   void  EncodeEventData(std::vector<UInt_t> &buffer);
@@ -151,6 +174,13 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void  DeleteHistograms();
   // @}
 
+  void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values);
+  void ConstructBranchAndVector(TTree *tree, std::vector <Double_t> &values) {
+    TString tmpstr("");
+    ConstructBranchAndVector(tree,tmpstr,values);
+  };
+  void  FillTreeVector(std::vector<Double_t> &values);
+
   /// \name Tree construction and maintenance
   /// These functions are not purely virtual, since not every subsystem is
   /// expected to implement them.  They are intended for expert output to
@@ -178,10 +208,17 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void Print();
 
  protected:
+  void LoadSubsystemsFromParameterFile(QwParameterFile& detectors);
 
+ protected:
   std::map<TString, VQwSubsystem*> fPublishedValuesSubsystem;
   std::map<TString, TString>       fPublishedValuesDescription;
 
+  size_t fTreeArrayIndex;  //! Index of this data element in root tree
+
+ protected:
+  UInt_t fCodaEventNumber; ///< CODA event number as provided by QwEventBuffer
+  UInt_t fCodaEventType;   ///< CODA event type as provided by QwEventBuffer
 
 };
 

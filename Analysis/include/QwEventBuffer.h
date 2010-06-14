@@ -14,15 +14,15 @@
 #include "TString.h"
 
 #include "THaCodaData.h"
+
 #include "MQwCodaControlEvent.h"
 
-#include "QwSubsystemArray.h"
-#include "VQwSubsystem.h"
-
 class QwOptions;
+class QwEPICSEvent;
+class VQwSubsystem;
+class QwSubsystemArray;
 
 //////////////////////////////////////////////////////////////////////
-
 
 
 ///
@@ -52,6 +52,17 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   /// \brief Returns a string like <run#> or <run#>.<file#>
   TString GetRunLabel() const;
+  /// \brief Return true if file segments are being chained together for
+  //analysis
+  Bool_t ChainDataFiles() const {return fChainDataFiles;};
+  /// \brief Return CODA file run number
+  Int_t GetRunNumber() const {return fCurrentRun;};
+  /// \brief Return CODA file segment number
+  Int_t GetSegmentNumber() const {return *this_runsegment;};
+
+  std::pair<UInt_t, UInt_t> GetEventRange() const {
+    return fEventRange;
+  };
 
   /// \brief Opens the event stream (file or ET) based on the internal flags
   Int_t OpenNextStream();
@@ -86,8 +97,20 @@ class QwEventBuffer: public MQwCodaControlEvent{
     return (fEvtType>=0x90 && fEvtType<=0xaf);
   };
 
+
+
+  Bool_t IsEPICSEvent(){
+    //  What are the correct codes for our EPICS events?
+    return (fEvtType>=160 && fEvtType<=170);// epics event type is only with tag="160"
+  };
+
+
   Bool_t FillSubsystemConfigurationData(QwSubsystemArray &subsystems);
   Bool_t FillSubsystemData(QwSubsystemArray &subsystems);
+
+  Bool_t FillEPICSData(QwEPICSEvent &epics);
+
+  template < class T > Bool_t FillObjectWithEventData(T &t);
 
 
   Int_t EncodeSubsystemData(QwSubsystemArray &subsystems);
@@ -113,7 +136,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
   TString fETSession;
   std::pair<Int_t, Int_t> fRunRange;
   Bool_t fChainDataFiles;
-  std::pair<Int_t, Int_t> fEventRange;
+  std::pair<UInt_t, UInt_t> fEventRange;
 
  protected:
   const TString fDataFileStem;
@@ -123,7 +146,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   TString fDataFile;
 
-  UInt_t fRunNumber;
+  // UInt_t fRunNumber;
 
 
  protected:
@@ -173,7 +196,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
   UInt_t fBankDataType;
   UInt_t fIDBankNum;
 
-  UInt_t fEvtNumber;
+  UInt_t fEvtNumber;   ///< CODA event number; only defined for physics events
   UInt_t fEvtClass;
   UInt_t fStatSum;
 
@@ -187,5 +210,54 @@ class QwEventBuffer: public MQwCodaControlEvent{
   UInt_t     fNumPhysicsEvents;
 
 };
+
+template < class T > Bool_t QwEventBuffer::FillObjectWithEventData(T &object){
+  ///  Template to fill any object with data from a CODA event.
+  /// 
+  ///  The classes for which this template can be specialized
+  ///  must have the following three methods defined:
+  /// 
+  ///  Bool_t <class T>::CanUseThisEventType(const UInt_t event_type);
+  ///  Bool_t <class T>::ClearEventData(const UInt_t event_type);
+  ///  Int_t  <class T>::ProcessBuffer(const UInt_t event_type,
+  ///       const UInt_t roc_id, const UInt_t bank_id,
+  ///       UInt_t* buffer, UInt_t num_words);
+  ///
+  Bool_t okay = kFALSE;
+  UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
+
+  if (fFragLength==1 && localbuff[fWordsSoFar]==kNullDataWord){
+    fWordsSoFar += fFragLength;
+  } else if (object.CanUseThisEventType(fEvtType)){
+    //  Clear the old event information from the object
+    object.ClearEventData(fEvtType);
+    //  Loop through the data buffer in this event.
+    if (fBankDataType == 0x10){
+      //  This bank is subbanked; loop through subbanks
+      while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
+	//  If this bank has further subbanks, restart the loop.
+	if (fSubbankType == 0x10) continue;
+	//  If this bank only contains the word 'NULL' then skip
+	//  this bank.
+	if (fFragLength==1 && localbuff[fWordsSoFar]==kNullDataWord){
+	  fWordsSoFar += fFragLength;
+	  continue;
+	}
+	object.ProcessBuffer(fEvtType, fSubbankTag, fSubbankType,
+			     &localbuff[fWordsSoFar],
+			     fFragLength);
+	fWordsSoFar += fFragLength;
+      }
+    } else {
+      //  This is a single bank of some type
+      object.ProcessBuffer(fEvtType, 0, fBankDataType,
+			   &localbuff[fWordsSoFar],
+			   fEvtLength);
+    }
+  }
+  return okay;
+};
+
+
 
 #endif

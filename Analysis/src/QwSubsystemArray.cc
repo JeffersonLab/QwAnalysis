@@ -12,8 +12,75 @@
 
 // Qweak headers
 #include "QwLog.h"
-#include "QwHistogramHelper.h"
 
+//*****************************************************************
+
+/**
+ * Create a subsystem array based on the configuration option 'detectors'
+ */
+QwSubsystemArray::QwSubsystemArray(QwOptions& options)
+{
+  const char* filename = options.GetValue<std::string>("detectors").c_str();
+  QwMessage << "Loading subsystems from " << filename << QwLog::endl;
+  QwParameterFile detectors(filename);
+  LoadSubsystemsFromParameterFile(detectors);
+}
+
+/**
+ * Create a subsystem array with the contents of a map file
+ * @param filename Map file
+ */
+QwSubsystemArray::QwSubsystemArray(const char* filename)
+{
+  QwMessage << "Loading subsystems from " << filename << QwLog::endl;
+  QwParameterFile detectors(filename);
+  LoadSubsystemsFromParameterFile(detectors);
+}
+
+/**
+ * Fill the subsystem array with the contents of a map file
+ * @param filename Map file
+ */
+void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detectors)
+{
+  // This is how this should work
+  QwParameterFile* preamble;
+  preamble = detectors.ReadPreamble();
+  // Process preamble
+  QwVerbose << "Preamble:" << QwLog::endl;
+  QwVerbose << *preamble << QwLog::endl;
+
+  QwParameterFile* section;
+  std::string section_name;
+  while ((section = detectors.ReadNextSection(section_name))) {
+    // Process section
+    QwMessage << "Adding subsystem of type " << section_name << QwLog::endl;
+    QwVerbose << "Section:" << QwLog::endl;
+    QwVerbose << *section << QwLog::endl;
+
+    // Determine type and name of subsystem
+    std::string subsys_type = section_name;
+    std::string subsys_name;
+    if (! section->FileHasVariablePair("=","name",subsys_name)) {
+      QwError << "No name defined in section for subsystem " << subsys_type << QwLog::endl;
+      continue;
+    }
+    // Create subsystem
+    VQwSubsystem* subsys =
+      VQwSubsystemFactory::GetSubsystemFactory(subsys_type)->Create(subsys_name);
+    if (! subsys) {
+      QwError << "Could not create subsystem " << subsys_type << QwLog::endl;
+      continue;
+    }
+    // Pass detector maps
+    subsys->LoadDetectorMaps(*section);
+    // Add to array
+    this->push_back(subsys);
+
+    // Delete parameter file section
+    delete section; section = 0;
+  }
+}
 
 //*****************************************************************
 
@@ -29,7 +96,7 @@ void QwSubsystemArray::push_back(VQwSubsystem* subsys)
               << std::endl;
     //  This is an empty subsystem...
     //  Do nothing for now.
-  } else if (!this->empty() && GetSubsystem(subsys->GetSubsystemName())){
+  } else if (!this->empty() && GetSubsystemByName(subsys->GetSubsystemName())){
     //  There is already a subsystem with this name!
     std::cerr << "QwSubsystemArray::push_back():  subsys" << subsys->GetSubsystemName()
               << " already exists" << std::endl;
@@ -47,22 +114,47 @@ void QwSubsystemArray::push_back(VQwSubsystem* subsys)
 };
 
 
+
+/**
+ * Define configuration options for global array
+ * @param options Options
+ */
+void QwSubsystemArray::DefineOptions(QwOptions &options)
+{
+  options.AddOptions()("detectors",
+                       po::value<std::string>()->default_value("detectors.map"),
+                       "map file with detectors to include");
+}
+
+/**
+ * Handle configuration options for all subsystems in the array
+ * @param options Options
+ */
+void QwSubsystemArray::ProcessOptions(QwOptions &options)
+{
+  for (iterator subsys_iter = begin(); subsys_iter != end(); ++subsys_iter) {
+    VQwSubsystem* subsys = dynamic_cast<VQwSubsystem*>(subsys_iter->get());
+    subsys->ProcessOptions(options);
+  }
+}
+
+
 /**
  * Get the subsystem in this array with the spcified name
  * @param name Name of the subsystem
  * @return Pointer to the subsystem
  */
-VQwSubsystem* QwSubsystemArray::GetSubsystem(const TString& name)
+VQwSubsystem* QwSubsystemArray::GetSubsystemByName(const TString& name)
 {
   VQwSubsystem* tmp = NULL;
   if (!empty()) {
     // Loop over the subsystems
     for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
       // Check the name of this subsystem
-      // std::cout<<"QwSubsystemArray::GetSubsystem available name=="<<(*subsys)->GetSubsystemName()<<"== to be compared to =="<<name<<"==\n";
+      // std::cout<<"QwSubsystemArray::GetSubsystemByName available name=="<<(*subsys)->GetSubsystemName()<<"== to be compared to =="<<name<<"==\n";
       if ((*subsys)->GetSubsystemName() == name) {
-	tmp = (*subsys).get();
-	//std::cout<<"QwSubsystemArray::GetSubsystem found a matching name \n";
+        tmp = (*subsys).get();
+        //std::cout<<"QwSubsystemArray::GetSubsystemByName found a matching name \n";
       } else {
         // nothing
       }
@@ -72,11 +164,50 @@ VQwSubsystem* QwSubsystemArray::GetSubsystem(const TString& name)
 };
 
 
+/**
+ * Get the list of subsystems in this array of the spcified type
+ * @param type Type of the subsystem
+ * @return Vector of subsystems
+ */
+std::vector<VQwSubsystem*> QwSubsystemArray::GetSubsystemByType(const TString& type)
+{
+  // Vector of subsystem pointers
+  std::vector<VQwSubsystem*> subsys_list;
+
+  // If this array is not empty
+  if (!empty()) {
+
+    // Create dummy subsystem of requested type
+    VQwSubsystem* subsys_of_requested_type =
+      VQwSubsystemFactory::GetSubsystemFactory(type)->Create("dummy");
+
+    // Loop over the subsystems
+    for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
+
+      // Test for equality of types (typeid is pointer to type_info, so dereference)
+      if (typeid(*(*subsys).get()) == typeid(*subsys_of_requested_type)) {
+        subsys_list.push_back((*subsys).get());
+      }
+
+    } // end of loop over subsystems
+
+    // Delete dummy subsystem again
+    delete subsys_of_requested_type;
+
+  } // end of if !empty()
+
+  return subsys_list;
+};
+
+
 void  QwSubsystemArray::ClearEventData()
 {
-  if (!empty())
+  if (!empty()) {
+    fCodaEventNumber = 0;
+    fCodaEventType   = 0;
     std::for_each(begin(), end(),
 		  boost::mem_fn(&VQwSubsystem::ClearEventData));
+  }
 };
 
 Int_t QwSubsystemArray::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
@@ -110,13 +241,16 @@ void  QwSubsystemArray::ProcessEvent()
 };
 
 
-void  QwSubsystemArray::RandomizeEventData(int helicity)
+//*****************************************************************
+void  QwSubsystemArray::RandomizeEventData(int helicity, double time)
 {
   if (!empty())
     for (iterator subsys = begin(); subsys != end(); ++subsys) {
-      (*subsys)->RandomizeEventData(helicity);
+      (*subsys)->RandomizeEventData(helicity, time);
     }
 };
+
+//*****************************************************************
 void  QwSubsystemArray::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   if (!empty())
@@ -127,7 +261,6 @@ void  QwSubsystemArray::EncodeEventData(std::vector<UInt_t> &buffer)
 
 
 //*****************************************************************
-
 void  QwSubsystemArray::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
   //std::cout<<" here in QwSubsystemArray::ConstructHistograms with prefix ="<<prefix<<"\n";
