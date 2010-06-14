@@ -31,7 +31,7 @@ class QwParameterFile {
 
  public:
   QwParameterFile(const char *filename);
-  ~QwParameterFile() { };
+  virtual ~QwParameterFile() { };
 
   /// Access the streambuf pointer in the same way as on a std::ifstream
   std::streambuf* rdbuf() const {return fStream.rdbuf(); };

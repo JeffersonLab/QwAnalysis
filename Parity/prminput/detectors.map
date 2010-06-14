@@ -14,7 +14,7 @@
  map = qweak_lumi.map
 
 [QwHelicity]
- name = Helicity Info
+ name = Helicity info
  map = qweak_helicity.map
 
 [QwScanner]

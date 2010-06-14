@@ -34,7 +34,7 @@ class QwPMT_Channel: public VQwDataElement {
   QwPMT_Channel(TString name){
     InitializeChannel(name);
   };
-  ~QwPMT_Channel() {DeleteHistograms();};
+  virtual ~QwPMT_Channel() { DeleteHistograms(); };
 
   void  InitializeChannel(TString name){
     SetElementName(name);

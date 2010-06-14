@@ -105,7 +105,7 @@ class QwLog : public std::ostream {
 
     /*! \brief The destructor
      */
-    ~QwLog();
+    virtual ~QwLog();
 
     /*! \brief Initialize the log file with name 'name'
      */

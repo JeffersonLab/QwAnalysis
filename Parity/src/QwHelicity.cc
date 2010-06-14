@@ -1529,7 +1529,7 @@ void QwHelicity::Copy(VQwSubsystem *source)
     {
      if(typeid(*source)==typeid(*this))
 	{
-	  VQwSubsystem::Copy(source);
+	  //VQwSubsystem::Copy(source);
 	  //QwHelicity* input=((QwHelicity*)source);
 	  VQwSubsystem::Copy(source);
           QwHelicity* input = dynamic_cast<QwHelicity*>(source);
@@ -1560,7 +1560,6 @@ void QwHelicity::Copy(VQwSubsystem *source)
 
 VQwSubsystem*  QwHelicity::Copy()
 {
-
   QwHelicity* TheCopy=new QwHelicity("Helicity Copy");
   TheCopy->Copy(this);
   return TheCopy;

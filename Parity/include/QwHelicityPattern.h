@@ -7,12 +7,16 @@
 #ifndef __QwHelicityPattern__
 #define __QwHelicityPattern__
 
+// System headers
+#include <vector>
 
-#include "TTree.h"
+// ROOT headers
+#include <TTree.h>
+
+// Qweak headers
 #include "QwSubsystemArrayParity.h"
 #include "QwBlinder.h"
 
-#include <vector>
 ///
 /// \ingroup QwAnalysis_ADC
 ///
@@ -25,7 +29,7 @@ class QwHelicityPattern{
    ******************************************************************/
  public:
   QwHelicityPattern(QwSubsystemArrayParity &event);
-  ~QwHelicityPattern(){};
+  ~QwHelicityPattern() { };
 
   void ProcessOptions(QwOptions &options); //Handle command line options
   void  LoadEventData(QwSubsystemArrayParity &event);

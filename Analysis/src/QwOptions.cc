@@ -27,9 +27,9 @@ po::options_description QwOptions::fConfigFileOptions("Config file options");
 QwOptions gQwOptions;
 
 // Qweak headers
-#include "QwEventBuffer.h"
 #include "QwLog.h"
-
+#include "QwSubsystemArray.h"
+#include "QwEventBuffer.h"
 #include "QwDatabase.h"
 
 // Initialize the static command line arguments to zero
@@ -60,13 +60,15 @@ QwOptions::QwOptions()
  */
 void QwOptions::DefineOptions(QwOptions& options)
 {
-  // Define execution options
-  QwEventBuffer::DefineOptions(options);
-  // Define logging options
+  // Define logging options (Note: only QwLog takes a pointer argument!!!)
   QwLog::DefineOptions(&options);
 
+  // Define execution options
+  QwEventBuffer::DefineOptions(options);
   // Define database options
   QwDatabase::DefineOptions(options);
+  // Define subsystem array options
+  QwSubsystemArray::DefineOptions(options);
 }
 
 /**

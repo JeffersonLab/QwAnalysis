@@ -20,7 +20,9 @@
 
 // Qweak headers
 #include "VQwSubsystem.h"
+#include "QwParameterFile.h"
 #include "QwLog.h"
+#include "QwOptions.h"
 
 ///
 /// \ingroup QwAnalysis
@@ -37,11 +39,13 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
 
  public:
   /// \brief Default constructor
-  QwSubsystemArray() {};
+  QwSubsystemArray() { };
+  /// \brief Constructor with options
+  QwSubsystemArray(QwOptions& options);
   /// \brief Constructor with filename
   QwSubsystemArray(const char* filename);
   /// \brief Virtual destructor
-  virtual ~QwSubsystemArray() {};
+  virtual ~QwSubsystemArray() { };
 
   /// \brief Set the internal record of the CODA event number
   void SetCodaEventNumber(UInt_t evtnum){fCodaEventNumber=evtnum;};
@@ -52,6 +56,10 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   /// \brief Get the internal record of the CODA event type
   UInt_t GetCodaEventType(){return fCodaEventType;};
 
+  /// \brief Define configuration options for global array
+  static void DefineOptions(QwOptions &options);
+  /// \brief Process configuration options for all subsystems
+  void ProcessOptions(QwOptions &options);
 
   /// \brief Add the subsystem to this array
   void push_back(VQwSubsystem* subsys);
@@ -200,6 +208,9 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void Print();
 
  protected:
+  void LoadSubsystemsFromParameterFile(QwParameterFile& detectors);
+
+ protected:
   std::map<TString, VQwSubsystem*> fPublishedValuesSubsystem;
   std::map<TString, TString>       fPublishedValuesDescription;
 
@@ -208,9 +219,6 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
  protected:
   UInt_t fCodaEventNumber; ///< CODA event number as provided by QwEventBuffer
   UInt_t fCodaEventType;   ///< CODA event type as provided by QwEventBuffer
-
-
-
 
 };
 

@@ -35,6 +35,8 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
 
     /// Default constructor
     QwSubsystemArrayParity(): QwSubsystemArray() { };
+    /// Constructor with options
+    QwSubsystemArrayParity(QwOptions& options): QwSubsystemArray(options) { };
     /// Constructor with map file
     QwSubsystemArrayParity(const char* filename): QwSubsystemArray(filename) { };
     /// Copy constructor by pointer
@@ -44,10 +46,8 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     /// Default destructor
     virtual ~QwSubsystemArrayParity() { };
 
+    /// \brief Get the subsystem with the specified name
     VQwSubsystemParity* GetSubsystemByName(const TString& name);
-
-    /// Process the command line options
-    void ProcessOptions(QwOptions &options);
 
     /// \brief Construct the branch and tree vector
     void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values);

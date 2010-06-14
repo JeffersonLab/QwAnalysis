@@ -12,19 +12,37 @@
 
 // Qweak headers
 #include "QwLog.h"
-#include "QwParameterFile.h"
 
 //*****************************************************************
 
 /**
- * Create a subsystem array based on the content of a map file.
+ * Create a subsystem array based on the configuration option 'detectors'
+ */
+QwSubsystemArray::QwSubsystemArray(QwOptions& options)
+{
+  const char* filename = options.GetValue<std::string>("detectors").c_str();
+  QwMessage << "Loading subsystems from " << filename << QwLog::endl;
+  QwParameterFile detectors(filename);
+  LoadSubsystemsFromParameterFile(detectors);
+}
+
+/**
+ * Create a subsystem array with the contents of a map file
  * @param filename Map file
  */
 QwSubsystemArray::QwSubsystemArray(const char* filename)
 {
   QwMessage << "Loading subsystems from " << filename << QwLog::endl;
   QwParameterFile detectors(filename);
+  LoadSubsystemsFromParameterFile(detectors);
+}
 
+/**
+ * Fill the subsystem array with the contents of a map file
+ * @param filename Map file
+ */
+void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detectors)
+{
   // This is how this should work
   QwParameterFile* preamble;
   preamble = detectors.ReadPreamble();
@@ -94,6 +112,31 @@ void QwSubsystemArray::push_back(VQwSubsystem* subsys)
     }
   }
 };
+
+
+
+/**
+ * Define configuration options for global array
+ * @param options Options
+ */
+void QwSubsystemArray::DefineOptions(QwOptions &options)
+{
+  options.AddOptions()("detectors",
+                       po::value<std::string>()->default_value("detectors.map"),
+                       "map file with detectors to include");
+}
+
+/**
+ * Handle configuration options for all subsystems in the array
+ * @param options Options
+ */
+void QwSubsystemArray::ProcessOptions(QwOptions &options)
+{
+  for (iterator subsys_iter = begin(); subsys_iter != end(); ++subsys_iter) {
+    VQwSubsystem* subsys = dynamic_cast<VQwSubsystem*>(subsys_iter->get());
+    subsys->ProcessOptions(options);
+  }
+}
 
 
 /**

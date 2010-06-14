@@ -65,33 +65,33 @@ class QwHelicity: public VQwSubsystemParity{
   /////
  public:
 
-  QwHelicity(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),fMinPatternPhase(1)
-    {
-      //  Default helicity delay to two patterns.
-      fHelicityDelay = 2;
-      fEventNumberOld=-1; fEventNumber=-1;
-      fPatternPhaseNumberOld=-1; fPatternPhaseNumber=-1;
-      fPatternNumberOld=-1;  fPatternNumber=-1;
-      kUserbit=-1;
-      fActualPatternPolarity=kUndefinedHelicity;
-      fDelayedPatternPolarity=kUndefinedHelicity;
-      fHelicityReported=kUndefinedHelicity;
-      fHelicityActual=kUndefinedHelicity;
-      fHelicityDelayed=kUndefinedHelicity;
-      fHelicityBitPlus=kFALSE;
-      fHelicityBitMinus=kFALSE;
-      fGoodHelicity=kFALSE;
-      fGoodPattern=kFALSE;
-      fHelicityDecodingMode=-1;
-    };
+  QwHelicity(TString region_tmp)
+    : VQwSubsystem(region_tmp), VQwSubsystemParity(region_tmp), fMinPatternPhase(1)
+  {
+    //  Default helicity delay to two patterns.
+    fHelicityDelay = 2;
+    fEventNumberOld=-1; fEventNumber=-1;
+    fPatternPhaseNumberOld=-1; fPatternPhaseNumber=-1;
+    fPatternNumberOld=-1;  fPatternNumber=-1;
+    kUserbit=-1;
+    fActualPatternPolarity=kUndefinedHelicity;
+    fDelayedPatternPolarity=kUndefinedHelicity;
+    fHelicityReported=kUndefinedHelicity;
+    fHelicityActual=kUndefinedHelicity;
+    fHelicityDelayed=kUndefinedHelicity;
+    fHelicityBitPlus=kFALSE;
+    fHelicityBitMinus=kFALSE;
+    fGoodHelicity=kFALSE;
+    fGoodPattern=kFALSE;
+    fHelicityDecodingMode=-1;
+  };
 
-  ~QwHelicity()
-    {
-      DeleteHistograms();
-    };
+  virtual ~QwHelicity() {
+    DeleteHistograms();
+  };
 
-   /* derived from VQwSubsystem */
-   /// \brief Define options function
+  /* derived from VQwSubsystem */
+  /// \brief Define options function
   static void DefineOptions(QwOptions &options);
   void ProcessOptions(QwOptions &options);
   Int_t LoadChannelMap(TString mapfile);

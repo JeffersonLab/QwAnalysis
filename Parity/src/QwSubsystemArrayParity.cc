@@ -14,17 +14,9 @@
 
 //*****************************************************************
 
-void QwSubsystemArrayParity::ProcessOptions(QwOptions &options){
-  for (iterator subsys = begin(); subsys != end(); ++subsys) {
-    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
-    subsys_parity->ProcessOptions(options);
-  }
-}; //Handle command line options
-
-
 VQwSubsystemParity* QwSubsystemArrayParity::GetSubsystemByName(const TString& name)
 {
-  return dynamic_cast<VQwSubsystemParity*>  (QwSubsystemArray::GetSubsystemByName(name));
+  return dynamic_cast<VQwSubsystemParity*>(QwSubsystemArray::GetSubsystemByName(name));
 };
 
 void  QwSubsystemArrayParity::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)

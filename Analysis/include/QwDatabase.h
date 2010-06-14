@@ -49,7 +49,7 @@ class QwDatabase: private mysqlpp::Connection {
     QwDatabase(); //!< Simple constructor
     QwDatabase(QwOptions &options); //!< Constructor with QwOptions object
 
-    ~QwDatabase(); //!< Destructor
+    virtual ~QwDatabase(); //!< Destructor
 
     void         SetAccessLevel(string accesslevel);  //!< Sets the access level flag based on string labels:  "off", "ro", "rw".
 
@@ -70,7 +70,7 @@ class QwDatabase: private mysqlpp::Connection {
     const UInt_t GetLumiDetectorID(const string& name);    //<! Get lumi_detector_id for lumi detector name
     const string GetMeasurementID(const Int_t index);
     const UInt_t GetSlowControlDetectorID(const string& name);         //<! Get slow_controls_data_id for epics name
-    
+
     const UInt_t GetRunNumber() {return fRunNumber;}       //<! Run number getter
     const UInt_t GetSegmentNumber() {return fSegmentNumber;}       //<! CODA File segment number getter
     const UInt_t GetRunID()     {return fRunID;}           //<! Run ID getter
@@ -90,7 +90,7 @@ class QwDatabase: private mysqlpp::Connection {
     const string GetValidVersion();                        //<! Return a full required version string.
 
     void         PrintServerInfo();                        //<! Print Server Information
-    
+
  private:
     enum EQwDBAccessLevel{kQwDatabaseOff, kQwDatabaseReadOnly, kQwDatabaseReadWrite};
  private:
@@ -131,7 +131,7 @@ class QwDatabase: private mysqlpp::Connection {
     static std::map<string, unsigned int> fMainDetectorIDs; //!< Associative array of main detector IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
     static std::map<string, unsigned int> fLumiDetectorIDs; //!< Associative array of LUMI detector IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
     static std::map<string, unsigned int> fSlowControlDetectorIDs; //!< Associative array of slow controls data IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
-    static std::vector<string>            fMeasurementIDs; 
+    static std::vector<string>            fMeasurementIDs;
 
     friend class StoreMonitorID;
     friend class StoreMainDetectorID;
@@ -189,15 +189,15 @@ class StoreSlowControlDetectorID {
 // because the table structure are the same in the lumi_data table,
 // the md_data table, and the beam table of MySQL database.
 // Now every device-specified action will be done in
-// the FillDB(QwDatabase *db, TString datatype) of QwBeamLine, 
+// the FillDB(QwDatabase *db, TString datatype) of QwBeamLine,
 // QwMainCerenkovDetector, and QwLumi class.
 
 
 class QwDBInterface
 {
-  
+
  private:
-  
+
   UInt_t fAnalysisId;
   UInt_t fDeviceId;
   UInt_t fSubblock;
@@ -238,7 +238,7 @@ class QwDBInterface
     void SetN(UInt_t in)        {fN = in;};
     void SetValue(Double_t in)  {fValue = in;};
     void SetError(Double_t in)  {fError = in;};
-    
+
     TString GetDeviceName() {return fDeviceName;};
 
     void Reset() {
@@ -251,20 +251,20 @@ class QwDBInterface
       std::strcpy(fMeasurementTypeId,"");
       fDeviceName = "";
     };
-  
+
     template <class T> void AddThisEntryToList(std::vector<T> &list);
 
-      
+
     void PrintStatus(Bool_t print_flag) {
       if(print_flag) {
 	QwMessage << std::setw(12)
 		  << " AnalysisID " << fAnalysisId
-		  << " Device :"    << std::setw(18) << fDeviceName 
-		  << ":" << std::setw(4) << fDeviceId 
+		  << " Device :"    << std::setw(18) << fDeviceName
+		  << ":" << std::setw(4) << fDeviceId
 		  << " Subblock "   << fSubblock
 		  << " n "          << fN
 		  << " Type "       << fMeasurementTypeId
-		  << " [ave, err] " 
+		  << " [ave, err] "
 		  << " [" << std::setw(14) << fValue
 		  << ","  << std::setw(14) << fError
 		  << "]"
@@ -279,7 +279,7 @@ template <class T> inline T QwDBInterface::TypedDBClone(){
   T row(0);
   return row;
 };
-template<> inline QwParityDB::md_data 
+template<> inline QwParityDB::md_data
 QwDBInterface::TypedDBClone<QwParityDB::md_data>() {
   QwParityDB::md_data row(0);
   row.analysis_id         = fAnalysisId;

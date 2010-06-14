@@ -41,9 +41,6 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     /// Default destructor
     virtual ~VQwSubsystemParity() { };
 
-    /// Process the command line options
-    virtual void ProcessOptions(QwOptions &options) { };
-
     /// \brief Construct the branch and tree vector
     virtual void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values) = 0;
     /// \brief Construct the branch and tree vector

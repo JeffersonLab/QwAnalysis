@@ -1,29 +1,5 @@
 /*------------------------------------------------------------------------*//*!
 
- \defgroup QwAnalysis_BL QwAnalysis_BeamLine
-
- \section myoverview Overview of the Qweak parity data analysis (beamline)
-
-    Put something here
-
- \section MS1 More Stuff
-
-    Put something here
-
-    \subsection MS2 More Substuff
-
-    Put some more stuff here
-
-    \subsection MS3 Even More Substuff
-
-    More stuff
-
-
-*//*-------------------------------------------------------------------------*/
-
-
-/*------------------------------------------------------------------------*//*!
-
  \file QwAnalysis_BeamLine.cc
 
  \brief main(...) function for the qwanalysis_beamline executable

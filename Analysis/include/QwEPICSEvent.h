@@ -8,7 +8,7 @@ Adopted from G0EPICSEvent class.
 #include <string>
 #include <Rtypes.h>
 
-#include "TString.h" 
+#include "TString.h"
 
 class QwDatabase;
 
@@ -22,7 +22,7 @@ class QwEPICSEvent
 
   int AddEPICSTag(TString tag);            // Add a tag to the list
   int AddEPICSTag(TString tag, TString table);
-  int AddEPICSTag(TString tag, TString table, 
+  int AddEPICSTag(TString tag, TString table,
 		  QwEPICSEvent::QwEPICSDataType datatype);
 
 
@@ -43,7 +43,7 @@ class QwEPICSEvent
 
 
 
-   
+
 
 
   void  CalculateRunningValues();
@@ -55,7 +55,7 @@ class QwEPICSEvent
   std::vector<TString>  GetDefaultAutogainList();
   void  SetDefaultAutogainList(std::vector<TString> input_list);
 
-  void  ResetCounters(); 
+  void  ResetCounters();
 
   void FillDB(QwDatabase *db);
   void FillSlowControlsData(QwDatabase *db);
@@ -91,7 +91,7 @@ class QwEPICSEvent
     Double_t SquaredSum;
     Double_t Minimum;
     Double_t Maximum;
-    TString  SavedString; 
+    TString  SavedString;
   };
   std::vector<EPICSCumulativeRecord> fEPICSCumulativeData;
 
