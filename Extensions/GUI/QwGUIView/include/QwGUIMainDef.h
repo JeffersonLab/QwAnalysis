@@ -184,6 +184,7 @@ enum CommandIdentifiers {
   M_FILE_CLOSE,
   M_ROOT_FILE_CLOSE,
   M_DBASE_CLOSE,
+  M_DBASE_QUERY,
   M_FILE_ANALYZE,
   M_FILE_NOISESTAT,
   M_FILE_ASYMSTAT,
@@ -195,6 +196,7 @@ enum CommandIdentifiers {
   M_TBIN_SELECT,
   M_TARGET_SELECT,
   M_RUN_SELECT,
+  M_LOG_ENTRY,
   
   M_HELP_USER,
   M_HELP_CODE,

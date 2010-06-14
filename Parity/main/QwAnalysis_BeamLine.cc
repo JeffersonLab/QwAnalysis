@@ -69,7 +69,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   //  Long64_t kMAXTREESIZE = 1900000000LL;
 
   Bool_t bDebug=kFALSE;
-  Bool_t bHelicity=kTRUE;
+  Bool_t bHelicity=kFALSE;
   Bool_t bTree=kTRUE;
   Bool_t bHisto=kTRUE;
 

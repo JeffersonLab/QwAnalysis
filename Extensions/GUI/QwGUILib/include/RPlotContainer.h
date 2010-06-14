@@ -31,6 +31,7 @@
 #include <TH3S.h>
 #include <TH3F.h>
 #include <TH3D.h>
+#include <TProfile.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
@@ -68,6 +69,7 @@ private:
   TList               *fD2HistoList;
   TList               *fD3HistoList;
   TList               *fFuncList;
+  TList               *fD1ProfileList;
   
   TMultiGraph         *fMultiGraph;
 
@@ -97,12 +99,14 @@ public:
   Int_t                GetAsymErGraphCount();
   Char_t              *GetContainerTitle() {return dContTitle;};
   Int_t                Get1DHistoCount();
+  Int_t                Get1DProfileCount();
   Int_t                Get2DHistoCount();
   Int_t                GetErGraphCount();
   Int_t                GetFuncCount();
   TObject             *GetGraph(Int_t index, Char_t *type, Char_t *name = NULL);
   Int_t                GetGraphCount();
   TObject             *GetHistogram(Int_t index, Char_t *type, Char_t *name = NULL);
+  TObject             *GetProfile(Int_t index, Char_t *type, Char_t *name = NULL);
   Char_t              *GetMessage();
   TH1D                *GetNew1DHistogram(Char_t*,Char_t*,Int_t,Double_t,Double_t);
   TH2D                *GetNew2DHistogram(Char_t*,Char_t*,Int_t,Double_t,Double_t,Int_t,Double_t,Double_t);
@@ -118,6 +122,8 @@ public:
   TF1                 *GetNewFunction(const TF1& f1);
   TGraph              *GetNewGraph(Char_t*, Char_t*, Int_t, Double_t*, Double_t*);
   TGraph              *GetNewGraph(const TGraph& gr);
+  TProfile            *GetNew1DProfile(const TProfile& prof);
+
   Int_t                GetNewLineColor(Color_t col);
   Int_t                GetNewMarkerColor(Color_t col);
   TObject             *GetObject(Int_t index, Char_t *name = NULL);  

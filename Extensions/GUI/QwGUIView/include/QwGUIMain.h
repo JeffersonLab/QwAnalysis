@@ -81,6 +81,7 @@
 #include <RQ_OBJECT.h>
 #include <TMath.h>
 #include <TPave.h>
+#include "KeySymbols.h"
 
 #include "QwGUIMainDetector.h"
 #include "QwGUILumiDetector.h"
@@ -178,9 +179,18 @@ class QwGUIMain : public TGMainFrame {
   //!Main window log book environment
   TGText                 *dLogText;
   TGTextEdit             *dLogEdit;
-  TGHorizontalFrame      *dLogTabFrame;
+  TGVerticalFrame        *dLogTabFrame;
+  TGHorizontalFrame      *dLogEditFrame;
   TGLayoutHints          *dLogTabLayout;
   TGLayoutHints          *dLogEditLayout;
+  TGHorizontalFrame      *dDBQueryFrame;      
+  TGTextEntry            *dDBQueryEntry;      
+  TGLayoutHints          *dLogEditFrameLayout;
+  TGLayoutHints          *dDBQueryEntryLayout;
+  TGLayoutHints          *dDBQueryFrameLayout;
+  TGTextBuffer           *dDBQueryBuffer;
+  TGLabel                *dDBQueryLabel;
+  TGLayoutHints          *dDBQueryLabelLayout;
 
   //!Menubar widgets
   TGMenuBar              *dMenuBar;
@@ -502,6 +512,8 @@ class QwGUIMain : public TGMainFrame {
   //!The filenames are obtained from the TGTextEdit object.
   void                   LogSavedAs();
 
+  void                   MonitorLogInput();
+
   //!This function can be used to process events that happen within the main window tab;
   //!such as mouse clicks and movement, etc...
   //!
@@ -565,6 +577,7 @@ class QwGUIMain : public TGMainFrame {
   //!Return value: none
   virtual Bool_t         ProcessMessage(Long_t msg, Long_t parm1, Long_t);
 
+  virtual Bool_t         HandleKey(Event_t *event);
 
   ///This function is called to remove a tab.
   ///Each subsystem class must call this function on desstruction, to remove its tab.

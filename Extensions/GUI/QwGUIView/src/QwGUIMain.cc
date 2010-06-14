@@ -32,6 +32,8 @@
 
 #include <QwGUIMain.h>
 
+ClassImp(QwGUIMain)
+
 QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   : TGMainFrame(p, w, h)
 {
@@ -300,10 +302,39 @@ void QwGUIMain::MakeLogTab()
 				    kLHintsExpandX | kLHintsExpandY);
   dLogEditLayout = new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY,
 				     0, 0, 1, 2);
+  dLogEditFrameLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop |
+				    kLHintsExpandX | kLHintsExpandY);
+  dDBQueryEntryLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 2, 2,  2, 2);
+  dDBQueryLabelLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 2, 2,  2, 2);
+  
+  dDBQueryFrameLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 2, 2,  2, 2);
 
-  dLogTabFrame  = new TGHorizontalFrame(tf,10,10);
-  dLogEdit = new TGTextEdit(dLogTabFrame, 10, 10, kSunkenFrame);
-  dLogTabFrame->AddFrame(dLogEdit,dLogEditLayout);
+
+  dLogTabFrame  = new TGVerticalFrame(tf,10,10);
+  
+  dLogEditFrame  = new TGHorizontalFrame(dLogTabFrame,10,10);
+  dLogEdit = new TGTextEdit(dLogEditFrame, 10, 10, M_LOG_ENTRY, kSunkenFrame);
+  dLogEdit->Associate(this);
+//   BindKey((const TGWindow*)dLogEdit,gVirtualX->KeysymToKeycode(kKey_Enter),kKey_Control);
+//  dLogEdit->AddInput(kKeyPressMask);
+
+//   BindKey((const TGWindow*)dLogEdit,gVirtualX->KeysymToKeycode(kKey_Enter),kKey_Control);
+//   gVirtualX->GrabKey(dLogEdit->GetId(), gVirtualX->KeysymToKeycode(kKey_Enter), kKey_Control, kTRUE);
+//   AddInput(kKeyPressMask);
+
+  dLogEditFrame->AddFrame(dLogEdit,dLogEditLayout);
+  dLogTabFrame->AddFrame(dLogEditFrame, dLogEditFrameLayout);
+
+  dDBQueryFrame = new TGHorizontalFrame(dLogTabFrame,500, 30);
+  dDBQueryLabel = new TGLabel(dDBQueryFrame, "DB Query");
+  dDBQueryFrame->AddFrame(dDBQueryLabel,dDBQueryLabelLayout);
+  dDBQueryEntry = new TGTextEntry(dDBQueryFrame, dDBQueryBuffer = new TGTextBuffer(80),M_DBASE_QUERY);
+  dDBQueryEntry->Associate(this);
+  dDBQueryFrame->AddFrame(dDBQueryEntry,dDBQueryEntryLayout);
+  dDBQueryEntry->SetState(1);
+  dLogTabFrame->AddFrame(dDBQueryFrame, dDBQueryFrameLayout);
+
+  
   dLogTabFrame->Resize(dMWWidth-15,dMWHeight-80);
   tf->AddFrame(dLogTabFrame,dLogTabLayout);
 
@@ -314,6 +345,7 @@ void QwGUIMain::MakeLogTab()
   dLogEdit->Connect("Closed()","QwGUIMain", this, "LogClosed()" );
   dLogEdit->Connect("Saved()","QwGUIMain", this,  "LogSaved()"  );
   dLogEdit->Connect("SavedAs()","QwGUIMain", this,"LogSavedAs()");
+  dLogEdit->Connect("DataChanged()","QwGUIMain", this,"MonitorLogInput()");
 
   if(dLogText) {
     dLogEdit->SetText(dLogText);
@@ -484,9 +516,18 @@ void QwGUIMain::RemoveLogTab()
   else
     dLogText = NULL;
   delete dLogEdit; dLogEdit = NULL;
+  delete dLogEditFrame; dLogEditFrame   = NULL;
   delete dLogTabFrame; dLogTabFrame = NULL;
-  delete dLogTabLayout; dLogTabLayout = NULL;
+  delete dDBQueryFrame; dDBQueryFrame = NULL;
+  delete dDBQueryEntry; dDBQueryEntry = NULL;
+  delete dLogTabLayout; dLogTabLayout   = NULL;
   delete dLogEditLayout; dLogEditLayout = NULL;
+  delete dLogEditFrameLayout; dLogEditFrameLayout = NULL;
+  delete dDBQueryEntryLayout; dDBQueryEntryLayout = NULL;
+  delete dDBQueryFrameLayout; dDBQueryFrameLayout = NULL;
+  delete dDBQueryBuffer; dDBQueryBuffer = NULL;
+  delete dDBQueryLabel; dDBQueryLabel = NULL;
+  delete dDBQueryLabelLayout; dDBQueryLabelLayout = NULL;
 
   dMenuTabs->UnCheckEntry(M_VIEW_LOG);
 }
@@ -529,6 +570,34 @@ void QwGUIMain::LogSaved()
   SetLogFileOpen(kTrue);
   Bool_t untitled = !strlen(dLogEdit->GetText()->GetFileName()) ? kTrue : kFalse;
   if(!untitled) SetLogFileName((char*)dLogEdit->GetText()->GetFileName());
+}
+
+void QwGUIMain::MonitorLogInput()
+{
+//   if(dLogEdit->GetText()->RowCount() < 1) return;
+
+//   Long_t line = 0;
+//   ULong_t length = -1;
+
+//   if(dLogEdit){
+
+//     printf("Line 554\n");
+
+//     dLogEdit->Goto(dLogEdit->ReturnLineCount()-1);
+//       //,dLogEdit->GetText()->GetLineLength((Long_t)(dLogEdit->GetText()->RowCount()-1)));
+
+//     printf("Previous line last: \n char = %c \n end!\n",dLogEdit->GetText()->GetChar(dLogEdit->GetCurrentPos()));
+
+//     line = dLogEdit->ReturnLineCount()-1;
+//     length = dLogEdit->GetText()->GetCurrentLine()->GetLineLength();
+//   }
+
+
+
+//   if(length == 0 && dLogEdit->GetText()->GetCurrentLine()->GetChar(length-1) == -1)
+//     printf("Got a return from line %ld, to %ld\n",line,dLogEdit->ReturnLineCount());
+
+
 }
 
 void QwGUIMain::LogSavedAs()
@@ -1106,6 +1175,32 @@ void QwGUIMain::CloseWindow()
 
 }
 
+Bool_t QwGUIMain::HandleKey(Event_t *event)
+{
+  char   input[10];
+  Int_t  n;
+  UInt_t keysym;
+  
+  printf("Line 1116\n");
+  printf("Window id = %d dLogEdit id = %d\n",event->fWindow, dLogEdit->GetId());
+  
+  printf("event type = %d\n",event->fType);
+
+  if (event->fType == kGKeyPress) {
+    gVirtualX->LookupString(event, input, sizeof(input), keysym);
+    n = strlen(input);
+    
+    switch ((EKeySym)keysym) {
+    case kKey_Enter:
+      printf("Pressed Enter\n");
+      break;
+    default:
+      break;
+    }
+  }
+  return TGMainFrame::HandleKey(event);
+}
+
 Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
   // Handle messages send to the MainFrame object. E.g. all menu button
@@ -1117,22 +1212,32 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
   switch (GET_MSG(msg)){
 
   case kC_TEXTENTRY:
+
     switch (GET_SUBMSG(msg)) {
+
     case kTE_ENTER:
-      switch (parm1) {
+      {
+	switch (parm1) {
+	
+	case M_DBASE_QUERY:
+	  
+	  printf("Typing %s\n",dDBQueryBuffer->GetString());	  
+ 	  dDBQueryEntry->Clear();
+	  break;
 
-      case M_RUN_SELECT:
-	break;
+	default:
+	  break;
+	}
 
-      default:
 	break;
       }
-
+      
     default:
       break;
     }
 
   case kC_COMMAND:
+
     switch (GET_SUBMSG(msg)) {
 
     case kCM_COMBOBOX:

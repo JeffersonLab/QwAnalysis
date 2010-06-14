@@ -24,9 +24,6 @@ QwGUIDatabaseContainer::~QwGUIDatabaseContainer()
 
 int QwGUIDatabaseContainer::OpenDatabase()
 {
-  dDatabase = new QwDatabase();
-
-  if(!dDatabase) return PROCESS_FAILED;
 
   DatabaseOptions opts;
   opts.changeFlag = kFalse;
@@ -37,11 +34,11 @@ int QwGUIDatabaseContainer::OpenDatabase()
   opts.psswd    = "";
   opts.dbport   = 0;
   
-//  printf("QWANALYSIS = %s\n", gSystem->Getenv("QWANALYSIS"));
+ printf("QWANALYSIS = %s\n", gSystem->Getenv("QWANALYSIS"));
 
-//  gQwOptions.Usage();
+ gQwOptions.Usage();
 
-//  printf("HasValue(QwDatabase.dbserver) = %i\n", gQwOptions.HasValue("QwDatabase.dbserver"));
+ printf("HasValue(QwDatabase.dbserver) = %i\n", gQwOptions.HasValue("QwDatabase.dbserver"));
 
   if (gQwOptions.HasValue("QwDatabase.dbserver")) {opts.dbserver = gQwOptions.GetValue<string>("QwDatabase.dbserver");}
   if (gQwOptions.HasValue("QwDatabase.dbname")) {opts.dbname = gQwOptions.GetValue<string>("QwDatabase.dbname");}
@@ -73,6 +70,10 @@ int QwGUIDatabaseContainer::OpenDatabase()
       }
     }
   }
+
+  dDatabase = new QwDatabase(gQwOptions);
+
+  if(!dDatabase) return PROCESS_FAILED;
 
 
   return FILE_PROCESS_OK;

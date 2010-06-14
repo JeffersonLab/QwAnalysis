@@ -49,7 +49,7 @@ static const int kMultiplet = 4;
 // Activate components
 static bool bTree = true;
 static bool bHisto = true;
-static bool bHelicity= true;
+static bool bHelicity= false;
 
 Bool_t bEnableBlinding = kTRUE;
 ///

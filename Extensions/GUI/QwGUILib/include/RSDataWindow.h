@@ -73,6 +73,7 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
   Bool_t               dLimits;
   Double_t             dMin[3];
   Double_t             dMax[3];
+  Double_t             dTitleOffset[3];
   Int_t                dNumbins[3];  
 
   ERPlotTypes          dPtype;
@@ -152,6 +153,7 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
   void                 ConnectWith(const TGWindow *, char *); 
 
   Int_t                DrawData(const TH2D&);
+  Int_t                DrawData(const TProfile&);
   Int_t                DrawData(const TF1&, Bool_t add = kFalse);
   Int_t                DrawData(const TH1D&, Bool_t add = kFalse);
   Int_t                DrawData(const TGraph&, Bool_t add = kFalse);
@@ -215,6 +217,7 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
   void                 SetPlotTitleX(const char* title) {strcpy(dPlottitleX,title);};
   void                 SetPlotTitleY(const char* title) {strcpy(dPlottitleY,title);};
   void                 SetPlotTitleZ(const char* title) {strcpy(dPlottitleZ,title);};
+  void                 SetPlotTitleOffset(Double_t xoffs = 0, Double_t yoffs = 0, Double_t zoffs = 0);
   void                 SetRootContainer(RDataContainer *cont = NULL);
   void                 SetUpdateFalse(){dUpdateHisto = kFalse;};
   void                 SetUpdateTrue(){dUpdateHisto = kTrue;};

@@ -38,6 +38,7 @@ public:
   Bool_t Connect(){if(dDatabase) return dDatabase->Connect(); return kFalse;};
 #ifndef ROOTCINTMODE
   mysqlpp::Query Query(const char* str){ if(dDatabase) return dDatabase->Query(str); return 0;};
+  mysqlpp::Query Query(){ if(dDatabase) return dDatabase->Query(); return 0;};
 #endif
   void Disconnect() {if(dDatabase) dDatabase->Disconnect();};
   
