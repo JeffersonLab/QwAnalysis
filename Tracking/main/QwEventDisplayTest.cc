@@ -22,6 +22,7 @@
 #include "Qset.h"
 
 // Qweak subsystem headers
+#include "QwSubsystemFactory.h"
 #include "QwSubsystemArrayTracking.h"
 #include "QwGasElectronMultiplier.h"
 #include "QwDriftChamberHDC.h"
@@ -29,6 +30,7 @@
 #include "QwTriggerScintillator.h"
 #include "QwMainDetector.h"
 #include "QwTreeEventBuffer.h"
+#include "QwEventBuffer.h"
 
 // Qweak event display header
 #include "QwEventDisplay.h"
@@ -57,26 +59,26 @@ int main (int argc, char* argv[])
   QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking();
 
   // Region 1 GEM
-  detectors->push_back(GetSubsystemFactory("QwGasElectronMultiplier")->Create("R1"));
+  detectors->push_back(VQwSubsystemFactory::GetSubsystemFactory("QwGasElectronMultiplier")->Create("R1"));
   detectors->GetSubsystemByName("R1")->LoadChannelMap("qweak_cosmics_hits.map");
   detectors->GetSubsystemByName("R1")->LoadGeometryDefinition("qweak_new.geo");
 
   // Region 2 HDC
-  detectors->push_back(GetSubsystemFactory("QwDriftChamberHDC")->Create("R2"));
+  detectors->push_back(VQwSubsystemFactory::GetSubsystemFactory("QwDriftChamberHDC")->Create("R2"));
   detectors->GetSubsystemByName("R2")->LoadChannelMap("qweak_cosmics_hits.map");
   detectors->GetSubsystemByName("R2")->LoadGeometryDefinition("qweak_new.geo");
 
   // Region 3 VDC
-  detectors->push_back(GetSubsystemFactory("QwDriftChamberVDC")->Create("R3"));
+  detectors->push_back(VQwSubsystemFactory::GetSubsystemFactory("QwDriftChamberVDC")->Create("R3"));
   detectors->GetSubsystemByName("R3")->LoadChannelMap("TDCtoDL.map");
   detectors->GetSubsystemByName("R3")->LoadGeometryDefinition("qweak_new.geo");
 
   // Region 4 TS
-  detectors->push_back(GetSubsystemFactory("QwTriggerScintillator")->Create("TS"));
+  detectors->push_back(VQwSubsystemFactory::GetSubsystemFactory("QwTriggerScintillator")->Create("TS"));
   detectors->GetSubsystemByName("TS")->LoadGeometryDefinition("qweak_new.geo");
 
   // Region 5 MD
-  detectors->push_back(GetSubsystemFactory("QwMainDetector")->Create("MD"));
+  detectors->push_back(VQwSubsystemFactory::GetSubsystemFactory("QwMainDetector")->Create("MD"));
   detectors->GetSubsystemByName("MD")->LoadGeometryDefinition("qweak_new.geo");
 
   // Get vector with detector info (by region, plane number)
