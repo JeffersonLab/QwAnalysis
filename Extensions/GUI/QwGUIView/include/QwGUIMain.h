@@ -43,6 +43,7 @@
    a basic text editor, so that notes and comments can be added by the user.
 
  */
+//New Class "QwGUIBeamModulation"  created for Beam Modulation: Nuruzzaman 05/03/2010
 //=============================================================================
 
 ///
@@ -82,8 +83,8 @@
 #include <TMath.h>
 #include <TPave.h>
 #include "KeySymbols.h"
-
 #include "QwGUIMainDetector.h"
+#include "QwGUIBeamModulation.h"
 #include "QwGUILumiDetector.h"
 #include "QwGUIInjector.h"
 #include "QwGUIHallCBeamline.h"
@@ -109,6 +110,7 @@ class QwGUIMain : public TGMainFrame {
 
   //!Main detector sub system class
   QwGUIMainDetector      *MainDetSubSystem;
+  QwGUIBeamModulation    *BeamModulationSubSystem;
   QwGUILumiDetector      *LumiDetSubSystem;
   QwGUIInjector          *InjectorSubSystem;
   QwGUIHallCBeamline     *HallCBeamlineSubSystem;
@@ -192,7 +194,7 @@ class QwGUIMain : public TGMainFrame {
   TGLabel                *dDBQueryLabel;
   TGLayoutHints          *dDBQueryLabelLayout;
 
-  //!Menubar widgets
+  //!Menubar widgets 
   TGMenuBar              *dMenuBar;
   TGPopupMenu            *dMenuFile;
   TGPopupMenu            *dMenuTabs;

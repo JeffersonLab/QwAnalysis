@@ -26,7 +26,7 @@
  \author Michael Gericke
 
  \brief main(...) function and MainFrame class for the QwGUI executable
-
+ \New class "QwGUIBeamModulation" has been craeted for Beam Modulation: Nuruzzaman 05/03/2010
 
 *//*-------------------------------------------------------------------------*/
 
@@ -42,11 +42,12 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dClArgs = clargs;
   std::set_new_handler(0);
 
-  MainDetSubSystem       = NULL;
-  LumiDetSubSystem       = NULL;
-  InjectorSubSystem      = NULL;
-  HallCBeamlineSubSystem = NULL;
-  EventDisplaySubSystem  = NULL;
+  MainDetSubSystem        = NULL;
+  BeamModulationSubSystem = NULL;
+  LumiDetSubSystem        = NULL;
+  InjectorSubSystem       = NULL;
+  HallCBeamlineSubSystem  = NULL;
+  EventDisplaySubSystem   = NULL;
 
   dMWWidth              = w;
   dMWHeight             = h;
@@ -57,7 +58,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
   dTBinEntry            = NULL;
   dTBinEntryLayout      = NULL;
-  dRunEntry             = NULL;
+  dRunEntry             = NULL; 
   dRunEntryLayout       = NULL;
   dHorizontal3DLine     = NULL;
   dUtilityFrame         = NULL;
@@ -113,6 +114,9 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   if(!GetSubSystemPtr("Main Detectors"))
     MainDetSubSystem = new QwGUIMainDetector(fClient->GetRoot(), this, dTab,"Main Detectors",
 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
+  if(!GetSubSystemPtr("Beam Modulation"))
+    BeamModulationSubSystem = new QwGUIBeamModulation(fClient->GetRoot(), this, dTab, "Beam Modulation",
+					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
   if(!GetSubSystemPtr("Lumi Detectors"))
     LumiDetSubSystem = new QwGUILumiDetector(fClient->GetRoot(), this, dTab,"Lumi Detectors",
 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
@@ -132,11 +136,12 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
 QwGUIMain::~QwGUIMain()
 {
-  delete MainDetSubSystem       ;
-  delete LumiDetSubSystem       ;
-  delete InjectorSubSystem      ;
-  delete HallCBeamlineSubSystem ;
-  delete EventDisplaySubSystem  ;
+  delete MainDetSubSystem        ;
+  delete BeamModulationSubSystem ;
+  delete LumiDetSubSystem        ;
+  delete InjectorSubSystem       ;
+  delete HallCBeamlineSubSystem  ;
+  delete EventDisplaySubSystem   ;
 
   delete dROOTFile             ;
 

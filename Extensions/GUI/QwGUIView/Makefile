@@ -15,11 +15,12 @@ PRG_SOURCE    = ./src
 OBJECTS	      =
 OBJECTS       += QwGUIMain.o
 OBJECTS       += QwGUIHelpBrowser.o
-OBJECTS       += QwGUIProgressDialog.o
+OBJECTS       += QwGUIProgressDialog.o 
 OBJECTS       += QwGUIPlotOptionsDialog.o
 OBJECTS       += QwGUIDataWindow.o
 OBJECTS       += QwGUISubSystem.o
 OBJECTS       += QwGUIMainDetector.o
+OBJECTS       += QwGUIBeamModulation.o			 #Nuruzzaman
 OBJECTS       += QwGUILumiDetector.o
 OBJECTS       += QwGUIInjector.o
 OBJECTS	      += QwGUIHallCBeamline.o
@@ -28,6 +29,7 @@ OBJECTS       += QwGUISuperCanvas.o
 OBJECTS       += QwGUIDatabaseContainer.o
 OBJECTS       += QwGUIDatabaseSelectionDialog.o
 OBJECTS       += QwGUIFFTWindowSelectionDialog.o
+
 
 # Now append the object files that Don't require a CINT dictionary.
 #NODICTOBJECTS   = QwHit.o
