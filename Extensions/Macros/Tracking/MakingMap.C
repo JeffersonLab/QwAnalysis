@@ -65,7 +65,7 @@ void create_tdc_tree ( Int_t ev_start=-1,Int_t ev_end=-1, Int_t run_number=1672 
 	for ( Int_t index=0;index<kNumberOfChannels*kNumberOfSlots;index++ )
             tdc_dt.at( index ) =1;
 
-        for ( Int_t hit_id=0;hit_id<nhit;hit_id++ )
+        for ( Int_t hit_id=nhit-1;hit_id>=0;hit_id-- )
         {
             hit=hitContainer->GetHit ( hit_id );
             tdc_dt.at(hit->GetChannel()) = hit->GetTime();
