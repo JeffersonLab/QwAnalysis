@@ -285,6 +285,16 @@ void QwDatabase::ProcessOptions(QwOptions &options)
   return;
 };
 
+void QwDatabase::ProcessOptions(const TString& dbname, const TString& username, const TString& passwd, const TString& dbhost, const Int_t dbport, const TString& accesslevel)
+{
+  SetAccessLevel(static_cast<string>(accesslevel));
+  fDatabase = dbname;
+  fDBUsername = username;
+  fDBPassword = passwd;
+  fDBServer = dbhost;
+  fDBPortNumber = dbport;
+}
+
 void QwDatabase::SetAccessLevel(string accesslevel)
 {
   TString level = accesslevel.c_str();

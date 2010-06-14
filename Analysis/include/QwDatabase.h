@@ -61,6 +61,7 @@ class QwDatabase: private mysqlpp::Connection {
     const string GetServerVersion() {return server_version();}; //<! Get database server version
     static void  DefineOptions(QwOptions& options); //!< Defines available class options for QwOptions
     void ProcessOptions(QwOptions &options); //!< Processes the options contained in the QwOptions object.
+    void ProcessOptions(const TString& dbname, const TString& username, const TString& passwd, const TString& dbhost="localhost", const Int_t dbport = 0, const TString& accesslevel = "ro"); //!< Processes database options
 
     mysqlpp::Query Query(const char *qstr=0     ) {return query(qstr);} //<! Generate a query to the database.
     mysqlpp::Query Query(const std::string &qstr) {return query(qstr);} //<! Generate a query to the database.
