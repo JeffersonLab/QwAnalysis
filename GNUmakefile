@@ -141,7 +141,7 @@ ifeq ($(filter config,$(MAKECMDGOALS)),config)
     EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online qwroot
   else
     EXES := qwtracking qwsimtracking qwanalysis_adc qwanalysis_beamline qwsimraytracer qwanalysis_mysql qwdb_test qwcompton qwanalysis_online qwroot
-  endif  
+  endif
 endif
 # overridden by "make 'EXES=exe1 exe2 ...'"
 
@@ -275,7 +275,6 @@ ifndef BOOST_INC_DIR
   endif
   BOOST_INC_DIR = /usr/include
   BOOST_LIB_DIR = /usr/lib
-  BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" $(BOOST_INC_DIR)/boost/version.hpp)
   BOOST_INC  =
   BOOST_LIBS =
 else
@@ -289,32 +288,48 @@ else
     $(warning )
     $(error   Error: Could not find the Boost library)
   else
-    BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_LIB_VERSION\s+\"(\S+)\"/" ${BOOST_INC_DIR}/boost/version.hpp)
     BOOST_INC  = -I${BOOST_INC_DIR}
     BOOST_LIBS = -L${BOOST_LIB_DIR}
   endif
 endif
 
-#  Check to see if BOOST_INC_DIR is equal to /usr/include; 
+#  Check to see if BOOST_INC_DIR is equal to /usr/include;
 #  if so, clear the BOOST_INC flag, but leave BOOST_LIBS unchanged
 ifeq ($(shell test $(BOOST_INC_DIR) -ef /usr/include || echo false),)
   BOOST_INC  =
 endif
 
 #  We should also put a test on the boost version number here.
+BOOST_VERSION = $(shell perl -ane "print /\#define\s+BOOST_VERSION\s+(\S+)/" ${BOOST_INC_DIR}/boost/version.hpp)
 ifeq ($(BOOST_VERSION),)
   $(error   Error: Could not determine Boost version)
+endif
+ifneq ($(shell test $(BOOST_VERSION) -lt "103300" && echo "boost_not_supported"),)
+  $(warning Warning: Boost libraries probably too old)
+  $(warning Boost library support only for versions 1.33.0 and up)
 endif
 
 #  List the Boost libraries to be linked to the analyzer.
 ifeq ($(strip $(shell $(FIND) $(BOOST_LIB_DIR) -maxdepth 1 -name libboost_filesystem-mt.so)),$(BOOST_LIB_DIR)/libboost_filesystem-mt.so)
-  BOOST_LIBS += -lboost_filesystem-mt -lboost_program_options-mt
+  # If multi-threaded libraries exist, use them instead of single threaded libraries
+  ifneq ($(shell test $(BOOST_VERSION) -lt "103500" && echo "boost_system_in_filesystem"),)
+    # Before boost::filesystem 1.35.0 the system functionality is inside filesystem
+    BOOST_LIBS += -lboost_filesystem-mt -lboost_program_options-mt
+  else
+    # After boost::filesystem 1.35.0 the system functionality is a separate function
+    BOOST_LIBS += -lboost_filesystem-mt -lboost_program_options-mt -lboost_system-mt
+  endif
 else
-  BOOST_LIBS += -lboost_filesystem -lboost_program_options
+  # Otherwise use the single threaded libraries
+  ifneq ($(shell test $(BOOST_VERSION) -lt "103500" && echo "boost_system_in_filesystem"),)
+    # Before boost::filesystem 1.35.0 the system functionality is inside filesystem
+    BOOST_LIBS += -lboost_filesystem -lboost_program_options
+  else
+    # After boost::filesystem 1.35.0 the system functionality is a separate function
+    BOOST_LIBS += -lboost_filesystem -lboost_program_options -lboost_system
+  endif
 endif
-
 BOOST_LIBS += -ldl
-
 
 
 ############################
@@ -366,7 +381,7 @@ CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
 LD             = g++
 LIBTOOL 	   = libtool
-LDFLAGS        = 
+LDFLAGS        =
 LDLIBS         = -lSystemStubs
 SOFLAGS        =
 DllSuf        := .dylib
