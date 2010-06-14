@@ -210,13 +210,12 @@ void QwBlinder::InitBlinders()
   // Generate checksum
   TString hex_string;
   hex_string.Form("%.16llx%.16llx", *(ULong64_t*)(&fBlindingFactor), *(ULong64_t*)(&fBlindingOffset));
-  fDigest = GenerateDigest(hex_string.Data());
+  fDigest = GenerateDigest(hex_string);
   fChecksum = "";
-  for (size_t i = 0; i < fDigest.size(); i++) {
-      fChecksum += string(Form("%.2x",fDigest[i]));
-  }
+  for (size_t i = 0; i < fDigest.size(); i++)
+    fChecksum += string(Form("%.2x",fDigest[i]));
 
-}; //End of InitBlinders()
+}; // End of InitBlinders()
 
 
 void  QwBlinder::WriteFinalValuesToDB(QwDatabase* db)
@@ -400,7 +399,7 @@ Int_t QwBlinder::UseMD5(const TString& barestring)
   Int_t temp = 0;
   Int_t tempout = 0;
 
-  std::vector<UChar_t> digest = this->GenerateDigest(barestring.Data());
+  std::vector<UChar_t> digest = this->GenerateDigest(barestring);
   for (size_t i = 0; i < digest.size(); i++)
     {
       Int_t j = i%4;
@@ -580,19 +579,23 @@ Bool_t QwBlinder::CheckTestValues()
  * @param input
  * @return
  */
-std::vector<UChar_t> QwBlinder::GenerateDigest(const char* input)
+std::vector<UChar_t> QwBlinder::GenerateDigest(const TString& input)
 {
-  const UInt_t md5_len = 64;
-  UChar_t md5_value[md5_len];
+  // Initialize MD5 checksum array
+  const UInt_t length = 64;
+  UChar_t value[length];
+  for (UInt_t i = 0; i < length; i++)
+    value[i] = 0;
 
+  // Calculate MD5 checksum from input and store in md5_value
   TMD5 md5;
-  md5.Update((UChar_t*) input, strlen(input));
-  md5.Final(md5_value);
-  //md5.Print();
+  md5.Update((UChar_t*) input.Data(), input.Length());
+  md5.Final(value);
 
+  // Copy the MD5 checksum in an STL vector
   std::vector<UChar_t> output;
-  for (UInt_t i = 0; i < md5_len; i++)
-      output.push_back(md5_value[i]);
+  for (UInt_t i = 0; i < length; i++)
+    output.push_back(value[i]);
 
   return output;
 };

@@ -195,7 +195,7 @@ class QwBlinder {
     void WriteTestValues(QwDatabase* db);   ///  Writes fTestNumber and fBlindTestValue to DB for this analysis ID
     Bool_t CheckTestValues();               ///  Recomputes fBlindTestValue to check for memory errors
 
-    std::vector<UChar_t> GenerateDigest(const char* input);
+    std::vector<UChar_t> GenerateDigest(const TString& input);
 
 };
 
