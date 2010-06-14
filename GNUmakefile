@@ -308,9 +308,9 @@ endif
 
 #  List the Boost libraries to be linked to the analyzer.
 ifeq ($(strip $(shell $(FIND) $(BOOST_LIB_DIR) -maxdepth 1 -name libboost_filesystem-mt.so)),$(BOOST_LIB_DIR)/libboost_filesystem-mt.so)
-  BOOST_LIBS += -lboost_filesystem-mt -lboost_program_options-mt -lboost_system-mt
+  BOOST_LIBS += -lboost_filesystem-mt -lboost_program_options-mt
 else
-  BOOST_LIBS += -lboost_filesystem -lboost_program_options -lboost_system
+  BOOST_LIBS += -lboost_filesystem -lboost_program_options
 endif
 
 BOOST_LIBS += -ldl
