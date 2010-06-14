@@ -18,12 +18,19 @@ class QwMapFile {
   void ls() { if(fMapFile) fMapFile->ls(); }
   void RemoveAll();
 
+  Bool_t cd(const char* path = 0) {
+    if (fMapFile) return fMapFile->cd(path); else return kFALSE;
+  }
+  Int_t Write(const char* name = 0, Int_t option = 0, Int_t bufsize = 0) {
+    if (fMapFile) return fMapFile->Write(name, option, bufsize); else return 0;
+  }
+
   static const size_t kMapFileSize;//making it larger crashed the qwanalysis_online
 
  protected:
   TMapFile *fMapFile;
 
-  ClassDef(QwMapFile,0)
+  ClassDef(QwMapFile,0);
 };
 
 

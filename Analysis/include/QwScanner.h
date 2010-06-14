@@ -25,7 +25,7 @@
 
 #include "VQwDataElement.h"
 #include "QwVQWK_Channel.h"
-#include "QwSIS3801_Channel.h"
+#include "QwScaler_Channel.h"
 #include "QwPMT_Channel.h"
 
 class QwScanner: public VQwSubsystemTracking,
@@ -37,7 +37,7 @@ class QwScanner: public VQwSubsystemTracking,
    QwScanner(TString region_tmp);
    virtual ~QwScanner();
 
-  // VQwSubsystem methods
+    // VQwSubsystem methods
     VQwSubsystem& operator=  (VQwSubsystem *value) { return *this; };
     VQwSubsystem& operator+= (VQwSubsystem *value) { return *this; };
     VQwSubsystem& operator-= (VQwSubsystem *value) { return *this; };
@@ -56,7 +56,7 @@ class QwScanner: public VQwSubsystemTracking,
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
     void Copy(VQwSubsystem *source) { VQwSubsystem::Copy(source); return; };
-    VQwSubsystem*  Copy() { return this; };
+    VQwSubsystem* Copy() { QwScanner* copy = new QwScanner("copy"); copy->Copy(this); return copy; };
     Bool_t Compare(VQwSubsystem *source) { return kTRUE; };
 
   /*  Member functions derived from VQwSubsystem. */

@@ -60,8 +60,8 @@ main(Int_t argc, Char_t* argv[])
   gQwHists.LoadHistParamsFromFile("parity_hists.in");
   // Setup screen and file logging
   gQwLog.InitLogFile("qwanalysis_mysql.log");
-  gQwLog.SetFileThreshold(QwLog::kDebug);
-  gQwLog.SetScreenThreshold(QwLog::kMessage);
+//  gQwLog.SetFileThreshold(QwLog::kDebug);
+//  gQwLog.SetScreenThreshold(QwLog::kError);
 
   TStopwatch timer;
 

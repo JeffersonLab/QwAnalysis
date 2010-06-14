@@ -210,7 +210,7 @@ class QwHelicity: public VQwSubsystemParity{
   std::vector<TH1*> fHistograms;
   Int_t fHistoType;
   //allow one to select which types of histograms are created and filled
-  void SetHistoTreeSave(TString &prefix);
+  void SetHistoTreeSave(const TString &prefix);
 
 
 

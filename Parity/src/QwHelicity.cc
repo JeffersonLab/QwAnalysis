@@ -6,9 +6,15 @@
 \**********************************************************/
 
 #include "QwHelicity.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
 
+// ROOT headers
+#include "TRegexp.h"
+
+// Qweak headers
+#include "QwHistogramHelper.h"
 #include "QwLog.h"
 
 // Register this subsystem with the factory
@@ -802,14 +808,15 @@ void QwHelicity::SetEventPatternPhase(Int_t event, Int_t pattern, Int_t phase)
 };
 
 //**************************************************//
-void QwHelicity::SetHistoTreeSave(TString &prefix)
+void QwHelicity::SetHistoTreeSave(const TString &prefix)
 {
-  if(prefix=="asym_")
-    fHistoType=kHelNoSave;
-  else if (prefix=="yield_")
-    fHistoType=kHelSavePattern;
+  Ssiz_t len;
+  if (TRegexp("asym[1-9]*_").Index(prefix,&len) == 0)
+    fHistoType = kHelNoSave;
+  else if (prefix == "yield_")
+    fHistoType = kHelSavePattern;
   else
-    fHistoType=kHelSaveMPS;
+    fHistoType = kHelSaveMPS;
 
   return;
 }

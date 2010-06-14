@@ -85,7 +85,7 @@ QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersion
   fRunID             = 0;
   fRunletID          = 0;
   fAnalysisID        = 0;
-  fSegmentNumber     = 0;
+  fSegmentNumber     = -1;
 }
 
 /*! The constructor initializes member fields using the values in
@@ -441,6 +441,8 @@ const UInt_t QwDatabase::GetRunID(QwEventBuffer& qwevt)
 
   if (fRunID == 0 || fRunNumber != qwevt.GetRunNumber() ) {
      QwDebug << "QwDatabase::GetRunID() set fRunID to " << SetRunID(qwevt) << QwLog::endl;
+     fRunletID = 0;
+     fAnalysisID = 0;
   }
 
   return fRunID;
@@ -468,7 +470,8 @@ const UInt_t QwDatabase::SetRunletID(QwEventBuffer& qwevt)
       if (qwevt.ChainDataFiles()) {
         query << "SELECT * FROM runlet WHERE run_id = " << fRunID << " AND full_run = 'true'";
       } else {
-        query << "SELECT * FROM runlet WHERE run_id = " << fRunID << " AND full_run = 'false' AND segment_number = " << qwevt.GetSegmentNumber();
+        fSegmentNumber = qwevt.GetSegmentNumber();
+        query << "SELECT * FROM runlet WHERE run_id = " << fRunID << " AND full_run = 'false' AND segment_number = " << fSegmentNumber;
       }
 
       std::vector<runlet> res;
@@ -521,7 +524,7 @@ const UInt_t QwDatabase::SetRunletID(QwEventBuffer& qwevt)
         row.segment_number  = mysqlpp::null;
         row.full_run = "true";
       } else {
-        row.segment_number = qwevt.GetSegmentNumber();
+        row.segment_number = fSegmentNumber;
         row.full_run = "false";
       }
 
@@ -555,8 +558,9 @@ const UInt_t QwDatabase::GetRunletID(QwEventBuffer& qwevt)
   // If the stored run number does not agree with the CODA run number 
   // or if fRunID is not set, then retrieve data from database and update if necessary.
   
-  if (fRunletID == 0 || fRunNumber != qwevt.GetRunNumber() ) {
+  if (fRunletID == 0 || (!qwevt.ChainDataFiles() && fSegmentNumber!=qwevt.GetSegmentNumber()) || fRunNumber != qwevt.GetRunNumber() ) {
      QwDebug << "QwDatabase::GetRunletID() set fRunletID to " << SetRunletID(qwevt) << QwLog::endl;
+     fAnalysisID = 0;
   }
 
   return fRunletID;
@@ -624,13 +628,14 @@ const UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
  */
 const UInt_t QwDatabase::GetAnalysisID(QwEventBuffer& qwevt)
 {
-  // Sanity check to make sure not calling this before run_id has been retrieved.
-  if (fRunID == 0) {
-    QwDebug << "QwDatabase::GetAnalysisID() : fRunID must be set before proceeding.  Check to make sure run exists in database." << QwLog::endl;
+  // Sanity check to make sure not calling this before runlet_id has been retrieved.
+  if (fRunletID == 0) {
+    QwDebug << "QwDatabase::GetAnalysisID() : fRunletID must be set before proceeding.  Check to make sure run exists in database." << QwLog::endl;
     return 0;
   }
 
-  if (fAnalysisID == 0 ) {
+  if (fAnalysisID == 0 || fRunNumber != qwevt.GetRunNumber() 
+      || (!qwevt.ChainDataFiles() && fSegmentNumber!=qwevt.GetSegmentNumber())) {
     QwDebug << "QwDatabase::GetAnalysisID() set fAnalysisID to " << SetAnalysisID(qwevt) << QwLog::endl;
     if (fAnalysisID==0) {
       QwError << "QwDatabase::SetAnalysisID() unable to set valid fAnalysisID for this run.  Exiting." <<QwLog::endl;

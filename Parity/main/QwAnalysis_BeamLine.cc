@@ -58,6 +58,11 @@ Int_t main(Int_t argc, Char_t* argv[])
   // Define the command line options
   DefineOptionsParity(gQwOptions);
 
+  //QwAnalysis_BeamLine Options
+  gQwOptions.AddOptions()("skip", po::value<int>()->default_value(0),"No. of events to skip");
+  gQwOptions.AddOptions()("take", po::value<int>()->default_value(1000),"No. of events to save into tree = (take - skip)");
+
+
   // modified value for maximum size of tree
   Long64_t kMAXTREESIZE = 10000000000LL;
   // standard value for maximum size of tree in root source

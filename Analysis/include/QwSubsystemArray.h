@@ -43,6 +43,16 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   /// \brief Virtual destructor
   virtual ~QwSubsystemArray() {};
 
+  /// \brief Set the internal record of the CODA event number
+  void SetCodaEventNumber(UInt_t evtnum){fCodaEventNumber=evtnum;};
+  /// \brief Set the internal record of the CODA event type
+  void SetCodaEventType(UInt_t evttype){fCodaEventType=evttype;};
+  /// \brief Get the internal record of the CODA event number
+  UInt_t GetCodaEventNumber(){return fCodaEventNumber;};
+  /// \brief Get the internal record of the CODA event type
+  UInt_t GetCodaEventType(){return fCodaEventType;};
+
+
   /// \brief Add the subsystem to this array
   void push_back(VQwSubsystem* subsys);
 
@@ -156,6 +166,13 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void  DeleteHistograms();
   // @}
 
+  void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values);
+  void ConstructBranchAndVector(TTree *tree, std::vector <Double_t> &values) {
+    TString tmpstr("");
+    ConstructBranchAndVector(tree,tmpstr,values);
+  };
+  void  FillTreeVector(std::vector<Double_t> &values);
+
   /// \name Tree construction and maintenance
   /// These functions are not purely virtual, since not every subsystem is
   /// expected to implement them.  They are intended for expert output to
@@ -183,9 +200,16 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void Print();
 
  protected:
-
   std::map<TString, VQwSubsystem*> fPublishedValuesSubsystem;
   std::map<TString, TString>       fPublishedValuesDescription;
+
+  size_t fTreeArrayIndex;  //! Index of this data element in root tree
+
+ protected:
+  UInt_t fCodaEventNumber; ///< CODA event number as provided by QwEventBuffer
+  UInt_t fCodaEventType;   ///< CODA event type as provided by QwEventBuffer
+
+
 
 
 };

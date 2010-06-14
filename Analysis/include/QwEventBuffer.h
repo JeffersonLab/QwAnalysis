@@ -196,7 +196,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
   UInt_t fBankDataType;
   UInt_t fIDBankNum;
 
-  UInt_t fEvtNumber;
+  UInt_t fEvtNumber;   ///< CODA event number; only defined for physics events
   UInt_t fEvtClass;
   UInt_t fStatSum;
 

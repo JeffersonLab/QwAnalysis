@@ -1,12 +1,12 @@
 /**********************************************************\
-* File: QwSIS3801_Channel.h                               *
+* File: QwScaler_Channel.h                                 *
 *                                                          *
 * Author: J. Pan                                           *
 * Date:   Thu Sep 16 18:08:33 CDT 2009                     *
 \**********************************************************/
 
-#ifndef __QwSIS3801_CHANNEL__
-#define __QwSIS3801_CHANNEL__
+#ifndef __QWSCALER_CHANNEL__
+#define __QWSCALER_CHANNEL__
 
 #include <vector>
 #include "TTree.h"
@@ -30,18 +30,19 @@
 /// \ingroup QwAnalysis_ADC
 ///
 /// \ingroup QwAnalysis_BL
-class QwSIS3801_Channel: public VQwDataElement {
+template <UInt_t data_mask=0xffffffff, UInt_t data_shift=0 >
+class QwScaler_Channel: public VQwDataElement {
 
- public:
-  QwSIS3801_Channel() { };
-  QwSIS3801_Channel(TString name){
+public:
+  QwScaler_Channel() { };
+  QwScaler_Channel(TString name){
     InitializeChannel(name);
   };
-  ~QwSIS3801_Channel() {DeleteHistograms();};
-
+  ~QwScaler_Channel() {DeleteHistograms();};
+ 
   void  InitializeChannel(TString name){
     fValue = 0;
-    SetNumberOfDataWords(1);  //SIS3801 - single word, 32 bits
+    SetNumberOfDataWords(1);  //Scaler - single word, 32 bits
     fNumEvtsWithHWErrors=0;//init error counters
     fNumEvtsWithEventCutsRejected=0;//init error counters
     SetElementName(name);
@@ -69,12 +70,12 @@ class QwSIS3801_Channel: public VQwDataElement {
   Double_t  GetValue(){return fValue;};
 
 
-  QwSIS3801_Channel& operator=  (const QwSIS3801_Channel &value);
-  QwSIS3801_Channel& operator+= (const QwSIS3801_Channel &value);
-  QwSIS3801_Channel& operator-= (const QwSIS3801_Channel &value);
-  void Sum(QwSIS3801_Channel &value1, QwSIS3801_Channel &value2);
-  void Difference(QwSIS3801_Channel &value1, QwSIS3801_Channel &value2);
-  void Ratio(QwSIS3801_Channel &numer, QwSIS3801_Channel &denom);
+  QwScaler_Channel& operator=  (const QwScaler_Channel &value);
+  QwScaler_Channel& operator+= (const QwScaler_Channel &value);
+  QwScaler_Channel& operator-= (const QwScaler_Channel &value);
+  void Sum(QwScaler_Channel &value1, QwScaler_Channel &value2);
+  void Difference(QwScaler_Channel &value1, QwScaler_Channel &value2);
+  void Ratio(QwScaler_Channel &numer, QwScaler_Channel &denom);
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
 
@@ -90,16 +91,16 @@ class QwSIS3801_Channel: public VQwDataElement {
 
 
   void Copy(VQwDataElement *source);
-
+ 
   void Print() const;
 
- protected:
+protected:
 
-
- private:
+private:
   static const Bool_t kDEBUG;
-
-  UInt_t fValue;
+ 
+  UInt_t   fValue_Raw;
+  Double_t fValue;
 
   /*  Ntuple array indices */
   size_t fTreeArrayIndex;
@@ -108,10 +109,14 @@ class QwSIS3801_Channel: public VQwDataElement {
 
   Int_t fNumEvtsWithHWErrors;//counts the HW falied events
   Int_t fNumEvtsWithEventCutsRejected;////counts the Event cut rejected events
-
-
-const static Bool_t bDEBUG=kFALSE;//debugging display purposes
 };
+
+//  These typedef's should be the last things in the file.
+//  Class template instationation must be made in the source
+//  file for anything defined here.
+typedef class QwScaler_Channel<0x00ffffff,0> QwSIS3801D24_Channel;
+typedef class QwScaler_Channel<0xffffffff,0>    QwSIS3801_Channel;
+typedef class QwScaler_Channel<0xffffffff,0>    QwSTR7200_Channel;
 
 
 #endif

@@ -24,8 +24,8 @@ QwSubsystemFactory<QwMainCerenkovDetector>
  */
 void QwMainCerenkovDetector::DefineOptions(QwOptions &options){
   // Define the execution options
-  options.AddDefaultOptions()
-    ("QwMainCerenkovDetector.normalize", 
+  options.AddOptions()
+    ("QwMainCerenkovDetector.normalize",
      po::value<bool>()->default_value(false)->zero_tokens(),
      "Normalize the detectors by beam current");
 }
@@ -1061,25 +1061,22 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
     QwMessage << "            QwMainCerenkovDetector::FillDB                       " << QwLog::endl;
     QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
   }
- 
+
   std::vector<QwDBInterface> interface;
   std::vector<QwParityDB::md_data> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();
 
-  TString yield_type(db->GetMeasurementID(12)); // yp
-  TString asymm_type(db->GetMeasurementID(0));//a
-
   Char_t measurement_type[4];
 
   if(datatype.Contains("yield")) {
-    sprintf(measurement_type, "%s", yield_type.Data());
+    sprintf(measurement_type, "y");
   }
   else if (datatype.Contains("asymmetry")) {
-    sprintf(measurement_type, "%s", asymm_type.Data());
+    sprintf(measurement_type, "a");
   }
   else {
-    sprintf(measurement_type, "%s", " ");
+    sprintf(measurement_type, "");
   }
 
   UInt_t i,j;
@@ -1088,7 +1085,7 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
 
   for(i=0; i<fIntegrationPMT.size(); i++) {
     interface.clear();
-    interface = fIntegrationPMT[i].GetDBEntry(); 
+    interface = fIntegrationPMT[i].GetDBEntry();
     for(j=0; j<interface.size(); j++) {
       interface.at(j).SetAnalysisID( analysis_id );
       interface.at(j).SetMainDetectorID( db );

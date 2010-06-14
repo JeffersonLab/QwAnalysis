@@ -13,7 +13,6 @@
 #ifndef QWDELAYLINE_H
 #define QWDELAYLINE_H
 
-#include "QwParameterFile.h"
 #include "QwTypes.h"
 
 #include <stdlib.h>
