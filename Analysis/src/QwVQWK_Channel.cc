@@ -421,11 +421,14 @@ void QwVQWK_Channel::ProcessEvent()
   for (Short_t i = 0; i < fBlocksPerEvent; i++)
     {
       fBlock[i] = fCalibrationFactor * (fBlock_raw[i] - thispedestal / (fBlocksPerEvent*1.0));
-      fBlockM2[i] = 0.0; // second moment is zero for single events
+      fBlockM2[i] = 0.0; // second moment is zero for single events	
     }
 
-  fHardwareBlockSum = fCalibrationFactor *  ( fHardwareBlockSum_raw - thispedestal );
+  fHardwareBlockSum = fCalibrationFactor *  ( fHardwareBlockSum_raw - thispedestal ); 
   fHardwareBlockSumM2 = 0.0; // second moment is zero for single events
+
+//   if(GetElementName().Contains("md"))
+//     printf("Detector %s signal =  %1.4e\n",this->GetElementName().Data(),fHardwareBlockSum);
 
   return;
 };

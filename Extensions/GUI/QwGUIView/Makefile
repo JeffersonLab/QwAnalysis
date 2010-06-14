@@ -27,6 +27,7 @@ OBJECTS       += QwGUIEventDisplay.o
 OBJECTS       += QwGUISuperCanvas.o
 OBJECTS       += QwGUIDatabaseContainer.o
 OBJECTS       += QwGUIDatabaseSelectionDialog.o
+OBJECTS       += QwGUIFFTWindowSelectionDialog.o
 
 # Now append the object files that Don't require a CINT dictionary.
 #NODICTOBJECTS   = QwHit.o

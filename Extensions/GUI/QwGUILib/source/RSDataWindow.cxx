@@ -93,6 +93,7 @@ RSDataWindow::RSDataWindow(const TGWindow *p, const TGWindow *main,
   SetPlotTitleX("none");
   SetPlotTitleY("none");
   SetPlotTitleZ("none");
+  SetPlotTitleOffset();
 
   fCurrPlot = NULL;
   fMenuFile = NULL;
@@ -509,6 +510,14 @@ void RSDataWindow::SetAxisMax(Double_t xmax, Double_t ymax, Double_t zmax)
   dMax[1] = ymax;
   dMax[2] = zmax;
 }
+
+void RSDataWindow::SetPlotTitleOffset(Double_t xoffs, Double_t yoffs, Double_t zoffs)
+{
+  dTitleOffset[0] = xoffs;
+  dTitleOffset[1] = yoffs;
+  dTitleOffset[2] = zoffs;
+}
+
 
 Double_t RSDataWindow::GetAxisMin(Int_t axis)
 {
@@ -1432,6 +1441,36 @@ Int_t RSDataWindow::DrawData(const TH2D& h2d)
   return PLOT_PROCESS_OK;
 }
 
+Int_t RSDataWindow::DrawData(const TProfile& prf)
+{
+  if(!dPlotCont) return DATA_PLOT_ERROR;
+  TProfile *prof = NULL;
+  
+  TCanvas *aC = GetPlotCanvas();
+  aC->Clear();
+  aC->Update();
+  ClearPlots();
+    
+  gPad->SetGrid();
+
+  prof = dPlotCont->GetNew1DProfile(prf);
+  
+  if(!prof){
+    FlushMessages();
+    SetMessage(ROOTOBJ_CRFAIL_ERROR,"DrawData(const TProfile&)",(int)dPtype,
+	       M_DTWIND_ERROR_MSG);
+    return DATA_PLOT_ERROR;
+  }
+
+  if(DrawOptionsSet()){prof->Draw(dDrawOptions);} else prof->Draw();
+  SetDrawOptions();
+  gPad->Modified();
+  gPad->Update();
+
+  fCurrPlot = prof;
+  return PLOT_PROCESS_OK;
+}
+
 
 Int_t RSDataWindow::DrawData(const TGraph& g1d, Bool_t add)
 {
@@ -1457,23 +1496,31 @@ Int_t RSDataWindow::DrawData(const TGraph& g1d, Bool_t add)
 		 M_DTWIND_ERROR_MSG);
       return DATA_PLOT_ERROR;
     }
-    if(IsUserLimitSet()){
-      gr->GetXaxis()->SetRangeUser(dMin[0],dMax[0]);
-      gr->SetMinimum(dMin[1]);
-      gr->SetMaximum(dMax[1]);
-    }
       
     TString opts = dDrawOptions;
     if(!opts.Contains("ap")){strcat(dDrawOptions,"ap");}
 
     gr->Draw(dDrawOptions);
     SetDrawOptions();
-    gPad->RedrawAxis();      
+    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
+    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
+    if(dTitleOffset[0]) gr->GetXaxis()->SetTitleOffset(dTitleOffset[0]);
+    if(dTitleOffset[1]) gr->GetYaxis()->SetTitleOffset(dTitleOffset[1]);
+    gr->GetXaxis()->SetTitleSize(0.04);
+    gr->GetYaxis()->SetTitleSize(0.04);
+    gr->GetXaxis()->SetLabelSize(0.04);
+    gr->GetYaxis()->SetLabelSize(0.04);
+    
+    if(IsUserLimitSet()){
+      gr->GetXaxis()->SetRangeUser(dMin[0],dMax[0]);
+      gr->GetYaxis()->SetRangeUser(dMin[1],dMax[1]);
+//       gr->SetMinimum(dMin[1]);
+//       gr->SetMaximum(dMax[1]);
+    }
+//     gPad->RedrawAxis();      
     gPad->Modified();
     gPad->Update();
     fCurrPlot = gr;
-    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
-    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
   }
   else{
     TGraph *tmp = (TGraph*)&g1d;
@@ -1486,8 +1533,9 @@ Int_t RSDataWindow::DrawData(const TGraph& g1d, Bool_t add)
     }
     if(IsUserLimitSet()){
       gr->GetXaxis()->SetRangeUser(dMin[0],dMax[0]);
-      gr->SetMinimum(dMin[1]);
-      gr->SetMaximum(dMax[1]);
+      gr->GetYaxis()->SetRangeUser(dMin[1],dMax[1]);
+//       gr->SetMinimum(dMin[1]);
+//       gr->SetMaximum(dMax[1]);
     }
     TString opts = dDrawOptions;
     if(!opts.Contains("a")){strcat(dDrawOptions,"a");}

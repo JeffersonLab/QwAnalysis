@@ -167,7 +167,7 @@ class QwVQWK_Channel: public VQwDataElement {
   //  Double_t GetSoftwareSum(){return fSoftwareBlockSum;};
 
   Double_t GetRawBlockValue(size_t blocknum){return fBlock_raw[blocknum];};
-  Double_t GetRawHardwareSum(){return fHardwareBlockSum_raw;};
+  Double_t GetRawHardwareSum(){return fHardwareBlockSum_raw*76.3e-6/480;};
   Double_t GetRawSoftwareSum(){return fSoftwareBlockSum_raw;};
 
   size_t GetSequenceNumber(){return (fSequenceNumber);};

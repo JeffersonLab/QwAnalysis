@@ -29,7 +29,7 @@ void
 FFT(Int_t run_number, TString device, Int_t min, Int_t max, Int_t sampling_rate, Int_t samples_per_block)
 {
   gDirectory->Delete("*") ;
-  gROOT -> ProcessLine(".L /home/buddhini/NoiseStudies/QwAnalysis/Extensions/Macros/Tracking/TSuperCanvas.cc+");
+  gROOT -> ProcessLine(".L ~/QwAnalysis_New/Extensions/Macros/Tracking/TSuperCanvas.cc+");
 
   TSuperCanvas *canvas = NULL;
 
@@ -54,7 +54,7 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max, Int_t sampling_rate,
 
 
   //******* Open Root file
-  TFile *file =  new TFile(Form("%s/Qweak_BeamLine_%d.root_2009jul28", getenv("QW_ROOTFILES_DIR"),run_number));
+  TFile *file =  new TFile(Form("~/scratch/rootfiles/Qweak_%d.root",run_number));
   if (file->IsZombie()) 
     {
       printf("Error opening file\n"); 

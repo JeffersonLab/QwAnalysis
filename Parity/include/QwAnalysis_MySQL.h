@@ -23,7 +23,8 @@
 #include "QwLumi.h"
 
 #include "VQwDataElement.h"
-#include "QwHelicity.h"
+/* #include "QwHelicity.h" */
+#include "QwFakeHelicity.h"
 #include "QwSubsystemArrayParity.h"
 #include "QwMainCerenkovDetector.h"
 #include "QwHelicityPattern.h"

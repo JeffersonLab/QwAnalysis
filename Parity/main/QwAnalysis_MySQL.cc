@@ -34,9 +34,9 @@ main(Int_t argc, Char_t* argv[])
   //  Long64_t kMAXTREESIZE = 1900000000LL;
 
   Bool_t bDebug    = kFALSE;
-  Bool_t bHelicity = kTRUE;
-  Bool_t bTree     = kFALSE;
-  Bool_t bHisto    = kFALSE;
+  Bool_t bHelicity = kFALSE;
+  Bool_t bTree     = kTRUE;
+  Bool_t bHisto    = kTRUE;
 
   //either the DISPLAY not set, or JOB_ID defined, we take it as in batch mode
   if ( getenv("DISPLAY")==NULL || getenv("JOB_ID")!=NULL ) kInQwBatchMode = kTRUE;
@@ -88,7 +88,7 @@ main(Int_t argc, Char_t* argv[])
   QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");
   QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadEventCuts("qweak_beamline_eventcuts.in");//Pass the correct cuts file.
 
-  QwDetectors.push_back(new QwHelicity("Helicity info"));
+  QwDetectors.push_back(new QwFakeHelicity("Helicity info"));
   QwDetectors.GetSubsystemByName("Helicity info")->LoadChannelMap("qweak_helicity.map");
   QwDetectors.GetSubsystemByName("Helicity info")->LoadInputParameters("");
 
