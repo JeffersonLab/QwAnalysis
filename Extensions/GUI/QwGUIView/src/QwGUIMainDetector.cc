@@ -195,7 +195,7 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
 	    tree->Draw(Form("%s.hw_sum_raw",MainDetectorDataNames[i]),"","goff",tree->GetEntries(),0);
 	    
 	    for(int j = 0; j < tree->GetEntries(); j++){
-	      dCurrentData[i].push_back(tree->GetV1()[j]);// + 4.0*TMath::Sin(2*TMath::Pi()*(j+1)*1.1e-3*20*(i+1)));
+	      dCurrentData[i].push_back(tree->GetV1()[j]*76.3e-6/480);// + 4.0*TMath::Sin(2*TMath::Pi()*(j+1)*1.1e-3*20*(i+1)));
 
 	      if(dCurrentData[i].at(j) > 0){
 		if(dCurrentData[i].at(j) < min) min = dCurrentData[i].at(j);
