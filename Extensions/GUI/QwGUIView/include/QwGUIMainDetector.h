@@ -74,6 +74,11 @@ using std::vector;
 #include "QwGUIDataWindow.h"
 #include "RNumberEntryDialog.h"
 #include "QwGUIFFTWindowSelectionDialog.h"
+#ifndef ROOTCINTMODE
+#include "QwSSQLS_summary.h"
+#endif
+#include <TVectorT.h>
+#include <TGraphErrors.h>
 
 class QwGUIMainDetector : public QwGUISubSystem {
 
