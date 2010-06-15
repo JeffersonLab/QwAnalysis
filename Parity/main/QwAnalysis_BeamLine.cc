@@ -93,16 +93,17 @@ Int_t main(Int_t argc, Char_t* argv[])
   //QwDetectors.GetSubsystemByName("Luminosity Monitors")->LoadChannelMap("qweak_lumi.map");//current map file is for the beamline.
   //QwDetectors.GetSubsystemByName("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file.
 
+  // Running sum
   QwSubsystemArrayParity runningsum;
   runningsum.Copy(&QwDetectors);
 
   ((QwBeamLine*)QwDetectors.GetSubsystemByName("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
 
-
   QwDetectors.ProcessOptions(gQwOptions);//Recommonded to call this routine after LoadChannelMap(..) routines. Some times the cmd options override the map file settings.
 
   QwHelicityPattern QwHelPat(QwDetectors);//multiplet size is set within the QwHelicityPattern class
   QwHelPat.ProcessOptions(gQwOptions);
+
 
   //Tree events scaling parameters
    if (gQwOptions.HasValue("skip"))
@@ -177,6 +178,15 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       Int_t failed_events_counts=0;//count failed total events
 
+      //  Clear the single-event running sum at the beginning of the
+      //  runlet.
+      runningsum.ClearEventData();
+      QwHelPat.ClearRunningSum();
+
+
+      //  Clear the running sum of the burst values at the beginning of the
+      //  runlet.
+      QwHelPat.ClearBurstSum();
 
       // Loop over events in this CODA file
       while (QwEvt.GetNextEvent() == CODA_OK) {
@@ -264,6 +274,11 @@ Int_t main(Int_t argc, Char_t* argv[])
 		QwHelPat.FillTreeVector(helvector);
 		heltree->Fill();
 	      }
+
+	      //  Do we do the burst analysis here, where we know we
+	      //  have a complete pattern, or do we do it below, but
+	      //  need to test for a complete pattern being done?
+
 	      QwHelPat.ClearEventData();
 	    }
 	  }
@@ -272,11 +287,24 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  failed_events_counts++;
 	}
 
-	if(QwEvt.GetEventNumber()%1000==0){
+	if (QwEvt.GetEventNumber() % 1000 == 0) {
 	  QwMessage << "Number of events processed so far: "
 		    << QwEvt.GetEventNumber() <<"\r"<< QwLog::endl;
 	}
-      }
+
+	// TODO (wdc) QwEventBuffer should have Bool_t AtEndOfBurst()
+	//if (QwEvt.AtEndOfBurst()){
+	if (QwEvt.GetEventNumber() % 100 == 0) {
+	  {
+	    QwHelPat.AccumulateRunningBurstSum();
+	    QwHelPat.CalculateBurstAverage();
+	    QwHelPat.ClearBurstSum();
+
+	  }
+	}
+
+      }  // Ends "while (QwEvt.GetNextEvent() == CODA_OK)" loop
+
 
 
 
@@ -284,11 +312,17 @@ Int_t main(Int_t argc, Char_t* argv[])
 		<< QwEvt.GetEventNumber() << std::endl;
 
       //This will print running averages
+      //  In burst mode, the following should return the multi-burst
+      //  averaged running averages, and in normal mode the "regular"
+      //  running averages.
       QwHelPat.CalculateRunningAverage();//this will calculate running averages for Asymmetries and Yields per quartet
+      QwHelPat.CalculateRunningBurstAverage();
+
       std::cout<<"Event Based Running average"<<std::endl;
       std::cout<<"==========================="<<std::endl;
       // This will calculate running averages for Yields per event basis
       runningsum.CalculateRunningAverage();
+
       timer.Stop();
 
       /*  Write to the root file, being sure to delete the old cycles  *

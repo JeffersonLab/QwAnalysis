@@ -126,24 +126,24 @@ QwLog& QwLog::operator()(QwLogLevel level)
   if (fScreen && fLogLevel <= fScreenThreshold) {
     if (QwLogScreenAtNewLine) {
       // Put something at the beginning of a new line
-      QwLogScreenAtNewLine = kFALSE;
+      switch (level) {
+      case kError:
+        if (fUseColor)
+          *(fScreen) << QwColor(Qw::kRed) << "Error: ";
+        else
+          *(fScreen) << "Error: ";
+        break;
+      case kWarning:
+        if (fUseColor)
+          *(fScreen) << QwColor(Qw::kRed) << "Warning: " << QwColor(Qw::kNormal);
+        else
+          *(fScreen) << "Warning: ";
+        break;
+      default:
+        break;
+      }
     }
-    switch (level) {
-    case kError:
-      if (fUseColor)
-        *(fScreen) << QwColor(Qw::kRed) << "Error: ";
-      else
-        *(fScreen) << "Error: ";
-      break;
-    case kWarning:
-      if (fUseColor)
-        *(fScreen) << QwColor(Qw::kRed) << "Warning: " << QwColor(Qw::kNormal);
-      else
-        *(fScreen) << "Warning: ";
-      break;
-    default:
-      break;
-    }
+    QwLogScreenAtNewLine = kFALSE;
   }
 
   if (fFile && fLogLevel <= fFileThreshold) {

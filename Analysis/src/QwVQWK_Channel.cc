@@ -211,7 +211,8 @@ void QwVQWK_Channel::ClearEventData()
   fHardwareBlockSumError = 0.0;
   fSequenceNumber   = 0;
   fNumberOfSamples  = 0;
-  fDeviceErrorCode  = 0;// set to zero. Important for derrived devices.
+  fGoodEventCount   = 0;
+  fDeviceErrorCode  = 0; // set to zero. Important for derrived devices.
   return;
 };
 
@@ -228,19 +229,21 @@ void QwVQWK_Channel::RandomizeEventData(int helicity, double time)
     drift += fMockDriftAmplitude[i] * sin(2.0 * Qw::pi * fMockDriftFrequency[i] * time + fMockDriftPhase[i]);
   }
 
-  // External or internal randomness?
-  double random_variable;
-  if (fUseExternalRandomVariable)
-    random_variable = fExternalRandomVariable; // external normal random variable
-  else
-    random_variable = fNormalRandomVariable(); // internal normal random variable
-
   // Calculate signal
-  for (Short_t i = 0; i < fBlocksPerEvent; i++)
+  for (size_t i = 0; i < fBlocksPerEvent; i++) {
+
+    // External or internal randomness?
+    double random_variable;
+    if (fUseExternalRandomVariable)
+      random_variable = fExternalRandomVariable; // external normal random variable
+    else
+      random_variable = fNormalRandomVariable(); // internal normal random variable
+
     block[i] =
         fMockGaussianMean * (1 + helicity * fMockAsymmetry) / fBlocksPerEvent
       + fMockGaussianSigma / sqrt_fBlocksPerEvent * random_variable
       + drift / fBlocksPerEvent;
+  }
 
   SetEventData(block);
   return;
@@ -574,7 +577,7 @@ void  QwVQWK_Channel::DeleteHistograms()
   }
   }
   fHistograms.clear();
-  
+
 }
 
 void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -727,7 +730,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator-= (const QwVQWK_Channel &value)
       this->fBlockM2[i] = 0.0;
     }
     this->fHardwareBlockSum_raw = 0;
-    this->fSoftwareBlockSum_raw = 0; 
+    this->fSoftwareBlockSum_raw = 0;
     this->fHardwareBlockSum -= value.fHardwareBlockSum;
     this->fHardwareBlockSumM2 = 0.0;
     this->fNumberOfSamples += value.fNumberOfSamples;
@@ -754,31 +757,49 @@ void QwVQWK_Channel::Difference(QwVQWK_Channel &value1, QwVQWK_Channel &value2)
 void QwVQWK_Channel::Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom)
 {
   if (!IsNameEmpty()) {
-    for (Short_t i = 0; i <fBlocksPerEvent; i++) {
-      if (denom.fBlock[i] != 0.0) {
-        this->fBlock[i] = (numer.fBlock[i]) / (denom.fBlock[i]);
-        this->fBlock_raw[i] = 0;
-      } else {
-        this->fBlock[i] = 0.0;
-      }
-      // For a single event the second moment is still zero
-      this->fBlockM2[i] = 0.0;
+
+    // Take the ratio of the individual blocks
+    for (Short_t i = 0; i < fBlocksPerEvent; i++) {
+      if (denom.fBlock[i] != 0.0)
+        fBlock[i] = (numer.fBlock[i]) / (denom.fBlock[i]);
+      else
+        fBlock[i] = 0.0;
+      // raw is always zero on derived quantities
+      fBlock_raw[i] = 0.0;
     }
-
+    // Take the ratio of the hardware sum
     if (denom.fHardwareBlockSum != 0.0)
-      this->fHardwareBlockSum = (numer.fHardwareBlockSum)
-                              / (denom.fHardwareBlockSum);
+      fHardwareBlockSum = (numer.fHardwareBlockSum) / (denom.fHardwareBlockSum);
     else
-      this->fHardwareBlockSum = 0.0;
+      fHardwareBlockSum = 0.0;
+    fHardwareBlockSum_raw = 0.0;
+    fSoftwareBlockSum_raw = 0.0;
 
-    // For a single event the second moment is still zero
-    this->fHardwareBlockSumM2 = 0.0;
+    // The variances are calculated using the following formula:
+    //   Var[ratio] = ratio^2 (Var[numer] / numer^2 + Var[denom] / denom^2)
+    //
+    // This requires that both the numerator and denominator are non-zero!
+    //
+    for (Short_t i = 0; i < 4; i++) {
+      if (numer.fBlock[i] != 0.0 && denom.fBlock[i] != 0.0)
+        fBlockM2[i] = fBlock[i] * fBlock[i] *
+           (numer.fBlockM2[i] / numer.fBlock[i] / numer.fBlock[i]
+          + denom.fBlockM2[i] / denom.fBlock[i] / denom.fBlock[i]);
+      else
+        fBlockM2[i] = 0.0;
+    }
+    if (numer.fHardwareBlockSum != 0.0 && denom.fHardwareBlockSum != 0.0)
+      fHardwareBlockSumM2 = fHardwareBlockSum * fHardwareBlockSum *
+         (numer.fHardwareBlockSumM2 / numer.fHardwareBlockSum / numer.fHardwareBlockSum
+        + denom.fHardwareBlockSumM2 / denom.fHardwareBlockSum / denom.fHardwareBlockSum);
+    else
+      fHardwareBlockSumM2 = 0.0;
 
-    this->fSoftwareBlockSum_raw = 0;
-    this->fHardwareBlockSum_raw = 0;
-    this->fNumberOfSamples = denom.fNumberOfSamples;
-    this->fSequenceNumber  = 0;
-    this->fDeviceErrorCode = (numer.fDeviceErrorCode|denom.fDeviceErrorCode);//error code is ORed.
+    // Remaining variables
+    fNumberOfSamples = denom.fNumberOfSamples;
+    fSequenceNumber  = 0;
+    fGoodEventCount  = denom.fGoodEventCount;
+    fDeviceErrorCode = (numer.fDeviceErrorCode|denom.fDeviceErrorCode);//error code is ORed.
   }
   return;
 };
@@ -904,17 +925,17 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
     fGoodEventCount++;
     fHardwareBlockSum += (M12 - M11) / n;
     fHardwareBlockSumM2 += (M12 - M11)
-         * (M12 - fHardwareBlockSum); // using updated mean
+         * (M12 - fHardwareBlockSum); // note: using updated mean
     // and for individual blocks
     for (Short_t i = 0; i < 4; i++) {
       M11 = fBlock[i];
       M12 = value.fBlock[i];
       M22 = value.fBlockM2[i];
       fBlock[i] += (M12 - M11) / n;
-      fBlockM2[i] += (M12 - M11) * (M12 - fBlock[i]); // using updated mean
+      fBlockM2[i] += (M12 - M11) * (M12 - fBlock[i]); // note: using updated mean
     }
   } else if (n2 > 1) {
-    // general version for addition of parallel sets
+    // general version for addition of multi-event sets
     fGoodEventCount += n2;
     fHardwareBlockSum += n2 * (M12 - M11) / n;
     fHardwareBlockSumM2 += M22 + n1 * n2 * (M12 - M11) * (M12 - M11) / n;

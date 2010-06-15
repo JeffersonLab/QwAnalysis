@@ -1338,8 +1338,8 @@ Bool_t QwHelicity::CollectRandBits24()
 
   if(n_ranbits<ranbit_goal&&fPatternPhaseNumber==fMinPatternPhase)
     {
-      std::cerr<<"Collecting information from event #"<<fEventNumber<<" to generate helicity seed ";
-      std::cerr<<"(need 24 bit, so far got "<<n_ranbits<<" bits )\n";
+      QwWarning << "Collecting information from event #" << fEventNumber << " to generate helicity seed"
+                << "(need 24 bit, so far got " << n_ranbits << " bits )" << QwLog::endl;
     }
 
 
@@ -1419,14 +1419,14 @@ Bool_t QwHelicity::CollectRandBits30()
     Bool_t  ldebug = kFALSE;
 
   const UInt_t ranbit_goal = 30;
-  if (n_ranbits==ranbit_goal)    return kTRUE;
+  if (n_ranbits == ranbit_goal)    return kTRUE;
 
-  if(n_ranbits<ranbit_goal&&fPatternPhaseNumber==fMinPatternPhase) {
-    std::cerr<<"Collecting information (";
-    if (fHelicityReported==1) std::cerr<<"+";
-    else                      std::cerr<<"-";
-    std::cerr<<") from event #"<<fEventNumber<<" to generate helicity seed ";
-    std::cerr<<"(need " << ranbit_goal << " bit, so far got "<<n_ranbits<<" bits )\n";
+  if (n_ranbits < ranbit_goal && fPatternPhaseNumber == fMinPatternPhase) {
+    QwWarning << "Collecting information (";
+    if (fHelicityReported == 1) QwWarning << "+";
+    else                        QwWarning << "-";
+    QwWarning << ") from event #" << fEventNumber << " to generate helicity seed ";
+    QwWarning << "(need " << ranbit_goal << " bit, so far got " << n_ranbits << " bits )" << QwLog::endl;
   }
 
   fGoodHelicity = kFALSE; //reset before prediction begins
