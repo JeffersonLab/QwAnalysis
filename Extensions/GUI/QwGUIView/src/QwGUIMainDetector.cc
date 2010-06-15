@@ -493,7 +493,7 @@ void QwGUIMainDetector::CalculateDFT()
   Int_t gc = 0;
   Int_t mc = 0;
 
-  new QwGUIFFTWindowSelectionDialog(fClient->GetRoot(), this, "sdlg","QwGUIMainDetector",&fftopts);
+  new QwGUIFFTWindowSelectionDialog(fClient->GetRoot(), GetMain(), "sdlg","QwGUIMainDetector",&fftopts);
 
   if(fftopts.cancelFlag) return;
   if(fftopts.changeFlag || !IsDFTCalculated()){

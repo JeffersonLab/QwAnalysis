@@ -171,6 +171,8 @@ class QwGUISubSystem : public TGCompositeFrame {
   void             SetLogMessage(const char *buffer, Bool_t tStamp = kFalse);
 
 
+  TGWindow        *GetMain(){return dMain;};
+
 
   void             IncreaseProgress(Int_t *nItems1, Int_t *nItems2, Int_t *nItems3, 
 				    Int_t  nInc1,   Int_t  nInc2,   Int_t  nInc3);
