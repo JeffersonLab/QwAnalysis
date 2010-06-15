@@ -68,7 +68,7 @@ class QwVQWK_Module {
 
 
   size_t GetSequenceNumber(){return (fSequenceNumber);};
-  
+
   // formarly known as IsGoodEvent()
   Bool_t ApplyHWChecks(){return fEventIsGood;}; //Check for harware errors in the devices and this is replaced for IsGoodEvent() routine
 
@@ -78,7 +78,9 @@ class QwVQWK_Module {
 
   void Copy(QwVQWK_Module *source);
 
-  void Print() const;
+  void PrintValue() const;
+  void PrintInfo() const;
+
   QwVQWK_Channel* GetChannel(const TString name);
 
 //  If we change the number of channels in the module this needs to change.

@@ -493,7 +493,7 @@ void QwHelicity::EncodeEventData(std::vector<UInt_t> &buffer)
 }
 
 ////////////////////////////////////////////
-void QwHelicity::Print()
+void QwHelicity::Print() const
 {
 
 //   for(size_t i=0;i<fWord.size();i++)

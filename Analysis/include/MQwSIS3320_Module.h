@@ -41,11 +41,19 @@ class MQwSIS3320_Module: std::vector<MQwSIS3320_Channel> {
     MQwSIS3320_Module() { resize(SIS3320_CHANNELS); }; // create the channels
 
     /**
+     * Print the value of the MQwSIS3320_Channels
+     */
+    void PrintValue() {
+      for (std::vector<MQwSIS3320_Channel>::iterator c = begin(); c != end(); c++)
+        c->PrintValue();
+    };
+
+    /**
      * Print some debugging information about the MQwSIS3320_Channels
      */
-    void Print() {
+    void PrintInfo() {
       for (std::vector<MQwSIS3320_Channel>::iterator c = begin(); c != end(); c++)
-        c->Print();
+        c->PrintInfo();
     };
 
   protected:

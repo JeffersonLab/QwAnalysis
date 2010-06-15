@@ -60,7 +60,9 @@ class QwCombinedBCM : public VQwDataElement{
     bEVENTCUTMODE=bcuts;
     fCombined_bcm.SetEventCutMode(bcuts);
   }
-  void Print() const;
+
+  void PrintValue() const;
+  void PrintInfo() const;
 
 
 

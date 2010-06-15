@@ -39,7 +39,7 @@ public:
     InitializeChannel(name);
   };
   ~QwScaler_Channel() {DeleteHistograms();};
- 
+
   void  InitializeChannel(TString name){
     fValue = 0;
     SetNumberOfDataWords(1);  //Scaler - single word, 32 bits
@@ -67,7 +67,7 @@ public:
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_t index=0);
   void  ProcessEvent();
 
-  Double_t  GetValue(){return fValue;};
+  Double_t GetValue() const { return fValue; };
 
 
   QwScaler_Channel& operator=  (const QwScaler_Channel &value);
@@ -91,14 +91,15 @@ public:
 
 
   void Copy(VQwDataElement *source);
- 
-  void Print() const;
+
+  void PrintValue() const;
+  void PrintInfo() const;
 
 protected:
 
 private:
   static const Bool_t kDEBUG;
- 
+
   UInt_t   fValue_Raw;
   Double_t fValue;
 

@@ -103,7 +103,7 @@ void  QwCombinedBCM::ProcessEvent()
 {
 
   Bool_t ldebug = kFALSE;
-  static QwVQWK_Channel  tmpADC; 
+  static QwVQWK_Channel  tmpADC;
   tmpADC.InitializeChannel("tmpADC","derived");
 
 
@@ -161,7 +161,7 @@ Bool_t QwCombinedBCM::ApplySingleEventCuts(){
 
 Int_t QwCombinedBCM::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
   fCombined_bcm.GetEventcutErrorCounters();
- 
+
   return 1;
 }
 
@@ -237,13 +237,15 @@ void QwCombinedBCM::Scale(Double_t factor)
 }
 
 
-void QwCombinedBCM::Print() const
+void QwCombinedBCM::PrintValue() const
 {
-  //std::cout<<"QwVQWK_Channel Info " <<std::endl;
-  //std::cout<<" Running AVG "<<GetElementName()<<" current running AVG "<<BCM_Running_AVG<<std::endl;
-  std::cout<<"QwVQWK_Channel Info " <<std::endl;
-  fCombined_bcm.Print();
-  return;
+  fCombined_bcm.PrintValue();
+}
+
+void QwCombinedBCM::PrintInfo() const
+{
+  std::cout << "QwVQWK_Channel Info " << std::endl;
+  fCombined_bcm.PrintInfo();
 }
 
 /********************************************************/

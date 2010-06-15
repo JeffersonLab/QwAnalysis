@@ -33,7 +33,7 @@ class QwHelicityPattern{
 
   void ProcessOptions(QwOptions &options); //Handle command line options
   void  LoadEventData(QwSubsystemArrayParity &event);
-  Bool_t IsCompletePattern();
+  Bool_t IsCompletePattern() const;
   void  CalculateAsymmetry();
 
   /// Enable/disable alternate asymmetry calculation
@@ -59,6 +59,9 @@ class QwHelicityPattern{
   void  CalculateRunningBurstAverage();
   void  CalculateRunningAverage();
 
+  void  PrintRunningBurstAverage() const;
+  void  PrintRunningAverage() const;
+
   void  ConstructHistograms(){ConstructHistograms((TDirectory*)NULL);};
   void  ConstructHistograms(TDirectory *folder);
   void  FillHistograms();
@@ -72,7 +75,7 @@ class QwHelicityPattern{
   void  ClearBurstSum();
   void  ClearRunningSum();
 
-  void  Print();
+  void  Print() const;
 
  protected:
   Bool_t fDEBUG;

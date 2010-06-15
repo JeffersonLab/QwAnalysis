@@ -203,6 +203,7 @@ void QwVQWK_Channel::ClearEventData()
     fBlock_raw[i] = 0.0;
     fBlock[i] = 0.0;
     fBlockM2[i] = 0.0;
+    fBlockError[i] = 0.0;
   }
   fHardwareBlockSum_raw = 0;
   fSoftwareBlockSum_raw = 0;
@@ -424,10 +425,10 @@ void QwVQWK_Channel::ProcessEvent()
   for (Short_t i = 0; i < fBlocksPerEvent; i++)
     {
       fBlock[i] = fCalibrationFactor * (fBlock_raw[i] - thispedestal / (fBlocksPerEvent*1.0));
-      fBlockM2[i] = 0.0; // second moment is zero for single events	
+      fBlockM2[i] = 0.0; // second moment is zero for single events
     }
 
-  fHardwareBlockSum = fCalibrationFactor *  ( fHardwareBlockSum_raw - thispedestal ); 
+  fHardwareBlockSum = fCalibrationFactor *  ( fHardwareBlockSum_raw - thispedestal );
   fHardwareBlockSumM2 = 0.0; // second moment is zero for single events
 
 //   if(GetElementName().Contains("md"))
@@ -436,7 +437,7 @@ void QwVQWK_Channel::ProcessEvent()
   return;
 };
 
-Double_t QwVQWK_Channel::GetAverageVolts()
+Double_t QwVQWK_Channel::GetAverageVolts() const
 {
   //Double_t avgVolts = (fBlock[0]+fBlock[1]+fBlock[2]+fBlock[3])*kVQWK_VoltsPerBit/fNumberOfSamples;
   Double_t avgVolts = fHardwareBlockSum * kVQWK_VoltsPerBit / fNumberOfSamples;
@@ -445,7 +446,7 @@ Double_t QwVQWK_Channel::GetAverageVolts()
 
 };
 
-void QwVQWK_Channel::Print() const
+void QwVQWK_Channel::PrintInfo() const
 {
   std::cout<<"***************************************"<<"\n";
   std::cout<<"QwVQWK channel: "<<GetElementName()<<"\n"<<"\n";
@@ -971,28 +972,25 @@ void QwVQWK_Channel::CalculateRunningAverage()
         fBlockError[i] = sqrt(fBlockM2[i] / fGoodEventCount);
       fHardwareBlockSumError = sqrt(fHardwareBlockSumM2 / fGoodEventCount);
     }
-
-  this->PrintRunningAverage();
-
 };
 
 
-void QwVQWK_Channel::PrintRunningAverage()
+void QwVQWK_Channel::PrintValue() const
 {
   QwMessage << std::setprecision(4)
-	    << std::setw(18) << std::left << this->GetElementName()      << "["
-	    << std::setw(15) << std::left << this->GetHardwareSum()      << ","
-	    << std::setw(15) << std::left << this->GetHardwareSumError() << "] "
- 	    << std::setw(10) << std::left << this->GetGoodEventCount()   << "["
- 	    << std::setw(15) << std::left << this->GetBlockValue(0)      << ","
- 	    << std::setw(15) << std::left << this->GetBlockErrorValue(0) << "]["
- 	    << std::setw(15) << std::left << this->GetBlockValue(1)      << ","
- 	    << std::setw(15) << std::left << this->GetBlockErrorValue(1) << "]["
- 	    << std::setw(15) << std::left << this->GetBlockValue(2)      << ","
- 	    << std::setw(15) << std::left << this->GetBlockErrorValue(2) << "]["
- 	    << std::setw(15) << std::left << this->GetBlockValue(3)      << ","
- 	    << std::setw(15) << std::left << this->GetBlockErrorValue(3) << "]"
-	    << QwLog::endl;
+            << std::setw(18) << std::left << GetElementName()      << " "
+            << std::setw(12) << std::left << GetHardwareSum()      << "+/- "
+            << std::setw(12) << std::left << GetHardwareSumError() << " "
+            << std::setw(10) << std::left << GetGoodEventCount()   << " "
+            << std::setw(12) << std::left << GetBlockValue(0)      << "+/- "
+            << std::setw(12) << std::left << GetBlockErrorValue(0) << " "
+            << std::setw(12) << std::left << GetBlockValue(1)      << "+/- "
+            << std::setw(12) << std::left << GetBlockErrorValue(1) << " "
+            << std::setw(12) << std::left << GetBlockValue(2)      << "+/- "
+            << std::setw(12) << std::left << GetBlockErrorValue(2) << " "
+            << std::setw(12) << std::left << GetBlockValue(3)      << "+/- "
+            << std::setw(12) << std::left << GetBlockErrorValue(3) << " "
+            << QwLog::endl;
 }
 
 
@@ -1047,7 +1045,7 @@ Bool_t QwVQWK_Channel::MatchNumberOfSamples(size_t numsamp)
 		<< " had fNumberOfSamples==" << fNumberOfSamples
 		<< " and was supposed to have " << numsamp
 		<< std::endl;
-      //      Print();
+      //      PrintChannel();
     }
   }
   return status;

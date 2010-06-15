@@ -257,10 +257,10 @@ void QwSIS3801_Module::Copy(QwSIS3801_Module *source)
   }
 };
 
-void  QwSIS3801_Module::Print() const
+void  QwSIS3801_Module::PrintInfo() const
 {
   for (size_t i = 0; i < fChannels.size(); i++) {
-    fChannels.at(i).Print();
+    fChannels.at(i).PrintInfo();
   }
 };
 

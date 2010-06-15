@@ -379,7 +379,7 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BCM value
 
 	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
-	fBCMCombo[det_index].Print();
+	fBCMCombo[det_index].PrintInfo();
 	fBCMCombo[det_index].SetSingleEventCuts(LLX,ULX);//(fBCMComboEventCuts);
 
       }
@@ -1092,18 +1092,23 @@ void QwBeamLine::Scale(Double_t factor)
 
 void QwBeamLine::CalculateRunningAverage()
 {
-  UInt_t i = 0;
-  std::cout<<"*********QwBeamLine device Averages****************"<<std::endl;
-  std::cout<<"Device \t    ||  Average\t || error\t || events"<<std::endl;
-  printf("BPM\n");
-  for(i=0; i<fStripline.size(); i++) fStripline[i].CalculateRunningAverage();
-  printf("BCM\n");
-  for(i=0; i<fBCM.size();       i++) fBCM[i].CalculateRunningAverage();
-  for(i=0; i<fBCMCombo.size();  i++) fBCMCombo[i].CalculateRunningAverage();
-  for(i=0; i<fBPMCombo.size();  i++) fBPMCombo[i].CalculateRunningAverage();
-  std::cout<<"---------------------------------------------------"<<std::endl;
-  std::cout<<std::endl;
-  return;
+  for (size_t i = 0; i < fStripline.size(); i++) fStripline[i].CalculateRunningAverage();
+  for (size_t i = 0; i < fBCM.size();       i++) fBCM[i].CalculateRunningAverage();
+  for (size_t i = 0; i < fBCMCombo.size();  i++) fBCMCombo[i].CalculateRunningAverage();
+  for (size_t i = 0; i < fBPMCombo.size();  i++) fBPMCombo[i].CalculateRunningAverage();
+};
+
+void QwBeamLine::PrintValue() const
+{
+  QwMessage << "=== QwBeamLine: " << GetSubsystemName() << " ===" << QwLog::endl;
+  QwMessage << "BPM" << QwLog::endl;
+  for (size_t i = 0; i < fStripline.size(); i++) fStripline[i].PrintValue();
+  QwMessage << "BCM" << QwLog::endl;
+  for (size_t i = 0; i < fBCM.size();       i++) fBCM[i].PrintValue();
+  QwMessage << "BPM combo" << QwLog::endl;
+  for (size_t i = 0; i < fBCMCombo.size();  i++) fBCMCombo[i].PrintValue();
+  QwMessage << "BCM combo" << QwLog::endl;
+  for (size_t i = 0; i < fBPMCombo.size();  i++) fBPMCombo[i].PrintValue();
 };
 
 void QwBeamLine::AccumulateRunningSum(VQwSubsystem* value1)
@@ -1236,7 +1241,7 @@ void QwBeamLine::FillTreeVector(std::vector<Double_t> &values)
 
 
 //*****************************************************************
-void  QwBeamLine::Print()
+void  QwBeamLine::PrintInfo() const
 {
   std::cout<<"Name of the subsystem ="<<fSystemName<<"\n";
   std::cout<<"there are "<<fStripline.size()<<" striplines \n";
@@ -1245,12 +1250,12 @@ void  QwBeamLine::Print()
   std::cout<<"there are "<<fBPMCombo.size()<<" combined bpms \n";
   std::cout<<" Printing Running AVG and other channel info for BCMs"<<std::endl;
   for(size_t i=0;i<fBCM.size();i++)
-    fBCM[i].Print();
+    fBCM[i].PrintInfo();
 
   return;
 }
 
-void  QwBeamLine::PrintDetectorID()
+void  QwBeamLine::PrintDetectorID() const
 {
   for (size_t i=0;i<fBeamDetectorID.size();i++)
     {
@@ -1262,7 +1267,7 @@ void  QwBeamLine::PrintDetectorID()
 }
 
 
-void  QwBeamDetectorID::Print()
+void  QwBeamDetectorID::Print() const
 {
 
   std::cout<<std::endl<<"Detector name= "<<fdetectorname<<std::endl;
@@ -1386,7 +1391,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
 
   for(i=0; i< fBCM.size(); i++) {
     interface.clear();
-    interface = fBCM[i].GetDBEntry(); 
+    interface = fBCM[i].GetDBEntry();
     for (j=0; j<interface.size(); j++){
       interface.at(j).SetAnalysisID( analysis_id );
       interface.at(j).SetMonitorID( db );
@@ -1395,7 +1400,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
       interface.at(j).AddThisEntryToList( entrylist );
     }
   }
-  
+
   ///   try to access BPM mean and its error
   if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Beam Position Monitors" <<QwLog::endl;
   for(i=0; i< fStripline.size(); i++) {

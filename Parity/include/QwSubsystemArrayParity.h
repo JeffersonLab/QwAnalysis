@@ -105,6 +105,9 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     /// \brief Return the error flag to the main routine
     Int_t GetEventcutErrorFlag();
 
+    /// \brief Print value of all channels
+    void PrintValue() const;
+
   public:
 
     std::vector<TString> sFailedSubsystems;

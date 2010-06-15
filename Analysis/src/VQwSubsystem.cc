@@ -251,7 +251,7 @@ Int_t VQwSubsystem::RegisterSubbank(const UInt_t bank_id)
   return stat;
 };
 
-void VQwSubsystem::Print()
+void VQwSubsystem::PrintInfo() const
 {
   std::cout << "Name of this subsystem: " << fSystemName << std::endl;
   for (size_t roc_index = 0; roc_index < fROC_IDs.size(); roc_index++) {

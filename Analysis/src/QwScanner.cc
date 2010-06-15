@@ -1416,19 +1416,19 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer) {
 };
 /********************************************************/
 
-void QwScanner::Print() {
+void QwScanner::PrintInfo() {
     std::cout << "QwScanner: " << fSystemName << std::endl;
 
-    //fTriumf_ADC.Print();
+    //fTriumf_ADC.PrintInfo();
     for (size_t i=0; i<fADC_Data.size(); i++) {
         if (fADC_Data.at(i) != NULL) {
-            fADC_Data.at(i)->Print();
+            fADC_Data.at(i)->PrintInfo();
         }
     }
 
     for (size_t i=0; i<fPMTs.size(); i++) {
         for (size_t j=0; j<fPMTs.at(i).size(); j++) {
-            fPMTs.at(i).at(j).Print();
+            fPMTs.at(i).at(j).PrintInfo();
         }
     }
 

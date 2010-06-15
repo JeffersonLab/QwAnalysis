@@ -609,7 +609,7 @@ void QwBlinder::PrintFinalValues()
   QwMessage << "QwBlinder::PrintCheckValues():  Begin summary"    << QwLog::endl;
   QwMessage << "================================================" << QwLog::endl;
   QwMessage << "The blinding parameters checksum for seed ID "
-            << this->fSeedID << " is:" << QwLog::endl;
+            << fSeedID << " is:" << QwLog::endl;
   QwMessage << fChecksum << QwLog::endl;
   QwMessage << "================================================" << QwLog::endl;
   CheckTestValues();

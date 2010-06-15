@@ -94,8 +94,8 @@ void QwCombinedPMT::CalculateSumAndAverage()
   if (ldebug)
     {
       std::cout<<"QwCombinedPMT::CalculateAverage()"<<std::endl;
-//      fAvgADC.Print();
-      fSumADC.Print();
+//      fAvgADC.PrintInfo();
+      fSumADC.PrintInfo();
 
 //      std::cout<<"QwCombinedPMT: "<<GetElementName()
 //      <<"\nweighted average of hardware sums = "<<fAvgADC.GetHardwareSum()<<"\n";
@@ -270,11 +270,17 @@ void QwCombinedPMT::Blind(const QwBlinder *blinder, const QwCombinedPMT& yield)
 //  fAvgADC.Blind(blinder, yield.fAvgADC);
 };
 
-void QwCombinedPMT::Print() const
-  {
+void QwCombinedPMT::PrintValue() const
+{
+  fSumADC.PrintValue();
+//  fAvgADC.PrintValue();
+};
 
-    return;
-  }
+void QwCombinedPMT::PrintInfo() const
+{
+  fSumADC.PrintInfo();
+//  fAvgADC.PrintInfo();
+}
 
 
 void  QwCombinedPMT::ConstructHistograms(TDirectory *folder, TString &prefix)

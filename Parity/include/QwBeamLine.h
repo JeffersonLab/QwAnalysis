@@ -73,7 +73,7 @@ class QwBeamLine : public VQwSubsystemParity{
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-  void  PrintDetectorID();
+  void  PrintDetectorID() const;
 
   void  ClearEventData();
   void  ProcessEvent();
@@ -108,7 +108,9 @@ class QwBeamLine : public VQwSubsystemParity{
   void Copy(VQwSubsystem *source);
   VQwSubsystem*  Copy();
   Bool_t Compare(VQwSubsystem *source);
-  void Print();
+
+  void PrintValue() const;
+  void PrintInfo() const;
 
 
   QwBPMStripline* GetBPMStripline(const TString name);
@@ -177,7 +179,7 @@ class QwBeamDetectorID
   UInt_t fSubelement;       // some detectors have many subelements (eg stripline have 4 antenas) some have only one sub element(eg lumis have one channel)
 
 
-  void Print();
+  void Print() const;
 
 };
 

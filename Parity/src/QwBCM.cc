@@ -251,13 +251,16 @@ void QwBCM::AccumulateRunningSum(const QwBCM& value) {
   fTriumf_ADC.AccumulateRunningSum(value.fTriumf_ADC);
 };
 
-void QwBCM::Print() const
+
+void QwBCM::PrintValue() const
 {
-  //std::cout<<"QwVQWK_Channel Info " <<std::endl;
-  //std::cout<<" Running AVG "<<GetElementName()<<" current running AVG "<<BCM_Running_AVG<<std::endl;
-  std::cout<<"QwVQWK_Channel Info " <<std::endl;
-  fTriumf_ADC.Print();
-  return;
+  fTriumf_ADC.PrintValue();
+}
+
+void QwBCM::PrintInfo() const
+{
+  std::cout << "QwVQWK_Channel Info " << std::endl;
+  fTriumf_ADC.PrintInfo();
 }
 
 /********************************************************/
@@ -370,7 +373,7 @@ std::vector<QwDBInterface> QwBCM::GetDBEntry()
   row.Reset();
 
   // the element name and the n (number of measurements in average)
-  // is the same in each block and hardwaresum. 
+  // is the same in each block and hardwaresum.
 
   name          = fTriumf_ADC.GetElementName();
   beam_n        = fTriumf_ADC.GetGoodEventCount();
@@ -397,7 +400,7 @@ std::vector<QwDBInterface> QwBCM::GetDBEntry()
     avg           = fTriumf_ADC.GetBlockValue(i);
     err           = fTriumf_ADC.GetBlockErrorValue(i);
     beam_subblock = (UInt_t) (i+1);
-    // QwVQWK_Channel  | MySQL 
+    // QwVQWK_Channel  | MySQL
     // fBlock[0]       | subblock 1
     // fBlock[1]       | subblock 2
     // fBlock[2]       | subblock 3

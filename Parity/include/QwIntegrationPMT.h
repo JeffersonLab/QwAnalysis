@@ -81,7 +81,8 @@ class QwIntegrationPMT : public VQwDataElement{
   /// \brief Blind the difference using the yield
   void Blind(const QwBlinder *blinder, const QwIntegrationPMT& yield);
 
-  void Print() const;
+  void PrintValue() const;
+  void PrintInfo() const;
 
   Double_t GetRawBlockValue(size_t blocknum)
            {return fTriumf_ADC.GetRawBlockValue(blocknum);};

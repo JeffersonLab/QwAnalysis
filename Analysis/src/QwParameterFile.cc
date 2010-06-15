@@ -169,6 +169,7 @@ Bool_t QwParameterFile::LineHasSectionHeader(TString& secname)
 
 Bool_t QwParameterFile::LineHasSectionHeader(std::string& secname)
 {
+  TrimComment('#');
   Bool_t status = kFALSE;
   size_t equiv_pos1 = fLine.find_first_of('[');
   if (equiv_pos1 != std::string::npos) {

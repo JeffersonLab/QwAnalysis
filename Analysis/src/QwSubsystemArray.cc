@@ -321,9 +321,11 @@ void  QwSubsystemArray::DeleteTree()
 
 //*****************************************************************
 
-void  QwSubsystemArray::Print()
+void  QwSubsystemArray::PrintInfo() const
 {
-  if (!empty())
-    for (iterator subsys = begin(); subsys != end(); ++subsys)
-      std::cout << (*subsys)->GetSubsystemName() << std::endl;
+  if (!empty()) {
+    for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
+      (*subsys)->PrintInfo();
+    }
+  }
 };

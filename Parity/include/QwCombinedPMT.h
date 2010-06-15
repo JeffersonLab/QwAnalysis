@@ -62,7 +62,9 @@ class QwCombinedPMT : public VQwDataElement {
     bEVENTCUTMODE=bcuts;
     //fCombinedPMT.SetEventCutMode(bcuts);
   }
-  void Print() const;
+
+  void PrintInfo() const;
+  void PrintValue() const;
 
   QwCombinedPMT& operator=  (const QwCombinedPMT &value);
   QwCombinedPMT& operator+= (const QwCombinedPMT &value);
@@ -96,7 +98,7 @@ class QwCombinedPMT : public VQwDataElement {
 
 
   void Copy(VQwDataElement *source);
-  
+
   std::vector<QwDBInterface>  GetDBEntry() {return fSumADC.GetDBEntry();};
 
  protected:

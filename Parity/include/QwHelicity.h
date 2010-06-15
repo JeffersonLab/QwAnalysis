@@ -36,13 +36,13 @@ class QwWord
   TString fWordType;
   Int_t fValue;
 
-  void PrintID()
+  void PrintID() const
     {
       std::cout<<fWordName<<" :: "<<fSubbankIndex<<" ; "
 	       <<fModuleType<<" ; "<<fWordType<<"\n";
     }
 
-  void Print()
+  void Print() const
     {
       std::cout<<fWordName<<" :: "<<fValue<<"\n";
     }
@@ -108,7 +108,7 @@ class QwHelicity: public VQwSubsystemParity{
   void  ProcessEventInputRegisterMode();
 
 
-  void  PrintDetectorID();
+  void  PrintDetectorID() const;
 
   virtual void  ClearEventData();
   virtual void  ProcessEvent();
@@ -155,7 +155,7 @@ class QwHelicity: public VQwSubsystemParity{
   void  FillTreeVector(std::vector<Double_t> &values);
   void  FillDB(QwDatabase *db, TString type);
 
-  void Print();
+  void Print() const;
 
   virtual Bool_t IsGoodHelicity();
   Int_t GetMaxPatternPhase(){

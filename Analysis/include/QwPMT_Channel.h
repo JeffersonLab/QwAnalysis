@@ -46,8 +46,8 @@ class QwPMT_Channel: public VQwDataElement {
   void  EncodeEventData(std::vector<UInt_t> &TrigBuffer);
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement=0){return 0;};
 
-  void  SetValue(Double_t data){fValue= data;};
-  Double_t GetValue(){return fValue;};
+  void     SetValue(Double_t data) { fValue = data; };
+  Double_t GetValue() const        { return fValue; };
 
   void  ProcessEvent();
 
@@ -59,7 +59,8 @@ class QwPMT_Channel: public VQwDataElement {
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
 
-  void Print() const;
+  void PrintValue() const;
+  void PrintInfo() const;
 
  protected:
 

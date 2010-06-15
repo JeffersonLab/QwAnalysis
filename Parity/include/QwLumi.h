@@ -44,7 +44,7 @@ class QwLumiDetectorID
 
 
 
-  void Print();
+  void Print() const;
 
 };
 
@@ -80,7 +80,7 @@ class QwLumi : public VQwSubsystemParity{
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-  void  PrintDetectorID();
+  void  PrintDetectorID() const;
 
   void  ClearEventData();
   void  ProcessEvent();
@@ -114,7 +114,10 @@ class QwLumi : public VQwSubsystemParity{
   void Copy(VQwSubsystem *source);
   VQwSubsystem*  Copy();
   Bool_t Compare(VQwSubsystem *source);
-  void Print();
+
+  void PrintValue() const;
+  void PrintInfo() const;
+
 
 /////
  protected:

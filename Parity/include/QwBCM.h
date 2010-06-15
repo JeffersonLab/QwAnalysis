@@ -70,7 +70,8 @@ class QwBCM : public VQwDataElement{
     fTriumf_ADC.SetEventCutMode(bcuts);
   }
 
-  void Print() const;
+  void PrintValue() const;
+  void PrintInfo() const;
 
   const QwVQWK_Channel& GetCharge() const {return fTriumf_ADC;};
 

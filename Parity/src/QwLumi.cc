@@ -665,7 +665,14 @@ void QwLumi::FillTreeVector(std::vector<Double_t> &values)
 
 
 //*****************************************************************
-void  QwLumi::Print()
+void  QwLumi::PrintValue() const
+{
+  QwMessage << "=== QwLumi: " << GetSubsystemName() << " ===" << QwLog::endl;
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].PrintValue();
+}
+
+void  QwLumi::PrintInfo() const
 {
   std::cout<<"Name of the subsystem ="<<fSystemName<<"\n";
 
@@ -673,13 +680,13 @@ void  QwLumi::Print()
 
 
   std::cout<<" Printing Running AVG and other channel info for IntegrationPMTs"<<std::endl;
-  for(size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].Print();
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].PrintInfo();
 
   return;
 }
 
-void  QwLumi::PrintDetectorID()
+void  QwLumi::PrintDetectorID() const
 {
   for (size_t i=0;i<fLumiDetectorID.size();i++)
     {
@@ -691,7 +698,7 @@ void  QwLumi::PrintDetectorID()
 }
 
 
-void  QwLumiDetectorID::Print()
+void  QwLumiDetectorID::Print() const
 {
 
   std::cout<<std::endl<<"Detector name= "<<fdetectorname<<std::endl;
@@ -757,14 +764,9 @@ VQwSubsystem*  QwLumi::Copy()
 
 void QwLumi::CalculateRunningAverage()
 {
-  UInt_t i = 0;
-  std::cout<<"*********QwLumiDetector   Averages****************"<<std::endl;
-  std::cout<<"Device \t    ||  Average\t || error\t || events"<<std::endl;
-  for(i=0; i<fIntegrationPMT.size(); i++) fIntegrationPMT[i].CalculateRunningAverage();
-  std::cout<<"---------------------------------------------------"<<std::endl;
-  std::cout<<std::endl;
-  return;
-};
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].CalculateRunningAverage();
+}
 
 void QwLumi::AccumulateRunningSum(VQwSubsystem* value1)
 {
@@ -837,7 +839,7 @@ void QwLumi::FillDB(QwDatabase *db, TString datatype)
   else {
     QwMessage << "QwLumi::FillDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
   }
-  
+
   db->Disconnect();
 
   return;

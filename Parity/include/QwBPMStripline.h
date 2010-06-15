@@ -46,7 +46,9 @@ class QwBPMStripline : public VQwDataElement{
   void  EncodeEventData(std::vector<UInt_t> &buffer);
 
   void  ProcessEvent();
-  void Print();
+
+  void  PrintValue() const;
+  void  PrintInfo() const;
 
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings

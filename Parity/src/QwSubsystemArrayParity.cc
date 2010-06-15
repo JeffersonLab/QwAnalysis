@@ -221,21 +221,36 @@ void QwSubsystemArrayParity::Difference(
  * Scale this subsystem array
  * @param factor Scale factor
  */
-void QwSubsystemArrayParity::Scale(Double_t factor){
-   for (iterator subsys = begin(); subsys != end(); ++subsys) {
+void QwSubsystemArrayParity::Scale(Double_t factor)
+{
+  for (iterator subsys = begin(); subsys != end(); ++subsys) {
     VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
     subsys_parity->Scale(factor);
   }
 };
 
+//*****************************************************************
 
-void QwSubsystemArrayParity::CalculateRunningAverage() {
-   for (iterator subsys = begin(); subsys != end(); ++subsys) {
+void QwSubsystemArrayParity::PrintValue() const
+{
+  for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
+    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
+    subsys_parity->PrintValue();
+  }
+};
+
+//*****************************************************************
+
+void QwSubsystemArrayParity::CalculateRunningAverage()
+{
+  for (iterator subsys = begin(); subsys != end(); ++subsys) {
     VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
     subsys_parity->CalculateRunningAverage();
   }
-
 }
+
+
+
 void QwSubsystemArrayParity::AccumulateRunningSum(const QwSubsystemArrayParity& value)
 {
   if (!value.empty()) {

@@ -12,7 +12,7 @@
 #include <TTree.h>
 
 #include "QwVQWK_Channel.h"
-#include "QwBPMStripline.h" 
+#include "QwBPMStripline.h"
 
 /*****************************************************************
 *  Class:
@@ -44,7 +44,8 @@ class QwCombinedBPM : public VQwDataElement{
 
   void  ProcessEvent();
 
-  void Print();
+  void PrintValue() const;
+  void PrintInfo() const;
 
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings

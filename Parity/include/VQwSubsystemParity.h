@@ -85,6 +85,9 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     /// \brief Blind the difference of this subsystem
     virtual void Blind(const QwBlinder *blinder, const VQwSubsystemParity* subsys) { return; };
 
+    /// \brief Print values of all channels
+    virtual void PrintValue() const { };
+
   private:
 
     /// Private default constructor

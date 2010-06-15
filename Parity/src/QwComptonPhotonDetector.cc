@@ -42,7 +42,7 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 {
   TString varname, varvalue;
   TString modtype, dettype, name;
-  Int_t modnum, channum;
+  UInt_t modnum, channum;
 
   QwParameterFile mapstr(mapfile.Data());  // Open the file
   while (mapstr.ReadNextLine()) {
@@ -69,10 +69,17 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 
       //  Push a new record into the element array
       if (modtype == "SIS3320") {
-        if (modnum >= (Int_t) fSamplingADC.size())
+        if (modnum >= fSamplingADC_Mapping.size())
+          fSamplingADC_Mapping.resize(modnum+1);
+        if (channum >= fSamplingADC_Mapping.at(modnum).size())
+          fSamplingADC_Mapping.at(modnum).resize(channum+1,-1);
+        if (fSamplingADC_Mapping.at(modnum).at(channum) < 0) {
+          UInt_t index = fSamplingADC.size();
+          fSamplingADC_Mapping.at(modnum).at(channum) = index;
           fSamplingADC.push_back(MQwSIS3320_Channel());
-        fSamplingADC.at(modnum).InitializeChannel(channum, name);
-        fSamplingADC.at(modnum).SetNumberOfAccumulators(6);
+          fSamplingADC.at(index).InitializeChannel(channum, name);
+          fSamplingADC.at(index).SetNumberOfAccumulators(6);
+        }
       } else if (modtype == "V775") {
         // not yet implemented
       } else if (modtype == "V792") {
@@ -149,12 +156,12 @@ void QwComptonPhotonDetector::RandomizeEventData(int helicity)
     fSamplingADC[i].RandomizeEventData(helicity);
 
   // Randomize all MQwV775TDC buffers
-  for (size_t i = 0; i < fIntegratingTDC.size(); i++)
-    fIntegratingTDC[i].RandomizeEventData(helicity);
+  //for (size_t i = 0; i < fIntegratingTDC.size(); i++)
+  //  fIntegratingTDC[i].RandomizeEventData(helicity);
 
   // Randomize all MQwV792ADC buffers
-  for (size_t i = 0; i < fIntegratingADC.size(); i++)
-    fIntegratingADC[i].RandomizeEventData(helicity);
+  //for (size_t i = 0; i < fIntegratingADC.size(); i++)
+  //  fIntegratingADC[i].RandomizeEventData(helicity);
 }
 
 
@@ -253,10 +260,10 @@ void  QwComptonPhotonDetector::ProcessEvent()
 {
   for(size_t i = 0; i < fSamplingADC.size(); i++)
     fSamplingADC[i].ProcessEvent();
-  for(size_t i = 0; i < fIntegratingTDC.size(); i++)
-    fIntegratingTDC[i].ProcessEvent();
-  for(size_t i = 0; i < fIntegratingADC.size(); i++)
-    fIntegratingADC[i].ProcessEvent();
+  //for(size_t i = 0; i < fIntegratingTDC.size(); i++)
+  //  fIntegratingTDC[i].ProcessEvent();
+  //for(size_t i = 0; i < fIntegratingADC.size(); i++)
+  //  fIntegratingADC[i].ProcessEvent();
 
   return;
 };
@@ -303,10 +310,10 @@ void QwComptonPhotonDetector::ClearEventData()
 {
   for(size_t i=0;i<fSamplingADC.size();i++)
     fSamplingADC[i].ClearEventData();
-  for(size_t i=0;i<fIntegratingTDC.size();i++)
-    fIntegratingTDC[i].ClearEventData();
-  for(size_t i=0;i<fIntegratingADC.size();i++)
-    fIntegratingADC[i].ClearEventData();
+  //for(size_t i=0;i<fIntegratingTDC.size();i++)
+  //  fIntegratingTDC[i].ClearEventData();
+  //for(size_t i=0;i<fIntegratingADC.size();i++)
+  //  fIntegratingADC[i].ClearEventData();
 
   return;
 };
@@ -342,10 +349,10 @@ VQwSubsystem&  QwComptonPhotonDetector::operator+=  (VQwSubsystem *value)
     QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*>(value);
     for (size_t i = 0; i < input->fSamplingADC.size(); i++)
       this->fSamplingADC[i] += input->fSamplingADC[i];
-    for (size_t i = 0; i < input->fIntegratingTDC.size(); i++)
-      this->fIntegratingTDC[i] += input->fIntegratingTDC[i];
-    for (size_t i = 0; i < input->fIntegratingADC.size(); i++)
-      this->fIntegratingADC[i] += input->fIntegratingADC[i];
+    //for (size_t i = 0; i < input->fIntegratingTDC.size(); i++)
+    //  this->fIntegratingTDC[i] += input->fIntegratingTDC[i];
+    //for (size_t i = 0; i < input->fIntegratingADC.size(); i++)
+    //  this->fIntegratingADC[i] += input->fIntegratingADC[i];
   }
   return *this;
 };
@@ -361,10 +368,10 @@ VQwSubsystem&  QwComptonPhotonDetector::operator-=  (VQwSubsystem *value)
     QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*> (value);
     for (size_t i = 0; i < input->fSamplingADC.size(); i++)
       this->fSamplingADC[i] -= input->fSamplingADC[i];
-    for (size_t i = 0; i < input->fIntegratingTDC.size(); i++)
-      this->fIntegratingTDC[i] -= input->fIntegratingTDC[i];
-    for (size_t i = 0; i < input->fIntegratingADC.size(); i++)
-      this->fIntegratingADC[i] -= input->fIntegratingADC[i];
+    //for (size_t i = 0; i < input->fIntegratingTDC.size(); i++)
+    //  this->fIntegratingTDC[i] -= input->fIntegratingTDC[i];
+    //for (size_t i = 0; i < input->fIntegratingADC.size(); i++)
+    //  this->fIntegratingADC[i] -= input->fIntegratingADC[i];
   }
   return *this;
 };
@@ -407,10 +414,10 @@ void QwComptonPhotonDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
     QwComptonPhotonDetector* indenom = dynamic_cast<QwComptonPhotonDetector*> (denom);
     for (size_t i = 0; i < innumer->fSamplingADC.size(); i++)
       this->fSamplingADC[i].Ratio(innumer->fSamplingADC[i], indenom->fSamplingADC[i]);
-    for (size_t i = 0; i < innumer->fIntegratingTDC.size(); i++)
-      this->fIntegratingTDC[i].Ratio(innumer->fIntegratingTDC[i], indenom->fIntegratingTDC[i]);
-    for (size_t i = 0; i < innumer->fIntegratingADC.size(); i++)
-      this->fIntegratingADC[i].Ratio(innumer->fIntegratingADC[i], indenom->fIntegratingADC[i]);
+    //for (size_t i = 0; i < innumer->fIntegratingTDC.size(); i++)
+    //  this->fIntegratingTDC[i].Ratio(innumer->fIntegratingTDC[i], indenom->fIntegratingTDC[i]);
+    //for (size_t i = 0; i < innumer->fIntegratingADC.size(); i++)
+    //  this->fIntegratingADC[i].Ratio(innumer->fIntegratingADC[i], indenom->fIntegratingADC[i]);
   }
   return;
 };
@@ -423,10 +430,10 @@ void QwComptonPhotonDetector::Scale(Double_t factor)
 {
   for (size_t i = 0; i < fSamplingADC.size(); i++)
     fSamplingADC[i].Scale(factor);
-  for (size_t i = 0; i < fIntegratingTDC.size(); i++)
-    fIntegratingTDC[i].Scale(factor);
-  for (size_t i = 0; i < fIntegratingADC.size(); i++)
-    fIntegratingADC[i].Scale(factor);
+  //for (size_t i = 0; i < fIntegratingTDC.size(); i++)
+  //  fIntegratingTDC[i].Scale(factor);
+  //for (size_t i = 0; i < fIntegratingADC.size(); i++)
+  //  fIntegratingADC[i].Scale(factor);
 
   return;
 };
@@ -472,10 +479,10 @@ void  QwComptonPhotonDetector::ConstructHistograms(TDirectory *folder, TString &
 {
   for(size_t i = 0; i < fSamplingADC.size(); i++)
       fSamplingADC[i].ConstructHistograms(folder, prefix);
-  for(size_t i = 0; i < fIntegratingTDC.size(); i++)
-      fIntegratingTDC[i].ConstructHistograms(folder,prefix);
-  for(size_t i = 0; i < fIntegratingADC.size(); i++)
-      fIntegratingADC[i].ConstructHistograms(folder,prefix);
+  //for(size_t i = 0; i < fIntegratingTDC.size(); i++)
+  //    fIntegratingTDC[i].ConstructHistograms(folder,prefix);
+  //for(size_t i = 0; i < fIntegratingADC.size(); i++)
+  //    fIntegratingADC[i].ConstructHistograms(folder,prefix);
 
   return;
 };
@@ -487,10 +494,10 @@ void  QwComptonPhotonDetector::DeleteHistograms()
 {
   for(size_t i = 0; i < fSamplingADC.size(); i++)
       fSamplingADC[i].DeleteHistograms();
-  for(size_t i = 0; i < fIntegratingTDC.size(); i++)
-      fIntegratingTDC[i].DeleteHistograms();
-  for(size_t i = 0; i < fIntegratingADC.size(); i++)
-      fIntegratingADC[i].DeleteHistograms();
+  //for(size_t i = 0; i < fIntegratingTDC.size(); i++)
+  //    fIntegratingTDC[i].DeleteHistograms();
+  //for(size_t i = 0; i < fIntegratingADC.size(); i++)
+  //    fIntegratingADC[i].DeleteHistograms();
 
   return;
 };
@@ -537,10 +544,10 @@ void  QwComptonPhotonDetector::FillHistograms()
 {
   for(size_t i = 0; i < fSamplingADC.size(); i++)
       fSamplingADC[i].FillHistograms();
-  for(size_t i = 0; i < fIntegratingTDC.size(); i++)
-      fIntegratingTDC[i].FillHistograms();
-  for(size_t i = 0; i < fIntegratingADC.size(); i++)
-      fIntegratingADC[i].FillHistograms();
+  //for(size_t i = 0; i < fIntegratingTDC.size(); i++)
+  //    fIntegratingTDC[i].FillHistograms();
+  //for(size_t i = 0; i < fIntegratingADC.size(); i++)
+  //    fIntegratingADC[i].FillHistograms();
 
   return;
 };
@@ -555,10 +562,10 @@ void QwComptonPhotonDetector::ConstructBranchAndVector(TTree *tree, TString & pr
 {
   for(size_t i = 0; i < fSamplingADC.size(); i++)
       fSamplingADC[i].ConstructBranchAndVector(tree, prefix, values);
-  for(size_t i = 0; i < fIntegratingTDC.size(); i++)
-      fIntegratingTDC[i].ConstructBranchAndVector(tree, prefix, values);
-  for(size_t i = 0; i < fIntegratingADC.size(); i++)
-      fIntegratingADC[i].ConstructBranchAndVector(tree, prefix, values);
+  //for(size_t i = 0; i < fIntegratingTDC.size(); i++)
+  //    fIntegratingTDC[i].ConstructBranchAndVector(tree, prefix, values);
+  //for(size_t i = 0; i < fIntegratingADC.size(); i++)
+  //    fIntegratingADC[i].ConstructBranchAndVector(tree, prefix, values);
 
   return;
 };
@@ -571,20 +578,38 @@ void QwComptonPhotonDetector::FillTreeVector(std::vector<Double_t> &values)
 {
   for(size_t i = 0; i < fSamplingADC.size(); i++)
       fSamplingADC[i].FillTreeVector(values);
-  for(size_t i = 0; i < fIntegratingTDC.size(); i++)
-      fIntegratingTDC[i].FillTreeVector(values);
-  for(size_t i = 0; i < fIntegratingADC.size(); i++)
-      fIntegratingADC[i].FillTreeVector(values);
+  //for(size_t i = 0; i < fIntegratingTDC.size(); i++)
+  //    fIntegratingTDC[i].FillTreeVector(values);
+  //for(size_t i = 0; i < fIntegratingADC.size(); i++)
+  //    fIntegratingADC[i].FillTreeVector(values);
 
   return;
 };
 
 /**
+ * Print the value for the subcomponents
+ */
+void  QwComptonPhotonDetector::PrintValue() const
+{
+  for (size_t i = 0; i < fSamplingADC.size(); i++) {
+    fSamplingADC[i].PrintValue();
+  }
+  for (size_t i = 0; i < fIntegratingTDC.size(); i++) {
+    //fIntegratingTDC[i].PrintValue();
+  }
+  for (size_t i = 0; i < fIntegratingADC.size(); i++) {
+    //fIntegratingADC[i].PrintValue();
+  }
+
+  return;
+}
+
+/**
  * Print some debugging output for the subcomponents
  */
-void  QwComptonPhotonDetector::Print()
+void  QwComptonPhotonDetector::PrintInfo() const
 {
-  VQwSubsystemParity::Print();
+  VQwSubsystemParity::PrintInfo();
 
   QwOut << " there are " << fSamplingADC.size() << " sampling ADCs" << QwLog::endl;
   QwOut << " there are " << fIntegratingTDC.size() << " integrating TDCs" << QwLog::endl;
@@ -592,15 +617,15 @@ void  QwComptonPhotonDetector::Print()
 
   for (size_t i = 0; i < fSamplingADC.size(); i++) {
     QwOut << " sampling ADC " << i << ":";
-    fSamplingADC[i].Print();
+    fSamplingADC[i].PrintInfo();
   }
   for (size_t i = 0; i < fIntegratingTDC.size(); i++) {
     QwOut << " integrating TDC " << i << ":";
-    fIntegratingTDC[i].Print();
+    //fIntegratingTDC[i].PrintInfo();
   }
   for (size_t i = 0; i < fIntegratingADC.size(); i++) {
     QwOut << " integrating ADC " << i << ":";
-    fIntegratingADC[i].Print();
+    //fIntegratingADC[i].PrintInfo();
   }
 
   return;
@@ -619,12 +644,12 @@ void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
       this->fSamplingADC.resize(input->fSamplingADC.size());
       for (size_t i = 0; i < this->fSamplingADC.size(); i++)
         this->fSamplingADC[i].Copy(&(input->fSamplingADC[i]));
-      this->fIntegratingTDC.resize(input->fIntegratingTDC.size());
-      for (size_t i = 0; i < this->fIntegratingTDC.size(); i++)
-        this->fIntegratingTDC[i].Copy(&(input->fIntegratingTDC[i]));
-      this->fIntegratingADC.resize(input->fIntegratingADC.size());
-      for (size_t i = 0; i < this->fIntegratingADC.size(); i++)
-        this->fIntegratingADC[i].Copy(&(input->fIntegratingADC[i]));
+      //this->fIntegratingTDC.resize(input->fIntegratingTDC.size());
+      //for (size_t i = 0; i < this->fIntegratingTDC.size(); i++)
+      //  this->fIntegratingTDC[i].Copy(&(input->fIntegratingTDC[i]));
+      //this->fIntegratingADC.resize(input->fIntegratingADC.size());
+      //for (size_t i = 0; i < this->fIntegratingADC.size(); i++)
+      //  this->fIntegratingADC[i].Copy(&(input->fIntegratingADC[i]));
 
     } else {
       TString loc = "Standard exception from QwComptonPhotonDetector::Copy = "

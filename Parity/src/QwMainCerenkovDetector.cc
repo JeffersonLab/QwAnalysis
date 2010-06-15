@@ -643,7 +643,7 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
       if (RequestExternalValue(variable->GetElementName(), variable))
         {
           if (bDEBUG)
-            dynamic_cast<QwVQWK_Channel*>(variable)->Print();
+            dynamic_cast<QwVQWK_Channel*>(variable)->PrintInfo();
         }
       else
         {
@@ -1128,7 +1128,16 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
   return;
 };
 
-void  QwMainCerenkovDetector::Print()
+void  QwMainCerenkovDetector::PrintValue() const
+{
+  QwMessage << "=== QwMainCerenkovDetector: " << GetSubsystemName() << " ===" << QwLog::endl;
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].PrintValue();
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
+    fCombinedPMT[i].PrintValue();
+}
+
+void  QwMainCerenkovDetector::PrintInfo() const
 {
   std::cout<<"Name of the subsystem ="<<fSystemName<<"\n";
 
@@ -1136,16 +1145,14 @@ void  QwMainCerenkovDetector::Print()
   std::cout<<"          "<<fCombinedPMT.size()<<" CombinedPMT \n";
 
   std::cout<<" Printing Running AVG and other channel info"<<std::endl;
-  for (size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].Print();
 
-  for (size_t i=0;i<fCombinedPMT.size();i++)
-    fCombinedPMT[i].Print();
-
-  return;
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].PrintInfo();
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
+    fCombinedPMT[i].PrintInfo();
 }
 
-void  QwMainCerenkovDetector::PrintDetectorID()
+void  QwMainCerenkovDetector::PrintDetectorID() const
 {
   for (size_t i=0;i<fMainDetID.size();i++)
     {
@@ -1156,7 +1163,7 @@ void  QwMainCerenkovDetector::PrintDetectorID()
   return;
 }
 
-void  QwMainCerenkovDetectorID::Print()
+void  QwMainCerenkovDetectorID::Print() const
 {
 
   std::cout<<std::endl<<"Detector name= "<<fdetectorname<<std::endl;

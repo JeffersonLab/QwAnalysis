@@ -105,7 +105,8 @@ class QwScanner: public VQwSubsystemTracking,
     return status;
   };
 
-  void Print();
+  void PrintValue() { };
+  void PrintInfo();
 
  protected:
 

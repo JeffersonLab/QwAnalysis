@@ -128,6 +128,13 @@ Int_t main(Int_t argc, Char_t* argv[])
     // TODO (wdc) failed event counter in QwEventRing?
 
 
+    //  Clear the single-event running sum at the beginning of the runlet
+    runningsum.ClearEventData();
+    helicitypattern.ClearRunningSum();
+    //  Clear the running sum of the burst values at the beginning of the runlet
+    helicitypattern.ClearBurstSum();
+
+
     ///  Start loop over events
     while (eventbuffer.GetNextEvent() == CODA_OK) {
 
@@ -197,6 +204,13 @@ Int_t main(Int_t argc, Char_t* argv[])
         failed_events_counts++;
       }
 
+      // Burst mode
+      if (eventbuffer.GetEventNumber() % 1000 == 0) {
+        helicitypattern.AccumulateRunningBurstSum();
+        helicitypattern.CalculateBurstAverage();
+        helicitypattern.ClearBurstSum();
+      }
+
       // Some info for the user
       if (eventbuffer.GetEventNumber() % 1000 == 0) {
         QwMessage << "Number of events processed so far: "
@@ -212,12 +226,15 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     // This will calculate running averages over helicity patterns
     helicitypattern.CalculateRunningAverage();
-
-    std::cout<<"Event Based Running average"<<std::endl;
-    std::cout<<"==========================="<<std::endl;
+    helicitypattern.PrintRunningAverage();
+    helicitypattern.CalculateRunningBurstAverage();
+    helicitypattern.PrintRunningBurstAverage();
 
     // This will calculate running averages over single helicity events
     runningsum.CalculateRunningAverage();
+    QwMessage << " Running average of events" << QwLog::endl;
+    QwMessage << " =========================" << QwLog::endl;
+    runningsum.PrintValue();
 
     timer.Stop();
 

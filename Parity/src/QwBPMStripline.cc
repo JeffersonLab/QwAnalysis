@@ -28,15 +28,15 @@ void  QwBPMStripline::InitializeChannel(TString name, Bool_t ROTATED)
 
   SetOffset(0,0,0);
 
-  Short_t i = 0; 
+  Short_t i = 0;
   for(i=0;i<4;i++) {
     fWire[i].InitializeChannel(name+subelement[i],"raw");
     if(kDEBUG)
       std::cout<<" Wire ["<<i<<"]="<<fWire[i].GetElementName()<<"\n";
   }
-  
+
   fWSum.InitializeChannel(name+"WSum","derived");
-  
+
   for(i=0;i<2;i++) fRelPos[i].InitializeChannel(name+"Rel"+axis[i],"derived");
   for(i=0;i<3;i++) fAbsPos[i].InitializeChannel(name+axis[i],"derived");
 
@@ -135,7 +135,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
   Int_t i=0;
   //Event cuts for Relative X & Y
   for(i=0;i<2;i++){
-    
+
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -162,7 +162,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
     }
     //update the event cut counters
     fAbsPos[i].UpdateHWErrorCounters();
- 
+
     fDeviceErrorCode|=fAbsPos[i].GetEventcutErrorFlag();//Get the Event cut error flag for AbsX/Y
   }
 
@@ -265,7 +265,7 @@ void  QwBPMStripline::ProcessEvent()
       fWSum+=fWire[i];
     }
 
-  if (localdebug) fWSum.Print();
+  if (localdebug) fWSum.PrintInfo();
 
 
 
@@ -307,16 +307,23 @@ void  QwBPMStripline::ProcessEvent()
 
   return;
 };
+
 /********************************************************/
-void QwBPMStripline::Print()
+void QwBPMStripline::PrintValue() const
 {
   Short_t i = 0;
-  for(i=0;i<4;i++) fWire[i].Print();
-  for(i=0;i<2;i++) fRelPos[i].Print();
-  for(i=0;i<3;i++) fAbsPos[i].Print();
-  fWSum.Print();
+  for (i = 0; i < 2; i++) fRelPos[i].PrintValue();
+  for (i = 0; i < 2; i++) fAbsPos[i].PrintValue();
+}
 
-  return;
+/********************************************************/
+void QwBPMStripline::PrintInfo() const
+{
+  Short_t i = 0;
+  for (i = 0; i < 4; i++) fWire[i].PrintInfo();
+  for (i = 0; i < 2; i++) fRelPos[i].PrintInfo();
+  for (i = 0; i < 3; i++) fAbsPos[i].PrintInfo();
+  fWSum.PrintInfo();
 }
 
 /********************************************************/
@@ -578,14 +585,14 @@ void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip constructing trees.
-  } 
+  }
   else {
     TString thisprefix=prefix;
     if(prefix=="asym_")
       thisprefix="diff_";
-    
+
     SetRootSaveStatus(prefix);
-    
+
     fWSum.ConstructBranchAndVector(tree,prefix,values);
     Short_t i = 0;
     if(bFullSave) {
@@ -593,7 +600,7 @@ void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std
     }
     for(i=0;i<2;i++) fRelPos[i].ConstructBranchAndVector(tree,thisprefix,values);
     for(i=0;i<3;i++) fAbsPos[i].ConstructBranchAndVector(tree,thisprefix,values);
-    
+
   }
   return;
 };
@@ -639,7 +646,7 @@ void QwBPMStripline::Copy(VQwDataElement *source)
        throw std::invalid_argument(loc.Data());
      }
     }
-  
+
   catch (std::exception& e)
     {
       std::cerr << e.what() << std::endl;
@@ -665,16 +672,16 @@ void QwBPMStripline::MakeBPMList()
 
   QwVQWK_Channel bpm_sub_element;
 
-  for(i=0;i<2;i++) { 
+  for(i=0;i<2;i++) {
     bpm_sub_element.ClearEventData();
-    bpm_sub_element.Copy(&fRelPos[i]);   
+    bpm_sub_element.Copy(&fRelPos[i]);
     bpm_sub_element = fRelPos[i];
     fBPMElementList.push_back( bpm_sub_element );
   }
 
-  //   for(i=0;i<3;i++) { 
+  //   for(i=0;i<3;i++) {
   //     bpm_sub_element.ClearEventData();
-  //     bpm_sub_element.Copy(&fAbsPos[i]);   
+  //     bpm_sub_element.Copy(&fAbsPos[i]);
   //     bpm_sub_element = fAbsPos[i];
   //     fBPMElementList.push_back( bpm_sub_element );
   //   }
@@ -702,11 +709,11 @@ std::vector<QwDBInterface> QwBPMStripline::GetDBEntry()
   UInt_t beam_n        = 0;
 
   for(n_bpm_element=0; n_bpm_element<fBPMElementList.size(); n_bpm_element++) {
-    
+
     row.Reset();
     // the element name and the n (number of measurements in average)
     // is the same in each block and hardwaresum.
-    
+
     name          = fBPMElementList.at(n_bpm_element).GetElementName();
     beam_n        = fBPMElementList.at(n_bpm_element).GetGoodEventCount();
 
@@ -714,8 +721,8 @@ std::vector<QwDBInterface> QwBPMStripline::GetDBEntry()
     avg           = fBPMElementList.at(n_bpm_element).GetHardwareSum();
     err           = fBPMElementList.at(n_bpm_element).GetHardwareSumError();
     // ADC subblock sum : 0 in MySQL database
-    beam_subblock = 0; 
- 
+    beam_subblock = 0;
+
     row.SetDetectorName(name);
     row.SetSubblock(beam_subblock);
     row.SetN(beam_n);
@@ -725,12 +732,12 @@ std::vector<QwDBInterface> QwBPMStripline::GetDBEntry()
     row_list.push_back(row);
 
     // Get four Block averages and thier errors
-    
+
     for(i=0; i<4; i++) {
       row.Reset();
       avg           = fBPMElementList.at(n_bpm_element).GetBlockValue(i);
       err           = fBPMElementList.at(n_bpm_element).GetBlockErrorValue(i);
-      beam_subblock = (UInt_t) (i+1); 
+      beam_subblock = (UInt_t) (i+1);
       // QwVQWK_Channel  | MySQL
       // fBlock[0]       | subblock 1
       // fBlock[1]       | subblock 2
@@ -741,11 +748,11 @@ std::vector<QwDBInterface> QwBPMStripline::GetDBEntry()
       row.SetN(beam_n);
       row.SetValue(avg);
       row.SetError(err);
-      
+
       row_list.push_back(row);
     }
   }
-  
+
   return row_list;
 
 };
