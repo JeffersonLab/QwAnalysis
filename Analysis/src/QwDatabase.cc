@@ -16,8 +16,6 @@
 #include "QwEventBuffer.h"
 #include "QwSSQLS.h"
 using namespace QwParityDB;
-// Is there any method put QwSSQLS.h in QwDatabase.h? (jhlee)
-
 
 //
 //  Template definitions for the QwDBInterface class.
@@ -449,7 +447,10 @@ const UInt_t QwDatabase::GetRunID(QwEventBuffer& qwevt)
   // If the stored run number does not agree with the CODA run number
   // or if fRunID is not set, then retrieve data from database and update if necessary.
 
-  if (fRunID == 0 || fRunNumber != qwevt.GetRunNumber() ) {
+  // GetRunNumber() in QwEventBuffer returns Int_t, thus
+  // we should convert it to UInt_t here. I think, it is OK.
+
+  if (fRunID == 0 || fRunNumber != (UInt_t) qwevt.GetRunNumber() ) {
      QwDebug << "QwDatabase::GetRunID() set fRunID to " << SetRunID(qwevt) << QwLog::endl;
      fRunletID = 0;
      fAnalysisID = 0;
@@ -468,7 +469,7 @@ const UInt_t QwDatabase::SetRunletID(QwEventBuffer& qwevt)
 {
 
   // Make sure 'run' table has been populated and retrieve run_id
-  UInt_t runid = this->GetRunID(qwevt);
+  //  UInt_t runid = this->GetRunID(qwevt);
  
   // Check to see if runlet is already in database.  If so retrieve runlet_id and exit.  
   try 
@@ -568,7 +569,7 @@ const UInt_t QwDatabase::GetRunletID(QwEventBuffer& qwevt)
   // If the stored run number does not agree with the CODA run number 
   // or if fRunID is not set, then retrieve data from database and update if necessary.
   
-  if (fRunletID == 0 || (!qwevt.ChainDataFiles() && fSegmentNumber!=qwevt.GetSegmentNumber()) || fRunNumber != qwevt.GetRunNumber() ) {
+  if (fRunletID == 0 || (!qwevt.ChainDataFiles() && fSegmentNumber!=qwevt.GetSegmentNumber()) || fRunNumber != (UInt_t) qwevt.GetRunNumber() ) {
      QwDebug << "QwDatabase::GetRunletID() set fRunletID to " << SetRunletID(qwevt) << QwLog::endl;
      fAnalysisID = 0;
   }
@@ -644,7 +645,7 @@ const UInt_t QwDatabase::GetAnalysisID(QwEventBuffer& qwevt)
     return 0;
   }
 
-  if (fAnalysisID == 0 || fRunNumber != qwevt.GetRunNumber() 
+  if (fAnalysisID == 0 || fRunNumber != (UInt_t) qwevt.GetRunNumber() 
       || (!qwevt.ChainDataFiles() && fSegmentNumber!=qwevt.GetSegmentNumber())) {
     QwDebug << "QwDatabase::GetAnalysisID() set fAnalysisID to " << SetAnalysisID(qwevt) << QwLog::endl;
     if (fAnalysisID==0) {
