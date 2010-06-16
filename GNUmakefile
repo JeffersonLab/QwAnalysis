@@ -312,23 +312,21 @@ endif
 #  List the Boost libraries to be linked to the analyzer.
 ifeq ($(strip $(shell $(FIND) $(BOOST_LIB_DIR) -maxdepth 1 -name libboost_filesystem-mt.so)),$(BOOST_LIB_DIR)/libboost_filesystem-mt.so)
   # If multi-threaded libraries exist, use them instead of single threaded libraries
-  ifneq ($(shell test $(BOOST_VERSION) -lt "103500" && echo "boost_system_in_filesystem"),)
-    # Before boost::filesystem 1.35.0 the system functionality is inside filesystem
-    BOOST_LIBS += -lboost_filesystem-mt -lboost_program_options-mt
-  else
-    # After boost::filesystem 1.35.0 the system functionality is a separate function
-    BOOST_LIBS += -lboost_filesystem-mt -lboost_program_options-mt -lboost_system-mt
-  endif
+  BOOST_LIBS += -lboost_filesystem-mt -lboost_program_options-mt
 else
   # Otherwise use the single threaded libraries
-  ifneq ($(shell test $(BOOST_VERSION) -lt "103500" && echo "boost_system_in_filesystem"),)
-    # Before boost::filesystem 1.35.0 the system functionality is inside filesystem
-    BOOST_LIBS += -lboost_filesystem -lboost_program_options
+  BOOST_LIBS += -lboost_filesystem -lboost_program_options
+endif
+
+#  Before boost::filesystem 1.35.0 the system functionality is inside filesystem
+ifeq ($(shell test $(BOOST_VERSION) -lt "103500" && echo "boost_system_in_filesystem"),)
+  ifeq ($(strip $(shell $(FIND) $(BOOST_LIB_DIR) -maxdepth 1 -name libboost_system-mt.so)),$(BOOST_LIB_DIR)/libboost_system-mt.so)
+    BOOST_LIBS += -lboost_system-mt
   else
-    # After boost::filesystem 1.35.0 the system functionality is a separate function
-    BOOST_LIBS += -lboost_filesystem -lboost_program_options -lboost_system
+    BOOST_LIBS += -lboost_system
   endif
 endif
+
 BOOST_LIBS += -ldl
 
 
