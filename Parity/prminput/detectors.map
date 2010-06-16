@@ -7,7 +7,7 @@
 
 [QwMainCerenkovDetector]
  name = Main Detector
- map = qweak_adc.map
+ map = qweak_maindet.map
 
 [QwLumi]
  name = Lumi Detector

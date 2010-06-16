@@ -87,7 +87,7 @@ int main(Int_t argc,Char_t* argv[]) {
 //    QwSubsystemArrayParity QwDetectors;
     QwSubsystemArray QwDetectors;
 //  QwDetectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
-//  QwDetectors.GetSubsystemByName("MainDetectors")->LoadChannelMap("qweak_adc.map");
+//  QwDetectors.GetSubsystemByName("MainDetectors")->LoadChannelMap("qweak_maindet.map");
 
     // Test code for the focal plane scanner
     if (kDebug) std::cout<<"Instantiate the scanner subsystem:"<<std::endl;

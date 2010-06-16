@@ -81,7 +81,7 @@ main(Int_t argc, Char_t* argv[])
 
 
   QwDetectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
-  QwDetectors.GetSubsystemByName("MainDetectors")->LoadChannelMap("qweak_adc.map");
+  QwDetectors.GetSubsystemByName("MainDetectors")->LoadChannelMap("qweak_maindet.map");
 
   QwDetectors.push_back(new QwBeamLine("Injector BeamLine"));
   QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");

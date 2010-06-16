@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
   detectors.push_back(new QwBeamLine("Injector BeamLine"));
   detectors.GetSubsystemByName("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
   detectors.push_back(new QwMainCerenkovDetector("Main detector"));
-  detectors.GetSubsystemByName("Main detector")->LoadChannelMap("qweak_adc.map");
+  detectors.GetSubsystemByName("Main detector")->LoadChannelMap("qweak_maindet.map");
   detectors.push_back(new QwLumi("Lumi detector"));
   detectors.GetSubsystemByName("Lumi detector")->LoadChannelMap("qweak_lumi.map");
   if (bHelicity) {

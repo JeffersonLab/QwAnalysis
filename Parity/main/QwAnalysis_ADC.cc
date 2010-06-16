@@ -97,7 +97,7 @@ int main(Int_t argc,Char_t* argv[]) {
     /// background detector MD0 (there are two channels for each fully assembled detector)
     /// plus 3 additional diagnostic detector channels AnciD1-AnciD3 for noise setup.
     detectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
-    detectors.GetSubsystemByName("MainDetectors")->LoadChannelMap("qweak_adc.map");
+    detectors.GetSubsystemByName("MainDetectors")->LoadChannelMap("qweak_maindet.map");
     //detectors.GetSubsystemByName("Main detector")->LoadInputParameters("qweak_pedestal.map");
 
     detectors.push_back(new QwBeamLine("Injector BeamLine"));
@@ -138,11 +138,11 @@ int main(Int_t argc,Char_t* argv[]) {
 
 //   QwMainCerenkovDetector sum_outer(""), sum_inner(""), diff(""), sum(""), asym("");
 
-//   sum_outer.LoadChannelMap("qweak_adc.map");
-//   sum_inner.LoadChannelMap("qweak_adc.map");
-//   sum.LoadChannelMap("qweak_adc.map");
-//   diff.LoadChannelMap("qweak_adc.map");
-//   asym.LoadChannelMap("qweak_adc.map");
+//   sum_outer.LoadChannelMap("qweak_maindet.map");
+//   sum_inner.LoadChannelMap("qweak_maindet.map");
+//   sum.LoadChannelMap("qweak_maindet.map");
+//   diff.LoadChannelMap("qweak_maindet.map");
+//   asym.LoadChannelMap("qweak_maindet.map");
 
     QwDatabase *qwdatabase = new QwDatabase();
     UInt_t run_id      = qwdatabase->GetRunID(eventbuffer);
