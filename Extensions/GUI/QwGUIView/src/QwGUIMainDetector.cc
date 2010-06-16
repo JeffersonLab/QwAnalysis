@@ -367,7 +367,15 @@ void QwGUIMainDetector::OnUpdatePlot(char *obj)
 
 void QwGUIMainDetector::ClearDBData()
 {
- 
+  TObject *obj;
+  TIter nextg(GraphArray.MakeIterator());
+  obj = nextg();
+  while(obj){    
+    delete obj;
+    obj = nextg();
+  }
+
+  GraphArray.Clear();
 }
 
 void QwGUIMainDetector::ClearRootData()
