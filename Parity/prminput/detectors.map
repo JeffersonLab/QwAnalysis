@@ -2,7 +2,7 @@
 
 [QwBeamLine]
  name = Injector BeamLine
- map = mock_qweak_beamline.map
+ map = qweak_beamline.map
  geom = qweak_beamline_geometry.map
 
 [QwMainCerenkovDetector]
