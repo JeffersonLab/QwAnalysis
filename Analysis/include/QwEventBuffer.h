@@ -39,7 +39,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
   static const UInt_t kNullDataWord;
 
  public:
-  QwEventBuffer();
+  QwEventBuffer(const TString& stem = "QwRun_", const TString& ext = "log");
   virtual ~QwEventBuffer() {
     if (fEvStream!=NULL){
       delete fEvStream;
@@ -213,10 +213,10 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
 template < class T > Bool_t QwEventBuffer::FillObjectWithEventData(T &object){
   ///  Template to fill any object with data from a CODA event.
-  /// 
+  ///
   ///  The classes for which this template can be specialized
   ///  must have the following three methods defined:
-  /// 
+  ///
   ///  Bool_t <class T>::CanUseThisEventType(const UInt_t event_type);
   ///  Bool_t <class T>::ClearEventData(const UInt_t event_type);
   ///  Int_t  <class T>::ProcessBuffer(const UInt_t event_type,

@@ -45,15 +45,16 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
      "event range in format #[:#]");
 }
 
-QwEventBuffer::QwEventBuffer():fDataFileStem("QwRun_"),
-			       fDataFileExtension("log"),
-			       fEvStreamMode(fEvStreamNull),
-			       fEvStream(NULL),
-			       fCurrentRun(-1),
-			       fRunIsSegmented(kFALSE),
-			       fPhysicsEventFlag(kFALSE),
-			       fEvtNumber(0),
-			       fNumPhysicsEvents(0)
+QwEventBuffer::QwEventBuffer(const TString& stem, const TString& ext)
+  :    fDataFileStem(stem),
+       fDataFileExtension(ext),
+       fEvStreamMode(fEvStreamNull),
+       fEvStream(NULL),
+       fCurrentRun(-1),
+       fRunIsSegmented(kFALSE),
+       fPhysicsEventFlag(kFALSE),
+       fEvtNumber(0),
+       fNumPhysicsEvents(0)
 {
   fDataDirectory = getenv("QW_DATA");
   if (fDataDirectory.Length() == 0){
@@ -80,7 +81,7 @@ void QwEventBuffer::ProcessOptions(QwOptions &options)
       if (fETHostname == NULL)
 	tmp += " \"HOSTNAME\"";
       if (fETSession == NULL){
-	if (tmp.Length() > 0) 
+	if (tmp.Length() > 0)
 	  tmp += " and";
 	tmp += " ET \"SESSION\"";
       }
@@ -115,7 +116,7 @@ Int_t QwEventBuffer::OpenNextStream()
        mode=0: wait forever
        mode=1: timeout quickly
     */
-    QwMessage << "Try to open the ET station with HOSTNAME==" 
+    QwMessage << "Try to open the ET station with HOSTNAME=="
 	      << fETHostname
 	      << ", SESSION==" << fETSession << "."
 	      << QwLog::endl;
@@ -151,7 +152,7 @@ Int_t QwEventBuffer::CloseStream()
   Int_t status = kFileHandleNotConfigured;
   if (fEvStreamMode==fEvStreamFile
       && (fRunIsSegmented && !fChainDataFiles) ){
-    //  The run is segmented and we are not chaining the 
+    //  The run is segmented and we are not chaining the
     //  segments together in the event loop, so close
     //  the current segment.
     status = CloseThisSegment();
@@ -174,12 +175,12 @@ Int_t QwEventBuffer::GetNextEvent()
   do {
     status = GetEvent();
     if (fEvtNumber > fEventRange.second){
-      //  QUESTION:  Should we continue to loop once we've 
-      //  reached the maximum event, to allow access to 
+      //  QUESTION:  Should we continue to loop once we've
+      //  reached the maximum event, to allow access to
       //  non-physics events?
       //  For now, mock up EOF if we've reached the maximum event.
       status = EOF;
-    } 
+    }
   } while (status==CODA_OK  &&
 	   IsPhysicsEvent() &&
 	   (fEvtNumber<fEventRange.first
@@ -478,7 +479,7 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
   Bool_t okay = kTRUE;
   //  Clear the old event information from the subsystems.
   subsystems.ClearEventData();
-  
+
   //  Pass CODA event number and type to the subsystem array.
   subsystems.SetCodaEventNumber(fEvtNumber);
   subsystems.SetCodaEventType(fEvtType);
@@ -498,7 +499,7 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
     QwDebug << "QwEventBuffer::FillSubsystemData:  "
 	    << "Beginning loop: fWordsSoFar=="<<fWordsSoFar
 	    <<QwLog::endl;
-    
+
     //  Loop through the subsystems and try to store the data
     //  from this bank in each subsystem.
     //
@@ -511,7 +512,7 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
     //  fWordsSoFar to move to the next bank.
     QwDebug << "ProcessEventBuffer: ROC="<<fROC<<", SubbankTag="<< fSubbankTag
 	    <<", FragLength="<<fFragLength <<QwLog::endl;
-    
+
     subsystems.ProcessEvBuffer(fROC, fSubbankTag,
 			       &localbuff[fWordsSoFar],
 			       fFragLength);
@@ -537,7 +538,7 @@ Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
 	  << QwLog::endl;
 
 
-  ///  
+  ///
   Bool_t okay = kTRUE;
   if (! IsEPICSEvent()){
     okay = kFALSE;
@@ -568,7 +569,7 @@ Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
 
     }
 
-     
+
     fWordsSoFar += fFragLength;
 
     QwDebug << "QwEventBuffer::FillEPICSData:  "
