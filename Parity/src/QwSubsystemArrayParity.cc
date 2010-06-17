@@ -23,9 +23,9 @@ void  QwSubsystemArrayParity::ConstructBranchAndVector(TTree *tree, TString & pr
 {
   fTreeArrayIndex  = values.size();
   values.push_back(0.0);
-  tree->Branch("CodaEventNumber",&(values[fTreeArrayIndex]),"/D" );
+  tree->Branch("CodaEventNumber",&(values[fTreeArrayIndex]),"CodaEventNumber/D" );
   values.push_back(0.0);
-  tree->Branch("CodaEventType",&(values[fTreeArrayIndex+1]),"/D" );
+  tree->Branch("CodaEventType",&(values[fTreeArrayIndex+1]),"CodaEventType/D" );
 
   for (iterator subsys = begin(); subsys != end(); ++subsys) {
     VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
