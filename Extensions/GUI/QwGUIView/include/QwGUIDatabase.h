@@ -114,6 +114,7 @@ using std::vector;
 
 /*   void PlotChargeData(); */
 
+  void MainDetectorPlot();
 
   void PositionDifferences(); 
   void DisplayTargetParameters();

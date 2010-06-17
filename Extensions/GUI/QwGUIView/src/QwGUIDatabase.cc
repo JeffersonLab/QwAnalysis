@@ -180,9 +180,12 @@ void QwGUIDatabase::MakeLayout()
   dNumStartRun = new TGNumberEntry(dControlsFrame, 0, 5, NUM_START_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
   dLabStopRun = new TGLabel(dControlsFrame, "Last Run");
   dNumStopRun = new TGNumberEntry(dControlsFrame, 10000, 5, NUM_STOP_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
-  dCmbDetector = new TGComboBox(dControlsFrame, "Detector", CMB_DETECTOR);
-  dCmbSubblock = new TGComboBox(dControlsFrame, "Subblock", CMB_SUBBLOCK);
-  dCmbMeasurementType = new TGComboBox(dControlsFrame, "Measurement Type", CMB_MEASUREMENT_TYPE);
+//  dCmbDetector = new TGComboBox(dControlsFrame, "Detector", CMB_DETECTOR);
+//  dCmbSubblock = new TGComboBox(dControlsFrame, "Subblock", CMB_SUBBLOCK);
+//  dCmbMeasurementType = new TGComboBox(dControlsFrame, "Measurement Type", CMB_MEASUREMENT_TYPE);
+  dCmbDetector = new TGComboBox(dControlsFrame, CMB_DETECTOR);
+  dCmbSubblock = new TGComboBox(dControlsFrame, CMB_SUBBLOCK);
+  dCmbMeasurementType = new TGComboBox(dControlsFrame, CMB_MEASUREMENT_TYPE);
   dBtnSubmit = new TGTextButton(dControlsFrame, "&Submit", BTN_SUBMIT);
 
   dLabLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
@@ -190,13 +193,10 @@ void QwGUIDatabase::MakeLayout()
   dNumLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop, 10, 10, 5, 5 );
   dBtnLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0, 0, 5, 5 );
 
-  dCmbDetector->Resize(150,20);
-  dCmbSubblock->Resize(150,20);
-  dCmbMeasurementType->Resize(150,20);
-
   for (Int_t i = 0; i < N_DETECTORS; i++) {
     dCmbDetector->AddEntry(DetectorCombos[i], i);
   }
+//  dCmbDetector->Select(N_DETECTORS-1);
   for (Int_t i = 0; i < N_SUBBLOCKS; i++) {
     dCmbSubblock->AddEntry(Subblocks[i], i);
   }
@@ -204,9 +204,13 @@ void QwGUIDatabase::MakeLayout()
     dCmbMeasurementType->AddEntry(DetectorMeasurementTypes[i], i);
   }
 
-//  dCmbDetector->Select(0);
-//  dCmbSubblock->Select(0);
-//  dCmbMeasurementType->Select(0);
+  dCmbDetector->Select(dCmbDetector->FindEntry("combinationallmd")->EntryId());
+  dCmbSubblock->Select(0);
+  dCmbMeasurementType->Select(dCmbMeasurementType->FindEntry("a")->EntryId());
+
+  dCmbDetector->Resize(150,20);
+  dCmbSubblock->Resize(150,20);
+  dCmbMeasurementType->Resize(150,20);
 
   dControlsFrame->AddFrame(dLabStartRun, dLabLayout );
   dControlsFrame->AddFrame(dNumStartRun, dNumLayout );
@@ -257,71 +261,13 @@ void QwGUIDatabase::OnNewDataContainer(RDataContainer *cont)
 
   if (!cont) return;
 
-  TGraph *grp = NULL;
- 
   if(!strcmp(cont->GetDataName(),"DBASE") && dDatabaseCont){
     ClearData();
-  
-    dDatabaseCont->Connect();
-
-    mysqlpp::Query query = dDatabaseCont->Query();
-
-
-    query << "SELECT * FROM summary_da_calc where subblock = 0 and detector='combinationallmd' ORDER BY run_number, segment_number";
-    vector<QwParityDB::summary_dy_calc> res;
-    query.storein(res);
-
-    printf("Number of rows returned:  %ld\n",res.size());
-
-    Int_t res_size = res.size();
-
-    // Loop over all rows
-    TVectorF x(res_size), xerr(res_size), y(res_size), yerr(res_size);
-    Float_t run_number;
-    Int_t segment_number;
-    Int_t i = 0;
-    vector<QwParityDB::summary_dy_calc>::iterator it;
-    for (it = res.begin(); it != res.end(); ++it) {
-      run_number = it->run_number;
-      if (!it->segment_number.is_null) 
-        segment_number = it->segment_number.data;
-      x[i] = run_number + segment_number/100;
-      xerr[i] = 0;
-      if (!it->value.is_null)
-        y[i] = it->value.data;
-      if (!it->error.is_null)
-        yerr[i] = it->error.data;
-
-      printf("i = %d, x = %f, xerr = %f, y = %f, yerr = %f \n", i, x[i], xerr[i], y[i], yerr[i]);
-      i++;
+    if (!dDatabaseCont->Connect()) {
+      std::cerr << "No valid database handle.  Check connection to database."  << std::endl;
+      exit(1);
     }
-
-    dDatabaseCont->Disconnect(); 
-
-    grp = new TGraphErrors(x, y, xerr, yerr);
-
-    grp->GetXaxis()->SetTitle("Run Number");
-    grp->GetXaxis()->CenterTitle();
-	  grp->GetXaxis()->SetTitleSize(0.04);
-	  grp->GetXaxis()->SetLabelSize(0.04);
-	  grp->GetXaxis()->SetTitleOffset(1.25);
-	  grp->GetYaxis()->SetTitle("Asymmetry [ppb]");
-	  grp->GetYaxis()->CenterTitle();
-	  grp->GetYaxis()->SetTitleSize(0.04);
-	  grp->GetYaxis()->SetLabelSize(0.04);
-	  grp->GetYaxis()->SetTitleOffset(1.5);
-
-    GraphArray.Add(grp);
-
-  TCanvas *mc = dCanvas->GetCanvas();
-  mc->cd();
-    grp->Draw("ap");
-
-  mc->Modified();
-  mc->Update();
-
-//    PlotGraphs();
-
+    dDatabaseCont->Disconnect();
   }
 
 };
@@ -392,6 +338,105 @@ void QwGUIDatabase::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
   */
 }
 
+void QwGUIDatabase::MainDetectorPlot()
+{
+
+  if(dDatabaseCont){
+
+    ClearData();
+
+    TGraphErrors *grp;
+
+    dDatabaseCont->Connect();
+
+    mysqlpp::Query query = dDatabaseCont->Query();
+
+    // Subblocks are numbered 0-4 in database just like entry number in dCmbSubblock
+    Int_t subblock = dCmbSubblock->GetSelected();
+    Int_t run_first = dNumStartRun->GetIntNumber();
+    Int_t run_last = dNumStopRun->GetIntNumber();
+    string detector = DetectorCombos[dCmbDetector->GetSelected()];
+    string measurement_type = DetectorMeasurementTypes[dCmbMeasurementType->GetSelected()];
+
+    query << "SELECT * FROM summary_d" << measurement_type << "_";
+    query << "calc ";
+    query << "WHERE subblock = " << subblock << " ";
+    query << "AND detector = '" << detector << "' ";
+    query << "AND run_number BETWEEN ";
+    query << run_first << " AND ";
+    query << run_last << " ";
+    query << "ORDER BY run_number, segment_number";
+    vector<QwParityDB::summary_dy_calc> res;
+    query.storein(res);
+
+    printf("Number of rows returned:  %ld\n",res.size());
+
+    Int_t res_size = res.size();
+
+    // Loop over all rows
+    TVectorF x(res_size), xerr(res_size), y(res_size), yerr(res_size);
+    Float_t run_number;
+    Int_t segment_number;
+    Int_t i = 0;
+    vector<QwParityDB::summary_dy_calc>::iterator it;
+    for (it = res.begin(); it != res.end(); ++it) {
+      run_number = it->run_number;
+      if (!it->segment_number.is_null) 
+        segment_number = it->segment_number.data;
+      Float_t f_segment_number = segment_number;
+      x[i] = run_number + f_segment_number/100;
+      xerr[i] = 0;
+      if (!it->value.is_null)
+        y[i] = it->value.data;
+      if (!it->error.is_null)
+        yerr[i] = it->error.data;
+
+      printf("i = %d, run_number = %f, segment_number = %d, f_segment_number = %f, x = %f, xerr = %f, y = %f, yerr = %f \n", i, run_number, segment_number, f_segment_number, x[i], xerr[i], y[i], yerr[i]);
+      i++;
+    }
+
+    dDatabaseCont->Disconnect(); 
+
+    grp = new TGraphErrors(x, y, xerr, yerr);
+
+    string grp_title = "Detector = ";
+    grp_title += detector;
+    grp_title += " Type = ";
+    grp_title += measurement_type;
+    grp_title += " Subblock = ";
+    grp_title +=  Subblocks[subblock];
+
+    grp->SetTitle(grp_title.c_str());
+    grp->GetXaxis()->SetTitle("Run Number");
+    grp->GetXaxis()->CenterTitle();
+	  grp->GetXaxis()->SetTitleSize(0.04);
+	  grp->GetXaxis()->SetLabelSize(0.04);
+	  grp->GetXaxis()->SetTitleOffset(1.25);
+    if (measurement_type == "y") {
+	    grp->GetYaxis()->SetTitle("Yield []");
+    } 
+    if (measurement_type == "a") {
+	    grp->GetYaxis()->SetTitle("Asymmetry [ppb]");
+    }
+	  grp->GetYaxis()->CenterTitle();
+	  grp->GetYaxis()->SetTitleSize(0.04);
+	  grp->GetYaxis()->SetLabelSize(0.04);
+	  grp->GetYaxis()->SetTitleOffset(1.5);
+
+    GraphArray.Add(grp);
+
+  TCanvas *mc = dCanvas->GetCanvas();
+  mc->cd();
+    grp->Draw("ap*");
+
+  mc->Modified();
+  mc->Update();
+
+//    PlotGraphs();
+
+  }
+
+} // QwGUIDatabase::MainDetectorPlot()
 
 void QwGUIDatabase::PositionDifferences()
 {
@@ -694,6 +739,7 @@ Bool_t QwGUIDatabase::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
         case kCM_BUTTON:
           switch(parm1) {
             case BTN_SUBMIT:
+              MainDetectorPlot();
             default:
               break;
           } // Button
