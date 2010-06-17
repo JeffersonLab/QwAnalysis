@@ -91,6 +91,7 @@
 #include "QwGUIEventDisplay.h"
 #include "QwGUIHelpBrowser.h"
 #include "QwGUIDatabaseContainer.h"
+#include "QwGUIDatabase.h"
 #ifndef __CINT__
 #include "QwOptions.h"
 #endif /* __CINT__ */
@@ -114,6 +115,7 @@ class QwGUIMain : public TGMainFrame {
   QwGUILumiDetector      *LumiDetSubSystem;
   QwGUIInjector          *InjectorSubSystem;
   QwGUIHallCBeamline     *HallCBeamlineSubSystem;
+  QwGUIDatabase          *DatabaseSubSystem;
   QwGUIEventDisplay      *EventDisplaySubSystem;
 
   QwGUIHelpBrowser          *dHelpBrowser;

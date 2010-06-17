@@ -47,6 +47,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   LumiDetSubSystem        = NULL;
   InjectorSubSystem       = NULL;
   HallCBeamlineSubSystem  = NULL;
+  DatabaseSubSystem  = NULL;
   EventDisplaySubSystem   = NULL;
 
   dMWWidth              = w;
@@ -127,6 +128,10 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   if(!GetSubSystemPtr("HallC Beamline"))
     HallCBeamlineSubSystem = new QwGUIHallCBeamline(fClient->GetRoot(), this, dTab,"HallC Beamline",
 						    "QwGUIMain", dMWWidth-15,dMWHeight-180);
+
+  if(!GetSubSystemPtr("Qweak Database"))
+    DatabaseSubSystem = new QwGUIDatabase(fClient->GetRoot(), this, dTab,"Qweak Database",
+						    "QwGUIMain", dMWWidth-15,dMWHeight-180);
     
   if(!GetSubSystemPtr("Event Display"))
     EventDisplaySubSystem = new QwGUIEventDisplay(fClient->GetRoot(), this, dTab, "Event Display",
@@ -140,7 +145,7 @@ QwGUIMain::~QwGUIMain()
   delete BeamModulationSubSystem ;
   delete LumiDetSubSystem        ;
   delete InjectorSubSystem       ;
-  delete HallCBeamlineSubSystem  ;
+  delete DatabaseSubSystem  ;
   delete EventDisplaySubSystem   ;
 
   delete dROOTFile             ;

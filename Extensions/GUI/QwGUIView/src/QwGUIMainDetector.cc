@@ -260,94 +260,8 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
   if(!strcmp(cont->GetDataName(),"DBASE") && dDatabaseCont){
 
     ClearDBData();      
-
-    dDatabaseCont->Connect();
-
-    mysqlpp::Query query = dDatabaseCont->Query();
-
-
-    query << "SELECT * FROM summary_da_calc where subblock = 0 and detector='combinationallmd' ORDER BY run_number, segment_number";
-    vector<summary_dy_calc> res;
-    query.storein(res);
-
-    printf("Number of rows returned:  %ld\n",res.size());
-
-    Int_t res_size = res.size();
-
-    // Loop over all rows
-    TVectorF x(res_size), xerr(res_size), y(res_size), yerr(res_size);
-    Float_t run_number;
-    Int_t segment_number;
-    Int_t i = 0;
-    vector<summary_dy_calc>::iterator it;
-    for (it = res.begin(); it != res.end(); ++it) {
-      run_number = it->run_number;
-      if (!it->segment_number.is_null) 
-        segment_number = it->segment_number.data;
-      x[i] = run_number + segment_number/100;
-      xerr[i] = 0;
-      if (!it->value.is_null)
-        y[i] = it->value.data;
-      if (!it->error.is_null)
-        yerr[i] = it->error.data;
-
-      printf("i = %d, x = %f, xerr = %f, y = %f, yerr = %f \n", i, x[i], xerr[i], y[i], yerr[i]);
-      i++;
-    }
-
-    dDatabaseCont->Disconnect(); 
-
-    grp = new TGraphErrors(x, y, xerr, yerr);
-
-	   grp->GetXaxis()->SetTitle("Run Number");
-	    grp->GetXaxis()->CenterTitle();
-	    grp->GetXaxis()->SetTitleSize(0.04);
-	    grp->GetXaxis()->SetLabelSize(0.04);
-	    grp->GetXaxis()->SetTitleOffset(1.25);
-	    grp->GetYaxis()->SetTitle("Asymmetry [ppb]");
-	    grp->GetYaxis()->CenterTitle();
-	    grp->GetYaxis()->SetTitleSize(0.04);
-	    grp->GetYaxis()->SetLabelSize(0.04);
-	    grp->GetYaxis()->SetTitleOffset(1.5);
-
-
-    GraphArray.Add(grp);
-
-    PlotGraphs();
-
-//     if (res.size()!=1) {
-//       QwError << "Unable to find unique run number " << 1000 << " in database." << QwLog::endl;
-//       QwError << "Run number query returned " << res.size() << "rows." << QwLog::endl;
-//       QwError << "Please make sure that the database contains one unique entry for this run." << QwLog::endl;
-//     }
-
-//     printf("Run ID = %d\n",res.at(0).run_id);
-
-
-//      vector<QwParityDB::md_data> entrylist;
-
-//     query.storein(entrylist);
-
-// //     QwDBInterface interface;
-// //     vector<QwParityDB::md_data> entrylist;
-// //     QwParityDB::md_data row = interface.MainDetectorDBClone();
-//     Double_t value = 0;
-
-// //     if (mysqlpp::StoreQueryResult res = query.store()) {
-
-// //       grp = new TGraph();
-// //       grp->SetTitle(Form("%s.hw_sum_raw",MainDetectorDataNames[i]));
-// //       grp->SetName(Form("grp%02d",i));
-      
-
-// //       for (size_t i = 0; i < res.num_rows(); ++i) {	
-// // 	value = res[i]["value"];
-// // 	printf("%f\n",value);
-// //       }
-// //     }
-    
+   
   }
-
 
 }
 
@@ -367,15 +281,7 @@ void QwGUIMainDetector::OnUpdatePlot(char *obj)
 
 void QwGUIMainDetector::ClearDBData()
 {
-  TObject *obj;
-  TIter nextg(GraphArray.MakeIterator());
-  obj = nextg();
-  while(obj){    
-    delete obj;
-    obj = nextg();
-  }
 
-  GraphArray.Clear();
 }
 
 void QwGUIMainDetector::ClearRootData()
