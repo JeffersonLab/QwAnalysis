@@ -34,6 +34,7 @@ Added by Buddhini to display the hall c Beamline data.
 //=============================================================================
 
 #define N_DETECTORS     33
+#define N_BEAM_MONITORS 6
 #define N_SUBBLOCKS     5
 #define N_DET_MEAS_TYPES 2
 
@@ -82,6 +83,7 @@ using std::vector;
   TGLayoutHints       *dLabLayout;
   TGNumberEntry       *dNumStartRun;
   TGNumberEntry       *dNumStopRun;
+  TGComboBox          *dCmbInstrument;
   TGComboBox          *dCmbDetector;
   TGComboBox          *dCmbSubblock;
   TGComboBox          *dCmbMeasurementType;
@@ -115,6 +117,7 @@ using std::vector;
 /*   void PlotChargeData(); */
 
   void MainDetectorPlot();
+  void BeamMonitorPlot();
 
   void PositionDifferences(); 
   void DisplayTargetParameters();
@@ -134,6 +137,7 @@ using std::vector;
   //!These are the names by which the histograms are identified within the root file.
 
   static const char   *DetectorCombos[N_DETECTORS];
+  static const char   *BeamMonitors[N_BEAM_MONITORS];
   static const char   *DetectorMeasurementTypes[N_DET_MEAS_TYPES];
   static const char   *Subblocks[N_SUBBLOCKS];
 
@@ -152,6 +156,7 @@ using std::vector;
 
   void                 SummaryHist(TH1*in);
   void                 PlotGraphs();
+  void                 OnSubmitPushed();
 
 
 
