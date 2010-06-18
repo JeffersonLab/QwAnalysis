@@ -31,9 +31,14 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
   std::vector<VQwSubsystem*> subsys_helicity = event.GetSubsystemByType("QwHelicity");
   if (subsys_helicity.size() > 0) {
     // Take the first helicity subsystem
-    QwHelicity* helicity = dynamic_cast<QwHelicity*>(subsys_helicity.at(0));
+    fHelicitySubsystem = dynamic_cast<QwHelicity*>(subsys_helicity.at(0));
     // And use the maximum pattern phase (i.e. pattern size)
-    fPatternSize = helicity->GetMaxPatternPhase();
+    fPatternSize = fHelicitySubsystem->GetMaxPatternPhase();
+    if (subsys_helicity.size() > 1) {
+      QwWarning << "Multiple helicity subsystems defined! "
+                << "Using " << fHelicitySubsystem->GetSubsystemName() << "."
+                << QwLog::endl;
+    }
   } else {
     QwError << "No helicity subsystem defined!  Brace for impact!" << QwLog::endl;
     fPatternSize = 4; // default to quartets
@@ -141,19 +146,13 @@ void QwHelicityPattern::ClearEventData()
 void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
 {
 
-  Bool_t localdebug=kFALSE;
-  QwHelicity* input=((QwHelicity*)event.GetSubsystemByName("Helicity info"));
-  IsGood=kFALSE;
-  Long_t localPatternNumber=input->GetPatternNumber();
-  Int_t localPhaseNumber=input->GetPhaseNumber();
-  Int_t localHelicityActual=input->GetHelicityActual();
-  Long_t localEventNumber=input->GetEventNumber();
-  /*
-  Long_t localPatternNumber=1;//input->GetPatternNumber();
-  Int_t localPhaseNumber=1;//input->GetPhaseNumber();
-  Int_t localHelicityActual=1;//input->GetHelicityActual();
-  Long_t localEventNumber=1;//input->GetEventNumber();
-  */
+  Bool_t localdebug = kFALSE;
+  IsGood = kFALSE;
+  Long_t localPatternNumber  = fHelicitySubsystem->GetPatternNumber();
+  Int_t  localPhaseNumber    = fHelicitySubsystem->GetPhaseNumber();
+  Int_t  localHelicityActual = fHelicitySubsystem->GetHelicityActual();
+  Long_t localEventNumber    = fHelicitySubsystem->GetEventNumber();
+
   if(localdebug) {
     std::cout<<"\n ###################################\n";
     std::cout<<"QwHelicityPattern::LoadEventData :: ";

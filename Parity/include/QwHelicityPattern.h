@@ -17,6 +17,9 @@
 #include "QwSubsystemArrayParity.h"
 #include "QwBlinder.h"
 
+// Forward declarations
+class QwHelicity;
+
 ///
 /// \ingroup QwAnalysis_ADC
 ///
@@ -79,6 +82,9 @@ class QwHelicityPattern{
 
  protected:
   Bool_t fDEBUG;
+
+  QwHelicity* fHelicitySubsystem;
+
   std::vector<QwSubsystemArrayParity> fEvents;
   std::vector<Bool_t> fEventLoaded;
   std::vector<Int_t> fHelicity;// this is here up to when we code the Helicity decoding routine

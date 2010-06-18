@@ -231,7 +231,7 @@ void QwVQWK_Channel::RandomizeEventData(int helicity, double time)
   }
 
   // Calculate signal
-  for (size_t i = 0; i < fBlocksPerEvent; i++) {
+  for (Short_t i = 0; i < fBlocksPerEvent; i++) {
 
     // External or internal randomness?
     double random_variable;

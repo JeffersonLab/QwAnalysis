@@ -75,8 +75,8 @@ class QwRootFile {
 
     // Wrapped common functionality
     Int_t Write(const char* name = 0, Int_t option = 0, Int_t bufsize = 0) {
-      Int_t retval;
-      if (fMapFile)  retval = fMapFile->Write(name, option, bufsize);
+      Int_t retval = 0;
+      // TMapFile has no suport for Write
       if (fRootFile) retval = fRootFile->Write(name, option, bufsize);
       return retval;
     }
