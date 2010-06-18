@@ -21,10 +21,10 @@ scanner_front_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
 scanner_back__sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
 scanner_coinc_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
 
-scanner_power_vqwk		TH1F	10000	0.0		5.0e9			power_vqwk	Events
-scanner_pos_x_vqwk		TH1F	10000	0.0		5.0e9			pos_x_vqwk	Events
-scanner_pos_y_vqwk		TH1F	10000	0.0		5.0e9			pos_y_vqwk	Events
-scanner_spare.			TH1F	10001	-5.0e9		5.0e9			spare		Events
+scanner_power_vqwk.*		TH1F	10000	0.0		5.0e9			power_vqwk	Events
+scanner_pos_x_vqwk.*		TH1F	10000	0.0		5.0e9			pos_x_vqwk	Events
+scanner_pos_y_vqwk.*		TH1F	10000	0.0		5.0e9			pos_y_vqwk	Events
+scanner_spare.*			TH1F	10001	-5.0e9		5.0e9			spare		Events
 
 scanner_position_x		TH1F	2000	-110.0		110.0			X[cm]		Events
 scanner_position_y		TH1F	2000	-355.0		-305.0			Y[cm]		Events
