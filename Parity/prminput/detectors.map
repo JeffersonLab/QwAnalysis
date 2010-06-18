@@ -4,6 +4,7 @@
  name = Injector BeamLine
  map = qweak_beamline.map
  geom = qweak_beamline_geometry.map
+ eventcut = qweak_beamline_eventcuts.in
 
 [QwMainCerenkovDetector]
  name = Main Detector

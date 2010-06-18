@@ -57,6 +57,11 @@ Int_t VQwSubsystem::LoadDetectorMaps(QwParameterFile& file)
       if (key == "param" && value.size() > 0)
         LoadInputParameters(value);
 
+      //Event cut file definition
+      if (key == "eventcut" && value.size() > 0)
+        LoadEventCuts(value);
+
+
     } // end of HasVariablePair
 
   } // end of while
