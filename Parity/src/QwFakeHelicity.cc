@@ -93,7 +93,7 @@
      return kTRUE;
    else{
 //      std::cout<<std::endl;
-//      QwWarning<<""<<QwLog::endl;
+//     QwWarning<<""<<QwLog::endl;
 //      QwWarning<<"Using FAKE HELICITY."<<QwLog::endl;
 //      QwWarning<<""<<QwLog::endl;
      fGoodHelicity = kFALSE; //reset before prediction begins
