@@ -1,13 +1,17 @@
 
+!**************************************************************************
+! INJECTOR BEAMLINE
+!**************************************************************************
+!
+
 ROC=31
 Bank=0x3102
+
 !same sample size for ADCs in a given bank
 sample_size=400
 !
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
-
-
 !ADC0
     VQWK, 0, 0,  bpmstripline,  QWK_QPDXP
     VQWK, 0, 1,  bpmstripline,  QWK_QPDYP
@@ -130,28 +134,113 @@ sample_size=400
     VQWK, 11, 6,  bcm,  QWK_Batery7
     VQWK, 11, 7,   bcm,  PhaseMonitor
 
-!beginCOMBO=combinedbcm
-!name = qwk_average_charge
-!name		wieght
-! QWK_BCM0L02,  1.0
-! empty1,  0.8
-! QWK_Batery7, 0.9
-!endCOMBO=combinedbcm
 
-!beginCOMBO=combinedbcm
-!name = qwk_region1_charge
-!name		wieght
 
- !QWK_Batery6, 0.1
- !QWK_Batery7, 0.9
-!endCOMBO=combinedbcm
+!**************************************************************************
+! HALL C  BEAMLINE
+!**************************************************************************
+!
+!
+ROC=1
+Bank=0x102
+!same sample size for ADCs in a given bank
+!sample_size==4000
+!
+!
+! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
 
-!beginCOMBO=combinedbpm
-!name = qwk_target
-!name	    q      x     y    
-! QWK_1I02,  0.9,  0.5,  0.1
-! QWK_1I04,  1.0,  0.1,  0.5
-! QWK_0I02,  1.0,  0.1,  0.5
- !QWK_0I02,  1.0,  0.1,  0.5
- !QWK_0I05,  1.0,  0.1,  0.5
-!endCOMBO=combinedbpm
+!ADC1
+   VQWK, 0, 0,  bcm,  qwk_pmt
+   VQWK, 0, 1,  bcm,  qwk_current
+   VQWK, 0, 2,  bcm,  qwk_pmt_plus
+   VQWK, 0, 3,  bcm,  qwk_pmt_minus
+   VQWK, 0, 4,  bcm,  qwk_empty
+   VQWK, 0, 5,  bcm,  qwk_empty
+   VQWK, 0, 6,  bcm,  qwk_empty
+   VQWK, 0, 7,  bcm,  qwk_empty
+
+
+!ADC0
+   VQWK, 1, 0,  bpmstripline,  QWK_3C07XP
+   VQWK, 1, 1,  bpmstripline,  QWK_3C07XM
+   VQWK, 1, 2,  bpmstripline,  QWK_3C07YP
+   VQWK, 1, 3,  bpmstripline,  QWK_3C07YM
+   VQWK, 1, 4,  bpmstripline,  QWK_3C08XP
+   VQWK, 1, 5,  bpmstripline,  QWK_3C08XM
+   VQWK, 1, 6,  bpmstripline,  QWK_3C08YP
+   VQWK, 1, 7,  bpmstripline,  QWK_3C08YM
+
+
+!ADC2
+   VQWK, 2, 0,  bpmstripline,  QWK_3C11XP
+   VQWK, 2, 1,  bpmstripline,  QWK_3C11XM
+   VQWK, 2, 2,  bpmstripline,  QWK_3C11YP
+   VQWK, 2, 3,  bpmstripline,  QWK_3C11YM
+   VQWK, 2, 4,  bpmstripline,  QWK_3C12XP
+   VQWK, 2, 5,  bpmstripline,  QWK_3C12XM
+   VQWK, 2, 6,  bpmstripline,  QWK_3C12YP
+   VQWK, 2, 7,  bpmstripline,  QWK_3C12YM
+
+!ADC4
+   VQWK, 3, 0,  bpmstripline,  QWK_3C14XP
+   VQWK, 3, 1,  bpmstripline,  QWK_3C14XM
+   VQWK, 3, 2,  bpmstripline,  QWK_3C14YP
+   VQWK, 3, 3,  bpmstripline,  QWK_3C14YM
+   VQWK, 3, 4,  bpmstripline,  QWK_3C16XP
+   VQWK, 3, 5,  bpmstripline,  QWK_3C16XM
+   VQWK, 3, 6,  bpmstripline,  QWK_3C16YP
+   VQWK, 3, 7,  bpmstripline,  QWK_3C16YM
+
+
+
+!**************************************************************************
+! COMBINATIONS OF BEAM LINE DEVICES USED FOR BEAM ON TARGET 
+!**************************************************************************
+
+
+begin=combinedbcm
+name=qwk_average_charge
+!name	type	wieght
+ empty2,  bcm, 1.0
+ empty1,  bcm, 0.8
+end=combinedbcm
+
+
+begin=combinedbpm
+name=qwk_target
+!name	    type 	  q      x     y    
+ QWK_1I02,  bpmstripline, 0.9,  0.5,  0.1
+ QWK_1I04,  bpmstripline, 1.0,  0.1,  0.5
+ QWK_0I02,  bpmstripline, 1.0,  0.1,  0.5
+ QWK_0I02,  bpmstripline, 1.0,  0.1,  0.5
+end=combinedbpm
+
+
+!**************************************************************************
+! DEVICES USED TO OBTAIN THE BEAM ENERGY
+!**************************************************************************
+! For the energy calculation we need the following inforamtion.
+! 	Beam position at the highest dispersive region (beamposition)
+!	Beam angle on target (targetbeamangle)
+!	Beam position on target (targetbeamposition)
+! 	The ratios of the TMatrix elements (with the appropriate signs).
+! These are used in the equation
+!	(dP/P) = (1/M15)*X_3c12 + (-M11/M15)*X_T + (-M12/M15)*X_T`
+! To get (dP/P).
+
+begin=energycalculator
+name=qwk_energy
+! name      type 	ratios property  
+  QWK_1I02, bpmstripline, 1.5,	beamposition   
+  QWK_TARGET, combinedbpm, -2.4, targetbeamangle
+  QWK_TARGET, combinedbpm, -0.6, targetbeamposition
+end=energycalculator
+
+! CHECK THE SIGNS OF THE MATRIX ELEMTN RATIOS!.
+
+
+
+!END
+
+
+

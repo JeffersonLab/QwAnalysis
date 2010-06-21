@@ -16,17 +16,22 @@
 
 // Qweak headers
 #include "VQwSubsystemParity.h"
+
 #include "QwBPMStripline.h"
 #include "QwBCM.h"
 #include "QwCombinedBCM.h"
 #include "QwCombinedBPM.h"
+#include "QwEnergyCalculator.h"
+#include "QwBlinder.h"
+
 
 
 /// \todo TODO (wdc) EBeamInstrumentType is global in QwBeamLine.cc but could be class local
 enum EBeamInstrumentType{kBPMStripline = 0,
 			 kBCM,
 			 kCombinedBCM,
-			 kCombinedBPM
+			 kCombinedBPM,
+			 kEnergyCalculator
 };
 
 // this emun vector needs to be coherent with the DetectorTypes declaration in the QwBeamLine constructor
@@ -37,9 +42,6 @@ class QwBeamDetectorID;
 *  Class:
 ******************************************************************/
 class QwBeamLine : public VQwSubsystemParity{
-  friend class QwCombinedBPM;
-  friend class QwCombinedBCM;
-
 
  public:
 
@@ -51,17 +53,19 @@ class QwBeamLine : public VQwSubsystemParity{
       fgDetectorTypeNames.push_back("bcm");
       fgDetectorTypeNames.push_back("combinedbcm");
       fgDetectorTypeNames.push_back("combinedbpm");
+      fgDetectorTypeNames.push_back("energycalculator");
+
       for(size_t i=0;i<fgDetectorTypeNames.size();i++)
         fgDetectorTypeNames[i].ToLower();
     };
-
+    
   ~QwBeamLine() {
     DeleteHistograms();
   };
 
 
   /* derived from VQwSubsystem */
-  void ProcessOptions(QwOptions &options);//Handle command line options
+  void  ProcessOptions(QwOptions &options);//Handle command line options
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
@@ -130,8 +134,8 @@ class QwBeamLine : public VQwSubsystemParity{
  std::vector <QwBCM> fBCM;
  std::vector <QwCombinedBCM> fBCMCombo;
  std::vector <QwCombinedBPM> fBPMCombo;
+ std::vector <QwEnergyCalculator> fECalculator;
  std::vector <QwBeamDetectorID> fBeamDetectorID;
-
 
 
 
@@ -157,13 +161,8 @@ class QwBeamDetectorID
   QwBeamDetectorID(Int_t subbankid, Int_t wordssofar,TString name, TString dettype,
 		   TString modtype ,QwBeamLine * obj);
 
-
-/*     QwBeamDetectorID():fSubbankIndex(-1),fWordInSubbank(-1),fTypeID(-1),fIndex(-1), */
-/*     fSubelement(999999),fmoduletype(""),fdetectorname("") */
-/*     {}; */
-
-  Int_t fSubbankIndex;
-  Int_t fWordInSubbank;
+  Int_t   fSubbankIndex;
+  Int_t   fWordInSubbank;
   //first word reported for this channel in the subbank
   //(eg VQWK channel report 6 words for each event, scalers oly report one word per event)
 
@@ -173,13 +172,13 @@ class QwBeamDetectorID
   TString fdetectorname;
   TString fdetectortype; // stripline, bcm, ... this string is encoded by fTypeID
 
-  Int_t  kUnknownDeviceType;
-  Int_t  fTypeID;           // type of detector eg: lumi or stripline, etc..
-  Int_t  fIndex;            // index of this detector in the vector containing all the detector of same type
-  UInt_t fSubelement;       // some detectors have many subelements (eg stripline have 4 antenas) some have only one sub element(eg lumis have one channel)
+  Int_t   kUnknownDeviceType;
+  Int_t   fTypeID;           // type of detector eg: lumi or stripline, etc..
+  Int_t   fIndex;            // index of this detector in the vector containing all the detector of same type
+  UInt_t  fSubelement;       // some detectors have many subelements (eg stripline have 4 antenas) some have only one sub element(eg lumis have one channel)
 
 
-  void Print() const;
+  void    Print() const;
 
 };
 

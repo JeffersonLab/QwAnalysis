@@ -114,7 +114,7 @@ class QwVQWK_Channel: public VQwDataElement {
   void Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom);
   void Product(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
 
-  void Offset(Double_t Offset);
+  void AddChannelOffset(Double_t Offset);
   void Scale(Double_t Offset);
 
   void AccumulateRunningSum(const QwVQWK_Channel& value);

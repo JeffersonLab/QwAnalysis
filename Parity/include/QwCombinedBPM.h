@@ -12,142 +12,91 @@
 #include <TTree.h>
 
 #include "QwVQWK_Channel.h"
-#include "QwBPMStripline.h"
+#include "QwBPMStripline.h" 
+#include "VQwBPM.h"
 
 /*****************************************************************
 *  Class:
 ******************************************************************/
 ///
 /// \ingroup QwAnalysis_BL
-class QwCombinedBPM : public VQwDataElement{
-/////
+class QwCombinedBPM : public VQwBPM{
+  friend class QwEnergyCalculator;  
+
+  /////
  public:
   QwCombinedBPM(){};
-  QwCombinedBPM(TString name, Bool_t ROTATED){
-    InitializeChannel(name, ROTATED);
+  QwCombinedBPM(TString name, Bool_t ROTATED):VQwBPM(name,ROTATED){
+    InitializeChannel(name,ROTATED);
   };
 
   ~QwCombinedBPM() {DeleteHistograms();};
 
-  Int_t ProcessEvBuffer(UInt_t* buffer,
+  void    InitializeChannel(TString name, Bool_t ROTATED);
+  void    ClearEventData();
+  Int_t   ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
+  void    ProcessEvent();
+  void    PrintValue() const;
+  void    PrintInfo() const;
 
-  void  InitializeChannel(TString name, Bool_t ROTATED);
-  void SetOffset(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset);
+  Bool_t  ApplyHWChecks();//Check for harware errors in the devices
+  Bool_t  ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
+  void    SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
+  void    SetEventCutMode(Int_t bcuts);
+  Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
 
+  void    Set(QwBPMStripline* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,Double_t sumqw);
+ 
+  void    Copy(VQwDataElement *source);
+  void    Ratio(QwCombinedBPM &numer, QwCombinedBPM &denom);
+  void    Scale(Double_t factor);
 
+  virtual QwCombinedBPM& operator=  (const QwCombinedBPM &value);
+  virtual QwCombinedBPM& operator+= (const QwCombinedBPM &value);
+  virtual QwCombinedBPM& operator-= (const QwCombinedBPM &value);
 
-  void  Set(QwBPMStripline* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,Double_t sumqw);
+  void    AccumulateRunningSum(const QwCombinedBPM& value);
+  void    CalculateRunningAverage();
 
-  void  ClearEventData();
-  void  EncodeEventData(std::vector<UInt_t> &buffer);
+  void    ConstructHistograms(TDirectory *folder, TString &prefix);
+  void    FillHistograms();
+  void    DeleteHistograms();
 
-  void  ProcessEvent();
+  void    ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+  void    FillTreeVector(std::vector<Double_t> &values);
 
-  void PrintValue() const;
-  void PrintInfo() const;
-
-  Bool_t ApplyHWChecks();//Check for harware errors in the devices
-  Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  void SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-  Int_t GetEventcutErrorFlag(){//return the error flag
-    return fDeviceErrorCode;
-  };
-
-  void SetEventCutMode(Int_t bcuts);
-
-
-  void Copy( VQwDataElement *source);
-
-
-  QwCombinedBPM& operator=  (const QwCombinedBPM &value);
-  QwCombinedBPM& operator+= (const QwCombinedBPM &value);
-  QwCombinedBPM& operator-= (const QwCombinedBPM &value);
-  void Sum(QwCombinedBPM &value1, QwCombinedBPM &value2);
-  void Difference(QwCombinedBPM &value1, QwCombinedBPM &value2);
-  void Ratio(QwCombinedBPM &numer, QwCombinedBPM &denom);
-  void Scale(Double_t factor);
-
-  void AccumulateRunningSum(const QwCombinedBPM& value);
-  void CalculateRunningAverage();
-
-  /* Functions for least squared fir */
-  void CalculateFixedParameter(std::vector<Double_t> fWeights, Int_t pos);
+  /* Functions for least square fit */
+  void     CalculateFixedParameter(std::vector<Double_t> fWeights, Int_t pos);
   Double_t SumOver( std::vector <Double_t> weight , std::vector <QwVQWK_Channel> val);
-  void LeastSquareFit( Int_t pos, std::vector<Double_t> fWeights) ; //bbbbb
-  void CalculateEnergyChange();
+  void     LeastSquareFit( Int_t pos, std::vector<Double_t> fWeights) ; //bbbbb
 
-  void  ConstructHistograms(TDirectory *folder, TString &prefix);
-  void  FillHistograms();
-  void  DeleteHistograms();
-
-  void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-  void  FillTreeVector(std::vector<Double_t> &values);
-  void  SetRootSaveStatus(TString &prefix);
+ 
 
   /////
  private:
-  static const Bool_t kDEBUG;
-  Bool_t kFOUND;
-
-  /*  Position calibration factor, transform ADC counts in mm */
-  static const Double_t kQwStriplineCalibration;
-  /* Rotation factor for the BPM which antenna are at 45 deg */
-  static const Double_t kRotationCorrection;
-
-
-  std::vector <QwBPMStripline*> fElement;
-  std::vector <Double_t> fQWeights;
-  std::vector <Double_t> fXWeights;
-  std::vector <Double_t> fYWeights;
-
-  Double_t fSumQweights; //sum of all the weights for charge
-
-
- protected:
-  static const TString axis[3];
-
-  Double_t fComboOffset[3];
-  Bool_t bRotated;
-  Bool_t bFullSave; // used to restrict the amount of data histogramed
-
-  Bool_t fGoodEvent;
   Bool_t fixedParamCalculated;
 
   //used for least squares fit
   Double_t erra[2],errb[2],covab[2];
   Double_t A[2], B[2], D[2], m[2];
   Double_t chi_square[2];
+  Double_t fSumQweights; 
+
+  std::vector <QwBPMStripline*> fElement;
+  std::vector <Double_t> fQWeights;
+  std::vector <Double_t> fXWeights;
+  std::vector <Double_t> fYWeights;
 
 
-  Double_t fULimitX, fLLimitX, fULimitY, fLLimitY;//this sets the upper and lower limits on the X & Y of the BPM stripline
-
-
-  /*This channel contains the 4-wire sum of the combined bpm at the target;equivalant to a charge*/
-  QwVQWK_Channel fCombinedWSum;
-
-  /* These channels contain the beam position at the target within the frame of the BPM*/
-  QwVQWK_Channel fCombinedAbsPos[3]; //absolute position
-
+ protected:
   /* This channel contains the beam slope w.r.t the X & Y axis at the target */
-  QwVQWK_Channel fCombinedSlope[2];
-
+  QwVQWK_Channel fSlope[2];
+  
   /* This channel contains the beam intercept w.r.t the X & Y axis at the target */
-  QwVQWK_Channel fCombinedIntercept[2];
-
-  Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check
-  Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
-
-  const static Bool_t bDEBUG=kFALSE;//debugging display purposes
-
-  Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
-
-  /* contains the beam position in the absolute frame defined as found reference...*/
+  QwVQWK_Channel fIntercept[2];
 
 };
-
-/********************************************************/
 
 
 

@@ -186,7 +186,7 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
 
   bEVENTCUTMODE          = 0;
 
-
+  //std::cout<< "name = "<<name<<" error count same _HW = "<<fErrorCount_SameHW <<std::endl;
   return;
 }
 
@@ -699,6 +699,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
       this->fSequenceNumber  = value.fSequenceNumber;
       this->fDeviceErrorCode = (value.fDeviceErrorCode);//error code is updated.
     }
+
   return *this;
 };
 
@@ -717,6 +718,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator+= (const QwVQWK_Channel &value)
     this->fNumberOfSamples  += value.fNumberOfSamples;
     this->fSequenceNumber   = 0;
     this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
+
   }
 
   return *this;
@@ -828,16 +830,16 @@ void QwVQWK_Channel::Product(QwVQWK_Channel &value1, QwVQWK_Channel &value2)
   return;
 };
 
-void QwVQWK_Channel::Offset(Double_t offset)
+void QwVQWK_Channel::AddChannelOffset(Double_t offset)
 {
-  if (!IsNameEmpty())
-    {
-      for (Short_t i=0; i<fBlocksPerEvent; i++) fBlock[i] +=offset;
+  Double_t blockoffset = offset / fBlocksPerEvent;
+
+  if (!IsNameEmpty()){
       fHardwareBlockSum += fBlocksPerEvent*offset;
-    }
+      for (Short_t i=0; i<fBlocksPerEvent; i++) fBlock[i] += blockoffset;
+  }
   return;
 };
-
 
 void QwVQWK_Channel::Scale(Double_t scale)
 {
@@ -850,6 +852,7 @@ void QwVQWK_Channel::Scale(Double_t scale)
       fHardwareBlockSum *= scale;
       fHardwareBlockSumM2 *= scale * scale;
     }
+
   return;
 };
 
@@ -1063,7 +1066,7 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts(Double_t LL=0,Double_t UL=0)//only c
     else
       status=kFALSE;//If the device HW is failed
   }
-
+  std::cout<<this->fDeviceErrorCode<<std::endl;
   return status;
 };
 
@@ -1102,7 +1105,6 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and up
   }
   else
     status=kTRUE;
-
 
     return status;
 };
