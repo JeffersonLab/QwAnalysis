@@ -52,9 +52,11 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   /// \brief Returns a string like <run#> or <run#>.<file#>
   TString GetRunLabel() const;
-  /// \brief Return true if file segments are being chained together for
+  /// \brief Return true if file segments are being separated for
   //analysis
-  Bool_t ChainDataFiles() const {return fChainDataFiles;};
+  Bool_t AreRunletsSplit() const   {
+    return (fRunIsSegmented && !fChainDataFiles);
+  };
   /// \brief Return CODA file run number
   Int_t GetRunNumber() const {return fCurrentRun;};
   /// \brief Return CODA file segment number

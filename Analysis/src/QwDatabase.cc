@@ -478,11 +478,11 @@ const UInt_t QwDatabase::SetRunletID(QwEventBuffer& qwevt)
       mysqlpp::Query query = this->Query();
 
       // Query is slightly different if file segments are being chained together for replay or not.
-      if (qwevt.ChainDataFiles()) {
-        query << "SELECT * FROM runlet WHERE run_id = " << fRunID << " AND full_run = 'true'";
-      } else {
+      if (qwevt.AreRunletsSplit()) {
         fSegmentNumber = qwevt.GetSegmentNumber();
         query << "SELECT * FROM runlet WHERE run_id = " << fRunID << " AND full_run = 'false' AND segment_number = " << fSegmentNumber;
+      } else {
+	query << "SELECT * FROM runlet WHERE run_id = " << fRunID << " AND full_run = 'true'";
       }
 
       std::vector<runlet> res;
@@ -531,12 +531,12 @@ const UInt_t QwDatabase::SetRunletID(QwEventBuffer& qwevt)
       row.end_time        = mysqlpp::null;
       row.first_mps = 0;
       row.last_mps	= 0;
-      if (qwevt.ChainDataFiles()) {
-        row.segment_number  = mysqlpp::null;
-        row.full_run = "true";
-      } else {
+      if (qwevt.AreRunletsSplit()) {
         row.segment_number = fSegmentNumber;
         row.full_run = "false";
+      } else {
+        row.segment_number  = mysqlpp::null;
+        row.full_run = "true";
       }
 
         mysqlpp::Query query=this->Query();
@@ -569,7 +569,7 @@ const UInt_t QwDatabase::GetRunletID(QwEventBuffer& qwevt)
   // If the stored run number does not agree with the CODA run number 
   // or if fRunID is not set, then retrieve data from database and update if necessary.
   
-  if (fRunletID == 0 || (!qwevt.ChainDataFiles() && fSegmentNumber!=qwevt.GetSegmentNumber()) || fRunNumber != (UInt_t) qwevt.GetRunNumber() ) {
+  if (fRunletID == 0 || (qwevt.AreRunletsSplit() && fSegmentNumber!=qwevt.GetSegmentNumber()) || fRunNumber != (UInt_t) qwevt.GetRunNumber() ) {
      QwDebug << "QwDatabase::GetRunletID() set fRunletID to " << SetRunletID(qwevt) << QwLog::endl;
      fAnalysisID = 0;
   }
@@ -646,7 +646,7 @@ const UInt_t QwDatabase::GetAnalysisID(QwEventBuffer& qwevt)
   }
 
   if (fAnalysisID == 0 || fRunNumber != (UInt_t) qwevt.GetRunNumber() 
-      || (!qwevt.ChainDataFiles() && fSegmentNumber!=qwevt.GetSegmentNumber())) {
+      || (qwevt.AreRunletsSplit() && fSegmentNumber!=qwevt.GetSegmentNumber())) {
     QwDebug << "QwDatabase::GetAnalysisID() set fAnalysisID to " << SetAnalysisID(qwevt) << QwLog::endl;
     if (fAnalysisID==0) {
       QwError << "QwDatabase::SetAnalysisID() unable to set valid fAnalysisID for this run.  Exiting." <<QwLog::endl;
