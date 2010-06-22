@@ -58,8 +58,13 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
 
   /// \brief Define configuration options for global array
   static void DefineOptions(QwOptions &options);
-  /// \brief Process configuration options for all subsystems
-  void ProcessOptions(QwOptions &options);
+  /// \brief Process configuration options for the subsystem array itself
+  void ProcessOptionsToplevel(QwOptions &options);
+  /// \brief Process configuration options for all subsystems in the array
+  void ProcessOptionsSubsystems(QwOptions &options);
+  /// \brief Process configuration options (default behavior)
+  void ProcessOptions(QwOptions &options) { ProcessOptionsSubsystems(options); };
+
 
   /// \brief Add the subsystem to this array
   void push_back(VQwSubsystem* subsys);
@@ -181,6 +186,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   };
   void  FillTreeVector(std::vector<Double_t> &values);
 
+
   /// \name Tree construction and maintenance
   /// These functions are not purely virtual, since not every subsystem is
   /// expected to implement them.  They are intended for expert output to
@@ -220,10 +226,14 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   UInt_t fCodaEventNumber; ///< CODA event number as provided by QwEventBuffer
   UInt_t fCodaEventType;   ///< CODA event type as provided by QwEventBuffer
 
-};
+ private:
+  /// Filename of the global detector map
+  std::string fSubsystemsMapFile;
+  std::vector<std::string> fSubsystemsDisabledByName; ///< List of disabled types
+  std::vector<std::string> fSubsystemsDisabledByType; ///< List of disabled names
 
 
+}; // class QwSubsystemArray
 
 
-
-#endif
+#endif // __QWSUBSYSTEMARRAY__

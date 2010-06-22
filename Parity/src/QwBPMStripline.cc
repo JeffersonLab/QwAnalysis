@@ -24,22 +24,22 @@ void  QwBPMStripline::InitializeChannel(TString name, Bool_t ROTATED)
   bRotated=ROTATED;
 
   VQwBPM::InitializeChannel(name,ROTATED);
-  
+
   for(i=0;i<2;i++)
     fAbsPos[i].InitializeChannel(name+axis[i],"derived");
-  
+
   fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","derived");
-      
+
   for(i=0;i<4;i++) {
     fWire[i].InitializeChannel(name+subelement[i],"raw");
     if(localdebug)
       std::cout<<" Wire ["<<i<<"]="<<fWire[i].GetElementName()<<"\n";
   }
-  
+
   for(i=0;i<2;i++) fRelPos[i].InitializeChannel(name+"Rel"+axis[i],"derived");
 
   bFullSave=kTRUE;
-  
+
   return;
 };
 
@@ -48,7 +48,7 @@ void QwBPMStripline::ClearEventData()
   Short_t i=0;
 
   for(i=0;i<4;i++) fWire[i].ClearEventData();
- 
+
   for(i=0;i<2;i++){
     fAbsPos[i].ClearEventData();
     fRelPos[i].ClearEventData();
@@ -124,7 +124,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Rel X event cut failed ";
     }
-    
+
     //update the event cut counters
     fRelPos[i].UpdateHWErrorCounters();
     //Get the Event cut error flag for RelX/Y
@@ -148,7 +148,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
   }
 
  //Event cuts for four wire sum (EffectiveCharge)
-  if (fEffectiveCharge.ApplySingleEventCuts()){ 
+  if (fEffectiveCharge.ApplySingleEventCuts()){
       status&=kTRUE;
   }
   else{
@@ -181,7 +181,7 @@ void QwBPMStripline::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t
   }else if (ch_name=="yp"){
     QwMessage<<"YP LL " <<  minX <<" UL " << maxX <<QwLog::endl;
     fWire[2].SetSingleEventCuts(minX,maxX);
-    
+
   }else if (ch_name=="ym"){
     QwMessage<<"YM LL " <<  minX <<" UL " << maxX <<QwLog::endl;
     fWire[3].SetSingleEventCuts(minX,maxX);
@@ -222,7 +222,7 @@ void  QwBPMStripline::ProcessEvent()
   ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine here and not in ApplySingleEventCuts  makes a difference for a BPMs because they have derrived devices.
 
   fEffectiveCharge.ClearEventData();
-  
+
   for(i=0;i<4;i++)
     {
       fWire[i].ProcessEvent();
@@ -290,7 +290,7 @@ Int_t QwBPMStripline::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_bu
 
 void QwBPMStripline::PrintValue() const
 {
-  for(Short_t i=0;i<4;i++){
+  for (Short_t i = 0; i < 2; i++) {
     fAbsPos[i].PrintValue();
     fRelPos[i].PrintValue();
   }
@@ -356,7 +356,7 @@ QwBPMStripline& QwBPMStripline::operator= (const QwBPMStripline &value)
     for(i=0;i<4;i++) this->fWire[i]=value.fWire[i];
     for(i=0;i<2;i++) {
       this->fRelPos[i]=value.fRelPos[i];
-      this->fAbsPos[i]=value.fAbsPos[i];  
+      this->fAbsPos[i]=value.fAbsPos[i];
     }
   }
   return *this;
@@ -388,7 +388,7 @@ QwBPMStripline& QwBPMStripline::operator-= (const QwBPMStripline &value)
     for(i=0;i<2;i++) {
       this->fRelPos[i]-=value.fRelPos[i];
       this->fAbsPos[i]-=value.fAbsPos[i];
-    } 
+    }
   }
   return *this;
 };
@@ -507,14 +507,14 @@ void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip constructing trees.
-  } 
+  }
   else {
     TString thisprefix=prefix;
     if(prefix=="asym_")
       thisprefix="diff_";
-    
+
     SetRootSaveStatus(prefix);
-    
+
     fEffectiveCharge.ConstructBranchAndVector(tree,prefix,values);
     Short_t i = 0;
     if(bFullSave) {
@@ -524,7 +524,7 @@ void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std
       fRelPos[i].ConstructBranchAndVector(tree,thisprefix,values);
       fAbsPos[i].ConstructBranchAndVector(tree,thisprefix,values);
     }
-    
+
   }
   return;
 };
@@ -573,7 +573,7 @@ void QwBPMStripline::Copy(VQwDataElement *source)
        throw std::invalid_argument(loc.Data());
      }
     }
-  
+
   catch (std::exception& e)
     {
       std::cerr << e.what() << std::endl;
@@ -601,9 +601,9 @@ void QwBPMStripline::MakeBPMList()
 
   QwVQWK_Channel bpm_sub_element;
 
-  for(i=0;i<2;i++) { 
+  for(i=0;i<2;i++) {
     bpm_sub_element.ClearEventData();
-    bpm_sub_element.Copy(&fRelPos[i]);   
+    bpm_sub_element.Copy(&fRelPos[i]);
     bpm_sub_element = fRelPos[i];
     fBPMElementList.push_back( bpm_sub_element );
   }
@@ -629,11 +629,11 @@ std::vector<QwDBInterface> QwBPMStripline::GetDBEntry()
   UInt_t beam_n        = 0;
 
   for(n_bpm_element=0; n_bpm_element<fBPMElementList.size(); n_bpm_element++) {
-    
+
     row.Reset();
     // the element name and the n (number of measurements in average)
     // is the same in each block and hardwaresum.
-    
+
     name          = fBPMElementList.at(n_bpm_element).GetElementName();
     beam_n        = fBPMElementList.at(n_bpm_element).GetGoodEventCount();
 
@@ -641,8 +641,8 @@ std::vector<QwDBInterface> QwBPMStripline::GetDBEntry()
     avg           = fBPMElementList.at(n_bpm_element).GetHardwareSum();
     err           = fBPMElementList.at(n_bpm_element).GetHardwareSumError();
     // ADC subblock sum : 0 in MySQL database
-    beam_subblock = 0; 
- 
+    beam_subblock = 0;
+
     row.SetDetectorName(name);
     row.SetSubblock(beam_subblock);
     row.SetN(beam_n);
@@ -652,12 +652,12 @@ std::vector<QwDBInterface> QwBPMStripline::GetDBEntry()
     row_list.push_back(row);
 
     // Get four Block averages and thier errors
-    
+
     for(i=0; i<4; i++) {
       row.Reset();
       avg           = fBPMElementList.at(n_bpm_element).GetBlockValue(i);
       err           = fBPMElementList.at(n_bpm_element).GetBlockErrorValue(i);
-      beam_subblock = (UInt_t) (i+1); 
+      beam_subblock = (UInt_t) (i+1);
       // QwVQWK_Channel  | MySQL
       // fBlock[0]       | subblock 1
       // fBlock[1]       | subblock 2
@@ -668,11 +668,11 @@ std::vector<QwDBInterface> QwBPMStripline::GetDBEntry()
       row.SetN(beam_n);
       row.SetValue(avg);
       row.SetError(err);
-      
+
       row_list.push_back(row);
     }
   }
-  
+
   return row_list;
 
 };

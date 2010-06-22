@@ -20,9 +20,9 @@
  */
 QwSubsystemArray::QwSubsystemArray(QwOptions& options)
 {
-  const char* filename = options.GetValue<std::string>("detectors").c_str();
-  QwMessage << "Loading subsystems from " << filename << QwLog::endl;
-  QwParameterFile detectors(filename);
+  ProcessOptionsToplevel(options);
+  QwParameterFile detectors(fSubsystemsMapFile.c_str());
+  QwMessage << "Loading subsystems from " << fSubsystemsMapFile << QwLog::endl;
   LoadSubsystemsFromParameterFile(detectors);
 }
 
@@ -32,6 +32,7 @@ QwSubsystemArray::QwSubsystemArray(QwOptions& options)
  */
 QwSubsystemArray::QwSubsystemArray(const char* filename)
 {
+  QwWarning << "Preferable call to QwSubsystemArray constructor is by specifying options objects" << QwLog::endl;
   QwMessage << "Loading subsystems from " << filename << QwLog::endl;
   QwParameterFile detectors(filename);
   LoadSubsystemsFromParameterFile(detectors);
@@ -53,9 +54,9 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
   QwParameterFile* section;
   std::string section_name;
   while ((section = detectors.ReadNextSection(section_name))) {
-    // Process section
-    QwMessage << "Adding subsystem of type " << section_name << QwLog::endl;
-    QwVerbose << "Section:" << QwLog::endl;
+
+    // Debugging output of configuration section
+    QwVerbose << "[" << section_name << "]" << QwLog::endl;
     QwVerbose << *section << QwLog::endl;
 
     // Determine type and name of subsystem
@@ -65,7 +66,30 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
       QwError << "No name defined in section for subsystem " << subsys_type << QwLog::endl;
       continue;
     }
+
+    // If subsystem type is explicitly disabled
+    bool disabled_by_type = false;
+    for (size_t i = 0; i < fSubsystemsDisabledByType.size(); i++)
+      if (subsys_type == fSubsystemsDisabledByType.at(i))
+        disabled_by_type = true;
+    if (disabled_by_type) {
+      QwWarning << "Subsystem of type " << subsys_type << " disabled." << QwLog::endl;
+      continue;
+    }
+
+    // If subsystem name is explicitly disabled
+    bool disabled_by_name = false;
+    for (size_t i = 0; i < fSubsystemsDisabledByName.size(); i++)
+      if (subsys_name == fSubsystemsDisabledByName.at(i))
+        disabled_by_name = true;
+    if (disabled_by_name) {
+      QwWarning << "Subsystem with name " << subsys_name << " disabled." << QwLog::endl;
+      continue;
+    }
+
     // Create subsystem
+    QwMessage << "Creating subsystem of type " << subsys_type << " "
+              << "with name " << subsys_name << QwLog::endl;
     VQwSubsystem* subsys =
       VQwSubsystemFactory::GetSubsystemFactory(subsys_type)->Create(subsys_name);
     if (! subsys) {
@@ -124,13 +148,46 @@ void QwSubsystemArray::DefineOptions(QwOptions &options)
   options.AddOptions()("detectors",
                        po::value<std::string>()->default_value("detectors.map"),
                        "map file with detectors to include");
+
+  // Versions of boost::program_options below 1.39.0 have a bug in multitoken processing
+#if BOOST_VERSION < 103900
+  options.AddOptions()("disable-by-type",
+                       po::value<std::vector <std::string> >(),
+                       "subsystem types to disable");
+  options.AddOptions()("disable-by-name",
+                       po::value<std::vector <std::string> >(),
+                       "subsystem names to disable");
+#else // BOOST_VERSION >= 103900
+  options.AddOptions()("disable-by-type",
+                       po::value<std::vector <std::string> >()->multitoken(),
+                       "subsystem types to disable");
+  options.AddOptions()("disable-by-name",
+                       po::value<std::vector <std::string> >()->multitoken(),
+                       "subsystem names to disable");
+#endif // BOOST_VERSION
 }
+
+
+/**
+ * Handle configuration options for the subsystem array itself
+ * @param options Options
+ */
+void QwSubsystemArray::ProcessOptionsToplevel(QwOptions &options)
+{
+  // Filename to use for subsystem creation (single filename could be expanded
+  // to a list)
+  fSubsystemsMapFile = options.GetValue<std::string>("detectors");
+  // Subsystems to disable
+  fSubsystemsDisabledByName = options.GetValueVector<std::string>("disable-by-name");
+  fSubsystemsDisabledByType = options.GetValueVector<std::string>("disable-by-type");
+}
+
 
 /**
  * Handle configuration options for all subsystems in the array
  * @param options Options
  */
-void QwSubsystemArray::ProcessOptions(QwOptions &options)
+void QwSubsystemArray::ProcessOptionsSubsystems(QwOptions &options)
 {
   for (iterator subsys_iter = begin(); subsys_iter != end(); ++subsys_iter) {
     VQwSubsystem* subsys = dynamic_cast<VQwSubsystem*>(subsys_iter->get());

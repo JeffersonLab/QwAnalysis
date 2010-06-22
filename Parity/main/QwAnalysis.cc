@@ -55,6 +55,9 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Define the command line options
   DefineOptionsParity(gQwOptions);
 
+  /// Setup screen and file logging
+  gQwLog.ProcessOptions(&gQwOptions);
+
   ///  Fill the search paths for the parameter files; this sets a static
   ///  variable within the QwParameterFile class which will be used by
   ///  all instances.
@@ -66,9 +69,6 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
   ///  histogram helper: QwHistogramHelper
   gQwHists.LoadHistParamsFromFile("parity_hists.in");
-
-  /// Setup screen and file logging
-  gQwLog.InitLogFile("qwanalysis.log");
 
   ///  Create a timer
   TStopwatch timer;

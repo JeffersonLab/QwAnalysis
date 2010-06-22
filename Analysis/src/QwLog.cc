@@ -59,7 +59,7 @@ QwLog::~QwLog()
 
 
 /**
- * Defines configuration options for QwDatabase class using QwOptions
+ * Defines configuration options for logging class using QwOptions
  * functionality.
  *
  * Note: this uses a pointer as opposed to a reference, because as indicated
@@ -72,13 +72,39 @@ QwLog::~QwLog()
 void QwLog::DefineOptions(QwOptions* options)
 {
   // Define the logging options
-  options->AddOptions()("QwLog.color", po::value<bool>()->default_value(true),
+  options->AddOptions("Logging options")("QwLog.color", po::value<bool>()->default_value(true),
                 "colored screen output");
-  options->AddOptions()("QwLog.logfile", po::value<string>(), "log file");
-  options->AddOptions()("QwLog.loglevel-file", po::value<int>()->default_value(4),
+  options->AddOptions("Logging options")("QwLog.logfile", po::value<string>(), "log file");
+  options->AddOptions("Logging options")("QwLog.loglevel-file", po::value<int>()->default_value(kMessage),
                 "log level for file output");
-  options->AddOptions()("QwLog.loglevel-screen", po::value<int>()->default_value(2),
+  options->AddOptions("Logging options")("QwLog.loglevel-screen", po::value<int>()->default_value(kMessage),
                 "log level for screen output");
+}
+
+
+/**
+ * Process configuration options for logging class using QwOptions
+ * functionality.
+ *
+ * Note: this uses a pointer as opposed to a reference, because as indicated
+ * above the QwLog class cannot depend on the QwOptions class.  When using a
+ * pointer we only need a forward declaration and we do not need to include
+ * the header file QwOptions.h.
+ *
+ * @param options Options object
+ */
+void QwLog::ProcessOptions(QwOptions* options)
+{
+  // Initialize log file
+  if (options->HasValue("QwLog.logfile"))
+    InitLogFile(options->GetValue<std::string>("QwLog.logfile"));
+
+  // Get and set the logging thresholds
+  SetFileThreshold(options->GetValue<int>("QwLog.loglevel-file"));
+  SetScreenThreshold(options->GetValue<int>("QwLog.loglevel-screen"));
+
+  // Get and set color flag
+  SetScreenColor(options->GetValue<bool>("QwLog.color"));
 }
 
 

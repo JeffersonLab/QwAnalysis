@@ -35,10 +35,10 @@ inline const char* getenv_safe (const char* name) {
  }
 }
 inline const std::string getenv_safe_string (const char* name) {
- return std::string(getenv(name));
+ return std::string(getenv_safe(name));
 }
 inline const TString getenv_safe_TString (const char* name) {
- return TString(getenv(name));
+ return TString(getenv_safe(name));
 }
 
 /**
@@ -139,13 +139,21 @@ class QwOptions {
 
     /// \brief Add a default option
     po::options_description_easy_init AddDefaultOptions() {
-      fParsed = false;
-      return fDefaultOptions.add_options();
+      return AddOptions("Default options");
     };
-    /// \brief Add an option
-    po::options_description_easy_init AddOptions() {
+    /// \brief Add an option to a named block or create new block
+    po::options_description_easy_init
+    AddOptions(const std::string& blockname = "Specialized options") {
       fParsed = false;
-      return fSpecialOptions.add_options();
+      // Note: Would like to solve this with find_if(b,e,bind()) but no access to block name
+      // Search for the block name if it exists
+      for (size_t i = 0; i < fOptionBlockName.size(); i++)
+        if (blockname == fOptionBlockName.at(i))
+          return fOptionBlock.at(i)->add_options();
+      // Create new block if not existing yet
+      fOptionBlock.push_back(new po::options_description(blockname));
+      fOptionBlockName.push_back(blockname);
+      return fOptionBlock.back()->add_options();
     };
 
 
@@ -214,6 +222,16 @@ class QwOptions {
         return 0;
       }
     }
+    /// \brief Get a list of templated values
+    template < class T >
+    std::vector < T > GetValueVector(const std::string key) {
+      std::vector<T> list;
+      if (fParsed == false) Parse();
+      if (fVariablesMap.count(key)) {
+        list = fVariablesMap[key].as< std::vector<T> >();
+      }
+      return list;
+    }
 
     /// \brief Get a pair of integer values
     std::pair<int,int> GetIntValuePair(string key);
@@ -258,10 +276,12 @@ class QwOptions {
     static char** fArgv;
 
     // Vector with option blocks
-    std::vector<po::options_description> fOptions;
-    // Options descriptions grouped by function
-    static po::options_description fDefaultOptions;
-    static po::options_description fSpecialOptions;
+    // Notes:
+    // - boost::po cannot work with object array
+    // - no access to the name of the block after creation
+    std::vector<po::options_description*> fOptionBlock;
+    std::vector<std::string> fOptionBlockName;
+
     // Options descriptions grouped by parser
     static po::options_description fCommandLineOptions;
     static po::options_description fEnvironmentOptions;
