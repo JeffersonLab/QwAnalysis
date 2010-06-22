@@ -30,14 +30,15 @@ class QwBPMStripline : public VQwBPM {
 
  public:
   QwBPMStripline() { };
-  QwBPMStripline(TString name, Bool_t ROTATED):VQwBPM(name,ROTATED){
-    InitializeChannel(name, ROTATED);
-  
+  QwBPMStripline(TString name, Bool_t ROTATED):VQwBPM(name){
+    InitializeChannel(name);
+    bRotated=ROTATED;
+
   };
 
   ~QwBPMStripline() {DeleteHistograms();};
 
-  void    InitializeChannel(TString name, Bool_t ROTATED);
+  void    InitializeChannel(TString name);
   void    ClearEventData();
   Int_t   ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);

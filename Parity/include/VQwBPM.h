@@ -37,19 +37,28 @@ class VQwBPM : public VQwDataElement {
  public:
   // Default constructor
   VQwBPM() { };
-  VQwBPM(TString name, Bool_t ROTATED):VQwDataElement(){
-    InitializeChannel(name,ROTATED);
+  VQwBPM(TString name):VQwDataElement(){
+    InitializeChannel(name);
   };
 
   virtual ~VQwBPM(){DeleteHistograms(); };
 
 
-  virtual void   InitializeChannel(TString name, Bool_t ROTATED);
-  void           GetOffset(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset);
+  void   InitializeChannel(TString name);
+  void   ClearEventData();
+  void   GetOffset(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset);
 
-  Int_t          GetEventcutErrorFlag(){//return the error flag
+  Int_t  GetEventcutErrorFlag(){//return the error flag
     return fDeviceErrorCode;
   };
+  Int_t  GetEventcutErrorCounters();
+
+  Bool_t  ApplySingleEventCuts();
+  void    SetSingleEventCuts(TString, Double_t, Double_t);
+
+
+  VQwBPM& operator+=(const VQwBPM&);
+  VQwBPM& operator-=(const VQwBPM&);
 
   void Sum(VQwBPM &value1, VQwBPM &value2);
   void Difference(VQwBPM &value1, VQwBPM &value2);
@@ -67,7 +76,6 @@ class VQwBPM : public VQwDataElement {
   protected:
   Double_t fPositionCenter[3];
   static const TString axis[3];
-  Bool_t   bRotated;
 
 
   QwVQWK_Channel fAbsPos[2]; // Z will not be considered as a vqwk_channel

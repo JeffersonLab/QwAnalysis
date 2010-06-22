@@ -14,16 +14,12 @@ const Double_t QwBPMStripline::kQwStriplineCalibration = 18.77;
 const Double_t QwBPMStripline::kRotationCorrection = 1./1.414;
 const TString QwBPMStripline::subelement[4]={"XP","XM","YP","YM"};
 
-void  QwBPMStripline::InitializeChannel(TString name, Bool_t ROTATED)
+void  QwBPMStripline::InitializeChannel(TString name)
 {
   Short_t i=0;
   Bool_t localdebug = kFALSE;
 
-//   bEVENTCUTMODE    = false;
-//   fDeviceErrorCode = 0;
-  bRotated=ROTATED;
-
-  VQwBPM::InitializeChannel(name,ROTATED);
+  VQwBPM::InitializeChannel(name);
 
   for(i=0;i<2;i++)
     fAbsPos[i].InitializeChannel(name+axis[i],"derived");

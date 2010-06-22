@@ -11,10 +11,10 @@
 
 
 
-void  QwCombinedBPM::InitializeChannel(TString name, Bool_t ROTATED)
+void  QwCombinedBPM::InitializeChannel(TString name)
 {
   
-  VQwBPM::InitializeChannel(name,ROTATED);
+  VQwBPM::InitializeChannel(name);
   
   fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","derived");
   

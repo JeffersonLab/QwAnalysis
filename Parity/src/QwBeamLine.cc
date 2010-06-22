@@ -176,7 +176,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	  // Decoding combined BPM array.
 	  if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbpm"){
 	    
-	    QwCombinedBPM localbpmcombo(localComboID.fdetectorname,!unrotated );
+	    QwCombinedBPM localbpmcombo(localComboID.fdetectorname );
 	    fBPMCombo.push_back(localbpmcombo);
 	    
 	    for(size_t i=0;i<fDeviceName.size();i++){

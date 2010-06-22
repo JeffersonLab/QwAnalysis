@@ -26,13 +26,13 @@ class QwCombinedBPM : public VQwBPM{
   /////
  public:
   QwCombinedBPM(){};
-  QwCombinedBPM(TString name, Bool_t ROTATED):VQwBPM(name,ROTATED){
-    InitializeChannel(name,ROTATED);
+  QwCombinedBPM(TString name):VQwBPM(name){
+    InitializeChannel(name);
   };
 
   ~QwCombinedBPM() {DeleteHistograms();};
 
-  void    InitializeChannel(TString name, Bool_t ROTATED);
+  void    InitializeChannel(TString name);
   void    ClearEventData();
   Int_t   ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
