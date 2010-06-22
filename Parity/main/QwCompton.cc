@@ -250,7 +250,7 @@ int main(int argc, char* argv[])
       // Consecutive runs should have no trivially related seeds:
       // e.g. with 0x2 * run, the first two files will be just 1 MPS offset...
       unsigned int seed = 0x1234 ^ run;
-      helicity->SetFirst24Bits(seed & 0xFFFFFF);
+      helicity->SetFirstBits(24, seed & 0xFFFFFF);
     }
 
     // Loop over events in this CODA file

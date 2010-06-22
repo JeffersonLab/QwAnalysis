@@ -782,6 +782,24 @@ Int_t QwHelicity::GetPhaseNumber()
   return fPatternPhaseNumber;
 };
 
+void QwHelicity::SetEventPatternPhase(Int_t event, Int_t pattern, Int_t phase)
+{
+  fEventNumber = event;
+  fPatternNumber = pattern;
+  fPatternPhaseNumber = phase;
+};
+
+void QwHelicity::SetFirstBits(UInt_t nbits, UInt_t seed)
+{
+  // This gives the predictor a quick start
+  UShort_t firstbits[nbits];
+  for (unsigned int i = 0; i < nbits; i++) firstbits[i] = (seed >> i) & 0x1;
+  // Set delayed seed
+  iseed_Delayed = GetRandomSeed(firstbits);
+  // Progress actual seed by the helicity delay
+  iseed_Actual = iseed_Delayed;
+  for (int i = 0; i < fHelicityDelay; i++) GetRandbit(iseed_Actual);
+}
 
 void QwHelicity::SetHistoTreeSave(const TString &prefix)
 {

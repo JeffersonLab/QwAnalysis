@@ -118,6 +118,7 @@ class QwHelicity: public VQwSubsystemParity{
 
   virtual void  ClearEventData();
   virtual void  ProcessEvent();
+
   UInt_t GetRandomSeedActual() { return iseed_Actual; };
   UInt_t GetRandomSeedDelayed() { return iseed_Delayed; };
 
@@ -134,6 +135,9 @@ class QwHelicity: public VQwSubsystemParity{
   Int_t GetMaxPatternPhase(){
     return fMaxPatternPhase;
   };
+
+  void SetFirstBits(UInt_t nbits, UInt_t firstbits);
+  void SetEventPatternPhase(Int_t event, Int_t pattern, Int_t phase);
 
   void  Copy(VQwSubsystem *source);
   virtual VQwSubsystem*  Copy();
