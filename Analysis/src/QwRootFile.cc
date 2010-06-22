@@ -98,6 +98,13 @@ void QwRootFile::DefineOptions(QwOptions &options)
   options.AddOptions()
     ("num-discarded-events", po::value<int>()->default_value(0),
      "number of discarded consective events");
+  options.AddOptions()
+    ("mapfile-update-interval", po::value<int>()->default_value(400),
+     "Events between a map file update");
+  /*  options.AddOptions()("trim-tree",
+                       po::value<std::string>()->default_value("tree_trim.in"),
+                       "Contains subsystems/elements to be included in the tree");
+  */
 }
 
 
@@ -125,6 +132,14 @@ void QwRootFile::ProcessOptions(QwOptions &options)
   fNumEventsToSave = options.GetValue<int>("num-accepted-events");
   fNumEventsToSkip = options.GetValue<int>("num-discarded-events");
   fNumEventsCycle = fNumEventsToSave + fNumEventsToSkip;
+
+  //Update interval for the map file
+  fUpdateInterval = options.GetValue<int>("mapfile-update-interval");
+  
+  /*
+  fTreeTrim_Filename = options.GetValue<std::string>("trim-tree").c_str();
+  QwMessage << "Tree trim definition file " << fTreeTrim_Filename << QwLog::endl;
+  */
 }
 
 
@@ -180,6 +195,10 @@ void QwRootFile::ConstructHistograms(QwHelicityPattern& helicity_pattern)
  */
 void QwRootFile::ConstructTreeBranches(QwSubsystemArrayParity& detectors)
 {
+  /*
+  //Access the tree trimming definition file
+  QwParameterFile trimm_tree(fTreeTrim_Filename);
+  */
   // Return if we do not want tree or mps information
   if (! fEnableTree) return;
   if (! fEnableMps) return;
