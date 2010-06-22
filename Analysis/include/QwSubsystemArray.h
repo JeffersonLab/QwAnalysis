@@ -73,7 +73,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   virtual VQwSubsystem* GetSubsystemByName(const TString& name);
 
   /// \brief Get the list of subsystems of the specified type
-  virtual std::vector<VQwSubsystem*> GetSubsystemByType(const TString& type);
+  virtual std::vector<VQwSubsystem*> GetSubsystemByType(const std::string& type);
 
   //each of the methods below will call their counterpart method separately.
 

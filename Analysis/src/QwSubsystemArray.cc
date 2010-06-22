@@ -91,7 +91,7 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
     QwMessage << "Creating subsystem of type " << subsys_type << " "
               << "with name " << subsys_name << QwLog::endl;
     VQwSubsystem* subsys =
-      VQwSubsystemFactory::GetSubsystemFactory(subsys_type)->Create(subsys_name);
+      VQwSubsystemFactory::Create(subsys_type, subsys_name);
     if (! subsys) {
       QwError << "Could not create subsystem " << subsys_type << QwLog::endl;
       continue;
@@ -222,11 +222,11 @@ VQwSubsystem* QwSubsystemArray::GetSubsystemByName(const TString& name)
 
 
 /**
- * Get the list of subsystems in this array of the spcified type
+ * Get the list of subsystems in this array of the specified type
  * @param type Type of the subsystem
  * @return Vector of subsystems
  */
-std::vector<VQwSubsystem*> QwSubsystemArray::GetSubsystemByType(const TString& type)
+std::vector<VQwSubsystem*> QwSubsystemArray::GetSubsystemByType(const std::string& type)
 {
   // Vector of subsystem pointers
   std::vector<VQwSubsystem*> subsys_list;
@@ -234,22 +234,15 @@ std::vector<VQwSubsystem*> QwSubsystemArray::GetSubsystemByType(const TString& t
   // If this array is not empty
   if (!empty()) {
 
-    // Create dummy subsystem of requested type
-    VQwSubsystem* subsys_of_requested_type =
-      VQwSubsystemFactory::GetSubsystemFactory(type)->Create("dummy");
-
     // Loop over the subsystems
     for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
 
-      // Test for equality of types (typeid is pointer to type_info, so dereference)
-      if (typeid(*(*subsys).get()) == typeid(*subsys_of_requested_type)) {
+      // Try to cast the subsystem into the required type
+      if (VQwSubsystemFactory::Cast((*subsys).get(),type)) {
         subsys_list.push_back((*subsys).get());
       }
 
     } // end of loop over subsystems
-
-    // Delete dummy subsystem again
-    delete subsys_of_requested_type;
 
   } // end of if !empty()
 

@@ -115,7 +115,7 @@ QwSubsystemArray* VQwSubsystem::GetParent(const unsigned int parent) const
  * @param name Name of the sibling subsystem
  * @return Pointer to the sibling subsystem
  */
-VQwSubsystem* VQwSubsystem::GetSibling(const TString& name) const
+VQwSubsystem* VQwSubsystem::GetSibling(const std::string& name) const
 {
   // Get the parent and check for existence
   QwSubsystemArray* parent = GetParent();

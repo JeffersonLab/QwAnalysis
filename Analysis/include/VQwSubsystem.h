@@ -62,6 +62,7 @@ class VQwSubsystem {
   VQwSubsystem(const TString& name)
     : fSystemName(name), fIsDataLoaded(kFALSE), fCurrentROC_ID(-1), fCurrentBank_ID(-1) { };
 
+  /// Default destructor
   virtual ~VQwSubsystem() { };
 
   /// \brief Define options function (note: no virtual static functions in C++)
@@ -78,7 +79,7 @@ class VQwSubsystem {
   /// \brief Get the parent of this subsystem
   QwSubsystemArray* GetParent(const unsigned int parent = 0) const;
   /// \brief Get the sibling with specified name
-  VQwSubsystem* GetSibling(const TString& name) const;
+  VQwSubsystem* GetSibling(const std::string& name) const;
 
   /// \brief Publish a variable name to the parent subsystem array
   const Bool_t PublishInternalValue(const TString name, const TString desc) const;

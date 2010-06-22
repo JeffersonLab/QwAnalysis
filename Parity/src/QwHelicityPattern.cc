@@ -32,31 +32,18 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
   if (subsys_helicity.size() > 0) {
     // Take the first helicity subsystem
     fHelicitySubsystem = dynamic_cast<QwHelicity*>(subsys_helicity.at(0));
-    // And use the maximum pattern phase (i.e. pattern size)
+    // Get the maximum pattern phase (i.e. pattern size)
     fPatternSize = fHelicitySubsystem->GetMaxPatternPhase();
-    if (subsys_helicity.size() > 1) {
+    // Warn if more than one helicity subsystem defined
+    if (subsys_helicity.size() > 1)
       QwWarning << "Multiple helicity subsystems defined! "
                 << "Using " << fHelicitySubsystem->GetSubsystemName() << "."
                 << QwLog::endl;
-    }
-  }
-  else {
-    // Are we using fake helicity? Check.
-    std::vector<VQwSubsystem*> subsys_fake_helicity = event.GetSubsystemByType("QwFakeHelicity");
-    if (subsys_fake_helicity.size() > 0) {
-      fHelicitySubsystem = dynamic_cast<QwHelicity*>(subsys_fake_helicity.at(0));
-      fPatternSize = fHelicitySubsystem->GetMaxPatternPhase();
 
-      QwWarning<<""<<QwLog::endl;
-      QwWarning<<"USING FAKE HELICITY!"<< QwLog::endl;
-      QwWarning<<""<<QwLog::endl;
-
-
-    } else {
-      // We are not usng any helicity subsystem
-      QwError << "No helicity subsystem defined!  Brace for impact!" << QwLog::endl;
-      fPatternSize = 4; // default to quartets
-    }
+  } else {
+    // We are not usng any helicity subsystem
+    QwError << "No helicity subsystem defined!  Brace for impact!" << QwLog::endl;
+    fPatternSize = 4; // default to quartets
   }
   QwMessage << "QwHelicity::MaxPatternPhase = " << fPatternSize << QwLog::endl;
 
