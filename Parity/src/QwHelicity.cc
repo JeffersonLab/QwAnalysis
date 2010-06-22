@@ -35,7 +35,9 @@ void QwHelicity::DefineOptions(QwOptions &options){
   //End of QwHelicity options
 
 };
+
 //**************************************************//
+
 void QwHelicity::ProcessOptions(QwOptions &options){
   //Read the cmd options and override channel map settings
   QwMessage<<"QwHelicity::ProcessOptions"<<QwLog::endl;
@@ -59,13 +61,15 @@ void QwHelicity::ProcessOptions(QwOptions &options){
     SetHelicityDelay(gQwOptions.GetValue<int>("helicity.delay"));
   }
 };
+
+
 Bool_t QwHelicity::IsContinuous()
 {
   Bool_t results=kFALSE;
   if(IsGoodPatternNumber()&&IsGoodEventNumber()&&IsGoodPhaseNumber())
     results=kTRUE;
   return results;
-}
+};
 
 
 Bool_t QwHelicity::IsGoodPatternNumber()
@@ -170,7 +174,7 @@ Bool_t QwHelicity::IsGoodHelicity()
     }
 
   return fGoodHelicity;
-}
+};
 
 
 void QwHelicity::ClearEventData()
@@ -197,28 +201,30 @@ void QwHelicity::ClearEventData()
   fPatternPhaseNumber = -1;
 
   return;
-}
+};
 
 Int_t QwHelicity::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   //stub function
   std::cerr<<" this function QwHelicity::ProcessConfigurationBuffer does nothing yet \n";
   return 0;
-}
+};
 
 Int_t QwHelicity::LoadInputParameters(TString pedestalfile)
 {
   //SetHelicityDelay(8); // that is the number of pattern delayed
   return 0;
-}
+};
 
-Bool_t QwHelicity::ApplySingleEventCuts(){//impose single event cuts //Paul's modifications
 
+Bool_t QwHelicity::ApplySingleEventCuts(){
+  //impose single event cuts //Paul's modifications
 
   return kTRUE;
 };
 
-Int_t QwHelicity::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+Int_t QwHelicity::GetEventcutErrorCounters(){
+  // report number of events falied due to HW and event cut faliure
 
   return 1;
 };
@@ -227,11 +233,10 @@ Int_t QwHelicity::GetEventcutErrorFlag(){//return the error flag
 
   return 0;
 
-}
+};
 
 void QwHelicity::ProcessEventUserbitMode()
 {
-  //std::cout<<"In  QwHelicity::ProcessEventUserbitMode() \n";
 
   // In this version of the code, the helicty is extracted for a userbit configuration.
   // This is not what we plan to have for Qweak but what we used for the winter 2008-09
@@ -317,7 +322,7 @@ void QwHelicity::ProcessEventUserbitMode()
     }
 
   return;
-}
+};
 
 
 void QwHelicity::ProcessEventInputRegisterMode()
@@ -352,23 +357,6 @@ void QwHelicity::ProcessEventInputRegisterMode()
        fPatternNumber      = fPatternNumberOld;
      }
    }
-   /*
-   // folowing, a bunch of self consistancy checks
-   if(fEventNumber!=fEventNumberOld+1)
-   std::cerr<<"QwHelicity::ProcessEvent read event# is not old_event#+1 \n";
-
-   if ((thisinputregister & 0x4) == 0x4) //  Quartet bit is set.
-     {
-       //std::cerr<<"QwHelicity::ProcessEvent:  The Multiplet Sync bit is set, but the Pattern Phase (" << fPatternPhaseNumber << ") is not 1!" << std::endl;
-       fPatternPhaseNumber    = fPATTERNPHASEOFFSET;  // Reset the QRT phase
-       fPatternNumber = fPatternNumberOld+1;     // Increment the QRT  counter
-     }
-   else
-     {
-       fPatternPhaseNumber=fPatternPhaseNumberOld+1; // Increment the QRT phase
-     }
-     // end of consistancy checks
-   */
 
    if(fEventNumber!=fEventNumberOld+1)
      std::cerr<<"QwHelicity::ProcessEvent read event# is not  old_event#+1 \n";
@@ -391,7 +379,8 @@ void QwHelicity::ProcessEventInputRegisterMode()
    }
 
   return;
-}
+};
+
 
 void  QwHelicity::ProcessEvent()
 {
@@ -400,14 +389,14 @@ void  QwHelicity::ProcessEvent()
     case kHelUserbitMode :
       ProcessEventUserbitMode();
       break;
+
     case kHelInputRegisterMode :
       ProcessEventInputRegisterMode();
       break;
     default:
-      std::cerr<<"QwHelicity::ProcessEvent no instructions on how to decode the helicity !!!!\n";
+      QwError<<"QwHelicity::ProcessEvent no instructions on how to decode the helicity !!!!"<<QwLog::endl;
       abort();
     }
-
 
   if(fHelicityBitPlus==fHelicityBitMinus)
     fHelicityReported=-1;
@@ -415,8 +404,7 @@ void  QwHelicity::ProcessEvent()
   PredictHelicity();
 
   return;
-  }
-
+};
 
 
 void QwHelicity::EncodeEventData(std::vector<UInt_t> &buffer)
@@ -484,9 +472,7 @@ void QwHelicity::EncodeEventData(std::vector<UInt_t> &buffer)
     buffer.insert(buffer.end(), subbankheader.begin(), subbankheader.end());
     buffer.insert(buffer.end(), localbuffer.begin(), localbuffer.end());
   }
-}
-
-
+};
 
 void QwHelicity::Print() const
 {
@@ -510,7 +496,8 @@ void QwHelicity::Print() const
 
   std::cout<<"===\n";
   return;
-}
+};
+
 
 Int_t QwHelicity::LoadChannelMap(TString mapfile)
 {
@@ -594,78 +581,77 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	  }
 	  else
 	    {
-	      std::cerr<<"The helicity decoding mode read in file "<<mapfile<<"\n";
-	      std::cerr<<" is not recognized in function QwHelicity::LoadChannelMap \n";
-	      std::cerr<<" Quiting this execution \n";
+	      QwError <<"The helicity decoding mode read in file "<<mapfile
+		      <<" is not recognized in function QwHelicity::LoadChannelMap \n"
+		      <<" Quiting this execution."<<QwLog::endl;
 	    }
 	}
-    } else
-      {
-	Bool_t lineok=kTRUE;
-	//  Break this line into tokens to process it.
-	modtype   = mapstr.GetNextToken(", ").c_str();	// module type
-	modnum    = (atol(mapstr.GetNextToken(", ").c_str()));	//slot number
-	channum   = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
-	dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
-	dettype.ToLower();
-	namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
-	namech.ToLower();
-	keyword = mapstr.GetNextToken(", ").c_str();
-	keyword.ToLower();
-	// Notice that "namech" and "keyword" are now forced to lower-case.
-
-	if(currentsubbankindex!=GetSubbankIndex(currentrocread,currentbankread))
-	  {
-	    currentsubbankindex=GetSubbankIndex(currentrocread,currentbankread);
-	    wordsofar=0;
-	  }
-
-	if(modtype=="SKIP"){
-	  if (modnum<=0) wordsofar+=1;
-	  else           wordsofar+=modnum;
+    } else{
+      Bool_t lineok=kTRUE;
+      //  Break this line into tokens to process it.
+      modtype   = mapstr.GetNextToken(", ").c_str();	// module type
+      modnum    = (atol(mapstr.GetNextToken(", ").c_str()));	//slot number
+      channum   = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
+      dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
+      dettype.ToLower();
+      namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+      namech.ToLower();
+      keyword = mapstr.GetNextToken(", ").c_str();
+      keyword.ToLower();
+      // Notice that "namech" and "keyword" are now forced to lower-case.
+      
+      if(currentsubbankindex!=GetSubbankIndex(currentrocread,currentbankread))
+	{
+	  currentsubbankindex=GetSubbankIndex(currentrocread,currentbankread);
+	  wordsofar=0;
 	}
-	else if(modtype!="WORD"|| dettype!="helicitydata")
-	  {
-	    std::cerr << "QwHelicity::LoadChannelMap:  Unknown detector type: "
-		      << dettype <<", the detector "<<namech<<" will not be decoded "
-		      << std::endl;
-	    lineok=kFALSE;
-	    continue;
-	  }
-	else
-	  {
-	    QwWord localword;
-	    localword.fSubbankIndex=currentsubbankindex;
-	    localword.fWordInSubbank=wordsofar;
-	    wordsofar+=1;
-	    // I assume that one data = one word here. But it is not always the case, for
-	    // example the triumf adc gives 6 words per channel
-	    localword.fModuleType=modtype;
-	    localword.fWordName=namech;
-	    localword.fWordType=dettype;
-	    fWord.push_back(localword);
-	    fWordsPerSubbank[currentsubbankindex].second = fWord.size();
-	    if(ldebug) std::cout<<"--"<<namech<<"--"<<fWord.size()-1<<"\n";
-
-	    // Notice that "namech" is in lower-case, so these checks
-	    // should all be in lower-case
-	    switch (fHelicityDecodingMode)
-	      {
-	      case kHelUserbitMode :
-		if(namech.Contains("userbit")) kUserbit=fWord.size()-1;
-		if(namech.Contains("scalercounter")) kScalerCounter=fWord.size()-1;
-		break;
-	      case kHelInputRegisterMode :
-		if(namech.Contains("input_register")) kInputRegister= fWord.size()-1;
-		if(namech.Contains("mps_counter")) kMpsCounter= fWord.size()-1;
-		if(namech.Contains("pat_counter")) kPatternCounter= fWord.size()-1;
-		if(namech.Contains("pat_phase")) kPatternPhase= fWord.size()-1;
-		break;
-	      }
-	  }
+      
+      if(modtype=="SKIP"){
+	if (modnum<=0) wordsofar+=1;
+	else           wordsofar+=modnum;
       }
+      else if(modtype!="WORD"|| dettype!="helicitydata")
+	{
+	  QwError << "QwHelicity::LoadChannelMap:  Unknown detector type: "
+		  << dettype <<", the detector "<<namech<<" will not be decoded "
+		  << QwLog::endl;
+	  lineok=kFALSE;
+	  continue;
+	}
+      else
+	{
+	  QwWord localword;
+	  localword.fSubbankIndex=currentsubbankindex;
+	  localword.fWordInSubbank=wordsofar;
+	  wordsofar+=1;
+	  // I assume that one data = one word here. But it is not always the case, for
+	  // example the triumf adc gives 6 words per channel
+	  localword.fModuleType=modtype;
+	  localword.fWordName=namech;
+	  localword.fWordType=dettype;
+	  fWord.push_back(localword);
+	  fWordsPerSubbank[currentsubbankindex].second = fWord.size();
+	  if(ldebug) std::cout<<"--"<<namech<<"--"<<fWord.size()-1<<"\n";
+	  
+	  // Notice that "namech" is in lower-case, so these checks
+	  // should all be in lower-case
+	  switch (fHelicityDecodingMode)
+	    {
+	    case kHelUserbitMode :
+	      if(namech.Contains("userbit")) kUserbit=fWord.size()-1;
+	      if(namech.Contains("scalercounter")) kScalerCounter=fWord.size()-1;
+	      break;
+	    case kHelInputRegisterMode :
+	      if(namech.Contains("input_register")) kInputRegister= fWord.size()-1;
+	      if(namech.Contains("mps_counter")) kMpsCounter= fWord.size()-1;
+	      if(namech.Contains("pat_counter")) kPatternCounter= fWord.size()-1;
+	      if(namech.Contains("pat_phase")) kPatternPhase= fWord.size()-1;
+	      break;
+	    }
+	}
+    }
   }
-
+  
   if(ldebug)
     {
       std::cout<<"Done with Load map channel \n";
@@ -704,7 +690,6 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 Int_t QwHelicity::LoadEventCuts(TString filename){
   return 0;
 };
-
 
 
 Int_t QwHelicity::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
@@ -749,7 +734,6 @@ Int_t QwHelicity::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UIn
   lkDEBUG=kFALSE;
   return 0;
 }
-
 
 
 Int_t QwHelicity::GetHelicityReported()
@@ -812,7 +796,7 @@ void QwHelicity::SetHistoTreeSave(const TString &prefix)
     fHistoType = kHelSaveMPS;
 
   return;
-}
+};
 
 void  QwHelicity::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
@@ -861,14 +845,13 @@ void  QwHelicity::ConstructHistograms(TDirectory *folder, TString &prefix)
       }
     }
   else
-    std::cerr<<"QwHelicity::ConstructHistograms this prefix--"<<prefix<<"-- is not unknown:: no histo created";
+    QwError<<"QwHelicity::ConstructHistograms this prefix--"<<prefix<<"-- is not unknown:: no histo created"<<QwLog::endl;
 
   return;
-}
+};
 
 void  QwHelicity::DeleteHistograms()
 {
-  //std::cout<<"QwHelicity::DeleteHistograms for system="<<fSystemName<<"; fHistograms.size="<<fHistograms.size()<<"\n";
   if((fHistoType==kHelSaveMPS)||(fHistoType==kHelSavePattern))
     {
       for (size_t i=0; i<fHistograms.size(); i++){
@@ -922,13 +905,12 @@ void  QwHelicity::FillHistograms()
     }
 
   return;
-}
+};
 
 
 void  QwHelicity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   SetHistoTreeSave(prefix);
-  //  std::cout<<"QwHelicity::ConstructBranchAndVector  prefix="<<prefix<<" fHistoType="<<fHistoType<<"\n";
 
 
   fTreeArrayIndex  = values.size();
@@ -940,12 +922,6 @@ void  QwHelicity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::ve
     }
   else if(fHistoType==kHelSaveMPS)
     {
-      /*
-      basename = "helicity";
-      values.push_back(0.0);
-      tree->Branch(basename, &(values[localindex]),basename+"/D");
-      //
-      */
       basename = "actual_helicity";    //predicted actual helicity before being delayed.
       values.push_back(0.0);
       tree->Branch(basename, &(values[localindex]),basename+"/D");
@@ -983,12 +959,6 @@ void  QwHelicity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::ve
     }
   else if(fHistoType==kHelSavePattern)
     {
-      /*
-      basename = "pattern_polarity";
-      values.push_back(0.0);
-      tree->Branch(basename, &(values[localindex]),basename+"/D");
-      //
-      */
       basename = "actual_pattern_polarity";
       values.push_back(0.0);
       tree->Branch(basename, &(values[localindex]),basename+"/D");
@@ -1014,7 +984,7 @@ void  QwHelicity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::ve
     }
 
   return;
-}
+};
 
 void  QwHelicity::FillTreeVector(std::vector<Double_t> &values)
 {
@@ -1043,7 +1013,7 @@ void  QwHelicity::FillTreeVector(std::vector<Double_t> &values)
     }
 
   return;
-}
+};
 
 void  QwHelicity::FillDB(QwDatabase *db, TString type)
 {
@@ -1065,7 +1035,6 @@ void  QwHelicity::FillDB(QwDatabase *db, TString type)
 };
 
 
-
 UInt_t QwHelicity::GetRandbit(UInt_t& ranseed){
   Bool_t status = false;
 
@@ -1075,8 +1044,7 @@ UInt_t QwHelicity::GetRandbit(UInt_t& ranseed){
     status=GetRandbit30(ranseed);
 
   return status;
-}
-
+};
 
 UInt_t QwHelicity::GetRandbit24(UInt_t& ranseed)
 {
@@ -1116,6 +1084,7 @@ UInt_t QwHelicity::GetRandbit24(UInt_t& ranseed)
 
   if(ranseed<=0)
     {
+      std::cerr<<"ranseed must be greater than zero!"<<"\n";
       result = 0;
     }
 
@@ -1198,14 +1167,13 @@ UInt_t QwHelicity::GetRandomSeed(UShort_t* first24randbits)
 
   return ranseed;
 
-}
+};
 
 
 void QwHelicity::RunPredictor()
 {
   Int_t ldebug = 0;
 
-  //if(ldebug)  std::cerr<<"Entering QwHelicity::RunPredictor \n";
   if(ldebug)  std::cerr<<"Entering QwHelicity::RunPredictor for fEventNumber, "<<fEventNumber
 		       <<", fPatternNumber, "<<fPatternNumber
 		       << ", and fPatternPhaseNumber, "<<fPatternPhaseNumber<<std::endl;//Paul's modifications
@@ -1217,7 +1185,7 @@ void QwHelicity::RunPredictor()
     {
       fActualPatternPolarity = GetRandbit(iseed_Actual);
       fDelayedPatternPolarity= GetRandbit(iseed_Delayed);
-      if(ldebug) std::cout<<"Predicting : seed actual, delayed: "<< iseed_Actual<<":"<<iseed_Delayed<<"\n";
+      if(ldebug)std::cout<<"Predicting : seed actual, delayed: "<< iseed_Actual<<":"<<iseed_Delayed<<"\n";
     }
 
   //Predict the helicity according to pattern
@@ -1227,7 +1195,8 @@ void QwHelicity::RunPredictor()
   //    Octet:   +--+-++- or -++-+--+
   //    Symmetric octet:  +-+--+-+ or -+-++-+-
   Int_t localphase = fPatternPhaseNumber-fMinPatternPhase;//Paul's modifications
-   if ((fMaxPatternPhase<=4) || (1==1)){//Paul's modifications
+
+  if ((fMaxPatternPhase<=4) || (1==1)){//Paul's modifications
     switch(localphase){
     case 0: //phase 0 -> new pattern, fHelicityActual has been predicteed in the for loop.
     case 3:
@@ -1282,7 +1251,7 @@ void QwHelicity::RunPredictor()
     }
 
   return;
-}
+};
 
 
 Bool_t QwHelicity::CollectRandBits()
@@ -1294,8 +1263,7 @@ Bool_t QwHelicity::CollectRandBits()
   if (BIT30)
     status=CollectRandBits30();
   return status;
-}
-
+};
 
 
 
@@ -1438,6 +1406,7 @@ Bool_t QwHelicity::CollectRandBits30()
   return kFALSE;
 };
 
+
 void QwHelicity::PredictHelicity()
 {
    Bool_t ldebug=kFALSE;
@@ -1458,7 +1427,8 @@ void QwHelicity::PredictHelicity()
   if(ldebug)  std::cout<<"n_ranbit exiting the function = "<<n_ranbits<<"\n";
 
   return;
-}
+};
+
 
 
 void QwHelicity::SetHelicityDelay(Int_t delay)
@@ -1481,9 +1451,9 @@ void QwHelicity::SetHelicityDelay(Int_t delay)
     std::cerr<<"QwHelicity::SetHelicityDelay We cannot handle negative delay in the prediction of delayed helicity. Exiting.. \n";
 
   return;
-}
+};
 
-  //start a new helicity prediction sequence
+//start a new helicity prediction sequence
 
 void QwHelicity::ResetPredictor()
 {
@@ -1494,6 +1464,7 @@ void QwHelicity::ResetPredictor()
 };
 
 
+
 void QwHelicity::Copy(VQwSubsystem *source)
 {
  try
@@ -1502,7 +1473,7 @@ void QwHelicity::Copy(VQwSubsystem *source)
 	{
 	  //VQwSubsystem::Copy(source);
 	  //QwHelicity* input=((QwHelicity*)source);
-	  //VQwSubsystem::Copy(source);
+	  VQwSubsystem::Copy(source);
           QwHelicity* input = dynamic_cast<QwHelicity*>(source);
 	  this->fWord.resize(input->fWord.size());
 	  for(size_t i=0;i<this->fWord.size();i++)
@@ -1527,14 +1498,14 @@ void QwHelicity::Copy(VQwSubsystem *source)
     }
 
   return;
-}
+};
 
 VQwSubsystem*  QwHelicity::Copy()
 {
   QwHelicity* TheCopy=new QwHelicity("Helicity Copy");
   TheCopy->Copy(this);
   return TheCopy;
-}
+};
 
 VQwSubsystem&  QwHelicity::operator=  (VQwSubsystem *value)
 {
@@ -1559,10 +1530,10 @@ VQwSubsystem&  QwHelicity::operator=  (VQwSubsystem *value)
       this->fHelicityBitMinus=input->fHelicityBitMinus;
       this->fGoodHelicity=input->fGoodHelicity;
       this->fGoodPattern=input->fGoodPattern;
-      }
+ 
+    }
   return *this;
 };
-
 
 VQwSubsystem&  QwHelicity::operator+=  (VQwSubsystem *value)
 {
@@ -1635,5 +1606,5 @@ Bool_t QwHelicity::Compare(VQwSubsystem *value)
 	}
     }
   return res;
-}
+};
 

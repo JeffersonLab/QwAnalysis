@@ -39,9 +39,24 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
                 << "Using " << fHelicitySubsystem->GetSubsystemName() << "."
                 << QwLog::endl;
     }
-  } else {
-    QwError << "No helicity subsystem defined!  Brace for impact!" << QwLog::endl;
-    fPatternSize = 4; // default to quartets
+  }
+  else {
+    // Are we using fake helicity? Check.
+    std::vector<VQwSubsystem*> subsys_fake_helicity = event.GetSubsystemByType("QwFakeHelicity");
+    if (subsys_fake_helicity.size() > 0) {
+      fHelicitySubsystem = dynamic_cast<QwHelicity*>(subsys_fake_helicity.at(0));
+      fPatternSize = fHelicitySubsystem->GetMaxPatternPhase();
+
+      QwWarning<<""<<QwLog::endl;
+      QwWarning<<"USING FAKE HELICITY!"<< QwLog::endl;
+      QwWarning<<""<<QwLog::endl;
+
+
+    } else {
+      // We are not usng any helicity subsystem
+      QwError << "No helicity subsystem defined!  Brace for impact!" << QwLog::endl;
+      fPatternSize = 4; // default to quartets
+    }
   }
   QwMessage << "QwHelicity::MaxPatternPhase = " << fPatternSize << QwLog::endl;
 
@@ -50,7 +65,9 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
   fEnableRunningSum = kTRUE;
 
   // Currently the alternate asym works with quartets only
+
   fEnableAlternateAsym = kFALSE;
+
   if (fPatternSize != 4)
     fEnableAlternateAsym = kFALSE;
 

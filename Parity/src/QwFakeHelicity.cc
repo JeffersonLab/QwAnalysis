@@ -9,6 +9,9 @@
 
 #include "QwFakeHelicity.h"
 
+QwSubsystemFactory<QwFakeHelicity> theQwFakeHelicityFactory("QwFakeHelicity");
+
+
  Bool_t QwFakeHelicity::IsGoodHelicity()
 {
   fGoodHelicity = kTRUE;  
@@ -92,10 +95,6 @@
    if(fEventNumber > 1)
      return kTRUE;
    else{
-//      std::cout<<std::endl;
-//     QwWarning<<""<<QwLog::endl;
-//      QwWarning<<"Using FAKE HELICITY."<<QwLog::endl;
-//      QwWarning<<""<<QwLog::endl;
      fGoodHelicity = kFALSE; //reset before prediction begins
      iseed_Delayed = ranseed;
      // Go 24 patterns back to get the reported helicity at this event

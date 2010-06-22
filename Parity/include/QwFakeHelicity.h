@@ -19,6 +19,7 @@
 class QwFakeHelicity: public QwHelicity {
  public:
   QwFakeHelicity(TString region_tmp):VQwSubsystem(region_tmp),QwHelicity(region_tmp),fMinPatternPhase(1)
+
     {
       // using the constructor of the base class
     };
