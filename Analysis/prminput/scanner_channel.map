@@ -23,7 +23,7 @@ QDC_Bank=0x7501
 ! V775, 0, 0, scanner_tdc, front_tdc
 ! V775, 0, 1, scanner_tdc, back__tdc
 !
-slot=0
+slot=1
 ! module.type  module.num  chan.num, det.type, det.name
   V792, 1, 25, scanner_qadc, front_adc
   V792, 1, 27, scanner_qadc, back__adc
@@ -35,7 +35,7 @@ slot=0
 ! SCA_Bank is still arbitrary at this point (jpan, 22june2010)
 SCA_Bank=0x0402
 !
-slot=1
+slot=2
 ! module.type  module.num  chan.num, det.type, det.name
   SIS3801, 0, 17, scanner_sca, front_sca
   SIS3801, 0, 18, scanner_sca, back__sca

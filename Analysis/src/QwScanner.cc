@@ -365,7 +365,7 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
                 //  Decode this word as a V775TDC word.
                 DecodeTDCWord(buffer[i]);
 
-//                if (! IsSlotRegistered(index, GetTDCSlotNumber())) continue;
+                if (! IsSlotRegistered(index, GetTDCSlotNumber())) continue;
 
                 if (IsValidDataword()) {
                     // This is a V775 TDC data word
@@ -378,8 +378,8 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
                     try {
                         //TODO The slot number should be set properly in DAQ
                         // using 0 for now
-                        //FillRawWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),GetTDCData());
-                        FillRawWord(index,0,GetTDCChannelNumber(),GetTDCData());
+                        FillRawWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),GetTDCData());
+                        //FillRawWord(index,0,GetTDCChannelNumber(),GetTDCData());
 
                     } catch (std::exception& e) {
                         std::cerr << "Standard exception from FocalPlaneScanner::FillRawTDCWord: "
@@ -501,7 +501,7 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix) {
         // Also changes to ConstructHistograms() calls below.
         //TDirectory* scannerfolder = folder->mkdir("scanner");
 
-        // if (bRawData)
+        if (bStoreRawData)
         {
             for (size_t i=0; i<fPMTs.size(); i++) {
                 for (size_t j=0; j<fPMTs.at(i).size(); j++)
@@ -524,6 +524,8 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix) {
         //scannerfolder->cd();
 
         //fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
+        fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_front_adc")));
+        fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_back__adc")));
         fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
         fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));
         fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_x")));
@@ -537,7 +539,7 @@ void  QwScanner::FillHistograms() {
     //std::cout<<"QwScanner::FillHistograms():"<<std::endl;
     if (! HasDataLoaded()) return;
 
-    // if (bRawData)
+    if (bStoreRawData)
     {
         //Fill trigger data
         for (size_t i=0; i<fPMTs.size(); i++) {
@@ -563,6 +565,14 @@ void  QwScanner::FillHistograms() {
     }
 
     for (size_t j=0; j<fHistograms1D.size();j++) {
+
+        if (fHistograms1D.at(j)->GetTitle()==TString("scanner_front_adc")) {
+            fHistograms1D.at(j)->Fill(fFrontADC);
+        }
+
+        if (fHistograms1D.at(j)->GetTitle()==TString("scanner_back__adc")) {
+            fHistograms1D.at(j)->Fill(fBackADC);
+        }
 
         if (fHistograms1D.at(j)->GetTitle()==TString("scanner_position_x")) {
             fHistograms1D.at(j)->Fill(fPositionX_VQWK);
@@ -797,7 +807,7 @@ void  QwScanner::FillTreeVector() {
 
 void  QwScanner::DeleteHistograms() {
 
-    //if (bRawData)
+    if (bStoreRawData)
     {
         for (size_t i=0; i<fPMTs.size(); i++) {
             for (size_t j=0; j<fPMTs.at(i).size(); j++) {
