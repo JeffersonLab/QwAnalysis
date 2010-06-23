@@ -107,8 +107,7 @@ static bool bDebug = true;
 // Activate components
 static bool bTree = true;
 static bool bHisto = true;
-static bool bTrueHelicity = false;
-static bool bFakeHelicity = true;
+static bool bHelicity = true;
 static bool bComptonPhoton = true;
 static bool bComptonElectron = false;
 
@@ -119,12 +118,9 @@ int main(int argc, char* argv[])
   gQwOptions.SetConfigFile("qwcompton.conf");
   /// Define the command line options
   DefineOptionsParity(gQwOptions);
-  gQwOptions.Parse();
 
   /// Message logging facilities
-  gQwLog.InitLogFile("QwCompton.log", QwLog::kTruncate);
-  gQwLog.SetScreenThreshold(QwLog::kMessage);
-  gQwLog.SetFileThreshold(QwLog::kDebug);
+  gQwLog.ProcessOptions(&gQwOptions);
 
   ///  Fill the search paths for the parameter files; this sets a static
   ///  variable within the QwParameterFile class which will be used by
@@ -159,12 +155,11 @@ int main(int argc, char* argv[])
   }
 
   // Helicity
-  bool bHelicity = bTrueHelicity || bFakeHelicity;
   QwHelicity* helicity = 0;
   if (bHelicity) {
     // Helicity subsystem
     detectors.push_back(new QwHelicity("Helicity info"));
-    detectors.GetSubsystemByName("Helicity info")->LoadChannelMap("qweak_helicity.map");
+    detectors.GetSubsystemByName("Helicity info")->LoadChannelMap("compton_helicity.map");
     detectors.GetSubsystemByName("Helicity info")->LoadInputParameters("");
     helicity = (QwHelicity*) detectors.GetSubsystemByName("Helicity info");
   }
@@ -242,16 +237,6 @@ int main(int argc, char* argv[])
       }
     }
 
-    // Fake helicity generation (awaiting real helicity signals)
-    if (bFakeHelicity) {
-      // Helicity initialization loop
-      helicity->SetEventPatternPhase(-1, -1, -1);
-      // 24-bit seed, should be larger than 0x1, 0x55 = 0101 0101
-      // Consecutive runs should have no trivially related seeds:
-      // e.g. with 0x2 * run, the first two files will be just 1 MPS offset...
-      unsigned int seed = 0x1234 ^ run;
-      helicity->SetFirstBits(24, seed & 0xFFFFFF);
-    }
 
     // Loop over events in this CODA file
     Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
@@ -275,25 +260,11 @@ int main(int argc, char* argv[])
       // Fill the subsystem objects with their respective data for this event.
       eventbuffer.FillSubsystemData(detectors);
 
-      // Fake helicity pattern
-      if (bFakeHelicity) {
-        // Set the event, pattern and phase number
-        // - event number increments for every event
-        // - pattern number increments for every multiplet
-        // - phase number gives position in multiplet
-        helicity->SetEventPatternPhase(eventnumber, eventnumber / kMultiplet, eventnumber % kMultiplet + 1);
-        // Run the helicity predictor
-        helicity->RunPredictor();
-        // Get the event buffer
-        std::vector<UInt_t> buffer;
-        helicity->EncodeEventData(buffer);
-      }
-
       // Process this events
       detectors.ProcessEvent();
 
       // Helicity pattern
-      if (bTrueHelicity)
+      if (bHelicity)
         helicitypattern.LoadEventData(detectors);
 
       // Print the helicity information
