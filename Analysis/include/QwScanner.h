@@ -211,6 +211,12 @@ class QwScanner: public VQwSubsystemTracking,
   Double_t fPositionX_ADC;
   Double_t fPositionY_ADC;
 
+  UInt_t fBankID[4];  //bank ID for 4 different modules
+                      //fBankID[0] for V792/V775 QDC_Bank
+                      //fBankID[1] for SIS3801   SCA_Bank
+                      //fBankID[2] for F1TDC     F1TDC_Bank
+                      //fBankID[3] for VQWK      VQWK_Bank
+
   /// variables for generating scanner mock data
   Int_t    myTimer;
   Double_t fCurrentPotentialX;

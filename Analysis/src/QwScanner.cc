@@ -59,6 +59,7 @@ QwScanner::~QwScanner() {
 void QwScanner::ProcessOptions(QwOptions &options){
       //Handle command line options
 };
+
 Int_t QwScanner::LoadChannelMap(TString mapfile) {
     TString varname, varvalue;
     TString modtype, dettype, name;
@@ -77,7 +78,17 @@ Int_t QwScanner::LoadChannelMap(TString mapfile) {
             UInt_t value = QwParameterFile::GetUInt(varvalue);
             if (varname=="roc") {
                 RegisterROCNumber(value);
-            } else if (varname=="bank") {
+            } else if (varname=="qdc_bank") {
+                fBankID[0] = value;
+                RegisterSubbank(value);
+            } else if (varname=="sca_bank") {
+                fBankID[1] = value;
+                RegisterSubbank(value);
+            } else if (varname=="f1tdc_bank") {
+                fBankID[2] = value;
+                RegisterSubbank(value);
+            } else if (varname=="vqwk_bank") {
+                fBankID[3] = value;
                 RegisterSubbank(value);
             } else if (varname=="slot") {
                 RegisterSlotNumber(value);
@@ -263,8 +274,8 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
     fSumFlag = 0;
     fTrigFlag = 0;
 
-    //  This is a VQWK bank if bank_id=2103
-    if (bank_id==0x0503) {
+    //  This is a VQWK bank
+    if (bank_id==fBankID[3]) {
 
         fSumEvtCounter++;
         fSumFlag = 5;
@@ -300,8 +311,8 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
     }
 
 
-    //  This is a SCA bank if bank_id=2102
-    if (bank_id==0x0502) {
+    //  This is a SCA bank
+    if (bank_id==fBankID[1]) {
 
         if (index>=0 && num_words>0) {
 
@@ -334,8 +345,8 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
     }
 
 
-    //  This is a QADC/TDC bank (bank_id=2101)
-    if (bank_id==0x0501) {
+    //  This is a QADC/TDC bank
+    if (bank_id==fBankID[0]) {
 
         fTrigEvtCounter++;
         fTrigFlag = 5;
@@ -354,13 +365,22 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
                 //  Decode this word as a V775TDC word.
                 DecodeTDCWord(buffer[i]);
 
-                if (! IsSlotRegistered(index, GetTDCSlotNumber())) continue;
+//                if (! IsSlotRegistered(index, GetTDCSlotNumber())) continue;
 
                 if (IsValidDataword()) {
                     // This is a V775 TDC data word
+                  if (fDEBUG) {
+                    std::cout<<"This is a valid QDC/TDC data word. Index="<<index
+                             <<" slot="<<GetTDCSlotNumber()<<" Ch="<<GetTDCChannelNumber()
+                             <<" Data="<<GetTDCData()<<"\n";
+                    }
+
                     try {
-                        FillRawWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),
-                                    GetTDCData());
+                        //TODO The slot number should be set properly in DAQ
+                        // using 0 for now
+                        //FillRawWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),GetTDCData());
+                        FillRawWord(index,0,GetTDCChannelNumber(),GetTDCData());
+
                     } catch (std::exception& e) {
                         std::cerr << "Standard exception from FocalPlaneScanner::FillRawTDCWord: "
                         << e.what() << std::endl;
@@ -1019,6 +1039,9 @@ void QwScanner::FillRawWord(Int_t bank_index,
                             Int_t slot_num,
                             Int_t chan, UInt_t data) {
     Int_t modindex = GetModuleIndex(bank_index,slot_num);
+
+    // std::cout<<"modtype="<<EModuleType(fModulePtrs.at(modindex).at(chan).first)
+    // <<"  chanindex="<<fModulePtrs.at(modindex).at(chan).second<<"  data="<<data<<"\n";
 
     if (modindex != -1) {
         EModuleType modtype = EModuleType(fModulePtrs.at(modindex).at(chan).first);

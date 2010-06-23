@@ -1,50 +1,63 @@
 ! Created by J. Pan, for the focal plane scanner
+!
 ! Scanner needs 2 channels of V792 QADCs for monitoring the PMT gain
 ! 2 channels of V775 TDCs and
 ! 3 channels of TRIUMF integration ADC's for measuring the X, Y position
 ! of the scanner, 3 channels of SIS3801 scaler for the rate. In addition,
 ! the scanner could use 3 channels of V792 QADC's to monitor the X, Y 
 ! position as supplementary to the TRIUMF ADC's. In such case, 1/50 - 1/100
-! attenuators would be required.
+! attenuators and a polarity converter would be required since the position
+! signals are positive DC signals with a range of about 3 - 6V.
 !
 ! jpan@jlab.org, Sat Oct  3 12:54:09 CDT 2009
 !
 !
-ROC=5
+ROC=4
 !
 ! QADC/TDC bank
 !
-Bank=0x0501
+QDC_Bank=0x7501
+!
+!slot=0
+! module.type  module.num  chan.num, det.type, det.name
+! V775, 0, 0, scanner_tdc, front_tdc
+! V775, 0, 1, scanner_tdc, back__tdc
 !
 slot=0
 ! module.type  module.num  chan.num, det.type, det.name
-  V775, 0, 0, scanner_tdc, front_tdc
-  V775, 0, 1, scanner_tdc, back__tdc
+  V792, 1, 25, scanner_qadc, front_adc
+  V792, 1, 27, scanner_qadc, back__adc
+! V792, 1, 2,  scanner_qadc, power_adc
+  V792, 1, 29, scanner_qadc, pos_x_adc
+  V792, 1, 31, scanner_qadc, pos_y_adc
+!
+!
+! SCA_Bank is still arbitrary at this point (jpan, 22june2010)
+SCA_Bank=0x0402
 !
 slot=1
 ! module.type  module.num  chan.num, det.type, det.name
-  V792, 1, 0, scanner_qadc, front_adc
-  V792, 1, 1, scanner_qadc, back__adc
-  V792, 1, 2, scanner_qadc, power_adc
-  V792, 1, 3, scanner_qadc, pos_x_adc
-  V792, 1, 4, scanner_qadc, pos_y_adc
+  SIS3801, 0, 17, scanner_sca, front_sca
+  SIS3801, 0, 18, scanner_sca, back__sca
+  SIS3801, 0, 19, scanner_sca, coinc_sca
 !
 !
-Bank=0x0502
+F1TDC_Bank=0x7513
 !
-! slot=3
+slot=3
 ! module.type  module.num  chan.num, det.type, det.name
-  SIS3801, 0, 0, scanner_sca, front_sca
-  SIS3801, 0, 1, scanner_sca, back__sca
-  SIS3801, 0, 2, scanner_sca, coinc_sca
+  F1TDC, 0, 18, scanner_tdc, front_tdc
+  F1TDC, 0, 20, scanner_tdc, back__tdc
+! F1TDC, 0, 22, scanner_tdc, empt__tdc
 !
-
 !
 !
 !The following map is defined for scanner 2D linear motion
 !Bank ID is specificied for scanner's VQWK
 !
-Bank=0x0503
+ROC=1
+!
+VQWK_Bank=0x1002
 !
 !The module.num for VQWK has to be independently counted.
 !

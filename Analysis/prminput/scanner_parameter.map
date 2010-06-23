@@ -3,22 +3,21 @@
 !
 
 ! Scanner detector home position in Qweak global coordinates, units: cm
-HomePositionX = -100.0
-HomePositionY = -317.0
+HomePositionX = 52.6041
+HomePositionY = -319.1622
 
 ! converting factor of 'position_sensor outputs to scanner location'
-! This will be replaced by an interplation table if a laser tracker
-! is available for the calibration
+! This could be replaced by an interplation table
 !
-! units: cm/V, assume linear, 200cm/8V
-Cal_FactorX = 26.667
+! units: cm/V, assume linear
+Cal_FactorX = 40.4101205
 
-! units: cm/V, assume linear, 40cm/8V
-Cal_FactorY = 5.333
+! units: cm/V, assume linear
+Cal_FactorY = 6.94788983
 
 ! These are the outputs from position sensor when scanner is homed, units: Volts
-VoltageOffsetX = 2.0
-VoltageOffsetY = 2.0
+VoltageOffsetX = 3.795
+VoltageOffsetY = 2.466
 
 ! name of chanel, pedestal, gain
 ! if this is a Triumf ADC enter the hardware sum pedestal
