@@ -339,10 +339,10 @@ LIBTOOL = $(LD)
 
 ifeq ($(ARCH),Linux)
 
-CXX            := g++
+CXX            := $(GCC)
 CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
-LD             = g++
+LD             = $(GCC)
 LDFLAGS	       = -Wl,-rpath,$(QW_LIB)
 LDLIBS         =
 SOFLAGS        = -shared
@@ -374,10 +374,16 @@ endif
 
 ifeq ($(ARCH),Darwin)
 
-CXX            := g++
+## MacOS 10.5 shipped with g++-4.0 (default) and g++-4.2.
+## The older g++ doesn't properly support "covariant returns," so
+## specify the newer one in this section.
+## Override on the command line with "make GCC=g++-whatever"
+
+GCC            := g++-4.2
+CXX            := $(GCC)
 CXXFLAGS       := -Wall -fPIC
 OPTIM          := -O2
-LD             = g++
+LD             = $(GCC)
 LIBTOOL 	   = libtool
 LDFLAGS        =
 LDLIBS         = -lSystemStubs
