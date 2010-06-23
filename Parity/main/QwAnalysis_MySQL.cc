@@ -57,7 +57,7 @@ main(Int_t argc, Char_t* argv[])
   ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
   ///  histogram helper: QwHistogramHelper
   ///
-  gQwHists.LoadHistParamsFromFile("parity_hists.in");
+  gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
   // Setup screen and file logging
   gQwLog.InitLogFile("qwanalysis_mysql.log");
 //  gQwLog.SetFileThreshold(QwLog::kDebug);
