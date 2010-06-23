@@ -47,7 +47,8 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   LumiDetSubSystem        = NULL;
   InjectorSubSystem       = NULL;
   HallCBeamlineSubSystem  = NULL;
-  DatabaseSubSystem  = NULL;
+  DatabaseSubSystem       = NULL;
+  TrackFindingSubSystem   = NULL;
   EventDisplaySubSystem   = NULL;
 
   dMWWidth              = w;
@@ -59,7 +60,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
   dTBinEntry            = NULL;
   dTBinEntryLayout      = NULL;
-  dRunEntry             = NULL; 
+  dRunEntry             = NULL;
   dRunEntryLayout       = NULL;
   dHorizontal3DLine     = NULL;
   dUtilityFrame         = NULL;
@@ -132,7 +133,11 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   if(!GetSubSystemPtr("Qweak Database"))
     DatabaseSubSystem = new QwGUIDatabase(fClient->GetRoot(), this, dTab,"Qweak Database",
 						    "QwGUIMain", dMWWidth-15,dMWHeight-180);
-    
+
+  if(!GetSubSystemPtr("Track Finding"))
+    TrackFindingSubSystem = new QwGUITrackFinding(fClient->GetRoot(), this, dTab, "Track Finding",
+					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
+
   if(!GetSubSystemPtr("Event Display"))
     EventDisplaySubSystem = new QwGUIEventDisplay(fClient->GetRoot(), this, dTab, "Event Display",
 					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
@@ -145,7 +150,8 @@ QwGUIMain::~QwGUIMain()
   delete BeamModulationSubSystem ;
   delete LumiDetSubSystem        ;
   delete InjectorSubSystem       ;
-  delete DatabaseSubSystem  ;
+  delete DatabaseSubSystem       ;
+  delete TrackFindingSubSystem   ;
   delete EventDisplaySubSystem   ;
 
   delete dROOTFile             ;
@@ -316,12 +322,12 @@ void QwGUIMain::MakeLogTab()
 				    kLHintsExpandX | kLHintsExpandY);
   dDBQueryEntryLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 2, 2,  2, 2);
   dDBQueryLabelLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 2, 2,  2, 2);
-  
+
   dDBQueryFrameLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 2, 2,  2, 2);
 
 
   dLogTabFrame  = new TGVerticalFrame(tf,10,10);
-  
+
   dLogEditFrame  = new TGHorizontalFrame(dLogTabFrame,10,10);
   dLogEdit = new TGTextEdit(dLogEditFrame, 10, 10, M_LOG_ENTRY, kSunkenFrame);
   dLogEdit->Associate(this);
@@ -344,7 +350,7 @@ void QwGUIMain::MakeLogTab()
   dDBQueryEntry->SetState(1);
   dLogTabFrame->AddFrame(dDBQueryFrame, dDBQueryFrameLayout);
 
-  
+
   dLogTabFrame->Resize(dMWWidth-15,dMWHeight-80);
   tf->AddFrame(dLogTabFrame,dLogTabLayout);
 
@@ -853,7 +859,7 @@ Int_t QwGUIMain::OpenLogFile(ERFileStatus status, const char* file)
 
 Int_t QwGUIMain::OpenDatabase()
 {
-  if(IsDatabaseOpen()) CloseDatabase();  
+  if(IsDatabaseOpen()) CloseDatabase();
 
   dDatabase = new QwGUIDatabaseContainer(fClient->GetRoot(), this,
 					 "dDatabase","QwGUIMain",
@@ -893,7 +899,7 @@ void QwGUIMain::CloseDatabase()
     dDatabase = NULL;
   }
   SetDatabaseOpen(kFalse);
-  dMenuFile->EnableEntry(M_DBASE_OPEN);  
+  dMenuFile->EnableEntry(M_DBASE_OPEN);
 }
 
 
@@ -1190,16 +1196,16 @@ Bool_t QwGUIMain::HandleKey(Event_t *event)
   char   input[10];
   Int_t  n;
   UInt_t keysym;
-  
+
   printf("Line 1116\n");
   printf("Window id = %d dLogEdit id = %d\n",event->fWindow, dLogEdit->GetId());
-  
+
   printf("event type = %d\n",event->fType);
 
   if (event->fType == kGKeyPress) {
     gVirtualX->LookupString(event, input, sizeof(input), keysym);
     n = strlen(input);
-    
+
     switch ((EKeySym)keysym) {
     case kKey_Enter:
       printf("Pressed Enter\n");
@@ -1228,10 +1234,10 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
     case kTE_ENTER:
       {
 	switch (parm1) {
-	
+
 	case M_DBASE_QUERY:
-	  
-	  printf("Typing %s\n",dDBQueryBuffer->GetString());	  
+
+	  printf("Typing %s\n",dDBQueryBuffer->GetString());
  	  dDBQueryEntry->Clear();
 	  break;
 
@@ -1241,7 +1247,7 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
 	break;
       }
-      
+
     default:
       break;
     }
@@ -1268,19 +1274,19 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       while(obj){
 	QwGUISubSystem *entry = (QwGUISubSystem*)obj;
 	if(entry->GetTabMenuID() == parm1){
-	  if(dMenuTabs->IsEntryChecked(entry->GetTabMenuID())) 
+	  if(dMenuTabs->IsEntryChecked(entry->GetTabMenuID()))
 	    RemoveTab(entry);
 	  else
 	    AddATab(entry);
-	  
+
 	  break;
 	}
 	obj = next();
       }
-      
-      
+
+
       switch (parm1) {
-	
+
       case M_ROOT_FILE_OPEN:
 	OpenRootFile();
 	break;
@@ -1349,7 +1355,7 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 // 			perror("couldn't exec shell for web browser");
 // 			exit(1);
 // 		}
-		
+
 	}
 	break;
 
@@ -1431,18 +1437,18 @@ Int_t main(Int_t argc, Char_t **argv)
   gQwOptions.AddOptions()("columns,c", po::value<string>(), "range of columns from file (first:last) (currently non-functional");
 
   // Parse QwGUI options
-  if (gQwOptions.HasValue("realtime")) 
-    if (gQwOptions.GetValue<bool>("realtime") == true) 
+  if (gQwOptions.HasValue("realtime"))
+    if (gQwOptions.GetValue<bool>("realtime") == true)
       dClArgs.realtime = kTrue;
-  if (gQwOptions.HasValue("checkmode")) 
-    if (gQwOptions.GetValue<bool>("checkmode") == true) 
+  if (gQwOptions.HasValue("checkmode"))
+    if (gQwOptions.GetValue<bool>("checkmode") == true)
       dClArgs.checkmode = kTrue;
-  if (gQwOptions.HasValue("binary")) 
+  if (gQwOptions.HasValue("binary"))
     if (gQwOptions.GetValue<bool>("binary") == true) {
 //      dClArgs.bin = kTrue;
 //      dClArgs.txt = kFalse;
     }
-  if (gQwOptions.HasValue("text")) 
+  if (gQwOptions.HasValue("text"))
     if (gQwOptions.GetValue<bool>("binary") == true) {
 //      dClArgs.bin = kFalse;
 //      dClArgs.txt = kTrue;
