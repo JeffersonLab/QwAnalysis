@@ -61,6 +61,8 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
 
   QwMainDetector& operator=  (const QwMainDetector &value);
 
+  void ReportConfiguration();
+
  protected:
   enum EModuleType{EMPTY = -1, V775_TDC = 0, V792_ADC} fCurrentType;
 
@@ -71,7 +73,7 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
  protected:
   void  ClearAllBankRegistrations();
   Int_t RegisterROCNumber(const UInt_t roc_id);
-
+  Int_t RegisterSubbank(const UInt_t bank_id);
   Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
 
   const QwMainDetector::EModuleType RegisterModuleType(TString moduletype);
@@ -103,6 +105,11 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
   Int_t fCurrentSlot;
   Int_t fCurrentIndex;
 
+  UInt_t fBankID[3];  //bank ID for 3 different modules
+                      //fBankID[0] for V792/V775 QDC_Bank
+                      //fBankID[1] for SIS3801   SCA_Bank
+                      //fBankID[2] for F1TDC     F1TDC_Bank
+
  protected:
   static const UInt_t kMaxNumberOfModulesPerROC;
   static const UInt_t kMaxNumberOfChannelsPerModule;
@@ -123,6 +130,7 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
 
   std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
 
+  Int_t    fEvtCounter;
 };
 
 #endif

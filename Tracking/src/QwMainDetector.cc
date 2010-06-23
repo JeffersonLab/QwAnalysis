@@ -21,6 +21,8 @@ QwSubsystemFactory<QwMainDetector> theMainDetectorFactory("QwMainDetector");
 QwMainDetector::QwMainDetector(TString region_tmp):VQwSubsystem(region_tmp),
     VQwSubsystemTracking(region_tmp)
 {
+    fDEBUG = false;
+    fEvtCounter = 0;
 };
 
 QwMainDetector::~QwMainDetector()
@@ -147,13 +149,25 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
         {
           //  This is a declaration line.  Decode it.
           varname.ToLower();
-          UInt_t value = atol(varvalue.Data());
+          //UInt_t value = atol(varvalue.Data());
+          UInt_t value = QwParameterFile::GetUInt(varvalue);
           if (varname=="roc")
             {
               RegisterROCNumber(value);
             }
-          else if (varname=="bank")
+          else if (varname=="qdc_bank")
             {
+              fBankID[0] = value;
+              RegisterSubbank(value);
+            }
+          else if (varname=="sca_bank")
+            {
+              fBankID[1] = value;
+              RegisterSubbank(value);
+            }
+          else if (varname=="tdc_bank")
+            {
+              fBankID[2] = value;
               RegisterSubbank(value);
             }
           else if (varname=="slot")
@@ -162,6 +176,7 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
             }
           else if (varname=="module")
             {
+              std::cout<<"ModuleType="<<varvalue<<"\n";
               RegisterModuleType(varvalue);
             }
         }
@@ -188,6 +203,7 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
         }
     }
   //
+  ReportConfiguration();
   return 0;
 };
 
@@ -213,7 +229,22 @@ Int_t QwMainDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt
 
 Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
+
+  //std::cout<<"EvtCont"<<fEvtCounter<<"bank_id="<<bank_id<<"  fBankID[0]="<<fBankID[0]<<"\n";
+
+  //This is a QDC bank
+  if (bank_id == fBankID[0]) {
+
+  fEvtCounter++;
+
   Int_t index = GetSubbankIndex(roc_id,bank_id);
+
+  Bool_t ldebug = false;
+    if (ldebug) 
+        std::cout << "QwMainDetector::QwMainDetector:  "
+                  << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
+                  <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
+                  << ", num_words "<<num_words<<", index "<<index<<std::endl;
 
   if (index>=0 && num_words>0)
     {
@@ -228,11 +259,16 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 
           if (IsValidDataword())
             {
-              // This is a V775 TDC data word
+              // This is a V775 TDC data 
+              if (ldebug) {
+                std::cout<<"This is a valid QDC/TDC data word. Index="<<index
+                         <<" slot="<<GetTDCSlotNumber()<<" Ch="<<GetTDCChannelNumber()
+                         <<" Data="<<GetTDCData()<<"\n";
+                }
               try
                 {
-                  FillRawWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),
-                              GetTDCData());
+                  FillRawWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),GetTDCData());
+                  //FillRawWord(index,0,GetTDCChannelNumber(),GetTDCData());
                 }
               catch (std::exception& e)
                 {
@@ -257,7 +293,7 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
             }
         }
     }
-
+  }
   return 0;
 };
 
@@ -310,7 +346,7 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
   else basename = prefix;
 
   fMainDetVector.reserve(6000);
-  TString list;
+  TString list = "EvtCounter/D";
   for (size_t i=0; i<fPMTs.size(); i++)
     {
       for (size_t j=0; j<fPMTs.at(i).size(); j++)
@@ -330,6 +366,7 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
         }
     }
   tree->Branch(basename, &fMainDetVector[0], list);
+  //std::cout<<list<<"\n";
   return;
 };
 
@@ -351,6 +388,9 @@ void  QwMainDetector::FillTreeVector()
   if (! HasDataLoaded()) return;
 
   Int_t index = 0;
+  fMainDetVector[index] = fEvtCounter;
+  index++;
+
   for (size_t i=0; i<fPMTs.size(); i++)
     {
       for (size_t j=0; j<fPMTs.at(i).size(); j++)
@@ -358,10 +398,28 @@ void  QwMainDetector::FillTreeVector()
           if (fPMTs.at(i).at(j).GetElementName()=="") {}
           else
             {
-              fMainDetVector[index++] = fPMTs.at(i).at(j).GetValue();
+              fMainDetVector[index] = fPMTs.at(i).at(j).GetValue();
+              // std::cout<<"Fill data "<<fMainDetVector[index]<<" to index "
+              // <<index<<" ch_name "<<fPMTs.at(i).at(j).GetElementName()<<"\n";
+              index++;
             }
         }
     }
+
+    if (fDEBUG) {
+    std::cout<<"Main detector tree vector: "<<"\n";
+    index = 0;
+    for (size_t i=0; i<fPMTs.size(); i++)
+      {
+        for (size_t j=0; j<fPMTs.at(i).size(); j++)
+          {
+             std::cout<<  fMainDetVector[index]<<"\t";
+             index++;
+          }
+      }
+    std::cout<<"\n";
+    }
+
 };
 
 
@@ -418,6 +476,16 @@ Int_t QwMainDetector::RegisterROCNumber(const UInt_t roc_id)
   return fCurrentBankIndex;
 };
 
+Int_t QwMainDetector::RegisterSubbank(const UInt_t bank_id) {
+    Int_t stat = VQwSubsystem::RegisterSubbank(bank_id);
+    fCurrentBankIndex++;
+    std::vector<Int_t> tmpvec(kMaxNumberOfModulesPerROC,-1);
+    fModuleIndex.push_back(tmpvec);
+    //std::cout<<"Register Subbank "<<bank_id<<" with BankIndex "<<fCurrentBankIndex<<std::endl;
+    return stat;
+};
+
+
 Int_t QwMainDetector::RegisterSlotNumber(UInt_t slot_id)
 {
   std::pair<Int_t, Int_t> tmppair;
@@ -450,6 +518,7 @@ const QwMainDetector::EModuleType QwMainDetector::RegisterModuleType(TString mod
 {
   moduletype.ToUpper();
 
+std::cout<<"moduletype="<<moduletype<<"\n";
   //  Check to see if we've already registered a type for the current slot,
   //  if so, throw an error...
 
@@ -470,15 +539,17 @@ const QwMainDetector::EModuleType QwMainDetector::RegisterModuleType(TString mod
 };
 
 
-Int_t QwMainDetector::LinkChannelToSignal(const UInt_t chan, const TString &name)
-{
-  size_t index = fCurrentType;
-  fPMTs.at(index).push_back(QwPMT_Channel(name));
-  fModulePtrs.at(fCurrentIndex).at(chan).first  = index;
-  fModulePtrs.at(fCurrentIndex).at(chan).second =
-    fPMTs.at(index).size() -1;
-
-  return 0;
+Int_t QwMainDetector::LinkChannelToSignal(const UInt_t chan, const TString &name) {
+    size_t index = fCurrentType;
+    if (index == 0 || index == 1) {
+        fPMTs.at(index).push_back(QwPMT_Channel(name));
+        fModulePtrs.at(fCurrentIndex).at(chan).first  = index;
+        fModulePtrs.at(fCurrentIndex).at(chan).second = fPMTs.at(index).size() -1;
+    } else if (index ==2) {
+        std::cout<<"scaler module has not been implemented yet."<<std::endl;
+    }
+    std::cout<<"Linked channel"<<chan<<" to signal "<<name<<std::endl;
+    return 0;
 };
 
 void QwMainDetector::FillRawWord(Int_t bank_index,
@@ -486,10 +557,12 @@ void QwMainDetector::FillRawWord(Int_t bank_index,
                                  Int_t chan, UInt_t data)
 {
   Int_t modindex = GetModuleIndex(bank_index,slot_num);
+
   if (modindex != -1)
     {
       EModuleType modtype = EModuleType(fModulePtrs.at(modindex).at(chan).first);
       Int_t chanindex     = fModulePtrs.at(modindex).at(chan).second;
+
       if (modtype == EMPTY || chanindex == -1)
         {
           //  This channel is not connected to anything.
@@ -506,6 +579,8 @@ void QwMainDetector::FillRawWord(Int_t bank_index,
 Int_t QwMainDetector::GetModuleIndex(size_t bank_index, size_t slot_num) const
   {
     Int_t modindex = -1;
+    //std::cout<<"bank_index="<<bank_index<<" fModuleIndex.size()="<<fModuleIndex.size()<<"\n";
+
     if (bank_index>=0 && bank_index<fModuleIndex.size())
       {
         if (slot_num>=0 && slot_num<fModuleIndex.at(bank_index).size())
@@ -531,3 +606,35 @@ Int_t QwMainDetector::FindSignalIndex(const QwMainDetector::EModuleType modtype,
       }
     return chanindex;
   };
+
+void  QwMainDetector::ReportConfiguration() {
+    std::cout << "Configuration of main detector:"<< std::endl;
+    for (size_t i = 0; i<fROC_IDs.size(); i++) {
+        for (size_t j=0; j<fBank_IDs.at(i).size(); j++) {
+
+            Int_t ind = GetSubbankIndex(fROC_IDs.at(i),fBank_IDs.at(i).at(j));
+            std::cout << "ROC " << fROC_IDs.at(i)
+            << ", subbank " << fBank_IDs.at(i).at(j)
+            << ":  subbank index==" << ind
+            << std::endl;
+
+            if (fBank_IDs.at(i).at(j)==fBankID[0]) {
+                for (size_t k=0; k<kMaxNumberOfModulesPerROC; k++) {
+                    Int_t QadcTdcindex = GetModuleIndex(ind,k);
+                    if (QadcTdcindex != -1) {
+                        std::cout << "    Slot " << k;
+                        std::cout << "  Module#" << QadcTdcindex << std::endl;
+                    }
+                }
+            } else if (fBank_IDs.at(i).at(j)==fBankID[2]) {
+
+            } else if (fBank_IDs.at(i).at(j)==fBankID[1]) {
+                // std::cout << "    Number of SIS3801 Scaler:  " << fSCAs.size() << std::endl;
+            } else if (fBank_IDs.at(i).at(j)==fBankID[3]) {
+                // std::cout << "    Number of TRIUMF ADC:  " << fADC_Data.size() << std::endl;
+            }
+        }
+    }
+
+}
+; //ReportConfiguration()

@@ -1,54 +1,59 @@
 ! main detector channel map
 !
 !
-ROC=1
+ROC=4
 !
+!
+QDC_Bank=0x7501
 !
 slot=1
+!
 module=V792
+!
 ! channel, signalname
-0,	MD1Neg_adc
-1,	MD1Pos_adc
-2,	MD2Neg_adc
-3,	MD2Pos_adc
-4,	MD3Neg_adc
-5,	MD3Pos_adc
-6,	MD4Neg_adc
-7,	MD4Pos_adc
-8,	MD5Neg_adc
-9,	MD5Pos_adc
-10,	MD6Neg_adc
-11,	MD6Pos_adc
-12,	MD7Neg_adc
-13,	MD7Pos_adc
-14,	MD8Neg_adc
-15,	MD8Pos_adc
-16,	MD0Neg_adc
-17,	MD0Pos_adc
+!
+0,	MD1M_adc
+1,	MD2M_adc
+2,	MD3M_adc
+3,	MD4M_adc
+4,	MD5M_adc
+5,	MD6M_adc
+6,	MD7M_adc
+7,	MD8M_adc
+8,	MD1P_adc
+9,	MD2P_adc
+10,	MD3P_adc
+11,	MD4P_adc
+12,	MD5P_adc
+13,	MD6P_adc
+14,	MD7P_adc
+15,	MD8P_adc
+!16,	MD0M_adc
+!17,	MD0P_adc
 !
 !
-slot=2
-module=V775
+!slot=2
+!module=V775
 ! channel, signalname
-0,	MD1Neg_tdc
-1,	MD1Pos_tdc
-2,	MD2Neg_tdc
-3,	MD2Pos_tdc
-4,	MD3Neg_tdc
-5,	MD3Pos_tdc
-6,	MD4Neg_tdc
-7,	MD4Pos_tdc
-8,	MD5Neg_tdc
-9,	MD5Pos_tdc
-10,	MD6Neg_tdc
-11,	MD6Pos_tdc
-12,	MD7Neg_tdc
-13,	MD7Pos_tdc
-14,	MD8Neg_tdc
-15,	MD8Pos_tdc
-16,	MD0Neg_tdc
-17,	MD0Pos_tdc
-18,	clock__tdc
+!0,	MD1Neg_tdc
+!1,	MD1Pos_tdc
+!2,	MD2Neg_tdc
+!3,	MD2Pos_tdc
+!4,	MD3Neg_tdc
+!5,	MD3Pos_tdc
+!6,	MD4Neg_tdc
+!7,	MD4Pos_tdc
+!8,	MD5Neg_tdc
+!9,	MD5Pos_tdc
+!10,	MD6Neg_tdc
+!11,	MD6Pos_tdc
+!12,	MD7Neg_tdc
+!13,	MD7Pos_tdc
+!14,	MD8Neg_tdc
+!15,	MD8Pos_tdc
+!16,	MD0Neg_tdc
+!17,	MD0Pos_tdc
+!18,	clock__tdc
 !END
 
 ! Original map
