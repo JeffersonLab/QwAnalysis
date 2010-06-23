@@ -2,7 +2,11 @@
 
 #include "QwParameterFile.h"
 
+// System headers
 #include <sstream>
+
+// Qweak headers
+#include "QwLog.h"
 
 std::vector<bfs::path> QwParameterFile::fSearchPaths;
 
