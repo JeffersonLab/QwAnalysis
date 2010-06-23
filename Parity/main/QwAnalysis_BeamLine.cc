@@ -97,7 +97,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwSubsystemArrayParity runningsum;
   runningsum.Copy(&QwDetectors);
 
-  ((QwBeamLine*)QwDetectors.GetSubsystemByName("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
+  QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadGeometryDefinition("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
 
   QwDetectors.ProcessOptions(gQwOptions);//Recommonded to call this routine after LoadChannelMap(..) routines. Some times the cmd options override the map file settings.
 

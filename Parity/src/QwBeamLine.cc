@@ -42,7 +42,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   Bool_t combolistdecoded;
   Bool_t deviceok;
   Bool_t unrotated(keyword=="unrotated");
-	    
+
   std::vector<TString>  fDeviceName;
   std::vector<TString>  fProperty;
   std::vector<TString> fType;
@@ -74,7 +74,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	fSample_size=value;
       }
       else if (varname=="begin"){
-	
+
 	// Start to decode derived beamline devices combined+energy
 	deviceok = kTRUE;
 	combotype = varvalue;
@@ -83,11 +83,11 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	while(mapstr.ReadNextLine()&&!combolistdecoded){
 	  mapstr.TrimComment('!');   // Remove everything after a '!' character.
 	  mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
-	  
+
 	  if (mapstr.LineIsEmpty())  continue;
-	  
+
 	  if (mapstr.HasVariablePair("=",varname,varvalue)) {
-	    
+
 	    // at the end of the combination
 	    if (varname=="end"){
 	      // calculate the total weights of the charge
@@ -95,22 +95,22 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 		fSumQweights+=fQWeight[i];
 	      combolistdecoded = kTRUE;
 	    }
-	    else 
+	    else
 	      comboname = varvalue;
 
-	  } 
+	  }
 	  else {
 	    dev_name=mapstr.GetNextToken(", ").c_str();
 	    dev_name.ToLower();
-	    dettype   = mapstr.GetNextToken(", ").c_str();  
+	    dettype   = mapstr.GetNextToken(", ").c_str();
 	    dettype.ToLower();
-	    
+
 	    // Check to see if the device being read is a valid physical device.
 	    // If not, discard the combination.
 	    index=GetDetectorIndex(GetDetectorTypeID(dettype),dev_name);
 	    if (index == -1) {
 	      QwError << "QwBeamLine::LoadChannelMap:  Unknown device: "
-		      <<  dev_name <<" used for "<< comboname 
+		      <<  dev_name <<" used for "<< comboname
 		      <<" This combination  will not be decoded!"
 		      <<  QwLog::endl;
 	      deviceok = kFALSE;
@@ -122,31 +122,31 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	      fDeviceName.push_back(dev_name);
 
 	      // Read in the weights.
-	      // For combined bpms and combined bcms these are charge weights. 
+	      // For combined bpms and combined bcms these are charge weights.
 	      // For the energy calculator these are the ratios of the transport matrix elements.
-	      fQWeight.push_back( atof(mapstr.GetNextToken(", ").c_str())); 
+	      fQWeight.push_back( atof(mapstr.GetNextToken(", ").c_str()));
 
 	      // For combined BPMs,in addition, there are weights for the X & Y positions.
 	      if(combotype == "combinedbpm"){
-		fXWeight.push_back( atof(mapstr.GetNextToken(", ").c_str())); 
-		fYWeight.push_back( atof(mapstr.GetNextToken(", ").c_str())); 
+		fXWeight.push_back( atof(mapstr.GetNextToken(", ").c_str()));
+		fYWeight.push_back( atof(mapstr.GetNextToken(", ").c_str()));
 	      }
-	      
+
 	      // For the enrgy calculator there are device type and the specified beam parameters.
 	      if(combotype == "energycalculator"){
 		fType.push_back(dettype);
-		fProperty.push_back( mapstr.GetNextToken(", ").c_str()); 
+		fProperty.push_back( mapstr.GetNextToken(", ").c_str());
 	      }
-	      
+
 	    }
 	  }
 	}
 	// Now craete the combined device
 	QwBeamDetectorID localComboID(-1, -1, comboname, combotype, "none", this);
-	
+
 	localComboID.fdetectorname=comboname(0,comboname.Sizeof()-1);
 	localComboID.fIndex = GetDetectorIndex(localComboID.fTypeID,localComboID.fdetectorname);
-	
+
 	if(localComboID.fTypeID==-1){
 	  QwError << "QwBeamLine::LoadChannelMap:  Unknown detector type: "
 		  << combotype <<", the detector "<<comboname<<" will not be decoded "
@@ -154,63 +154,63 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	  deviceok = kFALSE;
 	  continue;
 	}
-	
+
 	if((localComboID.fIndex==-1) && deviceok) {
- 
+
 	  // Decoding combined BCM array
 	  if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbcm"){
-	    
+
 	    QwCombinedBCM localbcmcombo(localComboID.fdetectorname);
 	    fBCMCombo.push_back(localbcmcombo);
-	    
-	    for(size_t i=0;i<fDeviceName.size();i++){		
+
+	    for(size_t i=0;i<fDeviceName.size();i++){
 	      index=GetDetectorIndex(GetDetectorTypeID("bcm"),fDeviceName[i]);
 	      fBCMCombo[fBCMCombo.size()-1].Set(&fBCM[index],fQWeight[i],fSumQweights );
 	    }
-	    fDeviceName.clear();  
-	    fQWeight.clear(); 	      
+	    fDeviceName.clear();
+	    fQWeight.clear();
 	    localComboID.fIndex=fBCMCombo.size()-1;
-	    
+
 	  }
-	  
+
 	  // Decoding combined BPM array.
 	  if(fgDetectorTypeNames[localComboID.fTypeID]=="combinedbpm"){
-	    
+
 	    QwCombinedBPM localbpmcombo(localComboID.fdetectorname );
 	    fBPMCombo.push_back(localbpmcombo);
-	    
+
 	    for(size_t i=0;i<fDeviceName.size();i++){
 	      index=GetDetectorIndex(GetDetectorTypeID("bpmstripline"),fDeviceName[i]);
 	      fBPMCombo[fBPMCombo.size()-1].Set(&fStripline[index],
 						fQWeight[i],fXWeight[i],
 						fYWeight[i],fSumQweights  );
-	      
+
 	    }
-	    
+
 	    fDeviceName.clear();
 	    fQWeight.clear();
 	    fXWeight.clear();
 	    fYWeight.clear();
 	    localComboID.fIndex=fBPMCombo.size()-1;
 	  }
-	  
+
 	  // Decoding energy calculator.
 	  if(fgDetectorTypeNames[localComboID.fTypeID]=="energycalculator"){
 
 	    QwEnergyCalculator localecalculator(localComboID.fdetectorname);
 	    fECalculator.push_back(localecalculator);
-	    
+
 	    for(size_t i=0;i<fDeviceName.size();i++){
 	      std::cout<<fDeviceName[i]<<" "<<fType[i]<<std::endl;
 	      index=GetDetectorIndex(GetDetectorTypeID(fType[i]),fDeviceName[i]);
 	      if (fType[i] == "bpmstripline")
 		fECalculator[fECalculator.size()-1].Set(&fStripline[index],fType[i],fProperty[i],fQWeight[i]);
-	      
+
 	      if (fType[i] == "combinedbpm")
 		fECalculator[fECalculator.size()-1].Set(&fBPMCombo[index],fType[i],fProperty[i],fQWeight[i]);
-	      
-	    }  
-	    
+
+	    }
+
 	    fDeviceName.clear();
 	    fQWeight.clear();
 	    fProperty.clear();
@@ -224,7 +224,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
       }
     }
     else{
-      
+
       // Start to decode the physical beamline devices
       Bool_t lineok=kTRUE;
       //  Break this line into tokens to process it.
@@ -237,16 +237,16 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
       namech.ToLower();
       keyword = mapstr.GetNextToken(", ").c_str();
       keyword.ToLower();
-      
+
       if(currentsubbankindex!=GetSubbankIndex(currentrocread,currentbankread)){
 	currentsubbankindex=GetSubbankIndex(currentrocread,currentbankread);
 	wordsofar=0;
       }
-      
-      
+
+
       QwBeamDetectorID localBeamDetectorID(currentsubbankindex, wordsofar,namech, dettype, modtype, this);
-      
-      
+
+
       if(modtype=="VQWK")wordsofar+=6;
       else if(modtype=="SCALER")wordsofar+=1;
       else{
@@ -256,7 +256,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	lineok=kFALSE;
 	continue;
       }
-      
+
       if(localBeamDetectorID.fTypeID==-1){
 	QwError << "QwBeamLine::LoadChannelMap:  Unknown detector type: "
 		<< dettype <<", the detector "<<namech<<" will not be decoded "
@@ -264,24 +264,24 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	lineok=kFALSE;
 	continue;
       }
-      
+
       // Remove the subelement name from the bpm name
       if(fgDetectorTypeNames[localBeamDetectorID.fTypeID]=="bpmstripline")
 	  localBeamDetectorID.fdetectorname=namech(0,namech.Sizeof()-3);
-      
+
       localBeamDetectorID.fIndex=
 	GetDetectorIndex(localBeamDetectorID.fTypeID,
 			 localBeamDetectorID.fdetectorname);
-      
+
       if(localBeamDetectorID.fIndex==-1){
 	if(fgDetectorTypeNames[localBeamDetectorID.fTypeID]=="bpmstripline")
 	  {
-	    
+
 	    QwBPMStripline localstripline(localBeamDetectorID.fdetectorname,!unrotated);
 	    fStripline.push_back(localstripline);
 	    fStripline[fStripline.size()-1].SetDefaultSampleSize(fSample_size);
 	    localBeamDetectorID.fIndex=fStripline.size()-1;
-	    
+
 	  }
 	if(fgDetectorTypeNames[localBeamDetectorID.fTypeID]=="bcm"){
 	  QwBCM localbcm(localBeamDetectorID.fdetectorname);
@@ -290,7 +290,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	  localBeamDetectorID.fIndex=fBCM.size()-1;
 	}
       }
-      
+
       if(fgDetectorTypeNames[localBeamDetectorID.fTypeID]=="bpmstripline"){
 	TString subname=namech(namech.Sizeof()-3,2);
 	UInt_t localsubindex=
@@ -312,7 +312,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	  continue;
 	}
       }
-      
+
       if(ldebug){
 	localBeamDetectorID.Print();
 	std::cout<<"line ok=";
@@ -320,22 +320,22 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	else
 	  std::cout<<"FALSE"<<std::endl;
       }
-      
+
       if(lineok)
 	fBeamDetectorID.push_back(localBeamDetectorID);
-      
+
     }
-    
-    
+
+
   }
-  
+
   if(ldebug){
   std::cout<<"Done with Load map channel \n";
   for(size_t i=0;i<fBeamDetectorID.size();i++)
     fBeamDetectorID[i].Print();
   }
   ldebug=kFALSE;
-  
+
   return 0;
 };
 
@@ -468,7 +468,7 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 };
 
 
-Int_t QwBeamLine::LoadGeometry(TString mapfile){
+Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
   Bool_t ldebug=kFALSE;
   TString varname, varvalue;
   Int_t lineread=1;
@@ -479,8 +479,8 @@ Int_t QwBeamLine::LoadGeometry(TString mapfile){
   TString localname;
 
 
-  if(ldebug)std::cout<<"QwBeamLine::LoadGeometry("<< mapfile<<")\n";
-  
+  if(ldebug)std::cout<<"QwBeamLine::LoadGeometryDefinition("<< mapfile<<")\n";
+
   QwParameterFile mapstr(mapfile.Data());  //Open the file
 
   while (mapstr.ReadNextLine()){
@@ -488,30 +488,30 @@ Int_t QwBeamLine::LoadGeometry(TString mapfile){
     if(ldebug)std::cout<<" line read so far ="<<lineread<<"\n";
     mapstr.TrimComment('!');
     mapstr.TrimWhitespace();
-    
+
     if (mapstr.LineIsEmpty())  continue;
-    
+
     Bool_t notfound=kTRUE;
-    
+
     devtype = mapstr.GetNextToken(", \t").c_str();
     devtype.ToLower();
     devtype.Remove(TString::kBoth,' ');
     devname = mapstr.GetNextToken(", \t").c_str();
     devname.ToLower();
     devname.Remove(TString::kBoth,' ');
-    
+
     devOffsetX = (atof(mapstr.GetNextToken(", \t").c_str())); // X offset
     devOffsetY = (atof(mapstr.GetNextToken(", \t").c_str())); // Y offset
     devOffsetZ = (atof(mapstr.GetNextToken(", \t").c_str())); // Z offset
-    
-    
-    
+
+
+
     while(notfound){
       if(devtype=="bpmstripline"){
 	//Load bpm offsets
 	index=GetDetectorIndex(GetDetectorTypeID("bpmstripline"),devname);
 	if(index == -1){
-	  QwError << "QwBeamLine::LoadGeometry:  Unknown bpm : "
+	  QwError << "QwBeamLine::LoadGeometryDefinition:  Unknown bpm : "
 		  <<devname<<" will not be asigned with geometry parameters. \n"
 		  <<QwLog::endl;
 	  notfound=kFALSE;
@@ -521,7 +521,7 @@ Int_t QwBeamLine::LoadGeometry(TString mapfile){
 	localname.ToLower();
 	if(ldebug)  std::cout<<"element name =="<<localname
 			     <<"== to be compared to =="<<devname<<"== \n";
-	
+
 	if(localname==devname){
 	  if(ldebug) std::cout<<" I found the bpm !\n";
 	  fStripline[index].GetOffset(devOffsetX,devOffsetY,devOffsetZ);
@@ -532,18 +532,18 @@ Int_t QwBeamLine::LoadGeometry(TString mapfile){
 	//Load combined bpm offsets which are, ofcourse, target position in the beamline
 	index=GetDetectorIndex(GetDetectorTypeID("combinedbpm"),devname);
 	if(index == -1){
-	  QwError << "QwBeamLine::LoadGeometry:  Unknown combinedbpm : "
+	  QwError << "QwBeamLine::LoadGeometryDefinition:  Unknown combinedbpm : "
 		  <<devname<<" will not be asigned with geometry parameters.\n "
 		  << QwLog::endl;
 	  notfound=kFALSE;
 	  continue;
 	}
-	
+
 	localname=fBPMCombo[index].GetElementName();
 	localname.ToLower();
 	if(ldebug)
 	  std::cout<<"element name =="<<localname<<"== to be compared to =="<<devname<<"== \n";
-	
+
 	if(localname==devname){
 	  if(ldebug) std::cout<<" I found the combinedbpm !\n";
 	  fBPMCombo[index].GetOffset(devOffsetX,devOffsetY,devOffsetZ);
@@ -551,20 +551,20 @@ Int_t QwBeamLine::LoadGeometry(TString mapfile){
 	}
       }
       else std::cout<<" Unknown device type :"<<devtype<<". The geometry will not be assigned to this device."<<std::endl;
-      
-      if(ldebug)  std::cout<<"QwBeamLine::LoadGeometry:Offsets for device "<<devname<<" of type "<<devtype<<" are "
+
+      if(ldebug)  std::cout<<"QwBeamLine::LoadGeometryDefinition:Offsets for device "<<devname<<" of type "<<devtype<<" are "
 			   <<": X offset ="<< devOffsetX
 			   <<": Y offset ="<< devOffsetY
 			   <<": Z offset ="<<devOffsetZ<<"\n";
     }
-    
+
   }
-  
+
   if(ldebug) std::cout<<" line read in the geometry file ="<<lineread<<" \n";
-  
+
   ldebug=kFALSE;
   return 0;
-  
+
 };
 
 
@@ -868,10 +868,10 @@ void  QwBeamLine::ProcessEvent()
 
   for(size_t i=0;i<fBPMCombo.size();i++)
     fBPMCombo[i].ProcessEvent();
-  
+
   for(size_t i=0;i<fECalculator.size();i++)
     fECalculator[i].ProcessEvent();
-  
+
   return;
 };
 
@@ -1334,7 +1334,7 @@ void  QwBeamLine::PrintInfo() const
   std::cout<<"there are "<<fStripline.size()<<" striplines \n";
   std::cout<<"there are "<<fBCM.size()<<" bcm \n";
   std::cout<<"there are "<<fBCMCombo.size()<<" combined bcms \n";
-  std::cout<<"there are "<<fBPMCombo.size()<<" combined bpms \n";  
+  std::cout<<"there are "<<fBPMCombo.size()<<" combined bpms \n";
   std::cout<<"there are "<<fECalculator.size()<<" energy calculators \n";
   std::cout<<" Printing Running AVG and other channel info for BCMs"<<std::endl;
   for(size_t i=0;i<fBCM.size();i++)

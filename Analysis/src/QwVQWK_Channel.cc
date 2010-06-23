@@ -718,7 +718,6 @@ QwVQWK_Channel& QwVQWK_Channel::operator+= (const QwVQWK_Channel &value)
     this->fNumberOfSamples  += value.fNumberOfSamples;
     this->fSequenceNumber   = 0;
     this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
-
   }
 
   return *this;
@@ -739,7 +738,8 @@ QwVQWK_Channel& QwVQWK_Channel::operator-= (const QwVQWK_Channel &value)
     this->fNumberOfSamples += value.fNumberOfSamples;
     this->fSequenceNumber   = 0;
     this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
-}
+  }
+
   return *this;
 };
 
@@ -804,6 +804,11 @@ void QwVQWK_Channel::Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom)
     fGoodEventCount  = denom.fGoodEventCount;
     fDeviceErrorCode = (numer.fDeviceErrorCode|denom.fDeviceErrorCode);//error code is ORed.
   }
+
+  // Nanny
+  if (fHardwareBlockSum != fHardwareBlockSum)
+    QwWarning << "Angry Nanny: NaN detected in " << GetElementName() << QwLog::endl;
+
   return;
 };
 
@@ -952,6 +957,10 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
       fBlockM2[i] += M22 + n1 * n2 * (M12 - M11) * (M12 - M11) / n;
     }
   }
+
+  // Nanny
+  if (fHardwareBlockSum != fHardwareBlockSum)
+    QwWarning << "Angry Nanny: NaN detected in " << GetElementName() << QwLog::endl;
 
   return;
 };
