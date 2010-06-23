@@ -194,7 +194,7 @@ tstcoda: tstcoda_main.o THaCodaFile.o THaCodaData.o THaEtClient.o $(MYINCDIR)/TH
 
 
 # Here we build a library with all this stuff
-libmyevio.a: $(DECODE_OBJS) clean_evio evio.o swap_util.o 
+libmyevio.a: $(DECODE_OBJS) evio.o swap_util.o 
 	rm -f $@
 	ar cr $@ $(DECODE_OBJS) evio.o swap_util.o 
 
