@@ -103,6 +103,7 @@ search=(
     /usr/${lib}/mysql
     /usr/local/${lib}/mysql
     /opt/local/${lib}/mysql5/mysql
+    /usr/${lib}
     )
 export MYSQL_LIB_DIR=$(first_path_with_file $libname "${MYSQL_LIB_DIR}" "${search[@]}")
 report_status MYSQL_LIB_DIR ${MYSQL_LIB_DIR}
