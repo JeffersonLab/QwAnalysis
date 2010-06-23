@@ -98,12 +98,18 @@ class QwTrackingWorker {
     QwRayTracer* fRayTracer;
     //@}
 
-    // Local flags
-    bool fDisableTracking;
-    bool fShowEventPattern;
-    bool fShowMatchingPattern;
-    bool fUseMatrixLookup;
-    bool fUseRayTracer;
+
+    /// \name Parsed configuration options
+    //@{
+    bool fDisableTracking;	///< Disable all tracking
+    bool fShowEventPattern;	///< Show all event patterns
+    bool fShowMatchingPattern;	///< Show matching event patterns
+    bool fDisableMomentum;	///< Disable momentum reconstruction
+    bool fDisableMatrixLookup;	///< Disable matrix lookup momentum reconstruction
+    bool fDisableRayTracer;	///< Disable ray tracer momentum reconstruction
+    std::string fFilenameFieldmap;	///< Filename of the fieldmap in QW_FIELDMAP
+    std::string fFilenameLookupTable;	///< Filename of the lookup table in QW_LOOKUP
+    //@}
 
 }; // class QwTrackingWorker
 
