@@ -64,6 +64,9 @@ void  QwSubsystemArrayParity::FillDB(QwDatabase *db, TString type)
  */
 void  QwSubsystemArrayParity::Copy(const QwSubsystemArrayParity *source)
 {
+  // Copy function for contain test
+  fnCanContain = CanContain;
+  // Copy subsystems in the array
   if (!source->empty()) {
     for (const_iterator subsys = source->begin(); subsys != source->end(); ++subsys) {
       VQwSubsystemParity *srcptr =
