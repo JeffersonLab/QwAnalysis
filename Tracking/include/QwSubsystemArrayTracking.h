@@ -21,11 +21,11 @@ class QwSubsystemArrayTracking:  public QwSubsystemArray {
   public:
 
     /// Default constructor
-    QwSubsystemArrayTracking(): QwSubsystemArray() { };
+    QwSubsystemArrayTracking(): QwSubsystemArray(CanContain) { };
     /// Constructor with options
-    QwSubsystemArrayTracking(QwOptions& options): QwSubsystemArray(options) { };
+    QwSubsystemArrayTracking(QwOptions& options): QwSubsystemArray(options, CanContain) { };
     /// Constructor with map file
-    QwSubsystemArrayTracking(const char* filename): QwSubsystemArray(filename) { };
+    QwSubsystemArrayTracking(const char* filename): QwSubsystemArray(filename, CanContain) { };
     /// Default destructor
     virtual ~QwSubsystemArrayTracking() { };
 
@@ -39,6 +39,13 @@ class QwSubsystemArrayTracking:  public QwSubsystemArray {
     // Update the TDC-based hit list from each subsystem
     void GetTDCHitList(QwHitContainer& tdchitlist);
     void GetTDCHitList(QwHitContainer* tdchitlist) { GetTDCHitList(*tdchitlist); };
+
+  protected:
+
+    /// Test whether this subsystem array can contain a particular subsystem
+    static Bool_t CanContain(VQwSubsystem* subsys) {
+      return (dynamic_cast<VQwSubsystemTracking*>(subsys) != 0);
+    };
 
 }; // class QwSubsystemArrayTracking
 

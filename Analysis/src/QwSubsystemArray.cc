@@ -18,7 +18,8 @@
 /**
  * Create a subsystem array based on the configuration option 'detectors'
  */
-QwSubsystemArray::QwSubsystemArray(QwOptions& options)
+QwSubsystemArray::QwSubsystemArray(QwOptions& options, CanContainFn myCanContain)
+: fnCanContain(myCanContain)
 {
   ProcessOptionsToplevel(options);
   QwParameterFile detectors(fSubsystemsMapFile.c_str());
@@ -30,7 +31,8 @@ QwSubsystemArray::QwSubsystemArray(QwOptions& options)
  * Create a subsystem array with the contents of a map file
  * @param filename Map file
  */
-QwSubsystemArray::QwSubsystemArray(const char* filename)
+QwSubsystemArray::QwSubsystemArray(const char* filename, CanContainFn myCanContain)
+: fnCanContain(myCanContain)
 {
   QwWarning << "Preferable call to QwSubsystemArray constructor is by specifying options objects" << QwLog::endl;
   QwMessage << "Loading subsystems from " << filename << QwLog::endl;
@@ -96,6 +98,15 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
       QwError << "Could not create subsystem " << subsys_type << QwLog::endl;
       continue;
     }
+
+    // If this subsystem cannot be stored in this array
+    if (! fnCanContain(subsys)) {
+      QwWarning << "Subsystem " << subsys_name << " cannot be stored in this "
+                << "subsystem array" << QwLog::endl;
+      delete subsys; subsys = 0;
+      continue;
+    }
+
     // Pass detector maps
     subsys->LoadDetectorMaps(*section);
     // Add to array
@@ -116,14 +127,21 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
 void QwSubsystemArray::push_back(VQwSubsystem* subsys)
 {
   if (subsys == NULL) {
-    std::cerr << "QwSubsystemArray::push_back():  NULL subsys"
-              << std::endl;
+    QwError << "QwSubsystemArray::push_back(): NULL subsys"
+            << QwLog::endl;
     //  This is an empty subsystem...
     //  Do nothing for now.
+
   } else if (!this->empty() && GetSubsystemByName(subsys->GetSubsystemName())){
     //  There is already a subsystem with this name!
-    std::cerr << "QwSubsystemArray::push_back():  subsys" << subsys->GetSubsystemName()
-              << " already exists" << std::endl;
+    QwError << "QwSubsystemArray::push_back(): subsys " << subsys->GetSubsystemName()
+            << " already exists" << QwLog::endl;
+
+  } else if (!fnCanContain(subsys)) {
+    //  There is no support for this type of subsystem
+    QwError << "QwSubsystemArray::push_back(): subsys " << subsys->GetSubsystemName()
+            << " is not supported by this subsystem array" << QwLog::endl;
+
   } else {
     boost::shared_ptr<VQwSubsystem> subsys_tmp(subsys);
     SubsysPtrs::push_back(subsys_tmp);

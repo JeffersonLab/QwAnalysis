@@ -34,11 +34,11 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
  public:
 
     /// Default constructor
-    QwSubsystemArrayParity(): QwSubsystemArray() { };
+    QwSubsystemArrayParity(): QwSubsystemArray(CanContain) { };
     /// Constructor with options
-    QwSubsystemArrayParity(QwOptions& options): QwSubsystemArray(options) { };
+    QwSubsystemArrayParity(QwOptions& options): QwSubsystemArray(options, CanContain) { };
     /// Constructor with map file
-    QwSubsystemArrayParity(const char* filename): QwSubsystemArray(filename) { };
+    QwSubsystemArrayParity(const char* filename): QwSubsystemArray(filename, CanContain) { };
     /// Copy constructor by pointer
     QwSubsystemArrayParity(const QwSubsystemArrayParity* source) { this->Copy(source); };
     /// Copy constructor by reference
@@ -116,6 +116,12 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     //static const Int_t kErrorFlag_Helicity=0x2;   // in Decimal 2. Helicity bit faliure
     //static const Int_t kErrorFlag_Beamline=0x4;    // in Decimal 4.  Beamline faliure
 
+  protected:
+
+    /// Test whether this subsystem array can contain a particular subsystem
+    static Bool_t CanContain(VQwSubsystem* subsys) {
+      return (dynamic_cast<VQwSubsystemParity*>(subsys) != 0);
+    };
 
 }; // class QwSubsystemArrayParity
 
