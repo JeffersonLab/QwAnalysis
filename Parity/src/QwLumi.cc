@@ -8,6 +8,7 @@
 #include "QwLumi.h"
 #include "QwHistogramHelper.h"
 #include <stdexcept>
+#include <iostream>
 
 // Register this subsystem with the factory
 QwSubsystemFactory<QwLumi> theLumiFactory("QwLumi");
@@ -70,8 +71,21 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	channum   = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
 	dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
 	dettype.ToLower();
+
+        std::cout<<"modtype = "<<modtype<<std::endl;
+        std::cout<<"modnum = "<<modnum<<std::endl;
+        std::cout<<"channum = "<<channum<<std::endl;
+        std::cout<<"dettype = "<<dettype<<"\n"<<std::endl;
+
+
 	namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+
+//std::cout<<"namech = "<<namech<<std::endl;
+
 	namech.ToLower();
+
+//std::cout<<"namech = "<<namech<<std::endl;
+
 	keyword = mapstr.GetNextToken(", ").c_str();
 	keyword.ToLower();
 
