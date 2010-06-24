@@ -23,6 +23,7 @@ QwMainDetector::QwMainDetector(TString region_tmp):VQwSubsystem(region_tmp),
 {
     fDEBUG = false;
     fEvtCounter = 0;
+    ClearAllBankRegistrations();
 };
 
 QwMainDetector::~QwMainDetector()

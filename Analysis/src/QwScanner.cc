@@ -37,6 +37,8 @@ QwScanner::QwScanner(TString region_tmp)
     fEvtCounter = 0;
     fTrigEvtCounter = 0;
     fSumEvtCounter = 0;
+
+    ClearAllBankRegistrations();
 };
 
 

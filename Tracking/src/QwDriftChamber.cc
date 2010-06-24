@@ -26,6 +26,7 @@ QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHit
     OK            = 0;
     fDEBUG        = kFALSE;
     fNumberOfTDCs = 0;
+    ClearAllBankRegistrations();
 
     /*for (int i1 = 0; i1 < kNumPackages; i1++)
       for (int i2 = 0; i2 < 2; i2++)
