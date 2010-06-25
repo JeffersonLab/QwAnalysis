@@ -127,7 +127,12 @@ Int_t QwBlinder::ReadSeed(QwDatabase* db, const UInt_t seed_id)
           fSeedID = res[0].seed_id;
 
           // Store seed value
-          fSeed = res[0].seed;
+          if (!res[0].seed.is_null) {
+            fSeed = res[0].seed.data;
+          } else {
+            std::cerr << "QwBlinder::ReadSeed(): ERROR:  Seed value came back NULL from the database." << std::endl;
+            fSeedID = 0;
+          }
 
           std::cout << "QwBlinder::ReadSeed():  Successfully read "
           << Form("the fSeed with ID %d from the database.", fSeedID)

@@ -34,6 +34,7 @@ Added by Buddhini to display the hall c Beamline data.
 //=============================================================================
 
 #define N_DETECTORS     33
+#define N_LUMIS 16
 #define N_BEAM_MONITORS 6
 #define N_SUBBLOCKS     5
 #define N_DET_MEAS_TYPES 2
@@ -116,11 +117,8 @@ using std::vector;
 
 /*   void PlotChargeData(); */
 
-  void MainDetectorPlot();
+  void DetectorPlot();
   void BeamMonitorPlot();
-
-  void PositionDifferences(); 
-  void DisplayTargetParameters();
 
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
@@ -138,6 +136,7 @@ using std::vector;
 
   static const char   *DetectorCombos[N_DETECTORS];
   static const char   *BeamMonitors[N_BEAM_MONITORS];
+  static const char   *LumiCombos[N_LUMIS];
   static const char   *DetectorMeasurementTypes[N_DET_MEAS_TYPES];
   static const char   *Subblocks[N_SUBBLOCKS];
 
@@ -183,6 +182,7 @@ using std::vector;
 
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
   virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
+  void                 PopulateDetectorComboBox();
   
   ClassDef(QwGUIDatabase,0); 
 
