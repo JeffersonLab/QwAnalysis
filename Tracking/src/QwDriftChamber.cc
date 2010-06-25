@@ -27,6 +27,7 @@ QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHit
     fDEBUG        = kFALSE;
     fNumberOfTDCs = 0;
     ClearAllBankRegistrations();
+    InitHistogramPointers();
 
     /*for (int i1 = 0; i1 < kNumPackages; i1++)
       for (int i2 = 0; i2 < 2; i2++)
@@ -41,6 +42,9 @@ QwDriftChamber::QwDriftChamber(TString region_tmp)
     OK            = 0;
     fDEBUG        = kFALSE;
     fNumberOfTDCs = 0;
+    ClearAllBankRegistrations();
+    InitHistogramPointers();
+
     /*for (int i1 = 0; i1 < kNumPackages; i1++)
       for (int i2 = 0; i2 < 2; i2++)
         for (int i3 = 0; i3 < 279; i3++)
