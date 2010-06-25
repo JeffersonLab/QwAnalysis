@@ -20,6 +20,7 @@ OBJECTS       += QwGUIPlotOptionsDialog.o
 OBJECTS       += QwGUIDataWindow.o
 OBJECTS       += QwGUISubSystem.o
 OBJECTS       += QwGUIMainDetector.o
+OBJECTS       += QwGUIScanner.o
 OBJECTS       += QwGUIBeamModulation.o			 #Nuruzzaman
 OBJECTS       += QwGUILumiDetector.o
 OBJECTS       += QwGUIInjector.o

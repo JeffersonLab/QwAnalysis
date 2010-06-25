@@ -84,6 +84,7 @@
 #include <TPave.h>
 #include "KeySymbols.h"
 #include "QwGUIMainDetector.h"
+#include "QwGUIScanner.h"
 #include "QwGUIBeamModulation.h"
 #include "QwGUILumiDetector.h"
 #include "QwGUIInjector.h"
@@ -112,6 +113,7 @@ class QwGUIMain : public TGMainFrame {
 
   //!Main detector sub system class
   QwGUIMainDetector      *MainDetSubSystem;
+  QwGUIScanner           *ScannerSubSystem;
   QwGUIBeamModulation    *BeamModulationSubSystem;
   QwGUILumiDetector      *LumiDetSubSystem;
   QwGUIInjector          *InjectorSubSystem;

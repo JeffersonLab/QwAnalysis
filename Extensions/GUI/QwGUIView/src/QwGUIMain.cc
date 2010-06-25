@@ -43,6 +43,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   std::set_new_handler(0);
 
   MainDetSubSystem        = NULL;
+  ScannerSubSystem        = NULL;
   BeamModulationSubSystem = NULL;
   LumiDetSubSystem        = NULL;
   InjectorSubSystem       = NULL;
@@ -116,6 +117,9 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   if(!GetSubSystemPtr("Main Detectors"))
     MainDetSubSystem = new QwGUIMainDetector(fClient->GetRoot(), this, dTab,"Main Detectors",
 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
+  if(!GetSubSystemPtr("Scanner"))
+    ScannerSubSystem = new QwGUIScanner(fClient->GetRoot(), this, dTab,"Scanner",
+					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
   if(!GetSubSystemPtr("Beam Modulation"))
     BeamModulationSubSystem = new QwGUIBeamModulation(fClient->GetRoot(), this, dTab, "Beam Modulation",
 					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
@@ -147,6 +151,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 QwGUIMain::~QwGUIMain()
 {
   delete MainDetSubSystem        ;
+  delete ScannerSubSystem        ;
   delete BeamModulationSubSystem ;
   delete LumiDetSubSystem        ;
   delete InjectorSubSystem       ;
