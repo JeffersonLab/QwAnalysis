@@ -72,10 +72,10 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
 	dettype.ToLower();
 
-        std::cout<<"modtype = "<<modtype<<std::endl;
-        std::cout<<"modnum = "<<modnum<<std::endl;
-        std::cout<<"channum = "<<channum<<std::endl;
-        std::cout<<"dettype = "<<dettype<<"\n"<<std::endl;
+        //std::cout<<"modtype = "<<modtype<<std::endl;
+        //std::cout<<"modnum = "<<modnum<<std::endl;
+        //std::cout<<"channum = "<<channum<<std::endl;
+        //std::cout<<"dettype = "<<dettype<<"\n"<<std::endl;
 
 
 	namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
