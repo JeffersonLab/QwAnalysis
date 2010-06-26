@@ -5,8 +5,8 @@
 ClassImp(QwGUILumiDetector);
 
 const char *QwGUILumiDetector::LumiDetectorHists[LUMI_DET_HST_NUM] = 
-  { "C20AXM_hw_raw","C20AXM_block2_raw",
-    "AmpCh1_block1_raw","H00_YP_block1_raw"};
+  { "uslumi1neg","uslumi1pos","uslumi3neg","uslumi3pos","uslumi5neg","uslumi5pos","uslumi7neg","uslumi7pos",
+    "dslumi1","dslumi2","dslumi3","dslumi4","dslumi5","dslumi6","dslumi7","dslumi8"};
 
 QwGUILumiDetector::QwGUILumiDetector(const TGWindow *p, const TGWindow *main, const TGTab *tab, const char *objName, const char *mainname, UInt_t w, UInt_t h)
 
@@ -77,7 +77,7 @@ void QwGUILumiDetector::MakeLayout()
   QwGUISuperCanvas *mc = new QwGUISuperCanvas("", 10,10, wid);
   dCanvas->AdoptCanvas(mc);
 
-  mc->Divide( LUMI_DET_HST_NUM/2, LUMI_DET_HST_NUM/2);
+  mc->Divide( 4 , 4 );
 
 }
 
@@ -99,16 +99,38 @@ void QwGUILumiDetector::OnObjClose(char *obj)
 
 void QwGUILumiDetector::OnNewDataContainer(RDataContainer *cont)
 {
-
+  TCanvas *mc = dCanvas->GetCanvas();
   TObject *obj;
-  TObject *copy;
-  ClearData();
+  TTree *tree;
+  //ClearData();
 
-  std::cout<<"On new Data container!\n";
+  //std::cout<<"On new Data container!\n";
   if(dROOTCont){
-    for(int p = 0; p < LUMI_DET_HST_NUM; p++){
-	
-      obj = dROOTCont->ReadData(LumiDetectorHists[p]);      
+    obj = dROOTCont->ReadData("HEL_Tree");
+    if(obj){
+      if(obj->InheritsFrom("TTree")){
+        tree = (TTree*)obj->Clone();
+    
+        for(int p = 0; p < LUMI_DET_HST_NUM; p++){
+	  if (tree->FindLeaf(Form("asym_%s.hw_sum",LumiDetectorHists[p]))){
+            //std::cout<<Form("Histogram asym_%s.hw_sum found!\n",LumiDetectorHists[p]);
+            mc->cd(p+1);
+            tree->Draw(Form("asym_%s.hw_sum",LumiDetectorHists[p]));
+          }
+          else {
+            std::cout<<Form("Histogram asym_%s.hw_sum not found\n",LumiDetectorHists[p]);
+          }
+        }  
+      mc->Modified();
+      mc->Update();
+      }
+    }
+  }      
+}       
+
+/*
+//std::cout<<Form("asym_%s.hw_sum",LumiDetectorHists[p]);
+  
       if(obj==NULL)  std::cout<<"no data for lumis\n";
       if(obj){
 
@@ -122,7 +144,9 @@ void QwGUILumiDetector::OnNewDataContainer(RDataContainer *cont)
     }
   }  
   PlotData();
+
 }
+*/
 
 void QwGUILumiDetector::OnRemoveThisTab()
 {

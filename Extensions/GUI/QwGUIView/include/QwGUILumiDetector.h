@@ -31,7 +31,7 @@
  */
 //=============================================================================
 
-#define LUMI_DET_HST_NUM      4           
+#define LUMI_DET_HST_NUM      16           
 
 ///
 /// \ingroup QwGUILumi
