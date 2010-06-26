@@ -27,6 +27,8 @@ QwScanner::QwScanner(TString region_tmp)
         VQwSubsystemTracking(region_tmp),
         VQwSubsystemParity(region_tmp) {
 
+    fDEBUG = 0;
+
     myTimer = abs((Int_t) gRandom->Gaus(15,3));
     fDirectionX = fPreDirectionX = 1.0;
     fDirectionY = fPreDirectionY = 1.0;
@@ -166,20 +168,30 @@ Int_t QwScanner::LoadInputParameters(TString parameterfile) {
         if (mapstr.HasVariablePair("=",varname,varvalue)) {
             varname.ToLower();
             Double_t value = atof(varvalue.Data());
-            if (varname=="homepositionx") {
+            if (varname=="helicityfrequency") {
+                fHelicityFrequency = value;
+            } else if (varname=="homepositionx") {
                 fHomePositionX = value;
             } else if (varname=="homepositiony") {
                 fHomePositionY = value;
-            } else if (varname=="cal_factorx") {
-                fCal_FactorX = value;
-            } else if (varname=="cal_factory") {
-                fCal_FactorY = value;
-            } else if (varname=="voltageoffsetx") {
-                fVoltageOffsetX = value;
-                fCurrentPotentialX = fVoltageOffsetX; // fCurrentPotentialX is uded for generating mock data
-            } else if (varname=="voltageoffsety") {
-                fVoltageOffsetY = value;
-                fCurrentPotentialY = fVoltageOffsetY; // fCurrentPotentialY is uded for generating mock data
+            } else if (varname=="cal_factor_vqwk_x") {
+                fCal_Factor_VQWK_X = value;
+            } else if (varname=="cal_factor_vqwk_y") {
+                fCal_Factor_VQWK_Y = value;
+            } else if (varname=="cal_factor_qdc_x") {
+                fCal_Factor_QDC_X = value;
+            } else if (varname=="cal_factor_qdc_y") {
+                fCal_Factor_QDC_Y = value;
+            } else if (varname=="voltage_offset_x") {
+                fVoltage_Offset_X = value;
+                fCurrentPotentialX = fVoltage_Offset_X; // fCurrentPotentialX is uded for generating mock data
+            } else if (varname=="voltage_offset_y") {
+                fVoltage_Offset_Y = value;
+                fCurrentPotentialY = fVoltage_Offset_Y; // fCurrentPotentialY is uded for generating mock data
+            } else if (varname=="channel_offset_x") {
+                fChannel_Offset_X = value;
+            } else if (varname=="channel_offset_y") {
+                fChannel_Offset_Y = value;
             }
             if (ldebug) std::cout<<"inputs for "<<varname<<": "<<value<<"\n";
         }
@@ -251,12 +263,25 @@ Int_t QwScanner::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t ba
     if (index>=0 && num_words>0) {
         //  We want to process the configuration data for this ROC.
         UInt_t words_read = 0;
+
+        if(fBankID[3]==bank_id){
         for (size_t i=0; i<fADC_Data.size(); i++) {
             if (fADC_Data.at(i) != NULL) {
                 words_read += fADC_Data.at(i)->ProcessConfigBuffer(&(buffer[words_read]),
                               num_words-words_read);
             }
         }
+        }
+
+        else if (fBankID[1]==bank_id){
+        for (size_t i=0; i<fSCAs.size(); i++) {
+            if (fSCAs.at(i) != NULL) {
+                words_read += fSCAs.at(i)->ProcessConfigBuffer(&(buffer[words_read]),
+                              num_words-words_read);
+            }
+        }
+        }
+
     }
     return 0;
 };
@@ -265,7 +290,6 @@ Int_t QwScanner::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t ba
 Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) {
     Int_t index = GetSubbankIndex(roc_id,bank_id);
 
-    fDEBUG = 0;
     SetDataLoaded(kTRUE);
     fEvtCounter++;
     if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer:  "
@@ -296,15 +320,18 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
                     if (fDEBUG) {
                         std::cout<<"QwScanner::ProcessEvBuffer(VQWK): "<<words_read<<" words_read, "
                         <<num_words<<" num_words"<<" Data: ";
-                        for (UInt_t j=0; j<words_read; j++)
+                        for (UInt_t j=(words_read-48); j<words_read; j++)
                             std::cout<<"     "<<std::hex<<buffer[j]<<std::dec;
                         std::cout<<std::endl;
                     }
                 }
+               else {
+                    words_read += 48; // skip 48 data words (8 channel x 6 words/ch)
+               }
             }
 
-            if (num_words != words_read) {
-                std::cerr << "QwScanner::ProcessEvBuffer:  There were "
+            if (fDEBUG & (num_words != words_read)) {
+                std::cerr << "QwScanner::ProcessEvBuffer(VQWK):  There were "
                 << num_words-words_read
                 << " leftover words after decoding everything we recognize."
                 << std::endl;
@@ -313,7 +340,7 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
     }
 
 
-    //  This is a SCA bank
+    // This is a SCA bank
     if (bank_id==fBankID[1]) {
 
         if (index>=0 && num_words>0) {
@@ -322,23 +349,33 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
             if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer: Processing Bank "<<bank_id
                 <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
                 << " fSCAs.size() = "<<fSCAs.size()<<std::endl;
+
             UInt_t words_read = 0;
             for (size_t i=0; i<fSCAs.size(); i++) {
+                words_read++; // skip header word
                 if (fSCAs.at(i) != NULL) {
                     words_read += fSCAs.at(i)->ProcessEvBuffer(&(buffer[words_read]),
                                   num_words-words_read);
+
                     if (fDEBUG) {
                         std::cout<<"QwScanner::ProcessEvBuffer(SCA): "<<words_read<<" words_read, "
-                        <<num_words<<" num_words"<<" Data: ";
-                        for (UInt_t j=0; j<words_read; j++)
+                        <<num_words<<" num_words"<<" Data: \n";
+                        for (UInt_t j=0; j<words_read; j++){
                             std::cout<<"     "<<std::hex<<buffer[j]<<std::dec;
-                        std::cout<<std::endl;
+                            std::cout<<"(ch="<<((buffer[j]>>24) & 0x1f)
+                                     <<" data="<<(buffer[j] & 0xffffff)<<")\n";
+                        }
+
                     }
+
+                }
+                else {
+                    words_read += 32; // skip a block of data for a single module
                 }
             }
 
-            if (num_words != words_read) {
-                std::cerr << "QwScanner::ProcessEvBuffer:  There were "
+            if (fDEBUG & (num_words != words_read)) {
+                std::cerr << "QwScanner::ProcessEvBuffer(SCA):  There were "
                 << num_words-words_read
                 << " leftover words after decoding everything we recognize."
                 << std::endl;
@@ -436,24 +473,27 @@ void  QwScanner::ProcessEvent() {
     //Fill trigger data
     for (size_t i=0; i<fPMTs.size(); i++) {
         for (size_t j=0; j<fPMTs.at(i).size(); j++) {
-            if (fPMTs.at(i).at(j).GetElementName()==TString("front_adc"))
-                fFrontADC = fPMTs.at(i).at(j).GetValue();
-            if (fPMTs.at(i).at(j).GetElementName()==TString("back__adc"))
-                fBackADC = fPMTs.at(i).at(j).GetValue();
-            if (fPMTs.at(i).at(j).GetElementName()==TString("front_tdc"))
-                fFrontTDC = fPMTs.at(i).at(j).GetValue();
-            if (fPMTs.at(i).at(j).GetElementName()==TString("back__tdc"))
-                fBackTDC = fPMTs.at(i).at(j).GetValue();
 
-            // TODO replace the position determination with interplation table
-            if (fPMTs.at(i).at(j).GetElementName()==TString("power_adc"))
-                fPowSupply_ADC = fPMTs.at(i).at(j).GetValue();
-            if (fPMTs.at(i).at(j).GetElementName()==TString("pos_x_adc"))
-                fPositionX_ADC = fPMTs.at(i).at(j).GetValue();
-            fPositionX_ADC = (fPositionX_ADC-fVoltageOffsetX)*fCal_FactorX + fHomePositionX;
-            if (fPMTs.at(i).at(j).GetElementName()==TString("pos_y_adc"))
-                fPositionY_ADC = fPMTs.at(i).at(j).GetValue();
-            fPositionY_ADC = (fPositionY_ADC-fVoltageOffsetY)*fCal_FactorY + fHomePositionY;
+            TString element_name = fPMTs.at(i).at(j).GetElementName();
+            if (element_name==TString("front_adc"))
+                fFrontADC = fPMTs.at(i).at(j).GetValue();
+            else if (element_name==TString("back__adc"))
+                fBackADC = fPMTs.at(i).at(j).GetValue();
+            else if (element_name==TString("front_tdc"))
+                fFrontTDC = fPMTs.at(i).at(j).GetValue();
+            else if (element_name==TString("back__tdc"))
+                fBackTDC = fPMTs.at(i).at(j).GetValue();
+            // TODO jpan: replace the position determination with interplation table
+            else if (element_name==TString("pos_x_adc"))
+               {
+                 fPositionX_ADC = fPMTs.at(i).at(j).GetValue();
+                 fPositionX_ADC = (fPositionX_ADC-fChannel_Offset_X)*fCal_Factor_QDC_X + fHomePositionX;
+               }
+            else if (element_name==TString("pos_y_adc"))
+               {
+                 fPositionY_ADC = fPMTs.at(i).at(j).GetValue();
+                 fPositionY_ADC = (fPositionY_ADC-fChannel_Offset_Y)*fCal_Factor_QDC_Y + fHomePositionY;
+               }
         }
     }
 
@@ -465,19 +505,19 @@ void  QwScanner::ProcessEvent() {
             fPowSupply_VQWK = fADC_Data.at(i)->GetChannel(TString("power_vqwk"))->GetAverageVolts();
 
             fPositionX_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_x_vqwk"))->GetAverageVolts();
-            fPositionX_VQWK = (fPositionX_VQWK-fVoltageOffsetX)*fCal_FactorX + fHomePositionX;
+            fPositionX_VQWK = (fPositionX_VQWK-fVoltage_Offset_X)*fCal_Factor_VQWK_X + fHomePositionX;
 
             fPositionY_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_y_vqwk"))->GetAverageVolts();
-            fPositionY_VQWK = (fPositionY_VQWK-fVoltageOffsetY)*fCal_FactorY + fHomePositionY;
+            fPositionY_VQWK = (fPositionY_VQWK-fVoltage_Offset_Y)*fCal_Factor_VQWK_Y + fHomePositionY;
         }
     }
 
     //Fill scaler data
     for (size_t i=0; i<fSCAs.size(); i++) {
         if (fSCAs.at(i) != NULL) {
-            fCoincidenceSCA = fSCAs.at(i)->GetChannel(TString("coinc_sca"))->GetValue();
-            fFrontSCA = fSCAs.at(i)->GetChannel(TString("front_sca"))->GetValue();
-            fBackSCA = fSCAs.at(i)->GetChannel(TString("back__sca"))->GetValue();
+            fCoincidenceSCA = fHelicityFrequency*(fSCAs.at(i)->GetChannel(TString("coinc_sca"))->GetValue());
+            fFrontSCA = fHelicityFrequency*(fSCAs.at(i)->GetChannel(TString("front_sca"))->GetValue());
+            fBackSCA = fHelicityFrequency*(fSCAs.at(i)->GetChannel(TString("back__sca"))->GetValue());
         }
     }
 
@@ -516,14 +556,11 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix) {
                 }
             }
 
-            for (size_t i=0; i<fADC_Data.size(); i++) {
-                if (fADC_Data.at(i) != NULL)
-                    fADC_Data.at(i)->ConstructHistograms(folder, basename);
-            }
+//             for (size_t i=0; i<fADC_Data.size(); i++) {
+//                 if (fADC_Data.at(i) != NULL)
+//                     fADC_Data.at(i)->ConstructHistograms(folder, basename);
+//            }
         }
-
-        // TODO (wdc) disabled due to restriction imposed by memory mapped file
-        //scannerfolder->cd();
 
         //fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
         fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_front_adc")));
@@ -534,11 +571,19 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix) {
         fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_y")));
 
         fHistograms2D.push_back( gQwHists.Construct2DHist(TString("scanner_rate_map")));
+
+        //TProfile2D(const char* name, const char* title,
+        // Int_t nbinsx, Double_t xlow, Double_t xup,
+        // Int_t nbinsy, Double_t ylow, Double_t yup,
+        // Option_t* option = "")
+        fRateMap  = new TProfile2D("scanner_rate_map_profile",
+                                   "Scanner Rate Map Profile",110,-55,55,40,-355,-315);
+
     }
 };
 
 void  QwScanner::FillHistograms() {
-    //std::cout<<"QwScanner::FillHistograms():"<<std::endl;
+
     if (! HasDataLoaded()) return;
 
     if (bStoreRawData)
@@ -558,11 +603,11 @@ void  QwScanner::FillHistograms() {
         }
 
         //Fill position data
-        for (size_t i=0; i<fADC_Data.size(); i++) {
-            if (fADC_Data.at(i) != NULL) {
-                fADC_Data.at(i)->FillHistograms();
-            }
-        }
+//         for (size_t i=0; i<fADC_Data.size(); i++) {
+//             if (fADC_Data.at(i) != NULL) {
+//                 fADC_Data.at(i)->FillHistograms();
+//             }
+//         }
 
     }
 
@@ -611,6 +656,8 @@ void  QwScanner::FillHistograms() {
         }
     }
 
+    fRateMap->Fill(fPositionX_VQWK,fPositionY_VQWK,fCoincidenceSCA,1);
+
 };
 
 
@@ -628,9 +675,9 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix) {
     if (prefix.BeginsWith(pat1)) {}
 
     else if (prefix.BeginsWith(pat2)) {
-        tree->Branch("scanner_posx",&fPositionX_VQWK,"scanner_posx/D");
-        tree->Branch("scanner_posy",&fPositionY_VQWK,"scanner_posy/D");
-        tree->Branch("scanner_rate",&fCoincidenceSCA,"scanner_rate/D");
+        //tree->Branch("scanner_posx",&fPositionX_VQWK,"scanner_posx/D");
+        //tree->Branch("scanner_posy",&fPositionY_VQWK,"scanner_posy/D");
+        //tree->Branch("scanner_rate",&fCoincidenceSCA,"scanner_rate/D");
     }
 
     else {
@@ -671,8 +718,8 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix) {
         fScannerVector.push_back(0.0);
         list += ":BackTDC/D";
         fScannerVector.push_back(0.0);
-        list += ":PowSupply_ADC/D";
-        fScannerVector.push_back(0.0);
+//         list += ":PowSupply_ADC/D";
+//         fScannerVector.push_back(0.0);
         list += ":PositionX_ADC/D";
         fScannerVector.push_back(0.0);
         list += ":PositionY_ADC/D";
@@ -710,7 +757,8 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix) {
                     for (size_t j=0; j<fADC_Data.at(i)->fChannels.size(); j++) {
                         TString channelname = fADC_Data.at(i)->fChannels.at(j).GetElementName();
                         channelname.ToLower();
-                        if ( (channelname =="") || (channelname =="empty") || (channelname =="spare")) {} else {
+                        if ( (channelname =="") || (channelname =="empty") || (channelname =="spare")) {} 
+                        else {
                             fScannerVector.push_back(0.0);
                             list += ":"+fADC_Data.at(i)->fChannels.at(j).GetElementName()+"_raw/D";
                         }
@@ -752,7 +800,7 @@ void  QwScanner::FillTreeVector() {
     fScannerVector[index++] = fBackADC;
     fScannerVector[index++] = fFrontTDC;
     fScannerVector[index++] = fBackTDC;
-    fScannerVector[index++] = fPowSupply_ADC;
+//    fScannerVector[index++] = fPowSupply_ADC;
     fScannerVector[index++] = fPositionX_ADC;
     fScannerVector[index++] = fPositionY_ADC;
 
@@ -775,7 +823,8 @@ void  QwScanner::FillTreeVector() {
                     }
                 }
             } else {
-                std::cerr<<"QwScanner::FillTreeVector:  "<<"fSCA_Data.at("<<i<<") is NULL"<<std::endl;
+                if(fDEBUG)
+                  std::cerr<<"QwScanner::FillTreeVector:  "<<"fSCA_Data.at("<<i<<") is NULL"<<std::endl;
             }
         }
 
@@ -797,6 +846,7 @@ void  QwScanner::FillTreeVector() {
                 }
 
             } else {
+                if(fDEBUG)
                 std::cerr<<"QwScanner::FillTreeVector:  "<<"fADC_Data.at(" <<i<<") is NULL"<< std::endl;
             }
         }
@@ -823,11 +873,11 @@ void  QwScanner::DeleteHistograms() {
             }
         }
 
-        for (size_t i=0; i<fADC_Data.size(); i++) {
-            if (fADC_Data.at(i) != NULL) {
-                fADC_Data.at(i)->DeleteHistograms();
-            }
-        }
+//         for (size_t i=0; i<fADC_Data.size(); i++) {
+//             if (fADC_Data.at(i) != NULL) {
+//                 fADC_Data.at(i)->DeleteHistograms();
+//             }
+//         }
     }
 
     for (size_t i=0; i<fHistograms1D.size(); i++) {
@@ -857,7 +907,7 @@ void  QwScanner::ReportConfiguration() {
             << ":  subbank index==" << ind
             << std::endl;
 
-            if (fBank_IDs.at(i).at(j)==0x0501) {
+            if (fBank_IDs.at(i).at(j)==fBankID[0]) {
                 for (size_t k=0; k<kMaxNumberOfModulesPerROC; k++) {
                     Int_t QadcTdcindex = GetModuleIndex(ind,k);
                     if (QadcTdcindex != -1) {
@@ -865,9 +915,11 @@ void  QwScanner::ReportConfiguration() {
                         std::cout << "  Module#" << QadcTdcindex << std::endl;
                     }
                 }
-            } else if (fBank_IDs.at(i).at(j)==0x0502) {
+            } else if (fBank_IDs.at(i).at(j)==fBankID[1]) {
                 std::cout << "    Number of SIS3801 Scaler:  " << fSCAs.size() << std::endl;
-            } else if (fBank_IDs.at(i).at(j)==0x0503) {
+            } else if (fBank_IDs.at(i).at(j)==fBankID[2]) {
+                std::cout << "    F1TDC added." << std::endl;
+            } else if (fBank_IDs.at(i).at(j)==fBankID[3]) {
                 std::cout << "    Number of TRIUMF ADC:  " << fADC_Data.size() << std::endl;
             }
         }
@@ -875,7 +927,6 @@ void  QwScanner::ReportConfiguration() {
 
 }
 ; //ReportConfiguration()
-
 
 Bool_t  QwScanner::Compare(QwScanner &value) {
 
@@ -1160,19 +1211,7 @@ void QwScanner::SetRandomEventParameters(Double_t mean, Double_t sigma) {
     return;
 };
 
-/********************************************************/
-//jpan: triggering scheme - still unclear!
-//VQWK module will be gated by beam helicity states
-//QADC module will be in self-triggering mode, i.e., triggered
-//by the left-right PMT's coincidence with a low threshold setting.
-//TDC's will be started by the left and right PMT's coincidence,
-//stopped by what???
-//
-// The VQWK and scaler will be on the same gate (gate A), the QADC/TDC
-// on another gate (gate B, provided by the scanner coincidence).
-// "A OR B" will give the gate(or readout interruption signal) for
-// the master board.
-//
+
 void QwScanner::RandomizeEventData(int helicity) {
     for (size_t i=0; i<fPMTs.size(); i++) {
         for (size_t j=0; j<fPMTs.at(i).size(); j++) {
@@ -1213,7 +1252,7 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer) {
 
     if (myTimer>0) {
 
-//mock data for trigger events
+    //mock data for trigger events
         for (size_t i=0; i<fPMTs.size(); i++) {
             for (size_t j=0; j<fPMTs.at(i).size(); j++) {
                 fPMTs.at(i).at(j).EncodeEventData(LocalTrigBuffer);
@@ -1229,7 +1268,6 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer) {
                     front_adc_value = UInt_t(fPMTs.at(i).at(j).GetValue())&0xFFF;
                     if (front_adc_value>front_adc_trimmer) {
                         fMockFrontScaData ++;
-                        //std::cout<<"     front_adc_value, FrontScaData  "<<front_adc_value<<"   "<<FrontScaData<<std::endl;
                     }
                 }
 
@@ -1237,7 +1275,6 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer) {
                     back_adc_value = UInt_t(fPMTs.at(i).at(j).GetValue())&0xFFF;
                     if (back_adc_value>back_adc_trimmer) {
                         fMockBackScaData ++;
-                        //std::cout<<"     back_adc_value, BackScaData  "<<back_adc_value<<"   "<<BackScaData<<std::endl;
                     }
                 }
 
@@ -1250,8 +1287,8 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer) {
 
     else { //(myTimer ==0)
 
-//mock data for scaler events
-//replace mock data for ch0, ch1, ch2
+    //mock data for scaler events
+    //replace mock data for ch0, ch1, ch2
         for (size_t i=0; i<fSCAs.size(); i++) {
             if (fSCAs.at(i) != NULL) {
                 fSCAs.at(i)->GetChannel(TString("front_sca"))->SetEventData(fMockFrontScaData);
@@ -1358,7 +1395,7 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer) {
         // Form CODA subbank header
         subbankheader.clear();
         subbankheader.push_back(LocalSumBuffer.size() + 1);    // subbank size
-        subbankheader.push_back((0x0503 << 16) | (0x01 << 8) | (1 & 0xff));
+        subbankheader.push_back((fBankID[3] << 16) | (0x01 << 8) | (1 & 0xff));
         // subbank tag | subbank type | event number
 
         // Form CODA bank/roc header
@@ -1379,7 +1416,7 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer) {
         // Form CODA subbank header
         subbankheader.clear();
         subbankheader.push_back(LocalScaBuffer.size() + 1);    // subbank size
-        subbankheader.push_back((0x0502 << 16) | (0x01 << 8) | (1 & 0xff));
+        subbankheader.push_back((fBankID[1] << 16) | (0x01 << 8) | (1 & 0xff));
         // subbank tag | subbank type | event number
 
         // Form CODA bank/roc header
@@ -1401,7 +1438,7 @@ void QwScanner::EncodeEventData(std::vector<UInt_t> &buffer) {
         subbankheader.clear();
         subbankheader.push_back(LocalTrigBuffer.size() + 1);    //subbank size
 //    subbankheader.push_back((2101 << 16) | (0x01 << 8) | (1 & 0xff));
-        subbankheader.push_back((0x0501 << 16) | (0x01 << 8) | (1 & 0xff));
+        subbankheader.push_back((fBankID[0] << 16) | (0x01 << 8) | (1 & 0xff));
         // subbank tag | subbank type | event number
 
         // Form CODA bank/roc header

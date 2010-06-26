@@ -32,14 +32,17 @@ slot=1
   V792, 1, 31, scanner_qadc, pos_y_adc
 !
 !
-! SCA_Bank is still arbitrary at this point (jpan, 22june2010)
-SCA_Bank=0x0402
+ROC=0
 !
-slot=2
+! SCA_Bank is still arbitrary at this point (jpan, 22june2010)
+! module.num counting from 0
+SCA_Bank=0x6103
+!
+! slot=2
 ! module.type  module.num  chan.num, det.type, det.name
-  SIS3801, 0, 17, scanner_sca, front_sca
-  SIS3801, 0, 18, scanner_sca, back__sca
-  SIS3801, 0, 19, scanner_sca, coinc_sca
+  SIS3801, 1, 24, scanner_sca, front_sca
+  SIS3801, 1, 25, scanner_sca, back__sca
+  SIS3801, 1, 26, scanner_sca, coinc_sca
 !
 !
 F1TDC_Bank=0x7513
@@ -52,25 +55,18 @@ slot=3
 !
 !
 !
-!The following map is defined for scanner 2D linear motion
-!Bank ID is specificied for scanner's VQWK
+!The following map is defined for measuring scanner position using VQWK
 !
 ROC=1
 !
-VQWK_Bank=0x1002
+VQWK_Bank=0x102
 !
-!The module.num for VQWK has to be independently counted.
+! module.num counting from 0, scanner using the 10th TRIUMF ADC board on ROC1
 !
 ! module.type  module.num  chan.num, det.type, det.name
 !
-!ADC0
-  VQWK, 0, 0, scanner_motion, power_vqwk
-  VQWK, 0, 1, scanner_motion, pos_x_vqwk
-  VQWK, 0, 2, scanner_motion, pos_y_vqwk
-  VQWK, 0, 3, scanner_motion, spare0
-  VQWK, 0, 4, scanner_motion, spare1
-  VQWK, 0, 5, scanner_motion, spare2
-  VQWK, 0, 6, scanner_motion, spare3
-  VQWK, 0, 7, scanner_motion, spare4
+  VQWK, 9, 0, scanner_motion, power_vqwk
+  VQWK, 9, 1, scanner_motion, pos_x_vqwk
+  VQWK, 9, 2, scanner_motion, pos_y_vqwk
 !
 !END

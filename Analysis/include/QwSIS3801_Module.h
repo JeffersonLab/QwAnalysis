@@ -74,10 +74,10 @@ class QwSIS3801_Module {
   void PrintValue() const { };
   void PrintInfo() const;
 
-  QwSIS3801_Channel* GetChannel(const TString name);
+  QwSIS3801D24_Channel* GetChannel(const TString name);
 
 //  If we change the number of channels in the module this needs to change.
-  boost::array<QwSIS3801_Channel, 32> fChannels;
+  boost::array<QwSIS3801D24_Channel, 32> fChannels;
 
  protected:
 

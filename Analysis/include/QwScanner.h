@@ -14,6 +14,7 @@
 
 #include "TTree.h"
 #include "TFile.h"
+#include "TProfile2D.h"
 #include "TRandom3.h"
 
 #include "VQwSubsystemTracking.h"
@@ -157,6 +158,7 @@ class QwScanner: public VQwSubsystemTracking,
   // scanner specified histograms
   std::vector<TH1*> fHistograms1D;
   std::vector<TH2*> fHistograms2D;
+  TProfile2D* fRateMap;
 
  private:
   Double_t get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalidity);
@@ -179,12 +181,21 @@ class QwScanner: public VQwSubsystemTracking,
   /// variables for calibrating and calculating scanner positions
   Double_t fMainDetCenterX;
   Double_t fMainDetCenterY;
+
+  Double_t fHelicityFrequency;
+
   Double_t fHomePositionX;
   Double_t fHomePositionY;
-  Double_t fVoltageOffsetX;
-  Double_t fVoltageOffsetY;
-  Double_t fCal_FactorX;
-  Double_t fCal_FactorY;
+  Double_t fVoltage_Offset_X;
+  Double_t fVoltage_Offset_Y;
+  Double_t fChannel_Offset_X;
+  Double_t fChannel_Offset_Y;
+
+  Double_t fCal_Factor_VQWK_X;
+  Double_t fCal_Factor_VQWK_Y;
+  Double_t fCal_Factor_QDC_X;
+  Double_t fCal_Factor_QDC_Y;
+
   Double_t fPedestal;
   Double_t fCalibration;
 
@@ -207,7 +218,7 @@ class QwScanner: public VQwSubsystemTracking,
   Double_t fFrontTDC;
   Double_t fBackADC;
   Double_t fBackTDC;
-  Double_t fPowSupply_ADC;
+  //Double_t fPowSupply_ADC;
   Double_t fPositionX_ADC;
   Double_t fPositionY_ADC;
 
