@@ -1,9 +1,15 @@
-/**********************************************************\
-* File: QwMainDetector.h                                      *
-*                                                          *
-* Author: P. M. King                                       *
-* Time-stamp: <2007-05-08 15:40>                           *
-\**********************************************************/
+/*------------------------------------------------------------------------*//*!
+
+ \file QwMainDetector.h
+
+ \author P. King
+ \author P. Wang
+
+ \date	2007-05-08 15:40
+
+ \brief This is the main executable for the tracking analysis.
+
+*//*-------------------------------------------------------------------------*/
 
 #ifndef __QWMAINDETECTOR__
 #define __QWMAINDETECTOR__
@@ -17,7 +23,7 @@
 #include "MQwV775TDC.h"
 
 #include "QwPMT_Channel.h"
-
+#include "QwSIS3801_Module.h"
 #include "QwDetectorInfo.h"
 
 
@@ -125,6 +131,7 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
 
   //    We need a mapping of module,channel into PMT index, ADC/TDC
   std::vector< std::vector<QwPMT_Channel> > fPMTs;
+  std::vector<QwSIS3801_Module*> fSCAs;
 
   std::vector <Double_t> fMainDetVector;
 

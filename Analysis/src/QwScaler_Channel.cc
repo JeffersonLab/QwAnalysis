@@ -125,7 +125,7 @@ void  QwScaler_Channel<data_mask,data_shift>::ConstructHistograms(TDirectory *fo
 
     fHistograms.resize(1, NULL);
     size_t index=0;
-    //    fHistograms[index]   = gQwHists.Construct1DHist(basename);
+    fHistograms[index]   = gQwHists.Construct1DHist(basename);
     index += 1;
   }
 };

@@ -1,9 +1,17 @@
-/**********************************************************\
-* File: QwMainDetector.cc                                   *
-*                                                          *
-* Author: P. M. King                                       *
-* Time-stamp: <2007-05-08 15:40>                           *
-\**********************************************************/
+/*------------------------------------------------------------------------*//*!
+
+ \file QwMainDetector.cc
+
+ \author P. King
+ \author P. Wang
+
+ \date  2007-05-08 15:40
+
+ \brief This is the main executable for the tracking analysis.
+
+ \ingroup QwTracking
+*//*-------------------------------------------------------------------------*/
+
 
 #include "QwMainDetector.h"
 
@@ -21,16 +29,16 @@ QwSubsystemFactory<QwMainDetector> theMainDetectorFactory("QwMainDetector");
 QwMainDetector::QwMainDetector(TString region_tmp):VQwSubsystem(region_tmp),
     VQwSubsystemTracking(region_tmp)
 {
-    fDEBUG = false;
-    fEvtCounter = 0;
-    ClearAllBankRegistrations();
+  fDEBUG = false;
+  fEvtCounter = 0;
+  ClearAllBankRegistrations();
 };
 
 QwMainDetector::~QwMainDetector()
 {
   DeleteHistograms();
-
   fPMTs.clear();
+  fSCAs.clear();
 };
 
 
@@ -55,76 +63,83 @@ Int_t QwMainDetector::LoadGeometryDefinition ( TString mapfile )
 
   QwParameterFile mapstr ( mapfile.Data() );  //Open the file
 
-  while ( mapstr.ReadNextLine() ) {
-    mapstr.TrimComment ( '!' );   // Remove everything after a '!' character.
-    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
-    if ( mapstr.LineIsEmpty() )  continue;
+  while ( mapstr.ReadNextLine() )
+    {
+      mapstr.TrimComment ( '!' );   // Remove everything after a '!' character.
+      mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+      if ( mapstr.LineIsEmpty() )  continue;
 
-    if ( mapstr.HasVariablePair ( "=",varname,varvalue ) ) {
-      //  This is a declaration line.  Decode it.
-      varname.ToLower();
-      //UInt_t value = atol(varvalue.Data());
-      if ( varname=="name" ) { //Beginning of detector information
-	DIRMODE=1;
-      }
+      if ( mapstr.HasVariablePair ( "=",varname,varvalue ) )
+        {
+          //  This is a declaration line.  Decode it.
+          varname.ToLower();
+          //UInt_t value = atol(varvalue.Data());
+          if ( varname=="name" )   //Beginning of detector information
+            {
+              DIRMODE=1;
+            }
+        }
+      else if ( DIRMODE==1 )
+        {
+          //  Break this line Int_to tokens to process it.
+          varvalue = ( mapstr.GetNextToken ( ", " ).c_str() );//this is the sType
+          Zpos = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          rot = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          sp_res = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          track_res = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          slope_match = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          package = mapstr.GetNextToken ( ", " ).c_str();
+          region  = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          dType = mapstr.GetNextToken ( ", " ).c_str();
+          direction  = mapstr.GetNextToken ( ", " ).c_str();
+          Det_originX = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          Det_originY = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          ActiveWidthX = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          ActiveWidthY = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          ActiveWidthZ = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          WireSpace = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          FirstWire = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          W_rcos = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          W_rsin = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          TotalWires = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          detectorId = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          //std::cout<<"Detector ID "<<detectorId<<" "<<varvalue<<" Package "<<package<<" Plane "<<Zpos<<" Region "<<region<<std::endl;
+
+          if ( region==5 )
+            {
+              temp_Detector.SetDetectorInfo ( dType, Zpos, rot, sp_res, track_res, slope_match, package, region, direction, Det_originX, Det_originY, ActiveWidthX, ActiveWidthY, ActiveWidthZ, WireSpace, FirstWire, W_rcos, W_rsin, TotalWires, detectorId );
+
+
+              if ( package == "u" )
+                fDetectorInfo.at ( kPackageUp ).push_back ( temp_Detector );
+              else if ( package == "d" )
+                fDetectorInfo.at ( kPackageDown ).push_back ( temp_Detector );
+            }
+        }
     }
-    else if ( DIRMODE==1 ) {
-      //  Break this line Int_to tokens to process it.
-      varvalue = ( mapstr.GetNextToken ( ", " ).c_str() );//this is the sType
-      Zpos = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      rot = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      sp_res = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      track_res = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      slope_match = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      package = mapstr.GetNextToken ( ", " ).c_str();
-      region  = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      dType = mapstr.GetNextToken ( ", " ).c_str();
-      direction  = mapstr.GetNextToken ( ", " ).c_str();
-      Det_originX = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      Det_originY = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      ActiveWidthX = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      ActiveWidthY = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      ActiveWidthZ = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      WireSpace = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      FirstWire = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      W_rcos = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      W_rsin = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      TotalWires = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      detectorId = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      //std::cout<<"Detector ID "<<detectorId<<" "<<varvalue<<" Package "<<package<<" Plane "<<Zpos<<" Region "<<region<<std::endl;
-
-      if ( region==5 ) {
-	temp_Detector.SetDetectorInfo ( dType, Zpos, rot, sp_res, track_res, slope_match, package, region, direction, Det_originX, Det_originY, ActiveWidthX, ActiveWidthY, ActiveWidthZ, WireSpace, FirstWire, W_rcos, W_rsin, TotalWires, detectorId );
-
-
-	if ( package == "u" )
-	  fDetectorInfo.at ( kPackageUp ).push_back ( temp_Detector );
-	else if ( package == "d" )
-	  fDetectorInfo.at ( kPackageDown ).push_back ( temp_Detector );
-      }
-    }
-  }
 
   std::cout<<"Loaded Qweak Geometry"<<" Total Detectors in pkg_d 1 "<<fDetectorInfo.at ( kPackageUp ).size() << " pkg_d 2 "<<fDetectorInfo.at ( kPackageDown ).size() <<std::endl;
 
   std::cout << "Sorting detector info..." << std::endl;
   plane = 1;
   std::sort ( fDetectorInfo.at ( kPackageUp ).begin(),
-	      fDetectorInfo.at ( kPackageUp ).end() );
+              fDetectorInfo.at ( kPackageUp ).end() );
 
   UInt_t i = 0;
-  for ( i = 0; i < fDetectorInfo.at ( kPackageUp ).size(); i++ ) {
-    fDetectorInfo.at ( kPackageUp ).at ( i ).fPlane = plane++;
-    std::cout<<" Region "<<fDetectorInfo.at ( kPackageUp ).at ( i ).fRegion<<" Detector ID "<<fDetectorInfo.at ( kPackageUp ).at ( i ).fDetectorID << std::endl;
-  }
+  for ( i = 0; i < fDetectorInfo.at ( kPackageUp ).size(); i++ )
+    {
+      fDetectorInfo.at ( kPackageUp ).at ( i ).fPlane = plane++;
+      std::cout<<" Region "<<fDetectorInfo.at ( kPackageUp ).at ( i ).fRegion<<" Detector ID "<<fDetectorInfo.at ( kPackageUp ).at ( i ).fDetectorID << std::endl;
+    }
 
   plane = 1;
   std::sort ( fDetectorInfo.at ( kPackageDown ).begin(),
-	      fDetectorInfo.at ( kPackageDown ).end() );
-  for ( i = 0; i < fDetectorInfo.at ( kPackageDown ).size(); i++ ) {
-    fDetectorInfo.at ( kPackageDown ).at ( i ).fPlane = plane++;
-    std::cout<<" Region "<<fDetectorInfo.at ( kPackageDown ).at ( i ).fRegion<<" Detector ID " << fDetectorInfo.at ( kPackageDown ).at ( i ).fDetectorID << std::endl;
-  }
+              fDetectorInfo.at ( kPackageDown ).end() );
+  for ( i = 0; i < fDetectorInfo.at ( kPackageDown ).size(); i++ )
+    {
+      fDetectorInfo.at ( kPackageDown ).at ( i ).fPlane = plane++;
+      std::cout<<" Region "<<fDetectorInfo.at ( kPackageDown ).at ( i ).fRegion<<" Detector ID " << fDetectorInfo.at ( kPackageDown ).at ( i ).fDetectorID << std::endl;
+    }
 
   std::cout<<"Qweak Geometry Loaded "<<std::endl;
 
@@ -136,8 +151,7 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
 {
   TString varname, varvalue;
   TString modtype, dettype, name;
-  //  Int_t modnum;
-  Int_t channum;
+  Int_t modnum, channum;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine())
@@ -166,7 +180,7 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
               fBankID[1] = value;
               RegisterSubbank(value);
             }
-          else if (varname=="tdc_bank")
+          else if (varname=="f1tdc_bank")
             {
               fBankID[2] = value;
               RegisterSubbank(value);
@@ -175,31 +189,51 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
             {
               RegisterSlotNumber(value);
             }
-          else if (varname=="module")
-            {
-              std::cout<<"ModuleType="<<varvalue<<"\n";
-              RegisterModuleType(varvalue);
-            }
         }
       else
         {
           //  Break this line into tokens to process it.
-          channum   = (atol(mapstr.GetNextToken(", \t").c_str()));
-          name      = mapstr.GetNextToken(", \t").c_str();
+          modtype   = mapstr.GetNextToken(", ").c_str();
+          modnum    = (atol(mapstr.GetNextToken(", ").c_str()));
+          channum   = (atol(mapstr.GetNextToken(", ").c_str()));
+          dettype   = mapstr.GetNextToken(", ").c_str();
+          name      = mapstr.GetNextToken(", ").c_str();
 
-          //  Check to see if we've encountered this channel or name yet
-          if (fModulePtrs.at(fCurrentIndex).at(channum).first>=0)
+          //  Push a new record into the element array
+          if (modtype=="SIS3801")
             {
-              //  We've seen this channel
+              //std::cout<<"modnum="<<modnum<<"    "<<"fSCAs.size="<<fSCAs.size()<<std::endl;
+              if (modnum >= (Int_t) fSCAs.size())  fSCAs.resize(modnum+1);
+              if (! fSCAs.at(modnum)) fSCAs.at(modnum) = new QwSIS3801_Module();
+              fSCAs.at(modnum)->SetChannel(channum, name);
+
             }
-          else if (FindSignalIndex(fCurrentType, name)>=0)
+
+          else if (modtype=="V792" || modtype=="V775")
             {
-              //  We've seen this signal
+              RegisterModuleType(modtype);
+              //  Check to see if we've encountered this channel or name yet
+              if (fModulePtrs.at(fCurrentIndex).at(channum).first>=0)
+                {
+                  //  We've seen this channel
+                }
+              else if (FindSignalIndex(fCurrentType, name)>=0)
+                {
+                  //  We've seen this signal
+                }
+              else
+                {
+                  //  If not, push a new record into the element array
+                  if (modtype=="V792") std::cout<<"V792: ";
+                  if (modtype=="V775") std::cout<<"V775: ";
+                  LinkChannelToSignal(channum, name);
+                }
             }
+
           else
             {
-              //  If not, push a new record into the element array
-              LinkChannelToSignal(channum, name);
+              std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str()
+              << std::endl;
             }
         }
     }
@@ -223,6 +257,25 @@ void  QwMainDetector::ClearEventData()
 
 Int_t QwMainDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
+  Int_t index = GetSubbankIndex(roc_id,bank_id);
+  if (index>=0 && num_words>0)
+    {
+      //  We want to process the configuration data for this ROC.
+      UInt_t words_read = 0;
+
+      if (fBankID[1]==bank_id)
+        {
+          for (size_t i=0; i<fSCAs.size(); i++)
+            {
+              if (fSCAs.at(i) != NULL)
+                {
+                  words_read += fSCAs.at(i)->ProcessConfigBuffer(&(buffer[words_read]),
+                                num_words-words_read);
+                }
+            }
+        }
+
+    }
   return 0;
 };
 
@@ -231,70 +284,94 @@ Int_t QwMainDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt
 Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
 
-  //std::cout<<"EvtCont"<<fEvtCounter<<"bank_id="<<bank_id<<"  fBankID[0]="<<fBankID[0]<<"\n";
-
   //This is a QDC bank
-  if (bank_id == fBankID[0]) {
-
-  fEvtCounter++;
-
-  Int_t index = GetSubbankIndex(roc_id,bank_id);
-
-  Bool_t ldebug = false;
-    if (ldebug) 
-        std::cout << "QwMainDetector::QwMainDetector:  "
-                  << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
-                  <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
-                  << ", num_words "<<num_words<<", index "<<index<<std::endl;
-
-  if (index>=0 && num_words>0)
+  if (bank_id == fBankID[0])
     {
-      //  We want to process this ROC.  Begin looping through the data.
-      SetDataLoaded(kTRUE);
-      for (size_t i=0; i<num_words ; i++)
+
+      fEvtCounter++;
+
+      Int_t index = GetSubbankIndex(roc_id,bank_id);
+
+      Bool_t ldebug = false;
+      if (ldebug)
+        std::cout << "QwMainDetector::QwMainDetector:  "
+        << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
+        <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
+        << ", num_words "<<num_words<<", index "<<index<<std::endl;
+
+      if (index>=0 && num_words>0)
         {
-          //  Decode this word as a V775TDC word.
-          DecodeTDCWord(buffer[i]);
-
-          if (! IsSlotRegistered(index, GetTDCSlotNumber())) continue;
-
-          if (IsValidDataword())
+          //  We want to process this ROC.  Begin looping through the data.
+          SetDataLoaded(kTRUE);
+          for (size_t i=0; i<num_words ; i++)
             {
-              // This is a V775 TDC data 
-              if (ldebug) {
-                std::cout<<"This is a valid QDC/TDC data word. Index="<<index
-                         <<" slot="<<GetTDCSlotNumber()<<" Ch="<<GetTDCChannelNumber()
-                         <<" Data="<<GetTDCData()<<"\n";
-                }
-              try
+              //  Decode this word as a V775TDC word.
+              DecodeTDCWord(buffer[i]);
+
+              if (! IsSlotRegistered(index, GetTDCSlotNumber())) continue;
+
+              if (IsValidDataword())
                 {
-                  FillRawWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),GetTDCData());
-                  //FillRawWord(index,0,GetTDCChannelNumber(),GetTDCData());
-                }
-              catch (std::exception& e)
-                {
-                  std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
-                  << e.what() << std::endl;
-                  Int_t chan = GetTDCChannelNumber();
-                  std::cerr << "   Parameters:  index=="<<index
-                  << "; GetV775SlotNumber()=="<<GetTDCSlotNumber()
-                  << "; GetV775ChannelNumber()=="<<chan
-                  << "; GetV775Data()=="<<GetTDCData()
-                  << std::endl;
-                  Int_t modindex = GetModuleIndex(index, GetTDCSlotNumber());
-                  std::cerr << "   GetModuleIndex()=="<<modindex
-                  << "; fModulePtrs.at(modindex).size()=="
-                  << fModulePtrs.at(modindex).size()
-                  << "; fModulePtrs.at(modindex).at(chan).first {module type}=="
-                  << fModulePtrs.at(modindex).at(chan).first
-                  << "; fModulePtrs.at(modindex).at(chan).second {signal index}=="
-                  << fModulePtrs.at(modindex).at(chan).second
-                  << std::endl;
+                  // This is a V775 TDC data
+                  if (ldebug)
+                    {
+                      std::cout<<"This is a valid QDC/TDC data word. Index="<<index
+                      <<" slot="<<GetTDCSlotNumber()<<" Ch="<<GetTDCChannelNumber()
+                      <<" Data="<<GetTDCData()<<"\n";
+                    }
+                  try
+                    {
+                      FillRawWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),GetTDCData());
+                      //FillRawWord(index,0,GetTDCChannelNumber(),GetTDCData());
+                    }
+                  catch (std::exception& e)
+                    {
+                      std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
+                      << e.what() << std::endl;
+                      Int_t chan = GetTDCChannelNumber();
+                      std::cerr << "   Parameters:  index=="<<index
+                      << "; GetV775SlotNumber()=="<<GetTDCSlotNumber()
+                      << "; GetV775ChannelNumber()=="<<chan
+                      << "; GetV775Data()=="<<GetTDCData()
+                      << std::endl;
+                      Int_t modindex = GetModuleIndex(index, GetTDCSlotNumber());
+                      std::cerr << "   GetModuleIndex()=="<<modindex
+                      << "; fModulePtrs.at(modindex).size()=="
+                      << fModulePtrs.at(modindex).size()
+                      << "; fModulePtrs.at(modindex).at(chan).first {module type}=="
+                      << fModulePtrs.at(modindex).at(chan).first
+                      << "; fModulePtrs.at(modindex).at(chan).second {signal index}=="
+                      << fModulePtrs.at(modindex).at(chan).second
+                      << std::endl;
+                    }
                 }
             }
         }
     }
-  }
+
+  // This is a SCA bank
+  if (bank_id==fBankID[1])
+    {
+
+      if (index>=0 && num_words>0)
+        {
+          UInt_t words_read = 0;
+          for (size_t i=0; i<fSCAs.size(); i++)
+            {
+              words_read++; // skip header word
+              if (fSCAs.at(i) != NULL)
+                {
+                  words_read += fSCAs.at(i)->ProcessEvBuffer(&(buffer[words_read]),
+                                num_words-words_read);
+                }
+              else
+                {
+                  words_read += 32; // skip a block of data for a single module
+                }
+            }
+        }
+    }
+
   return 0;
 };
 
@@ -315,6 +392,15 @@ void  QwMainDetector::ConstructHistograms(TDirectory *folder, TString &prefix)
           fPMTs.at(i).at(j).ConstructHistograms(folder, prefix);
         }
     }
+
+  for (size_t i=0; i<fSCAs.size(); i++)
+    {
+      if (fSCAs.at(i) != NULL)
+        {
+          fSCAs.at(i)->ConstructHistograms(folder, prefix);
+        }
+    }
+
 };
 
 void  QwMainDetector::FillHistograms()
@@ -327,16 +413,20 @@ void  QwMainDetector::FillHistograms()
           fPMTs.at(i).at(j).FillHistograms();
         }
     }
+
+  for (size_t i=0; i<fSCAs.size(); i++)
+    {
+      if (fSCAs.at(i) != NULL)
+        {
+          fSCAs.at(i)->FillHistograms();
+        }
+    }
 };
 
 
 void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Double_t> &values)
 {
-  for (size_t i=0; i<fPMTs.size(); i++){
-    for (size_t j=0; j<fPMTs.at(i).size(); j++){
-      fPMTs.at(i).at(j).ConstructBranchAndVector(tree, prefix, values);
-    }
-  }
+  ConstructBranchAndVector(tree, prefix);
 }
 
 void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
@@ -366,6 +456,24 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
             }
         }
     }
+
+  for (size_t i=0; i<fSCAs.size(); i++)
+    {
+      if (fSCAs.at(i) != NULL)
+        {
+
+          for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++)
+            {
+              if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
+              else
+                {
+                  fMainDetVector.push_back(0.0);
+                  list += ":"+fSCAs.at(i)->fChannels.at(j).GetElementName()+"/D";
+                }
+            }
+        }
+    }
+
   tree->Branch(basename, &fMainDetVector[0], list);
   //std::cout<<list<<"\n";
   return;
@@ -380,6 +488,21 @@ void  QwMainDetector::FillTreeVector(std::vector<Double_t> &values)
       for (size_t j=0; j<fPMTs.at(i).size(); j++)
         {
           fPMTs.at(i).at(j).FillTreeVector(values);
+        }
+    }
+
+  for (size_t i=0; i<fSCAs.size(); i++)
+    {
+      if (fSCAs.at(i) != NULL)
+        {
+          for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++)
+            {
+              if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
+              else
+                {
+                  fSCAs.at(i)->fChannels.at(j).FillTreeVector(values);
+                }
+            }
         }
     }
 }
@@ -407,18 +530,39 @@ void  QwMainDetector::FillTreeVector()
         }
     }
 
-    if (fDEBUG) {
-    std::cout<<"Main detector tree vector: "<<"\n";
-    index = 0;
-    for (size_t i=0; i<fPMTs.size(); i++)
-      {
-        for (size_t j=0; j<fPMTs.at(i).size(); j++)
-          {
-             std::cout<<  fMainDetVector[index]<<"\t";
-             index++;
-          }
-      }
-    std::cout<<"\n";
+  if (fDEBUG)
+    {
+      std::cout<<"Main detector tree vector: "<<"\n";
+      index = 0;
+      for (size_t i=0; i<fPMTs.size(); i++)
+        {
+          for (size_t j=0; j<fPMTs.at(i).size(); j++)
+            {
+              std::cout<<  fMainDetVector[index]<<"\t";
+              index++;
+            }
+        }
+      std::cout<<"\n";
+    }
+
+  for (size_t i=0; i<fSCAs.size(); i++)
+    {
+      if (fSCAs.at(i) != NULL)
+        {
+          for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++)
+            {
+              if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
+              else
+                {
+                  fMainDetVector[index] = fSCAs.at(i)->fChannels.at(j).GetValue();
+                }
+            }
+        }
+      else
+        {
+          if (fDEBUG)
+            std::cerr<<"QwMainDetector::FillTreeVector:  "<<"fSCA_Data.at("<<i<<") is NULL"<<std::endl;
+        }
     }
 
 };
@@ -431,6 +575,14 @@ void  QwMainDetector::DeleteHistograms()
       for (size_t j=0; j<fPMTs.at(i).size(); j++)
         {
           fPMTs.at(i).at(j).DeleteHistograms();
+        }
+    }
+
+  for (size_t i=0; i<fSCAs.size(); i++)
+    {
+      if (fSCAs.at(i) != NULL)
+        {
+          fSCAs.at(i)->DeleteHistograms();
         }
     }
 };
@@ -477,13 +629,14 @@ Int_t QwMainDetector::RegisterROCNumber(const UInt_t roc_id)
   return fCurrentBankIndex;
 };
 
-Int_t QwMainDetector::RegisterSubbank(const UInt_t bank_id) {
-    Int_t stat = VQwSubsystem::RegisterSubbank(bank_id);
-    fCurrentBankIndex++;
-    std::vector<Int_t> tmpvec(kMaxNumberOfModulesPerROC,-1);
-    fModuleIndex.push_back(tmpvec);
-    //std::cout<<"Register Subbank "<<bank_id<<" with BankIndex "<<fCurrentBankIndex<<std::endl;
-    return stat;
+Int_t QwMainDetector::RegisterSubbank(const UInt_t bank_id)
+{
+  Int_t stat = VQwSubsystem::RegisterSubbank(bank_id);
+  fCurrentBankIndex++;
+  std::vector<Int_t> tmpvec(kMaxNumberOfModulesPerROC,-1);
+  fModuleIndex.push_back(tmpvec);
+  //std::cout<<"Register Subbank "<<bank_id<<" with BankIndex "<<fCurrentBankIndex<<std::endl;
+  return stat;
 };
 
 
@@ -519,7 +672,7 @@ const QwMainDetector::EModuleType QwMainDetector::RegisterModuleType(TString mod
 {
   moduletype.ToUpper();
 
-std::cout<<"moduletype="<<moduletype<<"\n";
+  std::cout<<"moduletype="<<moduletype<<"\n";
   //  Check to see if we've already registered a type for the current slot,
   //  if so, throw an error...
 
@@ -540,17 +693,21 @@ std::cout<<"moduletype="<<moduletype<<"\n";
 };
 
 
-Int_t QwMainDetector::LinkChannelToSignal(const UInt_t chan, const TString &name) {
-    size_t index = fCurrentType;
-    if (index == 0 || index == 1) {
-        fPMTs.at(index).push_back(QwPMT_Channel(name));
-        fModulePtrs.at(fCurrentIndex).at(chan).first  = index;
-        fModulePtrs.at(fCurrentIndex).at(chan).second = fPMTs.at(index).size() -1;
-    } else if (index ==2) {
-        std::cout<<"scaler module has not been implemented yet."<<std::endl;
+Int_t QwMainDetector::LinkChannelToSignal(const UInt_t chan, const TString &name)
+{
+  size_t index = fCurrentType;
+  if (index == 0 || index == 1)
+    {
+      fPMTs.at(index).push_back(QwPMT_Channel(name));
+      fModulePtrs.at(fCurrentIndex).at(chan).first  = index;
+      fModulePtrs.at(fCurrentIndex).at(chan).second = fPMTs.at(index).size() -1;
     }
-    std::cout<<"Linked channel"<<chan<<" to signal "<<name<<std::endl;
-    return 0;
+  else if (index ==2)
+    {
+      std::cout<<"scaler module has not been implemented yet."<<std::endl;
+    }
+  std::cout<<"Linked channel"<<chan<<" to signal "<<name<<std::endl;
+  return 0;
 };
 
 void QwMainDetector::FillRawWord(Int_t bank_index,
@@ -608,31 +765,43 @@ Int_t QwMainDetector::FindSignalIndex(const QwMainDetector::EModuleType modtype,
     return chanindex;
   };
 
-void  QwMainDetector::ReportConfiguration() {
-    std::cout << "Configuration of main detector:"<< std::endl;
-    for (size_t i = 0; i<fROC_IDs.size(); i++) {
-        for (size_t j=0; j<fBank_IDs.at(i).size(); j++) {
+void  QwMainDetector::ReportConfiguration()
+{
+  std::cout << "Configuration of main detector:"<< std::endl;
+  for (size_t i = 0; i<fROC_IDs.size(); i++)
+    {
+      for (size_t j=0; j<fBank_IDs.at(i).size(); j++)
+        {
 
-            Int_t ind = GetSubbankIndex(fROC_IDs.at(i),fBank_IDs.at(i).at(j));
-            std::cout << "ROC " << fROC_IDs.at(i)
-            << ", subbank " << fBank_IDs.at(i).at(j)
-            << ":  subbank index==" << ind
-            << std::endl;
+          Int_t ind = GetSubbankIndex(fROC_IDs.at(i),fBank_IDs.at(i).at(j));
+          std::cout << "ROC " << fROC_IDs.at(i)
+          << ", subbank " << fBank_IDs.at(i).at(j)
+          << ":  subbank index==" << ind
+          << std::endl;
 
-            if (fBank_IDs.at(i).at(j)==fBankID[0]) {
-                for (size_t k=0; k<kMaxNumberOfModulesPerROC; k++) {
-                    Int_t QadcTdcindex = GetModuleIndex(ind,k);
-                    if (QadcTdcindex != -1) {
-                        std::cout << "    Slot " << k;
-                        std::cout << "  Module#" << QadcTdcindex << std::endl;
+          if (fBank_IDs.at(i).at(j)==fBankID[0])
+            {
+              for (size_t k=0; k<kMaxNumberOfModulesPerROC; k++)
+                {
+                  Int_t QadcTdcindex = GetModuleIndex(ind,k);
+                  if (QadcTdcindex != -1)
+                    {
+                      std::cout << "    Slot " << k;
+                      std::cout << "  Module#" << QadcTdcindex << std::endl;
                     }
                 }
-            } else if (fBank_IDs.at(i).at(j)==fBankID[2]) {
+            }
+          else if (fBank_IDs.at(i).at(j)==fBankID[2])
+            {
 
-            } else if (fBank_IDs.at(i).at(j)==fBankID[1]) {
-                // std::cout << "    Number of SIS3801 Scaler:  " << fSCAs.size() << std::endl;
-            } else if (fBank_IDs.at(i).at(j)==fBankID[3]) {
-                // std::cout << "    Number of TRIUMF ADC:  " << fADC_Data.size() << std::endl;
+            }
+          else if (fBank_IDs.at(i).at(j)==fBankID[1])
+            {
+              // std::cout << "    Number of SIS3801 Scaler:  " << fSCAs.size() << std::endl;
+            }
+          else if (fBank_IDs.at(i).at(j)==fBankID[3])
+            {
+              // std::cout << "    Number of TRIUMF ADC:  " << fADC_Data.size() << std::endl;
             }
         }
     }
