@@ -124,7 +124,7 @@ Int_t main(Int_t argc, Char_t* argv[]) {
     ((VQwSubsystemTracking*) detectors.GetSubsystemByName("TS"))->LoadChannelMap("trigscint_cosmics.map");
     // Main detector
     detectors.push_back(new QwMainDetector("MD"));
-    detectors.GetSubsystemByName("MD")->LoadChannelMap("maindet_cosmics.map");
+    detectors.GetSubsystemByName("MD")->LoadChannelMap("qweak_maindet_channel.map");
     QwMainDetector* maindetector = dynamic_cast<QwMainDetector*> (detectors.GetSubsystemByName("MD"));
     // Scanner
     detectors.push_back(new QwScanner("FPS"));
