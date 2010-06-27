@@ -31,7 +31,9 @@
  */
 //=============================================================================
 
-#define LUMI_DET_HST_NUM      16           
+#define USLUMI_DET_HST_NUM      8
+#define DSLUMI_DET_HST_NUM      8   
+        
 
 ///
 /// \ingroup QwGUILumi
@@ -57,8 +59,8 @@ class QwGUILumiDetector : public QwGUISubSystem {
   TGLayoutHints       *dCnvLayout; 
   TGLayoutHints       *dBtnLayout;
 
-  TGTextButton        *dButtonUser;
-  TGTextButton        *dButtonDetail;
+  TGTextButton        *dButtonDownstream;
+  TGTextButton        *dButtonUpstream;
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;
   
@@ -72,7 +74,10 @@ class QwGUILumiDetector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none
-  void                 PlotData();
+  //void                 PlotData();
+  void ShowUpstream();
+  void ShowDownstream();
+
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
@@ -85,8 +90,10 @@ class QwGUILumiDetector : public QwGUISubSystem {
   void                 ClearData();
 
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
-  //!These are the names by which the histograms are identified within the root file.
-  static const char   *LumiDetectorHists[LUMI_DET_HST_NUM];
+  //!These are the names by which the histograms are identified within the root file.  
+  static const char   *RootTrees[2];
+  static const char   *USLumiDetectorHists[USLUMI_DET_HST_NUM];
+  static const char   *DSLumiDetectorHists[DSLUMI_DET_HST_NUM];
 
  protected:
 
