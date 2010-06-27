@@ -1,6 +1,17 @@
+/*
+**QWEAK EVENT DISPLAY
+**Marcus Hendricks and Derek Jones
+**The George Washington University
+**
+**Qweak Collaboration
+**Jefferson Lab Hall C
+**
+**Single event display for Regions 1, 2, and 3
+*/
+
 #include "QwEventDisplay.h"
 
-ClassImp(QwEventDisplay);
+ClassImp(QwEventDisplay); 
 
 // Qweak header files
 #include "QwTreeEventBuffer.h"
@@ -23,14 +34,60 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
   listboxes[1] =  &Region2Box;
   listboxes[2] =  &Region3Box;
   listboxes[3] =  &EventBox;
+/*
+  //Assign values of title boxes for listboxes
+  boxes[0] = &R1Box;
+  boxes[1] = &R2Box;
+  boxes[2] = &R3Box;
+  boxes[3] = &EBox;
+*/
+  //Assign values of title boxes for listboxes
+  boxes[0] = &Evlabel1;
+  boxes[1] = &Evlabel2;
+  boxes[2] = &Evlabel3;
+  boxes[3] = &Evlabel4;
 
   // create a main frame called "fMain"
   fMain = new TGMainFrame(p,w,h);
   // set a name to the main frame
   fMain->SetWindowName("Q-Weak Single Event Display");
 
+/*
+  //create a horizontal frame to contain listbox titles
+  TGCompositeFrame *labelhframe = new TGCompositeFrame(fMain);
+
+   // Event box labels
+   Evlabel1 = new TPaveText(.05,.92,.97,.97, "ARC");
+   Evlabel2 = new TPaveText(.05,.92,.97,.97, "ARC");
+   Evlabel3 = new TPaveText(.05,.92,.97,.97, "ARC");
+   Evlabel4 = new TPaveText(.05,.92,.97,.97, "ARC");
+
+   for(int j = 0; j < 4; j++)
+     (*boxes[j]) = new TPaveText(labelhframe);
+
+  // put the labels in the hframe and put the hframe in a larger 5,5,5,5)
+   labelhframe->AddFrame(Evlabel1, new TGLayoutHints(kLHintsNormal, 5,5,5,5));
+   labelhframe->AddFrame(Evlabel2, new TGLayoutHints(kLHintsNormal, 5,5,5,5));
+   labelhframe->AddFrame(Evlabel3, new TGLayoutHints(kLHintsNormal, 5,5,5,5));
+   labelhframe->AddFrame(Evlabel4, new TGLayoutHints(kLHintsNormal, 5,5,5,5));
+  fMain->AddFrame(labelhframe, new TGLayoutHints(kLHintsNormal)); // add the labelhframe to the Main Frame
+
+   //Draw event box labels
+   Evlabel1->AddText("Event Counter")->Draw();
+   Evlabel2->AddText("[box 2]")->Draw();
+   Evlabel3->AddText("Wire Hit List")->Draw();
+   Evlabel4->AddText("[box 4]")->Draw();
+*/
+
   // create a horizontal frames (hframe) to contain the listboxes
   TGHorizontalFrame *listboxhframe = new TGHorizontalFrame(fMain);
+/*
+  //create vertical frames for each listbox
+  TGVerticalFrame *listboxvframe = new TGVerticalFrame(listboxhframe);
+  // create label for each list box
+  for(int j = 0; j < 4; j++)
+    (*boxes[j]) = new TPaveText(listboxvframe);
+*/
   // create list boxes for each wire plane
   for (int j = 0; j < 4; j++) {
     (*listboxes[j]) = new TGListBox(listboxhframe);
@@ -39,9 +96,14 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
   fEntry = -1;
    // tab widget
    TGTab *fTab = new TGTab(fMain);
-
-
-// need to learn how many planes of wires there will be in the detectors for Region 1
+/*
+   // Event box labels
+   Evlabel1 = new TPaveText(.05,.92,.97,.97, "ARC");
+   Evlabel2 = new TPaveText(.05,.92,.97,.97, "ARC");
+   Evlabel3 = new TPaveText(.05,.92,.97,.97, "ARC");
+   Evlabel4 = new TPaveText(.05,.92,.97,.97, "ARC");
+*/
+// **need to learn how many planes of wires there will be in the detectors for Region 1
 
 
   // Region 2 fit lines
@@ -52,10 +114,10 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
   R2b2 = new TBox();
   R2b3 = new TBox();
   // Region 2 canvas labels for particle paths
-  R2label1 = new TPaveLabel(.05,.92,.97,.97,"X-Y Projection");
-  R2label2 = new TPaveLabel(.05,.92,.97,.97,"Top View X-Z Projection");
-  R2label3 = new TPaveLabel(.05,.92,.97,.97,"Side View Y-Z Projection");
-  R2text = new TPaveText(.85,.05,.95,.9);
+  R2label1 = new TPaveLabel(.05,.92,.97,.97,"Front View (X-Y Projection)");
+  R2label2 = new TPaveLabel(.05,.92,.97,.97,"Top View (X-Z Projection)");
+  R2label3 = new TPaveLabel(.05,.92,.97,.97,"Side View (Y-Z Projection)");
+  R2text = new TPaveText(.85,.17,.95,.9);
   // Region 2 plane labels
   R2text->AddText("x");
   R2text->AddText("u");
@@ -77,9 +139,12 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
   points->SetMarkerStyle(2);
 
 
+// **finish Region 3 section
+
   // Region 3 lines
   R3lu = new TLine();
   R3lv = new TLine();
+
   R3luPrime = new TLine();
   R3lvPrime = new TLine();
   // Region 3 fit lines
@@ -90,9 +155,66 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h)
   R3b2 = new TBox();
   R3b3 = new TBox();
   // Region 3 canvas labels for particle paths
-  R3label1 = new TPaveLabel(.05,.92,.97,.97,"X-Y Projection");
-  R3label2 = new TPaveLabel(.05,.92,.97,.97,"Top View X-Z Projection");
-  R3label3 = new TPaveLabel(.05,.92,.97,.97,"Side View Y-Z Projection");
+  R3label1 = new TPaveLabel(.05,.92,.97,.97,"Front View (X-Y Projection)");
+  R3label2 = new TPaveLabel(.05,.92,.97,.97,"Top View (X-Z Projection)");
+  R3label3 = new TPaveLabel(.05,.92,.97,.97,"Side View (Y-Z Projection)");
+
+
+// **need to learn how many planes of wires there will be in the detectors for Region 1
+
+
+  // Region 2 fit lines
+  R2xzfit = new TLine();
+  R2yzfit = new TLine();
+  // Region 2 boxes
+  R2b1 = new TBox();
+  R2b2 = new TBox();
+  R2b3 = new TBox();
+  // Region 2 canvas labels for particle paths
+  R2label1 = new TPaveLabel(.05,.92,.97,.97,"Front View (X-Y Projection)");
+  R2label2 = new TPaveLabel(.05,.92,.97,.97,"Top View (X-Z Projection)");
+  R2label3 = new TPaveLabel(.05,.92,.97,.97,"Side View (Y-Z Projection)");
+  R2text = new TPaveText(.85,.17,.95,.9);
+  // Region 2 plane labels
+  R2text->AddText("x");
+  R2text->AddText("u");
+  R2text->AddText("v");
+  // Region 2 prime plane labels
+  R2text->AddText("x'");
+  R2text->AddText("u'");
+  R2text->AddText("v'");
+  // Region 2 wire plane labels' colors
+  R2text->SetTextSize(.0669);
+  R2text->GetLine(0)->SetTextColor(kRed);
+  R2text->GetLine(1)->SetTextColor(kGreen);
+  R2text->GetLine(2)->SetTextColor(kBlue);
+  R2text->GetLine(3)->SetTextColor(kRed+1);
+  R2text->GetLine(4)->SetTextColor(kGreen+1);
+  R2text->GetLine(5)->SetTextColor(kBlue+1);
+  // find out what points are for
+  points = new TPolyMarker(6);
+  points->SetMarkerStyle(2);
+
+
+// **finish Region 3 section
+
+  // Region 3 lines
+  R3lu = new TLine();
+  R3lv = new TLine();
+
+  R3luPrime = new TLine();
+  R3lvPrime = new TLine();
+  // Region 3 fit lines
+  R3xzfit = new TLine();
+  R3yzfit = new TLine();
+  // Region 3 boxes
+  R3b1 = new TBox();
+  R3b2 = new TBox();
+  R3b3 = new TBox();
+  // Region 3 canvas labels for particle paths
+  R3label1 = new TPaveLabel(.05,.92,.97,.97,"Front View (X-Y Projection)");
+  R3label2 = new TPaveLabel(.05,.92,.97,.97,"Top View (X-Z Projection)");
+  R3label3 = new TPaveLabel(.05,.92,.97,.97,"Side View (Y-Z Projection)");
 
 
   // put the listboxes in the hframe and put the hframe in a larger hfrakLHintsTop | kLHintsLeft,5,5,5,5)me
@@ -300,6 +422,8 @@ void QwEventDisplay::DrawEvent()
   (EventBox)->MapSubwindows();
   (EventBox)->Layout();
 
+  //REGION 1 WIRE HITS!!!
+
   // draw the wire hits in the Region 2 canvas called "c2"
   c2->GetCanvas()->cd(1)->Clear();
   R2label1->Draw();
@@ -376,7 +500,7 @@ void QwEventDisplay::DrawEvent()
   }
 
 
-/*    // draw the wire hits in the Region 3 canvas called "c3"
+/*  // draw the wire hits in the Region 3 canvas called "c3"
   c3->GetCanvas()->cd(1)->Clear();
   R3b1->SetX1(.2);
   R3label1->Draw();
@@ -396,8 +520,7 @@ void QwEventDisplay::DrawEvent()
   R3lu->SetY2(.1+0.02353*wire[0]+R3driftdist[0]*driftsign[0]*2.099737533e-3);
   R3lu->SetLineColor(kRed);
   R3lu->Draw();
-*/
-
+  */
 
 //  R1text->Draw();
 
@@ -451,9 +574,10 @@ void QwEventDisplay::DrawEvent()
 
   c2->GetCanvas()->Update();
 
-/*
+  /*
   // Region 3 draw stuff, basically copied from the Region 2 stuff, but for two planes instead
-  c3->GetVanvas()->cd(2)->Clear();  // not sure what the "2" inside cd(2) means
+  // Needs to have all elements included; fix region 2 first then copy over
+  c3->GetCanvas()->cd(2)->Clear();  // not sure what the "2" inside cd(2) means
   R3label2->Draw();
 
   R3b2->SetX1(.1);
@@ -464,7 +588,7 @@ void QwEventDisplay::DrawEvent()
   R3b2->SetFillStyle(0);
   R3b2->Draw();
 
-  R3xzfit->SetX1();
+  //  R3xzfit->SetX1(); FIX
   R3xzfit->SetY1(.367);
   R3xzfit->SetX2(R3fitpx[1]*2.8e-3);
   R3xzfit->SetY2(.634);
@@ -488,7 +612,7 @@ void QwEventDisplay::DrawEvent()
   R3yzfit->Draw();
 
   c3->GetCanvas()->Update();
-*/
+  */
 
 
   delete hits_r1r;
