@@ -5,7 +5,7 @@
 !PatternPhaseOffset=0
 
 !ROC=31
-!Bank=0x3101
+!Bank=0x1f01
 
 ! module.type, module.num  chan.num, det.type, det.name
 !
@@ -20,12 +20,12 @@
 
 HelicityDecodingMode=InputRegisterMode
 PatternPhase=4
-RandSeedBits=24
+RandSeedBits=30
 NumberPatternsDelayed=2
 PatternPhaseOffset=0
 
 ROC=31
-Bank=0x3101
+Bank=0x1f01
 
 ! module.type, module.num  chan.num, det.type, det.name
 !
