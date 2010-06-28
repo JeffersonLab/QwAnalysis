@@ -1,0 +1,171 @@
+! The exclamation mark (!) is for comment in this file.
+!
+! 06-28-2010: first svn commit of this table (rsubedi)
+! Table for epics variables whose values can be stored in a MySQL database.
+! This table has three columns. The first column is the name for an epics
+! variable. The second column at the moment is just a flag to insert epics data
+! in the MySQL database. The third column is related to those epics variables
+! that have only string-value (e.g. the epics varaible fot the half wave plate
+! is IGL1I00DI24_24M and has either IN or OUT value).
+!
+ibcm1               	slow_controls_data  !hall C bcm (i.e., ibcm1), test run 1159 it's value
+ibcm2               	slow_controls_data  !hall C bcm (i.e., ibcm2), test run 1159 it's value
+IHM3H01E            	slow_controls_data
+HC:Q_ONOFF          	polarized_source     	   	String 
+HC:Q_ASY            	slow_controls_data
+HC:DQ_ASY           	slow_controls_data
+HC:bcm_threshold    	slow_controls_data
+HC:bcm_select       	slow_controls_data 
+psub_pl_pos         	slow_controls_data !Rotating half waveplate (Rotatable Half Wave Plate Setting)
+IGL1I00DI24_24M     	polarized_source    	   	String !halfwave plate status, test run 1159 it's value
+WienAngle           	slow_controls_data
+IGL1I00AI24         	slow_controls_data
+HC:P_ONOFF          	slow_controls_data
+HC:X_DIF            	slow_controls_data
+HC:DX_DIF           	slow_controls_data
+HC:Y_DIF            	slow_controls_data
+HC:DY_DIF           	slow_controls_data
+HC:bpm_select       	slow_controls_data
+IGLdac3:ao_0        	slow_controls_data
+IGLdac3:ao_1        	slow_controls_data
+IGL1I00AI22         	slow_controls_data
+IGL1I00AI23         	slow_controls_data
+IGL1I00AI7          	slow_controls_data
+IGL1I00AI8          	slow_controls_data
+IGL1I00AI27         	slow_controls_data
+IGL1I00AI25         	slow_controls_data
+IGL1I00AI26         	slow_controls_data
+IGLdac2:scale_6.A   	slow_controls_data
+hel_mag_status.D    	slow_controls_data
+IGL1I00AI17         	slow_controls_data
+HC:qint_period      	slow_controls_data
+HC:pint_period      	slow_controls_data
+HC:QPD_WSUM         	slow_controls_data
+HC:QPD_DWSUM        	slow_controls_data
+HC:QPD_XDIF         	slow_controls_data
+HC:QPD_DXDIF        	slow_controls_data
+HC:QPD_YDIF         	slow_controls_data
+HC:QPD_DYDIF        	slow_controls_data
+HC:1I02_WSUM        	slow_controls_data
+HC:1I02_DWSUM       	slow_controls_data
+HC:1I02_XDIF        	slow_controls_data
+HC:1I02_DXDIF       	slow_controls_data
+HC:1I02_YDIF        	slow_controls_data
+HC:1I02_DYDIF       	slow_controls_data
+HC:1I04_WSUM        	slow_controls_data
+HC:1I04_DWSUM       	slow_controls_data
+HC:1I04_XDIF        	slow_controls_data
+HC:1I04_DXDIF       	slow_controls_data
+HC:1I04_YDIF        	slow_controls_data
+HC:1I04_DYDIF       	slow_controls_data
+HC:1I06_WSUM        	slow_controls_data
+HC:1I06_DWSUM       	slow_controls_data
+HC:1I06_XDIF        	slow_controls_data
+HC:1I06_DXDIF       	slow_controls_data
+HC:1I06_YDIF        	slow_controls_data
+HC:1I06_DYDIF       	slow_controls_data
+HC:0L02_WSUM        	slow_controls_data
+HC:0L02_DWSUM       	slow_controls_data
+HC:0L02_XDIF        	slow_controls_data
+HC:0L02_DXDIF       	slow_controls_data
+HC:0L02_YDIF        	slow_controls_data
+HC:0L02_DYDIF       	slow_controls_data
+HC:0L03_WSUM        	slow_controls_data
+HC:0L03_DWSUM       	slow_controls_data
+HC:0L03_XDIF        	slow_controls_data
+HC:0L03_DXDIF       	slow_controls_data
+HC:0L03_YDIF        	slow_controls_data
+HC:0L03_DYDIF       	slow_controls_data
+HC:0I05_WSUM        	slow_controls_data
+HC:0I05_DWSUM       	slow_controls_data
+HC:0I05_XDIF        	slow_controls_data
+HC:0I05_DXDIF       	slow_controls_data
+HC:0I05_YDIF        	slow_controls_data
+HC:0I05_DYDIF       	slow_controls_data
+HC:IBCM_QASY        	slow_controls_data
+HC:IBCM_DQASY       	slow_controls_data
+IPM3C17.XIFG        	slow_controls_data
+IPM3C17.YIFG        	slow_controls_data
+IBC3C17.XIFG        	slow_controls_data
+IBC3C17.YIFG        	slow_controls_data
+IPM3C18.XIFG        	slow_controls_data
+IPM3C18.YIFG        	slow_controls_data
+IPM3C19.XIFG        	slow_controls_data
+IPM3C19.YIFG        	slow_controls_data
+IPM3P01.XIFG        	slow_controls_data
+IPM3P01.YIFG        	slow_controls_data
+IPM3P02A.XIFG        	slow_controls_data
+IPM3P02A.YIFG        	slow_controls_data
+IPM3P03A.XIFG        	slow_controls_data
+IPM3P03A.YIFG        	slow_controls_data
+IPM3P02B.XIFG        	slow_controls_data
+IPM3P02B.YIFG        	slow_controls_data
+IPM3C20.XIFG        	slow_controls_data
+IPM3C20.YIFG        	slow_controls_data
+IPM3C21.XIFG        	slow_controls_data
+IPM3C21.YIFG        	slow_controls_data
+IPM3H02.XIFG        	slow_controls_data
+IPM3H02.YIFG        	slow_controls_data
+IPM3H04.XIFG        	slow_controls_data
+IPM3H04.YIFG        	slow_controls_data
+IPM3H04H        	slow_controls_data
+IPM3H04V        	slow_controls_data
+IBC3H04     	   	slow_controls_data
+IBC3H05        		slow_controls_data
+IBC3H05A        	slow_controls_data
+IPM3H07A.XIFG        	slow_controls_data	
+IPM3H07A.YIFG        	slow_controls_data	
+IPM3H07B.XIFG        	slow_controls_data	
+IPM3H07B.YIFG        	slow_controls_data	
+IPM3H07C.XIFG        	slow_controls_data	
+IPM3H07C.YIFG        	slow_controls_data	
+IPM3H09.XIFG        	slow_controls_data	
+IPM3H09.YIFG        	slow_controls_data
+IPM3H09AH        	slow_controls_data		
+IPM3H09AV        	slow_controls_data		
+IBC3H09	        	slow_controls_data
+IPM3H09B.XIFG        	slow_controls_data		
+IPM3H09B.YIFG        	slow_controls_data
+SMRPOSA             	slow_controls_data !Hall A Chopper Slit Readback
+psub_aa_pos         	slow_controls_data
+IBCxxxxCRCUR2       	slow_controls_data
+hac_bcm_average     	slow_controls_data
+halla_transmission  	slow_controls_data
+qe_halla            	slow_controls_data
+halla_photocurrent  	slow_controls_data
+laser_a_wavelength  	slow_controls_data
+osc_jitter          	slow_controls_data
+SMRPOSB             	slow_controls_data !Hall B Chopper Slit Readback
+psub_ab_pos         	slow_controls_data
+IPM2C24A.IENG       	slow_controls_data
+scaler_calc1        	slow_controls_data
+hallb_transmission  	slow_controls_data
+qe_hallb            	slow_controls_data
+hallb_photocurrent  	slow_controls_data
+laser_b_wavelength  	slow_controls_data
+IGL1I00DAC2         	slow_controls_data
+IGL1I00DAC3         	slow_controls_data
+SMRPOSC             	slow_controls_data
+psub_ac_pos         	slow_controls_data
+IBCxxxxCRCUR4       	slow_controls_data
+hallc_transmission  	slow_controls_data
+qe_hallc            	slow_controls_data
+hallc_photocurrent  	slow_controls_data
+laser_c_wavelength  	slow_controls_data
+osc2_jitter         	slow_controls_data
+ISL0I04DT           	slow_controls_data
+R00LSUMRY.B2        	slow_controls_data
+R00PGSET            	slow_controls_data
+R00PGMEST           	slow_controls_data
+IBCxxxxCLOSS        	slow_controls_data
+psub_cx_pos         	slow_controls_data
+psub_cy_pos         	slow_controls_data
+EHCFR_LIXWidth      	slow_controls_data
+EHCFR_LIYWidth      	slow_controls_data
+itov1out            	slow_controls_data
+itov2out            	slow_controls_data
+itov5out            	slow_controls_data
+itov7out            	slow_controls_data
+IGL1I00PStrans      	slow_controls_data
+EHCFR_LIPRC         	slow_controls_data
+EHCFR_ENERGY        	slow_controls_data

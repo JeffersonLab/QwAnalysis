@@ -71,7 +71,7 @@ class QwDatabase: private mysqlpp::Connection {
     const UInt_t GetLumiDetectorID(const string& name);    //<! Get lumi_detector_id for lumi detector name
     const string GetMeasurementID(const Int_t index);
     const UInt_t GetSlowControlDetectorID(const string& name);         //<! Get slow_controls_data_id for epics name
-
+    
     const UInt_t GetRunNumber() {return fRunNumber;}       //<! Run number getter
     const UInt_t GetSegmentNumber() {return fSegmentNumber;}       //<! CODA File segment number getter
     const UInt_t GetRunID()     {return fRunID;}           //<! Run ID getter

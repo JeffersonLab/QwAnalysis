@@ -72,12 +72,14 @@ Int_t main(Int_t argc, Char_t* argv[]) {
     /// and we define the options that can be used in them (using QwOptions).
     gQwOptions.SetCommandLine(argc, argv);
     gQwOptions.SetConfigFile("qwtracking.conf");
+    gQwOptions.SetConfigFile("qweak_mysql.conf");
+
     // Define the command line options
     DefineOptionsTracking(gQwOptions);
 
     // Message logging facilities
     gQwLog.InitLogFile("QwTracking.log");
-    gQwLog.SetScreenThreshold(QwLog::kMessage);
+    gQwLog.SetScreenThreshold(QwLog::kDebug);
     gQwLog.SetFileThreshold(QwLog::kMessage);
 
     // Either the DISPLAY is not set or JOB_ID is defined: we take it as in batch mode.
@@ -98,7 +100,6 @@ Int_t main(Int_t argc, Char_t* argv[]) {
 
     //  Load the histogram parameter definitions
     gQwHists.LoadHistParamsFromFile("qweak_tracking_hists.in");
-
     // Handle for the list of VQwSubsystemTracking objects
     QwSubsystemArrayTracking detectors;
 
@@ -171,14 +172,11 @@ Int_t main(Int_t argc, Char_t* argv[]) {
         if (kDebug) trackingworker->SetDebugLevel(1);
     }
 
-
-
     // Create a timer
     TStopwatch timer;
-
-
     QwEPICSEvent epics;
-
+    //  Load the Epics table
+    epics.LoadEpicsVariableMap("EpicsTable.map");
     // Create the event buffer
     QwEventBuffer eventbuffer;
     eventbuffer.ProcessOptions(gQwOptions);
@@ -360,14 +358,11 @@ Int_t main(Int_t argc, Char_t* argv[]) {
 
         // Write and close file (after last access to ROOT tree)
         rootfile->Write(0, TObject::kOverwrite);
-	QwDatabase *db = new QwDatabase();
 
 	epics.ReportEPICSData();
-	//epics.PrintVariableList();
-	//epics.PrintAverages();
+	epics.PrintVariableList();
+	epics.PrintAverages();
 	//TString tag; epics.GetDataValue(tag);
-	//epics.FillSlowControlsData(db);
-
 
         // Close CODA file
         eventbuffer.CloseStream();
@@ -386,8 +381,6 @@ Int_t main(Int_t argc, Char_t* argv[]) {
         if (hitlist)         delete hitlist;         hitlist = 0;
         if (event)           delete event;           event = 0;
         if (hitlist_root)    delete hitlist_root;    hitlist_root = 0;
-
-	delete db; db=0;
 
         // Print run summary information
         QwMessage << "Analysis of run " << eventbuffer.GetRunNumber() << QwLog::endl

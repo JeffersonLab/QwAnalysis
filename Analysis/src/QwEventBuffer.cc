@@ -420,13 +420,13 @@ void QwEventBuffer::DecodeEventIDBank(UInt_t *buffer)
       SetWordsSoFar(2);
     }
   }
-  QwDebug << Form("Length: %d; Tag: 0x%x; Bank ID num: 0x%x; ",
-		  fEvtLength, fEvtTag, fIDBankNum)
-	  << Form("Evt type: 0x%x; Evt number %d; Evt Class 0x%.8x; ",
-		  fEvtType, fEvtNumber, fEvtClass)
-	  << Form("Status Summary: 0x%.8x; Words so far %d",
-		  fStatSum, fWordsSoFar)
-	  << QwLog::endl;
+//   QwDebug << Form("Length: %d; Tag: 0x%x; Bank ID num: 0x%x; ",
+// 		  fEvtLength, fEvtTag, fIDBankNum)
+// 	  << Form("Evt type: 0x%x; Evt number %d; Evt Class 0x%.8x; ",
+// 		  fEvtType, fEvtNumber, fEvtClass)
+// 	  << Form("Status Summary: 0x%.8x; Words so far %d",
+// 		  fStatSum, fWordsSoFar)
+// 	  << QwLog::endl;
 };
 
 
@@ -496,9 +496,9 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
       continue;
     }
 
-    QwDebug << "QwEventBuffer::FillSubsystemData:  "
-	    << "Beginning loop: fWordsSoFar=="<<fWordsSoFar
-	    <<QwLog::endl;
+//     QwDebug << "QwEventBuffer::FillSubsystemData:  "
+// 	    << "Beginning loop: fWordsSoFar=="<<fWordsSoFar
+// 	    <<QwLog::endl;
 
     //  Loop through the subsystems and try to store the data
     //  from this bank in each subsystem.
@@ -510,16 +510,17 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
     //
     //  After trying the data in each subsystem, bump the
     //  fWordsSoFar to move to the next bank.
-    QwDebug << "ProcessEventBuffer: ROC="<<fROC<<", SubbankTag="<< fSubbankTag
-	    <<", FragLength="<<fFragLength <<QwLog::endl;
+
+//     QwDebug << "ProcessEventBuffer: ROC="<<fROC<<", SubbankTag="<< fSubbankTag
+// 	    <<", FragLength="<<fFragLength <<QwLog::endl;
 
     subsystems.ProcessEvBuffer(fROC, fSubbankTag,
 			       &localbuff[fWordsSoFar],
 			       fFragLength);
     fWordsSoFar += fFragLength;
-    QwDebug << "QwEventBuffer::FillSubsystemData:  "
-	    << "Ending loop: fWordsSoFar=="<<fWordsSoFar
-	    <<QwLog::endl;
+//     QwDebug << "QwEventBuffer::FillSubsystemData:  "
+// 	    << "Ending loop: fWordsSoFar=="<<fWordsSoFar
+// 	    <<QwLog::endl;
   }
   return okay;
 };
@@ -528,14 +529,14 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
 // added all this method for QwEPICSEvent class
 Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
 {
-  QwMessage << "QwEventBuffer::FillEPICSData:  "
-	    << Form("Length: %d; Tag: 0x%x; Bank ID num: 0x%x; ",
-		  fEvtLength, fEvtTag, fIDBankNum)
-	  << Form("Evt type: 0x%x; Evt number %d; Evt Class 0x%.8x; ",
-		  fEvtType, fEvtNumber, fEvtClass)
-	  << Form("Status Summary: 0x%.8x; Words so far %d",
-		  fStatSum, fWordsSoFar)
-	  << QwLog::endl;
+  // QwMessage << "QwEventBuffer::FillEPICSData:  "
+// 	    << Form("Length: %d; Tag: 0x%x; Bank ID num: 0x%x; ",
+// 		  fEvtLength, fEvtTag, fIDBankNum)
+// 	  << Form("Evt type: 0x%x; Evt number %d; Evt Class 0x%.8x; ",
+// 		  fEvtType, fEvtNumber, fEvtClass)
+// 	  << Form("Status Summary: 0x%.8x; Words so far %d",
+// 		  fStatSum, fWordsSoFar)
+// 	  << QwLog::endl;
 
 
   ///
@@ -572,10 +573,10 @@ Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
 
     fWordsSoFar += fFragLength;
 
-    QwDebug << "QwEventBuffer::FillEPICSData:  "
-	    << "Ending loop: fWordsSoFar=="<<fWordsSoFar
-	    <<QwLog::endl;
-    QwMessage<<"\nQwEventBuffer::FillEPICSData: fWordsSoFar = "<<fWordsSoFar<<QwLog::endl;
+//     QwDebug << "QwEventBuffer::FillEPICSData:  "
+// 	    << "Ending loop: fWordsSoFar=="<<fWordsSoFar
+// 	    <<QwLog::endl;
+//     QwMessage<<"\nQwEventBuffer::FillEPICSData: fWordsSoFar = "<<fWordsSoFar<<QwLog::endl;
 
 
   }

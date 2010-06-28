@@ -15,7 +15,7 @@ class QwDatabase;
 class QwEPICSEvent
 {
  public:
-  enum QwEPICSDataType {EPICSString, EPICSFloat, EPICSInt};  //aamer
+  enum EQwEPICSDataType {kEPICSString, kEPICSFloat, kEPICSInt};
 
   QwEPICSEvent();
   ~QwEPICSEvent();
@@ -23,9 +23,9 @@ class QwEPICSEvent
   int AddEPICSTag(TString tag);            // Add a tag to the list
   int AddEPICSTag(TString tag, TString table);
   int AddEPICSTag(TString tag, TString table,
-		  QwEPICSEvent::QwEPICSDataType datatype);
+		  QwEPICSEvent::EQwEPICSDataType datatype);
 
-
+  Int_t LoadEpicsVariableMap(TString mapfile);
 
   std::vector<Double_t> ReportAutogains();
   std::vector<Double_t> ReportAutogains(std::vector<TString> tag_list);
@@ -39,17 +39,14 @@ class QwEPICSEvent
 
   int SetDataValue(TString tag, TString value, int event);
   int SetDataValue(TString tag, Double_t value, int event);
-  int SetDataValue(Int_t index, Double_t value, int event);
-
-
-
+  int SetDataValue(Int_t index, Double_t value, int event);   
 
 
 
   void  CalculateRunningValues();
   void  PrintAverages();
   void  PrintVariableList();
-  void  DefineEPICSVariables();
+  // void DefineEPICSVariables();
   void  ReportEPICSData();
 
   std::vector<TString>  GetDefaultAutogainList();
@@ -59,6 +56,7 @@ class QwEPICSEvent
 
   void FillDB(QwDatabase *db);
   void FillSlowControlsData(QwDatabase *db);
+  void FillSlowControlsSettings(QwDatabase *db);
   Int_t   fNumberEPICSVariables;       // Number of defined EPICS variables.
   std::vector<TString> fEPICSVariableList;  // List of defined EPICS variables.
 
@@ -99,7 +97,7 @@ class QwEPICSEvent
   Int_t    fNumberEPICSEvents;     //  The total number of EPICS events in the run.
   //Int_t   fNumberEPICSVariables;       // Number of defined EPICS variables.
   //std::vector<TString> fEPICSVariableList;  // List of defined EPICS variables.
-  std::vector<QwEPICSDataType> fEPICSVariableType;
+  std::vector<EQwEPICSDataType> fEPICSVariableType;
   std::vector<TString> fEPICSTableList;     // List of DB tables to write
 
 };

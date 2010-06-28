@@ -62,7 +62,7 @@ std::map<string, unsigned int> QwDatabase::fMonitorIDs;
 std::map<string, unsigned int> QwDatabase::fMainDetectorIDs;
 std::map<string, unsigned int> QwDatabase::fLumiDetectorIDs;
 std::vector<string>            QwDatabase::fMeasurementIDs;
-std::map<string, unsigned int> QwDatabase::fSlowControlDetectorIDs;
+std::map<string, unsigned int> QwDatabase::fSlowControlDetectorIDs;// for epics
 
 /*! The simple constructor initializes member fields.  This class is not
  * used to establish the database connection.  It sets up a
@@ -612,9 +612,7 @@ const UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
     this->Connect();
     mysqlpp::Query query= this->Query();
     query.insert(analysis_row);
-    // I don't know why QwLog doesn't print properly, for I switched to cout
-    std::cout << "QwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << std::endl;
-
+    //QwMessage << "\nQwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << QwLog::endl<< QwLog::endl;
     query.execute();
 
     if (query.insert_id()!=0)
