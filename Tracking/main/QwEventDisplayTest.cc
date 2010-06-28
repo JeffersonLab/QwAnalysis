@@ -5,6 +5,8 @@
 
  \brief Example code for the event display routines
 
+ \edited by Derek Jones; The George Washington University; dwjones@jlab.org
+
 *//*-------------------------------------------------------------------------*/
 //
 // Standard C and C++ headers

@@ -188,7 +188,8 @@ class QwTreeEventBuffer;
 
 ////REGION GEOMETRIES////
 
-//All measurements in cm; scalings make longest side of length .8 in canvas; geometry data taken from QweakSim files; width is x; length is y; depth is z
+//All measurements in cm; scalings make longest side of length .8 in canvas; geometry data taken from QweakSim files;
+//Length is x, width is y, depth is z in qweak coordinates (x and y flip for GUI use, be careful of distinction)
 
 #define R1_WIDTH 30.00 // Region 1
 #define R1_LENGTH 30.00
@@ -207,6 +208,7 @@ class QwTreeEventBuffer;
 #define R3_DEPTH 2.54
 #define R3_DIST 1.11 // distance between drift cell centers
 #define R3_CM 0.0038
+#define R3_ANGLE 63.43 // 90-26.57 (which is the wire angle)
 
 
 ////DECLARE GLOBAL CLASS ELEMENTS////

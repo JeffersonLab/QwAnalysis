@@ -17,8 +17,8 @@
 ////HEADERS////
 
 //Qweak Event Display Header
-#include "QwEventDisplayDJ.h"  // includes ROOT headers and common classes and variables for the event display
-ClassImp(QwEventDisplayDJ);  // imports the new class from the header to this code
+#include "QwEventDisplay.h"  // includes ROOT headers and common classes and variables for the event display
+ClassImp(QwEventDisplay);  // imports the new class from the header to this code
 
 //Qweak Header Files
 #include "QwTreeEventBuffer.h"  // create hit list from G4 Monte Carlo
@@ -29,7 +29,7 @@ ClassImp(QwEventDisplayDJ);  // imports the new class from the header to this co
 
 ////GRAPHICAL COMPONENTS////
 
-QwEventDisplayDJ::QwEventDisplayDJ(const TGWindow *p,UInt_t w,UInt_t h){  // creates main graphical components
+QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates main graphical components
 
    // TRootGuiBuilder formatting variables
    ULong_t ucolor;        // will reflect user color changes
@@ -191,7 +191,7 @@ QwEventDisplayDJ::QwEventDisplayDJ(const TGWindow *p,UInt_t w,UInt_t h){  // cre
    // create goto event button
    gClient->GetColorByName("#d4cf87",ucolor); // set ucolor to buff
    TGTextButton *GotoEventButton = new TGTextButton(fEventCounter,"&Goto Event",-1,uGC->GetGC(),ufont->GetFontStruct());
-   GotoEventButton->Connect("Clicked()", "QwEventDisplayDJ", this, "GotoEvent()");
+   GotoEventButton->Connect("Clicked()", "QwEventDisplay", this, "GotoEvent()");
    GotoEventButton->SetTextJustify(36);
    GotoEventButton->SetMargins(0,0,0,0);
    GotoEventButton->SetWrapLength(-1);
@@ -227,7 +227,7 @@ QwEventDisplayDJ::QwEventDisplayDJ(const TGWindow *p,UInt_t w,UInt_t h){  // cre
 
    // create list box for wire hit data
    WireHitListBox = new TGListBox(fEventBox2);
-   //   WireHitListBox->Connect("PositionChanged()", "QwEventDisplayDJ", this, "TimingListBox->fVScrollbar");  LINK SCROLLBARS TO BE IN SYNC
+   //   WireHitListBox->Connect("PositionChanged()", "QwEventDisplay", this, "TimingListBox->fVScrollbar");  LINK SCROLLBARS TO BE IN SYNC
    WireHitListBox->Resize(200,180);
    fEventBox2->AddFrame(WireHitListBox, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    WireHitListBox->MoveResize(8,32,200,180);
@@ -521,7 +521,7 @@ QwEventDisplayDJ::QwEventDisplayDJ(const TGWindow *p,UInt_t w,UInt_t h){  // cre
    uGC = gClient->GetGC(&valButton, kTRUE);
    // create clear button: CLEARS ALL DATA
    TGTextButton *ClearButton = new TGTextButton(fButtons,"&Clear Data",-1,uGC->GetGC(),ufont->GetFontStruct());
-   ClearButton->Connect("Clicked()", "QwEventDisplayDJ", this, "GoClear()"); // connect button to GoClear() function
+   ClearButton->Connect("Clicked()", "QwEventDisplay", this, "GoClear()"); // connect button to GoClear() function
    ClearButton->SetTextJustify(36);
    ClearButton->SetMargins(0,0,0,0);
    ClearButton->SetWrapLength(-1);
@@ -567,7 +567,7 @@ QwEventDisplayDJ::QwEventDisplayDJ(const TGWindow *p,UInt_t w,UInt_t h){  // cre
    uGC = gClient->GetGC(&valousButton, kTRUE);
    // create previous button: MAKES EVENT COUNTER MINUS ONE
    TGTextButton *PreviousButton = new TGTextButton(fButtons,"&Previous Event",-1,uGC->GetGC(),ufont->GetFontStruct());
-   PreviousButton->Connect("Clicked()", "QwEventDisplayDJ", this, "GoPrevious()"); // connect button to GoPrevious() function
+   PreviousButton->Connect("Clicked()", "QwEventDisplay", this, "GoPrevious()"); // connect button to GoPrevious() function
    PreviousButton->SetTextJustify(36);
    PreviousButton->SetMargins(0,0,0,0);
    PreviousButton->SetWrapLength(-1);
@@ -589,7 +589,7 @@ QwEventDisplayDJ::QwEventDisplayDJ(const TGWindow *p,UInt_t w,UInt_t h){  // cre
    uGC = gClient->GetGC(&valutton, kTRUE);
    // create next button: MAKES EVENT COUNTER PLUS ONE
    TGTextButton *NextButton = new TGTextButton(fButtons,"&Next Event",-1,uGC->GetGC(),ufont->GetFontStruct());
-   NextButton->Connect("Clicked()", "QwEventDisplayDJ", this, "GoNext()"); // connect button to GoNext() function
+   NextButton->Connect("Clicked()", "QwEventDisplay", this, "GoNext()"); // connect button to GoNext() function
    NextButton->SetTextJustify(36);
    NextButton->SetMargins(0,0,0,0);
    NextButton->SetWrapLength(-1);
@@ -613,12 +613,12 @@ QwEventDisplayDJ::QwEventDisplayDJ(const TGWindow *p,UInt_t w,UInt_t h){  // cre
    fMain->Resize(fMain->GetDefaultSize());
    fMain->MapWindow();
    fMain->Resize(900,692);
-} // end QwEventDisplayDJ()
+} // end QwEventDisplay()
 
 
 ////FUNCTIONAL COMPONENTS////
 
-void QwEventDisplayDJ::GoPrevious(){  // makes event counter minus one
+void QwEventDisplay::GoPrevious(){  // makes event counter minus one
                                       // called by PreviousButton click
 
   if (fEventNumber > 1){
@@ -632,7 +632,7 @@ void QwEventDisplayDJ::GoPrevious(){  // makes event counter minus one
 } // end GoPrevious()
 
 
-void QwEventDisplayDJ::GoNext(){  // makes event counter plus one
+void QwEventDisplay::GoNext(){  // makes event counter plus one
                                   // called by NextButton click
 
   fEventNumber++;  // go to next event
@@ -640,7 +640,7 @@ void QwEventDisplayDJ::GoNext(){  // makes event counter plus one
 } // end GoNext()
 
 
-void QwEventDisplayDJ::GoClear(){  // clears all displayed data
+void QwEventDisplay::GoClear(){  // clears all displayed data
                                    // called by ClearButton click
                                    // NEED TO TEST REGION CLEAR
 
@@ -653,16 +653,27 @@ void QwEventDisplayDJ::GoClear(){  // clears all displayed data
 
   Line_R1r.clear(); // clear existing Region 1 drawn lines
   Line_R1y.clear();
+  R1_XYfit.clear();
+  R1_XZfit.clear();
   Line_R2x.clear(); // clear existing Region 2 drawn lines
   Line_R2u.clear();
   Line_R2v.clear();
   Line_R3u.clear(); // clear existing Region 3 drawn lines
   Line_R3v.clear();
+  fRegion1XY->GetCanvas()->Update();
+  fRegion1XZ->GetCanvas()->Update();
+  fRegion1YZ->GetCanvas()->Update();
+  fRegion2XY->GetCanvas()->Update();
+  fRegion2XZ->GetCanvas()->Update();
+  fRegion2YZ->GetCanvas()->Update();
+  fRegion3XY->GetCanvas()->Update();
+  fRegion3XZ->GetCanvas()->Update();
+  fRegion3YZ->GetCanvas()->Update();
 
 } // end GoClear()
 
 
-void QwEventDisplayDJ::GotoEvent(){  // goes to desired event number written in "goto event" text entry box
+void QwEventDisplay::GotoEvent(){  // goes to desired event number written in "goto event" text entry box
                                      // called by GotoEventButton click
 
   fEventNumber = CurrentEventEntry->GetNumberEntry()->GetIntNumber(); // fEventNumber takes value from number entry
@@ -678,7 +689,7 @@ void QwEventDisplayDJ::GotoEvent(){  // goes to desired event number written in 
 } // end GotoEvent()
 
 
-void QwEventDisplayDJ::DrawEvent(){  // draws event data into display: lists wire hits, timing, and other information in event boxes
+void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire hits, timing, and other information in event boxes
                                      // displays orthographic views triggered wires for each region
                                      // called by Previous, Next, or GotoEvent buttons  // NOT COMPLETE
 
@@ -764,30 +775,30 @@ void QwEventDisplayDJ::DrawEvent(){  // draws event data into display: lists wir
     //WHAT ARE THESE ACTUALLY? G4 DOES NOT GET ANY HITS FROM THESE
   }
   //Region 1 Y wire
-  sum = 0; // back to 0 for fitting
-  num = 0;
+  //  sum = 0; // back to 0 for fitting
+  //  num = 0;
   for(QwHitContainer::iterator hit = Hits_R1y->begin(); hit != Hits_R1y->end(); hit++){
     int wire = hit->GetElement();
     //    double dist = hit->GetDriftDistance();
     TLine Line;
-    Line.SetX1(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
-    Line.SetY1(.5 - (R1_LENGTH*R1_CM*.5));
-    Line.SetX2(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
-    Line.SetY2(.5 + (R1_LENGTH*R1_CM*.5));
+    Line.SetX1(.5 - (R1_WIDTH*R1_CM*.5));
+    Line.SetY1(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
+    Line.SetX2(.5 + (R1_WIDTH*R1_CM*.5));
+    Line.SetY2(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
     Line.SetLineColor(kViolet);
     Line_R1y.push_back(Line); // add Line to end of vector R2x
     Line_R1y.back().Draw(); // draw line;
-    sum = sum + wire;
-    num++;
-  }
+    //    sum = sum + wire;
+    //    num++;
+  }/*
   fit = sum/num;
-  Line.SetX1(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*fit));
-  Line.SetY1(.5 - (R1_LENGTH*R1_CM*.5));
-  Line.SetX2(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*fit));
-  Line.SetY2(.5 + (R1_LENGTH*R1_CM*.5));
+  Line.SetX1(.5 - (R1_WIDTH*R1_CM*.5));
+  Line.SetY1(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*fit));
+  Line.SetX2(.5 + (R1_WIDTH*R1_CM*.5));
+  Line.SetY2(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*fit));
   Line.SetLineColor(kBlack);
   R1_XYfit.push_back(Line);
-  R1_XYfit.back().Draw();
+  R1_XYfit.back().Draw();*/
   fRegion1XY->GetCanvas()->Update();
 
   //TOP VIEW (X-Z)
@@ -799,34 +810,34 @@ void QwEventDisplayDJ::DrawEvent(){  // draws event data into display: lists wir
     int wire = hit->GetElement();
     //    double dist = hit->GetDriftDistance();
     TLine Line;
-    Line.SetX1(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
-    Line.SetY1(.5 - (R1_DEPTH*R1_CM*.5));
-    Line.SetX2(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
-    Line.SetY2(.5 + (R1_DEPTH*R1_CM*.5));
+    Line.SetX1(.5 - (R1_WIDTH*R1_CM*.5));
+    Line.SetY1(.5 - (R1_DEPTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
+    Line.SetX2(.5 - (R1_WIDTH*R1_CM*.5));
+    Line.SetY2(.5 + (R1_DEPTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
     Line.SetLineColor(kViolet);
     Line_R1y.push_back(Line); // add Line to end of vector R2x
     Line_R1y.back().Draw(); // draw line;
-    sum = sum + wire;
-    num++;
-  }
+    //    sum = sum + wire;
+    //    num++;
+  }/*
   fit = sum/num;
-  Line.SetX1(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*fit));
-  Line.SetY1(.5 - (R1_LENGTH*R1_CM*.5));
-  Line.SetX2(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*fit));
-  Line.SetY2(.5 + (R1_LENGTH*R1_CM*.5));
+  Line.SetX1(.5 - (R1_WIDTH*R1_CM*.5));
+  Line.SetY1(.5 - (R1_DEPTH*R1_CM*.5) + (R1_DIST*R1_CM*fit));
+  Line.SetX2(.5 - (R1_WIDTH*R1_CM*.5));
+  Line.SetY2(.5 + (R1_DEPTH*R1_CM*.5) + (R1_DIST*R1_CM*fit));
   Line.SetLineColor(kBlack);
   R1_XZfit.push_back(Line);
-  R1_XZfit.back().Draw();;
+  R1_XZfit.back().Draw();*/
   fRegion1XZ->GetCanvas()->Update();
 
   //SIDE VIEW (Y-Z)
   fRegion1YZ->GetCanvas()->cd();
   //Region 1 Y wire
-  for(QwHitContainer::iterator hit = Hits_R1y->begin(); hit != Hits_R1y->end(); hit++){
+  /*  for(QwHitContainer::iterator hit = Hits_R1y->begin(); hit != Hits_R1y->end(); hit++){
    Box_R1YZ->SetFillStyle(1001);
    Box_R1YZ->SetFillColor(kViolet);
    Box_R1YZ->Draw();
-  }
+  }*/
   fRegion1YZ->GetCanvas()->Update();
 
 
@@ -950,17 +961,23 @@ void QwEventDisplayDJ::DrawEvent(){  // draws event data into display: lists wir
     int wire = hit->GetElement();
     //    double dist = hit->GetDriftDistance();
     TLine Line;
-    if(wire > 17){
-      Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5) - (R3_DIST*R3_CM*wire));// - dist*1.25*2.099737533e-3); // CHECK
-      Line.SetY1(.5 - (R3_LENGTH*R3_CM*.5));
+    if (wire < 25){ //25th wire ends at corner (X2, Y1)  CHECK THIS!!
+      Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5));
+      Line.SetY1(.5 - (R3_LENGTH*R3_CM*.5) + (R3_DIST*R3_CM*wire));
+      Line.SetX2(Line.GetY1()*tan(R3_ANGLE));
+      Line.SetY2(.5 - (R3_LENGTH*R3_CM*.5));
+      }
+    else if (wire < 210){ //210th wire begins at (X1, Y2)  CHECK THIS!!
+      Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5));
+      Line.SetY1(.5 - (R3_LENGTH*R3_CM*.5) + (R3_DIST*R3_CM*wire));
       Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5));
-      Line.SetY2(.5 + (R3_LENGTH*R3_CM*.5) + (R3_DIST*R3_CM*wire));// + dist*1.667*2.099737533e-3); // CHECK
+      Line.SetY2(Line.GetY1() - (25*R3_CM)); // gets correct R3_ANGLE
     }
     else{
-      Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5));
-      Line.SetY1(.5 - (R3_LENGTH*R3_CM*.5) + (R3_DIST*R3_CM*wire));// + dist*1.667*2.099737533e-3); // CHECK
-      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_DIST*R3_CM*wire));// - dist*1.25*2.099737533e-3); // CHECK
-      Line.SetY2(.5 + (R3_LENGTH*R3_CM*.5));
+      Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5) + (R3_DIST*R3_CM*(wire - 210)));
+      Line.SetY1(.5 + (R3_LENGTH*R3_CM*.5));
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5));
+      Line.SetY2(Line.GetX1() / tan(R3_ANGLE));
     }
     Line.SetLineColor(kGreen);
     Line_R2u.push_back(Line);
@@ -986,7 +1003,7 @@ void QwEventDisplayDJ::DrawEvent(){  // draws event data into display: lists wir
     Line.SetLineColor(kBlue);
     Line_R2v.push_back(Line);
     Line_R2v.back().Draw();
-  }
+    }
   fRegion3XY->GetCanvas()->Update();
 
   //TOP VIEW (X-Z)
@@ -1026,12 +1043,12 @@ void QwEventDisplayDJ::DrawEvent(){  // draws event data into display: lists wir
 } // end DrawEvent()
 
 
-QwEventDisplayDJ::~QwEventDisplayDJ(){  // cleans up memory used by class; default destructor
+QwEventDisplay::~QwEventDisplay(){  // cleans up memory used by class; default destructor
 
   fMain->Cleanup();
   delete fMain;
 
-} // end ~QwEventDisplayDJ()
+} // end ~QwEventDisplay()
 
 
 /************************************\
