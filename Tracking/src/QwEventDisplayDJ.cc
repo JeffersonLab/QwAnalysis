@@ -337,8 +337,6 @@ QwEventDisplayDJ::QwEventDisplayDJ(const TGWindow *p,UInt_t w,UInt_t h){  // cre
 
   ////REGION BOXES////
 
-   // Box scaling taken from svn QweakSim files
-
    // create region boxes tab frame
    gClient->GetColorByName("#0047ab",ucolor); // set ucolor to blue
    fRegions = new TGTab(fMain,900,312,TGTab::GetDefaultGC()(),TGTab::GetDefaultFontStruct(),kChildFrame,ucolor);
@@ -359,7 +357,7 @@ QwEventDisplayDJ::QwEventDisplayDJ(const TGWindow *p,UInt_t w,UInt_t h){  // cre
    fRegion1XY->MoveResize(12,4,280,280);
    Label_R1XY = new TPaveLabel(.03,.92,.97,.97,"Front View (X-Y Projection)"); // create canvas label
    Label_R1XY->Draw();
-   Box_R1XY = new TBox(.1,.1,.9,.9); // create box to frame wire lines
+   Box_R1XY = new TBox(.5-(R1_WIDTH*R1_CM*.5), .5-(R1_LENGTH*R1_CM*.5), .5+(R1_WIDTH*R1_CM*.5), .5+(R1_LENGTH*R1_CM*.5)); // create/center box to frame wire lines
    Box_R1XY->SetLineColor(1);
    Box_R1XY->SetFillStyle(0);
    Box_R1XY->Draw();
@@ -373,7 +371,7 @@ QwEventDisplayDJ::QwEventDisplayDJ(const TGWindow *p,UInt_t w,UInt_t h){  // cre
    fRegion1XZ->MoveResize(306,4,280,280);
    Label_R1XZ = new TPaveLabel(.03,.92,.97,.97,"Top View (X-Z Projection)"); // create canvas label
    Label_R1XZ->Draw();
-   Box_R1XZ = new TBox(.1,.46,.9,.54); // create box to frame wire lines
+   Box_R1XZ = new TBox(.5-(R1_WIDTH*R1_CM*.5), .5-(R1_DEPTH*R1_CM*.5), .5+(R1_WIDTH*R1_CM*.5), .5+(R1_DEPTH*R1_CM*.5)); // create/center box to frame wire lines
    Box_R1XZ->SetLineColor(1);
    Box_R1XZ->SetFillStyle(0);
    Box_R1XZ->Draw();
@@ -387,7 +385,7 @@ QwEventDisplayDJ::QwEventDisplayDJ(const TGWindow *p,UInt_t w,UInt_t h){  // cre
    fRegion1YZ->MoveResize(603,4,280,280);
    Label_R1YZ = new TPaveLabel(.03,.92,.97,.97,"Side View (Y-Z Projection)"); // create canvas label
    Label_R1YZ->Draw();
-   Box_R1YZ = new TBox(.46,.1,.54,.9); // create box to frame wire lines
+   Box_R1YZ = new TBox(.5-(R1_DEPTH*R1_CM*.5), .5-(R1_LENGTH*R1_CM*.5), .5+(R1_DEPTH*R1_CM*.5), .5+(R1_LENGTH*R1_CM*.5)); // create/center box to frame wire lines
    Box_R1YZ->SetLineColor(1);
    Box_R1YZ->SetFillStyle(0);
    Box_R1YZ->Draw();
@@ -408,7 +406,7 @@ QwEventDisplayDJ::QwEventDisplayDJ(const TGWindow *p,UInt_t w,UInt_t h){  // cre
    fRegion2XY->MoveResize(12,4,280,280);
    Label_R2XY = new TPaveLabel(.03,.92,.97,.97,"Front View (X-Y Projection)"); // create canvas label
    Label_R2XY->Draw();
-   Box_R2XY = new TBox(.1,.234,.9,.766); // create box to frame wire lines
+   Box_R2XY = new TBox(.5-(R2_WIDTH*R2_CM*.5), .5-(R2_LENGTH*R2_CM*.5), .5+(R2_WIDTH*R2_CM*.5), .5+(R2_LENGTH*R2_CM*.5)); // create/center box to frame wire lines
    Box_R2XY->SetLineColor(1);
    Box_R2XY->SetFillStyle(0);
    Box_R2XY->Draw();
@@ -422,7 +420,7 @@ QwEventDisplayDJ::QwEventDisplayDJ(const TGWindow *p,UInt_t w,UInt_t h){  // cre
    fRegion2XZ->MoveResize(306,4,280,280);
    Label_R2XZ = new TPaveLabel(.03,.92,.97,.97,"Top View (X-Z Projection)"); // create canvas label
    Label_R2XZ->Draw();
-   Box_R2XZ = new TBox(.1,.347,.9,.653); // create box to frame wire lines
+   Box_R2XZ = new TBox(.5-(R2_WIDTH*R2_CM*.5), .5-(R2_DEPTH*R2_CM*.5), .5+(R2_WIDTH*R2_CM*.5), .5+(R2_DEPTH*R2_CM*.5)); // create/center box to frame wire lines
    Box_R2XZ->SetLineColor(1);
    Box_R2XZ->SetFillStyle(0);
    Box_R2XZ->Draw();
@@ -436,7 +434,7 @@ QwEventDisplayDJ::QwEventDisplayDJ(const TGWindow *p,UInt_t w,UInt_t h){  // cre
    fRegion2YZ->MoveResize(603,4,280,280);
    Label_R2YZ = new TPaveLabel(.03,.92,.97,.97,"Side View (Y-Z Projection)"); // create canvas label
    Label_R2YZ->Draw();
-   Box_R2YZ = new TBox(.347,.234,.653,.766); // create box to frame wire lines
+   Box_R2YZ = new TBox(.5-(R2_DEPTH*R2_CM*.5), .5-(R2_LENGTH*R2_CM*.5), .5+(R2_DEPTH*R2_CM*.5), .5+(R2_LENGTH*R2_CM*.5)); // create/center box to frame wire lines
    Box_R2YZ->SetLineColor(1);
    Box_R2YZ->SetFillStyle(0);
    Box_R2YZ->Draw();
@@ -457,7 +455,7 @@ QwEventDisplayDJ::QwEventDisplayDJ(const TGWindow *p,UInt_t w,UInt_t h){  // cre
    fRegion3XY->MoveResize(12,4,280,280);
    Label_R3XY = new TPaveLabel(.03,.92,.97,.97,"Front View (X-Y Projection)"); // create canvas label
    Label_R3XY->Draw();
-   Box_R3XY = new TBox(.405,.1,.595,.9); // create box to frame wire lines
+   Box_R3XY = new TBox(.5-(R3_WIDTH*R3_CM*.5), .5-(R3_LENGTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .5+(R3_LENGTH*R3_CM*.5)); // create/center box to frame wire lines
    Box_R3XY->SetLineColor(1);
    Box_R3XY->SetFillStyle(0);
    Box_R3XY->Draw();
@@ -471,7 +469,7 @@ QwEventDisplayDJ::QwEventDisplayDJ(const TGWindow *p,UInt_t w,UInt_t h){  // cre
    fRegion3XZ->MoveResize(306,4,280,280);
    Label_R3XZ = new TPaveLabel(.03,.92,.97,.97,"Top View (X-Z Projection)"); // create canvas label
    Label_R3XZ->Draw();
-   Box_R3XZ = new TBox(.405,.487,.595,.513); // create box to frame wire lines
+   Box_R3XZ = new TBox(.5-(R3_WIDTH*R3_CM*.5), .5-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)); // create/center box to frame wire lines
    Box_R3XZ->SetLineColor(1);
    Box_R3XZ->SetFillStyle(0);
    Box_R3XZ->Draw();
@@ -485,7 +483,7 @@ QwEventDisplayDJ::QwEventDisplayDJ(const TGWindow *p,UInt_t w,UInt_t h){  // cre
    fRegion3YZ->MoveResize(603,4,280,280);
    Label_R3YZ = new TPaveLabel(.03,.92,.97,.97,"Side View (Y-Z Projection)"); // create canvas label
    Label_R3YZ->Draw();
-   Box_R3YZ = new TBox(.487,.1,.513,.9); // create box to frame wire lines
+   Box_R3YZ = new TBox(.5-(R3_DEPTH*R3_CM*.5), .5-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5), .5+(R3_LENGTH*R3_CM*.5)); // create/center box to frame wire lines
    Box_R3YZ->SetLineColor(1);
    Box_R3YZ->SetFillStyle(0);
    Box_R3YZ->Draw();
@@ -692,6 +690,8 @@ void QwEventDisplayDJ::DrawEvent(){  // draws event data into display: lists wir
 
   Line_R1r.clear(); // clear existing Region 1 drawn lines
   Line_R1y.clear();
+  R1_XYfit.clear();
+  R1_XZfit.clear();
   Line_R2x.clear(); // clear existing Region 2 drawn lines
   Line_R2u.clear();
   Line_R2v.clear();
@@ -710,7 +710,7 @@ void QwEventDisplayDJ::DrawEvent(){  // draws event data into display: lists wir
   // list wire hits in wire list hit box
   for(QwHitContainer::iterator hit = fHitList->begin(); hit != fHitList->end(); hit++){ // loop while hits exist in the hit container
     if(hit->GetElement() > 0){
-      sprintf(HitBuffer, "Region %i--Wire %i", hit->GetRegion(), hit->GetElement()); // print single hit with region
+      sprintf(HitBuffer, "Region %i--Wire %i, Plane %i", hit->GetRegion(), hit->GetElement(), hit->GetPlane()); // print single hit with region
       WireHitListBox->AddEntry(HitBuffer, fEventNumber); // add to list box
       WireHitListBox->MapSubwindows(); // re-map window
       WireHitListBox->Layout();
@@ -756,28 +756,94 @@ void QwEventDisplayDJ::DrawEvent(){  // draws event data into display: lists wir
   QwHitContainer* Hits_R3v = fHitList->GetSubList_Dir(kRegionID3, kPackageUp, kDirectionV);
 
   //DRAW REGION 1 WIRE HITS//
+
+  //FRONT VIEW (X-Y)
+  fRegion1XY->GetCanvas()->cd();
   //Region 1 R wires
   for(QwHitContainer::iterator hit = Hits_R1r->begin(); hit != Hits_R1r->end(); hit++){
+    //WHAT ARE THESE ACTUALLY? G4 DOES NOT GET ANY HITS FROM THESE
   }
-  //Region 1 Y wires
+  //Region 1 Y wire
+  sum = 0; // back to 0 for fitting
+  num = 0;
   for(QwHitContainer::iterator hit = Hits_R1y->begin(); hit != Hits_R1y->end(); hit++){
+    int wire = hit->GetElement();
+    //    double dist = hit->GetDriftDistance();
+    TLine Line;
+    Line.SetX1(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
+    Line.SetY1(.5 - (R1_LENGTH*R1_CM*.5));
+    Line.SetX2(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
+    Line.SetY2(.5 + (R1_LENGTH*R1_CM*.5));
+    Line.SetLineColor(kViolet);
+    Line_R1y.push_back(Line); // add Line to end of vector R2x
+    Line_R1y.back().Draw(); // draw line;
+    sum = sum + wire;
+    num++;
   }
+  fit = sum/num;
+  Line.SetX1(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*fit));
+  Line.SetY1(.5 - (R1_LENGTH*R1_CM*.5));
+  Line.SetX2(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*fit));
+  Line.SetY2(.5 + (R1_LENGTH*R1_CM*.5));
+  Line.SetLineColor(kBlack);
+  R1_XYfit.push_back(Line);
+  R1_XYfit.back().Draw();
+  fRegion1XY->GetCanvas()->Update();
+
+  //TOP VIEW (X-Z)
+  fRegion1XZ->GetCanvas()->cd();
+  //Region 1 Y wire
+  sum = 0; // back to 0 for fitting
+  num = 0;
+  for(QwHitContainer::iterator hit = Hits_R1y->begin(); hit != Hits_R1y->end(); hit++){
+    int wire = hit->GetElement();
+    //    double dist = hit->GetDriftDistance();
+    TLine Line;
+    Line.SetX1(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
+    Line.SetY1(.5 - (R1_DEPTH*R1_CM*.5));
+    Line.SetX2(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
+    Line.SetY2(.5 + (R1_DEPTH*R1_CM*.5));
+    Line.SetLineColor(kViolet);
+    Line_R1y.push_back(Line); // add Line to end of vector R2x
+    Line_R1y.back().Draw(); // draw line;
+    sum = sum + wire;
+    num++;
+  }
+  fit = sum/num;
+  Line.SetX1(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*fit));
+  Line.SetY1(.5 - (R1_LENGTH*R1_CM*.5));
+  Line.SetX2(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*fit));
+  Line.SetY2(.5 + (R1_LENGTH*R1_CM*.5));
+  Line.SetLineColor(kBlack);
+  R1_XZfit.push_back(Line);
+  R1_XZfit.back().Draw();;
+  fRegion1XZ->GetCanvas()->Update();
+
+  //SIDE VIEW (Y-Z)
+  fRegion1YZ->GetCanvas()->cd();
+  //Region 1 Y wire
+  for(QwHitContainer::iterator hit = Hits_R1y->begin(); hit != Hits_R1y->end(); hit++){
+   Box_R1YZ->SetFillStyle(1001);
+   Box_R1YZ->SetFillColor(kViolet);
+   Box_R1YZ->Draw();
+  }
+  fRegion1YZ->GetCanvas()->Update();
+
 
   //DRAW REGION 2 WIRE HITS//
 
   //FRONT VIEW (X-Y)
   fRegion2XY->GetCanvas()->cd();
-
   //Region 2 X wires
   for(QwHitContainer::iterator hit = Hits_R2x->begin(); hit != Hits_R2x->end(); hit++){
     int wire = hit->GetElement();
     int plane = hit->GetPlane();
-    double dist = hit->GetDriftDistance();
+    //    double dist = hit->GetDriftDistance();
     TLine Line;
-    Line.SetX1(.1);
-    Line.SetY1(.234 + .0257*wire);// + dist*.0135); // SEE NOTEBOOK FOR MATH FOR NOW
-    Line.SetX2(.9);
-    Line.SetY2(.234 + .0257*wire);// + dist*.0135); // EVENTUALLY MAKE CONSTANTS
+    Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5));
+    Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5) + (R2_DIST*R2_CM*wire));// + dist*.0135); // FIX R2_DIST
+    Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5));
+    Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (R2_DIST*R2_CM*wire));// + dist*.0135); // removed drift distance addition
     Line.SetLineColor(kRed);
     Line_R2x.push_back(Line); // add Line to end of vector R2x
     Line_R2x.back().Draw(); // draw line;
@@ -785,60 +851,182 @@ void QwEventDisplayDJ::DrawEvent(){  // draws event data into display: lists wir
   //Region 2 U wires
   for(QwHitContainer::iterator hit = Hits_R2u->begin(); hit != Hits_R2u->end(); hit++){
     int wire = hit->GetElement();
-    int plane = hit->GetPlane();
+    //    double dist = hit->GetDriftDistance();
     TLine Line;
     if(wire < 17){
-      Line.SetX1(.6755974-(wire-1 + 0.1*plane)*0.0306667 - R2driftdist[1]*driftsign[1]*1.25*2.099737533e-3); // CALIBRATE
-      Line.SetY1(.234);
-      Line.SetX2(.9);
-      Line.SetY2(.2658285+(wire-1 + 0.1*plane)*0.04087874 + R2driftdist[1]*driftsign[1]*1.667*2.099737533e-3); // CALIBRATE
-      Line.SetLineColor(kGreen);
+      Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5) - (R2_DIST*R2_CM*wire));// - dist*1.25*2.099737533e-3); // CHECK
+      Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5));
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5));
+      Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5) + (R2_DIST*R2_CM*wire));// + dist*1.667*2.099737533e-3); // CHECK
     }
     else{
-      Line.SetX1(.1);
-      Line.SetY1(.120061+(wire-17 + 0.1*plane)*0.0408534 + R2driftdist[1]*driftsign[1]*1.667*2.099737533e-3); // CALIBRATE
-      Line.SetX2(.785100-(wire-17 + 0.1*plane)*0.0306477 - R2driftdist[1]*driftsign[1]*1.25*2.099737533e-3); // CALIBRATE
-      Line.SetY2(.766);
-      Line.SetLineColor(kGreen);
+      Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5));
+      Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5) + (R2_DIST*R2_CM*wire));// + dist*1.667*2.099737533e-3); // CHECK
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_DIST*R2_CM*wire));// - dist*1.25*2.099737533e-3); // CHECK
+      Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5));
       }
+    Line.SetLineColor(kGreen);
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
     }
   //Region 2 V wires
   for(QwHitContainer::iterator hit = Hits_R2v->begin(); hit != Hits_R2v->end(); hit++){
     int wire = hit->GetElement();
-    int plane = hit->GetPlane();
+    //    double dist = hit->GetDriftDistance();
     TLine Line;
     if (wire < 17) {
-      Line.SetX1(.1);
-      Line.SetY1(.234+(wire*.0257));
-      Line.SetX2(.9-(wire*.0257));
-      Line.SetY2(.766);
-      Line.SetLineColor(kBlue);
+      Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5));
+      Line.SetY1(.5 + (R2_LENGTH*R2_CM*.5) + (R2_DIST*R2_CM*wire));    //.26523+(wire-1)*0.040853); // CHECK
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) + (R2_DIST*R2_CM*wire));    //.323957+(wire-1)*0.0306477); // CHECK
+      Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5));
     }
     else{
-      Line.SetX1(0.214179+(wire*.0257));
-      Line.SetY1(.234);
-      Line.SetX2(.9);
-      Line.SetY2(.234+(wire*.0257));
-      Line.SetLineColor(kBlue);
+      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) + (R2_DIST*R2_CM*wire));   //0.214179+(wire-17)*0.0306667); // CHECK
+      Line.SetY1(.5 + (R2_LENGTH*R2_CM*.5));
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5));
+      Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5) + (R2_DIST*R2_CM*wire));    //.1191+(wire-17)*0.0408787); // CHECK
     }
+    Line.SetLineColor(kBlue);
     Line_R2v.push_back(Line);
     Line_R2v.back().Draw();
   }
   fRegion2XY->GetCanvas()->Update();
 
-  //DRAW REGION 3 WIRE HITS//
-  //Region 3 U wires
-  for(QwHitContainer::iterator hit = Hits_R3u->begin(); hit != Hits_R3u->end(); hit++){
+  //TOP VIEW (X-Z)
+  fRegion2XZ->GetCanvas()->cd();
+  //Region 2 X wires
+  for(QwHitContainer::iterator hit = Hits_R2x->begin(); hit != Hits_R2x->end(); hit++){
+    int plane = hit->GetPlane();
+    //    double dist = hit->GetDriftDistance();
+    TLine Line;
+    Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5));
+    Line.SetY1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*plane));// + dist*.0135); // plane 1
+    Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5));
+    Line.SetY2(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*plane));// + dist*.0135); // removed drift distance addition
+    Line.SetLineColor(kRed);
+    Line_R2x.push_back(Line); // add Line to end of vector R2x
+    Line_R2x.back().Draw(); // draw line;
   }
+ //Region 2 U wires FIXXXX
+  for(QwHitContainer::iterator hit = Hits_R2u->begin(); hit != Hits_R2u->end(); hit++){
+    int plane = hit->GetPlane();
+    //    double dist = hit->GetDriftDistance();
+    TLine Line;
+    Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5));
+    Line.SetY1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*plane));// + dist*.0135); // plane 1
+    Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5));
+    Line.SetY2(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*plane));// + dist*.0135); // removed drift distance addition
+    Line.SetLineColor(kGreen);
+    Line_R2u.push_back(Line);
+    Line_R2u.back().Draw();
+    }
+  //Region 2 V wires FIXXXX
+  for(QwHitContainer::iterator hit = Hits_R2v->begin(); hit != Hits_R2v->end(); hit++){
+    int wire = hit->GetElement();
+    int plane = hit->GetPlane();
+    //    double dist = hit->GetDriftDistance();
+    TLine Line;
+    Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5));
+    Line.SetY1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*plane));// + dist*.0135); // plane 1
+    Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) + (R2_DIST*R2_CM*wire));
+    Line.SetY2(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*plane));// + dist*.0135); // removed drift distance addition
+    Line.SetLineColor(kBlue);
+    Line_R2u.push_back(Line);
+    Line_R2u.back().Draw();
+    }
+  fRegion2XZ->GetCanvas()->Update();
+
+  //SIDE VIEW (Y-Z)
+  fRegion2YZ->GetCanvas()->cd();
+  fRegion2YZ->GetCanvas()->Update();
+
+
+  //DRAW REGION 3 WIRE HITS//
+
+  //FRONT VIEW (X-Y)
+  //Region 3 U wires
+  fRegion3XY->GetCanvas()->cd();
+  for(QwHitContainer::iterator hit = Hits_R3u->begin(); hit != Hits_R3u->end(); hit++){
+    int wire = hit->GetElement();
+    //    double dist = hit->GetDriftDistance();
+    TLine Line;
+    if(wire > 17){
+      Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5) - (R3_DIST*R3_CM*wire));// - dist*1.25*2.099737533e-3); // CHECK
+      Line.SetY1(.5 - (R3_LENGTH*R3_CM*.5));
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5));
+      Line.SetY2(.5 + (R3_LENGTH*R3_CM*.5) + (R3_DIST*R3_CM*wire));// + dist*1.667*2.099737533e-3); // CHECK
+    }
+    else{
+      Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5));
+      Line.SetY1(.5 - (R3_LENGTH*R3_CM*.5) + (R3_DIST*R3_CM*wire));// + dist*1.667*2.099737533e-3); // CHECK
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_DIST*R3_CM*wire));// - dist*1.25*2.099737533e-3); // CHECK
+      Line.SetY2(.5 + (R3_LENGTH*R3_CM*.5));
+    }
+    Line.SetLineColor(kGreen);
+    Line_R2u.push_back(Line);
+    Line_R2u.back().Draw();
+    }
   //Region 3 V wires
   for(QwHitContainer::iterator hit = Hits_R3v->begin(); hit != Hits_R3v->end(); hit++){
+    int wire = hit->GetElement();
+    //    double dist = hit->GetDriftDistance();
+    TLine Line;
+    if (wire > 17) {
+      Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5));
+      Line.SetY1(.5 + (R3_LENGTH*R3_CM*.5) + (R3_DIST*R3_CM*wire));    //.26523+(wire-1)*0.040853); // CHECK
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) + (R3_DIST*R3_CM*wire));    //.323957+(wire-1)*0.0306477); // CHECK
+      Line.SetY2(.5 - (R3_LENGTH*R3_CM*.5));
+    }
+    else{
+      Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) + (R3_DIST*R3_CM*wire));   //0.214179+(wire-17)*0.0306667); // CHECK
+      Line.SetY1(.5 + (R3_LENGTH*R3_CM*.5));
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5));
+      Line.SetY2(.5 + (R3_LENGTH*R3_CM*.5) + (R3_DIST*R3_CM*wire));    //.1191+(wire-17)*0.0408787); // CHECK
+    }
+    Line.SetLineColor(kBlue);
+    Line_R2v.push_back(Line);
+    Line_R2v.back().Draw();
   }
+  fRegion3XY->GetCanvas()->Update();
+
+  //TOP VIEW (X-Z)
+  fRegion3XZ->GetCanvas()->cd();
+ //Region 3 U wires FIXXXX
+  for(QwHitContainer::iterator hit = Hits_R3u->begin(); hit != Hits_R3u->end(); hit++){
+    int plane = hit->GetPlane();
+    //    double dist = hit->GetDriftDistance();
+    TLine Line;
+    Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5));
+    Line.SetY1(.5 - (R3_DEPTH*R3_CM*.5) + (R3_DIST*R3_CM*plane));// + dist*.0135); // plane 1
+    Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5));
+    Line.SetY2(.5 - (R3_DEPTH*R3_CM*.5) + (R3_DIST*R3_CM*plane));// + dist*.0135); // removed drift distance addition
+    Line.SetLineColor(kGreen);
+    Line_R2u.push_back(Line);
+    Line_R2u.back().Draw();
+    }
+  //Region 3 V wires FIXXXX
+  for(QwHitContainer::iterator hit = Hits_R3v->begin(); hit != Hits_R3v->end(); hit++){
+    int wire = hit->GetElement();
+    int plane = hit->GetPlane();
+    //    double dist = hit->GetDriftDistance();
+    TLine Line;
+    Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5));
+    Line.SetY1(.5 - (R3_DEPTH*R3_CM*.5) + (R3_DIST*R3_CM*plane));// + dist*.0135); // plane 1
+    Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) + (R3_DIST*R3_CM*wire));
+    Line.SetY2(.5 - (R3_DEPTH*R3_CM*.5) + (R3_DIST*R3_CM*plane));// + dist*.0135); // removed drift distance addition
+    Line.SetLineColor(kBlue);
+    Line_R2u.push_back(Line);
+    Line_R2u.back().Draw();
+    }
+  fRegion3XZ->GetCanvas()->Update();
+
+  //SIDE VIEW (Y-Z)
+  fRegion3YZ->GetCanvas()->cd();
+  fRegion3YZ->GetCanvas()->Update();
 } // end DrawEvent()
 
 
-QwEventDisplayDJ::~QwEventDisplayDJ(){  // cleans up memory used by program
+QwEventDisplayDJ::~QwEventDisplayDJ(){  // cleans up memory used by class; default destructor
 
   fMain->Cleanup();
   delete fMain;

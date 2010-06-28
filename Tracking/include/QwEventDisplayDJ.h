@@ -186,6 +186,29 @@ class QwSubsystemArrayTracking;
 class QwTreeEventBuffer;
 
 
+////REGION GEOMETRIES////
+
+//All measurements in cm; scalings make longest side of length .8 in canvas; geometry data taken from QweakSim files; width is x; length is y; depth is z
+
+#define R1_WIDTH 30.00 // Region 1
+#define R1_LENGTH 30.00
+#define R1_DEPTH 3.00
+#define R1_DIST 0.10 // distance between gas cuts CHECK THIS!!!
+#define R1_CM  0.0267 //calibrated value of 1 cm in this scale
+
+#define R2_WIDTH 45.09 // Region 2
+#define R2_LENGTH 30.00
+#define R2_DEPTH 17.20
+#define R2_DIST 1.90 // distance between drift cell chambers
+#define R2_CM 0.0177
+
+#define R3_WIDTH 50.00 // Region 3 geometries
+#define R3_LENGTH 210.00
+#define R3_DEPTH 2.54
+#define R3_DIST 1.11 // distance between drift cell centers
+#define R3_CM 0.0038
+
+
 ////DECLARE GLOBAL CLASS ELEMENTS////
 
 class QwEventDisplayDJ: public TGMainFrame{  // display is a ROOT main frame class
@@ -218,6 +241,9 @@ class QwEventDisplayDJ: public TGMainFrame{  // display is a ROOT main frame cla
   //Event Box 4 delcarations
   TGListBox *OtherListBox;
 
+  UInt_t sum; // sum of wire numbers
+  double num; // number of wire hits
+  double fit; // average wire number
 
   //Region 1 (GEM) declarations
   TGCompositeFrame *fRegion1;
@@ -226,6 +252,8 @@ class QwEventDisplayDJ: public TGMainFrame{  // display is a ROOT main frame cla
   TPaveLabel *Label_R1XY, *Label_R1XZ, *Label_R1YZ;
   std::vector<TLine> Line_R1r;
   std::vector<TLine> Line_R1y;
+  std::vector<TLine> R1_XYfit;
+  std::vector<TLine> R1_XZfit;
   TBox *Box_R1XY, *Box_R1XZ, *Box_R1YZ;
 
   //Region 2 (HDC) declarations
