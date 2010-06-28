@@ -30,7 +30,6 @@ QwMainDetector::QwMainDetector(TString region_tmp):VQwSubsystem(region_tmp),
     VQwSubsystemTracking(region_tmp)
 {
   fDEBUG = false;
-  fEvtCounter = 0;
   ClearAllBankRegistrations();
 };
 
@@ -209,7 +208,7 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
 
             }
 
-          else if (modtype=="V792" || modtype=="V775")
+          else if (modtype=="V792" || modtype=="V775" || modtype=="F1TDC")
             {
               RegisterModuleType(modtype);
               //  Check to see if we've encountered this channel or name yet
@@ -225,7 +224,8 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
                 {
                   //  If not, push a new record into the element array
                   if (modtype=="V792") std::cout<<"V792: ";
-                  if (modtype=="V775") std::cout<<"V775: ";
+                  else if (modtype=="V775") std::cout<<"V775: ";
+                  else if (modtype=="F1TDC") std::cout<<"F1TDC: ";
                   LinkChannelToSignal(channum, name);
                 }
             }
@@ -251,6 +251,14 @@ void  QwMainDetector::ClearEventData()
       for (size_t j=0; j<fPMTs.at(i).size(); j++)
         {
           fPMTs.at(i).at(j).SetValue(0);
+        }
+    }
+
+  for (size_t i=0; i<fSCAs.size(); i++)
+    {
+      if (fSCAs.at(i) != NULL)
+        {
+          fSCAs.at(i)->ClearEventData();
         }
     }
 };
@@ -283,17 +291,14 @@ Int_t QwMainDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt
 
 Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
+  Int_t index = GetSubbankIndex(roc_id,bank_id);
+  SetDataLoaded(kTRUE);
 
   //This is a QDC bank
   if (bank_id == fBankID[0])
     {
-
-      fEvtCounter++;
-
-      Int_t index = GetSubbankIndex(roc_id,bank_id);
-
-      Bool_t ldebug = false;
-      if (ldebug)
+      Bool_t fDEBUG = false;
+      if (fDEBUG)
         std::cout << "QwMainDetector::QwMainDetector:  "
         << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
         <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
@@ -302,52 +307,171 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
       if (index>=0 && num_words>0)
         {
           //  We want to process this ROC.  Begin looping through the data.
-          SetDataLoaded(kTRUE);
           for (size_t i=0; i<num_words ; i++)
             {
               //  Decode this word as a V775TDC word.
-              DecodeTDCWord(buffer[i]);
+              fQDCTDC.DecodeTDCWord(buffer[i]);
 
-              if (! IsSlotRegistered(index, GetTDCSlotNumber())) continue;
+              if (! IsSlotRegistered(index, fQDCTDC.GetTDCSlotNumber())) continue;
+              // std::cout<<"Slot registered as "<<fQDCTDC.GetTDCSlotNumber()<<"\n";
 
-              if (IsValidDataword())
+              if (fQDCTDC.IsValidDataword())
+                if (true)
+                  {
+                    // This is a V775 TDC data
+                    if (fDEBUG)
+                      {
+                        std::cout<<"This is a valid QDC/TDC data word. Index="<<index
+                        <<" slot="<<fQDCTDC.GetTDCSlotNumber()<<" Ch="<<fQDCTDC.GetTDCChannelNumber()
+                        <<" Data="<<fQDCTDC.GetTDCData()<<"\n";
+                      }
+                    try
+                      {
+                        FillRawWord(index,fQDCTDC.GetTDCSlotNumber(),fQDCTDC.GetTDCChannelNumber(),
+                                    fQDCTDC.GetTDCData());
+                      }
+                    catch (std::exception& e)
+                      {
+                        std::cerr << "Standard exception from QwMainDetector::FillRawTDCWord: "
+                        << e.what() << std::endl;
+                        Int_t chan = fQDCTDC.GetTDCChannelNumber();
+                        std::cerr << "   Parameters:  index=="<<index
+                        << "; GetV775SlotNumber()=="<<fQDCTDC.GetTDCSlotNumber()
+                        << "; GetV775ChannelNumber()=="<<chan
+                        << "; GetV775Data()=="<<fQDCTDC.GetTDCData()
+                        << std::endl;
+                        Int_t modindex = GetModuleIndex(index, fQDCTDC.GetTDCSlotNumber());
+                        std::cerr << "   GetModuleIndex()=="<<modindex
+                        << "; fModulePtrs.at(modindex).size()=="
+                        << fModulePtrs.at(modindex).size()
+                        << "; fModulePtrs.at(modindex).at(chan).first {module type}=="
+                        << fModulePtrs.at(modindex).at(chan).first
+                        << "; fModulePtrs.at(modindex).at(chan).second {signal index}=="
+                        << fModulePtrs.at(modindex).at(chan).second
+                        << std::endl;
+                      }
+                  }
+            }
+        }
+    }
+
+  // This is a F1TDC bank
+  if (bank_id==fBankID[2])
+    {
+      if (index>=0 && num_words>0)
+        {
+          if (fDEBUG) std::cout << "QwScanner::ProcessEvBuffer:  "
+            << "Begin processing F1TDC Bank "<<bank_id<< std::endl;
+
+          Int_t  old_event_number     = -1;
+          Int_t  new_event_number     = -1;
+          UInt_t  old_trigger_time    = 0;
+          UInt_t  new_trigger_time    = 0;
+          UInt_t  trigger_time_offset = 0;
+
+          const UInt_t valid_trigger_time_offset = 1;
+          const UInt_t max_f1_trigger_time = 511;
+          const UInt_t min_f1_trigger_time = 0;
+
+          Int_t tdc_slot_number    = 0;
+          Int_t tdc_channel_number = 0;
+
+          Bool_t temp_print_flag = false;
+
+          for (UInt_t i=0; i<num_words ; i++)
+            {
+              fF1TDC.DecodeTDCWord(buffer[i], roc_id);
+              tdc_slot_number = fF1TDC.GetTDCSlotNumber();
+
+              if ( tdc_slot_number == 31)
                 {
-                  // This is a V775 TDC data
-                  if (ldebug)
-                    {
-                      std::cout<<"This is a valid QDC/TDC data word. Index="<<index
-                      <<" slot="<<GetTDCSlotNumber()<<" Ch="<<GetTDCChannelNumber()
-                      <<" Data="<<GetTDCData()<<"\n";
-                    }
+                  //  This is a custom word which is not defined in
+                  //  the F1TDC, so we can use it as a marker for
+                  //  other data; it may be useful for something.
+                }
+
+              if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
+
+              tdc_channel_number = fF1TDC.GetTDCChannelNumber();
+
+              if ( fF1TDC.IsValidDataword() )
+                {
                   try
                     {
-                      FillRawWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),GetTDCData());
-                      //FillRawWord(index,0,GetTDCChannelNumber(),GetTDCData());
+                      FillRawWord(index, tdc_slot_number, tdc_channel_number, fF1TDC.GetTDCData());
                     }
                   catch (std::exception& e)
                     {
-                      std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
+                      std::cerr << "Standard exception from QwMainDetector::FillRawTDCWord: "
                       << e.what() << std::endl;
-                      Int_t chan = GetTDCChannelNumber();
                       std::cerr << "   Parameters:  index=="<<index
-                      << "; GetV775SlotNumber()=="<<GetTDCSlotNumber()
-                      << "; GetV775ChannelNumber()=="<<chan
-                      << "; GetV775Data()=="<<GetTDCData()
-                      << std::endl;
-                      Int_t modindex = GetModuleIndex(index, GetTDCSlotNumber());
-                      std::cerr << "   GetModuleIndex()=="<<modindex
-                      << "; fModulePtrs.at(modindex).size()=="
-                      << fModulePtrs.at(modindex).size()
-                      << "; fModulePtrs.at(modindex).at(chan).first {module type}=="
-                      << fModulePtrs.at(modindex).at(chan).first
-                      << "; fModulePtrs.at(modindex).at(chan).second {signal index}=="
-                      << fModulePtrs.at(modindex).at(chan).second
+                      << "; GetF1SlotNumber()=="<< tdc_slot_number
+                      << "; GetF1ChannelNumber()=="<<tdc_channel_number
+                      << "; GetF1Data()=="<<fF1TDC.GetTDCData()
                       << std::endl;
                     }
+                }
+              else
+                {
+                  fF1TDC.PrintTDCHeader(temp_print_flag);
+                  new_trigger_time = fF1TDC.GetTDCTriggerTime();
+
+                  // Check it is whether F1TDC or V775TDC
+                  if (  new_trigger_time > min_f1_trigger_time || new_trigger_time < max_f1_trigger_time )
+                    {
+                      // the following routine is valid  for only F1TDC
+                      new_event_number = fF1TDC.GetTDCEventNumber();
+
+                      // skip the first event.
+                      if (old_event_number > 0)
+                        {
+
+                          if (temp_print_flag)
+                            {
+                              printf("i : %d, old event %d new event %d\n",
+                                     i, old_event_number, new_event_number);
+                            }
+                          if ( new_event_number != old_event_number )
+                            {
+                              // Any difference in the Event Number among the chips indicates a serious error
+                              // that requires a reset of the board.
+                              QwError << QwColor(Qw::kBold)
+                              << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << QwLog::endl;
+                              QwError << QwColor(Qw::kBold)
+                              << "       REQUIRE a reset of the F1TDC board at ROC"  << roc_id << " Slot " << tdc_slot_number << QwLog::endl;
+                              QwError << QwColor(Qw::kBold)
+                              << "       Please contact (a) Qweak DAQ expert(s) immediately."<< QwLog::endl;
+                              QwError << QwColor(Qw::kBold)
+                              << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << QwLog::endl;
+                            }
+
+                          trigger_time_offset = abs( new_trigger_time - old_trigger_time );
+
+                          if ( trigger_time_offset > valid_trigger_time_offset )
+                            {
+                              // Trigger Time difference of up to 1 count among the chips is acceptable
+                              // For the Trigger Time, this assumes that an external SYNC_RESET signal has
+                              // been successfully applied at the start of the run
+                              // Should we stop QwAnalysis or mark this buffer as bad?
+                              if ( temp_print_flag )
+                                {
+                                  QwMessage << QwColor(Qw::kBlue)
+                                  << "There are SYNC_RESET issue on the F1TDC board at Ch "<<  tdc_channel_number
+                                  << " ROC " << roc_id << " Slot " << tdc_slot_number << QwLog::endl;
+                                  QwWarning << QwColor(Qw::kBlue)
+                                  <<"        Please contact (a) Qweak DAQ expert(s) immediately."<< QwLog::endl;
+                                }
+                            }
+                        }
+                      // save a Event Number and a Trigger Time so as to compare with next ones.
+                      old_event_number = new_event_number;
+                    }
+                  old_trigger_time = new_trigger_time;
                 }
             }
         }
     }
+
 
   // This is a SCA bank
   if (bank_id==fBankID[1])
@@ -379,6 +503,23 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 void  QwMainDetector::ProcessEvent()
 {
   if (! HasDataLoaded()) return;
+
+
+  for (size_t i=0; i<fPMTs.size(); i++)
+    {
+      for (size_t j=0; j<fPMTs.at(i).size(); j++)
+        {
+          fPMTs.at(i).at(j).ProcessEvent();
+        }
+    }
+
+  for (size_t i=0; i<fSCAs.size(); i++)
+    {
+      if (fSCAs.at(i) != NULL)
+        {
+          fSCAs.at(i)->ProcessEvent();
+        }
+    }
 
 };
 
@@ -431,13 +572,12 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix, std:
 
 void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
 {
-
   TString basename;
   if (prefix=="") basename = "maindet";
   else basename = prefix;
 
   fMainDetVector.reserve(6000);
-  TString list = "EvtCounter/D";
+  TString list = "";
   for (size_t i=0; i<fPMTs.size(); i++)
     {
       for (size_t j=0; j<fPMTs.at(i).size(); j++)
@@ -449,7 +589,7 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
           else
             {
               fMainDetVector.push_back(0.0);
-              if (i==0 && j==0)
+              if (list==TString(""))
                 list = fPMTs.at(i).at(j).GetElementName()+"/D";
               else
                 list += ":"+fPMTs.at(i).at(j).GetElementName()+"/D";
@@ -468,7 +608,10 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
               else
                 {
                   fMainDetVector.push_back(0.0);
-                  list += ":"+fSCAs.at(i)->fChannels.at(j).GetElementName()+"/D";
+                  if (list==TString(""))
+                    list = fSCAs.at(i)->fChannels.at(j).GetElementName()+"/D";
+                  else
+                    list += ":"+fSCAs.at(i)->fChannels.at(j).GetElementName()+"/D";
                 }
             }
         }
@@ -482,29 +625,31 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
 
 void  QwMainDetector::FillTreeVector(std::vector<Double_t> &values)
 {
-  if (! HasDataLoaded()) return;
-  for (size_t i=0; i<fPMTs.size(); i++)
-    {
-      for (size_t j=0; j<fPMTs.at(i).size(); j++)
-        {
-          fPMTs.at(i).at(j).FillTreeVector(values);
-        }
-    }
+  /*    if (! HasDataLoaded()) return;
+      for (size_t i=0; i<fPMTs.size(); i++)
+      {
+          for (size_t j=0; j<fPMTs.at(i).size(); j++)
+          {
+              fPMTs.at(i).at(j).FillTreeVector(values);
+          }
+      }
 
-  for (size_t i=0; i<fSCAs.size(); i++)
-    {
-      if (fSCAs.at(i) != NULL)
-        {
-          for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++)
-            {
-              if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
-              else
-                {
-                  fSCAs.at(i)->fChannels.at(j).FillTreeVector(values);
-                }
-            }
-        }
-    }
+      for (size_t i=0; i<fSCAs.size(); i++)
+      {
+          if (fSCAs.at(i) != NULL)
+          {
+              for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++)
+              {
+                  if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
+                  else
+                  {
+                      fSCAs.at(i)->fChannels.at(j).FillTreeVector(values);
+                  }
+              }
+          }
+      }*/
+
+  FillTreeVector();
 }
 
 void  QwMainDetector::FillTreeVector()
@@ -512,9 +657,6 @@ void  QwMainDetector::FillTreeVector()
   if (! HasDataLoaded()) return;
 
   Int_t index = 0;
-  fMainDetVector[index] = fEvtCounter;
-  index++;
-
   for (size_t i=0; i<fPMTs.size(); i++)
     {
       for (size_t j=0; j<fPMTs.at(i).size(); j++)
@@ -775,9 +917,8 @@ void  QwMainDetector::ReportConfiguration()
 
           Int_t ind = GetSubbankIndex(fROC_IDs.at(i),fBank_IDs.at(i).at(j));
           std::cout << "ROC " << fROC_IDs.at(i)
-          << ", subbank " << fBank_IDs.at(i).at(j)
-          << ":  subbank index==" << ind
-          << std::endl;
+          << ", subbank 0x"<<std::hex << fBank_IDs.at(i).at(j)<<std::dec
+          << ":  subbank index==" << ind << std::endl;
 
           if (fBank_IDs.at(i).at(j)==fBankID[0])
             {

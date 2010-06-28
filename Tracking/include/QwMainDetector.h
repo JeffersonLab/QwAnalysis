@@ -19,17 +19,17 @@
 
 #include "VQwSubsystemTracking.h"
 #include "QwDetectorInfo.h"
+#include "QwColor.h"
 
 #include "MQwV775TDC.h"
-
+#include "MQwF1TDC.h"
 #include "QwPMT_Channel.h"
 #include "QwSIS3801_Module.h"
-#include "QwDetectorInfo.h"
-
+#include "QwScaler_Channel.h"
 
 ///
 /// \ingroup QwTracking
-class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
+class QwMainDetector: public VQwSubsystemTracking {
   /******************************************************************
    *  Class: QwMainDetector
    *
@@ -70,9 +70,12 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
   void ReportConfiguration();
 
  protected:
-  enum EModuleType{EMPTY = -1, V775_TDC = 0, V792_ADC} fCurrentType;
+  enum EModuleType{EMPTY = -1, V775_TDC = 0, V792_ADC, F1TDC} fCurrentType;
 
   Bool_t fDEBUG;
+
+  MQwV775TDC fQDCTDC;
+  MQwF1TDC fF1TDC;
 
   void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
 
@@ -90,9 +93,7 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
     return (GetModuleIndex(bank_index,slot_num) != -1);
   };
 
-
   Int_t LinkChannelToSignal(const UInt_t chan, const TString &name);
-
   Int_t FindSignalIndex(const QwMainDetector::EModuleType modtype, const TString &name) const;
 
   void GetHitList(QwHitContainer & grandHitContainer){
@@ -123,11 +124,8 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
   Int_t fNumberOfModules;
 
   std::vector< std::vector<Int_t> > fModuleIndex;  //  Module index, indexed by bank_index and slot_number
-
   std::vector< enum EModuleType > fModuleTypes;
   std::vector< std::vector< std::pair<Int_t, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel; gives the plane and wire assignment.
-
-
 
   //    We need a mapping of module,channel into PMT index, ADC/TDC
   std::vector< std::vector<QwPMT_Channel> > fPMTs;
@@ -136,8 +134,6 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwV775TDC {
   std::vector <Double_t> fMainDetVector;
 
   std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
-
-  Int_t    fEvtCounter;
 };
 
 #endif
