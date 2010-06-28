@@ -39,9 +39,7 @@ scanner_rate_map 		TH2F 	220 	-55.0 	55.0 	400	-350.0	-310.0	X[cm] 	Y[cm]
 ......_tdc		TH1F	4097	-0.5	4096.5				TDC Events
 .......adc		TH1F	4097	-0.5	4096.5				ADC Events
 .......tdc		TH1F	4097	-0.5	4096.5				TDC Events
-...._sca		TH1F	4097	-0.5	4096.5				SCA Events
-......._sca		TH1F	4097	-0.5	4096.5				SCA Events
-........._sca		TH1F	4097	-0.5	4096.5				SCA Events
+
 
 ###
 ###  Fully wildcarded histograms.  Any channel ending in adc or tdc will
@@ -49,3 +47,4 @@ scanner_rate_map 		TH2F 	220 	-55.0 	55.0 	400	-350.0	-310.0	X[cm] 	Y[cm]
 .+adc			TH1F	4097	-0.5	4096.5				ADC Events
 .+tdc			TH1F	4097	-0.5	4096.5				TDC Events
 .+sca			TH1F	4097	-0.5	4096.5				SCA Events
+.+f1			TH1F	65536	-0.5	65535.5				F1TDC Events

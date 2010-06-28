@@ -15,8 +15,8 @@
 ROC=4
 !
 ! QADC/TDC bank
-!
-QDC_Bank=0x7501
+! QDC_Bank=0x7501
+QDC_Bank=0x0402
 !
 !slot=0
 ! module.type  module.num  chan.num, det.type, det.name
@@ -27,31 +27,27 @@ slot=1
 ! module.type  module.num  chan.num, det.type, det.name
   V792, 1, 25, scanner_qadc, front_adc
   V792, 1, 27, scanner_qadc, back__adc
-! V792, 1, 2,  scanner_qadc, power_adc
   V792, 1, 29, scanner_qadc, pos_x_adc
   V792, 1, 31, scanner_qadc, pos_y_adc
 !
 !
-ROC=0
+F1TDC_Bank=0x0401
 !
-! SCA_Bank is still arbitrary at this point (jpan, 22june2010)
+slot=6
+! module.type  module.num  chan.num, det.type, det.name
+  F1TDC, 6, 17, scanner_tdc, front_f1
+  F1TDC, 6, 19, scanner_tdc, back__f1
+  F1TDC, 6, 21, scanner_tdc, coinc_f1
+!
+!
 ! module.num counting from 0
-SCA_Bank=0x6103
+!SCA_Bank=0x6103
+SCA_Bank=0x0403
 !
-! slot=2
 ! module.type  module.num  chan.num, det.type, det.name
   SIS3801, 1, 24, scanner_sca, front_sca
   SIS3801, 1, 25, scanner_sca, back__sca
   SIS3801, 1, 26, scanner_sca, coinc_sca
-!
-!
-F1TDC_Bank=0x7513
-!
-slot=3
-! module.type  module.num  chan.num, det.type, det.name
-  F1TDC, 0, 18, scanner_tdc, front_tdc
-  F1TDC, 0, 20, scanner_tdc, back__tdc
-! F1TDC, 0, 22, scanner_tdc, empt__tdc
 !
 !
 !

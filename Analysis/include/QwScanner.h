@@ -15,16 +15,17 @@
 #include "TTree.h"
 #include "TFile.h"
 #include "TProfile2D.h"
-#include "TRandom3.h"
+//#include "TRandom3.h"
 
 #include "VQwSubsystemTracking.h"
 #include "VQwSubsystemParity.h"
 
 #include "MQwV775TDC.h"
+#include "MQwF1TDC.h"
 #include "QwVQWK_Module.h"
 #include "QwSIS3801_Module.h"
 
-#include "VQwDataElement.h"
+//#include "VQwDataElement.h"
 #include "QwVQWK_Channel.h"
 #include "QwScaler_Channel.h"
 #include "QwPMT_Channel.h"
@@ -68,13 +69,12 @@ class QwScanner: public VQwSubsystemTracking,
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   void  InitializeChannel(TString name, TString datatosave);
   void  ClearEventData();
-  void  SetRandomEventParameters(Double_t mean, Double_t sigma);
-  void  SetTriggerEventData(Double_t TrigEventValue);
-  void  SetPositionEventData(Double_t* PositionEvBuf, UInt_t sequencenumber);
+
   void  SetPedestal(Double_t ped);
   void  SetCalibrationFactor(Double_t calib);
-  void  RandomizeEventData(int helicity);
-  void  EncodeEventData(std::vector<UInt_t> &buffer);
+//  void  RandomizeEventData(int helicity);
+//  void  EncodeEventData(std::vector<UInt_t> &buffer);
+
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   void  ProcessEvent();
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
@@ -111,11 +111,14 @@ class QwScanner: public VQwSubsystemTracking,
 
  protected:
 
-  enum EModuleType{EMPTY = -1, V775_TDC = 0, V792_ADC} fCurrentType;
+  enum EModuleType{EMPTY = -1, V775_TDC = 0, V792_ADC, F1TDC} fCurrentType;
   Bool_t fDEBUG;
 
+  MQwV775TDC fQDCTDC;
+  MQwF1TDC fF1TDC;
+
   //    We need a mapping of module,channel into PMT index, ADC/TDC
-  std::vector< std::vector<QwPMT_Channel> > fPMTs;
+  std::vector< std::vector<QwPMT_Channel> > fPMTs;  // for QDC/TDC and F1TDC
   std::vector<QwSIS3801_Module*> fSCAs;
   std::vector<QwVQWK_Module*> fADC_Data;
 
@@ -126,19 +129,11 @@ class QwScanner: public VQwSubsystemTracking,
 
   // Tells this object that it will decode data from the current bank
   Int_t RegisterSlotNumber(const UInt_t slot_id);
-  void DecodeTDCWord(UInt_t &word);
-  UInt_t GetTDCSlotNumber(){return fV775SlotNumber;};
-  Bool_t IsValidDataword(){return fV775ValidFlag;};
-  UInt_t GetTDCChannelNumber(){return fV775ChannelNumber;};
-  UInt_t GetTDCData(){return fV775Dataword;};
-
-
   const QwScanner::EModuleType RegisterModuleType(TString moduletype);
   Int_t GetModuleIndex(size_t bank_index, size_t slot_num) const;
   Bool_t IsSlotRegistered(Int_t bank_index, Int_t slot_num) const {
     return (GetModuleIndex(bank_index,slot_num) != -1);
   };
-
 
   Int_t LinkChannelToSignal(const UInt_t chan, const TString &name);
   Int_t FindSignalIndex(const QwScanner::EModuleType modtype, const TString &name) const;
@@ -167,21 +162,7 @@ class QwScanner: public VQwSubsystemTracking,
 
   static const Bool_t bStoreRawData;
 
-  static const UInt_t kV775Mask_SlotNumber;
-  static const UInt_t kV775Mask_WordType;
-  static const UInt_t kV775Mask_ChannelNumber;
-  static const UInt_t kV775Mask_Dataword;
-  static const UInt_t kV775WordType_Datum;
-
-  Bool_t fV775ValidFlag;
-  UInt_t fV775SlotNumber;
-  UInt_t fV775ChannelNumber;
-  UInt_t fV775Dataword;
-
   /// variables for calibrating and calculating scanner positions
-  Double_t fMainDetCenterX;
-  Double_t fMainDetCenterY;
-
   Double_t fHelicityFrequency;
 
   Double_t fHomePositionX;
@@ -222,23 +203,12 @@ class QwScanner: public VQwSubsystemTracking,
   Double_t fPositionX_ADC;
   Double_t fPositionY_ADC;
 
-  UInt_t fBankID[4];  //bank ID for 4 different modules
+  UInt_t fBankID[4];  //bank ID's of 4 different modules for scanner
                       //fBankID[0] for V792/V775 QDC_Bank
                       //fBankID[1] for SIS3801   SCA_Bank
                       //fBankID[2] for F1TDC     F1TDC_Bank
                       //fBankID[3] for VQWK      VQWK_Bank
 
-  /// variables for generating scanner mock data
-  Int_t    myTimer;
-  Double_t fCurrentPotentialX;
-  Double_t fCurrentPotentialY;
-  Double_t fDirectionX;
-  Double_t fDirectionY;
-  Double_t fPreDirectionX;
-  Double_t fPreDirectionY;
-  Int_t    fMockFrontScaData;
-  Int_t    fMockBackScaData;
-  Int_t    fMockCoincidenceScaData;
 };
 
 
