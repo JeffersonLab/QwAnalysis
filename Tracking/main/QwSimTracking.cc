@@ -47,8 +47,19 @@
 #include "QwSubsystemFactory.h"
 
 
+#include <TStopwatch.h>
+void PrintInfo(TStopwatch& timer)
+{
+  std::cout << "CPU time used:  "  << timer.CpuTime() << " s"
+	    << std::endl
+	    << "Real time used: " << timer.RealTime() << " s"
+	    << std::endl << std::endl;
+  return;
+}
+
+
 // Debug level
-static const bool kDebug = true;
+static const bool kDebug = false;
 // ROOT file output
 static const bool kTree = true;
 static const bool kHisto = true;
@@ -99,10 +110,21 @@ int main (int argc, char* argv[])
   qset.DeterminePlanes();
   std::cout << "[QwTracking::main] Geometry loaded" << std::endl; // R3,R2
 
+  /// Create a timer
+  TStopwatch timer;
+
+  /// Start timer
+  timer.Reset();
+  timer.Start();
+
   /// Next, we create the tracking worker that will pull coordinate the tracking.
   QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
   if (kDebug) trackingworker->SetDebugLevel(1);
 
+  /// Stop timer
+  timer.Stop();
+  // Print timer info
+  PrintInfo(timer);
 
   /// We loop over all requested runs.
   UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
@@ -117,7 +139,8 @@ int main (int argc, char* argv[])
 
     // Open ROOT file
     TFile* file = 0;
-    TTree* tree = 0;
+    TTree* tree_hits = 0;
+    TTree* tree_events = 0;
     QwEvent* event = new QwEvent();
     QwHitRootContainer* roothitlist = new QwHitRootContainer();
     if (kHisto || kTree) {
@@ -127,20 +150,26 @@ int main (int argc, char* argv[])
       file->cd();
     }
     if (kTree) {
-      tree = new TTree("tree", "QwTracking");
-      tree->Branch("hits", "QwHitRootContainer", &roothitlist);
-      tree->Branch("events", "QwEvent", &event);
+      tree_hits = new TTree("hit_tree", "QwTracking Hit-based Tree");
+      tree_hits->Branch("hits", "QwHitRootContainer", &roothitlist);
+      tree_events = new TTree("event_tree", "QwTracking Event-based Tree");
+      tree_events->Branch("hits", "QwHitRootContainer", &roothitlist);
+      tree_events->Branch("events", "QwEvent", &event);
     }
 
+    /// Start timer
+    timer.Reset();
+    timer.Start();
 
     /// We loop over all requested events.
     Int_t events = 0;
     Int_t entries = treebuffer->GetEntries();
     Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
     Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
-    for (int eventnumber  = eventnumber_min;
-             eventnumber <= eventnumber_max &&
-             eventnumber  < entries; eventnumber++) {
+    Int_t eventnumber;
+    for (eventnumber  = eventnumber_min;
+         eventnumber <= eventnumber_max &&
+         eventnumber  < entries; eventnumber++) {
 
       /// Read the event from the tree
       treebuffer->GetEntry(eventnumber);
@@ -167,7 +196,10 @@ int main (int argc, char* argv[])
 
 
       // Fill the tree
-      if (kTree) tree->Fill();
+      if (kTree) {
+        tree_hits->Fill();
+        tree_events->Fill();
+      }
 
 
       // Event has been processed
@@ -178,6 +210,15 @@ int main (int argc, char* argv[])
       delete event;
 
     } // end of loop over events
+
+    QwMessage << "Number of events processed at end of run: "
+              << eventnumber << std::endl;
+
+
+    /// Stop timer
+    timer.Stop();
+    // Print timer info
+    PrintInfo(timer);
 
     // Delete the ROOT hit list
     delete roothitlist;

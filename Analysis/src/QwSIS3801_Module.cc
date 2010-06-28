@@ -166,9 +166,9 @@ void  QwSIS3801_Module::FillTreeVector(std::vector<Double_t> &values)
   }
 };
 
-QwSIS3801_Channel* QwSIS3801_Module::GetChannel(const TString name)
+QwSIS3801D24_Channel* QwSIS3801_Module::GetChannel(const TString name)
 {
-  QwSIS3801_Channel* tmp = NULL;
+  QwSIS3801D24_Channel* tmp = NULL;
   if (! fChannels.empty()) {
     for (size_t i = 0; i < fChannels.size(); i++) {
       if (fChannels.at(i).GetElementName() == name) {

@@ -29,7 +29,7 @@ class MQwF1TDC{
   MQwF1TDC();
   ~MQwF1TDC();
 
- protected:
+// protected:
   /*
   void DecodeF1Word(UInt_t &word);
   

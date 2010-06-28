@@ -11,7 +11,7 @@
 // Qweak headers
 #include "QwRint.h"
 
-int main(int argc, char* argv[])
+int main(int argc, char** argv)
 {
   // Start Qw-Root command prompt
   QwRint* qwrint = new QwRint("Qweak-Root Analyzer", &argc, argv);

@@ -43,6 +43,8 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   Bool_t deviceok;
   Bool_t unrotated(keyword=="unrotated");
 
+
+
   std::vector<TString>  fDeviceName;
   std::vector<TString>  fProperty;
   std::vector<TString> fType;
@@ -141,7 +143,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	    }
 	  }
 	}
-	// Now craete the combined device
+	// Now create the combined device
 	QwBeamDetectorID localComboID(-1, -1, comboname, combotype, "none", this);
 
 	localComboID.fdetectorname=comboname(0,comboname.Sizeof()-1);
@@ -201,7 +203,6 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	    fECalculator.push_back(localecalculator);
 
 	    for(size_t i=0;i<fDeviceName.size();i++){
-	      std::cout<<fDeviceName[i]<<" "<<fType[i]<<std::endl;
 	      index=GetDetectorIndex(GetDetectorTypeID(fType[i]),fDeviceName[i]);
 	      if (fType[i] == "bpmstripline")
 		fECalculator[fECalculator.size()-1].Set(&fStripline[index],fType[i],fProperty[i],fQWeight[i]);
@@ -217,6 +218,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	    fType.clear();
 	    localComboID.fIndex=fECalculator.size()-1;
 	  }
+
 	}
 	// Use only the combinations that are of known type and has known physical devices.
 	if(deviceok)
@@ -227,6 +229,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
       // Start to decode the physical beamline devices
       Bool_t lineok=kTRUE;
+
       //  Break this line into tokens to process it.
       modtype   = mapstr.GetNextToken(", ").c_str();	// module type
       modnum    = (atol(mapstr.GetNextToken(", ").c_str()));	//slot number
@@ -330,9 +333,9 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   }
 
   if(ldebug){
-  std::cout<<"Done with Load map channel \n";
-  for(size_t i=0;i<fBeamDetectorID.size();i++)
-    fBeamDetectorID[i].Print();
+    std::cout<<"Done with Load map channel \n";
+    for(size_t i=0;i<fBeamDetectorID.size();i++)
+      fBeamDetectorID[i].Print();
   }
   ldebug=kFALSE;
 

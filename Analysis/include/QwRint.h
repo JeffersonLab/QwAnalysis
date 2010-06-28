@@ -31,7 +31,7 @@ class QwRint : public TRint {
   public:
     /// \brief Constructor
     QwRint (const char* appClassName, int* argc, char** argv,
-		void* options = NULL, int numOptions = -1, bool noLogo = false);
+		void* options = 0, int numOptions = 0, bool noLogo = kFALSE);
 
     /// \brief Destructor
     virtual ~QwRint();

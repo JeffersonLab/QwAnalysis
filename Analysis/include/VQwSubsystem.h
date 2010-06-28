@@ -60,7 +60,9 @@ class VQwSubsystem {
 
   /// Constructor with name
   VQwSubsystem(const TString& name)
-    : fSystemName(name), fIsDataLoaded(kFALSE), fCurrentROC_ID(-1), fCurrentBank_ID(-1) { };
+    : fSystemName(name), fIsDataLoaded(kFALSE), fCurrentROC_ID(-1), fCurrentBank_ID(-1) { 
+    ClearAllBankRegistrations();
+  };
 
   /// Default destructor
   virtual ~VQwSubsystem() { };

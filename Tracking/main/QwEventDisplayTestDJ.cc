@@ -1,9 +1,11 @@
 /*------------------------------------------------------------------------*//*!
 
- \file QwEventDisplayTest.cc
+ \file QwEventDisplayTestDJ.cc
  \ingroup QwTrackingAnl
 
  \brief Example code for the event display routines
+
+ \edited by Derek Jones; The George Washington University; dwjones@jlab.org
 
 *//*-------------------------------------------------------------------------*/
 //
@@ -33,14 +35,14 @@
 #include "QwEventBuffer.h"
 
 // Qweak event display header
-#include "QwEventDisplay.h"
+#include "QwEventDisplayDJ.h"
 
 int main (int argc, char* argv[])
 {
   /// First, we set the command line arguments and the configuration filename,
   /// and we define the options that can be used in them (using QwOptions).
   gQwOptions.SetCommandLine(argc, argv);
-  gQwOptions.SetConfigFile("qweventdisplay.conf");
+  gQwOptions.SetConfigFile("qweventdisplaydj.conf");
   // Define the command line options
   DefineOptionsTracking(gQwOptions);
 
@@ -101,10 +103,10 @@ int main (int argc, char* argv[])
   treebuffer->SetDetectorInfo(detector_info);
 
   // Start this application
-  TApplication theApp("QwEventDisplay", &argc, argv);
+  TApplication theApp("QwEventDisplayDJ", &argc, argv);
 
-  // Create a QwEventDisplay application
-  QwEventDisplay* display = new QwEventDisplay(gClient->GetRoot(),1200,800);
+  // Create a QwEventDisplayDJ application
+  QwEventDisplayDJ* display = new QwEventDisplayDJ(gClient->GetRoot(),1200,800);
   display->SetEventBuffer(treebuffer);
   display->SetSubsystemArray(detectors);
 

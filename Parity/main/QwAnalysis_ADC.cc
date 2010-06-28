@@ -81,7 +81,7 @@ int main(Int_t argc,Char_t* argv[]) {
     ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
     ///  histogram helper: QwHistogramHelper
     ///
-    gQwHists.LoadHistParamsFromFile("parity_hists.in");
+    gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
 
     TStopwatch timer;
 
@@ -111,8 +111,8 @@ int main(Int_t argc,Char_t* argv[]) {
     ///
     /// Instantiate scanner subsystem
     detectors.push_back(new QwScanner("FPS"));
-    ((VQwSubsystemParity*) detectors.GetSubsystemByName("FPS"))->LoadChannelMap("scanner_channel.map" );
-    ((VQwSubsystemParity*) detectors.GetSubsystemByName("FPS"))->LoadInputParameters("scanner_parameter.map");
+    ((VQwSubsystemParity*) detectors.GetSubsystemByName("FPS"))->LoadChannelMap("qweak_scanner_channel.map" );
+    ((VQwSubsystemParity*) detectors.GetSubsystemByName("FPS"))->LoadInputParameters("qweak_scanner_parameter.map");
     //QwScanner* scanner = dynamic_cast<QwScanner*> (detectors.GetSubsystemByName("FPS")); // Get scanner subsystem
 
     ///

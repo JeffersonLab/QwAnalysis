@@ -23,7 +23,7 @@
 #include "QwCombinedBPM.h"
 #include "QwEnergyCalculator.h"
 #include "QwBlinder.h"
-
+#include "QwHaloMonitor.h"
 
 
 /// \todo TODO (wdc) EBeamInstrumentType is global in QwBeamLine.cc but could be class local
@@ -31,7 +31,8 @@ enum EBeamInstrumentType{kBPMStripline = 0,
 			 kBCM,
 			 kCombinedBCM,
 			 kCombinedBPM,
-			 kEnergyCalculator
+			 kEnergyCalculator,
+			 kHaloMonitor
 };
 
 // this emun vector needs to be coherent with the DetectorTypes declaration in the QwBeamLine constructor
@@ -54,6 +55,7 @@ class QwBeamLine : public VQwSubsystemParity{
       fgDetectorTypeNames.push_back("combinedbcm");
       fgDetectorTypeNames.push_back("combinedbpm");
       fgDetectorTypeNames.push_back("energycalculator");
+      fgDetectorTypeNames.push_back("halomonitor");
 
       for(size_t i=0;i<fgDetectorTypeNames.size();i++)
         fgDetectorTypeNames[i].ToLower();
@@ -132,6 +134,7 @@ class QwBeamLine : public VQwSubsystemParity{
  //for example if TypeID is bcm  then the index of the detector from fBCM vector for given name will be returnd.
  std::vector <QwBPMStripline> fStripline;
  std::vector <QwBCM> fBCM;
+ std::vector <QwHaloMonitor> fHaloMonitor;
  std::vector <QwCombinedBCM> fBCMCombo;
  std::vector <QwCombinedBPM> fBPMCombo;
  std::vector <QwEnergyCalculator> fECalculator;

@@ -32,7 +32,7 @@ class MQwV775TDC{
   MQwV775TDC() {};
   ~MQwV775TDC() { };
 
- protected:
+// protected:
   //void DecodeV775Word(UInt_t &word);
   void DecodeTDCWord(UInt_t &word, const UInt_t roc_id=0);
   /*

@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
 
   // Load histogram definitions
-  gQwHists.LoadHistParamsFromFile("parity_hists.in");
+  gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
 
   // Detector array
   QwSubsystemArrayParity detectors;

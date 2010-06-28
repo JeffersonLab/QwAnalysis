@@ -71,6 +71,26 @@ const char *QwGUIDatabase::BeamMonitors[N_BEAM_MONITORS] =
   "x", "y", "x_theta", "y_theta", "q", "energy"
 };
 
+const char *QwGUIDatabase::LumiCombos[N_LUMIS] = 
+{
+  "uslumi1neg",
+  "uslumi1pos",
+  "uslumi3neg",
+  "uslumi3pos",
+  "uslumi5neg",
+  "uslumi5pos",
+  "uslumi7neg",
+  "uslumi7pos",
+  "dslumi1",
+  "dslumi2",
+  "dslumi3",
+  "dslumi4",
+  "dslumi5",
+  "dslumi6",
+  "dslumi7",
+  "dslumi8"
+};
+
 const char *QwGUIDatabase::DetectorMeasurementTypes[N_DET_MEAS_TYPES]=
   {
     "a", "y"
@@ -207,11 +227,13 @@ void QwGUIDatabase::MakeLayout()
 
   dCmbInstrument->AddEntry("Main Detectors", ID_MD);
   dCmbInstrument->AddEntry("Beam Monitors", ID_BEAM);
-//  dCmbInstrument->AddEntry("LUMI Detectors", ID_LUMI);
+  dCmbInstrument->AddEntry("LUMI Detectors", ID_LUMI);
+  dCmbInstrument->Connect("Selected(Int_t)","QwGUIDatabase", this, "PopulateDetectorComboBox()");
+  dCmbInstrument->Select(dCmbInstrument->FindEntry("Main Detectors")->EntryId());
 
-  for (Int_t i = 0; i < N_DETECTORS; i++) {
-    dCmbDetector->AddEntry(DetectorCombos[i], i);
-  }
+//  for (Int_t i = 0; i < N_DETECTORS; i++) {
+//    dCmbDetector->AddEntry(DetectorCombos[i], i);
+//  }
   for (Int_t i = 0; i < N_SUBBLOCKS; i++) {
     dCmbSubblock->AddEntry(Subblocks[i], i);
   }
@@ -219,8 +241,7 @@ void QwGUIDatabase::MakeLayout()
     dCmbMeasurementType->AddEntry(DetectorMeasurementTypes[i], i);
   }
 
-  dCmbInstrument->Select(dCmbInstrument->FindEntry("Main Detectors")->EntryId());
-  dCmbDetector->Select(dCmbDetector->FindEntry("combinationallmd")->EntryId());
+//  dCmbDetector->Select(dCmbDetector->FindEntry("combinationallmd")->EntryId());
   dCmbSubblock->Select(0);
   dCmbMeasurementType->Select(dCmbMeasurementType->FindEntry("a")->EntryId());
 
@@ -264,16 +285,36 @@ void QwGUIDatabase::OnSubmitPushed() {
 
   switch (dCmbInstrument->GetSelected()) {
     case ID_MD:
-      MainDetectorPlot();
+      DetectorPlot();
       break;
     case ID_BEAM:
       BeamMonitorPlot();
       break;
     case ID_LUMI:
+      DetectorPlot();
+      break;
     default:
       break;
   }
 
+}
+
+void QwGUIDatabase::PopulateDetectorComboBox()
+{
+  dCmbDetector->RemoveAll();
+
+  if (dCmbInstrument->GetSelected() == ID_MD) {
+    for (Int_t i = 0; i < N_DETECTORS; i++) {
+      dCmbDetector->AddEntry(DetectorCombos[i], i);
+    }
+    dCmbDetector->Select(dCmbDetector->FindEntry("combinationallmd")->EntryId());
+  }
+  if (dCmbInstrument->GetSelected() == ID_LUMI) {
+    for (Int_t i = 0; i < N_LUMIS; i++) {
+      dCmbDetector->AddEntry(LumiCombos[i], i);
+    }
+    dCmbDetector->Select(dCmbDetector->FindEntry("uslumi1neg")->EntryId());
+  }
 }
 
 void QwGUIDatabase::OnReceiveMessage(char *obj)
@@ -576,7 +617,7 @@ void QwGUIDatabase::BeamMonitorPlot()
   }
 }
 
-void QwGUIDatabase::MainDetectorPlot()
+void QwGUIDatabase::DetectorPlot()
 {
 
   if(dDatabaseCont){
@@ -596,7 +637,14 @@ void QwGUIDatabase::MainDetectorPlot()
     string detector = DetectorCombos[dCmbDetector->GetSelected()];
     string measurement_type = DetectorMeasurementTypes[dCmbMeasurementType->GetSelected()];
 
-    query << "SELECT * FROM summary_d" << measurement_type << "_";
+    if (dCmbInstrument->GetSelected() == ID_MD) {
+      query << "SELECT * FROM summary_d" << measurement_type << "_";
+      detector = DetectorCombos[dCmbDetector->GetSelected()];
+    }
+    if (dCmbInstrument->GetSelected() == ID_LUMI) {
+      query << "SELECT * FROM summary_l" << measurement_type << "_";
+      detector = LumiCombos[dCmbDetector->GetSelected()];
+    }
     query << "calc ";
     query << "WHERE subblock = " << subblock << " ";
     query << "AND detector = '" << detector << "' ";
@@ -629,7 +677,7 @@ void QwGUIDatabase::MainDetectorPlot()
       if (!it->error.is_null)
         yerr[i] = it->error.data;
 
-      printf("i = %d, run_number = %f, segment_number = %d, f_segment_number = %f, x = %f, xerr = %f, y = %f, yerr = %f \n", i, run_number, segment_number, f_segment_number, x[i], xerr[i], y[i], yerr[i]);
+//      printf("i = %d, run_number = %f, segment_number = %d, f_segment_number = %f, x = %f, xerr = %f, y = %f, yerr = %f \n", i, run_number, segment_number, f_segment_number, x[i], xerr[i], y[i], yerr[i]);
       i++;
     }
 
@@ -675,278 +723,7 @@ void QwGUIDatabase::MainDetectorPlot()
 
   }
 
-} // QwGUIDatabase::MainDetectorPlot()
-
-void QwGUIDatabase::PositionDifferences()
-{
-
-  /*
-  Bool_t ldebug = kFALSE;
-  TObject *obj = NULL;
-  TCanvas *mc = NULL;
-  TH1D *dummyhist = NULL;
-  TPaveText * errlabel;
-  Bool_t status = kTRUE;
-
-  // create a label to display error messages
-  errlabel = new TPaveText(0, 0, 1, 1, "NDC");
-  errlabel->SetFillColor(0);
-
-  // check to see if the TH1s used for the calculation are empty.
-  for(Short_t i=0;i<2;i++) 
-    {
-      if(PosDiffVar[i]) delete PosDiffVar[i];  PosDiffVar[i] = NULL;
-    }
-
-
-  mc = dCanvas->GetCanvas();
-  mc->Clear();
-  mc->Divide(1,2);
-
-  // Get HEL tree
-  obj = HistArray.At(0);  
-  if( !obj ) return; 
-
-  if(ldebug) {
-    printf("PositionDiffercences -------------------------------\n");
-    printf("Found th tree named %s \n", obj->GetName());
-  }
-
-  char histo[128];
-  PosDiffVar[0] = new TH1D("dxvar", "#Delta X Variation", HCLINE_DEV_NUM, 0.0, HCLINE_DEV_NUM);
-  PosDiffVar[1] = new TH1D("dyvar", "#Delta Y variation", HCLINE_DEV_NUM, 0.0, HCLINE_DEV_NUM);
- 
-  for(Int_t p = 0; p <HCLINE_DEV_NUM ; p++) 
-    {
-      sprintf (histo, "diff_%sRelX.hw_sum", HallCBeamlineDevices[p]);
-      if( ((TTree*) obj)->FindLeaf(histo) )
-	{
-	  if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
-	  obj -> Draw(histo);
-	  dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
-	  dummyhist -> SetName(histo);
-	  PosDiffVar[0] -> SetBinContent(p+1, dummyhist->GetMean()*1000);
-	  PosDiffVar[0] -> SetBinError  (p+1, dummyhist->GetMeanError()*1000);
-	  PosDiffVar[0] -> GetXaxis()->SetBinLabel(p+1,HallCBeamlineDevices[p]);
-	  PosDiffVar[0]->SetStats(0);
-	  SummaryHist(dummyhist);
-	  delete dummyhist; dummyhist= NULL;
-	}
-      else 
-	{
-	  errlabel->AddText(Form("Unable to find object %s !",histo));
-	  status = kFALSE;
-	}
-
-      
-      sprintf (histo, "diff_%sRelY.hw_sum", HallCBeamlineDevices[p]);
-      if( ((TTree*) obj)->FindLeaf(histo) )
-	{
-	  if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
-	  obj -> Draw(histo);
-	  dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
-	  dummyhist -> SetName(histo);
-	  PosDiffVar[1] -> SetBinContent(p+1, dummyhist->GetMean()*1000); //convert mum to nm
-	  PosDiffVar[1] -> SetBinError  (p+1, dummyhist->GetMeanError()*1000);
-	  PosDiffVar[1] -> GetXaxis()->SetBinLabel(p+1, HallCBeamlineDevices[p]);
-	  PosDiffVar[1]->SetStats(0);
-	  SummaryHist(dummyhist);
-	  delete dummyhist; dummyhist= NULL;
-	}
-      else 
-	{
-	  errlabel->AddText(Form("Unable to find object %s !",histo));
-	  status = kFALSE;
-	}
-    }
-
-  
-  if (!status) 
-    {
-      mc->Clear();
-      errlabel ->Draw();
-      mc->Update();
-    }
-  else
-    {
-      mc->Clear();
-      mc->Divide(1,2);
-      
-      mc->cd(1);
-      SummaryHist(PosDiffVar[0]);
-      PosDiffVar[0] -> SetMarkerStyle(20);
-      PosDiffVar[0] -> SetMarkerColor(2);
-      PosDiffVar[0] -> SetTitle("#Delta X Variation");
-      PosDiffVar[0] -> GetYaxis() -> SetTitle("#Delta X (nm)");
-      PosDiffVar[0] -> GetXaxis() -> SetTitle("BPM X");
-      PosDiffVar[0] -> Draw("E1");
-      gPad->Update();
-      
-      
-      mc->cd(2);
-      SummaryHist(PosDiffVar[1]);
-      PosDiffVar[1] -> SetMarkerStyle(20);
-      PosDiffVar[1] -> SetMarkerColor(4);
-      PosDiffVar[1] -> SetTitle("#Delta Y Variation");
-      PosDiffVar[1] -> GetYaxis()-> SetTitle ("#Delta Y (nm)");
-      PosDiffVar[1] -> GetXaxis() -> SetTitle("BPM Y");
-      PosDiffVar[1] -> Draw("E1");
-      gPad->Update();
- 
-  
-      if(ldebug) printf("----------------------------------------------------\n");
-      mc->Modified();
-      mc->Update();
-    }
-  
-  if(dummyhist) delete dummyhist;
-  return;
-}
-
-
-
-void 
-QwGUIDatabase::SummaryHist(TH1 *in)
-{
-
-  Double_t out[4] = {0.0};
-  Double_t test   = 0.0;
-
-  out[0] = in -> GetMean();
-  out[1] = in -> GetMeanError();
-  out[2] = in -> GetRMS();
-  out[3] = in -> GetRMSError();
-  test   = in -> GetRMS()/sqrt(in->GetEntries());
-
-  printf("%sName%s", BOLD, NORMAL);
-  printf("%22s", in->GetName());
-  printf("  %sMean%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
-  printf("  %sSD%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
-  printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
-  */
-  return;
-};
-
-
-
-
-
-// Display the beam postion and angle in X & Y, beam energy and beam charge on the target.
-void QwGUIDatabase::DisplayTargetParameters()
-{
-  
-  /*
-  TH1D * t[5];
-  char histo[128];
-  TString xlabel;
-  TObject *obj = NULL;
-  Bool_t ldebug = kFALSE;
-  TCanvas *mc = NULL;
-
-  // create a label to display error messages
-  errlabel = new TPaveText(0, 0, 1, 1, "NDC");
-  errlabel->SetFillColor(0);
-
-
-  // Beam energy is not calculated by the analyser yet. 
-  const char * TgtBeamParameters[5]=
-    {
-      "targetX","targetY","targetXSlope","targetYSlope","average_charge"
-    }; 
-
-
-  // clear and divide the canvas
-  mc = dCanvas->GetCanvas();
-  mc->Clear();
-  mc->Divide(2,3);
-
-  // Get the HEL tree
-  obj = HistArray.At(0);  
-  if( !obj ) return;  
-  if(ldebug) {
-    printf("Target beam parameters-----------------------\n");
-    printf("Found the tree named %s \n", obj->GetName());
-  }
-
-  // Delete the histograms if they exsist.
-  for(Short_t i=0;i<5;i++) 
-    {
-      // if(t[i]) delete t[i]; 
-      t[i] = NULL;
-    }
-  
-  for(Int_t p = 0; p <5 ; p++) 
-    {
-      sprintf (histo, "yield_qwk_%s.hw_sum", TgtBeamParameters[p]);
-      if( ((TTree*) obj)->FindLeaf(histo) )
-	{
-	  if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
-
-	  if(strcmp( TgtBeamParameters[p],"average_charge") == 0) //convert to current. VQWK input impedance is 10kOhm.
-	      sprintf (histo, "yield_qwk_%s.hw_sum*0.000076*100/(4*yield_qwk_%s.num_samples)", 
-		       TgtBeamParameters[p],TgtBeamParameters[p]);
-	 
-	  mc->cd(p+1);
-	  obj -> Draw(histo);
-	  t[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
-	  t[p] -> SetTitle(TgtBeamParameters[p]);
-	  t[p] -> GetYaxis()->SetTitle("Quartets");
-	  t[p] -> GetYaxis()->SetTitleSize(0.08);
-	  t[p] -> GetYaxis()->CenterTitle();
-	  t[p] -> GetXaxis()->CenterTitle();
-	  t[p]->GetXaxis()->SetTitleOffset(0.9);
-	  t[p]->GetYaxis()->SetTitleOffset(0.5);
-
-	  if(strcmp( TgtBeamParameters[p],"average_charge") == 0)
-	    { 
-	      t[p] -> GetXaxis()->SetTitle("Current (#muA)");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(42);
-	    }
-	  else 	if(strcmp( TgtBeamParameters[p],"targetX") == 0)
-	    { 
-	      t[p] -> GetXaxis()->SetTitle("X Position (#mum)");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(34);
-	    }
-	  else 	if(strcmp( TgtBeamParameters[p],"targetY") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("Y Position (#mum)");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(46);
-	    }
-	  else 	if(strcmp( TgtBeamParameters[p],"targetXSlope") == 0)
-	    {
-	      t[p] -> GetXaxis()->SetTitle("X Slope");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(34);
-	    }
-	  else 	if(strcmp( TgtBeamParameters[p],"targetYSlope") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("Y Slope");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(46);
-	    }
-	  SummaryHist(t[p]);	      
-	}
-      else 
-	{
-	  mc->Clear();
-	  errlabel->AddText(Form("Unable to find object %s !",histo));
-	  errlabel->Draw();
-	}
-    }
-
-  if(ldebug) printf("----------------------------------------------------\n");
-  mc->Modified();
-  mc->Update();
-
-  */
-}
-
-
+} // QwGUIDatabase::DetectorPlot()
 
 
 // Process events generated by the object in the frame.

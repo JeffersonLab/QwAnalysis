@@ -5,6 +5,7 @@
 // author: ???, Virginia Tech
 // editor: Wouter Deconinck, Massachusetts Insitute of Technology email: wdconinc@mit.edu
 // editor: Marcus Hendricks, George Washington University email: marcuseh@gwu.edu
+// editor: Derek Jones, George Washington University email: dwjones8@gwu.edu
 
 #include <TGClient.h>
 #include <TCanvas.h>
@@ -79,10 +80,19 @@ class QwEventDisplay: public TGMainFrame {
 
   TGMainFrame *fMain;
   //TGListBox *xPlaneListBox, *uPlaneListBox, *vPlaneListBox, *xpPlaneListBox, *upPlaneListBox, *vpPlaneListBox;
+
   TGListBox *Region1Box, *Region2Box, *Region3Box, *EventBox;
   //TGListBox **listboxes[6];
   TGListBox **listboxes[3];  // list boxes with region wire hits
   //TGListBox **eventbox[0]; // list box for event number
+
+  // Event canvas labels
+  TPaveText *Evlabel1;
+  TPaveText *Evlabel2;
+  TPaveText *Evlabel3;
+  TPaveText *Evlabel4;
+  TPaveText **boxes[3];
+
   TRootEmbeddedCanvas *c1; // Region 1 canvas with hit paths
   TRootEmbeddedCanvas *c2; // Region 2 canvas with hit paths
   TRootEmbeddedCanvas *c3; // Region 3 canvas with hit paths
@@ -96,7 +106,7 @@ class QwEventDisplay: public TGMainFrame {
   Float_t R3driftdist[4];
   Float_t driftsign[6];
   Float_t R3driftsign[4];
-  Float_t fitpx[6];
+  Float_t fitpx[6];;
   Float_t R3fitpx[4];
   Float_t fitpy[6];
   Float_t R3fitpy[4];

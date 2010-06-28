@@ -97,7 +97,7 @@ Int_t main(Int_t argc, Char_t* argv[]) {
     QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
     //  Load the histogram parameter definitions
-    gQwHists.LoadHistParamsFromFile("cosmics_hists.in");
+    gQwHists.LoadHistParamsFromFile("qweak_tracking_hists.in");
 
     // Handle for the list of VQwSubsystemTracking objects
     QwSubsystemArrayTracking detectors;
@@ -124,12 +124,12 @@ Int_t main(Int_t argc, Char_t* argv[]) {
     ((VQwSubsystemTracking*) detectors.GetSubsystemByName("TS"))->LoadChannelMap("trigscint_cosmics.map");
     // Main detector
     detectors.push_back(new QwMainDetector("MD"));
-    detectors.GetSubsystemByName("MD")->LoadChannelMap("maindet_cosmics.map");
+    detectors.GetSubsystemByName("MD")->LoadChannelMap("qweak_maindet_channel.map");
     QwMainDetector* maindetector = dynamic_cast<QwMainDetector*> (detectors.GetSubsystemByName("MD"));
     // Scanner
     detectors.push_back(new QwScanner("FPS"));
-    ((VQwSubsystemTracking*) detectors.GetSubsystemByName("FPS"))->LoadChannelMap("scanner_channel.map" );
-    ((VQwSubsystemTracking*) detectors.GetSubsystemByName("FPS"))->LoadInputParameters("scanner_parameter.map");
+    ((VQwSubsystemTracking*) detectors.GetSubsystemByName("FPS"))->LoadChannelMap("qweak_scanner_channel.map" );
+    ((VQwSubsystemTracking*) detectors.GetSubsystemByName("FPS"))->LoadInputParameters("qweak_scanner_parameter.map");
     QwScanner* scanner = dynamic_cast<QwScanner*> (detectors.GetSubsystemByName("FPS")); // Get scanner subsystem
 
 

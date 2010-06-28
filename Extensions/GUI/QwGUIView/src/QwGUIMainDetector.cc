@@ -251,10 +251,10 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
 	  }
 	}	
       }
-    }
 
-    fftopts.TotalLength = tree->GetEntries();
-    PlotHistograms();
+      fftopts.TotalLength = tree->GetEntries();
+      PlotHistograms();
+    }
   }
 
   if(!strcmp(cont->GetDataName(),"DBASE") && dDatabaseCont){

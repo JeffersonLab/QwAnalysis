@@ -52,7 +52,7 @@ Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UI
   if (IsNameEmpty()){
     //  This channel is not used, but is present in the data stream.
     //  Skip over this data.
-    //  words_read = fNumberOfDataWords;
+      words_read = fNumberOfDataWords;
   } else if (num_words_left >= fNumberOfDataWords) {
     this->fValue_Raw = ((buffer[0] & data_mask) >> data_shift);
     this->fValue     = 0.0 + this->fValue_Raw;
@@ -125,7 +125,7 @@ void  QwScaler_Channel<data_mask,data_shift>::ConstructHistograms(TDirectory *fo
 
     fHistograms.resize(1, NULL);
     size_t index=0;
-    //    fHistograms[index]   = gQwHists.Construct1DHist(basename);
+    fHistograms[index]   = gQwHists.Construct1DHist(basename);
     index += 1;
   }
 };

@@ -22,6 +22,7 @@ QwSubsystemFactory<QwTriggerScintillator>
 QwTriggerScintillator::QwTriggerScintillator(TString region_tmp):VQwSubsystem(region_tmp),
                                                                  VQwSubsystemTracking(region_tmp)
 {
+  ClearAllBankRegistrations();
 };
 
 QwTriggerScintillator::~QwTriggerScintillator(){

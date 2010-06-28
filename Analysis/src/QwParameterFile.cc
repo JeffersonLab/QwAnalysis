@@ -2,7 +2,11 @@
 
 #include "QwParameterFile.h"
 
+// System headers
 #include <sstream>
+
+// Qweak headers
+#include "QwLog.h"
 
 std::vector<bfs::path> QwParameterFile::fSearchPaths;
 
@@ -70,8 +74,8 @@ QwParameterFile::QwParameterFile(const char *filename){
     fFile.open(tmppath.string().c_str());
     fStream << fFile.rdbuf();
   } else {
-    std::cerr << "ERROR:  Unable to open parameter file: "
-	      << tmppath.string()<<"\n";
+    QwError << "Unable to open parameter file: "
+	    << tmppath.string() << QwLog::endl;
   }
 };
 

@@ -84,10 +84,12 @@
 #include <TPave.h>
 #include "KeySymbols.h"
 #include "QwGUIMainDetector.h"
+#include "QwGUIScanner.h"
 #include "QwGUIBeamModulation.h"
 #include "QwGUILumiDetector.h"
 #include "QwGUIInjector.h"
 #include "QwGUIHallCBeamline.h"
+#include "QwGUITrackFinding.h"
 #include "QwGUIEventDisplay.h"
 #include "QwGUIHelpBrowser.h"
 #include "QwGUIDatabaseContainer.h"
@@ -111,11 +113,13 @@ class QwGUIMain : public TGMainFrame {
 
   //!Main detector sub system class
   QwGUIMainDetector      *MainDetSubSystem;
+  QwGUIScanner           *ScannerSubSystem;
   QwGUIBeamModulation    *BeamModulationSubSystem;
   QwGUILumiDetector      *LumiDetSubSystem;
   QwGUIInjector          *InjectorSubSystem;
   QwGUIHallCBeamline     *HallCBeamlineSubSystem;
   QwGUIDatabase          *DatabaseSubSystem;
+  QwGUITrackFinding      *TrackFindingSubSystem;
   QwGUIEventDisplay      *EventDisplaySubSystem;
 
   QwGUIHelpBrowser          *dHelpBrowser;
@@ -187,8 +191,8 @@ class QwGUIMain : public TGMainFrame {
   TGHorizontalFrame      *dLogEditFrame;
   TGLayoutHints          *dLogTabLayout;
   TGLayoutHints          *dLogEditLayout;
-  TGHorizontalFrame      *dDBQueryFrame;      
-  TGTextEntry            *dDBQueryEntry;      
+  TGHorizontalFrame      *dDBQueryFrame;
+  TGTextEntry            *dDBQueryEntry;
   TGLayoutHints          *dLogEditFrameLayout;
   TGLayoutHints          *dDBQueryEntryLayout;
   TGLayoutHints          *dDBQueryFrameLayout;
@@ -196,7 +200,7 @@ class QwGUIMain : public TGMainFrame {
   TGLabel                *dDBQueryLabel;
   TGLayoutHints          *dDBQueryLabelLayout;
 
-  //!Menubar widgets 
+  //!Menubar widgets
   TGMenuBar              *dMenuBar;
   TGPopupMenu            *dMenuFile;
   TGPopupMenu            *dMenuTabs;

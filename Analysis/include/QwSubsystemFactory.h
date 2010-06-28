@@ -23,10 +23,6 @@ class VQwSubsystemFactory {
 
     /// Default virtual destructor
     virtual ~VQwSubsystemFactory() { };
-    /// Subsystem creation (pure virtual)
-    virtual VQwSubsystem* Create(const std::string& name) = 0;
-    /// Subsystem cast (pure virtual)
-    virtual VQwSubsystem* Cast(VQwSubsystem* subsys) = 0;
 
     /// Create a subsystem of type with name
     static VQwSubsystem* Create(const std::string& type, const std::string& name) {
@@ -44,6 +40,11 @@ class VQwSubsystemFactory {
     }
 
   protected:
+
+    /// Subsystem creation (pure virtual)
+    virtual VQwSubsystem* Create(const std::string& name) = 0;
+    /// Subsystem cast (pure virtual)
+    virtual VQwSubsystem* Cast(VQwSubsystem* subsys) = 0;
 
     /// Map from string to concrete subsystem factories
     static std::map<std::string,VQwSubsystemFactory*>& GetRegisteredSubsystems();

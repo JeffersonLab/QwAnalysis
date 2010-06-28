@@ -183,6 +183,14 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   TH2F *TOFW[13];
   TH2F *TOFW_raw[13];
   TH2F *HitsWire[13];
+  void InitHistogramPointers() {
+    // this magic 13 is eventually fWiresPerPlane.size(), but where?
+    for(UInt_t i=0; i<13; ++i) {
+      TotHits[i] = TOFP[i] = TOFP_raw[i] = WiresHit[i] = NULL;
+      TOFW[i] = TOFW_raw[i] = HitsWire[i] = NULL;
+    }
+  }
+
 
 
 

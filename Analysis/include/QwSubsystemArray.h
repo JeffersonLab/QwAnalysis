@@ -37,13 +37,16 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   using SubsysPtrs::size;
   using SubsysPtrs::empty;
 
+  typedef Bool_t (*CanContainFn)(VQwSubsystem*);
+
  public:
   /// \brief Default constructor
-  QwSubsystemArray() { };
+  QwSubsystemArray(CanContainFn myCanContain = CanContain)
+  : fnCanContain(myCanContain) { };
   /// \brief Constructor with options
-  QwSubsystemArray(QwOptions& options);
+  QwSubsystemArray(QwOptions& options, CanContainFn myCanContain);
   /// \brief Constructor with filename
-  QwSubsystemArray(const char* filename);
+  QwSubsystemArray(const char* filename, CanContainFn myCanContain);
   /// \brief Virtual destructor
   virtual ~QwSubsystemArray() { };
 
@@ -225,6 +228,15 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
  protected:
   UInt_t fCodaEventNumber; ///< CODA event number as provided by QwEventBuffer
   UInt_t fCodaEventType;   ///< CODA event type as provided by QwEventBuffer
+
+ protected:
+  /// Function to determine which subsystems we can accept
+  CanContainFn fnCanContain;
+
+  /// Test whether this subsystem array can contain a particular subsystem
+  static Bool_t CanContain(VQwSubsystem* subsys) {
+    return kFALSE; // should never occur
+  };
 
  private:
   /// Filename of the global detector map
