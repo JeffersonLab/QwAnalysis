@@ -281,7 +281,7 @@ Int_t main(Int_t argc, Char_t* argv[]) {
             // Process the event
             detectors.ProcessEvent();
 
-            if (kMainDetBranch) maindetector->FillTreeVector();
+            if (kMainDetBranch) maindetector->FillTreeVector(nevents);
             if (kScannerBranch) scanner->FillTreeVector();
 
 

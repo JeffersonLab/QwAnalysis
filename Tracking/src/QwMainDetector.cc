@@ -578,6 +578,10 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
 
   fMainDetVector.reserve(6000);
   TString list = "";
+
+  fMainDetVector.push_back(0.0);
+  list = ":nevent/D";
+
   for (size_t i=0; i<fPMTs.size(); i++)
     {
       for (size_t j=0; j<fPMTs.at(i).size(); j++)
@@ -589,10 +593,7 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
           else
             {
               fMainDetVector.push_back(0.0);
-              if (list==TString(""))
-                list = fPMTs.at(i).at(j).GetElementName()+"/D";
-              else
-                list += ":"+fPMTs.at(i).at(j).GetElementName()+"/D";
+	      list += ":"+fPMTs.at(i).at(j).GetElementName()+"/D";
             }
         }
     }
@@ -608,17 +609,16 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
               else
                 {
                   fMainDetVector.push_back(0.0);
-                  if (list==TString(""))
-                    list = fSCAs.at(i)->fChannels.at(j).GetElementName()+"/D";
-                  else
-                    list += ":"+fSCAs.at(i)->fChannels.at(j).GetElementName()+"/D";
+		  list += ":"+fSCAs.at(i)->fChannels.at(j).GetElementName()+"/D";
                 }
             }
         }
     }
 
+  if (':' == list[0])
+    list = list(1,list.Length()-1);
   tree->Branch(basename, &fMainDetVector[0], list);
-  //std::cout<<list<<"\n";
+  // std::cout<<list<<"\n";
   return;
 };
 
@@ -652,11 +652,14 @@ void  QwMainDetector::FillTreeVector(std::vector<Double_t> &values)
   FillTreeVector();
 }
 
-void  QwMainDetector::FillTreeVector()
+void  QwMainDetector::FillTreeVector(Int_t nevent)
 {
   if (! HasDataLoaded()) return;
 
   Int_t index = 0;
+
+  fMainDetVector[index++] = nevent;
+
   for (size_t i=0; i<fPMTs.size(); i++)
     {
       for (size_t j=0; j<fPMTs.at(i).size(); j++)
@@ -675,7 +678,7 @@ void  QwMainDetector::FillTreeVector()
   if (fDEBUG)
     {
       std::cout<<"Main detector tree vector: "<<"\n";
-      index = 0;
+      index = 1;
       for (size_t i=0; i<fPMTs.size(); i++)
         {
           for (size_t j=0; j<fPMTs.at(i).size(); j++)
@@ -697,6 +700,7 @@ void  QwMainDetector::FillTreeVector()
               else
                 {
                   fMainDetVector[index] = fSCAs.at(i)->fChannels.at(j).GetValue();
+		  index++;
                 }
             }
         }
