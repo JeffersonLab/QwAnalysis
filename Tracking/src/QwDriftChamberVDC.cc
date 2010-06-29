@@ -445,8 +445,9 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile ) {
             if ( varname == "roc" ) {
                 RegisterROCNumber ( value );
                 std::cout << "ROC number: " << value << std::endl;
-            }
-            if ( varname == "slot" ) {
+	    } else if (varname=="bank") {
+              RegisterSubbank(value);
+            } else if ( varname == "slot" ) {
                 RegisterSlotNumber ( value );
             }
             continue;        //go to the next line

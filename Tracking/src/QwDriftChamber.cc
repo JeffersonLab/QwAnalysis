@@ -80,7 +80,10 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile)
             if (varname=="roc") {
                 RegisterROCNumber(value);
                 DIRMODE=0;
-            } else if (varname=="slot") {
+	    } else if (varname=="bank") {
+              RegisterSubbank(value);
+	      DIRMODE=0;
+	    } else if (varname=="slot") {
                 RegisterSlotNumber(value);
                 DIRMODE=0;
             } else if (varname=="pkg") {
