@@ -76,9 +76,12 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile)
         if (mapstr.HasVariablePair("=",varname,varvalue)) {
             //  This is a declaration line.  Decode it.
             varname.ToLower();
-            UInt_t value = atol(varvalue.Data());
+            UInt_t value = QwParameterFile::GetUInt(varvalue);
+	    if (value ==0){
+	      value = atol(varvalue.Data());
+	    }
             if (varname=="roc") {
-                RegisterROCNumber(value);
+	      RegisterROCNumber(value,0);
                 DIRMODE=0;
 	    } else if (varname=="bank") {
               RegisterSubbank(value);
@@ -493,10 +496,10 @@ void QwDriftChamber::ClearAllBankRegistrations()
   return;
 }
 
-Int_t QwDriftChamber::RegisterROCNumber(const UInt_t roc_id)
+Int_t QwDriftChamber::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id = 0)
 {
-  VQwSubsystemTracking::RegisterROCNumber(roc_id, 0);
-  fCurrentBankIndex = GetSubbankIndex(roc_id, 0);//subbank id is directly related to the ROC
+  VQwSubsystemTracking::RegisterROCNumber(roc_id, bank_id);
+  fCurrentBankIndex = GetSubbankIndex(roc_id, bank_id);//subbank id is directly related to the ROC
   if (fReferenceChannels.size()<=fCurrentBankIndex) {
     fReferenceChannels.resize(fCurrentBankIndex+1);
     fReferenceData.resize(fCurrentBankIndex+1);

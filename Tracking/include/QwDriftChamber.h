@@ -122,7 +122,7 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
  protected:
   void  ClearAllBankRegistrations();
-  Int_t RegisterROCNumber(const UInt_t roc_id);
+  Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);
 
   Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
 

@@ -200,7 +200,7 @@ class VQwSubsystem {
 
   /*! \brief Tell the object that it will decode data from this ROC and sub-bank
    */
-  Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);
+  virtual Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);
 
   /*! \brief Tell the object that it will decode data from this sub-bank in the ROC currently open for registration
    */
