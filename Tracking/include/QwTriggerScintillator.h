@@ -15,13 +15,14 @@
 #include "QwDetectorInfo.h"
 
 #include "MQwV775TDC.h"
-
+#include "MQwF1TDC.h"
 #include "QwPMT_Channel.h"
 
+#include "QwColor.h"
 
 ///
 /// \ingroup QwTracking
-class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
+class QwTriggerScintillator: public VQwSubsystemTracking {
   /******************************************************************
    *  Class: QwTriggerScintillator
    *
@@ -64,6 +65,9 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
   enum EModuleType{EMPTY = -1, V775_TDC = 0, V792_ADC} fCurrentType;
 
   Bool_t fDEBUG;
+
+  MQwV775TDC fQDCTDC;
+  MQwF1TDC fF1TDC;
 
   void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
 
@@ -110,7 +114,9 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
   std::vector< enum EModuleType > fModuleTypes;
   std::vector< std::vector< std::pair<Int_t, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel; gives the plane and wire assignment.
 
-
+  UInt_t fBankID[2];  //bank ID's of 2 different modules for trigger scintillator
+                      //fBankID[0] for V792/V775 QDC_Bank
+                      //fBankID[1] for F1TDC     F1TDC_Bank
 
   //    We need a mapping of module,channel into PMT index, ADC/TDC
   std::vector< std::vector<QwPMT_Channel> > fPMTs;

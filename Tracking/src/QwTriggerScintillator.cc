@@ -148,8 +148,12 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
       UInt_t value = atol(varvalue.Data());
       if (varname=="roc"){
 	RegisterROCNumber(value);
-      } else if (varname=="bank"){
+      } else if (varname=="qdctdc_bank"){
 	RegisterSubbank(value);
+        fBankID[0] = value;
+      } else if (varname=="f1tdc_bank"){
+	RegisterSubbank(value);
+        fBankID[1] = value;
       } else if (varname=="slot"){
         RegisterSlotNumber(value);
       } else if (varname=="module"){
@@ -195,31 +199,34 @@ Int_t QwTriggerScintillator::ProcessConfigurationBuffer(const UInt_t roc_id, con
 Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words){
   Int_t index = GetSubbankIndex(roc_id,bank_id);
 
+ if (bank_id==fBankID[0])
+    {
+
   if (index>=0 && num_words>0){
     //  We want to process this ROC.  Begin looping through the data.
     SetDataLoaded(kTRUE);
     for(size_t i=0; i<num_words ; i++){
       //  Decode this word as a V775TDC word.
-      DecodeTDCWord(buffer[i]);
+      fQDCTDC.DecodeTDCWord(buffer[i]);
 
-      if (! IsSlotRegistered(index, GetTDCSlotNumber())) continue;
+      if (! IsSlotRegistered(index, fQDCTDC.GetTDCSlotNumber())) continue;
 
-      if (IsValidDataword()){
+      if (fQDCTDC.IsValidDataword()){
 	// This is a V775 TDC data word
 	try {
-	  FillRawWord(index,GetTDCSlotNumber(),GetTDCChannelNumber(),
-		      GetTDCData());
+	  FillRawWord(index,fQDCTDC.GetTDCSlotNumber(),fQDCTDC.GetTDCChannelNumber(),
+		      fQDCTDC.GetTDCData());
 	}
 	catch (std::exception& e) {
-	  std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
+	  std::cerr << "Standard exception from QwTriggerScintillator::FillRawTDCWord: "
 		    << e.what() << std::endl;
-	  Int_t chan = GetTDCChannelNumber();
+	  Int_t chan = fQDCTDC.GetTDCChannelNumber();
 	  std::cerr << "   Parameters:  index=="<<index
-		    << "; GetV775SlotNumber()=="<<GetTDCSlotNumber()
+		    << "; GetV775SlotNumber()=="<<fQDCTDC.GetTDCSlotNumber()
 		    << "; GetV775ChannelNumber()=="<<chan
-		    << "; GetV775Data()=="<<GetTDCData()
+		    << "; GetV775Data()=="<<fQDCTDC.GetTDCData()
 		    << std::endl;
-	  Int_t modindex = GetModuleIndex(index, GetTDCSlotNumber());
+	  Int_t modindex = GetModuleIndex(index, fQDCTDC.GetTDCSlotNumber());
 	  std::cerr << "   GetModuleIndex()=="<<modindex
 		    << "; fModulePtrs.at(modindex).size()=="
 		    << fModulePtrs.at(modindex).size()
@@ -232,7 +239,123 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
       }
     }
   }
+}
 
+else if (bank_id==fBankID[1])
+{
+ if (index>=0 && num_words>0)
+        {
+            SetDataLoaded(kTRUE);
+
+            Int_t  old_event_number     = -1;
+            Int_t  new_event_number     = -1;
+            UInt_t  old_trigger_time    = 0;
+            UInt_t  new_trigger_time    = 0;
+            UInt_t  trigger_time_offset = 0;
+
+            const UInt_t valid_trigger_time_offset = 1;
+            const UInt_t max_f1_trigger_time = 511;
+            const UInt_t min_f1_trigger_time = 0;
+
+            Int_t tdc_slot_number    = 0;
+            Int_t tdc_channel_number = 0;
+
+            Bool_t temp_print_flag = false;
+
+            for (UInt_t i=0; i<num_words ; i++)
+            {
+                fF1TDC.DecodeTDCWord(buffer[i], roc_id);
+                tdc_slot_number = fF1TDC.GetTDCSlotNumber();
+
+                if ( tdc_slot_number == 31)
+                {
+                    //  This is a custom word which is not defined in
+                    //  the F1TDC, so we can use it as a marker for
+                    //  other data; it may be useful for something.
+                }
+
+                if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
+
+                tdc_channel_number = fF1TDC.GetTDCChannelNumber();
+
+                if ( fF1TDC.IsValidDataword() )
+                if ( true )
+                {
+                    try
+                    {
+                        //std::cout<<"slot"<<tdc_slot_number<<" ch"<<tdc_channel_number
+                        //         <<" data="<<fF1TDC.GetTDCData()<<"\n";
+                        FillRawWord(index, tdc_slot_number, tdc_channel_number, fF1TDC.GetTDCData());
+                    }
+                    catch (std::exception& e)
+                    {
+                        std::cerr << "Standard exception from QwTriggerScintillator::FillRawTDCWord: "
+                        << e.what() << std::endl;
+                        std::cerr << "   Parameters:  index=="<<index
+                        << "; GetF1SlotNumber()=="<< tdc_slot_number
+                        << "; GetF1ChannelNumber()=="<<tdc_channel_number
+                        << "; GetF1Data()=="<<fF1TDC.GetTDCData()
+                        << std::endl;
+                    }
+                }
+                else
+                {
+                    fF1TDC.PrintTDCHeader(temp_print_flag);
+                    new_trigger_time = fF1TDC.GetTDCTriggerTime();
+
+                    // Check it is whether F1TDC or V775TDC
+                    if (  new_trigger_time > min_f1_trigger_time || new_trigger_time < max_f1_trigger_time )
+                    {
+                        // the following routine is valid  for only F1TDC
+                        new_event_number = fF1TDC.GetTDCEventNumber();
+
+                        // skip the first event.
+                        if (old_event_number > 0)
+                        {
+
+                            if (temp_print_flag) printf("i : %d, old event %d new event %d\n", i, old_event_number, new_event_number);
+                            if ( new_event_number != old_event_number )
+                            {
+                                // Any difference in the Event Number among the chips indicates a serious error
+                                // that requires a reset of the board.
+                                QwError << QwColor(Qw::kBold)
+                                << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << QwLog::endl;
+                                QwError << QwColor(Qw::kBold)
+                                << "       REQUIRE a reset of the F1TDC board at ROC"  << roc_id << " Slot " << tdc_slot_number << QwLog::endl;
+                                QwError << QwColor(Qw::kBold)
+                                << "       Please contact (a) Qweak DAQ expert(s) immediately."<< QwLog::endl;
+                                QwError << QwColor(Qw::kBold)
+                                << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << QwLog::endl;
+                            }
+
+                            trigger_time_offset = abs( new_trigger_time - old_trigger_time );
+
+                            if ( trigger_time_offset > valid_trigger_time_offset )
+                            {
+                                // Trigger Time difference of up to 1 count among the chips is acceptable
+                                // For the Trigger Time, this assumes that an external SYNC_RESET signal has
+                                // been successfully applied at the start of the run
+                                // Should we stop QwAnalysis or mark this buffer as bad?
+                                if ( temp_print_flag )
+                                {
+                                    QwMessage << QwColor(Qw::kBlue)
+                                    << "There are SYNC_RESET issue on the F1TDC board at Ch "
+                                    <<  tdc_channel_number
+                                    << " ROC " << roc_id << " Slot " << tdc_slot_number << QwLog::endl;
+                                    QwWarning << QwColor(Qw::kBlue)
+                                    <<"        Please contact (a) Qweak DAQ expert(s) immediately."
+                                    << QwLog::endl;
+                                }
+                            }
+                        }
+                        // save a Event Number and a Trigger Time so as to compare with next ones.
+                        old_event_number = new_event_number;
+                    }
+                    old_trigger_time = new_trigger_time;
+                }
+            }
+        }
+}
   return 0;
 };
 

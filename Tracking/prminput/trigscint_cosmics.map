@@ -1,24 +1,54 @@
 !
 !
 !
-ROC=2
+ROC=4
 !
 !  The 775N and 792N have channels numbers upshifted by one bit
 !  compared to the ECL counterparts.  Multiply front panel
 !  channel number by two to get the effective channel number.
 !
 !
+qdctdc_bank=0x402
 slot=1
 module=V792
 ! channel, signalname
 0,	TS_left_adc
 2,      TS_right_adc
-slot=2
 !
-module=V775
+!
+f1tdc_bank=0x401
+slot=4
+!
+module=F1TDC
 ! channel, signalname
 0,	TS_left_tdc
 2,	TS_right_tdc
 4,	TS_meantimer_tdc
+!
+!END
+
+!Original map
+!
+!
+!
+!ROC=2
+!
+!  The 775N and 792N have channels numbers upshifted by one bit
+!  compared to the ECL counterparts.  Multiply front panel
+!  channel number by two to get the effective channel number.
+!
+!
+!slot=1
+!module=V792
+! channel, signalname
+!0,	TS_left_adc
+!2,      TS_right_adc
+!slot=2
+!
+!module=V775
+! channel, signalname
+!0,	TS_left_tdc
+!2,	TS_right_tdc
+!4,	TS_meantimer_tdc
 !
 !END
