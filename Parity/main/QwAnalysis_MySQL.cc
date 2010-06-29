@@ -51,6 +51,7 @@ main(Int_t argc, Char_t* argv[])
   ///  The "scratch" directory should be first.
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS")+"/Parity/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
 
   ///
@@ -79,6 +80,8 @@ main(Int_t argc, Char_t* argv[])
 
   subsystem_tmp = NULL;
 
+    //  Load the Epics table
+  epics_data.LoadEpicsVariableMap("EpicsTable.map");
 
   QwDetectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
   QwDetectors.GetSubsystemByName("MainDetectors")->LoadChannelMap("qweak_maindet.map");
@@ -364,6 +367,11 @@ main(Int_t argc, Char_t* argv[])
 		  << " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id
 		  << QwLog::endl;
       }
+
+	epics_data.ReportEPICSData();
+	epics_data.PrintVariableList();
+	epics_data.PrintAverages();
+
 
       // Each sussystem has its own Connect() and Disconnect() functions.
       if (qw_test_DB.AllowsWriteAccess()){
