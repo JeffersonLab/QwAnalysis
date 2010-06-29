@@ -385,7 +385,7 @@ SOFLAGS        =
 DllSuf        := .dylib
 
 ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags)
-ROOTLIBS     := $(shell $(ROOTCONFIG) --libs) -lTreePlayer -lGX11 -lpthread -lThread
+ROOTLIBS     := $(ROOTLIBS) -lTreePlayer -lGX11 -lpthread -lThread 
 # --new give a runtime error on darwin and root 4.04 :
 # <CustomReAlloc2>: passed oldsize 64, should be 0
 # Fatal in <CustomReAlloc2>: storage area overwritten
