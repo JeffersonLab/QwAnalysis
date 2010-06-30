@@ -83,7 +83,7 @@ class QwHelicityPattern{
  protected:
   Bool_t fDEBUG;
 
-  QwHelicity* fHelicitySubsystem;
+  //  QwHelicity* fHelicitySubsystem;
 
   std::vector<QwSubsystemArrayParity> fEvents;
   std::vector<Bool_t> fEventLoaded;

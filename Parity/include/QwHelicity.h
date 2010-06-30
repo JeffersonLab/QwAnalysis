@@ -135,7 +135,9 @@ class QwHelicity: public VQwSubsystemParity{
   Int_t GetMaxPatternPhase(){
     return fMaxPatternPhase;
   };
-
+  Int_t GetMinPatternPhase(){
+    return fMinPatternPhase;
+  }
   void SetFirstBits(UInt_t nbits, UInt_t firstbits);
   void SetEventPatternPhase(Int_t event, Int_t pattern, Int_t phase);
 
@@ -219,12 +221,10 @@ class QwHelicity: public VQwSubsystemParity{
 
 
   static const Bool_t kDEBUG=kFALSE;
-  static const Bool_t dolocalhelicity=kTRUE;//kFALSE;//temp word way to encode helicity
   // local helicity is a special mode for encoding helicity info
   // it is not the fullblown helicity encoding we want to use for the main
   // data taking. For example this was used during the injector data taking
   // in winter 2008-09 injector tests
-  static const Bool_t dolocalhelicity2=kFALSE;//kTRUE;//full blown mode
   static const Int_t kUndefinedHelicity= -9999;
 
 
@@ -266,11 +266,6 @@ class QwHelicity: public VQwSubsystemParity{
 
 };
 
-
-//const Bool_t QwHelicity::kDEBUG = kFALSE;
-//const Bool_t QwHelicity::dolocalhelicity= kTRUE;
-//const Int_t QwHelicity::MaxPatternPhase = 4;
-//const Int_t QwHelicity::kUndefinedHelicity=-9999;
 
 #endif
 
