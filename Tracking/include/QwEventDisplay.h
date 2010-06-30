@@ -112,9 +112,6 @@
 #ifndef ROOT_TGListTree
 #include "TGListTree.h"
 #endif
-#ifndef ROOT_TGuiBldGeometryFrame
-//#include "TGuiBldGeometryFrame.h"
-#endif
 #ifndef ROOT_TGToolTip
 #include "TGToolTip.h"
 #endif
@@ -200,18 +197,22 @@ class QwTreeEventBuffer;
 #define R2_WIDTH 45.09 // Region 2
 #define R2_LENGTH 30.00
 #define R2_DEPTH 17.20
-#define R2_DIST 1.90 // distance between drift cell chambers
+#define R2_DIST 1.27 // distance between drift cell chambers (planes)
+#define R2_XDIST 0.95 // distance between x wires
+#define R2_UVDIST 2.54 // distance between u (or v) wires
 #define R2_CM 0.0177
+#define R2_ANGLE 56.00
 
 #define R3_WIDTH 50.00 // Region 3 geometries
 #define R3_LENGTH 210.00
 #define R3_DEPTH 2.54
 #define R3_DIST 1.11 // distance between drift cell centers
+#define R3_UVDIST 2.54 // distance between u (or v) wires
 #define R3_CM 0.0038
 #define R3_ANGLE 63.43 // 90-26.57 (which is the wire angle)
 
 
-////DECLARE GLOBAL CLASS ELEMENTS////
+////DECLARE CLASS ELEMENTS////
 
 class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
 
@@ -241,7 +242,7 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
   TGListBox *TimingListBox;
 
   //Event Box 4 delcarations
-  TGListBox *OtherListBox;
+  TGListBox *DriftDistanceListBox;
 
   UInt_t sum; // sum of wire numbers
   double num; // number of wire hits
@@ -252,34 +253,30 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
   TRootEmbeddedCanvas *fRegion1XY, *fRegion1XZ, *fRegion1YZ;
   TCanvas *cR1XY, *cR1XZ, *cR1YZ;
   TPaveLabel *Label_R1XY, *Label_R1XZ, *Label_R1YZ;
+  TBox *Box_R1XY, *Box_R1XZ, *Box_R1YZ;
   std::vector<TLine> Line_R1r;
   std::vector<TLine> Line_R1y;
   std::vector<TLine> R1_XYfit;
   std::vector<TLine> R1_XZfit;
-  TBox *Box_R1XY, *Box_R1XZ, *Box_R1YZ;
 
   //Region 2 (HDC) declarations
   TGCompositeFrame *fRegion2;
   TRootEmbeddedCanvas *fRegion2XY, *fRegion2XZ, *fRegion2YZ;
   TCanvas *cR2XY, *cR2XZ, *cR2YZ;
   TPaveLabel *Label_R2XY, *Label_R2XZ, *Label_R2YZ;
+  TBox *Box_R2XY, *Box_R2XZ, *Box_R2YZ;
   std::vector<TLine> Line_R2x;
   std::vector<TLine> Line_R2u;
   std::vector<TLine> Line_R2v;
-  Float_t R2driftdist[6]; // WHAT DOES THIS DO?
-  Float_t driftsign[6]; // SAME HERE
-  TBox *Box_R2XY, *Box_R2XZ, *Box_R2YZ;
 
   //Region 3 (VDC) declarations
   TGCompositeFrame *fRegion3;
   TRootEmbeddedCanvas *fRegion3XY, *fRegion3XZ, *fRegion3YZ;
   TCanvas *cR3XY, *cR3XZ, *cR3YZ;
   TPaveLabel *Label_R3XY, *Label_R3XZ, *Label_R3YZ;
+  TBox *Box_R3XY, *Box_R3XZ, *Box_R3YZ;
   std::vector<TLine> Line_R3u;
   std::vector<TLine> Line_R3v;
-  TBox *Box_R3XY, *Box_R3XZ, *Box_R3YZ;
-
-  //Region 4 (TS) declarations???
 
   // create event buffer
   QwTreeEventBuffer* fEventBuffer; //!      // excluded from dictionary

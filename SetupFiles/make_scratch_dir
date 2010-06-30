@@ -18,7 +18,7 @@ else
   ##  someplace specific, or use the default value.
   ##
   ##  For now, just force the default vaule.
-  setenv  QWSCRATCH   ${HOME}/scratch
+  setenv  QWSCRATCH   ${HOME}/QwAnalysis/scratch
 
   echo "Setting QWSCRATCH to " ${QWSCRATCH}
   ##  Save the value of QWSCRATCH in a temporary file  

@@ -68,3 +68,11 @@ ${QWANALYSIS}/SetupFiles/make_scratch_dir
 source ${QWANALYSIS}/SetupFiles/.Qwcshrc_scratch
 
 
+
+###Ramesh's addition starts#####
+setenv USER_HOME    /home/dwjones/QwAnalysis
+setenv QWSCRATCH    ${USER_HOME}/scratch
+setenv Qw_TMP_DIR   ${USER_HOME}/scratch/data
+####Ramesh's addtion finished###
+
+

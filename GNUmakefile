@@ -431,8 +431,8 @@ MYSQL_LIBS = -L${MYSQL_LIB_DIR} -lmysqlclient
 ############################
 ############################
 ifndef MYSQLPP_INC_DIR
-  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name mysql++)),/usr/include/mysql++)
-    ifneq ($(strip $(shell $(FIND) /usr/local/include -maxdepth 1 -name mysql++)),/usr/local/include/mysql++)
+  ifneq ($(strip $(shell $(FIND) /usr/include -maxdepth 1 -name mysql++)),/home/dwjones/spayde/local/include/mysql++)
+    ifneq ($(strip $(shell $(FIND) /usr/local/include -maxdepth 1 -name mysql++)),/home/dwjones/spayde/local/include/mysql++)
       $(warning Install the MySQL++ library on your system, or set the environment)
       $(warning variables MYSQLPP_INC_DIR and MYSQLPP_LIB_DIR to the directory with)
       $(warning the MySQL++ headers and libraries, respectively.)
@@ -441,14 +441,14 @@ ifndef MYSQLPP_INC_DIR
       $(warning )
       $(error   Error: Could not find the MySQL++ library)
     else
-      $(warning Setting MYSQLPP_INC_DIR to /usr/local/include/mysql++)
+      $(warning Setting MYSQLPP_INC_DIR to /home/dwjones/spayde/local/include/mysql++)
       MYSQLPP_INC_DIR = /usr/local/include/mysql++
       MYSQLPP_LIB_DIR = /usr/local/lib
     endif
   else
-    $(warning Setting MYSQLPP_INC_DIR to /usr/include/mysql++)
-    MYSQLPP_INC_DIR = /usr/include/mysql++
-    MYSQLPP_LIB_DIR = /usr/lib
+    $(warning Setting MYSQLPP_INC_DIR to /home/dwjones/spayde/local/include/mysql++)
+    MYSQLPP_INC_DIR = /home/dwjones/spayde/local/include/mysql++
+    MYSQLPP_LIB_DIR = /home/dwjones/spayde/local/lib
   endif
 endif
 

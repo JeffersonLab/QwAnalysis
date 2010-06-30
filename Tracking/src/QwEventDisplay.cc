@@ -55,15 +55,15 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    TGHorizontalFrame *fLogos = new TGHorizontalFrame(fMain,900,80,kHorizontalFrame | kRaisedFrame,ucolor);
    fLogos->SetLayoutBroken(kTRUE);
 
-   // insert Qweak logo
-   TGIcon *QweakLogo = new TGIcon(fLogos,"/home/dwjones/Desktop/Logos/qweak.jpg");
-   fLogos->AddFrame(QweakLogo, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   QweakLogo->MoveResize(0,0,155,75);
-
    // insert JLab logo
    TGIcon *JLabLogo = new TGIcon(fLogos,"/home/dwjones/Desktop/Logos/JLab_logo_white1.jpg");
    fLogos->AddFrame(JLabLogo, new TGLayoutHints(kLHintsNormal));
    JLabLogo->MoveResize(144,0,250,75);
+
+   // insert Qweak logo
+   TGIcon *QweakLogo = new TGIcon(fLogos,"/home/dwjones/Desktop/Logos/qweak.jpg");
+   fLogos->AddFrame(QweakLogo, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   QweakLogo->MoveResize(0,0,155,75);
 
    // graphics context changes for "Qweak 2D Single Event Display" title label
    ufont = gClient->GetFont("-*-utopia-bold-r-*-*-25-*-*-*-*-*-*-*"); // set ufont to bold utopia 25
@@ -111,6 +111,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fEventBox1->SetLayoutBroken(kTRUE);
 
    // graphics context changes for "Event Counter" label
+   gClient->GetColorByName("#deba87", ucolor); // set ucolor to mute orange
    ufont = gClient->GetFont("-*-charter-bold-r-*-*-15-*-*-*-*-*-*-*"); // set ufont to bold charter 15
    GCValues_t valunterLabel;
    valunterLabel.fMask = kGCForeground | kGCBackground | kGCFillStyle | kGCFont | kGCGraphicsExposures;
@@ -120,22 +121,23 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    valunterLabel.fFont = ufont->GetFontHandle();
    valunterLabel.fGraphicsExposures = kFALSE;
    uGC = gClient->GetGC(&valunterLabel, kTRUE);
-   gClient->GetColorByName("#deba87",ucolor); // set ucolor to mute orange
 
    // create label for the event counter
-   TGLabel *EventCounterLabel = new TGLabel(fEventBox1,"Event Counter",uGC->GetGC(),ufont->GetFontStruct(),ucolor);
+   TGLabel *EventCounterLabel = new TGLabel(fEventBox1,"Event Counter",uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame,ucolor);
    EventCounterLabel->SetTextJustify(36);
    EventCounterLabel->SetMargins(0,0,0,0);
    EventCounterLabel->SetWrapLength(-1);
    fEventBox1->AddFrame(EventCounterLabel, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   EventCounterLabel->MoveResize(50,8,112,18);
+   EventCounterLabel->MoveResize(45,6,125,20);
+   EventCounterLabel->SetBackgroundColor(ucolor);
 
    // create vertical frame for event counter information: current event number, goto event entry, and goto event button
+   gClient->GetColorByName("#507ba7", ucolor); // set ucolor to navy blue
    fEventCounter = new TGVerticalFrame(fEventBox1,144,176,kVerticalFrame | kSunkenFrame,ucolor);
    fEventCounter->SetLayoutBroken(kTRUE);
 
    // graphics context changes for "Current Event" group frame
-   ufont = gClient->GetFont("-*-charter-bold-r-*-*-10-*-*-*-*-*-*-*"); // set ufont to bold charter 10
+   ufont = gClient->GetFont("-*-courier-bold-r-*-*-12-*-*-*-*-*-*-*"); // set ufont to bold charter 10
    GCValues_t valentHit;
    valentHit.fMask = kGCForeground | kGCBackground | kGCFillStyle | kGCFont | kGCGraphicsExposures;
    gClient->GetColorByName("#000000",valentHit.fForeground);
@@ -166,12 +168,12 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    CurrentEventLabel->SetTextJustify(36);
    CurrentEventLabel->SetMargins(0,0,0,0);
    CurrentEventLabel->SetWrapLength(-1);
+   CurrentEventLabel->MoveResize(11,18,104,32);
+   CurrentEventLabel->SetBackgroundColor(ucolor);
 
    // add current event label to "Current Event" group frame and customize
    fCurrentEvent->AddFrame(CurrentEventLabel, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   CurrentEventLabel->MoveResize(11,18,104,32);
    fCurrentEvent->SetLayoutManager(new TGVerticalLayout(fCurrentEvent));
-   fCurrentEvent->Resize(126,64);
 
    // add "Current Event" group frame to event counter frame
    fEventCounter->AddFrame(fCurrentEvent, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
@@ -210,8 +212,8 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    //(CurrentEventEntry->GetNumberEntry())->Connect("ReturnPressed()", "QwEventDisplay()", this, "GotoEvent()");
 
    // add event counter frame to event box 1
-   fEventBox1->AddFrame(fEventCounter, new TGLayoutHints(kLHintsNormal));
-   fEventCounter->MoveResize(35,32,144,176);
+   fEventBox1->AddFrame(fEventCounter, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fEventCounter->MoveResize(35,32,144,180);
 
    // add event box 1 to event box frame
    fEventBoxes->AddFrame(fEventBox1, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
@@ -242,15 +244,16 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    valitsLabel.fFont = ufont->GetFontHandle();
    valitsLabel.fGraphicsExposures = kFALSE;
    uGC = gClient->GetGC(&valitsLabel, kTRUE);
-   gClient->GetColorByName("#deba87",ucolor); // set ucolor to mute orange
+   gClient->GetColorByName("#deba87", ucolor); // set ucolor to mute orange
 
    // create label for wire hits list box
-   TGLabel *WireHitsLabel = new TGLabel(fEventBox2,"Wire Hits",uGC->GetGC(),ufont->GetFontStruct(),ucolor);
+   TGLabel *WireHitsLabel = new TGLabel(fEventBox2,"Wire Hits",uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame,ucolor);
    WireHitsLabel->SetTextJustify(36);
    WireHitsLabel->SetMargins(0,0,0,0);
    WireHitsLabel->SetWrapLength(-1);
+   WireHitsLabel->MoveResize(59,6,96,20);
+   WireHitsLabel->SetBackgroundColor(ucolor);
    fEventBox2->AddFrame(WireHitsLabel, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   WireHitsLabel->MoveResize(59,8,96,18);
 
    // add event box 2 to event boxes frame
    fEventBoxes->AddFrame(fEventBox2, new TGLayoutHints(kLHintsNormal));
@@ -280,13 +283,14 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    uGC = gClient->GetGC(&valgLabel, kTRUE);
 
    // create label for timing list box
-   gClient->GetColorByName("#deba87",ucolor); // set ucolor to mute orange
-   TGLabel *TimingLabel = new TGLabel(fEventBox3,"Timing",uGC->GetGC(),ufont->GetFontStruct(),ucolor);
+   gClient->GetColorByName("#deba87", ucolor); // set ucolor to mute orange
+   TGLabel *TimingLabel = new TGLabel(fEventBox3,"Timing",uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame,ucolor);
    TimingLabel->SetTextJustify(36);
    TimingLabel->SetMargins(0,0,0,0);
    TimingLabel->SetWrapLength(-1);
+   TimingLabel->MoveResize(58,6,88,20);
+   TimingLabel->SetBackgroundColor(ucolor);
    fEventBox3->AddFrame(TimingLabel, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   TimingLabel->MoveResize(58,8,88,18);
 
    // create list box to display timing information
    TimingListBox = new TGListBox(fEventBox3);
@@ -299,15 +303,15 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fEventBox3->MoveResize(451,6,220,226);
 
 
-   //EVENT BOX 4--Other Information//  TRIGGER SCINTILLATOR?
+   //EVENT BOX 4--Drift Distance
 
    // create vertical frame for event box 4
    gClient->GetColorByName("#d4cf87",ucolor); // set ucolor to buff
    TGVerticalFrame *fEventBox4 = new TGVerticalFrame(fEventBoxes,220,226,kVerticalFrame | kRaisedFrame,ucolor);
    fEventBox4->SetLayoutBroken(kTRUE);
-   ufont = gClient->GetFont("-*-charter-bold-r-*-*-15-*-*-*-*-*-*-*"); // set ufont to bold charter 15
 
-   // graphics context changes for "Other Information" label
+   // graphics context changes for "Drift Distance" label
+   ufont = gClient->GetFont("-*-charter-bold-r-*-*-15-*-*-*-*-*-*-*"); // set ufont to bold charter 15
    GCValues_t valInfoLabel;
    valInfoLabel.fMask = kGCForeground | kGCBackground | kGCFillStyle | kGCFont | kGCGraphicsExposures;
    gClient->GetColorByName("#000000",valInfoLabel.fForeground);
@@ -316,21 +320,22 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    valInfoLabel.fFont = ufont->GetFontHandle();
    valInfoLabel.fGraphicsExposures = kFALSE;
    uGC = gClient->GetGC(&valInfoLabel, kTRUE);
-   gClient->GetColorByName("#deba87",ucolor); // set ucolor to mute orange
+   gClient->GetColorByName("#deba87", ucolor); // set ucolor to mute orange
 
    // create label for other information list box
-   TGLabel *OtherInfoLabel = new TGLabel(fEventBox4,"Other Information",uGC->GetGC(),ufont->GetFontStruct(),ucolor);
-   OtherInfoLabel->SetTextJustify(36);
-   OtherInfoLabel->SetMargins(0,0,0,0);
-   OtherInfoLabel->SetWrapLength(-1);
-   fEventBox4->AddFrame(OtherInfoLabel, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   OtherInfoLabel->MoveResize(32,8,160,18);
+   TGLabel *DriftDistanceLabel = new TGLabel(fEventBox4,"Drift Distance",uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame,ucolor);
+   DriftDistanceLabel->SetTextJustify(36);
+   DriftDistanceLabel->SetMargins(0,0,0,0);
+   DriftDistanceLabel->SetWrapLength(-1);
+   DriftDistanceLabel->MoveResize(45,6,125,20);
+   DriftDistanceLabel->SetBackgroundColor(ucolor);
+   fEventBox4->AddFrame(DriftDistanceLabel, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
 
    // create list box to display other information
-   OtherListBox = new TGListBox(fEventBox4);  // RENAME VARIABLE ONCE I KNOW WHAT IT DOES
-   OtherListBox->Resize(200,180);
-   fEventBox4->AddFrame(OtherListBox, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   OtherListBox->MoveResize(8,32,200,180);
+   DriftDistanceListBox = new TGListBox(fEventBox4);  // RENAME VARIABLE ONCE I KNOW WHAT IT DOES
+   DriftDistanceListBox->Resize(200,180);
+   fEventBox4->AddFrame(DriftDistanceListBox, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   DriftDistanceListBox->MoveResize(8,32,200,180);
    fEventBoxes->AddFrame(fEventBox4, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fEventBox4->MoveResize(675,6,220,226);
 
@@ -340,6 +345,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    // create region boxes tab frame
    gClient->GetColorByName("#0047ab",ucolor); // set ucolor to blue
    fRegions = new TGTab(fMain,900,312,TGTab::GetDefaultGC()(),TGTab::GetDefaultFontStruct(),kChildFrame,ucolor);
+   gClient->GetColorByName("#d4cf87",ucolor); // set ucolor to buff
 
    //REGION 1--Gas Electron Multiplier//
 
@@ -347,6 +353,8 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion1 = fRegions->AddTab("Region 1--GEM");
    fRegion1->SetLayoutManager(new TGMatrixLayout(fRegion1,0,1,0,0));
    fRegion1->SetLayoutBroken(kTRUE);
+   fRegion1->SetBackgroundColor(ucolor);
+
 
    // create embedded canvas for Region 1 XY view
    fRegion1XY = new TRootEmbeddedCanvas(0,fRegion1,280,280);
@@ -355,12 +363,14 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion1XY->AdoptCanvas(cR1XY);
    fRegion1->AddFrame(fRegion1XY, new TGLayoutHints(kLHintsNormal));
    fRegion1XY->MoveResize(12,4,280,280);
-   Label_R1XY = new TPaveLabel(.03,.92,.97,.97,"Front View (X-Y Projection)"); // create canvas label
+   fRegion1XY->GetCanvas()->SetFillColor(0);
+   Label_R1XY = new TPaveLabel(.03,.94,.97,.99,"Front View (X-Y Projection)"); // create canvas label
    Label_R1XY->Draw();
    Box_R1XY = new TBox(.5-(R1_WIDTH*R1_CM*.5), .5-(R1_LENGTH*R1_CM*.5), .5+(R1_WIDTH*R1_CM*.5), .5+(R1_LENGTH*R1_CM*.5)); // create/center box to frame wire lines
    Box_R1XY->SetLineColor(1);
    Box_R1XY->SetFillStyle(0);
    Box_R1XY->Draw();
+   fRegion1XY->GetCanvas()->SetEditable(kFALSE);
 
    // create embedded canvas for Region 1 XZ view
    fRegion1XZ = new TRootEmbeddedCanvas(0,fRegion1,280,280);
@@ -369,12 +379,14 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion1XZ->AdoptCanvas(cR1XZ);
    fRegion1->AddFrame(fRegion1XZ, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion1XZ->MoveResize(306,4,280,280);
-   Label_R1XZ = new TPaveLabel(.03,.92,.97,.97,"Top View (X-Z Projection)"); // create canvas label
+   fRegion1XZ->GetCanvas()->SetFillColor(0);
+   Label_R1XZ = new TPaveLabel(.03,.94,.97,.99,"Top View (X-Z Projection)"); // create canvas label
    Label_R1XZ->Draw();
    Box_R1XZ = new TBox(.5-(R1_WIDTH*R1_CM*.5), .5-(R1_DEPTH*R1_CM*.5), .5+(R1_WIDTH*R1_CM*.5), .5+(R1_DEPTH*R1_CM*.5)); // create/center box to frame wire lines
    Box_R1XZ->SetLineColor(1);
    Box_R1XZ->SetFillStyle(0);
    Box_R1XZ->Draw();
+   fRegion1XZ->GetCanvas()->SetEditable(kFALSE);
 
    // create embedded canvas for Region 1 YZ view
    fRegion1YZ = new TRootEmbeddedCanvas(0,fRegion1,280,280);
@@ -383,12 +395,14 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion1YZ->AdoptCanvas(cR1YZ);
    fRegion1->AddFrame(fRegion1YZ, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion1YZ->MoveResize(603,4,280,280);
-   Label_R1YZ = new TPaveLabel(.03,.92,.97,.97,"Side View (Y-Z Projection)"); // create canvas label
+   fRegion1YZ->GetCanvas()->SetFillColor(0);
+   Label_R1YZ = new TPaveLabel(.03,.94,.97,.99,"Side View (Y-Z Projection)"); // create canvas label
    Label_R1YZ->Draw();
    Box_R1YZ = new TBox(.5-(R1_DEPTH*R1_CM*.5), .5-(R1_LENGTH*R1_CM*.5), .5+(R1_DEPTH*R1_CM*.5), .5+(R1_LENGTH*R1_CM*.5)); // create/center box to frame wire lines
    Box_R1YZ->SetLineColor(1);
    Box_R1YZ->SetFillStyle(0);
    Box_R1YZ->Draw();
+   fRegion1YZ->GetCanvas()->SetEditable(kFALSE);
 
    //REGION 2--Horizontal Drift Chamber//
 
@@ -396,6 +410,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion2 = fRegions->AddTab("Region 2--HDC");
    fRegion2->SetLayoutManager(new TGVerticalLayout(fRegion2));
    fRegion2->SetLayoutBroken(kTRUE);
+   fRegion2->SetBackgroundColor(ucolor);
 
    // create embedded canvas for Region 2 XY view
    fRegion2XY = new TRootEmbeddedCanvas(0,fRegion2,280,280);
@@ -404,12 +419,14 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion2XY->AdoptCanvas(cR2XY);
    fRegion2->AddFrame(fRegion2XY, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion2XY->MoveResize(12,4,280,280);
-   Label_R2XY = new TPaveLabel(.03,.92,.97,.97,"Front View (X-Y Projection)"); // create canvas label
+   fRegion2XY->GetCanvas()->SetFillColor(0);
+   Label_R2XY = new TPaveLabel(.03,.94,.97,.99,"Front View (X-Y Projection)"); // create canvas label
    Label_R2XY->Draw();
    Box_R2XY = new TBox(.5-(R2_WIDTH*R2_CM*.5), .5-(R2_LENGTH*R2_CM*.5), .5+(R2_WIDTH*R2_CM*.5), .5+(R2_LENGTH*R2_CM*.5)); // create/center box to frame wire lines
    Box_R2XY->SetLineColor(1);
    Box_R2XY->SetFillStyle(0);
    Box_R2XY->Draw();
+   fRegion2XY->GetCanvas()->SetEditable(kFALSE);
 
    // create embedded canvas for Region 2 XZ view
    fRegion2XZ = new TRootEmbeddedCanvas(0,fRegion2,280,280);
@@ -418,12 +435,14 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion2XZ->AdoptCanvas(cR2XZ);
    fRegion2->AddFrame(fRegion2XZ, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion2XZ->MoveResize(306,4,280,280);
-   Label_R2XZ = new TPaveLabel(.03,.92,.97,.97,"Top View (X-Z Projection)"); // create canvas label
+   fRegion2XZ->GetCanvas()->SetFillColor(0);
+   Label_R2XZ = new TPaveLabel(.03,.94,.97,.99,"Top View (X-Z Projection)"); // create canvas label
    Label_R2XZ->Draw();
    Box_R2XZ = new TBox(.5-(R2_WIDTH*R2_CM*.5), .5-(R2_DEPTH*R2_CM*.5), .5+(R2_WIDTH*R2_CM*.5), .5+(R2_DEPTH*R2_CM*.5)); // create/center box to frame wire lines
    Box_R2XZ->SetLineColor(1);
    Box_R2XZ->SetFillStyle(0);
    Box_R2XZ->Draw();
+   fRegion2XZ->GetCanvas()->SetEditable(kFALSE);
 
    // create embedded canvas for Region 2 YZ view
    fRegion2YZ = new TRootEmbeddedCanvas(0,fRegion2,280,280);
@@ -432,12 +451,14 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion2YZ->AdoptCanvas(cR2YZ);
    fRegion2->AddFrame(fRegion2YZ, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion2YZ->MoveResize(603,4,280,280);
-   Label_R2YZ = new TPaveLabel(.03,.92,.97,.97,"Side View (Y-Z Projection)"); // create canvas label
+   fRegion2YZ->GetCanvas()->SetFillColor(0);
+   Label_R2YZ = new TPaveLabel(.03,.94,.97,.99,"Side View (Y-Z Projection)"); // create canvas label
    Label_R2YZ->Draw();
    Box_R2YZ = new TBox(.5-(R2_DEPTH*R2_CM*.5), .5-(R2_LENGTH*R2_CM*.5), .5+(R2_DEPTH*R2_CM*.5), .5+(R2_LENGTH*R2_CM*.5)); // create/center box to frame wire lines
    Box_R2YZ->SetLineColor(1);
    Box_R2YZ->SetFillStyle(0);
    Box_R2YZ->Draw();
+   fRegion2YZ->GetCanvas()->SetEditable(kFALSE);
 
    //REGION 3--Vertical Drift Chamber//
 
@@ -445,6 +466,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion3 = fRegions->AddTab("Region 3--VDC");
    fRegion3->SetLayoutManager(new TGVerticalLayout(fRegion3));
    fRegion3->SetLayoutBroken(kTRUE);
+   fRegion3->SetBackgroundColor(ucolor);
 
    // create embedded canvas for Region 3 XY view
    fRegion3XY = new TRootEmbeddedCanvas(0,fRegion3,280,280);
@@ -453,12 +475,14 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion3XY->AdoptCanvas(cR3XY);
    fRegion3->AddFrame(fRegion3XY, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion3XY->MoveResize(12,4,280,280);
-   Label_R3XY = new TPaveLabel(.03,.92,.97,.97,"Front View (X-Y Projection)"); // create canvas label
+   fRegion3XY->GetCanvas()->SetFillColor(0);
+   Label_R3XY = new TPaveLabel(.03,.94,.97,.99,"Front View (X-Y Projection)"); // create canvas label
    Label_R3XY->Draw();
    Box_R3XY = new TBox(.5-(R3_WIDTH*R3_CM*.5), .5-(R3_LENGTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .5+(R3_LENGTH*R3_CM*.5)); // create/center box to frame wire lines
    Box_R3XY->SetLineColor(1);
    Box_R3XY->SetFillStyle(0);
    Box_R3XY->Draw();
+   fRegion3XY->GetCanvas()->SetEditable(kFALSE);
 
    // create embedded canvas for Region 3 XZ view
    fRegion3XZ = new TRootEmbeddedCanvas(0,fRegion3,280,280);
@@ -467,12 +491,14 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion3XZ->AdoptCanvas(cR3XZ);
    fRegion3->AddFrame(fRegion3XZ, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion3XZ->MoveResize(306,4,280,280);
-   Label_R3XZ = new TPaveLabel(.03,.92,.97,.97,"Top View (X-Z Projection)"); // create canvas label
+   fRegion3XZ->GetCanvas()->SetFillColor(0);
+   Label_R3XZ = new TPaveLabel(.03,.94,.97,.99,"Top View (X-Z Projection)"); // create canvas label
    Label_R3XZ->Draw();
    Box_R3XZ = new TBox(.5-(R3_WIDTH*R3_CM*.5), .5-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)); // create/center box to frame wire lines
    Box_R3XZ->SetLineColor(1);
    Box_R3XZ->SetFillStyle(0);
    Box_R3XZ->Draw();
+   fRegion3XZ->GetCanvas()->SetEditable(kFALSE);
 
    // create embedded canvas for Region 3 YZ view
    fRegion3YZ = new TRootEmbeddedCanvas(0,fRegion3,280,280);
@@ -481,23 +507,27 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion3YZ->AdoptCanvas(cR3YZ);
    fRegion3->AddFrame(fRegion3YZ, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion3YZ->MoveResize(603,4,280,280);
-   Label_R3YZ = new TPaveLabel(.03,.92,.97,.97,"Side View (Y-Z Projection)"); // create canvas label
+   fRegion3YZ->GetCanvas()->SetFillColor(0);
+   Label_R3YZ = new TPaveLabel(.03,.94,.97,.99,"Side View (Y-Z Projection)"); // create canvas label
    Label_R3YZ->Draw();
    Box_R3YZ = new TBox(.5-(R3_DEPTH*R3_CM*.5), .5-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5), .5+(R3_LENGTH*R3_CM*.5)); // create/center box to frame wire lines
    Box_R3YZ->SetLineColor(1);
    Box_R3YZ->SetFillStyle(0);
    Box_R3YZ->Draw();
-
-
-   //REGION 4--Trigger Scintillator//
-
-   // all scintillator info will be in event box 4, but maybe declare variables here?  perhaps just put info in draw portion
+   fRegion3YZ->GetCanvas()->SetEditable(kFALSE);
 
    // set tab attributes
    fRegions->SetTab(0);
    fRegions->Resize(fRegions->GetDefaultSize());
    fMain->AddFrame(fRegions, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegions->MoveResize(0,320,900,312);
+   gClient->GetColorByName("#deba87", ucolor); // set ucolor to mute orange
+   fRegions->GetTabTab("Region 1--GEM")->SetBackgroundColor(ucolor);
+   fRegions->GetTabTab("Region 2--HDC")->SetBackgroundColor(ucolor);
+   fRegions->GetTabTab("Region 3--VDC")->SetBackgroundColor(ucolor);
+
+   //   ufont = gClient->GetFont("-*-courier-bold-r-*-*-10-*-*-*-*-*-*-*"); // set ufont to bold charter 15  SOMEHOW CHANGE TGTabElement FONT!!!
+   //   fRegions->GetTabTab("Region 1--GEM")
 
 
    ////BUTTONS////
@@ -553,7 +583,6 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    // add exit button to frame
    fButtons->AddFrame(ExitButton, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    ExitButton->MoveResize(784,6,100,50);
-   ufont = gClient->GetFont("-*-helvetica-bold-r-*-*-12-*-*-*-*-*-*-*"); // set ufont to bold helvetica 12
 
 
    // graphics context changes for "Previous Event" button
@@ -576,7 +605,6 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    // add previous button to frame
    fButtons->AddFrame(PreviousButton, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    PreviousButton->MoveResize(12,6,100,50);
-   ufont = gClient->GetFont("-*-helvetica-bold-r-*-*-12-*-*-*-*-*-*-*"); // set ufont to bold helvetica 12
 
 
    // graphics context changes for "Next Event" button
@@ -599,13 +627,61 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fButtons->AddFrame(NextButton, new TGLayoutHints(kLHintsNormal));
    NextButton->MoveResize(125,6,100,50);
 
-
    // add buttons frame to main frame
    fMain->AddFrame(fButtons, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fButtons->MoveResize(0,632,900,60);
 
 
    //FINAL TOUCH//
+
+   // create embedded canvas to display key for region data
+   TRootEmbeddedCanvas *fKey = new TRootEmbeddedCanvas(0,fButtons,280,280);
+   Int_t wKey = fKey->GetCanvasWindowId();
+   TCanvas *cKey = new TCanvas("cKey", 10, 10, wKey);
+   fKey->AdoptCanvas(cKey);
+   fButtons->AddFrame(fKey, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fKey->MoveResize(245,6,515,50);
+   // fill in details
+   fKey->GetCanvas()->cd();
+   fKey->GetCanvas()->SetFillColor(0);
+   TPaveLabel *Label_KeyX = new TPaveLabel(.01,.05,.24,.95," X"); // create key label for X info
+   Label_KeyX->SetTextAlign(12);
+   Label_KeyX->SetTextColor(kRed);
+   //   Label_KeyX->SetFillColor(0);
+   Label_KeyX->SetShadowColor(0);
+   Label_KeyX->Draw();
+   TLine *Line_KeyX = new TLine(.1,.5,.2,.5);
+   Line_KeyX->SetLineColor(kRed);
+   Line_KeyX->Draw();
+   TPaveLabel *Label_KeyY = new TPaveLabel(.25,.05,.49,.95," Y"); // create key label for Y info
+   Label_KeyY->SetTextAlign(12);
+   Label_KeyY->SetTextColor(kViolet);
+   //   Label_KeyY->SetFillColor(0);
+   Label_KeyY->SetShadowColor(0);
+   Label_KeyY->Draw();
+   TLine *Line_KeyY = new TLine(.4,.1,.4,.9);
+   Line_KeyY->SetLineColor(kViolet);
+   Line_KeyY->Draw();
+   TPaveLabel *Label_KeyU = new TPaveLabel(.5,.05,.74,.95," U"); // create key label for U info
+   Label_KeyU->SetTextAlign(12);
+   Label_KeyU->SetTextColor(kGreen);
+   //   Label_KeyU->SetFillColor(0);
+   Label_KeyU->SetShadowColor(0);
+   Label_KeyU->Draw();
+   TLine *Line_KeyU = new TLine(.59,.1,.7,.9);
+   Line_KeyU->SetLineColor(kGreen);
+   Line_KeyU->Draw();
+   TPaveLabel *Label_KeyV = new TPaveLabel(.75,.05,.99,.95," V"); // create key label for V info
+   Label_KeyV->SetTextAlign(12);
+   Label_KeyV->SetTextColor(kBlue);
+   //   Label_KeyV->SetFillColor(0);
+   Label_KeyV->SetShadowColor(0);
+   Label_KeyV->Draw();
+   TLine *Line_KeyV = new TLine(.84,.9,.95,.1);
+   Line_KeyV->SetLineColor(kBlue);
+   Line_KeyV->Draw();
+   fKey->GetCanvas()->SetEditable(kFALSE);
+   fKey->GetCanvas()->Update();
 
    // add main frame to the pop up window and customize
    fMain->SetMWMHints(kMWMDecorAll,kMWMFuncAll,kMWMInputModeless);
@@ -626,8 +702,10 @@ void QwEventDisplay::GoPrevious(){  // makes event counter minus one
     DrawEvent();  // update display information
   }
 
-  else
+  else{
+    fEventNumber = 0;  // go to null event
     GoClear(); // event 0 is null event
+  }
 
 } // end GoPrevious()
 
@@ -641,26 +719,24 @@ void QwEventDisplay::GoNext(){  // makes event counter plus one
 
 
 void QwEventDisplay::GoClear(){  // clears all displayed data
-                                   // called by ClearButton click
-                                   // NEED TO TEST REGION CLEAR
 
-  fEventNumber = 0;  // go to null event
-  CurrentEventLabel->SetText(Form("%d", fEventNumber)); // show null event
+  CurrentEventLabel->SetText(Form("%d", fEventNumber)); // updates layout to show current event number
 
   WireHitListBox->RemoveAll(); // clear event box 2
   TimingListBox->RemoveAll(); // clear event box 3
-  OtherListBox->RemoveAll(); // clear event box 4
+  DriftDistanceListBox->RemoveAll(); // clear event box 4
 
-  Line_R1r.clear(); // clear existing Region 1 drawn lines
+  Line_R1r.clear(); // clear existing Region 1 vectors
   Line_R1y.clear();
   R1_XYfit.clear();
   R1_XZfit.clear();
-  Line_R2x.clear(); // clear existing Region 2 drawn lines
+  Line_R2x.clear(); // clear existing Region 2 vectors
   Line_R2u.clear();
   Line_R2v.clear();
-  Line_R3u.clear(); // clear existing Region 3 drawn lines
+  Line_R3u.clear(); // clear existing Region 3 vectors
   Line_R3v.clear();
-  fRegion1XY->GetCanvas()->Update();
+
+  fRegion1XY->GetCanvas()->Update(); // clear existing information and add new event information
   fRegion1XZ->GetCanvas()->Update();
   fRegion1YZ->GetCanvas()->Update();
   fRegion2XY->GetCanvas()->Update();
@@ -683,8 +759,10 @@ void QwEventDisplay::GotoEvent(){  // goes to desired event number written in "g
     DrawEvent();  // update display information
   }
 
-  else
+  else{
+    fEventNumber = 0; // go to null event
     GoClear(); // event 0 is null event
+  }
 
 } // end GotoEvent()
 
@@ -693,11 +771,21 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
                                      // displays orthographic views triggered wires for each region
                                      // called by Previous, Next, or GotoEvent buttons  // NOT COMPLETE
 
-  CurrentEventLabel->SetText(Form("%d", fEventNumber)); // updates layout to show current event number
+  GoClear(); // clear existing data
+
+  fRegion1XY->GetCanvas()->SetEditable(kTRUE);  // restore editing capability
+  fRegion1XZ->GetCanvas()->SetEditable(kTRUE);
+  fRegion1YZ->GetCanvas()->SetEditable(kTRUE);
+  fRegion2XY->GetCanvas()->SetEditable(kTRUE);
+  fRegion2XZ->GetCanvas()->SetEditable(kTRUE);
+  fRegion2YZ->GetCanvas()->SetEditable(kTRUE);
+  fRegion3XY->GetCanvas()->SetEditable(kTRUE);
+  fRegion3XZ->GetCanvas()->SetEditable(kTRUE);
+  fRegion3YZ->GetCanvas()->SetEditable(kTRUE);
 
   WireHitListBox->RemoveAll(); // clear event box 2
   TimingListBox->RemoveAll(); // clear event box 3
-  OtherListBox->RemoveAll(); // clear event box 4
+  DriftDistanceListBox->RemoveAll(); // clear event box 4
 
   Line_R1r.clear(); // clear existing Region 1 drawn lines
   Line_R1y.clear();
@@ -728,31 +816,25 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     } // end if
   } //end for
 
-  //  WireHitListBox->AddEntry(Form(""),fEventNumber); NOT NEEDED SINCE EVENT BOXES CLEARED EACH DRAW
-
   //LIST TIMING DATA//
   for(QwHitContainer::iterator hit = fHitList->begin(); hit != fHitList->end(); hit++){ // loop while hits exist in the hit container
     if(hit->GetElement() > 0){
-      sprintf(HitBuffer, "Time: %lf, Raw: %u", hit->GetTime(), hit->GetRawTime()); // print sin
+      sprintf(HitBuffer, "Time: %lf, Raw: %u ns", hit->GetTime(), hit->GetRawTime()); // print sin
       TimingListBox->AddEntry(HitBuffer, fEventNumber); // add to list box
       TimingListBox->MapSubwindows(); // re-map window
       TimingListBox->Layout();
     } // end if
   } //end for
 
-  //  TimingListBox->AddEntry(Form(""),fEventNumber);
-
-  //LIST OTHER DATA//
+  //LIST DRIFT DISTANCE DATA//
   for(QwHitContainer::iterator hit = fHitList->begin(); hit != fHitList->end(); hit++){ // loop while hits exist in the hit container
     if(hit->GetElement() > 0){
-      sprintf(HitBuffer, "Drift Dist: %lf", hit->GetDriftDistance()); // print single drift distance with wire hit
-      OtherListBox->AddEntry(HitBuffer, fEventNumber); // add to list box
-      OtherListBox->MapSubwindows(); // re-map window
-      OtherListBox->Layout();
+      sprintf(HitBuffer, "Drift Distance: %lf cm", hit->GetDriftDistance()); // print single drift distance with wire hit
+      DriftDistanceListBox->AddEntry(HitBuffer, fEventNumber); // add to list box
+      DriftDistanceListBox->MapSubwindows(); // re-map window
+      DriftDistanceListBox->Layout();
     } // end if
   } //end for
-
-  //  OtherListBox->AddEntry(Form(""),fEventNumber);
 
   //GATHER WIRE HIT DATA//
   // Region 1 hits
@@ -774,17 +856,17 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
   for(QwHitContainer::iterator hit = Hits_R1r->begin(); hit != Hits_R1r->end(); hit++){
     //WHAT ARE THESE ACTUALLY? G4 DOES NOT GET ANY HITS FROM THESE
   }
-  //Region 1 Y wire
+  //Region 1 Y wires
   //  sum = 0; // back to 0 for fitting
   //  num = 0;
   for(QwHitContainer::iterator hit = Hits_R1y->begin(); hit != Hits_R1y->end(); hit++){
     int wire = hit->GetElement();
     //    double dist = hit->GetDriftDistance();
     TLine Line;
-    Line.SetX1(.5 - (R1_WIDTH*R1_CM*.5));
-    Line.SetY1(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
-    Line.SetX2(.5 + (R1_WIDTH*R1_CM*.5));
-    Line.SetY2(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
+    Line.SetX1(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
+    Line.SetY1(.5 - (R1_LENGTH*R1_CM*.5));
+    Line.SetX2(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
+    Line.SetY2(.5 + (R1_LENGTH*R1_CM*.5));
     Line.SetLineColor(kViolet);
     Line_R1y.push_back(Line); // add Line to end of vector R2x
     Line_R1y.back().Draw(); // draw line;
@@ -799,21 +881,22 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
   Line.SetLineColor(kBlack);
   R1_XYfit.push_back(Line);
   R1_XYfit.back().Draw();*/
+  fRegion1XY->GetCanvas()->SetEditable(kFALSE);
   fRegion1XY->GetCanvas()->Update();
 
   //TOP VIEW (X-Z)
   fRegion1XZ->GetCanvas()->cd();
-  //Region 1 Y wire
+  //Region 1 Y wires
   sum = 0; // back to 0 for fitting
   num = 0;
   for(QwHitContainer::iterator hit = Hits_R1y->begin(); hit != Hits_R1y->end(); hit++){
     int wire = hit->GetElement();
     //    double dist = hit->GetDriftDistance();
     TLine Line;
-    Line.SetX1(.5 - (R1_WIDTH*R1_CM*.5));
-    Line.SetY1(.5 - (R1_DEPTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
-    Line.SetX2(.5 - (R1_WIDTH*R1_CM*.5));
-    Line.SetY2(.5 + (R1_DEPTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
+    Line.SetX1(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
+    Line.SetY1(.5 - (R1_DEPTH*R1_CM*.5));
+    Line.SetX2(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*wire));
+    Line.SetY2(.5 + (R1_DEPTH*R1_CM*.5));
     Line.SetLineColor(kViolet);
     Line_R1y.push_back(Line); // add Line to end of vector R2x
     Line_R1y.back().Draw(); // draw line;
@@ -828,16 +911,18 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
   Line.SetLineColor(kBlack);
   R1_XZfit.push_back(Line);
   R1_XZfit.back().Draw();*/
+  fRegion1XZ->GetCanvas()->SetEditable(kFALSE);
   fRegion1XZ->GetCanvas()->Update();
 
   //SIDE VIEW (Y-Z)
   fRegion1YZ->GetCanvas()->cd();
-  //Region 1 Y wire
-  /*  for(QwHitContainer::iterator hit = Hits_R1y->begin(); hit != Hits_R1y->end(); hit++){
+  //Region 1 Y wires
+  for(QwHitContainer::iterator hit = Hits_R1y->begin(); hit != Hits_R1y->end(); hit++){
    Box_R1YZ->SetFillStyle(1001);
    Box_R1YZ->SetFillColor(kViolet);
    Box_R1YZ->Draw();
-  }*/
+  }
+  fRegion1YZ->GetCanvas()->SetEditable(kFALSE);
   fRegion1YZ->GetCanvas()->Update();
 
 
@@ -852,9 +937,9 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     //    double dist = hit->GetDriftDistance();
     TLine Line;
     Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5));
-    Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5) + (R2_DIST*R2_CM*wire));// + dist*.0135); // FIX R2_DIST
+    Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5) + (R2_XDIST*R2_CM*wire));// + dist*.0135); // FIX R2_DIST
     Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5));
-    Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (R2_DIST*R2_CM*wire));// + dist*.0135); // removed drift distance addition
+    Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (R2_XDIST*R2_CM*wire));// + dist*.0135); // removed drift distance addition
     Line.SetLineColor(kRed);
     Line_R2x.push_back(Line); // add Line to end of vector R2x
     Line_R2x.back().Draw(); // draw line;
@@ -864,43 +949,56 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     int wire = hit->GetElement();
     //    double dist = hit->GetDriftDistance();
     TLine Line;
-    if(wire < 17){
-      Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5) - (R2_DIST*R2_CM*wire));// - dist*1.25*2.099737533e-3); // CHECK
+    if (wire < 15){ //12th wire ends at (X2, Y2)  CHECK THIS!!
+      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*wire));
       Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5));
       Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5));
-      Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5) + (R2_DIST*R2_CM*wire));// + dist*1.667*2.099737533e-3); // CHECK
+      Line.SetY2(Line.GetX1()*tan(-R2_ANGLE));
+      }
+    else if (wire < 18){ //17th wire begins at (X1, Y1)  CHECK THIS!!
+      Line.SetX1(Line.GetX2() - (12*R2_UVDIST*R2_CM)); // 12 is wire that ends at top right corner
+      Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5));
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(wire-12))); // 12 is wire that ends at top right corner
+      Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5));
     }
     else{
       Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5));
-      Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5) + (R2_DIST*R2_CM*wire));// + dist*1.667*2.099737533e-3); // CHECK
-      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_DIST*R2_CM*wire));// - dist*1.25*2.099737533e-3); // CHECK
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(wire-12))); // 12 is wire that ends at top right corner
+      Line.SetY1((Line.GetX2()-Line.GetX1())*tan(R2_ANGLE));
       Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5));
-      }
+    }
     Line.SetLineColor(kGreen);
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
-    }
+  }
   //Region 2 V wires
   for(QwHitContainer::iterator hit = Hits_R2v->begin(); hit != Hits_R2v->end(); hit++){
     int wire = hit->GetElement();
     //    double dist = hit->GetDriftDistance();
     TLine Line;
-    if (wire < 17) {
-      Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5));
-      Line.SetY1(.5 + (R2_LENGTH*R2_CM*.5) + (R2_DIST*R2_CM*wire));    //.26523+(wire-1)*0.040853); // CHECK
-      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) + (R2_DIST*R2_CM*wire));    //.323957+(wire-1)*0.0306477); // CHECK
-      Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5));
+    if (wire < 12) {
+      Line.SetY1(.5 + (R2_LENGTH*R2_CM*.5));
+      Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5) - (R2_UVDIST*R2_CM*wire));
+      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (Line.GetY1() - Line.GetY2())*tan(-R2_ANGLE));
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5));
+    }
+    else if (wire < 18){ //18th wire begins at (X1, Y1)  CHECK THIS!!
+      Line.SetX1(Line.GetX2() - (12*R2_UVDIST*R2_CM)); // 12 is wire that ends at top right corner
+      Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5));
+      Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(wire-12))); // 12 is wire that ends at top right corner
+      Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5));
     }
     else{
-      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) + (R2_DIST*R2_CM*wire));   //0.214179+(wire-17)*0.0306667); // CHECK
+      Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) + (R2_UVDIST*R2_CM*wire));
       Line.SetY1(.5 + (R2_LENGTH*R2_CM*.5));
       Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5));
-      Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5) + (R2_DIST*R2_CM*wire));    //.1191+(wire-17)*0.0408787); // CHECK
+      Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5) + (R2_UVDIST*R2_CM*wire));
     }
     Line.SetLineColor(kBlue);
     Line_R2v.push_back(Line);
     Line_R2v.back().Draw();
   }
+  fRegion2XY->GetCanvas()->SetEditable(kFALSE);
   fRegion2XY->GetCanvas()->Update();
 
   //TOP VIEW (X-Z)
@@ -945,10 +1043,12 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
     }
+  fRegion2XZ->GetCanvas()->SetEditable(kFALSE);
   fRegion2XZ->GetCanvas()->Update();
 
   //SIDE VIEW (Y-Z)
   fRegion2YZ->GetCanvas()->cd();
+  fRegion2YZ->GetCanvas()->SetEditable(kFALSE);
   fRegion2YZ->GetCanvas()->Update();
 
 
@@ -961,23 +1061,23 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     int wire = hit->GetElement();
     //    double dist = hit->GetDriftDistance();
     TLine Line;
-    if (wire < 25){ //25th wire ends at corner (X2, Y1)  CHECK THIS!!
+    if (wire < 96){ //25th wire ends at corner (X2, Y1)  CHECK THIS!!
       Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5));
-      Line.SetY1(.5 - (R3_LENGTH*R3_CM*.5) + (R3_DIST*R3_CM*wire));
+      Line.SetY1(.5 - (R3_LENGTH*R3_CM*.5) + (R3_UVDIST*R3_CM*wire));
       Line.SetX2(Line.GetY1()*tan(R3_ANGLE));
       Line.SetY2(.5 - (R3_LENGTH*R3_CM*.5));
       }
-    else if (wire < 210){ //210th wire begins at (X1, Y2)  CHECK THIS!!
+    else if (wire < 184){ //210th wire begins at (X1, Y2)  CHECK THIS!!
       Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5));
-      Line.SetY1(.5 - (R3_LENGTH*R3_CM*.5) + (R3_DIST*R3_CM*wire));
+      Line.SetY1(.5 - (R3_LENGTH*R3_CM*.5) + (R3_UVDIST*R3_CM*wire));
       Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5));
-      Line.SetY2(Line.GetY1() - (25*R3_CM)); // gets correct R3_ANGLE
+      Line.SetY2(Line.GetY1() - (25*R3_UVDIST*R3_CM)); // gets correct R3_ANGLE //CONSTANT HERE!!  CHECK THIS!!
     }
     else{
-      Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5) + (R3_DIST*R3_CM*(wire - 210)));
+      Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5) + (R3_UVDIST*R3_CM*(wire - 184))); // 12 is wire that ends at  corner
       Line.SetY1(.5 + (R3_LENGTH*R3_CM*.5));
       Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5));
-      Line.SetY2(Line.GetX1() / tan(R3_ANGLE));
+      Line.SetY2((Line.GetX2()-Line.GetX1()) / tan(R3_ANGLE));
     }
     Line.SetLineColor(kGreen);
     Line_R2u.push_back(Line);
@@ -990,20 +1090,21 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     TLine Line;
     if (wire > 17) {
       Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5));
-      Line.SetY1(.5 + (R3_LENGTH*R3_CM*.5) + (R3_DIST*R3_CM*wire));    //.26523+(wire-1)*0.040853); // CHECK
-      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) + (R3_DIST*R3_CM*wire));    //.323957+(wire-1)*0.0306477); // CHECK
+      Line.SetY1(.5 + (R3_LENGTH*R3_CM*.5) + (R3_UVDIST*R3_CM*wire));    //.26523+(wire-1)*0.040853); // CHECK
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) + (R3_UVDIST*R3_CM*wire));    //.323957+(wire-1)*0.0306477); // CHECK
       Line.SetY2(.5 - (R3_LENGTH*R3_CM*.5));
     }
     else{
-      Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) + (R3_DIST*R3_CM*wire));   //0.214179+(wire-17)*0.0306667); // CHECK
+      Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) + (R3_UVDIST*R3_CM*wire));   //0.214179+(wire-17)*0.0306667); // CHECK
       Line.SetY1(.5 + (R3_LENGTH*R3_CM*.5));
       Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5));
-      Line.SetY2(.5 + (R3_LENGTH*R3_CM*.5) + (R3_DIST*R3_CM*wire));    //.1191+(wire-17)*0.0408787); // CHECK
+      Line.SetY2(.5 + (R3_LENGTH*R3_CM*.5) + (R3_UVDIST*R3_CM*wire));    //.1191+(wire-17)*0.0408787); // CHECK
     }
     Line.SetLineColor(kBlue);
     Line_R2v.push_back(Line);
     Line_R2v.back().Draw();
     }
+  fRegion3XY->GetCanvas()->SetEditable(kFALSE);
   fRegion3XY->GetCanvas()->Update();
 
   //TOP VIEW (X-Z)
@@ -1035,10 +1136,12 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
     }
+  fRegion3XZ->GetCanvas()->SetEditable(kFALSE);
   fRegion3XZ->GetCanvas()->Update();
 
   //SIDE VIEW (Y-Z)
   fRegion3YZ->GetCanvas()->cd();
+  fRegion3YZ->GetCanvas()->SetEditable(kFALSE);
   fRegion3YZ->GetCanvas()->Update();
 } // end DrawEvent()
 
