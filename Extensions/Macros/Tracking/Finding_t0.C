@@ -33,7 +33,7 @@
 
 gROOT->Reset();
 const Int_t kWireNumbers=279;
-const Int_t kPlaneNumbers=2;
+const Int_t kPlaneNumbers=4;
 
 const Short_t LIBNUM=3;
 const Char_t* LIBNAME[LIBNUM]={
@@ -65,11 +65,16 @@ void find_t0(Int_t event_start=-1,Int_t event_end=-1,Double_t threshold=0.05,Int
     TFile *file = new TFile(Form("%s/rootfiles/Qweak_%d.root",gSystem->Getenv("QWANALYSIS"),run_number));
     Int_t ev_start=0,ev_end=0;
     Double_t ratio=threshold;
-    TH1F* h_p1=new TH1F("p1","p1",1000,1000,2000);
-    TH1F* h_p2=new TH1F("p2","p2",1000,1000,2000);
+    TH1F * h_p[4];
+    for(int i=0;i<4;i++)
+	h_p[i]=new TH1F(Form("p%d",i),Form("p%d",i),1500,1000,2500);
+//    TH1F* h_p1=new TH1F("p1","p1",1500,1000,2500);
+//    TH1F* h_p2=new TH1F("p2","p2",1500,1000,2500);
+//    TH1F* h_p3=new TH1F("p3","p3",1500,1000,2500);
+//    TH1F* h_p4=new TH1F("p4","p4",1500,1000,2500);
 
 
-
+	
     TTree* hit_tree=(TTree*)file->Get("tree");
     QwHitRootContainer* hitcontainer=NULL;
     hit_tree->SetBranchAddress("hits",&hitcontainer);
@@ -93,10 +98,9 @@ void find_t0(Int_t event_start=-1,Int_t event_end=-1,Double_t threshold=0.05,Int
     Double_t wire[kWireNumbers]={0},t0_max[dim]={0};
     TH1F* time_histo[dim];
 
-
     for (int pln=0;pln<kPlaneNumbers;pln++) {
         for (int w=0;w<kWireNumbers;w++) {
-            time_histo[pln*kWireNumbers+w]=new TH1F(Form("time spectrum for wire %d in plane %d",w,pln),Form("wire %d in plane %d",w,pln),2000,0,2000);
+            time_histo[pln*kWireNumbers+w]=new TH1F(Form("time spectrum for wire %d in plane %d",w,pln),Form("wire %d in plane %d",w,pln),2500,0,2500);
         }
     }
 
@@ -112,9 +116,13 @@ void find_t0(Int_t event_start=-1,Int_t event_end=-1,Double_t threshold=0.05,Int
             hit = (QwHit*) hitcontainer->GetHit(hit_i);
             
             if (hit->GetHitNumber()==0) {
-		if(hit->GetPlane<3){
+		if(hit->GetPlane()<5){
                 int index=(hit->GetPlane()-1)*kWireNumbers+hit->GetElement()-1;
                 time_histo[index]->Fill(-(hit->GetTime()));
+		}
+		else{
+		int index=(hit->GetPlane()-5)*kWireNumbers+hit->GetElement()-1;
+		time_histo[index]->Fill(-(hit->GetTime()));
 		}
             }
         }
@@ -128,26 +136,29 @@ void find_t0(Int_t event_start=-1,Int_t event_end=-1,Double_t threshold=0.05,Int
         myfile << "package=" << 1 << endl;
 
     for (int pln=0;pln<kPlaneNumbers;pln++) {
-        myfile << "plane= " << pln << endl;
+        myfile << "plane= " << pln+1 << endl;
 	myfile << endl;
         for (int w=0;w<kWireNumbers;w++) {
             int index=pln*kWireNumbers+w;
 
             t0_max[index]=t0_search(time_histo[index],threshold);
             myfile << w+1 << " " << -t0_max[index] << endl;
-	    if(pln==0) h_p1->Fill(t0_max[index]);
-		else h_p2->Fill(t0_max[index]);
+	    
+//	    if(pln==0) h_p1->Fill(t0_max[index]);
+//		else h_p2->Fill(t0_max[index]);
+	    h_p[pln]->Fill(t0_max[index]);
         }
+	std::cout << "happy here? " << std::endl;
     }
 
 
     
-	
-    m1=new TF1("m1","gaus",1400,1500);
-    m2=new TF1("m2","gaus",1400,1500);
+/*	
+    m1=new TF1("m1","gaus",1800,2200);
+    m2=new TF1("m2","gaus",1800,2200);
 
     TCanvas* c=new TCanvas("c","c",800,600);
-    c->Divide(2,2);
+    c->Divide(4,2);
     c->cd(1);
     TGraph* g=new TGraph(kWireNumbers,wire,t0_max);
     g->Draw("a*");
@@ -160,16 +171,34 @@ void find_t0(Int_t event_start=-1,Int_t event_end=-1,Double_t threshold=0.05,Int
     c->cd(4);
     h_p2->Fit(m2,"R");
     h_p2->Draw();
+*/  
+
+    TF1* m[4];
+    Double_t par[12];
+    TCanvas* c=new TCanvas("c","c",800,600);
+    c->Divide(4,2);
+    for(int i=0;i<4;i++){
+	m[i]=new TF1(Form("m%d",i),"gaus",1800,2200);
+	c->cd(2*i+1);
+	TGraph* g=new TGraph(kWireNumbers,wire,&t0_max[i*kWireNumbers]);
+	g->Draw("a*");
+	c->cd(2*i+2);
+	h_p[i]->Fit(m[i],"R");
+	h_p[i]->Draw();
+	m[i]->GetParameters(&par[3*i]);
+		}  
     
-    Double_t par[6];
-    m1->GetParameters(&par[0]);
-    m2->GetParameters(&par[3]);
+//    Double_t par[6];
+//    m1->GetParameters(&par[0]);
+//    m2->GetParameters(&par[3]);
 
 
 
     myfile << "range average: " << endl;
     myfile <<  par[1]-5*par[2] << " " << par[1]+5*par[2] << " " << par[1] << endl;
     myfile <<  par[4]-5*par[5] << " " << par[4]+5*par[5] << " " << par[4] << endl;
+    myfile <<  par[7]-5*par[8] << " " << par[7]+5*par[8] << " " << par[7] << endl;
+    myfile <<  par[10]-5*par[11] << " " << par[10]+5*par[11] << " " << par[10] << endl;
 
     myfile.close();
 
@@ -182,7 +211,7 @@ void find_t0(Int_t event_start=-1,Int_t event_end=-1,Double_t threshold=0.05,Int
 double t0_search(TH1F* histo,Double_t ratio) {
 
     double maxhit=0,max=0,cutoff=0,bin_content=0;
-    for (int bin_id=5;bin_id<2000;bin_id++) {
+    for (int bin_id=5;bin_id<2500;bin_id++) {
         bin_content=histo->GetBinContent(bin_id);
         if (bin_content>maxhit) {
             maxhit=bin_content;

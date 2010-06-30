@@ -490,10 +490,14 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile ) {
         dir= mapstr.GetNextToken ( ", \t()" ).c_str();
         firstwire= ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
 
-        if ( pknum== "u")
-            BuildWireDataStructure(channum,kPackageUp,plnum,firstwire);
-        else if (pknum== "d")
-            BuildWireDataStructure(channum,kPackageDown,plnum,firstwire);
+	UInt_t package;
+	if(pknum=="u") {package=kPackageUp;}
+		else if(pknum=="v") {package=kPackageDown;}
+	BuildWireDataStructure(channum,package,plnum,firstwire);
+//        if ( pknum== "u")
+//            BuildWireDataStructure(channum,kPackageUp,plnum,firstwire);
+//        else if (pknum== "v")
+//            BuildWireDataStructure(channum,kPackageDown,plnum,firstwire);
         if ( fDelayLineArray.at ( bpnum ).at ( lnnum ).Fill == false ) { //if this delay line has not been Filled in the data
             std::string a = mapstr.GetNextToken ( ", \t()" ) ;
             while ( a.size() !=0 ) {
@@ -504,15 +508,21 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile ) {
             fDelayLineArray.at(bpnum).at(lnnum).fPlane=plnum;
             fDelayLineArray.at(bpnum).at(lnnum).fDirection=(EQwDirectionID)dir;
             fDelayLineArray.at(bpnum).at(lnnum).fFirstWire=firstwire;*/
-            if ( pknum == "u" )
-                fDelayLineArray.at ( bpnum ).at ( lnnum ).fPackage= kPackageUp;
-            else if ( pknum == "d" )
-                fDelayLineArray.at ( bpnum ).at ( lnnum ).fPackage= kPackageDown;
+	
+        //    if ( pknum == "u" )
+        //        fDelayLineArray.at ( bpnum ).at ( lnnum ).fPackage= kPackageUp;
+        //    else if ( pknum == "v" )
+        //        fDelayLineArray.at ( bpnum ).at ( lnnum ).fPackage= kPackageDown;
+	    fDelayLineArray.at(bpnum).at(lnnum).fPackage=(EQwDetectorPackage)package;
             fDelayLineArray.at ( bpnum ).at ( lnnum ).fPlane=plnum;
-            if ( dir == "u" )
-                fDelayLineArray.at ( bpnum ).at ( lnnum ).fDirection= kDirectionU;
-            else if ( dir == "v" )
-                fDelayLineArray.at ( bpnum ).at ( lnnum ).fDirection= kDirectionV;
+	    UInt_t direction;
+	    if( dir == "u") direction=kDirectionU;
+	    	else if(dir == "v") direction=kDirectionV;
+	    fDelayLineArray.at(bpnum).at(lnnum).fDirection=(EQwDirectionID)direction;
+        //    if ( dir == "u" )
+        //        fDelayLineArray.at ( bpnum ).at ( lnnum ).fDirection= kDirectionU;
+        //    else if ( dir == "v" )
+        //        fDelayLineArray.at ( bpnum ).at ( lnnum ).fDirection= kDirectionV;
             fDelayLineArray.at ( bpnum ).at ( lnnum ).fFirstWire=firstwire;
             for ( size_t i=0;i<tmpWindows.size() /2;i++ ) {
                 std::pair<Double_t,Double_t> a ( tmpWindows.at ( 2*i ),tmpWindows.at ( 2*i+1 ) );
@@ -580,6 +590,7 @@ void QwDriftChamberVDC::ProcessEvent() {
         tmpModule=tmpElectronicsID.fModule;
         tmpChan=tmpElectronicsID.fChannel;
 
+	if(tmpCrate==3) tmpChan+=64;
         tmpTime=iter->GetTime();
 
         if ( fDelayLinePtrs.at ( tmpModule ).at ( tmpChan ).fSide == 0 )
@@ -597,6 +608,7 @@ void QwDriftChamberVDC::ProcessEvent() {
         tmpModule = tmpElectronicsID.fModule;
         tmpChan   = tmpElectronicsID.fChannel;
 
+	if(tmpCrate==3) tmpChan+=64;
         tmpbp    = fDelayLinePtrs.at ( tmpModule ).at ( tmpChan ).fBackPlane;
         tmpln    = fDelayLinePtrs.at ( tmpModule ).at ( tmpChan ).fLineNumber;
         plane =    fDelayLineArray.at ( tmpbp ).at ( tmpln ).fPlane;
@@ -606,7 +618,7 @@ void QwDriftChamberVDC::ProcessEvent() {
 
         if ( fDelayLineArray.at ( tmpbp ).at ( tmpln ).Processed == false ) { //if this delay line has been Processed
 
-            if ( tmpbp==0 || tmpbp ==3 )
+            if ( tmpbp==0 || tmpbp ==3 || tmpbp==4 || tmpbp==7 || tmpbp==8 || tmpbp==11 || tmpbp==12 || tmpbp==15)
                 kDir=true;         //true means left-right
             else kDir=false;
             fDelayLineArray.at ( tmpbp ).at ( tmpln ).ProcessHits ( kDir );
@@ -627,8 +639,11 @@ void QwDriftChamberVDC::ProcessEvent() {
                     wire_array.push_back ( wire_hit );
                     mycount=count ( wire_array.begin(),wire_array.end(),wire_hit )-1;
 
+		    Int_t temp_Chan=0;
+		    if(tmpCrate==3) temp_Chan=tmpChan-64;
+			else {temp_Chan=tmpChan;}
 
-                    QwHit NewQwHit ( tmpCrate, tmpModule, tmpChan, mycount, kRegionID3,package, plane,direction,wire_hit );
+                    QwHit NewQwHit ( tmpCrate, tmpModule, temp_Chan, mycount, kRegionID3,package, plane,direction,wire_hit );
 
                     NewQwHit.SetHitNumberR ( order_R );
 
