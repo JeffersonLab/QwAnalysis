@@ -341,7 +341,7 @@ ifeq ($(ARCH),Linux)
 
 CXX            := g++
 CXXFLAGS       := -Wall -fPIC
-OPTIM          := -O2
+OPTIM          := $(OPTIM)
 LD             = g++
 LDFLAGS	       = -Wl,-rpath,$(QW_LIB)
 LDLIBS         =
@@ -362,7 +362,7 @@ endif
 ifeq ($(ARCH),SunOS)
 CXX            = CC
 CXXFLAGS       = -KPIC
-OPTIM         := -xO2
+OPTIM         := $(subst "-","-x",$(OPTIM))
 LD             = CC
 LDFLAGS        =
 LDLIBS         = -lm -lposix4  -lsocket -lnsl -lresolv -ldl
@@ -376,7 +376,7 @@ ifeq ($(ARCH),Darwin)
 
 CXX            := g++
 CXXFLAGS       := -Wall -fPIC
-OPTIM          := -O2
+OPTIM          := $(OPTIM)
 LD             = g++
 LIBTOOL 	   = libtool
 LDFLAGS        =
