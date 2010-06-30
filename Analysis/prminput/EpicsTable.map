@@ -1,5 +1,6 @@
 ! The exclamation mark (!) is for comment in this file.
 !
+! 06-30-2010: added "String" in more variables.
 ! 06-28-2010: first svn commit of this table (rsubedi)
 ! Table for epics variables whose values can be stored in a MySQL database.
 ! This table has three columns. The first column is the name for an epics
@@ -11,16 +12,16 @@
 ibcm1               	slow_controls_data  !hall C bcm (i.e., ibcm1), test run 1159 it's value
 ibcm2               	slow_controls_data  !hall C bcm (i.e., ibcm2), test run 1159 it's value
 IHM3H01E            	slow_controls_data
-HC:Q_ONOFF          	polarized_source     	   	String 
+HC:Q_ONOFF          	polarized_source     	   	String !charge feedback
 HC:Q_ASY            	slow_controls_data
 HC:DQ_ASY           	slow_controls_data
 HC:bcm_threshold    	slow_controls_data
-HC:bcm_select       	slow_controls_data 
+HC:bcm_select       	slow_controls_data     	   	String
 psub_pl_pos         	slow_controls_data !Rotating half waveplate (Rotatable Half Wave Plate Setting)
 IGL1I00DI24_24M     	polarized_source    	   	String !halfwave plate status, test run 1159 it's value
 WienAngle           	slow_controls_data
 IGL1I00AI24         	slow_controls_data
-HC:P_ONOFF          	slow_controls_data
+HC:P_ONOFF          	slow_controls_data    	   	String
 HC:X_DIF            	slow_controls_data
 HC:DX_DIF           	slow_controls_data
 HC:Y_DIF            	slow_controls_data
@@ -167,5 +168,5 @@ itov2out            	slow_controls_data
 itov5out            	slow_controls_data
 itov7out            	slow_controls_data
 IGL1I00PStrans      	slow_controls_data
-EHCFR_LIPRC         	slow_controls_data
+EHCFR_LIPRC         	slow_controls_data    	   	String
 EHCFR_ENERGY        	slow_controls_data
