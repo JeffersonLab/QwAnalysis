@@ -29,6 +29,7 @@
 #include "QwTriggerScintillator.h"
 #include "QwMainDetector.h"
 #include "QwScanner.h"
+#include "QwRaster.h"
 //
 #include "QwEventBuffer.h"
 //
@@ -58,13 +59,14 @@ static const bool kDebug = kFALSE;
 static const bool kTracking = kFALSE;
 // ROOT file output
 static const bool kTree = kTRUE;
-static const bool kHisto = kFALSE;
+static const bool kHisto = kTRUE;
 
 static const bool kUseTDCHits = kFALSE;
 
 // Branching flags for subsystems
 static const bool kMainDetBranch = kTRUE;
 static const bool kScannerBranch = kTRUE;
+static const bool kRasterBranch  = kTRUE;
 
 // Main function
 Int_t main(Int_t argc, Char_t* argv[]) {
@@ -132,7 +134,11 @@ Int_t main(Int_t argc, Char_t* argv[]) {
     ((VQwSubsystemTracking*) detectors.GetSubsystemByName("FPS"))->LoadChannelMap("qweak_scanner_channel.map" );
     ((VQwSubsystemTracking*) detectors.GetSubsystemByName("FPS"))->LoadInputParameters("qweak_scanner_parameter.map");
     QwScanner* scanner = dynamic_cast<QwScanner*> (detectors.GetSubsystemByName("FPS")); // Get scanner subsystem
-
+    // Fast Raster
+    detectors.push_back(new QwRaster("FR"));
+    ((VQwSubsystemTracking*) detectors.GetSubsystemByName("FR"))->LoadChannelMap("qweak_raster_channel.map" );
+    ((VQwSubsystemTracking*) detectors.GetSubsystemByName("FR"))->LoadInputParameters("qweak_raster_parameter.map");
+    QwRaster* raster = dynamic_cast<QwRaster*> (detectors.GetSubsystemByName("FR"));
 
     // Get vector with detector info (by region, plane number)
     std::vector< std::vector< QwDetectorInfo > > detector_info;
@@ -233,6 +239,10 @@ Int_t main(Int_t argc, Char_t* argv[]) {
             if (kScannerBranch) {
 //                scanner->StoreRawData(kScannerRaw);
                 scanner->ConstructBranchAndVector(tree, prefix);
+
+            if (kRasterBranch) {
+                raster->ConstructBranchAndVector(tree, prefix);
+
             }
 
         }
@@ -283,7 +293,7 @@ Int_t main(Int_t argc, Char_t* argv[]) {
 
             if (kMainDetBranch) maindetector->FillTreeVector(nevents);
             if (kScannerBranch) scanner->FillTreeVector();
-
+            if (kRasterBranch) raster->FillTreeVector();
 
             // Fill the histograms for the subsystem objects.
             if (kHisto) detectors.FillHistograms();
@@ -304,7 +314,7 @@ Int_t main(Int_t argc, Char_t* argv[]) {
             hitlist->sort();
 
             // Skip empty events, if we're not creating the other branches
-            if (hitlist->size() == 0 && !(kScannerBranch || kMainDetBranch))
+            if (hitlist->size() == 0 && !(kScannerBranch || kMainDetBranch) || kRasterBranch)
 	      continue;
 
             // Print hit list
@@ -396,4 +406,6 @@ Int_t main(Int_t argc, Char_t* argv[]) {
 
     return 0;
 }
+}
+
 
