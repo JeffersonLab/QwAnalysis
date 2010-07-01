@@ -744,41 +744,58 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
   
   UInt_t runlet_id = db->GetRunletID();
   tmp_row.runlet_id      = runlet_id;
+  Int_t tagindex;
   
-  for (Int_t tagindex=0; tagindex<(Int_t)fEPICSVariableList.size(); tagindex++) {
-    if (fEPICSVariableType[tagindex] == kEPICSString) {      
-      if (fEPICSDataEvent[tagindex].Filled) {
-	
-	//QwError << "\n\n myTest  " <<tagindex<<"  "<<fEPICSDataEvent[tagindex].StringValue<<" "
-	//	<<(Int_t)fEPICSVariableList.size() <<QwLog::endl<< QwLog::endl; 
-	
-	//////////////////////////////////////////////////////////
-	//Add slow control variables that have string values here. At the moment (06-30-2010)
-	//only two epics variables (IGL1I00DI24_24M and HC:Q_ONOFF) can go to the mysql database.
-	
-	// Half wave plate
-	if(tagindex == 9){ // tagindex 9 is for IGL1I00DI24_24M (i.e. the half wave plate status)
-	  tmp_row.slow_helicity_plate = "in";
-	  // QwError << "\n\n myTagindex  " <<tagindex<<"\n\n";
-	} else{ tmp_row.slow_helicity_plate= "out";}
-	
-	
-	//Charge feedback
-	if(tagindex == 3){ // tagindex 3 is for HC:Q_ONOFF (i.e. charge feedback)
-	  tmp_row.charge_feedback = "on";
-	  //QwError << "\n\n myTagindex  " <<tagindex<<"\n\n";
-	} else {tmp_row.charge_feedback= "off";}
-	
-	
-	//////////////////////////////////////////////////////////
-      }
-    }
+  // Add as many blocks as needed in the following for all slow_controls_settings.
+  
+  ////////////////////////////////////////////////////////////
+  // Half wave plate
+  tagindex = FindIndex(TString("IGL1I00DI24_24M"));
+  std::cout<<"\n\ntagindex for IGL1I00DI24_24M = "<<tagindex<<std::endl;
+  
+  if (! fEPICSCumulativeData[tagindex].Filled) {
+    //  No data for this run.
+    tmp_row.slow_helicity_plate = "";
     
+  } else if (fEPICSCumulativeData[tagindex].NumberRecords 
+	     != fNumberEPICSEvents) {
+    // IHWP position changed
+    tmp_row.slow_helicity_plate = "";
+  } else {
+    // IHWP position did not change
+    //   IHWP setting is stored as a string with possible values
+    //   "OUT" and "IN".  Change to lower case.
+    tmp_row.slow_helicity_plate = fEPICSDataEvent[tagindex].StringValue.Data();
+  }  
+  ////////////////////////////////////////////////////////////  
+  
+  
+  // Charge feedback
+  tagindex = FindIndex(TString("HC:Q_ONOFF"));
+  std::cout<<"\n\ntagindex for HC:Q_ONOFF = "<<tagindex<<std::endl;
+  
+  
+  if (! fEPICSCumulativeData[tagindex].Filled) {
+    //  No data for this run.
+    tmp_row.charge_feedback = "";
     
-    
-    entrylist.push_back(tmp_row);
+  } else if (fEPICSCumulativeData[tagindex].NumberRecords 
+	     != fNumberEPICSEvents) {
+    // charge feedback status changed
+    tmp_row.charge_feedback = "";
+  } else {
+    // charge feedback setting did not change
+    //   charge feedback setting is stored as a string with possible values
+    //   "on" and "off". 
+    tmp_row.charge_feedback = fEPICSDataEvent[tagindex].StringValue.Data();
   }
-
+  
+  //////////////////////////////////////////////////////////// 
+  
+  
+  
+  entrylist.push_back(tmp_row);
+  
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query..
   if( entrylist.size() ) {
