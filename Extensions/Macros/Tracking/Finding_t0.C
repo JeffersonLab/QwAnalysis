@@ -61,8 +61,7 @@ void find_t0(Int_t event_start=-1,Int_t event_end=-1,Double_t threshold=0.05,Int
     TStopwatch timer;
     timer.Start();
 
-
-    TFile *file = new TFile(Form("%s/rootfiles/Qweak_%d.root",gSystem->Getenv("QWANALYSIS"),run_number));
+-    TFile *file = new TFile(Form("%s/Qweak_%d.root",gSystem->Getenv("QW_ROOTFILES"),run_number));
     Int_t ev_start=0,ev_end=0;
     Double_t ratio=threshold;
     TH1F * h_p[4];
