@@ -8,21 +8,21 @@ qdc_bank=0x0402
 slot=1
 module=V792
 ! module.type  module.num  chan.num, det.type, det.name
-  V792, 1, 20, R3trigscint, R3TS_1R_adc
-  V792, 1, 20, R3trigscint, R3TS_1L_adc
-  V792, 1, 20, R3trigscint, R3TS_2R_adc
-  V792, 1, 20, R3trigscint, R3TS_2L_adc
+  V792, 1, 24, R3trigscint, R3TS_1R_adc
+  V792, 1, 26, R3trigscint, R3TS_1L_adc
+  V792, 1, 28, R3trigscint, R3TS_2R_adc
+  V792, 1, 30, R3trigscint, R3TS_2L_adc
 !
-ft1tdc_bank=0x401
+ft1tdc_bank=0x0401
 slot=4
 module=F1TDC
 ! module.type  module.num  chan.num, det.type, det.name
-  F1TDC, 6, 20, R3trigscint, R3TS_1R_tdc
-  F1TDC, 6, 20, R3trigscint, R3TS_1L_tdc
-  F1TDC, 6, 20, R3trigscint, R3TS_2R_tdc
-  F1TDC, 6, 20, R3trigscint, R3TS_2L_tdc
-  F1TDC, 6, 20, R3trigscint, R3TS_1MT_tdc
-  F1TDC, 6, 20, R3trigscint, R3TS_2MT_tdc
+  F1TDC, 6, 0, R3trigscint, R3TS_1R_tdc
+  F1TDC, 6, 2, R3trigscint, R3TS_1L_tdc
+  F1TDC, 6, 4, R3trigscint, R3TS_2R_tdc
+  F1TDC, 6, 6, R3trigscint, R3TS_2L_tdc
+  F1TDC, 6, 12, R3trigscint, R3TS_1MT_tdc
+  F1TDC, 6, 14, R3trigscint, R3TS_2MT_tdc
 
 !END
 !----------------
