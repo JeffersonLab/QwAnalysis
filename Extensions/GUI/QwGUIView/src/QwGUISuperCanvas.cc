@@ -286,7 +286,7 @@ void
 QwGUISuperCanvas::HandleInput(EEventType event, Int_t px, Int_t py)
 //  :TCanvas::HandleInput(event, px, py)
 {
-  printf("event=%d @( %d ; %d )\n", event, px, py);
+  //printf("event=%d @( %d ; %d )\n", event, px, py);
   //-----------------------------------------------------------------//
   if (event==7) // i.e. mouse button 1 down + shift pressed
     {
