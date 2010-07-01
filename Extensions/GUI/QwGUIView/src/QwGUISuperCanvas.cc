@@ -77,6 +77,8 @@ QwGUISuperCanvas::~QwGUISuperCanvas()
   //  if (logxbutton)   delete logxbutton;   logxbutton   = NULL;
   //  if (logybutton)   delete logybutton;   logybutton   = NULL;
 
+  
+
 };
 
 void 
@@ -91,7 +93,6 @@ QwGUISuperCanvas::Initialize()
   
   //  SamplingRate = 1.0;
   //  ScrollRate   = 0.03;
-  
   meas_status  = 0;
   meas_x1      = 0.0;
   meas_x2      = 0.0;
@@ -112,6 +113,16 @@ QwGUISuperCanvas::Initialize()
   //     };
   
   MaximizedPad = NULL;
+
+  plain = new TStyle("Plain","Plain Style (no colors/fill areas)");
+ 
+  plain->SetCanvasBorderMode(0);
+  plain->SetPadBorderMode(0);
+  plain->SetPadColor(0);
+  plain->SetCanvasColor(0);
+  plain->SetTitleColor(0);
+  plain->SetStatColor(0);
+  plain->cd(); 
   
 };
 
@@ -128,17 +139,16 @@ QwGUISuperCanvas::Divide(Int_t nx, Int_t ny, Float_t xmargin, Float_t ymargin,
   // this method was derived from TCanvas::Divide
   if (!IsEditable()) return;
   
-  if (gThreadXAR) 
-    {
-      void *arr[7];
-      arr[1] = this; 
-      arr[2] = (void *)&nx;
-      arr[3] = (void *)&ny;
-      arr[4] = (void *)&xmargin; 
-      arr[5] = (void *)&ymargin; 
-      arr[6] = (void *)&color;
-      if ((*gThreadXAR)("PDCD", 7, arr, 0)) return;
-    }
+  if (gThreadXAR) {
+    void *arr[7];
+    arr[1] = this; 
+    arr[2] = (void *)&nx;
+    arr[3] = (void *)&ny;
+    arr[4] = (void *)&xmargin; 
+    arr[5] = (void *)&ymargin; 
+    arr[6] = (void *)&color;
+    if ((*gThreadXAR)("PDCD", 7, arr, 0)) return;
+  }
   
   
   TPad *padsav = (TPad*)gPad;
@@ -160,86 +170,80 @@ QwGUISuperCanvas::Divide(Int_t nx, Int_t ny, Float_t xmargin, Float_t ymargin,
   Float_t margin = menu_margin;
   //   if (menumargin>=0.0)
   //     margin = menumargin;
-  if (xmargin > 0 && ymargin > 0)
-    {
-      //general case
-      dy = 1/Double_t(ny);
-      dx = 1/Double_t(nx);
-      for (iy=0;iy<ny;iy++)
-	{
-	  y2 = 1 - iy*dy - ymargin;
-	  y1 = y2 - dy + 2*ymargin;
-	  if (y1 < 0) y1 = 0;
-	  if (y1 > y2) continue;
-	  for (ix=0;ix<nx;ix++)
-	    {
-	      x1 = ix*dx + xmargin;
-	      x2 = x1 +dx -2*xmargin;
-	      if (x1 > x2) continue;
-	      n++;
-	      sprintf(name,"%s_%d",GetName(),n);
-	      // rescale and shift y1, y2 according to menumargin:
-	      Float_t y1m = y1*(1.0-margin)+margin;
-	      Float_t y2m = y2*(1.0-margin)+margin;
-	      pad = new TPad(name,name,x1,y1m,x2,y2m,color);
-	      pad->SetNumber(n);
-	      pad->Draw();
-	    }
-	}
-    } 
-  else 
-    {
-      // special case when xmargin <= 0 && ymargin <= 0
-      Double_t xl = GetLeftMargin();
-      Double_t xr = GetRightMargin();
-      Double_t yb = GetBottomMargin();
-      Double_t yt = GetTopMargin();
-      xl /= (1-xl+xr)*nx;
-      xr /= (1-xl+xr)*nx;
-      yb /= (1-xl+xr)*ny;
-      yt /= (1-xl+xr)*ny;
-      SetLeftMargin(xl);
-      SetRightMargin(xr);
-      SetBottomMargin(yb);
-      SetTopMargin(yt);
-      dx = (1-xl-xr)/nx;
-      dy = (1-yb-yt)/ny;
-      Int_t number = 0;
-      for (Int_t i=0;i<nx;i++)
-	{
-	  x1 = i*dx+xl;
-	  x2 = x1 + dx;
-	  if (i == 0)    x1 = 0;
-	  if (i == nx-1) x2 = 1-xr;
-	  for (Int_t j=0;j<ny;j++)
-	    {
-	      number = j*nx + i +1;
-	      y2     = 1 -j*dy -yt;
-	      y1     = y2 - dy;
-
-	      if (j == 0)    y2 = 1-yt;
-	      if (j == ny-1) y1 = 0;
-	      sprintf(name,"%s_%d",GetName(),number);
-	      sprintf(title,"%s_%d",GetTitle(),number);
-	      pad = new TPad(name,title,x1,y1,x2,y2);
-	      pad->SetNumber(number);
-	      pad->SetBorderMode(0);
-	      if (i == 0)    pad->SetLeftMargin(xl*nx);
-	      else           pad->SetLeftMargin(0);
-	      pad->SetRightMargin(0);
-	      pad->SetTopMargin(0);
-	      if (j == ny-1) pad->SetBottomMargin(yb*ny);
-	      else           pad->SetBottomMargin(0);
-	      pad->Draw();
-	    }
-	}
+  if (xmargin > 0 && ymargin > 0) {
+    //general case
+    dy = 1/Double_t(ny);
+    dx = 1/Double_t(nx);
+    for (iy=0;iy<ny;iy++) {
+      y2 = 1 - iy*dy - ymargin;
+      y1 = y2 - dy + 2*ymargin;
+      if (y1 < 0) y1 = 0;
+      if (y1 > y2) continue;
+      for (ix=0;ix<nx;ix++) {
+	x1 = ix*dx + xmargin;
+	x2 = x1 +dx -2*xmargin;
+	if (x1 > x2) continue;
+	n++;
+	sprintf(name,"%s_%d",GetName(),n);
+	// rescale and shift y1, y2 according to menumargin:
+	Float_t y1m = y1*(1.0-margin)+margin;
+	Float_t y2m = y2*(1.0-margin)+margin;
+	pad = new TPad(name,name,x1,y1m,x2,y2m,color);
+	pad->SetNumber(n);
+	pad->Draw();
+      }
     }
+  } 
+  else  {
+    // special case when xmargin <= 0 && ymargin <= 0
+    Double_t xl = GetLeftMargin();
+    Double_t xr = GetRightMargin();
+    Double_t yb = GetBottomMargin();
+    Double_t yt = GetTopMargin();
+    xl /= (1-xl+xr)*nx;
+    xr /= (1-xl+xr)*nx;
+    yb /= (1-xl+xr)*ny;
+    yt /= (1-xl+xr)*ny;
+    SetLeftMargin(xl);
+    SetRightMargin(xr);
+    SetBottomMargin(yb);
+    SetTopMargin(yt);
+    dx = (1-xl-xr)/nx;
+    dy = (1-yb-yt)/ny;
+    Int_t number = 0;
+    for (Int_t i=0;i<nx;i++) {
+      x1 = i*dx+xl;
+      x2 = x1 + dx;
+      if (i == 0)    x1 = 0;
+      if (i == nx-1) x2 = 1-xr;
+      for (Int_t j=0;j<ny;j++) {
+	number = j*nx + i +1;
+	y2     = 1 -j*dy -yt;
+	y1     = y2 - dy;
+	
+	if (j == 0)    y2 = 1-yt;
+	if (j == ny-1) y1 = 0;
+	sprintf(name,"%s_%d",GetName(),number);
+	sprintf(title,"%s_%d",GetTitle(),number);
+	pad = new TPad(name,title,x1,y1,x2,y2);
+	pad->SetNumber(number);
+	pad->SetBorderMode(0);
+	if (i == 0)    pad->SetLeftMargin(xl*nx);
+	else           pad->SetLeftMargin(0);
+	pad->SetRightMargin(0);
+	pad->SetTopMargin(0);
+	if (j == ny-1) pad->SetBottomMargin(yb*ny);
+	else           pad->SetBottomMargin(0);
+	pad->Draw();
+      }
+    }
+  }
   delete [] name;
   delete [] title;
-
+  
   Modified();
   if (padsav) padsav->cd();
-
+  
   return;
 };
 
@@ -282,7 +286,7 @@ void
 QwGUISuperCanvas::HandleInput(EEventType event, Int_t px, Int_t py)
 //  :TCanvas::HandleInput(event, px, py)
 {
-  //printf("event=%d @( %d ; %d )\n", event, px, py);
+  printf("event=%d @( %d ; %d )\n", event, px, py);
   //-----------------------------------------------------------------//
   if (event==7) // i.e. mouse button 1 down + shift pressed
     {
@@ -397,6 +401,10 @@ QwGUISuperCanvas::HandleInput(EEventType event, Int_t px, Int_t py)
 	{
 	  SliceTH2(px,py);
 	  Update();
+	}
+      if (px=='s')
+	{
+	  ShowPadSummary();
 	}
       return;
     };
@@ -740,6 +748,24 @@ QwGUISuperCanvas::PrintPad(TVirtualPad* pad)
   //	 mobj->GetName());
   
   
+}
+
+void
+QwGUISuperCanvas::SetAutomaticFontSize()
+{
+  return;
+}
+
+void
+QwGUISuperCanvas::ShowPadSummary()
+{
+  SetCurrentPad();
+  TPad    *current_pad = (TPad*) gPad;
+  Int_t pad_id = current_pad -> GetNumber();
+  //  current_pad-> SetToolTipText(Form("id %d", pad_id));
+  printf("id %d", pad_id);
+
+  return;
 }
 
 #if defined(__MAKECINT__)

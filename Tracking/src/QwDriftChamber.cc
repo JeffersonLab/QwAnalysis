@@ -171,16 +171,8 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 
   Int_t  index = GetSubbankIndex(roc_id,bank_id);
 
-
-  Int_t  old_event_number     = -1;
-  Int_t  new_event_number     = -1;
-  UInt_t  old_trigger_time    = 0;
-  UInt_t  new_trigger_time    = 0;
-  UInt_t  trigger_time_offset = 0;
-
-  const UInt_t valid_trigger_time_offset = 1;
-  const UInt_t max_f1_trigger_time = 511;
-  const UInt_t min_f1_trigger_time = 0;
+  UInt_t reference_event_number = 0;
+  UInt_t reference_trigger_time = 0;
 
   Int_t tdc_slot_number    = 0;
   Int_t tdc_channel_number = 0;
@@ -194,7 +186,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
     if (fDEBUG) std::cout << "QwDriftChamber::ProcessEvBuffer:  "
 			  << "Begin processing ROC" << roc_id << std::endl;
 
-    if(temp_print_flag) printf("\n");
+    if(temp_print_flag) printf(" num_words %d\n", num_words);
 
     for (UInt_t i=0; i<num_words ; i++) {
 
@@ -217,93 +209,64 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 
       tdc_channel_number = GetTDCChannelNumber();
 
-      if ( IsValidDataword() ) {//;;
-	// This is a TDC data word
-	try {
-	  //std::cout<<"At QwDriftChamber::ProcessEvBuffer"<<std::endl;
-	  FillRawTDCWord(index, tdc_slot_number, tdc_channel_number,
-			 GetTDCData());
-	  PrintTDCData(temp_print_flag);
+      // the first one of number of words must be the header!
+      if(i==0) {
+	if ( IsHeaderword() ) {
+	  reference_event_number = GetTDCEventNumber();
+	  reference_trigger_time = GetTDCTriggerTime();
+	  PrintTDCHeader(temp_print_flag);
 	}
-	catch (std::exception& e) {
-	  std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
-		    << e.what() << std::endl;
-	  std::cerr << "   Parameters:  index=="<<index
-		    << "; GetF1SlotNumber()=="<< tdc_slot_number
-		    << "; GetF1ChannelNumber()=="<<tdc_channel_number
-		    << "; GetF1Data()=="<<GetTDCData()
-		    << std::endl;
-	  Int_t tdcindex = GetTDCIndex(index, tdc_slot_number);
-	  std::cerr << "   GetTDCIndex()=="<<tdcindex
-		    << "; fTDCPtrs.at(tdcindex).size()=="
-		    << fTDCPtrs.at(tdcindex).size()
-		    << "; fTDCPtrs.at(tdcindex).at(chan).fPlane=="
-		    << fTDCPtrs.at(tdcindex).at(tdc_channel_number).fPlane
-		    << "; fTDCPtrs.at(tdcindex).at(chan).fElement=="
-		    << fTDCPtrs.at(tdcindex).at(tdc_channel_number).fElement
-		    << std::endl;
-	  }
-      }//;;
-      else {//;;
-	PrintTDCHeader(temp_print_flag);
-	new_trigger_time = GetTDCTriggerTime();
-
-	// Check it is whether F1TDC or V775TDC
-	if(  new_trigger_time > min_f1_trigger_time || new_trigger_time < max_f1_trigger_time ) {
-	  // the following routine is valid  for only F1TDC
-	  new_event_number = GetTDCEventNumber();
-
-	  // skip the first event.
-	  if(old_event_number > 0) {
-
-	    if(temp_print_flag) printf("i : %d, old event %d new event %d\n", i, old_event_number, new_event_number);
-	    if( new_event_number != old_event_number ) {
-
-	      // Any difference in the Event Number among the chips indicates a serious error
-	      // that requires a reset of the board.
-	      QwError << QwColor(Qw::kBold)
-		      << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << QwLog::endl;
-	      QwError << QwColor(Qw::kBold)
-		      << "       REQUIRE a reset of the F1TDC board at ROC"  << roc_id << " Slot " << tdc_slot_number << QwLog::endl;
-	      QwError << QwColor(Qw::kBold)
-		      << "       Please contact (a) Qweak DAQ expert(s) immediately."<< QwLog::endl;
-	      QwError << QwColor(Qw::kBold)
-		      << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << QwLog::endl;
-	      //	      printf(" QwAnalysis is terminated and there is no ROOT output at the moment.\n");
-	      //	      exit(1);
-	    }
-
-	    trigger_time_offset = abs( new_trigger_time - old_trigger_time );
-
-	    if( trigger_time_offset > valid_trigger_time_offset ) {
-
-	      // Trigger Time difference of up to 1 count among the chips is acceptable
-	      // For the Trigger Time, this assumes that an external SYNC_RESET signal has
-	      // been successfully applied at the start of the run
-	      // Should we stop QwAnalysis or mark this buffer as bad?
-
-	      if( temp_print_flag ) {
-	      QwMessage << QwColor(Qw::kBlue)
-			<< "There are SYNC_RESET issue on the F1TDC board at Ch "<<  tdc_channel_number
-			<< " ROC " << roc_id << " Slot " << tdc_slot_number << QwLog::endl;
-              QwWarning << QwColor(Qw::kBlue)
-			<<"        Please contact (a) Qweak DAQ expert(s) immediately."<< QwLog::endl;
-	      }
-
-	    }
-
-	  }
-	  // save a Event Number and a Trigger Time so as to compare with next ones.
-	  old_event_number = new_event_number;
-
+	else {
+	  QwWarning << QwColor(Qw::kRed)
+		    << "The first word of F1TDC must be header word. Something wrong into this CODA stream.\n";
+	  QwWarning << QwLog::endl;
+	  break;
 	}
-	old_trigger_time = new_trigger_time;
-      }//;;
-    }//;
+	  
+      }
+      else {
+	if ( IsHeaderword() ) {
+	  PrintTDCHeader(temp_print_flag);
+	  if(! CheckDataIntegrity(reference_event_number, reference_trigger_time) ) {
+	    break;
+	  }
+	}
+	else {
+	  if ( IsValidDataword() ) {//;;
+	    // This is a TDC data word
+	    try {
+	      //std::cout<<"At QwDriftChamber::ProcessEvBuffer"<<std::endl;
+	      FillRawTDCWord(index, tdc_slot_number, tdc_channel_number,
+			     GetTDCData());
+	      PrintTDCData(temp_print_flag);
+	    }
+	    catch (std::exception& e) {
+	      std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
+			<< e.what() << std::endl;
+	      std::cerr << "   Parameters:  index=="<<index
+			<< "; GetF1SlotNumber()=="<< tdc_slot_number
+			<< "; GetF1ChannelNumber()=="<<tdc_channel_number
+			<< "; GetF1Data()=="<<GetTDCData()
+			<< std::endl;
+	      Int_t tdcindex = GetTDCIndex(index, tdc_slot_number);
+	      std::cerr << "   GetTDCIndex()=="<<tdcindex
+			<< "; fTDCPtrs.at(tdcindex).size()=="
+			<< fTDCPtrs.at(tdcindex).size()
+			<< "; fTDCPtrs.at(tdcindex).at(chan).fPlane=="
+			<< fTDCPtrs.at(tdcindex).at(tdc_channel_number).fPlane
+			<< "; fTDCPtrs.at(tdcindex).at(chan).fElement=="
+			<< fTDCPtrs.at(tdcindex).at(tdc_channel_number).fElement
+			<< std::endl;
+	    }
+	  }//;;
+	  
+	}
+	
+      }
 
-  } // for (UInt_t i=0; i<num_words ; i++) {
+    } // for (UInt_t i=0; i<num_words ; i++) {
 
-
+  }
   return OK;
 };
 

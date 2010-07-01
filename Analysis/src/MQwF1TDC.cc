@@ -31,6 +31,7 @@ const UInt_t MQwF1TDC::kF1Mask_HeaderChannelNumber = 0x0000003f;
 MQwF1TDC::MQwF1TDC(): fMinDiff(-1.0*kMaxInt), fMaxDiff(1.0*kMaxInt), 
 		      fOffset(0.0), fTimeShift(0.0)
 { 
+  fF1ROCNumber          = 0;
   fF1HeaderFlag         = kFALSE;
   fF1HitFIFOFlag        = kFALSE;
   fF1OutputFIFOFlag     = kFALSE;
@@ -56,7 +57,8 @@ MQwF1TDC::~MQwF1TDC() { };
 
 void MQwF1TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
 {
-  fF1SlotNumber         = (word & kF1Mask_SlotNumber)>>27;
+  fF1ROCNumber  = roc_id;
+  fF1SlotNumber = (word & kF1Mask_SlotNumber)>>27;
 
   if( fF1SlotNumber>=1 && fF1SlotNumber<=21 ) fF1ValidDataSlotFlag = kTRUE;
   else                                        fF1ValidDataSlotFlag = kFALSE;
@@ -138,28 +140,6 @@ void MQwF1TDC::PrintTDCData(Bool_t flag)
 };
 
 
-// UInt_t MQwF1TDC::SubtractReference(UInt_t rawtime, UInt_t a)
-// {
-//
-//   //UInt_t  time_diff = 25600;
-//   //UInt_t  offset    = 64495;
-//   int del_t = 0;
-//   int real_time=(int)rawtime;
-//  
-// 
-//   del_t = (int)a-real_time;
-//  
-//   if( del_t < -30000 ) {
-//     real_time = a + offset - real_time  ;
-//   }
-//   else if( del_t > 30000) {
-//     real_time = a - real_time - offset ; 
-//   }
-//   else real_time = a - real_time;
-//   real_time=real_time+8929;
-//   return real_time;                // sign int to unsign int
-// }
-
 Double_t MQwF1TDC::SubtractReference(Double_t rawtime, Double_t reftime)
 {
   //  Note that this produces the opposite sign of the corrected time
@@ -234,4 +214,48 @@ Bool_t MQwF1TDC::IsValidDataword()
 };
 
 
+
+Bool_t MQwF1TDC::CheckDataIntegrity(UInt_t ref_event_number, UInt_t ref_trigger_time)
+{
+  const Int_t valid_trigger_time_offset = 1;
+  
+  Bool_t event_ok_flag     = kFALSE;
+  Bool_t trig_time_ok_flag = kFALSE;
+
+  event_ok_flag     = (ref_event_number == fF1HeaderEventNumber);
+  trig_time_ok_flag = abs(ref_trigger_time - fF1HeaderTriggerTime) <= valid_trigger_time_offset;
+  
+
+  // Trigger Time difference of up to 1 count among the chips is acceptable
+  // For the Trigger Time, this assumes that an external SYNC_RESET signal has
+  // been successfully applied at the start of the run
+  
+  if(! trig_time_ok_flag ) {
+    QwWarning  << QwColor(Qw::kBlue)
+	       << "There are SYNC_RESET issue on the F1TDC board at Ch "<<  fF1ChannelNumber
+	       << " ROC " << fF1ROCNumber << " Slot " << fF1SlotNumber <<"\n";
+    QwWarning  << QwColor(Qw::kBlue)
+	       << "This event is excluded from the ROOT data stream.\n";
+    //    QwWarning  << QwColor(Qw::kBlue)
+    //	       << "Please contact (a) Qweak DAQ expert(s) as soon as possible.\n";
+    QwWarning  << QwLog::endl;
+  }
+
+  // Any difference in the Event Number among the chips indicates a serious error
+  // that requires a reset of the board.
+
+  if( !event_ok_flag ) {
+    QwWarning << QwColor(Qw::kRed)
+	      << "There are Event Number Mismatch issue on the F1TDC board at ROC "<<  fF1ROCNumber
+	      << " Slot " << fF1SlotNumber << "\n";
+    QwWarning << QwColor(Qw::kRed) 
+	      << "This event is excluded from the ROOT data stream.\n";
+    //    QwWarning << QwColor(Qw::kRed) 
+    //	      << "Please contact (a) Qweak DAQ expert(s) as soon as possible.\n";
+    QwWarning << QwLog::endl;
+    
+  }
+  return (event_ok_flag && trig_time_ok_flag);
+
+};
 

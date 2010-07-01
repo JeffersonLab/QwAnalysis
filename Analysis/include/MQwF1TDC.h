@@ -43,6 +43,7 @@ class MQwF1TDC{
   void DecodeTDCWord(UInt_t &word, const UInt_t roc_id);
 
   Bool_t IsValidDataword();
+  Bool_t IsHeaderword() {return fF1HeaderFlag;};
  
   UInt_t GetTDCSlotNumber()        {return fF1SlotNumber;};
   UInt_t GetTDCChannelNumber()     {return fF1ChannelNumber;};
@@ -61,8 +62,9 @@ class MQwF1TDC{
   };
   
   Double_t SubtractReference(Double_t rawtime, Double_t reftime);
-
   
+  Bool_t CheckDataIntegrity(UInt_t ref_event_number, UInt_t ref_trigger_time);
+
   // Two print functions are used for a debugging purpose temporarily 
   void   PrintTDCHeader(Bool_t flag);
   void   PrintTDCData(Bool_t flag);
@@ -86,6 +88,7 @@ class MQwF1TDC{
  
   
   //  static const UInt_t offset;
+  UInt_t fF1ROCNumber;
 
   Bool_t fF1HeaderFlag;              // true(1) if word is 0 (header) and false(0) if word is 1 (data)
   Bool_t fF1HitFIFOFlag;             // true(1) if word is 1 
