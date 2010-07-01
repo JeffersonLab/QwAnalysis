@@ -649,7 +649,10 @@ void QwDriftChamberVDC::ProcessEvent() {
 
                     NewQwHit.SetTime ( real_time );
 
-                    QwDetectorInfo* local_info = & fDetectorInfo.at ( package ).at ( plane );
+		    Int_t temp_plane=plane-1;
+		    if(tmpCrate==3) temp_plane=plane-5;
+		
+                    QwDetectorInfo* local_info = & fDetectorInfo.at ( package ).at ( temp_plane );
                     NewQwHit.SetDetectorInfo ( local_info );
 
                     NewQwHit.SetAmbiguityID ( tmpAM,j );
@@ -659,7 +662,7 @@ void QwDriftChamberVDC::ProcessEvent() {
         }
     }
     ApplyTimeCalibration();
-    SubtractWireTimeOffset();
+    //SubtractWireTimeOffset();
     CalculateDriftDistance();
 };
 
