@@ -1430,7 +1430,7 @@ Int_t main(Int_t argc, Char_t **argv)
   //
   // Set up default QwAnalysis and database options
   gQwOptions.SetCommandLine(argc, argv);
-  gQwOptions.SetConfigFile(Form("%s/Parity/prminput/qweak_mysql.conf",gSystem->Getenv("QWANALYSIS")));
+  gQwOptions.SetConfigFile(Form("%s/Extensions/GUI/qweak_mysql.conf",gSystem->Getenv("QWANALYSIS")));
   QwOptions::DefineOptions(gQwOptions);
 
   // Add QwGUI specific options
