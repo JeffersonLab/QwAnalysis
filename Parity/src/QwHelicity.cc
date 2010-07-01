@@ -338,7 +338,7 @@ void QwHelicity::ProcessEventInputRegisterMode()
   fEventNumber=fWord[kMpsCounter].fValue;
   
   
-  if(fWord[kPatternPhase].fValue == fMinPatternPhase)
+  if(fWord[kPatternPhase].fValue - fPATTERNPHASEOFFSET == 0)
     if (firstpattern && (thisinputregister & 0x4) == 0x4){
       firstpattern   = kFALSE;
     }
