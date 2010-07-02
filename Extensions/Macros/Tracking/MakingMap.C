@@ -34,10 +34,10 @@ void create_tdc_tree ( Int_t ev_start=-1,Int_t ev_end=-1, Int_t run_number=1672 
 {
 
     check_libraries();
-    //    TFile* f=new TFile ( Form ( "%s/rootfiles/Qweak_%d.root",getenv ( "QWANALYSIS" ),run_number ) );
-    //    TFile* f_tdc=new TFile ( Form ( "%s/rootfiles/Qweak_%d_TDCBased.root",getenv ( "QWANALYSIS" ),run_number ),"RECREATE" );
-    TFile* f=new TFile ( Form ( "/net/cdaq/scratch2/qweak/rootfiles/Qweak_%d.000.root",run_number ) );
-    TFile* f_tdc=new TFile ( Form ( "/net/cdaq/scratch2/qweak/rootfiles/Qweak_%d_TDCBased.root",run_number ),"RECREATE" );
+        TFile* f=new TFile ( Form ( "%s/rootfiles/Qweak_%d.root",getenv ( "QWSCRATCH" ),run_number ) );
+        TFile* f_tdc=new TFile ( Form ( "%s/rootfiles/Qweak_%d_TDCBased.root",getenv ( "QWSCRATCH" ),run_number ),"RECREATE" );
+    //TFile* f=new TFile ( Form ( "/net/cdaq/scratch2/qweak/rootfiles/Qweak_%d.000.root",run_number ) );
+    //TFile* f_tdc=new TFile ( Form ( "/net/cdaq/scratch2/qweak/rootfiles/Qweak_%d_TDCBased.root",run_number ),"RECREATE" );
     TTree *R=new TTree ( "R","Hit event data tree" );
     TString prebase="";
     std::vector<Int_t> tdc_dt;
@@ -62,27 +62,40 @@ void create_tdc_tree ( Int_t ev_start=-1,Int_t ev_end=-1, Int_t run_number=1672 
 
     for ( Int_t ev_id=ev_start;ev_id<ev_end;ev_id++ )
     {
-      if(ev_id % 1000 ==0) std::cout << "events processed so far: " << ev_id << std::endl;
-         tree->GetEntry ( ev_id );
+        if ( ev_id % 1000 ==0 ) std::cout << "events processed so far: " << ev_id << std::endl;
+        tree->GetEntry ( ev_id );
         Int_t nhit=hitContainer->GetSize();
         QwHit* hit=NULL;
-	for ( Int_t index=0;index<kNumberOfChannels*kNumberOfSlots;index++ )
-            tdc_dt.at( index ) =0;
+        for ( Int_t index=0;index<kNumberOfChannels*kNumberOfSlots;index++ )
+            tdc_dt.at ( index ) =0;
 
         for ( Int_t hit_id=nhit-1;hit_id>=0;hit_id-- )
 
         {
             hit=hitContainer->GetHit ( hit_id );
-	    // tdc_dt.at(hit->GetChannel()) = hit->GetTime();
-	    tdc_dt.at(hit->GetChannel()) = hit->GetRawTime();
-	    
-	    // cout << hit->GetChannel() << " " << hit->GetTime() << endl;
+            Int_t slot=0;
+            if ( hit->GetSubbankID() ==1 )
+            {
+                if ( hit->GetModule() ==6 ) slot=0;
+                else slot=1;
+            }
+            else if ( hit->GetSubbankID() ==3 )
+            {
+                if ( hit->GetModule() ==6 ) slot=2;
+                else slot=3;
+            }
+            else continue;
+
+            // tdc_dt.at(hit->GetChannel()) = hit->GetTime();
+            tdc_dt.at ( slot*kNumberOfChannels+hit->GetChannel() ) = hit->GetTime();
+
+            // cout << hit->GetChannel() << " " << hit->GetTime() << endl;
         }
-	
+
         R->Fill();
 
-	
-        
+
+
 
 
     }
@@ -95,7 +108,7 @@ void ConstructTDCStructure ( TTree* tree,TString& prefix,std::vector<Int_t>& val
 
     TString basename;
     Int_t subscript;
-    values.resize(kNumberOfChannels*kNumberOfSlots);
+    values.resize ( kNumberOfChannels*kNumberOfSlots );
     for ( Int_t i=0;i<kNumberOfSlots;i++ )
     {
         for ( Int_t j=0;j<kNumberOfChannels;j++ )
@@ -106,8 +119,8 @@ void ConstructTDCStructure ( TTree* tree,TString& prefix,std::vector<Int_t>& val
             basename+="_tdc";
             basename+=j;
             subscript=i*kNumberOfChannels+j;
-	    //cout << "basename: " << basename << " subscript: " << subscript << endl;
-            tree->Branch ( basename,& ( values.at(subscript) ) );
+            //cout << "basename: " << basename << " subscript: " << subscript << endl;
+            tree->Branch ( basename,& ( values.at ( subscript ) ) );
         }
     }
 };
@@ -118,58 +131,59 @@ void draw_peaks ( Int_t slot_num=0,Int_t tdc_num=0, Int_t run_number=1672 )
 {
 
     check_libraries();
-    //    TFile* f=new TFile ( Form ( "%s/rootfiles/Qweak_%d.root",getenv ( "QWANALYSIS" ),run_number ) );
+        TFile* f=new TFile ( Form ( "%s/rootfiles/Qweak_%d.root",getenv ( "QWSCRATCH" ),run_number ) );
     //    TFile* f_tdc=new TFile ( Form ( "%s/rootfiles/Qweak_%d_TDCBased.root",getenv ( "QWANALYSIS" ),run_number ),"RECREATE" );
-    TFile* f=new TFile ( Form ( "/net/cdaq/scratch2/qweak/rootfiles/Qweak_%d_TDCBased.root",run_number ) );
+    //TFile* f=new TFile ( Form ( "/net/cdaq/scratch2/qweak/rootfiles/Qweak_%d_TDCBased.root",run_number ) );
     //TFile* f_tdc=new TFile ( Form ( "/net/cdaq/scratch2/qweak/rootfiles/Qweak_%d_TDCBased.root",run_number ),"RECREATE" );
     //TTree *R=new TTree ( "R","Hit event data tree" );
-    TTree* tree=R;
+    //TTree* tree=R;
+    TTree* tree=(TTree*)f->Get("R");
     char firstchan[100]="slot";
     char secondchan[100]="slot";
     string middle="_tdc";
     char buffer[4];
     char buffer1[4];
     char buffer2[4];
-    sprintf(buffer,"%d",slot_num);
-    sprintf(buffer1,"%d",tdc_num);
-    sprintf(buffer2,"%d",++tdc_num);
-    strcat(firstchan,buffer);
-    strcat(firstchan,middle.c_str());
-    strcat(firstchan,buffer1);
+    sprintf ( buffer,"%d",slot_num );
+    sprintf ( buffer1,"%d",tdc_num );
+    sprintf ( buffer2,"%d",++tdc_num );
+    strcat ( firstchan,buffer );
+    strcat ( firstchan,middle.c_str() );
+    strcat ( firstchan,buffer1 );
 
-    strcat(secondchan,buffer);
-    strcat(secondchan,middle.c_str());
-    strcat(secondchan,buffer2);
+    strcat ( secondchan,buffer );
+    strcat ( secondchan,middle.c_str() );
+    strcat ( secondchan,buffer2 );
 
     char expr[100]="(";
-    strcat(expr,firstchan);
-    strcat(expr,"-");
-    strcat(expr,secondchan);
-    strcat(expr,")");
-    strcat(expr,">>h1(500)");
+    strcat ( expr,firstchan );
+    strcat ( expr,"-" );
+    strcat ( expr,secondchan );
+    strcat ( expr,")" );
+    strcat ( expr,">>h1(500)" );
 
     char select[200]="";
-    strcat(select,firstchan);
-    strcat(select,">0&&");
-    strcat(select,secondchan);
-    strcat(select,">0&&");
-    strcat(select,"(");
-    strcat(select,firstchan);
-    strcat(select,"-");
-    strcat(select,secondchan);
-    strcat(select,")>-250&&");
-    strcat(select,"(");
-    strcat(select,firstchan);
-    strcat(select,"-");
-    strcat(select,secondchan);
-    strcat(select,")<250");
+    strcat ( select,firstchan );
+    strcat ( select,"<0&&" );
+    strcat ( select,secondchan );
+    strcat ( select,"<0&&" );
+    strcat ( select,"(" );
+    strcat ( select,firstchan );
+    strcat ( select,"-" );
+    strcat ( select,secondchan );
+    strcat ( select,")>-250&&" );
+    strcat ( select,"(" );
+    strcat ( select,firstchan );
+    strcat ( select,"-" );
+    strcat ( select,secondchan );
+    strcat ( select,")<250" );
 
-   
-    
+
+
     // std::cout << "expr: " << expr << std::endl;
     //std::cout << "select: " << select << std::endl;
-    TCanvas* c=new TCanvas("c","c",800,600);
-    tree->Draw(expr,select);
-    c->SetTitle(Form("slot%d_tdc%d-slot%d_tdc%d",slot_num,--tdc_num,slot_num,++tdc_num));
+    TCanvas* c=new TCanvas ( "c","c",800,600 );
+    tree->Draw ( expr,select );
+    c->SetTitle ( Form ( "slot%d_tdc%d-slot%d_tdc%d",slot_num,--tdc_num,slot_num,++tdc_num ) );
     c->Update();
-    }
+}
