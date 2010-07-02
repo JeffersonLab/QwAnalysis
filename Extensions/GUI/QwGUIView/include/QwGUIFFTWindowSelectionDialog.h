@@ -19,6 +19,7 @@
 #include "RSDataWindow.h"
 
 struct FFTOptions {
+  Bool_t       calcFlag;
   Bool_t       cancelFlag;
   Bool_t       changeFlag;
   Int_t        Start;

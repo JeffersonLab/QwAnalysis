@@ -143,7 +143,6 @@ void QwGUISubSystem::OnObjClose(char *obj)
   }
 };
 
-
 void QwGUISubSystem::AddThisTab(QwGUISubSystem* sbSystem)
 {
   Emit("AddThisTab(QwGUISubSystem*)",(long)sbSystem);

@@ -34,7 +34,7 @@ main(Int_t argc, Char_t* argv[])
   //  Long64_t kMAXTREESIZE = 1900000000LL;
 
   Bool_t bDebug    = kFALSE;
-  Bool_t bHelicity = kFALSE;
+  Bool_t bHelicity = kTRUE;
   Bool_t bTree     = kTRUE;
   Bool_t bHisto    = kTRUE;
 
@@ -84,7 +84,7 @@ main(Int_t argc, Char_t* argv[])
   epics_data.LoadEpicsVariableMap("EpicsTable.map");
 
   QwDetectors.push_back(new QwMainCerenkovDetector("MainDetectors"));
-  QwDetectors.GetSubsystemByName("MainDetectors")->LoadChannelMap("qweak_maindet.map");
+  QwDetectors.GetSubsystemByName("MainDetectors")->LoadChannelMap("qweak_adc.map");
 
   QwDetectors.push_back(new QwBeamLine("Injector BeamLine"));
   QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
