@@ -1,0 +1,141 @@
+
+!**************************************************************************
+!  HALL C  BEAMLINE
+!**************************************************************************
+!
+!
+ROC=1
+Bank=0x102
+!same sample size for ADCs in a given bank
+sample_size==120 
+!
+!
+! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
+
+!ADC0
+   VQWK, 0, 0,  bpmstripline,  QWK_3C07XP
+   VQWK, 0, 1,  bpmstripline,  QWK_3C07XM
+   VQWK, 0, 2,  bpmstripline,  QWK_3C07YP
+   VQWK, 0, 3,  bpmstripline,  QWK_3C07YM
+   VQWK, 0, 4,  bpmstripline,  QWK_3C08XP
+   VQWK, 0, 5,  bpmstripline,  QWK_3C08XM
+   VQWK, 0, 6,  bpmstripline,  QWK_3C08YP
+   VQWK, 0, 7,  bpmstripline,  QWK_3C08YM
+
+!ADC1
+   VQWK, 1, 0,  bpmstripline,  QWK_3C11XP
+   VQWK, 1, 1,  bpmstripline,  QWK_3C11XM
+   VQWK, 1, 2,  bpmstripline,  QWK_3C11YP
+   VQWK, 1, 3,  bpmstripline,  QWK_3C11YM
+   VQWK, 1, 4,  bpmstripline,  QWK_3C12XP
+   VQWK, 1, 5,  bpmstripline,  QWK_3C12XM
+   VQWK, 1, 6,  bpmstripline,  QWK_3C12YP
+   VQWK, 1, 7,  bpmstripline,  QWK_3C12YM
+
+!ADC2
+   VQWK, 2, 0,  bpmstripline,  QWK_3C14XP
+   VQWK, 2, 1,  bpmstripline,  QWK_3C14XM
+   VQWK, 2, 2,  bpmstripline,  QWK_3C14YP
+   VQWK, 2, 3,  bpmstripline,  QWK_3C14YM
+   VQWK, 2, 4,  bpmstripline,  QWK_3C16XP
+   VQWK, 2, 5,  bpmstripline,  QWK_3C16XM
+   VQWK, 2, 6,  bpmstripline,  QWK_3C16YP
+   VQWK, 2, 7,  bpmstripline,  QWK_3C16YM
+
+
+! Following BPMs cannot be readout in the Qweak cage yet.
+! Not all the devices are here. I will keep adding them
+! as they become available in the cage.
+
+!ADC3
+   VQWK, 3, 0,  bpmstripline,  QWK_3C17XP
+   VQWK, 3, 1,  bpmstripline,  QWK_3C17XM
+   VQWK, 3, 2,  bpmstripline,  QWK_3C17YP
+   VQWK, 3, 3,  bpmstripline,  QWK_3C17YM
+   VQWK, 3, 4,  bpmstripline,  QWK_3C18XP
+   VQWK, 3, 5,  bpmstripline,  QWK_3C18XM
+   VQWK, 3, 6,  bpmstripline,  QWK_3C18YP
+   VQWK, 3, 7,  bpmstripline,  QWK_3C18YM
+
+!ADC4
+   VQWK, 4, 0,  bpmstripline,  QWK_3C19XP
+   VQWK, 4, 1,  bpmstripline,  QWK_3C19XM
+   VQWK, 4, 2,  bpmstripline,  QWK_3C19YP
+   VQWK, 4, 3,  bpmstripline,  QWK_3C19YM
+   VQWK, 4, 4,  bpmstripline,  QWK_3C20XP
+   VQWK, 4, 5,  bpmstripline,  QWK_3C20XM
+   VQWK, 4, 6,  bpmstripline,  QWK_3C20YP
+   VQWK, 4, 7,  bpmstripline,  QWK_3C20YM
+
+!ADC5
+   VQWK, 5, 0,  bpmstripline,  QWK_3C21XP
+   VQWK, 5, 1,  bpmstripline,  QWK_3C21XM
+   VQWK, 5, 2,  bpmstripline,  QWK_3C21YP
+   VQWK, 5, 3,  bpmstripline,  QWK_3C21YM
+   VQWK, 5, 4,  bpmstripline,  QWK_3H02XP
+   VQWK, 5, 5,  bpmstripline,  QWK_3H02XM
+   VQWK, 5, 6,  bpmstripline,  QWK_3H02YP
+   VQWK, 5, 7,  bpmstripline,  QWK_3H02YM
+
+!ADC6
+   VQWK, 6, 0,  bpmstripline,  QWK_3H04XP
+   VQWK, 6, 1,  bpmstripline,  QWK_3H04XM
+   VQWK, 6, 2,  bpmstripline,  QWK_3H04YP
+   VQWK, 6, 3,  bpmstripline,  QWK_3H04YM
+   VQWK, 6, 4,  bpmstripline,  QWK_3H04AXP
+   VQWK, 6, 5,  bpmstripline,  QWK_3H04AXM
+   VQWK, 6, 6,  bpmstripline,  QWK_3H04AYP
+   VQWK, 6, 7,  bpmstripline,  QWK_3H04AYM
+
+
+!**************************************************************************
+! COMBINATIONS OF BEAM LINE DEVICES USED FOR BEAM ON TARGET 
+!**************************************************************************
+
+
+begin=combinedbcm
+name=qwk_average_charge
+!name	type	wieght
+ empty2,  bcm1, 1.0
+ empty1,  bcm2, 0.8
+end=combinedbcm
+
+
+begin=combinedbpm
+name=qwk_target
+!name	    type 	  q      x     y    
+ QWK_3C12,  bpmstripline, 0.9,  0.5,  0.1
+ QWK_3C14,  bpmstripline, 1.0,  0.1,  0.5
+ QWK_3C16,  bpmstripline, 1.0,  0.1,  0.5
+ QWK_3C17,  bpmstripline, 1.0,  0.1,  0.5
+end=combinedbpm
+
+
+!**************************************************************************
+! DEVICES USED TO OBTAIN THE BEAM ENERGY
+!**************************************************************************
+! For the energy calculation we need the following inforamtion.
+! 	Beam position at the highest dispersive region (beamposition)
+!	Beam angle on target (targetbeamangle)
+!	Beam position on target (targetbeamposition)
+! 	The ratios of the TMatrix elements (with the appropriate signs).
+! These are used in the equation
+!	(dP/P) = (1/M15)*X_3c12 + (-M11/M15)*X_T + (-M12/M15)*X_T`
+! To get (dP/P).
+
+begin=energycalculator
+name=qwk_energy
+! name      type 	ratios property  
+  QWK_3C11, bpmstripline, 1.5,	beamposition   
+  QWK_TARGET, combinedbpm, -2.4, targetbeamangle
+  QWK_TARGET, combinedbpm, -0.6, targetbeamposition
+end=energycalculator
+
+! CHECK THE SIGNS OF THE MATRIX ELEMTN RATIOS!.
+
+
+
+!END
+
+
+
