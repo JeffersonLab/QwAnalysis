@@ -30,7 +30,9 @@ class QwCombinedBPM : public VQwBPM{
     InitializeChannel(name);
   };
 
-  ~QwCombinedBPM() {DeleteHistograms();};
+  ~QwCombinedBPM() {
+    DeleteHistograms();
+  };
 
   void    InitializeChannel(TString name);
   void    ClearEventData();
@@ -60,10 +62,13 @@ class QwCombinedBPM : public VQwBPM{
   void    CalculateRunningAverage();
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix);
+  
   void    FillHistograms();
   void    DeleteHistograms();
 
   void    ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+  void    ConstructBranch(TTree *tree, TString &prefix);
+  void    ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void    FillTreeVector(std::vector<Double_t> &values);
 
   /* Functions for least square fit */

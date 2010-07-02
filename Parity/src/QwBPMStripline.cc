@@ -525,6 +525,80 @@ void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std
   return;
 };
 
+void  QwBPMStripline::ConstructBranch(TTree *tree, TString &prefix)
+{
+  if (GetElementName()==""){
+    //  This channel is not used, so skip constructing trees.
+  }
+  else {
+    TString thisprefix=prefix;
+    if(prefix=="asym_")
+      thisprefix="diff_";
+
+    SetRootSaveStatus(prefix);
+
+    fEffectiveCharge.ConstructBranch(tree,prefix);
+    Short_t i = 0;
+    if(bFullSave) {
+      for(i=0;i<4;i++) fWire[i].ConstructBranch(tree,thisprefix);
+    }
+    for(i=0;i<2;i++) {
+      fRelPos[i].ConstructBranch(tree,thisprefix);
+      fAbsPos[i].ConstructBranch(tree,thisprefix);
+    }
+
+  }
+  return;
+};
+
+void  QwBPMStripline::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
+{
+  TString devicename;
+  /*
+  QwMessage <<" QwBCM::ConstructBranch "<<QwLog::endl;
+  modulelist.RewindToFileStart();
+  while (modulelist.ReadNextLine()){
+      modulelist.TrimComment('!');   // Remove everything after a '!' character.
+      modulelist.TrimWhitespace();   // Get rid of leading and trailing spaces.
+      QwMessage <<" "<<modulelist.GetLine()<<" ";
+  }
+  QwMessage <<QwLog::endl;
+  */
+  devicename=GetElementName();
+  devicename.ToLower();
+  if (GetElementName()==""){
+    //  This channel is not used, so skip filling the histograms.
+  } else
+    {
+      if (modulelist.HasValue(devicename)){
+	TString thisprefix=prefix;
+	if(prefix=="asym_")
+	  thisprefix="diff_";
+
+	SetRootSaveStatus(prefix);
+
+	fEffectiveCharge.ConstructBranch(tree,prefix);
+	Short_t i = 0;
+	if(bFullSave) {
+	  for(i=0;i<4;i++) fWire[i].ConstructBranch(tree,thisprefix);
+	}
+	for(i=0;i<2;i++) {
+	  fRelPos[i].ConstructBranch(tree,thisprefix);
+	  fAbsPos[i].ConstructBranch(tree,thisprefix);
+	}
+		
+	QwMessage <<" Tree leaves added to "<<devicename<<" Corresponding channels"<<QwLog::endl;
+      }
+      // this functions doesn't do anything yet
+    }
+
+   
+    
+
+  
+  return;
+};
+
 void  QwBPMStripline::FillTreeVector(std::vector<Double_t> &values)
 {
   if (GetElementName()=="") {

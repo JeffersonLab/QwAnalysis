@@ -646,6 +646,60 @@ void  QwCombinedBPM::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
   return;
 };
 
+void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix)
+{
+  if (GetElementName()==""){
+    //  This channel is not used, so skip constructing trees.
+  } else
+    {
+      TString thisprefix=prefix;
+      if(prefix=="asym_")
+	thisprefix="diff_";
+
+      
+      fEffectiveCharge.ConstructBranch(tree,prefix);
+
+      for(Short_t i=0;i<2;i++){
+	fSlope[i].ConstructBranch(tree,thisprefix);
+	fIntercept[i].ConstructBranch(tree,thisprefix);
+	fAbsPos[i].ConstructBranch(tree,thisprefix);
+      }
+
+    }
+  return;
+};
+
+void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
+{
+  TString devicename;
+  devicename=GetElementName();
+  devicename.ToLower();
+
+  if (GetElementName()==""){
+    //  This channel is not used, so skip constructing trees.
+  } else
+    {
+      if (modulelist.HasValue(devicename)){
+	TString thisprefix=prefix;
+	if(prefix=="asym_")
+	  thisprefix="diff_";
+
+      
+	fEffectiveCharge.ConstructBranch(tree,prefix);
+
+	for(Short_t i=0;i<2;i++){
+	  fSlope[i].ConstructBranch(tree,thisprefix);
+	  fIntercept[i].ConstructBranch(tree,thisprefix);
+	  fAbsPos[i].ConstructBranch(tree,thisprefix);
+	}
+	QwMessage <<" Tree leave added to "<<devicename<<QwLog::endl;
+    }
+
+    }
+  return;
+};
+
+
 void  QwCombinedBPM::FillTreeVector(std::vector<Double_t> &values)
 {
   if (GetElementName()==""){

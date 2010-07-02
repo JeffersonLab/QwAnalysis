@@ -1,7 +1,10 @@
 #include "QwGUIInjector.h"
 
+
 #include <TG3DLine.h>
 #include "TGaxis.h"
+
+
 
 
 ClassImp(QwGUIInjector);
@@ -31,6 +34,10 @@ QwGUIInjector::QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTa
 			       const char *objName, const char *mainname, UInt_t w, UInt_t h)
   : QwGUISubSystem(p,main,tab,objName,mainname,w,h)
 { 
+  //QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  //QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
+  //QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
+
   dTabFrame           = NULL;
   dControlsFrame      = NULL;
   dCanvas             = NULL;  
@@ -42,7 +49,7 @@ QwGUIInjector::QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTa
   dButtonCharge       = NULL;
   dButtonPosVariation = NULL;
   
-
+  
   PosVariation[0] = NULL;
   PosVariation[1] = NULL;
 
@@ -75,6 +82,13 @@ QwGUIInjector::~QwGUIInjector()
   IsClosing(GetName());
 }
 
+void QwGUIInjector::LoadHistoMapFile(TString mapfile){
+
+  //QwParameterFile mapstr(mapfile.Data());  //Open the file
+
+
+};
+
 void QwGUIInjector::MakeLayout()
 {
 
@@ -99,7 +113,7 @@ void QwGUIInjector::MakeLayout()
  //  TGGroupFrame *group = new TGGroupFrame(dControlsFrame, "Controls");
 //   group->SetTitlePos(TGGroupFrame::kCenter);
 
-  dButtonPos = new TGTextButton(dControlsFrame, "&Beam Position Differences", BA_POS_DIFF);
+  dButtonPos = new TGTextButton(dControlsFrame, "&Beam Position Asymmetries", BA_POS_DIFF);
   dButtonCharge = new TGTextButton(dControlsFrame, "&Beam Charge Asymmetries", BA_CHARGE);
   dButtonPosVariation = new TGTextButton(dControlsFrame, "&Beam Position Variation", BA_POS_VAR);
 
@@ -195,44 +209,117 @@ void QwGUIInjector::ClearData()
 void QwGUIInjector::PositionDifferences()
 {
   TH1F *histo1=NULL;
+  TH1F *histo2=NULL;
 
-  Bool_t ldebug = false;
+  char histo[128];
+  
+  Int_t xcount = 0;
+  Int_t ycount = 0;
+  
+  Double_t offset = 0.5;
+  Double_t min_range = - offset;
+  Double_t max_range = INJECTOR_DEV_NUM - offset ; 
+
+  TH1D *dummyhist = NULL;
+
+  TString dummyname;
+
+  Bool_t ldebug = kFALSE;
   
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
-
+ 
 
    while (1){ 
-    histo1= (TH1F *)dROOTCont->GetObjFromMapFile("diff_qwk_qpdRelY_hw");
-   
-    
+     PosVariation[0] = new TH1F("dxvar", "#Delta X Variation", INJECTOR_DEV_NUM, min_range, max_range);
+     PosVariation[1] = new TH1F("dyvar", "#Delta Y variation", INJECTOR_DEV_NUM, min_range, max_range); 
+    for(Short_t p = 0; p <INJECTOR_DEV_NUM ; p++) 
+    {
+      if(!strcmp(InjectorDevices[p],"qwk_bcm0l02"))
+	{
+	}
+      else
+	{
+	  sprintf (histo, "diff_%sRelX_hw", InjectorDevices[p]);
+	  histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+	  if (histo1!=NULL)
+	    {
+	      xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	      if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
+	      histo1->SetName(histo);
+	      
+	      dummyname = histo1->GetName();
+	       
+	      dummyname.Replace(0,9," ");
+	      dummyname.ReplaceAll("RelX_hw", "X");
+	      PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
+	      PosVariation[0] -> SetBinError  (xcount, histo1->GetMeanError());
+	      PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
+	      //SummaryHist(histo1);
+	      delete histo1; histo1= NULL;
+	    }
+	 
+	    sprintf (histo, "diff_%sRelY_hw", InjectorDevices[p]);
+	    histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+	    if(histo2!=NULL){		
+	      ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	      if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
+	      histo2->SetName(histo);
+	      dummyname = histo2->GetName();
+	      dummyname.Replace(0,9," ");
+	      dummyname.ReplaceAll("RelY_hw", "Y");
+	      PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
+	      PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError());
+	      PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
+	      //SummaryHist(histo2);
+	      delete histo2; histo2= NULL; 
+	    }
+	  
+	}
+    }
+    xcount = 0;
+    ycount = 0;
     mc->Clear();
-    mc->Divide(1,1);
+    mc->Divide(1,2);
 
+
+
+    
     mc->cd(1);
-    histo1->Draw();
-    gPad->Update();
-    gPad->Update();
+    //SummaryHist(PosVariation[0]);
+    PosVariation[0] -> SetMarkerStyle(20);
+    PosVariation[0] -> SetTitle("#Delta X Variation");
+    PosVariation[0] -> GetYaxis() -> SetTitle("#Delta X (nm)");
+    PosVariation[0] -> GetXaxis() -> SetTitle("BPM X");
+    PosVariation[0] -> Draw("E1");
+    //gPad->Update();
+    //mc->Modified();
+    //mc->Update();
 
+    mc->cd(2);
+    //SummaryHist(PosVariation[1]);
+    PosVariation[1] -> SetMarkerStyle(20);
+    PosVariation[1] -> SetTitle("#Delta Y Variation");
+    PosVariation[1] -> GetYaxis()-> SetTitle ("#Delta Y (nm)");
+    PosVariation[1] -> GetXaxis() -> SetTitle("BPM Y");
+    PosVariation[1] -> Draw("E1");
+
+    gPad->Update();
     mc->Modified();
     mc->Update();
-
+    for (Short_t p = 0; p <NUM_POS ; p++){
+      delete PosVariation[p];
+    }
     gSystem->Sleep(100);
     if (gSystem->ProcessEvents()){
       break;
     }
-  }
-  
-
-  printf("---------------PositionDifferences()--------------------\n");
-  //mc->Modified();
-  //mc->Update();
-  
+   }
 
   return;
 }
 
-void QwGUIInjector::PlotPositionDiff()
+void QwGUIInjector::PlotChargeAsym()
 {
   TH1F *histo1=NULL;
 
@@ -243,19 +330,20 @@ void QwGUIInjector::PlotPositionDiff()
 
 
    while (1){
-    histo1= (TH1F *)dROOTCont->GetObjFromMapFile("diff_qwk_qpdRelX_hw");
-   
+    histo1= (TH1F *)dROOTCont->GetObjFromMapFile("asym_qwk_bcm0l02_hw");
+    if (histo1!=NULL) {
     
-    mc->Clear();
-    mc->Divide(1,1);
+      mc->Clear();
+      mc->Divide(1,1);
 
-    mc->cd(1);
-    histo1->Draw();
-    gPad->Update();
-    gPad->Update();
+      mc->cd(1);
+      histo1->Draw();
+      gPad->Update();
+      gPad->Update();
 
-    mc->Modified();
-    mc->Update();
+      mc->Modified();
+      mc->Update();
+    }
 
     gSystem->Sleep(100);
     if (gSystem->ProcessEvents()){
@@ -273,33 +361,120 @@ void QwGUIInjector::PlotPositionDiff()
 }
 
 
-void QwGUIInjector::PlotChargeAsym(){
-  TCanvas *mc = NULL;
-  TH1F *histo2=NULL;
-  mc = dCanvas->GetCanvas();
+void QwGUIInjector::PlotBPMAsym(){
 
+  TH1F *histo1=NULL;
+  TH1F *histo2=NULL;
+
+  char histo[128];
   
-  while (1){
-    histo2= (TH1F *)dROOTCont->GetObjFromMapFile("asym_qwk_bcm0l02_hw");
+  Int_t xcount = 0;
+  Int_t ycount = 0;
+  
+  Double_t offset = 0.5;
+  Double_t min_range = - offset;
+  Double_t max_range = INJECTOR_DEV_NUM - offset ; 
+
+  TH1D *dummyhist = NULL;
+
+  TString dummyname;
+
+  Bool_t ldebug = kFALSE;
+  
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+ 
+
+   while (1){ 
+     PosVariation[0] = new TH1F("Asym", "Asymmetry Variation", INJECTOR_DEV_NUM, min_range, max_range);
+     PosVariation[1] = new TH1F("dyvar", "#Delta Y variation", INJECTOR_DEV_NUM, min_range, max_range); 
+    for(Short_t p = 0; p <INJECTOR_DEV_NUM ; p++) 
+    {
+      if(!strcmp(InjectorDevices[p],"qwk_bcm0l02"))
+	{
+	}
+      else
+	{
+	  sprintf (histo, "asym_%sX_hw", InjectorDevices[p]);
+	  histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+	  if (histo1!=NULL) {
+	    xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	    if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
+	    histo1->SetName(histo);
+	    
+	    dummyname = histo1->GetName();
+	    
+	    dummyname.Replace(0,9," ");
+	    dummyname.ReplaceAll("_hw", "");
+	    PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
+	    PosVariation[0] -> SetBinError  (xcount, histo1->GetMeanError());
+	    PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
+	      //SummaryHist(histo1);
+	    delete histo1; histo1= NULL;
+	  }
+	  
+	    sprintf (histo, "asym_%sY_hw", InjectorDevices[p]);
+	    histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+	    if(histo2!=NULL){		
+	      ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	      if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
+	      histo2->SetName(histo);
+	      dummyname = histo2->GetName();
+	      dummyname.Replace(0,9," ");
+	      dummyname.ReplaceAll("_hw", "");
+	      PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
+	      PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError());
+	      PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
+	      //SummaryHist(histo2);
+	      delete histo2; histo2= NULL; 
+	    }
+	  
+	  
+	}
+    }
+    xcount = 0;
+    ycount = 0;
+    mc->Clear();
+    mc->Divide(1,2);
+
+
 
     
-    mc->Clear();
-    mc->Divide(1,1);
-
     mc->cd(1);
-    histo2->Draw();
+    //SummaryHist(PosVariation[0]);
+    PosVariation[0] -> SetMarkerStyle(20);
+    PosVariation[0] -> SetTitle("Asymmetry X Variation");
+    PosVariation[0] -> GetYaxis() -> SetTitle("Asymmetry");
+    PosVariation[0] -> GetXaxis() -> SetTitle("BPM X");
+    PosVariation[0] -> Draw("E1");
+    //gPad->Update();
+    //mc->Modified();
+    //mc->Update();
+    
+    mc->cd(2);
+    //SummaryHist(PosVariation[1]);
+    PosVariation[1] -> SetMarkerStyle(20);
+    PosVariation[1] -> SetTitle("Asymmetry Y Variation");
+    PosVariation[1] -> GetYaxis()-> SetTitle ("Asymmetry");
+    PosVariation[1] -> GetXaxis() -> SetTitle("BPM Y");
+    PosVariation[1] -> Draw("E1");
+    
     gPad->Update();
-
     mc->Modified();
     mc->Update();
-
+    for (Short_t p = 0; p <NUM_POS ; p++){
+      delete PosVariation[p];
+    }
     gSystem->Sleep(100);
     if (gSystem->ProcessEvents()){
-      //printf("UpdateMemoryMap() Exit %d ",gSystem->ProcessEvents());
       break;
     }
-  }
+   }
+
   return;
+
+
+
 }
   
   
@@ -358,14 +533,14 @@ Bool_t QwGUIInjector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	      switch(parm1)
 		{
 		case   BA_POS_DIFF:
-		  //printf("text button id %ld pressed\n", parm1);	
-		  PlotPositionDiff();
+		  //printf("text button id %ld pressed\n", parm1);		  
+		  PlotBPMAsym();
 		  break;
 		  
 		case BA_CHARGE:
 		  
 		  //printf("text button id %ld pressed\n", parm1);
-		  PlotChargeAsym();
+		  PlotChargeAsym();//PlotPositionDiff(); 
 		  break;
 
 		case BA_POS_VAR:

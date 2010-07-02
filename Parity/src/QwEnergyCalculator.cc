@@ -211,6 +211,32 @@ void  QwEnergyCalculator::ConstructBranchAndVector(TTree *tree, TString &prefix,
 };
 
 
+
+void  QwEnergyCalculator::ConstructBranch(TTree *tree, TString &prefix){
+  if (GetElementName()==""){
+    //  This channel is not used, so skip filling the histograms.
+  }
+  else
+    fEnergyChange.ConstructBranch(tree,prefix);
+  return;
+};
+
+void  QwEnergyCalculator::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist){
+  
+  TString devicename;
+  devicename=GetElementName();
+  devicename.ToLower();
+  if (GetElementName()==""){
+    //  This channel is not used, so skip filling the histograms.
+  }
+  else
+    if (modulelist.HasValue(devicename)){
+      fEnergyChange.ConstructBranch(tree,prefix);
+      QwMessage <<" Tree leave added to "<<devicename<<QwLog::endl;
+      }
+  return;
+};
+
 void  QwEnergyCalculator::FillTreeVector(std::vector<Double_t> &values){
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.

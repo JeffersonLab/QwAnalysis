@@ -6,6 +6,8 @@
 -include ../VERSION
 
 LIBDIR        = ../QwGUILib
+
+
 LIBINCLUDE    = $(LIBDIR)/include
 RDATALIB      = $(LIBDIR)/QwGUIRootLib-$(VERS).a
 PRG_INCLUDE   = ./include
@@ -22,6 +24,7 @@ OBJECTS       += QwGUISubSystem.o
 OBJECTS       += QwGUIMainDetector.o
 OBJECTS       += QwGUILumiDetector.o
 OBJECTS       += QwGUIInjector.o
+OBJECTS       += QwGUICorrelationPlots.o
 OBJECTS       += QwGUIEventDisplay.o
 OBJECTS       += QwGUISuperCanvas.o
 
@@ -87,6 +90,9 @@ LIBS          = $(ROOTLIBS) $(SYSLIBS) $(QWLIBS) -lNew
 GLIBS         = $(ROOTGLIBS) $(SYSLIBS) $(QWLIBS) -lNew
 
 ENSCRIPT      = @enscript -2Gjr -o
+
+
+
 #------------------------------------------------------------------------------------
 
 

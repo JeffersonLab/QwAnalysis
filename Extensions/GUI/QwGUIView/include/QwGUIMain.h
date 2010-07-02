@@ -86,7 +86,7 @@
 #include "QwGUIMainDetector.h"
 #include "QwGUIScanner.h"
 #include "QwGUIBeamModulation.h"
-#include "QwGUILumiDetector.h"
+#include "QwGUILumiDetector.h" 
 #include "QwGUIInjector.h"
 #include "QwGUIHallCBeamline.h"
 #include "QwGUITrackFinding.h"
@@ -95,7 +95,10 @@
 #include "QwGUIDatabaseContainer.h"
 #include "QwGUIDatabase.h"
 #ifndef __CINT__
+
 #include "QwOptions.h"
+#include "QwParameterFile.h"
+
 #endif /* __CINT__ */
 
 

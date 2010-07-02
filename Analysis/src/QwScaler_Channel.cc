@@ -163,6 +163,18 @@ void  QwScaler_Channel<data_mask,data_shift>::ConstructBranchAndVector(TTree *tr
 };
 
 template<unsigned int data_mask, unsigned int data_shift>
+void  QwScaler_Channel<data_mask,data_shift>::ConstructBranch(TTree *tree, TString &prefix)
+{
+  if (IsNameEmpty()){
+    //  This channel is not used, so skip setting up the tree.
+  } else {
+    TString basename = prefix + GetElementName();
+
+    tree->Branch(basename, &fValue);
+  }
+};
+
+template<unsigned int data_mask, unsigned int data_shift>
 void  QwScaler_Channel<data_mask,data_shift>::FillTreeVector(std::vector<Double_t> &values)
 {
   if (IsNameEmpty()){

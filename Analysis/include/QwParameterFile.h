@@ -63,6 +63,8 @@ class QwParameterFile {
   void RewindToFileStart() { fStream.clear(); fStream.seekg(0, std::ios::beg); };
   void RewindToLineStart() { fCurrentPos = 0; };
 
+  Bool_t HasValue(TString& vname);
+
   Bool_t HasVariablePair(std::string separatorchars, std::string& varname, std::string& varvalue);
   Bool_t HasVariablePair(std::string separatorchars, TString& varname, TString& varvalue);
 
@@ -72,12 +74,25 @@ class QwParameterFile {
   Bool_t LineHasSectionHeader(std::string& secname);
   Bool_t LineHasSectionHeader(TString& secname);
 
+  Bool_t LineHasModuleHeader(std::string& secname);
+  Bool_t LineHasModuleHeader(TString& secname);
+
   Bool_t FileHasSectionHeader(const std::string& secname);
   Bool_t FileHasSectionHeader(const TString& secname);
 
+  Bool_t FileHasModuleHeader(const std::string& secname);
+  Bool_t FileHasModuleHeader(const TString& secname);
+  
+
+  /// \brief Rewinds to the start and read until it's finds next header
   QwParameterFile* ReadPreamble();
   QwParameterFile* ReadUntilNextSection();
   QwParameterFile* ReadNextSection(std::string &secname);
+  QwParameterFile* ReadNextSection(TString &secname);
+
+  QwParameterFile* ReadUntilNextModule();
+  QwParameterFile* ReadNextModule(std::string &secname);
+  QwParameterFile* ReadNextModule(TString &secname);
 
   friend ostream& operator<< (ostream& stream, const QwParameterFile& file);
 

@@ -1002,6 +1002,108 @@ void  QwHelicity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::ve
   return;
 };
 
+void  QwHelicity::ConstructBranch(TTree *tree, TString &prefix)
+{
+  TString basename;
+
+  SetHistoTreeSave(prefix);
+  if(fHistoType==kHelNoSave)
+    {
+      //do nothing
+    }
+  else if(fHistoType==kHelSaveMPS)
+    {
+      basename = "actual_helicity";    //predicted actual helicity before being delayed.
+      tree->Branch(basename, &fHelicityActual);
+      //
+      basename = "delayed_helicity";   //predicted delayed helicity
+      tree->Branch(basename, &fHelicityDelayed);
+      //
+      basename = "reported_helicity";  //delayed helicity reported by the input register.
+      tree->Branch(basename, &fHelicityReported);
+      //
+      basename = "pattern_phase";
+      tree->Branch(basename, &fPatternPhaseNumber);
+     //
+      basename = "pattern_number";
+      tree->Branch(basename, &fPatternNumber);
+      //
+      basename = "event_number";
+      tree->Branch(basename, &fEventNumber);
+    }
+  else if(fHistoType==kHelSavePattern)
+    {
+      basename = "actual_pattern_polarity";
+      tree->Branch(basename, &fActualPatternPolarity);
+      //
+      basename = "delayed_pattern_polarity";
+      tree->Branch(basename, &fDelayedPatternPolarity);
+      // 
+      basename = "pattern_number";
+      tree->Branch(basename, &fPatternNumber);
+
+      for (size_t i=0; i<fWord.size(); i++)
+	{
+	  basename = fWord[i].fWordName;
+	  tree->Branch(basename, &fWord[i].fValue);
+	}
+    }
+
+  return;
+};
+
+void  QwHelicity::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file)
+{
+  TString basename;
+
+  SetHistoTreeSave(prefix);
+  if(fHistoType==kHelNoSave)
+    {
+      //do nothing
+    }
+  else if(fHistoType==kHelSaveMPS)
+    {
+      basename = "actual_helicity";    //predicted actual helicity before being delayed.
+      tree->Branch(basename, &fHelicityActual);
+      //
+      basename = "delayed_helicity";   //predicted delayed helicity
+      tree->Branch(basename, &fHelicityDelayed);
+      //
+      basename = "reported_helicity";  //delayed helicity reported by the input register.
+      tree->Branch(basename, &fHelicityReported);
+      //
+      basename = "pattern_phase";
+      tree->Branch(basename, &fPatternPhaseNumber);
+     //
+      basename = "pattern_number";
+      tree->Branch(basename, &fPatternNumber);
+      //
+      basename = "event_number";
+      tree->Branch(basename, &fEventNumber);
+    }
+  else if(fHistoType==kHelSavePattern)
+    {
+      basename = "actual_pattern_polarity";
+      tree->Branch(basename, &fActualPatternPolarity);
+      //
+      basename = "delayed_pattern_polarity";
+      tree->Branch(basename, &fDelayedPatternPolarity);
+      // 
+      basename = "pattern_number";
+      tree->Branch(basename, &fPatternNumber);
+
+      for (size_t i=0; i<fWord.size(); i++)
+	{
+	  basename = fWord[i].fWordName;
+	  tree->Branch(basename,&fWord[i].fValue);
+	}
+
+    }
+
+
+  return;
+};
+
 void  QwHelicity::FillTreeVector(std::vector<Double_t> &values)
 {
 

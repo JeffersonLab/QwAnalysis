@@ -29,8 +29,8 @@ QwRootFile::QwRootFile(const TString& run_label)
     else
       fMapFile->Print();
 
-    // Disable tree in map file mode
-    fEnableTree = false;
+    //    // Disable tree in map file mode
+    //    fEnableTree = false; //Since we are using a tree within the map file we no longer scifically set this to false in RT mode
 
   // Otherwise we are in offline mode
   } else {
@@ -101,10 +101,9 @@ void QwRootFile::DefineOptions(QwOptions &options)
   options.AddOptions()
     ("mapfile-update-interval", po::value<int>()->default_value(400),
      "Events between a map file update");
-  /*  options.AddOptions()("trim-tree",
+   options.AddOptions()("trim-tree",
                        po::value<std::string>()->default_value("tree_trim.in"),
                        "Contains subsystems/elements to be included in the tree");
-  */
 }
 
 
@@ -136,10 +135,9 @@ void QwRootFile::ProcessOptions(QwOptions &options)
   //Update interval for the map file
   fUpdateInterval = options.GetValue<int>("mapfile-update-interval");
   
-  /*
+  
   fTreeTrim_Filename = options.GetValue<std::string>("trim-tree").c_str();
   QwMessage << "Tree trim definition file " << fTreeTrim_Filename << QwLog::endl;
-  */
 }
 
 
@@ -195,10 +193,9 @@ void QwRootFile::ConstructHistograms(QwHelicityPattern& helicity_pattern)
  */
 void QwRootFile::ConstructTreeBranches(QwSubsystemArrayParity& detectors)
 {
-  /*
-  //Access the tree trimming definition file
-  QwParameterFile trimm_tree(fTreeTrim_Filename);
-  */
+  
+  
+
   // Return if we do not want tree or mps information
   if (! fEnableTree) return;
   if (! fEnableMps) return;
@@ -217,7 +214,14 @@ void QwRootFile::ConstructTreeBranches(QwSubsystemArrayParity& detectors)
 
   // Associate branches with vector
   TString dummystr = "";
-  detectors.ConstructBranchAndVector(fMpsTree, dummystr, fMpsVector);
+  if (fEnableMapFile){
+    //Access the tree trimming definition file
+    QwParameterFile trim_tree(fTreeTrim_Filename);
+    detectors.ConstructBranch(fMpsTree, dummystr, trim_tree);
+  }
+  else
+    detectors.ConstructBranchAndVector(fMpsTree, dummystr, fMpsVector);
+
 }
 
 
@@ -230,6 +234,8 @@ void QwRootFile::ConstructTreeBranches(QwHelicityPattern& helicity_pattern)
   // Return if we do not want tree or hel information
   if (! fEnableTree) return;
   if (! fEnableHel) return;
+
+
 
   // Go to top level directory
   cd();
@@ -245,7 +251,14 @@ void QwRootFile::ConstructTreeBranches(QwHelicityPattern& helicity_pattern)
 
   // Associate branches with vector
   TString dummystr = "";
-  helicity_pattern.ConstructBranchAndVector(fHelTree, dummystr, fHelVector);
+
+  if (fEnableMapFile){
+    //Access the tree trimming definition file  
+    QwParameterFile trim_tree(fTreeTrim_Filename);
+    helicity_pattern.ConstructBranch(fHelTree, dummystr, trim_tree);
+  }
+  else
+    helicity_pattern.ConstructBranchAndVector(fHelTree, dummystr, fHelVector);
 }
 
 
@@ -262,12 +275,13 @@ void QwRootFile::FillTreeBranches(QwSubsystemArrayParity& detectors)
   // Output ROOT tree prescaling
   // One cycle starts with fNumEventsToTake accepted events
   if (fNumEventsCycle > 0) {
-    UInt_t current_event = detectors.GetCodaEventNumber() % fNumEventsCycle;
-    if (current_event > fNumEventsToSave) return;
+    fCurrent_event = detectors.GetCodaEventNumber() % fNumEventsCycle;
+    if (fCurrent_event > fNumEventsToSave) return;
   }
 
   // Fill the vector
-  detectors.FillTreeVector(fMpsVector);
+  if (!fEnableMapFile)
+    detectors.FillTreeVector(fMpsVector);
   // Fill the tree
   fMpsTree->Fill();
 }
@@ -284,7 +298,20 @@ void QwRootFile::FillTreeBranches(QwHelicityPattern& helicity_pattern)
   if (! fEnableHel) return;
 
   // Fill the vector
-  helicity_pattern.FillTreeVector(fHelVector);
+  //helicity_pattern.FillTreeVector(fHelVector);
+
+  // Output ROOT tree prescaling
+
+  // One cycle starts with fNumEventsToTake accepted events
+
+  if (fNumEventsCycle > 0) {
+    if (fCurrent_event > fNumEventsToSave) return;
+  }
+  
+
+  // Fill the tree
+  if (!fEnableMapFile)
+    helicity_pattern.FillTreeVector(fHelVector);
   // Fill the tree
   fHelTree->Fill();
 }

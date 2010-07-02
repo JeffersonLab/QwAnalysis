@@ -88,7 +88,17 @@
 #include "QwGUIInjector.h"
 #include "QwGUIEventDisplay.h"
 #include "QwGUIHelpBrowser.h"
+#include "QwGUICorrelationPlots.h"
 
+
+#ifndef __CINT__
+
+#include "QwOptions.h"
+#include "QwParameterFile.h"
+
+#endif /* __CINT__ */
+
+ 
 class QwGUIMain : public TGMainFrame {
 
   RQ_OBJECT("QwGUIMain");
@@ -103,6 +113,7 @@ class QwGUIMain : public TGMainFrame {
   QwGUILumiDetector      *LumiDetSubSystem;
   QwGUIInjector          *InjectorSubSystem;
   QwGUIEventDisplay      *EventDisplaySubSystem;
+  QwGUICorrelationPlots  *CorrelationSubSystem;
 
   QwGUIHelpBrowser          *dHelpBrowser;
 

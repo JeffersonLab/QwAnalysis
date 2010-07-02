@@ -581,10 +581,14 @@ void  QwHelicityPattern::FillHistograms()
 
 void  QwHelicityPattern::DeleteHistograms()
 {
+  //std::cout<<"fYield.DeleteHistograms() "<<std::endl;
   fYield.DeleteHistograms();
+  //std::cout<<"fAsymmetry.DeleteHistograms()"<<std::endl;
   fAsymmetry.DeleteHistograms();
   if (fEnableAlternateAsym){
+    //std::cout<<"fAsymmetry1.DeleteHistograms()"<<std::endl;
     fAsymmetry1.DeleteHistograms();
+    //std::cout<<"fAsymmetry2.DeleteHistograms()"<<std::endl;
     fAsymmetry2.DeleteHistograms();
   }
   return;
@@ -603,6 +607,40 @@ void QwHelicityPattern::ConstructBranchAndVector(TTree *tree, TString & prefix, 
     fAsymmetry1.ConstructBranchAndVector(tree, asymprefix, values);
     asymprefix = "asym2_" + prefix;
     fAsymmetry2.ConstructBranchAndVector(tree, asymprefix, values);
+  }
+  return;
+}
+
+void QwHelicityPattern::ConstructBranch(TTree *tree, TString & prefix)
+{
+  TString yieldprefix = "yield_" + prefix;
+  fYield.ConstructBranch(tree, yieldprefix);
+
+  TString asymprefix = "asym_" + prefix;
+  fAsymmetry.ConstructBranch(tree, asymprefix);
+
+  if (fEnableAlternateAsym){
+    asymprefix = "asym1_" + prefix;
+    fAsymmetry1.ConstructBranch(tree, asymprefix);
+    asymprefix = "asym2_" + prefix;
+    fAsymmetry2.ConstructBranch(tree, asymprefix);
+  }
+  return;
+}
+
+void QwHelicityPattern::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile &trim_tree)
+{
+  TString yieldprefix = "yield_" + prefix;
+  fYield.ConstructBranch(tree, yieldprefix, trim_tree);
+
+  TString asymprefix = "asym_" + prefix;
+  fAsymmetry.ConstructBranch(tree, asymprefix, trim_tree);
+
+  if (fEnableAlternateAsym){
+    asymprefix = "asym1_" + prefix;
+    fAsymmetry1.ConstructBranch(tree, asymprefix, trim_tree);
+    asymprefix = "asym2_" + prefix;
+    fAsymmetry2.ConstructBranch(tree, asymprefix, trim_tree);
   }
   return;
 }

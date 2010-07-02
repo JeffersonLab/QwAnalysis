@@ -25,7 +25,7 @@ EVENTCUTS = 0
 
 !bcm, qwk_batext2,  	0, 	0
 !for 752 & 755 
-!bcm, qwk_bcm0l02, 	6.80e+05, 	7.20e+05 
+bcm, qwk_bcm0l02, 	6.80e+05, 	7.20e+06 
 !for parity mock data run 1000 9.98608e+06
 !bcm, qwk_bcm0l03, 	8.00e+06, 	1.20e+07 
 

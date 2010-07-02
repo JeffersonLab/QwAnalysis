@@ -53,7 +53,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   // Define the command line options
   DefineOptionsParity(gQwOptions);
 
-
+ 
 
   Bool_t bDebug=kFALSE;
   Bool_t bHelicity=kTRUE;
@@ -98,9 +98,9 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwDetectors.push_back(new QwHelicity("Helicity info"));
   QwDetectors.GetSubsystemByName("Helicity info")->LoadChannelMap("qweak_helicity.map");
   QwDetectors.GetSubsystemByName("Helicity info")->LoadInputParameters("");
-  QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
-  QwDetectors.GetSubsystemByName("Luminosity Monitors")->LoadChannelMap("qweak_lumi.map");//current map file is for the beamline.
-  QwDetectors.GetSubsystemByName("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file.
+  //QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
+  //QwDetectors.GetSubsystemByName("Luminosity Monitors")->LoadChannelMap("qweak_lumi.map");//current map file is for the beamline.
+  //QwDetectors.GetSubsystemByName("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file.
 
   QwSubsystemArrayParity runningsum;
   runningsum.Copy(&QwDetectors);

@@ -309,6 +309,35 @@ void  QwIntegrationPMT::ConstructBranchAndVector(TTree *tree, TString &prefix, s
   return;
 };
 
+void  QwIntegrationPMT::ConstructBranch(TTree *tree, TString &prefix)
+{
+  if (GetElementName()==""){
+    //  This channel is not used, so skip filling the histograms.
+  } else
+    {
+      fTriumf_ADC.ConstructBranch(tree, prefix);
+    }
+  return;
+};
+
+void  QwIntegrationPMT::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
+{
+   TString devicename;
+   devicename=GetElementName();
+   devicename.ToLower();
+   if (GetElementName()==""){
+     //  This channel is not used, so skip filling the histograms.
+   } else {
+     if (modulelist.HasValue(devicename)){
+       fTriumf_ADC.ConstructBranch(tree, prefix);
+       QwMessage <<"QwIntegrationPMT Tree leave added to "<<devicename<<QwLog::endl;
+       }
+ 
+   }
+  return;
+};
+
+
 void  QwIntegrationPMT::FillTreeVector(std::vector<Double_t> &values)
 {
   if (GetElementName()==""){

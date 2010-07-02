@@ -327,6 +327,36 @@ void  QwCombinedBCM::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
   return;
 };
 
+void  QwCombinedBCM::ConstructBranch(TTree *tree, TString &prefix)
+{
+  if (GetElementName()==""){
+    //  This channel is not used, so skip filling the histograms.
+  } else
+    {
+      fCombined_bcm.ConstructBranch(tree,prefix);
+    }
+  return;
+};
+
+void  QwCombinedBCM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
+{
+  TString devicename;
+  devicename=GetElementName();
+  devicename.ToLower();
+
+  if (GetElementName()==""){
+    //  This channel is not used, so skip filling the histograms.
+  } else
+    {
+      if (modulelist.HasValue(devicename)){
+	fCombined_bcm.ConstructBranch(tree,prefix);
+	QwMessage <<" Tree leave added to "<<devicename<<QwLog::endl;
+      }
+    }
+  return;
+};
+
+
 void  QwCombinedBCM::FillTreeVector(std::vector<Double_t> &values)
 {
   if (GetElementName()==""){

@@ -48,6 +48,12 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
       TString tmpstr("");
       ConstructBranchAndVector(tree,tmpstr,values);
     };
+
+    /// \brief Construct the branch and tree vector
+    virtual void ConstructBranch(TTree *tree, TString & prefix){};
+    /// \brief Construct the branch and tree vector based on the trim file
+    virtual void ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& trim_file ){};
+    
     /// \brief Fill the tree vector
     virtual void FillTreeVector(std::vector<Double_t> &values) = 0;
 

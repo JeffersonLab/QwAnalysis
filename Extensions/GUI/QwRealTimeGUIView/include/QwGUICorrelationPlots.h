@@ -5,9 +5,9 @@
 //  ---------------------------
 /**
  
-   \file QwGUIInjector.h
+   \file QwGUICorrelationPlots.h
    \author Michael Gericke
-   \author Buddhini Waidyawansa
+   \author Rakitha Beminiwatha
      
 */
 //=============================================================================
@@ -18,28 +18,27 @@
 //  | Doxygen Class Information |
 //  ---------------------------
 /**
-   \class QwGUIInjector
+   \class QwGUICorrelationPlots
     
-   \brief Handles the display of the lumi detector data.  
+   \brief Handles the display of the correlation plots with  scandata variables.  
 
-   The QwGUIInjector class handles the display of the lumi detector data.
+   The QwGUICorrelationPlots class handles the display of the correlation plots with  scandata variables.
    It implements several functions to manipulate the data and calculate certain
    basic diagnostic quantities.
 
-   This is Gericke's original code for the main detector. 
+   This freamework  is Gericke's original code for the main detector. 
 Added by Buddhini to display the injector beamline data.
 
  */
 //=============================================================================
 
-#define INJECTOR_DEV_NUM          22        
-#define INJECTOR_DET_TRE_NUM      2
-#define NUM_POS 2
+#define CORRELATION_DEV_NUM          22        
+#define CORRELATION_DET_TRE_NUM      2
 ///
-/// \ingroup QwGUIInjector
+/// \ingroup QwGUICorrelationPlots
 
-#ifndef QWGUIINJECTOR_H
-#define QWGUIINJECTOR_H
+#ifndef QWGUICORRELATION_H
+#define QWGUICORRELATION_H
 
 
 #include <cstdlib>
@@ -50,6 +49,7 @@ Added by Buddhini to display the injector beamline data.
 #include <string>
 
 #include <TMapFile.h>
+#include <TPaveText.h>
 
 #include "TRootEmbeddedCanvas.h"
 #include "TRootCanvas.h"
@@ -57,30 +57,55 @@ Added by Buddhini to display the injector beamline data.
 #include "QwGUISubSystem.h"
 
 #include "RSDataWindow.h"
+#include "TGTextEntry.h"
 
 
 #ifndef __CINT__
-#include "QwLog.h"
+
 #include "QwOptions.h"
 #include "QwParameterFile.h"
 
 #endif
 
-
-
-class QwGUIInjector : public QwGUISubSystem {
+class QwGUICorrelationPlots : public QwGUISubSystem {
 
   
   TGHorizontalFrame   *dTabFrame;
+  TGHorizontalFrame   *dTreeFrame;
+  TGHorizontalFrame   *dTreeInputFrame1;
+  TGHorizontalFrame   *dTreeInputFrame2;
+  //TGHorizontalFrame   *dTreeInputFrame3;
+  TGVerticalFrame     *dTreeInputFrame3;
+  TGHorizontalFrame   *dTreeInputFrame4;
+  TGHorizontalFrame   *dTreeInputFrame5;
+
   TGVerticalFrame     *dControlsFrame;
   TRootEmbeddedCanvas *dCanvas;  
+
   TGLayoutHints       *dTabLayout; 
   TGLayoutHints       *dCnvLayout; 
   TGLayoutHints       *dSubLayout;
   TGLayoutHints       *dBtnLayout;
-  TGTextButton        *dButtonPos;
-  TGTextButton        *dButtonCharge;
-  TGTextButton        *dButtonPosVariation;
+  TGLayoutHints       *dTreeLayout;
+
+  TGTextButton        *dButtonCorrelationPlot;
+
+  TGListBox           *dListboxTrees;
+
+  TGComboBox          *dComboBoxTreePrm1;
+  TGComboBox          *dComboBoxTreePrm2;
+
+  //Tree parameters labels and txt boxes
+  TGLabel             *dTreeXlbl;
+  TGLabel             *dTreeYlbl;
+  TGLabel             *dTreeXlbl2;
+  TGLabel             *dTreeYlbl2;
+  TGLabel             *dTreeCutlbl;
+  
+
+  TGTextEntry         *dTreeYtxt;
+  TGTextEntry         *dTreeXtxt;
+  TGTextEntry         *dTreeCuttxt;
 
   //memory mapped ROOT file
   TMapFile            *fMapFile; 
@@ -91,38 +116,25 @@ class QwGUIInjector : public QwGUISubSystem {
   //!An object array to store data window pointers -- good for use in cleanup.
   TObjArray            DataWindowArray;
 
+  TPaveText *errlabel; //To print out error messages on the pad
 
-  TH1F *PosVariation[2] ;
+  TH1D *PosVariation[2] ;
 /*   TGraphErrors *gx; */
 /*   TGraphErrors *gy; */
 
-  TString mapfile;
+ 
 
   
 
-  //!This function Draws a sample  histograms/plots from the Memory map file. 
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none 
-  void PositionDifferences();
+ 
 
-  //!This function Draws a sample  histograms/plots from the Memory map file. 
+  //!This function Draws a correlation plots from the flat tree in the  Memory map file. 
   //!
   //!Parameters:
   //! - none
   //!
   //!Return value: none 
-  void PlotBPMAsym();
-
-  //!This function Draws a sample  histograms/plots from the Memory map file. 
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none 
-  void PlotChargeAsym();
+  void PlotCorrelation();
   
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
@@ -135,19 +147,13 @@ class QwGUIInjector : public QwGUISubSystem {
   //!Return value: none  
   void                 ClearData();
 
-  
-  //!This function  loads the histogram names from a definition file
-  //!Parameters:
-  //! - Histogram names map file name
-  //!
-  //!Return value: none  
-  void                 LoadHistoMapFile(TString mapfile);
-
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
   //!These are the names by which the histograms are identified within the root file.
 
-  static const char   *InjectorDevices[INJECTOR_DEV_NUM];
-  static const char   *InjectorTrees[INJECTOR_DET_TRE_NUM];
+  static const char   *CorrelationPlotsDevices[CORRELATION_DEV_NUM];
+  static const char   *CorrelationPlotsTrees[CORRELATION_DET_TRE_NUM];
+  UInt_t fTreeIndex;
+  
 
  protected:
 
@@ -162,12 +168,18 @@ class QwGUIInjector : public QwGUISubSystem {
   virtual void         MakeLayout();
 
   void                 SummaryHist(TH1*in);
+  void                 LoadLeafLists(Short_t tree_id);
+  void                 SetCorrelationParam(Short_t cmb_id, Short_t id);
+  void                 SetXCutExpr();
+  void                 SetYCutExpr();
+  void                 SetCutExpr();
+  TString              SetupCut(TString, TString, TString);
 
  public:
   
-  QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTab *tab,
+  QwGUICorrelationPlots(const TGWindow *p, const TGWindow *main, const TGTab *tab,
 		    const char *objName, const char *mainname, UInt_t w, UInt_t h);
-  ~QwGUIInjector();
+  ~QwGUICorrelationPlots();
 
 
   //!Overwritten virtual function from QwGUISubSystem::OnNewDataContainer(). This function retrieves
@@ -186,7 +198,19 @@ class QwGUIInjector : public QwGUISubSystem {
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
   virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
 
-  ClassDef(QwGUIInjector,0);
+  TString fTreePrmX;//Correlation plot parameters
+  TString fTreePrmY;
+  TObjArray *fTreePrmAry;
+  TObject * fLeaf;
+  Bool_t bCUTEXPR;
+  Bool_t fCMB_TREE_PX,fCMB_TREE_PY;
+
+  TString fCutX;
+  TString fCutY;
+  TString fCutExpr;
+
+  
+  ClassDef(QwGUICorrelationPlots,0);
 };
 
 #endif

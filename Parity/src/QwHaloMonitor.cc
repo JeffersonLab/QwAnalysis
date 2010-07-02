@@ -166,6 +166,18 @@ void  QwHaloMonitor::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
   return;
 };
 
+void  QwHaloMonitor::ConstructBranch(TTree *tree, TString &prefix)
+{
+  if (GetElementName()==""){
+    //  This channel is not used, so skip filling the histograms.
+  } 
+  else{
+    fHalo_Counter.ConstructBranch(tree, prefix);
+    // this functions doesn't do anything yet
+  }
+  return;
+};
+
 void  QwHaloMonitor::FillTreeVector(std::vector<Double_t> &values)
 {
   if (GetElementName()==""){

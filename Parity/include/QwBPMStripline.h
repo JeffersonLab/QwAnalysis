@@ -17,7 +17,7 @@
 #include "QwVQWK_Channel.h"
 #include "QwDatabase.h"
 #include "VQwBPM.h"
-
+#include "QwParameterFile.h"
 /*****************************************************************
 *  Class:
 ******************************************************************/
@@ -36,7 +36,9 @@ class QwBPMStripline : public VQwBPM {
 
   };
 
-  ~QwBPMStripline() {DeleteHistograms();};
+  ~QwBPMStripline() {
+    DeleteHistograms();
+  };
 
   void    InitializeChannel(TString name);
   void    ClearEventData();
@@ -80,6 +82,8 @@ class QwBPMStripline : public VQwBPM {
   void    DeleteHistograms();
 
   void    ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+  void    ConstructBranch(TTree *tree, TString &prefix);
+  void    ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void    FillTreeVector(std::vector<Double_t> &values);
 
 

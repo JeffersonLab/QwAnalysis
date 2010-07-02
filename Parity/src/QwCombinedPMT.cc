@@ -326,11 +326,45 @@ void  QwCombinedPMT::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
     {
       TString sumprefix =  prefix+"";
       fSumADC.ConstructBranchAndVector(tree, sumprefix,values);
-//      TString avgprefix =  prefix+"";
-//      fAvgADC.ConstructBranchAndVector(tree, avgprefix,values);
+
     }
   return;
 };
+
+void  QwCombinedPMT::ConstructBranch(TTree *tree, TString &prefix)
+{
+  if (GetElementName()=="")
+    {
+      //  This channel is not used, so skip
+    }
+  else
+    {
+      TString sumprefix =  prefix+"";
+      fSumADC.ConstructBranch(tree, sumprefix);
+    }
+  return;
+};
+
+void  QwCombinedPMT::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile &modulelist)
+{
+  TString devicename;
+  devicename=GetElementName();
+  devicename.ToLower();
+  if (GetElementName()=="")
+    {
+      //  This channel is not used, so skip
+    }
+  else
+    {
+      if (modulelist.HasValue(devicename)){
+	TString sumprefix =  prefix+"";
+	fSumADC.ConstructBranch(tree, sumprefix);
+	QwMessage <<" Tree leave added to "<<devicename<<QwLog::endl;
+      }
+    }
+  return;
+};
+
 
 void  QwCombinedPMT::FillTreeVector(std::vector<Double_t> &values)
 {

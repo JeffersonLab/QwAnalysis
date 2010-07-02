@@ -621,6 +621,7 @@ void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std
 
     fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
     tree->Branch(basename, &(values[fTreeArrayIndex]), list);
+    //tree->Branch(basename,&fHardwareBlockSum);
     if (kDEBUG && GetElementName()=="MD1Pos"){
       std::cerr << "QwVQWK_Channel::ConstructBranchAndVector: fTreeArrayIndex==" << fTreeArrayIndex
 		<< "; fTreeArrayNumEntries==" << fTreeArrayNumEntries
@@ -631,6 +632,23 @@ void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std
   }
   return;
 };
+
+void  QwVQWK_Channel::ConstructBranch(TTree *tree, TString &prefix)
+{
+  if (IsNameEmpty()){
+    //  This channel is not used, so skip setting up the tree.
+  } else {
+    TString basename = prefix + GetElementName();
+    tree->Branch(basename,&fHardwareBlockSum);
+    if (kDEBUG){
+      std::cerr << "QwVQWK_Channel::ConstructBranchAndVector: fTreeArrayIndex==" << fTreeArrayIndex
+		<< "; fTreeArrayNumEntries==" << fTreeArrayNumEntries
+		<< std::endl;
+    }
+  }
+  return;
+};
+
 
 void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values)
 {

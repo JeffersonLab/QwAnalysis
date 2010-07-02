@@ -669,6 +669,29 @@ void QwLumi::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector
   return;
 };
 
+void QwLumi::ConstructBranch(TTree *tree, TString & prefix)
+{
+
+  for(size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].ConstructBranch(tree, prefix);
+  return;
+};
+
+void QwLumi::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& trim_file)
+{
+  TString tmp;
+  QwParameterFile* nextmodule;
+  
+  tmp="QwIntegrationPMT";
+  trim_file.RewindToFileStart(); 
+  if (trim_file.FileHasModuleHeader(tmp)){
+    nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
+    for(size_t i = 0; i < fIntegrationPMT.size(); i++)
+      fIntegrationPMT[i].ConstructBranch(tree, prefix,*nextmodule);
+  }
+  return;
+};
+
 void QwLumi::FillTreeVector(std::vector<Double_t> &values)
 {
 

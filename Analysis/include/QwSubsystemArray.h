@@ -187,6 +187,9 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
     TString tmpstr("");
     ConstructBranchAndVector(tree,tmpstr,values);
   };
+  void ConstructBranch(TTree *tree, TString & prefix);
+  /// \brief Construct trimmed leaves.
+  void ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& trim_file);
   void  FillTreeVector(std::vector<Double_t> &values);
 
 
@@ -206,6 +209,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   };
   /// \brief Construct the tree for this subsystem in a folder with a prefix
   void  ConstructTree(TDirectory *folder, TString &prefix);
+  
   /// \brief Fill the tree for this subsystem
   void  FillTree();
   /// \brief Delete the tree for this subsystem

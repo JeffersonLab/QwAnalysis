@@ -108,6 +108,8 @@ class QwBeamLine : public VQwSubsystemParity{
   void DeleteHistograms();
 
   void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+  void ConstructBranch(TTree *tree, TString &prefix);
+  void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file );
   void FillTreeVector(std::vector<Double_t> &values);
   void FillDB(QwDatabase *db, TString datatype);
 

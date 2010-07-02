@@ -44,6 +44,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   LumiDetSubSystem      = NULL;
   InjectorSubSystem     = NULL;
   EventDisplaySubSystem = NULL;
+  CorrelationSubSystem  = NULL;
 
   dMWWidth              = w;
   dMWHeight             = h;
@@ -118,9 +119,15 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   if(!GetSubSystemPtr("Injector"))
     InjectorSubSystem = new QwGUIInjector(fClient->GetRoot(), this, dTab,"Injector",
 					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
+
+  if(!GetSubSystemPtr("Correlation Plots"))
+    CorrelationSubSystem = new QwGUICorrelationPlots(fClient->GetRoot(), this, dTab,"Correlation Plots",
+					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
   if(!GetSubSystemPtr("Event Display"))
     EventDisplaySubSystem = new QwGUIEventDisplay(fClient->GetRoot(), this, dTab, "Event Display",
 					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
+
+  
 
   OpenMapFile();
 
@@ -132,6 +139,7 @@ QwGUIMain::~QwGUIMain()
   delete LumiDetSubSystem      ;
   delete InjectorSubSystem     ;
   delete EventDisplaySubSystem ;
+  delete CorrelationSubSystem  ;
 
   delete dROOTFile             ;
 

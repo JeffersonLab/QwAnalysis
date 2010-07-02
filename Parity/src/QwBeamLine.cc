@@ -1301,6 +1301,7 @@ void  QwBeamLine::FillHistograms()
 
 void QwBeamLine::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
+  
   for(size_t i = 0; i < fStripline.size(); i++)
     fStripline[i].ConstructBranchAndVector(tree, prefix, values);
   for(size_t i = 0; i < fBCM.size(); i++)
@@ -1311,6 +1312,78 @@ void QwBeamLine::ConstructBranchAndVector(TTree *tree, TString & prefix, std::ve
     fBPMCombo[i].ConstructBranchAndVector(tree, prefix, values);
   for(size_t i = 0; i <fECalculator.size();i++)
     fECalculator[i].ConstructBranchAndVector(tree, prefix, values);
+
+  return;
+};
+
+void QwBeamLine::ConstructBranch(TTree *tree, TString & prefix)
+{
+  for(size_t i = 0; i < fStripline.size(); i++)
+    fStripline[i].ConstructBranch(tree, prefix);
+  for(size_t i = 0; i < fBCM.size(); i++)
+    fBCM[i].ConstructBranch(tree, prefix);
+  
+  for(size_t i = 0; i <fBCMCombo.size();i++)
+    fBCMCombo[i].ConstructBranch(tree, prefix);
+  for(size_t i = 0; i <fBPMCombo.size();i++)
+    fBPMCombo[i].ConstructBranch(tree, prefix);
+  for(size_t i = 0; i <fECalculator.size();i++)
+    fECalculator[i].ConstructBranch(tree, prefix);
+  
+
+  return;
+};
+
+void QwBeamLine::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& trim_file)
+{
+  TString tmp,varname,varvalue;
+  tmp="QwBCM";
+  QwParameterFile* preamble;
+  QwParameterFile* nextmodule;
+  trim_file.RewindToFileStart();
+
+  
+  tmp="QwBPMStripline";
+  trim_file.RewindToFileStart();
+  if (trim_file.FileHasModuleHeader(tmp)){
+    nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
+    for(size_t i = 0; i < fStripline.size(); i++)
+      fStripline[i].ConstructBranch(tree, prefix,*nextmodule);
+  
+  }
+
+  tmp="QwBCM";
+  trim_file.RewindToFileStart();
+  if (trim_file.FileHasModuleHeader(tmp)){
+    nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
+    for(size_t i = 0; i < fBCM.size(); i++)
+      fBCM[i].ConstructBranch(tree, prefix,*nextmodule);
+  }
+
+  tmp="QwCombinedBCM";
+  trim_file.RewindToFileStart();
+  if (trim_file.FileHasModuleHeader(tmp)){
+    nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
+    for(size_t i = 0; i <fBCMCombo.size();i++)      
+      fBCMCombo[i].ConstructBranch(tree, prefix,*nextmodule);    
+  }
+  
+
+  tmp="QwCombinedBPM";
+  trim_file.RewindToFileStart();
+  if (trim_file.FileHasModuleHeader(tmp)){
+    nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
+    for(size_t i = 0; i <fBPMCombo.size();i++)
+      fBPMCombo[i].ConstructBranch(tree, prefix,*nextmodule);
+  }
+
+  tmp="QwEnergyCalculator";
+  trim_file.RewindToFileStart();
+  if (trim_file.FileHasModuleHeader(tmp)){
+    nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
+    for(size_t i = 0; i <fECalculator.size();i++)
+      fECalculator[i].ConstructBranch(tree, prefix,*nextmodule);
+  }
 
   return;
 };

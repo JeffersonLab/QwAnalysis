@@ -33,6 +33,62 @@ void  QwSubsystemArrayParity::ConstructBranchAndVector(TTree *tree, TString & pr
   }
 };
 
+void  QwSubsystemArrayParity::ConstructBranch(TTree *tree, TString & prefix)
+{
+  
+  tree->Branch("CodaEventNumber",&fCodaEventNumber);
+
+  tree->Branch("CodaEventType",&fCodaEventType);
+
+  for (iterator subsys = begin(); subsys != end(); ++subsys) {
+    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
+    
+    subsys_parity->ConstructBranch(tree, prefix);
+  }
+};
+
+void  QwSubsystemArrayParity::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& trim_file)
+{
+  QwMessage <<" QwSubsystemArrayParity::ConstructBranch "<<QwLog::endl;
+
+  
+  QwParameterFile* preamble;
+  QwParameterFile* nextsection;
+  preamble = trim_file.ReadPreamble();
+  // Process preamble
+  QwVerbose << "QwSubsystemArrayParity::ConstructBranch  Preamble:" << QwLog::endl;
+  QwVerbose << *preamble << QwLog::endl;
+
+  TString subsysname;
+  TString sub2;//="QwBPMStripline";
+
+  tree->Branch("CodaEventNumber",&fCodaEventNumber);
+
+  tree->Branch("CodaEventType",&fCodaEventType);
+
+  for (iterator subsys = begin(); subsys != end(); ++subsys) {
+    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
+    
+    subsysname=subsys_parity->GetSubsystemName();
+    //QwMessage <<"Tree leaves created for "<<subsysname<<QwLog::endl;
+
+    if (trim_file.FileHasSectionHeader(subsysname)){
+      nextsection=trim_file.ReadUntilNextSection();//This section contains modules and their channels to be included in the tree
+      /*
+       if (nextsection->FileHasVariablePair("=","module",sub2)){
+	QwMessage <<sub2<<QwLog::endl;	
+       }
+       else
+	 QwMessage <<"No modules"<<QwLog::endl;
+      */
+      subsys_parity->ConstructBranch(tree, prefix,*nextsection);
+      QwMessage <<"Tree leaves created for "<<subsysname<<QwLog::endl;
+    }
+    else
+      QwMessage <<"No Tree leaves created for "<<subsysname<<QwLog::endl;
+  }
+};
+
 void  QwSubsystemArrayParity::FillTreeVector(std::vector<Double_t> &values)
 {
   size_t index=fTreeArrayIndex;

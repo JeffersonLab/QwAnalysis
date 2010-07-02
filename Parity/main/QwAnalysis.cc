@@ -121,9 +121,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Construct tree branches
     rootfile->ConstructTreeBranches(detectors);
     rootfile->ConstructTreeBranches(helicitypattern);
-
-
-
     Int_t failed_events_counts = 0; // count failed total events
     // TODO (wdc) failed event counter in QwEventRing?
 
@@ -180,7 +177,8 @@ Int_t main(Int_t argc, Char_t* argv[])
         // Accumulate the running sum to calculate the event based running average
         runningsum.AccumulateRunningSum(detectors);
 
-        // Fill histograms
+
+	
         rootfile->FillHistograms(detectors);
 
         // Fill tree branches

@@ -728,6 +728,41 @@ void QwMainCerenkovDetector::ConstructBranchAndVector(TTree *tree, TString & pre
   return;
 };
 
+void QwMainCerenkovDetector::ConstructBranch(TTree *tree, TString & prefix)
+{
+  for (size_t i=0;i<fIntegrationPMT.size();i++)
+    fIntegrationPMT[i].ConstructBranch(tree, prefix);
+
+  for (size_t i=0;i<fCombinedPMT.size();i++)
+    fCombinedPMT[i].ConstructBranch(tree, prefix);
+
+  return;
+};
+
+void QwMainCerenkovDetector::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& trim_file)
+{
+  TString tmp;
+  QwParameterFile* nextmodule;
+  trim_file.RewindToFileStart();
+  tmp="QwIntegrationPMT";
+  trim_file.RewindToFileStart();
+  if (trim_file.FileHasModuleHeader(tmp)){ 
+    nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
+    for (size_t i=0;i<fIntegrationPMT.size();i++)
+
+      fIntegrationPMT[i].ConstructBranch(tree, prefix, *nextmodule);
+  }
+
+  tmp="QwCombinedPMT";
+  trim_file.RewindToFileStart();
+   if (trim_file.FileHasModuleHeader(tmp)){ 
+     nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
+     for (size_t i=0;i<fCombinedPMT.size();i++)
+       fCombinedPMT[i].ConstructBranch(tree, prefix, *nextmodule );
+   }
+
+  return;
+};
 
 void QwMainCerenkovDetector::FillTreeVector(std::vector<Double_t> &values)
 {
