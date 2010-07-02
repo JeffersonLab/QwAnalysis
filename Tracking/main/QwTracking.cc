@@ -61,12 +61,12 @@ static const bool kTracking = kFALSE;
 static const bool kTree = kTRUE;
 static const bool kHisto = kTRUE;
 
-static const bool kUseTDCHits = kFALSE;
+static const bool kUseTDCHits = kTRUE;
 
 // Branching flags for subsystems
-static const bool kMainDetBranch = kTRUE;
-static const bool kScannerBranch = kTRUE;
-static const bool kRasterBranch  = kTRUE;
+static const bool kMainDetBranch = kFALSE;
+static const bool kScannerBranch = kFALSE;
+static const bool kRasterBranch  = kFALSE;
 
 // Main function
 Int_t main(Int_t argc, Char_t* argv[]) {

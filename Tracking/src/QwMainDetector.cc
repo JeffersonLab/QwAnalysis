@@ -373,6 +373,8 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 
           for (UInt_t i=0; i<num_words ; i++)
             {
+	      //if(temp_print_flag) printf(" num_wrds %d  buffer[%d] =  0x%x\n", num_words, i, buffer[i]);
+
               fF1TDC.DecodeTDCWord(buffer[i], roc_id);
               tdc_slot_number = fF1TDC.GetTDCSlotNumber();
 
@@ -382,10 +384,14 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 		//  other data; it may be useful for something.
 	      }
 	      
-              if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
+	      tdc_channel_number = fF1TDC.GetTDCChannelNumber();
 	      
-              tdc_channel_number = fF1TDC.GetTDCChannelNumber();
-	      
+
+	      // We use the multiblock data transfer for F1TDC, thus
+	      // we must get the event number and the trigger time from the first buffer
+	      // (buffer[0]), and these valuse can be used to check "data" integrity
+	      // over all F1TDCs
+
 	      if(i==0) {//;	
 		if ( fF1TDC.IsHeaderword() ) {
 		  reference_event_number = fF1TDC.GetTDCEventNumber();
@@ -400,9 +406,19 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 		}
 	      }//;
 	      else {//;
+
+		// Each subsystem has its own interesting slot(s), thus
+		// here, if this slot isn't in its slot(s) (subsystem map file)
+		// we skip this buffer to do the further process
+
+		if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
+
+		// Check date integrity, if it is fail, we skip this whole buffer to do
+		// further process 
+		
 		if ( fF1TDC.IsHeaderword() ) {//;;
-		  fF1TDC.PrintTDCHeader(temp_print_flag);
 		  if(! fF1TDC.CheckDataIntegrity(reference_event_number, reference_trigger_time) )  {
+		    fF1TDC.PrintTDCHeader(temp_print_flag);
 		    break;
 		  }
 		}//;;
@@ -410,6 +426,7 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 		  if ( fF1TDC.IsValidDataword() ) {
 		    try {
 		      FillRawWord(index, tdc_slot_number, tdc_channel_number, fF1TDC.GetTDCData());
+		      fF1TDC.PrintTDCData(temp_print_flag);
 		    }
 		    catch (std::exception& e) {
 		      std::cerr << "Standard exception from QwMainDetector::FillRawTDCWord: "

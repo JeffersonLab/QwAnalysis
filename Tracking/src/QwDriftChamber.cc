@@ -177,7 +177,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
   Int_t tdc_slot_number    = 0;
   Int_t tdc_channel_number = 0;
 
-  Bool_t temp_print_flag = false;
+  Bool_t temp_print_flag = true;
 
   if (index>=0 && num_words>0) {
     //  We want to process this ROC.  Begin looping through the data.
@@ -205,11 +205,12 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 	//  other data; it may be useful for something.
       }
 
-      if(! IsSlotRegistered(index, tdc_slot_number) ) continue;
-
       tdc_channel_number = GetTDCChannelNumber();
 
-      // the first one of number of words must be the header!
+      // We use the multiblock data transfer for F1TDC, thus
+      // we must get the event number and the trigger time from the first buffer
+      // (buffer[0]), and these valuse can be used to check "data" integrity
+      // over all F1TDCs
       if(i==0) {
 	if ( IsHeaderword() ) {
 	  reference_event_number = GetTDCEventNumber();
@@ -225,6 +226,15 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 	  
       }
       else {
+	// Each subsystem has its own interesting slot(s), thus
+	// here, if this slot isn't in its slot(s) (subsystem map file)
+	// we skip this buffer to do the further process
+	
+	if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
+	
+	// Check date integrity, if it is fail, we skip this whole buffer to do
+	// further process 
+
 	if ( IsHeaderword() ) {
 	  PrintTDCHeader(temp_print_flag);
 	  if(! CheckDataIntegrity(reference_event_number, reference_trigger_time) ) {
