@@ -42,6 +42,9 @@ class QwVQWK_Channel: public VQwDataElement {
  *         through member functions.
  ******************************************************************/
  public:
+  static Int_t GetBufferOffset(Int_t moduleindex, Int_t channelindex);
+  
+ public:
   QwVQWK_Channel() {
     InitializeChannel("","");
   };
@@ -198,7 +201,9 @@ class QwVQWK_Channel: public VQwDataElement {
 
  private:
   static const Bool_t kDEBUG;
-  static const Int_t fWordsPerChannel = 6;//no.of words per channel in the CODA buffer
+  static const Int_t  kWordsPerChannel = 6; //no.of words per channel in the CODA buffer
+  static const Int_t  kMaxChannels = 8;     //no.of channels per module
+
 
   Int_t fDataToSave;
 

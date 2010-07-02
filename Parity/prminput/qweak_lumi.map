@@ -58,24 +58,24 @@ sample_size=400
     VQWK, 5, 7, bpmstripline, QWK_0L03YM
 
 !ADC6
-  VQWK, 6, 0,  integrationpmt,  uslumi1neg
-  VQWK, 6, 1,  integrationpmt,  uslumi1pos
-  VQWK, 6, 2,  integrationpmt,  uslumi3neg
-  VQWK, 6, 3,  integrationpmt,  uslumi3pos
-  VQWK, 6, 4,  integrationpmt,  uslumi5neg
-  VQWK, 6, 5,  integrationpmt,  uslumi5pos
-  VQWK, 6, 6,  integrationpmt,  uslumi7neg
-  VQWK, 6, 7,  integrationpmt,  uslumi7pos
+  VQWK, 5, 0,  integrationpmt,  uslumi1neg
+  VQWK, 5, 1,  integrationpmt,  uslumi1pos
+  VQWK, 5, 2,  integrationpmt,  uslumi3neg
+  VQWK, 5, 3,  integrationpmt,  uslumi3pos
+  VQWK, 5, 4,  integrationpmt,  uslumi5neg
+  VQWK, 5, 5,  integrationpmt,  uslumi5pos
+  VQWK, 5, 6,  integrationpmt,  uslumi7neg
+  VQWK, 5, 7,  integrationpmt,  uslumi7pos
 
 !ADC7
-  VQWK, 7, 0,  integrationpmt,  dslumi1
-  VQWK, 7, 1,  integrationpmt,  dslumi2
-  VQWK, 7, 2,  integrationpmt,  dslumi3
-  VQWK, 7, 3,  integrationpmt,  dslumi4
-  VQWK, 7, 4,  integrationpmt,  dslumi5
-  VQWK, 7, 5,  integrationpmt,  dslumi6
-  VQWK, 7, 6,  integrationpmt,  dslumi7
-  VQWK, 7, 7,  integrationpmt,  dslumi8
+  VQWK, 6, 0,  integrationpmt,  dslumi1
+  VQWK, 6, 1,  integrationpmt,  dslumi2
+  VQWK, 6, 2,  integrationpmt,  dslumi3
+  VQWK, 6, 3,  integrationpmt,  dslumi4
+  VQWK, 6, 4,  integrationpmt,  dslumi5
+  VQWK, 6, 5,  integrationpmt,  dslumi6
+  VQWK, 6, 6,  integrationpmt,  dslumi7
+  VQWK, 6, 7,  integrationpmt,  dslumi8
 
 
 

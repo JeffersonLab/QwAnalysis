@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 // Qweak headers
+#include "QwLog.h"
 #include "QwUnits.h"
 #include "QwHistogramHelper.h"
 #include "QwBlinder.h"
@@ -33,6 +34,33 @@ boost::variate_generator < boost::mt19937, boost::normal_distribution<double> >
  *   to zero voltage.
  */
 const Double_t QwVQWK_Channel::kVQWK_VoltsPerBit = 76.29e-6;
+
+/*!  Static member function to return the word offset within a data buffer
+ *   given the module number index and the channel number index.
+ *   @param moduleindex   Module index within this buffer; counts from zero
+ *   @param channelindex  Channel index within this module; counts from zero
+ *   @return   The number of words offset to the beginning of this 
+ *             channel's data from the beginning of the VQWK buffer.
+ */
+Int_t QwVQWK_Channel::GetBufferOffset(Int_t moduleindex, Int_t channelindex){
+    Int_t offset = -1;
+    if (moduleindex<0 ){
+      QwError << "QwVQWK_Channel::GetBufferOffset:  Invalid module index,"
+	      << moduleindex
+	      << ".  Must be zero or greater."
+	      << QwLog::endl;
+    } else if (channelindex<0 || channelindex>kMaxChannels){
+      QwError << "QwVQWK_Channel::GetBufferOffset:  Invalid channel index,"
+	      << channelindex
+	      << ".  Must be in range [0," << kMaxChannels << "]."
+	      << QwLog::endl;
+    } else {
+      offset = ( (moduleindex * kMaxChannels) + channelindex )
+	* kWordsPerChannel;
+    }
+    return offset;
+  }
+
 
 /********************************************************/
 Int_t QwVQWK_Channel::ApplyHWChecks()
@@ -325,7 +353,7 @@ void QwVQWK_Channel::SetEventData(Double_t* block, UInt_t sequencenumber)
 Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index)
 {
   UInt_t words_read = 0;
-  Long_t localbuf[fWordsPerChannel] = {0};
+  Long_t localbuf[kWordsPerChannel] = {0};
 
   if (IsNameEmpty()){
     //  This channel is not used, but is present in the data stream.
@@ -333,7 +361,7 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
     words_read = fNumberOfDataWords;
   } else if (num_words_left >= fNumberOfDataWords)
     {
-      for (Short_t i=0; i<fWordsPerChannel; i++){
+      for (Short_t i=0; i<kWordsPerChannel; i++){
 	localbuf[i] = buffer[i];
       }
       fSoftwareBlockSum_raw = 0.0;
@@ -356,7 +384,7 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
 
       if (kDEBUG && GetElementName()=="SCAN_POW") {
 
-        for (Short_t i=0; i<(fWordsPerChannel-1); i++){
+        for (Short_t i=0; i<(kWordsPerChannel-1); i++){
 	  std::cout<<"  hex("<<std::hex<<localbuf[i]<<") dec("<<std::dec<<Double_t(localbuf[i])<<") ";
         }
 

@@ -245,17 +245,21 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	currentsubbankindex=GetSubbankIndex(currentrocread,currentbankread);
 	wordsofar=0;
       }
+      
+      QwBeamDetectorID localBeamDetectorID(currentsubbankindex, wordsofar,
+					   namech, dettype, modtype, this);
 
-
-      QwBeamDetectorID localBeamDetectorID(currentsubbankindex, wordsofar,namech, dettype, modtype, this);
-
-
-      if(modtype=="VQWK")wordsofar+=6;
-      else if(modtype=="SCALER")wordsofar+=1;
-      else{
-	QwError << "QwBeamLine::LoadChannelMap:  Unknown module type: "
-		<< modtype <<", the detector "<<namech<<" will not be decoded "
-		<< QwLog::endl;
+      if(modtype=="VQWK"){
+	Int_t offset = QwVQWK_Channel::GetBufferOffset(modnum, channum);
+	if (offset>0){
+	  localBeamDetectorID.fWordInSubbank = wordsofar + offset;
+	}
+      } else if(modtype=="SCALER") {
+	wordsofar+=1;
+      } else {
+	std::cerr << "QwBeamLine::LoadChannelMap:  Unknown module type: "
+		  << modtype <<", the detector "<<namech<<" will not be decoded "
+		  << std::endl;
 	lineok=kFALSE;
 	continue;
       }

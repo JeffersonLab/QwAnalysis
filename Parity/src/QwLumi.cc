@@ -102,7 +102,12 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	localLumiDetectorID.fdetectortype=dettype;
 
 	localLumiDetectorID.fWordInSubbank=wordsofar;
-	if(modtype=="VQWK")wordsofar+=6;
+	if(modtype=="VQWK"){
+	  Int_t offset = QwVQWK_Channel::GetBufferOffset(modnum, channum);
+	  if (offset>0){
+	    localLumiDetectorID.fWordInSubbank = wordsofar + offset;
+	  }
+	}
 	else if(modtype=="SCALER")wordsofar+=1;
 	else
 	  {
