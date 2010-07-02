@@ -12,6 +12,9 @@
 
 const Bool_t QwVQWK_Channel::kDEBUG = kFALSE;
 
+const Int_t  QwVQWK_Channel::kWordsPerChannel = 6;
+const Int_t  QwVQWK_Channel::kMaxChannels     = 8;
+
 
 // Randomness generator: Mersenne twister with period 2^19937 - 1
 //
