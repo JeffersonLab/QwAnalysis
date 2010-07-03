@@ -144,7 +144,7 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
     if (mapstr.HasVariablePair("=",varname,varvalue)){
       //  This is a declaration line.  Decode it.
       varname.ToLower();
-      UInt_t value = atol(varvalue.Data());
+      UInt_t value = QwParameterFile::GetUInt(varvalue);
       if (varname=="roc") {
 	RegisterROCNumber(value);
       } else if (varname=="qdc_bank") {

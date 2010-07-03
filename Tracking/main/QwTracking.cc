@@ -124,7 +124,7 @@ Int_t main(Int_t argc, Char_t* argv[]) {
     ((VQwSubsystemTracking*) detectors.GetSubsystemByName("R3"))->LoadGeometryDefinition("qweak_new.geo");
     // Trigger scintillators
     detectors.push_back(new QwTriggerScintillator("TS"));
-    ((VQwSubsystemTracking*) detectors.GetSubsystemByName("TS"))->LoadChannelMap("trigscint_cosmics.map");
+    ((VQwSubsystemTracking*) detectors.GetSubsystemByName("TS"))->LoadChannelMap("qweak_trigscint_channel.map");
     // Main detector
     detectors.push_back(new QwMainDetector("MD"));
     detectors.GetSubsystemByName("MD")->LoadChannelMap("qweak_maindet_channel.map");
