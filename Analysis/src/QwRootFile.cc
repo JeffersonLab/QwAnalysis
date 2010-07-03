@@ -119,7 +119,7 @@ void QwRootFile::DefineOptions(QwOptions &options)
 void QwRootFile::ProcessOptions(QwOptions &options)
 {
   // Option 'root-stem' to specify ROOT file stem
-  fRootFileStem = TString(options.GetValue<std::string>("stem-rootfile"));
+  fRootFileStem = TString(options.GetValue<std::string>("rootfile-stem"));
 
   // Option 'mapfile' to enable memory-mapped ROOT file
   fEnableMapFile = options.GetValue<bool>("enable-mapfile");
