@@ -101,6 +101,7 @@ class QwRootFile {
 
     QwRootFile() { }; // Private default constructor
 
+    TString fRootFileStem;
     Bool_t fEnableMapFile;
     Bool_t fEnableTree;
     Bool_t fEnableHisto;

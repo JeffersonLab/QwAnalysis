@@ -203,9 +203,6 @@ QwTrackingWorker::~QwTrackingWorker ()
 
 void QwTrackingWorker::DefineOptions(QwOptions& options)
 {
-  // Global options for the tracking worker
-  options.AddConfigFile("Tracking/prminput/qwtracking.conf");
-
   // General options
   options.AddOptions()("QwTracking.disable-tracking",
                           po::value<bool>()->zero_tokens()->default_value(false),

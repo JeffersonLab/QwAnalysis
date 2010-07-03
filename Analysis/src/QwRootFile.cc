@@ -36,7 +36,7 @@ QwRootFile::QwRootFile(const TString& run_label)
   } else {
 
     TString rootfilename = getenv_safe_TString("QW_ROOTFILES");
-    rootfilename += Form("/Qweak_%s.root", run_label.Data());
+    rootfilename += Form("/%s%s.root", fRootFileStem.Data(), run_label.Data());
     fRootFile = new TFile(rootfilename, "RECREATE", "QWeak ROOT file");
     if (! fRootFile)
       QwError << "ROOT file " << rootfilename
@@ -70,6 +70,11 @@ QwRootFile::~QwRootFile()
  */
 void QwRootFile::DefineOptions(QwOptions &options)
 {
+  // Define the ROOT filename stem
+  options.AddOptions("Default options")
+    ("rootfile-stem", po::value<std::string>()->default_value("Qweak_"),
+     "stem of the output ROOT filename");
+
   // Define the memory map option
   options.AddOptions()
     ("enable-mapfile", po::value<bool>()->default_value(false)->zero_tokens(),
@@ -113,6 +118,9 @@ void QwRootFile::DefineOptions(QwOptions &options)
  */
 void QwRootFile::ProcessOptions(QwOptions &options)
 {
+  // Option 'root-stem' to specify ROOT file stem
+  fRootFileStem = TString(options.GetValue<std::string>("stem-rootfile"));
+
   // Option 'mapfile' to enable memory-mapped ROOT file
   fEnableMapFile = options.GetValue<bool>("enable-mapfile");
 
@@ -134,8 +142,8 @@ void QwRootFile::ProcessOptions(QwOptions &options)
 
   //Update interval for the map file
   fUpdateInterval = options.GetValue<int>("mapfile-update-interval");
-  
-  
+
+
   fTreeTrim_Filename = options.GetValue<std::string>("trim-tree").c_str();
   QwMessage << "Tree trim definition file " << fTreeTrim_Filename << QwLog::endl;
 }
@@ -193,8 +201,8 @@ void QwRootFile::ConstructHistograms(QwHelicityPattern& helicity_pattern)
  */
 void QwRootFile::ConstructTreeBranches(QwSubsystemArrayParity& detectors)
 {
-  
-  
+
+
 
   // Return if we do not want tree or mps information
   if (! fEnableTree) return;
@@ -253,7 +261,7 @@ void QwRootFile::ConstructTreeBranches(QwHelicityPattern& helicity_pattern)
   TString dummystr = "";
 
   if (fEnableMapFile){
-    //Access the tree trimming definition file  
+    //Access the tree trimming definition file
     QwParameterFile trim_tree(fTreeTrim_Filename);
     helicity_pattern.ConstructBranch(fHelTree, dummystr, trim_tree);
   }
@@ -307,7 +315,7 @@ void QwRootFile::FillTreeBranches(QwHelicityPattern& helicity_pattern)
   if (fNumEventsCycle > 0) {
     if (fCurrent_event > fNumEventsToSave) return;
   }
-  
+
 
   // Fill the tree
   if (!fEnableMapFile)

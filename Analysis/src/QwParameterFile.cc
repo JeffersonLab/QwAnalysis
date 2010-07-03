@@ -57,25 +57,25 @@ UInt_t QwParameterFile::GetUInt(const TString &varvalue){
 
 
 QwParameterFile::QwParameterFile(const char *filename){
-  bfs::path tmppath;
-  if (filename[0] == '/'){
+  bfs::path tmppath = bfs::path(filename);
+  if (filename[0] == '/') {
     tmppath = bfs::path(filename);
   } else {
-    for (size_t i=0; i<fSearchPaths.size(); i++){
-      tmppath = fSearchPaths.at(i).string() +"/"+ filename;
-      if( bfs::exists(tmppath) && ! bfs::is_directory(tmppath)) {
-	break;
+    for (size_t i = 0; i < fSearchPaths.size(); i++) {
+      tmppath = fSearchPaths.at(i).string() + "/" + filename;
+      if (bfs::exists(tmppath) && ! bfs::is_directory(tmppath)) {
+        break;
       }
     }
   }
   if (bfs::exists(tmppath)){
-    std::cout << "Opening parameter file: "
-	      << tmppath.string()<<"\n";
+    QwMessage << "Opening parameter file: "
+              << tmppath.string() << QwLog::endl;
     fFile.open(tmppath.string().c_str());
     fStream << fFile.rdbuf();
   } else {
     QwError << "Unable to open parameter file: "
-	    << tmppath.string() << QwLog::endl;
+            << tmppath.string() << QwLog::endl;
   }
 };
 
