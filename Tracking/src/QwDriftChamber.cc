@@ -177,7 +177,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
   Int_t tdc_slot_number    = 0;
   Int_t tdc_channel_number = 0;
 
-  Bool_t temp_print_flag = true;
+  Bool_t temp_print_flag = false;
 
   if (index>=0 && num_words>0) {
     //  We want to process this ROC.  Begin looping through the data.
