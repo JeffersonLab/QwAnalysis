@@ -15,6 +15,7 @@
 #include <TTree.h>
 
 // Qweak headers
+#include "QwParameterFile.h"
 #include "QwScaler_Channel.h"
 
 // Qweak database headers
@@ -43,7 +44,7 @@ class  QwHaloMonitor : public VQwDataElement{
   void  ReportErrorCounters();//This will display the error summary for each device
   void  UpdateHWErrorCount();//Update error counter for HW faliure
   
-  Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_t index);
+  Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_t index=0);
   void  ProcessEvent();
 
   QwHaloMonitor& operator=  (const QwHaloMonitor &value);
@@ -55,6 +56,8 @@ class  QwHaloMonitor : public VQwDataElement{
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
 
+  void AccumulateRunningSum(const QwHaloMonitor& value);
+  void CalculateRunningAverage();
 
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
   Int_t  GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
@@ -64,6 +67,7 @@ class  QwHaloMonitor : public VQwDataElement{
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
+  void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values);
   void  DeleteHistograms();
 
@@ -74,12 +78,14 @@ class  QwHaloMonitor : public VQwDataElement{
   void  PrintValue() const;
   void  PrintInfo() const;
 
+  std::vector<QwDBInterface> GetDBEntry();
+
  protected:
 
  private:
   static const Bool_t kDEBUG;
 
-  QwSIS3801_Channel fHalo_Counter;
+  QwSIS3801D24_Channel fHalo_Counter;
 
   Int_t  fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
   Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map

@@ -9,6 +9,15 @@
 #include "QwHistogramHelper.h"
 #include <stdexcept>
 
+/********************************************************/
+void  QwHaloMonitor::InitializeChannel(TString name)
+{
+
+  fHalo_Counter.InitializeChannel(name);
+  SetElementName(name);
+
+  return;
+};
 
 void QwHaloMonitor::ClearEventData()
 {
@@ -16,16 +25,15 @@ void QwHaloMonitor::ClearEventData()
   return;
 };
 
-
 void QwHaloMonitor::ProcessEvent()
 {
-
+  fHalo_Counter.ProcessEvent();
   return;
 };
 
 Int_t QwHaloMonitor::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_t index)
 {
-  return fHalo_Counter.ProcessEvBuffer(buffer,num_words_left,index);
+  return fHalo_Counter.ProcessEvBuffer(buffer,num_words_left,0);
 };
 
 
@@ -142,6 +150,15 @@ void  QwHaloMonitor::FillHistograms()
   return;
 };
 
+
+
+
+
+
+
+
+
+
 void  QwHaloMonitor::DeleteHistograms()
 {
   if (GetElementName()==""){
@@ -177,6 +194,32 @@ void  QwHaloMonitor::ConstructBranch(TTree *tree, TString &prefix)
   }
   return;
 };
+
+
+
+void  QwHaloMonitor::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
+{
+  TString devicename;
+
+  devicename=GetElementName();
+  devicename.ToLower();
+  if (GetElementName()==""){
+    //  This channel is not used, so skip filling the histograms.
+  } else
+    {
+      
+      //QwMessage <<" QwHaloMonitor "<<devicename<<QwLog::endl;
+      if (modulelist.HasValue(devicename)){
+	fHalo_Counter.ConstructBranch(tree, prefix);
+	QwMessage <<" Tree leaf added to "<<devicename<<QwLog::endl;
+      }
+      // this functions doesn't do anything yet
+    }
+  return;
+};
+
+
+
 
 void  QwHaloMonitor::FillTreeVector(std::vector<Double_t> &values)
 {
@@ -214,4 +257,67 @@ void  QwHaloMonitor::Copy(VQwDataElement *source)
   return;
 };
 
+/*
+std::vector<QwDBInterface> QwHaloMonitor::GetDBEntry()
+{
 
+
+  UShort_t i = 0;
+
+  std::vector <QwDBInterface> row_list;
+  QwDBInterface row;
+
+  TString name;
+  Double_t avg         = 0.0;
+  Double_t err         = 0.0;
+  UInt_t beam_subblock = 0;
+  UInt_t beam_n        = 0;
+
+  row.Reset();
+
+  // the element name and the n (number of measurements in average)
+  // is the same in each block and hardwaresum.
+
+  name          = fHalo_Counter.GetElementName();
+  beam_n        = fHalo_Counter.GetGoodEventCount();
+
+  // Get HardwareSum average and its error
+  avg           = fHalo_Counter.GetHardwareSum();
+  err           = fHalo_Counter.GetHardwareSumError();
+  // ADC subblock sum : 0 in MySQL database
+  beam_subblock = 0;
+
+  row.SetDetectorName(name);
+  row.SetSubblock(beam_subblock);
+  row.SetN(beam_n);
+  row.SetValue(avg);
+  row.SetError(err);
+
+  row_list.push_back(row);
+
+
+  // Get four Block averages and thier errors
+
+  for(i=0; i<4; i++) {
+    row.Reset();
+    avg           = fHalo_Counter.GetBlockValue(i);
+    err           = fHalo_Counter.GetBlockErrorValue(i);
+    beam_subblock = (UInt_t) (i+1);
+    // QwVQWK_Channel  | MySQL
+    // fBlock[0]       | subblock 1
+    // fBlock[1]       | subblock 2
+    // fBlock[2]       | subblock 3
+    // fBlock[3]       | subblock 4
+    row.SetDetectorName(name);
+    row.SetSubblock(beam_subblock);
+    row.SetN(beam_n);
+    row.SetValue(avg);
+    row.SetError(err);
+
+    row_list.push_back(row);
+  }
+
+  return row_list;
+
+};
+*/

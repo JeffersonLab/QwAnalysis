@@ -123,8 +123,10 @@ class QwBeamLine : public VQwSubsystemParity{
 
   QwBPMStripline* GetBPMStripline(const TString name);
   QwBCM* GetBCM(const TString name);
+  QwHaloMonitor* GetHaloMonitor(const TString name);
   const QwBPMStripline* GetBPMStripline(const TString name) const;
   const QwBCM* GetBCM(const TString name) const;
+  const QwHaloMonitor* GetHaloMonitor(const TString name) const;
 
   std::vector<TString> fgDetectorTypeNames;
 
