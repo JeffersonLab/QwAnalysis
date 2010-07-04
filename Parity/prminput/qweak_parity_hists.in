@@ -506,3 +506,15 @@ Compton_eDet_Evt_Plane3		TH1F	96	0	95	Strips	Hits
 .*_.w_raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
 .*_.w			TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 .*_sw-hw_raw		TH1F	1000	-5.0e2	5.0e2				Counts Events
+
+
+
+### temporary for halo monitors
+qwk_.....		TH1F	1000	-5.0e2	5.0e2				Counts Events
+yield_qwk_.....		TH1F	1000	-5.0e2	5.0e2				Counts Events
+asym_qwk_.....		TH1F	1000	-5.0e2	5.0e2				Counts Events
+
+
+
+
+
