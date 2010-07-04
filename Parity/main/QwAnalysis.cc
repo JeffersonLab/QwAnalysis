@@ -67,8 +67,6 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
 
-  gQwOptions.AddConfigFile("qweak_mysql.conf");
-
   ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
   ///  histogram helper: QwHistogramHelper
   gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
@@ -267,15 +265,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     //  Read from the datebase
     if (database.AllowsReadAccess()) {
-      QwMessage << "GetMonitorID(qwk_batext2) = " << database.GetMonitorID("qwk_batext2") << QwLog::endl;
-      QwMessage << "GetMonitorID(phasemonitor) = " << database.GetMonitorID("phasemonitor") << QwLog::endl;
-      QwMessage << "GetMonitorID(qwk_junk) = " << database.GetMonitorID("qwk_junk") << QwLog::endl;
-      QwMessage << "GetMainDetectorID(md1neg) = " << database.GetMainDetectorID("md1neg") << QwLog::endl;
-      QwMessage << "GetMainDetectorID(spare3) = " << database.GetMainDetectorID("spare3") << QwLog::endl;
-      QwMessage << "GetMainDetectorID(combinationallmd) = " << database.GetMainDetectorID("combinationallmd") << QwLog::endl;
-      QwMessage << "GetLumiDetectorID(dlumi8) = " << database.GetLumiDetectorID("dlumi8") << QwLog::endl;
-      QwMessage << "GetLumiDetectorID(ulumi8) = " << database.GetLumiDetectorID("ulumi8") << QwLog::endl;
-      QwMessage << "GetVersion() = " << database.GetVersion() << QwLog::endl;
 
       // GetRunID(), GetRunletID(), and GetAnalysisID have their own Connect() and Disconnect() functions.
       UInt_t run_id      = database.GetRunID(eventbuffer);
@@ -283,7 +272,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       UInt_t analysis_id = database.GetAnalysisID(eventbuffer);
 
      //  Write to from the datebase
-     QwMessage << "QwAnalysis_MySQL.cc::"
+     QwMessage << "QwAnalysis.cc::"
                 << " Run Number "  << QwColor(Qw::kBoldMagenta) << eventbuffer.GetRunNumber() << QwColor(Qw::kNormal)
                 << " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id << QwColor(Qw::kNormal)
                 << " Runlet ID "   << QwColor(Qw::kBoldMagenta) << runlet_id << QwColor(Qw::kNormal)
