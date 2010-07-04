@@ -31,15 +31,19 @@
 ///
 /// \ingroup QwAnalysis_BL
 template <UInt_t data_mask=0xffffffff, UInt_t data_shift=0 >
-class QwScaler_Channel: public VQwDataElement {
+  class QwScaler_Channel: public VQwDataElement {
+  
+  public:
+  static Int_t GetBufferOffset(Int_t scalerindex, Int_t wordindex);
 
-public:
+
+  public:
   QwScaler_Channel() { };
   QwScaler_Channel(TString name){
     InitializeChannel(name);
   };
   ~QwScaler_Channel() {DeleteHistograms();};
-
+  
   void  InitializeChannel(TString name){
     fValue = 0;
     SetNumberOfDataWords(1);  //Scaler - single word, 32 bits
@@ -48,22 +52,22 @@ public:
     SetElementName(name);
     return;
   };
-
+  
   void  ClearEventData();
-
+  
   void ReportErrorCounters();//This will display the error summary for each device
   void UpdateHWErrorCount(){//Update error counter for HW faliure
     fNumEvtsWithHWErrors++;
-  }
-
+  };
+  
   void UpdateEventCutErrorCount(){//Update error counter for event cut faliure
     fNumEvtsWithEventCutsRejected++;
-  }
-
+  };
+  
   void  RandomizeEventData(int helicity);
   void  SetEventData(Double_t value);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
-
+  
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_t index=0);
   void  ProcessEvent();
 

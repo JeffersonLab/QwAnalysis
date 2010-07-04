@@ -45,8 +45,40 @@ void QwScaler_Channel<data_mask,data_shift>::RandomizeEventData(int helicity)
 };
 
 
+/*!  Static member function to return the word offset within a data buffer
+ *   given the module number index and the channel number index.
+ *   @param moduleindex   Scaler index within this buffer; counts from 1
+ *   @param channelindex  word index within this scaler; counts from 1
+ *   @return   The number of words offset to the beginning of this 
+ *             scaler word from the beginning of the buffer.
+ */
 template<unsigned int data_mask, unsigned int data_shift>
-Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index)
+Int_t QwScaler_Channel<data_mask,data_shift>::GetBufferOffset(Int_t scalerindex, Int_t wordindex){
+  Int_t offset = -1;
+  Int_t kMaxWords = 32; // usually the scalers have 32 data words starting from 0
+  Int_t header = 1;
+
+  if (scalerindex<0 ){
+    QwError << "QwScaler_Channel::GetBufferOffset:  Invalid scaler index,"
+	    << scalerindex
+	    << ".  Must be zero or greater."
+	    << QwLog::endl;
+  } else if (scalerindex<0 || wordindex>kMaxWords){
+    QwError << "QwScaler_Channel::GetBufferOffset:  Invalid word index,"
+	    << wordindex
+	    << ".  Must be in range [0," << kMaxWords << "]."
+	    << QwLog::endl;
+  } else {
+    offset = (header + kMaxWords)*scalerindex + header +wordindex ;
+  }
+  return offset;
+}
+
+
+
+template<unsigned int data_mask, unsigned int data_shift>
+Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, 
+							      UInt_t index)
 {
   UInt_t words_read = 0;
   if (IsNameEmpty()){

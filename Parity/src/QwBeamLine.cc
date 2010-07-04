@@ -1,3 +1,4 @@
+
 /**********************************************************\
 * File: QwBeamLine.C                                      *
 *                                                         *
@@ -36,6 +37,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   Int_t currentrocread=0;
   Int_t currentbankread=0;
   Int_t wordsofar=0;
+  Int_t offset =0;
   Int_t currentsubbankindex=-1;
   Int_t fSample_size=0;
   Int_t index=0;
@@ -246,23 +248,41 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	wordsofar=0;
       }
       
-      QwBeamDetectorID localBeamDetectorID(currentsubbankindex, wordsofar,
-					   namech, dettype, modtype, this);
+//       QwBeamDetectorID localBeamDetectorID(currentsubbankindex, offset,
+// 					   namech, dettype, modtype, this);
 
+//       if(modtype=="VQWK"){
+// 	offset = QwVQWK_Channel::GetBufferOffset(modnum, channum);
+// 	if (offset>0){
+// 	  localBeamDetectorID.fWordInSubbank = wordsofar + offset;
+// 	}
+//       } else if(modtype=="SCALER") {
+// 	//	wordsofar+=1;
+//       } else {
+// 	std::cerr << "QwBeamLine::LoadChannelMap:  Unknown module type: "
+// 		  << modtype <<", the detector "<<namech<<" will not be decoded "
+// 		  << std::endl;
+// 	lineok=kFALSE;
+// 	continue;
+//       }
+      
       if(modtype=="VQWK"){
-	Int_t offset = QwVQWK_Channel::GetBufferOffset(modnum, channum);
-	if (offset>0){
-	  localBeamDetectorID.fWordInSubbank = wordsofar + offset;
-	}
-      } else if(modtype=="SCALER") {
-	wordsofar+=1;
-      } else {
+	offset = QwVQWK_Channel::GetBufferOffset(modnum, channum);
+      } 
+      else if(modtype=="SCALER") {
+	offset = QwSIS3801D24_Channel::GetBufferOffset(modnum, channum);
+      }
+      else {
 	std::cerr << "QwBeamLine::LoadChannelMap:  Unknown module type: "
 		  << modtype <<", the detector "<<namech<<" will not be decoded "
 		  << std::endl;
 	lineok=kFALSE;
 	continue;
       }
+
+      QwBeamDetectorID localBeamDetectorID(currentsubbankindex, offset,
+					   namech, dettype, modtype, this);
+
 
       if(localBeamDetectorID.fTypeID==-1){
 	QwError << "QwBeamLine::LoadChannelMap:  Unknown detector type: "
@@ -352,10 +372,10 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   return 0;
 };
 
-QwBeamDetectorID::QwBeamDetectorID(Int_t subbankid, Int_t wordssofar,
+QwBeamDetectorID::QwBeamDetectorID(Int_t subbankid, Int_t offset,
 				   TString name, TString dettype,
 				   TString modtype, QwBeamLine * obj):
-  fSubbankIndex(subbankid),fWordInSubbank(wordssofar),
+  fSubbankIndex(subbankid),fWordInSubbank(offset),
   fmoduletype(modtype),fdetectorname(name),fdetectortype(dettype),kUnknownDeviceType(-1)
 {
   fTypeID = kUnknownDeviceType;

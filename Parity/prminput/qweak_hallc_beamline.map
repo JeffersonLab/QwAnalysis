@@ -89,6 +89,21 @@ sample_size==120
 
 
 !**************************************************************************
+! HALL C BEAMLINE SCALERS : HALO MONITORS
+!**************************************************************************
+
+
+ROC=0
+Bank=0x6103
+!
+!
+! scaler.type, scaler.num  word.num, det.type, det.name
+   SCALER, 2, 20,  halomonitor,  QWK_HALO1
+
+
+
+
+!**************************************************************************
 ! COMBINATIONS OF BEAM LINE DEVICES USED FOR BEAM ON TARGET 
 !**************************************************************************
 

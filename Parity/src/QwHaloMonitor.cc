@@ -9,10 +9,7 @@
 #include "QwHistogramHelper.h"
 #include <stdexcept>
 
-/********************************************************/
-void  QwHaloMonitor::InitializeChannel(TString name)
-{
-
+void  QwHaloMonitor::InitializeChannel(TString name){
   fHalo_Counter.InitializeChannel(name);
   SetElementName(name);
 
@@ -21,26 +18,25 @@ void  QwHaloMonitor::InitializeChannel(TString name)
 
 void QwHaloMonitor::ClearEventData()
 {
-
+  fHalo_Counter.ClearEventData();
   return;
 };
 
 void QwHaloMonitor::ProcessEvent()
 {
-  fHalo_Counter.ProcessEvent();
+  // no processing required for the halos as they are just counters(?).
   return;
 };
 
 Int_t QwHaloMonitor::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_t index)
 {
-  return fHalo_Counter.ProcessEvBuffer(buffer,num_words_left,0);
+  return fHalo_Counter.ProcessEvBuffer(buffer,num_words_left);
 };
 
 
 Bool_t QwHaloMonitor::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
-
   return fEventIsGood ;
 };
 
@@ -59,7 +55,6 @@ Int_t QwHaloMonitor::GetEventcutErrorCounters()
 
 QwHaloMonitor& QwHaloMonitor::operator= (const QwHaloMonitor &value)
 {
-//   std::cout<<" Here in QwHaloMonitor::operator= \n";
   if (GetElementName()!=""){
     this->fHalo_Counter=value.fHalo_Counter;
   }
@@ -95,7 +90,6 @@ void QwHaloMonitor::Difference(QwHaloMonitor &value1, QwHaloMonitor &value2){
 
 void QwHaloMonitor::Ratio(QwHaloMonitor &numer, QwHaloMonitor &denom)
 {
-  //  std::cout<<"QwHaloMonitor::Ratio element name ="<<GetElementName()<<" \n";
   if (GetElementName()!=""){
       this->fHalo_Counter.Ratio(numer.fHalo_Counter,denom.fHalo_Counter);
   }

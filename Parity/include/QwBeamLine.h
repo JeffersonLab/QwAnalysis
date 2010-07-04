@@ -165,7 +165,7 @@ class QwBeamDetectorID
 {
  public:
 
-  QwBeamDetectorID(Int_t subbankid, Int_t wordssofar,TString name, TString dettype,
+  QwBeamDetectorID(Int_t subbankid, Int_t offset,TString name, TString dettype,
 		   TString modtype ,QwBeamLine * obj);
 
   Int_t   fSubbankIndex;

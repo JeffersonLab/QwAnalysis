@@ -71,8 +71,6 @@ class  QwHaloMonitor : public VQwDataElement{
   void  FillTreeVector(std::vector<Double_t> &values);
   void  DeleteHistograms();
 
-
-
   void  Copy(VQwDataElement *source);
 
   void  PrintValue() const;
