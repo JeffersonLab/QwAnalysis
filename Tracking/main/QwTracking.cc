@@ -61,7 +61,7 @@ static const bool kTracking = kFALSE;
 static const bool kTree = kTRUE;
 static const bool kHisto = kTRUE;
 
-static const bool kUseTDCHits = kTRUE;
+static const bool kUseTDCHits = kFALSE;
 
 // Branching flags for subsystems
 static const bool kMainDetBranch = kFALSE;
