@@ -1,4 +1,8 @@
-
+!**************************************************************************
+!  QWEAK LUMI MAP
+!**************************************************************************
+!
+!
 ROC=2
 Bank=0x0202
 !same sample size for ADCs in a given bank
@@ -7,75 +11,32 @@ sample_size=400
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
 
-!ADC1
-    VQWK, 1, 0, bpmstripline, QWK_1I02XP,   UNROTATED
-    VQWK, 1, 1, bpmstripline, QWK_1I02XM,   UNROTATED
-    VQWK, 1, 2, bpmstripline, QWK_1I02YP,   UNROTATED
-    VQWK, 1, 3, bpmstripline, QWK_1I02YM,   UNROTATED
-    VQWK, 1, 4, bpmstripline, QWK_1I04XP,   UNROTATED
-    VQWK, 1, 5, bpmstripline, QWK_1I04XM,   UNROTATED
-    VQWK, 1, 6, bpmstripline, QWK_1I04YP,   UNROTATED
-    VQWK, 1, 7, bpmstripline, QWK_1I04YM,   UNROTATED
-
-!ADC2
-    VQWK, 2, 0, bpmstripline, QWK_1I06XP,   UNROTATED
-    VQWK, 2, 1, bpmstripline, QWK_1I06XM,   UNROTATED
-    VQWK, 2, 2, bpmstripline, QWK_1I06YP,   UNROTATED
-    VQWK, 2, 3, bpmstripline, QWK_1I06YM,   UNROTATED
-    VQWK, 2, 4, bpmstripline, QWK_0I02XP,   UNROTATED
-    VQWK, 2, 5, bpmstripline, QWK_0I02XM,   UNROTATED
-    VQWK, 2, 6, bpmstripline, QWK_0I02YP,   UNROTATED
-    VQWK, 2, 7, bpmstripline, QWK_0I02YM,   UNROTATED
-
-!ADC3
-    VQWK, 3, 0, bpmstripline, QWK_0I02AXP,   UNROTATED
-    VQWK, 3, 1, bpmstripline, QWK_0I02AXM,   UNROTATED
-    VQWK, 3, 2, bpmstripline, QWK_0I02AYP,   UNROTATED
-    VQWK, 3, 3, bpmstripline, QWK_0I02AYM,   UNROTATED
-    VQWK, 3, 4, bpmstripline, QWK_0I05XP,   UNROTATED
-    VQWK, 3, 5, bpmstripline, QWK_0I05XM,   UNROTATED
-    VQWK, 3, 6, bpmstripline, QWK_0I05YP,   UNROTATED
-    VQWK, 3, 7, bpmstripline, QWK_0I05YM,   UNROTATED
-
-!ADC4
-    VQWK, 4, 0, bpmstripline, QWK_0I07XP,   UNROTATED
-    VQWK, 4, 1, bpmstripline, QWK_0I07XM,   UNROTATED
-    VQWK, 4, 2, bpmstripline, QWK_0I07YP,   UNROTATED
-    VQWK, 4, 3, bpmstripline, QWK_0I07YM,   UNROTATED
-    VQWK, 4, 4, bpmstripline, QWK_0L01XP
-    VQWK, 4, 5, bpmstripline, QWK_0L01XM
-    VQWK, 4, 6, bpmstripline, QWK_0L01YP
-    VQWK, 4, 7, bpmstripline, QWK_0L01YM
-
-!ADC5
-    VQWK, 5, 0, bpmstripline, QWK_0L02XP
-    VQWK, 5, 1, bpmstripline, QWK_0L02XM
-    VQWK, 5, 2, bpmstripline, QWK_0L02YP
-    VQWK, 5, 3, bpmstripline, QWK_0L02YM
-    VQWK, 5, 4, bpmstripline, QWK_0L03XP
-    VQWK, 5, 5, bpmstripline, QWK_0L03XM
-    VQWK, 5, 6, bpmstripline, QWK_0L03YP
-    VQWK, 5, 7, bpmstripline, QWK_0L03YM
-
 !ADC6
-  VQWK, 5, 0,  integrationpmt,  uslumi1neg
-  VQWK, 5, 1,  integrationpmt,  uslumi1pos
-  VQWK, 5, 2,  integrationpmt,  uslumi3neg
-  VQWK, 5, 3,  integrationpmt,  uslumi3pos
-  VQWK, 5, 4,  integrationpmt,  uslumi5neg
-  VQWK, 5, 5,  integrationpmt,  uslumi5pos
-  VQWK, 5, 6,  integrationpmt,  uslumi7neg
-  VQWK, 5, 7,  integrationpmt,  uslumi7pos
+  VQWK, 5, 0,  integrationpmt,  QWK_USLUMI1NEG
+  VQWK, 5, 1,  integrationpmt,  QWK_USLUMI1POS
+  VQWK, 5, 2,  integrationpmt,  QWK_USLUMI3NEG
+  VQWK, 5, 3,  integrationpmt,  QWK_USLUMI3POS
+  VQWK, 5, 4,  integrationpmt,  QWK_USLUMI5NEG
+  VQWK, 5, 5,  integrationpmt,  QWK_USLUMI5POS
+  VQWK, 5, 6,  integrationpmt,  QWK_USLUMI7NEG
+  VQWK, 5, 7,  integrationpmt,  QWK_USLUMI7POS
 
 !ADC7
-  VQWK, 6, 0,  integrationpmt,  dslumi1
-  VQWK, 6, 1,  integrationpmt,  dslumi2
-  VQWK, 6, 2,  integrationpmt,  dslumi3
-  VQWK, 6, 3,  integrationpmt,  dslumi4
-  VQWK, 6, 4,  integrationpmt,  dslumi5
-  VQWK, 6, 5,  integrationpmt,  dslumi6
-  VQWK, 6, 6,  integrationpmt,  dslumi7
-  VQWK, 6, 7,  integrationpmt,  dslumi8
+  VQWK, 6, 0,  integrationpmt,  QWK_DSLUMI1
+  VQWK, 6, 1,  integrationpmt,  QWK_DSLUMI2
+  VQWK, 6, 2,  integrationpmt,  QWK_DSLUMI3
+  VQWK, 6, 3,  integrationpmt,  QWK_DSLUMI4
+  VQWK, 6, 4,  integrationpmt,  QWK_DSLUMI5
+  VQWK, 6, 5,  integrationpmt,  QWK_DSLUMI6
+  VQWK, 6, 6,  integrationpmt,  QWK_DSLUMI7
+  VQWK, 6, 7,  integrationpmt,  QWK_DSLUMI8
 
 
-
+!**************************************************************************
+!  QWEAK LUMI SCALERS
+!**************************************************************************
+ROC=0
+Bank=0x6103
+! module.type, scaler.num  word.num, scaler.type, det.name
+   SCALER, 2, 20, scalerpmt,  QWK_USSC1
+!   SCALER, 2, 2, scalerpmt,  QWK_DSSC3

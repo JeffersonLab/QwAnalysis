@@ -16,7 +16,7 @@
 
 // Qweak headers
 #include "VQwSubsystemParity.h"
-
+#include "QwTypes.h"
 #include "QwBPMStripline.h"
 #include "QwBCM.h"
 #include "QwCombinedBCM.h"
@@ -27,13 +27,13 @@
 
 
 /// \todo TODO (wdc) EBeamInstrumentType is global in QwBeamLine.cc but could be class local
-enum EBeamInstrumentType{kBPMStripline = 0,
-			 kBCM,
-			 kCombinedBCM,
-			 kCombinedBPM,
-			 kEnergyCalculator,
-			 kHaloMonitor
-};
+/* enum EBeamInstrumentType{kBPMStripline = 0, */
+/* 			 kBCM, */
+/* 			 kCombinedBCM, */
+/* 			 kCombinedBPM, */
+/* 			 kEnergyCalculator, */
+/* 			 kHaloMonitor */
+/* }; */
 
 // this emun vector needs to be coherent with the DetectorTypes declaration in the QwBeamLine constructor
 
@@ -49,16 +49,16 @@ class QwBeamLine : public VQwSubsystemParity{
   QwBeamLine(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
     {
 
-      // these declaration need to be coherent with the enum vector EBeamInstrumentType
-      fgDetectorTypeNames.push_back("bpmstripline");
-      fgDetectorTypeNames.push_back("bcm");
-      fgDetectorTypeNames.push_back("combinedbcm");
-      fgDetectorTypeNames.push_back("combinedbpm");
-      fgDetectorTypeNames.push_back("energycalculator");
-      fgDetectorTypeNames.push_back("halomonitor");
+/*       // these declaration need to be coherent with the enum vector EBeamInstrumentType */
+/*       fgDetectorTypeNames.push_back("bpmstripline"); */
+/*       fgDetectorTypeNames.push_back("bcm"); */
+/*       fgDetectorTypeNames.push_back("combinedbcm"); */
+/*       fgDetectorTypeNames.push_back("combinedbpm"); */
+/*       fgDetectorTypeNames.push_back("energycalculator"); */
+/*       fgDetectorTypeNames.push_back("halomonitor"); */
 
-      for(size_t i=0;i<fgDetectorTypeNames.size();i++)
-        fgDetectorTypeNames[i].ToLower();
+/*       for(size_t i=0;i<fgDetectorTypeNames.size();i++) */
+/*         fgDetectorTypeNames[i].ToLower(); */
     };
 
   ~QwBeamLine() {
@@ -123,18 +123,15 @@ class QwBeamLine : public VQwSubsystemParity{
 
   QwBPMStripline* GetBPMStripline(const TString name);
   QwBCM* GetBCM(const TString name);
-  QwHaloMonitor* GetHaloMonitor(const TString name);
   const QwBPMStripline* GetBPMStripline(const TString name) const;
   const QwBCM* GetBCM(const TString name) const;
-  const QwHaloMonitor* GetHaloMonitor(const TString name) const;
 
-  std::vector<TString> fgDetectorTypeNames;
 
 
 /////
  protected:
- Int_t GetDetectorTypeID(TString name);
- Int_t GetDetectorIndex(Int_t TypeID, TString name);//when the type and the name is passed the detector index from appropriate vector will be returned
+ Int_t GetDetectorIndex(EQwBeamInstrumentType TypeID, TString name);
+ //when the type and the name is passed the detector index from appropriate vector will be returned
  //for example if TypeID is bcm  then the index of the detector from fBCM vector for given name will be returnd.
  std::vector <QwBPMStripline> fStripline;
  std::vector <QwBCM> fBCM;
@@ -166,7 +163,7 @@ class QwBeamDetectorID
  public:
 
   QwBeamDetectorID(Int_t subbankid, Int_t offset,TString name, TString dettype,
-		   TString modtype ,QwBeamLine * obj);
+		   TString modtype);
 
   Int_t   fSubbankIndex;
   Int_t   fWordInSubbank;
@@ -180,7 +177,7 @@ class QwBeamDetectorID
   TString fdetectortype; // stripline, bcm, ... this string is encoded by fTypeID
 
   Int_t   kUnknownDeviceType;
-  Int_t   fTypeID;           // type of detector eg: lumi or stripline, etc..
+  EQwBeamInstrumentType   fTypeID; // type of detector eg: bcm or stripline, etc..
   Int_t   fIndex;            // index of this detector in the vector containing all the detector of same type
   UInt_t  fSubelement;       // some detectors have many subelements (eg stripline have 4 antenas) some have only one sub element(eg lumis have one channel)
 

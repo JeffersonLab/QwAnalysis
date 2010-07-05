@@ -16,11 +16,42 @@ EQwPMTInstrumentType GetQwPMTInstrumentType(TString name){
   result = kQwUnknownPMT;
   if (name=="integrationpmt"){
     result = kQwIntegrationPMT;
-  } else if (name=="combinationpmt"){
+  } else if (name=="scalerpmt"){
+    result = kQwScalerPMT;
+  }
+  else if (name=="combinationpmt"){
     result = kQwCombinedPMT;
   }
   return result;
 };
+
+
+EQwBeamInstrumentType GetQwBeamInstrumentType(TString name){
+  //  The name is passed by value because we will
+  //  change it to lower case.
+  name.ToLower();
+  EQwBeamInstrumentType result;
+  result = kQwUnknownDeviceType;
+  if (name=="bpmstripline"){
+    result = kQwBPMStripline;
+  } else if (name=="bcm"){
+    result = kQwBCM;
+  }
+  else if (name=="combinedbcm"){
+    result = kQwCombinedBCM;
+  }
+  else if (name=="combinedbpm"){
+    result = kQwCombinedBPM;
+  }
+  else if (name=="energycalculator"){
+    result = kQwEnergyCalculator;
+  }
+  else if (name=="halomonitor"){
+    result = kQwHaloMonitor;
+  }
+  return result;
+};
+
 
 /**
  * Get the text name of a EQwPMTInstrumentType, as it would be
@@ -34,8 +65,37 @@ TString GetQwPMTInstrumentTypeName(EQwPMTInstrumentType type){
   result = "UnknownPMT";
   if (type==kQwIntegrationPMT){
     result = "IntegrationPMT";
-  } else if (type==kQwCombinedPMT){
+  } 
+  else if (type==kQwScalerPMT){
+    result = "ScalerPMT";
+  } 
+  else if (type==kQwCombinedPMT){
     result = "CombinationPMT";
+  }
+  return result;
+};
+
+
+TString GetQwBeamInstrumentTypeName(EQwBeamInstrumentType type){
+  TString result;
+  result = "kQwUnknownDeviceType";
+  if (type==kQwBPMStripline){
+    result = "bpmtripline";
+  } 
+  else if (type==kQwBCM){
+    result = "bcm";
+  }
+  else if (type==kQwCombinedBCM){
+    result = "combinedbcm";
+  }
+  else if (type==kQwCombinedBPM){
+    result = "combinedbpm";
+  }
+  else if (type==kQwEnergyCalculator){
+    result = "energycalculator";
+  }
+  else if (type==kQwHaloMonitor){
+    result = "halomonitor";
   }
   return result;
 };
