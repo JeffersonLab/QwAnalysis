@@ -117,6 +117,9 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   if(!GetSubSystemPtr("Main Detectors"))
     MainDetSubSystem = new QwGUIMainDetector(fClient->GetRoot(), this, dTab,"Main Detectors",
 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
+  if(MainDetSubSystem) 
+    MainDetSubSystem->LoadChannelMap(Form("%s/setupfiles/qweak_maindet.map",gSystem->Getenv("QWSCRATCH")));
+
   if(!GetSubSystemPtr("Scanner"))
     ScannerSubSystem = new QwGUIScanner(fClient->GetRoot(), this, dTab,"Scanner",
 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);

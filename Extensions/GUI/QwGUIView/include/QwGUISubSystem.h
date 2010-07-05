@@ -48,6 +48,11 @@
 #include "QwGUIProgressDialog.h"
 #include "QwGUIDatabaseContainer.h"
 
+#ifndef ROOTCINTMODE
+#include "QwParameterFile.h"
+#endif
+
+
 #include "QwGUISuperCanvas.h"
 
 // QwAnalysis / Analysis/ include 
@@ -179,6 +184,8 @@ class QwGUISubSystem : public TGCompositeFrame {
 
   void             InitProgressDlg(const char* title, const char *macrotext, const char *microtext, const char *microtext2, 
 				   Int_t nitems1, Int_t nitems2, Int_t nitems3, Int_t nLevels);
+
+  virtual Int_t    LoadChannelMap(TString mapfile) {return 0;};
 
   Bool_t               dProcessHalt;
 

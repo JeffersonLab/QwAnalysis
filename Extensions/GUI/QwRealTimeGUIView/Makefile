@@ -75,9 +75,15 @@ SYSLIBS       =
 GEOMLIB       = -lGeom
 GUILIB        = -lGuiHtml
 
-ROOTCFLAGS   := $(shell root-config --cflags)
-ROOTLIBS     := $(shell root-config --libs)
+#ROOTCFLAGS   := $(shell root-config --cflags)
+#ROOTLIBS     := $(shell root-config --libs)
 ROOTGLIBS    := $(shell root-config --glibs)
+QWEAKLIBS     := $(shell ${QWANALYSIS}/bin/qweak-config --libs)
+QWEAKLDFLAGS  := $(shell ${QWANALYSIS}/bin/qweak-config --ldflags)
+#  When we get the QwAnalysis include paths, turn paths like "./*" into "${QWANALYSIS}/*".
+REGEXP_QWANA  := $(shell echo ${QWANALYSIS} | sed 's/\//\\\//g')
+QWEAKCPPFLAGS := $(shell ${QWANALYSIS}/bin/qweak-config --cppflags | sed 's/I\./I${REGEXP_QWANA}/g' )
+
 
 QWTRINCLUDE    = -I$(QWANALYSIS)/Tracking/include
 QWANINCLUDE    = -I$(QWANALYSIS)/Analysis/include
@@ -85,9 +91,13 @@ QWPRINCLUDE    = -I$(QWANALYSIS)/Parity/include
 
 QwLIBS =
 
-CXXFLAGS     += $(DEBUGFLAGS) $(ROOTCFLAGS) -Wno-deprecated
-LIBS          = $(ROOTLIBS) $(SYSLIBS) $(QWLIBS) -lNew
+CXXFLAGS     += $(DEBUGFLAGS) $(QWEAKCPPFLAGS) -Wno-deprecated
+LIBS          = $(QWEAKLIBS) $(SYSLIBS) $(QWLIBS) -lNew
 GLIBS         = $(ROOTGLIBS) $(SYSLIBS) $(QWLIBS) -lNew
+
+#CXXFLAGS     += $(DEBUGFLAGS) $(ROOTCFLAGS) -Wno-deprecated
+#LIBS          = $(ROOTLIBS) $(SYSLIBS) $(QWLIBS) -lNew 
+#GLIBS         = $(ROOTGLIBS) $(SYSLIBS) $(QWLIBS) -lNew
 
 ENSCRIPT      = @enscript -2Gjr -o
 
@@ -99,7 +109,7 @@ ENSCRIPT      = @enscript -2Gjr -o
 all: $(APPLIC)
 $(QWOBJECT)
 $(APPLIC): $(OBJECTS) $(NODICTOBJECTS) $(DICTS) $(QWDICTOBJECTS) $(RDATALIB)
-	$(CXX) -o $@ $(LDFLAGS) $(GLIBS) $(GEOMLIB) $(GUILIB) $^
+	$(CXX) -o $@ $(LDFLAGS) $(QWEAKLDFLAGS) $(LIBS) $(GLIBS) $(GEOMLIB) $(GUILIB) $^
 	ln -sf QwRealTimeGUIView/$@ ../QwRealTimeGUI
 	@echo "$@ done"
 

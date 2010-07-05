@@ -81,6 +81,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Create an EPICS event
   QwEPICSEvent epicsevent;
 
+
   ///  Load the detectors from file
   QwSubsystemArrayParity detectors(gQwOptions);
   detectors.ProcessOptions(gQwOptions);
