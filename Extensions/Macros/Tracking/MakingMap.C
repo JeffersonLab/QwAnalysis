@@ -1,3 +1,16 @@
+// Name  :   MakingMap.C
+// Author:   Siyuan Yang
+// email :   sxyang@email.wm.edu sxyang@jlab.org
+// Date:     Mon July  5 12:46:20 EST 2010
+// Version:  0.0.1
+//
+//  This is the script to generate the TDC Based root file from the orginal //  root file while the flag kUseTDCHits is turned on in QwTracking.cc
+//  another function in this script is draw_peaks and the purpose of it is to //  draw the results of difference between two adjacent tdc channels. You 
+//  could also assign the number of bins as the last parameter in the final //  histogram.
+ 
+
+
+
 #include <vector>
 #include <iterator>
 #include <iostream>
@@ -38,7 +51,7 @@ void create_tdc_tree ( Int_t ev_start=-1,Int_t ev_end=-1, Int_t run_number=1672 
         TFile* f_tdc=new TFile ( Form ( "%s/rootfiles/Qweak_%d_TDCBased.root",getenv ( "QWSCRATCH" ),run_number ),"RECREATE" );
     //TFile* f=new TFile ( Form ( "/net/cdaq/scratch2/qweak/rootfiles/Qweak_%d.000.root",run_number ) );
     //TFile* f_tdc=new TFile ( Form ( "/net/cdaq/scratch2/qweak/rootfiles/Qweak_%d_TDCBased.root",run_number ),"RECREATE" );
-    TTree *R=new TTree ( "R","Hit event data tree" );
+    TTree *R=new TTree ( "tree","Hit event data tree" );
     TString prebase="";
     std::vector<Int_t> tdc_dt;
 
@@ -127,17 +140,15 @@ void ConstructTDCStructure ( TTree* tree,TString& prefix,std::vector<Int_t>& val
 
 
 
-void draw_peaks ( Int_t slot_num=0,Int_t tdc_num=0, Int_t run_number=1672 )
+void draw_peaks ( Int_t slot_num=0,Int_t tdc_num=0, Int_t run_number=1672,Int_t bins=500 )
 {
 
     check_libraries();
-        TFile* f=new TFile ( Form ( "%s/rootfiles/Qweak_%d.root",getenv ( "QWSCRATCH" ),run_number ) );
-    //    TFile* f_tdc=new TFile ( Form ( "%s/rootfiles/Qweak_%d_TDCBased.root",getenv ( "QWANALYSIS" ),run_number ),"RECREATE" );
-    //TFile* f=new TFile ( Form ( "/net/cdaq/scratch2/qweak/rootfiles/Qweak_%d_TDCBased.root",run_number ) );
-    //TFile* f_tdc=new TFile ( Form ( "/net/cdaq/scratch2/qweak/rootfiles/Qweak_%d_TDCBased.root",run_number ),"RECREATE" );
-    //TTree *R=new TTree ( "R","Hit event data tree" );
-    //TTree* tree=R;
-    TTree* tree=(TTree*)f->Get("R");
+        TFile* f=new TFile ( Form ( "%s/rootfiles/Qweak_%d_TDCBased.root",getenv ( "QWSCRATCH" ),run_number ) );
+
+    TH1F* h1=new TH1F("h1","h1",bins,-250,250);
+
+    TTree* tree=(TTree*)f->Get("tree");
     char firstchan[100]="slot";
     char secondchan[100]="slot";
     string middle="_tdc";
@@ -160,7 +171,7 @@ void draw_peaks ( Int_t slot_num=0,Int_t tdc_num=0, Int_t run_number=1672 )
     strcat ( expr,"-" );
     strcat ( expr,secondchan );
     strcat ( expr,")" );
-    strcat ( expr,">>h1(500)" );
+    strcat ( expr,">>h1" );
 
     char select[200]="";
     strcat ( select,firstchan );
@@ -180,7 +191,7 @@ void draw_peaks ( Int_t slot_num=0,Int_t tdc_num=0, Int_t run_number=1672 )
 
 
 
-    // std::cout << "expr: " << expr << std::endl;
+    //std::cout << "expr: " << expr << std::endl;
     //std::cout << "select: " << select << std::endl;
     TCanvas* c=new TCanvas ( "c","c",800,600 );
     tree->Draw ( expr,select );
