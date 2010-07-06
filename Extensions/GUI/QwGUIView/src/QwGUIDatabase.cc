@@ -2,16 +2,14 @@
 
 #include <TG3DLine.h>
 #include "TGaxis.h"
+#include "TStopwatch.h"
 
 ClassImp(QwGUIDatabase);
 
-/*
-enum QwGUIDatabaseIndentificator {
-  BA_POS_DIFF,
-  BA_TGT_PARAM
-
+enum EQwGUIDatabaseXAxisIDs {
+  ID_X_RUN,
+  ID_X_BEAM
 };
-*/
 
 enum EQwGUIDatabaseInstrumentIDs {
   ID_MD,
@@ -26,7 +24,8 @@ enum EQwGUIDatabaseWidgetIDs {
   CMB_SUBBLOCK,
   CMB_MEASUREMENT_TYPE,
   CMB_INSTRUMENT,
-  BTN_SUBMIT
+  BTN_SUBMIT,
+  CMB_XAXIS 
 };
 
 const char *QwGUIDatabase::DetectorCombos[N_DETECTORS] = 
@@ -115,6 +114,7 @@ QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTa
   dNumLayout          = NULL;
   dBtnLayout          = NULL;
   dLabLayout          = NULL;
+  dCmbXAxis           = NULL;
   dCmbInstrument      = NULL;
   dCmbDetector        = NULL;
   dCmbSubblock        = NULL;
@@ -149,6 +149,7 @@ QwGUIDatabase::~QwGUIDatabase()
   if(dNumStartRun)        delete dNumStartRun;
   if(dNumStopRun)         delete dNumStopRun;
   if(dCmbInstrument)      delete dCmbInstrument;
+  if(dCmbXAxis)           delete dCmbXAxis;
   if(dCmbDetector)        delete dCmbDetector;
   if(dCmbSubblock)        delete dCmbSubblock;
   if(dCmbMeasurementType) delete dCmbMeasurementType;
@@ -211,6 +212,7 @@ void QwGUIDatabase::MakeLayout()
   dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
 
   dCmbInstrument = new TGComboBox(dControlsFrame, CMB_INSTRUMENT);
+  dCmbXAxis = new TGComboBox(dControlsFrame, CMB_XAXIS);
   dLabStartRun = new TGLabel(dControlsFrame, "First Run");
   dNumStartRun = new TGNumberEntry(dControlsFrame, 0, 5, NUM_START_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
   dLabStopRun = new TGLabel(dControlsFrame, "Last Run");
@@ -224,6 +226,10 @@ void QwGUIDatabase::MakeLayout()
   dCmbLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
   dNumLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop, 10, 10, 5, 5 );
   dBtnLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0, 0, 5, 5 );
+
+  dCmbXAxis->AddEntry("Vs. Run Number", ID_X_RUN);
+  dCmbXAxis->AddEntry("Vs. Beam Monitors", ID_X_BEAM);
+  dCmbXAxis->Select(dCmbXAxis->FindEntry("Vs. Run Number")->EntryId());
 
   dCmbInstrument->AddEntry("Main Detectors", ID_MD);
   dCmbInstrument->AddEntry("Beam Monitors", ID_BEAM);
@@ -245,12 +251,14 @@ void QwGUIDatabase::MakeLayout()
   dCmbSubblock->Select(0);
   dCmbMeasurementType->Select(dCmbMeasurementType->FindEntry("a")->EntryId());
 
+  dCmbXAxis->Resize(150,20);
   dCmbInstrument->Resize(150,20);
   dCmbDetector->Resize(150,20);
   dCmbSubblock->Resize(150,20);
   dCmbMeasurementType->Resize(150,20);
 
   dControlsFrame->AddFrame(dCmbInstrument, dCmbLayout );
+  dControlsFrame->AddFrame(dCmbXAxis, dCmbLayout );
   dControlsFrame->AddFrame(dLabStartRun, dLabLayout );
   dControlsFrame->AddFrame(dNumStartRun, dNumLayout );
   dControlsFrame->AddFrame(dLabStopRun, dLabLayout );
@@ -260,6 +268,7 @@ void QwGUIDatabase::MakeLayout()
   dControlsFrame->AddFrame(dCmbMeasurementType, dCmbLayout );
   dControlsFrame->AddFrame(dBtnSubmit, dBtnLayout);
 
+  dCmbXAxis -> Associate(this);
   dCmbInstrument -> Associate(this);
   dNumStartRun -> Associate(this);
   dNumStopRun -> Associate(this);
@@ -285,13 +294,20 @@ void QwGUIDatabase::OnSubmitPushed() {
 
   switch (dCmbInstrument->GetSelected()) {
     case ID_MD:
-      DetectorPlot();
+    case ID_LUMI:
+      switch (dCmbXAxis->GetSelected()) {
+        case ID_X_RUN:
+          DetectorPlot();
+          break;
+        case ID_X_BEAM:
+          DetectorVsMonitorPlot();
+          break;
+        default:
+          break;
+      }
       break;
     case ID_BEAM:
       BeamMonitorPlot();
-      break;
-    case ID_LUMI:
-      DetectorPlot();
       break;
     default:
       break;
@@ -415,6 +431,222 @@ void QwGUIDatabase::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
   }
   */
 }
+
+void QwGUIDatabase::DetectorVsMonitorPlot()
+{
+  TGraphErrors *grp;
+
+  if(dDatabaseCont){
+    dDatabaseCont->Connect();
+
+    mysqlpp::Query query = dDatabaseCont->Query();
+
+    // Subblocks are numbered 0-4 in database just like entry number in dCmbSubblock
+    Int_t subblock = dCmbSubblock->GetSelected();
+    Int_t run_first = dNumStartRun->GetIntNumber();
+    Int_t run_last = dNumStopRun->GetIntNumber();
+    string detector;
+    string measurement_type = DetectorMeasurementTypes[dCmbMeasurementType->GetSelected()];
+
+    query << "SELECT xt.run_number AS run, xt.segment_number AS segment, ";
+    query << "xt.q_value AS q, xt.q_error AS q_err, xt.energy_value AS e, xt.energy_error AS e_err, ";
+    query << "xt.x_value AS x, xt.x_error AS x_err, xt.theta_x_value AS theta_x, xt.theta_x_error AS theta_x_err, ";
+    query << "xt.y_value AS y, xt.y_error AS y_err, xt.theta_y_value AS theta_y, xt.theta_y_error AS theta_y_err, ";
+    query << "yt.value AS value, yt.error AS error ";
+    query << "FROM summary_b" << measurement_type << " AS xt, ";
+    if (dCmbInstrument->GetSelected() == ID_MD) {
+      query << "summary_d";
+      detector = DetectorCombos[dCmbDetector->GetSelected()];
+    }
+    if (dCmbInstrument->GetSelected() == ID_LUMI) {
+      detector = LumiCombos[dCmbDetector->GetSelected()];
+      query << "summary_l"; 
+    }
+    if (dCmbInstrument->GetSelected() == ID_BEAM) {
+      std::cerr << "Beam monitors not a valid selection in this context." << std::endl;
+      return;
+    }
+    query << measurement_type << "_calc AS yt ";
+    query << "WHERE ";
+    query << "xt.run_number = yt.run_number ";
+    query << "AND xt.segment_number = yt.segment_number ";
+    query << "AND xt.subblock = yt.subblock ";
+    query << "AND yt.detector = " << mysqlpp::quote << detector << " ";
+    query << "AND xt.subblock = " << subblock << " ";
+    query << "AND xt.run_number BETWEEN ";
+    query << run_first << " AND ";
+    query << run_last << " ";
+    query << "ORDER BY xt.run_number, xt.segment_number";
+
+    std::cout << query.str() << std::endl;
+
+    mysqlpp::StoreQueryResult res = query.store();
+
+    dDatabaseCont->Disconnect(); 
+
+    Int_t res_size = 0;
+      res_size = res.num_rows();
+      std::cout << "Number of rows:  " << res_size << std::endl;
+    TVectorF q(res_size), qerr(res_size), e(res_size), eerr(res_size);
+    TVectorF x(res_size), xerr(res_size), y(res_size), yerr(res_size);
+    TVectorF theta_x(res_size), theta_xerr(res_size), theta_y(res_size), theta_yerr(res_size);
+    TVectorF d(res_size), derr(res_size);
+
+    if (res) {
+      /*
+      q.ResizeTo(res_size);
+      qerr.ResizeTo(res_size);
+      e.ResizeTo(res_size);
+      eerr.ResizeTo(res_size);
+      x.ResizeTo(res_size);
+      xerr.ResizeTo(res_size);
+      theta_x.ResizeTo(res_size);
+      theta_xerr.ResizeTo(res_size);
+      y.ResizeTo(res_size);
+      yerr.ResizeTo(res_size);
+      theta_y.ResizeTo(res_size);
+      theta_yerr.ResizeTo(res_size);
+      */
+
+      for (Int_t i = 0; i < res_size; i++) {
+        q[i] = res[i]["q"];
+        qerr[i] = res[i]["q_err"];
+        e[i] = res[i]["e"];
+        eerr[i] = res[i]["e_err"];
+        x[i] = res[i]["x"];
+        xerr[i] = res[i]["x_err"];
+        theta_x[i] = res[i]["theta_x"];
+        theta_xerr[i] = res[i]["theta_x_err"];
+        y[i] = res[i]["y"];
+        yerr[i] = res[i]["y_err"];
+        theta_y[i] = res[i]["theta_y"];
+        theta_yerr[i] = res[i]["theta_y_err"];
+        d[i] = res[i]["value"];
+        derr[i] = res[i]["error"];
+      }
+
+    //
+    // Construct Graphs for Plotting
+    //
+
+    string grp_title;
+
+    for (Int_t i = 0; i < N_BEAM_MONITORS; i++) {
+      switch (i) {
+        case 0: // X position @ target
+          grp = new TGraphErrors(x, d, xerr, derr);
+          grp_title = "Detector vs. X";
+          if (measurement_type == "y") {
+	          grp->GetXaxis()->SetTitle("Position []");
+          }
+          if (measurement_type == "a") {
+	          grp->GetXaxis()->SetTitle("Difference []");
+            grp_title += " Difference";
+          }
+          break;
+        case 1: // Y position @ target
+          grp = new TGraphErrors(y, d, yerr, derr);
+          grp_title = "Detector vs. Y";
+          if (measurement_type == "y") {
+	          grp->GetXaxis()->SetTitle("Position []");
+          }
+          if (measurement_type == "a") {
+	          grp->GetXaxis()->SetTitle("Difference []");
+            grp_title += " Difference";
+          }
+          break;
+        case 2: // X angle @ target
+          grp = new TGraphErrors(theta_x, d, theta_xerr, derr);
+          grp_title = "Detector vs. X Angle";
+          if (measurement_type == "y") {
+            grp->GetXaxis()->SetTitle("Angle []");
+          }
+          if (measurement_type == "a") {
+            grp->GetXaxis()->SetTitle("Difference []");
+            grp_title += " Difference";
+          }
+          break;
+        case 3: // Y angle @ target
+          grp = new TGraphErrors(theta_y, d, theta_yerr, derr);
+          grp_title = "Detector vs. Y Angle";
+          if (measurement_type == "y") {
+	          grp->GetXaxis()->SetTitle("Angle []");
+          }
+          if (measurement_type == "a") {
+	          grp->GetXaxis()->SetTitle("Difference []");
+            grp_title += " Difference";
+          }
+          break;
+        case 4: // Charge @ target
+          grp = new TGraphErrors(q, d, qerr, derr);
+          grp_title = "Detector vs. Charge";
+          if (measurement_type == "y") {
+	          grp->GetXaxis()->SetTitle("Charge []");
+          }
+          if (measurement_type == "a") {
+	          grp->GetXaxis()->SetTitle("Asymmetry []");
+            grp_title += " Asymmetry";
+          }
+          break;
+        case 5: // Energy @ target
+          grp = new TGraphErrors(e, d, eerr, derr);
+          grp_title = "Detector vs. Energy";
+          if (measurement_type == "y") {
+	          grp->GetXaxis()->SetTitle("Energy []");
+          }
+          if (measurement_type == "a") {
+	          grp->GetXaxis()->SetTitle("Asymmetry? []");
+            grp_title += " Asymmetry?";
+          }
+          break;
+        default:
+          break;
+      }
+
+      grp->SetTitle(grp_title.c_str());
+
+      grp->GetXaxis()->CenterTitle();
+  	  grp->GetXaxis()->SetTitleSize(0.04);
+  	  grp->GetXaxis()->SetLabelSize(0.04);
+  	  grp->GetXaxis()->SetTitleOffset(1.25);
+      grp->GetYaxis()->SetTitle("Detector []");
+   	  grp->GetYaxis()->CenterTitle();
+	    grp->GetYaxis()->SetTitleSize(0.04);
+	    grp->GetYaxis()->SetLabelSize(0.04);
+	    grp->GetYaxis()->SetTitleOffset(1.5);
+
+      GraphArray.Add(grp);
+
+    } 
+    //
+    //
+    // Plot Graphs
+    //
+    //
+    Int_t ind = 1;
+    TCanvas *mc = dCanvas->GetCanvas();
+    mc->Clear();
+    mc->Divide(2,3);
+
+    TObject *obj;
+    TIter next(GraphArray.MakeIterator());
+    obj = next();
+    while(obj){
+      mc->cd(ind);
+      gPad->SetLogy(0);
+      ((TGraph*)obj)->Draw("ap*");
+      ind++;
+      obj = next();
+    }
+
+    mc->Modified();
+    mc->Update();
+
+
+    }
+  }
+} //DetectorVsMonitorPlot
+
 void QwGUIDatabase::BeamMonitorPlot()
 {
   if(dDatabaseCont){
@@ -451,7 +683,7 @@ void QwGUIDatabase::BeamMonitorPlot()
     //
 
     Int_t res_size = res.size();
-    printf("Number of rows returned:  %ld\n",res_size);
+    printf("Number of rows returned:  %d\n",res_size);
 
     // Loop over all rows
     TVectorF time(res_size), timeerr(res_size);
@@ -624,6 +856,8 @@ void QwGUIDatabase::DetectorPlot()
 
 //    ClearData();
 
+    TStopwatch timer;
+
     TGraphErrors *grp;
 
     dDatabaseCont->Connect();
@@ -657,6 +891,11 @@ void QwGUIDatabase::DetectorPlot()
 
     printf("Number of rows returned:  %ld\n",res.size());
 
+    timer.Stop();
+    std::cout << "Time (ms) to retrieve runs from DB:  ";
+    timer.Print("m");
+    timer.Continue();
+
     Int_t res_size = res.size();
 
     // Loop over all rows
@@ -682,6 +921,11 @@ void QwGUIDatabase::DetectorPlot()
     }
 
     dDatabaseCont->Disconnect(); 
+
+    timer.Stop();
+    std::cout << "Time (ms) to fill TVectors:  ";
+    timer.Print("m");
+    timer.Continue();
 
     grp = new TGraphErrors(x, y, xerr, yerr);
 
@@ -719,6 +963,11 @@ void QwGUIDatabase::DetectorPlot()
   mc->Modified();
   mc->Update();
 
+    timer.Stop();
+    std::cout << "All done!" << std::endl;
+    timer.Print();
+    std::cout << "Time (ms) to complete:  ";
+    timer.Print("m");
 //    PlotGraphs();
 
   }
@@ -746,6 +995,7 @@ Bool_t QwGUIDatabase::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       switch (GET_SUBMSG(msg)) {
         case kCM_COMBOBOX:
           switch(parm1) {
+            case CMB_XAXIS:
             case CMB_INSTRUMENT:
             case CMB_DETECTOR:
             case CMB_SUBBLOCK:
@@ -756,6 +1006,7 @@ Bool_t QwGUIDatabase::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
         case kCM_BUTTON:
           switch(parm1) {
             case BTN_SUBMIT:
+//              DetectorVsMonitorPlot();
               OnSubmitPushed();
               break;
             default:

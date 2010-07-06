@@ -84,6 +84,7 @@ using std::vector;
   TGLayoutHints       *dLabLayout;
   TGNumberEntry       *dNumStartRun;
   TGNumberEntry       *dNumStopRun;
+  TGComboBox          *dCmbXAxis;
   TGComboBox          *dCmbInstrument;
   TGComboBox          *dCmbDetector;
   TGComboBox          *dCmbSubblock;
@@ -119,6 +120,7 @@ using std::vector;
 
   void DetectorPlot();
   void BeamMonitorPlot();
+  void DetectorVsMonitorPlot();
 
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
