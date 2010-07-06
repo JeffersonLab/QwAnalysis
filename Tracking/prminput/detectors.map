@@ -2,24 +2,36 @@
 # this is the preamble
 
 [QwGasElectronMultiplier]
- name = R1 GEM
- map = qweak_cosmics_hits.map
+ name = R1
+ map = qweak_R1.map
  geom = qweak_new.geo
 
 [QwDriftChamberHDC]
- name = R2 HDC
+ name = R2
  map = qweak_cosmics_hits.map
  geom = qweak_new.geo
 
 [QwDriftChamberVDC]
- name = R3 VDC
+ name = R3
  map = TDCtoDL.map
  geom = qweak_new.geo
 
 [QwTriggerScintillator]
  name = TS
+ map = qweak_trigscint_channel.map
  geom = qweak_new.geo
 
 [QwMainDetector]
  name = MD
+ map = qweak_maindet_channel.map
  geom = qweak_new.geo
+
+[QwScanner]
+ name = FPS
+ map = qweak_scanner_channel.map
+ param = qweak_scanner_parameter.map
+
+[QwRaster]
+ name = FR
+ map = qweak_raster_channel.map
+ param = qweak_raster_parameter.map
