@@ -42,6 +42,9 @@ QwLog::QwLog()
 
   fLogLevel = kMessage;
 
+  fPrintFunctionName = false;
+  fPrintFunctionSignature = false;
+
   QwLogScreenAtNewLine = kTRUE;
   QwLogFileAtNewLine = kTRUE;
 }
@@ -72,13 +75,24 @@ QwLog::~QwLog()
 void QwLog::DefineOptions(QwOptions* options)
 {
   // Define the logging options
-  options->AddOptions("Logging options")("QwLog.color", po::value<bool>()->default_value(true),
+  options->AddOptions("Logging options")("QwLog.color",
+                po::value<bool>()->default_value(true),
                 "colored screen output");
-  options->AddOptions("Logging options")("QwLog.logfile", po::value<string>(), "log file");
-  options->AddOptions("Logging options")("QwLog.loglevel-file", po::value<int>()->default_value(kMessage),
+  options->AddOptions("Logging options")("QwLog.logfile",
+                po::value<string>(),
+                "log file");
+  options->AddOptions("Logging options")("QwLog.loglevel-file",
+                po::value<int>()->default_value(kMessage),
                 "log level for file output");
-  options->AddOptions("Logging options")("QwLog.loglevel-screen", po::value<int>()->default_value(kMessage),
+  options->AddOptions("Logging options")("QwLog.loglevel-screen",
+                po::value<int>()->default_value(kMessage),
                 "log level for screen output");
+  options->AddOptions("Logging options")("QwLog.print-function",
+                po::value<bool>()->default_value(false)->zero_tokens(),
+                "print function on error or warning");
+  options->AddOptions("Logging options")("QwLog.print-signature",
+                po::value<bool>()->default_value(false)->zero_tokens(),
+                "print signature on error or warning");
 }
 
 
@@ -99,12 +113,16 @@ void QwLog::ProcessOptions(QwOptions* options)
   if (options->HasValue("QwLog.logfile"))
     InitLogFile(options->GetValue<std::string>("QwLog.logfile"));
 
-  // Get and set the logging thresholds
+  // Set the logging thresholds
   SetFileThreshold(options->GetValue<int>("QwLog.loglevel-file"));
   SetScreenThreshold(options->GetValue<int>("QwLog.loglevel-screen"));
 
-  // Get and set color flag
+  // Set color flag
   SetScreenColor(options->GetValue<bool>("QwLog.color"));
+
+  // Set the flags for function name and signature printing
+  fPrintFunctionName      = options->GetValue<bool>("QwLog.print-function");
+  fPrintFunctionSignature = options->GetValue<bool>("QwLog.print-signature");
 }
 
 
@@ -145,7 +163,10 @@ void QwLog::SetFileThreshold(int thr)
 
 /*! Set the stream log level
  */
-QwLog& QwLog::operator()(QwLogLevel level)
+QwLog& QwLog::operator()(
+  const QwLogLevel level,
+  const std::string func_sig,
+  const std::string func_name)
 {
   fLogLevel = level;
 
@@ -155,15 +176,25 @@ QwLog& QwLog::operator()(QwLogLevel level)
       switch (level) {
       case kError:
         if (fUseColor)
-          *(fScreen) << QwColor(Qw::kRed) << "Error: ";
+          *(fScreen) << QwColor(Qw::kRed);
+        if (fPrintFunctionSignature)
+          *(fScreen) << "Error (in " << func_sig << "): ";
+        else if (fPrintFunctionName)
+          *(fScreen) << "Error (in " << func_name << "): ";
         else
           *(fScreen) << "Error: ";
         break;
       case kWarning:
         if (fUseColor)
-          *(fScreen) << QwColor(Qw::kRed) << "Warning: " << QwColor(Qw::kNormal);
+          *(fScreen) << QwColor(Qw::kRed);
+        if (fPrintFunctionSignature)
+          *(fScreen) << "Warning (in " << func_sig << "): ";
+        else if (fPrintFunctionName)
+          *(fScreen) << "Warning (in " << func_name << "): ";
         else
           *(fScreen) << "Warning: ";
+        if (fUseColor)
+          *(fScreen) << QwColor(Qw::kNormal);
         break;
       default:
         break;
