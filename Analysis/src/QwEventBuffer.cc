@@ -22,32 +22,11 @@ const Int_t QwEventBuffer::kFileHandleNotConfigured  = -40;
 /// DAQ to indicate a known empty buffer.
 const UInt_t QwEventBuffer::kNullDataWord = 0x4e554c4c;
 
-/**
- * Defines configuration options for QwEventBuffer class using QwOptions
- * functionality.
- *
- * @param options Options object
- */
-void QwEventBuffer::DefineOptions(QwOptions &options)
-{
-  // Define the execution options
-  options.AddDefaultOptions()
-    ("online", po::value<bool>()->default_value(false)->zero_tokens(),
-     "use online data stream");
-  options.AddDefaultOptions()
-    ("run,r", po::value<string>()->default_value("0:0"),
-     "run range in format #[:#]");
-  options.AddDefaultOptions()
-    ("chainfiles", po::value<bool>()->default_value(false)->zero_tokens(),
-     "chain file segments together, do not analyze them separately");
-  options.AddDefaultOptions()
-    ("event,e", po::value<string>()->default_value("0:"),
-     "event range in format #[:#]");
-}
 
-QwEventBuffer::QwEventBuffer(const TString& stem, const TString& ext)
-  :    fDataFileStem(stem),
-       fDataFileExtension(ext),
+/// Default constructor
+QwEventBuffer::QwEventBuffer()
+  :    fDataFileStem("QwRun_"),
+       fDataFileExtension("log"),
        fEvStreamMode(fEvStreamNull),
        fEvStream(NULL),
        fCurrentRun(-1),
@@ -64,6 +43,38 @@ QwEventBuffer::QwEventBuffer(const TString& stem, const TString& ext)
       fDataDirectory.Append("/");
   }
 };
+
+/**
+ * Defines configuration options for QwEventBuffer class using QwOptions
+ * functionality.
+ *
+ * @param options Options object
+ */
+void QwEventBuffer::DefineOptions(QwOptions &options)
+{
+  // Define the execution options
+  options.AddDefaultOptions()
+    ("online", po::value<bool>()->default_value(false)->zero_tokens(),
+     "use online data stream");
+  options.AddDefaultOptions()
+    ("run,r", po::value<string>()->default_value("0:0"),
+     "run range in format #[:#]");
+  options.AddDefaultOptions()
+    ("event,e", po::value<string>()->default_value("0:"),
+     "event range in format #[:#]");
+  options.AddDefaultOptions()
+    ("burstlength", po::value<int>()->default_value(0),
+     "number of events in a burst\n\t(0 to disable burst analysis)");
+  options.AddDefaultOptions()
+    ("chainfiles", po::value<bool>()->default_value(false)->zero_tokens(),
+     "chain file segments together, do not analyze them separately");
+  options.AddDefaultOptions()
+    ("codafile-stem", po::value<string>()->default_value("QwRun_"),
+     "stem of the input CODA filename");
+  options.AddDefaultOptions()
+    ("codafile-ext", po::value<string>()->default_value("log"),
+     "extension of the input CODA filename");
+}
 
 void QwEventBuffer::ProcessOptions(QwOptions &options)
 {
@@ -95,7 +106,10 @@ void QwEventBuffer::ProcessOptions(QwOptions &options)
   }
   fRunRange   = options.GetIntValuePair("run");
   fEventRange = options.GetIntValuePair("event");
+  fBurstLength = options.GetValue<int>("burstlength");
   fChainDataFiles = options.GetValue<bool>("chainfiles");
+  fDataFileStem      = options.GetValue<string>("codafile-stem");
+  fDataFileExtension = options.GetValue<string>("codafile-ext");
 }
 
 TString QwEventBuffer::GetRunLabel() const
@@ -181,12 +195,20 @@ Int_t QwEventBuffer::GetNextEvent()
       //  For now, mock up EOF if we've reached the maximum event.
       status = EOF;
     }
-  } while (status==CODA_OK  &&
-	   IsPhysicsEvent() &&
-	   (fEvtNumber<fEventRange.first
-	    || fEvtNumber>fEventRange.second)
-	   );
-  if (status==CODA_OK  && IsPhysicsEvent()) fNumPhysicsEvents++;
+  } while (status == CODA_OK  &&
+           IsPhysicsEvent()   &&
+            (fEvtNumber < fEventRange.first
+          || fEvtNumber > fEventRange.second)
+          );
+  if (status == CODA_OK  && IsPhysicsEvent()) fNumPhysicsEvents++;
+
+  //  Progress meter (this should probably produce less output in production)
+  if (fEvtNumber % 1000 == 0) {
+    QwMessage << "Processing event " << fEvtNumber << QwLog::endl;
+  } else if (fEvtNumber % 100 == 0) {
+    QwVerbose << "Processing event " << fEvtNumber << QwLog::endl;
+  }
+
   return status;
 };
 
@@ -474,9 +496,11 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystem
   return okay;
 };
 
-Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
-  //
+Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
+{
+  // Initialize local  flag
   Bool_t okay = kTRUE;
+
   //  Clear the old event information from the subsystems.
   subsystems.ClearEventData();
 
@@ -491,7 +515,7 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
     if (fSubbankType == 0x10) continue;
     //  If this bank only contains the word 'NULL' then skip
     //  this bank.
-    if (fFragLength==1 && localbuff[fWordsSoFar]==kNullDataWord){
+    if (fFragLength == 1 && localbuff[fWordsSoFar]==kNullDataWord){
       fWordsSoFar += fFragLength;
       continue;
     }

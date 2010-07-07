@@ -39,7 +39,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
   static const UInt_t kNullDataWord;
 
  public:
-  QwEventBuffer(const TString& stem = "QwRun_", const TString& ext = "log");
+  QwEventBuffer();
   virtual ~QwEventBuffer() {
     if (fEvStream!=NULL){
       delete fEvStream;
@@ -99,13 +99,15 @@ class QwEventBuffer: public MQwCodaControlEvent{
     return (fEvtType>=0x90 && fEvtType<=0xaf);
   };
 
-
-
   Bool_t IsEPICSEvent(){
     //  What are the correct codes for our EPICS events?
     return (fEvtType>=160 && fEvtType<=170);// epics event type is only with tag="160"
   };
 
+  Bool_t IsEndOfBurst(){
+    //  Is this the end of a burst?
+    return (fBurstLength > 0 && fEvtNumber % fBurstLength == 0);
+  };
 
   Bool_t FillSubsystemConfigurationData(QwSubsystemArray &subsystems);
   Bool_t FillSubsystemData(QwSubsystemArray &subsystems);
@@ -139,10 +141,11 @@ class QwEventBuffer: public MQwCodaControlEvent{
   std::pair<Int_t, Int_t> fRunRange;
   Bool_t fChainDataFiles;
   std::pair<UInt_t, UInt_t> fEventRange;
+  Int_t fBurstLength;
 
  protected:
-  const TString fDataFileStem;
-  const TString fDataFileExtension;
+  TString fDataFileStem;
+  TString fDataFileExtension;
 
   TString fDataDirectory;
 
