@@ -9,11 +9,26 @@
 #include "QwHitContainer.h"
 #include "QwHitRootContainer.h"
 
+////////////////Injector stuff/////////////////
+#include "QwGUIInjector.h"
+
+#include <TG3DLine.h>
+#include "TGaxis.h"
+
+
+////////////end injector stuff////////////
+
 ClassImp(QwGUITrackFinding);
 
 enum QwGUITrackFindingIndentificator {
   TF_CHI2,
-  TF_RESIDUAL
+  TF_RESIDUAL,
+  TF_OFFSET,
+  TF_SLOPE,
+  TF_PCHI2,
+  TF_PRESIDUAL,
+  TF_POFFSET,
+  TF_PSLOPE
 };
 
 QwGUITrackFinding::QwGUITrackFinding(const TGWindow *p, const TGWindow *main, const TGTab *tab,
@@ -22,6 +37,7 @@ QwGUITrackFinding::QwGUITrackFinding(const TGWindow *p, const TGWindow *main, co
 {
   dTabFrame           = NULL;
   dControlsFrame      = NULL;
+  dControlsFrame1      = NULL; //added
   dCanvas             = NULL;
   dTabLayout          = NULL;
   dCnvLayout          = NULL;
@@ -29,6 +45,12 @@ QwGUITrackFinding::QwGUITrackFinding(const TGWindow *p, const TGWindow *main, co
   dBtnLayout          = NULL;
   dBtnChi2            = NULL;
   dBtnResidual        = NULL;
+  dBtnOffset	      = NULL;
+  dBtnSlope	      = NULL;
+  dBtnpChi2           = NULL;
+  dBtnpResidual       = NULL;
+  dBtnpOffset	      = NULL;
+  dBtnpSlope	      = NULL;
 
   for (Short_t i = 0; i < CHAMBERS_NUM; i++)
     {
@@ -54,6 +76,7 @@ QwGUITrackFinding::~QwGUITrackFinding()
 {
   if(dTabFrame)           delete dTabFrame;
   if(dControlsFrame)      delete dControlsFrame;
+  if(dControlsFrame1)      delete dControlsFrame1; //added
   if(dCanvas)             delete dCanvas;
   if(dTabLayout)          delete dTabLayout;
   if(dCnvLayout)          delete dCnvLayout;
@@ -61,6 +84,12 @@ QwGUITrackFinding::~QwGUITrackFinding()
   if(dBtnLayout)          delete dBtnLayout;
   if(dBtnChi2)            delete dBtnChi2;
   if(dBtnResidual)        delete dBtnResidual;
+  if(dBtnOffset)	  delete dBtnOffset;
+  if(dBtnSlope) 	  delete dBtnSlope;
+  if(dBtnpChi2)           delete dBtnpChi2;
+  if(dBtnpResidual)       delete dBtnpResidual;
+  if(dBtnpOffset)	  delete dBtnpOffset;
+  if(dBtnpSlope) 	  delete dBtnpSlope;
 
   delete[] histoChi2;
 
@@ -112,7 +141,9 @@ void QwGUITrackFinding::MakeLayout()
   AddFrame(dTabFrame, new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY, 5, 5));
 
   dControlsFrame = new TGVerticalFrame(this);
+  dControlsFrame1 = new TGVerticalFrame(this); //added
   dTabFrame->AddFrame(dControlsFrame, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 5, 5, 5, 5));
+  dTabFrame->AddFrame(dControlsFrame1, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 5, 5, 5, 5));
 
   TGVertical3DLine *separator = new TGVertical3DLine(this);
   dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
@@ -120,16 +151,33 @@ void QwGUITrackFinding::MakeLayout()
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200);
   dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
 
-  dBtnChi2  = new TGTextButton(dControlsFrame, "&Chi2", TF_CHI2);
-  dBtnResidual = new TGTextButton(dControlsFrame, "&Residuals", TF_RESIDUAL);
+  dBtnChi2  = new TGTextButton(dControlsFrame, "&TL_Chi2", TF_CHI2);
+  dBtnResidual = new TGTextButton(dControlsFrame, "&TL_Residuals", TF_RESIDUAL);
+  dBtnOffset  = new TGTextButton(dControlsFrame, "&TL_Offset", TF_OFFSET);
+  dBtnSlope  = new TGTextButton(dControlsFrame, "&TL_Slope", TF_SLOPE);
+  dBtnpChi2  = new TGTextButton(dControlsFrame1, "&PT_Chi2", TF_PCHI2);
+  dBtnpResidual = new TGTextButton(dControlsFrame1, "&PT_Residuals", TF_PRESIDUAL);
+  dBtnpOffset  = new TGTextButton(dControlsFrame1, "&PT_Offset", TF_POFFSET);
+  dBtnpSlope  = new TGTextButton(dControlsFrame1, "&PT_Slope", TF_PSLOPE);
   dBtnLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
 
   dControlsFrame->AddFrame(dBtnChi2 ,dBtnLayout );
   dControlsFrame->AddFrame(dBtnResidual,dBtnLayout );
+  dControlsFrame->AddFrame(dBtnOffset,dBtnLayout );
+  dControlsFrame->AddFrame(dBtnSlope,dBtnLayout );
+  dControlsFrame1->AddFrame(dBtnpChi2 ,dBtnLayout );
+  dControlsFrame1->AddFrame(dBtnpResidual,dBtnLayout );
+  dControlsFrame1->AddFrame(dBtnpOffset,dBtnLayout );
+  dControlsFrame1->AddFrame(dBtnpSlope,dBtnLayout );
 
   dBtnChi2 -> Associate(this);
   dBtnResidual-> Associate(this);
-
+  dBtnOffset -> Associate(this);
+  dBtnSlope -> Associate(this);
+  dBtnpChi2 -> Associate(this);
+  dBtnpResidual-> Associate(this);
+  dBtnpOffset -> Associate(this);
+  dBtnpSlope -> Associate(this);
   dCanvas->GetCanvas()->SetBorderMode(0);
   dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
 				"QwGUITrackFinding",
@@ -158,60 +206,183 @@ void QwGUITrackFinding::OnObjClose(char *obj)
 
 void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
 {
+std::cout << "Opened" << std::endl;
   if (!cont) return;
 
   if (!strcmp(cont->GetDataName(),"ROOT") && dROOTCont) {
 
-    TObject* obj = dROOTCont->ReadData(fRootTrees.at(0));
-    // Note: fRootTrees[0] = event_tree
+    TObject* obj = dROOTCont->ReadData(fRootTrees.at(1));
+    
+    // Note: fRootTrees[0] = hit_tree, fRootTrees[1] = event_tree
 
     if (obj) {
+	
        if (obj->InheritsFrom("TTree")) {
          TTree* tree = (TTree*) obj->Clone();
 
-         if (tree -> FindBranch("events"))
+         if (tree -> FindBranch("events")) //if (tree -> FindBranch("events"))
            {
 
             Int_t entries = tree->GetEntries();
-            std::cout << "Entries in tree: " << entries << std::endl;
+	    std::cout<<"Entries in tree: "<< entries << std::endl;
 
             QwHitRootContainer* roothitlist = 0;
             QwEvent* event = 0;
 
             tree->SetBranchAddress("hits", &roothitlist);
-            tree->SetBranchAddress("events", &event);
+            tree->SetBranchAddress("events", &event); //there is no events is hit_tree 6/30/10
 
-            // Defining histogram
-            TH1D* hst = new TH1D("distance","distance",100,0.0,3.0);
-            hst->SetDirectory(0);
+// Create histogram using Draw
+// Region 2 in blue and Region 3 in green
 
-            hst->GetXaxis()->SetTitle("distance");
-            hst->GetXaxis()->CenterTitle();
-            hst->GetXaxis()->SetTitleSize(0.04);
-            hst->GetXaxis()->SetLabelSize(0.04);
-            hst->GetXaxis()->SetTitleOffset(1.25);
-            hst->GetYaxis()->SetLabelSize(0.04);
+// Histogram from fQwTreeLines
+// TreeLines Chi2
+	    tree->Draw("events.fQwTreeLines.fChi>>fChiR2", "events.fQwTreeLines.fRegion==2"); //(100,0.0,60.0)
+	    TH1F *fChiR2 = (TH1F*)gDirectory->Get("fChiR2");
+	    fChiR2->SetFillColor(kBlue);
+            fChiR2->SetTitle("TreeLines Chi2 (Region 2)");
+	    tree->Draw("events.fQwTreeLines.fChi>>fChiR3", "events.fQwTreeLines.fRegion==3");
+	    TH1F *fChiR30 = (TH1F*)gDirectory->Get("fChiR3");
+	    fChiR30->SetFillColor(kGreen);
+            fChiR30->SetTitle("TreeLines Chi2 (Region 3)");
+//TreeLines Residuals
+	    tree->Draw("events.fQwTreeLines.fAverageResidual>>Residuals");
+	    TH1F *Residuals = (TH1F*)gDirectory->Get("Residuals");
+//TreeLines Offsets
+	    tree->Draw("events.fQwTreeLines.fOffset>>offset"); //(100.,-170.,110.)
+	    TH1F *offset = (TH1F*)gDirectory->Get("offset");
+	    tree->Draw("events.fQwTreeLines.fOffset>>offsetR2","events.fQwTreeLines.fRegion==2");
+	    TH1F *offsetR2 = (TH1F*)gDirectory->Get("offsetR2");
+	    offsetR2->SetFillColor(kBlue);
+            offsetR2->SetTitle("TreeLines Offset (Region 2)");
+	    tree->Draw("events.fQwTreeLines.fOffset>>offsetR3","events.fQwTreeLines.fRegion==3");
+	    TH1F *offsetR3 = (TH1F*)gDirectory->Get("offsetR3");
+	    offsetR3->SetFillColor(kGreen);
+            offsetR3->SetTitle("TreeLines Offset (Region 3)");
+//TreeLines Slope
+	    tree->Draw("events.fQwTreeLines.fSlope>>slope"); //(100,-0.2,1.6)
+	    TH1F *slope = (TH1F*)gDirectory->Get("slope");
+	    tree->Draw("events.fQwTreeLines.fSlope>>slopeR2","events.fQwTreeLines.fRegion==2");
+	    TH1F *slopeR2 = (TH1F*)gDirectory->Get("slopeR2");
+	    slopeR2->SetFillColor(kBlue);
+            slopeR2->SetTitle("TreeLines Slope (Region 2)");
+	    tree->Draw("events.fQwTreeLines.fSlope>>slopeR3","events.fQwTreeLines.fRegion==3");
+	    TH1F *slopeR3 = (TH1F*)gDirectory->Get("slopeR3");
+	    slopeR3->SetFillColor(kGreen);
+            slopeR3->SetTitle("TreeLines Slope (Region 3)");
 
-            for(int j = 0; j < tree->GetEntries(); j++){
-              tree->GetEntry(j);
+//Historams from tQwPartialTracks
+//PartialTracks Chi2
+	    tree->Draw("events.fQwPartialTracks.fChi>>fpChiR2", "events.fQwPartialTracks.fRegion==2"); //(100,0.0,2000.0)
+	    TH1F *fpChiR2 = (TH1F*)gDirectory->Get("fpChiR2");
+	    fpChiR2->SetFillColor(kBlue);
+            fpChiR2->SetTitle("PartialTracks Chi2 (Region 2)");
+	    tree->Draw("events.fQwPartialTracks.fChi>>fpChiR3", "events.fQwPartialTracks.fRegion==3");
+	    TH1F *fpChiR3 = (TH1F*)gDirectory->Get("fpChiR3");
+	    fpChiR3->SetFillColor(kGreen);
+            fpChiR3->SetTitle("PartialTracks Chi2 (Region 3)");
+//PartialTracks Residuals
+	    tree->Draw("events.fQwPartialTracks.fAverageResidual>>pResiduals");
+	    TH1F *pResiduals = (TH1F*)gDirectory->Get("pResiduals");
+//PartialTracks Offset X
+// 	    tree->Draw("events.fQwPartialTracks.fOffsetX>>poffsetX"); //(100.,-100000.,160000.)
+// 	    TH1F *poffsetX = (TH1F*)gDirectory->Get("poffsetX");
+	    tree->Draw("events.fQwPartialTracks.fOffsetX>>poffsetXR2","events.fQwPartialTracks.fRegion==2");
+	    TH1F *poffsetXR2 = (TH1F*)gDirectory->Get("poffsetXR2");
+	    poffsetXR2->SetFillColor(kBlue);
+            poffsetXR2->SetTitle("PartialTracks X Offset (Region 2)");
+	    tree->Draw("events.fQwPartialTracks.fOffsetX>>poffsetXR3","events.fQwPartialTracks.fRegion==3");
+	    TH1F *poffsetXR3 = (TH1F*)gDirectory->Get("poffsetXR3");
+	    poffsetXR3->SetFillColor(kGreen);
+            poffsetXR3->SetTitle("PartialTracks X Offset (Region 3)");
+//PartialTracks Offset Y
+// 	    tree->Draw("events.fQwPartialTracks.fOffsetY>>poffsetY"); //(100.,-40000.,90000.)
+// 	    TH1F *poffsetY = (TH1F*)gDirectory->Get("poffsetY");
+	    tree->Draw("events.fQwPartialTracks.fOffsetY>>poffsetYR2","events.fQwPartialTracks.fRegion==2");
+	    TH1F *poffsetYR2 = (TH1F*)gDirectory->Get("poffsetYR2");
+	    poffsetYR2->SetFillColor(kBlue-4);
+            poffsetYR2->SetTitle("PartialTracks Y Offset (Region 2)");
+	    tree->Draw("events.fQwPartialTracks.fOffsetY>>poffsetYR3","events.fQwPartialTracks.fRegion==3");
+	    TH1F *poffsetYR3 = (TH1F*)gDirectory->Get("poffsetYR3");
+	    poffsetYR3->SetFillColor(kGreen-4);
+            poffsetYR3->SetTitle("PartialTracks Y Offset (Region 3)");
+//PartialTracks Slope X
+// 	    tree->Draw("events.fQwPartialTracks.fSlopeX>>pSlopeX"); //(100.,-350.,250.)
+// 	    TH1F *pSlopeX = (TH1F*)gDirectory->Get("pSlopeX");
+	    tree->Draw("events.fQwPartialTracks.fSlopeX>>pSlopeXR2","events.fQwPartialTracks.fRegion==2");
+	    TH1F *pSlopeXR2 = (TH1F*)gDirectory->Get("pSlopeXR2");
+	    pSlopeXR2->SetFillColor(kBlue);
+            pSlopeXR2->SetTitle("PartialTracks X Slope (Region 2)");
+	    tree->Draw("events.fQwPartialTracks.fSlopeX>>pSlopeXR3","events.fQwPartialTracks.fRegion==3");
+	    TH1F *pSlopeXR3 = (TH1F*)gDirectory->Get("pSlopeXR3");
+	    pSlopeXR3->SetFillColor(kGreen); 
+            pSlopeXR3->SetTitle("PartialTracks X Slope (Region 3)");
+//PartialTracks Slope Y
+// 	    tree->Draw("events.fQwPartialTracks.fSlopeY>>pSlopeY"); //(100.,-200.,100.)
+// 	    TH1F *pSlopeY = (TH1F*)gDirectory->Get("pSlopeY");
+	    tree->Draw("events.fQwPartialTracks.fSlopeY>>pSlopeYR2","events.fQwPartialTracks.fRegion==2");
+	    TH1F *pSlopeYR2 = (TH1F*)gDirectory->Get("pSlopeYR2");
+	    pSlopeYR2->SetFillColor(kBlue-4);
+            pSlopeYR2->SetTitle("PartialTracks Y Slope (Region 2)");
+	    tree->Draw("events.fQwPartialTracks.fSlopeY>>pSlopeYR3","events.fQwPartialTracks.fRegion==3");
+	    TH1F *pSlopeYR3 = (TH1F*)gDirectory->Get("pSlopeYR3");
+	    pSlopeYR3->SetFillColor(kGreen-4);
+            pSlopeYR3->SetTitle("PartialTracks Y Slope (Region 3)");
 
-              QwHitContainer* hitlist = roothitlist->Convert();
-              for (QwHitContainer::iterator hit = hitlist->begin();
-                   hit != hitlist->end(); hit++) {
+//fQwHits
+	    tree->Draw("events.fQwTreeLines.fQwHits.fDistance>>hdist", "events.fQwTreeLines.fRegion==2 && events.fQwTreeLines.fPlane!=0");
+            TH1F *hdist = (TH1F*)gDirectory->Get("hdist");
+	    tree->Draw("events.fQwTreeLines.fNQwHits>>fNQwHits");
+	    TH1F *fNQwHits = (TH1F*)gDirectory->Get("fNQwHits");
 
-                if (hit->GetRegion() == kRegionID3) {
-                  hst->Fill(hit->GetDriftDistance());
-                }
-              }
-            }
+//  Add Histogram to HistArray
 
-            HistArray.Add(hst);
+	   HistArray.Add(fChiR2);	//0
+	   HistArray.Add(fChiR30);
+ 	   HistArray.Add(Residuals);
+           HistArray.Add(offset);
+	   HistArray.Add(offsetR2);
+	   HistArray.Add(offsetR3);	//5
+	   HistArray.Add(slope);
+	   HistArray.Add(slopeR2);
+	   HistArray.Add(slopeR3);
+
+	   HistArray.Add(fpChiR2);	
+	   HistArray.Add(fpChiR3);	//10
+	   HistArray.Add(poffsetXR2);
+	   HistArray.Add(poffsetXR3);
+	   HistArray.Add(poffsetYR2);
+	   HistArray.Add(poffsetYR3);
+	   HistArray.Add(pSlopeXR2);	//15
+	   HistArray.Add(pSlopeXR3);
+	   HistArray.Add(pSlopeYR2);
+	   HistArray.Add(pSlopeYR3);
+ 	   HistArray.Add(pResiduals);
+
+           HistArray.Add(hdist);	//20
+	   HistArray.Add(fNQwHits);
+
         }
+	else{
+	std::cout<<"no events branch"<<std::endl;
+        }
+	
       }
-
-      PlotHistograms();
+      else{
+	std::cout<<"no Tree inherited"<<std::endl;
+      }
+        
+  
+//     TCanvas *mc = NULL;
+//     mc = dCanvas->GetCanvas();
+//     mc->Clear();
+//        PlotHistograms();
+    }
+    else{
+	std::cout<<"no directory fRootTrees"<<std::endl;
     }
   }
+
 };
 
 void QwGUITrackFinding::OnRemoveThisTab()
@@ -255,13 +426,6 @@ void QwGUITrackFinding::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
   }
 }
 
-
-void QwGUITrackFinding::PlotChi2()
-{
-  return;
-}
-
-
 void QwGUITrackFinding::PlotHistograms()
 {
   Int_t ind = 1;
@@ -285,16 +449,302 @@ void QwGUITrackFinding::PlotHistograms()
   mc->Update();
 }
 
+// TreeLines
+void QwGUITrackFinding::PlotChi2()
+{
+  std::cout<<"Plotting Chi2..."<<std::endl;
+  TObject *obj = NULL;
+  
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+  mc->Clear();
+  mc->Divide(2,2);
 
 
+  obj = HistArray.At(0);  // Get histogram from tree
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  mc->cd(1);
+  obj->Draw();
+  mc->cd(2);
+  mc->cd(2)->SetLogy();
+  obj->Draw();
+
+  obj = HistArray.At(1);  // Get histogram from tree
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  mc->cd(3);
+  obj->Draw();
+  mc->cd(4);
+  mc->cd(4)->SetLogy();
+  obj->Draw();
+  gPad->Update();
+
+  std::cout<<"Done"<<std::endl;
+
+}
 
 // Display the beam postion and angle in X & Y, beam energy and beam charge on the target.
 void QwGUITrackFinding::PlotResidual()
-{
+{  std::cout<<"Plotting Residuals..."<<std::endl;
+  TObject *obj = NULL;
+  
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+  mc->Clear();
+
+
+  obj = HistArray.At(2);  // Get histogram from tree
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+
+  obj->Draw();
+  gPad->Update();
+  std::cout<<"Done"<<std::endl;
+  return;
+}
+
+void QwGUITrackFinding::PlotOffset()
+{  std::cout<<"Plotting Offset..."<<std::endl;
+  TObject *obj = NULL;
+  
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+  mc->Clear();
+  mc->Divide(1,2);
+
+  mc->cd(1);
+//   obj = HistArray.At(3);  // Get histogram from tree
+//   if(! obj) 
+// 	{
+// 	std::cout<<"Error: no obj in HistArray"<<std::endl;
+// 	return;
+// 	};
+//   obj->Draw();
+
+  obj = HistArray.At(4);  // Get histogram from tree
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+
+  mc->cd(2);
+  obj = HistArray.At(5);  // Get histogram from tree
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+
+  gPad->Update();
+  std::cout<<"Done"<<std::endl;
+  return;
+}
+
+void QwGUITrackFinding::PlotSlope()
+{  std::cout<<"Plotting Slope..."<<std::endl;
+  TObject *obj = NULL;
+  
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+  mc->Clear();
+  mc->Divide(1,2);
+
+  mc->cd(1);
+  obj = HistArray.At(7);  // Get histogram from tree
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+
+  obj->Draw();
+
+  mc->cd(2);
+  obj = HistArray.At(8);
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+
+  gPad->Update();
+  std::cout<<"Done"<<std::endl;
   return;
 }
 
 
+//PartialTracks
+void QwGUITrackFinding::PlotpChi2()
+{
+  std::cout<<"Plotting Chi2..."<<std::endl;
+  TObject *obj = NULL;  
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+  mc->Clear();
+  mc->Divide(2,2);
+
+  obj = HistArray.At(9);  // Get histogram from tree
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  mc->cd(1);
+  obj->Draw();
+  mc->cd(2);
+  mc->cd(2)->SetLogy();
+  obj->Draw();
+
+  obj = HistArray.At(10);  // Get histogram from tree
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  mc->cd(3);
+  obj->Draw();
+  mc->cd(4);
+  mc->cd(4)->SetLogy();
+  obj->Draw();
+
+  gPad->Update();
+  std::cout<<"Done"<<std::endl;
+}
+
+void QwGUITrackFinding::PlotpResidual()
+{  std::cout<<"Plotting Residuals..."<<std::endl;
+  TObject *obj = NULL;
+  
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+  mc->Clear();
+
+  obj = HistArray.At(19);  // Get histogram from tree
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+
+  obj->Draw();
+  gPad->Update();
+  std::cout<<"Done"<<std::endl;
+  return;
+}
+
+void QwGUITrackFinding::PlotpOffset()
+{  std::cout<<"Plotting Offset..."<<std::endl;
+  TObject *obj = NULL;
+  
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+  mc->Clear();
+  mc->Divide(2,2);
+
+  mc->cd(1)->SetLogy();
+  obj = HistArray.At(11);  // Get histogram from tree
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+
+  mc->cd(2)->SetLogy();
+  obj = HistArray.At(13);  // Get histogram from tree
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+
+  mc->cd(3)->SetLogy();
+  obj = HistArray.At(12);  // Get histogram from tree
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+
+  mc->cd(4)->SetLogy();
+  obj = HistArray.At(14);  // Get histogram from tree
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+
+  obj->Draw();
+  gPad->Update();
+  std::cout<<"Done"<<std::endl;
+  return;
+}
+
+void QwGUITrackFinding::PlotpSlope()
+{  std::cout<<"Plotting Slope..."<<std::endl;
+   TObject *obj = NULL;
+  
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+  mc->Clear();
+  mc->Divide(2,2);
+
+  mc->cd(1)->SetLogy();
+  obj = HistArray.At(15);  // Get histogram from tree
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+
+  mc->cd(2)->SetLogy();
+  obj = HistArray.At(17);  // Get histogram from tree
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+
+  mc->cd(3)->SetLogy();
+  obj = HistArray.At(16);  // Get histogram from tree
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+
+  mc->cd(4)->SetLogy();
+  obj = HistArray.At(18);  // Get histogram from tree
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+
+  obj->Draw();
+  gPad->Update();
+  std::cout<<"Done"<<std::endl;
+  return;
+}
 
 
 // Process events generated by the object in the frame.
@@ -330,6 +780,30 @@ Bool_t QwGUITrackFinding::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
 		case TF_RESIDUAL:
 		  PlotResidual();
+		  break;
+
+		case TF_OFFSET:
+		  PlotOffset();
+		  break;
+
+		case TF_SLOPE:
+		  PlotSlope();
+		  break;
+
+		case TF_PCHI2:
+		  PlotpChi2();
+		  break;
+
+		case TF_PRESIDUAL:
+		  PlotpResidual();
+		  break;
+
+		case TF_POFFSET:
+		  PlotpOffset();
+		  break;
+
+		case TF_PSLOPE:
+		  PlotpSlope();
 		  break;
 		}
 

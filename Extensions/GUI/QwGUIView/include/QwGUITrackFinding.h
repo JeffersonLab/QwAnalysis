@@ -9,6 +9,7 @@
    \author Michael Gericke
    \author Buddhini Waidyawansa
    \author Wouter Deconinck
+   \author David Zou
 
 */
 //=============================================================================
@@ -30,7 +31,7 @@
    This is Gericke's original code for the main detector.
    Modified by Buddhini Waidyawansa to display the hall c Beamline data.
    Modified by Wouter Deconinck to display track finding quality
-
+   Modified by David Zou to display additional track finding quality
  */
 //=============================================================================
 
@@ -65,6 +66,7 @@
 
   TGHorizontalFrame   *dTabFrame;
   TGVerticalFrame     *dControlsFrame;
+  TGVerticalFrame     *dControlsFrame1; //added
   TRootEmbeddedCanvas *dCanvas;
   TGLayoutHints       *dTabLayout;
   TGLayoutHints       *dCnvLayout;
@@ -72,6 +74,12 @@
   TGLayoutHints       *dBtnLayout;
   TGTextButton        *dBtnChi2;
   TGTextButton        *dBtnResidual;
+  TGTextButton        *dBtnOffset;
+  TGTextButton        *dBtnSlope;
+  TGTextButton        *dBtnpChi2;
+  TGTextButton        *dBtnpResidual;
+  TGTextButton        *dBtnpOffset;
+  TGTextButton        *dBtnpSlope;
 
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;
@@ -96,6 +104,12 @@
   //!Return value: none
   void PlotChi2();
   void PlotResidual();
+  void PlotOffset();
+  void PlotSlope();
+  void PlotpChi2();
+  void PlotpResidual();
+  void PlotpOffset();
+  void PlotpSlope();
 
   //!This function plots histograms of the data in the current file, in the main canvas.
   //!
