@@ -103,6 +103,7 @@ search=(
     /usr/${lib}/mysql
     /usr/local/${lib}/mysql
     /opt/local/${lib}/mysql5/mysql
+    /usr/${lib}
     )
 export MYSQL_LIB_DIR=$(first_path_with_file $libname "${MYSQL_LIB_DIR}" "${search[@]}")
 report_status MYSQL_LIB_DIR ${MYSQL_LIB_DIR}
@@ -148,7 +149,25 @@ if [[ -z ${MYSQLPP_LIB_DIR} || -z ${MYSQLPP_INC_DIR} ]]; then
   exit 1
 fi
 
+###  Try to find boost headers
+libname=boost/version.hpp
+search=(
+    /usr/include
+    /usr/local/include
+    /opt/local/include
+    )
+export BOOST_INC_DIR=$(first_path_with_file $libname "${BOOST_INC_DIR}" "${search[@]}")
 
+libname=libboost_filesystem.a
+search=(
+    /usr/lib
+    /usr/local/lib
+    /opt/local/lib
+    )
+export BOOST_LIB_DIR=$(first_path_with_file $libname "${BOOST_LIB_DIR}" "${search[@]}")
+
+report_status BOOST_INC_DIR ${BOOST_INC_DIR}
+report_status BOOST_LIB_DIR ${BOOST_LIB_DIR}
 
 ###  Set up ROOT if it isn't done yet.
 ###  Expect to use /apps/root/PRO
@@ -234,6 +253,9 @@ setenv MYSQL_LIB_DIR $MYSQL_LIB_DIR
 setenv MYSQLPP_INC_DIR $MYSQLPP_INC_DIR
 setenv MYSQLPP_LIB_DIR $MYSQLPP_LIB_DIR
 
+setenv BOOST_INC_DIR $BOOST_INC_DIR
+setenv BOOST_LIB_DIR $BOOST_LIB_DIR
+
 ### Set ROOTSYS
 setenv ROOTSYS $ROOTSYS
 
@@ -264,6 +286,9 @@ export MYSQL_LIB_DIR=$MYSQL_LIB_DIR
 ### Set MYSQLPP_INC_DIR and MYSQLPP_LIB_DIR
 export MYSQLPP_INC_DIR=$MYSQLPP_INC_DIR
 export MYSQLPP_LIB_DIR=$MYSQLPP_LIB_DIR
+
+export BOOST_INC_DIR=${BOOST_INC_DIR}
+export BOOST_LIB_DIR=${BOOST_LIB_DIR}
 
 ### Set ROOTSYS
 export ROOTSYS=$ROOTSYS
