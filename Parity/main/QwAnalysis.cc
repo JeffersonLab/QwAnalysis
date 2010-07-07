@@ -51,7 +51,6 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  First, we set the command line arguments and the configuration filename,
   ///  and we define the options that can be used in them (using QwOptions).
   gQwOptions.SetCommandLine(argc, argv);
-  gQwOptions.SetConfigFile("qwanalysis.conf");
   ///  Define the command line options
   DefineOptionsParity(gQwOptions);
 
@@ -180,10 +179,10 @@ Int_t main(Int_t argc, Char_t* argv[])
         runningsum.AccumulateRunningSum(detectors);
 
 
-	
+        // Fill the histograms
         rootfile->FillHistograms(detectors);
 
-        // Fill tree branches
+        // Fill the tree branches
         rootfile->FillTreeBranches(detectors);
 
         // Calculate helicity pattern asymmetry
@@ -205,30 +204,27 @@ Int_t main(Int_t argc, Char_t* argv[])
       }
 
       // Burst mode
-      if (eventbuffer.GetEventNumber() % 1000 == 0) {
+      if (eventbuffer.IsEndOfBurst()) {
         helicitypattern.AccumulateRunningBurstSum();
         helicitypattern.CalculateBurstAverage();
         helicitypattern.ClearBurstSum();
       }
 
-      // Some info for the user
-      if (eventbuffer.GetEventNumber() % 1000 == 0) {
-        QwMessage << "Number of events processed so far: "
-                  << eventbuffer.GetEventNumber() << QwLog::endl;
-      }
-
     } // end of loop over events
-
-
 
     QwMessage << "Number of events processed at end of run: "
               << eventbuffer.GetEventNumber() << std::endl;
 
-    // This will calculate running averages over helicity patterns
-    helicitypattern.CalculateRunningAverage();
-    helicitypattern.PrintRunningAverage();
-    helicitypattern.CalculateRunningBurstAverage();
-    helicitypattern.PrintRunningBurstAverage();
+
+    // Calculate running averages over helicity patterns
+    if (helicitypattern.IsRunningSumEnabled()) {
+      helicitypattern.CalculateRunningAverage();
+      helicitypattern.PrintRunningAverage();
+      if (helicitypattern.IsBurstSumEnabled()) {
+        helicitypattern.CalculateRunningBurstAverage();
+        helicitypattern.PrintRunningBurstAverage();
+      }
+    }
 
     // This will calculate running averages over single helicity events
     runningsum.CalculateRunningAverage();

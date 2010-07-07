@@ -19,29 +19,52 @@
 
 
 /*****************************************************************/
+/**
+ * Defines configuration options using QwOptions functionality.
+ * @param options Options object
+ */
+void QwHelicityPattern::DefineOptions(QwOptions &options)
+{
+  options.AddOptions("Helicity pattern")
+    ("enable-alternateasym", po::value<bool>()->default_value(false)->zero_tokens(),
+     "enable alternate asymmetries");
+  options.AddOptions("Helicity pattern")
+    ("enable-burstsum", po::value<bool>()->default_value(false)->zero_tokens(),
+     "enable burst sum calculation");
+  options.AddOptions("Helicity pattern")
+    ("enable-runningsum", po::value<bool>()->default_value(true)->zero_tokens(),
+     "enable running sum calculation");
+}
+
+/*****************************************************************/
 void QwHelicityPattern::ProcessOptions(QwOptions &options)
 {
-  // Handle command line options
-};
+  fEnableBurstSum   = options.GetValue<bool>("enable-burstsum");
+  fEnableRunningSum = options.GetValue<bool>("enable-runningsum");
+
+  fEnableAlternateAsym = options.GetValue<bool>("enable-alternateasym");
+  if (fPatternSize != 4) fEnableAlternateAsym = kFALSE;
+}
+
 /*****************************************************************/
 QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
 : fBlinder(TString("No seed string defined!"),QwBlinder::kAdditive)
 {
   // Retrieve the helicity subsystem to query for
-  std::vector<VQwSubsystem*> subsys_helicity = event.GetSubsystemByType("QwHelicity");  
+  std::vector<VQwSubsystem*> subsys_helicity = event.GetSubsystemByType("QwHelicity");
   if (subsys_helicity.size() > 0) {
 
-    // Take the first helicity subsystem  
+    // Take the first helicity subsystem
     //    fHelicitySubsystem = dynamic_cast<QwHelicity*>(subsys_helicity.at(0));
     QwHelicity* helicity = dynamic_cast<QwHelicity*>(subsys_helicity.at(0));
 
-    // Get the maximum pattern phase (i.e. pattern size)    
+    // Get the maximum pattern phase (i.e. pattern size)
     fPatternSize = helicity->GetMaxPatternPhase();
 
-    // Warn if more than one helicity subsystem defined    
+    // Warn if more than one helicity subsystem defined
     if (subsys_helicity.size() > 1)
       QwWarning << "Multiple helicity subsystems defined! "
-	//            << "Using " << fHelicitySubsystem->GetSubsystemName() << 
+	//            << "Using " << fHelicitySubsystem->GetSubsystemName() <<
 		<< "Using " << helicity->GetSubsystemName() << "."
                 << QwLog::endl;
 
@@ -53,14 +76,14 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
   }
   QwMessage << "QwHelicity::MaxPatternPhase = " << fPatternSize << QwLog::endl;
 
-  // Enable burst sum and running sum by default
-  fEnableBurstSum = kTRUE;
+  // Disable burst analysis
+  fEnableBurstSum = kFALSE;
+  // Enable running sum
   fEnableRunningSum = kTRUE;
-
-  // Currently the alternate asym works with quartets only
-
+  // Disable altnernate asymmetry
   fEnableAlternateAsym = kFALSE;
 
+  // Currently the alternate asym works with quartets only
   if (fPatternSize != 4)
     fEnableAlternateAsym = kFALSE;
 
@@ -79,38 +102,41 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
 
           // Initialize the pattern number
           fQuartetNumber = 0;
-
           fCurrentPatternNumber = -1;
+
+          // Positive and negative helicity sum and difference
           fPositiveHelicitySum.Copy(&event);
           fNegativeHelicitySum.Copy(&event);
           fDifference.Copy(&event);
 
+          // Primary yield and asymmetry
           fYield.Copy(&event);
           fAsymmetry.Copy(&event);
-          if (fEnableAlternateAsym) {
-            fAsymmetry1.Copy(&event);
-            fAsymmetry2.Copy(&event);
-          }
+          // Alternate asymmetries
+          fAsymmetry1.Copy(&event);
+          fAsymmetry2.Copy(&event);
 
+          // Burst sum quantities
           fBurstYield.Copy(&event);
           fBurstDifference.Copy(&event);
           fBurstAsymmetry.Copy(&event);
+          // Clear the burst sum
+          ClearBurstSum();
 
+          // Running sum quantities
           fRunningYield.Copy(&event);
           fRunningDifference.Copy(&event);
           fRunningAsymmetry.Copy(&event);
-          if (fEnableAlternateAsym) {
-            fRunningAsymmetry1.Copy(&event);
-            fRunningAsymmetry2.Copy(&event);
-          }
-
+          // Running alternate asymmetries
+          fRunningAsymmetry1.Copy(&event);
+          fRunningAsymmetry2.Copy(&event);
+          // Running burst sums
           fRunningBurstYield.Copy(&event);
           fRunningBurstDifference.Copy(&event);
           fRunningBurstAsymmetry.Copy(&event);
-
-          ClearEventData();
-          ClearBurstSum();
+          // Clear the running sum
           ClearRunningSum();
+
         }
       else
         {
@@ -130,35 +156,7 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
 
 //*****************************************************************
 /**
- * Clear event data and the vectors used for the calculation of.
- * yields and asymmetries.
- */
-void QwHelicityPattern::ClearEventData()
-{
-  for(size_t i=0; i<fEvents.size(); i++)
-    {
-      fEvents[i].ClearEventData();
-      fEventLoaded[i]=kFALSE;
-      fHelicity[i]=-999;
-    }
-
-  fYield.ClearEventData();
-  fAsymmetry.ClearEventData();
-  if (fEnableAlternateAsym){
-    fAsymmetry1.ClearEventData();
-    fAsymmetry2.ClearEventData();
-  }
-
-  fPositiveHelicitySum.ClearEventData();
-  fNegativeHelicitySum.ClearEventData();
-  fDifference.ClearEventData();
-  IsGood=kFALSE;
-  return;
-};
-
-//*****************************************************************
-/**
- * Load event data corresponding to the current pattern from the 
+ * Load event data corresponding to the current pattern from the
  * subsystems.
  */
 void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
@@ -202,9 +200,9 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
     // new pattern
     ClearEventData();
     fCurrentPatternNumber=localPatternNumber;
-    
+
   }
-   
+
   if(localPhaseNumber>fPatternSize){
     QwError<<" In QwHelicityPattern::LoadEventData trying upload an event with a phase larger than expected \n"
 	   <<" phase ="<<localPhaseNumber<<" maximum expected phase="<<fPatternSize<<"\n"
@@ -213,10 +211,10 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
   }
   else {
     Int_t locali=localPhaseNumber- helicity->GetMinPatternPhase();
-    
-    if(localdebug) 
+
+    if(localdebug)
       std::cout<<"QwHelicityPattern::LoadEventData local i="<<locali<<"\n";
-    
+
     if (locali < 0) {
       QwError << "QwHelicityPattern::LoadEventData()::Negative array index set to zero!  Check code!" << QwLog::endl;
       locali = 0;
@@ -225,7 +223,7 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
     fEventLoaded[locali] = kTRUE;
     fHelicity[locali] = localHelicityActual;
     fEventNumber[locali] = localEventNumber;
-    
+
   }
   if(localdebug)
     Print();
@@ -365,7 +363,7 @@ void  QwHelicityPattern::CalculateAsymmetry()
                         fAsymmetry2 = (1+3)-(2+4)/(1+2+3+4)
       */
 
-      if (fEnableAlternateAsym) 
+      if (fEnableAlternateAsym)
 	{
 	  fPositiveHelicitySum.ClearEventData();
 	  fNegativeHelicitySum.ClearEventData();
@@ -376,7 +374,7 @@ void  QwHelicityPattern::CalculateAsymmetry()
 	  fDifference.Difference(fPositiveHelicitySum,fNegativeHelicitySum);
 	  fBlinder.Blind(fDifference,fYield);
 	  fAsymmetry1.Ratio(fDifference,fYield);
-	  
+
 	  fPositiveHelicitySum.ClearEventData();
 	  fNegativeHelicitySum.ClearEventData();
 	  fPositiveHelicitySum  = fEvents.at(0);
@@ -389,12 +387,43 @@ void  QwHelicityPattern::CalculateAsymmetry()
 	}
 
       // Accumulate the burst and running sums
-      if (fEnableBurstSum) AccumulateBurstSum();
+      if (fEnableBurstSum)   AccumulateBurstSum();
       if (fEnableRunningSum) AccumulateRunningSum();
 
       if (localdebug) QwDebug << " pattern number =" << fQuartetNumber << QwLog::endl;
     }
 
+  return;
+};
+
+//*****************************************************************
+/**
+ * Clear event data and the vectors used for the calculation of.
+ * yields and asymmetries.
+ */
+void QwHelicityPattern::ClearEventData()
+{
+  for(size_t i=0; i<fEvents.size(); i++)
+    {
+      fEvents[i].ClearEventData();
+      fEventLoaded[i]=kFALSE;
+      fHelicity[i]=-999;
+    }
+
+  // Primary yield and asymmetry
+  fYield.ClearEventData();
+  fAsymmetry.ClearEventData();
+  // Alternate asymmetries
+  if (fEnableAlternateAsym){
+    fAsymmetry1.ClearEventData();
+    fAsymmetry2.ClearEventData();
+  }
+
+  fPositiveHelicitySum.ClearEventData();
+  fNegativeHelicitySum.ClearEventData();
+  fDifference.ClearEventData();
+
+  IsGood = kFALSE;
   return;
 };
 
@@ -409,15 +438,17 @@ void  QwHelicityPattern::ClearRunningSum()
     fRunningYield.ClearEventData();
     fRunningDifference.ClearEventData();
     fRunningAsymmetry.ClearEventData();
+    // Running altnerate asymmetries
     if (fEnableAlternateAsym) {
       fRunningAsymmetry1.ClearEventData();
       fRunningAsymmetry2.ClearEventData();
     }
- }
-  if (fEnableBurstSum) {
-    fRunningBurstYield.ClearEventData();
-    fRunningBurstDifference.ClearEventData();
-    fRunningBurstAsymmetry.ClearEventData();
+    // Running burst sums
+    if (fEnableBurstSum) {
+      fRunningBurstYield.ClearEventData();
+      fRunningBurstDifference.ClearEventData();
+      fRunningBurstAsymmetry.ClearEventData();
+    }
   }
 }
 
@@ -431,6 +462,7 @@ void  QwHelicityPattern::ClearBurstSum()
   if (fEnableBurstSum) {
     fBurstYield.ClearEventData();
     fBurstDifference.ClearEventData();
+    fBurstAsymmetry.ClearEventData();
   }
 }
 
@@ -473,9 +505,11 @@ void  QwHelicityPattern::AccumulateRunningSum()
 void  QwHelicityPattern::AccumulateRunningBurstSum()
 {
   // Accumulate the burst yield and difference
-  fRunningBurstYield.AccumulateRunningSum(fBurstYield);
-  fRunningBurstDifference.AccumulateRunningSum(fBurstDifference);
-  // The burst difference is blinded, so the running burst difference is also blinded.
+  if (fEnableRunningSum) {
+    fRunningBurstYield.AccumulateRunningSum(fBurstYield);
+    fRunningBurstDifference.AccumulateRunningSum(fBurstDifference);
+    // The burst difference is blinded, so the running burst difference is also blinded.
+  }
 
   // Calculate asymmetry over this entire burst
   fBurstAsymmetry.Ratio(fBurstDifference, fBurstYield);

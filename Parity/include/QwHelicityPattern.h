@@ -34,7 +34,11 @@ class QwHelicityPattern{
   QwHelicityPattern(QwSubsystemArrayParity &event);
   ~QwHelicityPattern() { };
 
-  void ProcessOptions(QwOptions &options); //Handle command line options
+  /// \brief Define the configuration options
+  static void DefineOptions(QwOptions &options);
+  /// \brief Process the configuration options
+  void ProcessOptions(QwOptions &options);
+
   void  LoadEventData(QwSubsystemArrayParity &event);
   Bool_t IsCompletePattern() const;
   void  CalculateAsymmetry();
@@ -43,16 +47,22 @@ class QwHelicityPattern{
   void  EnableAlternateAsymmetry(const Bool_t flag = kTRUE) { fEnableAlternateAsym = flag; };
   /// Disable alternate asymmetry calculation
   void  DisableAlternateAsymmetry() { fEnableAlternateAsym = kFALSE; };
+  /// Status of alternate asymmetry calculation flag
+  Bool_t IsAlternateAsymEnabled() { return fEnableAlternateAsym; };
 
   /// Enable/disable burst sum calculation
   void  EnableBurstSum(const Bool_t flag = kTRUE) { fEnableBurstSum = flag; };
   /// Disable burst sum calculation
   void  DisableBurstSum() { fEnableBurstSum = kFALSE; };
+  /// Status of burst sum calculation flag
+  Bool_t IsBurstSumEnabled() { return fEnableBurstSum; };
 
   /// Enable/disable running sum calculation
   void  EnableRunningSum(const Bool_t flag = kTRUE) { fEnableRunningSum = flag; };
   /// Disable running sum calculation
   void  DisableRunningSum() { fEnableRunningSum = kFALSE; };
+  /// Status of running sum calculation flag
+  Bool_t IsRunningSumEnabled() { return fEnableRunningSum; };
 
   void  AccumulateBurstSum();
   void  AccumulateRunningBurstSum();
