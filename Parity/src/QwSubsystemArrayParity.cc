@@ -35,14 +35,14 @@ void  QwSubsystemArrayParity::ConstructBranchAndVector(TTree *tree, TString & pr
 
 void  QwSubsystemArrayParity::ConstructBranch(TTree *tree, TString & prefix)
 {
-  
+
   tree->Branch("CodaEventNumber",&fCodaEventNumber);
 
   tree->Branch("CodaEventType",&fCodaEventType);
 
   for (iterator subsys = begin(); subsys != end(); ++subsys) {
     VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
-    
+
     subsys_parity->ConstructBranch(tree, prefix);
   }
 };
@@ -51,7 +51,7 @@ void  QwSubsystemArrayParity::ConstructBranch(TTree *tree, TString & prefix, QwP
 {
   QwMessage <<" QwSubsystemArrayParity::ConstructBranch "<<QwLog::endl;
 
-  
+
   QwParameterFile* preamble;
   QwParameterFile* nextsection;
   preamble = trim_file.ReadPreamble();
@@ -68,7 +68,7 @@ void  QwSubsystemArrayParity::ConstructBranch(TTree *tree, TString & prefix, QwP
 
   for (iterator subsys = begin(); subsys != end(); ++subsys) {
     VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
-    
+
     subsysname=subsys_parity->GetSubsystemName();
     //QwMessage <<"Tree leaves created for "<<subsysname<<QwLog::endl;
 
@@ -76,7 +76,7 @@ void  QwSubsystemArrayParity::ConstructBranch(TTree *tree, TString & prefix, QwP
       nextsection=trim_file.ReadUntilNextSection();//This section contains modules and their channels to be included in the tree
       /*
        if (nextsection->FileHasVariablePair("=","module",sub2)){
-	QwMessage <<sub2<<QwLog::endl;	
+	QwMessage <<sub2<<QwLog::endl;
        }
        else
 	 QwMessage <<"No modules"<<QwLog::endl;
@@ -158,8 +158,10 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator= (const QwSubsystemArra
 	    *(ptr1) = source.at(i).get();
 	  } else {
 	    //  Subsystems don't match
-	      std::cerr<<" QwSubsystemArrayParity::operator= types do not mach \n";
-	      std::cerr<<" typeid(ptr1)="<< typeid(*ptr1).name() <<" but typeid(*(source.at(i).get()))="<<typeid(*(source.at(i).get())).name()<<"\n";
+	      QwError << " QwSubsystemArrayParity::operator= types do not mach" << QwLog::endl;
+	      QwError << " typeid(ptr1)=" << typeid(*ptr1).name()
+                      << " but typeid(*(source.at(i).get()))=" << typeid(*(source.at(i).get())).name()
+                      << QwLog::endl;
 	  }
 	}
       }
@@ -193,8 +195,10 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator+= (const QwSubsystemArr
 	    *(ptr1) += value.at(i).get();
 	    //std::cout<<"QwSubsystemArrayParity::operator+ here where types match \n";
 	  } else {
-	    std::cerr<<"QwSubsystemArrayParity::operator+ here where types don't match \n";
-	    std::cerr<<" typeid(ptr1)="<< typeid(ptr1).name() <<" but typeid(value.at(i)))="<<typeid(value.at(i)).name()<<"\n";
+	    QwError << "QwSubsystemArrayParity::operator+ here where types don't match" << QwLog::endl;
+	    QwError << " typeid(ptr1)=" << typeid(ptr1).name()
+                    << " but typeid(value.at(i)))=" << typeid(value.at(i)).name()
+                    << QwLog::endl;
 	    //  Subsystems don't match
 	  }
 	}
@@ -324,8 +328,10 @@ void QwSubsystemArrayParity::AccumulateRunningSum(const QwSubsystemArrayParity& 
           if (typeid(*ptr1) == typeid(*(value.at(i).get()))) {
             ptr1->AccumulateRunningSum(value.at(i).get());
           } else {
-            std::cerr<<"QwSubsystemArrayParity::AccumulateRunningSum here where types don't match \n";
-            std::cerr<<" typeid(ptr1)="<< typeid(ptr1).name() <<" but typeid(value.at(i)))="<<typeid(value.at(i)).name()<<"\n";
+            QwError << "QwSubsystemArrayParity::AccumulateRunningSum here where types don't match" << QwLog::endl;
+            QwError << " typeid(ptr1)=" << typeid(ptr1).name()
+                    << " but typeid(value.at(i)))=" << typeid(value.at(i)).name()
+                    << QwLog::endl;
             //  Subsystems don't match
           }
         }
@@ -406,17 +412,17 @@ void QwSubsystemArrayParity::Ratio(
               ptr1->Ratio(numer.at(i).get(),denom.at(i).get());
             } else {
               //  Subsystems don't match
-	    std::cerr<<"QwSubsystemArrayParity::Ratio subsystem #"<<i
-		     <<" type do not match : ratio computation aborted \n";
+              QwError << "subsystem #" << i
+                      << " type do not match : ratio computation aborted" << QwLog::endl;
             }
         }
       }
     } else {
-      std::cerr<<"QwSubsystemArrayParity::Ratio == array size do not match : ratio computation aborted \n";
+      QwError << "array size do not match : ratio computation aborted" << QwLog::endl;
       //  Array sizes don't match
     }
   } else {
-    std::cerr<<"QwSubsystemArrayParity::Ratio == source empty : ratio computation aborted \n";
+    QwError << "source empty : ratio computation aborted" << QwLog::endl;
     //  The source is empty
   }
   if(localdebug) std::cout<<"I am out of it \n";
