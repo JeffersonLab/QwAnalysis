@@ -63,7 +63,8 @@ class MQwF1TDC{
   
   Double_t SubtractReference(Double_t rawtime, Double_t reftime);
   
-  Bool_t CheckDataIntegrity(UInt_t ref_event_number, UInt_t ref_trigger_time);
+  //  Bool_t CheckDataIntegrity(UInt_t ref_event_number, UInt_t ref_trigger_time);
+  Bool_t CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t num_words);
 
   // Two print functions are used for a debugging purpose temporarily 
   void   PrintTDCHeader(Bool_t flag);
@@ -127,11 +128,6 @@ class MQwF1TDC{
                          ///  NOTE:  this would preferrably be done by a different function than 
                          ///  MQwF1TDC::SubtractReference, but R3 has this correction designed in for now.
 
-  Bool_t fF1FirstWordFlag;
-/*   UInt_t fheader_old_event_number; */
-/*   UInt_t fheader_old_trigger_time; */
-
-
  
   void   PrintHitFIFOStatus(const UInt_t roc_id);
   void   PrintOutputFIFOStatus(const UInt_t roc_id);
@@ -144,10 +140,8 @@ class MQwF1TDC{
 
 
   //Bool_t IsValidDataSlot()         {return fF1ValidDataSlotFlag;};
-  // at the moment we don't use the following functions to check
-  // Xor setup and TrigFIFO status (Mon May  3 15:27:21 EDT 2010, jhlee)
   Bool_t IsHeaderXorSetup()        {return fF1HeaderXorSetupFlag;};
-  Bool_t IsHeaderTrigFIFO()        {return fF1HeaderTrigFIFOFlag;};
+  Bool_t IsNotHeaderTrigFIFO()     {return !fF1HeaderTrigFIFOFlag;};
 
 };
 

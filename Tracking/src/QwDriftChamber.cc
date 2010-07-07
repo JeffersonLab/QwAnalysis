@@ -29,6 +29,9 @@ QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHit
     ClearAllBankRegistrations();
     InitHistogramPointers();
 
+    //   fF1DataIntegrityCount = 0;
+
+
     /*for (int i1 = 0; i1 < kNumPackages; i1++)
       for (int i2 = 0; i2 < 2; i2++)
         for (int i3 = 0; i3 < 279; i3++)
@@ -44,6 +47,7 @@ QwDriftChamber::QwDriftChamber(TString region_tmp)
     fNumberOfTDCs = 0;
     ClearAllBankRegistrations();
     InitHistogramPointers();
+    //    fF1DataIntegrityCount = 0;
 
     /*for (int i1 = 0; i1 < kNumPackages; i1++)
       for (int i2 = 0; i2 < 2; i2++)
@@ -168,16 +172,16 @@ void  QwDriftChamber::ClearEventData()
 
 Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
+ 
+  Int_t index           = 0;
+  Int_t tdc_slot_number = 0;
+  Int_t tdc_chan_number = 0;
 
-  Int_t  index = GetSubbankIndex(roc_id,bank_id);
+  Bool_t data_integrity_flag = false;
 
-  UInt_t reference_event_number = 0;
-  UInt_t reference_trigger_time = 0;
+  Bool_t temp_print_flag     = false;
 
-  Int_t tdc_slot_number    = 0;
-  Int_t tdc_channel_number = 0;
-
-  Bool_t temp_print_flag = false;
+  index = GetSubbankIndex(roc_id, bank_id);
 
   if (index>=0 && num_words>0) {
     //  We want to process this ROC.  Begin looping through the data.
@@ -186,97 +190,69 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
     if (fDEBUG) std::cout << "QwDriftChamber::ProcessEvBuffer:  "
 			  << "Begin processing ROC" << roc_id << std::endl;
 
-    if(temp_print_flag) printf(" num_words %d\n", num_words);
+    data_integrity_flag = CheckDataIntegrity(roc_id, buffer, num_words);
+    
+    
+    if (data_integrity_flag) {
+      
+      //   fF1DataIntegrityCount++;
 
-    for (UInt_t i=0; i<num_words ; i++) {
-
-      //  Decode this word as a F1TDC word.
-      DecodeTDCWord(buffer[i], roc_id); // MQwF1TDC or MQwV775TDC
-      // For MQwF1TDC,   roc_id is needed to print out some warning messages.
-      // For MQwV775TDC, roc_id isn't necessary, thus I set roc_id=0 in
-      //                 MQwV775TDC.h  (Mon May  3 12:32:06 EDT 2010 jhlee)
-
-
-      tdc_slot_number = GetTDCSlotNumber();
-
-      if ( tdc_slot_number == 31) {
-	//  This is a custom word which is not defined in
-	//  the F1TDC, so we can use it as a marker for
-	//  other data; it may be useful for something.
-      }
-
-      tdc_channel_number = GetTDCChannelNumber();
-
-      // We use the multiblock data transfer for F1TDC, thus
-      // we must get the event number and the trigger time from the first buffer
-      // (buffer[0]), and these valuse can be used to check "data" integrity
-      // over all F1TDCs
-      if(i==0) {
-	if ( IsHeaderword() ) {
-	  reference_event_number = GetTDCEventNumber();
-	  reference_trigger_time = GetTDCTriggerTime();
-	  PrintTDCHeader(temp_print_flag);
+      for (UInt_t i=0; i<num_words ; i++) {
+	
+	//  Decode this word as a F1TDC word.
+	DecodeTDCWord(buffer[i], roc_id); // MQwF1TDC or MQwV775TDC
+	// For MQwF1TDC,   roc_id is needed to print out some warning messages.
+	// For MQwV775TDC, roc_id isn't necessary, thus I set roc_id=0 in
+	//                 MQwV775TDC.h  (Mon May  3 12:32:06 EDT 2010 jhlee)
+	
+	tdc_slot_number = GetTDCSlotNumber();
+	tdc_chan_number = GetTDCChannelNumber();
+	if ( tdc_slot_number == 31) {
+	  //  This is a custom word which is not defined in
+	  //  the F1TDC, so we can use it as a marker for
+	  //  other data; it may be useful for something.
 	}
-	else {
-	  QwWarning << QwColor(Qw::kRed)
-		    << "The first word of F1TDC must be header word. Something wrong into this CODA stream.\n";
-	  QwWarning << QwLog::endl;
-	  break;
-	}
-	  
-      }
-      else {
+	
 	// Each subsystem has its own interesting slot(s), thus
 	// here, if this slot isn't in its slot(s) (subsystem map file)
 	// we skip this buffer to do the further process
 	
 	if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
 	
-	// Check date integrity, if it is fail, we skip this whole buffer to do
-	// further process 
-
-	if ( IsHeaderword() ) {
-	  PrintTDCHeader(temp_print_flag);
-	  if(! CheckDataIntegrity(reference_event_number, reference_trigger_time) ) {
-	    break;
+	if ( IsValidDataword() ) {//;;
+	  // if F1TDC has a valid slot, resolution locked, and data word
+	  try {
+	    FillRawTDCWord(index, tdc_slot_number, tdc_chan_number,
+			   GetTDCData());
+	    PrintTDCData(temp_print_flag);
 	  }
-	}
-	else {
-	  if ( IsValidDataword() ) {//;;
-	    // This is a TDC data word
-	    try {
-	      //std::cout<<"At QwDriftChamber::ProcessEvBuffer"<<std::endl;
-	      FillRawTDCWord(index, tdc_slot_number, tdc_channel_number,
-			     GetTDCData());
-	      PrintTDCData(temp_print_flag);
-	    }
-	    catch (std::exception& e) {
-	      std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
-			<< e.what() << std::endl;
-	      std::cerr << "   Parameters:  index=="<<index
-			<< "; GetF1SlotNumber()=="<< tdc_slot_number
-			<< "; GetF1ChannelNumber()=="<<tdc_channel_number
-			<< "; GetF1Data()=="<<GetTDCData()
-			<< std::endl;
-	      Int_t tdcindex = GetTDCIndex(index, tdc_slot_number);
-	      std::cerr << "   GetTDCIndex()=="<<tdcindex
-			<< "; fTDCPtrs.at(tdcindex).size()=="
-			<< fTDCPtrs.at(tdcindex).size()
-			<< "; fTDCPtrs.at(tdcindex).at(chan).fPlane=="
-			<< fTDCPtrs.at(tdcindex).at(tdc_channel_number).fPlane
-			<< "; fTDCPtrs.at(tdcindex).at(chan).fElement=="
-			<< fTDCPtrs.at(tdcindex).at(tdc_channel_number).fElement
-			<< std::endl;
-	    }
-	  }//;;
-	  
-	}
-	
-      }
+	  catch (std::exception& e) {
+	    std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
+		      << e.what() << std::endl;
+	    std::cerr << "   Parameters:  index=="<<index
+		      << "; GetF1SlotNumber()=="<< tdc_slot_number
+		      << "; GetF1ChannelNumber()=="<<tdc_chan_number
+		      << "; GetF1Data()=="<<GetTDCData()
+		      << std::endl;
+	    Int_t tdcindex = GetTDCIndex(index, tdc_slot_number);
+	    std::cerr << "   GetTDCIndex()=="<<tdcindex
+		      << "; fTDCPtrs.at(tdcindex).size()=="
+		      << fTDCPtrs.at(tdcindex).size()
+		      << "; fTDCPtrs.at(tdcindex).at(chan).fPlane=="
+		      << fTDCPtrs.at(tdcindex).at(tdc_chan_number).fPlane
+		      << "; fTDCPtrs.at(tdcindex).at(chan).fElement=="
+		      << fTDCPtrs.at(tdcindex).at(tdc_chan_number).fElement
+		      << std::endl;
+	  }
+	}//;;
 
-    } // for (UInt_t i=0; i<num_words ; i++) {
+      } // for (UInt_t i=0; i<num_words ; i++) {
+    }
+
+
 
   }
+
   return OK;
 };
 

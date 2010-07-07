@@ -356,97 +356,66 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
     }
 
   // This is a F1TDC bank
-  if (bank_id==fBankID[2])
+  else if (bank_id==fBankID[2])
     {
       if (index>=0 && num_words>0)
         {
           if (fDEBUG) std::cout << "QwScanner::ProcessEvBuffer:  "
             << "Begin processing F1TDC Bank "<<bank_id<< std::endl;
 
-	  UInt_t reference_event_number = 0;
-	  UInt_t reference_trigger_time = 0;
+          Int_t tdc_slot_number = 0;
+          Int_t tdc_chan_number = 0;
 
-          Int_t tdc_slot_number    = 0;
-          Int_t tdc_channel_number = 0;
+	  Bool_t data_integrity_flag = false;
+	  Bool_t temp_print_flag     = false;
 
-          Bool_t temp_print_flag = false;
+	  data_integrity_flag = fF1TDC.CheckDataIntegrity(roc_id, buffer, num_words);
+	  
+	  if (data_integrity_flag) 
+	    {//;
+	      for (UInt_t i=0; i<num_words ; i++)
+		{
+		  
+		  fF1TDC.DecodeTDCWord(buffer[i], roc_id);
 
-          for (UInt_t i=0; i<num_words ; i++)
-            {
-	      //if(temp_print_flag) printf(" num_wrds %d  buffer[%d] =  0x%x\n", num_words, i, buffer[i]);
-
-              fF1TDC.DecodeTDCWord(buffer[i], roc_id);
-              tdc_slot_number = fF1TDC.GetTDCSlotNumber();
-
-              if ( tdc_slot_number == 31) {
-		//  This is a custom word which is not defined in
-		//  the F1TDC, so we can use it as a marker for
-		//  other data; it may be useful for something.
-	      }
-	      
-	      tdc_channel_number = fF1TDC.GetTDCChannelNumber();
-	      
-
-	      // We use the multiblock data transfer for F1TDC, thus
-	      // we must get the event number and the trigger time from the first buffer
-	      // (buffer[0]), and these valuse can be used to check "data" integrity
-	      // over all F1TDCs
-
-	      if(i==0) {//;	
-		if ( fF1TDC.IsHeaderword() ) {
-		  reference_event_number = fF1TDC.GetTDCEventNumber();
-		  reference_trigger_time = fF1TDC.GetTDCTriggerTime();
-		  fF1TDC.PrintTDCHeader(temp_print_flag);
-		}
-		else {
-		  QwWarning << QwColor(Qw::kRed)
-			    << "The first word of F1TDC must be header word. Something wrong into this CODA stream.\n";
-		  QwWarning << QwLog::endl;
-		  break;
-		}
-	      }//;
-	      else {//;
-
-		// Each subsystem has its own interesting slot(s), thus
-		// here, if this slot isn't in its slot(s) (subsystem map file)
-		// we skip this buffer to do the further process
-
-		if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
-
-		// Check date integrity, if it is fail, we skip this whole buffer to do
-		// further process 
-		
-		if ( fF1TDC.IsHeaderword() ) {//;;
-		  if(! fF1TDC.CheckDataIntegrity(reference_event_number, reference_trigger_time) )  {
-		    fF1TDC.PrintTDCHeader(temp_print_flag);
-		    break;
+		  tdc_slot_number = fF1TDC.GetTDCSlotNumber();
+		  tdc_chan_number = fF1TDC.GetTDCChannelNumber();
+		  
+		  if ( tdc_slot_number == 31) {
+		    //  This is a custom word which is not defined in
+		    //  the F1TDC, so we can use it as a marker for
+		    //  other data; it may be useful for something.
 		  }
-		}//;;
-		else { //;;
-		  if ( fF1TDC.IsValidDataword() ) {
-		    try {
-		      FillRawWord(index, tdc_slot_number, tdc_channel_number, fF1TDC.GetTDCData());
-		      fF1TDC.PrintTDCData(temp_print_flag);
+		  
+		  // Each subsystem has its own interesting slot(s), thus
+		  // here, if this slot isn't in its slot(s) (subsystem map file)
+		  // we skip this buffer to do the further process
+		  if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
+		  
+		  if ( fF1TDC.IsValidDataword() ) 
+		    {
+		      try {
+			FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());
+			fF1TDC.PrintTDCData(temp_print_flag);
+		      }
+		      catch (std::exception& e) {
+			std::cerr << "Standard exception from QwMainDetector::FillRawTDCWord: "
+				  << e.what() << std::endl;
+			std::cerr << "   Parameters:  index=="  << index
+				  << "; GetF1SlotNumber()=="    << tdc_slot_number
+				  << "; GetF1ChannelNumber()==" << tdc_chan_number
+				  << "; GetF1Data()=="          << fF1TDC.GetTDCData()
+				  << std::endl;
+		      }
 		    }
-		    catch (std::exception& e) {
-		      std::cerr << "Standard exception from QwMainDetector::FillRawTDCWord: "
-				<< e.what() << std::endl;
-		      std::cerr << "   Parameters:  index=="<<index
-				<< "; GetF1SlotNumber()=="<< tdc_slot_number
-				<< "; GetF1ChannelNumber()=="<<tdc_channel_number
-				<< "; GetF1Data()=="<<fF1TDC.GetTDCData()
-				<< std::endl;
-		    }
-		  }
-		}//;;
-	      }//;
-	    }
+		}
+	    }//; if(data_integrity_flag)
         }
     }
 
 
   // This is a SCA bank
-  if (bank_id==fBankID[1])
+  else if (bank_id==fBankID[1])
     {
 
       if (index>=0 && num_words>0)

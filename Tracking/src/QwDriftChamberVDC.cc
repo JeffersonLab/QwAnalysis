@@ -80,27 +80,27 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
     }
     else if ( DIRMODE==1 ) {
       //  Break this line Int_to tokens to process it.
-      varvalue = ( mapstr.GetNextToken ( ", " ).c_str() );//this is the sType
-      Zpos = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      rot = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      sp_res = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      track_res = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      slope_match = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      package = mapstr.GetNextToken ( ", " ).c_str();
-      region  = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      dType = mapstr.GetNextToken ( ", " ).c_str();
-      direction  = mapstr.GetNextToken ( ", " ).c_str();
-      Det_originX = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      Det_originY = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+      varvalue     = ( mapstr.GetNextToken ( ", " ).c_str() );//this is the sType
+      Zpos         = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+      rot          = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+      sp_res       = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+      track_res    = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+      slope_match  = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+      package      = mapstr.GetNextToken ( ", " ).c_str();
+      region       = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
+      dType        = mapstr.GetNextToken ( ", " ).c_str();
+      direction    = mapstr.GetNextToken ( ", " ).c_str();
+      Det_originX  = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+      Det_originY  = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
       ActiveWidthX = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
       ActiveWidthY = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
       ActiveWidthZ = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      WireSpace = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      FirstWire = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      W_rcos = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      W_rsin = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      TotalWires = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      detectorId = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
+      WireSpace    = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+      FirstWire    = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+      W_rcos       = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+      W_rsin       = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+      TotalWires   = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
+      detectorId   = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
       //std::cout<<"Detector ID "<<detectorId<<" "<<varvalue<<" Package "<<package<<" Plane "<<Zpos<<" Region "<<region<<std::endl;
 
       if ( region==3 ) {
@@ -487,7 +487,7 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile ) {
   UInt_t bpnum,lnnum;        //store temp backplane and line number
   UInt_t plnum,firstwire,LR;         //store temp package,plane,firstwire and left or right information
   TString pknum,dir;
-  Bool_t IsFirstChannel = true;
+  Bool_t IsFirstChannel = kTRUE;
 
   std::vector<Double_t> tmpWindows;
   QwParameterFile mapstr ( mapfile.Data() );
@@ -523,7 +523,7 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile ) {
     lnnum   = ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
 
     if ( channum ==0 && bpnum ==0 ) {
-      if ( IsFirstChannel == true ) IsFirstChannel = false;
+      if ( IsFirstChannel == kTRUE ) IsFirstChannel = kFALSE;
       else                         continue;
     }
 
@@ -547,7 +547,7 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile ) {
 
     BuildWireDataStructure(channum,package,plnum,firstwire);
 
-    if ( fDelayLineArray.at ( bpnum ).at ( lnnum ).Fill == false ) { //if this delay line has not been Filled in the data
+    if ( fDelayLineArray.at ( bpnum ).at ( lnnum ).Fill == kFALSE ) { //if this delay line has not been Filled in the data
       string_a = mapstr.GetNextToken ( ", \t()" ) ;
       while ( string_a.size() !=0 ) {
 	tmpWindows.push_back ( atof ( string_a.c_str() ) );
@@ -575,7 +575,7 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile ) {
 		<< "line number " << lnnum 
 		<< " Windows.size: "  << fDelayLineArray.at ( bpnum ).at ( lnnum ).Windows.size() 
 		<< std::endl;
-      fDelayLineArray.at ( bpnum ).at ( lnnum ).Fill=true;
+      fDelayLineArray.at ( bpnum ).at ( lnnum ).Fill=kTRUE;
       tmpWindows.clear();
     }
   }
@@ -624,7 +624,7 @@ void QwDriftChamberVDC::ProcessEvent() {
   Double_t real_time=0;
   Double_t tmpTime=0,left_time=0,right_time=0;
   Int_t tmpCrate=0,tmpModule=0,tmpChan=0,tmpbp=0,tmpln=0,plane=0,wire_hit=0,mycount=0;
-  Bool_t kDir=true,tmpAM=false;
+  Bool_t kDir=kTRUE,tmpAM=kFALSE;
   std::vector<Int_t> wire_array;
   wire_array.clear();
 
@@ -663,18 +663,18 @@ void QwDriftChamberVDC::ProcessEvent() {
     EQwDirectionID direction = fDelayLineArray.at ( tmpbp ).at ( tmpln ).fDirection;
 
 
-    if ( fDelayLineArray.at ( tmpbp ).at ( tmpln ).Processed == false ) { //if this delay line has been Processed
+    if ( fDelayLineArray.at ( tmpbp ).at ( tmpln ).Processed == kFALSE ) { //if this delay line has been Processed
 
       if ( tmpbp==0 || tmpbp ==3 || tmpbp==4 || tmpbp==7 || tmpbp==8 || tmpbp==11 || tmpbp==12 || tmpbp==15)
-	kDir=true;         //true means left-right
-      else kDir=false;
+	kDir=kTRUE;         //true means left-right
+      else kDir=kFALSE;
       fDelayLineArray.at ( tmpbp ).at ( tmpln ).ProcessHits ( kDir );
 
       Int_t Wirecount=fDelayLineArray.at ( tmpbp ).at ( tmpln ).Wire.size();
       for ( Int_t i=0;i<Wirecount;i++ ) {
 	Int_t Ambiguitycount=fDelayLineArray.at ( tmpbp ).at ( tmpln ).Wire.at ( i ).size();   //if there's a ambiguity, it's 2; if not, this is 1
-	if ( Ambiguitycount==1 ) tmpAM=false;
-	else tmpAM=true;
+	if ( Ambiguitycount==1 ) tmpAM=kFALSE;
+	else tmpAM=kTRUE;
 	Int_t order_L=fDelayLineArray.at ( tmpbp ).at ( tmpln ).Hitscount.at ( i ).first;
 	Int_t order_R=fDelayLineArray.at ( tmpbp ).at ( tmpln ).Hitscount.at ( i ).second;
 	left_time=fDelayLineArray.at ( tmpbp ).at ( tmpln ).LeftHits.at ( order_L );
@@ -730,7 +730,7 @@ void QwDriftChamberVDC::ClearEventData() {
     index = fDelayLineArray.at ( i ).size();
 
     for ( Int_t j=0;j<index;j++ ) {
-      fDelayLineArray.at ( i ).at ( j ).Processed=false;
+      fDelayLineArray.at ( i ).at ( j ).Processed=kFALSE;
       fDelayLineArray.at ( i ).at ( j ).LeftHits.clear();
       fDelayLineArray.at ( i ).at ( j ).RightHits.clear();
       fDelayLineArray.at ( i ).at ( j ).Hitscount.clear();

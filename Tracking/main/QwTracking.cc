@@ -321,7 +321,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwMessage << "Total number of events processed: " << nevents << QwLog::endl;
     QwMessage << "Number of good partial tracks: "
               << trackingworker->ngood << QwLog::endl;
-
+   
     timer.Stop();
 
     /*  Write to the root file, being sure to delete the old cycles *
@@ -362,6 +362,7 @@ Int_t main(Int_t argc, Char_t* argv[])
               << "(" << timer.CpuTime() / nevents << " s per event)" << QwLog::endl
               << "Real time used: " << timer.RealTime() << " s "
               << "(" << timer.RealTime() / nevents << " s per event)" << QwLog::endl;
+
 
   } // end of loop over runs
 

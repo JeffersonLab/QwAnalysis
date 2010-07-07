@@ -179,8 +179,7 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   TH1F *TotHits[13];
   TH1F *TOFP[13];
   TH1F *TOFP_raw[13];
-  TH1F *WiresHit[13];
-  TH2F *TOFW[13];
+  TH1F *WiresHit[13];  TH2F *TOFW[13];
   TH2F *TOFW_raw[13];
   TH2F *HitsWire[13];
   void InitHistogramPointers() {
@@ -217,6 +216,10 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   void SubtractWireTimeOffset();
 
   void ApplyTimeCalibration();
+
+ /* protected: */
+ /*  UInt_t fF1DataIntegrityCount; */
+ /*  UInt_t GetF1DataIntegrityCount(){return fF1DataIntegrityCount;}; */
 
 };
 
