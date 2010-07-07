@@ -79,9 +79,10 @@ void create_tdc_tree ( Int_t ev_start=-1,Int_t ev_end=-1, Int_t run_number=1672 
         tree->GetEntry ( ev_id );
         Int_t nhit=hitContainer->GetSize();
         QwHit* hit=NULL;
-        for ( Int_t index=0;index<kNumberOfChannels*kNumberOfSlots;index++ )
+        for ( Int_t index=0;index<2*kNumberOfChannels*kNumberOfSlots;index++ )
             tdc_dt.at ( index ) =0;
 
+	
         for ( Int_t hit_id=nhit-1;hit_id>=0;hit_id-- )
 
         {
@@ -98,19 +99,16 @@ void create_tdc_tree ( Int_t ev_start=-1,Int_t ev_end=-1, Int_t run_number=1672 
                 else slot=3;
             }
             else continue;
-
+	    
+	    //tdc_dt.at(kNumberOfChannels*kNumberOfSlots+slot*kNumberOfChannels+hit->GetChannel())=tdc_dt.at(kNumberOfChannels*kNumberOfSlots+slot*kNumberOfChannels+hit->GetChannel())+1;
+            tdc_dt.at(kNumberOfChannels*kNumberOfSlots+slot*kNumberOfChannels+hit->GetChannel())++;
             // tdc_dt.at(hit->GetChannel()) = hit->GetTime();
             tdc_dt.at ( slot*kNumberOfChannels+hit->GetChannel() ) = hit->GetTime();
+	    
 
-            // cout << hit->GetChannel() << " " << hit->GetTime() << endl;
         }
 
         R->Fill();
-
-
-
-
-
     }
     R->Write();
 }
@@ -120,8 +118,8 @@ void ConstructTDCStructure ( TTree* tree,TString& prefix,std::vector<Int_t>& val
 {
 
     TString basename;
-    Int_t subscript;
-    values.resize ( kNumberOfChannels*kNumberOfSlots );
+    Int_t subscript=0;
+    values.resize ( kNumberOfChannels*kNumberOfSlots*2 );
     for ( Int_t i=0;i<kNumberOfSlots;i++ )
     {
         for ( Int_t j=0;j<kNumberOfChannels;j++ )
@@ -132,6 +130,22 @@ void ConstructTDCStructure ( TTree* tree,TString& prefix,std::vector<Int_t>& val
             basename+="_tdc";
             basename+=j;
             subscript=i*kNumberOfChannels+j;
+            //cout << "basename: " << basename << " subscript: " << subscript << endl;
+            tree->Branch ( basename,& ( values.at ( subscript ) ) );
+        }
+    }
+	
+    for ( Int_t i=0;i<kNumberOfSlots;i++ )
+    {
+        for ( Int_t j=0;j<kNumberOfChannels;j++ )
+        {
+            basename=prefix;
+	    basename+="hits";
+            basename+="slot";
+            basename+=i;
+            basename+="_tdc";
+            basename+=j;
+            subscript=kNumberOfChannels*kNumberOfSlots+i*kNumberOfChannels+j;
             //cout << "basename: " << basename << " subscript: " << subscript << endl;
             tree->Branch ( basename,& ( values.at ( subscript ) ) );
         }
