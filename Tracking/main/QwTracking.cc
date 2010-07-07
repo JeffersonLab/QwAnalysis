@@ -22,15 +22,14 @@
 #include "QwOptionsTracking.h"
 #include "QwEventBuffer.h"
 #include "QwHistogramHelper.h"
-#include "QwSubsystemArrayTracking.h"
 #include "QwEPICSEvent.h"
 #include "QwTrackingWorker.h"
 #include "QwEvent.h"
 #include "QwHitContainer.h"
 #include "QwHitRootContainer.h"
 
-// Qweak subsystems
-// (for correct dependency generation)
+// Qweak tracking subsystems
+#include "QwSubsystemArrayTracking.h"
 #include "QwGasElectronMultiplier.h"
 #include "QwDriftChamberHDC.h"
 #include "QwDriftChamberVDC.h"
@@ -38,6 +37,11 @@
 #include "QwMainDetector.h"
 #include "QwScanner.h"
 #include "QwRaster.h"
+
+// Qweak parity subsystems
+#include "QwSubsystemArrayParity.h"
+#include "QwHelicity.h"
+#include "QwBeamLine.h"
 
 // Qweak headers (deprecated)
 #include "Det.h"
@@ -61,14 +65,23 @@ static const bool kRasterBranch  = kFALSE;
 // Main function
 Int_t main(Int_t argc, Char_t* argv[])
 {
-  /// First, we set the command line arguments and the configuration filename,
-  /// and we define the options that can be used in them (using QwOptions).
+  ///  First, fill the search paths for the parameter files; this sets a static
+  ///  variable within the QwParameterFile class which will be used by
+  ///  all instances.
+  ///  The "scratch" directory should be first.
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Tracking/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
+
+  ///  Then, we set the command line arguments and the configuration filename,
+  ///  and we define the options that can be used in them (using QwOptions).
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.SetConfigFile("qweak_mysql.conf");
-  /// Define the command line options
+  ///  Define the command line options
   DefineOptionsTracking(gQwOptions);
 
-  /// Setup screen and file logging
+  ///  Setup screen and file logging
   gQwLog.ProcessOptions(&gQwOptions);
 
   // Either the DISPLAY is not set or JOB_ID is defined: we take it as in batch mode.
@@ -80,15 +93,8 @@ Int_t main(Int_t argc, Char_t* argv[])
      gROOT->SetBatch(kTRUE);
   }
 
-  ///  Fill the search paths for the parameter files; this sets a static
-  ///  variable within the QwParameterFile class which will be used by
-  ///  all instances.
-  ///  The "scratch" directory should be first.
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Tracking/prminput");
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
-
   ///  Load the histogram parameter definitions
+  gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
   gQwHists.LoadHistParamsFromFile("qweak_tracking_hists.in");
 
   ///  Create a timer
@@ -103,27 +109,31 @@ Int_t main(Int_t argc, Char_t* argv[])
   epics.LoadEpicsVariableMap("EpicsTable.map");
 
 
-  ///  Load the detectors from file
-  QwSubsystemArrayTracking detectors(gQwOptions);
-  detectors.ProcessOptions(gQwOptions);
+  ///  Load the tracking detectors from file
+  QwSubsystemArrayTracking tracking_detectors(gQwOptions);
+  tracking_detectors.ProcessOptions(gQwOptions);
 
-  // Get specific detectors
-  QwMainDetector* maindetector = dynamic_cast<QwMainDetector*>(detectors.GetSubsystemByType("QwMainDetector").at(0));
-  QwScanner* scanner = dynamic_cast<QwScanner*> (detectors.GetSubsystemByType("QwScanner").at(0));
-  QwRaster* raster = dynamic_cast<QwRaster*> (detectors.GetSubsystemByType("QwRaster").at(0));
+  ///  Load the parity detectors from file
+  //QwSubsystemArrayParity parity_detectors(gQwOptions);
+  //parity_detectors.ProcessOptions(gQwOptions);
 
+
+  // Get specific tracking_detectors
+  QwMainDetector* maindetector = dynamic_cast<QwMainDetector*>(tracking_detectors.GetSubsystemByType("QwMainDetector").at(0));
+  QwScanner* scanner = dynamic_cast<QwScanner*> (tracking_detectors.GetSubsystemByType("QwScanner").at(0));
+  QwRaster* raster = dynamic_cast<QwRaster*> (tracking_detectors.GetSubsystemByType("QwRaster").at(0));
 
   // Get vector with detector info (by region, plane number)
   std::vector< std::vector< QwDetectorInfo > > detector_info;
-  detectors.GetSubsystemByName("R1")->GetDetectorInfo(detector_info);
-  detectors.GetSubsystemByName("R2")->GetDetectorInfo(detector_info);
-  detectors.GetSubsystemByName("R3")->GetDetectorInfo(detector_info);
+  tracking_detectors.GetSubsystemByName("R1")->GetDetectorInfo(detector_info);
+  tracking_detectors.GetSubsystemByName("R2")->GetDetectorInfo(detector_info);
+  tracking_detectors.GetSubsystemByName("R3")->GetDetectorInfo(detector_info);
   // TODO This is handled incorrectly, it just adds the three package after the
   // existing three packages from region 2...  GetDetectorInfo should descend
-  // into the packages and add only the detectors in those packages.
+  // into the packages and add only the tracking_detectors in those packages.
   // Alternatively, we could implement this with a singly indexed vector (with
   // only an id as primary index) and write a couple of helper functions to
-  // select the right subvectors of detectors.
+  // select the right subvectors of tracking_detectors.
 
 
   // Create and fill old detector structures (deprecated)
@@ -170,10 +180,10 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  and then pass it into the constructor.
     //
     //  To pass a subdirectory named "subdir", we would do:
-    //   detectors.GetSubsystemByName("MD")->ConstructHistograms(rootfile->mkdir("subdir"));
+    //   tracking_detectors.GetSubsystemByName("MD")->ConstructHistograms(rootfile->mkdir("subdir"));
 
     // Construct histograms
-    //detectors.ConstructHistograms(rootfile->mkdir("histos"));
+    //tracking_detectors.ConstructHistograms(rootfile->mkdir("histos"));
 
     // Open file
 
@@ -207,7 +217,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     if (kHisto) {
        rootfile->cd();
-       detectors.ConstructHistograms(rootfile->mkdir("tracking_histo"));
+       tracking_detectors.ConstructHistograms(rootfile->mkdir("tracking_histo"));
        rootfile->cd();
     }
     QwHitContainer* hitlist = 0;
@@ -227,7 +237,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       if (eventbuffer.IsROCConfigurationEvent()) {
          //  Send ROC configuration event data to the subsystem objects.
-         eventbuffer.FillSubsystemConfigurationData(detectors);
+         eventbuffer.FillSubsystemConfigurationData(tracking_detectors);
       }
 
       //  Now, if this is not a physics event, go back and get
@@ -238,17 +248,10 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
       // Fill the subsystem objects with their respective data for this event.
-      eventbuffer.FillSubsystemData(detectors);
+      eventbuffer.FillSubsystemData(tracking_detectors);
 
       // Process the event
-      detectors.ProcessEvent();
-
-      // Some info for the user
-      if (eventbuffer.GetEventNumber() % 1000 == 0) {
-         QwMessage << "Number of events processed so far: "
-         << eventbuffer.GetEventNumber() << QwLog::endl;
-      }
-
+      tracking_detectors.ProcessEvent();
 
 
       if (kMainDetBranch) maindetector->FillTreeVector(nevents);
@@ -256,7 +259,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       if (kRasterBranch) raster->FillTreeVector();
 
       // Fill the histograms for the subsystem objects.
-      if (kHisto) detectors.FillHistograms();
+      if (kHisto) tracking_detectors.FillHistograms();
 
 
 
@@ -268,9 +271,9 @@ Int_t main(Int_t argc, Char_t* argv[])
       // Create and fill hit list
       hitlist = new QwHitContainer();
       if (kUseTDCHits)
-        detectors.GetTDCHitList(hitlist);
+        tracking_detectors.GetTDCHitList(hitlist);
       else
-        detectors.GetHitList(hitlist);
+        tracking_detectors.GetHitList(hitlist);
 
       // Sorting the grand hit list
       hitlist->sort();
@@ -291,7 +294,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       // Track reconstruction
       if (hitlist->size() > 0) {
         // Process the hits
-        event = trackingworker->ProcessHits(&detectors, hitlist);
+        event = trackingworker->ProcessHits(&tracking_detectors, hitlist);
 
         // Assign the event header
         event->SetEventHeader(header);
@@ -340,7 +343,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     eventbuffer.ReportRunSummary();
 
     // Delete histograms in the subsystems
-    if (kHisto) detectors.DeleteHistograms();
+    if (kHisto) tracking_detectors.DeleteHistograms();
 
     // Close ROOT file
     rootfile->Close();
