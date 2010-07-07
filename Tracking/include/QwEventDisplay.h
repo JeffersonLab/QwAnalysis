@@ -199,7 +199,7 @@ class QwTreeEventBuffer;
 #define R2_LENGTH 30.00
 #define R2_DEPTH 17.20
 #define R2_DIST 1.27 // distance between drift cell chambers (planes)
-#define R2_XDIST 1.41 // distance between x wires (45.09 cm/32 wires)
+#define R2_XDIST 0.935 // distance between x wires (45.09 cm/32 wires)
 #define R2_UVDIST 2.59 // distance between u (or v) wires ((45.09 cm + 30 cm)/29 wires)
 #define R2_CM 0.0177
 #define R2_ANGLE 56.00
@@ -277,11 +277,12 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
   TPaveLabel *Label_R3XY, *Label_R3XZ, *Label_R3YZ;
   TBox *Box_R3XY1, *Box_R3XY2,*Box_R3XY3,*Box_R3XY4, *Box_R3XZ1, *Box_R3XZ2,*Box_R3XZ3,*Box_R3XZ4, *Box_R3YZ1, *Box_R3YZ2, *Box_R3YZ3, *Box_R3YZ4; // XY boxes for each plane
   TText *tR3XY1, *tR3XY2, *tR3XY3, *tR3XY4, *tR3XZ1, *tR3XZ2, *tR3XZ3, *tR3XZ4,*tR3YZ1, *tR3YZ2, *tR3YZ3, *tR3YZ4 ; // text for VDC plane labels
+  TLine *Div_R3XY, *Div_R3XZ, *Div_R3YZ; // dividers for views in projections
   std::vector<TLine> Line_R3u;
   std::vector<TLine> Line_R3v;
 
-  //Region 4 (TS) declarations
-  TGCompositeFrame *fRegion4;
+  //Region 3 (TS) declarations
+  TGCompositeFrame *fRegion3b;
 
   // create event buffer
   QwTreeEventBuffer* fEventBuffer; //!      // excluded from dictionary
