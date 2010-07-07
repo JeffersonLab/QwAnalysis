@@ -87,7 +87,7 @@ VQwSubsystemFactory::GetSubsystemFactory(const std::string& type)
               << "of the source file:" << QwLog::endl;
     QwMessage << "  QwSubsystemFactory<" << type << "> the" << type
               << "Factory(\"" << type << "\");" << QwLog::endl;
-    return 0; // this will most likely crash
+    throw 0; // this will most likely crash
   }
 };
 
@@ -108,6 +108,7 @@ class QwSubsystemFactory: public VQwSubsystemFactory {
 
     /// Constructor which stores type name in list of registered subsystems
     QwSubsystemFactory(const std::string& type) {
+      printf("%s:%d %s\n",__FILE__,__LINE__,__func__);
       VQwSubsystemFactory::GetRegisteredSubsystems()[type] = this;
     };
 
