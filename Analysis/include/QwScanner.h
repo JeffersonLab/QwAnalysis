@@ -185,10 +185,6 @@ class QwScanner: public VQwSubsystemTracking,
   std::vector <Double_t> fScannerVector;
 
   Int_t    fEvtCounter;
-  Int_t    fTrigEvtCounter;
-  Int_t    fSumEvtCounter;
-  Int_t    fSumFlag;
-  Int_t    fTrigFlag;
   Double_t fPowSupply_VQWK;
   Double_t fPositionX_VQWK;
   Double_t fPositionY_VQWK;

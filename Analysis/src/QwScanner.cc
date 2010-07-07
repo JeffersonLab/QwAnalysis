@@ -13,7 +13,7 @@
 QwSubsystemFactory<QwScanner> theScannerFactory("QwScanner");
 
 extern QwHistogramHelper gQwHists;
-const Bool_t QwScanner::bStoreRawData = kFALSE;
+const Bool_t QwScanner::bStoreRawData = kTRUE;
 const UInt_t QwScanner::kMaxNumberOfModulesPerROC     = 21;
 const UInt_t QwScanner::kMaxNumberOfChannelsPerModule = 32;
 
@@ -25,8 +25,6 @@ QwScanner::QwScanner(TString region_tmp)
 
     fDEBUG = 0;
     fEvtCounter = 0;
-    fTrigEvtCounter = 0;
-    fSumEvtCounter = 0;
     ClearAllBankRegistrations();
 };
 
@@ -331,19 +329,11 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
         <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
         << ", num_words "<<num_words<<", index "<<index<<std::endl;
 
-    fSumFlag = 0;
-    fTrigFlag = 0;
-
     //  This is a VQWK bank
     if (bank_id==fBankID[3])
     {
-
-        fSumEvtCounter++;
-        fSumFlag = 5;
-
         if (index>=0 && num_words>0)
         {
-
             //  This is a VQWK bank We want to process this ROC.  Begin looping through the data.
             if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer: Processing VQWK Bank "<<bank_id
                 <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
@@ -494,10 +484,6 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
     //  This is a QADC/TDC bank
     if (bank_id==fBankID[0])
     {
-
-        fTrigEvtCounter++;
-        fTrigFlag = 5;
-
         if (index>=0 && num_words>0)
         {
             //  We want to process this ROC.  Begin looping through the data.
@@ -843,14 +829,6 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix)
         fScannerVector.push_back(0.0);
         TString list = "EvtCounter/D";
         fScannerVector.push_back(0.0);
-        list += ":TrigEvtCounter/D";
-        fScannerVector.push_back(0.0);
-        list += ":SumEvtCounter/D";
-        fScannerVector.push_back(0.0);
-        list += ":SumFlag/D";
-        fScannerVector.push_back(0.0);
-        list += ":TrigFlag/D";
-        fScannerVector.push_back(0.0);
         list += ":PowSupply_VQWK/D";
         fScannerVector.push_back(0.0);
         list += ":PositionX_VQWK/D";
@@ -871,11 +849,11 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix)
         fScannerVector.push_back(0.0);
         list += ":BackTDC/D";
         fScannerVector.push_back(0.0);
-//         list += ":PowSupply_ADC/D";
+//         list += ":PowSupply_QDC/D";
 //         fScannerVector.push_back(0.0);
-        list += ":PositionX_ADC/D";
+        list += ":PositionX_QDC/D";
         fScannerVector.push_back(0.0);
-        list += ":PositionY_ADC/D";
+        list += ":PositionY_QDC/D";
 
         if (bStoreRawData)
         {
@@ -956,10 +934,6 @@ void  QwScanner::FillTreeVector()
 
     Int_t index = 0;
     fScannerVector[index++] = fEvtCounter;
-    fScannerVector[index++] = fTrigEvtCounter;
-    fScannerVector[index++] = fSumEvtCounter;
-    fScannerVector[index++] = fSumFlag;
-    fScannerVector[index++] = fTrigFlag;
     fScannerVector[index++] = fPowSupply_VQWK;
     fScannerVector[index++] = fPositionX_VQWK;
     fScannerVector[index++] = fPositionY_VQWK;
