@@ -49,6 +49,11 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fMain->SetWindowName("Qweak 2D Single Event Display");
 
 
+   ////MENU BAR////
+   // create menu bar for file functions
+
+
+
    ////TITLE AND LOGOS////
 
    // create horizontal frame for logo and title placement: includes Qweak, JLab, and GWU logos
@@ -994,25 +999,25 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
   QwHitContainer* Hits_R3u = fHitList->GetSubList_Dir(kRegionID3, kPackageUp, kDirectionU);
   QwHitContainer* Hits_R3v = fHitList->GetSubList_Dir(kRegionID3, kPackageUp, kDirectionV);
 
-  //DRAW REGION 1 WIRE HITS//
+  //DRAW REGION 1 TRACE HITS//
 
   //FRONT VIEW (X-Y)
   fRegion1XY->GetCanvas()->cd();
   //Region 1 X traces (??? total)
   for(QwHitContainer::iterator fHit = Hits_R1r->begin(); fHit != Hits_R1r->end(); fHit++){
-    //WHAT ARE THESE ACTUALLY? G4 DOES NOT GET ANY HITS FROM THESE
+    //G4 DOES NOT GET ANY HITS FROM THESE
   }
   //Region 1 Y traces (??? total)
   //  sum = 0; // back to 0 for fitting
   //  num = 0;
   for(QwHitContainer::iterator fHit = Hits_R1y->begin(); fHit != Hits_R1y->end(); fHit++){
-    int fWire = fHit->GetElement();
+    int fTrace = fHit->GetElement();
     //    double fDist = fHit->GetDriftDistance();
     TLine Line;
     Line.SetY1(.5 - (R1_WIDTH*R1_CM*.5));
-    Line.SetX1(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*fWire));
+    Line.SetX1(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*fTrace));
     Line.SetY2(.5 + (R1_WIDTH*R1_CM*.5));
-    Line.SetX2(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*fWire));
+    Line.SetX2(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*fTrace));
     Line.SetLineColor(kViolet);
     Line_R1y.push_back(Line); // add Line to end of vector R2x
     Line_R1y.back().Draw(); // draw line;
@@ -1034,13 +1039,13 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
   fRegion1YZ->GetCanvas()->cd();
   //Region 1 Y wires
   for(QwHitContainer::iterator fHit = Hits_R1y->begin(); fHit != Hits_R1y->end(); fHit++){
-    int fWire = fHit->GetElement();
+    int fTrace = fHit->GetElement();
     //    double fDist = fHit->GetDriftDistance();
     TLine Line;
     Line.SetY1(.5 - (R1_DEPTH*R1_CM*.5));
-    Line.SetX1(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*fWire));
+    Line.SetX1(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*fTrace));
     Line.SetY2(.5 + (R1_DEPTH*R1_CM*.5));
-    Line.SetX2(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*fWire));
+    Line.SetX2(.5 - (R1_LENGTH*R1_CM*.5) + (R1_DIST*R1_CM*fTrace));
     Line.SetLineColor(kViolet);
     Line_R1y.push_back(Line);
     Line_R1y.back().Draw();
@@ -1091,7 +1096,6 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     case 1:
     case 2:
     case 3:
-      fYShift = 0;
       break;
     case 4:
     case 5:
@@ -1101,7 +1105,6 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     case 7:
     case 8:
     case 9:
-      fYShift = 0;
       break;
     case 10:
     case 11:
@@ -1123,12 +1126,11 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     int fWire = fHit->GetElement();
     int fPlane = fHit->GetPlane(); // wire plane
     //    double fDist = fHit->GetDriftDistance();
-    double fXShift = 0.0; // used to shift the wires on the prime planes (ROOT coordinates)
+    double fXShift = 0; // used to shift the wires on the prime planes (ROOT coordinates)
     switch (fPlane){
     case 1:
     case 2:
     case 3:
-      fXShift = 0;
       break;
     case 4:
     case 5:
@@ -1138,7 +1140,6 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     case 7:
     case 8:
     case 9:
-      fXShift = 0;
       break;
     case 10:
     case 11:
@@ -1174,12 +1175,11 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     int fWire = fHit->GetElement();
     int fPlane = fHit->GetPlane(); // wire plane
     //    double fDist = fHit->GetDriftDistance();
-    double fXShift; // used to shift the wires in the prime chamber planes (ROOT coordinates)
+    double fXShift = 0; // used to shift the wires in the prime chamber planes (ROOT coordinates)
     switch (fPlane){
     case 1:
     case 2:
     case 3:
-      fXShift = 0;
       break;
     case 4:
     case 5:
@@ -1189,7 +1189,6 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     case 7:
     case 8:
     case 9:
-      fXShift = 0;
       break;
     case 10:
     case 11:
@@ -1229,12 +1228,36 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
   for(QwHitContainer::iterator fHit = Hits_R2x->begin(); fHit != Hits_R2x->end(); fHit++){
     int fPlane = fHit->GetPlane();
     //    double fDist = fHit->GetDriftDistance();
+    double fYShift = 0; // used to shift the wires in the prime planes and to the correct chamber planes (ROOT coordinates)
+    switch (fPlane){
+    case 1:
+    case 2:
+    case 3:
+      fYShift = (R2_DEPTH*R2_CM)/4;
+      break;
+    case 4:
+    case 5:
+    case 6:
+      fYShift = (R2_DIST*R2_CM) + (R2_DEPTH*R2_CM) + (R2_DEPTH*R2_CM)/4; // three evenly spaced wires
+      break;
+    case 7:
+    case 8:
+    case 9:
+      fYShift = (2*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) + (R2_DEPTH*R2_CM)/4;
+      break;
+    case 10:
+    case 11:
+    case 12:
+      fYShift = (3*R2_DIST*R2_CM) + (3*R2_DEPTH*R2_CM) + (R2_DEPTH*R2_CM)/4;
+      break;
+    }
     TLine Line;
     Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5));
-    Line.SetY1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + (R2_DIST*R2_CM*(fPlane)));
+    Line.SetY1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
     Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5));
-    Line.SetY2(.5 - (R2_DEPTH*R2_CM*.5) - (2*R2_DEPTH*R2_CM) + (R2_DIST*R2_CM*(fPlane)));
+    Line.SetY2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
     Line.SetLineColor(kRed);
+    Line.SetLineWidth(2);
     Line_R2x.push_back(Line); // add Line to end of vector R2x
     Line_R2x.back().Draw(); // draw line;
   }
@@ -1243,49 +1266,53 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     int fWire = fHit->GetElement();
     int fPlane = fHit->GetPlane();
     //    double fDist = fHit->GetDriftDistance();
-    double fXShift; // used to shift the wires in the prime chamber planes (ROOT coordinates)
+    double fXShift = 0; // used to shift the lines to match correct plane (ROOT coord)
+    double fYShift = 0; // used to shift the wires in the prime planes and to the correct chamber planes (ROOT coordinates)
     switch (fPlane){
     case 1:
     case 2:
     case 3:
-      fXShift = 0;
+      fYShift = 2*((R2_DEPTH*R2_CM)/4);
       break;
     case 4:
     case 5:
     case 6:
       //      fXShift = .5*R2_UVDIST*R2_CM;
+      fYShift = (R2_DIST*R2_CM) + (R2_DEPTH*R2_CM) + (2*((R2_DEPTH*R2_CM)/4));
       break;
     case 7:
     case 8:
     case 9:
-      fXShift = 0;
+      fYShift = (2*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) + (2*((R2_DEPTH*R2_CM)/4));
       break;
     case 10:
     case 11:
     case 12:
       //      fXShift = .5*R2_UVDIST*R2_CM;
+      fYShift = (3*R2_DIST*R2_CM) + (3*R2_DEPTH*R2_CM) + (2*((R2_DEPTH*R2_CM)/4));
       break;
     }
     TLine Line;
     if (fWire < 12){
       Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fXShift);
-      Line.SetY1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetY1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
       Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - fXShift);
-      Line.SetY2(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetY2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
     }
     else if (fWire < 18){
       Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fXShift);
-      Line.SetY1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetY1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
       Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - ((R2_UVDIST*R2_CM*(fWire-11.6)) - fXShift) - fXShift);
-      Line.SetY2(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetY2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
     }
     else{
       Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5) + fXShift);
-      Line.SetY1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetY1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
       Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire-11.6) - fXShift) - fXShift);
-      Line.SetY2(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetY2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
     }
     Line.SetLineColor(kGreen);
+    Line.SetLineWidth(2);
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
   }
@@ -1294,49 +1321,53 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     int fWire = fHit->GetElement();
     int fPlane = fHit->GetPlane();
     //    double fDist = hit->GetDriftDistance();
-    double fXShift; // used to shift the wires in the prime chamber planes (ROOT coordinates)
+    double fXShift = 0; // used to shift the lines to match correct plane (ROOT coord)
+    double fYShift = 0; // used to shift the wires in the prime planes and to the correct chamber planes (ROOT coordinates)
     switch (fPlane){
     case 1:
     case 2:
     case 3:
-      fXShift = 0;
+      fYShift = 3*((R2_DEPTH*R2_CM)/4);
       break;
     case 4:
     case 5:
     case 6:
       //      fXShift = .5*R2_UVDIST*R2_CM;
+      fYShift = (R2_DIST*R2_CM) + (R2_DEPTH*R2_CM) + (3*((R2_DEPTH*R2_CM)/4));
       break;
     case 7:
     case 8:
     case 9:
-      fXShift = 0;
+      fYShift = (2*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) + (3*((R2_DEPTH*R2_CM)/4));
       break;
     case 10:
     case 11:
     case 12:
       //      fXShift = .5*R2_UVDIST*R2_CM;
+      fYShift = (3*R2_DIST*R2_CM) + (3*R2_DEPTH*R2_CM) + (3*((R2_DEPTH*R2_CM)/4));
       break;
     }
     TLine Line;
     if (fWire < 12){
       Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fXShift);
-      Line.SetY1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetY1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
       Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - fXShift);
-      Line.SetY2(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetY2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
     }
     else if (fWire < 18){
       Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fXShift);
-      Line.SetY1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetY1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
       Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire-11.6)) - fXShift);
-      Line.SetY2(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetY2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
     }
     else{
       Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5) + fXShift);
-      Line.SetY1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetY1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
       Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire-11.6)) - fXShift);
-      Line.SetY2(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetY2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fYShift);
       }
     Line.SetLineColor(kBlue);
+    Line.SetLineWidth(2);
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
       }
@@ -1350,33 +1381,36 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     int fWire = fHit->GetElement();
     int fPlane = fHit->GetPlane();
     //    double fDist = fHit->GetDriftDistance();
-    double fYShift = 0.0; // used to shift the wires on the prime planes (ROOT coordinates)
+    double fXShift = 0; // used to shift the lines to match correct plane (ROOT coord)
+    double fYShift = 0; // used to shift the wires on the prime planes (ROOT coordinates)
     switch (fPlane){
     case 1:
     case 2:
     case 3:
-      fYShift = 0;
+      fXShift = (R2_DEPTH*R2_CM)/4;
       break;
     case 4:
     case 5:
     case 6:
-      //      fYShift = .5*R2_XDIST*R2_CM; // half drift cell size
+      fXShift = (R2_DIST*R2_CM) + (R2_DEPTH*R2_CM) + (R2_DEPTH*R2_CM)/4; // three evenly spaced wires
+      fYShift = .5*R2_XDIST*R2_CM; // half drift cell size
       break;
     case 7:
     case 8:
     case 9:
-      fYShift = 0;
+      fXShift = (2*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) + (R2_DEPTH*R2_CM)/4;
       break;
     case 10:
     case 11:
     case 12:
-      //      fYShift = .5*R2_XDIST*R2_CM;
+      fXShift = (3*R2_DIST*R2_CM) + (3*R2_DEPTH*R2_CM) + (R2_DEPTH*R2_CM)/4;
+      fYShift = .5*R2_XDIST*R2_CM; // half drift cell size
       break;
     }
     TLine Line;
-    Line.SetX1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+    Line.SetX1(.5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) - fXShift); 
     Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5) + (R2_XDIST*R2_CM*fWire) + fYShift);
-    Line.SetX2(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+    Line.SetX2(.5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) - fXShift); 
     Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (R2_XDIST*R2_CM*fWire) + fYShift);
     Line.SetLineColor(kRed);
     Line_R2x.push_back(Line);
@@ -1387,50 +1421,50 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     int fWire = fHit->GetElement();
     int fPlane = fHit->GetPlane();
     //    double fDist = fHit->GetDriftDistance();
-    double fXShift; // used to shift the lines to match correct plane (ROOT coord)
+    double fXShift = 0; // used to shift the lines to match correct plane (ROOT coord)
     switch (fPlane){
     case 1:
     case 2:
     case 3:
-      fXShift = 0;
+      fXShift = 2*((R2_DEPTH*R2_CM)/4);
       break;
     case 4:
     case 5:
     case 6:
-      //      fXShift = .5*R2_UVDIST*R2_CM;
+      fXShift = (R2_DIST*R2_CM) + (R2_DEPTH*R2_CM) + (2*(R2_DEPTH*R2_CM)/4); // three evenly spaced wires
       break;
     case 7:
     case 8:
     case 9:
-      fXShift = 0;
+      fXShift = (2*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) + (2*(R2_DEPTH*R2_CM)/4);
       break;
     case 10:
     case 11:
     case 12:
-      //      fXShift = .5*R2_UVDIST*R2_CM;
+      fXShift = (3*R2_DIST*R2_CM) + (3*R2_DEPTH*R2_CM) + (2*(R2_DEPTH*R2_CM)/4);
       break;
     }
     TLine Line;
     if (fWire < 12){
-      Line.SetX1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetX1(.5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) - fXShift);
       Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5));
-      Line.SetX2(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetX2(.5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) - fXShift);
       Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (((R2_UVDIST*R2_CM*fWire) + fXShift)*tan(R2_ANGLE*TMath::DegToRad())));
     }
     else if (fWire < 18){
-      Line.SetX1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetX1(.5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) - fXShift);
       Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5));
-      Line.SetX2(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetX2(.5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) - fXShift);
       Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5));
     }
     else{
-      Line.SetX1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetX1(.5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) - fXShift);
       Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5) + (R2_UVDIST*R2_CM*(fWire-17.4)));
-      Line.SetX2(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetX2(.5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) - fXShift);
       Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5));
       }
     Line.SetLineColor(kGreen);
-    //    Line.SetLineWidth(3);
+    Line.SetLineWidth(2);
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
     }
@@ -1439,50 +1473,50 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     int fWire = fHit->GetElement();
     int fPlane = fHit->GetPlane();
     //    double fDist = fHit->GetDriftDistance();
-    double fXShift; // used to shift the lines to match correct plane (ROOT coord)
+    double fXShift = 0; // used to shift the lines to match correct plane (ROOT coord)
     switch (fPlane){
     case 1:
     case 2:
     case 3:
-      fXShift = 0;
+      fXShift = 3*((R2_DEPTH*R2_CM)/4);
       break;
     case 4:
     case 5:
     case 6:
-      //      fXShift = .5*R2_UVDIST*R2_CM;
+      fXShift = (R2_DIST*R2_CM) + (R2_DEPTH*R2_CM) + (3*(R2_DEPTH*R2_CM)/4); // three evenly spaced wires
       break;
     case 7:
     case 8:
     case 9:
-      fXShift = 0;
+      fXShift = (2*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) + (3*(R2_DEPTH*R2_CM)/4);
       break;
     case 10:
     case 11:
     case 12:
-      //      fXShift = .5*R2_UVDIST*R2_CM;
+      fXShift = (3*R2_DIST*R2_CM) + (3*R2_DEPTH*R2_CM) + (3*(R2_DEPTH*R2_CM)/4);
       break;
     }
     TLine Line;
     if (fWire < 12){
-      Line.SetX1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetX1(.5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) - fXShift);
       Line.SetY1(.5 + (R2_LENGTH*R2_CM*.5));
-      Line.SetX2(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetX2(.5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) - fXShift);
       Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire*tan(R2_ANGLE*TMath::DegToRad())));
     }
     else if (fWire < 18){
-      Line.SetX1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetX1(.5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) - fXShift);
       Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5));
-      Line.SetX2(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetX2(.5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) - fXShift);
       Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5));
     }
     else{
-      Line.SetX1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetX1(.5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) - fXShift);
       Line.SetY1(.5 + (R2_LENGTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire-17.4)));
-      Line.SetX2(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
+      Line.SetX2(.5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM) - fXShift);
       Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5));
     }
     Line.SetLineColor(kBlue);
-    //    Line.SetLineWidth(3);
+    Line.SetLineWidth(2);
     Line_R2v.push_back(Line);
     Line_R2v.back().Draw();
     }
@@ -1499,7 +1533,7 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     int fWire = fHit->GetElement();
     int fPlane = fHit->GetPlane(); // chamber number
     //    double fDist = fHit->GetDriftDistance();
-    double fYShift = 0.0; // used to shift the lines to match correct plane (ROOT coord)
+    double fYShift = 0; // used to shift the lines to match correct plane (ROOT coord)
     switch (fPlane){
     case 1:
     case 2:
@@ -1538,7 +1572,7 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     int fWire = fHit->GetElement();
     int fPlane = fHit->GetPlane();
     //    double fDist = fHit->GetDriftDistance();
-    double fYShift = 0.0; // used to shift the lines to match correct plane (ROOT coord)
+    double fYShift = 0; // used to shift the lines to match correct plane (ROOT coord)
     switch (fPlane){
     case 1:
     case 2:
@@ -1582,7 +1616,7 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     int fWire = fHit->GetElement();
     int fPlane = fHit->GetPlane();
     //    double fDist = fHit->GetDriftDistance();
-    double fYShift = 0.0; // used to shift the lines to match correct plane (ROOT coord)
+    double fYShift = 0; // used to shift the lines to match correct plane (ROOT coord)
     switch (fPlane){
     case 1:
     case 2:
@@ -1622,7 +1656,7 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     int fWire = fHit->GetElement();
     int fPlane = fHit->GetPlane();
     //    double fDist = fHit->GetDriftDistance();
-    double fYShift = 0.0; // used to shift the lines to match correct plane
+    double fYShift = 0; // used to shift the lines to match correct plane
     switch (fPlane){
     case 1:
     case 2:
@@ -1667,8 +1701,8 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     int fWire = fHit->GetElement();
     int fPlane = fHit->GetPlane();
     //    double fDist = fHit->GetDriftDistance();
-    double fXShift = 0.0; // used to shift the lines to match correct plane (ROOT coord)
-    double fYShift = 0.0; // used to shift the lines to match correct plane (ROOT coord)
+    double fXShift = 0; // used to shift the lines to match correct plane (ROOT coord)
+    double fYShift = 0; // used to shift the lines to match correct plane (ROOT coord)
     switch (fPlane){
     case 1:
     case 2:
@@ -1710,8 +1744,8 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     int fWire = fHit->GetElement();
     int fPlane = fHit->GetPlane();
     //    double fDist = fHit->GetDriftDistance();
-    double fXShift = 0.0; // used to shift the lines to match correct plane (ROOT coord)
-    double fYShift = 0.0; // used to shift the lines to match correct plane (ROOT coord)
+    double fXShift = 0; // used to shift the lines to match correct plane (ROOT coord)
+    double fYShift = 0; // used to shift the lines to match correct plane (ROOT coord)
     switch (fPlane){
     case 1:
     case 2:

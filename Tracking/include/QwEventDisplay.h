@@ -201,7 +201,7 @@ class QwTreeEventBuffer;
 
 #define R2_WIDTH 45.09 // Region 2
 #define R2_LENGTH 30.00
-#define R2_DEPTH 3.35 //17.20 total depth of HDC system
+#define R2_DEPTH 3.35 //single chamber; 17.20 total depth of HDC system
 #define R2_DIST 1.27 // distance between drift cell chambers (planes)
 #define R2_XDIST 0.935 // distance between x wires (45.09 cm/32 wires)
 #define R2_UVDIST 2.59 // distance between u (or v) wires ((45.09 cm + 30 cm)/29 wires)
