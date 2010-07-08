@@ -94,7 +94,7 @@ class QwTrackingTreeCombine {
 		QwHit **hits, int n);
     void weight_lsq_r3 (
 		double& slope, double& offset, double cov[3], double& chi,
-		QwHit **hits, int n, double z1, int offset);
+		QwHit **hits, int n, double z1, int wire_offset );
 
 
     int selectx (double *xresult, double dist_cut, QwHit *hitarray[], QwHit **ha);
