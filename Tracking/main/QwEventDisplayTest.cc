@@ -100,6 +100,7 @@ int main (int argc, char* argv[])
   // Load the simulated event file
   QwTreeEventBuffer *treebuffer = new QwTreeEventBuffer (detector_info);
   treebuffer->ProcessOptions(gQwOptions);
+  treebuffer->OpenNextFile();
 
   // Start this application
   TApplication theApp("QwEventDisplay", &argc, argv);
