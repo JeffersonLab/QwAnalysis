@@ -7,10 +7,11 @@
 
 #include <TString.h>
 #include <TObject.h>
+#include "TMath.h"
 
 #include "QwTypes.h"
 
-#define PI 3.141592653589793
+//#define PI 3.141592653589793
 
 ///
 /// \ingroup QwTracking
@@ -83,15 +84,15 @@ class QwDetectorInfo {
     const double GetElementAngle() const { return fElementAngle; };
     const double GetElementAngleCos() const { return fElementAngleCos; };
     const double GetElementAngleSin() const { return fElementAngleSin; };
-    void SetElementAngle(const double angle) {
-      fElementAngle = angle; // in degrees
-      fElementAngleCos = std::cos(angle * PI / 180.0);
-      fElementAngleSin = std::sin(angle * PI / 180.0);
+    void SetElementAngle(const double angle_degree) {
+      fElementAngle = angle_degree; // in degrees
+      fElementAngleCos = std::cos(angle_degree * TMath::DegToRad());
+      fElementAngleSin = std::sin(angle_degree * TMath::DegToRad());
     };
     void SetElementAngle(const double cosangle, const double sinangle) {
       fElementAngleCos = cosangle;
       fElementAngleSin = sinangle;
-      fElementAngle = std::atan2 (sinangle, cosangle) / PI * 180.0;
+      fElementAngle = std::atan2 (sinangle, cosangle) * TMath::RadToDeg();
     };
 
     // Get/set number of elements
@@ -101,15 +102,15 @@ class QwDetectorInfo {
     // Get/set detector rotation (in degrees)
     const double GetDetectorRotation() const { return fDetectorRotation; };
     const double GetDetectorRotationInDeg() const { return fDetectorRotation; };
-    const double GetDetectorRotationInRad() const { return fDetectorRotation * PI / 180.0; };
+    const double GetDetectorRotationInRad() const { return fDetectorRotation * TMath::DegToRad();};
     const double GetDetectorRotationCos() const { return fDetectorRotationCos; };
     const double GetDetectorRotationSin() const { return fDetectorRotationSin; };
     const double GetCosDetectorRotation() const { return fDetectorRotationCos; }; // deprecated
     const double GetSinDetectorRotation() const { return fDetectorRotationSin; }; // deprecated
-    void SetDetectorRotation(const double rotation) {
-      fDetectorRotation = rotation; // in degrees
-      fDetectorRotationCos = std::cos(rotation * PI / 180.0);
-      fDetectorRotationSin = std::sin(rotation * PI / 180.0);
+    void SetDetectorRotation(const double rotation_degree) {
+      fDetectorRotation = rotation_degree; // in degrees
+      fDetectorRotationCos = std::cos(rotation_degree * TMath::DegToRad());
+      fDetectorRotationSin = std::sin(rotation_degree * TMath::DegToRad());
     };
 
     // Get unique detector ID

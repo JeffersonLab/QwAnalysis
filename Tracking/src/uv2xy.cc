@@ -10,10 +10,11 @@
 
 #include <cstdio>
 #include <cmath>
+#include "TMath.h"
 
-#define PI 3.141592653589793
-#define DEG2RAD PI/180.0
-#define RAD2DEG 180.0/PI
+//#define PI 3.141592653589793
+//#define DEG2RAD PI/180.0
+//#define RAD2DEG 180.0/PI
 
 /* For Region 2, the x wires actually measure a coordinate in the lab y direction.
    So for the reconstruction of tracks in R2, I will use a coordinate system
@@ -40,8 +41,8 @@ Uv2xy::Uv2xy(const double angleUdeg)
   SetOriginUVinXY(0.0, 0.0);
 
   // Convert angles to radians and create the transformation matrices
-  fAngleUrad = angleUdeg * DEG2RAD;
-  fAngleVrad = PI - fAngleUrad;
+  fAngleUrad = angleUdeg * TMath::DegToRad();
+  fAngleVrad = TMath::Pi() - fAngleUrad;
   InitializeRotationMatrices();
 }
 
@@ -62,8 +63,8 @@ Uv2xy::Uv2xy(const double angleUdeg, const double angleVdeg)
   SetOriginUVinXY(0.0, 0.0);
 
   // Convert angles to radians and create the transformation matrices
-  fAngleUrad = angleUdeg * DEG2RAD;
-  fAngleVrad = angleVdeg * DEG2RAD;
+  fAngleUrad = angleUdeg * TMath::DegToRad();
+  fAngleVrad = angleVdeg * TMath::DegToRad();
   InitializeRotationMatrices();
 }
 

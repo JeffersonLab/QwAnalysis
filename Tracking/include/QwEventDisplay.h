@@ -171,6 +171,8 @@
 #include "TGComboBox.h"
 #endif
 
+#include "TMath.h"
+
 ////C++ STANDARD////
 #include "Riostream.h"
 
@@ -187,7 +189,7 @@ class QwTreeEventBuffer;
 
 //All measurements in cm; scalings make longest side of length .8 in canvas; geometry data taken from QweakSim files unless noted in parentheses with a derivation;
 //Length is x, width is y, depth is z in qweak coordinates (x and y flip for GUI use, be careful of distinction)
-#define PI 3.14159265 // used to convert to radians::X deg = (X*PI)/180 radians
+//#define PI 3.14159265 // used to convert to radians::X deg = (X*PI)/180 radians
 
 #define R1_WIDTH 30.00 // Region 1
 #define R1_LENGTH 30.00
