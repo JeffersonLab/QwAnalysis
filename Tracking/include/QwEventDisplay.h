@@ -187,9 +187,11 @@ class QwTreeEventBuffer;
 
 ////REGION GEOMETRIES////
 
-//All measurements in cm; scalings make longest side of length .8 in canvas; geometry data taken from QweakSim files unless noted in parentheses with a derivation;
+//All length measurements in cm
+//All angle measurements in degrees
+//Scalings make longest side of length .8 in canvas
+//Geometry data taken from QweakSim files unless noted in parentheses with a derivation;
 //Length is x, width is y, depth is z in qweak coordinates (x and y flip for GUI use, be careful of distinction)
-//#define PI 3.14159265 // used to convert to radians::X deg = (X*PI)/180 radians
 
 #define R1_WIDTH 30.00 // Region 1
 #define R1_LENGTH 30.00
@@ -199,7 +201,7 @@ class QwTreeEventBuffer;
 
 #define R2_WIDTH 45.09 // Region 2
 #define R2_LENGTH 30.00
-#define R2_DEPTH 17.20
+#define R2_DEPTH 3.35 //17.20 total depth of HDC system
 #define R2_DIST 1.27 // distance between drift cell chambers (planes)
 #define R2_XDIST 0.935 // distance between x wires (45.09 cm/32 wires)
 #define R2_UVDIST 2.59 // distance between u (or v) wires ((45.09 cm + 30 cm)/29 wires)
@@ -223,7 +225,7 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
   RQ_OBJECT("QwEventDisplay")
 
   UInt_t fEventNumber; // keeps track of the current event number on display
-  TLine Line; // used for vector drawing
+  //  TLine Line; // used for vector drawing
 
  private:  // Frames
   TGMainFrame *fMain; // mainframe window
@@ -267,7 +269,9 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
   TRootEmbeddedCanvas *fRegion2XY, *fRegion2XZ, *fRegion2YZ;
   TCanvas *cR2XY, *cR2XZ, *cR2YZ;
   TPaveLabel *Label_R2XY, *Label_R2XZ, *Label_R2YZ;
-  TBox *Box_R2XY, *Box_R2XZ, *Box_R2YZ;
+  TBox *Box_R2XY1, *Box_R2XY2,*Box_R2XY3,*Box_R2XY4, *Box_R2XZ1, *Box_R2XZ2,*Box_R2XZ3,*Box_R2XZ4, *Box_R2YZ1, *Box_R2YZ2, *Box_R2YZ3, *Box_R2YZ4; // boxes for each chamber
+  TBox *Box_R2XY; //TEMPORARY
+  TText *tR2XY1, *tR2XY2, *tR2XY3, *tR2XY4, *tR2XZ1, *tR2XZ2, *tR2XZ3, *tR2XZ4,*tR2YZ1, *tR2YZ2, *tR2YZ3, *tR2YZ4 ; // text for HDC chamber labels
   std::vector<TLine> Line_R2x;
   std::vector<TLine> Line_R2u;
   std::vector<TLine> Line_R2v;
@@ -277,8 +281,8 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
   TRootEmbeddedCanvas *fRegion3XY, *fRegion3XZ, *fRegion3YZ;
   TCanvas *cR3XY, *cR3XZ, *cR3YZ;
   TPaveLabel *Label_R3XY, *Label_R3XZ, *Label_R3YZ;
-  TBox *Box_R3XY1, *Box_R3XY2,*Box_R3XY3,*Box_R3XY4, *Box_R3XZ1, *Box_R3XZ2,*Box_R3XZ3,*Box_R3XZ4, *Box_R3YZ1, *Box_R3YZ2, *Box_R3YZ3, *Box_R3YZ4; // XY boxes for each plane
-  TText *tR3XY1, *tR3XY2, *tR3XY3, *tR3XY4, *tR3XZ1, *tR3XZ2, *tR3XZ3, *tR3XZ4,*tR3YZ1, *tR3YZ2, *tR3YZ3, *tR3YZ4 ; // text for VDC plane labels
+  TBox *Box_R3XY1, *Box_R3XY2,*Box_R3XY3,*Box_R3XY4, *Box_R3XZ1, *Box_R3XZ2,*Box_R3XZ3,*Box_R3XZ4, *Box_R3YZ1, *Box_R3YZ2, *Box_R3YZ3, *Box_R3YZ4; // boxes for each chamber
+  TText *tR3XY1, *tR3XY2, *tR3XY3, *tR3XY4, *tR3XZ1, *tR3XZ2, *tR3XZ3, *tR3XZ4,*tR3YZ1, *tR3YZ2, *tR3YZ3, *tR3YZ4 ; // text for VDC chamber labels
   TLine *Div_R3XY, *Div_R3XZ, *Div_R3YZ; // dividers for views in projections
   std::vector<TLine> Line_R3u;
   std::vector<TLine> Line_R3v;

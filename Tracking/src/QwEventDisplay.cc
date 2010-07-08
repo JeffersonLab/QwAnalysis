@@ -12,6 +12,7 @@
 // GUI macro that displays wire hit, timing, and other information [as requested] for Regions 1-3 of Qweak experiment
 // Includes trigger scintillator information (position and timing)
 // Provides 2D output of orthographic planes in each region for track reconstruction analysis
+// May also be useful for diagnostics of tracking hardware
 
 
 ////HEADERS////
@@ -451,10 +452,34 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion2YZ->GetCanvas()->SetFillColor(0);
    Label_R2YZ = new TPaveLabel(.03,.94,.97,.99,"Top View (Y-Z Projection)"); // create canvas label
    Label_R2YZ->Draw();
-   Box_R2YZ = new TBox(.5-(R2_WIDTH*R2_CM*.5), .5-(R2_DEPTH*R2_CM*.5), .5+(R2_WIDTH*R2_CM*.5), .5+(R2_DEPTH*R2_CM*.5)); // create/center box to frame wire lines
-   Box_R2YZ->SetLineColor(1);
-   Box_R2YZ->SetFillStyle(0);
-   Box_R2YZ->Draw();
+   Box_R2YZ1 = new TBox(.5 - (R2_WIDTH*R2_CM*.5), .5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM), .5 + (R2_WIDTH*R2_CM*.5),.5 - (1.5*R2_DIST*R2_CM) - (R2_DEPTH*R2_CM)); // create box for chamber 1
+   Box_R2YZ1->SetLineColor(1);
+   Box_R2YZ1->SetFillStyle(0);
+   Box_R2YZ1->Draw();
+   Box_R2YZ2 = new TBox(.5 - (R2_WIDTH*R2_CM*.5), .5 - (.5*R2_DIST*R2_CM) - (R2_DEPTH*R2_CM), .5 + (R2_WIDTH*R2_CM*.5), .5 - (.5*R2_DIST*R2_CM)); // create box for chamber 2
+   Box_R2YZ2->SetLineColor(7);
+   Box_R2YZ2->SetFillStyle(0);
+   Box_R2YZ2->Draw();
+   Box_R2YZ3 = new TBox(.5 - (R2_WIDTH*R2_CM*.5), .5 + (.5*R2_DIST*R2_CM), .5 + (R2_WIDTH*R2_CM*.5), .5 + (.5*R2_DIST*R2_CM) + (R2_DEPTH*R2_CM)); // create box for chamber 3
+   Box_R2YZ3->SetLineColor(6);
+   Box_R2YZ3->SetFillStyle(0);
+   Box_R2YZ3->Draw();
+   Box_R2YZ4 = new TBox(.5 - (R2_WIDTH*R2_CM*.5), .5 + (1.5*R2_DIST*R2_CM) + (R2_DEPTH*R2_CM), .5 + (R2_WIDTH*R2_CM*.5), .5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM)); // create box for chamber 4
+   Box_R2YZ4->SetLineColor(8);
+   Box_R2YZ4->SetFillStyle(0);
+   Box_R2YZ4->Draw();
+   tR2XY1 = new TText(.03, .03, "Cham. 1"); // color-coded text for HDC chamber labels
+   tR2XY1->SetTextColor(1);
+   tR2XY1->Draw();
+   tR2XY2 = new TText(.29, .03, "Cham. 2");
+   tR2XY2->SetTextColor(7);
+   tR2XY2->Draw();
+   tR2XY3 = new TText(.55, .03, "Cham. 3");
+   tR2XY3->SetTextColor(6);
+   tR2XY3->Draw();
+   tR2XY4 = new TText(.81, .03, "Cham. 4");
+   tR2XY4->SetTextColor(8);
+   tR2XY4->Draw();
    fRegion2YZ->GetCanvas()->SetEditable(kFALSE);
 
    // create embedded canvas for Region 2 XZ view
@@ -467,21 +492,45 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion2XZ->GetCanvas()->SetFillColor(0);
    Label_R2XZ = new TPaveLabel(.03,.94,.97,.99,"Side View (X-Z Projection)"); // create canvas label
    Label_R2XZ->Draw();
-   Box_R2XZ = new TBox(.5-(R2_DEPTH*R2_CM*.5), .5-(R2_LENGTH*R2_CM*.5), .5+(R2_DEPTH*R2_CM*.5), .5+(R2_LENGTH*R2_CM*.5)); // create/center box to frame wire lines
-   Box_R2XZ->SetLineColor(1);
-   Box_R2XZ->SetFillStyle(0);
-   Box_R2XZ->Draw();
+   Box_R2XZ1 = new TBox(.5 + (1.5*R2_DIST*R2_CM) + (R2_DEPTH*R2_CM), .5 - (R2_LENGTH*R2_CM*.5), .5 + (1.5*R2_DIST*R2_CM) + (2*R2_DEPTH*R2_CM), .5 + (R2_LENGTH*R2_CM*.5)); // create box for chamber 1 // incorporate X and Y shift (ROOT coord)
+   Box_R2XZ1->SetLineColor(1);
+   Box_R2XZ1->SetFillStyle(0);
+   Box_R2XZ1->Draw();
+   Box_R2XZ2 = new TBox(.5 + (.5*R2_DIST*R2_CM), .5 - (R2_LENGTH*R2_CM*.5), .5 + (.5*R2_DIST*R2_CM) + (R2_DEPTH*R2_CM), .5 + (R2_LENGTH*R2_CM*.5)); // create box for chamber 2
+   Box_R2XZ2->SetLineColor(7);
+   Box_R2XZ2->SetFillStyle(0);
+   Box_R2XZ2->Draw();
+   Box_R2XZ3 = new TBox(.5 - (.5*R2_DIST*R2_CM) - (R2_DEPTH*R2_CM), .5 - (R2_LENGTH*R2_CM*.5), .5 - (.5*R2_DIST*R2_CM), .5 + (R2_LENGTH*R2_CM*.5)); // create box for chamber 3
+   Box_R2XZ3->SetLineColor(6);
+   Box_R2XZ3->SetFillStyle(0);
+   Box_R2XZ3->Draw();
+   Box_R2XZ4 = new TBox(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM), .5 - (R2_LENGTH*R2_CM*.5), .5 - (1.5*R2_DIST*R2_CM) - (R2_DEPTH*R2_CM), .5 + (R2_LENGTH*R2_CM*.5)); // create box for chamber 4
+   Box_R2XZ4->SetLineColor(8);
+   Box_R2XZ4->SetFillStyle(0);
+   Box_R2XZ4->Draw();
+   tR2XZ1 = new TText(.03, .03, "Cham. 1"); // color-coded text for HDC chamber labels
+   tR2XZ1->SetTextColor(1);
+   tR2XZ1->Draw();
+   tR2XZ2 = new TText(.29, .03, "Cham. 2");
+   tR2XZ2->SetTextColor(7);
+   tR2XZ2->Draw();
+   tR2XZ3 = new TText(.55, .03, "Cham. 3");
+   tR2XZ3->SetTextColor(6);
+   tR2XZ3->Draw();
+   tR2XZ4 = new TText(.81, .03, "Cham. 4");
+   tR2XZ4->SetTextColor(8);
+   tR2XZ4->Draw();
    fRegion2XZ->GetCanvas()->SetEditable(kFALSE);
 
    //REGION 3--Vertical Drift Chamber//
 
-   // create tab and container of "Region 3" data
+   // create tab and container of "Region 3" VDC data
    fRegion3 = fRegions->AddTab("Region 3--VDC");
    fRegion3->SetLayoutManager(new TGVerticalLayout(fRegion3));
    fRegion3->SetLayoutBroken(kTRUE);
    fRegion3->SetBackgroundColor(ucolor);
 
-   // create embedded canvas for Region 3 XY view
+   // create embedded canvas for Region 3 XY view                       /////////REMOVE HARD-CODED NUMBERS!!!
    fRegion3XY = new TRootEmbeddedCanvas(0,fRegion3,280,280);
    Int_t wRegion3XY = fRegion3XY->GetCanvasWindowId();
    cR3XY = new TCanvas("cR3XY", 10, 10, wRegion3XY);
@@ -491,26 +540,26 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion3XY->GetCanvas()->SetFillColor(0);
    Label_R3XY = new TPaveLabel(.03,.94,.97,.99,"Front View (X-Y Projection)"); // create canvas label
    Label_R3XY->Draw();
-   Box_R3XY1 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .65-(R3_LENGTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .65+(R3_LENGTH*R3_CM*.5)); // create box for frame 1
+   Box_R3XY1 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .65-(R3_LENGTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .65+(R3_LENGTH*R3_CM*.5)); // create box for chamber 1
    Box_R3XY1->SetLineColor(1);
    Box_R3XY1->SetFillStyle(0);
-   Box_R3XY2 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .75-(R3_LENGTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .75+(R3_LENGTH*R3_CM*.5)); // create box for frame 2
+   Box_R3XY2 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .75-(R3_LENGTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .75+(R3_LENGTH*R3_CM*.5)); // create box for chamber 2
    Box_R3XY2->SetLineColor(7);
    Box_R3XY2->SetFillStyle(0);
    Box_R3XY2->Draw();
    Box_R3XY1->Draw(); // put 1 on top
-   Box_R3XY3 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .25-(R3_LENGTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .25+(R3_LENGTH*R3_CM*.5)); // create box for frame 3
+   Box_R3XY3 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .25-(R3_LENGTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .25+(R3_LENGTH*R3_CM*.5)); // create box for chamber 3
    Box_R3XY3->SetLineColor(6);
    Box_R3XY3->SetFillStyle(0);
-   Box_R3XY4 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .35-(R3_LENGTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .35+(R3_LENGTH*R3_CM*.5)); // create box for frame 4
+   Box_R3XY4 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .35-(R3_LENGTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .35+(R3_LENGTH*R3_CM*.5)); // create box for chamber 4
    Box_R3XY4->SetLineColor(8);
    Box_R3XY4->SetFillStyle(0);
    Box_R3XY4->Draw();
    Box_R3XY3->Draw(); // put 3 on top
-   tR3XY1 = new TText(.03, .03, "Leia (1)"); // color-coded text for VDC plane labels
+   tR3XY1 = new TText(.03, .03, "Leia (1)"); // color-coded text for VDC chamber labels
    tR3XY1->SetTextColor(1);
    tR3XY1->Draw();
-   tR3XY2 = new TText(.29, .03, "Vader (2)");
+   tR3XY2 = new TText(.28, .03, "Vader (2)");
    tR3XY2->SetTextColor(7);
    tR3XY2->Draw();
    tR3XY3 = new TText(.55, .03, "Han (3)");
@@ -534,26 +583,26 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion3YZ->GetCanvas()->SetFillColor(0);
    Label_R3YZ = new TPaveLabel(.03,.94,.97,.99,"Top View (Y-Z Projection)"); // create canvas label
    Label_R3YZ->Draw();
-   Box_R3YZ1 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .65-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .65+(R3_DEPTH*R3_CM*.5)); // create box for frame 1
+   Box_R3YZ1 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .65-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .65+(R3_DEPTH*R3_CM*.5)); // create box for chamber 1
    Box_R3YZ1->SetLineColor(1);
    Box_R3YZ1->SetFillStyle(0);
-   Box_R3YZ2 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .75-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .75+(R3_DEPTH*R3_CM*.5)); // create box for frame 2
+   Box_R3YZ2 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .75-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .75+(R3_DEPTH*R3_CM*.5)); // create box for chamber 2
    Box_R3YZ2->SetLineColor(7);
    Box_R3YZ2->SetFillStyle(0);
    Box_R3YZ2->Draw();
    Box_R3YZ1->Draw(); // put 1 on top
-   Box_R3YZ3 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .25-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .25+(R3_DEPTH*R3_CM*.5)); // create box for frame 3
+   Box_R3YZ3 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .25-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .25+(R3_DEPTH*R3_CM*.5)); // create box for chamber 3
    Box_R3YZ3->SetLineColor(6);
    Box_R3YZ3->SetFillStyle(0);
-   Box_R3YZ4 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .35-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .35+(R3_DEPTH*R3_CM*.5)); // create box for frame 4
+   Box_R3YZ4 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .35-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .35+(R3_DEPTH*R3_CM*.5)); // create box for chamber 4
    Box_R3YZ4->SetLineColor(8);
    Box_R3YZ4->SetFillStyle(0);
    Box_R3YZ4->Draw();
    Box_R3YZ3->Draw(); // put 3 on top
-   tR3YZ1 = new TText(.03, .03, "Leia (1)"); // color-coded text for VDC plane labels
+   tR3YZ1 = new TText(.03, .03, "Leia (1)"); // color-coded text for VDC chamber labels
    tR3YZ1->SetTextColor(1);
    tR3YZ1->Draw();
-   tR3YZ2 = new TText(.29, .03, "Vader (2)");
+   tR3YZ2 = new TText(.28, .03, "Vader (2)");
    tR3YZ2->SetTextColor(7);
    tR3YZ2->Draw();
    tR3YZ3 = new TText(.55, .03, "Han (3)");
@@ -577,26 +626,26 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegion3XZ->GetCanvas()->SetFillColor(0);
    Label_R3XZ = new TPaveLabel(.03,.94,.97,.99,"Side View (X-Z Projection)"); // create canvas label
    Label_R3XZ->Draw();
-   Box_R3XZ1 = new TBox(.5-(R3_DEPTH*R3_CM*.5)+(R3_DIST*R3_CM*.5), .65-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)+(R3_DIST*R3_CM*.5), .65+(R3_LENGTH*R3_CM*.5)); // create box for frame 1 // incorporate X and Y shift (ROOT coord)
+   Box_R3XZ1 = new TBox(.5-(R3_DEPTH*R3_CM*.5)+(R3_DIST*R3_CM*.5), .65-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)+(R3_DIST*R3_CM*.5), .65+(R3_LENGTH*R3_CM*.5)); // create box for chamber 1 // incorporate X and Y shift (ROOT coord)
    Box_R3XZ1->SetLineColor(1);
    Box_R3XZ1->SetFillStyle(0);
-   Box_R3XZ2 = new TBox(.5-(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .75-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .75+(R3_LENGTH*R3_CM*.5)); // create box for frame 2
+   Box_R3XZ2 = new TBox(.5-(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .75-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .75+(R3_LENGTH*R3_CM*.5)); // create box for chamber 2
    Box_R3XZ2->SetLineColor(7);
    Box_R3XZ2->SetFillStyle(0);
    Box_R3XZ2->Draw();
    Box_R3XZ1->Draw(); // put 1 on top
-   Box_R3XZ3 = new TBox(.5-(R3_DEPTH*R3_CM*.5)+(R3_DIST*R3_CM*.5), .35-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)+(R3_DIST*R3_CM*.5), .35+(R3_LENGTH*R3_CM*.5)); // create box for frame 3
+   Box_R3XZ3 = new TBox(.5-(R3_DEPTH*R3_CM*.5)+(R3_DIST*R3_CM*.5), .35-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)+(R3_DIST*R3_CM*.5), .35+(R3_LENGTH*R3_CM*.5)); // create box for chamber 3
    Box_R3XZ3->SetLineColor(6);
    Box_R3XZ3->SetFillStyle(0);
-   Box_R3XZ4 = new TBox(.5-(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .25-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .25+(R3_LENGTH*R3_CM*.5)); // create box for frame 4
+   Box_R3XZ4 = new TBox(.5-(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .25-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .25+(R3_LENGTH*R3_CM*.5)); // create box for chamber 4
    Box_R3XZ4->SetLineColor(8);
    Box_R3XZ4->SetFillStyle(0);
    Box_R3XZ4->Draw();
    Box_R3XZ3->Draw(); // put 3 on top
-   tR3XZ1 = new TText(.03, .03, "Leia (1)"); // color-coded text for VDC plane labels
+   tR3XZ1 = new TText(.03, .03, "Leia (1)"); // color-coded text for VDC chamber labels
    tR3XZ1->SetTextColor(1);
    tR3XZ1->Draw();
-   tR3XZ2 = new TText(.29, .03, "Vader (2)");
+   tR3XZ2 = new TText(.28, .03, "Vader (2)");
    tR3XZ2->SetTextColor(7);
    tR3XZ2->Draw();
    tR3XZ3 = new TText(.55, .03, "Han (3)");
@@ -612,7 +661,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
 
    //REGION 3--Trigger Scintillator//
 
-   // create tab and container of "Region 4" data
+   // create tab and container of "Region 3" TS data
    fRegion3b = fRegions->AddTab("Region 3--TS");
    fRegion3b->SetLayoutManager(new TGVerticalLayout(fRegion3b));
    fRegion3b->SetLayoutBroken(kTRUE);
@@ -627,7 +676,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegions->GetTabTab("Region 1--GEM")->SetBackgroundColor(ucolor);
    fRegions->GetTabTab("Region 2--HDC")->SetBackgroundColor(ucolor);
    fRegions->GetTabTab("Region 3--VDC")->SetBackgroundColor(ucolor);
-   fRegions->GetTabTab("Region 4--TS")->SetBackgroundColor(ucolor);
+   fRegions->GetTabTab("Region 3--TS")->SetBackgroundColor(ucolor);
 
 
    ////BUTTONS////
@@ -883,19 +932,6 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
 
   GoClear(); // clear existing data
 
-  WireHitListBox->RemoveAll(); // clear event box 2
-  TimingListBox->RemoveAll(); // clear event box 3
-  DriftDistanceListBox->RemoveAll(); // clear event box 4
-
-  Line_R1r.clear(); // clear existing Region 1 drawn lines
-  Line_R1y.clear();
-  R1_XYfit.clear();
-  R1_XZfit.clear();
-  Line_R2x.clear(); // clear existing Region 2 drawn lines
-  Line_R2u.clear();
-  Line_R2v.clear();
-  Line_R3u.clear(); // clear existing Region 3 drawn lines
-  Line_R3v.clear();
 
   //LIST WIRE HITS//
   // extract wire hit information
@@ -916,7 +952,7 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
       sprintf(HitBuffer, "Region %i: Wire %i, Plane %i", fHit->GetRegion(), fHit->GetElement(), fHit->GetPlane()); // print single hit for Region 2
       }
       else if (fHit->GetRegion() == 3){
-      sprintf(HitBuffer, "Region %i: Wire %i, Chamber %i", fHit->GetRegion(), fHit->GetElement(), fHit->GetPlane()); // print single hit for Region 3
+      sprintf(HitBuffer, "Region %i: Wire %i, Plane %i", fHit->GetRegion(), fHit->GetElement(), fHit->GetPlane()); // print single hit for Region 3
       }
       //      else{
       //      }
@@ -1115,7 +1151,7 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
       Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fXShift);
       Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5));
       Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - fXShift);
-      Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (((R2_UVDIST*R2_CM*fWire) + fXShift)*tan( R2_ANGLE*TMath::DegToRad() )));
+      Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (((R2_UVDIST*R2_CM*fWire) + fXShift)*tan(R2_ANGLE*TMath::DegToRad())));
     }
     else if (fWire < 18){  //18th wire begins at (X1, Y1)   // ISSUES HERE
       Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fXShift);
@@ -1166,7 +1202,7 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
       Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fXShift);
       Line.SetY1(.5 + (R2_LENGTH*R2_CM*.5));
       Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - fXShift);
-      Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire*tan( R2_ANGLE*TMath::DegToRad() )));
+      Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire*tan(R2_ANGLE*TMath::DegToRad())));
     }
     else if (fWire < 18){  //184th wire begins at corner (X1, Y2)
       Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fXShift);
@@ -1195,9 +1231,9 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     //    double fDist = fHit->GetDriftDistance();
     TLine Line;
     Line.SetX1(.5 - (R2_WIDTH*R2_CM*.5));
-    Line.SetY1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));// + fDist*.0135); // plane 1
+    Line.SetY1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + (R2_DIST*R2_CM*(fPlane)));
     Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5));
-    Line.SetY2(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));// + fDist*.0135); // removed drift distance addition
+    Line.SetY2(.5 - (R2_DEPTH*R2_CM*.5) - (2*R2_DEPTH*R2_CM) + (R2_DIST*R2_CM*(fPlane)));
     Line.SetLineColor(kRed);
     Line_R2x.push_back(Line); // add Line to end of vector R2x
     Line_R2x.back().Draw(); // draw line;
@@ -1379,7 +1415,7 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
       Line.SetX1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
       Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5));
       Line.SetX2(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
-      Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (((R2_UVDIST*R2_CM*fWire) + fXShift)*tan( R2_ANGLE*TMath::DegToRad() )));
+      Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (((R2_UVDIST*R2_CM*fWire) + fXShift)*tan(R2_ANGLE*TMath::DegToRad())));
     }
     else if (fWire < 18){
       Line.SetX1(.5 - (R2_DEPTH*R2_CM*.5) + (R2_DIST*R2_CM*fPlane));
