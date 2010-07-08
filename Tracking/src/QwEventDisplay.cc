@@ -4,12 +4,12 @@
 ** Author: Derek Jones              **
 ** The George Washington University **
 ** Contact: dwjones8@gwu.edu        **
-\************************************/ 
+\************************************/
 
 
 ////BRIEF////
 
-// GUI macro that displays wire hit, timing, and other information [as requested] for Regions 1-3 of Qweak experiment 
+// GUI macro that displays wire hit, timing, and other information [as requested] for Regions 1-3 of Qweak experiment
 // Includes trigger scintillator information (position and timing)
 // Provides 2D output of orthographic planes in each region for track reconstruction analysis
 
@@ -899,8 +899,8 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
 
   //LIST WIRE HITS//
   // extract wire hit information
-  fEventBuffer->GetEntry(fEventNumber);  // place the current event number into the event buffer
-  fHitList = fEventBuffer->GetHitList();  // add the hit list from the current event buffer
+  fEventBuffer->GetSpecificEvent(fEventNumber);   // place the current event number into the event buffer
+  fHitList = fEventBuffer->GetHitContainer();  // add the hit list from the current event buffer
   fHitList->Print();  // outputs the new wire hit information from the hit list
 
   // create a char string buffer to hold hit information

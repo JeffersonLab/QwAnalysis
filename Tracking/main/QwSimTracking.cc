@@ -66,34 +66,29 @@ static const bool kHisto = true;
 
 int main (int argc, char* argv[])
 {
-  /// First, we set the command line arguments and the configuration filename,
+  /// First, we fill the search paths for the parameter files.
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Tracking/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
+
+  /// We set the command line arguments and the configuration filename,
   /// and we define the options that can be used in them (using QwOptions).
   gQwOptions.SetCommandLine(argc, argv);
-  gQwOptions.SetConfigFile("qwsimtracking.conf");
   // Define the command line options
   DefineOptionsTracking(gQwOptions);
 
-  /// Now we setup the message logging facilities with the requested loglevels.
-  if (gQwOptions.HasValue("QwLog.logfile"))
-    gQwLog.InitLogFile(gQwOptions.GetValue<string>("QwLog.logfile"));
-  gQwLog.SetFileThreshold(QwLog::QwLogLevel(gQwOptions.GetValue<int>("QwLog.loglevel-file")));
-  gQwLog.SetScreenThreshold(QwLog::QwLogLevel(gQwOptions.GetValue<int>("QwLog.loglevel-screen")));
-  gQwLog.SetScreenColor(gQwOptions.GetValue<bool>("QwLog.color"));
-
-  /// We fill the search paths for the parameter files.
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH")+"/setupfiles");
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS")+"/Tracking/prminput");
-
+  ///  Setup screen and file logging
+  gQwLog.ProcessOptions(&gQwOptions);
 
   /// For the tracking analysis we create the QwSubsystemArrayTracking list
   /// which contains the VQwSubsystemTracking objects.
-  QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking("detectors.map");
+  QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking(gQwOptions);
 
   // Get vector with detector info (by region, plane number)
   std::vector< std::vector< QwDetectorInfo > > detector_info;
-  detectors->GetSubsystemByName("R1 GEM")->GetDetectorInfo(detector_info);
-  detectors->GetSubsystemByName("R2 HDC")->GetDetectorInfo(detector_info);
-  detectors->GetSubsystemByName("R3 VDC")->GetDetectorInfo(detector_info);
+  detectors->GetSubsystemByName("R1")->GetDetectorInfo(detector_info);
+  detectors->GetSubsystemByName("R2")->GetDetectorInfo(detector_info);
+  detectors->GetSubsystemByName("R3")->GetDetectorInfo(detector_info);
   detectors->GetSubsystemByName("TS")->GetDetectorInfo(detector_info);
   detectors->GetSubsystemByName("MD")->GetDetectorInfo(detector_info);
   // TODO This is handled incorrectly, it just adds the three package after the
@@ -126,16 +121,13 @@ int main (int argc, char* argv[])
   // Print timer info
   PrintInfo(timer);
 
-  /// We loop over all requested runs.
-  UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
-  UInt_t runnumber_max = (UInt_t) gQwOptions.GetIntValuePairLast("run");
-  for (UInt_t runnumber  = runnumber_min;
-              runnumber <= runnumber_max;
-              runnumber++) {
+  /// Create the event buffer
+  QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer(detector_info);
+  treebuffer->ProcessOptions(gQwOptions);
+  treebuffer->SetEntriesPerEvent(1);
 
-    // Load the simulated event file
-    TString filename = Form(getenv_safe_TString("QWSCRATCH") + "/data/QwSim_%d.root", runnumber);
-    QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (filename, detector_info);
+  ///  Start loop over all runs
+  while (treebuffer->OpenNextFile() == 0) {
 
     // Open ROOT file
     TFile* file = 0;
@@ -144,7 +136,7 @@ int main (int argc, char* argv[])
     QwEvent* event = new QwEvent();
     QwHitRootContainer* roothitlist = new QwHitRootContainer();
     if (kHisto || kTree) {
-      file = new TFile(Form(getenv_safe_TString("QWSCRATCH") + "/rootfiles/QwSim_%d.root", runnumber),
+      file = new TFile(Form(getenv_safe_TString("QWSCRATCH") + "/rootfiles/QwSim_%d.root", treebuffer->GetRunNumber()),
                        "RECREATE",
                        "QWeak ROOT file with simulated event");
       file->cd();
@@ -153,7 +145,6 @@ int main (int argc, char* argv[])
       tree_hits = new TTree("hit_tree", "QwTracking Hit-based Tree");
       tree_hits->Branch("hits", "QwHitRootContainer", &roothitlist);
       tree_events = new TTree("event_tree", "QwTracking Event-based Tree");
-      tree_events->Branch("hits", "QwHitRootContainer", &roothitlist);
       tree_events->Branch("events", "QwEvent", &event);
     }
 
@@ -162,20 +153,11 @@ int main (int argc, char* argv[])
     timer.Start();
 
     /// We loop over all requested events.
-    Int_t events = 0;
-    Int_t entries = treebuffer->GetEntries();
-    Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
-    Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
-    Int_t eventnumber;
-    for (eventnumber  = eventnumber_min;
-         eventnumber <= eventnumber_max &&
-         eventnumber  < entries; eventnumber++) {
+    Int_t nevents = 0;
+    while (treebuffer->GetNextEvent() == 0) {
 
-      /// Read the event from the tree
-      treebuffer->GetEntry(eventnumber);
-
-      /// We get the hit list from the event buffer.
-      QwHitContainer* hitlist = treebuffer->GetHitList();
+      /// Read the hit list from the event buffer
+      QwHitContainer* hitlist = treebuffer->GetHitContainer();
       roothitlist->Convert(hitlist);
 
       // Print hit list
@@ -190,8 +172,8 @@ int main (int argc, char* argv[])
 
 
       // Do something with this event
-      event->GetEventHeader()->SetRunNumber(runnumber);
-      event->GetEventHeader()->SetEventNumber(eventnumber);
+      event->GetEventHeader()->SetRunNumber(treebuffer->GetRunNumber());
+      event->GetEventHeader()->SetEventNumber(treebuffer->GetEventNumber());
       if (kDebug) event->Print();
 
 
@@ -203,7 +185,7 @@ int main (int argc, char* argv[])
 
 
       // Event has been processed
-      events++;
+      nevents++;
 
       // Delete the hit lists and reconstructed event
       delete hitlist;
@@ -212,7 +194,7 @@ int main (int argc, char* argv[])
     } // end of loop over events
 
     QwMessage << "Number of events processed at end of run: "
-              << eventnumber << std::endl;
+              << treebuffer->GetEventNumber() << std::endl;
 
 
     /// Stop timer
@@ -240,13 +222,14 @@ int main (int argc, char* argv[])
       delete file;
     }
 
-    // Delete objects
-   delete treebuffer;
+    // Close input file
+    treebuffer->CloseFile();
 
   } // end of loop over runs
 
 
   // Delete objects
+  delete treebuffer;
   delete detectors;
   delete trackingworker;
 

@@ -766,16 +766,22 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                         QwDebug << "Matching region 3 segments" << QwLog::endl;
                         if (treelinelist1 && treelinelist2) {
+                            treelinelist = TreeMatch->MatchRegion3 (treelinelist1, treelinelist2);
+                            event->treeline[package][region][type][dir] = treelinelist;
+                            event->AddTreeLineList(treelinelist);
+
                             if (fDebug) {
                                 cout << "VDC1:" << endl;
                                 treelinelist1->Print();
                                 cout << "VDC2:" << endl;
                                 treelinelist2->Print();
                             }
-                            treelinelist = TreeMatch->MatchRegion3 (treelinelist1, treelinelist2);
+                            if (fDebug) {
+                                cout << "VDC1+2:" << endl;
+                                treelinelist->Print();
+                            }
+
                         }
-                        event->treeline[package][region][type][dir] = treelinelist;
-                        event->AddTreeLineList(treelinelist);
 
                         tlayers = MAX_LAYERS;  /* remember the number of tree-detector */
                         tlaym1  = tlayers - 1; /* remember tlayers - 1 for convenience */

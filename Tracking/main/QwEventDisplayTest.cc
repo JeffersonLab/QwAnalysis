@@ -98,9 +98,8 @@ int main (int argc, char* argv[])
   // select the right subvectors of detectors.
 
   // Load the simulated event file
-  std::string filename = getenv_safe_string("QWANALYSIS")+"/Tracking/prminput/QweakSim.root";
-  QwTreeEventBuffer *treebuffer = new QwTreeEventBuffer (filename, detector_info);
-  treebuffer->SetDetectorInfo(detector_info);
+  QwTreeEventBuffer *treebuffer = new QwTreeEventBuffer (detector_info);
+  treebuffer->ProcessOptions(gQwOptions);
 
   // Start this application
   TApplication theApp("QwEventDisplay", &argc, argv);

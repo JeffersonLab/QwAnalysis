@@ -90,11 +90,11 @@ class QwTrackingTreeCombine {
 
     void mul_do (int i, int mul, int l, int *r, QwHit *hx[DLAYERS][MAXHITPERLINE], QwHit **ha);
     void weight_lsq (
-		double *slope, double *xshift, double cov[3], double *chi,
-		QwHit **hits, int n, int tlayers);
+		double& slope, double& offset, double cov[3], double& chi,
+		QwHit **hits, int n);
     void weight_lsq_r3 (
-		double *slope, double *xshift, double cov[3], double *chi,
-		QwHit **hits, int n, double z1, int offset, int tlayers);
+		double& slope, double& offset, double cov[3], double& chi,
+		QwHit **hits, int n, double z1, int offset);
 
 
     int selectx (double *xresult, double dist_cut, QwHit *hitarray[], QwHit **ha);

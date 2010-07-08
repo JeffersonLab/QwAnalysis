@@ -107,13 +107,15 @@ int main (int argc, char* argv[])
     QwError << "Could not load magnetic field map!" << QwLog::endl;
 
 
-  // Loop over the runs
-  for (UInt_t runnumber  = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
-              runnumber <= (UInt_t) gQwOptions.GetIntValuePairLast("run");
-              runnumber++) {
+  /// Load the simulated event file
+  QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer(detector_info);
+  treebuffer->ProcessOptions(gQwOptions);
+
+  ///  Start loop over all runs
+  while (treebuffer->OpenNextFile() == 0) {
 
     // Setup the output file for bridgingresults
-    TString outputfilename = Form(getenv_safe_TString("QWSCRATCH") + "/rootfiles/QwSimBridge_%d.root", runnumber);
+    TString outputfilename = Form(getenv_safe_TString("QWSCRATCH") + "/rootfiles/QwSimBridge_%d.root", treebuffer->GetRunNumber());
     TFile *file = new TFile(outputfilename, "RECREATE", "Bridging result");
     file->cd();
     TTree *tree = new TTree("tree", "Bridging");
@@ -123,31 +125,13 @@ int main (int argc, char* argv[])
     QwEvent* event = 0;
     tree->Branch("events", "QwEvent", &event);
 
-    /// Load the simulated event file
-    TString input = Form(getenv_safe_TString("QWSCRATCH") + "/data/QwSim_%d.root", runnumber);
-    QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer (input, detector_info);
-
-
     /// We loop over all requested events.
-    Int_t entries = treebuffer->GetEntries();
-    Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
-    Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
-    if (eventnumber_max > entries) eventnumber_max = entries;
-    for (Int_t eventnumber  = eventnumber_min;
-               eventnumber <= eventnumber_max;
-               eventnumber++) {
-
-      /// Print event number
-      QwMessage << "Event " << eventnumber << QwLog::endl;
-
-      /// Read the entry from the tree
-      treebuffer->GetEntry(eventnumber);
-
+    while (treebuffer->GetNextEvent() == 0) {
 
       /// Get the generated event
       event = treebuffer->GetEvent();
-      event->GetEventHeader()->SetRunNumber(runnumber);
-      event->GetEventHeader()->SetEventNumber(eventnumber);
+      event->GetEventHeader()->SetRunNumber(treebuffer->GetRunNumber());
+      event->GetEventHeader()->SetEventNumber(treebuffer->GetEventNumber());
 
       /// Get the partial tracks in the front and back region
       std::vector<QwPartialTrack*> tracks_r2 = treebuffer->GetPartialTracks(kRegionID2);
@@ -198,13 +182,6 @@ int main (int argc, char* argv[])
       // Write event to tree
       tree->Fill();
 
-
-      // Progress message
-      if (eventnumber > 0 && eventnumber % 100 == 0) {
-        tree->AutoSave();
-        gDirectory->Purge();
-        QwMessage << "Processed " << eventnumber << " events" << QwLog::endl;
-      }
 
     } // end of the loop over events
 

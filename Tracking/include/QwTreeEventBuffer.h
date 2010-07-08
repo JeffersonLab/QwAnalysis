@@ -24,6 +24,7 @@ using std::vector;
 
 // Qweak headers
 #include "QwTypes.h"
+#include "QwOptions.h"
 
 // Definition of the reference detectors (## is concatenation)
 #define REGION1_DETECTOR(var) fRegion1_ChamberFront_WirePlane_ ## var
@@ -34,6 +35,7 @@ using std::vector;
 class QwDetectorInfo;
 class QwHit;
 class QwHitContainer;
+class QwTrackingTreeLine;
 class QwPartialTrack;
 class QwTrack;
 class QwEvent;
@@ -54,25 +56,55 @@ class QwTreeEventBuffer
   public:
 
     /// \brief Constructor with file name and spectrometer geometry
-    QwTreeEventBuffer(const TString filename,
-                      vector <vector <QwDetectorInfo> > & detector_info);
+    QwTreeEventBuffer(vector <vector <QwDetectorInfo> > & detector_info);
     /// \brief Destructor
     virtual ~QwTreeEventBuffer();
 
-    /// \brief Read the specified entry from the tree
-    void GetEntry(const unsigned int eventnumber);
+    /// \brief Process the options contained in the QwOptions object
+    void ProcessOptions(QwOptions &options);
+
+    /// Set the number of entries per event
+    void SetEntriesPerEvent(const unsigned int n) {
+      fEntriesPerEvent = n;
+      fNumberOfEvents = fNumberOfEntries / fEntriesPerEvent;
+    };
+    /// Get the number of entries per event
+    unsigned int GetEntriesPerEvent() const { return fEntriesPerEvent; };
+    /// Get the number of events in the run
+    unsigned int GetNumberOfEvents() const { return fNumberOfEvents; };
+
+    /// Get the current run number
+    unsigned int GetRunNumber() const { return fCurrentRun; };
+    /// Get the current event number
+    unsigned int GetEventNumber() const { return fCurrentEvent; };
+
+
+    /// \brief Open the next event file
+    unsigned int OpenNextFile();
+    /// \brief Open the event file
+    unsigned int OpenFile();
+    /// \brief Close the event file
+    unsigned int CloseFile();
+
+    /// \brief Read the next event
+    unsigned int GetNextEvent();
+    /// \brief Read the specified event
+    unsigned int GetSpecificEvent(const int eventnumber);
+
 
     /// \brief Get the full event
-    QwEvent* GetEvent() const;
+    QwEvent* GetEvent() const { return fEvent; };
 
     /// \brief Get the hit list
-    QwHitContainer* GetHitList(const bool resolution_effects = true) const;
+    QwHitContainer* GetHitContainer() const;
+
+    /// \brief Get the tree lines
+    std::vector<QwTrackingTreeLine*> GetTreeLines(EQwRegionID region) const;
 
     /// \brief Get the partial tracks
     std::vector<QwPartialTrack*> GetPartialTracks(EQwRegionID region) const;
 
-    /// Get the number of entries in the loaded run
-    const int GetEntries() const { return fEntries; };
+
 
     /// Set the spectrometer geometry
     void SetDetectorInfo (vector <vector <QwDetectorInfo> > & detector_info) {
@@ -87,12 +119,37 @@ class QwTreeEventBuffer
 
     TFile* fFile;	///< ROOT file
     TTree* fTree;	///< ROOT tree
-    Int_t fEntries;	///< Number of entries in the tree
 
-    UInt_t fEventNumber;	///< Current event number
+    int fCurrentRun;		///< Current run number
+    int fCurrentEntry;		///< Current entry number
+    int fCurrentEvent;		///< Current event number
+
+    int fNumberOfEntries;	///< Number of entries in the tree
+    int fNumberOfEvents;	///< Number of events in the tree (after combining entries)
+    int fEntriesPerEvent;	///< Number of entries to combine for each event
+
+    std::pair<int, int> fRunRange;	///< Requested run range
+    std::pair<int, int> fEventRange;	///< Requested event range
+
+    /// Get the number of entries in the loaded run
+    void SetNumberOfEntries(const unsigned int n) {
+      fNumberOfEntries = n;
+      fNumberOfEvents = fNumberOfEntries / fEntriesPerEvent;
+    };
+    /// Get the number of entries in the loaded run
+    const unsigned int GetNumberOfEntries() const { return fNumberOfEntries; };
+
+    /// \brief Read the specified entry from the tree
+    void GetEntry(const unsigned int entry);
+
+
+    /// The current event
+    QwEvent* fEvent;
+
 
     /// List of detector info objects (geometry information)
     vector <vector <QwDetectorInfo> > fDetectorInfo;
+
 
     /// \name Branch management functions
     // @{
@@ -101,16 +158,37 @@ class QwTreeEventBuffer
     void AttachBranches();	///< Attache the branch vectors
     // @}
 
+
     /// \name Create hit at from the track position (x,y) and track momentum (mx,my)
     // @{
+
+    /// \brief Create the hit list for this entry
+    QwHitContainer* CreateHitList(const bool resolution_effects = true) const;
+
     /// \brief Create a set of hits for one track in region 1
-    std::vector<QwHit> CreateHitRegion1(const QwDetectorInfo* detectorinfo, const double x, const double y, const bool resolution_effects) const;
+    std::vector<QwHit> CreateHitRegion1(
+      const QwDetectorInfo* detectorinfo,
+      const double x, const double y,
+      const bool resolution_effects) const;
+
     /// \brief Create a hit for one track in region 2
-    QwHit* CreateHitRegion2(const QwDetectorInfo* detectorinfo, const double x, const double y, const bool resolution_effects) const;
+    QwHit* CreateHitRegion2(
+      const QwDetectorInfo* detectorinfo,
+      const double x, const double y,
+      const bool resolution_effects) const;
+
     /// \brief Create a set of hits for one track in region 3
-    std::vector<QwHit> CreateHitRegion3(const QwDetectorInfo* detectorinfo, const double x, const double y, const double mx, const double my, const bool resolution_effects) const;
+    std::vector<QwHit> CreateHitRegion3(
+      const QwDetectorInfo* detectorinfo,
+      const double x, const double y,
+      const double mx, const double my,
+      const bool resolution_effects) const;
+
     /// \brief Create a pair of hits for one track in the cerenkov or trigger scintillator
-    std::vector<QwHit> CreateHitCerenkov(const QwDetectorInfo* detectorinfo, const double x, const double y) const;
+    std::vector<QwHit> CreateHitCerenkov(
+      const QwDetectorInfo* detectorinfo,
+      const double x, const double y) const;
+
     // @}
 
 
