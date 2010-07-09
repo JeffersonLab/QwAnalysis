@@ -125,7 +125,10 @@ class QwTriggerScintillator: public VQwSubsystemTracking {
   std::vector<QwSIS3801_Module*> fSCAs;
 
   std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
-
+  
+  // List of histograms
+  TH1F *TS_1LminusR;
+  TH1F *TS_2LminusR;
 
 };
 

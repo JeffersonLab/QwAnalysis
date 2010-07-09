@@ -168,11 +168,9 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
           channum   = (atol(mapstr.GetNextToken(", ").c_str()));
           dettype   = mapstr.GetNextToken(", ").c_str();
           name      = mapstr.GetNextToken(", ").c_str();
-
-
+   
         //  Push a new record into the element array
         if (modtype=="SIS3801") {
-          //std::cout<<"modnum="<<modnum<<"    "<<"fSCAs.size="<<fSCAs.size()<<std::endl;
           if (modnum >= (Int_t) fSCAs.size())  fSCAs.resize(modnum+1);
           if (! fSCAs.at(modnum)) fSCAs.at(modnum) = new QwSIS3801_Module();
           fSCAs.at(modnum)->SetChannel(channum, name);
@@ -183,18 +181,13 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
               //  We've seen this channel
             } else if (FindSignalIndex(fCurrentType, name)>=0) {
                 //  We've seen this signal
-              }
-            else {
+            } else {
               //  If not, push a new record into the element array
-              if (modtype=="V792") std::cout<<"V792: ";
-              else if (modtype=="V775") std::cout<<"V775: ";
-              else if (modtype=="F1TDC") std::cout<<"F1TDC: ";
               LinkChannelToSignal(channum, name);
             }
-          } else {
-              std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str()
-              << std::endl;
-            }
+        } else {
+            std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str() << std::endl;
+        }
       }
   }  
   return 0;
@@ -223,8 +216,7 @@ Int_t QwTriggerScintillator::ProcessConfigurationBuffer(const UInt_t roc_id, con
 
 
 
-Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
-{
+Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) {
   Int_t index = 0;
 
   index = GetSubbankIndex(roc_id,bank_id);
@@ -263,7 +255,7 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 		    << "; fModulePtrs.at(modindex).at(chan).second {signal index}=="
 		    << fModulePtrs.at(modindex).at(chan).second
 		    << std::endl;
-	}
+	  }
         }
       }
     }
@@ -285,7 +277,7 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
   else if (bank_id==fBankID[2]) { // F1TDC
     if (index>=0 && num_words>0) {
       SetDataLoaded(kTRUE);
-      if (fDEBUG) std::cout << "QwScanner::ProcessEvBuffer:  "
+      if (fDEBUG) std::cout << "QwTriggerScintillator::ProcessEvBuffer:  "
 			    << "Begin processing F1TDC Bank "<<bank_id<< std::endl;
       
       Int_t tdc_slot_number = 0;
@@ -296,47 +288,42 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
       
       data_integrity_flag = fF1TDC.CheckDataIntegrity(roc_id, buffer, num_words);
       
-      if (data_integrity_flag) 
-	{//;
-	  for (UInt_t i=0; i<num_words ; i++)
-	    {
-	      fF1TDC.DecodeTDCWord(buffer[i], roc_id);
+      if (data_integrity_flag) {
+        for (UInt_t i=0; i<num_words ; i++) {
+          fF1TDC.DecodeTDCWord(buffer[i], roc_id);
+	  tdc_slot_number = fF1TDC.GetTDCSlotNumber();
+	  tdc_chan_number = fF1TDC.GetTDCChannelNumber();
 	      
-	      tdc_slot_number = fF1TDC.GetTDCSlotNumber();
-	      tdc_chan_number = fF1TDC.GetTDCChannelNumber();
+	  if ( tdc_slot_number == 31) {
+            //  This is a custom word which is not defined in
+            //  the F1TDC, so we can use it as a marker for
+            //  other data; it may be useful for something.
+          }
 	      
-	      if ( tdc_slot_number == 31) {
-		//  This is a custom word which is not defined in
-		//  the F1TDC, so we can use it as a marker for
-		//  other data; it may be useful for something.
-	      }
+	  // Each subsystem has its own interesting slot(s), thus
+	  // here, if this slot isn't in its slot(s) (subsystem map file)
+	  // we skip this buffer to do the further process
+          if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
 	      
-	      // Each subsystem has its own interesting slot(s), thus
-	      // here, if this slot isn't in its slot(s) (subsystem map file)
-	      // we skip this buffer to do the further process
-	      if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
-	      
-	      if ( fF1TDC.IsValidDataword() ) 
-		{
-		  try {
-		    FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());
-		    fF1TDC.PrintTDCData(temp_print_flag);
-		  }
-		  catch (std::exception& e) {
-		    std::cerr << "Standard exception from QwTriggerScintillator::FillRawWord: "
-			      << e.what() << std::endl;
-		    std::cerr << "   Parameters:  index=="  <<index
-			      << "; GetF1SlotNumber()=="    << tdc_slot_number
-			      << "; GetF1ChannelNumber()==" <<tdc_chan_number
-			      << "; GetF1Data()=="          <<fF1TDC.GetTDCData()
-			      << std::endl;
-		  }
-		}
-	    }
-	}//; if(data_integrity_flag)
+          if ( fF1TDC.IsValidDataword() ) {
+            try {
+              FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());
+              fF1TDC.PrintTDCData(temp_print_flag);
+            }
+            catch (std::exception& e) {
+              std::cerr << "Standard exception from QwTriggerScintillator::FillRawWord: "
+                        << e.what() << std::endl;
+              std::cerr << "   Parameters:  index=="  <<index
+                        << "; GetF1SlotNumber()=="    << tdc_slot_number
+                        << "; GetF1ChannelNumber()==" <<tdc_chan_number
+                        << "; GetF1Data()=="          <<fF1TDC.GetTDCData()
+                        << std::endl;
+            }
+          }
+        }
+      }
     } 
-  } //if (bank_id==fBankID[2])
-
+  }
   return 0;
 };
 
@@ -347,6 +334,16 @@ void  QwTriggerScintillator::ProcessEvent(){
 
 
 void  QwTriggerScintillator::ConstructHistograms(TDirectory *folder, TString &prefix){
+
+  // Create desired histrograms
+  TS_1LminusR = new TH1F("TS_1LminusR_tdc","TS 1 Left-Right TDC", 1000, -500, 500);
+  TS_1LminusR->GetXaxis()->SetTitle("TDC");
+  TS_1LminusR->GetYaxis()->SetTitle("Events");
+
+  TS_2LminusR = new TH1F("TS_2LminusR_tdc","TS 2 Left-Right TDC", 1000, -500, 500);
+  TS_2LminusR->GetXaxis()->SetTitle("TDC");
+  TS_2LminusR->GetYaxis()->SetTitle("Events");
+
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).ConstructHistograms(folder, prefix);
@@ -361,6 +358,10 @@ void  QwTriggerScintillator::FillHistograms(){
       fPMTs.at(i).at(j).FillHistograms();
     }
   }
+
+  TS_1LminusR->Fill(fPMTs.at(2).at(1).GetValue()-fPMTs.at(2).at(0).GetValue());
+  TS_2LminusR->Fill(fPMTs.at(2).at(3).GetValue()-fPMTs.at(2).at(2).GetValue());
+
 };
 
 void  QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Double_t> &values)
