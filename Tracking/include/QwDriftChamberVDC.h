@@ -50,8 +50,8 @@ class QwDriftChamberVDC: public QwDriftChamber {
   Int_t LoadGeometryDefinition(TString mapfile );
 
   Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector){
-    Double_t angle = 45.0; // unit?
-    return CalculateDriftDistance(drifttime,detector,angle);
+    Double_t angle_degree = 45.0; 
+    return CalculateDriftDistance(drifttime,detector,angle_degree);
   }
 
  protected:
