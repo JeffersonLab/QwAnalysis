@@ -58,7 +58,7 @@ static const bool kHisto = kTRUE;
 static const bool kUseTDCHits = kFALSE;
 
 // Branching flags for subsystems
-static const bool kMainDetBranch = kFALSE;
+static const bool kMainDetBranch = kTRUE;
 static const bool kScannerBranch = kFALSE;
 static const bool kRasterBranch  = kFALSE;
 
