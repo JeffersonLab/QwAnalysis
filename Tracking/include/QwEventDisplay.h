@@ -225,13 +225,27 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
   RQ_OBJECT("QwEventDisplay")
 
   UInt_t fEventNumber; // keeps track of the current event number on display
-  //  TLine Line; // used for vector drawing
 
  private:  // Frames
   TGMainFrame *fMain; // mainframe window
 
   TGHorizontalFrame *fEventBoxes; // event box frame
   TGTab *fRegions; // tab frame for region data
+  TGTextButton *ExitButton;
+
+  // Menu bar
+  TGMenuBar *fMenuBar;
+  TGPopupMenu *fMenuFile, *fMenuHelp;
+  TGLayoutHints *fMenuBarItemLayout, *fMenuBarHelpLayout;
+  enum MenuCommandIdentifiers {
+    M_FILE_OPENRUN,
+    M_FILE_OPENSIM,
+    M_FILE_PRINTSCREEN,
+    M_FILE_EXIT,
+    
+    M_HELP_TUTORIAL,
+    M_HELP_ABOUT
+  };
 
   // Event Box 1 declarations
   TGVerticalFrame *fEventBox1, *fEventCounter;
@@ -249,9 +263,9 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
   //Event Box 4 delcarations
   TGListBox *DriftDistanceListBox;
 
-  UInt_t sum; // sum of wire numbers
-  double num; // number of wire hits
-  double fit; // average wire number
+  //  UInt_t sum; // sum of wire numbers  NOT USED FOR NOW
+  //  double num; // number of wire hits
+  //  double fit; // average wire number
 
   //Region 1 (GEM) declarations
   TGCompositeFrame *fRegion1;
@@ -288,7 +302,7 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
   std::vector<TLine> Line_R3v;
 
   //Region 3 (TS) declarations
-  TGCompositeFrame *fRegion3b;
+  TGCompositeFrame *fRegion3TS;
 
   // create event buffer
   QwTreeEventBuffer* fEventBuffer; //!      // excluded from dictionary
@@ -304,6 +318,7 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
   void SetEventBuffer(QwTreeEventBuffer *eventbuffer) { fEventBuffer = eventbuffer; };
   void SetSubsystemArray(QwSubsystemArrayTracking *subsystemarray) { fSubsystemArray = subsystemarray; };
 
+  void HandleMenu(Int_t id);
   void GoPrevious();
   void GoNext();
   void GoClear();
