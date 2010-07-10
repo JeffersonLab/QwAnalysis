@@ -8,13 +8,13 @@
 ROC=4
 !
 ! QADC/TDC bank
-QDC_Bank=0x0402
+Bank=0x0402
 !
 !
-slot=1
+slot=2
 ! module.type  module.num  chan.num, det.type, det.name
-  V792, 1, 21, raster_qadc, posx_adc
-  V792, 1, 23, raster_qadc, posy_adc
+  V792, 1, 0, raster_qadc, posx_adc
+  V792, 1, 1, raster_qadc, posy_adc
 !
 !
 !The following map is defined for measuring raster position using VQWK in parity mode

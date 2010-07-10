@@ -60,7 +60,7 @@ static const bool kUseTDCHits = kFALSE;
 // Branching flags for subsystems
 static const bool kMainDetBranch = kTRUE;
 static const bool kScannerBranch = kFALSE;
-static const bool kRasterBranch  = kFALSE;
+static const bool kRasterBranch  = kTRUE;
 
 // Main function
 Int_t main(Int_t argc, Char_t* argv[])

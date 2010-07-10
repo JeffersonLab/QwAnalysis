@@ -13,7 +13,7 @@
 QwSubsystemFactory<QwRaster> theRasterFactory("QwRaster");
 
 extern QwHistogramHelper gQwHists;
-const Bool_t QwRaster::bStoreRawData = kFALSE;
+const Bool_t QwRaster::bStoreRawData = kTRUE;
 const UInt_t QwRaster::kMaxNumberOfModulesPerROC     = 21;
 const UInt_t QwRaster::kMaxNumberOfChannelsPerModule = 32;
 
@@ -86,6 +86,8 @@ Int_t QwRaster::LoadChannelMap(TString mapfile)
             if (modtype=="V792")
             {
                 RegisterModuleType(modtype);
+                fBankID[0] = fCurrentBank_ID;
+
                 //  Check to see if we've encountered this channel or name yet
                 if (fModulePtrs.at(fCurrentIndex).at(channum).first>=0)
                 {
@@ -310,7 +312,6 @@ Int_t QwRaster::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_
                 << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
                 <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"<< std::endl;
 
-
             if (fDEBUG)
                 std::cout<<"QwRaster::ProcessEvBuffer (trig) Data: \n";
 
@@ -516,8 +517,6 @@ void  QwRaster::ConstructBranchAndVector(TTree *tree, TString &prefix)
 {
 
     TString basename;
-
-
     if (prefix=="") basename = "raster";
     else basename = prefix;
 
