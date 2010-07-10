@@ -1287,7 +1287,7 @@ Int_t RSDataWindow::DrawData(const TH1D& h1d, Bool_t add)
 
   if(Add){
     for(int i = 0; i < cnt; i++){
-      chst[i] = (TH1D*)dPlotCont->GetHistogram(dPlotCont->Get1DHistoCount()-1,"TH1D");
+      chst[i] = (TH1D*)dPlotCont->GetHistogram(i,"TH1D");
     }
     dPlotCont->RemovePlot(chst[0]);
   }
@@ -1353,7 +1353,6 @@ Int_t RSDataWindow::DrawData(const TH1D& h1d, Bool_t add)
 	if(cymax > dMax[1]) dMax[1] = cymax;
       }
     }
-    printf("Line 1356\n");
 
     cmin = chst[0]->GetXaxis()->GetXmin();
     cmax = chst[0]->GetXaxis()->GetXmax();
@@ -1364,24 +1363,21 @@ Int_t RSDataWindow::DrawData(const TH1D& h1d, Bool_t add)
     for(int n = 0; n < chst[0]->GetNbinsX(); n++){
 	tmp->AddBinContent(tmp->FindBin(chst[0]->GetBinCenter(n)),chst[0]->GetBinContent(n));
     }    
-    printf("Line 1367\n");
-    tmp->SetLineColor(dPlotCont->GetNewLineColor(kRed));
+//     tmp->SetLineColor(dPlotCont->GetNewLineColor(kRed));
     tmp->GetYaxis()->SetRangeUser(dMin[1]+0.1,dMax[1]);
     tmp->Draw();
     delete chst[0];
 
     for(int i = 1; i < cnt; i++){
       if(chst[i]){
-// 	chst[i]->SetLineColor(dPlotCont->GetNewLineColor(kRed));
+	chst[i]->SetLineColor(dPlotCont->GetNewLineColor(0));
 	chst[i]->Draw("SAME");
       }
     }    
 
     TString opts = dDrawOptions;
     if(!opts.Contains("SAME")){strcat(dDrawOptions,"SAME");}
-    hist->SetLineColor(dPlotCont->GetNewLineColor(kRed));
-    printf("Line 1383\n");
-
+    hist->SetLineColor(dPlotCont->GetNewLineColor(0));
     hist->Draw(dDrawOptions);
     SetDrawOptions();
     gPad->RedrawAxis();      

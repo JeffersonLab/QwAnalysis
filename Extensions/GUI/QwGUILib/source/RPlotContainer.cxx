@@ -161,6 +161,7 @@ Int_t RPlotContainer::GetNewLineColor(Color_t col)
     if(obj){
       if(obj->InheritsFrom("TH1")) objcol = ((TH1*)obj)->GetLineColor();
       else if(obj->InheritsFrom("TGraph")) objcol = ((TGraph*)obj)->GetLineColor();
+      printf("Object Line Color = %d\n",objcol);
     }
     if(objcol == col) flag = 0;
     if(objcol < 10)
