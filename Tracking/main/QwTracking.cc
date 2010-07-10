@@ -315,12 +315,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     // Print summary information
     QwMessage << "Total number of events processed: " << nevents << QwLog::endl;
-    if (trackingworker) {
-      QwMessage << "Number of good partial tracks: "
-                << trackingworker->ngood << QwLog::endl;
-    } else {
-      QwError << "trackingworker object deleted, that's a nasty bug" << QwLog::endl;
-    }
+    QwMessage << "Number of good partial tracks: "
+              << trackingworker->ngood << QwLog::endl;
 
     timer.Stop();
 
