@@ -263,6 +263,7 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
   
   else if (bank_id==fBankID[1]) { // SIS Scalar
     if (index>=0 && num_words>0) {
+       SetDataLoaded(kTRUE);
       UInt_t words_read = 0;
       for (size_t i=0; i<fSCAs.size(); i++) {
         words_read++; // skip header word

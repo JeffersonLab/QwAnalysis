@@ -292,7 +292,7 @@ Int_t QwMainDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt
 Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   Int_t index = GetSubbankIndex(roc_id,bank_id);
-  SetDataLoaded(kTRUE);
+ 
 
   //This is a QDC bank
   if (bank_id == fBankID[0])
@@ -306,6 +306,7 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 
       if (index>=0 && num_words>0)
         {
+	  SetDataLoaded(kTRUE);
           //  We want to process this ROC.  Begin looping through the data.
           for (size_t i=0; i<num_words ; i++)
             {
@@ -360,6 +361,7 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
     {
       if (index>=0 && num_words>0)
         {
+	  SetDataLoaded(kTRUE);
           if (fDEBUG) std::cout << "QwScanner::ProcessEvBuffer:  "
             << "Begin processing F1TDC Bank "<<bank_id<< std::endl;
 
@@ -420,6 +422,7 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 
       if (index>=0 && num_words>0)
         {
+	  SetDataLoaded(kTRUE);
           UInt_t words_read = 0;
           for (size_t i=0; i<fSCAs.size(); i++)
             {
