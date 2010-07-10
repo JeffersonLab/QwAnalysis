@@ -13,8 +13,7 @@
 #include "QwLog.h"
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwMainCerenkovDetector>
-  theMainCerenkovDetectorFactory("QwMainCerenkovDetector");
+#pragma require QwSubsystemFactory
 
 /**
  * Defines configuration options for QwEventBuffer class using QwOptions

@@ -35,6 +35,8 @@
 #include "QwTreeEventBuffer.h"
 #include "QwEventBuffer.h"
 
+#include "ManualFactory.h"
+
 // Qweak event display header
 #include "QwEventDisplay.h"
 

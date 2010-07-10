@@ -10,7 +10,7 @@
 #include "QwScanner.h"
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwScanner> theScannerFactory("QwScanner");
+#pragma require QwSubsystemFactory
 
 extern QwHistogramHelper gQwHists;
 const Bool_t QwScanner::bStoreRawData = kTRUE;

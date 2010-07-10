@@ -15,7 +15,7 @@
 
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwDriftChamberHDC> theDriftChamberHDCFactory("QwDriftChamberHDC");
+#pragma require QwSubsystemFactory
 
 
 QwDriftChamberHDC::QwDriftChamberHDC(TString region_tmp):VQwSubsystem(region_tmp),

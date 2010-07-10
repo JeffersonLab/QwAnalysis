@@ -18,7 +18,7 @@
 #include "QwLog.h"
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwBeamLine> theBeamLineFactory("QwBeamLine");
+#pragma require QwSubsystemFactory
 
 //*****************************************************************
 void QwBeamLine::ProcessOptions(QwOptions &options){

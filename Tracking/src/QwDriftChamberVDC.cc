@@ -25,7 +25,7 @@ const UInt_t QwDriftChamberVDC::kBackPlaneNum=16;
 const UInt_t QwDriftChamberVDC::kLineNum=8;
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwDriftChamberVDC> theDriftChamberVDCFactory("QwDriftChamberVDC");
+#pragma require QwSubsystemFactory
 
 QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ):
   VQwSubsystem ( region_tmp ), QwDriftChamber ( region_tmp,fWireHitsVDC )

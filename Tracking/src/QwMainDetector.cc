@@ -24,7 +24,7 @@ const UInt_t QwMainDetector::kMaxNumberOfChannelsPerModule = 32;
 
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwMainDetector> theMainDetectorFactory("QwMainDetector");
+#pragma require QwSubsystemFactory
 
 QwMainDetector::QwMainDetector(TString region_tmp):VQwSubsystem(region_tmp),
     VQwSubsystemTracking(region_tmp)

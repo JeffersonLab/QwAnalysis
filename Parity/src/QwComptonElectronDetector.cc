@@ -25,8 +25,7 @@
 
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwComptonElectronDetector>
-  theComptonElectronDetectorFactory("QwComptonElectronDetector");
+#pragma require QwSubsystemFactory
 
 
 //*****************************************************************

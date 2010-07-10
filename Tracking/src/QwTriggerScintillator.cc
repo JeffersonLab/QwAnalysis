@@ -15,8 +15,7 @@ const UInt_t QwTriggerScintillator::kMaxNumberOfChannelsPerModule = 32;
 
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwTriggerScintillator>
-  theTriggerScintillatorFactory("QwTriggerScintillator");
+#pragma require QwSubsystemFactory
 
 
 QwTriggerScintillator::QwTriggerScintillator(TString region_tmp):VQwSubsystem(region_tmp),

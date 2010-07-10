@@ -11,7 +11,7 @@
 #include <iostream>
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwLumi> theLumiFactory("QwLumi");
+#pragma require QwSubsystemFactory
 
 //*****************************************************************
 void QwLumi::ProcessOptions(QwOptions &options){

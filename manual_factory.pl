@@ -16,13 +16,13 @@ my $comment = <<EOF;
 ## main().  However, if the execution path to this code isn't
 ## determined until runtime, the MacOS dynamic library loader may
 ## optimize the library load away completely.  One way to avoid this
-## is to declare theFooFactory as a global variable in the same scope
-## as main(), with "extern" linkage.  This should have no effect on
-## load times etc. on Linux where those constructors are already called.
+## is to declare theFooFactory instead as a global variable in the
+## same scope as main().  This should have no effect on load times
+## etc. on Linux where those constructors are already called.
 ##
 ## This script finds all the "theFooFactory" declarations following
-## this pattern, and puts appropriate extern declarations in a header
-## file. 
+## this pattern, and puts appropriate declarations in a header file
+## which can be included in the same scope as main().
 ##
 ## This solution breaks the noble principle of "declare exactly once,"
 ## but on the other hand it shifts the work of identifying uses of 
@@ -52,15 +52,13 @@ unless ( -d dirname $target ) {
 chomp(my @filelist = qx[find $ENV{QWANALYSIS} -name \\*.cc]);
 my %need;
 FILE: foreach my $file (@filelist) {
-  local $/ = ";" ;			# split on c++ lines
   open FH, $file
     or warn "can't open '$file' for reading: $!";
   while (my $line = <FH>) {
     $line =~ s/\s+//g;			# remove whitespaces
-    if ($line =~ /QwSubsystemFactory<((Qw)*\w*)> (\w*)\("\1"\);$/x) {
-      my $type = $1; 
-      my $instance = $3; 
-      $need{$type} = $instance;
+    if ($line =~ /^\#pragma require QwSubsystemFactory/x) {
+      my $type = basename($file, ".cc");
+      $need{$type} = "the${type}Factory";
       unless ($type eq basename($file, ".cc")) {
 	warn "name mismatch: factory type '$type' defined in file '$file'\n";
       }
@@ -86,7 +84,7 @@ EOF
 
 print $OUT qq[#include "$_.h"\n] foreach keys %need;
 print $OUT "\n"; 
-print $OUT qq[extern QwSubsystemFactory<$_> $need{$_};\n] foreach keys %need;
+print $OUT qq[QwSubsystemFactory<$_> $need{$_}("$_");\n] foreach keys %need;
 print $OUT "\n"; 
 
 print $OUT "#endif // __MANUAL_FACTORY__\n"; 

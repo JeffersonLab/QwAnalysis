@@ -9,7 +9,7 @@
 
 #include "QwFakeHelicity.h"
 
-QwSubsystemFactory<QwFakeHelicity> theQwFakeHelicityFactory("QwFakeHelicity");
+#pragma require QwSubsystemFactory
 
 
  Bool_t QwFakeHelicity::IsGoodHelicity()

@@ -12,8 +12,7 @@
 #include "QwParameterFile.h"
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwGasElectronMultiplier>
-  theGasElectronMultiplierFactory("QwGasElectronMultiplier");
+#pragma require QwSubsystemFactory
 
 
 QwGasElectronMultiplier::QwGasElectronMultiplier(TString region_tmp):VQwSubsystem(region_tmp),

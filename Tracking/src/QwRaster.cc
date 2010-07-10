@@ -10,7 +10,7 @@
 #include "QwRaster.h"
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwRaster> theRasterFactory("QwRaster");
+#pragma require QwSubsystemFactory
 
 extern QwHistogramHelper gQwHists;
 const Bool_t QwRaster::bStoreRawData = kFALSE;
