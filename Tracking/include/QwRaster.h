@@ -105,20 +105,17 @@ class QwRaster: public VQwSubsystemTracking
 
   Int_t GetEventcutErrorFlag() { return 0; };//return the error flag to the main routine
 
-  // scanner specified histograms
+  // raster specified histograms
   std::vector<TH1*> fHistograms1D;
   std::vector<TH2*> fHistograms2D;
-  TProfile2D* fRateMap;
-
- private:
-  Double_t get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalidity);
+  TH2D* fRateMap;
 
  private:
 
   static const Bool_t bStoreRawData;
 
-  Double_t fHomePositionX;
-  Double_t fHomePositionY;
+  Double_t fPositionOffsetX;
+  Double_t fPositionOffsetY;
   Double_t fChannel_Offset_X;
   Double_t fChannel_Offset_Y;
 

@@ -141,13 +141,13 @@ Int_t QwRaster::LoadInputParameters(TString parameterfile)
         {
             varname.ToLower();
             Double_t value = atof(varvalue.Data());
-           if (varname=="homepositionx")
+           if (varname=="position_offset_x")
             {
-                fHomePositionX = value;
+                fPositionOffsetX = value;
             }
-            else if (varname=="homepositiony")
+            else if (varname=="position_offset_y")
             {
-                fHomePositionY = value;
+                fPositionOffsetY = value;
             }
             else if (varname=="cal_factor_vqwk_x")
             {
@@ -400,12 +400,12 @@ void  QwRaster::ProcessEvent()
             if (element_name==TString("posx_adc"))
             {
                 fPositionX_ADC = fPMTs.at(i).at(j).GetValue();
-                fPositionX_ADC = (fPositionX_ADC-fChannel_Offset_X)*fCal_Factor_QDC_X + fHomePositionX;
+                fPositionX_ADC = (fPositionX_ADC-fChannel_Offset_X)*fCal_Factor_QDC_X + fPositionOffsetX;
             }
             else if (element_name==TString("posy_adc"))
             {
                 fPositionY_ADC = fPMTs.at(i).at(j).GetValue();
-                fPositionY_ADC = (fPositionY_ADC-fChannel_Offset_Y)*fCal_Factor_QDC_Y + fHomePositionY;
+                fPositionY_ADC = (fPositionY_ADC-fChannel_Offset_Y)*fCal_Factor_QDC_Y + fPositionOffsetY;
             }
         }
     }
@@ -416,10 +416,10 @@ void  QwRaster::ProcessEvent()
         if (fADC_Data.at(i) != NULL)
         {
             fPositionX_VQWK = fADC_Data.at(i)->GetChannel(TString("posx_vqwk"))->GetAverageVolts();
-            fPositionX_VQWK = (fPositionX_VQWK-fVoltage_Offset_X)*fCal_Factor_VQWK_X + fHomePositionX;
+            fPositionX_VQWK = (fPositionX_VQWK-fVoltage_Offset_X)*fCal_Factor_VQWK_X + fPositionOffsetX;
 
             fPositionY_VQWK = fADC_Data.at(i)->GetChannel(TString("posy_vqwk"))->GetAverageVolts();
-            fPositionY_VQWK = (fPositionY_VQWK-fVoltage_Offset_Y)*fCal_Factor_VQWK_Y + fHomePositionY;
+            fPositionY_VQWK = (fPositionY_VQWK-fVoltage_Offset_Y)*fCal_Factor_VQWK_Y + fPositionOffsetY;
         }
     }
 
@@ -450,20 +450,15 @@ void  QwRaster::ConstructHistograms(TDirectory *folder, TString &prefix)
                 for (size_t j=0; j<fPMTs.at(i).size(); j++)
                     fPMTs.at(i).at(j).ConstructHistograms(folder, basename);
             }
-
         }
 
-        //fHistograms1D.push_back( gQwHists.Construct1DHist(TString("raster_vqwk_power")));
         fHistograms1D.push_back( gQwHists.Construct1DHist(TString("raster_position_x")));
         fHistograms1D.push_back( gQwHists.Construct1DHist(TString("raster_position_y")));
 
-        //TProfile2D(const char* name, const char* title,
-        // Int_t nbinsx, Double_t xlow, Double_t xup,
-        // Int_t nbinsy, Double_t ylow, Double_t yup,
-        // Option_t* option = "")
-        fRateMap  = new TProfile2D("raster_rate_map_profile",
-                                   "Raster Rate Map Profile",1000,-2,2,1000,-2,2);
-
+        fRateMap  = new TH2D("raster_rate_map","Raster Rate Map",500,-2.5,2.5,500,-2.5,2.5);
+        fRateMap->GetXaxis()->SetTitle("PositionX");
+        fRateMap->GetYaxis()->SetTitle("PositionY");
+        fRateMap->SetOption("colz");
     }
 };
 
@@ -482,28 +477,22 @@ void  QwRaster::FillHistograms()
                 fPMTs.at(i).at(j).FillHistograms();
             }
         }
-
     }
 
     for (size_t j=0; j<fHistograms1D.size();j++)
     {
-
         if (fHistograms1D.at(j)->GetTitle()==TString("raster_position_x"))
         {
-            fHistograms1D.at(j)->Fill(fPositionX_VQWK);
+            fHistograms1D.at(j)->Fill(fPositionX_ADC);
         }
 
         if (fHistograms1D.at(j)->GetTitle()==TString("raster_position_y"))
         {
-            fHistograms1D.at(j)->Fill(fPositionY_VQWK);
+            fHistograms1D.at(j)->Fill(fPositionY_ADC);
         }
-
     }
 
-    //Fill rate map
-
-    fRateMap->Fill(fPositionX_ADC,fPositionY_ADC,1,1);
-
+    fRateMap->Fill(fPositionX_ADC,fPositionY_ADC);
 };
 
 
@@ -814,33 +803,3 @@ void QwRaster::PrintInfo()
 
     return;
 }
-
-//raster analysis utilities
-Double_t QwRaster::get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalidity)
-{
-    if (checkvalidity)
-    {
-        bool x_ok = ( h->GetXaxis()->GetXmin() < x && x < h->GetXaxis()->GetXmax() );
-        bool y_ok = ( h->GetYaxis()->GetXmin() < y && y < h->GetYaxis()->GetXmax() );
-
-        if (! ( x_ok && y_ok))
-        {
-//             if (!x_ok){
-//                 std::cerr << "x value " << x << " out of range ["<< h->GetXaxis()->GetXmin()
-//                           <<","<< h->GetXaxis()->GetXmax() << "]" << std::endl;
-//             }
-//             if (!y_ok){
-//                 std::cerr << "y value " << y << " out of range ["<< h->GetYaxis()->GetXmin()
-//                           <<","<< h->GetYaxis()->GetXmax() << "]" << std::endl;
-//             }
-            checkvalidity=0;
-            return -1e20;
-        }
-    }
-
-    const int xbin = h->GetXaxis()->FindBin( x );
-    const int ybin = h->GetYaxis()->FindBin( y );
-
-    return h->GetBinContent( h->GetBin( xbin, ybin ));
-};
-

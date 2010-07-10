@@ -1,32 +1,33 @@
 !
 ! this file contains configuration parameters for the fast raster
+! values need to be calibrated
 !
-! Raster home(reference) position in Qweak global coordinates, units: um
-HomePositionX = -2000.0000
-HomePositionY = -2000.0000
+! Raster position offset w.r.t beam center, units: mm
+Position_Offset_X = -2.0
+Position_Offset_Y = -2.0
 !
 ! units: um/V, assume linear
 !Cal_Factor_VQWK_X = 1.0
 !Cal_Factor_VQWK_Y = 1.0
 !
 ! units: um/channel, assume linear
-Cal_Factor_QDC_X = -1.0
-Cal_Factor_QDC_Y = -1.0
+Cal_Factor_QDC_X = 0.002
+Cal_Factor_QDC_Y = 0.002
 !
-! These are the outputs measured by VQWK when raster is homed, units: Volts
+! These are the outputs measured by VQWK, units: Volts
 !Voltage_Offset_X = 3.5
 !Voltage_Offset_Y = 2.5
 !
 ! These are the averaged channel numbers (pedestal) for position measured by V792
-! when the raster is homed, units: channel
-Channel_Offset_X = 34.9
-Channel_Offset_Y = 54.4
+! units: channel
+Channel_Offset_X = 40
+Channel_Offset_Y = 40
 !
 ! name of chanel, pedestal, gain
 ! if this is a Triumf ADC enter the hardware sum pedestal
 ! the pedestal will be subtracted to the data
-pos_x_adc     ,   0 ,  1
-pos_y_adc     ,   0 ,  1
+! pos_x_adc     ,   0 ,  1
+! pos_y_adc     ,   0 ,  1
 ! pos_x_vqwk    ,   0 ,  1
 ! pos_y_vqwk    ,   0 ,  1
 !END
