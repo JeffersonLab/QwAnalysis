@@ -322,7 +322,7 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
 {
     Int_t index = GetSubbankIndex(roc_id,bank_id);
 
-    SetDataLoaded(kTRUE);
+  
     fEvtCounter++;
     if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer:  "
         << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
@@ -334,6 +334,7 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
     {
         if (index>=0 && num_words>0)
         {
+	  SetDataLoaded(kTRUE);
             //  This is a VQWK bank We want to process this ROC.  Begin looping through the data.
             if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer: Processing VQWK Bank "<<bank_id
                 <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
@@ -375,6 +376,7 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
     {
       if (index>=0 && num_words>0)
         {
+	  SetDataLoaded(kTRUE);
           if (fDEBUG) std::cout << "QwScanner::ProcessEvBuffer:  "
             << "Begin processing F1TDC Bank 0x"<<std::hex<<bank_id<<std::dec<<std::endl;
 
@@ -435,7 +437,7 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
 
         if (index>=0 && num_words>0)
         {
-
+	  SetDataLoaded(kTRUE);
             //  This is a SCA bank We want to process this ROC.  Begin looping through the data.
             if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer: Processing Bank "<<bank_id
                 <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
@@ -486,6 +488,7 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
     {
         if (index>=0 && num_words>0)
         {
+	  SetDataLoaded(kTRUE);
             //  We want to process this ROC.  Begin looping through the data.
             if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer:  "
                 << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
