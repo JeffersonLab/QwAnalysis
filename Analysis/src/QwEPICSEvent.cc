@@ -35,6 +35,7 @@ QwEPICSEvent::QwEPICSEvent()
   if (kDebug==1) PrintVariableList();
 };
 
+
 QwEPICSEvent::~QwEPICSEvent(){};
 
 
@@ -46,7 +47,7 @@ QwEPICSEvent::~QwEPICSEvent(){};
 
 Int_t QwEPICSEvent::LoadEpicsVariableMap(TString mapfile) {
   TString varname, dbtable, datatype;
-  EQwEPICSDataType datatypeid;
+  EQwEPICSDataType datatypeid = kEPICSString;
   Int_t lineread=0;  
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   std::cout<<"\nReading epics parameter file: "<<mapfile<<"\n";
@@ -637,6 +638,10 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
   
   Double_t mean, average_of_squares, variance, sigma;
   
+  mean     = 0.0;
+  average_of_squares = 0.0;
+  variance = 0.0;
+  sigma    = 0.0;
   //  Figure out if the target table has this runlet_id in it already,
   //  if not, create a new entry with the current runlet_id.
   
@@ -669,9 +674,6 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
       // Calculate average and error
       if (fEPICSVariableType[tagindex] == kEPICSFloat
 	  || fEPICSVariableType[tagindex] == kEPICSInt) {
-	mean     = 0.0;
-	variance = 0.0;
-	sigma    = 0.0;
 	if (fEPICSCumulativeData[tagindex].NumberRecords > 0){
 	  
 	  mean     = (fEPICSCumulativeData[tagindex].Sum)/
