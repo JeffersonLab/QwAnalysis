@@ -34,13 +34,7 @@
 
 // Qweak subsystems
 // (for correct dependency generation)
-#include "QwHelicity.h"
-#include "QwFakeHelicity.h"
-#include "QwBeamLine.h"
-#include "QwMainCerenkovDetector.h"
-#include "QwScanner.h"
-#include "QwLumi.h"
-
+#include "ManualFactory.h"
 
 // Declarations
 void PrintInfo(TStopwatch& timer);

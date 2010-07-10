@@ -30,18 +30,8 @@
 
 // Qweak tracking subsystems
 #include "QwSubsystemArrayTracking.h"
-#include "QwGasElectronMultiplier.h"
-#include "QwDriftChamberHDC.h"
-#include "QwDriftChamberVDC.h"
-#include "QwTriggerScintillator.h"
-#include "QwMainDetector.h"
-#include "QwScanner.h"
-#include "QwRaster.h"
 
-// Qweak parity subsystems
-#include "QwSubsystemArrayParity.h"
-#include "QwHelicity.h"
-#include "QwBeamLine.h"
+#include "ManualFactory.h"
 
 // Qweak headers (deprecated)
 #include "Det.h"

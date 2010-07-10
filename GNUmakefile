@@ -641,7 +641,10 @@ myevio_lib:
 	cd $(EVIO); $(MAKE) libmyevio$(DllSuf)
 	$(CP) $(EVIO)/libmyevio$(DllSuf) $(QW_LIB)/libmyevio$(DllSuf)
 
-.auxDepends: .auxLibFiles
+Analysis/include/ManualFactory.h:
+	./manual_factory.pl
+
+.auxDepends: Analysis/include/ManualFactory.h .auxLibFiles
 	@$(ECHO) Generating .auxLibFiles
 	@$(RM) .auxLibFiles
 	@$(ECHO) $(QW_LIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) > .auxLibFiles
@@ -883,6 +886,7 @@ clean: clean.evio
 	@$(ECHO) Removing *~, "#*#, .#*" files
 	@$(RM) `$(FIND) $(QWANALYSIS) | $(GREP) '~'`
 	@$(RM) `$(FIND) $(QWANALYSIS) | $(GREP) '#'`
+	$(RM) Analysis/include/ManualFactory.h
 
 clean.exes:
 # Removes executables
