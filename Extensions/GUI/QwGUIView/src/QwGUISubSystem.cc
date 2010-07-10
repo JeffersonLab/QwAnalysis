@@ -35,14 +35,15 @@ QwGUISubSystem::~QwGUISubSystem()
 }
 
 void QwGUISubSystem::InitProgressDlg(const char* title, const char *macrotext, const char *microtext, 
-				     const char *microtext2, Int_t nitems1, Int_t nitems2, Int_t nitems3, Int_t nLevels)
+				     const char *microtext2, Bool_t kReverse, Int_t nitems1, Int_t nitems2, 
+				     Int_t nitems3, Int_t nLevels)
 {
   dProgrDlg = new QwGUIProgressDialog((const TGWindow*)dParent, 
 				      (const TGWindow*)dMain, 
 				      "dProgrDlg","QwGUIMain",
 				      title,macrotext,microtext,
 				      microtext2,nitems1,nitems2, 
-				      nitems3,600,300,kTrue,nLevels);
+				      nitems3,600,300,kTrue,kReverse,nLevels);
 
   Connect(dProgrDlg,"IsClosing(char*)","QwGUISubSystem",(void*)this,
 	  "OnObjClose(char*)");

@@ -60,6 +60,7 @@ private:
   Bool_t             dContinue;
   Bool_t             dStop;
   Bool_t             kStopable;
+  Bool_t             dReverse;
 
   TGHorizontalFrame *fHframe1;
   TGVerticalFrame   *fVframe1;
@@ -69,10 +70,10 @@ private:
   
  public:
   QwGUIProgressDialog(const TGWindow *p, const TGWindow *main, 
-		  const char* objname, const char *mainname,
-		  const char* title, const char* macrotext, const char* microtext,
-		  const char* microtext2, int runcnt, int mpcnt , int mpcnt2, 
-		  UInt_t w, UInt_t h, Bool_t stopable = kTrue, Int_t num = 2);
+		      const char* objname, const char *mainname,
+		      const char* title, const char* macrotext, const char* microtext,
+		      const char* microtext2, int runcnt, int mpcnt , int mpcnt2, 
+		      UInt_t w, UInt_t h, Bool_t stopable = kTrue, Bool_t kReverse = kFalse, Int_t num = 2);
   virtual ~QwGUIProgressDialog();
   
   Bool_t            Continue() {return dContinue;}

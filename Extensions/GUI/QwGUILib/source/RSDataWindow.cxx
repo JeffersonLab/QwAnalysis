@@ -116,21 +116,7 @@ RSDataWindow::RSDataWindow(const TGWindow *p, const TGWindow *main,
   
   fLegend = NULL;
 
-
-  // Create a dialog window. A dialog window pops up with respect to its
-  // "main" window.
-
-  //*************Create And Position The Menu Bar And Its Items**********************
-  
-//   fMenuBarLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX,
-// 				     0, 0, 1, 1);
   fMenuBarItemLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0);
-
-//   fMenuFile = new TGPopupMenu(fClient->GetRoot());
-//   fMenuFile->AddEntry("&Save Postscript", M_PLOT_SAVEPS);
-//   fMenuFile->AddEntry("&Save Root", M_PLOT_SAVERT);
-//   fMenuFile->AddEntry("&Print", M_PLOT_PRINT);
-//   fMenuFile->AddEntry("&Close",M_PLOT_CLOSE);
   
   fMenuTools = new TGPopupMenu(fClient->GetRoot());
   fMenuTools->AddEntry("&Add Next Plot", M_PLOT_ADD);
@@ -145,94 +131,26 @@ RSDataWindow::RSDataWindow(const TGWindow *p, const TGWindow *main,
   fMenuTools->AddEntry("View Data (Root Object) ...",M_PLOT_VIEWROOTOBJ);
   fMenuTools->AddEntry("Editor ...",M_PLOT_EDITOR);
 
-//   fMenuFile->Associate(this);
   fMenuTools->Associate(this);
-  
-//   fMenuBar = new TGMenuBar(this, 1, 1, kHorizontalFrame);
-  
   fPlotCanvas = TCanvas::MakeDefCanvas();
+
   TGMenuBar* menubar = ((TRootCanvas*)fPlotCanvas->GetCanvasImp())->GetMenuBar();
-    
+//   TGPopupMenu *menu =  menubar->GetPopup("Close Canvas");
   menubar->AddPopup("&Qweak Tools",fMenuTools,fMenuBarItemLayout);
   menubar->MapSubwindows();
   menubar->Layout();
-
-//   fMenuBar->AddPopup("&File", fMenuFile, fMenuBarItemLayout);
-//   fMenuBar->AddPopup("&Tools", fMenuTools, fMenuBarItemLayout);
-  
-//   AddFrame(fMenuBar, fMenuBarLayout);
   fMenuTools->UnCheckEntry(M_PLOT_ADD);
 
-  //*************Create The Canvas To Display The Plot ******************************
-  
-  //We need two frames for the canvas: one which will hold the canvas with respect to
-  //the dialog main frame and another to tell the canvas how to behave with respect
-  //to its frame. Widget behavior can only be specified by the layout hints and
-  //some function calls. Layout hints are always related to the frames.
-
-  
-//   fDlgFrame = new TGCompositeFrame(this, 600, 400, kVerticalFrame);  //make the frame
-//                                                                     //will hold the
-//                                                                     //canvas
-
-//   fDlgLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 5, 5, 5, 5);
-  
-//   fCnvFrame = new TGCompositeFrame(fDlgFrame, 600, 400, kHorizontalFrame);//create a 
-//                                                                         //frame
-//                                                                         //for the 
-//                                                                         //canvas
-  
-//   fCnvLayout = new TGLayoutHints(kLHintsBottom | kLHintsLeft | kLHintsExpandX |
-// 				kLHintsExpandY, 5, 5, 5, 5);     //specify the canvas
-//                                                                  //position + extend
-//                                                                  //in its frame
-
-//   fPlotCanvas = new TRootEmbeddedCanvas("dwC", fCnvFrame, 600, 400);       
-//   fCnvFrame->AddFrame(fPlotCanvas, fCnvLayout);                        
-//   fDlgFrame->AddFrame(fCnvFrame, fCnvLayout);                              
   fPlotCanvas->SetBorderMode(0);                            
   fPlotCanvas->SetFillColor(kWhite);
-//   fPlotCanvas->GetCanvasImp()->ShowMenuBar();
-//   fPlotCanvas->GetCanvasImp()->ShowToolBar();
                             
   fPlotCanvas->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
 		       "RSDataWindow",this,
 		       "SetLimits(Int_t,Int_t,Int_t,TObject*)");
+  ((TRootCanvas*)fPlotCanvas->GetCanvasImp())->Connect("CloseWindow()","RSDataWindow",this,"CloseWindow()");
   
-  //*********************************************************************************
-
-
-
-  //*************As Was Done Above, Add The Canvas Frames To The Dialog Box**********
-
-//   TGLayoutHints *MainLayout = new TGLayoutHints(kLHintsBottom | kLHintsExpandX |
-// 						kLHintsExpandY, 2, 2, 5, 1);
-//   AddFrame(fDlgFrame, MainLayout);
-  
-
-  //*************Position The Dialog Box And Make Widget and Windows Visible*********
-
-  //Except for the positioning of the Dialog Window, these steps are always performed
-  //at the end of every constructor that creates a visible entity.
-  
-
-//   MapSubwindows();
-//   Resize(GetDefaultSize());
-  
-  // position relative to the parent's window
-//   Window_t wdum;
-//   int ax, ay;
-//   gVirtualX->TranslateCoordinates(main->GetId(), GetParent()->GetId(),
-// 			     (Int_t)(((TGFrame *) main)->GetWidth() - fWidth) >> 1,
-// 			     (Int_t)(((TGFrame *) main)->GetHeight() - fHeight) >> 1,
-// 				  ax, ay, wdum);
-//   Move(ax, ay);
-
   SetName(dObjName);
   SetWindowName("Plot Window");
-  
-//   MapWindow();
-  //fClient->WaitFor(this);    // otherwise canvas contextmenu does not work
 
   Connect("IsClosing(char*)",dMainName,(void*)main,"OnObjClose(char*)");  
   Connect("SendMessageSignal(char*)",dMainName,(void*)main,
@@ -241,10 +159,6 @@ RSDataWindow::RSDataWindow(const TGWindow *p, const TGWindow *main,
 
 RSDataWindow::~RSDataWindow()
 {
-  // Delete dialog widgets.
-  //everything that get dynamically allocated within this
-  //class needs to be deleted here, unless it was
-  //declared and allocated local to a function
 
   delete fMenuFile;
   delete fMenuBar;
@@ -265,7 +179,6 @@ RSDataWindow::~RSDataWindow()
     delete dFitOptions;
     dFitOptions = NULL;
   }  
-//   printf("In destructor RSDataWindow\n");
 }
 
 void RSDataWindow::OnObjClose(char *obj)
@@ -1111,8 +1024,6 @@ void RSDataWindow::CloseWindow()
   FlushMessages();
   SetMessage(PLOTWIND_CLOSED_MSG,"",(int)dPtype,M_DTWIND_CLOSED);
   IsClosing(dObjName);
-
-  DeleteWindow();
 }
 
 Double_t RSDataWindow::minv(Double_t *x, Int_t size)
@@ -1363,14 +1274,26 @@ Int_t RSDataWindow::UpdateDrawData(TH1D* h1d)
 Int_t RSDataWindow::DrawData(const TH1D& h1d, Bool_t add)
 {
   if(!dPlotCont) return DATA_PLOT_ERROR;
+  Bool_t Add = add;
+  Int_t cnt  = dPlotCont->Get1DHistoCount();
+  if(!cnt) Add = kFalse; //Nothing to add to!
   TH1D *hist = NULL;
+  TH1D *chst[cnt];
+  if(!Add) Add = AddGraphs(); //If not pre-specified, see if the menu option was set
   if(dFitOptions != NULL){
     delete dFitOptions;
     dFitOptions = NULL;
   }
+
+  if(Add){
+    for(int i = 0; i < cnt; i++){
+      chst[i] = (TH1D*)dPlotCont->GetHistogram(dPlotCont->Get1DHistoCount()-1,"TH1D");
+    }
+    dPlotCont->RemovePlot(chst[0]);
+  }
   
   TCanvas *aC = GetPlotCanvas();
-  if(!add){
+  if(!Add){
     aC->Clear();
     aC->Update();
     ClearPlots();
@@ -1378,35 +1301,97 @@ Int_t RSDataWindow::DrawData(const TH1D& h1d, Bool_t add)
     
   gPad->SetGrid();
 
+
   hist = dPlotCont->GetNew1DHistogram(h1d);
   //hist->SetTitle(GetPlotTitle());
-  
   if(!hist){
     FlushMessages();
     SetMessage(ROOTOBJ_CRFAIL_ERROR,"DrawData(const TH1D&)",(int)dPtype,
 	       M_DTWIND_ERROR_MSG);
     return DATA_PLOT_ERROR;
   }
-  if(IsUserLimitSet()){
-    hist->GetXaxis()->SetRangeUser(dMin[0],dMax[0]);
-  }
 
-
-  if(!add){
+  if(!Add){
+    if(IsUserLimitSet())
+      hist->GetXaxis()->SetRangeUser(dMin[0],dMax[0]);
+    
     if(DrawOptionsSet()){hist->Draw(dDrawOptions);} else hist->Draw();
     SetDrawOptions();
     gPad->Modified();
     gPad->Update();
   }
   else{
+
+    if(!chst[0]) return DATA_PLOT_ERROR;
+
+    Double_t cmin = chst[0]->GetXaxis()->GetXmin();
+    Double_t cmax = chst[0]->GetXaxis()->GetXmax(); 
+    Double_t hmin = hist->GetXaxis()->GetXmin();
+    Double_t hmax = hist->GetXaxis()->GetXmax();
+
+    Double_t cymin = chst[0]->GetMinimum();
+    Double_t cymax = chst[0]->GetMaximum();
+    Double_t hymin = hist->GetMinimum();
+    Double_t hymax = hist->GetMaximum();
+
+    dMin[0] = hmin;
+    dMax[0] = hmax;
+    dMin[1] = hymin;
+    dMax[1] = hymax;
+
+    for(int i = 0; i < cnt; i++){
+      if(chst[i]){
+	cmin = chst[i]->GetXaxis()->GetXmin();
+	cmax = chst[i]->GetXaxis()->GetXmax();
+
+	cymin = chst[i]->GetMinimum();
+	cymax = chst[i]->GetMaximum();
+
+	if(cmin < dMin[0]) dMin[0] = cmin;
+	if(cmax > dMax[0]) dMax[0] = cmax;
+	if(cymin < dMin[1]) dMin[1] = cymin;
+	if(cymax > dMax[1]) dMax[1] = cymax;
+      }
+    }
+    printf("Line 1356\n");
+
+    cmin = chst[0]->GetXaxis()->GetXmin();
+    cmax = chst[0]->GetXaxis()->GetXmax();
+    TH1D *tmp = dPlotCont->GetNew1DHistogram((char*)chst[0]->GetName(),(char*)chst[0]->GetTitle(),
+					     (dMax[0] - dMin[0])*chst[0]->GetNbinsX()/(cmax - cmin),
+					     dMin[0],dMax[0]);
+    
+    for(int n = 0; n < chst[0]->GetNbinsX(); n++){
+	tmp->AddBinContent(tmp->FindBin(chst[0]->GetBinCenter(n)),chst[0]->GetBinContent(n));
+    }    
+    printf("Line 1367\n");
+    tmp->SetLineColor(dPlotCont->GetNewLineColor(kRed));
+    tmp->GetYaxis()->SetRangeUser(dMin[1]+0.1,dMax[1]);
+    tmp->Draw();
+    delete chst[0];
+
+    for(int i = 1; i < cnt; i++){
+      if(chst[i]){
+// 	chst[i]->SetLineColor(dPlotCont->GetNewLineColor(kRed));
+	chst[i]->Draw("SAME");
+      }
+    }    
+
     TString opts = dDrawOptions;
     if(!opts.Contains("SAME")){strcat(dDrawOptions,"SAME");}
+    hist->SetLineColor(dPlotCont->GetNewLineColor(kRed));
+    printf("Line 1383\n");
+
     hist->Draw(dDrawOptions);
     SetDrawOptions();
     gPad->RedrawAxis();      
     gPad->Modified();
     gPad->Update();
+//     DrawLegend();
+
   }
+  gPad->SetLogy(1);
+
   fCurrPlot = hist;
   return PLOT_PROCESS_OK;
 }
@@ -1479,6 +1464,8 @@ Int_t RSDataWindow::DrawData(const TGraph& g1d, Bool_t add)
     delete dFitOptions;
     dFitOptions = NULL;
   }
+
+  if(!add) add = AddGraphs();
   
   TCanvas *aC = GetPlotCanvas();
   aC->Clear();
@@ -1525,21 +1512,36 @@ Int_t RSDataWindow::DrawData(const TGraph& g1d, Bool_t add)
   else{
     TGraph *tmp = (TGraph*)&g1d;
     TMultiGraph *gr = dPlotCont->AddMultiGraphObject((TObject*)tmp,(char*)tmp->GetTitle(),"TGraph","p");
+    
     if(!gr){
       FlushMessages();
       SetMessage(ROOTOBJ_CRFAIL_ERROR,"DrawData(const TGraph&)",(int)dPtype,
 		 M_DTWIND_ERROR_MSG);
       return DATA_PLOT_ERROR;
     }
+
+    TString opts = dDrawOptions;
+    if(!opts.Contains("a")){strcat(dDrawOptions,"a");}
+    gr->Draw(dDrawOptions);
+
     if(IsUserLimitSet()){
+
+      if(((TGraph*)fCurrPlot)->GetXaxis()->GetXmin() < dMin[0])
+	dMin[0] = ((TGraph*)fCurrPlot)->GetXaxis()->GetXmin();
+      if(((TGraph*)fCurrPlot)->GetXaxis()->GetXmax() > dMax[0])
+	dMax[0] = ((TGraph*)fCurrPlot)->GetXaxis()->GetXmax();
+
+      if(((TGraph*)fCurrPlot)->GetYaxis()->GetXmin() < dMin[1])
+	dMin[1] = ((TGraph*)fCurrPlot)->GetYaxis()->GetXmin();
+      if(((TGraph*)fCurrPlot)->GetYaxis()->GetXmax() > dMax[1])
+	dMax[1] = ((TGraph*)fCurrPlot)->GetXaxis()->GetXmax();
+	
       gr->GetXaxis()->SetRangeUser(dMin[0],dMax[0]);
       gr->GetYaxis()->SetRangeUser(dMin[1],dMax[1]);
 //       gr->SetMinimum(dMin[1]);
 //       gr->SetMaximum(dMax[1]);
     }
-    TString opts = dDrawOptions;
-    if(!opts.Contains("a")){strcat(dDrawOptions,"a");}
-    gr->Draw(dDrawOptions);
+
     SetDrawOptions();
     gPad->RedrawAxis();      
     gPad->Modified();
@@ -2201,6 +2203,7 @@ Int_t RSDataWindow::FitData()
   return PROCESS_OK;
 }
 
+
 Bool_t RSDataWindow::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2) 
 {
   // Process messages coming from widgets associated with the dialog.
@@ -2223,12 +2226,14 @@ Bool_t RSDataWindow::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	if(fMenuTools->IsEntryChecked(M_PLOT_ADD)){
 	  fMenuTools->UnCheckEntry(M_PLOT_ADD);
 	  SetAddGraphs(kFalse);
+	  SendMessageSignal(Form("Don't add to %s",dObjName));
 	}
 	else{
 	  fMenuTools->CheckEntry(M_PLOT_ADD);
 	  SetAddGraphs(kTrue);
 	  dPlotCont->SetNewMarkerColor();
 	  dPlotCont->SetNewLineColor();
+	  SendMessageSignal(Form("Add to %s",dObjName));
 	}
 	break;
 

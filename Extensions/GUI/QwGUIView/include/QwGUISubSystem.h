@@ -183,7 +183,7 @@ class QwGUISubSystem : public TGCompositeFrame {
 				    Int_t  nInc1,   Int_t  nInc2,   Int_t  nInc3);
 
   void             InitProgressDlg(const char* title, const char *macrotext, const char *microtext, const char *microtext2, 
-				   Int_t nitems1, Int_t nitems2, Int_t nitems3, Int_t nLevels);
+				   Bool_t kReverse, Int_t nitems1, Int_t nitems2, Int_t nitems3, Int_t nLevels);
 
   virtual Int_t    LoadChannelMap(TString mapfile) {return 0;};
 

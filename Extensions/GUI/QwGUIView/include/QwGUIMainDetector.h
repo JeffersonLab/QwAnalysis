@@ -137,6 +137,7 @@ using std::vector;
 #include "QwGUISubSystem.h"
 #include "QwGUIDataWindow.h"
 #include "RNumberEntryDialog.h"
+#include "RMsgBox.h"
 #include "QwGUIFFTWindowSelectionDialog.h"
 
 class QwGUIMainDetectorDataStructure{
@@ -469,6 +470,10 @@ class QwGUIMainDetector : public QwGUISubSystem {
   void                 SetMSCYieldDataIndex(Int_t ind) {if(ind < 0 || ind > 4) dMSCYieldDataInd = 0; else dMSCYieldDataInd = ind;};
   Int_t                GetMSCYieldDataIndex(){return dMSCYieldDataInd;};
 
+  void                 SetSelectedDataWindow(Int_t ind) {dSelectedDataWindow = ind;};
+  void                 RemoveSelectedDataWindow() {dSelectedDataWindow = -1;};
+  QwGUIDataWindow     *GetSelectedDataWindow();  
+
   MDMenuIdentifiers    dDataType;
   ENPlotType           dPlotType[10];
   Int_t                dYieldDataInd;  
@@ -477,6 +482,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   Int_t                dCMBAsymDataInd;
   Int_t                dMSCAsymDataInd;
   Int_t                dMSCYieldDataInd;
+  Int_t                dSelectedDataWindow;
   
  protected:
 

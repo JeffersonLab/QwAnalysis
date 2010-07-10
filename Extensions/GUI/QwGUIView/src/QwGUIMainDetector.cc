@@ -94,6 +94,7 @@ QwGUIMainDetector::QwGUIMainDetector(const TGWindow *p, const TGWindow *main, co
   MAIN_DET_INDEX = 0;
   MAIN_DET_COMBIND = 0;
   MAIN_MSC_INDEX = 0;
+  RemoveSelectedDataWindow();
 
   AddThisTab(this);
 }
@@ -152,6 +153,18 @@ QwGUIMainDetector::~QwGUIMainDetector()
     delete dCurrentMSCYields[n];
   }
 
+  TObject *obj;
+  TIter *next = new TIter(DataWindowArray.MakeIterator());
+  
+  obj = next->Next();
+  while(obj){    
+    delete obj;
+    obj = next->Next();
+  }
+  delete next;
+
+  DataWindowArray.Clear();
+  
   RemoveThisTab(this);
   IsClosing(GetName());
 
@@ -616,12 +629,57 @@ Int_t QwGUIMainDetector::LoadChannelMap(TString mapfile)
 }
 #endif
 
-void QwGUIMainDetector::OnReceiveMessage(char *obj)
+void QwGUIMainDetector::OnReceiveMessage(char *msg)
 {
-//   TString name = obj;
+  TObject *obj = NULL;
+  Int_t ind = 0;
+  TString message = msg;
 //   char *ptr = NULL;
+  if(message.Contains("dDataWindow")){
 
+    if(message.Contains("Add to")){
+
+      message.ReplaceAll("Add to dDataWindow_",7,"",0);
+
+      obj = DataWindowArray.FindObject(message);
+      if(obj){
+	ind = DataWindowArray.IndexOf(obj);
+// 	printf("Object = %s, %d\n",obj->GetName(),ind);
+	SetSelectedDataWindow(ind);
+      }
+      
+//       message.ReplaceAll("Add to dDataWindow_",19,"",0);
+//       printf("Selected graph = %s or %d = %s\n",message.Data(),message.Atoi(),
+// 	     ((RSDataWindow*)DataWindowArray[message.Atoi()-1])->GetObjectName());
+      
+    }
+    else if(message.Contains("Don't add to")){
+
+
+      message.ReplaceAll("Don't add to dDataWindow_",13,"",0);
+
+      obj = DataWindowArray.FindObject(message);
+      if(obj){
+// 	ind = DataWindowArray.IndexOf(obj);
+// 	printf("Object = %s, %d\n",obj->GetName(),ind);
+	RemoveSelectedDataWindow();
+      }
+
+//       message.ReplaceAll("Don't add to dDataWindow_",25,"",0);
+//       printf("De-selected graph = %s or %d = %s\n",message.Data(),message.Atoi(),
+// 	     ((RSDataWindow*)DataWindowArray[message.Atoi()-1])->GetObjectName());
+      
+    }
+  }
 }
+
+QwGUIDataWindow *QwGUIMainDetector::GetSelectedDataWindow()
+{
+  if(dSelectedDataWindow < 0 || dSelectedDataWindow > DataWindowArray.GetLast()) return NULL;
+  
+  return (QwGUIDataWindow*)DataWindowArray[dSelectedDataWindow];
+}  
+
 
 void QwGUIMainDetector::OnObjClose(char *obj)
 {
@@ -629,8 +687,9 @@ void QwGUIMainDetector::OnObjClose(char *obj)
   TString name = obj;
 
   if(name.Contains("dDataWindow")){
-    QwGUIDataWindow* window = (QwGUIDataWindow*)DataWindowArray.Remove(DataWindowArray.FindObject(obj));
-    if(window) delete window;
+    QwGUIDataWindow* window = (QwGUIDataWindow*)DataWindowArray.Remove(DataWindowArray.FindObject(obj));    
+    if(window == GetSelectedDataWindow()) { RemoveSelectedDataWindow();}
+    printf("Removing %s\n",name.Data());
   }
 
   if(!strcmp(obj,"dNumberEntryDlg")){
@@ -698,9 +757,10 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
 
     //cycle through the main detectors and possible combinations thereof
 
-    InitProgressDlg("Detector Event Fill","Block","Detector",0,5,dCurrentYields[0]->GetNumElements(),0,2);
+    InitProgressDlg("Detector Event Fill","Block","Detector",0,kTrue,4,dCurrentYields[0]->GetNumElements(),0,2);
  
     bl = 0;
+    IncreaseProgress(&bl,0,0,1,0,0);
     for(int n = 0; n < MAIN_DET_BLOCKIND; n++){
 
       CurrentPMTYield  = dCurrentYields[n]->GetElements();
@@ -711,7 +771,7 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
       CurrentMSCYield  = dCurrentMSCYields[n]->GetElements();
 		
       dProgrDlg->ResetRange(0,dCurrentYields[n]->GetNumElements(),0);
-      det = 0;
+      det = 1;
       for(int i = 0; i < dCurrentYields[n]->GetNumElements(); i++){
 
 	if (MPSTree && MPSTree -> FindBranch(Form("%s",MainDetectorPMTNames[i].Data()))) {
@@ -753,8 +813,6 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
 	det++;
 	if(dProcessHalt) break;
 	IncreaseProgress(0,&det,0,0,1,0);
-
-	printf("Det %d finsihed\n",i);
       }
 
       for(int i = 0; i < dCurrentDETAsyms[n]->GetNumElements(); i++){
@@ -966,6 +1024,7 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
       PlotHistograms(); 
 
     }
+    SetDataType(PMT_YIELD);
 
   }
   //End filling root data  
@@ -995,7 +1054,7 @@ void QwGUIMainDetector::FillYieldPlots(Int_t det, Int_t dTInd)
   hst = new TH1D(Form("yield%02d_%d",det,dTInd),
 		 dCurrentData.GetName(),
 		 // 		 Form("%s.%s Yield",MainDetectorPMTNames[det].Data(),dCurrentYields[dTInd]->GetName()),
-		 1000,-5*dCurrentData.GetDataRMS(),+5*dCurrentData.GetDataRMS());
+		 1000,dCurrentData.GetDataMean()-5*dCurrentData.GetDataRMS(),dCurrentData.GetDataMean()+5*dCurrentData.GetDataRMS());
   grp = new TGraph();
   grp->SetTitle(dCurrentData.GetName());//Form("%s.%s Yield",MainDetectorPMTNames[det].Data(),dCurrentYields[dTInd]->GetName()));
   grp->SetName(Form("yield%02d_%d",det,dTInd));
@@ -1017,7 +1076,7 @@ void QwGUIMainDetector::FillYieldPlots(Int_t det, Int_t dTInd)
 	smplev = 0;
 	// 		  printf("Det %d: Size = %d, smplcnt = %d\n",i,dCurrentDataSampleMean[det].size(), smplcnt);
       }
-      hst->Fill(dCurrentData.GetData(j) - dCurrentData.GetEnsambleMean(smplcnt));// mean);
+      hst->Fill(dCurrentData.GetData(j));// - dCurrentData.GetEnsambleMean(smplcnt));// mean);
       grp->SetPoint(j,1.0*(j+1)/SAMPLING_RATE,dCurrentData.GetData(j));
       smplev++;
     }
@@ -1054,7 +1113,8 @@ void QwGUIMainDetector::FillPMTAsymPlots(Int_t det, Int_t dTInd)
 
   hst = new TH1D(Form("pmtasym%02d_%d",det,dTInd),dCurrentData.GetName(),
 		 //Form("%s.%s PMT Asymmetry",MainDetectorPMTNames[det].Data(),dCurrentPMTAsyms[dTInd]->GetName()),
-		 1000,-5*dCurrentData.GetDataRMS(),+5*dCurrentData.GetDataRMS());
+		 1000,dCurrentData.GetDataMean()-5*dCurrentData.GetDataRMS(),
+		 dCurrentData.GetDataMean()+5*dCurrentData.GetDataRMS());
   grp = new TGraph();
   grp->SetTitle(dCurrentData.GetName());//Form("%s.%s PMT Asymmetry",MainDetectorPMTNames[det].Data(),dCurrentPMTAsyms[dTInd]->GetName()));
   grp->SetName(Form("pmtasym%02d_%d",det,dTInd));
@@ -1113,7 +1173,7 @@ void QwGUIMainDetector::FillDETAsymPlots(Int_t det, Int_t dTInd)
   hst = new TH1D(Form("detasym%02d_%d",det,dTInd),dCurrentData.GetName(),
 // 		 Form("%s.%s Detector Asymmetry",MainDetectorNames[det].Data(),
 // 						   dCurrentDETAsyms[dTInd]->GetName()),
-		 1000,-5*dCurrentData.GetDataRMS(),+5*dCurrentData.GetDataRMS());
+		 1000,dCurrentData.GetDataRMS()-5*dCurrentData.GetDataRMS(),dCurrentData.GetDataRMS()+5*dCurrentData.GetDataRMS());
   grp = new TGraph();
   grp->SetTitle(dCurrentData.GetName());//Form("%s.%s Detector Asymmetry",MainDetectorNames[det].Data(),dCurrentDETAsyms[dTInd]->GetName()));
   grp->SetName(Form("detasym%02d_%d",det,dTInd));
@@ -1172,7 +1232,7 @@ void QwGUIMainDetector::FillCMBAsymPlots(Int_t det, Int_t dTInd)
   hst = new TH1D(Form("cmbasym%02d_%d",det,dTInd),dCurrentData.GetName(),
 // 		 Form("%s.%s Combination Asymmetry",MainDetectorCombinationNames[det].Data(),
 // 						   dCurrentCMBAsyms[dTInd]->GetName()),
-		 1000,-5*dCurrentData.GetDataRMS(),+5*dCurrentData.GetDataRMS());
+		 1000,dCurrentData.GetDataRMS()-5*dCurrentData.GetDataRMS(),dCurrentData.GetDataRMS()+5*dCurrentData.GetDataRMS());
   grp = new TGraph();
   grp->SetTitle(dCurrentData.GetName());
   //Form("%s.%s Combination Asymmetry",MainDetectorCombinationNames[det].Data(),
@@ -1230,7 +1290,7 @@ void QwGUIMainDetector::FillMSCAsymPlots(Int_t det, Int_t dTInd)
   QwGUIMainDetectorDataStructure dCurrentData = dCurrentMSCAsyms[dTInd]->GetElements()[det];
 
   hst = new TH1D(Form("mscasym%02d_%d",det,dTInd),dCurrentData.GetName(),
-		 1000,-5*dCurrentData.GetDataRMS(),+5*dCurrentData.GetDataRMS());
+		 1000,dCurrentData.GetDataRMS()-5*dCurrentData.GetDataRMS(),dCurrentData.GetDataRMS()+5*dCurrentData.GetDataRMS());
   grp = new TGraph();
   grp->SetTitle(dCurrentData.GetName());
   grp->SetName(Form("mscasym%02d_%d",det,dTInd));
@@ -1285,7 +1345,7 @@ void QwGUIMainDetector::FillMSCYieldPlots(Int_t det, Int_t dTInd)
   QwGUIMainDetectorDataStructure dCurrentData = dCurrentMSCYields[dTInd]->GetElements()[det];
 
   hst = new TH1D(Form("mscyield%02d_%d",det,dTInd),dCurrentData.GetName(),
-		 1000,-5*dCurrentData.GetDataRMS(),+5*dCurrentData.GetDataRMS());
+		 1000,dCurrentData.GetDataMean()-5*dCurrentData.GetDataRMS(),dCurrentData.GetDataMean()+5*dCurrentData.GetDataRMS());
   grp = new TGraph();
   grp->SetTitle(dCurrentData.GetName());
   grp->SetName(Form("mscyield%02d_%d",det,dTInd));
@@ -1471,6 +1531,19 @@ void QwGUIMainDetector::ClearRootData()
     MSCYieldHistArray[n].Clear();
     MSCYieldGraphArray[n].Clear();
   }  
+
+//   TObject *obj;
+  next = new TIter(DataWindowArray.MakeIterator());
+  
+  obj = next->Next();
+  while(obj){    
+    delete obj;
+    obj = next->Next();
+  }
+  delete next;
+
+  DataWindowArray.Clear();
+
 }
 
 void QwGUIMainDetector::ClearDFTData(Bool_t ALL)
@@ -1691,7 +1764,7 @@ Bool_t QwGUIMainDetector::PlotHistograms()
 
   while(obj){
     mc->cd(ind);
-    gPad->SetLogy(0);
+    gPad->SetLogy(1);
 
     if(GetDataType() == DET_ASYM){
       gPad->SetPad(0.5+rad*TMath::Sin(2*(ind-1)*TMath::Pi()/8 - TMath::Pi()/2)-0.1,
@@ -1929,12 +2002,13 @@ Bool_t QwGUIMainDetector::PlotDFT()
 
 Bool_t QwGUIMainDetector::CalculateDFT()
 {
-  QwGUIMainDetectorData *dCurrentData;
-  QwGUIMainDetectorDataStructure *dCurrentDataStr;
+  RMsgBox *msgbx = NULL;
+  QwGUIMainDetectorData *dCurrentData = NULL;
+  QwGUIMainDetectorDataStructure *dCurrentDataStr = NULL;
   Int_t INDEX = 0;
   vector <TString> Names;
-  TObjArray *DFTArray;
-  TObjArray *ProfArray;
+  TObjArray *DFTArray  = NULL;
+  TObjArray *ProfArray = NULL;
 
 
   if(GetDataType() == PMT_YIELD){    
@@ -1989,6 +2063,8 @@ Bool_t QwGUIMainDetector::CalculateDFT()
   else
     return kFalse;
 
+  if(!dCurrentData || !dCurrentDataStr || !DFTArray || !ProfArray) return kFalse;
+
   if(!INDEX) return kFalse;
 
   FFTOptions *fftopts = dCurrentData->GetFFTOptions();
@@ -2007,10 +2083,30 @@ Bool_t QwGUIMainDetector::CalculateDFT()
     if(fftopts->Start + fftopts->Length > dCurrentDataStr[0].Length()) return kFalse;
 
     
+    InitProgressDlg("FFT Calculation","Detector","Event",0,kTrue,INDEX,fftopts->Length,0,2);
+ 
+    Int_t det = 1;
+    Int_t evn = 1;
+    IncreaseProgress(&det,0,0,1,0,0);
+    IncreaseProgress(0,&evn,0,0,1,0);
+
+    gSystem->ProcessEvents();
+
+//     Int_t retval;
+//     //strcpy(buffer,"FFT Calculation In Progress!");
+//     msgbx = new RMsgBox(fClient->GetRoot(), GetMain(),"msgbx", "QwGUIMainDetector", "Data Processing",
+// 				 "FFT Calculation In Progress!",kMBIconExclamation, kMBCancel, &retval);
+//     if(retval == kMBCancel){ 
+//       return kFalse;
+//     }    
+        
+    
     ClearDFTData(kFalse);
     for(int l = 0; l < INDEX; l++){      
       
       if(dCurrentDataStr[l].Length() > 0){
+
+	gSystem->ProcessEvents();
 
 	prf = new TProfile(Form("%s_%s_prf",Names[l].Data(),dCurrentData->GetName()),
 			   Form("%s FFT Data",dCurrentDataStr[l].GetName()),
@@ -2037,9 +2133,14 @@ Bool_t QwGUIMainDetector::CalculateDFT()
 		       Form("%s FFT",dCurrentDataStr[l].GetName()),
 		       (Int_t)(fftopts->Length/2.0)-1,0.0,(Int_t)(SAMPLING_RATE/2.0));
 	
-	for(int i = 0; i < (Int_t)(fftopts->Length/2); i++) 
+	evn = 1;
+	for(int i = 0; i < (Int_t)(fftopts->Length/2); i++) {
 	  fft->SetBinContent(i,1.25*fftmag->GetBinContent(i)/fftopts->Length);
-	
+  
+	  evn++;
+	  if(dProcessHalt) break;
+	  IncreaseProgress(0,&evn,0,0,5000,0);
+	}
 	fft->GetXaxis()->SetTitle("Frequency [Hz]");
 	fft->GetXaxis()->CenterTitle();
 	fft->GetXaxis()->SetTitleSize(0.04);
@@ -2057,8 +2158,16 @@ Bool_t QwGUIMainDetector::CalculateDFT()
 	delete fftmag;
 	prf->SetDirectory(0);
       }
-    }    
+      det++;
+      if(dProcessHalt) break;
+      IncreaseProgress(&det,0,0,1,0,0);
+    }
   }
+
+  if(dProgrDlg)
+    dProgrDlg->CloseWindow();
+
+
   dCurrentData->SetFFTCalculated(kTrue);
 
   if(GetDataType() == PMT_YIELD) dMenuPlot1->EnableEntry(M_PLOT_DFTPROF_YIELD);   
@@ -2067,6 +2176,9 @@ Bool_t QwGUIMainDetector::CalculateDFT()
   if(GetDataType() == CMB_ASYM ) dMenuPlot4->EnableEntry(M_PLOT_DFTPROF_CMB_ASYM);
   if(GetDataType() == MSC_ASYM ) dMenuPlot5->EnableEntry(M_PLOT_DFTPROF_MSC_ASYM);
   if(GetDataType() == MSC_YIELD ) dMenuPlot6->EnableEntry(M_PLOT_DFTPROF_MSC_YIELD);
+
+//   if(msgbx)
+//     delete msgbx;
   
   return kTrue;
 }
@@ -2074,12 +2186,14 @@ Bool_t QwGUIMainDetector::CalculateDFT()
 
 void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 {
+  QwGUIDataWindow *dDataWindow = NULL;
   QwGUIMainDetectorDataStructure *dCurrentDataStr;
   TObjArray *HistArray;
   TObjArray *GraphArray;
   TObjArray *DFTArray;
   TObjArray *ProfileArray;
   UInt_t pad = 0;
+  Bool_t add = kFalse;
 
   if(event == kButton1Double){
     
@@ -2136,13 +2250,19 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
     
     if(pad > 0 && pad <= MAIN_PMT_INDEX){
       if(GetPlotType(GetActiveTab()) == PLOT_TYPE_HISTO){
+	
+	dDataWindow = GetSelectedDataWindow();
+	if(!dDataWindow)
+	  dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					    "QwGUIMainDetector",(*HistArray)[pad-1]->GetTitle(), PT_HISTO_1D,
+					    DDT_MD,600,400);
+	else
+	  add = kTrue;
 
-	QwGUIDataWindow *dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
-							   "QwGUIMainDetector",(*HistArray)[pad-1]->GetTitle(), PT_HISTO_1D,
-							   DDT_MD,600,400);
 	if(!dDataWindow){
 	  return;
 	}
+       
 	DataWindowArray.Add(dDataWindow);
 	dDataWindow->SetStaticData((*HistArray)[pad-1],DataWindowArray.GetLast());
 
@@ -2151,31 +2271,41 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
 	Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMainDetector",(void*)this,"OnUpdatePlot(char *)");      
 
 	dDataWindow->SetPlotTitle((char*)(*HistArray)[pad-1]->GetTitle());
-	dDataWindow->DrawData(*((TH1D*)(*HistArray)[pad-1]));
+	dDataWindow->DrawData(*((TH1D*)(*HistArray)[pad-1]),add);
 	SetLogMessage(Form("Looking at histogram %s\n",(char*)(*HistArray)[pad-1]->GetTitle()),kTrue);
 	
 	return;
       }
       else if(GetPlotType(GetActiveTab()) == PLOT_TYPE_GRAPH){
 
-	RSDataWindow *dMiscWindow = new RSDataWindow(GetParent(), this,
-						     GetNewWindowName(),"QwGUIMainDetector",
-						     (*GraphArray)[pad-1]->GetTitle(), PT_GRAPH,600,400);
-	if(!dMiscWindow){
+
+	dDataWindow = GetSelectedDataWindow();
+	if(!dDataWindow)
+	  dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					    "QwGUIMainDetector",(*GraphArray)[pad-1]->GetTitle(), PT_GRAPH,
+					    DDT_MD,600,400);
+	else
+	  add = kTrue;
+
+
+// 	RSDataWindow *dMiscWindow = new RSDataWindow(GetParent(), this,
+// 						     GetNewWindowName(),"QwGUIMainDetector",
+// 						     (*GraphArray)[pad-1]->GetTitle(), PT_GRAPH,600,400);
+	if(!dDataWindow){
 	  return;
 	}
-	DataWindowArray.Add(dMiscWindow);
-	dMiscWindow->SetPlotTitle((char*)(*GraphArray)[pad-1]->GetTitle());
-	dMiscWindow->SetPlotTitleX("Time [sec]");
-	dMiscWindow->SetPlotTitleY("Amplitude [V]");
-	dMiscWindow->SetPlotTitleOffset(1.25,1.8);
-	dMiscWindow->SetAxisMin(((TGraph*)(*GraphArray)[pad-1])->GetXaxis()->GetXmin(),
+	DataWindowArray.Add(dDataWindow);
+	dDataWindow->SetPlotTitle((char*)(*GraphArray)[pad-1]->GetTitle());
+	dDataWindow->SetPlotTitleX("Time [sec]");
+	dDataWindow->SetPlotTitleY("Amplitude [V]");
+	dDataWindow->SetPlotTitleOffset(1.25,1.8);
+	dDataWindow->SetAxisMin(((TGraph*)(*GraphArray)[pad-1])->GetXaxis()->GetXmin(),
 				dCurrentDataStr[pad-1].GetDataMin());
-	dMiscWindow->SetAxisMax(((TGraph*)(*GraphArray)[pad-1])->GetXaxis()->GetXmax(),
+	dDataWindow->SetAxisMax(((TGraph*)(*GraphArray)[pad-1])->GetXaxis()->GetXmax(),
 				dCurrentDataStr[pad-1].GetDataMax());
-	dMiscWindow->SetLimitsFlag(kTrue);
+	dDataWindow->SetLimitsFlag(kTrue);
 	
-	dMiscWindow->DrawData(*((TGraph*)(*GraphArray)[pad-1]));
+	dDataWindow->DrawData(*((TGraph*)(*GraphArray)[pad-1]),add);
 	SetLogMessage(Form("Looking at graph %s\n",(char*)(*GraphArray)[pad-1]->GetTitle()),kTrue);
       }
       else if(GetPlotType(GetActiveTab()) == PLOT_TYPE_DFT){
@@ -2210,6 +2340,8 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
 
 Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
+  MDMenuIdentifiers dtype;
+
   switch (GET_MSG(msg)){
 
   case kC_TEXTENTRY:
@@ -2279,99 +2411,153 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       switch (parm1) {
 	
       case M_PLOT_HISTO_YIELD:
+	dtype = GetDataType();
+	SetDataType(PMT_YIELD);
 	if(PlotHistograms()){
 	  dMenuPlot1->UnCheckEntries();
 	  dMenuPlot1->CheckEntry(M_PLOT_HISTO_YIELD);
 	}
+	else
+	  SetDataType(dtype);
 	break;
 
       case M_PLOT_HISTO_PMT_ASYM:
+	dtype = GetDataType();
+	SetDataType(PMT_ASYM);
 	if(PlotHistograms()){
 	  dMenuPlot2->UnCheckEntries();
 	  dMenuPlot2->CheckEntry(M_PLOT_HISTO_PMT_ASYM);
 	}
+	else
+	  SetDataType(dtype);
 	break;
 
       case M_PLOT_HISTO_DET_ASYM:
+	dtype = GetDataType();
+	SetDataType(DET_ASYM);
 	if(PlotHistograms()){
 	  dMenuPlot3->UnCheckEntries();
 	  dMenuPlot3->CheckEntry(M_PLOT_HISTO_DET_ASYM);
 	}
+	else
+	  SetDataType(dtype);
 	break;
 
       case M_PLOT_HISTO_CMB_ASYM:
+	dtype = GetDataType();
+	SetDataType(CMB_ASYM);
 	if(PlotHistograms()){
 	  dMenuPlot4->UnCheckEntries();
 	  dMenuPlot4->CheckEntry(M_PLOT_HISTO_CMB_ASYM);
 	}
+	else
+	  SetDataType(dtype);
 	break;
 
       case M_PLOT_HISTO_MSC_ASYM:
+	dtype = GetDataType();
+	SetDataType(MSC_ASYM);
 	if(PlotHistograms()){
 	  dMenuPlot5->UnCheckEntries();
 	  dMenuPlot5->CheckEntry(M_PLOT_HISTO_MSC_ASYM);
 	}
+        else                 
+          SetDataType(dtype);
 	break;
 
       case M_PLOT_HISTO_MSC_YIELD:
+	dtype = GetDataType();
+	SetDataType(MSC_YIELD);
 	if(PlotHistograms()){
 	  dMenuPlot6->UnCheckEntries();
 	  dMenuPlot6->CheckEntry(M_PLOT_HISTO_MSC_YIELD);
 	}
+        else                 
+          SetDataType(dtype);
 	break;
 
 
       case M_PLOT_GRAPH_YIELD:
+	dtype = GetDataType();
+	SetDataType(PMT_YIELD);
 	if(PlotGraphs()){
 	  dMenuPlot1->UnCheckEntries();
 	  dMenuPlot1->CheckEntry(M_PLOT_GRAPH_YIELD);
 	}
+        else                 
+          SetDataType(dtype);
 	break;
 
       case M_PLOT_GRAPH_PMT_ASYM:
+	dtype = GetDataType();
+	SetDataType(PMT_ASYM);
 	if(PlotGraphs()){
 	  dMenuPlot2->UnCheckEntries();
 	  dMenuPlot2->CheckEntry(M_PLOT_GRAPH_PMT_ASYM);
 	}
+	else
+	  SetDataType(dtype);
 	break;
 
       case M_PLOT_GRAPH_DET_ASYM:
+	dtype = GetDataType();
+	SetDataType(DET_ASYM);
 	if(PlotGraphs()){
 	  dMenuPlot3->UnCheckEntries();
 	  dMenuPlot3->CheckEntry(M_PLOT_GRAPH_DET_ASYM);
 	}
+        else                 
+          SetDataType(dtype);
 	break;
 
       case M_PLOT_GRAPH_CMB_ASYM:
+	dtype = GetDataType();
+	SetDataType(CMB_ASYM);
 	if(PlotGraphs()){
 	  dMenuPlot4->UnCheckEntries();
 	  dMenuPlot4->CheckEntry(M_PLOT_GRAPH_CMB_ASYM);
 	}
+        else                 
+          SetDataType(dtype);
 	break;
 
       case M_PLOT_GRAPH_MSC_ASYM:
+	dtype = GetDataType();
+	SetDataType(MSC_ASYM);
 	if(PlotGraphs()){
 	  dMenuPlot5->UnCheckEntries();
 	  dMenuPlot5->CheckEntry(M_PLOT_GRAPH_MSC_ASYM);
 	}
+        else                 
+          SetDataType(dtype);
 	break;
 
       case M_PLOT_GRAPH_MSC_YIELD:
+	dtype = GetDataType();
+	SetDataType(MSC_YIELD);
 	if(PlotGraphs()){
 	  dMenuPlot6->UnCheckEntries();
 	  dMenuPlot6->CheckEntry(M_PLOT_GRAPH_MSC_YIELD);
 	}
+        else                 
+          SetDataType(dtype);
 	break;
 
 
       case M_PLOT_DFT_YIELD:
+	dtype = GetDataType();
+	SetDataType(PMT_YIELD);
 	if(PlotDFT()){
 	  dMenuPlot1->UnCheckEntries();
 	  dMenuPlot1->CheckEntry(M_PLOT_DFT_YIELD);
 	}
+        else                 
+          SetDataType(dtype);
 	break;	
 
       case M_PLOT_DFT_PMT_ASYM:
+	dtype = GetDataType();
+	SetDataType(PMT_ASYM);
 	if(PlotDFT()){
 	  dMenuPlot2->UnCheckEntries();
 	  dMenuPlot2->CheckEntry(M_PLOT_DFT_PMT_ASYM);
@@ -2379,74 +2565,114 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	break;	
 
       case M_PLOT_DFT_DET_ASYM:
+	dtype = GetDataType();
+	SetDataType(DET_ASYM);
 	if(PlotDFT()){
 	  dMenuPlot3->UnCheckEntries();
 	  dMenuPlot3->CheckEntry(M_PLOT_DFT_DET_ASYM);
 	}
+        else                 
+          SetDataType(dtype);
 	break;	
 
       case M_PLOT_DFT_CMB_ASYM:
+	dtype = GetDataType();
+	SetDataType(CMB_ASYM);
 	if(PlotDFT()){
 	  dMenuPlot4->UnCheckEntries();
 	  dMenuPlot4->CheckEntry(M_PLOT_DFT_CMB_ASYM);
 	}
+        else                 
+          SetDataType(dtype);
 	break;	
 
       case M_PLOT_DFT_MSC_ASYM:
+	dtype = GetDataType();
+	SetDataType(MSC_ASYM);
 	if(PlotDFT()){
 	  dMenuPlot5->UnCheckEntries();
 	  dMenuPlot5->CheckEntry(M_PLOT_DFT_MSC_ASYM);
 	}
+        else                 
+          SetDataType(dtype);
 	break;
 
       case M_PLOT_DFT_MSC_YIELD:
+	dtype = GetDataType();
+	SetDataType(MSC_YIELD);
 	if(PlotDFT()){
 	  dMenuPlot6->UnCheckEntries();
 	  dMenuPlot6->CheckEntry(M_PLOT_DFT_MSC_YIELD);
 	}
+        else                 
+          SetDataType(dtype);
 	break;
 
 
       case M_PLOT_DFTPROF_YIELD:
+	dtype = GetDataType();
+	SetDataType(PMT_YIELD);
 	if(PlotDFTProfile()){
 	  dMenuPlot1->UnCheckEntries();
 	  dMenuPlot1->CheckEntry(M_PLOT_DFTPROF_YIELD);
 	}
+        else                 
+          SetDataType(dtype);
 	break;
 
       case M_PLOT_DFTPROF_PMT_ASYM:
+	dtype = GetDataType();
+	SetDataType(PMT_ASYM);
 	if(PlotDFTProfile()){
 	  dMenuPlot2->UnCheckEntries();
 	  dMenuPlot2->CheckEntry(M_PLOT_DFTPROF_PMT_ASYM);
 	}
+        else                 
+          SetDataType(dtype);
 	break;
 
       case M_PLOT_DFTPROF_DET_ASYM:
+	dtype = GetDataType();
+	SetDataType(DET_ASYM);
 	if(PlotDFTProfile()){
 	  dMenuPlot3->UnCheckEntries();
 	  dMenuPlot3->CheckEntry(M_PLOT_DFTPROF_DET_ASYM);
 	}
+        else                 
+          SetDataType(dtype);
 	break;
 
       case M_PLOT_DFTPROF_CMB_ASYM:
+	dtype = GetDataType();
+	SetDataType(CMB_ASYM);
 	if(PlotDFTProfile()){
 	  dMenuPlot4->UnCheckEntries();
 	  dMenuPlot4->CheckEntry(M_PLOT_DFTPROF_CMB_ASYM);
 	}
+        else                 
+          SetDataType(dtype);
 	break;
 
       case M_PLOT_DFTPROF_MSC_ASYM:
+	dtype = GetDataType();
+	SetDataType(MSC_ASYM);
 	if(PlotDFTProfile()){
 	  dMenuPlot5->UnCheckEntries();
 	  dMenuPlot5->CheckEntry(M_PLOT_DFTPROF_MSC_ASYM);
 	}
+        else                 
+          SetDataType(dtype);
 	break;
 
       case M_PLOT_DFTPROF_MSC_YIELD:
+	dtype = GetDataType();
+	SetDataType(MSC_YIELD);
 	if(PlotDFTProfile()){
 	  dMenuPlot6->UnCheckEntries();
 	  dMenuPlot6->CheckEntry(M_PLOT_DFTPROF_MSC_YIELD);
 	}
+        else                 
+          SetDataType(dtype);
 	break;
 
 	/*PMT_YIELD*************************************/

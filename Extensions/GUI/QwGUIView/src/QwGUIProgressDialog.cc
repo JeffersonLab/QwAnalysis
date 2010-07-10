@@ -3,15 +3,16 @@
 
 
 QwGUIProgressDialog::QwGUIProgressDialog(const TGWindow *p, const TGWindow *main,
-				 const char* objname, const char *mainname,
-				 const char* title, const char* macrotext, const char* microtext,
-				 const char* microtext2, int runcnt, int mpcnt, int mpcnt2,
-				 UInt_t w,UInt_t h, Bool_t stopable, Int_t num) :
+					 const char* objname, const char *mainname,
+					 const char* title, const char* macrotext, const char* microtext,
+					 const char* microtext2, int runcnt, int mpcnt, int mpcnt2,
+					 UInt_t w,UInt_t h, Bool_t stopable, Bool_t kReverse, Int_t num) :
     TGTransientFrame(p, main, w, h)
 {
   if(num > 3) num = 3;
   kStopable = stopable;
   dContinue = kTrue;
+  dReverse = kReverse;
   dStop = kFalse;
   dRuncnt = runcnt;
   dMpcnt = mpcnt;
@@ -45,14 +46,21 @@ QwGUIProgressDialog::QwGUIProgressDialog(const TGWindow *p, const TGWindow *main
     fHProg1->SetBarColor("lightblue");
     fHProg1->SetRange(0,dRuncnt);
     fHProg1->SetPosition(0);
-    sprintf(dTemp,"%%.0f %s",mactext);
+    if(dReverse)
+      sprintf(dTemp," %s %%.0f",mactext);
+    else
+      sprintf(dTemp,"%%.0f %s",mactext);
     fHProg1->ShowPosition(kTRUE, kFALSE, dTemp);
   }
   if(dNum > 1 && microtext){
     fHProg2 = new TGHProgressBar(fVframe1, TGProgressBar::kFancy, 300);
     fHProg2->SetBarColor("lightblue");
     fHProg2->SetRange(0,dMpcnt);
-    sprintf(dTemp,"%%.0f %s",mictext);
+    if(dReverse)
+      sprintf(dTemp," %s %%.0f",mictext);
+    else
+      sprintf(dTemp,"%%.0f %s",mictext);
+      
     fHProg2->ShowPosition(kTRUE, kFALSE, dTemp);
     fHProg2->SetPosition(0);
   }
@@ -60,7 +68,10 @@ QwGUIProgressDialog::QwGUIProgressDialog(const TGWindow *p, const TGWindow *main
     fHProg3 = new TGHProgressBar(fVframe1, TGProgressBar::kFancy, 300);
     fHProg3->SetBarColor("lightblue");
     fHProg3->SetRange(0,dMpcnt2);
-    sprintf(dTemp,"%%.0f %s",mictext2);
+    if(dReverse)
+      sprintf(dTemp,"%s %%.0f",mictext2);
+    else
+      sprintf(dTemp,"%%.0f %s",mictext2);
     fHProg3->ShowPosition(kTRUE, kFALSE, dTemp);
     fHProg3->SetPosition(0);
   }
