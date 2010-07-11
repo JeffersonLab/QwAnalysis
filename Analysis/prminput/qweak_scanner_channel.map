@@ -25,8 +25,8 @@ QDC_Bank=0x0402
 !
 slot=1
 ! module.type  module.num  chan.num, det.type, det.name
-  V792, 1, 24, scanner_qadc, front_adc
-  V792, 1, 28, scanner_qadc, back__adc
+  V792, 1, 25, scanner_qadc, front_adc
+  V792, 1, 27, scanner_qadc, back__adc
   V792, 1, 29, scanner_qadc, pos_x_adc
   V792, 1, 31, scanner_qadc, pos_y_adc
 !
