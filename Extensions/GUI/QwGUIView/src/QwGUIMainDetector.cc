@@ -171,26 +171,8 @@ QwGUIMainDetector::~QwGUIMainDetector()
 
 }
 
-void QwGUIMainDetector::MakeLayout()
+void QwGUIMainDetector::MakeCurrentModeTabs()
 {
-  dTabLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop | 
-				 kLHintsExpandX | kLHintsExpandY);
-  dCnvLayout = new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY,
-				 0, 0, 1, 2);
-
-
-  dTabLayout = new TGLayoutHints(kLHintsBottom | kLHintsExpandX | kLHintsExpandY,
-				 2, 2, 5, 1);
-
-  dTabFrame = new TGHorizontalFrame(this,10,10);
-
-  dMDTab = new TGTab(dTabFrame,10,10);
-  dMDTab->Associate(this);
-//   dMainTabLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop |
-// 				     kLHintsExpandX | kLHintsExpandY);
-//   dMainCnvLayout = new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY,
-// 				     0, 0, 1, 2);
-
 
   //*** Yield Tab *****************************************************************
 
@@ -437,12 +419,6 @@ void QwGUIMainDetector::MakeLayout()
   dMSCYieldTab->AddFrame(dMSCYieldFrame,dTabLayout);
   dSUMTab->AddFrame(dSUMFrame,dTabLayout);
 
-  dTabFrame->AddFrame(dMDTab,new TGLayoutHints(kLHintsLeft | kLHintsTop |
-					       kLHintsExpandX | kLHintsExpandY));
-
-  AddFrame(dTabFrame,new TGLayoutHints(kLHintsLeft | kLHintsTop |
-				     kLHintsExpandX | kLHintsExpandY));
-
   dYieldCanvas->GetCanvas()->SetBorderMode(0);
   dYieldCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
   				"QwGUIMainDetector",
@@ -477,6 +453,47 @@ void QwGUIMainDetector::MakeLayout()
   dSUMCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
 				   "QwGUIMainDetector",
 				   this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
+
+
+  TCanvas *mc = dYieldCanvas->GetCanvas();
+  mc->Divide(4,4);
+
+  mc = dPMTAsymCanvas->GetCanvas();
+  mc->Divide(4,4);
+
+  mc = dDETAsymCanvas->GetCanvas();
+  mc->Divide(2,4);
+
+  Double_t rem = 100.0;
+  Int_t div = MAIN_DET_COMBIND;
+  Int_t row = 1;
+  Int_t col = 1;
+  while(rem){
+    div--;
+    rem = MAIN_DET_COMBIND%div;
+  }
+  if(div == 1){
+    rem = 100.0;
+    div = MAIN_DET_COMBIND+1;
+    while(rem){
+      div--;
+      rem = MAIN_DET_COMBIND%div;
+    }
+  }    
+  row = (Int_t)(MAIN_DET_COMBIND/div);
+  col = div;
+
+  mc = dCMBAsymCanvas->GetCanvas();
+  mc->Divide(row,div);
+
+  mc = dMSCAsymCanvas->GetCanvas();
+  mc->Divide(2,4);
+
+  mc = dMSCYieldCanvas->GetCanvas();
+  mc->Divide(2,4);
+
+  mc = dSUMCanvas->GetCanvas();
+  mc->Divide(2,3);
 
   dMenuPlot1->DisableEntry(M_PLOT_HISTO_YIELD);
   dMenuPlot1->DisableEntry(M_PLOT_GRAPH_YIELD);
@@ -555,12 +572,44 @@ void QwGUIMainDetector::MakeLayout()
   dMenuBlock7->DisableEntry(M_DATA_SUM_B4); 
   dMenuBlock7->DisableEntry(M_DATA_SUM_SUM);
 
+  dMDTab->MapSubwindows(); 
+  dMDTab->Layout();
+}
+
+void QwGUIMainDetector::MakeTrackingModeTabs()
+{
+
+}
+
+void QwGUIMainDetector::MakeLayout()
+{
+  dTabLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop | 
+				 kLHintsExpandX | kLHintsExpandY);
+  dCnvLayout = new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY,
+				 0, 0, 1, 2);
+
+
+  dTabLayout = new TGLayoutHints(kLHintsBottom | kLHintsExpandX | kLHintsExpandY,
+				 2, 2, 5, 1);
+
+  dTabFrame = new TGHorizontalFrame(this,10,10);
+
+  dMDTab = new TGTab(dTabFrame,10,10);
+  dMDTab->Associate(this);
+
+
+  dTabFrame->AddFrame(dMDTab,new TGLayoutHints(kLHintsLeft | kLHintsTop |
+					       kLHintsExpandX | kLHintsExpandY));
+
+  AddFrame(dTabFrame,new TGLayoutHints(kLHintsLeft | kLHintsTop |
+				     kLHintsExpandX | kLHintsExpandY));
 }
 
 #ifndef ROOTCINTMODE
 
-Int_t QwGUIMainDetector::LoadChannelMap(TString mapfile)
+Int_t QwGUIMainDetector::LoadCurrentModeChannelMap()
 {
+  TString mapfile = Form("%s/setupfiles/qweak_maindet.map",gSystem->Getenv("QWSCRATCH"));
   TString varname, varvalue;
   TString modtype, dettype, namech, nameofcombinedchan;
   Int_t modnum, channum, combinedchans;
@@ -634,46 +683,6 @@ Int_t QwGUIMainDetector::LoadChannelMap(TString mapfile)
     dCurrentMSCYields[n]->SetName(MainDetectorBlockTypes[n]);
   }
 
-  TCanvas *mc = dYieldCanvas->GetCanvas();
-  mc->Divide(4,4);
-
-  mc = dPMTAsymCanvas->GetCanvas();
-  mc->Divide(4,4);
-
-  mc = dDETAsymCanvas->GetCanvas();
-  mc->Divide(2,4);
-
-  Double_t rem = 100.0;
-  Int_t div = MAIN_DET_COMBIND;
-  Int_t row = 1;
-  Int_t col = 1;
-  while(rem){
-    div--;
-    rem = MAIN_DET_COMBIND%div;
-  }
-  if(div == 1){
-    rem = 100.0;
-    div = MAIN_DET_COMBIND+1;
-    while(rem){
-      div--;
-      rem = MAIN_DET_COMBIND%div;
-    }
-  }    
-  row = (Int_t)(MAIN_DET_COMBIND/div);
-  col = div;
-
-  mc = dCMBAsymCanvas->GetCanvas();
-  mc->Divide(row,div);
-
-  mc = dMSCAsymCanvas->GetCanvas();
-  mc->Divide(2,4);
-
-  mc = dMSCYieldCanvas->GetCanvas();
-  mc->Divide(2,4);
-
-  mc = dSUMCanvas->GetCanvas();
-  mc->Divide(2,3);
-
   NewDataInit();
   ClearRootData();
   ClearDFTData();
@@ -681,6 +690,13 @@ Int_t QwGUIMainDetector::LoadChannelMap(TString mapfile)
 
   return 1;
 }
+
+Int_t QwGUIMainDetector::LoadTrackingModeChannelMap()
+{
+
+  return 1;
+}
+
 #endif
 
 void QwGUIMainDetector::OnReceiveMessage(char *msg)
@@ -760,6 +776,333 @@ void QwGUIMainDetector::OnObjClose(char *obj)
 }
 
 
+void QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
+{
+  if(!MPSTree && !HELTree) return;
+  Int_t events = 0;
+  Int_t bl = 0;
+  Int_t det = 0;
+
+  LoadCurrentModeChannelMap();
+  MakeCurrentModeTabs();
+  
+  //Get rid of old data
+  NewDataInit();
+  ClearRootData();    
+  ClearDFTData();
+  
+  QwGUIMainDetectorDataStructure *CurrentPMTYield  = NULL;
+  QwGUIMainDetectorDataStructure *CurrentPMTAsym   = NULL;
+  QwGUIMainDetectorDataStructure *CurrentDETAsym   = NULL;
+  QwGUIMainDetectorDataStructure *CurrentCMBAsym   = NULL;
+  QwGUIMainDetectorDataStructure *CurrentMSCAsym   = NULL;
+  QwGUIMainDetectorDataStructure *CurrentMSCYield  = NULL;
+  
+  //cycle through the main detectors and possible combinations thereof
+  
+  InitProgressDlg("Detector Event Fill","Block","Detector",0,kTrue,4,dCurrentYields[0]->GetNumElements(),0,2);
+  
+  bl = 0;
+  IncreaseProgress(&bl,0,0,1,0,0);
+  for(int n = 0; n < MAIN_DET_BLOCKIND; n++){
+    
+    CurrentPMTYield  = dCurrentYields[n]->GetElements();
+    CurrentPMTAsym   = dCurrentPMTAsyms[n]->GetElements();
+    CurrentDETAsym   = dCurrentDETAsyms[n]->GetElements();
+    CurrentCMBAsym   = dCurrentCMBAsyms[n]->GetElements();
+    CurrentMSCAsym   = dCurrentMSCAsyms[n]->GetElements();
+    CurrentMSCYield  = dCurrentMSCYields[n]->GetElements();
+    
+    dProgrDlg->ResetRange(0,dCurrentYields[n]->GetNumElements(),0);
+    det = 1;
+    for(int i = 0; i < dCurrentYields[n]->GetNumElements(); i++){
+      
+      if (MPSTree && MPSTree -> FindBranch(Form("%s",MainDetectorPMTNames[i].Data()))) {
+	MPSTree->Draw(Form("%s.%s",MainDetectorPMTNames[i].Data(),dCurrentYields[n]->GetName()),"",
+		      "goff",MPSTree->GetEntries(),0);
+	
+	CurrentPMTYield[i].EnsambleReset();
+	events = 0;
+	
+	for(int j = 0; j < MPSTree->GetEntries(); j++){
+	  
+	  CurrentPMTYield[i].PushData(MPSTree->GetV1()[j]*76.3e-6/480);	      
+	  events++;
+	}
+	CurrentPMTYield[i].CalculateStats();
+	CurrentPMTYield[i].SetName(Form("%s.%s Yield",MainDetectorPMTNames[i].Data(),
+					dCurrentYields[n]->GetName()));
+	FillYieldPlots(i,n);
+      }
+      
+      if ( HELTree && HELTree -> FindBranch(Form("asym_%s",MainDetectorPMTNames[i].Data()))) {
+	HELTree->Draw(Form("asym_%s.%s",MainDetectorPMTNames[i].Data(),dCurrentPMTAsyms[n]->GetName()),"",
+		      "goff",HELTree->GetEntries(),0);
+	
+	CurrentPMTAsym[i].EnsambleReset();
+	events = 0;
+	
+	for(int j = 0; j < HELTree->GetEntries(); j++){
+	  
+	  CurrentPMTAsym[i].PushData(HELTree->GetV1()[j]);
+	  events++;
+	}
+	CurrentPMTAsym[i].CalculateStats();
+	CurrentPMTAsym[i].SetName(Form("%s.%s PMT Asy.",MainDetectorPMTNames[i].Data(),
+				       dCurrentPMTAsyms[n]->GetName()));
+	FillPMTAsymPlots(i,n);
+      }
+      
+      det++;
+      if(dProcessHalt) break;
+      IncreaseProgress(0,&det,0,0,1,0);
+    }
+    
+    for(int i = 0; i < dCurrentDETAsyms[n]->GetNumElements(); i++){
+      
+      CurrentDETAsym[i].EnsambleReset();
+      events = 0;
+      
+      for(int j = 0; j < CurrentPMTAsym[i].Length(); j++){
+	
+	CurrentDETAsym[i].PushData(0.5*(CurrentPMTAsym[i].GetData(j)+CurrentPMTAsym[i+8].GetData(j)));
+	events++;
+      }
+      CurrentDETAsym[i].CalculateStats();
+      CurrentDETAsym[i].SetName(Form("%s.%s Detector Asy.",MainDetectorNames[i].Data(),
+				     dCurrentDETAsyms[n]->GetName()));
+      FillDETAsymPlots(i,n);
+    }
+    
+    for(int i = 0; i < dCurrentCMBAsyms[n]->GetNumElements(); i++){
+      
+      if ( HELTree && HELTree -> FindBranch(Form("asym_%s",MainDetectorCombinationNames[i].Data()))) {
+	
+	HELTree->Draw(Form("asym_%s.%s",MainDetectorCombinationNames[i].Data(),dCurrentCMBAsyms[n]->GetName()),"",
+		      "goff",HELTree->GetEntries(),0);
+	
+	
+	CurrentCMBAsym[i].EnsambleReset();
+	events = 0;
+	
+	for(int j = 0; j < HELTree->GetEntries(); j++){
+	  
+	  CurrentCMBAsym[i].PushData(HELTree->GetV1()[j]);
+	  events++;
+	}
+	CurrentCMBAsym[i].CalculateStats();
+	CurrentCMBAsym[i].SetName(Form("%s.%s Combination Asy.",MainDetectorCombinationNames[i].Data(),
+				       dCurrentCMBAsyms[n]->GetName()));
+	FillCMBAsymPlots(i,n);
+	
+      }
+    }
+    
+    for(int i = 0; i < dCurrentMSCAsyms[n]->GetNumElements(); i++){
+      
+      if ( HELTree && HELTree -> FindBranch(Form("asym_%s",MainDetectorMscNames[i].Data()))) {
+	
+	HELTree->Draw(Form("asym_%s.%s",MainDetectorMscNames[i].Data(),dCurrentMSCAsyms[n]->GetName()),"",
+		      "goff",HELTree->GetEntries(),0);
+	
+	
+	CurrentMSCAsym[i].EnsambleReset();
+	events = 0;
+	
+	for(int j = 0; j < HELTree->GetEntries(); j++){
+	  
+	  CurrentMSCAsym[i].PushData(HELTree->GetV1()[j]);
+	  events++;
+	}
+	CurrentMSCAsym[i].CalculateStats();
+	CurrentMSCAsym[i].SetName(Form("%s.%s Asymmetry",MainDetectorMscNames[i].Data(),
+				       dCurrentMSCAsyms[n]->GetName()));
+	FillMSCAsymPlots(i,n);
+	
+      }
+    }
+    
+    for(int i = 0; i < dCurrentMSCYields[n]->GetNumElements(); i++){
+      
+      if ( MPSTree && MPSTree -> FindBranch(Form("%s",MainDetectorMscNames[i].Data()))) {
+	
+	MPSTree->Draw(Form("%s.%s",MainDetectorMscNames[i].Data(),dCurrentMSCYields[n]->GetName()),"",
+		      "goff",MPSTree->GetEntries(),0);
+	
+	
+	CurrentMSCYield[i].EnsambleReset();
+	events = 0;
+	
+	for(int j = 0; j < MPSTree->GetEntries(); j++){
+	  CurrentMSCYield[i].PushData(MPSTree->GetV1()[j]*76.3e-6/480);
+	  events++;
+	}
+	CurrentMSCYield[i].CalculateStats();
+	CurrentMSCYield[i].SetName(Form("%s.%s Yield",MainDetectorMscNames[i].Data(),
+					dCurrentMSCYields[n]->GetName()));
+	FillMSCYieldPlots(i,n);
+	
+      }
+    }
+    FillSummaryPlots(n);
+    
+    bl++;
+    if(dProcessHalt) break;
+    IncreaseProgress(&bl,0,0,1,0,0);
+  }
+  
+  if(dProgrDlg)
+    dProgrDlg->CloseWindow();
+  
+  if(MPSTree && MAIN_PMT_INDEX > 0){
+    
+    dMenuPlot1->EnableEntry(M_PLOT_HISTO_YIELD);
+    dMenuPlot1->EnableEntry(M_PLOT_GRAPH_YIELD);
+    dMenuPlot1->EnableEntry(M_PLOT_DFT_YIELD);
+    
+    dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_B1);   
+    dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_B2);   
+    dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_B3);   
+    dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_B4);   
+    dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_SUM);
+    
+    dMenuPlot1->CheckEntry(M_PLOT_HISTO_YIELD);
+    dMenuBlock1->CheckEntry(M_DATA_PMT_YIELD_SUM);
+    SetYieldDataIndex(0);
+    SetDataType(PMT_YIELD);
+    PlotHistograms();
+  }
+  
+  if(HELTree && MAIN_PMT_INDEX > 0){
+    
+    dMenuPlot2->EnableEntry(M_PLOT_HISTO_PMT_ASYM);
+    dMenuPlot2->EnableEntry(M_PLOT_GRAPH_PMT_ASYM);
+    dMenuPlot2->EnableEntry(M_PLOT_DFT_PMT_ASYM);
+    
+    dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_B1); 
+    dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_B2); 
+    dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_B3); 
+    dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_B4); 
+    dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_SUM);
+    
+    dMenuPlot2->CheckEntry(M_PLOT_HISTO_PMT_ASYM);
+    dMenuBlock2->CheckEntry(M_DATA_PMT_ASYM_SUM);
+    SetPMTAsymDataIndex(0);
+    SetDataType(PMT_ASYM);
+    PlotHistograms(); 
+  }
+  
+  if(HELTree && MAIN_DET_INDEX > 0){
+    
+    dMenuPlot3->EnableEntry(M_PLOT_HISTO_DET_ASYM);
+    dMenuPlot3->EnableEntry(M_PLOT_GRAPH_DET_ASYM);
+    dMenuPlot3->EnableEntry(M_PLOT_DFT_DET_ASYM);
+    
+    dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_B1); 
+    dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_B2); 
+    dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_B3); 
+    dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_B4); 
+    dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_SUM);
+    
+    dMenuPlot3->CheckEntry(M_PLOT_HISTO_DET_ASYM);
+    dMenuBlock3->CheckEntry(M_DATA_DET_ASYM_SUM);
+    SetDETAsymDataIndex(0);
+    SetDataType(DET_ASYM);
+    PlotHistograms(); 
+  }
+  
+  if(HELTree && MAIN_DET_COMBIND > 0){
+    
+    dMenuPlot4->EnableEntry(M_PLOT_HISTO_CMB_ASYM);
+    dMenuPlot4->EnableEntry(M_PLOT_GRAPH_CMB_ASYM);
+    dMenuPlot4->EnableEntry(M_PLOT_DFT_CMB_ASYM);
+    
+    dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_B1); 
+    dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_B2); 
+    dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_B3); 
+    dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_B4); 
+    dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_SUM);
+    
+    dMenuPlot4->CheckEntry(M_PLOT_HISTO_CMB_ASYM);
+    dMenuBlock4->CheckEntry(M_DATA_CMB_ASYM_SUM);
+    SetCMBAsymDataIndex(0);
+    SetDataType(CMB_ASYM);
+    PlotHistograms(); 
+  }
+  
+  if(HELTree && MAIN_MSC_INDEX > 0){
+    
+    dMenuPlot5->EnableEntry(M_PLOT_HISTO_MSC_ASYM);
+    dMenuPlot5->EnableEntry(M_PLOT_GRAPH_MSC_ASYM);
+    dMenuPlot5->EnableEntry(M_PLOT_DFT_MSC_ASYM);
+    
+    dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_B1); 
+    dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_B2); 
+    dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_B3); 
+    dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_B4); 
+    dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_SUM);
+    
+    dMenuPlot5->CheckEntry(M_PLOT_HISTO_MSC_ASYM);
+    dMenuBlock5->CheckEntry(M_DATA_MSC_ASYM_SUM);
+    SetMSCAsymDataIndex(0);
+    SetDataType(MSC_ASYM);
+    PlotHistograms(); 
+    
+    dMenuPlot6->EnableEntry(M_PLOT_HISTO_MSC_YIELD);
+    dMenuPlot6->EnableEntry(M_PLOT_GRAPH_MSC_YIELD);
+    dMenuPlot6->EnableEntry(M_PLOT_DFT_MSC_YIELD);
+    
+    dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_B1); 
+    dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_B2); 
+    dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_B3); 
+    dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_B4); 
+    dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_SUM);
+    
+    dMenuPlot6->CheckEntry(M_PLOT_HISTO_MSC_YIELD);
+    dMenuBlock6->CheckEntry(M_DATA_MSC_YIELD_SUM);
+    SetMSCAsymDataIndex(0);
+    SetDataType(MSC_YIELD);
+    PlotHistograms(); 
+  }
+  
+  if(HELTree || MPSTree){
+    
+    dMenuBlock7->EnableEntry(M_DATA_SUM_B1);   
+    dMenuBlock7->EnableEntry(M_DATA_SUM_B2);   
+    dMenuBlock7->EnableEntry(M_DATA_SUM_B3);   
+    dMenuBlock7->EnableEntry(M_DATA_SUM_B4);   
+    dMenuBlock7->EnableEntry(M_DATA_SUM_SUM);
+    
+    dMenuBlock7->CheckEntry(M_DATA_SUM_SUM);
+    SetSummaryDataIndex(0);
+    SetDataType(SUMMARY);
+    PlotGraphs(); 
+    
+    SetPlotType(PLOT_TYPE_HISTO,0);
+    SetPlotType(PLOT_TYPE_HISTO,1);
+    SetPlotType(PLOT_TYPE_HISTO,2);
+    SetPlotType(PLOT_TYPE_HISTO,3);
+    SetPlotType(PLOT_TYPE_HISTO,4);
+    SetPlotType(PLOT_TYPE_HISTO,5);
+    SetPlotType(PLOT_TYPE_GRAPH,6);
+    
+  }
+  
+  SetDataType(PMT_YIELD);
+  
+  //End filling root data    
+
+}
+
+void QwGUIMainDetector::GetTrackingModeData(TTree *tree)
+{
+  if(!tree) return;
+
+  LoadTrackingModeChannelMap();
+  MakeTrackingModeTabs();
+
+  //etc ...
+}
 
 void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
 {
@@ -769,13 +1112,12 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
   TObject *obj;
   TTree *MPSTree = NULL;
   TTree *HELTree = NULL;
-  Int_t events = 0;
-  Int_t bl = 0;
-  Int_t det = 0;
+  TTree *tree = NULL;
 
-  //Start filling root data  
   if(!strcmp(cont->GetDataName(),"ROOT") && dROOTCont){
+  //Start filling root data  
 
+    //Current Mode
     obj = dROOTCont->ReadData("Mps_Tree");
     if(obj){
       if(obj->InheritsFrom("TTree")){
@@ -789,331 +1131,27 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
       }
     }
 
-
-    if(!HELTree && !MPSTree){
-      //put some warning dialog here, indicating that this
-      //is not an open or valid root file ...
-      return;
-    }
-    //otherwise continue
-
-    //Get rid of old data
-    NewDataInit();
-    ClearRootData();    
-    ClearDFTData();
-
-    QwGUIMainDetectorDataStructure *CurrentPMTYield  = NULL;
-    QwGUIMainDetectorDataStructure *CurrentPMTAsym   = NULL;
-    QwGUIMainDetectorDataStructure *CurrentDETAsym   = NULL;
-    QwGUIMainDetectorDataStructure *CurrentCMBAsym   = NULL;
-    QwGUIMainDetectorDataStructure *CurrentMSCAsym   = NULL;
-    QwGUIMainDetectorDataStructure *CurrentMSCYield  = NULL;
-
-    //cycle through the main detectors and possible combinations thereof
-
-    InitProgressDlg("Detector Event Fill","Block","Detector",0,kTrue,4,dCurrentYields[0]->GetNumElements(),0,2);
- 
-    bl = 0;
-    IncreaseProgress(&bl,0,0,1,0,0);
-    for(int n = 0; n < MAIN_DET_BLOCKIND; n++){
-
-      CurrentPMTYield  = dCurrentYields[n]->GetElements();
-      CurrentPMTAsym   = dCurrentPMTAsyms[n]->GetElements();
-      CurrentDETAsym   = dCurrentDETAsyms[n]->GetElements();
-      CurrentCMBAsym   = dCurrentCMBAsyms[n]->GetElements();
-      CurrentMSCAsym   = dCurrentMSCAsyms[n]->GetElements();
-      CurrentMSCYield  = dCurrentMSCYields[n]->GetElements();
-		
-      dProgrDlg->ResetRange(0,dCurrentYields[n]->GetNumElements(),0);
-      det = 1;
-      for(int i = 0; i < dCurrentYields[n]->GetNumElements(); i++){
-
-	if (MPSTree && MPSTree -> FindBranch(Form("%s",MainDetectorPMTNames[i].Data()))) {
-	    MPSTree->Draw(Form("%s.%s",MainDetectorPMTNames[i].Data(),dCurrentYields[n]->GetName()),"",
-			  "goff",MPSTree->GetEntries(),0);
-  	    
-	    CurrentPMTYield[i].EnsambleReset();
-	    events = 0;
-
-	    for(int j = 0; j < MPSTree->GetEntries(); j++){
-
-	      CurrentPMTYield[i].PushData(MPSTree->GetV1()[j]*76.3e-6/480);	      
-	      events++;
-	    }
-	    CurrentPMTYield[i].CalculateStats();
-	    CurrentPMTYield[i].SetName(Form("%s.%s Yield",MainDetectorPMTNames[i].Data(),
-					    dCurrentYields[n]->GetName()));
-	    FillYieldPlots(i,n);
-	}
-	
-	if ( HELTree && HELTree -> FindBranch(Form("asym_%s",MainDetectorPMTNames[i].Data()))) {
-	  HELTree->Draw(Form("asym_%s.%s",MainDetectorPMTNames[i].Data(),dCurrentPMTAsyms[n]->GetName()),"",
-			"goff",HELTree->GetEntries(),0);
-
-	  CurrentPMTAsym[i].EnsambleReset();
-	  events = 0;
-	  
-	  for(int j = 0; j < HELTree->GetEntries(); j++){
-	    
-	    CurrentPMTAsym[i].PushData(HELTree->GetV1()[j]);
-	    events++;
-	  }
-	  CurrentPMTAsym[i].CalculateStats();
-	  CurrentPMTAsym[i].SetName(Form("%s.%s PMT Asy.",MainDetectorPMTNames[i].Data(),
-					 dCurrentPMTAsyms[n]->GetName()));
-	  FillPMTAsymPlots(i,n);
-	}
-
-	det++;
-	if(dProcessHalt) break;
-	IncreaseProgress(0,&det,0,0,1,0);
+    //Tracking Mode
+    obj = dROOTCont->ReadData("tree");
+    if(obj){
+      if(obj->InheritsFrom("TTree")){
+	HELTree = (TTree*)obj->Clone();
       }
-
-      for(int i = 0; i < dCurrentDETAsyms[n]->GetNumElements(); i++){
-	  
-	  CurrentDETAsym[i].EnsambleReset();
-	  events = 0;
-	  
-	  for(int j = 0; j < CurrentPMTAsym[i].Length(); j++){
-	    
-	    CurrentDETAsym[i].PushData(0.5*(CurrentPMTAsym[i].GetData(j)+CurrentPMTAsym[i+8].GetData(j)));
-	    events++;
-	  }
-	  CurrentDETAsym[i].CalculateStats();
-	  CurrentDETAsym[i].SetName(Form("%s.%s Detector Asy.",MainDetectorNames[i].Data(),
-					 dCurrentDETAsyms[n]->GetName()));
-	  FillDETAsymPlots(i,n);
-      }
-
-      for(int i = 0; i < dCurrentCMBAsyms[n]->GetNumElements(); i++){
-
-	if ( HELTree && HELTree -> FindBranch(Form("asym_%s",MainDetectorCombinationNames[i].Data()))) {
-
-	  HELTree->Draw(Form("asym_%s.%s",MainDetectorCombinationNames[i].Data(),dCurrentCMBAsyms[n]->GetName()),"",
-			"goff",HELTree->GetEntries(),0);
-	  
-	  
-	  CurrentCMBAsym[i].EnsambleReset();
-	  events = 0;
-	  
-	  for(int j = 0; j < HELTree->GetEntries(); j++){
-	    
-	    CurrentCMBAsym[i].PushData(HELTree->GetV1()[j]);
-	    events++;
-	  }
-	  CurrentCMBAsym[i].CalculateStats();
-	  CurrentCMBAsym[i].SetName(Form("%s.%s Combination Asy.",MainDetectorCombinationNames[i].Data(),
-					 dCurrentCMBAsyms[n]->GetName()));
-	  FillCMBAsymPlots(i,n);
-	  
-	}
-      }
-
-      for(int i = 0; i < dCurrentMSCAsyms[n]->GetNumElements(); i++){
-
-	if ( HELTree && HELTree -> FindBranch(Form("asym_%s",MainDetectorMscNames[i].Data()))) {
-
-	  HELTree->Draw(Form("asym_%s.%s",MainDetectorMscNames[i].Data(),dCurrentMSCAsyms[n]->GetName()),"",
-			"goff",HELTree->GetEntries(),0);
-	  
-	  
-	  CurrentMSCAsym[i].EnsambleReset();
-	  events = 0;
-	  
-	  for(int j = 0; j < HELTree->GetEntries(); j++){
-	    
-	    CurrentMSCAsym[i].PushData(HELTree->GetV1()[j]);
-	    events++;
-	  }
-	  CurrentMSCAsym[i].CalculateStats();
-	  CurrentMSCAsym[i].SetName(Form("%s.%s Asymmetry",MainDetectorMscNames[i].Data(),
-					 dCurrentMSCAsyms[n]->GetName()));
-	  FillMSCAsymPlots(i,n);
-	  
-	}
-      }
-
-      for(int i = 0; i < dCurrentMSCYields[n]->GetNumElements(); i++){
-
-	if ( MPSTree && MPSTree -> FindBranch(Form("%s",MainDetectorMscNames[i].Data()))) {
-
-	  MPSTree->Draw(Form("%s.%s",MainDetectorMscNames[i].Data(),dCurrentMSCYields[n]->GetName()),"",
-			"goff",MPSTree->GetEntries(),0);
-	  
-	  
-	  CurrentMSCYield[i].EnsambleReset();
-	  events = 0;
-	  
-	  for(int j = 0; j < MPSTree->GetEntries(); j++){
-	    CurrentMSCYield[i].PushData(MPSTree->GetV1()[j]*76.3e-6/480);
-	    events++;
-	  }
-	  CurrentMSCYield[i].CalculateStats();
-	  CurrentMSCYield[i].SetName(Form("%s.%s Yield",MainDetectorMscNames[i].Data(),
-					  dCurrentMSCYields[n]->GetName()));
-	  FillMSCYieldPlots(i,n);
-	  
-	}
-      }
-      FillSummaryPlots(n);
-
-      bl++;
-      if(dProcessHalt) break;
-      IncreaseProgress(&bl,0,0,1,0,0);
-    }
-
-    if(dProgrDlg)
-      dProgrDlg->CloseWindow();
-
-    if(MPSTree && MAIN_PMT_INDEX > 0){
-
-      dMenuPlot1->EnableEntry(M_PLOT_HISTO_YIELD);
-      dMenuPlot1->EnableEntry(M_PLOT_GRAPH_YIELD);
-      dMenuPlot1->EnableEntry(M_PLOT_DFT_YIELD);
-
-      dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_B1);   
-      dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_B2);   
-      dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_B3);   
-      dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_B4);   
-      dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_SUM);
-
-      dMenuPlot1->CheckEntry(M_PLOT_HISTO_YIELD);
-      dMenuBlock1->CheckEntry(M_DATA_PMT_YIELD_SUM);
-      SetYieldDataIndex(0);
-      SetDataType(PMT_YIELD);
-      PlotHistograms();
-    }
-
-    if(HELTree && MAIN_PMT_INDEX > 0){
-
-      dMenuPlot2->EnableEntry(M_PLOT_HISTO_PMT_ASYM);
-      dMenuPlot2->EnableEntry(M_PLOT_GRAPH_PMT_ASYM);
-      dMenuPlot2->EnableEntry(M_PLOT_DFT_PMT_ASYM);
-
-      dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_B1); 
-      dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_B2); 
-      dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_B3); 
-      dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_B4); 
-      dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_SUM);
-
-      dMenuPlot2->CheckEntry(M_PLOT_HISTO_PMT_ASYM);
-      dMenuBlock2->CheckEntry(M_DATA_PMT_ASYM_SUM);
-      SetPMTAsymDataIndex(0);
-      SetDataType(PMT_ASYM);
-      PlotHistograms(); 
-    }
-    
-    if(HELTree && MAIN_DET_INDEX > 0){
-
-      dMenuPlot3->EnableEntry(M_PLOT_HISTO_DET_ASYM);
-      dMenuPlot3->EnableEntry(M_PLOT_GRAPH_DET_ASYM);
-      dMenuPlot3->EnableEntry(M_PLOT_DFT_DET_ASYM);
-
-      dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_B1); 
-      dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_B2); 
-      dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_B3); 
-      dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_B4); 
-      dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_SUM);
-
-      dMenuPlot3->CheckEntry(M_PLOT_HISTO_DET_ASYM);
-      dMenuBlock3->CheckEntry(M_DATA_DET_ASYM_SUM);
-      SetDETAsymDataIndex(0);
-      SetDataType(DET_ASYM);
-      PlotHistograms(); 
-    }
-
-    if(HELTree && MAIN_DET_COMBIND > 0){
-
-      dMenuPlot4->EnableEntry(M_PLOT_HISTO_CMB_ASYM);
-      dMenuPlot4->EnableEntry(M_PLOT_GRAPH_CMB_ASYM);
-      dMenuPlot4->EnableEntry(M_PLOT_DFT_CMB_ASYM);
-
-      dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_B1); 
-      dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_B2); 
-      dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_B3); 
-      dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_B4); 
-      dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_SUM);
-
-      dMenuPlot4->CheckEntry(M_PLOT_HISTO_CMB_ASYM);
-      dMenuBlock4->CheckEntry(M_DATA_CMB_ASYM_SUM);
-      SetCMBAsymDataIndex(0);
-      SetDataType(CMB_ASYM);
-      PlotHistograms(); 
-    }
-
-    if(HELTree && MAIN_MSC_INDEX > 0){
-
-      dMenuPlot5->EnableEntry(M_PLOT_HISTO_MSC_ASYM);
-      dMenuPlot5->EnableEntry(M_PLOT_GRAPH_MSC_ASYM);
-      dMenuPlot5->EnableEntry(M_PLOT_DFT_MSC_ASYM);
-
-      dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_B1); 
-      dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_B2); 
-      dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_B3); 
-      dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_B4); 
-      dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_SUM);
-
-      dMenuPlot5->CheckEntry(M_PLOT_HISTO_MSC_ASYM);
-      dMenuBlock5->CheckEntry(M_DATA_MSC_ASYM_SUM);
-      SetMSCAsymDataIndex(0);
-      SetDataType(MSC_ASYM);
-      PlotHistograms(); 
-
-      dMenuPlot6->EnableEntry(M_PLOT_HISTO_MSC_YIELD);
-      dMenuPlot6->EnableEntry(M_PLOT_GRAPH_MSC_YIELD);
-      dMenuPlot6->EnableEntry(M_PLOT_DFT_MSC_YIELD);
-
-      dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_B1); 
-      dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_B2); 
-      dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_B3); 
-      dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_B4); 
-      dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_SUM);
-
-      dMenuPlot6->CheckEntry(M_PLOT_HISTO_MSC_YIELD);
-      dMenuBlock6->CheckEntry(M_DATA_MSC_YIELD_SUM);
-      SetMSCAsymDataIndex(0);
-      SetDataType(MSC_YIELD);
-      PlotHistograms(); 
     }
 
     if(HELTree || MPSTree){
-
-      dMenuBlock7->EnableEntry(M_DATA_SUM_B1);   
-      dMenuBlock7->EnableEntry(M_DATA_SUM_B2);   
-      dMenuBlock7->EnableEntry(M_DATA_SUM_B3);   
-      dMenuBlock7->EnableEntry(M_DATA_SUM_B4);   
-      dMenuBlock7->EnableEntry(M_DATA_SUM_SUM);
-
-      dMenuBlock7->CheckEntry(M_DATA_SUM_SUM);
-      SetSummaryDataIndex(0);
-      SetDataType(SUMMARY);
-      PlotGraphs(); 
-
-      SetPlotType(PLOT_TYPE_HISTO,0);
-      SetPlotType(PLOT_TYPE_HISTO,1);
-      SetPlotType(PLOT_TYPE_HISTO,2);
-      SetPlotType(PLOT_TYPE_HISTO,3);
-      SetPlotType(PLOT_TYPE_HISTO,4);
-      SetPlotType(PLOT_TYPE_HISTO,5);
-      SetPlotType(PLOT_TYPE_GRAPH,6);
-
+      GetCurrentModeData(MPSTree,HELTree);
+    }
+    else if(tree){
+      GetTrackingModeData(tree);
     }
 
-    SetDataType(PMT_YIELD);
 
   }
-  //End filling root data  
-
-
-  
-  //Start filling DB data
-
-  if(!strcmp(cont->GetDataName(),"DBASE") && dDatabaseCont){
-
+  else if(!strcmp(cont->GetDataName(),"DBASE") && dDatabaseCont){
+    //Start filling DB data
     ClearDBData();      
-   
   }
-
 }
 
 void QwGUIMainDetector::FillYieldPlots(Int_t det, Int_t dTInd)

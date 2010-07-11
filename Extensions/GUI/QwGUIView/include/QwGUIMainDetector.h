@@ -493,6 +493,14 @@ class QwGUIMainDetector : public QwGUISubSystem {
   void                 RemoveSelectedDataWindow() {dSelectedDataWindow = -1;};
   QwGUIDataWindow     *GetSelectedDataWindow();  
 
+  void                 MakeCurrentModeTabs();
+  Int_t                LoadCurrentModeChannelMap();
+  void                 GetCurrentModeData(TTree *mps, TTree *hel);
+
+  void                 MakeTrackingModeTabs();
+  Int_t                LoadTrackingModeChannelMap();
+  void                 GetTrackingModeData(TTree *tree);
+
   MDMenuIdentifiers    dDataType;
   ENPlotType           dPlotType[20];
   Int_t                dYieldDataInd;  
@@ -536,8 +544,6 @@ class QwGUIMainDetector : public QwGUISubSystem {
   virtual void        OnReceiveMessage(char*);
   virtual void        OnRemoveThisTab();
           void        OnUpdatePlot(char *);
-
-  virtual Int_t       LoadChannelMap(TString mapfile);
 
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
   virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
