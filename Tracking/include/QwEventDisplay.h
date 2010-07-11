@@ -192,7 +192,6 @@ class QwTreeEventBuffer;
 //Scalings make longest side of length .8 in canvas
 //Geometry data taken from QweakSim files unless noted in parentheses with a derivation;
 //Length is x, width is y, depth is z in qweak coordinates (x and y flip for GUI use, be careful of distinction)
-
 #define R1_WIDTH 30.00 // Region 1
 #define R1_LENGTH 30.00
 #define R1_DEPTH 3.00
@@ -208,7 +207,7 @@ class QwTreeEventBuffer;
 #define R2_CM 0.0177
 #define R2_ANGLE 56.00
 
-#define R3_WIDTH 210.00 // Region 3 geometries
+#define R3_WIDTH 210.00 // Region 3
 #define R3_LENGTH 50.00
 #define R3_DEPTH 2.54
 #define R3_DIST 40.00 // distance between drift cell chambers
@@ -236,12 +235,12 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
   // Menu bar
   TGMenuBar *fMenuBar;
   TGPopupMenu *fMenuFile, *fMenuHelp;
-  TGLayoutHints *fMenuBarItemLayout, *fMenuBarHelpLayout;
+  TGLayoutHints *fMenuBarLayout, *fMenuBarItemLayout, *fMenuBarHelpLayout;
   enum MenuCommandIdentifiers {
     M_FILE_OPENRUN,
     M_FILE_OPENSIM,
     M_FILE_PRINTSCREEN,
-    M_FILE_EXIT,
+    M_FILE_CLOSE,
     
     M_HELP_TUTORIAL,
     M_HELP_ABOUT
@@ -317,6 +316,9 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
 
   void SetEventBuffer(QwTreeEventBuffer *eventbuffer) { fEventBuffer = eventbuffer; };
   void SetSubsystemArray(QwSubsystemArrayTracking *subsystemarray) { fSubsystemArray = subsystemarray; };
+
+  void OpenSimFile();
+  void OpenRunFile();
 
   void HandleMenu(Int_t id);
   void GoPrevious();

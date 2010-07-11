@@ -4,6 +4,7 @@
 ** Author: Derek Jones              **
 ** The George Washington University **
 ** Contact: dwjones8@gwu.edu        **
+** Last updated: 7-11-2010          **
 \************************************/
 
 
@@ -60,7 +61,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    ////MENU BAR////
 
    // create menu bar for file functions 
-
+   fMenuBarLayout = new TGLayoutHints(kLHintsTop | kLHintsExpandX);
    fMenuBarItemLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0);
    fMenuBarHelpLayout = new TGLayoutHints(kLHintsTop | kLHintsRight);
 
@@ -70,7 +71,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fMenuFile->AddSeparator();
    fMenuFile->AddEntry("Prin&t Screen", M_FILE_PRINTSCREEN);
    fMenuFile->AddSeparator();
-   fMenuFile->AddEntry("E&xit", M_FILE_EXIT);
+   fMenuFile->AddEntry("&Close", M_FILE_CLOSE);
 
    fMenuHelp = new TGPopupMenu(gClient->GetDefaultRoot());
    fMenuHelp->AddEntry("&Tutorial", M_HELP_TUTORIAL);
@@ -81,12 +82,16 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fMenuHelp->Connect("Activated(Int_t)", "QwEventDisplay", this, "HandleMenu(Int_t)");
 
 
-   fMenuBar = new TGMenuBar(fMain);
-   //   fMenuBar = new TGMenuBar(fMain, 1, 1, kLHintsTop | kLHintsExpandX));
+   fMenuBar = new TGMenuBar(fMain, 900, 20, kHorizontalFrame | kRaisedFrame | kLHintsExpandX);
+   //fMenuBar = new TGMenuBar(fMain, 1, 1, kLHintsTop | kLHintsExpandX);
    fMenuBar->AddPopup("&File", fMenuFile, fMenuBarItemLayout);
    fMenuBar->AddPopup("&Help", fMenuHelp, fMenuBarHelpLayout);
+   gClient->GetColorByName("#deba87", ucolor); // set ucolor to mute orange
+   fMenuBar->SetBackgroundColor(ucolor);
 
-   fMain->AddFrame(fMenuBar, new TGLayoutHints(kLHintsTop | kLHintsExpandX));
+   fMain->AddFrame(fMenuBar, fMenuBarLayout);
+
+      // fMain->AddFrame(fMenuBar, new TGLayoutHints(kLHintsExpandX,0,0,1,0));
 
 
 
@@ -94,7 +99,16 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
 
 
 
-   /*
+
+
+
+
+
+
+
+
+
+
 
    ////TITLE AND LOGOS////
 
@@ -106,12 +120,12 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    // insert JLab logo
    TGIcon *JLabLogo = new TGIcon(fLogos,"/home/dwjones/Desktop/Logos/JLab_logo_white1.jpg");
    fLogos->AddFrame(JLabLogo, new TGLayoutHints(kLHintsNormal));
-   JLabLogo->MoveResize(144,0,250,75);
+   JLabLogo->MoveResize(144,1,250,77);
 
    // insert Qweak logo
    TGIcon *QweakLogo = new TGIcon(fLogos,"/home/dwjones/Desktop/Logos/qweak.jpg");
    fLogos->AddFrame(QweakLogo, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   QweakLogo->MoveResize(0,0,155,75);
+   QweakLogo->MoveResize(0,1,155,77);
 
    // graphics context changes for "Qweak 2D Single Event Display" title label
    ufont = gClient->GetFont("-*-helvetica-bold-r-*-*-25-*-*-*-*-*-*-*"); // set ufont to bold helvetica 25
@@ -133,18 +147,18 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    TitleBox->SetMargins(0,0,0,0);
    TitleBox->SetWrapLength(-1);
    fLogos->AddFrame(TitleBox, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   TitleBox->MoveResize(385,0,384,75);
+   TitleBox->MoveResize(385,1,384,77);
 
    // insert GWU logo
    TGIcon *GWULogo = new TGIcon(fLogos,"/home/dwjones/Desktop/Logos/gwu_logo_main.gif"); ////Logos from dwjones@jlab.org; taken from public domain
    fLogos->AddFrame(GWULogo, new TGLayoutHints(kLHintsNormal));
-   GWULogo->MoveResize(772,0,135,75);
+   GWULogo->MoveResize(772,1,135,77);
 
    // add fLogos frame to fMain and set color
    fMain->AddFrame(fLogos, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fLogos->MoveResize(0,0,900,80);
+   fLogos->MoveResize(0,20,900,100);
 
-   */
+
 
 
 
@@ -312,11 +326,6 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fEventBoxes->AddFrame(fEventBox2, new TGLayoutHints(kLHintsNormal));
    fEventBox2->MoveResize(227,6,220,226);
 
-   // add event boxes frame to main frame
-   fMain->AddFrame(fEventBoxes, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fEventBoxes->MoveResize(0,80,900,240);
-
-
    //EVENT BOX 3--Timing//
 
    // create vertical frame for event box 3
@@ -391,6 +400,10 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    DriftDistanceListBox->MoveResize(8,32,200,180);
    fEventBoxes->AddFrame(fEventBox4, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fEventBox4->MoveResize(675,6,220,226);
+
+   // add event boxes frame to main frame
+   fMain->AddFrame(fEventBoxes, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fEventBoxes->MoveResize(0,100,900,260);
 
 
   ////REGION BOXES////
@@ -721,7 +734,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fRegions->SetTab(0);
    fRegions->Resize(fRegions->GetDefaultSize());
    fMain->AddFrame(fRegions, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fRegions->MoveResize(0,320,900,312);
+   fRegions->MoveResize(0,340,900,332);
    gClient->GetColorByName("#deba87", ucolor); // set ucolor to mute orange
    fRegions->GetTabTab("Region 1--GEM")->SetBackgroundColor(ucolor);
    fRegions->GetTabTab("Region 2--HDC")->SetBackgroundColor(ucolor);
@@ -828,7 +841,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
 
    // add buttons frame to main frame
    fMain->AddFrame(fButtons, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fButtons->MoveResize(0,632,900,60);
+   fButtons->MoveResize(0,652,900,80);
 
 
    //FINAL TOUCHES//
@@ -887,11 +900,16 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // creates
    fMain->MapSubwindows();
    fMain->Resize(fMain->GetDefaultSize());
    fMain->MapWindow();
-   fMain->Resize(900,692);
+   fMain->Resize(900,712);
 } // end QwEventDisplay()
 
 
 ////FUNCTIONAL COMPONENTS////
+
+void QwEventDisplay::OpenSimFile(){
+}
+void QwEventDisplay::OpenRunFile(){
+}
 
 void QwEventDisplay::HandleMenu(Int_t id){  // controls the menu bar functions
                                               // called my menu entry click
@@ -900,15 +918,16 @@ void QwEventDisplay::HandleMenu(Int_t id){  // controls the menu bar functions
     case M_FILE_OPENRUN:
       break;
     case M_FILE_OPENSIM:
+      //      QwTreeEventBuffer::OpenFile();
       break;
     case M_FILE_PRINTSCREEN:
       break;
-    case M_FILE_EXIT:
+    case M_FILE_CLOSE:
       break;
     case M_HELP_TUTORIAL:
       break;
     case M_HELP_ABOUT:
-      printf("**************************************\n** Qweak 2D Event Display           **\n** Jefferson Lab -- Hall C          **\n** Author: Derek Jones              **\n** The George Washington University **\n** Contact: dwjones8@gwu.edu        **\n**************************************\n");
+      printf("**************************************\n** Qweak 2D Event Display           **\n** Jefferson Lab -- Hall C          **\n** Author: Derek Jones              **\n** The George Washington University **\n** Contact: dwjones8@gwu.edu        **\n** Last updated: 7-11-2010          **\n**************************************\n");
       break;
   }
 }
@@ -1883,4 +1902,5 @@ QwEventDisplay::~QwEventDisplay(){  // cleans up memory used by class; default d
 ** Author: Derek Jones              **
 ** The George Washington University **
 ** Contact: dwjones8@gwu.edu        **
+** Last updated: 7-11-2010          **
 \************************************/
