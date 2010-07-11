@@ -110,12 +110,19 @@ enum MDMenuIdentifiers {
   M_DATA_MSC_YIELD_B4,
   M_DATA_MSC_YIELD_SUM,
 
+  M_DATA_SUM_B1,
+  M_DATA_SUM_B2,
+  M_DATA_SUM_B3,
+  M_DATA_SUM_B4,
+  M_DATA_SUM_SUM,
+
   PMT_ASYM,
   DET_ASYM,
   PMT_YIELD,  
   CMB_ASYM,  
   MSC_ASYM,  
   MSC_YIELD,  
+  SUMMARY,  
 };
 
 #ifndef QWGUIMAINDETECTOR_H
@@ -257,6 +264,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   TGVerticalFrame        *dCMBAsymFrame;
   TGVerticalFrame        *dMSCAsymFrame;
   TGVerticalFrame        *dMSCYieldFrame;
+  TGVerticalFrame        *dSUMFrame;
 
   TGHorizontalFrame      *dTabFrame;
   
@@ -266,6 +274,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   TRootEmbeddedCanvas    *dCMBAsymCanvas;  
   TRootEmbeddedCanvas    *dMSCAsymCanvas;  
   TRootEmbeddedCanvas    *dMSCYieldCanvas;  
+  TRootEmbeddedCanvas    *dSUMCanvas;  
 
   TGLayoutHints          *dTabLayout; 
   TGLayoutHints          *dCnvLayout; 
@@ -285,6 +294,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   TGMenuBar              *dMenuBar4;
   TGMenuBar              *dMenuBar5;
   TGMenuBar              *dMenuBar6;
+  TGMenuBar              *dMenuBar7;
 
 /*   TGPopupMenu            *dMenuData; */
 
@@ -294,6 +304,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   TGPopupMenu            *dMenuPlot4;
   TGPopupMenu            *dMenuPlot5;
   TGPopupMenu            *dMenuPlot6;
+  TGPopupMenu            *dMenuPlot7;
 
 
   TGPopupMenu            *dMenuBlock1;
@@ -302,6 +313,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   TGPopupMenu            *dMenuBlock4;
   TGPopupMenu            *dMenuBlock5;
   TGPopupMenu            *dMenuBlock6;
+  TGPopupMenu            *dMenuBlock7;
 
   TGLayoutHints          *dMenuBarLayout; 
   TGLayoutHints          *dMenuBarItemLayout;
@@ -337,6 +349,8 @@ class QwGUIMainDetector : public QwGUISubSystem {
   TObjArray            CMBAsymDFTArray[MAIN_DET_BLOCKIND];
   TObjArray            MSCAsymDFTArray[MAIN_DET_BLOCKIND];
   TObjArray            MSCYieldDFTArray[MAIN_DET_BLOCKIND];
+
+  TObjArray            SummaryGraphArray[MAIN_DET_BLOCKIND];
   
   //!An object array to store data window pointers -- good for use in cleanup.
   TObjArray            DataWindowArray;
@@ -425,6 +439,8 @@ class QwGUIMainDetector : public QwGUISubSystem {
   void                 FillCMBAsymPlots(Int_t det, Int_t dTInd);
   void                 FillMSCAsymPlots(Int_t det, Int_t dTInd);
   void                 FillMSCYieldPlots(Int_t det, Int_t dTInd);
+  void                 FillSummaryPlots(Int_t dTInd);
+
 
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
   //!These are the names by which the histograms are identified within the root file.
@@ -470,18 +486,22 @@ class QwGUIMainDetector : public QwGUISubSystem {
   void                 SetMSCYieldDataIndex(Int_t ind) {if(ind < 0 || ind > 4) dMSCYieldDataInd = 0; else dMSCYieldDataInd = ind;};
   Int_t                GetMSCYieldDataIndex(){return dMSCYieldDataInd;};
 
+  void                 SetSummaryDataIndex(Int_t ind) {if(ind < 0 || ind > 4) dSummaryDataInd = 0; else dSummaryDataInd = ind;};
+  Int_t                GetSummaryDataIndex(){return dSummaryDataInd;};
+
   void                 SetSelectedDataWindow(Int_t ind) {dSelectedDataWindow = ind;};
   void                 RemoveSelectedDataWindow() {dSelectedDataWindow = -1;};
   QwGUIDataWindow     *GetSelectedDataWindow();  
 
   MDMenuIdentifiers    dDataType;
-  ENPlotType           dPlotType[10];
+  ENPlotType           dPlotType[20];
   Int_t                dYieldDataInd;  
   Int_t                dPMTAsymDataInd;
   Int_t                dDETAsymDataInd;
   Int_t                dCMBAsymDataInd;
   Int_t                dMSCAsymDataInd;
   Int_t                dMSCYieldDataInd;
+  Int_t                dSummaryDataInd;
   Int_t                dSelectedDataWindow;
   
  protected:
@@ -521,6 +541,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
 
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
   virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
+
 
   ClassDef(QwGUIMainDetector,0);
 };

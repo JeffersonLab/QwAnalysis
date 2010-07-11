@@ -131,6 +131,7 @@ void QwGUIMainDetector::NewDataInit()
   SetCMBAsymDataIndex(0);
   SetMSCAsymDataIndex(0);
   SetMSCYieldDataIndex(0);
+  SetSummaryDataIndex(0);
 }
 
 QwGUIMainDetector::~QwGUIMainDetector()
@@ -393,6 +394,39 @@ void QwGUIMainDetector::MakeLayout()
 
   //*** End MSC Yield Tab *****************************************************************
 
+  //*** SUM Tab *****************************************************************
+
+  TGCompositeFrame *dSUMTab = dMDTab->AddTab("Summary");
+  dSUMFrame = new TGVerticalFrame(dSUMTab,10,10);
+  
+//   dMenuPlot7 = new TGPopupMenu(fClient->GetRoot());
+//   dMenuPlot7->AddEntry("&Histogram", M_PLOT_HISTO_SUM);
+//   dMenuPlot7->AddEntry("&Graph", M_PLOT_GRAPH_SUM);
+//   dMenuPlot7->AddEntry("&DFT", M_PLOT_DFT_SUM);
+//   dMenuPlot7->AddEntry("DFT &Seq", M_PLOT_DFTPROF_SUM);
+
+  dMenuBlock7 = new TGPopupMenu(fClient->GetRoot());
+  dMenuBlock7->AddEntry("Block &1", M_DATA_SUM_B1);
+  dMenuBlock7->AddEntry("Block &2", M_DATA_SUM_B2);
+  dMenuBlock7->AddEntry("Block &3", M_DATA_SUM_B3);
+  dMenuBlock7->AddEntry("Block &4", M_DATA_SUM_B4);
+  dMenuBlock7->AddEntry("Block &Sum", M_DATA_SUM_SUM);
+
+  dMenuBar7 = new TGMenuBar(dSUMFrame, 1, 1, kHorizontalFrame);
+//   dMenuBar7->AddPopup("&Plot Type", dMenuPlot7, new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0));
+  dMenuBar7->AddPopup("&Data Block", dMenuBlock7, new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0));
+
+  dSUMFrame->AddFrame(dMenuBar7, new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 0, 0, 1, 1));
+  dMenuBlock7->Associate(this);
+//   dMenuPlot7->Associate(this);
+
+  dSUMCanvas   = new TRootEmbeddedCanvas("pSUMYL", dSUMFrame,10, 10);     
+  dSUMFrame->AddFrame(dSUMCanvas,dCnvLayout);
+  dSUMFrame->Resize(GetWidth(),GetHeight());
+
+
+  //*** End SUM  Tab *****************************************************************
+
 
 
   dYieldTab->AddFrame(dYieldFrame,dTabLayout);
@@ -401,6 +435,7 @@ void QwGUIMainDetector::MakeLayout()
   dCMBAsymTab->AddFrame(dCMBAsymFrame,dTabLayout);
   dMSCAsymTab->AddFrame(dMSCAsymFrame,dTabLayout);
   dMSCYieldTab->AddFrame(dMSCYieldFrame,dTabLayout);
+  dSUMTab->AddFrame(dSUMFrame,dTabLayout);
 
   dTabFrame->AddFrame(dMDTab,new TGLayoutHints(kLHintsLeft | kLHintsTop |
 					       kLHintsExpandX | kLHintsExpandY));
@@ -438,6 +473,11 @@ void QwGUIMainDetector::MakeLayout()
 				       "QwGUIMainDetector",
 				       this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
+  dSUMCanvas->GetCanvas()->SetBorderMode(0);
+  dSUMCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
+				   "QwGUIMainDetector",
+				   this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
+
   dMenuPlot1->DisableEntry(M_PLOT_HISTO_YIELD);
   dMenuPlot1->DisableEntry(M_PLOT_GRAPH_YIELD);
   dMenuPlot1->DisableEntry(M_PLOT_DFT_YIELD);
@@ -467,6 +507,11 @@ void QwGUIMainDetector::MakeLayout()
   dMenuPlot6->DisableEntry(M_PLOT_GRAPH_MSC_YIELD);
   dMenuPlot6->DisableEntry(M_PLOT_DFT_MSC_YIELD);
   dMenuPlot6->DisableEntry(M_PLOT_DFTPROF_MSC_YIELD);
+
+//   dMenuPlot7->DisableEntry(M_PLOT_HISTO_SUM);
+//   dMenuPlot7->DisableEntry(M_PLOT_GRAPH_SUM);
+//   dMenuPlot7->DisableEntry(M_PLOT_DFT_SUM);
+//   dMenuPlot7->DisableEntry(M_PLOT_DFTPROF_SUM);
 
   dMenuBlock1->DisableEntry(M_DATA_PMT_YIELD_B1);   
   dMenuBlock1->DisableEntry(M_DATA_PMT_YIELD_B2);   
@@ -503,6 +548,12 @@ void QwGUIMainDetector::MakeLayout()
   dMenuBlock6->DisableEntry(M_DATA_MSC_YIELD_B3); 
   dMenuBlock6->DisableEntry(M_DATA_MSC_YIELD_B4); 
   dMenuBlock6->DisableEntry(M_DATA_MSC_YIELD_SUM);
+
+  dMenuBlock7->DisableEntry(M_DATA_SUM_B1); 
+  dMenuBlock7->DisableEntry(M_DATA_SUM_B2); 
+  dMenuBlock7->DisableEntry(M_DATA_SUM_B3); 
+  dMenuBlock7->DisableEntry(M_DATA_SUM_B4); 
+  dMenuBlock7->DisableEntry(M_DATA_SUM_SUM);
 
 }
 
@@ -619,6 +670,9 @@ Int_t QwGUIMainDetector::LoadChannelMap(TString mapfile)
 
   mc = dMSCYieldCanvas->GetCanvas();
   mc->Divide(2,4);
+
+  mc = dSUMCanvas->GetCanvas();
+  mc->Divide(2,3);
 
   NewDataInit();
   ClearRootData();
@@ -901,7 +955,8 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
 	  
 	}
       }
-      
+      FillSummaryPlots(n);
+
       bl++;
       if(dProcessHalt) break;
       IncreaseProgress(&bl,0,0,1,0,0);
@@ -909,7 +964,6 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
 
     if(dProgrDlg)
       dProgrDlg->CloseWindow();
-
 
     if(MPSTree && MAIN_PMT_INDEX > 0){
 
@@ -927,7 +981,7 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
       dMenuBlock1->CheckEntry(M_DATA_PMT_YIELD_SUM);
       SetYieldDataIndex(0);
       SetDataType(PMT_YIELD);
-      PlotHistograms(); 
+      PlotHistograms();
     }
 
     if(HELTree && MAIN_PMT_INDEX > 0){
@@ -947,7 +1001,6 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
       SetPMTAsymDataIndex(0);
       SetDataType(PMT_ASYM);
       PlotHistograms(); 
-
     }
     
     if(HELTree && MAIN_DET_INDEX > 0){
@@ -986,7 +1039,6 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
       SetCMBAsymDataIndex(0);
       SetDataType(CMB_ASYM);
       PlotHistograms(); 
-
     }
 
     if(HELTree && MAIN_MSC_INDEX > 0){
@@ -1022,8 +1074,31 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
       SetMSCAsymDataIndex(0);
       SetDataType(MSC_YIELD);
       PlotHistograms(); 
+    }
+
+    if(HELTree || MPSTree){
+
+      dMenuBlock7->EnableEntry(M_DATA_SUM_B1);   
+      dMenuBlock7->EnableEntry(M_DATA_SUM_B2);   
+      dMenuBlock7->EnableEntry(M_DATA_SUM_B3);   
+      dMenuBlock7->EnableEntry(M_DATA_SUM_B4);   
+      dMenuBlock7->EnableEntry(M_DATA_SUM_SUM);
+
+      dMenuBlock7->CheckEntry(M_DATA_SUM_SUM);
+      SetSummaryDataIndex(0);
+      SetDataType(SUMMARY);
+      PlotGraphs(); 
+
+      SetPlotType(PLOT_TYPE_HISTO,0);
+      SetPlotType(PLOT_TYPE_HISTO,1);
+      SetPlotType(PLOT_TYPE_HISTO,2);
+      SetPlotType(PLOT_TYPE_HISTO,3);
+      SetPlotType(PLOT_TYPE_HISTO,4);
+      SetPlotType(PLOT_TYPE_HISTO,5);
+      SetPlotType(PLOT_TYPE_GRAPH,6);
 
     }
+
     SetDataType(PMT_YIELD);
 
   }
@@ -1389,6 +1464,111 @@ void QwGUIMainDetector::FillMSCYieldPlots(Int_t det, Int_t dTInd)
   MSCYieldGraphArray[dTInd].Add(grp);
   dCurrentMSCYields[dTInd]->SetFFTTotalLength(dCurrentData.Length());  
 }
+
+void QwGUIMainDetector::FillSummaryPlots(Int_t dTInd)
+{
+  QwGUIMainDetectorDataStructure *dCurrentDataStr = NULL;
+  vector <TString> Names;
+
+  //PMT Yields
+  
+  TGraphErrors *grph = new TGraphErrors(MAIN_PMT_INDEX);
+  grph->SetName("PMT_Yield_Stats");
+  grph->SetTitle("PMT Yield Mean and RMS (md1- -> md8+)");
+  dCurrentDataStr = dCurrentYields[dTInd]->GetElements();
+  Names = MainDetectorPMTNames;
+
+  if(dCurrentDataStr){
+    for(int i = 0; i < (Int_t)MAIN_PMT_INDEX; i++){
+      grph->SetPoint(i,i+1,dCurrentDataStr[i].GetDataMean());
+      grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
+//       grph->GetXaxis()->SetBinLabel(i+1,Names[i].Data());
+    }
+  }
+  SummaryGraphArray[dTInd].Add(grph);
+
+  //PMT Asymmmetries
+
+  grph = new TGraphErrors(MAIN_PMT_INDEX);
+  grph->SetName("PMT_Asym_Stats");
+  grph->SetTitle("PMT Asymmetry Mean and RMS (md1- -> md8+)");
+  dCurrentDataStr = dCurrentPMTAsyms[dTInd]->GetElements();
+  Names = MainDetectorPMTNames;
+  if(dCurrentDataStr){
+    for(int i = 0; i < (Int_t)MAIN_PMT_INDEX; i++){
+      grph->SetPoint(i,i+1,dCurrentDataStr[i].GetDataMean());
+      grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
+//       grph->GetXaxis()->SetBinLabel(i+1,Names[i].Data());
+    }
+  }
+  SummaryGraphArray[dTInd].Add(grph);
+
+  //DET Asymmmetries
+
+  grph = new TGraphErrors(MAIN_DET_INDEX);
+  grph->SetName("DET_Asym_Stats");
+  grph->SetTitle("Detector Asymmetry Mean and RMS (md1 -> md8)");
+  dCurrentDataStr = dCurrentDETAsyms[dTInd]->GetElements();
+  Names = MainDetectorNames;
+  if(dCurrentDataStr){
+    for(int i = 0; i < (Int_t)MAIN_DET_INDEX; i++){
+      grph->SetPoint(i,i+1,dCurrentDataStr[i].GetDataMean());
+      grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
+//       grph->GetXaxis()->SetBinLabel(i+1,Names[i].Data());
+    }
+  }
+  SummaryGraphArray[dTInd].Add(grph);
+
+  //CMB Asymmmetries
+
+  grph = new TGraphErrors(MAIN_DET_COMBIND);
+  grph->SetName("CMB_Asym_Stats");
+  grph->SetTitle("Detector Combination Asymmetry Mean and RMS");
+  dCurrentDataStr = dCurrentCMBAsyms[dTInd]->GetElements();
+  Names = MainDetectorCombinationNames;
+  if(dCurrentDataStr){
+    for(int i = 0; i < (Int_t)MAIN_DET_COMBIND; i++){
+      grph->SetPoint(i,i+1,dCurrentDataStr[i].GetDataMean());
+      grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
+//       grph->GetXaxis()->SetBinLabel(i+1,Names[i].Data());
+    }
+  }
+  SummaryGraphArray[dTInd].Add(grph);
+
+  //MSC Asymmmetries
+
+  grph = new TGraphErrors(MAIN_MSC_INDEX);
+  grph->SetName("MSC_Asym_Stats");
+  grph->SetTitle("Auxiliary Detector Asymmetry Mean and RMS (PMT+LED,PMT,PMT+LG,md9-,md9+,I,V,Cage)");
+  dCurrentDataStr = dCurrentMSCAsyms[dTInd]->GetElements();
+  Names = MainDetectorMscNames;
+  if(dCurrentDataStr){
+    for(int i = 0; i < (Int_t)MAIN_MSC_INDEX; i++){
+      grph->SetPoint(i,i+1,dCurrentDataStr[i].GetDataMean());
+      grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
+//       grph->GetXaxis()->SetBinLabel(i+1,Names[i].Data());
+    }
+  }
+  SummaryGraphArray[dTInd].Add(grph);
+
+  //MSC Yields
+
+  grph = new TGraphErrors(MAIN_MSC_INDEX);
+  grph->SetName("MSC_Yield_Stats");
+  grph->SetTitle("Auxiliary Detector Yield Mean and RMS (PMT+LED,PMT,PMT+LG,md9-,md9+,I,V,Cage)");
+  dCurrentDataStr = dCurrentMSCYields[dTInd]->GetElements();
+  Names = MainDetectorMscNames;
+  if(dCurrentDataStr){
+    for(int i = 0; i < (Int_t)MAIN_MSC_INDEX; i++){
+      grph->SetPoint(i,i+1,dCurrentDataStr[i].GetDataMean());
+      grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
+//       grph->GetXaxis()->SetBinLabel(i+1,Names[i].Data());
+    }
+  }
+  SummaryGraphArray[dTInd].Add(grph);
+
+}
+
 
 void QwGUIMainDetector::OnRemoveThisTab()
 {
@@ -1814,6 +1994,10 @@ Bool_t QwGUIMainDetector::PlotGraphs()
   if(GetDataType() == MSC_YIELD){
     objarray = &MSCYieldGraphArray[GetMSCYieldDataIndex()];
     mc = dMSCYieldCanvas->GetCanvas();
+  }    
+  if(GetDataType() == SUMMARY){
+    objarray = &SummaryGraphArray[GetSummaryDataIndex()];
+    mc = dSUMCanvas->GetCanvas();
   }    
 
   if(!mc) return kFalse;
@@ -2245,9 +2429,17 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
       GraphArray = &MSCYieldGraphArray[GetMSCYieldDataIndex()];
       pad = dMSCYieldCanvas->GetCanvas()->GetSelectedPad()->GetNumber();      
     }
+    else if(GetDataType() == SUMMARY){
+//       dCurrentDataStr = dCurrentMSCYields[GetMSCYieldDataIndex()]->GetElements();
+//       DFTArray = &MSCYieldDFTArray[GetMSCYieldDataIndex()];
+//       ProfileArray = &MSCYieldProfileArray[GetMSCYieldDataIndex()];
+//       HistArray = &MSCYieldHistArray[GetMSCYieldDataIndex()];
+      GraphArray = &SummaryGraphArray[GetSummaryDataIndex()];
+      pad = dSUMCanvas->GetCanvas()->GetSelectedPad()->GetNumber();      
+    }
     else
       return;
-    
+
     if(pad > 0 && pad <= MAIN_PMT_INDEX){
       if(GetPlotType(GetActiveTab()) == PLOT_TYPE_HISTO){
 	
@@ -2296,16 +2488,21 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
 	}
 	DataWindowArray.Add(dDataWindow);
 	dDataWindow->SetPlotTitle((char*)(*GraphArray)[pad-1]->GetTitle());
-	dDataWindow->SetPlotTitleX("Time [sec]");
-	dDataWindow->SetPlotTitleY("Amplitude [V]");
-	dDataWindow->SetPlotTitleOffset(1.25,1.8);
-	dDataWindow->SetAxisMin(((TGraph*)(*GraphArray)[pad-1])->GetXaxis()->GetXmin(),
-				dCurrentDataStr[pad-1].GetDataMin());
-	dDataWindow->SetAxisMax(((TGraph*)(*GraphArray)[pad-1])->GetXaxis()->GetXmax(),
-				dCurrentDataStr[pad-1].GetDataMax());
-	dDataWindow->SetLimitsFlag(kTrue);
-	
-	dDataWindow->DrawData(*((TGraph*)(*GraphArray)[pad-1]),add);
+	if(GetDataType() != SUMMARY){
+	  dDataWindow->SetPlotTitleX("Time [sec]");
+	  dDataWindow->SetPlotTitleY("Amplitude [V]");
+	  dDataWindow->SetPlotTitleOffset(1.25,1.8);
+	  dDataWindow->SetAxisMin(((TGraph*)(*GraphArray)[pad-1])->GetXaxis()->GetXmin(),
+				  dCurrentDataStr[pad-1].GetDataMin());
+	  dDataWindow->SetAxisMax(((TGraph*)(*GraphArray)[pad-1])->GetXaxis()->GetXmax(),
+				  dCurrentDataStr[pad-1].GetDataMax());
+	  dDataWindow->SetLimitsFlag(kTrue);
+	  dDataWindow->DrawData(*((TGraph*)(*GraphArray)[pad-1]),add);
+	}
+	else{
+	  dDataWindow->DrawData(*((TGraphErrors*)(*GraphArray)[pad-1]),add);
+	  
+	}
 	SetLogMessage(Form("Looking at graph %s\n",(char*)(*GraphArray)[pad-1]->GetTitle()),kTrue);
       }
       else if(GetPlotType(GetActiveTab()) == PLOT_TYPE_DFT){
@@ -2398,6 +2595,10 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
       case 5:
 	SetDataType(MSC_YIELD);
+	break;
+
+      case 6:
+	SetDataType(SUMMARY);
 	break;
 
       default:
@@ -3321,7 +3522,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	/*MSC_YIELD*************************************/
 
       case M_DATA_MSC_YIELD_SUM:
-	SetMSCAsymDataIndex(0);
+	SetMSCYieldDataIndex(0);
 	SetDataType(MSC_YIELD);
 	if(dMenuPlot6->IsEntryChecked(M_PLOT_GRAPH_MSC_YIELD))
 	  if(PlotGraphs()){
@@ -3346,7 +3547,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	break;
 
       case M_DATA_MSC_YIELD_B1:
-	SetMSCAsymDataIndex(1);
+	SetMSCYieldDataIndex(1);
 	SetDataType(MSC_YIELD);
 	if(dMenuPlot6->IsEntryChecked(M_PLOT_GRAPH_MSC_YIELD))
 	  if(PlotGraphs()){
@@ -3371,7 +3572,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	break;
 
       case M_DATA_MSC_YIELD_B2:
-	SetMSCAsymDataIndex(2);
+	SetMSCYieldDataIndex(2);
 	SetDataType(MSC_YIELD);
 	if(dMenuPlot6->IsEntryChecked(M_PLOT_GRAPH_MSC_YIELD))
 	  if(PlotGraphs()){
@@ -3396,7 +3597,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	break;
 
       case M_DATA_MSC_YIELD_B3:
-	SetMSCAsymDataIndex(3);
+	SetMSCYieldDataIndex(3);
 	SetDataType(MSC_YIELD);
 	if(dMenuPlot6->IsEntryChecked(M_PLOT_GRAPH_MSC_YIELD))
 	  if(PlotGraphs()){
@@ -3421,7 +3622,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	break;
 	
       case M_DATA_MSC_YIELD_B4:
-	SetMSCAsymDataIndex(4);
+	SetMSCYieldDataIndex(4);
 	SetDataType(MSC_YIELD);
 	if(dMenuPlot6->IsEntryChecked(M_PLOT_GRAPH_MSC_YIELD))
 	  if(PlotGraphs()){
@@ -3443,6 +3644,54 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	    dMenuBlock6->UnCheckEntries();
 	    dMenuBlock6->CheckEntry(M_DATA_PMT_YIELD_B4);
 	  }
+	break;
+
+
+	/*SUMMARY*************************************/
+
+      case M_DATA_SUM_SUM:
+	SetSummaryDataIndex(0);
+	SetDataType(SUMMARY);
+	if(PlotGraphs()){
+	  dMenuBlock7->UnCheckEntries();
+	  dMenuBlock7->CheckEntry(M_DATA_SUM_SUM);
+	}
+	break;
+
+      case M_DATA_SUM_B1:
+	SetSummaryDataIndex(1);
+	SetDataType(SUMMARY);
+	if(PlotGraphs()){
+	  dMenuBlock7->UnCheckEntries();
+	  dMenuBlock7->CheckEntry(M_DATA_SUM_B1);
+	}
+	break;
+
+      case M_DATA_SUM_B2:
+	SetSummaryDataIndex(2);
+	SetDataType(SUMMARY);
+	if(PlotGraphs()){
+	  dMenuBlock7->UnCheckEntries();
+	  dMenuBlock7->CheckEntry(M_DATA_SUM_B2);
+	}
+	break;
+
+      case M_DATA_SUM_B3:
+	SetSummaryDataIndex(3);
+	SetDataType(SUMMARY);
+	if(PlotGraphs()){
+	  dMenuBlock7->UnCheckEntries();
+	  dMenuBlock7->CheckEntry(M_DATA_SUM_B3);
+	}
+	break;
+	
+      case M_DATA_SUM_B4:
+	SetSummaryDataIndex(4);
+	SetDataType(SUMMARY);
+	if(PlotGraphs()){
+	  dMenuBlock7->UnCheckEntries();
+	  dMenuBlock7->CheckEntry(M_DATA_SUM_B4);
+	}
 	break;
 
 

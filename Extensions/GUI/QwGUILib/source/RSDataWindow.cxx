@@ -1623,6 +1623,7 @@ Int_t RSDataWindow::DrawData(const TGraphErrors& g1d, Bool_t add)
   if(!add){
     ClearPlots();
     TGraphErrors *gr = dPlotCont->GetNewErrorGraph(g1d);
+    gr->SetMarkerSize();
     if(!gr){
       FlushMessages();
       SetMessage(ROOTOBJ_CRFAIL_ERROR,"DrawData(const TGraph&)",(int)dPtype,
