@@ -90,6 +90,8 @@
 #include "QwHistogramHelper.h"
 #include "QwSubsystemArrayParity.h"
 
+#include "ManualFactory.h"
+
 // Compton headers
 #include "QwComptonPhotonDetector.h"
 #include "QwComptonElectronDetector.h"

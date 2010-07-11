@@ -46,6 +46,7 @@
 // Qweak subsystem factory
 #include "QwSubsystemFactory.h"
 
+#include "ManualFactory.h"
 
 #include <TStopwatch.h>
 void PrintInfo(TStopwatch& timer)

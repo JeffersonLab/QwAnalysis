@@ -15,6 +15,8 @@
 
 #include "QwFakeHelicity.h"
 
+#include "ManualFactory.h"
+
 Bool_t kInQwBatchMode = kFALSE;
 Bool_t bRING_READY;
 Bool_t bSkip= kFALSE;;

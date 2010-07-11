@@ -36,6 +36,7 @@
 #include "QwMapFile.h"
 
 #include "QwLog.h"
+#include "ManualFactory.h"
 
 Bool_t kInQwBatchMode = kFALSE;
 Bool_t bRING_READY;

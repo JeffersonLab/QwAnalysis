@@ -36,7 +36,7 @@
 #include "TApplication.h"
 #include <boost/shared_ptr.hpp>
 
-#include "QwBeamLine.h"
+#include "ManualFactory.h"
 
 Bool_t kInQwBatchMode = kFALSE;
 
