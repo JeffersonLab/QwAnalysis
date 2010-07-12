@@ -10,7 +10,6 @@ const char *QwGUIMainDetector::MainDetectorBlockTypesRaw[MAIN_DET_BLOCKIND] =
 const char *QwGUIMainDetector::MainDetectorBlockTypes[MAIN_DET_BLOCKIND] = 
   {"hw_sum","block0","block1","block2","block3"};
 
-
 void QwGUIMainDetectorDataStructure::PushData(Double_t item)
 {
   
@@ -41,6 +40,11 @@ void QwGUIMainDetectorDataStructure::CalculateStats()
 
 void QwGUIMainDetectorDataStructure::Clean() 
 {
+  if(DetHisto)   delete   DetHisto;   DetHisto   = NULL;
+  if(DetGraph)   delete   DetGraph;   DetGraph   = NULL;
+  if(DetProfile) delete   DetProfile; DetProfile = NULL;
+  if(DetFFT)     delete   DetFFT;     DetFFT     = NULL;
+
   if(Data.size()){ 
     Data.clear();  
     Data.resize(0); 
@@ -58,6 +62,12 @@ void QwGUIMainDetectorDataStructure::Clean()
   DataSum   = 0;  
   DataSumSq = 0;
 } 
+
+Bool_t QwGUIMainDetectorDataStructure::FillPlots()
+{
+  
+}
+
 
 
 QwGUIMainDetectorData::QwGUIMainDetectorData(Int_t size) 

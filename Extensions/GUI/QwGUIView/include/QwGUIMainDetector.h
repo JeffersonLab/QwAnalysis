@@ -151,7 +151,12 @@ class QwGUIMainDetectorDataStructure{
 
  private:
   
-  TString Name;
+  TString DetectorName;
+
+  TH1D *DetHisto;
+  TGraph *DetGraph;
+  TProfile *DetProfile;
+  TH1D *DetFFT;
 
   vector <Double_t>    Data;
   vector <Double_t>    FFT;
@@ -172,7 +177,15 @@ class QwGUIMainDetectorDataStructure{
 
  public:
 
-  QwGUIMainDetectorDataStructure() { Clean(); };
+  QwGUIMainDetectorDataStructure() { 
+
+    DetHisto   = NULL;
+    DetGraph   = NULL;
+    DetProfile = NULL;
+    DetFFT     = NULL;
+    Clean(); 
+  };
+
   ~QwGUIMainDetectorDataStructure() { Clean(); };
 
   void Clean();
@@ -188,7 +201,7 @@ class QwGUIMainDetectorDataStructure{
   void CalculateStats();
 
   void SetEnsambleSize(Int_t size) {EnsambleSize = size;};       
-  void SetName(const char *name) {Name = name;};
+  void SetDetectorName(const char *name) {DetectorName = name;};
 
   Double_t GetData(Int_t ind) {if(ind < 0 || ind >= Length()) return 0; return Data.at(ind);};
   Double_t GetEnsambleMean(Int_t ind) {if(ind < 0 || ind >= GetNumEnsambles()) return 0; return EnsambleMean.at(ind);};
@@ -199,17 +212,25 @@ class QwGUIMainDetectorDataStructure{
   Int_t    GetNumEnsambles(){return EnsambleMean.size();};
   Int_t    Length() {return Data.size();};
   Int_t    GetEnsambleSize() {return EnsambleSize;};
-  const char* GetName(){ return Name.Data();};
+  const char* GetDetectorName(){ return DetectorName.Data();};
+  TGraph *GetGraph() {return DetGraph;};
+  TH1D *GetHistogram() {return DetHisto;};
+  TH1D *GetFFT() {return DetFFT;};
+  TProfile *GetFFTDataProfile() {return DetProfile;};
+  Bool_t FillPlots();
+  Bool_t 
   
 };
 
-class QwGUIMainDetectorData {
+class QwGUIMainDetectorBlockData {
 
  private:
 
-  TString Name;
+  TString BlockName;
 
-  Int_t dSize;
+  Int_t dNumDet;
+  Int_t MenuID;
+  Bool_t Active;
 
   QwGUIMainDetectorDataStructure *dData;
 
@@ -217,19 +238,19 @@ class QwGUIMainDetectorData {
   
  public:
 
-  QwGUIMainDetectorData(Int_t size);
-  ~QwGUIMainDetectorData() { Clean(); delete[] dData; };
+  QwGUIMainDetectorBlockData(Int_t numdet);
+  ~QwGUIMainDetectorBlockData() { Clean(); delete[] dData; };
 
   void Clean();
 
   void   SetFFTCalculated(Bool_t flag) {fftopts.calcFlag = flag;};
   Bool_t IsFFTCalculated()      {return fftopts.calcFlag;};
 
-  void   SetFFTCancelFlag(Bool_t flag) {fftopts.cancelFlag = flag;};
-  void   SetFFTChangeFlag(Bool_t flag) {fftopts.changeFlag = flag;};
-  void   SetFFTStart(Int_t start)      {fftopts.Start = start;};
-  void   SetFFTLength(Int_t length)    {fftopts.Length = length;};
-  void   SetFFTTotalLength(Int_t totallength) {fftopts.TotalLength = totallength;};
+/*   void   SetFFTCancelFlag(Bool_t flag) {fftopts.cancelFlag = flag;}; */
+/*   void   SetFFTChangeFlag(Bool_t flag) {fftopts.changeFlag = flag;}; */
+/*   void   SetFFTStart(Int_t start)      {fftopts.Start = start;}; */
+/*   void   SetFFTLength(Int_t length)    {fftopts.Length = length;}; */
+/*   void   SetFFTTotalLength(Int_t totallength) {fftopts.TotalLength = totallength;}; */
   void   SetFFTOptions(FFTOptions opts){
   
     fftopts.calcFlag    = opts.calcFlag;
@@ -240,15 +261,41 @@ class QwGUIMainDetectorData {
     fftopts.TotalLength = opts.TotalLength;
 
   };
-  void   SetName(const char *name) {Name = name;};
+  void   SetBlockName(const char *name) {BlockName = name;};
 
-  Bool_t GetFFTCancelFlag() {return fftopts.cancelFlag;};
-  Bool_t GetFFTChangeFlag() {return fftopts.changeFlag;};
-  Int_t  GetFFTStart(Int_t start) {return fftopts.Start;};
-  Int_t  GetFFTLength(Int_t length) {return fftopts.Length;};
+/*   Bool_t GetFFTCancelFlag() {return fftopts.cancelFlag;}; */
+/*   Bool_t GetFFTChangeFlag() {return fftopts.changeFlag;}; */
+/*   Int_t  GetFFTStart(Int_t start) {return fftopts.Start;}; */
+/*   Int_t  GetFFTLength(Int_t length) {return fftopts.Length;}; */
   FFTOptions *GetFFTOptions(){ return &fftopts; };
   QwGUIMainDetectorDataStructure *GetElements() { return dData; };
   Int_t GetNumElements() {return dSize;};
+  const char *GetBlockName() { return BlockName.Data();}; 
+
+};
+
+class QwGUIMainDetectorData {
+
+ private:
+
+  TString Name;
+
+  Int_t dNumBlocks;
+
+  QwGUIMainDetectorBlockData *dBlocks;
+
+  FFTOptions fftopts;
+  
+ public:
+
+  QwGUIMainDetectorData(Int_t numblocks);
+  ~QwGUIMainDetectorData() { Clean(); delete[] dBlocks; };
+
+  void Clean();
+
+  void   SetName(const char *name) {Name = name;};
+
+  QwGUIMainDetectorBlockData *GetBlocks() { return dBlocks; };
   const char *GetName() { return Name.Data();}; 
 
 };
