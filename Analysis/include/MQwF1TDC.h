@@ -86,7 +86,8 @@ class MQwF1TDC{
   static const UInt_t kF1Mask_HeaderTriggerTime;
   static const UInt_t kF1Mask_HeaderXorSetupFlag;
   static const UInt_t kF1Mask_HeaderChannelNumber;
- 
+
+  
   
   //  static const UInt_t offset;
   UInt_t fF1ROCNumber;

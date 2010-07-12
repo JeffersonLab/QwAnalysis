@@ -56,6 +56,7 @@ MQwF1TDC::~MQwF1TDC() { };
 
 void MQwF1TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
 {
+
   fF1ROCNumber  = roc_id;
   fF1SlotNumber = (word & kF1Mask_SlotNumber)>>27;
 
@@ -85,6 +86,7 @@ void MQwF1TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
     fF1Dataword      = (word & kF1Mask_Dataword);
     if(fF1Dataword == 65535) fF1OverFlowEntryFlag = kTRUE;
     else                     fF1OverFlowEntryFlag = kFALSE;
+    // skip to record overflow dataword entry (65535, 0xFFFF)
     fF1HeaderEventNumber   = 0;
     fF1HeaderTriggerTime   = 0;
     //std::cout << "channel: " << fF1ChannelNumber << " raw time: " << fF1Dataword << std::endl;

@@ -31,8 +31,10 @@ QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ):
   VQwSubsystem ( region_tmp ), QwDriftChamber ( region_tmp,fWireHitsVDC )
 {
   Double_t f1_time_offset = 65341.0;
-  Double_t difference     = 30000.0;
+  Double_t difference     = 0.0;
   Double_t time_shift     = -8929.0; // is it valid with the new configuration?
+
+  difference = 0.5*f1_time_offset;
 
   //  SetReferenceParameters(-30000., 30000., 64495.,-8929.);
   SetReferenceParameters(-difference, difference, f1_time_offset, time_shift);
