@@ -105,6 +105,8 @@ class MQwF1TDC{
   UInt_t fF1HeaderTriggerTime;
   Bool_t fF1HeaderXorSetupFlag;
  
+  
+  Bool_t fF1OverFlowEntryFlag;
   Bool_t fF1ValidDataSlotFlag;  
   // Slot 1 - 21 indicates valid data
   // Slot 0  is the tag for a "filler" word. This is a non-valid data word that is

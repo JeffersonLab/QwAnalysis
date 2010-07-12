@@ -46,6 +46,7 @@ MQwF1TDC::MQwF1TDC(): fMinDiff(-1.0*kMaxInt), fMaxDiff(1.0*kMaxInt),
   fF1HeaderTriggerTime  = 0;
   fF1HeaderXorSetupFlag = kFALSE;
 
+  fF1OverFlowEntryFlag  = kFALSE;
   fF1ValidDataSlotFlag  = kFALSE;
   
 };
@@ -61,44 +62,42 @@ void MQwF1TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
   if( fF1SlotNumber>=1 && fF1SlotNumber<=21 ) fF1ValidDataSlotFlag = kTRUE;
   else                                        fF1ValidDataSlotFlag = kFALSE;
 
-  if(fF1ValidDataSlotFlag) {
-
-    fF1HeaderFlag         = ((word & kF1Mask_HeaderFlag)==0); // TRUE if the mask bit IS NOT set
   
-    // These three flags should be TRUE if their mask bit IS set
-    fF1HitFIFOFlag        = ((word & kF1Mask_HitFIFOFlag       )!=0);
-    fF1OutputFIFOFlag     = ((word & kF1Mask_OutputFIFOFlag    )!=0); 
-    fF1ResolutionLockFlag = ((word & kF1Mask_ResolutionLockFlag)!=0);
+  fF1HeaderFlag         = ((word & kF1Mask_HeaderFlag)==0); // TRUE if the mask bit IS NOT set
   
+  // These three flags should be TRUE if their mask bit IS set
+  fF1HitFIFOFlag        = ((word & kF1Mask_HitFIFOFlag       )!=0);
+  fF1OutputFIFOFlag     = ((word & kF1Mask_OutputFIFOFlag    )!=0); 
+  fF1ResolutionLockFlag = ((word & kF1Mask_ResolutionLockFlag)!=0);
   
-  
-  
-    if (fF1HeaderFlag){
-      //  This is a header word.
-      fF1Dataword           = 0;
-      fF1HeaderTrigFIFOFlag = ((word & kF1Mask_HeaderTrigFIFOFlag)!=0);
-      fF1HeaderEventNumber  = ( word & kF1Mask_HeaderEventNumber )>>16;
-      fF1HeaderTriggerTime  = ( word & kF1Mask_HeaderTriggerTime )>>7;
-      fF1HeaderXorSetupFlag = ((word & kF1Mask_HeaderXorSetupFlag)!=0);
-      fF1ChannelNumber      = ( word & kF1Mask_HeaderChannelNumber );
-    } 
-    else {
-      // This is a data word.
-      fF1ChannelNumber = (word & kF1Mask_ChannelNumber)>>16;
-      fF1Dataword      = (word & kF1Mask_Dataword);
-      fF1HeaderEventNumber   = 0;
-      fF1HeaderTriggerTime   = 0;
-      //std::cout << "channel: " << fF1ChannelNumber << " raw time: " << fF1Dataword << std::endl;
-    }
-
-    //    PrintHitFIFOStatus(roc_id);
-    //    PrintOutputFIFOStatus(roc_id);
-    //    PrintResolutionLockStatus(roc_id);
-  }
+  if (fF1HeaderFlag){
+    //  This is a header word.
+    fF1Dataword           = 0;
+    fF1HeaderTrigFIFOFlag = ((word & kF1Mask_HeaderTrigFIFOFlag)!=0);
+    fF1HeaderEventNumber  = ( word & kF1Mask_HeaderEventNumber )>>16;
+    fF1HeaderTriggerTime  = ( word & kF1Mask_HeaderTriggerTime )>>7;
+    fF1HeaderXorSetupFlag = ((word & kF1Mask_HeaderXorSetupFlag)!=0);
+    fF1ChannelNumber      = ( word & kF1Mask_HeaderChannelNumber );
+  } 
   else {
-    
+    // This is a data word.
+    fF1ChannelNumber = (word & kF1Mask_ChannelNumber)>>16;
+    fF1Dataword      = (word & kF1Mask_Dataword);
+    if(fF1Dataword == 65535) fF1OverFlowEntryFlag = kTRUE;
+    else                     fF1OverFlowEntryFlag = kFALSE;
+    fF1HeaderEventNumber   = 0;
+    fF1HeaderTriggerTime   = 0;
+    //std::cout << "channel: " << fF1ChannelNumber << " raw time: " << fF1Dataword << std::endl;
   }
-
+  
+  //    PrintHitFIFOStatus(roc_id);
+  //    PrintOutputFIFOStatus(roc_id);
+  //    PrintResolutionLockStatus(roc_id);
+  //  }
+  //  else {
+  
+  //  }
+  
 
   return;
 };
@@ -201,7 +200,8 @@ Bool_t MQwF1TDC::IsValidDataword()
   // fF1ResolutionFlag    = TRUE, and 
   // fF1HeaderFlag        = FALSE, then it is a data word.
 
-  if( fF1ValidDataSlotFlag && fF1ResolutionLockFlag && !fF1HeaderFlag )
+  if( fF1ValidDataSlotFlag && fF1ResolutionLockFlag && !fF1HeaderFlag &&!fF1OverFlowEntryFlag)
+    //  if( fF1ValidDataSlotFlag && fF1ResolutionLockFlag && !fF1HeaderFlag)
     return kTRUE;
   else                                             
     return kFALSE; 
@@ -219,7 +219,7 @@ Bool_t MQwF1TDC::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
   Bool_t trig_time_ok_flag   = kFALSE;
   Bool_t data_integrity_flag = kFALSE;
 
-  Bool_t temp_print_flag = kFALSE;
+  Bool_t temp_print_flag = false;
 
   for (UInt_t i=0; i<num_words ; i++) {
 
@@ -297,7 +297,7 @@ Bool_t MQwF1TDC::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 	  }//;;
 	else 
 	  {
-	    PrintTDCData(temp_print_flag);
+	    if(!fF1OverFlowEntryFlag) PrintTDCData(temp_print_flag);
 	  }
       }//;
   }
