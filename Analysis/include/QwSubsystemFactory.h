@@ -108,7 +108,7 @@ class QwSubsystemFactory: public VQwSubsystemFactory {
 
     /// Constructor which stores type name in list of registered subsystems
     QwSubsystemFactory(const std::string& type) {
-/*       printf("%s:%d %s\n",__FILE__,__LINE__,__func__); */
+      // printf("%s:%d %s(): arg %s\n",__FILE__,__LINE__,__func__,type.c_str()); 
       VQwSubsystemFactory::GetRegisteredSubsystems()[type] = this;
     };
 
