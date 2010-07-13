@@ -12,10 +12,6 @@
 #include <cmath>
 #include "TMath.h"
 
-//#define PI 3.141592653589793
-//#define DEG2RAD PI/180.0
-//#define RAD2DEG 180.0/PI
-
 /* For Region 2, the x wires actually measure a coordinate in the lab y direction.
    So for the reconstruction of tracks in R2, I will use a coordinate system
    in which x is the lab's y coordinate, y is the lab's x direction, and z is
@@ -29,9 +25,9 @@
 /**
  * Create a coordinate transformation helper object based on a single angle
  *
- * @param angleUdeg Angle (in degrees) of the U axis
+ * @param angleUdeg Angle (in radians) of the U axis
  */
-Uv2xy::Uv2xy(const double angleUdeg)
+Uv2xy::Uv2xy(const double angleUrad)
 {
   // Reset wire spacing
   SetWireSpacing(0.0);
@@ -41,8 +37,8 @@ Uv2xy::Uv2xy(const double angleUdeg)
   SetOriginUVinXY(0.0, 0.0);
 
   // Convert angles to radians and create the transformation matrices
-  fAngleUrad = angleUdeg * TMath::DegToRad();
-  fAngleVrad = TMath::Pi() - fAngleUrad;
+  fAngleUrad = angleUrad;
+  fAngleVrad = Qw::pi - fAngleUrad;
   InitializeRotationMatrices();
 }
 
@@ -50,10 +46,10 @@ Uv2xy::Uv2xy(const double angleUdeg)
 /**
  * Create a coordinate transformation helper object based on two angles.
  *
- * @param angleUdeg Angle (in degrees) of the U axis
- * @param angleVdeg Angle (in degrees) of the V axis
+ * @param angleUdeg Angle (in radians) of the U axis
+ * @param angleVdeg Angle (in radians) of the V axis
  */
-Uv2xy::Uv2xy(const double angleUdeg, const double angleVdeg)
+Uv2xy::Uv2xy(const double angleUrad, const double angleVrad)
 {
   // Reset wire spacing
   SetWireSpacing(0.0);
@@ -63,8 +59,8 @@ Uv2xy::Uv2xy(const double angleUdeg, const double angleVdeg)
   SetOriginUVinXY(0.0, 0.0);
 
   // Convert angles to radians and create the transformation matrices
-  fAngleUrad = angleUdeg * TMath::DegToRad();
-  fAngleVrad = angleVdeg * TMath::DegToRad();
+  fAngleUrad = angleUrad;
+  fAngleVrad = angleVrad;
   InitializeRotationMatrices();
 }
 
@@ -84,7 +80,7 @@ void Uv2xy::InitializeRotationMatrices()
   double sv = sin(fAngleVrad);
 
   // [x,y] to [u,v] transformation
-  
+
   fXY[0][0] =  sv;
   fXY[0][1] = -cv;
   fXY[1][0] = -su;

@@ -1,28 +1,74 @@
 !
-!Order of the variables has to be preserved.
+! Qweak coordinate frames to be respected in this file
+!
+! Global coordinate system:
+! - global origin is the center of QTOR
+! - global x is beam left (this is the origin of the global azimuthal angle phi)
+! - global y is vertical upwards
+! - global z is downstream along the beam line
+!
+! Octant assignments:
+! - octant 1 (9 o'clock) is the octant at global phi = 0
+! - octant 3 (12 o'clock) is the octant at global phi = 90 deg = pi/2 rad
+! - ...
+!
+! Local coordinate systems:
+! - local origin is the specified position of the detector
+! - local x is radially outward in the global system
+! - local y is azimuthally towards increasing y in the global system
+! - local z is identical to global z
+! Only in octant 1 are local x, y, z direction == global x, y, z direction!
+! In octants at phi the local coordinate system is rotated over phi around z.
+!
+! The local system can be rotated around the local y axis such that local x
+! remains in the plane of the detector (region 2 HDCs are not rotated, but
+! region 3 VDCs are rotated over a *negative* angle of 24 degrees).
 
-!each detector geo infor -> sType, Zpos, Rot, Spatial Res., Track Res, slope matching, up/low, region, type, plane dir, detector originx, y, active width x, y, z, wire spacing, 1st wire pos., rcos of wire oirentation w.r.t x, rsin, no.of wires, ID
+!
+! Order of the variables has to be preserved.
+!
+
+! Fields:
+!   name,
+!   type, local origin in global z, rotation around local y,
+!   spatial resolution, tracking resolution, slope matching,
+!   package, region, type, direction,
+!   local origin in global x, y,
+!   active width in local x, y, z,
+!   wire spacing, position of first wire,
+!   cos of x/u/v axis angle with respect to local x and y,
+!   sin of x/u/v axis angle with respect to local x and y,
+!   number of wires, ID
+!
+! Note that the x/u/v axis is perpendicular to the wires.  Wires are strung
+! at constant x/u/v.
+!
+! This might change, notably the treatment of up/down package could be replaced
+! by the global octant number, an intermediate local origin could be shifted to
+! the beam line, and the detector origin specified in that coordinate system.
+!
+
 
 NAME=VDC
- drift, 442.74, 65.57, 1e-2, 1e-1, 2e-1, u, 3, d, u, 0, 276.63, 204.47, 53.34, 2.6, 0.496965, 155.575, -0.89442759, 0.447212797, 281, 0
+ drift, 442.74, -24.43, 1e-2, 1e-1, 2e-1, u, 3, d, u, 0, 276.63, 204.47, 53.34, 2.6, 0.496965, 155.575, -0.89442759, 0.447212797, 281, 0
 NAME=VDC
- drift, 445.10, 65.57, 1e-2, 1e-1, 2e-1, u, 3, d, v, 0, 275.70, 204.47, 53.34, 2.6, 0.496965, 155.575, 0.89442759, 0.447212797, 281, 1
+ drift, 445.10, -24.43, 1e-2, 1e-1, 2e-1, u, 3, d, v, 0, 275.70, 204.47, 53.34, 2.6, 0.496965, 155.575, 0.89442759, 0.447212797, 281, 1
 NAME=VDC
- drift, 494.74, 65.57, 1e-2, 1e-1, 2e-1, u, 3, d, u, 0, 296.24, 204.47, 53.34, 2.6, 0.496965, 155.575, -0.89442759, 0.447212797, 281, 2
+ drift, 494.74, -24.43, 1e-2, 1e-1, 2e-1, u, 3, d, u, 0, 296.24, 204.47, 53.34, 2.6, 0.496965, 155.575, -0.89442759, 0.447212797, 281, 2
 NAME=VDC
- drift, 497.06, 65.57, 1e-2, 1e-1, 2e-1, u, 3, d, v, 0, 295.20, 204.47, 53.34, 2.6, 0.496965, 155.575, 0.89442759, 0.447212797, 281, 3
+ drift, 497.06, -24.43, 1e-2, 1e-1, 2e-1, u, 3, d, v, 0, 295.20, 204.47, 53.34, 2.6, 0.496965, 155.575, 0.89442759, 0.447212797, 281, 3
 NAME=VDC
- drift, 442.74, 65.57, 1e-2, 1e-1, 2e-1, d, 3, d, u, 0, -276.63, 204.47, 53.34, 2.6, 0.496965, -155.575, 0.89442759, -0.447212797, 281, 4
+ drift, 442.74, -24.43, 1e-2, 1e-1, 2e-1, d, 3, d, u, 0, -276.63, 204.47, 53.34, 2.6, 0.496965, -155.575, 0.89442759, -0.447212797, 281, 4
 NAME=VDC
- drift, 445.10, 65.57, 1e-2, 1e-1, 2e-1, d, 3, d, v, 0, -275.70, 204.47, 53.34, 2.6, 0.496965, -155.575, -0.89442759, -0.447212797, 281, 5
+ drift, 445.10, -24.43, 1e-2, 1e-1, 2e-1, d, 3, d, v, 0, -275.70, 204.47, 53.34, 2.6, 0.496965, -155.575, -0.89442759, -0.447212797, 281, 5
 NAME=VDC
- drift, 494.74, 65.57, 1e-2, 1e-1, 2e-1, d, 3, d, u, 0, -296.24, 204.47, 53.34, 2.6, 0.496965, -155.575, 0.89442759, -0.447212797, 281, 6
+ drift, 494.74, -24.43, 1e-2, 1e-1, 2e-1, d, 3, d, u, 0, -296.24, 204.47, 53.34, 2.6, 0.496965, -155.575, 0.89442759, -0.447212797, 281, 6
 NAME=VDC
- drift, 497.06, 65.57, 1e-2, 1e-1, 2e-1, d, 3, d, v, 0, -295.20, 204.47, 53.34, 2.6, 0.496965, -155.575, -0.89442759, -0.447212797, 281, 7
+ drift, 497.06, -24.43, 1e-2, 1e-1, 2e-1, d, 3, d, v, 0, -295.20, 204.47, 53.34, 2.6, 0.496965, -155.575, -0.89442759, -0.447212797, 281, 7
 NAME=TRIGSCIN
- scint, 540.04, 0, -9999, -9999, -9999, u, 4, t, x, 0, 312.28, 218.44, 30.48, 1.0, -9999, -9999, -9999, -9999, -9999, 8
+ scint, 540.04, 0, -9999, -9999, -9999, u, 4, t, y, 0, 312.28, 218.44, 30.48, 1.0, -9999, -9999, -9999, -9999, -9999, 8
 NAME=TRIGSCIN
- scint, 540.04, 0, -9999, -9999, -9999, d, 4, t, x, 0, -312.28, 218.44, 30.48, 1.0, -9999, -9999, -9999, -9999, -9999, 9
+ scint, 540.04, 0, -9999, -9999, -9999, d, 4, t, y, 0, -312.28, 218.44, 30.48, 1.0, -9999, -9999, -9999, -9999, -9999, 9
 NAME=CERENKOV
  cerenkov, 571.87, 0, -9999, -9999, -9999, u, 5, c, y, 0, 317.14, 200.0, 18.0, 1.25, -9999, -9999, -9999, -9999, -9999, 10
 NAME=CERENKOV

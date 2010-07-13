@@ -122,7 +122,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   QwDetectorInfo* frontdetector = frontlist->GetHit(0)->GetDetectorInfo();
   QwDetectorInfo* backdetector  = backlist->GetHit(0)->GetDetectorInfo();
 
-  // Rotation of the detector planes around the x axis
+  // Rotation of the detector planes around the y axis
   double cos_theta = frontdetector->GetDetectorRotationCos();
   double sin_theta = frontdetector->GetDetectorRotationSin();
 
@@ -148,9 +148,9 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   double delta_z = backdetector->GetZPosition() - frontdetector->GetZPosition();
 
   // Distance between the chamber centers perpendicular to the wire planes
-  double d_perp = delta_z * sin_theta - delta_y * cos_theta;
+  double d_perp =   delta_z * cos_theta + delta_y * sin_theta;
   // Distance between the chamber centers parallel to the wire planes
-  double d_para = delta_z * cos_theta + delta_y * sin_theta;
+  double d_para = - delta_z * sin_theta + delta_y * cos_theta;
   // Parallel distance between the chamber centers in u or v coordinates
   double u_para = d_para * fabs(frontdetector->GetElementAngleCos());
 
