@@ -1297,8 +1297,8 @@ int QwTrackingTreeCombine::r2_TrackFit (
   double offsetu = Hit[hitu]->GetDetectorInfo()->GetElementOffset();
   double offsetv = Hit[hitv]->GetDetectorInfo()->GetElementOffset();
   double spacing = Hit[hitu]->GetDetectorInfo()->GetElementSpacing();
-  if (angle < 90.0) angle = 180.0 - angle; // angle for U is smaller than 90 deg
-  Uv2xy uv2xy(90.0 + angle, 90.0 + 180.0 - angle);
+  if (angle < Qw::pi/2) angle = Qw::pi - angle; // angle for U is smaller than 90 deg
+  Uv2xy uv2xy(Qw::pi/2 + angle, Qw::pi/2 + Qw::pi - angle);
   uv2xy.SetOffset(offsetu, offsetv);
   uv2xy.SetWireSpacing(spacing);
 
@@ -1510,8 +1510,9 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, doub
   //get some detector information
   if (Hit[0]->GetDetectorInfo()->fDirection == kDirectionU) {
 
-    costheta = Hit[0]->GetDetectorInfo()->GetDetectorRotationSin();
-    sintheta = Hit[0]->GetDetectorInfo()->GetDetectorRotationCos();
+    QwVerbose << "TODO (wdc) needs checking" << QwLog::endl;
+    costheta = Hit[0]->GetDetectorInfo()->GetDetectorRotationCos();
+    sintheta = Hit[0]->GetDetectorInfo()->GetDetectorRotationSin();
 
     xtrans = Hit[0]->GetDetectorInfo()->GetXPosition();
     ytrans = Hit[0]->GetDetectorInfo()->GetYPosition();
@@ -1594,8 +1595,11 @@ int QwTrackingTreeCombine::r3_TrackFit( int Num, QwHit **hit, double *fit, doubl
 
   // get some detector information
   if (hit[0]->GetDetectorInfo()->fDirection == kDirectionU) {
+
+    QwVerbose << "TODO (wdc) needs checking" << QwLog::endl;
     costheta = hit[0]->GetDetectorInfo()->GetDetectorRotationCos();
     sintheta = hit[0]->GetDetectorInfo()->GetDetectorRotationSin();
+
     xtrans = hit[0]->GetDetectorInfo()->GetXPosition();
     ytrans = hit[0]->GetDetectorInfo()->GetYPosition();
     ztrans = hit[0]->GetDetectorInfo()->GetZPosition();
@@ -2222,7 +2226,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
         double offsetu = wu->GetDetectorInfo()->GetElementOffset();
         double offsetv = wv->GetDetectorInfo()->GetElementOffset();
         double spacing = wu->GetDetectorInfo()->GetElementSpacing();
-        Uv2xy uv2xy(90.0 + angle, 90.0 + 180.0 - angle);
+        Uv2xy uv2xy(Qw::pi/2 + angle, Qw::pi/2 + Qw::pi - angle);
         uv2xy.SetOffset(offsetu, offsetv);
         uv2xy.SetWireSpacing(spacing);
 
