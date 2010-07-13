@@ -198,7 +198,10 @@ void QwBlinder::InitBlinders()
       /// number is generated between 0.9 and 1.1 from the blinding asymmetry
       /// by an oscillating (but uniformly distributed) function.
       Double_t tmp3 = 1000000.0 * fBlindingOffset / kMaximumBlindingAsymmetry;
-      fBlindingFactor = 1.0 + fmod(30.0 * tmp3, kMaximumBlindingFactor);
+      if (kMaximumBlindingAsymmetry > 0.0)
+        fBlindingFactor = 1.0 + fmod(30.0 * tmp3, kMaximumBlindingAsymmetry);
+      else
+        fBlindingFactor = 1.0;
 
       QwMessage << "QwBlinder::InitBlinders(): Blinding parameters have been calculated."<< QwLog::endl;
 
