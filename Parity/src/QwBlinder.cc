@@ -10,6 +10,7 @@
 
 // System headers
 #include <string>
+#include <limits>
 
 // Qweak headers
 #include "QwLog.h"
@@ -254,37 +255,37 @@ void QwBlinder::SetTestValues(const TString& barestring)
       QwWarning << "QwBlinder::SetTestValues(): The blinding parameters have "
                 << "not been calculated correctly!" << QwLog::endl;
 
-  } else {
-
-      // For each test case
-      for (UInt_t i = 0; i < fMaxTests; i++) {
-
-          // Generate a quasi-random number
-          for (Int_t j = 0; j < 16; j++) {
-             finalseed &= 0x7FFFFFFF;
-              if ((finalseed & 0x800000) == 0x800000) {
-                  finalseed = ((finalseed ^ 0x00000d) << 1) | 0x1;
-              } else {
-                  finalseed <<= 1;
-              }
-          }
-
-          // Using end 3 digits (0x1 through 0xFFF) of the finalseed (1 - 4095)
-          // This produces a value from 0.47 ppb to 953.4 ppb
-          Double_t tempval = -1.0 * (finalseed & 0xFFF) / (1024.0 * 4096.0 * 1024.0);
-
-          // Store the test values
-          fTestNumber.push_back(i);
-          fTestValue.push_back(tempval);
-          this->BlindValue(tempval);
-          fBlindTestValue.push_back(tempval);
-          this->UnBlindValue(tempval);
-          fUnBlindTestValue.push_back(tempval);
-        }
-
-      QwMessage << "QwBlinder::SetTestValues(): A total of " << std::dec << fMaxTests
-                <<" test values have been calculated successfully." << QwLog::endl;
   }
+
+  // For each test case
+  for (int i = 0; i < fMaxTests; i++) {
+
+      // Generate a quasi-random number
+      for (Int_t j = 0; j < 16; j++) {
+         finalseed &= 0x7FFFFFFF;
+          if ((finalseed & 0x800000) == 0x800000) {
+              finalseed = ((finalseed ^ 0x00000d) << 1) | 0x1;
+          } else {
+              finalseed <<= 1;
+          }
+      }
+
+      // Using end 3 digits (0x1 through 0xFFF) of the finalseed (1 - 4095)
+      // This produces a value from 0.47 ppb to 953.4 ppb
+      Double_t tempval = -1.0 * (finalseed & 0xFFF) / (1024.0 * 4096.0 * 1024.0);
+
+      // Store the test values
+      fTestNumber.push_back(i);
+      fTestValue.push_back(tempval);
+      this->BlindValue(tempval);
+      fBlindTestValue.push_back(tempval);
+      this->UnBlindValue(tempval);
+      fUnBlindTestValue.push_back(tempval);
+    }
+
+  QwMessage << "QwBlinder::SetTestValues(): A total of " << std::dec << fMaxTests
+            <<" test values have been calculated successfully." << QwLog::endl;
+
 };
 
 /**
@@ -496,7 +497,7 @@ void QwBlinder::WriteTestValues(QwDatabase* db)
   // Construct Individual SQL and Execute
   //----------------------------------------------------------
   // Loop over all test values
-  for (UInt_t i = 0; i < fMaxTests; i++)
+  for (int i = 0; i < fMaxTests; i++)
     {
       string s_sql = s_sql_pre;
 
@@ -532,32 +533,25 @@ Bool_t QwBlinder::CheckTestValues()
   Double_t checkval;
   Bool_t   status = kTRUE;
 
-  Float_t test1, test2, epsilon;
+  double epsilon = std::numeric_limits<double>::epsilon();
+  double test1, test2;
 
-  for (UInt_t i = 0; i < fMaxTests; i++)
+  for (int i = 0; i < fMaxTests; i++)
     {
       /// First test: compare a blinded value with a second computation
 
       checkval = fTestValue[i];
       this->BlindValue(checkval);
 
-      test1 = fBlindTestValue[i]*2.0;      //  Shift by one factor of 2.
-      test2 = test1 + fBlindTestValue[i];  //  Round to 3*fBlindTestValue[i].
-      epsilon = test2 - test1;             //  Rounded fBlindTestValue[i].
-      epsilon -= fBlindTestValue[i];       //  (Rounded - original).
-      if (epsilon<0.0)
-        {
-          epsilon *= -1.0;
-        }
       test1 = fBlindTestValue[i];
       test2 = checkval;
-      if ( (test1-test2)<=(-1.0*epsilon) || (test1-test2)>=epsilon )
+      if ((test1 - test2) <= -epsilon || (test1 - test2) >= epsilon)
         {
           std::cerr << "QwBlinder::CheckTestValues():  Blinded test value "
           << std::dec << fTestNumber[i]
           << " does not agree with reblinded test value, "
           << "with a difference of "
-          << (fBlindTestValue[i]-checkval) << "."
+          << (test1 - test2) << "."
           << std::endl;
           status = kFALSE;
         }
@@ -567,13 +561,13 @@ Bool_t QwBlinder::CheckTestValues()
 
       test1 = fUnBlindTestValue[i];
       test2 = fTestValue[i];
-      if ( (test1-test2) <= (-1.0*epsilon) || (test1-test2) >= epsilon )
+      if ((test1 - test2) <= -epsilon || (test1 - test2) >= epsilon)
         {
           std::cerr << "QwBlinder::CheckTestValues():  Unblinded test value "
           << std::dec << fTestNumber[i]
           << " does not agree with original test value, "
           << "with a difference of "
-          << (fTestValue[i] - fUnBlindTestValue[i]) << "."
+          << (test1 - test2) << "."
           << std::endl;
           status = kFALSE;
         }
@@ -627,7 +621,7 @@ void QwBlinder::PrintFinalValues()
             << std::setw(16) << "Blinded value"
             << std::setw(16) << "Unblinded value"
             << QwLog::endl;
-  for (UInt_t i = 0; i < fMaxTests; i++) {
+  for (int i = 0; i < fMaxTests; i++) {
     QwMessage << std::setw(8)  << fTestNumber[i]
               << std::setw(16) << Form("% 9g ppb",fTestValue[i]*1e9)
               << std::setw(16) << Form(" [CENSORED]")
@@ -661,7 +655,7 @@ void QwBlinder::FillDB(QwDatabase *db, TString datatype)
   // Fill the rows of the QwParityDB::bf_test table
   QwParityDB::bf_test bf_test_row(0);
   std::vector<QwParityDB::bf_test> bf_test_list;
-  for (UInt_t i = 0; i < fMaxTests; i++) {
+  for (int i = 0; i < fMaxTests; i++) {
     bf_test_row.bf_test_id = 0;
     bf_test_row.analysis_id = analysis_id;
     bf_test_row.test_number = fTestNumber[i];

@@ -172,11 +172,11 @@ class QwBlinder {
     std::vector<UChar_t> fDigest;         /// Checksum in raw hex
     std::string          fChecksum;       /// Checksum in ASCII hex
 
-    UInt_t fMaxTests;                   /// Maximum number of test values
-    std::vector<UInt_t>   fTestNumber;       /// Vector of test numbers (IDs)
-    std::vector<Double_t> fTestValue;        /// Vector of test values, original
-    std::vector<Double_t> fBlindTestValue;   /// Vector of test values, after blinding
-    std::vector<Double_t> fUnBlindTestValue; /// Vector of test values, after unblinding
+    int fMaxTests;                         /// Maximum number of test values
+    std::vector<int>    fTestNumber;       /// Vector of test numbers (IDs)
+    std::vector<double> fTestValue;        /// Vector of test values, original
+    std::vector<double> fBlindTestValue;   /// Vector of test values, after blinding
+    std::vector<double> fUnBlindTestValue; /// Vector of test values, after unblinding
 
     void InitBlinders();                              /// Initializes fBlindingFactor from fSeed.
     void SetTestValues(const TString &barestring);    /// Initializes the test values: fTestNumber, fTestValue,
