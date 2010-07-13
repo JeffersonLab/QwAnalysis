@@ -406,36 +406,36 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
       ULY=0;
       LLY=0;
 
-      if (device_type == kQwBCM){
+      if (device_type == GetQwBeamInstrumentTypeName(kQwBCM)){
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BCM value
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BCM value
 	fBCM[det_index].SetSingleEventCuts(LLX,ULX);//(fBCMEventCuts);
       }
-      else if (device_type == kQwHaloMonitor){
+      else if (device_type == GetQwBeamInstrumentTypeName(kQwHaloMonitor)){
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for HaloMonitor value
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for HaloMonitor value
 	//fHaloMonitor[det_index].SetSingleEventCuts(LLX,ULX);//(fHaloMonitorEventCuts);
       }
-      else if (device_type == kQwEnergyCalculator){
+      else if (device_type ==GetQwBeamInstrumentTypeName(kQwEnergyCalculator)){
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for energy
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for energy
 	fECalculator[det_index].SetSingleEventCuts(LLX,ULX);//(fEnergyEventCuts);
       }
-      else if (device_type == kQwBPMStripline){
+      else if (device_type == GetQwBeamInstrumentTypeName(kQwBPMStripline)){
 	channel_name= mapstr.GetNextToken(", ").c_str();
 	channel_name.ToLower();
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline X
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline X
 	fStripline[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
       }
-      else if (device_type == kQwCombinedBCM){
+      else if (device_type == GetQwBeamInstrumentTypeName(kQwCombinedBCM)){
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BCM value
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BCM value
 	fBCMCombo[det_index].PrintInfo();
 	fBCMCombo[det_index].SetSingleEventCuts(LLX,ULX);//(fBCMComboEventCuts);
 
       }
-      else if (device_type == kQwCombinedBPM){
+      else if (device_type == GetQwBeamInstrumentTypeName(kQwCombinedBPM)){
 	channel_name= mapstr.GetNextToken(", ").c_str();
 	channel_name.ToLower();
 
