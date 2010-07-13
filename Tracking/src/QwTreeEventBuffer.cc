@@ -1276,9 +1276,7 @@ std::vector<QwHit> QwTreeEventBuffer::CreateHitCerenkov (
 
 
   // Calculate light yield of right hit (element 2)
-  yield = (-x - x_min) / (x_max - x_min);
-  yield *= (y_max - y_min) * yield; // squared and scaled
-  yield += y_min; // offset
+  yield = (y_max - y_min) * (-x - x_min) / (x_max - x_min) * (x - x_min) / (x_max - x_min) + y_min;
 
   // Create a new hit
   hit = new QwHit(0,0,0,0, region, package, plane, direction, 2, 0);

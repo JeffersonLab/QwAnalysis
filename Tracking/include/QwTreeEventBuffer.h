@@ -69,14 +69,14 @@ class QwTreeEventBuffer
       fNumberOfEvents = fNumberOfEntries / fEntriesPerEvent;
     };
     /// Get the number of entries per event
-    unsigned int GetEntriesPerEvent() const { return fEntriesPerEvent; };
+    int GetEntriesPerEvent() const { return fEntriesPerEvent; };
     /// Get the number of events in the run
-    unsigned int GetNumberOfEvents() const { return fNumberOfEvents; };
+    int GetNumberOfEvents() const { return fNumberOfEvents; };
 
     /// Get the current run number
-    unsigned int GetRunNumber() const { return fCurrentRun; };
+    int GetRunNumber() const { return fCurrentRun; };
     /// Get the current event number
-    unsigned int GetEventNumber() const { return fCurrentEvent; };
+    int GetEventNumber() const { return fCurrentEvent; };
 
 
     /// \brief Open the next event file
@@ -137,7 +137,7 @@ class QwTreeEventBuffer
       fNumberOfEvents = fNumberOfEntries / fEntriesPerEvent;
     };
     /// Get the number of entries in the loaded run
-    const unsigned int GetNumberOfEntries() const { return fNumberOfEntries; };
+    int GetNumberOfEntries() const { return fNumberOfEntries; };
 
     /// \brief Read the specified entry from the tree
     void GetEntry(const unsigned int entry);
