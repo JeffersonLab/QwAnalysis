@@ -12,6 +12,7 @@
 #include <vector>
 #include "Rtypes.h"
 #include "TString.h"
+//#include "TStopwatch.h"
 
 #include "THaCodaData.h"
 
@@ -37,6 +38,8 @@ class QwEventBuffer: public MQwCodaControlEvent{
   static const Int_t kFileHandleNotConfigured;
 
   static const UInt_t kNullDataWord;
+
+
 
  public:
   QwEventBuffer();
@@ -125,13 +128,15 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   void ResetFlags();
 
+  //TStopwatch stopwatch;
+
  private:
   //  These methods will be removed from a future version
   void ClearEventData(std::vector<VQwSubsystem*> &subsystems);
 
   Bool_t FillSubsystemConfigurationData(std::vector<VQwSubsystem*> &subsystems);
   Bool_t FillSubsystemData(std::vector<VQwSubsystem*> &subsystems);
-
+  //TStopwatch stopw;
 
  protected:
   ///
@@ -210,6 +215,9 @@ class QwEventBuffer: public MQwCodaControlEvent{
   UInt_t fSubbankType;
   UInt_t fSubbankNum;
   UInt_t fROC;
+
+  
+  
 
  protected:
   UInt_t     fNumPhysicsEvents;
