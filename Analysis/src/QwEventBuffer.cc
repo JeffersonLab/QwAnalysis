@@ -124,7 +124,7 @@ TString QwEventBuffer::GetRunLabel() const
 
 Int_t QwEventBuffer::OpenNextStream()
 {
-  
+
   Int_t status = CODA_ERROR;
   if (fOnline) {
     /* Modify the call below for your ET system, if needed.
@@ -157,9 +157,9 @@ Int_t QwEventBuffer::OpenNextStream()
 		<< QwLog::endl;
       }
     }
-    
+
   }
-  //stopwatch.Start();
+  fStopwatch.Start();
   return status;
 }
 
@@ -207,14 +207,13 @@ Int_t QwEventBuffer::GetNextEvent()
   if (status == CODA_OK  && IsPhysicsEvent()) fNumPhysicsEvents++;
 
   //  Progress meter (this should probably produce less output in production)
-  if (fEvtNumber % 1000 == 0) {
-    //stopwatch.Start();
-    //stopwatch.Stop();
-    //QwMessage << "Processing event " << fEvtNumber <<" ( "<<stopwatch.CpuTime()/1000<<"s per event )"<< QwLog::endl;
-    //stopwatch.Reset();
-    //stopwatch.Start();
-    QwMessage << "Processing event " << fEvtNumber << QwLog::endl;
-  } else if (fEvtNumber % 100 == 0) {
+  if (fEvtNumber > 0 && fEvtNumber % 1000 == 0) {
+    QwMessage << "Processing event " << fEvtNumber << " ";
+    //fStopwatch.Stop();
+    //QwMessage << "(" << fStopwatch.CpuTime() / 1000.0 << "s per event)" << QwLog::endl;
+    //fStopwatch.Reset();
+    //fStopwatch.Start();
+  } else if (fEvtNumber > 0 && fEvtNumber % 100 == 0) {
     QwVerbose << "Processing event " << fEvtNumber << QwLog::endl;
   }
 

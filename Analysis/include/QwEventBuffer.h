@@ -12,7 +12,7 @@
 #include <vector>
 #include "Rtypes.h"
 #include "TString.h"
-//#include "TStopwatch.h"
+#include "TStopwatch.h"
 
 #include "THaCodaData.h"
 
@@ -129,7 +129,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   void ResetFlags();
 
-  //TStopwatch stopwatch;
+  TStopwatch fStopwatch;
 
  private:
   //  These methods will be removed from a future version
@@ -216,9 +216,6 @@ class QwEventBuffer: public MQwCodaControlEvent{
   UInt_t fSubbankType;
   UInt_t fSubbankNum;
   UInt_t fROC;
-
-  
-  
 
  protected:
   UInt_t     fNumPhysicsEvents;
