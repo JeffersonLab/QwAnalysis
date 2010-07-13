@@ -101,7 +101,7 @@ Int_t QwGasElectronMultiplier::LoadGeometryDefinition(TString mapfile)
       //  Break this line into tokens to process it.
       varvalue     = (mapstr.GetNextToken(", ").c_str());//this is the sType
       Zpos         = (atof(mapstr.GetNextToken(", ").c_str()));
-      rot          = (atof(mapstr.GetNextToken(", ").c_str()));
+      rot          = (atof(mapstr.GetNextToken(", ").c_str()) * Qw::deg);
       sp_res       = (atof(mapstr.GetNextToken(", ").c_str()));
       track_res    = (atof(mapstr.GetNextToken(", ").c_str()));
       slope_match  = (atof(mapstr.GetNextToken(", ").c_str()));

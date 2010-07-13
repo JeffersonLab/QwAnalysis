@@ -83,7 +83,7 @@ Int_t QwMainDetector::LoadGeometryDefinition ( TString mapfile )
           //  Break this line Int_to tokens to process it.
           varvalue = ( mapstr.GetNextToken ( ", " ).c_str() );//this is the sType
           Zpos = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-          rot = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+          rot = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) * Qw::deg );
           sp_res = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
           track_res = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
           slope_match = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
@@ -292,7 +292,7 @@ Int_t QwMainDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt
 Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   Int_t index = GetSubbankIndex(roc_id,bank_id);
- 
+
 
   //This is a QDC bank
   if (bank_id == fBankID[0])
@@ -372,29 +372,29 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 	  Bool_t temp_print_flag     = false;
 
 	  data_integrity_flag = fF1TDC.CheckDataIntegrity(roc_id, buffer, num_words);
-	  
-	  if (data_integrity_flag) 
+
+	  if (data_integrity_flag)
 	    {//;
 	      for (UInt_t i=0; i<num_words ; i++)
 		{
-		  
+
 		  fF1TDC.DecodeTDCWord(buffer[i], roc_id);
 
 		  tdc_slot_number = fF1TDC.GetTDCSlotNumber();
 		  tdc_chan_number = fF1TDC.GetTDCChannelNumber();
-		  
+
 		  if ( tdc_slot_number == 31) {
 		    //  This is a custom word which is not defined in
 		    //  the F1TDC, so we can use it as a marker for
 		    //  other data; it may be useful for something.
 		  }
-		  
+
 		  // Each subsystem has its own interesting slot(s), thus
 		  // here, if this slot isn't in its slot(s) (subsystem map file)
 		  // we skip this buffer to do the further process
 		  if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
-		  
-		  if ( fF1TDC.IsValidDataword() ) 
+
+		  if ( fF1TDC.IsValidDataword() )
 		    {
 		      try {
 			FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());

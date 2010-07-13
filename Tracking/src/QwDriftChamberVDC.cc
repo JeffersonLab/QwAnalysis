@@ -84,7 +84,7 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
       //  Break this line Int_to tokens to process it.
       varvalue     = ( mapstr.GetNextToken ( ", " ).c_str() );//this is the sType
       Zpos         = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-      rot          = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+      rot          = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) * Qw::deg);
       sp_res       = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
       track_res    = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
       slope_match  = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
@@ -212,7 +212,7 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
     if (bankid == 0)   std::cerr<< "BANK id" << bankid << std::endl;
     //
     // if bankid == 0, print out bank id, and then what?
-    // 
+    //
     if ( !refchecked.at(bankid) ){
 
       if ( fReferenceData.at( bankid ).empty() ) {
@@ -258,11 +258,11 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
 }
 
 
-Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector, Double_t angle_degree) 
+Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector, Double_t angle_degree)
 {
   Double_t distance_mm = 0.0;
   Double_t distance_cm = 0.0;
-  
+
   Double_t p[11]={0.0};
   ////   for arg-65-ethane-35
   //     p[0]=-1.683+0.02112*angle_degree;
@@ -276,31 +276,31 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetect
   //     p[8]=33.25-0.2585*angle_degree;
   //     p[9]=62.38-1.955*angle_degree;
   //     p[10]=22.61-0.005106*angle_degree;
-  
+
   //for arg-50-ethane-50
-  p[ 0] = -1.749 + 0.021670*angle_degree; // [T], then what unit of 0.021670 is?  
+  p[ 0] = -1.749 + 0.021670*angle_degree; // [T], then what unit of 0.021670 is?
                                           // [T]/[DEGREE]
                                           // jhlee, confirmed by siyuan
                                           // Thursday, July  8 10:50:23 EDT 2010
   p[ 1] = 24.100 - 0.305100*angle_degree; // [T]/[L]   0.305100 [T]/([L].[DEGREE])
   p[ 2] = -3.133 + 0.009078*angle_degree; // [T]
-  p[ 3] = 28.510 - 0.295100*angle_degree; // [T]/[L] 
+  p[ 3] = 28.510 - 0.295100*angle_degree; // [T]/[L]
   p[ 4] =  7.869 - 0.163500*angle_degree; // [T]
-  p[ 5] = 17.690 - 0.120800*angle_degree; // [T]/[L] 
-  p[ 6] =  2.495 - 0.041040*angle_degree; // [T]/[L2] 
+  p[ 5] = 17.690 - 0.120800*angle_degree; // [T]/[L]
+  p[ 6] =  2.495 - 0.041040*angle_degree; // [T]/[L2]
   p[ 7] =  3.359 - 0.478000*angle_degree; // [T]
-  p[ 8] = 29.350 - 0.219500*angle_degree; // [T]/[L] 
+  p[ 8] = 29.350 - 0.219500*angle_degree; // [T]/[L]
   p[ 9] = 55.680 - 1.730000*angle_degree; // [T]
   p[10] = 20.380 - 0.004761*angle_degree; // [T]/[L]
-  
+
   Double_t cut[4]  = {0.5, 1.5, 4.0, 6.0};// [L] // mm
   Double_t time[4] = {0.0};// [T]
-  
+
   time[0] = 0.5*(p[0] + p[1]*cut[0] + p[2] + p[3]*cut[0]);
   time[1] = 0.5*(p[2] + p[3]*cut[1] + p[4] + p[5]*cut[1] + p[6]*cut[1]*cut[1]);
   time[2] = 0.5*(p[4] + p[5]*cut[2] + p[6]*cut[2]*cut[2] + p[7] + p[8]*cut[2]);
   time[3] = 0.5*(p[7] + p[8]*cut[3] + p[9] +p[10]*cut[3]);
-  
+
   if (drifttime < time[0]) {
     distance_mm = (drifttime - p[0])/p[1];
   }
@@ -415,7 +415,7 @@ Int_t QwDriftChamberVDC::AddChannelDefinition ( const UInt_t plane, const UInt_t
 }
 
 
-void  QwDriftChamberVDC::FillHistograms() 
+void  QwDriftChamberVDC::FillHistograms()
 {
 
   //     if (! HasDataLoaded()) return;
@@ -575,10 +575,10 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile ) {
 	pair_a.second = tmpWindows.at ( 2*i+1 );
 	fDelayLineArray.at ( bpnum ).at ( lnnum ).Windows.push_back ( pair_a );
       }
-	    
-      std::cout << "DelayLine: back plane: " << bpnum 
-		<< "line number " << lnnum 
-		<< " Windows.size: "  << fDelayLineArray.at ( bpnum ).at ( lnnum ).Windows.size() 
+
+      std::cout << "DelayLine: back plane: " << bpnum
+		<< "line number " << lnnum
+		<< " Windows.size: "  << fDelayLineArray.at ( bpnum ).at ( lnnum ).Windows.size()
 		<< std::endl;
       fDelayLineArray.at ( bpnum ).at ( lnnum ).Fill=kTRUE;
       tmpWindows.clear();
@@ -703,7 +703,7 @@ void QwDriftChamberVDC::ProcessEvent() {
 
 	  Int_t temp_plane=plane-1;
 	  if(tmpCrate==3) temp_plane=plane-5;
-		
+
 	  QwDetectorInfo* local_info = & fDetectorInfo.at ( package ).at ( temp_plane );
 	  NewQwHit.SetDetectorInfo ( local_info );
 
