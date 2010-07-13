@@ -15,8 +15,8 @@
 #include "QwLog.h"
 
 // Maximum blinding asymmetry for additive blinding
-const Double_t QwBlinder::kMaximumBlindingAsymmetry = 0.6; // ppm
-const Double_t QwBlinder::kMaximumBlindingFactor = 0.1; // [fraction]
+const Double_t QwBlinder::kMaximumBlindingAsymmetry = 0.0; // ppm
+const Double_t QwBlinder::kMaximumBlindingFactor = 0.0; // [fraction]
 
 /**
  * Constructor using explicit seed string
