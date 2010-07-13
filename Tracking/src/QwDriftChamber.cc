@@ -105,7 +105,9 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile)
             plane   = (atol(mapstr.GetNextToken(", ").c_str()));
             wire    = (atol(mapstr.GetNextToken(", ").c_str()));
 
+	    // VDC and HDC
             BuildWireDataStructure(chan, package, plane, wire);
+	    
         } else if (DIRMODE==1) {
             //this will decode the wire plane directions - Rakitha
             plane     = (atol(mapstr.GetNextToken(", ").c_str()));

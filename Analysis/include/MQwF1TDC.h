@@ -62,7 +62,7 @@ class MQwF1TDC{
   };
   
   Double_t SubtractReference(Double_t rawtime, Double_t reftime);
-  
+  Double_t ActualTimeDifference(Double_t raw_time, Double_t ref_time);
   //  Bool_t CheckDataIntegrity(UInt_t ref_event_number, UInt_t ref_trigger_time);
   Bool_t CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t num_words);
 

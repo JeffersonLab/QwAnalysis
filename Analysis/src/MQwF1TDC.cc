@@ -10,6 +10,8 @@
 #include "QwColor.h"
 #include "QwLog.h"
 
+#include <math.h>
+
 
 const UInt_t MQwF1TDC::kF1Mask_SlotNumber          = 0xf8000000;
 const UInt_t MQwF1TDC::kF1Mask_HeaderFlag          = 0x00800000;
@@ -157,6 +159,51 @@ Double_t MQwF1TDC::SubtractReference(Double_t rawtime, Double_t reftime)
   }
   real_time = real_time + fTimeShift;
   return real_time;
+}
+
+
+
+Double_t MQwF1TDC::ActualTimeDifference(Double_t raw_time, Double_t ref_time)
+{
+  // trigger_window and time_offset will be
+  // replaced with the F1TDC configuration values later or sooner
+  // jhlee , Tuesday, July 13 17:43:43 EDT 2010
+  Double_t trigger_window = 17195.0;
+  Double_t time_offset    = 65341.0;
+
+  Double_t time_condition = 0.0;
+  Double_t local_time_difference = 0.0;
+  Double_t actual_time_difference = 0.0;
+
+  local_time_difference = raw_time - ref_time; 
+  
+  if(local_time_difference == 0.0) {
+    // raw_time is the same as ref_time
+    actual_time_difference = local_time_difference;
+  }
+  else {
+    time_condition = fabs(local_time_difference); 
+    // maximum value is trigger_window -1, 
+    // thus 17195-1 =  17194 - 0 = 17194
+    if(time_condition < trigger_window) {
+      // there is no ROLLEVENT within trigger window
+      actual_time_difference = local_time_difference;
+    }
+    else {
+      // there is an ROLLOVER event within trigger window
+      if (local_time_difference > 0.0) {
+	// ref_time is in after ROLLOVER event
+	actual_time_difference =  local_time_difference - time_offset;
+      }
+      else {
+	// we already excluded local_time_diffrence == 0 case.
+	// ref_time is in before ROLLOVER event
+	actual_time_difference = local_time_difference + time_offset;
+      }
+      
+    }
+  }
+  return actual_time_difference;
 }
 
 

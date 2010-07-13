@@ -57,6 +57,7 @@ static const bool kHisto = kTRUE;
 
 static const bool kUseTDCHits = kFALSE;
 
+static const bool kEPICS = kTRUE;
 // Branching flags for subsystems
 static const bool kMainDetBranch = kTRUE;
 static const bool kScannerBranch = kTRUE;
@@ -227,12 +228,12 @@ Int_t main(Int_t argc, Char_t* argv[])
       //  Loop over events in this CODA file
       //  First, do processing of non-physics events...
 
-
+      if(kEPICS) {
       if (eventbuffer.IsEPICSEvent()) {
          eventbuffer.FillEPICSData(epics);
          epics.CalculateRunningValues();
       }
-
+      }
 
 
       if (eventbuffer.IsROCConfigurationEvent()) {
