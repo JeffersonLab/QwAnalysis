@@ -170,7 +170,6 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
   fPedestal            = 0.0;
   fCalibrationFactor   = 1.0;
 
-  fSamplesPerBlock     = 16680; //jpan: total samples = fSamplesPerBlock x fBlocksPerEvent
   fBlocksPerEvent      = 4;
 
   fTreeArrayIndex      = 0;
@@ -180,6 +179,7 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
 
   fPreviousSequenceNumber = 0;
   fNumberOfSamples_map    = 0;
+  fNumberOfSamples        = 0;
 
   // Use internal random variable by default
   fUseExternalRandomVariable = false;
@@ -488,7 +488,6 @@ void QwVQWK_Channel::PrintInfo() const
   std::cout<<"QwVQWK channel: "<<GetElementName()<<"\n"<<"\n";
   std::cout<<"fPedestal= "<< fPedestal<<"\n";
   std::cout<<"fCalibrationFactor= "<<fCalibrationFactor<<"\n";
-  std::cout<<"fSamplesPerBlock= "<< fSamplesPerBlock<<"\n";
   std::cout<<"fBlocksPerEvent= "<<fBlocksPerEvent<<"\n"<<"\n";
   std::cout<<"fSequenceNumber= "<<fSequenceNumber<<"\n";
   std::cout<<"fNumberOfSamples= "<<fNumberOfSamples<<"\n";

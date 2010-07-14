@@ -222,7 +222,7 @@ class QwVQWK_Channel: public VQwDataElement {
 
   /*! \name Channel configuration data members */
   // @{
-  UInt_t  fSamplesPerBlock;
+
   //UInt_t  fBlocksPerEvent;
   Short_t fBlocksPerEvent;
   // @}
