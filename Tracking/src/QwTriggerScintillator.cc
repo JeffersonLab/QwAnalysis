@@ -20,7 +20,7 @@ QwSubsystemFactory<QwTriggerScintillator>
 
 
 QwTriggerScintillator::QwTriggerScintillator(TString region_tmp):VQwSubsystem(region_tmp),
-                                                                 VQwSubsystemTracking(region_tmp)
+                                                         VQwSubsystemTracking(region_tmp)
 {
   ClearAllBankRegistrations();
 };
@@ -37,17 +37,14 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
   std::cout<<"Trigger Scintillator Qweak Geometry Loading..... "<<std::endl;
 
   TString varname, varvalue,package, direction, dType;
-  //  Int_t  chan;
   Int_t  plane, TotalWires, detectorId, region, DIRMODE;
-  Double_t Zpos,rot,sp_res, track_res,slope_match,Det_originX,Det_originY,ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin;
-
-  //std::vector< QwDetectorInfo >  fDetectorGeom;
+  Double_t Zpos,rot,sp_res,track_res,slope_match,Det_originX,Det_originY,
+    ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin;
 
   QwDetectorInfo temp_Detector;
 
   fDetectorInfo.clear();
   fDetectorInfo.resize ( kNumPackages );
-  //  Int_t pkg,pln;
 
   DIRMODE=0;
 
@@ -94,7 +91,6 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
       if ( region==4 ) {
         temp_Detector.SetDetectorInfo ( dType, Zpos, rot, sp_res, track_res, slope_match, package, region, direction, Det_originX, Det_originY, ActiveWidthX, ActiveWidthY, ActiveWidthZ, WireSpace, FirstWire, W_rcos, W_rsin, TotalWires, detectorId );
 
-
       if ( package == "u" )
         fDetectorInfo.at ( kPackageUp ).push_back ( temp_Detector );
       else if ( package == "d" )
@@ -131,6 +127,7 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
 
 
 Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
+
   TString varname, varvalue;
   TString modtype, dettype, name;
   Int_t modnum, channum;
@@ -331,6 +328,13 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 
 void  QwTriggerScintillator::ProcessEvent(){
   if (! HasDataLoaded()) return;
+
+  for (size_t i=0; i<fPMTs.size(); i++) {
+    for (size_t j=0; j<fPMTs.at(i).size(); j++) {
+      fPMTs.at(i).at(j).ProcessEvent();
+    }
+  }
+
 };
 
 
@@ -360,26 +364,72 @@ void  QwTriggerScintillator::FillHistograms(){
     }
   }
 
-  TS_1LminusR->Fill(fPMTs.at(2).at(1).GetValue()-fPMTs.at(2).at(0).GetValue());
-  TS_2LminusR->Fill(fPMTs.at(2).at(3).GetValue()-fPMTs.at(2).at(2).GetValue());
+  // Only fill histrogram if TDC data.ne.0!
+  Real_t tdc_1L = fPMTs.at(2).at(1).GetValue();
+  Real_t tdc_1R = fPMTs.at(2).at(0).GetValue();
+  Real_t tdc_2L = fPMTs.at(2).at(3).GetValue();
+  Real_t tdc_2R = fPMTs.at(2).at(2).GetValue();
+  if (tdc_1L!=0 && tdc_1R!=0) {
+    TS_1LminusR->Fill(tdc_1L-tdc_1R);
+  }
+  if (tdc_2L!=0 && tdc_2R!=0) {
+    TS_2LminusR->Fill(tdc_2L-tdc_2R);
+  }
 
 };
 
 void  QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Double_t> &values)
 {
+  ConstructBranchAndVector(tree, prefix);
+};
+
+void QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString prefix) 
+{
+  TString basename;
+  if (prefix=="") basename = "trigscint";
+  else basename = prefix;
+
+  TString list = "";
+  fTrigScintVector.push_back(0.0);
+  list = ":nevent/D";
+
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
-      fPMTs.at(i).at(j).ConstructBranchAndVector(tree, prefix, values);
+      TString element_name = fPMTs.at(i).at(j).GetElementName();
+      if (element_name=="") {
+        // This channel is not used, so skip setting up the tree.
+      } else {
+          fTrigScintVector.push_back(0.0);
+          list += ":"+element_name+"/D";
+      }
     }
   }
+
+  if (list[0]==':') {
+    list = list(1,list.Length()-1);
+  }
+  tree->Branch(basename, &fTrigScintVector[0], list);
 };
 
 void  QwTriggerScintillator::FillTreeVector(std::vector<Double_t> &values)
 {
+  FillTreeVector();
+};
+
+void QwTriggerScintillator::FillTreeVector(Int_t nevent)
+{
   if (! HasDataLoaded()) return;
+
+  Int_t index = 0;
+  fTrigScintVector[index++] = nevent;
+
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
-      fPMTs.at(i).at(j).FillTreeVector(values);
+      if (fPMTs.at(i).at(j).GetElementName()=="") {}
+      else {
+        fTrigScintVector[index] = fPMTs.at(i).at(j).GetValue();
+        index++;
+      }
     }
   }
 };

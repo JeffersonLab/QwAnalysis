@@ -54,7 +54,9 @@ class QwTriggerScintillator: public VQwSubsystemTracking {
   void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Double_t> &values);
+  void  ConstructBranchAndVector(TTree *tree, TString prefix);
   void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(Int_t nevent = -1);
 
 
   void GetHitList(QwHitContainer & grandHitContainer){};
@@ -123,6 +125,8 @@ class QwTriggerScintillator: public VQwSubsystemTracking {
   //    We need a mapping of module,channel into PMT index, ADC/TDC
   std::vector< std::vector<QwPMT_Channel> > fPMTs;
   std::vector<QwSIS3801_Module*> fSCAs;
+
+  std::vector <Double_t> fTrigScintVector;
 
   std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
   

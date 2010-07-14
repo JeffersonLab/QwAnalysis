@@ -58,6 +58,7 @@ static const bool kUseTDCHits = kFALSE;
 
 static const bool kEPICS = kFALSE;
 // Branching flags for subsystems
+static const bool kTrigScintBranch = kTRUE;
 static const bool kMainDetBranch = kTRUE;
 static const bool kScannerBranch = kTRUE;
 static const bool kRasterBranch  = kTRUE;
@@ -118,6 +119,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   std::cout << "Parity event type mask " << parity_detectors.GetEventTypeMask() << std::endl;
 
   // Get specific tracking_detectors
+  QwTriggerScintillator* triggerscint = dynamic_cast<QwTriggerScintillator*>(tracking_detectors.GetSubsystemByType("QwTriggerScintillator").at(0));
   QwMainDetector* maindetector = dynamic_cast<QwMainDetector*>(tracking_detectors.GetSubsystemByType("QwMainDetector").at(0));
   QwScanner* scanner = dynamic_cast<QwScanner*> (tracking_detectors.GetSubsystemByType("QwScanner").at(0));
   QwRaster* raster = dynamic_cast<QwRaster*> (tracking_detectors.GetSubsystemByType("QwRaster").at(0));
@@ -196,6 +198,10 @@ Int_t main(Int_t argc, Char_t* argv[])
        tree->Branch("hits", "QwHitRootContainer", &hitlist_root);
        tree->Branch("events", "QwEvent", &event);
 
+       if (kTrigScintBranch) {
+          triggerscint->ConstructBranchAndVector(tree, prefix);
+       }
+
        if (kMainDetBranch) {
           maindetector->ConstructBranchAndVector(tree, prefix);
        }
@@ -253,7 +259,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       tracking_detectors.ProcessEvent();
       parity_detectors.ProcessEvent();
 
-
+      if (kTrigScintBranch) triggerscint->FillTreeVector(nevents);
       if (kMainDetBranch) maindetector->FillTreeVector(nevents);
       if (kScannerBranch) scanner->FillTreeVector();
       if (kRasterBranch) raster->FillTreeVector();
