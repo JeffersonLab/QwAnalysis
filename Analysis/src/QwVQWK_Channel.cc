@@ -583,7 +583,7 @@ void  QwVQWK_Channel::FillHistograms()
 	      fHistograms[index+1]->Fill(this->GetHardwareSum());
 	    index+=2;
 	    if (fHistograms[index] != NULL)
-	      fHistograms[index]->Fill(this->GetRawSoftwareSum()-this->GetHardwareSum());
+	      fHistograms[index]->Fill(this->GetRawSoftwareSum()-this->GetRawHardwareSum());
 	  }
 	else if(fDataToSave==kDerived)
 	  {
