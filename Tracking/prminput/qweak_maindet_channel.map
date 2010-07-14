@@ -5,24 +5,38 @@ ROC=4
 F1TDC_Bank=0x0401
 slot=6
 ! module.type  module.num  chan.num, det.type, det.name
-  F1TDC, 6,  0, maindet, md1m_f1
-  F1TDC, 6,  2, maindet, md2m_f1
-  F1TDC, 6,  4, maindet, md3m_f1
-  F1TDC, 6,  6, maindet, md4m_f1
-  F1TDC, 6,  8, maindet, md5m_f1
-  F1TDC, 6, 10, maindet, md6m_f1
-  F1TDC, 6, 12, maindet, md7m_f1
-  F1TDC, 6, 14, maindet, md8m_f1
-  F1TDC, 6, 16, maindet, md1p_f1
-  F1TDC, 6, 18, maindet, md2p_f1
-  F1TDC, 6, 20, maindet, md3p_f1
-  F1TDC, 6, 22, maindet, md4p_f1
-  F1TDC, 6, 24, maindet, md5p_f1
-  F1TDC, 6, 26, maindet, md6p_f1
-  F1TDC, 6, 28, maindet, md7p_f1
-  F1TDC, 6, 30, maindet, md8p_f1
+  F1TDC, 6,  30, maindet, md1m_f1
+  F1TDC, 6,  32, maindet, md2m_f1
+  F1TDC, 6,  34, maindet, md3m_f1
+  F1TDC, 6,  36, maindet, md4m_f1
+  F1TDC, 6,  38, maindet, md5m_f1
+  F1TDC, 6, 40, maindet, md6m_f1
+  F1TDC, 6, 42, maindet, md7m_f1
+  F1TDC, 6, 44, maindet, md8m_f1
+  F1TDC, 6, 46, maindet, md1p_f1
+  F1TDC, 6, 48, maindet, md2p_f1
+  F1TDC, 6, 50, maindet, md3p_f1
+  F1TDC, 6, 52, maindet, md4p_f1
+  F1TDC, 6, 54, maindet, md5p_f1
+  F1TDC, 6, 56, maindet, md6p_f1
+  F1TDC, 6, 58, maindet, md7p_f1
+  F1TDC, 6, 60, maindet, md8p_f1
+  F1TDC, 6 ,23, maindet, reftime_f1
+  
+  
+!F1TDC_Bank=0x0401
+slot=4
+! module.type  module.num  chan.num, det.type, det.name
+  F1TDC, 4, 0, maindet, TS_1R_f1
+  F1TDC, 4, 2, maindet, TS_1L_f1
+  F1TDC, 4, 4, maindet, TS_2R_f1
+  F1TDC, 4, 6, maindet, TS_2L_f1
+  F1TDC, 4, 12, maindet, TS_1MT_f1
+  F1TDC, 4, 14, maindet, TS_2MT_f1
+
 !
 !
+ROC=4
 QDC_Bank=0x0402
 !QDC_Bank=0x7501
 slot=1
@@ -43,6 +57,7 @@ slot=1
   V792, 1, 13, maindet, md6p_adc
   V792, 1, 14, maindet, md7p_adc
   V792, 1, 15, maindet, md8p_adc
+
 !
 !
 ! module.num counting from 0
@@ -68,6 +83,9 @@ SCA_Bank=0x0403
   SIS3801, 1, 15, maindet, md8p_sca
 !
 !
+
+
+
 !END
 !
 !
