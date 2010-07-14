@@ -590,8 +590,8 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
 // added all this method for QwEPICSEvent class
 Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
 {
-  // QwMessage << "QwEventBuffer::FillEPICSData:  "
-// 	    << Form("Length: %d; Tag: 0x%x; Bank ID num: 0x%x; ",
+  // QwVerbose << "QwEventBuffer::FillEPICSData:  "
+// 	  << Form("Length: %d; Tag: 0x%x; Bank ID num: 0x%x; ",
 // 		  fEvtLength, fEvtTag, fIDBankNum)
 // 	  << Form("Evt type: 0x%x; Evt number %d; Evt Class 0x%.8x; ",
 // 		  fEvtType, fEvtNumber, fEvtClass)
@@ -606,8 +606,8 @@ Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
     okay = kFALSE;
     return okay;
   }
-  std::cerr << "QwEventBuffer::FillEPICSData:  "
-	    << std::endl;
+  QwVerbose << "QwEventBuffer::FillEPICSData:  "
+	    << QwLog::endl;
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
   if (fBankDataType==0x10){
@@ -627,7 +627,7 @@ Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
       char* tmpchar = (Char_t*)&localbuff[fWordsSoFar];
 
       epics.ExtractEPICSValues(string(tmpchar), GetEventNumber());
-      std::cout<<"\ntest for GetEventNumber ="<<GetEventNumber()<<std::endl;// always zero, wrong.
+      QwVerbose << "test for GetEventNumber =" << GetEventNumber() << QwLog::endl;// always zero, wrong.
 
     }
 

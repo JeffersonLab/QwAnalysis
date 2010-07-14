@@ -13,13 +13,14 @@
 
 #include "StringManip.h" 
 
+#include "QwLog.h"
 #include "QwParameterFile.h"
 
 /*************************************
  *  Constant definitions.
  *************************************/
 
-const int QwEPICSEvent::kDebug  = 1;  /* Debugging flag, set this to 1 to  *
+const int QwEPICSEvent::kDebug  = 0;  /* Debugging flag, set this to 1 to  *
 				       * enable debugging output, otherwise 0.*/
 const int QwEPICSEvent::kEPICS_Error = -1;
 const int QwEPICSEvent::kEPICS_OK    =  1;
@@ -32,7 +33,7 @@ const Double_t QwEPICSEvent::kInvalidEPICSData = -999999.0;
 QwEPICSEvent::QwEPICSEvent()
 {
   InitDefaultAutogainList();
-  if (kDebug==1) PrintVariableList();
+  if (kDebug == 1) PrintVariableList();
 };
 
 
@@ -75,8 +76,8 @@ Int_t QwEPICSEvent::LoadEpicsVariableMap(TString mapfile) {
       }
     }
   }
-  //std::cout<<"\n\nfNumberEPICSVariables = "<<fNumberEPICSVariables<<std::endl<<std::endl;
-  std::cout<<" line read in the parameter file ="<<lineread<<" \n";
+  if (kDebug == 1) std::cout << "fNumberEPICSVariables = " << fNumberEPICSVariables << std::endl << std::endl;
+  if (kDebug == 1) std::cout << "line read in the parameter file =" << lineread << std::endl;
   ResetCounters();
   return 0;
 };
@@ -110,8 +111,8 @@ void QwEPICSEvent::CalculateRunningValues()
 {
   Int_t tagindex;
   Bool_t anyFilled;
-  if (kDebug==1) std::cout <<"\n\nHere we are in 'CalculateRunningValues'!!"<<std::endl;
-  if (kDebug==1) std::cout<<"fNumberEPICSVariables = "<<fNumberEPICSVariables<<std::endl<<std::endl;
+  if (kDebug == 1) std::cout <<"\n\nHere we are in 'CalculateRunningValues'!!"<<std::endl;
+  if (kDebug == 1) std::cout<<"fNumberEPICSVariables = "<<fNumberEPICSVariables<<std::endl<<std::endl;
   anyFilled = kFALSE;
   for (tagindex=0; tagindex<(Int_t)fEPICSVariableList.size(); tagindex++) {
     anyFilled  |=  fEPICSDataEvent[tagindex].Filled;
@@ -148,15 +149,15 @@ void QwEPICSEvent::CalculateRunningValues()
 	    fEPICSCumulativeData[tagindex].Minimum       =  
 	      fEPICSDataEvent[tagindex].Value;
 	  }
-	  if (kDebug==1) std::cout << "This event has "<<fEPICSVariableList[tagindex]
-				   << " equal to "<< fEPICSDataEvent[tagindex].Value
-				   << " giving a running average of "
-				   << fEPICSCumulativeData[tagindex].Sum/
+	  if (kDebug == 1) std::cout << "This event has "<<fEPICSVariableList[tagindex]
+				     << " equal to "<< fEPICSDataEvent[tagindex].Value
+				     << " giving a running average of "
+				     << fEPICSCumulativeData[tagindex].Sum/
 	    fEPICSCumulativeData[tagindex].NumberRecords
 				   <<std::endl;
 	} else {
-	  if (kDebug==1) std::cout <<fEPICSVariableList[tagindex]
-				   <<" seems to be not filled."<<std::endl;
+	  if (kDebug == 1) std::cout <<fEPICSVariableList[tagindex]
+				     <<" seems to be not filled."<<std::endl;
 	}
       }
 
@@ -208,7 +209,7 @@ void QwEPICSEvent::CalculateRunningValues()
     
     
   }
-  std::cout<<"\nfNumberEPICSEvents = "<<fNumberEPICSEvents<<std::endl;
+  if (kDebug == 1) std::cout << "fNumberEPICSEvents = " << fNumberEPICSEvents << std::endl;
 };
 
 
@@ -223,7 +224,7 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
   Int_t tagindex;
   size_t pos = 0; //iterator
   tmpvalue = -999999.;
-  if(kDebug==1) std::cout <<"Here we are, entering 'ExtractEPICSValues'!!"<<std::endl;
+  if(kDebug == 1) std::cout <<"Here we are, entering 'ExtractEPICSValues'!!"<<std::endl;
   
   for (tagindex=0;tagindex<fNumberEPICSVariables; tagindex++) {
     fEPICSDataEvent[tagindex].Filled = kFALSE;
@@ -241,9 +242,9 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
 	pos = line.find_first_of(" \t\n",pos);  //get to the end of the label
 	//now use get_next_seg() from StringManip.C
 	stmpvalue = get_next_seg(line, pos);
-	if(kDebug==1) std::cout<<line<<" ==> "
-			       <<fEPICSVariableList[tagindex]
-			       <<"\t"<<stmpvalue<<std::endl;
+	if(kDebug == 1) std::cout << line<<" ==> "
+			          <<fEPICSVariableList[tagindex]
+			          <<"\t"<<stmpvalue<<std::endl;
 	
 	SetDataValue(fEPICSVariableList[tagindex], TString(stmpvalue.c_str()), event);
 
@@ -467,14 +468,10 @@ void QwEPICSEvent::PrintAverages()
 
 void QwEPICSEvent::PrintVariableList()
 {
-  
-  
-  //Prints all valid Epics variables on the terminal while creating a rootfile.
-  
-  Int_t tagindex;
-  for (tagindex=0; tagindex<(Int_t)fEPICSVariableList.size(); tagindex++) {
-    std::cout << "fEPICSVariableList[" << tagindex << "] == "
-	 << fEPICSVariableList[tagindex] <<std::endl;
+  // Prints all valid Epics variables on the terminal while creating a rootfile.
+  for (size_t tagindex = 0; tagindex < fEPICSVariableList.size(); tagindex++) {
+    QwMessage << "fEPICSVariableList[" << tagindex << "] == "
+	      << fEPICSVariableList[tagindex] << QwLog::endl;
   }
 };
 
@@ -753,7 +750,7 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
   ////////////////////////////////////////////////////////////
   // Half wave plate
   tagindex = FindIndex(TString("IGL1I00DI24_24M"));
-  std::cout<<"\n\ntagindex for IGL1I00DI24_24M = "<<tagindex<<std::endl;
+  if (kDebug) std::cout << "\n\ntagindex for IGL1I00DI24_24M = " << tagindex << std::endl;
   
   if (! fEPICSCumulativeData[tagindex].Filled) {
     //  No data for this run.
@@ -774,7 +771,7 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
   
   // Charge feedback
   tagindex = FindIndex(TString("HC:Q_ONOFF"));
-  std::cout<<"\n\ntagindex for HC:Q_ONOFF = "<<tagindex<<std::endl;
+  std::cout << "\n\ntagindex for HC:Q_ONOFF = " << tagindex << std::endl;
   
   
   if (! fEPICSCumulativeData[tagindex].Filled) {

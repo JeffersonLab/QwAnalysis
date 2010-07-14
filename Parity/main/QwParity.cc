@@ -139,7 +139,6 @@ Int_t main(Int_t argc, Char_t* argv[])
       if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epicsevent);
         epicsevent.CalculateRunningValues();
-        epicsevent.PrintAverages();
       }
 
 
