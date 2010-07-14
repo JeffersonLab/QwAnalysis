@@ -6,10 +6,10 @@
 using std::string;
 
 string get_line_seg(const string& stmp, const string& delim1, const string& delim2){
-  unsigned int pos_begin_seg=0;
-  unsigned int pos_end_seg=0;
+  size_t pos_begin_seg=0;
+  size_t pos_end_seg=0;
   string stmp_seg;
-  unsigned int total_len = stmp.size();
+  size_t total_len = stmp.size();
   pos_begin_seg = stmp.find(delim1);
   //std::cerr<<pos_begin_seg<<std::endl;
   if(pos_begin_seg!=(string::npos)){//found the 1st delimiter  
@@ -35,7 +35,7 @@ string get_line_seg(const string& stmp, const string& delim1, const string& deli
 //this is to separate the 1st segment of the string
 string get_line_seg(const string& stmp, const string& delim)
 {
-  unsigned int pos_begin_seg=0;
+  size_t pos_begin_seg=0;
   string stmp_seg;
   pos_begin_seg = stmp.find(delim);
   if(pos_begin_seg!=(string::npos)){//found the delimiter  
@@ -51,11 +51,11 @@ string get_line_seg(const string& stmp, const string& delim)
 
 //take the next segment of a line separated by a spaces, tabs or \n from 
 //position pos. NOTE, pos is passed by reference and it will change!
-string get_next_seg(const string& inputstring, unsigned int& pos)
+string get_next_seg(const string& inputstring, size_t& pos)
 { 
   string seg;
-  unsigned int first_pos = 0;
-  unsigned int next_pos = 0;
+  size_t first_pos = 0;
+  size_t next_pos = 0;
   first_pos = inputstring.find_first_not_of(" \t\n",pos);
   if(first_pos==string::npos){//not found a real character, end of line already
     std::cerr<<"end of line has reached!"<<std::endl;
@@ -83,8 +83,8 @@ string get_next_seg(const string& inputstring, unsigned int& pos)
 void split_string(const string& inputstring, const string& delim, std::vector<string>& varlist)
 {
   string seg;
-  unsigned int first_pos = 0;
-  unsigned int next_pos = 0;
+  size_t first_pos = 0;
+  size_t next_pos = 0;
   while(first_pos<inputstring.size()){//keep searching until the end of the string
     next_pos = inputstring.find(delim,first_pos);
     if(next_pos==string::npos){//no found the next delimiter
@@ -107,8 +107,8 @@ void split_string(const string& inputstring, const string& delim, std::vector<st
 
 //get the numbers (separated by a space) in a string and put them into a vector
 void get_numbers(const string& stmp, std::vector<UInt_t>& v){
-  UInt_t pos_begin_num = 0;
-  UInt_t pos_end_num = 0;
+  size_t pos_begin_num = 0;
+  size_t pos_end_num = 0;
   string stmp_num;
   UInt_t tmp_num;
   
@@ -129,8 +129,8 @@ void get_numbers(const string& stmp, std::vector<UInt_t>& v){
 
 //get A number in a string
 void get_number(const string& stmp, UInt_t& n){
-  UInt_t pos_begin_num = 0;
-  UInt_t pos_end_num = 0;
+  size_t pos_begin_num = 0;
+  size_t pos_end_num = 0;
   string stmp_num;
   UInt_t tmp_num;
   pos_begin_num=stmp.find_first_of("1234567890.",pos_end_num);
@@ -157,7 +157,7 @@ void get_number(const string& stmp, UInt_t& n){
 
 //get the first word in a line
 string get_firstwd(const string& tmpline){
-  UInt_t pos1,pos2;
+  size_t pos1,pos2;
   string stmp;
   pos1=tmpline.find_first_not_of(" \t\n");
   pos2=tmpline.find_first_of(" \t\n",pos1);
@@ -167,7 +167,7 @@ string get_firstwd(const string& tmpline){
 
 //Test whether the string is a number string or not
 Bool_t IsNumber(const string& word){
-  UInt_t pos;
+  size_t pos;
   pos = word.find_first_not_of("0123456789.+-eE");//white space not allowed
   if(pos!=string::npos) return kFALSE;
   else return kTRUE;
@@ -175,7 +175,7 @@ Bool_t IsNumber(const string& word){
 
 //get the last word in a string
 string get_lastwd(const string& tmpline, const Char_t* delim){
-  UInt_t pos1,pos2;
+  size_t pos1,pos2;
   string stmp;
   pos1 = tmpline.find_last_not_of(" \t\n"); //last valid character
   if(pos1==string::npos) return "\0"; //empty string

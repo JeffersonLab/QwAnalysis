@@ -221,7 +221,7 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
   string stmplabel, stmpvalue;
   Double_t tmpvalue;
   Int_t tagindex;
-  UInt_t pos = 0; //iterator
+  size_t pos = 0; //iterator
   tmpvalue = -999999.;
   if(kDebug==1) std::cout <<"Here we are, entering 'ExtractEPICSValues'!!"<<std::endl;
   
