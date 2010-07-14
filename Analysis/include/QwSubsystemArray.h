@@ -93,12 +93,13 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void  ClearEventData();
 
   /// \brief Process the event buffer for configuration events
-  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
-                                   buffer, UInt_t num_words);
+  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, 
+				   UInt_t *buffer, UInt_t num_words);
 
   /// \brief Process the event buffer for events
-  Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
-                        buffer, UInt_t num_words);
+  Int_t ProcessEvBuffer(const UInt_t event_type, const UInt_t roc_id, 
+			const UInt_t bank_id, UInt_t *buffer,
+			UInt_t num_words);
 
   /// \brief Randomize the data in this event
   void  RandomizeEventData(int helicity = 0, double time = 0.0);

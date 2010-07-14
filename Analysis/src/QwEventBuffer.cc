@@ -575,7 +575,7 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
 //     QwDebug << "ProcessEventBuffer: ROC="<<fROC<<", SubbankTag="<< fSubbankTag
 // 	    <<", FragLength="<<fFragLength <<QwLog::endl;
 
-    subsystems.ProcessEvBuffer(fROC, fSubbankTag,
+    subsystems.ProcessEvBuffer(fEvtType, fROC, fSubbankTag,
 			       &localbuff[fWordsSoFar],
 			       fFragLength);
     fWordsSoFar += fFragLength;

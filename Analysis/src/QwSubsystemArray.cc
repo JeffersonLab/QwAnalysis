@@ -299,13 +299,13 @@ Int_t QwSubsystemArray::ProcessConfigurationBuffer(const UInt_t roc_id, const UI
   return 0;
 };
 
-Int_t QwSubsystemArray::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
+Int_t QwSubsystemArray::ProcessEvBuffer(const UInt_t event_type, const UInt_t roc_id, const UInt_t bank_id, UInt_t*
 		      buffer, UInt_t num_words)
 {
   if (!empty())
     SetDataLoaded(kTRUE);
     for (iterator subsys = begin(); subsys != end(); ++subsys){
-      (*subsys)->ProcessEvBuffer(roc_id, bank_id, buffer, num_words);
+      (*subsys)->ProcessEvBuffer(event_type, roc_id, bank_id, buffer, num_words);
     }
   return 0;
 };

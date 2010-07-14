@@ -233,8 +233,8 @@ template < class T > Bool_t QwEventBuffer::FillObjectWithEventData(T &object){
   ///  Bool_t <class T>::CanUseThisEventType(const UInt_t event_type);
   ///  Bool_t <class T>::ClearEventData(const UInt_t event_type);
   ///  Int_t  <class T>::ProcessBuffer(const UInt_t event_type,
-  ///       const UInt_t roc_id, const UInt_t bank_id,
-  ///       UInt_t* buffer, UInt_t num_words);
+  ///       const UInt_t roc_id, const UInt_t bank_id, 
+  ///       const UInt_t banktype, UInt_t* buffer, UInt_t num_words);
   ///
   Bool_t okay = kFALSE;
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
@@ -256,7 +256,7 @@ template < class T > Bool_t QwEventBuffer::FillObjectWithEventData(T &object){
 	  fWordsSoFar += fFragLength;
 	  continue;
 	}
-	object.ProcessBuffer(fEvtType, fSubbankTag, fSubbankType,
+	object.ProcessBuffer(fEvtType, fROC, fSubbankTag, fSubbankType,
 			     &localbuff[fWordsSoFar],
 			     fFragLength);
 	fWordsSoFar += fFragLength;
