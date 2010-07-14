@@ -356,7 +356,10 @@ void QwVQWK_Channel::SetEventData(Double_t* block, UInt_t sequencenumber)
 Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index)
 {
   UInt_t words_read = 0;
-  ULong_t localbuf[kWordsPerChannel] = {0};
+  UInt_t localbuf[kWordsPerChannel] = {0};
+  // The conversion from UInt_t to Double_t discards the sign, so we need an intermediate
+  // static_cast from UInt_t to Int_t.
+  Int_t localbuf_signed[kWordsPerChannel] = {0};
 
   if (IsNameEmpty()){
     //  This channel is not used, but is present in the data stream.
@@ -366,13 +369,15 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
     {
       for (Short_t i=0; i<kWordsPerChannel; i++){
 	localbuf[i] = buffer[i];
+        localbuf_signed[i] = static_cast<Int_t>(localbuf[i]);
       }
+
       fSoftwareBlockSum_raw = 0.0;
       for (Short_t i=0; i<fBlocksPerEvent; i++){
-	fBlock_raw[i] = Double_t(localbuf[i]);
+	fBlock_raw[i] = Double_t(localbuf_signed[i]);
 	fSoftwareBlockSum_raw += fBlock_raw[i];
       }
-      fHardwareBlockSum_raw = Double_t(localbuf[4]);
+      fHardwareBlockSum_raw = Double_t(localbuf_signed[4]);
 
       /*  Permanent change in the structure of the 6th word of the ADC readout.
        *  The upper 16 bits are the number of samples, and the upper 8 of the
@@ -388,7 +393,7 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
       if (kDEBUG && GetElementName()=="SCAN_POW") {
 
         for (Short_t i=0; i<(kWordsPerChannel-1); i++){
-	  std::cout<<"  hex("<<std::hex<<localbuf[i]<<") dec("<<std::dec<<Double_t(localbuf[i])<<") ";
+	  std::cout<<"  hex("<<std::hex<<localbuf[i]<<") dec("<<std::dec<<Double_t(localbuf_signed[i])<<") ";
         }
 
         Double_t average = 0.0;
