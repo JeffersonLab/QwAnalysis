@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Test 003:
+# Test 004:
 #
 #   Run the analysis code without arguments and make sure it succeeds.  This
 #   test is meant to catch problems in linked libraries and the environment
@@ -16,6 +16,6 @@ fi
 
 source ${setupscript} || exit -1
 
-bin/qwparity || exit -1
+bin/qwtracking || exit -1
 
 exit 0
