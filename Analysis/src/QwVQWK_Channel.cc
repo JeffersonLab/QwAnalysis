@@ -42,7 +42,7 @@ const Double_t QwVQWK_Channel::kVQWK_VoltsPerBit = 76.29e-6;
  *   given the module number index and the channel number index.
  *   @param moduleindex   Module index within this buffer; counts from zero
  *   @param channelindex  Channel index within this module; counts from zero
- *   @return   The number of words offset to the beginning of this 
+ *   @return   The number of words offset to the beginning of this
  *             channel's data from the beginning of the VQWK buffer.
  */
 Int_t QwVQWK_Channel::GetBufferOffset(Int_t moduleindex, Int_t channelindex){
@@ -356,7 +356,7 @@ void QwVQWK_Channel::SetEventData(Double_t* block, UInt_t sequencenumber)
 Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index)
 {
   UInt_t words_read = 0;
-  Long_t localbuf[kWordsPerChannel] = {0};
+  ULong_t localbuf[kWordsPerChannel] = {0};
 
   if (IsNameEmpty()){
     //  This channel is not used, but is present in the data stream.

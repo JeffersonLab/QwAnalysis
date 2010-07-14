@@ -17,12 +17,11 @@ const Bool_t QwScanner::bStoreRawData = kTRUE;
 const UInt_t QwScanner::kMaxNumberOfModulesPerROC     = 21;
 const UInt_t QwScanner::kMaxNumberOfChannelsPerModule = 32;
 
-QwScanner::QwScanner(TString region_tmp)
-        :VQwSubsystem(region_tmp),
-        VQwSubsystemTracking(region_tmp),
-        VQwSubsystemParity(region_tmp)
+QwScanner::QwScanner(TString name)
+        :VQwSubsystem(name),
+        VQwSubsystemParity(name),
+        VQwSubsystemTracking(name)
 {
-
     fDEBUG = 0;
     fEvtCounter = 0;
     ClearAllBankRegistrations();
@@ -322,7 +321,7 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
 {
     Int_t index = GetSubbankIndex(roc_id,bank_id);
 
-  
+
     fEvtCounter++;
     if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer:  "
         << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
@@ -387,29 +386,29 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
 	  Bool_t temp_print_flag     = false;
 
 	  data_integrity_flag = fF1TDC.CheckDataIntegrity(roc_id, buffer, num_words);
-	  
-	  if (data_integrity_flag) 
+
+	  if (data_integrity_flag)
 	    {//;
 	      for (UInt_t i=0; i<num_words ; i++)
 		{
-		  
+
 		  fF1TDC.DecodeTDCWord(buffer[i], roc_id);
 
 		  tdc_slot_number = fF1TDC.GetTDCSlotNumber();
 		  tdc_chan_number = fF1TDC.GetTDCChannelNumber();
-		  
+
 		  if ( tdc_slot_number == 31) {
 		    //  This is a custom word which is not defined in
 		    //  the F1TDC, so we can use it as a marker for
 		    //  other data; it may be useful for something.
 		  }
-		  
+
 		  // Each subsystem has its own interesting slot(s), thus
 		  // here, if this slot isn't in its slot(s) (subsystem map file)
 		  // we skip this buffer to do the further process
 		  if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
-		  
-		  if ( fF1TDC.IsValidDataword() ) 
+
+		  if ( fF1TDC.IsValidDataword() )
 		    {
 		      try {
 			FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());

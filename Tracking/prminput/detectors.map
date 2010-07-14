@@ -1,6 +1,10 @@
 # Definition of the tracking detectors
 # this is the preamble
 
+[QwFakeHelicity]
+ name = Helicity Info
+ map = qweak_helicity.map
+
 [QwGasElectronMultiplier]
  name = R1
  map = qweak_R1.map
@@ -30,6 +34,7 @@
  name = FPS
  map = qweak_scanner_channel.map
  param = qweak_scanner_parameter.map
+ mask = 0x0
 
 [QwRaster]
  name = FR

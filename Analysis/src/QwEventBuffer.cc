@@ -210,9 +210,10 @@ Int_t QwEventBuffer::GetNextEvent()
   if (fEvtNumber > 0 && fEvtNumber % 1000 == 0) {
     QwMessage << "Processing event " << fEvtNumber << " ";
     //fStopwatch.Stop();
-    //QwMessage << "(" << fStopwatch.CpuTime() / 1000.0 << "s per event)" << QwLog::endl;
+    //QwMessage << "(" << fStopwatch.CpuTime() / 1000.0 << "s per event)";
     //fStopwatch.Reset();
     //fStopwatch.Start();
+    QwMessage << QwLog::endl;
   } else if (fEvtNumber > 0 && fEvtNumber % 100 == 0) {
     QwVerbose << "Processing event " << fEvtNumber << QwLog::endl;
   }
@@ -506,7 +507,7 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystem
 
 Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
 {
-  // Initialize local  flag
+  // Initialize local flag
   Bool_t okay = kTRUE;
 
   //  Clear the old event information from the subsystems.
@@ -516,14 +517,21 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
   subsystems.SetCodaEventNumber(fEvtNumber);
   subsystems.SetCodaEventType(fEvtType);
 
+  // If this event type is masked for the subsystem array, return right away
+  if (((0x1 << (fEvtType - 1)) & subsystems.GetEventTypeMask()) == 0) {
+    return kTRUE;
+  }
+
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
   while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
+
     //  If this bank has further subbanks, restart the loop.
     if (fSubbankType == 0x10) continue;
+
     //  If this bank only contains the word 'NULL' then skip
     //  this bank.
-    if (fFragLength == 1 && localbuff[fWordsSoFar]==kNullDataWord){
+    if (fFragLength == 1 && localbuff[fWordsSoFar]==kNullDataWord) {
       fWordsSoFar += fFragLength;
       continue;
     }
@@ -659,7 +667,7 @@ Bool_t QwEventBuffer::DecodeSubbankHeader(UInt_t *buffer){
     }
     if (fWordsSoFar+2+fFragLength > fEvtLength){
       //  Trouble, because we'll have too many words!
-      std::cerr << "fWordsSoFar+2+fFragLength=="<<fWordsSoFar+2+fFragLength
+      QwError << "fWordsSoFar+2+fFragLength=="<<fWordsSoFar+2+fFragLength
 		<< " and fEvtLength==" << fEvtLength
 		<< QwLog::endl;
       okay = kFALSE;

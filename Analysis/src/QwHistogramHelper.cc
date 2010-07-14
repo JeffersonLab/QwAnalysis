@@ -85,7 +85,9 @@ void  QwHistogramHelper::LoadHistParamsFromFile(const std::string filename)
 
   if (fDEBUG) std::cout<< "file name "<<fInputFile<<std::endl;
 
-  fHistParams.clear();
+  // TODO (wdc) disabled clearing of the histogram parametrization before loading
+  //fHistParams.clear();
+
   QwParameterFile mapstr(filename.c_str());  //Open the file
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('#');   // Remove everything after a '!' character.

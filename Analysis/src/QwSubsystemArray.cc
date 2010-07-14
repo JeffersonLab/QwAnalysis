@@ -19,11 +19,11 @@
  * Create a subsystem array based on the configuration option 'detectors'
  */
 QwSubsystemArray::QwSubsystemArray(QwOptions& options, CanContainFn myCanContain)
-: fnCanContain(myCanContain)
+: fEventTypeMask(0x0),fnCanContain(myCanContain)
 {
   ProcessOptionsToplevel(options);
   QwParameterFile detectors(fSubsystemsMapFile.c_str());
-  QwMessage << "Loading subsystems from " << fSubsystemsMapFile << QwLog::endl;
+  QwMessage << "Loading subsystems from " << fSubsystemsMapFile << "." << QwLog::endl;
   LoadSubsystemsFromParameterFile(detectors);
 }
 
@@ -32,10 +32,12 @@ QwSubsystemArray::QwSubsystemArray(QwOptions& options, CanContainFn myCanContain
  * @param filename Map file
  */
 QwSubsystemArray::QwSubsystemArray(const char* filename, CanContainFn myCanContain)
-: fnCanContain(myCanContain)
+: fEventTypeMask(0x0),fnCanContain(myCanContain)
 {
-  QwWarning << "Preferable call to QwSubsystemArray constructor is by specifying options objects" << QwLog::endl;
-  QwMessage << "Loading subsystems from " << filename << QwLog::endl;
+  QwWarning << "Preferable call to QwSubsystemArray constructor is by specifying options objects."
+            << QwLog::endl;
+  QwMessage << "Loading subsystems from " << filename << "."
+            << QwLog::endl;
   QwParameterFile detectors(filename);
   LoadSubsystemsFromParameterFile(detectors);
 }
@@ -52,7 +54,7 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
   // Process preamble
   QwVerbose << "Preamble:" << QwLog::endl;
   QwVerbose << *preamble << QwLog::endl;
-  
+
 
   QwParameterFile* section;
   std::string section_name;
@@ -66,7 +68,7 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
     std::string subsys_type = section_name;
     std::string subsys_name;
     if (! section->FileHasVariablePair("=","name",subsys_name)) {
-      QwError << "No name defined in section for subsystem " << subsys_type << QwLog::endl;
+      QwError << "No name defined in section for subsystem " << subsys_type << "." << QwLog::endl;
       continue;
     }
 
@@ -92,18 +94,19 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
 
     // Create subsystem
     QwMessage << "Creating subsystem of type " << subsys_type << " "
-              << "with name " << subsys_name << QwLog::endl;
+              << "with name " << subsys_name << "." << QwLog::endl;
     VQwSubsystem* subsys =
       VQwSubsystemFactory::Create(subsys_type, subsys_name);
     if (! subsys) {
-      QwError << "Could not create subsystem " << subsys_type << QwLog::endl;
+      QwError << "Could not create subsystem " << subsys_type << "." << QwLog::endl;
       continue;
     }
 
     // If this subsystem cannot be stored in this array
     if (! fnCanContain(subsys)) {
-      QwWarning << "Subsystem " << subsys_name << " cannot be stored in this "
-                << "subsystem array" << QwLog::endl;
+      QwMessage << "Subsystem " << subsys_name << " cannot be stored in this "
+                << "subsystem array." << QwLog::endl;
+      QwMessage << "Deleting subsystem " << subsys_name << " again" << QwLog::endl;
       delete subsys; subsys = 0;
       continue;
     }
@@ -146,8 +149,14 @@ void QwSubsystemArray::push_back(VQwSubsystem* subsys)
   } else {
     boost::shared_ptr<VQwSubsystem> subsys_tmp(subsys);
     SubsysPtrs::push_back(subsys_tmp);
+
     // Set the parent of the subsystem to this array
     subsys_tmp->SetParent(this);
+
+    // Update the event type mask
+    // Note: Active bits in the mask indicate event types that are accepted
+    fEventTypeMask |= subsys_tmp->GetEventTypeMask();
+
     // Instruct the subsystem to publish variables
     if (subsys_tmp->PublishInternalValues() == kFALSE) {
       QwError << "Not all variables for " << subsys_tmp->GetSubsystemName()
@@ -272,8 +281,9 @@ std::vector<VQwSubsystem*> QwSubsystemArray::GetSubsystemByType(const std::strin
 void  QwSubsystemArray::ClearEventData()
 {
   if (!empty()) {
-    fCodaEventNumber = 0;
-    fCodaEventType   = 0;
+    SetDataLoaded(kFALSE);
+    SetCodaEventNumber(0);
+    SetCodaEventType(0);
     std::for_each(begin(), end(),
 		  boost::mem_fn(&VQwSubsystem::ClearEventData));
   }
@@ -293,6 +303,7 @@ Int_t QwSubsystemArray::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_i
 		      buffer, UInt_t num_words)
 {
   if (!empty())
+    SetDataLoaded(kTRUE);
     for (iterator subsys = begin(); subsys != end(); ++subsys){
       (*subsys)->ProcessEvBuffer(roc_id, bank_id, buffer, num_words);
     }
@@ -302,7 +313,7 @@ Int_t QwSubsystemArray::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_i
 
 void  QwSubsystemArray::ProcessEvent()
 {
-  if (!empty()){
+  if (!empty() && HasDataLoaded()) {
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::ProcessEvent));
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::ExchangeProcessedData));
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::ProcessEvent_2));

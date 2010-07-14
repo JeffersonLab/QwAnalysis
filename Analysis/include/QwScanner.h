@@ -30,8 +30,8 @@
 #include "QwScaler_Channel.h"
 #include "QwPMT_Channel.h"
 
-class QwScanner: public VQwSubsystemTracking,
-                 public VQwSubsystemParity
+class QwScanner: public VQwSubsystemParity,
+                 public VQwSubsystemTracking
 {
 
  public:

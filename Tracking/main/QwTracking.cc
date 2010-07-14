@@ -57,7 +57,7 @@ static const bool kHisto = kTRUE;
 
 static const bool kUseTDCHits = kFALSE;
 
-static const bool kEPICS = kTRUE;
+static const bool kEPICS = kFALSE;
 // Branching flags for subsystems
 static const bool kMainDetBranch = kTRUE;
 static const bool kScannerBranch = kTRUE;
@@ -107,17 +107,19 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   ///  Create an EPICS event
   QwEPICSEvent epics;
-  epics.LoadEpicsVariableMap("EpicsTable.map");
+  if (kEPICS)
+    epics.LoadEpicsVariableMap("EpicsTable.map");
 
 
   ///  Load the tracking detectors from file
   QwSubsystemArrayTracking tracking_detectors(gQwOptions);
   tracking_detectors.ProcessOptions(gQwOptions);
+  std::cout << "Tracking event type mask " << tracking_detectors.GetEventTypeMask() << std::endl;
 
   ///  Load the parity detectors from file
-  //QwSubsystemArrayParity parity_detectors(gQwOptions);
-  //parity_detectors.ProcessOptions(gQwOptions);
-
+  QwSubsystemArrayParity parity_detectors(gQwOptions);
+  parity_detectors.ProcessOptions(gQwOptions);
+  std::cout << "Parity event type mask " << parity_detectors.GetEventTypeMask() << std::endl;
 
   // Get specific tracking_detectors
   QwMainDetector* maindetector = dynamic_cast<QwMainDetector*>(tracking_detectors.GetSubsystemByType("QwMainDetector").at(0));
@@ -220,6 +222,8 @@ Int_t main(Int_t argc, Char_t* argv[])
        rootfile->cd();
        tracking_detectors.ConstructHistograms(rootfile->mkdir("tracking_histo"));
        rootfile->cd();
+       parity_detectors.ConstructHistograms(rootfile->mkdir("parity_histo"));
+       rootfile->cd();
     }
     QwHitContainer* hitlist = 0;
     Int_t nevents         = 0;
@@ -228,17 +232,18 @@ Int_t main(Int_t argc, Char_t* argv[])
       //  Loop over events in this CODA file
       //  First, do processing of non-physics events...
 
-      if(kEPICS) {
-      if (eventbuffer.IsEPICSEvent()) {
-         eventbuffer.FillEPICSData(epics);
-         epics.CalculateRunningValues();
-      }
+      if (kEPICS) {
+        if (eventbuffer.IsEPICSEvent()) {
+          eventbuffer.FillEPICSData(epics);
+          epics.CalculateRunningValues();
+        }
       }
 
 
       if (eventbuffer.IsROCConfigurationEvent()) {
          //  Send ROC configuration event data to the subsystem objects.
          eventbuffer.FillSubsystemConfigurationData(tracking_detectors);
+         eventbuffer.FillSubsystemConfigurationData(parity_detectors);
       }
 
       //  Now, if this is not a physics event, go back and get
@@ -247,12 +252,13 @@ Int_t main(Int_t argc, Char_t* argv[])
          continue;
       }
 
-
       // Fill the subsystem objects with their respective data for this event.
       eventbuffer.FillSubsystemData(tracking_detectors);
+      eventbuffer.FillSubsystemData(parity_detectors);
 
       // Process the event
       tracking_detectors.ProcessEvent();
+      parity_detectors.ProcessEvent();
 
 
       if (kMainDetBranch) maindetector->FillTreeVector(nevents);
@@ -261,6 +267,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       // Fill the histograms for the subsystem objects.
       if (kHisto) tracking_detectors.FillHistograms();
+      if (kHisto) parity_detectors.FillHistograms();
 
 
 
@@ -330,10 +337,12 @@ Int_t main(Int_t argc, Char_t* argv[])
     // Write and close file (after last access to ROOT tree)
     rootfile->Write(0, TObject::kOverwrite);
 
-    epics.ReportEPICSData();
-    epics.PrintVariableList();
-    epics.PrintAverages();
-    //TString tag; epics.GetDataValue(tag);
+    if (kEPICS) {
+      epics.ReportEPICSData();
+      epics.PrintVariableList();
+      epics.PrintAverages();
+      //TString tag; epics.GetDataValue(tag);
+    }
 
     // Close CODA file
     eventbuffer.CloseStream();
@@ -341,6 +350,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     // Delete histograms in the subsystems
     if (kHisto) tracking_detectors.DeleteHistograms();
+    if (kHisto) parity_detectors.DeleteHistograms();
 
     // Close ROOT file
     rootfile->Close();

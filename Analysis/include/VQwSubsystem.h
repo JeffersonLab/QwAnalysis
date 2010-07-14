@@ -60,7 +60,7 @@ class VQwSubsystem {
 
   /// Constructor with name
   VQwSubsystem(const TString& name)
-    : fSystemName(name), fIsDataLoaded(kFALSE), fCurrentROC_ID(-1), fCurrentBank_ID(-1) { 
+    : fSystemName(name), fEventTypeMask(0x0), fIsDataLoaded(kFALSE), fCurrentROC_ID(-1), fCurrentBank_ID(-1) {
     ClearAllBankRegistrations();
   };
 
@@ -101,15 +101,22 @@ class VQwSubsystem {
     return kFALSE;
   };
 
-  // Parse parameter file to find the map files
+  /// \brief Parse parameter file to find the map files
   virtual Int_t LoadDetectorMaps(QwParameterFile& file);
-  // Mandatory map and parameter files
+  /// Mandatory map file definition
   virtual Int_t LoadChannelMap(TString mapfile) = 0;
+  /// Mandatory parameter file definition
   virtual Int_t LoadInputParameters(TString mapfile) = 0;
-  // Optional geometry definition
+  /// Optional geometry definition
   virtual Int_t LoadGeometryDefinition(TString mapfile) { return 0; };
-  // Optional event cut file
+  /// Optional event cut file
   virtual Int_t LoadEventCuts(TString mapfile) { return 0; };
+
+  /// Set event type mask
+  void SetEventTypeMask(const UInt_t mask) { fEventTypeMask = mask; };
+  /// Get event type mask
+  UInt_t GetEventTypeMask() const { return fEventTypeMask; };
+
 
   virtual void  ClearEventData() = 0;
 
@@ -218,6 +225,8 @@ class VQwSubsystem {
  protected:
 
   TString  fSystemName; ///< Name of this subsystem
+
+  UInt_t   fEventTypeMask; ///< Mask of event types
 
   Bool_t   fIsDataLoaded; ///< Has this subsystem gotten data to be processed?
 

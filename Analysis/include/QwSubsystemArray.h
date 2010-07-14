@@ -42,7 +42,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
  public:
   /// \brief Default constructor
   QwSubsystemArray(CanContainFn myCanContain = CanContain)
-  : fnCanContain(myCanContain) { };
+  : fEventTypeMask(0x0),fnCanContain(myCanContain) { };
   /// \brief Constructor with options
   QwSubsystemArray(QwOptions& options, CanContainFn myCanContain);
   /// \brief Constructor with filename
@@ -58,6 +58,16 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   UInt_t GetCodaEventNumber(){return fCodaEventNumber;};
   /// \brief Get the internal record of the CODA event type
   UInt_t GetCodaEventType(){return fCodaEventType;};
+
+  /// \brief Set event type mask
+  void   SetEventTypeMask(const UInt_t mask) { fEventTypeMask = mask; };
+  /// \brief Get event type mask
+  UInt_t GetEventTypeMask() const { return fEventTypeMask; };
+
+  /// \brief Set data loaded flag
+  void   SetDataLoaded(const Bool_t flag) { fHasDataLoaded = flag; };
+  /// \brief Get data loaded flag
+  Bool_t HasDataLoaded() const { return fHasDataLoaded; };
 
   /// \brief Define configuration options for global array
   static void DefineOptions(QwOptions &options);
@@ -209,7 +219,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   };
   /// \brief Construct the tree for this subsystem in a folder with a prefix
   void  ConstructTree(TDirectory *folder, TString &prefix);
-  
+
   /// \brief Fill the tree for this subsystem
   void  FillTree();
   /// \brief Delete the tree for this subsystem
@@ -232,6 +242,9 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
  protected:
   UInt_t fCodaEventNumber; ///< CODA event number as provided by QwEventBuffer
   UInt_t fCodaEventType;   ///< CODA event type as provided by QwEventBuffer
+
+  UInt_t fEventTypeMask;   ///< Mask of event types
+  Bool_t fHasDataLoaded;   ///< Has this array gotten data to be processed?
 
  protected:
   /// Function to determine which subsystems we can accept
