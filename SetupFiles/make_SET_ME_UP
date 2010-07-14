@@ -130,12 +130,12 @@ report_status MYSQLPP_INC_DIR ${MYSQLPP_INC_DIR}
 libname=libmysqlpp.so
 [ "$OS" == "Darwin" ] && libname=${libname/.so/.dylib}
 search=(
-    /usr/lib
-    /usr/lib/mysql++
-    /usr/local/lib
-    /usr/local/lib/mysql++
-    /opt/local/lib
-    /group/qweak/spayde/local/lib
+    /usr/${lib}
+    /usr/${lib}/mysql++
+    /usr/local/${lib}
+    /usr/local/${lib}/mysql++
+    /opt/local/${lib}
+    /group/qweak/spayde/local/${lib}
     )
 export MYSQLPP_LIB_DIR=$(first_path_with_file $libname "${MYSQLPP_LIB_DIR}" "${search[@]}")
 report_status MYSQLPP_LIB_DIR ${MYSQLPP_LIB_DIR}
@@ -160,9 +160,9 @@ export BOOST_INC_DIR=$(first_path_with_file $libname "${BOOST_INC_DIR}" "${searc
 
 libname=libboost_filesystem.a
 search=(
-    /usr/lib
-    /usr/local/lib
-    /opt/local/lib
+    /usr/${lib}
+    /usr/local/${lib}
+    /opt/local/${lib}
     )
 export BOOST_LIB_DIR=$(first_path_with_file $libname "${BOOST_LIB_DIR}" "${search[@]}")
 
