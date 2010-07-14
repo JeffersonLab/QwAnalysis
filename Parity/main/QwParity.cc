@@ -19,7 +19,6 @@
 #include <Rtypes.h>
 #include <TROOT.h>
 #include <TFile.h>
-#include <TStopwatch.h>
 
 // Qweak headers
 #include "QwLog.h"
@@ -42,8 +41,6 @@
 #include "QwLumi.h"
 
 
-// Declarations
-void PrintInfo(TStopwatch& timer);
 
 
 Int_t main(Int_t argc, Char_t* argv[])
@@ -70,8 +67,6 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  histogram helper: QwHistogramHelper
   gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
 
-  ///  Create a timer
-  TStopwatch timer;
 
   ///  Create the event buffer
   QwEventBuffer eventbuffer;
@@ -107,9 +102,6 @@ Int_t main(Int_t argc, Char_t* argv[])
   while (eventbuffer.OpenNextStream() == CODA_OK) {
 
     //  Begin processing for the first run.
-    //  Start the timer.
-    timer.Start();
-
 
     //  Open the ROOT file
     rootfile = new QwRootFile(eventbuffer.GetRunLabel());
@@ -233,8 +225,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwMessage << " =========================" << QwLog::endl;
     runningsum.PrintValue();
 
-    timer.Stop();
-
     /*  Write to the root file, being sure to delete the old cycles  *
      *  which were written by Autosave.                              *
      *  Doing this will remove the multiple copies of the ntuples    *
@@ -252,8 +242,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     //  Close event buffer stream
     eventbuffer.CloseStream();
-    //  Report run summary
-    eventbuffer.ReportRunSummary();
 
 
 
@@ -287,9 +275,9 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     QwMessage << "Total events failed " << failed_events_counts << QwLog::endl;
 
-
-    PrintInfo(timer);
-
+    //  Report run summary
+    eventbuffer.ReportRunSummary();
+    eventbuffer.PrintRunTimes();
   } // end of loop over runs
 
   QwMessage << "I have done everything I can do..." << QwLog::endl;
@@ -297,13 +285,3 @@ Int_t main(Int_t argc, Char_t* argv[])
   return 0;
 }
 
-
-
-void PrintInfo(TStopwatch& timer)
-{
-  QwMessage << "CPU time used:  "  << timer.CpuTime() << " s"
-            << std::endl
-            << "Real time used: " << timer.RealTime() << " s"
-            << std::endl << QwLog::endl;
-  return;
-}

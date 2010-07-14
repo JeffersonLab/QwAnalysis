@@ -113,6 +113,21 @@ void QwEventBuffer::ProcessOptions(QwOptions &options)
   fDataFileExtension = options.GetValue<string>("codafile-ext");
 }
 
+void QwEventBuffer::PrintRunTimes()
+{
+  UInt_t nevents = fNumPhysicsEvents;
+  if (nevents==0) nevents=1;
+  QwMessage << QwLog::endl
+	    << "Analysis of run " << GetRunNumber() << QwLog::endl
+	    << fNumPhysicsEvents << " physics events were processed"<< QwLog::endl
+	    << "CPU time used:  " << fRunTimer.CpuTime() << " s "
+	    << "(" << fRunTimer.CpuTime() / nevents << " s per event)" << QwLog::endl
+	    << "Real time used: " << fRunTimer.RealTime() << " s "
+	    << "(" << fRunTimer.RealTime() / nevents << " s per event)" << QwLog::endl 
+	    << QwLog::endl;
+};
+
+
 TString QwEventBuffer::GetRunLabel() const
 {
   TString runlabel = Form("%d",fCurrentRun);
@@ -159,12 +174,18 @@ Int_t QwEventBuffer::OpenNextStream()
     }
 
   }
+  //  Start the timers.
+  fRunTimer.Reset();
+  fRunTimer.Start();
   fStopwatch.Start();
   return status;
 }
 
 Int_t QwEventBuffer::CloseStream()
 {
+  //  Stop the timers.
+  fRunTimer.Stop();
+  fStopwatch.Stop();
   QwWarning << "Starting CloseStream."
 	    << QwLog::endl;
   Int_t status = kFileHandleNotConfigured;
@@ -207,7 +228,7 @@ Int_t QwEventBuffer::GetNextEvent()
   if (status == CODA_OK  && IsPhysicsEvent()) fNumPhysicsEvents++;
 
   //  Progress meter (this should probably produce less output in production)
-  if (fEvtNumber > 0 && fEvtNumber % 1000 == 0) {
+  if (IsPhysicsEvent() && fEvtNumber > 0 && fEvtNumber % 1000 == 0) {
     QwMessage << "Processing event " << fEvtNumber << " ";
     //fStopwatch.Stop();
     //QwMessage << "(" << fStopwatch.CpuTime() / 1000.0 << "s per event)";

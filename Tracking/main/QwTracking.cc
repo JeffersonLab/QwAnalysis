@@ -15,7 +15,6 @@
 #include <TROOT.h>
 #include <TFile.h>
 #include <TTree.h>
-#include <TStopwatch.h>
 
 // Qweak headers
 #include "QwLog.h"
@@ -98,9 +97,6 @@ Int_t main(Int_t argc, Char_t* argv[])
   gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
   gQwHists.LoadHistParamsFromFile("qweak_tracking_hists.in");
 
-  ///  Create a timer
-  TStopwatch timer;
-
   ///  Create the event buffer
   QwEventBuffer eventbuffer;
   eventbuffer.ProcessOptions(gQwOptions);
@@ -159,9 +155,6 @@ Int_t main(Int_t argc, Char_t* argv[])
   while (eventbuffer.OpenNextStream() == CODA_OK) {
 
     //  Begin processing for the first run.
-    //  Start the timer.
-    timer.Start();
-
 
     //  Open the ROOT file
     TFile *rootfile = 0;
@@ -326,8 +319,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwMessage << "Number of good partial tracks: "
               << trackingworker->ngood << QwLog::endl;
 
-    timer.Stop();
-
     /*  Write to the root file, being sure to delete the old cycles *
      *  which were written by Autosave.                             *
      *  Doing this will remove the multiple copies of the ntuples   *
@@ -346,7 +337,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     // Close CODA file
     eventbuffer.CloseStream();
-    eventbuffer.ReportRunSummary();
 
     // Delete histograms in the subsystems
     if (kHisto) tracking_detectors.DeleteHistograms();
@@ -363,12 +353,8 @@ Int_t main(Int_t argc, Char_t* argv[])
     if (hitlist_root)   delete hitlist_root;   hitlist_root = 0;
 
     // Print run summary information
-    QwMessage << "Analysis of run " << eventbuffer.GetRunNumber() << QwLog::endl
-              << "CPU time used:  " << timer.CpuTime() << " s "
-              << "(" << timer.CpuTime() / nevents << " s per event)" << QwLog::endl
-              << "Real time used: " << timer.RealTime() << " s "
-              << "(" << timer.RealTime() / nevents << " s per event)" << QwLog::endl;
-
+    eventbuffer.ReportRunSummary();
+    eventbuffer.PrintRunTimes();
 
   } // end of loop over runs
 

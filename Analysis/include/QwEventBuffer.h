@@ -53,6 +53,8 @@ class QwEventBuffer: public MQwCodaControlEvent{
   /// \brief Sets internal flags based on the QwOptions
   void ProcessOptions(QwOptions &options);
 
+  void PrintRunTimes();
+
   /// \brief Returns a string like <run#> or <run#>.<file#>
   TString GetRunLabel() const;
   /// \brief Return true if file segments are being separated for
@@ -129,15 +131,12 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   void ResetFlags();
 
-  TStopwatch fStopwatch;
-
  private:
   //  These methods will be removed from a future version
   void ClearEventData(std::vector<VQwSubsystem*> &subsystems);
 
   Bool_t FillSubsystemConfigurationData(std::vector<VQwSubsystem*> &subsystems);
   Bool_t FillSubsystemData(std::vector<VQwSubsystem*> &subsystems);
-  //TStopwatch stopw;
 
  protected:
   ///
@@ -216,6 +215,9 @@ class QwEventBuffer: public MQwCodaControlEvent{
   UInt_t fSubbankType;
   UInt_t fSubbankNum;
   UInt_t fROC;
+
+  TStopwatch fRunTimer;      ///<  Timer used for runlet processing loop
+  TStopwatch fStopwatch;     ///<  Timer used for internal timing
 
  protected:
   UInt_t     fNumPhysicsEvents;
