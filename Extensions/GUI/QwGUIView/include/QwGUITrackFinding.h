@@ -80,6 +80,16 @@
   TGTextButton        *dBtnpResidual;
   TGTextButton        *dBtnpOffset;
   TGTextButton        *dBtnpSlope;
+// objects needed for drop down menu
+  TGVerticalFrame        *dBigFrame;
+  TGVerticalFrame        *dTabFrameVert;
+  TGMenuBar              *dMenuBar;
+  TGPopupMenu            *dMenuData;
+  TGPopupMenu            *dMenuPlot1;
+  TGPopupMenu            *dMenuPlot2;
+  TGLayoutHints          *dMenuBarLayout; 
+  TGLayoutHints          *dMenuBarItemLayout;
+  TRootEmbeddedCanvas    *dCanvasVert;
 
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;
@@ -110,7 +120,17 @@
   void PlotpResidual();
   void PlotpOffset();
   void PlotpSlope();
-
+  void PlotLinear();
+  void PlotLog();
+  void PlotTLSlopeX();
+  void PlotTLSlopeU();
+  void PlotTLSlopeV();
+  void PlotTLChi2X();
+  void PlotTLChi2U();
+  void PlotTLChi2V();
+  void PlotTLOffsetX();
+  void PlotTLOffsetU();
+  void PlotTLOffsetV();
   //!This function plots histograms of the data in the current file, in the main canvas.
   //!
   //!Parameters:
