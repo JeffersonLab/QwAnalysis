@@ -84,9 +84,8 @@ Bool_t QwHelicity::IsGoodPatternNumber()
 
   if(!results)
     {
-      QwWarning << "QwHelicity::IsGoodPatternNumber: \n this is not a good pattern number indeed:"
-		<< QwLog::endl;
-      Print();
+      QwWarning << "QwHelicity::IsGoodPatternNumber: \n this is not a good pattern number." << fPatternNumber << ' '<< fPatternNumberOld << QwLog::endl;
+      //Print();
     }
 
   return results;
@@ -103,8 +102,7 @@ Bool_t QwHelicity::IsGoodEventNumber()
 
  if(!results)
     {
-      QwWarning << "QwHelicity::IsGoodEventNumber: \n this is not a good event number indeed:"
-		<< QwLog::endl;
+      QwWarning << "QwHelicity::IsGoodEventNumber: \n this is not a good event number indeed:" << QwLog::endl;
       Print();
     }
   return results;
@@ -127,11 +125,10 @@ Bool_t QwHelicity::IsGoodPhaseNumber()
   if(fPatternPhaseNumber>fMaxPatternPhase)
     results=kFALSE;
 
- if(!results)
-    {
+ if(!results){
       QwWarning << "QwHelicity::IsGoodPhaseNumber:  not a good phase number \t"
 		<< "Phase: " << fPatternPhaseNumber << " out of "
-		<<fMaxPatternPhase
+		<< fMaxPatternPhase
 		<< "(was " <<fPatternPhaseNumberOld<<")"
 		<< "\tPattern #" << fPatternNumber << "(was "
 		<< fPatternNumberOld <<")"
@@ -175,6 +172,9 @@ Bool_t QwHelicity::IsGoodHelicity()
 
 void QwHelicity::ClearEventData()
 {
+//  std::cout << "printing before clear: \n";
+//     Print();
+
 
   for (size_t i=0;i<fWord.size();i++)
     fWord[i].ClearEventData();
@@ -197,7 +197,11 @@ void QwHelicity::ClearEventData()
       from the data stream, -1 will allow us to identify that.*/
   fEventNumber = -1;
   fPatternPhaseNumber = -1;
-  
+//   std::cout << "printing after clear: \n";
+//     Print();
+
+
+
   return;
 };
 
@@ -314,7 +318,7 @@ void QwHelicity::ProcessEventUserbitMode()
       ResetPredictor();
       if(ldebug)
 	{
-	  std::cout<<" after manipulation \n";
+	  std::cout << " after manipulation \n";
 	  Print();
 	}
     }
@@ -401,6 +405,22 @@ void QwHelicity::ProcessEventInputRegisterMode()
 
 void  QwHelicity::ProcessEvent()
 {
+
+  //  Check the fWord[kPatternCounter].fValue and see if it is greater than fPatternNumberOld.
+  //  If it is, then set the fWord[kPatternCounter].fValue to zero, otherwise set it to fPatternPhaseNumberOld + 1.
+  //  Also, set the fWord[kInputRegister].fValue to be 4+reported helicity when the fWord[kPatternCounter].fValue has incremented, otherwise set it to just reported helicity.
+
+  if (fWord[kPatternCounter].fValue > fPatternNumberOld){
+    //  We are at a new pattern!
+    fWord[kPatternPhase].fValue  = fPATTERNPHASEOFFSET;
+    fWord[kInputRegister].fValue = 4;
+  } else {
+    fWord[kPatternPhase].fValue  = fPatternPhaseNumberOld + 1;
+    fWord[kInputRegister].fValue = 0;
+  }
+  fWord[kInputRegister].fValue += fHelicityReported;
+
+
   switch (fHelicityDecodingMode)
     {
     case kHelUserbitMode :
@@ -712,7 +732,7 @@ Int_t QwHelicity::LoadEventCuts(TString filename){
 
 Int_t QwHelicity::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
-  Bool_t lkDEBUG=kFALSE ;
+  Bool_t lkDEBUG=kFALSE;
 
   Int_t index = GetSubbankIndex(roc_id,bank_id);
 
@@ -893,8 +913,8 @@ void  QwHelicity::FillHistograms()
     }
   else if(fHistoType==kHelSavePattern)
     {
-      if(localdebug) std::cout<<"QwHelicity::FillHistograms helicity info \n";
-      if(localdebug) std::cout<<"QwHelicity::FillHistograms  pattern polarity="<<fActualPatternPolarity<<"\n";
+      if(localdebug) std::cout << "QwHelicity::FillHistograms helicity info \n";
+      if(localdebug) std::cout << "QwHelicity::FillHistograms  pattern polarity=" << fActualPatternPolarity << "\n";
       fHistograms[index]->Fill(fActualPatternPolarity);
       index+=1;
       for (size_t i=0; i<fWord.size(); i++){
@@ -1284,6 +1304,10 @@ UInt_t QwHelicity::GetRandomSeed(UShort_t* first24randbits)
   return ranseed;
 
 };
+
+void QwHelicity::SetHelicityReported( Int_t helicity){
+  fHelicityReported = helicity;
+}
 
 
 void QwHelicity::RunPredictor()

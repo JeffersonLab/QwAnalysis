@@ -138,7 +138,8 @@ endif
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
   ifneq ($(CODA),)
     #  The realtime executables should be added in this section.
-    EXES := qwtracking qwparity qwsimtracking qwsimraytracer qwmockdatagenerator qwmockdataanalysis qwcompton qwroot qweventdisplaytest
+    EXES := qwtracking qwparity qwsimtracking qwsimraytracer qwmockdatagenerator qwmockdataanalysis qwcompton qwroot qweventdisplaytest qwmoller
+
   else
     EXES := qwtracking qwparity qwsimtracking qwsimraytracer qwmockdatagenerator qwmockdataanalysis qwcompton qwroot qweventdisplaytest
   endif

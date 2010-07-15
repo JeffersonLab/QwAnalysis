@@ -137,6 +137,9 @@ const QwHistogramHelper::HISTPARMS QwHistogramHelper::GetHistParamsFromList(cons
     }
   }
 
+
+  fDEBUG = false;
+
   // Warn when multiple identical matches were found
   if (matches.size() > 1) {
     QwWarning << "Multiple identical matches for histogram " << histname << ":" << QwLog::endl;
@@ -145,20 +148,20 @@ const QwHistogramHelper::HISTPARMS QwHistogramHelper::GetHistParamsFromList(cons
     }
   }
 
-  fDEBUG = 0;
   if (fDEBUG) {
-    std::cout<<"Finding histogram defination from: "<<histname<<std::endl;
-    std::cout<<"name "<<tmpstruct.name_title<<" type "<<tmpstruct.type<<
-      " x_nbins "<<tmpstruct.x_nbins<<" x_min "<<tmpstruct.x_min<<
+    std::cout << std::endl;
+    std::cout << "Finding histogram defination from: " << histname << std::endl;
+    std::cout << "name " << tmpstruct.name_title << " type " << tmpstruct.type <<
+      " x_nbins " << tmpstruct.x_nbins << " x_min " << tmpstruct.x_min <<
       " x_max "<<tmpstruct.x_max<<
       " y_nbins "<<tmpstruct.y_nbins<<" y_min "<<tmpstruct.y_min<<
       " y_max "<<tmpstruct.y_max<<" xtitle "<<tmpstruct.xtitle<<
-      " ytitle "<<tmpstruct.ytitle<<std::endl;}
+      " ytitle "<<tmpstruct.ytitle<<std::endl <<std::endl;
+  }
+
   if (tmpstruct.name_title == fInvalidName){
-    std::cerr << "GetHistParamsFromList:  We haven't found a match of the histogram name: "
-	      << histname << std::endl;
-    std::cerr << "                        Please check the input file "
-	      << fInputFile << std::endl;
+    std::cerr << "GetHistParamsFromList:  We haven't found a match of the histogram name: " << histname << std::endl;
+    std::cerr << "                        Please check the input file " << fInputFile << std::endl;
     exit(1);
   }
   return tmpstruct;

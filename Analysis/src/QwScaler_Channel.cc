@@ -216,8 +216,9 @@ void  QwScaler_Channel<data_mask,data_shift>::FillTreeVector(std::vector<Double_
 	    << fTreeArrayNumEntries << QwLog::endl;
   } else if (values.size() < fTreeArrayIndex+fTreeArrayNumEntries){
     QwError << "QwScaler_Channel::FillTreeVector:  values.size()=="
-	    << values.size()
+	    << values.size() << " name: " << fElementName
 	    << "; fTreeArrayIndex+fTreeArrayNumEntries=="
+      << fTreeArrayIndex << '+' << fTreeArrayNumEntries << '='
 	    << fTreeArrayIndex+fTreeArrayNumEntries
 	    << QwLog::endl;
   } else {

@@ -696,7 +696,6 @@ void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values)
     if (bDEBUG) std::cerr << "QwVQWK_Channel::FillTreeVector:  values.size()=="
 	      << values.size()
 	      << "; fTreeArrayIndex+fTreeArrayNumEntries=="
-	      << fTreeArrayIndex+fTreeArrayNumEntries
 	      << std::endl;
   } else {
     UInt_t index=fTreeArrayIndex;

@@ -526,22 +526,26 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystem
   return okay;
 };
 
+
 Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
 {
   // Initialize local flag
   Bool_t okay = kTRUE;
 
   //  Clear the old event information from the subsystems.
+//   QwError << "Before subsystems.ClearEventData()" << QwLog::endl;
   subsystems.ClearEventData();
+//   QwError << "After subsystems.ClearEventData()" << QwLog::endl;
 
   //  Pass CODA event number and type to the subsystem array.
   subsystems.SetCodaEventNumber(fEvtNumber);
   subsystems.SetCodaEventType(fEvtType);
 
   // If this event type is masked for the subsystem array, return right away
-  if (((0x1 << (fEvtType - 1)) & subsystems.GetEventTypeMask()) == 0) {
-    return kTRUE;
-  }
+    if (((0x1 << (fEvtType - 1)) & subsystems.GetEventTypeMask()) == 0) {
+      std::cout << fEvtType << ' ' << subsystems.GetEventTypeMask() << '\n';
+      return kTRUE;
+    }
 
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());

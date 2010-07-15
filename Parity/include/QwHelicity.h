@@ -126,6 +126,7 @@ class QwHelicity: public VQwSubsystemParity{
   void   RunPredictor();
   void   SetHelicityDelay(Int_t delay);
 
+  void	SetHelicityReported(Int_t helicity);
   Int_t  GetHelicityReported();
   Int_t  GetHelicityActual();
   Int_t  GetHelicityDelayed();

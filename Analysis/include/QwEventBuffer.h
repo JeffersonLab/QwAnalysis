@@ -94,7 +94,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
     return ((fIDBankNum == 0xCC)&&(fEvtType>=0 && fEvtType<=15));
   };
   Int_t GetEventNumber(){return fEvtNumber;};
-
+  Int_t GetEventType(){return fEvtType;};
   Int_t GetNextEvent();
 
   Int_t  GetEvent();
