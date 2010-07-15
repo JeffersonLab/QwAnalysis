@@ -196,13 +196,13 @@ void QwBlinder::InitBlinders()
       fBlindingOffset = tmp2 - tmp1; // fBlindingOffset has been rounded.
 
       /// Secondly, the multiplicative blinding factor is determined.  This
-      /// number is generated between 0.9 and 1.1 from the blinding asymmetry
-      /// by an oscillating (but uniformly distributed) function.
-      Double_t tmp3 = 1000000.0 * fBlindingOffset / kMaximumBlindingAsymmetry;
-      if (kMaximumBlindingAsymmetry > 0.0)
-        fBlindingFactor = 1.0 + fmod(30.0 * tmp3, kMaximumBlindingAsymmetry);
-      else
-        fBlindingFactor = 1.0;
+      /// number is generated from the blinding asymmetry between, say, 0.9 and 1.1
+      /// by an oscillating but uniformly distributed sawtooth function.
+      fBlindingFactor = 1.0;
+      if (kMaximumBlindingAsymmetry > 0.0) {
+        fBlindingFactor  = 1.0 + fmod(30.0 * fBlindingOffset, kMaximumBlindingAsymmetry);
+        fBlindingFactor /= (kMaximumBlindingAsymmetry > 0.0 ? kMaximumBlindingAsymmetry : 1.0);
+      }
 
       QwMessage << "QwBlinder::InitBlinders(): Blinding parameters have been calculated."<< QwLog::endl;
 
