@@ -64,8 +64,7 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
     // Warn if more than one helicity subsystem defined
     if (subsys_helicity.size() > 1)
       QwWarning << "Multiple helicity subsystems defined! "
-	//            << "Using " << fHelicitySubsystem->GetSubsystemName() <<
-		<< "Using " << helicity->GetSubsystemName() << "."
+                << "Using " << helicity->GetSubsystemName() << "."
                 << QwLog::endl;
 
   } else {
@@ -170,11 +169,13 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
   Int_t  localPhaseNumber = -1;
   Int_t  localHelicityActual = -1;
 
+  // Get the list of helicity subsystems
   std::vector<VQwSubsystem*> subsys_helicity = event.GetSubsystemByType("QwHelicity");
-  QwHelicity* helicity = dynamic_cast<QwHelicity*>(subsys_helicity.at(0));
+  QwHelicity* helicity = 0;
 
   if (subsys_helicity.size() > 0) {
     // Take the first helicity subsystem
+    helicity = dynamic_cast<QwHelicity*>(subsys_helicity.at(0));
     // Get the event, pattern, phase number and helicity
     localEventNumber    = helicity->GetEventNumber();
     localPatternNumber  = helicity->GetPatternNumber();
@@ -182,7 +183,12 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
     localHelicityActual = helicity->GetHelicityActual();
   } else {
     // We are not usng any helicity subsystem
-    QwError << "No helicity subsystem defined!  Brace for impact!" << QwLog::endl;
+    static Bool_t user_has_been_warned = kFALSE;
+    if (! user_has_been_warned) {
+      QwError << "No helicity subsystem found!  Asymmetry calculation will fail!" << QwLog::endl;
+      user_has_been_warned = kTRUE;
+    }
+    return;
   }
 
 

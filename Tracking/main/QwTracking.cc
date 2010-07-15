@@ -111,12 +111,10 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Load the tracking detectors from file
   QwSubsystemArrayTracking tracking_detectors(gQwOptions);
   tracking_detectors.ProcessOptions(gQwOptions);
-  std::cout << "Tracking event type mask " << tracking_detectors.GetEventTypeMask() << std::endl;
 
   ///  Load the parity detectors from file
   QwSubsystemArrayParity parity_detectors(gQwOptions);
   parity_detectors.ProcessOptions(gQwOptions);
-  std::cout << "Parity event type mask " << parity_detectors.GetEventTypeMask() << std::endl;
 
   // Get specific tracking_detectors
   QwTriggerScintillator* triggerscint = dynamic_cast<QwTriggerScintillator*>(tracking_detectors.GetSubsystemByType("QwTriggerScintillator").at(0));
