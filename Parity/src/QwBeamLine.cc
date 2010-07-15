@@ -112,8 +112,8 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
 	    if (index == -1) {
 	      QwError << "QwBeamLine::LoadChannelMap:  Unknown device: "
-		      <<  dev_name <<" used for "<< comboname
-		      <<" This combination  will not be decoded!"
+		      <<  dev_name <<" used in "<< comboname
+		      <<". This combination  will not be decoded!"
 		      <<  QwLog::endl;
 	      deviceok = kFALSE;
 	      combolistdecoded = kTRUE;
@@ -521,12 +521,13 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
       if(GetQwBeamInstrumentType(devtype)==kQwBPMStripline){
 	//Load bpm offsets
 	if(index == -1){
-	  QwError << "QwBeamLine::LoadGeometryDefinition:  Unknown bpm : "
-		  <<devname<<" will not be asigned with geometry parameters. \n"
+	  QwError << "QwBeamLine::LoadGeometryDefinition:  Unknown bpm in qweak_beamline_geometry.map: "
+		  <<devname<<". Check the bpm names!\n"
 		  <<QwLog::endl;
 	  notfound=kFALSE;
 	  continue;
 	}
+	
 	localname=fStripline[index].GetElementName();
 	localname.ToLower();
 	if(ldebug)  std::cout<<"element name =="<<localname
@@ -541,8 +542,8 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
       else if (GetQwBeamInstrumentType(devtype)==kQwCombinedBPM){
 	//Load combined bpm offsets which are, ofcourse, target position in the beamline
 	if(index == -1){
-	  QwError << "QwBeamLine::LoadGeometryDefinition:  Unknown combinedbpm : "
-		  <<devname<<" will not be asigned with geometry parameters.\n "
+	  QwError << "QwBeamLine::LoadGeometryDefinition:  Unknown combined bpm in qweak_beamline_geometry.map: "
+		  <<devname<<" Check the combined bpm names!\n "
 		  << QwLog::endl;
 	  notfound=kFALSE;
 	  continue;
@@ -559,7 +560,7 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
 	  notfound=kFALSE;
 	}
       }
-      else std::cout<<" Unknown device type :"<<devtype<<". The geometry will not be assigned to this device."<<std::endl;
+      else QwError<<" QwBeamLine::LoadGeometryDefinition: Unknown device type :"<<devtype<<". Are you sure we have this in the beamline? I am skipping this."<<QwLog::endl;
 
       if(ldebug)  std::cout<<"QwBeamLine::LoadGeometryDefinition:Offsets for device "<<devname<<" of type "<<devtype<<" are "
 			   <<": X offset ="<< devOffsetX

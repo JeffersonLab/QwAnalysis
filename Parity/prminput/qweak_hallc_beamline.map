@@ -253,12 +253,12 @@ Bank=0x6103
 !**************************************************************************
 
 
-!begin=combinedbcm
-!name=qwk_average_charge
+begin=combinedbcm
+name=qwk_average_charge
 !name	type	wieght
-! empty2,  bcm, 1.0
-! empty1,  bcm, 0.8
-!end=combinedbcm
+ empty2,  bcm, 1.0
+ empty1,  bcm, 0.8
+end=combinedbcm
 
 
 begin=combinedbpm
@@ -268,7 +268,7 @@ name=qwk_target
  QWK_3C08,  bpmstripline, 1.0,  1.0,  1.0
  QWK_3C11,  bpmstripline, 1.0,  1.0,  1.0
  QWK_3C12,  bpmstripline, 1.0,  1.0,  1.0
-!end=combinedbpm
+end=combinedbpm
 
 
 !**************************************************************************
@@ -283,13 +283,13 @@ name=qwk_target
 !	(dP/P) = (1/M15)*X_3c12 + (-M11/M15)*X_T + (-M12/M15)*X_T`
 ! To get (dP/P).
 
-!begin=energycalculator
-!name=qwk_energy
+begin=energycalculator
+name=qwk_energy
 ! name      type 	ratios property  
-!  QWK_3C11, bpmstripline, 1.5,	beamposition   
-!  QWK_TARGET, combinedbpm, -2.4, targetbeamangle
-!  QWK_TARGET, combinedbpm, -0.6, targetbeamposition
-!end=energycalculator
+  QWK_3C11, bpmstripline, 1.5,	beamposition   
+  QWK_TARGET, combinedbpm, -2.4, targetbeamangle
+  QWK_TARGET, combinedbpm, -0.6, targetbeamposition
+end=energycalculator
 
 ! CHECK THE SIGNS OF THE MATRIX ELEMENT RATIOS!.
 
