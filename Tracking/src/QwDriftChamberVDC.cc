@@ -367,7 +367,7 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
 
   tdcindex = GetTDCIndex(bank_index,slot_num);
 
-  if ( tdcindex != -1 ) 
+  if ( tdcindex not_eq -1 ) 
     { 
       Int_t hitcnt = 0;
       Int_t plane  = 0;
@@ -381,7 +381,7 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
       //      EQwDetectorPackage package  = kPackageUp;
       EQwDirectionID direction = kDirectionNull;
       
-      if ( plane == -1 || wire == -1 ) {
+      if ( plane not_eq -1 || wire not_eq -1 ) {
 	//  This channel is not connected to anything.
 	//  Do nothing.
 	//  } else if (plane == (Int_t) kReferenceChannelPlaneNumber){
@@ -414,6 +414,9 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
 
 Int_t QwDriftChamberVDC::BuildWireDataStructure ( const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire ) 
 {
+
+  Int_t r3_wire_number_per_plane = 279;
+
   std::cout << "R3 chan " << chan
 	    << " package "  << package
 	    << " plane " << plane
@@ -433,12 +436,14 @@ Int_t QwDriftChamberVDC::BuildWireDataStructure ( const UInt_t chan, const UInt_
     //if (wire>=fWiresPerPlane.at(plane)){
     //fWiresPerPlane.at(plane) =  wire+1;
     //}
-    fWiresPerPlane.at ( plane ) =280;
+    fWiresPerPlane.at(plane) = r3_wire_number_per_plane;
   }
   return OK;
 };
 
-Int_t QwDriftChamberVDC::AddChannelDefinition ( const UInt_t plane, const UInt_t wire ) {
+Int_t QwDriftChamberVDC::AddChannelDefinition ( const UInt_t plane, const UInt_t wire ) 
+{
+
   fWireData.resize ( fWiresPerPlane.size() );
   for ( size_t i=1; i<fWiresPerPlane.size(); i++ ) {
     fWireData.at ( i ).resize ( fWiresPerPlane.at ( i ) );
@@ -450,14 +455,14 @@ Int_t QwDriftChamberVDC::AddChannelDefinition ( const UInt_t plane, const UInt_t
       Int_t mytdc = fTDC_Index.at ( i ).at ( j );
       //std::cout << "mytdc: " << mytdc << std::endl;
       if ( mytdc!=-1 ) {
-	for ( size_t k=0; k<fTDCPtrs.at ( mytdc ).size(); k++ ) {
-	  //	  Int_t package = fTDCPtrs.at(mytdc).at(k).fPackage;
-	  Int_t plane   = fTDCPtrs.at ( mytdc ).at ( k ).fPlane;
-	  if ( plane>0 && plane != ( Int_t ) kReferenceChannelPlaneNumber ) {
-	    //Int_t wire  = fTDCPtrs.at(mytdc).at(k).fElement;
-	    fWireData.at ( plane ).at ( wire ).SetElectronics ( i,j,k );
-	  }
-	}
+  	for ( size_t k=0; k<fTDCPtrs.at ( mytdc ).size(); k++ ) {
+  	  //	  Int_t package = fTDCPtrs.at(mytdc).at(k).fPackage;
+  	  Int_t plane   = fTDCPtrs.at ( mytdc ).at ( k ).fPlane;
+  	  if ( plane>0 && plane != ( Int_t ) kReferenceChannelPlaneNumber ) {
+  	    //Int_t wire  = fTDCPtrs.at(mytdc).at(k).fElement;
+  	    fWireData.at ( plane ).at ( wire ).SetElectronics ( i,j,k );
+  	  }
+  	}
       }
     }
   }
