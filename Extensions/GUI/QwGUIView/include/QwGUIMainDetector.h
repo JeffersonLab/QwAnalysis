@@ -164,9 +164,12 @@ class QwGUIMainDetectorDataStructure{
   Double_t    EnsambleSumSq;
 
   Double_t    DataMean;
+  Double_t    DataEnMean;
   Double_t    DataMin;
   Double_t    DataMax;
   Double_t    DataRMS;
+  Double_t    DataError;
+  Double_t    DataEnError;
   Int_t       EnsambleSize;
   Int_t       EnsambleCounter;
 
@@ -193,7 +196,10 @@ class QwGUIMainDetectorDataStructure{
   Double_t GetData(Int_t ind) {if(ind < 0 || ind >= Length()) return 0; return Data.at(ind);};
   Double_t GetEnsambleMean(Int_t ind) {if(ind < 0 || ind >= GetNumEnsambles()) return 0; return EnsambleMean.at(ind);};
   Double_t GetDataRMS() {return DataRMS;};
+  Double_t GetDataError() {return DataError;};
+  Double_t GetDataEnError() {return DataEnError;};
   Double_t GetDataMean() {return DataMean;};
+  Double_t GetDataEnMean() {return DataEnMean;};
   Double_t GetDataMin() {return DataMin;};
   Double_t GetDataMax() {return DataMax;};
   Int_t    GetNumEnsambles(){return EnsambleMean.size();};

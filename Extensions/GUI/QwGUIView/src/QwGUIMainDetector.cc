@@ -37,6 +37,18 @@ void QwGUIMainDetectorDataStructure::CalculateStats()
 {
   DataMean = DataSum/Data.size();	  
   DataRMS  = sqrt(DataSumSq/Data.size() - DataMean*DataMean);	  
+  DataError = DataRMS/sqrt(Data.size());
+
+  Double_t num = 0;
+  Double_t den = 0;
+
+  for(int i = 0; i < EnsambleMean.size(); i++){
+    num += EnsambleMean[i]/(EnsambleError[i]*EnsambleError[i]);
+    den += 1.0/(EnsambleError[i]*EnsambleError[i]);
+  }
+  DataEnMean = num/den;
+  DataEnError = 1.0/sqrt(den);
+
 }
 
 void QwGUIMainDetectorDataStructure::Clean() 
@@ -493,7 +505,7 @@ void QwGUIMainDetector::MakeCurrentModeTabs()
   mc->Divide(2,4);
 
   mc = dSUMCanvas->GetCanvas();
-  mc->Divide(2,3);
+  mc->Divide(3,4);
 
   dMenuPlot1->DisableEntry(M_PLOT_HISTO_YIELD);
   dMenuPlot1->DisableEntry(M_PLOT_GRAPH_YIELD);
@@ -770,6 +782,11 @@ void QwGUIMainDetector::OnObjClose(char *obj)
   if(!strcmp(obj,"dProgrDlg")){
     dProcessHalt = kTrue;
     dProgrDlg = NULL;
+  }   
+
+  if(!strcmp(obj,"dROOTFile")){
+    
+    
   }   
 
   QwGUISubSystem::OnObjClose(obj);
@@ -1108,6 +1125,8 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
 {
 
   if(!cont) return;
+
+  Connect(cont,"IsClosing(char*)","QwGUIMainDetector",(void*)this,"OnObjClose(char*)");
 
   TObject *obj;
   TTree *MPSTree = NULL;
@@ -1457,6 +1476,7 @@ void QwGUIMainDetector::FillMSCYieldPlots(Int_t det, Int_t dTInd)
 
   QwGUIMainDetectorDataStructure dCurrentData = dCurrentMSCYields[dTInd]->GetElements()[det];
 
+  printf("Detector %s Yield Mean = %1.6e\n",dCurrentData.GetName(),dCurrentData.GetDataMean()/(76.25e-6));
   hst = new TH1D(Form("mscyield%02d_%d",det,dTInd),dCurrentData.GetName(),
 		 1000,dCurrentData.GetDataMean()-5*dCurrentData.GetDataRMS(),dCurrentData.GetDataMean()+5*dCurrentData.GetDataRMS());
   grp = new TGraph();
@@ -1511,16 +1531,29 @@ void QwGUIMainDetector::FillSummaryPlots(Int_t dTInd)
   //PMT Yields
   
   TGraphErrors *grph = new TGraphErrors(MAIN_PMT_INDEX);
-  grph->SetName("PMT_Yield_Stats");
-  grph->SetTitle("PMT Yield Mean and RMS (md1- -> md8+)");
+  grph->SetName("PMT_Yield_Means");
+  grph->SetTitle("PMT Yield Mean (md1- -> md8+)");
   dCurrentDataStr = dCurrentYields[dTInd]->GetElements();
   Names = MainDetectorPMTNames;
 
   if(dCurrentDataStr){
     for(int i = 0; i < (Int_t)MAIN_PMT_INDEX; i++){
       grph->SetPoint(i,i+1,dCurrentDataStr[i].GetDataMean());
-      grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
-//       grph->GetXaxis()->SetBinLabel(i+1,Names[i].Data());
+//       grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
+    }
+  }
+  SummaryGraphArray[dTInd].Add(grph);
+
+  grph = new TGraphErrors(MAIN_PMT_INDEX);
+  grph->SetName("PMT_Yield_RMSs");
+  grph->SetTitle("PMT Yield RMS (md1- -> md8+)");
+  dCurrentDataStr = dCurrentYields[dTInd]->GetElements();
+  Names = MainDetectorPMTNames;
+
+  if(dCurrentDataStr){
+    for(int i = 0; i < (Int_t)MAIN_PMT_INDEX; i++){
+      grph->SetPoint(i,i+1,dCurrentDataStr[i].GetDataRMS());
+//       grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
     }
   }
   SummaryGraphArray[dTInd].Add(grph);
@@ -1528,15 +1561,27 @@ void QwGUIMainDetector::FillSummaryPlots(Int_t dTInd)
   //PMT Asymmmetries
 
   grph = new TGraphErrors(MAIN_PMT_INDEX);
-  grph->SetName("PMT_Asym_Stats");
-  grph->SetTitle("PMT Asymmetry Mean and RMS (md1- -> md8+)");
+  grph->SetName("PMT_Asym_Means");
+  grph->SetTitle("PMT Asymmetry (md1- -> md8+)");
   dCurrentDataStr = dCurrentPMTAsyms[dTInd]->GetElements();
   Names = MainDetectorPMTNames;
   if(dCurrentDataStr){
     for(int i = 0; i < (Int_t)MAIN_PMT_INDEX; i++){
       grph->SetPoint(i,i+1,dCurrentDataStr[i].GetDataMean());
-      grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
-//       grph->GetXaxis()->SetBinLabel(i+1,Names[i].Data());
+      grph->SetPointError(i,0,dCurrentDataStr[i].GetDataError());
+    }
+  }
+  SummaryGraphArray[dTInd].Add(grph);
+
+  grph = new TGraphErrors(MAIN_PMT_INDEX);
+  grph->SetName("PMT_Asym_RMSs");
+  grph->SetTitle("PMT Asymmetry RMS (md1- -> md8+)");
+  dCurrentDataStr = dCurrentPMTAsyms[dTInd]->GetElements();
+  Names = MainDetectorPMTNames;
+  if(dCurrentDataStr){
+    for(int i = 0; i < (Int_t)MAIN_PMT_INDEX; i++){
+      grph->SetPoint(i,i+1,dCurrentDataStr[i].GetDataRMS());
+//       grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
     }
   }
   SummaryGraphArray[dTInd].Add(grph);
@@ -1544,15 +1589,29 @@ void QwGUIMainDetector::FillSummaryPlots(Int_t dTInd)
   //DET Asymmmetries
 
   grph = new TGraphErrors(MAIN_DET_INDEX);
-  grph->SetName("DET_Asym_Stats");
-  grph->SetTitle("Detector Asymmetry Mean and RMS (md1 -> md8)");
+  grph->SetName("DET_Asym_Means");
+  grph->SetTitle("Detector Asymmetry (md1 -> md8)");
   dCurrentDataStr = dCurrentDETAsyms[dTInd]->GetElements();
   Names = MainDetectorNames;
   if(dCurrentDataStr){
     for(int i = 0; i < (Int_t)MAIN_DET_INDEX; i++){
       grph->SetPoint(i,i+1,dCurrentDataStr[i].GetDataMean());
-      grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
-//       grph->GetXaxis()->SetBinLabel(i+1,Names[i].Data());
+      grph->SetPointError(i,0,dCurrentDataStr[i].GetDataError());
+      if(dTInd == 0)
+	printf("%d %f %f\n",i+1,dCurrentDataStr[i].GetDataMean()*1.0e6,dCurrentDataStr[i].GetDataError()*1.0e6);
+    }
+  }
+  SummaryGraphArray[dTInd].Add(grph);
+
+  grph = new TGraphErrors(MAIN_DET_INDEX);
+  grph->SetName("DET_Asym_RMSs");
+  grph->SetTitle("Detector Asymmetry RMS (md1 -> md8)");
+  dCurrentDataStr = dCurrentDETAsyms[dTInd]->GetElements();
+  Names = MainDetectorNames;
+  if(dCurrentDataStr){
+    for(int i = 0; i < (Int_t)MAIN_DET_INDEX; i++){
+      grph->SetPoint(i,i+1,dCurrentDataStr[i].GetDataRMS());
+//       grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
     }
   }
   SummaryGraphArray[dTInd].Add(grph);
@@ -1560,15 +1619,27 @@ void QwGUIMainDetector::FillSummaryPlots(Int_t dTInd)
   //CMB Asymmmetries
 
   grph = new TGraphErrors(MAIN_DET_COMBIND);
-  grph->SetName("CMB_Asym_Stats");
-  grph->SetTitle("Detector Combination Asymmetry Mean and RMS");
+  grph->SetName("CMB_Asym_Means");
+  grph->SetTitle("Detector Combination Asymmetry");
   dCurrentDataStr = dCurrentCMBAsyms[dTInd]->GetElements();
   Names = MainDetectorCombinationNames;
   if(dCurrentDataStr){
     for(int i = 0; i < (Int_t)MAIN_DET_COMBIND; i++){
       grph->SetPoint(i,i+1,dCurrentDataStr[i].GetDataMean());
-      grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
-//       grph->GetXaxis()->SetBinLabel(i+1,Names[i].Data());
+      grph->SetPointError(i,0,dCurrentDataStr[i].GetDataError());
+    }
+  }
+  SummaryGraphArray[dTInd].Add(grph);
+
+  grph = new TGraphErrors(MAIN_DET_COMBIND);
+  grph->SetName("CMB_Asym_RMSs");
+  grph->SetTitle("Detector Combination Asymmetry RMS");
+  dCurrentDataStr = dCurrentCMBAsyms[dTInd]->GetElements();
+  Names = MainDetectorCombinationNames;
+  if(dCurrentDataStr){
+    for(int i = 0; i < (Int_t)MAIN_DET_COMBIND; i++){
+      grph->SetPoint(i,i+1,dCurrentDataStr[i].GetDataRMS());
+//       grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
     }
   }
   SummaryGraphArray[dTInd].Add(grph);
@@ -1576,15 +1647,28 @@ void QwGUIMainDetector::FillSummaryPlots(Int_t dTInd)
   //MSC Asymmmetries
 
   grph = new TGraphErrors(MAIN_MSC_INDEX);
-  grph->SetName("MSC_Asym_Stats");
-  grph->SetTitle("Auxiliary Detector Asymmetry Mean and RMS (PMT+LED,PMT,PMT+LG,md9-,md9+,I,V,Cage)");
+  grph->SetName("MSC_Asym_Means");
+  grph->SetTitle("Auxiliary Detector Asymmetry (PMT+LED,PMT,PMT+LG,md9-,md9+,I,V,Cage)");
   dCurrentDataStr = dCurrentMSCAsyms[dTInd]->GetElements();
   Names = MainDetectorMscNames;
   if(dCurrentDataStr){
     for(int i = 0; i < (Int_t)MAIN_MSC_INDEX; i++){
       grph->SetPoint(i,i+1,dCurrentDataStr[i].GetDataMean());
-      grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
-//       grph->GetXaxis()->SetBinLabel(i+1,Names[i].Data());
+      grph->SetPointError(i,0,dCurrentDataStr[i].GetDataError());
+//       grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
+    }
+  }
+  SummaryGraphArray[dTInd].Add(grph);
+
+  grph = new TGraphErrors(MAIN_MSC_INDEX);
+  grph->SetName("MSC_Asym_RMSs");
+  grph->SetTitle("Auxiliary Detector Asymmetry RMS (PMT+LED,PMT,PMT+LG,md9-,md9+,I,V,Cage)");
+  dCurrentDataStr = dCurrentMSCAsyms[dTInd]->GetElements();
+  Names = MainDetectorMscNames;
+  if(dCurrentDataStr){
+    for(int i = 0; i < (Int_t)MAIN_MSC_INDEX; i++){
+      grph->SetPoint(i,i+1,dCurrentDataStr[i].GetDataRMS());
+//       grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
     }
   }
   SummaryGraphArray[dTInd].Add(grph);
@@ -1592,15 +1676,27 @@ void QwGUIMainDetector::FillSummaryPlots(Int_t dTInd)
   //MSC Yields
 
   grph = new TGraphErrors(MAIN_MSC_INDEX);
-  grph->SetName("MSC_Yield_Stats");
-  grph->SetTitle("Auxiliary Detector Yield Mean and RMS (PMT+LED,PMT,PMT+LG,md9-,md9+,I,V,Cage)");
+  grph->SetName("MSC_Yield_Means");
+  grph->SetTitle("Auxiliary Detector Yield Mean (PMT+LED,PMT,PMT+LG,md9-,md9+,I,V,Cage)");
   dCurrentDataStr = dCurrentMSCYields[dTInd]->GetElements();
   Names = MainDetectorMscNames;
   if(dCurrentDataStr){
     for(int i = 0; i < (Int_t)MAIN_MSC_INDEX; i++){
       grph->SetPoint(i,i+1,dCurrentDataStr[i].GetDataMean());
-      grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
-//       grph->GetXaxis()->SetBinLabel(i+1,Names[i].Data());
+//       grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
+    }
+  }
+  SummaryGraphArray[dTInd].Add(grph);
+
+  grph = new TGraphErrors(MAIN_MSC_INDEX);
+  grph->SetName("MSC_Yield_RMSs");
+  grph->SetTitle("Auxiliary Detector Yield RMS (PMT+LED,PMT,PMT+LG,md9-,md9+,I,V,Cage)");
+  dCurrentDataStr = dCurrentMSCYields[dTInd]->GetElements();
+  Names = MainDetectorMscNames;
+  if(dCurrentDataStr){
+    for(int i = 0; i < (Int_t)MAIN_MSC_INDEX; i++){
+      grph->SetPoint(i,i+1,dCurrentDataStr[i].GetDataRMS());
+//       grph->SetPointError(i,0,dCurrentDataStr[i].GetDataRMS());
     }
   }
   SummaryGraphArray[dTInd].Add(grph);

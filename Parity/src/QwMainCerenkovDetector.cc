@@ -48,6 +48,7 @@ void QwMainCerenkovDetector::ProcessOptions(QwOptions &options){
 
 Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 {
+
   Bool_t ldebug=kFALSE;
 
   TString varname, varvalue;
