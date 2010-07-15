@@ -114,6 +114,8 @@ class QwRootFile {
     /// Map file
     QwMapFile* fMapFile;
     Int_t fUpdateInterval;
+    Int_t fAutoFlush;
+    Int_t fAutoSave;
 
     /// Trees and associated vectors
     TTree*                fMpsTree;

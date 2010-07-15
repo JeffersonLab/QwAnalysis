@@ -109,6 +109,14 @@ void QwRootFile::DefineOptions(QwOptions &options)
    options.AddOptions()("trim-tree",
                        po::value<std::string>()->default_value("tree_trim.in"),
                        "Contains subsystems/elements to be included in the tree");
+
+  // Define the autoflush and autosave option (default values by ROOT)
+  options.AddOptions()
+    ("autoflush", po::value<int>()->default_value(-30000000),
+     "TTree autoflush value");
+  options.AddOptions()
+    ("autosave", po::value<int>()->default_value(300000000),
+     "TTree autosave value");
 }
 
 
@@ -143,6 +151,9 @@ void QwRootFile::ProcessOptions(QwOptions &options)
   //Update interval for the map file
   fUpdateInterval = options.GetValue<int>("mapfile-update-interval");
 
+  // Autoflush and autosave
+  fAutoFlush = options.GetValue<int>("autoflush");
+  fAutoSave  = options.GetValue<int>("autosave");
 
   fTreeTrim_Filename = options.GetValue<std::string>("trim-tree").c_str();
   QwMessage << "Tree trim definition file " << fTreeTrim_Filename << QwLog::endl;
@@ -201,9 +212,6 @@ void QwRootFile::ConstructHistograms(QwHelicityPattern& helicity_pattern)
  */
 void QwRootFile::ConstructTreeBranches(QwSubsystemArrayParity& detectors)
 {
-
-
-
   // Return if we do not want tree or mps information
   if (! fEnableTree) return;
   if (! fEnableMps) return;
@@ -214,6 +222,8 @@ void QwRootFile::ConstructTreeBranches(QwSubsystemArrayParity& detectors)
   // Create tree
   fMpsTree = new TTree("Mps_Tree", "MPS event data tree");
   fMpsTree->SetMaxTreeSize(kMaxTreeSize);
+  fMpsTree->SetAutoFlush(fAutoFlush);
+  fMpsTree->SetAutoSave(fAutoSave);
 
   // Reserve space for vector
   // If one defines more than 6000 words in the full ntuple
@@ -243,14 +253,14 @@ void QwRootFile::ConstructTreeBranches(QwHelicityPattern& helicity_pattern)
   if (! fEnableTree) return;
   if (! fEnableHel) return;
 
-
-
   // Go to top level directory
   cd();
 
   // Create tree
   fHelTree = new TTree("Hel_Tree", "Helicity event data tree");
   fHelTree->SetMaxTreeSize(kMaxTreeSize);
+  fHelTree->SetAutoFlush(fAutoFlush);
+  fHelTree->SetAutoSave(fAutoSave);
 
   // Reserve space for vector
   // If one defines more than 6000 words in the full ntuple
