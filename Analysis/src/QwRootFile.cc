@@ -153,6 +153,13 @@ void QwRootFile::ProcessOptions(QwOptions &options)
 
   // Autoflush and autosave
   fAutoFlush = options.GetValue<int>("autoflush");
+  if ((ROOT_VERSION_CODE < ROOT_VERSION(5,26,00)) && fAutoFlush != -30000000){
+    std::cout << QwLog::endl;
+    QwWarning << "QwRootFile::ProcessOptions:  "
+	      << "The 'autoflush' flag is not supported by ROOT version "
+	      << ROOT_RELEASE
+	      << QwLog::endl;
+  }
   fAutoSave  = options.GetValue<int>("autosave");
 
   fTreeTrim_Filename = options.GetValue<std::string>("trim-tree").c_str();
@@ -222,7 +229,9 @@ void QwRootFile::ConstructTreeBranches(QwSubsystemArrayParity& detectors)
   // Create tree
   fMpsTree = new TTree("Mps_Tree", "MPS event data tree");
   fMpsTree->SetMaxTreeSize(kMaxTreeSize);
+#if ROOT_VERSION_CODE >= ROOT_VERSION(5,26,00)
   fMpsTree->SetAutoFlush(fAutoFlush);
+#endif
   fMpsTree->SetAutoSave(fAutoSave);
 
   // Reserve space for vector
@@ -259,7 +268,9 @@ void QwRootFile::ConstructTreeBranches(QwHelicityPattern& helicity_pattern)
   // Create tree
   fHelTree = new TTree("Hel_Tree", "Helicity event data tree");
   fHelTree->SetMaxTreeSize(kMaxTreeSize);
+#if ROOT_VERSION_CODE >= ROOT_VERSION(5,26,00)
   fHelTree->SetAutoFlush(fAutoFlush);
+#endif
   fHelTree->SetAutoSave(fAutoSave);
 
   // Reserve space for vector
