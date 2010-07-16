@@ -229,7 +229,8 @@ Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetect
 };
 
 
-void  QwDriftChamberHDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data)
+void  QwDriftChamberHDC::FillRawTDCWord
+(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data)
 {
   Int_t tdcindex = GetTDCIndex(bank_index,slot_num);
   if (tdcindex != -1){
@@ -243,18 +244,22 @@ void  QwDriftChamberHDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
     if (plane == -1 || wire == -1){
       //  This channel is not connected to anything.
       //  Do nothing.
-    } else if (plane == (Int_t) kReferenceChannelPlaneNumber){
-      fReferenceData.at(wire).push_back(data);//now wire contains the value fCurrentBankIndex so we can assign the ref timing data to it.
-    } else {
+    } 
+    else if (plane == (Int_t) kReferenceChannelPlaneNumber){
+      
+      fReferenceData.at(wire).push_back(data);
+      //now wire contains the value fCurrentBankIndex so we can assign the ref timing data to it.
+    } 
+    else {
 
       direction = (EQwDirectionID)fDirectionData.at(package-1).at(plane-1); //Wire Direction is accessed from the vector -Rakitha (10/23/2008)
-
+      
       //hitCount gives the total number of hits on a given wire -Rakitha (10/23/2008)
       hitCount=std::count_if(fTDCHits.begin(),fTDCHits.end(),boost::bind(&QwHit::WireMatches,_1,2,boost::ref(package),boost::ref(plane),boost::ref(wire)) );
       fTDCHits.push_back(QwHit(bank_index, slot_num, chan, hitCount, kRegionID2, package, plane,direction, wire, data));//in order-> bank index, slot num, chan, hitcount, region=2, package, plane,,direction, wire,wire hit time
-
     }
-  };
+  }
+  return;
 };
 
 

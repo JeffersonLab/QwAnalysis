@@ -157,7 +157,11 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   Int_t fNumberOfTDCs;
 
   std::vector< std::vector<Int_t> > fTDC_Index;  //  TDC index, indexed by bank_index and slot_number
-  std::vector< std::pair<Int_t, Int_t> > fReferenceChannels;
+
+  std::vector< std::pair<Int_t, Int_t> > fReferenceChannels;  
+  // reference chans number <first:tdc_index, second:channel_number>
+  // fReferenceChannels[tdc_index,channel_number][ num of [tdc,chan] set]
+
   std::vector< QwHit > fTDCHits;
   std::vector< QwHit > &fWireHits;
   std::vector< Int_t > fWiresPerPlane;
@@ -168,7 +172,9 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   //         When you're creating loops, just be careful that
   //         you don't try to use the first (zero-th) element
   //         of either index.
-  std::vector< std::vector< Double_t> > fReferenceData;
+  std::vector< std::vector<Double_t> > fReferenceData; 
+  // wire number < reference time > 
+  // fReferenceData[reference time][wire number]
 
 
   /*=====
@@ -198,18 +204,21 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   //below are the data structures that are used in HDC/VDC
 
 
-  std::vector< std::vector< QwDetectorID > > fTDCPtrs; // Indexed by TDC_index and Channel; gives the package, plane and wire assignment.
-
-
+  std::vector< std::vector< QwDetectorID   > > fTDCPtrs; 
+  // Indexed by TDC_index and Channel; gives the package, plane and wire assignment.
   std::vector< std::vector< QwDetectorInfo > > fWireData;
-  std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
+  std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; 
+  // Indexed by package, plane this contains detector geometry information for each region;
 
-  std::vector< std::vector< UInt_t > > fDirectionData; //Indexed by pckg and plane each element represent the wire direction ( a value from 0 to 6)- Rakitha(10/23/2008)
-  std::vector< std::vector< std::vector <Double_t> > > fTimeWireOffsets;
+  std::vector< std::vector< UInt_t >         > fDirectionData; 
+  //Indexed by pckg and plane each element represent the wire direction ( a value from 0 to 6)- Rakitha(10/23/2008)
+
+  std::vector< std::vector< std::vector<Double_t> > > fTimeWireOffsets;
 
 
  protected:
-  //Double_t fTimeWireOffsets[kNumPackages][2][279]; //Indexed by pckg and plane number and wire number(only used on R3 right now)
+  //Double_t fTimeWireOffsets[kNumPackages][2][279]; 
+  //Indexed by pckg and plane number and wire number(only used on R3 right now)
 
   Int_t LoadTimeWireOffset(TString t0_map);
 

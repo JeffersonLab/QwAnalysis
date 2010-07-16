@@ -52,7 +52,7 @@
 static const bool kDebug = kFALSE;
 // ROOT file output
 static const bool kTree = kTRUE;
-static const bool kHisto = kTRUE;
+static const bool kHisto = kFALSE;
 
 static const bool kUseTDCHits = kFALSE;
 
