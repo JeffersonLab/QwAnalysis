@@ -170,6 +170,9 @@
 #ifndef ROOT_TGComboBox
 #include "TGComboBox.h"
 #endif
+#ifndef ROOT_TImage
+#include "TImage.h"
+#endif
 
 #include "TMath.h"
 
@@ -185,7 +188,11 @@ class QwSubsystemArrayTracking;
 class QwTreeEventBuffer;
 
 
-////REGION GEOMETRIES////
+////DECLARE CLASS ELEMENTS////
+
+class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
+
+// REGION GEOMETRIES
 
 //All length measurements in cm
 //All angle measurements in degrees
@@ -195,15 +202,15 @@ class QwTreeEventBuffer;
 #define R1_WIDTH 30.00 // Region 1
 #define R1_LENGTH 30.00
 #define R1_DEPTH 3.00
-#define R1_DIST 0.10 // distance between gas cuts CHECK THIS!!!
+#define R1_DIST 0.10 // distance between traces CHECK THIS!!!
 #define R1_CM  0.0267 //calibrated value of 1 cm in this scale
 
 #define R2_WIDTH 45.09 // Region 2
 #define R2_LENGTH 30.00
 #define R2_DEPTH 3.35 //single chamber; 17.20 total depth of HDC system
-#define R2_DIST 1.27 // distance between drift cell chambers (planes)
-#define R2_XDIST 0.935 // distance between x wires (45.09 cm/32 wires)
-#define R2_UVDIST 2.59 // distance between u (or v) wires ((45.09 cm + 30 cm)/29 wires)
+#define R2_DIST 1.27 // distance between drift cell planes
+#define R2_XDIST 0.909 // distance between x wires
+#define R2_UVDIST 2.18 // distance between u (or v) wires
 #define R2_CM 0.0177
 #define R2_ANGLE 56.00
 
@@ -211,14 +218,9 @@ class QwTreeEventBuffer;
 #define R3_LENGTH 50.00
 #define R3_DEPTH 2.54
 #define R3_DIST 40.00 // distance between drift cell chambers
-#define R3_UVDIST 0.932 // distance between u (or v) wires
+#define R3_UVDIST 0.929 // distance between u (or v) wires
 #define R3_CM 0.0038
-#define R3_ANGLE 26.57 // 90-26.57 (which is the wire angle)
-
-
-////DECLARE CLASS ELEMENTS////
-
-class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
+#define R3_ANGLE 63.43 // 90-26.57 (which is the wire angle)
 
  public:
   RQ_OBJECT("QwEventDisplay")
@@ -317,15 +319,13 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
   void SetEventBuffer(QwTreeEventBuffer *eventbuffer) { fEventBuffer = eventbuffer; };
   void SetSubsystemArray(QwSubsystemArrayTracking *subsystemarray) { fSubsystemArray = subsystemarray; };
 
-  void OpenSimFile();
-  void OpenRunFile();
-
   void HandleMenu(Int_t id);
   void GoPrevious();
   void GoNext();
   void GoClear();
   void GotoEvent();
   void DrawEvent();
+  void DrawFit();
 
   ClassDef(QwEventDisplay,1);
 };
