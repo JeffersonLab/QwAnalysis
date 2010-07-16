@@ -16,7 +16,6 @@
 #include "TProfile2D.h"
 #include "VQwSubsystemTracking.h"
 #include "MQwV775TDC.h"
-#include "MQwF1TDC.h"
 #include "QwVQWK_Module.h"
 #include "QwVQWK_Channel.h"
 #include "QwPMT_Channel.h"
@@ -73,7 +72,6 @@ class QwRaster: public VQwSubsystemTracking
   Bool_t fDEBUG;
 
   MQwV775TDC fQDCTDC;
-  MQwF1TDC   fF1TDC;
 
   //    We need a mapping of module,channel into PMT index, ADC/TDC
   std::vector< std::vector<QwPMT_Channel> > fPMTs;  // for QDC/TDC and F1TDC
