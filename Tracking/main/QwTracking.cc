@@ -54,7 +54,6 @@ static const bool kDebug = kFALSE;
 static const bool kTree = kTRUE;
 static const bool kHisto = kFALSE;
 
-static const bool kUseTDCHits = kFALSE;
 
 static const bool kEPICS = kFALSE;
 // Branching flags for subsystems
@@ -275,10 +274,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       // Create and fill hit list
       hitlist = new QwHitContainer();
-      if (kUseTDCHits)
-        tracking_detectors.GetTDCHitList(hitlist);
-      else
-        tracking_detectors.GetHitList(hitlist);
+
+      tracking_detectors.GetHitList(hitlist);
 
       // Sorting the grand hit list
       hitlist->sort();

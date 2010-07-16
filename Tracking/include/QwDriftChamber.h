@@ -66,9 +66,6 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
   virtual void  ProcessEvent()=0;//has separate meanings in VDC and HDC
 
-
-
-
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();
@@ -88,17 +85,16 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   virtual Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)=0;
 
 
+  virtual  void GetHitList(QwHitContainer & grandHitContainer)
+  {
+    grandHitContainer.Append(fWireHits);
+  };
+
   void GetTDCHitList(QwHitContainer & grandHitContainer)
   {
     grandHitContainer.Append(fTDCHits);
   };
 
-
-  void GetHitList(QwHitContainer & grandHitContainer)
-  {
-    //std::cout << " HDC "<<fTDCHits.size()<<std::endl;
-    grandHitContainer.Append(fWireHits);
-  };
 
   Int_t OK;
 
@@ -142,6 +138,8 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   Bool_t fDEBUG;
 
   TString fRegion;  ///  Name of this subsystem (the region).
+
+  
 
 
  protected:

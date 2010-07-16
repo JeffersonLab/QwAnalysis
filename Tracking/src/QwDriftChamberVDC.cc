@@ -784,10 +784,10 @@ void QwDriftChamberVDC::ProcessEvent()
 
 	  NewQwHit.SetTime ( real_time );
 
-	  Int_t temp_plane=plane-1;
-	  if(tmpCrate==3) temp_plane=plane-5;
+	  //Int_t temp_plane=plane-1;
+	  //if(tmpCrate==3) temp_plane=plane-5;
 
-	  QwDetectorInfo* local_info = & fDetectorInfo.at ( package ).at ( temp_plane );
+	  QwDetectorInfo* local_info = & fDetectorInfo.at ( package ).at ( plane-1 );
 	  NewQwHit.SetDetectorInfo ( local_info );
 
 	  NewQwHit.SetAmbiguityID ( tmpAM,j );
@@ -797,7 +797,7 @@ void QwDriftChamberVDC::ProcessEvent()
     }
   }
   ApplyTimeCalibration();
-  //SubtractWireTimeOffset();
+  SubtractWireTimeOffset();
   CalculateDriftDistance();
 };
 
@@ -888,4 +888,16 @@ void  QwDriftChamberVDC::PrintConfigrationBuffer(UInt_t *buffer, UInt_t num_word
   printf("\n");
   
   return;
+}
+
+void QwDriftChamberVDC::DefineOptions(QwOptions& options)
+{
+ options.AddOptions()("use-tdchit",
+                          po::value<bool>()->zero_tokens()->default_value(false),
+                          "creat tdc based tree");
+}
+
+void QwDriftChamberVDC::ProcessOptions(QwOptions& options)
+{
+ fUseTDCHits=options.GetValue<bool>("use-tdchit");
 }
