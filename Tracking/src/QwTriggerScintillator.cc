@@ -129,7 +129,7 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
 
   TString varname, varvalue;
   TString modtype, dettype, name;
-  Int_t modnum, channum;
+  Int_t modnum=0, channum=0, slotnum=0;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine()){
@@ -154,6 +154,7 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
           fBankID[2] = value;
       } else if (varname=="slot") {
           RegisterSlotNumber(value);
+          slotnum = value;
       } else if (varname=="module") {
 	  RegisterModuleType(varvalue);
       }
@@ -185,6 +186,11 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
             std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str() << std::endl;
         }
       }
+    // Check for the reference time channel
+    if (name=="TS_reftime_f1") {
+      reftime_slotnum = slotnum;
+      reftime_channum = channum;
+    }
   }
   return 0;
 };
@@ -289,8 +295,8 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
         for (UInt_t i=0; i<num_words ; i++) {
           fF1TDC.DecodeTDCWord(buffer[i], roc_id);
 	  tdc_slot_number = fF1TDC.GetTDCSlotNumber();
-	  tdc_chan_number = fF1TDC.GetTDCChannelNumber();
-
+	  tdc_chan_number = fF1TDC.GetTDCChannelNumber();  
+          
 	  if ( tdc_slot_number == 31) {
             //  This is a custom word which is not defined in
             //  the F1TDC, so we can use it as a marker for
@@ -300,12 +306,17 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 	  // Each subsystem has its own interesting slot(s), thus
 	  // here, if this slot isn't in its slot(s) (subsystem map file)
 	  // we skip this buffer to do the further process
-          if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
 
+          if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
           if ( fF1TDC.IsValidDataword() ) {
             try {
               FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());
               fF1TDC.PrintTDCData(temp_print_flag);
+
+              // Check if this is reference time data
+              if (tdc_slot_number == reftime_slotnum && tdc_chan_number == reftime_channum) {
+                reftime = fF1TDC.GetTDCData();
+              }
             }
             catch (std::exception& e) {
               std::cerr << "Standard exception from QwTriggerScintillator::FillRawWord: "
@@ -328,9 +339,19 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 void  QwTriggerScintillator::ProcessEvent(){
   if (! HasDataLoaded()) return;
 
+  TString elementname = "";
+  Double_t rawtime = 0.0;
+
   for (size_t i=0; i<fPMTs.size(); i++) {
     for (size_t j=0; j<fPMTs.at(i).size(); j++) {
       fPMTs.at(i).at(j).ProcessEvent();
+      elementname = fPMTs.at(i).at(j).GetElementName();
+      rawtime = fPMTs.at(i).at(j).GetValue();
+      // Check if this is an f1 channel and only subtract reftime if channel value is nonzero
+      if (elementname.EndsWith("f1") && rawtime!=0) {
+        Double_t newdata = fF1TDC.ActualTimeDifference(rawtime, reftime);
+        fPMTs.at(i).at(j).SetValue(newdata);
+      }
     }
   }
 
@@ -338,15 +359,6 @@ void  QwTriggerScintillator::ProcessEvent(){
 
 
 void  QwTriggerScintillator::ConstructHistograms(TDirectory *folder, TString &prefix){
-
-  // Create desired histrograms
-  TS_1LminusR = new TH1F("TS_1LminusR_tdc","TS 1 Left-Right TDC", 1000, -500, 500);
-  TS_1LminusR->GetXaxis()->SetTitle("TDC");
-  TS_1LminusR->GetYaxis()->SetTitle("Events");
-
-  TS_2LminusR = new TH1F("TS_2LminusR_tdc","TS 2 Left-Right TDC", 1000, -500, 500);
-  TS_2LminusR->GetXaxis()->SetTitle("TDC");
-  TS_2LminusR->GetYaxis()->SetTitle("Events");
 
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
@@ -361,18 +373,6 @@ void  QwTriggerScintillator::FillHistograms(){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).FillHistograms();
     }
-  }
-
-  // Only fill histrogram if TDC data.ne.0!
-  Real_t tdc_1L = fPMTs.at(2).at(1).GetValue();
-  Real_t tdc_1R = fPMTs.at(2).at(0).GetValue();
-  Real_t tdc_2L = fPMTs.at(2).at(3).GetValue();
-  Real_t tdc_2R = fPMTs.at(2).at(2).GetValue();
-  if (tdc_1L!=0 && tdc_1R!=0) {
-    TS_1LminusR->Fill(tdc_1L-tdc_1R);
-  }
-  if (tdc_2L!=0 && tdc_2R!=0) {
-    TS_2LminusR->Fill(tdc_2L-tdc_2R);
   }
 
 };

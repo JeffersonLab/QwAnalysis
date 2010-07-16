@@ -94,7 +94,6 @@ class QwTriggerScintillator: public VQwSubsystemTracking {
   Int_t FindSignalIndex(const QwTriggerScintillator::EModuleType modtype, const TString &name) const;
 
 
-
  protected:
 
 
@@ -129,10 +128,11 @@ class QwTriggerScintillator: public VQwSubsystemTracking {
   std::vector <Double_t> fTrigScintVector;
 
   std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
-  
-  // List of histograms
-  TH1F *TS_1LminusR;
-  TH1F *TS_2LminusR;
+
+  // For reference time substraction
+  Int_t reftime_slotnum;
+  Int_t reftime_channum;
+  Double_t reftime;
 
 };
 
