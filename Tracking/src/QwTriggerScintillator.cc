@@ -11,7 +11,6 @@
 #include "QwParameterFile.h"
 
 const UInt_t QwTriggerScintillator::kMaxNumberOfModulesPerROC     = 21;
-const UInt_t QwTriggerScintillator::kMaxNumberOfChannelsPerModule = 32;
 
 
 // Register this subsystem with the factory
@@ -494,7 +493,7 @@ Int_t QwTriggerScintillator::RegisterSlotNumber(UInt_t slot_id){
     if (fCurrentBankIndex>=0 && fCurrentBankIndex<=fModuleIndex.size()){
       fModuleTypes.resize(fNumberOfModules+1);
       fModulePtrs.resize(fNumberOfModules+1);
-      fModulePtrs.at(fNumberOfModules).resize(kMaxNumberOfChannelsPerModule,
+      fModulePtrs.at(fNumberOfModules).resize(fF1TDC.GetTDCMaxChannels(),
 					      tmppair);
       fNumberOfModules = fModulePtrs.size();
       fModuleIndex.at(fCurrentBankIndex).at(slot_id) = fNumberOfModules-1;

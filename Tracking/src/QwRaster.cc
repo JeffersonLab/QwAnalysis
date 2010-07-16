@@ -15,7 +15,6 @@ QwSubsystemFactory<QwRaster> theRasterFactory("QwRaster");
 extern QwHistogramHelper gQwHists;
 const Bool_t QwRaster::bStoreRawData = kTRUE;
 const UInt_t QwRaster::kMaxNumberOfModulesPerROC     = 21;
-const UInt_t QwRaster::kMaxNumberOfChannelsPerModule = 32;
 
 QwRaster::QwRaster(TString region_tmp)
         :VQwSubsystem(region_tmp),
@@ -682,7 +681,7 @@ Int_t QwRaster::RegisterSlotNumber(UInt_t slot_id)
         {
             fModuleTypes.resize(fNumberOfModules+1);
             fModulePtrs.resize(fNumberOfModules+1);
-            fModulePtrs.at(fNumberOfModules).resize(kMaxNumberOfChannelsPerModule,
+            fModulePtrs.at(fNumberOfModules).resize(fF1TDC.GetTDCMaxChannels(),
                                                     tmppair);
             fNumberOfModules = fModulePtrs.size();
             fModuleIndex.at(fCurrentBankIndex).at(slot_id) = fNumberOfModules-1;

@@ -20,7 +20,8 @@
 
 
 const UInt_t QwMainDetector::kMaxNumberOfModulesPerROC     = 21;
-const UInt_t QwMainDetector::kMaxNumberOfChannelsPerModule = 32;
+
+
 
 
 // Register this subsystem with the factory
@@ -454,6 +455,7 @@ void  QwMainDetector::ProcessEvent()
       for (size_t j=0; j<fPMTs.at(i).size(); j++)
         {
           fPMTs.at(i).at(j).ProcessEvent();
+
         }
     }
 
@@ -495,7 +497,7 @@ void  QwMainDetector::FillHistograms()
     {
       for (size_t j=0; j<fPMTs.at(i).size(); j++)
         {
-          fPMTs.at(i).at(j).FillHistograms();
+           fPMTs.at(i).at(j).FillHistograms();
         }
     }
 
@@ -537,7 +539,8 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
           else
             {
               fMainDetVector.push_back(0.0);
-	      list += ":"+fPMTs.at(i).at(j).GetElementName()+"/D";
+	          list += ":"+fPMTs.at(i).at(j).GetElementName()+"/D";
+	          //std::cout<<"Added to list: "<<fPMTs.at(i).at(j).GetElementName()<<"\n"<<std::endl;
             }
         }
     }
@@ -741,7 +744,7 @@ Int_t QwMainDetector::RegisterSlotNumber(UInt_t slot_id)
         {
           fModuleTypes.resize(fNumberOfModules+1);
           fModulePtrs.resize(fNumberOfModules+1);
-          fModulePtrs.at(fNumberOfModules).resize(kMaxNumberOfChannelsPerModule,
+          fModulePtrs.at(fNumberOfModules).resize(fF1TDC.GetTDCMaxChannels(),
                                                   tmppair);
           fNumberOfModules = fModulePtrs.size();
           fModuleIndex.at(fCurrentBankIndex).at(slot_id) = fNumberOfModules-1;

@@ -48,6 +48,7 @@ class MQwF1TDC{
   UInt_t GetTDCSlotNumber()        {return fF1SlotNumber;};
   UInt_t GetTDCChannelNumber()     {return fF1ChannelNumber;};
   UInt_t GetTDCData()              {return fF1Dataword;};
+  UInt_t GetTDCMaxChannels()       {return fF1MaxChannelsPerModule;};
   
  
   UInt_t GetTDCEventNumber()       {return GetTDCHeaderEventNumber();};
@@ -100,6 +101,7 @@ class MQwF1TDC{
   UInt_t fF1SlotNumber;
   UInt_t fF1ChannelNumber;
   UInt_t fF1Dataword;
+  UInt_t fF1MaxChannelsPerModule;
 
   Bool_t fF1HeaderTrigFIFOFlag;
   UInt_t fF1HeaderEventNumber;

@@ -42,6 +42,7 @@ MQwF1TDC::MQwF1TDC(): fMinDiff(-1.0*kMaxInt), fMaxDiff(1.0*kMaxInt),
   fF1SlotNumber         = 0;
   fF1ChannelNumber      = 0;
   fF1Dataword           = 0;
+  fF1MaxChannelsPerModule = 64;
 
   fF1HeaderTrigFIFOFlag = kFALSE;
   fF1HeaderEventNumber  = 0;
