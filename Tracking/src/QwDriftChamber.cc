@@ -13,7 +13,6 @@
 #include "QwParameterFile.h"
 
 const UInt_t QwDriftChamber::kMaxNumberOfTDCsPerROC = 21;
-const UInt_t QwDriftChamber::kMaxNumberOfChannelsPerTDC = 64;
 const UInt_t QwDriftChamber::kReferenceChannelPlaneNumber = 99;
 
 
@@ -28,6 +27,8 @@ QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHit
     fNumberOfTDCs = 0;
     ClearAllBankRegistrations();
     InitHistogramPointers();
+    kMaxNumberOfChannelsPerTDC = GetTDCMaxChannels(); 
+    // QwDriftChamber is inherited from MQwF1TDC, thus we can use public function directly.
 
     //   fF1DataIntegrityCount = 0;
 
@@ -47,6 +48,7 @@ QwDriftChamber::QwDriftChamber(TString region_tmp)
     fNumberOfTDCs = 0;
     ClearAllBankRegistrations();
     InitHistogramPointers();
+    kMaxNumberOfChannelsPerTDC = GetTDCMaxChannels();
     //    fF1DataIntegrityCount = 0;
 
     /*for (int i1 = 0; i1 < kNumPackages; i1++)
@@ -117,10 +119,13 @@ Int_t QwDriftChamber::LoadChannelMap(TString mapfile)
 
     }
 
+   
+
 
     //  Construct the wire data structures.
 
-    AddChannelDefinition(plane, wire);
+    // AddChannelDefinition(plane, wire);
+    AddChannelDefinition();
 
     /*
     for (size_t i=0; i<fDirectionData.at(0).size(); i++){

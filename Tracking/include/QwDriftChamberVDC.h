@@ -61,7 +61,8 @@ class QwDriftChamberVDC: public QwDriftChamber {
   void  FillHistograms();
   void  FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
   Int_t BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire);
-  Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire) {return 0;};
+/*   Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire) {return 0;}; */
+  Int_t AddChannelDefinition() {return 0;};
 
   static const UInt_t kBackPlaneNum;
   static const UInt_t kLineNum;

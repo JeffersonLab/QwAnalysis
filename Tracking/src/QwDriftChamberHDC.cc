@@ -260,7 +260,8 @@ void  QwDriftChamberHDC::FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t 
 
 
 
-Int_t QwDriftChamberHDC::BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire){
+Int_t QwDriftChamberHDC::BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire)
+{
   if (plane == kReferenceChannelPlaneNumber){
     LinkReferenceChannel(chan, plane, wire);
   } else {
@@ -277,39 +278,62 @@ Int_t QwDriftChamberHDC::BuildWireDataStructure(const UInt_t chan, const UInt_t 
   return OK;
 };
 
-Int_t QwDriftChamberHDC::AddChannelDefinition(const UInt_t plane, const UInt_t wire)
+//Int_t QwDriftChamberHDC::AddChannelDefinition(const UInt_t plane, const UInt_t wire)
+Int_t QwDriftChamberHDC::AddChannelDefinition()
 {
+  bool temp_local_debug = false;
+//   if (temp_local_debug){
+//     std::cout << " QwDriftChamberHDC::AddChannelDefinition"<<std::endl;
+//     std::cout << "plane " << plane << " wire " << wire << std::endl;
+//   }
+  
+  std::size_t i =0;
+    
   fWireData.resize(fWiresPerPlane.size());
-  for (size_t i=0; i<fWiresPerPlane.size(); i++){
+  for (i=0; i<fWiresPerPlane.size(); i++){
+    if(temp_local_debug){
+      std::cout << "wire #" << i 
+		<< " " << fWiresPerPlane.at(i)
+		<< std::endl;
+    }
     fWireData.at(i).resize(fWiresPerPlane.at(i));
   }
-  for (size_t i=0; i<fTDC_Index.size(); i++){
-    //  Int_t refchan = i;
+  
+  Int_t mytdc = 0;
+  for ( i=0; i<fTDC_Index.size(); i++){
     for (size_t j=0; j<fTDC_Index.at(i).size(); j++){
-      Int_t mytdc = fTDC_Index.at(i).at(j);
-      if (mytdc!=-1){
+      mytdc = fTDC_Index.at(i).at(j);
+      if (mytdc not_eq -1){
 	for (size_t k=0; k<fTDCPtrs.at(mytdc).size(); k++){
 	  //	  Int_t package = fTDCPtrs.at(mytdc).at(k).fPackage;
 	  Int_t plane   = fTDCPtrs.at(mytdc).at(k).fPlane;
-	  if (plane>0 && plane != (Int_t) kReferenceChannelPlaneNumber){
+	  if (( plane>0) and (plane not_eq (Int_t) kReferenceChannelPlaneNumber) ){
 	    Int_t wire  = fTDCPtrs.at(mytdc).at(k).fElement;
 	    fWireData.at(plane).at(wire).SetElectronics(i,j,k);
+	    if(temp_local_debug) {
+	      std::cout << "mytdc " << mytdc
+			<< "wire #" << wire 
+			<< " plane  " << plane
+			<< " (i j k) (" << i  <<" " << j << " "<< k << ")"
+			<< std::endl;
+	    }
 	  }
 	}
       }
     }
   }
+  std::cout << " QwDriftChamberHDC::AddChannelDefinition END"<<std::endl;
   return OK;
 }
 
-void  QwDriftChamberHDC::ProcessEvent(){
+void  QwDriftChamberHDC::ProcessEvent()
+{
   if (! HasDataLoaded()) return;
-
+  
   SubtractReferenceTimes();
-
-
+  
   for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
-
+    
     //if (hit1->GetDetectorID().fPlane<7){
       //std::cout<<"Plane "<<hit1->GetDetectorID().fPlane<<std::endl;
 

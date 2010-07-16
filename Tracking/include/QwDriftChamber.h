@@ -110,7 +110,8 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
   Int_t LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire);
   virtual Int_t BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire)=0;
-  virtual Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire)= 0;
+  //  virtual Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire)= 0;
+  virtual Int_t AddChannelDefinition() = 0;
 
 
 
@@ -150,10 +151,9 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
  protected:
   static const UInt_t kMaxNumberOfTDCsPerROC;
-  static const UInt_t kMaxNumberOfChannelsPerTDC;
-
   static const UInt_t kReferenceChannelPlaneNumber;
 
+  UInt_t kMaxNumberOfChannelsPerTDC;
   Int_t fNumberOfTDCs;
 
   std::vector< std::vector<Int_t> > fTDC_Index;  //  TDC index, indexed by bank_index and slot_number
