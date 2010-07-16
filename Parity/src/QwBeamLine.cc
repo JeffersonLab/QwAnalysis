@@ -245,10 +245,10 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
       if(currentsubbankindex!=GetSubbankIndex(currentrocread,currentbankread)){
 	currentsubbankindex=GetSubbankIndex(currentrocread,currentbankread);
       }
-      
+
       if(modtype=="VQWK"){
 	offset = QwVQWK_Channel::GetBufferOffset(modnum, channum);
-      } 
+      }
       else if(modtype=="SCALER") {
 	offset = QwSIS3801D24_Channel::GetBufferOffset(modnum, channum);
       }
@@ -293,7 +293,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	  QwBPMStripline localstripline(localBeamDetectorID.fdetectorname,!unrotated);
 	  fStripline.push_back(localstripline);
 	  fStripline[fStripline.size()-1].SetDefaultSampleSize(fSample_size);
-	  localBeamDetectorID.fIndex=fStripline.size()-1;	  
+	  localBeamDetectorID.fIndex=fStripline.size()-1;
 	}
 
 	if(localBeamDetectorID.fTypeID== kQwBCM){
@@ -359,7 +359,7 @@ QwBeamDetectorID::QwBeamDetectorID(Int_t subbankid, Int_t offset,
   fSubbankIndex(subbankid),fWordInSubbank(offset),
   fmoduletype(modtype),fdetectorname(name),fdetectortype(dettype)
 {
-  fTypeID = GetQwBeamInstrumentType(dettype);	    
+  fTypeID = GetQwBeamInstrumentType(dettype);
 };
 
 
@@ -459,7 +459,7 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 
   for (size_t i=0;i<fBCM.size();i++)
     fBCM[i].SetEventCutMode(eventcut_flag);
-  
+
   for (size_t i=0;i<fHaloMonitor.size();i++)
     //fHaloMonitor[i].SetEventCutMode(eventcut_flag);
 
@@ -527,7 +527,7 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
 	  notfound=kFALSE;
 	  continue;
 	}
-	
+
 	localname=fStripline[index].GetElementName();
 	localname.ToLower();
 	if(ldebug)  std::cout<<"element name =="<<localname
@@ -657,7 +657,7 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 
 
 
-          }      
+          }
 
 
 	}
@@ -1407,7 +1407,7 @@ void  QwBeamLine::FillHistograms()
 //*****************************************************************
 void QwBeamLine::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
-  
+
   for(size_t i = 0; i < fStripline.size(); i++)
     fStripline[i].ConstructBranchAndVector(tree, prefix, values);
   for(size_t i = 0; i < fBCM.size(); i++)
@@ -1439,7 +1439,7 @@ void QwBeamLine::ConstructBranch(TTree *tree, TString & prefix)
     fBPMCombo[i].ConstructBranch(tree, prefix);
   for(size_t i = 0; i <fECalculator.size();i++)
     fECalculator[i].ConstructBranch(tree, prefix);
-  
+
 
   return;
 };
@@ -1452,14 +1452,14 @@ void QwBeamLine::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile&
   QwParameterFile* nextmodule;
   trim_file.RewindToFileStart();
 
-  
+
   tmp="QwBPMStripline";
   trim_file.RewindToFileStart();
   if (trim_file.FileHasModuleHeader(tmp)){
     nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
     for(size_t i = 0; i < fStripline.size(); i++)
       fStripline[i].ConstructBranch(tree, prefix,*nextmodule);
-  
+
   }
 
   tmp="QwBCM";
@@ -1483,10 +1483,10 @@ void QwBeamLine::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile&
   trim_file.RewindToFileStart();
   if (trim_file.FileHasModuleHeader(tmp)){
     nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
-    for(size_t i = 0; i <fBCMCombo.size();i++)      
-      fBCMCombo[i].ConstructBranch(tree, prefix,*nextmodule);    
+    for(size_t i = 0; i <fBCMCombo.size();i++)
+      fBCMCombo[i].ConstructBranch(tree, prefix,*nextmodule);
   }
-  
+
 
   tmp="QwCombinedBPM";
   trim_file.RewindToFileStart();
@@ -1667,16 +1667,16 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
   Char_t measurement_type_bpm[4];
 
   if(datatype.Contains("yield")) {
-    sprintf(measurement_type_bcm, "yq");
-    sprintf(measurement_type_bpm, "yp");
+    sprintf(measurement_type_bcm, "%s", "yq");
+    sprintf(measurement_type_bpm, "%s", "yp");
   }
   else if (datatype.Contains("asymmetry")) {
-    sprintf(measurement_type_bcm, "a");
-    sprintf(measurement_type_bpm, "d");
+    sprintf(measurement_type_bcm, "%s", "a");
+    sprintf(measurement_type_bpm, "%s", "d");
   }
   else {
-    sprintf(measurement_type_bcm, "");
-    sprintf(measurement_type_bpm, "");
+    sprintf(measurement_type_bcm, "%s", "");
+    sprintf(measurement_type_bpm, "%s", "");
   }
 
 

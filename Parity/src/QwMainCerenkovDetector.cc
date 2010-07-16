@@ -639,7 +639,7 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
     variable_list.push_back(&fTargetXprime);
     variable_list.push_back(&fTargetYprime);
     variable_list.push_back(&fTargetEnergy);
-    
+
 
     // Loop over all variables in the list
     std::vector<VQwDataElement*>::iterator variable_iter;
@@ -754,7 +754,7 @@ void QwMainCerenkovDetector::ConstructBranch(TTree *tree, TString & prefix, QwPa
   trim_file.RewindToFileStart();
   tmp="QwIntegrationPMT";
   trim_file.RewindToFileStart();
-  if (trim_file.FileHasModuleHeader(tmp)){ 
+  if (trim_file.FileHasModuleHeader(tmp)){
     nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
     for (size_t i=0;i<fIntegrationPMT.size();i++)
 
@@ -763,7 +763,7 @@ void QwMainCerenkovDetector::ConstructBranch(TTree *tree, TString & prefix, QwPa
 
   tmp="QwCombinedPMT";
   trim_file.RewindToFileStart();
-   if (trim_file.FileHasModuleHeader(tmp)){ 
+   if (trim_file.FileHasModuleHeader(tmp)){
      nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
      for (size_t i=0;i<fCombinedPMT.size();i++)
        fCombinedPMT[i].ConstructBranch(tree, prefix, *nextmodule );
@@ -1113,13 +1113,13 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
   Char_t measurement_type[4];
 
   if(datatype.Contains("yield")) {
-    sprintf(measurement_type, "y");
+    sprintf(measurement_type, "%s", "y");
   }
   else if (datatype.Contains("asymmetry")) {
-    sprintf(measurement_type, "a");
+    sprintf(measurement_type, "%s", "a");
   }
   else {
-    sprintf(measurement_type, "");
+    sprintf(measurement_type, "%s", "");
   }
 
   UInt_t i,j;
