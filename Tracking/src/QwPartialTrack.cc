@@ -84,11 +84,12 @@ const double QwPartialTrack::CalculateAverageResidual()
          treeline = treeline->next) {
       if (treeline->IsUsed()) {
         numTreeLines++;
-        sumResiduals += treeline->CalculateAverageResidual();
+        sumResiduals += treeline->GetAverageResidual();
       }
     } // end of loop over treelines
   } // end of loop over directions
-  return sumResiduals / numTreeLines;
+  fAverageResidual = sumResiduals / numTreeLines;
+  return fAverageResidual;
 }
 
 

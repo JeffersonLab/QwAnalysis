@@ -1200,7 +1200,15 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 
   /* End of region-specific parts */
 
-  /* Now search for identical tree lines in the list */
+
+  // Calculate the average residual
+  for (QwTrackingTreeLine *treeline = treelinelist; treeline;
+                           treeline = treeline->next) {
+    if (treeline->IsValid())
+      treeline->CalculateAverageResidual();
+  }
+
+  // Now search for identical tree lines in the list
   QwDebug << "Searching for identical treelines..." << QwLog::endl;
   for (QwTrackingTreeLine *treeline1 = treelinelist; treeline1;
                            treeline1 = treeline1->next) {
@@ -2326,6 +2334,17 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
             << "Region " << region << " not supported!" << QwLog::endl;
 
   }
+
+
+  // Calculate the average residual
+  for (QwPartialTrack *parttrack = pt_next; parttrack;
+                       parttrack = parttrack->next) {
+    if (parttrack->IsValid())
+      parttrack->CalculateAverageResidual();
+  }
+
+
+
 
   return pt_next;
 }
