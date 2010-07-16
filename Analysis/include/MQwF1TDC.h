@@ -29,17 +29,6 @@ class MQwF1TDC{
   MQwF1TDC();
   ~MQwF1TDC();
 
-// protected:
-  /*
-  void DecodeF1Word(UInt_t &word);
-  
-
-  Bool_t IsAF1Headerword(){return fF1HeaderFlag;};
-
-  UInt_t GetF1SlotNumber(){return fF1SlotNumber;};
-  UInt_t GetF1ChannelNumber(){return fF1ChannelNumber;};
-  UInt_t GetF1Data(){return fF1Dataword;};
-  */
   void DecodeTDCWord(UInt_t &word, const UInt_t roc_id);
 
   Bool_t IsValidDataword();
@@ -64,10 +53,7 @@ class MQwF1TDC{
   
   Double_t SubtractReference(Double_t rawtime, Double_t reftime);
   Double_t ActualTimeDifference(Double_t raw_time, Double_t ref_time);
-  //  Bool_t CheckDataIntegrity(UInt_t ref_event_number, UInt_t ref_trigger_time);
   Bool_t CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t num_words);
-
-  // Two print functions are used for a debugging purpose temporarily 
   void   PrintTDCHeader(Bool_t flag);
   void   PrintTDCData(Bool_t flag);
   

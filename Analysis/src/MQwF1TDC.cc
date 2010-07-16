@@ -42,7 +42,12 @@ MQwF1TDC::MQwF1TDC(): fMinDiff(-1.0*kMaxInt), fMaxDiff(1.0*kMaxInt),
   fF1SlotNumber         = 0;
   fF1ChannelNumber      = 0;
   fF1Dataword           = 0;
-  fF1MaxChannelsPerModule = 64;
+  fF1MaxChannelsPerModule = 64; 
+
+  // temp solution, because it is not the general F1TDC
+  // if one want to use F1TDC as high resolution
+  // it will be changed to 32;
+  // Friday, July 16 11:11:02 EDT 2010, jhlee
 
   fF1HeaderTrigFIFOFlag = kFALSE;
   fF1HeaderEventNumber  = 0;
@@ -67,7 +72,8 @@ void MQwF1TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
   else                                        fF1ValidDataSlotFlag = kFALSE;
 
   
-  fF1HeaderFlag         = ((word & kF1Mask_HeaderFlag)==0); // TRUE if the mask bit IS NOT set
+  fF1HeaderFlag         = ((word & kF1Mask_HeaderFlag)==0); 
+  // TRUE if the mask bit IS NOT set
   
   // These three flags should be TRUE if their mask bit IS set
   fF1HitFIFOFlag        = ((word & kF1Mask_HitFIFOFlag       )!=0);
@@ -92,18 +98,9 @@ void MQwF1TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
     // skip to record overflow dataword entry (65535, 0xFFFF)
     fF1HeaderEventNumber   = 0;
     fF1HeaderTriggerTime   = 0;
-    //std::cout << "channel: " << fF1ChannelNumber << " raw time: " << fF1Dataword << std::endl;
+    // std::cout << "channel: " << fF1ChannelNumber 
+    // << " raw time: " << fF1Dataword << std::endl;
   }
-  
-  //    PrintHitFIFOStatus(roc_id);
-  //    PrintOutputFIFOStatus(roc_id);
-  //    PrintResolutionLockStatus(roc_id);
-  //  }
-  //  else {
-  
-  //  }
-  
-
   return;
 };
 
