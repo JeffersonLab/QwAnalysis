@@ -9,15 +9,6 @@
 #include "QwHitContainer.h"
 #include "QwHitRootContainer.h"
 
-////////////////Injector stuff/////////////////
-#include "QwGUIInjector.h"
-
-#include <TG3DLine.h>
-#include "TGaxis.h"
-
-
-////////////end injector stuff////////////
-
 ClassImp(QwGUITrackFinding);
 
 enum QwGUITrackFindingIndentificator {
@@ -320,6 +311,7 @@ std::cout << "Opened" << std::endl;
 //TreeLines Residuals
 	    tree->Draw("events.fQwTreeLines.fAverageResidual>>Residuals");
 	    TH1F *Residuals = (TH1F*)gDirectory->Get("Residuals");
+
 
 //TreeLines Offsets
 	    tree->Draw("events.fQwTreeLines.fOffset>>offset"); //(100.,-170.,110.)
