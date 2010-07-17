@@ -57,6 +57,15 @@ Int_t VQwSubsystem::LoadDetectorMaps(QwParameterFile& file)
       if (key == "param" && value.size() > 0)
         LoadInputParameters(value);
 
+      // Event cut file definition
+      if (key == "eventcut" && value.size() > 0)
+        LoadEventCuts(value);
+
+      // Event type mask
+      if (key == "mask" && value.size() > 0)
+        SetEventTypeMask(file.GetUInt(value));
+
+
     } // end of HasVariablePair
 
   } // end of while
@@ -110,7 +119,7 @@ QwSubsystemArray* VQwSubsystem::GetParent(const unsigned int parent) const
  * @param name Name of the sibling subsystem
  * @return Pointer to the sibling subsystem
  */
-VQwSubsystem* VQwSubsystem::GetSibling(const TString& name) const
+VQwSubsystem* VQwSubsystem::GetSibling(const std::string& name) const
 {
   // Get the parent and check for existence
   QwSubsystemArray* parent = GetParent();
@@ -251,7 +260,7 @@ Int_t VQwSubsystem::RegisterSubbank(const UInt_t bank_id)
   return stat;
 };
 
-void VQwSubsystem::Print()
+void VQwSubsystem::PrintInfo() const
 {
   std::cout << "Name of this subsystem: " << fSystemName << std::endl;
   for (size_t roc_index = 0; roc_index < fROC_IDs.size(); roc_index++) {

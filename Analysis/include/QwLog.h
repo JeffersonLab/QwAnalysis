@@ -35,12 +35,12 @@ class QwOptions;
 /*! \def QwError
  *  \brief Predefined log drain for errors
  */
-#define QwError    gQwLog(QwLog::kError)
+#define QwError    gQwLog(QwLog::kError,__PRETTY_FUNCTION__,__FUNCTION__)
 
 /*! \def QwWarning
  *  \brief Predefined log drain for warnings
  */
-#define QwWarning  gQwLog(QwLog::kWarning)
+#define QwWarning  gQwLog(QwLog::kWarning,__PRETTY_FUNCTION__,__FUNCTION__)
 
 /*! \def QwMessage
  *  \brief Predefined log drain for regular messages
@@ -79,7 +79,9 @@ class QwLog : public std::ostream {
 
     /// \brief Define available class options for QwOptions
     static void DefineOptions(QwOptions* options);
-    // Note: this uses a pointer as opposed to a reference, because as indicated
+    /// \brief Process class options for QwOptions
+    void ProcessOptions(QwOptions* options);
+    // Note: this uses pointers as opposed to references, because as indicated
     // above the QwLog class cannot depend on the QwOptions class.  When using a
     // pointer we only need a forward declaration and we do not need to include
     // the header file QwOptions.h.
@@ -125,7 +127,9 @@ class QwLog : public std::ostream {
 
     /*! \brief Set the stream log level
      */
-    QwLog&                      operator()(QwLogLevel level);
+    QwLog&                      operator()(const QwLogLevel level,
+                                           const std::string func_sig  = "<unknown>",
+                                           const std::string func_name = "<unknown>");
 
     /*! \brief Stream an object to the output stream
      */
@@ -158,20 +162,25 @@ class QwLog : public std::ostream {
 
     /*! \brief Get the local time
      */
-    const char *                GetTime();
+    const char*                 GetTime();
     char                        fTimeString[128];
 
     //! Screen thresholds and stream
-    QwLogLevel                  fScreenThreshold;
-    std::ostream               *fScreen;
+    QwLogLevel    fScreenThreshold;
+    std::ostream *fScreen;
     //! File thresholds and stream
-    QwLogLevel                  fFileThreshold;
-    std::ostream               *fFile;
+    QwLogLevel    fFileThreshold;
+    std::ostream *fFile;
     //! Log level of this stream
-    QwLogLevel                  fLogLevel;
+    QwLogLevel fLogLevel;
+
+    //! Flag to print function name on warning or error
+    bool fPrintFunctionName;
+    //! Flag to print function signature on warning or error
+    bool fPrintFunctionSignature;
 
     //! Flag to disable color (static)
-    static bool                 fUseColor;
+    static bool fUseColor;
 
 };
 

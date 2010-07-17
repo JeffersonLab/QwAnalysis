@@ -16,8 +16,6 @@
 #include "QwEventBuffer.h"
 #include "QwSSQLS.h"
 using namespace QwParityDB;
-// Is there any method put QwSSQLS.h in QwDatabase.h? (jhlee)
-
 
 //
 //  Template definitions for the QwDBInterface class.
@@ -64,14 +62,14 @@ std::map<string, unsigned int> QwDatabase::fMonitorIDs;
 std::map<string, unsigned int> QwDatabase::fMainDetectorIDs;
 std::map<string, unsigned int> QwDatabase::fLumiDetectorIDs;
 std::vector<string>            QwDatabase::fMeasurementIDs;
-std::map<string, unsigned int> QwDatabase::fSlowControlDetectorIDs;
+std::map<string, unsigned int> QwDatabase::fSlowControlDetectorIDs;// for epics
 
 /*! The simple constructor initializes member fields.  This class is not
  * used to establish the database connection.  It sets up a
  * mysqlpp::Connection() object that has exception throwing disabled.
  */
 //QwDatabase::QwDatabase() : Connection(false)
-QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersionMinor("00"), kValidVersionPoint("0000")
+QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersionMinor("00"), kValidVersionPoint("0003")
 {
   // Initialize member fields
   fDatabase=fDBServer=fDBUsername=fDBPassword="";
@@ -92,7 +90,7 @@ QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersion
  *  the QwOptions object.
  * @param options  The QwOptions object.
  */
-QwDatabase::QwDatabase(QwOptions &options) : Connection(), kValidVersionMajor("01"), kValidVersionMinor("00"), kValidVersionPoint("0000")
+QwDatabase::QwDatabase(QwOptions &options) : Connection(), kValidVersionMajor("01"), kValidVersionMinor("00"), kValidVersionPoint("0003")
 {
   // Initialize member fields
   fDatabase=fDBServer=fDBUsername=fDBPassword="";
@@ -123,7 +121,7 @@ QwDatabase::~QwDatabase()
  *
  * It is called the first time Connect() is called.
  */
-Bool_t QwDatabase::ValidateConnection() 
+Bool_t QwDatabase::ValidateConnection()
 {
   // Bool_t status;
   //
@@ -133,16 +131,16 @@ Bool_t QwDatabase::ValidateConnection()
   //     status = ProcessOptions(gQwOptions);
   //     if (!status) return status;
   //   }
-  
+
   //  Check values.
   if (fAccessLevel!=kQwDatabaseOff){
     if (fDatabase.empty()){
       QwError << "QwDatabase::ValidateConnection() : No database supplied.  Unable to connect." << QwLog::endl;
-      fValidConnection=false;    
+      fValidConnection=false;
     }
     if (fDBUsername.empty()){
       QwError << "QwDatabase::ValidateConnection() : No database username supplied.  Unable to connect." << QwLog::endl;
-      fValidConnection=false;    
+      fValidConnection=false;
     }
     if (fDBPassword.empty()){
       QwError << "QwDatabase::ValidateConnection() : No database password supplied.  Unable to connect." << QwLog::endl;
@@ -243,12 +241,12 @@ bool QwDatabase::Connect()
 void QwDatabase::DefineOptions(QwOptions& options)
 {
   // Specify command line options for use by QwDatabase
-  options.AddOptions()("QwDatabase.accesslevel", po::value<string>(), "database access level (OFF,RW)");
-  options.AddOptions()("QwDatabase.dbname", po::value<string>(), "database name");
-  options.AddOptions()("QwDatabase.dbserver", po::value<string>(), "database server name");
-  options.AddOptions()("QwDatabase.dbusername", po::value<string>(), "database username");
-  options.AddOptions()("QwDatabase.dbpassword", po::value<string>(), "database password");
-  options.AddOptions()("QwDatabase.dbport", po::value<int>()->default_value(0), "database server port number (defaults to standard mysql port)");
+  options.AddOptions("Database options")("QwDatabase.accesslevel", po::value<string>(), "database access level (OFF,RW)");
+  options.AddOptions("Database options")("QwDatabase.dbname", po::value<string>(), "database name");
+  options.AddOptions("Database options")("QwDatabase.dbserver", po::value<string>(), "database server name");
+  options.AddOptions("Database options")("QwDatabase.dbusername", po::value<string>(), "database username");
+  options.AddOptions("Database options")("QwDatabase.dbpassword", po::value<string>(), "database password");
+  options.AddOptions("Database options")("QwDatabase.dbport", po::value<int>()->default_value(0), "database server port number (defaults to standard mysql port)");
 }
 
 /*!
@@ -261,7 +259,7 @@ void QwDatabase::ProcessOptions(QwOptions &options)
   if (options.HasValue("QwDatabase.accesslevel")) {
     string access = options.GetValue<string>("QwDatabase.accesslevel");
     SetAccessLevel(access);
-  } 
+  }
   else {
     QwWarning << "QwDatabase::ProcessOptions : No access level specified; database access is OFF" << QwLog::endl;
     fAccessLevel = kQwDatabaseOff;
@@ -281,9 +279,19 @@ void QwDatabase::ProcessOptions(QwOptions &options)
   if (options.HasValue("QwDatabase.dbserver")) {
     fDBServer = options.GetValue<string>("QwDatabase.dbserver");
   }
-  
+
   return;
 };
+
+void QwDatabase::ProcessOptions(const TString& dbname, const TString& username, const TString& passwd, const TString& dbhost, const Int_t dbport, const TString& accesslevel)
+{
+  SetAccessLevel(static_cast<string>(accesslevel));
+  fDatabase = dbname;
+  fDBUsername = username;
+  fDBPassword = passwd;
+  fDBServer = dbhost;
+  fDBPortNumber = dbport;
+}
 
 void QwDatabase::SetAccessLevel(string accesslevel)
 {
@@ -439,7 +447,10 @@ const UInt_t QwDatabase::GetRunID(QwEventBuffer& qwevt)
   // If the stored run number does not agree with the CODA run number
   // or if fRunID is not set, then retrieve data from database and update if necessary.
 
-  if (fRunID == 0 || fRunNumber != qwevt.GetRunNumber() ) {
+  // GetRunNumber() in QwEventBuffer returns Int_t, thus
+  // we should convert it to UInt_t here. I think, it is OK.
+
+  if (fRunID == 0 || fRunNumber != (UInt_t) qwevt.GetRunNumber() ) {
      QwDebug << "QwDatabase::GetRunID() set fRunID to " << SetRunID(qwevt) << QwLog::endl;
      fRunletID = 0;
      fAnalysisID = 0;
@@ -458,20 +469,20 @@ const UInt_t QwDatabase::SetRunletID(QwEventBuffer& qwevt)
 {
 
   // Make sure 'run' table has been populated and retrieve run_id
-  UInt_t runid = this->GetRunID(qwevt);
- 
-  // Check to see if runlet is already in database.  If so retrieve runlet_id and exit.  
-  try 
+  //  UInt_t runid = this->GetRunID(qwevt);
+
+  // Check to see if runlet is already in database.  If so retrieve runlet_id and exit.
+  try
     {
       this->Connect();
       mysqlpp::Query query = this->Query();
 
       // Query is slightly different if file segments are being chained together for replay or not.
-      if (qwevt.ChainDataFiles()) {
-        query << "SELECT * FROM runlet WHERE run_id = " << fRunID << " AND full_run = 'true'";
-      } else {
+      if (qwevt.AreRunletsSplit()) {
         fSegmentNumber = qwevt.GetSegmentNumber();
         query << "SELECT * FROM runlet WHERE run_id = " << fRunID << " AND full_run = 'false' AND segment_number = " << fSegmentNumber;
+      } else {
+	query << "SELECT * FROM runlet WHERE run_id = " << fRunID << " AND full_run = 'true'";
       }
 
       std::vector<runlet> res;
@@ -479,7 +490,7 @@ const UInt_t QwDatabase::SetRunletID(QwEventBuffer& qwevt)
       QwDebug << "QwDatabase::SetRunletID => Number of rows returned:  " << res.size() << QwLog::endl;
 
       // If there is more than one run in the DB with the same runlet number, then there will be trouble later on.  Catch and bomb out.
-      if (res.size()>1) 
+      if (res.size()>1)
 	{
 	  QwError << "Unable to find unique runlet number " << qwevt.GetRunNumber() << " in database." << QwLog::endl;
 	  QwError << "Run number query returned " << res.size() << "rows." << QwLog::endl;
@@ -487,21 +498,21 @@ const UInt_t QwDatabase::SetRunletID(QwEventBuffer& qwevt)
 	  this->Disconnect();
 	  return 0;
 	}
-      
+
       // Run already exists in database.  Pull runlet_id and move along.
-      if (res.size()==1) 
+      if (res.size()==1)
 	{
 	  QwDebug << "QwDatabase::SetRunletID => Runlet ID = " << res.at(0).runlet_id << QwLog::endl;
-	  
+
 	  fRunletID     = res.at(0).runlet_id;
 	  this->Disconnect();
 	  return fRunletID;
 	}
       this->Disconnect();
     }
-  catch (const mysqlpp::Exception& er) 
+  catch (const mysqlpp::Exception& er)
     {
-   
+
       QwError << er.what() << QwLog::endl;
       this->Disconnect();
       return 0;
@@ -509,9 +520,9 @@ const UInt_t QwDatabase::SetRunletID(QwEventBuffer& qwevt)
 
   // Runlet is not in database so insert pertinent data and retrieve run ID
   // Right now this does not insert start/stop times or info on number of events.
-  try 
+  try
     {
-      
+
       this->Connect();
       runlet row(0);
       row.run_id      = fRunID;
@@ -520,34 +531,34 @@ const UInt_t QwDatabase::SetRunletID(QwEventBuffer& qwevt)
       row.end_time        = mysqlpp::null;
       row.first_mps = 0;
       row.last_mps	= 0;
-      if (qwevt.ChainDataFiles()) {
-        row.segment_number  = mysqlpp::null;
-        row.full_run = "true";
-      } else {
+      if (qwevt.AreRunletsSplit()) {
         row.segment_number = fSegmentNumber;
         row.full_run = "false";
+      } else {
+        row.segment_number  = mysqlpp::null;
+        row.full_run = "true";
       }
 
         mysqlpp::Query query=this->Query();
         query.insert(row);
        QwDebug<< "QwDatabase::SetRunletID() => Run Insert Query = " << query.str() << QwLog::endl;
-      
+
       query.execute();
 
-      if (query.insert_id()!=0) 
+      if (query.insert_id()!=0)
 	{
 	  fRunletID     = query.insert_id();
 	}
       this->Disconnect();
       return fRunletID;
     }
-  catch (const mysqlpp::Exception& er) 
+  catch (const mysqlpp::Exception& er)
     {
       QwError << er.what() << QwLog::endl;
       this->Disconnect();
       return 0;
     }
-  
+
 }
 
 /*!
@@ -555,10 +566,10 @@ const UInt_t QwDatabase::SetRunletID(QwEventBuffer& qwevt)
  */
 const UInt_t QwDatabase::GetRunletID(QwEventBuffer& qwevt)
 {
-  // If the stored run number does not agree with the CODA run number 
+  // If the stored run number does not agree with the CODA run number
   // or if fRunID is not set, then retrieve data from database and update if necessary.
-  
-  if (fRunletID == 0 || (!qwevt.ChainDataFiles() && fSegmentNumber!=qwevt.GetSegmentNumber()) || fRunNumber != qwevt.GetRunNumber() ) {
+
+  if (fRunletID == 0 || (qwevt.AreRunletsSplit() && fSegmentNumber!=qwevt.GetSegmentNumber()) || fRunNumber != (UInt_t) qwevt.GetRunNumber() ) {
      QwDebug << "QwDatabase::GetRunletID() set fRunletID to " << SetRunletID(qwevt) << QwLog::endl;
      fAnalysisID = 0;
   }
@@ -601,9 +612,7 @@ const UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
     this->Connect();
     mysqlpp::Query query= this->Query();
     query.insert(analysis_row);
-    // I don't know why QwLog doesn't print properly, for I switched to cout
-    std::cout << "QwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << std::endl;
-
+    //QwMessage << "\nQwDatabase::SetAnalysisID() => Analysis Insert Query = " << query.str() << QwLog::endl<< QwLog::endl;
     query.execute();
 
     if (query.insert_id()!=0)
@@ -634,8 +643,8 @@ const UInt_t QwDatabase::GetAnalysisID(QwEventBuffer& qwevt)
     return 0;
   }
 
-  if (fAnalysisID == 0 || fRunNumber != qwevt.GetRunNumber() 
-      || (!qwevt.ChainDataFiles() && fSegmentNumber!=qwevt.GetSegmentNumber())) {
+  if (fAnalysisID == 0 || fRunNumber != (UInt_t) qwevt.GetRunNumber()
+      || (qwevt.AreRunletsSplit() && fSegmentNumber!=qwevt.GetSegmentNumber())) {
     QwDebug << "QwDatabase::GetAnalysisID() set fAnalysisID to " << SetAnalysisID(qwevt) << QwLog::endl;
     if (fAnalysisID==0) {
       QwError << "QwDatabase::SetAnalysisID() unable to set valid fAnalysisID for this run.  Exiting." <<QwLog::endl;

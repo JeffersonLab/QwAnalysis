@@ -117,7 +117,7 @@ void  QwCombinedBCM<T>::ProcessEvent()
 {
 
   Bool_t ldebug = kFALSE;
-  static QwVQWK_Channel  tmpADC; 
+  static QwVQWK_Channel  tmpADC;
   tmpADC.InitializeChannel("tmpADC","derived");
 
 
@@ -263,13 +263,16 @@ void QwCombinedBCM<T>::Scale(Double_t factor)
 
 
 template<typename T>
-void QwCombinedBCM<T>::Print() const
+void QwCombinedBCM<T>::PrintValue() const
 {
-  //std::cout<<"QwVQWK_Channel Info " <<std::endl;
-  //std::cout<<" Running AVG "<<GetElementName()<<" current running AVG "<<BCM_Running_AVG<<std::endl;
-  std::cout<<"QwVQWK_Channel Info " <<std::endl;
-  fCombined_bcm.Print();
-  return;
+  fCombined_bcm.PrintValue();
+}
+
+template<typename T>
+void QwCombinedBCM<T>::PrintInfo() const
+{
+  std::cout << "QwVQWK_Channel Info " << std::endl;
+  fCombined_bcm.PrintInfo();
 }
 
 /********************************************************/
@@ -353,6 +356,37 @@ void  QwCombinedBCM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, s
   } else
     {
       fCombined_bcm.ConstructBranchAndVector(tree,prefix,values);
+    }
+  return;
+};
+
+template<typename T>
+void  QwCombinedBCM<T>::ConstructBranch(TTree *tree, TString &prefix)
+{
+  if (GetElementName()==""){
+    //  This channel is not used, so skip filling the histograms.
+  } else
+    {
+      fCombined_bcm.ConstructBranch(tree,prefix);
+    }
+  return;
+};
+
+template<typename T>
+void  QwCombinedBCM<T>::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
+{
+  TString devicename;
+  devicename=GetElementName();
+  devicename.ToLower();
+
+  if (GetElementName()==""){
+    //  This channel is not used, so skip filling the histograms.
+  } else
+    {
+      if (modulelist.HasValue(devicename)){
+	fCombined_bcm.ConstructBranch(tree,prefix);
+	QwMessage <<" Tree leave added to "<<devicename<<QwLog::endl;
+      }
     }
   return;
 };

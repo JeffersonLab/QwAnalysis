@@ -53,7 +53,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     Bool_t SingleEventCuts();
     Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
     Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-    void  PrintDetectorID();
+    void  PrintDetectorID() const;
 
     void  ClearEventData();
     void  ProcessEvent();
@@ -100,7 +100,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     void Copy(VQwSubsystem *source);
     VQwSubsystem*  Copy();
     Bool_t Compare(VQwSubsystem *source);
-    void Print();
+    void Print() const;
 
     void SetCalibrationFactor(const Double_t factor) { fCalibrationFactor = factor; };
     const Double_t GetCalibrationFactor() const { return fCalibrationFactor; };
@@ -118,7 +118,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     static const Int_t StripsPerModule = 32;
     static const Int_t StripsPerPlane = 96;
 
-    std::vector< std::vector <Int_t> > fSubbankIndex; 
+    std::vector< std::vector <Int_t> > fSubbankIndex;
 
 
     /// List of V1495 accumulation mode strips

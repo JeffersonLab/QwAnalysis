@@ -62,7 +62,7 @@ void plot(TString title, TTree * ntree, Int_t rnum, TString device1, TString dev
   TGraph * gr;
 
   //event cut 
-  cut = Form("%s.Device_Error_Code == 0 && %s.Device_Error_Code ==0 && cleandata==1",device1.Data(),device2.Data() );
+  cut = Form("%s.Device_Error_Code == 0 && %s.Device_Error_Code ==0",device1.Data(),device2.Data() );
  
   
   // Rescale asymmetries to apprea in parts per millions 
@@ -171,7 +171,7 @@ void correlations( Int_t rnum, TString device1, TString device2)
   gPad->SetFillColor(20);
 
   //Get the root file
-  sprintf(fname,"%sQweak_BeamLine_%d.root",Directory.Data(),rnum);
+  sprintf(fname,"%sQweak_BeamLine_%d.000.root",Directory.Data(),rnum);
   TFile* rf = new TFile(fname);
   if(!rf->IsOpen())
     {
@@ -190,7 +190,7 @@ void correlations( Int_t rnum, TString device1, TString device2)
 
 
   // Print the bpm calibration polt on to gif file
-  C->Print(CTitle+".gif");
+  C->Print(CTitle+".png");
   std::cout<<" done with calibration \n";
 
 };

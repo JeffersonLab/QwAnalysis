@@ -66,9 +66,6 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
   virtual void  ProcessEvent()=0;//has separate meanings in VDC and HDC
 
-
-
-
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();
@@ -88,17 +85,16 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   virtual Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)=0;
 
 
+  virtual  void GetHitList(QwHitContainer & grandHitContainer)
+  {
+    grandHitContainer.Append(fWireHits);
+  };
+
   void GetTDCHitList(QwHitContainer & grandHitContainer)
   {
     grandHitContainer.Append(fTDCHits);
   };
 
-
-  void GetHitList(QwHitContainer & grandHitContainer)
-  {
-    //std::cout << " HDC "<<fTDCHits.size()<<std::endl;
-    grandHitContainer.Append(fWireHits);
-  };
 
   Int_t OK;
 
@@ -110,7 +106,8 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
   Int_t LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire);
   virtual Int_t BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire)=0;
-  virtual Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire)= 0;
+  //  virtual Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire)= 0;
+  virtual Int_t AddChannelDefinition() = 0;
 
 
 
@@ -122,7 +119,7 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
  protected:
   void  ClearAllBankRegistrations();
-  Int_t RegisterROCNumber(const UInt_t roc_id);
+  Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);
 
   Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
 
@@ -142,6 +139,8 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
   TString fRegion;  ///  Name of this subsystem (the region).
 
+  
+
 
  protected:
   size_t fCurrentBankIndex;
@@ -150,14 +149,17 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
  protected:
   static const UInt_t kMaxNumberOfTDCsPerROC;
-  static const UInt_t kMaxNumberOfChannelsPerTDC;
-
   static const UInt_t kReferenceChannelPlaneNumber;
 
+  UInt_t kMaxNumberOfChannelsPerTDC;
   Int_t fNumberOfTDCs;
 
   std::vector< std::vector<Int_t> > fTDC_Index;  //  TDC index, indexed by bank_index and slot_number
-  std::vector< std::pair<Int_t, Int_t> > fReferenceChannels;
+
+  std::vector< std::pair<Int_t, Int_t> > fReferenceChannels;  
+  // reference chans number <first:tdc_index, second:channel_number>
+  // fReferenceChannels[tdc_index,channel_number][ num of [tdc,chan] set]
+
   std::vector< QwHit > fTDCHits;
   std::vector< QwHit > &fWireHits;
   std::vector< Int_t > fWiresPerPlane;
@@ -168,7 +170,9 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   //         When you're creating loops, just be careful that
   //         you don't try to use the first (zero-th) element
   //         of either index.
-  std::vector< std::vector< Double_t> > fReferenceData;
+  std::vector< std::vector<Double_t> > fReferenceData; 
+  // wire number < reference time > 
+  // fReferenceData[reference time][wire number]
 
 
   /*=====
@@ -179,10 +183,17 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   TH1F *TotHits[13];
   TH1F *TOFP[13];
   TH1F *TOFP_raw[13];
-  TH1F *WiresHit[13];
-  TH2F *TOFW[13];
+  TH1F *WiresHit[13];  TH2F *TOFW[13];
   TH2F *TOFW_raw[13];
   TH2F *HitsWire[13];
+  void InitHistogramPointers() {
+    // this magic 13 is eventually fWiresPerPlane.size(), but where?
+    for(UInt_t i=0; i<13; ++i) {
+      TotHits[i] = TOFP[i] = TOFP_raw[i] = WiresHit[i] = NULL;
+      TOFW[i] = TOFW_raw[i] = HitsWire[i] = NULL;
+    }
+  }
+
 
 
 
@@ -191,24 +202,31 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   //below are the data structures that are used in HDC/VDC
 
 
-  std::vector< std::vector< QwDetectorID > > fTDCPtrs; // Indexed by TDC_index and Channel; gives the package, plane and wire assignment.
-
-
+  std::vector< std::vector< QwDetectorID   > > fTDCPtrs; 
+  // Indexed by TDC_index and Channel; gives the package, plane and wire assignment.
   std::vector< std::vector< QwDetectorInfo > > fWireData;
-  std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
+  std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; 
+  // Indexed by package, plane this contains detector geometry information for each region;
 
-  std::vector< std::vector< UInt_t > > fDirectionData; //Indexed by pckg and plane each element represent the wire direction ( a value from 0 to 6)- Rakitha(10/23/2008)
-  std::vector< std::vector< std::vector <Double_t> > > fTimeWireOffsets;
+  std::vector< std::vector< UInt_t >         > fDirectionData; 
+  //Indexed by pckg and plane each element represent the wire direction ( a value from 0 to 6)- Rakitha(10/23/2008)
+
+  std::vector< std::vector< std::vector<Double_t> > > fTimeWireOffsets;
 
 
  protected:
-  //Double_t fTimeWireOffsets[kNumPackages][2][279]; //Indexed by pckg and plane number and wire number(only used on R3 right now)
+  //Double_t fTimeWireOffsets[kNumPackages][2][279]; 
+  //Indexed by pckg and plane number and wire number(only used on R3 right now)
 
   Int_t LoadTimeWireOffset(TString t0_map);
 
   void SubtractWireTimeOffset();
 
   void ApplyTimeCalibration();
+
+ /* protected: */
+ /*  UInt_t fF1DataIntegrityCount; */
+ /*  UInt_t GetF1DataIntegrityCount(){return fF1DataIntegrityCount;}; */
 
 };
 

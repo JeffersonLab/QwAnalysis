@@ -1,12 +1,22 @@
 #include <QwGUILumiDetector.h>
 #include <iostream>
 #include "TLine.h"
+#include <TPaveText.h>
 
 ClassImp(QwGUILumiDetector);
 
-const char *QwGUILumiDetector::LumiDetectorHists[LUMI_DET_HST_NUM] = 
-  { "C20AXM_hw_raw","C20AXM_block2_raw",
-    "AmpCh1_block1_raw","H00_YP_block1_raw"};
+enum QwGUILumiDetectorIdentificator {
+  SHOW_UPSTREAM,
+  SHOW_DOWNSTREAM,
+};
+
+const char *QwGUILumiDetector::RootTrees[2] = {"HEL_Tree","MPS_Tree"};
+
+const char *QwGUILumiDetector::USLumiDetectorHists[USLUMI_DET_HST_NUM] = 
+  { "uslumi1neg","uslumi1pos","uslumi3neg","uslumi3pos","uslumi5neg","uslumi5pos","uslumi7neg","uslumi7pos"};
+
+const char *QwGUILumiDetector::DSLumiDetectorHists[DSLUMI_DET_HST_NUM] = 
+  { "dslumi1","dslumi2","dslumi3","dslumi4","dslumi5","dslumi6","dslumi7","dslumi8"};
 
 QwGUILumiDetector::QwGUILumiDetector(const TGWindow *p, const TGWindow *main, const TGTab *tab, const char *objName, const char *mainname, UInt_t w, UInt_t h)
 
@@ -18,8 +28,11 @@ QwGUILumiDetector::QwGUILumiDetector(const TGWindow *p, const TGWindow *main, co
   dCnvLayout = NULL;
   dBtnLayout = NULL;
 
-  dButtonUser = NULL;
-  dButtonDetail = NULL;
+  dButtonUpstream = NULL;
+  dButtonDownstream = NULL;
+
+  HistArray.Clear();
+  DataWindowArray.Clear();
 
   AddThisTab(this);
 }
@@ -50,11 +63,11 @@ void QwGUILumiDetector::MakeLayout()
   dTabFrame = new TGHorizontalFrame(this,10,10);
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,10, 10);    
   
-  dButtonUser = new TGTextButton(this, "&User",  1);
+  dButtonUpstream = new TGTextButton(this, "&Upstream",  SHOW_UPSTREAM);
   //dButtonPos->SetCommand("printf(\"Reading position information %s\\n\","
   //                       "gROOT->GetVersion());");
 
-  dButtonDetail = new TGTextButton(this, "&Detail", 2);
+  dButtonDownstream = new TGTextButton(this, "&Downstream", SHOW_DOWNSTREAM);
   //dButtonCharge->SetCommand("printf(\"Reading charge asymmetires \n\")" );
  
 
@@ -62,11 +75,11 @@ void QwGUILumiDetector::MakeLayout()
   dTabFrame->AddFrame(dCanvas,dCnvLayout);
   dTabFrame->Resize(GetWidth(),GetHeight());
   AddFrame(dTabFrame,dTabLayout);
-  AddFrame(dButtonUser, dBtnLayout);
-  AddFrame(dButtonDetail, dBtnLayout);
+  AddFrame(dButtonUpstream, dBtnLayout);
+  AddFrame(dButtonDownstream, dBtnLayout);
 
-  dButtonUser -> Associate(this);
-  dButtonDetail -> Associate(this);
+  dButtonUpstream -> Associate(this);
+  dButtonDownstream -> Associate(this);
 
   dCanvas->GetCanvas()->SetBorderMode(0);
   dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
@@ -77,7 +90,7 @@ void QwGUILumiDetector::MakeLayout()
   QwGUISuperCanvas *mc = new QwGUISuperCanvas("", 10,10, wid);
   dCanvas->AdoptCanvas(mc);
 
-  mc->Divide( LUMI_DET_HST_NUM/2, LUMI_DET_HST_NUM/2);
+  //mc->Divide( 2 , 2 );
 
 }
 
@@ -99,30 +112,32 @@ void QwGUILumiDetector::OnObjClose(char *obj)
 
 void QwGUILumiDetector::OnNewDataContainer(RDataContainer *cont)
 {
-
-  TObject *obj;
-  TObject *copy;
+  TObject *obj = NULL;
+  TObject *copy = NULL;
+ 
   ClearData();
 
-  std::cout<<"On new Data container!\n";
   if(dROOTCont){
-    for(int p = 0; p < LUMI_DET_HST_NUM; p++){
-	
-      obj = dROOTCont->ReadData(LumiDetectorHists[p]);      
-      if(obj==NULL)  std::cout<<"no data for lumis\n";
-      if(obj){
-
-	if(obj->InheritsFrom("TH1")){
+    for(Short_t p = 0; p < 2; p++) {
+      obj = dROOTCont->ReadTree(RootTrees[p]);
+      if(obj)
+	{
+          std::cout<<"read root trees on new data container\n";
 	  copy = obj->Clone();
-	  ((TH1*)copy)->SetName(Form("%s_cp",((TH1*)obj)->GetName()));
-	  ((TH1*)copy)->SetDirectory(0);
 	  HistArray.Add(copy);
 	}
-      }
     }
-  }  
-  PlotData();
-}
+  }
+
+  //ShowUpstream();
+
+};
+
+
+
+       
+
+
 
 void QwGUILumiDetector::OnRemoveThisTab()
 {
@@ -132,43 +147,24 @@ void QwGUILumiDetector::OnRemoveThisTab()
 void QwGUILumiDetector::ClearData()
 {
 
-  TObject *obj;
-  TIter next(HistArray.MakeIterator());
-  obj = next();
-  while(obj){    
-    delete obj;
-    obj = next();
-  }
+  //TObject *obj;
+  //TIter next(HistArray.MakeIterator());
+  //obj = next();
+  //while(obj){    
+  //  delete obj;
+  //  obj = next();
+  //}
   HistArray.Clear();
 }
 
-void QwGUILumiDetector::PlotData()
-{
-  Int_t ind = 1;
 
-  TCanvas *mc = dCanvas->GetCanvas();
-
-  TObject *obj;
-  TIter next(HistArray.MakeIterator());
-  obj = next();
-  while(obj){
-    mc->cd(ind);
-    ((TH1*)obj)->Draw("");
-    ind++;
-    obj = next();
-  }
-
-  mc->Modified();
-  mc->Update();
-
-}
 
 void QwGUILumiDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 {
   if(event == kButton1Double){
     Int_t pad = dCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
     
-    if(pad > 0 && pad <= LUMI_DET_HST_NUM)
+    if(pad > 0 && pad <= USLUMI_DET_HST_NUM)
       {
 	RSDataWindow *dMiscWindow = new RSDataWindow(GetParent(), this,
 						     GetNewWindowName(),"QwGUILumiDetector",
@@ -186,121 +182,176 @@ void QwGUILumiDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
   }
 }
 
+void QwGUILumiDetector::ShowUpstream()
+{
+
+  std::cout<<"showing upstream\n";
+
+  Bool_t status;
+  TCanvas *mc = dCanvas->GetCanvas();
+  TObject *obj;
+  //TTree *tree;
+  TPaveText *errlabel;  
+
+  errlabel = new TPaveText(0, 0, 1, 1, "NDC");
+  errlabel->SetFillColor(0);
+  //ClearData();
+
+  mc->Clear();
+  mc->Divide(3,3); 
+
+  // Get HEL_Tree
+  obj = HistArray.At(0);
+  if(!obj) 
+    {
+    std::cout<<"histarray not filled\n";
+    return;
+    }
+
+   
+  for(int p = 0; p < USLUMI_DET_HST_NUM; p++)
+    {
+    if( ((TTree*) obj)->FindLeaf(Form("asym_%s.hw_sum",USLumiDetectorHists[p])) )
+      {
+        std::cout<<Form("Histogram asym_%s.hw_sum found!\n",USLumiDetectorHists[p]);
+        mc->cd(p+1);
+        obj->Draw(Form("asym_%s.hw_sum",USLumiDetectorHists[p]));
+        status=kTRUE;
+      }
+      else 
+      {
+        errlabel->AddText(Form("Unable to find object %s !",USLumiDetectorHists[p]));
+        std::cout<<Form("Histogram asym_%s.hw_sum not found\n",USLumiDetectorHists[p]);
+        status=kFALSE;
+        //mc->cd(p+1);
+        //errlabel->Draw();
+      }
+    }  
+    if(!status)
+      {
+      mc->Clear();
+      errlabel->Draw();
+      }
+      
+  mc->Modified();
+  mc->Update();
+      
+   
+}
+
+
+
+
+
+void QwGUILumiDetector::ShowDownstream()
+{
+
+  std::cout<<"showing downstream\n";
+
+  Bool_t status;
+  TCanvas *mc = dCanvas->GetCanvas();
+  TObject *obj;
+  //TTree *tree;
+  TPaveText *errlabel;  
+
+  errlabel = new TPaveText(0, 0, 1, 1, "NDC");
+  errlabel->SetFillColor(0);
+  //ClearData();
+
+  mc->Clear();
+  mc->Divide(3,3); 
+
+  // Get HEL_Tree
+  obj = HistArray.At(0);
+  if(!obj) 
+    {
+    std::cout<<"histarray not filled\n";
+    return;
+    }
+
+   
+  for(int p = 0; p < DSLUMI_DET_HST_NUM; p++)
+    {
+    if( ((TTree*) obj)->FindLeaf(Form("asym_%s.hw_sum",DSLumiDetectorHists[p])) )
+      {
+        std::cout<<Form("Histogram asym_%s.hw_sum found!\n",DSLumiDetectorHists[p]);
+        mc->cd(p+1);
+        obj->Draw(Form("asym_%s.hw_sum",DSLumiDetectorHists[p]));
+        status=kTRUE;
+      }
+      else 
+      {
+        errlabel->AddText(Form("Unable to find object %s !",DSLumiDetectorHists[p]));
+        std::cout<<Form("Histogram asym_%s.hw_sum not found\n",DSLumiDetectorHists[p]);
+        status=kFALSE;
+        //mc->cd(p+1);
+        //errlabel->Draw();
+      }
+    }  
+    if(!status)
+      {
+      mc->Clear();
+      errlabel->Draw();
+      }
+      
+  mc->Modified();
+  mc->Update();
+      
+   
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Bool_t QwGUILumiDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
-  switch (GET_MSG(msg)){
+  switch (GET_MSG(msg))
+    {
+    case kC_TEXTENTRY:
+      switch (GET_SUBMSG(msg)) 
+        {
+        case kTE_ENTER:
+          switch (parm1) 
+            {
+            default:
+              break;
+            }
+        default:
+          break;
+        }
 
-  case kC_TEXTENTRY:
-    switch (GET_SUBMSG(msg)) {
-    case kTE_ENTER:
-      switch (parm1) {
-
-      default:
-	break;
-      }
-
-    default:
-      break;
-    }
-
-  case kC_COMMAND:
-    switch (GET_SUBMSG(msg)) 
-      {
-      
-	case kCM_BUTTON:
-	  {
-	    TCanvas *mc = dCanvas->GetCanvas();
-
-	    TIter next(HistArray.MakeIterator());
-	    
+    case kC_COMMAND:
+      if(dROOTCont){
+        switch (GET_SUBMSG(msg)) 
+          {
+	  case kCM_BUTTON:
+	    {
 	    switch(parm1)
 	      {
-	      case 1:
-		{
-		printf("text button id %ld pressed\n", parm1);
-		mc->Clear();
-		TH2F *hist2_1 = new TH2F("","Asymmetry vs Lumi",100,0,0,100,0,0);
-		TH2F *hist2_2 = new TH2F("","Asymmetry Width vs Lumi",100,0,0,100,0,0);
-		Double_t x=0,y=0,yw=0;;
-		for (int i=1; i<9; i++) {
-			x=i;
-			y=0;
-			yw=0;
-			hist2_1->Fill(x,y);
-			hist2_2->Fill(x,yw);
-			//cout << x<<"\n";
-			}
-		TAxis *Xaxis = hist2_1->GetXaxis();
-		TAxis *Yaxis = hist2_1->GetYaxis();
-		Yaxis->SetTitle("Asymmetry");
-		Xaxis->SetTitle("Luminosity Monitor #");
-		hist2_1->SetMarkerStyle(21);
-
-		TAxis *X2axis = hist2_2->GetXaxis();
-		TAxis *Y2axis = hist2_2->GetYaxis();
-		Y2axis->SetTitle("Asymmetry Width");
-		X2axis->SetTitle("Luminosity Monitor #");
-		hist2_1->SetMarkerStyle(21);
-		hist2_2->SetMarkerStyle(21);
-
-		mc->Divide(1,2);
-		mc->cd(1);
-		hist2_1->Draw();
-		mc->cd(2);
-		hist2_2->Draw();
-		TLine *l = new TLine(1,0,8,0);
-		l->Draw("same");
-		mc->Update();
-
-
+	      case SHOW_UPSTREAM:
+		//printf("text button id %ld pressed\n", parm1);
+                std::cout<<"showing upstream lumis\n";
+		ShowUpstream();
 		break;
-		}
-
-	      case 2:
-		{
-		printf("text button id %ld pressed\n", parm1);
-		mc->Clear();
-		TH1F *hist1 = new TH1F("Lumi 1","Asymmetry",100,0,0);
-		TH1F *hist2 = new TH1F("Lumi 2","Asymmetry",100,0,0);
-		TH1F *hist3 = new TH1F("Lumi 3","Asymmetry",100,0,0);
-		TH1F *hist4 = new TH1F("Lumi 4","Asymmetry",100,0,0);
-		TH1F *hist5 = new TH1F("Lumi 5","Asymmetry",100,0,0);
-		TH1F *hist6 = new TH1F("Lumi 6","Asymmetry",100,0,0);
-		TH1F *hist7 = new TH1F("Lumi 7","Asymmetry",100,0,0);
-		TH1F *hist8 = new TH1F("Lumi 8","Asymmetry",100,0,0);
-
-		hist1->Fill(1,10000);
-		hist2->Fill(1,10000);
-		hist3->Fill(1,10000);
-		hist4->Fill(1,10000);
-		hist5->Fill(1,10000);
-		hist6->Fill(1,10000);
-		hist7->Fill(1,10000);
-		hist8->Fill(1,10000);
-
-		mc->Divide( 3,3);
-
-		mc->cd(1);
-		hist1->Draw();
-		mc->cd(2);
-		hist2->Draw();
-		mc->cd(3);
-		hist3->Draw();
-		mc->cd(4);
-		hist4->Draw();
-		mc->cd(6);
-		hist5->Draw();
-		mc->cd(7);
-		hist6->Draw();
-		mc->cd(8);
-		hist7->Draw();
-		mc->cd(9);
-		hist8->Draw();
-
-		mc->Update();
+		
+	      case SHOW_DOWNSTREAM:
+		//printf("text button id %ld pressed\n", parm1);
+                std::cout<<"showing downstream lumis\n";
+		ShowDownstream();
 		break;
-		}
+		
 	      }
 
 	    break;
@@ -334,7 +385,7 @@ Bool_t QwGUILumiDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
     default:
       break;
     }
-    
+  }  
   default:
     break;
   }

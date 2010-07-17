@@ -139,17 +139,16 @@ QwTrackingWorker::QwTrackingWorker (const char* name)
   fBridgingTrackFilter = new QwBridgingTrackFilter();
 
   // Initialize a lookup table bridging method
-  if (fUseMatrixLookup) {
+  if (! fDisableMomentum && ! fDisableMatrixLookup) {
     fMatrixLookup = new QwMatrixLookup();
     // Determine lookup table file from environment variables
     std::string trajmatrix = "";
-    std::string trajmatrix_filename = "QwTrajMatrix.root";
     if (getenv("QW_LOOKUP"))
-      trajmatrix = std::string(getenv("QW_LOOKUP")) + "/" + trajmatrix_filename;
+      trajmatrix = std::string(getenv("QW_LOOKUP")) + "/" + fFilenameLookupTable;
     else {
       QwWarning << "Environment variable QW_LOOKUP not defined." << QwLog::endl;
       QwWarning << "It should point to the directory with the file"
-                << trajmatrix_filename << QwLog::endl;
+                << fFilenameLookupTable << QwLog::endl;
     }
     // Load lookup table
     if (! fMatrixLookup->LoadTrajMatrix(trajmatrix))
@@ -158,17 +157,16 @@ QwTrackingWorker::QwTrackingWorker (const char* name)
   } else fMatrixLookup = 0;
 
   // Initialize a ray tracer bridging method
-  if (fUseRayTracer) {
+  if (! fDisableMomentum && ! fDisableRayTracer) {
     fRayTracer = new QwRayTracer();
     // Determine magnetic field file from environment variables
     std::string fieldmap = "";
-    std::string fieldmap_filename = "peiqing_2007.dat";
     if (getenv("QW_FIELDMAP"))
-      fieldmap = std::string(getenv("QW_FIELDMAP")) + "/" + fieldmap_filename;
+      fieldmap = std::string(getenv("QW_FIELDMAP")) + "/" + fFilenameFieldmap;
     else {
       QwWarning << "Environment variable QW_FIELDMAP not defined." << QwLog::endl;
       QwWarning << "It should point to the directory with the file"
-                << fieldmap_filename << QwLog::endl;
+                << fFilenameFieldmap << QwLog::endl;
     }
     // Load magnetic field map
     if (! fRayTracer->LoadMagneticFieldMap(fieldmap))
@@ -205,11 +203,8 @@ QwTrackingWorker::~QwTrackingWorker ()
 
 void QwTrackingWorker::DefineOptions(QwOptions& options)
 {
-  // Global options for the tracking worker
-  options.AddConfigFile("Tracking/prminput/qwtracking.conf");
-
   // General options
-  options.AddOptions()("QwTracking.disable",
+  options.AddOptions()("QwTracking.disable-tracking",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "disable all tracking analysis");
   options.AddOptions()("QwTracking.showeventpattern",
@@ -244,28 +239,42 @@ void QwTrackingWorker::DefineOptions(QwOptions& options)
                           "maximum number of missed wires");
 
   // Momentum reconstruction
+  options.AddOptions()("QwTracking.disable-momentum",
+                          po::value<bool>()->zero_tokens()->default_value(false),
+                          "disable the momentum reconstruction");
   options.AddOptions()("QwTracking.disable-matrixlookup",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "disable the use of the momentum lookup table");
   options.AddOptions()("QwTracking.disable-raytracer",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "disable the magnetic field map tracking");
+  options.AddOptions()("QwTracking.fieldmap",
+                          po::value<std::string>()->default_value("peiqing_2007.dat"),
+                          "filename of the fieldmap file in QW_FIELDMAP");
+  options.AddOptions()("QwTracking.lookuptable",
+                          po::value<std::string>()->default_value("QwTrajMatrix.root"),
+                          "filename of the lookup table in QW_LOOKUP");
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 void QwTrackingWorker::ProcessOptions(QwOptions& options)
 {
-  // Disable tracking
-  fDisableTracking = options.GetValue<bool>("QwTracking.disable");
+  // Disable tracking and/or momentu reconstruction
+  fDisableTracking = options.GetValue<bool>("QwTracking.disable-tracking");
+  fDisableMomentum = options.GetValue<bool>("QwTracking.disable-momentum");
 
   // Set the flags for showing the matching event patterns
-  fShowEventPattern = options.GetValue<bool>("QwTracking.showeventpattern");
+  fShowEventPattern    = options.GetValue<bool>("QwTracking.showeventpattern");
   fShowMatchingPattern = options.GetValue<bool>("QwTracking.showmatchingpattern");
 
   // Enable/disable the lookup table and raytracer momentum reconstruction methods
-  fUseMatrixLookup = ! options.GetValue<bool>("QwTracking.disable-matrixlookup");
-  fUseRayTracer    = ! options.GetValue<bool>("QwTracking.disable-raytracer");
+  fDisableMatrixLookup = options.GetValue<bool>("QwTracking.disable-matrixlookup");
+  fDisableRayTracer    = options.GetValue<bool>("QwTracking.disable-raytracer");
+
+  // Fieldmap and lookup table filenames
+  fFilenameFieldmap    = options.GetValue<std::string>("QwTracking.fieldmap");
+  fFilenameLookupTable = options.GetValue<std::string>("QwTracking.lookuptable");
 
   // Number of levels (search tree depth) for region 2
   fLevelsR2 = options.GetValue<int>("QwTracking.R2.levels");
@@ -757,16 +766,22 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                         QwDebug << "Matching region 3 segments" << QwLog::endl;
                         if (treelinelist1 && treelinelist2) {
+                            treelinelist = TreeMatch->MatchRegion3 (treelinelist1, treelinelist2);
+                            event->treeline[package][region][type][dir] = treelinelist;
+                            event->AddTreeLineList(treelinelist);
+
                             if (fDebug) {
                                 cout << "VDC1:" << endl;
                                 treelinelist1->Print();
                                 cout << "VDC2:" << endl;
                                 treelinelist2->Print();
                             }
-                            treelinelist = TreeMatch->MatchRegion3 (treelinelist1, treelinelist2);
+                            if (fDebug) {
+                                cout << "VDC1+2:" << endl;
+                                treelinelist->Print();
+                            }
+
                         }
-                        event->treeline[package][region][type][dir] = treelinelist;
-                        event->AddTreeLineList(treelinelist);
 
                         tlayers = MAX_LAYERS;  /* remember the number of tree-detector */
                         tlaym1  = tlayers - 1; /* remember tlayers - 1 for convenience */
@@ -956,7 +971,8 @@ QwEvent* QwTrackingWorker::ProcessHits (
         * ============================== */
 
         // If there were partial tracks in the HDC and VDC regions
-        if (event->parttrack[package][kRegionID2][kTypeDriftHDC]
+        if (! fDisableMomentum
+         && event->parttrack[package][kRegionID2][kTypeDriftHDC]
          && event->parttrack[package][kRegionID3][kTypeDriftVDC]) {
 
             QwDebug << "Bridging front and back partial tracks..." << QwLog::endl;
@@ -981,7 +997,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                 }
 
                 // Attempt to bridge tracks using lookup table
-                if (fUseMatrixLookup) {
+                if (! fDisableMatrixLookup) {
                   status = fMatrixLookup->Bridge(front, back);
                   QwMessage << "Matrix lookup: " << status << QwLog::endl;
                   if (status == 0) {
@@ -991,8 +1007,8 @@ QwEvent* QwTrackingWorker::ProcessHits (
                   }
                 }
 
-                // Attmept to bridge tracks using ray-tracing
-                if (fUseRayTracer) {
+                // Attempt to bridge tracks using ray-tracing
+                if (! fDisableRayTracer) {
                   status = fRayTracer->Bridge(front, back);
                   QwMessage << "Ray tracer: " << status << QwLog::endl;
                   if (status == 0) {

@@ -19,7 +19,7 @@ std::string get_line_seg(const std::string& stmp, const std::string& delim1, con
 
 std::string get_line_seg(const std::string& stmp, const std::string& delim);
 
-std::string get_next_seg(const std::string& inputstring, unsigned int& pos);
+std::string get_next_seg(const std::string& inputstring, size_t& pos);
 
 void split_string(const std::string& inputstring, const std::string& delim, std::vector<std::string>& varlist);
 

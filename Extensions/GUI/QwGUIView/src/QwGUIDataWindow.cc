@@ -28,6 +28,7 @@ QwGUIDataWindow::QwGUIDataWindow(const TGWindow *p, const TGWindow *main,
 
 QwGUIDataWindow::~QwGUIDataWindow()
 {  
+  RSDataWindow::CloseWindow();
 }
 
 void QwGUIDataWindow::SetStaticData(TObject *obj, Int_t chan)

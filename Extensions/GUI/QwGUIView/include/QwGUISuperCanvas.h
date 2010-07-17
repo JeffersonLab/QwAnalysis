@@ -85,6 +85,7 @@
 #include "TGraphErrors.h"
 #include "TMath.h"
 #include "TVirtualX.h"
+#include "TStyle.h"
 
 #include "QwColor.h"
 
@@ -144,7 +145,10 @@ class QwGUISuperCanvas : public TCanvas
 
   void SetBackBeforePad(TPad* cpad);
   void SetCurrentPad(Bool_t debug=false);
-
+  void SetAutomaticFontSize();
+  void ShowPadSummary();
+  TStyle *plain;
+ 
   ClassDef(QwGUISuperCanvas,1);
 };
 

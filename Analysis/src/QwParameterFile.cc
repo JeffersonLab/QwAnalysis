@@ -2,7 +2,11 @@
 
 #include "QwParameterFile.h"
 
+// System headers
 #include <sstream>
+
+// Qweak headers
+#include "QwLog.h"
 
 std::vector<bfs::path> QwParameterFile::fSearchPaths;
 
@@ -53,25 +57,25 @@ UInt_t QwParameterFile::GetUInt(const TString &varvalue){
 
 
 QwParameterFile::QwParameterFile(const char *filename){
-  bfs::path tmppath;
-  if (filename[0] == '/'){
+  bfs::path tmppath = bfs::path(filename);
+  if (filename[0] == '/') {
     tmppath = bfs::path(filename);
   } else {
-    for (size_t i=0; i<fSearchPaths.size(); i++){
-      tmppath = fSearchPaths.at(i).string() +"/"+ filename;
-      if( bfs::exists(tmppath) && ! bfs::is_directory(tmppath)) {
-	break;
+    for (size_t i = 0; i < fSearchPaths.size(); i++) {
+      tmppath = fSearchPaths.at(i).string() + "/" + filename;
+      if (bfs::exists(tmppath) && ! bfs::is_directory(tmppath)) {
+        break;
       }
     }
   }
   if (bfs::exists(tmppath)){
-    std::cout << "Opening parameter file: "
-	      << tmppath.string()<<"\n";
+    QwMessage << "Opening parameter file: "
+              << tmppath.string() << QwLog::endl;
     fFile.open(tmppath.string().c_str());
     fStream << fFile.rdbuf();
   } else {
-    std::cerr << "ERROR:  Unable to open parameter file: "
-	      << tmppath.string()<<"\n";
+    QwError << "Unable to open parameter file: "
+            << tmppath.string() << QwLog::endl;
   }
 };
 
@@ -109,6 +113,25 @@ void QwParameterFile::TrimComment(char commentchar){
   if (mypos != std::string::npos){
     fLine.erase(mypos);
   }
+}
+
+Bool_t QwParameterFile::HasValue(TString& vname){
+  Bool_t status=kFALSE;
+  TString vline;
+  RewindToFileStart();
+  while (ReadNextLine()){
+    TrimWhitespace();
+    vline=(GetLine()).c_str();
+    vline.ToLower();
+    vname.ToLower();
+    if (vline==vname){
+      QwMessage <<" QwParameterFile::HasValue  "<<vline<<" "<<vname<<QwLog::endl;
+      status=kTRUE;
+      break;
+    }      
+  }
+
+  return status;
 }
 
 Bool_t QwParameterFile::HasVariablePair(std::string separatorchars, TString &varname, TString &varvalue)
@@ -164,11 +187,24 @@ Bool_t QwParameterFile::FileHasVariablePair(
 
 Bool_t QwParameterFile::LineHasSectionHeader(TString& secname)
 {
-  return LineHasSectionHeader(secname);
+  TrimComment('#');
+  Bool_t status = kFALSE;
+  size_t equiv_pos1 = fLine.find_first_of('[');
+  if (equiv_pos1 != std::string::npos) {
+    size_t equiv_pos2 = fLine.find_first_of(']',equiv_pos1);
+    if (equiv_pos2 != std::string::npos && equiv_pos2 - equiv_pos1 > 1) {
+      secname = fLine.substr(equiv_pos1 + 1, equiv_pos2 - equiv_pos1 - 1);
+      //TrimWhitespace(secname, TString::kBoth);
+      status = kTRUE;
+    }
+  }
+  return status;
+  //return LineHasSectionHeader(secname);
 };
 
 Bool_t QwParameterFile::LineHasSectionHeader(std::string& secname)
 {
+  TrimComment('#');
   Bool_t status = kFALSE;
   size_t equiv_pos1 = fLine.find_first_of('[');
   if (equiv_pos1 != std::string::npos) {
@@ -182,17 +218,86 @@ Bool_t QwParameterFile::LineHasSectionHeader(std::string& secname)
   return status;
 };
 
-Bool_t QwParameterFile::FileHasSectionHeader(const TString& secname)
+Bool_t QwParameterFile::LineHasModuleHeader(TString& secname)
 {
-  return FileHasSectionHeader(secname);
+  TrimComment('#');
+  Bool_t status = kFALSE;
+  size_t equiv_pos1 = fLine.find_first_of('<');
+  if (equiv_pos1 != std::string::npos) {
+    size_t equiv_pos2 = fLine.find_first_of('>',equiv_pos1);
+    if (equiv_pos2 != std::string::npos && equiv_pos2 - equiv_pos1 > 1) {
+      secname = fLine.substr(equiv_pos1 + 1, equiv_pos2 - equiv_pos1 - 1);
+      //TrimWhitespace(secname, TString::kBoth);
+      status = kTRUE;
+    }
+  }
+  return status;
+ 
 };
 
-Bool_t QwParameterFile::FileHasSectionHeader(const std::string& secname)
+Bool_t QwParameterFile::LineHasModuleHeader(std::string& secname)
 {
+  TrimComment('#');
+  Bool_t status = kFALSE;
+  size_t equiv_pos1 = fLine.find_first_of('<');
+  if (equiv_pos1 != std::string::npos) {
+    size_t equiv_pos2 = fLine.find_first_of('>',equiv_pos1);
+    if (equiv_pos2 != std::string::npos && equiv_pos2 - equiv_pos1 > 1) {
+      secname = fLine.substr(equiv_pos1 + 1, equiv_pos2 - equiv_pos1 - 1);
+      TrimWhitespace(secname, TString::kBoth);
+      status = kTRUE;
+    }
+  }
+  return status;
+};
+
+
+Bool_t QwParameterFile::FileHasSectionHeader(const TString& secname)
+{
+
   RewindToFileStart();
   while (ReadNextLine()) {
     std::string this_secname;
     if (LineHasSectionHeader(this_secname)) {
+      if (this_secname == secname) return kTRUE;
+    }
+  }
+  return false;
+};
+
+Bool_t QwParameterFile::FileHasSectionHeader(const std::string& secname)
+{
+  
+  RewindToFileStart();
+  while (ReadNextLine()) {
+    std::string this_secname;
+    if (LineHasSectionHeader(this_secname)) {
+      if (this_secname == secname) return kTRUE;
+    }
+  }
+  return false;
+};
+
+Bool_t QwParameterFile::FileHasModuleHeader(const TString& secname)
+{
+
+  RewindToFileStart();
+  while (ReadNextLine()) {
+    std::string this_secname;
+    if (LineHasModuleHeader(this_secname)) {
+      if (this_secname == secname) return kTRUE;
+    }
+  }
+  return false;
+};
+
+Bool_t QwParameterFile::FileHasModuleHeader(const std::string& secname)
+{
+  
+  RewindToFileStart();
+  while (ReadNextLine()) {
+    std::string this_secname;
+    if (LineHasModuleHeader(this_secname)) {
       if (this_secname == secname) return kTRUE;
     }
   }
@@ -208,6 +313,20 @@ QwParameterFile* QwParameterFile::ReadUntilNextSection()
   std::string nextheader; // dummy
   QwParameterFile* section = new QwParameterFile();
   while (ReadNextLine() && ! LineHasSectionHeader(nextheader)) {
+    section->AddLine(GetLine());
+  }
+  return section;
+}
+
+/**
+ * Read from current position until next module header
+ * @return Pointer to the parameter stream until next module
+ */
+QwParameterFile* QwParameterFile::ReadUntilNextModule()
+{
+  std::string nextheader; // dummy
+  QwParameterFile* section = new QwParameterFile();
+  while (ReadNextLine() && ! LineHasModuleHeader(nextheader)) {
     section->AddLine(GetLine());
   }
   return section;
@@ -233,6 +352,36 @@ QwParameterFile* QwParameterFile::ReadNextSection(std::string &secname)
   if (IsEOF()) return 0;
   while (! LineHasSectionHeader(secname) && ReadNextLine()); // skip until header
   return ReadUntilNextSection();
+}
+
+QwParameterFile* QwParameterFile::ReadNextSection(TString &secname)
+{
+  if (IsEOF()) return 0;
+  
+  while (! LineHasSectionHeader(secname) && ReadNextLine()); // skip until header
+  
+  return ReadUntilNextSection();
+}
+
+/**
+ * Read the lines of the next module
+ * @param secname Name of the next module (returns)
+ * @return Pointer to the parameter stream of the next module
+ */
+QwParameterFile* QwParameterFile::ReadNextModule(std::string &secname)
+{
+  if (IsEOF()) return 0;
+  while (! LineHasModuleHeader(secname) && ReadNextLine()); // skip until header
+  return ReadUntilNextModule();
+}
+
+QwParameterFile* QwParameterFile::ReadNextModule(TString &secname)
+{
+  if (IsEOF()) return 0;
+  
+  while (! LineHasModuleHeader(secname) && ReadNextLine()); // skip until header
+  
+  return ReadUntilNextModule();
 }
 
 std::string QwParameterFile::GetNextToken(std::string separatorchars)

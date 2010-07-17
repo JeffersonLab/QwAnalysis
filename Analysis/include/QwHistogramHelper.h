@@ -18,8 +18,8 @@
 /// \ingroup QwAnalysis
 class QwHistogramHelper{
  public:
-  QwHistogramHelper():fDEBUG(kFALSE){};
-  ~QwHistogramHelper(){};
+  QwHistogramHelper():fDEBUG(kFALSE) { fHistParams.clear(); };
+  ~QwHistogramHelper() { };
 
   void  LoadHistParamsFromFile(const std::string filename);
 

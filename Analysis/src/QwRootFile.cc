@@ -29,14 +29,14 @@ QwRootFile::QwRootFile(const TString& run_label)
     else
       fMapFile->Print();
 
-    // Disable tree in map file mode
-    fEnableTree = false;
+    //    // Disable tree in map file mode
+    //    fEnableTree = false; //Since we are using a tree within the map file we no longer scifically set this to false in RT mode
 
   // Otherwise we are in offline mode
   } else {
 
     TString rootfilename = getenv_safe_TString("QW_ROOTFILES");
-    rootfilename += Form("/Qweak_%s.root", run_label.Data());
+    rootfilename += Form("/%s%s.root", fRootFileStem.Data(), run_label.Data());
     fRootFile = new TFile(rootfilename, "RECREATE", "QWeak ROOT file");
     if (! fRootFile)
       QwError << "ROOT file " << rootfilename
@@ -70,6 +70,11 @@ QwRootFile::~QwRootFile()
  */
 void QwRootFile::DefineOptions(QwOptions &options)
 {
+  // Define the ROOT filename stem
+  options.AddOptions("Default options")
+    ("rootfile-stem", po::value<std::string>()->default_value("Qweak_"),
+     "stem of the output ROOT filename");
+
   // Define the memory map option
   options.AddOptions()
     ("enable-mapfile", po::value<bool>()->default_value(false)->zero_tokens(),
@@ -98,6 +103,20 @@ void QwRootFile::DefineOptions(QwOptions &options)
   options.AddOptions()
     ("num-discarded-events", po::value<int>()->default_value(0),
      "number of discarded consective events");
+  options.AddOptions()
+    ("mapfile-update-interval", po::value<int>()->default_value(400),
+     "Events between a map file update");
+   options.AddOptions()("trim-tree",
+                       po::value<std::string>()->default_value("tree_trim.in"),
+                       "Contains subsystems/elements to be included in the tree");
+
+  // Define the autoflush and autosave option (default values by ROOT)
+  options.AddOptions()
+    ("autoflush", po::value<int>()->default_value(-30000000),
+     "TTree autoflush value");
+  options.AddOptions()
+    ("autosave", po::value<int>()->default_value(300000000),
+     "TTree autosave value");
 }
 
 
@@ -107,6 +126,9 @@ void QwRootFile::DefineOptions(QwOptions &options)
  */
 void QwRootFile::ProcessOptions(QwOptions &options)
 {
+  // Option 'root-stem' to specify ROOT file stem
+  fRootFileStem = TString(options.GetValue<std::string>("rootfile-stem"));
+
   // Option 'mapfile' to enable memory-mapped ROOT file
   fEnableMapFile = options.GetValue<bool>("enable-mapfile");
 
@@ -125,6 +147,23 @@ void QwRootFile::ProcessOptions(QwOptions &options)
   fNumEventsToSave = options.GetValue<int>("num-accepted-events");
   fNumEventsToSkip = options.GetValue<int>("num-discarded-events");
   fNumEventsCycle = fNumEventsToSave + fNumEventsToSkip;
+
+  //Update interval for the map file
+  fUpdateInterval = options.GetValue<int>("mapfile-update-interval");
+
+  // Autoflush and autosave
+  fAutoFlush = options.GetValue<int>("autoflush");
+  if ((ROOT_VERSION_CODE < ROOT_VERSION(5,26,00)) && fAutoFlush != -30000000){
+    std::cout << QwLog::endl;
+    QwWarning << "QwRootFile::ProcessOptions:  "
+	      << "The 'autoflush' flag is not supported by ROOT version "
+	      << ROOT_RELEASE
+	      << QwLog::endl;
+  }
+  fAutoSave  = options.GetValue<int>("autosave");
+
+  fTreeTrim_Filename = options.GetValue<std::string>("trim-tree").c_str();
+  QwMessage << "Tree trim definition file " << fTreeTrim_Filename << QwLog::endl;
 }
 
 
@@ -190,6 +229,10 @@ void QwRootFile::ConstructTreeBranches(QwSubsystemArrayParity& detectors)
   // Create tree
   fMpsTree = new TTree("Mps_Tree", "MPS event data tree");
   fMpsTree->SetMaxTreeSize(kMaxTreeSize);
+#if ROOT_VERSION_CODE >= ROOT_VERSION(5,26,00)
+  fMpsTree->SetAutoFlush(fAutoFlush);
+#endif
+  fMpsTree->SetAutoSave(fAutoSave);
 
   // Reserve space for vector
   // If one defines more than 6000 words in the full ntuple
@@ -198,7 +241,14 @@ void QwRootFile::ConstructTreeBranches(QwSubsystemArrayParity& detectors)
 
   // Associate branches with vector
   TString dummystr = "";
-  detectors.ConstructBranchAndVector(fMpsTree, dummystr, fMpsVector);
+  if (fEnableMapFile){
+    //Access the tree trimming definition file
+    QwParameterFile trim_tree(fTreeTrim_Filename);
+    detectors.ConstructBranch(fMpsTree, dummystr, trim_tree);
+  }
+  else
+    detectors.ConstructBranchAndVector(fMpsTree, dummystr, fMpsVector);
+
 }
 
 
@@ -218,6 +268,10 @@ void QwRootFile::ConstructTreeBranches(QwHelicityPattern& helicity_pattern)
   // Create tree
   fHelTree = new TTree("Hel_Tree", "Helicity event data tree");
   fHelTree->SetMaxTreeSize(kMaxTreeSize);
+#if ROOT_VERSION_CODE >= ROOT_VERSION(5,26,00)
+  fHelTree->SetAutoFlush(fAutoFlush);
+#endif
+  fHelTree->SetAutoSave(fAutoSave);
 
   // Reserve space for vector
   // If one defines more than 6000 words in the full ntuple
@@ -226,7 +280,14 @@ void QwRootFile::ConstructTreeBranches(QwHelicityPattern& helicity_pattern)
 
   // Associate branches with vector
   TString dummystr = "";
-  helicity_pattern.ConstructBranchAndVector(fHelTree, dummystr, fHelVector);
+
+  if (fEnableMapFile){
+    //Access the tree trimming definition file
+    QwParameterFile trim_tree(fTreeTrim_Filename);
+    helicity_pattern.ConstructBranch(fHelTree, dummystr, trim_tree);
+  }
+  else
+    helicity_pattern.ConstructBranchAndVector(fHelTree, dummystr, fHelVector);
 }
 
 
@@ -236,6 +297,11 @@ void QwRootFile::ConstructTreeBranches(QwHelicityPattern& helicity_pattern)
  */
 void QwRootFile::FillTreeBranches(QwSubsystemArrayParity& detectors)
 {
+  // Calculate the event number before bailing out
+  if (fNumEventsCycle > 0) {
+    fCurrentEvent = detectors.GetCodaEventNumber() % fNumEventsCycle;
+  }
+
   // Return if we do not want tree or mps information
   if (! fEnableTree) return;
   if (! fEnableMps) return;
@@ -243,12 +309,12 @@ void QwRootFile::FillTreeBranches(QwSubsystemArrayParity& detectors)
   // Output ROOT tree prescaling
   // One cycle starts with fNumEventsToTake accepted events
   if (fNumEventsCycle > 0) {
-    UInt_t current_event = detectors.GetCodaEventNumber() % fNumEventsCycle;
-    if (current_event > fNumEventsToSave) return;
+    if (fCurrentEvent > fNumEventsToSave) return;
   }
 
   // Fill the vector
-  detectors.FillTreeVector(fMpsVector);
+  if (!fEnableMapFile)
+    detectors.FillTreeVector(fMpsVector);
   // Fill the tree
   fMpsTree->Fill();
 }
@@ -260,12 +326,26 @@ void QwRootFile::FillTreeBranches(QwSubsystemArrayParity& detectors)
  */
 void QwRootFile::FillTreeBranches(QwHelicityPattern& helicity_pattern)
 {
+  // TODO (wdc) Assuming that the event number has been calculated by
+  // the call to FillTreeBranches on the detector array.  No event number
+  // in QwHelicityPattern.
+
   // Return if we do not want tree or hel information
   if (! fEnableTree) return;
   if (! fEnableHel) return;
 
+  // Output ROOT tree prescaling
+  // One cycle starts with fNumEventsToTake accepted events
+  if (fNumEventsCycle > 0) {
+    if (fCurrentEvent > fNumEventsToSave) return;
+  }
+
   // Fill the vector
-  helicity_pattern.FillTreeVector(fHelVector);
+  //helicity_pattern.FillTreeVector(fHelVector);
+
+  // Fill the tree
+  if (!fEnableMapFile)
+    helicity_pattern.FillTreeVector(fHelVector);
   // Fill the tree
   fHelTree->Fill();
 }

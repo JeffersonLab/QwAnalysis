@@ -4,12 +4,16 @@
 #include <stdexcept>
 
 // Qweak headers
+#include "QwLog.h"
 #include "QwUnits.h"
 #include "QwHistogramHelper.h"
 #include "QwBlinder.h"
 
 
 const Bool_t QwVQWK_Channel::kDEBUG = kFALSE;
+
+const Int_t  QwVQWK_Channel::kWordsPerChannel = 6;
+const Int_t  QwVQWK_Channel::kMaxChannels     = 8;
 
 
 // Randomness generator: Mersenne twister with period 2^19937 - 1
@@ -33,6 +37,33 @@ boost::variate_generator < boost::mt19937, boost::normal_distribution<double> >
  *   to zero voltage.
  */
 const Double_t QwVQWK_Channel::kVQWK_VoltsPerBit = 76.29e-6;
+
+/*!  Static member function to return the word offset within a data buffer
+ *   given the module number index and the channel number index.
+ *   @param moduleindex   Module index within this buffer; counts from zero
+ *   @param channelindex  Channel index within this module; counts from zero
+ *   @return   The number of words offset to the beginning of this
+ *             channel's data from the beginning of the VQWK buffer.
+ */
+Int_t QwVQWK_Channel::GetBufferOffset(Int_t moduleindex, Int_t channelindex){
+    Int_t offset = -1;
+    if (moduleindex<0 ){
+      QwError << "QwVQWK_Channel::GetBufferOffset:  Invalid module index,"
+	      << moduleindex
+	      << ".  Must be zero or greater."
+	      << QwLog::endl;
+    } else if (channelindex<0 || channelindex>kMaxChannels){
+      QwError << "QwVQWK_Channel::GetBufferOffset:  Invalid channel index,"
+	      << channelindex
+	      << ".  Must be in range [0," << kMaxChannels << "]."
+	      << QwLog::endl;
+    } else {
+      offset = ( (moduleindex * kMaxChannels) + channelindex )
+	* kWordsPerChannel;
+    }
+    return offset;
+  }
+
 
 /********************************************************/
 Int_t QwVQWK_Channel::ApplyHWChecks()
@@ -139,7 +170,6 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
   fPedestal            = 0.0;
   fCalibrationFactor   = 1.0;
 
-  fSamplesPerBlock     = 16680; //jpan: total samples = fSamplesPerBlock x fBlocksPerEvent
   fBlocksPerEvent      = 4;
 
   fTreeArrayIndex      = 0;
@@ -149,6 +179,7 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
 
   fPreviousSequenceNumber = 0;
   fNumberOfSamples_map    = 0;
+  fNumberOfSamples        = 0;
 
   // Use internal random variable by default
   fUseExternalRandomVariable = false;
@@ -186,7 +217,7 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
 
   bEVENTCUTMODE          = 0;
 
-
+  //std::cout<< "name = "<<name<<" error count same _HW = "<<fErrorCount_SameHW <<std::endl;
   return;
 }
 
@@ -203,6 +234,7 @@ void QwVQWK_Channel::ClearEventData()
     fBlock_raw[i] = 0.0;
     fBlock[i] = 0.0;
     fBlockM2[i] = 0.0;
+    fBlockError[i] = 0.0;
   }
   fHardwareBlockSum_raw = 0;
   fSoftwareBlockSum_raw = 0;
@@ -211,7 +243,8 @@ void QwVQWK_Channel::ClearEventData()
   fHardwareBlockSumError = 0.0;
   fSequenceNumber   = 0;
   fNumberOfSamples  = 0;
-  fDeviceErrorCode  = 0;// set to zero. Important for derrived devices.
+  fGoodEventCount   = 0;
+  fDeviceErrorCode  = 0; // set to zero. Important for derrived devices.
   return;
 };
 
@@ -228,19 +261,21 @@ void QwVQWK_Channel::RandomizeEventData(int helicity, double time)
     drift += fMockDriftAmplitude[i] * sin(2.0 * Qw::pi * fMockDriftFrequency[i] * time + fMockDriftPhase[i]);
   }
 
-  // External or internal randomness?
-  double random_variable;
-  if (fUseExternalRandomVariable)
-    random_variable = fExternalRandomVariable; // external normal random variable
-  else
-    random_variable = fNormalRandomVariable(); // internal normal random variable
-
   // Calculate signal
-  for (Short_t i = 0; i < fBlocksPerEvent; i++)
+  for (Short_t i = 0; i < fBlocksPerEvent; i++) {
+
+    // External or internal randomness?
+    double random_variable;
+    if (fUseExternalRandomVariable)
+      random_variable = fExternalRandomVariable; // external normal random variable
+    else
+      random_variable = fNormalRandomVariable(); // internal normal random variable
+
     block[i] =
         fMockGaussianMean * (1 + helicity * fMockAsymmetry) / fBlocksPerEvent
       + fMockGaussianSigma / sqrt_fBlocksPerEvent * random_variable
       + drift / fBlocksPerEvent;
+  }
 
   SetEventData(block);
   return;
@@ -321,7 +356,10 @@ void QwVQWK_Channel::SetEventData(Double_t* block, UInt_t sequencenumber)
 Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index)
 {
   UInt_t words_read = 0;
-  Long_t localbuf[fWordsPerChannel] = {0};
+  UInt_t localbuf[kWordsPerChannel] = {0};
+  // The conversion from UInt_t to Double_t discards the sign, so we need an intermediate
+  // static_cast from UInt_t to Int_t.
+  Int_t localbuf_signed[kWordsPerChannel] = {0};
 
   if (IsNameEmpty()){
     //  This channel is not used, but is present in the data stream.
@@ -329,15 +367,17 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
     words_read = fNumberOfDataWords;
   } else if (num_words_left >= fNumberOfDataWords)
     {
-      for (Short_t i=0; i<fWordsPerChannel; i++){
+      for (Short_t i=0; i<kWordsPerChannel; i++){
 	localbuf[i] = buffer[i];
+        localbuf_signed[i] = static_cast<Int_t>(localbuf[i]);
       }
+
       fSoftwareBlockSum_raw = 0.0;
       for (Short_t i=0; i<fBlocksPerEvent; i++){
-	fBlock_raw[i] = Double_t(localbuf[i]);
+	fBlock_raw[i] = Double_t(localbuf_signed[i]);
 	fSoftwareBlockSum_raw += fBlock_raw[i];
       }
-      fHardwareBlockSum_raw = Double_t(localbuf[4]);
+      fHardwareBlockSum_raw = Double_t(localbuf_signed[4]);
 
       /*  Permanent change in the structure of the 6th word of the ADC readout.
        *  The upper 16 bits are the number of samples, and the upper 8 of the
@@ -352,8 +392,8 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
 
       if (kDEBUG && GetElementName()=="SCAN_POW") {
 
-        for (Short_t i=0; i<(fWordsPerChannel-1); i++){
-	  std::cout<<"  hex("<<std::hex<<localbuf[i]<<") dec("<<std::dec<<Double_t(localbuf[i])<<") ";
+        for (Short_t i=0; i<(kWordsPerChannel-1); i++){
+	  std::cout<<"  hex("<<std::hex<<localbuf[i]<<") dec("<<std::dec<<Double_t(localbuf_signed[i])<<") ";
         }
 
         Double_t average = 0.0;
@@ -421,10 +461,10 @@ void QwVQWK_Channel::ProcessEvent()
   for (Short_t i = 0; i < fBlocksPerEvent; i++)
     {
       fBlock[i] = fCalibrationFactor * (fBlock_raw[i] - thispedestal / (fBlocksPerEvent*1.0));
-      fBlockM2[i] = 0.0; // second moment is zero for single events	
+      fBlockM2[i] = 0.0; // second moment is zero for single events
     }
 
-  fHardwareBlockSum = fCalibrationFactor *  ( fHardwareBlockSum_raw - thispedestal ); 
+  fHardwareBlockSum = fCalibrationFactor *  ( fHardwareBlockSum_raw - thispedestal );
   fHardwareBlockSumM2 = 0.0; // second moment is zero for single events
 
 //   if(GetElementName().Contains("md"))
@@ -433,7 +473,7 @@ void QwVQWK_Channel::ProcessEvent()
   return;
 };
 
-Double_t QwVQWK_Channel::GetAverageVolts()
+Double_t QwVQWK_Channel::GetAverageVolts() const
 {
   //Double_t avgVolts = (fBlock[0]+fBlock[1]+fBlock[2]+fBlock[3])*kVQWK_VoltsPerBit/fNumberOfSamples;
   Double_t avgVolts = fHardwareBlockSum * kVQWK_VoltsPerBit / fNumberOfSamples;
@@ -442,13 +482,12 @@ Double_t QwVQWK_Channel::GetAverageVolts()
 
 };
 
-void QwVQWK_Channel::Print() const
+void QwVQWK_Channel::PrintInfo() const
 {
   std::cout<<"***************************************"<<"\n";
   std::cout<<"QwVQWK channel: "<<GetElementName()<<"\n"<<"\n";
   std::cout<<"fPedestal= "<< fPedestal<<"\n";
   std::cout<<"fCalibrationFactor= "<<fCalibrationFactor<<"\n";
-  std::cout<<"fSamplesPerBlock= "<< fSamplesPerBlock<<"\n";
   std::cout<<"fBlocksPerEvent= "<<fBlocksPerEvent<<"\n"<<"\n";
   std::cout<<"fSequenceNumber= "<<fSequenceNumber<<"\n";
   std::cout<<"fNumberOfSamples= "<<fNumberOfSamples<<"\n";
@@ -543,7 +582,7 @@ void  QwVQWK_Channel::FillHistograms()
 	      fHistograms[index+1]->Fill(this->GetHardwareSum());
 	    index+=2;
 	    if (fHistograms[index] != NULL)
-	      fHistograms[index]->Fill(this->GetRawSoftwareSum()-this->GetHardwareSum());
+	      fHistograms[index]->Fill(this->GetRawSoftwareSum()-this->GetRawHardwareSum());
 	  }
 	else if(fDataToSave==kDerived)
 	  {
@@ -574,7 +613,7 @@ void  QwVQWK_Channel::DeleteHistograms()
   }
   }
   fHistograms.clear();
-  
+
 }
 
 void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -617,6 +656,7 @@ void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std
 
     fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
     tree->Branch(basename, &(values[fTreeArrayIndex]), list);
+    //tree->Branch(basename,&fHardwareBlockSum);
     if (kDEBUG && GetElementName()=="MD1Pos"){
       std::cerr << "QwVQWK_Channel::ConstructBranchAndVector: fTreeArrayIndex==" << fTreeArrayIndex
 		<< "; fTreeArrayNumEntries==" << fTreeArrayNumEntries
@@ -627,6 +667,23 @@ void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std
   }
   return;
 };
+
+void  QwVQWK_Channel::ConstructBranch(TTree *tree, TString &prefix)
+{
+  if (IsNameEmpty()){
+    //  This channel is not used, so skip setting up the tree.
+  } else {
+    TString basename = prefix + GetElementName();
+    tree->Branch(basename,&fHardwareBlockSum);
+    if (kDEBUG){
+      std::cerr << "QwVQWK_Channel::ConstructBranchAndVector: fTreeArrayIndex==" << fTreeArrayIndex
+		<< "; fTreeArrayNumEntries==" << fTreeArrayNumEntries
+		<< std::endl;
+    }
+  }
+  return;
+};
+
 
 void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values)
 {
@@ -695,6 +752,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
       this->fSequenceNumber  = value.fSequenceNumber;
       this->fDeviceErrorCode = (value.fDeviceErrorCode);//error code is updated.
     }
+
   return *this;
 };
 
@@ -727,13 +785,14 @@ QwVQWK_Channel& QwVQWK_Channel::operator-= (const QwVQWK_Channel &value)
       this->fBlockM2[i] = 0.0;
     }
     this->fHardwareBlockSum_raw = 0;
-    this->fSoftwareBlockSum_raw = 0; 
+    this->fSoftwareBlockSum_raw = 0;
     this->fHardwareBlockSum -= value.fHardwareBlockSum;
     this->fHardwareBlockSumM2 = 0.0;
     this->fNumberOfSamples += value.fNumberOfSamples;
     this->fSequenceNumber   = 0;
     this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
-}
+  }
+
   return *this;
 };
 
@@ -754,32 +813,55 @@ void QwVQWK_Channel::Difference(QwVQWK_Channel &value1, QwVQWK_Channel &value2)
 void QwVQWK_Channel::Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom)
 {
   if (!IsNameEmpty()) {
-    for (Short_t i = 0; i <fBlocksPerEvent; i++) {
-      if (denom.fBlock[i] != 0.0) {
-        this->fBlock[i] = (numer.fBlock[i]) / (denom.fBlock[i]);
-        this->fBlock_raw[i] = 0;
-      } else {
-        this->fBlock[i] = 0.0;
-      }
-      // For a single event the second moment is still zero
-      this->fBlockM2[i] = 0.0;
+
+    // Take the ratio of the individual blocks
+    for (Short_t i = 0; i < fBlocksPerEvent; i++) {
+      if (denom.fBlock[i] != 0.0)
+        fBlock[i] = (numer.fBlock[i]) / (denom.fBlock[i]);
+      else
+        fBlock[i] = 0.0;
+      // raw is always zero on derived quantities
+      fBlock_raw[i] = 0.0;
     }
-
+    // Take the ratio of the hardware sum
     if (denom.fHardwareBlockSum != 0.0)
-      this->fHardwareBlockSum = (numer.fHardwareBlockSum)
-                              / (denom.fHardwareBlockSum);
+      fHardwareBlockSum = (numer.fHardwareBlockSum) / (denom.fHardwareBlockSum);
     else
-      this->fHardwareBlockSum = 0.0;
+      fHardwareBlockSum = 0.0;
+    fHardwareBlockSum_raw = 0.0;
+    fSoftwareBlockSum_raw = 0.0;
 
-    // For a single event the second moment is still zero
-    this->fHardwareBlockSumM2 = 0.0;
+    // The variances are calculated using the following formula:
+    //   Var[ratio] = ratio^2 (Var[numer] / numer^2 + Var[denom] / denom^2)
+    //
+    // This requires that both the numerator and denominator are non-zero!
+    //
+    for (Short_t i = 0; i < 4; i++) {
+      if (numer.fBlock[i] != 0.0 && denom.fBlock[i] != 0.0)
+        fBlockM2[i] = fBlock[i] * fBlock[i] *
+           (numer.fBlockM2[i] / numer.fBlock[i] / numer.fBlock[i]
+          + denom.fBlockM2[i] / denom.fBlock[i] / denom.fBlock[i]);
+      else
+        fBlockM2[i] = 0.0;
+    }
+    if (numer.fHardwareBlockSum != 0.0 && denom.fHardwareBlockSum != 0.0)
+      fHardwareBlockSumM2 = fHardwareBlockSum * fHardwareBlockSum *
+         (numer.fHardwareBlockSumM2 / numer.fHardwareBlockSum / numer.fHardwareBlockSum
+        + denom.fHardwareBlockSumM2 / denom.fHardwareBlockSum / denom.fHardwareBlockSum);
+    else
+      fHardwareBlockSumM2 = 0.0;
 
-    this->fSoftwareBlockSum_raw = 0;
-    this->fHardwareBlockSum_raw = 0;
-    this->fNumberOfSamples = denom.fNumberOfSamples;
-    this->fSequenceNumber  = 0;
-    this->fDeviceErrorCode = (numer.fDeviceErrorCode|denom.fDeviceErrorCode);//error code is ORed.
+    // Remaining variables
+    fNumberOfSamples = denom.fNumberOfSamples;
+    fSequenceNumber  = 0;
+    fGoodEventCount  = denom.fGoodEventCount;
+    fDeviceErrorCode = (numer.fDeviceErrorCode|denom.fDeviceErrorCode);//error code is ORed.
   }
+
+  // Nanny
+  if (fHardwareBlockSum != fHardwareBlockSum)
+    QwWarning << "Angry Nanny: NaN detected in " << GetElementName() << QwLog::endl;
+
   return;
 };
 
@@ -806,16 +888,16 @@ void QwVQWK_Channel::Product(QwVQWK_Channel &value1, QwVQWK_Channel &value2)
   return;
 };
 
-void QwVQWK_Channel::Offset(Double_t offset)
+void QwVQWK_Channel::AddChannelOffset(Double_t offset)
 {
-  if (!IsNameEmpty())
-    {
-      for (Short_t i=0; i<fBlocksPerEvent; i++) fBlock[i] +=offset;
+  Double_t blockoffset = offset / fBlocksPerEvent;
+
+  if (!IsNameEmpty()){
       fHardwareBlockSum += fBlocksPerEvent*offset;
-    }
+      for (Short_t i=0; i<fBlocksPerEvent; i++) fBlock[i] += blockoffset;
+  }
   return;
 };
-
 
 void QwVQWK_Channel::Scale(Double_t scale)
 {
@@ -828,6 +910,7 @@ void QwVQWK_Channel::Scale(Double_t scale)
       fHardwareBlockSum *= scale;
       fHardwareBlockSumM2 *= scale * scale;
     }
+
   return;
 };
 
@@ -904,17 +987,17 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
     fGoodEventCount++;
     fHardwareBlockSum += (M12 - M11) / n;
     fHardwareBlockSumM2 += (M12 - M11)
-         * (M12 - fHardwareBlockSum); // using updated mean
+         * (M12 - fHardwareBlockSum); // note: using updated mean
     // and for individual blocks
     for (Short_t i = 0; i < 4; i++) {
       M11 = fBlock[i];
       M12 = value.fBlock[i];
       M22 = value.fBlockM2[i];
       fBlock[i] += (M12 - M11) / n;
-      fBlockM2[i] += (M12 - M11) * (M12 - fBlock[i]); // using updated mean
+      fBlockM2[i] += (M12 - M11) * (M12 - fBlock[i]); // note: using updated mean
     }
   } else if (n2 > 1) {
-    // general version for addition of parallel sets
+    // general version for addition of multi-event sets
     fGoodEventCount += n2;
     fHardwareBlockSum += n2 * (M12 - M11) / n;
     fHardwareBlockSumM2 += M22 + n1 * n2 * (M12 - M11) * (M12 - M11) / n;
@@ -927,6 +1010,10 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
       fBlockM2[i] += M22 + n1 * n2 * (M12 - M11) * (M12 - M11) / n;
     }
   }
+
+  // Nanny
+  if (fHardwareBlockSum != fHardwareBlockSum)
+    QwWarning << "Angry Nanny: NaN detected in " << GetElementName() << QwLog::endl;
 
   return;
 };
@@ -950,28 +1037,25 @@ void QwVQWK_Channel::CalculateRunningAverage()
         fBlockError[i] = sqrt(fBlockM2[i] / fGoodEventCount);
       fHardwareBlockSumError = sqrt(fHardwareBlockSumM2 / fGoodEventCount);
     }
-
-  this->PrintRunningAverage();
-
 };
 
 
-void QwVQWK_Channel::PrintRunningAverage()
+void QwVQWK_Channel::PrintValue() const
 {
   QwMessage << std::setprecision(4)
-	    << std::setw(18) << std::left << this->GetElementName()      << "["
-	    << std::setw(15) << std::left << this->GetHardwareSum()      << ","
-	    << std::setw(15) << std::left << this->GetHardwareSumError() << "] "
- 	    << std::setw(10) << std::left << this->GetGoodEventCount()   << "["
- 	    << std::setw(15) << std::left << this->GetBlockValue(0)      << ","
- 	    << std::setw(15) << std::left << this->GetBlockErrorValue(0) << "]["
- 	    << std::setw(15) << std::left << this->GetBlockValue(1)      << ","
- 	    << std::setw(15) << std::left << this->GetBlockErrorValue(1) << "]["
- 	    << std::setw(15) << std::left << this->GetBlockValue(2)      << ","
- 	    << std::setw(15) << std::left << this->GetBlockErrorValue(2) << "]["
- 	    << std::setw(15) << std::left << this->GetBlockValue(3)      << ","
- 	    << std::setw(15) << std::left << this->GetBlockErrorValue(3) << "]"
-	    << QwLog::endl;
+            << std::setw(18) << std::left << GetElementName()      << " "
+            << std::setw(12) << std::left << GetHardwareSum()      << "+/- "
+            << std::setw(12) << std::left << GetHardwareSumError() << " "
+            << std::setw(10) << std::left << GetGoodEventCount()   << " "
+            << std::setw(12) << std::left << GetBlockValue(0)      << "+/- "
+            << std::setw(12) << std::left << GetBlockErrorValue(0) << " "
+            << std::setw(12) << std::left << GetBlockValue(1)      << "+/- "
+            << std::setw(12) << std::left << GetBlockErrorValue(1) << " "
+            << std::setw(12) << std::left << GetBlockValue(2)      << "+/- "
+            << std::setw(12) << std::left << GetBlockErrorValue(2) << " "
+            << std::setw(12) << std::left << GetBlockValue(3)      << "+/- "
+            << std::setw(12) << std::left << GetBlockErrorValue(3) << " "
+            << QwLog::endl;
 }
 
 
@@ -1026,7 +1110,7 @@ Bool_t QwVQWK_Channel::MatchNumberOfSamples(size_t numsamp)
 		<< " had fNumberOfSamples==" << fNumberOfSamples
 		<< " and was supposed to have " << numsamp
 		<< std::endl;
-      //      Print();
+      //      PrintChannel();
     }
   }
   return status;
@@ -1044,7 +1128,7 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts(Double_t LL=0,Double_t UL=0)//only c
     else
       status=kFALSE;//If the device HW is failed
   }
-
+  std::cout<<this->fDeviceErrorCode<<std::endl;
   return status;
 };
 
@@ -1083,7 +1167,6 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and up
   }
   else
     status=kTRUE;
-
 
     return status;
 };

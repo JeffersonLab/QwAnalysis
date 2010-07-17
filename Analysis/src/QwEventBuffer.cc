@@ -22,6 +22,29 @@ const Int_t QwEventBuffer::kFileHandleNotConfigured  = -40;
 /// DAQ to indicate a known empty buffer.
 const UInt_t QwEventBuffer::kNullDataWord = 0x4e554c4c;
 
+
+/// Default constructor
+QwEventBuffer::QwEventBuffer()
+  :    fDataFileStem("QwRun_"),
+       fDataFileExtension("log"),
+       fEvStreamMode(fEvStreamNull),
+       fEvStream(NULL),
+       fCurrentRun(-1),
+       fRunIsSegmented(kFALSE),
+       fPhysicsEventFlag(kFALSE),
+       fEvtNumber(0),
+       fNumPhysicsEvents(0)
+{
+  fDataDirectory = getenv("QW_DATA");
+  if (fDataDirectory.Length() == 0){
+    std::cerr << "ERROR:  Can't get the data directory in the QwEventBuffer creator."
+	      << std::endl;
+  } else if (! fDataDirectory.EndsWith("/")) {
+      fDataDirectory.Append("/");
+  }
+
+};
+
 /**
  * Defines configuration options for QwEventBuffer class using QwOptions
  * functionality.
@@ -38,31 +61,21 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
     ("run,r", po::value<string>()->default_value("0:0"),
      "run range in format #[:#]");
   options.AddDefaultOptions()
+    ("event,e", po::value<string>()->default_value("0:"),
+     "event range in format #[:#]");
+  options.AddDefaultOptions()
+    ("burstlength", po::value<int>()->default_value(0),
+     "number of events in a burst\n\t(0 to disable burst analysis)");
+  options.AddDefaultOptions()
     ("chainfiles", po::value<bool>()->default_value(false)->zero_tokens(),
      "chain file segments together, do not analyze them separately");
   options.AddDefaultOptions()
-    ("event,e", po::value<string>()->default_value("0:"),
-     "event range in format #[:#]");
+    ("codafile-stem", po::value<string>()->default_value("QwRun_"),
+     "stem of the input CODA filename");
+  options.AddDefaultOptions()
+    ("codafile-ext", po::value<string>()->default_value("log"),
+     "extension of the input CODA filename");
 }
-
-QwEventBuffer::QwEventBuffer():fDataFileStem("QwRun_"),
-			       fDataFileExtension("log"),
-			       fEvStreamMode(fEvStreamNull),
-			       fEvStream(NULL),
-			       fCurrentRun(-1),
-			       fRunIsSegmented(kFALSE),
-			       fPhysicsEventFlag(kFALSE),
-			       fEvtNumber(0),
-			       fNumPhysicsEvents(0)
-{
-  fDataDirectory = getenv("QW_DATA");
-  if (fDataDirectory.Length() == 0){
-    std::cerr << "ERROR:  Can't get the data directory in the QwEventBuffer creator."
-	      << std::endl;
-  } else if (! fDataDirectory.EndsWith("/")) {
-      fDataDirectory.Append("/");
-  }
-};
 
 void QwEventBuffer::ProcessOptions(QwOptions &options)
 {
@@ -80,7 +93,7 @@ void QwEventBuffer::ProcessOptions(QwOptions &options)
       if (fETHostname == NULL)
 	tmp += " \"HOSTNAME\"";
       if (fETSession == NULL){
-	if (tmp.Length() > 0) 
+	if (tmp.Length() > 0)
 	  tmp += " and";
 	tmp += " ET \"SESSION\"";
       }
@@ -94,8 +107,26 @@ void QwEventBuffer::ProcessOptions(QwOptions &options)
   }
   fRunRange   = options.GetIntValuePair("run");
   fEventRange = options.GetIntValuePair("event");
+  fBurstLength = options.GetValue<int>("burstlength");
   fChainDataFiles = options.GetValue<bool>("chainfiles");
+  fDataFileStem      = options.GetValue<string>("codafile-stem");
+  fDataFileExtension = options.GetValue<string>("codafile-ext");
 }
+
+void QwEventBuffer::PrintRunTimes()
+{
+  UInt_t nevents = fNumPhysicsEvents;
+  if (nevents==0) nevents=1;
+  QwMessage << QwLog::endl
+	    << "Analysis of run " << GetRunNumber() << QwLog::endl
+	    << fNumPhysicsEvents << " physics events were processed"<< QwLog::endl
+	    << "CPU time used:  " << fRunTimer.CpuTime() << " s "
+	    << "(" << fRunTimer.CpuTime() / nevents << " s per event)" << QwLog::endl
+	    << "Real time used: " << fRunTimer.RealTime() << " s "
+	    << "(" << fRunTimer.RealTime() / nevents << " s per event)" << QwLog::endl
+	    << QwLog::endl;
+};
+
 
 TString QwEventBuffer::GetRunLabel() const
 {
@@ -108,6 +139,7 @@ TString QwEventBuffer::GetRunLabel() const
 
 Int_t QwEventBuffer::OpenNextStream()
 {
+
   Int_t status = CODA_ERROR;
   if (fOnline) {
     /* Modify the call below for your ET system, if needed.
@@ -115,7 +147,7 @@ Int_t QwEventBuffer::OpenNextStream()
        mode=0: wait forever
        mode=1: timeout quickly
     */
-    QwMessage << "Try to open the ET station with HOSTNAME==" 
+    QwMessage << "Try to open the ET station with HOSTNAME=="
 	      << fETHostname
 	      << ", SESSION==" << fETSession << "."
 	      << QwLog::endl;
@@ -140,18 +172,26 @@ Int_t QwEventBuffer::OpenNextStream()
 		<< QwLog::endl;
       }
     }
+
   }
+  //  Start the timers.
+  fRunTimer.Reset();
+  fRunTimer.Start();
+  fStopwatch.Start();
   return status;
 }
 
 Int_t QwEventBuffer::CloseStream()
 {
+  //  Stop the timers.
+  fRunTimer.Stop();
+  fStopwatch.Stop();
   QwWarning << "Starting CloseStream."
 	    << QwLog::endl;
   Int_t status = kFileHandleNotConfigured;
   if (fEvStreamMode==fEvStreamFile
       && (fRunIsSegmented && !fChainDataFiles) ){
-    //  The run is segmented and we are not chaining the 
+    //  The run is segmented and we are not chaining the
     //  segments together in the event loop, so close
     //  the current segment.
     status = CloseThisSegment();
@@ -174,18 +214,31 @@ Int_t QwEventBuffer::GetNextEvent()
   do {
     status = GetEvent();
     if (fEvtNumber > fEventRange.second){
-      //  QUESTION:  Should we continue to loop once we've 
-      //  reached the maximum event, to allow access to 
+      //  QUESTION:  Should we continue to loop once we've
+      //  reached the maximum event, to allow access to
       //  non-physics events?
       //  For now, mock up EOF if we've reached the maximum event.
       status = EOF;
-    } 
-  } while (status==CODA_OK  &&
-	   IsPhysicsEvent() &&
-	   (fEvtNumber<fEventRange.first
-	    || fEvtNumber>fEventRange.second)
-	   );
-  if (status==CODA_OK  && IsPhysicsEvent()) fNumPhysicsEvents++;
+    }
+  } while (status == CODA_OK  &&
+           IsPhysicsEvent()   &&
+            (fEvtNumber < fEventRange.first
+          || fEvtNumber > fEventRange.second)
+          );
+  if (status == CODA_OK  && IsPhysicsEvent()) fNumPhysicsEvents++;
+
+  //  Progress meter (this should probably produce less output in production)
+  if (IsPhysicsEvent() && fEvtNumber > 0 && fEvtNumber % 1000 == 0) {
+    QwMessage << "Processing event " << fEvtNumber << " ";
+    //fStopwatch.Stop();
+    //QwMessage << "(" << fStopwatch.CpuTime() / 1000.0 << "s per event)";
+    //fStopwatch.Reset();
+    //fStopwatch.Start();
+    QwMessage << QwLog::endl;
+  } else if (fEvtNumber > 0 && fEvtNumber % 100 == 0) {
+    QwVerbose << "Processing event " << fEvtNumber << QwLog::endl;
+  }
+
   return status;
 };
 
@@ -419,13 +472,13 @@ void QwEventBuffer::DecodeEventIDBank(UInt_t *buffer)
       SetWordsSoFar(2);
     }
   }
-  QwDebug << Form("Length: %d; Tag: 0x%x; Bank ID num: 0x%x; ",
-		  fEvtLength, fEvtTag, fIDBankNum)
-	  << Form("Evt type: 0x%x; Evt number %d; Evt Class 0x%.8x; ",
-		  fEvtType, fEvtNumber, fEvtClass)
-	  << Form("Status Summary: 0x%.8x; Words so far %d",
-		  fStatSum, fWordsSoFar)
-	  << QwLog::endl;
+//   QwDebug << Form("Length: %d; Tag: 0x%x; Bank ID num: 0x%x; ",
+// 		  fEvtLength, fEvtTag, fIDBankNum)
+// 	  << Form("Evt type: 0x%x; Evt number %d; Evt Class 0x%.8x; ",
+// 		  fEvtType, fEvtNumber, fEvtClass)
+// 	  << Form("Status Summary: 0x%.8x; Words so far %d",
+// 		  fStatSum, fWordsSoFar)
+// 	  << QwLog::endl;
 };
 
 
@@ -439,10 +492,10 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystem
   ///      subbank structure as the physics events for that ROC.
   Bool_t okay = kTRUE;
   UInt_t rocnum = fEvtType - 0x90;
-  std::cerr << "QwEventBuffer::FillSubsystemConfigurationData:  "
-	    << "Found configuration event for ROC"
-	    << rocnum
-	    << std::endl;
+  QwError << "QwEventBuffer::FillSubsystemConfigurationData:  "
+	  << "Found configuration event for ROC"
+	  << rocnum
+	  << QwLog::endl;
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
   while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
@@ -473,32 +526,41 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystem
   return okay;
 };
 
-Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
-  //
+Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
+{
+  // Initialize local flag
   Bool_t okay = kTRUE;
+
   //  Clear the old event information from the subsystems.
   subsystems.ClearEventData();
-  
+
   //  Pass CODA event number and type to the subsystem array.
   subsystems.SetCodaEventNumber(fEvtNumber);
   subsystems.SetCodaEventType(fEvtType);
 
+  // If this event type is masked for the subsystem array, return right away
+  if (((0x1 << (fEvtType - 1)) & subsystems.GetEventTypeMask()) == 0) {
+    return kTRUE;
+  }
+
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
   while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
+
     //  If this bank has further subbanks, restart the loop.
     if (fSubbankType == 0x10) continue;
+
     //  If this bank only contains the word 'NULL' then skip
     //  this bank.
-    if (fFragLength==1 && localbuff[fWordsSoFar]==kNullDataWord){
+    if (fFragLength == 1 && localbuff[fWordsSoFar]==kNullDataWord) {
       fWordsSoFar += fFragLength;
       continue;
     }
 
-    QwDebug << "QwEventBuffer::FillSubsystemData:  "
-	    << "Beginning loop: fWordsSoFar=="<<fWordsSoFar
-	    <<QwLog::endl;
-    
+//     QwDebug << "QwEventBuffer::FillSubsystemData:  "
+// 	    << "Beginning loop: fWordsSoFar=="<<fWordsSoFar
+// 	    <<QwLog::endl;
+
     //  Loop through the subsystems and try to store the data
     //  from this bank in each subsystem.
     //
@@ -509,16 +571,17 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
     //
     //  After trying the data in each subsystem, bump the
     //  fWordsSoFar to move to the next bank.
-    QwDebug << "ProcessEventBuffer: ROC="<<fROC<<", SubbankTag="<< fSubbankTag
-	    <<", FragLength="<<fFragLength <<QwLog::endl;
-    
-    subsystems.ProcessEvBuffer(fROC, fSubbankTag,
+
+//     QwDebug << "ProcessEventBuffer: ROC="<<fROC<<", SubbankTag="<< fSubbankTag
+// 	    <<", FragLength="<<fFragLength <<QwLog::endl;
+
+    subsystems.ProcessEvBuffer(fEvtType, fROC, fSubbankTag,
 			       &localbuff[fWordsSoFar],
 			       fFragLength);
     fWordsSoFar += fFragLength;
-    QwDebug << "QwEventBuffer::FillSubsystemData:  "
-	    << "Ending loop: fWordsSoFar=="<<fWordsSoFar
-	    <<QwLog::endl;
+//     QwDebug << "QwEventBuffer::FillSubsystemData:  "
+// 	    << "Ending loop: fWordsSoFar=="<<fWordsSoFar
+// 	    <<QwLog::endl;
   }
   return okay;
 };
@@ -527,24 +590,24 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems){
 // added all this method for QwEPICSEvent class
 Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
 {
-  QwMessage << "QwEventBuffer::FillEPICSData:  "
-	    << Form("Length: %d; Tag: 0x%x; Bank ID num: 0x%x; ",
-		  fEvtLength, fEvtTag, fIDBankNum)
-	  << Form("Evt type: 0x%x; Evt number %d; Evt Class 0x%.8x; ",
-		  fEvtType, fEvtNumber, fEvtClass)
-	  << Form("Status Summary: 0x%.8x; Words so far %d",
-		  fStatSum, fWordsSoFar)
-	  << QwLog::endl;
+  // QwVerbose << "QwEventBuffer::FillEPICSData:  "
+// 	  << Form("Length: %d; Tag: 0x%x; Bank ID num: 0x%x; ",
+// 		  fEvtLength, fEvtTag, fIDBankNum)
+// 	  << Form("Evt type: 0x%x; Evt number %d; Evt Class 0x%.8x; ",
+// 		  fEvtType, fEvtNumber, fEvtClass)
+// 	  << Form("Status Summary: 0x%.8x; Words so far %d",
+// 		  fStatSum, fWordsSoFar)
+// 	  << QwLog::endl;
 
 
-  ///  
+  ///
   Bool_t okay = kTRUE;
   if (! IsEPICSEvent()){
     okay = kFALSE;
     return okay;
   }
-  std::cerr << "QwEventBuffer::FillEPICSData:  "
-	    << std::endl;
+  QwVerbose << "QwEventBuffer::FillEPICSData:  "
+	    << QwLog::endl;
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
   if (fBankDataType==0x10){
@@ -564,17 +627,17 @@ Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
       char* tmpchar = (Char_t*)&localbuff[fWordsSoFar];
 
       epics.ExtractEPICSValues(string(tmpchar), GetEventNumber());
-      std::cout<<"\ntest for GetEventNumber ="<<GetEventNumber()<<std::endl;// always zero, wrong.
+      QwVerbose << "test for GetEventNumber =" << GetEventNumber() << QwLog::endl;// always zero, wrong.
 
     }
 
-     
+
     fWordsSoFar += fFragLength;
 
-    QwDebug << "QwEventBuffer::FillEPICSData:  "
-	    << "Ending loop: fWordsSoFar=="<<fWordsSoFar
-	    <<QwLog::endl;
-    QwMessage<<"\nQwEventBuffer::FillEPICSData: fWordsSoFar = "<<fWordsSoFar<<QwLog::endl;
+//     QwDebug << "QwEventBuffer::FillEPICSData:  "
+// 	    << "Ending loop: fWordsSoFar=="<<fWordsSoFar
+// 	    <<QwLog::endl;
+//     QwMessage<<"\nQwEventBuffer::FillEPICSData: fWordsSoFar = "<<fWordsSoFar<<QwLog::endl;
 
 
   }
@@ -625,7 +688,7 @@ Bool_t QwEventBuffer::DecodeSubbankHeader(UInt_t *buffer){
     }
     if (fWordsSoFar+2+fFragLength > fEvtLength){
       //  Trouble, because we'll have too many words!
-      std::cerr << "fWordsSoFar+2+fFragLength=="<<fWordsSoFar+2+fFragLength
+      QwError << "fWordsSoFar+2+fFragLength=="<<fWordsSoFar+2+fFragLength
 		<< " and fEvtLength==" << fEvtLength
 		<< QwLog::endl;
       okay = kFALSE;

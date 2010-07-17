@@ -2,7 +2,7 @@
 #include <iostream>
 #include <fstream>
 
-ClassImp(QwMapFile)
+ClassImp(QwMapFile);
 
 const size_t QwMapFile::kMapFileSize = 1000000000;
 

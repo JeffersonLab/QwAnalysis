@@ -43,6 +43,7 @@
    a basic text editor, so that notes and comments can be added by the user.
 
  */
+//New Class "QwGUIBeamModulation"  created for Beam Modulation: Nuruzzaman 05/03/2010
 //=============================================================================
 
 ///
@@ -82,16 +83,22 @@
 #include <TMath.h>
 #include <TPave.h>
 #include "KeySymbols.h"
-
 #include "QwGUIMainDetector.h"
-#include "QwGUILumiDetector.h"
+#include "QwGUIScanner.h"
+#include "QwGUIBeamModulation.h"
+#include "QwGUILumiDetector.h" 
 #include "QwGUIInjector.h"
 #include "QwGUIHallCBeamline.h"
+#include "QwGUITrackFinding.h"
 #include "QwGUIEventDisplay.h"
 #include "QwGUIHelpBrowser.h"
 #include "QwGUIDatabaseContainer.h"
+#include "QwGUIDatabase.h"
 #ifndef __CINT__
+
 #include "QwOptions.h"
+#include "QwParameterFile.h"
+
 #endif /* __CINT__ */
 
 
@@ -109,9 +116,13 @@ class QwGUIMain : public TGMainFrame {
 
   //!Main detector sub system class
   QwGUIMainDetector      *MainDetSubSystem;
+  QwGUIScanner           *ScannerSubSystem;
+  QwGUIBeamModulation    *BeamModulationSubSystem;
   QwGUILumiDetector      *LumiDetSubSystem;
   QwGUIInjector          *InjectorSubSystem;
   QwGUIHallCBeamline     *HallCBeamlineSubSystem;
+  QwGUIDatabase          *DatabaseSubSystem;
+  QwGUITrackFinding      *TrackFindingSubSystem;
   QwGUIEventDisplay      *EventDisplaySubSystem;
 
   QwGUIHelpBrowser          *dHelpBrowser;
@@ -183,8 +194,8 @@ class QwGUIMain : public TGMainFrame {
   TGHorizontalFrame      *dLogEditFrame;
   TGLayoutHints          *dLogTabLayout;
   TGLayoutHints          *dLogEditLayout;
-  TGHorizontalFrame      *dDBQueryFrame;      
-  TGTextEntry            *dDBQueryEntry;      
+  TGHorizontalFrame      *dDBQueryFrame;
+  TGTextEntry            *dDBQueryEntry;
   TGLayoutHints          *dLogEditFrameLayout;
   TGLayoutHints          *dDBQueryEntryLayout;
   TGLayoutHints          *dDBQueryFrameLayout;

@@ -21,15 +21,16 @@
 
 // Qweak headers
 #include "QwLog.h"
+#include "QwHistogramHelper.h"
 
-// Initialize mode flags
-const unsigned int MQwSIS3320_Channel::MODE_ACCUMULATOR = 0x0;
-const unsigned int MQwSIS3320_Channel::MODE_LONG_WORD_SAMPLING = 0x1;
-const unsigned int MQwSIS3320_Channel::MODE_SHORT_WORD_SAMPLING = 0x2;
-const unsigned int MQwSIS3320_Channel::MODE_NOTREADY = 0xda00;
+// Initialize data storage format flags
+const unsigned int MQwSIS3320_Channel::FORMAT_ACCUMULATOR = 0x0;
+const unsigned int MQwSIS3320_Channel::FORMAT_LONG_WORD_SAMPLING = 0x1;
+const unsigned int MQwSIS3320_Channel::FORMAT_SHORT_WORD_SAMPLING = 0x2;
 // Initialize sampling mode format flags
-const unsigned int MQwSIS3320_Channel::FORMAT_MULTI_EVENT = 0x3;
-const unsigned int MQwSIS3320_Channel::FORMAT_SINGLE_EVENT = 0x4;
+const unsigned int MQwSIS3320_Channel::MODE_MULTI_EVENT = 0x3;
+const unsigned int MQwSIS3320_Channel::MODE_SINGLE_EVENT = 0x4;
+const unsigned int MQwSIS3320_Channel::MODE_NOTREADY = 0xda00;
 
 // Compile-time debug level
 const Bool_t MQwSIS3320_Channel::kDEBUG = kTRUE;
@@ -152,28 +153,107 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
     words_read = fNumberOfDataWords;
   } else if (num_words_left >= fNumberOfDataWords) {
 
-    // Check whether the first word corresponds to the correct channel number
-    if (! fChannel == buffer[0]) return words_read;
+    // The first word of the buffer is in the format: 0xFADC/id/ch/, where id
+    // is the module identification, and ch the channel number in that module.
+
+    // Check whether the first word has 0xFADC as the upper half
+    UInt_t local_tag = (buffer[0] >> 16) & 0xFFFF;
+    if (local_tag != 0xFADC) return words_read;
+
+    // Check whether the first word contains the correct channel number
+    UInt_t local_module = (buffer[0] >> 8) & 0xFF;
+    UInt_t local_channel = buffer[0] & 0xFF;
+    if (local_channel != fChannel) return words_read;
 
     // Determine whether we are receiving a sampling or accumulator buffer:
-    // Most significant short word:
-    // - zero in accumulator mode
-    //   (assuming less than 0x10000 samples per event)
-    // - 0x2 when a sampling buffer follows
-    // Least significant short word:
-    // - encodes the type of sampling mode (autostart, stop on trigger, etc)
-    // - number of samples per event in accumulator mode
-    UInt_t local_mode = (buffer[1] >> 16) & 0xFFFF;
-    UInt_t local_format = (buffer[1]) & 0xFFFF;
+    // Most significant short word (upper half):
+    // - 0x0 in accumulator mode
+    // - 0x1 when an expanded sampling buffer follows (12-bit sample / 32-bit word)
+    // - 0x2 when a packed sampling buffer follows (2 * 12-bit samples / 32-bit word)
+    // Least significant short word (lower half): 0x/stop mode/setup mode/ where
+    // - stop mode is 1 for hardware trigger
+    // - setup mode is 1,2,3,4...
+    UInt_t local_format = (buffer[1] >> 16) & 0xFFFF;
+    UInt_t local_stopmode = (buffer[1] >> 8) & 0xFF;
+    UInt_t local_setupmode = (buffer[1]) & 0xFF;
     words_read = 2;
     UInt_t packedtiming; // locals declared outside of switch/case
-    switch (local_mode) {
+    switch (local_format) {
+
+      // This is a sampling buffer using long words
+      case FORMAT_LONG_WORD_SAMPLING:
+        QwWarning << "MQwSIS3320_Channel: Expanded word format not implemented"
+                  << QwLog::endl;
+        break; // end of FORMAT_LONG_WORD_SAMPLING
+
+      // This is a sampling buffer using short words
+      case FORMAT_SHORT_WORD_SAMPLING:
+        UInt_t numberofsamples, numberofevents_expected, numberofevents_actual;
+        switch (local_setupmode) {
+
+          // This is a sampling buffer in multi event mode:
+          // - many events are saved in one buffer for a complete helicity event
+          case MODE_MULTI_EVENT:
+            numberofsamples = buffer[3];
+            numberofevents_expected = buffer[4];
+            fSamplePointer = 0;
+            words_read = 5;
+
+            // For all events in this buffer
+            SetNumberOfEvents(numberofevents_expected);
+            numberofevents_actual = 0; // double check while reading the events
+            for (size_t event = 0; event < GetNumberOfEvents(); event++) {
+              // create a new raw sampled event
+              fSamplesRaw[event].SetNumberOfSamples(numberofsamples);
+              // pass the buffer to read the samples
+              UInt_t samples_read = fSamplesRaw[event].ProcessEvBuffer(&(buffer[words_read]), num_words_left-words_read);
+              // check whether we actually read any data
+              if (samples_read == 0) break;
+              // an actual sampled event was read
+              words_read += samples_read;
+              numberofevents_actual++;
+              if (kDEBUG) QwOut << "Samples " << event << ": " << fSamplesRaw[event] << QwLog::endl;
+            }
+            if (numberofevents_expected != numberofevents_actual) {
+              QwWarning << "MQwSIS3320_Channel: Expected " << numberofevents_expected << " events, "
+                        << "but only read " << numberofevents_actual << "." << QwLog::endl;
+              SetNumberOfEvents(numberofevents_actual);
+            }
+
+            break;
+
+          // This is a sampling buffer in single event mode:
+          // - one event only is saved in the buffer, and each event triggers
+          //   a read-out so multiple event can occur in one helicity period
+          // - because a circular buffer is used the pointer to the last sample
+          //   is stored
+          case MODE_SINGLE_EVENT:
+            numberofsamples = buffer[3];
+            numberofevents_expected = 1;
+            fSamplePointer = buffer[2];
+
+            // Create a new raw sampled event
+            SetNumberOfEvents(numberofevents_expected);
+            // Pass the buffer to read the samples (only one event)
+            fSamplesRaw.at(0).SetNumberOfSamples(numberofsamples);
+            fSamplesRaw.at(0).ProcessEvBuffer(buffer, num_words_left, fSamplePointer);
+
+            break;
+
+          // Default
+          default:
+            QwError << "MQwSIS3320_Channel: Received unknown sampling format: "
+                    << std::hex << local_setupmode << std::dec << "." << QwLog::endl;
+            words_read = 0;
+            return words_read;
+
+        } // end of switch (local_setupmode)
+
+        fHasSamplingData = kTRUE;
+        break; // end of FORMAT_SHORT_WORD_SAMPLING
 
       // This is an accumulator buffer
-      case MODE_ACCUMULATOR:
-        words_read--;
-        // TODO The -- is because we use one word to determine whether this is
-        // an accumulator block -> BAD!
+      case FORMAT_ACCUMULATOR:
 
         // Definition of the accumulators: (numbered from 1)
         // 1: digital sum of all samples in the event
@@ -222,92 +302,21 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
         }
 
         fHasAccumulatorData = kTRUE;
-        break; // end of MODE_ACCUMULATOR
-
-      // This is a sampling buffer using long words
-      case MODE_LONG_WORD_SAMPLING:
-        break; // end of MODE_LONG_WORD_SAMPLING
-
-      // This is a sampling buffer using short words
-      case MODE_SHORT_WORD_SAMPLING:
-        UInt_t numberofsamples, numberofevents_expected, numberofevents_actual;
-        switch (local_format) {
-
-          // This is a sampling buffer in multi event mode:
-          // - many events are saved in one buffer for a complete helicity event
-          case 0x2: // TODO Due to a problem in the crl, a lot of test data has this
-          case FORMAT_MULTI_EVENT:
-            numberofsamples = buffer[3];
-            numberofevents_expected = buffer[4];
-            fSamplePointer = 0;
-            words_read = 5;
-
-            // For all events in this buffer
-            SetNumberOfEvents(numberofevents_expected);
-            numberofevents_actual = 0; // double check while reading the events
-            for (size_t event = 0; event < GetNumberOfEvents(); event++) {
-              // create a new raw sampled event
-              fSamplesRaw[event].SetNumberOfSamples(numberofsamples);
-              // pass the buffer to read the samples
-              UInt_t samples_read = fSamplesRaw[event].ProcessEvBuffer(&(buffer[words_read]), num_words_left-words_read);
-              // check whether we actually read any data
-              if (samples_read == 0) break;
-              // an actual sampled event was read
-              words_read += samples_read;
-              numberofevents_actual++;
-              if (kDEBUG) QwOut << "Samples " << event << ": " << fSamplesRaw[event] << QwLog::endl;
-            }
-            if (numberofevents_expected != numberofevents_actual) {
-              QwWarning << "MQwSIS3320_Channel: Expected " << numberofevents_expected << " events, "
-                        << "but only read " << numberofevents_actual << "." << QwLog::endl;
-              SetNumberOfEvents(numberofevents_actual);
-            }
-
-            break;
-
-          // This is a sampling buffer in single event mode:
-          // - one event only is saved in the buffer, and each event triggers
-          //   a read-out so multiple event can occur in one helicity period
-          // - because a circular buffer is used the pointer to the last sample
-          //   is stored
-          case FORMAT_SINGLE_EVENT:
-            numberofsamples = buffer[3];
-            numberofevents_expected = 1;
-            fSamplePointer = buffer[2];
-
-            // Create a new raw sampled event
-            SetNumberOfEvents(numberofevents_expected);
-            // Pass the buffer to read the samples (only one event)
-            fSamplesRaw.at(0).SetNumberOfSamples(numberofsamples);
-            fSamplesRaw.at(0).ProcessEvBuffer(buffer, num_words_left, fSamplePointer);
-
-            break;
-
-          // Default
-          default:
-            QwError << "MQwSIS3320_Channel: Received unknown sampling format: "
-                    << std::hex << local_format << std::dec << "." << QwLog::endl;
-            words_read = 0;
-            return words_read;
-
-        } // end of switch (local_format)
-
-        fHasSamplingData = kTRUE;
-        break; // end of MODE_SHORT_WORD_SAMPLING
+        break; // end of FORMAT_ACCUMULATOR
 
       // This is an incomplete buffer
       case MODE_NOTREADY:
         QwError << "MQwSIS3320_Channel: SIS3320 was not ready yet!" << QwLog::endl;
-        break; // end of MODE_NOTREADY
+        break; // end of FORMAT_NOTREADY
 
       // Default
       default:
         QwError << "MQwSIS3320_Channel: Received unknown mode: "
-                << std::hex << local_mode << "." << QwLog::endl;
+                << std::hex << local_format << std::dec << "." << QwLog::endl;
         words_read = 0;
         return words_read;
 
-    } // end of switch (local_mode)
+    } // end of switch (local_format)
 
   } else {
     QwError << "MQwSIS3320_Channel: Not enough words while processing buffer!" << QwLog::endl;
@@ -382,6 +391,10 @@ void MQwSIS3320_Channel::ProcessEvent()
       UInt_t stop = fTimeWindows[timewindow].second;
       fTimeWindowAverages[timewindow] += fSamples[i].GetSumInTimeWindow(start, stop);
     }
+  }
+
+  for (size_t i = 0; i < fSamples.size(); i++) {
+    QwMessage << fSamples[i] << QwLog::endl;
   }
 
   return;
@@ -580,6 +593,43 @@ Bool_t MQwSIS3320_Channel::MatchNumberOfSamples(UInt_t numsamples)
   return status;
 };
 
+void MQwSIS3320_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
+{
+  //  If we have defined a subdirectory in the ROOT file, then change into it.
+  if (folder != NULL) folder->cd();
+
+  if (IsNameEmpty()) {
+    //  This channel is not used, so skip filling the histograms.
+  } else {
+
+    TString basename, fullname;
+    basename = prefix + GetElementName();
+
+    fHistograms.resize(3, NULL);
+    size_t index = -1;
+    fHistograms[++index] = gQwHists.Construct1DHist(basename+Form("_sum"));
+    fHistograms[++index] = gQwHists.Construct1DHist(basename+Form("_ped"));
+    fHistograms[++index] = gQwHists.Construct1DHist(basename+Form("_ped_raw"));
+  }
+};
+
+void MQwSIS3320_Channel::FillHistograms()
+{
+  size_t index = -1;
+  if (fSamples.size() == 0) return;
+
+  if (IsNameEmpty()) {
+      //  This channel is not used, so skip creating the histograms.
+  } else {
+    if (fHistograms[++index] != NULL)
+      fHistograms[index]->Fill(fAverageSamples.GetSum());
+    if (fHistograms[++index] != NULL)
+      fHistograms[index]->Fill(fAverageSamples.GetSample(0));
+    if (fHistograms[++index] != NULL)
+      fHistograms[index]->Fill(fAverageSamplesRaw.GetSample(0));
+  }
+};
+
 
 void  MQwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
@@ -619,9 +669,23 @@ void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values)
 };
 
 /**
+ * Print value of the MQwSIS3320_Channel
+ */
+void MQwSIS3320_Channel::PrintValue() const
+{
+  QwMessage << std::setprecision(4)
+            << std::setw(18) << std::left << GetElementName() << ", "
+// n/a            << std::setw(15) << std::left << GetHardwareSum() << ", "
+// n/a            << std::setw(15) << std::left << GetSampleAverage() << ", "
+            << std::setw(15) << std::left << GetNumberOfEvents() << ", "
+            << QwLog::endl;
+}
+
+
+/**
  * Print some debugging information about the MQwSIS3320_Channel
  */
-void MQwSIS3320_Channel::Print() const
+void MQwSIS3320_Channel::PrintInfo() const
 {
   QwOut << "MQwSIS3320_Channel \"" << GetElementName() << "\":" << QwLog::endl;
   QwOut << "Number of events: " << GetNumberOfEvents() << QwLog::endl;
@@ -645,7 +709,5 @@ void MQwSIS3320_Channel::Print() const
   if (fSamplesRaw.size() > 0) {
     QwOut << "Average pedestal is: " << fAverageSamplesRaw.GetSumInTimeWindow(0, nped) / (Double_t) nped << QwLog::endl;
   }
-
-  return;
 }
 

@@ -53,7 +53,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   // Define the command line options
   DefineOptionsParity(gQwOptions);
 
-
+ 
 
   Bool_t bDebug=kFALSE;
   Bool_t bHelicity=kTRUE;
@@ -78,7 +78,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
   ///  histogram helper: QwHistogramHelper
   ///
-  gQwHists.LoadHistParamsFromFile("parity_hists.in");
+  gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
 
   TStopwatch timer;
 
@@ -98,14 +98,14 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwDetectors.push_back(new QwHelicity("Helicity info"));
   QwDetectors.GetSubsystemByName("Helicity info")->LoadChannelMap("qweak_helicity.map");
   QwDetectors.GetSubsystemByName("Helicity info")->LoadInputParameters("");
-  QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
-  QwDetectors.GetSubsystemByName("Luminosity Monitors")->LoadChannelMap("qweak_lumi.map");//current map file is for the beamline.
-  QwDetectors.GetSubsystemByName("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file.
+  //QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
+  //QwDetectors.GetSubsystemByName("Luminosity Monitors")->LoadChannelMap("qweak_lumi.map");//current map file is for the beamline.
+  //QwDetectors.GetSubsystemByName("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file.
 
   QwSubsystemArrayParity runningsum;
   runningsum.Copy(&QwDetectors);
 
-  ((QwBeamLine*)QwDetectors.GetSubsystemByName("Injector BeamLine"))->LoadGeometry("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
+  QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadGeometryDefinition("qweak_beamline_geometry.map"); //read in the gemoetry of the beamline
 
 
   QwDetectors.ProcessOptions(gQwOptions);//Recommonded to call this routine after LoadChannelMap(..) routines. Some times the cmd options override the map file settings.

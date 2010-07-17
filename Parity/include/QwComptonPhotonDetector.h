@@ -26,7 +26,7 @@
 // Qweak headers
 #include "VQwSubsystemParity.h"
 #include "MQwSIS3320_Channel.h"
-#include "QwVQWK_Channel.h"
+#include "MQwV775TDC.h"
 
 class QwComptonPhotonDetector: public VQwSubsystemParity {
 
@@ -48,7 +48,7 @@ class QwComptonPhotonDetector: public VQwSubsystemParity {
     Bool_t SingleEventCuts();
     Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
     Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-    void  PrintDetectorID();
+    void  PrintDetectorID() const;
 
     void  ClearEventData();
     void  ProcessEvent();
@@ -84,13 +84,14 @@ class QwComptonPhotonDetector: public VQwSubsystemParity {
 
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  FillTreeVector(std::vector<Double_t> &values);
-    void  FillDB(QwDatabase *db, TString datatype){};
 
     void Copy(VQwSubsystem *source);
     VQwSubsystem*  Copy();
 
     Bool_t Compare(VQwSubsystem *source);
-    void Print();
+
+    void PrintValue() const;
+    void PrintInfo() const;
 
     MQwSIS3320_Channel* GetSIS3320Channel(const TString name);
 
@@ -102,6 +103,7 @@ class QwComptonPhotonDetector: public VQwSubsystemParity {
     Int_t fTree_fNEvents;
 
     /// List of sampling ADC channels
+    std::vector <std::vector <Int_t> > fSamplingADC_Mapping;
     std::vector <MQwSIS3320_Channel> fSamplingADC;
 
     /// List of integrating QDC and TDC channels
@@ -109,8 +111,8 @@ class QwComptonPhotonDetector: public VQwSubsystemParity {
     // No data available anyway, so what's the point in having support in software yet?
     //    std::vector <MQwV775TDC> fIntegratingTDC;
     //    std::vector <MQwV792ADC> fIntegratingADC;
-    std::vector <QwVQWK_Channel> fIntegratingTDC;
-    std::vector <QwVQWK_Channel> fIntegratingADC;
+    std::vector <MQwV775TDC> fIntegratingTDC;
+    std::vector <MQwV775TDC> fIntegratingADC;
 
   private:
 

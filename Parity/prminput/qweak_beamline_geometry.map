@@ -1,31 +1,40 @@
-!---------------------------------------------------------!
-! Geometry information of the BPMS in the Hall C beamline.!
-!---------------------------------------------------------!
+!**************************************************************************
+! Geometry information of the BPMS in the Hall C beamline.
+!**************************************************************************
+! These offsets represents the positions of the bpms and thet target from the begining of the
+! Hall C arc to the center of the deivce. 
+! The units are in millemeters to be comparable with the units of 
+! the readings we get for the beam positions from the ADCs.
+!
+! I got the Z offset  values from a doccument by Nuruzzaman (Qweak-doc-1203-v1)
+! "Full List of Beam Components of Hall-C beamline for Q-weak experiment"
+! 
 !
 ! device type	device_name   Xoffset	Yoffset	Zoffset
 !
- bpmstripline,  QWK_QPD, 1, 1, 0,
- bpmstripline,  QWK_1I02, 1, 1, 1    
- bpmstripline,  QWK_1I04, 1, 1, 2    
- bpmstripline,  QWK_1I06, 1, 1, 3 
- bpmstripline,  QWK_0I02, 1, 1, 4  
- bpmstripline,  QWK_0I02A, 1, 1, 5  
- bpmstripline,  QWK_0I05, 1, 1, 6
- bpmstripline,  QWK_0I07, 1, 1, 7
- bpmstripline,  QWK_0L01, 1, 1, 8
- bpmstripline,  QWK_0L02, 1, 1, 9
- bpmstripline,  QWK_0L03, 1, 1, 10
- bpmstripline,  QWK_0L04, 1, 1, 11
- bpmstripline,  QWK_0L05, 1, 1, 12
- bpmstripline,  QWK_0L06, 1, 1, 13
- bpmstripline,  QWK_0L07, 1, 1, 14
- bpmstripline,  QWK_0L08, 1, 1, 15
- bpmstripline,  QWK_0L09, 1, 1, 16
- bpmstripline,  QWK_0L10, 1, 1, 17
- bpmstripline,  QWK_0R01, 1, 1, 18
- bpmstripline,  QWK_0R02, 1, 1, 19
- bpmstripline,  QWK_0R05, 1, 1, 20
- bpmstripline,  QWK_0R06, 1, 1, 21
- combinedbpm,  qwk_target 0, 0, 5	
+ bpmstripline,   QWK_3C07, 1, 1, 49025.3
+ bpmstripline,   QWK_3C07A, 1, 1, 53051.9
+ bpmstripline,   QWK_3C08, 1, 1, 55125.3    
+ bpmstripline,   QWK_3C11, 1, 1, 70725.3    
+ bpmstripline,   QWK_3C12, 1, 1, 76450.0 
+ bpmstripline,   QWK_3C14, 1, 1, 86365.3  
+ bpmstripline,   QWK_3C16, 1, 1, 96726.1  
+ bpmstripline,   QWK_3C17, 1, 1, 99815.6
+ bpmstripline,   QWK_3C18, 1, 1, 101611.0
+ bpmstripline,   QWK_3C19, 1, 1, 102922.0
+ bpmstripline,   QWK_3P02A, 1, 1, 109062.0
+ bpmstripline,   QWK_3P02B, 1, 1, 110662.0
+ bpmstripline,   QWK_3P03A, 1, 1, 112562.0
+ bpmstripline,   QWK_3C20, 1, 1, 116858.0
+ bpmstripline,   QWK_3C21, 1, 1, 118216.0
+ bpmstripline,   QWK_3H02, 1, 1, 127133.0
+ bpmstripline,   QWK_3H04A, 1, 1, 129632.0  ! There was no 3H04A in the doccument. So for now I use 3H03A position instead.
+ bpmstripline,   QWK_3H07A, 1, 1, 138406.0
+ bpmstripline,   QWK_3H07B, 1, 1, 139653.0
+ bpmstripline,   QWK_3H07C, 1, 1, 140319.0
+ bpmstripline,   QWK_3H08, 1, 1, 140399.0  ! There was no 3H08 so I just used a random value for now.
+ bpmstripline,   QWK_3H09, 1, 1, 144801.0
+ bpmstripline,   QWK_3H09A, 1, 1, 147352.0
+ combinedbpm,  qwk_target 0, 0, 148702.0  ! This is the position of the qweak target. 	
 
 !END

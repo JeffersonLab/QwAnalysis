@@ -11,6 +11,9 @@
 
 #include "QwHistogramHelper.h"
 
+// Qweak headers
+#include "QwLog.h"
+
 ///  Globally defined instance of the QwHistogramHelper class.
 QwHistogramHelper gQwHists;
 
@@ -51,7 +54,7 @@ const QwHistogramHelper::HISTPARMS QwHistogramHelper::GetHistParamsFromLine(QwPa
     }
     tmpstruct.xtitle     = mapstr.GetNextToken(" \t");
     tmpstruct.ytitle     = mapstr.GetNextToken(" \t");
-    
+
     tmpmin               = mapstr.GetNextToken(" \t");
     if(tmpmin.find_first_not_of("-+1234567890.eE")==std::string::npos){
       //  tmpmin is a number
@@ -82,7 +85,9 @@ void  QwHistogramHelper::LoadHistParamsFromFile(const std::string filename)
 
   if (fDEBUG) std::cout<< "file name "<<fInputFile<<std::endl;
 
-  fHistParams.clear();
+  // TODO (wdc) disabled clearing of the histogram parametrization before loading
+  //fHistParams.clear();
+
   QwParameterFile mapstr(filename.c_str());  //Open the file
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('#');   // Remove everything after a '!' character.
@@ -106,14 +111,37 @@ void  QwHistogramHelper::LoadHistParamsFromFile(const std::string filename)
 
 const QwHistogramHelper::HISTPARMS QwHistogramHelper::GetHistParamsFromList(const std::string histname)
 {
-  HISTPARMS tmpstruct;
+  HISTPARMS tmpstruct, matchstruct;
   tmpstruct.name_title = fInvalidName;
 
-  for (size_t i=0; i<fHistParams.size(); i++){
-    if (DoesMatch(histname,fHistParams.at(i).name_title)){
-      tmpstruct = fHistParams.at(i);
-      tmpstruct.name_title=histname;
-      break;
+  std::vector<int> matches;
+  for (size_t i = 0; i < fHistParams.size(); i++) {
+    if (DoesMatch(histname,fHistParams.at(i).name_title)) {
+      matchstruct = fHistParams.at(i);
+      if (tmpstruct.name_title == fInvalidName){
+        tmpstruct = matchstruct;
+        tmpstruct.name_title = histname;
+        matches.push_back(i);
+        break; // enabled (to get warnings for multiple definitions, disable)
+      } else if (tmpstruct.nbins == matchstruct.nbins
+              && tmpstruct.min   == matchstruct.min
+              && tmpstruct.max   == matchstruct.max
+              && tmpstruct.x_nbins == matchstruct.x_nbins
+              && tmpstruct.x_min   == matchstruct.x_min
+              && tmpstruct.x_max   == matchstruct.x_max
+              && tmpstruct.y_nbins == matchstruct.y_nbins
+              && tmpstruct.y_min   == matchstruct.y_min
+              && tmpstruct.y_max   == matchstruct.y_max) {
+        //matches.push_back(i); // disabled (to enable, also remove break above)
+      }
+    }
+  }
+
+  // Warn when multiple identical matches were found
+  if (matches.size() > 1) {
+    QwWarning << "Multiple identical matches for histogram " << histname << ":" << QwLog::endl;
+    for (size_t i = 0; i < matches.size(); i++) {
+      QwWarning << " " << fHistParams.at(matches.at(i)).name_title << QwLog::endl;
     }
   }
 
@@ -127,9 +155,9 @@ const QwHistogramHelper::HISTPARMS QwHistogramHelper::GetHistParamsFromList(cons
       " y_max "<<tmpstruct.y_max<<" xtitle "<<tmpstruct.xtitle<<
       " ytitle "<<tmpstruct.ytitle<<std::endl;}
   if (tmpstruct.name_title == fInvalidName){
-    std::cerr << "GetHistParamsFromList:  We haven't found a match of the histogram name: " 
+    std::cerr << "GetHistParamsFromList:  We haven't found a match of the histogram name: "
 	      << histname << std::endl;
-    std::cerr << "                        Please check the input file " 
+    std::cerr << "                        Please check the input file "
 	      << fInputFile << std::endl;
     exit(1);
   }
@@ -180,9 +208,9 @@ const QwHistogramHelper::HISTPARMS QwHistogramHelper::GetHistParamsFromFile(cons
       " y_max "<<tmpstruct.y_max<<" xtitle "<<tmpstruct.xtitle<<
       " ytitle "<<tmpstruct.ytitle<<std::endl;}
   if (tmpstruct.name_title == fInvalidName){
-    std::cerr << "GetHistParamsFromFile:  We haven't found a match of the histogram name: " 
+    std::cerr << "GetHistParamsFromFile:  We haven't found a match of the histogram name: "
 	      << histname << std::endl;
-    std::cerr << "                        Please check the input file " 
+    std::cerr << "                        Please check the input file "
 	      << filename << std::endl;
     exit(1);
   }
@@ -197,10 +225,11 @@ Bool_t QwHistogramHelper::DoesMatch(const std::string s, const std::string s_wil
 
   TString s1 = TString(s.c_str());
   TRegexp s2 = TRegexp(s_wildcard.c_str());
-  if(s.length()==s_wildcard.length()
-     &&s1.Index(s2)==0){//found a match!
+  Ssiz_t len = 0;
+  if (s.length() == s_wildcard.length()
+     && s2.Index(s1,&len) == 0 && len == s1.Length()) { // found a match!
     return kTRUE;
-  } else if (s1.Index(s2)==0){//found a match!
+  } else if (s2.Index(s1,&len) == 0 && len == s1.Length()) { // found a match!
     //std::cout << "QwHistogramHelper:  Matching histogram \"" << s.c_str()<< "\" to wildcard pattern \"" << s_wildcard.c_str() << "\"." << std::endl;
     return kTRUE;
   }

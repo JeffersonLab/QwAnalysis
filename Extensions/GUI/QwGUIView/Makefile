@@ -3,10 +3,10 @@
 # It is derived form the file in $ROOTSYS/test/Makefile, which
 # was written by the "root" people....
 
--include ../VERSION 
+-include ../VERSION
 
 LIBDIR        = ../QwGUILib
-LIBINCLUDE    = $(LIBDIR)/include 
+LIBINCLUDE    = $(LIBDIR)/include
 RDATALIB      = $(LIBDIR)/QwGUIRootLib-$(VERS).a
 PRG_INCLUDE   = ./include
 PRG_SOURCE    = ./src
@@ -20,14 +20,19 @@ OBJECTS       += QwGUIPlotOptionsDialog.o
 OBJECTS       += QwGUIDataWindow.o
 OBJECTS       += QwGUISubSystem.o
 OBJECTS       += QwGUIMainDetector.o
+OBJECTS       += QwGUIScanner.o
+OBJECTS       += QwGUIBeamModulation.o			 #Nuruzzaman
 OBJECTS       += QwGUILumiDetector.o
 OBJECTS       += QwGUIInjector.o
 OBJECTS	      += QwGUIHallCBeamline.o
+OBJECTS       += QwGUITrackFinding.o
 OBJECTS       += QwGUIEventDisplay.o
 OBJECTS       += QwGUISuperCanvas.o
 OBJECTS       += QwGUIDatabaseContainer.o
 OBJECTS       += QwGUIDatabaseSelectionDialog.o
 OBJECTS       += QwGUIFFTWindowSelectionDialog.o
+OBJECTS       += QwGUIDatabase.o
+
 
 # Now append the object files that Don't require a CINT dictionary.
 #NODICTOBJECTS   = QwHit.o

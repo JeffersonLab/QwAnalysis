@@ -91,7 +91,10 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   void  FillHistograms();
   void  DeleteHistograms();
 
-  void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+  void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+  void ConstructBranch(TTree *tree, TString &prefix);
+  void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file );
+
   void  FillTreeVector(std::vector<Double_t> &values);
   void  FillDB(QwDatabase *db, TString datatype);
 
@@ -133,8 +136,9 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
     return status;
   };
 
-  void Print();
-  void  PrintDetectorID();
+  void  PrintValue() const;
+  void  PrintInfo() const;
+  void  PrintDetectorID() const;
 
 
  protected:
@@ -198,7 +202,7 @@ class QwMainCerenkovDetectorID
   std::vector<TString> fCombinedChannelNames;
   std::vector<Double_t> fWeight;
 
-  void Print();
+  void Print() const;
 
 };
 

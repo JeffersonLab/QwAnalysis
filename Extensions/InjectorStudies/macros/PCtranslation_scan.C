@@ -1,0 +1,203 @@
+// 2010-07-01 Mark Dalton 
+// Initial code taken from tools used in Hall A parity programs.
+// 
+
+void plot_element(TPad *p1, TPad* p2, char *devnam, TString lcut, Int_t dset);
+
+void PCtranslation_scan(Int_t runnumber=1, TString direction="0", TString device="1i02", TString usercut ="1") {
+	if (runnumber==1 || direction=="0") {
+		printf("Usage:\n\t.x PCtranslation_scan.C(runnum,direction,[device],[cut])\n\n");
+		return;
+	}
+
+	gROOT->Reset();
+
+    TString gtitle;
+    gtitle = "PC translation scan ";
+	gtitle += direction;
+	gtitle += ", Run ";
+    gtitle += runnumber;
+
+    TString plotname = "plots/";
+    plotname += "pctranscan_run";
+    plotname += runnumber;
+	plotname += ".png";
+
+	// define style here 
+	// general parameters
+	gStyle->SetOptDate(0);     gStyle->SetOptTitle(0);
+	gStyle->SetStatColor(10);  gStyle->SetStatH(0.2);
+	gStyle->SetStatW(0.3);     gStyle->SetOptStat(0); 
+  
+	// canvas parameters
+	gStyle->SetFrameBorderMode(0);
+	gStyle->SetFrameBorderSize(0);
+	gStyle->SetFrameFillColor(10);
+	// pads parameters
+	//  gStyle->SetPadColor(39); 
+	gStyle->SetPadColor(0); 
+	gStyle->SetPadBorderMode(0);
+	gStyle->SetPadBorderSize(0);
+	gStyle->SetPadBottomMargin(0.18);
+	gStyle->SetPadRightMargin(0.05);
+	gStyle->SetPadLeftMargin(0.15);
+	gStyle->SetLabelSize(0.05,"x");
+	gStyle->SetLabelSize(0.05,"y");
+	gROOT->ForceStyle();  
+
+	TPad* a1_p[7];
+
+	TCanvas *a1 = new TCanvas("a1", "Scan", 0,0,700,700);
+	TPad* a1_p[0]  = new TPad( "a1_1", "a1_1",0.00,0.61,0.75,0.92);    
+	TPad* a1_p[1]  = new TPad( "a1_7", "a1_7",0.75,0.61,1.00,0.92);    
+
+	TPad* a1_p[2]  = new TPad( "a1_1", "a1_1",0.00,0.31,0.75,0.60);    
+	TPad* a1_p[3]  = new TPad( "a1_7", "a1_7",0.75,0.31,1.00,0.60);    
+
+	TPad* a1_p[4]  = new TPad( "a1_1", "a1_1",0.00,0.01,0.75,0.30);    
+	TPad* a1_p[5]  = new TPad( "a1_7", "a1_7",0.75,0.01,1.00,0.30);    
+
+	TPad* a1_title = new TPad("a1_title","a1_title",0.0,0.92,1.0,1.0);    
+
+	a1->cd();
+	for (Int_t i =0; i<6; i++) a1_p[i]->Draw();
+	a1_title->Draw();
+
+	a1_title->cd();
+	TPaveText* pt2 = new TPaveText(0.04,0.04,0.96,0.50,"brNDC");
+	pt2->SetBorderSize(0);pt2->SetFillColor(10);
+	pt2->SetTextFont(20);
+	pt2->SetTextSize(0.55);
+	pt2->SetTextAlign(22);
+	text = pt2->AddText(0.5,0.9,gtitle.Data());
+	pt2->Draw();
+	pt2->SetTextAlign(22);
+
+	plot_element(a1_p[0],a1_p[1],"qwk_"+device+"_EffectiveCharge.hw_sum",usercut,runnumber);
+
+	plot_element(a1_p[2],a1_p[3],"qwk_"+device+"X.hw_sum",usercut,runnumber);
+
+	plot_element(a1_p[4],a1_p[5],"qwk_"+device+"Y.hw_sum",usercut,runnumber);
+
+	a1->cd();
+	a1->Update();
+
+	a1->Print(plotname.Data());
+  
+}
+
+void plot_element(TPad *p1, TPad* p2, char *devnam, TString localcut, Int_t runnumber) {
+
+	TString *bpmNam = new TString(devnam);
+
+	Int_t ifnd = 0;
+	TString tmpname;
+	TString plotcommand;
+
+	Int_t icurRun=0;
+	char buff[170];
+
+	// Open the file
+	char filename[255];
+	sprintf(filename,"$QW_ROOTFILES/Qweak_%i.000.root",runnumber);
+	TFile *_file0 = TFile::Open(filename);
+	TTree *p = (TTree*)gROOT->FindObject("Hel_Tree");
+	TTree *r = (TTree*)gROOT->FindObject("Mps_Tree");
+
+    // make cut
+    TString cut = "cleandata&&" + localcut;
+
+    // plot desired  Aq
+    tmpname = bpmNam->Data();
+    TString titpre = "asym_";
+    TString titsum = " (ppm) vs Scandata1";
+    //    tmpname += "1sum";
+    if (tmpname.Contains("X") || tmpname.Contains("Y")) {
+		plotcommand = "diff_";
+		plotcommand += tmpname.Data();
+		plotcommand += "*1000";
+		titpre = "diff_";
+		titsum = " (nm) vs Scandata1";
+    } else {
+		if (tmpname.Contains("EffectiveCharge")) {
+			plotcommand = "asym_";
+			plotcommand += tmpname.Data();
+			plotcommand += "*1000000";
+		} else {
+			printf("problems\n");
+		}
+	}
+
+	plotcommand += ":scandata1>>hAq";
+	cout << plotcommand << endl;
+	p1->cd();
+	
+	Int_t successes = p->Draw(plotcommand.Data(),cut.Data(),"prof");
+	if (successes<=0) {
+		printf("No events pass cuts\n");
+		return;
+	}
+//	p->Project("hAq",plotcommand.Data(),cut.Data(),"prof");
+	// fit Aq linearity
+	TH1 *hAq = (TH1*)gDirectory->Get("hAq");
+	hAq->Fit("pol1");
+	TF1 *f1 = hAq->GetFunction("pol1");
+	f1->SetLineColor(2);
+	f1->SetLineWidth(1);
+
+	hAq->SetMarkerColor(12);
+	hAq->SetMarkerSize(1.0);
+	hAq->SetMarkerStyle(22);
+	hAq->GetXaxis()->CenterTitle();
+	hAq->GetXaxis()->SetTitleOffset(1.2);
+	hAq->GetXaxis()->SetTitleSize(0.06);
+	hAq->Draw();
+	TString tit = titpre.Data();
+	tit += tmpname.Data();
+	tit += titsum;
+	hAq->GetXaxis()->SetTitle(tit.Data());
+
+	p2->cd();
+	char linetxt[50];
+	pt = new TPaveText(0.0,0.3,0.9,0.7,"brNDC");
+	pt->SetBorderSize(1);pt->SetFillColor(10);
+	pt->SetTextAlign(12);pt->SetTextFont(22);
+    if (tmpname.Contains("X")) {
+		sprintf(linetxt,"D_{x}(0) = %7.1f",f1->GetParameter(0));
+		pt->AddText(linetxt);
+		sprintf(linetxt,"slope = %7.4f", f1->GetParameter(1));
+		pt->AddText(linetxt);
+		//sprintf(linetxt,"zero at = %7.2f", f1->GetParameter(1));
+		//pt->AddText(linetxt);
+	} else {
+		if (tmpname.Contains("Y")) {
+			sprintf(linetxt,"D_{y}(0) = %7.2f",f1->GetParameter(0));
+			pt->AddText(linetxt);
+			sprintf(linetxt,"slope = %7.4f", f1->GetParameter(1));
+			pt->AddText(linetxt);
+			//sprintf(linetxt,"zero at = %7.4f", f1->GetParameter(1));
+			//pt->AddText(linetxt);
+		} else {
+			if (tmpname.Contains("EffectiveCharge")) {
+				sprintf(linetxt,"A_{q}(0) = %7.2f",f1->GetParameter(0));
+				pt->AddText(linetxt);
+				sprintf(linetxt,"slope = %7.2f", f1->GetParameter(1));
+				pt->AddText(linetxt);
+				//sprintf(linetxt,"zero at = %7.4f", f1->GetParameter(1));
+				//pt->AddText(linetxt);
+			} else {
+				printf("problems\n");
+			}
+		}
+	}
+	pt->Draw();
+}
+
+/* emacs
+ * Local Variables:
+ * mode:C++
+ * mode:font-lock
+ * c-file-style: "stroustrup"
+ * tab-width: 4
+ * End:
+ */

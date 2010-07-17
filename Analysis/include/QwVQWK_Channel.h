@@ -42,6 +42,9 @@ class QwVQWK_Channel: public VQwDataElement {
  *         through member functions.
  ******************************************************************/
  public:
+  static Int_t GetBufferOffset(Int_t moduleindex, Int_t channelindex);
+  
+ public:
   QwVQWK_Channel() {
     InitializeChannel("","");
   };
@@ -114,12 +117,11 @@ class QwVQWK_Channel: public VQwDataElement {
   void Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom);
   void Product(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
 
-  void Offset(Double_t Offset);
+  void AddChannelOffset(Double_t Offset);
   void Scale(Double_t Offset);
 
   void AccumulateRunningSum(const QwVQWK_Channel& value);
   void CalculateRunningAverage();
-  void PrintRunningAverage();
 
   Bool_t MatchSequenceNumber(size_t seqnum);
   Bool_t MatchNumberOfSamples(size_t numsamp);
@@ -156,36 +158,38 @@ class QwVQWK_Channel: public VQwDataElement {
   void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+  void  ConstructBranch(TTree *tree, TString &prefix);
   void  FillTreeVector(std::vector<Double_t> &values);
 
-  Double_t GetBlockValue(size_t blocknum){ return fBlock[blocknum]; };
-  Double_t GetBlockErrorValue(size_t blocknum) { return fBlockError[blocknum]; };
-  Double_t GetHardwareSum()        { return fHardwareBlockSum; };
-  Double_t GetHardwareSumM2()      { return fHardwareBlockSumM2; };
-  Double_t GetHardwareSumError()   { return fHardwareBlockSumError; };
-  Double_t GetAverageVolts();
-  //  Double_t GetSoftwareSum(){return fSoftwareBlockSum;};
+  Double_t GetBlockValue(size_t blocknum) const { return fBlock[blocknum]; };
+  Double_t GetBlockErrorValue(size_t blocknum) const { return fBlockError[blocknum]; };
+  Double_t GetHardwareSum() const       { return fHardwareBlockSum; };
+  Double_t GetHardwareSumM2() const     { return fHardwareBlockSumM2; };
+  Double_t GetHardwareSumError() const  { return fHardwareBlockSumError; };
+  Double_t GetAverageVolts() const;
+  //  Double_t GetSoftwareSum() const {return fSoftwareBlockSum;};
 
-  Double_t GetRawBlockValue(size_t blocknum){return fBlock_raw[blocknum];};
-  Double_t GetRawHardwareSum(){return fHardwareBlockSum_raw;};
-  Double_t GetRawSoftwareSum(){return fSoftwareBlockSum_raw;};
+  Double_t GetRawBlockValue(size_t blocknum) const {return fBlock_raw[blocknum];};
+  Double_t GetRawHardwareSum() const {return fHardwareBlockSum_raw;};
+  Double_t GetRawSoftwareSum() const {return fSoftwareBlockSum_raw;};
 
-  size_t GetSequenceNumber(){return (fSequenceNumber);};
-  size_t GetNumberOfSamples(){return (fNumberOfSamples);};
+  size_t GetSequenceNumber() const {return (fSequenceNumber);};
+  size_t GetNumberOfSamples() const {return (fNumberOfSamples);};
 
-  void SetPedestal(Double_t ped){fPedestal=ped; return;};
-  Double_t GetPedestal(){return fPedestal;};
-  void SetCalibrationFactor(Double_t factor){fCalibrationFactor=factor; return;};
-  Double_t GetCalibrationFactor(){return fCalibrationFactor;};
+  void     SetPedestal(Double_t ped) { fPedestal = ped; };
+  Double_t GetPedestal() const       { return fPedestal; };
+  void     SetCalibrationFactor(Double_t factor) { fCalibrationFactor = factor; };
+  Double_t GetCalibrationFactor() const          { return fCalibrationFactor; };
 
 
   void Copy(VQwDataElement *source);
 
-  void Print() const;
+  void PrintValue() const;
+  void PrintInfo() const;
 
-  Double_t GetAverage()      { return fHardwareBlockSum; };
-  Double_t GetAverageError() { return fHardwareBlockSumError; };
-  UInt_t GetGoodEventCount() { return fGoodEventCount; };
+  Double_t GetAverage()      const { return fHardwareBlockSum; };
+  Double_t GetAverageError() const { return fHardwareBlockSumError; };
+  UInt_t GetGoodEventCount() const { return fGoodEventCount; };
 
   /// \brief Blind this channel as an asymmetry
   void Blind(const QwBlinder *blinder);
@@ -197,7 +201,9 @@ class QwVQWK_Channel: public VQwDataElement {
 
  private:
   static const Bool_t kDEBUG;
-  static const Int_t fWordsPerChannel = 6;//no.of words per channel in the CODA buffer
+  static const Int_t  kWordsPerChannel; //no.of words per channel in the CODA buffer
+  static const Int_t  kMaxChannels;     //no.of channels per module
+
 
   Int_t fDataToSave;
 
@@ -216,7 +222,7 @@ class QwVQWK_Channel: public VQwDataElement {
 
   /*! \name Channel configuration data members */
   // @{
-  UInt_t  fSamplesPerBlock;
+
   //UInt_t  fBlocksPerEvent;
   Short_t fBlocksPerEvent;
   // @}
@@ -323,6 +329,7 @@ class QwVQWK_Channel: public VQwDataElement {
 
 
 };
+
 
 
 #endif

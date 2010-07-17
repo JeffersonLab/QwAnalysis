@@ -8,6 +8,7 @@
 #include "QwPMT_Channel.h"
 
 // Qweak headers
+#include "QwLog.h"
 #include "QwHistogramHelper.h"
 
 const Bool_t QwPMT_Channel::kDEBUG = kFALSE;
@@ -135,7 +136,15 @@ QwPMT_Channel& QwPMT_Channel::operator= (const QwPMT_Channel &value){
   return *this;
 };
 
-void QwPMT_Channel::Print() const
+void QwPMT_Channel::PrintValue() const
 {
-  std::cout<<"QwPMT_Channel::Print() not implemented yet."<<std::endl;
-};
+  QwMessage << std::setprecision(4)
+            << std::setw(18) << std::left << GetElementName() << ", "
+            << std::setw(15) << std::left << GetValue()
+            << QwLog::endl;
+}
+
+void QwPMT_Channel::PrintInfo() const
+{
+  std::cout << "QwPMT_Channel::Print() not implemented yet." << std::endl;
+}

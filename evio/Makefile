@@ -180,9 +180,6 @@ endif
 
 all: $(ALL)
 
-%.dylib : %.so
-	cp $< $@
-
 etclient: etclient_main.o THaEtClient.o THaCodaData.o $(MYINCDIR)/THaEtClient.h $(MYINCDIR)/THaCodaData.h libevio.a
 	$(CXX) $(CXXFLAGS) -o $@ etclient_main.o THaEtClient.o THaCodaData.o $(ALL_LIBS) 
 
@@ -197,7 +194,7 @@ tstcoda: tstcoda_main.o THaCodaFile.o THaCodaData.o THaEtClient.o $(MYINCDIR)/TH
 
 
 # Here we build a library with all this stuff
-libmyevio.a: $(DECODE_OBJS) clean_evio evio.o swap_util.o 
+libmyevio.a: $(DECODE_OBJS) evio.o swap_util.o 
 	rm -f $@
 	ar cr $@ $(DECODE_OBJS) evio.o swap_util.o 
 
@@ -206,6 +203,9 @@ libmyevio.so: $(DECODE_OBJS) evio.o swap_util.o
 	rm -f $@
 	$(LD) $(ROOTLIBS) $(SOFLAGS) -o $@ $(DECODE_OBJS) evio.o swap_util.o 
 
+%.dylib : %.a
+	cp $< $@
+	ranlib $@
 
 # Below is the evio library, which comes rather directly 
 # from CODA group with minor tweaking by R. Michaels & O. Hansen.

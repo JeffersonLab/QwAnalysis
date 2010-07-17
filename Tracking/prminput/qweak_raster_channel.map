@@ -1,0 +1,33 @@
+! Created by J. Pan, for the fast raster
+!
+! In tracking mode, the fast raster needs 2 channels of V792 QADCs to record the magnet drive signals, which directly      ! reflect its instant X, Y position.
+!
+! jpan@jlab.org, Tue Jun 29 11:20:05 CDT 2010
+!
+!
+ROC=4
+!
+! QADC/TDC bank
+Bank=0x0402
+!
+!
+slot=2
+! module.type  module.num  chan.num, det.type, det.name
+  V792, 1, 0, raster_qadc, posx_adc
+  V792, 1, 1, raster_qadc, posy_adc
+!
+!
+!The following map is defined for measuring raster position using VQWK in parity mode
+!
+!ROC=1
+!
+!VQWK_Bank=0x102
+!
+! module.num counting from 0, raster using the 9th TRIUMF ADC board on ROC1
+!
+! module.type  module.num  chan.num, det.type, det.name
+!
+! VQWK, 9, 3, raster_position, posx_vqwk
+! VQWK, 9, 4, raster_position, posy_vqwk
+!
+!END

@@ -55,10 +55,26 @@ enum EQwDetectorType {
 enum EQwPMTInstrumentType {
   kQwUnknownPMT,	// Unknown PMT type
   kQwIntegrationPMT,	// Integration PMT
+  kQwScalerPMT,	        // Scaler PMT
   kQwCombinedPMT	// Combined PMT
 };
+
+static const Int_t kBeamDevTypes = 7;
+enum EQwBeamInstrumentType{
+  kQwUnknownDeviceType,
+  kQwBPMStripline,
+  kQwBCM,
+  kQwCombinedBCM,
+  kQwCombinedBPM,
+  kQwEnergyCalculator,
+  kQwHaloMonitor
+};
+
 EQwPMTInstrumentType GetQwPMTInstrumentType(TString name);
 TString GetQwPMTInstrumentTypeName(EQwPMTInstrumentType type);
+
+EQwBeamInstrumentType GetQwBeamInstrumentType(TString name);
+TString GetQwBeamInstrumentTypeName(EQwBeamInstrumentType type);
 
 
 //=======

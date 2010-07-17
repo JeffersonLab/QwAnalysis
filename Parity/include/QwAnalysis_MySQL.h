@@ -15,7 +15,6 @@
 #include "TFile.h"
 #include "TStopwatch.h"
 
-#include "QwCommandLine.h"
 #include "QwEventBuffer.h"
 #include "QwHistogramHelper.h"
 #include "VQwSubsystem.h"

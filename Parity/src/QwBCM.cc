@@ -291,13 +291,16 @@ void QwBCM<T>::AccumulateRunningSum(const QwBCM<T>& value) {
 };
 
 template<typename T>
-void QwBCM<T>::Print() const
+void QwBCM<T>::PrintValue() const
 {
-  //std::cout<<"Channel Info " <<std::endl;
-  //std::cout<<" Running AVG "<<GetElementName()<<" current running AVG "<<BCM_Running_AVG<<std::endl;
-  std::cout<<"Channel Info " <<std::endl;
-  fBeamCurrent.Print();
-  return;
+  fBeamCurrent.PrintValue();
+}
+
+template<typename T>
+void QwBCM<T>::PrintInfo() const
+{
+  std::cout << "QwVQWK_Channel Info " << std::endl;
+  fBeamCurrent.PrintInfo();
 }
 
 /********************************************************/
@@ -339,6 +342,41 @@ void QwBCM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vecto
   } else
     {
       fBeamCurrent.ConstructBranchAndVector(tree, prefix,values);
+      // this functions doesn't do anything yet
+    }
+  return;
+};
+
+template<typename T>
+void  QwBCM<T>::ConstructBranch(TTree *tree, TString &prefix)
+{
+  if (GetElementName()==""){
+    //  This channel is not used, so skip filling the histograms.
+  } else
+    {
+      fBeamCurrent.ConstructBranch(tree, prefix);
+      // this functions doesn't do anything yet
+    }
+  return;
+};
+
+template<typename T>
+void  QwBCM<T>::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
+{
+  TString devicename;
+
+  devicename=GetElementName();
+  devicename.ToLower();
+  if (GetElementName()==""){
+    //  This channel is not used, so skip filling the histograms.
+  } else
+    {
+      
+      //QwMessage <<" QwBCM "<<devicename<<QwLog::endl;
+      if (modulelist.HasValue(devicename)){
+	fBeamCurrent.ConstructBranch(tree, prefix);
+	QwMessage <<" Tree leave added to "<<devicename<<QwLog::endl;
+      }
       // this functions doesn't do anything yet
     }
   return;
@@ -417,7 +455,7 @@ std::vector<QwDBInterface> QwBCM<T>::GetDBEntry()
   row.Reset();
 
   // the element name and the n (number of measurements in average)
-  // is the same in each block and hardwaresum. 
+  // is the same in each block and hardwaresum.
 
   name          = fBeamCurrent.GetElementName();
   beam_n        = fBeamCurrent.GetGoodEventCount();
@@ -444,7 +482,7 @@ std::vector<QwDBInterface> QwBCM<T>::GetDBEntry()
     avg           = fBeamCurrent.GetBlockValue(i);
     err           = fBeamCurrent.GetBlockErrorValue(i);
     beam_subblock = (UInt_t) (i+1);
-    // QwVQWK_Channel  | MySQL 
+    // QwVQWK_Channel  | MySQL
     // fBlock[0]       | subblock 1
     // fBlock[1]       | subblock 2
     // fBlock[2]       | subblock 3

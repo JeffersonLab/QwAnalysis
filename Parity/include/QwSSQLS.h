@@ -203,9 +203,11 @@ namespace QwParityDB{
 			, mysqlpp::sql_float , offset
 		) 
   
-    sql_create_3(seeds, 1, 2 
+    sql_create_5(seeds, 1, 2 
 			, mysqlpp::sql_int_unsigned , seed_id
-			, mysqlpp::sql_text , seed
+      , mysqlpp::sql_int_unsigned , first_run_id
+      , mysqlpp::sql_int_unsigned , last_run_id
+			, mysqlpp::Null<mysqlpp::sql_text> , seed
 			, mysqlpp::Null<mysqlpp::sql_text> , comment
 		) 
   

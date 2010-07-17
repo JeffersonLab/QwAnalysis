@@ -124,7 +124,7 @@ Int_t QwVQWK_Module::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left)
     fSequenceNumber  = fChannels.at(0).GetSequenceNumber();
     fEventIsGood &= fChannels.at(0).MatchNumberOfSamples(fIdealNumberOfSamples);
     // std::cout << "QwVQWK_Module::ProcessEvBuffer: fSequenceNumber==" << fSequenceNumber
-    //           << "; fIdealNumberOfSamples==" << fIdealNumberOfSamples<< std::endl; 
+    //           << "; fIdealNumberOfSamples==" << fIdealNumberOfSamples<< std::endl;
     for (size_t i=1; i<fChannels.size(); i++){
       fEventIsGood &= fChannels.at(i).MatchSequenceNumber(fSequenceNumber);
       fEventIsGood &= fChannels.at(i).MatchNumberOfSamples(fIdealNumberOfSamples);
@@ -284,10 +284,17 @@ void QwVQWK_Module::Copy(QwVQWK_Module *source)
   }
 };
 
-void  QwVQWK_Module::Print() const
+void  QwVQWK_Module::PrintValue() const
 {
   for (size_t i = 0; i < fChannels.size(); i++) {
-    fChannels.at(i).Print();
+    fChannels.at(i).PrintValue();
+  }
+};
+
+void  QwVQWK_Module::PrintInfo() const
+{
+  for (size_t i = 0; i < fChannels.size(); i++) {
+    fChannels.at(i).PrintInfo();
   }
 };
 

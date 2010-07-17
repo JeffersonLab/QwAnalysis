@@ -61,6 +61,7 @@ class QwDatabase: private mysqlpp::Connection {
     const string GetServerVersion() {return server_version();}; //<! Get database server version
     static void  DefineOptions(QwOptions& options); //!< Defines available class options for QwOptions
     void ProcessOptions(QwOptions &options); //!< Processes the options contained in the QwOptions object.
+    void ProcessOptions(const TString& dbname, const TString& username, const TString& passwd, const TString& dbhost="localhost", const Int_t dbport = 0, const TString& accesslevel = "ro"); //!< Processes database options
 
     mysqlpp::Query Query(const char *qstr=0     ) {return query(qstr);} //<! Generate a query to the database.
     mysqlpp::Query Query(const std::string &qstr) {return query(qstr);} //<! Generate a query to the database.
@@ -70,7 +71,7 @@ class QwDatabase: private mysqlpp::Connection {
     const UInt_t GetLumiDetectorID(const string& name);    //<! Get lumi_detector_id for lumi detector name
     const string GetMeasurementID(const Int_t index);
     const UInt_t GetSlowControlDetectorID(const string& name);         //<! Get slow_controls_data_id for epics name
-
+    
     const UInt_t GetRunNumber() {return fRunNumber;}       //<! Run number getter
     const UInt_t GetSegmentNumber() {return fSegmentNumber;}       //<! CODA File segment number getter
     const UInt_t GetRunID()     {return fRunID;}           //<! Run ID getter

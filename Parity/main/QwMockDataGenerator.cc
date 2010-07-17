@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
   bcm_name.push_back("qwk_bcm0l06"); bcm_asym.push_back(6.0e-6);
   bcm_name.push_back("qwk_bcm0l07"); bcm_asym.push_back(7.0e-7);
   for (unsigned int i = 0; i < bcm_name.size(); i++) {
-    QwBCM* bcm = beamline->GetBCM(bcm_name[i]);
+    QwBCM<QwVQWK_Channel>* bcm = beamline->GetBCM(bcm_name[i]);
     if (! bcm) continue;
     // Set the mean, sigma, and asymmetry
     bcm->SetRandomEventParameters(bcm_mean, bcm_sigma);
@@ -171,14 +171,15 @@ int main(int argc, char* argv[])
   // Get the lumi detector channels we want to correlate
   QwLumi* lumidetector = dynamic_cast<QwLumi*>(detectors.GetSubsystemByName("Lumi Detector"));
   if (! lumidetector) QwWarning << "No lumi detector subsystem defined!" << QwLog::endl;
-  Double_t lumi_mean = 2.0e7;
-  Double_t lumi_sigma = 3.0e4;
-  Double_t lumi_asym = 4.0e-4;
+  Double_t lumi_mean = 2.5e7;
+  Double_t lumi_sigma = 2.5e6;
+  Double_t lumi_asym = 1.0e-7;
   lumidetector->SetRandomEventParameters(lumi_mean, lumi_sigma);
   lumidetector->SetRandomEventAsymmetry(lumi_asym);
   // Specific values
-  lumidetector->GetChannel("dlumi1")->SetRandomEventAsymmetry(1.0e-2);
-  lumidetector->GetChannel("dlumi2")->SetRandomEventAsymmetry(1.0e-3);
+  lumidetector->GetChannel("dlumi3")->SetRandomEventAsymmetry(1.0e-3);
+  lumidetector->GetChannel("dlumi4")->SetRandomEventAsymmetry(1.0e-4);
+  lumidetector->GetChannel("dlumi5")->SetRandomEventAsymmetry(1.0e-5);
 
 
 
@@ -220,7 +221,7 @@ int main(int argc, char* argv[])
     // Consecutive runs should have no trivially related seeds:
     // e.g. with 0x2 * run, the first two files will be just 1 MPS offset...
     unsigned int seed = 0x1234 ^ run;
-    helicity->SetFirst24Bits(seed & 0xFFFFFF);
+    helicity->SetFirstBits(24, seed & 0xFFFFFF);
 
 
     // Retrieve the requested range of event numbers
@@ -284,14 +285,14 @@ int main(int argc, char* argv[])
         // Periodicity
         if (fmod(time, period) >= period - length) {
           // Do the ramp down
-          QwBCM* bcm = beamline->GetBCM(bcm_name[2]);
+          QwBCM<QwVQWK_Channel>* bcm = beamline->GetBCM(bcm_name[2]);
           double scale = double(period - fmod(time, period)) / double(length);
           bcm->SetRandomEventParameters(bcm_mean * scale, bcm_sigma);
         }
 
         // Set the scale back to what it was after a trip
         if (fmod(time, period) < helicity_window) {
-          QwBCM* bcm = beamline->GetBCM(bcm_name[2]);
+          QwBCM<QwVQWK_Channel>* bcm = beamline->GetBCM(bcm_name[2]);
           bcm->SetRandomEventParameters(bcm_mean, bcm_sigma);
         }
       } // end of beam trips
@@ -339,9 +340,9 @@ int main(int argc, char* argv[])
           x[i] += C[j][i] * z[j];
 
       // Assign to data elements
-      maindetector->GetChannel("MD2Neg")->SetExternalRandomVariable(x[0]);
-      lumidetector->GetChannel("dlumi1")->SetExternalRandomVariable(x[1]);
-      beamline->GetBCM("qwk_bcm0l07")->SetExternalRandomVariable(x[2]);
+      //maindetector->GetChannel("MD2Neg")->SetExternalRandomVariable(x[0]);
+      //lumidetector->GetChannel("dlumi1")->SetExternalRandomVariable(x[1]);
+      //beamline->GetBCM("qwk_bcm0l07")->SetExternalRandomVariable(x[2]);
 
 
 

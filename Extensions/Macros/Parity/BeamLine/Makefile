@@ -49,6 +49,9 @@ position_differnces : PositionDifferences.o
 hallc_beam_motion : hallc_beam_motion.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
+IA_Scan : ia_scan.o 
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
 
 %.o: %.C
 	$(CXX) -c  $(CXXFLAGS)   -o $@ $<

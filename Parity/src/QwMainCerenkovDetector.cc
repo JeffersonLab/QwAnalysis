@@ -48,6 +48,7 @@ void QwMainCerenkovDetector::ProcessOptions(QwOptions &options){
 
 Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 {
+
   Bool_t ldebug=kFALSE;
 
   TString varname, varvalue;
@@ -140,8 +141,13 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
           localMainDetID.fSubbankIndex=currentsubbankindex;
           localMainDetID.fdetectortype=dettype;
 
-          localMainDetID.fWordInSubbank=wordsofar;
-          if (modtype=="VQWK") wordsofar+=6;
+	  //          localMainDetID.fWordInSubbank=wordsofar;
+          if (modtype=="VQWK"){
+	    Int_t offset = QwVQWK_Channel::GetBufferOffset(modnum, channum);
+	    if (offset>0){
+	      localMainDetID.fWordInSubbank = wordsofar + offset;
+	    }
+	  }
           else if (modtype=="VPMT")
             {
               localMainDetID.fCombinedChannelNames = combinedchannelnames;
@@ -623,35 +629,37 @@ void  QwMainCerenkovDetector::ProcessEvent()
 void  QwMainCerenkovDetector::ExchangeProcessedData()
 {
   bIsExchangedDataValid = kTRUE;
+  if (bNormalization){
+    // Create a list of all variables that we need
+    // TODO This could be a static list to avoid repeated vector initializiations
+    std::vector<VQwDataElement*> variable_list;
+    variable_list.push_back(&fTargetCharge);
+    variable_list.push_back(&fTargetX);
+    variable_list.push_back(&fTargetY);
+    variable_list.push_back(&fTargetXprime);
+    variable_list.push_back(&fTargetYprime);
+    variable_list.push_back(&fTargetEnergy);
 
-  // Create a list of all variables that we need
-  // TODO This could be a static list to avoid repeated vector initializiations
-  std::vector<VQwDataElement*> variable_list;
-  variable_list.push_back(&fTargetCharge);
-  variable_list.push_back(&fTargetX);
-  variable_list.push_back(&fTargetY);
-  variable_list.push_back(&fTargetXprime);
-  variable_list.push_back(&fTargetYprime);
-  variable_list.push_back(&fTargetEnergy);
 
-  // Loop over all variables in the list
-  std::vector<VQwDataElement*>::iterator variable_iter;
-  for (variable_iter  = variable_list.begin();
-       variable_iter != variable_list.end(); variable_iter++)
-    {
-      VQwDataElement* variable = *variable_iter;
-      if (RequestExternalValue(variable->GetElementName(), variable))
-        {
-          if (bDEBUG)
-            dynamic_cast<QwVQWK_Channel*>(variable)->Print();
-        }
-      else
-        {
-          bIsExchangedDataValid = kFALSE;
-          QwError << GetSubsystemName() << " could not get external value for "
-          << variable->GetElementName() << QwLog::endl;
-        }
-    } // end of loop over variables
+    // Loop over all variables in the list
+    std::vector<VQwDataElement*>::iterator variable_iter;
+    for (variable_iter  = variable_list.begin();
+	 variable_iter != variable_list.end(); variable_iter++)
+      {
+	VQwDataElement* variable = *variable_iter;
+	if (RequestExternalValue(variable->GetElementName(), variable))
+	  {
+	    if (bDEBUG)
+	      dynamic_cast<QwVQWK_Channel*>(variable)->PrintInfo();
+	  }
+	else
+	  {
+	    bIsExchangedDataValid = kFALSE;
+	    QwError << GetSubsystemName() << " could not get external value for "
+		    << variable->GetElementName() << QwLog::endl;
+	  }
+      } // end of loop over variables
+  }
 };
 
 
@@ -728,6 +736,41 @@ void QwMainCerenkovDetector::ConstructBranchAndVector(TTree *tree, TString & pre
   return;
 };
 
+void QwMainCerenkovDetector::ConstructBranch(TTree *tree, TString & prefix)
+{
+  for (size_t i=0;i<fIntegrationPMT.size();i++)
+    fIntegrationPMT[i].ConstructBranch(tree, prefix);
+
+  for (size_t i=0;i<fCombinedPMT.size();i++)
+    fCombinedPMT[i].ConstructBranch(tree, prefix);
+
+  return;
+};
+
+void QwMainCerenkovDetector::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& trim_file)
+{
+  TString tmp;
+  QwParameterFile* nextmodule;
+  trim_file.RewindToFileStart();
+  tmp="QwIntegrationPMT";
+  trim_file.RewindToFileStart();
+  if (trim_file.FileHasModuleHeader(tmp)){
+    nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
+    for (size_t i=0;i<fIntegrationPMT.size();i++)
+
+      fIntegrationPMT[i].ConstructBranch(tree, prefix, *nextmodule);
+  }
+
+  tmp="QwCombinedPMT";
+  trim_file.RewindToFileStart();
+   if (trim_file.FileHasModuleHeader(tmp)){
+     nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
+     for (size_t i=0;i<fCombinedPMT.size();i++)
+       fCombinedPMT[i].ConstructBranch(tree, prefix, *nextmodule );
+   }
+
+  return;
+};
 
 void QwMainCerenkovDetector::FillTreeVector(std::vector<Double_t> &values)
 {
@@ -1070,13 +1113,13 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
   Char_t measurement_type[4];
 
   if(datatype.Contains("yield")) {
-    sprintf(measurement_type, "y");
+    sprintf(measurement_type, "%s", "y");
   }
   else if (datatype.Contains("asymmetry")) {
-    sprintf(measurement_type, "a");
+    sprintf(measurement_type, "%s", "a");
   }
   else {
-    sprintf(measurement_type, "");
+    sprintf(measurement_type, "%s", "");
   }
 
   UInt_t i,j;
@@ -1128,7 +1171,16 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
   return;
 };
 
-void  QwMainCerenkovDetector::Print()
+void  QwMainCerenkovDetector::PrintValue() const
+{
+  QwMessage << "=== QwMainCerenkovDetector: " << GetSubsystemName() << " ===" << QwLog::endl;
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].PrintValue();
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
+    fCombinedPMT[i].PrintValue();
+}
+
+void  QwMainCerenkovDetector::PrintInfo() const
 {
   std::cout<<"Name of the subsystem ="<<fSystemName<<"\n";
 
@@ -1136,16 +1188,14 @@ void  QwMainCerenkovDetector::Print()
   std::cout<<"          "<<fCombinedPMT.size()<<" CombinedPMT \n";
 
   std::cout<<" Printing Running AVG and other channel info"<<std::endl;
-  for (size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].Print();
 
-  for (size_t i=0;i<fCombinedPMT.size();i++)
-    fCombinedPMT[i].Print();
-
-  return;
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].PrintInfo();
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
+    fCombinedPMT[i].PrintInfo();
 }
 
-void  QwMainCerenkovDetector::PrintDetectorID()
+void  QwMainCerenkovDetector::PrintDetectorID() const
 {
   for (size_t i=0;i<fMainDetID.size();i++)
     {
@@ -1156,7 +1206,7 @@ void  QwMainCerenkovDetector::PrintDetectorID()
   return;
 }
 
-void  QwMainCerenkovDetectorID::Print()
+void  QwMainCerenkovDetectorID::Print() const
 {
 
   std::cout<<std::endl<<"Detector name= "<<fdetectorname<<std::endl;

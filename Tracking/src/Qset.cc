@@ -7,12 +7,13 @@
 #include <sstream>
 
 #include "Det.h"
+#include "TMath.h"
 
 #ifndef NDetMax
 # define NDetMax 1010
 #endif
 
-#define PI 3.141592653589793
+//#define PI 3.141592653589793
 
 /*! \var rcDET
 
@@ -101,8 +102,8 @@ int Qset::FillDetectors (const char *geomname)
 		geomstream >> rcDET[i].sType; // detector type
 		geomstream >> rcDET[i].Zpos; // z position of detector center
 		geomstream >> rcDET[i].Rot; // rotation of detector about the x-axis
-		rcDET[i].rRotCos = cos(rcDET[i].Rot*PI/180);
-		rcDET[i].rRotSin = sin(rcDET[i].Rot*PI/180);
+		rcDET[i].rRotCos = cos(rcDET[i].Rot*TMath::DegToRad());
+		rcDET[i].rRotSin = sin(rcDET[i].Rot*TMath::DegToRad());
 		geomstream >> rcDET[i].resolution; // spatial resolution
 		geomstream >> rcDET[i].TrackResolution; // track resolution
 		geomstream >> rcDET[i].SlopeMatching; // front/back track segment slope matching

@@ -42,6 +42,9 @@ QwLog::QwLog()
 
   fLogLevel = kMessage;
 
+  fPrintFunctionName = false;
+  fPrintFunctionSignature = false;
+
   QwLogScreenAtNewLine = kTRUE;
   QwLogFileAtNewLine = kTRUE;
 }
@@ -59,7 +62,7 @@ QwLog::~QwLog()
 
 
 /**
- * Defines configuration options for QwDatabase class using QwOptions
+ * Defines configuration options for logging class using QwOptions
  * functionality.
  *
  * Note: this uses a pointer as opposed to a reference, because as indicated
@@ -72,13 +75,54 @@ QwLog::~QwLog()
 void QwLog::DefineOptions(QwOptions* options)
 {
   // Define the logging options
-  options->AddOptions()("QwLog.color", po::value<bool>()->default_value(true),
+  options->AddOptions("Logging options")("QwLog.color",
+                po::value<bool>()->default_value(true),
                 "colored screen output");
-  options->AddOptions()("QwLog.logfile", po::value<string>(), "log file");
-  options->AddOptions()("QwLog.loglevel-file", po::value<int>()->default_value(4),
+  options->AddOptions("Logging options")("QwLog.logfile",
+                po::value<string>(),
+                "log file");
+  options->AddOptions("Logging options")("QwLog.loglevel-file",
+                po::value<int>()->default_value(kMessage),
                 "log level for file output");
-  options->AddOptions()("QwLog.loglevel-screen", po::value<int>()->default_value(2),
+  options->AddOptions("Logging options")("QwLog.loglevel-screen",
+                po::value<int>()->default_value(kMessage),
                 "log level for screen output");
+  options->AddOptions("Logging options")("QwLog.print-function",
+                po::value<bool>()->default_value(false)->zero_tokens(),
+                "print function on error or warning");
+  options->AddOptions("Logging options")("QwLog.print-signature",
+                po::value<bool>()->default_value(false)->zero_tokens(),
+                "print signature on error or warning");
+}
+
+
+/**
+ * Process configuration options for logging class using QwOptions
+ * functionality.
+ *
+ * Note: this uses a pointer as opposed to a reference, because as indicated
+ * above the QwLog class cannot depend on the QwOptions class.  When using a
+ * pointer we only need a forward declaration and we do not need to include
+ * the header file QwOptions.h.
+ *
+ * @param options Options object
+ */
+void QwLog::ProcessOptions(QwOptions* options)
+{
+  // Initialize log file
+  if (options->HasValue("QwLog.logfile"))
+    InitLogFile(options->GetValue<std::string>("QwLog.logfile"));
+
+  // Set the logging thresholds
+  SetFileThreshold(options->GetValue<int>("QwLog.loglevel-file"));
+  SetScreenThreshold(options->GetValue<int>("QwLog.loglevel-screen"));
+
+  // Set color flag
+  SetScreenColor(options->GetValue<bool>("QwLog.color"));
+
+  // Set the flags for function name and signature printing
+  fPrintFunctionName      = options->GetValue<bool>("QwLog.print-function");
+  fPrintFunctionSignature = options->GetValue<bool>("QwLog.print-signature");
 }
 
 
@@ -119,31 +163,44 @@ void QwLog::SetFileThreshold(int thr)
 
 /*! Set the stream log level
  */
-QwLog& QwLog::operator()(QwLogLevel level)
+QwLog& QwLog::operator()(
+  const QwLogLevel level,
+  const std::string func_sig,
+  const std::string func_name)
 {
   fLogLevel = level;
 
   if (fScreen && fLogLevel <= fScreenThreshold) {
     if (QwLogScreenAtNewLine) {
       // Put something at the beginning of a new line
-      QwLogScreenAtNewLine = kFALSE;
+      switch (level) {
+      case kError:
+        if (fUseColor)
+          *(fScreen) << QwColor(Qw::kRed);
+        if (fPrintFunctionSignature)
+          *(fScreen) << "Error (in " << func_sig << "): ";
+        else if (fPrintFunctionName)
+          *(fScreen) << "Error (in " << func_name << "): ";
+        else
+          *(fScreen) << "Error: ";
+        break;
+      case kWarning:
+        if (fUseColor)
+          *(fScreen) << QwColor(Qw::kRed);
+        if (fPrintFunctionSignature)
+          *(fScreen) << "Warning (in " << func_sig << "): ";
+        else if (fPrintFunctionName)
+          *(fScreen) << "Warning (in " << func_name << "): ";
+        else
+          *(fScreen) << "Warning: ";
+        if (fUseColor)
+          *(fScreen) << QwColor(Qw::kNormal);
+        break;
+      default:
+        break;
+      }
     }
-    switch (level) {
-    case kError:
-      if (fUseColor)
-        *(fScreen) << QwColor(Qw::kRed) << "Error: ";
-      else
-        *(fScreen) << "Error: ";
-      break;
-    case kWarning:
-      if (fUseColor)
-        *(fScreen) << QwColor(Qw::kRed) << "Warning: " << QwColor(Qw::kNormal);
-      else
-        *(fScreen) << "Warning: ";
-      break;
-    default:
-      break;
-    }
+    QwLogScreenAtNewLine = kFALSE;
   }
 
   if (fFile && fLogLevel <= fFileThreshold) {

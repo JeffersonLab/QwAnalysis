@@ -16,7 +16,7 @@
 
 #include "QwHelicity.h"
 
-class QwFakeHelicity: public virtual QwHelicity {
+class QwFakeHelicity: public QwHelicity {
  public:
   QwFakeHelicity(TString region_tmp):VQwSubsystem(region_tmp),QwHelicity(region_tmp),fMinPatternPhase(1)
 

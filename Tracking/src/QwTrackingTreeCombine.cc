@@ -25,11 +25,6 @@
 #include <cstring>
 #include <sys/time.h>
 
-// Boost uBLAS (linear algebra) headers
-//    These are included by the inclusion of "matrix.h" below; pmk, 2009oct07.
-// #include <boost/numeric/ublas/vector.hpp>
-// #include <boost/numeric/ublas/matrix.hpp>
-
 // Qweak headers
 #include "QwLog.h"
 #include "QwOptions.h"
@@ -358,78 +353,73 @@ void QwTrackingTreeCombine::mul_do (
  */
 // TODO Why is this similar to weight_lsq_r3?  can't this be one function?
 void QwTrackingTreeCombine::weight_lsq (
-	double *slope,	//!< (returns) slope of fitted track
-	double *offset,	//!< (returns) offset of fitted track
-	double cov[3],	//!< (returns) covariance matrix of slope and offset
-	double *chi,	//!< (returns) chi^2 of the fit
+	double& slope,	//!< (returns) slope of fitted track
+	double& offset,	//!< (returns) offset of fitted track
+	double  cov[3],	//!< (returns) covariance matrix of slope and offset
+	double& chi,	//!< (returns) chi^2 of the fit
 	QwHit **hits,	//!< list of hits in every plane
-	int n,		//!< number of planes with hits
-	int tlayers)	//!< number of detector planes
+	int n)		//!< number of planes with hits
 {
-  // (wdc) Changing this to boost::numeric::ublas was not a very smart idea.
-  // It is a lot slower than what was there before...  Need to revert this at
-  // some point (TODO)
-  using namespace boost::numeric::ublas;
-  using boost::numeric::ublas::vector;
-  using boost::numeric::ublas::matrix;
+  // Declaration of matrices
+  double A[n][2], G[n][n], AtGA[2][2];
+  double AtGy[2], y[n], x[2];
+  // Initialize the matrices and vectors
+  for (int i = 0; i < n; i++)
+    A[i][0] = -1.0;
 
-  vector<double> AtGy(2), y(tlayers), x(2);
-  matrix<double> A(tlayers,2), At(tlayers,2), G(tlayers,tlayers);
-  matrix<double> AtGA(2,2), AtG(2, tlayers);
-
-  /* Initialize */
-  x.assign(zero_vector<double>(2));
-  y.assign(zero_vector<double>(tlayers));
-  A.assign(zero_matrix<double>(tlayers,2));
-  G.assign(zero_matrix<double>(tlayers,tlayers));
-  for (int i = 0; i < tlayers; i++)
-    A(i,0) = -1.0;
-
-  /* Set the hit values */
+  // Set the hit values
   for (int i = 0; i < n; i++) {
-    A(i,1) = -(hits[i]->GetDetectorInfo()->GetZPosition());
-    y(i)   = - hits[i]->rResultPos;
-    double r = hits[i]->GetDetectorInfo()->GetSpatialResolution();
-    G(i,i) = 1 / (r * r);
+    A[i][1] = - hits[i]->GetDetectorInfo()->GetZPosition();
+    y[i]    = - hits[i]->rResultPos;
+    double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
+    G[i][i] = 1.0 / (resolution * resolution);
   }
 
-  /* Calculate right and left hand side */
-  At = trans(A);
-  /* right hand side: A^T * G * y  */
-  AtGy = prod (prod (At, G), y);
-  /* left hand side: A^T * G * A  */
-  AtG = prod (At, G);
-  AtGA = prod (AtG, A);
-  // (this has to happen in two steps, see uBLAS docs)
+  // Calculate right hand side: A^T G y
+  for (int k = 0; k < 2; k++) {
+    double sum = 0.0;
+    for (int i = 0; i < n; i++)
+      sum += (A[i][k]) * G[i][i] * y[i];
+    AtGy[k] = sum;
+  }
 
-  /* Calculate inverse of A^T * G * A */
-  double det = (AtGA(0,0) * AtGA(1,1) - AtGA(1,0) * AtGA(0,1));
-  double tmp = AtGA(0,0);
-  AtGA(0,0) = -AtGA(1,1);
-  AtGA(1,1) = -tmp;
-  AtGA /= -det;
+  // Calculate the left hand side: A^T * G * A
+  for (int j = 0; j < 2; j++) {
+    for (int k = 0; k < 2; k++) {
+      double sum = 0.0;
+      for (int i = 0; i < n; i++)
+        sum += (A[i][j]) * G[i][i] * A[i][k];
+      AtGA[j][k] = sum;
+    }
+  }
 
-  /* Solve equation: (A^T * G * A)^-1 * (A^T * G * y) */
-  x = prod (AtGA, AtGy);
+  // Calculate inverse of A^T * G * A
+  double det = (AtGA[0][0] * AtGA[1][1] - AtGA[1][0] * AtGA[0][1]);
+  double tmp = AtGA[0][0];
+  AtGA[0][0] = AtGA[1][1] / det;
+  AtGA[1][1] = tmp / det;
+  AtGA[0][1] /= -det;
+  AtGA[1][0] /= -det;
 
-  *slope  = x(1);
-  *offset = x(0);
+  // Solve equation: x = (A^T * G * A)^-1 * (A^T * G * y)
+  for (int k = 0; k < 2; k++)
+    x[k] = AtGA[k][0] * AtGy[0] + AtGA[k][1] * AtGy[1];
+  slope  = x[1];
+  offset = x[0];
+  // Calculate covariance
+  cov[0]  = AtGA[0][0];
+  cov[1]  = AtGA[0][1];
+  cov[2]  = AtGA[1][1];
 
-  cov[0]  = AtGA(0,0);
-  cov[1]  = AtGA(0,1);
-  cov[2]  = AtGA(1,1);
-
-
-  /* sqrt (chi^2) */
+  // Calculate chi^2
   double sum = 0.0;
   for (int i = 0; i < n; i++) {
-
-    double r  = (*slope * (hits[i]->GetDetectorInfo()->GetZPosition())
-                + *offset - hits[i]->rResultPos);
-
-    sum += G(i,i) * r * r;
+    double residual = (slope * hits[i]->GetDetectorInfo()->GetZPosition() + offset
+                    - hits[i]->rResultPos);
+    sum += G[i][i] * residual * residual;
   }
-  *chi   = sqrt (sum / n);
+  // Normalize chi^2
+  chi = sqrt (sum / n);
 
 
   // NOTE I have no idea what the next line does, but it also works without this.
@@ -457,25 +447,20 @@ void QwTrackingTreeCombine::weight_lsq (
  */
 
 void QwTrackingTreeCombine::weight_lsq_r3 (
-	double *slope,
-	double *xshift,
-	double cov[3],
-	double *chi,
+	double& slope,
+	double& offset,
+	double  cov[3],
+	double& chi,
 	QwHit **hits,
 	int n,
 	double z1,
-	int offset,
-	int tlayers)
+	int wire_offset)
 {
-  // Safety check
-  if (n > tlayers) {
-    QwWarning << "Warning: arrays WILL overflow!" << QwLog::endl;
-  }
+  // Declaration of matrices
+  double A[n][2], G[n][n], AtGA[2][2];
+  double AtGy[2], y[n], x[2];
 
-  double A[tlayers][2], G[tlayers][tlayers], AtGA[2][2];
-  double AtGy[2], y[tlayers], x[2];
-
-  /* Initialize the matrices and vectors */
+  // Initialize the matrices and vectors
   for (int i = 0; i < n; i++)
     A[i][0] = -1.0;
 
@@ -490,65 +475,63 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
       A[i][1] = -(i + offset); //used by Tl MatchHits
       y[i]    = -hits[i]->rResultPos;
     }
-    double r = 1.0 / hits[i]->GetDetectorInfo()->GetSpatialResolution();
-    G[i][i] = r * r;
+    double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
+    G[i][i] = 1.0 / (resolution * resolution);
   }
-  //for (int i = 0; i < n; i++)
-  //  std::cout << A[i][0] << ", " << A[i][1] << "|" << G[i][i] << "|" << y[i] << std::endl;
 
-  /* Calculate right hand side: -A^T G y  */
+  // Calculate right hand side: -A^T G y
   for (int k = 0; k < 2; k++) {
-    double s = 0.0;
+    double sum = 0.0;
     for (int i = 0; i < n; i++)
-      s += (A[i][k]) * G[i][i] * y[i];
-    AtGy[k] = s;
+      sum += (A[i][k]) * G[i][i] * y[i];
+    AtGy[k] = sum;
   }
-  //std::cout << AtGy[0] << "," << AtGy[1] << std::endl;
 
-  /* Calculate the left hand side: A^T * G * A  */
+  // Calculate the left hand side: A^T * G * A
   for (int j = 0; j < 2; j++) {
     for (int k = 0; k < 2; k++) {
-      double s = 0.0;
+      double sum = 0.0;
       for (int i = 0; i < n; i++)
-        s += (A[i][j]) * G[i][i] * A[i][k];
-      AtGA[j][k] = s;
+        sum += (A[i][j]) * G[i][i] * A[i][k];
+      AtGA[j][k] = sum;
     }
   }
-  //std::cout << AtGA[0][0] << "," << AtGA[0][1] << "," << AtGA[1][0] << "," << AtGA[1][1] << std::endl;
 
-  /* Calculate inverse of A^T * G * A */
+  // Calculate inverse of A^T * G * A
   double det = (AtGA[0][0] * AtGA[1][1] - AtGA[1][0] * AtGA[0][1]);
-  double h   = AtGA[0][0];
+  double tmp = AtGA[0][0];
   AtGA[0][0] = AtGA[1][1] / det;
-  AtGA[1][1] = h / det;
+  AtGA[1][1] = tmp / det;
   AtGA[0][1] /= -det;
   AtGA[1][0] /= -det;
-  //std::cout << AtGA[0][0] << "," << AtGA[0][1] << "," << AtGA[1][0] << "," << AtGA[1][1] << std::endl;
 
-  /* Solve equation: x = (A^T * G * A)^-1 * (A^T * G * y) */
+  // Solve equation: x = (A^T * G * A)^-1 * (A^T * G * y)
   for (int k = 0; k < 2; k++)
     x[k] = AtGA[k][0] * AtGy[0] + AtGA[k][1] * AtGy[1];
-  *slope  = x[1];
-  *xshift = x[0];
-  /* Calculate covariance */
+  slope  = x[1];
+  offset = x[0];
+  // Calculate covariance
   cov[0]  = AtGA[0][0];
   cov[1]  = AtGA[0][1];
   cov[2]  = AtGA[1][1];
 
-  double s = 0.0;
-  if (offset == -1) {
+  // Calculate chi^2
+  double sum = 0.0;
+  if (wire_offset == -1) {
     for (int i = 0; i < n; i++) {
-      double r  = *slope * (hits[i]->GetZPosition() - z1) + *xshift - hits[i]->GetPosition();
-      s  += G[i][i] * r * r;
+      double residual = (slope * (hits[i]->GetZPosition() - z1) + offset)
+                      - hits[i]->GetPosition();
+      sum += G[i][i] * residual * residual;
     }
   } else {
     for (int i = 0; i < n; i++) {
-      double r = *slope * (i + offset) + *xshift - hits[i]->rResultPos;
-      s += G[i][i] * r * r;
+      double residual = (slope * (i + wire_offset) + offset)
+                      - hits[i]->rResultPos;
+      sum += G[i][i] * residual * residual;
     }
   }
-
-  *chi = sqrt (s/n);
+  // Normalize chi^2
+  chi = sqrt(sum / n);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -876,13 +859,8 @@ bool QwTrackingTreeCombine::TlCheckForX (
       double chi = 0.0; // chi^2 of the fit
       double cov[3] = {0.0, 0.0, 0.0}; // covariance matrix
 
-      timeval start, finish;
-      gettimeofday(&start, 0);
-
-      weight_lsq (&slope, &offset, cov, &chi, usedHits, nPlanesWithHits, tlayer);
+      weight_lsq (slope, offset, cov, chi, usedHits, nPlanesWithHits);
       // (returns slope, offset, cov, chi)
-
-      gettimeofday(&finish, 0);
 
       // ?
       stay_chi = 0.0;
@@ -1051,7 +1029,8 @@ int QwTrackingTreeCombine::TlMatchHits (
   double chi = 0.0;
   double slope = 0.0, offset = 0.0;
   double cov[3] = {0.0, 0.0, 0.0};
-  weight_lsq_r3 (&slope, &offset, cov, &chi, treeline->hits, nHits, z1, treeline->fR3Offset, tlayers);
+  weight_lsq_r3 (slope, offset, cov, chi, treeline->hits, nHits, z1, treeline->fR3Offset);
+  //    (returns slope, offset, cov, chi)
 
   //################
   //SET PARAMATERS #
@@ -1221,7 +1200,15 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 
   /* End of region-specific parts */
 
-  /* Now search for identical tree lines in the list */
+
+  // Calculate the average residual
+  for (QwTrackingTreeLine *treeline = treelinelist; treeline;
+                           treeline = treeline->next) {
+    if (treeline->IsValid())
+      treeline->CalculateAverageResidual();
+  }
+
+  // Now search for identical tree lines in the list
   QwDebug << "Searching for identical treelines..." << QwLog::endl;
   for (QwTrackingTreeLine *treeline1 = treelinelist; treeline1;
                            treeline1 = treeline1->next) {
@@ -1238,6 +1225,8 @@ void QwTrackingTreeCombine::TlTreeLineSort (
       } // end of second loop over treelines
     } // end of first treeline valid
   } // end of first loop over treelines
+
+  // Print the list of tree lines
   if (fDebug) {
     cout << "List of treelines:" << endl;
     treelinelist->Print();
@@ -1277,8 +1266,6 @@ int QwTrackingTreeCombine::r2_TrackFit (
 	double *cov,
 	double *chi)
 {
-  using namespace boost::numeric::ublas;
-
   //###############
   // Declarations #
   //###############
@@ -1320,8 +1307,8 @@ int QwTrackingTreeCombine::r2_TrackFit (
   double offsetu = Hit[hitu]->GetDetectorInfo()->GetElementOffset();
   double offsetv = Hit[hitv]->GetDetectorInfo()->GetElementOffset();
   double spacing = Hit[hitu]->GetDetectorInfo()->GetElementSpacing();
-  if (angle < 90.0) angle = 180.0 - angle; // angle for U is smaller than 90 deg
-  Uv2xy uv2xy(90.0 + angle, 90.0 + 180.0 - angle);
+  if (angle < Qw::pi/2) angle = Qw::pi - angle; // angle for U is smaller than 90 deg
+  Uv2xy uv2xy(Qw::pi/2 + angle, Qw::pi/2 + Qw::pi - angle);
   uv2xy.SetOffset(offsetu, offsetv);
   uv2xy.SetWireSpacing(spacing);
 
@@ -1359,16 +1346,16 @@ int QwTrackingTreeCombine::r2_TrackFit (
   // Perform the fit #
   //##################
 
-// As much as I would like to use standard libraries, this takes about 50 times
-// longer than the fast routines!
-//
-//   matrix<double> mA(4,4);
-//   for (int j = 0; j < 4; j++)
-//     for (int k = 0; k < 4; k++)
-//       mA(j,k) = A[k][j];
-//
-//   // Invert the metric matrix
-//   matrix<double> mAinv = invert(mA);
+  // As much as I would like to use standard libraries, this takes about 50 times
+  // longer than the fast routines!
+  //
+  // matrix<double> mA(4,4);
+  // for (int j = 0; j < 4; j++)
+  //   for (int k = 0; k < 4; k++)
+  //     mA(j,k) = A[k][j];
+  //
+  // // Invert the metric matrix
+  // matrix<double> mAinv = invert(mA);
 
   // Invert the metric matrix
   M_Invert(Ap, cov, 4);
@@ -1417,11 +1404,6 @@ int QwTrackingTreeCombine::r2_TrackFit (
 
 int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, double *cov, double *chi)
 {
-  // Boost uBLAS linear algebra library for matrix inversion
-  using namespace boost::numeric::ublas;
-  using boost::numeric::ublas::vector;
-  using boost::numeric::ublas::matrix;
-
   //###############
   // Declarations #
   //###############
@@ -1448,8 +1430,8 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, doub
   // Create the transformation helper object
   double angle = Hit[0]->GetDetectorInfo()->GetElementAngle();
   // The angle for U is smaller than 90 deg, the other one is the complement
-  if (angle > 90.0) angle = 180.0 - angle;
-  Uv2xy uv2xy (angle, 180.0 - angle);
+  if (angle > Qw::pi/2.0) angle = Qw::pi - angle;
+  Uv2xy uv2xy (angle, Qw::pi - angle);
 
   // Set the angles for our frame
   rCos[kDirectionU] = -uv2xy.fXY[0][0];
@@ -1536,17 +1518,18 @@ int QwTrackingTreeCombine::r3_TrackFit2( int Num, QwHit **Hit, double *fit, doub
   double ztrans,ytrans,xtrans,costheta,sintheta;
 
   //get some detector information
-  if (Hit[0]->GetDetectorInfo()->fDirection == kDirectionU) {
+  if (Hit[0]->GetDetectorInfo()->fPlane == 1) {
 
-    costheta = Hit[0]->GetDetectorInfo()->GetDetectorRotationSin();
-    sintheta = Hit[0]->GetDetectorInfo()->GetDetectorRotationCos();
+    QwVerbose << "TODO (wdc) needs checking" << QwLog::endl;
+    costheta = Hit[0]->GetDetectorInfo()->GetDetectorRotationCos();
+    sintheta = Hit[0]->GetDetectorInfo()->GetDetectorRotationSin();
 
     xtrans = Hit[0]->GetDetectorInfo()->GetXPosition();
     ytrans = Hit[0]->GetDetectorInfo()->GetYPosition();
     ztrans = Hit[0]->GetDetectorInfo()->GetZPosition();
 
   } else {
-    QwWarning << "Error : first hit is not in 1st u-plane" << QwLog::endl;
+    QwWarning << "Error : first hit is not in 1st plane" << QwLog::endl;
     return -1;
   }
 
@@ -1622,8 +1605,11 @@ int QwTrackingTreeCombine::r3_TrackFit( int Num, QwHit **hit, double *fit, doubl
 
   // get some detector information
   if (hit[0]->GetDetectorInfo()->fDirection == kDirectionU) {
+
+    QwVerbose << "TODO (wdc) needs checking" << QwLog::endl;
     costheta = hit[0]->GetDetectorInfo()->GetDetectorRotationCos();
     sintheta = hit[0]->GetDetectorInfo()->GetDetectorRotationSin();
+
     xtrans = hit[0]->GetDetectorInfo()->GetXPosition();
     ytrans = hit[0]->GetDetectorInfo()->GetYPosition();
     ztrans = hit[0]->GetDetectorInfo()->GetZPosition();
@@ -1650,16 +1636,19 @@ int QwTrackingTreeCombine::r3_TrackFit( int Num, QwHit **hit, double *fit, doubl
     // xyz[i].Resolution = 0;
     xyz[i].SetSpatialResolution(0);
   }
+
   //####################
   // Calculate the fit #
   //####################
+  for (int i = 0; i < Num; i++)
+    chihits[i] = &xyz[i];
+  weight_lsq_r3(mx, bx, wcov, wchi, chihits, Num, 0, -1);
+  cerr << "x = " << mx << "z+" << bx << endl;
 
-  for (int i = 0; i < Num; i++) chihits[i] = &xyz[i];
-  weight_lsq_r3(&mx,&bx,wcov,&wchi,chihits,Num,0,-1,Num);
-  cerr << "x = " << mx << "z+"<<bx << endl;
-  for (int i = 0; i < Num; i++) xyz[i].rPos = xyz[i].rPos2;
-  weight_lsq_r3(&my,&by,wcov,&wchi,chihits,Num,0,-1,Num);
-  cerr << "y = " << my << "z+"<<by << endl;
+  for (int i = 0; i < Num; i++)
+    xyz[i].rPos = xyz[i].rPos2;
+  weight_lsq_r3(my, by, wcov, wchi, chihits, Num, 0, -1);
+  cerr << "y = " << my << "z+" << by << endl;
 
   //#################
   // Calculate chi2 #
@@ -2243,11 +2232,13 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
         double v2 = offset_v + zx2 * slope_v;
 
         // Transformation from [u,v] to [x,y]
-        double angle = wu->GetDetectorInfo()->GetElementAngle();
+        double angleu = wu->GetDetectorInfo()->GetElementAngle();
+        double anglev = wv->GetDetectorInfo()->GetElementAngle();
         double offsetu = wu->GetDetectorInfo()->GetElementOffset();
         double offsetv = wv->GetDetectorInfo()->GetElementOffset();
         double spacing = wu->GetDetectorInfo()->GetElementSpacing();
-        Uv2xy uv2xy(90.0 + angle, 90.0 + 180.0 - angle);
+        QwVerbose << "TODO (wdc) r2 uv2xy transform needs checking" << QwLog::endl;
+        Uv2xy uv2xy(angleu, anglev);
         uv2xy.SetOffset(offsetu, offsetv);
         uv2xy.SetWireSpacing(spacing);
 
@@ -2261,7 +2252,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
         double my = (y2 - y1) / (zx1 - zx2);
 
 	// Loop over the x tracks
-	// (TODO no x hit will never give a partial track!)
+	// (TODO (wdc) no x hit will never give a partial track!)
 	QwTrackingTreeLine *wx = uvl[kDirectionX];
         QwTrackingTreeLine *best_wx = 0; // start with null, no solution guaranteed
         double minimum = 1.0e10;
@@ -2290,41 +2281,41 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 	  wx = wx->next;
 	}
 
-	if (best_wx)
-	  in_acceptance = InAcceptance(package, region, best_wx->fOffset, best_wx->fSlope, y1, my);
-	else
-	  QwDebug << "not in acceptance" << QwLog::endl;
+	if (best_wx) {
 
-	// Store found partial track (or null)
-	QwPartialTrack *pt = TcTreeLineCombine(wu, wv, best_wx, tlayer);
+          in_acceptance = InAcceptance(package, region, best_wx->fOffset, best_wx->fSlope, y1, my);
 
-        if (minimum < fMaxXRoad && best_wx && in_acceptance) {
-	  if (pt) {
+	  // Store found partial track (or null)
+	  QwPartialTrack *pt = TcTreeLineCombine(wu, wv, best_wx, tlayer);
 
-            // Set geometry identification
-            pt->SetRegion(region);
-            pt->SetPackage(package);
+          if (minimum < fMaxXRoad && best_wx && in_acceptance) {
+	    if (pt) {
 
-            nPartialTracks++;
+              // Set geometry identification
+              pt->SetRegion(region);
+              pt->SetPackage(package);
 
-            best_wx->SetUsed();
-            wv->SetUsed();
-            wu->SetUsed();
+              nPartialTracks++;
 
-            pt->next = pt_next;
-            pt->bridge = 0;
-            pt->pathlenoff = 0;
-            pt->pathlenslo = 0;
-            pt_next = pt;
+              best_wx->SetUsed();
+              wv->SetUsed();
+              wu->SetUsed();
 
-            parttracklist.push_back(pt);
+              pt->next = pt_next;
+              pt->bridge = 0;
+              pt->pathlenoff = 0;
+              pt->pathlenslo = 0;
+              pt_next = pt;
 
-            pt->DeterminePositionInTarget();
-            pt->DeterminePositionInHDC(package);
-	  }
-	} else {
-          delete pt;
-          QwDebug << "not close enough " << minimum << ',' << fMaxXRoad << ',' << in_acceptance << QwLog::endl;
+              parttracklist.push_back(pt);
+
+              pt->DeterminePositionInTarget();
+              pt->DeterminePositionInHDC(package);
+            }
+          } else {
+            delete pt;
+            QwDebug << "not close enough " << minimum << ',' << fMaxXRoad << ',' << in_acceptance << QwLog::endl;
+          }
         }
         wv = wv->next;
       }
@@ -2347,6 +2338,17 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
             << "Region " << region << " not supported!" << QwLog::endl;
 
   }
+
+
+  // Calculate the average residual
+  for (QwPartialTrack *parttrack = pt_next; parttrack;
+                       parttrack = parttrack->next) {
+    if (parttrack->IsValid())
+      parttrack->CalculateAverageResidual();
+  }
+
+
+
 
   return pt_next;
 }

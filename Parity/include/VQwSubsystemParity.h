@@ -37,19 +37,25 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
   public:
 
     /// Constructor with name
-    VQwSubsystemParity(TString name): VQwSubsystem(name) { };
+    VQwSubsystemParity(TString name): VQwSubsystem(name) {
+      SetEventTypeMask(0x1); // only accept 0x1
+    };
     /// Default destructor
     virtual ~VQwSubsystemParity() { };
 
     /// \brief Construct the branch and tree vector
-    virtual void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values) = 0;
+    virtual void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t>& values) = 0;
     /// \brief Construct the branch and tree vector
-    virtual void ConstructBranchAndVector(TTree *tree, std::vector <Double_t> &values) {
+    virtual void ConstructBranchAndVector(TTree *tree, std::vector<Double_t>& values) {
       TString tmpstr("");
       ConstructBranchAndVector(tree,tmpstr,values);
     };
+    /// \brief Construct the branch and tree vector
+    virtual void ConstructBranch(TTree *tree, TString& prefix) { };
+    /// \brief Construct the branch and tree vector based on the trim file
+    virtual void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
     /// \brief Fill the tree vector
-    virtual void FillTreeVector(std::vector<Double_t> &values) = 0;
+    virtual void FillTreeVector(std::vector<Double_t>& values) = 0;
 
     /// \brief Fill the database
     virtual void FillDB(QwDatabase *db, TString type) { };
@@ -84,6 +90,9 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     virtual void Blind(const QwBlinder *blinder) { return; };
     /// \brief Blind the difference of this subsystem
     virtual void Blind(const QwBlinder *blinder, const VQwSubsystemParity* subsys) { return; };
+
+    /// \brief Print values of all channels
+    virtual void PrintValue() const { };
 
   private:
 

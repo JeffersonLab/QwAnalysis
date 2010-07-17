@@ -76,10 +76,6 @@ class VQwDataElement {
   virtual void Ratio(const VQwDataElement &numer, const VQwDataElement &denom)
     { std::cerr << "Ratio not defined!" << std::endl; };
 
-  /*! \brief Running average calculation */
-  virtual void Running_Average(Int_t )
-    { std::cerr << "Running average not defined!" << std::endl; };
-
   /*! \brief Construct the histograms for this data element */
   virtual void  ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
   /*! \brief Fill the histograms for this data element */
@@ -87,8 +83,10 @@ class VQwDataElement {
   /*! \brief Delete the histograms for this data element */
   void  DeleteHistograms();
 
-  /*! \brief Print out information for this data element */
-  virtual void Print() { std::cout << fElementName << std::endl; };
+  /*! \brief Print single line of value and error of this data element */
+  virtual void PrintValue() const { };
+  /*! \brief Print multiple lines of information about this data element */
+  virtual void PrintInfo() const { std::cout << GetElementName() << std::endl; };
 
   /*! \brief Get the number of data words in this data element */
   size_t GetNumberOfDataWords() {return fNumberOfDataWords;};

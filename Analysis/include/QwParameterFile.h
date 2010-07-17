@@ -38,17 +38,38 @@ class QwParameterFile {
 
   static void AppendToSearchPath(const TString &searchdir);
 
-  Bool_t ReadNextLine(){
+  Bool_t ReadNextLine() {
     fCurrentPos = 0;
-    return getline(fStream, fLine);
+    std::string tmp;
+    return ReadNextLine(tmp);
   };
-  Bool_t ReadNextLine(std::string &varvalue){
+  Bool_t ReadNextLine(std::string &varvalue) {
     fCurrentPos = 0;
-    if (getline(fStream, fLine)) {
-      varvalue = fLine;
-      return 1;
-    } else
+    if (! getline(fStream, fLine))
+      // No next line
       return 0;
+    else {
+      // Copy next line
+      varvalue = fLine;
+      // Allow 'append'
+      std::string tmpname, tmpvalue;
+      if (HasVariablePair(" ",tmpname,tmpvalue)) {
+        if (tmpname == "append") {
+          // Test for recursion in file nesting
+          static int nested_depth = 0;
+          if (nested_depth++ > 5) {
+            std::cout << "Parameter file recursion not allowed!" << std::endl;
+            return 0;
+          }
+          // Stream nested file into this file
+          QwParameterFile nested_file(tmpvalue.c_str());
+          fStream << nested_file.rdbuf();
+          // Read line from appended file
+          return ReadNextLine(varvalue);
+        }
+      }
+      return 1;
+    }
   };
 
   void TrimWhitespace(TString::EStripType head_tail = TString::kBoth);
@@ -63,6 +84,8 @@ class QwParameterFile {
   void RewindToFileStart() { fStream.clear(); fStream.seekg(0, std::ios::beg); };
   void RewindToLineStart() { fCurrentPos = 0; };
 
+  Bool_t HasValue(TString& vname);
+
   Bool_t HasVariablePair(std::string separatorchars, std::string& varname, std::string& varvalue);
   Bool_t HasVariablePair(std::string separatorchars, TString& varname, TString& varvalue);
 
@@ -72,12 +95,25 @@ class QwParameterFile {
   Bool_t LineHasSectionHeader(std::string& secname);
   Bool_t LineHasSectionHeader(TString& secname);
 
+  Bool_t LineHasModuleHeader(std::string& secname);
+  Bool_t LineHasModuleHeader(TString& secname);
+
   Bool_t FileHasSectionHeader(const std::string& secname);
   Bool_t FileHasSectionHeader(const TString& secname);
 
+  Bool_t FileHasModuleHeader(const std::string& secname);
+  Bool_t FileHasModuleHeader(const TString& secname);
+
+
+  /// \brief Rewinds to the start and read until it's finds next header
   QwParameterFile* ReadPreamble();
   QwParameterFile* ReadUntilNextSection();
   QwParameterFile* ReadNextSection(std::string &secname);
+  QwParameterFile* ReadNextSection(TString &secname);
+
+  QwParameterFile* ReadUntilNextModule();
+  QwParameterFile* ReadNextModule(std::string &secname);
+  QwParameterFile* ReadNextModule(TString &secname);
 
   friend ostream& operator<< (ostream& stream, const QwParameterFile& file);
 

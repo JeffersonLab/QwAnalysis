@@ -82,8 +82,8 @@ class MQwSIS3320_Channel: public VQwDataElement {
     Bool_t MatchSequenceNumber(UInt_t seqnum);
     Bool_t MatchNumberOfSamples(UInt_t numsamp);
 
-    void  ConstructHistograms(TDirectory *folder, TString &prefix) { };
-    void  FillHistograms() { };
+    void  ConstructHistograms(TDirectory *folder, TString &prefix);
+    void  FillHistograms();
 
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  FillTreeVector(std::vector<Double_t> &values);
@@ -116,7 +116,8 @@ class MQwSIS3320_Channel: public VQwDataElement {
 
     void Copy(VQwDataElement *source) { };
 
-    void Print() const;
+    void PrintValue() const;
+    void PrintInfo() const;
 
  protected:
 
@@ -180,15 +181,15 @@ class MQwSIS3320_Channel: public VQwDataElement {
     Double_t fMockGaussianMean;
     Double_t fMockGaussianSigma;
 
-    // Mode flags
-    static const unsigned int MODE_ACCUMULATOR;
-    static const unsigned int MODE_LONG_WORD_SAMPLING;
-    static const unsigned int MODE_SHORT_WORD_SAMPLING;
+    // Operation mode flags
+    static const unsigned int MODE_MULTI_EVENT;
+    static const unsigned int MODE_SINGLE_EVENT;
     static const unsigned int MODE_NOTREADY;
 
-    // Sampling mode format flags
-    static const unsigned int FORMAT_MULTI_EVENT;
-    static const unsigned int FORMAT_SINGLE_EVENT;
+    // Data storage format flags
+    static const unsigned int FORMAT_ACCUMULATOR;
+    static const unsigned int FORMAT_LONG_WORD_SAMPLING;
+    static const unsigned int FORMAT_SHORT_WORD_SAMPLING;
 
 };
 

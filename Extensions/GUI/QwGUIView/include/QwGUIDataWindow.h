@@ -30,7 +30,7 @@ public:
 		  const char * objName, const char *mainname,
 		  const char *datatitle, ERPlotTypes type,
 		  ENDataType dtype,UInt_t w, UInt_t h);
-  virtual ~QwGUIDataWindow();
+  ~QwGUIDataWindow();
 
   virtual Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2);
   void           UpdatePlot(char *obj);

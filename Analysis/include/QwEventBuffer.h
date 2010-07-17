@@ -12,6 +12,7 @@
 #include <vector>
 #include "Rtypes.h"
 #include "TString.h"
+#include "TStopwatch.h"
 
 #include "THaCodaData.h"
 
@@ -38,6 +39,8 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   static const UInt_t kNullDataWord;
 
+
+
  public:
   QwEventBuffer();
   virtual ~QwEventBuffer() {
@@ -50,11 +53,15 @@ class QwEventBuffer: public MQwCodaControlEvent{
   /// \brief Sets internal flags based on the QwOptions
   void ProcessOptions(QwOptions &options);
 
+  void PrintRunTimes();
+
   /// \brief Returns a string like <run#> or <run#>.<file#>
   TString GetRunLabel() const;
-  /// \brief Return true if file segments are being chained together for
+  /// \brief Return true if file segments are being separated for
   //analysis
-  Bool_t ChainDataFiles() const {return fChainDataFiles;};
+  Bool_t AreRunletsSplit() const   {
+    return (fRunIsSegmented && !fChainDataFiles);
+  };
   /// \brief Return CODA file run number
   Int_t GetRunNumber() const {return fCurrentRun;};
   /// \brief Return CODA file segment number
@@ -97,13 +104,16 @@ class QwEventBuffer: public MQwCodaControlEvent{
     return (fEvtType>=0x90 && fEvtType<=0xaf);
   };
 
-
-
   Bool_t IsEPICSEvent(){
     //  What are the correct codes for our EPICS events?
-    return (fEvtType>=160 && fEvtType<=170);// epics event type is only with tag="160"
+    //return (fEvtType>=160 && fEvtType<=170);// epics event type is only with tag="160"
+    return (fEvtType>=160 && fEvtType<=190);// epics event type is only with tag="180" from July 2010 running
   };
 
+  Bool_t IsEndOfBurst(){
+    //  Is this the end of a burst?
+    return (fBurstLength > 0 && fEvtNumber % fBurstLength == 0);
+  };
 
   Bool_t FillSubsystemConfigurationData(QwSubsystemArray &subsystems);
   Bool_t FillSubsystemData(QwSubsystemArray &subsystems);
@@ -128,7 +138,6 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Bool_t FillSubsystemConfigurationData(std::vector<VQwSubsystem*> &subsystems);
   Bool_t FillSubsystemData(std::vector<VQwSubsystem*> &subsystems);
 
-
  protected:
   ///
   Bool_t fOnline;
@@ -137,10 +146,11 @@ class QwEventBuffer: public MQwCodaControlEvent{
   std::pair<Int_t, Int_t> fRunRange;
   Bool_t fChainDataFiles;
   std::pair<UInt_t, UInt_t> fEventRange;
+  Int_t fBurstLength;
 
  protected:
-  const TString fDataFileStem;
-  const TString fDataFileExtension;
+  TString fDataFileStem;
+  TString fDataFileExtension;
 
   TString fDataDirectory;
 
@@ -206,6 +216,9 @@ class QwEventBuffer: public MQwCodaControlEvent{
   UInt_t fSubbankNum;
   UInt_t fROC;
 
+  TStopwatch fRunTimer;      ///<  Timer used for runlet processing loop
+  TStopwatch fStopwatch;     ///<  Timer used for internal timing
+
  protected:
   UInt_t     fNumPhysicsEvents;
 
@@ -213,15 +226,15 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
 template < class T > Bool_t QwEventBuffer::FillObjectWithEventData(T &object){
   ///  Template to fill any object with data from a CODA event.
-  /// 
+  ///
   ///  The classes for which this template can be specialized
   ///  must have the following three methods defined:
-  /// 
+  ///
   ///  Bool_t <class T>::CanUseThisEventType(const UInt_t event_type);
   ///  Bool_t <class T>::ClearEventData(const UInt_t event_type);
   ///  Int_t  <class T>::ProcessBuffer(const UInt_t event_type,
-  ///       const UInt_t roc_id, const UInt_t bank_id,
-  ///       UInt_t* buffer, UInt_t num_words);
+  ///       const UInt_t roc_id, const UInt_t bank_id, 
+  ///       const UInt_t banktype, UInt_t* buffer, UInt_t num_words);
   ///
   Bool_t okay = kFALSE;
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
@@ -243,7 +256,7 @@ template < class T > Bool_t QwEventBuffer::FillObjectWithEventData(T &object){
 	  fWordsSoFar += fFragLength;
 	  continue;
 	}
-	object.ProcessBuffer(fEvtType, fSubbankTag, fSubbankType,
+	object.ProcessBuffer(fEvtType, fROC, fSubbankTag, fSubbankType,
 			     &localbuff[fWordsSoFar],
 			     fFragLength);
 	fWordsSoFar += fFragLength;

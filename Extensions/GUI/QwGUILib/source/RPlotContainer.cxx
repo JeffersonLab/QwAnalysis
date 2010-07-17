@@ -77,8 +77,6 @@ RPlotContainer::~RPlotContainer()
     delete fD3HistoList;
   if(fFuncList)
     delete fFuncList;          
-
-  printf("In destructor RPlotContainer\n");
 }
 
 void RPlotContainer::IsClosing(char *objname)
@@ -232,6 +230,30 @@ void RPlotContainer::SetNewMarkerColor()
       return;
     }
   }
+}
+
+void RPlotContainer::RemovePlot(TObject *obj)
+{
+  if(!obj) return; 
+
+  if(obj->InheritsFrom("TGraph"))
+    fGraphList->Remove(obj);
+  if(obj->InheritsFrom("TH1"))
+    fD1HistoList->Remove(obj);
+  if(obj->InheritsFrom("TProfile"))
+    fD1ProfileList->Remove(obj);
+  if(obj->InheritsFrom("TGraphErrors"))
+    fGraphErList->Remove(obj);
+  if(obj->InheritsFrom("TGraphAsymmErrors"))
+    fGraphAsymErList->Remove(obj);
+  if(obj->InheritsFrom("TH2"))
+    fD2HistoList->Remove(obj);
+  if(obj->InheritsFrom("TH3"))
+    fD3HistoList->Remove(obj);
+  if(obj->InheritsFrom("TF1"))
+    fFuncList->Remove(obj);
+  
+  fPlotList->Remove(obj);
 }
 
 

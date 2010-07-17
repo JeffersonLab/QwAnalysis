@@ -14,7 +14,7 @@
 // ROOT headers
 #include <TTree.h>
 
-
+#include "QwParameterFile.h"
 // Qweak database headers
 #define MYSQLPP_SSQLS_NO_STATICS
 #include "QwSSQLS.h"
@@ -38,7 +38,9 @@ class QwBCM : public VQwDataElement{
   QwBCM(TString name){
     InitializeChannel(name,"raw");
   };
-  ~QwBCM() {DeleteHistograms();};
+  ~QwBCM() {
+    DeleteHistograms();
+  };
 
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
 
@@ -74,7 +76,8 @@ class QwBCM : public VQwDataElement{
     fBeamCurrent.SetEventCutMode(bcuts);
   }
 
-  void Print() const;
+  void PrintValue() const;
+  void PrintInfo() const;
 
   const T& GetCharge() const {return fBeamCurrent;};
 
@@ -97,6 +100,8 @@ class QwBCM : public VQwDataElement{
   void  FillHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+  void  ConstructBranch(TTree *tree, TString &prefix);
+  void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values);
   void  DeleteHistograms();
 

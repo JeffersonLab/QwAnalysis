@@ -561,7 +561,7 @@ void QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values)
 
 
 //*****************************************************************
-void  QwComptonElectronDetector::Print()
+void  QwComptonElectronDetector::Print() const
 {
   //  VQwSubsystemParity::Print();
   Int_t nchan =0;

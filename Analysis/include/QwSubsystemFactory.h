@@ -7,6 +7,11 @@
 // Forward declarations
 class VQwSubsystem;
 
+// Exceptions
+struct QwException_SubsystemUnknown {
+  QwException_SubsystemUnknown() { };
+};
+
 /**
  *  \class VQwSubsystemFactory
  *  \ingroup QwAnalysis
@@ -18,28 +23,41 @@ class VQwSubsystem;
  * contains concrete factories derived from this pure virtual base class.
  */
 class VQwSubsystemFactory {
+
   public:
+
     /// Default virtual destructor
     virtual ~VQwSubsystemFactory() { };
-    /// Subsystem creation
+
+    /// Create a subsystem of type with name
+    static VQwSubsystem* Create(const std::string& type, const std::string& name) {
+      return GetSubsystemFactory(type)->Create(name);
+    }
+
+    /// Dynamic cast of subsystem into type
+    static VQwSubsystem* Cast(VQwSubsystem* subsys, const std::string& type) {
+      return GetSubsystemFactory(type)->Cast(subsys);
+    }
+
+    /// Inherits from subsystem type
+    static bool InheritsFrom(VQwSubsystem* subsys, const std::string& type) {
+      return (Cast(subsys,type) != 0);
+    }
+
+  protected:
+
+    /// Subsystem creation (pure virtual)
     virtual VQwSubsystem* Create(const std::string& name) = 0;
+    /// Subsystem cast (pure virtual)
+    virtual VQwSubsystem* Cast(VQwSubsystem* subsys) = 0;
 
     /// Map from string to concrete subsystem factories
     static std::map<std::string,VQwSubsystemFactory*>& GetRegisteredSubsystems();
     /// List available subsystem factories
     static void ListRegisteredSubsystems();
 
-    /// Get a concrete subsystem factory by std::string
+    /// Get a concrete subsystem factory
     static VQwSubsystemFactory* GetSubsystemFactory(const std::string& type);
-
-    /// Get a concrete subsystem factory by TString
-    static VQwSubsystemFactory* GetSubsystemFactory(const TString& type) {
-      return GetSubsystemFactory(std::string(type.Data()));
-    };
-    /// Get a concrete subsystem factory by const char* string
-    static VQwSubsystemFactory* GetSubsystemFactory(const char* type) {
-      return GetSubsystemFactory(std::string(type));
-    };
 
 }; // class VQwSubsystemFactory
 
@@ -70,11 +88,13 @@ VQwSubsystemFactory::GetSubsystemFactory(const std::string& type)
     QwError << "Subsystem " << type << " is not registered!" << QwLog::endl;
     QwMessage << "Available subsystems:" << QwLog::endl;
     ListRegisteredSubsystems();
-    QwMessage << "To register this subsystem, add the following line to the top "
+    QwWarning << "To register this subsystem, add the following line to the top "
               << "of the source file:" << QwLog::endl;
-    QwMessage << "  QwSubsystemFactory<" << type << "> the" << type
+    QwWarning << "  QwSubsystemFactory<" << type << "> the" << type
               << "Factory(\"" << type << "\");" << QwLog::endl;
-    return 0; // this will most likely crash
+    QwWarning << "Ensure that the dynamic library contains the factory object."
+              << QwLog::endl;
+    throw QwException_SubsystemUnknown();
   }
 };
 
@@ -88,8 +108,9 @@ VQwSubsystemFactory::GetSubsystemFactory(const std::string& type)
  * from which it inherits.  Each concrete factory can create subsystems with
  * a given name.
  */
-template<class subsystem>
+template<class subsystem_t>
 class QwSubsystemFactory: public VQwSubsystemFactory {
+
   public:
 
     /// Constructor which stores type name in list of registered subsystems
@@ -97,10 +118,17 @@ class QwSubsystemFactory: public VQwSubsystemFactory {
       VQwSubsystemFactory::GetRegisteredSubsystems()[type] = this;
     };
 
+  protected:
+
     /// Concrete subsystem creation
-    virtual VQwSubsystem* Create(const std::string& name) {
-      return new subsystem(name);
+    VQwSubsystem* Create(const std::string& name) {
+      return new subsystem_t(name);
     };
+
+    /// Dynamic cast of subsystem
+    subsystem_t* Cast(VQwSubsystem* subsys) {
+      return dynamic_cast<subsystem_t*>(subsys);
+    }
 
 }; // class QwSubsystemFactory
 

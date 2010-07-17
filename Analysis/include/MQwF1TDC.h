@@ -29,24 +29,15 @@ class MQwF1TDC{
   MQwF1TDC();
   ~MQwF1TDC();
 
- protected:
-  /*
-  void DecodeF1Word(UInt_t &word);
-  
-
-  Bool_t IsAF1Headerword(){return fF1HeaderFlag;};
-
-  UInt_t GetF1SlotNumber(){return fF1SlotNumber;};
-  UInt_t GetF1ChannelNumber(){return fF1ChannelNumber;};
-  UInt_t GetF1Data(){return fF1Dataword;};
-  */
   void DecodeTDCWord(UInt_t &word, const UInt_t roc_id);
 
   Bool_t IsValidDataword();
+  Bool_t IsHeaderword() {return fF1HeaderFlag;};
  
   UInt_t GetTDCSlotNumber()        {return fF1SlotNumber;};
   UInt_t GetTDCChannelNumber()     {return fF1ChannelNumber;};
   UInt_t GetTDCData()              {return fF1Dataword;};
+  UInt_t GetTDCMaxChannels()       {return fF1MaxChannelsPerModule;};
   
  
   UInt_t GetTDCEventNumber()       {return GetTDCHeaderEventNumber();};
@@ -61,9 +52,8 @@ class MQwF1TDC{
   };
   
   Double_t SubtractReference(Double_t rawtime, Double_t reftime);
-
-  
-  // Two print functions are used for a debugging purpose temporarily 
+  Double_t ActualTimeDifference(Double_t raw_time, Double_t ref_time);
+  Bool_t CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t num_words);
   void   PrintTDCHeader(Bool_t flag);
   void   PrintTDCData(Bool_t flag);
   
@@ -83,9 +73,11 @@ class MQwF1TDC{
   static const UInt_t kF1Mask_HeaderTriggerTime;
   static const UInt_t kF1Mask_HeaderXorSetupFlag;
   static const UInt_t kF1Mask_HeaderChannelNumber;
- 
+
+  
   
   //  static const UInt_t offset;
+  UInt_t fF1ROCNumber;
 
   Bool_t fF1HeaderFlag;              // true(1) if word is 0 (header) and false(0) if word is 1 (data)
   Bool_t fF1HitFIFOFlag;             // true(1) if word is 1 
@@ -95,12 +87,15 @@ class MQwF1TDC{
   UInt_t fF1SlotNumber;
   UInt_t fF1ChannelNumber;
   UInt_t fF1Dataword;
+  UInt_t fF1MaxChannelsPerModule;
 
   Bool_t fF1HeaderTrigFIFOFlag;
   UInt_t fF1HeaderEventNumber;
   UInt_t fF1HeaderTriggerTime;
   Bool_t fF1HeaderXorSetupFlag;
  
+  
+  Bool_t fF1OverFlowEntryFlag;
   Bool_t fF1ValidDataSlotFlag;  
   // Slot 1 - 21 indicates valid data
   // Slot 0  is the tag for a "filler" word. This is a non-valid data word that is
@@ -124,11 +119,6 @@ class MQwF1TDC{
                          ///  NOTE:  this would preferrably be done by a different function than 
                          ///  MQwF1TDC::SubtractReference, but R3 has this correction designed in for now.
 
-  Bool_t fF1FirstWordFlag;
-/*   UInt_t fheader_old_event_number; */
-/*   UInt_t fheader_old_trigger_time; */
-
-
  
   void   PrintHitFIFOStatus(const UInt_t roc_id);
   void   PrintOutputFIFOStatus(const UInt_t roc_id);
@@ -141,10 +131,8 @@ class MQwF1TDC{
 
 
   //Bool_t IsValidDataSlot()         {return fF1ValidDataSlotFlag;};
-  // at the moment we don't use the following functions to check
-  // Xor setup and TrigFIFO status (Mon May  3 15:27:21 EDT 2010, jhlee)
   Bool_t IsHeaderXorSetup()        {return fF1HeaderXorSetupFlag;};
-  Bool_t IsHeaderTrigFIFO()        {return fF1HeaderTrigFIFOFlag;};
+  Bool_t IsNotHeaderTrigFIFO()     {return !fF1HeaderTrigFIFOFlag;};
 
 };
 

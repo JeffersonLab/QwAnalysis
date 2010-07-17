@@ -15,9 +15,6 @@
 #include <cstdlib>
 #include <climits>
 
-// Statically defined option descriptions grouped by function
-po::options_description QwOptions::fDefaultOptions("Default options");
-po::options_description QwOptions::fSpecialOptions("Specialized options");
 // Statically defined option descriptions grouped by parser
 po::options_description QwOptions::fCommandLineOptions("Command line options");
 po::options_description QwOptions::fEnvironmentOptions("Environment options");
@@ -51,7 +48,6 @@ QwOptions::QwOptions()
   AddDefaultOptions()("usage",  "print this help message");
   AddDefaultOptions()("help,h", "print this help message");
   AddDefaultOptions()("config,c", po::value<std::string>(), "configuration file to read");
-
 }
 
 /**
@@ -81,6 +77,11 @@ QwOptions::~QwOptions()
   // are still owned by main.
   if (fArgv)
     delete[] fArgv;
+
+  // Delete the option blocks
+  for (size_t i = 0; i < fOptionBlock.size(); i++)
+    delete fOptionBlock.at(i);
+  fOptionBlock.clear();
 }
 
 /**
@@ -110,14 +111,16 @@ void QwOptions::SetCommandLine(int argc, char* argv[])
  */
 void QwOptions::CombineOptions()
 {
-  // Right now every parser gets access to all options
-  fCommandLineOptions.add(fDefaultOptions).add(fSpecialOptions);
-  fEnvironmentOptions.add(fDefaultOptions).add(fSpecialOptions);
-  fConfigFileOptions.add(fDefaultOptions).add(fSpecialOptions);
   // TODO The options could be grouped in a smarter way by subsystem or
   // class, by defining a vector fOptions of options_description objects.
   // Each entry could have a name and would show up as a separate section
   // in the usage information.
+  for (size_t i = 0; i < fOptionBlockName.size(); i++) {
+    // Right now every parser gets access to all options
+    fCommandLineOptions.add(*fOptionBlock.at(i));
+    fEnvironmentOptions.add(*fOptionBlock.at(i));
+    fConfigFileOptions.add(*fOptionBlock.at(i));
+  }
 };
 
 /**
@@ -223,8 +226,8 @@ void QwOptions::Usage()
   QwMessage << QwLog::endl;
   QwMessage << "Welcome to the Qweak analyzer code." << QwLog::endl;
   QwMessage << QwLog::endl;
-  QwMessage << fDefaultOptions << QwLog::endl;
-  QwMessage << fSpecialOptions << QwLog::endl;
+  for (size_t i = 0; i < fOptionBlock.size(); i++)
+    QwMessage << *(fOptionBlock.at(i)) << QwLog::endl;
 }
 
 

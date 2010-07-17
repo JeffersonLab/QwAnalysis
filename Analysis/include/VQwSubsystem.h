@@ -60,8 +60,11 @@ class VQwSubsystem {
 
   /// Constructor with name
   VQwSubsystem(const TString& name)
-    : fSystemName(name), fIsDataLoaded(kFALSE), fCurrentROC_ID(-1), fCurrentBank_ID(-1) { };
+    : fSystemName(name), fEventTypeMask(0x0), fIsDataLoaded(kFALSE), fCurrentROC_ID(-1), fCurrentBank_ID(-1) {
+    ClearAllBankRegistrations();
+  };
 
+  /// Default destructor
   virtual ~VQwSubsystem() { };
 
   /// \brief Define options function (note: no virtual static functions in C++)
@@ -78,7 +81,7 @@ class VQwSubsystem {
   /// \brief Get the parent of this subsystem
   QwSubsystemArray* GetParent(const unsigned int parent = 0) const;
   /// \brief Get the sibling with specified name
-  VQwSubsystem* GetSibling(const TString& name) const;
+  VQwSubsystem* GetSibling(const std::string& name) const;
 
   /// \brief Publish a variable name to the parent subsystem array
   const Bool_t PublishInternalValue(const TString name, const TString desc) const;
@@ -98,18 +101,34 @@ class VQwSubsystem {
     return kFALSE;
   };
 
-  // Parse parameter file to find the map files
+  /// \brief Parse parameter file to find the map files
   virtual Int_t LoadDetectorMaps(QwParameterFile& file);
-  // Mandatory map and parameter files
+  /// Mandatory map file definition
   virtual Int_t LoadChannelMap(TString mapfile) = 0;
+  /// Mandatory parameter file definition
   virtual Int_t LoadInputParameters(TString mapfile) = 0;
-  // Optional geometry definition
+  /// Optional geometry definition
   virtual Int_t LoadGeometryDefinition(TString mapfile) { return 0; };
+  /// Optional event cut file
+  virtual Int_t LoadEventCuts(TString mapfile) { return 0; };
+
+  /// Set event type mask
+  void SetEventTypeMask(const UInt_t mask) { fEventTypeMask = mask; };
+  /// Get event type mask
+  UInt_t GetEventTypeMask() const { return fEventTypeMask; };
+
 
   virtual void  ClearEventData() = 0;
 
   virtual Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) = 0;
 
+  virtual Int_t ProcessEvBuffer(const UInt_t event_type, const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words){
+    /// TODO:  Subsystems should be changing their ProcessEvBuffer routines to take the event_type as the first
+    ///  arguement.  But in the meantime, default to just calling the non-event-type-aware ProcessEvBuffer routine.
+    if (((0x1 << (event_type - 1)) & this->GetEventTypeMask()) == 0) return 0;
+    else return this->ProcessEvBuffer(roc_id, bank_id, buffer, num_words);
+  };
+  /// TODO:  The non-event-type-aware ProcessEvBuffer routine should be replaced with the event-type-aware version.
   virtual Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) = 0;
 
   virtual void  ProcessEvent() = 0;
@@ -181,7 +200,7 @@ class VQwSubsystem {
   // @}
 
   /// \brief Print some information about the subsystem
-  virtual void  Print();
+  virtual void  PrintInfo() const;
 
   virtual void Copy(VQwSubsystem *source);//Must call at the beginning of all subsystems rotuine call to Copy(VQwSubsystem *source)  by  using VQwSubsystem::Copy(source)
   virtual VQwSubsystem&  operator=  (VQwSubsystem *value);//Must call at the beginning of all subsystems rotuine call to operator=  (VQwSubsystem *value)  by VQwSubsystem::operator=(value)
@@ -195,7 +214,7 @@ class VQwSubsystem {
 
   /*! \brief Tell the object that it will decode data from this ROC and sub-bank
    */
-  Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);
+  virtual Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);
 
   /*! \brief Tell the object that it will decode data from this sub-bank in the ROC currently open for registration
    */
@@ -213,6 +232,8 @@ class VQwSubsystem {
  protected:
 
   TString  fSystemName; ///< Name of this subsystem
+
+  UInt_t   fEventTypeMask; ///< Mask of event types
 
   Bool_t   fIsDataLoaded; ///< Has this subsystem gotten data to be processed?
 

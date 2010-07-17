@@ -19,7 +19,6 @@
 #include <Rtypes.h>
 #include <TROOT.h>
 #include <TFile.h>
-#include <TStopwatch.h>
 
 // Qweak headers
 #include "QwLog.h"
@@ -42,36 +41,33 @@
 #include "QwLumi.h"
 
 
-// Declarations
-void PrintInfo(TStopwatch& timer);
 
 
 Int_t main(Int_t argc, Char_t* argv[])
 {
-  ///  First, we set the command line arguments and the configuration filename,
-  ///  and we define the options that can be used in them (using QwOptions).
-  gQwOptions.SetCommandLine(argc, argv);
-  gQwOptions.SetConfigFile("qwanalysis.conf");
-  ///  Define the command line options
-  DefineOptionsParity(gQwOptions);
-
-  ///  Fill the search paths for the parameter files; this sets a static
-  ///  variable within the QwParameterFile class which will be used by
+  ///  First, fill the search paths for the parameter files; this sets a
+  ///  static variable within the QwParameterFile class which will be used by
   ///  all instances.
   ///  The "scratch" directory should be first.
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
-  ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
-  ///  histogram helper: QwHistogramHelper
-  gQwHists.LoadHistParamsFromFile("parity_hists.in");
+  ///  Then, we set the command line arguments and the configuration filename,
+  ///  and we define the options that can be used in them (using QwOptions).
+  gQwOptions.SetCommandLine(argc, argv);
+  gQwOptions.AddConfigFile("qwparity.conf");
+  gQwOptions.AddConfigFile("qweak_mysql.conf");
+  ///  Define the command line options
+  DefineOptionsParity(gQwOptions);
 
   /// Setup screen and file logging
-  gQwLog.InitLogFile("qwanalysis.log");
+  gQwLog.ProcessOptions(&gQwOptions);
 
-  ///  Create a timer
-  TStopwatch timer;
+  ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
+  ///  histogram helper: QwHistogramHelper
+  gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
+
 
   ///  Create the event buffer
   QwEventBuffer eventbuffer;
@@ -79,6 +75,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   ///  Create an EPICS event
   QwEPICSEvent epicsevent;
+  epicsevent.LoadEpicsVariableMap("EpicsTable.map");
+
 
   ///  Load the detectors from file
   QwSubsystemArrayParity detectors(gQwOptions);
@@ -105,9 +103,6 @@ Int_t main(Int_t argc, Char_t* argv[])
   while (eventbuffer.OpenNextStream() == CODA_OK) {
 
     //  Begin processing for the first run.
-    //  Start the timer.
-    timer.Start();
-
 
     //  Open the ROOT file
     rootfile = new QwRootFile(eventbuffer.GetRunLabel());
@@ -121,11 +116,15 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Construct tree branches
     rootfile->ConstructTreeBranches(detectors);
     rootfile->ConstructTreeBranches(helicitypattern);
-
-
-
     Int_t failed_events_counts = 0; // count failed total events
     // TODO (wdc) failed event counter in QwEventRing?
+
+
+    //  Clear the single-event running sum at the beginning of the runlet
+    runningsum.ClearEventData();
+    helicitypattern.ClearRunningSum();
+    //  Clear the running sum of the burst values at the beginning of the runlet
+    helicitypattern.ClearBurstSum();
 
 
     ///  Start loop over events
@@ -141,7 +140,6 @@ Int_t main(Int_t argc, Char_t* argv[])
       if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epicsevent);
         epicsevent.CalculateRunningValues();
-        epicsevent.PrintAverages();
       }
 
 
@@ -173,10 +171,11 @@ Int_t main(Int_t argc, Char_t* argv[])
         // Accumulate the running sum to calculate the event based running average
         runningsum.AccumulateRunningSum(detectors);
 
-        // Fill histograms
+
+        // Fill the histograms
         rootfile->FillHistograms(detectors);
 
-        // Fill tree branches
+        // Fill the tree branches
         rootfile->FillTreeBranches(detectors);
 
         // Calculate helicity pattern asymmetry
@@ -197,29 +196,34 @@ Int_t main(Int_t argc, Char_t* argv[])
         failed_events_counts++;
       }
 
-      // Some info for the user
-      if (eventbuffer.GetEventNumber() % 1000 == 0) {
-        QwMessage << "Number of events processed so far: "
-                  << eventbuffer.GetEventNumber() << QwLog::endl;
+      // Burst mode
+      if (eventbuffer.IsEndOfBurst()) {
+        helicitypattern.AccumulateRunningBurstSum();
+        helicitypattern.CalculateBurstAverage();
+        helicitypattern.ClearBurstSum();
       }
 
     } // end of loop over events
 
-
-
     QwMessage << "Number of events processed at end of run: "
               << eventbuffer.GetEventNumber() << std::endl;
 
-    // This will calculate running averages over helicity patterns
-    helicitypattern.CalculateRunningAverage();
 
-    std::cout<<"Event Based Running average"<<std::endl;
-    std::cout<<"==========================="<<std::endl;
+    // Calculate running averages over helicity patterns
+    if (helicitypattern.IsRunningSumEnabled()) {
+      helicitypattern.CalculateRunningAverage();
+      helicitypattern.PrintRunningAverage();
+      if (helicitypattern.IsBurstSumEnabled()) {
+        helicitypattern.CalculateRunningBurstAverage();
+        helicitypattern.PrintRunningBurstAverage();
+      }
+    }
 
     // This will calculate running averages over single helicity events
     runningsum.CalculateRunningAverage();
-
-    timer.Stop();
+    QwMessage << " Running average of events" << QwLog::endl;
+    QwMessage << " =========================" << QwLog::endl;
+    runningsum.PrintValue();
 
     /*  Write to the root file, being sure to delete the old cycles  *
      *  which were written by Autosave.                              *
@@ -238,8 +242,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     //  Close event buffer stream
     eventbuffer.CloseStream();
-    //  Report run summary
-    eventbuffer.ReportRunSummary();
 
 
 
@@ -249,15 +251,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     //  Read from the datebase
     if (database.AllowsReadAccess()) {
-      QwMessage << "GetMonitorID(qwk_batext2) = " << database.GetMonitorID("qwk_batext2") << QwLog::endl;
-      QwMessage << "GetMonitorID(phasemonitor) = " << database.GetMonitorID("phasemonitor") << QwLog::endl;
-      QwMessage << "GetMonitorID(qwk_junk) = " << database.GetMonitorID("qwk_junk") << QwLog::endl;
-      QwMessage << "GetMainDetectorID(md1neg) = " << database.GetMainDetectorID("md1neg") << QwLog::endl;
-      QwMessage << "GetMainDetectorID(spare3) = " << database.GetMainDetectorID("spare3") << QwLog::endl;
-      QwMessage << "GetMainDetectorID(combinationallmd) = " << database.GetMainDetectorID("combinationallmd") << QwLog::endl;
-      QwMessage << "GetLumiDetectorID(dlumi8) = " << database.GetLumiDetectorID("dlumi8") << QwLog::endl;
-      QwMessage << "GetLumiDetectorID(ulumi8) = " << database.GetLumiDetectorID("ulumi8") << QwLog::endl;
-      QwMessage << "GetVersion() = " << database.GetVersion() << QwLog::endl;
 
       // GetRunID(), GetRunletID(), and GetAnalysisID have their own Connect() and Disconnect() functions.
       UInt_t run_id      = database.GetRunID(eventbuffer);
@@ -265,7 +258,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       UInt_t analysis_id = database.GetAnalysisID(eventbuffer);
 
      //  Write to from the datebase
-     QwMessage << "QwAnalysis_MySQL.cc::"
+     QwMessage << "QwAnalysis.cc::"
                 << " Run Number "  << QwColor(Qw::kBoldMagenta) << eventbuffer.GetRunNumber() << QwColor(Qw::kNormal)
                 << " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id << QwColor(Qw::kNormal)
                 << " Runlet ID "   << QwColor(Qw::kBoldMagenta) << runlet_id << QwColor(Qw::kNormal)
@@ -282,9 +275,9 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     QwMessage << "Total events failed " << failed_events_counts << QwLog::endl;
 
-
-    PrintInfo(timer);
-
+    //  Report run summary
+    eventbuffer.ReportRunSummary();
+    eventbuffer.PrintRunTimes();
   } // end of loop over runs
 
   QwMessage << "I have done everything I can do..." << QwLog::endl;
@@ -292,13 +285,3 @@ Int_t main(Int_t argc, Char_t* argv[])
   return 0;
 }
 
-
-
-void PrintInfo(TStopwatch& timer)
-{
-  QwMessage << "CPU time used:  "  << timer.CpuTime() << " s"
-            << std::endl
-            << "Real time used: " << timer.RealTime() << " s"
-            << std::endl << QwLog::endl;
-  return;
-}

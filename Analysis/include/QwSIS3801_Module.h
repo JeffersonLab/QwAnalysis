@@ -61,7 +61,7 @@ class QwSIS3801_Module {
 
 
   size_t GetSequenceNumber(){return (fSequenceNumber);};
-  
+
   // formarly known as IsGoodEvent()
   Bool_t ApplyHWChecks(){return fEventIsGood;}; //Check for harware errors in the devices and this is replaced for IsGoodEvent() routine
 
@@ -71,11 +71,13 @@ class QwSIS3801_Module {
 
   void Copy(QwSIS3801_Module *source);
 
-  void Print() const;
-  QwSIS3801_Channel* GetChannel(const TString name);
+  void PrintValue() const { };
+  void PrintInfo() const;
+
+  QwSIS3801D24_Channel* GetChannel(const TString name);
 
 //  If we change the number of channels in the module this needs to change.
-  boost::array<QwSIS3801_Channel, 32> fChannels;  
+  boost::array<QwSIS3801D24_Channel, 32> fChannels;
 
  protected:
 

@@ -36,13 +36,13 @@ class QwWord
   TString fWordType;
   Int_t fValue;
 
-  void PrintID()
+  void PrintID() const
     {
       std::cout<<fWordName<<" :: "<<fSubbankIndex<<" ; "
 	       <<fModuleType<<" ; "<<fWordType<<"\n";
     }
 
-  void Print()
+  void Print() const
     {
       std::cout<<fWordName<<" :: "<<fValue<<"\n";
     }
@@ -64,6 +64,7 @@ class QwWord
 class QwHelicity: public VQwSubsystemParity{
   /////
  public:
+
 
   QwHelicity(TString region_tmp)
     : VQwSubsystem(region_tmp), VQwSubsystemParity(region_tmp), fMinPatternPhase(1)
@@ -90,77 +91,84 @@ class QwHelicity: public VQwSubsystemParity{
     DeleteHistograms();
   };
 
+
+
   /* derived from VQwSubsystem */
   /// \brief Define options function
+
   static void DefineOptions(QwOptions &options);
   void ProcessOptions(QwOptions &options);
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString  filename);//Loads event cuts applicabale to QwHelicity class, derived from VQwSubsystemParity
   Bool_t ApplySingleEventCuts();//Apply event cuts in the QwHelicity class, derived from VQwSubsystemParity
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure, derived from VQwSubsystemParity
-  Int_t GetEventcutErrorFlag();//return the error flag
+  Int_t  GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure, derived from VQwSubsystemParity
+  Int_t  GetEventcutErrorFlag();//return the error flag
 
-  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id,
+  Int_t  ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id,
 				   UInt_t* buffer, UInt_t num_words);
-  Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-  void  ProcessEventUserbitMode();//ProcessEvent has two modes Userbit and Inputregister modes
-  void  ProcessEventInputRegisterMode();
+  Int_t  ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  void   ProcessEventUserbitMode();//ProcessEvent has two modes Userbit and Inputregister modes
+  void   ProcessEventInputRegisterMode();
 
+  void   EncodeEventData(std::vector<UInt_t> &buffer);
 
-  void  PrintDetectorID();
+  void  PrintDetectorID() const;
+
 
   virtual void  ClearEventData();
   virtual void  ProcessEvent();
-  void  EncodeEventData(std::vector<UInt_t> &buffer);
-
-  void SetFirst24Bits(UInt_t first24bits);
-  void SetEventPatternPhase(Int_t event, Int_t pattern, Int_t phase);
 
   UInt_t GetRandomSeedActual() { return iseed_Actual; };
   UInt_t GetRandomSeedDelayed() { return iseed_Delayed; };
 
-  void PredictHelicity();
-  void RunPredictor();
+  void   PredictHelicity();
+  void   RunPredictor();
+  void   SetHelicityDelay(Int_t delay);
 
-  void SetHelicityDelay(Int_t delay);
-
-  Int_t GetHelicityReported();
-  Int_t GetHelicityActual();
-  Int_t GetHelicityDelayed();
+  Int_t  GetHelicityReported();
+  Int_t  GetHelicityActual();
+  Int_t  GetHelicityDelayed();
   Long_t GetEventNumber();
   Long_t GetPatternNumber();
-  Int_t GetPhaseNumber();
+  Int_t  GetPhaseNumber();
+  Int_t GetMaxPatternPhase(){
+    return fMaxPatternPhase;
+  };
+  Int_t GetMinPatternPhase(){
+    return fMinPatternPhase;
+  }
+  void SetFirstBits(UInt_t nbits, UInt_t firstbits);
+  void SetEventPatternPhase(Int_t event, Int_t pattern, Int_t phase);
 
-  void Copy(VQwSubsystem *source);
-  VQwSubsystem*  Copy();
+  void  Copy(VQwSubsystem *source);
+  virtual VQwSubsystem*  Copy();
   VQwSubsystem&  operator=  (VQwSubsystem *value);
   VQwSubsystem&  operator+=  (VQwSubsystem *value);
-  void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
+  void  Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
 
   //the following functions do nothing really : adding and sutracting helicity doesn't mean anything
   VQwSubsystem& operator-= (VQwSubsystem *value) {return *this;};
-  void Scale(Double_t factor) {return;};
-  void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
-  void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
+  void  Scale(Double_t factor) {return;};
+  void  Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
+  void  Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
   // end of "empty" functions
 
-  void AccumulateRunningSum(VQwSubsystem* value) { };
-  void CalculateRunningAverage() { };
+  void  AccumulateRunningSum(VQwSubsystem* value) { };
+  void  CalculateRunningAverage() { };
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+  void  ConstructBranch(TTree *tree, TString &prefix);
+  void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file);
   void  FillTreeVector(std::vector<Double_t> &values);
   void  FillDB(QwDatabase *db, TString type);
+  void  Print() const;
 
-  void Print();
 
   virtual Bool_t IsGoodHelicity();
-  Int_t GetMaxPatternPhase(){
-    return fMaxPatternPhase;
-  };
 
 /////
  protected:
@@ -215,12 +223,10 @@ class QwHelicity: public VQwSubsystemParity{
 
 
   static const Bool_t kDEBUG=kFALSE;
-  static const Bool_t dolocalhelicity=kTRUE;//kFALSE;//temp word way to encode helicity
   // local helicity is a special mode for encoding helicity info
   // it is not the fullblown helicity encoding we want to use for the main
   // data taking. For example this was used during the injector data taking
   // in winter 2008-09 injector tests
-  static const Bool_t dolocalhelicity2=kFALSE;//kTRUE;//full blown mode
   static const Int_t kUndefinedHelicity= -9999;
 
 
@@ -262,11 +268,6 @@ class QwHelicity: public VQwSubsystemParity{
 
 };
 
-
-//const Bool_t QwHelicity::kDEBUG = kFALSE;
-//const Bool_t QwHelicity::dolocalhelicity= kTRUE;
-//const Int_t QwHelicity::MaxPatternPhase = 4;
-//const Int_t QwHelicity::kUndefinedHelicity=-9999;
 
 #endif
 

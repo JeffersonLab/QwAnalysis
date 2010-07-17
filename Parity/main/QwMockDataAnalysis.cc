@@ -68,14 +68,14 @@ int main(int argc, char* argv[])
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
   // Load histogram definitions
-  gQwHists.LoadHistParamsFromFile("parity_hists.in");
+  gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
 
   // Detector array
   QwSubsystemArrayParity detectors;
   detectors.push_back(new QwBeamLine("Injector BeamLine"));
   detectors.GetSubsystemByName("Injector BeamLine")->LoadChannelMap("mock_qweak_beamline.map");
   detectors.push_back(new QwMainCerenkovDetector("Main detector"));
-  detectors.GetSubsystemByName("Main detector")->LoadChannelMap("qweak_adc.map");
+  detectors.GetSubsystemByName("Main detector")->LoadChannelMap("qweak_maindet.map");
   detectors.push_back(new QwLumi("Lumi detector"));
   detectors.GetSubsystemByName("Lumi detector")->LoadChannelMap("qweak_lumi.map");
   if (bHelicity) {
@@ -223,10 +223,21 @@ int main(int argc, char* argv[])
         std::cout << "Number of events processed so far: "
                   << eventbuffer.GetEventNumber() << std::endl;
 
+      // TODO (wdc) QwEventBuffer should have Bool_t AtEndOfBurst()
+      //if (QwEvt.AtEndOfBurst()){
+      if (eventbuffer.GetEventNumber() % 1000 == 0) {
+        {
+          helicitypattern.AccumulateRunningBurstSum();
+          helicitypattern.CalculateBurstAverage();
+          helicitypattern.ClearBurstSum();
+        }
+      }
+
     } // end of loop over events
 
     // Calculate the running averages
     helicitypattern.CalculateRunningAverage();
+    helicitypattern.CalculateRunningBurstAverage();
     runningsum.CalculateRunningAverage();
 
     // Close ROOT file

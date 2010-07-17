@@ -15,13 +15,15 @@
 #include "QwDetectorInfo.h"
 
 #include "MQwV775TDC.h"
-
+#include "MQwF1TDC.h"
+#include "QwSIS3801_Module.h"
 #include "QwPMT_Channel.h"
 
+#include "QwColor.h"
 
 ///
 /// \ingroup QwTracking
-class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
+class QwTriggerScintillator: public VQwSubsystemTracking {
   /******************************************************************
    *  Class: QwTriggerScintillator
    *
@@ -51,7 +53,7 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
   void  FillHistograms();
   void  DeleteHistograms();
 
-  void  ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Double_t> &values);
+  void  ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
 
 
@@ -61,16 +63,19 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
   QwTriggerScintillator& operator=  (const QwTriggerScintillator &value);
 
  protected:
-  enum EModuleType{EMPTY = -1, V775_TDC = 0, V792_ADC} fCurrentType;
+  enum EModuleType{EMPTY = -1, V775_TDC = 0, V792_ADC, F1TDC, SIS3801} fCurrentType;
 
   Bool_t fDEBUG;
+
+  MQwV775TDC fQDCTDC;
+  MQwF1TDC fF1TDC;
 
   void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
 
  protected:
   void  ClearAllBankRegistrations();
   Int_t RegisterROCNumber(const UInt_t roc_id);
-
+  Int_t RegisterSubbank(const UInt_t bank_id);
   Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
 
   const QwTriggerScintillator::EModuleType RegisterModuleType(TString moduletype);
@@ -87,7 +92,6 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
   Int_t FindSignalIndex(const QwTriggerScintillator::EModuleType modtype, const TString &name) const;
 
 
-
  protected:
 
 
@@ -98,6 +102,11 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
   size_t fCurrentBankIndex;
   Int_t fCurrentSlot;
   Int_t fCurrentIndex;
+
+  UInt_t fBankID[3];  //bank ID's of 3 different modules for trigger scintillator
+                      //fBankID[0] for V792/V775 QDC_Bank
+                      //fBankID[1] for SIS3801   SCA_Bank
+                      //fBankID[2] for F1TDC     F1TDC_Bank
 
  protected:
   static const UInt_t kMaxNumberOfModulesPerROC;
@@ -110,13 +119,16 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwV775TDC {
   std::vector< enum EModuleType > fModuleTypes;
   std::vector< std::vector< std::pair<Int_t, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel; gives the plane and wire assignment.
 
-
-
   //    We need a mapping of module,channel into PMT index, ADC/TDC
   std::vector< std::vector<QwPMT_Channel> > fPMTs;
+  std::vector<QwSIS3801_Module*> fSCAs;
 
   std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
 
+  // For reference time substraction
+  Int_t reftime_slotnum;
+  Int_t reftime_channum;
+  Double_t reftime;
 
 };
 

@@ -34,6 +34,7 @@ Added by Buddhini to display the injector beamline data.
 
 #define INJECTOR_DEV_NUM          22        
 #define INJECTOR_DET_TRE_NUM      2
+#define NUM_POS 2
 ///
 /// \ingroup QwGUIInjector
 
@@ -56,6 +57,15 @@ Added by Buddhini to display the injector beamline data.
 #include "QwGUISubSystem.h"
 
 #include "RSDataWindow.h"
+
+
+#ifndef __CINT__
+#include "QwLog.h"
+#include "QwOptions.h"
+#include "QwParameterFile.h"
+
+#endif
+
 
 
 class QwGUIInjector : public QwGUISubSystem {
@@ -82,11 +92,11 @@ class QwGUIInjector : public QwGUISubSystem {
   TObjArray            DataWindowArray;
 
 
-  TH1D *PosVariation[2] ;
+  TH1F *PosVariation[2] ;
 /*   TGraphErrors *gx; */
 /*   TGraphErrors *gy; */
 
- 
+  TString mapfile;
 
   
 
@@ -104,7 +114,7 @@ class QwGUIInjector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none 
-  void PlotChargeAsym();
+  void PlotBPMAsym();
 
   //!This function Draws a sample  histograms/plots from the Memory map file. 
   //!
@@ -112,7 +122,7 @@ class QwGUIInjector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none 
-  void PlotPositionDiff();
+  void PlotChargeAsym();
   
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
@@ -124,6 +134,14 @@ class QwGUIInjector : public QwGUISubSystem {
   //!
   //!Return value: none  
   void                 ClearData();
+
+  
+  //!This function  loads the histogram names from a definition file
+  //!Parameters:
+  //! - Histogram names map file name
+  //!
+  //!Return value: none  
+  void                 LoadHistoMapFile(TString mapfile);
 
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
   //!These are the names by which the histograms are identified within the root file.

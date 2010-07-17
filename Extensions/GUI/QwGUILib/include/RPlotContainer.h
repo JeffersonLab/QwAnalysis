@@ -130,6 +130,7 @@ public:
   Int_t                GetPlotCount();
   PlotOptions         *GetPlotOptions(){return dPlotOptions;};
 
+  void                 RemovePlot(TObject *obj);
   void                 SetDefaultPlotOptions();
   void                 SetLineColor(Color_t col) {dPlotOptions->lineColor = col;};
   void                 SetLineStyle(Style_t sty) {dPlotOptions->lineStyle = sty;};

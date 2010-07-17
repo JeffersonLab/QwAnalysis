@@ -28,9 +28,12 @@ export QWANALYSIS=`echo $local_path | sed 's/\/SetupFiles//'`
 
 
 
-###  Determine machine type (64-bit)
-###
-###
+###  Determine machine type (library names)
+OS=$(uname)
+if [ "$OS" == "Darwin" ] ; then
+    echo "Will use .dylib rather than .so to search for libraries"
+fi
+###  ... 64-bit
 if [[ "`uname -m`" == "x86_64" ]]; then
   lib=lib64
 else
@@ -39,65 +42,71 @@ fi
 echo "Libraries will be searched for in ${lib}."
 
 
+### These helper functions reduce the amount of cutting and pasting
+### required to add an extra search path
 
-###  Try to find MYSQL_INC_DIR,
-###  in the following order if not set:
-###      /usr/include/mysql,
-###      /usr/local/include/mysql
+function first_existing_directory() {
+    for dir ; ### iterate through the function's positional arguments
+    do
+	if [[ -d "$dir" ]] ; then
+	    echo "$dir"
+	    return
+	fi
+    done
+    {
+	echo "None of the paths"
+	for dir ; do [[ -n $dir ]] && echo "  " "$dir" ; done
+	echo "is a directory"
+    } >&2 
+}
+function first_path_with_file() {
+    file=$1 ; shift
+    for dir; do
+	if [[ -e "$dir/$file" ]] ; then
+	    echo $dir
+	    return
+	fi
+    done
+    {
+	echo "None of the paths"
+	for dir ; do [[ -n $dir ]] && echo "  " "$dir" ; done
+	echo "contains the file $file"
+    } >&2 
+}
+function report_status() {
+    ## If bash had any sort of references or pointers this would be a
+    ## little simpler, but at any rate it's less cutting and pasting
+    ## than what was in place already.
+    name=$1
+    value=$2
+    if [[ -d $value ]] ; then
+	echo "Set $name to $value"
+    else
+	echo "Unable to set $name"
+	exit 1;
+    fi
+}
 
-#  Verify the existence of the MYSQL_INC_DIR directory
-if [[ -n ${MYSQL_INC_DIR} ]]; then
-  if [[ ! -d ${MYSQL_INC_DIR} ]]; then
-    echo "Directory ${MYSQL_INC_DIR} does not exist."
-    echo "Unsetting variable MYSQL_INC_DIR."
-    unset MYSQL_INC_DIR
-  fi
-fi
-#  Try /usr/include/mysql,
-if [[ -z ${MYSQL_INC_DIR} ]]; then
-  nextsearchpath=/usr/include/mysql
-  echo "MYSQL_INC_DIR not defined; trying ${nextsearchpath}."
-  if [[ -d ${nextsearchpath} ]]; then
-    export MYSQL_INC_DIR=${nextsearchpath}
-    echo "Setting MYSQL_INC_DIR to ${MYSQL_INC_DIR}."
-  fi
-fi
-#  Try /usr/local/include/mysql,
-if [[ -z ${MYSQL_INC_DIR} ]]; then
-  nextsearchpath=/usr/local/include/mysql
-  echo "MYSQL_INC_DIR not defined; trying ${nextsearchpath}."
-  if [[ -d ${nextsearchpath} ]]; then
-    export MYSQL_INC_DIR=${nextsearchpath}
-    echo "Setting MYSQL_INC_DIR to ${MYSQL_INC_DIR}."
-  fi
-fi
+###  Try to find MYSQL_INC_DIR and MYSQL_LIB_DIR
 
-#  Verify the existence of the MYSQL_LIB_DIR directory
-if [[ -n ${MYSQL_LIB_DIR} ]]; then
-  if [[ ! -d ${MYSQL_LIB_DIR} ]]; then
-    echo "Directory ${MYSQL_LIB_DIR} does not exist."
-    echo "Unsetting variable MYSQL_LIB_DIR."
-    unset MYSQL_LIB_DIR
-  fi
-fi
-#  Try /usr/lib/mysql,
-if [[ -z ${MYSQL_LIB_DIR} ]]; then
-  nextsearchpath=/usr/${lib}/mysql
-  echo "MYSQL_LIB_DIR not defined; trying ${nextsearchpath}."
-  if [[ -d ${nextsearchpath} ]]; then
-    export MYSQL_LIB_DIR=${nextsearchpath}
-    echo "Setting MYSQL_LIB_DIR to ${MYSQL_LIB_DIR}."
-  fi
-fi
-#  Try /usr/local/lib/mysql,
-if [[ -z ${MYSQL_LIB_DIR} ]]; then
-  nextsearchpath=/usr/local/${lib}/mysql
-  echo "MYSQL_LIB_DIR not defined; trying ${nextsearchpath}."
-  if [[ -d ${nextsearchpath} ]]; then
-    export MYSQL_LIB_DIR=${nextsearchpath}
-    echo "Setting MYSQL_LIB_DIR to ${MYSQL_LIB_DIR}."
-  fi
-fi
+search=(
+    /usr/include/mysql
+    /usr/local/include/mysql
+    /opt/local/include/mysql5/mysql
+    )
+export MYSQL_INC_DIR=$(first_path_with_file mysql_version.h "${MYSQL_INC_DIR}" "${search[@]}")
+report_status MYSQL_INC_DIR ${MYSQL_INC_DIR}
+
+libname=libmysqlclient.so
+[ "$OS" == "Darwin" ] && libname=${libname/.so/.dylib}
+search=(
+    /usr/${lib}/mysql
+    /usr/local/${lib}/mysql
+    /opt/local/${lib}/mysql5/mysql
+    /usr/${lib}
+    )
+export MYSQL_LIB_DIR=$(first_path_with_file $libname "${MYSQL_LIB_DIR}" "${search[@]}")
+report_status MYSQL_LIB_DIR ${MYSQL_LIB_DIR}
 
 #  Check and report failure to find either MySQL directory.
 if [[ -z ${MYSQL_LIB_DIR} || -z ${MYSQL_INC_DIR} ]]; then
@@ -108,111 +117,28 @@ if [[ -z ${MYSQL_LIB_DIR} || -z ${MYSQL_INC_DIR} ]]; then
   exit 1
 fi
 
+###  Try to find MYSQLPP_INC_DIR and MYSQLPP_LIB_DIR
+search=(
+    /usr/include/mysql++
+    /usr/local/include/mysql++
+    /opt/local/include/mysql++
+    /group/qweak/spayde/local/include/mysql++
+    )
+export MYSQLPP_INC_DIR=$(first_existing_directory "${MYSQLPP_INC_DIR}" "${search[@]}")
+report_status MYSQLPP_INC_DIR ${MYSQLPP_INC_DIR}
 
-
-
-###  Try to find MYSQLPP_INC_DIR and MYSQLPP_LIB_DIR,
-###  in the following order if not set:
-###      /usr/include/mysql++,
-###      /usr/local/include/mysql++,
-###      /group/qweak/spayde/local/include/mysql++
-###  and
-###      /usr/lib
-###      /usr/lib/mysql++,
-###      /usr/local/include,
-###      /usr/local/include/mysql++,
-###      /group/qweak/spayde/local/lib
-
-#  Verify the existence of the MYSQLPP_INC_DIR directory
-if [[ -n ${MYSQLPP_INC_DIR} ]]; then
-  if [[ ! -d ${MYSQLPP_INC_DIR} ]]; then
-    echo "Directory ${MYSQLPP_INC_DIR} does not exist."
-    echo "Unsetting variable MYSQLPP_INC_DIR."
-    unset MYSQLPP_INC_DIR
-  fi
-fi
-#  Try /usr/include/mysql++,
-if [[ -z ${MYSQLPP_INC_DIR} ]]; then
-  nextsearchpath=/usr/include/mysql++
-  echo "MYSQLPP_INC_DIR not defined; trying ${nextsearchpath}."
-  if [[ -d ${nextsearchpath} ]]; then
-    export MYSQLPP_INC_DIR=${nextsearchpath}
-    echo "Setting MYSQLPP_INC_DIR to ${MYSQLPP_INC_DIR}."
-  fi
-fi
-#  Try /usr/local/include/mysql++
-if [[ -z ${MYSQLPP_INC_DIR} ]]; then
-  nextsearchpath=/usr/local/include/mysql++
-  echo "MYSQLPP_INC_DIR not defined; trying ${nextsearchpath}."
-  if [[ -d ${nextsearchpath} ]]; then
-    export MYSQLPP_INC_DIR=${nextsearchpath}
-    echo "Setting MYSQLPP_INC_DIR to ${MYSQLPP_INC_DIR}."
-  fi
-fi
-#  Try /group/qweak/spayde/local/include/mysql++
-if [[ -z ${MYSQLPP_INC_DIR} ]]; then
-  nextsearchpath=/group/qweak/spayde/local/include/mysql++
-  echo "MYSQLPP_INC_DIR not defined; trying ${nextsearchpath}."
-  if [[ -d ${nextsearchpath} ]]; then
-    export MYSQLPP_INC_DIR=${nextsearchpath}
-    echo "Setting MYSQLPP_INC_DIR to ${MYSQLPP_INC_DIR}."
-  fi
-fi
-
-#  Verify the existence of the MYSQLPP_LIB_DIR directory
-if [[ -n ${MYSQLPP_LIB_DIR} ]]; then
-  if [[ ! -d ${MYSQLPP_LIB_DIR} ]]; then
-    echo "Directory ${MYSQLPP_LIB_DIR} does not exist."
-    echo "Unsetting variable MYSQLPP_LIB_DIR."
-    unset MYSQLPP_LIB_DIR
-  fi
-fi
 libname=libmysqlpp.so
-#  Try /usr/lib,
-if [[ -z ${MYSQLPP_LIB_DIR} ]]; then
-  nextsearchpath=/usr/${lib}
-  echo "MYSQLPP_LIB_DIR not defined; trying ${nextsearchpath}."
-  if [[ -d ${nextsearchpath} && -e ${nextsearchpath}/${libname} ]]; then
-    export MYSQLPP_LIB_DIR=${nextsearchpath}
-    echo "Setting MYSQLPP_LIB_DIR to ${MYSQLPP_LIB_DIR}."
-  fi
-fi
-#  Try /usr/lib/mysql++,
-if [[ -z ${MYSQLPP_LIB_DIR} ]]; then
-  nextsearchpath=/usr/${lib}/mysql++
-  echo "MYSQLPP_LIB_DIR not defined; trying ${nextsearchpath}."
-  if [[ -d ${nextsearchpath} && -e ${nextsearchpath}/${libname} ]]; then
-    export MYSQLPP_LIB_DIR=${nextsearchpath}
-    echo "Setting MYSQLPP_LIB_DIR to ${MYSQLPP_LIB_DIR}."
-  fi
-fi
-#  Try /usr/local/lib
-if [[ -z ${MYSQLPP_LIB_DIR} ]]; then
-  nextsearchpath=/usr/local/${lib}
-  echo "MYSQLPP_LIB_DIR not defined; trying ${nextsearchpath}."
-  if [[ -d ${nextsearchpath} && -e ${nextsearchpath}/${libname} ]]; then
-    export MYSQLPP_LIB_DIR=${nextsearchpath}
-    echo "Setting MYSQLPP_LIB_DIR to ${MYSQLPP_LIB_DIR}."
-  fi
-fi
-#  Try /usr/local/lib/mysql++
-if [[ -z ${MYSQLPP_LIB_DIR} ]]; then
-  nextsearchpath=/usr/local/${lib}/mysql++
-  echo "MYSQLPP_LIB_DIR not defined; trying ${nextsearchpath}."
-  if [[ -d ${nextsearchpath} && -e ${nextsearchpath}/${libname} ]]; then
-    export MYSQLPP_LIB_DIR=${nextsearchpath}
-    echo "Setting MYSQLPP_LIB_DIR to ${MYSQLPP_LIB_DIR}."
-  fi
-fi
-#  Try /group/qweak/spayde/local/lib
-if [[ -z ${MYSQLPP_LIB_DIR} ]]; then
-  nextsearchpath=/group/qweak/spayde/local/${lib}
-  echo "MYSQLPP_LIB_DIR not defined; trying ${nextsearchpath}."
-  if [[ -d ${nextsearchpath} && -e ${nextsearchpath}/${libname} ]]; then
-    export MYSQLPP_LIB_DIR=${nextsearchpath}
-    echo "Setting MYSQLPP_LIB_DIR to ${MYSQLPP_LIB_DIR}."
-  fi
-fi
+[ "$OS" == "Darwin" ] && libname=${libname/.so/.dylib}
+search=(
+    /usr/${lib}
+    /usr/${lib}/mysql++
+    /usr/local/${lib}
+    /usr/local/${lib}/mysql++
+    /opt/local/${lib}
+    /group/qweak/spayde/local/${lib}
+    )
+export MYSQLPP_LIB_DIR=$(first_path_with_file $libname "${MYSQLPP_LIB_DIR}" "${search[@]}")
+report_status MYSQLPP_LIB_DIR ${MYSQLPP_LIB_DIR}
 
 #  Check and report failure to find either MySQL++ directory.
 if [[ -z ${MYSQLPP_LIB_DIR} || -z ${MYSQLPP_INC_DIR} ]]; then
@@ -223,10 +149,31 @@ if [[ -z ${MYSQLPP_LIB_DIR} || -z ${MYSQLPP_INC_DIR} ]]; then
   exit 1
 fi
 
+###  Try to find boost headers
+libname=boost/version.hpp
+search=(
+    /usr/include
+    /usr/local/include
+    /opt/local/include
+    )
+export BOOST_INC_DIR=$(first_path_with_file $libname "${BOOST_INC_DIR}" "${search[@]}")
 
+libname=libboost_filesystem.a
+search=(
+    /usr/${lib}
+    /usr/local/${lib}
+    /opt/local/${lib}
+    )
+export BOOST_LIB_DIR=$(first_path_with_file $libname "${BOOST_LIB_DIR}" "${search[@]}")
+
+report_status BOOST_INC_DIR ${BOOST_INC_DIR}
+report_status BOOST_LIB_DIR ${BOOST_LIB_DIR}
 
 ###  Set up ROOT if it isn't done yet.
 ###  Expect to use /apps/root/PRO
+
+###  This section could in principle use the first_existing_directory() 
+###  pattern, but so far root-config is doing its job
 
 #  Verify the existence of the ROOTSYS directory
 if [[ -n ${ROOTSYS} ]]; then
@@ -306,6 +253,9 @@ setenv MYSQL_LIB_DIR $MYSQL_LIB_DIR
 setenv MYSQLPP_INC_DIR $MYSQLPP_INC_DIR
 setenv MYSQLPP_LIB_DIR $MYSQLPP_LIB_DIR
 
+setenv BOOST_INC_DIR $BOOST_INC_DIR
+setenv BOOST_LIB_DIR $BOOST_LIB_DIR
+
 ### Set ROOTSYS
 setenv ROOTSYS $ROOTSYS
 
@@ -336,6 +286,9 @@ export MYSQL_LIB_DIR=$MYSQL_LIB_DIR
 ### Set MYSQLPP_INC_DIR and MYSQLPP_LIB_DIR
 export MYSQLPP_INC_DIR=$MYSQLPP_INC_DIR
 export MYSQLPP_LIB_DIR=$MYSQLPP_LIB_DIR
+
+export BOOST_INC_DIR=${BOOST_INC_DIR}
+export BOOST_LIB_DIR=${BOOST_LIB_DIR}
 
 ### Set ROOTSYS
 export ROOTSYS=$ROOTSYS

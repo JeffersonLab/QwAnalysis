@@ -10,13 +10,14 @@
 
 // System headers
 #include <string>
+#include <limits>
 
 // Qweak headers
 #include "QwLog.h"
 
 // Maximum blinding asymmetry for additive blinding
-const Double_t QwBlinder::kMaximumBlindingAsymmetry = 0.6; // ppm
-const Double_t QwBlinder::kMaximumBlindingFactor = 0.1; // [fraction]
+const Double_t QwBlinder::kMaximumBlindingAsymmetry = 0.0; // ppm
+const Double_t QwBlinder::kMaximumBlindingFactor = 0.0; // [fraction]
 
 /**
  * Constructor using explicit seed string
@@ -127,7 +128,12 @@ Int_t QwBlinder::ReadSeed(QwDatabase* db, const UInt_t seed_id)
           fSeedID = res[0].seed_id;
 
           // Store seed value
-          fSeed = res[0].seed;
+          if (!res[0].seed.is_null) {
+            fSeed = res[0].seed.data;
+          } else {
+            std::cerr << "QwBlinder::ReadSeed(): ERROR:  Seed value came back NULL from the database." << std::endl;
+            fSeedID = 0;
+          }
 
           std::cout << "QwBlinder::ReadSeed():  Successfully read "
           << Form("the fSeed with ID %d from the database.", fSeedID)
@@ -190,10 +196,13 @@ void QwBlinder::InitBlinders()
       fBlindingOffset = tmp2 - tmp1; // fBlindingOffset has been rounded.
 
       /// Secondly, the multiplicative blinding factor is determined.  This
-      /// number is generated between 0.9 and 1.1 from the blinding asymmetry
-      /// by an oscillating (but uniformly distributed) function.
-      Double_t tmp3 = 1000000.0 * fBlindingOffset / kMaximumBlindingAsymmetry;
-      fBlindingFactor = 1.0 + fmod(30.0 * tmp3, kMaximumBlindingFactor);
+      /// number is generated from the blinding asymmetry between, say, 0.9 and 1.1
+      /// by an oscillating but uniformly distributed sawtooth function.
+      fBlindingFactor = 1.0;
+      if (kMaximumBlindingAsymmetry > 0.0) {
+        fBlindingFactor  = 1.0 + fmod(30.0 * fBlindingOffset, kMaximumBlindingAsymmetry);
+        fBlindingFactor /= (kMaximumBlindingAsymmetry > 0.0 ? kMaximumBlindingAsymmetry : 1.0);
+      }
 
       QwMessage << "QwBlinder::InitBlinders(): Blinding parameters have been calculated."<< QwLog::endl;
 
@@ -210,13 +219,12 @@ void QwBlinder::InitBlinders()
   // Generate checksum
   TString hex_string;
   hex_string.Form("%.16llx%.16llx", *(ULong64_t*)(&fBlindingFactor), *(ULong64_t*)(&fBlindingOffset));
-  fDigest = GenerateDigest(hex_string.Data());
+  fDigest = GenerateDigest(hex_string);
   fChecksum = "";
-  for (size_t i = 0; i < fDigest.size(); i++) {
-      fChecksum += string(Form("%.2x",fDigest[i]));
-  }
+  for (size_t i = 0; i < fDigest.size(); i++)
+    fChecksum += string(Form("%.2x",fDigest[i]));
 
-}; //End of InitBlinders()
+}; // End of InitBlinders()
 
 
 void  QwBlinder::WriteFinalValuesToDB(QwDatabase* db)
@@ -247,37 +255,37 @@ void QwBlinder::SetTestValues(const TString& barestring)
       QwWarning << "QwBlinder::SetTestValues(): The blinding parameters have "
                 << "not been calculated correctly!" << QwLog::endl;
 
-  } else {
-
-      // For each test case
-      for (UInt_t i = 0; i < fMaxTests; i++) {
-
-          // Generate a quasi-random number
-          for (Int_t j = 0; j < 16; j++) {
-             finalseed &= 0x7FFFFFFF;
-              if ((finalseed & 0x800000) == 0x800000) {
-                  finalseed = ((finalseed ^ 0x00000d) << 1) | 0x1;
-              } else {
-                  finalseed <<= 1;
-              }
-          }
-
-          // Using end 3 digits (0x1 through 0xFFF) of the finalseed (1 - 4095)
-          // This produces a value from 0.47 ppb to 953.4 ppb
-          Double_t tempval = -1.0 * (finalseed & 0xFFF) / (1024.0 * 4096.0 * 1024.0);
-
-          // Store the test values
-          fTestNumber.push_back(i);
-          fTestValue.push_back(tempval);
-          this->BlindValue(tempval);
-          fBlindTestValue.push_back(tempval);
-          this->UnBlindValue(tempval);
-          fUnBlindTestValue.push_back(tempval);
-        }
-
-      QwMessage << "QwBlinder::SetTestValues(): A total of " << std::dec << fMaxTests
-                <<" test values have been calculated successfully." << QwLog::endl;
   }
+
+  // For each test case
+  for (int i = 0; i < fMaxTests; i++) {
+
+      // Generate a quasi-random number
+      for (Int_t j = 0; j < 16; j++) {
+         finalseed &= 0x7FFFFFFF;
+          if ((finalseed & 0x800000) == 0x800000) {
+              finalseed = ((finalseed ^ 0x00000d) << 1) | 0x1;
+          } else {
+              finalseed <<= 1;
+          }
+      }
+
+      // Using end 3 digits (0x1 through 0xFFF) of the finalseed (1 - 4095)
+      // This produces a value from 0.47 ppb to 953.4 ppb
+      Double_t tempval = -1.0 * (finalseed & 0xFFF) / (1024.0 * 4096.0 * 1024.0);
+
+      // Store the test values
+      fTestNumber.push_back(i);
+      fTestValue.push_back(tempval);
+      this->BlindValue(tempval);
+      fBlindTestValue.push_back(tempval);
+      this->UnBlindValue(tempval);
+      fUnBlindTestValue.push_back(tempval);
+    }
+
+  QwMessage << "QwBlinder::SetTestValues(): A total of " << std::dec << fMaxTests
+            <<" test values have been calculated successfully." << QwLog::endl;
+
 };
 
 /**
@@ -400,7 +408,7 @@ Int_t QwBlinder::UseMD5(const TString& barestring)
   Int_t temp = 0;
   Int_t tempout = 0;
 
-  std::vector<UChar_t> digest = this->GenerateDigest(barestring.Data());
+  std::vector<UChar_t> digest = this->GenerateDigest(barestring);
   for (size_t i = 0; i < digest.size(); i++)
     {
       Int_t j = i%4;
@@ -489,7 +497,7 @@ void QwBlinder::WriteTestValues(QwDatabase* db)
   // Construct Individual SQL and Execute
   //----------------------------------------------------------
   // Loop over all test values
-  for (UInt_t i = 0; i < fMaxTests; i++)
+  for (int i = 0; i < fMaxTests; i++)
     {
       string s_sql = s_sql_pre;
 
@@ -525,32 +533,25 @@ Bool_t QwBlinder::CheckTestValues()
   Double_t checkval;
   Bool_t   status = kTRUE;
 
-  Float_t test1, test2, epsilon;
+  double epsilon = std::numeric_limits<double>::epsilon();
+  double test1, test2;
 
-  for (UInt_t i = 0; i < fMaxTests; i++)
+  for (int i = 0; i < fMaxTests; i++)
     {
       /// First test: compare a blinded value with a second computation
 
       checkval = fTestValue[i];
       this->BlindValue(checkval);
 
-      test1 = fBlindTestValue[i]*2.0;      //  Shift by one factor of 2.
-      test2 = test1 + fBlindTestValue[i];  //  Round to 3*fBlindTestValue[i].
-      epsilon = test2 - test1;             //  Rounded fBlindTestValue[i].
-      epsilon -= fBlindTestValue[i];       //  (Rounded - original).
-      if (epsilon<0.0)
-        {
-          epsilon *= -1.0;
-        }
       test1 = fBlindTestValue[i];
       test2 = checkval;
-      if ( (test1-test2)<=(-1.0*epsilon) || (test1-test2)>=epsilon )
+      if ((test1 - test2) <= -epsilon || (test1 - test2) >= epsilon)
         {
           std::cerr << "QwBlinder::CheckTestValues():  Blinded test value "
           << std::dec << fTestNumber[i]
           << " does not agree with reblinded test value, "
           << "with a difference of "
-          << (fBlindTestValue[i]-checkval) << "."
+          << (test1 - test2) << "."
           << std::endl;
           status = kFALSE;
         }
@@ -560,13 +561,13 @@ Bool_t QwBlinder::CheckTestValues()
 
       test1 = fUnBlindTestValue[i];
       test2 = fTestValue[i];
-      if ( (test1-test2) <= (-1.0*epsilon) || (test1-test2) >= epsilon )
+      if ((test1 - test2) <= -epsilon || (test1 - test2) >= epsilon)
         {
           std::cerr << "QwBlinder::CheckTestValues():  Unblinded test value "
           << std::dec << fTestNumber[i]
           << " does not agree with original test value, "
           << "with a difference of "
-          << (fTestValue[i] - fUnBlindTestValue[i]) << "."
+          << (test1 - test2) << "."
           << std::endl;
           status = kFALSE;
         }
@@ -580,19 +581,23 @@ Bool_t QwBlinder::CheckTestValues()
  * @param input
  * @return
  */
-std::vector<UChar_t> QwBlinder::GenerateDigest(const char* input)
+std::vector<UChar_t> QwBlinder::GenerateDigest(const TString& input)
 {
-  const UInt_t md5_len = 64;
-  UChar_t md5_value[md5_len];
+  // Initialize MD5 checksum array
+  const UInt_t length = 64;
+  UChar_t value[length];
+  for (UInt_t i = 0; i < length; i++)
+    value[i] = 0;
 
+  // Calculate MD5 checksum from input and store in md5_value
   TMD5 md5;
-  md5.Update((UChar_t*) input, strlen(input));
-  md5.Final(md5_value);
-  //md5.Print();
+  md5.Update((UChar_t*) input.Data(), input.Length());
+  md5.Final(value);
 
+  // Copy the MD5 checksum in an STL vector
   std::vector<UChar_t> output;
-  for (UInt_t i = 0; i < md5_len; i++)
-      output.push_back(md5_value[i]);
+  for (UInt_t i = 0; i < length; i++)
+    output.push_back(value[i]);
 
   return output;
 };
@@ -606,7 +611,7 @@ void QwBlinder::PrintFinalValues()
   QwMessage << "QwBlinder::PrintCheckValues():  Begin summary"    << QwLog::endl;
   QwMessage << "================================================" << QwLog::endl;
   QwMessage << "The blinding parameters checksum for seed ID "
-            << this->fSeedID << " is:" << QwLog::endl;
+            << fSeedID << " is:" << QwLog::endl;
   QwMessage << fChecksum << QwLog::endl;
   QwMessage << "================================================" << QwLog::endl;
   CheckTestValues();
@@ -616,7 +621,7 @@ void QwBlinder::PrintFinalValues()
             << std::setw(16) << "Blinded value"
             << std::setw(16) << "Unblinded value"
             << QwLog::endl;
-  for (UInt_t i = 0; i < fMaxTests; i++) {
+  for (int i = 0; i < fMaxTests; i++) {
     QwMessage << std::setw(8)  << fTestNumber[i]
               << std::setw(16) << Form("% 9g ppb",fTestValue[i]*1e9)
               << std::setw(16) << Form(" [CENSORED]")
@@ -650,7 +655,7 @@ void QwBlinder::FillDB(QwDatabase *db, TString datatype)
   // Fill the rows of the QwParityDB::bf_test table
   QwParityDB::bf_test bf_test_row(0);
   std::vector<QwParityDB::bf_test> bf_test_list;
-  for (UInt_t i = 0; i < fMaxTests; i++) {
+  for (int i = 0; i < fMaxTests; i++) {
     bf_test_row.bf_test_id = 0;
     bf_test_row.analysis_id = analysis_id;
     bf_test_row.test_number = fTestNumber[i];

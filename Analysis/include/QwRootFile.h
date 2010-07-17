@@ -75,8 +75,8 @@ class QwRootFile {
 
     // Wrapped common functionality
     Int_t Write(const char* name = 0, Int_t option = 0, Int_t bufsize = 0) {
-      Int_t retval;
-      if (fMapFile)  retval = fMapFile->Write(name, option, bufsize);
+      Int_t retval = 0;
+      // TMapFile has no suport for Write
       if (fRootFile) retval = fRootFile->Write(name, option, bufsize);
       return retval;
     }
@@ -101,6 +101,7 @@ class QwRootFile {
 
     QwRootFile() { }; // Private default constructor
 
+    TString fRootFileStem;
     Bool_t fEnableMapFile;
     Bool_t fEnableTree;
     Bool_t fEnableHisto;
@@ -113,6 +114,8 @@ class QwRootFile {
     /// Map file
     QwMapFile* fMapFile;
     Int_t fUpdateInterval;
+    Int_t fAutoFlush;
+    Int_t fAutoSave;
 
     /// Trees and associated vectors
     TTree*                fMpsTree;
@@ -124,9 +127,12 @@ class QwRootFile {
     UInt_t fNumEventsCycle;
     UInt_t fNumEventsToSkip;
     UInt_t fNumEventsToSave;
-
+    UInt_t fCurrentEvent;
     /// Maximum tree size
     static const Long64_t kMaxTreeSize;
+
+    //Tree Trimm Definition File
+    const char* fTreeTrim_Filename;
 
 };
 

@@ -21,6 +21,7 @@
 #include "QwMainCerenkovDetector.h"
 #include "QwEventRing.h"
 #include "QwHelicity.h"
+#include "QwHelicityPattern.h"
 #include "QwRootFile.h"
 
 void DefineOptionsParity(QwOptions& options)
@@ -32,6 +33,7 @@ void DefineOptionsParity(QwOptions& options)
   QwMainCerenkovDetector::DefineOptions(options);
   QwEventRing::DefineOptions(options);
   QwHelicity::DefineOptions(options);
+  QwHelicityPattern::DefineOptions(options);
   QwRootFile::DefineOptions(options);
 }
 

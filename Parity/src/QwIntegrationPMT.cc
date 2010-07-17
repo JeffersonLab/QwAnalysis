@@ -255,12 +255,17 @@ void QwIntegrationPMT::Scale(Double_t factor)
 }
 
 
-void QwIntegrationPMT::Print() const
+void QwIntegrationPMT::PrintValue() const
+{
+  fTriumf_ADC.PrintValue();
+}
+
+void QwIntegrationPMT::PrintInfo() const
 {
   //std::cout<<"QwVQWK_Channel Info " <<std::endl;
   //std::cout<<" Running AVG "<<GetElementName()<<" current running AVG "<<IntegrationPMT_Running_AVG<<std::endl;
   std::cout<<"QwVQWK_Channel Info " <<std::endl;
-  fTriumf_ADC.Print();
+  fTriumf_ADC.PrintInfo();
   return;
 }
 
@@ -303,6 +308,35 @@ void  QwIntegrationPMT::ConstructBranchAndVector(TTree *tree, TString &prefix, s
     }
   return;
 };
+
+void  QwIntegrationPMT::ConstructBranch(TTree *tree, TString &prefix)
+{
+  if (GetElementName()==""){
+    //  This channel is not used, so skip filling the histograms.
+  } else
+    {
+      fTriumf_ADC.ConstructBranch(tree, prefix);
+    }
+  return;
+};
+
+void  QwIntegrationPMT::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
+{
+   TString devicename;
+   devicename=GetElementName();
+   devicename.ToLower();
+   if (GetElementName()==""){
+     //  This channel is not used, so skip filling the histograms.
+   } else {
+     if (modulelist.HasValue(devicename)){
+       fTriumf_ADC.ConstructBranch(tree, prefix);
+       QwMessage <<"QwIntegrationPMT Tree leave added to "<<devicename<<QwLog::endl;
+       }
+ 
+   }
+  return;
+};
+
 
 void  QwIntegrationPMT::FillTreeVector(std::vector<Double_t> &values)
 {
@@ -401,8 +435,8 @@ std::vector<QwDBInterface> QwIntegrationPMT::GetDBEntry()
   avg           = fTriumf_ADC.GetHardwareSum();
   err           = fTriumf_ADC.GetHardwareSumError();
   // ADC subblock sum : 0 in MySQL database
-  beam_subblock = 0; 
- 
+  beam_subblock = 0;
+
   row.SetDetectorName(name);
   row.SetSubblock(beam_subblock);
   row.SetN(beam_n);
@@ -417,7 +451,7 @@ std::vector<QwDBInterface> QwIntegrationPMT::GetDBEntry()
     row.Reset();
     avg           = fTriumf_ADC.GetBlockValue(i);
     err           = fTriumf_ADC.GetBlockErrorValue(i);
-    beam_subblock = (UInt_t) (i+1); 
+    beam_subblock = (UInt_t) (i+1);
     // QwVQWK_Channel  | MySQL
     // fBlock[0]       | subblock 1
     // fBlock[1]       | subblock 2

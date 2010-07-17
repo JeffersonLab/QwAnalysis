@@ -1,0 +1,38 @@
+# This is an example of a tree trimming definition file.
+
+[Injector BeamLine]
+  <QwBPMStripline>
+	qwk_0i02
+	QWK_3C07
+	#qwk_0i02a
+	#qwk_0i05
+	#qwk_0i07
+  <QwBCM>
+	qwk_bcm0l02
+  <QwCombinedBPM>
+	qwk_target
+  <QwCombinedBCM>
+	qwk_average_charge
+	
+  <QwEnergyCalculator>	
+	qwk_energy
+
+[Helicity info]
+
+
+[Main Detector]
+   <QwIntegrationPMT>
+	md0neg
+	md0pos
+	md1neg
+	md1pos
+
+   <QwCombinedPMT>
+
+[Lumi Detector]
+   <QwIntegrationPMT>
+	uslumi1neg
+	uslumi1pos
+	dslumi1
+	dslumi2	
+	
