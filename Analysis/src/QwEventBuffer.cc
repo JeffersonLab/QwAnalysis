@@ -123,7 +123,7 @@ void QwEventBuffer::PrintRunTimes()
 	    << "CPU time used:  " << fRunTimer.CpuTime() << " s "
 	    << "(" << fRunTimer.CpuTime() / nevents << " s per event)" << QwLog::endl
 	    << "Real time used: " << fRunTimer.RealTime() << " s "
-	    << "(" << fRunTimer.RealTime() / nevents << " s per event)" << QwLog::endl 
+	    << "(" << fRunTimer.RealTime() / nevents << " s per event)" << QwLog::endl
 	    << QwLog::endl;
 };
 
@@ -492,10 +492,10 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystem
   ///      subbank structure as the physics events for that ROC.
   Bool_t okay = kTRUE;
   UInt_t rocnum = fEvtType - 0x90;
-  std::cerr << "QwEventBuffer::FillSubsystemConfigurationData:  "
-	    << "Found configuration event for ROC"
-	    << rocnum
-	    << std::endl;
+  QwError << "QwEventBuffer::FillSubsystemConfigurationData:  "
+	  << "Found configuration event for ROC"
+	  << rocnum
+	  << QwLog::endl;
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
   while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){

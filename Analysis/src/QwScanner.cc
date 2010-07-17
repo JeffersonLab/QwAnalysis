@@ -24,6 +24,7 @@ QwScanner::QwScanner(TString name)
 {
     fDEBUG = 0;
     fEvtCounter = 0;
+    fEventTypeMask = 0xffff; // explicit because of diamond inheritance
     ClearAllBankRegistrations();
 };
 

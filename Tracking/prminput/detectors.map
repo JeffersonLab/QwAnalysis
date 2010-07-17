@@ -34,7 +34,6 @@
  name = FPS
  map = qweak_scanner_channel.map
  param = qweak_scanner_parameter.map
- mask = 0x0
 
 [QwRaster]
  name = FR
