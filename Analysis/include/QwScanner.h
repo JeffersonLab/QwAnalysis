@@ -82,9 +82,7 @@ class QwScanner: public VQwSubsystemParity,
   void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-  void  ConstructBranchAndVector(TTree *tree, TString &prefix);
   void  FillTreeVector(std::vector<Double_t> &values);
-  void  FillTreeVector();
 
   void  FillDB(QwDatabase *db, TString type) {return;};
 
@@ -179,10 +177,6 @@ class QwScanner: public VQwSubsystemParity,
 
   Double_t fPedestal;
   Double_t fCalibration;
-
-  Int_t fTreeArrayNumEntries;
-  Int_t fTreeArrayIndex;
-  std::vector <Double_t> fScannerVector;
 
   Int_t    fEvtCounter;
   Double_t fPowSupply_VQWK;

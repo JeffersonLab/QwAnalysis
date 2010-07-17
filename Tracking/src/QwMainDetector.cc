@@ -511,22 +511,15 @@ void  QwMainDetector::FillHistograms()
 };
 
 
-void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Double_t> &values)
+void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values)
 {
-  ConstructBranchAndVector(tree, prefix);
-}
+  fTreeArrayIndex = values.size();
 
-void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
-{
   TString basename;
   if (prefix=="") basename = "maindet";
   else basename = prefix;
 
-  fMainDetVector.reserve(6000);
   TString list = "";
-
-  fMainDetVector.push_back(0.0);
-  list = ":nevent/D";
 
   for (size_t i=0; i<fPMTs.size(); i++)
     {
@@ -538,7 +531,7 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
             }
           else
             {
-              fMainDetVector.push_back(0.0);
+              values.push_back(0.0);
 	          list += ":"+fPMTs.at(i).at(j).GetElementName()+"/D";
 	          //std::cout<<"Added to list: "<<fPMTs.at(i).at(j).GetElementName()<<"\n"<<std::endl;
             }
@@ -555,7 +548,7 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
               if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
               else
                 {
-                  fMainDetVector.push_back(0.0);
+                  values.push_back(0.0);
 		  list += ":"+fSCAs.at(i)->fChannels.at(j).GetElementName()+"/D";
                 }
             }
@@ -564,7 +557,9 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
 
   if (':' == list[0])
     list = list(1,list.Length()-1);
-  tree->Branch(basename, &fMainDetVector[0], list);
+
+  fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
+  tree->Branch(basename, &values[fTreeArrayIndex], list);
   // std::cout<<list<<"\n";
   return;
 };
@@ -572,40 +567,9 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
 
 void  QwMainDetector::FillTreeVector(std::vector<Double_t> &values)
 {
-  /*    if (! HasDataLoaded()) return;
-      for (size_t i=0; i<fPMTs.size(); i++)
-      {
-          for (size_t j=0; j<fPMTs.at(i).size(); j++)
-          {
-              fPMTs.at(i).at(j).FillTreeVector(values);
-          }
-      }
-
-      for (size_t i=0; i<fSCAs.size(); i++)
-      {
-          if (fSCAs.at(i) != NULL)
-          {
-              for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++)
-              {
-                  if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
-                  else
-                  {
-                      fSCAs.at(i)->fChannels.at(j).FillTreeVector(values);
-                  }
-              }
-          }
-      }*/
-
-  FillTreeVector();
-}
-
-void  QwMainDetector::FillTreeVector(Int_t nevent)
-{
   if (! HasDataLoaded()) return;
 
-  Int_t index = 0;
-
-  fMainDetVector[index++] = nevent;
+  Int_t index = fTreeArrayIndex;
 
   for (size_t i=0; i<fPMTs.size(); i++)
     {
@@ -614,8 +578,8 @@ void  QwMainDetector::FillTreeVector(Int_t nevent)
           if (fPMTs.at(i).at(j).GetElementName()=="") {}
           else
             {
-              fMainDetVector[index] = fPMTs.at(i).at(j).GetValue();
-              // std::cout<<"Fill data "<<fMainDetVector[index]<<" to index "
+              values[index] = fPMTs.at(i).at(j).GetValue();
+              // std::cout<<"Fill data "<<values[index]<<" to index "
               // <<index<<" ch_name "<<fPMTs.at(i).at(j).GetElementName()<<"\n";
               index++;
             }
@@ -630,7 +594,7 @@ void  QwMainDetector::FillTreeVector(Int_t nevent)
         {
           for (size_t j=0; j<fPMTs.at(i).size(); j++)
             {
-              std::cout<<  fMainDetVector[index]<<"\t";
+              std::cout<<  values[index]<<"\t";
               index++;
             }
         }
@@ -646,7 +610,7 @@ void  QwMainDetector::FillTreeVector(Int_t nevent)
               if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
               else
                 {
-                  fMainDetVector[index] = fSCAs.at(i)->fChannels.at(j).GetValue();
+                  values[index] = fSCAs.at(i)->fChannels.at(j).GetValue();
 		  index++;
                 }
             }

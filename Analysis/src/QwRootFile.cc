@@ -297,6 +297,11 @@ void QwRootFile::ConstructTreeBranches(QwHelicityPattern& helicity_pattern)
  */
 void QwRootFile::FillTreeBranches(QwSubsystemArrayParity& detectors)
 {
+  // Calculate the event number before bailing out
+  if (fNumEventsCycle > 0) {
+    fCurrentEvent = detectors.GetCodaEventNumber() % fNumEventsCycle;
+  }
+
   // Return if we do not want tree or mps information
   if (! fEnableTree) return;
   if (! fEnableMps) return;
@@ -304,8 +309,7 @@ void QwRootFile::FillTreeBranches(QwSubsystemArrayParity& detectors)
   // Output ROOT tree prescaling
   // One cycle starts with fNumEventsToTake accepted events
   if (fNumEventsCycle > 0) {
-    fCurrent_event = detectors.GetCodaEventNumber() % fNumEventsCycle;
-    if (fCurrent_event > fNumEventsToSave) return;
+    if (fCurrentEvent > fNumEventsToSave) return;
   }
 
   // Fill the vector
@@ -322,21 +326,22 @@ void QwRootFile::FillTreeBranches(QwSubsystemArrayParity& detectors)
  */
 void QwRootFile::FillTreeBranches(QwHelicityPattern& helicity_pattern)
 {
+  // TODO (wdc) Assuming that the event number has been calculated by
+  // the call to FillTreeBranches on the detector array.  No event number
+  // in QwHelicityPattern.
+
   // Return if we do not want tree or hel information
   if (! fEnableTree) return;
   if (! fEnableHel) return;
 
-  // Fill the vector
-  //helicity_pattern.FillTreeVector(fHelVector);
-
   // Output ROOT tree prescaling
-
   // One cycle starts with fNumEventsToTake accepted events
-
   if (fNumEventsCycle > 0) {
-    if (fCurrent_event > fNumEventsToSave) return;
+    if (fCurrentEvent > fNumEventsToSave) return;
   }
 
+  // Fill the vector
+  //helicity_pattern.FillTreeVector(fHelVector);
 
   // Fill the tree
   if (!fEnableMapFile)

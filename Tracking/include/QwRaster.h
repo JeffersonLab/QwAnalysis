@@ -54,9 +54,7 @@ class QwRaster: public VQwSubsystemTracking
   void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-  void  ConstructBranchAndVector(TTree *tree, TString &prefix);
   void  FillTreeVector(std::vector<Double_t> &values);
-  void  FillTreeVector();
 
   void  FillDB(QwDatabase *db, TString type) {return;};
 
@@ -127,10 +125,6 @@ class QwRaster: public VQwSubsystemTracking
 
   Double_t fVoltage_Offset_X;
   Double_t fVoltage_Offset_Y;
-
-  Int_t fTreeArrayNumEntries;
-  Int_t fTreeArrayIndex;
-  std::vector <Double_t> fRasterVector;
 
   Double_t fPositionX_ADC;
   Double_t fPositionY_ADC;

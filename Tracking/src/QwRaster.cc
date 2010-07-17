@@ -498,21 +498,15 @@ void  QwRaster::FillHistograms()
 
 void  QwRaster::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
-
-    ConstructBranchAndVector(tree, prefix);
-};
-
-void  QwRaster::ConstructBranchAndVector(TTree *tree, TString &prefix)
-{
+    fTreeArrayIndex = values.size();
 
     TString basename;
     if (prefix=="") basename = "raster";
     else basename = prefix;
 
-        fRasterVector.reserve(6000);
-        fRasterVector.push_back(0.0);
+        values.push_back(0.0);
         TString list = "PositionX_ADC/D";
-        fRasterVector.push_back(0.0);
+        values.push_back(0.0);
         list += ":PositionY_ADC/D";
 
         if (bStoreRawData)
@@ -522,14 +516,14 @@ void  QwRaster::ConstructBranchAndVector(TTree *tree, TString &prefix)
             {
                 for (size_t j=0; j<fPMTs.at(i).size(); j++)
                 {
-                    //fPMTs.at(i).at(j).ConstructBranchAndVector(tree, prefix, fRasterVector);
+                    //fPMTs.at(i).at(j).ConstructBranchAndVector(tree, prefix, values);
                     if (fPMTs.at(i).at(j).GetElementName()=="")
                     {
                         //  This channel is not used, so skip setting up the tree.
                     }
                     else
                     {
-                        fRasterVector.push_back(0.0);
+                        values.push_back(0.0);
                         list += ":"+fPMTs.at(i).at(j).GetElementName()+"_raw/D";
                     }
                 }
@@ -537,8 +531,8 @@ void  QwRaster::ConstructBranchAndVector(TTree *tree, TString &prefix)
 
 
 
-        //fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
-        tree->Branch(basename, &fRasterVector[0], list);
+        fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
+        tree->Branch(basename, &values[fTreeArrayIndex], list);
 
     }
     return;
@@ -547,16 +541,11 @@ void  QwRaster::ConstructBranchAndVector(TTree *tree, TString &prefix)
 
 void  QwRaster::FillTreeVector(std::vector<Double_t> &values)
 {
-    FillTreeVector();
-};
-
-void  QwRaster::FillTreeVector()
-{
     if (! HasDataLoaded()) return;
 
-    Int_t index = 0;
-    fRasterVector[index++] = fPositionX_ADC;
-    fRasterVector[index++] = fPositionY_ADC;
+    Int_t index = fTreeArrayIndex;
+    values[index++] = fPositionX_ADC;
+    values[index++] = fPositionY_ADC;
 
     if (bStoreRawData)
     {
@@ -569,7 +558,7 @@ void  QwRaster::FillTreeVector()
                 if (fPMTs.at(i).at(j).GetElementName()=="") {}
                 else
                 {
-                    fRasterVector[index++] = fPMTs.at(i).at(j).GetValue();
+                    values[index++] = fPMTs.at(i).at(j).GetValue();
                 }
             }
         }

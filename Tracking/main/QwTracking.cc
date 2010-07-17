@@ -53,14 +53,7 @@ static const bool kDebug = kFALSE;
 // ROOT file output
 static const bool kTree = kTRUE;
 static const bool kHisto = kFALSE;
-
-
 static const bool kEPICS = kFALSE;
-// Branching flags for subsystems
-static const bool kTrigScintBranch = kTRUE;
-static const bool kMainDetBranch = kTRUE;
-static const bool kScannerBranch = kTRUE;
-static const bool kRasterBranch  = kTRUE;
 
 // Main function
 Int_t main(Int_t argc, Char_t* argv[])
@@ -115,17 +108,11 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwSubsystemArrayParity parity_detectors(gQwOptions);
   parity_detectors.ProcessOptions(gQwOptions);
 
-  // Get specific tracking_detectors
-  QwTriggerScintillator* triggerscint = dynamic_cast<QwTriggerScintillator*>(tracking_detectors.GetSubsystemByType("QwTriggerScintillator").at(0));
-  QwMainDetector* maindetector = dynamic_cast<QwMainDetector*>(tracking_detectors.GetSubsystemByType("QwMainDetector").at(0));
-  QwScanner* scanner = dynamic_cast<QwScanner*> (tracking_detectors.GetSubsystemByType("QwScanner").at(0));
-  QwRaster* raster = dynamic_cast<QwRaster*> (tracking_detectors.GetSubsystemByType("QwRaster").at(0));
-
   // Get vector with detector info (by region, plane number)
-  std::vector< std::vector< QwDetectorInfo > > detector_info;
-  tracking_detectors.GetSubsystemByName("R1")->GetDetectorInfo(detector_info);
-  tracking_detectors.GetSubsystemByName("R2")->GetDetectorInfo(detector_info);
-  tracking_detectors.GetSubsystemByName("R3")->GetDetectorInfo(detector_info);
+  //std::vector< std::vector< QwDetectorInfo > > detector_info;
+  //tracking_detectors.GetSubsystemByName("R1")->GetDetectorInfo(detector_info);
+  //tracking_detectors.GetSubsystemByName("R2")->GetDetectorInfo(detector_info);
+  //tracking_detectors.GetSubsystemByName("R3")->GetDetectorInfo(detector_info);
   // TODO This is handled incorrectly, it just adds the three package after the
   // existing three packages from region 2...  GetDetectorInfo should descend
   // into the packages and add only the tracking_detectors in those packages.
@@ -185,8 +172,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     TTree* tree = 0;
     QwEvent* event = 0;
     QwHitRootContainer* hitlist_root = 0;
-
-    TString prefix = "";
+    std::vector<double> tracking_vector, parity_vector;
 
     if (kTree) {
        rootfile->cd(); // back to the top directory
@@ -195,23 +181,12 @@ Int_t main(Int_t argc, Char_t* argv[])
        tree->Branch("hits", "QwHitRootContainer", &hitlist_root);
        tree->Branch("events", "QwEvent", &event);
 
-       if (kTrigScintBranch) {
-          triggerscint->ConstructBranchAndVector(tree, prefix);
-       }
-
-       if (kMainDetBranch) {
-          maindetector->ConstructBranchAndVector(tree, prefix);
-       }
-
-       if (kScannerBranch) {
-          //scanner->StoreRawData(kScannerRaw);
-          scanner->ConstructBranchAndVector(tree, prefix);
-       }
-
-       if (kRasterBranch) {
-          raster->ConstructBranchAndVector(tree, prefix);
-       }
-
+       // Create the branches and tree vector
+       TString prefix = "";
+       tracking_vector.reserve(6000);
+       tracking_detectors.ConstructBranchAndVector(tree, prefix, tracking_vector);
+       parity_vector.reserve(6000);
+       parity_detectors.ConstructBranchAndVector(tree, prefix, parity_vector);
     }
 
     if (kHisto) {
@@ -256,10 +231,9 @@ Int_t main(Int_t argc, Char_t* argv[])
       tracking_detectors.ProcessEvent();
       parity_detectors.ProcessEvent();
 
-      if (kTrigScintBranch) triggerscint->FillTreeVector(nevents);
-      if (kMainDetBranch) maindetector->FillTreeVector(nevents);
-      if (kScannerBranch) scanner->FillTreeVector();
-      if (kRasterBranch) raster->FillTreeVector();
+      // Fill the tree
+      tracking_detectors.FillTreeVector(tracking_vector);
+      parity_detectors.FillTreeVector(parity_vector);
 
       // Fill the histograms for the subsystem objects.
       if (kHisto) tracking_detectors.FillHistograms();

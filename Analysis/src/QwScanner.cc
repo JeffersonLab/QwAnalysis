@@ -800,12 +800,7 @@ void  QwScanner::FillHistograms()
 
 void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
-
-    ConstructBranchAndVector(tree, prefix);
-};
-
-void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix)
-{
+    fTreeArrayIndex = values.size();
 
     TString pat1 = "asym";
     TString pat2 = "yield";
@@ -826,35 +821,33 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix)
         if (prefix=="") basename = "scanner";
         else basename = prefix;
 
-        fScannerVector.reserve(6000);
-
-        fScannerVector.push_back(0.0);
+        values.push_back(0.0);
         TString list = "EvtCounter/D";
-        fScannerVector.push_back(0.0);
+        values.push_back(0.0);
         list += ":PowSupply_VQWK/D";
-        fScannerVector.push_back(0.0);
+        values.push_back(0.0);
         list += ":PositionX_VQWK/D";
-        fScannerVector.push_back(0.0);
+        values.push_back(0.0);
         list += ":PositionY_VQWK/D";
-        fScannerVector.push_back(0.0);
+        values.push_back(0.0);
         list += ":FrontSCA/D";
-        fScannerVector.push_back(0.0);
+        values.push_back(0.0);
         list += ":BackSCA/D";
-        fScannerVector.push_back(0.0);
+        values.push_back(0.0);
         list += ":CoincidenceSCA/D";
-        fScannerVector.push_back(0.0);
+        values.push_back(0.0);
         list += ":FrontADC/D";
-        fScannerVector.push_back(0.0);
+        values.push_back(0.0);
         list += ":BackADC/D";
-        fScannerVector.push_back(0.0);
+        values.push_back(0.0);
         list += ":FrontTDC/D";
-        fScannerVector.push_back(0.0);
+        values.push_back(0.0);
         list += ":BackTDC/D";
-        fScannerVector.push_back(0.0);
+        values.push_back(0.0);
 //         list += ":PowSupply_QDC/D";
-//         fScannerVector.push_back(0.0);
+//         values.push_back(0.0);
         list += ":PositionX_QDC/D";
-        fScannerVector.push_back(0.0);
+        values.push_back(0.0);
         list += ":PositionY_QDC/D";
 
         if (bStoreRawData)
@@ -864,14 +857,14 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix)
             {
                 for (size_t j=0; j<fPMTs.at(i).size(); j++)
                 {
-                    //fPMTs.at(i).at(j).ConstructBranchAndVector(tree, prefix, fScannerVector);
+                    //fPMTs.at(i).at(j).ConstructBranchAndVector(tree, prefix, values);
                     if (fPMTs.at(i).at(j).GetElementName()=="")
                     {
                         //  This channel is not used, so skip setting up the tree.
                     }
                     else
                     {
-                        fScannerVector.push_back(0.0);
+                        values.push_back(0.0);
                         list += ":"+fPMTs.at(i).at(j).GetElementName()+"_raw/D";
                     }
                 }
@@ -887,7 +880,7 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix)
                         if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
                         else
                         {
-                            fScannerVector.push_back(0.0);
+                            values.push_back(0.0);
                             list += ":"+fSCAs.at(i)->fChannels.at(j).GetElementName()+"_raw/D";
                         }
                     }
@@ -907,7 +900,7 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix)
                         if ( (channelname =="") || (channelname =="empty") || (channelname =="spare")) {}
                         else
                         {
-                            fScannerVector.push_back(0.0);
+                            values.push_back(0.0);
                             list += ":"+fADC_Data.at(i)->fChannels.at(j).GetElementName()+"_raw/D";
                         }
                     }
@@ -917,8 +910,8 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix)
 
         }
 
-        //fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
-        tree->Branch(basename, &fScannerVector[0], list);
+        fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
+        tree->Branch(basename, &values[fTreeArrayIndex], list);
 
     }
     return;
@@ -927,28 +920,23 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix)
 
 void  QwScanner::FillTreeVector(std::vector<Double_t> &values)
 {
-    FillTreeVector();
-};
-
-void  QwScanner::FillTreeVector()
-{
     if (! HasDataLoaded()) return;
 
-    Int_t index = 0;
-    fScannerVector[index++] = fEvtCounter;
-    fScannerVector[index++] = fPowSupply_VQWK;
-    fScannerVector[index++] = fPositionX_VQWK;
-    fScannerVector[index++] = fPositionY_VQWK;
-    fScannerVector[index++] = fFrontSCA;
-    fScannerVector[index++] = fBackSCA;
-    fScannerVector[index++] = fCoincidenceSCA;
-    fScannerVector[index++] = fFrontADC;
-    fScannerVector[index++] = fBackADC;
-    fScannerVector[index++] = fFrontTDC;
-    fScannerVector[index++] = fBackTDC;
-//    fScannerVector[index++] = fPowSupply_ADC;
-    fScannerVector[index++] = fPositionX_ADC;
-    fScannerVector[index++] = fPositionY_ADC;
+    Int_t index = fTreeArrayIndex;
+    values[index++] = fEvtCounter;
+    values[index++] = fPowSupply_VQWK;
+    values[index++] = fPositionX_VQWK;
+    values[index++] = fPositionY_VQWK;
+    values[index++] = fFrontSCA;
+    values[index++] = fBackSCA;
+    values[index++] = fCoincidenceSCA;
+    values[index++] = fFrontADC;
+    values[index++] = fBackADC;
+    values[index++] = fFrontTDC;
+    values[index++] = fBackTDC;
+//    values[index++] = fPowSupply_ADC;
+    values[index++] = fPositionX_ADC;
+    values[index++] = fPositionY_ADC;
 
     if (bStoreRawData)
     {
@@ -961,7 +949,7 @@ void  QwScanner::FillTreeVector()
                 if (fPMTs.at(i).at(j).GetElementName()=="") {}
                 else
                 {
-                    fScannerVector[index++] = fPMTs.at(i).at(j).GetValue();
+                    values[index++] = fPMTs.at(i).at(j).GetValue();
                 }
             }
         }
@@ -975,7 +963,7 @@ void  QwScanner::FillTreeVector()
                     if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
                     else
                     {
-                        fScannerVector[index++] = fSCAs.at(i)->fChannels.at(j).GetValue();
+                        values[index++] = fSCAs.at(i)->fChannels.at(j).GetValue();
                     }
                 }
             }
@@ -1004,8 +992,8 @@ void  QwScanner::FillTreeVector()
                     }
                     else
                     {
-                        //fScannerVector[index++] = fADC_Data.at(i)->fChannels.at(j).GetHardwareSum();
-                        fScannerVector[index++] = fADC_Data.at(i)->fChannels.at(j).GetAverageVolts();
+                        //values[index++] = fADC_Data.at(i)->fChannels.at(j).GetHardwareSum();
+                        values[index++] = fADC_Data.at(i)->fChannels.at(j).GetAverageVolts();
                     }
                 }
 

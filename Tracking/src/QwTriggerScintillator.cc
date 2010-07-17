@@ -295,8 +295,8 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
         for (UInt_t i=0; i<num_words ; i++) {
           fF1TDC.DecodeTDCWord(buffer[i], roc_id);
 	  tdc_slot_number = fF1TDC.GetTDCSlotNumber();
-	  tdc_chan_number = fF1TDC.GetTDCChannelNumber();  
-          
+	  tdc_chan_number = fF1TDC.GetTDCChannelNumber();
+
 	  if ( tdc_slot_number == 31) {
             //  This is a custom word which is not defined in
             //  the F1TDC, so we can use it as a marker for
@@ -377,28 +377,22 @@ void  QwTriggerScintillator::FillHistograms(){
 
 };
 
-void  QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Double_t> &values)
+void QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values)
 {
-  ConstructBranchAndVector(tree, prefix);
-};
+  fTreeArrayIndex = values.size();
 
-void QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString prefix) 
-{
   TString basename;
   if (prefix=="") basename = "trigscint";
   else basename = prefix;
 
   TString list = "";
-  fTrigScintVector.push_back(0.0);
-  list = ":nevent/D";
-
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       TString element_name = fPMTs.at(i).at(j).GetElementName();
       if (element_name=="") {
         // This channel is not used, so skip setting up the tree.
       } else {
-          fTrigScintVector.push_back(0.0);
+          values.push_back(0.0);
           list += ":"+element_name+"/D";
       }
     }
@@ -407,26 +401,21 @@ void QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString prefix
   if (list[0]==':') {
     list = list(1,list.Length()-1);
   }
-  tree->Branch(basename, &fTrigScintVector[0], list);
+
+  fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
+  tree->Branch(basename, &values[fTreeArrayIndex], list);
 };
 
 void  QwTriggerScintillator::FillTreeVector(std::vector<Double_t> &values)
 {
-  FillTreeVector();
-};
-
-void QwTriggerScintillator::FillTreeVector(Int_t nevent)
-{
   if (! HasDataLoaded()) return;
 
-  Int_t index = 0;
-  fTrigScintVector[index++] = nevent;
-
+  Int_t index = fTreeArrayIndex;
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       if (fPMTs.at(i).at(j).GetElementName()=="") {}
       else {
-        fTrigScintVector[index] = fPMTs.at(i).at(j).GetValue();
+        values[index] = fPMTs.at(i).at(j).GetValue();
         index++;
       }
     }

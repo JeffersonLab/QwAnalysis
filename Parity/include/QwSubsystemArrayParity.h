@@ -56,12 +56,10 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
       TString tmpstr("");
       ConstructBranchAndVector(tree,tmpstr,values);
     };
-    /// \brief Construct the branch for the flat  tree 
+    /// \brief Construct the branch for the flat tree
     void ConstructBranch(TTree *tree, TString & prefix);
-
-    /// \brief Construct the branch for the flat  tree with tree trim files accepted
+    /// \brief Construct the branch for the flat tree with tree trim files accepted
     void ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& detectors);
-    
     /// \brief Fill the tree vector
     void FillTreeVector(std::vector<Double_t> &values);
 

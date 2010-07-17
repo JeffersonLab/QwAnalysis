@@ -127,10 +127,10 @@ class QwRootFile {
     UInt_t fNumEventsCycle;
     UInt_t fNumEventsToSkip;
     UInt_t fNumEventsToSave;
-    UInt_t fCurrent_event;
+    UInt_t fCurrentEvent;
     /// Maximum tree size
     static const Long64_t kMaxTreeSize;
-    
+
     //Tree Trimm Definition File
     const char* fTreeTrim_Filename;
 
