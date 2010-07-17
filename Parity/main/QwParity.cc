@@ -45,23 +45,24 @@
 
 Int_t main(Int_t argc, Char_t* argv[])
 {
-  ///  First, we set the command line arguments and the configuration filename,
-  ///  and we define the options that can be used in them (using QwOptions).
-  gQwOptions.SetCommandLine(argc, argv);
-  ///  Define the command line options
-  DefineOptionsParity(gQwOptions);
-
-  /// Setup screen and file logging
-  gQwLog.ProcessOptions(&gQwOptions);
-
-  ///  Fill the search paths for the parameter files; this sets a static
-  ///  variable within the QwParameterFile class which will be used by
+  ///  First, fill the search paths for the parameter files; this sets a
+  ///  static variable within the QwParameterFile class which will be used by
   ///  all instances.
   ///  The "scratch" directory should be first.
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
+  ///  Then, we set the command line arguments and the configuration filename,
+  ///  and we define the options that can be used in them (using QwOptions).
+  gQwOptions.SetCommandLine(argc, argv);
+  gQwOptions.AddConfigFile("qwparity.conf");
+  gQwOptions.AddConfigFile("qweak_mysql.conf");
+  ///  Define the command line options
+  DefineOptionsParity(gQwOptions);
+
+  /// Setup screen and file logging
+  gQwLog.ProcessOptions(&gQwOptions);
 
   ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
   ///  histogram helper: QwHistogramHelper
