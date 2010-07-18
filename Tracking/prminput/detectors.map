@@ -29,6 +29,7 @@
  name = MD
  map = qweak_maindet_channel.map
  geom = qweak_new.geo
+ mask = 0xffff
 
 [QwScanner]
  name = FPS
