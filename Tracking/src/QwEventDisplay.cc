@@ -1249,7 +1249,7 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
       Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire));
       Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5));
       Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5));
-      Line.SetY2(.5 - R2_LENGTH*R2_CM*.5 + ((R2_UVDIST*R2_CM*fWire)*tan(R2_ANGLE*TMath::DegToRad())));
+      Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + ((R2_UVDIST*R2_CM*fWire)*tan(R2_ANGLE*TMath::DegToRad())));
     }
     else if (fWire < 21){ // 20.68 is at (X1,Y1)  (45.09/2.18)
       Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire));
@@ -1363,7 +1363,7 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     int fWire = fHit->GetElement();
     int fPlane = fHit->GetPlane();
     //    double fDist = fHit->GetDriftDistance();
-    double fXShift = 0; // used to shift the wires in the prime planes
+    //   double fXShift = 0; // used to shift the wires in the prime planes
     double fYShift = 0; // used to shift the wires to the correct chamber planes (ROOT coordinates)
     switch (fPlane){
     case 1:
@@ -1418,7 +1418,7 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     int fWire = fHit->GetElement();
     int fPlane = fHit->GetPlane();
     //    double fDist = hit->GetDriftDistance();
-    double fXShift = 0; // used to shift the wires in the prime planes
+    //    double fXShift = 0; // used to shift the wires in the prime planes
     double fYShift = 0; // used to shift the wires to the correct chamber planes (ROOT coordinates)
     switch (fPlane){
     case 1:
@@ -1546,7 +1546,7 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
       Line.SetX1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
       Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5));
       Line.SetX2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
-      Line.SetY2(.5 - R2_LENGTH*R2_CM*.5 + ((R2_UVDIST*R2_CM*fWire)*tan(R2_ANGLE*TMath::DegToRad())));
+      Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + ((R2_UVDIST*R2_CM*fWire)*tan(R2_ANGLE*TMath::DegToRad())));
     }
     else if (fWire < 21){
       Line.SetX1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
@@ -1642,22 +1642,22 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
       break;
     }
     TLine Line;
-    if (fWire < 54){  //96th wire ends at corner (X2, Y2)
+    if (fWire < 30){ // 29.80 is at (X2, Y2)  (50*.5/0.839)
       Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire));
       Line.SetY1(fYShift - (R3_LENGTH*R3_CM*.5));
       Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5));
-      Line.SetY2(fYShift - (R3_LENGTH*R3_CM*.5) + (R3_UVDIST*R3_CM*fWire*tan(R3_ANGLE*TMath::DegToRad())));
+      Line.SetY2(fYShift - (R3_LENGTH*R3_CM*.5) + ((R3_UVDIST*R3_CM*fWire)*tan(R3_ANGLE*TMath::DegToRad())));
     }
-    else if (fWire < 185){  //184th wire begins at (X1, Y1)
+    else if (fWire < 251){ // 250.30 is at (X1,Y1)  (210/0.839)
       Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire));
       Line.SetY1(fYShift - (R3_LENGTH*R3_CM*.5));
-      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-53.6)));
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire - 29.8)));
       Line.SetY2(fYShift + (R3_LENGTH*R3_CM*.5));
     }
     else{
       Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5));
-      Line.SetY1(fYShift - (R3_LENGTH*R3_CM*.5) + (R3_UVDIST*R3_CM*(fWire-185)));
-      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-53.6))); // ISSUES HERE!  FIXXX!!
+      Line.SetY1(fYShift + (R3_LENGTH*R3_CM*.5) - (((R3_WIDTH*R3_CM) - (R3_UVDIST*R3_CM*(fWire - 29.8)))*tan(R3_ANGLE*TMath::DegToRad())));
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire - 29.8)));
       Line.SetY2(fYShift + (R3_LENGTH*R3_CM*.5));
     }
     Line.SetLineColor(kGreen);
@@ -1681,24 +1681,24 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
       break;
     }
     TLine Line;
-    if (fWire < 54){  //96th wire ends at corner (X2, Y1)
+    if (fWire < 30){ // 29.80 is at (X2, Y1)  (50*.5/0.839)
       Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire));
       Line.SetY1(fYShift + (R3_LENGTH*R3_CM*.5));
       Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5));
-      Line.SetY2(fYShift + (R3_LENGTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire*tan(R3_ANGLE*TMath::DegToRad())));
+      Line.SetY2(fYShift + (R3_LENGTH*R3_CM*.5) - ((R3_UVDIST*R3_CM*fWire)*tan(R3_ANGLE*TMath::DegToRad())));
     }
-    else if (fWire < 185){  //184th wire begins at corner (X1, Y2)
+    else if (fWire < 251){ // 250.30 is at (X1, Y2)  (210/0.839)
       Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire));
       Line.SetY1(fYShift + (R3_LENGTH*R3_CM*.5));
-      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-53.6)));
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire - 29.8)));
       Line.SetY2(fYShift - (R3_LENGTH*R3_CM*.5));
     }
     else{
       Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5));
-      Line.SetY1(fYShift + (R3_LENGTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-185)));
-      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-53.6))); // ISSUES HERE!  FIXXX!!
+      Line.SetY1(fYShift - (R3_LENGTH*R3_CM*.5) + (((R3_WIDTH*R3_CM) - (R3_UVDIST*R3_CM*(fWire - 29.8)))*tan(R3_ANGLE*TMath::DegToRad())));
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire - 29.8)));
       Line.SetY2(fYShift - (R3_LENGTH*R3_CM*.5));
-    }
+      }
     Line.SetLineColor(kBlue);
     Line_R2v.push_back(Line);
     Line_R2v.back().Draw();
@@ -1725,22 +1725,22 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
       break;
     }
     TLine Line;
-    if (fWire < 96){
+    if (fWire < 30){  // 29.80 is at (X2, Y2)  (50*.5/0.839)
       Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire));
       Line.SetY1(fYShift);
       Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5));
       Line.SetY2(fYShift);
     }
-    else if (fWire < 184){
+    else if (fWire < 251){ // 250.30 is at (X1,Y1)  (210/0.839)
       Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire));
       Line.SetY1(fYShift);
-      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-96)));
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire - 29.8)));
       Line.SetY2(fYShift);
     }
     else{
       Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5));
       Line.SetY1(fYShift);
-      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-96))); // ISSUES HERE!  FIXXX!!
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire - 29.8)));
       Line.SetY2(fYShift);
     }
     Line.SetLineColor(kGreen);
@@ -1765,22 +1765,22 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
       break;
     }
     TLine Line;
-    if (fWire < 96){
+    if (fWire < 30){  // 29.80 is at (X2, Y2)  (50*.5/0.839)
       Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire));
       Line.SetY1(fYShift);
       Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5));
       Line.SetY2(fYShift);
     }
-    else if (fWire < 184){
+    else if (fWire < 251){ // 250.30 is at (X1,Y1)  (210/0.839)
       Line.SetX1(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire));
       Line.SetY1(fYShift);
-      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-96)));
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire - 29.8)));
       Line.SetY2(fYShift);
     }
     else{
       Line.SetX1(.5 - (R3_WIDTH*R3_CM*.5));
       Line.SetY1(fYShift);
-      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-96))); // ISSUES HERE!  FIXXX!!
+      Line.SetX2(.5 + (R3_WIDTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire - 29.8)));
       Line.SetY2(fYShift);
     }
     Line.SetLineColor(kBlue);
@@ -1813,13 +1813,13 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
       break;
     }
     TLine Line;
-    if (fWire < 96){
+    if (fWire < 30){  // 29.80 is at (X2, Y2)  (50*.5/0.839)
       Line.SetX1(fXShift);
       Line.SetY1(fYShift - (R3_LENGTH*R3_CM*.5));
       Line.SetX2(fXShift);
-      Line.SetY2(fYShift - (R3_LENGTH*R3_CM*.5) + (R3_UVDIST*R3_CM*fWire*tan(R3_ANGLE*TMath::DegToRad())));
+      Line.SetY2(fYShift - (R3_LENGTH*R3_CM*.5) + ((R3_UVDIST*R3_CM*fWire)*tan(R3_ANGLE*TMath::DegToRad())));
     }
-    else if (fWire < 184){
+    else if (fWire < 251){ // 250.30 is at (X1,Y1)  (210/0.839)
       Line.SetX1(fXShift);
       Line.SetY1(fYShift - (R3_LENGTH*R3_CM*.5));
       Line.SetX2(fXShift);
@@ -1827,7 +1827,7 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     }
     else{
       Line.SetX1(fXShift);
-      Line.SetY1(fYShift - (R3_LENGTH*R3_CM*.5) + (R3_UVDIST*R3_CM*(fWire-184)));
+      Line.SetY1(fYShift + (R3_LENGTH*R3_CM*.5) - (((R3_WIDTH*R3_CM) - (R3_UVDIST*R3_CM*(fWire - 29.8)))*tan(R3_ANGLE*TMath::DegToRad())));
       Line.SetX2(fXShift);
       Line.SetY2(fYShift + (R3_LENGTH*R3_CM*.5));
     }
@@ -1856,13 +1856,13 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
       break;
     }
     TLine Line;
-    if (fWire < 96){
+    if (fWire < 30){  // 29.80 is at (X2, Y2)  (50*.5/0.839)
       Line.SetX1(fXShift);
       Line.SetY1(fYShift + (R3_LENGTH*R3_CM*.5));
       Line.SetX2(fXShift);
-      Line.SetY2(fYShift + (R3_LENGTH*R3_CM*.5) - (R3_UVDIST*R3_CM*fWire*tan(R3_ANGLE*TMath::DegToRad())));
+      Line.SetY2(fYShift + (R3_LENGTH*R3_CM*.5) - ((R3_UVDIST*R3_CM*fWire)*tan(R3_ANGLE*TMath::DegToRad())));
     }
-    else if (fWire < 184){
+    else if (fWire < 251){ // 250.30 is at (X1, Y2)  (210/0.839)
       Line.SetX1(fXShift);
       Line.SetY1(fYShift + (R3_LENGTH*R3_CM*.5));
       Line.SetX2(fXShift);
@@ -1870,7 +1870,7 @@ void QwEventDisplay::DrawEvent(){  // draws event data into display: lists wire 
     }
     else{
       Line.SetX1(fXShift);
-      Line.SetY1(fYShift + (R3_LENGTH*R3_CM*.5) - (R3_UVDIST*R3_CM*(fWire-184)));
+      Line.SetY1(fYShift - (R3_LENGTH*R3_CM*.5) + (((R3_WIDTH*R3_CM) - (R3_UVDIST*R3_CM*(fWire - 29.8)))*tan(R3_ANGLE*TMath::DegToRad())));
       Line.SetX2(fXShift);
       Line.SetY2(fYShift - (R3_LENGTH*R3_CM*.5));
     }

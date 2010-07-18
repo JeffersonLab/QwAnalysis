@@ -210,15 +210,15 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
 #define R2_DEPTH 3.35 //single chamber; 17.20 total depth of HDC system
 #define R2_DIST 1.27 // distance between drift cell planes
 #define R2_XDIST 0.909 // distance between x wires
-#define R2_UVDIST 2.18 // distance between u (or v) wires
+#define R2_UVDIST 2.25 // distance between u (or v) wires
 #define R2_CM 0.0177
-#define R2_ANGLE 56.00
+#define R2_ANGLE 56.00 
 
 #define R3_WIDTH 210.00 // Region 3
 #define R3_LENGTH 50.00
 #define R3_DEPTH 2.54
 #define R3_DIST 40.00 // distance between drift cell chambers
-#define R3_UVDIST 0.929 // distance between u (or v) wires
+#define R3_UVDIST 0.839 // distance between u (or v) wires
 #define R3_CM 0.0038
 #define R3_ANGLE 63.43 // 90-26.57 (which is the wire angle)
 
