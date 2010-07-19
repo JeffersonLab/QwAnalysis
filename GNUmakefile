@@ -14,7 +14,7 @@
 ############################
 ############################
 
-DEBUG := -g
+DEBUG := -g -O0
 # Add -g if you need to debug (but you'd better
 # first type 'make distclean' to enable full
 # recompilation with this flag).
