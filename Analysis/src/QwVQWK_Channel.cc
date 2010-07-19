@@ -70,7 +70,6 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
   Bool_t bStatus;
-  fDeviceErrorCode=0;//Initialize the error flag
 
   if (bEVENTCUTMODE>0){//Global switch to ON/OFF event cuts set at the event cut file
 
@@ -166,6 +165,11 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
     fDataToSave = kDerived;
   else
     fDataToSave = kRaw; // wdc, added default fall-through
+
+  fDeviceErrorCode=0;//Initialize the error flag
+
+  kFoundPedestal = 0;
+  kFoundGain = 0;
 
   fPedestal            = 0.0;
   fCalibrationFactor   = 1.0;
@@ -466,6 +470,9 @@ void QwVQWK_Channel::ProcessEvent()
 
   fHardwareBlockSum = fCalibrationFactor *  ( fHardwareBlockSum_raw - thispedestal );
   fHardwareBlockSumM2 = 0.0; // second moment is zero for single events
+
+  if(!kFoundPedestal||!kFoundGain)
+    fDeviceErrorCode|=kErrorFlag_NoPedestalOrGain;
 
 //   if(GetElementName().Contains("md"))
 //     printf("Detector %s signal =  %1.4e\n",this->GetElementName().Data(),fHardwareBlockSum);

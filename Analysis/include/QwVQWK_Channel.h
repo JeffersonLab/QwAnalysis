@@ -176,9 +176,9 @@ class QwVQWK_Channel: public VQwDataElement {
   size_t GetSequenceNumber() const {return (fSequenceNumber);};
   size_t GetNumberOfSamples() const {return (fNumberOfSamples);};
 
-  void     SetPedestal(Double_t ped) { fPedestal = ped; };
+  void     SetPedestal(Double_t ped) { fPedestal = ped; kFoundPedestal = 1; };
   Double_t GetPedestal() const       { return fPedestal; };
-  void     SetCalibrationFactor(Double_t factor) { fCalibrationFactor = factor; };
+  void     SetCalibrationFactor(Double_t factor) { fCalibrationFactor = factor; kFoundGain = 1; };
   Double_t GetCalibrationFactor() const          { return fCalibrationFactor; };
 
 
@@ -204,7 +204,6 @@ class QwVQWK_Channel: public VQwDataElement {
   static const Int_t  kWordsPerChannel; //no.of words per channel in the CODA buffer
   static const Int_t  kMaxChannels;     //no.of channels per module
 
-
   Int_t fDataToSave;
 
   /*! \name ADC Calibration                    */
@@ -215,6 +214,8 @@ class QwVQWK_Channel: public VQwDataElement {
 			   and can be divided by four for use with each block,
 			   units: [counts / number of samples] */
   Double_t fCalibrationFactor;
+  Bool_t kFoundPedestal;
+  Bool_t kFoundGain;
   //@}
 
 
@@ -300,6 +301,7 @@ class QwVQWK_Channel: public VQwDataElement {
   static const Int_t kErrorFlag_ZeroHW     = 0x20; // in Decimal 32  check to see ADC returning zero
   static const Int_t kErrorFlag_EventCut_L = 0x40; // in Decimal 64  check to see ADC failed upper limit of the event cut
   static const Int_t kErrorFlag_EventCut_U = 0x80; // in Decimal 128 check to see ADC failed upper limit of the event cut
+  static const Int_t kErrorFlag_NoPedestalOrGain = 0x100; // in Decimal 256 checks if there is no pedestal or gain value given in the map file
 
 
 
