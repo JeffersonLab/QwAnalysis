@@ -284,8 +284,9 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
 }
 
 
-Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector, Double_t angle_degree)
+Double_t  QwDriftChamberVDC::CalculateDriftDistance2(Double_t drifttime, QwDetectorID detector)
 {
+  Double_t angle_degree = 45.0; 
   Double_t distance_mm = 0.0;
   Double_t distance_cm = 0.0;
 
@@ -466,34 +467,6 @@ Int_t QwDriftChamberVDC::BuildWireDataStructure ( const UInt_t chan, const UInt_
   }
   return OK;
 };
-
-// Int_t QwDriftChamberVDC::AddChannelDefinition ( const UInt_t plane, const UInt_t wire ) 
-// {
-
-//   fWireData.resize ( fWiresPerPlane.size() );
-//   for ( size_t i=1; i<fWiresPerPlane.size(); i++ ) {
-//     fWireData.at ( i ).resize ( fWiresPerPlane.at ( i ) );
-//   }
-
-//   for ( size_t i=0; i<fTDC_Index.size(); i++ ) {
-//     //    Int_t refchan = i;
-//     for ( size_t j=0; j<fTDC_Index.at ( i ).size(); j++ ) {
-//       Int_t mytdc = fTDC_Index.at ( i ).at ( j );
-//       //std::cout << "mytdc: " << mytdc << std::endl;
-//       if ( mytdc!=-1 ) {
-//   	for ( size_t k=0; k<fTDCPtrs.at ( mytdc ).size(); k++ ) {
-//   	  //	  Int_t package = fTDCPtrs.at(mytdc).at(k).fPackage;
-//   	  Int_t plane   = fTDCPtrs.at ( mytdc ).at ( k ).fPlane;
-//   	  if ( plane>0 && plane != ( Int_t ) kReferenceChannelPlaneNumber ) {
-//   	    //Int_t wire  = fTDCPtrs.at(mytdc).at(k).fElement;
-//   	    fWireData.at ( plane ).at ( wire ).SetElectronics ( i,j,k );
-//   	  }
-//   	}
-//       }
-//     }
-//   }
-//   return OK;
-// }
 
 
 void  QwDriftChamberVDC::FillHistograms()

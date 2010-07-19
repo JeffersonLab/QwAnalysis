@@ -60,7 +60,7 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   virtual Int_t LoadInputParameters(TString mapfile){return 0;};
   void  ClearEventData();
 
-  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words){return 0;};
+  virtual Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) = 0;
 
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
@@ -82,7 +82,7 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
   void  CalculateDriftDistance();
 
-  virtual Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)=0;
+  virtual Double_t CalculateDriftDistance2(Double_t drifttime, QwDetectorID detector)=0;
 
 
   virtual  void GetHitList(QwHitContainer & grandHitContainer)
