@@ -179,8 +179,8 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
   for (size_t i=0; i<fReferenceData.size(); i++){
     if (fReferenceData.at(i).size()==0){
       //  There isn't a reference time!
-      std::cerr << "QwDriftChamber::SubtractReferenceTimes:  Subbank ID "
-		<< i << " is missing a reference time." << std::endl;
+      QwWarning << "QwDriftChamber::SubtractReferenceTimes:  Subbank ID "
+		<< i << " is missing a reference time." << QwLog::endl;
       refs_okay = kFALSE;
     } else {
       reftimes.at(i) = fReferenceData.at(i).at(0);
@@ -245,16 +245,16 @@ void  QwDriftChamberHDC::FillRawTDCWord
     if (plane == -1 || wire == -1){
       //  This channel is not connected to anything.
       //  Do nothing.
-    } 
+    }
     else if (plane == (Int_t) kReferenceChannelPlaneNumber){
-      
+
       fReferenceData.at(wire).push_back(data);
       //now wire contains the value fCurrentBankIndex so we can assign the ref timing data to it.
-    } 
+    }
     else {
 
       direction = (EQwDirectionID)fDirectionData.at(package-1).at(plane-1); //Wire Direction is accessed from the vector -Rakitha (10/23/2008)
-      
+
       //hitCount gives the total number of hits on a given wire -Rakitha (10/23/2008)
       hitCount=std::count_if(fTDCHits.begin(),fTDCHits.end(),boost::bind(&QwHit::WireMatches,_1,2,boost::ref(package),boost::ref(plane),boost::ref(wire)) );
       fTDCHits.push_back(QwHit(bank_index, slot_num, chan, hitCount, kRegionID2, package, plane,direction, wire, data));//in order-> bank index, slot num, chan, hitcount, region=2, package, plane,,direction, wire,wire hit time
@@ -292,19 +292,19 @@ Int_t QwDriftChamberHDC::AddChannelDefinition()
 //     std::cout << " QwDriftChamberHDC::AddChannelDefinition"<<std::endl;
 //     std::cout << "plane " << plane << " wire " << wire << std::endl;
 //   }
-  
+
   std::size_t i =0;
-    
+
   fWireData.resize(fWiresPerPlane.size());
   for (i=0; i<fWiresPerPlane.size(); i++){
     if(temp_local_debug){
-      std::cout << "wire #" << i 
+      std::cout << "wire #" << i
 		<< " " << fWiresPerPlane.at(i)
 		<< std::endl;
     }
     fWireData.at(i).resize(fWiresPerPlane.at(i));
   }
-  
+
   Int_t mytdc = 0;
   for ( i=0; i<fTDC_Index.size(); i++){
     for (size_t j=0; j<fTDC_Index.at(i).size(); j++){
@@ -318,7 +318,7 @@ Int_t QwDriftChamberHDC::AddChannelDefinition()
 	    fWireData.at(plane).at(wire).SetElectronics(i,j,k);
 	    if(temp_local_debug) {
 	      std::cout << "mytdc " << mytdc
-			<< "wire #" << wire 
+			<< "wire #" << wire
 			<< " plane  " << plane
 			<< " (i j k) (" << i  <<" " << j << " "<< k << ")"
 			<< std::endl;
@@ -335,11 +335,11 @@ Int_t QwDriftChamberHDC::AddChannelDefinition()
 void  QwDriftChamberHDC::ProcessEvent()
 {
   if (! HasDataLoaded()) return;
-  
+
   SubtractReferenceTimes();
-  
+
   for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
-    
+
     //if (hit1->GetDetectorID().fPlane<7){
       //std::cout<<"Plane "<<hit1->GetDetectorID().fPlane<<std::endl;
 
@@ -355,8 +355,8 @@ void  QwDriftChamberHDC::ProcessEvent()
 
     //}
   }
-  
+
   FillDriftDistanceToHits();
-  
+
 
 };
