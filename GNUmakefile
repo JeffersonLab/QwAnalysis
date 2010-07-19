@@ -839,12 +839,15 @@ myevio_lib:
 
 
 .ADD:
+	@$(ECHO) Generating $@
 	@$(ECHO) $(ADD)  | $(TO_LINE) > .ADD
 
 .EXES:
+	@$(ECHO) Generating $@
 	@$(ECHO) $(EXES)  | $(TO_LINE) > .EXES
 
 qweak-config: qweak-config.in
+	@$(ECHO) Generating $@
 	@$(CAT) $< | $(SED) 's!%QWANALYSIS%!$(QWANALYSIS)!' | $(SED) 's!%LIBS%!$(LIBS)!'   \
 	           | $(SED) 's!%QW_LIB%!$(QW_LIB)!' | $(SED) 's!%QW_BIN%!$(QW_BIN)!'           \
 	           | $(SED) 's!%LDFLAGS%!$(LDFLAGS)!' | $(SED) 's!%CPPFLAGS%!$(CPPFLAGS)!' \
