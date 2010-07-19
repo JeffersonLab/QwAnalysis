@@ -194,6 +194,8 @@ class QwHitContainer;
 class QwSubsystemArrayTracking;
 class QwTreeEventBuffer;
 
+class QwHitRootContainer;
+
 
 ////DECLARE CLASS ELEMENTS////
 
@@ -230,7 +232,7 @@ class QwGUIEventDisplay : public QwGUISubSystem { // copied from QwEventDisplay.
 #define R3_ANGLE 26.57 // 90-26.57 (which is the wire angle)
 
  public:
-  //  RQ_OBJECT("QwEventDisplay")
+  RQ_OBJECT("QwGUIEventDisplay")
 
   UInt_t fEventNumber; // keeps track of the current event number on display
   // Trees
@@ -313,23 +315,23 @@ class QwGUIEventDisplay : public QwGUISubSystem { // copied from QwEventDisplay.
   // Region 3 (TS) declarations
   TGCompositeFrame *fRegion3TS;
 
-  // create event buffer
-  QwTreeEventBuffer* fEventBuffer; //!      // excluded from dictionary
-  QwSubsystemArrayTracking* fSubsystemArray;  //!
-
   // create hit list
   QwHitContainer* fHitList; //!
+  QwHitRootContainer* fHitRootList; //!
 
   // Trees
   TTree* fTree;
 
-  void HandleMenu(Int_t id);
+  std::vector<const char*> fRootTrees;
+
+ public:
+  //  void HandleMenu(Int_t id);
   void GoPrevious();
   void GoNext();
   void GoClear();
   void GotoEvent();
   void DrawEvent();
-  void DrawFit();
+  //  void DrawFit();
 
  protected:
 
@@ -349,8 +351,6 @@ class QwGUIEventDisplay : public QwGUISubSystem { // copied from QwEventDisplay.
 		    const char *objName, const char *mainname, UInt_t w, UInt_t h);
   ~QwGUIEventDisplay();
 
-  void SetEventBuffer(QwTreeEventBuffer *eventbuffer) { fEventBuffer = eventbuffer; };
-  void SetSubsystemArray(QwSubsystemArrayTracking *subsystemarray) { fSubsystemArray = subsystemarray; };
 
   //!Overwritten virtual function from QwGUISubSystem::OnNewDataContainer(). This function retrieves
   //!four histograms from the ROOT file that is contained within the data container makes copies of
