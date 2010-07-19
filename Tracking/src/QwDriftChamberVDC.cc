@@ -469,6 +469,54 @@ Int_t QwDriftChamberVDC::BuildWireDataStructure ( const UInt_t chan, const UInt_
 };
 
 
+Int_t QwDriftChamberVDC::AddChannelDefinition()
+{
+  bool temp_local_debug = false;
+//   if (temp_local_debug){
+//     std::cout << " QwDriftChamberHDC::AddChannelDefinition"<<std::endl;
+//     std::cout << "plane " << plane << " wire " << wire << std::endl;
+//   }
+  
+  std::size_t i =0;
+    
+  fWireData.resize(fWiresPerPlane.size());
+  for (i=0; i<fWiresPerPlane.size(); i++){
+    if(temp_local_debug){
+      std::cout << "wire #" << i 
+		<< " " << fWiresPerPlane.at(i)
+		<< std::endl;
+    }
+    fWireData.at(i).resize(fWiresPerPlane.at(i));
+  }
+  
+  Int_t mytdc = 0;
+  for ( i=0; i<fTDC_Index.size(); i++){
+    for (size_t j=0; j<fTDC_Index.at(i).size(); j++){
+      mytdc = fTDC_Index.at(i).at(j);
+      if (mytdc not_eq -1){
+	for (size_t k=0; k<fTDCPtrs.at(mytdc).size(); k++){
+	  //	  Int_t package = fTDCPtrs.at(mytdc).at(k).fPackage;
+	  Int_t plane   = fTDCPtrs.at(mytdc).at(k).fPlane;
+	  if (( plane>0) and (plane not_eq (Int_t) kReferenceChannelPlaneNumber) ){
+	    Int_t wire  = fTDCPtrs.at(mytdc).at(k).fElement;
+	    fWireData.at(plane).at(wire).SetElectronics(i,j,k);
+	    if(temp_local_debug) {
+	      std::cout << "mytdc " << mytdc
+			<< "wire #" << wire 
+			<< " plane  " << plane
+			<< " (i j k) (" << i  <<" " << j << " "<< k << ")"
+			<< std::endl;
+	    }
+	  }
+	}
+      }
+    }
+  }
+  std::cout << " QwDriftChamberHDC::AddChannelDefinition END"<<std::endl;
+  return OK;
+}
+
+
 void  QwDriftChamberVDC::FillHistograms()
 {
 
