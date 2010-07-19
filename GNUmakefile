@@ -638,8 +638,8 @@ config: .ADD .EXES clean.auxfiles .auxDepends qweak-config
 	@$(ECHO) $(EXES)  | $(TO_LINE) > .EXES
 
 myevio_lib:
-	cd $(EVIO); $(MAKE) libmyevio$(DllSuf)
-	$(CP) $(EVIO)/libmyevio$(DllSuf) $(QW_LIB)/libmyevio$(DllSuf)
+	$(MAKE) -C $(EVIO) libmyevio$(DllSuf)
+	$(CP) -p $(EVIO)/libmyevio$(DllSuf) $(QW_LIB)/libmyevio$(DllSuf) 
 
 .auxDepends: .auxLibFiles
 	@$(ECHO) Generating .auxLibFiles
@@ -657,7 +657,7 @@ myevio_lib:
 	@$(ECHO) >> .auxDepends
 	@for file in `$(CAT) 2>&1 .auxMainFiles`; \
 	do \
-	$(ECHO) $(QW_BIN)/`$(ECHO) $$file | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`: `$(ECHO) $$file | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/'` `$(CAT) .auxLibFiles`  | $(INTO_RELATIVE_PATH) >> .auxDepends; \
+	$(ECHO) $(QW_BIN)/`$(ECHO) $$file | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`: `$(ECHO) $$file | $(SED) 's/\$(SrcSuf)/\$(ObjSuf)/'` `$(CAT) .auxLibFiles` $(QW_LIB)/libmyevio$(DllSuf)  | $(INTO_RELATIVE_PATH) >> .auxDepends; \
 	$(ECHO) $(TAB)$(LD) $(CXXFLAGS) '$$<' $(LIBS) $(LDFLAGS) -o '$$@' | $(INTO_RELATIVE_PATH) >> .auxDepends; \
 	$(ECHO) $(TAB)@$(ECHO) >> .auxDepends; \
 	$(ECHO) >> .auxDepends; \
