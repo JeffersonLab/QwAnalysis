@@ -502,6 +502,96 @@ Compton_eDet_Accum_Plane3	TH1F	96	0	95	Strips	Hits
 Compton_eDet_Evt_Raw_Plane3	TH1F	96	0	95	Strips	Hits
 Compton_eDet_Evt_Plane3		TH1F	96	0	95	Strips	Hits
 
+### Halo monitor histograms
+qwk_bad_s2ch3			TH1F
+qwk_empty_s2ch16		TH1F
+qwk_empty_s2ch17		TH1F
+qwk_bad_s2ch23			TH1F
+qwk_halo10			TH1F
+qwk_empty_s2ch27		TH1F
+qwk_empty_s2ch28		TH1F
+qwk_empty_s2ch29		TH1F
+qwk_empty_s2ch30		TH1F
+
+yield_qwk_bad_s2ch3		TH1F
+yield_qwk_empty_s2ch16		TH1F
+yield_qwk_empty_s2ch17		TH1F
+yield_qwk_bad_s2ch23		TH1F
+yield_qwk_halo10		TH1F
+yield_qwk_empty_s2ch27		TH1F
+yield_qwk_empty_s2ch28		TH1F
+yield_qwk_empty_s2ch29		TH1F
+yield_qwk_empty_s2ch30		TH1F
+
+asym_qwk_bad_s2ch3		TH1F
+asym_qwk_empty_s2ch16		TH1F
+asym_qwk_empty_s2ch17		TH1F
+asym_qwk_bad_s2ch23		TH1F
+asym_qwk_halo10			TH1F
+asym_qwk_empty_s2ch27		TH1F
+asym_qwk_empty_s2ch28		TH1F
+asym_qwk_empty_s2ch29		TH1F
+asym_qwk_empty_s2ch30		TH1F
+
+### Lumi scaler histograms
+qwk_dslumi1_sc			TH1F
+qwk_dslumi2_sc			TH1F
+qwk_dslumi3_sc			TH1F
+qwk_dslumi4_sc			TH1F
+qwk_dslumi5_sc			TH1F
+qwk_dslumi6_sc			TH1F
+qwk_dslumi7_sc			TH1F
+qwk_dslumi8_sc			TH1F
+
+yield_qwk_dslumi1_sc		TH1F
+yield_qwk_dslumi2_sc		TH1F
+yield_qwk_dslumi3_sc		TH1F
+yield_qwk_dslumi4_sc		TH1F
+yield_qwk_dslumi5_sc		TH1F
+yield_qwk_dslumi6_sc		TH1F
+yield_qwk_dslumi7_sc		TH1F
+yield_qwk_dslumi8_sc		TH1F
+
+asym_qwk_dslumi1_sc		TH1F
+asym_qwk_dslumi2_sc		TH1F
+asym_qwk_dslumi3_sc		TH1F
+asym_qwk_dslumi4_sc		TH1F
+asym_qwk_dslumi5_sc		TH1F
+asym_qwk_dslumi6_sc		TH1F
+asym_qwk_dslumi7_sc		TH1F
+asym_qwk_dslumi8_sc		TH1F
+
+qwk_uslumi1neg_sc		TH1F
+qwk_uslumi1pos_sc		TH1F
+qwk_uslumi3neg_sc		TH1F
+qwk_uslumi3pos_sc		TH1F
+qwk_uslumi5neg_sc		TH1F
+qwk_uslumi5pos_sc		TH1F
+qwk_uslumi7neg_sc		TH1F
+qwk_uslumi7pos_sc		TH1F
+
+yield_qwk_uslumi1neg_sc		TH1F
+yield_qwk_uslumi1pos_sc		TH1F
+yield_qwk_uslumi3neg_sc		TH1F
+yield_qwk_uslumi3pos_sc		TH1F
+yield_qwk_uslumi5neg_sc		TH1F
+yield_qwk_uslumi5pos_sc		TH1F
+yield_qwk_uslumi7neg_sc		TH1F
+yield_qwk_uslumi7pos_sc		TH1F
+
+asym_qwk_uslumi1neg_sc		TH1F
+asym_qwk_uslumi1pos_sc		TH1F
+asym_qwk_uslumi3neg_sc		TH1F
+asym_qwk_uslumi3pos_sc		TH1F
+asym_qwk_uslumi5neg_sc		TH1F
+asym_qwk_uslumi5pos_sc		TH1F
+asym_qwk_uslumi7neg_sc		TH1F
+asym_qwk_uslumi7pos_sc		TH1F
+
+### clock scaler histos
+qwk_s0ch..			TH1F
+yield_qwk_s0ch..		TH1F
+asym_qwk_s0ch..			TH1F
 
 ###########################################
 #  Adding some fully wildcarded histogram names.
