@@ -117,7 +117,6 @@ class QwMainDetector: public VQwSubsystemTracking {
 
  protected:
   static const UInt_t kMaxNumberOfModulesPerROC;
-  static const UInt_t kMaxNumberOfChannelsPerModule;
 
   Int_t fNumberOfModules;
 
@@ -130,6 +129,12 @@ class QwMainDetector: public VQwSubsystemTracking {
   std::vector<QwSIS3801_Module*> fSCAs;
 
   std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
+
+  // For reference time substraction
+  Int_t reftime_slotnum;
+  Int_t reftime_channum;
+  Double_t reftime;
+
 };
 
 #endif

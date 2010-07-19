@@ -110,7 +110,6 @@ class QwTriggerScintillator: public VQwSubsystemTracking {
 
  protected:
   static const UInt_t kMaxNumberOfModulesPerROC;
-  static const UInt_t kMaxNumberOfChannelsPerModule;
 
   Int_t fNumberOfModules;
 

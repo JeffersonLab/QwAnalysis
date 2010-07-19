@@ -151,7 +151,7 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
 {
   TString varname, varvalue;
   TString modtype, dettype, name;
-  Int_t modnum, channum;
+  Int_t modnum=0, channum=0, slotnum=0;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine())
@@ -188,6 +188,7 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
           else if (varname=="slot")
             {
               RegisterSlotNumber(value);
+              slotnum=value;
             }
         }
       else
@@ -202,7 +203,6 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
           //  Push a new record into the element array
           if (modtype=="SIS3801")
             {
-              //std::cout<<"modnum="<<modnum<<"    "<<"fSCAs.size="<<fSCAs.size()<<std::endl;
               if (modnum >= (Int_t) fSCAs.size())  fSCAs.resize(modnum+1);
               if (! fSCAs.at(modnum)) fSCAs.at(modnum) = new QwSIS3801_Module();
               fSCAs.at(modnum)->SetChannel(channum, name);
@@ -237,9 +237,12 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
               << std::endl;
             }
         }
+      if (name=="MD_reftime_f1") {
+            reftime_slotnum = slotnum;
+            reftime_channum = channum;
+      }
     }
-  //
-  ReportConfiguration();
+  //ReportConfiguration();
   return 0;
 };
 
@@ -398,8 +401,12 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 		  if ( fF1TDC.IsValidDataword() )
 		    {
 		      try {
-			FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());
-			fF1TDC.PrintTDCData(temp_print_flag);
+			    FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());
+			    fF1TDC.PrintTDCData(temp_print_flag);
+
+			    if (tdc_slot_number == reftime_slotnum && tdc_chan_number == reftime_channum)
+			      reftime = fF1TDC.GetTDCData();
+
 		      }
 		      catch (std::exception& e) {
 			std::cerr << "Standard exception from QwMainDetector::FillRawTDCWord: "
@@ -411,9 +418,9 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 				  << std::endl;
 		      }
 		    }
-		}
+		   }
 	    }//; if(data_integrity_flag)
-        }
+      }
     }
 
 
@@ -449,24 +456,27 @@ void  QwMainDetector::ProcessEvent()
 {
   if (! HasDataLoaded()) return;
 
+  TString elementname = "";
+  Double_t rawtime = 0.0;
 
-  for (size_t i=0; i<fPMTs.size(); i++)
-    {
-      for (size_t j=0; j<fPMTs.at(i).size(); j++)
-        {
+
+  for (size_t i=0; i<fPMTs.size(); i++){
+      for (size_t j=0; j<fPMTs.at(i).size(); j++){
           fPMTs.at(i).at(j).ProcessEvent();
+          elementname = fPMTs.at(i).at(j).GetElementName();
+          rawtime = fPMTs.at(i).at(j).GetValue();
+          if (elementname.EndsWith("f1") && rawtime!=0) {
+                  Double_t newdata = fF1TDC.ActualTimeDifference(rawtime, reftime);
+                  fPMTs.at(i).at(j).SetValue(newdata);
+          }
+      }
+  }
 
-        }
-    }
-
-  for (size_t i=0; i<fSCAs.size(); i++)
-    {
-      if (fSCAs.at(i) != NULL)
-        {
+  for (size_t i=0; i<fSCAs.size(); i++){
+      if (fSCAs.at(i) != NULL){
           fSCAs.at(i)->ProcessEvent();
-        }
+      }
     }
-
 };
 
 
