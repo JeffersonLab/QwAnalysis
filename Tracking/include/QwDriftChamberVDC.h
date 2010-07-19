@@ -41,7 +41,7 @@ class QwDriftChamberVDC: public QwDriftChamber {
   Int_t LoadGeometryDefinition(TString mapfile );
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   void  PrintConfigrationBuffer(UInt_t *buffer, UInt_t num_words);
-  Double_t CalculateDriftDistance2(Double_t drifttime, QwDetectorID detector);
+  
 
 
   // VDC
@@ -64,7 +64,7 @@ class QwDriftChamberVDC: public QwDriftChamber {
   void  FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
   Int_t AddChannelDefinition() {return 0;};
   Int_t BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire);
-
+  Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
 
   // VDC
   void GetHitList(QwHitContainer & grandHitContainer)

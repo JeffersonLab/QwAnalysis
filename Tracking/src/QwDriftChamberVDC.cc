@@ -284,7 +284,7 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
 }
 
 
-Double_t  QwDriftChamberVDC::CalculateDriftDistance2(Double_t drifttime, QwDetectorID detector)
+Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)
 {
   Double_t angle_degree = 45.0; 
   Double_t distance_mm = 0.0;
@@ -771,7 +771,7 @@ void QwDriftChamberVDC::ProcessEvent()
   }
   ApplyTimeCalibration();
   SubtractWireTimeOffset();
-  CalculateDriftDistance();
+  FillDriftDistanceToHits();
 };
 
 

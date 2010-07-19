@@ -207,10 +207,11 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
   }
 };
 
-Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector){
+Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)
+{
   //0.00545449393  0.0668865488  0.000352462179 -2.00383196E-05  3.57577417E-07  -2.82802562E-09  7.89009965E-12
   Double_t dt_ = 0.12 * (drifttime-trig_h1 + 933.0);
-  Double_t dd_;
+  Double_t dd_ = 0.0;
 
   dd_ = 0.00545449393
       + 0.0668865488 * dt_
@@ -350,12 +351,12 @@ void  QwDriftChamberHDC::ProcessEvent()
       QwDetectorInfo* local_info = & fDetectorInfo.at(package).at(plane);
       hit1->SetDetectorInfo(local_info);
 
-      hit1->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));
+      //     hit1->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));
 
     //}
-
   }
-
-
+  
+  FillDriftDistanceToHits();
+  
 
 };

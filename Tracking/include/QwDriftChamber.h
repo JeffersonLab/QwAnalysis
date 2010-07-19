@@ -76,13 +76,11 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
   /* Unique member functions */
   virtual void  ReportConfiguration() = 0;
-
   virtual void  SubtractReferenceTimes() = 0;
 
-
-  void  CalculateDriftDistance();
-
-  virtual Double_t CalculateDriftDistance2(Double_t drifttime, QwDetectorID detector)=0;
+  void  FillDriftDistanceToHits();
+ 
+ 
 
 
   virtual  void GetHitList(QwHitContainer & grandHitContainer)
@@ -107,17 +105,11 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   Int_t LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire);
   virtual Int_t BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire)=0;
   //  virtual Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire)= 0;
+
   virtual Int_t AddChannelDefinition() = 0;
-
-
-
- protected:
   virtual void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data) = 0;
-
-
-
-
- protected:
+  virtual Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)=0;
+  
   void  ClearAllBankRegistrations();
   Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);
 
