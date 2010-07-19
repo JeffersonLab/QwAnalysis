@@ -4,14 +4,14 @@
 !Global switch to turn ON and OFF eventcut check
 !Available settings
 !To turn OFF all checks
-EVENTCUTS = 0 
+!EVENTCUTS = 0 
 !To turn OFF event cuts and perform only HW checks
 !EVENTCUTS = 1
 !To turn ON both event cuts and HW checks
 !EVENTCUTS = 2
 !To turn do both event cuts and HW checks and only flag event cut failed events
-!EVENTCUTS = 3
-!EVENTCUTS = 1 
+EVENTCUTS = 3
+EVENTCUTS = 1 
 
 !for bcm devices
 !device_type, device_name, lower limit, upper limit
@@ -21,7 +21,7 @@ EVENTCUTS = 0
 !bcm, empty1, 		0, 	0
 !bcm, empty2, 		0, 	0
  
-!bcm, qwk_batext1, 	0, 	0
+!bcm, qwk_batext1, 	1, 	2
 
 !bcm, qwk_batext2,  	0, 	0
 !for 752 & 755 
@@ -44,12 +44,9 @@ EVENTCUTS = 0
 !bpmstripline, qwk_qpd, rely, 1.31491, 	2.19152
 
 !bpmstripline, qwk_1i02, absx,  10, 	100000 
-!bpmstripline, qwk_1i02, xp,  1, 	3 
-!bpmstripline, qwk_1i02, yp,  10, 	20 
+!bpmstripline, qwk_1i02, xm,  1, 	3 
+!bpmstripline, qwk_1i02, ym,  10, 	20 
 !bpmstripline, qwk_1i04, relx, 0, 	0	
-!bpmstripline, qwk_1i06, relx, 0, 	0
-!bpmstripline, qwk_0i02, relx, 0, 	0
-!bpmstripline, qwk_0i02a, relx, 0, 	0
 !bpmstripline, qwk_0i05, relx, 0, 	0
 !bpmstripline, qwk_0i07, relx, 0, 	0
 !bpmstripline, qwk_0l01, relx, 0, 	0
@@ -66,6 +63,14 @@ EVENTCUTS = 0
 !bpmstripline, qwk_0r02, relx, 0, 	0
 !bpmstripline, qwk_0r05, relx, 0, 	0
 !bpmstripline, qwk_0r06, relx, 0, 	0
+
+!for bpmcavity devices
+!device_type, device_name, channel_name, lower limit, upper limit
+!channel_name can be x, y, q, relx, rely, absx, absy
+!Cuts are applied after the VQwSubsystem::ProcessEvent() routine. So pedestals are applied before appyling the cuts.
+!bpmcavity, qwk_3c08, x, 1, 10
+!bpmcaivty, qwk_3c08, x, 1, 10
+!bpmcavity, qwk_3c08, x, 1, 10
 
 !for combined bpm devices 
 !device_type, device_name, channel_name, lower limit, upper limit

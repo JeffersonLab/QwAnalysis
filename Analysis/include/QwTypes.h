@@ -59,7 +59,7 @@ enum EQwPMTInstrumentType {
   kQwCombinedPMT	// Combined PMT
 };
 
-static const Int_t kBeamDevTypes = 7;
+static const Int_t kBeamDevTypes = 8;
 enum EQwBeamInstrumentType{
   kQwUnknownDeviceType,
   kQwBPMStripline,
@@ -67,7 +67,8 @@ enum EQwBeamInstrumentType{
   kQwCombinedBCM,
   kQwCombinedBPM,
   kQwEnergyCalculator,
-  kQwHaloMonitor
+  kQwHaloMonitor,
+  kQwBPMCavity
 };
 
 EQwPMTInstrumentType GetQwPMTInstrumentType(TString name);
