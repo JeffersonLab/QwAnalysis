@@ -175,6 +175,7 @@
 #endif
 
 #include "TMath.h"
+//#include "RDataContainer.h"
 
 ////C++ STANDARD////
 #include "Riostream.h"
@@ -226,6 +227,7 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
   RQ_OBJECT("QwEventDisplay")
 
   UInt_t fEventNumber; // keeps track of the current event number on display
+  UInt_t fTreeEntries; // counts the number of events in the file hits tree
 
  private:  // Frames
   TGMainFrame *fMain; // mainframe window
@@ -311,6 +313,12 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
 
   // create hit list
   QwHitContainer* fHitList; //!
+
+  // Trees
+  TTree* fTree;
+
+  //  // Data Container
+  //  RDataContainer *dRootCont;
 
  public:
   QwEventDisplay(const TGWindow *p, UInt_t w, UInt_t h);

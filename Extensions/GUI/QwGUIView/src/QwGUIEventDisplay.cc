@@ -578,7 +578,7 @@ void QwGUIEventDisplay::MakeLayout()
    fRegion3->AddFrame(fRegion3YZ, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion3YZ->MoveResize(306,4,280,280);
    fRegion3YZ->GetCanvas()->SetFillColor(0);
-   Label_R3YZ = new TPaveLabel(.03,.94,.97,.99,"Top View (Y-Z Projection)"); // create canvas label
+   Label_R3YZ = new TPaveLabel(.03,.94,.97,.99,"Top View (Y-Z Projection Viewed at Tilt Angle)"); // create canvas label
    Label_R3YZ->Draw();
    Box_R3YZ1 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .65-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .65+(R3_DEPTH*R3_CM*.5)); // create box for chamber 1
    Box_R3YZ1->SetLineColor(1);
@@ -621,7 +621,7 @@ void QwGUIEventDisplay::MakeLayout()
    fRegion3->AddFrame(fRegion3XZ, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion3XZ->MoveResize(603,4,280,280);
    fRegion3XZ->GetCanvas()->SetFillColor(0);
-   Label_R3XZ = new TPaveLabel(.03,.94,.97,.99,"Side View (X-Z Projection)"); // create canvas label
+   Label_R3XZ = new TPaveLabel(.03,.94,.97,.99,"Side View (X-Z Projection Viewed at Tilt Angle)"); // create canvas label
    Label_R3XZ->Draw();
    Box_R3XZ1 = new TBox(.5-(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .65-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .65+(R3_LENGTH*R3_CM*.5)); // create box for chamber 1 // incorporate X and Y shift (ROOT coord)
    Box_R3XZ1->SetLineColor(1);
@@ -967,10 +967,19 @@ void QwGUIEventDisplay::GoNext()
   DrawEvent();  // update display information
 }
 
-void QwGUIEventDisplay::DrawEvent()
+int QwGUIEventDisplay::DrawEvent()
 {
 
   printf("Drawing event %d...\n", fEventNumber);
+
+  // catch to keep from attempting to draw events outside the number of entries
+  if (fEventNumber > fTree->GetEntries()){
+    printf("Draw error: There are only %d entries.\n", fTree->GetEntries());
+    fEventNumber = 0;
+    GoClear();
+    printf("Returned to null event.\n");
+    return 0;
+  }
 
   fRegion1XY->GetCanvas()->SetEditable(kTRUE);  // restore editing capability
   fRegion1XZ->GetCanvas()->SetEditable(kTRUE);
@@ -1871,6 +1880,8 @@ void QwGUIEventDisplay::DrawEvent()
     }
   fRegion3XZ->GetCanvas()->SetEditable(kFALSE);
   fRegion3XZ->GetCanvas()->Update();
+
+  return 0;
 }
 
 void QwGUIEventDisplay::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)

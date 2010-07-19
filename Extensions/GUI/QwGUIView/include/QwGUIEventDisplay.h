@@ -322,7 +322,7 @@ class QwGUIEventDisplay : public QwGUISubSystem { // copied from QwEventDisplay.
   // Trees
   TTree* fTree;
 
-  std::vector<const char*> fRootTrees;
+  //  std::vector<const char*> fRootTrees;
 
  public:
   //  void HandleMenu(Int_t id);
@@ -330,7 +330,7 @@ class QwGUIEventDisplay : public QwGUISubSystem { // copied from QwEventDisplay.
   void GoNext();
   void GoClear();
   void GotoEvent();
-  void DrawEvent();
+  int DrawEvent();
   //  void DrawFit();
 
  protected:
