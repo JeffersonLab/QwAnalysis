@@ -1,17 +1,13 @@
 
-!**************************************************************************
-! INJECTOR BEAMLINE
-!**************************************************************************
-!
-
 ROC=31
 Bank=0x3102
-
 !same sample size for ADCs in a given bank
-sample_size=400
+sample_size=4000
 !
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
+
+
 !ADC0
     VQWK, 0, 0,  bpmstripline,  QWK_QPDXP
     VQWK, 0, 1,  bpmstripline,  QWK_QPDYP
@@ -132,9 +128,30 @@ sample_size=400
     VQWK, 11, 4,  bcm,  QWK_BCM0L02
     VQWK, 11, 5,  bcm,  QWK_Batery6
     VQWK, 11, 6,  bcm,  QWK_Batery7
-    VQWK, 11, 7,  bcm,  PhaseMonitor
+    VQWK, 11, 7,   bcm,  PhaseMonitor
 
-!END
+!beginCOMBO=combinedbcm
+!name = qwk_average_charge
+!name		wieght
+! QWK_BCM0L02,  1.0
+! empty1,  0.8
+! QWK_Batery7, 0.9
+!endCOMBO=combinedbcm
 
+!beginCOMBO=combinedbcm
+!name = qwk_region1_charge
+!name		wieght
 
+ !QWK_Batery6, 0.1
+ !QWK_Batery7, 0.9
+!endCOMBO=combinedbcm
 
+!beginCOMBO=combinedbpm
+!name = qwk_target
+!name	    q      x     y    
+! QWK_1I02,  0.9,  0.5,  0.1
+! QWK_1I04,  1.0,  0.1,  0.5
+! QWK_0I02,  1.0,  0.1,  0.5
+ !QWK_0I02,  1.0,  0.1,  0.5
+ !QWK_0I05,  1.0,  0.1,  0.5
+!endCOMBO=combinedbpm

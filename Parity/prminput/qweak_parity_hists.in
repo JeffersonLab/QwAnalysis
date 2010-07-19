@@ -462,6 +462,9 @@ scanner_pos_y_adc		TH1F	4096	0.5		4096.5			pos_y_adc	Events
 
 scanner_front_tdc		TH1F	4096	0.5		4096.5			front_tdc	Events
 scanner_back__tdc		TH1F	4096	0.5		4096.5			back__tdc	Events
+scanner_front_f1		TH1F	4096	0.5		4096.5			front_f1	Events
+scanner_back__f1		TH1F	4096	0.5		4096.5			back__f1	Events
+scanner_coinc_f1		TH1F	4096	0.5		4096.5			coinc_f1	Events
 
 scanner_front_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
 scanner_back__sca		TH1F	1500	0.5		1500.5			rate[kps]	Events

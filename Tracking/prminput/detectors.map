@@ -1,6 +1,10 @@
 # Definition of the tracking detectors
 # this is the preamble
 
+[QwFakeHelicity]
+ name = Helicity Info
+ map = qweak_helicity.map
+
 [QwGasElectronMultiplier]
  name = R1
  map = qweak_R1.map

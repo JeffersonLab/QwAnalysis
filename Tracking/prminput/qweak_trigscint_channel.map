@@ -8,25 +8,24 @@ qdc_bank=0x0402
 slot=1
 module=V792
 ! module.type  module.num  chan.num, det.type, det.name
-  V792, 1, 24, R3trigscint, TS_1R_adc
-  V792, 1, 26, R3trigscint, TS_1L_adc
-  V792, 1, 28, R3trigscint, TS_2R_adc
-  V792, 1, 30, R3trigscint, TS_2L_adc
+  V792, 1, 24, trigscint, TS_1R_adc
+  V792, 1, 26, trigscint, TS_1L_adc
+  V792, 1, 28, trigscint, TS_2R_adc
+  V792, 1, 30, trigscint, TS_2L_adc
 !
 f1tdc_bank=0x0401
 slot=4
 module=F1TDC
 ! module.type  module.num  chan.num, det.type, det.name
-  F1TDC, 4, 0, R3trigscint, TS_1R_f1
-  F1TDC, 4, 2, R3trigscint, TS_1L_f1
-  F1TDC, 4, 4, R3trigscint, TS_2R_f1
-  F1TDC, 4, 6, R3trigscint, TS_2L_f1
-  F1TDC, 4, 12, R3trigscint, TS_1MT_f1
-  F1TDC, 4, 14, R3trigscint, TS_2MT_f1
+  F1TDC, 4, 0, trigscint, TS_1R_f1
+  F1TDC, 4, 2, trigscint, TS_1L_f1
+  F1TDC, 4, 4, trigscint, TS_2R_f1
+  F1TDC, 4, 6, trigscint, TS_2L_f1
+  F1TDC, 4, 12, trigscint, TS_1MT_f1
+  F1TDC, 4, 14, trigscint, TS_2MT_f1
+
+slot=6
+  F1TDC, 6, 23, trigscint, TS_reftime_f1
 
 !END
 
-
-!!time reference signal
-!slot=6
-!0 99 24
