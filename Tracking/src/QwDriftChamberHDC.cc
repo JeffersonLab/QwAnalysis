@@ -179,8 +179,8 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
   for (size_t i=0; i<fReferenceData.size(); i++){
     if (fReferenceData.at(i).size()==0){
       //  There isn't a reference time!
-      QwWarning << "QwDriftChamber::SubtractReferenceTimes:  Subbank ID "
-		<< i << " is missing a reference time." << QwLog::endl;
+      QwWarning << "QwDriftChamber:HDC:SubtractReferenceTimes:  Subbank ID "
+      << i << " is missing a reference time." << QwLog::endl;
       refs_okay = kFALSE;
     } else {
       reftimes.at(i) = fReferenceData.at(i).at(0);
@@ -360,3 +360,86 @@ void  QwDriftChamberHDC::ProcessEvent()
 
 
 };
+
+
+Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
+{
+    TString varname, varvalue;
+    UInt_t  chan, package, plane, wire, direction, DIRMODE;
+    wire = plane = package = 0;
+    DIRMODE=0;
+
+
+    fDirectionData.resize(2);//currently we have 2  package - Rakitha (10/23/2008)
+    fDirectionData.at(0).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
+    fDirectionData.at(1).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
+
+    QwParameterFile mapstr(mapfile.Data());  //Open the file
+
+    while (mapstr.ReadNextLine()) {
+        mapstr.TrimComment('!');   // Remove everything after a '!' character.
+        mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+        if (mapstr.LineIsEmpty())  continue;
+
+        if (mapstr.HasVariablePair("=",varname,varvalue)) {
+            //  This is a declaration line.  Decode it.
+            varname.ToLower();
+            UInt_t value = QwParameterFile::GetUInt(varvalue);
+	    if (value ==0){
+	      value = atol(varvalue.Data());
+	    }
+            if (varname=="roc") {
+	      RegisterROCNumber(value,0);
+	      DIRMODE=0;
+	    } 
+	    else if (varname=="bank") {
+              RegisterSubbank(value);
+	      DIRMODE=0;
+	    } 
+	    else if (varname=="pkg") {
+	      //this will identify the coming sequence is wire plane to direction mapping - Rakitha
+	      DIRMODE=1;
+	      package=value;
+            }
+	    else if (varname=="slot") {
+	      RegisterSlotNumber(value);
+	      DIRMODE=0;
+            } 
+	    
+        } 
+	else if (DIRMODE==0) {
+	  //  Break this line into tokens to process it.
+	  chan    = (atol(mapstr.GetNextToken(", ").c_str()));
+	  //package = 1;
+	  plane   = (atol(mapstr.GetNextToken(", ").c_str()));
+	  wire    = (atol(mapstr.GetNextToken(", ").c_str()));
+	  
+	  // VDC and HDC
+	  BuildWireDataStructure(chan, package, plane, wire);
+	  
+        } 
+	else if (DIRMODE==1) {
+	  //this will decode the wire plane directions - Rakitha
+	  plane     = (atol(mapstr.GetNextToken(", ").c_str()));
+	  direction = (atol(mapstr.GetNextToken(", ").c_str()));
+	  fDirectionData.at(package-1).at(plane-1)=direction;
+        }
+	
+    }
+    
+   
+
+
+    //  Construct the wire data structures.
+    AddChannelDefinition();
+
+    /*
+    for (size_t i=0; i<fDirectionData.at(0).size(); i++){
+    std::cout<<"Direction data Plane "<<i+1<<" "<<fDirectionData.at(0).at(i)<<std::endl;
+    }
+    */
+    //
+    ReportConfiguration();
+    return OK;
+};
+

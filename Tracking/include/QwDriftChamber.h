@@ -48,7 +48,7 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   /*  Member functions derived from VQwSubsystem. */
 
 
-  Int_t LoadChannelMap(TString mapfile );
+  virtual Int_t LoadChannelMap(TString mapfile ) = 0;
   //LoadGeometryDefinition will load QwDetectorInfo vector from a map file
   //Currently this method is specific to each region
   virtual Int_t LoadGeometryDefinition(TString mapfile )=0;
@@ -111,8 +111,8 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   virtual Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)=0;
   
   void  ClearAllBankRegistrations();
-  Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);
-
+  Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id=0);
+  Int_t RegisterSubbank(const UInt_t bank_id);
   Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
 
 
@@ -151,6 +151,12 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   std::vector< std::pair<Int_t, Int_t> > fReferenceChannels;  
   // reference chans number <first:tdc_index, second:channel_number>
   // fReferenceChannels[tdc_index,channel_number][ num of [tdc,chan] set]
+  std::vector< std::vector<Double_t> > fReferenceData; 
+  // wire number  < reference time > 
+  // we use a wire number of QwHit to save a bank id of a reference time.
+  // thus, for fReferenceData, the wire (fElement) is the same as
+  // its bankid. Therefore we can use  fReferenceData[bankid][reference time]
+
 
   std::vector< QwHit > fTDCHits;
   std::vector< QwHit > &fWireHits;
@@ -162,9 +168,7 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   //         When you're creating loops, just be careful that
   //         you don't try to use the first (zero-th) element
   //         of either index.
-  std::vector< std::vector<Double_t> > fReferenceData; 
-  // wire number < reference time > 
-  // fReferenceData[reference time][wire number]
+
 
 
   /*=====

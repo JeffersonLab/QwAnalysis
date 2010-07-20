@@ -60,82 +60,86 @@ QwDriftChamber::QwDriftChamber(TString region_tmp)
 
 
 
-Int_t QwDriftChamber::LoadChannelMap(TString mapfile)
-{
-    TString varname, varvalue;
-    UInt_t  chan, package, plane, wire, direction, DIRMODE;
-    wire = plane = package = 0;
-    DIRMODE=0;
+// Int_t QwDriftChamber::LoadChannelMap(TString mapfile)
+// {
+//     TString varname, varvalue;
+//     UInt_t  chan, package, plane, wire, direction, DIRMODE;
+//     wire = plane = package = 0;
+//     DIRMODE=0;
 
 
-    fDirectionData.resize(2);//currently we have 2  package - Rakitha (10/23/2008)
-    fDirectionData.at(0).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
-    fDirectionData.at(1).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
+//     fDirectionData.resize(2);//currently we have 2  package - Rakitha (10/23/2008)
+//     fDirectionData.at(0).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
+//     fDirectionData.at(1).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
 
-    QwParameterFile mapstr(mapfile.Data());  //Open the file
+//     QwParameterFile mapstr(mapfile.Data());  //Open the file
 
-    while (mapstr.ReadNextLine()) {
-        mapstr.TrimComment('!');   // Remove everything after a '!' character.
-        mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
-        if (mapstr.LineIsEmpty())  continue;
+//     while (mapstr.ReadNextLine()) {
+//         mapstr.TrimComment('!');   // Remove everything after a '!' character.
+//         mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+//         if (mapstr.LineIsEmpty())  continue;
 
-        if (mapstr.HasVariablePair("=",varname,varvalue)) {
-            //  This is a declaration line.  Decode it.
-            varname.ToLower();
-            UInt_t value = QwParameterFile::GetUInt(varvalue);
-	    if (value ==0){
-	      value = atol(varvalue.Data());
-	    }
-            if (varname=="roc") {
-	      RegisterROCNumber(value,0);
-                DIRMODE=0;
-	    } else if (varname=="bank") {
-              RegisterSubbank(value);
-	      DIRMODE=0;
-	    } else if (varname=="slot") {
-                RegisterSlotNumber(value);
-                DIRMODE=0;
-            } else if (varname=="pkg") {
-                //this will identify the coming sequence is wire plane to direction mapping - Rakitha
-                DIRMODE=1;
-                package=value;
-            }
-        } else if (DIRMODE==0) {
-            //  Break this line into tokens to process it.
-            chan    = (atol(mapstr.GetNextToken(", ").c_str()));
-            package = 1;
-            plane   = (atol(mapstr.GetNextToken(", ").c_str()));
-            wire    = (atol(mapstr.GetNextToken(", ").c_str()));
-
-	    // VDC and HDC
-            BuildWireDataStructure(chan, package, plane, wire);
-	    
-        } else if (DIRMODE==1) {
-            //this will decode the wire plane directions - Rakitha
-            plane     = (atol(mapstr.GetNextToken(", ").c_str()));
-            direction = (atol(mapstr.GetNextToken(", ").c_str()));
-            fDirectionData.at(package-1).at(plane-1)=direction;
-        }
-
-    }
-
+//         if (mapstr.HasVariablePair("=",varname,varvalue)) {
+//             //  This is a declaration line.  Decode it.
+//             varname.ToLower();
+//             UInt_t value = QwParameterFile::GetUInt(varvalue);
+// 	    if (value ==0){
+// 	      value = atol(varvalue.Data());
+// 	    }
+//             if (varname=="roc") {
+// 	      RegisterROCNumber(value,0);
+// 	      DIRMODE=0;
+// 	    } 
+// 	    else if (varname=="bank") {
+//               RegisterSubbank(value);
+// 	      DIRMODE=0;
+// 	    } 
+// 	    else if (varname=="slot") {
+// 	      RegisterSlotNumber(value);
+// 	      DIRMODE=0;
+//             } 
+// 	    else if (varname=="pkg") {
+// 	      //this will identify the coming sequence is wire plane to direction mapping - Rakitha
+// 	      DIRMODE=1;
+// 	      package=value;
+//             }
+//         } 
+// 	else if (DIRMODE==0) {
+// 	  //  Break this line into tokens to process it.
+// 	  chan    = (atol(mapstr.GetNextToken(", ").c_str()));
+// 	  package = 1;
+// 	  plane   = (atol(mapstr.GetNextToken(", ").c_str()));
+// 	  wire    = (atol(mapstr.GetNextToken(", ").c_str()));
+	  
+// 	  // VDC and HDC
+// 	  BuildWireDataStructure(chan, package, plane, wire);
+	  
+//         } 
+// 	else if (DIRMODE==1) {
+// 	  //this will decode the wire plane directions - Rakitha
+// 	  plane     = (atol(mapstr.GetNextToken(", ").c_str()));
+// 	  direction = (atol(mapstr.GetNextToken(", ").c_str()));
+// 	  fDirectionData.at(package-1).at(plane-1)=direction;
+// 	  BuildWireDataStructure(chan, package, plane, wire);
+//         }
+	
+//     }
+    
    
 
 
-    //  Construct the wire data structures.
+//     //  Construct the wire data structures.
+//     AddChannelDefinition();
 
-    // AddChannelDefinition(plane, wire);
-    AddChannelDefinition();
-
-    /*
-    for (size_t i=0; i<fDirectionData.at(0).size(); i++){
-    std::cout<<"Direction data Plane "<<i+1<<" "<<fDirectionData.at(0).at(i)<<std::endl;
-    }
-    */
-    //
-    ReportConfiguration();
-    return OK;
-};
+//     /*
+//     for (size_t i=0; i<fDirectionData.at(0).size(); i++){
+//     std::cout<<"Direction data Plane "<<i+1<<" "<<fDirectionData.at(0).at(i)<<std::endl;
+//     }
+//     */
+//     //
+//     ReportConfiguration();
+//     return OK;
+// };
 
 
 void  QwDriftChamber::FillDriftDistanceToHits()
@@ -452,21 +456,35 @@ void QwDriftChamber::ClearAllBankRegistrations()
   return;
 }
 
-Int_t QwDriftChamber::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id = 0)
+Int_t QwDriftChamber::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id)
 {
-  VQwSubsystemTracking::RegisterROCNumber(roc_id, bank_id);
-  fCurrentBankIndex = GetSubbankIndex(roc_id, bank_id);//subbank id is directly related to the ROC
+  Int_t status = 0;
+  status = VQwSubsystemTracking::RegisterROCNumber(roc_id, bank_id);
+  std::vector<Int_t> tmpvec(kMaxNumberOfTDCsPerROC,-1);
+  fTDC_Index.push_back(tmpvec);
+  std::cout<<"Registering ROC "<<roc_id<<std::endl;
+
+  return status;
+};
+
+
+Int_t QwDriftChamber::RegisterSubbank(const UInt_t bank_id)
+{
+  Int_t stat = VQwSubsystem::RegisterSubbank(bank_id);
+  fCurrentBankIndex = GetSubbankIndex(VQwSubsystem::fCurrentROC_ID, bank_id);//subbank id is directly related to the ROC
+  
   if (fReferenceChannels.size()<=fCurrentBankIndex) {
     fReferenceChannels.resize(fCurrentBankIndex+1);
     fReferenceData.resize(fCurrentBankIndex+1);
   }
   std::vector<Int_t> tmpvec(kMaxNumberOfTDCsPerROC,-1);
   fTDC_Index.push_back(tmpvec);
-  //std::cout<<"Registering ROC "<<roc_id<<std::endl;
-
-  return fCurrentBankIndex;
+  std::cout<< "RegisterSubbank()" 
+	   <<" ROC " << (VQwSubsystem::fCurrentROC_ID)
+	   <<" Subbank "<<bank_id
+	   <<" with BankIndex "<<fCurrentBankIndex<<std::endl;
+  return stat;
 };
-
 
 
 Int_t QwDriftChamber::RegisterSlotNumber(UInt_t slot_id)

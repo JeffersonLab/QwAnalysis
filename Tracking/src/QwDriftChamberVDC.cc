@@ -143,6 +143,8 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 
   std::cout<<"Qweak Geometry Loaded "<<std::endl;
 
+  ReportConfiguration();
+
   return OK;
 }
 
@@ -174,12 +176,12 @@ void  QwDriftChamberVDC::ReportConfiguration()
       }
     }
   }
-  for ( i=0; i<fWiresPerPlane.size(); i++ ) {
-    if ( fWiresPerPlane.at ( i ) == 0 ) continue;
-    std::cout << "Plane " << i << " has " << fWireData.at ( i ).size()
-	      << " wires"
-	      <<std::endl;
-  }
+  // for ( i=0; i<fWiresPerPlane.size(); i++ ) {
+  //   if ( fWiresPerPlane.at ( i ) == 0 ) continue;
+  //   std::cout << "Plane " << i << " has " << fWireData.at ( i ).size()
+  // 	      << " wires"
+  // 	      <<std::endl;
+  // }
 
   return;
 };
@@ -474,7 +476,7 @@ Int_t QwDriftChamberVDC::AddChannelDefinition()
 {
   bool temp_local_debug = false;
 //   if (temp_local_debug){
-//     std::cout << " QwDriftChamberHDC::AddChannelDefinition"<<std::endl;
+//     std::cout << " QwDriftChamberVDC::AddChannelDefinition"<<std::endl;
 //     std::cout << "plane " << plane << " wire " << wire << std::endl;
 //   }
 
@@ -513,7 +515,7 @@ Int_t QwDriftChamberVDC::AddChannelDefinition()
       }
     }
   }
-  std::cout << " QwDriftChamberHDC::AddChannelDefinition END"<<std::endl;
+  std::cout << " QwDriftChamberVDC::AddChannelDefinition END"<<std::endl;
   return OK;
 }
 
@@ -619,9 +621,11 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
       }
       if ( varname == "roc" ) {
 	RegisterROCNumber ( value , 0);
-      } else if (varname=="bank") {
+      } 
+      else if (varname=="bank") {
 	RegisterSubbank(value);
-      } else if ( varname == "slot" ) {
+      } 
+      else if ( varname == "slot" ) {
 	RegisterSlotNumber ( value );
       }
       continue;        //go to the next line
