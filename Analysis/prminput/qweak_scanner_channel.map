@@ -38,6 +38,7 @@ slot=6
   F1TDC, 6, 17, scanner_tdc, front_f1
   F1TDC, 6, 19, scanner_tdc, back__f1
   F1TDC, 6, 21, scanner_tdc, coinc_f1
+  F1TDC, 6, 23, scanner_tdc, ref_t_f1
 !
 !
 ! module.num counting from 0
@@ -53,16 +54,18 @@ SCA_Bank=0x0403
 !
 !The following map is defined for measuring scanner position using VQWK
 !
-ROC=1
+ROC=0
 !
-VQWK_Bank=0x102
+! VQWK_Bank=0x102
+VQWK_Bank=0x6110
 !
 ! module.num counting from 0, scanner using the 10th TRIUMF ADC board on ROC1
 !
 ! module.type  module.num  chan.num, det.type, det.name
 !
-  VQWK, 9, 0, scanner_motion, power_vqwk
-  VQWK, 9, 1, scanner_motion, pos_x_vqwk
-  VQWK, 9, 2, scanner_motion, pos_y_vqwk
+  VQWK, 0, 0, scanner_motion, phase_monitor
+  VQWK, 0, 5, scanner_motion, pos_x_vqwk
+  VQWK, 0, 6, scanner_motion, pos_y_vqwk
+  VQWK, 0, 7, scanner_motion, power_vqwk
 !
 !END
