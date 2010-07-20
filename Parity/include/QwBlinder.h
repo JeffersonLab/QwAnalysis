@@ -199,6 +199,9 @@ class QwBlinder {
     ///  Reads the seed with specified id from the database object
     Int_t ReadSeed(QwDatabase* db, const UInt_t seed_id);
 
+    ///  Reads the seed from the database object
+    Int_t ReadSeed(QwDatabase* db);
+
     void WriteChecksum(QwDatabase* db);     ///  Writes fSeedID and fBFChecksum to DB for this analysis ID
     void WriteTestValues(QwDatabase* db);   ///  Writes fTestNumber and fBlindTestValue to DB for this analysis ID
 

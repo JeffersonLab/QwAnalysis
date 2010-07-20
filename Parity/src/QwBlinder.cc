@@ -113,6 +113,85 @@ void QwBlinder::Update(
   }
 }
 
+/*!-----------------------------------------------------------
+ *------------------------------------------------------------
+ * Function to read the seed in from the database.
+ *
+ * Parameters:
+ *
+ * Return: Int_t 
+ *
+ *------------------------------------------------------------
+ *------------------------------------------------------------*/
+Int_t QwBlinder::ReadSeed(QwDatabase* db)
+{
+  // Return unchanged if no database specified
+  if (! db) {
+    QwWarning << "QwBlinder::ReadSeed(): No database specified" << QwLog::endl;
+    fSeedID = 0;
+    fSeed   = "default seed";
+    return 0;
+  }
+
+  // Try to connect to the database
+  if (db->Connect()) {
+
+    // Build up query
+    string s_sql = "SELECT seed_id, seed FROM seeds, run as rf, run as rl WHERE seeds.first_run_id = rf.run_id AND seeds.last_run_id = rl.run_id ";
+    s_sql += "AND rf.run_number <= ";
+    s_sql += db->GetRunNumber();
+    s_sql += " AND rl.run_number >= ";
+    s_sql += db->GetRunNumber();
+
+    // Send query
+    mysqlpp::Query query = db->Query();
+    query << s_sql;
+    mysqlpp::StoreQueryResult res = query.store();
+
+    // Store seed_id and seed value in fSeedID and fSeed (want to store actual seed_id in those
+    // cases where only the most recent was requested (fSeedID = 0))
+    // There should be one and only one seed_id for each seed.
+    if (res.size() == 1) {
+      // Store seed_id in fSeedID (want to store actual seed_id in those
+      // cases where only the most recent was requested (fSeedID = 0))
+      fSeedID = res[0]["seed_id"];
+
+      // Store seed value
+      if (!res[0]["seed"].is_null()) {
+        fSeed = res[0]["seed"].data();
+      } else {
+        QwError << "QwBlinder::ReadSeed(): Seed value came back NULL from the database." << QwLog::endl;
+        fSeedID = 0;
+        fSeed = kDefaultSeed;
+      }
+
+      std::cout << "QwBlinder::ReadSeed():  Successfully read "
+      << Form("the fSeed with ID %d from the database.", fSeedID)
+      << std::endl;
+
+    } else {
+      // Error Condition.
+      // There should be one and only one seed_id for each seed.
+      fSeedID = 0;
+      fSeed   = Form("ERROR:  There should be one and only one seed_id for each seed, but this had %d.",
+                     res.size());
+      std::cerr << "QwBlinder::ReadSeed(): "<<fSeed<<std::endl;
+    }
+
+    // Disconnect from database
+    db->Disconnect();
+
+  } else {
+
+    //  We were unable to open the connection.
+    fSeedID = 0;
+    fSeed   = "ERROR:  Unable to open the connection to the database.";
+    QwError << "QwBlinder::ReadSeed(): Unable to open connection to database." << QwLog::endl;
+  }
+
+  return fSeedID;
+}
+
 
 /*!-----------------------------------------------------------
  *------------------------------------------------------------
