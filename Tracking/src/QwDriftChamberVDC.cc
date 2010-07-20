@@ -353,13 +353,13 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance(Double_t drifttime, QwDetect
 
 void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data ) {
   Int_t tdcindex = GetTDCIndex(bank_index,slot_num);
-  //Int_t tdcindex=1;
+  //if(slot_num==20) std::cout << bank_index << " " << slot_num << " " << tdcindex << std::endl;
   if ( tdcindex != -1 ) {
     Int_t hitCount = 1;
     EQwDetectorPackage package  = kPackageUp;
     Int_t plane    = fTDCPtrs.at(tdcindex).at(chan).fPlane;
     Int_t wire     = fTDCPtrs.at(tdcindex).at(chan).fElement;
-
+    
     //  Int_t plane=-2;
     //  if ( slot_num==3 )
     //      plane=fDelayLinePtrs.at ( slot_num ).at ( chan ).fBackPlane;
@@ -374,6 +374,7 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
       //fReferenceData.at(wire).push_back(data);
       //        } else if ( slot_num==4 ) {
     } else if (plane == (Int_t) kReferenceChannelPlaneNumber){
+      //std::cout << bank_index << " " << slot_num << " " << tdcindex << std::endl;
       fReferenceData.at ( wire ).push_back ( data );
     } else {
       plane=fDelayLinePtrs.at ( slot_num ).at ( chan ).fBackPlane;
@@ -458,12 +459,12 @@ Int_t QwDriftChamberVDC::BuildWireDataStructure ( const UInt_t chan, const UInt_
     fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fElement = wire;
 
     if ( plane>=fWiresPerPlane.size() ) {
-      fWiresPerPlane.resize ( plane+1 );
+      fWiresPerPlane.resize ( plane );
     }
     //if (wire>=fWiresPerPlane.at(plane)){
     //fWiresPerPlane.at(plane) =  wire+1;
     //}
-    fWiresPerPlane.at(plane) = r3_wire_number_per_plane;
+    fWiresPerPlane.at(plane-1) = r3_wire_number_per_plane;
   }
   return OK;
 };
@@ -679,10 +680,10 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
 	fDelayLineArray.at ( bpnum ).at ( lnnum ).Windows.push_back ( pair_a );
       }
 
-      //      std::cout << "DelayLine: back plane: " << bpnum
-      //		<< "line number " << lnnum
-      //		<< " Windows.size: "  << fDelayLineArray.at ( bpnum ).at ( lnnum ).Windows.size()
-      //		<< std::endl;
+//            std::cout << "DelayLine: back plane: " << bpnum
+//      		<< "line number " << lnnum
+//      		<< " Windows.size: "  << fDelayLineArray.at ( bpnum ).at ( lnnum ).Windows.size()
+//      		<< std::endl;
       fDelayLineArray.at ( bpnum ).at ( lnnum ).Fill=kTRUE;
       tmpWindows.clear();
     }
@@ -805,8 +806,6 @@ void QwDriftChamberVDC::ProcessEvent()
 
 	  NewQwHit.SetTime ( real_time );
 
-	  //Int_t temp_plane=plane-1;
-	  //if(tmpCrate==3) temp_plane=plane-5;
 
 	  QwDetectorInfo* local_info = & fDetectorInfo.at ( package ).at ( plane-1 );
 	  NewQwHit.SetDetectorInfo ( local_info );
@@ -818,7 +817,9 @@ void QwDriftChamberVDC::ProcessEvent()
     }
   }
   ApplyTimeCalibration();
-  SubtractWireTimeOffset();
+  if(fDisableWireTimeOffset==false)
+     SubtractWireTimeOffset();
+  else {};
   FillDriftDistanceToHits();
 };
 
@@ -916,9 +917,13 @@ void QwDriftChamberVDC::DefineOptions(QwOptions& options)
  options.AddOptions()("use-tdchit",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "creat tdc based tree");
+ options.AddOptions()("disable-wireoffset",
+			  po::value<bool>()->zero_tokens()->default_value(false),
+		       "disable the ablitity of subtracting t0 for every wire");
 }
 
 void QwDriftChamberVDC::ProcessOptions(QwOptions& options)
 {
  fUseTDCHits=options.GetValue<bool>("use-tdchit");
+ fDisableWireTimeOffset=options.GetValue<bool>("disable-wireoffset");
 }
