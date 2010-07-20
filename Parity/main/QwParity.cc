@@ -140,6 +140,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epicsevent);
         epicsevent.CalculateRunningValues();
+        helicitypattern.UpdateBlinder(&database,epicsevent);
       }
 
 
@@ -180,6 +181,9 @@ Int_t main(Int_t argc, Char_t* argv[])
 
         // Calculate helicity pattern asymmetry
         if (helicitypattern.IsCompletePattern() && eventring.IsReady()) {
+          // Update the blinder if conditions have changed
+          helicitypattern.UpdateBlinder(&database,detectors);
+          // Calculate the asymmetry
           helicitypattern.CalculateAsymmetry();
           if (helicitypattern.IsGoodAsymmetry()) {
             // Fill histograms

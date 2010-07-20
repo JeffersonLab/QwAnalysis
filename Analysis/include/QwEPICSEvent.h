@@ -32,22 +32,23 @@ class QwEPICSEvent
 
   void ExtractEPICSValues(const std::string& data, int event);
 
-  Int_t FindIndex(TString tag);        // return index to variable or EPI_ERR
+  Int_t FindIndex(const TString& tag) const;        // return index to variable or EPI_ERR
 
-  Double_t GetDataValue(TString tag);      // get recent value corr. to tag
+  Double_t GetDataValue(const TString& tag) const;      // get recent value corr. to tag
 
 
-  int SetDataValue(TString tag, TString value, int event);
-  int SetDataValue(TString tag, Double_t value, int event);
-  int SetDataValue(Int_t index, Double_t value, int event);   
+  int SetDataValue(const TString& tag, const TString& value, const int event);
+  int SetDataValue(const TString& tag, Double_t value, const int event);
+  int SetDataValue(const Int_t index,  Double_t value, const int event);
 
 
 
   void  CalculateRunningValues();
-  void  PrintAverages();
-  void  PrintVariableList();
+
+  void  PrintAverages() const;
+  void  PrintVariableList() const;
   // void DefineEPICSVariables();
-  void  ReportEPICSData();
+  void  ReportEPICSData() const;
 
   std::vector<TString>  GetDefaultAutogainList();
   void  SetDefaultAutogainList(std::vector<TString> input_list);
@@ -57,8 +58,6 @@ class QwEPICSEvent
   void FillDB(QwDatabase *db);
   void FillSlowControlsData(QwDatabase *db);
   void FillSlowControlsSettings(QwDatabase *db);
-  Int_t   fNumberEPICSVariables;       // Number of defined EPICS variables.
-  std::vector<TString> fEPICSVariableList;  // List of defined EPICS variables.
 
  private:
   static const int kDebug;
@@ -94,12 +93,12 @@ class QwEPICSEvent
   std::vector<EPICSCumulativeRecord> fEPICSCumulativeData;
 
 
-  Int_t    fNumberEPICSEvents;     //  The total number of EPICS events in the run.
-  //Int_t   fNumberEPICSVariables;       // Number of defined EPICS variables.
-  //std::vector<TString> fEPICSVariableList;  // List of defined EPICS variables.
-  std::vector<EQwEPICSDataType> fEPICSVariableType;
+  Int_t fNumberEPICSEvents;     // Number of EPICS events in the run
+  Int_t fNumberEPICSVariables;  // Number of defined EPICS variables
+  std::vector<TString> fEPICSVariableList;  // List of defined EPICS variables
   std::vector<TString> fEPICSTableList;     // List of DB tables to write
+  std::vector<EQwEPICSDataType> fEPICSVariableType;
 
-};
+}; // class QwEPICSEvent
 
 #endif

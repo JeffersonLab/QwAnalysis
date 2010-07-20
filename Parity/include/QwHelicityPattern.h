@@ -15,6 +15,7 @@
 
 // Qweak headers
 #include "QwSubsystemArrayParity.h"
+#include "QwEPICSEvent.h"
 #include "QwBlinder.h"
 
 // Forward declarations
@@ -63,6 +64,15 @@ class QwHelicityPattern{
   void  DisableRunningSum() { fEnableRunningSum = kFALSE; };
   /// Status of running sum calculation flag
   Bool_t IsRunningSumEnabled() { return fEnableRunningSum; };
+
+  /// Update the blinder status with new external information
+  void UpdateBlinder(QwDatabase* db, const QwSubsystemArrayParity& detectors) {
+    fBlinder.Update(db, detectors);
+  };
+  /// Update the blinder status with new external information
+  void UpdateBlinder(QwDatabase* db, const QwEPICSEvent& epics) {
+    fBlinder.Update(db, epics);
+  };
 
   void  AccumulateBurstSum();
   void  AccumulateRunningBurstSum();

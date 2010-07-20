@@ -48,7 +48,7 @@ void QwHelicityPattern::ProcessOptions(QwOptions &options)
 
 /*****************************************************************/
 QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
-: fBlinder(TString("No seed string defined!"),QwBlinder::kAdditive)
+: fBlinder()
 {
   // Retrieve the helicity subsystem to query for
   std::vector<VQwSubsystem*> subsys_helicity = event.GetSubsystemByType("QwHelicity");
