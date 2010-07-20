@@ -604,17 +604,19 @@ void QwDriftChamber::SubtractWireTimeOffset()
 void QwDriftChamber::ApplyTimeCalibration()
 {
 
-  Double_t region3_f1tdc_resolution = 0.113186191284663271;
+  //  Double_t region3_f1tdc_resolution = 0.113186191284663271;
+  Double_t f1tdc_resolution_ns = 0.116312881651642913;
 
   // 0.1132 ns is for the first CODA setup,  it was replaced as 0.1163ns after March 13 2010
   // need to check them with Siyuan (jhlee)
   //
   // 0.1163 ns is the magic number we want to setup during the Qweak experiment
-  // because of DAQ team at JLab suggestion. (That guarantees the best performance of F1TDC)
+  // because of the DAQ team suggestion. That guarantees the stable resolution during
+  // temperature fluctuation. 
 
   for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ )
     {
-      iter->SetTime(region3_f1tdc_resolution*iter->GetTime());
+      iter->SetTime(f1tdc_resolution_ns*iter->GetTime());
     }
 
   return;

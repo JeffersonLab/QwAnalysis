@@ -179,8 +179,8 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
   for (size_t i=0; i<fReferenceData.size(); i++){
     if (fReferenceData.at(i).size()==0){
       //  There isn't a reference time!
-      QwWarning << "QwDriftChamber:HDC:SubtractReferenceTimes:  Subbank ID "
-      << i << " is missing a reference time." << QwLog::endl;
+      //QwWarning << "QwDriftChamber:HDC:SubtractReferenceTimes:  Subbank ID "
+      //<< i << " is missing a reference time." << QwLog::endl;
       refs_okay = kFALSE;
     } else {
       reftimes.at(i) = fReferenceData.at(i).at(0);
