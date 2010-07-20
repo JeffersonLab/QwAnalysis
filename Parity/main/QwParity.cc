@@ -60,14 +60,15 @@ Int_t main(Int_t argc, Char_t* argv[])
   gQwOptions.AddConfigFile("qweak_mysql.conf");
   ///  Define the command line options
   DefineOptionsParity(gQwOptions);
-
+  //Load command line options for the histogram/tree helper class
+  gQwHists.ProcessOptions(gQwOptions);
   /// Setup screen and file logging
   gQwLog.ProcessOptions(&gQwOptions);
 
   ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
   ///  histogram helper: QwHistogramHelper
   gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
-
+  gQwHists.LoadTreeParamsFromFile("Qweak_Tree_Trim_List.in");
 
   ///  Create the event buffer
   QwEventBuffer eventbuffer;

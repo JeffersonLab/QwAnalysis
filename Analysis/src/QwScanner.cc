@@ -944,8 +944,9 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vec
 
         }
 
-      fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
-      tree->Branch(basename, &values[fTreeArrayIndex], list);
+        fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
+	if (gQwHists.MatchDeviceParamsFromList(basename.Data()))
+	  tree->Branch(basename, &values[fTreeArrayIndex], list);
 
     }
   return;

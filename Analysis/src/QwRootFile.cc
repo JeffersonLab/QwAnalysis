@@ -108,7 +108,7 @@ void QwRootFile::DefineOptions(QwOptions &options)
      "Events between a map file update");
    options.AddOptions()("trim-tree",
                        po::value<std::string>()->default_value("tree_trim.in"),
-                       "Contains subsystems/elements to be included in the tree");
+                       "Contains subsystems/elements to be included in the real time flat tree");
 
   // Define the autoflush and autosave option (default values by ROOT)
   options.AddOptions()
@@ -117,6 +117,9 @@ void QwRootFile::DefineOptions(QwOptions &options)
   options.AddOptions()
     ("autosave", po::value<int>()->default_value(300000000),
      "TTree autosave value");
+  
+
+  
 }
 
 
@@ -162,8 +165,8 @@ void QwRootFile::ProcessOptions(QwOptions &options)
   }
   fAutoSave  = options.GetValue<int>("autosave");
 
-  fTreeTrim_Filename = options.GetValue<std::string>("trim-tree").c_str();
-  QwMessage << "Tree trim definition file " << fTreeTrim_Filename << QwLog::endl;
+  fTreeTrim_Filename = options.GetValue<std::string>("trim-tree").c_str();  
+
 }
 
 
@@ -243,6 +246,7 @@ void QwRootFile::ConstructTreeBranches(QwSubsystemArrayParity& detectors)
   TString dummystr = "";
   if (fEnableMapFile){
     //Access the tree trimming definition file
+    QwMessage << "Tree trim definition file for RT engine" << fTreeTrim_Filename << QwLog::endl;
     QwParameterFile trim_tree(fTreeTrim_Filename);
     detectors.ConstructBranch(fMpsTree, dummystr, trim_tree);
   }
@@ -316,7 +320,7 @@ void QwRootFile::FillTreeBranches(QwSubsystemArrayParity& detectors)
   if (!fEnableMapFile)
     detectors.FillTreeVector(fMpsVector);
   // Fill the tree
-  fMpsTree->Fill();
+  fMpsTree->Fill();  
 }
 
 

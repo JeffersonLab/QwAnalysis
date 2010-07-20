@@ -662,9 +662,10 @@ void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std
       }
 
     fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
-    tree->Branch(basename, &(values[fTreeArrayIndex]), list);
-    //tree->Branch(basename,&fHardwareBlockSum);
-    if (kDEBUG && GetElementName()=="MD1Pos"){
+    if (gQwHists.MatchDeviceParamsFromList(basename.Data()))
+      tree->Branch(basename, &(values[fTreeArrayIndex]), list);
+
+    if (kDEBUG){
       std::cerr << "QwVQWK_Channel::ConstructBranchAndVector: fTreeArrayIndex==" << fTreeArrayIndex
 		<< "; fTreeArrayNumEntries==" << fTreeArrayNumEntries
 		<< "; values.size()==" << values.size()
