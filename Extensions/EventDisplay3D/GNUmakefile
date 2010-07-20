@@ -591,7 +591,7 @@ config: clean.auxfiles
 	done
 	@touch .auxDictFiles
 
-dictionary: .auxDictFiles
+dictionary: .auxDictFiles config
 	@$(ECHO) "################################### Building Dictionary Files"
 	@for file in `cat .auxDictFiles`; \
 	do \
