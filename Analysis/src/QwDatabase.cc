@@ -164,8 +164,10 @@ Bool_t QwDatabase::ValidateConnection()
       QwError << "Database server = " << fDBServer <<QwLog::endl;
       QwError << "Database username = " << fDBUsername <<QwLog::endl;
       QwError << "Database port = " << fDBPortNumber <<QwLog::endl;
-      QwError << "Exiting." << QwLog::endl;
-      exit(1);
+      QwError << "Continuing without database." << QwLog::endl;
+      QwWarning << "Might have left database connection dangling..." << QwLog::endl;
+      fAccessLevel = kQwDatabaseOff;
+      return kFALSE;
     }
 
     // Get database schema version information
