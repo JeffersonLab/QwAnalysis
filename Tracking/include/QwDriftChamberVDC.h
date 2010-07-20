@@ -76,6 +76,7 @@ class QwDriftChamberVDC: public QwDriftChamber {
   void  FillHistograms();
   
   Bool_t fUseTDCHits;
+  Bool_t fDisableWireTimeOffset;
   static const UInt_t kBackPlaneNum;
   static const UInt_t kLineNum;
   std::vector< std::vector<QwDelayLine> > fDelayLineArray;   //indexed by backplane and line number
