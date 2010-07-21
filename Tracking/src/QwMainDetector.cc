@@ -371,6 +371,7 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 
           Int_t tdc_slot_number = 0;
           Int_t tdc_chan_number = 0;
+          Int_t tmp_last_chan = 65535;
 
 	  Bool_t data_integrity_flag = false;
 	  Bool_t temp_print_flag     = false;
@@ -401,12 +402,16 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 		  if ( fF1TDC.IsValidDataword() )
 		    {
 		      try {
+		    	if(tdc_chan_number != tmp_last_chan)
+		    	{
 			    FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());
+
 			    fF1TDC.PrintTDCData(temp_print_flag);
-
-			    if (tdc_slot_number == reftime_slotnum && tdc_chan_number == reftime_channum)
+				if (tdc_slot_number == reftime_slotnum && tdc_chan_number == reftime_channum)
 			      reftime = fF1TDC.GetTDCData();
+				tmp_last_chan = tdc_chan_number;
 
+		    	}
 		      }
 		      catch (std::exception& e) {
 			std::cerr << "Standard exception from QwMainDetector::FillRawTDCWord: "
@@ -795,7 +800,7 @@ void QwMainDetector::FillRawWord(Int_t bank_index,
         }
       else
         {
-          fPMTs.at(modtype).at(chanindex).SetValue(data);
+    	  fPMTs.at(modtype).at(chanindex).SetValue(data);
         }
     };
 };

@@ -135,6 +135,10 @@ class QwMainDetector: public VQwSubsystemTracking {
   Int_t reftime_channum;
   Double_t reftime;
 
+  Int_t tdc_slot_number;
+  Int_t tdc_chan_number;
+  Int_t tmp_last_chan;
+
 };
 
 #endif
