@@ -23,14 +23,27 @@ namespace QwParityDB{
       , mysqlpp::Null<mysqlpp::sql_text> , script_name
     ) 
   
-    sql_create_7(run, 1, 2 
+    sql_create_2(good_for, 1, 2 
+			, mysqlpp::sql_int_unsigned , good_for_id
+			, mysqlpp::Null<mysqlpp::sql_text> , type
+		) 
+  
+    sql_create_2(run_quality, 1, 2 
+			, mysqlpp::sql_int_unsigned , run_quality_id
+			, mysqlpp::Null<mysqlpp::sql_text> , type
+		) 
+  
+    sql_create_8(run, 1, 2 
 			, mysqlpp::sql_int_unsigned , run_id
 			, mysqlpp::sql_int_unsigned , run_number 	
-			, mysqlpp::Null<mysqlpp::sql_enum> , run_type
+			, mysqlpp::Null<mysqlpp::sql_text> , run_type
+//			, mysqlpp::Null<mysqlpp::sql_set> , good_for_id
+//			, mysqlpp::Null<mysqlpp::sql_set> , run_quality_id
 			, mysqlpp::Null<mysqlpp::sql_datetime> , start_time
 			, mysqlpp::Null<mysqlpp::sql_datetime> , end_time
 			, mysqlpp::sql_int_unsigned , n_mps
 			, mysqlpp::sql_int_unsigned , n_qrt	
+			, mysqlpp::Null<mysqlpp::sql_text> , comment
 		) 
   
     sql_create_9(runlet, 1, 2 
@@ -179,6 +192,13 @@ namespace QwParityDB{
       , mysqlpp::sql_float , error
       , mysqlpp::sql_float , min_value
       , mysqlpp::sql_float , max_value
+    ) 
+  
+    sql_create_4(slow_controls_strings, 1, 2 
+			, mysqlpp::sql_int_unsigned , slow_controls_strings_id
+			, mysqlpp::sql_int_unsigned , runlet_id
+      , mysqlpp::sql_int_unsigned , sc_detector_id
+      , mysqlpp::sql_text , value
     ) 
   
     sql_create_3(pmt, 1, 2 
