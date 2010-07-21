@@ -870,17 +870,24 @@ void QwDriftChamberVDC::ClearEventData()
 
 
 
-Int_t QwDriftChamberVDC:: ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
+Int_t QwDriftChamberVDC::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
-  Int_t index = 0;
+  Int_t subbank_index = 0;
+  Bool_t local_debug = false;
+ 
+  subbank_index = GetSubbankIndex(roc_id, bank_id);
+  if (local_debug)  {
+    std::cout << "QwDriftChamberVDC::ProcessConfigurationBuffer" << std::endl;
+    std::cout << " roc id " << roc_id
+	      << " bank_id " << bank_id 
+	      << " subbank_index " << subbank_index
+	      << " num_words " << num_words
+	      << std::endl;
+  }
 
-  if (fDEBUG)  std::cout << "ProcessConfigurationBuffer" << std::endl;
-
-  index = GetSubbankIndex(roc_id, bank_id);
-
-  if (index>=0 and num_words>0) {
+  if (subbank_index>=0 and num_words>0) {
     //    SetDataLoaded(kTRUE);
-    if (fDEBUG)  {
+    if (local_debug)  {
       std::cout << "QwDriftChamberVDC::ProcessConfigurationBuffer:  "
 		<< "Begin processing ROC" << roc_id << std::endl;
       PrintConfigrationBuffer(buffer, num_words);
