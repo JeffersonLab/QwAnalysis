@@ -667,7 +667,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                             // Create a vector of hit patterns
                             std::vector<QwHitPattern> patterns;
-                            patterns.resize(NUMWIRESR3);
+                            patterns.resize(NUMWIRESR3+1);
                             if (patterns.at(0).GetNumberOfBins() == 0)
                               for (size_t wire = 0; wire < patterns.size(); wire++)
                                 patterns.at(wire).SetNumberOfLevels(fLevelsR3);
