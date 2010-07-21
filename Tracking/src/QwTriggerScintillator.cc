@@ -285,6 +285,7 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 
       Int_t tdc_slot_number = 0;
       Int_t tdc_chan_number = 0;
+      Int_t tmp_last_chan = 65535;
 
       Bool_t data_integrity_flag = false;
       Bool_t temp_print_flag     = false;
@@ -308,17 +309,23 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 	  // we skip this buffer to do the further process
 
           if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
-          if ( fF1TDC.IsValidDataword() ) {
-            try {
-              FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());
-              fF1TDC.PrintTDCData(temp_print_flag);
+           if ( fF1TDC.IsValidDataword() )
+           {
+            try
+            {
+             if(tdc_chan_number != tmp_last_chan)
+             {
+               FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());
+               fF1TDC.PrintTDCData(temp_print_flag);
 
-              // Check if this is reference time data
-              if (tdc_slot_number == reftime_slotnum && tdc_chan_number == reftime_channum) {
-                reftime = fF1TDC.GetTDCData();
-              }
+               // Check if this is reference time data
+               if (tdc_slot_number == reftime_slotnum && tdc_chan_number == reftime_channum)
+            		reftime = fF1TDC.GetTDCData();
+               tmp_last_chan = tdc_chan_number;
+             }
             }
-            catch (std::exception& e) {
+            catch (std::exception& e)
+            {
               std::cerr << "Standard exception from QwTriggerScintillator::FillRawWord: "
                         << e.what() << std::endl;
               std::cerr << "   Parameters:  index=="  <<index
@@ -327,11 +334,11 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
                         << "; GetF1Data()=="          <<fF1TDC.GetTDCData()
                         << std::endl;
             }
+           }
           }
+         }
         }
-      }
-    }
-  }
+       }
   return 0;
 };
 
