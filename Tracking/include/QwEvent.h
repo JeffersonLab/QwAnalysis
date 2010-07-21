@@ -220,8 +220,15 @@ class QwEvent: public TObject {
     QwHitContainer* GetHitContainer();
     //! \brief Get the number of hits
     Int_t GetNumberOfHits() const { return fNQwHits; };
+    //! \brief Get the list of hits
+    #if defined QWHITS_IN_IN_STATIC_TCLONESARRAY || defined QWHITS_IN_LOCAL_TCLONESARRAY
+      const TClonesArray* GetListOfHits() const { return fQwHits; };
+    #endif
+    #if defined QWHITS_IN_STL_VECTOR
+      const std::vector<QwHit*> GetListOfHits() const { return fQwHits; };
+    #endif
     //! \brief Print the list of hits
-    void PrintHits();
+    void PrintHits(Option_t* option = "") const;
     // @}
 
     //! \name Tree line list maintenance for output to ROOT files
@@ -238,8 +245,10 @@ class QwEvent: public TObject {
     void ResetTreeLines(Option_t *option = "");
     //! \brief Get the number of tree lines
     Int_t GetNumberOfTreeLines() const { return fNQwTreeLines; };
+    //! \brief Get the list of tree lines
+    const TClonesArray* GetListOfTreeLines() const { return fQwTreeLines; };
     //! \brief Print the list of tree lines
-    void PrintTreeLines();
+    void PrintTreeLines(Option_t* option = "") const;
     // @}
 
     //! \name Partial track list maintenance for output to ROOT files
@@ -258,8 +267,10 @@ class QwEvent: public TObject {
     void ResetPartialTracks(Option_t *option = "");
     //! \brief Get the number of partial tracks
     Int_t GetNumberOfPartialTracks() const { return fNQwPartialTracks; };
+    //! \brief Get the list of partial tracks
+    const TClonesArray* GetListOfPartialTracks() const { return fQwPartialTracks; };
     //! \brief Print the list of partial tracks
-    void PrintPartialTracks();
+    void PrintPartialTracks(Option_t* option = "") const;
     // @}
 
     //! \name Track list maintenance for output to ROOT files
@@ -278,12 +289,14 @@ class QwEvent: public TObject {
     void ResetTracks(Option_t *option = "");
     //! \brief Get the number of tracks
     Int_t GetNumberOfTracks() const { return fNQwTracks; };
+    //! \brief Get the list of tracks
+    const TClonesArray* GetListOfTracks() const { return fQwTracks; };
     //! \brief Print the list of tracks
-    void PrintTracks();
+    void PrintTracks(Option_t* option = "") const;
     // @}
 
     //! \brief Print the event
-    void Print();
+    void Print(Option_t* option = "") const;
 
   public:
 

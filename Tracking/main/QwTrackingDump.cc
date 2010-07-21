@@ -66,7 +66,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     }
 
     // Loop over all events
-    for (Int_t event = 0; event < nevents && event < 10; event++) {
+    for (Int_t event = 0; event < nevents; event++) {
       QwMessage << "Event " << event << QwLog::endl;
       thistree->GetEntry(event);
       for (size_t branch = 0; branch < branchlist.size(); branch++) {

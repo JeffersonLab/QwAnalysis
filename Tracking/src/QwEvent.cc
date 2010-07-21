@@ -120,7 +120,7 @@ void QwEvent::Reset(Option_t *option)
 
 
 // Print the event
-void QwEvent::Print()
+void QwEvent::Print(Option_t* option) const
 {
   // Event header
   std::cout << *fEventHeader << std::endl;
@@ -133,13 +133,13 @@ void QwEvent::Print()
   std::cout << "vertex momentum = " << fVertexMomentum.Z()/Qw::MeV << " MeV" << std::endl;
   // Event content
   std::cout << "Hits in this event:" << std::endl;
-  PrintHits();
+  PrintHits(option);
   std::cout << "Tree lines in this event:" << std::endl;
-  PrintTreeLines();
+  PrintTreeLines(option);
   std::cout << "Partial tracks in this event:" << std::endl;
-  PrintPartialTracks();
+  PrintPartialTracks(option);
   std::cout << "Tracks in this event:" << std::endl;
-  PrintTracks();
+  PrintTracks(option);
 }
 
 
@@ -192,7 +192,7 @@ void QwEvent::ResetHits(Option_t *option)
 }
 
 // Print the hits
-void QwEvent::PrintHits()
+void QwEvent::PrintHits(Option_t* option) const
 {
   #if defined QWHITS_IN_STATIC_TCLONESARRAY || defined QWHITS_IN_LOCAL_TCLONESARRAY
     TIterator* iterator = fQwHits->MakeIterator();
@@ -201,7 +201,7 @@ void QwEvent::PrintHits()
       std::cout << *hit << std::endl;
     delete iterator;
   #else // QWHITS_IN_STL_VECTOR
-    for (std::vector<QwHit*>::iterator hit = fQwHits.begin();
+    for (std::vector<QwHit*>::const_iterator hit = fQwHits.begin();
          hit != fQwHits.end(); hit++)
       std::cout << **hit << std::endl;
   #endif
@@ -223,13 +223,13 @@ QwHitContainer* QwEvent::GetHitContainer()
 {
   QwHitContainer* hitlist = new QwHitContainer();
   #if defined QWHITS_IN_STATIC_TCLONESARRAY || defined QWHITS_IN_LOCAL_TCLONESARRAY
-    TIterator* iterator = fQwHits->MakeIterator();
+    TIterator* iterator = GetListOfHits()->MakeIterator();
     QwHit* hit = 0;
     while ((hit = (QwHit*) iterator->Next()))
       hitlist->push_back(*hit);
   #else // QWHITS_IN_STL_VECTOR
-    for (std::vector<QwHit*>::iterator hit = fQwHits.begin();
-         hit != fQwHits.end(); hit++)
+    for (std::vector<QwHit*>::const_iterator hit = GetListOfHits().begin();
+         hit != GetListOfHits().end(); hit++)
       hitlist->push_back(*hit);
   #endif
   return hitlist;
@@ -276,9 +276,9 @@ void QwEvent::ResetTreeLines(Option_t *option)
 }
 
 // Print the tree lines
-void QwEvent::PrintTreeLines()
+void QwEvent::PrintTreeLines(Option_t* option) const
 {
-  TIterator* iterator = fQwTreeLines->MakeIterator();
+  TIterator* iterator = GetListOfTreeLines()->MakeIterator();
   QwTrackingTreeLine* treeline = 0;
   while ((treeline = (QwTrackingTreeLine*) iterator->Next()))
     std::cout << *treeline << std::endl;
@@ -333,9 +333,9 @@ void QwEvent::ResetPartialTracks(Option_t *option)
 }
 
 // Print the partial tracks
-void QwEvent::PrintPartialTracks()
+void QwEvent::PrintPartialTracks(Option_t* option) const
 {
-  TIterator* iterator = fQwPartialTracks->MakeIterator();
+  TIterator* iterator = GetListOfPartialTracks()->MakeIterator();
   QwPartialTrack* partialtrack = 0;
   while ((partialtrack = (QwPartialTrack*) iterator->Next()))
     std::cout << *partialtrack << std::endl;
@@ -389,9 +389,9 @@ void QwEvent::ResetTracks(Option_t *option)
 }
 
 // Print the tracks
-void QwEvent::PrintTracks()
+void QwEvent::PrintTracks(Option_t* option) const
 {
-  TIterator* iterator = fQwTracks->MakeIterator();
+  TIterator* iterator = GetListOfTracks()->MakeIterator();
   QwTrack* track = 0;
   while ((track = (QwTrack*) iterator->Next())) {
     std::cout << *track << std::endl;

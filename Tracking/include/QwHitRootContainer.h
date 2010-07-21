@@ -40,12 +40,12 @@ class QwHitRootContainer : public TObject {
 
   // Conversion methods from and to a QwHitContainer
   void Convert(QwHitContainer *hitlist);
-  QwHitContainer* Convert();
+  QwHitContainer* Convert() const;
 
   void Build(QwHitContainer& hitcontainer);
-  
+
   // Output function
-  void Print();
+  void Print(Option_t* option = "") const;
 
   TClonesArray *GetHits() const { return fQwHits; };
   QwHit *GetHit (Int_t hitID) const ;
