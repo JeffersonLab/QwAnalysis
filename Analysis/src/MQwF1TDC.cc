@@ -30,8 +30,9 @@ const UInt_t MQwF1TDC::kF1Mask_HeaderChannelNumber = 0x0000003f;
 
 
 
-MQwF1TDC::MQwF1TDC(): fMinDiff(-1.0*kMaxInt), fMaxDiff(1.0*kMaxInt), 
-		      fOffset(0.0), fTimeShift(0.0)
+// MQwF1TDC::MQwF1TDC(): fMinDiff(-1.0*kMaxInt), fMaxDiff(1.0*kMaxInt), 
+// 		      fOffset(0.0), fTimeShift(0.0)
+MQwF1TDC::MQwF1TDC()
 { 
   fF1ROCNumber          = 0;
   fF1HeaderFlag         = kFALSE;
@@ -135,29 +136,29 @@ void MQwF1TDC::PrintTDCData(Bool_t flag)
 };
 
 
-Double_t MQwF1TDC::SubtractReference(Double_t rawtime, Double_t reftime)
-{
-  //  Note that this produces the opposite sign of the corrected time
-  //  as compared to the UInt_t version from revision 423 shown above.
-  //
-  //  For Region 3, according to the UInt_t version from revision 423,
-  //  the internal parameters should be:
-  //      fMinDiff   = -30000
-  //      fMaxDiff   =  30000
-  //      fOffset    =  64495
-  //      fTimeShift =   8929
-  //
-  Double_t real_time = rawtime - reftime;  
+// Double_t MQwF1TDC::SubtractReference(Double_t rawtime, Double_t reftime)
+// {
+//   //  Note that this produces the opposite sign of the corrected time
+//   //  as compared to the UInt_t version from revision 423 shown above.
+//   //
+//   //  For Region 3, according to the UInt_t version from revision 423,
+//   //  the internal parameters should be:
+//   //      fMinDiff   = -30000
+//   //      fMaxDiff   =  30000
+//   //      fOffset    =  64495
+//   //      fTimeShift =   8929
+//   //
+//   Double_t real_time = rawtime - reftime;  
 
-  if( real_time < fMinDiff ) {
-    real_time += fOffset;
-  }
-  else if( real_time > fMaxDiff) {
-    real_time -= fOffset;
-  }
-  real_time = real_time + fTimeShift;
-  return real_time;
-}
+//   if( real_time < fMinDiff ) {
+//     real_time += fOffset;
+//   }
+//   else if( real_time > fMaxDiff) {
+//     real_time -= fOffset;
+//   }
+//   real_time = real_time + fTimeShift;
+//   return real_time;
+// }
 
 
 

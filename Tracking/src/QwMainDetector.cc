@@ -407,9 +407,9 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 			    FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());
 
 			    fF1TDC.PrintTDCData(temp_print_flag);
-				if (tdc_slot_number == reftime_slotnum && tdc_chan_number == reftime_channum)
+			    if (tdc_slot_number == reftime_slotnum && tdc_chan_number == reftime_channum)
 			      reftime = fF1TDC.GetTDCData();
-				tmp_last_chan = tdc_chan_number;
+			    tmp_last_chan = tdc_chan_number;
 
 		    	}
 		      }

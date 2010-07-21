@@ -158,53 +158,158 @@ void  QwDriftChamberHDC::ReportConfiguration(){
       }
     }
   }
-  for (size_t i=0; i<fWiresPerPlane.size(); i++){
-    if (fWiresPerPlane.at(i) == 0) continue;
-    QwMessage << "Plane " << i << " has " << fWireData.at(i).size()
-	      << " wires"
-	      << QwLog::endl;
-  }
+  // for (size_t i=0; i<fWiresPerPlane.size(); i++){
+  //   if (fWiresPerPlane.at(i) == 0) continue;
+  //   QwMessage << "Plane " << i << " has " << fWireData.at(i).size()
+  // 	      << " wires"
+  // 	      << QwLog::endl;
+  // }
 };
 
 
 
 void  QwDriftChamberHDC::SubtractReferenceTimes()
 {
-  Bool_t refs_okay = kTRUE;
+  std::size_t i = 0;
   std::vector<Double_t> reftimes;
-  Int_t counter=1;
+  std::vector<Bool_t>   refchecked;
+  std::vector<Bool_t>   refokay;
+  Bool_t allrefsokay;
+  Int_t counter = 1;
+  std::size_t ref_size = 0;
+  ref_size = fReferenceData.size();
 
 
-  reftimes.resize(fReferenceData.size());
-  for (size_t i=0; i<fReferenceData.size(); i++){
-    if (fReferenceData.at(i).size()==0){
-      //  There isn't a reference time!
-      //QwWarning << "QwDriftChamber:HDC:SubtractReferenceTimes:  Subbank ID "
-      //<< i << " is missing a reference time." << QwLog::endl;
-      refs_okay = kFALSE;
-    } else {
-      reftimes.at(i) = fReferenceData.at(i).at(0);
-    }
+  reftimes.resize  ( ref_size );
+  refchecked.resize( ref_size );
+  refokay.resize   ( ref_size );
+
+  for ( i=0; i< ref_size; i++ ) {
+    reftimes.at(i)   = 0.0;
+    refchecked.at(i) = kFALSE;
+    refokay.at(i)    = kFALSE;
   }
-  if (refs_okay) {
-    for (size_t i=0; i<fReferenceData.size(); i++){
-      for (size_t j=0; j<fReferenceData.at(i).size(); j++){
-	fReferenceData.at(i).at(j) -= reftimes.at(i);
-      }
-    }
-    for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
 
-      hit1->SetTime(SubtractReference(hit1->GetRawTime(),reftimes.at(hit1->GetSubbankID())) );
-      if (counter>0){
-	if (hit1->GetDetectorID().fPlane==7){//this will read the first hit time of trig_h1
-	  trig_h1=hit1->GetTime();
-	  //std::cout<<"********Found trig_h1 "<< trig_h1<<std::endl;
-	  counter=0;
+  allrefsokay = kTRUE;
+
+  UInt_t bankid      = 0;
+  Double_t raw_time  = 0.0;
+  Double_t ref_time  = 0.0;
+  Double_t time      = 0.0;
+  // Double_t time2     = 0.0;
+  // Double_t delta     = 0.0;
+  Bool_t local_debug = false;
+
+  for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) {
+    //  Only try to check the reference time for a bank if there is at least one
+    //  non-reference hit in the bank.
+    bankid = hit->GetSubbankID();
+
+    // if (bankid == 0) QwMessage << "BANK id" << bankid << QwLog::endl;
+    //
+    // if bankid == 0, print out bank id, and then what?
+    //
+    if ( !refchecked.at(bankid) ){
+
+      if ( fReferenceData.at( bankid ).empty() ) {
+	QwWarning << "QwDriftChamberHDC::SubtractReferenceTimes:  Subbank ID "
+		  << bankid << " is missing a reference time." << QwLog::endl;
+	refokay.at(bankid) = kFALSE;
+	allrefsokay        = kFALSE;
+      }
+      else {
+	reftimes.at(bankid) = fReferenceData.at(bankid).at(0);
+	refokay.at(bankid)  = kTRUE;
+      }
+
+      if ( refokay.at(bankid) ){
+	for ( i=0; i<fReferenceData.at(bankid).size(); i++ ) {
+	  fReferenceData.at(bankid).at(i) -= reftimes.at(bankid);
 	}
+      }
+      refchecked.at(bankid) = kTRUE;
+    }
+
+    if ( refokay.at(bankid) ){
+      raw_time = (Double_t) hit -> GetRawTime();
+      ref_time = (Double_t) reftimes.at(bankid);
+      time     = QwDriftChamber::fF1TDC.ActualTimeDifference(raw_time, ref_time);
+      hit -> SetTime(time);
+      if(local_debug) {
+	  QwMessage << " RawTime : " << raw_time
+		    << " RefTime : " << ref_time
+		    << " time    : " << time
+		    << std::endl;
+
+      }
+      if ( counter>0 ) {
+  	if (hit->GetDetectorID().fPlane==7){//this will read the first hit time of trig_h1
+  	  trig_h1=hit->GetTime();
+  	  //std::cout<<"********Found trig_h1 "<< trig_h1<<std::endl;
+  	  counter=0;
+  	}
       }
       counter++;
     }
   }
+
+  bankid = 0;
+
+  if (! allrefsokay){
+    std::vector<QwHit> tmp_hits;
+    tmp_hits.clear();
+    for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) {
+      bankid = hit->GetSubbankID();
+      if ( refokay.at(bankid) ){
+	tmp_hits.push_back(*hit);
+      }
+    }
+    // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
+    fTDCHits.clear();
+    fTDCHits = tmp_hits;
+    // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
+  }
+
+
+  // Bool_t refs_okay = kTRUE;
+  // std::vector<Double_t> reftimes;
+  // std::bitset< fReferenceData.size() > refchecked;
+  // Boot_t allrefsokay = kTRUE;
+
+  // Int_t counter=1;
+  // std::size_t i = 0;
+  
+  // for ( i=0; i<fReferenceData.size(); i++){
+    
+  //   if (fReferenceData.at(i).size()==0){
+  //     //  There isn't a reference time!
+  //     //QwWarning << "QwDriftChamber:HDC:SubtractReferenceTimes:  Subbank ID "
+  //     //<< i << " is missing a reference time." << QwLog::endl;
+  //     refs_okay = kFALSE;
+  //   } else {
+  //     reftimes.at(i) = fReferenceData.at(i).at(0);
+  //   }
+  // }
+  // if (refs_okay) {
+  //   for (size_t i=0; i<fReferenceData.size(); i++){
+  //     for (size_t j=0; j<fReferenceData.at(i).size(); j++){
+  // 	fReferenceData.at(i).at(j) -= reftimes.at(i);
+  //     }
+  //   }
+  //   for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
+
+  //     hit1->SetTime(QwDriftChamber::fF1TDC.ActualTimeDifference(hit1->GetRawTime(),reftimes.at(hit1->GetSubbankID())) );
+  //     if (counter>0){
+  // 	if (hit1->GetDetectorID().fPlane==7){//this will read the first hit time of trig_h1
+  // 	  trig_h1=hit1->GetTime();
+  // 	  //std::cout<<"********Found trig_h1 "<< trig_h1<<std::endl;
+  // 	  counter=0;
+  // 	}
+  //     }
+  //     counter++;
+  //   }
+  // }
+  return;
 };
 
 Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)

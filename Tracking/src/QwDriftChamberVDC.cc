@@ -21,14 +21,14 @@ QwSubsystemFactory<QwDriftChamberVDC> theDriftChamberVDCFactory("QwDriftChamberV
 QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ):
   VQwSubsystem ( region_tmp ), QwDriftChamber ( region_tmp,fWireHitsVDC )
 {
-  Double_t f1_time_offset = 64495.0;
-  Double_t difference     = 30000.0;
-  Double_t time_shift     = 0.0;//-8929.0; // is it valid with the new configuration?
+  // Double_t f1_time_offset = 64495.0;
+  // Double_t difference     = 30000.0;
+  // Double_t time_shift     = 0.0;//-8929.0; // is it valid with the new configuration?
 
   //  difference = 0.5*f1_time_offset;
 
   //  SetReferenceParameters(-30000., 30000., 64495.,-8929.);
-  SetReferenceParameters(-difference, difference, f1_time_offset, time_shift);
+  //  SetReferenceParameters(-difference, difference, f1_time_offset, time_shift);
   std::vector<QwDelayLine> temp;
   temp.clear();
   temp.resize ( kLineNum );
@@ -190,17 +190,21 @@ void  QwDriftChamberVDC::ReportConfiguration()
 
 void  QwDriftChamberVDC::SubtractReferenceTimes()
 {
-  UInt_t i = 0;
+  std::size_t i = 0;
   std::vector<Double_t> reftimes;
   std::vector<Bool_t>   refchecked;
   std::vector<Bool_t>   refokay;
   Bool_t allrefsokay;
 
-  reftimes.resize  ( fReferenceData.size() );
-  refchecked.resize( fReferenceData.size() );
-  refokay.resize   ( fReferenceData.size() );
+  std::size_t ref_size = 0;
+  ref_size = fReferenceData.size();
 
-  for ( i=0; i<fReferenceData.size(); i++ ) {
+  reftimes.resize  ( ref_size );
+  refchecked.resize( ref_size );
+  refokay.resize   ( ref_size );
+
+  for ( i=0; i< ref_size; i++ ) {
+    reftimes.at(i)   = 0.0;
     refchecked.at(i) = kFALSE;
     refokay.at(i)    = kFALSE;
   }
@@ -209,10 +213,10 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
 
   UInt_t bankid      = 0;
   Double_t raw_time  = 0.0;
-  Double_t ref_time  = 0;
+  Double_t ref_time  = 0.0;
   Double_t time      = 0.0;
-  Double_t time2     = 0.0;
-  Double_t delta     = 0.0;
+  // Double_t time2     = 0.0;
+  // Double_t delta     = 0.0;
   Bool_t local_debug = false;
 
   for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) {
@@ -220,7 +224,7 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
     //  non-reference hit in the bank.
     bankid = hit->GetSubbankID();
 
-    if (bankid == 0) QwMessage << "BANK id" << bankid << QwLog::endl;
+    //   if (bankid == 0) QwMessage << "BANK id" << bankid << QwLog::endl;
     //
     // if bankid == 0, print out bank id, and then what?
     //
@@ -248,17 +252,16 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
     if ( refokay.at(bankid) ){
       raw_time = (Double_t) hit -> GetRawTime();
       ref_time = (Double_t) reftimes.at(bankid);
-      time     = ActualTimeDifference(raw_time, ref_time);
-      time2    = SubtractReference(raw_time, ref_time);
-      delta    = fabs(time - time2);
-      // hit -> SetRawTime((UInt_t)raw_time); // why I cannot see any rawtime in qwhit? by jhlee Tuesday, July 13 16:12:26 EDT 2010
+      time     = QwDriftChamber::fF1TDC.ActualTimeDifference(raw_time, ref_time);
+      //      time2    = SubtractReference(raw_time, ref_time);
+      //   delta    = fabs(time - time2);
       hit -> SetTime(time);
       if(local_debug) {
 	  QwMessage << " RawTime : " << raw_time
 		    << " RefTime : " << ref_time
 		    << " time    : " << time
-		    << " time2   : " << time2
-		    << " delta   : " << delta
+	    //		    << " time2   : " << time2
+	    //		    << " delta   : " << delta
 		    << std::endl;
 
       }

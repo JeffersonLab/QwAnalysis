@@ -33,7 +33,8 @@
 
 ///
 /// \ingroup QwTracking
-class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
+//class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
+class QwDriftChamber: public VQwSubsystemTracking{
   /******************************************************************
    *  Class: QwDriftChamber
    *
@@ -162,6 +163,7 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   std::vector< QwHit > &fWireHits;
   std::vector< Int_t > fWiresPerPlane;
 
+  MQwF1TDC fF1TDC;
 
   //  NOTE:  The plane and wire indices count from "1" instead
   //         of from "0".
