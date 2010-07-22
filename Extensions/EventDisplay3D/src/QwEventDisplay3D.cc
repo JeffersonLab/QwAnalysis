@@ -490,8 +490,7 @@ void QwEventDisplay3D::NextEvent(Bool_t redraw)
             fHitContainer->GetSize() < 1 ) {
          // Get the next event then!
          fCurrentEvent++;
-         if (redraw)
-            fTree->GetEntry(fCurrentEvent);
+         fTree->GetEntry(fCurrentEvent);
       }
 
       if ( fCurrentEvent < fNumberOfEvents-2 ) {
@@ -501,8 +500,7 @@ void QwEventDisplay3D::NextEvent(Bool_t redraw)
    } else  { // We are not at the end of the list
       fEventsListIt++;
       fCurrentEvent = *fEventsListIt;
-      if (redraw)
-         fTree->GetEntry(fCurrentEvent);
+      fTree->GetEntry(fCurrentEvent);
    }
 
    // Make sure we are not on the last event
@@ -542,8 +540,8 @@ void QwEventDisplay3D::PreviousEvent(Bool_t redraw)
    }
 
    // Get the next event then!
+   fTree->GetEntry(fCurrentEvent);
    if(redraw) {
-      fTree->GetEntry(fCurrentEvent);
       DisplayEvent();
    }
 }
@@ -1234,19 +1232,22 @@ void QwEventDisplay3D::SkipToEvent()
 {
    // Skip to the specified event in the line edit next to this button
    Int_t event = atoi(fSkipToEventLine->GetText());
-   std::cout << "Will jump to event: " << event << "\n";
+   std::cout << "Will jump to event: " << event << "\t while we are in event: "
+      << fCurrentEvent << "\n";
 
    // Sometimes people put in the strangest requests. Check to make sure
    // we aren't already at that event!
    if( event != fCurrentEvent) {
       // Now are we ahead or behind?
-      if( event < fCurrentEvent ) { // Behind!
+      if( event < fCurrentEvent ) { // Ahead of the event
          while (fCurrentEvent>event && fCurrentEvent>0) {
             PreviousEvent(kFALSE);
          }
          // Because of the way we do this we pass it by a bit and will
          // have to retract one step.
-      } else { // Ahead!
+         NextEvent(kFALSE);
+         PreviousEvent(kTRUE);
+      } else { // Behind the event
          while (fCurrentEvent < event && fCurrentEvent<fNumberOfEvents ){
             NextEvent(kFALSE);
          }
@@ -1254,13 +1255,8 @@ void QwEventDisplay3D::SkipToEvent()
          // have to retract one step.
          PreviousEvent(kFALSE);
          NextEvent(kTRUE);
-         std::cout << "Jumped to event: " << fCurrentEvent << "\n";
       }
    }
-
-   // Finally we are in the proper event so
-   PreviousEvent();
-   NextEvent(kTRUE);
 }
 // END OF THE FILE
 ////////////////////////////////////////////////////////////////////////////////
