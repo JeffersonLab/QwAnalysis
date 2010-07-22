@@ -200,13 +200,17 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
           dettype   = mapstr.GetNextToken(", ").c_str();
           name      = mapstr.GetNextToken(", ").c_str();
 
+          if (name=="md_reftime_f1") {
+            reftime_slotnum = slotnum;
+            reftime_channum = channum;
+          }
+
           //  Push a new record into the element array
           if (modtype=="SIS3801")
             {
               if (modnum >= (Int_t) fSCAs.size())  fSCAs.resize(modnum+1);
               if (! fSCAs.at(modnum)) fSCAs.at(modnum) = new QwSIS3801_Module();
               fSCAs.at(modnum)->SetChannel(channum, name);
-
             }
 
           else if (modtype=="V792" || modtype=="V775" || modtype=="F1TDC")
@@ -233,14 +237,9 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
 
           else
             {
-              std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str()
-              << std::endl;
+              std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str() << std::endl;
             }
         }
-      if (name=="MD_reftime_f1") {
-            reftime_slotnum = slotnum;
-            reftime_channum = channum;
-      }
     }
   //ReportConfiguration();
   return 0;
