@@ -222,6 +222,7 @@ public:
    void UpdateView();
    void SkipToEvent();
    void MenuEvent(Int_t menuID);
+   void OpenRoot(Int_t runnumber);
 
    // Ask ROOT to make a dictionary of this file so that slots could work
    ClassDef(QwEventDisplay3D,1);

@@ -122,7 +122,6 @@ void QwEventDisplay3D::InitViews()
    // First initialize the scenes
    fTopScene = fEveManager->SpawnNewScene("Top Scene");
    fSideScene = fEveManager->SpawnNewScene("Side Scene");
-   fWireScene = fEveManager->SpawnNewScene("Wire Scene");
 
    // Create and arrange the various viewers
    TEveWindowSlot *slot = 0;
@@ -407,7 +406,7 @@ void QwEventDisplay3D::InitGUI()
    fNextButton->Connect("Clicked()","QwEventDisplay3D",this,
          "NextEventClicked()");
    fPreviousButton->Connect("Clicked()","QwEventDisplay3D",this,
-         "PreviousEvent()");
+         "PreviousEventClicked()");
    fSwitchViewButton->Connect("Clicked()","QwEventDisplay3D",this,
          "SwitchView()");
    fTargetButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchTarget()");
@@ -525,8 +524,11 @@ void QwEventDisplay3D::PreviousEvent(Bool_t redraw)
    // Iterate backwards (but make sure we are not at the start
    if( fEventsListIt != fListOfGoodEvents.begin() )
       fEventsListIt--;
-   else
+   else {
+      std::cout << "Is this it?\n";
+      fPreviousButton->SetEnabled(kFALSE);
       return;
+   }
 
    // set the current event to what he have now
    fCurrentEvent = *fEventsListIt;
@@ -542,6 +544,7 @@ void QwEventDisplay3D::PreviousEvent(Bool_t redraw)
    // Get the next event then!
    fTree->GetEntry(fCurrentEvent);
    if(redraw) {
+      std::cout << "This is true but yet it does not display it!\n";
       DisplayEvent();
    }
 }
@@ -1258,6 +1261,21 @@ void QwEventDisplay3D::SkipToEvent()
       }
    }
 }
+
+void QwEventDisplay3D::OpenRoot(Int_t runnumber)
+{
+   TFile *tempFile = new TFile(Form("%s/Qweak_%d.root",getenv("QW_ROOTFILES"),
+            runnumber));
+   if(tempFile->IsOpen() ) {
+      delete fRootFile;
+      fRootFile = tempFile;
+
+      InitEvents();
+   }
+
+}
+
+
 // END OF THE FILE
 ////////////////////////////////////////////////////////////////////////////////
 // Notes: sample rotation of detectors. Hold on to it for now, will delete it later.
