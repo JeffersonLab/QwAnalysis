@@ -283,7 +283,7 @@ void  QwDriftChamber::ConstructHistograms(TDirectory *folder, TString& prefix)
   const Short_t buffer_size  = 2000;
   Float_t bin_offset = -0.5;
 
-  for (UInt_t i=1;i<fWiresPerPlane.size();i++)
+  for (UInt_t i=1;i<=fWiresPerPlane.size();i++)
     {
       ///////////////First set of histos////////////////////////////////
       TotHits[i] = new TH1F(Form("%s%sHitsOnEachWirePlane%d", prefix.Data() ,region.Data(),i),
@@ -590,14 +590,14 @@ void QwDriftChamber::SubtractWireTimeOffset()
     plane   = iter->GetPlane();
     wire    = iter->GetElement();
     t0      = fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1);
-
     // They are too many magic numbers.
 
-    if (t0>-1300 && t0<-1500) {
-      if      (plane == 1) t0 = -1423.75;
-      else if (plane == 2) t0 = -1438.28;
+//    if (t0>-1300 && t0<-1500) {
+//      if      (plane == 1) t0 = -1423.75;
+//      else if (plane == 2) t0 = -1438.28;
       // else ??
-    }
+//    }
+//	else();
 
     iter->SetTime(iter->GetTime()-t0);
   }
