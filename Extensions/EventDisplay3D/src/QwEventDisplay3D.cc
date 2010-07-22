@@ -330,7 +330,8 @@ void QwEventDisplay3D::InitGUI()
    // Add the detector configuration canvas
    TGCanvas *canvas = new TGCanvas(vFrame,100,100);
    TGViewPort *viewPort = canvas->GetViewPort();
-   TGVerticalFrame *cFrame = new TGVerticalFrame(viewPort,100,100,kVerticalFrame|kOwnBackground);
+   TGVerticalFrame *cFrame = new TGVerticalFrame(viewPort,100,100,
+         kVerticalFrame|kOwnBackground);
    fTargetButton =  new TGTextButton(cFrame,"Target");
    fCollimator1Button =  new TGTextButton(cFrame,"Collimator1");
    fGemsButton =  new TGTextButton(cFrame,"GEMS");
@@ -381,7 +382,8 @@ void QwEventDisplay3D::InitGUI()
             kLHintsTop | kLHintsExpandX));
 
    // Clean up the main Frame
-   mainFrame->AddFrame(vFrame,new TGLayoutHints(kLHintsLeft | kLHintsTop | kLHintsExpandX|kLHintsExpandY));
+   mainFrame->AddFrame(vFrame,new TGLayoutHints(kLHintsLeft | kLHintsTop 
+            | kLHintsExpandX|kLHintsExpandY));
    mainFrame->MapSubwindows();
    mainFrame->Resize();
    mainFrame->MapWindow();
@@ -402,22 +404,32 @@ void QwEventDisplay3D::InitGUI()
    fBrowser->GetTopMenuFrame()->MapSubwindows();
 
   // Now we have to connect the buttons to the respective signals
-   fNextButton->Connect("Clicked()","QwEventDisplay3D",this,"NextEventClicked()");
-   fPreviousButton->Connect("Clicked()","QwEventDisplay3D",this,"PreviousEvent()");
-   fSwitchViewButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchView()");
+   fNextButton->Connect("Clicked()","QwEventDisplay3D",this,
+         "NextEventClicked()");
+   fPreviousButton->Connect("Clicked()","QwEventDisplay3D",this,
+         "PreviousEvent()");
+   fSwitchViewButton->Connect("Clicked()","QwEventDisplay3D",this,
+         "SwitchView()");
    fTargetButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchTarget()");
-   fCollimator1Button->Connect("Clicked()","QwEventDisplay3D",this,"SwitchCollimator1()");
+   fCollimator1Button->Connect("Clicked()","QwEventDisplay3D",this,
+         "SwitchCollimator1()");
    fGemsButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchGems()");
-   fCollimator2Button->Connect("Clicked()","QwEventDisplay3D",this,"SwitchCollimator2()");
+   fCollimator2Button->Connect("Clicked()","QwEventDisplay3D",this,
+         "SwitchCollimator2()");
    fHDCButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchHDC()");
-   fCollimator3Button->Connect("Clicked()","QwEventDisplay3D",this,"SwitchCollimator3()");
+   fCollimator3Button->Connect("Clicked()","QwEventDisplay3D",this,
+         "SwitchCollimator3()");
    fQtorButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchQtor()");
    fShieldButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchShield()");
    fVDCButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchVDC()");
-   fTriggerButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchTrigger()");
-   fScannerButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchScanner()");
-   fCerenkovButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchCerenkov()");
-   fUpdateViewButton->Connect("Clicked()","QwEventDisplay3D",this,"UpdateView()");
+   fTriggerButton->Connect("Clicked()","QwEventDisplay3D",this,
+         "SwitchTrigger()");
+   fScannerButton->Connect("Clicked()","QwEventDisplay3D",this,
+         "SwitchScanner()");
+   fCerenkovButton->Connect("Clicked()","QwEventDisplay3D",this,
+         "SwitchCerenkov()");
+   fUpdateViewButton->Connect("Clicked()","QwEventDisplay3D",this,
+         "UpdateView()");
    fSkipToEventButton->Connect("Clicked()","QwEventDisplay3D",this,
          "SkipToEvent()");
 
@@ -688,10 +700,17 @@ void QwEventDisplay3D::HideUnecessary()
    fTopNode->GetVolume()->FindNode("HallFloor_Logical#1380448_115")->GetVolume()->SetInvisible();
 
    // Hide the collimator walls around GEMS and HDC
-   fTopNode->GetVolume()->FindNode("CollimatorSupport_TopCover_Log#13a7340_228")->GetVolume()->SetInvisible();
-   fTopNode->GetVolume()->FindNode("CollimatorSupport_BottomCover_Log#13a74b0_229")->GetVolume()->SetInvisible();
-   fTopNode->GetVolume()->FindNode("CollimatorSupport_LeftCover_Log#13a7610_230")->GetVolume()->SetInvisible();
-   fTopNode->GetVolume()->FindNode("CollimatorSupport_RightCover_Log#13a7780_231")->GetVolume()->SetInvisible();
+   fTopNode->GetVolume()->FindNode("CollimatorSupport_TopCover_Log#13a7340_228")
+      ->GetVolume()->SetInvisible();
+   fTopNode->GetVolume()
+      ->FindNode("CollimatorSupport_BottomCover_Log#13a74b0_229")
+      ->GetVolume()->SetInvisible();
+   fTopNode->GetVolume()
+      ->FindNode("CollimatorSupport_LeftCover_Log#13a7610_230")
+      ->GetVolume()->SetInvisible();
+   fTopNode->GetVolume()
+      ->FindNode("CollimatorSupport_RightCover_Log#13a7780_231")
+      ->GetVolume()->SetInvisible();
 
    // Hide the plane between the two VDC's (I'm not sure what this plane is,
    // actually, but it certainly should not be there I think.)
