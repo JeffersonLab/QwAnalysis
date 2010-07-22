@@ -34,7 +34,6 @@ QwEventDisplay3D::QwEventDisplay3D(const  TGWindow *window, UInt_t width,
    fCosAngleWires =  0.894427191;  // unitless
    fTanAngleWires =  0.500000000;  // unitless
 
-
    fCurrentTrackArray = new TObjArray();
 
    // For now, just initialize
@@ -231,10 +230,9 @@ void QwEventDisplay3D::InitEvents()
         fEventsListIt = fListOfGoodEvents.begin();
         DisplayEvent();
      }
+     // Finally, enable the next button
+     fNextButton->SetEnabled(kTRUE);
   }
-
-  // Obviously  we want to disable the previous button in the beginning
-  fPreviousButton->SetEnabled(kFALSE);
 
 }
 
@@ -260,9 +258,40 @@ void QwEventDisplay3D::InitGUI()
    hFrame->ChangeBackground(fGreen);
    fPreviousButton = new TGTextButton(hFrame,"Previous");
    fNextButton = new TGTextButton(hFrame,"Next");
-   hFrame->AddFrame(fPreviousButton,new TGLayoutHints(kLHintsLeft | kLHintsTop | kLHintsExpandX));
-   hFrame->AddFrame(fNextButton,new TGLayoutHints(kLHintsLeft | kLHintsTop | kLHintsExpandX));
-   vFrame->AddFrame(hFrame,new TGLayoutHints(kLHintsLeft | kLHintsTop | kLHintsExpandX));
+   hFrame->AddFrame(fPreviousButton,new TGLayoutHints(kLHintsLeft |
+            kLHintsTop | kLHintsExpandX));
+   hFrame->AddFrame(fNextButton,new TGLayoutHints(kLHintsLeft |
+            kLHintsTop | kLHintsExpandX));
+
+   // Disable the next and previous buttons for now. They should be enabled
+   // only after a valid file has been opened.
+   fPreviousButton->SetEnabled(kFALSE);
+   fNextButton->SetEnabled(kFALSE);
+
+   vFrame->AddFrame(hFrame,new TGLayoutHints(kLHintsLeft | kLHintsTop |
+           kLHintsExpandX));
+
+   // Different inputs
+   hFrame = new TGHorizontalFrame(vFrame,100,25);
+   fCurrentEventLabel = new TGLabel(hFrame,"--");
+   hFrame->AddFrame(new TGLabel(hFrame,"Current Event:"),
+         new TGLayoutHints(kLHintsLeft | kLHintsTop | kLHintsExpandX |
+            kLHintsExpandY));
+   hFrame->AddFrame(fCurrentEventLabel, new TGLayoutHints(kLHintsLeft |
+            kLHintsTop | kLHintsExpandX | kLHintsExpandY));
+   vFrame->AddFrame(hFrame,new TGLayoutHints(kLHintsLeft | kLHintsTop |
+           kLHintsExpandX));
+
+   hFrame = new TGHorizontalFrame(vFrame,100,25);
+   fSkipToEventButton = new TGTextButton(hFrame,"Skip to event: ");
+   fSkipToEventLine = new TGTextEntry(hFrame);
+   hFrame->AddFrame(fSkipToEventButton, new TGLayoutHints(kLHintsLeft |
+            kLHintsTop | kLHintsExpandX|kLHintsExpandY));
+   hFrame->AddFrame(fSkipToEventLine, new TGLayoutHints(kLHintsLeft |
+            kLHintsTop | kLHintsExpandX));
+   vFrame->AddFrame(hFrame,new TGLayoutHints(kLHintsLeft | kLHintsTop |
+           kLHintsExpandX));
+
 
    // Now add the labels
    fRegion1Label = new TGLabel(vFrame,"REGION 1 HIT");
@@ -373,7 +402,7 @@ void QwEventDisplay3D::InitGUI()
    fBrowser->GetTopMenuFrame()->MapSubwindows();
 
   // Now we have to connect the buttons to the respective signals
-   fNextButton->Connect("Clicked()","QwEventDisplay3D",this,"NextEvent()");
+   fNextButton->Connect("Clicked()","QwEventDisplay3D",this,"NextEventClicked()");
    fPreviousButton->Connect("Clicked()","QwEventDisplay3D",this,"PreviousEvent()");
    fSwitchViewButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchView()");
    fTargetButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchTarget()");
@@ -389,6 +418,8 @@ void QwEventDisplay3D::InitGUI()
    fScannerButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchScanner()");
    fCerenkovButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchCerenkov()");
    fUpdateViewButton->Connect("Clicked()","QwEventDisplay3D",this,"UpdateView()");
+   fSkipToEventButton->Connect("Clicked()","QwEventDisplay3D",this,
+         "SkipToEvent()");
 
    // This is the reason why the flags above have to be opposite of what we
    // want them to be. We set the button colors just by invoking the
@@ -427,7 +458,14 @@ void QwEventDisplay3D::CloseWindow()
    exit(0);
 }
 
-void QwEventDisplay3D::NextEvent()
+void QwEventDisplay3D::NextEventClicked()
+{
+   // Respond to the button being clicked by asking the program to find and
+   // redraw the next event
+   NextEvent();
+}
+
+void QwEventDisplay3D::NextEvent(Bool_t redraw)
 {
    // Check to see if we are already the last event in the list. If we are not
    // then we search for the next valid event.
@@ -439,16 +477,20 @@ void QwEventDisplay3D::NextEvent()
       while ( fCurrentEvent < fNumberOfEvents && 
             fHitContainer->GetSize() < 1 ) {
          // Get the next event then!
-         fTree->GetEntry(++fCurrentEvent);
+         fCurrentEvent++;
+         if (redraw)
+            fTree->GetEntry(fCurrentEvent);
       }
 
       if ( fCurrentEvent < fNumberOfEvents-2 ) {
          fListOfGoodEvents.push_back(fCurrentEvent);
          fEventsListIt++;
       }
-   } else  {
+   } else  { // We are not at the end of the list
       fEventsListIt++;
       fCurrentEvent = *fEventsListIt;
+      if (redraw)
+         fTree->GetEntry(fCurrentEvent);
    }
 
    // Make sure we are not on the last event
@@ -458,13 +500,23 @@ void QwEventDisplay3D::NextEvent()
    }
    fPreviousButton->SetEnabled(kTRUE);
 
-   DisplayEvent();
+   if(redraw)
+      DisplayEvent();
 }
 
-void QwEventDisplay3D::PreviousEvent()
+void QwEventDisplay3D::PreviousEventClicked()
 {
-   // Iterate backwards
-   fEventsListIt--;
+   // Draw the previous event
+   PreviousEvent(kTRUE);
+}
+
+void QwEventDisplay3D::PreviousEvent(Bool_t redraw)
+{
+   // Iterate backwards (but make sure we are not at the start
+   if( fEventsListIt != fListOfGoodEvents.begin() )
+      fEventsListIt--;
+   else
+      return;
 
    // set the current event to what he have now
    fCurrentEvent = *fEventsListIt;
@@ -478,9 +530,10 @@ void QwEventDisplay3D::PreviousEvent()
    }
 
    // Get the next event then!
-   fTree->GetEntry(fCurrentEvent);
-
-   DisplayEvent();
+   if(redraw) {
+      fTree->GetEntry(fCurrentEvent);
+      DisplayEvent();
+   }
 }
 
 void QwEventDisplay3D::DisplayEvent()
@@ -493,6 +546,11 @@ void QwEventDisplay3D::DisplayEvent()
    fCerenkovLabel->ChangeBackground(fRed);
    fScannerLabel->ChangeBackground(fRed);
 
+   // Clear the Wire hit counters
+   for(Int_t i=0; i<4;i++)
+      for(Int_t j=0; j<279;j++)
+         fR3WireHitCount[i][j] = 0;
+
    // Define a series of place holders for the information we will extract
    // off the trees
    Int_t region;
@@ -500,11 +558,6 @@ void QwEventDisplay3D::DisplayEvent()
    Double_t direction = -1;
    Int_t numberOfHits = 0;
    QwHit *hit = 0;
-
-
-   if (kDebug)
-      QwMessage << "Number of Tracks: " << fEvent->GetNumberOfTracks() <<
-         " for event " << fCurrentEvent << "\n";
 
 
    // Check to see if a previous event was already drawn and remove it
@@ -547,8 +600,17 @@ void QwEventDisplay3D::DisplayEvent()
 
       if (kDebug) {
          std::cout << "========================EVENT=============\n";
-         std::cout << "Event: " << fCurrentEvent << "\n";
+         std::cout << "\t\t -- Event: " << fCurrentEvent << " --\n";
+         std::cout << "Number reconstructed tracks: " 
+            << fEvent->GetNumberOfTracks() << "\n\n";
       }
+
+      // Update the GUI
+      char buff[32];
+      sprintf(buff,"%d",fCurrentEvent);
+      fCurrentEventLabel->SetText(buff);
+
+
       // Now loop through the hit container to extract all information about
       // all hits in his event (accross _all_ regions)
       for( Int_t j = 0; j < numberOfHits; j++ ) {
@@ -565,7 +627,7 @@ void QwEventDisplay3D::DisplayEvent()
             std::cout << "Package: " << package << "\n";
             std::cout << "Plane: " << plane << "\n";
             std::cout << "Wire: " << wire << "\n";
-            std::cout << "==================END EVENT=============\n";
+            std::cout << endl;
          }
 
          // Now light up the respective labels to indicate hits
@@ -591,8 +653,16 @@ void QwEventDisplay3D::DisplayEvent()
             default:
                break;
          }
+
+         // Increment the wire hit counts
+         if(region==3)
+            fR3WireHitCount[plane-1][wire-1]++;
+
+         // Display the wire hit
          DisplayWire(wire,plane,package,region);
       }
+      if( kDebug )
+         std::cout << "==================END EVENT=============\n";
 
       // Uncomment the following if you want to see the
       // full drawing of the planes.
@@ -659,6 +729,9 @@ void QwEventDisplay3D::SwitchView()
          ->SetVisibility(kTRUE);
       fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_238")
          ->SetVisibility(kTRUE);
+
+      // Disable the Detector buttons
+      DetectorButtonsEnable(kFALSE);
    } else { // Detector View
       // Reset button text
       fSwitchViewButton->SetText("Switch to Wire View");
@@ -676,6 +749,10 @@ void QwEventDisplay3D::SwitchView()
 
       // Of course hide those undesirable objects.
       HideUnecessary();
+
+      /// Enable the Detector buttons
+      DetectorButtonsEnable(kTRUE);
+
    }
 
    // In principle this was supposed to return our old camera view, but
@@ -699,7 +776,8 @@ void QwEventDisplay3D::ClearTracks()
    // drawn as tracks. Anyway, as the name suggests, this clears them from
    // memory, otherwise they will always be displayed...always....and forever.
    Int_t entries = fCurrentTrackArray->GetEntries();
-   std::cout << "Clearing " << entries << " tracks from memory\n";
+   if (kDebug)
+      std::cout << "Clearing " << entries << " tracks from memory\n";
    for( Int_t i = 0; i< entries; i++ ) {
      fEveManager->RemoveElement((TEveElement*)fCurrentTrackArray->At(i),
             (TEveElement*)fEveManager->GetCurrentEvent());
@@ -724,7 +802,7 @@ void QwEventDisplay3D::DisplayWire(Int_t wire, Int_t plane, Int_t package,
    // If this issue has been fixed, this can safely be removed.
    plane = (plane-1)%4 + 1;
 
-   // The sign corresponds to the direction of the wires. Planes U and V
+   // The sign corresponds to the direction of the wires. Planes U and V are
    // inverted over the local y axis, with respect to each other.
    Int_t sign = 1;
    if( ((plane-1)%2) == 1 )
@@ -774,8 +852,9 @@ void QwEventDisplay3D::DisplayWire(Int_t wire, Int_t plane, Int_t package,
    fCurrentTrack->SetMarkerColor(kGreen);
    fCurrentTrack->SetMarkerStyle(5);
    fCurrentTrack->SetMarkerSize(0.5);
-   fCurrentTrack->SetTitle(Form("Plane: %d\nWire: %d\nPackage: %d",plane,wire,
-            package));
+   fCurrentTrack->SetTitle(Form("Plane: %d\nWire: %d\nPackage: %d"
+            "\nNHits: %d",plane,wire,
+            package,fR3WireHitCount[plane-1][wire-1]));
    fEveManager->AddElement(fCurrentTrackList);
    fEveManager->AddElement(fCurrentTrack);
    fCurrentTrack->MakeTrack();
@@ -1102,13 +1181,68 @@ void QwEventDisplay3D::OpenRootFile()
    new TGFileDialog(gClient->GetRoot(),
          this, kFDOpen, &fileInfo);
 
-   // Open the ROOT file
-   fRootFile = new TFile(fileInfo.fFilename);
+   // Make sure the file selected is valid before we set it
+   TFile *tempFile = new TFile(fileInfo.fFilename);
+   if( tempFile->IsOpen() ) {
+      delete fRootFile;
+      fRootFile = tempFile;
 
-   // Initialize the events
-   InitEvents();
+      // Initialize the events
+      InitEvents();
+   }
 }
 
+void QwEventDisplay3D::DetectorButtonsEnable(Bool_t status)
+{
+   // Enable or disable the detector buttons depending on the view
+   fUpdateViewButton->SetEnabled(status);
+   fTargetButton->SetEnabled(status);
+   fCollimator1Button->SetEnabled(status);
+   fGemsButton->SetEnabled(status);
+   fCollimator2Button->SetEnabled(status);
+   fHDCButton->SetEnabled(status);
+   fCollimator3Button->SetEnabled(status);
+   fQtorButton->SetEnabled(status);
+   fShieldButton->SetEnabled(status);
+   fVDCButton->SetEnabled(status);
+   fTriggerButton->SetEnabled(status);
+   fScannerButton->SetEnabled(status);
+   fCerenkovButton->SetEnabled(status);
+}
+
+
+void QwEventDisplay3D::SkipToEvent()
+{
+   // Skip to the specified event in the line edit next to this button
+   Int_t event = atoi(fSkipToEventLine->GetText());
+   std::cout << "Will jump to event: " << event << "\n";
+
+   // Sometimes people put in the strangest requests. Check to make sure
+   // we aren't already at that event!
+   if( event != fCurrentEvent) {
+      // Now are we ahead or behind?
+      if( event < fCurrentEvent ) { // Behind!
+         while (fCurrentEvent>event && fCurrentEvent>0) {
+            PreviousEvent(kFALSE);
+         }
+         // Because of the way we do this we pass it by a bit and will
+         // have to retract one step.
+      } else { // Ahead!
+         while (fCurrentEvent < event && fCurrentEvent<fNumberOfEvents ){
+            NextEvent(kFALSE);
+         }
+         // Because of the way we do this we pass it by a bit and will
+         // have to retract one step.
+         PreviousEvent(kFALSE);
+         NextEvent(kTRUE);
+         std::cout << "Jumped to event: " << fCurrentEvent << "\n";
+      }
+   }
+
+   // Finally we are in the proper event so
+   PreviousEvent();
+   NextEvent(kTRUE);
+}
 // END OF THE FILE
 ////////////////////////////////////////////////////////////////////////////////
 // Notes: sample rotation of detectors. Hold on to it for now, will delete it later.

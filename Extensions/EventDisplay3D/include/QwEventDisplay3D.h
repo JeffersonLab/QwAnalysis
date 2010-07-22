@@ -43,6 +43,7 @@
 #include <TGButton.h>
 #include <TGMenu.h>
 #include <TGFileDialog.h>
+#include <TGTextEntry.h>
 
 // ROOT OpenGL Includes
 #include <TGeoMaterial.h>
@@ -106,6 +107,8 @@ private:
   Double_t fCosAngleWires;    // cos(fAngleOfWires)
   Double_t fTanAngleWires;    // tan(fAngleOfWires)
 
+  // Wire hit count
+  Int_t fR3WireHitCount[4][279];
 
   // GUI elements
   TGLabel *fRegion1Label;
@@ -114,13 +117,16 @@ private:
   TGLabel *fTrigLabel;
   TGLabel *fCerenkovLabel;
   TGLabel *fScannerLabel;
+  TGLabel *fCurrentEventLabel;
+  TGTextButton *fSkipToEventButton;
   TGTextButton *fNextButton;
   TGTextButton *fPreviousButton;
   TGTextButton *fSwitchViewButton;
   TGTextButton *fUpdateViewButton;
   TGTextButton *fOpenRootButton;
-  TEveBrowser *fBrowser;
+  TEveBrowser  *fBrowser;
   TGPopupMenu  *fMenu;
+  TGTextEntry   *fSkipToEventLine;
 
   // Enumerated menu options
   enum EventDisplayMenu_e {
@@ -178,6 +184,9 @@ private:
   void HideUnecessary();
   void ClearTracks();
   void OpenRootFile();
+  void NextEvent(Bool_t redraw = kTRUE);
+  void PreviousEvent(Bool_t redraw = kTRUE);
+  void DetectorButtonsEnable(Bool_t status);
   void DisplayWire(Int_t wire, Int_t plane,Int_t package, Int_t region);
   void UpdateButtonState(TGTextButton *button, const char* text, Bool_t *state);
   void SetVisibility(const char* volname, Bool_t status);
@@ -195,8 +204,8 @@ public:
    void CloseWindow();
 
    // All  buttons
-   void NextEvent();
-   void PreviousEvent();
+   void NextEventClicked();
+   void PreviousEventClicked();
    void SwitchView();
    void SwitchTarget();
    void SwitchCollimator1();
@@ -211,6 +220,7 @@ public:
    void SwitchScanner();
    void SwitchCerenkov();
    void UpdateView();
+   void SkipToEvent();
    void MenuEvent(Int_t menuID);
 
    // Ask ROOT to make a dictionary of this file so that slots could work
