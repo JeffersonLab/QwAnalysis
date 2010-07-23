@@ -187,7 +187,8 @@ private:
   void NextEvent(Bool_t redraw = kTRUE);
   void PreviousEvent(Bool_t redraw = kTRUE);
   void DetectorButtonsEnable(Bool_t status);
-  void DisplayWire(Int_t wire, Int_t plane,Int_t package, Int_t region);
+  void DisplayWire(Int_t wire, Int_t plane,Int_t package, Int_t region,
+        TString message="");
   void UpdateButtonState(TGTextButton *button, const char* text, Bool_t *state);
   void SetVisibility(const char* volname, Bool_t status);
 public:

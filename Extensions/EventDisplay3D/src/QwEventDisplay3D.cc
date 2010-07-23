@@ -569,6 +569,7 @@ void QwEventDisplay3D::DisplayEvent()
    Int_t package =-1, plane=-1, wire=-1;
    Double_t direction = -1;
    Int_t numberOfHits = 0;
+   Bool_t ambiguousR3Wire = kFALSE;
    QwHit *hit = 0;
 
 
@@ -632,6 +633,7 @@ void QwEventDisplay3D::DisplayEvent()
          package = hit->GetPackage();
          plane = hit->GetPlane();
          wire = hit->GetElement();
+         ambiguousR3Wire = (Bool_t)hit->AmbiguousElement();
          if (kDebug) {
             std::cout << "---Hit: " << j << "\n";
             std::cout << "Region: " << region << "\n";
@@ -639,6 +641,8 @@ void QwEventDisplay3D::DisplayEvent()
             std::cout << "Package: " << package << "\n";
             std::cout << "Plane: " << plane << "\n";
             std::cout << "Wire: " << wire << "\n";
+            if(ambiguousR3Wire)
+               std::cout << "--Ambiguous Wire--\n";
             std::cout << endl;
          }
 
@@ -666,12 +670,19 @@ void QwEventDisplay3D::DisplayEvent()
                break;
          }
 
+         // Formulate an additional message to display in each wire
+         TString message("");
+
          // Increment the wire hit counts
-         if(region==3)
+         if(region==3) {
             fR3WireHitCount[plane-1][wire-1]++;
+            if ( ambiguousR3Wire )
+               message = "\n--Ambiguous Wire--";
+         }
+
 
          // Display the wire hit
-         DisplayWire(wire,plane,package,region);
+         DisplayWire(wire,plane,package,region,message);
       }
       if( kDebug )
          std::cout << "==================END EVENT=============\n";
@@ -810,7 +821,7 @@ void QwEventDisplay3D::ClearTracks()
 }
 
 void QwEventDisplay3D::DisplayWire(Int_t wire, Int_t plane, Int_t package,
-      Int_t region)
+      Int_t region, TString message)
 {
    // This displays the requested wire. The wires are represented as tracks
    // just for simplicity, and because it allows more control of their
@@ -872,8 +883,8 @@ void QwEventDisplay3D::DisplayWire(Int_t wire, Int_t plane, Int_t package,
    fCurrentTrack->SetMarkerStyle(5);
    fCurrentTrack->SetMarkerSize(0.5);
    fCurrentTrack->SetTitle(Form("Plane: %d\nWire: %d\nPackage: %d"
-            "\nNHits: %d",plane,wire,
-            package,fR3WireHitCount[plane-1][wire-1]));
+            "\nNHits: %d%s",plane,wire,
+            package,fR3WireHitCount[plane-1][wire-1],message.Data()));
    fEveManager->AddElement(fCurrentTrackList);
    fEveManager->AddElement(fCurrentTrack);
    fCurrentTrack->MakeTrack();
