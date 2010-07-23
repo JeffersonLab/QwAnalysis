@@ -87,7 +87,26 @@ const Bool_t QwMainCerenkovDetector::PublishInternalValues() const
  */
 const VQwDataElement* QwMainCerenkovDetector::ReturnInternalValue(const TString& name) const
 {
-  return GetIntegrationPMT(name)->GetChannel(name);
+  Bool_t ldebug = kFALSE;
+  if (ldebug)
+    QwDebug << "QwMainCerenkovDetector::ReturnInternalValue called for value name, "
+            << name.Data() << QwLog::endl;
+
+  // search in integration PMTs
+  if (GetIntegrationPMT(name) != NULL) {
+    if (ldebug)
+      QwDebug << "QwMainCerenkovDetector::ReturnInternalValue got element " << name << QwLog::endl;
+    return GetIntegrationPMT(name)->GetChannel(name);
+
+  // search in combined PMTs
+  } else if (GetCombinedPMT(name) != NULL) {
+    if (ldebug)
+      QwDebug << "QwMainCerenkovDetector::ReturnInternalValue got element " << name << QwLog::endl;
+    return GetCombinedPMT(name)->GetChannel(name);
+  }
+
+  // not found
+  return 0;
 }
 
 /**
@@ -97,32 +116,23 @@ const VQwDataElement* QwMainCerenkovDetector::ReturnInternalValue(const TString&
  * @param value Pointer to the value to be filled by the call
  * @return True if the variable was found, false if not found
  */
-const Bool_t QwMainCerenkovDetector::ReturnInternalValue(TString name, VQwDataElement* value) const
+const Bool_t QwMainCerenkovDetector::ReturnInternalValue(const TString& name, VQwDataElement* value) const
 {
-  ///  TODO:  The published variable list should be generated from
-  ///         the channel map file.
-  Bool_t ldebug = kFALSE;
-  if (ldebug)
-     QwDebug << "QwMainCerenkovDetector::ReturnInternalValue called for value name, "
-             << name.Data() << QwLog::endl;
-
   Bool_t foundit = kFALSE;
-  QwVQWK_Channel* tmp = dynamic_cast<QwVQWK_Channel*>(value);
-  if (tmp == NULL) {
+  QwVQWK_Channel* value_ptr = dynamic_cast<QwVQWK_Channel*>(value);
+  if (value_ptr == NULL) {
     QwWarning << "QwMainCerenkovDetector::ReturnInternalValue requires that "
               << "'value' be a pointer to QwVQWK_Channel"
               << QwLog::endl;
   } else {
-    if (GetIntegrationPMT(name) != NULL) {
+    // Cast into appropriate type
+    const QwVQWK_Channel* internal_value_ptr = dynamic_cast<const QwVQWK_Channel*>(ReturnInternalValue(name));
+    if (internal_value_ptr) {
       foundit = kTRUE;
-      (*tmp) = *(GetIntegrationPMT(name)->GetChannel(name));
-        if (ldebug)
-          QwDebug <<"QwMainCerenkovDetector::ReturnInternalValue got element " << name << QwLog::endl;
-    } else if (GetCombinedPMT(name) != NULL) {
-      foundit = kTRUE;
-      (*tmp) = *(GetCombinedPMT(name)->GetChannel(name));
-        if (ldebug)
-          QwDebug <<"QwMainCerenkovDetector::ReturnInternalValue got element " << name << QwLog::endl;
+      *value_ptr = *internal_value_ptr;
+    } else {
+      QwWarning << "QwMainCerenkovDetector::ReturnInternalValue did not find "
+                << "channel named " << name << QwLog::endl;
     }
   }
   return foundit;

@@ -81,13 +81,13 @@ class QwBeamLine : public VQwSubsystemParity{
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   void  PrintDetectorID() const;
- 
+
   void  ClearEventData();
   void  ProcessEvent();
 
 
   const Bool_t PublishInternalValues() const;
-  const Bool_t ReturnInternalValue(TString name, VQwDataElement* value) const;
+  const Bool_t ReturnInternalValue(const TString& name, VQwDataElement* value) const;
 
   void RandomizeEventData(int helicity = 0, double time = 0.0);
   void EncodeEventData(std::vector<UInt_t> &buffer);

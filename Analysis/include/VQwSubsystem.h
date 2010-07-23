@@ -92,11 +92,17 @@ class VQwSubsystem {
 
   /// \brief Request a named value which is owned by an external subsystem;
   ///        the request will be handled by the parent subsystem array
-  const Bool_t RequestExternalValue(TString name, VQwDataElement* value) const;
+  const Bool_t RequestExternalValue(const TString& name, VQwDataElement* value) const;
+
+  /// \brief Return a pointer to a varialbe to the parent subsystem array to be
+  ///        delivered to a different subsystem.
+  virtual const VQwDataElement* ReturnInternalValue(const TString& name) const {
+    return 0;
+  };
 
   /// \brief Return a named value to the parent subsystem array to be
   ///        delivered to a different subsystem.
-  virtual const Bool_t ReturnInternalValue(TString name,
+  virtual const Bool_t ReturnInternalValue(const TString& name,
 				      VQwDataElement* value) const {
     return kFALSE;
   };

@@ -147,7 +147,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
 	localComboID.fdetectorname=comboname(0,comboname.Sizeof()-1);
 	localComboID.fIndex = GetDetectorIndex(localComboID.fTypeID,localComboID.fdetectorname);
-	
+
 	if(localComboID.fTypeID==-1){
 	  QwError << "QwBeamLine::LoadChannelMap:  Unknown detector type: "
 		  << combotype <<", the detector "<<comboname<<" will not be decoded "
@@ -275,13 +275,13 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
       if(localBeamDetectorID.fTypeID==kQwBPMCavity)
 	  localBeamDetectorID.fdetectorname=namech(0,namech.Sizeof()-2);
-	
+
       localBeamDetectorID.fIndex=
 	GetDetectorIndex(localBeamDetectorID.fTypeID,
 			 localBeamDetectorID.fdetectorname);
 
       if(localBeamDetectorID.fIndex==-1){
-	
+
 	if(localBeamDetectorID.fTypeID == kQwHaloMonitor){
 	  QwHaloMonitor localhalo(localBeamDetectorID.fdetectorname);
 	  fHaloMonitor.push_back(localhalo);
@@ -363,20 +363,20 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	else
 	  std::cout<<"FALSE"<<std::endl;
       }
-    
+
       if(lineok)
 	fBeamDetectorID.push_back(localBeamDetectorID);
-      
+
     }
   }
-  
+
   if(ldebug){
     std::cout<<"QwLumi::Done with Load map channel \n";
     for(size_t i=0;i<fBeamDetectorID.size();i++)
       fBeamDetectorID[i].Print();
   }
   ldebug=kFALSE;
-  
+
   return 0;
 };
 
@@ -1077,7 +1077,7 @@ const Bool_t QwBeamLine::PublishInternalValues() const
  * @param value Pointer to the value to be filled by the call
  * @return True if the variable was found, false if not found
  */
-const Bool_t QwBeamLine::ReturnInternalValue(TString name,
+const Bool_t QwBeamLine::ReturnInternalValue(const TString& name,
 				       VQwDataElement* value) const
 {
   ///  TODO:  The published variable list should be generated from
@@ -1627,7 +1627,7 @@ void QwBeamLine::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile&
     nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
     for(size_t i = 0; i < fCavity.size(); i++)
       fCavity[i].ConstructBranch(tree, prefix,*nextmodule);
-  
+
   }
 
   tmp="QwBCM";
