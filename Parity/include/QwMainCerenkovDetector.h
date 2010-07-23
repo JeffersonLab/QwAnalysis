@@ -77,6 +77,10 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   void  ProcessEvent_2();
 
 
+  const Bool_t PublishInternalValues() const;
+  const Bool_t ReturnInternalValue(TString name, VQwDataElement* value) const;
+  const VQwDataElement* ReturnInternalValue(const TString& name) const;
+
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
   void  RandomizeEventData(int helicity = 0, Double_t time = 0.0);
@@ -98,7 +102,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   void  FillTreeVector(std::vector<Double_t> &values);
   void  FillDB(QwDatabase *db, TString datatype);
 
-  QwIntegrationPMT* GetChannel(const TString name);
+  const QwIntegrationPMT* GetChannel(const TString name) const;
 
   void Copy(VQwSubsystem *source);
   VQwSubsystem*  Copy();
@@ -124,7 +128,8 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   void AccumulateRunningSum(VQwSubsystem* value);
   void CalculateRunningAverage();
 
-  QwIntegrationPMT* GetIntegrationPMT(const TString name);
+  const QwIntegrationPMT* GetIntegrationPMT(const TString name) const;
+  const QwCombinedPMT* GetCombinedPMT(const TString name) const;
 
   void DoNormalization(Double_t factor=1.0);
 

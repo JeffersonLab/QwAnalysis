@@ -46,6 +46,89 @@ void QwMainCerenkovDetector::ProcessOptions(QwOptions &options){
   }
 };
 
+
+//*****************************************************************
+/**
+ * Publish internal values
+ * @return
+ */
+const Bool_t QwMainCerenkovDetector::PublishInternalValues() const
+{
+  ///  TODO:  The published variable list should be generated from
+  ///         the channel map file.
+  // Publish variables
+  Bool_t status = kTRUE;
+  status = status && PublishInternalValue("md1neg", "MD1-");
+  status = status && PublishInternalValue("md1pos", "MD1+");
+  status = status && PublishInternalValue("md2neg", "MD2-");
+  status = status && PublishInternalValue("md2pos", "MD2+");
+  status = status && PublishInternalValue("md3neg", "MD3-");
+  status = status && PublishInternalValue("md3pos", "MD3+");
+  status = status && PublishInternalValue("md4neg", "MD4-");
+  status = status && PublishInternalValue("md4pos", "MD4+");
+  status = status && PublishInternalValue("md5neg", "MD5-");
+  status = status && PublishInternalValue("md5pos", "MD5+");
+  status = status && PublishInternalValue("md6neg", "MD6-");
+  status = status && PublishInternalValue("md6pos", "MD6+");
+  status = status && PublishInternalValue("md7neg", "MD7-");
+  status = status && PublishInternalValue("md7pos", "MD7+");
+  status = status && PublishInternalValue("md8neg", "MD8-");
+  status = status && PublishInternalValue("md8pos", "MD8+");
+  return status;
+};
+
+
+//*****************************************************************
+/**
+ * Return the pointer to the variable name
+ * TODO should incorporate logic below, changes similarly in parent classes
+ * @param name Name of the desired variable
+ * @return Pointer to the variable name, null if not found
+ */
+const VQwDataElement* QwMainCerenkovDetector::ReturnInternalValue(const TString& name) const
+{
+  return GetIntegrationPMT(name)->GetChannel(name);
+}
+
+/**
+ * Return the value of variable name
+ * TODO should use function above, not have logic built in
+ * @param name Name of the desired variable
+ * @param value Pointer to the value to be filled by the call
+ * @return True if the variable was found, false if not found
+ */
+const Bool_t QwMainCerenkovDetector::ReturnInternalValue(TString name, VQwDataElement* value) const
+{
+  ///  TODO:  The published variable list should be generated from
+  ///         the channel map file.
+  Bool_t ldebug = kFALSE;
+  if (ldebug)
+     QwDebug << "QwMainCerenkovDetector::ReturnInternalValue called for value name, "
+             << name.Data() << QwLog::endl;
+
+  Bool_t foundit = kFALSE;
+  QwVQWK_Channel* tmp = dynamic_cast<QwVQWK_Channel*>(value);
+  if (tmp == NULL) {
+    QwWarning << "QwMainCerenkovDetector::ReturnInternalValue requires that "
+              << "'value' be a pointer to QwVQWK_Channel"
+              << QwLog::endl;
+  } else {
+    if (GetIntegrationPMT(name) != NULL) {
+      foundit = kTRUE;
+      (*tmp) = *(GetIntegrationPMT(name)->GetChannel(name));
+        if (ldebug)
+          QwDebug <<"QwMainCerenkovDetector::ReturnInternalValue got element " << name << QwLog::endl;
+    } else if (GetCombinedPMT(name) != NULL) {
+      foundit = kTRUE;
+      (*tmp) = *(GetCombinedPMT(name)->GetChannel(name));
+        if (ldebug)
+          QwDebug <<"QwMainCerenkovDetector::ReturnInternalValue got element " << name << QwLog::endl;
+    }
+  }
+  return foundit;
+}
+
+
 Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 {
 
@@ -784,7 +867,7 @@ void QwMainCerenkovDetector::FillTreeVector(std::vector<Double_t> &values)
 };
 
 
-QwIntegrationPMT* QwMainCerenkovDetector::GetChannel(const TString name)
+const QwIntegrationPMT* QwMainCerenkovDetector::GetChannel(const TString name) const
 {
   return GetIntegrationPMT(name);
 };
@@ -1051,7 +1134,7 @@ Int_t QwMainCerenkovDetector::GetDetectorIndex(EQwPMTInstrumentType type_id, TSt
   return result;
 };
 
-QwIntegrationPMT* QwMainCerenkovDetector::GetIntegrationPMT(const TString name)
+const QwIntegrationPMT* QwMainCerenkovDetector::GetIntegrationPMT(const TString name) const
 {
   TString tmpname = name;
   tmpname.ToLower();
@@ -1066,7 +1149,26 @@ QwIntegrationPMT* QwMainCerenkovDetector::GetIntegrationPMT(const TString name)
             }
         }
     }
-  std::cout<<"QwMainCerenkovDetector::GetIntegrationPMT: cannot find channel "<<tmpname<<std::endl;
+  QwMessage << "QwMainCerenkovDetector::GetIntegrationPMT: cannot find channel " << tmpname << QwLog::endl;
+  return NULL;
+};
+
+const QwCombinedPMT* QwMainCerenkovDetector::GetCombinedPMT(const TString name) const
+{
+  TString tmpname = name;
+  tmpname.ToLower();
+  if (! fCombinedPMT.empty())
+    {
+      for (size_t i=0;i<fCombinedPMT.size();i++)
+        {
+          if (fCombinedPMT.at(i).GetElementName() == tmpname)
+            {
+              //std::cout<<"Get CombinedPMT "<<tmpname<<std::endl;
+              return &(fCombinedPMT.at(i));
+            }
+        }
+    }
+  QwMessage << "QwMainCerenkovDetector::GetCombinedPMT: cannot find channel " << tmpname << QwLog::endl;
   return NULL;
 };
 

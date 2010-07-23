@@ -43,7 +43,7 @@ class QwVQWK_Channel: public VQwDataElement {
  ******************************************************************/
  public:
   static Int_t GetBufferOffset(Int_t moduleindex, Int_t channelindex);
-  
+
  public:
   QwVQWK_Channel() {
     InitializeChannel("","");
@@ -112,6 +112,10 @@ class QwVQWK_Channel: public VQwDataElement {
   QwVQWK_Channel& operator=  (const QwVQWK_Channel &value);
   QwVQWK_Channel& operator+= (const QwVQWK_Channel &value);
   QwVQWK_Channel& operator-= (const QwVQWK_Channel &value);
+  QwVQWK_Channel& operator*= (const QwVQWK_Channel &value);
+  const QwVQWK_Channel operator+ (const QwVQWK_Channel &value) const;
+  const QwVQWK_Channel operator- (const QwVQWK_Channel &value) const;
+  const QwVQWK_Channel operator* (const QwVQWK_Channel &value) const;
   void Sum(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
   void Difference(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
   void Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom);
@@ -184,6 +188,7 @@ class QwVQWK_Channel: public VQwDataElement {
 
   void Copy(VQwDataElement *source);
 
+  friend std::ostream& operator<< (std::ostream& stream, const QwVQWK_Channel& channel);
   void PrintValue() const;
   void PrintInfo() const;
 

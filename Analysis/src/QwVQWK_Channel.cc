@@ -764,6 +764,13 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
   return *this;
 };
 
+const QwVQWK_Channel QwVQWK_Channel::operator+ (const QwVQWK_Channel &value) const
+{
+  QwVQWK_Channel result = *this;
+  result += value;
+  return result;
+}
+
 QwVQWK_Channel& QwVQWK_Channel::operator+= (const QwVQWK_Channel &value)
 {
   if (!IsNameEmpty()) {
@@ -784,6 +791,13 @@ QwVQWK_Channel& QwVQWK_Channel::operator+= (const QwVQWK_Channel &value)
   return *this;
 };
 
+const QwVQWK_Channel QwVQWK_Channel::operator- (const QwVQWK_Channel &value) const
+{
+  QwVQWK_Channel result = *this;
+  result -= value;
+  return result;
+}
+
 QwVQWK_Channel& QwVQWK_Channel::operator-= (const QwVQWK_Channel &value)
 {
   if (!IsNameEmpty()){
@@ -797,6 +811,33 @@ QwVQWK_Channel& QwVQWK_Channel::operator-= (const QwVQWK_Channel &value)
     this->fHardwareBlockSum -= value.fHardwareBlockSum;
     this->fHardwareBlockSumM2 = 0.0;
     this->fNumberOfSamples += value.fNumberOfSamples;
+    this->fSequenceNumber   = 0;
+    this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
+  }
+
+  return *this;
+};
+
+const QwVQWK_Channel QwVQWK_Channel::operator* (const QwVQWK_Channel &value) const
+{
+  QwVQWK_Channel result = *this;
+  result *= value;
+  return result;
+}
+
+QwVQWK_Channel& QwVQWK_Channel::operator*= (const QwVQWK_Channel &value)
+{
+  if (!IsNameEmpty()){
+    for (Short_t i=0; i<fBlocksPerEvent; i++){
+      this->fBlock[i] *= value.fBlock[i];
+      this->fBlock_raw[i] *= value.fBlock_raw[i];
+      this->fBlockM2[i] = 0.0;
+    }
+    this->fHardwareBlockSum_raw *= value.fHardwareBlockSum_raw;
+    this->fSoftwareBlockSum_raw *= value.fSoftwareBlockSum_raw;
+    this->fHardwareBlockSum *= value.fHardwareBlockSum;
+    this->fHardwareBlockSumM2 = 0.0;
+    this->fNumberOfSamples *= value.fNumberOfSamples;
     this->fSequenceNumber   = 0;
     this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
   }
@@ -1066,6 +1107,11 @@ void QwVQWK_Channel::PrintValue() const
             << QwLog::endl;
 }
 
+std::ostream& operator<< (std::ostream& stream, const QwVQWK_Channel& channel)
+{
+  stream << channel.GetHardwareSum();
+  return stream;
+};
 
 /**
  * Blind this channel as an asymmetry
