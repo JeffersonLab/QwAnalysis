@@ -72,8 +72,8 @@ void  QwSubsystemArrayTracking::ConstructBranchAndVector(TTree *tree, TString& p
  */
 void  QwSubsystemArrayTracking::ConstructBranch(TTree *tree, TString& prefix)
 {
-  tree->Branch("CodaEventNumber",&fCodaEventNumber);
-  tree->Branch("CodaEventType",&fCodaEventType);
+  tree->Branch("CodaEventNumber",&fCodaEventNumber,"CodaEventNumber/I");
+  tree->Branch("CodaEventType",&fCodaEventType,"CodaEventType/I");
 
   for (iterator subsys = begin(); subsys != end(); ++subsys) {
     VQwSubsystemTracking* subsys_tracking = dynamic_cast<VQwSubsystemTracking*>(subsys->get());
