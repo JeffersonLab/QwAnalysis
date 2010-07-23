@@ -37,7 +37,6 @@ void  QwSubsystemArrayParity::ConstructBranch(TTree *tree, TString & prefix)
 {
 
   tree->Branch("CodaEventNumber",&fCodaEventNumber,"CodaEventNumber/I");
-
   tree->Branch("CodaEventType",&fCodaEventType,"CodaEventType/I");
 
   for (iterator subsys = begin(); subsys != end(); ++subsys) {
@@ -62,9 +61,8 @@ void  QwSubsystemArrayParity::ConstructBranch(TTree *tree, TString & prefix, QwP
   TString subsysname;
   TString sub2;//="QwBPMStripline";
 
-  tree->Branch("CodaEventNumber",&fCodaEventNumber);
-
-  tree->Branch("CodaEventType",&fCodaEventType);
+  tree->Branch("CodaEventNumber",&fCodaEventNumber,"CodaEventNumber/I");
+  tree->Branch("CodaEventType",&fCodaEventType,"CodaEventType/I");
 
   for (iterator subsys = begin(); subsys != end(); ++subsys) {
     VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
