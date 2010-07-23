@@ -1235,8 +1235,6 @@ void QwEventDisplay3D::SkipToEvent()
 {
    // Skip to the specified event in the line edit next to this button
    Int_t event = atoi(fSkipToEventLine->GetText());
-   std::cout << "Will jump to event: " << event << "\t while we are in event: "
-      << fCurrentEvent << "\n";
 
    // Sometimes people put in the strangest requests. Check to make sure
    // we aren't already at that event!
@@ -1274,8 +1272,6 @@ void QwEventDisplay3D::OpenRoot(Int_t runnumber)
    }
 
 }
-
-
 // END OF THE FILE
 ////////////////////////////////////////////////////////////////////////////////
 // Notes: sample rotation of detectors. Hold on to it for now, will delete it later.
