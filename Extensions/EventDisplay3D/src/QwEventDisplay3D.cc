@@ -643,7 +643,6 @@ void QwEventDisplay3D::DisplayEvent()
             std::cout << "Wire: " << wire << "\n";
             if(ambiguousR3Wire)
                std::cout << "--Ambiguous Wire--\n";
-            std::cout << endl;
          }
 
          // Now light up the respective labels to indicate hits
