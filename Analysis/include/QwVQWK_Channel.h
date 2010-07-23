@@ -306,7 +306,6 @@ class QwVQWK_Channel: public VQwDataElement {
   static const Int_t kErrorFlag_ZeroHW     = 0x20; // in Decimal 32  check to see ADC returning zero
   static const Int_t kErrorFlag_EventCut_L = 0x40; // in Decimal 64  check to see ADC failed upper limit of the event cut
   static const Int_t kErrorFlag_EventCut_U = 0x80; // in Decimal 128 check to see ADC failed upper limit of the event cut
-  static const Int_t kErrorFlag_NoPedestalOrGain = 0x100; // in Decimal 256 checks if there is no pedestal or gain value given in the map file
 
 
 

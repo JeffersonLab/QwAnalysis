@@ -471,9 +471,6 @@ void QwVQWK_Channel::ProcessEvent()
   fHardwareBlockSum = fCalibrationFactor *  ( fHardwareBlockSum_raw - thispedestal );
   fHardwareBlockSumM2 = 0.0; // second moment is zero for single events
 
-  if(!kFoundPedestal||!kFoundGain)
-    fDeviceErrorCode|=kErrorFlag_NoPedestalOrGain;
-
 //   if(GetElementName().Contains("md"))
 //     printf("Detector %s signal =  %1.4e\n",this->GetElementName().Data(),fHardwareBlockSum);
 
@@ -1270,7 +1267,6 @@ void QwVQWK_Channel::Copy(VQwDataElement *source)
 
 void  QwVQWK_Channel::ReportErrorCounters()
 {
-
   if (fErrorCount_sample || fErrorCount_SW_HW || fErrorCount_Sequence || fErrorCount_SameHW || fErrorCount_ZeroHW || fNumEvtsWithEventCutsRejected){
      std::cout<<GetElementName();
      //if (fErrorCount_sample)
@@ -1283,7 +1279,11 @@ void  QwVQWK_Channel::ReportErrorCounters()
       std::cout <<" \t "<<fErrorCount_SameHW ;
       std::cout <<" \t "<<fErrorCount_ZeroHW ;
       //if (fNumEvtsWithEventCutsRejected)
-      std::cout<< " \t " << fNumEvtsWithEventCutsRejected<<"\n";
+      std::cout<< " \t " << fNumEvtsWithEventCutsRejected;
+      if(!kFoundPedestal||!kFoundGain)
+	std::cout << " \t " <<  "~Warning~ No Pedestal or Gain entered in map file for this channel" << "\n";
+      else
+	std::cout << "\n";
       //if (fErrorCount_sample || fErrorCount_SW_HW || fErrorCount_Sequence || fErrorCount_SameHW)
       //std::cout <<"*************End of Error summary*****************"<<std::endl;
   }

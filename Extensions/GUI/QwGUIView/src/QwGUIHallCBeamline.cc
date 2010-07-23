@@ -7,22 +7,40 @@ ClassImp(QwGUIHallCBeamline);
 
 enum QwGUIHallCBeamlineIndentificator {
   BA_POS_DIFF,
-  BA_TGT_PARAM
-
+  BA_TGT_PARAM,
+  BA_PLOT_ADV_OPT,
+  CMB_ADVANCED
 };
 
 const char *QwGUIHallCBeamline::RootTrees[TRE_NUM] = 
   {
-    "HEL_Tree",
-    "MPS_Tree"
+    "Hel_Tree",
+    "Mps_Tree"
   };
 
+enum EQwGUIDatabaseHistogramIDs {
+  ID_RELX,
+  ID_RELY,
+  ID_EFFC,
+  ID_XP,
+  ID_XM,
+  ID_YP,
+  ID_YM
+};
+//Some devices couldn't be found so I commented them out until someone decides to use them.
+//HCLINE_DEV_NUM must be changed according to what you add back in.
+//Kaisen
 const char *QwGUIHallCBeamline::HallCBeamlineDevices[HCLINE_DEV_NUM]=
   {
-    "qwk_3c07","qwk_3c08","qwk_3c11","qwk_3c12","qwk_3c14","qwk_3c16"
+    "qwk_3c07","qwk_3c08","qwk_3c11","qwk_3c12","qwk_3c14","qwk_3c16","qwk_3c17","qwk_3c18","qwk_3c19","qwk_3c07a","qwk_3p02a","qwk_3p02b","qwk_3p03a","qwk_3c20","qwk_3c21","qwk_3h02","qwk_3h04a","qwk_3h07a","qwk_3h07b","qwk_3h07c"//,"qwk_3h08","qwk_3h09","qwk_3h09a","qwk_3h04","qwk_3h07","qwk_3h3g0z","qwk_3hcav"
   };
 
-
+//BCMs were added to this list specifically for the effective charge it may or may not be used later
+//Kaisen
+const char *QwGUIHallCBeamline::HallCBeamlineDevicesWCharge[HCLINE_DEV_NUM_CHARGE]=
+  {
+    "qwk_3c07","qwk_3c08","qwk_3c11","qwk_3c12","qwk_3c14","qwk_3c16","qwk_3c17","qwk_3c18","qwk_3c19","qwk_3c07a","qwk_3p02a","qwk_3p02b","qwk_3p03a","qwk_3c20","qwk_3c21","qwk_3h02","qwk_3h04a","qwk_3h07a","qwk_3h07b","qwk_3h07c","qwk_3h08","qwk_3h09","qwk_3h09a","qwk_3h04","qwk_3h07","qwk_3h3g0z","qwk_3hcav"
+  };
 QwGUIHallCBeamline::QwGUIHallCBeamline(const TGWindow *p, const TGWindow *main, const TGTab *tab,
 			       const char *objName, const char *mainname, UInt_t w, UInt_t h)
   : QwGUISubSystem(p,main,tab,objName,mainname,w,h)
@@ -36,6 +54,9 @@ QwGUIHallCBeamline::QwGUIHallCBeamline(const TGWindow *p, const TGWindow *main, 
   dBtnLayout          = NULL;
   dBtnPosDiff         = NULL;
   dBtnTgtParam        = NULL;
+  dCmbAdvanced        = NULL;
+  dBtnPlotAdvOpt      = NULL;
+  dCmbLayout          = NULL;
 
   PosDiffVar[0] = NULL;
   PosDiffVar[1] = NULL;
@@ -58,6 +79,9 @@ QwGUIHallCBeamline::~QwGUIHallCBeamline()
   if(dBtnLayout)          delete dBtnLayout;
   if(dBtnPosDiff)         delete dBtnPosDiff;
   if(dBtnTgtParam)        delete dBtnTgtParam;
+  if(dCmbAdvanced)        delete dCmbAdvanced;
+  if(dBtnPlotAdvOpt)      delete dBtnPlotAdvOpt; 
+  if(dCmbLayout)          delete dCmbLayout;
 
   delete [] PosDiffVar;
 
@@ -119,13 +143,29 @@ void QwGUIHallCBeamline::MakeLayout()
 
   dBtnPosDiff  = new TGTextButton(dControlsFrame, "&Position Difference Variation", BA_POS_DIFF);
   dBtnTgtParam = new TGTextButton(dControlsFrame, "&Beam Parameters at Target", BA_TGT_PARAM);
+  dBtnPlotAdvOpt = new TGTextButton(dControlsFrame, "&Plot", BA_PLOT_ADV_OPT);
+  dCmbAdvanced = new TGComboBox(dControlsFrame, CMB_ADVANCED);
   dBtnLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
+  dCmbLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
+  dCmbAdvanced->AddEntry("Relative X Histograms", ID_RELX);
+  dCmbAdvanced->AddEntry("Relative Y Histograms", ID_RELY);
+  dCmbAdvanced->AddEntry("Effective Charge Histograms", ID_EFFC);
+  dCmbAdvanced->AddEntry("XP Wire Histograms", ID_XP );
+  dCmbAdvanced->AddEntry("XM Wire Histograms", ID_XM );
+  dCmbAdvanced->AddEntry("YP Wire Histograms", ID_YP );
+  dCmbAdvanced->AddEntry("YM Wire Histograms", ID_YM );
+
+  dCmbAdvanced->Resize(150,20);
 
   dControlsFrame->AddFrame(dBtnPosDiff ,dBtnLayout );
   dControlsFrame->AddFrame(dBtnTgtParam,dBtnLayout );
+  dControlsFrame->AddFrame(dCmbAdvanced,dCmbLayout );
+  dControlsFrame->AddFrame(dBtnPlotAdvOpt,dBtnLayout );
 
   dBtnPosDiff -> Associate(this);
   dBtnTgtParam-> Associate(this);
+  dBtnPlotAdvOpt -> Associate(this);
+  dCmbAdvanced-> Associate(this);
 
   dCanvas->GetCanvas()->SetBorderMode(0);
   dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
@@ -254,7 +294,6 @@ void QwGUIHallCBeamline::PositionDifferences()
     printf("Found th tree named %s \n", obj->GetName());
   }
 
-  char histo[128];
   PosDiffVar[0] = new TH1D("dxvar", "#Delta X Variation", HCLINE_DEV_NUM, 0.0, HCLINE_DEV_NUM);
   PosDiffVar[1] = new TH1D("dyvar", "#Delta Y variation", HCLINE_DEV_NUM, 0.0, HCLINE_DEV_NUM);
  
@@ -379,7 +418,6 @@ void QwGUIHallCBeamline::DisplayTargetParameters()
 {
   
   TH1D * t[5];
-  char histo[128];
   TString xlabel;
   TObject *obj = NULL;
   Bool_t ldebug = kFALSE;
@@ -410,7 +448,7 @@ void QwGUIHallCBeamline::DisplayTargetParameters()
     printf("Found the tree named %s \n", obj->GetName());
   }
 
-  // Delete the histograms if they exsist.
+  // Delete the histograms if they exist.//??????? Move this command down?
   for(Short_t i=0;i<5;i++) 
     {
       // if(t[i]) delete t[i]; 
@@ -485,6 +523,81 @@ void QwGUIHallCBeamline::DisplayTargetParameters()
 
 }
 
+//Plots the selcted option.
+void QwGUIHallCBeamline::PlotAdvOpt()
+{ 
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+  mc->Clear();
+  mc->Divide(4,6);
+  Bool_t ldebug = kFALSE;
+  TObject *obj = NULL;	
+  obj = HistArray.At(1);
+  char histogram[128];  
+  TH1D *dummyhist = NULL;
+
+
+  if (name=='X'||name=='Y')
+    for(Int_t p = 0; p <HCLINE_DEV_NUM ; p++) {
+      mc->cd(p+1);
+      sprintf (histogram, "%sRel%c.hw_sum", HallCBeamlineDevices[p],name);
+      if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
+      if( ((TTree*) obj)->FindLeaf(histogram) ) {
+  	obj -> Draw(histogram);	 
+  	dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
+  	dummyhist -> SetTitle("Relative X");
+  	dummyhist -> GetYaxis() -> SetTitle("Number of Events");
+  	dummyhist -> GetXaxis() -> SetTitle("Relative Value (mm)");
+      }
+      else std::cout << "unable to find " << histogram << " in Mps_Tree" << std::endl;
+    }
+  
+  else if (name=='E')
+    for(Int_t p = 0; p <HCLINE_DEV_NUM ; p++) {      
+      mc->cd(p+1);
+      sprintf (histogram, "%s_EffectiveCharge.hw_sum", HallCBeamlineDevices[p]); 
+      if (ldebug) std::cout << "histogram = " << histogram << std::endl;
+      if( ((TTree*) obj)->FindLeaf(histogram) ) {
+  	obj -> Draw(histogram);
+  		dummyhist = (TH1D*)gPad->GetPrimitive("htemp");
+  		dummyhist -> SetTitle("Effective Charge");
+  	dummyhist -> GetYaxis() -> SetTitle("Number of Events");
+  	dummyhist -> GetXaxis() -> SetTitle("Effective Charge (C)");
+      }  
+      else std::cout << "unable to find " << histogram << " in Mps_Tree" << std::endl;
+    }
+  else if (name=='A'||name=='B' || name=='C' || name=='D')
+    for(Int_t p = 0; p <HCLINE_DEV_NUM ; p++) {
+      mc->cd(p+1);
+      if (name=='A')
+      sprintf (histogram, "%sXP.hw_sum", HallCBeamlineDevices[p]);
+      else if (name=='B')
+      sprintf (histogram, "%sXM.hw_sum", HallCBeamlineDevices[p]);
+      else if (name=='C')
+  	sprintf (histogram,"%sYP.hw_sum", HallCBeamlineDevices[p]);
+      else if (name=='D')
+      sprintf (histogram, "%sYM.hw_sum", HallCBeamlineDevices[p]);
+      if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
+      if( ((TTree*) obj)->FindLeaf(histogram) ) {
+  	obj -> Draw(histogram);	 
+  	dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
+  	dummyhist -> SetTitle("Wire");
+  	dummyhist -> GetYaxis() -> SetTitle("Number of Events");
+  	dummyhist -> GetXaxis() -> SetTitle("Wire Value (mm)");
+      }
+      else std::cout << "unable to find " << histogram << " in Mps_Tree" << std::endl;
+    }
+
+  else
+    std::cout << "Nothing selected to plot." << std::endl;
+
+  name='O';
+
+  mc->Modified();
+  mc->Update();
+  return;
+}
+
 
 
 
@@ -494,18 +607,18 @@ Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2
 
   switch (GET_MSG(msg))
     {
-    case kC_TEXTENTRY:
-      switch (GET_SUBMSG(msg)) 
-	{
-	case kTE_ENTER:
-	  switch (parm1) 
-	    {
-	    default:
-	      break;
-	    }
-	default:
-	  break;
-	}
+    // case kC_TEXTENTRY:
+    //   switch (GET_SUBMSG(msg)) 
+    // 	{
+    // 	case kTE_ENTER:
+    // 	  switch (parm1) 
+    // 	    {
+    // 	    default:
+    // 	      break;
+    // 	    }
+    // 	default:
+    // 	  break;
+    // 	}
       
     case kC_COMMAND:
       if(dROOTCont){
@@ -522,15 +635,44 @@ Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2
 		case BA_TGT_PARAM:
 		  DisplayTargetParameters();
 		  break;
+
+		case BA_PLOT_ADV_OPT:
+		  PlotAdvOpt();
+		  break;
 		}
 	      
 	      break;
 	    }
 	  case kCM_COMBOBOX:
 	    {
-	      switch (parm1) {
-	      case M_TBIN_SELECT:
-	      break;
+	      // switch (parm1) {
+	      // case M_TBIN_SELECT:
+	      // break;
+	      // }
+	      switch (dCmbAdvanced ->GetSelected()) {
+	      case ID_RELX:
+		name='X';
+		break;
+	      case ID_RELY:
+		name='Y';
+		break;
+	      case ID_EFFC:
+		name='E';
+		break;
+	      case ID_XP:
+		name='A';
+		break;
+	      case ID_XM:
+		name='B';
+		break;
+	      case ID_YP:
+		name='C';
+		break;
+	      case ID_YM:
+		name='D';
+		break;
+	      default:
+		break;
 	      }
 	    }
 	    break;
