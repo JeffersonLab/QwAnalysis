@@ -40,6 +40,10 @@
 #include "QwScanner.h"
 #include "QwLumi.h"
 
+// for correlator
+#include <boost/numeric/ublas/io.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 
 
 
@@ -99,6 +103,28 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Set up the database connection
   QwDatabase database(gQwOptions);
 
+  // initialization of correlator
+  std::vector<const QwVQWK_Channel*> x; 
+  if (1) {
+    // constructor
+    std::vector<std::string> names;
+    names.push_back("md1neg");
+    names.push_back("md1pos");
+    names.push_back("md3neg");
+    names.push_back("md3pos");
+    names.push_back("md5neg");
+    names.push_back("md5pos");
+    names.push_back("md7neg");
+    names.push_back("md7pos");
+  
+    for (size_t i = 0; i < names.size(); i++) {
+      const QwVQWK_Channel* value = dynamic_cast<const
+	QwVQWK_Channel*>(detectors.ReturnInternalValue(names[i]));
+      if (value) x.push_back(value);
+      else QwWarning << "null pointer for variable " << names[i] << QwLog::endl;
+    }
+  } //   assert(1==2);
+
   ///  Start loop over all runs
   QwRootFile* rootfile = 0;
   while (eventbuffer.OpenNextStream() == CODA_OK) {
@@ -156,7 +182,16 @@ Int_t main(Int_t argc, Char_t* argv[])
       //  Process the subsystem data
       detectors.ProcessEvent();
 
-
+      if(eventbuffer.GetEventNumber()>500) {
+	boost::numeric::ublas::matrix<QwVQWK_Channel> A(x.size(),x.size());
+	// at every event
+	for (size_t i = 0; i < x.size(); i++)
+	  for (size_t j = 0; j < x.size(); j++)
+	    A(i,j) += (*x[i]) * (*x[j]);
+	// accumulation
+	QwMessage << A << QwLog::endl;
+	assert(4==5);
+      }
 
       // The event pass the event cut constraints
       if (detectors.ApplySingleEventCuts()) {
