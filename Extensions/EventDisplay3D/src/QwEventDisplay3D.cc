@@ -544,7 +544,6 @@ void QwEventDisplay3D::PreviousEvent(Bool_t redraw)
    // Get the next event then!
    fTree->GetEntry(fCurrentEvent);
    if(redraw) {
-      std::cout << "This is true but yet it does not display it!\n";
       DisplayEvent();
    }
 }
