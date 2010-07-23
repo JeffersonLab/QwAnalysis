@@ -195,33 +195,37 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
 
 // REGION GEOMETRIES
 
-//All length measurements in cm
+//All length measurements in cm; reflect inside of frame
 //All angle measurements in degrees
 //Scalings make longest side of length .8 in canvas
 //Geometry data taken from QweakSim files unless noted in parentheses with a derivation;
 //Length is x, width is y, depth is z in qweak coordinates (x and y flip for GUI use, be careful of distinction)
-#define R1_WIDTH 30.00 // Region 1
-#define R1_LENGTH 30.00
+#define R1_WIDTH 30.00  // Region 1
+#define R1_LENGTH 30.00 //
 #define R1_DEPTH 3.00
-#define R1_DIST 0.10 // distance between traces CHECK THIS!!!
-#define R1_CM  0.0267 //calibrated value of 1 cm in this scale
+#define R1_DIST 0.10    // distance between traces ###CHECK THIS!!!
+#define R1_CM  0.0267   // drawing scale factor (.8/R1_LENGTH), 1 cm
 
-#define R2_WIDTH 45.09 // Region 2
+#define R2_WIDTH 45.09     // Region 2
 #define R2_LENGTH 30.00
-#define R2_DEPTH 3.35 //single chamber; 17.20 total depth of HDC system
-#define R2_DIST 1.27 // distance between drift cell planes
-#define R2_XDIST 0.909 // distance between x wires
-#define R2_UVDIST 2.25 // distance between u (or v) wires
-#define R2_CM 0.0177
-#define R2_ANGLE 56.00 
+#define R2_DEPTH 3.35      //single chamber; 17.20 total depth of HDC system
+#define R2_DIST 1.27       // distance between drift cell planes
+#define R2_XDIST 0.909     // distance between x wires
+#define R2_UVDIST 2.25     // distance between u (or v) wires
+#define R2_FULLWIRE1 9  // 9.29  // (30*.675/2.18) ###CHECK THIS!!!
+#define R2_FULLWIRE2 20 // 20.68 // (45.09/2.18)
+#define R2_ANGLE 56.00     // wire angle from bottom of frame
+#define R2_CM 0.0177       // drawing scale factor (.8/R2_WIDTH), 1 cm
 
-#define R3_WIDTH 210.00 // Region 3
-#define R3_LENGTH 50.00
+#define R3_WIDTH 204.47  // Region 3
+#define R3_LENGTH 53.34
 #define R3_DEPTH 2.54
-#define R3_DIST 40.00 // distance between drift cell chambers
-#define R3_UVDIST 0.839 // distance between u (or v) wires
-#define R3_CM 0.0038
-#define R3_ANGLE 63.43 // 90-26.57 (which is the wire angle)
+#define R3_DIST 40.00    // distance between drift cell chambers
+#define R3_UVDIST 1.11   // distance between u (or v) wires
+#define R3_FULLWIRE1 96  // given in geometry data
+#define R3_FULLWIRE2 184 // given in geometry data
+#define R3_ANGLE 26.57   //90 - 63.43   // wire angle from normal to bottom of frame
+#define R3_CM 0.0038     // drawing scale factor (.8/R3_WIDTH), 1 cm
 
  public:
   RQ_OBJECT("QwEventDisplay")
@@ -229,7 +233,7 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
   UInt_t fEventNumber; // keeps track of the current event number on display
   UInt_t fTreeEntries; // counts the number of events in the file hits tree
 
- private:  // Frames
+ private:
   TGMainFrame *fMain; // mainframe window
 
   TGHorizontalFrame *fEventBoxes; // event box frame
