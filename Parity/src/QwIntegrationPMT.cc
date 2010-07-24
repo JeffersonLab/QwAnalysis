@@ -162,6 +162,9 @@ Bool_t QwIntegrationPMT::ApplySingleEventCuts(){
     status&=kFALSE;//kTRUE;//kFALSE;
   }
 
+  //Update the error counters
+  fTriumf_ADC.UpdateHWErrorCounters();
+
   return status;
 
 };
@@ -332,7 +335,7 @@ void  QwIntegrationPMT::ConstructBranch(TTree *tree, TString &prefix, QwParamete
        fTriumf_ADC.ConstructBranch(tree, prefix);
        QwMessage <<"QwIntegrationPMT Tree leave added to "<<devicename<<QwLog::endl;
        }
- 
+
    }
   return;
 };
