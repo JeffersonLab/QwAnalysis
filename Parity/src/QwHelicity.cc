@@ -1014,38 +1014,38 @@ void  QwHelicity::ConstructBranch(TTree *tree, TString &prefix)
   else if(fHistoType==kHelSaveMPS)
     {
       basename = "actual_helicity";    //predicted actual helicity before being delayed.
-      tree->Branch(basename, &fHelicityActual);
+      tree->Branch(basename, &fHelicityActual, basename+"/D");
       //
       basename = "delayed_helicity";   //predicted delayed helicity
-      tree->Branch(basename, &fHelicityDelayed);
+      tree->Branch(basename, &fHelicityDelayed, basename+"/D");
       //
       basename = "reported_helicity";  //delayed helicity reported by the input register.
-      tree->Branch(basename, &fHelicityReported);
+      tree->Branch(basename, &fHelicityReported, basename+"/D");
       //
       basename = "pattern_phase";
-      tree->Branch(basename, &fPatternPhaseNumber);
+      tree->Branch(basename, &fPatternPhaseNumber, basename+"/D");
      //
       basename = "pattern_number";
-      tree->Branch(basename, &fPatternNumber);
+      tree->Branch(basename, &fPatternNumber, basename+"/D");
       //
       basename = "event_number";
-      tree->Branch(basename, &fEventNumber);
+      tree->Branch(basename, &fEventNumber, basename+"/D");
     }
   else if(fHistoType==kHelSavePattern)
     {
       basename = "actual_pattern_polarity";
-      tree->Branch(basename, &fActualPatternPolarity);
+      tree->Branch(basename, &fActualPatternPolarity, basename+"/D");
       //
       basename = "delayed_pattern_polarity";
-      tree->Branch(basename, &fDelayedPatternPolarity);
+      tree->Branch(basename, &fDelayedPatternPolarity, basename+"/D");
       // 
       basename = "pattern_number";
-      tree->Branch(basename, &fPatternNumber);
+      tree->Branch(basename, &fPatternNumber, basename+"/D");
 
       for (size_t i=0; i<fWord.size(); i++)
 	{
 	  basename = fWord[i].fWordName;
-	  tree->Branch(basename, &fWord[i].fValue);
+	  tree->Branch(basename, &fWord[i].fValue, basename+"/D");
 	}
     }
 
@@ -1064,38 +1064,38 @@ void  QwHelicity::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile&
   else if(fHistoType==kHelSaveMPS)
     {
       basename = "actual_helicity";    //predicted actual helicity before being delayed.
-      tree->Branch(basename, &fHelicityActual);
+      tree->Branch(basename, &fHelicityActual, basename+"/D");
       //
       basename = "delayed_helicity";   //predicted delayed helicity
-      tree->Branch(basename, &fHelicityDelayed);
+      tree->Branch(basename, &fHelicityDelayed, basename+"/D");
       //
       basename = "reported_helicity";  //delayed helicity reported by the input register.
-      tree->Branch(basename, &fHelicityReported);
+      tree->Branch(basename, &fHelicityReported, basename+"/D");
       //
       basename = "pattern_phase";
-      tree->Branch(basename, &fPatternPhaseNumber);
+      tree->Branch(basename, &fPatternPhaseNumber, basename+"/D");
      //
       basename = "pattern_number";
-      tree->Branch(basename, &fPatternNumber);
+      tree->Branch(basename, &fPatternNumber, basename+"/D");
       //
       basename = "event_number";
-      tree->Branch(basename, &fEventNumber);
+      tree->Branch(basename, &fEventNumber, basename+"/D");
     }
   else if(fHistoType==kHelSavePattern)
     {
       basename = "actual_pattern_polarity";
-      tree->Branch(basename, &fActualPatternPolarity);
+      tree->Branch(basename, &fActualPatternPolarity, basename+"/D");
       //
       basename = "delayed_pattern_polarity";
-      tree->Branch(basename, &fDelayedPatternPolarity);
+      tree->Branch(basename, &fDelayedPatternPolarity, basename+"/D");
       // 
       basename = "pattern_number";
-      tree->Branch(basename, &fPatternNumber);
+      tree->Branch(basename, &fPatternNumber, basename+"/D");
 
       for (size_t i=0; i<fWord.size(); i++)
 	{
 	  basename = fWord[i].fWordName;
-	  tree->Branch(basename,&fWord[i].fValue);
+	  tree->Branch(basename,&fWord[i].fValue, basename+"/D");
 	}
 
     }

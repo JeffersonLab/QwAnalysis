@@ -679,7 +679,7 @@ void  QwVQWK_Channel::ConstructBranch(TTree *tree, TString &prefix)
     //  This channel is not used, so skip setting up the tree.
   } else {
     TString basename = prefix + GetElementName();
-    tree->Branch(basename,&fHardwareBlockSum);
+    tree->Branch(basename,&fHardwareBlockSum,basename+"/D");
     if (kDEBUG){
       std::cerr << "QwVQWK_Channel::ConstructBranchAndVector: fTreeArrayIndex==" << fTreeArrayIndex
 		<< "; fTreeArrayNumEntries==" << fTreeArrayNumEntries

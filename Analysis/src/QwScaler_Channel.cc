@@ -202,7 +202,7 @@ void  QwScaler_Channel<data_mask,data_shift>::ConstructBranch(TTree *tree, TStri
   } else {
     TString basename = prefix + GetElementName();
 
-    tree->Branch(basename, &fValue);
+    tree->Branch(basename, &fValue, basename+"/D");
   }
 };
 
