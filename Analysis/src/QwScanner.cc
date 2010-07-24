@@ -125,7 +125,6 @@ Int_t QwScanner::LoadChannelMap(TString mapfile)
               if (modnum >= (Int_t) fSCAs.size())  fSCAs.resize(modnum+1);
               if (! fSCAs.at(modnum)) fSCAs.at(modnum) = new QwSIS3801_Module();
               fSCAs.at(modnum)->SetChannel(channum, name);
-
             }
 
           else if (modtype=="V792" || modtype=="V775" || modtype=="F1TDC")
@@ -324,7 +323,8 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
 
 
   fEvtCounter++;
-  if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer:  "
+  if (fDEBUG)
+    std::cout << "FocalPlaneScanner::ProcessEvBuffer:  "
     << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
     <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
     << ", num_words "<<num_words<<", index "<<index<<std::endl;
@@ -443,45 +443,64 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
         {
           SetDataLoaded(kTRUE);
           //  This is a SCA bank We want to process this ROC.  Begin looping through the data.
-          if (fDEBUG) std::cout << "FocalPlaneScanner::ProcessEvBuffer: Processing Bank "<<bank_id
-            <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
-            << " fSCAs.size() = "<<fSCAs.size()<<std::endl;
+
+          if (fDEBUG)
+            {
+              std::cout << "FocalPlaneScanner::ProcessEvBuffer: Processing Bank "<<bank_id
+              <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
+              << " fSCAs.size() = "<<fSCAs.size()<<std::endl;
+            }
 
           UInt_t words_read = 0;
           for (size_t i=0; i<fSCAs.size(); i++)
             {
+              UInt_t num_dataword = buffer[words_read] & 0xffff;
               words_read++; // skip header word
+
               if (fSCAs.at(i) != NULL)
                 {
-                  words_read += fSCAs.at(i)->ProcessEvBuffer(&(buffer[words_read]),
-                                num_words-words_read);
+                  if ( (num_dataword%32) != 0) // (num_dataword%32) != 0, sick data set with extra words
+                    {
+                      std::cerr<<"QwScanner::ProcessEvBuffer(SCA):  sick data block "<<i<<", decode it anyway\n";
+                    }
+
+                  //words_read += fSCAs.at(i)->ProcessEvBuffer(&(buffer[words_read]),
+                  //              num_words-words_read);
+                  fSCAs.at(i)->ProcessEvBuffer(&(buffer[words_read]),num_words-words_read);
+                  words_read += num_dataword;
 
                   if (fDEBUG)
                     {
-                      std::cout<<"QwScanner::ProcessEvBuffer(SCA): "<<words_read<<" words_read, "
-                      <<num_words<<" num_words"<<" Data: \n";
-                      for (UInt_t j=0; j<words_read; j++)
+                      std::cout<<"QwScanner::ProcessEvBuffer(SCA): data block "<<i<<", "
+                      <<words_read<<" words_read, "<<num_words<<" num_words"<<"\n";
+
+                      for (UInt_t j=words_read-num_dataword; j<=words_read; j++)
                         {
-                          std::cout<<"     "<<std::hex<<buffer[j]<<std::dec;
-                          std::cout<<"(ch="<<((buffer[j]>>24) & 0x1f)
-                          <<" data="<<(buffer[j] & 0xffffff)<<")\n";
+                          std::cout<<"ch"<<((buffer[j]>>24) & 0x1f);
+                          std::cout<<":"<<(buffer[j] & 0xffffff)<<"\t";
+                          if ( (j%8)==0 ) std::cout<<"\n";
                         }
-
+                      std::cout<<"\n";
                     }
-
                 }
-              else
+              else  // Null module for this subsystem, skip this block of data
                 {
-                  words_read += 32; // skip a block of data for a single module
+                  words_read += num_dataword;
+
+                  if (fDEBUG)
+                    {
+                      std::cout<<"Null module, data block "<<i<<", skip "<<num_dataword<<" data words, ";
+                      std::cout<<"words_read "<<words_read<<"\n";
+                    }
                 }
-            }
+
+            } //end of for (size_t i=0; i<fSCAs.size(); i++)
+
 
           if (fDEBUG & (num_words != words_read))
             {
-              std::cerr << "QwScanner::ProcessEvBuffer(SCA):  There were "
-              << num_words-words_read
-              << " leftover words after decoding everything we recognize."
-              << std::endl;
+              std::cerr << "QwScanner::ProcessEvBuffer(SCA):  There were "<< num_words-words_read
+              << " leftover words after decoding everything we recognize.\n";
             }
         }
     }
@@ -521,8 +540,8 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
 
                   try
                     {
-                      //TODO The slot number should be set properly in DAQ
-                      // using 0 for now
+                      // The slot number should be set properly in DAQ
+                      // using 0 for if it is not set
                       FillRawWord(index,fQDCTDC.GetTDCSlotNumber(),fQDCTDC.GetTDCChannelNumber(),
                                   fQDCTDC.GetTDCData());
                       //FillRawWord(index,0,GetTDCChannelNumber(),GetTDCData());
@@ -570,10 +589,10 @@ void  QwScanner::ProcessEvent()
       for (size_t j=0; j<fPMTs.at(i).size(); j++)
         {
           fPMTs.at(i).at(j).ProcessEvent();
-               if(fPMTs.at(i).at(j).GetElementName() == TString("ref_t_f1"))
-                  reftime = fPMTs.at(i).at(j).GetValue();
+          if (fPMTs.at(i).at(j).GetElementName() == TString("ref_t_f1"))
+            reftime = fPMTs.at(i).at(j).GetValue();
         }
-     }
+    }
 
   // F1TDC reference time subtraction
   for (size_t i=0; i<fPMTs.size(); i++)
@@ -582,16 +601,16 @@ void  QwScanner::ProcessEvent()
         {
           elementname = fPMTs.at(i).at(j).GetElementName();
           if (elementname.EndsWith("f1") && elementname != TString("ref_t_f1"))
-             {
-               rawtime = fPMTs.at(i).at(j).GetValue();
+            {
+              rawtime = fPMTs.at(i).at(j).GetValue();
 
-               // only subtract reftime if channel value is nonzero
-               if (rawtime!=0)
-                 {
-                   Double_t newdata = fF1TDC.ActualTimeDifference(rawtime, reftime);
+              // only subtract reftime if channel value is nonzero
+              if (rawtime!=0)
+                {
+                  Double_t newdata = fF1TDC.ActualTimeDifference(rawtime, reftime);
                   fPMTs.at(i).at(j).SetValue(newdata);
-                 }
-             }
+                }
+            }
         }
     }
 
@@ -731,7 +750,9 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
       // Option_t* option = "")
       fRateMap  = new TProfile2D("scanner_rate_map_profile",
                                  "Scanner Rate Map Profile",110,-55,55,40,-355,-315);
-
+      fRateMap->GetXaxis()->SetTitle("PositionX");
+      fRateMap->GetYaxis()->SetTitle("PositionY");
+      fRateMap->SetOption("colz");
     }
 };
 
@@ -812,16 +833,16 @@ void  QwScanner::FillHistograms()
       if (fHistograms2D.at(j)->GetTitle()==TString("scanner_rate_map"))
         {
           Int_t checkvalidity = 1;
-          Double_t prevalue = get_value( fHistograms2D.at(j), fPositionX_VQWK, fPositionY_VQWK, checkvalidity);
+          Double_t prevalue = get_value( fHistograms2D.at(j), fPositionX_ADC, fPositionY_ADC, checkvalidity);
           if (checkvalidity!=0)
             {
               if (prevalue>0)
                 {
                   rate = (prevalue + rate)*0.5;  //average value for this bin
                 }
-              fHistograms2D.at(j)->SetBinContent((Int_t) fPositionX_VQWK, (Int_t)fPositionY_VQWK,rate);
-              Int_t xbin = fHistograms2D.at(j)->GetXaxis()->FindBin( fPositionX_VQWK );
-              Int_t ybin = fHistograms2D.at(j)->GetYaxis()->FindBin( fPositionY_VQWK );
+              fHistograms2D.at(j)->SetBinContent((Int_t) fPositionX_ADC, (Int_t)fPositionY_ADC,rate);
+              Int_t xbin = fHistograms2D.at(j)->GetXaxis()->FindBin( fPositionX_ADC );
+              Int_t ybin = fHistograms2D.at(j)->GetYaxis()->FindBin( fPositionY_ADC );
               fHistograms2D.at(j)->SetBinContent( fHistograms2D.at(j)->GetBin( xbin, ybin ), rate);
             }
         }
@@ -944,9 +965,9 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vec
 
         }
 
-        fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
-	if (gQwHists.MatchDeviceParamsFromList(basename.Data()))
-	  tree->Branch(basename, &values[fTreeArrayIndex], list);
+      fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
+      if (gQwHists.MatchDeviceParamsFromList(basename.Data()))
+        tree->Branch(basename, &values[fTreeArrayIndex], list);
 
     }
   return;
