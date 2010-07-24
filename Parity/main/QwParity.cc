@@ -89,6 +89,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   ///  Create the event ring
   QwEventRing eventring;
+  Bool_t bRingReady;
   eventring.ProcessOptions(gQwOptions);
   //  Set up the ring with subsysten array with CMD ring parameters
   eventring.SetupRing(detectors); // TODO (wdc) in QwEventRing constructor?
@@ -163,9 +164,9 @@ Int_t main(Int_t argc, Char_t* argv[])
 
         // Add event to the ring
         eventring.push(detectors);
-
+	bRingReady=eventring.IsReady();
         // Check to see ring is ready
-        if (eventring.IsReady()) {
+        if (bRingReady) {
           helicitypattern.LoadEventData(eventring.pop());
         }
 
@@ -181,7 +182,7 @@ Int_t main(Int_t argc, Char_t* argv[])
         rootfile->FillTreeBranches(detectors);
 
         // Calculate helicity pattern asymmetry
-        if (helicitypattern.IsCompletePattern() && eventring.IsReady()) {
+        if (helicitypattern.IsCompletePattern() && bRingReady) {
           // Update the blinder if conditions have changed
           helicitypattern.UpdateBlinder(&database,detectors);
           // Calculate the asymmetry
@@ -198,6 +199,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       } else {
         eventring.FailedEvent(detectors.GetEventcutErrorFlag()); //event cut failed update the ring status
+	//	QwMessage << "FailedEven: "<< eventbuffer.GetEventNumber() << std::endl;
+
         failed_events_counts++;
       }
 
