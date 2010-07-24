@@ -204,7 +204,7 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
 #define R1_LENGTH 30.00 //
 #define R1_DEPTH 3.00
 #define R1_DIST 0.10    // distance between traces ###CHECK THIS!!!
-#define R1_CM  0.0267   // drawing scale factor (.8/R1_LENGTH), 1 cm
+#define R1_CM  .8/R1_WIDTH   // drawing scale factor, 1 cm
 
 #define R2_WIDTH 45.09     // Region 2
 #define R2_LENGTH 30.00
@@ -215,7 +215,7 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
 #define R2_FULLWIRE1 9  // 9.29  // (30*.675/2.18) ###CHECK THIS!!!
 #define R2_FULLWIRE2 20 // 20.68 // (45.09/2.18)
 #define R2_ANGLE 56.00     // wire angle from bottom of frame
-#define R2_CM 0.0177       // drawing scale factor (.8/R2_WIDTH), 1 cm
+#define R2_CM .8/R2_WIDTH       // drawing scale factor, 1 cm
 
 #define R3_WIDTH 204.47  // Region 3
 #define R3_LENGTH 53.34
@@ -225,7 +225,7 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
 #define R3_FULLWIRE1 96  // given in geometry data
 #define R3_FULLWIRE2 184 // given in geometry data
 #define R3_ANGLE 26.57   //90 - 63.43   // wire angle from normal to bottom of frame
-#define R3_CM 0.0038     // drawing scale factor (.8/R3_WIDTH), 1 cm
+#define R3_CM .8/R3_WIDTH     // drawing scale factor, 1 cm
 
  public:
   RQ_OBJECT("QwEventDisplay")
@@ -262,17 +262,12 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
 
   // Event Box 2 declarations
   TGVerticalFrame *fEventBox2;
-  TGListBox *WireHitListBox;
+  TGListBox *fWireInfoListBox;
 
   //Event Box 3 declarations
-  TGListBox *TimingListBox;
-
-  //Event Box 4 delcarations
-  TGListBox *DriftDistanceListBox;
-
-  //  UInt_t sum; // sum of wire numbers  NOT USED FOR NOW
-  //  double num; // number of wire hits
-  //  double fit; // average wire number
+  TGVerticalFrame *fEventBox3;
+  TRootEmbeddedCanvas *fOctantID;
+  TCanvas *cOctantID;
 
   //Region 1 (GEM) declarations
   TGCompositeFrame *fRegion1;
@@ -296,6 +291,15 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
   std::vector<TLine> Line_R2x;
   std::vector<TLine> Line_R2u;
   std::vector<TLine> Line_R2v;
+
+  //Region 2b (HDC second arm) declarations
+  TGCompositeFrame *fRegion2b;
+  TRootEmbeddedCanvas *fRegion2bXY, *fRegion2bXZ, *fRegion2bYZ;
+  TCanvas *cR2bXY, *cR2bXZ, *cR2bYZ;
+  TPaveLabel *Label_R2bXY, *Label_R2bXZ, *Label_R2bYZ;
+  TBox *Box_R2bXY1, *Box_R2bXY2,*Box_R2bXY3,*Box_R2bXY4, *Box_R2bXZ1, *Box_R2bXZ2,*Box_R2bXZ3,*Box_R2bXZ4, *Box_R2bYZ1, *Box_R2bYZ2, *Box_R2bYZ3, *Box_R2bYZ4; // boxes for each chamber
+  TBox *Box_R2bXY; //TEMPORARY
+  TText *tR2bXY1, *tR2bXY2, *tR2bXY3, *tR2bXY4, *tR2bXZ1, *tR2bXZ2, *tR2bXZ3, *tR2bXZ4,*tR2bYZ1, *tR2bYZ2, *tR2bYZ3, *tR2bYZ4 ; // text for HDC chamber labels
 
   //Region 3 (VDC) declarations
   TGCompositeFrame *fRegion3;
