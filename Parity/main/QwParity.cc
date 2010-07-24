@@ -41,9 +41,7 @@
 #include "QwLumi.h"
 
 // for correlator
-#include <boost/numeric/ublas/io.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
+#include "QwCorrelator.h"
 
 
 
@@ -72,7 +70,9 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
   ///  histogram helper: QwHistogramHelper
   gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
+  gQwHists.LoadHistParamsFromFile("qweak_correlation_hists.in"); // add new
   gQwHists.LoadTreeParamsFromFile("Qweak_Tree_Trim_List.in");
+
 
   ///  Create the event buffer
   QwEventBuffer eventbuffer;
@@ -103,27 +103,12 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Set up the database connection
   QwDatabase database(gQwOptions);
 
+
   // initialization of correlator
-  std::vector<const QwVQWK_Channel*> x; 
-  if (1) {
-    // constructor
-    std::vector<std::string> names;
-    names.push_back("md1neg");
-    names.push_back("md1pos");
-    names.push_back("md3neg");
-    names.push_back("md3pos");
-    names.push_back("md5neg");
-    names.push_back("md5pos");
-    names.push_back("md7neg");
-    names.push_back("md7pos");
-  
-    for (size_t i = 0; i < names.size(); i++) {
-      const QwVQWK_Channel* value = dynamic_cast<const
-	QwVQWK_Channel*>(detectors.ReturnInternalValue(names[i]));
-      if (value) x.push_back(value);
-      else QwWarning << "null pointer for variable " << names[i] << QwLog::endl;
-    }
-  } //   assert(1==2);
+  QwCorrelator correlator;
+  correlator. SetInputVector(detectors);
+  std::cout<<correlator<<std::endl;
+
 
   ///  Start loop over all runs
   QwRootFile* rootfile = 0;
@@ -140,6 +125,8 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile->ConstructHistograms(detectors);
     rootfile->ConstructHistograms(helicitypattern);
 
+    correlator.SetHistos();
+    
     //  Construct tree branches
     rootfile->ConstructTreeBranches(detectors);
     rootfile->ConstructTreeBranches(helicitypattern);
@@ -175,22 +162,15 @@ Int_t main(Int_t argc, Char_t* argv[])
       if (! eventbuffer.IsPhysicsEvent()) continue;
 
 
-
       //  Fill the subsystem objects with their respective data for this event.
       eventbuffer.FillSubsystemData(detectors);
 
       //  Process the subsystem data
       detectors.ProcessEvent();
 
-      if(eventbuffer.GetEventNumber()>500) {
-	boost::numeric::ublas::matrix<QwVQWK_Channel> A(x.size(),x.size());
-	// at every event
-	for (size_t i = 0; i < x.size(); i++)
-	  for (size_t j = 0; j < x.size(); j++)
-	    A(i,j) += (*x[i]) * (*x[j]);
-	// accumulation
-	QwMessage << A << QwLog::endl;
-	assert(4==5);
+
+      if(eventbuffer.GetEventNumber()>200) { // tmp skip firts events
+	correlator.AddEvent();
       }
 
       // The event pass the event cut constraints
@@ -288,7 +268,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Print the event cut error summery for each subsystem
     detectors.GetEventcutErrorCounters();
 
-
+  
     //  Read from the datebase
     if (database.AllowsReadAccess()) {
 
@@ -321,6 +301,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   } // end of loop over runs
 
   QwMessage << "I have done everything I can do..." << QwLog::endl;
+  correlator.PrintSummary();
 
   return 0;
 }
