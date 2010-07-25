@@ -59,6 +59,11 @@ class QwHit : public TObject {
   //! \brief Destructor
   virtual ~QwHit();
 
+ private:
+  //! \brief Initialize the hit
+  void Initialize();
+
+ public:
   //! \brief Assignment operator
   QwHit& operator= (const QwHit& hit);
   //! \brief Ordering operator

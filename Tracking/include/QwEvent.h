@@ -221,11 +221,11 @@ class QwEvent: public TObject {
     //! \brief Get the number of hits
     Int_t GetNumberOfHits() const { return fNQwHits; };
     //! \brief Get the list of hits
-    #if defined QWHITS_IN_IN_STATIC_TCLONESARRAY || defined QWHITS_IN_LOCAL_TCLONESARRAY
+    #if defined QWHITS_IN_STATIC_TCLONESARRAY || defined QWHITS_IN_LOCAL_TCLONESARRAY
       const TClonesArray* GetListOfHits() const { return fQwHits; };
     #endif
     #if defined QWHITS_IN_STL_VECTOR
-      const std::vector<QwHit*> GetListOfHits() const { return fQwHits; };
+      const std::vector<QwHit*>& GetListOfHits() const { return fQwHits; };
     #endif
     //! \brief Print the list of hits
     void PrintHits(Option_t* option = "") const;

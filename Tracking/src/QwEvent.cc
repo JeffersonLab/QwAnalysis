@@ -146,12 +146,12 @@ void QwEvent::Print(Option_t* option) const
 // Create a new QwHit
 QwHit* QwEvent::CreateNewHit()
 {
+  QwHit *hit = 0;
   #if defined QWHITS_IN_STATIC_TCLONESARRAY || defined QWHITS_IN_LOCAL_TCLONESARRAY
     TClonesArray &hits = *fQwHits;
-    QwHit *hit = new (hits[fNQwHits++]) QwHit();
-  #else // QWHITS_IN_STL_VECTOR
-    QwHit* hit = new QwHit();
-    AddHit(hit);
+    hit = new (hits[fNQwHits++]) QwHit();
+  #else
+    QwWarning << "you shouldn't be here" << QwLog::endl;
   #endif
   return hit;
 };
@@ -223,13 +223,13 @@ QwHitContainer* QwEvent::GetHitContainer()
 {
   QwHitContainer* hitlist = new QwHitContainer();
   #if defined QWHITS_IN_STATIC_TCLONESARRAY || defined QWHITS_IN_LOCAL_TCLONESARRAY
-    TIterator* iterator = GetListOfHits()->MakeIterator();
+    TIterator* iterator = fQwHits->MakeIterator();
     QwHit* hit = 0;
     while ((hit = (QwHit*) iterator->Next()))
       hitlist->push_back(*hit);
   #else // QWHITS_IN_STL_VECTOR
-    for (std::vector<QwHit*>::const_iterator hit = GetListOfHits().begin();
-         hit != GetListOfHits().end(); hit++)
+    for (std::vector<QwHit*>::const_iterator hit = fQwHits.begin();
+         hit != fQwHits.end(); hit++)
       hitlist->push_back(*hit);
   #endif
   return hitlist;

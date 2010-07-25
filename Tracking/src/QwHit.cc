@@ -16,6 +16,93 @@ ClassImp(QwHit);
  */
 QwHit::QwHit()
 {
+  // Initialize
+  Initialize();
+}
+
+
+/**
+ * Copy-constructor with object argument
+ * @param hit Hit object
+ */
+QwHit::QwHit(const QwHit &hit)
+{
+  // Initialize
+  Initialize();
+
+  // Copy
+  *this = hit;
+};
+
+
+/**
+ * Copy-constructor with pointer argument
+ * @param hit Pointer to a hit
+ */
+QwHit::QwHit(const QwHit* hit)
+{
+  // Initialize
+  Initialize();
+
+  // Copy
+  *this = *hit;
+};
+
+
+/**
+ * Constructor with hit parameters
+ * @param bank_index Subbank index
+ * @param slot_num Slot number
+ * @param chan Channel number
+ * @param hitcount Hit number
+ * @param region Region
+ * @param package Package
+ * @param plane Plane number
+ * @param direction Element direction
+ * @param wire Element number
+ * @param data Data block
+ */
+QwHit::QwHit(Int_t bank_index,
+	     Int_t slot_num,
+	     Int_t chan,
+	     Int_t hitcount,
+	     EQwRegionID region,
+	     EQwDetectorPackage package,
+	     Int_t plane,
+	     EQwDirectionID direction,
+	     Int_t wire,
+	     UInt_t rawdata)
+{
+  // Initialize
+  Initialize();
+
+  // Set specified variables
+  fCrate             = bank_index;
+  fModule            = slot_num;
+  fChannel           = chan;
+  fHitNumber         = hitcount;
+
+  fRegion            = region;
+  fPackage           = package;
+  fDirection         = direction;
+  fPlane             = plane;
+  fElement           = wire;
+
+  fRawTime           = rawdata;
+};
+
+
+/**
+ * Destructor (no action)
+ */
+QwHit::~QwHit()
+{
+  // Delete object
+};
+
+
+void QwHit::Initialize()
+{
   fCrate             = 0;
   fModule            = 0;
   fChannel           = 0;
@@ -50,95 +137,6 @@ QwHit::QwHit()
   rPos               = 0.0;
   rPos2              = 0.0;
 }
-
-
-/**
- * Copy-constructor with object argument
- * @param hit Hit object
- */
-QwHit::QwHit(const QwHit &hit)
-{
-  *this = hit;
-};
-
-
-/**
- * Copy-constructor with pointer argument
- * @param hit Pointer to a hit
- */
-QwHit::QwHit(const QwHit* hit)
-{
-  *this = *hit;
-};
-
-
-/**
- * Constructor with hit parameters
- * @param bank_index Subbank index
- * @param slot_num Slot number
- * @param chan Channel number
- * @param hitcount Hit number
- * @param region Region
- * @param package Package
- * @param plane Plane number
- * @param direction Element direction
- * @param wire Element number
- * @param data Data block
- */
-QwHit::QwHit(Int_t bank_index,
-	     Int_t slot_num,
-	     Int_t chan,
-	     Int_t hitcount,
-	     EQwRegionID region,
-	     EQwDetectorPackage package,
-	     Int_t plane,
-	     EQwDirectionID direction,
-	     Int_t wire,
-	     UInt_t rawdata)
-{
-  fCrate             = bank_index;
-  fModule            = slot_num;
-  fChannel           = chan;
-  fHitNumber         = hitcount;
-  fHitNumber_R       = 0;
-
-  fRegion            = region;
-  fPackage           = package;
-  fDirection         = direction;
-  fPlane             = plane;
-  fElement           = wire;
-  pDetectorInfo      = 0;	/// Pointer to detector info object
-
-  fAmbiguousElement  = false;
-  fLRAmbiguity       = false;
-
-  fRawTime           = rawdata;
-  fTime              = 0.0;	/// Start corrected time, may also be further modified
-  fTimeRes           = 0.0;	/// Resolution of time (if appropriate)
-  fDistance          = 0.0;	/// Perpendicular distance from the wire to the track
-  fPosition          = 0.0;
-  fResidual          = 0.0;
-  fZPosition         = 0.0;	/// Hit position
-  fSpatialResolution = 0.0;	/// Spatial resolution
-  fTrackResolution   = 0.0;	/// Tracking road width around hit
-
-  fIsUsed            = false;	/// Is this hit used in a tree line?
-
-  next               = 0;
-  nextdet            = 0;      	/*!<next hit and next hit in same detector */
-  rResultPos         = 0.0;     /*!< Resulting hit position            */
-  rPos               = 0.0;	/*!< Position of from track finding    */
-  rPos2              = 0.0;	/*!< rPos2 from level II decoding      */
-};
-
-
-/**
- * Destructor (no action)
- */
-QwHit::~QwHit()
-{
-};
-
 
 /**
  * Assignment operator
