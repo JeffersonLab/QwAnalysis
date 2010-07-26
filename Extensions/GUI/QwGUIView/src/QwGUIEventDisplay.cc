@@ -3,10 +3,9 @@
 #include "TLine.h"
 
 //Qweak Header Files
-#include "QwTreeEventBuffer.h"  // create hit list from G4 Monte Carlo
-#include "QwSubsystemArrayTracking.h"  // update hit list for each subsystem
 #include "QwDetectorInfo.h"  // establishes detector information
 #include "QwHitContainer.h"  // creates augmented vector of QwHits for special functionality
+#include "QwHitRootContainer.h"
 
 ClassImp(QwGUIEventDisplay);
 
@@ -195,7 +194,7 @@ void QwGUIEventDisplay::MakeLayout()
    // create goto event button
    gClient->GetColorByName("#d4cf87",ucolor); // set ucolor to buff
    TGTextButton *GotoEventButton = new TGTextButton(fEventCounter,"&Goto Event",-1,uGC->GetGC(),ufont->GetFontStruct());
-   GotoEventButton->Connect("Clicked()", "QwEventDisplay", this, "GotoEvent()");
+   GotoEventButton->Connect("Clicked()", "QwGUIEventDisplay", this, "GotoEvent()");
    GotoEventButton->SetTextJustify(36);
    GotoEventButton->SetMargins(0,0,0,0);
    GotoEventButton->SetWrapLength(-1);
@@ -210,8 +209,8 @@ void QwGUIEventDisplay::MakeLayout()
    CurrentEventEntry = new TGNumberEntry(fEventCounter, (Double_t) 0,11,-1,(TGNumberFormat::EStyle) 0,(TGNumberFormat::EAttribute) 1);
    fEventCounter->AddFrame(CurrentEventEntry, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    CurrentEventEntry->MoveResize(24,94,96,22);
-   //CurrentEventEntry->Connect("ValueSet(Long_t)", "QwEventDisplay()", this, "GotoEvent()");  // COMMENTED BECAUSE NOT USING THIS--POSSIBLE IN FUTURE
-   //(CurrentEventEntry->GetNumberEntry())->Connect("ReturnPressed()", "QwEventDisplay()", this, "GotoEvent()");
+   //CurrentEventEntry->Connect("ValueSet(Long_t)", "QwGUIEventDisplay()", this, "GotoEvent()");  // COMMENTED BECAUSE NOT USING THIS--POSSIBLE IN FUTURE
+   //(CurrentEventEntry->GetNumberEntry())->Connect("ReturnPressed()", "QwGUIEventDisplay()", this, "GotoEvent()");
 
    // add event counter frame to event box 1
    fEventBox1->AddFrame(fEventCounter, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
@@ -231,7 +230,7 @@ void QwGUIEventDisplay::MakeLayout()
 
    // create list box for wire hit data
    WireHitListBox = new TGListBox(fEventBox2);
-   //   WireHitListBox->Connect("PositionChanged()", "QwEventDisplay", this, "TimingListBox->fVScrollbar");  LINK SCROLLBARS TO BE IN SYNC
+   //   WireHitListBox->Connect("PositionChanged()", "QwGUIEventDisplay", this, "TimingListBox->fVScrollbar");  LINK SCROLLBARS TO BE IN SYNC
    WireHitListBox->Resize(200,180);
    fEventBox2->AddFrame(WireHitListBox, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    WireHitListBox->MoveResize(8,32,200,180);
@@ -579,7 +578,7 @@ void QwGUIEventDisplay::MakeLayout()
    fRegion3->AddFrame(fRegion3YZ, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion3YZ->MoveResize(306,4,280,280);
    fRegion3YZ->GetCanvas()->SetFillColor(0);
-   Label_R3YZ = new TPaveLabel(.03,.94,.97,.99,"Top View (Y-Z Projection)"); // create canvas label
+   Label_R3YZ = new TPaveLabel(.03,.94,.97,.99,"Top View (Y-Z Projection Viewed at Tilt Angle)"); // create canvas label
    Label_R3YZ->Draw();
    Box_R3YZ1 = new TBox(.5-(R3_WIDTH*R3_CM*.5), .65-(R3_DEPTH*R3_CM*.5), .5+(R3_WIDTH*R3_CM*.5), .65+(R3_DEPTH*R3_CM*.5)); // create box for chamber 1
    Box_R3YZ1->SetLineColor(1);
@@ -622,7 +621,7 @@ void QwGUIEventDisplay::MakeLayout()
    fRegion3->AddFrame(fRegion3XZ, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fRegion3XZ->MoveResize(603,4,280,280);
    fRegion3XZ->GetCanvas()->SetFillColor(0);
-   Label_R3XZ = new TPaveLabel(.03,.94,.97,.99,"Side View (X-Z Projection)"); // create canvas label
+   Label_R3XZ = new TPaveLabel(.03,.94,.97,.99,"Side View (X-Z Projection Viewed at Tilt Angle)"); // create canvas label
    Label_R3XZ->Draw();
    Box_R3XZ1 = new TBox(.5-(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .65-(R3_LENGTH*R3_CM*.5), .5+(R3_DEPTH*R3_CM*.5)-(R3_DIST*R3_CM*.5), .65+(R3_LENGTH*R3_CM*.5)); // create box for chamber 1 // incorporate X and Y shift (ROOT coord)
    Box_R3XZ1->SetLineColor(1);
@@ -698,7 +697,7 @@ void QwGUIEventDisplay::MakeLayout()
    uGC = gClient->GetGC(&valButton, kTRUE);
    // create clear button: CLEARS ALL DATA
    TGTextButton *ClearButton = new TGTextButton(fButtons,"&Clear Data",-1,uGC->GetGC(),ufont->GetFontStruct());
-   ClearButton->Connect("Clicked()", "QwEventDisplay", this, "GoClear()"); // connect button to GoClear() function
+   ClearButton->Connect("Clicked()", "QwGUIEventDisplay", this, "GoClear()"); // connect button to GoClear() function
    ClearButton->SetTextJustify(36);
    ClearButton->SetMargins(0,0,0,0);
    ClearButton->SetWrapLength(-1);
@@ -743,7 +742,7 @@ void QwGUIEventDisplay::MakeLayout()
    uGC = gClient->GetGC(&valousButton, kTRUE);
    // create previous button: MAKES EVENT COUNTER MINUS ONE
    TGTextButton *PreviousButton = new TGTextButton(fButtons,"&Previous Event",-1,uGC->GetGC(),ufont->GetFontStruct());
-   PreviousButton->Connect("Clicked()", "QwEventDisplay", this, "GoPrevious()"); // connect button to GoPrevious() function
+   PreviousButton->Connect("Clicked()", "QwGUIEventDisplay", this, "GoPrevious()"); // connect button to GoPrevious() function
    PreviousButton->SetTextJustify(36);
    PreviousButton->SetMargins(0,0,0,0);
    PreviousButton->SetWrapLength(-1);
@@ -764,7 +763,7 @@ void QwGUIEventDisplay::MakeLayout()
    uGC = gClient->GetGC(&valutton, kTRUE);
    // create next button: MAKES EVENT COUNTER PLUS ONE
    TGTextButton *NextButton = new TGTextButton(fButtons,"&Next Event",-1,uGC->GetGC(),ufont->GetFontStruct());
-   NextButton->Connect("Clicked()", "QwEventDisplay", this, "GoNext()"); // connect button to GoNext() function
+   NextButton->Connect("Clicked()", "QwGUIEventDisplay", this, "GoNext()"); // connect button to GoNext() function
    NextButton->SetTextJustify(36);
    NextButton->SetMargins(0,0,0,0);
    NextButton->SetWrapLength(-1);
@@ -837,8 +836,8 @@ void QwGUIEventDisplay::MakeLayout()
    fMain->MapWindow();
    fMain->Resize(900,692);
    AddFrame(fMain, new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY, 10, 10));
-		
-			
+
+
 }
 
 void QwGUIEventDisplay::OnReceiveMessage(char *obj)
@@ -855,10 +854,42 @@ void QwGUIEventDisplay::OnObjClose(char *obj)
 
 void QwGUIEventDisplay::OnNewDataContainer(RDataContainer *cont)
 {
+  std::cout << "Opening in QwGUIEventDisplay..." << std::endl;
+
   GoClear();
 
-  if (dROOTCont) {
-    fTree = (TTree*) dROOTCont->ReadTree("tree");
+  if (!cont) return;
+
+  if (!strcmp(cont->GetDataName(),"ROOT") && dROOTCont) {
+    TObject* obj = dROOTCont->ReadData("hit_tree");
+
+    if (obj && obj->InheritsFrom("TTree")) {
+      fTree = (TTree*) obj->Clone();
+
+
+      if (fTree->FindBranch("hits")){
+	//fTree->SetMakeClass(1);
+
+	Int_t entries = fTree->GetEntries();
+	std::cout<<"Entries in tree: "<< entries << std::endl;
+
+	fHitRootList = 0;
+	fEventNumber = 0;
+
+	fTree->SetBranchAddress("hits", &fHitRootList);
+
+	std::cout << "Opened in QwGUIEventDisplay" << std::endl;
+      }
+      else{
+	std::cout<<"No hits branch"<<std::endl;
+      }
+    }
+    else{
+      std::cout<<"No Tree inherited"<<std::endl;
+    }
+  }
+  else{
+    std::cout<<"No directory hit_tree"<<std::endl;
   }
 }
 
@@ -898,6 +929,23 @@ void QwGUIEventDisplay::GoClear()
 
 }
 
+void QwGUIEventDisplay::GotoEvent(){  // goes to desired event number written in "goto event" text entry box
+                                     // called by GotoEventButton click
+
+  fEventNumber = CurrentEventEntry->GetNumberEntry()->GetIntNumber(); // fEventNumber takes value from number entry
+
+  if (fEventNumber > 0){
+    CurrentEventLabel->SetText(Form("%d",CurrentEventEntry->GetNumberEntry()->GetIntNumber())); // set current event label
+    DrawEvent();  // update display information
+  }
+
+  else{
+    fEventNumber = 0; // go to null event
+    GoClear(); // event 0 is null event
+  }
+
+} // end GotoEvent()
+
 void QwGUIEventDisplay::GoPrevious()
 {
 
@@ -919,10 +967,19 @@ void QwGUIEventDisplay::GoNext()
   DrawEvent();  // update display information
 }
 
-void QwGUIEventDisplay::DrawEvent()
+int QwGUIEventDisplay::DrawEvent()
 {
-  std::cout << "Drawing event" << std::endl;
-  fTree->GetEntry(fEventNumber);
+
+  printf("Drawing event %d...\n", fEventNumber);
+
+  // catch to keep from attempting to draw events outside the number of entries
+  if (fEventNumber >= fTree->GetEntries()){
+    printf("Draw error: There are only %lld entries.\n", fTree->GetEntries());
+    fEventNumber = 0;
+    GoClear();
+    printf("Returned to null event.\n");
+    return 0;
+  }
 
   fRegion1XY->GetCanvas()->SetEditable(kTRUE);  // restore editing capability
   fRegion1XZ->GetCanvas()->SetEditable(kTRUE);
@@ -936,12 +993,11 @@ void QwGUIEventDisplay::DrawEvent()
 
   GoClear(); // clear existing data
 
+  fTree->GetEntry(fEventNumber);
+  fHitList = fHitRootList->Convert();
+  fHitList->Print();  // outputs the new wire hit information from the hit list
 
   //LIST WIRE HITS//
-  // extract wire hit information
-  fEventBuffer->GetSpecificEvent(fEventNumber);   // place the current event number into the event buffer
-  fHitList = fEventBuffer->GetHitContainer();  // add the hit list from the current event buffer
-  fHitList->Print();  // outputs the new wire hit information from the hit list
 
   // create a char string buffer to hold hit information
   char HitBuffer[30];
@@ -1179,7 +1235,7 @@ void QwGUIEventDisplay::DrawEvent()
     }
     */
 
-    
+
     if (fWire < 12){  //12th wire ends at corner (X2, Y2)   // ISSUES HERE
       Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fXShift);
       Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5));
@@ -1205,7 +1261,7 @@ void QwGUIEventDisplay::DrawEvent()
       Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire-11.6) - fXShift) - fXShift); // ISSUES HERE
       Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5));
       }*/
-    
+
     Line.SetLineColor(kGreen);
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
@@ -1448,9 +1504,9 @@ void QwGUIEventDisplay::DrawEvent()
       break;
     }
     TLine Line;
-    Line.SetX1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift); 
+    Line.SetX1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
     Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5) + (R2_XDIST*R2_CM*fWire) + fYShift);
-    Line.SetX2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift); 
+    Line.SetX2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
     Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (R2_XDIST*R2_CM*fWire) + fYShift);
     Line.SetLineColor(kRed);
     Line_R2x.push_back(Line);
@@ -1824,6 +1880,11 @@ void QwGUIEventDisplay::DrawEvent()
     }
   fRegion3XZ->GetCanvas()->SetEditable(kFALSE);
   fRegion3XZ->GetCanvas()->Update();
+
+  // Delete hit list (because it is regenerated every time)
+  delete fHitList; fHitList = 0;
+
+  return 0;
 }
 
 void QwGUIEventDisplay::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)

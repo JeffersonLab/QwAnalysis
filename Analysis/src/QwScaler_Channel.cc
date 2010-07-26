@@ -90,8 +90,7 @@ Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UI
     this->fValue     = 0.0 + this->fValue_Raw;
     words_read = fNumberOfDataWords;
   } else {
-    QwError << "QwScaler_Channel::ProcessEvBuffer: Not enough words!"
-	    << QwLog::endl;
+    //QwError << "QwScaler_Channel::ProcessEvBuffer: Not enough words!"<< QwLog::endl;
   }
   return words_read;
 };
@@ -190,7 +189,8 @@ void  QwScaler_Channel<data_mask,data_shift>::ConstructBranchAndVector(TTree *tr
     TString list = basename + "/D";
 
     fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
-    tree->Branch(basename, &(values[fTreeArrayIndex]), list);
+    if (gQwHists.MatchDeviceParamsFromList(basename.Data()))
+      tree->Branch(basename, &(values[fTreeArrayIndex]), list);
   }
 };
 
@@ -202,7 +202,7 @@ void  QwScaler_Channel<data_mask,data_shift>::ConstructBranch(TTree *tree, TStri
   } else {
     TString basename = prefix + GetElementName();
 
-    tree->Branch(basename, &fValue);
+    tree->Branch(basename, &fValue, basename+"/D");
   }
 };
 

@@ -69,7 +69,7 @@ std::map<string, unsigned int> QwDatabase::fSlowControlDetectorIDs;// for epics
  * mysqlpp::Connection() object that has exception throwing disabled.
  */
 //QwDatabase::QwDatabase() : Connection(false)
-QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersionMinor("00"), kValidVersionPoint("0003")
+QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersionMinor("00"), kValidVersionPoint("0004")
 {
   // Initialize member fields
   fDatabase=fDBServer=fDBUsername=fDBPassword="";
@@ -90,7 +90,7 @@ QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersion
  *  the QwOptions object.
  * @param options  The QwOptions object.
  */
-QwDatabase::QwDatabase(QwOptions &options) : Connection(), kValidVersionMajor("01"), kValidVersionMinor("00"), kValidVersionPoint("0003")
+QwDatabase::QwDatabase(QwOptions &options) : Connection(), kValidVersionMajor("01"), kValidVersionMinor("00"), kValidVersionPoint("0004")
 {
   // Initialize member fields
   fDatabase=fDBServer=fDBUsername=fDBPassword="";
@@ -164,8 +164,10 @@ Bool_t QwDatabase::ValidateConnection()
       QwError << "Database server = " << fDBServer <<QwLog::endl;
       QwError << "Database username = " << fDBUsername <<QwLog::endl;
       QwError << "Database port = " << fDBPortNumber <<QwLog::endl;
-      QwError << "Exiting." << QwLog::endl;
-      exit(1);
+      QwError << "Continuing without database." << QwLog::endl;
+      QwWarning << "Might have left database connection dangling..." << QwLog::endl;
+      fAccessLevel = kQwDatabaseOff;
+      return kFALSE;
     }
 
     // Get database schema version information

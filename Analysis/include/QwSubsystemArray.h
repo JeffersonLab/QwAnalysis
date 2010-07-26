@@ -20,6 +20,7 @@
 
 // Qweak headers
 #include "VQwSubsystem.h"
+#include "VQwDataElement.h"
 #include "QwParameterFile.h"
 #include "QwLog.h"
 #include "QwOptions.h"
@@ -93,11 +94,11 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void  ClearEventData();
 
   /// \brief Process the event buffer for configuration events
-  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, 
+  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id,
 				   UInt_t *buffer, UInt_t num_words);
 
   /// \brief Process the event buffer for events
-  Int_t ProcessEvBuffer(const UInt_t event_type, const UInt_t roc_id, 
+  Int_t ProcessEvBuffer(const UInt_t event_type, const UInt_t roc_id,
 			const UInt_t bank_id, UInt_t *buffer,
 			UInt_t num_words);
 
@@ -128,17 +129,40 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
    * @param value (return) Data element with the variable name
    * @return True if the variable was found, false if not found
    */
-  const Bool_t ReturnInternalValue(TString name, VQwDataElement* value) const {
-    Bool_t foundit = kFALSE;
+  const VQwDataElement* ReturnInternalValue(const TString& name) const {
     //  First try to find the value in the list of published values.
     //  So far this list is not filled though.
     std::map<TString, VQwSubsystem*>::const_iterator iter = fPublishedValuesSubsystem.find(name);
     if (iter != fPublishedValuesSubsystem.end()) {
-      foundit = (iter->second)->ReturnInternalValue(name, value);
+      return (iter->second)->ReturnInternalValue(name);
     }
     //  If the value is not yet published, try asking the subsystems for it.
-    for (const_iterator subsys = begin(); (!foundit)&&(subsys != end()); ++subsys){
-      foundit = (*subsys)->ReturnInternalValue(name, value);
+    for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
+      return (*subsys)->ReturnInternalValue(name);
+    }
+    //  Not found
+    return 0;
+  };
+
+  /**
+   * Retrieve the variable name from subsystems in this subsystem array
+   * @param name Variable name to be retrieved
+   * @param value (return) Data element with the variable name
+   * @return True if the variable was found, false if not found
+   */
+  const Bool_t ReturnInternalValue(const TString& name, VQwDataElement* value) const {
+    Bool_t foundit = kFALSE;
+    // Check for null pointer
+    if (! value)
+      QwWarning << "QwSubsystemArray::ReturnInternalValue requires that "
+              << "'value' be a non-null pointer to a VQwDataElement."
+              << QwLog::endl;
+    //  Get a const pointer to the internal value
+    const VQwDataElement* internal_value = ReturnInternalValue(name);
+    //  Check whether types are identical and copy into data element
+    if (value && internal_value && typeid(value) == typeid(internal_value)) {
+      *value = *internal_value;
+      foundit = kTRUE;
     }
     return foundit;
   };

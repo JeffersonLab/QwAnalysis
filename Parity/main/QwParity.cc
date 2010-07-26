@@ -60,14 +60,15 @@ Int_t main(Int_t argc, Char_t* argv[])
   gQwOptions.AddConfigFile("qweak_mysql.conf");
   ///  Define the command line options
   DefineOptionsParity(gQwOptions);
-
+  //Load command line options for the histogram/tree helper class
+  gQwHists.ProcessOptions(gQwOptions);
   /// Setup screen and file logging
   gQwLog.ProcessOptions(&gQwOptions);
 
   ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
   ///  histogram helper: QwHistogramHelper
   gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
-
+  gQwHists.LoadTreeParamsFromFile("Qweak_Tree_Trim_List.in");
 
   ///  Create the event buffer
   QwEventBuffer eventbuffer;
@@ -140,6 +141,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epicsevent);
         epicsevent.CalculateRunningValues();
+        helicitypattern.UpdateBlinder(&database,epicsevent);
       }
 
 
@@ -159,18 +161,8 @@ Int_t main(Int_t argc, Char_t* argv[])
       // The event pass the event cut constraints
       if (detectors.ApplySingleEventCuts()) {
 
-        // Add event to the ring
-        eventring.push(detectors);
-
-        // Check to see ring is ready
-        if (eventring.IsReady()) {
-          helicitypattern.LoadEventData(eventring.pop());
-        }
-
-
         // Accumulate the running sum to calculate the event based running average
         runningsum.AccumulateRunningSum(detectors);
-
 
         // Fill the histograms
         rootfile->FillHistograms(detectors);
@@ -178,21 +170,43 @@ Int_t main(Int_t argc, Char_t* argv[])
         // Fill the tree branches
         rootfile->FillTreeBranches(detectors);
 
-        // Calculate helicity pattern asymmetry
-        if (helicitypattern.IsCompletePattern() && eventring.IsReady()) {
-          helicitypattern.CalculateAsymmetry();
-          if (helicitypattern.IsGoodAsymmetry()) {
-            // Fill histograms
-            rootfile->FillHistograms(helicitypattern);
-            // Fill tree branches
-            rootfile->FillTreeBranches(helicitypattern);
-            // Clear the data
-            helicitypattern.ClearEventData();
-          }
-        }
 
+        // Add event to the ring
+        eventring.push(detectors);
+
+        // Check to see ring is ready
+        if (eventring.IsReady()) {
+
+          // Load the event into the helicity pattern
+          helicitypattern.LoadEventData(eventring.pop());
+
+          // Calculate helicity pattern asymmetry
+          if (helicitypattern.IsCompletePattern()) {
+
+            // Update the blinder if conditions have changed
+            helicitypattern.UpdateBlinder(&database,detectors);
+
+            // Calculate the asymmetry
+            helicitypattern.CalculateAsymmetry();
+            if (helicitypattern.IsGoodAsymmetry()) {
+              // Fill histograms
+              rootfile->FillHistograms(helicitypattern);
+              // Fill tree branches
+              rootfile->FillTreeBranches(helicitypattern);
+              // Clear the data
+              helicitypattern.ClearEventData();
+            }
+
+          } // helicitypattern.IsCompletePattern()
+
+        } // eventring.IsReady()
+
+
+      // Failed single event cuts
       } else {
         eventring.FailedEvent(detectors.GetEventcutErrorFlag()); //event cut failed update the ring status
+	//	QwMessage << "FailedEven: "<< eventbuffer.GetEventNumber() << std::endl;
+
         failed_events_counts++;
       }
 

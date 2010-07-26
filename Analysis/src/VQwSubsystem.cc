@@ -138,7 +138,7 @@ VQwSubsystem* VQwSubsystem::GetSibling(const std::string& name) const
  * @return True if the variable was found, false if not found
  */
 const Bool_t VQwSubsystem::RequestExternalValue(
-	TString name,
+	const TString& name,
 	VQwDataElement* value) const
 {
   // Get the parent and check for existence (NOTE: only one parent supported)
@@ -200,21 +200,34 @@ Int_t VQwSubsystem::GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) c
   //  Bool_t lDEBUG=kTRUE;
   Int_t index = -1;
   Int_t roc_index = FindIndex(fROC_IDs, roc_id);//will return the vector index for the Roc from the vector fROC_IDs.
+  // std::cout << "------------- roc_index" << roc_index <<std::endl;
   if (roc_index>=0){
     index = FindIndex(fBank_IDs[roc_index],bank_id);
+    // std::cout << " Find Index " << index
+    // 	      << " roc index " << roc_index
+    // 	      << " index " << index <<std::endl;
+
     if (index>=0){
       for (Int_t i=0; i<roc_index; i++){
 	index += (fBank_IDs[i].size());
+	// std::cout << " i " << i
+	// 	  << " fBank_IDs[i].size() " << fBank_IDs[i].size()
+	// 	  << " index " << index
+	// 	  << std::endl;
       }
     }
   }
+  // std::cout << "return:index " << index << std::endl;
   return index;
 };
 
 Int_t VQwSubsystem::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id = 0)
 {
-  Int_t stat = 0;
-  Int_t roc_index = FindIndex(fROC_IDs, roc_id);//will return the vector index for this roc_id on the vector fROC_IDs
+  Int_t stat      = 0;
+  Int_t roc_index = 0;
+  roc_index = FindIndex(fROC_IDs, roc_id);
+
+  //will return the vector index for this roc_id on the vector fROC_IDs
   if (roc_index==-1){
     fROC_IDs.push_back(roc_id);//new ROC number is added.
     roc_index = (fROC_IDs.size() - 1);

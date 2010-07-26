@@ -8,3 +8,8 @@
 
 #include "VQwTrackingElement.h"
 ClassImp(VQwTrackingElement);
+
+#ifdef STATIC_TCLONESARRAY
+  template <class T>
+  TClonesArray* VQwTrackingElementList<T>::gList = 0;
+#endif

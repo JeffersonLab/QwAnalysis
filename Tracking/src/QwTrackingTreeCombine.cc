@@ -468,11 +468,11 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
   // Set Hits #
   //###########
   for (int i = 0; i < n; i++) {
-    if (offset == -1) {
+    if (wire_offset == -1) {
       A[i][1] = -hits[i]->GetZPosition(); //used by matchR3
       y[i]    = -hits[i]->GetPosition();
     } else {
-      A[i][1] = -(i + offset); //used by Tl MatchHits
+      A[i][1] = -(i + wire_offset); //used by Tl MatchHits
       y[i]    = -hits[i]->rResultPos;
     }
     double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();

@@ -27,9 +27,10 @@ QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHit
     fNumberOfTDCs = 0;
     ClearAllBankRegistrations();
     InitHistogramPointers();
-    kMaxNumberOfChannelsPerTDC = GetTDCMaxChannels(); 
-    // QwDriftChamber is inherited from MQwF1TDC, thus we can use public function directly.
-
+    //    kMaxNumberOfChannelsPerTDC = GetTDCMaxChannels(); 
+    kMaxNumberOfChannelsPerTDC = fF1TDC.GetTDCMaxChannels();  
+    //  fF1TDCs->clear();
+  
     //   fF1DataIntegrityCount = 0;
 
 
@@ -48,7 +49,9 @@ QwDriftChamber::QwDriftChamber(TString region_tmp)
     fNumberOfTDCs = 0;
     ClearAllBankRegistrations();
     InitHistogramPointers();
-    kMaxNumberOfChannelsPerTDC = GetTDCMaxChannels();
+    kMaxNumberOfChannelsPerTDC = fF1TDC.GetTDCMaxChannels(); 
+  //    kMaxNumberOfChannelsPerTDC = GetTDCMaxChannels(); 
+    kMaxNumberOfChannelsPerTDC = 0; 
     //    fF1DataIntegrityCount = 0;
 
     /*for (int i1 = 0; i1 < kNumPackages; i1++)
@@ -60,91 +63,95 @@ QwDriftChamber::QwDriftChamber(TString region_tmp)
 
 
 
-Int_t QwDriftChamber::LoadChannelMap(TString mapfile)
-{
-    TString varname, varvalue;
-    UInt_t  chan, package, plane, wire, direction, DIRMODE;
-    wire = plane = package = 0;
-    DIRMODE=0;
+// Int_t QwDriftChamber::LoadChannelMap(TString mapfile)
+// {
+//     TString varname, varvalue;
+//     UInt_t  chan, package, plane, wire, direction, DIRMODE;
+//     wire = plane = package = 0;
+//     DIRMODE=0;
 
 
-    fDirectionData.resize(2);//currently we have 2  package - Rakitha (10/23/2008)
-    fDirectionData.at(0).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
-    fDirectionData.at(1).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
+//     fDirectionData.resize(2);//currently we have 2  package - Rakitha (10/23/2008)
+//     fDirectionData.at(0).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
+//     fDirectionData.at(1).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
 
-    QwParameterFile mapstr(mapfile.Data());  //Open the file
+//     QwParameterFile mapstr(mapfile.Data());  //Open the file
 
-    while (mapstr.ReadNextLine()) {
-        mapstr.TrimComment('!');   // Remove everything after a '!' character.
-        mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
-        if (mapstr.LineIsEmpty())  continue;
+//     while (mapstr.ReadNextLine()) {
+//         mapstr.TrimComment('!');   // Remove everything after a '!' character.
+//         mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+//         if (mapstr.LineIsEmpty())  continue;
 
-        if (mapstr.HasVariablePair("=",varname,varvalue)) {
-            //  This is a declaration line.  Decode it.
-            varname.ToLower();
-            UInt_t value = QwParameterFile::GetUInt(varvalue);
-	    if (value ==0){
-	      value = atol(varvalue.Data());
-	    }
-            if (varname=="roc") {
-	      RegisterROCNumber(value,0);
-                DIRMODE=0;
-	    } else if (varname=="bank") {
-              RegisterSubbank(value);
-	      DIRMODE=0;
-	    } else if (varname=="slot") {
-                RegisterSlotNumber(value);
-                DIRMODE=0;
-            } else if (varname=="pkg") {
-                //this will identify the coming sequence is wire plane to direction mapping - Rakitha
-                DIRMODE=1;
-                package=value;
-            }
-        } else if (DIRMODE==0) {
-            //  Break this line into tokens to process it.
-            chan    = (atol(mapstr.GetNextToken(", ").c_str()));
-            package = 1;
-            plane   = (atol(mapstr.GetNextToken(", ").c_str()));
-            wire    = (atol(mapstr.GetNextToken(", ").c_str()));
-
-	    // VDC and HDC
-            BuildWireDataStructure(chan, package, plane, wire);
-	    
-        } else if (DIRMODE==1) {
-            //this will decode the wire plane directions - Rakitha
-            plane     = (atol(mapstr.GetNextToken(", ").c_str()));
-            direction = (atol(mapstr.GetNextToken(", ").c_str()));
-            fDirectionData.at(package-1).at(plane-1)=direction;
-        }
-
-    }
-
+//         if (mapstr.HasVariablePair("=",varname,varvalue)) {
+//             //  This is a declaration line.  Decode it.
+//             varname.ToLower();
+//             UInt_t value = QwParameterFile::GetUInt(varvalue);
+// 	    if (value ==0){
+// 	      value = atol(varvalue.Data());
+// 	    }
+//             if (varname=="roc") {
+// 	      RegisterROCNumber(value,0);
+// 	      DIRMODE=0;
+// 	    } 
+// 	    else if (varname=="bank") {
+//               RegisterSubbank(value);
+// 	      DIRMODE=0;
+// 	    } 
+// 	    else if (varname=="slot") {
+// 	      RegisterSlotNumber(value);
+// 	      DIRMODE=0;
+//             } 
+// 	    else if (varname=="pkg") {
+// 	      //this will identify the coming sequence is wire plane to direction mapping - Rakitha
+// 	      DIRMODE=1;
+// 	      package=value;
+//             }
+//         } 
+// 	else if (DIRMODE==0) {
+// 	  //  Break this line into tokens to process it.
+// 	  chan    = (atol(mapstr.GetNextToken(", ").c_str()));
+// 	  package = 1;
+// 	  plane   = (atol(mapstr.GetNextToken(", ").c_str()));
+// 	  wire    = (atol(mapstr.GetNextToken(", ").c_str()));
+	  
+// 	  // VDC and HDC
+// 	  BuildWireDataStructure(chan, package, plane, wire);
+	  
+//         } 
+// 	else if (DIRMODE==1) {
+// 	  //this will decode the wire plane directions - Rakitha
+// 	  plane     = (atol(mapstr.GetNextToken(", ").c_str()));
+// 	  direction = (atol(mapstr.GetNextToken(", ").c_str()));
+// 	  fDirectionData.at(package-1).at(plane-1)=direction;
+// 	  BuildWireDataStructure(chan, package, plane, wire);
+//         }
+	
+//     }
+    
    
 
 
-    //  Construct the wire data structures.
+//     //  Construct the wire data structures.
+//     AddChannelDefinition();
 
-    // AddChannelDefinition(plane, wire);
-    AddChannelDefinition();
-
-    /*
-    for (size_t i=0; i<fDirectionData.at(0).size(); i++){
-    std::cout<<"Direction data Plane "<<i+1<<" "<<fDirectionData.at(0).at(i)<<std::endl;
-    }
-    */
-    //
-    ReportConfiguration();
-    return OK;
-};
+//     /*
+//     for (size_t i=0; i<fDirectionData.at(0).size(); i++){
+//     std::cout<<"Direction data Plane "<<i+1<<" "<<fDirectionData.at(0).at(i)<<std::endl;
+//     }
+//     */
+//     //
+//     ReportConfiguration();
+//     return OK;
+// };
 
 
-void  QwDriftChamber::CalculateDriftDistance()
+void  QwDriftChamber::FillDriftDistanceToHits()
 { //Currently This routine is not in use the drift distance calculation is done at ProcessEvent() on each sub-class
   for (std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
-
+    
     if (hit1->GetTime()<0) continue;
     hit1->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));
-
+    
   }
   return;
 };
@@ -183,7 +190,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
   Int_t index           = 0;
   Int_t tdc_slot_number = 0;
   Int_t tdc_chan_number = 0;
-
+  UInt_t tdc_data  = 0;
   Bool_t data_integrity_flag = false;
 
   Bool_t temp_print_flag     = false;
@@ -197,7 +204,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
     if (fDEBUG) std::cout << "QwDriftChamber::ProcessEvBuffer:  "
 			  << "Begin processing ROC" << roc_id << std::endl;
 
-    data_integrity_flag = CheckDataIntegrity(roc_id, buffer, num_words);
+    data_integrity_flag = fF1TDC.CheckDataIntegrity(roc_id, buffer, num_words);
     
     
     if (data_integrity_flag) {
@@ -207,13 +214,13 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
       for (UInt_t i=0; i<num_words ; i++) {
 	
 	//  Decode this word as a F1TDC word.
-	DecodeTDCWord(buffer[i], roc_id); // MQwF1TDC or MQwV775TDC
+	fF1TDC.DecodeTDCWord(buffer[i], roc_id); // MQwF1TDC or MQwV775TDC
 	// For MQwF1TDC,   roc_id is needed to print out some warning messages.
 	// For MQwV775TDC, roc_id isn't necessary, thus I set roc_id=0 in
 	//                 MQwV775TDC.h  (Mon May  3 12:32:06 EDT 2010 jhlee)
 	
-	tdc_slot_number = GetTDCSlotNumber();
-	tdc_chan_number = GetTDCChannelNumber();
+	tdc_slot_number = fF1TDC.GetTDCSlotNumber();
+	tdc_chan_number = fF1TDC.GetTDCChannelNumber();
 	if ( tdc_slot_number == 31) {
 	  //  This is a custom word which is not defined in
 	  //  the F1TDC, so we can use it as a marker for
@@ -226,12 +233,13 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 	
 	if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
 	
-	if ( IsValidDataword() ) {//;;
+	if ( fF1TDC.IsValidDataword() ) {//;;
 	  // if F1TDC has a valid slot, resolution locked, and data word
 	  try {
+	    tdc_data = fF1TDC.GetTDCData();
 	    FillRawTDCWord(index, tdc_slot_number, tdc_chan_number,
-			   GetTDCData());
-	    PrintTDCData(temp_print_flag);
+			   tdc_data);
+	    fF1TDC.PrintTDCData(temp_print_flag);
 	  }
 	  catch (std::exception& e) {
 	    std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
@@ -239,7 +247,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 	    std::cerr << "   Parameters:  index=="<<index
 		      << "; GetF1SlotNumber()=="<< tdc_slot_number
 		      << "; GetF1ChannelNumber()=="<<tdc_chan_number
-		      << "; GetF1Data()=="<<GetTDCData()
+		      << "; GetF1Data()=="<<tdc_data
 		      << std::endl;
 	    Int_t tdcindex = GetTDCIndex(index, tdc_slot_number);
 	    std::cerr << "   GetTDCIndex()=="<<tdcindex
@@ -275,7 +283,7 @@ void  QwDriftChamber::ConstructHistograms(TDirectory *folder, TString& prefix)
   const Short_t buffer_size  = 2000;
   Float_t bin_offset = -0.5;
 
-  for (UInt_t i=1;i<fWiresPerPlane.size();i++)
+  for (UInt_t i=1;i<=fWiresPerPlane.size();i++)
     {
       ///////////////First set of histos////////////////////////////////
       TotHits[i] = new TH1F(Form("%s%sHitsOnEachWirePlane%d", prefix.Data() ,region.Data(),i),
@@ -452,21 +460,35 @@ void QwDriftChamber::ClearAllBankRegistrations()
   return;
 }
 
-Int_t QwDriftChamber::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id = 0)
+Int_t QwDriftChamber::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id)
 {
-  VQwSubsystemTracking::RegisterROCNumber(roc_id, bank_id);
-  fCurrentBankIndex = GetSubbankIndex(roc_id, bank_id);//subbank id is directly related to the ROC
+  Int_t status = 0;
+  status = VQwSubsystemTracking::RegisterROCNumber(roc_id, bank_id);
+  std::vector<Int_t> tmpvec(kMaxNumberOfTDCsPerROC,-1);
+  fTDC_Index.push_back(tmpvec);
+  std::cout<<"Registering ROC "<<roc_id<<std::endl;
+
+  return status;
+};
+
+
+Int_t QwDriftChamber::RegisterSubbank(const UInt_t bank_id)
+{
+  Int_t stat = VQwSubsystem::RegisterSubbank(bank_id);
+  fCurrentBankIndex = GetSubbankIndex(VQwSubsystem::fCurrentROC_ID, bank_id);//subbank id is directly related to the ROC
+  
   if (fReferenceChannels.size()<=fCurrentBankIndex) {
     fReferenceChannels.resize(fCurrentBankIndex+1);
     fReferenceData.resize(fCurrentBankIndex+1);
   }
   std::vector<Int_t> tmpvec(kMaxNumberOfTDCsPerROC,-1);
   fTDC_Index.push_back(tmpvec);
-  //std::cout<<"Registering ROC "<<roc_id<<std::endl;
-
-  return fCurrentBankIndex;
+  std::cout<< "RegisterSubbank()" 
+	   <<" ROC " << (VQwSubsystem::fCurrentROC_ID)
+	   <<" Subbank "<<bank_id
+	   <<" with BankIndex "<<fCurrentBankIndex<<std::endl;
+  return stat;
 };
-
 
 
 Int_t QwDriftChamber::RegisterSlotNumber(UInt_t slot_id)
@@ -568,14 +590,14 @@ void QwDriftChamber::SubtractWireTimeOffset()
     plane   = iter->GetPlane();
     wire    = iter->GetElement();
     t0      = fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1);
-
     // They are too many magic numbers.
 
-    if (t0>-1300 && t0<-1500) {
-      if      (plane == 1) t0 = -1423.75;
-      else if (plane == 2) t0 = -1438.28;
+//    if (t0>-1300 && t0<-1500) {
+//      if      (plane == 1) t0 = -1423.75;
+//      else if (plane == 2) t0 = -1438.28;
       // else ??
-    }
+//    }
+//	else();
 
     iter->SetTime(iter->GetTime()-t0);
   }
@@ -586,17 +608,19 @@ void QwDriftChamber::SubtractWireTimeOffset()
 void QwDriftChamber::ApplyTimeCalibration()
 {
 
-  Double_t region3_f1tdc_resolution = 0.113186191284663271;
+  //  Double_t region3_f1tdc_resolution = 0.113186191284663271;
+  Double_t f1tdc_resolution_ns = 0.116312881651642913;
 
   // 0.1132 ns is for the first CODA setup,  it was replaced as 0.1163ns after March 13 2010
   // need to check them with Siyuan (jhlee)
   //
   // 0.1163 ns is the magic number we want to setup during the Qweak experiment
-  // because of DAQ team at JLab suggestion. (That guarantees the best performance of F1TDC)
+  // because of the DAQ team suggestion. That guarantees the stable resolution during
+  // temperature fluctuation. 
 
   for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ )
     {
-      iter->SetTime(region3_f1tdc_resolution*iter->GetTime());
+      iter->SetTime(f1tdc_resolution_ns*iter->GetTime());
     }
 
   return;

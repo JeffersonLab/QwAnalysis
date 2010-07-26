@@ -12,7 +12,7 @@
 
 [QwDriftChamberHDC]
  name = R2
- map = qweak_cosmics_hits.map
+ map = qweak_R2.map
  geom = qweak_new.geo
 
 [QwDriftChamberVDC]
@@ -29,6 +29,7 @@
  name = MD
  map = qweak_maindet_channel.map
  geom = qweak_new.geo
+ mask = 0xffff
 
 [QwScanner]
  name = FPS

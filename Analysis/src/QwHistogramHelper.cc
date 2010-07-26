@@ -21,6 +21,25 @@ QwHistogramHelper gQwHists;
 const Double_t QwHistogramHelper::fInvalidNumber  = -1.0e7;
 const std::string QwHistogramHelper::fInvalidName = "EmptyEmpty";
 
+void QwHistogramHelper::DefineOptions(QwOptions &options)
+{
+    // Define the histogram and tree options
+  options.AddOptions()
+    ("enable-tree-trim", po::value<bool>()->default_value(false)->zero_tokens(),
+     "enable trimmed trees");
+
+};
+
+void QwHistogramHelper::ProcessOptions(QwOptions &options){
+  fTrimDisable =! options.GetValue<bool>("enable-tree-trim");
+  if (fTrimDisable)
+    QwMessage <<"tree-trim is disabled"<<QwLog::endl;
+  else
+    QwMessage <<"tree-trim is enabled"<<QwLog::endl;
+
+};
+
+
 const QwHistogramHelper::HISTPARMS QwHistogramHelper::GetHistParamsFromLine(QwParameterFile &mapstr)
 {
   ///  Decodes the histogram parmeters from the current line of
@@ -109,6 +128,30 @@ void  QwHistogramHelper::LoadHistParamsFromFile(const std::string filename)
 };
 
 
+void  QwHistogramHelper::LoadTreeParamsFromFile(const std::string filename){
+  TString devicename;
+  fDEBUG = 0;
+  //fDEBUG = 1;  
+  if (fTrimDisable)
+    return;
+  QwMessage << "Tree trim definition file for Offline Engine"<< QwLog::endl;
+  QwParameterFile mapstr(filename.c_str());  //Open the file
+  
+  fTreeTrimFileLoaded=!mapstr.IsEOF();
+  while (mapstr.ReadNextLine()){
+    mapstr.TrimComment('#');   // Remove everything after a '#' character.
+    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+    if (mapstr.LineIsEmpty())  continue;
+    devicename=(mapstr.GetLine()).c_str();
+    fTreeParams.push_back(devicename);
+    
+      if (fDEBUG) {
+	QwMessage <<"device name "<<devicename<<QwLog::endl;	
+      }
+  }
+};
+
+
 const QwHistogramHelper::HISTPARMS QwHistogramHelper::GetHistParamsFromList(const std::string histname)
 {
   HISTPARMS tmpstruct, matchstruct;
@@ -165,6 +208,30 @@ const QwHistogramHelper::HISTPARMS QwHistogramHelper::GetHistParamsFromList(cons
 };
 
 
+const Bool_t QwHistogramHelper::MatchDeviceParamsFromList(const std::string devicename){
+  Int_t matched;
+  matched=0;
+  if (!fTreeTrimFileLoaded || fTrimDisable){//if file is not loaded or trim tree is disable by cmd flag
+    //QwMessage << "Tree Trim Disabled! "<<  QwLog::endl;
+    return kTRUE;//return true for all devices
+  }
+  for (size_t i = 0; i < fTreeParams.size(); i++) {
+    if (DoesMatch(devicename,fTreeParams.at(i).Data())) {
+      if (fDEBUG)
+	QwMessage << " Branch name found "<<fTreeParams.at(i).Data()<<  QwLog::endl;
+      matched++;
+    }
+  }
+
+  // Warn when multiple identical matches were found
+  if (matched > 1) {
+    QwWarning << "Multiple identical matches for branch name " <<devicename  << ":" << QwLog::endl;
+  }
+  if (matched)
+    return kTRUE;
+  else
+    return kFALSE;
+};
 
 
 const QwHistogramHelper::HISTPARMS QwHistogramHelper::GetHistParamsFromFile(const std::string filename,

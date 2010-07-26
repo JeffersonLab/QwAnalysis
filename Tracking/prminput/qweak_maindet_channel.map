@@ -21,6 +21,7 @@ slot=6
   F1TDC, 6, 26, maindet, md6p_f1
   F1TDC, 6, 28, maindet, md7p_f1
   F1TDC, 6, 30, maindet, md8p_f1
+  F1TDC, 6, 23, maindet, md_reftime_f1
 !
 !
 QDC_Bank=0x0402

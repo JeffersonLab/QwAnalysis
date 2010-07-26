@@ -343,6 +343,8 @@ void QwLumi::EncodeEventData(std::vector<UInt_t> &buffer)
 Int_t QwLumi::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   Bool_t lkDEBUG=kFALSE;
+  Bool_t firsttime=kTRUE;
+  Bool_t issingleevent=kTRUE;
 
   Int_t index = GetSubbankIndex(roc_id,bank_id);
 
@@ -378,6 +380,24 @@ Int_t QwLumi::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
 		    std::cout<<"found ScalerPMT data for "<<fLumiDetectorID[i].fdetectorname<<std::endl;
 		    std::cout<<"word left to read in this buffer:"<<num_words-fLumiDetectorID[i].fWordInSubbank<<std::endl;
 		  }
+
+// This was added to check if the buffer contains more than one event.  If it does then throw those events away.  A better way to do this would be to find how many events were in the buffer then change the offset to be able to read them all.
+                if (firsttime) 
+                  {
+                    firsttime=kFALSE;
+                    if (buffer[0]/32!=1)
+                      {
+                        issingleevent=kFALSE;
+                        std::cout<<"More than one event was found in the buffer.  Setting these events to zero."<<std::endl;
+                      }
+                  }    
+                if (issingleevent==kFALSE) continue;
+
+
+
+
+
+
 		fScalerPMT[fLumiDetectorID[i].fIndex].
 		  ProcessEvBuffer(&(buffer[fLumiDetectorID[i].fWordInSubbank]),
 				  num_words-fLumiDetectorID[i].fWordInSubbank);

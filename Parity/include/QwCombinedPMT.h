@@ -38,6 +38,11 @@ class QwCombinedPMT : public VQwDataElement {
   void  InitializeChannel(TString name, TString datatosave);
   void  LinkChannel(TString name);
 
+  const QwVQWK_Channel* GetChannel(const TString name) const {
+    if (fSumADC.GetElementName() == name) return fSumADC.GetChannel(name);
+    else return 0;
+  };
+
   void Add(QwIntegrationPMT* pmt, Double_t weight);
 
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);

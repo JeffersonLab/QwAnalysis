@@ -118,13 +118,16 @@ void QwParameterFile::TrimComment(char commentchar){
 Bool_t QwParameterFile::HasValue(TString& vname){
   Bool_t status=kFALSE;
   TString vline;
+  
   RewindToFileStart();
   while (ReadNextLine()){
     TrimWhitespace();
     vline=(GetLine()).c_str();
+    
     vline.ToLower();
+    TRegexp regexp(vline);
     vname.ToLower();
-    if (vline==vname){
+    if (vname.Contains(regexp)){
       QwMessage <<" QwParameterFile::HasValue  "<<vline<<" "<<vname<<QwLog::endl;
       status=kTRUE;
       break;
@@ -133,6 +136,7 @@ Bool_t QwParameterFile::HasValue(TString& vname){
 
   return status;
 }
+
 
 Bool_t QwParameterFile::HasVariablePair(std::string separatorchars, TString &varname, TString &varvalue)
 {

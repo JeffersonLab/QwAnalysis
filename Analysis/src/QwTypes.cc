@@ -49,6 +49,8 @@ EQwBeamInstrumentType GetQwBeamInstrumentType(TString name){
   else if (name=="halomonitor"){
     result = kQwHaloMonitor;
   }
+  else if (name=="bpmcavity")
+    result = kQwBPMCavity;
   return result;
 };
 
@@ -97,5 +99,7 @@ TString GetQwBeamInstrumentTypeName(EQwBeamInstrumentType type){
   else if (type==kQwHaloMonitor){
     result = "halomonitor";
   }
+  else if (type==kQwBPMCavity)
+    result = "bpmcavity";
   return result;
 };

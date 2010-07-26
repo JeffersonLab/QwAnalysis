@@ -19,12 +19,14 @@
 
 // Qweak tracking subsystems that provide options
 #include "QwTrackingWorker.h"
+#include "QwDriftChamberVDC.h"
 
 void DefineOptionsTracking(QwOptions& options)
 {
   /* Define general options */
   QwOptions::DefineOptions(options);
 
+  QwDriftChamberVDC::DefineOptions(options);
   /* Define tracking options */
   QwTrackingWorker::DefineOptions(options);
 }

@@ -43,7 +43,7 @@ class QwVQWK_Channel: public VQwDataElement {
  ******************************************************************/
  public:
   static Int_t GetBufferOffset(Int_t moduleindex, Int_t channelindex);
-  
+
  public:
   QwVQWK_Channel() {
     InitializeChannel("","");
@@ -112,6 +112,10 @@ class QwVQWK_Channel: public VQwDataElement {
   QwVQWK_Channel& operator=  (const QwVQWK_Channel &value);
   QwVQWK_Channel& operator+= (const QwVQWK_Channel &value);
   QwVQWK_Channel& operator-= (const QwVQWK_Channel &value);
+  QwVQWK_Channel& operator*= (const QwVQWK_Channel &value);
+  const QwVQWK_Channel operator+ (const QwVQWK_Channel &value) const;
+  const QwVQWK_Channel operator- (const QwVQWK_Channel &value) const;
+  const QwVQWK_Channel operator* (const QwVQWK_Channel &value) const;
   void Sum(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
   void Difference(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
   void Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom);
@@ -176,14 +180,15 @@ class QwVQWK_Channel: public VQwDataElement {
   size_t GetSequenceNumber() const {return (fSequenceNumber);};
   size_t GetNumberOfSamples() const {return (fNumberOfSamples);};
 
-  void     SetPedestal(Double_t ped) { fPedestal = ped; };
+  void     SetPedestal(Double_t ped) { fPedestal = ped; kFoundPedestal = 1; };
   Double_t GetPedestal() const       { return fPedestal; };
-  void     SetCalibrationFactor(Double_t factor) { fCalibrationFactor = factor; };
+  void     SetCalibrationFactor(Double_t factor) { fCalibrationFactor = factor; kFoundGain = 1; };
   Double_t GetCalibrationFactor() const          { return fCalibrationFactor; };
 
 
   void Copy(VQwDataElement *source);
 
+  friend std::ostream& operator<< (std::ostream& stream, const QwVQWK_Channel& channel);
   void PrintValue() const;
   void PrintInfo() const;
 
@@ -204,7 +209,6 @@ class QwVQWK_Channel: public VQwDataElement {
   static const Int_t  kWordsPerChannel; //no.of words per channel in the CODA buffer
   static const Int_t  kMaxChannels;     //no.of channels per module
 
-
   Int_t fDataToSave;
 
   /*! \name ADC Calibration                    */
@@ -215,6 +219,8 @@ class QwVQWK_Channel: public VQwDataElement {
 			   and can be divided by four for use with each block,
 			   units: [counts / number of samples] */
   Double_t fCalibrationFactor;
+  Bool_t kFoundPedestal;
+  Bool_t kFoundGain;
   //@}
 
 

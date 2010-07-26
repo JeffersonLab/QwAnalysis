@@ -142,29 +142,31 @@ int main(int argc, char* argv[])
   maindetector->SetRandomEventParameters(bar_mean, bar_sigma);
   maindetector->SetRandomEventAsymmetry(bar_asym);
   // Specific values
-  maindetector->GetChannel("MD2Neg")->SetRandomEventAsymmetry(2.0e-2);
-  maindetector->GetChannel("MD2Pos")->SetRandomEventAsymmetry(2.0e-2);
-  maindetector->GetChannel("MD3Neg")->SetRandomEventAsymmetry(3.0e-3);
-  maindetector->GetChannel("MD3Pos")->SetRandomEventAsymmetry(3.0e-3);
-  maindetector->GetChannel("MD4Neg")->SetRandomEventAsymmetry(4.0e-4);
-  maindetector->GetChannel("MD4Pos")->SetRandomEventAsymmetry(4.0e-4);
-  maindetector->GetChannel("MD5Neg")->SetRandomEventAsymmetry(5.0e-5);
-  maindetector->GetChannel("MD5Pos")->SetRandomEventAsymmetry(5.0e-5);
-  maindetector->GetChannel("MD6Neg")->SetRandomEventAsymmetry(6.0e-6);
-  maindetector->GetChannel("MD6Pos")->SetRandomEventAsymmetry(6.0e-6);
-  maindetector->GetChannel("MD7Neg")->SetRandomEventAsymmetry(7.0e-7);
-  maindetector->GetChannel("MD7Pos")->SetRandomEventAsymmetry(7.0e-7);
-  maindetector->GetChannel("MD8Neg")->SetRandomEventAsymmetry(8.0e-8);
-  maindetector->GetChannel("MD8Pos")->SetRandomEventAsymmetry(8.0e-8);
+  /* disabled, wdc, 2010-07-23
+  maindetector->GetIntegrationPMT("MD2Neg")->SetRandomEventAsymmetry(2.0e-2);
+  maindetector->GetIntegrationPMT("MD2Pos")->SetRandomEventAsymmetry(2.0e-2);
+  maindetector->GetIntegrationPMT("MD3Neg")->SetRandomEventAsymmetry(3.0e-3);
+  maindetector->GetIntegrationPMT("MD3Pos")->SetRandomEventAsymmetry(3.0e-3);
+  maindetector->GetIntegrationPMT("MD4Neg")->SetRandomEventAsymmetry(4.0e-4);
+  maindetector->GetIntegrationPMT("MD4Pos")->SetRandomEventAsymmetry(4.0e-4);
+  maindetector->GetIntegrationPMT("MD5Neg")->SetRandomEventAsymmetry(5.0e-5);
+  maindetector->GetIntegrationPMT("MD5Pos")->SetRandomEventAsymmetry(5.0e-5);
+  maindetector->GetIntegrationPMT("MD6Neg")->SetRandomEventAsymmetry(6.0e-6);
+  maindetector->GetIntegrationPMT("MD6Pos")->SetRandomEventAsymmetry(6.0e-6);
+  maindetector->GetIntegrationPMT("MD7Neg")->SetRandomEventAsymmetry(7.0e-7);
+  maindetector->GetIntegrationPMT("MD7Pos")->SetRandomEventAsymmetry(7.0e-7);
+  maindetector->GetIntegrationPMT("MD8Neg")->SetRandomEventAsymmetry(8.0e-8);
+  maindetector->GetIntegrationPMT("MD8Pos")->SetRandomEventAsymmetry(8.0e-8);
 
   // Set a asymmetric helicity asymmetry on one of the bars
-  maindetector->GetChannel("MD1Neg")->SetRandomEventAsymmetry(5.0e-5);
-  maindetector->GetChannel("MD1Pos")->SetRandomEventAsymmetry(-5.0e-5);
+  maindetector->GetIntegrationPMT("MD1Neg")->SetRandomEventAsymmetry(5.0e-5);
+  maindetector->GetIntegrationPMT("MD1Pos")->SetRandomEventAsymmetry(-5.0e-5);
 
   // Set a drift component (amplitude, phase, frequency)
-  maindetector->GetChannel("MD3Neg")->AddRandomEventDriftParameters(3.0e6, 0, 60*Qw::Hz);
-  maindetector->GetChannel("MD3Neg")->AddRandomEventDriftParameters(6.0e5, 0, 120*Qw::Hz);
-  maindetector->GetChannel("MD3Neg")->AddRandomEventDriftParameters(4.5e5, 0, 240*Qw::Hz);
+  maindetector->GetIntegrationPMT("MD3Neg")->AddRandomEventDriftParameters(3.0e6, 0, 60*Qw::Hz);
+  maindetector->GetIntegrationPMT("MD3Neg")->AddRandomEventDriftParameters(6.0e5, 0, 120*Qw::Hz);
+  maindetector->GetIntegrationPMT("MD3Neg")->AddRandomEventDriftParameters(4.5e5, 0, 240*Qw::Hz);
+  */
 
 
 
@@ -177,10 +179,11 @@ int main(int argc, char* argv[])
   lumidetector->SetRandomEventParameters(lumi_mean, lumi_sigma);
   lumidetector->SetRandomEventAsymmetry(lumi_asym);
   // Specific values
-  lumidetector->GetChannel("dlumi3")->SetRandomEventAsymmetry(1.0e-3);
-  lumidetector->GetChannel("dlumi4")->SetRandomEventAsymmetry(1.0e-4);
-  lumidetector->GetChannel("dlumi5")->SetRandomEventAsymmetry(1.0e-5);
-
+  /* disabled, wdc, 2010-07-23
+  lumidetector->GetIntegrationPMT("dlumi3")->SetRandomEventAsymmetry(1.0e-3);
+  lumidetector->GetIntegrationPMT("dlumi4")->SetRandomEventAsymmetry(1.0e-4);
+  lumidetector->GetIntegrationPMT("dlumi5")->SetRandomEventAsymmetry(1.0e-5);
+  */
 
 
   // Initialize randomness provider and distribution

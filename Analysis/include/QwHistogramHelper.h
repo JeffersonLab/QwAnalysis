@@ -13,7 +13,7 @@
 #include <TH2.h>
 
 #include "QwParameterFile.h"
-
+#include "QwOptions.h"
 ///
 /// \ingroup QwAnalysis
 class QwHistogramHelper{
@@ -21,7 +21,13 @@ class QwHistogramHelper{
   QwHistogramHelper():fDEBUG(kFALSE) { fHistParams.clear(); };
   ~QwHistogramHelper() { };
 
+  /// \brief Define the configuration options
+  static void DefineOptions(QwOptions &options);
+  /// \brief Process the configuration options
+  void ProcessOptions(QwOptions &options);
+
   void  LoadHistParamsFromFile(const std::string filename);
+  void  LoadTreeParamsFromFile(const std::string filename);
 
   TH1F* Construct1DHist(const TString name_title){
     std::string tmpname = name_title.Data();
@@ -48,6 +54,8 @@ class QwHistogramHelper{
 
   TH1F* Construct1DHist(const std::string inputfile, const std::string name_title);
   TH2F* Construct2DHist(const std::string inputfile, const std::string name_title);
+
+  const Bool_t MatchDeviceParamsFromList(const std::string devicename);
   
  protected:
   struct HISTPARMS {
@@ -84,9 +92,12 @@ class QwHistogramHelper{
   static const Double_t fInvalidNumber;
   static const std::string fInvalidName;
   Bool_t fDEBUG;
+  Bool_t fTrimDisable;
+  Bool_t fTreeTrimFileLoaded;
 
   std::string fInputFile;
   std::vector<HISTPARMS> fHistParams;
+  std::vector<TString> fTreeParams;
 };
 
 //  Declare a global copy of the histogram helper.

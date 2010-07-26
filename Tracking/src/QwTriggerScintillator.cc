@@ -160,11 +160,17 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
       }
     } else {
         //  Break this line into tokens to process it.
-          modtype   = mapstr.GetNextToken(", ").c_str();
-          modnum    = (atol(mapstr.GetNextToken(", ").c_str()));
-          channum   = (atol(mapstr.GetNextToken(", ").c_str()));
-          dettype   = mapstr.GetNextToken(", ").c_str();
-          name      = mapstr.GetNextToken(", ").c_str();
+        modtype   = mapstr.GetNextToken(", ").c_str();
+        modnum    = (atol(mapstr.GetNextToken(", ").c_str()));
+        channum   = (atol(mapstr.GetNextToken(", ").c_str()));
+        dettype   = mapstr.GetNextToken(", ").c_str();
+        name      = mapstr.GetNextToken(", ").c_str();
+
+        // Check for the reference time channel
+        if (name=="ts_reftime_f1") {
+          reftime_slotnum = slotnum;
+          reftime_channum = channum;
+        }
 
         //  Push a new record into the element array
         if (modtype=="SIS3801") {
@@ -186,11 +192,6 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
             std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str() << std::endl;
         }
       }
-    // Check for the reference time channel
-    if (name=="TS_reftime_f1") {
-      reftime_slotnum = slotnum;
-      reftime_channum = channum;
-    }
   }
   return 0;
 };
@@ -213,6 +214,22 @@ void  QwTriggerScintillator::ClearEventData(){
 
 Int_t QwTriggerScintillator::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
+  Int_t index = GetSubbankIndex(roc_id,bank_id);
+  if (index>=0 && num_words>0){
+    //  We want to process the configuration data for this ROC.
+    UInt_t words_read = 0;
+
+    if (fBankID[1]==bank_id){
+      for (size_t i=0; i<fSCAs.size(); i++){
+        if (fSCAs.at(i) != NULL){
+          words_read += fSCAs.at(i)->ProcessConfigBuffer(&(buffer[words_read]),
+                        num_words-words_read);
+        }
+      }
+    }
+
+  }
+
   return 0;
 };
 
@@ -265,7 +282,7 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 
   else if (bank_id==fBankID[1]) { // SIS Scalar
     if (index>=0 && num_words>0) {
-       SetDataLoaded(kTRUE);
+      SetDataLoaded(kTRUE);
       UInt_t words_read = 0;
       for (size_t i=0; i<fSCAs.size(); i++) {
         words_read++; // skip header word
@@ -277,6 +294,7 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
       }
     }
   }
+
   else if (bank_id==fBankID[2]) { // F1TDC
     if (index>=0 && num_words>0) {
       SetDataLoaded(kTRUE);
@@ -285,6 +303,7 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 
       Int_t tdc_slot_number = 0;
       Int_t tdc_chan_number = 0;
+      Int_t tmp_last_chan = 65535;
 
       Bool_t data_integrity_flag = false;
       Bool_t temp_print_flag     = false;
@@ -308,17 +327,23 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 	  // we skip this buffer to do the further process
 
           if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
-          if ( fF1TDC.IsValidDataword() ) {
-            try {
-              FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());
-              fF1TDC.PrintTDCData(temp_print_flag);
+           if ( fF1TDC.IsValidDataword() )
+           {
+            try
+            {
+             if(tdc_chan_number != tmp_last_chan)
+             {
+               FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());
+               fF1TDC.PrintTDCData(temp_print_flag);
 
-              // Check if this is reference time data
-              if (tdc_slot_number == reftime_slotnum && tdc_chan_number == reftime_channum) {
-                reftime = fF1TDC.GetTDCData();
-              }
+               // Check if this is reference time data
+               if (tdc_slot_number == reftime_slotnum && tdc_chan_number == reftime_channum)
+            		reftime = fF1TDC.GetTDCData();
+               tmp_last_chan = tdc_chan_number;
+             }
             }
-            catch (std::exception& e) {
+            catch (std::exception& e)
+            {
               std::cerr << "Standard exception from QwTriggerScintillator::FillRawWord: "
                         << e.what() << std::endl;
               std::cerr << "   Parameters:  index=="  <<index
@@ -327,11 +352,11 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
                         << "; GetF1Data()=="          <<fF1TDC.GetTDCData()
                         << std::endl;
             }
+           }
           }
+         }
         }
-      }
-    }
-  }
+       }
   return 0;
 };
 
@@ -355,6 +380,11 @@ void  QwTriggerScintillator::ProcessEvent(){
     }
   }
 
+  for (size_t i=0; i<fSCAs.size(); i++){
+    if (fSCAs.at(i) != NULL){
+      fSCAs.at(i)->ProcessEvent();
+    }
+  }
 };
 
 
@@ -365,6 +395,13 @@ void  QwTriggerScintillator::ConstructHistograms(TDirectory *folder, TString &pr
       fPMTs.at(i).at(j).ConstructHistograms(folder, prefix);
     }
   }
+
+  for (size_t i=0; i<fSCAs.size(); i++) {
+    if (fSCAs.at(i) != NULL) {
+      fSCAs.at(i)->ConstructHistograms(folder, prefix);
+    }
+  }
+
 };
 
 void  QwTriggerScintillator::FillHistograms(){
@@ -372,6 +409,12 @@ void  QwTriggerScintillator::FillHistograms(){
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).FillHistograms();
+    }
+  }
+
+  for (size_t i=0; i<fSCAs.size(); i++) {
+    if (fSCAs.at(i) != NULL) {
+      fSCAs.at(i)->FillHistograms();
     }
   }
 
@@ -398,12 +441,25 @@ void QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString& prefi
     }
   }
 
+  for (size_t i=0; i<fSCAs.size(); i++){
+    if (fSCAs.at(i) != NULL){
+      for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++){
+        if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
+        else {
+          values.push_back(0.0);
+          list += ":"+fSCAs.at(i)->fChannels.at(j).GetElementName()+"/D";
+        }
+      }
+    }
+  }
+
   if (list[0]==':') {
     list = list(1,list.Length()-1);
   }
 
   fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
   tree->Branch(basename, &values[fTreeArrayIndex], list);
+  return;
 };
 
 void  QwTriggerScintillator::FillTreeVector(std::vector<Double_t> &values)
@@ -420,6 +476,19 @@ void  QwTriggerScintillator::FillTreeVector(std::vector<Double_t> &values)
       }
     }
   }
+
+  for (size_t i=0; i<fSCAs.size(); i++) {
+    if (fSCAs.at(i) != NULL) {
+      for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++) {
+        if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
+        else {
+          values[index] = fSCAs.at(i)->fChannels.at(j).GetValue();
+          index++;
+        }
+      }
+    }
+  }
+
 };
 
 
@@ -427,6 +496,12 @@ void  QwTriggerScintillator::DeleteHistograms(){
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).DeleteHistograms();
+    }
+  }
+
+  for (size_t i=0; i<fSCAs.size(); i++){
+    if (fSCAs.at(i) != NULL){
+      fSCAs.at(i)->DeleteHistograms();
     }
   }
 };

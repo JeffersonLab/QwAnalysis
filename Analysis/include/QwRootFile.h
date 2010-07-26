@@ -107,6 +107,7 @@ class QwRootFile {
     Bool_t fEnableHisto;
     Bool_t fEnableMps;
     Bool_t fEnableHel;
+ 
 
     /// ROOT file
     TFile*     fRootFile;
@@ -116,6 +117,7 @@ class QwRootFile {
     Int_t fUpdateInterval;
     Int_t fAutoFlush;
     Int_t fAutoSave;
+ 
 
     /// Trees and associated vectors
     TTree*                fMpsTree;
