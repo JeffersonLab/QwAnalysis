@@ -440,8 +440,7 @@ Int_t QwDriftChamberHDC::AddChannelDefinition()
 
   if (temp_local_debug){
     std::cout << " QwDriftChamberHDC::AddChannelDefinition"<<std::endl;
-    std::cout << "plane " << plane << " wire " << wire << std::endl;
-  }
+   }
 
   std::size_t i =0;
 
