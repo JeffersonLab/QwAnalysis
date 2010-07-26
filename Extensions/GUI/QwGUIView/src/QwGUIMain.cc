@@ -117,7 +117,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   if(!GetSubSystemPtr("Main Detectors"))
     MainDetSubSystem = new QwGUIMainDetector(fClient->GetRoot(), this, dTab,"Main Detectors",
 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
-//   if(MainDetSubSystem) 
+//   if(MainDetSubSystem)
 //     MainDetSubSystem->LoadChannelMap(Form("%s/setupfiles/qweak_maindet.map",gSystem->Getenv("QWSCRATCH")));
 
   if(!GetSubSystemPtr("Scanner"))
@@ -796,7 +796,12 @@ Int_t QwGUIMain::GetFilenameFromDialog(char *file, const char *ext,
   filetypes[index] = 0; index++;
   filetypes[index] = 0; index++;
 
-  sprintf(dMiscbuffer2,"/home/%s/scratch",gSystem->Getenv("USER"));
+  if (gSystem->Getenv("QW_ROOTFILES"))
+    sprintf(dMiscbuffer2,"%s",gSystem->Getenv("QW_ROOTFILES"));
+  else if (gSystem->Getenv("QWSCRATCH"))
+    sprintf(dMiscbuffer2,"%s",gSystem->Getenv("QWSCRATCH"));
+  else
+    sprintf(dMiscbuffer2,"/home/%s/scratch",gSystem->Getenv("USER"));
   static TString dir(dMiscbuffer2);
   TGFileInfo fi;
 

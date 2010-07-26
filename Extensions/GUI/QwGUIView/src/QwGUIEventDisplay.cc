@@ -836,8 +836,8 @@ void QwGUIEventDisplay::MakeLayout()
    fMain->MapWindow();
    fMain->Resize(900,692);
    AddFrame(fMain, new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY, 10, 10));
-		
-			
+
+
 }
 
 void QwGUIEventDisplay::OnReceiveMessage(char *obj)
@@ -857,26 +857,26 @@ void QwGUIEventDisplay::OnNewDataContainer(RDataContainer *cont)
   std::cout << "Opening in QwGUIEventDisplay..." << std::endl;
 
   GoClear();
-  
+
   if (!cont) return;
-  
+
   if (!strcmp(cont->GetDataName(),"ROOT") && dROOTCont) {
     TObject* obj = dROOTCont->ReadData("hit_tree");
-    
+
     if (obj && obj->InheritsFrom("TTree")) {
       fTree = (TTree*) obj->Clone();
 
 
-      if (fTree -> FindBranch("hits")){
-	fTree->SetMakeClass(1);
+      if (fTree->FindBranch("hits")){
+	//fTree->SetMakeClass(1);
 
 	Int_t entries = fTree->GetEntries();
 	std::cout<<"Entries in tree: "<< entries << std::endl;
 
 	fHitRootList = 0;
 	fEventNumber = 0;
-	
-	fTree->SetBranchAddress("fQwHits", &fHitRootList);
+
+	fTree->SetBranchAddress("hits", &fHitRootList);
 
 	std::cout << "Opened in QwGUIEventDisplay" << std::endl;
       }
@@ -973,8 +973,8 @@ int QwGUIEventDisplay::DrawEvent()
   printf("Drawing event %d...\n", fEventNumber);
 
   // catch to keep from attempting to draw events outside the number of entries
-  if (fEventNumber > fTree->GetEntries()){
-    printf("Draw error: There are only %d entries.\n", fTree->GetEntries());
+  if (fEventNumber >= fTree->GetEntries()){
+    printf("Draw error: There are only %lld entries.\n", fTree->GetEntries());
     fEventNumber = 0;
     GoClear();
     printf("Returned to null event.\n");
@@ -1235,7 +1235,7 @@ int QwGUIEventDisplay::DrawEvent()
     }
     */
 
-    
+
     if (fWire < 12){  //12th wire ends at corner (X2, Y2)   // ISSUES HERE
       Line.SetX1(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*fWire) - fXShift);
       Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5));
@@ -1261,7 +1261,7 @@ int QwGUIEventDisplay::DrawEvent()
       Line.SetX2(.5 + (R2_WIDTH*R2_CM*.5) - (R2_UVDIST*R2_CM*(fWire-11.6) - fXShift) - fXShift); // ISSUES HERE
       Line.SetY2(.5 + (R2_LENGTH*R2_CM*.5));
       }*/
-    
+
     Line.SetLineColor(kGreen);
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
@@ -1504,9 +1504,9 @@ int QwGUIEventDisplay::DrawEvent()
       break;
     }
     TLine Line;
-    Line.SetX1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift); 
+    Line.SetX1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
     Line.SetY1(.5 - (R2_LENGTH*R2_CM*.5) + (R2_XDIST*R2_CM*fWire) + fYShift);
-    Line.SetX2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift); 
+    Line.SetX2(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
     Line.SetY2(.5 - (R2_LENGTH*R2_CM*.5) + (R2_XDIST*R2_CM*fWire) + fYShift);
     Line.SetLineColor(kRed);
     Line_R2x.push_back(Line);
@@ -1880,6 +1880,9 @@ int QwGUIEventDisplay::DrawEvent()
     }
   fRegion3XZ->GetCanvas()->SetEditable(kFALSE);
   fRegion3XZ->GetCanvas()->Update();
+
+  // Delete hit list (because it is regenerated every time)
+  delete fHitList; fHitList = 0;
 
   return 0;
 }
