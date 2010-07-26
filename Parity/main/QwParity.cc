@@ -103,10 +103,16 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Set up the database connection
   QwDatabase database(gQwOptions);
 
-
   // initialization of correlator
   QwCorrelator correlator;
-  correlator. SetInputVector(detectors);
+  // add as many as space separated names as  you like
+  //  correlator.AddInputVariables("md5neg md5pos md7neg md2pos");
+  for(int i=1;i<=8;i++)
+    correlator.AddInputVariables(Form("md%dpos md%dneg ",i,i));
+  //printf("%s",Form("md%dpos md%dneg ",i,i));
+ 
+  correlator.AccessInputVector(detectors);
+  //correlator.AddInputVariables("md4neg "); // this will fail because is too late
   std::cout<<correlator<<std::endl;
 
 
@@ -170,7 +176,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
       if(eventbuffer.GetEventNumber()>200) { // tmp skip firts events
-	correlator.AddEvent();
+	correlator.Accumulate();
       }
 
       // The event pass the event cut constraints
@@ -244,6 +250,8 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwMessage << " Running average of events" << QwLog::endl;
     QwMessage << " =========================" << QwLog::endl;
     runningsum.PrintValue();
+    correlator.NiceOutput();
+    correlator.PrintSummary();
 
     /*  Write to the root file, being sure to delete the old cycles  *
      *  which were written by Autosave.                              *
@@ -301,7 +309,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   } // end of loop over runs
 
   QwMessage << "I have done everything I can do..." << QwLog::endl;
-  correlator.PrintSummary();
+
 
   return 0;
 }

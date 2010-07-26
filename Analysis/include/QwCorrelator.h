@@ -43,14 +43,16 @@ class QwCorrelator {
   //
   Long64_t fGoodEventNumber;	///< accumulated so far 
   Int_t   fNumVar;  ///< number of monitored variables
+  TString fAllNames;
   std::vector< QwCorrelatorVariable> fVariables; ///< list of  monitored variables
-  boost::numeric::ublas::vector<double> fM1,fM2; ///< mean & variance
-  boost::numeric::ublas::matrix<double> fC2; ///< correlation matrix
+  boost::numeric::ublas::vector<double> fM1; ///< mean 
+  boost::numeric::ublas::matrix<double> fC2; ///< correlation matrix, includes diagonal
 
-  TH1 *** hM; ///< hM[i][j] holds pointers to monitoring histograms
+  TH1 *** hC; ///< hC[i][j]  monitoring 2D Correlation histograms
+  TH1 **  hM; ///<   monitoring 1D  histograms of the means
   void  recomputHistoAxis();
 
-
+  double par_highCorr; // for tagging
  public:  
   /// Default constructor
   QwCorrelator();
@@ -60,46 +62,29 @@ class QwCorrelator {
   /// initialization of histos
   void SetHistos();
   /// initialization of monitred variables
-  void SetInputVector( QwSubsystemArrayParity &detectors);
+
+  /// orders variables by name, to lower case,  removes duplicates
+  void AccessInputVector( QwSubsystemArrayParity &detectors);
+
+  /// appends current list of variables, must be done before  AccessInputVector()
+  void AddInputVariables(TString x){ fAllNames+=" "+x; assert(fVariables.size()==0);}
+
   /// processing single events
-  void AddEvent();
+  void Accumulate();
   // after last event
   void PrintSummary();
+  // add decorative information to histograms before saving
+  void NiceOutput();
 
   /// Get mean value of a variable, returns error code
-  Int_t GetElementMean(const int i, Double_t &mean ){
-    mean=-1e50;
-    if(i<0 || i >= (int)fVariables.size() ) return -1; 
-    if( fVariables[i].channel==0) return -2;
-    if( fGoodEventNumber<1) return -3;
-    mean=fM1[i];    return 0;
-  }
+  Int_t GetElementMean(const int i, Double_t &mean );
 
   /// Get mean value of a variable, returns error code
-  Int_t GetElementSigma(const int i, Double_t &sigma ){
-    sigma=-1e50;
-    if(i<0 || i >= (int)fVariables.size() ) return -1; 
-    if( fVariables[i].channel==0) return -2;
-    if( fGoodEventNumber<2) return -3;
-    sigma=sqrt(fM2[i]/(fGoodEventNumber-1.));
-    return 0;
-  }
+  Int_t GetElementSigma(const int i, Double_t &sigma );
 
   /// Get mean value of a variable, returns error code
-  Int_t GetCovariance( int i, int j, Double_t &covar ){
-    covar=-1e50;
-    if(i==j)  return  GetElementSigma(i,covar); // diagonal 
-
-    if( i>j) { int k=i; i=j; j=k; }//swap
-    //... now we need only upper right triangle 
-    if(i<0 || j >= (int)fVariables.size() ) return -11; 
-    if( fVariables[i].channel==0) return -12;
-    if( fVariables[j].channel==0) return -13;
-    if( fGoodEventNumber<2) return -14;
-    covar=fC2(i,j)/(fGoodEventNumber-1.);
-    return 0;
-  }
-
+  Int_t GetCovariance( int i, int j, Double_t &covar );
+  
   /// \brief Output stream operator
   friend std::ostream& operator<< (std::ostream& stream, const QwCorrelator& h);
     

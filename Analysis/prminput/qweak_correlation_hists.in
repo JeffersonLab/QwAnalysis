@@ -8,28 +8,9 @@
 
 #name_title          type    x_nbins x_min   x_max   y_nbins y_min   y_max   xtitle  ytitle
 ##############################################################################################
-###  Single event histograms
-jan_h1            	TH1F	12      -1.5	10.5				jan-x  jan-yield
+###  Single & double event histograms
+jan_list            	TH1F	12      -1.5	10.5				jan-x  jan-yield
 jan_h2            	TH2F	10      1 	20	20	3   	28	jan-x  jan-y
-.+_hw_corr              TH2F    200	2.0e4	6.0e4	200	2.0e7	5.0e8	    x-ax y-ax
-###########################################
-#  Adding some fully wildcarded histogram names.
-#  Do not add any other specific names below these.
-###########################################
-.*_block._raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
-.*_block.    		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
-.*_.w_raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
-.*_.w			TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
-.*_sw-hw_raw		TH1F	1000	-5.0e2	5.0e2				Counts Events
-
-
-
-### temporary for halo monitors
-qwk_.....		TH1F	1000	-5.0e2	5.0e2				Counts Events
-yield_qwk_.....		TH1F	1000	-5.0e2	5.0e2				Counts Events
-asym_qwk_.....		TH1F	1000	-5.0e2	5.0e2				Counts Events
-
-
-
-
+.+_hw_corr              TH2F    50	2.0e4	6.0e4	50	2.0e7	5.0e8	    x-ax y-ax
+.+_hw_single              TH1F    500	2.0e4	6.0e4		    x-ax y-ax
 
