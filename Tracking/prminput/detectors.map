@@ -12,7 +12,7 @@
 
 [QwDriftChamberHDC]
  name = R2
- map = region2_fake.map
+ map = qweak_R2.map
  geom = qweak_new.geo
 
 [QwDriftChamberVDC]
