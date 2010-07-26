@@ -265,7 +265,7 @@ class QwEventDisplay: public TGMainFrame{  // Event display is a ROOT main frame
   TGVerticalFrame *fEventBox3;    // Event box 3 frame
   TRootEmbeddedCanvas *fOctantID; // Embedded canvas for octant ID
   TCanvas *cOctantID;             // Canvas for octant ID
-  TPaveLabel *Octant_1, *Octant_2, *Octant_3, *Octant_4, *fOctant_5, *Octant_6, *Octant_7, *Octant_8; // Labels for each of the octants
+  TPaveLabel *Octant_1, *Octant_2, *Octant_3, *Octant_4, *Octant_5, *Octant_6, *Octant_7, *Octant_8; // Labels for each of the octants
 
   // Region 1 (GEM) declarations
   TGCompositeFrame *fRegion1;                                // Tab frame

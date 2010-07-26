@@ -76,7 +76,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // Creates
 
    //   fMenuBar = new TGMenuBar(fMain, 900, 20, kHorizontalFrame | kRaisedFrame | kLHintsExpandX);
    //fMenuBar = new TGMenuBar(fMain, 1, 1, kLHintsTop | kLHintsExpandX);
-   fMenuBar = new TGMenuBar(fMain, 900, 20, fMenuBarLayout);
+   fMenuBar = new TGMenuBar(fMain, 900, 20 /*, fMenuBarLayout */ );
    fMenuBar->AddPopup("&File", fMenuFile, fMenuBarItemLayout);
    fMenuBar->AddPopup("&Help", fMenuHelp, fMenuBarHelpLayout);
    gClient->GetColorByName("#deba87", ucolor); // set ucolor to mute orange
@@ -196,15 +196,15 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // Creates
    gClient->GetColorByName("#fff897",ucolor); // Set ucolor to mute yellow
 
    // Create label for current event: variable changes based on fEventNumber
-   CurrentEventLabel = new TGLabel(fCurrentEvent, Form("%u", (Int_t) fEventNumber), uGC->GetGC(),ufont->GetFontStruct(),ucolor);
-   CurrentEventLabel->SetTextJustify(36);
-   CurrentEventLabel->SetMargins(0,0,0,0);
-   CurrentEventLabel->SetWrapLength(-1);
-   CurrentEventLabel->MoveResize(11,18,104,32);
-   CurrentEventLabel->SetBackgroundColor(ucolor);
+   fCurrentEventLabel = new TGLabel(fCurrentEvent, Form("%u", (Int_t) fEventNumber), uGC->GetGC(),ufont->GetFontStruct(),ucolor);
+   fCurrentEventLabel->SetTextJustify(36);
+   fCurrentEventLabel->SetMargins(0,0,0,0);
+   fCurrentEventLabel->SetWrapLength(-1);
+   fCurrentEventLabel->MoveResize(11,18,104,32);
+   fCurrentEventLabel->SetBackgroundColor(ucolor);
 
    // Add current event label to "Current Event" group frame
-   fCurrentEvent->AddFrame(CurrentEventLabel, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fCurrentEvent->AddFrame(fCurrentEventLabel, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fCurrentEvent->SetLayoutManager(new TGVerticalLayout(fCurrentEvent));
 
    // Add "Current Event" group frame to event counter frame
@@ -237,9 +237,9 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // Creates
    GotoEventButton->MoveResize(64,133,67,24);
 
    // Create number entry for goto event function
-   CurrentEventEntry = new TGNumberEntry(fEventCounter, (Double_t) 0,11,-1,(TGNumberFormat::EStyle) 0,(TGNumberFormat::EAttribute) 1);
-   fEventCounter->AddFrame(CurrentEventEntry, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   CurrentEventEntry->MoveResize(24,94,96,22);
+   fCurrentEventEntry = new TGNumberEntry(fEventCounter, (Double_t) 0,11,-1,(TGNumberFormat::EStyle) 0,(TGNumberFormat::EAttribute) 1);
+   fEventCounter->AddFrame(fCurrentEventEntry, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fCurrentEventEntry->MoveResize(24,94,96,22);
 
    // Add event counter frame to event box 1
    fEventBox1->AddFrame(fEventCounter, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
@@ -981,14 +981,14 @@ void QwEventDisplay::GoNext(){  // Adds one to current event counter
 
 void QwEventDisplay::GoClear(){  // Clears all displayed data
   
-  CurrentEventLabel->SetText(Form("%d", fEventNumber)); // Updates layout to show current event number
+  fCurrentEventLabel->SetText(Form("%d", fEventNumber)); // Updates layout to show current event number
   
   fWireInfoListBox->RemoveAll(); // Clear wire hit information listbox
   
   Line_R1r.clear(); // Clear existing Region 1 vectors
   Line_R1y.clear();
-  R1_XYfit.clear();
-  R1_XZfit.clear();
+  //R1_XYfit.clear();
+  //R1_XZfit.clear();
   Line_R2x.clear(); // Clear existing Region 2 vectors
   Line_R2u.clear();
   Line_R2v.clear();
@@ -1022,10 +1022,10 @@ void QwEventDisplay::GoClear(){  // Clears all displayed data
 void QwEventDisplay::GotoEvent(){  // Goes to desired event number written in "goto event" number entry
                                    // Called by GotoEventButton click
   
-  fEventNumber = CurrentEventEntry->GetNumberEntry()->GetIntNumber(); // fEventNumber takes value from number entry
+  fEventNumber = fCurrentEventEntry->GetNumberEntry()->GetIntNumber(); // fEventNumber takes value from number entry
   
   if (fEventNumber > 0){
-    CurrentEventLabel->SetText(Form("%d",CurrentEventEntry->GetNumberEntry()->GetIntNumber())); // Set current event label to value from number entry
+    fCurrentEventLabel->SetText(Form("%d",fCurrentEventEntry->GetNumberEntry()->GetIntNumber())); // Set current event label to value from number entry
     DrawEvent();                                                                                // Update display information
   }
   
@@ -1695,7 +1695,7 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
       fPShift = .5*R2_XDIST*R2_CM; // Half drift cell size
       break;
     }
-    if (fPlane > 12 // If on second arm, draw in appropriate tab)
+    if (fPlane > 12) // If on second arm, draw in appropriate tab
       fRegion2bXZ->GetCanvas()->cd();
     if (fWire < R2_FULLWIRE1){
       Line.SetX1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
