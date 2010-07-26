@@ -186,7 +186,7 @@ void  QwDriftChamber::ClearEventData()
 
 Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
- 
+
   Int_t index           = 0;
   Int_t tdc_slot_number = 0;
   Int_t tdc_chan_number = 0;
@@ -289,7 +289,7 @@ void  QwDriftChamber::ConstructHistograms(TDirectory *folder, TString& prefix)
     ///////////////First set of histos////////////////////////////////
     TotHits[i] = new TH1F(Form("%s%sHitsOnEachWirePlane%d", prefix.Data() ,region.Data(),i),
 			  Form("Total hits on all wires in plane %d",i),
-			  fWiresPerPlane[i], bin_offset, fWiresPerPlane[i]+bin_offset);
+			  fWiresPerPlane[i-1], bin_offset, fWiresPerPlane[i-1]+bin_offset);
     
     TotHits[i]->GetXaxis()->SetTitle("Wire #");
     TotHits[i]->GetYaxis()->SetTitle("Events");
@@ -305,7 +305,7 @@ void  QwDriftChamber::ConstructHistograms(TDirectory *folder, TString& prefix)
     //////////////Third set of histos/////////////////////////////////
     HitsWire[i] = new TH2F(Form("%s%sHitsOnEachWirePerEventPlane%d", prefix.Data() ,region.Data(),i),
 			   Form("hits on all wires per event in plane %d",i),
-			   fWiresPerPlane[i],bin_offset,fWiresPerPlane[i]+bin_offset,
+			   fWiresPerPlane[i-1],bin_offset,fWiresPerPlane[i-1]+bin_offset,
 			   7, -bin_offset, 7-bin_offset);
     
     HitsWire[i]->GetXaxis()->SetTitle("Wire Number");
@@ -332,7 +332,7 @@ void  QwDriftChamber::ConstructHistograms(TDirectory *folder, TString& prefix)
     
     TOFW[i] = new TH2F(Form("%s%sTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),i),
 		       Form("Subtracted time of flight for each wire in plane %d",i),
-		       fWiresPerPlane[i], bin_offset, fWiresPerPlane[i]+bin_offset,
+		       fWiresPerPlane[i-1], bin_offset, fWiresPerPlane[i-1]+bin_offset,
 		       100,-40000,65000);
     // why this range is not -65000 ??
     TOFW[i]->GetXaxis()->SetTitle("Wire Number");
@@ -340,7 +340,7 @@ void  QwDriftChamber::ConstructHistograms(TDirectory *folder, TString& prefix)
     
     TOFW_raw[i] = new TH2F(Form("%s%sRawTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),i),
 			   Form("Raw time of flight for each wire in plane %d",i),
-			   fWiresPerPlane[i], bin_offset, fWiresPerPlane[i]+bin_offset,
+			   fWiresPerPlane[i-1], bin_offset, fWiresPerPlane[i-1]+bin_offset,
 			   100,-40000,65000);
     // why this range is not -65000 ??
     TOFW_raw[i]->GetXaxis()->SetTitle("Wire Number");
@@ -510,6 +510,7 @@ Int_t QwDriftChamber::RegisterSlotNumber(UInt_t slot_id)
 	      << kMaxNumberOfTDCsPerROC << std::endl;
   }
   return fCurrentTDCIndex;
+    
 };
 
 Int_t QwDriftChamber::GetTDCIndex(size_t bank_index, size_t slot_num) const {
