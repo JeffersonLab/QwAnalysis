@@ -7,15 +7,30 @@
 
 #include "QwLumi.h"
 #include "QwHistogramHelper.h"
+
+#include "QwSubsystemArray.h"
 #include <stdexcept>
 #include <iostream>
 
 // Register this subsystem with the factory
 QwSubsystemFactory<QwLumi> theLumiFactory("QwLumi");
 
+void QwLumi::DefineOptions(QwOptions &options){
+  options.AddOptions()
+    ("QwLumi.normalize",
+     po::value<bool>()->default_value(false)->zero_tokens(),
+     "Normalize the detectors by beam current");
+}
+
+
 //*****************************************************************
 void QwLumi::ProcessOptions(QwOptions &options){
-      //Handle command line options
+  bNormalization = options.GetValue<bool>("QwLumi.normalize");
+  if (! bNormalization){
+    QwWarning << "QwLumi::ProcessOptions:  "
+	      << "Detector yields WILL NOT be normalized."
+	      << QwLog::endl;
+  }
 };
 
 //*****************************************************************
@@ -366,7 +381,7 @@ Int_t QwLumi::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
 		if (lkDEBUG)
 		  {
 		    std::cout<<"found IntegrationPMT data for "<<fLumiDetectorID[i].fdetectorname<<std::endl;
-		    std::cout<<"word left to read in this buffer:"<<num_words-fLumiDetectorID[i].fWordInSubbank<<std::endl;
+		    std::cout<<"words left to read in this buffer:"<<num_words-fLumiDetectorID[i].fWordInSubbank<<std::endl;
 		  }
 		fIntegrationPMT[fLumiDetectorID[i].fIndex].
 		  ProcessEvBuffer(&(buffer[fLumiDetectorID[i].fWordInSubbank]),
@@ -392,7 +407,6 @@ Int_t QwLumi::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
                       }
                   }    
                 if (issingleevent==kFALSE) continue;
-
 
 
 
@@ -462,6 +476,85 @@ void  QwLumi::ProcessEvent()
 
   return;
 };
+
+
+/**
+ * Exchange data between subsystems
+ */
+void  QwLumi::ExchangeProcessedData()
+{
+  bIsExchangedDataValid = kTRUE;
+  if (bNormalization){
+    // Create a list of all variables that we need
+    // TODO This could be a static list to avoid repeated vector initializiations
+    std::vector<VQwDataElement*> variable_list;
+    variable_list.push_back(&fTargetCharge);
+    //variable_list.push_back(&fTargetX);
+    //variable_list.push_back(&fTargetY);
+    //variable_list.push_back(&fTargetXprime);
+    //variable_list.push_back(&fTargetYprime);
+    //variable_list.push_back(&fTargetEnergy);
+
+
+    // Loop over all variables in the list
+    std::vector<VQwDataElement*>::iterator variable_iter;
+    for (variable_iter  = variable_list.begin();
+	 variable_iter != variable_list.end(); variable_iter++)
+      {
+	VQwDataElement* variable = *variable_iter;
+	if (RequestExternalValue(variable->GetElementName(), variable))
+	  {
+	    if (bDEBUG)
+	      dynamic_cast<QwVQWK_Channel*>(variable)->PrintInfo();
+	  }
+	else
+	  {
+	    bIsExchangedDataValid = kFALSE;
+	    QwError << GetSubsystemName() << " could not get external value for "
+		    << variable->GetElementName() << QwLog::endl;
+	  }
+      } // end of loop over variables
+  }
+};
+
+
+
+
+void  QwLumi::ProcessEvent_2()
+{
+  if (bIsExchangedDataValid)
+    {
+      //data is valid, process it
+      if (bDEBUG)
+        {
+          Double_t  pedestal = fTargetCharge.GetPedestal();
+          Double_t  calfactor = fTargetCharge.GetCalibrationFactor();
+          Double_t  volts = fTargetCharge.GetAverageVolts();
+          std::cout<<"QwLumi::ProcessEvent_2(): processing with exchanged data"<<std::endl;
+          std::cout<<"pedestal, calfactor, average volts = "<<pedestal<<", "<<calfactor<<", "<<volts<<std::endl;
+        }
+
+      // assume fTargetCharge.fHardwareSum is a calibrated value,
+      // detector signals will be normalized to it
+      if (bNormalization) this->DoNormalization();
+    }
+  else
+    {
+      QwError<<"QwLumi::ProcessEvent_2(): could not get all external values."<<QwLog::endl;
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //*****************************************************************
@@ -881,6 +974,37 @@ void QwLumi::AccumulateRunningSum(VQwSubsystem* value1)
       fIntegrationPMT[i].AccumulateRunningSum(value->fIntegrationPMT[i]);
   }
 };
+
+
+void QwLumi::DoNormalization(Double_t factor)
+{
+  static Bool_t notwarned = kTRUE;
+
+  if (bIsExchangedDataValid)
+    {
+      try
+        {
+          Double_t  norm = fTargetCharge.GetHardwareSum()*factor;
+	  if (norm >1e-9){
+	    this->Scale(1.0/norm);
+	    notwarned = kTRUE;
+	  } else if (notwarned) {
+	    notwarned = kFALSE;
+	    QwError << "QwLumi::DoNormalization:  Charge is too small to do the "
+		    << "normalization (fTargetCharge==" << fTargetCharge.GetHardwareSum()
+		    << ")" << QwLog::endl;
+	  }
+        }
+      catch (std::exception& e)
+        {
+          std::cerr << e.what() << std::endl;
+        }
+    }
+}
+
+
+
+
 
 
 
