@@ -264,11 +264,12 @@ std::cout << "Opened" << std::endl;
             Int_t entries = tree->GetEntries();
 	    std::cout<<"Entries in tree: "<< entries << std::endl;
 
-            QwHitRootContainer* roothitlist = 0;
+            //          QwHitRootContainer* roothitlist = 0;
             QwEvent* event = 0;
 
-            tree->SetBranchAddress("hits", &roothitlist);
+	    //          tree->SetBranchAddress("hits", &roothitlist);
             tree->SetBranchAddress("events", &event); //there is no events is hit_tree 6/30/10
+
 
 // Create histogram using Draw
 // Region 2 in blue and Region 3 in green

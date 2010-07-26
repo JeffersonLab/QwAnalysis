@@ -4,7 +4,7 @@
 ** Author: Derek Jones              **
 ** The George Washington University **
 ** Contact: dwjones8@gwu.edu        **
-** Last updated: 7-25-2010          **
+** Last updated: 7-26-2010          **
 \************************************/
 
 
@@ -51,40 +51,34 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // Creates
    fMain->SetWindowName("Qweak 2D Single Event Display");
 
 
-   ////MENU BAR----------------------------------------------------------------------------------------------------////   <--NEEDS HELP!  #########REDO WITH OPEN/CLOSE ROOT FILE
+   ////MENU BAR----------------------------------------------------------------------------------------------------////
 
    // Create menu bar for file and help functions 
-   //   fMenuBarLayout = new TGLayoutHints(kLHintsTop | kLHintsExpandX);
-   fMenuBarLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX, 0, 0, 1, 1);
-   fMenuBarItemLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kRaisedFrame, 0, 4, 0, 0);
-   fMenuBarHelpLayout = new TGLayoutHints(kLHintsTop | kLHintsRight | kRaisedFrame);
+   fMenuBarLayout = new TGLayoutHints(kLHintsTop, kLHintsExpandX);                    // Layout for the menu bar
+   fMenuBarItemLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kRaisedFrame);   // Layout for popup menus
+   fMenuBarHelpLayout = new TGLayoutHints(kLHintsTop | kLHintsRight | kRaisedFrame);  // Layout for Help popup menu
 
-   fMenuFile = new TGPopupMenu(gClient->GetRoot());
-   fMenuFile->AddEntry("Open &Run Data (.dat)", M_FILE_OPENRUN);
-   fMenuFile->AddEntry("Open &Simulation Data (.root)", M_FILE_OPENSIM);
+   fMenuFile = new TGPopupMenu(gClient->GetRoot());        // Add a popup menu for file options
+   fMenuFile->AddEntry("&Open ROOT File", M_FILE_OPEN);    // Add option to open a ROOT file
    fMenuFile->AddSeparator();
-   fMenuFile->AddEntry("&Close", M_FILE_CLOSE);
+   fMenuFile->AddEntry("&Close ROOT File", M_FILE_CLOSE);  // Add option to close a ROOT file
 
-   fMenuHelp = new TGPopupMenu(gClient->GetRoot());
-   fMenuHelp->AddEntry("&Tutorial", M_HELP_TUTORIAL);
+   fMenuHelp = new TGPopupMenu(gClient->GetRoot());    // Add a popup menu for help options
+   fMenuHelp->AddEntry("&Tutorial", M_HELP_TUTORIAL);  // Add option to connect to the event display tutorial documentation
    fMenuHelp->AddSeparator();
-   fMenuHelp->AddEntry("&About", M_HELP_ABOUT);
+   fMenuHelp->AddEntry("&About", M_HELP_ABOUT);        // Add option to print information about the event display
 
-   fMenuFile->Connect("Activated(Int_t)", "QwEventDisplay", this, "HandleMenu(Int_t)");
+   fMenuFile->Connect("Activated(Int_t)", "QwEventDisplay", this, "HandleMenu(Int_t)");  // Connect popup menus to a menu control function
    fMenuHelp->Connect("Activated(Int_t)", "QwEventDisplay", this, "HandleMenu(Int_t)");
 
-
-   //   fMenuBar = new TGMenuBar(fMain, 900, 20, kHorizontalFrame | kRaisedFrame | kLHintsExpandX);
-   //fMenuBar = new TGMenuBar(fMain, 1, 1, kLHintsTop | kLHintsExpandX);
-   fMenuBar = new TGMenuBar(fMain, 900, 20 /*, fMenuBarLayout */ );
-   fMenuBar->AddPopup("&File", fMenuFile, fMenuBarItemLayout);
-   fMenuBar->AddPopup("&Help", fMenuHelp, fMenuBarHelpLayout);
-   gClient->GetColorByName("#deba87", ucolor); // set ucolor to mute orange
+   fMenuBar = new TGMenuBar(fMain, kLHintsTop | kLHintsExpandX);  // Create a menu bar
+   fMenuBar->AddPopup("&File", fMenuFile, fMenuBarItemLayout);    // Add a file popup menu
+   fMenuBar->AddPopup("&Help", fMenuHelp, fMenuBarHelpLayout);    // Add a help popup menu
+   gClient->GetColorByName("#deba87", ucolor);                    // Set ucolor to mute orange
    fMenuBar->SetBackgroundColor(ucolor);
 
-   fMain->AddFrame(fMenuBar, fMenuBarLayout);
-
-      // fMain->AddFrame(fMenuBar, new TGLayoutHints(kLHintsExpandX,0,0,1,0));
+   fMain->AddFrame(fMenuBar, fMenuBarLayout);  // Add menu bar to the main frame
+   fMenuBar->MoveResize(0,0,900,20);
 
 
    ////TITLE AND LOGOS----------------------------------------------------------------------------------------------------////
@@ -323,7 +317,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // Creates
    fEventBox3->AddFrame(fOctantID, new TGLayoutHints(kVerticalFrame | kSunkenFrame));
    fOctantID->MoveResize(22,32,180,180);
    fOctantID->GetCanvas()->SetFillColor(kAzure-7);
-   Octant_1 = new TPaveLabel(.4,.75,.6,.95, "1");
+   Octant_1 = new TPaveLabel(.4,.75,.6,.95, "1");        // Create labels for each octant
    Octant_1->SetLineColor(1);
    Octant_1->SetFillColor(0);
    Octant_1->Draw();
@@ -784,15 +778,15 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // Creates
    Div_R3XZ->SetLineStyle(2);
    Div_R3XZ->Draw();
    fRegion3XZ->GetCanvas()->SetEditable(kFALSE);
-   /*
-   //REGION 3--Trigger Scintillator--------------------------------------------------// NOT USED CURRENTLY
+
+   //REGION 3--Trigger Scintillator--------------------------------------------------//  NOT USED CURRENTLY
 
    // create tab and container of "Region 3" TS data
    fRegion3TS = fRegions->AddTab("Region 3--TS");
    fRegion3TS->SetLayoutManager(new TGVerticalLayout(fRegion3TS));
    fRegion3TS->SetLayoutBroken(kTRUE);
    fRegion3TS->SetBackgroundColor(ucolor);
-   */
+
    // Set region tab attributes
    fRegions->SetTab(0);
    fRegions->Resize(fRegions->GetDefaultSize());
@@ -803,7 +797,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // Creates
    fRegions->GetTabTab("Region 2--HDC (1-4)")->SetBackgroundColor(ucolor);
    fRegions->GetTabTab("Region 2--HDC (5-8)")->SetBackgroundColor(ucolor);
    fRegions->GetTabTab("Region 3--VDC")->SetBackgroundColor(ucolor);
-//   fRegions->GetTabTab("Region 3--TS")->SetBackgroundColor(ucolor); NOT USED CURRENTLY
+   fRegions->GetTabTab("Region 3--TS")->SetBackgroundColor(ucolor);
 
 
    ////BUTTONS----------------------------------------------------------------------------------------------------////
@@ -941,23 +935,28 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // Creates
 
 ////FUNCTIONAL COMPONENTS----------------------------------------------------------------------------------------------------////
 
-void QwEventDisplay::HandleMenu(Int_t id){  // Controls the menu bar functions  ##############NEED TO BE EDITED!!
+void QwEventDisplay::HandleMenu(Int_t id){  // Controls the menu bar functions
                                             // Called my menu entry click
 
   switch (id){
-  case M_FILE_OPENRUN:
+  case M_FILE_OPEN:      // Open ROOT file
+    printf("\nCannot open file.  This feature is currently non-functional.  Use the Q-weak Data Analysis GUI to control files or re-open the display with a different run file.\n");
+    fMenuFile->DisableEntry(M_FILE_OPEN);
+    fMenuFile->EnableEntry(M_FILE_CLOSE);
     break;
-  case M_FILE_OPENSIM:
+  case M_FILE_CLOSE:     // Close ROOT file 
+    printf("\nCannot close file.  This feature is currently non-functional.  Use the Q-weak Data Analysis GUI to control files or re-open the display with a different run file.\n");
+    fMenuFile->EnableEntry(M_FILE_OPEN);
+    fMenuFile->DisableEntry(M_FILE_CLOSE);
     break;
-  case M_FILE_CLOSE:
+  case M_HELP_TUTORIAL:  // Print a link to the event display tutorial
+    printf("\nTutorial documentation is located at https://qweak.jlab.org/wiki/index.php/Track_Reconstruction.\n");
     break;
-  case M_HELP_TUTORIAL:
-    break;
-  case M_HELP_ABOUT:
-    printf("**************************************\n** Qweak 2D Event Display           **\n** Jefferson Lab -- Hall C          **\n** Author: Derek Jones              **\n** The George Washington University **\n** Contact: dwjones8@gwu.edu        **\n** Last updated: 7-25-2010          **\n**************************************\n");
+  case M_HELP_ABOUT:     // Print information about the event display
+    printf("\n**************************************\n** Qweak 2D Event Display           **\n** Jefferson Lab -- Hall C          **\n** Author: Derek Jones              **\n** The George Washington University **\n** Contact: dwjones8@gwu.edu        **\n** Last updated: 7-26-2010          **\n**************************************\n");
     break;
   }
-} // End HandleMenu()
+} // End HandleMenu(Int_t)
 
 void QwEventDisplay::GoPrevious(){  // Subtracts one from current event counter
                                     // Called by PreviousButton click
@@ -987,8 +986,6 @@ void QwEventDisplay::GoClear(){  // Clears all displayed data
   
   Line_R1r.clear(); // Clear existing Region 1 vectors
   Line_R1y.clear();
-  //R1_XYfit.clear();
-  //R1_XZfit.clear();
   Line_R2x.clear(); // Clear existing Region 2 vectors
   Line_R2u.clear();
   Line_R2v.clear();
@@ -1026,7 +1023,7 @@ void QwEventDisplay::GotoEvent(){  // Goes to desired event number written in "g
   
   if (fEventNumber > 0){
     fCurrentEventLabel->SetText(Form("%d",fCurrentEventEntry->GetNumberEntry()->GetIntNumber())); // Set current event label to value from number entry
-    DrawEvent();                                                                                // Update display information
+    DrawEvent();                                                                                  // Update display information
   }
   
   else{
@@ -1034,7 +1031,6 @@ void QwEventDisplay::GotoEvent(){  // Goes to desired event number written in "g
     GoClear();        // Keep from drawing non-existent negative events
   }
 } // End GotoEvent()
-
 
 void QwEventDisplay::DrawEvent(){  // Draws event data into display
                                    // Lists wire hit information in the listbox
@@ -1084,7 +1080,7 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
     Octant_1->SetFillColor(kOrange-3);
     Octant_5->SetFillColor(kOrange-2);
     Octant_1->Draw();
-    Octant_5->Draw();
+    Octant_5->Draw(); 
     break;
     //  etc.........
   }
@@ -1096,6 +1092,7 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
   // Extract wire hit information
   fEventBuffer->GetSpecificEvent(fEventNumber); // Place the current event number into the event buffer
   fHitList = fEventBuffer->GetHitContainer();   // Add the hit list from the current event buffer
+  printf("Printing hit list...");               // Let user know hit list is printing
   fHitList->Print();                            // Prints the new wire hit information from the hit list
   
   // Create a string buffer to hold hit information
@@ -1121,6 +1118,7 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
   }
   
   //GATHER WIRE HIT DATA--------------------------------------------------//
+
   // Region 1 hits
   QwHitContainer* Hits_R1r = fHitList->GetSubList_Dir(kRegionID1, kPackageUp, kDirectionR);
   QwHitContainer* Hits_R1y = fHitList->GetSubList_Dir(kRegionID1, kPackageUp, kDirectionY);
@@ -1132,12 +1130,20 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
   QwHitContainer* Hits_R3u = fHitList->GetSubList_Dir(kRegionID3, kPackageUp, kDirectionU);
   QwHitContainer* Hits_R3v = fHitList->GetSubList_Dir(kRegionID3, kPackageUp, kDirectionV);
   
-  //DRAW REGION 1 TRACE HITS--------------------------------------------------//
+  // DRAWING WIRE HITS:
+  // Three types of wires to draw--full length, left of full length, and right of full length
+  // Separating them depends on the first and last full length wire (saved as constants in the header)
+  // Wires are drawn and centered with respect to the chamber frame in ROOT coordinates
+  // Wire numbers go from right to left; plane numbers go from front to back
+  // Hit wire information is stored to the end of a vector and drawn in the appropriate canvas
+  // Editing of canvases is removed after drawing
+
+  // DRAW REGION 1 TRACE HITS--------------------------------------------------//
   
-  //FRONT VIEW (X-Y)
+  // FRONT VIEW (X-Y)
   fRegion1XY->GetCanvas()->cd();
-  //Region 1 X traces (??? total)
-  for(QwHitContainer::iterator fHit = Hits_R1r->begin(); fHit != Hits_R1r->end(); fHit++){  //G4 DOES NOT GET ANY HITS FROM THESE
+  // Region 1 X traces (??? total)
+  for(QwHitContainer::iterator fHit = Hits_R1r->begin(); fHit != Hits_R1r->end(); fHit++){  // G4 DOES NOT GET ANY HITS FROM THESE
     TLine Line;
     int fTrace = fHit->GetElement();
     Line.SetY1(.5 - (R1_WIDTH*R1_CM*.5) + (R1_DIST*R1_CM*fTrace));
@@ -1148,7 +1154,7 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
     Line_R1y.push_back(Line);
     Line_R1y.back().Draw();
   }
-  //Region 1 Y traces (??? total)
+  // Region 1 Y traces (??? total)
   for(QwHitContainer::iterator fHit = Hits_R1y->begin(); fHit != Hits_R1y->end(); fHit++){
     TLine Line;
     int fTrace = fHit->GetElement();
@@ -1163,9 +1169,10 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
   fRegion1XY->GetCanvas()->SetEditable(kFALSE);
   fRegion1XY->GetCanvas()->Update();
 
-  //TOP VIEW (Y-Z)
+  // TOP VIEW (Y-Z)
   fRegion1YZ->GetCanvas()->cd();
-  //Region 1 Y wires
+  // Region 1 X traces (??? total)
+  // Region 1 Y wires (??? total)
   for(QwHitContainer::iterator fHit = Hits_R1y->begin(); fHit != Hits_R1y->end(); fHit++){
     TLine Line;
     int fTrace = fHit->GetElement();
@@ -1180,9 +1187,10 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
   fRegion1YZ->GetCanvas()->SetEditable(kFALSE);
   fRegion1YZ->GetCanvas()->Update();
   
-  //SIDE VIEW (X-Z)
+  // SIDE VIEW (X-Z)
   fRegion1XZ->GetCanvas()->cd();
-  //Region 1 Y wires
+  // Region 1 X traces (??? total)
+  // Region 1 Y wires (??? total)
   for(QwHitContainer::iterator fHit = Hits_R1y->begin(); fHit != Hits_R1y->end(); fHit++){
     TLine Line;
     Line.SetX1(.5);
@@ -1199,9 +1207,9 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
 
   //DRAW REGION 2 WIRE HITS--------------------------------------------------//
 
-  //FRONT VIEW (X-Y)
+  // FRONT VIEW (X-Y)
   fRegion2XY->GetCanvas()->cd();
-  //Region 2 X wires (32 total)
+  // Region 2 X wires (32 total)
   for(QwHitContainer::iterator fHit = Hits_R2x->begin(); fHit != Hits_R2x->end(); fHit++){
     TLine Line;
     int fWire = fHit->GetElement(); // Wire number
@@ -1233,7 +1241,7 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
     Line_R2x.push_back(Line);
     Line_R2x.back().Draw();
   }
-  //Region 2 U wires (29 total)
+  // Region 2 U wires (29 total)
   for(QwHitContainer::iterator fHit = Hits_R2u->begin(); fHit != Hits_R2u->end(); fHit++){
     TLine Line;
     int fWire = fHit->GetElement(); // Wire number
@@ -1282,7 +1290,7 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
   }
-  //Region 2 V wires (29 total)
+  // Region 2 V wires (29 total)
   for(QwHitContainer::iterator fHit = Hits_R2v->begin(); fHit != Hits_R2v->end(); fHit++){
     TLine Line;
     int fWire = fHit->GetElement(); // Wire number
@@ -1336,9 +1344,9 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
   fRegion2bXY->GetCanvas()->SetEditable(kFALSE);
   fRegion2bXY->GetCanvas()->Update();
 
-  //TOP VIEW (Y-Z)
+  // TOP VIEW (Y-Z)
   fRegion2YZ->GetCanvas()->cd();
-  //Region 2 X wires (32 total)
+  // Region 2 X wires (32 total)
   for(QwHitContainer::iterator fHit = Hits_R2x->begin(); fHit != Hits_R2x->end(); fHit++){
     TLine Line;
     int fPlane = fHit->GetPlane(); // Wire plane
@@ -1388,7 +1396,7 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
     Line_R2x.push_back(Line);
     Line_R2x.back().Draw();
   }
- //Region 2 U wires (29 total)
+ // Region 2 U wires (29 total)
   for(QwHitContainer::iterator fHit = Hits_R2u->begin(); fHit != Hits_R2u->end(); fHit++){
     TLine Line;
     int fWire = fHit->GetElement(); // Wire number
@@ -1456,7 +1464,7 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
   }
-  //Region 2 V wires (29 total)
+  // Region 2 V wires (29 total)
   for(QwHitContainer::iterator fHit = Hits_R2v->begin(); fHit != Hits_R2v->end(); fHit++){
     TLine Line;
     int fWire = fHit->GetElement(); // Wire number
@@ -1529,9 +1537,9 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
   fRegion2bYZ->GetCanvas()->SetEditable(kFALSE);
   fRegion2bYZ->GetCanvas()->Update();
 
-  //SIDE VIEW (X-Z)
+  // SIDE VIEW (X-Z)
   fRegion2XZ->GetCanvas()->cd();
-  //Region 2 X wires (32 total)
+  // Region 2 X wires (32 total)
   for(QwHitContainer::iterator fHit = Hits_R2x->begin(); fHit != Hits_R2x->end(); fHit++){
     TLine Line;
     int fWire = fHit->GetElement(); // Wire number
@@ -1584,7 +1592,7 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
     Line_R2x.push_back(Line);
     Line_R2x.back().Draw();
   }
-  //Region 2 U wires (29 total)
+  // Region 2 U wires (29 total)
   for(QwHitContainer::iterator fHit = Hits_R2u->begin(); fHit != Hits_R2u->end(); fHit++){
     TLine Line;
     int fWire = fHit->GetElement(); // Wire number
@@ -1652,7 +1660,7 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
   }
-  //Region 2 V wires (29 total)
+  // Region 2 V wires (29 total)
   for(QwHitContainer::iterator fHit = Hits_R2v->begin(); fHit != Hits_R2v->end(); fHit++){
     TLine Line;
     int fWire = fHit->GetElement(); // Wire number
@@ -1695,7 +1703,7 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
       fPShift = .5*R2_XDIST*R2_CM; // Half drift cell size
       break;
     }
-    if (fPlane > 12) // If on second arm, draw in appropriate tab
+    if (fPlane > 12) // If on second arm, draw in appropriate tab)
       fRegion2bXZ->GetCanvas()->cd();
     if (fWire < R2_FULLWIRE1){
       Line.SetX1(.5 - (1.5*R2_DIST*R2_CM) - (2*R2_DEPTH*R2_CM) + fXShift);
@@ -1727,9 +1735,9 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
 
   //DRAW REGION 3 WIRE HITS--------------------------------------------------//
 
-  //FRONT VIEW (X-Y)
+  // FRONT VIEW (X-Y)
   fRegion3XY->GetCanvas()->cd();
-  //Region 3 U wires (279 total)
+  // Region 3 U wires (279 total)
   for(QwHitContainer::iterator fHit = Hits_R3u->begin(); fHit != Hits_R3u->end(); fHit++){
     TLine Line;
     int fWire = fHit->GetElement(); // Wire number
@@ -1775,7 +1783,7 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
   }
-  //Region 3 V wires (279 total)
+  // Region 3 V wires (279 total)
   for(QwHitContainer::iterator fHit = Hits_R3v->begin(); fHit != Hits_R3v->end(); fHit++){
     TLine Line;
     int fWire = fHit->GetElement(); // Wire number
@@ -1824,9 +1832,9 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
   fRegion3XY->GetCanvas()->SetEditable(kFALSE);
   fRegion3XY->GetCanvas()->Update();
 
-  //TOP VIEW (Y-Z)
+  // TOP VIEW (Y-Z)
   fRegion3YZ->GetCanvas()->cd();
- //Region 3 U wires (279 total)
+  // Region 3 U wires (279 total)
   for(QwHitContainer::iterator fHit = Hits_R3u->begin(); fHit != Hits_R3u->end(); fHit++){
     TLine Line;
     int fWire = fHit->GetElement(); // Wire number
@@ -1873,7 +1881,7 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
   }
-  //Region 3 V wires (279 total)
+  // Region 3 V wires (279 total)
   for(QwHitContainer::iterator fHit = Hits_R3v->begin(); fHit != Hits_R3v->end(); fHit++){
     TLine Line;
     int fWire = fHit->GetElement(); // Wire number
@@ -1923,9 +1931,9 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
   fRegion3YZ->GetCanvas()->SetEditable(kFALSE);
   fRegion3YZ->GetCanvas()->Update();
 
-  //SIDE VIEW (X-Z)
+  // SIDE VIEW (X-Z)
   fRegion3XZ->GetCanvas()->cd();
-  //Region 3 U wires (279 total)
+  // Region 3 U wires (279 total)
   for(QwHitContainer::iterator fHit = Hits_R3u->begin(); fHit != Hits_R3u->end(); fHit++){
     TLine Line;
     int fWire = fHit->GetElement(); // Wire number
@@ -1977,7 +1985,7 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
     Line_R2u.push_back(Line);
     Line_R2u.back().Draw();
   }
-  //Region 3 V wires (279 total)
+  // Region 3 V wires (279 total)
   for(QwHitContainer::iterator fHit = Hits_R3v->begin(); fHit != Hits_R3v->end(); fHit++){
     TLine Line;
     int fWire = fHit->GetElement(); // Wire number
@@ -2031,6 +2039,10 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
   }
   fRegion3XZ->GetCanvas()->SetEditable(kFALSE);
   fRegion3XZ->GetCanvas()->Update();
+
+  // Delete hit list (because it is regenerated every time)
+  delete fHitList; fHitList = 0;
+
 } // End DrawEvent()
 
 QwEventDisplay::~QwEventDisplay(){  // Default destructor in class
@@ -2047,5 +2059,5 @@ QwEventDisplay::~QwEventDisplay(){  // Default destructor in class
 ** Author: Derek Jones              **
 ** The George Washington University **
 ** Contact: dwjones8@gwu.edu        **
-** Last updated: 7-25-2010          **
+** Last updated: 7-26-2010          **
 \************************************/
