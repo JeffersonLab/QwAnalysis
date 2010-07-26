@@ -283,68 +283,69 @@ void  QwDriftChamber::ConstructHistograms(TDirectory *folder, TString& prefix)
   const Short_t buffer_size  = 2000;
   Float_t bin_offset = -0.5;
 
-  for (UInt_t i=1;i<=fWiresPerPlane.size();i++)
-    {
-      ///////////////First set of histos////////////////////////////////
-      TotHits[i] = new TH1F(Form("%s%sHitsOnEachWirePlane%d", prefix.Data() ,region.Data(),i),
-			    Form("Total hits on all wires in plane %d",i),
-			    fWiresPerPlane[i], bin_offset, fWiresPerPlane[i]+bin_offset);
-
-      TotHits[i]->GetXaxis()->SetTitle("Wire #");
-      TotHits[i]->GetYaxis()->SetTitle("Events");
-
-
-      ///////////////Second set of histos////////////////////////////////
-      WiresHit[i] = new TH1F(Form("%s%sWiresHitPlane%d", prefix.Data() ,region.Data(),i),
-			     Form("Number of Wires Hit in plane %d",i),
-			     20, bin_offset, 20+bin_offset);
-      WiresHit[i]->GetXaxis()->SetTitle("Wires Hit per Event");
-      WiresHit[i]->GetYaxis()->SetTitle("Events");
-
-      //////////////Third set of histos/////////////////////////////////
-      HitsWire[i] = new TH2F(Form("%s%sHitsOnEachWirePerEventPlane%d", prefix.Data() ,region.Data(),i),
-			     Form("hits on all wires per event in plane %d",i),
-			     fWiresPerPlane[i],bin_offset,fWiresPerPlane[i]+bin_offset,
-			     7, -bin_offset, 7-bin_offset);
-
-      HitsWire[i]->GetXaxis()->SetTitle("Wire Number");
-      HitsWire[i]->GetYaxis()->SetTitle("Hits");
-
-      /////////////Fourth set of histos//////////////////////////////////////
-      TOFP[i] = new TH1F(Form("%s%sTimeofFlightPlane%d", prefix.Data() ,region.Data(),i),
-			 Form("Subtracted time of flight for events in plane %d",i),
-			 400,0,0);
-      TOFP[i] -> SetDefaultBufferSize(buffer_size);
-      TOFP[i] -> GetXaxis()->SetTitle("Time of Flight");
-      TOFP[i] -> GetYaxis()->SetTitle("Hits");
-
-
-      TOFP_raw[i] = new TH1F(Form("%s%sRawTimeofFlightPlane%d", prefix.Data() ,region.Data(),i),
-			     Form("Raw time of flight for events in plane %d",i),
-			     //			     400,-65000,65000);
-			     400, 0,0);
-      TOFP_raw[i] -> SetDefaultBufferSize(buffer_size);
-      TOFP_raw[i]->GetXaxis()->SetTitle("Time of Flight");
-      TOFP_raw[i]->GetYaxis()->SetTitle("Hits");
-
-      //////////////Fifth set of histos/////////////////////////////////////
-
-      TOFW[i] = new TH2F(Form("%s%sTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),i),
-			 Form("Subtracted time of flight for each wire in plane %d",i),
-			 fWiresPerPlane[i], bin_offset, fWiresPerPlane[i]+bin_offset,
-			 100,-40000,65000);
-      // why this range is not -65000 ??
-      TOFW[i]->GetXaxis()->SetTitle("Wire Number");
-      TOFW[i]->GetYaxis()->SetTitle("Time of Flight");
-
-      TOFW_raw[i] = new TH2F(Form("%s%sRawTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),i),
-			     Form("Raw time of flight for each wire in plane %d",i),
-			     fWiresPerPlane[i], bin_offset, fWiresPerPlane[i]+bin_offset,
-			     100,-40000,65000);
-      // why this range is not -65000 ??
-      TOFW_raw[i]->GetXaxis()->SetTitle("Wire Number");
-      TOFW_raw[i]->GetYaxis()->SetTitle("Time of Flight");
-    }
+  std::vector<Int_t>::size_type i = 0;
+  
+  for (i=1;i<=fWiresPerPlane.size();i++) {
+    ///////////////First set of histos////////////////////////////////
+    TotHits[i] = new TH1F(Form("%s%sHitsOnEachWirePlane%d", prefix.Data() ,region.Data(),i),
+			  Form("Total hits on all wires in plane %d",i),
+			  fWiresPerPlane[i], bin_offset, fWiresPerPlane[i]+bin_offset);
+    
+    TotHits[i]->GetXaxis()->SetTitle("Wire #");
+    TotHits[i]->GetYaxis()->SetTitle("Events");
+    
+    
+    ///////////////Second set of histos////////////////////////////////
+    WiresHit[i] = new TH1F(Form("%s%sWiresHitPlane%d", prefix.Data() ,region.Data(),i),
+			   Form("Number of Wires Hit in plane %d",i),
+			   20, bin_offset, 20+bin_offset);
+    WiresHit[i]->GetXaxis()->SetTitle("Wires Hit per Event");
+    WiresHit[i]->GetYaxis()->SetTitle("Events");
+    
+    //////////////Third set of histos/////////////////////////////////
+    HitsWire[i] = new TH2F(Form("%s%sHitsOnEachWirePerEventPlane%d", prefix.Data() ,region.Data(),i),
+			   Form("hits on all wires per event in plane %d",i),
+			   fWiresPerPlane[i],bin_offset,fWiresPerPlane[i]+bin_offset,
+			   7, -bin_offset, 7-bin_offset);
+    
+    HitsWire[i]->GetXaxis()->SetTitle("Wire Number");
+    HitsWire[i]->GetYaxis()->SetTitle("Hits");
+    
+    /////////////Fourth set of histos//////////////////////////////////////
+    TOFP[i] = new TH1F(Form("%s%sTimeofFlightPlane%d", prefix.Data() ,region.Data(),i),
+		       Form("Subtracted time of flight for events in plane %d",i),
+		       400,0,0);
+    TOFP[i] -> SetDefaultBufferSize(buffer_size);
+    TOFP[i] -> GetXaxis()->SetTitle("Time of Flight");
+    TOFP[i] -> GetYaxis()->SetTitle("Hits");
+    
+    
+    TOFP_raw[i] = new TH1F(Form("%s%sRawTimeofFlightPlane%d", prefix.Data() ,region.Data(),i),
+			   Form("Raw time of flight for events in plane %d",i),
+			   //			     400,-65000,65000);
+			   400, 0,0);
+    TOFP_raw[i] -> SetDefaultBufferSize(buffer_size);
+    TOFP_raw[i]->GetXaxis()->SetTitle("Time of Flight");
+    TOFP_raw[i]->GetYaxis()->SetTitle("Hits");
+    
+    //////////////Fifth set of histos/////////////////////////////////////
+    
+    TOFW[i] = new TH2F(Form("%s%sTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),i),
+		       Form("Subtracted time of flight for each wire in plane %d",i),
+		       fWiresPerPlane[i], bin_offset, fWiresPerPlane[i]+bin_offset,
+		       100,-40000,65000);
+    // why this range is not -65000 ??
+    TOFW[i]->GetXaxis()->SetTitle("Wire Number");
+    TOFW[i]->GetYaxis()->SetTitle("Time of Flight");
+    
+    TOFW_raw[i] = new TH2F(Form("%s%sRawTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),i),
+			   Form("Raw time of flight for each wire in plane %d",i),
+			   fWiresPerPlane[i], bin_offset, fWiresPerPlane[i]+bin_offset,
+			   100,-40000,65000);
+    // why this range is not -65000 ??
+    TOFW_raw[i]->GetXaxis()->SetTitle("Wire Number");
+    TOFW_raw[i]->GetYaxis()->SetTitle("Time of Flight");
+  }
   return;
 };
 
@@ -396,11 +397,11 @@ void  QwDriftChamber::FillHistograms() {
 
 
     }
-
-    for (UInt_t iplane=1; iplane<fWiresPerPlane.size(); iplane++)
-      {
-	WiresHit[iplane]->Fill(wireshitperplane[iplane]);
-      }
+    std::vector<Int_t>::size_type iplane = 0;
+    
+    for (iplane=1; iplane<fWiresPerPlane.size(); iplane++) {
+      WiresHit[iplane]->Fill(wireshitperplane[iplane]);
+    }
     return;
 };
 
@@ -409,37 +410,38 @@ void  QwDriftChamber::DeleteHistograms()
 {
   //  Run the destructors for all of the histogram object pointers.
   //for (size_t i=1;i<fWiresPerPlane.size();i++) {
-  for (UInt_t i=1;i<fWiresPerPlane.size();i++) {
+  std::vector<Int_t>::size_type i = 0;
+  for ( i=1; i<fWiresPerPlane.size(); i++) {
     ///////////First set of histos//////////////////////////
-    if (TotHits[i]!= NULL) {
+    if (TotHits[i]) {
       delete TotHits[i];
       TotHits[i] = NULL;
     }
     /////////Second set of histos///////////////////////////
-    if (WiresHit[i]!= NULL) {
+    if (WiresHit[i]) {
       delete WiresHit[i];
       WiresHit[i] = NULL;
     }
     ////////Third set of histos/////////////////////////////
-    if (HitsWire[i]!= NULL) {
+    if (HitsWire[i]) {
       delete HitsWire[i];
       HitsWire[i] = NULL;
     }
     ////////Fourth set of histos////////////////////////////
-    if (TOFP[i]!= NULL) {
+    if (TOFP[i]) {
       delete TOFP[i];
       TOFP[i] = NULL;
     }
-    if (TOFP_raw[i]!= NULL) {
+    if (TOFP_raw[i]) {
       delete TOFP_raw[i];
       TOFP_raw[i] = NULL;
     }
     //////////Fifth set of histos///////////////////////////
-    if (TOFW[i]!= NULL) {
+    if (TOFW[i]) {
       delete TOFW[i];
       TOFW[i] = NULL;
     }
-    if (TOFW_raw[i]!= NULL) {
+    if (TOFW_raw[i]) {
       delete TOFW_raw[i];
       TOFW_raw[i] = NULL;
     }
@@ -493,21 +495,21 @@ Int_t QwDriftChamber::RegisterSubbank(const UInt_t bank_id)
 
 Int_t QwDriftChamber::RegisterSlotNumber(UInt_t slot_id)
 {
-    if (slot_id<kMaxNumberOfTDCsPerROC) {
-        if (fCurrentBankIndex>=0 && fCurrentBankIndex<=fTDC_Index.size()) {
-            fTDCPtrs.resize(fNumberOfTDCs+1);
-            fTDCPtrs.at(fNumberOfTDCs).resize(kMaxNumberOfChannelsPerTDC);
-            fNumberOfTDCs = fTDCPtrs.size();
-            fTDC_Index.at(fCurrentBankIndex).at(slot_id) = fNumberOfTDCs-1;
-            fCurrentSlot     = slot_id;
-            fCurrentTDCIndex = fNumberOfTDCs-1;
-        }
-    } else {
-        std::cerr << "QwDriftChamber::RegisterSlotNumber:  Slot number "
-        << slot_id << " is larger than the number of slots per ROC, "
-        << kMaxNumberOfTDCsPerROC << std::endl;
+  if (slot_id<kMaxNumberOfTDCsPerROC) {
+    if (fCurrentBankIndex>=0 && fCurrentBankIndex<=fTDC_Index.size()) {
+      fTDCPtrs.resize(fNumberOfTDCs+1);
+      fTDCPtrs.at(fNumberOfTDCs).resize(kMaxNumberOfChannelsPerTDC);
+      fNumberOfTDCs = fTDCPtrs.size();
+      fTDC_Index.at(fCurrentBankIndex).at(slot_id) = fNumberOfTDCs-1;
+      fCurrentSlot     = slot_id;
+      fCurrentTDCIndex = fNumberOfTDCs-1;
     }
-    return fCurrentTDCIndex;
+  } else {
+    std::cerr << "QwDriftChamber::RegisterSlotNumber:  Slot number "
+	      << slot_id << " is larger than the number of slots per ROC, "
+	      << kMaxNumberOfTDCsPerROC << std::endl;
+  }
+  return fCurrentTDCIndex;
 };
 
 Int_t QwDriftChamber::GetTDCIndex(size_t bank_index, size_t slot_num) const {

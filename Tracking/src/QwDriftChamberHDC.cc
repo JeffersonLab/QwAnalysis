@@ -51,7 +51,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
 
   DIRMODE=0;
 
-
+  
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
 
@@ -127,7 +127,10 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
   plane = 1;
   std::sort(fDetectorInfo.at(kPackageUp).begin(),
             fDetectorInfo.at(kPackageUp).end());
-  for (UInt_t i = 0; i < fDetectorInfo.at(kPackageUp).size(); i++) {
+  
+  std::vector< std::vector< QwDetectorInfo > >::size_type i = 0;
+
+  for ( i=0; i < fDetectorInfo.at(kPackageUp).size(); i++) {
     fDetectorInfo.at(kPackageUp).at(i).fPlane = plane++;
     QwMessage << " Region " << fDetectorInfo.at(kPackageUp).at(i).fRegion << " Detector ID " << fDetectorInfo.at(kPackageUp).at(i).fDetectorID << QwLog::endl;
   }
@@ -135,7 +138,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
   plane = 1;
   std::sort(fDetectorInfo.at(kPackageDown).begin(),
             fDetectorInfo.at(kPackageDown).end());
-  for (UInt_t i = 0; i < fDetectorInfo.at(kPackageDown).size(); i++) {
+  for ( i=0; i < fDetectorInfo.at(kPackageDown).size(); i++) {
     fDetectorInfo.at(kPackageDown).at(i).fPlane = plane++;
     QwMessage << " Region " << fDetectorInfo.at(kPackageDown).at(i).fRegion << " Detector ID " << fDetectorInfo.at(kPackageDown).at(i).fDetectorID << QwLog::endl;
   }
@@ -154,16 +157,25 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
 
 
 
-void  QwDriftChamberHDC::ReportConfiguration(){
-  for (size_t i = 0; i<fROC_IDs.size(); i++){
+void  QwDriftChamberHDC::ReportConfiguration()
+{
+
+  std::vector<UInt_t>::size_type i = 0;
+  UInt_t k = 0;
+  Int_t tdcindex = 0;
+  Int_t ind = 0;
+  QwMessage << "QwDriftChamberHDC::ReportConfiguration fTDCPtrs.size()" << fTDCPtrs.size() << QwLog::endl;
+
+  for ( i = 0; i<fROC_IDs.size(); i++){
+ 
     for (size_t j=0; j<fBank_IDs.at(i).size(); j++){
-      Int_t ind = GetSubbankIndex(fROC_IDs.at(i),fBank_IDs.at(i).at(j));
+      ind = GetSubbankIndex(fROC_IDs.at(i),fBank_IDs.at(i).at(j));
       QwMessage << "ROC " << fROC_IDs.at(i)
 		<< ", subbank " << fBank_IDs.at(i).at(j)
 		<< ":  subbank index==" << ind
 		<< QwLog::endl;
-      for (size_t k=0; k<kMaxNumberOfTDCsPerROC; k++){
-	Int_t tdcindex = GetTDCIndex(ind,k);
+      for ( k=0; k<kMaxNumberOfTDCsPerROC; k++){
+	tdcindex = GetTDCIndex(ind,k);
 	QwMessage << "    Slot " << k;
 	if (tdcindex == -1)
 	  QwMessage << "  Empty" << QwLog::endl;
@@ -369,8 +381,6 @@ void  QwDriftChamberHDC::FillRawTDCWord (Int_t bank_index, Int_t slot_num, Int_t
 
     EQwDirectionID direction = kDirectionNull;
 
-    hitcnt  = 1;
-
     if (plane == -1 || wire == -1){
       //  This channel is not connected to anything. Do nothing.
     }
@@ -379,14 +389,7 @@ void  QwDriftChamberHDC::FillRawTDCWord (Int_t bank_index, Int_t slot_num, Int_t
       //now wire contains the value fCurrentBankIndex so we can assign the ref timing data to it.
     }
     else {
-      if(local_debug) {
-      std::cout << "At QwDriftChamberHDC::FillRawTDCWord " << "\n";
-      std::cout << " hitcnt " << hitcnt
-		<< " plane  " << plane
-		<< " wire   " << wire
-		<< " package " << package 
-		<< std::endl;
-      }
+   
 
       direction = (EQwDirectionID)fDirectionData.at(package-1).at(plane-1); 
       //Wire Direction is accessed from the vector -Rakitha (10/23/2008)
@@ -408,8 +411,22 @@ void  QwDriftChamberHDC::FillRawTDCWord (Int_t bank_index, Int_t slot_num, Int_t
 			       )
 			 );
       //in order-> bank index, slot num, chan, hitcount, region=2, package, plane,,direction, wire,wire hit time
+      if(local_debug) {
+	std::cout << "At QwDriftChamberHDC::FillRawTDCWord " << "\n";
+	std::cout << " hitcnt " << hitcnt
+		  << " plane  " << plane
+		  << " wire   " << wire
+		  << " package " << package 
+		  << " fTDCHits.size() " <<  fTDCHits.size() 
+		  << std::endl;
+      }
+
     }
+
   }
+  
+
+
   return;
 };
 
