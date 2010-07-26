@@ -24,6 +24,7 @@
  name = TS
  map = qweak_trigscint_channel.map
  geom = qweak_new.geo
+ mask = 0xffff
 
 [QwMainDetector]
  name = MD
