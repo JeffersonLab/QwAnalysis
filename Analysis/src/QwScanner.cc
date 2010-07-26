@@ -23,9 +23,10 @@ QwScanner::QwScanner(TString name)
     VQwSubsystemTracking(name)
 {
   fDEBUG = 0;
-  fEvtCounter = 0;
   fEventTypeMask = 0xffff; // explicit because of diamond inheritance
   ClearAllBankRegistrations();
+
+  fScaEventCounter = 0;
 };
 
 
@@ -156,14 +157,13 @@ Int_t QwScanner::LoadChannelMap(TString mapfile)
             }
         }
     }
-  //
   ReportConfiguration();
   return 0;
 };
 
 Int_t QwScanner::LoadInputParameters(TString parameterfile)
 {
-  Bool_t ldebug=kTRUE;
+  Bool_t ldebug=kFALSE;
   TString varname, varvalue;
   Double_t varped;
   Double_t varcal;
@@ -239,7 +239,8 @@ Int_t QwScanner::LoadInputParameters(TString parameterfile)
           varname.Remove(TString::kBoth,' ');
           varped= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
           varcal= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
-          if (ldebug) std::cout<<"inputs for channel "<<varname
+          if (ldebug)
+            std::cout<<"inputs for channel "<<varname
             <<": ped="<<varped<<", cal="<<varcal<<"\n";
         }
     }
@@ -321,8 +322,6 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
 {
   Int_t index = GetSubbankIndex(roc_id,bank_id);
 
-
-  fEvtCounter++;
   if (fDEBUG)
     std::cout << "FocalPlaneScanner::ProcessEvBuffer:  "
     << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
@@ -377,7 +376,8 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
       if (index>=0 && num_words>0)
         {
           SetDataLoaded(kTRUE);
-          if (fDEBUG) std::cout << "QwScanner::ProcessEvBuffer:  "
+          if (fDEBUG)
+            std::cout << "QwScanner::ProcessEvBuffer:  "
             << "Begin processing F1TDC Bank 0x"<<std::hex<<bank_id<<std::dec<<std::endl;
 
           Int_t tdc_slot_number = 0;
@@ -442,6 +442,7 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
       if (index>=0 && num_words>0)
         {
           SetDataLoaded(kTRUE);
+          fScaEventCounter++;
           //  This is a SCA bank We want to process this ROC.  Begin looping through the data.
 
           if (fDEBUG)
@@ -541,7 +542,7 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
                   try
                     {
                       // The slot number should be set properly in DAQ
-                      // using 0 for if it is not set
+                      // using 0 if it is not set
                       FillRawWord(index,fQDCTDC.GetTDCSlotNumber(),fQDCTDC.GetTDCChannelNumber(),
                                   fQDCTDC.GetTDCData());
                       //FillRawWord(index,0,GetTDCChannelNumber(),GetTDCData());
@@ -637,25 +638,55 @@ void  QwScanner::ProcessEvent()
         {
 
           TString element_name = fPMTs.at(i).at(j).GetElementName();
+          Double_t tmpvalue = fPMTs.at(i).at(j).GetValue();
+
           if (element_name==TString("front_adc"))
-            fFrontADC = fPMTs.at(i).at(j).GetValue();
+            fFrontADC = tmpvalue;
           else if (element_name==TString("back__adc"))
-            fBackADC = fPMTs.at(i).at(j).GetValue();
+            fBackADC = tmpvalue;
           else if (element_name==TString("front_f1"))
-            fFrontTDC = fPMTs.at(i).at(j).GetValue();
+            fFrontTDC = tmpvalue;
           else if (element_name==TString("back__f1"))
-            fBackTDC = fPMTs.at(i).at(j).GetValue();
+            fBackTDC = tmpvalue;
           // TODO jpan: replace the position determination with interplation table
           else if (element_name==TString("pos_x_adc"))
             {
-              fPositionX_ADC = fPMTs.at(i).at(j).GetValue();
-              fPositionX_ADC = (fPositionX_ADC-fChannel_Offset_X)*fCal_Factor_QDC_X + fHomePositionX;
+              if (tmpvalue>0)
+                {
+                  fPositionX_ADC = tmpvalue;
+                  fPositionX_ADC = (fPositionX_ADC-fChannel_Offset_X)*fCal_Factor_QDC_X + fHomePositionX;
+
+                  if (fScaEventCounter>1)
+                    {
+                      fMeanPositionX_ADC = 0.5*(fMeanPositionX_ADC + fPositionX_ADC);
+                    }
+                  else
+                    {
+                      fMeanPositionX_ADC = fPositionX_ADC;
+                    }
+                }
             }
           else if (element_name==TString("pos_y_adc"))
             {
-              fPositionY_ADC = fPMTs.at(i).at(j).GetValue();
-              fPositionY_ADC = (fPositionY_ADC-fChannel_Offset_Y)*fCal_Factor_QDC_Y + fHomePositionY;
+              if (tmpvalue>0)
+                {
+                  fPositionY_ADC = tmpvalue;
+                  fPositionY_ADC = (fPositionY_ADC-fChannel_Offset_Y)*fCal_Factor_QDC_Y + fHomePositionY;
+
+                  if (fScaEventCounter>1)
+                    {
+                      fMeanPositionY_ADC = 0.5*(fMeanPositionY_ADC + fPositionY_ADC);
+                    }
+                  else
+                    {
+                      fMeanPositionY_ADC = fPositionY_ADC;
+                    }
+                }
             }
+
+          /*            std::cout<<"fPositionX_ADC="<<fPositionX_ADC<<", fPositionY_ADC="<<fPositionY_ADC<<"\n";
+                      std::cout<<"fMeanPositionX_ADC="<<fMeanPositionX_ADC
+                               <<",fMeanPositionY_ADC="<<fMeanPositionY_ADC<<"\n";*/
         }
     }
 
@@ -742,17 +773,25 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
       fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_x")));
       fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_y")));
 
-      fHistograms2D.push_back( gQwHists.Construct2DHist(TString("scanner_rate_map")));
+      // fHistograms2D.push_back( gQwHists.Construct2DHist(TString("scanner_rate_map")));
 
       //TProfile2D(const char* name, const char* title,
       // Int_t nbinsx, Double_t xlow, Double_t xup,
       // Int_t nbinsy, Double_t ylow, Double_t yup,
       // Option_t* option = "")
-      fRateMap  = new TProfile2D("scanner_rate_map_profile",
-                                 "Scanner Rate Map Profile",110,-55,55,40,-355,-315);
-      fRateMap->GetXaxis()->SetTitle("PositionX");
-      fRateMap->GetYaxis()->SetTitle("PositionY");
-      fRateMap->SetOption("colz");
+
+      fRateMapCM  = new TProfile2D("scanner_rate_map_cm",
+                                   "Scanner Rate Map (Current Mode)",121,-60.5,60.5,40,-355.0,-315.0);
+      fRateMapCM->GetXaxis()->SetTitle("PositionX [cm]");
+      fRateMapCM->GetYaxis()->SetTitle("PositionY [cm]");
+      fRateMapCM->SetOption("colz");
+
+      fRateMapEM  = new TProfile2D("scanner_rate_map_em",
+                                   "Scanner Rate Map (Event Mode)",121,-60.5,60.5,40,-355.0,-315.0);
+      fRateMapEM->GetXaxis()->SetTitle("PositionX [cm]");
+      fRateMapEM->GetYaxis()->SetTitle("PositionY [cm]");
+      fRateMapEM->SetOption("colz");
+
     }
 };
 
@@ -827,29 +866,32 @@ void  QwScanner::FillHistograms()
     }
 
   //Fill rate map
-  Double_t rate = fCoincidenceSCA;
-  for (size_t j=0; j<fHistograms2D.size();j++)
+//   Double_t rate;
+//   for (size_t j=0; j<fHistograms2D.size();j++)
+//     {
+//       if (fHistograms2D.at(j)->GetTitle()==TString("scanner_rate_map"))
+//         {
+//           Int_t checkvalidity = 1;
+//           Double_t prevalue = get_value( fHistograms2D.at(j), fPositionX_ADC, fPositionY_ADC, checkvalidity);
+//           if (checkvalidity!=0)
+//             {
+//               rate = (prevalue + fCoincidenceSCA)*0.5;  //average value for this bin
+//
+//               fHistograms2D.at(j)->SetBinContent((Int_t) fPositionX_ADC, (Int_t)fPositionY_ADC,rate);
+//               Int_t xbin = fHistograms2D.at(j)->GetXaxis()->FindBin( fPositionX_ADC );
+//               Int_t ybin = fHistograms2D.at(j)->GetYaxis()->FindBin( fPositionY_ADC );
+//               fHistograms2D.at(j)->SetBinContent( fHistograms2D.at(j)->GetBin( xbin, ybin ), rate);
+//             }
+//         }
+//     }
+
+  fRateMapCM->Fill(fPositionX_VQWK,fPositionY_VQWK,fCoincidenceSCA,1);
+
+  if ( fScaEventCounter>1 && fCoincidenceSCA>0)
     {
-      if (fHistograms2D.at(j)->GetTitle()==TString("scanner_rate_map"))
-        {
-          Int_t checkvalidity = 1;
-          Double_t prevalue = get_value( fHistograms2D.at(j), fPositionX_ADC, fPositionY_ADC, checkvalidity);
-          if (checkvalidity!=0)
-            {
-              if (prevalue>0)
-                {
-                  rate = (prevalue + rate)*0.5;  //average value for this bin
-                }
-              fHistograms2D.at(j)->SetBinContent((Int_t) fPositionX_ADC, (Int_t)fPositionY_ADC,rate);
-              Int_t xbin = fHistograms2D.at(j)->GetXaxis()->FindBin( fPositionX_ADC );
-              Int_t ybin = fHistograms2D.at(j)->GetYaxis()->FindBin( fPositionY_ADC );
-              fHistograms2D.at(j)->SetBinContent( fHistograms2D.at(j)->GetBin( xbin, ybin ), rate);
-            }
-        }
+      //std::cout<<"Fill histo: "<<fMeanPositionX_ADC<<", "<<fMeanPositionY_ADC<<", "<<fCoincidenceSCA<<"\n";
+      fRateMapEM->Fill(fMeanPositionX_ADC,fMeanPositionY_ADC,fCoincidenceSCA,1);
     }
-
-  fRateMap->Fill(fPositionX_VQWK,fPositionY_VQWK,fCoincidenceSCA,1);
-
 };
 
 
@@ -877,9 +919,7 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vec
       else basename = prefix;
 
       values.push_back(0.0);
-      TString list = "EvtCounter/D";
-      values.push_back(0.0);
-      list += ":PowSupply_VQWK/D";
+      TString list = "PowSupply_VQWK/D";
       values.push_back(0.0);
       list += ":PositionX_VQWK/D";
       values.push_back(0.0);
@@ -979,7 +1019,6 @@ void  QwScanner::FillTreeVector(std::vector<Double_t> &values)
   if (! HasDataLoaded()) return;
 
   Int_t index = fTreeArrayIndex;
-  values[index++] = fEvtCounter;
   values[index++] = fPowSupply_VQWK;
   values[index++] = fPositionX_VQWK;
   values[index++] = fPositionY_VQWK;
@@ -1339,8 +1378,6 @@ const QwScanner::EModuleType QwScanner::RegisterModuleType(TString moduletype)
   else if (moduletype=="SIS3801")
     {
 
-
-
     }
 
   return fCurrentType;
@@ -1423,13 +1460,11 @@ Int_t QwScanner::FindSignalIndex(const QwScanner::EModuleType modtype, const TSt
 
 void QwScanner::SetPedestal(Double_t pedestal)
 {
-  fPedestal=pedestal;
-
   for (size_t i=0; i<fADC_Data.size(); i++)
     {
       if (fADC_Data.at(i) != NULL)
         {
-          fADC_Data.at(i)->SetPedestal(fPedestal);
+          fADC_Data.at(i)->SetPedestal(pedestal);
         }
     }
 
@@ -1438,12 +1473,11 @@ void QwScanner::SetPedestal(Double_t pedestal)
 
 void QwScanner::SetCalibrationFactor(Double_t calib)
 {
-  fCalibration=calib;
   for (size_t i=0; i<fADC_Data.size(); i++)
     {
       if (fADC_Data.at(i) != NULL)
         {
-          fADC_Data.at(i)->SetCalibrationFactor(fCalibration);
+          fADC_Data.at(i)->SetCalibrationFactor(calib);
         }
     }
 
@@ -1491,32 +1525,32 @@ void QwScanner::PrintInfo()
   return;
 }
 
-//scanner analysis utilities
-Double_t QwScanner::get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalidity)
-{
-  if (checkvalidity)
-    {
-      bool x_ok = ( h->GetXaxis()->GetXmin() < x && x < h->GetXaxis()->GetXmax() );
-      bool y_ok = ( h->GetYaxis()->GetXmin() < y && y < h->GetYaxis()->GetXmax() );
-
-      if (! ( x_ok && y_ok))
-        {
-//             if (!x_ok){
-//                 std::cerr << "x value " << x << " out of range ["<< h->GetXaxis()->GetXmin()
-//                           <<","<< h->GetXaxis()->GetXmax() << "]" << std::endl;
-//             }
-//             if (!y_ok){
-//                 std::cerr << "y value " << y << " out of range ["<< h->GetYaxis()->GetXmin()
-//                           <<","<< h->GetYaxis()->GetXmax() << "]" << std::endl;
-//             }
-          checkvalidity=0;
-          return -1e20;
-        }
-    }
-
-  const int xbin = h->GetXaxis()->FindBin( x );
-  const int ybin = h->GetYaxis()->FindBin( y );
-
-  return h->GetBinContent( h->GetBin( xbin, ybin ));
-};
+// //scanner analysis utilities
+// Double_t QwScanner::get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalidity)
+// {
+//   if (checkvalidity)
+//     {
+//       bool x_ok = ( h->GetXaxis()->GetXmin() < x && x < h->GetXaxis()->GetXmax() );
+//       bool y_ok = ( h->GetYaxis()->GetXmin() < y && y < h->GetYaxis()->GetXmax() );
+//
+//       if (! ( x_ok && y_ok))
+//         {
+// //             if (!x_ok){
+// //                 std::cerr << "x value " << x << " out of range ["<< h->GetXaxis()->GetXmin()
+// //                           <<","<< h->GetXaxis()->GetXmax() << "]" << std::endl;
+// //             }
+// //             if (!y_ok){
+// //                 std::cerr << "y value " << y << " out of range ["<< h->GetYaxis()->GetXmin()
+// //                           <<","<< h->GetYaxis()->GetXmax() << "]" << std::endl;
+// //             }
+//           checkvalidity=0;
+//           return -1e20;
+//         }
+//     }
+//
+//   const int xbin = h->GetXaxis()->FindBin( x );
+//   const int ybin = h->GetYaxis()->FindBin( y );
+//
+//   return h->GetBinContent( h->GetBin( xbin, ybin ));
+// };
 
