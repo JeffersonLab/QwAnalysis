@@ -39,8 +39,8 @@ class QwPartialTrack: public VQwTrackingElement {
     // Tree lines
     #define QWPARTIALTRACK_MAX_NUM_TREELINES 1000
     Int_t fNQwTreeLines; ///< Number of QwTreeLines in the array
-    TClonesArray        *fQwTreeLines; ///< Array of QwTreeLines
-    static TClonesArray *gQwTreeLines; ///< Static array of QwTreeLines
+    TClonesArray        *fQwTreeLines; //! ///< Array of QwTreeLines
+    static TClonesArray *gQwTreeLines; //! ///< Static array of QwTreeLines
 
 
   public: // methods
@@ -73,7 +73,7 @@ class QwPartialTrack: public VQwTrackingElement {
     // Get the number of partial tracks
     Int_t GetNumberOfTreeLines() const { return fNQwTreeLines; };
     // Print the list of tree lines
-    void PrintTreeLines();
+    void PrintTreeLines(Option_t *option = "") const;
 
     // Get the weighted chi squared
     double GetChiWeight ();
@@ -123,8 +123,6 @@ class QwPartialTrack: public VQwTrackingElement {
     };
 
   public: // members
-
-    std::vector <QwTrackingTreeLine*> fQwTreeLines2;
 
     Double_t fOffsetX;		///< x coordinate (at MAGNET_CENTER)
     Double_t fOffsetY;		///< y coordinate (at MAGNET_CENTER)

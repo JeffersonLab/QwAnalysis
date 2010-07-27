@@ -187,7 +187,7 @@ void QwGUITrackFinding::MakeLayout()
   dBtnpSlope -> Associate(this);
 
 ///////////// Menu drop down /////////////
-  dTabLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop | 
+  dTabLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop |
 				 kLHintsExpandX | kLHintsExpandY);
   dCnvLayout = new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY,
 				 0, 0, 1, 2);
@@ -198,7 +198,7 @@ void QwGUITrackFinding::MakeLayout()
   dMenuBarLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX,
 				     0, 0, 1, 1);
   dMenuBarItemLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0);
-  
+
   dMenuPlot1 = new TGPopupMenu(fClient->GetRoot());
   dMenuPlot2 = new TGPopupMenu(fClient->GetRoot());
 
@@ -250,11 +250,11 @@ std::cout << "Opened" << std::endl;
   if (!strcmp(cont->GetDataName(),"ROOT") && dROOTCont) {
 
     TObject* obj = dROOTCont->ReadData(fRootTrees.at(1));
-    
+
     // Note: fRootTrees[0] = hit_tree, fRootTrees[1] = event_tree
 
     if (obj) {
-	
+
        if (obj->InheritsFrom("TTree")) {
          TTree* tree = (TTree*) obj->Clone();
 
@@ -270,6 +270,35 @@ std::cout << "Opened" << std::endl;
 	    //          tree->SetBranchAddress("hits", &roothitlist);
             tree->SetBranchAddress("events", &event); //there is no events is hit_tree 6/30/10
 
+            // Create histograms
+            TH1F *fChiR2 = new TH1F("fChiR2","TreeLines Chi2 (Region 2)",100,0.0,65.0);
+
+            // Loop over events
+            for (int j = 0; j < entries; j++){
+
+              std::cout << "Getting entry " << j << std::endl;
+              tree->GetEntry(j);
+
+              std::cout << "Got Entry " << j << std::endl;
+
+              event->PrintTreeLines();
+              event->PrintPartialTracks();
+
+              TIterator* iterator = event->GetListOfTreeLines()->MakeIterator();
+              QwTrackingTreeLine* treeline = 0;
+              while ((treeline = (QwTrackingTreeLine*) iterator->Next())) {
+                switch (treeline->GetRegion()) {
+                  case kRegionID2:
+                    fChiR2->Fill(treeline->GetChiWeight());
+                    break;
+                  case kRegionID3:
+                    break;
+                  default: break;
+                }
+              } // end of loop over treelines
+
+              //std::cout << "Region " << region << std::endl;
+            }
 
 // Create histogram using Draw
 // Region 2 in blue and Region 3 in green
@@ -277,8 +306,8 @@ std::cout << "Opened" << std::endl;
 // Histogram from fQwTreeLines
 // TreeLines Chi2
 //TL Chi2 R2
-	    tree->Draw("events.fQwTreeLines.fChi>>fChiR2", "events.fQwTreeLines.fRegion==2"); //(100,0.0,60.0)
-	    TH1F *fChiR2 = (TH1F*)gDirectory->Get("fChiR2");
+//	    tree->Draw("events.fQwTreeLines.fChi>>fChiR2", "events.fQwTreeLines.fRegion==2"); //(100,0.0,60.0)
+//	    TH1F *fChiR2 = (TH1F*)gDirectory->Get("fChiR2");
 	    fChiR2->SetFillColor(kBlue);
             fChiR2->SetTitle("TreeLines Chi2 (Region 2)");
 //TL Chi2 R2 X,U,V Planes
@@ -427,7 +456,7 @@ std::cout << "Opened" << std::endl;
             pSlopeXR2->SetTitle("PartialTracks X Slope (Region 2)");
 	    tree->Draw("events.fQwPartialTracks.fSlopeX>>pSlopeXR3","events.fQwPartialTracks.fRegion==3");
 	    TH1F *pSlopeXR3 = (TH1F*)gDirectory->Get("pSlopeXR3");
-	    pSlopeXR3->SetFillColor(kGreen); 
+	    pSlopeXR3->SetFillColor(kGreen);
             pSlopeXR3->SetTitle("PartialTracks X Slope (Region 3)");
 //PartialTracks Slope Y
 // 	    tree->Draw("events.fQwPartialTracks.fSlopeY>>pSlopeY"); //(100.,-200.,100.)
@@ -459,7 +488,7 @@ std::cout << "Opened" << std::endl;
 	   HistArray.Add(slopeR2);
 	   HistArray.Add(slopeR3);
 
-	   HistArray.Add(fpChiR2);	
+	   HistArray.Add(fpChiR2);
 	   HistArray.Add(fpChiR3);	//10
 	   HistArray.Add(poffsetXR2);
 	   HistArray.Add(poffsetXR3);
@@ -489,20 +518,20 @@ std::cout << "Opened" << std::endl;
 	   HistArray.Add(offsetR3U);
 	   HistArray.Add(offsetR3V);
 
-           HistArray.Add(hdist);	
+           HistArray.Add(hdist);
 	   HistArray.Add(fNQwHits);
 
         }
 	else{
 	std::cout<<"no events branch"<<std::endl;
         }
-	
+
       }
       else{
 	std::cout<<"no Tree inherited"<<std::endl;
       }
-        
-  
+
+
 //     TCanvas *mc = NULL;
 //     mc = dCanvas->GetCanvas();
 //     mc->Clear();
@@ -627,7 +656,7 @@ void QwGUITrackFinding::PlotChi2()
 
 
   obj = HistArray.At(0);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -639,7 +668,7 @@ void QwGUITrackFinding::PlotChi2()
   obj->Draw();
 
   obj = HistArray.At(1);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -673,14 +702,14 @@ void QwGUITrackFinding::PlotResidual()
   dMenuPlot2->AddEntry("&All", TF_RESIDUAL);
 
   TObject *obj = NULL;
-  
+
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
 
 
   obj = HistArray.At(2);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -692,7 +721,7 @@ void QwGUITrackFinding::PlotResidual()
   return;
 }
 
-void QwGUITrackFinding::PlotOffset() 
+void QwGUITrackFinding::PlotOffset()
 {  std::cout<<"Plotting Offset..."<<std::endl;
 
   dMenuPlot1->EnableEntry(TF_PLOT_LINEAR);
@@ -709,7 +738,7 @@ void QwGUITrackFinding::PlotOffset()
   dMenuPlot2->AddEntry("&All", TF_OFFSET);
 
   TObject *obj = NULL;
-  
+
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
@@ -717,7 +746,7 @@ void QwGUITrackFinding::PlotOffset()
 
   mc->cd(1);
 //   obj = HistArray.At(3);  // Get histogram from tree
-//   if(! obj) 
+//   if(! obj)
 // 	{
 // 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 // 	return;
@@ -725,7 +754,7 @@ void QwGUITrackFinding::PlotOffset()
 //   obj->Draw();
 
   obj = HistArray.At(4);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -734,7 +763,7 @@ void QwGUITrackFinding::PlotOffset()
 
   mc->cd(2);
   obj = HistArray.At(5);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -763,7 +792,7 @@ void QwGUITrackFinding::PlotSlope()
   dMenuPlot2->AddEntry("&All", TF_SLOPE);
 
   TObject *obj = NULL;
-  
+
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
@@ -771,7 +800,7 @@ void QwGUITrackFinding::PlotSlope()
 
   mc->cd(1);
   obj = HistArray.At(7);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -781,7 +810,7 @@ void QwGUITrackFinding::PlotSlope()
 
   mc->cd(2);
   obj = HistArray.At(8);
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -807,14 +836,14 @@ void QwGUITrackFinding::PlotpChi2()
   dMenuPlot2->DeleteEntry(dMenuPlot2->GetEntry("V"));
   dMenuPlot2->DeleteEntry(dMenuPlot2->GetEntry("All"));
 
-  TObject *obj = NULL;  
+  TObject *obj = NULL;
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
   mc->Divide(2,2);
 
   obj = HistArray.At(9);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -826,7 +855,7 @@ void QwGUITrackFinding::PlotpChi2()
   obj->Draw();
 
   obj = HistArray.At(10);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -853,13 +882,13 @@ void QwGUITrackFinding::PlotpResidual()
   dMenuPlot2->DeleteEntry(dMenuPlot2->GetEntry("All"));
 
   TObject *obj = NULL;
-  
+
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
 
   obj = HistArray.At(19);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -883,7 +912,7 @@ void QwGUITrackFinding::PlotpOffset()
   dMenuPlot2->DeleteEntry(dMenuPlot2->GetEntry("All"));
 
   TObject *obj = NULL;
-  
+
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
@@ -891,7 +920,7 @@ void QwGUITrackFinding::PlotpOffset()
 
   mc->cd(1)->SetLogy();
   obj = HistArray.At(11);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -900,7 +929,7 @@ void QwGUITrackFinding::PlotpOffset()
 
   mc->cd(2)->SetLogy();
   obj = HistArray.At(13);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -909,7 +938,7 @@ void QwGUITrackFinding::PlotpOffset()
 
   mc->cd(3)->SetLogy();
   obj = HistArray.At(12);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -918,7 +947,7 @@ void QwGUITrackFinding::PlotpOffset()
 
   mc->cd(4)->SetLogy();
   obj = HistArray.At(14);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -942,7 +971,7 @@ void QwGUITrackFinding::PlotpSlope()
   dMenuPlot2->DeleteEntry(dMenuPlot2->GetEntry("All"));
 
    TObject *obj = NULL;
-  
+
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
@@ -950,7 +979,7 @@ void QwGUITrackFinding::PlotpSlope()
 
   mc->cd(1)->SetLogy();
   obj = HistArray.At(15);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -959,7 +988,7 @@ void QwGUITrackFinding::PlotpSlope()
 
   mc->cd(2)->SetLogy();
   obj = HistArray.At(17);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -968,7 +997,7 @@ void QwGUITrackFinding::PlotpSlope()
 
   mc->cd(3)->SetLogy();
   obj = HistArray.At(16);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -977,7 +1006,7 @@ void QwGUITrackFinding::PlotpSlope()
 
   mc->cd(4)->SetLogy();
   obj = HistArray.At(18);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -1006,7 +1035,7 @@ void QwGUITrackFinding::PlotTLChi2X()
 
 
   obj = HistArray.At(25);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -1040,7 +1069,7 @@ void QwGUITrackFinding::PlotTLChi2U()
 
 
   obj = HistArray.At(26);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -1052,7 +1081,7 @@ void QwGUITrackFinding::PlotTLChi2U()
   obj->Draw();
 
   obj = HistArray.At(28);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -1082,7 +1111,7 @@ void QwGUITrackFinding::PlotTLChi2V()
 
 
   obj = HistArray.At(27);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -1094,7 +1123,7 @@ void QwGUITrackFinding::PlotTLChi2V()
   obj->Draw();
 
   obj = HistArray.At(29);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -1117,7 +1146,7 @@ void QwGUITrackFinding::PlotTLOffsetX()
   dMenuPlot1->EnableEntry(TF_PLOT_LOG);
 
   TObject *obj = NULL;
-  
+
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
@@ -1126,7 +1155,7 @@ void QwGUITrackFinding::PlotTLOffsetX()
   mc->cd(1);
 
   obj = HistArray.At(30);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -1147,7 +1176,7 @@ void QwGUITrackFinding::PlotTLOffsetU()
   dMenuPlot1->EnableEntry(TF_PLOT_LOG);
 
   TObject *obj = NULL;
-  
+
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
@@ -1156,7 +1185,7 @@ void QwGUITrackFinding::PlotTLOffsetU()
   mc->cd(1);
 
   obj = HistArray.At(31);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -1165,7 +1194,7 @@ void QwGUITrackFinding::PlotTLOffsetU()
 
   mc->cd(2);
   obj = HistArray.At(33);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -1184,7 +1213,7 @@ void QwGUITrackFinding::PlotTLOffsetV()
   dMenuPlot1->EnableEntry(TF_PLOT_LOG);
 
   TObject *obj = NULL;
-  
+
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
@@ -1193,7 +1222,7 @@ void QwGUITrackFinding::PlotTLOffsetV()
   mc->cd(1);
 
   obj = HistArray.At(32);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -1202,7 +1231,7 @@ void QwGUITrackFinding::PlotTLOffsetV()
 
   mc->cd(2);
   obj = HistArray.At(34);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -1222,7 +1251,7 @@ void QwGUITrackFinding::PlotTLSlopeX()
 
 
   TObject *obj = NULL;
-  
+
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
@@ -1230,7 +1259,7 @@ void QwGUITrackFinding::PlotTLSlopeX()
 
   mc->cd(1);
   obj = HistArray.At(20);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -1252,7 +1281,7 @@ void QwGUITrackFinding::PlotTLSlopeU()
   dMenuPlot1->EnableEntry(TF_PLOT_LOG);
 
   TObject *obj = NULL;
-  
+
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
@@ -1260,7 +1289,7 @@ void QwGUITrackFinding::PlotTLSlopeU()
 
   mc->cd(1);
   obj = HistArray.At(21);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -1270,7 +1299,7 @@ void QwGUITrackFinding::PlotTLSlopeU()
 
   mc->cd(2);
   obj = HistArray.At(23);
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -1289,7 +1318,7 @@ void QwGUITrackFinding::PlotTLSlopeV()
   dMenuPlot1->EnableEntry(TF_PLOT_LOG);
 
   TObject *obj = NULL;
-  
+
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
@@ -1297,7 +1326,7 @@ void QwGUITrackFinding::PlotTLSlopeV()
 
   mc->cd(1);
   obj = HistArray.At(22);  // Get histogram from tree
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -1307,7 +1336,7 @@ void QwGUITrackFinding::PlotTLSlopeV()
 
   mc->cd(2);
   obj = HistArray.At(24);
-  if(! obj) 
+  if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
