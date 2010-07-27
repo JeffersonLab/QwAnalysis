@@ -88,7 +88,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // Creates
    TGHorizontalFrame *fLogos = new TGHorizontalFrame(fMain,900,80,kHorizontalFrame | kRaisedFrame,ucolor);
    fLogos->SetLayoutBroken(kTRUE);
    // Insert Qweak logo
-   TGIcon *QweakLogo = new TGIcon(fLogos,"/home/dwjones/Desktop/Logos/qweak.jpg");
+   TGIcon *QweakLogo = new TGIcon(fLogos, getenv_safe_TString("QWANALYSIS") + "/Extensions/Logos/qweak.jpg");
    fLogos->AddFrame(QweakLogo, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    QweakLogo->MoveResize(0,1,140,77);
 
@@ -113,7 +113,7 @@ QwEventDisplay::QwEventDisplay(const TGWindow *p,UInt_t w,UInt_t h){  // Creates
    TitleBox->MoveResize(143,1,627,77);
 
    // Insert GWU logo
-   TGIcon *GWULogo = new TGIcon(fLogos, "/home/dwjones/Desktop/Logos/gwu_logo_main.gif");
+   TGIcon *GWULogo = new TGIcon(fLogos, getenv_safe_TString("QWANALYSIS") + "/Extensions/Logos/gwu_logo_main.gif");
    fLogos->AddFrame(GWULogo, new TGLayoutHints(kLHintsNormal));
    GWULogo->MoveResize(772,1,135,77);
 
