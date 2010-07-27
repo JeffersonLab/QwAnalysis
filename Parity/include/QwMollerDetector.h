@@ -80,7 +80,9 @@ class QwMollerDetector: public VQwSubsystemParity {
     Int_t LoadEventCuts(TString & filename);
     Bool_t SingleEventCuts();
     Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-    Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+    Int_t ProcessConfigurationBuffer(UInt_t ev_type, const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+    Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t *buffer, UInt_t num_words);
+    Int_t ProcessEvBuffer(UInt_t ev_type, UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
     void  PrintDetectorID();
     void  ClearEventData();
     void  ProcessEvent();
@@ -90,15 +92,14 @@ class QwMollerDetector: public VQwSubsystemParity {
     VQwSubsystem& operator=  (VQwSubsystem *value);
     VQwSubsystem& operator+= (VQwSubsystem *value);
     VQwSubsystem& operator-= (VQwSubsystem *value);
-    VQwSubsystem& operator*= (VQwSubsystem *value);
     VQwSubsystem* Copy();
     void  Copy(VQwSubsystem *source);
     void  Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
     void  Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
     void  Ratio(VQwSubsystem  *value1, VQwSubsystem  *value2);
     void  Scale(Double_t);
-    void  AccumulateRunningSum(VQwSubsystem* value){ };
-    void  CalculateRunningAverage(){ };
+    void  AccumulateRunningSum(VQwSubsystem* value);
+    void  CalculateRunningAverage();
     Int_t LoadEventCuts(TString filename);
     Bool_t  ApplySingleEventCuts();
     Int_t GetEventcutErrorCounters();
@@ -108,7 +109,7 @@ class QwMollerDetector: public VQwSubsystemParity {
 
     Bool_t Compare(VQwSubsystem *source);
     void print();
-
+    void PrintValue() const;
     float* GetRawChannelArray();
 
     Int_t GetChannelIndex(TString channelName, Int_t module_number); 
@@ -126,6 +127,7 @@ class QwMollerDetector: public VQwSubsystemParity {
     
     //the running total scaler structure
     std::vector< std::vector<QwSTR7200_Channel> > fSTR7200_Channel;
+    std::vector< std::vector<QwSTR7200_Channel> > fPrevious_STR7200_Channel;
 
   private:
     Int_t fQwMollerErrorCount;

@@ -107,9 +107,11 @@ class QwHelicity: public VQwSubsystemParity{
 
   Int_t  ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id,
 				   UInt_t* buffer, UInt_t num_words);
-  Int_t  ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  Int_t  ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words){return ProcessEvBuffer(0,roc_id,bank_id,buffer,num_words);};
+  Int_t  ProcessEvBuffer(UInt_t ev_type, const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   void   ProcessEventUserbitMode();//ProcessEvent has two modes Userbit and Inputregister modes
   void   ProcessEventInputRegisterMode();
+  void   ProcessEventInputMollerMode();
 
   void   EncodeEventData(std::vector<UInt_t> &buffer);
 
@@ -126,7 +128,6 @@ class QwHelicity: public VQwSubsystemParity{
   void   RunPredictor();
   void   SetHelicityDelay(Int_t delay);
 
-  void	SetHelicityReported(Int_t helicity);
   Int_t  GetHelicityReported();
   Int_t  GetHelicityActual();
   Int_t  GetHelicityDelayed();
@@ -179,7 +180,8 @@ class QwHelicity: public VQwSubsystemParity{
 
   enum HelicityEncodingType{kHelUserbitMode=0,
 			    kHelInputRegisterMode,
-			    kHelLocalyMadeUp};
+			    kHelLocalyMadeUp,
+          kHelInputMollerMode};
   // this values allow to switch the code between different helicity encoding mode.
 
   std::vector <QwWord> fWord;
@@ -266,6 +268,8 @@ class QwHelicity: public VQwSubsystemParity{
   Bool_t BIT30;
 
   Int_t fPATTERNPHASEOFFSET;
+
+  UInt_t fEventType;
 
 };
 

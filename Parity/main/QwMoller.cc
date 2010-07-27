@@ -55,7 +55,7 @@ static bool bDebug = false;
 static bool bTree = true;
 static bool bHisto = true;
 static bool bHelicity = true;
-static bool bTrueHelicity = false;
+static bool bTrueHelicity = true;
 static bool bFakeHelicity = false;
 static bool bMoller = true;
 
@@ -70,8 +70,6 @@ int main(int argc, char* argv[])
   std::cout << std::endl << " -= Moller Run Analyzer Started =-" << std::endl;
   //QwParameterFile::AppendToSearchPath(".");
   gQwOptions.SetConfigFile("moller.flags");
-
-  float average=0, counter=0;
 
   /// Set the expected options, command line arguments and the configuration filename
   setOptions();
@@ -113,7 +111,8 @@ int main(int argc, char* argv[])
   detectors.push_back(new QwMollerDetector("Moller Detector"));
   moll_detect = dynamic_cast<QwMollerDetector*> (detectors.GetSubsystemByName("Moller Detector"));
 
-
+  ///  Create the running sum
+  QwSubsystemArrayParity runningsum(detectors);
 
   if (moll_detect) {
     moll_detect->LoadChannelMap("moller_channels.map");
@@ -191,7 +190,6 @@ int main(int argc, char* argv[])
     // ROOT file output (trees)
     TTree *mpstree;
     TTree *heltree;
-    Int_t eventnumber;
     std::vector <Double_t> mpsvector;
     std::vector <Double_t> helvector;
 
@@ -200,7 +198,6 @@ int main(int argc, char* argv[])
       rootfile.cd();
       mpstree = new TTree("MPS_Tree","MPS event data tree");
       mpsvector.reserve(6000);
-      mpstree->Branch("eventnumber",&eventnumber,"eventnumber/F");
       TString dummystr="";
       detectors.ConstructBranchAndVector(mpstree, dummystr, mpsvector);
 
@@ -215,7 +212,7 @@ int main(int argc, char* argv[])
       }
     }
 
-
+    
 
     while (eventbuffer.GetEvent() == CODA_OK) {
       
@@ -236,41 +233,18 @@ int main(int argc, char* argv[])
       /// Add event into the subsystem 
       eventbuffer.FillSubsystemData(detectors);
 
- 
-      if (eventbuffer.GetEventType() == 1){
-        helicity->SetHelicityReported(0);
-      } else if (eventbuffer.GetEventType() == 4){
-        helicity->SetHelicityReported(1);
-      } else {
-        continue;
-      }
-
-//      helicity->SetEventPatternPhase(eventnumber, eventnumber / kMultiplet, eventnumber % kMultiplet + 1);
 //      helicity->RunPredictor();
       detectors.ProcessEvent();
-//      std::cout << "event " << eventbuffer.GetEventNumber() << " event type " << eventbuffer.GetEventType() <<'\n';
 
-      // Helicity pattern
+      /// Helicity pattern
       if (bTrueHelicity)
         helicitypattern.LoadEventData(detectors);
-  
-  /*  if (g0evok .eqv. .true.) then   
+      
+      /// Accumulate the running sum to calculate the event based running average
+        runningsum.AccumulateRunningSum(detectors);
 
-            call fill_scal_hists
-
-            call calc_beamoff_scaler()
-
-            !beam polarization for a time bin
-            call calc_instant_bpol(run_number,run_number_chars)
-
-            !beam polarization for each helicity pair
-            call calc_bpol_byhpair
-            call calc_bpol_byquartet
-          end if
-*/
-      // Print the helicity information
-      if (bHelicity && true) {
-        std::cout <<"hel: "<< helicity->GetHelicityReported() << std::endl;
+      /// Print the helicity information
+      if (bHelicity && false) {
         // - actual helicity
         std::cout << (helicity->GetHelicityReported() == 0 ? "-" : helicity->GetHelicityReported() == 1 ? "+" : "?");
         // - delayed helicity
@@ -281,24 +255,21 @@ int main(int argc, char* argv[])
         }
       }
 
-    
-
-
-      // Fill the histograms
+      /// Fill the histograms
       if (bHisto) detectors.FillHistograms();
 
-      // Fill the expert tree
+      /// Fill the expert tree
       if (bTree) detectors.FillTree();
 
-      // Fill the tree
+      /// Fill the tree
       if (bTree) {
         eventnumber = eventbuffer.GetEventNumber();
         detectors.FillTreeVector(mpsvector);
         mpstree->Fill();
       }
 
-      // TODO We need another check here to test for pattern validity.  Right
-      // now the first 24 cycles are also added to the histograms.
+      /// TODO We need another check here to test for pattern validity.  Right
+      /// now the first 24 cycles are also added to the histograms.
       if (bHelicity && helicitypattern.IsCompletePattern()) {
         helicitypattern.CalculateAsymmetry();
         if (bHisto) helicitypattern.FillHistograms();
@@ -306,35 +277,17 @@ int main(int argc, char* argv[])
       }
 
 
-      // Periodically print event number
-      if ((eventbuffer.GetEventNumber() % 1000 == 0) || eventbuffer.GetEventNumber() % 10000 == 0){
+      /// Periodically print event number
+      if (eventbuffer.GetEventNumber() % 5000 == 0){
         QwMessage << "Number of events processed so far: " << eventbuffer.GetEventNumber() << QwLog::endl;
       }
 
-      float coincidentUp = moll_detect->GetDataForChannelInModule(0, "coincidences");
-      float accidentUp = moll_detect->GetDataForChannelInModule(0, "accidentals");
-      
-      float coincidentDown = moll_detect->GetDataForChannelInModule(1, "Coincidences");
-      float accidentDown = moll_detect->GetDataForChannelInModule(1, "Accidentals");
-
-//      std::cout << "cu:" << coincidentUp << " au:" << accidentUp << " cd:" << coincidentDown << " ad:" << accidentDown << std::endl;
-
-      float a = 0, da = 0;
-
-      float scale = 1;
-      /*calc_instant_bpol(0, 0, moll_detect);
-      calc_asym(coincidentUp, accidentUp, coincidentDown, accidentDown, scale, a, da); 
-  
-      std::cout << "result: " << a << '±' << da << std::endl;
-      average = (average*counter+a)/(counter+1);
-      counter++;*/
-    } // end of loop over events
+   } /// end of loop over events
 
     std::cout << "Last event processed: " << eventbuffer.GetEventNumber() << std::endl;
-    std::cout << "avg: " << average << '\n';
-    // Close ROOT file
+    /// Close ROOT file
     rootfile.Write(0,TObject::kOverwrite);
-    // Delete histograms
+    /// Delete histograms
     if (bHisto) {
       detectors.DeleteHistograms();
       if (bHelicity) helicitypattern.DeleteHistograms();
@@ -343,122 +296,33 @@ int main(int argc, char* argv[])
     // Close data file and print run summary
     eventbuffer.CloseDataFile();
     eventbuffer.ReportRunSummary();
-
+        
   } // end of loop over runs
+
+      if (eventbuffer.IsEndOfBurst()) {
+        helicitypattern.AccumulateRunningBurstSum();
+        helicitypattern.CalculateBurstAverage();
+        helicitypattern.ClearBurstSum();
+      }
+
+    if (helicitypattern.IsRunningSumEnabled()) {
+      helicitypattern.CalculateRunningAverage();
+      helicitypattern.PrintRunningAverage();
+      if (helicitypattern.IsBurstSumEnabled()) {
+        helicitypattern.CalculateRunningBurstAverage();
+        helicitypattern.PrintRunningBurstAverage();
+      }
+    }
+
+    // This will calculate running averages over single helicity events
+    runningsum.CalculateRunningAverage();
+    QwMessage << " Running average of events" << QwLog::endl;
+    QwMessage << " =========================" << QwLog::endl;
+    runningsum.PrintValue();
+
 
   std::cout << std::endl << " -= Moller Run Analyzer Ended =-" << std::endl << std::endl;
   return 0;
-}
-
-void calc_instant_bpol(char run_number, int run_number_chars, QwMollerDetector *detector){
-  
-  float qm[3],qp[3],bcurm,bcurp,bcur;
-  float a,da,bp,dbp,r,t;
-  
-  float *scal = detector->GetRawChannelArray();
-
-/*  for(int i = 0; i < 96; i++){
-    std::cout << scal[i] << ' ';
-  }
-  std::cout << std::endl;
-*/
-  float timebin = gQwOptions.GetValue<float>("timebin");
-  
-  
-/*  bool first = true;
-  for(int i = 0; i < 96; i++){
-    scal[i] = scal[i] + gscaler_change[i];
-  }
-*/
-  float bcm1_gain = gQwOptions.GetValue<float>("bcm1_gain");
-  float bcm2_gain = gQwOptions.GetValue<float>("bcm2_gain");
-  float bcm3_gain = gQwOptions.GetValue<float>("bcm3_gain");
-
-  float bcm1_offset = gQwOptions.GetValue<float>("bcm1_offset");
-  float bcm2_offset = gQwOptions.GetValue<float>("bcm2_offset");
-  float bcm3_offset = gQwOptions.GetValue<float>("bcm3_offset");
-
-  float pol_factor =  gQwOptions.GetValue<float>("pol_factor");
-
-  int bcm1_index = gQwOptions.GetValue<float>("bcm1_index");
-  int bcm2_index = gQwOptions.GetValue<float>("bcm2_index");
-  int bcm3_index = gQwOptions.GetValue<float>("bcm3_index");
-
-  int norm_bcm = gQwOptions.GetValue<float>("norm_bcm");
-
-  int clock_index = gQwOptions.GetValue<float>("clock_index");
-
-  //Do nothing if time since last calculation is less than timebin
-  if ((scal[clock_index]+scal[clock_index+32])/1e6 < timebin) return;
-
-  float bcur_limit =   gQwOptions.GetValue<float>("bcur_limit");
-  // calculation for last timebin
-
-  // charge
-  qm[1] = bcm1_gain * (scal[bcm1_index] - scal[clock_index] * bcm1_offset);
-  qm[2] = bcm2_gain * (scal[bcm2_index] - scal[clock_index] * bcm2_offset);
-  qm[3] = bcm3_gain * (scal[bcm3_index] - scal[clock_index] * bcm3_offset);
-
-  qp[1] = bcm1_gain * (scal[bcm1_index+32] - scal[clock_index+32] * bcm1_offset);
-  qp[2] = bcm2_gain * (scal[bcm2_index+32] - scal[clock_index+32] * bcm2_offset);
-  qp[3] = bcm3_gain * (scal[bcm3_index+32] - scal[clock_index+32] * bcm3_offset);
-
-  // beam currents
-  bcurm = qm[norm_bcm]/scal[clock_index]*1e6;
-  bcurp = qp[norm_bcm]/scal[clock_index+32]*1e6;
-  bcur = (qm[norm_bcm] + qp[norm_bcm])/(scal[clock_index] + scal[clock_index+32])*1e6;
-
-  // require both beam currents to be above limit 
-  if (bcurm > bcur_limit && bcurp > bcur_limit){
-
-    //normalization factor
-    r = qm[norm_bcm]/qp[norm_bcm];
-  
-    //get asymmetry
-    size_t i=7;
-    size_t j=10;
-    calc_asym(scal[i],scal[j],scal[i+32],scal[j+32],r,a,da);
-    
-    if (da != 0) {
-      //beam polarization
-      bp = a * pol_factor;
-      dbp = da/sqrt(1-a*a)*pol_factor;
-    
-      //time
-//      float t = gscaler[clock_index]+gscaler[clock_index+32] - (scal[clock_index] + scal[clock_index+32])/2.0;
-  //    t = t/1e6;
-    
-      //output
-/*      std::stringstream out;
-      out << run_number;
-      std::string outfile = "DAT/bpol_" + out.str() + ".dat"; 
-      std::ofstream ofile(outfile.c_str(), std::fstream::app);
-      ofile << bcur << bp << dbp;
-      ofile.close();
-  */  }
-  }
-
-  return;
-}
-
-
-void calc_asym(float m, float m0, float p, float p0, float r, float &a, float &da){
-
-    float dm = m-m0;
-    float dp = p-p0;
-
-    float diff = dm - r * dp;
-    float sum  = dm + r * dp;
-    float sum2 = dm * dp * sum * sum;
-
-    if (sum > 0 && sum2 > 0){
-        a = diff/sum;
-        da = sqrt( ((1.0 - a)*(1.0 - a)*(m + m0) + r*r*(1.0 + a)*(1.0 + a)*(p + p0))/(sum*sum));
-    } else {
-        a = 0;
-        da = 0;
-    }
-
 }
 
 void setOptions(){

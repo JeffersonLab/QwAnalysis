@@ -75,7 +75,7 @@ Bool_t QwHelicity::IsContinuous()
 Bool_t QwHelicity::IsGoodPatternNumber()
 {
   Bool_t results;
-
+  
   if((fPatternNumber == fPatternNumberOld) && (fPatternPhaseNumber == fPatternPhaseNumberOld+1))//same pattern new phase
        results = kTRUE; //got same pattern
   else if((fPatternNumber == fPatternNumberOld + 1) && (fPatternPhaseNumber == fMinPatternPhase))
@@ -402,6 +402,47 @@ void QwHelicity::ProcessEventInputRegisterMode()
   return;
 };
 
+void QwHelicity::ProcessEventInputMollerMode()
+{
+
+  static Bool_t firstpattern = kTRUE;
+
+  UInt_t thisinputregister=fWord[kInputRegister].fValue;
+
+  fEventNumber=fWord[kMpsCounter].fValue;
+
+
+  
+  if(fWord[kPatternPhase].fValue - fPATTERNPHASEOFFSET == 0)
+    if (firstpattern && (thisinputregister & 0x4) == 0x4){
+      firstpattern = kFALSE;
+    }
+  
+  
+  if (firstpattern){
+    fPatternNumber      = 0;
+    fPatternPhaseNumber = fMinPatternPhase; //was 0 I chaned to fMinPatternPhase.- Buddhini.
+  } else {
+    fPatternNumber = fWord[kPatternCounter].fValue;
+    fPatternPhaseNumber = fWord[kPatternPhase].fValue - fPATTERNPHASEOFFSET + fMinPatternPhase;
+    
+  }
+      
+  if(fEventNumber!=fEventNumberOld+1)
+    std::cerr<<"QwHelicity::ProcessEvent read event# is not  old_event#+1 \n";
+  
+  if ((thisinputregister & 0x4) == 0x4 && fPatternPhaseNumber != fMinPatternPhase){
+    //  Quartet bit is set.
+    std::cerr<<"QwHelicity::ProcessEvent:  The Multiplet Sync bit is  set, but  the Pattern Phase (" 
+       << fPatternPhaseNumber << ") is not "<<fMinPatternPhase<<"!" << std::endl;
+  }
+  
+  fHelicityReported = (fEventType == 1 ? 0 : 1);
+  fHelicityBitPlus = !fHelicityBitMinus;
+
+  return;
+};
+
 
 void  QwHelicity::ProcessEvent()
 {
@@ -426,9 +467,11 @@ void  QwHelicity::ProcessEvent()
     case kHelUserbitMode :
       ProcessEventUserbitMode();
       break;
-
     case kHelInputRegisterMode :
       ProcessEventInputRegisterMode();
+      break;
+    case kHelInputMollerMode :
+      ProcessEventInputMollerMode();
       break;
     default:
       QwError<<"QwHelicity::ProcessEvent no instructions on how to decode the helicity !!!!"<<QwLog::endl;
@@ -617,12 +660,16 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	    std::cout<<"**** Helicity Locally Made Up ****"<<std::endl;
 	    fHelicityDecodingMode=kHelLocalyMadeUp;
 	  }
+    else if (varvalue=="InputMollerMode") {
+      std::cout<<"**** Input Moller Mode ****"<<std::endl;
+      fHelicityDecodingMode=kHelInputMollerMode;
+    }
 	  else
-	    {
+	  {
 	      QwError <<"The helicity decoding mode read in file "<<mapfile
 		      <<" is not recognized in function QwHelicity::LoadChannelMap \n"
 		      <<" Quiting this execution."<<QwLog::endl;
-	    }
+	  }
 	}
     } else{
       Bool_t lineok=kTRUE;
@@ -685,6 +732,12 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	      if(namech.Contains("pat_counter")) kPatternCounter= fWord.size()-1;
 	      if(namech.Contains("pat_phase")) kPatternPhase= fWord.size()-1;
 	      break;
+      case kHelInputMollerMode :
+        if(namech.Contains("input_register")){ kInputRegister= fWord.size()-1; std::cout << "kInputRegister: " << kInputRegister << '\n';}
+        if(namech.Contains("mps_counter")) { kMpsCounter= fWord.size()-1;  std::cout << "kMpsCounter: " << kMpsCounter << '\n';}
+        if(namech.Contains("pat_counter")) { kPatternCounter = fWord.size()-1; std::cout << "kPatternPhase: " << kPatternPhase << '\n';}
+        if(namech.Contains("pat_phase")) { kPatternPhase= fWord.size()-1; std::cout << "kPatternCounter: " << kPatternCounter << '\n';}
+        break;
 	    }
 	}
     }
@@ -729,44 +782,47 @@ Int_t QwHelicity::LoadEventCuts(TString filename){
   return 0;
 };
 
-
-Int_t QwHelicity::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
+Int_t QwHelicity::ProcessEvBuffer(UInt_t ev_type, const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   Bool_t lkDEBUG=kFALSE;
 
+  fEventType = ev_type;
+ 
   Int_t index = GetSubbankIndex(roc_id,bank_id);
 
-  if (index>=0 && num_words>0){
+  if (index>=0 && num_words>0)
+  {
     //  We want to process this ROC.  Begin loopilooping through the data.
     if (lkDEBUG)
       {
-	std::cout << "QwHelicity::ProcessEvBuffer:  "
-		  << "Begin processing ROC" << roc_id
-		  << " and subbank "<<bank_id
-		  << " number of words="<<num_words<<std::endl;
+	      std::cout << "QwHelicity::ProcessEvBuffer:  "
+		    << "Begin processing ROC" << roc_id
+		    << " and subbank "<<bank_id
+		    << " number of words="<<num_words<<std::endl;
       }
 
     for(Int_t i=fWordsPerSubbank[index].first; i<fWordsPerSubbank[index].second; i++)
-      {
-	if(fWord[i].fWordInSubbank+1<= (Int_t) num_words)
-	  {
-	    fWord[i].fValue=buffer[fWord[i].fWordInSubbank];
-	  }
-	else
-	  {
-	    std::cout<<"There is not enough word in the buffer to read data for "
-		     <<fWord[i].fWordName<<"\n";
-	    std::cout<<"words in this buffer:"<<num_words<<" tyring to read woord number ="
-		     <<fWord[i].fWordInSubbank<<"\n";
-	  }
-      }
+    {
+	    if(fWord[i].fWordInSubbank+1<= (Int_t) num_words)
+	    {
+	      fWord[i].fValue=buffer[fWord[i].fWordInSubbank];
+	    }
+	    else
+	    {
+	      std::cout<<"There is not enough word in the buffer to read data for "
+		      <<fWord[i].fWordName<<"\n";
+	      std::cout<<"words in this buffer:"<<num_words<<" tyring to read woord number ="
+		      <<fWord[i].fWordInSubbank<<"\n";
+	    }
+    }
     if(lkDEBUG)
       {
-	std::cout<<"Done with Processing this event \n";
-	for(size_t i=0;i<fWord.size();i++) {
-	  std::cout<<" word number = "<<i<<" ";
-	  fWord[i].Print();
-	}
+	      std::cout<<"Done with Processing this event \n";
+	      for(size_t i=0;i<fWord.size();i++) 
+          {
+	          std::cout<<" word number = "<<i<<" ";
+	          fWord[i].Print();
+	        }
       }
   }
   lkDEBUG=kFALSE;
@@ -1304,10 +1360,6 @@ UInt_t QwHelicity::GetRandomSeed(UShort_t* first24randbits)
   return ranseed;
 
 };
-
-void QwHelicity::SetHelicityReported( Int_t helicity){
-  fHelicityReported = helicity;
-}
 
 
 void QwHelicity::RunPredictor()
