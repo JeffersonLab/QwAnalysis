@@ -1,0 +1,4 @@
+#defines variables to be monitored 
+# arbitrary number os space separated strings , multiple lines, will be connverted to lower case after reading, removal of duplicates, alphabetic sorting
+MD1pos  MD1neg MD2pos  MD2neg MD3pos  MD3neg MD4pos  MD4neg 
+MD5pos  MD5neg MD6pos  MD6neg MD7pos  MD7neg MD8pos  MD8neg 

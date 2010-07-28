@@ -14,6 +14,8 @@
 
 // Boost headers
 #include <boost/shared_ptr.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/io.hpp>
 
 // ROOT headers
 #include <Rtypes.h>
@@ -40,13 +42,13 @@
 #include "QwScanner.h"
 #include "QwLumi.h"
 
-// for correlator
-#include "QwCorrelator.h"
-
+// Jan0:  for correlation analysis
+#include "QwCorrelationMonitor.h"
 
 
 Int_t main(Int_t argc, Char_t* argv[])
 {
+
   ///  First, fill the search paths for the parameter files; this sets a
   ///  static variable within the QwParameterFile class which will be used by
   ///  all instances.
@@ -70,7 +72,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
   ///  histogram helper: QwHistogramHelper
   gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
-  gQwHists.LoadHistParamsFromFile("qweak_correlation_hists.in"); // add new
+  gQwHists.LoadHistParamsFromFile("qweak_correlation_monitor_hists.in"); // add new
   gQwHists.LoadTreeParamsFromFile("Qweak_Tree_Trim_List.in");
 
 
@@ -103,17 +105,22 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Set up the database connection
   QwDatabase database(gQwOptions);
 
-  // initialization of correlator
-  QwCorrelator correlator;
-  // add as many as space separated names as  you like
-  //  correlator.AddInputVariables("md5neg md5pos md7neg md2pos");
-  for(int i=1;i<=8;i++)
-    correlator.AddInputVariables(Form("md%dpos md%dneg ",i,i));
-  //printf("%s",Form("md%dpos md%dneg ",i,i));
- 
-  correlator.AccessInputVector(detectors);
-  //correlator.AddInputVariables("md4neg "); // this will fail because is too late
-  std::cout<<correlator<<std::endl;
+  //Jan1: initialization of correlation monitor(s) ---------------- Jan
+  enum {mxCM=2}; // define # of concurent monitors
+  QwCorrelationMonitor corrMon[mxCM];
+  for(int i=0;i<mxCM;i++) {
+    QwCorrelationMonitor *cm=corrMon+i;
+    // params: prefix, nSkip, nSkipHist, highCorrTag
+    cm->SetParams( Form("%c",'A'+i),200,0.41); 
+    if(i==0) cm->AddVariableList("qweak_corrMapA.map"); 
+    if(i==1)  cm->AddVariables("MD5neg  MD7neg MD2pos");
+    cm->AccessChannels(detectors);
+    QwMessage<<corrMon[i]<<QwLog::endl;
+  } 
+  // there are 2 alternative methods of defining of list variables to monitor
+  //  from the input file:AddVariableList( file name ) 
+  //  or hardoced AddVariables( list) 
+  //  prefix is used to to distinguish histograms from instances
 
 
   ///  Start loop over all runs
@@ -130,8 +137,8 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Construct histograms
     rootfile->ConstructHistograms(detectors);
     rootfile->ConstructHistograms(helicitypattern);
-
-    correlator.SetHistos();
+    //Jan2: accumulate data   ......................Jan
+    for(int i=0;i<mxCM;i++) corrMon[i].ConstructHistograms();
     
     //  Construct tree branches
     rootfile->ConstructTreeBranches(detectors);
@@ -174,11 +181,10 @@ Int_t main(Int_t argc, Char_t* argv[])
       //  Process the subsystem data
       detectors.ProcessEvent();
 
-
-      if(eventbuffer.GetEventNumber()>200) { // tmp skip firts events
-	correlator.Accumulate();
-      }
-
+      //Jan3: accumulate data   ......................Jan
+      if(eventbuffer.GetEventNumber()>300) // skip some early events
+	for(int i=0;i<mxCM;i++) corrMon[i].Accumulate();
+  
       // The event pass the event cut constraints
       if (detectors.ApplySingleEventCuts()) {
 
@@ -249,12 +255,17 @@ Int_t main(Int_t argc, Char_t* argv[])
     runningsum.CalculateRunningAverage();
     QwMessage << " Running average of events" << QwLog::endl;
     QwMessage << " =========================" << QwLog::endl;
-    runningsum.PrintValue();
-    correlator.NiceOutput();
-    correlator.PrintSummary();
+   runningsum.PrintValue();
 
-    /*  Write to the root file, being sure to delete the old cycles  *
-     *  which were written by Autosave.                              *
+   //Jan4: end-of-run calcualtions  ......................Jan
+   for(int i=0;i<mxCM;i++) {
+     QwCorrelationMonitor *cm=corrMon+i;
+     cm->NiceOutput();
+     cm->PrintSummary();
+   }
+
+   /*  Write to the root file, being sure to delete the old cycles  *
+    *  which were written by Autosave.                              *
      *  Doing this will remove the multiple copies of the ntuples    *
      *  from the root file.                                          *
      *                                                               *
@@ -267,6 +278,8 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Delete histograms
     rootfile->DeleteHistograms(detectors);
     rootfile->DeleteHistograms(helicitypattern);
+    //Jan5:  delete histos ...........................Jan
+    for(int i=0;i<mxCM;i++) corrMon[i].DeleteHistograms();
 
     //  Close event buffer stream
     eventbuffer.CloseStream();

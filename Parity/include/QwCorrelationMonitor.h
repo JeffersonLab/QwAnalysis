@@ -1,5 +1,5 @@
-#ifndef QWCORRELATOR_H
-#define QWCORRELATOR_H
+#ifndef QWCORRELMONITOR_H
+#define QWCORRELMONITOR_H
 
 // System headers
 #include <vector>
@@ -22,59 +22,66 @@
 // Forward declarations
 
 /**
- * \class QwCorrelator
- * \ingroup Qw??
+ * \class QwCorrelationMonitor
+ * \ingroup QwParity
  *
- * \brief Computes & applies linear regression corrections
+ * \brief Computes correlation between arbitrary channels
+ *
+ * multiple instances work  independently of different lists. 
+ * Same channel may be used on different lists
+ * Full correlation matrix is printed out
+ * Histos are saved in the root file, large correlation tagged,  and displayable by the plotting macro: plCorrMon.C 
  *
  */
 
-class QwCorrelatorVariable {
+class QwCorrelationMonitorVariable {
  public:
   TString name;
   const QwVQWK_Channel* channel;
-  QwCorrelatorVariable( TString x="fixMe"){ name=x; channel=0;}
+  QwCorrelationMonitorVariable( TString x="fixMe"){ name=x; channel=0;}
 };
 
 
 //-----------------------------------------
-class QwCorrelator {
+class QwCorrelationMonitor {
  private:
-  //
+  /// skip events at aall and for histogramming
+  int par_nSkipEveHist;
+
   Long64_t fGoodEventNumber;	///< accumulated so far 
-  Int_t   fNumVar;  ///< number of monitored variables
   TString fAllNames;
-  std::vector< QwCorrelatorVariable> fVariables; ///< list of  monitored variables
+  TString fCore;
+  std::vector< QwCorrelationMonitorVariable> fVariables; ///< list of  monitored variables
   boost::numeric::ublas::vector<double> fM1; ///< mean 
   boost::numeric::ublas::matrix<double> fC2; ///< correlation matrix, includes diagonal
 
   TH1 *** hC; ///< hC[i][j]  monitoring 2D Correlation histograms
   TH1 **  hM; ///<   monitoring 1D  histograms of the means
+  TH1 *   hA; ///< keeps just list of variables
   void  recomputHistoAxis();
 
   double par_highCorr; // for tagging
 
  public:  
   /// Default constructor
-  QwCorrelator(TString mapName);
+  QwCorrelationMonitor();
+  void AddVariableList(TString mapName);
   /// Destructor
-  virtual ~QwCorrelator();
-  
+  virtual ~QwCorrelationMonitor();
+   
   /// initialization of histos
-  void SetHistos();
+  void ConstructHistograms();
+  void DeleteHistograms();
   /// initialization of monitred variables
-
-  /// orders variables by name, to lower case,  removes duplicates
-  void AccessInputVector( QwSubsystemArrayParity &detectors);
-
+  void AccessChannels( QwSubsystemArrayParity &detectors);
   /// appends current list of variables, must be done before  AccessInputVector()
-  void AddInputVariables(TString x){ fAllNames+=" "+x; assert(fVariables.size()==0);}
+  void AddVariables(TString x){ fAllNames+=" "+x; assert(fVariables.size()==0);}
+  void SetParams(TString core, int n2,float x1) { fCore=core;  par_nSkipEveHist=n2; par_highCorr=x1;}
 
   /// processing single events
   void Accumulate();
   // after last event
   void PrintSummary();
-  void SaveSlopes(TString fname);
 
   // add decorative information to histograms before saving
   void NiceOutput();
@@ -89,18 +96,19 @@ class QwCorrelator {
   Int_t GetCovariance( int i, int j, Double_t &covar );
   
   /// \brief Output stream operator
-  friend std::ostream& operator<< (std::ostream& stream, const QwCorrelator& h);
+  friend std::ostream& operator<< (std::ostream& stream, const QwCorrelationMonitor& h);
     
 };
 
 /// Output stream operator
-inline std::ostream& operator<< (std::ostream& stream, const QwCorrelator& h) {
-  stream << "Correlator::print() ";
-  stream << "num. of variables " << h.fNumVar << ", ";
-  stream << "good events " << h.fGoodEventNumber << ",";
+inline std::ostream& operator<< (std::ostream& stream, const QwCorrelationMonitor& h) {
+  stream << Form("CorrelationMonitor_%s::print() ",h.fCore.Data());
+  stream << Form("  event cuts:  nFirstHist=%d ,", h.par_nSkipEveHist);
+  stream << Form("  tag correlation>%.3f ", h.par_highCorr);
+  stream << "good events " << h.fGoodEventNumber << ","<<h.par_nSkipEveHist;
   return stream;
 }
 
 
 
-#endif // QWCORRELATOR_H
+#endif 

@@ -1,53 +1,57 @@
-//#include <TString.h>
 #include <TList.h>
 #include <TEllipse.h>
 #include <TLine.h>
 
 #include "QwVQWK_Channel.h" 
 #include "QwHistogramHelper.h"
-#include "QwCorrelator.h"
+#include "QwCorrelationMonitor.h"
 
-//#include "QwParametrFile.h" // for matrix I/O
 //==========================================================
 //==========================================================
-QwCorrelator::QwCorrelator(TString mapName) {
-  printf("\nJJ QwCorrelator constructor\n\n");
+QwCorrelationMonitor::QwCorrelationMonitor() {
   fGoodEventNumber=0;
-  fNumVar=0;
   fVariables.clear();
   hC=0;
   fAllNames="";
   par_highCorr=0.4; // for tagging 
-
-  std::cout<<" QwBeamLine::LoadEventCuts  "<<mapName<<std::endl;
-  QwParameterFile mapstr(mapName.Data());  //Open the file
-
-  while (mapstr.ReadNextLine()){
-    mapstr.TrimComment('!');   // Remove everything after a '!' character.
-    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
-    if (mapstr.LineIsEmpty())  continue;
-    QwMessage<<mapstr<<QwLog::endl;
-  }
-
-  
-
-  assert(1==2);
-
+  fCore="";
+  par_nSkipEveHist=200;
 } 
    
+//==========================================================
+//==========================================================
+void QwCorrelationMonitor::AddVariableList(TString mapName){
+  
+  QwMessage << Form("QwCorrelMon_%s::AddVariableList:   ",fCore.Data(),mapName.Data())<<std::endl;
+ 
+  QwParameterFile mapstr(mapName.Data());  //Open the file
+  
+  while (mapstr.ReadNextLine()){
+    mapstr.TrimComment('#');   // Remove everything after a '#' character.
+    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+    if (mapstr.LineIsEmpty())  continue;
+    TString line = mapstr.GetLine();
+    AddVariables(line);
+    // QwMessage<<line<<QwLog::endl;
+  }  
+}
+
+
 
 //==========================================================
 //==========================================================
-QwCorrelator::~QwCorrelator() {
+QwCorrelationMonitor::~QwCorrelationMonitor() {
 }
 
  
 
 //==========================================================
 //==========================================================
-void QwCorrelator::AccessInputVector( QwSubsystemArrayParity &detectors){
+void QwCorrelationMonitor::AccessChannels( QwSubsystemArrayParity &detectors){
   fAllNames.ToLower();
   TObjArray* sa	=fAllNames.Tokenize(" "); sa->Sort();
+  QwMessage << Form("QwCorrelMon_%s::AccessChannels:   ",fCore.Data())<<std::endl;
+  TString goodNames="";
   // sa->Print();
   TIter it(sa);TObject *ob, *ob1=0;
   while ((ob = it.Next())) {
@@ -61,10 +65,10 @@ void QwCorrelator::AccessInputVector( QwSubsystemArrayParity &detectors){
       QwWarning << Form("corr: skip variable '%s', null pointer from  ReturnInternalValue() ",name.Data()) << QwLog::endl;
       continue;
     } 
-    QwCorrelatorVariable x(name);
+    QwCorrelationMonitorVariable x(name);
     x.channel=value;
     fVariables.push_back(x);    
-    QwMessage << "Correlator:: add variable "<<x.name<<QwLog::endl;    
+    QwMessage << "  corrMap:  found variable "<<x.name<<QwLog::endl;    
   } // loop over names
   
   size_t dim=fVariables.size();   
@@ -79,14 +83,13 @@ void QwCorrelator::AccessInputVector( QwSubsystemArrayParity &detectors){
 
 //==========================================================
 //==========================================================
-void QwCorrelator::Accumulate(){
-  int par_numEve4histo=200;// initializes axis of histograms once passed this threshold
-
+void QwCorrelationMonitor::Accumulate(){
+    
   fGoodEventNumber++;
   size_t dim=fVariables.size();
   if(dim<1) return; // needs at least 2  variables for correlations 
 
-  if( fGoodEventNumber== par_numEve4histo) recomputHistoAxis();
+  if( fGoodEventNumber==par_nSkipEveHist) recomputHistoAxis();
 
   // increment  M1,M2 and monitoring histos
   for (size_t i = 0; i <dim; i++) {
@@ -99,7 +102,7 @@ void QwCorrelator::Accumulate(){
     else fC2(i,i)+=(u-fM1[i])*udel; // Note, it uses pre & post incremented mean!
 
     // monitoring 1D
-    if( fGoodEventNumber> par_numEve4histo) hM[i]->Fill(u);
+    if( fGoodEventNumber>  par_nSkipEveHist) hM[i]->Fill(u);
     
     for (size_t j = i+1; j < dim; j++) {// only upper triangle
       double v=fVariables[j].channel->GetHardwareSum();
@@ -109,7 +112,7 @@ void QwCorrelator::Accumulate(){
       else fC2(i,j)+=udel*vdel*(fGoodEventNumber-1)/fGoodEventNumber;
 
       // monitoring 2D
-      if( fGoodEventNumber> par_numEve4histo) hC[i][j]->Fill(u,v);
+      if( fGoodEventNumber>  par_nSkipEveHist) hC[i][j]->Fill(u,v);
       
     }
   }
@@ -119,7 +122,7 @@ void QwCorrelator::Accumulate(){
 
 //==========================================================
 //==========================================================
-Int_t  QwCorrelator::GetElementMean(const int i, Double_t &mean ){
+Int_t  QwCorrelationMonitor::GetElementMean(const int i, Double_t &mean ){
    mean=-1e50;
    if(i<0 || i >= (int)fVariables.size() ) return -1; 
    if( fGoodEventNumber<1) return -3;
@@ -128,7 +131,7 @@ Int_t  QwCorrelator::GetElementMean(const int i, Double_t &mean ){
 
 //==========================================================
 //==========================================================
-Int_t  QwCorrelator::GetElementSigma(const int i, Double_t &sigma ){
+Int_t  QwCorrelationMonitor::GetElementSigma(const int i, Double_t &sigma ){
     sigma=-1e50;
     if(i<0 || i >= (int)fVariables.size() ) return -1; 
     if( fGoodEventNumber<2) return -3;
@@ -138,7 +141,7 @@ Int_t  QwCorrelator::GetElementSigma(const int i, Double_t &sigma ){
 
 //==========================================================
 //==========================================================
-Int_t  QwCorrelator::GetCovariance( int i, int j, Double_t &covar ){
+Int_t  QwCorrelationMonitor::GetCovariance( int i, int j, Double_t &covar ){
     covar=-1e50;
     if(i==j)  return  GetElementSigma(i,covar); // diagonal 
     if( i>j) { int k=i; i=j; j=k; }//swap
@@ -151,8 +154,9 @@ Int_t  QwCorrelator::GetCovariance( int i, int j, Double_t &covar ){
 
 //==========================================================
 //==========================================================
-void QwCorrelator::PrintSummary(){
-  QwMessage << Form("\n\nQwCorrelator::PrintSummary() seen good eve=%lld",fGoodEventNumber)<<QwLog::endl;
+void QwCorrelationMonitor::PrintSummary(){
+  QwMessage << Form("QwCorrelMon_%s::PrintSummary() seen good eve=%lld",fCore.Data(),fGoodEventNumber)<<QwLog::endl;
+ 
   size_t dim=fVariables.size();
 
   if(fGoodEventNumber>2) { // print full matrix
@@ -183,8 +187,8 @@ void QwCorrelator::PrintSummary(){
       QwMessage << Form("\n");
     }
   }
-  QwMessage << Form("QwCorrelator::PrintSummary() end\n\n",fGoodEventNumber)<<QwLog::endl;
-  
+  QwMessage << Form("QwCorrelationMonitor::PrintSummary() end\n\n",fGoodEventNumber)<<QwLog::endl;
+   
 #if 0  // testing
   for (size_t i = 0; i <dim; i++) {
     for (size_t j = i+1; j < dim; j++) {// only upper triangle
@@ -196,11 +200,22 @@ void QwCorrelator::PrintSummary(){
   
   }
 
-
+//==========================================================
+//==========================================================
+void QwCorrelationMonitor::DeleteHistograms(){
+  size_t dim=fVariables.size(); 
+  for (size_t i = 0; i <dim; i++) {
+    hM[i]->Delete();
+    for (size_t j = i+1; j < dim; j++) {// only upper triangle
+      hC[i][j]->Delete();
+    }
+  }
+  hA->Delete();
+}
 
 //==========================================================
 //==========================================================
-void QwCorrelator::SetHistos(){
+void QwCorrelationMonitor::ConstructHistograms(){
   size_t dim=fVariables.size(); 
   assert(dim>0); // variable list must be initialized
   hC=new TH1**[dim];
@@ -216,12 +231,13 @@ void QwCorrelator::SetHistos(){
 
     // ...... 1D histos per channel ..................
     TString name=name1+"_hw_single";
-    QwMessage << Form(" corr:initHisto() i=%d name=%s  (1D) ",i,name.Data())<<QwLog::endl;
+    QwMessage << Form(" corrMon-%s:initHisto() i=%d name=%s  (1D) ",fCore.Data(),i,name.Data())<<QwLog::endl;
     TH1* h=gQwHists.Construct1DHist(name);
     h->GetXaxis()->SetTitle(name1);
     h->GetYaxis()->SetTitle("");
-    TString tit=Form("%s %d_",h->GetTitle(),i);
+    TString tit=Form("%s %d_ ,%s",h->GetTitle(),i,fCore.Data());
     h->SetTitle(tit);
+    h->SetName(fCore+h->GetName());    
     hM[i]=h;       
 
     // ...... 2D histos per pair of channels ..................
@@ -229,32 +245,35 @@ void QwCorrelator::SetHistos(){
       TString name2=fVariables[j].name;
       k++;
       TString name=name1+"_"+name2+"_hw_corr";
-      QwMessage << Form(" corr:initHisto() k=%d name=%s  (2D)",k,name.Data())<<QwLog::endl;
+      QwMessage << Form(" corrMon-%s:initHisto() i=%d name=%s  (2D) ",fCore.Data(),i,name.Data())<<QwLog::endl;
       TH1* h=gQwHists.Construct2DHist(name);
       h->GetXaxis()->SetTitle(name1);
       h->GetYaxis()->SetTitle(name2); 
       TString tit=Form("%s %d_%d:%d",h->GetTitle(),i,j,k);
       h->SetTitle(tit);
+      h->SetName(fCore+h->GetName());   
       hC[i][j]=h;       
     }
   }
   
   QwMessage << Form(" corr:initHisto() done, added %d  histos for %d variables\n",k,dim)<<QwLog::endl;
   // testing
-  TH1F* h1=gQwHists.Construct1DHist((TString)"jan_list");
-  h1->SetTitle(totList);
-  h1->Fill(5.0);
+  hA=gQwHists.Construct1DHist((TString)"jan_list");
+  hA->SetTitle(totList);
+  hA->SetName(fCore+hA->GetName());    
+  hA->Fill(5.0); // for fun
+  
 
 }
 
 
 //==========================================================
 //==========================================================
-void QwCorrelator::recomputHistoAxis(){
+void QwCorrelationMonitor::recomputHistoAxis(){
   double par_kSig=8;
   double par_fact=2;
+  QwMessage << Form("QwCorrelMon_%s::recomputHistoAxis() seen good eve=%lld",fCore.Data(),fGoodEventNumber)<<QwLog::endl;
 
-  QwMessage << Form("\n\nQwCorrelator::recomputHistoAxis() seen good eve=%lld",fGoodEventNumber)<<QwLog::endl;
   assert(fGoodEventNumber>1);
 
   size_t dim=fVariables.size();
@@ -298,7 +317,7 @@ void QwCorrelator::recomputHistoAxis(){
  
 //==========================================================
 //==========================================================
-void QwCorrelator::NiceOutput(){
+void QwCorrelationMonitor::NiceOutput(){
   size_t dim=fVariables.size();
   for (size_t i = 0; i <dim; i++) {
     double meanI,sigI;
@@ -332,37 +351,7 @@ void QwCorrelator::NiceOutput(){
       TEllipse *el=new TEllipse(meanI,meanJ,fac*sigI,fac*sigJ);
       el->SetFillStyle(0);	  el->SetLineColor(kRed); el->SetLineWidth(2);
       L->Add(el);
-      printf("ellipse added to histo=%s\n", hC[i][j]->GetName());
+      // printf("ellipse added to histo=%s\n", hC[i][j]->GetName());
     }// end of J
   }// end of I
-}
-
-
-//==========================================================
-//==========================================================
-void QwCorrelator::SaveSlopes(TString fname){
-  TString path="./";
-  fname= path+fname;
-  QwMessage << Form("\n\nQwCorrelator::SaveSlopes to =%s=",fname.Data())<<QwLog::endl;
-  
-
-  fstream filestr;
-  
-  filestr.open (fname.Data(), fstream::in | fstream::out | fstream::app);
-  // >> i/o operations here <<
-  filestr << fM1 << std::endl;
-  filestr << fC2 << std::endl;
-  filestr.close();
-  std::cout <<  fM1 << std::endl;
-
-  boost::numeric::ublas::vector<double> nM1;
-
-  filestr.open (fname.Data(), fstream::in | fstream::out | fstream::app);
-  // >> i/o operations here <<
-  filestr >>nM1;
-  filestr.close();
-  std::cout <<  nM1 << std::endl;
-
-
-
 }
