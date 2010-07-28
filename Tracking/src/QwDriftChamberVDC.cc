@@ -21,20 +21,12 @@ QwSubsystemFactory<QwDriftChamberVDC> theDriftChamberVDCFactory ( "QwDriftChambe
 QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ) :
         VQwSubsystem ( region_tmp ), QwDriftChamber ( region_tmp,fWireHitsVDC )
 {
-    // Double_t f1_time_offset = 64495.0;
-    // Double_t difference     = 30000.0;
-    // Double_t time_shift     = 0.0;//-8929.0; // is it valid with the new configuration?
-
-    //  difference = 0.5*f1_time_offset;
-
-    //  SetReferenceParameters(-30000., 30000., 64495.,-8929.);
-    //  SetReferenceParameters(-difference, difference, f1_time_offset, time_shift);
-    std::vector<QwDelayLine> temp;
-    temp.clear();
-    temp.resize ( kLineNum );
-    fDelayLineArray.resize ( kBackPlaneNum, temp );
-    fDelayLinePtrs.resize ( 21 );
-    OK=0;
+  std::vector<QwDelayLine> temp;
+  temp.clear();
+  temp.resize ( kLineNum );
+  fDelayLineArray.resize ( kBackPlaneNum, temp );
+  fDelayLinePtrs.resize ( 21 );
+  OK=0;
 };
 
 Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
@@ -1011,36 +1003,30 @@ Int_t QwDriftChamberVDC::ProcessConfigurationBuffer ( const UInt_t roc_id, const
 };
 
 
-
-// Test function
-void  QwDriftChamberVDC::PrintConfigrationBuffer ( UInt_t *buffer, UInt_t num_words )
+void QwDriftChamberVDC::PrintConfigrationBuffer(UInt_t *buffer,UInt_t num_words)
 {
-    UInt_t ipt = 0;
-    UInt_t j = 0;
-    UInt_t k = 0;
-
-    for ( j = 0; j < ( num_words/5 ); j++ )
-    {
-        printf ( "buffer[%5d] = 0x:", ipt );
-        for ( k=j; k<j+5; k++ )
-        {
-            printf ( "%12x", buffer[ipt++] );
-        }
-        printf ( "\n" );
-    }
-
-    if ( ipt < num_words )
-    {
-        printf ( "buffer[%5d] = 0x:", ipt );
-        for ( k=ipt; k<num_words; k++ )
-        {
-            printf ( "%12x", buffer[ipt++] );
-        }
-        printf ( "\n" );
+  UInt_t ipt = 0;
+  UInt_t j = 0;
+  UInt_t k = 0;
+  
+  for ( j=0; j<(num_words/5); j++ ) {
+    printf ( "buffer[%5d] = 0x:", ipt );
+    for ( k=j; k<j+5; k++ ) {
+      printf ( "%12x", buffer[ipt++] );
     }
     printf ( "\n" );
-
-    return;
+  }
+  
+  if ( ipt<num_words ) {
+    printf ( "buffer[%5d] = 0x:", ipt );
+    for ( k=ipt; k<num_words; k++ ) {
+      printf ( "%12x", buffer[ipt++] );
+    }
+    printf ( "\n" );
+  }
+  printf ( "\n" );
+  
+  return;
 }
 
 void QwDriftChamberVDC::DefineOptions ( QwOptions& options )

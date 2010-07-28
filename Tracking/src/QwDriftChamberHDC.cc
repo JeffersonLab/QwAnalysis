@@ -616,3 +616,64 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
     return OK;
 };
 
+
+
+
+Int_t QwDriftChamberHDC::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
+{
+  Int_t subbank_index = 0;
+  Bool_t local_debug = false;
+  
+  subbank_index = GetSubbankIndex ( roc_id, bank_id );
+  if ( local_debug )
+    {
+      std::cout << "QwDriftChamberVDC::ProcessConfigurationBuffer" << std::endl;
+      std::cout << " roc id " << roc_id
+		<< " bank_id " << bank_id
+		<< " subbank_index " << subbank_index
+		<< " num_words " << num_words
+		<< std::endl;
+    }
+  
+  if ( subbank_index>=0 and num_words>0 )
+    {
+      //    SetDataLoaded(kTRUE);
+      if ( local_debug )
+        {
+	  std::cout << "QwDriftChamberVDC::ProcessConfigurationBuffer:  "
+		    << "Begin processing ROC" << roc_id << std::endl;
+	  PrintConfigrationBuffer ( buffer, num_words );
+        }
+    }
+  
+  return OK;
+};
+
+
+
+// Test function
+void QwDriftChamberHDC::PrintConfigrationBuffer(UInt_t *buffer,UInt_t num_words)
+{
+  UInt_t ipt = 0;
+  UInt_t j = 0;
+  UInt_t k = 0;
+  
+  for ( j=0; j<(num_words/5); j++ ) {
+    printf ( "buffer[%5d] = 0x:", ipt );
+    for ( k=j; k<j+5; k++ ) {
+      printf ( "%12x", buffer[ipt++] );
+    }
+    printf ( "\n" );
+  }
+  
+  if ( ipt<num_words ) {
+    printf ( "buffer[%5d] = 0x:", ipt );
+    for ( k=ipt; k<num_words; k++ ) {
+      printf ( "%12x", buffer[ipt++] );
+    }
+    printf ( "\n" );
+  }
+  printf ( "\n" );
+  
+  return;
+}

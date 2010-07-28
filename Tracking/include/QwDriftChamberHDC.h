@@ -33,8 +33,8 @@ class QwDriftChamberHDC: public QwDriftChamber {
   void  SubtractReferenceTimes();
   void  ProcessEvent();
   Int_t LoadGeometryDefinition(TString mapfile );
-  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) {return 0;};
-  void  PrintConfigrationBuffer(UInt_t *buffer, UInt_t num_words) {return ;};
+  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  void  PrintConfigrationBuffer(UInt_t *buffer, UInt_t num_words);
   Int_t LoadChannelMap ( TString mapfile ) ;
 
 
