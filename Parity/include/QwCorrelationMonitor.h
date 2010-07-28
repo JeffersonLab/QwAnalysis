@@ -31,7 +31,8 @@
  * Same channel may be used on different lists
  * Full correlation matrix is printed out
  * Histos are saved in the root file, large correlation tagged,  and displayable by the plotting macro: plCorrMon.C 
- *
+ *  Writeup is posted in the ELOG
+ *  https://qweak.jlab.org/elog/Analysis+%26+Simulation/22
  */
 
 class QwCorrelationMonitorVariable {

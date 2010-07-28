@@ -72,7 +72,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
   ///  histogram helper: QwHistogramHelper
   gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
-  gQwHists.LoadHistParamsFromFile("qweak_correlation_monitor_hists.in"); // add new
+  gQwHists.LoadHistParamsFromFile("qweak_correlation_monitor_hists.in");
   gQwHists.LoadTreeParamsFromFile("Qweak_Tree_Trim_List.in");
 
 
@@ -106,6 +106,10 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwDatabase database(gQwOptions);
 
   //Jan1: initialization of correlation monitor(s) ---------------- Jan
+  /* writeup of  QwCorrelationMonitor is in ELOG :
+     https://qweak.jlab.org/elog/Analysis+%26+Simulation/22
+  */
+ 
   enum {mxCM=2}; // define # of concurent monitors
   QwCorrelationMonitor corrMon[mxCM];
   for(int i=0;i<mxCM;i++) {
