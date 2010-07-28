@@ -18,8 +18,8 @@
 // Qweak headers
 #include "QwSubsystemArrayParity.h"
 
-
 // Forward declarations
+class VQwSubsystemParity;
 
 /**
  * \class QwCorrelationMonitor
@@ -75,6 +75,7 @@ class QwCorrelationMonitor {
   void DeleteHistograms();
   /// initialization of monitred variables
   void AccessChannels( QwSubsystemArrayParity &detectors);
+  void AccessChannels( VQwSubsystemParity *detector);
   /// appends current list of variables, must be done before  AccessInputVector()
   void AddVariables(TString x){ fAllNames+=" "+x; assert(fVariables.size()==0);}
   void SetParams(TString core, int n2,float x1) { fCore=core;  par_nSkipEveHist=n2; par_highCorr=x1;}

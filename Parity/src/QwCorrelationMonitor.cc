@@ -83,6 +83,42 @@ void QwCorrelationMonitor::AccessChannels( QwSubsystemArrayParity &detectors){
 
 //==========================================================
 //==========================================================
+void QwCorrelationMonitor::AccessChannels( VQwSubsystemParity *detector){
+  fAllNames.ToLower();
+  TObjArray* sa	=fAllNames.Tokenize(" "); sa->Sort();
+  QwMessage << Form("QwCorrelMon_%s::AccessChannels:   ",fCore.Data())<<std::endl;
+  TString goodNames="";
+  // sa->Print();
+  TIter it(sa);TObject *ob, *ob1=0;
+  while ((ob = it.Next())) {
+    if(ob1 && strcmp(ob->GetName(),ob1->GetName())==0) continue; // skip duplicates
+    ob1=ob;		  
+    TString name=(ob->GetName());
+    //name=name.Strip((TString::EStripType)3,' ');    
+    //  printf("s=%s=\n",ob->GetName());
+    const QwVQWK_Channel* value = dynamic_cast<const QwVQWK_Channel*>(detector->ReturnInternalValue(name));
+    if(value==0) {
+      QwWarning << Form("corr: skip variable '%s', null pointer from  ReturnInternalValue() ",name.Data()) << QwLog::endl;
+      continue;
+    } 
+    QwCorrelationMonitorVariable x(name);
+    x.channel=value;
+    fVariables.push_back(x);    
+    QwMessage << "  corrMap:  found variable "<<x.name<<QwLog::endl;    
+  } // loop over names
+  
+  size_t dim=fVariables.size();   
+  // create uBlas matrices
+  fM1.resize(dim,false);
+  fC2.resize(dim,dim,false);
+  // initialization performed in accumulator()
+
+}
+
+
+
+//==========================================================
+//==========================================================
 void QwCorrelationMonitor::Accumulate(){
     
   fGoodEventNumber++;

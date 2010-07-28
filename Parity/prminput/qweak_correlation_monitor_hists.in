@@ -10,7 +10,6 @@
 ##############################################################################################
 ###  Single & double event histograms
 jan_list            	TH1F	12      -1.5	10.5				jan-x  jan-yield
-jan_h2            	TH2F	10      1 	20	20	3   	28	jan-x  jan-y
 .+_hw_corr              TH2F    50	2.0e4	6.0e4	50	2.0e7	5.0e8	    x-ax y-ax
 .+_hw_single              TH1F    500	2.0e4	6.0e4		    x-ax y-ax
 

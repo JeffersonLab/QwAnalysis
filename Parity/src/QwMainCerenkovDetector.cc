@@ -11,6 +11,7 @@
 
 #include "QwSubsystemArray.h"
 #include "QwLog.h"
+#include "QwCorrelationMonitor.h"
 
 // Register this subsystem with the factory
 QwSubsystemFactory<QwMainCerenkovDetector>
@@ -785,6 +786,8 @@ void  QwMainCerenkovDetector::ProcessEvent_2()
 
 void  QwMainCerenkovDetector::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
+  if (fCorrelationMonitor) fCorrelationMonitor->ConstructHistograms();
+
   for (size_t i=0;i<fIntegrationPMT.size();i++)
     fIntegrationPMT[i].ConstructHistograms(folder,prefix);
 
@@ -1056,6 +1059,13 @@ void QwMainCerenkovDetector::Scale(Double_t factor)
 
 void QwMainCerenkovDetector::CalculateRunningAverage()
 {
+  if (fCorrelationMonitor) {
+    fCorrelationMonitor->NiceOutput();
+    fCorrelationMonitor->PrintSummary();
+    assert(false);
+  }
+  //
+
   for (size_t i=0;i<fIntegrationPMT.size();i++)
     fIntegrationPMT[i].CalculateRunningAverage();
 
@@ -1069,6 +1079,8 @@ void QwMainCerenkovDetector::AccumulateRunningSum(VQwSubsystem* value1)
 {
   if (Compare(value1)) {
     QwMainCerenkovDetector* value = dynamic_cast<QwMainCerenkovDetector*>(value1);
+
+    if (fCorrelationMonitor) fCorrelationMonitor->Accumulate();
 
     for (size_t i = 0; i < fIntegrationPMT.size(); i++)
       fIntegrationPMT[i].AccumulateRunningSum(value->fIntegrationPMT[i]);

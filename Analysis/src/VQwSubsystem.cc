@@ -61,6 +61,10 @@ Int_t VQwSubsystem::LoadDetectorMaps(QwParameterFile& file)
       if (key == "eventcut" && value.size() > 0)
         LoadEventCuts(value);
 
+      // Correlation monitor file definition
+      if (key == "corrmon" && value.size() > 0)
+        LoadCorrelationMonitor(value);
+
       // Event type mask
       if (key == "mask" && value.size() > 0)
         SetEventTypeMask(file.GetUInt(value));

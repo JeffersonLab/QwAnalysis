@@ -18,6 +18,7 @@
 
 // Forward declarations
 class QwBlinder;
+class QwCorrelationMonitor;
 
 
 /**
@@ -71,6 +72,15 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     virtual void Ratio(VQwSubsystem *numer, VQwSubsystem *denom) = 0;
     virtual void Scale(Double_t factor) = 0;
 
+  protected:
+
+    /// Correlation monitor of objects in this subsystem array
+    QwCorrelationMonitor* fCorrelationMonitor;
+
+    /// Optional correlation monitor file
+    virtual Int_t LoadCorrelationMonitor(TString mapfile);
+
+  public:
 
     /// \brief Update the running sums for devices
     virtual void AccumulateRunningSum(VQwSubsystem* value) = 0;

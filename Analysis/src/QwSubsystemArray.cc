@@ -122,6 +122,12 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
     // Add to array
     this->push_back(subsys);
 
+  
+    //janx if(strcmp(subsys_type,"QwMainCerenkovDetector")==0) {
+   
+    // add later sth else for beamLine detector
+
+
     // Delete parameter file section
     delete section; section = 0;
   }

@@ -117,6 +117,8 @@ class VQwSubsystem {
   virtual Int_t LoadGeometryDefinition(TString mapfile) { return 0; };
   /// Optional event cut file
   virtual Int_t LoadEventCuts(TString mapfile) { return 0; };
+  /// Optional correlation monitor file
+  virtual Int_t LoadCorrelationMonitor(TString mapfile) { return 0; };
 
   /// Set event type mask
   void SetEventTypeMask(const UInt_t mask) { fEventTypeMask = mask; };

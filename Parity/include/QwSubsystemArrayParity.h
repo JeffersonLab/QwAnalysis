@@ -16,6 +16,7 @@
 
 // Forward declarations
 class QwBlinder;
+class QwCorrelationMonitor;
 
 /**
  * \class QwSubsystemArrayParity

@@ -110,14 +110,14 @@ Int_t main(Int_t argc, Char_t* argv[])
      https://qweak.jlab.org/elog/Analysis+%26+Simulation/22
   */
  
-  enum {mxCM=2}; // define # of concurent monitors
+  enum {mxCM=1}; // define # of concurent monitors
   QwCorrelationMonitor corrMon[mxCM];
   for(int i=0;i<mxCM;i++) {
-    QwCorrelationMonitor *cm=corrMon+i;
+    QwCorrelationMonitor *cm=&corrMon[i];
     // params: prefix, nSkip, nSkipHist, highCorrTag
     cm->SetParams( Form("%c",'A'+i),200,0.41); 
-    if(i==0) cm->AddVariableList("qweak_corrMapA.map"); 
-    if(i==1)  cm->AddVariables("MD5neg  MD7neg MD2pos");
+    if(i==1) cm->AddVariableList("qweak_corrMapA.map"); 
+    if(i==0)  cm->AddVariables("MD5neg  MD7neg MD2pos");
     cm->AccessChannels(detectors);
     QwMessage<<corrMon[i]<<QwLog::endl;
   } 
@@ -184,13 +184,12 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       //  Process the subsystem data
       detectors.ProcessEvent();
-
-      //Jan3: accumulate data   ......................Jan
-      if(eventbuffer.GetEventNumber()>300) // skip some early events
-	for(int i=0;i<mxCM;i++) corrMon[i].Accumulate();
   
       // The event pass the event cut constraints
       if (detectors.ApplySingleEventCuts()) {
+
+	//Jan3: accumulate data   ......................Jan
+	for(int i=0;i<mxCM;i++) corrMon[i].Accumulate();
 
         // Add event to the ring
         eventring.push(detectors);
