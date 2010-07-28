@@ -41,7 +41,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
 
   //std::vector< QwDetectorInfo >  fDetectorGeom;
 
-  QwDetectorInfo temp_Detector;
+  QwDetectorInfo local_region2_detector;
 
   fDetectorInfo.clear();
   fDetectorInfo.resize(kNumPackages);
@@ -91,56 +91,64 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
       TotalWires   = (atol(mapstr.GetNextToken(", ").c_str()));
       detectorId   = (atol(mapstr.GetNextToken(", ").c_str()));
 
-      QwDebug << " Detector ID " << detectorId << " " << varvalue
-              << " Package " << package << " Plane " << Zpos
-              << " Region " << region << QwLog::endl;
+      QwDebug << " HDC : Detector ID " << detectorId << " " << varvalue
+              << " Package "     << package << " Plane " << Zpos
+              << " Region "      << region << QwLog::endl;
 
       if (region==2){
-	    temp_Detector.SetDetectorInfo(
-					  dType, 
-					  Zpos, 
-					  rot, 
-					  sp_res, 
-					  track_res, 
-					  slope_match, 
-					  package, 
-					  region, 
-					  direction, 
-					  Det_originX, Det_originY, 
-					  ActiveWidthX, ActiveWidthY, ActiveWidthZ, 
-					  WireSpace, 
-					  FirstWire, 
-					  W_rcos, W_rsin, 
-					  TotalWires, 
-					  detectorId
-					  );
-
-	    if      (package == "u") fDetectorInfo.at(kPackageUp).push_back(temp_Detector);
-	    else if (package == "d") fDetectorInfo.at(kPackageDown).push_back(temp_Detector);
+	    local_region2_detector.SetDetectorInfo(
+						   dType, 
+						   Zpos, 
+						   rot, 
+						   sp_res, 
+						   track_res, 
+						   slope_match, 
+						   package, 
+						   region, 
+						   direction, 
+						   Det_originX, Det_originY, 
+						   ActiveWidthX, ActiveWidthY, ActiveWidthZ, 
+						   WireSpace, 
+						   FirstWire, 
+						   W_rcos, W_rsin, 
+						   TotalWires, 
+						   detectorId
+						   );
+	    
+	    if      (package == "u") fDetectorInfo.at(kPackageUp).push_back(local_region2_detector);
+	    else if (package == "d") fDetectorInfo.at(kPackageDown).push_back(local_region2_detector);
       }
     }
 
   }
-  QwMessage << "Loaded Qweak Geometry"<<" Total Detectors in pkg_d 1 "<<fDetectorInfo.at(kPackageUp).size()<< " pkg_d 2 "<<fDetectorInfo.at(kPackageDown).size() << QwLog::endl;
+
+  QwMessage << "Loaded Qweak Geometry"<<" Total Detectors in kPackageUP "
+	    << fDetectorInfo.at ( kPackageUp ).size()
+	    << ", "
+	    << "kPackagDown "
+	    << fDetectorInfo.at ( kPackageDown ).size()
+	    << QwLog::endl;
 
   QwMessage << "Sorting detector info..." << QwLog::endl;
-  plane = 1;
-  std::sort(fDetectorInfo.at(kPackageUp).begin(),
-            fDetectorInfo.at(kPackageUp).end());
-  
-  std::vector< std::vector< QwDetectorInfo > >::size_type i = 0;
 
+  std::vector< QwDetectorInfo >::size_type i = 0;
+
+  std::sort(fDetectorInfo.at(kPackageUp).begin(), fDetectorInfo.at(kPackageUp).end());
+  plane = 1;
   for ( i=0; i < fDetectorInfo.at(kPackageUp).size(); i++) {
     fDetectorInfo.at(kPackageUp).at(i).fPlane = plane++;
-    QwMessage << " Region " << fDetectorInfo.at(kPackageUp).at(i).fRegion << " Detector ID " << fDetectorInfo.at(kPackageUp).at(i).fDetectorID << QwLog::endl;
+    QwMessage << " kPackageUp Region " << fDetectorInfo.at(kPackageUp).at(i).fRegion 
+	      << " Detector ID " << fDetectorInfo.at(kPackageUp).at(i).fDetectorID 
+	      << QwLog::endl;
   }
 
   plane = 1;
-  std::sort(fDetectorInfo.at(kPackageDown).begin(),
-            fDetectorInfo.at(kPackageDown).end());
+  std::sort(fDetectorInfo.at(kPackageDown).begin(), fDetectorInfo.at(kPackageDown).end());
   for ( i=0; i < fDetectorInfo.at(kPackageDown).size(); i++) {
     fDetectorInfo.at(kPackageDown).at(i).fPlane = plane++;
-    QwMessage << " Region " << fDetectorInfo.at(kPackageDown).at(i).fRegion << " Detector ID " << fDetectorInfo.at(kPackageDown).at(i).fDetectorID << QwLog::endl;
+    QwMessage << " kPackageDown Region " << fDetectorInfo.at(kPackageDown).at(i).fRegion 
+	      << " Detector ID " << fDetectorInfo.at(kPackageDown).at(i).fDetectorID 
+	      << QwLog::endl;
   }
 
   QwMessage << "Qweak Geometry Loaded " << QwLog::endl;
@@ -622,29 +630,26 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
 Int_t QwDriftChamberHDC::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   Int_t subbank_index = 0;
-  Bool_t local_debug = false;
+  Bool_t local_debug = true;
   
-  subbank_index = GetSubbankIndex ( roc_id, bank_id );
-  if ( local_debug )
-    {
-      std::cout << "QwDriftChamberVDC::ProcessConfigurationBuffer" << std::endl;
-      std::cout << " roc id " << roc_id
-		<< " bank_id " << bank_id
-		<< " subbank_index " << subbank_index
-		<< " num_words " << num_words
-		<< std::endl;
-    }
+  subbank_index = GetSubbankIndex(roc_id, bank_id);
+  if ( local_debug ) {
+    std::cout << "QwDriftChamberVDC::ProcessConfigurationBuffer" << std::endl;
+    std::cout << " roc id " << roc_id
+	      << " bank_id " << bank_id
+	      << " subbank_index " << subbank_index
+	      << " num_words " << num_words
+	      << std::endl;
+  }
   
-  if ( subbank_index>=0 and num_words>0 )
-    {
-      //    SetDataLoaded(kTRUE);
-      if ( local_debug )
-        {
-	  std::cout << "QwDriftChamberVDC::ProcessConfigurationBuffer:  "
-		    << "Begin processing ROC" << roc_id << std::endl;
-	  PrintConfigrationBuffer ( buffer, num_words );
-        }
+  if (subbank_index>=0 and num_words>0) {
+    //    SetDataLoaded(kTRUE);
+    if (local_debug) {
+      std::cout << "QwDriftChamberHDC::ProcessConfigurationBuffer:  "
+		<< "Begin processing ROC" << roc_id << std::endl;
+      PrintConfigrationBuffer(buffer,num_words);
     }
+  }
   
   return OK;
 };

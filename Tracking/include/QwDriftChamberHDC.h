@@ -48,17 +48,9 @@ class QwDriftChamberHDC: public QwDriftChamber {
   Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
   
 
-  // VDC
+  // HDC
   Double_t trig_h1;//this will keep the first hit time of trig_h1 (plane 7)
   
-
-
-
- 
- 
-
-
-
   //  ClassDef(QwDriftChamber,2);
 
 
