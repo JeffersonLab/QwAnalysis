@@ -13,21 +13,21 @@ HomePositionY = -319.1622
 ! This could be replaced by an interplation table
 !
 ! units: cm/V, minus sign, assume linear
-Cal_Factor_VQWK_X = -40.30912991
-Cal_Factor_VQWK_Y = -6.994501248
+Cal_Factor_VQWK_X = -40.90520995
+Cal_Factor_VQWK_Y = -6.962146445
 !
 ! units: cm/channel, minus sign, assume linear
-Cal_Factor_QDC_X = -0.1427565
-Cal_Factor_QDC_Y = -0.021637
+Cal_Factor_QDC_X = -0.078163596
+Cal_Factor_QDC_Y = -0.012070486
 !
 ! These are the outputs of position sensor measured by VQWK when scanner is homed, units: Volts
-Voltage_Offset_X = 3.76153
-Voltage_Offset_Y = 2.43578
+Voltage_Offset_X = 3.717
+Voltage_Offset_Y = 2.436
 !
 ! These are the averaged channel number (pedestal) for position measured by V792
 ! when the scanner is homed, units: channel
-Channel_Offset_X = 34.9
-Channel_Offset_Y = 54.4
+Channel_Offset_X = 1434
+Channel_Offset_Y = 1133
 !
 ! name of chanel, pedestal, gain
 ! if this is a Triumf ADC enter the hardware sum pedestal

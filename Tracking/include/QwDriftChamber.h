@@ -33,7 +33,8 @@
 
 ///
 /// \ingroup QwTracking
-class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
+//class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
+class QwDriftChamber: public VQwSubsystemTracking{
   /******************************************************************
    *  Class: QwDriftChamber
    *
@@ -48,7 +49,7 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   /*  Member functions derived from VQwSubsystem. */
 
 
-  Int_t LoadChannelMap(TString mapfile );
+  virtual Int_t LoadChannelMap(TString mapfile ) = 0;
   //LoadGeometryDefinition will load QwDetectorInfo vector from a map file
   //Currently this method is specific to each region
   virtual Int_t LoadGeometryDefinition(TString mapfile )=0;
@@ -60,14 +61,11 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   virtual Int_t LoadInputParameters(TString mapfile){return 0;};
   void  ClearEventData();
 
-  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words){return 0;};
+  virtual Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) = 0;
 
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
   virtual void  ProcessEvent()=0;//has separate meanings in VDC and HDC
-
-
-
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
@@ -79,26 +77,23 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
   /* Unique member functions */
   virtual void  ReportConfiguration() = 0;
-
   virtual void  SubtractReferenceTimes() = 0;
 
+  void  FillDriftDistanceToHits();
+ 
+ 
 
-  void  CalculateDriftDistance();
 
-  virtual Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)=0;
-
+  virtual  void GetHitList(QwHitContainer & grandHitContainer)
+  {
+    grandHitContainer.Append(fWireHits);
+  };
 
   void GetTDCHitList(QwHitContainer & grandHitContainer)
   {
     grandHitContainer.Append(fTDCHits);
   };
 
-
-  void GetHitList(QwHitContainer & grandHitContainer)
-  {
-    //std::cout << " HDC "<<fTDCHits.size()<<std::endl;
-    grandHitContainer.Append(fWireHits);
-  };
 
   Int_t OK;
 
@@ -110,20 +105,15 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
   Int_t LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire);
   virtual Int_t BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire)=0;
-  virtual Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire)= 0;
+  //  virtual Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire)= 0;
 
-
-
- protected:
+  virtual Int_t AddChannelDefinition() = 0;
   virtual void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data) = 0;
-
-
-
-
- protected:
+  virtual Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)=0;
+  
   void  ClearAllBankRegistrations();
-  Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);
-
+  Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id=0);
+  Int_t RegisterSubbank(const UInt_t bank_id);
   Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
 
 
@@ -142,6 +132,8 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
   TString fRegion;  ///  Name of this subsystem (the region).
 
+  
+
 
  protected:
   size_t fCurrentBankIndex;
@@ -150,25 +142,35 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
 
  protected:
   static const UInt_t kMaxNumberOfTDCsPerROC;
-  static const UInt_t kMaxNumberOfChannelsPerTDC;
-
   static const UInt_t kReferenceChannelPlaneNumber;
 
+  UInt_t kMaxNumberOfChannelsPerTDC;
   Int_t fNumberOfTDCs;
 
   std::vector< std::vector<Int_t> > fTDC_Index;  //  TDC index, indexed by bank_index and slot_number
-  std::vector< std::pair<Int_t, Int_t> > fReferenceChannels;
+
+  std::vector< std::pair<Int_t, Int_t> > fReferenceChannels;  
+  // reference chans number <first:tdc_index, second:channel_number>
+  // fReferenceChannels[tdc_index,channel_number][ num of [tdc,chan] set]
+  std::vector< std::vector<Double_t> > fReferenceData; 
+  // wire number  < reference time > 
+  // we use a wire number of QwHit to save a bank id of a reference time.
+  // thus, for fReferenceData, the wire (fElement) is the same as
+  // its bankid. Therefore we can use  fReferenceData[bankid][reference time]
+
+
   std::vector< QwHit > fTDCHits;
   std::vector< QwHit > &fWireHits;
   std::vector< Int_t > fWiresPerPlane;
 
+  MQwF1TDC fF1TDC;
 
   //  NOTE:  The plane and wire indices count from "1" instead
   //         of from "0".
   //         When you're creating loops, just be careful that
   //         you don't try to use the first (zero-th) element
   //         of either index.
-  std::vector< std::vector< Double_t> > fReferenceData;
+
 
 
   /*=====
@@ -198,18 +200,21 @@ class QwDriftChamber: public VQwSubsystemTracking, public MQwF1TDC{
   //below are the data structures that are used in HDC/VDC
 
 
-  std::vector< std::vector< QwDetectorID > > fTDCPtrs; // Indexed by TDC_index and Channel; gives the package, plane and wire assignment.
-
-
+  std::vector< std::vector< QwDetectorID   > > fTDCPtrs; 
+  // Indexed by TDC_index and Channel; gives the package, plane and wire assignment.
   std::vector< std::vector< QwDetectorInfo > > fWireData;
-  std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
+  std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; 
+  // Indexed by package, plane this contains detector geometry information for each region;
 
-  std::vector< std::vector< UInt_t > > fDirectionData; //Indexed by pckg and plane each element represent the wire direction ( a value from 0 to 6)- Rakitha(10/23/2008)
-  std::vector< std::vector< std::vector <Double_t> > > fTimeWireOffsets;
+  std::vector< std::vector< UInt_t >         > fDirectionData; 
+  //Indexed by pckg and plane each element represent the wire direction ( a value from 0 to 6)- Rakitha(10/23/2008)
+
+  std::vector< std::vector< std::vector<Double_t> > > fTimeWireOffsets;
 
 
  protected:
-  //Double_t fTimeWireOffsets[kNumPackages][2][279]; //Indexed by pckg and plane number and wire number(only used on R3 right now)
+  //Double_t fTimeWireOffsets[kNumPackages][2][279]; 
+  //Indexed by pckg and plane number and wire number(only used on R3 right now)
 
   Int_t LoadTimeWireOffset(TString t0_map);
 

@@ -16,6 +16,7 @@
 #include <string>
 #include "Rtypes.h"
 #include "TString.h"
+#include "TRegexp.h"
 
 #include "boost/filesystem/operations.hpp"
 #include "boost/filesystem/path.hpp"
@@ -85,6 +86,8 @@ class QwParameterFile {
   void RewindToLineStart() { fCurrentPos = 0; };
 
   Bool_t HasValue(TString& vname);
+
+  
 
   Bool_t HasVariablePair(std::string separatorchars, std::string& varname, std::string& varvalue);
   Bool_t HasVariablePair(std::string separatorchars, TString& varname, TString& varvalue);

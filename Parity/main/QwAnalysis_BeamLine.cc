@@ -224,7 +224,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 	    if (bRING_READY){//check to see ring is ready
 	      QwHelPat.LoadEventData(fEventRing.pop());
 	    }
-	    QwHelPat.LoadEventData(QwDetectors);
+
 
 	  }
 

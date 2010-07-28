@@ -92,11 +92,17 @@ class VQwSubsystem {
 
   /// \brief Request a named value which is owned by an external subsystem;
   ///        the request will be handled by the parent subsystem array
-  const Bool_t RequestExternalValue(TString name, VQwDataElement* value) const;
+  const Bool_t RequestExternalValue(const TString& name, VQwDataElement* value) const;
+
+  /// \brief Return a pointer to a varialbe to the parent subsystem array to be
+  ///        delivered to a different subsystem.
+  virtual const VQwDataElement* ReturnInternalValue(const TString& name) const {
+    return 0;
+  };
 
   /// \brief Return a named value to the parent subsystem array to be
   ///        delivered to a different subsystem.
-  virtual const Bool_t ReturnInternalValue(TString name,
+  virtual const Bool_t ReturnInternalValue(const TString& name,
 				      VQwDataElement* value) const {
     return kFALSE;
   };
@@ -125,7 +131,8 @@ class VQwSubsystem {
   virtual Int_t ProcessEvBuffer(const UInt_t event_type, const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words){
     /// TODO:  Subsystems should be changing their ProcessEvBuffer routines to take the event_type as the first
     ///  arguement.  But in the meantime, default to just calling the non-event-type-aware ProcessEvBuffer routine.
-    return this->ProcessEvBuffer(roc_id, bank_id, buffer, num_words);
+    if (((0x1 << (event_type - 1)) & this->GetEventTypeMask()) == 0) return 0;
+    else return this->ProcessEvBuffer(roc_id, bank_id, buffer, num_words);
   };
   /// TODO:  The non-event-type-aware ProcessEvBuffer routine should be replaced with the event-type-aware version.
   virtual Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) = 0;

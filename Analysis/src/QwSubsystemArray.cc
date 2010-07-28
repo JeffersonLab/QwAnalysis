@@ -95,8 +95,14 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
     // Create subsystem
     QwMessage << "Creating subsystem of type " << subsys_type << " "
               << "with name " << subsys_name << "." << QwLog::endl;
-    VQwSubsystem* subsys =
-      VQwSubsystemFactory::Create(subsys_type, subsys_name);
+    VQwSubsystem* subsys = 0;
+    try {
+      subsys =
+        VQwSubsystemFactory::Create(subsys_type, subsys_name);
+    } catch (QwException_SubsystemUnknown) {
+      QwError << "No support for subsystems of type " << subsys_type << "." << QwLog::endl;
+      // Fall-through to next error for more the psychological effect of many warnings
+    }
     if (! subsys) {
       QwError << "Could not create subsystem " << subsys_type << "." << QwLog::endl;
       continue;
@@ -289,8 +295,11 @@ void  QwSubsystemArray::ClearEventData()
   }
 };
 
-Int_t QwSubsystemArray::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
-				 buffer, UInt_t num_words)
+Int_t QwSubsystemArray::ProcessConfigurationBuffer(
+  const UInt_t roc_id,
+  const UInt_t bank_id,
+  UInt_t* buffer,
+  UInt_t num_words)
 {
   if (!empty())
     for (iterator subsys = begin(); subsys != end(); ++subsys){
@@ -299,8 +308,12 @@ Int_t QwSubsystemArray::ProcessConfigurationBuffer(const UInt_t roc_id, const UI
   return 0;
 };
 
-Int_t QwSubsystemArray::ProcessEvBuffer(const UInt_t event_type, const UInt_t roc_id, const UInt_t bank_id, UInt_t*
-		      buffer, UInt_t num_words)
+Int_t QwSubsystemArray::ProcessEvBuffer(
+  const UInt_t event_type,
+  const UInt_t roc_id,
+  const UInt_t bank_id,
+  UInt_t* buffer,
+  UInt_t num_words)
 {
   if (!empty())
     SetDataLoaded(kTRUE);

@@ -84,24 +84,25 @@ const double QwPartialTrack::CalculateAverageResidual()
          treeline = treeline->next) {
       if (treeline->IsUsed()) {
         numTreeLines++;
-        sumResiduals += treeline->CalculateAverageResidual();
+        sumResiduals += treeline->GetAverageResidual();
       }
     } // end of loop over treelines
   } // end of loop over directions
-  return sumResiduals / numTreeLines;
+  fAverageResidual = sumResiduals / numTreeLines;
+  return fAverageResidual;
 }
 
 
 // Clear the local TClonesArrays
 void QwPartialTrack::Clear(Option_t *option)
 {
-  ClearTreeLines();
+  ClearTreeLines(option);
 };
 
 // Delete the static TClonesArrays
 void QwPartialTrack::Reset(Option_t *option)
 {
-  ResetTreeLines();
+  ResetTreeLines(option);
 };
 
 /**
@@ -132,7 +133,7 @@ void QwPartialTrack::AddTreeLine(QwTrackingTreeLine* treeline)
 {
   QwTrackingTreeLine* newtreeline = CreateNewTreeLine();
   *newtreeline = *treeline;
-  fQwTreeLines2.push_back(treeline);
+  newtreeline->next = 0;
 };
 
 // Clear the local TClonesArray of tree lines
@@ -150,7 +151,7 @@ void QwPartialTrack::ResetTreeLines(Option_t *option)
 }
 
 // Print the tree lines
-void QwPartialTrack::PrintTreeLines()
+void QwPartialTrack::PrintTreeLines(Option_t *option) const
 {
   TIterator* iterator = fQwTreeLines->MakeIterator();
   QwTrackingTreeLine* treeline = 0;

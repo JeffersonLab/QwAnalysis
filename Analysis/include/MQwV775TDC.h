@@ -11,6 +11,8 @@
 #define __MQwV775TDC__
 
 #include "Rtypes.h"
+#include <cstdlib>
+#include <iostream>
 
 ///
 /// \ingroup QwAnalysis
@@ -29,27 +31,18 @@ class MQwV775TDC{
    *         for both the ADC and TDC.
    ******************************************************************/
  public:
-  MQwV775TDC() {};
-  ~MQwV775TDC() { };
+  MQwV775TDC();
+  ~MQwV775TDC();
 
-// protected:
-  //void DecodeV775Word(UInt_t &word);
   void DecodeTDCWord(UInt_t &word, const UInt_t roc_id=0);
-  /*
-  Bool_t IsV775ValidData(){return fV775ValidFlag;};
-
-  UInt_t GetV775SlotNumber(){return fV775SlotNumber;};
-  UInt_t GetV775ChannelNumber(){return fV775ChannelNumber;};
-  UInt_t GetV775Data(){return fV775Dataword;};
-  */
-
-  //Bool_t IsATDCHeaderword(){return kFALSE;};
-
+  
   Bool_t IsValidDataword()    {return fV775ValidFlag;};
+  Bool_t IsHeaderword()       {return fV775HeaderFlag;};
 
   UInt_t GetTDCSlotNumber()   {return fV775SlotNumber;};
   UInt_t GetTDCChannelNumber(){return fV775ChannelNumber;};
   UInt_t GetTDCData()         {return fV775Dataword;};
+  UInt_t GetTDCMaxChannels()  {return fV775MaxChannelsPerModule;};
 
   UInt_t GetTDCEventNumber()  {return fV775EventNumber;};
   UInt_t GetTDCTriggerTime();
@@ -60,8 +53,10 @@ class MQwV775TDC{
     //  the MQwF1TDC class.
   };
 
-  //  UInt_t SubtractReference(UInt_t a, UInt_t rawtime);  
   Double_t SubtractReference(Double_t rawtime, Double_t reftime);
+  Bool_t CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t num_words);
+  void   PrintTDCHeader(Bool_t flag) ; 
+  void   PrintTDCData(Bool_t flag) ; 
 
  private:
   static const UInt_t kV775Mask_SlotNumber;
@@ -89,6 +84,7 @@ class MQwV775TDC{
   UInt_t fV775SlotNumber;
   UInt_t fV775ChannelNumber;
   UInt_t fV775Dataword;
+  UInt_t fV775MaxChannelsPerModule;
   UInt_t fV775EventNumber;
 
 };

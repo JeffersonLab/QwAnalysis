@@ -21,22 +21,9 @@ slot=6
   F1TDC, 6, 26, maindet, md6p_f1
   F1TDC, 6, 28, maindet, md7p_f1
   F1TDC, 6, 30, maindet, md8p_f1
- ! F1TDC, 6 ,23, maindet, reftime_f1
-  
-  
-!F1TDC_Bank=0x0401
-slot=4
-! module.type  module.num  chan.num, det.type, det.name
-  F1TDC, 4, 0, maindet, TS_1R_f1
-  F1TDC, 4, 2, maindet, TS_1L_f1
-  F1TDC, 4, 4, maindet, TS_2R_f1
-  F1TDC, 4, 6, maindet, TS_2L_f1
-  F1TDC, 4, 12, maindet, TS_1MT_f1
-  F1TDC, 4, 14, maindet, TS_2MT_f1
-
+  F1TDC, 6, 23, maindet, md_reftime_f1
 !
 !
-ROC=4
 QDC_Bank=0x0402
 !QDC_Bank=0x7501
 slot=1
@@ -57,7 +44,6 @@ slot=1
   V792, 1, 13, maindet, md6p_adc
   V792, 1, 14, maindet, md7p_adc
   V792, 1, 15, maindet, md8p_adc
-
 !
 !
 ! module.num counting from 0
@@ -83,9 +69,6 @@ SCA_Bank=0x0403
   SIS3801, 1, 15, maindet, md8p_sca
 !
 !
-
-
-
 !END
 !
 !

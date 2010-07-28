@@ -7,12 +7,57 @@
 ** Jefferson Lab -- Hall C          **
 ** Author: Derek Jones              **
 ** The George Washington University **
-** Contact: dwjones8@gwu,edu        **
+** Contact: dwjones8@gwu.edu        **
+** Last updated: 7-25-2010          **
 \************************************/
 
 
-////ROOT HEADERS////
+////ROOT CORE HEADERS--------------------------------------------------////
+#ifndef ROOT_TCanvas
+#include "TCanvas.h"
+#endif
+#ifndef ROOT_RQ_OBJECT
+#include "RQ_OBJECT.h"
+#endif
+#ifndef ROOT_TGClient
+#include "TGClient.h"
+#endif
+#ifndef ROOT_TF1
+#include <TF1.h>
+#endif
+#ifndef ROOT_TRandom
+#include <TRandom.h>
+#endif
+#ifndef ROOT_TFile
+#include <TFile.h>
+#endif
+#ifndef ROOT_TTree
+#include <TTree.h>
+#endif
+#ifndef ROOT_TLine
+#include <TLine.h>
+#endif
+#ifndef ROOT_TPaveLabel
+#include <TPaveLabel.h>
+#endif
+#ifndef ROOT_TPaveText
+#include <TPaveText.h>
+#endif
+#ifndef ROOT_TPolyMarker
+#include <TPolyMarker.h>
+#endif
+#ifndef ROOT_TGuiBldHintsButton
+#include "TGuiBldHintsButton.h"
+#endif
+#ifndef ROOT_TRootBrowserLite
+#include "TRootBrowserLite.h"
+#endif
+#ifndef ROOT_TImage
+#include "TImage.h"
+#endif
 
+
+////ROOT GUI HEADERS--------------------------------------------------////
 #ifndef ROOT_TGDockableFrame
 #include "TGDockableFrame.h"
 #endif
@@ -121,204 +166,165 @@
 #ifndef ROOT_TRootEmbeddedCanvas
 #include "TRootEmbeddedCanvas.h"
 #endif
-#ifndef ROOT_TCanvas
-#include "TCanvas.h"
-#endif
 #ifndef ROOT_TGuiBldDragManager
 #include "TGuiBldDragManager.h"
 #endif
 #ifndef ROOT_TGNumberEntry
 #include "TGNumberEntry.h"
 #endif
-#ifndef ROOT_RQ_OBJECT
-#include "RQ_OBJECT.h"
-#endif
-#ifndef ROOT_TGClient
-#include "TGClient.h"
-#endif
-
-#ifndef ROOT_TF1
-#include <TF1.h>
-#endif
-#ifndef ROOT_TRandom
-#include <TRandom.h>
-#endif
-#ifndef ROOT_TFile
-#include <TFile.h>
-#endif
-#ifndef ROOT_TTree
-#include <TTree.h>
-#endif
-#ifndef ROOT_TLine
-#include <TLine.h>
-#endif
-#ifndef ROOT_TPaveLabel
-#include <TPaveLabel.h>
-#endif
-#ifndef ROOT_TPaveText
-#include <TPaveText.h>
-#endif
-#ifndef ROOT_TPolyMarker
-#include <TPolyMarker.h>
-#endif
-#ifndef ROOT_TGuiBldHintsButton
-#include "TGuiBldHintsButton.h"
-#endif
-#ifndef ROOT_TRootBrowserLite
-#include "TRootBrowserLite.h"
-#endif
 #ifndef ROOT_TGComboBox
 #include "TGComboBox.h"
 #endif
 
+
+////C++ STANDARD HEADERS--------------------------------------------------////
+#include "Riostream.h"
 #include "TMath.h"
 
-////C++ STANDARD////
-#include "Riostream.h"
 
-
-////FORWARD DECLARATIONS////
-
+////FORWARD DECLARATIONS--------------------------------------------------////
 class QwEventBuffer;
 class QwHitContainer;
 class QwSubsystemArrayTracking;
 class QwTreeEventBuffer;
 
 
-////REGION GEOMETRIES////
+////DECLARE CLASS ELEMENTS--------------------------------------------------////
+class QwEventDisplay: public TGMainFrame{  // Event display is a ROOT main frame class
 
-//All length measurements in cm
-//All angle measurements in degrees
-//Scalings make longest side of length .8 in canvas
-//Geometry data taken from QweakSim files unless noted in parentheses with a derivation;
-//Length is x, width is y, depth is z in qweak coordinates (x and y flip for GUI use, be careful of distinction)
-#define R1_WIDTH 30.00 // Region 1
+  // REGION GEOMETRIES
+  // All length measurements in cm; measured on inside of a single chamber frame
+  // All angle measurements in degrees (converted to radians later)
+  // Scalings make longest side of length .8 in canvas (generally the width)
+  // Geometry data taken from QweakSim files unless noted in parentheses with a derivation;
+  // Length is x, width is y, depth is z in qweak coordinates (x and y flip for GUI use, be careful of distinction)
+#define R1_WIDTH 30.00     // Region 1
 #define R1_LENGTH 30.00
 #define R1_DEPTH 3.00
-#define R1_DIST 0.10 // distance between gas cuts CHECK THIS!!!
-#define R1_CM  0.0267 //calibrated value of 1 cm in this scale
+#define R1_DIST 0.10       // Distance between traces        ###CHECK THIS!!!
+#define R1_CM .8/R1_WIDTH  // Drawing scale factor, 1 cm in ROOT coordinates for this region
 
-#define R2_WIDTH 45.09 // Region 2
+#define R2_WIDTH 45.09     // Region 2
 #define R2_LENGTH 30.00
-#define R2_DEPTH 3.35 //single chamber; 17.20 total depth of HDC system
-#define R2_DIST 1.27 // distance between drift cell chambers (planes)
-#define R2_XDIST 0.935 // distance between x wires (45.09 cm/32 wires)
-#define R2_UVDIST 2.59 // distance between u (or v) wires ((45.09 cm + 30 cm)/29 wires)
-#define R2_CM 0.0177
-#define R2_ANGLE 56.00
+#define R2_DEPTH 3.35
+#define R2_DIST 1.27       // Distance between drift cell planes
+#define R2_XDIST 0.909     // Distance between x wires
+#define R2_UVDIST 2.25     // Distance between u (or v) wires on bottom of frame
+#define R2_FULLWIRE1 9     // 9.29  // (30*.675/2.18)         ###CHECK THIS!!!
+#define R2_FULLWIRE2 20    // 20.68 // (45.09/2.18)
+#define R2_ANGLE 56.00     // Wire angle from bottom of frame
+#define R2_CM .8/R2_WIDTH  // Drawing scale factor, 1 cm in ROOT coordinates for this region
 
-#define R3_WIDTH 210.00 // Region 3
-#define R3_LENGTH 50.00
+#define R3_WIDTH 204.47    // Region 3
+#define R3_LENGTH 53.34
 #define R3_DEPTH 2.54
-#define R3_DIST 40.00 // distance between drift cell chambers
-#define R3_UVDIST 0.932 // distance between u (or v) wires
-#define R3_CM 0.0038
-#define R3_ANGLE 26.57 // 90-26.57 (which is the wire angle)
-
-
-////DECLARE CLASS ELEMENTS////
-
-class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
+#define R3_DIST 40.00      // Distance between drift cell chambers
+#define R3_UVDIST 1.11     // Distance between u (or v) wires on bottom of frame
+#define R3_FULLWIRE1 96    // Given in geometry data
+#define R3_FULLWIRE2 184   // Given in geometry data
+#define R3_ANGLE 26.57     // Wire angle from normal to bottom of frame (90 - 63.43)
+#define R3_CM .8/R3_WIDTH  // Drawing scale factor, 1 cm in ROOT coordinates for this region
 
  public:
-  RQ_OBJECT("QwEventDisplay")
+  RQ_OBJECT("QwEventDisplay") // Create an object for ROOT to process
 
-  UInt_t fEventNumber; // keeps track of the current event number on display
+  UInt_t fEventNumber; // Keeps track of the current event number on display
+  UInt_t fTreeEntries; // Counts the number of events in the file hits tree
 
- private:  // Frames
-  TGMainFrame *fMain; // mainframe window
+ private:
+  TGMainFrame *fMain; // Mainframe window
 
-  TGHorizontalFrame *fEventBoxes; // event box frame
-  TGTab *fRegions; // tab frame for region data
+  TGHorizontalFrame *fEventBoxes; // Event box frame
+  TGTab *fRegions; // Tab frame for region boxes
   TGTextButton *ExitButton;
 
-  // Menu bar
-  TGMenuBar *fMenuBar;
-  TGPopupMenu *fMenuFile, *fMenuHelp;
-  TGLayoutHints *fMenuBarLayout, *fMenuBarItemLayout, *fMenuBarHelpLayout;
+  // Menu Bar
+  TGMenuBar *fMenuBar;                                                      // Menu bar
+  TGPopupMenu *fMenuFile, *fMenuHelp;                                       // Popup menus
+  TGLayoutHints *fMenuBarLayout, *fMenuBarItemLayout, *fMenuBarHelpLayout;  // Menu bar layouts
   enum MenuCommandIdentifiers {
-    M_FILE_OPENRUN,
-    M_FILE_OPENSIM,
-    M_FILE_PRINTSCREEN,
-    M_FILE_CLOSE,
+    M_FILE_OPEN,     // Opens a ROOT file
+    M_FILE_CLOSE,    // Closes a ROOT file
     
-    M_HELP_TUTORIAL,
-    M_HELP_ABOUT
+    M_HELP_TUTORIAL, // Provides link to the event display tutorial documentation
+    M_HELP_ABOUT     // Print information about the event display
   };
+  
+  // Event Box 1 (Current Event Number) Declarations
+  TGVerticalFrame *fEventBox1, *fEventCounter; // Event box 1 frame and internal frame
+  TGLabel *fCurrentEventLabel;                 // Label that displays the current event number
+  TGNumberEntry *fCurrentEventEntry;           // Number entry for GotoEvent() function
+  TGGroupFrame *fCurrentEvent;                 // Group frame to make label more prominent
+  
+  // Event Box 2 (Wire Hit Information) Declarations
+  TGVerticalFrame *fEventBox2; // Event box 2 frame
+  TGListBox *fWireInfoListBox; // List box to display wire hit information
 
-  // Event Box 1 declarations
-  TGVerticalFrame *fEventBox1, *fEventCounter;
-  TGLabel *CurrentEventLabel;
-  TGNumberEntry *CurrentEventEntry;
-  TGGroupFrame *fCurrentEvent;
+  // Event Box 3 (Octant Identification) declarations
+  TGVerticalFrame *fEventBox3;    // Event box 3 frame
+  TRootEmbeddedCanvas *fOctantID; // Embedded canvas for octant ID
+  TCanvas *cOctantID;             // Canvas for octant ID
+  TPaveLabel *Octant_1, *Octant_2, *Octant_3, *Octant_4, *Octant_5, *Octant_6, *Octant_7, *Octant_8; // Labels for each of the octants
 
-  // Event Box 2 declarations
-  TGVerticalFrame *fEventBox2;
-  TGListBox *WireHitListBox;
+  // Region 1 (GEM) Declarations
+  TGCompositeFrame *fRegion1;                                // Tab frame
+  TRootEmbeddedCanvas *fRegion1XY, *fRegion1XZ, *fRegion1YZ; // Embedded canvases for each projection
+  TCanvas *cR1XY, *cR1XZ, *cR1YZ;                            // Canvases for each projection
+  TPaveLabel *Label_R1XY, *Label_R1XZ, *Label_R1YZ;          // Labels for projection descriptions
+  TBox *Box_R1XY, *Box_R1XZ, *Box_R1YZ;                      // Boxes for each chamber
+  std::vector<TLine> Line_R1r;                               // Vectors to store hit list from hit containers
+  std::vector<TLine> Line_R1y;                               // for each direction and draw wire hit lines
 
-  //Event Box 3 declarations
-  TGListBox *TimingListBox;
-
-  //Event Box 4 delcarations
-  TGListBox *DriftDistanceListBox;
-
-  //  UInt_t sum; // sum of wire numbers  NOT USED FOR NOW
-  //  double num; // number of wire hits
-  //  double fit; // average wire number
-
-  //Region 1 (GEM) declarations
-  TGCompositeFrame *fRegion1;
-  TRootEmbeddedCanvas *fRegion1XY, *fRegion1XZ, *fRegion1YZ;
-  TCanvas *cR1XY, *cR1XZ, *cR1YZ;
-  TPaveLabel *Label_R1XY, *Label_R1XZ, *Label_R1YZ;
-  TBox *Box_R1XY, *Box_R1XZ, *Box_R1YZ;
-  std::vector<TLine> Line_R1r;
-  std::vector<TLine> Line_R1y;
-  std::vector<TLine> R1_XYfit;
-  std::vector<TLine> R1_XZfit;
-
-  //Region 2 (HDC) declarations
-  TGCompositeFrame *fRegion2;
-  TRootEmbeddedCanvas *fRegion2XY, *fRegion2XZ, *fRegion2YZ;
-  TCanvas *cR2XY, *cR2XZ, *cR2YZ;
-  TPaveLabel *Label_R2XY, *Label_R2XZ, *Label_R2YZ;
-  TBox *Box_R2XY1, *Box_R2XY2,*Box_R2XY3,*Box_R2XY4, *Box_R2XZ1, *Box_R2XZ2,*Box_R2XZ3,*Box_R2XZ4, *Box_R2YZ1, *Box_R2YZ2, *Box_R2YZ3, *Box_R2YZ4; // boxes for each chamber
-  TBox *Box_R2XY; //TEMPORARY
-  TText *tR2XY1, *tR2XY2, *tR2XY3, *tR2XY4, *tR2XZ1, *tR2XZ2, *tR2XZ3, *tR2XZ4,*tR2YZ1, *tR2YZ2, *tR2YZ3, *tR2YZ4 ; // text for HDC chamber labels
-  std::vector<TLine> Line_R2x;
-  std::vector<TLine> Line_R2u;
+  // Region 2 (HDC) Declarations
+  TGCompositeFrame *fRegion2;                                // Tab frame
+  TRootEmbeddedCanvas *fRegion2XY, *fRegion2XZ, *fRegion2YZ; // Embedded canvases for each projection
+  TCanvas *cR2XY, *cR2XZ, *cR2YZ;                            // Canvases for each projection
+  TPaveLabel *Label_R2XY, *Label_R2XZ, *Label_R2YZ;          // Labels for projection descriptions
+  TBox *Box_R2XY, *Box_R2XZ1, *Box_R2XZ2,*Box_R2XZ3,*Box_R2XZ4, *Box_R2YZ1, *Box_R2YZ2, *Box_R2YZ3, *Box_R2YZ4;    // Boxes for each chamber
+  TText *tR2XY1, *tR2XY2, *tR2XY3, *tR2XY4, *tR2XZ1, *tR2XZ2, *tR2XZ3, *tR2XZ4,*tR2YZ1, *tR2YZ2, *tR2YZ3, *tR2YZ4; // Text for HDC chamber labels
+  std::vector<TLine> Line_R2x;                               // Vectors to store hit list from hit containers
+  std::vector<TLine> Line_R2u;                               // for each direction and draw wire hit lines
   std::vector<TLine> Line_R2v;
 
-  //Region 3 (VDC) declarations
-  TGCompositeFrame *fRegion3;
-  TRootEmbeddedCanvas *fRegion3XY, *fRegion3XZ, *fRegion3YZ;
-  TCanvas *cR3XY, *cR3XZ, *cR3YZ;
-  TPaveLabel *Label_R3XY, *Label_R3XZ, *Label_R3YZ;
-  TBox *Box_R3XY1, *Box_R3XY2,*Box_R3XY3,*Box_R3XY4, *Box_R3XZ1, *Box_R3XZ2,*Box_R3XZ3,*Box_R3XZ4, *Box_R3YZ1, *Box_R3YZ2, *Box_R3YZ3, *Box_R3YZ4; // boxes for each chamber
-  TText *tR3XY1, *tR3XY2, *tR3XY3, *tR3XY4, *tR3XZ1, *tR3XZ2, *tR3XZ3, *tR3XZ4,*tR3YZ1, *tR3YZ2, *tR3YZ3, *tR3YZ4 ; // text for VDC chamber labels
-  TLine *Div_R3XY, *Div_R3XZ, *Div_R3YZ; // dividers for views in projections
-  std::vector<TLine> Line_R3u;
-  std::vector<TLine> Line_R3v;
+  // Region 2b (HDC second arm) Declarations
+  TGCompositeFrame *fRegion2b;                                  // Tab frame
+  TRootEmbeddedCanvas *fRegion2bXY, *fRegion2bXZ, *fRegion2bYZ; // Embedded canvases for each projection
+  TCanvas *cR2bXY, *cR2bXZ, *cR2bYZ;                            // Canvases for each projection
+  TPaveLabel *Label_R2bXY, *Label_R2bXZ, *Label_R2bYZ;          // Labels for projection descriptions
+  TBox *Box_R2bXY, *Box_R2bXZ1, *Box_R2bXZ2,*Box_R2bXZ3,*Box_R2bXZ4, *Box_R2bYZ1, *Box_R2bYZ2, *Box_R2bYZ3, *Box_R2bYZ4;       // Boxes for each chamber
+  TText *tR2bXY1, *tR2bXY2, *tR2bXY3, *tR2bXY4, *tR2bXZ1, *tR2bXZ2, *tR2bXZ3, *tR2bXZ4,*tR2bYZ1, *tR2bYZ2, *tR2bYZ3, *tR2bYZ4; // Text for HDC chamber labels
 
-  //Region 3 (TS) declarations
-  TGCompositeFrame *fRegion3TS;
+  // Region 3 (VDC) Declarations
+  TGCompositeFrame *fRegion3;                                // Tab frame
+  TRootEmbeddedCanvas *fRegion3XY, *fRegion3XZ, *fRegion3YZ; // Embedded canvases for each projection
+  TCanvas *cR3XY, *cR3XZ, *cR3YZ;                            // Canvases for each projection
+  TPaveLabel *Label_R3XY, *Label_R3XZ, *Label_R3YZ;          // Labels for projection descriptions
+  TBox *Box_R3XY1, *Box_R3XY2,*Box_R3XY3,*Box_R3XY4, *Box_R3XZ1, *Box_R3XZ2,*Box_R3XZ3,*Box_R3XZ4, *Box_R3YZ1, *Box_R3YZ2, *Box_R3YZ3, *Box_R3YZ4; // Boxes for each chamber
+  TText *tR3XY1, *tR3XY2, *tR3XY3, *tR3XY4, *tR3XZ1, *tR3XZ2, *tR3XZ3, *tR3XZ4,*tR3YZ1, *tR3YZ2, *tR3YZ3, *tR3YZ4;                                 // Text for VDC chamber labels
+  TLine *Div_R3XY, *Div_R3XZ, *Div_R3YZ; // Dividers for arm views in projections
+  std::vector<TLine> Line_R3u;           // Vectors to store hit list from hit containers
+  std::vector<TLine> Line_R3v;           // for each direction and draw wire hit lines
 
-  // create event buffer
-  QwTreeEventBuffer* fEventBuffer; //!      // excluded from dictionary
-  QwSubsystemArrayTracking* fSubsystemArray;  //!
+  // Region 3 (TS) Declarations // NOT USED CURRENTLY
+  TGCompositeFrame *fRegion3TS; // Tab frame
 
-  // create hit list
+  // Create Event Buffer
+  QwTreeEventBuffer* fEventBuffer; //!       // Excluded from dictionary
+  QwSubsystemArrayTracking* fSubsystemArray; //!
+
+  // Create Hit List
   QwHitContainer* fHitList; //!
 
+  // Trees
+  TTree* fTree; // Used to store hits_tree from ROOT file
+
+  // Function List
  public:
   QwEventDisplay(const TGWindow *p, UInt_t w, UInt_t h);
   virtual ~QwEventDisplay();
 
   void SetEventBuffer(QwTreeEventBuffer *eventbuffer) { fEventBuffer = eventbuffer; };
   void SetSubsystemArray(QwSubsystemArrayTracking *subsystemarray) { fSubsystemArray = subsystemarray; };
-
-  void OpenSimFile();
-  void OpenRunFile();
 
   void HandleMenu(Int_t id);
   void GoPrevious();
@@ -327,7 +333,7 @@ class QwEventDisplay: public TGMainFrame{  // display is a ROOT main frame class
   void GotoEvent();
   void DrawEvent();
 
-  ClassDef(QwEventDisplay,1);
+  ClassDef(QwEventDisplay,1); // Define class object
 };
 
 #endif //QWEVENTDISPLAY

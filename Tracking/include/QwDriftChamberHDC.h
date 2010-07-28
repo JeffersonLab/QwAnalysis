@@ -9,20 +9,7 @@
 #ifndef __QWDRIFTCHAMBERHDC__
 #define __QWDRIFTCHAMBERHDC__
 
-
-
-
-
-
 #include "QwDriftChamber.h"
-
-
-
-
-
-
-
-
 ///
 /// \ingroup QwTracking
 class QwDriftChamberHDC: public QwDriftChamber {
@@ -37,37 +24,33 @@ class QwDriftChamberHDC: public QwDriftChamber {
     {
       DeleteHistograms();
     };
-
+  
   /* Unique virtual member functions from QwDrifChamber base class */
 
- public:
 
- void  ReportConfiguration();
-
- void  SubtractReferenceTimes();
-
- 
-
- Int_t LoadGeometryDefinition(TString mapfile );
- void  ProcessEvent();
-
+  // VDC and HDC
+  void  ReportConfiguration();
+  void  SubtractReferenceTimes();
+  void  ProcessEvent();
+  Int_t LoadGeometryDefinition(TString mapfile );
+  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) {return 0;};
+  void  PrintConfigrationBuffer(UInt_t *buffer, UInt_t num_words) {return ;};
+  Int_t LoadChannelMap ( TString mapfile ) ;
 
 
- Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
+  
 
  protected:
- void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
-
-
-
-
- protected:
-
+  // VDC and HDC
+  void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
+  Int_t AddChannelDefinition();
   Int_t BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire);
-  Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire);
+  Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
+  
 
+  // VDC
   Double_t trig_h1;//this will keep the first hit time of trig_h1 (plane 7)
- 
+  
 
 
 

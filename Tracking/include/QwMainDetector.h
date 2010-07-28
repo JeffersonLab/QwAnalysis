@@ -60,10 +60,8 @@ class QwMainDetector: public VQwSubsystemTracking {
   void  FillHistograms();
   void  DeleteHistograms();
 
-  void  ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Double_t> &values);
-  void  ConstructBranchAndVector(TTree *tree, TString prefix);
+  void  ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values);
-  void  FillTreeVector(Int_t nevent = -1);
 
   QwMainDetector& operator=  (const QwMainDetector &value);
 
@@ -119,7 +117,6 @@ class QwMainDetector: public VQwSubsystemTracking {
 
  protected:
   static const UInt_t kMaxNumberOfModulesPerROC;
-  static const UInt_t kMaxNumberOfChannelsPerModule;
 
   Int_t fNumberOfModules;
 
@@ -131,9 +128,17 @@ class QwMainDetector: public VQwSubsystemTracking {
   std::vector< std::vector<QwPMT_Channel> > fPMTs;
   std::vector<QwSIS3801_Module*> fSCAs;
 
-  std::vector <Double_t> fMainDetVector;
-
   std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
+
+  // For reference time substraction
+  Int_t reftime_slotnum;
+  Int_t reftime_channum;
+  Double_t reftime;
+
+  Int_t tdc_slot_number;
+  Int_t tdc_chan_number;
+  Int_t tmp_last_chan;
+
 };
 
 #endif

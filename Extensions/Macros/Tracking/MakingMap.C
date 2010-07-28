@@ -90,12 +90,12 @@ void create_tdc_tree ( Int_t ev_start=-1,Int_t ev_end=-1, Int_t run_number=1672 
             Int_t slot=0;
             if ( hit->GetSubbankID() ==1 )
             {
-                if ( hit->GetModule() ==6 ) slot=0;
+                if ( hit->GetModule() ==4 ) slot=0;
                 else slot=1;
             }
             else if ( hit->GetSubbankID() ==3 )
             {
-                if ( hit->GetModule() ==6 ) slot=2;
+                if ( hit->GetModule() ==4 ) slot=2;
                 else slot=3;
             }
             else continue;
@@ -154,13 +154,13 @@ void ConstructTDCStructure ( TTree* tree,TString& prefix,std::vector<Int_t>& val
 
 
 
-void draw_peaks ( Int_t slot_num=0,Int_t tdc_num=0, Int_t run_number=1672,Int_t bins=500 )
+void draw_peaks ( Int_t slot_num=0,Int_t tdc_num=0, Int_t run_number=1672,Int_t bins=600 )
 {
 
     check_libraries();
         TFile* f=new TFile ( Form ( "%s/rootfiles/Qweak_%d_TDCBased.root",getenv ( "QWSCRATCH" ),run_number ) );
 
-    TH1F* h1=new TH1F("h1","h1",bins,-250,250);
+    TH1F* h1=new TH1F("h1","h1",bins,-300,300);
 
     TTree* tree=(TTree*)f->Get("tree");
     char firstchan[100]="slot";

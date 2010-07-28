@@ -19,6 +19,7 @@
 #include "QwTypes.h"
 #include "QwBPMStripline.h"
 #include "QwBCM.h"
+#include "QwBPMCavity.h"
 #include "QwCombinedBCM.h"
 #include "QwCombinedBPM.h"
 #include "QwEnergyCalculator.h"
@@ -86,7 +87,7 @@ class QwBeamLine : public VQwSubsystemParity{
 
 
   const Bool_t PublishInternalValues() const;
-  const Bool_t ReturnInternalValue(TString name, VQwDataElement* value) const;
+  const Bool_t ReturnInternalValue(const TString& name, VQwDataElement* value) const;
 
   void RandomizeEventData(int helicity = 0, double time = 0.0);
   void EncodeEventData(std::vector<UInt_t> &buffer);
@@ -123,6 +124,8 @@ class QwBeamLine : public VQwSubsystemParity{
 
   QwBPMStripline* GetBPMStripline(const TString name);
   QwBCM* GetBCM(const TString name);
+  QwBPMCavity* GetBPMCavity(const TString name);
+  const QwBPMCavity* GetBPMCavity(const TString name) const;
   const QwBPMStripline* GetBPMStripline(const TString name) const;
   const QwBCM* GetBCM(const TString name) const;
 
@@ -135,6 +138,7 @@ class QwBeamLine : public VQwSubsystemParity{
  //for example if TypeID is bcm  then the index of the detector from fBCM vector for given name will be returnd.
  std::vector <QwBPMStripline> fStripline;
  std::vector <QwBCM> fBCM;
+ std::vector <QwBPMCavity> fCavity;
  std::vector <QwHaloMonitor> fHaloMonitor;
  std::vector <QwCombinedBCM> fBCMCombo;
  std::vector <QwCombinedBPM> fBPMCombo;

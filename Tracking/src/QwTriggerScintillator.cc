@@ -11,7 +11,6 @@
 #include "QwParameterFile.h"
 
 const UInt_t QwTriggerScintillator::kMaxNumberOfModulesPerROC     = 21;
-const UInt_t QwTriggerScintillator::kMaxNumberOfChannelsPerModule = 32;
 
 
 // Register this subsystem with the factory
@@ -130,7 +129,7 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
 
   TString varname, varvalue;
   TString modtype, dettype, name;
-  Int_t modnum, channum;
+  Int_t modnum=0, channum=0, slotnum=0;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine()){
@@ -155,16 +154,23 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
           fBankID[2] = value;
       } else if (varname=="slot") {
           RegisterSlotNumber(value);
+          slotnum = value;
       } else if (varname=="module") {
 	  RegisterModuleType(varvalue);
       }
     } else {
         //  Break this line into tokens to process it.
-          modtype   = mapstr.GetNextToken(", ").c_str();
-          modnum    = (atol(mapstr.GetNextToken(", ").c_str()));
-          channum   = (atol(mapstr.GetNextToken(", ").c_str()));
-          dettype   = mapstr.GetNextToken(", ").c_str();
-          name      = mapstr.GetNextToken(", ").c_str();
+        modtype   = mapstr.GetNextToken(", ").c_str();
+        modnum    = (atol(mapstr.GetNextToken(", ").c_str()));
+        channum   = (atol(mapstr.GetNextToken(", ").c_str()));
+        dettype   = mapstr.GetNextToken(", ").c_str();
+        name      = mapstr.GetNextToken(", ").c_str();
+
+        // Check for the reference time channel
+        if (name=="ts_reftime_f1") {
+          reftime_slotnum = slotnum;
+          reftime_channum = channum;
+        }
 
         //  Push a new record into the element array
         if (modtype=="SIS3801") {
@@ -208,6 +214,22 @@ void  QwTriggerScintillator::ClearEventData(){
 
 Int_t QwTriggerScintillator::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
+  Int_t index = GetSubbankIndex(roc_id,bank_id);
+  if (index>=0 && num_words>0){
+    //  We want to process the configuration data for this ROC.
+    UInt_t words_read = 0;
+
+    if (fBankID[1]==bank_id){
+      for (size_t i=0; i<fSCAs.size(); i++){
+        if (fSCAs.at(i) != NULL){
+          words_read += fSCAs.at(i)->ProcessConfigBuffer(&(buffer[words_read]),
+                        num_words-words_read);
+        }
+      }
+    }
+
+  }
+
   return 0;
 };
 
@@ -260,7 +282,7 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 
   else if (bank_id==fBankID[1]) { // SIS Scalar
     if (index>=0 && num_words>0) {
-       SetDataLoaded(kTRUE);
+      SetDataLoaded(kTRUE);
       UInt_t words_read = 0;
       for (size_t i=0; i<fSCAs.size(); i++) {
         words_read++; // skip header word
@@ -272,6 +294,7 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
       }
     }
   }
+
   else if (bank_id==fBankID[2]) { // F1TDC
     if (index>=0 && num_words>0) {
       SetDataLoaded(kTRUE);
@@ -280,6 +303,7 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 
       Int_t tdc_slot_number = 0;
       Int_t tdc_chan_number = 0;
+      Int_t tmp_last_chan = 65535;
 
       Bool_t data_integrity_flag = false;
       Bool_t temp_print_flag     = false;
@@ -301,14 +325,25 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 	  // Each subsystem has its own interesting slot(s), thus
 	  // here, if this slot isn't in its slot(s) (subsystem map file)
 	  // we skip this buffer to do the further process
-          if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
 
-          if ( fF1TDC.IsValidDataword() ) {
-            try {
-              FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());
-              fF1TDC.PrintTDCData(temp_print_flag);
+          if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
+           if ( fF1TDC.IsValidDataword() )
+           {
+            try
+            {
+             if(tdc_chan_number != tmp_last_chan)
+             {
+               FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());
+               fF1TDC.PrintTDCData(temp_print_flag);
+
+               // Check if this is reference time data
+               if (tdc_slot_number == reftime_slotnum && tdc_chan_number == reftime_channum)
+            		reftime = fF1TDC.GetTDCData();
+               tmp_last_chan = tdc_chan_number;
+             }
             }
-            catch (std::exception& e) {
+            catch (std::exception& e)
+            {
               std::cerr << "Standard exception from QwTriggerScintillator::FillRawWord: "
                         << e.what() << std::endl;
               std::cerr << "   Parameters:  index=="  <<index
@@ -317,11 +352,11 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
                         << "; GetF1Data()=="          <<fF1TDC.GetTDCData()
                         << std::endl;
             }
+           }
           }
+         }
         }
-      }
-    }
-  }
+       }
   return 0;
 };
 
@@ -329,31 +364,44 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 void  QwTriggerScintillator::ProcessEvent(){
   if (! HasDataLoaded()) return;
 
+  TString elementname = "";
+  Double_t rawtime = 0.0;
+
   for (size_t i=0; i<fPMTs.size(); i++) {
     for (size_t j=0; j<fPMTs.at(i).size(); j++) {
       fPMTs.at(i).at(j).ProcessEvent();
+      elementname = fPMTs.at(i).at(j).GetElementName();
+      rawtime = fPMTs.at(i).at(j).GetValue();
+      // Check if this is an f1 channel and only subtract reftime if channel value is nonzero
+      if (elementname.EndsWith("f1") && rawtime!=0) {
+        Double_t newdata = fF1TDC.ActualTimeDifference(rawtime, reftime);
+        fPMTs.at(i).at(j).SetValue(newdata);
+      }
     }
   }
 
+  for (size_t i=0; i<fSCAs.size(); i++){
+    if (fSCAs.at(i) != NULL){
+      fSCAs.at(i)->ProcessEvent();
+    }
+  }
 };
 
 
 void  QwTriggerScintillator::ConstructHistograms(TDirectory *folder, TString &prefix){
-
-  // Create desired histrograms
-  TS_1LminusR = new TH1F("TS_1LminusR_tdc","TS 1 Left-Right TDC", 1000, -500, 500);
-  TS_1LminusR->GetXaxis()->SetTitle("TDC");
-  TS_1LminusR->GetYaxis()->SetTitle("Events");
-
-  TS_2LminusR = new TH1F("TS_2LminusR_tdc","TS 2 Left-Right TDC", 1000, -500, 500);
-  TS_2LminusR->GetXaxis()->SetTitle("TDC");
-  TS_2LminusR->GetYaxis()->SetTitle("Events");
 
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).ConstructHistograms(folder, prefix);
     }
   }
+
+  for (size_t i=0; i<fSCAs.size(); i++) {
+    if (fSCAs.at(i) != NULL) {
+      fSCAs.at(i)->ConstructHistograms(folder, prefix);
+    }
+  }
+
 };
 
 void  QwTriggerScintillator::FillHistograms(){
@@ -364,43 +412,43 @@ void  QwTriggerScintillator::FillHistograms(){
     }
   }
 
-  // Only fill histrogram if TDC data.ne.0!
-  Real_t tdc_1L = fPMTs.at(2).at(1).GetValue();
-  Real_t tdc_1R = fPMTs.at(2).at(0).GetValue();
-  Real_t tdc_2L = fPMTs.at(2).at(3).GetValue();
-  Real_t tdc_2R = fPMTs.at(2).at(2).GetValue();
-  if (tdc_1L!=0 && tdc_1R!=0) {
-    TS_1LminusR->Fill(tdc_1L-tdc_1R);
-  }
-  if (tdc_2L!=0 && tdc_2R!=0) {
-    TS_2LminusR->Fill(tdc_2L-tdc_2R);
+  for (size_t i=0; i<fSCAs.size(); i++) {
+    if (fSCAs.at(i) != NULL) {
+      fSCAs.at(i)->FillHistograms();
+    }
   }
 
 };
 
-void  QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Double_t> &values)
+void QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values)
 {
-  ConstructBranchAndVector(tree, prefix);
-};
+  fTreeArrayIndex = values.size();
 
-void QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString prefix) 
-{
   TString basename;
   if (prefix=="") basename = "trigscint";
   else basename = prefix;
 
   TString list = "";
-  fTrigScintVector.push_back(0.0);
-  list = ":nevent/D";
-
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       TString element_name = fPMTs.at(i).at(j).GetElementName();
       if (element_name=="") {
         // This channel is not used, so skip setting up the tree.
       } else {
-          fTrigScintVector.push_back(0.0);
+          values.push_back(0.0);
           list += ":"+element_name+"/D";
+      }
+    }
+  }
+
+  for (size_t i=0; i<fSCAs.size(); i++){
+    if (fSCAs.at(i) != NULL){
+      for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++){
+        if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
+        else {
+          values.push_back(0.0);
+          list += ":"+fSCAs.at(i)->fChannels.at(j).GetElementName()+"/D";
+        }
       }
     }
   }
@@ -408,30 +456,39 @@ void QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString prefix
   if (list[0]==':') {
     list = list(1,list.Length()-1);
   }
-  tree->Branch(basename, &fTrigScintVector[0], list);
+
+  fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
+  tree->Branch(basename, &values[fTreeArrayIndex], list);
+  return;
 };
 
 void  QwTriggerScintillator::FillTreeVector(std::vector<Double_t> &values)
 {
-  FillTreeVector();
-};
-
-void QwTriggerScintillator::FillTreeVector(Int_t nevent)
-{
   if (! HasDataLoaded()) return;
 
-  Int_t index = 0;
-  fTrigScintVector[index++] = nevent;
-
+  Int_t index = fTreeArrayIndex;
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       if (fPMTs.at(i).at(j).GetElementName()=="") {}
       else {
-        fTrigScintVector[index] = fPMTs.at(i).at(j).GetValue();
+        values[index] = fPMTs.at(i).at(j).GetValue();
         index++;
       }
     }
   }
+
+  for (size_t i=0; i<fSCAs.size(); i++) {
+    if (fSCAs.at(i) != NULL) {
+      for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++) {
+        if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
+        else {
+          values[index] = fSCAs.at(i)->fChannels.at(j).GetValue();
+          index++;
+        }
+      }
+    }
+  }
+
 };
 
 
@@ -439,6 +496,12 @@ void  QwTriggerScintillator::DeleteHistograms(){
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).DeleteHistograms();
+    }
+  }
+
+  for (size_t i=0; i<fSCAs.size(); i++){
+    if (fSCAs.at(i) != NULL){
+      fSCAs.at(i)->DeleteHistograms();
     }
   }
 };
@@ -494,7 +557,7 @@ Int_t QwTriggerScintillator::RegisterSlotNumber(UInt_t slot_id){
     if (fCurrentBankIndex>=0 && fCurrentBankIndex<=fModuleIndex.size()){
       fModuleTypes.resize(fNumberOfModules+1);
       fModulePtrs.resize(fNumberOfModules+1);
-      fModulePtrs.at(fNumberOfModules).resize(kMaxNumberOfChannelsPerModule,
+      fModulePtrs.at(fNumberOfModules).resize(fF1TDC.GetTDCMaxChannels(),
 					      tmppair);
       fNumberOfModules = fModulePtrs.size();
       fModuleIndex.at(fCurrentBankIndex).at(slot_id) = fNumberOfModules-1;

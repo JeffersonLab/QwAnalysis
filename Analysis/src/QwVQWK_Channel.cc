@@ -70,7 +70,6 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
   Bool_t bStatus;
-  fDeviceErrorCode=0;//Initialize the error flag
 
   if (bEVENTCUTMODE>0){//Global switch to ON/OFF event cuts set at the event cut file
 
@@ -166,6 +165,11 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
     fDataToSave = kDerived;
   else
     fDataToSave = kRaw; // wdc, added default fall-through
+
+  fDeviceErrorCode=0;//Initialize the error flag
+
+  kFoundPedestal = 0;
+  kFoundGain = 0;
 
   fPedestal            = 0.0;
   fCalibrationFactor   = 1.0;
@@ -655,9 +659,10 @@ void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std
       }
 
     fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
-    tree->Branch(basename, &(values[fTreeArrayIndex]), list);
-    //tree->Branch(basename,&fHardwareBlockSum);
-    if (kDEBUG && GetElementName()=="MD1Pos"){
+    if (gQwHists.MatchDeviceParamsFromList(basename.Data()))
+      tree->Branch(basename, &(values[fTreeArrayIndex]), list);
+
+    if (kDEBUG){
       std::cerr << "QwVQWK_Channel::ConstructBranchAndVector: fTreeArrayIndex==" << fTreeArrayIndex
 		<< "; fTreeArrayNumEntries==" << fTreeArrayNumEntries
 		<< "; values.size()==" << values.size()
@@ -674,7 +679,7 @@ void  QwVQWK_Channel::ConstructBranch(TTree *tree, TString &prefix)
     //  This channel is not used, so skip setting up the tree.
   } else {
     TString basename = prefix + GetElementName();
-    tree->Branch(basename,&fHardwareBlockSum);
+    tree->Branch(basename,&fHardwareBlockSum,basename+"/D");
     if (kDEBUG){
       std::cerr << "QwVQWK_Channel::ConstructBranchAndVector: fTreeArrayIndex==" << fTreeArrayIndex
 		<< "; fTreeArrayNumEntries==" << fTreeArrayNumEntries
@@ -755,6 +760,13 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
   return *this;
 };
 
+const QwVQWK_Channel QwVQWK_Channel::operator+ (const QwVQWK_Channel &value) const
+{
+  QwVQWK_Channel result = *this;
+  result += value;
+  return result;
+}
+
 QwVQWK_Channel& QwVQWK_Channel::operator+= (const QwVQWK_Channel &value)
 {
   if (!IsNameEmpty()) {
@@ -775,6 +787,13 @@ QwVQWK_Channel& QwVQWK_Channel::operator+= (const QwVQWK_Channel &value)
   return *this;
 };
 
+const QwVQWK_Channel QwVQWK_Channel::operator- (const QwVQWK_Channel &value) const
+{
+  QwVQWK_Channel result = *this;
+  result -= value;
+  return result;
+}
+
 QwVQWK_Channel& QwVQWK_Channel::operator-= (const QwVQWK_Channel &value)
 {
   if (!IsNameEmpty()){
@@ -788,6 +807,33 @@ QwVQWK_Channel& QwVQWK_Channel::operator-= (const QwVQWK_Channel &value)
     this->fHardwareBlockSum -= value.fHardwareBlockSum;
     this->fHardwareBlockSumM2 = 0.0;
     this->fNumberOfSamples += value.fNumberOfSamples;
+    this->fSequenceNumber   = 0;
+    this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
+  }
+
+  return *this;
+};
+
+const QwVQWK_Channel QwVQWK_Channel::operator* (const QwVQWK_Channel &value) const
+{
+  QwVQWK_Channel result = *this;
+  result *= value;
+  return result;
+}
+
+QwVQWK_Channel& QwVQWK_Channel::operator*= (const QwVQWK_Channel &value)
+{
+  if (!IsNameEmpty()){
+    for (Short_t i=0; i<fBlocksPerEvent; i++){
+      this->fBlock[i] *= value.fBlock[i];
+      this->fBlock_raw[i] *= value.fBlock_raw[i];
+      this->fBlockM2[i] = 0.0;
+    }
+    this->fHardwareBlockSum_raw *= value.fHardwareBlockSum_raw;
+    this->fSoftwareBlockSum_raw *= value.fSoftwareBlockSum_raw;
+    this->fHardwareBlockSum *= value.fHardwareBlockSum;
+    this->fHardwareBlockSumM2 = 0.0;
+    this->fNumberOfSamples *= value.fNumberOfSamples;
     this->fSequenceNumber   = 0;
     this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
   }
@@ -1057,6 +1103,11 @@ void QwVQWK_Channel::PrintValue() const
             << QwLog::endl;
 }
 
+std::ostream& operator<< (std::ostream& stream, const QwVQWK_Channel& channel)
+{
+  stream << channel.GetHardwareSum();
+  return stream;
+};
 
 /**
  * Blind this channel as an asymmetry
@@ -1215,7 +1266,6 @@ void QwVQWK_Channel::Copy(VQwDataElement *source)
 
 void  QwVQWK_Channel::ReportErrorCounters()
 {
-
   if (fErrorCount_sample || fErrorCount_SW_HW || fErrorCount_Sequence || fErrorCount_SameHW || fErrorCount_ZeroHW || fNumEvtsWithEventCutsRejected){
      std::cout<<GetElementName();
      //if (fErrorCount_sample)
@@ -1228,7 +1278,11 @@ void  QwVQWK_Channel::ReportErrorCounters()
       std::cout <<" \t "<<fErrorCount_SameHW ;
       std::cout <<" \t "<<fErrorCount_ZeroHW ;
       //if (fNumEvtsWithEventCutsRejected)
-      std::cout<< " \t " << fNumEvtsWithEventCutsRejected<<"\n";
+      std::cout<< " \t " << fNumEvtsWithEventCutsRejected;
+      if(!kFoundPedestal||!kFoundGain)
+	std::cout << " \t " <<  "~Warning~ No Pedestal or Gain entered in map file for this channel" << "\n";
+      else
+	std::cout << "\n";
       //if (fErrorCount_sample || fErrorCount_SW_HW || fErrorCount_Sequence || fErrorCount_SameHW)
       //std::cout <<"*************End of Error summary*****************"<<std::endl;
   }

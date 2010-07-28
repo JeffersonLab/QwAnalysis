@@ -20,7 +20,8 @@
 
 
 const UInt_t QwMainDetector::kMaxNumberOfModulesPerROC     = 21;
-const UInt_t QwMainDetector::kMaxNumberOfChannelsPerModule = 32;
+
+
 
 
 // Register this subsystem with the factory
@@ -150,7 +151,7 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
 {
   TString varname, varvalue;
   TString modtype, dettype, name;
-  Int_t modnum, channum;
+  Int_t modnum=0, channum=0, slotnum=0;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine())
@@ -187,6 +188,7 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
           else if (varname=="slot")
             {
               RegisterSlotNumber(value);
+              slotnum=value;
             }
         }
       else
@@ -198,14 +200,17 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
           dettype   = mapstr.GetNextToken(", ").c_str();
           name      = mapstr.GetNextToken(", ").c_str();
 
+          if (name=="md_reftime_f1") {
+            reftime_slotnum = slotnum;
+            reftime_channum = channum;
+          }
+
           //  Push a new record into the element array
           if (modtype=="SIS3801")
             {
-              //std::cout<<"modnum="<<modnum<<"    "<<"fSCAs.size="<<fSCAs.size()<<std::endl;
               if (modnum >= (Int_t) fSCAs.size())  fSCAs.resize(modnum+1);
               if (! fSCAs.at(modnum)) fSCAs.at(modnum) = new QwSIS3801_Module();
               fSCAs.at(modnum)->SetChannel(channum, name);
-
             }
 
           else if (modtype=="V792" || modtype=="V775" || modtype=="F1TDC")
@@ -232,13 +237,11 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
 
           else
             {
-              std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str()
-              << std::endl;
+              std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str() << std::endl;
             }
         }
     }
-  //
-  ReportConfiguration();
+  //ReportConfiguration();
   return 0;
 };
 
@@ -367,6 +370,7 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 
           Int_t tdc_slot_number = 0;
           Int_t tdc_chan_number = 0;
+          Int_t tmp_last_chan = 65535;
 
 	  Bool_t data_integrity_flag = false;
 	  Bool_t temp_print_flag     = false;
@@ -397,8 +401,16 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 		  if ( fF1TDC.IsValidDataword() )
 		    {
 		      try {
-			FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());
-			fF1TDC.PrintTDCData(temp_print_flag);
+		    	if(tdc_chan_number != tmp_last_chan)
+		    	{
+			    FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());
+
+			    fF1TDC.PrintTDCData(temp_print_flag);
+			    if (tdc_slot_number == reftime_slotnum && tdc_chan_number == reftime_channum)
+			      reftime = fF1TDC.GetTDCData();
+			    tmp_last_chan = tdc_chan_number;
+
+		    	}
 		      }
 		      catch (std::exception& e) {
 			std::cerr << "Standard exception from QwMainDetector::FillRawTDCWord: "
@@ -410,9 +422,9 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 				  << std::endl;
 		      }
 		    }
-		}
+		   }
 	    }//; if(data_integrity_flag)
-        }
+      }
     }
 
 
@@ -448,23 +460,27 @@ void  QwMainDetector::ProcessEvent()
 {
   if (! HasDataLoaded()) return;
 
+  TString elementname = "";
+  Double_t rawtime = 0.0;
 
-  for (size_t i=0; i<fPMTs.size(); i++)
-    {
-      for (size_t j=0; j<fPMTs.at(i).size(); j++)
-        {
+
+  for (size_t i=0; i<fPMTs.size(); i++){
+      for (size_t j=0; j<fPMTs.at(i).size(); j++){
           fPMTs.at(i).at(j).ProcessEvent();
-        }
-    }
+          elementname = fPMTs.at(i).at(j).GetElementName();
+          rawtime = fPMTs.at(i).at(j).GetValue();
+          if (elementname.EndsWith("f1") && rawtime!=0) {
+                  Double_t newdata = fF1TDC.ActualTimeDifference(rawtime, reftime);
+                  fPMTs.at(i).at(j).SetValue(newdata);
+          }
+      }
+  }
 
-  for (size_t i=0; i<fSCAs.size(); i++)
-    {
-      if (fSCAs.at(i) != NULL)
-        {
+  for (size_t i=0; i<fSCAs.size(); i++){
+      if (fSCAs.at(i) != NULL){
           fSCAs.at(i)->ProcessEvent();
-        }
+      }
     }
-
 };
 
 
@@ -495,7 +511,7 @@ void  QwMainDetector::FillHistograms()
     {
       for (size_t j=0; j<fPMTs.at(i).size(); j++)
         {
-          fPMTs.at(i).at(j).FillHistograms();
+           fPMTs.at(i).at(j).FillHistograms();
         }
     }
 
@@ -509,22 +525,15 @@ void  QwMainDetector::FillHistograms()
 };
 
 
-void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix, std::vector<Double_t> &values)
+void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values)
 {
-  ConstructBranchAndVector(tree, prefix);
-}
+  fTreeArrayIndex = values.size();
 
-void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
-{
   TString basename;
   if (prefix=="") basename = "maindet";
   else basename = prefix;
 
-  fMainDetVector.reserve(6000);
   TString list = "";
-
-  fMainDetVector.push_back(0.0);
-  list = ":nevent/D";
 
   for (size_t i=0; i<fPMTs.size(); i++)
     {
@@ -536,8 +545,9 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
             }
           else
             {
-              fMainDetVector.push_back(0.0);
-	      list += ":"+fPMTs.at(i).at(j).GetElementName()+"/D";
+              values.push_back(0.0);
+	          list += ":"+fPMTs.at(i).at(j).GetElementName()+"/D";
+	          //std::cout<<"Added to list: "<<fPMTs.at(i).at(j).GetElementName()<<"\n"<<std::endl;
             }
         }
     }
@@ -552,7 +562,7 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
               if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
               else
                 {
-                  fMainDetVector.push_back(0.0);
+                  values.push_back(0.0);
 		  list += ":"+fSCAs.at(i)->fChannels.at(j).GetElementName()+"/D";
                 }
             }
@@ -561,7 +571,9 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
 
   if (':' == list[0])
     list = list(1,list.Length()-1);
-  tree->Branch(basename, &fMainDetVector[0], list);
+
+  fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
+  tree->Branch(basename, &values[fTreeArrayIndex], list);
   // std::cout<<list<<"\n";
   return;
 };
@@ -569,40 +581,9 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString prefix)
 
 void  QwMainDetector::FillTreeVector(std::vector<Double_t> &values)
 {
-  /*    if (! HasDataLoaded()) return;
-      for (size_t i=0; i<fPMTs.size(); i++)
-      {
-          for (size_t j=0; j<fPMTs.at(i).size(); j++)
-          {
-              fPMTs.at(i).at(j).FillTreeVector(values);
-          }
-      }
-
-      for (size_t i=0; i<fSCAs.size(); i++)
-      {
-          if (fSCAs.at(i) != NULL)
-          {
-              for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++)
-              {
-                  if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
-                  else
-                  {
-                      fSCAs.at(i)->fChannels.at(j).FillTreeVector(values);
-                  }
-              }
-          }
-      }*/
-
-  FillTreeVector();
-}
-
-void  QwMainDetector::FillTreeVector(Int_t nevent)
-{
   if (! HasDataLoaded()) return;
 
-  Int_t index = 0;
-
-  fMainDetVector[index++] = nevent;
+  Int_t index = fTreeArrayIndex;
 
   for (size_t i=0; i<fPMTs.size(); i++)
     {
@@ -611,8 +592,8 @@ void  QwMainDetector::FillTreeVector(Int_t nevent)
           if (fPMTs.at(i).at(j).GetElementName()=="") {}
           else
             {
-              fMainDetVector[index] = fPMTs.at(i).at(j).GetValue();
-              // std::cout<<"Fill data "<<fMainDetVector[index]<<" to index "
+              values[index] = fPMTs.at(i).at(j).GetValue();
+              // std::cout<<"Fill data "<<values[index]<<" to index "
               // <<index<<" ch_name "<<fPMTs.at(i).at(j).GetElementName()<<"\n";
               index++;
             }
@@ -627,7 +608,7 @@ void  QwMainDetector::FillTreeVector(Int_t nevent)
         {
           for (size_t j=0; j<fPMTs.at(i).size(); j++)
             {
-              std::cout<<  fMainDetVector[index]<<"\t";
+              std::cout<<  values[index]<<"\t";
               index++;
             }
         }
@@ -643,7 +624,7 @@ void  QwMainDetector::FillTreeVector(Int_t nevent)
               if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
               else
                 {
-                  fMainDetVector[index] = fSCAs.at(i)->fChannels.at(j).GetValue();
+                  values[index] = fSCAs.at(i)->fChannels.at(j).GetValue();
 		  index++;
                 }
             }
@@ -741,7 +722,7 @@ Int_t QwMainDetector::RegisterSlotNumber(UInt_t slot_id)
         {
           fModuleTypes.resize(fNumberOfModules+1);
           fModulePtrs.resize(fNumberOfModules+1);
-          fModulePtrs.at(fNumberOfModules).resize(kMaxNumberOfChannelsPerModule,
+          fModulePtrs.at(fNumberOfModules).resize(fF1TDC.GetTDCMaxChannels(),
                                                   tmppair);
           fNumberOfModules = fModulePtrs.size();
           fModuleIndex.at(fCurrentBankIndex).at(slot_id) = fNumberOfModules-1;
@@ -818,7 +799,7 @@ void QwMainDetector::FillRawWord(Int_t bank_index,
         }
       else
         {
-          fPMTs.at(modtype).at(chanindex).SetValue(data);
+    	  fPMTs.at(modtype).at(chanindex).SetValue(data);
         }
     };
 };

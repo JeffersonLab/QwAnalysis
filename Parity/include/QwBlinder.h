@@ -21,6 +21,7 @@
 // Qweak headers
 #include "QwDatabase.h"
 #include "QwSubsystemArrayParity.h"
+#include "QwEPICSEvent.h"
 
 // Backup type definition for ULong64_t; needed with some older ROOT versions.
 #if !defined(ULong64_t)
@@ -69,12 +70,15 @@ class QwBlinder {
       kAdditiveMultiplicative
     };
 
-    /// \brief Constructor with default seed string and without database
-    QwBlinder(const TString& seed, const EQwBlindingStrategy blinding_strategy = kAdditive);
-    /// \brief Constructor with database
-    QwBlinder(QwDatabase* db, const UInt_t seed_id, const EQwBlindingStrategy blinding_strategy = kAdditive);
+    /// \brief Default constructor with optional database
+    QwBlinder(const EQwBlindingStrategy blinding_strategy = kAdditive);
     /// \brief Default destructor
     virtual ~QwBlinder();
+
+    /// \brief Update the status with new external information
+    void Update(QwDatabase* db, const QwSubsystemArrayParity& detectors);
+    /// \brief Update the status with new external information
+    void Update(QwDatabase* db, const QwEPICSEvent& epics);
 
     void  WriteFinalValuesToDB(QwDatabase* db);
     void  PrintFinalValues();
@@ -151,51 +155,57 @@ class QwBlinder {
     };
 
   private:
-    /// Private default constructor
-    QwBlinder () { };
+
     /// Private copy constructor
-    QwBlinder (const QwBlinder& tb) { };
+    QwBlinder (const QwBlinder& blinder): fBlindingStrategy(kDisabled) { };
     /// Private assignment operator
-    const QwBlinder& operator= (const QwBlinder& tb) { return *this; };
+    const QwBlinder& operator= (const QwBlinder& blinder) { return *this; };
 
     //  Variables and functions used in blinding the detector asymmetries
-    EQwBlindingStrategy fBlindingStrategy; /// Blinding strategy
+    const EQwBlindingStrategy fBlindingStrategy; /// Blinding strategy
     Double_t fBlindingOffset; /// The term to be added to detector asymmetries
     Double_t fBlindingFactor; /// The factor to be mutliplied to detector asymmetries
 
     static const Double_t kMaximumBlindingAsymmetry; /// Maximum blinding asymmetry (in ppm)
     static const Double_t kMaximumBlindingFactor;    /// Maximum blinding factor (in % from identity)
 
-    UInt_t fSeedID;      /// Database ID of seed used to generate this blinding factor (seeds.seed_id)
-    TString fSeed;       /// RNG seed string (seeds.seed)
+    UInt_t fSeedID;      /// ID of seed used (seeds.seed_id)
+    TString fSeed;       /// Seed string (seeds.seed)
+    static const TString kDefaultSeed; /// Default seed
 
     std::vector<UChar_t> fDigest;         /// Checksum in raw hex
     std::string          fChecksum;       /// Checksum in ASCII hex
 
-    int fMaxTests;                         /// Maximum number of test values
-    std::vector<int>    fTestNumber;       /// Vector of test numbers (IDs)
-    std::vector<double> fTestValue;        /// Vector of test values, original
-    std::vector<double> fBlindTestValue;   /// Vector of test values, after blinding
-    std::vector<double> fUnBlindTestValue; /// Vector of test values, after unblinding
+    std::vector<double> fTestValues;        /// Vector of test values, original
+    std::vector<double> fBlindTestValues;   /// Vector of test values, after blinding
+    std::vector<double> fUnBlindTestValues; /// Vector of test values, after unblinding
 
-    void InitBlinders();                              /// Initializes fBlindingFactor from fSeed.
-    void SetTestValues(const TString &barestring);    /// Initializes the test values: fTestNumber, fTestValue,
-                                                      /// fBlindTestValue, if fBlindingFactor is set.
+    void InitBlinders(const UInt_t seed_id); /// Initializes fBlindingFactor from fSeed.
+
+    void InitTestValues(const int n);    /// Initializes the test values: fTestNumber, fTestValue,
+                                         /// fBlindTestValue, if fBlindingFactor is set.
+    Bool_t CheckTestValues();            /// Recomputes fBlindTestValue to check for memory errors
+
 
     Int_t UseMD5(const TString &barestring);          /// Returns an integer from a string using MD5
+
     Int_t UseStringManip(const TString &barestring);  /// Returns an integer from a string using
                                                       /// a character manipulation algorithm
+
     Int_t UsePseudorandom(const TString &barestring); /// Returns an integer from a string using
                                                       /// a version of the helicity bit pseudorandom algorithm.
 
-    ///  Reads fSeed from the fSQL object based on fSeedID
+
+    ///  Reads the seed with specified id from the database object
     Int_t ReadSeed(QwDatabase* db, const UInt_t seed_id);
+
+    ///  Reads the seed from the database object
+    Int_t ReadSeed(QwDatabase* db);
 
     void WriteChecksum(QwDatabase* db);     ///  Writes fSeedID and fBFChecksum to DB for this analysis ID
     void WriteTestValues(QwDatabase* db);   ///  Writes fTestNumber and fBlindTestValue to DB for this analysis ID
-    Bool_t CheckTestValues();               ///  Recomputes fBlindTestValue to check for memory errors
 
-    std::vector<UChar_t> GenerateDigest(const TString& input);
+    std::vector<UChar_t> GenerateDigest(const TString& input) const;
 
 };
 

@@ -30,8 +30,9 @@ const UInt_t MQwF1TDC::kF1Mask_HeaderChannelNumber = 0x0000003f;
 
 
 
-MQwF1TDC::MQwF1TDC(): fMinDiff(-1.0*kMaxInt), fMaxDiff(1.0*kMaxInt), 
-		      fOffset(0.0), fTimeShift(0.0)
+// MQwF1TDC::MQwF1TDC(): fMinDiff(-1.0*kMaxInt), fMaxDiff(1.0*kMaxInt), 
+// 		      fOffset(0.0), fTimeShift(0.0)
+MQwF1TDC::MQwF1TDC()
 { 
   fF1ROCNumber          = 0;
   fF1HeaderFlag         = kFALSE;
@@ -42,6 +43,12 @@ MQwF1TDC::MQwF1TDC(): fMinDiff(-1.0*kMaxInt), fMaxDiff(1.0*kMaxInt),
   fF1SlotNumber         = 0;
   fF1ChannelNumber      = 0;
   fF1Dataword           = 0;
+  fF1MaxChannelsPerModule = 64; 
+
+  // temp solution, because it is not the general F1TDC
+  // if one want to use F1TDC as high resolution
+  // it will be changed to 32;
+  // Friday, July 16 11:11:02 EDT 2010, jhlee
 
   fF1HeaderTrigFIFOFlag = kFALSE;
   fF1HeaderEventNumber  = 0;
@@ -66,7 +73,8 @@ void MQwF1TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
   else                                        fF1ValidDataSlotFlag = kFALSE;
 
   
-  fF1HeaderFlag         = ((word & kF1Mask_HeaderFlag)==0); // TRUE if the mask bit IS NOT set
+  fF1HeaderFlag         = ((word & kF1Mask_HeaderFlag)==0); 
+  // TRUE if the mask bit IS NOT set
   
   // These three flags should be TRUE if their mask bit IS set
   fF1HitFIFOFlag        = ((word & kF1Mask_HitFIFOFlag       )!=0);
@@ -91,18 +99,9 @@ void MQwF1TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
     // skip to record overflow dataword entry (65535, 0xFFFF)
     fF1HeaderEventNumber   = 0;
     fF1HeaderTriggerTime   = 0;
-    //std::cout << "channel: " << fF1ChannelNumber << " raw time: " << fF1Dataword << std::endl;
+    // std::cout << "channel: " << fF1ChannelNumber 
+    // << " raw time: " << fF1Dataword << std::endl;
   }
-  
-  //    PrintHitFIFOStatus(roc_id);
-  //    PrintOutputFIFOStatus(roc_id);
-  //    PrintResolutionLockStatus(roc_id);
-  //  }
-  //  else {
-  
-  //  }
-  
-
   return;
 };
 
@@ -137,29 +136,29 @@ void MQwF1TDC::PrintTDCData(Bool_t flag)
 };
 
 
-Double_t MQwF1TDC::SubtractReference(Double_t rawtime, Double_t reftime)
-{
-  //  Note that this produces the opposite sign of the corrected time
-  //  as compared to the UInt_t version from revision 423 shown above.
-  //
-  //  For Region 3, according to the UInt_t version from revision 423,
-  //  the internal parameters should be:
-  //      fMinDiff   = -30000
-  //      fMaxDiff   =  30000
-  //      fOffset    =  64495
-  //      fTimeShift =   8929
-  //
-  Double_t real_time = rawtime - reftime;  
+// Double_t MQwF1TDC::SubtractReference(Double_t rawtime, Double_t reftime)
+// {
+//   //  Note that this produces the opposite sign of the corrected time
+//   //  as compared to the UInt_t version from revision 423 shown above.
+//   //
+//   //  For Region 3, according to the UInt_t version from revision 423,
+//   //  the internal parameters should be:
+//   //      fMinDiff   = -30000
+//   //      fMaxDiff   =  30000
+//   //      fOffset    =  64495
+//   //      fTimeShift =   8929
+//   //
+//   Double_t real_time = rawtime - reftime;  
 
-  if( real_time < fMinDiff ) {
-    real_time += fOffset;
-  }
-  else if( real_time > fMaxDiff) {
-    real_time -= fOffset;
-  }
-  real_time = real_time + fTimeShift;
-  return real_time;
-}
+//   if( real_time < fMinDiff ) {
+//     real_time += fOffset;
+//   }
+//   else if( real_time > fMaxDiff) {
+//     real_time -= fOffset;
+//   }
+//   real_time = real_time + fTimeShift;
+//   return real_time;
+// }
 
 
 

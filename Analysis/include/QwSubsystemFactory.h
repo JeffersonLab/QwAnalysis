@@ -7,6 +7,11 @@
 // Forward declarations
 class VQwSubsystem;
 
+// Exceptions
+struct QwException_SubsystemUnknown {
+  QwException_SubsystemUnknown() { };
+};
+
 /**
  *  \class VQwSubsystemFactory
  *  \ingroup QwAnalysis
@@ -83,11 +88,13 @@ VQwSubsystemFactory::GetSubsystemFactory(const std::string& type)
     QwError << "Subsystem " << type << " is not registered!" << QwLog::endl;
     QwMessage << "Available subsystems:" << QwLog::endl;
     ListRegisteredSubsystems();
-    QwMessage << "To register this subsystem, add the following line to the top "
+    QwWarning << "To register this subsystem, add the following line to the top "
               << "of the source file:" << QwLog::endl;
-    QwMessage << "  QwSubsystemFactory<" << type << "> the" << type
+    QwWarning << "  QwSubsystemFactory<" << type << "> the" << type
               << "Factory(\"" << type << "\");" << QwLog::endl;
-    throw 0; // this will most likely crash
+    QwWarning << "Ensure that the dynamic library contains the factory object."
+              << QwLog::endl;
+    throw QwException_SubsystemUnknown();
   }
 };
 
@@ -108,7 +115,6 @@ class QwSubsystemFactory: public VQwSubsystemFactory {
 
     /// Constructor which stores type name in list of registered subsystems
     QwSubsystemFactory(const std::string& type) {
-      // printf("%s:%d %s(): arg %s\n",__FILE__,__LINE__,__func__,type.c_str()); 
       VQwSubsystemFactory::GetRegisteredSubsystems()[type] = this;
     };
 

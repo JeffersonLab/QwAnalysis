@@ -85,7 +85,7 @@ void QwHitRootContainer::Build(QwHitContainer &hitcontainer)
 }
 
 // Convert from this TOrdCollection to a QwHitContainer hitlist
-QwHitContainer* QwHitRootContainer::Convert()
+QwHitContainer* QwHitRootContainer::Convert() const
 {
   QwHitContainer* hitlist = new QwHitContainer();
   TIterator* iterator = fQwHits->MakeIterator();
@@ -97,7 +97,7 @@ QwHitContainer* QwHitRootContainer::Convert()
 }
 
 // Print the TOrdCollection hitlist
-void QwHitRootContainer::Print()
+void QwHitRootContainer::Print(Option_t* option) const
 {
   TIterator* iterator = fQwHits->MakeIterator();
   QwHit* hit = 0;

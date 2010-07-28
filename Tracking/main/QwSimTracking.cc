@@ -59,7 +59,7 @@ void PrintInfo(TStopwatch& timer)
 
 
 // Debug level
-static const bool kDebug = false;
+static const bool kDebug = true;
 // ROOT file output
 static const bool kTree = true;
 static const bool kHisto = true;

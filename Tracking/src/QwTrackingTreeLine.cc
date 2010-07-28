@@ -213,7 +213,8 @@ const double QwTrackingTreeLine::CalculateAverageResidual()
       }
     } // end of loop over hits (only one of them is used)
   } // end of loop over layers
-  return sumResiduals / numHits;
+  fAverageResidual = sumResiduals / numHits;
+  return fAverageResidual;
 }
 
 

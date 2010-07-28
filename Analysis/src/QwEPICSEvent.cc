@@ -11,7 +11,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "StringManip.h" 
+#include "StringManip.h"
 
 #include "QwLog.h"
 #include "QwParameterFile.h"
@@ -49,7 +49,7 @@ QwEPICSEvent::~QwEPICSEvent(){};
 Int_t QwEPICSEvent::LoadEpicsVariableMap(TString mapfile) {
   TString varname, dbtable, datatype;
   EQwEPICSDataType datatypeid = kEPICSString;
-  Int_t lineread=0;  
+  Int_t lineread=0;
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   std::cout<<"\nReading epics parameter file: "<<mapfile<<"\n";
   fNumberEPICSVariables = 0;
@@ -83,7 +83,7 @@ Int_t QwEPICSEvent::LoadEpicsVariableMap(TString mapfile) {
 };
 
 
-//HC:Q_ONOFF          	slow_controls_data     	   	string 
+//HC:Q_ONOFF          	slow_controls_data     	   	string
 //IGL1I00DI24_24M     	slow_controls_data     	   	string  !halfwave plate status
 
 int QwEPICSEvent::AddEPICSTag(TString tag)
@@ -96,7 +96,7 @@ int QwEPICSEvent::AddEPICSTag(TString tag, TString table)
   return AddEPICSTag(tag, table, kEPICSFloat);
 };
 
-int QwEPICSEvent::AddEPICSTag(TString tag, TString table, 
+int QwEPICSEvent::AddEPICSTag(TString tag, TString table,
 			      EQwEPICSDataType datatype)
 {
   fEPICSVariableList.push_back(tag);
@@ -123,30 +123,30 @@ void QwEPICSEvent::CalculateRunningValues()
       if (fEPICSVariableType[tagindex] == kEPICSFloat || fEPICSVariableType[tagindex] == kEPICSInt) {
 	//if (fEPICSVariableType[tagindex] != kEPICSString){
 	if (fEPICSDataEvent[tagindex].Filled){
-	  
+
 	  if (! fEPICSCumulativeData[tagindex].Filled){
 	    fEPICSCumulativeData[tagindex].NumberRecords = 0;
 	    fEPICSCumulativeData[tagindex].Sum           = 0.0;
 	    fEPICSCumulativeData[tagindex].SquaredSum    = 0.0;
-	    fEPICSCumulativeData[tagindex].Maximum       = 
+	    fEPICSCumulativeData[tagindex].Maximum       =
 	      fEPICSDataEvent[tagindex].Value;
-	    fEPICSCumulativeData[tagindex].Minimum       =  
+	    fEPICSCumulativeData[tagindex].Minimum       =
 	      fEPICSDataEvent[tagindex].Value;
 	    fEPICSCumulativeData[tagindex].Filled        = kTRUE;
 	  }
 	  fEPICSCumulativeData[tagindex].NumberRecords++;
-	  fEPICSCumulativeData[tagindex].Sum += 
+	  fEPICSCumulativeData[tagindex].Sum +=
 	    fEPICSDataEvent[tagindex].Value;
 	  fEPICSCumulativeData[tagindex].SquaredSum +=
 	    (fEPICSDataEvent[tagindex].Value)*(fEPICSDataEvent[tagindex].Value);
 	  if (fEPICSDataEvent[tagindex].Value
 	      > fEPICSCumulativeData[tagindex].Maximum){
-	    fEPICSCumulativeData[tagindex].Maximum       = 
+	    fEPICSCumulativeData[tagindex].Maximum       =
 	      fEPICSDataEvent[tagindex].Value;
 	  }
 	  if (fEPICSDataEvent[tagindex].Value
 	      < fEPICSCumulativeData[tagindex].Minimum){
-	    fEPICSCumulativeData[tagindex].Minimum       =  
+	    fEPICSCumulativeData[tagindex].Minimum       =
 	      fEPICSDataEvent[tagindex].Value;
 	  }
 	  if (kDebug == 1) std::cout << "This event has "<<fEPICSVariableList[tagindex]
@@ -169,7 +169,7 @@ void QwEPICSEvent::CalculateRunningValues()
 
 	if (! fEPICSCumulativeData[tagindex].Filled){
 	  fEPICSCumulativeData[tagindex].NumberRecords = 0;
-	  fEPICSCumulativeData[tagindex].SavedString   = 
+	  fEPICSCumulativeData[tagindex].SavedString   =
 	      fEPICSDataEvent[tagindex].StringValue;
 	  fEPICSCumulativeData[tagindex].Filled        = kTRUE;
 	}
@@ -181,20 +181,20 @@ void QwEPICSEvent::CalculateRunningValues()
     }
     fNumberEPICSEvents++;
     //////////////////////
-    
-    
+
+
 
     // //////////////////////
-    //     }    
+    //     }
     //     for (tagindex=0; tagindex<fNumberEPICSVariables; tagindex++) {
     //       if (fEPICSVariableType[tagindex] == kEPICSString){
     // 	  //  This is a string value.
     // 	  //  Just check to see if the EPICS string has changed;
     // 	  //  if it is the same, increment the counter.
-    
+
     // 	  if (! fEPICSCumulativeData[tagindex].Filled){
     // 	    fEPICSCumulativeData[tagindex].NumberRecords = 0;
-    // 	    fEPICSCumulativeData[tagindex].SavedString   = 
+    // 	    fEPICSCumulativeData[tagindex].SavedString   =
     // 	      fEPICSDataEvent[tagindex].StringValue;
     // 	  fEPICSCumulativeData[tagindex].Filled        = kTRUE;
     // 	  }
@@ -206,8 +206,8 @@ void QwEPICSEvent::CalculateRunningValues()
     //     }
     //     fNumberEPICSEvents++;
     //     ////////////////////////////////
-    
-    
+
+
   }
   if (kDebug == 1) std::cout << "fNumberEPICSEvents = " << fNumberEPICSEvents << std::endl;
 };
@@ -217,7 +217,7 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
 {
   /* This routine will decode the input string, which holds the  *
    * epics buffer and extract the EPICS values from it.          */
-  
+
   string line;
   string stmplabel, stmpvalue;
   Double_t tmpvalue;
@@ -225,15 +225,15 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
   size_t pos = 0; //iterator
   tmpvalue = -999999.;
   if(kDebug == 1) std::cout <<"Here we are, entering 'ExtractEPICSValues'!!"<<std::endl;
-  
+
   for (tagindex=0;tagindex<fNumberEPICSVariables; tagindex++) {
     fEPICSDataEvent[tagindex].Filled = kFALSE;
   }
-  
-  //convert the input stream into a stringstream so we can 
+
+  //convert the input stream into a stringstream so we can
   //do manipulation on it just like reading a file
   std::stringstream ss(data, std::stringstream::in | std::stringstream::out);
-  while(!ss.eof()){  
+  while(!ss.eof()){
     getline(ss,line);
     for (tagindex=0; tagindex<(Int_t)fEPICSVariableList.size(); tagindex++) {
       pos = line.find(fEPICSVariableList[tagindex]);//pattern matching
@@ -245,7 +245,7 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
 	if(kDebug == 1) std::cout << line<<" ==> "
 			          <<fEPICSVariableList[tagindex]
 			          <<"\t"<<stmpvalue<<std::endl;
-	
+
 	SetDataValue(fEPICSVariableList[tagindex], TString(stmpvalue.c_str()), event);
 
 	/*  Now break out of the for loop.  */
@@ -253,16 +253,13 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
       }
     }
   }
-  
+
 };
 
-Int_t QwEPICSEvent::FindIndex(TString tag)
+Int_t QwEPICSEvent::FindIndex(const TString& tag) const
 {
-  Int_t tagindex;
-  
-  for (tagindex=0; tagindex<(Int_t)fEPICSVariableList.size(); tagindex++) {
-    //for (tagindex=0; tagindex<fNumberEPICSVariables; tagindex++) {
-    if (tag == fEPICSVariableList[tagindex]){
+  for (size_t tagindex = 0; tagindex < fEPICSVariableList.size(); tagindex++) {
+    if (tag == fEPICSVariableList[tagindex]) {
       /*  This tag matches EPICS variable "tagindex". */
       return tagindex;
     }
@@ -271,12 +268,11 @@ Int_t QwEPICSEvent::FindIndex(TString tag)
 };
 
 
-Double_t QwEPICSEvent::GetDataValue (TString tag)
+Double_t QwEPICSEvent::GetDataValue (const TString& tag) const
 {
-  
   Double_t data_value = 0.0;
   Int_t    tagindex   = 0;
-  
+
   data_value = kInvalidEPICSData;
   tagindex = FindIndex(tag);
   if (tagindex != QwEPICSEvent::kEPICS_Error){
@@ -297,7 +293,7 @@ std::vector<TString> QwEPICSEvent::GetDefaultAutogainList()
 void QwEPICSEvent::InitDefaultAutogainList()
 {
   fDefaultAutogainList.clear();  //clear the vector first
-  
+
   fDefaultAutogainList.push_back("IPM3C17.XIFG");
   fDefaultAutogainList.push_back("IPM3C17.YIFG");
   fDefaultAutogainList.push_back("IBC3C17.XIFG");
@@ -335,7 +331,7 @@ void QwEPICSEvent::InitDefaultAutogainList()
   fDefaultAutogainList.push_back("IPM3H09B.YIFG");
 };
 
-int QwEPICSEvent::SetDataValue(TString tag, Double_t value, int event)
+int QwEPICSEvent::SetDataValue(const TString& tag, Double_t value, int event)
 {
   Int_t tagindex = FindIndex(tag);
   return (SetDataValue(tagindex, value, event));
@@ -345,7 +341,7 @@ int QwEPICSEvent::SetDataValue(Int_t tagindex, Double_t value, int event)
 {
   if ( tagindex == kEPICS_Error ) return kEPICS_Error;
   if ( tagindex < 0 ) return kEPICS_Error;
-  
+
   if (value != kInvalidEPICSData) {
     fEPICSDataEvent[tagindex].EventNumber = event;
     fEPICSDataEvent[tagindex].Value       = value;
@@ -357,13 +353,13 @@ int QwEPICSEvent::SetDataValue(Int_t tagindex, Double_t value, int event)
 };
 
 
-int QwEPICSEvent::SetDataValue(TString tag, TString value, int event)
+int QwEPICSEvent::SetDataValue(const TString& tag, const TString& value, int event)
 {
   Double_t tmpvalue;
   long tmpint;
-  Int_t tagindex; 
-  
-  tagindex = FindIndex(tag); 
+  Int_t tagindex;
+
+  tagindex = FindIndex(tag);
   tmpvalue = kInvalidEPICSData;
   switch (fEPICSVariableType[tagindex]) {
   case kEPICSString:
@@ -371,9 +367,9 @@ int QwEPICSEvent::SetDataValue(TString tag, TString value, int event)
     fEPICSDataEvent[tagindex].Value       = 0.0;
     fEPICSDataEvent[tagindex].StringValue = value;
     fEPICSDataEvent[tagindex].Filled      = kTRUE;
-    return 0; 
+    return 0;
     break;
-      
+
   case kEPICSFloat:
     if(IsNumber(value.Data())) tmpvalue = atof(value.Data());
     return SetDataValue(tagindex, tmpvalue, event);
@@ -384,32 +380,32 @@ int QwEPICSEvent::SetDataValue(TString tag, TString value, int event)
       tmpint = atol(value.Data());
       tmpvalue = (double) tmpint;
     }
-    
+
     return SetDataValue(tagindex, tmpvalue, event);
     break;
   }
   return kEPICS_Error;
 };
 
-void QwEPICSEvent::PrintAverages()
+void QwEPICSEvent::PrintAverages() const
 {
   Int_t tagindex;
   Double_t mean     = 0.0;
   Double_t average_of_squares = 0.0;
   Double_t variance = 0.0;
   Double_t sigma    = 0.0;
-  
+
   std::cout <<"#####  EPICS Event Summary from PrintAverages() #####\n"
 	    <<"Total number of EPICS events in this run == "
 	    <<fNumberEPICSEvents <<".\n\n"
-	    << std::setw(20) << std::setiosflags(std::ios::left) <<"Name" 
+	    << std::setw(20) << std::setiosflags(std::ios::left) <<"Name"
 	    <<"\tMean        Sigma       "
 	    <<"Minimum     Maximum"<<std::endl;
   std::cout << "*****Non-string EPICS Variables*****" << std::endl;
   for (tagindex=0; tagindex<(Int_t)fEPICSVariableList.size(); tagindex++) {
     if (fEPICSVariableType[tagindex] == kEPICSFloat
 	|| fEPICSVariableType[tagindex] == kEPICSInt) {
-      //if (fEPICSVariableType[tagindex] != kEPICSString) { 
+      //if (fEPICSVariableType[tagindex] != kEPICSString) {
       mean     = 0.0;
       variance = 0.0;
       sigma    = 0.0;
@@ -424,7 +420,7 @@ void QwEPICSEvent::PrintAverages()
 	} else {
 	  sigma    = sqrt(variance);
 	}
-	
+
 	std::cout << std::setw(20) << std::setiosflags(std::ios::left)
 	     <<fEPICSVariableList[tagindex]<<"\t"
 		  << std::setprecision(5) << std::setw(10)
@@ -442,13 +438,13 @@ void QwEPICSEvent::PrintAverages()
   }
   std::cout << "*****String EPICS Variables are below, if any*****" << std::endl;
   for (tagindex=0; tagindex<(Int_t)fEPICSVariableList.size(); tagindex++) {
-    if (fEPICSVariableType[tagindex] == kEPICSString) {      
+    if (fEPICSVariableType[tagindex] == kEPICSString) {
       if (fEPICSDataEvent[tagindex].Filled) {
 	std::cout << std::setw(20) << std::setiosflags(std::ios::left)
 		  <<"tagindex for variable "<< fEPICSVariableList[tagindex]<<"\t is "
 		  <<tagindex<<"\tand status is\t\t"
 		  <<fEPICSDataEvent[tagindex].StringValue;
-	
+
 	if (fEPICSCumulativeData[tagindex].NumberRecords!= fNumberEPICSEvents){
 	  std::cout << "\t*****\tThis variable changed during the run.  Only "
 		    << (Double_t(fEPICSCumulativeData[tagindex].NumberRecords)
@@ -466,12 +462,12 @@ void QwEPICSEvent::PrintAverages()
 };
 
 
-void QwEPICSEvent::PrintVariableList()
+void QwEPICSEvent::PrintVariableList() const
 {
   // Prints all valid Epics variables on the terminal while creating a rootfile.
   for (size_t tagindex = 0; tagindex < fEPICSVariableList.size(); tagindex++) {
     QwMessage << "fEPICSVariableList[" << tagindex << "] == "
-	      << fEPICSVariableList[tagindex] << QwLog::endl;
+              << fEPICSVariableList[tagindex] << QwLog::endl;
   }
 };
 
@@ -487,41 +483,40 @@ std::vector<Double_t> QwEPICSEvent::ReportAutogains(std::vector<TString> tag_lis
 {
   std::vector<Double_t> autogain_values;
   std::vector<TString>::iterator ptr_tag;
-  
+
   autogain_values.clear(); //clear the vector first
-  
+
   /*  Iterate through the input vector of the variable names     *
    *  and fill the output vector with the values.                */
   ptr_tag = tag_list.begin();
-  
   while (ptr_tag < tag_list.end()) {
     autogain_values.push_back(GetDataValue(*ptr_tag));
     ptr_tag++;
   }
-  
+
   return autogain_values;
 };
 
 
 
-void QwEPICSEvent::ReportEPICSData()
+void QwEPICSEvent::ReportEPICSData() const
 {
   Int_t tagindex;
   Double_t mean     = 0.0;
   Double_t average_of_squares = 0.0;
   Double_t variance = 0.0;
   Double_t sigma    = 0.0;
-  
-  
+
+
   ofstream output;
   TString theEPICSDataFile;
   theEPICSDataFile =  getenv("QW_TMP");
   theEPICSDataFile += "/QwEPICSData.txt";// puts QwEPICSData.txt in  QwAnalysis_DB_01.00.0000/scratch/tmp/ diretory.
   output.open(theEPICSDataFile,ofstream::out);
-  
-  if (output.is_open()) { 
-    
-    
+
+  if (output.is_open()) {
+
+
     output <<"#####  EPICS Event Summary  #####\n"
 	   <<"Total number of EPICS events in this run == "
 	   <<fNumberEPICSEvents <<".\n\n"
@@ -545,7 +540,7 @@ void QwEPICSEvent::ReportEPICSData()
 	  } else {
 	    sigma    = sqrt(variance);
 	  }
-	  
+
 	  output << std::setw(20) << std::setiosflags(std::ios::left)
 		 <<fEPICSVariableList[tagindex]<<"\t"
 		 << std::setprecision(5) << std::setw(10)
@@ -560,7 +555,7 @@ void QwEPICSEvent::ReportEPICSData()
 		 << std::endl;
 	}
       }
-      
+
     }
     for (tagindex=0; tagindex<(Int_t)fEPICSVariableList.size(); tagindex++) {
       if (fEPICSVariableType[tagindex] == kEPICSString) {
@@ -575,7 +570,7 @@ void QwEPICSEvent::ReportEPICSData()
 	}
       }
     }
-    
+
   } output.close();
 };
 
@@ -628,29 +623,29 @@ void QwEPICSEvent::FillDB(QwDatabase *db)
 
 void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
 {
-  
+
   QwMessage << " -------------------------------------------------------------------------- " << QwLog::endl;
   QwMessage << "                         QwEPICSEvent::FillSlowControlsData(QwDatabase *db) " << QwLog::endl;
   QwMessage << " -------------------------------------------------------------------------- " << QwLog::endl;
-  
+
   Double_t mean, average_of_squares, variance, sigma;
-  
+
   mean     = 0.0;
   average_of_squares = 0.0;
   variance = 0.0;
   sigma    = 0.0;
   //  Figure out if the target table has this runlet_id in it already,
   //  if not, create a new entry with the current runlet_id.
-  
+
   UInt_t runlet_id = db->GetRunletID();
-  
+
   std::vector<QwParityDB::slow_controls_data> entrylist;
-  
+
   UInt_t sc_detector_id;
 
   TString table = "slow_controls_data";
   TString table1 = "polarized_source";
-  
+
   // QwError << "Step 1 Entering the loop " << QwLog::endl;
   // Loop over EPICS variables
   for (Int_t tagindex=0; tagindex<(Int_t)fEPICSVariableList.size(); tagindex++) {
@@ -658,21 +653,21 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
     // Look for variables to write into this table
     if (fEPICSTableList[tagindex] == table) {
       QwParityDB::slow_controls_data tmp_row(0);
-      
+
       //  Now get the current sc_detector_id for the above runlet_id.
-      sc_detector_id = db->GetSlowControlDetectorID(fEPICSVariableList[tagindex].Data()); 
-      
+      sc_detector_id = db->GetSlowControlDetectorID(fEPICSVariableList[tagindex].Data());
+
       tmp_row.runlet_id      = runlet_id;
       tmp_row.sc_detector_id = sc_detector_id;
-      
+
       if (!sc_detector_id) continue;
-      
-      
+
+
       // Calculate average and error
       if (fEPICSVariableType[tagindex] == kEPICSFloat
 	  || fEPICSVariableType[tagindex] == kEPICSInt) {
 	if (fEPICSCumulativeData[tagindex].NumberRecords > 0){
-	  
+
 	  mean     = (fEPICSCumulativeData[tagindex].Sum)/
 	    ((Double_t) fEPICSCumulativeData[tagindex].NumberRecords);
           average_of_squares = (fEPICSCumulativeData[tagindex].SquaredSum)/
@@ -685,32 +680,32 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
           }
 	}
       }
-      
+
       tmp_row.value         = mean;
       tmp_row.error         = sigma;
       tmp_row.min_value     = fEPICSCumulativeData[tagindex].Minimum;
       tmp_row.max_value     = fEPICSCumulativeData[tagindex].Maximum;
-      
+
       entrylist.push_back(tmp_row);
     }
-    
-    
-    
+
+
+
     //     else if (fEPICSTableList[tagindex] == table1) {
     //       QwParityDB::slow_controls_data tmp_row(0);
     //       if (fEPICSVariableType[tagindex] == kEPICSString) {
-    // 	if (fEPICSDataEvent[tagindex].Filled) {	  
+    // 	if (fEPICSDataEvent[tagindex].Filled) {
     // 	  tmp_row.value         = fEPICSDataEvent[tagindex].StringValue;
     // 	}
     //       }
-    
+
     //       entrylist.push_back(tmp_row);
     //     }
-    
-    
-    
+
+
+
   }
-  
+
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query..
   if( entrylist.size() ) {
@@ -718,7 +713,7 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
     mysqlpp::Query query= db->Query();
     query.insert(entrylist.begin(), entrylist.end());
     query.execute();
-    
+
     ///////////////////////////////
     //     try {
     //       query.insert(entrylist.begin(), entrylist.end());
@@ -729,7 +724,7 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
     //       QwError << "MySQL exception: " << er.what() << QwLog::endl;
     //     }
     ///////////////////////////////
-    
+
   } else {
     QwMessage << "QwEPICSEvent::FillSlowControlsData :: This is the case when the entrylist contains nothing " << QwLog::endl;
   }
@@ -740,23 +735,23 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
 {
   QwParityDB::slow_controls_settings  tmp_row(0);
   std::vector<QwParityDB::slow_controls_settings> entrylist;
-  
+
   UInt_t runlet_id = db->GetRunletID();
   tmp_row.runlet_id      = runlet_id;
   Int_t tagindex;
-  
+
   // Add as many blocks as needed in the following for all slow_controls_settings.
-  
+
   ////////////////////////////////////////////////////////////
   // Half wave plate
   tagindex = FindIndex(TString("IGL1I00DI24_24M"));
   if (kDebug) std::cout << "\n\ntagindex for IGL1I00DI24_24M = " << tagindex << std::endl;
-  
+
   if (! fEPICSCumulativeData[tagindex].Filled) {
     //  No data for this run.
     tmp_row.slow_helicity_plate = "";
-    
-  } else if (fEPICSCumulativeData[tagindex].NumberRecords 
+
+  } else if (fEPICSCumulativeData[tagindex].NumberRecords
 	     != fNumberEPICSEvents) {
     // IHWP position changed
     tmp_row.slow_helicity_plate = "";
@@ -765,36 +760,36 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
     //   IHWP setting is stored as a string with possible values
     //   "OUT" and "IN".  Change to lower case.
     tmp_row.slow_helicity_plate = fEPICSDataEvent[tagindex].StringValue.Data();
-  }  
-  ////////////////////////////////////////////////////////////  
-  
-  
+  }
+  ////////////////////////////////////////////////////////////
+
+
   // Charge feedback
   tagindex = FindIndex(TString("HC:Q_ONOFF"));
   std::cout << "\n\ntagindex for HC:Q_ONOFF = " << tagindex << std::endl;
-  
-  
+
+
   if (! fEPICSCumulativeData[tagindex].Filled) {
     //  No data for this run.
     tmp_row.charge_feedback = "";
-    
-  } else if (fEPICSCumulativeData[tagindex].NumberRecords 
+
+  } else if (fEPICSCumulativeData[tagindex].NumberRecords
 	     != fNumberEPICSEvents) {
     // charge feedback status changed
     tmp_row.charge_feedback = "";
   } else {
     // charge feedback setting did not change
     //   charge feedback setting is stored as a string with possible values
-    //   "on" and "off". 
+    //   "on" and "off".
     tmp_row.charge_feedback = fEPICSDataEvent[tagindex].StringValue.Data();
   }
-  
-  //////////////////////////////////////////////////////////// 
-  
-  
-  
+
+  ////////////////////////////////////////////////////////////
+
+
+
   entrylist.push_back(tmp_row);
-  
+
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query..
   if( entrylist.size() ) {
@@ -813,8 +808,8 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
     //       QwError << "MySQL exception: " << er.what() << QwLog::endl;
     //     }
     ///////////////////////////////
-    
-    
+
+
   } else {
     QwMessage << "QwEPICSEvent::FillSlowControlsSettings :: This is the case when the entrylist contains nothing " << QwLog::endl;
   }

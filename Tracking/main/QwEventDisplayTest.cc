@@ -76,7 +76,7 @@ int main (int argc, char* argv[])
   detectors->GetSubsystemByName("R3")->LoadChannelMap("TDCtoDL.map");
   detectors->GetSubsystemByName("R3")->LoadGeometryDefinition("qweak_new.geo");
 
-  // Region 4 TS
+  // Region 3 TS
   detectors->push_back(VQwSubsystemFactory::Create("QwTriggerScintillator", "TS"));
   detectors->GetSubsystemByName("TS")->LoadGeometryDefinition("qweak_new.geo");
 

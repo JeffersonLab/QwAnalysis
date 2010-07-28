@@ -32,7 +32,8 @@ Added by Buddhini to display the hall c Beamline data.
  */
 //=============================================================================
 
-#define HCLINE_DEV_NUM          6        
+#define HCLINE_DEV_NUM          20  
+#define HCLINE_DEV_NUM_CHARGE   27     
 #define TRE_NUM                 2
 ///
 /// \ingroup QwGUIHallCBeamline
@@ -69,6 +70,9 @@ Added by Buddhini to display the hall c Beamline data.
   TGLayoutHints       *dBtnLayout;
   TGTextButton        *dBtnPosDiff;
   TGTextButton        *dBtnTgtParam;
+  TGTextButton        *dBtnPlotAdvOpt;
+  TGComboBox          *dCmbAdvanced;
+  TGLayoutHints       *dCmbLayout;
 
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;
@@ -98,6 +102,7 @@ Added by Buddhini to display the hall c Beamline data.
 
   void PositionDifferences(); 
   void DisplayTargetParameters();
+  void PlotAdvOpt();
 
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
@@ -114,7 +119,13 @@ Added by Buddhini to display the hall c Beamline data.
   //!These are the names by which the histograms are identified within the root file.
 
   static const char   *HallCBeamlineDevices[HCLINE_DEV_NUM];
+  static const char   *HallCBeamlineDevicesWCharge[HCLINE_DEV_NUM_CHARGE]; //The Devices with only charge may later have to be distinguished from those with other data
   static const char   *RootTrees[TRE_NUM];
+  
+ private:
+
+  char histo[128];
+  char name;
 
 
  protected:

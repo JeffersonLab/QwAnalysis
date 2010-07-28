@@ -29,17 +29,6 @@ class MQwF1TDC{
   MQwF1TDC();
   ~MQwF1TDC();
 
-// protected:
-  /*
-  void DecodeF1Word(UInt_t &word);
-  
-
-  Bool_t IsAF1Headerword(){return fF1HeaderFlag;};
-
-  UInt_t GetF1SlotNumber(){return fF1SlotNumber;};
-  UInt_t GetF1ChannelNumber(){return fF1ChannelNumber;};
-  UInt_t GetF1Data(){return fF1Dataword;};
-  */
   void DecodeTDCWord(UInt_t &word, const UInt_t roc_id);
 
   Bool_t IsValidDataword();
@@ -48,25 +37,23 @@ class MQwF1TDC{
   UInt_t GetTDCSlotNumber()        {return fF1SlotNumber;};
   UInt_t GetTDCChannelNumber()     {return fF1ChannelNumber;};
   UInt_t GetTDCData()              {return fF1Dataword;};
+  UInt_t GetTDCMaxChannels()       {return fF1MaxChannelsPerModule;};
   
  
   UInt_t GetTDCEventNumber()       {return GetTDCHeaderEventNumber();};
   UInt_t GetTDCTriggerTime()       {return GetTDCHeaderTriggerTime();};
   
-  void SetReferenceParameters(Double_t mindiff, Double_t maxdiff,
-			      Double_t offset, Double_t shift){
-    fMinDiff   = mindiff;
-    fMaxDiff   = maxdiff;
-    fOffset    = offset;
-    fTimeShift = shift;
-  };
+  /* void SetReferenceParameters(Double_t mindiff, Double_t maxdiff, */
+  /* 			      Double_t offset, Double_t shift){ */
+  /*   fMinDiff   = mindiff; */
+  /*   fMaxDiff   = maxdiff; */
+  /*   fOffset    = offset; */
+  /*   fTimeShift = shift; */
+  /* }; */
   
-  Double_t SubtractReference(Double_t rawtime, Double_t reftime);
+  /* Double_t SubtractReference(Double_t rawtime, Double_t reftime); */
   Double_t ActualTimeDifference(Double_t raw_time, Double_t ref_time);
-  //  Bool_t CheckDataIntegrity(UInt_t ref_event_number, UInt_t ref_trigger_time);
   Bool_t CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t num_words);
-
-  // Two print functions are used for a debugging purpose temporarily 
   void   PrintTDCHeader(Bool_t flag);
   void   PrintTDCData(Bool_t flag);
   
@@ -100,6 +87,7 @@ class MQwF1TDC{
   UInt_t fF1SlotNumber;
   UInt_t fF1ChannelNumber;
   UInt_t fF1Dataword;
+  UInt_t fF1MaxChannelsPerModule;
 
   Bool_t fF1HeaderTrigFIFOFlag;
   UInt_t fF1HeaderEventNumber;
@@ -121,15 +109,15 @@ class MQwF1TDC{
   //                   
   
   //  These variables are used in the SubtractReference routine.
-  Double_t fMinDiff;     ///< Low edge of acceptable range of F1TDC channel time/reference time difference
-  Double_t fMaxDiff;     ///< High edge of acceptable range of F1TDC channel time/reference time difference
+  /* Double_t fMinDiff;     ///< Low edge of acceptable range of F1TDC channel time/reference time difference */
+  /* Double_t fMaxDiff;     ///< High edge of acceptable range of F1TDC channel time/reference time difference */
 
-  Double_t fOffset;      ///< Correction to move F1TDC channel time/reference time difference back into acceptable range.
-                         ///  It will depend on the exact F1TDC configuration.
+  /* Double_t fOffset;      ///< Correction to move F1TDC channel time/reference time difference back into acceptable range. */
+  /*                        ///  It will depend on the exact F1TDC configuration. */
 
-  Double_t fTimeShift;   ///< "Small" correction to all reference-time-subtracted times;
-                         ///  NOTE:  this would preferrably be done by a different function than 
-                         ///  MQwF1TDC::SubtractReference, but R3 has this correction designed in for now.
+  /* Double_t fTimeShift;   ///< "Small" correction to all reference-time-subtracted times; */
+  /*                        ///  NOTE:  this would preferrably be done by a different function than  */
+  /*                        ///  MQwF1TDC::SubtractReference, but R3 has this correction designed in for now. */
 
  
   void   PrintHitFIFOStatus(const UInt_t roc_id);

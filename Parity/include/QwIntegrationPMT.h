@@ -48,6 +48,11 @@ class QwIntegrationPMT : public VQwDataElement{
   void  InitializeChannel(TString name, TString datatosave);
   void SetElementName(const TString &name) { fElementName = name; fTriumf_ADC.SetElementName(name);};
 
+  const QwVQWK_Channel* GetChannel(const TString name) const {
+    if (fTriumf_ADC.GetElementName() == name) return &fTriumf_ADC;
+    else return 0;
+  };
+
   void  ClearEventData();
   void ReportErrorCounters();
 /********************************************************/

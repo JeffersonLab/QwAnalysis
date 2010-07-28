@@ -23,6 +23,7 @@
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
 #include "QwRootFile.h"
+#include "QwHistogramHelper.h"
 
 void DefineOptionsParity(QwOptions& options)
 {
@@ -35,6 +36,7 @@ void DefineOptionsParity(QwOptions& options)
   QwHelicity::DefineOptions(options);
   QwHelicityPattern::DefineOptions(options);
   QwRootFile::DefineOptions(options);
+  QwHistogramHelper::DefineOptions(options);
 }
 
 #endif // QWOPTIONSPARITY_H
