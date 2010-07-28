@@ -2,7 +2,8 @@
  * File: QwDriftChamberVDC.C                                *
  *                                                          *
  * Author: P. M. King , Rakitha Beminiwattha                *
- * Time-stamp: <2008-07-16 15:40>                           *
+ *         J. H. Lee                                        *
+ * Time-stamp: Wednesday, July 28 15:52:19 EDT 2010         *
 \**********************************************************/
 
 
@@ -151,8 +152,7 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition( TString mapfile )
   }
 
   QwMessage << "Qweak Geometry Loaded " << QwLog::endl;
-  QwMessage  << "Qweak Geometry Loaded "<<std::endl;
-
+ 
   ReportConfiguration();
 
   return OK;
@@ -545,60 +545,59 @@ Int_t QwDriftChamberVDC::AddChannelDefinition()
 void  QwDriftChamberVDC::FillHistograms()
 {
 
-  // Bool_t local_debug = true;
-  // if (not HasDataLoaded()) return;
+  Bool_t local_debug = true;
+  if (not HasDataLoaded()) return;
   
-  // QwDetectorID   this_detid;
-  // QwDetectorInfo *this_det;
+  QwDetectorID   this_detid;
+  QwDetectorInfo *this_det;
 
-  // std::vector<Int_t> wireshitperplane(fWiresPerPlane.size(),0);
+  std::vector<Int_t> wireshitperplane(fWiresPerPlane.size(),0);
 
-  // UInt_t raw_time = 0;
-  // Double_t time   = 0.0;
+  UInt_t raw_time = 0;
+  Double_t time   = 0.0;
 
-  // Int_t plane = 0;
-  // Int_t element = 0;
-  // EQwDetectorPackage package = kPackageNull;
+  Int_t plane = 0;
+  Int_t element = 0;
+  EQwDetectorPackage package = kPackageNull;
 
-  // Int_t wire_index = 0;
+  Int_t wire_index = 0;
   
-  // for(std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++) {
+  for(std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++) {
 
-  //   this_detid = hit->GetDetectorID();
-  //   plane      = this_detid.fPlane;
-  //   element    = this_detid.fElement;
-  //   package    = this_detid.fPackage;
-    
-  //   if (plane<=0 or element<=0) {
-  //     if (local_debug) {
-  // 	QwMessage << "QwDriftChamberVDC::FillHistograms:  Bad plane or element index:"
-  // 		  << "  fPlane = "  << plane
-  // 		  << "  fElement= " << element
-  // 		  << QwLog::endl;
-  //     }
-  //     continue;
-  //   }
-
-  //   raw_time = hit->GetRawTime();
-  //   time     = hit->GetTime();
-  
-  //   //  Fill ToF histograms
-  //   TOFP_raw[plane]->Fill(raw_time);
-  //   TOFW_raw[plane]->Fill(element, raw_time);
-    
-  //   wire_index = 4*( (Int_t) package -1 ) + plane;
-
-  //   this_det= &(fWireData.at(wire_index).at(element));
-
-  //   if (hit->IsFirstDetectorHit()) {
-  //     HitsWire[wire_index]->Fill(element,this_det->GetNumHits());
-  //     //  Also increment the total number of events in whichthis wire was hit.
-  //     TotHits[wire_index]->Fill(element,1);
-  //     //  Increment the number of wires hit in this plane
-  //     wireshitperplane.at(wire_index) += 1;
-  //     this_det->ClearHits();
-
-  // }
+     this_detid = hit->GetDetectorID();
+     plane      = this_detid.fPlane;
+     element    = this_detid.fElement;
+     package    = this_detid.fPackage;
+     
+     if (plane<=0 or element<=0) {
+       if (local_debug) {
+	 QwMessage << "QwDriftChamberVDC::FillHistograms:  Bad plane or element index:"
+		   << "  fPlane = "  << plane
+		   << "  fElement= " << element
+		   << QwLog::endl;
+       }
+       continue;
+     }
+     
+     raw_time = hit->GetRawTime();
+     time     = hit->GetTime();
+     
+     //  Fill ToF histograms
+     TOFP_raw[plane]->Fill(raw_time);
+     TOFW_raw[plane]->Fill(element, raw_time);
+  }
+    //  wire_index = 4*( (Int_t) package -1 ) + plane;
+     
+    //  this_det= &(fWireData.at(wire_index).at(element));
+     
+    // if (hit->IsFirstDetectorHit()) {
+    //   HitsWire[wire_index]->Fill(element,this_det->GetNumHits());
+    //   //  Also increment the total number of events in whichthis wire was hit.
+    //   TotHits[wire_index]->Fill(element,1);
+    //   //  Increment the number of wires hit in this plane
+    //   wireshitperplane.at(wire_index) += 1;
+    //   this_det->ClearHits();
+    // }
 
   // // for (std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
              
@@ -643,14 +642,6 @@ void  QwDriftChamberVDC::FillHistograms()
 
   // }
 };
-
-
-//Int_t  QwDriftChamberVDC::LoadChannelMap(TString mapfile)
-//{
-//  return LoadMap(mapfile);
-//}
-
-
 
 
 
@@ -826,8 +817,8 @@ void QwDriftChamberVDC::ProcessEvent()
     //LoadTimeWireOffset("R3_timeoffset.txt");
 
 
-    Double_t real_time=0;
-    Double_t tmpTime=0,left_time=0,right_time=0;
+    Double_t real_time=0.0;
+    Double_t tmpTime=0.0,left_time=0.0,right_time=0.0;
     Int_t tmpCrate=0,tmpModule=0,tmpChan=0,tmpbp=0,tmpln=0,plane=0,wire_hit=0,mycount=0;
     Bool_t kDir=kTRUE,tmpAM=kFALSE;
     std::vector<Int_t> wire_array;

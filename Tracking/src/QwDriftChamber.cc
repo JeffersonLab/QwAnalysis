@@ -3,7 +3,7 @@
  *                                                          *
  * Author: P. M. King, Rakitha Beminiwattha                 *
  *         J. H. Lee                                        *
- * Time-stamp: <2010-04-12 12:12>                           *
+ * Time-stamp: Wednesday, July 28 15:52:26 EDT 2010         *
 \**********************************************************/
 
 #include "QwDriftChamber.h"
