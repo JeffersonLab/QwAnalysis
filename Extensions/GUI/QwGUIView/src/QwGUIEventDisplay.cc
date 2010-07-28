@@ -110,12 +110,12 @@ void QwGUIEventDisplay::MakeLayout()
    TitleBox->SetWrapLength(-1);
    fLogos->AddFrame(TitleBox, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    TitleBox->MoveResize(143,1,627,77);
-
+   /*
    // Insert GWU logo
    TGIcon *GWULogo = new TGIcon(fLogos, getenv_safe_TString("QWANALYSIS") + "/Extensions/Logos/gwu_logo_main.gif");
    fLogos->AddFrame(GWULogo, new TGLayoutHints(kLHintsNormal));
    GWULogo->MoveResize(772,1,135,77);
-
+   */
    // Add logos frame to main frame
    fMain->AddFrame(fLogos, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fLogos->MoveResize(0,20,900,100);
@@ -1169,7 +1169,7 @@ int QwGUIEventDisplay::DrawEvent(){  // Draws event data into display
   QwHitContainer* Hits_R3u = fHitList->GetSubList_Dir(kRegionID3, kPackageUp, kDirectionU);
   QwHitContainer* Hits_R3v = fHitList->GetSubList_Dir(kRegionID3, kPackageUp, kDirectionV);
   
-  // DRAWING WIRE HITS:
+  // DRAWING WIRE HITS--------------------------------------------------//
   // Three types of wires to draw--full length, left of full length, and right of full length
   // Separating them depends on the first and last full length wire (saved as constants in the header)
   // Wires are drawn and centered with respect to the chamber frame in ROOT coordinates
