@@ -6,7 +6,7 @@
 ROC=2
 Bank=0x0202
 !same sample size for ADCs in a given bank
-sample_size=400
+sample_size=480
 !
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
@@ -41,7 +41,7 @@ Bank=0x6103
 SCALER,2,0,scalerpmt,qwk_dslumi1_sc
 SCALER,2,1,scalerpmt,qwk_dslumi2_sc
 SCALER,2,2,scalerpmt,qwk_dslumi3_sc
-SCALER,2,3,scalerpmt,qwk_bad_s2ch3
+SCALER,2,3,scalerpmt,qwk_dslumi4_sc
 SCALER,2,4,scalerpmt,qwk_dslumi5_sc
 SCALER,2,5,scalerpmt,qwk_dslumi6_sc
 SCALER,2,6,scalerpmt,qwk_dslumi7_sc
@@ -69,4 +69,4 @@ SCALER,2,15,scalerpmt,qwk_uslumi7pos_sc
 !SCALER,2,28,halomonitor,qwk_empty_s2ch28
 !SCALER,2,29,halomonitor,qwk_empty_s2ch29
 !SCALER,2,30,halomonitor,qwk_empty_s2ch30
-SCALER,2,31,scalerpmt,qwk_dslumi4_sc
+!SCALER,2,31,halomonitor,qwk_empty_s2ch31
