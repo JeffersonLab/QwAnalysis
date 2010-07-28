@@ -2,7 +2,8 @@
 * File: QwDriftChamber.h                                   *
 *                                                          *
 * Author: P. M. King, Rakitha Beminiwattha                 *
-* Time-stamp: <2008-07-08 15:40>                           *
+*         J. H. Lee                                        *
+* Time-stamp: Wednesday, July 28 11:30:21 EDT 2010         *
 \**********************************************************/
 
 
@@ -60,14 +61,14 @@ class QwDriftChamber: public VQwSubsystemTracking{
   virtual Int_t LoadInputParameters(TString mapfile){return 0;};
   void  ClearEventData();
 
-  virtual Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) = 0;
+  virtual Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) = 0;//has separate meanings in VDC and HDC
 
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
   virtual void  ProcessEvent()=0;//has separate meanings in VDC and HDC
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
-  void  FillHistograms();
+  virtual void  FillHistograms() = 0;
   void  DeleteHistograms();
 
 
@@ -103,8 +104,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
  protected:
   Int_t LinkReferenceChannel(const UInt_t chan, const Int_t plane, const Int_t wire);
   virtual Int_t BuildWireDataStructure(const UInt_t chan, const EQwDetectorPackage package, const Int_t plane, const Int_t wire)=0;
-  //  virtual Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire)= 0;
-
+  
   virtual Int_t AddChannelDefinition() = 0;
   virtual void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data) = 0;
   virtual Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)=0;
@@ -113,7 +113,6 @@ class QwDriftChamber: public VQwSubsystemTracking{
   Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);
   Int_t RegisterSubbank(const UInt_t bank_id);
   Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
-
 
 
   Int_t GetTDCIndex(size_t bank_index, size_t slot_num) const;
@@ -130,20 +129,15 @@ class QwDriftChamber: public VQwSubsystemTracking{
 
   TString fRegion;  ///  Name of this subsystem (the region).
 
-  
-
-
- protected:
   size_t fCurrentBankIndex;
   Int_t fCurrentSlot;
   Int_t fCurrentTDCIndex;
 
- protected:
   static const UInt_t kMaxNumberOfTDCsPerROC;
   static const Int_t kReferenceChannelPlaneNumber; // plane is Int_t
 
   UInt_t kMaxNumberOfChannelsPerTDC;
-  Int_t fNumberOfTDCs;
+  Int_t  fNumberOfTDCs;
 
   std::vector< std::vector<Int_t> > fTDC_Index;  //  TDC index, indexed by bank_index and slot_number
 
@@ -163,6 +157,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
 
   MQwF1TDC fF1TDC;
 
+
   //  NOTE:  The plane and wire indices count from "1" instead
   //         of from "0".
   //         When you're creating loops, just be careful that
@@ -170,25 +165,42 @@ class QwDriftChamber: public VQwSubsystemTracking{
   //         of either index.
 
 
-
   /*=====
    *  Histograms should be listed below here.
    *  They should be pointers to histograms which will be created
    *  inside the ConstructHistograms()
    */
-  TH1F *TotHits[13];
-  TH1F *TOFP[13];
-  TH1F *TOFP_raw[13];
-  TH1F *WiresHit[13];  TH2F *TOFW[13];
-  TH2F *TOFW_raw[13];
-  TH2F *HitsWire[13];
+  std::vector <TH1F*> TotHits;
+  std::vector <TH1F*> TOFP;
+  std::vector <TH1F*> TOFP_raw;
+  std::vector <TH1F*> WiresHit;
+  std::vector <TH2F*> TOFW;
+  std::vector <TH2F*> TOFW_raw;
+  std::vector <TH2F*> HitsWire;
+  
   void InitHistogramPointers() {
-    // this magic 13 is eventually fWiresPerPlane.size(), but where?
-    for(UInt_t i=0; i<13; ++i) {
-      TotHits[i] = TOFP[i] = TOFP_raw[i] = WiresHit[i] = NULL;
-      TOFW[i] = TOFW_raw[i] = HitsWire[i] = NULL;
-    }
+    TotHits.clear();
+    TOFP.clear();
+    TOFP_raw.clear();
+    WiresHit.clear();
+    TOFW.clear();
+    TOFW_raw.clear();
+    HitsWire.clear();
   }
+
+  /* TH1F *TotHits[13]; */
+  /* TH1F *TOFP[13]; */
+  /* TH1F *TOFP_raw[13]; */
+  /* TH1F *WiresHit[13];  TH2F *TOFW[13]; */
+  /* TH2F *TOFW_raw[13]; */
+  /* TH2F *HitsWire[13]; */
+  /* void InitHistogramPointers() { */
+  /*   // this magic 13 is eventually fWiresPerPlane.size(), but where? */
+  /*   for(UInt_t i=0; i<13; ++i) { */
+  /*     TotHits[i] = TOFP[i] = TOFP_raw[i] = WiresHit[i] = NULL; */
+  /*     TOFW[i] = TOFW_raw[i] = HitsWire[i] = NULL; */
+  /*   } */
+  /* } */
 
 
 

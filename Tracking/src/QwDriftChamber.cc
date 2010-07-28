@@ -275,7 +275,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 void  QwDriftChamber::ConstructHistograms(TDirectory *folder, TString& prefix)
 {
   //  If we have defined a subdirectory in the ROOT file, then change into it.
-  if (folder != NULL) folder->cd();
+  if ( folder ) folder->cd();
   //  Now create the histograms...
   TString region = GetSubsystemName();
   //  Loop over the number of planes.
@@ -283,135 +283,101 @@ void  QwDriftChamber::ConstructHistograms(TDirectory *folder, TString& prefix)
   const Short_t buffer_size  = 2000;
   Float_t bin_offset = -0.5;
 
-  std::vector<Int_t>::size_type i = 0;
-  
-  for (i=1;i<=fWiresPerPlane.size();i++) {
-    ///////////////First set of histos////////////////////////////////
-    TotHits[i] = new TH1F(Form("%s%sHitsOnEachWirePlane%d", prefix.Data() ,region.Data(),i),
-			  Form("Total hits on all wires in plane %d",i),
-			  fWiresPerPlane[i-1], bin_offset, fWiresPerPlane[i-1]+bin_offset);
-    
-    TotHits[i]->GetXaxis()->SetTitle("Wire #");
-    TotHits[i]->GetYaxis()->SetTitle("Events");
-    
-    
-    ///////////////Second set of histos////////////////////////////////
-    WiresHit[i] = new TH1F(Form("%s%sWiresHitPlane%d", prefix.Data() ,region.Data(),i),
-			   Form("Number of Wires Hit in plane %d",i),
-			   20, bin_offset, 20+bin_offset);
-    WiresHit[i]->GetXaxis()->SetTitle("Wires Hit per Event");
-    WiresHit[i]->GetYaxis()->SetTitle("Events");
-    
-    //////////////Third set of histos/////////////////////////////////
-    HitsWire[i] = new TH2F(Form("%s%sHitsOnEachWirePerEventPlane%d", prefix.Data() ,region.Data(),i),
-			   Form("hits on all wires per event in plane %d",i),
-			   fWiresPerPlane[i-1],bin_offset,fWiresPerPlane[i-1]+bin_offset,
-			   7, -bin_offset, 7-bin_offset);
-    
-    HitsWire[i]->GetXaxis()->SetTitle("Wire Number");
-    HitsWire[i]->GetYaxis()->SetTitle("Hits");
-    
-    /////////////Fourth set of histos//////////////////////////////////////
-    TOFP[i] = new TH1F(Form("%s%sTimeofFlightPlane%d", prefix.Data() ,region.Data(),i),
-		       Form("Subtracted time of flight for events in plane %d",i),
-		       400,0,0);
-    TOFP[i] -> SetDefaultBufferSize(buffer_size);
-    TOFP[i] -> GetXaxis()->SetTitle("Time of Flight");
-    TOFP[i] -> GetYaxis()->SetTitle("Hits");
-    
-    
-    TOFP_raw[i] = new TH1F(Form("%s%sRawTimeofFlightPlane%d", prefix.Data() ,region.Data(),i),
-			   Form("Raw time of flight for events in plane %d",i),
-			   //			     400,-65000,65000);
-			   400, 0,0);
-    TOFP_raw[i] -> SetDefaultBufferSize(buffer_size);
-    TOFP_raw[i]->GetXaxis()->SetTitle("Time of Flight");
-    TOFP_raw[i]->GetYaxis()->SetTitle("Hits");
-    
-    //////////////Fifth set of histos/////////////////////////////////////
-    
-    TOFW[i] = new TH2F(Form("%s%sTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),i),
-		       Form("Subtracted time of flight for each wire in plane %d",i),
-		       fWiresPerPlane[i-1], bin_offset, fWiresPerPlane[i-1]+bin_offset,
-		       100,-40000,65000);
-    // why this range is not -65000 ??
-    TOFW[i]->GetXaxis()->SetTitle("Wire Number");
-    TOFW[i]->GetYaxis()->SetTitle("Time of Flight");
-    
-    TOFW_raw[i] = new TH2F(Form("%s%sRawTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),i),
-			   Form("Raw time of flight for each wire in plane %d",i),
-			   fWiresPerPlane[i-1], bin_offset, fWiresPerPlane[i-1]+bin_offset,
-			   100,-40000,65000);
-    // why this range is not -65000 ??
-    TOFW_raw[i]->GetXaxis()->SetTitle("Wire Number");
-    TOFW_raw[i]->GetYaxis()->SetTitle("Time of Flight");
-  }
-  return;
-};
-
-
-void  QwDriftChamber::FillHistograms() 
-{
-  if (not HasDataLoaded()) return;
-  
-  QwDetectorID   this_detid;
-  QwDetectorInfo *this_det;
-  
-  //  Fill all of the histograms.
-  
-  std::vector<Int_t> wireshitperplane(fWiresPerPlane.size(),0);
-  
-  UInt_t raw_time = 0;
-  Double_t time   = 0.0;
-
-  Int_t plane = 0;
-  Int_t element = 0;
-
-
-  for(std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++) {
-    
-    this_detid = hit->GetDetectorID();
-    plane      = this_detid.fPlane;
-    element    = this_detid.fElement;
-
-    if (plane<=0 or element<=0) {
-      if (fDEBUG) {
-	QwMessage << "QwDriftChamber::FillHistograms:  Bad plane or element index:"
-		  << "  fPlane = "  << plane
-		  << "  fElement= " << element
-		  << QwLog::endl;
-      }
-      continue;
-    }
-
-    
-    this_det= &(fWireData.at(plane).at(element));
-    
-    if (hit->IsFirstDetectorHit()) {
-      //  If this is the first hit for this detector, then let's plot the
-      //  total number of hits this wire had.
-      HitsWire[plane]->Fill(element,this_det->GetNumHits());
-      
-      //  Also increment the total number of events in whichthis wire was hit.
-      TotHits[plane]->Fill(element,1);
-      //  Increment the number of wires hit in this plane
-      wireshitperplane.at(plane) += 1;
-    }
-    
-    raw_time = hit->GetRawTime();
-    time     = hit->GetTime();
-
-    //  Fill ToF histograms
-    TOFP_raw[plane]->Fill(raw_time);
-    TOFW_raw[plane]->Fill(element, raw_time);
-    TOFP    [plane]->Fill(time);
-    TOFW    [plane]->Fill(element, time);
-  } 
+  std::vector<Int_t>::size_type total_plane_number = 0;
+  total_plane_number = fWiresPerPlane.size();
+  TotHits.resize(total_plane_number);
+  TOFP.resize(total_plane_number);
+  TOFP_raw.resize(total_plane_number);
+  WiresHit.resize(total_plane_number);
+  TOFW.resize(total_plane_number);
+  TOFW_raw.resize(total_plane_number);
+  HitsWire.resize(total_plane_number);
 
   std::vector<Int_t>::size_type iplane = 0;
+  std::cout <<  "QwDriftChamber::ConstructHistograms, " 
+	    <<  "we are contructing histograms with index from 0 to " <<total_plane_number 
+	    << "\n"
+	    <<  "Thus, fWiresPerPlane.size() returns "
+	    << total_plane_number
+	    << " and its array definition is ["
+	    << total_plane_number
+	    << "]."
+	    <<  " And hist[i] <-> hist.at(i) <-> fWiresPerplane[i] <-> fWiresPerPlane.at(i)"
+	    << std::endl;
+
+  // wire_per_plane is the number of wire per plane?
+  // 
+  // we skip the first zero-th plane or wire histogram. thus
+  // i starts with '1'. hist[0] is NULL
+  
+  for ( iplane=1; iplane<total_plane_number; iplane++) {
+
+    // push_back can "push" iplane = 1 into TotHits.at(0) ??
+    TotHits[iplane] = new TH1F(
+			       Form("%s%sHitsOnEachWirePlane%d", prefix.Data(), region.Data(), iplane),
+			       Form("Total hits on all wires in plane %d", iplane),
+			       fWiresPerPlane[iplane], bin_offset, fWiresPerPlane[iplane]+bin_offset
+			       );
     
-  for (iplane=1; iplane<fWiresPerPlane.size(); iplane++) {
-    WiresHit[iplane]->Fill(wireshitperplane[iplane]);
+    TotHits[iplane]->GetXaxis()->SetTitle("Wire #");
+    TotHits[iplane]->GetYaxis()->SetTitle("Events");
+    
+    WiresHit[iplane] = new TH1F(
+				Form("%s%sWiresHitPlane%d", prefix.Data(), region.Data(), iplane),
+				Form("Number of Wires Hit in plane %d",iplane),
+				20, bin_offset, 20+bin_offset
+				);
+    WiresHit[iplane]->GetXaxis()->SetTitle("Wires Hit per Event");
+    WiresHit[iplane]->GetYaxis()->SetTitle("Events");
+    
+    HitsWire[iplane] = new TH2F(
+				Form("%s%sHitsOnEachWirePerEventPlane%d", prefix.Data(), region.Data(), iplane),
+				Form("hits on all wires per event in plane %d", iplane),
+				fWiresPerPlane[iplane],bin_offset,fWiresPerPlane[iplane]+bin_offset,
+				7, -bin_offset, 7-bin_offset
+				);
+    HitsWire[iplane]->GetXaxis()->SetTitle("Wire Number");
+    HitsWire[iplane]->GetYaxis()->SetTitle("Hits");
+    
+    TOFP[iplane] = new TH1F(
+			    Form("%s%sTimeofFlightPlane%d", prefix.Data(), region.Data(), iplane),
+			    Form("Subtracted time of flight for events in plane %d", iplane),
+			    400,0,0
+			    );
+    TOFP[iplane] -> SetDefaultBufferSize(buffer_size);
+    TOFP[iplane] -> GetXaxis()->SetTitle("Time of Flight");
+    TOFP[iplane] -> GetYaxis()->SetTitle("Hits");
+    
+    
+    TOFP_raw[iplane] = new TH1F(
+				Form("%s%sRawTimeofFlightPlane%d", prefix.Data(), region.Data(), iplane),
+				Form("Raw time of flight for events in plane %d", iplane),
+				//			     400,-65000,65000);
+				400, 0,0
+				);
+    TOFP_raw[iplane] -> SetDefaultBufferSize(buffer_size);
+    TOFP_raw[iplane]->GetXaxis()->SetTitle("Time of Flight");
+    TOFP_raw[iplane]->GetYaxis()->SetTitle("Hits");
+    
+    TOFW[iplane] = new TH2F(
+			    Form("%s%sTimeofFlightperWirePlane%d", prefix.Data(), region.Data(), iplane),
+			    Form("Subtracted time of flight for each wire in plane %d", iplane),
+			    fWiresPerPlane[iplane], bin_offset, fWiresPerPlane[iplane]+bin_offset,
+			    100,-40000,65000
+			    );
+    // why this range is not -65000 ??
+    TOFW[iplane]->GetXaxis()->SetTitle("Wire Number");
+    TOFW[iplane]->GetYaxis()->SetTitle("Time of Flight");
+    
+    TOFW_raw[iplane] = new TH2F(
+				Form("%s%sRawTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),iplane),
+				Form("Raw time of flight for each wire in plane %d",iplane),
+				fWiresPerPlane[iplane], bin_offset, fWiresPerPlane[iplane]+bin_offset,
+				100,-40000,65000
+				);
+    // why this range is not -65000 ??
+    TOFW_raw[iplane]->GetXaxis()->SetTitle("Wire Number");
+    TOFW_raw[iplane]->GetYaxis()->SetTitle("Time of Flight");
   }
   return;
 };
@@ -419,43 +385,59 @@ void  QwDriftChamber::FillHistograms()
 
 void  QwDriftChamber::DeleteHistograms()
 {
-  //  Run the destructors for all of the histogram object pointers.
-  std::vector<Int_t>::size_type i = 0;
-  for ( i=1; i<fWiresPerPlane.size(); i++) {
-    ///////////First set of histos//////////////////////////
-    if (TotHits[i]) {
-      delete TotHits[i];
-      TotHits[i] = NULL;
-    }
-    /////////Second set of histos///////////////////////////
-    if (WiresHit[i]) {
-      delete WiresHit[i];
-      WiresHit[i] = NULL;
-    }
-    ////////Third set of histos/////////////////////////////
-    if (HitsWire[i]) {
-      delete HitsWire[i];
-      HitsWire[i] = NULL;
-    }
-    ////////Fourth set of histos////////////////////////////
-    if (TOFP[i]) {
-      delete TOFP[i];
-      TOFP[i] = NULL;
-    }
-    if (TOFP_raw[i]) {
-      delete TOFP_raw[i];
-      TOFP_raw[i] = NULL;
-    }
-    //////////Fifth set of histos///////////////////////////
-    if (TOFW[i]) {
-      delete TOFW[i];
-      TOFW[i] = NULL;
-    }
-    if (TOFW_raw[i]) {
-      delete TOFW_raw[i];
-      TOFW_raw[i] = NULL;
-    }
-  }
+
+  //   ===========================================================
+  // There was a crash (#7 0x00a9789d in SigHandler(ESignals) () from /opt/root/lib/libCore.so).
+  // This is the entire stack trace of all threads:
+  // ===========================================================
+  // #0  0x00148410 in __kernel_vsyscall ()
+  // #1  0x013135b3 in __waitpid_nocancel () from /lib/libc.so.6
+  // #2  0x012b807b in do_system () from /lib/libc.so.6
+  // #3  0x0228aead in system () from /lib/libpthread.so.0
+  // #4  0x00a9316d in TUnixSystem::Exec(char const*) () from /opt/root/lib/libCore.so
+  // #5  0x00a9a26d in TUnixSystem::StackTrace() () from /opt/root/lib/libCore.so
+  // #6  0x00a977ce in TUnixSystem::DispatchSignals(ESignals) () from /opt/root/lib/libCore.so
+  // #7  0x00a9789d in SigHandler(ESignals) () from /opt/root/lib/libCore.so
+  // #8  0x00a90a64 in sighandler(int) () from /opt/root/lib/libCore.so
+  // #9  <signal handler called>
+  // #10 0x0030c798 in QwDriftChamber::DeleteHistograms() () from ./lib/libQw.so
+  // #11 0x0034565e in QwDriftChamberHDC::~QwDriftChamberHDC() () from ./lib/libQw.so
+  // #12 0x00336b62 in void boost::checked_delete<VQwSubsystem>(VQwSubsystem*) () from ./lib/libQw.so
+  // #13 0x00337876 in boost::detail::sp_counted_impl_p<VQwSubsystem>::dispose() () from ./lib/libQw.so
+  // #14 0x08053666 in boost::detail::sp_counted_base::release (this=0x8750498) at /usr/include/boost/detail/sp_counted_base_gcc_x86.hpp:145
+  // #15 0x080536a0 in boost::detail::shared_count::~shared_count (this=0x877e6d4, __in_chrg=<value optimized out>)
+  //     at /usr/include/boost/detail/shared_count.hpp:159
+  // #16 0x08054e46 in boost::shared_ptr<VQwSubsystem>::~shared_ptr (this=0x877e6d0, __in_chrg=<value optimized out>) at /usr/include/boost/shared_ptr.hpp:106
+  // #17 0x08054e69 in std::_Destroy<boost::shared_ptr<VQwSubsystem> > (__pointer=0x877e6d0)
+  //     at /usr/lib/gcc/i386-redhat-linux/4.1.2/../../../../include/c++/4.1.2/bits/stl_construct.h:107
+  // #18 0x08054e8f in std::__destroy_aux<boost::shared_ptr<VQwSubsystem>*> (__first=0x877e6d0, __last=0x877e700)
+  //     at /usr/lib/gcc/i386-redhat-linux/4.1.2/../../../../include/c++/4.1.2/bits/stl_construct.h:122
+  // #19 0x08054ece in std::_Destroy<boost::shared_ptr<VQwSubsystem>*> (__first=0x877e6c8, __last=0x877e700)
+  //     at /usr/lib/gcc/i386-redhat-linux/4.1.2/../../../../include/c++/4.1.2/bits/stl_construct.h:155
+  // #20 0x08054ef8 in std::_Destroy<boost::shared_ptr<VQwSubsystem>*, boost::shared_ptr<VQwSubsystem> > (__first=0x877e6c8, __last=0x877e700)
+  //     at /usr/lib/gcc/i386-redhat-linux/4.1.2/../../../../include/c++/4.1.2/bits/stl_construct.h:182
+  // #21 0x08056317 in std::vector<boost::shared_ptr<VQwSubsystem>, std::allocator<boost::shared_ptr<VQwSubsystem> > >::~vector (this=0xbf8788a0, 
+  //     __in_chrg=<value optimized out>) at /usr/lib/gcc/i386-redhat-linux/4.1.2/../../../../include/c++/4.1.2/bits/stl_vector.h:272
+  // #22 0x08056496 in QwSubsystemArray::~QwSubsystemArray (this=0xbf87889c, __in_chrg=<value optimized out>) at ./Analysis/include/QwSubsystemArray.h:52
+  // #23 0x080569a7 in QwSubsystemArrayTracking::~QwSubsystemArrayTracking (this=0xbf87889c, __in_chrg=<value optimized out>)
+  //     at ./Tracking/include/QwSubsystemArrayTracking.h:30
+  // #24 0x08053461 in main (argc=5, argv=0xbf878b64) at Tracking/main/QwTracking.cc:342
+
+  // When I explictly try to delete objects in DeleteHistograms(), I met the above error messages..
+  // Wednesday, July 28 15:23:57 EDT 2010, jhlee
+  //
+
+  // for( std::vector<TH1F* >::iterator i = TotHits.begin();  i != TotHits.end();  ++i ) delete *i;
+  // for( std::vector<TH1F* >::iterator i = TOFP.begin();     i != TOFP.end();     ++i ) delete *i;
+  // for( std::vector<TH1F* >::iterator i = TOFP_raw.begin(); i != TOFP_raw.end(); ++i ) delete *i;
+  // for( std::vector<TH1F* >::iterator i = WiresHit.begin(); i != WiresHit.end(); ++i ) delete *i;
+
+  // for( std::vector<TH2F* >::iterator i = TOFW.begin();     i != TOFW.end();     ++i ) delete *i;
+  // for( std::vector<TH2F* >::iterator i = TOFW_raw.begin(); i != TOFW_raw.end(); ++i ) delete *i;
+  // for( std::vector<TH2F* >::iterator i = HitsWire.begin(); i != HitsWire.end(); ++i ) delete *i;
+
+  
+
   return;
 
 };
@@ -465,7 +447,12 @@ void  QwDriftChamber::DeleteHistograms()
 void QwDriftChamber::ClearAllBankRegistrations()
 {
   VQwSubsystemTracking::ClearAllBankRegistrations();
+  std::vector< std::vector<Int_t> >::size_type i = 0;
+  for ( i=0; i<fTDC_Index.size(); i++){
+    fTDC_Index.at(i).clear();
+  }
   fTDC_Index.clear();
+
   fTDCPtrs.clear();
   fWireData.clear();
   fNumberOfTDCs = 0;

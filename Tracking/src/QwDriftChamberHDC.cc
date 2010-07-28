@@ -448,7 +448,11 @@ Int_t QwDriftChamberHDC::BuildWireDataStructure(const UInt_t chan, const EQwDete
     fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPackage = package;
     fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPlane   = plane;
     fTDCPtrs.at(fCurrentTDCIndex).at(chan).fElement = wire;
-    if (plane>= (Int_t) fWiresPerPlane.size()){
+    
+    //    std::cout << "fWiresPerPlane.size() " << fWiresPerPlane.size()
+    //	      << " plane " << plane
+    //	      << std::endl;
+    if (plane >= (Int_t) fWiresPerPlane.size()){
       fWiresPerPlane.resize(plane+1);
     }
     if (wire>=fWiresPerPlane.at(plane)){
@@ -633,7 +637,7 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
 Int_t QwDriftChamberHDC::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   Int_t subbank_index = 0;
-  Bool_t local_debug = true;
+  Bool_t local_debug = false;
   
   subbank_index = GetSubbankIndex(roc_id, bank_id);
   if ( local_debug ) {
@@ -685,3 +689,73 @@ void QwDriftChamberHDC::PrintConfigrationBuffer(UInt_t *buffer,UInt_t num_words)
   
   return;
 }
+
+
+
+void  QwDriftChamberHDC::FillHistograms() 
+{
+  Bool_t local_debug = true;
+  if (not HasDataLoaded()) return;
+  
+  QwDetectorID   this_detid;
+  QwDetectorInfo *this_det;
+  
+  //  Fill all of the histograms.
+  
+  std::vector<Int_t> wireshitperplane(fWiresPerPlane.size(),0);
+  
+  UInt_t raw_time = 0;
+  Double_t time   = 0.0;
+
+  Int_t plane = 0;
+  Int_t element = 0;
+
+
+  for(std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++) {
+    
+    this_detid = hit->GetDetectorID();
+    plane      = this_detid.fPlane;
+    element    = this_detid.fElement;
+
+    if (plane<=0 or element<=0) {
+      if (local_debug) {
+	QwMessage << "QwDriftChamberHDC::FillHistograms:  Bad plane or element index:"
+		  << "  fPlane = "  << plane
+		  << "  fElement= " << element
+		  << QwLog::endl;
+      }
+      continue;
+    }
+
+    
+    this_det= &(fWireData.at(plane).at(element));
+    
+    if (hit->IsFirstDetectorHit()) {
+      //  If this is the first hit for this detector, then let's plot the
+      //  total number of hits this wire had.
+      HitsWire[plane]->Fill(element,this_det->GetNumHits());
+      
+      //  Also increment the total number of events in whichthis wire was hit.
+      TotHits[plane]->Fill(element,1);
+      //  Increment the number of wires hit in this plane
+      wireshitperplane.at(plane) += 1;
+    }
+    
+    raw_time = hit->GetRawTime();
+    time     = hit->GetTime();
+
+    //  Fill ToF histograms
+    TOFP_raw[plane]->Fill(raw_time);
+    TOFW_raw[plane]->Fill(element, raw_time);
+    TOFP    [plane]->Fill(time);
+    TOFW    [plane]->Fill(element, time);
+  } 
+
+  std::vector<Int_t>::size_type iplane = 0;
+    
+  for (iplane=1; iplane<fWiresPerPlane.size(); iplane++) {
+    WiresHit[iplane]->Fill(wireshitperplane[iplane]);
+  }
+  return;
+};
+

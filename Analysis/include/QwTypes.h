@@ -151,6 +151,7 @@ class QwElectronicsID
   int fChannel;      //channel number
 };
 
+
 ///
 /// \ingroup QwAnalysis
 class QwDelayLineID{

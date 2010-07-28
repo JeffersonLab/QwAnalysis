@@ -545,76 +545,103 @@ Int_t QwDriftChamberVDC::AddChannelDefinition()
 void  QwDriftChamberVDC::FillHistograms()
 {
 
-         if (! HasDataLoaded()) return;
+  // Bool_t local_debug = true;
+  // if (not HasDataLoaded()) return;
+  
+  // QwDetectorID   this_detid;
+  // QwDetectorInfo *this_det;
 
+  // std::vector<Int_t> wireshitperplane(fWiresPerPlane.size(),0);
 
-         QwDetectorID   this_detid;
-         QwDetectorInfo *this_det;
+  // UInt_t raw_time = 0;
+  // Double_t time   = 0.0;
 
-         //  Fill all of the histograms.
+  // Int_t plane = 0;
+  // Int_t element = 0;
+  // EQwDetectorPackage package = kPackageNull;
 
+  // Int_t wire_index = 0;
+  
+  // for(std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++) {
 
-         std::vector<Int_t> wireshitperplane(fWiresPerPlane.size(),0);
+  //   this_detid = hit->GetDetectorID();
+  //   plane      = this_detid.fPlane;
+  //   element    = this_detid.fElement;
+  //   package    = this_detid.fPackage;
+    
+  //   if (plane<=0 or element<=0) {
+  //     if (local_debug) {
+  // 	QwMessage << "QwDriftChamberVDC::FillHistograms:  Bad plane or element index:"
+  // 		  << "  fPlane = "  << plane
+  // 		  << "  fElement= " << element
+  // 		  << QwLog::endl;
+  //     }
+  //     continue;
+  //   }
 
+  //   raw_time = hit->GetRawTime();
+  //   time     = hit->GetTime();
+  
+  //   //  Fill ToF histograms
+  //   TOFP_raw[plane]->Fill(raw_time);
+  //   TOFW_raw[plane]->Fill(element, raw_time);
+    
+  //   wire_index = 4*( (Int_t) package -1 ) + plane;
 
-         for(std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
-	      this_detid = hit1->GetDetectorID();
-             //std::cout << "fElement during FillHistogram: " << this_detid.fElement << std::endl;
-             if (this_detid.fPlane<=0 || this_detid.fElement<=0) {
-                 if (fDEBUG) {
-                     std::cout << "QwDriftChamber::FillHistograms:  Bad plane or element index:  fPlane=="
-                     << this_detid.fPlane << ", fElement==" << this_detid.fElement << std::endl;
-                 }
-                 continue;
-             }
+  //   this_det= &(fWireData.at(wire_index).at(element));
 
-             Int_t index=this_detid.fPlane-1;
-             //  Fill ToF histograms
-	     
-             TOFP_raw[index+1]->Fill(hit1->GetRawTime());
-             TOFW_raw[index+1]->Fill(this_detid.fElement,hit1->GetRawTime());
-	}
-         for (std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
+  //   if (hit->IsFirstDetectorHit()) {
+  //     HitsWire[wire_index]->Fill(element,this_det->GetNumHits());
+  //     //  Also increment the total number of events in whichthis wire was hit.
+  //     TotHits[wire_index]->Fill(element,1);
+  //     //  Increment the number of wires hit in this plane
+  //     wireshitperplane.at(wire_index) += 1;
+  //     this_det->ClearHits();
+
+  // }
+
+  // // for (std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
              
-             this_detid = hit1->GetDetectorID();
+  // //   this_detid = hit1->GetDetectorID();
 
-             //std::cout << "fElement during FillHistogram: " << this_detid.fElement << std::endl;
-             if (this_detid.fPlane<=0 || this_detid.fElement<=0) {
-                 if (fDEBUG) {
-                     std::cout << "QwDriftChamber::FillHistograms:  Bad plane or element index:  fPlane=="
-                     << this_detid.fPlane << ", fElement==" << this_detid.fElement << std::endl;
-                 }
-                 continue;
-             }
+  // //   //std::cout << "fElement during FillHistogram: " << this_detid.fElement << std::endl;
+  // //   if (this_detid.fPlane<=0 || this_detid.fElement<=0) {
+  // //     if (fDEBUG) {
+  // // 	std::cout << "QwDriftChamber::FillHistograms:  Bad plane or element index:  fPlane=="
+  // // 		  << this_detid.fPlane << ", fElement==" << this_detid.fElement << std::endl;
+  // //     }
+  // //     continue;
+  // //   }
 
-             Int_t index=4*(this_detid.fPackage-1)+this_detid.fPlane-1;
-             this_det   = &(fWireData.at(index).at(this_detid.fElement-1));
+  // //   Int_t index=4*(this_detid.fPackage-1)+this_detid.fPlane-1;
+  // //   this_det   = &(fWireData.at(index).at(this_detid.fElement-1));
 	     
-             if (hit1->IsFirstDetectorHit()) {
-                 //  If this is the first hit for this detector, then let's plot the
-                 //  total number of hits this wire had.
-//		 std::cout << "this_det->GetNumHits: " << this_det->GetNumHits() << std::endl;
-                 HitsWire[index+1]->Fill(this_detid.fElement,this_det->GetNumHits());
+	  
+  // //   if (hit1->IsFirstDetectorHit()) {
+  // //     //  If this is the first hit for this detector, then let's plot the
+  // //     //  total number of hits this wire had.
+  // //     //		 std::cout << "this_det->GetNumHits: " << this_det->GetNumHits() << std::endl;
+  // //     HitsWire[index+1]->Fill(this_detid.fElement,this_det->GetNumHits());
                  
-                 //  Also increment the total number of events in whichthis wire was hit.
-                 TotHits[index+1]->Fill(this_detid.fElement,1);
-                 //  Increment the number of wires hit in this plane
-                 wireshitperplane.at(index) += 1;
-             }
-             //  Fill ToF histograms
-//             TOFP_raw[index+1]->Fill(hit1->GetRawTime());
-//             TOFW_raw[index+1]->Fill(this_detid.fElement,hit1->GetRawTime());
-             TOFP[index+1]->Fill(hit1->GetTime());
-             TOFW[index+1]->Fill(this_detid.fElement,hit1->GetTime());
-             this_det->ClearHits();
+  // //     //  Also increment the total number of events in whichthis wire was hit.
+  // //     TotHits[index+1]->Fill(this_detid.fElement,1);
+  // //     //  Increment the number of wires hit in this plane
+  // //     wireshitperplane.at(index) += 1;
+  // //   }
+  // //   //  Fill ToF histograms
+  // //   //             TOFP_raw[index+1]->Fill(hit1->GetRawTime());
+  // //   //             TOFW_raw[index+1]->Fill(this_detid.fElement,hit1->GetRawTime());
+  // //   TOFP[index+1]->Fill(hit1->GetTime());
+  // //   TOFW[index+1]->Fill(this_detid.fElement,hit1->GetTime());
+  // //   this_det->ClearHits();
 	      
 
-         }
+  // }
  
-         for (size_t iplane=1; iplane<=fWiresPerPlane.size(); iplane++) {
-             WiresHit[iplane]->Fill(wireshitperplane[iplane-1]);
+  // for (size_t iplane=1; iplane<=fWiresPerPlane.size(); iplane++) {
+  //   WiresHit[iplane]->Fill(wireshitperplane[iplane-1]);
 
-         }
+  // }
 };
 
 
@@ -684,7 +711,7 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
       bpnum   = ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
       lnnum   = ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
 
-      if ( channum ==0 && bpnum ==0 )
+      if ( channum ==0 and bpnum ==0 )
         {
 	  if ( IsFirstChannel == kTRUE ) IsFirstChannel = kFALSE;
 	  else                         continue;
@@ -875,7 +902,7 @@ void QwDriftChamberVDC::ProcessEvent()
                         temp_Chan=tmpChan;
                     }
 
-                    QwHit NewQwHit ( tmpCrate, tmpModule, temp_Chan, mycount, kRegionID3,package, plane,direction,wire_hit );
+                    QwHit NewQwHit ( tmpCrate, tmpModule, temp_Chan, mycount, kRegionID3, package, plane, direction, wire_hit );
 
                     NewQwHit.SetHitNumberR ( order_R );
 
@@ -884,7 +911,7 @@ void QwDriftChamberVDC::ProcessEvent()
 
                     QwDetectorInfo* local_info = & fDetectorInfo.at ( package ).at ( plane-1 );
                     NewQwHit.SetDetectorInfo ( local_info );
-		    fWireData.at(4*(package-1)+plane-1).at(wire_hit-1).PushHit(real_time); 
+		    fWireData.at(4*(package-1)+plane-1).at(wire_hit-1).PushHit((Int_t) real_time); 
 
                     NewQwHit.SetAmbiguityID ( tmpAM,j );
                     fWireHits.push_back ( NewQwHit );
@@ -951,7 +978,7 @@ void QwDriftChamberVDC::ClearEventData()
 Int_t QwDriftChamberVDC::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   Int_t subbank_index = 0;
-  Bool_t local_debug = true;
+  Bool_t local_debug = false;
   
   subbank_index = GetSubbankIndex(roc_id, bank_id);
   if ( local_debug ) {

@@ -65,6 +65,7 @@ class QwDriftChamberVDC: public QwDriftChamber {
   Int_t AddChannelDefinition();
   Int_t BuildWireDataStructure(const UInt_t chan, const EQwDetectorPackage package, const Int_t plane, const Int_t wire);
   Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
+  void  FillHistograms();
 
   // VDC
   void GetHitList(QwHitContainer & grandHitContainer)
@@ -73,7 +74,7 @@ class QwDriftChamberVDC: public QwDriftChamber {
     else            grandHitContainer.Append(fWireHits);
   };
 
-  void  FillHistograms();
+
   
   Bool_t fUseTDCHits;
   Bool_t fDisableWireTimeOffset;
