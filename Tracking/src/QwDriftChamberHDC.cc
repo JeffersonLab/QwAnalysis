@@ -204,13 +204,16 @@ void  QwDriftChamberHDC::ReportConfiguration()
 
 void  QwDriftChamberHDC::SubtractReferenceTimes()
 {
-  std::size_t i = 0;
   std::vector<Double_t> reftimes;
   std::vector<Bool_t>   refchecked;
   std::vector<Bool_t>   refokay;
   Bool_t allrefsokay;
   Int_t counter = 1;
-  std::size_t ref_size = 0;
+
+  std::vector< std::vector<Double_t> >::size_type ref_size = 0;
+  std::vector< std::vector<Double_t> >::size_type i = 0;
+  std::vector<Double_t>::size_type j = 0;
+
   ref_size = fReferenceData.size();
 
 
@@ -218,7 +221,7 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
   refchecked.resize( ref_size );
   refokay.resize   ( ref_size );
 
-  for ( i=0; i< ref_size; i++ ) {
+  for ( i=0; i<ref_size; i++ ) {
     reftimes.at(i)   = 0.0;
     refchecked.at(i) = kFALSE;
     refokay.at(i)    = kFALSE;
@@ -230,8 +233,6 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
   Double_t raw_time  = 0.0;
   Double_t ref_time  = 0.0;
   Double_t time      = 0.0;
-  // Double_t time2     = 0.0;
-  // Double_t delta     = 0.0;
   Bool_t local_debug = false;
 
   for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) {
@@ -243,7 +244,7 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
     //
     // if bankid == 0, print out bank id, and then what?
     //
-    if ( !refchecked.at(bankid) ){
+    if ( not refchecked.at(bankid) ){
 
       if ( fReferenceData.at( bankid ).empty() ) {
 	QwWarning << "QwDriftChamberHDC::SubtractReferenceTimes:  Subbank ID "
@@ -257,8 +258,8 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
       }
 
       if ( refokay.at(bankid) ){
-	for ( i=0; i<fReferenceData.at(bankid).size(); i++ ) {
-	  fReferenceData.at(bankid).at(i) -= reftimes.at(bankid);
+	for ( j=0; i<fReferenceData.at(bankid).size(); j++ ) {
+	  fReferenceData.at(bankid).at(j) -= reftimes.at(bankid);
 	}
       }
       refchecked.at(bankid) = kTRUE;
@@ -270,11 +271,11 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
       time     = QwDriftChamber::fF1TDC.ActualTimeDifference(raw_time, ref_time);
       hit -> SetTime(time);
       if(local_debug) {
-	  QwMessage << " RawTime : " << raw_time
-		    << " RefTime : " << ref_time
-		    << " time    : " << time
-		    << std::endl;
-
+	QwMessage << " RawTime : " << raw_time
+		  << " RefTime : " << ref_time
+		  << " time    : " << time
+		  << std::endl;
+	
       }
       if ( counter>0 ) {
   	if (hit->GetDetectorID().fPlane==7){//this will read the first hit time of trig_h1
@@ -286,10 +287,10 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
       counter++;
     }
   }
-
+  
   bankid = 0;
-
-  if (! allrefsokay){
+  
+  if (not allrefsokay){
     std::vector<QwHit> tmp_hits;
     tmp_hits.clear();
     for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) {
@@ -303,8 +304,8 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
     fTDCHits = tmp_hits;
     // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
   }
-
-
+  
+  
   // Bool_t refs_okay = kTRUE;
   // std::vector<Double_t> reftimes;
   // std::bitset< fReferenceData.size() > refchecked;
@@ -694,7 +695,7 @@ void QwDriftChamberHDC::PrintConfigrationBuffer(UInt_t *buffer,UInt_t num_words)
 
 void  QwDriftChamberHDC::FillHistograms() 
 {
-  Bool_t local_debug = true;
+  Bool_t local_debug = false;
   if (not HasDataLoaded()) return;
   
   QwDetectorID   this_detid;
@@ -707,7 +708,7 @@ void  QwDriftChamberHDC::FillHistograms()
   UInt_t raw_time = 0;
   Double_t time   = 0.0;
 
-  Int_t plane = 0;
+  Int_t plane   = 0;
   Int_t element = 0;
 
 

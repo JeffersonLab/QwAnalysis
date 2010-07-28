@@ -203,114 +203,111 @@ void  QwDriftChamberVDC::ReportConfiguration()
 
 void  QwDriftChamberVDC::SubtractReferenceTimes()
 {
-    std::size_t i = 0;
-    std::vector<Double_t> reftimes;
-    std::vector<Bool_t>   refchecked;
-    std::vector<Bool_t>   refokay;
-    Bool_t allrefsokay;
 
-    std::size_t ref_size = 0;
-    ref_size = fReferenceData.size();
+  std::vector<Double_t> reftimes;
+  std::vector<Bool_t>   refchecked;
+  std::vector<Bool_t>   refokay;
+  Bool_t allrefsokay;
 
-    reftimes.resize ( ref_size );
-    refchecked.resize ( ref_size );
-    refokay.resize ( ref_size );
+  std::vector< std::vector<Double_t> >::size_type ref_size = 0;
+  std::vector< std::vector<Double_t> >::size_type i = 0;
+  std::vector<Double_t>::size_type j = 0;
 
-    for ( i=0; i< ref_size; i++ )
+  ref_size = fReferenceData.size();
+
+  reftimes.resize   ( ref_size );
+  refchecked.resize ( ref_size );
+  refokay.resize    ( ref_size );
+
+  for ( i=0; i<ref_size; i++ )
     {
-        reftimes.at ( i )   = 0.0;
-        refchecked.at ( i ) = kFALSE;
-        refokay.at ( i )    = kFALSE;
+      reftimes.at( i )   = 0.0;
+      refchecked.at( i ) = kFALSE;
+      refokay.at( i )    = kFALSE;
     }
 
-    allrefsokay = kTRUE;
+  allrefsokay = kTRUE;
 
-    UInt_t bankid      = 0;
-    Double_t raw_time  = 0.0;
-    Double_t ref_time  = 0.0;
-    Double_t time      = 0.0;
-    // Double_t time2     = 0.0;
-    // Double_t delta     = 0.0;
-    Bool_t local_debug = false;
+  UInt_t bankid      = 0;
+  Double_t raw_time  = 0.0;
+  Double_t ref_time  = 0.0;
+  Double_t time      = 0.0;
+  Bool_t local_debug = false;
 
-    for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ )
+  for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ )
     {
-        //  Only try to check the reference time for a bank if there is at least one
-        //  non-reference hit in the bank.
-        bankid = hit->GetSubbankID();
+      //  Only try to check the reference time for a bank if there is at least one
+      //  non-reference hit in the bank.
+      bankid = hit->GetSubbankID();
 
-        //   if (bankid == 0) QwMessage << "BANK id" << bankid << QwLog::endl;
-        //
-        // if bankid == 0, print out bank id, and then what?
-        //
-        if ( !refchecked.at ( bankid ) )
+      //   if (bankid == 0) QwMessage << "BANK id" << bankid << QwLog::endl;
+      //
+      // if bankid == 0, print out bank id, and then what?
+      //
+      if ( not refchecked.at(bankid) )
         {
 
-            if ( fReferenceData.at ( bankid ).empty() )
+	  if ( fReferenceData.at ( bankid ).empty() )
             {
-                QwWarning << "QwDriftChamberVDC::SubtractReferenceTimes:  Subbank ID "
-                << bankid << " is missing a reference time." << QwLog::endl;
-                refokay.at ( bankid ) = kFALSE;
-                allrefsokay        = kFALSE;
+	      QwWarning << "QwDriftChamberVDC::SubtractReferenceTimes:  Subbank ID "
+			<< bankid << " is missing a reference time." << QwLog::endl;
+	      refokay.at ( bankid ) = kFALSE;
+	      allrefsokay           = kFALSE;
             }
-            else
+	  else
             {
-                reftimes.at ( bankid ) = fReferenceData.at ( bankid ).at ( 0 );
-                refokay.at ( bankid )  = kTRUE;
+	      reftimes.at ( bankid ) = fReferenceData.at ( bankid ).at ( 0 );
+	      refokay.at  ( bankid ) = kTRUE;
             }
 
-            if ( refokay.at ( bankid ) )
+	  if ( refokay.at ( bankid ) )
             {
-                for ( i=0; i<fReferenceData.at ( bankid ).size(); i++ )
+	      for ( j=0; i<fReferenceData.at ( bankid ).size(); j++ )
                 {
-                    fReferenceData.at ( bankid ).at ( i ) -= reftimes.at ( bankid );
+		  fReferenceData.at ( bankid ).at ( j ) -= reftimes.at ( bankid );
                 }
             }
-            refchecked.at ( bankid ) = kTRUE;
+	  refchecked.at ( bankid ) = kTRUE;
         }
 
-        if ( refokay.at ( bankid ) )
+      if ( refokay.at ( bankid ) )
         {
-            raw_time = ( Double_t ) hit -> GetRawTime();
-            ref_time = ( Double_t ) reftimes.at ( bankid );
-            time     = QwDriftChamber::fF1TDC.ActualTimeDifference ( raw_time, ref_time );
-            //      time2    = SubtractReference(raw_time, ref_time);
-            //   delta    = fabs(time - time2);
-            hit -> SetTime ( time );
-            if ( local_debug )
+	  raw_time = ( Double_t ) hit -> GetRawTime();
+	  ref_time = ( Double_t ) reftimes.at ( bankid );
+	  time     = QwDriftChamber::fF1TDC.ActualTimeDifference ( raw_time, ref_time );
+	  hit -> SetTime ( time );
+	  
+	  if ( local_debug )
             {
-                QwMessage << " RawTime : " << raw_time
-                << " RefTime : " << ref_time
-                << " time    : " << time
-                //		    << " time2   : " << time2
-                //		    << " delta   : " << delta
-                << std::endl;
-
+	      QwMessage << " RawTime : " << raw_time
+			<< " RefTime : " << ref_time
+			<< " time    : " << time
+			<< std::endl;
             }
         }
     }
 
-    bankid = 0;
+  bankid = 0; 
 
-    if ( ! allrefsokay )
+  if ( not allrefsokay )
     {
-        std::vector<QwHit> tmp_hits;
-        tmp_hits.clear();
-        for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ )
+      std::vector<QwHit> tmp_hits;
+      tmp_hits.clear();
+      for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ )
         {
-            bankid = hit->GetSubbankID();
-            if ( refokay.at ( bankid ) )
+	  bankid = hit->GetSubbankID();
+	  if ( refokay.at ( bankid ) )
             {
-                tmp_hits.push_back ( *hit );
+	      tmp_hits.push_back ( *hit );
             }
         }
-        // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
-        fTDCHits.clear();
-        fTDCHits = tmp_hits;
-        // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
+      // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
+      fTDCHits.clear();
+      fTDCHits = tmp_hits;
+      // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
     }
 
-    return;
+  return;
 }
 
 
@@ -545,7 +542,7 @@ Int_t QwDriftChamberVDC::AddChannelDefinition()
 void  QwDriftChamberVDC::FillHistograms()
 {
 
-  Bool_t local_debug = true;
+  Bool_t local_debug = false;
   if (not HasDataLoaded()) return;
   
   QwDetectorID   this_detid;
@@ -585,20 +582,27 @@ void  QwDriftChamberVDC::FillHistograms()
      //  Fill ToF histograms
      TOFP_raw[plane]->Fill(raw_time);
      TOFW_raw[plane]->Fill(element, raw_time);
-  }
-    //  wire_index = 4*( (Int_t) package -1 ) + plane;
-     
-    //  this_det= &(fWireData.at(wire_index).at(element));
-     
-    // if (hit->IsFirstDetectorHit()) {
-    //   HitsWire[wire_index]->Fill(element,this_det->GetNumHits());
-    //   //  Also increment the total number of events in whichthis wire was hit.
-    //   TotHits[wire_index]->Fill(element,1);
-    //   //  Increment the number of wires hit in this plane
-    //   wireshitperplane.at(wire_index) += 1;
-    //   this_det->ClearHits();
-    // }
+  
+     wire_index = 4*( (Int_t) package -1 ) + plane;
+     if (local_debug) {
+       QwMessage << " QwDriftChamberVDC::FillHistograms() plane " << plane
+		 << " element " << element
+		 << " package " << package 
+		 << " wire_index " << wire_index
+		 << QwLog::endl;
+     }
 
+     this_det= &(fWireData.at(wire_index).at(element));
+     
+      if (hit->IsFirstDetectorHit()) {
+	HitsWire[wire_index]->Fill(element,this_det->GetNumHits());
+	//  Also increment the total number of events in whichthis wire was hit.
+	TotHits[wire_index]->Fill(element,1);
+	//  Increment the number of wires hit in this plane
+	wireshitperplane.at(wire_index) += 1;
+	this_det->ClearHits();
+      }
+  }
   // // for (std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
              
   // //   this_detid = hit1->GetDetectorID();
@@ -636,11 +640,13 @@ void  QwDriftChamberVDC::FillHistograms()
 	      
 
   // }
- 
-  // for (size_t iplane=1; iplane<=fWiresPerPlane.size(); iplane++) {
-  //   WiresHit[iplane]->Fill(wireshitperplane[iplane-1]);
 
-  // }
+  std::vector<Int_t>::size_type iplane = 0;
+
+  for (iplane=1; iplane<fWiresPerPlane.size(); iplane++) {
+    WiresHit[iplane]->Fill(wireshitperplane[iplane]);
+  }
+  return;
 };
 
 
