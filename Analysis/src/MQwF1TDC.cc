@@ -30,8 +30,6 @@ const UInt_t MQwF1TDC::kF1Mask_HeaderChannelNumber = 0x0000003f;
 
 
 
-// MQwF1TDC::MQwF1TDC(): fMinDiff(-1.0*kMaxInt), fMaxDiff(1.0*kMaxInt), 
-// 		      fOffset(0.0), fTimeShift(0.0)
 MQwF1TDC::MQwF1TDC()
 { 
   fF1ROCNumber          = 0;

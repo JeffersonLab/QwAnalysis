@@ -381,24 +381,24 @@ void  QwDriftChamberHDC::FillRawTDCWord (Int_t bank_index, Int_t slot_num, Int_t
     Int_t hitcnt  = 0;
     Int_t plane   = 0;
     Int_t wire    = 0;
-    Int_t package = 0;
-
+    EQwDetectorPackage package = kPackageNull;
+    EQwDirectionID direction   = kDirectionNull;
+    
     plane   = fTDCPtrs.at(tdcindex).at(chan).fPlane;
     wire    = fTDCPtrs.at(tdcindex).at(chan).fElement;
     package = fTDCPtrs.at(tdcindex).at(chan).fPackage;
 
-    EQwDirectionID direction = kDirectionNull;
+  
 
-    if (plane == -1 || wire == -1){
+    if (plane == -1 or wire == -1){
       //  This channel is not connected to anything. Do nothing.
     }
-    else if (plane == (Int_t) kReferenceChannelPlaneNumber){
+    else if (plane == kReferenceChannelPlaneNumber){
       fReferenceData.at(wire).push_back(data);
       //now wire contains the value fCurrentBankIndex so we can assign the ref timing data to it.
     }
     else {
    
-
       direction = (EQwDirectionID)fDirectionData.at(package-1).at(plane-1); 
       //Wire Direction is accessed from the vector -Rakitha (10/23/2008)
       //hitCount gives the total number of hits on a given wire -Rakitha (10/23/2008)
@@ -411,7 +411,7 @@ void  QwDriftChamberHDC::FillRawTDCWord (Int_t bank_index, Int_t slot_num, Int_t
 			       chan, 
 			       hitcnt, 
 			       kRegionID2, 
-			       (EQwDetectorPackage) package, 
+			       package, 
 			       plane,
 			       direction, 
 			       wire, 
@@ -433,23 +433,22 @@ void  QwDriftChamberHDC::FillRawTDCWord (Int_t bank_index, Int_t slot_num, Int_t
 
   }
   
-
-
   return;
 };
 
 
 
 
-Int_t QwDriftChamberHDC::BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire)
+Int_t QwDriftChamberHDC::BuildWireDataStructure(const UInt_t chan, const EQwDetectorPackage package, const Int_t plane, const Int_t wire)
 {
   if (plane == kReferenceChannelPlaneNumber){
     LinkReferenceChannel(chan, plane, wire);
-  } else {
+  } 
+  else {
     fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPackage = package;
     fTDCPtrs.at(fCurrentTDCIndex).at(chan).fPlane   = plane;
     fTDCPtrs.at(fCurrentTDCIndex).at(chan).fElement = wire;
-    if (plane>=fWiresPerPlane.size()){
+    if (plane>= (Int_t) fWiresPerPlane.size()){
       fWiresPerPlane.resize(plane+1);
     }
     if (wire>=fWiresPerPlane.at(plane)){
@@ -546,10 +545,14 @@ void  QwDriftChamberHDC::ProcessEvent()
 Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
 {
     TString varname, varvalue;
-    UInt_t  chan, package, plane, wire, direction, DIRMODE;
-    wire = plane = package = 0;
-    DIRMODE=0;
+    UInt_t value   = 0;
+    UInt_t  chan   = 0;
+    UInt_t DIRMODE = 0;
+    Int_t  plane   = 0;
+    Int_t  wire    = 0;
 
+    EQwDetectorPackage package = kPackageNull;
+    EQwDirectionID   direction = kDirectionNull;
 
     fDirectionData.resize(2);//currently we have 2  package - Rakitha (10/23/2008)
     fDirectionData.at(0).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
@@ -565,7 +568,7 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
         if (mapstr.HasVariablePair("=",varname,varvalue)) {
             //  This is a declaration line.  Decode it.
             varname.ToLower();
-            UInt_t value = QwParameterFile::GetUInt(varvalue);
+            value = QwParameterFile::GetUInt(varvalue);
 	    if (value ==0){
 	      value = atol(varvalue.Data());
 	    }
@@ -580,7 +583,7 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
 	    else if (varname=="pkg") {
 	      //this will identify the coming sequence is wire plane to direction mapping - Rakitha
 	      DIRMODE=1;
-	      package=value;
+	      package=(EQwDetectorPackage)value;
             }
 	    else if (varname=="slot") {
 	      RegisterSlotNumber(value);
@@ -602,8 +605,8 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
 	else if (DIRMODE==1) {
 	  //this will decode the wire plane directions - Rakitha
 	  plane     = (atol(mapstr.GetNextToken(", ").c_str()));
-	  direction = (atol(mapstr.GetNextToken(", ").c_str()));
-	  fDirectionData.at(package-1).at(plane-1)=direction;
+	  direction = (EQwDirectionID) (atol(mapstr.GetNextToken(", ").c_str()));
+	  fDirectionData.at(package-1).at(plane-1) = direction;
         }
 	
     }

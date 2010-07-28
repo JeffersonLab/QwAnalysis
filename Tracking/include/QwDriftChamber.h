@@ -101,9 +101,8 @@ class QwDriftChamber: public VQwSubsystemTracking{
   //  virtual Double_t DoCalculate(Double_t drifttime,QwDetectorID detector,Double_t angle)=0;
 
  protected:
-
-  Int_t LinkReferenceChannel(const UInt_t chan, const UInt_t plane, const UInt_t wire);
-  virtual Int_t BuildWireDataStructure(const UInt_t chan, const UInt_t package, const UInt_t plane, const Int_t wire)=0;
+  Int_t LinkReferenceChannel(const UInt_t chan, const Int_t plane, const Int_t wire);
+  virtual Int_t BuildWireDataStructure(const UInt_t chan, const EQwDetectorPackage package, const Int_t plane, const Int_t wire)=0;
   //  virtual Int_t AddChannelDefinition(const UInt_t plane, const UInt_t wire)= 0;
 
   virtual Int_t AddChannelDefinition() = 0;
@@ -111,7 +110,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
   virtual Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)=0;
   
   void  ClearAllBankRegistrations();
-  Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id=0);
+  Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);
   Int_t RegisterSubbank(const UInt_t bank_id);
   Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
 
@@ -141,7 +140,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
 
  protected:
   static const UInt_t kMaxNumberOfTDCsPerROC;
-  static const UInt_t kReferenceChannelPlaneNumber;
+  static const Int_t kReferenceChannelPlaneNumber; // plane is Int_t
 
   UInt_t kMaxNumberOfChannelsPerTDC;
   Int_t fNumberOfTDCs;

@@ -32,7 +32,7 @@ class MQwF1TDC{
   void DecodeTDCWord(UInt_t &word, const UInt_t roc_id);
 
   Bool_t IsValidDataword();
-  Bool_t IsHeaderword() {return fF1HeaderFlag;};
+  Bool_t IsHeaderword()            {return fF1HeaderFlag;};
  
   UInt_t GetTDCSlotNumber()        {return fF1SlotNumber;};
   UInt_t GetTDCChannelNumber()     {return fF1ChannelNumber;};

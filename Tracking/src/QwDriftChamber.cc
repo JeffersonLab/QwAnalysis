@@ -1,9 +1,9 @@
 /**********************************************************\
-* File: QwDriftChamber.C                                   *
-*                                                          *
-* Author: P. M. King, Rakitha Beminiwattha                 *
-*         J. H. Lee                                        *
-* Time-stamp: <2010-04-12 12:12>                           *
+ * File: QwDriftChamber.C                                   *
+ *                                                          *
+ * Author: P. M. King, Rakitha Beminiwattha                 *
+ *         J. H. Lee                                        *
+ * Time-stamp: <2010-04-12 12:12>                           *
 \**********************************************************/
 
 #include "QwDriftChamber.h"
@@ -13,51 +13,51 @@
 #include "QwParameterFile.h"
 
 const UInt_t QwDriftChamber::kMaxNumberOfTDCsPerROC = 21;
-const UInt_t QwDriftChamber::kReferenceChannelPlaneNumber = 99;
+const Int_t QwDriftChamber::kReferenceChannelPlaneNumber = 99;
 
 
 // OK, fDEBUG, fNumberOfTDCs
 QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHits_TEMP)
-        :VQwSubsystem(region_tmp),
-        VQwSubsystemTracking(region_tmp),
-        fWireHits(fWireHits_TEMP)
+  :VQwSubsystem(region_tmp),
+   VQwSubsystemTracking(region_tmp),
+   fWireHits(fWireHits_TEMP)
 {
-    OK            = 0;
-    fDEBUG        = kFALSE;
-    fNumberOfTDCs = 0;
-    ClearAllBankRegistrations();
-    InitHistogramPointers();
-    //    kMaxNumberOfChannelsPerTDC = GetTDCMaxChannels(); 
-    kMaxNumberOfChannelsPerTDC = fF1TDC.GetTDCMaxChannels();  
-    //  fF1TDCs->clear();
+  OK            = 0;
+  fDEBUG        = kFALSE;
+  fNumberOfTDCs = 0;
+  ClearAllBankRegistrations();
+  InitHistogramPointers();
+  //    kMaxNumberOfChannelsPerTDC = GetTDCMaxChannels(); 
+  kMaxNumberOfChannelsPerTDC = fF1TDC.GetTDCMaxChannels();  
+  //  fF1TDCs->clear();
   
-    //   fF1DataIntegrityCount = 0;
+  //   fF1DataIntegrityCount = 0;
 
 
-    /*for (int i1 = 0; i1 < kNumPackages; i1++)
-      for (int i2 = 0; i2 < 2; i2++)
-        for (int i3 = 0; i3 < 279; i3++)
-          fTimeWireOffsets[i1][i2][i3] = 0;*/
+  /*for (int i1 = 0; i1 < kNumPackages; i1++)
+    for (int i2 = 0; i2 < 2; i2++)
+    for (int i3 = 0; i3 < 279; i3++)
+    fTimeWireOffsets[i1][i2][i3] = 0;*/
 
 };
 
 QwDriftChamber::QwDriftChamber(TString region_tmp)
   :VQwSubsystemTracking(region_tmp),fWireHits(fTDCHits)
 {
-    OK            = 0;
-    fDEBUG        = kFALSE;
-    fNumberOfTDCs = 0;
-    ClearAllBankRegistrations();
-    InitHistogramPointers();
-    kMaxNumberOfChannelsPerTDC = fF1TDC.GetTDCMaxChannels(); 
+  OK            = 0;
+  fDEBUG        = kFALSE;
+  fNumberOfTDCs = 0;
+  ClearAllBankRegistrations();
+  InitHistogramPointers();
+  kMaxNumberOfChannelsPerTDC = fF1TDC.GetTDCMaxChannels(); 
   //    kMaxNumberOfChannelsPerTDC = GetTDCMaxChannels(); 
-    kMaxNumberOfChannelsPerTDC = 0; 
-    //    fF1DataIntegrityCount = 0;
+  kMaxNumberOfChannelsPerTDC = 0; 
+  //    fF1DataIntegrityCount = 0;
 
-    /*for (int i1 = 0; i1 < kNumPackages; i1++)
-      for (int i2 = 0; i2 < 2; i2++)
-        for (int i3 = 0; i3 < 279; i3++)
-          fTimeWireOffsets[i1][i2][i3] = 0;*/
+  /*for (int i1 = 0; i1 < kNumPackages; i1++)
+    for (int i2 = 0; i2 < 2; i2++)
+    for (int i3 = 0; i3 < 279; i3++)
+    fTimeWireOffsets[i1][i2][i3] = 0;*/
 
 };
 
@@ -350,66 +350,76 @@ void  QwDriftChamber::ConstructHistograms(TDirectory *folder, TString& prefix)
 };
 
 
-void  QwDriftChamber::FillHistograms() {
+void  QwDriftChamber::FillHistograms() 
+{
+  if (not HasDataLoaded()) return;
+  
+  QwDetectorID   this_detid;
+  QwDetectorInfo *this_det;
+  
+  //  Fill all of the histograms.
+  
+  std::vector<Int_t> wireshitperplane(fWiresPerPlane.size(),0);
+  
+  UInt_t raw_time = 0;
+  Double_t time   = 0.0;
 
-    if (! HasDataLoaded()) return;
-
-
-    QwDetectorID   this_detid;
-    QwDetectorInfo *this_det;
-
-    //  Fill all of the histograms.
-
-
-    std::vector<Int_t> wireshitperplane(fWiresPerPlane.size(),0);
-
-    for (std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
-        this_detid = hit1->GetDetectorID();
-        //std::cout << "fElement during FillHistogram: " << this_detid.fElement << std::endl;
-        if (this_detid.fPlane<=0 || this_detid.fElement<=0) {
-            if (fDEBUG) {
-                std::cout << "QwDriftChamber::FillHistograms:  Bad plane or element index:  fPlane=="
-                << this_detid.fPlane << ", fElement==" << this_detid.fElement << std::endl;
-            }
-            continue;
-        }
+  Int_t plane = 0;
+  Int_t element = 0;
 
 
-        this_det   = &(fWireData.at(this_detid.fPlane).at(this_detid.fElement));
-
-        if (hit1->IsFirstDetectorHit()) {
-            //  If this is the first hit for this detector, then let's plot the
-            //  total number of hits this wire had.
-            HitsWire[this_detid.fPlane]->Fill(this_detid.fElement,this_det->GetNumHits());
-
-            //  Also increment the total number of events in whichthis wire was hit.
-            TotHits[this_detid.fPlane]->Fill(this_detid.fElement,1);
-            //  Increment the number of wires hit in this plane
-            wireshitperplane.at(this_detid.fPlane) += 1;
-        }
-
-        //  Fill ToF histograms
-        TOFP_raw[this_detid.fPlane]->Fill(hit1->GetRawTime());
-        TOFW_raw[this_detid.fPlane]->Fill(this_detid.fElement,hit1->GetRawTime());
-        TOFP    [this_detid.fPlane]->Fill(hit1->GetTime());
-        TOFW    [this_detid.fPlane]->Fill(this_detid.fElement,hit1->GetTime());
-
-
-
-    }
-    std::vector<Int_t>::size_type iplane = 0;
+  for(std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++) {
     
-    for (iplane=1; iplane<fWiresPerPlane.size(); iplane++) {
-      WiresHit[iplane]->Fill(wireshitperplane[iplane]);
+    this_detid = hit->GetDetectorID();
+    plane      = this_detid.fPlane;
+    element    = this_detid.fElement;
+
+    if (plane<=0 or element<=0) {
+      if (fDEBUG) {
+	QwMessage << "QwDriftChamber::FillHistograms:  Bad plane or element index:"
+		  << "  fPlane = "  << plane
+		  << "  fElement= " << element
+		  << QwLog::endl;
+      }
+      continue;
     }
-    return;
+
+    
+    this_det= &(fWireData.at(plane).at(element));
+    
+    if (hit->IsFirstDetectorHit()) {
+      //  If this is the first hit for this detector, then let's plot the
+      //  total number of hits this wire had.
+      HitsWire[plane]->Fill(element,this_det->GetNumHits());
+      
+      //  Also increment the total number of events in whichthis wire was hit.
+      TotHits[plane]->Fill(element,1);
+      //  Increment the number of wires hit in this plane
+      wireshitperplane.at(plane) += 1;
+    }
+    
+    raw_time = hit->GetRawTime();
+    time     = hit->GetTime();
+
+    //  Fill ToF histograms
+    TOFP_raw[plane]->Fill(raw_time);
+    TOFW_raw[plane]->Fill(element, raw_time);
+    TOFP    [plane]->Fill(time);
+    TOFW    [plane]->Fill(element, time);
+  } 
+
+  std::vector<Int_t>::size_type iplane = 0;
+    
+  for (iplane=1; iplane<fWiresPerPlane.size(); iplane++) {
+    WiresHit[iplane]->Fill(wireshitperplane[iplane]);
+  }
+  return;
 };
 
 
 void  QwDriftChamber::DeleteHistograms()
 {
   //  Run the destructors for all of the histogram object pointers.
-  //for (size_t i=1;i<fWiresPerPlane.size();i++) {
   std::vector<Int_t>::size_type i = 0;
   for ( i=1; i<fWiresPerPlane.size(); i++) {
     ///////////First set of histos//////////////////////////
@@ -513,26 +523,27 @@ Int_t QwDriftChamber::RegisterSlotNumber(UInt_t slot_id)
     
 };
 
-Int_t QwDriftChamber::GetTDCIndex(size_t bank_index, size_t slot_num) const {
-    Int_t tdcindex = -1;
-    if (bank_index>=0 && bank_index<fTDC_Index.size()) {
-        if (slot_num>=0 && slot_num<fTDC_Index.at(bank_index).size()) {
-            tdcindex = fTDC_Index.at(bank_index).at(slot_num);
-        }
+Int_t QwDriftChamber::GetTDCIndex(size_t bank_index, size_t slot_num) const 
+{
+  Int_t tdcindex = -1;
+  if (bank_index>=0 && bank_index<fTDC_Index.size()) {
+    if (slot_num>=0 && slot_num<fTDC_Index.at(bank_index).size()) {
+      tdcindex = fTDC_Index.at(bank_index).at(slot_num);
     }
-    return tdcindex;
+  }
+  return tdcindex;
 };
 
 
-Int_t QwDriftChamber::LinkReferenceChannel ( const UInt_t chan, const UInt_t plane, const UInt_t wire )
+Int_t QwDriftChamber::LinkReferenceChannel (const UInt_t chan,const Int_t plane, const Int_t wire )
 {
-    fReferenceChannels.at ( fCurrentBankIndex ).first  = fCurrentTDCIndex;
-    fReferenceChannels.at ( fCurrentBankIndex ).second = chan;
-    //  Register a reference channel with the wire equal to the bank index.
-    fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPackage = 0;
-    fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPlane   = plane;
-    fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fElement = fCurrentBankIndex;
-    return OK;
+  fReferenceChannels.at ( fCurrentBankIndex ).first  = fCurrentTDCIndex;
+  fReferenceChannels.at ( fCurrentBankIndex ).second = chan;
+  //  Register a reference channel with the wire equal to the bank index.
+  fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPackage = kPackageNull;
+  fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPlane   = plane;
+  fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fElement = fCurrentBankIndex;
+  return OK;
 };
 
 Int_t QwDriftChamber::LoadTimeWireOffset(TString t0_map)
@@ -542,9 +553,10 @@ Int_t QwDriftChamber::LoadTimeWireOffset(TString t0_map)
   QwParameterFile mapstr ( t0_map.Data() );
 
   TString varname,varvalue;
-  Int_t package=0,plane=0,wire=0;
+  Int_t plane=0,wire=0;
   Double_t t0 = 0.0;
-
+  EQwDetectorPackage package = kPackageNull;
+  
   while ( mapstr.ReadNextLine() )
     {
       mapstr.TrimComment ( '!' );
@@ -553,7 +565,7 @@ Int_t QwDriftChamber::LoadTimeWireOffset(TString t0_map)
       if ( mapstr.HasVariablePair ( "=",varname,varvalue ) ) {
 	varname.ToLower();
 	if (varname=="package") {
-	  package = atoi ( varvalue.Data() );
+	  package = (EQwDetectorPackage) atoi ( varvalue.Data() );
 	  if (package> (Int_t) fTimeWireOffsets.size()) fTimeWireOffsets.resize(package);
 	} else if (varname=="plane") {
 	  //std::cout << "package: "  <<  fTimeWireOffsets.at(package-1).size()<< std::endl;
@@ -584,7 +596,8 @@ Int_t QwDriftChamber::LoadTimeWireOffset(TString t0_map)
 
 void QwDriftChamber::SubtractWireTimeOffset()
 {
-  Int_t package=0,plane=0,wire=0;
+  Int_t plane=0,wire=0;
+  EQwDetectorPackage package = kPackageNull;
   Double_t t0 = 0.0;
 
   for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ ) {
@@ -593,15 +606,6 @@ void QwDriftChamber::SubtractWireTimeOffset()
     plane   = iter->GetPlane();
     wire    = iter->GetElement();
     t0      = fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1);
-    // They are too many magic numbers.
-
-//    if (t0>-1300 && t0<-1500) {
-//      if      (plane == 1) t0 = -1423.75;
-//      else if (plane == 2) t0 = -1438.28;
-      // else ??
-//    }
-//	else();
-
     iter->SetTime(iter->GetTime()-t0);
   }
   return;

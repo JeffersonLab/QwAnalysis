@@ -119,17 +119,21 @@ static const QwHelicityMap kMapHelicity = CreateHelicityMap();
 class QwDetectorID
 {
  public:
-  QwDetectorID():fRegion(kRegionIDNull),fPackage(-1),fPlane(-1),fDirection(-1),fElement(-1){};
+  QwDetectorID():fRegion(kRegionIDNull),fPackage(kPackageNull),fPlane(-1),fDirection(kDirectionNull),fElement(-1){};
 
-  QwDetectorID(const EQwRegionID region, const Int_t package, const Int_t plane,const Int_t direction, const
-  Int_t wire):fRegion(region),fPackage(package),fPlane(plane),fDirection(direction),fElement(wire){};
+  QwDetectorID(const EQwRegionID region, 
+	       const EQwDetectorPackage package, 
+	       const Int_t plane,
+	       const EQwDirectionID direction, 
+	       const Int_t wire):
+  fRegion(region),fPackage(package),fPlane(plane),fDirection(direction),fElement(wire){};
 
  public:
-  EQwRegionID fRegion;  // region 1, 2, 3, triggg. scint or cerenkov
-  int fPackage; // which arm of the rotator or octant number
-  int fPlane;   // R or theta index for R1; plane index for R2 & R3
-  int fDirection; //direction of the wire plane X,Y,U,V etc - Rakitha (10/23/2008)
-  int fElement; // trace number for R1; wire number for R2 & R3; PMT number for others
+  EQwRegionID        fRegion;  // region 1, 2, 3, triggg. scint or cerenkov
+  EQwDetectorPackage fPackage; // which arm of the rotator or octant number
+  Int_t              fPlane;   // R or theta index for R1; plane index for R2 & R3
+  EQwDirectionID     fDirection; //direction of the wire plane X,Y,U,V etc - Rakitha (10/23/2008)
+  Int_t              fElement; // trace number for R1; wire number for R2 & R3; PMT number for others
 };
 
 
