@@ -636,7 +636,6 @@ void  QwHelicityPattern::DeleteHistograms()
 
 void QwHelicityPattern::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
-  std::cout << "starting QwHelicityPattern::ConstructBranchAndVector" << std::endl;
   TString yieldprefix = "yield_" + prefix;
   fYield.ConstructBranchAndVector(tree, yieldprefix, values);
 
@@ -649,7 +648,6 @@ void QwHelicityPattern::ConstructBranchAndVector(TTree *tree, TString & prefix, 
     asymprefix = "asym2_" + prefix;
     fAsymmetry2.ConstructBranchAndVector(tree, asymprefix, values);
   }
-  std::cout << "leaving QwHelicityPattern::ConstructBranchAndVector" << std::endl;
   return;
 }
 
@@ -729,7 +727,7 @@ void QwHelicityPattern::FillDB(QwDatabase *db)
 
 void QwHelicityPattern::Print() const
 {
-   std::cout<<"\n Pattern number ="<<fCurrentPatternNumber<<"\n";
+  std::cout<<"\n Pattern number ="<<fCurrentPatternNumber<<"\n";
   for(size_t i=0; i< (size_t) fPatternSize; i++)
     std::cout << "event "<<fEventNumber[i]<<":"<<fEventLoaded[i]<<", "<<fHelicity[i]<<"\n";
   std::cout << "Is a complete pattern ?(n/y:0/1) "<<IsCompletePattern()<<"\n";
