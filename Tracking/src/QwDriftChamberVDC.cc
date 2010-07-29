@@ -131,7 +131,7 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition( TString mapfile )
   
   QwMessage << "Sorting detector info..." << QwLog::endl;
 
-  std::vector< QwDetectorInfo >::size_type i = 0;
+  std::size_t i = 0;
   
   std::sort(fDetectorInfo.at(kPackageUp).begin(), fDetectorInfo.at(kPackageUp).end());
   plane = 1;
@@ -209,9 +209,9 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
   std::vector<Bool_t>   refokay;
   Bool_t allrefsokay;
 
-  std::vector< std::vector<Double_t> >::size_type ref_size = 0;
-  std::vector< std::vector<Double_t> >::size_type i = 0;
-  std::vector<Double_t>::size_type j = 0;
+  std::size_t ref_size = 0;
+  std::size_t i = 0;
+  std::size_t j = 0;
 
   ref_size = fReferenceData.size();
 
@@ -845,9 +845,10 @@ void QwDriftChamberVDC::ClearEventData()
     fTDCHits.clear();
     fWireHits.clear();
 
-    Int_t index = 0;
-    Int_t j = 0;
+    std::size_t index = 0;
+    std::size_t j = 0;
     std::size_t i = 0;
+
     for ( i=0;i<fDelayLineArray.size();i++ )
     {
         index = fDelayLineArray.at ( i ).size();
@@ -956,7 +957,7 @@ void  QwDriftChamberVDC::ConstructHistograms(TDirectory *folder, TString& prefix
   const Short_t buffer_size  = 2000;
   Float_t bin_offset = -0.5;
 
-  std::vector<Int_t>::size_type total_plane_number = 0;
+  std::size_t total_plane_number = 0;
   total_plane_number = fWiresPerPlane.size();
 
   TotHits.resize(total_plane_number);
@@ -967,7 +968,7 @@ void  QwDriftChamberVDC::ConstructHistograms(TDirectory *folder, TString& prefix
   TOFW_raw.resize(total_plane_number);
   HitsWire.resize(total_plane_number);
 
-  std::vector<Int_t>::size_type iplane = 0;
+  std::size_t iplane = 0;
   std::cout <<  "QwDriftChamberVDC::ConstructHistograms, " 
 	    <<  "we are contructing histograms with index from 0 to " <<total_plane_number 
 	    << "\n"
@@ -1160,7 +1161,7 @@ void  QwDriftChamberVDC::FillHistograms()
 
   // }
 
-  std::vector<Int_t>::size_type iplane = 0;
+  std::size_t iplane = 0;
 
   for (iplane=1; iplane<fWiresPerPlane.size(); iplane++) {
     WiresHit[iplane]->Fill(wireshitperplane[iplane]);
@@ -1172,5 +1173,94 @@ void  QwDriftChamberVDC::FillHistograms()
 
 void  QwDriftChamberVDC::DeleteHistograms()
 {
+  return;
+};
+
+
+
+Int_t QwDriftChamberVDC::LoadTimeWireOffset(TString t0_map)
+{
+  //std::cout << "beginning to load t0 file... " << std::endl;
+  //
+  QwParameterFile mapstr ( t0_map.Data() );
+
+  TString varname,varvalue;
+  Int_t plane=0,wire=0;
+  Double_t t0 = 0.0;
+  EQwDetectorPackage package = kPackageNull;
+  
+  while ( mapstr.ReadNextLine() )
+    {
+      mapstr.TrimComment ( '!' );
+      mapstr.TrimWhitespace();
+      if ( mapstr.LineIsEmpty() ) continue;
+      if ( mapstr.HasVariablePair ( "=",varname,varvalue ) ) {
+	varname.ToLower();
+	if (varname=="package") {
+	  package = (EQwDetectorPackage) atoi ( varvalue.Data() );
+	  if (package> (Int_t) fTimeWireOffsets.size()) fTimeWireOffsets.resize(package);
+	} else if (varname=="plane") {
+	  //std::cout << "package: "  <<  fTimeWireOffsets.at(package-1).size()<< std::endl;
+	  plane = atoi(varvalue.Data());
+	  if (plane> (Int_t) fTimeWireOffsets.at(package-1).size()) fTimeWireOffsets.at(package-1).resize(plane);
+	  //std::cout << "plane: "  <<  fTimeWireOffsets.at(package-1).size()<< std::endl;
+
+	  // To Siyuan, * : can package be obtained before plane in while loop? if plane is before package
+	  //                we have at(-1), thus, if condition is always "false", I guess.
+	  //            * : if, else if then can we expect something more?
+	  // from Han
+	}
+	continue;
+      }
+
+      wire = ( atoi ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      t0   = ( atoi ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+
+      if (wire > (Int_t)fTimeWireOffsets.at(package-1).at(plane-1).size()) fTimeWireOffsets.at(package-1).at(plane-1).resize(wire);
+
+      fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1) = t0;
+
+    }
+  //
+  return OK;
+}
+
+
+void QwDriftChamberVDC::SubtractWireTimeOffset()
+{
+  Int_t plane=0,wire=0;
+  EQwDetectorPackage package = kPackageNull;
+  Double_t t0 = 0.0;
+
+  for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ ) {
+
+    package = iter->GetPackage();
+    plane   = iter->GetPlane();
+    wire    = iter->GetElement();
+    t0      = fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1);
+    iter->SetTime(iter->GetTime()-t0);
+  }
+  return;
+};
+
+
+void QwDriftChamberVDC::ApplyTimeCalibration()
+{
+
+  //  Double_t region3_f1tdc_resolution = 0.113186191284663271;
+  Double_t f1tdc_resolution_ns = 0.116312881651642913;
+
+  // 0.1132 ns is for the first CODA setup,  it was replaced as 0.1163ns after March 13 2010
+  // need to check them with Siyuan (jhlee)
+  //
+  // 0.1163 ns is the magic number we want to setup during the Qweak experiment
+  // because of the DAQ team suggestion. That guarantees the stable resolution during
+  // temperature fluctuation. 
+
+  for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ )
+    {
+      iter->SetTime(f1tdc_resolution_ns*iter->GetTime());
+    }
+
   return;
 };

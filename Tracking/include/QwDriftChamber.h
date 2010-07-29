@@ -49,36 +49,34 @@ class QwDriftChamber: public VQwSubsystemTracking{
   /*  Member functions derived from VQwSubsystem. */
 
 
-  virtual Int_t LoadChannelMap(TString mapfile ) = 0;
-  //LoadGeometryDefinition will load QwDetectorInfo vector from a map file
-  //Currently this method is specific to each region
-  virtual Int_t LoadGeometryDefinition(TString mapfile )=0;
+ 
+ 
   Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info) //will update the detector_info from the fDetectorInfo data.
   {
     detector_info.insert(detector_info.end(),fDetectorInfo.begin(),fDetectorInfo.end()) ;
     return 1;
   };
   virtual Int_t LoadInputParameters(TString mapfile){return 0;};
-  void  ClearEventData();
+ 
 
-  virtual Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) = 0;//has separate meanings in VDC and HDC
+ 
 
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
-  virtual void  ProcessEvent()=0;//has separate meanings in VDC and HDC
 
-  // void  ConstructHistograms(TDirectory *folder, TString &prefix);
-  virtual void ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
-  virtual void  FillHistograms() = 0;
-  virtual void  DeleteHistograms() = 0;
-
-
+  //has separate meanings in VDC and HDC
+  virtual void  ReportConfiguration()    = 0;
+  virtual void  SubtractReferenceTimes() = 0;
+  virtual void  ProcessEvent() = 0;
+  virtual Int_t LoadGeometryDefinition(TString mapfile ) = 0;
+  virtual Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) = 0;
+  virtual Int_t LoadChannelMap(TString mapfile ) = 0;
+  virtual void  ClearEventData() = 0;
 
 
 
   /* Unique member functions */
-  virtual void  ReportConfiguration() = 0;
-  virtual void  SubtractReferenceTimes() = 0;
+
 
   void  FillDriftDistanceToHits();
  
@@ -98,38 +96,35 @@ class QwDriftChamber: public VQwSubsystemTracking{
 
   Int_t OK;
 
-  // private:
-
-  //  virtual Double_t DoCalculate(Double_t drifttime,QwDetectorID detector,Double_t angle)=0;
-
  protected:
-  Int_t LinkReferenceChannel(const UInt_t chan, const Int_t plane, const Int_t wire);
-  virtual Int_t BuildWireDataStructure(const UInt_t chan, const EQwDetectorPackage package, const Int_t plane, const Int_t wire)=0;
-  
-  virtual Int_t AddChannelDefinition() = 0;
+
   virtual void FillRawTDCWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data) = 0;
+  virtual Int_t AddChannelDefinition() = 0;
+  virtual Int_t BuildWireDataStructure(const UInt_t chan, const EQwDetectorPackage package, const Int_t plane, const Int_t wire)=0;
   virtual Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)=0;
-  
+  virtual void ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
+  virtual void  FillHistograms() = 0;
+  virtual void  DeleteHistograms() = 0;
+  virtual Int_t LoadTimeWireOffset(TString t0_map) = 0;
+  virtual void SubtractWireTimeOffset() = 0;
+  virtual void ApplyTimeCalibration() = 0;
+
+
+  Int_t LinkReferenceChannel(const UInt_t chan, const Int_t plane, const Int_t wire);
   void  ClearAllBankRegistrations();
   Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);
   Int_t RegisterSubbank(const UInt_t bank_id);
   Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
-
-
   Int_t GetTDCIndex(size_t bank_index, size_t slot_num) const;
-
   Bool_t IsSlotRegistered(Int_t bank_index, Int_t slot_num) const
   {
     return (GetTDCIndex(bank_index,slot_num) != -1);
   };
 
 
-
- protected:
   Bool_t fDEBUG;
 
   TString fRegion;  ///  Name of this subsystem (the region).
-
   size_t fCurrentBankIndex;
   Int_t fCurrentSlot;
   Int_t fCurrentTDCIndex;
@@ -220,22 +215,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
   std::vector< std::vector< UInt_t >         > fDirectionData; 
   //Indexed by pckg and plane each element represent the wire direction ( a value from 0 to 6)- Rakitha(10/23/2008)
 
-  std::vector< std::vector< std::vector<Double_t> > > fTimeWireOffsets;
 
-
- protected:
-  //Double_t fTimeWireOffsets[kNumPackages][2][279]; 
-  //Indexed by pckg and plane number and wire number(only used on R3 right now)
-
-  Int_t LoadTimeWireOffset(TString t0_map);
-
-  void SubtractWireTimeOffset();
-
-  void ApplyTimeCalibration();
-
- /* protected: */
- /*  UInt_t fF1DataIntegrityCount; */
- /*  UInt_t GetF1DataIntegrityCount(){return fF1DataIntegrityCount;}; */
 
 };
 

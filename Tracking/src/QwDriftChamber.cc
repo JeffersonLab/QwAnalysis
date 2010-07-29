@@ -159,23 +159,6 @@ void  QwDriftChamber::FillDriftDistanceToHits()
 
 
 
-void  QwDriftChamber::ClearEventData()
-{
-  SetDataLoaded(kFALSE);
-  QwDetectorID this_det;
-  //  Loop through fTDCHits, to decide which detector elements need to be cleared.
-  for (std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
-    this_det = hit1->GetDetectorID();
-    fWireData.at(this_det.fPlane).at(this_det.fElement).ClearHits();
-  }
-  fTDCHits.clear();
-  for (UInt_t i=0; i<fReferenceData.size(); i++) {
-    fReferenceData.at(i).clear();
-  }
-  return;
-};
-
-
 
 
 
@@ -336,7 +319,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 void QwDriftChamber::ClearAllBankRegistrations()
 {
   VQwSubsystemTracking::ClearAllBankRegistrations();
-  std::vector< std::vector<Int_t> >::size_type i = 0;
+  std::size_t i = 0;
   for ( i=0; i<fTDC_Index.size(); i++){
     fTDC_Index.at(i).clear();
   }
@@ -420,91 +403,4 @@ Int_t QwDriftChamber::LinkReferenceChannel (const UInt_t chan,const Int_t plane,
   fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPlane   = plane;
   fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fElement = fCurrentBankIndex;
   return OK;
-};
-
-Int_t QwDriftChamber::LoadTimeWireOffset(TString t0_map)
-{
-  //std::cout << "beginning to load t0 file... " << std::endl;
-  //
-  QwParameterFile mapstr ( t0_map.Data() );
-
-  TString varname,varvalue;
-  Int_t plane=0,wire=0;
-  Double_t t0 = 0.0;
-  EQwDetectorPackage package = kPackageNull;
-  
-  while ( mapstr.ReadNextLine() )
-    {
-      mapstr.TrimComment ( '!' );
-      mapstr.TrimWhitespace();
-      if ( mapstr.LineIsEmpty() ) continue;
-      if ( mapstr.HasVariablePair ( "=",varname,varvalue ) ) {
-	varname.ToLower();
-	if (varname=="package") {
-	  package = (EQwDetectorPackage) atoi ( varvalue.Data() );
-	  if (package> (Int_t) fTimeWireOffsets.size()) fTimeWireOffsets.resize(package);
-	} else if (varname=="plane") {
-	  //std::cout << "package: "  <<  fTimeWireOffsets.at(package-1).size()<< std::endl;
-	  plane = atoi(varvalue.Data());
-	  if (plane> (Int_t) fTimeWireOffsets.at(package-1).size()) fTimeWireOffsets.at(package-1).resize(plane);
-	  //std::cout << "plane: "  <<  fTimeWireOffsets.at(package-1).size()<< std::endl;
-
-	  // To Siyuan, * : can package be obtained before plane in while loop? if plane is before package
-	  //                we have at(-1), thus, if condition is always "false", I guess.
-	  //            * : if, else if then can we expect something more?
-	  // from Han
-	}
-	continue;
-      }
-
-      wire = ( atoi ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-      t0   = ( atoi ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-
-      if (wire > (Int_t)fTimeWireOffsets.at(package-1).at(plane-1).size()) fTimeWireOffsets.at(package-1).at(plane-1).resize(wire);
-
-      fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1) = t0;
-
-    }
-  //
-  return OK;
-}
-
-
-void QwDriftChamber::SubtractWireTimeOffset()
-{
-  Int_t plane=0,wire=0;
-  EQwDetectorPackage package = kPackageNull;
-  Double_t t0 = 0.0;
-
-  for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ ) {
-
-    package = iter->GetPackage();
-    plane   = iter->GetPlane();
-    wire    = iter->GetElement();
-    t0      = fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1);
-    iter->SetTime(iter->GetTime()-t0);
-  }
-  return;
-};
-
-
-void QwDriftChamber::ApplyTimeCalibration()
-{
-
-  //  Double_t region3_f1tdc_resolution = 0.113186191284663271;
-  Double_t f1tdc_resolution_ns = 0.116312881651642913;
-
-  // 0.1132 ns is for the first CODA setup,  it was replaced as 0.1163ns after March 13 2010
-  // need to check them with Siyuan (jhlee)
-  //
-  // 0.1163 ns is the magic number we want to setup during the Qweak experiment
-  // because of the DAQ team suggestion. That guarantees the stable resolution during
-  // temperature fluctuation. 
-
-  for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ )
-    {
-      iter->SetTime(f1tdc_resolution_ns*iter->GetTime());
-    }
-
-  return;
 };

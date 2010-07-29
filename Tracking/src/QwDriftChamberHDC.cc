@@ -131,7 +131,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
 
   QwMessage << "Sorting detector info..." << QwLog::endl;
 
-  std::vector< QwDetectorInfo >::size_type i = 0;
+  std::size_t i = 0;
 
   std::sort(fDetectorInfo.at(kPackageUp).begin(), fDetectorInfo.at(kPackageUp).end());
   plane = 1;
@@ -168,7 +168,8 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
 void  QwDriftChamberHDC::ReportConfiguration()
 {
 
-  std::vector<UInt_t>::size_type i = 0;
+  std::size_t i = 0;
+  std::size_t j = 0;
   UInt_t k = 0;
   Int_t tdcindex = 0;
   Int_t ind = 0;
@@ -176,7 +177,7 @@ void  QwDriftChamberHDC::ReportConfiguration()
 
   for ( i = 0; i<fROC_IDs.size(); i++){
  
-    for (size_t j=0; j<fBank_IDs.at(i).size(); j++){
+    for ( j=0; j<fBank_IDs.at(i).size(); j++){
       ind = GetSubbankIndex(fROC_IDs.at(i),fBank_IDs.at(i).at(j));
       QwMessage << "ROC " << fROC_IDs.at(i)
 		<< ", subbank " << fBank_IDs.at(i).at(j)
@@ -210,9 +211,9 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
   Bool_t allrefsokay;
   Int_t counter = 1;
 
-  std::vector< std::vector<Double_t> >::size_type ref_size = 0;
-  std::vector< std::vector<Double_t> >::size_type i = 0;
-  std::vector<Double_t>::size_type j = 0;
+  std::size_t ref_size = 0;
+  std::size_t i = 0;
+  std::size_t j = 0;
 
   ref_size = fReferenceData.size();
 
@@ -714,7 +715,7 @@ void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix
   const Short_t buffer_size  = 2000;
   Float_t bin_offset = -0.5;
 
-  std::vector<Int_t>::size_type total_plane_number = 0;
+  std::size_t total_plane_number = 0;
   total_plane_number = fWiresPerPlane.size();
 
   TotHits.resize(total_plane_number);
@@ -725,7 +726,7 @@ void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix
   TOFW_raw.resize(total_plane_number);
   HitsWire.resize(total_plane_number);
 
-  std::vector<Int_t>::size_type iplane = 0;
+  std::size_t iplane = 0;
   std::cout <<  "QwDriftChamberHDC::ConstructHistograms, " 
 	    <<  "we are contructing histograms with index from 0 to " <<total_plane_number 
 	    << "\n"
@@ -875,7 +876,7 @@ void  QwDriftChamberHDC::FillHistograms()
     TOFW    [plane]->Fill(element, time);
   } 
 
-  std::vector<Int_t>::size_type iplane = 0;
+  std::size_t iplane = 0;
     
   for (iplane=1; iplane<fWiresPerPlane.size(); iplane++) {
     WiresHit[iplane]->Fill(wireshitperplane[iplane]);
@@ -889,3 +890,22 @@ void  QwDriftChamberHDC::DeleteHistograms()
 {
   return;
 };
+
+
+void  QwDriftChamberHDC::ClearEventData()
+{
+  SetDataLoaded(kFALSE);
+  QwDetectorID this_det;
+  //  Loop through fTDCHits, to decide which detector elements need to be cleared.
+  for (std::vector<QwHit>::iterator hit1=fTDCHits.begin(); hit1!=fTDCHits.end(); hit1++) {
+    this_det = hit1->GetDetectorID();
+    fWireData.at(this_det.fPlane).at(this_det.fElement).ClearHits();
+  }
+  fTDCHits.clear();
+  std::size_t i = 0;
+  for (i=0; i<fReferenceData.size(); i++) {
+    fReferenceData.at(i).clear();
+  }
+  return;
+};
+

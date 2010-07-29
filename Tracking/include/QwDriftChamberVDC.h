@@ -34,21 +34,20 @@ class QwDriftChamberVDC: public QwDriftChamber {
   /* Unique virtual member functions from QwDrifChamber base class */
 
   
-  // VDC and HDC
   void  ReportConfiguration();
   void  SubtractReferenceTimes();
   void  ProcessEvent();
   Int_t LoadGeometryDefinition(TString mapfile );
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   void  PrintConfigrationBuffer(UInt_t *buffer, UInt_t num_words);
-  
+  Int_t LoadChannelMap(TString mapfile);
 
 
   // VDC
   //  using QwDriftChamber::CalculateDriftDistance;
   static void DefineOptions(QwOptions& options);
   void ProcessOptions(QwOptions& options);
-  Int_t LoadChannelMap(TString mapfile);
+ 
   //Int_t LoadMap ( TString& );        //read the TDC convert QwDelayLine map
   void  ReadEvent ( TString& );     //read the events file
 
@@ -68,7 +67,10 @@ class QwDriftChamberVDC: public QwDriftChamber {
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();
-
+  Int_t LoadTimeWireOffset(TString t0_map); 
+  void SubtractWireTimeOffset();
+  void ApplyTimeCalibration();
+  
   // VDC
   void GetHitList(QwHitContainer & grandHitContainer)
   {
@@ -76,7 +78,7 @@ class QwDriftChamberVDC: public QwDriftChamber {
     else            grandHitContainer.Append(fWireHits);
   };
 
-
+ 
   
   Bool_t fUseTDCHits;
   Bool_t fDisableWireTimeOffset;
@@ -85,8 +87,9 @@ class QwDriftChamberVDC: public QwDriftChamber {
   std::vector< std::vector<QwDelayLine> > fDelayLineArray;   //indexed by backplane and line number
   std::vector< std::vector<QwDelayLineID> > fDelayLinePtrs;  //indexed by slot and channel number
   std::vector< QwHit > fWireHitsVDC;
+  std::vector< std::vector< std::vector<Double_t> > > fTimeWireOffsets;
 
-
+  
 };
 
 #endif
