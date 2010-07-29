@@ -471,7 +471,7 @@ Int_t QwDriftChamberVDC::BuildWireDataStructure(const UInt_t chan,
 	  // So the magic number "1" is. 
 	  // Wednesday, July 28 21:58:13 EDT 2010, jhlee
         }
-      fWiresPerPlane.at ( real_size -1 ) = r3_wire_number_per_plane;
+      fWiresPerPlane.at ( real_size ) = r3_wire_number_per_plane;
     }
   return OK;
 };
@@ -488,7 +488,7 @@ Int_t QwDriftChamberVDC::AddChannelDefinition()
     std::size_t i =0;
 
     fWireData.resize ( fWiresPerPlane.size() );
-    for ( i=0; i<fWiresPerPlane.size(); i++ )
+    for ( i=1; i<fWiresPerPlane.size(); i++ )
     {
         if ( temp_local_debug )
         {
@@ -521,7 +521,7 @@ Int_t QwDriftChamberVDC::AddChannelDefinition()
                         for ( Int_t index=0;index<window_number;index++ )
                         {
 
-                            fWireData.at ( 4*(package-1)+plane-1 ).at ( wire-1 ).SetElectronics ( i,j,k );
+                            fWireData.at ( 4*(package-1)+plane ).at ( wire-1 ).SetElectronics ( i,j,k );
                             wire+=8;
                             if ( temp_local_debug )
                             {
@@ -809,7 +809,7 @@ void QwDriftChamberVDC::ProcessEvent()
 
                     QwDetectorInfo* local_info = & fDetectorInfo.at ( package ).at ( plane -1);
                     NewQwHit.SetDetectorInfo ( local_info );
-		    fWireData.at(4*(package-1)+plane-1).at(wire_hit-1).PushHit((Int_t) real_time); 
+		    fWireData.at(4*(package-1)+plane).at(wire_hit-1).PushHit((Int_t) real_time); 
 
                     NewQwHit.SetAmbiguityID ( tmpAM,j );
                     fWireHits.push_back ( NewQwHit );
@@ -825,7 +825,7 @@ void QwDriftChamberVDC::ProcessEvent()
     if ( fDisableWireTimeOffset==false )
         SubtractWireTimeOffset();
     else {};
-
+//    std::cout << "leaving.." << std::endl;
     FillDriftDistanceToHits();
 };
 
@@ -989,7 +989,7 @@ void  QwDriftChamberVDC::ConstructHistograms(TDirectory *folder, TString& prefix
     //   std::cout << "QwDriftChamberVDC iplane" << iplane << std::endl;
     // push_back can "push" iplane = 1 into TotHits.at(0) ??
     TotHits[iplane] = new TH1F(
-			       Form("%s%sHitsOnEachWirePlane%d", prefix.Data(), region.Data(), iplane),
+			       Form("%s%sWiresPlane%d", prefix.Data(), region.Data(), iplane),
 			       Form("Total hits on all wires in plane %d", iplane),
 			       fWiresPerPlane[iplane], bin_offset, fWiresPerPlane[iplane]+bin_offset
 			       );
@@ -998,7 +998,7 @@ void  QwDriftChamberVDC::ConstructHistograms(TDirectory *folder, TString& prefix
     TotHits[iplane]->GetYaxis()->SetTitle("Events");
     
     WiresHit[iplane] = new TH1F(
-				Form("%s%sWiresHitPlane%d", prefix.Data(), region.Data(), iplane),
+				Form("%s%sNumberHitsPlane%d", prefix.Data(), region.Data(), iplane),
 				Form("Number of Wires Hit in plane %d",iplane),
 				20, bin_offset, 20+bin_offset
 				);
@@ -1006,7 +1006,7 @@ void  QwDriftChamberVDC::ConstructHistograms(TDirectory *folder, TString& prefix
     WiresHit[iplane]->GetYaxis()->SetTitle("Events");
     
     HitsWire[iplane] = new TH2F(
-				Form("%s%sHitsOnEachWirePerEventPlane%d", prefix.Data(), region.Data(), iplane),
+				Form("%s%sNumberHitsVsWirePlane%d", prefix.Data(), region.Data(), iplane),
 				Form("hits on all wires per event in plane %d", iplane),
 				fWiresPerPlane[iplane],bin_offset,fWiresPerPlane[iplane]+bin_offset,
 				7, -bin_offset, 7-bin_offset
@@ -1015,7 +1015,7 @@ void  QwDriftChamberVDC::ConstructHistograms(TDirectory *folder, TString& prefix
     HitsWire[iplane]->GetYaxis()->SetTitle("Hits");
     
     TOFP[iplane] = new TH1F(
-			    Form("%s%sTimeofFlightPlane%d", prefix.Data(), region.Data(), iplane),
+			    Form("%s%sTimePlane%d", prefix.Data(), region.Data(), iplane),
 			    Form("Subtracted time of flight for events in plane %d", iplane),
 			    400,0,0
 			    );
@@ -1025,7 +1025,7 @@ void  QwDriftChamberVDC::ConstructHistograms(TDirectory *folder, TString& prefix
     
     
     TOFP_raw[iplane] = new TH1F(
-				Form("%s%sRawTimeofFlightPlane%d", prefix.Data(), region.Data(), iplane),
+				Form("%s%sRawTimePlane%d", prefix.Data(), region.Data(), iplane),
 				Form("Raw time of flight for events in plane %d", iplane),
 				//			     400,-65000,65000);
 				400, 0,0
@@ -1035,10 +1035,10 @@ void  QwDriftChamberVDC::ConstructHistograms(TDirectory *folder, TString& prefix
     TOFP_raw[iplane]->GetYaxis()->SetTitle("Hits");
     
     TOFW[iplane] = new TH2F(
-			    Form("%s%sTimeofFlightperWirePlane%d", prefix.Data(), region.Data(), iplane),
+			    Form("%s%sTimeVsWirePlane%d", prefix.Data(), region.Data(), iplane),
 			    Form("Subtracted time of flight for each wire in plane %d", iplane),
 			    fWiresPerPlane[iplane], bin_offset, fWiresPerPlane[iplane]+bin_offset,
-			    100,-40000,65000
+			    100,-2000,2000
 			    );
     // why this range is not -65000 ??
     TOFW[iplane]->GetXaxis()->SetTitle("Wire Number");
@@ -1077,7 +1077,7 @@ void  QwDriftChamberVDC::FillHistograms()
   Int_t element = 0;
   EQwDetectorPackage package = kPackageNull;
 
-  Int_t wire_index = 0;
+  Int_t plane_index = 0;
   
   for(std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++) {
 
@@ -1085,6 +1085,8 @@ void  QwDriftChamberVDC::FillHistograms()
      plane      = this_detid.fPlane;
      element    = this_detid.fElement;
      package    = this_detid.fPackage;
+
+      plane_index = 4*( (Int_t) package -1 ) + plane;
      
      if (plane<=0 or element<=0) {
        if (local_debug) {
@@ -1100,66 +1102,60 @@ void  QwDriftChamberVDC::FillHistograms()
      time     = hit->GetTime();
      
      //  Fill ToF histograms
-     TOFP_raw[plane]->Fill(raw_time);
-     TOFW_raw[plane]->Fill(element, raw_time);
+     TOFP_raw[plane_index]->Fill(raw_time);
+     TOFW_raw[plane_index]->Fill(element, raw_time);
   
-     wire_index = 4*( (Int_t) package -1 ) + plane;
+    
      if (local_debug) {
        QwMessage << " QwDriftChamberVDC::FillHistograms() plane " << plane
 		 << " element " << element
 		 << " package " << package 
-		 << " wire_index " << wire_index
+		 << " plane_index " << plane_index
 		 << QwLog::endl;
      }
-
-     this_det= &(fWireData.at(wire_index).at(element));
-     
-      if (hit->IsFirstDetectorHit()) {
-	HitsWire[wire_index]->Fill(element,this_det->GetNumHits());
-	//  Also increment the total number of events in whichthis wire was hit.
-	TotHits[wire_index]->Fill(element,1);
-	//  Increment the number of wires hit in this plane
-	wireshitperplane.at(wire_index) += 1;
-	this_det->ClearHits();
-      }
   }
-  // // for (std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
+   for (std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
              
-  // //   this_detid = hit1->GetDetectorID();
+     this_detid = hit1->GetDetectorID();
+     plane      = this_detid.fPlane;
+     element    = this_detid.fElement;
+     package    = this_detid.fPackage;
 
-  // //   //std::cout << "fElement during FillHistogram: " << this_detid.fElement << std::endl;
-  // //   if (this_detid.fPlane<=0 || this_detid.fElement<=0) {
-  // //     if (fDEBUG) {
-  // // 	std::cout << "QwDriftChamber::FillHistograms:  Bad plane or element index:  fPlane=="
-  // // 		  << this_detid.fPlane << ", fElement==" << this_detid.fElement << std::endl;
-  // //     }
-  // //     continue;
-  // //   }
+     if (plane<=0 or element<=0) {
+       if (local_debug) {
+	 QwMessage << "QwDriftChamberVDC::FillHistograms:  Bad plane or element index:"
+		   << "  fPlane = "  << plane
+		   << "  fElement= " << element
+		   << QwLog::endl;
+       }
+       continue;
+	}
 
-  // //   Int_t index=4*(this_detid.fPackage-1)+this_detid.fPlane-1;
-  // //   this_det   = &(fWireData.at(index).at(this_detid.fElement-1));
+     plane_index = 4*( (Int_t) package -1 ) + plane;
+     this_det   = &(fWireData.at(plane_index).at(element-1));
 	     
 	  
-  // //   if (hit1->IsFirstDetectorHit()) {
-  // //     //  If this is the first hit for this detector, then let's plot the
-  // //     //  total number of hits this wire had.
-  // //     //		 std::cout << "this_det->GetNumHits: " << this_det->GetNumHits() << std::endl;
-  // //     HitsWire[index+1]->Fill(this_detid.fElement,this_det->GetNumHits());
+     if (hit1->IsFirstDetectorHit()) {
+       //  If this is the first hit for this detector, then let's plot the
+       //  total number of hits this wire had.
+       //		 std::cout << "this_det->GetNumHits: " << this_det->GetNumHits() << std::endl;
+       HitsWire[plane_index]->Fill(element,this_det->GetNumHits());
                  
   // //     //  Also increment the total number of events in whichthis wire was hit.
-  // //     TotHits[index+1]->Fill(this_detid.fElement,1);
-  // //     //  Increment the number of wires hit in this plane
-  // //     wireshitperplane.at(index) += 1;
-  // //   }
-  // //   //  Fill ToF histograms
-  // //   //             TOFP_raw[index+1]->Fill(hit1->GetRawTime());
-  // //   //             TOFW_raw[index+1]->Fill(this_detid.fElement,hit1->GetRawTime());
-  // //   TOFP[index+1]->Fill(hit1->GetTime());
-  // //   TOFW[index+1]->Fill(this_detid.fElement,hit1->GetTime());
-  // //   this_det->ClearHits();
+       TotHits[plane_index]->Fill(element,1);
+       //  Increment the number of wires hit in this plane
+       wireshitperplane.at(plane_index) += 1;
+     }
+     //  Fill ToF histograms
+
+      time     = hit1->GetTime();
+
+      TOFP[plane_index]->Fill(time);
+      TOFW[plane_index]->Fill(element,time);
+      this_det->ClearHits();
 	      
 
-  // }
+   }
 
   std::size_t iplane = 0;
 
