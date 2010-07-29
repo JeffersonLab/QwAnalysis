@@ -114,7 +114,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
 						   TotalWires, 
 						   detectorId
 						   );
-	    
+
 	    if      (package == "u") fDetectorInfo.at(kPackageUp).push_back(local_region2_detector);
 	    else if (package == "d") fDetectorInfo.at(kPackageDown).push_back(local_region2_detector);
       }
@@ -440,7 +440,10 @@ void  QwDriftChamberHDC::FillRawTDCWord (Int_t bank_index, Int_t slot_num, Int_t
 
 
 
-Int_t QwDriftChamberHDC::BuildWireDataStructure(const UInt_t chan, const EQwDetectorPackage package, const Int_t plane, const Int_t wire)
+Int_t QwDriftChamberHDC::BuildWireDataStructure(const UInt_t chan, 
+						const EQwDetectorPackage package, 
+						const Int_t plane, 
+						const Int_t wire)
 {
   if (plane == kReferenceChannelPlaneNumber){
     LinkReferenceChannel(chan, plane, wire);
@@ -453,8 +456,15 @@ Int_t QwDriftChamberHDC::BuildWireDataStructure(const UInt_t chan, const EQwDete
     //    std::cout << "fWiresPerPlane.size() " << fWiresPerPlane.size()
     //	      << " plane " << plane
     //	      << std::endl;
-    if (plane >= (Int_t) fWiresPerPlane.size()){
+    
+    if (plane >= (Int_t) fWiresPerPlane.size()){ // plane is Int_t
       fWiresPerPlane.resize(plane+1);
+      // size() is one more larger than last plane number
+      // For HDC, plane    1,2,....,12 
+      //          vector 0,1,2,....,12
+      //          thus, vector.size() returns 13
+      // So the magic number "1" is. 
+      // Wednesday, July 28 21:56:34 EDT 2010, jhlee
     }
     if (wire>=fWiresPerPlane.at(plane)){
       fWiresPerPlane.at(plane) =  wire+1;
@@ -514,7 +524,7 @@ Int_t QwDriftChamberHDC::AddChannelDefinition()
 
 void  QwDriftChamberHDC::ProcessEvent()
 {
-  if (! HasDataLoaded()) return;
+  if (not HasDataLoaded()) return;
 
   SubtractReferenceTimes();
 
@@ -534,6 +544,7 @@ void  QwDriftChamberHDC::ProcessEvent()
     local_id   = hit->GetDetectorID();
     package    = local_id.fPackage;
     plane      = local_id.fPlane - 1;
+    // ahha, here is a hidden magic number 1.
     local_info = & fDetectorInfo.at(package).at(plane);
     
     hit->SetDetectorInfo(local_info);
@@ -692,6 +703,118 @@ void QwDriftChamberHDC::PrintConfigrationBuffer(UInt_t *buffer,UInt_t num_words)
 }
 
 
+void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix)
+{
+  //  If we have defined a subdirectory in the ROOT file, then change into it.
+  if ( folder ) folder->cd();
+  //  Now create the histograms...
+  TString region = GetSubsystemName();
+  //  Loop over the number of planes.
+
+  const Short_t buffer_size  = 2000;
+  Float_t bin_offset = -0.5;
+
+  std::vector<Int_t>::size_type total_plane_number = 0;
+  total_plane_number = fWiresPerPlane.size();
+
+  TotHits.resize(total_plane_number);
+  TOFP.resize(total_plane_number);
+  TOFP_raw.resize(total_plane_number);
+  WiresHit.resize(total_plane_number);
+  TOFW.resize(total_plane_number);
+  TOFW_raw.resize(total_plane_number);
+  HitsWire.resize(total_plane_number);
+
+  std::vector<Int_t>::size_type iplane = 0;
+  std::cout <<  "QwDriftChamberHDC::ConstructHistograms, " 
+	    <<  "we are contructing histograms with index from 0 to " <<total_plane_number 
+	    << "\n"
+	    <<  "Thus, fWiresPerPlane.size() returns "
+	    << total_plane_number
+	    << " and its array definition is ["
+	    << total_plane_number
+	    << "]."
+	    <<  " And hist[i] <-> hist.at(i) <-> fWiresPerplane[i] <-> fWiresPerPlane.at(i)"
+	    << std::endl;
+
+  // wire_per_plane is the number of wire per plane?
+  // 
+  // we skip the first zero-th plane or wire histogram. thus
+  // i starts with '1'. hist[0] is NULL
+  
+  for ( iplane=1; iplane<total_plane_number; iplane++) {
+
+    // push_back can "push" iplane = 1 into TotHits.at(0) ??
+    TotHits[iplane] = new TH1F(
+			       Form("%s%sHitsOnEachWirePlane%d", prefix.Data(), region.Data(), iplane),
+			       Form("Total hits on all wires in plane %d", iplane),
+			       fWiresPerPlane[iplane], bin_offset, fWiresPerPlane[iplane]+bin_offset
+			       );
+    
+    TotHits[iplane]->GetXaxis()->SetTitle("Wire #");
+    TotHits[iplane]->GetYaxis()->SetTitle("Events");
+    
+    WiresHit[iplane] = new TH1F(
+				Form("%s%sWiresHitPlane%d", prefix.Data(), region.Data(), iplane),
+				Form("Number of Wires Hit in plane %d",iplane),
+				20, bin_offset, 20+bin_offset
+				);
+    WiresHit[iplane]->GetXaxis()->SetTitle("Wires Hit per Event");
+    WiresHit[iplane]->GetYaxis()->SetTitle("Events");
+    
+    HitsWire[iplane] = new TH2F(
+				Form("%s%sHitsOnEachWirePerEventPlane%d", prefix.Data(), region.Data(), iplane),
+				Form("hits on all wires per event in plane %d", iplane),
+				fWiresPerPlane[iplane],bin_offset,fWiresPerPlane[iplane]+bin_offset,
+				7, -bin_offset, 7-bin_offset
+				);
+    HitsWire[iplane]->GetXaxis()->SetTitle("Wire Number");
+    HitsWire[iplane]->GetYaxis()->SetTitle("Hits");
+    
+    TOFP[iplane] = new TH1F(
+			    Form("%s%sTimeofFlightPlane%d", prefix.Data(), region.Data(), iplane),
+			    Form("Subtracted time of flight for events in plane %d", iplane),
+			    400,0,0
+			    );
+    TOFP[iplane] -> SetDefaultBufferSize(buffer_size);
+    TOFP[iplane] -> GetXaxis()->SetTitle("Time of Flight");
+    TOFP[iplane] -> GetYaxis()->SetTitle("Hits");
+    
+    
+    TOFP_raw[iplane] = new TH1F(
+				Form("%s%sRawTimeofFlightPlane%d", prefix.Data(), region.Data(), iplane),
+				Form("Raw time of flight for events in plane %d", iplane),
+				//			     400,-65000,65000);
+				400, 0,0
+				);
+    TOFP_raw[iplane] -> SetDefaultBufferSize(buffer_size);
+    TOFP_raw[iplane]->GetXaxis()->SetTitle("Time of Flight");
+    TOFP_raw[iplane]->GetYaxis()->SetTitle("Hits");
+    
+    TOFW[iplane] = new TH2F(
+			    Form("%s%sTimeofFlightperWirePlane%d", prefix.Data(), region.Data(), iplane),
+			    Form("Subtracted time of flight for each wire in plane %d", iplane),
+			    fWiresPerPlane[iplane], bin_offset, fWiresPerPlane[iplane]+bin_offset,
+			    100,-40000,65000
+			    );
+    // why this range is not -65000 ??
+    TOFW[iplane]->GetXaxis()->SetTitle("Wire Number");
+    TOFW[iplane]->GetYaxis()->SetTitle("Time of Flight");
+    
+    TOFW_raw[iplane] = new TH2F(
+				Form("%s%sRawTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),iplane),
+				Form("Raw time of flight for each wire in plane %d",iplane),
+				fWiresPerPlane[iplane], bin_offset, fWiresPerPlane[iplane]+bin_offset,
+				100,-40000,65000
+				);
+    // why this range is not -65000 ??
+    TOFW_raw[iplane]->GetXaxis()->SetTitle("Wire Number");
+    TOFW_raw[iplane]->GetYaxis()->SetTitle("Time of Flight");
+  }
+  return;
+};
+
+
 
 void  QwDriftChamberHDC::FillHistograms() 
 {
@@ -760,3 +883,9 @@ void  QwDriftChamberHDC::FillHistograms()
   return;
 };
 
+
+
+void  QwDriftChamberHDC::DeleteHistograms()
+{
+  return;
+};

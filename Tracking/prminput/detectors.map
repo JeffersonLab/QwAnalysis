@@ -17,7 +17,7 @@
 
 [QwDriftChamberVDC]
  name = R3
- map = TDCtoDL.map
+ map = TDCtoDL_after705.map
  geom = qweak_new.geo
 
 [QwTriggerScintillator]

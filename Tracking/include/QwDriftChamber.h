@@ -67,9 +67,10 @@ class QwDriftChamber: public VQwSubsystemTracking{
 
   virtual void  ProcessEvent()=0;//has separate meanings in VDC and HDC
 
-  void  ConstructHistograms(TDirectory *folder, TString &prefix);
+  // void  ConstructHistograms(TDirectory *folder, TString &prefix);
+  virtual void ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
   virtual void  FillHistograms() = 0;
-  void  DeleteHistograms();
+  virtual void  DeleteHistograms() = 0;
 
 
 

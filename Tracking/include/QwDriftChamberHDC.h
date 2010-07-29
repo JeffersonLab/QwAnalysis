@@ -46,7 +46,10 @@ class QwDriftChamberHDC: public QwDriftChamber {
   Int_t AddChannelDefinition();
   Int_t BuildWireDataStructure(const UInt_t chan, const EQwDetectorPackage package, const Int_t plane, const Int_t wire);
   Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
+
+  void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
+  void  DeleteHistograms();
 
   // HDC
   Double_t trig_h1;//this will keep the first hit time of trig_h1 (plane 7)

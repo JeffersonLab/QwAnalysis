@@ -13,8 +13,8 @@
 #include "QwDelayLine.h"
 #include "QwOptions.h"
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include <utility>
 
 ///
@@ -65,7 +65,9 @@ class QwDriftChamberVDC: public QwDriftChamber {
   Int_t AddChannelDefinition();
   Int_t BuildWireDataStructure(const UInt_t chan, const EQwDetectorPackage package, const Int_t plane, const Int_t wire);
   Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
+  void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
+  void  DeleteHistograms();
 
   // VDC
   void GetHitList(QwHitContainer & grandHitContainer)
