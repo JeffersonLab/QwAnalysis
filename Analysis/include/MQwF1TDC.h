@@ -11,6 +11,7 @@
 #define __MQwF1TDC__
 
 #include "Rtypes.h"
+#include "QwTypes.h"
 #include <cstdlib>
 #include <iostream>
 
@@ -137,5 +138,26 @@ class MQwF1TDC{
 };
 
 
+///
+/// \ingroup QwAnalysis
+class QwF1TDCsID
+{
+ public:
+  QwF1TDCsID(){};
+  ~QwF1TDCsID(){};
+  
+ public:
+  EQwDetectorType    GetDetectorType() {return fDetectorType;}
+  EQwRegionID        GetRegion()       {return fRegion;};
+  UInt_t             GetROCID()        {return fROCID;};
+  
+  
+ private:
+
+  EQwDetectorType    fDetectorType;
+  EQwRegionID        fRegion;
+  UInt_t             fROCID;
+  //  typedef std::vararry <Double_t> 
+};
 
 #endif

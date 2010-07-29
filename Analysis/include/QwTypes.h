@@ -39,12 +39,12 @@ enum EQwDetectorPackage {
 // one package will be identified as kPackageUpLeft (name?), and the other
 // package as kPackageDownRight. (wdc, based on discussion with pking)
 
-static const Int_t kNumTypes = 6;
+static const Int_t kNumTypes = 7;
 enum EQwDetectorType {
   kTypeNull,
+  kTypeGem,	        // GEM detector
   kTypeDriftHDC,	// HDC Drift chamber
   kTypeDriftVDC,	// VDC Drift chamber
-  kTypeGem,	        // GEM detector
   kTypeTrigscint,	// Trigger scintillator
   kTypeCerenkov,	// Cerenkov detector
   kTypeScanner		// Focal plane scanner
@@ -144,12 +144,14 @@ class QwElectronicsID
 {
  public:
  QwElectronicsID():fModule(-1),fChannel(-1){};
- QwElectronicsID(const int slot,const int chan):fModule(slot),fChannel(chan){};
+ QwElectronicsID(const Int_t slot,const Int_t chan):fModule(slot),fChannel(chan) {};
+  virtual ~QwElectronicsID(){};
 
  public:
-  int fModule;       //F1TDC slot number or module number
-  int fChannel;      //channel number
+  Int_t fModule;       //F1TDC slot number or module number
+  Int_t fChannel;      //channel number
 };
+
 
 
 ///
@@ -163,6 +165,8 @@ class QwDelayLineID{
  Int_t fLineNumber;
  Int_t fSide;
 };
+
+
 
 ///  Definitions for beam parameter quantities; use these types rather than
 ///  the raw "QwVQWK_Channel" to allow for future specification.
