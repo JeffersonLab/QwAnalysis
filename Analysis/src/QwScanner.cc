@@ -781,13 +781,13 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
       // Option_t* option = "")
 
       fRateMapCM  = new TProfile2D("scanner_rate_map_cm",
-                                   "Scanner Rate Map (Current Mode)",121,-60.5,60.5,40,-355.0,-315.0);
+                                   "Scanner Rate Map (Current Mode)",110,-55.0,55.0,40,-360.0,-320.0);
       fRateMapCM->GetXaxis()->SetTitle("PositionX [cm]");
       fRateMapCM->GetYaxis()->SetTitle("PositionY [cm]");
       fRateMapCM->SetOption("colz");
 
       fRateMapEM  = new TProfile2D("scanner_rate_map_em",
-                                   "Scanner Rate Map (Event Mode)",121,-60.5,60.5,40,-355.0,-315.0);
+                                   "Scanner Rate Map (Event Mode)",110,-55.0,55.0,40,-360.0,-320.0);
       fRateMapEM->GetXaxis()->SetTitle("PositionX [cm]");
       fRateMapEM->GetYaxis()->SetTitle("PositionY [cm]");
       fRateMapEM->SetOption("colz");
