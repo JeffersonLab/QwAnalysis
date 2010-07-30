@@ -412,7 +412,11 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
         {
 	  plane=fDelayLinePtrs.at ( slot_num ).at ( chan ).fBackPlane;
 	  //std::cout<<"At QwDriftChamberVDC::FillRawTDCWord_1"<<endl;
-	  hitCount = std::count_if ( fTDCHits.begin(),fTDCHits.end(),boost::bind ( &QwHit::WireMatches,_1,3,boost::ref ( package ),boost::ref ( plane ),boost::ref ( wire ) ) );
+	  hitCount = std::count_if(fTDCHits.begin(), fTDCHits.end(), 
+				   boost::bind(
+					       &QwHit::WireMatches,_1, kRegionID3, boost::ref(package), boost::ref(plane), boost::ref(wire)
+					       ) 
+				   );
 	  
 	  fTDCHits.push_back(
 			     QwHit(
@@ -420,7 +424,7 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
 				   slot_num, 
 				   chan, 
 				   hitCount, 
-				   kRegionID2, 
+				   kRegionID3, 
 				   package, 
 				   plane,
 				   direction, 
@@ -752,6 +756,7 @@ void QwDriftChamberVDC::ProcessEvent()
         tmpTime          = iter->GetTime();
         tmpModule        = tmpElectronicsID.fModule;
         tmpChan          = tmpElectronicsID.fChannel;
+	// Int_t tmpROC     = tmpElectronicsID.fROC;
         if ( tmpCrate==3 ) tmpChan+=channel_offset; // ROC10
 
         tmpbp  = fDelayLinePtrs.at ( tmpModule ).at ( tmpChan ).fBackPlane;
@@ -761,10 +766,14 @@ void QwDriftChamberVDC::ProcessEvent()
         package   = fDelayLineArray.at ( tmpbp ).at ( tmpln ).fPackage;
         direction = fDelayLineArray.at ( tmpbp ).at ( tmpln ).fDirection;
 	// QwMessage << "QwDriftChamberVDC::ProcessEvent() :"
-	// 	  << " plane = "  << plane
-	// 	  << " direction = " << direction
-	// 	  << " package = " << package
-	// 	  << QwLog::endl;
+	//  	  << " plane = "  << plane
+	//    	  << " direction = " << direction
+	//    	  << " package = " << package
+	// 	  << " roc = " << tmpROC
+	// 	  << " slot = " << tmpModule
+	// 	  << " chan = " << tmpChan
+	  
+	//    	  << QwLog::endl;
        
         if ( fDelayLineArray.at ( tmpbp ).at ( tmpln ).Processed == kFALSE )   //if this delay line has been Processed
         {
@@ -878,6 +887,7 @@ Int_t QwDriftChamberVDC::ProcessConfigurationBuffer(const UInt_t roc_id, const U
 {
   Int_t subbank_index = 0;
   Bool_t local_debug = false;
+  
   
   subbank_index = GetSubbankIndex(roc_id, bank_id);
   if ( local_debug ) {

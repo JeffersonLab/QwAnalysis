@@ -404,7 +404,11 @@ void  QwDriftChamberHDC::FillRawTDCWord (Int_t bank_index, Int_t slot_num, Int_t
       direction = (EQwDirectionID)fDirectionData.at(package-1).at(plane-1); 
       //Wire Direction is accessed from the vector -Rakitha (10/23/2008)
       //hitCount gives the total number of hits on a given wire -Rakitha (10/23/2008)
-      hitcnt = std::count_if( fTDCHits.begin(), fTDCHits.end(), boost::bind(&QwHit::WireMatches,_1,2,boost::ref(package),boost::ref(plane),boost::ref(wire)) );
+      hitcnt = std::count_if(fTDCHits.begin(), fTDCHits.end(), 
+			     boost::bind(
+					 &QwHit::WireMatches, _1, kRegionID2, boost::ref(package), boost::ref(plane), boost::ref(wire)
+					 ) 
+			     );
       
       fTDCHits.push_back(
 			 QwHit(

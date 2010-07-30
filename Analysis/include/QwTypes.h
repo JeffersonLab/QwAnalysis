@@ -143,13 +143,37 @@ class QwDetectorID
 class QwElectronicsID
 {
  public:
- QwElectronicsID():fModule(-1),fChannel(-1){};
- QwElectronicsID(const Int_t slot,const Int_t chan):fModule(slot),fChannel(chan) {};
+ QwElectronicsID():fROC(-1),fModule(-1),fChannel(-1){};
+ QwElectronicsID(const Int_t slot,const Int_t chan)
+   :fROC(-1),fModule(slot),fChannel(chan){};
+ QwElectronicsID(const Int_t roc, const Int_t slot, const Int_t chan)
+   :fROC(roc),fModule(slot),fChannel(chan) {};
+  
   virtual ~QwElectronicsID(){};
 
+
  public:
-  Int_t fModule;       //F1TDC slot number or module number
-  Int_t fChannel;      //channel number
+  Int_t fROC;          // F1TDC physical roc number, not index 
+                       // 4  : ROC 4   
+                       // 9  : ROC 9
+                       // 10 : ROC 10
+
+  Int_t fModule;       // F1TDC slot number 
+                       // QwAnalysis' slot range 0-20. But, the physical VME
+                       // slot range is 1-21. QwAlaysis's slot range is acceptable
+                       // if we carefully match them with each other as follows:
+                       //  QwAnalysis slot 0, 1, 2, .... , 20
+                       //  VME        slot 1, 2, 3, .... , 21
+                       // Inside codes, we did the following way:
+                       //  QwAnalysis slot 0, 1, 2, .... , 20
+                       //     VME     slot    1, 2, 3, .... , 21
+                       // It is acceptable if we don't use the VME slot 21 as
+                       // we do.
+                       // Friday, July 30 11:26:36 EDT 2010, jhlee
+
+  Int_t fChannel;      // F1TDC channel number
+                       // range 0 - 31 (32 for high   resolution)
+                       // range 0 - 63 (64 for normal resolution)
 };
 
 
