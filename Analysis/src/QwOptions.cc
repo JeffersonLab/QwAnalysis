@@ -137,6 +137,7 @@ void QwOptions::ParseCommandLine()
     po::store(po::command_line_parser(fArgc, fArgv).options(fCommandLineOptions).allow_unregistered().run(), fVariablesMap);
   } catch (std::exception const& e) {
     QwWarning << e.what() << " while parsing command line arguments" << QwLog::endl;
+    exit(10);
   }
 #endif
 
@@ -149,6 +150,7 @@ void QwOptions::ParseCommandLine()
   } catch (std::exception const& e) {
     QwWarning << e.what() << " while parsing command line arguments" << QwLog::endl;
     QwWarning << "All command line arguments may have been ignored!" << QwLog::endl;
+    exit(10);
   }
 #endif
 

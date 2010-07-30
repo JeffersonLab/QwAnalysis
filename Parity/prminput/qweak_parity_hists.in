@@ -465,7 +465,7 @@ scanner_back__tdc		TH1F	4096	0.5		4096.5			back__tdc	Events
 scanner_front_f1		TH1F	4096	0.5		4096.5			front_f1	Events
 scanner_back__f1		TH1F	4096	0.5		4096.5			back__f1	Events
 scanner_coinc_f1		TH1F	4096	0.5		4096.5			coinc_f1	Events
-scanner_ref_t_f1		TH1F	4096	0.5		4096.5			coinc_f1	Events
+scanner_ref_t_f1		TH1F	4096	0.5		4096.5			ref_t_f1	Events
 
 scanner_front_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
 scanner_back__sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
@@ -595,23 +595,22 @@ yield_qwk_s0ch..		TH1F
 asym_qwk_s0ch..			TH1F
 
 ###########################################
+#  VQWK and scaler wildcard names
+###########################################
+qwk_.*			TH1F	1000	-5.0e2	5.0e2		Counts Events
+yield_qwk_.*		TH1F	1000	-5.0e2	5.0e2		Counts Events
+asym_qwk_.*		TH1F	1000	-5.0e2	5.0e2		Counts Events
+
+sca_.*			TH1F	1001	-1.0e1	1000.0e1	Counts Events
+yield_sca_.*		TH1F	1001	-1.0e1	1000.0e1	Counts Events
+asym_sca_.*		TH1F	1001	-1.0e1	1000.0e1	Counts Events
+
+###########################################
 #  Adding some fully wildcarded histogram names.
 #  Do not add any other specific names below these.
 ###########################################
-.*_block._raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
-.*_block.    		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
-.*_.w_raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
-.*_.w			TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
-.*_sw-hw_raw		TH1F	1000	-5.0e2	5.0e2				Counts Events
-
-
-
-### temporary for halo monitors
-qwk_.....		TH1F	1000	-5.0e2	5.0e2				Counts Events
-yield_qwk_.....		TH1F	1000	-5.0e2	5.0e2				Counts Events
-asym_qwk_.....		TH1F	1000	-5.0e2	5.0e2				Counts Events
-
-
-
-
-
+.*_block._raw		TH1F	1000	-5.0e9	5.0e9		Counts		Events
+.*_block.    		TH1F	1000	-5.0e9	5.0e9		CalibratedCounts Events
+.*_.w_raw		TH1F	1000	-5.0e9	5.0e9		Counts		Events
+.*_.w			TH1F	1000	-5.0e9	5.0e9		CalibratedCounts Events
+.*_sw-hw_raw		TH1F	1000	-5.0e2	5.0e2		Counts		Events

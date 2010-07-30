@@ -25,8 +25,10 @@ void plot_pita(Int_t runnum, TString bcm, TString bpm, TString ihwp){
 
 
   //Get the root file
-  TString directory="~/scratch/rootfiles/"; // the location of the rootfile 
-  sprintf(filename,"%sQweak_BeamLine_%d.root",directory.Data(),runnum);
+  //TString directory="~/scratch/rootfiles/"; // the location of the rootfile 
+  //sprintf(filename,"%sQweak_BeamLine_%d.root",directory.Data(),runnum);
+  TString directory="/home/cdaq/qweak/QwScratch/rootfiles/";
+  sprintf(filename,"%sQweak_%d.000.root",directory.Data(),runnum);
   f = new TFile(filename);
   if(!f->IsOpen())
     return 0;

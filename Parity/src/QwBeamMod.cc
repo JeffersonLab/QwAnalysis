@@ -16,6 +16,10 @@
 
 #include "QwLog.h"
 
+// Register this subsystem with the factory
+QwSubsystemFactory<QwBeamMod> theBeamModFactory("QwBeamMod");
+
+
 //*****************************************************************
 void QwBeamMod::ProcessOptions(QwOptions &options){
       //Handle command line options
@@ -948,7 +952,7 @@ void  QwBeamMod::Print()
   
   std::cout<<" Printing Running AVG and other channel info for fModChannel"<<std::endl;
   for(size_t i=0;i<fModChannel.size();i++)
-    fModChannel[i].Print();
+    fModChannel[i].PrintValue();
 
   return;
 }
