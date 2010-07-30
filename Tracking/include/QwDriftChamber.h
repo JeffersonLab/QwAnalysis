@@ -30,7 +30,7 @@
 #include "MQwF1TDC.h"
 #include "MQwV775TDC.h"
 
-
+#include "QwF1TDContainer.h"
 
 ///
 /// \ingroup QwTracking
@@ -152,6 +152,8 @@ class QwDriftChamber: public VQwSubsystemTracking{
   std::vector< Int_t > fWiresPerPlane;
 
   MQwF1TDC fF1TDC;
+
+  QwF1TDContainer *fF1TDContainer;
 
 
   //  NOTE:  The plane and wire indices count from "1" instead

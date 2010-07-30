@@ -27,13 +27,10 @@ QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHit
   fNumberOfTDCs = 0;
   ClearAllBankRegistrations();
   InitHistogramPointers();
-  //    kMaxNumberOfChannelsPerTDC = GetTDCMaxChannels(); 
+
   kMaxNumberOfChannelsPerTDC = fF1TDC.GetTDCMaxChannels();  
-  //  fF1TDCs->clear();
-  
-  //   fF1DataIntegrityCount = 0;
 
-
+  fF1TDContainer = NULL;
   /*for (int i1 = 0; i1 < kNumPackages; i1++)
     for (int i2 = 0; i2 < 2; i2++)
     for (int i3 = 0; i3 < 279; i3++)
@@ -49,11 +46,9 @@ QwDriftChamber::QwDriftChamber(TString region_tmp)
   fNumberOfTDCs = 0;
   ClearAllBankRegistrations();
   InitHistogramPointers();
-  kMaxNumberOfChannelsPerTDC = fF1TDC.GetTDCMaxChannels(); 
-  //    kMaxNumberOfChannelsPerTDC = GetTDCMaxChannels(); 
-  kMaxNumberOfChannelsPerTDC = 0; 
-  //    fF1DataIntegrityCount = 0;
 
+  kMaxNumberOfChannelsPerTDC = fF1TDC.GetTDCMaxChannels(); 
+  fF1TDContainer = NULL;
   /*for (int i1 = 0; i1 < kNumPackages; i1++)
     for (int i2 = 0; i2 < 2; i2++)
     for (int i3 = 0; i3 < 279; i3++)
