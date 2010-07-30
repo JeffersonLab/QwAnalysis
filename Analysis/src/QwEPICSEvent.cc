@@ -750,26 +750,23 @@ void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
       if (!sc_detector_id) continue;
      
       if (fEPICSVariableType[tagindex] == kEPICSString) {
+
     	if (fEPICSDataEvent[tagindex].Filled) {
-	  // std::cout<<"\n\n Just a test value: "<<fEPICSDataEvent[tagindex].StringValue.Data()<<"\n\n";
-
-    	  tmp_row.value = fEPICSDataEvent[tagindex].StringValue.Data();
+	  if(fEPICSDataEvent[tagindex].StringValue.Contains("***") ){
+	    QwError<<"fEPICSDataEvent[tagindex].StringValue.Data() is not defined, tmp_row.value is set to an empty string."<<QwLog::endl;
+	    tmp_row.value ="";
+	  }
+	  else {
+	    //std::cout<<"\n\n Just a test value: "<<fEPICSDataEvent[tagindex].StringValue.Data()<<"\n\n";
+	    tmp_row.value = fEPICSDataEvent[tagindex].StringValue.Data();
+	  }
     	}
-
-	//FIXME: need to show tmp_row.value as empty string when fEPICSDataEvent[tagindex].StringValue.Data()=***.
-	// The following commented part did not perform this action.
-
-	//else if(fEPICSDataEvent[tagindex].StringValue.Data()=="***"){
-	// QwError<<"fEPICSDataEvent[tagindex].StringValue.Data() is not defined"<<QwLog::endl;
-	// tmp_row.value ="";
-	//}
-
- 
+	
       }      
       entrylist.push_back(tmp_row);
     }
   }   
-    
+  
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query.
   if( entrylist.size() ) {
@@ -799,8 +796,6 @@ void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
   db->Disconnect();
 };
 
-
-
 void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
 {
   QwParityDB::slow_controls_settings  tmp_row(0);
@@ -826,35 +821,52 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
 	     != fNumberEPICSEvents) {
     // Rotatable Half Wave Plate Setting position changed
     tmp_row.slow_helicity_plate = "";
-  } else {
+  } 
+
+  if(fEPICSDataEvent[tagindex].StringValue.Contains("***") ){
+    QwError<<"fEPICSDataEvent[tagindex].StringValue.Data() is not defined, tmp_row.value is set to an empty string."<<QwLog::endl;
+    tmp_row.slow_helicity_plate ="";
+  }
+  
+  
+  else {
     // Rotatable Half Wave Plate Setting position did not change
     // Rotatable Half Wave Plate Setting setting is stored as a string with possible values
     // "OUT" and "IN".
+    
+    QwError<<"\n\nfEPICSDataEvent[tagindex].StringValue.Data() = "<<fEPICSDataEvent[tagindex].StringValue.Data()<<"\n\n";
     tmp_row.slow_helicity_plate = fEPICSDataEvent[tagindex].StringValue.Data();
   }
   
- 
-
+  
+  
   // For charge feedback
-
+  
   tagindex = FindIndex(TString("HC:Q_ONOFF"));
   //std::cout << "\n\ntagindex for HC:Q_ONOFF = " << tagindex << std::endl;
 
   if (! fEPICSCumulativeData[tagindex].Filled) {
     //  No data for this run.
     tmp_row.charge_feedback = "";
-
+    
   } else if (fEPICSCumulativeData[tagindex].NumberRecords
 	     != fNumberEPICSEvents) {
     // charge feedback status changed
     tmp_row.charge_feedback = "";
-  } else {
+  } 
+
+  if(fEPICSDataEvent[tagindex].StringValue.Contains("***") ){
+    QwError<<"fEPICSDataEvent[tagindex].StringValue.Data() is not defined, tmp_row.value is set to an empty string."<<QwLog::endl;
+    tmp_row.charge_feedback ="";
+  }
+  
+  else {
     // charge feedback setting did not change
     //   charge feedback setting is stored as a string with possible values
     //   "on" and "off".
     tmp_row.charge_feedback = fEPICSDataEvent[tagindex].StringValue.Data();
   }
-
+  
   ////////////////////////////////////////////////////////////
 
 
