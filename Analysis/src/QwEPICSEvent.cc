@@ -367,6 +367,9 @@ int QwEPICSEvent::SetDataValue(const TString& tag, const TString& value, int eve
     fEPICSDataEvent[tagindex].Value       = 0.0;
     fEPICSDataEvent[tagindex].StringValue = value;
     fEPICSDataEvent[tagindex].Filled      = kTRUE;
+
+    // std::cout<<"\n\nString values: "<<fEPICSDataEvent[tagindex].StringValue<<"\n\n";
+
     return 0;
     break;
 
@@ -617,6 +620,7 @@ void QwEPICSEvent::SetDefaultAutogainList(std::vector<TString> input_list)
 void QwEPICSEvent::FillDB(QwDatabase *db)
 {
   FillSlowControlsData(db);
+  FillSlowControlsStrigs(db);
   FillSlowControlsSettings(db);
 };
 
@@ -644,13 +648,14 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
   UInt_t sc_detector_id;
 
   TString table = "slow_controls_data";
-  TString table1 = "polarized_source";
 
   // QwError << "Step 1 Entering the loop " << QwLog::endl;
   // Loop over EPICS variables
   for (Int_t tagindex=0; tagindex<(Int_t)fEPICSVariableList.size(); tagindex++) {
     //for (Int_t tagindex = 0; tagindex < fNumberEPICSVariables; tagindex++) {
     // Look for variables to write into this table
+
+
     if (fEPICSTableList[tagindex] == table) {
       QwParityDB::slow_controls_data tmp_row(0);
 
@@ -688,30 +693,19 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
 
       entrylist.push_back(tmp_row);
     }
-
-
-
-    //     else if (fEPICSTableList[tagindex] == table1) {
-    //       QwParityDB::slow_controls_data tmp_row(0);
-    //       if (fEPICSVariableType[tagindex] == kEPICSString) {
-    // 	if (fEPICSDataEvent[tagindex].Filled) {
-    // 	  tmp_row.value         = fEPICSDataEvent[tagindex].StringValue;
-    // 	}
-    //       }
-
-    //       entrylist.push_back(tmp_row);
-    //     }
-
-
-
+    
   }
-
+  
+  
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query..
   if( entrylist.size() ) {
     QwMessage << "Writing to database now" << QwLog::endl;
     mysqlpp::Query query= db->Query();
     query.insert(entrylist.begin(), entrylist.end());
+
+    //QwMessage << "\n\nQuery: " << query.str() << "\n\n";
+
     query.execute();
 
     ///////////////////////////////
@@ -731,6 +725,82 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
   db->Disconnect();
 };
 
+
+void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
+{
+  std::vector<QwParityDB::slow_controls_strings> entrylist;
+  UInt_t sc_detector_id;
+  UInt_t runlet_id = db->GetRunletID();
+  TString table1 = "polarized_source";
+
+  // QwError << "Step 1 Entering the loop " << QwLog::endl;
+  // Loop over EPICS variables 
+  for (Int_t tagindex=0; tagindex<(Int_t)fEPICSVariableList.size(); tagindex++) {
+    // Look for variables to write into this table
+
+    if (fEPICSTableList[tagindex] == table1) {
+      QwParityDB::slow_controls_strings tmp_row(0);
+
+      //  Now get the current sc_detector_id for the above runlet_id.
+      sc_detector_id = db->GetSlowControlDetectorID(fEPICSVariableList[tagindex].Data());
+
+      tmp_row.runlet_id      = runlet_id;  
+      tmp_row.sc_detector_id = sc_detector_id;
+
+      if (!sc_detector_id) continue;
+     
+      if (fEPICSVariableType[tagindex] == kEPICSString) {
+    	if (fEPICSDataEvent[tagindex].Filled) {
+	  // std::cout<<"\n\n Just a test value: "<<fEPICSDataEvent[tagindex].StringValue.Data()<<"\n\n";
+
+    	  tmp_row.value = fEPICSDataEvent[tagindex].StringValue.Data();
+    	}
+
+	//FIXME: need to show tmp_row.value as empty string when fEPICSDataEvent[tagindex].StringValue.Data()=***.
+	// The following commented part did not perform this action.
+
+	//else if(fEPICSDataEvent[tagindex].StringValue.Data()=="***"){
+	// QwError<<"fEPICSDataEvent[tagindex].StringValue.Data() is not defined"<<QwLog::endl;
+	// tmp_row.value ="";
+	//}
+
+ 
+      }      
+      entrylist.push_back(tmp_row);
+    }
+  }   
+    
+  db->Connect();
+  // Check the entrylist size, if it isn't zero, start to query.
+  if( entrylist.size() ) {
+    QwMessage << "Writing to database now" << QwLog::endl;
+    mysqlpp::Query query= db->Query();
+    query.insert(entrylist.begin(), entrylist.end());
+
+    QwMessage << "\n\nQuery: " << query.str() << "\n\n";
+
+    query.execute();
+   
+
+    ///////////////////////////////
+//         try {
+//           query.insert(entrylist.begin(), entrylist.end());
+//           QwMessage << "Query: " << query.str() << QwLog::endl;
+//           query.execute();
+//           QwMessage << "\n\nDone executing MySQL query for FillSlowControlsStrigs \n\n";
+//         } catch (const mysqlpp::Exception &er) {
+//           QwError << "MySQL exception: " << er.what() << QwLog::endl;
+//         }
+    ///////////////////////////////
+
+  } else {
+    QwMessage << "QwEPICSEvent::FillSlowControlsData :: This is the case when the entrylist contains nothing " << QwLog::endl;
+  }
+  db->Disconnect();
+};
+
+
+
 void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
 {
   QwParityDB::slow_controls_settings  tmp_row(0);
@@ -743,7 +813,8 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
   // Add as many blocks as needed in the following for all slow_controls_settings.
 
   ////////////////////////////////////////////////////////////
-  // Half wave plate
+
+  // For rotatable Half Wave Plate Setting
   tagindex = FindIndex(TString("IGL1I00DI24_24M"));
   if (kDebug) std::cout << "\n\ntagindex for IGL1I00DI24_24M = " << tagindex << std::endl;
 
@@ -753,21 +824,21 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
 
   } else if (fEPICSCumulativeData[tagindex].NumberRecords
 	     != fNumberEPICSEvents) {
-    // IHWP position changed
+    // Rotatable Half Wave Plate Setting position changed
     tmp_row.slow_helicity_plate = "";
   } else {
-    // IHWP position did not change
-    //   IHWP setting is stored as a string with possible values
-    //   "OUT" and "IN".  Change to lower case.
+    // Rotatable Half Wave Plate Setting position did not change
+    // Rotatable Half Wave Plate Setting setting is stored as a string with possible values
+    // "OUT" and "IN".
     tmp_row.slow_helicity_plate = fEPICSDataEvent[tagindex].StringValue.Data();
   }
-  ////////////////////////////////////////////////////////////
+  
+ 
 
+  // For charge feedback
 
-  // Charge feedback
   tagindex = FindIndex(TString("HC:Q_ONOFF"));
-  std::cout << "\n\ntagindex for HC:Q_ONOFF = " << tagindex << std::endl;
-
+  //std::cout << "\n\ntagindex for HC:Q_ONOFF = " << tagindex << std::endl;
 
   if (! fEPICSCumulativeData[tagindex].Filled) {
     //  No data for this run.
@@ -796,6 +867,9 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
     QwMessage << "Writing to database now" << QwLog::endl;
     mysqlpp::Query query= db->Query();
     query.insert(entrylist.begin(), entrylist.end());
+
+    QwMessage << "\n\nQuery: " << query.str() << "\n\n";
+
     query.execute();
 
     ///////////////////////////////

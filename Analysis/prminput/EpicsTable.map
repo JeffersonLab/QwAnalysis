@@ -393,7 +393,7 @@ HC:1I04_DWSUM		slow_controls_data    	   	!Error on 1I04 Charge Asymmetry 4 Wire
 WienAngle		slow_controls_data    	   	!Wien Filter Angle Setting  degrees
 itov2out 		slow_controls_data    	   	!A2 Slit Setting  
 HC:QPD_XDIF 		slow_controls_data    	   	!QPD X Difference 
-EHCFR_LIPRC		polarized_source    	   	String		!Master Focus Location:  1=G0, 0=Pivot
+EHCFR_LIPRC		polarized_source    	   	!String		!Master Focus Location:  1=G0, 0=Pivot
 HC:0L02_WSUM 		slow_controls_data    	   	!0L02 Charge Asymmetry 4 Wire Sum
 HC:1I04_DYDIF		slow_controls_data    	   	!Error on 1I04 Y Difference
 hel_mag_status.D	slow_controls_data    	   	!Integrated helicity bit difference 
@@ -433,7 +433,7 @@ HC:0I05_DYDIF		slow_controls_data    	   	!Error on 0I05 Y Difference
 hallc_photocurrent	slow_controls_data    	   	!Hall C photocurrent  uA
 HC:0L02_DYDIF		slow_controls_data    	   	!Error on 0L02 Y Difference 
 hac_bcm_average		slow_controls_data    	   	!Hall A (?) BCM Current	uA
-ISL0I04DT		slow_controls_data    	   	!Master Slit Setting
+ISL0I04DT		polarized_source    	   	!Master Slit Setting (string value: IN)
 IPM2C24A.IENG		slow_controls_data    	   	!Hall B Beam Current (2C24A)
 IBCxxxxCRCUR2		slow_controls_data    	   	!Hall A MPS BCM Current uA
 HC:0I05_XDIF		slow_controls_data    	   	!0I05 X Difference 
@@ -492,7 +492,7 @@ HC:0I05_WSUM 		slow_controls_data    	   	!0I05 Charge Asymmetry 4 Wire Sum
 HC:bcm_threshold	slow_controls_data    	   	!BCM threshold cut for charge feedback uA
 ibcm1			slow_controls_data    	   	!Hall C Beam Current (monitor 1): careful, this is also in target epics	
 ibcm2			slow_controls_data    	   	!Hall C Beam Current (monitor 2): careful, this is also in target epics
-HC:bcm_select		polarized_source    	   	String		! (result: BCM2)
+HC:bcm_select		polarized_source    	   	!String		! (result: BCM2)
 !		
 !IGL1I00DI24_24M	slow_controls_data    	   	![already in Riad's list above]		
 !
@@ -632,16 +632,17 @@ IPM3H09B.XSOF		slow_controls_data    	   	!
 IPM3H09B.YSOF		slow_controls_data    	   	!	
 !
 ! Miscellaneous epics variables:
-HC:Q_ONOFF		polarized_source    	   	String		!Charge feedback
+HC:Q_ONOFF		polarized_source    	   	!String		!Charge feedback (ON/OFF)
 ! Epics variables for Compton missing.
 !
 ! Fast Feedback (copied from G0 epics.dictionary)
 !
-FB_A:FB_On        	polarized_source    	   	String	!fast feedback Hall A status (result: OFF)
-FB_C:FB_On        	polarized_source    	   	String	!fast feedback Hall C status (result: OFF)
-FB_C:status:mbbi2.B7 	polarized_source    	   		!fast feedback Hall C status flag
-FB_C:use_RF         	polarized_source    	   	String	!fast energy lock Hall C status (result: RF OFF)
-FB_A:use_RF         	polarized_source    	   	String	!fast energy lock Hall A status (result: RF ON)
+FB_A:FB_On        	polarized_source    	   	!String	!fast feedback Hall A status (result: OFF)
+FB_C:FB_On        	polarized_source    	   	!String	!fast feedback Hall C status (result: OFF)
+FB_C:status:mbbi2.B7 	slow_controls_data     	   	!1 or 0	!fast feedback Hall C status flag
+FB_C:use_RF         	polarized_source    	   	!String	!fast energy lock Hall C status (result: RF OFF)
+FB_A:use_RF         	polarized_source    	   	!String	!fast energy lock Hall A status (result: RF ON)
+FB_A:status:mbbi2.B7    slow_controls_data 		!1 or 0	!fast feedback Hall A status flag
 !
 ! Hall C Moller information (copied from G0 epics.dictionary)
 !
