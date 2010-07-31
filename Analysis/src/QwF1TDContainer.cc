@@ -11,11 +11,18 @@ QwF1TDC::QwF1TDC()
 QwF1TDC::QwF1TDC(const Int_t roc, const Int_t slot)
 {
   this->Initialize();
+
   fROC  = roc;
   fSlot = slot;
+ 
+  // Int_t SLOTNUM = 22; // not use 0, use 1-21
+  // Int_t CHANNUM = 64; //    0-63
+  // fF1TDCReferenceSignals = new TArrayD[SLOTNUM];
+  // for (Int_t i=0;i<SLOTNUM;i++) fValues[i].Set(CHANNUM);
 }
 
-void QwF1TDC::Initialize()
+void 
+QwF1TDC::Initialize()
 {
   fROC                 = -1;
   fSlot                = -1;
@@ -29,10 +36,12 @@ void QwF1TDC::Initialize()
   
   fF1TDC_tframe_ns     = 0.0;
   fF1TDC_full_range_ns = 0.0;
-  fF1TDC_bin_size_ns   = 0.0;
+  //  fF1TDC_bin_size_ns   = 0.0;
   fF1TDC_window_ns     = 0.0;
   fF1TDC_latency_ns    = 0.0;
   fF1TDC_resolution_ns = 0.0;
+
+  // fF1TDCReferenceChannels = NULL;
 
   return;
 }
@@ -40,43 +49,47 @@ void QwF1TDC::Initialize()
 
 QwF1TDC::~QwF1TDC()
 {
+  //delete [] fF1TDCReferenceChannels;
 }
 
 
-// Initialize the static list of QwF1TDCs
-TClonesArray *QwF1TDContainer::gQwF1TDCs = 0;
+// void 
+// SetRefernceSignals(Int_t chan, Double_t val)
+// {
+//   if( IsReFerenceSlot() ) 
+//     {
+//       fF1TDCReferenceChannels[chan] = val;
+//     }
+//   return;
+// }
+
+TClonesArray *QwF1TDContainer::gQwF1TDCs    = NULL;
 const Int_t QwF1TDContainer::gMaxCloneArray = 100;
 
-// Constructor
 QwF1TDContainer::QwF1TDContainer()
 {
-  // Create the static TClonesArray if not existing yet
   if (not gQwF1TDCs) gQwF1TDCs = new TClonesArray("QwF1TDC", gMaxCloneArray);
-  // Set local TClonesArray to static TClonesArray and zero f1tdcs
+
   fQwF1TDCs     = gQwF1TDCs; fQwF1TDCs->Clear();
   fDetectorType = kTypeNull;
   fRegion       = kRegionIDNull;
   
 };
 
-// Constructor
 QwF1TDContainer::QwF1TDContainer(EQwDetectorType detector_type)
 {
-  // Create the static TClonesArray if not existing yet
   if (not gQwF1TDCs) gQwF1TDCs = new TClonesArray("QwF1TDC", gMaxCloneArray);
-  // Set local TClonesArray to static TClonesArray and zero f1tdcs
+
   fQwF1TDCs     = gQwF1TDCs; fQwF1TDCs->Clear();
   fDetectorType = detector_type;
   fRegion       = kRegionIDNull;
 };
 
 
-// Constructor
 QwF1TDContainer::QwF1TDContainer(EQwDetectorType detector_type, EQwRegionID region)
 {
-  // Create the static TClonesArray if not existing yet
   if (not gQwF1TDCs) gQwF1TDCs = new TClonesArray("QwF1TDC", gMaxCloneArray);
-  // Set local TClonesArray to static TClonesArray and zero f1tdcs
+
   fQwF1TDCs     = gQwF1TDCs; fQwF1TDCs->Clear();
   fDetectorType = detector_type;
   fRegion       = region;
@@ -84,45 +97,48 @@ QwF1TDContainer::QwF1TDContainer(EQwDetectorType detector_type, EQwRegionID regi
 
 
 
-// Destructor
 QwF1TDContainer::~QwF1TDContainer()
 {
-  // Delete the static TClonesArray
   Reset();
-  // Set local TClonesArray to null
   fNQwF1TDCs = 0;
 };
 
-// Clear the local TClonesArray
-void QwF1TDContainer::Clear(Option_t *option)
+void 
+QwF1TDContainer::Clear(Option_t *option)
 {
   fQwF1TDCs->Clear(option);
   fNQwF1TDCs = 0;
+  return;
 };
 
-void QwF1TDContainer::Delete(Option_t *option)
+void 
+QwF1TDContainer::Delete(Option_t *option)
 {
   fQwF1TDCs->Delete(option);
   fNQwF1TDCs = 0;
+  return;
 };
 
-// Delete the static TClonesArray
-void QwF1TDContainer::Reset(Option_t *option)
+void 
+QwF1TDContainer::Reset(Option_t *option)
 {
   delete gQwF1TDCs;
-  gQwF1TDCs = 0;
-};
-
-
-void QwF1TDContainer::AddQwF1TDC(QwF1TDC &in)
-{
-  TClonesArray &hits = *fQwF1TDCs;
-  new (hits[fNQwF1TDCs++]) QwF1TDC(in);
+  gQwF1TDCs = NULL;
   return;
 };
 
 
-QwF1TDC *QwF1TDContainer::GetF1TDC (Int_t f1tdcID) const
+void 
+QwF1TDContainer::AddQwF1TDC(QwF1TDC &in)
+{
+  TClonesArray &f1tdcs = *fQwF1TDCs;
+  new (f1tdcs[fNQwF1TDCs++]) QwF1TDC(in);
+  return;
+};
+
+
+QwF1TDC *
+QwF1TDContainer::GetF1TDC (Int_t f1tdcID) const
 {
   return (QwF1TDC*) fQwF1TDCs->At(f1tdcID);
 }
