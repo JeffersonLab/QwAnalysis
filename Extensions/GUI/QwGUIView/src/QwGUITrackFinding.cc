@@ -443,20 +443,20 @@ std::cout << "Opened" << std::endl;
 
 ///////////end of new lines of new method ///////////////
 
-// 		  TIterator* iteratorPart = event->GetListOfPartialTracks()->MakeIterator();
-// //		  QwPartialTrack* partialtrack = 0;
-// //		  while ((partialtrack = (QwPartialTrack*) iteratorPart->Next())){
-// 		  QwTrackingTreeLine* partialtrack = 0;
-// 		  while ((partialtrack = (QwTrackingTreeLine*) iteratorPart->Next())){
-// //		    std::cout << *partialtrack << std::endl;
-// 		    std::cout << j << std::endl;
-// 		    	if (partialtrack->GetRegion() == kRegionID2) {
-// 				std::cout << "Partial Region 2 availiable" << std::endl;
-//                   		chi_PTr2->Fill(partialtrack->GetChiWeight());
-// 				std::cout << "Part Filled w/ chi" << std::endl;
-//                 	}
-// 		  }
-// 		  delete iteratorPart;
+		  TIterator* iteratorPart = event->GetListOfPartialTracks()->MakeIterator();
+//		  QwPartialTrack* partialtrack = 0;
+//		  while ((partialtrack = (QwPartialTrack*) iteratorPart->Next())){
+		  QwTrackingTreeLine* partialtrack = 0;
+		  while ((partialtrack = (QwTrackingTreeLine*) iteratorPart->Next())){
+//		    std::cout << *partialtrack << std::endl;
+		    std::cout << j << std::endl;
+		    	if (partialtrack->GetRegion() == kRegionID2) {
+				std::cout << "Partial Region 2 availiable" << std::endl;
+                  		chi_PTr2->Fill(partialtrack->GetChiWeight());
+				std::cout << "Part Filled w/ chi" << std::endl;
+                	}
+		  }
+		  delete iteratorPart;
 
 
 //               QwHitContainer* hitlist = roothitlist->Convert();
@@ -1143,7 +1143,7 @@ void QwGUITrackFinding::PlotpChi2()
   mc->Clear();
   mc->Divide(1,2);
 
-  obj = HistArray.At(9);  // Get histogram from tree
+  obj = HistArray.At(28);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1152,7 +1152,7 @@ void QwGUITrackFinding::PlotpChi2()
   mc->cd(1);
   obj->Draw();
 
-  obj = HistArray.At(10);  // Get histogram from tree
+  obj = HistArray.At(29);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1184,7 +1184,7 @@ void QwGUITrackFinding::PlotpResidual()
   mc->Divide(1,2);
 
   mc->cd(1);
-  obj = HistArray.At(42);  // Get histogram from tree
+  obj = HistArray.At(30);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1193,7 +1193,7 @@ void QwGUITrackFinding::PlotpResidual()
   obj->Draw();
 
   mc->cd(2);
-  obj = HistArray.At(43);  // Get histogram from tree
+  obj = HistArray.At(31);  // Get histogram from tree
   if(! obj) 
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1224,8 +1224,8 @@ void QwGUITrackFinding::PlotpOffset()
   mc->Clear();
   mc->Divide(2,2);
 
-  mc->cd(1)->SetLogy();
-  obj = HistArray.At(11);  // Get histogram from tree
+  mc->cd(1);
+  obj = HistArray.At(32);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1233,8 +1233,8 @@ void QwGUITrackFinding::PlotpOffset()
 	};
   obj->Draw();
 
-  mc->cd(2)->SetLogy();
-  obj = HistArray.At(13);  // Get histogram from tree
+  mc->cd(2);
+  obj = HistArray.At(34);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1242,8 +1242,8 @@ void QwGUITrackFinding::PlotpOffset()
 	};
   obj->Draw();
 
-  mc->cd(3)->SetLogy();
-  obj = HistArray.At(12);  // Get histogram from tree
+  mc->cd(3);
+  obj = HistArray.At(33);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1251,8 +1251,8 @@ void QwGUITrackFinding::PlotpOffset()
 	};
   obj->Draw();
 
-  mc->cd(4)->SetLogy();
-  obj = HistArray.At(14);  // Get histogram from tree
+  mc->cd(4);
+  obj = HistArray.At(35);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1283,8 +1283,8 @@ void QwGUITrackFinding::PlotpSlope()
   mc->Clear();
   mc->Divide(2,2);
 
-  mc->cd(1)->SetLogy();
-  obj = HistArray.At(15);  // Get histogram from tree
+  mc->cd(1);
+  obj = HistArray.At(36);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1292,8 +1292,8 @@ void QwGUITrackFinding::PlotpSlope()
 	};
   obj->Draw();
 
-  mc->cd(2)->SetLogy();
-  obj = HistArray.At(17);  // Get histogram from tree
+  mc->cd(2);
+  obj = HistArray.At(38);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1301,8 +1301,8 @@ void QwGUITrackFinding::PlotpSlope()
 	};
   obj->Draw();
 
-  mc->cd(3)->SetLogy();
-  obj = HistArray.At(16);  // Get histogram from tree
+  mc->cd(3);
+  obj = HistArray.At(37);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1310,8 +1310,8 @@ void QwGUITrackFinding::PlotpSlope()
 	};
   obj->Draw();
 
-  mc->cd(4)->SetLogy();
-  obj = HistArray.At(18);  // Get histogram from tree
+  mc->cd(4);
+  obj = HistArray.At(39);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
