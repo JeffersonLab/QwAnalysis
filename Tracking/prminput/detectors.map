@@ -32,6 +32,12 @@
  geom = qweak_new.geo
  mask = 0xffff
 
+[QwLumi]
+ name = LUMI
+ map = qweak_lumi.map
+ geom = qweak_new.geo
+ mask = 0xffff
+
 [QwScanner]
  name = FPS
  map = qweak_scanner_channel.map
