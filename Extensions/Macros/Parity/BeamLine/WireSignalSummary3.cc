@@ -1,18 +1,10 @@
 //********************************************************************//
 // Author : J. Kaisen
 //          J. H. Lee
-// Date   : Tuesday, August  3 04:38:48 EDT 2010
+// Date   : Tuesday, August  3 13:34:43 EDT 2010
 //********************************************************************//
 //
-// This macros plots the pattern based aasymmetries of the bpm signals defined in the 
-// devicelist below and the canvas are printed on to .gif files. 
-// To do this, the bpms needs to be analysed as bcm.
-// To use this macro, 
-// open root and load the macro by typing .L WireSignalPlots.cc and type in the command.
-//
-//  PlotAsyms(run_num)
-//  run_num -: run number
-//  
+/  
 //
 // e.g.
 // root[0] .L WireSignalSummary3.cc
@@ -24,22 +16,12 @@
 
 
 
-//********************************************
-// Main function
-//********************************************
-
-//!!!!For the main detector map this may duplicate functions that have more than one detector in the name.!!!!
-#include "TMath.h"
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <iomanip>
 
 gROOT->Reset();
-
-void PlotRAW(Int_t runnum, TString mapstring, TString treename);
-void Plot(Int_t runnum, TString mapstring, TString treename,TString graphinfo);
-
 
 void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
 {
@@ -278,7 +260,7 @@ void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
 
   TPaveText *mps_title;
   TPaveText *hel_title[3];
-  TString    hel_type[3] = {"asym", "diff", "yield"};
+  const TString    hel_type[3] = {"asym", "diff", "yield"};
 
   TPad      *mps_pad;
   TPad      *hel_pad[3];
@@ -307,7 +289,7 @@ void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
 
   Int_t i, j, k;
   i = j = k = 0;
-  Bool_t output_ps = false;
+  Bool_t output_ps = true;
  
   TTree * nt = file->Get(treename); //load the Tree
   // here only "Mps_Tree" or "Hel_Tree", thus we don't check others,
@@ -454,12 +436,6 @@ void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
       if(output_ps) hel_canvas[i]->Print(Form("run_%d_hel_signal_%s.ps]", runnum, hel_type[i].Data()));
     }
   }
-  //  else 
-  //    return;
-
-  
-  
-  //   Int_t i = 0;
 
     //
     // Mean
@@ -485,7 +461,7 @@ void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
   Float_t offset = 0.5;
   Double_t xrange = 0.0;
 
-
+ 
 
   if(treename == "Mps_Tree") {
     // 
@@ -507,11 +483,11 @@ void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
     mps_mean_h2D -> SetMarkerStyle(20);
     mps_mean_h2D -> GetYaxis() ->SetLabelSize(0.015);
     
-    for(i=0; i<mps_device_num; i++) { // ndevices is Int_t, thus i is Int_t
-      mps_mean_h2D->Fill(mps_xaxis[i],((i+1)*xbinN),1);
+    for(k=0; k<mps_device_num; k++) { // ndevices is Int_t, thus i is Int_t
+      mps_mean_h2D->Fill(mps_xaxis[k],((k+1)*xbinN),1);
       mps_mean_h2D->GetYaxis()->SetBinLabel(
-					    ((i+1)*xbinN), 
-					    Form("%s",devicelist1[i].Data()) 
+					    ((k+1)*xbinN), 
+					    Form("%s",devicelist1[k].Data()) 
 					    );
     }
     mps_mean_h2D->Draw();
@@ -534,11 +510,11 @@ void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
     mps_rms_h2D -> SetMarkerStyle(20);
     mps_rms_h2D -> GetYaxis() ->SetLabelSize(0.015);
     
-    for(i=0; i<mps_device_num; i++) { // ndevices is Int_t, thus i is Int_t
-      mps_rms_h2D->Fill(mps_xaxisrms[i],((i+1)*xbinN),1);
+    for(k=0; k<mps_device_num; k++) { // ndevices is Int_t, thus i is Int_t
+      mps_rms_h2D->Fill(mps_xaxisrms[k],((k+1)*xbinN),1);
       mps_rms_h2D->GetYaxis()->SetBinLabel(
-					    ((i+1)*xbinN), 
-					    Form("%s",devicelist1[i].Data()) 
+					    ((k+1)*xbinN), 
+					    Form("%s",devicelist1[k].Data()) 
 					    );
     }
     mps_rms_h2D->Draw();
@@ -565,11 +541,11 @@ void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
     mps_event_h2D -> SetMarkerStyle(20);
     mps_event_h2D -> GetYaxis() ->SetLabelSize(0.015);
     
-    for(i=0; i<mps_device_num; i++) { // ndevices is Int_t, thus i is Int_t
-      mps_event_h2D->Fill(mps_xaxisevents[i],((i+1)*100),1);
+    for(k=0; k<mps_device_num; k++) { // ndevices is Int_t, thus i is Int_t
+      mps_event_h2D->Fill(mps_xaxisevents[k],((k+1)*100),1);
       mps_event_h2D->GetYaxis()->SetBinLabel(
-					    ((i+1)*100), 
-					    Form("%s",devicelist1[i].Data()) 
+					    ((k+1)*100), 
+					    Form("%s",devicelist1[k].Data()) 
 					    );
     }
     mps_event_h2D->Draw();
@@ -577,12 +553,10 @@ void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
 
     std::ofstream       pedestaloutput;
     std::ostringstream  pedestal_stream;
+    pedestaloutput.clear();
 
-    char string2[100];
-    char string3[]="signalinfo10000.txt";
-    sprintf(string3,"signalinfo%i.txt",runnum);
-
-    pedestaloutput.open(string3);
+    pedestaloutput.open(Form("signalinfo%i.txt",runnum));
+    pedestal_stream.clear();
     for(i=0; i<mps_device_num; i++){  
       pedestal_stream << "device name = " << std::setw(20) << devicelist1[i]
 		      << " || "
@@ -598,115 +572,164 @@ void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
     pedestaloutput.close();
   
   }
-  // else {
-  //   plots_num = 3;
-  // }
-
-  //   for(i=0; i< plots_num; i++) {
-
-  //     mean_canvas[i] = new TCanvas(Form("mean_canvas%d",i) ,"Mean",w,h);     
-  //     mean_canvas[i] ->SetWindowSize(w + (w - mean_canvas[i] ->GetWw()), h + (h - mean_canvas[i]->GetWh()));
-  //     mean_canvas[i]->cd();
-
-  //     TH2D *mean_h2d;
-  //     Double_t xrange = 0.0;
-  //     xrange = xmax - xmin;
-  //     xmin -= 0.1*xrange;
-  //     xmax += 0.1*xrange;
+  else {
+    plots_num = 3;
+    TString device_name;
+    // h = 1000;
+    // w = 640;
+    for( i=0; i< plots_num; i++ ) {
+    // 
+    // Mean
+    //
+      hel_mean_canvas[i] = new TCanvas(
+				       Form("mean_hel_%s", hel_type[i].Data()), 
+				       Form("Mean %s Plots HEL Tree", hel_type[i].Data()), 
+    				       w, h
+    				       );
+      hel_mean_canvas[i] ->SetWindowSize(w + (w - hel_mean_canvas[i] ->GetWw()), h + (h - hel_mean_canvas[i]->GetWh()));
+      hel_mean_canvas[i]->cd();
       
-  //     mean_h2d = new TH2D("MV","Mean Values",
-  // 			  100, xmin, xmax,
-  // 			  DeviceNum*100, 0.5, (DeviceNum*100)+0.5);
-  //     mean_h2d->SetMarkerStyle(20);
-  //     mean_h2d->GetYaxis()->SetLabelSize(0.015);
-  //     for(i=0; i<DeviceNum; i++) { // ndevices is Int_t, thus i is Int_t
-  // 	mean_h2d->Fill(xaxis[i],((i+1)*100),1);
-  // 	mean_h2d->GetYaxis()->SetBinLabel(
-  // 					  ((i+1)*100), Form("%s",devicelist1[i].Data()) 
-  // 					  );
-  //     }
-  //     mean_h2d->Draw();
-  //     mean_canvas->Print(Form("%i_signal_mean_values.ps",runnum));
-    
-  //   //
-  //   // RMS
-  //   //
-  //   TCanvas *rms_canvas = NULL;
-  //   if(rms_canvas) delete rms_canvas; rms_canvas = NULL;
+      xbinN = 100;
+      ybinN = hel_device_num[i]*xbinN;
+      xrange = xmax - xmin;
+      xmin -= 0.1*xrange;
+      xmax += 0.1*xrange;
       
-  //   rms_canvas = new TCanvas("rms_canvas","RMS",w,h);     
-  //   rms_canvas ->SetWindowSize(w + (w - rms_canvas ->GetWw()), h + (h - rms_canvas->GetWh()));
-  //   rms_canvas->cd();
-  //   TH2D *rms_h2d;
-  //   xrange = 0.0; // recycle xrange 
-  //   xrange = xmaxrms - xminrms;
-  //   xminrms -= 0.1*xrange;
-  //   xmaxrms += 0.1*xrange;
-    
-  //   rms_h2d = new TH2D("RMSPV","RMS Values", 
-  // 		       100, xminrms, xmaxrms,
-  // 		       DeviceNum*100, 0.5, (DeviceNum*100)+0.5);
-  //   rms_h2d -> SetMarkerStyle(20);
-  //   rms_h2d -> GetYaxis()->SetLabelSize(0.015);
-  //   for(i=0; i<DeviceNum; i++) { // ndevices is Int_t, thus i is Int_t
-  //     rms_h2d -> Fill(xaxisrms[i],((i+1)*100),1);
-  //     rms_h2d -> GetYaxis()->SetBinLabel(
-  // 					 ((i+1)*100), Form("%s",devicelist1[i].Data()) 
-  // 					 );
-  //   }
-  //   rms_h2d->Draw();
-  //   rms_canvas->Print(Form("%i_signal_rms_values.ps",runnum));
-
-  //   //
-  //   // EVENTS
-  //   //
-  //   TCanvas *event_canvas = NULL;
-  //   if(event_canvas) delete event_canvas; event_canvas = NULL;
-
-  //   event_canvas = new TCanvas("event_canvas","Events", w, h);     
-  //   event_canvas ->SetWindowSize(w + (w - event_canvas ->GetWw()), h + (h - event_canvas->GetWh()));
-  //   event_canvas->cd();
-  //   TH2D *event_h2d;
-  //   xrange = 0.0; // recycle xrange 
-  //   xrange = xmaxevent - xminevent;
-  //   xminevent -= 0.1*xrange;    
-  //   xmaxevent += 0.1*xrange;
-    
-  //   event_h2d = new TH2D("ENV", "Event Number Values",
-  // 			 1000,xminevent,xmaxevent,
-  // 			 (DeviceNum*100),0.5,(DeviceNum*100)+0.5);
-  //   event_h2d->SetMarkerStyle(20);
-  //   event_h2d->GetYaxis()->SetLabelSize(0.015);
-  //   for(i=0; i<DeviceNum; i++) { // ndevices is Int_t, thus i is Int_t
-  //     event_h2d->Fill(xaxisevents[i],((i+1)*100),1);
-  //     event_h2d->GetYaxis()->SetBinLabel(
-  // 					 ((i+1)*100), Form("%s",devicelist1[i].Data()) 
-  // 					 );
-  //   }
-  //   event_h2d->Draw();
-  //   event_canvas->Print(Form("%i_signal_event_values.ps",runnum));
-
-  //   ofstream pedestaloutput;
-  //   char string2[100];
-  //   char string3[]="signalinfo10000.txt";
-  //   sprintf(string3,"signalinfo%i.txt",runnum);
-  //   pedestaloutput.open(string3);
-  //   for(i=0; i<DeviceNum; i++){  
-  //     sprintf(string2,"device name = %s || mean = %f || rms = %f || events=%3.0f",devicelist1[i].Data(),xaxis[i],xaxisrms[i],xaxisevents[i]);
-  //     pedestaloutput << string2 << endl;
-  //     std::cout << string2 << std::endl;
-  //   } 
-  //   pedestaloutput.close();
-  //   }
-
-  //   if ( treename == "Hel_Tree") { 
+      hel_mean_h2D[i] = new TH2D(Form("MV_%s", hel_type[i].Data()),
+				 Form("%s Mean Values", hel_type[i].Data()),
+      				 xbinN, xmin, xmax,
+      				 ybinN, offset, ybinN+offset);
+      hel_mean_h2D[i] -> SetMarkerStyle(20);
+      hel_mean_h2D[i] -> GetYaxis() ->SetLabelSize(0.015);
       
-  //   }
+      for(k=0; k<hel_device_num[i]; k++){
+	
+      	hel_mean_h2D[i]->Fill(hel_xaxis[i][k],((k+1)*xbinN),1);
+
+      	if      ( i==0 ) device_name = devicelist1[k].Data();
+      	else if ( i==1 ) device_name = devicelist2[k].Data();
+      	else if ( i==2 ) device_name = devicelist3[k].Data();
+
+      	hel_mean_h2D[i]->GetYaxis()->SetBinLabel(
+      						 ((k+1)*xbinN), 
+      						 device_name 
+      						 );
+      }
+      hel_mean_h2D[i]->Draw();
+      if(output_ps) hel_mean_canvas[i] -> Print(Form("run_%d_hel_%s_mean.ps", runnum, hel_type[i].Data()));
+      
+
+      // 
+      // RMS
+      //
+      hel_rms_canvas[i] = new TCanvas(
+				       Form("rms_hel_%s", hel_type[i].Data()), 
+				       Form("RMS %s Plots HEL Tree", hel_type[i].Data()), 
+    				       w, h
+    				       );
+      hel_rms_canvas[i] ->SetWindowSize(w + (w - hel_rms_canvas[i] ->GetWw()), h + (h - hel_rms_canvas[i]->GetWh()));
+      hel_rms_canvas[i]->cd();
+      
+      xbinN = 100;
+      ybinN = hel_device_num[i]*xbinN;
+      xrange = xmaxrms - xminrms;
+      xminrms -= 0.1*xrange;
+      xmaxrms += 0.1*xrange;
+      
+      hel_rms_h2D[i] = new TH2D(Form("RMSPV_%s", hel_type[i].Data()),
+				 Form("%s RMS Values", hel_type[i].Data()),
+      				 xbinN, xminrms, xmaxrms,
+      				 ybinN, offset, ybinN+offset);
+      hel_rms_h2D[i] -> SetMarkerStyle(20);
+      hel_rms_h2D[i] -> GetYaxis() ->SetLabelSize(0.015);
+      
+      for(k=0; k<hel_device_num[i]; k++){
+	
+      	hel_rms_h2D[i]->Fill(hel_xaxisrms[i][k],((k+1)*xbinN),1);
+
+      	if      ( i==0 ) device_name = devicelist1[k].Data();
+      	else if ( i==1 ) device_name = devicelist2[k].Data();
+      	else if ( i==2 ) device_name = devicelist3[k].Data();
+	
+      	hel_rms_h2D[i]->GetYaxis()->SetBinLabel(
+						((k+1)*xbinN), 
+						device_name 
+						);
+      }
+      hel_rms_h2D[i]->Draw();
+      if(output_ps) hel_rms_canvas[i] -> Print(Form("run_%d_hel_%s_rms.ps", runnum, hel_type[i].Data()));
+      
+      // 
+      // EVENTs
+      //
+      hel_event_canvas[i] = new TCanvas(
+				       Form("event_hel_%s", hel_type[i].Data()), 
+				       Form("EVENT %s Plots HEL Tree", hel_type[i].Data()), 
+    				       w, h
+    				       );
+      hel_event_canvas[i] ->SetWindowSize(w + (w - hel_event_canvas[i] ->GetWw()), h + (h - hel_event_canvas[i]->GetWh()));
+      hel_event_canvas[i]->cd();
+      
+      xbinN = 1000;
+      ybinN = hel_device_num[i]*100;
+      xrange = xmaxevent - xminevent;
+      xminevent -= 0.1*xrange;
+      xmaxevent += 0.1*xrange;
+      
+      hel_event_h2D[i] = new TH2D(Form("EVENTPV_%s", hel_type[i].Data()),
+				  Form("%s EVENT Values", hel_type[i].Data()),
+				  xbinN, xminevent, xmaxevent,
+				  ybinN, offset, ybinN+offset);
+      hel_event_h2D[i] -> SetMarkerStyle(20);
+      hel_event_h2D[i] -> GetYaxis() ->SetLabelSize(0.015);
+      
+      for(k=0; k<hel_device_num[i]; k++){
+	
+      	hel_event_h2D[i]->Fill(hel_xaxisevents[i][k],((k+1)*100),1);
+	
+      	if      ( i==0 ) device_name = devicelist1[k].Data();
+      	else if ( i==1 ) device_name = devicelist2[k].Data();
+      	else if ( i==2 ) device_name = devicelist3[k].Data();
+	
+      	hel_event_h2D[i]->GetYaxis()->SetBinLabel(
+						  ((k+1)*100), 
+						  device_name 
+						  );
+      }
+      hel_event_h2D[i]->Draw();
+      if(output_ps) hel_event_canvas[i] -> Print(Form("run_%d_hel_%s_event.ps", runnum, hel_type[i].Data()));
+
+
+      
+      std::ofstream       hel_pedestaloutput;
+      std::ostringstream  hel_pedestal_stream;
+      hel_pedestaloutput.clear();
+      hel_pedestaloutput.open(Form("signalinfo%d_%s.txt",runnum, hel_type[i].Data()));
+      hel_pedestal_stream.clear();
+      hel_pedestal_stream << hel_type[i] << "\n";
+      for(k=0; k<hel_device_num[i]; k++) {
+	if      ( i==0 ) device_name = devicelist1[k];
+	else if ( i==1 ) device_name = devicelist2[k];
+	else if ( i==2 ) device_name = devicelist3[k];
+
+
+	hel_pedestal_stream << "device name = " << std::setw(32) << device_name
+			    << " || "
+			    << " mean = " << std::setw(10) << hel_xaxis[i][k]
+			    << " || "
+			    << " rms = " << std::setw(10) << hel_xaxisrms[i][k]
+			    << " || "
+			    << " events = " << hel_xaxisevents[i][k]
+			    << "\n";
+      } 
+      hel_pedestaloutput << hel_pedestal_stream.str();
+      std::cout << hel_pedestal_stream.str() <<std::endl;
+      hel_pedestaloutput.close();
     
-  //   std::cout<<"Done plotting!\n";
-  // // }
-  // // else {
-  // //      std::cout<<"Unrecognized tree name"<<std::endl;
-  // //      return;
-  // //    }
+    }  
+  }
+    
+  std::cout<<"Done plotting!\n";
+
+  return;
 };
