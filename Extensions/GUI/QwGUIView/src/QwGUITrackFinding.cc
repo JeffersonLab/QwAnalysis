@@ -8,6 +8,8 @@
 #include "QwHit.h"
 #include "QwHitContainer.h"
 #include "QwHitRootContainer.h"
+#include "QwTrackingTreeLine.h"
+#include "QwPartialTrack.h"
 
 ClassImp(QwGUITrackFinding);
 
@@ -248,13 +250,11 @@ std::cout << "Opened" << std::endl;
   if (!cont) return;
 
   if (!strcmp(cont->GetDataName(),"ROOT") && dROOTCont) {
-
     TObject* obj = dROOTCont->ReadData(fRootTrees.at(1));
 
     // Note: fRootTrees[0] = hit_tree, fRootTrees[1] = event_tree
 
     if (obj) {
-
        if (obj->InheritsFrom("TTree")) {
          TTree* tree = (TTree*) obj->Clone();
 
@@ -282,13 +282,13 @@ std::cout << "Opened" << std::endl;
             TH1D* chi_TLr3u = 	new TH1D("Chi2 (TLr3u)","TreeLines Chi2 (Region 3, U Planes)",100,0.0,40.0);
             TH1D* chi_TLr3v = 	new TH1D("Chi2 (TLr3v)","TreeLines Chi2 (Region 3, V Planes)",100,0.0,40.0);
 
-            TH1D* resid_TLr2 = 	new TH1D("Residual (TLr2)","TreeLines Residual (Region 2)",100,0.0,0.08);
-            TH1D* resid_TLr2x = new TH1D("Residual (TLr2x)","TreeLines Residual (Region 2, X Planes)",100,0.0,0.08);
-            TH1D* resid_TLr2u = new TH1D("Residual (TLr2u)","TreeLines Residual (Region 2, U Planes)",100,0.0,0.08);
-            TH1D* resid_TLr2v = new TH1D("Residual (TLr2v)","TreeLines Residual (Region 2, V Planes)",100,0.0,0.08);
-            TH1D* resid_TLr3 = 	new TH1D("Residual (TLr3)","TreeLines Residual (Region 3)",100,0.0,0.08);
-            TH1D* resid_TLr3u = new TH1D("Residual (TLr3u)","TreeLines Residual (Region 3, U Planes)",100,0.0,0.08);
-            TH1D* resid_TLr3v = new TH1D("Residual (TLr3v)","TreeLines Residual (Region 3, V Planes)",100,0.0,0.08);
+            TH1D* resid_TLr2 = 	new TH1D("Residual (TLr2)","TreeLines Residual (Region 2)",100,0.0,2.0);
+            TH1D* resid_TLr2x = new TH1D("Residual (TLr2x)","TreeLines Residual (Region 2, X Planes)",100,0.0,2.0);
+            TH1D* resid_TLr2u = new TH1D("Residual (TLr2u)","TreeLines Residual (Region 2, U Planes)",100,0.0,2.0);
+            TH1D* resid_TLr2v = new TH1D("Residual (TLr2v)","TreeLines Residual (Region 2, V Planes)",100,0.0,2.0);
+            TH1D* resid_TLr3 = 	new TH1D("Residual (TLr3)","TreeLines Residual (Region 3)",100,0.0,2.0);
+            TH1D* resid_TLr3u = new TH1D("Residual (TLr3u)","TreeLines Residual (Region 3, U Planes)",100,0.0,2.0);
+            TH1D* resid_TLr3v = new TH1D("Residual (TLr3v)","TreeLines Residual (Region 3, V Planes)",100,0.0,2.0);
 
             TH1D* offset_TLr2 = new TH1D("Offset (TLr2)","TreeLines Offset (Region 2)",100,-10.0,90.0);
             TH1D* offset_TLr2x= new TH1D("Offset (TLr2x)","TreeLines Offset (Region 2, X Planes)",100,-10.0,90.0);
@@ -307,7 +307,7 @@ std::cout << "Opened" << std::endl;
             TH1D* slope_TLr3v = new TH1D("Slope (TLr3v)","TreeLines Slope (Region 3, V Planes)",100,0.4,1.5);
 
 /////// Create histos for PartialTracks //////////// ranges not set yet
-            TH1D* chi_PTr2 =	new TH1D("Chi2 (PTr2)","PartialTracks Chi2 (Region 2)",100,0.0,40.0);
+            TH1D* chi_PTr2 =	new TH1D("Chi2 (PTr2)","PartialTracks Chi2 (Region 2)",100,0.0,2000.0);
             TH1D* chi_PTr3 = 	new TH1D("Chi2 (PTr3)","PartialTracks Chi2 (Region 3)",100,0.0,40.0);
             TH1D* resid_PTr2 = 	new TH1D("Residual (PTr2)","PartialTracks Residual (Region 2)",100,0.0,0.08);
             TH1D* resid_PTr3 = 	new TH1D("Residual (PTr3)","PartialTracks Residual (Region 3)",100,0.0,0.08);
@@ -319,6 +319,49 @@ std::cout << "Opened" << std::endl;
             TH1D* slopeX_PTr3 = new TH1D("SlopeX (PTr3)","PartialTracks SlopeX (Region 3)",100,-0.04,0.19);
             TH1D* slopeY_PTr2 = new TH1D("SlopeY (PTr2)","PartialTracks SlopeY (Region 2)",100,-0.04,0.19);
             TH1D* slopeY_PTr3 = new TH1D("SlopeY (PTr3)","PartialTracks SlopeY (Region 3)",100,-0.04,0.19);
+
+////////// Color and format histos ////////////////////
+	    chi_TLr2	->	SetFillColor(kBlue);
+	    chi_TLr2x	->	SetFillColor(kBlue);
+	    chi_TLr2u	->	SetFillColor(kBlue);
+	    chi_TLr2v	->	SetFillColor(kBlue);
+	    chi_TLr3	->	SetFillColor(kGreen);
+	    chi_TLr3u	->	SetFillColor(kGreen);
+	    chi_TLr3v	->	SetFillColor(kGreen);
+	    resid_TLr2	->	SetFillColor(kBlue);
+	    resid_TLr2x	->	SetFillColor(kBlue);
+	    resid_TLr2u	->	SetFillColor(kBlue);
+	    resid_TLr2v	->	SetFillColor(kBlue);
+	    resid_TLr3	->	SetFillColor(kGreen);
+	    resid_TLr3u	->	SetFillColor(kGreen);
+	    resid_TLr3v	->	SetFillColor(kGreen);
+	    offset_TLr2	->	SetFillColor(kBlue);
+	    offset_TLr2x->	SetFillColor(kBlue);
+	    offset_TLr2u->	SetFillColor(kBlue);
+	    offset_TLr2v->	SetFillColor(kBlue);
+	    offset_TLr3	->	SetFillColor(kGreen);
+	    offset_TLr3u->	SetFillColor(kGreen);
+	    offset_TLr3v->	SetFillColor(kGreen);
+	    slope_TLr2	->	SetFillColor(kBlue);
+	    slope_TLr2x	->	SetFillColor(kBlue);
+	    slope_TLr2u	->	SetFillColor(kBlue);
+	    slope_TLr2v	->	SetFillColor(kBlue);
+	    slope_TLr3	->	SetFillColor(kGreen);
+	    slope_TLr3u	->	SetFillColor(kGreen);
+	    slope_TLr3v	->	SetFillColor(kGreen);
+
+	    chi_PTr2	->	SetFillColor(kBlue);
+	    chi_PTr3	->	SetFillColor(kGreen);
+	    resid_PTr2	->	SetFillColor(kBlue);
+	    resid_PTr3	->	SetFillColor(kGreen);
+            offsetX_PTr2->	SetFillColor(kBlue);
+            offsetX_PTr3->	SetFillColor(kGreen);
+            offsetY_PTr2->	SetFillColor(kBlue);
+            offsetY_PTr3->	SetFillColor(kGreen);
+            slopeX_PTr2->	SetFillColor(kBlue);
+            slopeX_PTr3->	SetFillColor(kGreen);
+            slopeY_PTr2->	SetFillColor(kBlue);
+            slopeY_PTr3->	SetFillColor(kGreen);
 
 //             TH1D* hst = new TH1D("distance R2","distance big",100,0.0,3.0);
 //             hst->SetDirectory(0);
@@ -370,7 +413,7 @@ std::cout << "Opened" << std::endl;
 			tree->GetEntry(j);
 //		}	
 // 	    	std::cout<<"Got Entry "<< j<< std::endl;
-
+//               event->PrintPartialTracks();
 
 		  TIterator* iterator = event->GetListOfTreeLines()->MakeIterator();
 		  QwTrackingTreeLine* treeline = 0;
@@ -444,12 +487,12 @@ std::cout << "Opened" << std::endl;
 ///////////end of new lines of new method ///////////////
 
 		  TIterator* iteratorPart = event->GetListOfPartialTracks()->MakeIterator();
-//		  QwPartialTrack* partialtrack = 0;
-//		  while ((partialtrack = (QwPartialTrack*) iteratorPart->Next())){
-		  QwTrackingTreeLine* partialtrack = 0;
-		  while ((partialtrack = (QwTrackingTreeLine*) iteratorPart->Next())){
-//		    std::cout << *partialtrack << std::endl;
+		  QwPartialTrack* partialtrack = 0;
+		  while ((partialtrack = (QwPartialTrack*) iteratorPart->Next())){
+// 		  QwTrackingTreeLine* partialtrack = 0;
+// 		  while ((partialtrack = (QwTrackingTreeLine*) iteratorPart->Next())){
 		    std::cout << j << std::endl;
+		    std::cout << *partialtrack << std::endl;
 		    	if (partialtrack->GetRegion() == kRegionID2) {
 				std::cout << "Partial Region 2 availiable" << std::endl;
                   		chi_PTr2->Fill(partialtrack->GetChiWeight());
@@ -842,10 +885,10 @@ std::cout << "Opened" << std::endl;
 //        PlotHistograms();
     }
     else{
-	std::cout<<"no directory fRootTrees"<<std::endl;
+	std::cout<<"no data read from directory fRootTrees"<<std::endl;
     }
    }
-
+   else{std::cout<<"no ROOT"<<std::endl;}
 
 };
 
