@@ -1,7 +1,7 @@
 //********************************************************************//
 // Author : J. Kaisen
 //          J. H. Lee
-// Date   : July 27, 2010
+// Date   : Tuesday, August  3 04:38:48 EDT 2010
 //********************************************************************//
 //
 // This macros plots the pattern based aasymmetries of the bpm signals defined in the 
@@ -17,6 +17,7 @@
 // e.g.
 // root[0] .L WireSignalSummary3.cc
 // root[1]  Plot(1160,"qweak_hallc_beamline.map","Mps_Tree","hw_sum")
+// root[2]  Plot(1160,"qweak_hallc_beamline.map","Hel_Tree","hw_sum")
 
 // Plot(run number, map file, tree (Hel_Tree or Mps_Tree), histogram to look at)
 
@@ -32,7 +33,6 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include "TH1D.h"
 
 gROOT->Reset();
 
@@ -42,7 +42,6 @@ void Plot(Int_t runnum, TString mapstring, TString treename,TString graphinfo);
 
 void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
 {
-
   ifstream mapfile; 
   ifstream branchlistinfile;
   std::ofstream branchlistoutfile;
@@ -64,6 +63,7 @@ void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
 	      << std::endl;
     return;
   }
+
   mapstring = get +"/Parity/prminput/" + mapstring;
   mapfile.open(mapstring);
   if(!mapfile.is_open()) {
@@ -72,7 +72,8 @@ void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
 	      << std::endl;
     return;
   }
-    
+
+
   while (!mapfile.eof()) {
     line.ReadToken(mapfile);
     if (line.Contains("!"))  line.ReadToDelim(mapfile);
@@ -89,20 +90,20 @@ void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
 	TString subname=devicename(devicename.Sizeof()-3,2);
 	devicename.ToLower();
 	devicename= devicename(0,devicename.Sizeof()-3);
-	if (treename == "Hel_Tree") {
+	
+      	if (treename == "Hel_Tree") {
 	  Bool_t flag=kFALSE;
-	  for(size_t i=0;i<bpmlist.size();i++)
-	    if(devicename==bpmlist[i])
-	      flag=kTRUE;
+	  for(size_t ii=0;ii<bpmlist.size();ii++)
+	    if(devicename==bpmlist[ii]) flag=kTRUE;
 	  if(!flag)
 	    bpmlist.push_back(devicename);
-	  else
-	    std::cout<<"I already found this bpm"<<std::endl;
+	  //	  else
+	    //	    std::cout<<"I already found this bpm"<<std::endl;
 	}
 	else {
-	devicename= devicename + subname;
-	devicelist1.push_back(devicename);
-	counter1++;
+	  devicename= devicename + subname;
+	  devicelist1.push_back(devicename);
+	  counter++;
 	}
       }
       else if(det_type=="bpmcavity,"){
@@ -120,9 +121,9 @@ void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
 	    std::cout<<"I already found this bpm"<<std::endl;
 	}
 	else{
-	devicename=(devicename.Sizeof()-2) + subname;
-	devicelist1.push_back(devicename);
-	counter1++;
+	  devicename=(devicename.Sizeof()-2) + subname;
+	  devicelist1.push_back(devicename);
+	  counter++;
 	}
       }
       else if (det_type=="bcm,"){
@@ -131,7 +132,7 @@ void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
 	  bpmlist.push_back(devicename);
 	else {
 	  devicelist1.push_back(devicename);
-	  counter1++;
+	  counter++;
 	}
       }
       else if (det_type=="integrationpmt,"){
@@ -140,7 +141,7 @@ void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
 	  bpmlist.push_back(devicename);
 	else {
 	devicelist1.push_back(devicename);
-	counter1++;
+	counter++;
 	}
       }
       else
@@ -203,32 +204,6 @@ void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
   }
 	  
       
-    
-  const Int_t ndevices = counter;
-  const Int_t ndevices1 = counter1;
-  const Int_t ndevices2 = counter2;
-  const Int_t ndevices3 = counter3;    
-  
-  if(treename == "Hel_Tree") {
-    std::cout << "device list1 asym size " 
-	      << devicelist1.size() 
-	      << " ndevices1 "
-	      << counter1
-	      << std::endl;
-    std::cout << "device list2 diff size " 
-	      << devicelist2.size() 
-	      << " ndevices2 "
-	      << counter2
-	      << std::endl;
-    std::cout << "device list3 yield size " 
-	      << devicelist3.size() 
-	      << " ndevices3 "
-	      << counter3
-	      << std::endl;
-  }
-  else
-    std::cout << "device list size " << devicelist1.size() << std::endl;
-
 
   Bool_t canvas_style = false;
   
@@ -259,190 +234,220 @@ void Plot(Int_t runnum, TString mapstring, TString treename, TString graphinfo)
     gStyle->SetPadGridY(kTRUE);
   }
   
-  //Get the root file
-  //TString directory="~/scratch/rootfiles"; // the location of the rootfile used for calibration
-  //  Char_t filename[300];
-    
-  //  sprintf(filename,"%s/Qweak_%d.000.root",directory.Data(),runnum);
 
-  //  TFile * file = new TFile(filename);
-  //   if(file -> IsZombie()) {
-  //    printf("Error opening file\n"); 
-  //    delete file; file = NULL;
-  //    return;
-  //  }
-  
-  //  std::cout<< "Obtaining data from: "
-  //	   << filename
-  //	   << std::endl;
-
-  TTree* nt = (TTree*) file->Get(treename); //load the Tree
-  TString ctitle[3];
-  TCanvas *signal_plots_canvas[3] = {NULL};
-  
-  Double_t w = 1000;
-  Double_t h = 800;
- 
-  Int_t i = 0;
-  for(i=0; i<3; i++ ){
-    if(signal_plots_canvas[i]) delete signal_plots_canvas[i]; signal_plots_canvas[i] = NULL;
-  }
-    
-  Int_t plots_num = 0;
-  TPaveText *title[3];
-  TPad      *pad[3];
-
-  //  devicenum;
-  // 
-  //const Int_t ndevices = counter;
-  //  const Int_t ndevices1 = counter1;
-  //  const Int_t ndevices2 = counter2;
-  //  const Int_t ndevices3 = counter3; 
-
+  Int_t mps_device_num = counter;
   Int_t hel_device_num[3] = {counter1, counter2, counter3};
 
-  // std::vector< std::vector<TH1* > > h1D_list;
-  
-  if(treename == "Mps_Tree")       {
-    plots_num = 1;
-    ctitle[0] = "MPS signal plots";
 
+    
+  if(treename == "Hel_Tree") {
+    std::cout << "device list1 asym size " 
+	      << devicelist1.size() 
+	      << " hel_device_num[0] "
+	      << hel_device_num[0]
+	      << std::endl;
+    std::cout << "device list2 diff size " 
+	      << devicelist2.size() 
+	      << " hel_device_num[1] "
+	      << hel_device_num[1]
+	      << std::endl;
+    std::cout << "device list3 yield size " 
+	      << devicelist3.size() 
+	      << " hel_device_num[2] "
+	      << hel_device_num[2]
+	      << std::endl;
   }
-  else if (treename == "Hel_Tree") {
-    plots_num = 3;
-    ctitle[0] = "HEL signal plots for asym";
-    ctitle[1] = "HEL signal plots for diff";
-    ctitle[2] = "HEL signal plots for yield";
-
+  else if (treename == "Mps_Tree") {
+    std::cout << "MPS device list size "
+	      << devicelist1.size() 
+	      << " mps_device_num "
+	      << mps_device_num
+	      << std::endl;
   }
   else return;
 
-  // h1D_list.resize(plots_num); //1 for MPS, 3 for HEL
 
-  for(i = 0; i <plots_num; i++) {
-    signal_plots_canvas[i] = new TCanvas(Form("signal_plots_canvas%d",i), ctitle[i], w, h);     
-    signal_plots_canvas[i] ->SetWindowSize(w + (w - signal_plots_canvas[i] ->GetWw()), h + (h - signal_plots_canvas[i]->GetWh()));
-  //   h1D_list.at(i).resize(hel_device_num[i]);
-  // }
-  }
-  
-  
-  for(i = 0; i <plots_num; i++) {
-    signal_plots_canvas[i]->cd();
-    title[i] =  new TPaveText(0.01,0.953,0.5,0.999);
-    title[i] -> SetFillColor(11);
-    title[i] -> AddText(ctitle[i]);
-    title[i] -> Draw();
-    pad[i]   = new TPad("pad","pad",0.00,0.00,1.00,0.95);
-    pad[i] -> Draw();
-    pad[i] -> cd();
-    pad[i] -> Divide(4,4);
-    
-  }
+  Int_t plots_num = 0;
+
+  TString mps_canvas_title;
+  TString hel_canvas_title[3];
+
+  Double_t w = 1000;
+  Double_t h = 800;
+
+  TPaveText *mps_title;
+  TPaveText *hel_title[3];
+  TString    hel_type[3] = {"asym", "diff", "yield"};
+
+  TPad      *mps_pad;
+  TPad      *hel_pad[3];
+
+  TH1D *mps_h1D;    // reuse because of its locality
+  TH1D *hel_h1D[3]; // reuse because of its locality
+
+  Double_t *mps_xaxis;
+  Double_t *mps_xaxisrms;
+  Double_t *mps_xaxisevents; 
+
+  Double_t *hel_xaxis[3];
+  Double_t *hel_xaxisrms[3];
+  Double_t *hel_xaxisevents[3];
+
+  Double_t xmin=999e+10;
+  Double_t xmax=-xmin;
+  Double_t xmaxrms=-999e+10;
+  Double_t xminrms=99e+10;
+  Double_t xmaxevent=-999e+10;
+  Double_t xminevent=99e+10;
+
+  Int_t j =0;
  
+  TTree * nt = file->Get(treename); //load the Tree
+  // here only "Mps_Tree" or "Hel_Tree", thus we don't check others,
+  // because of the above "std::cout"s codes.
 
-  // if(treename == "Mps_Tree") {
-  //   const Int_t DeviceNum = ndevices;
-  // }
-  // else if (treename == "Hel_Tree") {
-  //   const Int_t DeviceNum = ndevices1;
-  // }
-  // else
-  //   return 0;
-  
+  if(treename == "Mps_Tree") {
+    plots_num = 1;
+    mps_canvas_title = "MPS signal plots";
+    TCanvas *mps_canvas;
+    mps_canvas = new TCanvas("mps_signal_plots", mps_canvas_title, w, h);
+    mps_canvas ->SetWindowSize(w + (w - mps_canvas ->GetWw()), h + (h - mps_canvas->GetWh()));
+    mps_canvas -> cd();
+    mps_title = new TPaveText(0.01,0.953,0.5,0.999);
+    mps_title -> SetFillColor(11);
+    mps_title -> AddText(mps_canvas_title);
+    mps_title -> Draw();
+    mps_pad = new TPad("mpspad","mps signals pad",0.00,0.00,1.00,0.95);
+    mps_pad -> Draw();
+    mps_pad -> cd();
+    mps_pad -> Divide(4,4);
 
-  // Double_t xaxis[DeviceNum], xaxisrms[DeviceNum], xaxisevents[DeviceNum]; // reuse
-  // Double_t xmin=999e+10,xmax=-999e+10,xmaxrms=-999e+10,xminrms=99e+10,xmaxevent=-999e+10,xminevent=99e+10;
+    mps_xaxis = new Double_t [mps_device_num];
+    mps_xaxisrms =  new Double_t [mps_device_num];
+    mps_xaxisevents = new Double_t [mps_device_num];
+    
+    mps_canvas -> Print(Form("run_%i_mps_signal.ps[",runnum));
 
-  // Int_t j=0;
-  // if(treename == "Mps_Tree") {
-
-  //   signal_plots_canvas->Print(Form("%i_signal_mps_values.ps[",runnum));
-  //   j = 0;
-  //   for(Int_t i=0; i<ndevices; i++){
-  //     plots_pad -> cd(j+1);
-
-  //     nt->Draw(Form("%s.%s/%s.num_samples",
-  // 		    devicelist1[i].Data(),
-  // 		    graphinfo.Data(),
-  // 		    devicelist1[i].Data()),
-  // 	       Form("%s.num_samples>0",devicelist1[i].Data())
-  // 	       );
-  //     mps_h1D[i] = (TH1D*) gPad -> GetPrimitive("htemp");
-  //     mps_h1D[i] -> SetName(Form("%s.%s/%s.num_samples",
-  // 			     devicelist1[i].Data(),
-  // 			     graphinfo.Data(),
-  // 			     devicelist1[i].Data()));
-  //     xaxis[i]       = mps_h1D[i]->GetMean();
-  //     xaxisrms[i]    = mps_h1D[i]->GetRMS();
-  //     xaxisevents[i] = mps_h1D[i]->GetEntries();
-  //     if(xaxis[i]>xmax)
-  //      	xmax=xaxis[i];
-  //     if(xaxis[i]<xmin)
-  //     	xmin=xaxis[i];
-  //     if(xaxisrms[i]>xmaxrms)
-  //     	xmaxrms=xaxisrms[i];
-  //     if(xaxisrms[i]<xminrms)
-  //     	xminrms=xaxisrms[i];
-  //     if(xaxisevents[i]>xmaxevent)
-  //     	xmaxevent=xaxisevents[i];
-  //     if(xaxisevents[i]<xminevent)
-  //     	xminevent=xaxisevents[i];
-  //     j++;  
-  //     if(j==16){
-  //     	j=0;
-  // 	signal_plots_canvas->Print(Form("%i_signal_mps_values.ps",runnum));
-  //     }
-  //   }
-  //   signal_plots_canvas->Print(Form("%i_signal_mps_values.ps",runnum)); 
-  //   signal_plots_canvas->Print(Form("%i_signal_mps_values.ps]",runnum));
-  // }
-  // else if ( treename == "Hel_Tree") {   
-
-  //   signal_plots_canvas->Print(Form("asym_%i_signal_hel_values.ps[",runnum));
-  //   j = 0;
-  //   for(Int_t i=0; i<ndevices1; i++){
-  //     plots_pad -> cd(j+1);
-  //     nt->Draw(
-  // 	       Form("%s.%s/%s.num_samples",
-  // 		    devicelist1[i].Data(),
-  // 		    graphinfo.Data(),
-  // 		    devicelist1[i].Data()), ""
-  // 	       );
-		     
-  //     hel_h1D[i] = (TH1D*) gPad -> GetPrimitive("htemp");
-  //     hel_h1D[i] -> SetName(
-  // 			    Form("Norm %s.%s",
-  // 				 devicelist1[i].Data(),
-  // 				 graphinfo.Data())
-  // 			    );
+    j = 0;
+    for(i=0; i<mps_device_num; i++){
+      mps_pad -> cd(j+1);
       
-  //     xaxis[i]       = hel_h1D[i]->GetMean();
-  //     xaxisrms[i]    = hel_h1D[i]->GetRMS();
-  //     xaxisevents[i] = hel_h1D[i]->GetEntries();
+      nt->Draw(Form("%s.%s/%s.num_samples",
+		    devicelist1[i].Data(),
+		    graphinfo.Data(),
+		    devicelist1[i].Data()),
+	       Form("%s.num_samples>0",devicelist1[i].Data())
+	       );
+      mps_h1D = (TH1D*) gPad -> GetPrimitive("htemp");
+      mps_h1D -> SetName(Form("%s.%s/%s.num_samples",
+			      devicelist1[i].Data(),
+			      graphinfo.Data(),
+			      devicelist1[i].Data()));
+      mps_xaxis[i]       = mps_h1D -> GetMean();
+      mps_xaxisrms[i]    = mps_h1D -> GetRMS();
+      mps_xaxisevents[i] = mps_h1D -> GetEntries();
 
-  //     if(xaxis[i]>xmax)      	    xmax=xaxis[i];
-  //     if(xaxis[i]<xmin)      	    xmin=xaxis[i];
-  //     if(xaxisrms[i]>xmaxrms) 	    xmaxrms=xaxisrms[i];
-  //     if(xaxisrms[i]<xminrms)      xminrms=xaxisrms[i];
-  //     if(xaxisevents[i]>xmaxevent) xmaxevent=xaxisevents[i];
-  //     if(xaxisevents[i]<xminevent) xminevent=xaxisevents[i];
+      if(mps_xaxis[i]>xmax)         	xmax      = mps_xaxis[i];
+      if(mps_xaxis[i]<xmin)       	xmin      = mps_xaxis[i];
+      if(mps_xaxisrms[i]>xmaxrms)     	xmaxrms   = mps_xaxisrms[i];
+      if(mps_xaxisrms[i]<xminrms)      	xminrms   = mps_xaxisrms[i];
+      if(mps_xaxisevents[i]>xmaxevent) 	xmaxevent = mps_xaxisevents[i];
+      if(mps_xaxisevents[i]<xminevent) 	xminevent = mps_xaxisevents[i];
 
-  //     j++;  
-  //     if(j==16){
-  //     	j=0;
-  // 	signal_plots_canvas->Print(Form("asym_%i_signal_hel_values.ps",runnum));
-  //     }
-  //   }
-  //   signal_plots_canvas->Print(Form("asym_%i_signal_hel_values.ps",runnum));
-  //   signal_plots_canvas->Print(Form("asym_%i_signal_hel_values.ps]",runnum));
-  // }
-  // else {
-  //   std::cout<<"Unrecognized tree name"<<std::endl;
-  //   return;
-  // }
+      j++;  
+      if(j==16){
+      	j=0;
+	mps_canvas -> Print(Form("run_%i_mps_signal.ps",runnum));
+      }
+    }
+    mps_canvas -> Print(Form("run_%i_mps_signal.ps",runnum));
+    mps_canvas -> Print(Form("run_%i_mps_signal.ps]",runnum));
+    //  mps_canvas -> Modified();
+  }
+  else {  //if (treename == "Hel_Tree") {
+    plots_num = 3;
+    TCanvas *hel_canvas[3];
+    hel_canvas_title[0] = "HEL signal plots for asym";
+    hel_canvas_title[1] = "HEL signal plots for diff";
+    hel_canvas_title[2] = "HEL signal plots for yield";
+    for(i = 0; i <plots_num; i++) {
+      hel_canvas[i] = new TCanvas(Form("hel_signal_plots_%d",i), hel_canvas_title[i],  w, h);
+      hel_canvas[i] ->SetWindowSize(w + (w - hel_canvas[i] ->GetWw()), h + (h - hel_canvas[i]->GetWh()));
+    
+      hel_canvas[i] -> cd();
+      hel_title[i] = new TPaveText(0.01,0.953,0.5,0.999);
+      hel_title[i] -> SetFillColor(11);
+      hel_title[i] -> AddText(hel_canvas_title[i]);
+      hel_title[i] -> Draw();
+      
+      hel_pad[i] = new TPad(Form("helpad%d",i),"hel signals pad",0.00,0.00,1.00,0.95);
+      hel_pad[i] -> Draw();
+      hel_pad[i] -> cd();
+      hel_pad[i] -> Divide(4,4);
+      hel_xaxis[i]       = new Double_t [hel_device_num[i]];
+      hel_xaxisrms[i]    = new Double_t [hel_device_num[i]];
+      hel_xaxisevents[i] = new Double_t [hel_device_num[i]];
+  
+      j = 0;   
 
 
+      Int_t k = 0;
+      hel_canvas[i]->Print(Form("run_%d_hel_signal_%s.ps[", runnum, hel_type[i].Data()));
+      for(k=0; k<hel_device_num[i]; k++){
+	hel_pad[i] -> cd(j+1);
+	if(i == 0 ) {
+	  gPad -> SetLogy();
+	  nt->Draw(Form("%s.%s/%s.num_samples",
+			devicelist1[i].Data(),
+			graphinfo.Data(),
+			devicelist1[i].Data()), ""
+		   );
+	}
+	else if ( i == 1 ) {
+	  gPad -> SetLogy();
+	  nt->Draw(Form("%s.%s/%s.num_samples",
+			devicelist2[i].Data(),
+			graphinfo.Data(),
+			devicelist2[i].Data()), ""
+		   );
+	}
+	else if ( i == 2 ) {
+	  nt->Draw(Form("%s.%s/%s.num_samples",
+			devicelist3[i].Data(),
+			graphinfo.Data(),
+			devicelist3[i].Data()), ""
+		   );
+	}
+       	hel_h1D[i] = (TH1D*) gPad -> GetPrimitive("htemp");
+	hel_h1D[i] -> SetName(
+			      Form("Norm %s.%s",
+				   devicelist1[i].Data(),
+				   graphinfo.Data())
+			      );
+	hel_xaxis[i][k]       = hel_h1D[i] -> GetMean();
+	hel_xaxisrms[i][k]    = hel_h1D[i] -> GetRMS();
+	hel_xaxisevents[i][k] = hel_h1D[i] -> GetEntries();
+
+	if(hel_xaxis[i][k]>xmax)         	xmax      = hel_xaxis[i][k];
+	if(hel_xaxis[i][k]<xmin)        	xmin      = hel_xaxis[i][k];
+	if(hel_xaxisrms[i][k]>xmaxrms)     	xmaxrms   = hel_xaxisrms[i][k];
+	if(hel_xaxisrms[i][k]<xminrms)      	xminrms   = hel_xaxisrms[i][k];
+	if(hel_xaxisevents[i][k]>xmaxevent) 	xmaxevent = hel_xaxisevents[i][k];
+	if(hel_xaxisevents[i][k]<xminevent) 	xminevent = hel_xaxisevents[i][k];
+	j++;  
+	if(j==16){
+	  j=0;
+	  hel_canvas[i]->Print(Form("run_%d_hel_signal_%s.ps", runnum, hel_type[i].Data()));
+	}
+      }
+      hel_canvas[i]->Print(Form("run_%d_hel_signal_%s.ps", runnum, hel_type[i].Data()));
+      hel_canvas[i]->Print(Form("run_%d_hel_signal_%s.ps]", runnum, hel_type[i].Data()));
+    }
+  }
+  //  else 
+  //    return;
+
+  
   
   //   Int_t i = 0;
 
