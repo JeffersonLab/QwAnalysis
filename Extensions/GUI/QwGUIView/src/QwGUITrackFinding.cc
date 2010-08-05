@@ -209,7 +209,7 @@ void QwGUITrackFinding::MakeLayout()
 
   dMenuBar = new TGMenuBar(this, 1, 1, kHorizontalFrame);
   dMenuBar->AddPopup("&Scale", dMenuPlot1, dMenuBarItemLayout);
-  dMenuBar->AddPopup("&Plane", dMenuPlot2, dMenuBarItemLayout);
+  dMenuBar->AddPopup("&Direction", dMenuPlot2, dMenuBarItemLayout);
 
   dTabFrameVert->AddFrame(dMenuBar, dMenuBarLayout);
   dMenuPlot1->Associate(this);
@@ -281,6 +281,9 @@ std::cout << "Opened" << std::endl;
             TH1D* chi_TLr3 = 	new TH1D("Chi2 (TLr3)","TreeLines Chi2 (Region 3)",100,0.0,40.0);
             TH1D* chi_TLr3u = 	new TH1D("Chi2 (TLr3u)","TreeLines Chi2 (Region 3, U Planes)",100,0.0,40.0);
             TH1D* chi_TLr3v = 	new TH1D("Chi2 (TLr3v)","TreeLines Chi2 (Region 3, V Planes)",100,0.0,40.0);
+            TH1D* chi_TLr3less0 = 	new TH1D("Chi2 (TLr3less0)","TreeLines Chi2 (Region 3)",100,0.0,40.0);
+            TH1D* chi_TLr3uless0 = 	new TH1D("Chi2 (TLr3uless0)","TreeLines Chi2 (Region 3, U Planes)",100,0.0,40.0);
+            TH1D* chi_TLr3vless0 = 	new TH1D("Chi2 (TLr3vless0)","TreeLines Chi2 (Region 3, V Planes)",100,0.0,40.0);
 
             TH1D* resid_TLr2 = 	new TH1D("Residual (TLr2)","TreeLines Residual (Region 2)",100,0.0,2.0);
             TH1D* resid_TLr2x = new TH1D("Residual (TLr2x)","TreeLines Residual (Region 2, X Planes)",100,0.0,2.0);
@@ -289,6 +292,9 @@ std::cout << "Opened" << std::endl;
             TH1D* resid_TLr3 = 	new TH1D("Residual (TLr3)","TreeLines Residual (Region 3)",100,0.0,2.0);
             TH1D* resid_TLr3u = new TH1D("Residual (TLr3u)","TreeLines Residual (Region 3, U Planes)",100,0.0,2.0);
             TH1D* resid_TLr3v = new TH1D("Residual (TLr3v)","TreeLines Residual (Region 3, V Planes)",100,0.0,2.0);
+            TH1D* resid_TLr3less0 = 	new TH1D("Residual (TLr3less0)","TreeLines Residual (Region 3)",100,0.0,2.0);
+            TH1D* resid_TLr3uless0 = 	new TH1D("Residual (TLr3uless0)","TreeLines Residual (Region 3, U Planes)",100,0.0,2.0);
+            TH1D* resid_TLr3vless0 = 	new TH1D("Residual (TLr3vless0)","TreeLines Residual (Region 3, V Planes)",100,0.0,2.0);
 
             TH1D* offset_TLr2 = new TH1D("Offset (TLr2)","TreeLines Offset (Region 2)",100,-10.0,90.0);
             TH1D* offset_TLr2x= new TH1D("Offset (TLr2x)","TreeLines Offset (Region 2, X Planes)",100,-10.0,90.0);
@@ -297,6 +303,9 @@ std::cout << "Opened" << std::endl;
             TH1D* offset_TLr3 =	new TH1D("Offset (TLr3)","TreeLines Offset (Region 3)",100,-150.0,60.0);
             TH1D* offset_TLr3u= new TH1D("Offset (TLr3u)","TreeLines Offset (Region 3, U Planes)",100,-150.0,60.0);
             TH1D* offset_TLr3v= new TH1D("Offset (TLr3v)","TreeLines Offset (Region 3, V Planes)",100,-150.0,60.0);
+            TH1D* offset_TLr3less0 =	new TH1D("Offset (TLr3less0)","TreeLines Offset (Region 3)",100,-150.0,60.0);
+            TH1D* offset_TLr3uless0= 	new TH1D("Offset (TLr3uless0)","TreeLines Offset (Region 3, U Planes)",100,-150.0,60.0);
+            TH1D* offset_TLr3vless0= 	new TH1D("Offset (TLr3vless0)","TreeLines Offset (Region 3, V Planes)",100,-150.0,60.0);
 
             TH1D* slope_TLr2 = 	new TH1D("Slope (TLr2)","TreeLines Slope (Region 2)",100,-0.04,0.19);
             TH1D* slope_TLr2x = new TH1D("Slope (TLr2x)","TreeLines Slope (Region 2, X Planes)",100,-0.04,0.19);
@@ -305,20 +314,23 @@ std::cout << "Opened" << std::endl;
             TH1D* slope_TLr3 = 	new TH1D("Slope (TLr3)","TreeLines Slope (Region 3)",100,0.4,1.5);
             TH1D* slope_TLr3u = new TH1D("Slope (TLr3u)","TreeLines Slope (Region 3, U Planes)",100,0.4,1.5);
             TH1D* slope_TLr3v = new TH1D("Slope (TLr3v)","TreeLines Slope (Region 3, V Planes)",100,0.4,1.5);
+            TH1D* slope_TLr3less0 = 	new TH1D("Slope (TLr3less0)","TreeLines Slope (Region 3)",100,0.4,1.5);
+            TH1D* slope_TLr3uless0 = 	new TH1D("Slope (TLr3uless0)","TreeLines Slope (Region 3, U Planes)",100,0.4,1.5);
+            TH1D* slope_TLr3vless0 = 	new TH1D("Slope (TLr3vless0)","TreeLines Slope (Region 3, V Planes)",100,0.4,1.5);
 
 /////// Create histos for PartialTracks //////////// ranges not set yet
-            TH1D* chi_PTr2 =	new TH1D("Chi2 (PTr2)","PartialTracks Chi2 (Region 2)",100,0.0,2000.0);
-            TH1D* chi_PTr3 = 	new TH1D("Chi2 (PTr3)","PartialTracks Chi2 (Region 3)",100,0.0,40.0);
+            TH1D* chi_PTr2 =	new TH1D("Chi2 (PTr2)","PartialTracks Chi2 (Region 2)",100,0.0,2100.0);
+            TH1D* chi_PTr3 = 	new TH1D("Chi2 (PTr3)","PartialTracks Chi2 (Region 3)",100,0.0,2100.0);
             TH1D* resid_PTr2 = 	new TH1D("Residual (PTr2)","PartialTracks Residual (Region 2)",100,0.0,0.08);
             TH1D* resid_PTr3 = 	new TH1D("Residual (PTr3)","PartialTracks Residual (Region 3)",100,0.0,0.08);
-            TH1D* offsetX_PTr2= new TH1D("OffsetX (PTr2)","PartialTracks OffsetX (Region 2)",100,-10.0,90.0);
-            TH1D* offsetX_PTr3= new TH1D("OffsetX (PTr3)","PartialTracks OffsetX (Region 3)",100,-10.0,90.0);
-            TH1D* offsetY_PTr2= new TH1D("OffsetY (PTr2)","PartialTracks OffsetY (Region 2)",100,-10.0,90.0);
-            TH1D* offsetY_PTr3= new TH1D("OffsetY (PTr3)","PartialTracks OffsetY (Region 3)",100,-10.0,90.0);
-            TH1D* slopeX_PTr2 = new TH1D("SlopeX (PTr2)","PartialTracks SlopeX (Region 2)",100,-0.04,0.19);
-            TH1D* slopeX_PTr3 = new TH1D("SlopeX (PTr3)","PartialTracks SlopeX (Region 3)",100,-0.04,0.19);
-            TH1D* slopeY_PTr2 = new TH1D("SlopeY (PTr2)","PartialTracks SlopeY (Region 2)",100,-0.04,0.19);
-            TH1D* slopeY_PTr3 = new TH1D("SlopeY (PTr3)","PartialTracks SlopeY (Region 3)",100,-0.04,0.19);
+            TH1D* offsetX_PTr2= new TH1D("OffsetX (PTr2)","PartialTracks OffsetX (Region 2)",100,-100.0,100.0);
+            TH1D* offsetX_PTr3= new TH1D("OffsetX (PTr3)","PartialTracks OffsetX (Region 3)",100,-250000.0,250000.0);
+            TH1D* offsetY_PTr2= new TH1D("OffsetY (PTr2)","PartialTracks OffsetY (Region 2)",100,-100.0,100.0);
+            TH1D* offsetY_PTr3= new TH1D("OffsetY (PTr3)","PartialTracks OffsetY (Region 3)",100,-10000000.0,2000000.0);
+            TH1D* slopeX_PTr2 = new TH1D("SlopeX (PTr2)","PartialTracks SlopeX (Region 2)",100,-0.3,0.3);
+            TH1D* slopeX_PTr3 = new TH1D("SlopeX (PTr3)","PartialTracks SlopeX (Region 3)",100,-600.0,500.0);
+            TH1D* slopeY_PTr2 = new TH1D("SlopeY (PTr2)","PartialTracks SlopeY (Region 2)",100,-0.3,0.3);
+            TH1D* slopeY_PTr3 = new TH1D("SlopeY (PTr3)","PartialTracks SlopeY (Region 3)",100,-5000.0,25000.0);
 
 ////////// Color and format histos ////////////////////
 	    chi_TLr2	->	SetFillColor(kBlue);
@@ -455,11 +467,23 @@ std::cout << "Opened" << std::endl;
                   		offset_TLr3->	Fill(treeline->GetOffset());
                   		slope_TLr3->	Fill(treeline->GetSlope());
 //				std::cout << "Filled w/ chi" << std::endl;
+				if (treeline->GetPlane()>0){
+					chi_TLr3less0->		Fill(treeline->GetChi());
+					resid_TLr3less0->	Fill(treeline->GetAverageResidual());
+					offset_TLr3less0->	Fill(treeline->GetOffset());
+					slope_TLr3less0->	Fill(treeline->GetSlope());
+				}
 				if (treeline->GetDirection()==3){
 					chi_TLr3u->	Fill(treeline->GetChi());
 					resid_TLr3u->	Fill(treeline->GetAverageResidual());
 					offset_TLr3u->	Fill(treeline->GetOffset());
 					slope_TLr3u->	Fill(treeline->GetSlope());
+						if (treeline->GetPlane()>0){
+						    chi_TLr3uless0->	Fill(treeline->GetChi());
+						    resid_TLr3uless0->	Fill(treeline->GetAverageResidual());
+						    offset_TLr3uless0->	Fill(treeline->GetOffset());
+						    slope_TLr3uless0->	Fill(treeline->GetSlope());
+						}
 //					std::cout << "Direction 3u availiable" << std::endl;
 				}
 				if (treeline->GetDirection()==4){
@@ -467,6 +491,12 @@ std::cout << "Opened" << std::endl;
 					resid_TLr3v->	Fill(treeline->GetAverageResidual());
 					offset_TLr3v->	Fill(treeline->GetOffset());
 					slope_TLr3v->	Fill(treeline->GetSlope());
+						if (treeline->GetPlane()>0){
+						    chi_TLr3vless0->	Fill(treeline->GetChi());
+						    resid_TLr3vless0->	Fill(treeline->GetAverageResidual());
+						    offset_TLr3vless0->	Fill(treeline->GetOffset());
+						    slope_TLr3vless0->	Fill(treeline->GetSlope());
+						}
 //					std::cout << "Direction 3v availiable" << std::endl;
 				}
                 	}
@@ -489,15 +519,38 @@ std::cout << "Opened" << std::endl;
 		  TIterator* iteratorPart = event->GetListOfPartialTracks()->MakeIterator();
 		  QwPartialTrack* partialtrack = 0;
 		  while ((partialtrack = (QwPartialTrack*) iteratorPart->Next())){
-// 		  QwTrackingTreeLine* partialtrack = 0;
-// 		  while ((partialtrack = (QwTrackingTreeLine*) iteratorPart->Next())){
-		    std::cout << j << std::endl;
-		    std::cout << *partialtrack << std::endl;
-		    	if (partialtrack->GetRegion() == kRegionID2) {
-				std::cout << "Partial Region 2 availiable" << std::endl;
+//		    std::cout << j << std::endl;
+//		    std::cout << *partialtrack << std::endl;
+			switch (partialtrack->GetRegion()){
+		    	    case kRegionIDNull:
+				break;
+		    	    case kRegionID1:
+				break;
+		    	    case kRegionID2:
+//				std::cout << "Partial Region 2 availiable" << std::endl;
                   		chi_PTr2->Fill(partialtrack->GetChiWeight());
-				std::cout << "Part Filled w/ chi" << std::endl;
-                	}
+                  		resid_PTr2->Fill(partialtrack->GetAverageResidual());
+                  		offsetX_PTr2->Fill(partialtrack->fOffsetX);
+                  		offsetY_PTr2->Fill(partialtrack->fOffsetY);
+                  		slopeX_PTr2->Fill(partialtrack->fSlopeX);
+                  		slopeY_PTr2->Fill(partialtrack->fSlopeY);
+                		break;
+		    	    case kRegionID3:
+//				std::cout << "Partial Region 3 availiable" << std::endl;
+                  		chi_PTr3->Fill(partialtrack->GetChiWeight());
+                  		resid_PTr3->Fill(partialtrack->GetAverageResidual());
+                  		offsetX_PTr3->Fill(partialtrack->fOffsetX);
+                  		offsetY_PTr3->Fill(partialtrack->fOffsetY);
+                  		slopeX_PTr3->Fill(partialtrack->fSlopeX);
+                  		slopeY_PTr3->Fill(partialtrack->fSlopeY);
+				break;
+		    	    case kRegionIDTrig:
+				break;
+		    	    case kRegionIDCer:
+				break;
+		    	    case kRegionIDScanner:
+				break;
+			}
 		  }
 		  delete iteratorPart;
 
@@ -768,65 +821,59 @@ std::cout << "Opened" << std::endl;
 //  Add Histogram to HistArray
 
 //	   HistArray.Add(fChiR2);	//0
-// 	   HistArray.Add(fChiR3);
-//  	   HistArray.Add(Residuals);
-//            HistArray.Add(offset);
-// 	   HistArray.Add(offsetR2);
-// 	   HistArray.Add(offsetR3);	//5
-// 	   HistArray.Add(slope);
-// 	   HistArray.Add(slopeR2);
-// 	   HistArray.Add(slopeR3);
-// 
-// 	   HistArray.Add(fpChiR2);
-// 	   HistArray.Add(fpChiR3);	//10
-// 	   HistArray.Add(poffsetXR2);
-// 	   HistArray.Add(poffsetXR3);
-// 	   HistArray.Add(poffsetYR2);
-// 	   HistArray.Add(poffsetYR3);
-// 	   HistArray.Add(pSlopeXR2);	//15
-// 	   HistArray.Add(pSlopeXR3);
-// 	   HistArray.Add(pSlopeYR2);
-// 	   HistArray.Add(pSlopeYR3);
-//  	   HistArray.Add(pResiduals);
-// 
-// 	   HistArray.Add(slopeR2X);	//20
-// 	   HistArray.Add(slopeR2U);
-// 	   HistArray.Add(slopeR2V);
-// 	   HistArray.Add(slopeR3U);
-// 	   HistArray.Add(slopeR3V);
-// 
-// 	   HistArray.Add(fChiR2X);	//25
+// 	   HistArray.Add(fChiR2X);	
 // 	   HistArray.Add(fChiR2U);
 // 	   HistArray.Add(fChiR2V);
+// 	   HistArray.Add(fChiR3);	//4
 // 	   HistArray.Add(fChiR3U);
 // 	   HistArray.Add(fChiR3V);
-// 
-// 	   HistArray.Add(offsetR2X);	//30
-// 	   HistArray.Add(offsetR2U);
-// 	   HistArray.Add(offsetR2V);
-// 	   HistArray.Add(offsetR3U);
-// 	   HistArray.Add(offsetR3V);
-// 
-// 
-//  	   HistArray.Add(ResidualsR2);	//35
-//  	   HistArray.Add(ResidualsR3);
+//
+//  	   HistArray.Add(ResidualsR2);	//7
 //  	   HistArray.Add(ResidualsR2X);
 //  	   HistArray.Add(ResidualsR2U);
 //  	   HistArray.Add(ResidualsR2V);
-//  	   HistArray.Add(ResidualsR3U);	//40
+//  	   HistArray.Add(ResidualsR3);	//11
+//  	   HistArray.Add(ResidualsR3U);	
 //  	   HistArray.Add(ResidualsR3V);
-//  	   HistArray.Add(pResidualsR2);	
+//
+// 	   HistArray.Add(offsetR2);	//14
+// 	   HistArray.Add(offsetR2X);	
+// 	   HistArray.Add(offsetR2U);
+// 	   HistArray.Add(offsetR2V);
+// 	   HistArray.Add(offsetR3);	//18
+// 	   HistArray.Add(offsetR3U);
+// 	   HistArray.Add(offsetR3V);
+//
+// 	   HistArray.Add(slopeR2);	//21
+// 	   HistArray.Add(slopeR2X);	
+// 	   HistArray.Add(slopeR2U);
+// 	   HistArray.Add(slopeR2V); 
+// 	   HistArray.Add(slopeR3);	//25
+// 	   HistArray.Add(slopeR3U);
+// 	   HistArray.Add(slopeR3V);
+//
+// 	   HistArray.Add(fpChiR2);	//28
+// 	   HistArray.Add(fpChiR3);
+//  	   HistArray.Add(pResidualsR2);	//30
 //  	   HistArray.Add(pResidualsR3);
+// 	   HistArray.Add(poffsetXR2);	//32
+// 	   HistArray.Add(poffsetXR3);
+// 	   HistArray.Add(poffsetYR2);	//34
+// 	   HistArray.Add(poffsetYR3);
+// 	   HistArray.Add(pSlopeXR2);	//36
+// 	   HistArray.Add(pSlopeXR3);
+// 	   HistArray.Add(pSlopeYR2);	//38
+// 	   HistArray.Add(pSlopeYR3);
+// 
 // 
 //            HistArray.Add(hdist);	
 // 
-//            HistArray.Add(hdist);
 
 //////end Fill HillArray with Draw method////
 // 	   HistArray.Add(hst); 		//45
 
 //////// Add to HistArray (using histo from loop method) //////////////
-	//TreeLines
+//	//TreeLines
  	   HistArray.Add(chi_TLr2);	//0
  	   HistArray.Add(chi_TLr2x);
  	   HistArray.Add(chi_TLr2u);	
