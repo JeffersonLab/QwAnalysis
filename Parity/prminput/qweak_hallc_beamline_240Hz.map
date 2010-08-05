@@ -129,10 +129,10 @@ sample_size==2000
    VQWK, 11, 1,  bpmstripline,  QWK_3H09AXM
    VQWK, 11, 2,  bpmstripline,  QWK_3H09AYP
    VQWK, 11, 3,  bpmstripline,  QWK_3H09AYM
-   VQWK, 11, 4,  bcm,  QWK_3H04
-   VQWK, 11, 5,  bcm,  QWK_3H07
-   VQWK, 11, 6,  bcm,  QWK_3H3G0Z
-   VQWK, 11, 7,  bcm,  QWK_3HCAV
+   VQWK, 11, 4,  bcm,  QWK_BCM6
+   VQWK, 11, 5,  bcm,  QWK_BCM5
+   VQWK, 11, 6,  bcm,  QWK_BCM2
+   VQWK, 11, 7,  bcm,  QWK_BCM1
 
 !**************************************************************************
 ! HALL C PHASE MONITOR
