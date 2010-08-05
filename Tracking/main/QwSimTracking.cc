@@ -59,7 +59,7 @@ void PrintInfo(TStopwatch& timer)
 
 
 // Debug level
-static const bool kDebug = true;
+static const bool kDebug = false;
 // ROOT file output
 static const bool kTree = true;
 static const bool kHisto = true;
@@ -131,21 +131,21 @@ int main (int argc, char* argv[])
 
     // Open ROOT file
     TFile* file = 0;
-    TTree* tree_hits = 0;
-    TTree* tree_events = 0;
+    TTree* hit_tree = 0;
+    TTree* event_tree = 0;
     QwEvent* event = new QwEvent();
     QwHitRootContainer* roothitlist = new QwHitRootContainer();
     if (kHisto || kTree) {
-      file = new TFile(Form(getenv_safe_TString("QWSCRATCH") + "/rootfiles/QwSim_%d.root", treebuffer->GetRunNumber()),
-                       "RECREATE",
+      file = new TFile(Form(getenv_safe_TString("QW_ROOTFILES") + "/QwSim_%d.root",
+                       treebuffer->GetRunNumber()), "RECREATE",
                        "QWeak ROOT file with simulated event");
       file->cd();
     }
     if (kTree) {
-      tree_hits = new TTree("hit_tree", "QwTracking Hit-based Tree");
-      tree_hits->Branch("hits", "QwHitRootContainer", &roothitlist);
-      tree_events = new TTree("event_tree", "QwTracking Event-based Tree");
-      tree_events->Branch("events", "QwEvent", &event);
+      hit_tree = new TTree("hit_tree", "QwTracking Hit-based Tree");
+      hit_tree->Branch("hits", "QwHitRootContainer", &roothitlist);
+      event_tree = new TTree("event_tree", "QwTracking Event-based Tree");
+      event_tree->Branch("events", "QwEvent", &event);
     }
 
     /// Start timer
@@ -179,8 +179,8 @@ int main (int argc, char* argv[])
 
       // Fill the tree
       if (kTree) {
-        tree_hits->Fill();
-        tree_events->Fill();
+        hit_tree->Fill();
+        event_tree->Fill();
       }
 
 

@@ -59,6 +59,20 @@ QwEvent::QwEvent()
   fQwTracks = gQwTracks;
   fNQwTracks = 0;
 
+  // Loop over all pointer objects
+  for (int i = 0; i < kNumPackages; i++) {
+    for (int j = 0; j < kNumRegions; j++) {
+      for (int k = 0; k < kNumTypes; k++) {
+        // Null the partial track pointers
+         parttrack[i][j][k] = 0;
+        // Null the treeline pointers
+        for (int l = 0; l < kNumDirections; l++) {
+          treeline[i][j][k][l] = 0;
+        } // end of loop over directions
+      } // end of loop over types
+    } // end of loop over regions
+  } // end of loop over packages
+
   // Clear the event
   Clear();
 }
@@ -90,7 +104,6 @@ QwEvent::~QwEvent()
             tl = tl_next;
           }
         } // end of loop over directions
-
       } // end of loop over types
     } // end of loop over regions
   } // end of loop over packages

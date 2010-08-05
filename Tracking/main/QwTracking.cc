@@ -151,7 +151,7 @@ Int_t main(Int_t argc, Char_t* argv[])
        rootfile=0;
     }
 
-    rootfile = new TFile(Form(getenv_safe_TString("QWSCRATCH") + "/rootfiles/Qweak_%s.root",
+    rootfile = new TFile(Form(getenv_safe_TString("QW_ROOTFILES") + "/Qweak_%s.root",
                         eventbuffer.GetRunLabel().Data()), "RECREATE",
                         "QWeak ROOT file with real events");
     //   std::auto_ptr<TFile> rootfile (new TFile(Form(getenv_safe_TString("QWSCRATCH") + "/rootfiles/Qweak_%d.root", run),
@@ -170,24 +170,25 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     // Open file
 
-    TTree* tree = 0;
-    QwEvent* event = 0;
-    QwHitRootContainer* hitlist_root = 0;
+    TTree* hit_tree = 0;
+    TTree* event_tree = 0;
+    QwEvent* event = new QwEvent();
+    QwHitRootContainer* hitlist_root = new QwHitRootContainer();
     std::vector<double> tracking_vector, parity_vector;
 
     if (kTree) {
        rootfile->cd(); // back to the top directory
-       tree = new TTree("tree", "Hit list");
-       hitlist_root = new QwHitRootContainer();
-       tree->Branch("hits", "QwHitRootContainer", &hitlist_root);
-       tree->Branch("events", "QwEvent", &event);
+       hit_tree = new TTree("hit_tree", "QwTracking Hit-based Tree");
+       hit_tree->Branch("hits", "QwHitRootContainer", &hitlist_root);
+       event_tree = new TTree("event_tree", "QwTracking Event-based Tree");
+       event_tree->Branch("events", "QwEvent", &event);
 
        // Create the branches and tree vector
        TString prefix = "";
        tracking_vector.reserve(6000);
-       tracking_detectors.ConstructBranchAndVector(tree, prefix, tracking_vector);
+       tracking_detectors.ConstructBranchAndVector(event_tree, prefix, tracking_vector);
        parity_vector.reserve(6000);
-       parity_detectors.ConstructBranchAndVector(tree, prefix, parity_vector);
+       parity_detectors.ConstructBranchAndVector(event_tree, prefix, parity_vector);
     }
 
     if (kHisto) {
@@ -277,7 +278,10 @@ Int_t main(Int_t argc, Char_t* argv[])
       }
 
       // Save the hitlist to the tree
-      if (kTree) tree->Fill();
+      if (kTree) {
+        hit_tree->Fill();
+        event_tree->Fill();
+      }
 
       // Delete objects
       if (hitlist) delete hitlist; hitlist = 0;
