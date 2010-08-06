@@ -181,6 +181,7 @@ Int_t main(Int_t argc, Char_t* argv[])
        hit_tree = new TTree("hit_tree", "QwTracking Hit-based Tree");
        hit_tree->Branch("hits", "QwHitRootContainer", &hitlist_root);
        event_tree = new TTree("event_tree", "QwTracking Event-based Tree");
+       event_tree->Branch("hits", "QwHitRootContainer", &hitlist_root);
        event_tree->Branch("events", "QwEvent", &event);
 
        // Create the branches and tree vector
