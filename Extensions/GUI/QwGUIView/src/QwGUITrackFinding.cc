@@ -246,11 +246,11 @@ void QwGUITrackFinding::OnObjClose(char *obj)
 
 void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
 {
-std::cout << "Opened" << std::endl;
+//std::cout << "Opened" << std::endl;
   if (!cont) return;
 
   if (!strcmp(cont->GetDataName(),"ROOT") && dROOTCont) {
-    TObject* obj = dROOTCont->ReadData(fRootTrees.at(1));
+    TObject* obj = dROOTCont->ReadData("event_tree"); //for run 710, use "tree"  8/5/10
 
     // Note: fRootTrees[0] = hit_tree, fRootTrees[1] = event_tree
 
@@ -258,11 +258,11 @@ std::cout << "Opened" << std::endl;
        if (obj->InheritsFrom("TTree")) {
          TTree* tree = (TTree*) obj->Clone();
 
-         if (tree -> FindBranch("events")) //if (tree -> FindBranch("events"))
+         if (tree -> FindBranch("events")) //else: couldn't find events branch
            {
 
             Int_t entries = tree->GetEntries();
-	    std::cout<<"Entries in tree: "<< entries << std::endl;
+//	    std::cout<<"Entries in tree: "<< entries << std::endl;
 
             //          QwHitRootContainer* roothitlist = 0;
             QwEvent* event = 0;
@@ -270,17 +270,15 @@ std::cout << "Opened" << std::endl;
 //          tree->SetBranchAddress("hits", &roothitlist);
            tree->SetBranchAddress("events", &event); 
 
-	    //          tree->SetBranchAddress("hits", &roothitlist);
-            tree->SetBranchAddress("events", &event); //there is no events is hit_tree 6/30/10
 
 /////// Create histos for TreeLines ////////////
             TH1D* chi_TLr2 = 	new TH1D("Chi2 (TLr2)","TreeLines Chi2 (Region 2)",100,0.0,40.0);
             TH1D* chi_TLr2x = 	new TH1D("Chi2 (TLr2x)","TreeLines Chi2 (Region 2, X Planes)",100,0.0,40.0);
             TH1D* chi_TLr2u = 	new TH1D("Chi2 (TLr2u)", "TreeLines Chi2 (Region 2, U Planes)",100,0.0,40.0);
             TH1D* chi_TLr2v = 	new TH1D("Chi2 (TLr2v)","TreeLines Chi2 (Region 2, V Planes)",100,0.0,40.0);
-            TH1D* chi_TLr3 = 	new TH1D("Chi2 (TLr3)","TreeLines Chi2 (Region 3)",100,0.0,40.0);
-            TH1D* chi_TLr3u = 	new TH1D("Chi2 (TLr3u)","TreeLines Chi2 (Region 3, U Planes)",100,0.0,40.0);
-            TH1D* chi_TLr3v = 	new TH1D("Chi2 (TLr3v)","TreeLines Chi2 (Region 3, V Planes)",100,0.0,40.0);
+            TH1D* chi_TLr3_0 = 		new TH1D("Chi2 (TLr3_0)","TreeLines Chi2 (Region 3)",100,0.0,40.0);
+            TH1D* chi_TLr3u_0 = 	new TH1D("Chi2 (TLr3u_0)","TreeLines Chi2 (Region 3, U Planes)",100,0.0,40.0);
+            TH1D* chi_TLr3v_0 = 	new TH1D("Chi2 (TLr3v_0)","TreeLines Chi2 (Region 3, V Planes)",100,0.0,40.0);
             TH1D* chi_TLr3less0 = 	new TH1D("Chi2 (TLr3less0)","TreeLines Chi2 (Region 3)",100,0.0,40.0);
             TH1D* chi_TLr3uless0 = 	new TH1D("Chi2 (TLr3uless0)","TreeLines Chi2 (Region 3, U Planes)",100,0.0,40.0);
             TH1D* chi_TLr3vless0 = 	new TH1D("Chi2 (TLr3vless0)","TreeLines Chi2 (Region 3, V Planes)",100,0.0,40.0);
@@ -289,9 +287,9 @@ std::cout << "Opened" << std::endl;
             TH1D* resid_TLr2x = new TH1D("Residual (TLr2x)","TreeLines Residual (Region 2, X Planes)",100,0.0,2.0);
             TH1D* resid_TLr2u = new TH1D("Residual (TLr2u)","TreeLines Residual (Region 2, U Planes)",100,0.0,2.0);
             TH1D* resid_TLr2v = new TH1D("Residual (TLr2v)","TreeLines Residual (Region 2, V Planes)",100,0.0,2.0);
-            TH1D* resid_TLr3 = 	new TH1D("Residual (TLr3)","TreeLines Residual (Region 3)",100,0.0,2.0);
-            TH1D* resid_TLr3u = new TH1D("Residual (TLr3u)","TreeLines Residual (Region 3, U Planes)",100,0.0,2.0);
-            TH1D* resid_TLr3v = new TH1D("Residual (TLr3v)","TreeLines Residual (Region 3, V Planes)",100,0.0,2.0);
+            TH1D* resid_TLr3_0 = 	new TH1D("Residual (TLr3_0)","TreeLines Residual (Region 3)",100,0.0,2.0);
+            TH1D* resid_TLr3u_0 = 	new TH1D("Residual (TLr3u_0)","TreeLines Residual (Region 3, U Planes)",100,0.0,2.0);
+            TH1D* resid_TLr3v_0 = 	new TH1D("Residual (TLr3v_0)","TreeLines Residual (Region 3, V Planes)",100,0.0,2.0);
             TH1D* resid_TLr3less0 = 	new TH1D("Residual (TLr3less0)","TreeLines Residual (Region 3)",100,0.0,2.0);
             TH1D* resid_TLr3uless0 = 	new TH1D("Residual (TLr3uless0)","TreeLines Residual (Region 3, U Planes)",100,0.0,2.0);
             TH1D* resid_TLr3vless0 = 	new TH1D("Residual (TLr3vless0)","TreeLines Residual (Region 3, V Planes)",100,0.0,2.0);
@@ -300,9 +298,9 @@ std::cout << "Opened" << std::endl;
             TH1D* offset_TLr2x= new TH1D("Offset (TLr2x)","TreeLines Offset (Region 2, X Planes)",100,-10.0,90.0);
             TH1D* offset_TLr2u= new TH1D("Offset (TLr2u)","TreeLines Offset (Region 2, U Planes)",100,-10.0,90.0);
             TH1D* offset_TLr2v= new TH1D("Offset (TLr2v)","TreeLines Offset (Region 2, V Planes)",100,-10.0,90.0);
-            TH1D* offset_TLr3 =	new TH1D("Offset (TLr3)","TreeLines Offset (Region 3)",100,-150.0,60.0);
-            TH1D* offset_TLr3u= new TH1D("Offset (TLr3u)","TreeLines Offset (Region 3, U Planes)",100,-150.0,60.0);
-            TH1D* offset_TLr3v= new TH1D("Offset (TLr3v)","TreeLines Offset (Region 3, V Planes)",100,-150.0,60.0);
+            TH1D* offset_TLr3_0 =	new TH1D("Offset (TLr3_0)","TreeLines Offset (Region 3)",100,-150.0,60.0);
+            TH1D* offset_TLr3u_0= 	new TH1D("Offset (TLr3u_0)","TreeLines Offset (Region 3, U Planes)",100,-150.0,60.0);
+            TH1D* offset_TLr3v_0= 	new TH1D("Offset (TLr3v_0)","TreeLines Offset (Region 3, V Planes)",100,-150.0,60.0);
             TH1D* offset_TLr3less0 =	new TH1D("Offset (TLr3less0)","TreeLines Offset (Region 3)",100,-150.0,60.0);
             TH1D* offset_TLr3uless0= 	new TH1D("Offset (TLr3uless0)","TreeLines Offset (Region 3, U Planes)",100,-150.0,60.0);
             TH1D* offset_TLr3vless0= 	new TH1D("Offset (TLr3vless0)","TreeLines Offset (Region 3, V Planes)",100,-150.0,60.0);
@@ -311,9 +309,9 @@ std::cout << "Opened" << std::endl;
             TH1D* slope_TLr2x = new TH1D("Slope (TLr2x)","TreeLines Slope (Region 2, X Planes)",100,-0.04,0.19);
             TH1D* slope_TLr2u = new TH1D("Slope (TLr2u)","TreeLines Slope (Region 2, U Planes)",100,-0.04,0.19);
             TH1D* slope_TLr2v = new TH1D("Slope (TLr2v)","TreeLines Slope (Region 2, V Planes)",100,-0.04,0.19);
-            TH1D* slope_TLr3 = 	new TH1D("Slope (TLr3)","TreeLines Slope (Region 3)",100,0.4,1.5);
-            TH1D* slope_TLr3u = new TH1D("Slope (TLr3u)","TreeLines Slope (Region 3, U Planes)",100,0.4,1.5);
-            TH1D* slope_TLr3v = new TH1D("Slope (TLr3v)","TreeLines Slope (Region 3, V Planes)",100,0.4,1.5);
+            TH1D* slope_TLr3_0 = 	new TH1D("Slope (TLr3_0)","TreeLines Slope (Region 3)",100,0.4,1.5);
+            TH1D* slope_TLr3u_0 = 	new TH1D("Slope (TLr3u_0)","TreeLines Slope (Region 3, U Planes)",100,0.4,1.5);
+            TH1D* slope_TLr3v_0 = 	new TH1D("Slope (TLr3v_0)","TreeLines Slope (Region 3, V Planes)",100,0.4,1.5);
             TH1D* slope_TLr3less0 = 	new TH1D("Slope (TLr3less0)","TreeLines Slope (Region 3)",100,0.4,1.5);
             TH1D* slope_TLr3uless0 = 	new TH1D("Slope (TLr3uless0)","TreeLines Slope (Region 3, U Planes)",100,0.4,1.5);
             TH1D* slope_TLr3vless0 = 	new TH1D("Slope (TLr3vless0)","TreeLines Slope (Region 3, V Planes)",100,0.4,1.5);
@@ -337,30 +335,42 @@ std::cout << "Opened" << std::endl;
 	    chi_TLr2x	->	SetFillColor(kBlue);
 	    chi_TLr2u	->	SetFillColor(kBlue);
 	    chi_TLr2v	->	SetFillColor(kBlue);
-	    chi_TLr3	->	SetFillColor(kGreen);
-	    chi_TLr3u	->	SetFillColor(kGreen);
-	    chi_TLr3v	->	SetFillColor(kGreen);
+	    chi_TLr3_0	->	SetFillColor(kGreen);
+	    chi_TLr3u_0	->	SetFillColor(kGreen);
+	    chi_TLr3v_0	->	SetFillColor(kGreen);
+	    chi_TLr3less0->	SetFillColor(kGreen);
+	    chi_TLr3uless0->	SetFillColor(kGreen);
+	    chi_TLr3vless0->	SetFillColor(kGreen);
 	    resid_TLr2	->	SetFillColor(kBlue);
 	    resid_TLr2x	->	SetFillColor(kBlue);
 	    resid_TLr2u	->	SetFillColor(kBlue);
 	    resid_TLr2v	->	SetFillColor(kBlue);
-	    resid_TLr3	->	SetFillColor(kGreen);
-	    resid_TLr3u	->	SetFillColor(kGreen);
-	    resid_TLr3v	->	SetFillColor(kGreen);
+	    resid_TLr3_0->	SetFillColor(kGreen);
+	    resid_TLr3u_0->	SetFillColor(kGreen);
+	    resid_TLr3v_0->	SetFillColor(kGreen);
+	    resid_TLr3less0->	SetFillColor(kGreen);
+	    resid_TLr3uless0->	SetFillColor(kGreen);
+	    resid_TLr3vless0->	SetFillColor(kGreen);
 	    offset_TLr2	->	SetFillColor(kBlue);
 	    offset_TLr2x->	SetFillColor(kBlue);
 	    offset_TLr2u->	SetFillColor(kBlue);
 	    offset_TLr2v->	SetFillColor(kBlue);
-	    offset_TLr3	->	SetFillColor(kGreen);
-	    offset_TLr3u->	SetFillColor(kGreen);
-	    offset_TLr3v->	SetFillColor(kGreen);
+	    offset_TLr3_0->	SetFillColor(kGreen);
+	    offset_TLr3u_0->	SetFillColor(kGreen);
+	    offset_TLr3v_0->	SetFillColor(kGreen);
+	    offset_TLr3less0->	SetFillColor(kGreen);
+	    offset_TLr3uless0->	SetFillColor(kGreen);
+	    offset_TLr3vless0->	SetFillColor(kGreen);
 	    slope_TLr2	->	SetFillColor(kBlue);
 	    slope_TLr2x	->	SetFillColor(kBlue);
 	    slope_TLr2u	->	SetFillColor(kBlue);
 	    slope_TLr2v	->	SetFillColor(kBlue);
-	    slope_TLr3	->	SetFillColor(kGreen);
-	    slope_TLr3u	->	SetFillColor(kGreen);
-	    slope_TLr3v	->	SetFillColor(kGreen);
+	    slope_TLr3_0->	SetFillColor(kGreen);
+	    slope_TLr3u_0->	SetFillColor(kGreen);
+	    slope_TLr3v_0->	SetFillColor(kGreen);
+	    slope_TLr3less0->	SetFillColor(kGreen);
+	    slope_TLr3uless0->	SetFillColor(kGreen);
+	    slope_TLr3vless0->	SetFillColor(kGreen);
 
 	    chi_PTr2	->	SetFillColor(kBlue);
 	    chi_PTr3	->	SetFillColor(kGreen);
@@ -462,11 +472,12 @@ std::cout << "Opened" << std::endl;
                 	}
                 	if (treeline->GetRegion() == kRegionID3) {
 //				std::cout << "Region 3 availiable" << std::endl;
-                  		chi_TLr3->	Fill(treeline->GetChi());
-                  		resid_TLr3->	Fill(treeline->GetAverageResidual());
-                  		offset_TLr3->	Fill(treeline->GetOffset());
-                  		slope_TLr3->	Fill(treeline->GetSlope());
-//				std::cout << "Filled w/ chi" << std::endl;
+				if (treeline->GetPlane()==0){
+                  			chi_TLr3_0->	Fill(treeline->GetChi());
+                  			resid_TLr3_0->	Fill(treeline->GetAverageResidual());
+                  			offset_TLr3_0->	Fill(treeline->GetOffset());
+                  			slope_TLr3_0->	Fill(treeline->GetSlope());
+				}
 				if (treeline->GetPlane()>0){
 					chi_TLr3less0->		Fill(treeline->GetChi());
 					resid_TLr3less0->	Fill(treeline->GetAverageResidual());
@@ -474,28 +485,32 @@ std::cout << "Opened" << std::endl;
 					slope_TLr3less0->	Fill(treeline->GetSlope());
 				}
 				if (treeline->GetDirection()==3){
-					chi_TLr3u->	Fill(treeline->GetChi());
-					resid_TLr3u->	Fill(treeline->GetAverageResidual());
-					offset_TLr3u->	Fill(treeline->GetOffset());
-					slope_TLr3u->	Fill(treeline->GetSlope());
-						if (treeline->GetPlane()>0){
-						    chi_TLr3uless0->	Fill(treeline->GetChi());
-						    resid_TLr3uless0->	Fill(treeline->GetAverageResidual());
-						    offset_TLr3uless0->	Fill(treeline->GetOffset());
-						    slope_TLr3uless0->	Fill(treeline->GetSlope());
-						}
+					if (treeline->GetPlane()==0){
+						chi_TLr3u_0->	Fill(treeline->GetChi());
+						resid_TLr3u_0->	Fill(treeline->GetAverageResidual());
+						offset_TLr3u_0->	Fill(treeline->GetOffset());
+						slope_TLr3u_0->	Fill(treeline->GetSlope());
+					}
+					if (treeline->GetPlane()>0){
+						chi_TLr3uless0->	Fill(treeline->GetChi());
+						resid_TLr3uless0->	Fill(treeline->GetAverageResidual());
+						offset_TLr3uless0->	Fill(treeline->GetOffset());
+						slope_TLr3uless0->	Fill(treeline->GetSlope());
+					}
 //					std::cout << "Direction 3u availiable" << std::endl;
 				}
 				if (treeline->GetDirection()==4){
-					chi_TLr3v->	Fill(treeline->GetChi());
-					resid_TLr3v->	Fill(treeline->GetAverageResidual());
-					offset_TLr3v->	Fill(treeline->GetOffset());
-					slope_TLr3v->	Fill(treeline->GetSlope());
-						if (treeline->GetPlane()>0){
-						    chi_TLr3vless0->	Fill(treeline->GetChi());
-						    resid_TLr3vless0->	Fill(treeline->GetAverageResidual());
-						    offset_TLr3vless0->	Fill(treeline->GetOffset());
-						    slope_TLr3vless0->	Fill(treeline->GetSlope());
+					if (treeline->GetPlane()==0){
+						chi_TLr3v_0->		Fill(treeline->GetChi());
+						resid_TLr3v_0->		Fill(treeline->GetAverageResidual());
+						offset_TLr3v_0->	Fill(treeline->GetOffset());
+						slope_TLr3v_0->		Fill(treeline->GetSlope());
+					}
+					if (treeline->GetPlane()>0){
+						chi_TLr3vless0->	Fill(treeline->GetChi());
+						resid_TLr3vless0->	Fill(treeline->GetAverageResidual());
+						offset_TLr3vless0->	Fill(treeline->GetOffset());
+						slope_TLr3vless0->	Fill(treeline->GetSlope());
 						}
 //					std::cout << "Direction 3v availiable" << std::endl;
 				}
@@ -874,50 +889,62 @@ std::cout << "Opened" << std::endl;
 
 //////// Add to HistArray (using histo from loop method) //////////////
 //	//TreeLines
- 	   HistArray.Add(chi_TLr2);	//0
+ 	   HistArray.Add(chi_TLr2);		//0
  	   HistArray.Add(chi_TLr2x);
  	   HistArray.Add(chi_TLr2u);	
  	   HistArray.Add(chi_TLr2v);
-	   HistArray.Add(chi_TLr3);	//4
- 	   HistArray.Add(chi_TLr3u);
- 	   HistArray.Add(chi_TLr3v);	
- 	   HistArray.Add(resid_TLr2);	//7
+	   HistArray.Add(chi_TLr3_0);		//4
+ 	   HistArray.Add(chi_TLr3u_0);
+ 	   HistArray.Add(chi_TLr3v_0);	
+	   HistArray.Add(chi_TLr3less0);	//7
+ 	   HistArray.Add(chi_TLr3uless0);
+ 	   HistArray.Add(chi_TLr3vless0);
+ 	   HistArray.Add(resid_TLr2);		//10
  	   HistArray.Add(resid_TLr2x);
  	   HistArray.Add(resid_TLr2u);	
  	   HistArray.Add(resid_TLr2v);
- 	   HistArray.Add(resid_TLr3);	//11
- 	   HistArray.Add(resid_TLr3u);
- 	   HistArray.Add(resid_TLr3v);
- 	   HistArray.Add(offset_TLr2);	//14
+ 	   HistArray.Add(resid_TLr3_0);		//14
+ 	   HistArray.Add(resid_TLr3u_0);
+ 	   HistArray.Add(resid_TLr3v_0);
+ 	   HistArray.Add(resid_TLr3less0);	//17
+ 	   HistArray.Add(resid_TLr3uless0);
+ 	   HistArray.Add(resid_TLr3vless0);
+ 	   HistArray.Add(offset_TLr2);		//20
  	   HistArray.Add(offset_TLr2x);
  	   HistArray.Add(offset_TLr2u);	
  	   HistArray.Add(offset_TLr2v);
- 	   HistArray.Add(offset_TLr3);	//18
- 	   HistArray.Add(offset_TLr3u);
- 	   HistArray.Add(offset_TLr3v);
- 	   HistArray.Add(slope_TLr2);	//21
+ 	   HistArray.Add(offset_TLr3_0);	//24
+ 	   HistArray.Add(offset_TLr3u_0);
+ 	   HistArray.Add(offset_TLr3v_0);
+ 	   HistArray.Add(offset_TLr3less0);	//27
+ 	   HistArray.Add(offset_TLr3uless0);
+ 	   HistArray.Add(offset_TLr3vless0);
+ 	   HistArray.Add(slope_TLr2);		//30
  	   HistArray.Add(slope_TLr2x);
  	   HistArray.Add(slope_TLr2u);	
  	   HistArray.Add(slope_TLr2v);
- 	   HistArray.Add(slope_TLr3);	//25
- 	   HistArray.Add(slope_TLr3u);
- 	   HistArray.Add(slope_TLr3v);
+ 	   HistArray.Add(slope_TLr3_0);		//34
+ 	   HistArray.Add(slope_TLr3u_0);
+ 	   HistArray.Add(slope_TLr3v_0);
+ 	   HistArray.Add(slope_TLr3less0);	//37
+ 	   HistArray.Add(slope_TLr3uless0);
+ 	   HistArray.Add(slope_TLr3vless0);
 	// Partial Tracks
-	   HistArray.Add(chi_PTr2);	//28
+	   HistArray.Add(chi_PTr2);	//40
 	   HistArray.Add(chi_PTr3);
-	   HistArray.Add(resid_PTr2);	//30
+	   HistArray.Add(resid_PTr2);	//42
 	   HistArray.Add(resid_PTr3);
-	   HistArray.Add(offsetX_PTr2);	//32
+	   HistArray.Add(offsetX_PTr2);	//44
 	   HistArray.Add(offsetX_PTr3);
-	   HistArray.Add(offsetY_PTr2);	//34
+	   HistArray.Add(offsetY_PTr2);	//46
 	   HistArray.Add(offsetY_PTr3);
-	   HistArray.Add(slopeX_PTr2);	//36
+	   HistArray.Add(slopeX_PTr2);	//48
 	   HistArray.Add(slopeX_PTr3);
-	   HistArray.Add(slopeY_PTr2);	//38
+	   HistArray.Add(slopeY_PTr2);	//50
 	   HistArray.Add(slopeY_PTr3);
         }
 	else{
-	std::cout<<"(o_0)G-(._.Q) no events branch"<<std::endl;
+	std::cout<<"could not find 'events' branch"<<std::endl;
         }
 
       }
@@ -932,7 +959,7 @@ std::cout << "Opened" << std::endl;
 //        PlotHistograms();
     }
     else{
-	std::cout<<"no data read from directory fRootTrees"<<std::endl;
+	std::cout<<"no data read from dROOTCont, obj==false"<<std::endl;
     }
    }
    else{std::cout<<"no ROOT"<<std::endl;}
@@ -1047,7 +1074,7 @@ void QwGUITrackFinding::PlotChi2()
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
-  mc->Divide(1,2);
+  mc->Divide(1,3);
 
 
   obj = HistArray.At(0);  // Region 2
@@ -1067,6 +1094,16 @@ void QwGUITrackFinding::PlotChi2()
 	};
   mc->cd(2);
   obj->Draw();
+
+  obj = HistArray.At(7);  // Region 3
+  if(! obj)
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  mc->cd(3);
+  obj->Draw();
+
   gPad->Update();
 
   std::cout<<"Done"<<std::endl;
@@ -1095,10 +1132,10 @@ void QwGUITrackFinding::PlotResidual()
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
-  mc->Divide(1,2);
+  mc->Divide(1,3);
 
   mc->cd(1);
-  obj = HistArray.At(7);  // Region 2
+  obj = HistArray.At(10);  // Region 2
   if(! obj) 
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1107,7 +1144,16 @@ void QwGUITrackFinding::PlotResidual()
   obj->Draw();
 
   mc->cd(2);
-  obj = HistArray.At(11);  // Region 3
+  obj = HistArray.At(14);  // Region 3
+  if(! obj)
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+
+  mc->cd(3);
+  obj = HistArray.At(17);  // Region 3
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1141,10 +1187,10 @@ void QwGUITrackFinding::PlotOffset()
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
-  mc->Divide(1,2);
+  mc->Divide(1,3);
 
   mc->cd(1);
-  obj = HistArray.At(14);  // Region 2
+  obj = HistArray.At(20);  // Region 2
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1153,7 +1199,16 @@ void QwGUITrackFinding::PlotOffset()
   obj->Draw();
 
   mc->cd(2);
-  obj = HistArray.At(18);  // Region 3
+  obj = HistArray.At(24);  // Region 3
+  if(! obj)
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+
+  mc->cd(3);
+  obj = HistArray.At(27);  // Region 3
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1187,10 +1242,10 @@ void QwGUITrackFinding::PlotSlope()
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
-  mc->Divide(1,2);
+  mc->Divide(1,3);
 
   mc->cd(1);
-  obj = HistArray.At(21);  // Region 2
+  obj = HistArray.At(30);  // Region 2
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1200,7 +1255,16 @@ void QwGUITrackFinding::PlotSlope()
   obj->Draw();
 
   mc->cd(2);
-  obj = HistArray.At(25); // Region 3
+  obj = HistArray.At(34); // Region 3
+  if(! obj)
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+
+  mc->cd(3);
+  obj = HistArray.At(37);  // Region 3
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1233,7 +1297,7 @@ void QwGUITrackFinding::PlotpChi2()
   mc->Clear();
   mc->Divide(1,2);
 
-  obj = HistArray.At(28);  // Get histogram from tree
+  obj = HistArray.At(40);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1242,7 +1306,7 @@ void QwGUITrackFinding::PlotpChi2()
   mc->cd(1);
   obj->Draw();
 
-  obj = HistArray.At(29);  // Get histogram from tree
+  obj = HistArray.At(41);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1274,7 +1338,7 @@ void QwGUITrackFinding::PlotpResidual()
   mc->Divide(1,2);
 
   mc->cd(1);
-  obj = HistArray.At(30);  // Get histogram from tree
+  obj = HistArray.At(42);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1283,7 +1347,7 @@ void QwGUITrackFinding::PlotpResidual()
   obj->Draw();
 
   mc->cd(2);
-  obj = HistArray.At(31);  // Get histogram from tree
+  obj = HistArray.At(43);  // Get histogram from tree
   if(! obj) 
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1315,7 +1379,7 @@ void QwGUITrackFinding::PlotpOffset()
   mc->Divide(2,2);
 
   mc->cd(1);
-  obj = HistArray.At(32);  // Get histogram from tree
+  obj = HistArray.At(44);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1324,7 +1388,7 @@ void QwGUITrackFinding::PlotpOffset()
   obj->Draw();
 
   mc->cd(2);
-  obj = HistArray.At(34);  // Get histogram from tree
+  obj = HistArray.At(46);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1333,7 +1397,7 @@ void QwGUITrackFinding::PlotpOffset()
   obj->Draw();
 
   mc->cd(3);
-  obj = HistArray.At(33);  // Get histogram from tree
+  obj = HistArray.At(45);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1342,7 +1406,7 @@ void QwGUITrackFinding::PlotpOffset()
   obj->Draw();
 
   mc->cd(4);
-  obj = HistArray.At(35);  // Get histogram from tree
+  obj = HistArray.At(47);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1374,7 +1438,7 @@ void QwGUITrackFinding::PlotpSlope()
   mc->Divide(2,2);
 
   mc->cd(1);
-  obj = HistArray.At(36);  // Get histogram from tree
+  obj = HistArray.At(48);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1383,7 +1447,7 @@ void QwGUITrackFinding::PlotpSlope()
   obj->Draw();
 
   mc->cd(2);
-  obj = HistArray.At(38);  // Get histogram from tree
+  obj = HistArray.At(50);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1392,7 +1456,7 @@ void QwGUITrackFinding::PlotpSlope()
   obj->Draw();
 
   mc->cd(3);
-  obj = HistArray.At(37);  // Get histogram from tree
+  obj = HistArray.At(49);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1401,7 +1465,7 @@ void QwGUITrackFinding::PlotpSlope()
   obj->Draw();
 
   mc->cd(4);
-  obj = HistArray.At(39);  // Get histogram from tree
+  obj = HistArray.At(51);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1427,7 +1491,7 @@ void QwGUITrackFinding::PlotTLChi2X()
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
-  mc->Divide(1,2);
+  mc->Divide(1,3);
 
 
   obj = HistArray.At(1);  // Region 2 (no x dir for Region 3)
@@ -1440,6 +1504,7 @@ void QwGUITrackFinding::PlotTLChi2X()
   obj->Draw();
 
 mc->cd(2)->Clear();
+mc->cd(3)->Clear();
 
   gPad->Update();
 
@@ -1457,7 +1522,7 @@ void QwGUITrackFinding::PlotTLChi2U()
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
-  mc->Divide(1,2);
+  mc->Divide(1,3);
 
 
   obj = HistArray.At(2);  // Region 2
@@ -1477,6 +1542,15 @@ void QwGUITrackFinding::PlotTLChi2U()
 	};
   mc->cd(2);
   obj->Draw();
+
+  obj = HistArray.At(8);  // Region 3
+  if(! obj)
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  mc->cd(3);
+  obj->Draw();
   gPad->Update();
 
   std::cout<<"Done"<<std::endl;
@@ -1493,7 +1567,7 @@ void QwGUITrackFinding::PlotTLChi2V()
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
-  mc->Divide(1,2);
+  mc->Divide(1,3);
 
 
   obj = HistArray.At(3);  // Region 2
@@ -1513,6 +1587,15 @@ void QwGUITrackFinding::PlotTLChi2V()
 	};
   mc->cd(2);
   obj->Draw();
+
+  obj = HistArray.At(9);  // Region 3
+  if(! obj)
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  mc->cd(3);
+  obj->Draw();
   gPad->Update();
 
   std::cout<<"Done"<<std::endl;
@@ -1526,10 +1609,10 @@ void QwGUITrackFinding::PlotTLResidualX()
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
-  mc->Divide(1,2);
+  mc->Divide(1,3);
 
   mc->cd(1);
-  obj = HistArray.At(8);  // Region 2 (no x dir for Region 3)
+  obj = HistArray.At(11);  // Region 2 (no x dir for Region 3)
   if(! obj) 
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1538,7 +1621,7 @@ void QwGUITrackFinding::PlotTLResidualX()
   obj->Draw();
 
   mc->cd(2)->Clear();
-
+  mc->cd(3)->Clear();
   gPad->Update();
   std::cout<<"Done"<<std::endl;
   return;
@@ -1552,10 +1635,10 @@ void QwGUITrackFinding::PlotTLResidualU()
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
-  mc->Divide(1,2);
+  mc->Divide(1,3);
 
   mc->cd(1);
-  obj = HistArray.At(9);  // Region 2
+  obj = HistArray.At(12);  // Region 2
   if(! obj) 
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1564,7 +1647,16 @@ void QwGUITrackFinding::PlotTLResidualU()
   obj->Draw();
 
   mc->cd(2);
-  obj = HistArray.At(12);  // Region 3
+  obj = HistArray.At(15);  // Region 3
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+
+  mc->cd(3);
+  obj = HistArray.At(18);  // Region 3
   if(! obj) 
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1585,10 +1677,10 @@ void QwGUITrackFinding::PlotTLResidualV()
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
-  mc->Divide(1,2);
+  mc->Divide(1,3);
 
   mc->cd(1);
-  obj = HistArray.At(10);  // Region 2
+  obj = HistArray.At(13);  // Region 2
   if(! obj) 
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1597,7 +1689,16 @@ void QwGUITrackFinding::PlotTLResidualV()
   obj->Draw();
 
   mc->cd(2);
-  obj = HistArray.At(13);  // Region 3
+  obj = HistArray.At(16);  // Region 3
+  if(! obj) 
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+
+  mc->cd(3);
+  obj = HistArray.At(19);  // Region 3
   if(! obj) 
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1623,11 +1724,11 @@ void QwGUITrackFinding::PlotTLOffsetX()
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
-  mc->Divide(1,2);
+  mc->Divide(1,3);
 
   mc->cd(1);
 
-  obj = HistArray.At(15);  // Region 2 (no x dir for Region 3)
+  obj = HistArray.At(21);  // Region 2 (no x dir for Region 3)
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1636,6 +1737,7 @@ void QwGUITrackFinding::PlotTLOffsetX()
   obj->Draw();
 
   mc->cd(2)->Clear();
+  mc->cd(3)->Clear();
 
   gPad->Update();
   std::cout<<"Done"<<std::endl;
@@ -1653,11 +1755,11 @@ void QwGUITrackFinding::PlotTLOffsetU()
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
-  mc->Divide(1,2);
+  mc->Divide(1,3);
 
   mc->cd(1);
 
-  obj = HistArray.At(16);  // Region 2
+  obj = HistArray.At(22);  // Region 2
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1666,8 +1768,17 @@ void QwGUITrackFinding::PlotTLOffsetU()
   obj->Draw();
 
   mc->cd(2);
-  obj = HistArray.At(19);  // Region 3
+  obj = HistArray.At(25);  // Region 3
   if(! obj)
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+
+  mc->cd(3);
+  obj = HistArray.At(28);  // Region 3
+  if(! obj) 
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -1690,11 +1801,10 @@ void QwGUITrackFinding::PlotTLOffsetV()
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
-  mc->Divide(1,2);
+  mc->Divide(1,3);
 
   mc->cd(1);
-
-  obj = HistArray.At(17);  // Region 2
+  obj = HistArray.At(23);  // Region 2
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1703,8 +1813,17 @@ void QwGUITrackFinding::PlotTLOffsetV()
   obj->Draw();
 
   mc->cd(2);
-  obj = HistArray.At(20);  // Region 3
+  obj = HistArray.At(26);  // Region 3
   if(! obj)
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+
+  mc->cd(3);
+  obj = HistArray.At(29);  // Region 3
+  if(! obj) 
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -1728,10 +1847,10 @@ void QwGUITrackFinding::PlotTLSlopeX()
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
-  mc->Divide(1,2);
+  mc->Divide(1,3);
 
   mc->cd(1);
-  obj = HistArray.At(22);  // Region 2
+  obj = HistArray.At(31);  // Region 2
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1741,7 +1860,7 @@ void QwGUITrackFinding::PlotTLSlopeX()
   obj->Draw();
 
   mc->cd(2)->Clear(); //There is no X Plane for Region 3
-
+  mc->cd(3)->Clear();
   gPad->Update();
   std::cout<<"Done"<<std::endl;
   return;
@@ -1758,10 +1877,10 @@ void QwGUITrackFinding::PlotTLSlopeU()
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
-  mc->Divide(1,2);
+  mc->Divide(1,3);
 
   mc->cd(1);
-  obj = HistArray.At(23);  // Region 2
+  obj = HistArray.At(32);  // Region 2
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1771,8 +1890,17 @@ void QwGUITrackFinding::PlotTLSlopeU()
   obj->Draw();
 
   mc->cd(2);
-  obj = HistArray.At(26); // Region 3
+  obj = HistArray.At(35); // Region 3
   if(! obj)
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+
+  mc->cd(3);
+  obj = HistArray.At(38);  // Region 3
+  if(! obj) 
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
@@ -1795,10 +1923,10 @@ void QwGUITrackFinding::PlotTLSlopeV()
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   mc->Clear();
-  mc->Divide(1,2);
+  mc->Divide(1,3);
 
   mc->cd(1);
-  obj = HistArray.At(24);  // Get histogram from tree
+  obj = HistArray.At(33);  // Get histogram from tree
   if(! obj)
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
@@ -1808,8 +1936,17 @@ void QwGUITrackFinding::PlotTLSlopeV()
   obj->Draw();
 
   mc->cd(2);
-  obj = HistArray.At(27);
+  obj = HistArray.At(36);
   if(! obj)
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+
+  mc->cd(3);
+  obj = HistArray.At(39);  // Region 3
+  if(! obj) 
 	{
 	std::cout<<"Error: no obj in HistArray"<<std::endl;
 	return;
