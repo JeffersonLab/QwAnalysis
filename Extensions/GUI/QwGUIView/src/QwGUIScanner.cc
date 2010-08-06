@@ -128,7 +128,7 @@ void QwGUIScanner::OnNewDataContainer(RDataContainer *cont)
   if (!strcmp(cont->GetDataName(),"ROOT") && dROOTCont)
     {
 
-      obj = dROOTCont->ReadData("tree");
+      obj = dROOTCont->ReadData("event_tree");
       if (obj)
         {
           printf("Reading data from 'tree'\n");

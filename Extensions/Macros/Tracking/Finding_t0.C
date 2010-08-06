@@ -74,7 +74,7 @@ void find_t0(Int_t event_start=-1,Int_t event_end=-1,Double_t threshold=0.05,Int
 
 
 	
-    TTree* hit_tree=(TTree*)file->Get("tree");
+    TTree* hit_tree=(TTree*)file->Get("event_tree");
     QwHitRootContainer* hitcontainer=NULL;
     hit_tree->SetBranchAddress("hits",&hitcontainer);
     Int_t nevent=0,nhit=0;

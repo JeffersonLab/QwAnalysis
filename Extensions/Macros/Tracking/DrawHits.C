@@ -21,7 +21,7 @@
 // root [1] load_libraries()
 // root [2] Int_t run_number=398
 // root [3]  TFile file(Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES_DIR"),run_number));
-// root [4]  TTree* tree = (TTree*) file.Get("tree");
+// root [4]  TTree* tree = (TTree*) file.Get("event_tree");
 // root [5]   tree->Draw("events.fQwHits.fRawTime", "events.fQwHits.fChannel==16");
 // <TCanvas::MakeDefCanvas>: created default TCanvas with name c1
 // root [6] 
@@ -56,7 +56,7 @@ void
 draw_hit(Int_t run_number=398)
 {
   TFile file(Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES_DIR"),run_number));
-  TTree* tree = (TTree*) file.Get("tree");
+  TTree* tree = (TTree*) file.Get("event_tree");
 
 
   /*---------------------    First Example Begin  ------------------------*/
@@ -143,7 +143,7 @@ access_hit(Int_t run_number=398)
     }
   else
     {
-      TTree* tree = (TTree*) file.Get("tree");
+      TTree* tree = (TTree*) file.Get("event_tree");
       QwHitRootContainer* hitContainer = NULL;
       tree->SetBranchAddress("events",&hitContainer);
       tree->Draw(">>TrawList", "fQwHits.fRawTime");

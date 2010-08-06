@@ -552,13 +552,6 @@ QwEvent* QwTrackingWorker::ProcessHits (
         // take into account that the tracking detectors are in different octants.
         if (package != kPackageUp && package != kPackageDown) continue;
 
-        // TODO (wdc) Also, only tracks in the up octant detector are available in
-        // the MC generated hit lists.  Therefore we throw out the down octant.
-
-        // TODO jpan: The Geant4 now can generate any octant data, you just need to command it through
-        // a macro file. I'll put the tracking detector ratation commands onto the UI manu later.
-        if (package != kPackageUp) continue;
-
         /// Find the region 1 clusters in this package
         QwHitContainer *hitlist_region1_r = hitlist->GetSubList_Plane(kRegionID1, package, 1);
         QwHitContainer *hitlist_region1_phi = hitlist->GetSubList_Plane(kRegionID1, package, 2);

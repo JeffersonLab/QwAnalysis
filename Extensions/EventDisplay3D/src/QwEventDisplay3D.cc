@@ -198,7 +198,7 @@ void QwEventDisplay3D::InitEvents()
 {
   // Extract the tree from the rootfile. It seems in the tracking mode, this
   // is simply called "tree." Neat!
-  fTree = (TTree*)fRootFile->Get("tree");
+  fTree = (TTree*)fRootFile->Get("event_tree");
 
   // Inside this tree, as I understand it, there is a hit container which
   // contains all the details about which wires were hit. Additionally
