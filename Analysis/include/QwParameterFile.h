@@ -37,7 +37,11 @@ class QwParameterFile {
   /// Access the streambuf pointer in the same way as on a std::ifstream
   std::streambuf* rdbuf() const {return fStream.rdbuf(); };
 
-  static void AppendToSearchPath(const TString &searchdir);
+  /// Add a directory to the search path
+  static void AppendToSearchPath(const TString& searchdir);
+
+  /// Set the current run number for looking up the appropriate parameter file
+  static void SetCurrentRunNumber(const UInt_t runnumber) { fCurrentRunNumber = runnumber; };
 
   Bool_t ReadNextLine() {
     fCurrentPos = 0;
@@ -123,7 +127,11 @@ class QwParameterFile {
  protected:
   void TrimWhitespace(std::string  &token, TString::EStripType head_tail);
 
+  // List of search paths
   static std::vector<bfs::path> fSearchPaths;
+
+  // Current run number
+  static UInt_t fCurrentRunNumber;
 
   ifstream          fFile;
   std::stringstream fStream;

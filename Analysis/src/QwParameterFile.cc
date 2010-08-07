@@ -8,9 +8,18 @@
 // Qweak headers
 #include "QwLog.h"
 
+// Initialize the list of search paths
 std::vector<bfs::path> QwParameterFile::fSearchPaths;
 
-void QwParameterFile::AppendToSearchPath(const TString &searchdir){
+// Set current run number to zero
+UInt_t QwParameterFile::fCurrentRunNumber = 0;
+
+/**
+ * Append a directory to the list of search paths
+ * @param searchdir Directory to be added
+ */
+void QwParameterFile::AppendToSearchPath(const TString& searchdir)
+{
   bfs::path tmppath(searchdir.Data());
   if( bfs::exists(tmppath) && bfs::is_directory(tmppath)) {
     std::cout << tmppath.string()
@@ -23,7 +32,13 @@ void QwParameterFile::AppendToSearchPath(const TString &searchdir){
   }
 };
 
-UInt_t QwParameterFile::GetUInt(const TString &varvalue){
+/**
+ * Convert a string number value to an unsigned integer
+ * @param varvalue String with decimal or hexadecimal number
+ * @return Unsigned integer
+ */
+UInt_t QwParameterFile::GetUInt(const TString& varvalue)
+{
   UInt_t value = 0;
   if (varvalue.IsDigit()){
     value = varvalue.Atoi();
@@ -41,9 +56,9 @@ UInt_t QwParameterFile::GetUInt(const TString &varvalue){
       TString tmp;
       //loop over all whitespace
       while (end > -1) {
-	tmp += varvalue(start, end-start);
-	start = end+1;
-	end = varvalue.Index(" ", start);
+        tmp += varvalue(start, end-start);
+        start = end+1;
+        end = varvalue.Index(" ", start);
       }
       //finally add part from last whitespace to end of string
       end = varvalue.Length();
