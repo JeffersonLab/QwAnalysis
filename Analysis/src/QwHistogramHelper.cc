@@ -40,13 +40,13 @@ void QwHistogramHelper::ProcessOptions(QwOptions &options){
 };
 
 
-const QwHistogramHelper::HISTPARMS QwHistogramHelper::GetHistParamsFromLine(QwParameterFile &mapstr)
+const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromLine(QwParameterFile &mapstr)
 {
   ///  Decodes the histogram parmeters from the current line of
   ///  a QwParameter file.
   ///  If the line cannot be docoded, the name is returned as
   ///  fInvalidName.
-  HISTPARMS tmpstruct;
+  HistParams tmpstruct;
   tmpstruct.name_title = fInvalidName;
 
   std::string tmpname, tmptype, tmpmin, tmpmax;
@@ -97,7 +97,7 @@ const QwHistogramHelper::HISTPARMS QwHistogramHelper::GetHistParamsFromLine(QwPa
 void  QwHistogramHelper::LoadHistParamsFromFile(const std::string filename)
 {
   fInputFile = filename;
-  HISTPARMS tmpstruct;
+  HistParams tmpstruct;
 
   fDEBUG = 0;
   //fDEBUG = 1;
@@ -117,13 +117,21 @@ void  QwHistogramHelper::LoadHistParamsFromFile(const std::string filename)
     if (tmpstruct.name_title != fInvalidName){
       fHistParams.push_back(tmpstruct);
       if (fDEBUG) {
-	std::cout<<"name "<<tmpstruct.name_title<<" type "<<tmpstruct.type<<
-	  " x_nbins "<<tmpstruct.x_nbins<<" x_min "<<tmpstruct.x_min<<
-	  " x_max "<<tmpstruct.x_max<<
-	  " y_nbins "<<tmpstruct.y_nbins<<" y_min "<<tmpstruct.y_min<<
-	  " y_max "<<tmpstruct.y_max<<" xtitle "<<tmpstruct.xtitle<<
-	  " ytitle "<<tmpstruct.ytitle<<std::endl;}
+        QwMessage << fHistParams.back() << QwLog::endl;
+      }
     }
+  }
+
+  // Sort the histogram parameter definitions
+  sort(fHistParams.begin(), fHistParams.end());
+};
+
+
+void  QwHistogramHelper::PrintHistParams() const 
+{
+  for (std::vector<HistParams>::const_iterator h = fHistParams.begin();
+       h != fHistParams.end(); ++h) {
+    QwMessage << *h << QwLog::endl;
   }
 };
 
@@ -144,17 +152,16 @@ void  QwHistogramHelper::LoadTreeParamsFromFile(const std::string filename){
     if (mapstr.LineIsEmpty())  continue;
     devicename=(mapstr.GetLine()).c_str();
     fTreeParams.push_back(devicename);
-    
-      if (fDEBUG) {
-	QwMessage <<"device name "<<devicename<<QwLog::endl;	
-      }
+    if (fDEBUG) {
+      QwMessage <<"device name "<<devicename<<QwLog::endl;	
+    }
   }
 };
 
 
-const QwHistogramHelper::HISTPARMS QwHistogramHelper::GetHistParamsFromList(const std::string histname)
+const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromList(const std::string histname)
 {
-  HISTPARMS tmpstruct, matchstruct;
+  HistParams tmpstruct, matchstruct;
   tmpstruct.name_title = fInvalidName;
 
   std::vector<int> matches;
@@ -190,13 +197,9 @@ const QwHistogramHelper::HISTPARMS QwHistogramHelper::GetHistParamsFromList(cons
 
   fDEBUG = 0;
   if (fDEBUG) {
-    std::cout<<"Finding histogram defination from: "<<histname<<std::endl;
-    std::cout<<"name "<<tmpstruct.name_title<<" type "<<tmpstruct.type<<
-      " x_nbins "<<tmpstruct.x_nbins<<" x_min "<<tmpstruct.x_min<<
-      " x_max "<<tmpstruct.x_max<<
-      " y_nbins "<<tmpstruct.y_nbins<<" y_min "<<tmpstruct.y_min<<
-      " y_max "<<tmpstruct.y_max<<" xtitle "<<tmpstruct.xtitle<<
-      " ytitle "<<tmpstruct.ytitle<<std::endl;}
+    QwMessage << "Finding histogram defination from: " << histname << QwLog::endl;
+    QwMessage << tmpstruct << QwLog::endl;
+  }
   if (tmpstruct.name_title == fInvalidName){
     std::cerr << "GetHistParamsFromList:  We haven't found a match of the histogram name: "
 	      << histname << std::endl;
@@ -234,14 +237,14 @@ const Bool_t QwHistogramHelper::MatchDeviceParamsFromList(const std::string devi
 };
 
 
-const QwHistogramHelper::HISTPARMS QwHistogramHelper::GetHistParamsFromFile(const std::string filename,
+const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromFile(const std::string filename,
 									    const std::string histname)
 {
   //The idea is to look up the input file and get the needed histogram parameters
   //For each histogram we are going to scan the input file once, which
   //is not very efficent. But we only construct histograms once per run ...
 
-  HISTPARMS tmpstruct;
+  HistParams tmpstruct;
   tmpstruct.name_title = fInvalidName;
 
   //   Switch to using the QwParameterFile system...
@@ -268,12 +271,8 @@ const QwHistogramHelper::HISTPARMS QwHistogramHelper::GetHistParamsFromFile(cons
     }
   }
   if (fDEBUG) {
-    std::cout<<"name "<<tmpstruct.name_title<<" type "<<tmpstruct.type<<
-      " x_nbins "<<tmpstruct.x_nbins<<" x_min "<<tmpstruct.x_min<<
-      " x_max "<<tmpstruct.x_max<<
-      " y_nbins "<<tmpstruct.y_nbins<<" y_min "<<tmpstruct.y_min<<
-      " y_max "<<tmpstruct.y_max<<" xtitle "<<tmpstruct.xtitle<<
-      " ytitle "<<tmpstruct.ytitle<<std::endl;}
+    QwMessage << tmpstruct << QwLog::endl;
+  }
   if (tmpstruct.name_title == fInvalidName){
     std::cerr << "GetHistParamsFromFile:  We haven't found a match of the histogram name: "
 	      << histname << std::endl;
@@ -307,7 +306,7 @@ Bool_t QwHistogramHelper::DoesMatch(const std::string s, const std::string s_wil
 
 TH2F* QwHistogramHelper::Construct2DHist(const std::string name_title)
 {
-  HISTPARMS tmpstruct = GetHistParamsFromList(name_title);
+  HistParams tmpstruct = GetHistParamsFromList(name_title);
   return Construct2DHist(tmpstruct);
 };
 
@@ -315,7 +314,7 @@ TH2F* QwHistogramHelper::Construct2DHist(const std::string name_title)
 
 TH1F* QwHistogramHelper::Construct1DHist(const std::string name_title)
 {
-  HISTPARMS tmpstruct = GetHistParamsFromList(name_title);
+  HistParams tmpstruct = GetHistParamsFromList(name_title);
   return Construct1DHist(tmpstruct);
 }
 
@@ -323,7 +322,7 @@ TH1F* QwHistogramHelper::Construct1DHist(const std::string name_title)
 
 TH2F* QwHistogramHelper::Construct2DHist(const std::string inputfile, const std::string name_title)
 {
-  HISTPARMS tmpstruct = GetHistParamsFromFile(inputfile, name_title);
+  HistParams tmpstruct = GetHistParamsFromFile(inputfile, name_title);
   return Construct2DHist(tmpstruct);
 };
 
@@ -331,12 +330,12 @@ TH2F* QwHistogramHelper::Construct2DHist(const std::string inputfile, const std:
 
 TH1F* QwHistogramHelper::Construct1DHist(const std::string inputfile, const std::string name_title)
 {
-  HISTPARMS tmpstruct = GetHistParamsFromFile(inputfile, name_title);
+  HistParams tmpstruct = GetHistParamsFromFile(inputfile, name_title);
   return Construct1DHist(tmpstruct);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-TH1F* QwHistogramHelper::Construct1DHist(const QwHistogramHelper::HISTPARMS &params)
+TH1F* QwHistogramHelper::Construct1DHist(const QwHistogramHelper::HistParams &params)
 {
   TH1F* h1;
   std::string tmptitle;
@@ -355,7 +354,7 @@ TH1F* QwHistogramHelper::Construct1DHist(const QwHistogramHelper::HISTPARMS &par
   return h1;
 };
 
-TH2F* QwHistogramHelper::Construct2DHist(const QwHistogramHelper::HISTPARMS &params)
+TH2F* QwHistogramHelper::Construct2DHist(const QwHistogramHelper::HistParams &params)
 {
   TH2F* h2;
   std::string tmptitle;
