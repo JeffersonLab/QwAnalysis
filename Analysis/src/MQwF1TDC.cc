@@ -103,15 +103,63 @@ void MQwF1TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
   return;
 };
 
+std::ostream& operator<< (std::ostream& stream, const MQwF1TDC f1tdc)
+{
+  if(f1tdc.fF1HeaderFlag) {
+    stream << "<<<< Header:"; 
+  }
+  else {
+    stream << ">>>>  DATA :";
+  }
+  stream << " Ch" << std::setw(3) << f1tdc.fF1ChannelNumber;
+
+  if(f1tdc.fF1HeaderFlag) {
+    stream << " Xor " << f1tdc.fF1HeaderXorSetupFlag
+	   << " tOF " << f1tdc.fF1HeaderTrigFIFOFlag;
+    // stream << std::setfill ('x') << std::setw(5);
+  }
+  else {
+    stream << " ---DATA--- ";
+  }
+
+  stream << "(hitOF,outOF,resLK)("
+	 << f1tdc.fF1HitFIFOFlag
+	 << f1tdc.fF1OutputFIFOFlag
+	 << f1tdc.fF1ResolutionLockFlag
+	 << ")";
+  stream << " ROC " << std::setw(2) << f1tdc.fF1ROCNumber;
+  stream << " Slot " << std::setw(2) << f1tdc.fF1SlotNumber;
+  
+  if(f1tdc.fF1HeaderFlag) {
+    stream << " EvtN" << std::setw(2) << f1tdc.fF1HeaderEventNumber;
+    stream << " TriT" << std::setw(4) << f1tdc.fF1HeaderTriggerTime;
+  }
+  else {
+    stream << " RawT " << std::setw(10) << f1tdc.fF1Dataword;
+  }
+  //  stream << std::endl;
+  return stream;
+};
+
+
+
+void MQwF1TDC::Print(Bool_t flag)
+{
+  if (! this) return; // do nothing if this is a null object
+
+  if(flag) {
+    std::cout << *this << std::endl;
+  }
+  return;
+};
+
 
 void MQwF1TDC::PrintTDCHeader(Bool_t flag)
 {
+  if (! this) return; // do nothing if this is a null object
+
   if(flag) {
-    printf(">>>>>>>>> H/T  : Ch %2d, Xor %1d, trOvF %1d, Chip(hitOvF,outOvF,resLock)(%1d%1d%1d) SlotID %2d Event # %d Trig Time %d\n",
-	   fF1ChannelNumber, fF1HeaderXorSetupFlag, fF1HeaderTrigFIFOFlag, 
-	   fF1HitFIFOFlag, fF1OutputFIFOFlag,  fF1ResolutionLockFlag,
-	   fF1SlotNumber, fF1HeaderEventNumber, fF1HeaderTriggerTime
-	   );
+    std::cout << *this << std::endl;
   }
   return;
 };
@@ -119,17 +167,11 @@ void MQwF1TDC::PrintTDCHeader(Bool_t flag)
 
 void MQwF1TDC::PrintTDCData(Bool_t flag)
 {
-  if(flag)
-    {
-      printf(">>>>>>>>> DATA : Ch ");
-      printf("%2d", fF1ChannelNumber);
-      printf("%18s", "");
-      printf("Chip(hitOvF,outOvF,resLock)(%1d%1d%1d) SlotID %2d",
-	     fF1HitFIFOFlag, fF1OutputFIFOFlag,  fF1ResolutionLockFlag,
-	     fF1SlotNumber);
-      printf(", Raw time");
-      printf("%12d\n", fF1Dataword);
-    }
+  if (! this) return; // do nothing if this is a null object
+  
+  if(flag) {
+    std::cout << *this << std::endl;
+  }
   return;
 };
 
@@ -207,7 +249,7 @@ Double_t MQwF1TDC::ActualTimeDifference(Double_t raw_time, Double_t ref_time)
 
 void MQwF1TDC::PrintResolutionLockStatus(const UInt_t roc_id)
 {
-  if(!fF1ResolutionLockFlag) {
+  if (not fF1ResolutionLockFlag) {
     QwWarning << "F1TDC board RESOULTION LOCK FAIL at Ch " 
 	      << GetTDCChannelNumber() << " ROC " << roc_id
 	      << " Slot " << GetTDCSlotNumber() << QwLog::endl;
@@ -219,7 +261,7 @@ void MQwF1TDC::PrintResolutionLockStatus(const UInt_t roc_id)
 
 void MQwF1TDC::PrintHitFIFOStatus(const UInt_t roc_id)
 {
-  if(fF1HitFIFOFlag) {
+  if (fF1HitFIFOFlag) {
     QwWarning << "F1TDC board HIT FIFO FULL at Ch "
               << GetTDCChannelNumber() << " ROC " << roc_id
               << " Slot " << GetTDCSlotNumber() << QwLog::endl;
@@ -231,7 +273,7 @@ void MQwF1TDC::PrintHitFIFOStatus(const UInt_t roc_id)
 
 void MQwF1TDC::PrintOutputFIFOStatus(const UInt_t roc_id)
 {
-  if(fF1OutputFIFOFlag) {
+  if (fF1OutputFIFOFlag) {
     QwWarning << "F1TDC board OUTPUT FIFO FULL at Ch "
               << GetTDCChannelNumber() << " ROC " << roc_id
               << " Slot " << GetTDCSlotNumber() << QwLog::endl;
@@ -243,9 +285,10 @@ void MQwF1TDC::PrintOutputFIFOStatus(const UInt_t roc_id)
 Bool_t MQwF1TDC::IsValidDataword()
 {
   // fF1ValidDataSlotFlag = TRUE,
-  // fF1ResolutionFlag    = TRUE, and 
-  // fF1HeaderFlag        = FALSE, then it is a data word.
-
+  // fF1ResolutionFlag    = TRUE,  
+  // fF1HeaderFlag        = FALSE, and 
+  // fF1OverFlowEntry     = FALSE, then it is a data word.
+ 
   if( fF1ValidDataSlotFlag && fF1ResolutionLockFlag && !fF1HeaderFlag &&!fF1OverFlowEntryFlag)
     //  if( fF1ValidDataSlotFlag && fF1ResolutionLockFlag && !fF1HeaderFlag)
     return kTRUE;
@@ -271,84 +314,104 @@ Bool_t MQwF1TDC::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 
     DecodeTDCWord(buffer[i], roc_id); 
 
+ 
     // We use the multiblock data transfer for F1TDC, thus
     // we must get the event number and the trigger time from the first buffer
     // (buffer[0]), and these valuse can be used to check "data" integrity
     // over all F1TDCs
-    if(i==0) 
-      {//;
-	if ( IsHeaderword() ) 
-	  {//;;
-	    reference_event_num = GetTDCEventNumber();
-	    reference_trig_time = GetTDCTriggerTime();
-	    PrintTDCHeader(temp_print_flag);
-	  }//;;
-	else 
-	  {//;;
-	    QwWarning << QwColor(Qw::kRed)
-		      << "The first word of F1TDC must be header word. Something wrong into this CODA stream.\n";
-	    QwWarning << QwLog::endl;
-	    return false;
-	  }//;;
-      }//;
-    else 
-      {//;
-	if ( IsHeaderword() ) 
-	  {//;;
-	    // Check date integrity, if it is fail, we skip this whole buffer to do further process 
-	    event_ok_flag     = ( reference_event_num == GetTDCHeaderEventNumber() );
-	    trig_time_ok_flag = abs( reference_trig_time - GetTDCHeaderTriggerTime() ) <= valid_trigger_time_offset;
+    if ( i==0 ) {//;
+      if ( IsHeaderword() ) {//;;
+	reference_event_num = GetTDCEventNumber();
+	reference_trig_time = GetTDCTriggerTime();
+	PrintTDCHeader(temp_print_flag);
+      }//;;
+      else {//;;
+	QwWarning << QwColor(Qw::kRed)
+		  << "The first word of F1TDC must be header word. "
+		  << "Something wrong into this CODA stream.\n";
+	QwWarning << QwLog::endl;
+	return false;
+      }//;;
+    }//;
+    else {//;
+      if ( IsHeaderword() ) {//;;
+	// Check date integrity, if it is fail, we skip this whole buffer to do further process 
+	event_ok_flag     = ( reference_event_num == GetTDCHeaderEventNumber() );
+	trig_time_ok_flag = abs( reference_trig_time - GetTDCHeaderTriggerTime() ) <= valid_trigger_time_offset;
+	PrintTDCHeader(temp_print_flag);
 
-	    PrintTDCHeader(temp_print_flag);
-
-	    if(temp_print_flag) {
-
-	      // Trigger Time difference of up to 1 count among the chips is acceptable
-	      // For the Trigger Time, this assumes that an external SYNC_RESET signal has
-	      // been successfully applied at the start of the run
-
-	      if(! trig_time_ok_flag ) {
-		QwWarning  << QwColor(Qw::kBlue)
-			   << "There are SYNC_RESET issue on the F1TDC board at Ch "<<  fF1ChannelNumber
-			   << " ROC " << fF1ROCNumber << " Slot " << fF1SlotNumber <<"\n";
-		QwWarning  << QwColor(Qw::kBlue)
-			   << "This event is excluded from the ROOT data stream.\n";
-		//    QwWarning  << QwColor(Qw::kBlue)
-		//	       << "Please contact (a) Qweak DAQ expert(s) as soon as possible.\n";
-		QwWarning  << QwLog::endl;
-	      }
-	      
-	      // Any difference in the Event Number among the chips indicates a serious error
-	      // that requires a reset of the board.
-	      
-	      if( !event_ok_flag ) {
-		QwWarning << QwColor(Qw::kRed)
-			  << "There are Event Number Mismatch issue on the F1TDC board at ROC "<<  fF1ROCNumber
-			  << " Slot " << fF1SlotNumber << "\n";
-		QwWarning << QwColor(Qw::kRed) 
-			  << "This event is excluded from the ROOT data stream.\n";
-		//    QwWarning << QwColor(Qw::kRed) 
-		//	      << "Please contact (a) Qweak DAQ expert(s) as soon as possible.\n";
-		QwWarning << QwLog::endl;
-		
-	      }
-	    }
-	      
-	    data_integrity_flag = (event_ok_flag) && (trig_time_ok_flag) && IsNotHeaderTrigFIFO();
-	    
-	    if(! data_integrity_flag) return data_integrity_flag; //false
-	    // we stop check data, because all other next buffers 
-	    // is useless and we don't need to check them in order to save some time.
-	    else                      continue;
-	  }//;;
-	else 
-	  {
-	    if(!fF1OverFlowEntryFlag) PrintTDCData(temp_print_flag);
+	// If SEU exists, Xor Setup Register bit is changing from 1 to 0, I think.
+	// Thus, it sets the trigger time 0 and the event number 0.
+	// For example, 
+	// Ch  8 Xor 0 tOF 0(hitOF,outOF,resLK)(001) ROC  9 Slot 10 EvtN 0 TriT   0
+	// And it is the source of the trigger time and the event number differences
+	// within the same ROC. In the CheckDataIntegrity routine, I decided
+	// to skip such a event. 
+	// Sunday, August  8 03:42:48 EDT 2010, jhlee
+	
+	if (IsHeaderXorSetup()) {//;;;
+	  // Trigger Time difference of up to 1 count among the chips is acceptable
+	  // For the Trigger Time, this assumes that an external SYNC_RESET signal has
+	  // been successfully applied at the start of the run
+	  if (not trig_time_ok_flag) {
+	    QwWarning  << QwColor(Qw::kBlue)
+		       << "There is the no SYNC_RESET on the F1TDC board at"
+		       << " Ch "   << fF1ChannelNumber
+		       << " ROC "  << fF1ROCNumber 
+		       << " Slot " << fF1SlotNumber <<"\n";
+	    QwWarning  << QwColor(Qw::kBlue)
+		       << "This event is excluded from the ROOT data stream.\n";
+	    QwWarning << QwColor(Qw::kRed) 
+		      << "Please, send an email to (a) Qweak DAQ expert(s) if you have time.\n";
+	    QwWarning  << QwLog::endl;
 	  }
-      }//;
-  }
+	  // Any difference in the Event Number among the chips indicates a serious error
+	  // that requires a reset of the board.
+	  
+	  if (not event_ok_flag) {
+	    QwWarning << QwColor(Qw::kRed)
+		      << "There is the Event Number Mismatch issue on the F1TDC board at"
+		      << " ROC "  << fF1ROCNumber
+		      << " Slot " << fF1SlotNumber << "\n";
+	    QwWarning << QwColor(Qw::kRed) 
+		      << "This event is excluded from the ROOT data stream.\n";
+	    QwWarning << QwColor(Qw::kRed) 
+		      << "Please, send an email to (a) Qweak DAQ expert(s) if you have time.\n";
+	    QwWarning << QwLog::endl;
+	  }
+	  
+	  data_integrity_flag = (event_ok_flag) && (trig_time_ok_flag) && IsNotHeaderTrigFIFO() ;
+
+	  if (not data_integrity_flag)  return data_integrity_flag; //false
+	  // we stop check data, because all other next buffers 
+	  // is useless and we don't need to check them in order to save some time.
+	} //;;;
+	else {//;;;
+
+	  if (temp_print_flag) {
+
+	    // I don't include the SEU in the CheckDataIntegrity.
+	    // At this moment, I have no idea how I handle during data processes.
+	    // Sunday, August  8 04:02:17 EDT 2010, jhlee
+	    
+	    QwWarning << QwColor(Qw::kRed)
+		      << "There is the Single Event Upset (SEU) on the F1TDC board at"
+		      << " ROC "  << fF1ROCNumber
+		      << " Slot " << fF1SlotNumber << "\n";
+	    QwWarning << QwColor(Qw::kRed) 
+		      << "Please, send an email to (a) Qweak DAQ expert(s) if you have time.\n";
+	    QwWarning << QwLog::endl;
+	  }
+	}//;;;
+      }//;;
+      else { //;; // dataword
+	if(!fF1OverFlowEntryFlag) PrintTDCData(temp_print_flag);
+      }//;;
+    }//;
+  }//for (UInt_t i=0; i<num_words ; i++) {
   
-  return (data_integrity_flag); // true
+  
+  return (data_integrity_flag); 
   
 }
 
