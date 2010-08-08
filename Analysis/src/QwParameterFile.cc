@@ -94,6 +94,61 @@ QwParameterFile::QwParameterFile(const char *filename){
   }
 };
 
+
+bool QwParameterFile::FindFile(
+        const bfs::path& dir_path,
+        const std::string& file_name,
+        const unsigned int run,
+        bfs::path& path_found)
+{
+  // Return false if the directory does not exist
+  if (! bfs::exists(dir_path)) return false;
+
+  // Loop over all files in the directory
+  bfs::directory_iterator end_iterator; // default construction yields past-the-end
+  for (bfs::directory_iterator file_iterator(dir_path);
+       file_iterator != end_iterator;
+       file_iterator++) {
+
+    // Look for a match
+    if (MatchRunNumberToFile(file_iterator->leaf(), file_name, run)) {
+      //path_found = file_iterator->path();
+      return true;
+    }
+  }
+  return false;
+};
+
+
+bool QwParameterFile::MatchRunNumberToFile(
+        const std::string& this_file_name,
+        const std::string& file,
+        const unsigned int run)
+{
+  // Separate file to test for in name and extension
+  std::string file_name = file.substr(0,file.find("."));
+  std::string file_ext = file.substr(file.find("."));
+  QwMessage << "Matching file name " << file_name << " and ext " << file_ext << QwLog::endl;
+  // Find a match for the file name
+  size_t found = this_file_name.find(file_name);
+  if (found != std::string::npos) {
+    size_t first_period = found + file_name.length();
+    // Find a match for the file extension
+    size_t found = this_file_name.find(file_ext, first_period);
+    if (found != std::string::npos) {
+      size_t second_period = found;
+      if (second_period > first_period) {
+        // Split off the label between file name and extension
+        std::string label = file.substr(first_period, second_period - first_period);
+        QwMessage << "Label " << label << QwLog::endl;
+        return MatchRunNumberToLabel(label,run);
+      }
+    }
+  }
+  return false;
+};
+
+
 void QwParameterFile::TrimWhitespace(TString::EStripType head_tail){
   //  If the first bit is set, this routine removes leading spaces from the
   //  line.  If the second bit is set, this routine removes trailing spaces
@@ -427,3 +482,60 @@ ostream& operator<< (ostream& stream, const QwParameterFile& file)
   stream << file.fStream.rdbuf();
   return stream;
 }
+
+
+/** @brief Separate a separated range of integers into a pair of values
+ *
+ *  @param separatorchars String with possible separator characters to consider.
+ *  @param range String containing two integers separated by a separator character,
+ *               or a single value.
+ *               If the string begins with the separator character, the first value
+ *               is taken as zero.  If the string ends with the separator character,
+ *               the second value is taken as kMaxInt.
+ *
+ *  @return  Pair of integers of the first and last values of the range.
+ *           If the range contains a single value, the two integers will
+ *           be identical.
+ */
+std::pair<int,int> QwParameterFile::ParseIntRange(const std::string& separatorchars, const std::string& range)
+{
+  std::pair<int,int> mypair;
+  size_t pos = range.find_first_of(separatorchars);
+  if (pos == std::string::npos) {
+    //  Separator not found.
+    mypair.first  = atoi(range.substr(0,range.length()).c_str());
+    mypair.second = mypair.first;
+  } else {
+    size_t end = range.length() - pos - 1;
+    if (pos == 0) {
+      // Separator is the first character
+      mypair.first  = 0;
+      mypair.second = atoi(range.substr(pos+1, end).c_str());
+    } else if (pos == range.length() - 1) {
+      // Separator is the last character
+      mypair.first  = atoi(range.substr(0,pos).c_str());
+      mypair.second = INT_MAX;
+    } else {
+      mypair.first  = atoi(range.substr(0,pos).c_str());
+      mypair.second = atoi(range.substr(pos+1, end).c_str());
+    }
+  }
+
+  //  Check the values for common errors.
+  if (mypair.first < 0){
+    QwError << "The first value must not be negative!" << QwLog::endl;
+    exit(1);
+  } else if (mypair.first > mypair.second){
+    QwError << "The first value must not be larger than the second value"
+            << QwLog::endl;
+    exit(1);
+  }
+
+  //  Print the contents of the pair for debugging.
+  QwVerbose << "The range goes from " << mypair.first
+            << " to " << mypair.second << QwLog::endl;
+
+  return mypair;
+};
+
+
