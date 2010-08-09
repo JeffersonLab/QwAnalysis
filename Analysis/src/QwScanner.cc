@@ -765,9 +765,7 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
             }
         }
 
-      //fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
-      //fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_front_adc")));
-      //fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_back__adc")));
+      fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
       fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
       fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));
       fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_x")));
@@ -1145,6 +1143,7 @@ void  QwScanner::DeleteHistograms()
           fHistograms1D.at(i) =  NULL;
         }
     }
+  fHistograms1D.clear();
 
   for (size_t i=0; i<fHistograms2D.size(); i++)
     {
@@ -1154,6 +1153,7 @@ void  QwScanner::DeleteHistograms()
           fHistograms2D.at(i) =  NULL;
         }
     }
+  fHistograms2D.clear();
 
 };
 
