@@ -178,7 +178,7 @@ int main(Int_t argc,Char_t* argv[])
      // }
      else if (det_type=="bcm,"){
        devicename.ToLower();
-       BCMList.push_back(devicename);
+       BCMlist.push_back(devicename);
        counterbcm++;
      }
      else
@@ -266,8 +266,8 @@ int main(Int_t argc,Char_t* argv[])
   // e.g. when we set scandata = 10, the bcm will read a current range that may vary from 9.3 to 10.8 with the average being
   // 10.05 != 10. So we have to calibrate the bcm before we use it to calibrate the bpms.
 
-  std::cout<<"Calibrating bcm "<<BCMList[BCMOfChoice]<<std::endl;//Most likely change to a for function for the whole BCM list
-  initial_bcm_calibration(BCMList[BCMOfChoice]);
+  std::cout<<"Calibrating bcm "<<BCMlist[BCMOfChoice]<<std::endl;//Most likely change to a for function for the whole BCM list
+  initial_bcm_calibration(BCMlist[BCMOfChoice]);
  
 
 

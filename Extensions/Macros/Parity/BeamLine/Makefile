@@ -20,7 +20,7 @@ ROOTGLIBS     = $(shell root-config --glibs)
 MYOS := $(subst -,,$(shell uname))
 
 
-EXE := pedestal_extractor position_differnces hallc_beam_motion correlation_plots
+EXE := pedestal_extractor position_differnces hallc_beam_motion bcm_calib
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
@@ -28,7 +28,7 @@ EXE := pedestal_extractor position_differnces hallc_beam_motion correlation_plot
 	CXXFLAGS      = -O2 -Wall -fPIC 
 #-I$(G0ANALYSIS)/Analysis/include
 	LD            = g++
-	LDFLAGS       = -g
+	LDFLAGS       = -O
 	SOFLAGS       = -shared
 
 	CXXFLAGS     += $(ROOTCFLAGS)
@@ -52,6 +52,8 @@ hallc_beam_motion : hallc_beam_motion.o
 IA_Scan : ia_scan.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
+bcm_calib : bcm_calib.o 
+	$(LD) $(LDFLAGS)  $(LIBS) $(GLIBS) bcm_calib.o -o $@
 
 %.o: %.C
 	$(CXX) -c  $(CXXFLAGS)   -o $@ $<
