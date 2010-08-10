@@ -8,6 +8,7 @@
 #include "TString.h"
 #include "TCanvas.h"
 #include "TH1.h"
+#include "TFitResultPtr.h"
 //#include "TH2.h"
 #include "TFile.h"
 #include "TTree.h"
@@ -18,7 +19,7 @@
 //#include "TPaveText.h"
 //#include "TPaveStats.h"
 //#include "TProfile.h"
-//#include "TF1.h"
+#include "TF1.h"
 //#include "TStyle.h"
 //#include "TKey.h"
 //#include "TStopwatch.h"
@@ -512,7 +513,7 @@ main(int argc, char **argv)
 	mps_tree = (TTree*) file->Get("Mps_Tree");
 	
 	TBranch *branch_obj = NULL;
-	TLeaf *leaf_obj = NULL;
+	// TLeaf *leaf_obj = NULL;
 	//	Int_t canvas_size = 0;
 	//	if (bcm_size%2) { // odd
 	//	  canvas_size = ((Int_t) bcm_size + 1) / 2;
@@ -521,62 +522,113 @@ main(int argc, char **argv)
 	//	  canvas_size = (Int_t bcm_size / 2
 	//	}
 
-	canvas -> Divide(4,3);
+	//	canvas -> Divide(4,3);
+	canvas -> cd();
 	Int_t cnt = 0;
 	TString branch_name;
 	Int_t leaf_number = 0;
 
-	for (pd=wanted_bcm_list.begin(); pd!=wanted_bcm_list.end(); pd++) {
-	  
-	  branch_obj = mps_tree->FindBranch(*pd);
+	TH1D *sca_unser;
+	TH1D *bcm_sca[10];
+	TF1 *bcm_fit[10];
+	
 
-	  if (branch_obj) {
+
+	branch_name = "qwk_sca_unser";
+	mps_tree->Draw(Form("%s", branch_name.Data()), "qwk_sca_unser<320");
+	sca_unser = (TH1D*) gPad -> GetPrimitive("htemp");
+	sca_unser -> Fit("gaus", "M");
+	TF1 *unser_fit = sca_unser -> GetFunction("gaus");
+
+	
+	Double_t chi_test = 0.0;
+	Double_t mean[2] = {0.0};
+	Double_t sigma[2] = {0.0};
+	
+	mean[0] = unser_fit -> GetParameter(1);
+	mean[1] = unser_fit -> GetParError(1);
+	sigma[0] = unser_fit -> GetParameter(2);
+	sigma[1] = unser_fit -> GetParError(2);
+	
+	
+	printf("mean      %10.5lf +- %8.5lf\n", mean[0], mean[1]);
+	printf("sigma     %10.5lf +- %8.5lf\n", sigma[0], sigma[1]);
+  
+	
+	canvas -> Update();
+
+	canvas -> Clear();
+	//	canvas -> Divide(2,2);
+	
+	
+	canvas -> cd();
+	
+	mps_tree->Draw(Form("qwk_sca_bcm1:(%s-%lf)", branch_name.Data(),mean[0]),"","prof");
+
+	bcm_sca[0] = (TH1D*) gPad -> GetPrimitive("htemp");
+	bcm_sca[0] -> Fit("pol1", "M");
+	bcm_fit[0] = bcm_sca[0] -> GetFunction("pol1");
+
+	Double_t offset[2] = {0.0};
+	Double_t slope[2] = {0.0};
+	
+	offset[0] = bcm_fit[0]-> GetParameter(0);
+	offset[1] = bcm_fit[0] -> GetParError(0);
+	slope[0] = bcm_fit[0] -> GetParameter(1);
+	slope[1] = bcm_fit[0] -> GetParError(1);
+	
+	
+	printf("offset    %10.5lf +- %8.5lf\n", offset[0], offset[1]);
+	printf("slope     %10.5lf +- %8.5lf\n", slope[0], slope[1]);
+  
+
+	canvas->Update();
+
+
+	canvas -> Clear();
+
+	// canvas -> Divide(4,3);
+	
+
+
+	// for (pd=wanted_bcm_list.begin(); pd!=wanted_bcm_list.end(); pd++) {
+	  
+	//   branch_obj = mps_tree->FindBranch(*pd);
+	  
+	//   if (branch_obj) {
 	    
-	    branch_name  = branch_obj->GetName();
-	    leaf_number = branch_obj->GetNleaves();
+	//     branch_name  = branch_obj->GetName();
+	//     leaf_number = branch_obj->GetNleaves();
 	    
-	    if (local_debug) {
-	      std::cout << "Found a Branch name " 
-			<< branch_name
-			<< " GetNleaves " 
-			<< leaf_number
-			<< std::endl;
-	    }
+	//     if (local_debug) {
+	//       std::cout << "Found a Branch name " 
+	// 		<< branch_name
+	// 		<< " GetNleaves " 
+	// 		<< leaf_number
+	// 		<< std::endl;
+	//     }
 	    
-	    canvas -> cd(cnt+1);
-	     
-	    if(leaf_number == 1) {
-	      mps_tree->Draw(branch_name);
-	    }
-	    else {
-	      mps_tree->Draw(Form("%s.hw_sum", branch_name.Data()));
-	    }
-	    cnt++;
-	    canvas -> Update();
-	     
-	   }
-	   else {
-	     std::cout << " There is no branch with the name " 
-			<< *pd
-			<< std::endl;
-	   }
-	 }
+	//     canvas -> cd(cnt+1);
+	    
+	//     if(leaf_number == 1) {
+	//       mps_tree->Draw(Form("(%s-%lf):event_number", branch_name.Data(),mean[0]));
+	//     }
+	//     else {
+	//       mps_tree->Draw(Form("(%s.hw_sum-%lf):event_number", branch_name.Data(),mean[0]));
+	//     }
+	//     cnt++;
+	//     canvas -> Update();
+	    
+	//   }
+	//   else {
+	//     std::cout << " There is no branch with the name " 
+	// 	      << *pd
+	// 		<< std::endl;
+	//   }
+	// }
 	 
 	
-	 for( pd = wanted_bcm_list.begin(); pd != wanted_bcm_list.end(); pd++ ) {
-	   leaf_obj = mps_tree->FindLeaf(*pd);
-	   if( leaf_obj ) {
-	    std::cout << "Found a Leaf name " 
-		      << *pd
-		      << std::endl;
-	   }
-	   else {
-	     std::cout << " There is no Leaf with the name " 
-			<< *pd
-			<< std::endl;
-	   }
-	}
-
+	
       }
       
       // if(file->IsOpen())  {
