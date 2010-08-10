@@ -424,172 +424,279 @@ QwBeamMonitorDevice::OpenMapFile(TString mapfilename)
 //  return;
 //}
 
-TCanvas *canvas; 
+TCanvas *canvas_sca; 
+TCanvas *canvas_vqwk;
 
 Int_t
 main(int argc, char **argv)
 {
+ 
+  // Bool_t local_debug = true;
+  // TString mapfilename       = "qweak_hallc_beamline.map";
+  // TString selected_filename = "bcms_only.dat";
+
+  // QwBeamMonitorDevice beam_monitors;
+  // beam_monitors.WantCustomizedMonitors(true, selected_filename);
+  // beam_monitors.WantBcms(false);
+  // beam_monitors.WantBpms(false);
+  // beam_monitors.WantHalos(false);
+  // beam_monitors.WantOthers(false);
+
+  // std::vector<TString> bcm_name_list;
+  // std::vector<TString> halo_name_list;
+  // std::vector<TString> bpm_name_list;
+  // std::vector<TString> other_name_list;
+
+  // std::vector<TString> wanted_bcm_list;
+  // std::vector<TString>::iterator pd;
+  
+  // std::size_t bcm_size = 0;
+  // bcm_size = wanted_bcm_list.size();
+
+  // if(beam_monitors.OpenMapFile(mapfilename)) 
+  //   { 
+  //     bcm_name_list   = beam_monitors.GetBcmsList();
+  //     halo_name_list  = beam_monitors.GetHalosList();
+  //     wanted_bcm_list = beam_monitors.GetMonitorsList();
+  //     bcm_name_list   = beam_monitors.GetBpmsList();
+
+  //     if(local_debug) {
+  // 	std::cout << "Beam Monitors : bpm size " 
+  // 		  << beam_monitors.bpms.size()
+  // 		  << " bcm size "
+  // 		  << bcm_name_list.size()
+  // 		  << " halo size "
+  // 		  << beam_monitors.halos.size()
+  // 		  << " other size "
+  // 		  << beam_monitors.others.size()
+  // 		  << " wanted size "
+  // 		  << wanted_bcm_list.size()
+  // 		  << std::endl;
+
+  // 	for( pd = wanted_bcm_list.begin(); pd != wanted_bcm_list.end(); pd++ ) {
+  // 	  std::cout << "selected? " << *pd << std::endl;
+  // 	}
+
+
+  //     }
+  //     std::vector<TString>::iterator pd;
+  //     if(local_debug) {
+  // 	if(beam_monitors.IsBcms()) {
+  // 	  for( pd = bcm_name_list.begin(); pd != bcm_name_list.end(); pd++ ) {
+  // 	    std::cout << *pd << std::endl;
+  // 	  }
+  // 	}
+  // 	if(beam_monitors.IsHalos()) {
+  // 	  for( pd = halo_name_list.begin(); pd != halo_name_list.end(); pd++ ) {
+  // 	    std::cout << *pd << std::endl;
+  // 	  }
+  // 	}
+  // 	if(beam_monitors.IsBpms()) {
+  // 	  for( pd = bpm_name_list.begin(); pd != bpm_name_list.end(); pd++ ) {
+  // 	    std::cout << *pd << std::endl;
+  // 	  }
+  // 	}
+  //     }
+
+
   TApplication theApp("App", &argc, argv);
+  char* run_number = 0;
+  Int_t human_input_beam_off_range = 320;
+  
+  if(argc<2 || argc>4)
+    {
+      std::cout <<" Not enough arguments to run this code, the correct syntax is \n";
+      std::cout <<" ./bcm_calib run_number (unser_offset)" <<  std::endl;
+      exit(1);
+    }
+  else if (argc == 2) {
+    run_number = argv[1];
+    std::cout << " Default value " << human_input_beam_off_range 
+	      << " is used to define qwk_sca_unser range. " 
+	      << std::endl;
+  }
+  else if (argc == 3) {
+    run_number = argv[1];
+    human_input_beam_off_range = atoi(argv[2]);
+  }
 
-  Int_t w = 1000;
+  Int_t w = 1100;
   Int_t h = 800;
-
-  canvas = new TCanvas("bcm_calib_test","BCM Calibration Test", w, h);  
   
-  Bool_t local_debug = true;
-  TString mapfilename       = "qweak_hallc_beamline.map";
-  TString selected_filename = "bcms_only.dat";
-
-  QwBeamMonitorDevice beam_monitors;
-  beam_monitors.WantCustomizedMonitors(true, selected_filename);
-  beam_monitors.WantBcms(false);
-  beam_monitors.WantBpms(false);
-  beam_monitors.WantHalos(false);
-  beam_monitors.WantOthers(false);
-
-  std::vector<TString> bcm_name_list;
-  std::vector<TString> halo_name_list;
-  std::vector<TString> bpm_name_list;
-  std::vector<TString> other_name_list;
-
-  std::vector<TString> wanted_bcm_list;
-  std::vector<TString>::iterator pd;
+  canvas_sca = new TCanvas("bcm_sca_calib_test","BCM SCA Calibration Test", w, h);  
   
-  std::size_t bcm_size = 0;
-  bcm_size = wanted_bcm_list.size();
 
-  if(beam_monitors.OpenMapFile(mapfilename)) 
-    { 
-      bcm_name_list   = beam_monitors.GetBcmsList();
-      halo_name_list  = beam_monitors.GetHalosList();
-      wanted_bcm_list = beam_monitors.GetMonitorsList();
-      bcm_name_list   = beam_monitors.GetBpmsList();
-
-      if(local_debug) {
-	std::cout << "Beam Monitors : bpm size " 
-		  << beam_monitors.bpms.size()
-		  << " bcm size "
-		  << bcm_name_list.size()
-		  << " halo size "
-		  << beam_monitors.halos.size()
-		  << " other size "
-		  << beam_monitors.others.size()
-		  << " wanted size "
-		  << wanted_bcm_list.size()
-		  << std::endl;
-
-	for( pd = wanted_bcm_list.begin(); pd != wanted_bcm_list.end(); pd++ ) {
-	  std::cout << "selected? " << *pd << std::endl;
-	}
-
-
-      }
-      std::vector<TString>::iterator pd;
-      if(beam_monitors.IsBcms()) {
-	for( pd = bcm_name_list.begin(); pd != bcm_name_list.end(); pd++ ) {
-	  std::cout << *pd << std::endl;
-	}
-      }
-      if(beam_monitors.IsHalos()) {
-	for( pd = halo_name_list.begin(); pd != halo_name_list.end(); pd++ ) {
-	  std::cout << *pd << std::endl;
-	}
-      }
-      if(beam_monitors.IsBpms()) {
-	for( pd = bpm_name_list.begin(); pd != bpm_name_list.end(); pd++ ) {
-	  std::cout << *pd << std::endl;
-	}
-      }
-
-      TFile *file = new TFile("~/scratch/rootfiles/Qweak_5070.000.root");
-      TTree *mps_tree = NULL;
+  TFile *file = new TFile(Form("~/scratch/rootfiles/Qweak_%s.000.root", run_number));
+  TTree *mps_tree = NULL;
       
 
-      if (file->IsZombie())  {
-	printf("Error opening file\n");  
-	return EXIT_FAILURE;
-      }
-      else {
-	mps_tree = (TTree*) file->Get("Mps_Tree");
+  if (file->IsZombie()) {
+    printf("Error opening file\n");  
+    return EXIT_FAILURE;
+  }
+  else {
+    mps_tree = (TTree*) file->Get("Mps_Tree");
 	
-	TBranch *branch_obj = NULL;
-	// TLeaf *leaf_obj = NULL;
-	//	Int_t canvas_size = 0;
-	//	if (bcm_size%2) { // odd
-	//	  canvas_size = ((Int_t) bcm_size + 1) / 2;
-	//	}
-	//	else { // even number
-	//	  canvas_size = (Int_t bcm_size / 2
-	//	}
+    //TBranch *branch_obj = NULL;
+    // TLeaf *leaf_obj = NULL;
+    //	Int_t canvas_size = 0;
+    //	if (bcm_size%2) { // odd
+    //	  canvas_size = ((Int_t) bcm_size + 1) / 2;
+    //	}
+    //	else { // even number
+    //	  canvas_size = (Int_t bcm_size / 2
+    //	}
+    //    Int_t cnt = 0;
+    TString branch_name;
+    TString unser_name = "qwk_sca_unser";
+    TString clock_name = "qwk_sca_4mhz";
+    //    Int_t leaf_number = 0;
 
-	//	canvas -> Divide(4,3);
-	canvas -> cd();
-	Int_t cnt = 0;
-	TString branch_name;
-	Int_t leaf_number = 0;
-
-	TH1D *sca_unser;
-	TH1D *bcm_sca[10];
-	TF1 *bcm_fit[10];
-	
-
-
-	branch_name = "qwk_sca_unser";
-	mps_tree->Draw(Form("%s", branch_name.Data()), "qwk_sca_unser<320");
-	sca_unser = (TH1D*) gPad -> GetPrimitive("htemp");
-	sca_unser -> Fit("gaus", "M");
-	TF1 *unser_fit = sca_unser -> GetFunction("gaus");
+    TH1D *sca_unser;
+    TH1D *sca_clock;
+    TH1D *bcm_sca[10]; // 10 has no meaning.. quick and dirty way to do...
+    TH1D *bcm_tmp[10];
+    TF1 *bcm_fit[10];
 
 	
-	Double_t chi_test = 0.0;
-	Double_t mean[2] = {0.0};
-	Double_t sigma[2] = {0.0};
-	
-	mean[0] = unser_fit -> GetParameter(1);
-	mean[1] = unser_fit -> GetParError(1);
-	sigma[0] = unser_fit -> GetParameter(2);
-	sigma[1] = unser_fit -> GetParError(2);
-	
-	
-	printf("mean      %10.5lf +- %8.5lf\n", mean[0], mean[1]);
-	printf("sigma     %10.5lf +- %8.5lf\n", sigma[0], sigma[1]);
-  
-	
-	canvas -> Update();
 
-	canvas -> Clear();
-	//	canvas -> Divide(2,2);
-	
-	
-	canvas -> cd();
-	
-	mps_tree->Draw(Form("qwk_sca_bcm1:(%s-%lf)", branch_name.Data(),mean[0]),"","prof");
 
-	bcm_sca[0] = (TH1D*) gPad -> GetPrimitive("htemp");
-	bcm_sca[0] -> Fit("pol1", "M");
-	bcm_fit[0] = bcm_sca[0] -> GetFunction("pol1");
+    canvas_sca -> Clear();
+    canvas_sca -> Divide(4,2);
+	
+    canvas_sca -> cd(1);
+    mps_tree->Draw(Form("%s", clock_name.Data()));
+    sca_clock  = (TH1D*) gPad -> GetPrimitive("htemp");
+    sca_clock -> Fit("gaus", "M Q");
+    TF1 *clock_fit = sca_clock -> GetFunction("gaus");
+	
+    //    Double_t clock_chi_test = 0.0;
+    Double_t clock_mean[2] = {0.0};
+    Double_t clock_sigma[2] = {0.0};
 
-	Double_t offset[2] = {0.0};
-	Double_t slope[2] = {0.0};
+
+    clock_mean[0] = clock_fit -> GetParameter(1);
+    clock_mean[1] = clock_fit -> GetParError(1);
+    clock_sigma[0] = clock_fit -> GetParameter(2);
+    clock_sigma[1] = clock_fit -> GetParError(2);
 	
-	offset[0] = bcm_fit[0]-> GetParameter(0);
-	offset[1] = bcm_fit[0] -> GetParError(0);
-	slope[0] = bcm_fit[0] -> GetParameter(1);
-	slope[1] = bcm_fit[0] -> GetParError(1);
-	
-	
-	printf("offset    %10.5lf +- %8.5lf\n", offset[0], offset[1]);
-	printf("slope     %10.5lf +- %8.5lf\n", slope[0], slope[1]);
+    printf("--------- qwk_sca_4hmz ------------------------------------------------\n");
+    printf("clock_mean      %10.5lf +- %8.5lf\n", clock_mean[0], clock_mean[1]);
+    printf("clock_sigma     %10.5lf +- %8.5lf\n", clock_sigma[0], clock_sigma[1]);
+    printf("\n");
+
+    canvas_sca -> cd(2);
+    mps_tree->Draw(Form("%s:event_number", unser_name.Data()), "");
+
+    canvas_sca -> Update();
+
+    canvas_sca -> cd(3);
+
   
 
-	canvas->Update();
+    mps_tree->Draw(Form("%s", unser_name.Data()), Form("qwk_sca_unser<%d", human_input_beam_off_range));
+    sca_unser = (TH1D*) gPad -> GetPrimitive("htemp");
+    sca_unser -> Fit("gaus", "M Q");
+    TF1 *unser_fit = sca_unser -> GetFunction("gaus");
+
+	
+    //    Double_t chi_test = 0.0;
+    Double_t unser_mean[2] = {0.0};
+    Double_t unser_sigma[2] = {0.0};
+	
+    unser_mean[0]  = unser_fit -> GetParameter(1);
+    unser_mean[1]  = unser_fit -> GetParError(1);
+    unser_sigma[0] = unser_fit -> GetParameter(2);
+    unser_sigma[1] = unser_fit -> GetParError(2);
+	
+    printf("--------- qwk_sca_unser -----------------------------------------------\n");
+    printf("unser_mean      %10.5lf +- %8.5lf\n", unser_mean[0], unser_mean[1]);
+    printf("unser_sigma     %10.5lf +- %8.5lf\n", unser_sigma[0], unser_sigma[1]);
+    printf("\n");
+	
+    canvas_sca -> Update();
+
+    canvas_sca -> cd(4);
+
+    
+    Double_t inverse_integration_time_scaler_unit = 0.0;
+
+    inverse_integration_time_scaler_unit = 4e6/clock_mean[0]*0.25e-3;
+	
+    TString conversion = Form("((%s-%lf)*%lf)", unser_name.Data(), unser_mean[0], inverse_integration_time_scaler_unit);
+
+    mps_tree->Draw(Form("(qwk_sca_bcm1):%s", conversion.Data()),"","profs");
+
+    bcm_sca[0] = (TH1D*) gPad -> GetPrimitive("htemp");
+    bcm_sca[0] -> SetTitle("qwk_sca_bcm1 vs corrected unser");
+    bcm_sca[0] -> GetXaxis() -> SetTitle("(unser-ped)*4e6/qwk_sca_4mhz*0.25e-3");
+    bcm_sca[0] -> Fit("pol1", "M Q");
+    bcm_fit[0] = bcm_sca[0] -> GetFunction("pol1");
+
+    Double_t offset[2] = {0.0};
+    Double_t slope[2] = {0.0};
+	
+    offset[0] = bcm_fit[0] -> GetParameter(0);
+    offset[1] = bcm_fit[0] -> GetParError(0);
+    slope[0]  = bcm_fit[0] -> GetParameter(1);
+    slope[1]  = bcm_fit[0] -> GetParError(1);
+	
+    printf("--------- qwk_sca_bcm1  -----------------------------------------------\n");
+    printf("offset    %10.5lf +- %8.5lf\n", offset[0], offset[1]);
+    printf("slope     %10.5lf +- %8.5lf\n", slope[0], slope[1]);
+    printf("\n");
+  
+    canvas_sca -> cd(5);
+
+    mps_tree->Draw(Form("%lf*(qwk_sca_bcm1-%lf):%s", inverse_integration_time_scaler_unit,offset[0], "event_number"));
+    bcm_tmp[0] = (TH1D*) gPad -> GetPrimitive("htemp");
+    bcm_tmp[0] -> SetTitle("corrected qwk_sca_bcm1 vs event_number");
+    bcm_tmp[0] -> GetYaxis() -> SetTitle("(bcm1-bcm1_ped)*4e6/qwk_sca_4mhz*0.25e-3");
+
+    canvas_sca->Modified();
+
+    canvas_sca -> cd(6);
+	
+    mps_tree->Draw(Form("(qwk_sca_bcm2):%s",  conversion.Data()),"","profs");
+
+    
+    bcm_sca[1] = (TH1D*) gPad -> GetPrimitive("htemp");
+    bcm_sca[1] -> SetTitle("qwk_sca_bcm2 vs corrected unser");
+    bcm_sca[1] -> GetXaxis() -> SetTitle("(unser-ped)*4e6/qwk_sca_4mhz*0.25e-3");
+    bcm_sca[1] -> Fit("pol1", "M Q");
+    bcm_fit[1] = bcm_sca[1] -> GetFunction("pol1");
+    
+
+	
+    offset[0] = bcm_fit[1] -> GetParameter(0);
+    offset[1] = bcm_fit[1] -> GetParError(0);
+    slope[0]  = bcm_fit[1] -> GetParameter(1);
+    slope[1]  = bcm_fit[1] -> GetParError(1);
+	
+    printf("--------- qwk_sca_bcm2  -----------------------------------------------\n");
+    printf("offset    %10.5lf +- %8.5lf\n", offset[0], offset[1]);
+    printf("slope     %10.5lf +- %8.5lf\n", slope[0], slope[1]);
+    printf("\n");
+  
+    canvas_sca -> cd(7);
+
+    mps_tree->Draw(Form("%lf*(qwk_sca_bcm2-%lf):%s",  inverse_integration_time_scaler_unit, offset[0], "event_number"));
+    bcm_tmp[1] = (TH1D*) gPad -> GetPrimitive("htemp");
+    bcm_tmp[1] -> SetTitle("corrected qwk_sca_bcm2 vs event number");
+    bcm_tmp[1] -> GetYaxis() -> SetTitle("(bcm2-bcm2_ped)*4e6/qwk_sca_4mhz*0.25e-3");
 
 
-	canvas -> Clear();
+    canvas_sca->Modified();
+
+
+    canvas_vqwk = new TCanvas("bcm_vqk_calib_test","BCM VQWK Calibration Test", w, h);  
+
+
+	// canvas -> Clear();
 
 	// canvas -> Divide(4,3);
 	
-
+	
 
 	// for (pd=wanted_bcm_list.begin(); pd!=wanted_bcm_list.end(); pd++) {
 	  
@@ -611,11 +718,30 @@ main(int argc, char **argv)
 	//     canvas -> cd(cnt+1);
 	    
 	//     if(leaf_number == 1) {
-	//       mps_tree->Draw(Form("(%s-%lf):event_number", branch_name.Data(),mean[0]));
+	//       if(not branch_name.Contains("unser")) {
+	// 	mps_tree->Draw(Form("%s:(%s-%lf)", branch_name.Data(), unser_name.Data(), unser_mean[0]),"","prof");
+	// 	// bcm_sca[cnt] = (TH1D*) gPad -> GetPrimitive("htemp");
+	// 	// std::cout << "MEAN" << bcm_sca[cnt] -> GetMean() << std::endl;
+	// 	//   bcm_sca[cnt] -> Fit("pol1");
+	// 	// bcm_fit[cnt] = bcm_sca[cnt] -> GetFunction("pol1");
+		  
+	// 	//   Double_t offset[2] = {0.0};
+	// 	//   Double_t slope[2] = {0.0};
+		  
+	// 	//   offset[0] = bcm_fit[cnt]-> GetParameter(0);
+	// 	//   offset[1] = bcm_fit[cnt] -> GetParError(0);
+	// 	//   slope[0]  = bcm_fit[cnt] -> GetParameter(1);
+	// 	//   slope[1]  = bcm_fit[cnt] -> GetParError(1);
+		  
+		  
+	// 	//   printf("offset    %10.5lf +- %8.5lf\n", offset[0], offset[1]);
+	// 	//   printf("slope     %10.5lf +- %8.5lf\n", slope[0], slope[1]);
+		
+	//       }
 	//     }
-	//     else {
-	//       mps_tree->Draw(Form("(%s.hw_sum-%lf):event_number", branch_name.Data(),mean[0]));
-	//     }
+	//     // else {
+	//     //   mps_tree->Draw(Form("(%s.hw_sum-%lf):event_number", branch_name.Data(),mean[0]));
+	//     // }
 	//     cnt++;
 	//     canvas -> Update();
 	    
@@ -629,18 +755,10 @@ main(int argc, char **argv)
 	 
 	
 	
-      }
+  }
+	
       
-      // if(file->IsOpen())  {
-      // 	file->Close();
-      // 	delete file; file = NULL;
-      // }
-
-   
-    }
-  else
-    return EXIT_FAILURE;
-
+      
   theApp.Run();
   return 0;
 }
