@@ -30,7 +30,6 @@
 #include <TTree.h>
 #include <iostream>
 #include <fstream>
-#include <vector>
 #include <new>
 #include <TF1.h>
 #include <Rtypes.h>
@@ -41,9 +40,10 @@
 #include <stdexcept>
 #include <TLine.h>
 #include <time.h>
-#include <stdio.h>
+#include <cstdio>
 #include <TBox.h>
 
+#include <cstdlib>
 
 
 Bool_t pol2BCM=kFALSE;

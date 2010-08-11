@@ -64,7 +64,9 @@ bcm_calib : bcm_calib.o
 #	$(CXX) $(CXXFLAGS) -M $(MAIN)  >./.depend
 
 clean:
-	@rm -f $(OBJS) *~  core
+	@rm -rf *.o
+	@rm -rf *~
+	@rm -rf  core
 
 cleanall:
 	@rm -f $(OBJS) $(EXE) *~  core

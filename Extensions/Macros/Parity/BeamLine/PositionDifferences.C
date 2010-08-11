@@ -35,7 +35,6 @@
 
 
 
-#include <vector>
 #include "TRandom.h"
 #include "TGraphErrors.h"
 #include "TStyle.h"
@@ -61,7 +60,7 @@
 #include <TBox.h>
 #include <TPaveText.h>
 
-  
+#include <cstdlib>
 
 
 Double_t maxy1=0.0, maxy2=0.0;
