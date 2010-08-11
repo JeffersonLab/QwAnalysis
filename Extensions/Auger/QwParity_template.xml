@@ -1,0 +1,23 @@
+<Request>
+  <Email email="%USER%@jlab.org" request="false" job="true"/>
+  <Project name="qweak"/>
+  <Track name="one_pass"/>
+  <Name name="QwParity_%run%"/>
+  <Command><![CDATA[
+date
+whoami
+hostname
+setenv QWSCRATCH %QWSCRATCH%
+setenv QWANALYSIS %QWANALYSIS%
+source $QWANALYSIS/SetupFiles/SET_ME_UP.csh
+$QWANALYSIS/bin/qwparity -r %run%
+jobstat | grep %USER%
+  ]]></Command>
+
+  <Job>
+    <Stdout dest="%QWSCRATCH%/jobs/QwParity_%run%.out"/>
+    <Stderr dest="%QWSCRATCH%/jobs/QwParity_%run%.err"/>
+  </Job>
+
+</Request>
+
