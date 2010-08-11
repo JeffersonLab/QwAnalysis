@@ -80,6 +80,7 @@
   TGTextButton        *dBtnpResidual;
   TGTextButton        *dBtnpOffset;
   TGTextButton        *dBtnpSlope;
+  TGTextButton        *dBtnPackage;
 // objects needed for drop down menu
   TGVerticalFrame        *dBigFrame;
   TGVerticalFrame        *dTabFrameVert;
@@ -134,6 +135,7 @@
   void PlotTLResidualX();
   void PlotTLResidualU();
   void PlotTLResidualV();
+  void PlotPTPackage();
 
   //!This function plots histograms of the data in the current file, in the main canvas.
   //!
