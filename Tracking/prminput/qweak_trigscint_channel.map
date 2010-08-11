@@ -33,6 +33,8 @@ sca_bank=0x0403
   SIS3801, 0,  1, trigscint, ts2p_sca
   SIS3801, 0,  2, trigscint, ts1m_sca
   SIS3801, 0,  3, trigscint, ts1p_sca
+  SIS3801, 0,  4, trigscint, GEMTrigOut_Naovoo_sca
+  SIS3801, 0,  5, trigscint, GEMTrigOut_Urim_sca
   SIS3801, 0,  6, trigscint, ts2mt_sca
   SIS3801, 0,  7, trigscint, ts1mt_sca
 

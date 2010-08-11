@@ -561,7 +561,7 @@ VPATH    = ./main:./src
 
 MYSRCFILES= $(shell find $(MYSRCDIR) -name \*.cc -or -name \*.c)
 MYINCFILES= $(shell find $(MYINCDIR) -name \*.h)
-MYDICTFILES:= $(shell find $(MYDICTDIR) -name \*.cc)
+MYDICTFILES= $(shell find $(MYDICTDIR) -name \*.cc)
 
 MYOBJFILES= $(shell echo $(MYSRCFILES)|sed -e 's/\.cc/\.o/g' -e 's/\.c/\.o/g'| $(GREP) -v dictionary/)
 MYDICTOBJFILES= $(shell echo $(MYDICTFILES)|sed -e 's/\.cc/\.o/g' -e 's/\.c/\.o/g')
@@ -571,8 +571,10 @@ MYINCFLAGS =  $(patsubst %,-I%,$(sort $(dir $(shell $(FIND) $(MYINCDIR) | $(GREP
 CPPFLAGS += $(MYINCFLAGS)
 ##############
 
+all:  dictionary qweventdisplay3d
+
 qweventdisplay3d: $(MYDICTOBJFILES) main/QwEventDisplay3D.o $(MYOBJFILES)
-	@$(ECHO) "Making Executable QwEventDisplay3D"
+	@$(ECHO) "Making Executable QwEventDisplay3D" $@
 	${LINKER} ${CFLAGS}  ${filter-out %.a %.so dictionaries, $^}  ${LDFLAGS} ${LIBS} -o  $@   
 
 config: clean.auxfiles 
@@ -591,7 +593,7 @@ config: clean.auxfiles
 	done
 	@touch .auxDictFiles
 
-dictionary: .auxDictFiles config
+dictionary: config .auxDictFiles 
 	@$(ECHO) "################################### Building Dictionary Files"
 	@for file in `cat .auxDictFiles`; \
 	do \
