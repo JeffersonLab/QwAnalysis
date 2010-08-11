@@ -427,6 +427,15 @@ QwBeamMonitorDevice::OpenMapFile(TString mapfilename)
 TCanvas *canvas_sca; 
 TCanvas *canvas_vqwk;
 
+Double_t fline(Double_t *x, Double_t *par) {
+  if (x[0] > 2.5 && x[0] < 3.5) {
+    TF1::RejectPoint();
+    return 0;
+  }
+  return par[0] + par[1]*x[0];
+};
+
+
 Int_t
 main(int argc, char **argv)
 {
@@ -555,6 +564,7 @@ main(int argc, char **argv)
     TH1D *sca_unser;
     TH1D *sca_clock;
     TH1D *bcm_sca[10]; // 10 has no meaning.. quick and dirty way to do...
+    TH1D *bcm_vqwk[10];
     TH1D *bcm_tmp[10];
     TF1 *bcm_fit[10];
 
@@ -581,8 +591,8 @@ main(int argc, char **argv)
     clock_sigma[1] = clock_fit -> GetParError(2);
 	
     printf("--------- qwk_sca_4hmz ------------------------------------------------\n");
-    printf("clock_mean      %10.5lf +- %8.5lf\n", clock_mean[0], clock_mean[1]);
-    printf("clock_sigma     %10.5lf +- %8.5lf\n", clock_sigma[0], clock_sigma[1]);
+    printf("clock_mean      %10.3lf +- %8.3lf\n", clock_mean[0], clock_mean[1]);
+    printf("clock_sigma     %10.3lf +- %8.3lf\n", clock_sigma[0], clock_sigma[1]);
     printf("\n");
 
     canvas_sca -> cd(2);
@@ -610,8 +620,8 @@ main(int argc, char **argv)
     unser_sigma[1] = unser_fit -> GetParError(2);
 	
     printf("--------- qwk_sca_unser -----------------------------------------------\n");
-    printf("unser_mean      %10.5lf +- %8.5lf\n", unser_mean[0], unser_mean[1]);
-    printf("unser_sigma     %10.5lf +- %8.5lf\n", unser_sigma[0], unser_sigma[1]);
+    printf("unser_mean      %10.3lf +- %8.3lf\n", unser_mean[0], unser_mean[1]);
+    printf("unser_sigma     %10.3lf +- %8.3lf\n", unser_sigma[0], unser_sigma[1]);
     printf("\n");
 	
     canvas_sca -> Update();
@@ -630,7 +640,7 @@ main(int argc, char **argv)
     bcm_sca[0] = (TH1D*) gPad -> GetPrimitive("htemp");
     bcm_sca[0] -> SetTitle("qwk_sca_bcm1 vs corrected unser");
     bcm_sca[0] -> GetXaxis() -> SetTitle("(unser-ped)*4e6/qwk_sca_4mhz*0.25e-3");
-    bcm_sca[0] -> Fit("pol1", "M Q");
+    bcm_sca[0] -> Fit("pol1", "E F Q", "", 0, bcm_sca[0]->GetXaxis()->GetXmax());
     bcm_fit[0] = bcm_sca[0] -> GetFunction("pol1");
 
     Double_t offset[2] = {0.0};
@@ -642,8 +652,8 @@ main(int argc, char **argv)
     slope[1]  = bcm_fit[0] -> GetParError(1);
 	
     printf("--------- qwk_sca_bcm1  -----------------------------------------------\n");
-    printf("offset    %10.5lf +- %8.5lf\n", offset[0], offset[1]);
-    printf("slope     %10.5lf +- %8.5lf\n", slope[0], slope[1]);
+    printf("offset    %10.3lf +- %8.3lf\n", offset[0], offset[1]);
+    printf("slope     %10.3lf +- %8.3lf\n", slope[0], slope[1]);
     printf("\n");
   
     canvas_sca -> cd(5);
@@ -663,7 +673,7 @@ main(int argc, char **argv)
     bcm_sca[1] = (TH1D*) gPad -> GetPrimitive("htemp");
     bcm_sca[1] -> SetTitle("qwk_sca_bcm2 vs corrected unser");
     bcm_sca[1] -> GetXaxis() -> SetTitle("(unser-ped)*4e6/qwk_sca_4mhz*0.25e-3");
-    bcm_sca[1] -> Fit("pol1", "M Q");
+    bcm_sca[1] -> Fit("pol1", "E F Q", "", 0, bcm_sca[1]->GetXaxis()->GetXmax());
     bcm_fit[1] = bcm_sca[1] -> GetFunction("pol1");
     
 
@@ -674,8 +684,8 @@ main(int argc, char **argv)
     slope[1]  = bcm_fit[1] -> GetParError(1);
 	
     printf("--------- qwk_sca_bcm2  -----------------------------------------------\n");
-    printf("offset    %10.5lf +- %8.5lf\n", offset[0], offset[1]);
-    printf("slope     %10.5lf +- %8.5lf\n", slope[0], slope[1]);
+    printf("offset    %10.3lf +- %8.3lf\n", offset[0], offset[1]);
+    printf("slope     %10.3lf +- %8.3lf\n", slope[0], slope[1]);
     printf("\n");
   
     canvas_sca -> cd(7);
@@ -690,6 +700,108 @@ main(int argc, char **argv)
 
 
     canvas_vqwk = new TCanvas("bcm_vqk_calib_test","BCM VQWK Calibration Test", w, h);  
+
+    
+    canvas_vqwk -> Clear();
+    canvas_vqwk -> Divide(4,2);
+    canvas_vqwk -> cd(1);
+    
+    mps_tree->Draw("(qwk_bcm1.hw_sum_raw):event_number");
+
+    canvas_vqwk -> cd(2);
+    
+    mps_tree->Draw("(qwk_bcm2.hw_sum_raw):event_number");
+
+    canvas_vqwk -> cd(3);
+    
+    mps_tree->Draw("(qwk_bcm5.hw_sum_raw):event_number");
+
+    canvas_vqwk -> cd(4);
+    
+    mps_tree->Draw("(qwk_bcm6.hw_sum_raw):event_number");
+
+    canvas_vqwk -> cd(5);
+    
+    mps_tree->Draw(Form("(qwk_bcm1.hw_sum_raw)/num_samples:%s", conversion.Data()), "", "profs");
+
+    bcm_vqwk[0] = (TH1D*) gPad -> GetPrimitive("htemp");
+    bcm_vqwk[0] -> SetTitle("qwk_bcm1 vs corrected unser");
+    bcm_vqwk[0] -> GetXaxis() -> SetTitle("(unser-ped)*4e6/qwk_sca_4mhz*0.25e-3");
+    bcm_vqwk[0] -> Fit("pol1", "E F Q", "", 0, bcm_vqwk[0]->GetXaxis()->GetXmax());
+    bcm_fit[2] = bcm_vqwk[0] -> GetFunction("pol1");
+
+	
+    offset[0] = bcm_fit[2] -> GetParameter(0);
+    offset[1] = bcm_fit[2] -> GetParError(0);
+    slope[0]  = bcm_fit[2] -> GetParameter(1);
+    slope[1]  = bcm_fit[2] -> GetParError(1);
+	
+    printf("--------- qwk_bcm1         -----------------------------------------------\n");
+    printf("offset    %10.3lf +- %8.3lf\n", offset[0], offset[1]);
+    printf("slope     %10.3lf +- %8.3lf\n", slope[0], slope[1]);
+    printf("\n");
+  
+
+    canvas_vqwk -> cd(6);
+    
+    mps_tree->Draw(Form("(qwk_bcm2.hw_sum_raw)/num_samples:%s", conversion.Data()), "", "profs");
+    bcm_vqwk[1] = (TH1D*) gPad -> GetPrimitive("htemp");
+    bcm_vqwk[1] -> SetTitle("qwk_bcm2 vs corrected unser");
+    bcm_vqwk[1] -> GetXaxis() -> SetTitle("(unser-ped)*4e6/qwk_sca_4mhz*0.25e-3");
+    bcm_vqwk[1] -> Fit("pol1", "E F Q", "", 0, bcm_vqwk[1]->GetXaxis()->GetXmax());
+    bcm_fit[3] = bcm_vqwk[1] -> GetFunction("pol1");
+
+	
+    offset[0] = bcm_fit[3] -> GetParameter(0);
+    offset[1] = bcm_fit[3] -> GetParError(0);
+    slope[0]  = bcm_fit[3] -> GetParameter(1);
+    slope[1]  = bcm_fit[3] -> GetParError(1);
+	
+    printf("--------- qwk_bcm2         -----------------------------------------------\n");
+    printf("offset    %10.3lf +- %8.3lf\n", offset[0], offset[1]);
+    printf("slope     %10.3lf +- %8.3lf\n", slope[0], slope[1]);
+    printf("\n");
+
+    canvas_vqwk -> cd(7);
+    
+    mps_tree->Draw(Form("(qwk_bcm5.hw_sum_raw)/num_samples:%s", conversion.Data()), "", "profs");
+    bcm_vqwk[2] = (TH1D*) gPad -> GetPrimitive("htemp");
+    bcm_vqwk[2] -> SetTitle("qwk_bcm5 vs corrected unser");
+    bcm_vqwk[2] -> GetXaxis() -> SetTitle("(unser-ped)*4e6/qwk_sca_4mhz*0.25e-3");
+    bcm_vqwk[2] -> Fit("pol1", "E F Q", "", 0, bcm_vqwk[2]->GetXaxis()->GetXmax());
+    bcm_fit[4] = bcm_vqwk[2] -> GetFunction("pol1");
+
+	
+    offset[0] = bcm_fit[4] -> GetParameter(0);
+    offset[1] = bcm_fit[4] -> GetParError(0);
+    slope[0]  = bcm_fit[4] -> GetParameter(1);
+    slope[1]  = bcm_fit[4] -> GetParError(1);
+	
+    printf("--------- qwk_bcm5         -----------------------------------------------\n");
+    printf("offset    %10.3lf +- %8.3lf\n", offset[0], offset[1]);
+    printf("slope     %10.3lf +- %8.3lf\n", slope[0], slope[1]);
+    printf("\n");
+
+
+    canvas_vqwk -> cd(8);
+    
+    mps_tree->Draw(Form("(qwk_bcm6.hw_sum_raw)/num_samples:%s", conversion.Data()), "", "profs");
+    bcm_vqwk[3] = (TH1D*) gPad -> GetPrimitive("htemp");
+    bcm_vqwk[3] -> SetTitle("qwk_bcm5 vs corrected unser");
+    bcm_vqwk[3] -> GetXaxis() -> SetTitle("(unser-ped)*4e6/qwk_sca_4mhz*0.25e-3");
+    bcm_vqwk[3] -> Fit("pol1", "E F Q", "", 0, bcm_vqwk[3]->GetXaxis()->GetXmax());
+    bcm_fit[5] = bcm_vqwk[3] -> GetFunction("pol1");
+
+	
+    offset[0] = bcm_fit[5] -> GetParameter(0);
+    offset[1] = bcm_fit[5] -> GetParError(0);
+    slope[0]  = bcm_fit[5] -> GetParameter(1);
+    slope[1]  = bcm_fit[5] -> GetParError(1);
+	
+    printf("--------- qwk_bcm6         -----------------------------------------------\n");
+    printf("offset    %10.3lf +- %8.3lf\n", offset[0], offset[1]);
+    printf("slope     %10.3lf +- %8.3lf\n", slope[0], slope[1]);
+    printf("\n");
 
 
 	// canvas -> Clear();
@@ -734,8 +846,8 @@ main(int argc, char **argv)
 	// 	//   slope[1]  = bcm_fit[cnt] -> GetParError(1);
 		  
 		  
-	// 	//   printf("offset    %10.5lf +- %8.5lf\n", offset[0], offset[1]);
-	// 	//   printf("slope     %10.5lf +- %8.5lf\n", slope[0], slope[1]);
+	// 	//   printf("offset    %10.3lf +- %8.3lf\n", offset[0], offset[1]);
+	// 	//   printf("slope     %10.3lf +- %8.3lf\n", slope[0], slope[1]);
 		
 	//       }
 	//     }
