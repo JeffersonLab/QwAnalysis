@@ -22,6 +22,7 @@ enum QwGUITrackFindingIndentificator {
   TF_PRESIDUAL,
   TF_POFFSET,
   TF_PSLOPE,
+  TF_PPACKAGE,
 //drop down menu
   TF_PLOT_LINEAR,
   TF_PLOT_LOG,
@@ -59,6 +60,7 @@ QwGUITrackFinding::QwGUITrackFinding(const TGWindow *p, const TGWindow *main, co
   dBtnpResidual       = NULL;
   dBtnpOffset	      = NULL;
   dBtnpSlope	      = NULL;
+  dBtnPackage	      = NULL;
 
   for (Short_t i = 0; i < CHAMBERS_NUM; i++)
     {
@@ -98,6 +100,7 @@ QwGUITrackFinding::~QwGUITrackFinding()
   if(dBtnpResidual)       delete dBtnpResidual;
   if(dBtnpOffset)	  delete dBtnpOffset;
   if(dBtnpSlope) 	  delete dBtnpSlope;
+  if(dBtnPackage) 	  delete dBtnPackage;
 
   delete[] histoChi2;
 
@@ -168,6 +171,7 @@ void QwGUITrackFinding::MakeLayout()
   dBtnpResidual = new TGTextButton(dControlsFrame1, "&PT_Residuals", TF_PRESIDUAL);
   dBtnpOffset  = new TGTextButton(dControlsFrame1, "&PT_Offset", TF_POFFSET);
   dBtnpSlope  = new TGTextButton(dControlsFrame1, "&PT_Slope", TF_PSLOPE);
+  dBtnPackage = new TGTextButton(dControlsFrame1, "&PT_Package", TF_PPACKAGE);
   dBtnLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
 
   dControlsFrame->AddFrame(dBtnChi2 ,dBtnLayout );
@@ -178,6 +182,7 @@ void QwGUITrackFinding::MakeLayout()
   dControlsFrame1->AddFrame(dBtnpResidual,dBtnLayout );
   dControlsFrame1->AddFrame(dBtnpOffset,dBtnLayout );
   dControlsFrame1->AddFrame(dBtnpSlope,dBtnLayout );
+  dControlsFrame1->AddFrame(dBtnPackage,dBtnLayout );
 
   dBtnChi2 -> Associate(this);
   dBtnResidual-> Associate(this);
@@ -187,7 +192,7 @@ void QwGUITrackFinding::MakeLayout()
   dBtnpResidual-> Associate(this);
   dBtnpOffset -> Associate(this);
   dBtnpSlope -> Associate(this);
-
+  dBtnPackage -> Associate(this);
 ///////////// Menu drop down /////////////
   dTabLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop |
 				 kLHintsExpandX | kLHintsExpandY);
@@ -270,7 +275,6 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
 //          tree->SetBranchAddress("hits", &roothitlist);
            tree->SetBranchAddress("events", &event); 
 
-
 /////// Create histos for TreeLines ////////////
             TH1D* chi_TLr2 = 	new TH1D("Chi2 (TLr2)","TreeLines Chi2 (Region 2)",100,0.0,40.0);
             TH1D* chi_TLr2x = 	new TH1D("Chi2 (TLr2x)","TreeLines Chi2 (Region 2, X Planes)",100,0.0,40.0);
@@ -329,6 +333,7 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
             TH1D* slopeX_PTr3 = new TH1D("SlopeX (PTr3)","PartialTracks SlopeX (Region 3)",100,-600.0,500.0);
             TH1D* slopeY_PTr2 = new TH1D("SlopeY (PTr2)","PartialTracks SlopeY (Region 2)",100,-0.3,0.3);
             TH1D* slopeY_PTr3 = new TH1D("SlopeY (PTr3)","PartialTracks SlopeY (Region 3)",100,-5000.0,25000.0);
+	    TH1D* package_PT =	new TH1D("Packages (R2R3)", "Region2/Region3 Package Value Comparisons",13, 10.0, 23.0);
 
 ////////// Color and format histos ////////////////////
 	    chi_TLr2	->	SetFillColor(kBlue);
@@ -429,6 +434,8 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
 // ////Wouter's looping code end ////////
 
 // Fill Histograms
+	    std::cout<<"Filling Track Finding Histos..."<< std::endl;
+
             for(int j = 0; j < tree->GetEntries(); j++){
 // 	    	std::cout<<"Getting entry "<< j<< std::endl;
 //		if (tree->GetEntry(j)==NULL ){
@@ -533,8 +540,17 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
 
 		  TIterator* iteratorPart = event->GetListOfPartialTracks()->MakeIterator();
 		  QwPartialTrack* partialtrack = 0;
-		  while ((partialtrack = (QwPartialTrack*) iteratorPart->Next())){
 //		    std::cout << j << std::endl;
+
+//		  int hasRegion=1;		//initize a counter to check if entry j has both region 2 and 3
+						// 1=neither, 2=region 2, 3=region 3, 4=both
+		  int hasPackage=0;		// initize counter for packages 
+						// package number (1 or 2) for Region 2 will be denoted in the tens position
+						// package number (1 or 2) for Region 3 will be denoted in the ones position
+						// 0 denotes that the corresponding region is not avaible for entry j
+						// eg: hasPackage=21 signifies the package value 2 for Region 2
+						//					     and 1 for Region 3
+		  while ((partialtrack = (QwPartialTrack*) iteratorPart->Next())){
 //		    std::cout << *partialtrack << std::endl;
 			switch (partialtrack->GetRegion()){
 		    	    case kRegionIDNull:
@@ -549,6 +565,30 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
                   		offsetY_PTr2->Fill(partialtrack->fOffsetY);
                   		slopeX_PTr2->Fill(partialtrack->fSlopeX);
                   		slopeY_PTr2->Fill(partialtrack->fSlopeY);
+// 			   	switch (hasRegion){
+// 				  case 1:
+// 				    hasRegion=2;
+// 				    break;
+// 				  case 3:
+// 				    hasRegion=4;
+// 				    break;
+// 			   	}
+			   	switch (partialtrack->GetPackage()){
+				  case kPackageNull:
+				    break;
+				  case 1:
+//				    std::cout << "old hasPackage= "<<hasPackage << std::endl;
+				    hasPackage= hasPackage%10 +10; //changes tens value to 1 while keeping ones place value
+//				    std::cout << "new hasPackage= "<<hasPackage << std::endl;
+				    break;
+				  case 2:
+//				    std::cout << "old hasPackage= "<<hasPackage << std::endl;
+				    hasPackage= hasPackage%10 +20; //changes tens value to 2 while keeping ones place value
+//				    std::cout << "new hasPackage= "<<hasPackage << std::endl;
+				    break;
+
+			   	}
+		  		//std::cout << "hasRegion: "<< hasRegion << std::endl;
                 		break;
 		    	    case kRegionID3:
 //				std::cout << "Partial Region 3 availiable" << std::endl;
@@ -558,6 +598,29 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
                   		offsetY_PTr3->Fill(partialtrack->fOffsetY);
                   		slopeX_PTr3->Fill(partialtrack->fSlopeX);
                   		slopeY_PTr3->Fill(partialtrack->fSlopeY);
+// 			   	switch (hasRegion){
+// 				  case 1:
+// 				    hasRegion=3;
+// 				    break;
+// 				  case 2:
+// 				    hasRegion=4;
+// 				    break;
+// 			   	}
+			   	switch (partialtrack->GetPackage()){
+				  case kPackageNull:
+				    break;
+				  case 1:
+//				    std::cout << "old hasPackage= "<<hasPackage << std::endl;
+				    hasPackage= hasPackage-hasPackage%10 +1; //changes ones value to 1 while keeping tens place value
+//				    std::cout << "new hasPackage= "<<hasPackage << std::endl;
+				    break;
+				  case 2:
+//				    std::cout << "old hasPackage= "<<hasPackage << std::endl;
+				    hasPackage= hasPackage-hasPackage%10 +2; //changes ones value to 2 while keeping tens place value
+				    break;
+//				    std::cout << "new hasPackage= "<<hasPackage << std::endl;
+			   	}
+		  		//std::cout << "hasRegion: "<< hasRegion << std::endl;
 				break;
 		    	    case kRegionIDTrig:
 				break;
@@ -566,6 +629,36 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
 		    	    case kRegionIDScanner:
 				break;
 			}
+			if (hasPackage== 11){
+                  		package_PT->Fill(hasPackage);
+			}
+			switch (hasPackage){
+				case 1:
+				  break;
+				case 2:
+				  break;
+				case 10:
+				  break;
+				case 20:
+                  		  break;
+				case 11:
+                  		  package_PT->Fill(hasPackage);
+                  		  break;
+				case 12:
+                  		  package_PT->Fill(hasPackage);
+                  		  break;
+				case 21:
+                  		  package_PT->Fill(hasPackage);
+                  		  break;
+				case 22:
+                  		  package_PT->Fill(hasPackage);
+                  		  break;
+			}
+// 		  	if (hasRegion==4){
+// 			std::cout << "Entry "<< j <<" has both Regions: "<< hasPackage<< std::endl;
+// //                  		package_PT->Fill(hasPackage);
+// 		  	}
+
 		  }
 		  delete iteratorPart;
 
@@ -942,6 +1035,7 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
 	   HistArray.Add(slopeX_PTr3);
 	   HistArray.Add(slopeY_PTr2);	//50
 	   HistArray.Add(slopeY_PTr3);
+ 	   HistArray.Add(package_PT);	//52	
         }
 	else{
 	std::cout<<"could not find 'events' branch"<<std::endl;
@@ -1106,7 +1200,7 @@ void QwGUITrackFinding::PlotChi2()
 
   gPad->Update();
 
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
 
 }
 
@@ -1162,7 +1256,7 @@ void QwGUITrackFinding::PlotResidual()
   obj->Draw();
 
   gPad->Update();
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
   return;
 }
 
@@ -1217,7 +1311,7 @@ void QwGUITrackFinding::PlotOffset()
   obj->Draw();
 
   gPad->Update();
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
   return;
 }
 
@@ -1273,7 +1367,7 @@ void QwGUITrackFinding::PlotSlope()
   obj->Draw();
 
   gPad->Update();
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
   return;
 }
 
@@ -1316,7 +1410,7 @@ void QwGUITrackFinding::PlotpChi2()
   obj->Draw();
 
   gPad->Update();
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
 }
 
 void QwGUITrackFinding::PlotpResidual()
@@ -1356,7 +1450,7 @@ void QwGUITrackFinding::PlotpResidual()
   obj->Draw();
 
   gPad->Update();
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
   return;
 }
 
@@ -1415,7 +1509,7 @@ void QwGUITrackFinding::PlotpOffset()
 
   obj->Draw();
   gPad->Update();
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
   return;
 }
 
@@ -1474,9 +1568,41 @@ void QwGUITrackFinding::PlotpSlope()
 
   obj->Draw();
   gPad->Update();
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
   return;
 }
+
+void QwGUITrackFinding::PlotPTPackage()
+{  std::cout<<"Plotting Package..."<<std::endl;
+
+  dMenuPlot1->EnableEntry(TF_PLOT_LINEAR);
+  dMenuPlot1->EnableEntry(TF_PLOT_LOG);
+
+  dMenuPlot2->DeleteEntry(dMenuPlot2->GetEntry("X"));
+  dMenuPlot2->DeleteEntry(dMenuPlot2->GetEntry("U"));
+  dMenuPlot2->DeleteEntry(dMenuPlot2->GetEntry("V"));
+  dMenuPlot2->DeleteEntry(dMenuPlot2->GetEntry("All"));
+
+   TObject *obj = NULL;
+
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+  mc->Clear();
+  mc->Divide(1,1);
+
+  mc->cd(1);
+  obj = HistArray.At(52);  // Get histogram from tree
+  if(! obj)
+	{
+	std::cout<<"Error: no obj in HistArray"<<std::endl;
+	return;
+	};
+  obj->Draw();
+  gPad->Update();
+//  std::cout<<"Done"<<std::endl;
+  return;
+}
+
 
 // Plotting X,U, and V Planes
 
@@ -1508,7 +1634,7 @@ mc->cd(3)->Clear();
 
   gPad->Update();
 
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
 }
 
 void QwGUITrackFinding::PlotTLChi2U()
@@ -1553,7 +1679,7 @@ void QwGUITrackFinding::PlotTLChi2U()
   obj->Draw();
   gPad->Update();
 
-  std::cout<<"Done"<<std::endl;
+ // std::cout<<"Done"<<std::endl;
 }
 
 void QwGUITrackFinding::PlotTLChi2V()
@@ -1598,7 +1724,7 @@ void QwGUITrackFinding::PlotTLChi2V()
   obj->Draw();
   gPad->Update();
 
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
 }
 
 void QwGUITrackFinding::PlotTLResidualX()
@@ -1623,7 +1749,7 @@ void QwGUITrackFinding::PlotTLResidualX()
   mc->cd(2)->Clear();
   mc->cd(3)->Clear();
   gPad->Update();
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
   return;
 }
 
@@ -1665,7 +1791,7 @@ void QwGUITrackFinding::PlotTLResidualU()
   obj->Draw();
 
   gPad->Update();
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
   return;
 }
 
@@ -1707,7 +1833,7 @@ void QwGUITrackFinding::PlotTLResidualV()
   obj->Draw();
 
   gPad->Update();
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
   return;
 }
 
@@ -1740,7 +1866,7 @@ void QwGUITrackFinding::PlotTLOffsetX()
   mc->cd(3)->Clear();
 
   gPad->Update();
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
   return;
 }
 
@@ -1786,7 +1912,7 @@ void QwGUITrackFinding::PlotTLOffsetU()
   obj->Draw();
 
   gPad->Update();
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
   return;
 }
 
@@ -1831,7 +1957,7 @@ void QwGUITrackFinding::PlotTLOffsetV()
   obj->Draw();
 
   gPad->Update();
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
   return;
 }
 
@@ -1862,7 +1988,7 @@ void QwGUITrackFinding::PlotTLSlopeX()
   mc->cd(2)->Clear(); //There is no X Plane for Region 3
   mc->cd(3)->Clear();
   gPad->Update();
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
   return;
 }
 
@@ -1908,7 +2034,7 @@ void QwGUITrackFinding::PlotTLSlopeU()
   obj->Draw();
 
   gPad->Update();
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
   return;
 }
 
@@ -1954,7 +2080,7 @@ void QwGUITrackFinding::PlotTLSlopeV()
   obj->Draw();
 
   gPad->Update();
-  std::cout<<"Done"<<std::endl;
+//  std::cout<<"Done"<<std::endl;
   return;
 }
 
@@ -2016,6 +2142,10 @@ Bool_t QwGUITrackFinding::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
 		case TF_PSLOPE:
 		  PlotpSlope();
+		  break;
+
+		case TF_PPACKAGE:
+		  PlotPTPackage();
 		  break;
 		}
 
