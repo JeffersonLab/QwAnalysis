@@ -884,6 +884,8 @@ void QwEventDisplay3D::SwitchViewHDC()
 
      //Attempting to draw the outlines of the planes
      TEveStraightLineSet* outline = new TEveStraightLineSet();
+     TEveStraightLineSet* frame = new TEveStraightLineSet();    
+
 
     // This will utimately represent the wire
     TEveRecTrack *fakewire  = new TEveRecTrack();
@@ -893,8 +895,7 @@ void QwEventDisplay3D::SwitchViewHDC()
 
     
      for(int sign=0; sign<=1; sign++)
-      {
-
+       {
     for(int i=0; i<=11; i++)
      {
 
@@ -903,8 +904,9 @@ void QwEventDisplay3D::SwitchViewHDC()
      if(i<=5)
         {fHDC_NewPlaneYPos=(-2*sign+1)*fHDC_PlaneYPos[0];}
      else
-        {fHDC_NewPlaneYPos=(-2*sign+1)*fHDC_PlaneYPos[1];} 
+        {fHDC_NewPlaneYPos=(-2*sign+1)*fHDC_PlaneYPos[1];}
 
+     // To outline the HDC Planes:
      outline->AddLine(fHDC_XLength/2.,
             fHDC_NewPlaneYPos-fHDC_YLength/2.,
             fHDC_PlaneZPos[i],
@@ -931,12 +933,59 @@ void QwEventDisplay3D::SwitchViewHDC()
             fHDC_PlaneZPos[i]);}}
 
 
+    
+     for(int sign=0; sign<=1; sign++)
+       {
+    for(int i=0; i<=1; i++)
+     {
+     //Getting correct Y-Pos for this planes #
+     Double_t fHDC_NewPlaneYPos;
+     if(i==0)
+        {fHDC_NewPlaneYPos=(-2*sign+1)*fHDC_PlaneYPos[0];}
+     else
+        {fHDC_NewPlaneYPos=(-2*sign+1)*fHDC_PlaneYPos[1];}
+
+     // To Outline the HDC Frame
+     int f=i*6;
+     int g=6*i+5;
+
+     frame->AddLine(-fHDC_XLength/2.,
+            fHDC_NewPlaneYPos-fHDC_YLength/2.,
+            fHDC_PlaneZPos[f],
+            -fHDC_XLength/2.,
+            fHDC_NewPlaneYPos-fHDC_YLength/2.,
+            fHDC_PlaneZPos[g]);
+     frame->AddLine(fHDC_XLength/2.,
+            fHDC_NewPlaneYPos-fHDC_YLength/2.,
+            fHDC_PlaneZPos[f],
+            fHDC_XLength/2., 
+            fHDC_NewPlaneYPos-fHDC_YLength/2.,
+            fHDC_PlaneZPos[g]);
+     frame->AddLine(fHDC_XLength/2.,
+            fHDC_NewPlaneYPos+fHDC_YLength/2.,
+            fHDC_PlaneZPos[f],
+            fHDC_XLength/2., 
+            fHDC_NewPlaneYPos+fHDC_YLength/2.,
+            fHDC_PlaneZPos[g]);
+     frame->AddLine(-fHDC_XLength/2.,
+            fHDC_NewPlaneYPos+fHDC_YLength/2.,
+            fHDC_PlaneZPos[f],
+            -fHDC_XLength/2., 
+            fHDC_NewPlaneYPos+fHDC_YLength/2.,
+            fHDC_PlaneZPos[g]);}}
+
+
    fCurrentOutline = new TEveTrack(fakewire,fakeprop);
    outline->SetMarkerSize(1.5);
    outline->SetMarkerStyle(4);
    outline->SetMainColor(2);
+   frame->SetMarkerSize(1.5);
+   frame->SetMarkerStyle(4);
+   frame->SetMainColor(3);
    fEveManager->AddElement(outline);
    fCurrentOutlineArray->Add(outline);
+   fEveManager->AddElement(frame);
+   fCurrentOutlineArray->Add(frame);
     }
 
 else { // Detector View
