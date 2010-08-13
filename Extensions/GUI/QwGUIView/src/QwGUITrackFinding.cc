@@ -210,7 +210,7 @@ void QwGUITrackFinding::MakeLayout()
   dMenuPlot2 = new TGPopupMenu(fClient->GetRoot());
 
   dMenuPlot1->AddEntry("&Linear", TF_PLOT_LINEAR);
-  dMenuPlot1->AddEntry("&Logarithmic", TF_PLOT_LOG);
+  dMenuPlot1->AddEntry("&Semi-Log", TF_PLOT_LOG);
 
   dMenuBar = new TGMenuBar(this, 1, 1, kHorizontalFrame);
   dMenuBar->AddPopup("&Scale", dMenuPlot1, dMenuBarItemLayout);
@@ -280,45 +280,45 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
             TH1D* chi_TLr2x = 	new TH1D("Chi2 (TLr2x)","TreeLines Chi2 (Region 2, X Planes)",100,0.0,40.0);
             TH1D* chi_TLr2u = 	new TH1D("Chi2 (TLr2u)", "TreeLines Chi2 (Region 2, U Planes)",100,0.0,40.0);
             TH1D* chi_TLr2v = 	new TH1D("Chi2 (TLr2v)","TreeLines Chi2 (Region 2, V Planes)",100,0.0,40.0);
-            TH1D* chi_TLr3_0 = 		new TH1D("Chi2 (TLr3_0)","TreeLines Chi2 (Region 3)",100,0.0,40.0);
-            TH1D* chi_TLr3u_0 = 	new TH1D("Chi2 (TLr3u_0)","TreeLines Chi2 (Region 3, U Planes)",100,0.0,40.0);
-            TH1D* chi_TLr3v_0 = 	new TH1D("Chi2 (TLr3v_0)","TreeLines Chi2 (Region 3, V Planes)",100,0.0,40.0);
-            TH1D* chi_TLr3less0 = 	new TH1D("Chi2 (TLr3less0)","TreeLines Chi2 (Region 3)",100,0.0,40.0);
-            TH1D* chi_TLr3uless0 = 	new TH1D("Chi2 (TLr3uless0)","TreeLines Chi2 (Region 3, U Planes)",100,0.0,40.0);
-            TH1D* chi_TLr3vless0 = 	new TH1D("Chi2 (TLr3vless0)","TreeLines Chi2 (Region 3, V Planes)",100,0.0,40.0);
+            TH1D* chi_TLr3_0 = 		new TH1D("Chi2 (TLr3_0)","TreeLines Chi2 (Region 3, fPlane=0)",100,0.0,40.0);
+            TH1D* chi_TLr3u_0 = 	new TH1D("Chi2 (TLr3u_0)","TreeLines Chi2 (Region 3U, fPlane=0)",100,0.0,40.0);
+            TH1D* chi_TLr3v_0 = 	new TH1D("Chi2 (TLr3v_0)","TreeLines Chi2 (Region 3V, fPlane=0)",100,0.0,40.0);
+            TH1D* chi_TLr3less0 = 	new TH1D("Chi2 (TLr3less0)","TreeLines Chi2 (Region 3, fPlane>0)",100,0.0,40.0);
+            TH1D* chi_TLr3uless0 = 	new TH1D("Chi2 (TLr3uless0)","TreeLines Chi2 (Region 3U, fPlane>0)",100,0.0,40.0);
+            TH1D* chi_TLr3vless0 = 	new TH1D("Chi2 (TLr3vless0)","TreeLines Chi2 (Region 3V, fPlane>0)",100,0.0,40.0);
 
             TH1D* resid_TLr2 = 	new TH1D("Residual (TLr2)","TreeLines Residual (Region 2)",100,0.0,2.0);
             TH1D* resid_TLr2x = new TH1D("Residual (TLr2x)","TreeLines Residual (Region 2, X Planes)",100,0.0,2.0);
             TH1D* resid_TLr2u = new TH1D("Residual (TLr2u)","TreeLines Residual (Region 2, U Planes)",100,0.0,2.0);
             TH1D* resid_TLr2v = new TH1D("Residual (TLr2v)","TreeLines Residual (Region 2, V Planes)",100,0.0,2.0);
-            TH1D* resid_TLr3_0 = 	new TH1D("Residual (TLr3_0)","TreeLines Residual (Region 3)",100,0.0,2.0);
-            TH1D* resid_TLr3u_0 = 	new TH1D("Residual (TLr3u_0)","TreeLines Residual (Region 3, U Planes)",100,0.0,2.0);
-            TH1D* resid_TLr3v_0 = 	new TH1D("Residual (TLr3v_0)","TreeLines Residual (Region 3, V Planes)",100,0.0,2.0);
-            TH1D* resid_TLr3less0 = 	new TH1D("Residual (TLr3less0)","TreeLines Residual (Region 3)",100,0.0,2.0);
-            TH1D* resid_TLr3uless0 = 	new TH1D("Residual (TLr3uless0)","TreeLines Residual (Region 3, U Planes)",100,0.0,2.0);
-            TH1D* resid_TLr3vless0 = 	new TH1D("Residual (TLr3vless0)","TreeLines Residual (Region 3, V Planes)",100,0.0,2.0);
+            TH1D* resid_TLr3_0 = 	new TH1D("Residual (TLr3_0)","TreeLines Residual (Region 3, fPlane=0)",100,0.0,2.0);
+            TH1D* resid_TLr3u_0 = 	new TH1D("Residual (TLr3u_0)","TreeLines Residual (Region 3U, fPlane=0)",100,0.0,2.0);
+            TH1D* resid_TLr3v_0 = 	new TH1D("Residual (TLr3v_0)","TreeLines Residual (Region 3V, fPlane=0)",100,0.0,2.0);
+            TH1D* resid_TLr3less0 = 	new TH1D("Residual (TLr3less0)","TreeLines Residual (Region 3, fPlane>0)",100,0.0,2.0);
+            TH1D* resid_TLr3uless0 = 	new TH1D("Residual (TLr3uless0)","TreeLines Residual (Region 3U, fPlane=0)",100,0.0,2.0);
+            TH1D* resid_TLr3vless0 = 	new TH1D("Residual (TLr3vless0)","TreeLines Residual (Region 3V, fPlane>0)",100,0.0,2.0);
 
             TH1D* offset_TLr2 = new TH1D("Offset (TLr2)","TreeLines Offset (Region 2)",100,-10.0,90.0);
             TH1D* offset_TLr2x= new TH1D("Offset (TLr2x)","TreeLines Offset (Region 2, X Planes)",100,-10.0,90.0);
             TH1D* offset_TLr2u= new TH1D("Offset (TLr2u)","TreeLines Offset (Region 2, U Planes)",100,-10.0,90.0);
             TH1D* offset_TLr2v= new TH1D("Offset (TLr2v)","TreeLines Offset (Region 2, V Planes)",100,-10.0,90.0);
-            TH1D* offset_TLr3_0 =	new TH1D("Offset (TLr3_0)","TreeLines Offset (Region 3)",100,-150.0,60.0);
-            TH1D* offset_TLr3u_0= 	new TH1D("Offset (TLr3u_0)","TreeLines Offset (Region 3, U Planes)",100,-150.0,60.0);
-            TH1D* offset_TLr3v_0= 	new TH1D("Offset (TLr3v_0)","TreeLines Offset (Region 3, V Planes)",100,-150.0,60.0);
-            TH1D* offset_TLr3less0 =	new TH1D("Offset (TLr3less0)","TreeLines Offset (Region 3)",100,-150.0,60.0);
-            TH1D* offset_TLr3uless0= 	new TH1D("Offset (TLr3uless0)","TreeLines Offset (Region 3, U Planes)",100,-150.0,60.0);
-            TH1D* offset_TLr3vless0= 	new TH1D("Offset (TLr3vless0)","TreeLines Offset (Region 3, V Planes)",100,-150.0,60.0);
+            TH1D* offset_TLr3_0 =	new TH1D("Offset (TLr3_0)","TreeLines Offset (Region 3, fPlane=0)",100,-150.0,60.0);
+            TH1D* offset_TLr3u_0= 	new TH1D("Offset (TLr3u_0)","TreeLines Offset (Region 3U, fPlane=0)",100,-150.0,60.0);
+            TH1D* offset_TLr3v_0= 	new TH1D("Offset (TLr3v_0)","TreeLines Offset (Region 3V, fPlane=0)",100,-150.0,60.0);
+            TH1D* offset_TLr3less0 =	new TH1D("Offset (TLr3less0)","TreeLines Offset (Region 3, fPlane>0)",100,-150.0,60.0);
+            TH1D* offset_TLr3uless0= 	new TH1D("Offset (TLr3uless0)","TreeLines Offset (Region 3U, fPlane>0)",100,-150.0,60.0);
+            TH1D* offset_TLr3vless0= 	new TH1D("Offset (TLr3vless0)","TreeLines Offset (Region 3V fPlane>0)",100,-150.0,60.0);
 
             TH1D* slope_TLr2 = 	new TH1D("Slope (TLr2)","TreeLines Slope (Region 2)",100,-0.04,0.19);
             TH1D* slope_TLr2x = new TH1D("Slope (TLr2x)","TreeLines Slope (Region 2, X Planes)",100,-0.04,0.19);
             TH1D* slope_TLr2u = new TH1D("Slope (TLr2u)","TreeLines Slope (Region 2, U Planes)",100,-0.04,0.19);
             TH1D* slope_TLr2v = new TH1D("Slope (TLr2v)","TreeLines Slope (Region 2, V Planes)",100,-0.04,0.19);
-            TH1D* slope_TLr3_0 = 	new TH1D("Slope (TLr3_0)","TreeLines Slope (Region 3)",100,0.4,1.5);
-            TH1D* slope_TLr3u_0 = 	new TH1D("Slope (TLr3u_0)","TreeLines Slope (Region 3, U Planes)",100,0.4,1.5);
-            TH1D* slope_TLr3v_0 = 	new TH1D("Slope (TLr3v_0)","TreeLines Slope (Region 3, V Planes)",100,0.4,1.5);
-            TH1D* slope_TLr3less0 = 	new TH1D("Slope (TLr3less0)","TreeLines Slope (Region 3)",100,0.4,1.5);
-            TH1D* slope_TLr3uless0 = 	new TH1D("Slope (TLr3uless0)","TreeLines Slope (Region 3, U Planes)",100,0.4,1.5);
-            TH1D* slope_TLr3vless0 = 	new TH1D("Slope (TLr3vless0)","TreeLines Slope (Region 3, V Planes)",100,0.4,1.5);
+            TH1D* slope_TLr3_0 = 	new TH1D("Slope (TLr3_0)","TreeLines Slope (Region 3, fPlane=0)",100,0.4,1.5);
+            TH1D* slope_TLr3u_0 = 	new TH1D("Slope (TLr3u_0)","TreeLines Slope (Region 3U, fPlane=0)",100,0.4,1.5);
+            TH1D* slope_TLr3v_0 = 	new TH1D("Slope (TLr3v_0)","TreeLines Slope (Region 3V, fPlane=0)",100,0.4,1.5);
+            TH1D* slope_TLr3less0 = 	new TH1D("Slope (TLr3less0)","TreeLines Slope (Region 3, fPlane>0)",100,0.4,1.5);
+            TH1D* slope_TLr3uless0 = 	new TH1D("Slope (TLr3uless0)","TreeLines Slope (Region 3U, fPlane>0)",100,0.4,1.5);
+            TH1D* slope_TLr3vless0 = 	new TH1D("Slope (TLr3vless0)","TreeLines Slope (Region 3V, fPlane>0)",100,0.4,1.5);
 
 /////// Create histos for PartialTracks //////////// ranges not set yet
             TH1D* chi_PTr2 =	new TH1D("Chi2 (PTr2)","PartialTracks Chi2 (Region 2)",100,0.0,2100.0);
@@ -333,7 +333,7 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
             TH1D* slopeX_PTr3 = new TH1D("SlopeX (PTr3)","PartialTracks SlopeX (Region 3)",100,-600.0,500.0);
             TH1D* slopeY_PTr2 = new TH1D("SlopeY (PTr2)","PartialTracks SlopeY (Region 2)",100,-0.3,0.3);
             TH1D* slopeY_PTr3 = new TH1D("SlopeY (PTr3)","PartialTracks SlopeY (Region 3)",100,-5000.0,25000.0);
-	    TH1D* package_PT =	new TH1D("Packages (R2R3)", "Region2/Region3 Package Value Comparisons",13, 10.0, 23.0);
+	    TH1D* package_PT =	new TH1D("Packages (R2R3)", "Region2/Region3 Package Value Comparisons",15, 10.0, 25.0);
 
 ////////// Color and format histos ////////////////////
 	    chi_TLr2	->	SetFillColor(kBlue);
@@ -389,49 +389,7 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
             slopeX_PTr3->	SetFillColor(kGreen);
             slopeY_PTr2->	SetFillColor(kBlue);
             slopeY_PTr3->	SetFillColor(kGreen);
-
-//             TH1D* hst = new TH1D("distance R2","distance big",100,0.0,3.0);
-//             hst->SetDirectory(0);
-// 
-//             hst->GetXaxis()->SetTitle("distance");
-//             hst->GetXaxis()->SetTitleColor(kBlack);
-//             hst->GetXaxis()->CenterTitle();
-//             hst->GetXaxis()->SetTitleSize(0.04);
-//             hst->GetXaxis()->SetLabelSize(0.04);
-//             hst->GetXaxis()->SetTitleOffset(1.25);
-//             hst->GetYaxis()->SetLabelSize(0.04);
-
-// ////Wouter's looping code ////////
-//             // Create histograms
-//             TH1F *fChiR2 = new TH1F("fChiR2","TreeLines Chi2 (Region 2)",100,0.0,65.0);
-// 
-//             // Loop over events
-//             for (int j = 0; j < entries; j++){
-// 
-// //               std::cout << "Getting entry " << j << std::endl;
-//                tree->GetEntry(j);
-// // 
-// //               std::cout << "Got Entry " << j << std::endl;
-// // 
-// //               event->PrintTreeLines();
-// //               event->PrintPartialTracks();
-// 
-//               TIterator* iterator = event->GetListOfTreeLines()->MakeIterator();
-//               QwTrackingTreeLine* treeline = 0;
-//               while ((treeline = (QwTrackingTreeLine*) iterator->Next())) {
-//                 switch (treeline->GetRegion()) {
-//                   case kRegionID2:
-//                     fChiR2->Fill(treeline->GetChiWeight());
-//                     break;
-//                   case kRegionID3:
-//                     break;
-//                   default: break;
-//                 }
-//               } // end of loop over treelines
-// 
-//               //std::cout << "Region " << region << std::endl;
-//             }
-// ////Wouter's looping code end ////////
+	    package_PT	->	SetFillColor(kBlue);
 
 // Fill Histograms
 	    std::cout<<"Filling Track Finding Histos..."<< std::endl;
@@ -525,25 +483,10 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
 		  }
 		  delete iterator;
 
-// //Fill partial tracks // Doesn't seem to quite work yet (partialtrack->GetRegion())
-
-//////// New method to try /////////////
-// TClonesArray* QwPartialTrack::gQwTreeLines = 0;
-//   // Create the static TClonesArray for the tree lines if not existing yet
-//   if (! gQwTreeLines)
-//     gQwTreeLines = new TClonesArray("QwTrackingTreeLine", QWPARTIALTRACK_MAX_NUM_TREELINES);
-//  TIterator* iterator = gQwTreeLines->MakeIterator();
-//   QwTrackingTreeLine* treelinePart = 0;
-//   while ((treelinePart = (QwTrackingTreeLine*) iterator->Next())){
-
-///////////end of new lines of new method ///////////////
-
+// //Fill partial tracks 
 		  TIterator* iteratorPart = event->GetListOfPartialTracks()->MakeIterator();
 		  QwPartialTrack* partialtrack = 0;
 //		    std::cout << j << std::endl;
-
-//		  int hasRegion=1;		//initize a counter to check if entry j has both region 2 and 3
-						// 1=neither, 2=region 2, 3=region 3, 4=both
 		  int hasPackage=0;		// initize counter for packages 
 						// package number (1 or 2) for Region 2 will be denoted in the tens position
 						// package number (1 or 2) for Region 3 will be denoted in the ones position
@@ -565,14 +508,7 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
                   		offsetY_PTr2->Fill(partialtrack->fOffsetY);
                   		slopeX_PTr2->Fill(partialtrack->fSlopeX);
                   		slopeY_PTr2->Fill(partialtrack->fSlopeY);
-// 			   	switch (hasRegion){
-// 				  case 1:
-// 				    hasRegion=2;
-// 				    break;
-// 				  case 3:
-// 				    hasRegion=4;
-// 				    break;
-// 			   	}
+				//Check the package of Region 2 and modify hasPackage accordingly
 			   	switch (partialtrack->GetPackage()){
 				  case kPackageNull:
 				    break;
@@ -598,14 +534,7 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
                   		offsetY_PTr3->Fill(partialtrack->fOffsetY);
                   		slopeX_PTr3->Fill(partialtrack->fSlopeX);
                   		slopeY_PTr3->Fill(partialtrack->fSlopeY);
-// 			   	switch (hasRegion){
-// 				  case 1:
-// 				    hasRegion=3;
-// 				    break;
-// 				  case 2:
-// 				    hasRegion=4;
-// 				    break;
-// 			   	}
+				//Check package for Region 3 and modify hasPackage accordingly
 			   	switch (partialtrack->GetPackage()){
 				  case kPackageNull:
 				    break;
@@ -629,10 +558,10 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
 		    	    case kRegionIDScanner:
 				break;
 			}
-			if (hasPackage== 11){
-                  		package_PT->Fill(hasPackage);
-			}
-			switch (hasPackage){
+// 			if (hasPackage== 11){
+//                   		package_PT->Fill(hasPackage);
+// 			}
+			switch (hasPackage){ //if an entry has both Region 2 and Region 3 data. Plot the package combination.
 				case 1:
 				  break;
 				case 2:
@@ -654,13 +583,9 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
                   		  package_PT->Fill(hasPackage);
                   		  break;
 			}
-// 		  	if (hasRegion==4){
-// 			std::cout << "Entry "<< j <<" has both Regions: "<< hasPackage<< std::endl;
-// //                  		package_PT->Fill(hasPackage);
-// 		  	}
-
 		  }
 		  delete iteratorPart;
+
 
 
 //               QwHitContainer* hitlist = roothitlist->Convert();
@@ -980,6 +905,7 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
 //////end Fill HillArray with Draw method////
 // 	   HistArray.Add(hst); 		//45
 
+
 //////// Add to HistArray (using histo from loop method) //////////////
 //	//TreeLines
  	   HistArray.Add(chi_TLr2);		//0
@@ -1045,7 +971,6 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
       else{
 	std::cout<<"no Tree inherited"<<std::endl;
       }
-
 
 //     TCanvas *mc = NULL;
 //     mc = dCanvas->GetCanvas();
@@ -1126,7 +1051,7 @@ void QwGUITrackFinding::PlotHistograms()
 
 void QwGUITrackFinding::PlotLinear()
 {
-  std::cout<<"Linear..."<<std::endl;
+//  std::cout<<"Linear..."<<std::endl;
   TCanvas *mc = dCanvas->GetCanvas();
   mc->cd(1)->SetLogy(0);
   mc->cd(2)->SetLogy(0);
@@ -1137,7 +1062,7 @@ void QwGUITrackFinding::PlotLinear()
 
 void QwGUITrackFinding::PlotLog()
 {
-  std::cout<<"Logarithmic..."<<std::endl;
+//  std::cout<<"Semi-Log..."<<std::endl;
   TCanvas *mc = dCanvas->GetCanvas();
   mc->cd(1)->SetLogy(1);
   mc->cd(2)->SetLogy(1);
@@ -1146,7 +1071,7 @@ void QwGUITrackFinding::PlotLog()
   gPad->Update();
 }
 
-// TreeLines
+//Treelines
 void QwGUITrackFinding::PlotChi2()
 {
   std::cout<<"Plotting Chi2..."<<std::endl;
@@ -1204,7 +1129,6 @@ void QwGUITrackFinding::PlotChi2()
 
 }
 
-// Display the beam postion and angle in X & Y, beam energy and beam charge on the target.
 void QwGUITrackFinding::PlotResidual()
 {  std::cout<<"Plotting Residuals..."<<std::endl;
 
@@ -1610,8 +1534,8 @@ void QwGUITrackFinding::PlotTLChi2X()
 {
   std::cout<<"Plotting Chi2 X..."<<std::endl;
 
-  dMenuPlot1->DisableEntry(TF_PLOT_LINEAR); //Linear and Log Plots are both already displayed below
-  dMenuPlot1->DisableEntry(TF_PLOT_LOG);
+  dMenuPlot1->EnableEntry(TF_PLOT_LINEAR); //Linear and Log Plots are both already displayed below
+  dMenuPlot1->EnableEntry(TF_PLOT_LOG);
 
   TObject *obj = NULL;
   TCanvas *mc = NULL;
@@ -1641,8 +1565,8 @@ void QwGUITrackFinding::PlotTLChi2U()
 {
   std::cout<<"Plotting Chi2 U..."<<std::endl;
 
-  dMenuPlot1->DisableEntry(TF_PLOT_LINEAR); //Linear and Log Plots are both already displayed below
-  dMenuPlot1->DisableEntry(TF_PLOT_LOG);
+  dMenuPlot1->EnableEntry(TF_PLOT_LINEAR); //Linear and Log Plots are both already displayed below
+  dMenuPlot1->EnableEntry(TF_PLOT_LOG);
 
   TObject *obj = NULL;
   TCanvas *mc = NULL;
@@ -1686,8 +1610,8 @@ void QwGUITrackFinding::PlotTLChi2V()
 {
   std::cout<<"Plotting Chi2 V..."<<std::endl;
 
-  dMenuPlot1->DisableEntry(TF_PLOT_LINEAR); //Linear and Log Plots are both already displayed below
-  dMenuPlot1->DisableEntry(TF_PLOT_LOG);
+  dMenuPlot1->EnableEntry(TF_PLOT_LINEAR); //Linear and Log Plots are both already displayed below
+  dMenuPlot1->EnableEntry(TF_PLOT_LOG);
 
   TObject *obj = NULL;
   TCanvas *mc = NULL;
