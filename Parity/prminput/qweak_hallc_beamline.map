@@ -71,7 +71,7 @@ sample_size==480
    VQWK, 5, 4,  bpmstripline,  QWK_3P02BXP
    VQWK, 5, 5,  bpmstripline,  QWK_3P02BXM
    VQWK, 5, 6,  bpmstripline,  QWK_3P02BYP
-   VQWK, 5/, 7,  bpmstripline,  QWK_3P02BYM
+   VQWK, 5, 7,  bpmstripline,  QWK_3P02BYM
 
 !ADC6
    VQWK, 6, 0,  bpmstripline,  QWK_3P03AXP
