@@ -107,7 +107,7 @@ int main(Int_t argc,Char_t* argv[])
   TString runnum;
   TFile *f;
 
- if(argc<2 || argc>5)
+  if(argc<2 || argc>5)
     {
       std::cerr<<"!!  Not enough arguments to run this code, the correct syntax is \n";
       std::cerr<<" ./pedestal_extractor  runnumber mincurrent maxcurrent samplesize \n";
@@ -142,52 +142,62 @@ int main(Int_t argc,Char_t* argv[])
       max_current=atof(argv[3]);
       SAMPLE_SIZE=argv[4];
     }
-
  
- 
- get = getenv("QWANALYSIS");
- mapstring = get +"/Parity/prminput/qweak_hallc_beamline";
- mapfile.open(mapstring);
- while (!mapfile.eof()) {
-   line.ReadToken(mapfile);
-   if (line.Contains("!"))  line.ReadToDelim(mapfile);
-   else if (line.Contains("VQWK")) {
-     for(size_t i=0;i<2;i++)  	line.ReadToken(mapfile);
-     line.ReadToken(mapfile);
-     det_type=line;
-     det_type.ToLower();
-     line.ReadToken(mapfile);
-     devicename=line;
-     throw_away=devicename(devicename.Sizeof()-2,1);
-     if(throw_away==",") devicename = devicename(0,devicename.Sizeof()-2);
-     if (det_type=="bpmstripline,"){
-       TString subname=devicename(devicename.Sizeof()-3,2);
-       devicename.ToLower();
-       devicename= devicename(0,devicename.Sizeof()-3);
-       devicename= devicename + subname;
-       devicelist.push_back(devicename);
-       counterdn++;
-     }
-     // else if(det_type=="bpmcavity,"){
-     //   TString subname=devicename(devicename.Sizeof()-2,1);
-     //   devicename.ToLower();
-     // 	 devicename=(devicename.Sizeof()-2) + subname;
-     // 	 devicelist1.push_back(devicename);
-     // 	 counter++;
+  get = getenv("QWANALYSIS");
+  mapstring = get +"/Parity/prminput/qweak_hallc_beamline.map";
+  mapfile.open(mapstring);
+  while (!mapfile.eof()) {
+    line.ReadToken(mapfile);
+    if (line.Contains("!"))  line.ReadToDelim(mapfile);
+    else if (line.Contains("VQWK")) {
+      for(size_t i=0;i<2;i++)  	line.ReadToken(mapfile);
+      line.ReadToken(mapfile);
+      det_type=line;
+      det_type.ToLower();
+      line.ReadToken(mapfile);
+      devicename=line;
+      throw_away=devicename(devicename.Sizeof()-2,1);
+      if(throw_away==",") devicename = devicename(0,devicename.Sizeof()-2);
+      if (det_type=="bpmstripline,"){
+	TString subname=devicename(devicename.Sizeof()-3,2);
+	devicename.ToLower();
+	devicename= devicename(0,devicename.Sizeof()-3);
+	devicename= devicename + subname;
+	devicelist.push_back(devicename);
+	counterdn++;
+      }
+      // else if(det_type=="bpmcavity,"){
+      //   TString subname=devicename(devicename.Sizeof()-2,1);
+      //   devicename.ToLower();
+      // 	 devicename=(devicename.Sizeof()-2) + subname;
+      // 	 devicelist1.push_back(devicename);
+      // 	 counter++;
      
-     // }
-     else if (det_type=="bcm,"){
-       devicename.ToLower();
-       BCMlist.push_back(devicename);
-       counterbcm++;
-     }
-     else
-       std::cout<< " I don't know this device type" << std::endl;
-   }
- }
- mapfile.close();
+      // }
+      else if (det_type=="bcm,"){
+	devicename.ToLower();
+	BCMlist.push_back(devicename);
+	counterbcm++;
+      }
+      else
+	std::cout<< " I don't know this device type" << std::endl;
+    }
+  }
+  mapfile.close();
  
- const Int_t ndevices=counterdn; 
+  bool local_debug = false;
+  std::vector<TString>::iterator pd;
+  if(local_debug) {
+    for( pd = BCMlist.begin(); pd != BCMlist.end(); pd++ ) {
+      std::cout << *pd << std::endl;
+    }
+    for( pd = devicelist.begin(); pd != devicelist.end(); pd++ ) {
+      std::cout << *pd << std::endl;
+    }
+  }
+
+
+  const Int_t ndevices=counterdn; 
   
   TApplication theApp("App",&argc,argv);
 
@@ -209,7 +219,7 @@ int main(Int_t argc,Char_t* argv[])
 
 
   //Get the root file
-  sprintf(filename,"%sQweak_BeamLine_%d.root",directory.Data(),atoi(runnum));
+  sprintf(filename,"%sQweak_%d.root",directory.Data(),atoi(runnum));
   f = new TFile(filename);
   if(!f->IsOpen())
     return 0;

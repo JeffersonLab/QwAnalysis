@@ -296,22 +296,22 @@ main(int argc, char **argv)
  
   sca_unser -> Fit("gaus", "M Q");
   TF1 *unser_fit = sca_unser -> GetFunction("gaus");
-	
-  //    Double_t chi_test = 0.0;
   Double_t unser_mean[2] = {0.0};
   Double_t unser_sigma[2] = {0.0};
+
+  if(unser_fit) {
+    
+    unser_mean[0]  = unser_fit -> GetParameter(1);
+    unser_mean[1]  = unser_fit -> GetParError(1);
+    unser_sigma[0] = unser_fit -> GetParameter(2);
+    unser_sigma[1] = unser_fit -> GetParError(2);
+    
+    printf("--------- qwk_sca_unser ---------------------------------------\n");
+    printf("unser_mean      %12.3lf +- %8.3lf\n", unser_mean[0], unser_mean[1]);
+    printf("unser_sigma     %12.3lf +- %8.3lf\n", unser_sigma[0], unser_sigma[1]);
+    printf("\n");
 	
-  unser_mean[0]  = unser_fit -> GetParameter(1);
-  unser_mean[1]  = unser_fit -> GetParError(1);
-  unser_sigma[0] = unser_fit -> GetParameter(2);
-  unser_sigma[1] = unser_fit -> GetParError(2);
-	
-  printf("--------- qwk_sca_unser ---------------------------------------\n");
-  printf("unser_mean      %12.3lf +- %8.3lf\n", unser_mean[0], unser_mean[1]);
-  printf("unser_sigma     %12.3lf +- %8.3lf\n", unser_sigma[0], unser_sigma[1]);
-  printf("\n");
-	
-   
+  }
 
   canvas_sca -> cd(3);
 
@@ -351,16 +351,17 @@ main(int argc, char **argv)
   Double_t sca_bcm1_offset[2] = {0.0};
   Double_t sca_bcm1_slope[2] = {0.0};
 	
-
-  sca_bcm1_offset[0] = bcm_sca_fit[0] -> GetParameter(0);
-  sca_bcm1_offset[1] = bcm_sca_fit[0] -> GetParError(0);
-  sca_bcm1_slope[0]  = bcm_sca_fit[0] -> GetParameter(1);
-  sca_bcm1_slope[1]  = bcm_sca_fit[0] -> GetParError(1);
-	
-  printf("--------- qwk_sca_bcm1  ---------------------------------------\n");
-  printf("offset    %12.3lf +- %8.3lf\n", sca_bcm1_offset[0], sca_bcm1_offset[1]);
-  printf("slope     %12.3lf +- %8.3lf\n", sca_bcm1_slope[0], sca_bcm1_slope[1]);
-  printf("\n");
+  if(bcm_sca_fit[0]) {
+    sca_bcm1_offset[0] = bcm_sca_fit[0] -> GetParameter(0);
+    sca_bcm1_offset[1] = bcm_sca_fit[0] -> GetParError(0);
+    sca_bcm1_slope[0]  = bcm_sca_fit[0] -> GetParameter(1);
+    sca_bcm1_slope[1]  = bcm_sca_fit[0] -> GetParError(1);
+    
+    printf("--------- qwk_sca_bcm1  ---------------------------------------\n");
+    printf("offset    %12.3lf +- %8.3lf\n", sca_bcm1_offset[0], sca_bcm1_offset[1]);
+    printf("slope     %12.3lf +- %8.3lf\n", sca_bcm1_slope[0], sca_bcm1_slope[1]);
+    printf("\n");
+  }
   
   canvas_sca -> cd(4);
 
@@ -389,16 +390,17 @@ main(int argc, char **argv)
 
   Double_t sca_bcm2_offset[2] = {0.0};
   Double_t sca_bcm2_slope[2] = {0.0};
-
-  sca_bcm2_offset[0] = bcm_sca_fit[1] -> GetParameter(0);
-  sca_bcm2_offset[1] = bcm_sca_fit[1] -> GetParError(0);
-  sca_bcm2_slope[0]  = bcm_sca_fit[1] -> GetParameter(1);
-  sca_bcm2_slope[1]  = bcm_sca_fit[1] -> GetParError(1);
-	
-  printf("--------- qwk_sca_bcm2  ---------------------------------------\n");
-  printf("offset    %12.3lf +- %8.3lf\n", sca_bcm2_offset[0], sca_bcm2_offset[1]);
-  printf("slope     %12.3lf +- %8.3lf\n", sca_bcm2_slope[0], sca_bcm2_slope[1]);
-  printf("\n");
+  if(bcm_sca_fit[1]) {
+    sca_bcm2_offset[0] = bcm_sca_fit[1] -> GetParameter(0);
+    sca_bcm2_offset[1] = bcm_sca_fit[1] -> GetParError(0);
+    sca_bcm2_slope[0]  = bcm_sca_fit[1] -> GetParameter(1);
+    sca_bcm2_slope[1]  = bcm_sca_fit[1] -> GetParError(1);
+    
+    printf("--------- qwk_sca_bcm2  ---------------------------------------\n");
+    printf("offset    %12.3lf +- %8.3lf\n", sca_bcm2_offset[0], sca_bcm2_offset[1]);
+    printf("slope     %12.3lf +- %8.3lf\n", sca_bcm2_slope[0], sca_bcm2_slope[1]);
+    printf("\n");
+  }
   
   canvas_sca -> cd(6);
 
@@ -437,16 +439,17 @@ main(int argc, char **argv)
   bcm_vqwk[0] -> GetXaxis() -> SetTitle("unser_current");
   bcm_vqwk[0] -> Fit("pol1", "E F Q", "",  fit_unser_range[0], fit_unser_range[1]);
   bcm_vqwk_fit[0] = bcm_vqwk[0] -> GetFunction("pol1");
+  if(bcm_vqwk_fit[0]) {
+    bcm_vqwk_offset[0][0] = bcm_vqwk_fit[0] -> GetParameter(0);
+    bcm_vqwk_offset[0][1] = bcm_vqwk_fit[0] -> GetParError(0);
+    bcm_vqwk_slope[0][0]  = bcm_vqwk_fit[0] -> GetParameter(1);
+    bcm_vqwk_slope[0][1]  = bcm_vqwk_fit[0] -> GetParError(1);
     
-  bcm_vqwk_offset[0][0] = bcm_vqwk_fit[0] -> GetParameter(0);
-  bcm_vqwk_offset[0][1] = bcm_vqwk_fit[0] -> GetParError(0);
-  bcm_vqwk_slope[0][0]  = bcm_vqwk_fit[0] -> GetParameter(1);
-  bcm_vqwk_slope[0][1]  = bcm_vqwk_fit[0] -> GetParError(1);
-	
-  printf("--------- qwk_bcm1      ---------------------------------------\n");
-  printf("qwk_bcm1 offset    %12.3lf +- %8.3lf\n", bcm_vqwk_offset[0][0], bcm_vqwk_offset[0][1]);
-  printf("qwk_bcm1 slope     %12.3lf +- %8.3lf\n", bcm_vqwk_slope[0][0], bcm_vqwk_slope[0][1]);
-  printf("\n");
+    printf("--------- qwk_bcm1      ---------------------------------------\n");
+    printf("qwk_bcm1 offset    %12.3lf +- %8.3lf\n", bcm_vqwk_offset[0][0], bcm_vqwk_offset[0][1]);
+    printf("qwk_bcm1 slope     %12.3lf +- %8.3lf\n", bcm_vqwk_slope[0][0], bcm_vqwk_slope[0][1]);
+    printf("\n");
+  }
 
   canvas_vqwk -> cd(2);
   mps_tree->Draw("bcm2:unser_current", "qwk_bcm2.num_samples>0", "profs");
@@ -461,17 +464,18 @@ main(int argc, char **argv)
   bcm_vqwk[1] -> GetXaxis() -> SetTitle("unser_current");
   bcm_vqwk[1] -> Fit("pol1", "E F Q", "",  fit_unser_range[0], fit_unser_range[1]);
   bcm_vqwk_fit[1] = bcm_vqwk[1] -> GetFunction("pol1");
-    
-  bcm_vqwk_offset[1][0] = bcm_vqwk_fit[1] -> GetParameter(0);
-  bcm_vqwk_offset[1][1] = bcm_vqwk_fit[1] -> GetParError(0);
-  bcm_vqwk_slope[1][0]  = bcm_vqwk_fit[1] -> GetParameter(1);
-  bcm_vqwk_slope[1][1]  = bcm_vqwk_fit[1] -> GetParError(1);
-	
-  printf("--------- qwk_bcm2      ---------------------------------------\n");
-  printf("qwk_bcm2 offset    %12.3lf +- %8.3lf\n", bcm_vqwk_offset[1][0], bcm_vqwk_offset[1][1]);
-  printf("qwk_bcm2 slope     %12.3lf +- %8.3lf\n", bcm_vqwk_slope[1][0], bcm_vqwk_slope[1][1]);
-  printf("\n");
 
+  if(bcm_vqwk_fit[1]) {
+    bcm_vqwk_offset[1][0] = bcm_vqwk_fit[1] -> GetParameter(0);
+    bcm_vqwk_offset[1][1] = bcm_vqwk_fit[1] -> GetParError(0);
+    bcm_vqwk_slope[1][0]  = bcm_vqwk_fit[1] -> GetParameter(1);
+    bcm_vqwk_slope[1][1]  = bcm_vqwk_fit[1] -> GetParError(1);
+    
+    printf("--------- qwk_bcm2      ---------------------------------------\n");
+    printf("qwk_bcm2 offset    %12.3lf +- %8.3lf\n", bcm_vqwk_offset[1][0], bcm_vqwk_offset[1][1]);
+    printf("qwk_bcm2 slope     %12.3lf +- %8.3lf\n", bcm_vqwk_slope[1][0], bcm_vqwk_slope[1][1]);
+    printf("\n");
+  }
 
   canvas_vqwk -> cd(3);
   mps_tree->Draw("bcm5:unser_current", "qwk_bcm5.num_samples>0", "profs");
@@ -487,16 +491,17 @@ main(int argc, char **argv)
   bcm_vqwk[2] -> GetXaxis() -> SetTitle("unser_current");
   bcm_vqwk[2] -> Fit("pol1", "E F Q", "",  fit_unser_range[0], fit_unser_range[1]);
   bcm_vqwk_fit[2] = bcm_vqwk[2] -> GetFunction("pol1");
+  if(bcm_vqwk_fit[2]) {
+    bcm_vqwk_offset[2][0] = bcm_vqwk_fit[2] -> GetParameter(0);
+    bcm_vqwk_offset[2][1] = bcm_vqwk_fit[2] -> GetParError(0);
+    bcm_vqwk_slope[2][0]  = bcm_vqwk_fit[2] -> GetParameter(1);
+    bcm_vqwk_slope[2][1]  = bcm_vqwk_fit[2] -> GetParError(1);
     
-  bcm_vqwk_offset[2][0] = bcm_vqwk_fit[2] -> GetParameter(0);
-  bcm_vqwk_offset[2][1] = bcm_vqwk_fit[2] -> GetParError(0);
-  bcm_vqwk_slope[2][0]  = bcm_vqwk_fit[2] -> GetParameter(1);
-  bcm_vqwk_slope[2][1]  = bcm_vqwk_fit[2] -> GetParError(1);
-	
-  printf("--------- qwk_bcm5      ---------------------------------------\n");
-  printf("qwk_bcm 5 offset    %12.3lf +- %8.3lf\n", bcm_vqwk_offset[2][0], bcm_vqwk_offset[2][1]);
-  printf("qwk_bcm 5 slope     %12.3lf +- %8.3lf\n", bcm_vqwk_slope[2][0], bcm_vqwk_slope[2][1]);
-  printf("\n");
+    printf("--------- qwk_bcm5      ---------------------------------------\n");
+    printf("qwk_bcm 5 offset    %12.3lf +- %8.3lf\n", bcm_vqwk_offset[2][0], bcm_vqwk_offset[2][1]);
+    printf("qwk_bcm 5 slope     %12.3lf +- %8.3lf\n", bcm_vqwk_slope[2][0], bcm_vqwk_slope[2][1]);
+    printf("\n");
+  }
 
   canvas_vqwk -> cd(4);
   mps_tree->Draw("bcm6:unser_current", "qwk_bcm6.num_samples>0", "profs");
@@ -511,16 +516,18 @@ main(int argc, char **argv)
   bcm_vqwk[3] -> GetXaxis() -> SetTitle("unser_current");
   bcm_vqwk[3] -> Fit("pol1", "E F Q", "",  fit_unser_range[0], fit_unser_range[1]);
   bcm_vqwk_fit[3] = bcm_vqwk[3] -> GetFunction("pol1");
-    
-  bcm_vqwk_offset[3][0] = bcm_vqwk_fit[3] -> GetParameter(0);
-  bcm_vqwk_offset[3][1] = bcm_vqwk_fit[3] -> GetParError(0);
-  bcm_vqwk_slope[3][0]  = bcm_vqwk_fit[3] -> GetParameter(1);
-  bcm_vqwk_slope[3][1]  = bcm_vqwk_fit[3] -> GetParError(1);
+  
+  if(bcm_vqwk_fit[3]) {
+    bcm_vqwk_offset[3][0] = bcm_vqwk_fit[3] -> GetParameter(0);
+    bcm_vqwk_offset[3][1] = bcm_vqwk_fit[3] -> GetParError(0);
+    bcm_vqwk_slope[3][0]  = bcm_vqwk_fit[3] -> GetParameter(1);
+    bcm_vqwk_slope[3][1]  = bcm_vqwk_fit[3] -> GetParError(1);
 	
-  printf("--------- qwk_bcm6      ---------------------------------------\n");
-  printf("qwk_bcm 6 offset    %12.3lf +- %8.3lf\n", bcm_vqwk_offset[3][0], bcm_vqwk_offset[3][1]);
-  printf("qwk_bcm 6 slope     %12.3lf +- %8.3lf\n", bcm_vqwk_slope[3][0], bcm_vqwk_slope[3][1]);
-  printf("\n");
+    printf("--------- qwk_bcm6      ---------------------------------------\n");
+    printf("qwk_bcm 6 offset    %12.3lf +- %8.3lf\n", bcm_vqwk_offset[3][0], bcm_vqwk_offset[3][1]);
+    printf("qwk_bcm 6 slope     %12.3lf +- %8.3lf\n", bcm_vqwk_slope[3][0], bcm_vqwk_slope[3][1]);
+    printf("\n");
+  }
 
   
   canvas_vqwk -> cd(5);
@@ -555,25 +562,25 @@ main(int argc, char **argv)
   hallc_bcm_pedestal_stream.clear();
 
  
-  hallc_bcm_pedestal_stream << "!device name"
-			    << ", ped"
-			    << ", ped err"
-			    << ", slop"
-			    << ", slor err"
-			    << "\n";
+  // hallc_bcm_pedestal_stream << "!device name"
+  // 			    << ", ped"
+  // 			    << ", ped err"
+  // 			    << ", slop"
+  // 			    << ", slor err"
+  // 			    << "\n";
   std::size_t i=0;
   
 
   // std::cout << "size " << hallc_bcm_list.size() << std::endl;
   for (i=0; i < hallc_bcm_list.size(); i++) {
     hallc_bcm_pedestal_stream << hallc_bcm_list[i].Data()
-  			      << ", "
+  			      << "  "
   			      << bcm_vqwk_offset[i][0]
-  			      << ", "
+  			      << " "
      			      << bcm_vqwk_offset[i][1]
-  			      << ", "
+  			      << " "
   			      << bcm_vqwk_slope[i][0]
-  			      << ", "
+  			      << " "
   			      << bcm_vqwk_slope[i][1]
   			      << "\n";
   } 
