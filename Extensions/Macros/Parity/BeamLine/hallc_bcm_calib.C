@@ -28,12 +28,19 @@
 //                  Thursday, August 12 00:30:22 EDT 2010
 //                  try to open Qweak_****.000.root or Qweak_****.root. 
 //                 
+//                  Thursday, August 12 19:55:23 EDT 2010
+//                  make an output file, contains qwk_bcm1, qwk_bcm2,
+//                  qwk_bcm5, and qwk_bcm6 results.
 
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
 #include <iomanip>
 #include <getopt.h>
+#include <sstream>
+#include <vector>
+
+
 
 #include "TString.h"
 #include "TCanvas.h"
@@ -167,7 +174,15 @@ main(int argc, char **argv)
     exit (-1);
   }
 
-
+  std::vector<TString > hallc_bcm_list;
+  hallc_bcm_list.clear();
+  // hallc_bcm_list.push_back("qwk_sca_bcm1");
+  //hallc_bcm_list.push_back("qwk_sca_bcm2");
+  // hallc_bcm_list.resize(4); // we care only 4 bcms at this moment
+  hallc_bcm_list.push_back("qwk_bcm1");
+  hallc_bcm_list.push_back("qwk_bcm2");
+  hallc_bcm_list.push_back("qwk_bcm5");
+  hallc_bcm_list.push_back("qwk_bcm6");
   Int_t w = 1100;
   Int_t h = 600;
   
@@ -179,6 +194,8 @@ main(int argc, char **argv)
   TFile *file = new TFile(Form("~/scratch/rootfiles/%s", filename.Data()));
   TTree *mps_tree = NULL;
       
+  Double_t bcm_vqwk_offset[10][2] = {{0.0}};
+  Double_t bcm_vqwk_slope[10][2] = {{0.0}};
 
   if (file->IsZombie()) {
     std::cout << "Error opening file " << filename << std::endl;
@@ -396,9 +413,6 @@ main(int argc, char **argv)
 
   TH1D *bcm_vqwk_tmp[10];
   TF1  *bcm_vqwk_fit[10];
-  Double_t bcm_vqwk_offset[10][2] = {{0.0}};
-  Double_t bcm_vqwk_slope[10][2] = {{0.0}};
-
 
   mps_tree->SetAlias("bcm1", "(qwk_bcm1.hw_sum_raw)/qwk_bcm1.num_samples");
   mps_tree->SetAlias("bcm2", "(qwk_bcm2.hw_sum_raw)/qwk_bcm2.num_samples");
@@ -533,7 +547,39 @@ main(int argc, char **argv)
   canvas_vqwk -> Update();
   
 	
-      
+           
+  std::ofstream       hallc_bcm_pedestal_output;
+  std::ostringstream  hallc_bcm_pedestal_stream;
+  hallc_bcm_pedestal_output.clear();
+  hallc_bcm_pedestal_output.open(Form("hallc_bcm_pedestal_%s.txt", run_number));
+  hallc_bcm_pedestal_stream.clear();
+
+ 
+  hallc_bcm_pedestal_stream << "!device name"
+			    << ", ped"
+			    << ", ped err"
+			    << ", slop"
+			    << ", slor err"
+			    << "\n";
+  std::size_t i=0;
+  
+
+  // std::cout << "size " << hallc_bcm_list.size() << std::endl;
+  for (i=0; i < hallc_bcm_list.size(); i++) {
+    hallc_bcm_pedestal_stream << hallc_bcm_list[i].Data()
+  			      << ", "
+  			      << bcm_vqwk_offset[i][0]
+  			      << ", "
+     			      << bcm_vqwk_offset[i][1]
+  			      << ", "
+  			      << bcm_vqwk_slope[i][0]
+  			      << ", "
+  			      << bcm_vqwk_slope[i][1]
+  			      << "\n";
+  } 
+  hallc_bcm_pedestal_output << hallc_bcm_pedestal_stream.str();
+  std::cout << hallc_bcm_pedestal_stream.str() <<std::endl;
+  hallc_bcm_pedestal_output.close();
       
   theApp.Run();
   return 0;
