@@ -34,6 +34,8 @@
 #include <TEveTrack.h>
 #include <TEveVSDStructs.h>
 #include <TEveTrackPropagator.h>
+#include <TEveStraightLineSet.h>
+
 
 // ROOT GUI includes
 #include <TGWindow.h>
@@ -89,26 +91,42 @@ private:
 
   // Event Tracks
   TEveTrack *fCurrentTrack;
+  TEveTrack *fCurrentOutline;
   TEveTrackList *fCurrentTrackList;
   TObjArray *fCurrentTrackArray;
+  TObjArray *fCurrentOutlineArray;
 
-  // Wire angle and separation constants
-  Double_t fAngleOfWires;  // With respect to x
+  //VDC Wire angle and separation constants
+  Double_t fVDC_AngleOfWires;  // With respect to x
   Double_t fAngleOfVDC;  // With respect to z
-  Double_t fWireSeparation;   // Perpendicular to the wires
-  Double_t fWireXSpacing;     // in cm
-  Double_t fWireYSpacing;     // in cm
-  Double_t fWireZProjectedSpacing;     // in cm
-  Double_t fXLength;          // Length in X of VDC in cm
-  Double_t fYLength;          // Length in Y of VDC in cm
-  Double_t fPlaneZPos[4];     // Z-position of plane in cm wrt to origin
-  Double_t fPlaneYPos[4];     // Y-position of plane in cm wrt to origin
-  Double_t fSinAngleWires;    // sin(fAngleOfWires)
-  Double_t fCosAngleWires;    // cos(fAngleOfWires)
-  Double_t fTanAngleWires;    // tan(fAngleOfWires)
+  Double_t fVDC_WireSeparation;   // Perpendicular to the wires
+  Double_t fVDC_WireXSpacing;     // in cm
+  Double_t fVDC_WireYSpacing;     // in cm
+  Double_t fVDC_WireZProjectedSpacing;     // in cm
+  Double_t fVDC_XLength;          // Length in X of VDC in cm
+  Double_t fVDC_YLength;          // Length in Y of VDC in cm
+  Double_t fVDC_PlaneZPos[4];     // Z-position of plane in cm wrt to origin
+  Double_t fVDC_PlaneYPos[4];     // Y-position of plane in cm wrt to origin
+  Double_t fVDC_SinAngleWires;    // sin(fVDC_AngleOfWires)
+  Double_t fVDC_CosAngleWires;    // cos(fVDC_AngleOfWires)
+  Double_t fVDC_TanAngleWires;    // tan(fVDC_AngleOfWires)
 
   // Wire hit count
   Int_t fR3WireHitCount[4][279];
+
+  //HDC Wire angle and separaction constants
+  Double_t fHDC_AngleOfWires[2];  // With respect to x
+  Double_t fHDC_WireSeparation;   // Perpendicular to wires
+  Double_t fHDC_WireXSpacing[2];     // in cm
+  Double_t fHDC_WireYSpacing[2];     // in cm
+  Double_t fHDC_XLength;          // Lengh in X of HDC in cm
+  Double_t fHDC_YLength;          // Lengh in Y of HDC in cm
+  Double_t fHDC_PlaneZPos[12];    // Z-position of plane in cm wrt to origin
+  Double_t fHDC_PlaneYPos[2];    // Y-position of plane in cm wrt to origin
+  Double_t fHDC_SinAngleWires[2];    // sin(fHDC_AngleOfWires[plane#])
+  Double_t fHDC_CosAngleWires[2];    // cos(fHDC_AngleOfWires[plane#])
+  Double_t fHDC_XAsymetry;          // fHDC_XLength-16*fHDC_WireXSpacing[1]-----Just a guess
+  Double_t fHDC_YAsymetry;          // 4/3*fHDC_XAsymetry-----Just a guess 
 
   // GUI elements
   TGLabel *fRegion1Label;
@@ -121,7 +139,8 @@ private:
   TGTextButton *fSkipToEventButton;
   TGTextButton *fNextButton;
   TGTextButton *fPreviousButton;
-  TGTextButton *fSwitchViewButton;
+  TGTextButton *fVDC_SwitchViewButton;
+  TGTextButton *fHDC_SwitchViewButton;
   TGTextButton *fUpdateViewButton;
   TGTextButton *fOpenRootButton;
   TEveBrowser  *fBrowser;
@@ -148,7 +167,8 @@ private:
   TGTextButton *fCerenkovButton;
 
   // Keep track of the current view
-  Bool_t fIsWireView;
+  Bool_t fVDC_IsWireView;
+  Bool_t fHDC_IsWireView;
   Bool_t fShowTarget;
   Bool_t fShowCollimator1;
   Bool_t fShowGems;
@@ -183,12 +203,12 @@ private:
   void DisplayEvent();
   void HideUnecessary();
   void ClearTracks();
+  void ClearOutline();
   void OpenRootFile();
-  void NextEvent(Bool_t redraw = kTRUE);
-  void PreviousEvent(Bool_t redraw = kTRUE);
+  void NextEvent(Bool_t redraw=kTRUE);
+  void PreviousEvent(Bool_t redraw=kTRUE);
   void DetectorButtonsEnable(Bool_t status);
-  void DisplayWire(Int_t wire, Int_t plane,Int_t package, Int_t region,
-        TString message="");
+  void DisplayWire(Int_t wire, Int_t plane,Int_t package, Int_t region, TString message="");
   void UpdateButtonState(TGTextButton *button, const char* text, Bool_t *state);
   void SetVisibility(const char* volname, Bool_t status);
 public:
@@ -207,7 +227,8 @@ public:
    // All  buttons
    void NextEventClicked();
    void PreviousEventClicked();
-   void SwitchView();
+   void SwitchViewVDC();
+   void SwitchViewHDC();
    void SwitchTarget();
    void SwitchCollimator1();
    void SwitchGems();
