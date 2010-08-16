@@ -104,7 +104,7 @@ class QwF1TDC : public TObject
   // TArrayD  *fF1TDCReferenceSignals;
 
  private:
-  void Initialize();
+  // void Initialize();
 
   ClassDef(QwF1TDC,1);
 

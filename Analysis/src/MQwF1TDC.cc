@@ -103,42 +103,43 @@ void MQwF1TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
   return;
 };
 
-std::ostream& operator<< (std::ostream& stream, const MQwF1TDC f1tdc)
+std::ostream& operator<< (std::ostream& os, const MQwF1TDC &f1tdc)
 {
   if(f1tdc.fF1HeaderFlag) {
-    stream << "<<<< Header:"; 
+    os << "<<<< Header:"; 
   }
   else {
-    stream << ">>>>  DATA :";
+    os << ">>>>  DATA :";
   }
-  stream << " Ch" << std::setw(3) << f1tdc.fF1ChannelNumber;
+
+  os << " Ch" << std::setw(3) << f1tdc.fF1ChannelNumber;
 
   if(f1tdc.fF1HeaderFlag) {
-    stream << " Xor " << f1tdc.fF1HeaderXorSetupFlag
-	   << " tOF " << f1tdc.fF1HeaderTrigFIFOFlag;
-    // stream << std::setfill ('x') << std::setw(5);
+    os << " Xor " << f1tdc.fF1HeaderXorSetupFlag
+       << " tOF " << f1tdc.fF1HeaderTrigFIFOFlag;
+    // os << std::setfill ('x') << std::setw(5);
   }
   else {
-    stream << " ---DATA--- ";
+    os << " ---DATA--- ";
   }
-
-  stream << "(hitOF,outOF,resLK)("
-	 << f1tdc.fF1HitFIFOFlag
-	 << f1tdc.fF1OutputFIFOFlag
-	 << f1tdc.fF1ResolutionLockFlag
-	 << ")";
-  stream << " ROC " << std::setw(2) << f1tdc.fF1ROCNumber;
-  stream << " Slot " << std::setw(2) << f1tdc.fF1SlotNumber;
+  
+  os << "(hitOF,outOF,resLK)("
+     << f1tdc.fF1HitFIFOFlag
+     << f1tdc.fF1OutputFIFOFlag
+     << f1tdc.fF1ResolutionLockFlag
+     << ")";
+  os << " ROC " << std::setw(2) << f1tdc.fF1ROCNumber;
+  os << " Slot " << std::setw(2) << f1tdc.fF1SlotNumber;
   
   if(f1tdc.fF1HeaderFlag) {
-    stream << " EvtN" << std::setw(2) << f1tdc.fF1HeaderEventNumber;
-    stream << " TriT" << std::setw(4) << f1tdc.fF1HeaderTriggerTime;
+    os << " EvtN" << std::setw(2) << f1tdc.fF1HeaderEventNumber;
+    os << " TriT" << std::setw(4) << f1tdc.fF1HeaderTriggerTime;
   }
   else {
-    stream << " RawT " << std::setw(10) << f1tdc.fF1Dataword;
+    os << " RawT " << std::setw(10) << f1tdc.fF1Dataword;
   }
-  //  stream << std::endl;
-  return stream;
+  //  os << std::endl;
+  return os;
 };
 
 
