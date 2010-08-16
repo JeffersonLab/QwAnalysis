@@ -188,9 +188,12 @@ const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromList(con
   }
 
   // Warn when multiple identical matches were found
-  if (matches.size() > 1) {
+  std::size_t match_size = 0;
+  std::size_t i = 0;
+  match_size = matches.size();
+  if (match_size > 1) {
     QwWarning << "Multiple identical matches for histogram " << histname << ":" << QwLog::endl;
-    for (size_t i = 0; i < matches.size(); i++) {
+    for ( i = 0; i < match_size; i++) {
       QwWarning << " " << fHistParams.at(matches.at(i)).name_title << QwLog::endl;
     }
   }
@@ -288,6 +291,7 @@ Bool_t QwHistogramHelper::DoesMatch(const std::string s, const std::string s_wil
   //TString and TRegExp functions. Require the string and wildcard string
   //to have the SAME length to match (much risky if we don't require this),
   //so the only wildcard you want to use here is ".".
+  
 
   TString s1 = TString(s.c_str());
   TRegexp s2 = TRegexp(s_wildcard.c_str());
@@ -343,7 +347,7 @@ TH1F* QwHistogramHelper::Construct1DHist(const QwHistogramHelper::HistParams &pa
   //std::cout<<params.name_title.c_str()<<" : "<<params.unit.c_str()<<std::endl;
   //std::cout<<tmptitle<<std::endl;
 
-  h1 = new TH1F(params.name_title.c_str(),
+  h1 = new TH1F(tmptitle.c_str(),
                 tmptitle.c_str(),
                 params.x_nbins,
                 Double_t(params.x_min),Double_t(params.x_max));
@@ -361,7 +365,7 @@ TH2F* QwHistogramHelper::Construct2DHist(const QwHistogramHelper::HistParams &pa
   tmptitle = params.name_title; //now title=name.
   //std::cout<<params.name_title.c_str()<<" : "<<params.unit.c_str()<<std::endl;
   //std::cout<<tmptitle<<std::endl;
-  h2 = new TH2F(params.name_title.c_str(),
+  h2 = new TH2F(tmptitle.c_str(),
                 tmptitle.c_str(),
                 params.x_nbins,
                 Double_t(params.x_min),Double_t(params.x_max),

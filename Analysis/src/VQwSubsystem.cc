@@ -103,7 +103,9 @@ void VQwSubsystem::SetParent(QwSubsystemArray* parent)
 QwSubsystemArray* VQwSubsystem::GetParent(const unsigned int parent) const
 {
   // This is ambiguously for multiple parents
-  if (fArrays.size() > 0 && fArrays.size() > parent)
+  std::size_t array_size = 0;
+  array_size = fArrays.size();
+  if (array_size > 0 && array_size > parent)
     return fArrays.at(parent);
   else {
     QwError << "Subsystem " << GetSubsystemName() << " has no parent!" << QwLog::endl;

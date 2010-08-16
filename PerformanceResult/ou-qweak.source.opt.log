@@ -1,0 +1,73 @@
+
+* PerformTest : -O2 -mtune=prescott,  removed ROOTGLIB
+  time make        : 246.099
+  qwparity -r 5260 : 480.803
+
+  Analysis of run 5260
+  162952 physics events were processed
+  CPU time used:  487.8 s (0.002994 s per event)
+  Real time used: 497.3 s (0.003052 s per event)
+
+
+* VQwBPM.cc  Loop unrolling
+  time make        : 237.473
+  qwparity -r 5260 : 475.237
+
+  Analysis of run 5260
+  162952 physics events were processed
+  CPU time used:  482.2 s (0.002959 s per event)
+  Real time used: 489.6 s (0.003005 s per event)
+
+
+* QwVQWK_Channel
+  * changed Short_t to Int_t make
+  * reduced to use several functions (for example GetHardwareSum()) and
+    directly use fHardwareBlockSum instead.
+
+  qwparity -r 5260 : 473.864 
+  Analysis of run 5260
+  162952 physics events were processed
+  CPU time used:  480.7 s (0.00295 s per event)
+  Real time used: 486.9 s (0.002988 s per event)
+
+  qwparity -r 5260 : 473.409
+  Analysis of run 5260
+  162952 physics events were processed
+  CPU time used:  480.4 s (0.002948 s per event)
+  Real time used: 486.9 s (0.002988 s per event)
+
+
+
+* QwSubsystemArray
+  * reduced to call fArrays.size() by replacing a variable and reusing it.
+    std::size_t array_size = 0;
+    array_size = fArrays.size();
+
+*QwHistogramHelper
+  - reduced to call matches.size()
+  - reduced to call params.name_title
+
+ qwparity -r 5260 : 476.488
+ Analysis of run 5260
+ 162952 physics events were processed
+ CPU time used:  483.4 s (0.002967 s per event)
+ Real time used: 490.7 s (0.003011 s per event)
+
+ qwparity -r 5260 : 474.712
+ Analysis of run 5260
+ 162952 physics events were processed
+ CPU time used:  482 s (0.002958 s per event)
+ Real time used: 489.3 s (0.003003 s per event)
+
+
+* QwVQWK_Channel
+
+  - fBlocksPerEvent For Loop unrolling
+    code is more ugly than before now. 
+
+    bin/qwparity -r 5260 : 472.371
+
+   Analysis of run 5260
+   162952 physics events were processed
+   CPU time used:  479.3 s (0.002942 s per event)
+   Real time used: 484.4 s (0.002973 s per event)
