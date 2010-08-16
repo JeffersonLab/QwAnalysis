@@ -1,0 +1,64 @@
+Monday, August 16 13:01:22 EDT 2010
+
+* cdaql6
+
+
+  gcc version 4.1.2 20080704 (Red Hat 4.1.2-48)
+  2.6.18-194.8.1.el5
+
+
+  4 cpus
+
+  cpu family      : 15
+  model           : 4
+  model name      : Intel(R) Xeon(TM) CPU 3.20GHz
+  stepping        : 1
+  cpu MHz         : 3200.483
+  cache size      : 1024 KB
+  flags           : fpu vme de pse tsc msr pae mce cx8 apic mtrr pge mca 
+                    cmov pat pse36 clfl ush dts acpi mmx fxsr sse sse2 ss 
+                    ht tm pbe nx lm constant_tsc pni monitor ds_cpl cid 
+                    cx16  xtpr
+
+
+
+* The below time unit is "sec" and the type is "user"
+
+
+
+* trunk
+  time make        : 361.921
+  qwparity -r 5260 : 1348.069
+
+  Analysis of run 5260
+  162952 physics events were processed
+  CPU time used:  1358 s (0.008334 s per event)
+  Real time used: 1420 s (0.008713 s per event)
+
+
+* PeformTest : -02, removed ROOTGLIB
+  time make        : 497.688
+  qwparity -r 5260 : 1050.899
+
+  Analysis of run 5260
+  162952 physics events were processed
+  CPU time used:  1061 s (0.006509 s per event)
+  Real time used: 1126 s (0.006912 s per event)
+
+* PerformTest : -O2 -mtune=prescott,  removed ROOTGLIB
+  time make        : 475.366
+  qwparity -r 5260 : 862.489
+
+  Analysis of run 5260
+  162952 physics events were processed
+  CPU time used:  869.6 s (0.005337 s per event)
+  Real time used: 899.2 s (0.005518 s per event)
+
+* PerformTest : -O3 -mtune=prescott,  removed ROOTGLIB
+  time make        : 494.622
+  qwparity -r 5260 : 867.866
+
+  Analysis of run 5260
+  162952 physics events were processed
+  CPU time used:  875 s (0.005369 s per event)
+  Real time used: 895.2 s (0.005494 s per event)

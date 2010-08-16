@@ -1,0 +1,81 @@
+Monday, August 16 13:01:55 EDT 2010
+
+* ou-qweak
+
+  gcc version 4.1.2 20080704 (Red Hat 4.1.2-48)
+  Linux 2.6.18-194.11.1.el5PAE
+
+  2 cpus
+
+  cpu family      : 6
+  model           : 23
+  model name      : Intel(R) Core(TM)2 Duo CPU     E7500  @ 2.93GHz
+  stepping        : 10
+  cpu MHz         : 2926.075
+  cache size      : 3072 KB
+  flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge 
+                    mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 
+                    ss ht tm pbe nx lm constant_tsc pni monitor ds_cpl est 
+                    tm2 ssse3 cx16 xtpr sse4_1 lahf_lm
+
+
+* The below time unit is "sec" and the type is "user"
+
+* no debug options
+
+
+* trunk
+  time make        : 181.059 
+  qwparity -r 5260 : 707.296
+
+  Analysis of run 5260
+  162952 physics events were processed
+  CPU time used:  716.1 s (0.004394 s per event)
+  Real time used: 732.6 s (0.004496 s per event)
+
+  qwparity   : 648k
+  qwtracking : 520k
+
+* PeformTest : -02, removed ROOTGLIB
+
+  time make        : 263.859 
+  qwparity -r 5260 : 517.355
+
+
+  Analysis of run 5260
+  162952 physics events were processed
+  CPU time used:  526.2 s (0.003229 s per event)
+  Real time used: 549.1 s (0.00337 s per event)
+
+
+* PerformTest : -O2 -mtune=prescott,  removed ROOTGLIB
+  time make        : 246.099
+  qwparity -r 5260 : 480.803
+
+  Analysis of run 5260
+  162952 physics events were processed
+  CPU time used:  487.8 s (0.002994 s per event)
+  Real time used: 497.3 s (0.003052 s per event)
+
+* PerformTest : -Os -mtune=prescott, removed ROOTGLIB
+  time make : 209.472
+
+  qwparity  : 84k
+  qwtracking : 72k
+
+  qwparity -r 5260 : 534.173
+
+  Analysis of run 5260
+  162952 physics events were processed
+  CPU time used:  541.2 s (0.003321 s per event)
+  Real time used: 547.5 s (0.00336 s per event)
+ 
+
+* PerformTest : -O3 -mtune=prescott,  removed ROOTGLIB
+  time make        : 247.410
+  qwparity -r 5260 : 469.258
+
+  Analysis of run 5260
+  162952 physics events were processed
+  CPU time used:  476.1 s (0.002922 s per event)
+  Real time used: 482.8 s (0.002963 s per event)

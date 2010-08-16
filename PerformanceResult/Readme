@@ -1,0 +1,26 @@
+  1) turn off "debug flag"
+
+  2) remove ROOTGLIB into CXXFLAGS
+     in evio, and QwAnalysis Makefile
+
+  3) change optimization flag
+     -02, -0s, -03 with and without -mtune=prescott flag
+
+     -mtune option is only for the i386 and x86-64 family of computers
+
+     Because test machines supports MMX, SSE, SSE2, and SSE3 instruction set
+     (See fags in individual machine logs), I use this option to improve 
+     their perform aces.
+
+  4) test results are in "perform.dat"
+
+     cpu(MHz) :   cpu MHz
+     KiB      :   cache size (KiB)
+     #        :   how many cpus
+     0        :   trunk 
+     2        :   -02, with no debug
+     2p       :   -02 -mtune=prescott, without debug option
+     sp       :   -0s -mtune=prescott, without debug option
+     3p       :   -03 -mtune=prescott, without debug option
+
+     (make, qwparity) : time make, time qwparity -r 5260 
