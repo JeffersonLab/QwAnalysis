@@ -1,0 +1,67 @@
+cdaql4
+
+  gcc version 4.1.2 20080704 (Red Hat 4.1.2-48)
+  2.6.18-194.8.1.el5PAE
+
+  8 cpus 
+  processor       : 0
+  vendor_id       : GenuineIntel
+  cpu family      : 6
+  model           : 23
+  model name      : Intel(R) Xeon(R) CPU           E5410  @ 2.33GHz
+  stepping        : 6
+  cpu MHz         : 2327.605
+  cache size      : 6144 KB
+  flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge 
+                    mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 
+                    ss ht tm pbe nx lm constant_tsc pni monitor ds_cpl 
+                    vmx est tm2 ssse3 cx16 xtpr sse4_1 lahf_lm
+
+
+* The below time unit is "sec" and the type is "user"
+
+* trunk
+
+  time make       : 217.922
+  qwparity -r 526 : 662.620
+
+  qwparity   : 648k
+  qwtracking : 520k
+
+
+
+* PerformTest : -O2, removed ROOTGLIB
+  time make        : 296.07
+  qwparity -r 5260 : 461.432
+
+  Analysis of run 5260
+  162952 physics events were processed
+  CPU time used:  471.1 s (0.002891 s per event)
+  Real time used: 511.2 s (0.003137 s per event)
+
+
+
+
+* PerformTest : -O2 -mtune=prescott,  removed ROOTGLIB
+  time make        : 290.990
+  qwparity -r 5260 : 468.407
+
+
+  Analysis of run 5260
+  162952 physics events were processed
+  CPU time used:  477.9 s (0.002933 s per event)
+  Real time used: 540.6 s (0.003318 s per event)
+
+
+
+* PerformTest : -O3 -mtune=prescott,  removed ROOTGLIB
+  time make        : 300.209
+  qwparity -r 5260 : 450.814
+
+
+  Analysis of run 5260
+  162952 physics events were processed
+  CPU time used:  459.6 s (0.002821 s per event)
+  Real time used: 464.4 s (0.00285 s per event)
+
+
