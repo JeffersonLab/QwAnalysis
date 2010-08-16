@@ -14,7 +14,8 @@
 ############################
 ############################
 
-DEBUG := -g -O0
+#DEBUG := -g -O0
+DEBUG := 
 # Add -g if you need to debug (but you'd better
 # first type 'make distclean' to enable full
 # recompilation with this flag).
@@ -175,7 +176,7 @@ endif
 ROOTCONFIG   := $(ROOTSYS)/bin/root-config
 ## ROOTDEFINE   := $(shell $(ROOTCONFIG) --features | $(SED) 's/\(\s*\)\([a-zA-Z0-9_]*\)/\1-D__ROOT_HAS_\2/g;y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
 ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags)
-ROOTLIBS     := $(shell $(ROOTCONFIG) --new --libs) -lTreePlayer -lGui
+ROOTLIBS     := $(shell $(ROOTCONFIG) --new --libs) -lTreePlayer # -lGui
         # -lNew : for map file capability
         # -lTreePlayer -lProof : for user loops calling tree
         #                        variables under conditions
@@ -341,7 +342,7 @@ ifeq ($(ARCH),Linux)
 
 CXX            := $(GCC)
 CXXFLAGS       := -Wall -fPIC
-OPTIM          := $(OPTIM)
+OPTIM          := $(OPTIM) -O3
 LD             = $(GCC)
 LDFLAGS	       = -Wl,-rpath,$(QW_LIB)
 LDLIBS         =

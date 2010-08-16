@@ -1,0 +1,38 @@
+============================
+Trunk 
+============================
+make distclean 
+make config EXES:=qwparity
+
+time make
+user    2m15.108s
+
+time qwparity -r 5260 
+user    13m6.369s
+
+
+Analysis of run 5260
+162952 physics events were processed
+CPU time used:  801.6 s (0.00492 s per event)
+Real time used: 1050 s (0.006441 s per event)
+
+===================================
+PeformTest
+===================================
+remove Glib or ROOTGLIB and -lGui an so on,
+in evio, and QwAnalysis Makefile
+
+-02 as default in evio and QwAnalysis
+
+make config EXES:=qwparity
+time make
+user    2m52.659s
+
+time qwparity -r 5260
+user    11m2.605s
+
+
+Analysis of run 5260
+162952 physics events were processed
+CPU time used:  676.7 s (0.004153 s per event)
+Real time used: 902 s (0.005535 s per event)

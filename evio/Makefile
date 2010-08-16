@@ -32,6 +32,8 @@ export STANDALONE = 1
 
 export OSNAME := $(shell uname)
 
+OPTIM  := -O
+
 MYSRCDIR = src
 MYINCDIR = include
 
@@ -114,7 +116,7 @@ ifeq ($(OSNAME),Linux)
      ROOTLIBS      = -L$(ROOTSYS)/lib -lNew -lBase -lCint -lClib -lCont -lFunc \
                     -lGraf -lGraf3d -lHist -lHtml -lMatrix -lMeta -lMinuit -lNet \
                     -lPhysics -lPostscript -lProof -lRint -lTree -lUnix -lZip
-     ROOTGLIBS     = -lGpad -lGui -lGX11 -lX3d
+     ROOTGLIBS     = #-lGpad -lGui -lGX11 -lX3d
    else
      ROOTLIBS      = $(shell root-config --libs)
      ROOTGLIBS     = $(shell root-config --glibs)
@@ -122,7 +124,7 @@ ifeq ($(OSNAME),Linux)
 
    INCLUDES      = -I$(shell root-config --incdir)
    CXX           = g++
-   CXXFLAGS      = -O -Wall -fno-rtti -fno-exceptions -fPIC $(INCLUDES)
+   CXXFLAGS      = -O2 -Wall -fno-rtti -fno-exceptions -fPIC $(INCLUDES)
    LD            = g++
    LDFLAGS       = 
    SOFLAGS       = -shared
@@ -138,7 +140,8 @@ ifeq ($(OSNAME),Linux)
    endif
 
    EVIO_LIB=libevio.a
-   ALL_LIBS = $(EVIO_LIB) $(GLIBS) $(ROOTLIBS) 
+#   ALL_LIBS = $(EVIO_LIB) $(GLIBS) $(ROOTLIBS) 
+   ALL_LIBS = $(EVIO_LIB) $(LIBS) # $(ROOTLIBS) 
 
 # ONLIBS is needed for ET
   ET_AC_FLAGS = -D_REENTRANT -D_POSIX_PTHREAD_SEMANTICS
