@@ -765,9 +765,7 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
             }
         }
 
-      //fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
-      //fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_front_adc")));
-      //fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_back__adc")));
+      fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
       fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
       fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));
       fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_x")));
@@ -781,13 +779,13 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
       // Option_t* option = "")
 
       fRateMapCM  = new TProfile2D("scanner_rate_map_cm",
-                                   "Scanner Rate Map (Current Mode)",121,-60.5,60.5,40,-355.0,-315.0);
+                                   "Scanner Rate Map (Current Mode)",110,-55.0,55.0,40,-360.0,-320.0);
       fRateMapCM->GetXaxis()->SetTitle("PositionX [cm]");
       fRateMapCM->GetYaxis()->SetTitle("PositionY [cm]");
       fRateMapCM->SetOption("colz");
 
       fRateMapEM  = new TProfile2D("scanner_rate_map_em",
-                                   "Scanner Rate Map (Event Mode)",121,-60.5,60.5,40,-355.0,-315.0);
+                                   "Scanner Rate Map (Event Mode)",110,-55.0,55.0,40,-360.0,-320.0);
       fRateMapEM->GetXaxis()->SetTitle("PositionX [cm]");
       fRateMapEM->GetYaxis()->SetTitle("PositionY [cm]");
       fRateMapEM->SetOption("colz");
@@ -833,16 +831,6 @@ void  QwScanner::FillHistograms()
 
   for (size_t j=0; j<fHistograms1D.size();j++)
     {
-
-      if (fHistograms1D.at(j)->GetTitle()==TString("scanner_front_adc"))
-        {
-          fHistograms1D.at(j)->Fill(fFrontADC);
-        }
-
-      if (fHistograms1D.at(j)->GetTitle()==TString("scanner_back__adc"))
-        {
-          fHistograms1D.at(j)->Fill(fBackADC);
-        }
 
       if (fHistograms1D.at(j)->GetTitle()==TString("scanner_position_x"))
         {
@@ -1137,6 +1125,7 @@ void  QwScanner::DeleteHistograms()
         }
     }
 
+  // Delete all histograms in the list
   for (size_t i=0; i<fHistograms1D.size(); i++)
     {
       if (fHistograms1D.at(i) != NULL)
@@ -1145,7 +1134,10 @@ void  QwScanner::DeleteHistograms()
           fHistograms1D.at(i) =  NULL;
         }
     }
+  // Then clear the list
+  fHistograms1D.clear();
 
+  // Delete all histograms in the list
   for (size_t i=0; i<fHistograms2D.size(); i++)
     {
       if (fHistograms2D.at(i) != NULL)
@@ -1154,6 +1146,8 @@ void  QwScanner::DeleteHistograms()
           fHistograms2D.at(i) =  NULL;
         }
     }
+  // Then clear the list
+  fHistograms2D.clear();
 
 };
 

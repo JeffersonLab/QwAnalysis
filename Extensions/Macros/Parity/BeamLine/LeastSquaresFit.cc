@@ -14,7 +14,7 @@ void  DoLinearLeastSquareFit( Int_t points, double X[], double Y[], Double_t W[]
   for(size_t k=0;k<4;k++)
     fitresults[k]=0.0;
 
-  for(size_t i = 0; i< points; i++)
+  for(Int_t i = 0; i< points; i++)
     {
       A += X[i]*W[i];
       B += W[i];

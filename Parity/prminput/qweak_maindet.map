@@ -6,7 +6,7 @@ Bank=0x0202
 !
 ! same sample size for ADCs in a given bank
 !
-sample_size=120
+sample_size=480
 !
 !
 !

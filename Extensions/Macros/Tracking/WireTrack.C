@@ -88,7 +88,7 @@ void read(Int_t evID=0, Int_t hitID = -1, Int_t run_number=1672){
 
   //TFile file(Form("%s/Qweak_%d.root", getenv("QW_ROOTFILES_DIR"),run_number));
   TFile file(Form("%s/rootfiles/Qweak_%d.root", getenv("QWANALYSIS"),run_number));
-  TTree* tree = (TTree*) file.Get("tree");
+  TTree* tree = (TTree*) file.Get("event_tree");
   QwHitRootContainer* hitContainer = NULL;
   
   tree->SetBranchAddress("hits",&hitContainer);
@@ -199,7 +199,7 @@ plot_event_track(Int_t wires=3,Int_t event_begin=-1,Int_t event_end=-1,Int_t run
 	return;
 	    }
     else{
-	TTree* tree=(TTree*)file->Get("tree");
+	TTree* tree=(TTree*)file->Get("event_tree");
 	QwHitRootContainer* hitcontainer=NULL;
 	tree->SetBranchAddress("hits",&hitcontainer);
 	Double_t tdc_time=0.0;
@@ -354,9 +354,9 @@ plot_time_track(Int_t wires=3,Int_t wire_num=1,Int_t event_begin=-1,Int_t event_
 	return;
 	    }
     else{
-	TTree* tree=(TTree*)file->Get("tree");
+	TTree* tree=(TTree*)file->Get("event_tree");
 	
-	TTree* tree2=new TTree("tree","data of time and distance");
+	TTree* tree2=new TTree("event_tree","data of time and distance");
 	tree2->Branch("time",&drift_time,"drift_time/D");
 	tree2->Branch("distance",&drift_distance,"drift_distance/D");
 	
@@ -520,7 +520,7 @@ plot_wire_track(Int_t wires=3,Int_t event_begin=-1,Int_t event_end=-1,Int_t run_
 	return;
 	    }
     else{
-	TTree* tree=(TTree*)file->Get("tree");
+	TTree* tree=(TTree*)file->Get("event_tree");
 	QwHitRootContainer* hitcontainer=NULL;
 	tree->SetBranchAddress("hits",&hitcontainer);
 	Double_t tdc_time=0.0;
@@ -674,9 +674,9 @@ plot_time_hits_track(Int_t wires=3,Int_t event_begin=-1,Int_t event_end=-1,Int_t
 	return;
 	    }
     else{
-	TTree* tree=(TTree*)file->Get("tree");
+	TTree* tree=(TTree*)file->Get("event_tree");
 	
-	TTree* tree2=new TTree("tree","data of time and distance");
+	TTree* tree2=new TTree("event_tree","data of time and distance");
 	tree2->Branch("time",&drift_time,"drift_time/D");
 	tree2->Branch("distance",&drift_distance,"drift_distance/D");
 	

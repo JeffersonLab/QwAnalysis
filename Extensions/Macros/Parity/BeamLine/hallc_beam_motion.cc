@@ -65,6 +65,9 @@
 #include <TMultiGraph.h>
 #include <TLegend.h>
 #include <TPaveStats.h>
+
+#include <cstdlib>
+
 #include "LeastSquaresFit.cc"
 
 TString  runnum   = "";

@@ -7,7 +7,7 @@
 ROC=1
 Bank=0x102
 !same sample size for ADCs in a given bank
-sample_size==120 
+sample_size==480 
 !
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
@@ -71,7 +71,7 @@ sample_size==120
    VQWK, 5, 4,  bpmstripline,  QWK_3P02BXP
    VQWK, 5, 5,  bpmstripline,  QWK_3P02BXM
    VQWK, 5, 6,  bpmstripline,  QWK_3P02BYP
-   VQWK, 5/, 7,  bpmstripline,  QWK_3P02BYM
+   VQWK, 5, 7,  bpmstripline,  QWK_3P02BYM
 
 !ADC6
    VQWK, 6, 0,  bpmstripline,  QWK_3P03AXP
@@ -114,39 +114,58 @@ sample_size==120
    VQWK, 9, 7,  bpmstripline,  QWK_3H07CYM
 
 !ADC10
-!   VQWK, 10, 0,  bpmstripline,  QWK_3H08XP
-!   VQWK, 10, 1,  bpmstripline,  QWK_3H08XM
-!   VQWK, 10, 2,  bpmstripline,  QWK_3H08YP
-!   VQWK, 10, 3,  bpmstripline,  QWK_3H08YM
-!   VQWK, 10, 4,  bpmstripline,  QWK_3H09XP
-!   VQWK, 10, 5,  bpmstripline,  QWK_3H09XM
-!  VQWK, 10, 6,  bpmstripline,  QWK_3H09YP
-!   VQWK, 10, 7,  bpmstripline,  QWK_3H09YM
+   VQWK, 10, 0,  bpmstripline,  QWK_3H08XP
+   VQWK, 10, 1,  bpmstripline,  QWK_3H08XM
+   VQWK, 10, 2,  bpmstripline,  QWK_3H08YP
+   VQWK, 10, 3,  bpmstripline,  QWK_3H08YM
+   VQWK, 10, 4,  bpmstripline,  QWK_3H09XP
+   VQWK, 10, 5,  bpmstripline,  QWK_3H09XM
+   VQWK, 10, 6,  bpmstripline,  QWK_3H09YP
+   VQWK, 10, 7,  bpmstripline,  QWK_3H09YM
 
 
 !ADC11
-!   VQWK, 11, 0,  bpmstripline,  QWK_3H09AXP	
-!   VQWK, 11, 1,  bpmstripline,  QWK_3H09AXM
-!   VQWK, 11, 2,  bpmstripline,  QWK_3H09AYP
-!   VQWK, 11, 3,  bpmstripline,  QWK_3H09AYM
-  ! VQWK, 11, 4,  bcm,  QWK_3H04
-  ! VQWK, 11, 5,  bcm,  QWK_3H07
-  ! VQWK, 11, 6,  bcm,  QWK_3H3G0Z
-  ! VQWK, 11, 7,  bpmcavity,  QWK_3HCAV
+   VQWK, 11, 0,  bpmstripline,  QWK_3H09AXP	
+   VQWK, 11, 1,  bpmstripline,  QWK_3H09AXM
+   VQWK, 11, 2,  bpmstripline,  QWK_3H09AYP
+   VQWK, 11, 3,  bpmstripline,  QWK_3H09AYM
+   VQWK, 11, 4,  bcm,  QWK_BCM6              ! 3H04
+   VQWK, 11, 5,  bcm,  QWK_BCM5              ! 3H07
+   VQWK, 11, 6,  bcm,  QWK_BCM2              ! 3H3G0Z
+   VQWK, 11, 7,  bcm,  QWK_BCM1              ! 3HCAV
+
+!**************************************************************************
+! HALL C PHASE MONITOR
+!**************************************************************************
+ROC=0
+Bank=0x6110
+sample_size==480 
+
+!ADC0
+   VQWK, 0, 0,  bcm,  QWK_LINEPHASE
+   VQWK, 0, 1,  bcm,  QWK_INVERT_TStable
+
+
 
 
 !**************************************************************************
 ! HALL C BEAMLINE SCALERS : HALO MONITORS
 !**************************************************************************
-ROC=0
 Bank=0x6103
 !
 !
 ! scaler.type, scaler.num  word.num, det.type, det.name
 
-SCALER,0,29,halomonitor,qwk_s0ch29
-SCALER,0,30,halomonitor,qwk_s0ch30
-SCALER,0,31,halomonitor,qwk_s0ch31
+SCALER,0,16,halomonitor,qwk_sca_bcm1
+SCALER,0,17,halomonitor,qwk_sca_bcm2
+SCALER,0,18,halomonitor,qwk_sca_bcm17
+SCALER,0,19,halomonitor,qwk_sca_unser
+SCALER,0,20,halomonitor,qwk_sca_bcm5
+SCALER,0,21,halomonitor,qwk_sca_bcm6
+
+SCALER,0,29,halomonitor,qwk_sca_31MHz
+SCALER,0,30,halomonitor,qwk_sca_4MHz
+SCALER,0,31,halomonitor,qwk_sca_31MHzreturn
 
 SCALER,2,16,halomonitor,qwk_empty_s2ch16
 SCALER,2,17,halomonitor,qwk_empty_s2ch17
@@ -172,22 +191,22 @@ SCALER,2,31,halomonitor,qwk_empty_s2ch31
 !**************************************************************************
 
 
-begin=combinedbcm
-name=qwk_average_charge
-!name	type	wieght
- empty2,  bcm, 1.0
- empty1,  bcm, 0.8
-end=combinedbcm
+!begin=combinedbcm
+!name=qwk_average_charge
+!!name	type	wieght
+! empty2,  bcm, 1.0
+! empty1,  bcm, 0.8
+!end=combinedbcm
 
 
-begin=combinedbpm
-name=qwk_target
-!name	    type 	  q      x     y    
- QWK_3C07,  bpmstripline, 1.0,  1.0,  1.0
- QWK_3C08,  bpmstripline, 1.0,  1.0,  1.0
- QWK_3C11,  bpmstripline, 1.0,  1.0,  1.0
- QWK_3C12,  bpmstripline, 1.0,  1.0,  1.0
-end=combinedbpm
+!begin=combinedbpm
+!name=qwk_target
+!!name	    type 	  q      x     y    
+! QWK_3C07,  bpmstripline, 1.0,  1.0,  1.0
+! QWK_3C08,  bpmstripline, 1.0,  1.0,  1.0
+! QWK_3C11,  bpmstripline, 1.0,  1.0,  1.0
+! QWK_3C12,  bpmstripline, 1.0,  1.0,  1.0
+!end=combinedbpm
 
 
 !**************************************************************************
@@ -202,13 +221,13 @@ end=combinedbpm
 !	(dP/P) = (1/M15)*X_3c12 + (-M11/M15)*X_T + (-M12/M15)*X_T`
 ! To get (dP/P).
 
-begin=energycalculator
-name=qwk_energy
-! name      type 	ratios property  
-  QWK_3C11, bpmstripline, 1.5,	beamposition   
-  QWK_TARGET, combinedbpm, -2.4, targetbeamangle
-  QWK_TARGET, combinedbpm, -0.6, targetbeamposition
-end=energycalculator
+!begin=energycalculator
+!name=qwk_energy
+!! name      type 	ratios property  
+!  QWK_3C11, bpmstripline, 1.5,	beamposition   
+!  QWK_TARGET, combinedbpm, -2.4, targetbeamangle
+!  QWK_TARGET, combinedbpm, -0.6, targetbeamposition
+!end=energycalculator
 
 ! CHECK THE SIGNS OF THE MATRIX ELEMENT RATIOS!.
 

@@ -51,7 +51,7 @@ void create_tdc_tree ( Int_t ev_start=-1,Int_t ev_end=-1, Int_t run_number=1672 
         TFile* f_tdc=new TFile ( Form ( "%s/rootfiles/Qweak_%d_TDCBased.root",getenv ( "QWSCRATCH" ),run_number ),"RECREATE" );
     //TFile* f=new TFile ( Form ( "/net/cdaq/scratch2/qweak/rootfiles/Qweak_%d.000.root",run_number ) );
     //TFile* f_tdc=new TFile ( Form ( "/net/cdaq/scratch2/qweak/rootfiles/Qweak_%d_TDCBased.root",run_number ),"RECREATE" );
-    TTree *R=new TTree ( "tree","Hit event data tree" );
+    TTree *R=new TTree ( "event_tree","Hit event data tree" );
     TString prebase="";
     std::vector<Int_t> tdc_dt;
 
@@ -61,7 +61,7 @@ void create_tdc_tree ( Int_t ev_start=-1,Int_t ev_end=-1, Int_t run_number=1672 
 
     ConstructTDCStructure ( R,prebase,tdc_dt );
 
-    TTree* tree= ( TTree* ) f->Get ( "tree" );
+    TTree* tree= ( TTree* ) f->Get ( "event_tree" );
     QwHitRootContainer* hitContainer=NULL;
 
     tree->SetBranchAddress ( "hits",&hitContainer );
@@ -162,7 +162,7 @@ void draw_peaks ( Int_t slot_num=0,Int_t tdc_num=0, Int_t run_number=1672,Int_t 
 
     TH1F* h1=new TH1F("h1","h1",bins,-300,300);
 
-    TTree* tree=(TTree*)f->Get("tree");
+    TTree* tree=(TTree*)f->Get("event_tree");
     char firstchan[100]="slot";
     char secondchan[100]="slot";
     string middle="_tdc";

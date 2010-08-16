@@ -30,7 +30,6 @@
 #include <TTree.h>
 #include <iostream>
 #include <fstream>
-#include <vector>
 #include <new>
 #include <TF1.h>
 #include <Rtypes.h>
@@ -41,9 +40,10 @@
 #include <stdexcept>
 #include <TLine.h>
 #include <time.h>
-#include <stdio.h>
+#include <cstdio>
 #include <TBox.h>
 
+#include <cstdlib>
 
 
 Bool_t pol2BCM=kFALSE;
@@ -61,7 +61,7 @@ TString scut;
 TString scut_residual;
 Double_t scutmin;
 Double_t scutmax;
-const Int_t ndevices = 26;
+//const Int_t ndevices = 26;
 Int_t BCMOfChoice=9; //this is the BCM against everyone elese is going to be calibrated
                       //input the number of the device in the devicelist
                       // remember the first device in the list has number 0
@@ -70,16 +70,14 @@ Int_t BCMOfChoice=9; //this is the BCM against everyone elese is going to be cal
 //  tO calibrate other types of devices, comment out this list and create a list simmiler to this.
 //  DO NOT remove this list.
 
-TString devicelist[ndevices]=
-  {"qwk_1i02","qwk_1i04","qwk_1i06","qwk_0i02","qwk_0i02a",
-   "qwk_0i05","qwk_0i07","qwk_0l01","qwk_0l02",
-   "qwk_bcm0l02", // BCM
-   "qwk_0l03","qwk_0l04","qwk_0l05","qwk_0l06","qwk_0l07",
-   "qwk_0l08","qwk_0l09","qwk_0l10","qwk_0r01","qwk_0r02",
-   "qwk_0r03","qwk_0r04","qwk_0r05","qwk_0r06","qwk_0r07",
-   "qwk_1IL02"};
-
-
+// TString devicelist[ndevices]=
+//   {"qwk_1i02","qwk_1i04","qwk_1i06","qwk_0i02","qwk_0i02a",
+//    "qwk_0i05","qwk_0i07","qwk_0l01","qwk_0l02",
+//    "qwk_bcm0l02", // BCM
+//    "qwk_0l03","qwk_0l04","qwk_0l05","qwk_0l06","qwk_0l07",
+//    "qwk_0l08","qwk_0l09","qwk_0l10","qwk_0r01","qwk_0r02",
+//    "qwk_0r03","qwk_0r04","qwk_0r05","qwk_0r06","qwk_0r07",
+//    "qwk_1IL02"};
 
 
 Double_t max_current=50; // (uA) default value. can be set from the command line
@@ -89,6 +87,11 @@ TTree *nt;
 TCanvas *Canvas;
 TString CanvasTitle;
 
+TString get,mapstring,line,devicename,throw_away,det_type;
+Int_t counterdn=0,counterbcm=0;
+ifstream mapfile; 
+std::vector<TString>  devicelist;
+std::vector<TString>  BCMlist;
 
 std::ofstream Myfile;
 void calibrate(TString devnam);
@@ -104,7 +107,7 @@ int main(Int_t argc,Char_t* argv[])
   TString runnum;
   TFile *f;
 
- if(argc<2 || argc>5)
+  if(argc<2 || argc>5)
     {
       std::cerr<<"!!  Not enough arguments to run this code, the correct syntax is \n";
       std::cerr<<" ./pedestal_extractor  runnumber mincurrent maxcurrent samplesize \n";
@@ -139,8 +142,62 @@ int main(Int_t argc,Char_t* argv[])
       max_current=atof(argv[3]);
       SAMPLE_SIZE=argv[4];
     }
+ 
+  get = getenv("QWANALYSIS");
+  mapstring = get +"/Parity/prminput/qweak_hallc_beamline.map";
+  mapfile.open(mapstring);
+  while (!mapfile.eof()) {
+    line.ReadToken(mapfile);
+    if (line.Contains("!"))  line.ReadToDelim(mapfile);
+    else if (line.Contains("VQWK")) {
+      for(size_t i=0;i<2;i++)  	line.ReadToken(mapfile);
+      line.ReadToken(mapfile);
+      det_type=line;
+      det_type.ToLower();
+      line.ReadToken(mapfile);
+      devicename=line;
+      throw_away=devicename(devicename.Sizeof()-2,1);
+      if(throw_away==",") devicename = devicename(0,devicename.Sizeof()-2);
+      if (det_type=="bpmstripline,"){
+	TString subname=devicename(devicename.Sizeof()-3,2);
+	devicename.ToLower();
+	devicename= devicename(0,devicename.Sizeof()-3);
+	devicename= devicename + subname;
+	devicelist.push_back(devicename);
+	counterdn++;
+      }
+      // else if(det_type=="bpmcavity,"){
+      //   TString subname=devicename(devicename.Sizeof()-2,1);
+      //   devicename.ToLower();
+      // 	 devicename=(devicename.Sizeof()-2) + subname;
+      // 	 devicelist1.push_back(devicename);
+      // 	 counter++;
+     
+      // }
+      else if (det_type=="bcm,"){
+	devicename.ToLower();
+	BCMlist.push_back(devicename);
+	counterbcm++;
+      }
+      else
+	std::cout<< " I don't know this device type" << std::endl;
+    }
+  }
+  mapfile.close();
+ 
+  bool local_debug = false;
+  std::vector<TString>::iterator pd;
+  if(local_debug) {
+    for( pd = BCMlist.begin(); pd != BCMlist.end(); pd++ ) {
+      std::cout << *pd << std::endl;
+    }
+    for( pd = devicelist.begin(); pd != devicelist.end(); pd++ ) {
+      std::cout << *pd << std::endl;
+    }
+  }
 
-  
+
+  const Int_t ndevices=counterdn; 
   
   TApplication theApp("App",&argc,argv);
 
@@ -162,7 +219,7 @@ int main(Int_t argc,Char_t* argv[])
 
 
   //Get the root file
-  sprintf(filename,"%sQweak_BeamLine_%d.root",directory.Data(),atoi(runnum));
+  sprintf(filename,"%sQweak_%d.root",directory.Data(),atoi(runnum));
   f = new TFile(filename);
   if(!f->IsOpen())
     return 0;
@@ -219,8 +276,8 @@ int main(Int_t argc,Char_t* argv[])
   // e.g. when we set scandata = 10, the bcm will read a current range that may vary from 9.3 to 10.8 with the average being
   // 10.05 != 10. So we have to calibrate the bcm before we use it to calibrate the bpms.
 
-  std::cout<<"Calibrating bcm "<<devicelist[BCMOfChoice]<<std::endl;
-  initial_bcm_calibration(devicelist[BCMOfChoice]);
+  std::cout<<"Calibrating bcm "<<BCMlist[BCMOfChoice]<<std::endl;//Most likely change to a for function for the whole BCM list
+  initial_bcm_calibration(BCMlist[BCMOfChoice]);
  
 
 
@@ -273,6 +330,11 @@ void initial_bcm_calibration(TString bcm_title)
 
  
   // Draw the current we set using scandata
+  //
+  //  Unser calibration is 0.25 uA per kHz.
+  //
+  //  (qwk_sca_unser - some_pedestal)*4e6/qwk_sca_4mhz 
+  //
   nt->Draw("scandata","cleandata==1");
   TH1 *scandata=(TH1*)gROOT->FindObject("htemp");
 

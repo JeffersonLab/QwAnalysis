@@ -172,6 +172,7 @@ ifeq ($(strip $(QWANALYSIS)),)
   $(error Aborting : QWANALYSIS variable is not set.  Source the SetupFiles/.Qwcshrc script first)
 endif
 ifneq ($(shell test $(QWANALYSIS)$(MYRELATIVEPATH) -ef $(shell pwd) || echo false),)
+  $(warning Target directory is $(QWANALYSIS)$(MYRELATIVEPATH).)
   $(error Aborting : QWANALYSIS variable disagrees with the working directory.  Source the SetupFiles/.Qwcshrc script first)
 endif
 

@@ -149,7 +149,7 @@ class QwHit : public TObject {
   // three functions and their comments can be found in QwHit.cc,
   const Bool_t PlaneMatches(EQwRegionID region, EQwDetectorPackage package, Int_t plane);
   const Bool_t DirMatches(EQwRegionID region, EQwDetectorPackage package, EQwDirectionID dir);
-  const Bool_t WireMatches(Int_t region, Int_t package, Int_t plane, Int_t wire);
+  const Bool_t WireMatches(EQwRegionID region, EQwDetectorPackage package, Int_t plane, Int_t wire);
 
  public:
 

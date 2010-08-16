@@ -1,55 +1,60 @@
 //=============================================================================
-// 
+//
 //   ---------------------------
 //  | Doxygen File Information |
 //  ---------------------------
 /**
- 
+
    \file QwGUIScanner.h
    \author Michael Gericke
    \author Jie Pan
 
 */
 //=============================================================================
-// 
+//
 //=============================================================================
-// 
+//
 //   ---------------------------
 //  | Doxygen Class Information |
 //  ---------------------------
 /**
    \class QwGUIScanner
-    
-   \brief Handles the display of the main detector data.  
+
+   \brief Handles the display of the main detector data.
 
    The QwGUIScanner class handles the display of the main detector data.
    It implements severl functions to manipulate the data and calculate certain
    basic diagnostic quantities.
-    
+
  */
 //=============================================================================
 
 ///
 /// \ingroup QwGUIMain
 
-#define SCANNER_INDEX       24
+#define SCANNER_INDEX       27
 #define SAMPLING_RATE       909
 
 #ifndef QWGUISCANNER_H
 #define QWGUISCANNER_H
 
 
-enum ScannerDataPlotType {
+enum ScannerDataPlotType
+{
   SCANNER_PLOT_TYPE_HISTO,
   SCANNER_PLOT_TYPE_GRAPH,
   SCANNER_PLOT_TYPE_PROFILE,
 };
 
-enum ScannerMenuIdentifiers {
+enum ScannerMenuIdentifiers
+{
   SCANNER_PLOT_RATEMAP,
-  SCANNER_PLOT_HISTOGRAM,
-  SCANNER_PLOT_RAW
+  SCANNER_PLOT_PROJECTION
+//   SCANNER_PLOT_HISTOGRAM,
+//   SCANNER_PLOT_RAW
 };
+
+enum ScannerRunMode {EVENT_MODE, CURRENT_MODE};
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -61,160 +66,219 @@ using std::vector;
 #include <TRootEmbeddedCanvas.h>
 #include <TRootCanvas.h>
 #include <TMath.h>
+#include <TH1D.h>
 #include <TProfile.h>
+#include <TProfile2D.h>
 #include <TVirtualFFT.h>
 #include "QwGUISubSystem.h"
 #include "QwGUIDataWindow.h"
 #include "RNumberEntryDialog.h"
 #include "QwGUIFFTWindowSelectionDialog.h"
 
-class QwGUIScanner : public QwGUISubSystem {
-
-  
-  TGVerticalFrame        *dTabFrame;
-  TRootEmbeddedCanvas    *dCanvas;  
-  TGLayoutHints          *dTabLayout; 
-  TGLayoutHints          *dCnvLayout; 
-
-  TGComboBox             *dTBinEntry;
-  TGLayoutHints          *dTBinEntryLayout;
-  TGNumberEntry          *dRunEntry;
-  TGLayoutHints          *dRunEntryLayout;
-  TGLabel                *dRunEntryLabel;
-  TGHorizontal3DLine     *dHorizontal3DLine;
-  TGHorizontalFrame      *dUtilityFrame;  
-  TGLayoutHints          *dUtilityLayout;
-
-  TGMenuBar              *dMenuBar;
-  TGPopupMenu            *dMenuData;
-  TGPopupMenu            *dMenuPlot;
-  TGLayoutHints          *dMenuBarLayout; 
-  TGLayoutHints          *dMenuBarItemLayout;
-
-  //!An object array to store histogram pointers -- good for use in cleanup.
-  TObjArray            HistArray;
-
-  //!An object array to store graph pointers.
-  TObjArray            GraphArray;
-
-  //!An object array to store profile histogram pointers.
-  TObjArray            ProfileArray;
-
-  //!An object array to store data window pointers -- good for use in cleanup.
-  TObjArray            DataWindowArray;
-
-  //!A dioalog for number entry ...  
-  RNumberEntryDialog   *dNumberEntryDlg;
-
-  //!This function plots histograms of the data in the current file, in the main canvas.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  void                 PlotHistograms();
-
-  //!This function plots time graphs of the data in the current file, in the main canvas.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  void                 PlotGraphs();
-
-  //!This function plots histograms of the data in the current file, in the main canvas.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  void                 PlotRateMap();
-
-  //!This function plots histograms of the data in the current file, in the main canvas.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  void                 PlotRawDataHist();
-
-  //!This function clears the histograms/plots in the plot container (for root files). This is done  
-  //!everytime a new file is opened. If the displayed plots are not saved prior to opening a new file
-  //!any changes on the plots are lost.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none  
-  void                 ClearRootData();
+class QwGUIScanner : public QwGUISubSystem
+  {
 
 
-  //!This function clears the histograms/plots in the plot container (for database files). This is done  
-  //!everytime a new database is opened. If the displayed plots are not saved prior to opening a new file
-  //!any changes on the plots are lost.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none  
-  void                 ClearDBData();
+    TGVerticalFrame        *dTabFrame;
+    TRootEmbeddedCanvas    *dCanvas;
+    TGLayoutHints          *dTabLayout;
+    TGLayoutHints          *dCnvLayout;
 
-  Int_t                GetCurrentDataLength(Int_t det) {return det >= 0 && det < SCANNER_INDEX ? dCurrentData[det].size() : -1;};
+    TGComboBox             *dTBinEntry;
+    TGLayoutHints          *dTBinEntryLayout;
+    TGNumberEntry          *dRunEntry;
+    TGLayoutHints          *dRunEntryLayout;
+    TGLabel                *dRunEntryLabel;
+    TGHorizontal3DLine     *dHorizontal3DLine;
+    TGHorizontalFrame      *dUtilityFrame;
+    TGLayoutHints          *dUtilityLayout;
 
-  void                 SetPlotDataType(ScannerDataPlotType type) {dDataPlotType = type;};
-  ScannerDataPlotType       GetPlotDataType() {return dDataPlotType;};
+    TGMenuBar              *dMenuBar;
+    TGPopupMenu            *dMenuData;
+    TGPopupMenu            *dMenuPlot;
+    TGLayoutHints          *dMenuBarLayout;
+    TGLayoutHints          *dMenuBarItemLayout;
 
-  //!An array that stores the ROOT names of the histograms that I chose to display for now.
-  //!These are the names by which the histograms are identified within the root file.
-  static const char   *ScannerDataNames[SCANNER_INDEX];
-  static const int    *ScannerDataIndex[SCANNER_INDEX];
+    //!An object array to store histogram pointers -- good for use in cleanup.
+    TObjArray            HistArray;
 
-  //!Stores the data items (events) from the tree for all detectors
-  vector <Double_t>    dCurrentData[SCANNER_INDEX];
-  Double_t    dCurrentDataMean[SCANNER_INDEX];
-  Double_t    dCurrentDataMin[SCANNER_INDEX];
-  Double_t    dCurrentDataMax[SCANNER_INDEX];
-  Double_t    dCurrentDataRMS[SCANNER_INDEX];
+    //!An object array to store graph pointers.
+    TObjArray            GraphArray;
 
-  ScannerDataPlotType       dDataPlotType;
-  
- protected:
+    //!An object array to store profile histogram pointers.
+    TObjArray            ProfileArray;
 
-  //!Overwritten virtual function from QwGUISubSystem::MakeLayout(). This function simply adds an
-  //!embeded canvas to the tab frame for this subsystem, but almost anything can be done here ...
-  //!See QwGUISubSystem::MakeLayout() for more information.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none  
-  virtual void         MakeLayout();
+    //!An object array to store data window pointers -- good for use in cleanup.
+    TObjArray            DataWindowArray;
 
- public:
-  
-  QwGUIScanner(const TGWindow *p, const TGWindow *main, const TGTab *tab,
-		    const char *objName, const char *mainname, UInt_t w, UInt_t h);
-  ~QwGUIScanner();
+    //!A dioalog for number entry ...
+    RNumberEntryDialog   *dNumberEntryDlg;
+
+    //!This function plots histograms of the data in the current file, in the main canvas.
+    //!
+    //!Parameters:
+    //! - none
+    //!
+    //!Return value: none
+    void                 PlotHistograms();
+
+    //!This function plots time graphs of the data in the current file, in the main canvas.
+    //!
+    //!Parameters:
+    //! - none
+    //!
+    //!Return value: none
+    void                 PlotGraphs();
+
+    //!This function plots histograms of the data in the current file, in the main canvas.
+    //!
+    //!Parameters:
+    //! - none
+    //!
+    //!Return value: none
+    void                 PlotRateMap();
+    void                 PlotProjections();
+
+    //!This function plots histograms of the data in the current file, in the main canvas.
+    //!
+    //!Parameters:
+    //! - none
+    //!
+    //!Return value: none
+    void                 PlotRawDataHist();
+
+    //!This function clears the histograms/plots in the plot container (for root files). This is done
+    //!everytime a new file is opened. If the displayed plots are not saved prior to opening a new file
+    //!any changes on the plots are lost.
+    //!
+    //!Parameters:
+    //! - none
+    //!
+    //!Return value: none
+    void                 ClearRootData();
 
 
-  //!Overwritten virtual function from QwGUISubSystem::OnNewDataContainer(). This function retrieves
-  //!four histograms from the ROOT file that is contained within the data container makes copies of
-  //!them and adds them to a histogram pointer array for later plotting and cleanup.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none  
-  virtual void        OnNewDataContainer(RDataContainer *cont);
-  virtual void        OnObjClose(char *);
-  virtual void        OnReceiveMessage(char*);
-  virtual void        OnRemoveThisTab();
-          void        OnUpdatePlot(char *);
+    //!This function clears the histograms/plots in the plot container (for database files). This is done
+    //!everytime a new database is opened. If the displayed plots are not saved prior to opening a new file
+    //!any changes on the plots are lost.
+    //!
+    //!Parameters:
+    //! - none
+    //!
+    //!Return value: none
+    void                 ClearDBData();
 
-  virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
-  virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
+    Int_t                GetCurrentDataLength(Int_t det)
+    {
+      return det >= 0 && det < SCANNER_INDEX ? dCurrentData[det].size() : -1;
+    };
 
-  ClassDef(QwGUIScanner,0);
-};
+    void                 SetPlotDataType(ScannerDataPlotType type)
+    {
+      dDataPlotType = type;
+    };
+    ScannerDataPlotType       GetPlotDataType()
+    {
+      return dDataPlotType;
+    };
+
+    //!An array that stores the ROOT names of the histograms that I chose to display for now.
+    //!These are the names by which the histograms are identified within the root file.
+    static const char   *ScannerDataNames[SCANNER_INDEX];
+    static const int    *ScannerDataIndex[SCANNER_INDEX];
+
+    //!Stores the data items (events) from the tree for all detectors
+    vector <Double_t>    dCurrentData[SCANNER_INDEX];
+    Double_t    dCurrentDataMean[SCANNER_INDEX];
+    Double_t    dCurrentDataMin[SCANNER_INDEX];
+    Double_t    dCurrentDataMax[SCANNER_INDEX];
+    Double_t    dCurrentDataRMS[SCANNER_INDEX];
+
+    ScannerDataPlotType       dDataPlotType;
+
+  protected:
+
+    //!Overwritten virtual function from QwGUISubSystem::MakeLayout(). This function simply adds an
+    //!embeded canvas to the tab frame for this subsystem, but almost anything can be done here ...
+    //!See QwGUISubSystem::MakeLayout() for more information.
+    //!
+    //!Parameters:
+    //! - none
+    //!
+    //!Return value: none
+    virtual void         MakeLayout();
+
+  public:
+
+    QwGUIScanner(const TGWindow *p, const TGWindow *main, const TGTab *tab,
+                 const char *objName, const char *mainname, UInt_t w, UInt_t h);
+    ~QwGUIScanner();
+
+
+    //!Overwritten virtual function from QwGUISubSystem::OnNewDataContainer(). This function retrieves
+    //!four histograms from the ROOT file that is contained within the data container makes copies of
+    //!them and adds them to a histogram pointer array for later plotting and cleanup.
+    //!
+    //!Parameters:
+    //! - none
+    //!
+    //!Return value: none
+    virtual void        OnNewDataContainer(RDataContainer *cont);
+    virtual void        OnObjClose(char *);
+    virtual void        OnReceiveMessage(char*);
+    virtual void        OnRemoveThisTab();
+    void        OnUpdatePlot(char *);
+
+    virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
+    virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
+
+  private:
+
+    Int_t   CodaEventNumber;
+    Double_t PowerSupply_VQWK;
+    Double_t PositionX_VQWK;
+    Double_t PositionY_VQWK;
+    Double_t FrontSCA;
+    Double_t BackSCA;
+    Double_t CoincidenceSCA;
+    Double_t FrontADC;
+    Double_t BackADC;
+    Double_t FrontTDC;
+    Double_t BackTDC;
+    Double_t PositionX_QDC;
+    Double_t PositionY_QDC;
+    Double_t front_adc_raw;
+    Double_t back__adc_raw;
+    Double_t pos_x_adc_raw;
+    Double_t pos_y_adc_raw;
+    Double_t front_f1_raw;
+    Double_t back__f1_raw;
+    Double_t coinc_f1_raw;
+    Double_t ref_t_f1_raw;
+    Double_t coinc_sca_raw;
+    Double_t back__sca_raw;
+    Double_t front_sca_raw;
+    Double_t phase_monitor_raw;
+    Double_t power_vqwk_raw;
+    Double_t pos_y_vqwk_raw;
+    Double_t pos_x_vqwk_raw;
+
+    Double_t MeanPositionX_QDC;
+    Double_t MeanPositionY_QDC;
+
+    Double_t scanner[27];
+
+    Int_t RunMode;
+
+    TProfile2D *RateMap;
+    TProfile2D *RateMap_FrontQuartz;
+    TProfile2D *RateMap_BackQuartz;
+
+    TH2D *RateMapProjectionXY;
+    TH1D *RateMapProjectionX;
+    TH1D *RateMapProjectionY;
+
+    ClassDef(QwGUIScanner,0);
+  };
 
 #endif
