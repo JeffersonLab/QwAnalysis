@@ -273,18 +273,19 @@ foreach $runnumber (@good_runs){
 	print JOBFILE  
 	    "SINGLE_JOB\n",
 	    "INPUT_FILES: @input_files\n",
+	    "MEMORY: 1024 MB\n",
 	    "DISK_SPACE: ",($#input_files+1)*1600+3000," MB\n",
 	    ### "OTHER_FILES: ....\n",
 	    "TOWORK\n",
 	    ####
 	    "OUTPUT_DATA: run_$runnumber.log\n",
-	    "OUTPUT_TEMPLATE: $ENV{QWSCRATCH}/work/run_$runnumber.log\n",
+	    "OUTPUT_TEMPLATE: $ENV{QWSCRATCH}/work/run_$runnumber.log\n";
 	    #
-	    "OUTPUT_DATA: tmp/* \n",
-	    "OUTPUT_TEMPLATE: $ENV{QW_TMP}/.\n",
+	    #"OUTPUT_DATA: tmp/* \n",
+	    #"OUTPUT_TEMPLATE: $ENV{QW_TMP}/.\n",
 	    #
-	    "OUTPUT_DATA: asym/* \n",
-	    "OUTPUT_TEMPLATE: $ENV{ASYMDIR}/.\n";
+	    #"OUTPUT_DATA: asym/* \n",
+	    #"OUTPUT_TEMPLATE: $ENV{ASYMDIR}/.\n";
 	    #
 	    ####  Now rootfiles are copied by the qwbatch.csh script.
 	    ####  2004aug25; pking.
@@ -469,7 +470,7 @@ sub displayusage {
 	"\t\tThis flag specifies the  qwanalysis options to pass\n",
 	"\t\tto the analysis jobs.   The list of options must be\n",
 	"\t\tenclosed in double quotes, such as:\n",
-	"\t\t  \"--beamntuple --qrtntuple 15 --tof\" \n\n",
+	"\t\t  \"--detectors qweak_beamline_only.map -e 0:1000\" \n\n",
 	"\t\tThe default analysis options are:\n";
     my @optionlines = split  /(.{40,}?)( -)|$/, $Default_Analysis_Options;
     my ($line, $preline);

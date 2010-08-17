@@ -76,7 +76,7 @@ echo "Analysis options     = $options"    >> $log_file
 
 ####  Run the analysis job.
 date >>& $log_file
-QWANALYSIS -r $runnumber $options >>& $log_file
+$QW_BIN/qwparity -r $runnumber $options >>& $log_file
 
 if (-f $QW_TMP/G0EPICSData) then
     mv $QW_TMP/G0EPICSData $QW_TMP/G0EPICSData.$runnumber
