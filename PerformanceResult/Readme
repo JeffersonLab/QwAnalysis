@@ -24,3 +24,8 @@
      3p       :   -03 -mtune=prescott, without debug option
 
      (make, qwparity) : time make, time qwparity -r 5260 
+
+
+  5) i386 machine, the optimal compiler option is "-02 -mtune=prescott".
+     x86_64, such options is "-02 -mtune=nocona".
+     But, the minimal option on both i386 and x86_64 is "-02". 

@@ -1,0 +1,85 @@
+Monday, August 16 22:42:31 EDT 2010
+
+* coffee
+
+  gcc version 4.3.2 (Debian 4.3.2-1.1)
+  Linux 2.6.26-2-amd64
+
+
+  1 cpus
+
+  cpu family      : 15
+  model           : 95
+  model name      : AMD Athlon(tm) 64 Processor 4000+
+  stepping        : 3
+  cpu MHz         : 2600.000
+  cache size      : 512 KB
+  flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge 
+                    mca cmov pat pse36 clflush mmx fxsr sse sse2 syscall 
+                    nx mmxext fxsr_opt rdtscp lm 3dnowext 3dnow up rep_good 
+                    pni cx16 lahf_lm svm extapic cr8_legacy
+
+
+* The below time unit is "sec" and the type is "user"
+
+
+* trunk
+  time make        : 135.108s 
+
+  1) qwparity -r 5260 : 786.369s (Aug14)
+
+  2) qwparity -r 5260 : 806.502s (Aug15)
+
+     Analysis of run 5260
+     162952 physics events were processed
+     CPU time used:  821.8 s (0.005043 s per event)
+     Real time used: 1019 s (0.006255 s per event
+
+  3) qwparity -r 5260 : 801.494s (Aug15)
+     Analysis of run 5260
+     162952 physics events were processed
+     CPU time used:  818.5 s (0.005023 s per event)
+     Real time used: 1884 s (0.01156 s per event)
+
+
+
+* no debug options
+
+* PerformTest : -O2
+  make config EXES:=qwparity
+  time make
+  user    2m52.659s
+
+  qwparity -r 5260 :  662.605s (Aug14)
+  Analysis of run 5260
+  162952 physics events were processed
+  CPU time used:  676.7 s (0.004153 s per event)
+  Real time used: 902 s (0.005535 s per event)
+
+
+* PerformTest : -O2 -mtune=nocona 
+  revision : 1674
+
+  make distclean;
+  make
+
+  1) qwparity -r 5260 : 716.341s (Aug15)
+     Analysis of run 5260
+     162952 physics events were processed
+     CPU time used:  730.4 s (0.004482 s per event)
+     Real time used: 920.5 s (0.005649 s per event)
+
+  2) qwparity -r 5260 : 656.497s (Aug15)
+     Analysis of run 5260
+     162952 physics events were processed
+     CPU time used:  674.2 s (0.004138 s per event)
+     Real time used: 1690 s (0.01037 s per event)
+
+  make distclean;
+  make config EXES:=qwparity
+  
+  3) qwparity -r 5260 : 660.685s (Aug16)
+     Analysis of run 5260
+     162952 physics events were processed
+     CPU time used:  674.6 s (0.00414 s per event)
+     Real time used: 824.6 s (0.005061 s per event)
