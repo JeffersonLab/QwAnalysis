@@ -84,3 +84,38 @@
   mean               : 284.34
   Sample Deviation   : 13.4527
   Standard Deviation : 13.112
+
+
+* test with only -02 flags without debug
+ ----------------------------------------------
+  CPU time used: 285.9 s (0.001754 s per event)
+  CPU time used: 277.1 s (0.0017   s per event)
+  CPU time used: 304.9 s (0.001871 s per event)
+  CPU time used: 247.7 s (0.00152  s per event)
+  CPU time used: 286 s   (0.001755 s per event)
+  CPU time used: 322.1 s (0.001977 s per event)
+  CPU time used: 274.8 s (0.001686 s per event)
+  CPU time used: 302.5 s (0.001856 s per event)
+  CPU time used: 263.6 s (0.001617 s per event)
+  CPU time used: 254.7 s (0.001563 s per event)
+  CPU time used: 266.5 s (0.001636 s per event)
+  CPU time used: 246.8 s (0.001515 s per event)
+  CPU time used: 277.3 s (0.001702 s per event)
+  CPU time used: 253.9 s (0.001558 s per event)
+  CPU time used: 271.3 s (0.001665 s per event)
+  CPU time used: 286.1 s (0.001756 s per event)
+  CPU time used: 242.8 s (0.00149  s per event)
+  CPU time used: 280.1 s (0.001719 s per event)
+  CPU time used: 275.8 s (0.001692 s per event)
+  CPU time used: 302.4 s (0.001856 s per event)
+ ----------------------------------------------
+  Total count        : 20
+  mean               : 276.115
+  Sample Deviation   : 21.3302
+  Standard Deviation : 20.7901
+
+* test with only -02 flags with debug -g
+ ----------------------------------------------
+
+* test with -02 -mtune=nocona flags
+  

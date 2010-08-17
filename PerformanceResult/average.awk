@@ -25,6 +25,15 @@
 
 # Tuesday, August 17 11:17:02 EDT 2010, jhlee
 #awk ' {print "  CPU " $2 " "$3 " " $4 " " $5 " " $6 " s per event)" }'
+
+BEGIN {
+    count = 0
+    mean0 = 0
+    sd0 = 0
+    sample_deviation = 0
+    standard_deviation =0 
+
+}
 { 
     x = $4
     count += 1
@@ -43,8 +52,7 @@
 END {
     print "Total count        : " count
  #   print "average size = " totalsize/count
-    print "mean               : " mean0 
-    print "Sample Deviation   : " sample_deviation 
-    print "Standard Deviation : " standard_deviation
+    print  "mean : +- [ sample deviation, standard deviation] "
+    printf "mean : %8.2lf +- [ %8.2lf, %8.2lf ] s\n", mean0, sample_deviation, standard_deviation
 }
     

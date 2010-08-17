@@ -1,6 +1,6 @@
 #!/bin/sh                                                                                 
 
-DATE=`date +%Y%m%d.%H`
+DATE=`date +%Y%m%d.%H%M`
 filename=$HOSTNAME.$DATE
 
 for a in {1..20}
