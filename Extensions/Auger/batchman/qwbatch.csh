@@ -50,24 +50,25 @@ set options      = `echo $*|sed -f .tmpfile`
 if ($?WORKDIR) then
     if (-d $WORKDIR) then
 	echo "Preparing to configure the output directories."
-	mkdir $WORKDIR/rootfiles
-	mkdir $WORKDIR/tmp
-	mkdir $WORKDIR/sum
-	mkdir $WORKDIR/asym
-	mkdir $WORKDIR/calib
+	mkdir -p $WORKDIR/rootfiles
+	mkdir -p $WORKDIR/tmp
+	mkdir -p $WORKDIR/sum
+	mkdir -p $WORKDIR/asym
+	mkdir -p $WORKDIR/calib
 	setenv QW_ROOTFILES $WORKDIR/rootfiles
 	setenv QW_TMP       $WORKDIR/tmp
 	setenv QW_PRMINPUT  $WORKDIR/calib
 	###
-	mkdir $WORKDIR/datafiles
-	setenv QW_DATA      $WORKDIR/datafiles
+	mkdir -p $WORKDIR/data
+	setenv QW_DATA      $WORKDIR/data
 	$scriptdir/update_cache_links.pl -S $WORKDIR/
     endif
 endif
 
 
 ####  Create the log file.
-set log_file = $WORKDIR/run_$runnumber.log
+mkdir -p $WORKDIR/log
+set log_file = $WORKDIR/log/run_$runnumber.log
 echo "QWANALYSIS directory = $QWANALYSIS" >! $log_file
 echo "QWSCRATCH directory  = $QWSCRATCH"  >> $log_file
 echo "Run number(s)        = $runnumber"  >> $log_file

@@ -921,7 +921,9 @@ proc checkrunning {verbose} {
 	global starttime endtime filespresent preabortstate jobid selected
 	global current_state  experiment_label  check_job_names
 
-        set known_states "PEND PSUSP RUN DONE EXIT UNKWN"
+	#set known_states "PEND PSUSP RUN DONE EXIT UNKWN"
+	# wdconinc 2010-08-17: new states in jobstat
+	set known_states "R H Q A"
 
 	# If the jobs returned from jobstat -a are different from those in the status 
 	# file, we excluded these two states from incrementing entrycount so they 
@@ -976,6 +978,14 @@ proc checkrunning {verbose} {
 	# 128281  frw     PEND  production farms0-old.             RSS_43243  Aug 21 15:14
 	# JOBID   USER    STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME
 
+	# Updated 2010-08-17 wdconinc:
+	#           1         2         3         4         5         6         7
+	# 01234567890123456789012345678901234567890123456789012345678901234567890123456789
+	# JOB_ID    USER      STAT    QUEUE      EXEC_HOST   JOB_NAME         SUBMIT_TIME   CPU_TIME  WALLTIME  ACCOUNT
+	# 6120609   wdconinc    R    prod64      farm08001  Qw_584            Aug 17 11:02  06:04:30   06:05:53   hallc
+	# 6137022   wdconinc    H    prod64      --         Qw_583            Aug 17 17:14  --         --         hallc
+
+
 	if { $ierr != 0 } {
 	  set new_N 0
 	} else {
@@ -1028,17 +1038,17 @@ proc checkrunning {verbose} {
 			#set new_run($i)   [string trim [string range $new_name $sl end]]
 			#set new_time($i)  [string trim [lrange $oneline 7 9]]
 			
-			} elseif {[llength $oneline] == 9} {
+			} elseif {[llength $oneline] == 12} {
 			   set new_host($i)  "n/a"
 			   set new_name   [string trim [lindex $oneline 5]]
 			   
-			#so first find the index of the underscore
-			set sl [expr [string first "_" [lindex $oneline 5]] +1]
-			# next find the index of the "-"
-			#set sr [expr [string first "-" [lindex $oneline 6]] -1]
-			#set new_run($i)   [string trim [string range [lindex $oneline 5] $sl $sr]]
-			set new_run($i)   [string trim [string range [lindex $oneline 5] $sl end]]
-			set new_time($i)  [string trim [lrange $oneline 6 8]]
+			   #so first find the index of the underscore
+			   set sl [expr [string first "_" [lindex $oneline 5]] +1]
+			   # next find the index of the "-"
+			   #set sr [expr [string first "-" [lindex $oneline 6]] -1]
+			   #set new_run($i)   [string trim [string range [lindex $oneline 5] $sl $sr]]
+			   set new_run($i)   [string trim [string range [lindex $oneline 5] $sl end]]
+			   set new_time($i)  [string trim [lrange $oneline 6 8]]
 
 			   #below is commented			   
 			   #set sl [expr [string length $new_name] -5]
