@@ -5,6 +5,8 @@ Monday, August 16 13:01:55 EDT 2010
   gcc version 4.1.2 20080704 (Red Hat 4.1.2-48)
   Linux 2.6.18-194.11.1.el5PAE
 
+  MemTotal:      4081344 kB
+
   2 cpus
 
   cpu family      : 6
@@ -35,6 +37,35 @@ Monday, August 16 13:01:55 EDT 2010
 
   qwparity   : 648k
   qwtracking : 520k
+
+* a series of the performance tests
+  ---------------------------------------------
+  CPU time used:  787.5 s (0.004833 s per event)
+  CPU time used:  785.2 s (0.004819 s per event)
+  CPU time used:  787.8 s (0.004835 s per event)
+  CPU time used:  786.8 s (0.004829 s per event)
+  CPU time used:  788.1 s (0.004836 s per event)
+  CPU time used:  707.4 s (0.004341 s per event)
+  CPU time used:  652.7 s (0.004006 s per event)
+  CPU time used:  650.4 s (0.003991 s per event)
+  CPU time used:  651.4 s (0.003997 s per event)
+  CPU time used:  650.5 s (0.003992 s per event)
+  CPU time used:  774.8 s (0.004754 s per event)
+  CPU time used:  651.1 s (0.003996 s per event)
+  CPU time used:  791.3 s (0.004856 s per event)
+  CPU time used:  786.1 s (0.004824 s per event)
+  CPU time used:  788.5 s (0.004839 s per event)
+  CPU time used:  787.6 s (0.004833 s per event)
+  CPU time used:  787.7 s (0.004834 s per event)
+  CPU time used:  784 s   (0.004811 s per event)
+  CPU time used:  784.9 s (0.004816 s per event)
+  CPU time used:  789.3 s (0.004844 s per event)
+  ----------------------------------------------
+  Total count        : 20
+  mean               : 748.655
+  Sample Deviation   : 60.3974
+  Standard Deviation : 58.8681
+
 
 * PeformTest : -02, removed ROOTGLIB
 
@@ -79,3 +110,32 @@ Monday, August 16 13:01:55 EDT 2010
   162952 physics events were processed
   CPU time used:  476.1 s (0.002922 s per event)
   Real time used: 482.8 s (0.002963 s per event)
+
+
+* a series of the performance tests
+  ----------------------------------------------
+  CPU time used:  567.7 s (0.003484 s per event)
+  CPU time used:  565.5 s (0.00347 s per event)
+  CPU time used:  562.4 s (0.003451 s per event)
+  CPU time used:  562 s   (0.003449 s per event)
+  CPU time used:  564.9 s (0.003466 s per event)
+  CPU time used:  565.1 s (0.003468 s per event)
+  CPU time used:  562.8 s (0.003454 s per event)
+  CPU time used:  563.2 s (0.003456 s per event)
+  CPU time used:  564.6 s (0.003465 s per event)
+  CPU time used:  564.5 s (0.003464 s per event)
+  CPU time used:  562.9 s (0.003455 s per event)
+  CPU time used:  564.3 s (0.003463 s per event)
+  CPU time used:  559 s   (0.00343 s per event)
+  CPU time used:  564.8 s (0.003466 s per event)
+  CPU time used:  562.4 s (0.003451 s per event)
+  CPU time used:  564.5 s (0.003465 s per event)
+  CPU time used:  563.4 s (0.003458 s per event)
+  CPU time used:  565.1 s (0.003468 s per event)
+  CPU time used:  563.3 s (0.003457 s per event)
+  CPU time used:  564.8 s (0.003466 s per event)
+  ----------------------------------------------
+  Total count        : 20
+  mean               : 563.86
+  Sample Deviation   : 1.76617
+  Standard Deviation : 1.72145

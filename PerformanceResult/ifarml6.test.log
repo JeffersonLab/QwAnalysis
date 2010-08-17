@@ -1,0 +1,86 @@
+* ifarml6
+
+  gcc version 4.1.2 20080704 (Red Hat 4.1.2-44)
+  Linux 2.6.18-128.el5
+
+  MemTotal:     20540316 kB
+
+  16 cpus
+  vendor_id       : GenuineIntel
+  cpu family      : 6
+  model           : 26
+  model name      : Intel(R) Xeon(R) CPU           X5560  @ 2.80GHz
+  stepping        : 5
+  cpu MHz         : 2793.109
+  cache size      : 8192 KB
+  flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge 
+                    mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 
+                    ss ht tm syscall nx rdts cp lm constant_tsc ida pni 
+                    monitor ds_cpl vmx est tm2 cx16 xtpr popcnt lahf_lm
+
+
+
+ * trunk
+   a series of the performance tests
+  ---------------------------------------------
+  CPU time used: 454 s   (0.002786 s per event)
+  CPU time used: 442.5 s (0.002716 s per event)
+  CPU time used: 418.9 s (0.00257 s per event)
+  CPU time used: 420.5 s (0.002581 s per event)
+  CPU time used: 389.6 s (0.002391 s per event)
+  CPU time used: 393.5 s (0.002415 s per event)
+  CPU time used: 395.2 s (0.002425 s per event)
+  CPU time used: 381.3 s (0.00234 s per event)
+  CPU time used: 378.6 s (0.002324 s per event)
+  CPU time used: 378 s   (0.00232 s per event)
+  CPU time used: 461.4 s (0.002831 s per event)
+  CPU time used: 384.6 s (0.00236 s per event)
+  CPU time used: 456.5 s (0.002802 s per event)
+  CPU time used: 453 s   (0.00278 s per event)
+  CPU time used: 431.8 s (0.00265 s per event)
+  CPU time used: 457.2 s (0.002806 s per event)
+  CPU time used: 445.1 s (0.002731 s per event)
+  CPU time used: 452.4 s (0.002776 s per event)
+  CPU time used: 429.4 s (0.002635 s per event)
+  CPU time used: 449.5 s (0.002758 s per event)
+ ---------------------------------------------
+  Total count        : 20
+  mean               : 423.65
+  Sample Deviation   : 30.9194
+  Standard Deviation : 30.1365
+
+
+
+
+ * Performance Test with  -O2 -mtune=nocona
+   and some code optimazations
+   revision 1675
+
+
+ *  a series of the performance tests
+  ---------------------------------------------
+  CPU time used: 270.4 s (0.001659 s per event)
+  CPU time used: 268.3 s (0.001647 s per event)
+  CPU time used: 292.3 s (0.001794 s per event)
+  CPU time used: 300.6 s (0.001845 s per event)
+  CPU time used: 279.7 s (0.001716 s per event)
+  CPU time used: 287.4 s (0.001764 s per event)
+  CPU time used: 295.1 s (0.001811 s per event)
+  CPU time used: 297.4 s (0.001825 s per event)
+  CPU time used: 255.9 s (0.001571 s per event)
+  CPU time used: 266.6 s (0.001636 s per event)
+  CPU time used: 300.2 s (0.001842 s per event)
+  CPU time used: 274.5 s (0.001685 s per event)
+  CPU time used: 282.2 s (0.001732 s per event)
+  CPU time used: 280 s   (0.001718 s per event)
+  CPU time used: 276.1 s (0.001695 s per event)
+  CPU time used: 290.1 s (0.00178 s per event)
+  CPU time used: 285 s   (0.001749 s per event)
+  CPU time used: 291.3 s (0.001788 s per event)
+  CPU time used: 283 s   (0.001737 s per event)
+  CPU time used: 310.7 s (0.001907 s per event)
+  ---------------------------------------------
+  Total count        : 20
+  mean               : 284.34
+  Sample Deviation   : 13.4527
+  Standard Deviation : 13.112
