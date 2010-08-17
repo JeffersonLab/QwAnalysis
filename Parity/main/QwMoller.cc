@@ -148,16 +148,16 @@ int main(int argc, char* argv[])
   //UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
   //UInt_t runnumber_max = (UInt_t) gQwOptions.GetIntValuePairLast("run");
   //std::cout << "RUN: " << runnumber_min << " to " << runnumber_max << std::endl;
-  for (UInt_t run = 8; run <= 8; run++) {
+  for (UInt_t run = 15; run <= 15; run++) {
 
     // Data file (input)
     if (gQwOptions.HasValue("input_file")){
       fileName = gQwOptions.GetValue<std::string>("input_file");
-    } else if (eventbuffer.OpenDataFile(TString("Moller_") + Form("%ld.log",run),"R")) {
-      fileName = TString("Moller_") + Form("%ld.log",run);
-    } else {
-      QwError << "No Input File Specified!" << std::endl;
-      return 1;
+    } else { // if (eventbuffer.OpenDataFile(TString("moller-moller_") + Form("%ld.log.0",run),"R")) {
+      fileName = TString("moller-moller_") + Form("%ld.log.0",run);
+      //     } else {
+      //       QwError << "No Input File Specified!" << std::endl;
+      //       return 1;
     }
   
     // Open Data file
