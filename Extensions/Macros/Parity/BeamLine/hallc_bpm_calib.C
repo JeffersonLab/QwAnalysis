@@ -29,8 +29,8 @@
 #include "TProfile.h"
 #include "TLine.h"
 #include "TBox.h"
+#include "TCut.h"
 
-const char* program_name;
 
 // class QwString: public TString 
 // {
@@ -458,7 +458,7 @@ public:
   BeamMonitor();
   BeamMonitor(TString in);
   ~BeamMonitor(){};
-  friend std::ostream& operator<<(std::ostream& stream, const BeamMonitor device);
+  friend std::ostream& operator<<(std::ostream& stream, const BeamMonitor &device);
 
   void SetName(const TString in) {name = in;};
   void SetAliasName(const TString in) {alias_name = in;};
@@ -466,11 +466,16 @@ public:
   void SetPedErr(const Double_t in) {offset[1] = in;};
   void SetSlop(const Double_t in) {slope[0] = in;};
   void SetSlopErr(const Double_t in) {slope[1] = in;}
-  void SetFitRangeMin(const Double_t in) {fit_range[0] = in;};
-  void SetFitRangeMax(const Double_t in) {fit_range[1] = in;};
+  void SetFitRange(const Double_t in[2]) {fit_range[0] = in[0]; fit_range[1] = in[1];};
+
+  void SetReference() {reference_flag = true;};
+  void SetFileStream() {filestream_flag = true;};
+
   
   TString GetName() {return name;};
+  const char* GetCName() {return name.Data();};
   TString GetAliasName() {return alias_name;};
+ const char* GetAliasCName() {return alias_name.Data();};
   Double_t GetPed() {return offset[0];};
   Double_t GetPedErr() {return offset[1];};
   Double_t GetSlop() {return slope[0];};
@@ -478,12 +483,17 @@ public:
   Double_t GetFitRangeMin() {return fit_range[0];};
   Double_t GetFitRangeMax() {return fit_range[1];};
 
+  Bool_t IsReference() { return reference_flag;};
+  Bool_t IsFileStream() {return filestream_flag;};
+
 private:
   TString name;
   TString alias_name;
   Double_t offset[2];
   Double_t slope[2];
   Double_t fit_range[2];
+  Bool_t   reference_flag;
+  Bool_t   filestream_flag;
 
 };
 
@@ -495,8 +505,14 @@ BeamMonitor::BeamMonitor()
   offset[1] = 0.0;
   slope[0] = 0.0;
   slope[1] = 0.0;
+  // mean[0] = 0.0;
+  // mean[1] = 0.0;
+  // rms[0] = 0.0;
+  // rms[1] = 0.0;
   fit_range[0] = 0.0;
   fit_range[1] = 0.0;
+  reference_flag = false;
+  filestream_flag = false;
 };
 
 
@@ -508,66 +524,87 @@ BeamMonitor::BeamMonitor(TString in)
   offset[1] = 0.0;
   slope[0] = 0.0;
   slope[1] = 0.0;
+  // mean[0] = 0.0;
+  // mean[1] = 0.0;
+  // rms[0] = 0.0;
+  // rms[1] = 0.0;
   fit_range[0] = 0.0;
   fit_range[1] = 0.0;
+  reference_flag = false;
+  filestream_flag = false;
 };
 
 
 
-std::ostream& operator<< (std::ostream& stream, const BeamMonitor device)
+std::ostream& operator<< (std::ostream& stream, const BeamMonitor &device)
 {
+  if(device.filestream_flag) {
+    stream <<  std::setw(14) << device.name;
+    stream << " ";
+    stream <<  std::setw(10) << device.offset[0];
+    stream << " " ;
+    stream <<  std::setw(10) << device.offset[1];
+    stream << " " ;
+    stream <<  std::setw(10) << device.slope[0];
+    stream << " " ;
+    stream <<  std::setw(10) << device.slope[1];
+    stream << "\n";
+  }
+  else {
+    stream << " Name : " << device.name;
+    stream << " Offset : "  << std::setw(4) << device.offset[0];
+    stream << " +- "     << device.offset[1];
+    
+    if(device.reference_flag) {
+      stream << " Fit Range [" << device.fit_range[0];
+      stream << " ," << device.fit_range[1];
+      stream << "]";
+    }
+    else {
+      stream << " Slope :" << std::setw(4)  << device.slope[0];
+      stream << " +- "     << device.slope[1];
+    }
+  }
+  return stream;
 
-  stream << " Name : " << device.name;
-  stream << " Offset : "  << std::setw(4) << device.offset[0];
-  stream << " +- "     << device.offset[1];
-  stream << " Slope :" << std::setw(4)  << device.slope[0];
-  stream << " +- "     << device.slope[1];
-  stream << " Fit Range [" << device.fit_range[0];
-  stream << " ," << device.fit_range[1];
-  stream << "]";
+
+  // stream << " Name : " << device.name;
+  // stream << " Offset : "  << std::setw(4) << device.offset[0];
+  // stream << " +- "     << device.offset[1];
+  // stream << " Slope :" << std::setw(4)  << device.slope[0];
+  // stream << " +- "     << device.slope[1];
+  // stream << " Fit Range [" << device.fit_range[0];
+  // stream << " ," << device.fit_range[1];
+  // stream << "]";
     
   
   return stream;
 };
 
-
-
-Int_t nbin;
-
-TString SAMPLE_SIZE = "468";  //Default. all results are "normalized" to the adc sample size
-TString scut;
-TString scut_residual;
-Double_t scutmin;
-Double_t scutmax;
-Double_t max_current=50; // (uA) default value. can be set from the command line
-Double_t min_current=5;  // (uA) default value. can be set from the command line
-TLine *zeroline;
-
-TString CanvasTitle;
-std::ofstream Myfile;
-//ifstream mapfile; 
-
-
       
-Bool_t calibrate(BeamMonitor bpm, BeamMonitor bcm);
 
-
-
-// Here calibrate function is defined in "bpm_bcm_calibration.cc (for injector)
-// I want to reuse it for Hall C BPM calibrations.
 void print_usage(FILE* stream, int exit_code);
+Bool_t calibrate(BeamMonitor &bpm, BeamMonitor &bcm);
 
-Bool_t pol2BCM=kFALSE;
-Bool_t pol2=kFALSE;
-//TString get,mapstring,line,devicename,throw_away,det_type;
-//Int_t counterdn=0,counterbcm=0;
-//TCanvas *Canvas;
+TH1D*
+GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option = "")
+{
+  tree ->Draw(name, cut, option);
+  TH1D* tmp;
+  tmp = (TH1D*)  gPad -> GetPrimitive("htemp");
+  if(not tmp) {
+    return 0;
+  }
+  return tmp;
+}
+
+
+const char* program_name;
 TTree *mps_tree = NULL;
 TFile *file = NULL;
 
 std::vector<BeamMonitor> hallc_bpms_list;
 std::vector<BeamMonitor> hallc_bcms_list;
-
 
 Int_t
 main(int argc, char **argv)
@@ -912,9 +949,11 @@ main(int argc, char **argv)
     }
     tmp_max = tmp -> GetXaxis() -> GetXmax();
     //   std::cout << tmp_max << std::endl;
+    fit_range[0] *= tmp_max;
+    fit_range[1] *= tmp_max;
+
     hallc_bcms_list.at(bcm_id).SetAliasName(Form("qwbcm%d", bcm_id)); 
-    hallc_bcms_list.at(bcm_id).SetFitRangeMax(tmp_max*fit_range[1]);
-    hallc_bcms_list.at(bcm_id).SetFitRangeMin(tmp_max*fit_range[0]);
+    hallc_bcms_list.at(bcm_id).SetFitRange(fit_range);
   }
 
   
@@ -925,8 +964,9 @@ main(int argc, char **argv)
   for (i=0;i < hallc_bpms_list.size(); i++ ) {
     std::cout << cnt << ": onto calibrating " << hallc_bpms_list.at(i).GetName() << std::endl;
     cnt++;
-    Bool_t check = calibrate(hallc_bpms_list.at(i), hallc_bcms_list.at(0)) ; // qwk_bcm1
-    if(not check) theApp.Run();
+    Bool_t check = false;
+    check = calibrate(hallc_bpms_list.at(i), hallc_bcms_list.at(0)) ; // qwk_bcm1
+    //    if(not check) theApp.Run();
   }
 
   theApp.Run();
@@ -935,7 +975,7 @@ main(int argc, char **argv)
 
 
 Bool_t
-calibrate(BeamMonitor bpm, BeamMonitor bcm)
+calibrate(BeamMonitor &bpm, BeamMonitor &bcm)
 {
 
   std::cout << bcm << std::endl;
@@ -953,8 +993,6 @@ calibrate(BeamMonitor bpm, BeamMonitor bcm)
   TString bpm_name[4];
   TString bpm_samples[4];
 
-  TString sample_size;
-
   Int_t w = 1100;
   Int_t h = 600;
   TCanvas *Canvas = new TCanvas(devname.Data() , devname.Data(), w, h);  
@@ -968,20 +1006,24 @@ calibrate(BeamMonitor bpm, BeamMonitor bcm)
   bcm_fit_range[0] = bcm.GetFitRangeMin();
   bcm_fit_range[1] = bcm.GetFitRangeMax();
 
+  TCut scut = "";
+
   Int_t i = 0;
   for(i=0;i<4;i++) {
     Canvas->cd(i+1);
     bpm_name[i]    = devname + antenna[i];
     bpm_samples[i] = bpm_name[i] + ".num_samples";
     plotcommand[i] = bpm_name[i]+".hw_sum_raw/" + bpm_samples[i] + ":" + bcm_name;
-    mps_tree->Draw(plotcommand[i], scut, "profs");
-    hprof[i] = (TH1D*) gPad -> GetPrimitive("htemp");
+
+    hprof[i] = GetHisto(mps_tree, plotcommand[i], scut, "profs");
 
     if(not hprof[i]) {
       std::cout << "Please check " << plotcommand[i].Data()
 		<< std::endl;
-      exit(-1);
 
+      Canvas ->Close();
+      delete Canvas; Canvas = NULL;
+      return false;
     }
     
     hprof[i] -> Fit("pol1", "E F R Q", "", bcm_fit_range[0],  bcm_fit_range[1]);
@@ -1007,185 +1049,7 @@ calibrate(BeamMonitor bpm, BeamMonitor bcm)
   return true;
 }
 
-// void 
-// calibrate(TString devname) 
-// {  
-//   TString plotcommand[4];
 
-//   TString antenna[4]={"XP","XM","YP","YM"};
-//   Double_t par[3][4];
-//   Double_t epar[3][4];
-
-//   TF1 *f[4];
-//   TProfile *hprof[4];
-//   Int_t w = 1100;
-//   Int_t h = 600;
-  
-//   Canvas = new TCanvas("bcm_sca_calib_test","BCM SCA Calibration Test", w, h);  
-  
-//   Canvas->Clear();
-//   Canvas->Divide(2,2);
-
-//   // check to see if we have the device on the tree
-     
-//   // if((mps_tree->FindBranch(Form("%sWSum",devname.Data()))) == NULL)
-//   //   {
-//   //     std::cout<<" Attempt to access non exsisting device "<< devname<<". I am Skippineg this!"<<std::endl;
-//   //     return;
-//   //   }
-//   // else 
-//   //   {
-//   for(int i=0;i<4;i++)
-//     {		
-	  
-//       Canvas->cd(i+1);
-	  
-//     // 	  // TString histname=Form("prof_%s%s",devname.Data(),antenna[i].Data());
-//     // 	  // hprof[i]= new TProfile(histname, histname, nbin,0, max_current*1.1);
-	  
-//     // 	  // SAMPLE_SIZE = Form("%s%s.num_samples",devname.Data(),antenna[i].Data())
-	  
-//     // 	  // plotcommand[i] = Form("%s%s.hw_sum_raw/%s:current>>%s",
-//     // 	  // 			devname.Data(),antenna[i].Data(),SAMPLE_SIZE.Data(),histname.Data()); 
-	  
-//     // 	  // scut = Form("cleandata==1 && current>%f && current<%f",scutmin, scutmax);
-//       scut = "";
-//       plotcommand[i] = Form("%s%s.hw_sum_raw", devname.Data(), antenna[i]);
-//       mps_tree->Draw(plotcommand[i],scut);
-//     }
-	  
-//     // 	  // if( hprof[i] == NULL)
-//     // 	  //   {
-//     // 	  //     std::cout<<" Attempt to plot NULL histogram - "<<plotcommand<<"\n Skipping device."<< devname<<std::endl;
-//     // 	  //     return;
-//     // 	  //   }
-	  
-//     // 	  // hprof[i]->SetMarkerStyle(20);
-//     // 	  // hprof[i]->SetMarkerColor(2);
-//     // 	  // for(int jj=0;jj<3;jj++)
-//     // 	  //   {
-//     // 	  //     par[jj][i]=0;
-//     // 	  //     epar[jj][i]=0;
-//     // 	  //   }
-//     // 	  // if(pol2)
-//     // 	  //   {
-//     // 	  //     hprof[i]->Fit("pol2","Q");	  
-//     // 	  //     f[i]= hprof[i]->GetFunction("pol2");
-//     // 	  //     for(int jj=0;jj<3;jj++)
-//     // 	  // 	{
-//     // 	  // 	  par[jj][i]= f[i]->GetParameter(jj);
-//     // 	  // 	  epar[jj][i]= f[i]->GetParError(jj);
-//     // 	  // 	}
-//     // 	  //   }
-//     // 	  // else
-//     // 	  //   {
-//     // 	  //     hprof[i]->Fit("pol1","Q");	  
-//     // 	  //     f[i]= hprof[i]->GetFunction("pol1");
-//     // 	  //     for(int jj=0;jj<2;jj++)
-//     // 	  // 	{
-//     // 	  // 	  par[jj][i]= f[i]->GetParameter(jj);
-//     // 	  // 	  epar[jj][i]= f[i]->GetParError(jj);
-//     // 	  // 	}
-	      
-//     // 	  //   }
-	  
-//     // 	  // TString ytitle0 =  Form("%s%s.hw_sum_raw/%s",devname.Data(),antenna[i].Data(),SAMPLE_SIZE.Data());  
-//     // 	  // TString xtitle0  = Form("cleandata==1&& I>%f && I<%f",scutmin, scutmax);
-	  
-//     // 	  // hprof[i]->SetYTitle(ytitle0);
-//     // 	  // hprof[i]->SetXTitle(xtitle0);
-	  
-//     // 	  // Myfile <<devname <<antenna[i]<< " , " << par[0][i] <<" , " << "1.0" <<std::endl;    
-//     // 	  //	}
-      
-//     //   // //    little trick for nice plot
-//     //   // Double_t Yminres=kMaxInt*1.;
-//     //   // Double_t Ymaxres=kMinInt*1.;
-//     //   // TH1 *h1;
-	  
-//     //   // for(int i=0;i<4;i++)
-//     //   // 	{
-//     //   // 	  Canvas->cd(2*(i+1));
-
-//     //   // 	  mps_tree->SetAlias("sample_size",SAMPLE_SIZE);
-		  	  
-//     //   // 	  plotcommand[i] = devname.Data(); 
-//     //   // 	  plotcommand[i] +=antenna[i];
-//     //   // 	  plotcommand[i] +=".hw_sum_raw/";
-//     //   // 	  plotcommand[i] +="sample_size";
-//     //   // 	  plotcommand[i] +=" -(";
-//     //   // 	  plotcommand[i]+="(current*current*";
-//     //   // 	  plotcommand[i] += par[2][i];
-//     //   // 	  plotcommand[i] += ")+";
-//     //   // 	  plotcommand[i]+="(current*";
-//     //   // 	  plotcommand[i] += par[1][i];
-//     //   // 	  plotcommand[i] += ")+";
-//     //   // 	  plotcommand[i] +=par[0][i];
-//     //   // 	  plotcommand[i] +=")";
-	  
-//     //   // 	  // To draw these plots we will use the current projected by the bcms in the initial bcm calibration.
-//     //   // 	  mps_tree->Draw(plotcommand[i],scut_residual);	 
-//     //   // 	  h1 = (TH1*) gROOT->FindObject("htemp");
-	  
-//     //   // 	  if(h1 == NULL)
-//     //   // 	    {
-//     //   // 	      std::cout<<" Attempt to plot NULL histogram - "<<plotcommand<<"\n Exiting program."<<std::endl;
-//     //   // 	      exit(1);
-//     //   // 	    }
-	  
-//     //   // 	  if (h1->GetXaxis()->GetXmax() > Ymaxres) Ymaxres = h1->GetXaxis()->GetXmax();
-//     //   // 	  if (h1->GetXaxis()->GetXmin() < Yminres) Yminres = h1->GetXaxis()->GetXmin();
-//     //   // 	  h1->Delete();
-//     //   // 	}
-//     //   // std::cout<<" onto plotting the residuals \n";
-      
-//     //   // //and now the nice plot
-      
-//     //   // TH2D *h2[4][2];
-//     //   // for(int i=0;i<4;i++)
-//     //   // 	{
-//     //   // 	  Canvas->cd(2*(i+1));
-//     //   // 	  Int_t reducednbin=500;
-	  
-//     //   // 	  //Draw the responce of the bpms
-//     //   // 	  TString histname=Form("Res_%s%s",devname.Data(),antenna[i].Data());
-//     //   // 	  h2[i][0]=new TH2D(histname,histname,reducednbin,0, max_current*1.1,reducednbin,Yminres,Ymaxres);
-//     //   // 	  mps_tree->Draw(plotcommand[i]+":current>>"+histname,scut_residual);
-
-//     //   // 	  h2[i][0]->Draw("box");
-	  
-//     //   // 	  // Draw the restricted responce of the bpms due to variation in beam current
-//     //   // 	  histname=Form("Res_%s%s_restricted",devname.Data(),antenna[i].Data());
-//     //   // 	  h2[i][1]=new TH2D(histname,histname,reducednbin,0, max_current*1.1,reducednbin,Yminres,Ymaxres); 
-//     //   // 	  mps_tree->Draw(plotcommand[i]+":current>>"+histname,scut);
-      
-//     //   // 	  h2[i][1]->SetLineColor(kRed);
-//     //   // 	  h2[i][1]->Draw("boxsame");
-	  
-//     //   // 	  TString xtitle1  = Form("cleandata==1&& I>%10.1f",scutmin);
-	  
-//     //   // 	  h2[i][1]->SetYTitle(plotcommand[i]);
-//     //   // 	  h2[i][1]->SetXTitle(xtitle1);
-	  
-//     //   // 	  zeroline->Draw("same");
-	  
-//     //   // 	  std::cout << devname <<antenna[i]<< 
-//     //   // 	    " par[0]="<< Form("%5.0f",par[0][i])<<
-//     //   // 	    " par[1]="<<Form("%5.0f",par[1][i])<< 
-//     //   // 	    " par[2]="<< Form("%5.2f",par[2][i])<<
-//     //   // 	    " red chi2 = "<<Form("%5.0f",(f[i]->GetChisquare())/(f[i]->GetNDF()))<<
-//     //   // 	    " residual (mean, res)= ("<<Form("%5.0f",h2[i][1]->GetMean(2))<<
-//     //   // 	    " , "<<Form("%5.0f",h2[i][1]->GetRMS(2))<<
-//     //   // 	    " )\n";
-	  
-//     //   // 	}
-//     // }
-//   Canvas->Update();
-
-//   //  Canvas->Print(CanvasTitle+".ps"); // the ) puts all the plots in to a one ps file
-//   return;
-  
-// };
 
 
 
