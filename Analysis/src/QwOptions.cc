@@ -13,7 +13,6 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
-#include <climits>
 
 // Statically defined option descriptions grouped by parser
 po::options_description QwOptions::fCommandLineOptions("Command line options");

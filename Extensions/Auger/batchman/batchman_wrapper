@@ -1,0 +1,11 @@
+#! /bin/tcsh -f
+
+set tmpdir=`pwd`
+unsetenv TCL_LIBRARY
+if (! $?QWDBPASSWD) then
+	setenv QWDBPASSWD QwReplay!
+endif
+
+cd ~/qweak/batchman/
+./batchman
+cd $tmpdir

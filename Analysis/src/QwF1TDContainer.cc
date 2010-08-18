@@ -5,25 +5,6 @@ ClassImp(QwF1TDContainer);
 
 QwF1TDC::QwF1TDC()
 {
-  this->Initialize();
-}
-
-QwF1TDC::QwF1TDC(const Int_t roc, const Int_t slot)
-{
-  this->Initialize();
-
-  fROC  = roc;
-  fSlot = slot;
- 
-  // Int_t SLOTNUM = 22; // not use 0, use 1-21
-  // Int_t CHANNUM = 64; //    0-63
-  // fF1TDCReferenceSignals = new TArrayD[SLOTNUM];
-  // for (Int_t i=0;i<SLOTNUM;i++) fValues[i].Set(CHANNUM);
-}
-
-void 
-QwF1TDC::Initialize()
-{
   fROC                 = -1;
   fSlot                = -1;
   fReferenceSlotFlag   = kFALSE;
@@ -42,9 +23,58 @@ QwF1TDC::Initialize()
   fF1TDC_resolution_ns = 0.0;
 
   // fF1TDCReferenceChannels = NULL;
-
-  return;
 }
+
+QwF1TDC::QwF1TDC(const Int_t roc, const Int_t slot)
+{
+  fReferenceSlotFlag   = kFALSE;
+  
+  fF1TDC_refcnt        = 0;
+  fF1TDC_hsdiv         = 0;
+  fF1TDC_refclkdiv     = 0;
+  fF1TDC_trigwin       = 0;
+  fF1TDC_triglat       = 0;
+  
+  fF1TDC_tframe_ns     = 0.0;
+  fF1TDC_full_range_ns = 0.0;
+  //  fF1TDC_bin_size_ns   = 0.0;
+  fF1TDC_window_ns     = 0.0;
+  fF1TDC_latency_ns    = 0.0;
+  fF1TDC_resolution_ns = 0.0;
+ 
+  fROC  = roc;
+  fSlot = slot;
+ 
+  // Int_t SLOTNUM = 22; // not use 0, use 1-21
+  // Int_t CHANNUM = 64; //    0-63
+  // fF1TDCReferenceSignals = new TArrayD[SLOTNUM];
+  // for (Int_t i=0;i<SLOTNUM;i++) fValues[i].Set(CHANNUM);
+}
+
+// void 
+// QwF1TDC::Initialize()
+// {
+//   fROC                 = -1;
+//   fSlot                = -1;
+//   fReferenceSlotFlag   = kFALSE;
+  
+//   fF1TDC_refcnt        = 0;
+//   fF1TDC_hsdiv         = 0;
+//   fF1TDC_refclkdiv     = 0;
+//   fF1TDC_trigwin       = 0;
+//   fF1TDC_triglat       = 0;
+  
+//   fF1TDC_tframe_ns     = 0.0;
+//   fF1TDC_full_range_ns = 0.0;
+//   //  fF1TDC_bin_size_ns   = 0.0;
+//   fF1TDC_window_ns     = 0.0;
+//   fF1TDC_latency_ns    = 0.0;
+//   fF1TDC_resolution_ns = 0.0;
+
+//   // fF1TDCReferenceChannels = NULL;
+
+//   return;
+// }
 
 
 QwF1TDC::~QwF1TDC()
@@ -64,7 +94,12 @@ QwF1TDC::~QwF1TDC()
 // }
 
 TClonesArray *QwF1TDContainer::gQwF1TDCs    = NULL;
-const Int_t QwF1TDContainer::gMaxCloneArray = 100;
+const Int_t QwF1TDContainer::gMaxCloneArray = 20; 
+// the maximum number of F1TDC modulesthat each subsystem can have.
+// For Region 2 has 14
+// For Region 3 has  6
+// For other    has  2
+// Monday, August  2 10:56:04 EDT 2010, jhlee
 
 QwF1TDContainer::QwF1TDContainer()
 {

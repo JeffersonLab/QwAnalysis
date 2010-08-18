@@ -176,6 +176,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwHitRootContainer* hitlist_root = new QwHitRootContainer();
     std::vector<double> tracking_vector, parity_vector;
 
+
     if (kTree) {
        rootfile->cd(); // back to the top directory
        hit_tree = new TTree("hit_tree", "QwTracking Hit-based Tree");
@@ -199,8 +200,12 @@ Int_t main(Int_t argc, Char_t* argv[])
        parity_detectors.ConstructHistograms(rootfile->mkdir("parity_histo"));
        rootfile->cd();
     }
+
     QwHitContainer* hitlist = 0;
-    Int_t nevents         = 0;
+
+    Int_t nevents           = 0;
+    Int_t hit_fill_retval   = 0;
+    Int_t event_fill_retval = 0;
 
     while (eventbuffer.GetNextEvent() == CODA_OK) {
       //  Loop over events in this CODA file
@@ -280,8 +285,14 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       // Save the hitlist to the tree
       if (kTree) {
-        hit_tree->Fill();
-        event_tree->Fill();
+	hit_fill_retval   = hit_tree->Fill();
+	event_fill_retval = event_tree->Fill();
+	
+	if ((hit_fill_retval==-1) or (event_fill_retval==-1)) {
+	  QwError << "Please check your disk space in order to save ROOT file properly."
+		  << QwLog::endl;
+	  exit(-1);
+	}
       }
 
       // Delete objects

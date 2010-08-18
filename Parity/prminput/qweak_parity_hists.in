@@ -454,6 +454,7 @@ asymMD.Pos_numsamples	TH1F	1001	-2.5		5002.5			NumberOfSamples	Events
 
 ###  Scanner histograms
 
+scanner_vqwk_power              TH1F    4096    0.5             4096.5                  front_adc       Events
 scanner_front_adc		TH1F	4096	0.5		4096.5			front_adc	Events
 scanner_back__adc		TH1F	4096	0.5		4096.5			back__adc	Events
 scanner_power_adc		TH1F	4096	0.5		4096.5			power_adc	Events

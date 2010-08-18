@@ -4,6 +4,7 @@
 
 // System headers
 #include <sstream>
+#include <climits>
 
 // Qweak headers
 #include "QwLog.h"
@@ -71,34 +72,79 @@ UInt_t QwParameterFile::GetUInt(const TString& varvalue)
 };
 
 
-QwParameterFile::QwParameterFile(const char *filename){
-  bfs::path tmppath = bfs::path(filename);
-  if (filename[0] == '/') {
-    tmppath = bfs::path(filename);
+/**
+ * Constructor
+ * @param filename
+ */
+QwParameterFile::QwParameterFile(const std::string& filename)
+{
+  // Immediately try to open full paths and return
+  if (filename.find("/") == 0) {
+    OpenFile(bfs::path(filename));
+    return;
+
+  // Else loop through search and files
   } else {
+    int score_found = 0;
+    bfs::path path_found;
     for (size_t i = 0; i < fSearchPaths.size(); i++) {
-      tmppath = fSearchPaths.at(i).string() + "/" + filename;
-      if (bfs::exists(tmppath) && ! bfs::is_directory(tmppath)) {
+      bfs::path path;
+      int score = FindFile(fSearchPaths[i], filename, path);
+      if (score > score_found) {
+        // Found a file
+        score_found = score;
+        path_found = path;
         break;
       }
     }
-  }
-  if (bfs::exists(tmppath)){
-    QwMessage << "Opening parameter file: "
-              << tmppath.string() << QwLog::endl;
-    fFile.open(tmppath.string().c_str());
-    fStream << fFile.rdbuf();
-  } else {
-    QwError << "Unable to open parameter file: "
-            << tmppath.string() << QwLog::endl;
+    if (OpenFile(path_found) == false)
+      QwError << "Contents of parameter file "
+              << path_found.string() << QwLog::endl;
   }
 };
 
 
-bool QwParameterFile::FindFile(
+/**
+ * Open a file at the specified location
+ * @param path Path to file to be opened
+ * @return False if the file could not be opened
+ */
+bool QwParameterFile::OpenFile(const bfs::path& path)
+{
+  bool status = false;
+
+  // Check whether path exists and is a regular file
+  if (bfs::exists(path) && bfs::is_regular_file(path)) {
+    QwMessage << "Opening parameter file: "
+              << path.string() << QwLog::endl;
+    // Open file
+    fFile.open(path.string().c_str());
+    // Load into stream
+    fStream << fFile.rdbuf();
+    status = true;
+
+  } else {
+
+    // File does not exist or is not a regular file
+    QwError << "Unable to open parameter file: "
+            << path.string() << QwLog::endl;
+    status = false;
+  }
+
+  return status;
+}
+
+
+/**
+ * Find the file in a directory with highest-scoring run label
+ * @param dir_path Directory to search in
+ * @param file_name File name to search for
+ * @param path_found (returns) Path to the highest-scoring file
+ * @return Score of file
+ */
+int QwParameterFile::FindFile(
         const bfs::path& dir_path,
         const std::string& file_name,
-        const unsigned int run,
         bfs::path& path_found)
 {
   // Return false if the directory does not exist
@@ -106,28 +152,35 @@ bool QwParameterFile::FindFile(
 
   // Loop over all files in the directory
   bfs::directory_iterator end_iterator; // default construction yields past-the-end
+  int score_found = 0;
   for (bfs::directory_iterator file_iterator(dir_path);
        file_iterator != end_iterator;
        file_iterator++) {
 
-    // Look for a match
-    if (MatchRunNumberToFile(file_iterator->leaf(), file_name, run)) {
-      //path_found = file_iterator->path();
-      return true;
+    // Look for the match with highest score
+    int score = MatchRunNumberToFile(file_iterator->leaf(), file_name);
+    if (score > score_found) {
+      path_found = file_iterator->path();
+      score_found = score;;
     }
   }
-  return false;
+  return 0;
 };
 
 
-bool QwParameterFile::MatchRunNumberToFile(
+/**
+ * Match the specified file path to the file name and extension for the current run
+ * @param this_file_name Specified file path
+ * @param file File (with name and extension) to search for
+ * @return Score of the match
+ */
+int QwParameterFile::MatchRunNumberToFile(
         const std::string& this_file_name,
-        const std::string& file,
-        const unsigned int run)
+        const std::string& file)
 {
-  // Separate file to test for in name and extension
-  std::string file_name = file.substr(0,file.find("."));
-  std::string file_ext = file.substr(file.find("."));
+  // Separate file to test for in name and extension (TODO (wdc) use BFS)
+  std::string file_name = file.substr(0,file.find_first_of("."));
+  std::string file_ext = file.substr(file.find_last_of("."));
   QwMessage << "Matching file name " << file_name << " and ext " << file_ext << QwLog::endl;
   // Find a match for the file name
   size_t found = this_file_name.find(file_name);
@@ -141,7 +194,10 @@ bool QwParameterFile::MatchRunNumberToFile(
         // Split off the label between file name and extension
         std::string label = file.substr(first_period, second_period - first_period);
         QwMessage << "Label " << label << QwLog::endl;
-        return MatchRunNumberToLabel(label,run);
+        // Determine score
+        int score = 10 - label.length(); // TODO (wdc) better scoring
+        if (MatchRunNumberToLabel(label,fCurrentRunNumber))
+          return score;
       }
     }
   }
@@ -188,12 +244,12 @@ void QwParameterFile::TrimComment(char commentchar){
 Bool_t QwParameterFile::HasValue(TString& vname){
   Bool_t status=kFALSE;
   TString vline;
-  
+
   RewindToFileStart();
   while (ReadNextLine()){
     TrimWhitespace();
     vline=(GetLine()).c_str();
-    
+
     vline.ToLower();
     TRegexp regexp(vline);
     vname.ToLower();
@@ -201,7 +257,7 @@ Bool_t QwParameterFile::HasValue(TString& vname){
       QwMessage <<" QwParameterFile::HasValue  "<<vline<<" "<<vname<<QwLog::endl;
       status=kTRUE;
       break;
-    }      
+    }
   }
 
   return status;
@@ -306,7 +362,7 @@ Bool_t QwParameterFile::LineHasModuleHeader(TString& secname)
     }
   }
   return status;
- 
+
 };
 
 Bool_t QwParameterFile::LineHasModuleHeader(std::string& secname)
@@ -341,7 +397,7 @@ Bool_t QwParameterFile::FileHasSectionHeader(const TString& secname)
 
 Bool_t QwParameterFile::FileHasSectionHeader(const std::string& secname)
 {
-  
+
   RewindToFileStart();
   while (ReadNextLine()) {
     std::string this_secname;
@@ -367,7 +423,7 @@ Bool_t QwParameterFile::FileHasModuleHeader(const TString& secname)
 
 Bool_t QwParameterFile::FileHasModuleHeader(const std::string& secname)
 {
-  
+
   RewindToFileStart();
   while (ReadNextLine()) {
     std::string this_secname;
@@ -431,9 +487,9 @@ QwParameterFile* QwParameterFile::ReadNextSection(std::string &secname)
 QwParameterFile* QwParameterFile::ReadNextSection(TString &secname)
 {
   if (IsEOF()) return 0;
-  
+
   while (! LineHasSectionHeader(secname) && ReadNextLine()); // skip until header
-  
+
   return ReadUntilNextSection();
 }
 
@@ -452,9 +508,9 @@ QwParameterFile* QwParameterFile::ReadNextModule(std::string &secname)
 QwParameterFile* QwParameterFile::ReadNextModule(TString &secname)
 {
   if (IsEOF()) return 0;
-  
+
   while (! LineHasModuleHeader(secname) && ReadNextLine()); // skip until header
-  
+
   return ReadUntilNextModule();
 }
 

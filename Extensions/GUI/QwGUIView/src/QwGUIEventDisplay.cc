@@ -110,12 +110,12 @@ void QwGUIEventDisplay::MakeLayout()
    TitleBox->SetWrapLength(-1);
    fLogos->AddFrame(TitleBox, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    TitleBox->MoveResize(143,1,627,77);
-   /*
+
    // Insert GWU logo
    TGIcon *GWULogo = new TGIcon(fLogos, getenv_safe_TString("QWANALYSIS") + "/Extensions/Logos/gwu_logo_main.gif");
    fLogos->AddFrame(GWULogo, new TGLayoutHints(kLHintsNormal));
    GWULogo->MoveResize(772,1,135,77);
-   */
+
    // Add logos frame to main frame
    fMain->AddFrame(fLogos, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fLogos->MoveResize(0,20,900,100);
@@ -316,35 +316,35 @@ void QwGUIEventDisplay::MakeLayout()
    fEventBox3->AddFrame(fOctantID, new TGLayoutHints(kVerticalFrame | kSunkenFrame));
    fOctantID->MoveResize(22,32,180,180);
    fOctantID->GetCanvas()->SetFillColor(kAzure-7);
-   Octant_1 = new TPaveLabel(.4,.75,.6,.95, "1");        // Create labels for each octant
+   Octant_1 = new TPaveLabel(.4,.75,.6,.95, "3");        // Create labels for each octant
    Octant_1->SetLineColor(1);
    Octant_1->SetFillColor(0);
    Octant_1->Draw();
-   Octant_2 = new TPaveLabel(.675,.675,.875,.875, "2");
+   Octant_2 = new TPaveLabel(.675,.675,.875,.875, "4");
    Octant_2->SetLineColor(1);
    Octant_2->SetFillColor(0);
    Octant_2->Draw();
-   Octant_3 = new TPaveLabel(.75,.4,.95,.6, "3");
+   Octant_3 = new TPaveLabel(.75,.4,.95,.6, "5");
    Octant_3->SetLineColor(1);
    Octant_3->SetFillColor(0);
    Octant_3->Draw();
-   Octant_4 = new TPaveLabel(.675,.125,.875,.325, "4");
+   Octant_4 = new TPaveLabel(.675,.125,.875,.325, "6");
    Octant_4->SetLineColor(1);
    Octant_4->SetFillColor(0);
    Octant_4->Draw();
-   Octant_5 = new TPaveLabel(.4,.05,.6,.25, "5");
+   Octant_5 = new TPaveLabel(.4,.05,.6,.25, "7");
    Octant_5->SetLineColor(1);
    Octant_5->SetFillColor(0);
    Octant_5->Draw();
-   Octant_6 = new TPaveLabel(.125,.125,.325,.325, "6");
+   Octant_6 = new TPaveLabel(.125,.125,.325,.325, "8");
    Octant_6->SetLineColor(1);
    Octant_6->SetFillColor(0);
    Octant_6->Draw();
-   Octant_7 = new TPaveLabel(.05,.4,.25,.6, "7");
+   Octant_7 = new TPaveLabel(.05,.4,.25,.6, "1");
    Octant_7->SetLineColor(1);
    Octant_7->SetFillColor(0);
    Octant_7->Draw();
-   Octant_8 = new TPaveLabel(.125,.675,.325,.875, "8");
+   Octant_8 = new TPaveLabel(.125,.675,.325,.875, "2");
    Octant_8->SetLineColor(1);
    Octant_8->SetFillColor(0);
    Octant_8->Draw();

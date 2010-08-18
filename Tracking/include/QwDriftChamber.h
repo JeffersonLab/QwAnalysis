@@ -25,6 +25,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <iomanip>
 
 #include "VQwSubsystemTracking.h"
 #include "MQwF1TDC.h"
@@ -154,6 +155,8 @@ class QwDriftChamber: public VQwSubsystemTracking{
   MQwF1TDC fF1TDC;
 
   QwF1TDContainer *fF1TDContainer;
+
+  UInt_t fF1TDCBadDataCount;
 
 
   //  NOTE:  The plane and wire indices count from "1" instead

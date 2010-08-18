@@ -34,7 +34,10 @@ class QwParameterFile {
 
   public:
 
-    QwParameterFile(const char *filename);
+    QwParameterFile(const std::string& filename);
+    QwParameterFile(const std::stringstream& stream) {
+      fStream << stream.rdbuf();
+    };
     virtual ~QwParameterFile() { };
 
     /// Access the streambuf pointer in the same way as on a std::ifstream
@@ -136,18 +139,19 @@ class QwParameterFile {
     /// Check whether the run number is matched by a file label
     bool MatchRunNumberToLabel(const std::string& label, const int run) {
       std::pair<int,int> range = ParseIntRange("-",label);
-      return ((range.first <= run) && (run <= range.second)); 
+      return ((range.first <= run) && (run <= range.second));
     };
 
     /// Check whether the run number and file name are matched by a file name found
-    bool MatchRunNumberToFile(const std::string& this_file_name, const std::string& file, const unsigned int run);
+    int MatchRunNumberToFile(const std::string& this_file_name, const std::string& file);
 
-    /// Find the first file in a directory that conforms to the run label 
-    bool FindFile(const bfs::path& dir_path,    // in this directory,
-                  const std::string& file_name, // search for this name,
-                  const unsigned int run,       // with this run number,
-                  bfs::path& path_found);       // placing path here if found
+    /// Find the first file in a directory that conforms to the run label
+    int FindFile(const bfs::path& dir_path,    // in this directory,
+                 const std::string& file_name, // search for this name,
+                 bfs::path& path_found);       // placing path here if found
 
+    /// Open a file
+    bool OpenFile(const bfs::path& path_found);
 
   public:
 
